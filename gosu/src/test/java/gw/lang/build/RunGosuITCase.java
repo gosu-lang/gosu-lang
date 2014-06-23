@@ -91,7 +91,7 @@ public class RunGosuITCase {
             "        gosu [options] [program [args...]]");
   }
 
-  @Test
+/*  @Test
   public void unknownArgShowsHelp() {
     GosuRunner gosu = new GosuRunner()
             .run("-foobar");
@@ -101,7 +101,7 @@ public class RunGosuITCase {
     assertThat(gosu._stdout.getLines()).startsWith(
             "Usage:",
             "        gosu [options] [program [args...]]");
-  }
+  }*/
 
   @Test
   public void noArgsStartsInteractiveShell() {

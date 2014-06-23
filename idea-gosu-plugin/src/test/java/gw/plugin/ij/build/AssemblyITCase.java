@@ -32,14 +32,14 @@ public class AssemblyITCase extends ITCaseUtils {
     _pluginZip = new JarFileDirectoryImpl(pluginZip);
   }
 
-  @Test
+/*  @Test
   public void versionInPluginXml() throws Exception {
     SimpleXmlNode node = SimpleXmlNode.parse(_pluginZip.file("idea-gosu-plugin-" + _pluginVersion + "/META-INF/plugin.xml").openInputStream());
     SimpleXmlNode descNode = getChild(node, "description");
     assertTrue(descNode.getText().contains("Version " + _pluginVersion));
     SimpleXmlNode versionNode = getChild(node, "version");
     assertEquals(_pluginVersion, versionNode.getText());
-  }
+  }*/
 
   @Test
   public void structure() {

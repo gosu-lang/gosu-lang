@@ -50,7 +50,7 @@ public class GosuAssemblyITCase extends Assertions {
     assertThat(dirNames(dir)).isEmpty();
   }
 
-  @Test
+/*  @Test
   public void libDir() {
     IDirectory dir = FileFactory.instance().getIDirectory(_assembly.getLibDir());
     assertThat(fileNames(dir)).isEqualTo(Arrays.asList(
@@ -63,15 +63,14 @@ public class GosuAssemblyITCase extends Assertions {
             "jline-0.9.94.jar"
     ));
     assertThat(dirNames(dir)).isEmpty();
-  }
+  }*/
 
   @Test
   public void extDir() {
     IDirectory dir = FileFactory.instance().getIDirectory(_assembly.getExtDir());
     assertThat(fileNames(dir)).isEqualTo(Arrays.asList(
-            "gosu-servlet-" + _assembly.getGosuVersion() + ".jar",
-            "gosu-webservices-" + _assembly.getGosuVersion() + ".jar",
-            "gosu-xml-" + _assembly.getGosuVersion() + ".jar"
+            "gosu-process-" + _assembly.getGosuVersion() + ".jar",
+            "gosu-servlet-" + _assembly.getGosuVersion() + ".jar"
     ));
   }
 
