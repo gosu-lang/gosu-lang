@@ -1,9 +1,0 @@
-<?xml version="1.0"?>
-<class>
-  <desc/>
-  <method name="getIntrinsicTypeFromObject">
-    <desc>Returns the intrinsic type for the given Object.</desc>
-    <return>the IType for the object</return>
-    <param name="object" type="java.lang.Object">the object to get an IType for</param>
-  </method>
-</class>

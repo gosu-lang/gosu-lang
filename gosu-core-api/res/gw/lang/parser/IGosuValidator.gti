@@ -1,9 +1,0 @@
-<?xml version="1.0"?>
-<class>
-  <desc/>
-  <method name="validate">
-    <desc>Provides additional semantic checks to a Gosu parser</desc>
-    <param name="rootParsedElement" type="gw.lang.parser.IParsedElement">- the root parsed element to validate from</param>
-    <param name="scriptSrc" type="java.lang.String"/>
-  </method>
-</class>

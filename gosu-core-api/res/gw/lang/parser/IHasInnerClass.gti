@@ -1,9 +1,0 @@
-<?xml version="1.0"?>
-<class>
-  <desc/>
-  <method name="getInnerClass">
-    <desc>returns the appropriate inner class</desc>
-    <return/>
-    <param name="strTypeName" type="java.lang.CharSequence"/>
-  </method>
-</class>

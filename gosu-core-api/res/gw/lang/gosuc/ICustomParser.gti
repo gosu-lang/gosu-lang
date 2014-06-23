@@ -1,5 +1,0 @@
-<?xml version="1.0"?>
-<class>
-  <desc>Implementers of this interface must provide a default, no argument constructor
-that is invokable from a command line build.</desc>
-</class>

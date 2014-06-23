@@ -1,8 +1,0 @@
-<?xml version="1.0"?>
-<class>
-  <desc>Properties that are null and are annotated with @Autocreate will be populated automatically during an assignment
-of a subproperty. If a block is supplied, the block will be called to create the new object, otherwise
-the parameterless contructor will be used.
-
- Copyright 2013 Guidewire Software, Inc.</desc>
-</class>

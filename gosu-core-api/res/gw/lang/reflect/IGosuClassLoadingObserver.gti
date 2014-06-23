@@ -1,9 +1,0 @@
-<?xml version="1.0"?>
-<class>
-  <desc/>
-  <method name="shouldUseSingleServingLoader">
-    <desc/>
-    <return>true if the class should be loaded in a single serving classloader</return>
-    <param name="gsClass" type="gw.lang.reflect.gs.ICompilableType">- the class to consider</param>
-  </method>
-</class>

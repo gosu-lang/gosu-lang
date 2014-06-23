@@ -1,9 +1,0 @@
-<?xml version="1.0"?>
-<class>
-  <desc/>
-  <method name="syncAnnotations">
-    <desc>This method exists for historical reasons only, and will be removed in future
-releases.</desc>
-    <param name="modifierInfo" type="gw.lang.reflect.IModifierInfo"/>
-  </method>
-</class>

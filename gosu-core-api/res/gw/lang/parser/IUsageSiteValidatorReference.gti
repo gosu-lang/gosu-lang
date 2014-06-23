@@ -1,7 +1,0 @@
-<?xml version="1.0"?>
-<class>
-  <desc/>
-  <method name="value">
-    <desc>A reference to a class implementing the IUsageSiteValidator interface and a no-arg constructor</desc>
-  </method>
-</class>

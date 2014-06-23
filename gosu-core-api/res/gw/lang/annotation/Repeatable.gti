@@ -1,7 +1,0 @@
-<?xml version="1.0"?>
-<class>
-  <desc>##todo: this is a temporary annotation, delete this and use java.lang.annotation.Repeatable when we move to Java 8
-!!
-!!NOTE: when you move to Java 8 you'll need to change JavaTypes#REPEATABLE() to point to the java.lang.annotations.Repeatable.class
-!!</desc>
-</class>

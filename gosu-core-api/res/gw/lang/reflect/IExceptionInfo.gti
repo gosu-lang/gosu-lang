@@ -1,7 +1,0 @@
-<?xml version="1.0"?>
-<class>
-  <desc/>
-  <method name="getExceptionType">
-    <desc>Returns the intrinsic type this exception represents</desc>
-  </method>
-</class>

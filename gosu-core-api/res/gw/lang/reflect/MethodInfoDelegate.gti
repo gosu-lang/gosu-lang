@@ -1,9 +1,0 @@
-<?xml version="1.0"?>
-<class>
-  <desc/>
-  <cons>
-    <desc/>
-    <param name="container" type="gw.lang.reflect.IFeatureInfo">Typically this will be the containing ITypeInfo</param>
-    <param name="source" type="gw.lang.reflect.IMethodInfo">The method info source</param>
-  </cons>
-</class>
