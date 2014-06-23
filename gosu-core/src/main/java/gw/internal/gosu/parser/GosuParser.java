@@ -6658,6 +6658,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
 
   private void maybeReassignOffsetForArgumentListClause( int iArgs, List<Expression> argExpressions, int iOffset, int iLineNum, int iColumn )
   {
+    boolean noLocations = true;
     if( iArgs > 0 )
     {
       // Maybe reassign offset for ArgumentListClause...
@@ -6667,6 +6668,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
         {
           continue;
         }
+        noLocations = false;
         int iExpressionOffset = argExpr.getLocation().getOffset();
         if( iExpressionOffset < iOffset )
         {
@@ -6677,11 +6679,13 @@ public final class GosuParser extends ParserBase implements IGosuParser
           iColumn = argExpr.getLocation().getColumn();
         }
       }
-
-      ArgumentListClause e = new ArgumentListClause();
-      pushExpression( e );
-      setLocation( iOffset, iLineNum, iColumn, true );
-      popExpression();
+      if(!noLocations)
+      {
+        ArgumentListClause e = new ArgumentListClause();
+        pushExpression( e );
+        setLocation( iOffset, iLineNum, iColumn, true );
+        popExpression();
+      }
     }
   }
 
