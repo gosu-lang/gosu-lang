@@ -22,18 +22,20 @@
 
   <files>
     <file>
-      <source>bin/gosu</source>
+      <source>${project.build.scriptSourceDirectory}/gosu</source>
       <outputDirectory>bin</outputDirectory>
       <fileMode>0755</fileMode>
       <filtered>true</filtered>
+      <lineEnding>unix</lineEnding>
     </file>
     <file>
-      <source>bin/gosu.cmd</source>
+      <source>${project.build.scriptSourceDirectory}/gosu.cmd</source>
       <outputDirectory>bin</outputDirectory>
       <filtered>true</filtered>
+      <lineEnding>dos</lineEnding>
     </file>
     <file>
-      <source>bin/thin.gosulaunch.properties</source>
+      <source>${project.build.scriptSourceDirectory}/thin.gosulaunch.properties</source>
       <outputDirectory>bin</outputDirectory>
       <destName>gosulaunch.properties</destName>
       <filtered>true</filtered>
@@ -41,7 +43,7 @@
   </files>
   <fileSets>
     <fileSet>
-      <directory>text</directory>
+      <directory>${project.build.textDirectory}</directory>
       <outputDirectory/>
       <filtered>true</filtered>
     </fileSet>

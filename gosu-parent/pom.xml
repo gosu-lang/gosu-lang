@@ -1,102 +1,111 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
-  <parent>
-    <groupId>com.guidewire.pl</groupId>
-    <artifactId>pl-parent</artifactId>
-    <version>9-gosu-SNAPSHOT</version>
-    <relativePath>../pl-parent/pom.xml</relativePath>
-  </parent>
-
-  <groupId>com.guidewire.gosu</groupId>
+  <groupId>org.gosu-lang.gosu</groupId>
   <artifactId>gosu-parent</artifactId>
+  <version>0.10.4-SNAPSHOT</version>
   <packaging>pom</packaging>
 
   <name>Gosu :: Parent POM</name>
 
   <licenses>
     <license>
-      <name>Guidewire proprietary license</name>
-      <url>nourl</url>
+      <name>The Apache Software License, Version 2.0</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
       <distribution>repo</distribution>
     </license>
   </licenses>
 
   <properties>
     <launcher.api.version>2</launcher.api.version>
-    <launcher.impl.version>2.0</launcher.impl.version>
-    <launcher.aether.version>2.0</launcher.aether.version>
-    <shades.commons.cli.version>1.2</shades.commons.cli.version>
-    <shades.commons.collections.version>3.2.1</shades.commons.collections.version>
-    <shades.commons.logging.version>1.1.1</shades.commons.logging.version>
-    <shades.asm.version>5.0.1</shades.asm.version>
-    <shades.antlr.version>3.4</shades.antlr.version>
-    <shades.xerces.version>2.11.0</shades.xerces.version>
-    <shades.jetty.version>6.1.26RC0</shades.jetty.version>
+    <launcher.impl.version>2.1</launcher.impl.version>
+    <launcher.aether.version>2.1</launcher.aether.version>
     <jline.version>0.9.94</jline.version>
     <dist.man.repo.url>http://gosu-lang.org/nexus/content/repositories/gosu</dist.man.repo.url>
     <dist.man.snapshotrepo.url>http://gosu-lang.org/nexus/content/repositories/snapshots</dist.man.snapshotrepo.url>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <idea.local.output>true</idea.local.output>
-    <contains.sources>true</contains.sources>
   </properties>
 
+  <repositories>
+    <repository>
+      <id>gosu-lang.org-gosu</id>
+      <name>Official Gosu website (gosu)</name>
+      <url>http://gosu-lang.org/nexus/content/repositories/gosu</url>
+      <releases>
+        <enabled>true</enabled>
+      </releases>
+      <snapshots>
+        <enabled>false</enabled>
+      </snapshots>
+    </repository>
+
+    <repository>
+      <id>gosu-lang.org-snapshots</id>
+      <name>Official Gosu website (snapshots)</name>
+      <url>http://gosu-lang.org/nexus/content/repositories/snapshots</url>
+      <releases>
+        <enabled>false</enabled>
+      </releases>
+      <snapshots>
+        <enabled>true</enabled>
+      </snapshots>
+    </repository>
+  </repositories>
+
+  <distributionManagement>
+    <repository>
+      <id>gosu-lang.org-gosu</id>
+      <url>${dist.man.repo.url}</url>
+    </repository>
+    <snapshotRepository>
+      <id>gosu-lang.org-snapshots</id>
+      <url>${dist.man.snapshotrepo.url}</url>
+      <uniqueVersion>false</uniqueVersion>
+    </snapshotRepository>
+  </distributionManagement>
+
   <build>
-    <sourceDirectory>src</sourceDirectory>
-    <testSourceDirectory>src-test</testSourceDirectory>
     <resources>
       <resource>
-        <directory>generated</directory>
+        <directory>src/main/gosu</directory>
       </resource>
       <resource>
-        <directory>gsrc</directory>
-      </resource>
-      <!--
-        PLGosuBytecodeSuite is not very smart at detecting this source root, so we are making it a regular resource,
-        so we are adding it as a regular resource, not test resource.
-      -->
-      <resource>
-        <directory>gtest</directory>
+        <directory>src/test/gosu</directory>
       </resource>
       <resource>
-        <directory>src</directory>
+        <directory>src/main/java</directory>
         <excludes>
           <exclude>**/*.java</exclude>
         </excludes>
       </resource>
       <resource>
-        <directory>res</directory>
+        <directory>src/main/resources</directory>
+      </resource>
+      <resource>
+        <directory>${generated.version.dir}</directory>
       </resource>
     </resources>
     <pluginManagement>
       <plugins>
         <plugin>
          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-install-plugin</artifactId>
-          <version>2.4</version>
-        </plugin>
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
          <artifactId>maven-compiler-plugin</artifactId>
-          <version>2.5.1</version>
+         <configuration>
+           <source>1.7</source>
+           <target>1.7</target>
+         </configuration>
+       </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-source-plugin</artifactId>
+          <version>2.2.1</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-javadoc-plugin</artifactId>
+          <version>2.9</version>
           <configuration>
-            <fork>true</fork>
-            <maxmem>768m</maxmem>
             <encoding>UTF-8</encoding>
-            <source>1.6</source>
-            <target>1.6</target>
           </configuration>
-        </plugin>
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-surefire-plugin</artifactId>
-          <version>2.12</version>
-        </plugin>
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-resources-plugin</artifactId>
-          <version>2.6</version>
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
@@ -104,141 +113,58 @@
           <version>2.7</version>
         </plugin>
         <plugin>
-          <groupId>com.guidewire.build</groupId>
-          <artifactId>idea-maven-plugin</artifactId>
-          <version>0.12.5</version>
-          <configuration>
-            <localOutput>${idea.local.output}</localOutput>
-            <languageLevel>JDK_1_6</languageLevel>
-          </configuration>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-shade-plugin</artifactId>
+          <version>1.5</version>
         </plugin>
         <plugin>
-          <!-- TODO remove this when we open source -->
           <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-clean-plugin</artifactId>
-          <version>2.4.1</version>
-          <configuration>
-            <filesets>
-              <fileset>
-                <directory>${project.basedir}</directory>
-                <includes>
-                  <include>module.xml</include>
-                  <include>bnd.generated</include>
-                </includes>
-              </fileset>
-              <fileset>
-                <directory>generated</directory>
-              </fileset>
-              <!-- Produced by old builds -->
-              <fileset>
-                <directory>.ide-cache</directory>
-              </fileset>
-              <fileset>
-                <directory>classes</directory>
-              </fileset>
-              <fileset>
-                <directory>dist</directory>
-              </fileset>
-              <fileset>
-                <directory>ignore</directory>
-              </fileset>
-            </filesets>
-          </configuration>
+          <artifactId>maven-release-plugin</artifactId>
+          <version>2.3.2</version>
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-jar-plugin</artifactId>
-          <version>2.4</version>
+          <version>2.3.2</version>
           <configuration>
             <archive>
-              <manifestEntries>
-                <Contains-Sources>${contains.sources}</Contains-Sources>
-              </manifestEntries>
+              <manifest>
+                <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+              </manifest>
             </archive>
           </configuration>
-          <dependencies>
-            <dependency>
-              <!-- Fixes issue with wrong permissions set in zips (http://jira.codehaus.org/browse/MASSEMBLY-449) -->
-              <groupId>org.codehaus.plexus</groupId>
-              <artifactId>plexus-archiver</artifactId>
-              <version>2.2</version>
-            </dependency>
-          </dependencies>
-        </plugin>
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-javadoc-plugin</artifactId>
-          <version>2.9.1</version>
-          <executions>
-            <execution>
-              <id>javadoc-jar</id>
-              <phase>package</phase>
-              <goals>
-                <goal>jar</goal>
-              </goals>
-              <configuration>
-                <charset>UTF-8</charset>
-                <docencoding>UTF-8</docencoding>
-                <maxmemory>768m</maxmemory>
-                <!-- NOTE pdalbora 11-Jun-2013: Not sure why gw.config and gw.fs.* are excluded.... -->
-                <excludePackageNames>com.guidewire.*:gw.internal.*:gw.config:gw.fs.*</excludePackageNames>
-                <quiet>true</quiet>
-              </configuration>
-            </execution>
-          </executions>
         </plugin>
       </plugins>
     </pluginManagement>
     <plugins>
       <plugin>
-        <groupId>com.guidewire.pl.modularization</groupId>
-        <artifactId>osgi-maven-plugin</artifactId>
-        <version>0.1.1</version>
-        <extensions>true</extensions>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-resources-plugin</artifactId>
+        <version>2.5</version>
         <configuration>
-          <metadata>
-            <directory>generated</directory>
-            <includes>
-              <include>OSGI-INF/**</include>
-            </includes>
-          </metadata>
-          <excludeDependencies>*;groupId=com.guidewire.gosu|org.gosu-lang.gosu,*;artifactId=gosu-shades</excludeDependencies>
-          <instructions>
-            <Bundle-DocURL>http://guidewire.com</Bundle-DocURL>
-            <Bundle-License>nourl</Bundle-License>
-            <Bundle-RequiredExecutionEnvironment>JavaSE-1.6</Bundle-RequiredExecutionEnvironment>
-            <Bundle-Vendor>Guidewire Software, Inc.</Bundle-Vendor>
-            <_could-contain>gs,gsx,gsp,gst,xsd,gx</_could-contain>
-            <_consumer-policy>$&lt;range;[==,=+)&gt;</_consumer-policy>
-            <_removeheaders>
-              Ant-Version,
-              Bnd-LastModified,
-              Built-By,
-              Created-By,
-              Implementation-Title,
-              Implementation-Vendor,
-              Implementation-Version,
-              Originally-Created-By,
-              Include-Resource,
-              Private-Package,
-              Embedded-Artifacts,
-              Embed-Dependency,
-              Consumer-Policy,
-              Remove-Headers
-            </_removeheaders>
-            <_include>bnd.bnd</_include>
-          </instructions>
+          <encoding>UTF-8</encoding>
         </configuration>
-        <executions>
-          <execution>
-            <!-- Generate bnd.generated used by IDEA OSGi plugin -->
-            <id>dump-instructions</id>
-            <goals>
-              <goal>dump-instructions</goal>
-            </goals>
-            <phase>generate-resources</phase>
-          </execution>
-        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>2.3.2</version>
+        <configuration>
+          <encoding>UTF-8</encoding>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>2.10</version>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-failsafe-plugin</artifactId>
+        <version>2.12</version>
+        <configuration>
+          <encoding>UTF-8</encoding>
+        </configuration>
       </plugin>
     </plugins>
   </build>
@@ -259,61 +185,6 @@
         <groupId>org.gosu-lang.gosu</groupId>
         <artifactId>gosu-launcher-aether</artifactId>
         <version>${launcher.aether.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.gosu-lang.gosu.managed</groupId>
-        <artifactId>gw-commons-cli</artifactId>
-        <version>${shades.commons.cli.version}-1</version>
-      </dependency>
-      <dependency>
-        <groupId>org.gosu-lang.gosu.managed</groupId>
-        <artifactId>gw-asm</artifactId>
-        <version>${shades.asm.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.gosu-lang.gosu.managed</groupId>
-        <artifactId>gw-asm-analysis</artifactId>
-        <version>${shades.asm.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.gosu-lang.gosu.managed</groupId>
-        <artifactId>gw-asm-commons</artifactId>
-        <version>${shades.asm.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.gosu-lang.gosu.managed</groupId>
-        <artifactId>gw-asm-tree</artifactId>
-        <version>${shades.asm.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.gosu-lang.gosu.managed</groupId>
-        <artifactId>gw-asm-util</artifactId>
-        <version>${shades.asm.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.gosu-lang.gosu.managed</groupId>
-        <artifactId>gw-commons-collections</artifactId>
-        <version>${shades.commons.collections.version}-3</version>
-      </dependency>
-      <dependency>
-        <groupId>org.gosu-lang.gosu.managed</groupId>
-        <artifactId>gw-xercesImpl</artifactId>
-        <version>${shades.xerces.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.gosu-lang.gosu.managed</groupId>
-        <artifactId>gw-commons-logging</artifactId>
-        <version>${shades.commons.logging.version}-3</version>
-      </dependency>
-      <dependency>
-        <groupId>org.gosu-lang.gosu.managed</groupId>
-        <artifactId>gw-jetty</artifactId>
-        <version>${shades.jetty.version}-4</version>
-      </dependency>
-      <dependency>
-        <groupId>org.gosu-lang.gosu.managed</groupId>
-        <artifactId>gw-jetty-util</artifactId>
-        <version>${shades.jetty.version}-4</version>
       </dependency>
       <dependency>
         <groupId>junit</groupId>

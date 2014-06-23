@@ -266,7 +266,10 @@ public class GosuSdkUtils {
     } // else pluginHome is a jar in the TH environment
 
     addExtlibFolderToClasspath(modificator);
-    modificator.setSdkAdditionalData(new GosuSdkAdditionalData(jdk, findGosuVersion(homePath)));
+    final GosuVersion gosuVersion = findGosuVersion(homePath);
+    if(gosuVersion != null) {
+      modificator.setSdkAdditionalData(new GosuSdkAdditionalData(jdk, gosuVersion));
+    }
     modificator.commitChanges();
   }
 
@@ -433,7 +436,7 @@ public class GosuSdkUtils {
         }
       }
     } else {
-      throw new IllegalStateException("could not find gosu-version.properties");
+      return null;
     }
   }
 }

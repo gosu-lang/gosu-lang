@@ -21,7 +21,7 @@ import org.jetbrains.annotations.NotNull;
 import java.net.URL;
 
 public class GosuAppComponent implements ApplicationComponent {
-  public static final PluginId EDITOR_PLUGIN_ID = PluginId.getId("com.guidewire.gosu-internal");
+  public static final PluginId EDITOR_PLUGIN_ID = PluginId.getId("com.guidewire.gosu");
   public static final PluginId OLD_EDITOR_PLUGIN_ID = PluginId.getId("Gosu");
 
   public GosuAppComponent() {

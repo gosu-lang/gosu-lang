@@ -1,8 +1,8 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <parent>
-    <groupId>com.guidewire.gosu</groupId>
+    <groupId>org.gosu-lang.gosu</groupId>
     <artifactId>gosu-parent</artifactId>
-    <version>9-gosu-SNAPSHOT</version>
+    <version>0.10.4-SNAPSHOT</version>
     <relativePath>../gosu-parent/pom.xml</relativePath>
   </parent>
   <modelVersion>4.0.0</modelVersion>
@@ -14,17 +14,21 @@
 
   <properties>
     <full.launcher.path>gosu-core-api-${project.parent.version}.jar,gosu-core-${project.parent.version}.jar,gosu-interactive-${project.parent.version}.jar,jline-${jline.version}.jar</full.launcher.path>
-<thin.launcher.path>remote:releases:gw.releases:http://gosu-lang.org/nexus/content/repositories/gosu,com.guidewire.gosu:gosu-interactive:${project.parent.version}</thin.launcher.path>
+    <thin.launcher.path>remote:releases:gosu-lang.org-releases:http://gosu-lang.org/nexus/content/repositories/gosu,org.gosu-lang.gosu:gosu-interactive:${project.parent.version}</thin.launcher.path>
+    <project.build.assemblyDescriptorDirectory>src/main/assembly</project.build.assemblyDescriptorDirectory>
+    <project.build.textDirectory>src/main/text</project.build.textDirectory>
   </properties>
 
   <dependencies>
     <dependency>
-      <groupId>com.guidewire.gosu</groupId>
+      <groupId>org.gosu-lang.gosu</groupId>
       <artifactId>gosu-core-api</artifactId>
+      <version>${project.parent.version}</version>
     </dependency>
     <dependency>
-      <groupId>com.guidewire.gosu</groupId>
+      <groupId>org.gosu-lang.gosu</groupId>
       <artifactId>gosu-core</artifactId>
+      <version>${project.parent.version}</version>
       <scope>runtime</scope>
     </dependency>
     <dependency>
@@ -34,32 +38,30 @@
       <optional>true</optional>
     </dependency>
     <dependency>
-      <groupId>com.guidewire.gosu</groupId>
+      <groupId>org.gosu-lang.gosu</groupId>
       <artifactId>gosu-interactive</artifactId>
+      <version>${project.parent.version}</version>
       <scope>runtime</scope>
       <optional>true</optional>
     </dependency>
     <dependency>
-      <groupId>com.guidewire.gosu</groupId>
+      <groupId>org.gosu-lang.gosu</groupId>
+      <artifactId>gosu-process</artifactId>
+      <version>${project.parent.version}</version>
+      <scope>runtime</scope>
+      <optional>true</optional>
+    </dependency>
+    <dependency>
+      <groupId>org.gosu-lang.gosu</groupId>
       <artifactId>gosu-servlet</artifactId>
+      <version>${project.parent.version}</version>
       <scope>runtime</scope>
       <optional>true</optional>
     </dependency>
     <dependency>
-      <groupId>com.guidewire.gosu</groupId>
-      <artifactId>gosu-xml</artifactId>
-      <scope>runtime</scope>
-      <optional>true</optional>
-    </dependency>
-    <dependency>
-      <groupId>com.guidewire.gosu</groupId>
-      <artifactId>gosu-webservices</artifactId>
-      <optional>true</optional>
-      <scope>runtime</scope>
-    </dependency>
-    <dependency>
-      <groupId>com.guidewire.gosu</groupId>
+      <groupId>org.gosu-lang.gosu</groupId>
       <artifactId>gosu-itcase-utils</artifactId>
+      <version>${project.parent.version}</version>
       <scope>test</scope>
     </dependency>
   </dependencies>
@@ -83,6 +85,15 @@
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-assembly-plugin</artifactId>
         <version>2.3</version>
+        <configuration>
+          <descriptors>
+            <descriptor>${project.build.assemblyDescriptorDirectory}/full.xml</descriptor>
+<!--
+            <descriptor>assembly/thin.xml</descriptor>
+-->
+          </descriptors>
+          <encoding>UTF-8</encoding>
+        </configuration>
         <executions>
           <execution>
             <id>make-assembly</id>
@@ -90,12 +101,6 @@
             <goals>
               <goal>single</goal>
             </goals>
-            <configuration>
-              <descriptors>
-                <descriptor>assembly/full.xml</descriptor>
-              </descriptors>
-              <encoding>UTF-8</encoding>
-            </configuration>
           </execution>
         </executions>
         <dependencies>
@@ -108,8 +113,8 @@
         </dependencies>
       </plugin>
       <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-failsafe-plugin</artifactId>
-        <version>2.12</version>
         <executions>
           <execution>
             <goals>

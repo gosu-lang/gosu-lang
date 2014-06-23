@@ -5,7 +5,7 @@
   <version>${project.version}</version>
   <vendor email="gosu-lang@googlegroups.com" url="http://gosu-lang.org">Guidewire Software</vendor>
   <idea-version since-build="123.72"/>
-  <depends>com.guidewire.gosu-internal</depends>
+  <depends>com.guidewire.gosu</depends>
 
   <application-components>
       <component>

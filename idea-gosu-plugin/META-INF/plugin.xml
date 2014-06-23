@@ -1,6 +1,6 @@
 <idea-plugin version="2">
     <name>Gosu</name>
-    <id>com.guidewire.gosu-internal</id>
+    <id>com.guidewire.gosu</id>
     <description><![CDATA[
     IntelliJ IDEA plugin for the Gosu programming language.
     <p>
@@ -298,7 +298,7 @@
         <extensionPoint name="completionFilter" beanClass="gw.plugin.ij.completion.handlers.filter.CompletionFilterExtensionPointBean" />
     </extensionPoints>
 
-    <extensions defaultExtensionNs="com.guidewire.gosu-internal">
+    <extensions defaultExtensionNs="com.guidewire.gosu">
         <sdkCreator class="gw.plugin.ij.sdk.DefaultGosuSDKCreator"/>
 
         <!--Editor gosu file types extensions -->

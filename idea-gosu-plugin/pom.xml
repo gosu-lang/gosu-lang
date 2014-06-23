@@ -1,20 +1,20 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
-
   <parent>
-    <groupId>com.guidewire.studio</groupId>
-    <artifactId>ij-proj</artifactId>
-    <version>9-gosu-SNAPSHOT</version>
-    <relativePath>../ij-proj/pom.xml</relativePath>
+    <groupId>org.gosu-lang.gosu</groupId>
+    <artifactId>gosu-parent</artifactId>
+    <relativePath>../gosu-parent/pom.xml</relativePath>
+    <version>0.10.4-SNAPSHOT</version>
   </parent>
 
+  <groupId>com.guidewire.studio</groupId>
   <artifactId>idea-gosu-plugin</artifactId>
-  <packaging>${ij.packaging}</packaging>
+  <version>3.4-SNAPSHOT</version>
+
+  <name>Gosu :: IntelliJ IDEA Plugin </name>
 
   <properties>
-    <cr.dist.man.repo.url>http://gosu-lang.org/nexus/content/repositories/gosu</cr.dist.man.repo.url>
-    <cr.dist.man.snapshotrepo.url>http://gosu-lang.org/nexus/content/repositories/snapshots</cr.dist.man.snapshotrepo.url>
+    <ij.plugin>true</ij.plugin>
   </properties>
 
   <build>
@@ -30,9 +30,13 @@
           </execution>
         </executions>
       </plugin>
+      <!--
+       Excluding IJ Editor test from compilation.
+       We have to fix this if we want to run them as continuous tests.
       <plugin>
-        <groupId>com.guidewire.gosu</groupId>
+        <groupId>org.gosu-lang.gosu</groupId>
         <artifactId>gosu-maven-plugin</artifactId>
+        <version>0.10.4-SNAPSHOT</version>
         <executions>
           <execution>
             <goals>
@@ -42,53 +46,161 @@
           </execution>
         </executions>
       </plugin>
+      -->
+      <plugin>
+        <artifactId>maven-resources-plugin</artifactId>
+        <version>2.6</version>
+        <executions>
+          <execution>
+            <id>copy-plugin-xml</id>
+            <phase>process-resources</phase>
+            <goals>
+              <goal>copy-resources</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>${project.build.outputDirectory}/META-INF</outputDirectory>
+              <resources>
+                <resource>
+                  <directory>META-INF</directory>
+                  <filtering>true</filtering>
+                </resource>
+              </resources>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-assembly-plugin</artifactId>
+        <configuration>
+          <descriptors>
+            <descriptor>src/main/assembly/assembly.xml</descriptor>
+          </descriptors>
+          <appendAssemblyId>false</appendAssemblyId>
+          <encoding>UTF-8</encoding>
+        </configuration>
+        <executions>
+          <execution>
+            <id>make-assembly</id>
+            <phase>package</phase>
+            <goals>
+              <goal>single</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <configuration>
+          <skip>true</skip>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-failsafe-plugin</artifactId>
+        <executions>
+          <execution>
+            <goals>
+              <goal>integration-test</goal>
+              <goal>verify</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
     </plugins>
-    <testResources>
-      <testResource>
-        <directory>test</directory>
-        <excludes>
-          <exclude>**/*.java</exclude>
-        </excludes>
-      </testResource>
-    </testResources>
   </build>
   
   <dependencies>
     <dependency>
       <groupId>com.jetbrains.intellij.platform</groupId>
-      <artifactId>sdk</artifactId>
-      <type>pom</type>
-      <scope>provided</scope>
+      <artifactId>annotations</artifactId>
+      <version>IC-129.713</version>
+      <scope>system</scope>
+      <systemPath>${env.IDEA_HOME}/lib/annotations.jar</systemPath>
     </dependency>
-
     <dependency>
-      <groupId>com.guidewire.gosu</groupId>
+      <groupId>com.jetbrains.intellij.platform</groupId>
+      <artifactId>openapi</artifactId>
+      <version>IC-129.713</version>
+      <scope>system</scope>
+      <systemPath>${env.IDEA_HOME}/lib/openapi.jar</systemPath>
+    </dependency>
+    <dependency>
+      <groupId>com.jetbrains.intellij.platform</groupId>
+      <artifactId>idea</artifactId>
+      <version>IC-129.713</version>
+      <scope>system</scope>
+      <systemPath>${env.IDEA_HOME}/lib/idea.jar</systemPath>
+    </dependency>
+    <dependency>
+      <groupId>com.jetbrains.intellij.platform</groupId>
+      <artifactId>util</artifactId>
+      <version>IC-129.713</version>
+      <scope>system</scope>
+      <systemPath>${env.IDEA_HOME}/lib/util.jar</systemPath>
+    </dependency>
+    <dependency>
+      <groupId>com.jetbrains.intellij.platform</groupId>
+      <artifactId>extensions</artifactId>
+      <version>IC-129.713</version>
+      <scope>system</scope>
+      <systemPath>${env.IDEA_HOME}/lib/extensions.jar</systemPath>
+    </dependency>
+    <dependency>
+      <groupId>com.jetbrains.intellij.platform</groupId>
+      <artifactId>trove4j</artifactId>
+      <version>IC-129.713</version>
+      <scope>system</scope>
+      <systemPath>${env.IDEA_HOME}/lib/trove4j.jar</systemPath>
+    </dependency>
+    <dependency>
+      <groupId>com.jetbrains.intellij.platform</groupId>
+      <artifactId>jgoodies-common-1.2.1</artifactId>
+      <version>IC-129.713</version>
+      <scope>system</scope>
+      <systemPath>${env.IDEA_HOME}/lib/jgoodies-common-1.2.1.jar</systemPath>
+    </dependency>
+    <dependency>
+      <groupId>com.jetbrains.intellij.platform</groupId>
+      <artifactId>jdom</artifactId>
+      <version>IC-129.713</version>
+      <scope>system</scope>
+      <systemPath>${env.IDEA_HOME}/lib/jdom.jar</systemPath>
+    </dependency>
+    <dependency>
+      <groupId>com.jetbrains.intellij.platform</groupId>
+      <artifactId>picocontainer</artifactId>
+      <version>IC-129.713</version>
+      <scope>system</scope>
+      <systemPath>${env.IDEA_HOME}/lib/picocontainer.jar</systemPath>
+    </dependency>
+    <dependency>
+      <groupId>com.google.guava</groupId>
+      <artifactId>guava</artifactId>
+      <version>12.0</version>
+    </dependency>
+    <dependency>
+      <groupId>org.gosu-lang.gosu</groupId>
       <artifactId>gosu-core</artifactId>
+      <version>0.10.4-SNAPSHOT</version>
     </dependency>
     <dependency>
-      <groupId>com.guidewire.gosu</groupId>
+      <groupId>org.gosu-lang.gosu</groupId>
       <artifactId>gosu-test-api</artifactId>
+      <version>0.10.4-SNAPSHOT</version>
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>com.guidewire.gosu</groupId>
-      <artifactId>gosu-core-api-precompiled</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>com.guidewire.gosu</groupId>
+      <groupId>org.gosu-lang.gosu</groupId>
       <artifactId>gosu-itcase-utils</artifactId>
+      <version>0.10.4-SNAPSHOT</version>
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>${project.groupId}</groupId>
+      <groupId>org.gosu-lang.gosu</groupId>
       <artifactId>ij-compiler-api</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.bcel</groupId>
-      <artifactId>com.springsource.org.apache.bcel</artifactId>
-      <version>5.2.0</version>
-      <scope>test</scope>
+      <version>0.10.4-SNAPSHOT</version>
     </dependency>
   </dependencies>
 
@@ -104,72 +216,19 @@
         <dependency>
           <groupId>com.sun</groupId>
           <artifactId>tools</artifactId>
-          <version>1.6.0</version>
+          <version>1.7.0</version>
           <scope>system</scope>
           <systemPath>${java.home}/../lib/tools.jar</systemPath>
         </dependency>
       </dependencies>
     </profile>
-    <profile>
-      <id>gosu.cr</id>
-      <!--
-          This profile is for building Gosu CR and the community IJ editor plugin
-      -->
-      <distributionManagement>
-        <repository>
-          <id>gosu-lang.org-gosu</id>
-          <url>${cr.dist.man.repo.url}</url>
-        </repository>
-        <snapshotRepository>
-          <id>gosu-lang.org-snapshots</id>
-          <url>${cr.dist.man.snapshotrepo.url}</url>
-          <uniqueVersion>false</uniqueVersion>
-        </snapshotRepository>
-      </distributionManagement>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-assembly-plugin</artifactId>
-            <configuration>
-              <descriptors>
-                <descriptor>assembly/assembly.xml</descriptor>
-              </descriptors>
-              <appendAssemblyId>false</appendAssemblyId>
-              <encoding>UTF-8</encoding>
-            </configuration>
-            <executions>
-              <execution>
-                <id>make-assembly</id>
-                <phase>package</phase>
-                <goals>
-                  <goal>single</goal>
-                </goals>
-              </execution>
-            </executions>
-          </plugin>
-          <plugin>
-            <artifactId>maven-failsafe-plugin</artifactId>
-            <version>2.12</version>
-            <executions>
-              <execution>
-                <goals>
-                  <goal>integration-test</goal>
-                  <goal>verify</goal>
-                </goals>
-              </execution>
-            </executions>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-    <profile>
-      <id>deploy.test-run</id>
-      <properties>
-        <cr.dist.man.repo.url>file://${java.io.tmpdir}/testRunRepository/releases</cr.dist.man.repo.url>
-        <cr.dist.man.snapshotrepo.url>file://${java.io.tmpdir}/testRunRepository/snapshots</cr.dist.man.snapshotrepo.url>
-      </properties>
-    </profile>
   </profiles>
+
+  <scm>
+    <connection>scm:git:git@gh.guidewire.com:gosu-cr/idea-gosu-plugin.git</connection>
+    <url>scm:git:git@gh.guidewire.com:gosu-cr/idea-gosu-plugin.git</url>
+    <developerConnection>scm:git:git@gh.guidewire.com:gosu-cr/idea-gosu-plugin.git</developerConnection>
+    <tag>HEAD</tag>
+  </scm>
 
 </project>

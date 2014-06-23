@@ -11,10 +11,8 @@
   <dependencySets>
     <dependencySet>
       <excludes>
-        <exclude>com.guidewire.gosu:gosu-servlet</exclude>
-        <exclude>com.guidewire.gosu:gosu-xml</exclude>
-        <exclude>com.guidewire.gosu:gosu-webservices</exclude>
-        <exclude>org.gosu-lang.gosu.managed:*</exclude>
+        <exclude>org.gosu-lang.gosu:gosu-process</exclude>
+        <exclude>org.gosu-lang.gosu:gosu-servlet</exclude>
       </excludes>
       <useProjectArtifact>false</useProjectArtifact>
       <outputDirectory>lib</outputDirectory>
@@ -22,9 +20,8 @@
     </dependencySet>
     <dependencySet>
       <includes>
-        <include>com.guidewire.gosu:gosu-servlet</include>
-        <include>com.guidewire.gosu:gosu-xml</include>
-        <include>com.guidewire.gosu:gosu-webservices</include>
+        <include>org.gosu-lang.gosu:gosu-process</include>
+        <include>org.gosu-lang.gosu:gosu-servlet</include>
       </includes>
       <useProjectArtifact>false</useProjectArtifact>
       <outputDirectory>ext</outputDirectory>
@@ -34,18 +31,20 @@
 
   <files>
     <file>
-      <source>bin/gosu</source>
+      <source>${project.build.scriptSourceDirectory}/gosu</source>
       <outputDirectory>bin</outputDirectory>
       <fileMode>0775</fileMode>
       <filtered>true</filtered>
+      <lineEnding>unix</lineEnding>
     </file>
     <file>
-      <source>bin/gosu.cmd</source>
+      <source>${project.build.scriptSourceDirectory}/gosu.cmd</source>
       <outputDirectory>bin</outputDirectory>
       <filtered>true</filtered>
+      <lineEnding>dos</lineEnding>
     </file>
     <file>
-      <source>bin/full.gosulaunch.properties</source>
+      <source>${project.build.scriptSourceDirectory}/full.gosulaunch.properties</source>
       <outputDirectory>bin</outputDirectory>
       <destName>gosulaunch.properties</destName>
       <filtered>true</filtered>
@@ -53,7 +52,7 @@
   </files>
   <fileSets>
     <fileSet>
-      <directory>text</directory>
+      <directory>${project.build.textDirectory}</directory>
       <outputDirectory/>
       <filtered>true</filtered>
     </fileSet>
