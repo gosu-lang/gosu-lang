@@ -1,0 +1,57 @@
+package gw.util.transform.java.Examples
+
+uses java.lang.*
+uses java.io.*
+
+class Example141  {
+
+    public static function main(args : String[]) : void {
+        var pwr = new PrintWriter(new FileWriter("f.txt"))
+        pwr.print(4711)
+        pwr.print(' ')
+        pwr.print("cool")
+        pwr.close()
+        var stok = new StreamTokenizer(new FileReader("f.txt"))
+        var tok : int = stok.nextToken()
+        while (tok != StreamTokenizer.TT_EOF) {
+            System.out.println(stok.sval)
+            tok = stok.nextToken()
+        }
+
+        var dos = new DataOutputStream(new FileOutputStream("p.dat"))
+        dos.writeInt(4711)
+        dos.writeChar(' ')
+        dos.writeUTF("cool")
+        dos.close()
+        var dis = new DataInputStream(new FileInputStream("p.dat"))
+        System.out.println(dis.readInt() + "|" + dis.readChar() + "|" + dis.readUTF())
+        var oos = new ObjectOutputStream(new FileOutputStream("o.dat"))
+        oos.writeObject(new int[]{2, 3, 5, 7, 11})
+        oos.close()
+        var ois = new ObjectInputStream(new FileInputStream("o.dat"))
+        var ia : int[] = (ois.readObject()) as int[]
+        System.out.println(ia[0] + "," + ia[1] + "," + ia[2] + "," + ia[3] + "," + ia[4])
+        var raf = new RandomAccessFile("raf.dat", "rw")
+        raf.writeDouble(3.1415)
+        raf.writeInt(42)
+        raf.seek(0)
+        System.out.println(raf.readDouble() + " " + raf.readInt())
+        var r : Reader = new StringReader("abc")
+        System.out.println("abc: " + r.read() as char + r.read() as char + r.read() as char)
+        var sw : Writer = new StringWriter()
+        sw.write('d')
+        sw.write('e')
+        sw.write('f')
+        System.out.println(sw.toString())
+        System.out.println("std output")
+        System.err.println("std error")
+        System.out.print("Type some characters and press Enter: ")
+        var bisr = new BufferedReader(new InputStreamReader(System.in))
+        var response : String = bisr.readLine()
+        System.out.println("You typed: \'" + response + "\'")
+        System.out.print("Type one character and press Enter: ")
+        var b : byte = System.in.read() as byte
+        System.out.println("First byte of your input is: " + b)
+    }
+
+}

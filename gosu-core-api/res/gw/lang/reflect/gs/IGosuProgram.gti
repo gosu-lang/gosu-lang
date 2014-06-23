@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<class>
+  <desc/>
+  <var name="NAME_PREFIX">
+    <desc/>
+  </var>
+  <var name="PACKAGE">
+    <desc/>
+  </var>
+  <var name="PACKAGE_PLUS_DOT">
+    <desc/>
+  </var>
+</class>

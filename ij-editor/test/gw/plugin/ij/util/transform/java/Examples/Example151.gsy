@@ -1,0 +1,31 @@
+package gw.util.transform.java.Examples
+
+uses java.lang.*
+uses java.io.OutputStreamWriter
+uses java.io.PrintWriter
+uses java.io.UnsupportedEncodingException
+
+class Example151  {
+
+    public static function main(args : String[]) : void {
+        System.out.format("*** %-12s %-12s%n", "Encoding", "Canonical name")
+        var s = "El xcvxcvxcvxcvxcvxcvxc"
+        writeIt(s, "US-ASCII")
+        writeIt(s, "ISO-8859-1")
+        writeIt(s, "UTF-8")
+        writeIt(s, "UTF-16")
+        writeIt(s, "UTF-16BE")
+        writeIt(s, "UTF-16LE")
+        writeIt(s, "Cp1252")
+    }
+
+    static function writeIt(s : String, enc : String) : void {
+        var osw = new OutputStreamWriter(System.out, enc)
+        var pw = new PrintWriter(osw)
+        System.out.format("*** %-12s %-12s%n", enc, osw.getEncoding())
+        pw.println(s)
+        pw.println()
+        pw.flush()
+    }
+
+}

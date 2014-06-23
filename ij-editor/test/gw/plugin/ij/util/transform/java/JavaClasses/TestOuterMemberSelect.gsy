@@ -1,0 +1,33 @@
+package gw.util.transform.java.JavaClasses
+
+uses java.lang.*
+
+public class TestOuterMemberSelect  {
+
+    static internal var x : int
+    static class A  {
+
+        static internal var x : int
+
+    }
+
+    class B  {
+
+        internal var w : int
+        class C  {
+
+            class D  {
+
+                internal var i : int = outer.outer.outer.x
+                internal var j : int = i
+                internal var u : int = TestOuterMemberSelect.x
+                internal var z : int = i
+                internal var o : int = outer.outer.w
+
+            }
+
+        }
+
+    }
+
+}

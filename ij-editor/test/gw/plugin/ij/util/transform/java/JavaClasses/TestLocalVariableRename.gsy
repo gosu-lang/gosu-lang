@@ -1,0 +1,42 @@
+package gw.util.transform.java.JavaClasses
+
+uses java.lang.*
+uses java.util.LinkedList
+uses java.util.List
+
+class A  {
+
+    internal var A : int
+    internal var foo : int
+    class B  {
+
+        internal var A : int
+
+    }
+
+    function Z(A_0 : String, t : List<A>) : String {
+        if (A_0.equals("")) {
+        }
+        A_0.toLowerCase()
+        this.Z("world", t)
+        Z("hello", new LinkedList<A>())
+        A_0 = "bar"
+        this.A = 1
+        var b : int = new A.B().A
+        var l : List<A> = new LinkedList<A>()
+        var c : A = null
+        var c2 : A[] = new A[A_0.length()]
+        var a3 : A.B = null
+        a3.A = 8
+        var d : A = new A()
+        d.Z("Hello", t)
+        d.A = 4 + new Integer(A_0)
+        return A_0
+    }
+
+    function foo(foo_0 : int) : void {
+        foo_0 = 1
+        foo(0)
+    }
+
+}

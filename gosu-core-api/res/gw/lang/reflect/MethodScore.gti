@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<class>
+  <desc/>
+  <method name="isValid">
+    <desc/>
+    <return>true if this score represents an actual matching method score rather than
+just a placeholder indicating that no method matched</return>
+  </method>
+</class>

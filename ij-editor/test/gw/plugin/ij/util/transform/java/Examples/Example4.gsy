@@ -1,0 +1,31 @@
+package gw.util.transform.java.Examples
+
+uses java.lang.*
+
+class Example4  {
+
+    public static function main(args : String[]) : void {
+        var i1 = 1000111222
+        var i2 = 40000
+        var i3 = -1
+        floatdouble(i1, i1)
+        bytecharshort(i2 as byte, i2 as char, i2 as short)
+        bytecharshort(i3 as byte, i3 as char, i3 as short)
+        intint(1.9 as int, -1.9 as int)
+        intint(1.5 as int, -1.5 as int)
+        intint(2.5 as int, -2.5 as int)
+    }
+
+    private static function floatdouble(f : float, d : double) : void {
+        System.out.println(f + " " + d)
+    }
+
+    private static function bytecharshort(b : byte, c : char, s : short) : void {
+        System.out.println(b + " " + c as int + " " + s)
+    }
+
+    private static function intint(i1 : int, i2 : int) : void {
+        System.out.println(i1 + " " + i2)
+    }
+
+}

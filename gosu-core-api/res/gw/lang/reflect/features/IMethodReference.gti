@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+<class>
+  <desc/>
+  <method name="getMethodInfo">
+    <desc>Returns the method info for this reference</desc>
+  </method>
+</class>

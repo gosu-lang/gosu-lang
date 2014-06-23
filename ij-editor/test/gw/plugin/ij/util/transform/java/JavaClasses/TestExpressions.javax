@@ -1,0 +1,56 @@
+package gw.util.transform.java.JavaClasses;
+
+import java.util.Comparator;
+
+public class TestExpressions {
+  public int vv = 0b1_1;
+  private boolean z1 = true;
+  protected char z2 = '\t';
+  static public double z3 = 1e+01;
+  static short z4 = 1;
+  byte z5 = 1;
+  long z6 = 1;
+  float z7 = 1;
+
+  void foo() {
+    Object o = 1;
+    Object oo = new Object();
+    int yyy = 1;
+    double aaaaa =  0x8.1p12;
+    boolean a = true;
+    boolean c = false;
+    boolean z =  !a && (a || c) ;
+    char rr = '\t';
+    char rr2 = '\'';
+    double n0 = 1e+01;
+    double e = 100;
+    short n1 = 1;
+    byte n2 = 1;
+    long n3 = 1;
+    float n4 = 1;
+    double n5 = 1e+01D;
+    double e2 = 100D;
+    short n6 = 1;
+    byte n7 = 1;
+    long n8 = 1L;
+    float n9 = 1F;
+    String string0 = new String("\"bar\n\"");
+    String[] string1 = new String[] {"This", "is", "a", "test"};
+    String[][] string2 = new String[][] {{"Hello"}, {"wold"}};
+    String string3 = string2[0][1];
+    String string4[][][] = new String[1][2][3];
+    String [][][]string5 = new String[2][1][];
+    String string6 = null;
+    int j = ++vv;
+    int x = vv--;
+    int x2 = vv += 3;
+    int y = -(~vv);
+    int min  = (((int) 1.0)+1)+(new Integer(1) instanceof Integer ? this.vv + 1 : 0);
+
+    Comparator Hello = new Comparator() {
+      public int compare(Object o1, Object o2) {
+        return 0;
+      }
+    };
+  }
+}

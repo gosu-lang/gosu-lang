@@ -1,0 +1,33 @@
+package gw.util.transform.java.Examples
+
+uses java.lang.*
+uses java.io.*
+
+class Example82  {
+
+    public static function main(args : String[]) : void {
+        var xs : double[] = readRecord("foo")
+        for (i in 0..|xs.length) {
+            System.out.println(xs[i])
+        }
+
+    }
+
+    static function readRecord(filename : String) : double[] {
+        var freader : Reader = new FileReader(filename)
+        var breader = new BufferedReader(freader)
+        var res = new double[3]
+        
+        try {
+            res[0] = new Double(breader.readLine()).doubleValue()
+            res[1] = new Double(breader.readLine()).doubleValue()
+            res[2] = new Double(breader.readLine()).doubleValue()
+        }
+        finally  {
+            breader.close()
+        }
+
+        return res
+    }
+
+}

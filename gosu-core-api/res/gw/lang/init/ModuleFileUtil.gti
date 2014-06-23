@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<class>
+  <desc/>
+  <method name="createPathEntryForModuleFile">
+    <desc>Reads a pom.xml file into a GosuPathEntry object</desc>
+    <return>an ordered list of GosuPathEntries created based on the algorithm described above</return>
+    <param name="moduleFile" type="gw.fs.IFile">the pom.xml file to convert to GosuPathEntry</param>
+  </method>
+</class>

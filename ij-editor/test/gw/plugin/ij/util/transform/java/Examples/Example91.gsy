@@ -1,0 +1,31 @@
+package gw.util.transform.java.Examples
+
+uses java.lang.*
+uses java.io.*
+
+class Incrementer extends Thread  {
+
+    public var i : int
+    public function run() : void {
+        while (true) {
+            i++
+            yield()
+        }
+
+    }
+
+}
+class Example91  {
+
+    public static function main(args : String[]) : void {
+        var u = new Incrementer()
+        u.start()
+        System.out.println("Repeatedly press Enter to get the current value of i:")
+        while (true) {
+            System.in.read()
+            System.out.println(u.i)
+        }
+
+    }
+
+}

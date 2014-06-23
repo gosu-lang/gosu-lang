@@ -1,0 +1,45 @@
+package gw.util.transform.java.Examples
+
+uses java.lang.*
+
+class Example116  {
+
+    public static function main(args : String[]) : void {
+        var sa : String[] = {"New York", "Rome", "Dublin", "Riyadh", "Tokyo"}
+        qsort(sa, 0, sa.length - 1)
+        for (s in sa) {
+            System.out.print(s + "   ")
+        }
+
+        System.out.println()
+    }
+
+    private static function qsort<T extends Comparable<T>>(arr : T[], a : int, b : int) : void {
+        if (a < b) {
+            var i : int = a
+            var j : int = b
+            var x : T = arr[(i + j) / 2]
+            do {
+                while (arr[i].compareTo(x) < 0) {
+                    i++
+                }
+
+                while (x.compareTo(arr[j]) < 0) {
+                    j--
+                }
+
+                if (i <= j) {
+                    var tmp : T = arr[i]
+                    arr[i] = arr[j]
+                    arr[j] = tmp
+                    i++
+                    j--
+                }
+            }
+            while (i <= j)
+            qsort(arr, a, j)
+            qsort(arr, i, b)
+        }
+    }
+
+}

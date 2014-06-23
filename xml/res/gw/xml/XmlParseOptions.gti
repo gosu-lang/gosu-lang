@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<class>
+  <desc/>
+  <method name="getAdditionalSchemas">
+    <desc>Any additional schemas that should be present when parsing.</desc>
+  </method>
+  <method name="setAdditionalSchemas">
+    <desc>Any additional schemas that should be present when parsing.</desc>
+    <param name="additionalSchemas" type="java.util.List"/>
+  </method>
+  <method name="getValidate">
+    <desc>Determines whether XML will be validated against the schemas.</desc>
+    <deprecated>Turning off validation is an experimental feature. Use at your own risk.</deprecated>
+  </method>
+  <method name="setValidate">
+    <desc>Determines whether XML will be validated against the schemas.</desc>
+    <deprecated>Turning off validation is an experimental feature. Use at your own risk.</deprecated>
+    <param name="validate" type="boolean"/>
+  </method>
+  <method name="copy">
+    <desc>Makes a deep copy of this object.</desc>
+    <return>a deep copy of this object</return>
+  </method>
+</class>

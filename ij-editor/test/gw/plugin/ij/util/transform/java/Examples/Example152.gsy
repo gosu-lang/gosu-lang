@@ -1,0 +1,55 @@
+package gw.util.transform.java.Examples
+
+uses java.lang.*
+uses java.io.*
+uses java.util.*
+
+class Example152  {
+
+    public static function main(args : String[]) : void {
+        final var count = 40000
+        System.out.println("Writing " + count + " strings to random access string array file")
+        var strGenerator = new Iterable<String>() {
+
+            public function iterator() : Iterator<String> {
+                return new Iterator<String>() {
+
+                    internal var i : int = 0
+                    public function hasNext() : boolean {
+                        return i < count
+                    }
+
+                    public function next() : String {
+                        return "string" + i++
+                    }
+
+                    public function remove() : void {
+                    }
+
+                }
+
+            }
+
+        }
+
+        writeStrings("saf.dat", strGenerator)
+    }
+
+    static function writeStrings(filename : String, strGenerator : Iterable<String>) : void {
+        var raf = new RandomAccessFile(filename, "rw")
+        raf.setLength(0)
+        var offsettable = new ArrayList<Long>()
+        for (s in strGenerator) {
+            offsettable.add(raf.getFilePointer())
+            raf.writeUTF(s)
+        }
+
+        for (offset in offsettable) {
+            raf.writeLong(offset)
+        }
+
+        raf.writeInt(offsettable.size())
+        raf.close()
+    }
+
+}

@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<class>
+  <desc/>
+  <var name="SYSTEM_PROXY_SUFFIX">
+    <desc/>
+  </var>
+  <var name="USER_PROXY_SUFFIX">
+    <desc/>
+  </var>
+</class>

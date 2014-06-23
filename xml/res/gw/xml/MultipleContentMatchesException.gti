@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<class>
+  <desc>This exception is thrown when a single content matching a certain criteria is expected
+and multiple contents are found.</desc>
+  <cons>
+    <desc>Creates a new instance of this exception class.</desc>
+    <param name="msg" type="java.lang.String">The exception message</param>
+  </cons>
+</class>

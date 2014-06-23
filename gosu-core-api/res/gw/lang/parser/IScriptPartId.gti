@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<class>
+  <desc/>
+  <method name="getContainingType">
+    <desc/>
+    <return>The type that contains this part.</return>
+  </method>
+  <method name="getContainingTypeName">
+    <desc/>
+    <return>The name of the type that contains this part.</return>
+  </method>
+  <method name="getId">
+    <desc/>
+    <return>An id that distinguishes this part from other parts
+        in the containing type.</return>
+  </method>
+</class>

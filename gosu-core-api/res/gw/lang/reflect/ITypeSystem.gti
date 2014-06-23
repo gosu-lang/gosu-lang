@@ -1,0 +1,69 @@
+<?xml version="1.0"?>
+<class>
+  <desc/>
+  <method name="get">
+    <desc>Gets the intrinsic type for a given class.&lt;p&gt;
+&lt;p/&gt;
+&lt;b&gt;Note:&lt;/b&gt; you should use this method only if you do not have an
+Object of class &lt;code&gt;javaClass&lt;/code&gt; to get the type from. If you
+do have such an object, use {@link #getFromObject} instead.</desc>
+    <return>the IType that corresponds to that class</return>
+    <param name="javaClass" type="java.lang.Class">the Class to convert to an intrinsic type</param>
+  </method>
+  <method name="get">
+    <desc>Gets the intrinsic type for a given class info object.&lt;p&gt;</desc>
+    <return>the IType that corresponds to that class</return>
+    <param name="javaClassInfo" type="gw.lang.reflect.java.IJavaClassInfo">the Class info object to convert to an intrinsic type</param>
+  </method>
+  <method name="getFromObject">
+    <desc>Returns the intrinsic type for the given Object.</desc>
+    <return>the IType for the object</return>
+    <param name="object" type="java.lang.Object">the object to get an IType for</param>
+  </method>
+  <method name="getByRelativeName">
+    <desc>Gets an intrinsic type based on a relative name.  This could either be the name of an entity,
+like "User", the name of a typekey, like "SystemPermission", or a class name, like
+"java.lang.String" (relative and fully qualified class names are the same as far as this factory
+is concerned).  Names can have [] appended to them to create arrays, and multi-dimensional arrays
+are supported.</desc>
+    <return>the corresponding IType</return>
+    <param name="relativeName" type="java.lang.String">the relative name of the type</param>
+    <param name="typeUses" type="gw.lang.parser.ITypeUsesMap">the map of used types to use when resolving</param>
+    <ex type="ClassNotFoundException">if the specified name doesn't correspond to any type</ex>
+  </method>
+  <method name="getByFullName">
+    <desc>Gets an intrinsic type based on a fully-qualified name.  This could either be the name of an entity,
+like "entity.User", the name of a typekey, like "typekey.SystemPermission", or a class name, like
+"java.lang.String".  Names can have [] appended to them to create arrays, and multi-dimensional arrays
+are supported.</desc>
+    <return>the corresponding IType</return>
+    <param name="fullyQualifiedName" type="java.lang.String">the fully qualified name of the type</param>
+    <ex type="RuntimeException">if the specified name doesn't correspond to any type</ex>
+  </method>
+  <method name="getByFullNameIfValid">
+    <desc>Gets a type based on a fully-qualified name.  This could either be the name of an entity,
+like "entity.User", the name of a typekey, like "typekey.SystemPermission", or a class name, like
+"java.lang.String".  Names can have [] appended to them to create arrays, and multi-dimensional arrays
+are supported.
+
+This method behaves the same as getByFullName execept instead of throwing it returns null.</desc>
+    <return>the corresponding IType or null if the type does not exist</return>
+    <param name="fullyQualifiedName" type="java.lang.String">the fully qualified name of the type</param>
+  </method>
+  <method name="refreshed">
+    <desc/>
+    <return>true if any types were refreshed for this file</return>
+    <param name="file" type="gw.fs.IResource"/>
+    <param name="typeName" type="java.lang.String"/>
+    <param name="refreshKind" type="gw.lang.reflect.RefreshKind"/>
+  </method>
+  <method name="parseType">
+    <desc>Converts a String name of a type into an IType.</desc>
+    <param name="typeString" type="java.lang.String"/>
+    <ex type="IllegalArgumentException">if the type string doesn't correspond to any known IType</ex>
+  </method>
+  <method name="getAllTypeNames">
+    <desc>Returns all type names in the system for all type loaders.</desc>
+    <return>all type names in the system.</return>
+  </method>
+</class>

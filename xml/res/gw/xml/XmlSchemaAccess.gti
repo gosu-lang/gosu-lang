@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<class>
+  <desc/>
+  <method name="getSchema">
+    <desc>Returns the schema represented by this XmlSchemaAccess type.</desc>
+    <return>the schema</return>
+  </method>
+  <method name="toString">
+    <desc>Returns the package name of this schema.</desc>
+    <return>the package name of this schema</return>
+  </method>
+</class>

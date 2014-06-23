@@ -1,0 +1,30 @@
+package gw.util.transform.java.Examples
+
+uses java.lang.*
+
+class Example11  {
+
+    public static function main(args : String[]) : void {
+        var ss0 : String[] = {"", "abde", "abdf", "b"}
+        System.out.println(sorted(ss0))
+        var ss1 : String[] = {}
+        System.out.println(sorted(ss1))
+        var ss2 : String[] = {"jhkjfgsad "}
+        System.out.println(sorted(ss2))
+        var ss3 : String[] = {"Baaaa", "Abbbb"}
+        System.out.println(sorted(ss3))
+    }
+
+    static function sorted(a : String[]) : boolean {
+        var i = 1
+        while (i < a.length) {
+            if (a[i - 1].compareTo(a[i]) > 0) {
+                return false
+            }
+            i++
+        }
+
+        return true
+    }
+
+}

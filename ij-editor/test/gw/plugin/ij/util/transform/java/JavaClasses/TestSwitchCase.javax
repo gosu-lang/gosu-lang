@@ -1,0 +1,30 @@
+package gw.util.transform.java.JavaClasses;
+
+public class TestSwitchCase {
+  void foo() {
+    String strDigitName = "three";
+    String strOrdinalName;
+    switch (strDigitName) {
+      case "one":
+        strOrdinalName = "first";
+        break;
+      case "two":
+      case "three":
+        strOrdinalName = "second-third";
+        break;
+      case "five":
+        strOrdinalName = "fifth";
+        break;
+      case "eight":
+        strOrdinalName = "eighth" ;
+        break;
+      case "nine":
+        strOrdinalName = "ninth";
+        break;
+      case "ten":
+        break;
+      default:
+        strOrdinalName = strDigitName + "th";
+    }
+  }
+}

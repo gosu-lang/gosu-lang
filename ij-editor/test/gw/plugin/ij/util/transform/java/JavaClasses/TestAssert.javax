@@ -1,0 +1,8 @@
+package gw.util.transform.java.JavaClasses;
+
+public class TestAssert {
+  void foo() {
+    assert 0 == 1;
+    assert 0 == 1 : "bar";
+  }
+}

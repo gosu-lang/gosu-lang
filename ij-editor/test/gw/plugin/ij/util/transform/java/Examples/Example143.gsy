@@ -1,0 +1,42 @@
+package gw.util.transform.java.Examples
+
+uses java.lang.*
+uses java.io.*
+
+class Example143  {
+
+    public static function main(args : String[]) : void {
+        fahrenheitCelsiusHtml()
+        fahrenheitCelsiusText()
+    }
+
+    public static function fahrenheitCelsiusHtml() : void {
+        System.out.println("Printing temperature table to file temperature.html")
+        var pw = new PrintWriter(new FileWriter("temperature.html"))
+        pw.println("<TABLE BORDER><TR><TH>Fahrenheit<TH>Celsius</TR>")
+        var f = 100
+        while (f <= 400) {
+            var c : double = 5 * (f - 32.0) / 9
+            pw.format("<TR ALIGN=RIGHT><TD>%d<TD>%.1f%n", f, c)
+            f += 10
+        }
+
+        pw.println("</TABLE>")
+        pw.close()
+    }
+
+    public static function fahrenheitCelsiusText() : void {
+        System.out.println("Printing temperature table to file temperature.txt")
+        var pw = new PrintWriter(new FileWriter("temperature.txt"))
+        pw.println("Fahrenheit   Celsius")
+        var f = 100
+        while (f <= 400) {
+            var c : double = 5 * (f - 32.0) / 9
+            pw.format("%10d%10.1f%n", f, c)
+            f += 10
+        }
+
+        pw.close()
+    }
+
+}

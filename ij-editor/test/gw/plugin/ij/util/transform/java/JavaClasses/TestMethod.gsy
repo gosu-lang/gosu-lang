@@ -1,0 +1,113 @@
+package gw.util.transform.java.JavaClasses
+
+uses java.lang.*
+uses java.io.EOFException
+uses java.util.*
+
+public class TestMethod  {
+
+    public construct() {
+    }
+
+    public function thrower() : void {
+    }
+
+    public function annotationInArg(@SuppressWarnings("foo")
+    foo : int) : void {
+        @SuppressWarnings("bar")
+        var bar : int
+    }
+
+    public function size() : int {
+        var a = new int[]{3, 5, 1}
+        Arrays.sort(a)
+        return 0
+    }
+
+    public function isEmpty() : boolean {
+        return false
+    }
+
+    public function contains(o : Object) : boolean {
+        return false
+    }
+
+    public function iterator() : Iterator {
+        return null
+    }
+
+    public function toArray() : Object[] {
+        return new Object[0]
+    }
+
+    public function toArray(a : Object[]) : Object[] {
+        return new Object[0]
+    }
+
+    public function add(o : Object) : boolean {
+        return false
+    }
+
+    public function remove(o : Object) : boolean {
+        return false
+    }
+
+    public function containsAll(c : Collection) : boolean {
+        return false
+    }
+
+    public function addAll(c : Collection) : boolean {
+        return false
+    }
+
+    public function addAll(in_0 : int, c : Collection) : boolean {
+        return false
+    }
+
+    public function removeAll(c : Collection) : boolean {
+        return false
+    }
+
+    public function retainAll(c : Collection) : boolean {
+        return false
+    }
+
+    public function clear() : void {
+    }
+
+    public function get(in_0 : int) : Object {
+        return null
+    }
+
+    public function set(in_0 : int, element : Object) : Object {
+        return null
+    }
+
+    public function add(in_0 : int, element : Object) : void {
+    }
+
+    public function remove(in_0 : int) : Object {
+        return null
+    }
+
+    public function indexOf(o : Object) : int {
+        return 0
+    }
+
+    public function lastIndexOf(o : Object) : int {
+        return 0
+    }
+
+    public function listIterator() : ListIterator {
+        return null
+    }
+
+    public function listIterator(in_0 : int) : ListIterator {
+        return null
+    }
+
+    public function subList(fromIndex : int, toIndex : int) : List {
+        return null
+    }
+
+}

@@ -1,0 +1,156 @@
+package gw.util.transform.java.JavaClasses
+
+uses java.lang.*
+uses java.util.*
+
+public class TestGenerics<T extends Comparable<T> & CharSequence, B, Q> extends LinkedList<T> implements List<T>, MyGenericPair<T, B> {
+
+    private class FloatCmp<T1 extends Comparable<T1>> implements Comparator<T1> {
+
+        public function compare(o1 : T1, o2 : T1) : int {
+            return o1.compareTo(o2)
+        }
+
+    }
+
+    class Inner<A, B2>  {
+
+        public construct(a : String & Comparable<String>, n : B2, jj : Object) {
+        }
+
+    }
+
+    class Builder<S extends T>  {
+
+    }
+
+    construct(a0 : Comparable<T> & CharSequence, a1 : Object, a2 : Comparable<T> & CharSequence, a3 : Object) {
+    }
+
+    construct() {
+    }
+
+    private function innstance() : void {
+        var tmp = new TestGenerics<String, String, Integer>()
+        var tmpNoDiamond = new TestGenerics<String, String, Integer>()
+        var tmp2 : TestGenerics<? super String, ?, Integer> = new TestGenerics<String, String, Integer>()
+        var myMap : Map<String, List<String>> = new HashMap<String, List<String>>()
+    }
+
+    public function rrrr() : void {
+        var floats : List<Float> = new LinkedList<Float>()
+        var nums = new Float[10]
+        Arrays.sort<Float>(nums, new FloatCmp<Float>())
+        var monster = new Inner<String, String>("132", "321", "888")
+        var Hello = new Comparator<String>() {
+
+            override public function compare(o1 : String, o2 : String) : int {
+                return 0
+            }
+
+            override public function equals(obj : Object) : boolean {
+                return false
+            }
+
+        }
+
+    }
+
+    private static function cmp<J extends Comparable<J>>(a : J, b : J) : void {
+        a.compareTo(b)
+    }
+
+    private static function uuu<J extends Comparable<J>, K>(a : K, b : K, c : TestGenerics<K, ? super J, ?>) : void {
+    }
+
+    override public function size() : int {
+        return 0
+    }
+
+    override public function isEmpty() : boolean {
+        return false
+    }
+
+    override public function contains(o : Object) : boolean {
+        return false
+    }
+
+    override public function iterator() : Iterator<T> {
+        return null
+    }
+
+    override public function toArray() : Object[] {
+        return new Object[0]
+    }
+
+    override public function toArray<T3>(a : T3[]) : T3[] {
+        return null
+    }
+
+    override public function add(t : T) : boolean {
+        return false
+    }
+
+    override public function remove(o : Object) : boolean {
+        return false
+    }
+
+    override public function containsAll(c : Collection<?>) : boolean {
+        return false
+    }
+
+    override public function addAll(c : Collection<T>) : boolean {
+        return false
+    }
+
+    override public function addAll(in_0 : int, c : Collection<T>) : boolean {
+        return false
+    }
+
+    override public function removeAll(c : Collection<?>) : boolean {
+        return false
+    }
+
+    override public function retainAll(c : Collection<?>) : boolean {
+        return false
+    }
+
+    override public function clear() : void {
+    }
+
+    override public function get(in_0 : int) : T {
+        return null
+    }
+
+    override public function set(in_0 : int, element : T) : T {
+        return null
+    }
+
+    override public function add(in_0 : int, element : T) : void {
+    }
+
+    override public function remove(in_0 : int) : T {
+        return null
+    }
+
+    override public function indexOf(o : Object) : int {
+        return 0
+    }
+
+    override public function lastIndexOf(o : Object) : int {
+        return 0
+    }
+
+    override public function listIterator() : ListIterator<T> {
+        return null
+    }
+
+    override public function listIterator(in_0 : int) : ListIterator<T> {
+        return null
+    }
+
+    override public function subList(fromIndex : int, toIndex : int) : List<T> {
+        return null
+    }
+
+}

@@ -1,0 +1,29 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>com.guidewire.studio</groupId>
+    <artifactId>ij-proj</artifactId>
+    <version>9-gosu-SNAPSHOT</version>
+    <relativePath>../ij-proj/pom.xml</relativePath>
+  </parent>
+
+  <artifactId>ij-editor-devtools</artifactId>
+  <packaging>${ij.packaging}</packaging>
+
+  <dependencies>
+    <dependency>
+      <groupId>com.jetbrains.intellij.platform</groupId>
+      <artifactId>sdk</artifactId>
+      <type>pom</type>
+      <scope>provided</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>com.guidewire.studio</groupId>
+      <artifactId>idea-gosu-plugin</artifactId>
+      <scope>provided</scope>
+    </dependency>
+  </dependencies>
+</project>

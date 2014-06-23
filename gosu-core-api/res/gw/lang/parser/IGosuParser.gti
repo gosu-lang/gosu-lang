@@ -1,0 +1,135 @@
+<?xml version="1.0"?>
+<class>
+  <desc/>
+  <method name="getScriptPart">
+    <desc>The context associated with the parser's script. E.g., a file name, a library,
+a rule, etc.</desc>
+  </method>
+  <method name="setScript">
+    <desc>Set the script or expression to parse and execute.</desc>
+    <param name="strRule" type="java.lang.CharSequence">The rule (Gosu) source to parse/execute.</param>
+  </method>
+  <method name="setScript">
+    <desc>Set the script or expression to parse and execute.</desc>
+    <param name="reader" type="gw.lang.parser.SourceCodeReader">A reader for the rule (Gosu) source to parse/execute.</param>
+  </method>
+  <method name="setScript">
+    <desc>Set the script or expression to parse and execute.</desc>
+    <param name="reader" type="gw.lang.parser.ISource">A reader for the rule (Gosu) source to parse/execute.</param>
+  </method>
+  <method name="getSymbolTable">
+    <desc>Returns the parser's symbol table.</desc>
+  </method>
+  <method name="setSymbolTable">
+    <desc>Sets the parser's symbol table.</desc>
+    <param name="symTable" type="gw.lang.parser.ISymbolTable">The symbol table the parser will use when parsing and executing rules.</param>
+  </method>
+  <method name="getTypeUsesMap">
+    <desc>Get the type uses map.</desc>
+  </method>
+  <method name="setTypeUsesMap">
+    <desc>Set the type uses map.</desc>
+    <param name="typeUsesMap" type="gw.lang.parser.ITypeUsesMap"/>
+  </method>
+  <method name="parseStatements">
+    <desc>Parses a set of Gosu statements.  To execute all of the Statements at once call Statement.execute().</desc>
+    <return>The parsed Statement[s].</return>
+    <param name="partId" type="gw.lang.parser.IScriptPartId"/>
+    <ex type="ParseResultsException">if any of the statements do not parse according to the Gosu grammar.</ex>
+  </method>
+  <method name="parseClass">
+    <desc>For use by code editors etc.</desc>
+    <param name="strQualifiedClassName" type="java.lang.String"/>
+    <param name="sourceFile" type="gw.lang.reflect.gs.ISourceFileHandle"/>
+    <param name="bThrowOnWarnings" type="boolean"/>
+    <param name="bFullyCompile" type="boolean"/>
+  </method>
+  <method name="parseProgramFunctionsOrPropertyDecls">
+    <desc/>
+    <return/>
+    <param name="partId" type="gw.lang.parser.IScriptPartId"/>
+    <param name="bParseProperties" type="boolean"/>
+    <param name="bParseVars" type="boolean"/>
+    <ex type="ParseResultsException"/>
+  </method>
+  <method name="parseExp">
+    <desc>Parses a Gosu expression. To evaluate the Expression simply call Expression.evaluate().</desc>
+    <return>The parsed Expression.</return>
+    <param name="partId" type="gw.lang.parser.IScriptPartId"/>
+    <ex type="ParseResultsException">if the expression does not parse according to the Gosu grammar.</ex>
+  </method>
+  <method name="parseExp">
+    <desc>Parses a Gosu expression. To evaluate the Expression simply call Expression.evaluate().</desc>
+    <return>The parsed Expression.</return>
+    <param name="partId" type="gw.lang.parser.IScriptPartId"/>
+    <param name="expectedExpressionType" type="gw.lang.reflect.IType"/>
+    <ex type="ParseResultsException">if the expression does not parse according to the Gosu grammar.</ex>
+  </method>
+  <method name="parseExp">
+    <desc>Parses a Gosu expression. To evaluate the Expression simply call Expression.evaluate().</desc>
+    <return>The parsed Expression.</return>
+    <param name="partId" type="gw.lang.parser.IScriptPartId"/>
+    <param name="expectedExpressionType" type="gw.lang.reflect.IType"/>
+    <param name="context" type="gw.lang.parser.IFileContext"/>
+    <param name="assignRuntime" type="boolean"/>
+    <ex type="ParseResultsException">if the expression does not parse according to the Gosu grammar.</ex>
+  </method>
+  <method name="parseExpOrProgram">
+    <desc>Parses a Gosu expression.  If that fails, attempts to parse a Gosu program (which is also an expression, but
+which has a different grammar.</desc>
+    <return>either a pure expression or Program, depending on the source</return>
+    <param name="partId" type="gw.lang.parser.IScriptPartId">Script part id</param>
+    <ex type="ParseResultsException">if neither an expression nor a program parses according to the Gosu grammar.  We
+                              try to make a best guess as to which IParseResultsException to throw, so that the
+                              errors are as close as possible to the true cause of the IParseResultsException</ex>
+  </method>
+  <method name="parseExpOrProgram">
+    <desc>Parses a Gosu expression.  If that fails, attempts to parse a Gosu program (which is also an expression, but
+which has a different grammar.</desc>
+    <return>either a pure expression or Program, depending on the source</return>
+    <param name="partId" type="gw.lang.parser.IScriptPartId">Script part id</param>
+    <param name="isolatedScope" type="boolean">if false, the program will modify the symbol table at the current scope</param>
+    <param name="assignRuntime" type="boolean"/>
+    <ex type="ParseResultsException">if neither an expression nor a program parses according to the Gosu grammar.  We
+                              try to make a best guess as to which IParseResultsException to throw, so that the
+                              errors are as close as possible to the true cause of the IParseResultsException</ex>
+  </method>
+  <method name="parseTypeLiteral">
+    <desc>Parses a type literal expression.  The source must obviously satisfy the type literal syntax.</desc>
+    <param name="partId" type="gw.lang.parser.IScriptPartId"/>
+  </method>
+  <method name="parseTypeLiteral">
+    <desc>Consumes a type literal from the current tokenizer, if one exists.</desc>
+    <return>true if a type literal was found, false otherwise</return>
+  </method>
+  <method name="isParsed">
+    <desc/>
+    <return>Whether or not the referenced Gosu source has been parsed.</return>
+  </method>
+  <method name="hasWarnings">
+    <desc/>
+    <return>Did the most recent parse have warnings</return>
+  </method>
+  <method name="getLocations">
+    <desc/>
+    <return>All the locations corresponding to parsed elements.</return>
+  </method>
+  <method name="getTokenizerInstructor">
+    <desc>The TokenizerInstructor to use for this parser. Optional.</desc>
+  </method>
+  <var name="NaN">
+    <desc/>
+  </var>
+  <var name="ZERO">
+    <desc/>
+  </var>
+  <var name="ONE">
+    <desc/>
+  </var>
+  <var name="DOUBLE_DIGITS">
+    <desc/>
+  </var>
+  <var name="BIGD_ZERO">
+    <desc/>
+  </var>
+</class>

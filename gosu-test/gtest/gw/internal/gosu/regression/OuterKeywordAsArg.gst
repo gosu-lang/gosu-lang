@@ -1,0 +1,1 @@
+<%@ params(outer:String) %>length: ${outer.length()}

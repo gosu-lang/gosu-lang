@@ -1,0 +1,63 @@
+package gw.util.transform.java.Examples
+
+uses java.lang.*
+uses java.lang.annotation.*
+uses java.lang.annotation.ElementType.*
+uses java.lang.annotation.RetentionPolicy.*
+uses java.lang.reflect.*
+
+/*
+    
+    @Target({TYPE, METHOD})
+    @Retention(RUNTIME)
+    @interface Author {
+        public final int oneHour = 60 * 60 * 1000;
+        
+        public String name();
+        
+        public Month month();
+        
+        public String[] diet() default {"Coffee", "Cola", "Mars bars"};
+        
+        public int weeklyWork() default 56 * oneHour;
+    }
+*/
+/*
+    
+    @Retention(RUNTIME)
+    @interface Authors {
+        
+        public Author[] value();
+    }
+*/
+class Example164  {
+
+    @Author(:name = "Peter", :month = Month.Nov, :diet = {"Dr. Pepper"})
+    public function myMethod1() : void {
+    }
+
+    @Author(:name = "Jens", :month = Month.Jul)
+    public function myMethod2() : void {
+    }
+
+    @Authors({@Author(:name = "Ulrik", :month = Month.Jul), @Author(:name = "Andrzej", :month = Month.Aug, :diet = {"Tea"})})
+    public function myMethod3() : void {
+    }
+
+    public static function main(args : String[]) : void {
+        var ty : Class = Example164
+        for (mif in ty.getMethods()) {
+            if (mif.getName().startsWith("myMethod")) {
+                System.out.println("\nGetting the annotations of " + mif.getName())
+                var annos : Annotation[] = mif.getDeclaredAnnotations()
+                System.out.println("The annotations are:")
+                for (anno in annos) {
+                    System.out.println(anno)
+                }
+
+            }
+        }
+
+    }
+
+}

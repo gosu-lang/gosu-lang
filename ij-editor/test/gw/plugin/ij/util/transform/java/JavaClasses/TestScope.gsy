@@ -1,0 +1,390 @@
+package gw.util.transform.java.JavaClasses
+
+uses java.lang.*
+uses java.io.FileNotFoundException
+uses java.io.IOException
+
+public class TestScope  {
+
+    internal var tmp : int = 6
+    internal var tmp2 : int = 6
+    internal var i : int = 0
+    internal var ex : int
+    internal var p : ex
+    enum ex  {
+        TODO
+        internal var ex : int
+        internal var tmp : int
+        /*
+            {
+                int i = 1;
+            }
+        */
+
+        function todo(ex_0 : int) : void {
+            ex_0 = ex_0
+            this.ex = ex_0
+            var TODO_0 = 1f
+            new TestScope().p.ex = 1
+        }
+
+
+    }
+
+    interface tmp  {
+
+        var tmp : int = 0
+        function push(tmp_0 : Object) : void
+        function pop() : Object
+    }
+
+    class inner  {
+
+        internal var x : int = 0
+        internal var j : int
+        internal var ex : int
+        function ifScope() : void {
+            if (x == 0) {
+                var x_0 = 1
+                if (x_0 == 3) {
+                    var i_0 = 1
+                    if (i_0 < 10) {
+                        tmp = i_0 + j
+                         {
+                            var j_0 = 0
+                        }
+
+                        j = 0
+                    }
+                } else {
+                    var i_0 = 0
+                    tmp = i_0 + j
+                     {
+                        i_0 = 0
+                    }
+
+                    i_0 = 0
+                }
+            }
+        }
+
+        function forScope() : void {
+            var tmp_0 = 0
+            var i_0 = 1
+            var i_1 = 0
+            var j_0 = 1
+            while (i_1 < 3) {
+                tmp_0 = tmp_0 + i_1
+                var o = 0
+                while (o < i_1) {
+                    var sum : int = o + i_1
+                    new TestScope().i = 0
+                    new TestScope()
+                    o++
+                }
+
+                i_1++
+                j_0++
+            }
+
+            var i_2 = 0
+            while (i_2 < 3) {
+                tmp_0 = tmp_0 + i_2
+                i_2++
+            }
+
+            var i_3 = 0
+            while (i_3 < 3) {
+                var j_1 = 0
+                while (j_1 < 3) {
+                    tmp_0 = i_3 + j_1
+                     {
+                        i_3 = 0
+                    }
+
+                    i_3++
+                }
+
+                var j_2 = 0
+                while (j_2 < 3) {
+                    tmp_0 = i_3 + j_2
+                     {
+                        i_3 = 0
+                    }
+
+                    i_3++
+                }
+
+                i_3++
+            }
+
+            var i_4 : int
+            i_4 = 1
+            j_0 = 0
+            while (i_4 < 10) {
+                tmp_0 = i_4 + j_0
+                 {
+                    var j_1 = 0
+                }
+
+                j_0 = 0
+            }
+
+        }
+
+        function whileScope() : void {
+            var j_0 = 0
+            var i_0 = 1
+            while (i < 10) {
+                var j_0_0 = 1
+                while (j_0 < 10) {
+                     {
+                        var i_1 = 0
+                        j_0_0 = 12
+                        this.j = 1
+                        new TestScope().i = 0
+                    }
+
+                    j_0++
+                     {
+                        var tmp_0 = 0
+                    }
+
+                    i = 0
+                    j_0_0 = 12
+                }
+
+                i++
+            }
+
+        }
+
+        function enhancedForScope() : void {
+            var nums : int[] = {0, 1, 2, 4}
+            var ex_0 = 0
+            for (i_0 in nums) {
+                ex_0 = ex_0 + i_0
+            }
+
+            for (i_0 in nums) {
+                ex_0 = tmp2 + i_0
+            }
+
+        }
+
+        function doWhileScope() : void {
+            var j_0 = 0
+            var i_0 = 1
+            do {
+                var j_0_0 = 1
+                do {
+                     {
+                        var i_1 = 0
+                        j_0_0 = 12
+                        this.j = 1
+                        new TestScope().i = 0
+                    }
+
+                    j_0++
+                     {
+                        var tmp_0 = 0
+                    }
+
+                    i = 0
+                    j_0_0 = 12
+                }
+                while (j_0 < 10)
+                i++
+            }
+            while (i < 10)
+        }
+
+        function tryScope() : void {
+            var j_0 : int
+            
+            try {
+                i = 0
+                 {
+                    var tmp_0 = 0
+                    var i_0 = 0
+                    var ex_0 = 1
+                    var bau = 1
+                    this.j = 1
+                    new TestScope().i = 0
+                }
+
+                ex = 1
+                throw new FileNotFoundException()
+            }
+            catch (bau : NullPointerException) {
+                System.out.print("bar0" + bau)
+                
+                try {
+                }
+                catch (ex_0 : IndexOutOfBoundsException) {
+                    var tmp_0 : int
+                }
+                catch (ex_0 : OutOfMemoryError) {
+                    var tmp_0 : int
+                }
+
+            }
+            catch (ex_0 : IndexOutOfBoundsException) {
+                System.out.print("bar1" + ex_0)
+                
+                try {
+                }
+                catch (ex0 : IndexOutOfBoundsException) {
+                    var tmp_0 : int
+                     {
+                        var tmp2_0 = 1
+                        var bau = 1
+                    }
+
+                    new TestScope().ex = 0
+                }
+                catch (ex0 : OutOfMemoryError) {
+                    var tmp_0 : int
+                     {
+                        var tmp2_0 = 1
+                        var bau = 1
+                    }
+
+                    new TestScope().ex = 0
+                }
+
+            }
+            catch (ex_0 : FileNotFoundException) {
+                System.out.print("bar1" + ex_0)
+                
+                try {
+                }
+                catch (ex0 : IndexOutOfBoundsException) {
+                    var tmp_0 : int
+                     {
+                        var tmp2_0 = 1
+                        var bau = 1
+                    }
+
+                    new TestScope().ex = 0
+                }
+                catch (ex0 : OutOfMemoryError) {
+                    var tmp_0 : int
+                     {
+                        var tmp2_0 = 1
+                        var bau = 1
+                    }
+
+                    new TestScope().ex = 0
+                }
+
+            }
+            finally  {
+                System.out.print("bar2")
+                
+                try {
+                }
+                catch (ex_0 : IndexOutOfBoundsException) {
+                    var tmp_0 : int
+                }
+                catch (ex_0 : OutOfMemoryError) {
+                    var tmp_0 : int
+                }
+
+            }
+
+        }
+
+        function newClassScope() : void {
+            var o = 0
+            var tmp_0 : Object = new BasicInterface() {
+
+                internal var o : Object = null
+                override public function push(o_0 : Object) : void {
+                    this.o = o_0
+                    var ex_0 : int
+                }
+
+                override public function pop() : Object {
+                    var tmp_1 : Object = null
+                    return tmp_1
+                }
+
+            }
+
+        }
+
+        function switchScope() : void {
+            var tmp_0 = 0
+            switch (tmp_0) {
+                case 0:
+                    var tmp2_0 = 0
+                    switch (tmp2_0) {
+                        case 0:
+                            break
+                        
+                        case 1:
+                            break
+                        
+                    }
+
+                    break
+                
+                case 1:
+                    tmp2_0 = 1
+                    switch (tmp2_0) {
+                        case 0:
+                            break
+                        
+                        case 1:
+                            break
+                        
+                    }
+
+                    break
+                
+            }
+
+        }
+
+    }
+
+    function m1(x_0 : int) : void {
+        x_0 = 7
+        this.x = x_0
+    }
+
+    function m2(v2 : int) : void {
+        x = 7
+    }
+
+    function m3(v3 : int) : void {
+        x = 7
+        var x_0 : int
+        x_0 = 7
+    }
+
+    function m4(v4 : int) : void {
+        x = 7
+         {
+            var x_0 : int
+            x_0 = 7
+        }
+
+        x = 7
+         {
+            var x_0 : int
+            x_0 = 7
+        }
+
+        x = 7
+    }
+
+    internal var x : int
+    /*
+        {
+            x = 7;
+        }
+    */
+
+}

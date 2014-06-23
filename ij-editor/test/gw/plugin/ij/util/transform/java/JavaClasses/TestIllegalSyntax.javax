@@ -1,0 +1,5 @@
+package gw.util.transform.java.JavaClasses;
+
+public class TestIllegalSyntax {
+  int a := 0
+}

@@ -1,0 +1,23 @@
+package gw.util.transform.java.JavaClasses;
+
+public @interface MyAnnotation {
+    String[] str();
+    int integer();
+    double doubleN();
+    boolean bol();
+    char character();
+    IntAnnotation[] arr();
+    /*static*/ public class FooBar<T> {
+      public static final int val = 3;
+
+    }
+    Class<? extends String> value();
+    @interface MyAnnotation2 {
+      short shortInt();
+    };
+    MyAnnotation2 ann();
+}
+
+@interface IntAnnotation {
+  int num();
+}

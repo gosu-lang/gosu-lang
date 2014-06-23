@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<class>
+  <desc/>
+  <var name="AllTarget">
+    <desc/>
+  </var>
+  <var name="TypeTarget">
+    <desc/>
+  </var>
+  <var name="ConstructorTarget">
+    <desc/>
+  </var>
+  <var name="PropertyTarget">
+    <desc/>
+  </var>
+  <var name="MethodTarget">
+    <desc/>
+  </var>
+  <var name="ParameterTarget">
+    <desc/>
+  </var>
+</class>

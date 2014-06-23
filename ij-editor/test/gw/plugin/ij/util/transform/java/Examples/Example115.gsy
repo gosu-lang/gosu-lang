@@ -1,0 +1,69 @@
+package gw.util.transform.java.Examples
+
+uses java.lang.*
+uses java.util.*
+
+class Example115  {
+
+    public static function main(args : String[]) : void {
+        var ia : Integer[] = {5, 7, 3, 9, 12, 45, 4, 8}
+        qsort(ia, new IntegerComparator(), 0, ia.length - 1)
+        Example115.qsort<Integer>(ia, new IntegerComparator(), 0, ia.length - 1)
+        Example115.qsort(ia, new IntegerComparator(), 0, ia.length - 1)
+        for (i in ia) {
+            System.out.print(i + "   ")
+        }
+
+        System.out.println()
+        var sa : String[] = {"New York", "Rome", "Dublin", "Riyadh", "Tokyo"}
+        Example115.qsort(sa, new StringReverseComparator(), 0, sa.length - 1)
+        for (s in sa) {
+            System.out.print(s + "   ")
+        }
+
+        System.out.println()
+    }
+
+    private static function qsort<T>(arr : T[], cmp : Comparator<T>, a : int, b : int) : void {
+        if (a < b) {
+            var i : int = a
+            var j : int = b
+            var x : T = arr[(i + j) / 2]
+            do {
+                while (cmp.compare(arr[i], x) < 0) {
+                    i++
+                }
+
+                while (cmp.compare(x, arr[j]) < 0) {
+                    j--
+                }
+
+                if (i <= j) {
+                    var tmp : T = arr[i]
+                    arr[i] = arr[j]
+                    arr[j] = tmp
+                    i++
+                    j--
+                }
+            }
+            while (i <= j)
+            qsort(arr, cmp, a, j)
+            qsort(arr, cmp, i, b)
+        }
+    }
+
+}
+class IntegerComparator implements Comparator<Integer> {
+
+    public function compare(v1 : Integer, v2 : Integer) : int {
+        return v1 < v2 ? -1 : v1 > v2 ? +1 : 0
+    }
+
+}
+class StringReverseComparator implements Comparator<String> {
+
+    public function compare(v1 : String, v2 : String) : int {
+        return v2.compareTo(v1)
+    }
+
+}

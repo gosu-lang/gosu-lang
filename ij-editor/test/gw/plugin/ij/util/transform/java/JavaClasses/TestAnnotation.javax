@@ -1,0 +1,27 @@
+package gw.util.transform.java.JavaClasses;
+
+
+public class TestAnnotation extends TestIf {
+
+  @MyAnnotation(
+          str = {"Hello", "World"},
+          integer = 2 == 1 ? 10 : 100,
+          doubleN = 0x10e3,
+          bol = true,
+          character = '"',
+          arr =  {@IntAnnotation(num = 1), @IntAnnotation(num = 2)},
+          value = String.class,
+          ann = @MyAnnotation.MyAnnotation2(shortInt = 0b1)
+  )
+
+
+  void bar() {
+
+  }
+
+  @Override
+  @Deprecated
+  public void foo() {
+  }
+
+}

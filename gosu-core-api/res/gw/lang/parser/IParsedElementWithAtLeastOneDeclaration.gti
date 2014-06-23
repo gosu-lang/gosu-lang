@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<class>
+  <desc/>
+  <method name="getNameOffset">
+    <desc>The offset of the token representing the name for the declaration</desc>
+    <param name="identifierName" type="java.lang.String"/>
+  </method>
+  <method name="declares">
+    <desc/>
+    <return>True if this statement declares the given identifier; false otherwise</return>
+    <param name="identifierName" type="java.lang.String"/>
+  </method>
+  <method name="getDeclarations">
+    <desc/>
+    <return>all names declared by this element</return>
+  </method>
+</class>

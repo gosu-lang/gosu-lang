@@ -1,0 +1,42 @@
+package gw.util.transform.java.Examples
+
+uses java.lang.*
+
+class Bank  {
+
+    private var account1 : int = 10
+    private var account2 : int = 20
+    public synchronized function transfer(amount : int) : void {
+        var new1 : int = account1 - amount
+        Util.pause(10)
+        account1 = new1
+        account2 = account2 + amount
+        System.out.println("Sum is " + (account1 + account2))
+    }
+
+}
+class Clerk extends Thread  {
+
+    private var bank : Bank
+    public construct(bank_0 : Bank) {
+        this.bank = bank_0
+    }
+
+    public function run() : void {
+        while (true) {
+            bank.transfer(Util.random(-10, 10))
+            Util.pause(200, 300)
+        }
+
+    }
+
+}
+class Example93  {
+
+    public static function main(args : String[]) : void {
+        var bank = new Bank()
+        new Clerk(bank).start()
+        new Clerk(bank).start()
+    }
+
+}

@@ -1,0 +1,33 @@
+package gw.util.transform.java.Examples
+
+uses java.lang.*
+
+class Example38  {
+
+    static internal var ps : double[] = new double[6]
+    /*
+        static {
+            double sum = 0;
+            for (int i = 0; i < ps.length; i++) ps[i] = sum += Math.random();
+            for (int i = 0; i < ps.length; i++) ps[i] /= sum;
+        }
+    */
+
+    static function roll() : int {
+        var p : double = Math.random()
+        var i = 0
+        while (p > ps[i]) {
+            i++
+        }
+
+        return i + 1
+    }
+
+    public static function main(args : String[]) : void {
+        for (i in 0..|10) {
+            System.out.println(roll())
+        }
+
+    }
+
+}

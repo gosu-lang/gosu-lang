@@ -1,0 +1,31 @@
+<?xml version="1.0"?>
+<class>
+  <desc>This class can be used to recursively fetch a WSDL and its dependencies from a remote URL. In Gosu, there is
+no need to generate code to use a WSDL. Simply drop the WSDL and it's associated resources into any Gosu
+classpath.</desc>
+  <method name="fetch">
+    <desc>Recursively fetches the WSDLs and associated resources at the specified location. In Gosu, there is no
+codegen phase, simply drop the fetched files into your Gosu classpath.</desc>
+    <param name="uri" type="java.net.URI">the uri of the WSDL or schema</param>
+    <param name="outputDir" type="java.io.File">the output directory, which will be created if necessary, and existing XSD and WSDL files will be overwritten here</param>
+  </method>
+  <method name="fetch">
+    <desc>Recursively fetches the WSDLs and associated resources at the specified locations. In Gosu, there is no
+codegen phase, simply drop the fetched files into your Gosu classpath.</desc>
+    <param name="urls" type="java.util.List">the urls of the WSDLs and/or schemas</param>
+    <param name="outputDir" type="java.io.File">the output directory, which will be created if necessary, and existing XSD and WSDL files will be overwritten here</param>
+  </method>
+  <method name="fetch">
+    <desc>Recursively fetches the WSDLs and associated schemas at the specified location. In Gosu, there is no
+codegen phase, simply drop the fetched files into your Gosu classpath.</desc>
+    <param name="uri" type="java.net.URI">the uri of the WSDL</param>
+    <param name="definitions" type="java.util.LinkedHashMap">a map into which to place the fetched WSDL definitions</param>
+    <param name="schemas" type="java.util.LinkedHashMap">a map into which to place the fetched schemas</param>
+  </method>
+  <method name="fetch">
+    <desc>Recursively fetches the schemas at the specified location. In Gosu, there is no
+codegen phase, simply drop the fetched files into your Gosu classpath.</desc>
+    <param name="uri" type="java.net.URI">the uri of the WSDL</param>
+    <param name="schemas" type="java.util.LinkedHashMap">a map into which to place the fetched schemas</param>
+  </method>
+</class>

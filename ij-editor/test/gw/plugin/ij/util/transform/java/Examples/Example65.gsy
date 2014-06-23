@@ -1,0 +1,41 @@
+package gw.util.transform.java.Examples
+
+uses java.lang.*
+
+class Example65  {
+
+    public static function main(args : String[]) : void {
+        System.out.println("44 is " + findCountry(44))
+    }
+
+    static function findCountry(prefix : int) : String {
+        switch (prefix) {
+            case 1:
+                return "North America"
+            
+            case 44:
+                return "Great Britain"
+            
+            case 45:
+                return "Denmark"
+            
+            case 299:
+                return "Greenland"
+            
+            case 46:
+                return "Sweden"
+            
+            case 7:
+                return "Russia"
+            
+            case 972:
+                return "Israel"
+            
+            default:
+                return "Unknown"
+            
+        }
+
+    }
+
+}

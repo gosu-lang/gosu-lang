@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<class>
+  <desc/>
+  <method name="getNextStackIndex">
+    <desc>For compile-time assignment of stack indexes.</desc>
+  </method>
+  <method name="getNextStackIndexForScope">
+    <desc>For compile-time assignment of stack indexes at a particular scope.</desc>
+    <param name="scope" type="gw.lang.parser.IScope"/>
+  </method>
+  <method name="hasIsolatedScope">
+    <desc>For compile-time use. Returns true iff an isolated scope is visible.</desc>
+  </method>
+</class>

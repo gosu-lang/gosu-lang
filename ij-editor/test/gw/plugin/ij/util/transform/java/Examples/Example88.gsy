@@ -1,0 +1,218 @@
+package gw.util.transform.java.Examples
+
+uses java.lang.*
+
+class Example88  {
+
+    public static function main(args : String[]) : void {
+        if (args.length != 3) {
+            System.out.println("Usage: Example88 yyyy mm dd\n")
+        } else {
+            
+            try {
+                var d = new MyDate(Integer.parseInt(args[0]), Month.toMonth(Integer.parseInt(args[1])), Integer.parseInt(args[2]))
+                System.out.println(d + " is " + d.weekday() + " in week " + d.weekNumber())
+            }
+            catch (e : Exception) {
+                System.out.println(e)
+            }
+
+        }
+    }
+
+}
+enum Day  {
+    Mon,
+    Tue,
+    Wed,
+    Thu,
+    Fri,
+    Sat,
+    Sun
+    private static final var day : Day[] = values()
+    public static function toDay(n : int) : Day {
+        return day[n]
+    }
+
+    public function toInt() : int {
+        return ordinal()
+    }
+
+
+}
+enum Month  {
+    Jan(31),
+    Feb(28),
+    Mar(31),
+    Apr(30),
+    May(31),
+    Jun(30),
+    Jul(31),
+    Aug(31),
+    Sep(30),
+    Oct(31),
+    Nov(30),
+    Dec(31)
+    private final var days : int
+    private construct(days_0 : int) {
+        this.days = days_0
+    }
+
+    private static final var month : Month[] = values()
+    public function days(year : int) : int {
+        return this == Feb and MyDate.leapYear(year) ? 29 : days
+    }
+
+    public static function toMonth(n : int) : Month {
+        return month[n - 1]
+    }
+
+    public function toInt() : int {
+        return ordinal() + 1
+    }
+
+    public function succ() : Month {
+        return toMonth(toInt() + 1)
+    }
+
+
+}
+class MyDate  {
+
+    final internal var yy : int
+    final internal var dd : int
+    final internal var mm : Month
+    public construct(yy_0 : int, mm_0 : Month, dd_0 : int) {
+        if (ok(yy_0, mm_0, dd_0)) {
+            this.yy = yy_0
+            this.mm = mm_0
+            this.dd = dd_0
+        } else {
+            throw new Exception("Illegal date (" + yy_0 + "," + mm_0 + "," + dd_0 + ")")
+        }
+    }
+
+    public static function leapYear(y : int) : boolean {
+        return y % 4 == 0 and y % 100 != 0 or y % 400 == 0
+    }
+
+    public function leapYear() : boolean {
+        return leapYear(yy)
+    }
+
+    public static function monthDays(y : int, m : Month) : int {
+        switch (m) {
+            case Apr:
+            
+            case Jun:
+            
+            case Sep:
+            
+            case Nov:
+                return 30
+            
+            case Feb:
+                return leapYear(y) ? 29 : 28
+            
+            default:
+                return 31
+            
+        }
+
+    }
+
+    public function monthDays() : int {
+        return mm.days(yy)
+    }
+
+    public static function yearDays(y : int) : int {
+        return leapYear(y) ? 366 : 365
+    }
+
+    public function yearDays() : int {
+        return yearDays(yy)
+    }
+
+    public static function ok(y : int, m : Month, d : int) : boolean {
+        return 1 <= d and d <= m.days(y)
+    }
+
+    public static function weekNumber(y : int, m : Month, d : int) : int {
+        var yday : int = dayInYear(y, m, d)
+        var wday : int = weekday(y, m, d).toInt()
+        var week : int = (yday - wday + 10) / 7
+        if (week == 0) {
+            return (yday + yearDays(y - 1) - wday + 10) / 7
+        } else {
+            return week
+        }
+    }
+
+    public function weekNumber() : int {
+        return weekNumber(yy, mm, dd)
+    }
+
+    public static function dayInYear(y : int, m : Month, d : int) : int {
+        var monthno : int = m.toInt() - 1
+        var monthadjust : int = monthno > 1 ? (27 + 4 * monthno) / 10 - (leapYear(y) ? 1 : 0) : 0
+        return d - 1 + 31 * monthno - monthadjust
+    }
+
+    public function dayInYear() : int {
+        return dayInYear(yy, mm, dd)
+    }
+
+    public static function toDaynumber(y : int, m : Month, d : int) : int {
+        var prioryears : int = y - 1
+        return dayInYear(y, m, d) + 1 + 365 * prioryears + prioryears / 4 - prioryears / 100 + prioryears / 400
+    }
+
+    public function toDaynumber() : int {
+        return toDaynumber(yy, mm, dd)
+    }
+
+    public static function fromDaynumber(n : int) : MyDate {
+        
+        try {
+            var d0 : int = n - 1
+            var n400 : int = d0 / 146097
+            var d1 : int = d0 % 146097
+            var n100 : int = d1 / 36524
+            var d2 : int = d1 % 36524
+            var n4 : int = d2 / 1461
+            var d3 : int = d2 % 1461
+            var n1 : int = d3 / 365
+            var d : int = 1 + d3 % 365
+            var y : int = 400 * n400 + 100 * n100 + n4 * 4 + n1 + 1
+            if (n100 == 4 or n1 == 4) {
+                return new MyDate(y - 1, Month.Dec, 31)
+            } else {
+                var m : Month = Month.Jan
+                var mdays : int
+                while ((mdays = m.days(y)) < d) {
+                    d -= mdays
+                    m = m.succ()
+                }
+
+                return new MyDate(y, m, d)
+            }
+        }
+        catch (e : Exception) {
+            throw new RuntimeException("MyDate.fromDaynumber: impossible")
+        }
+
+    }
+
+    public static function weekday(y : int, m : Month, d : int) : Day {
+        return Day.toDay((toDaynumber(y, m, d) + 6) % 7)
+    }
+
+    public function weekday() : Day {
+        return weekday(yy, mm, dd)
+    }
+
+    public function toString() : String {
+        return String.format("%4d-%02d-%02d", yy, mm.toInt(), dd)
+    }
+
+}

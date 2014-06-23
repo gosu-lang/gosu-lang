@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<class>
+  <desc/>
+  <method name="validate">
+    <desc>Called after the Gosu source corresponding to the parsed element is fully parsed.</desc>
+    <param name="pe" type="gw.lang.parser.IParsedElement">The parsed element to validate.</param>
+  </method>
+</class>

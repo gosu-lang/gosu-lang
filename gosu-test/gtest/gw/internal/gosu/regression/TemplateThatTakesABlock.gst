@@ -1,0 +1,1 @@
+<%@ params(aBlock() : String) %>Output of block: ${aBlock()}

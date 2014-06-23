@@ -1,0 +1,42 @@
+<?xml version="1.0"?>
+<class>
+  <desc/>
+  <method name="getConsoleMessage">
+    <desc>Override so we can reset the message if need be.</desc>
+  </method>
+  <method name="getExpectedType">
+    <desc/>
+    <return>The parser's exprected types.</return>
+  </method>
+  <method name="setExpectedType">
+    <desc>Sets the expected type information from the parser.</desc>
+    <param name="typeExpected" type="gw.lang.reflect.IType"/>
+  </method>
+  <method name="getMemberAccessContext">
+    <desc/>
+    <return>A member access context expression to further qualify the expected
+        type.  Typically the member access expression is an LHS operand in the
+        containing. For example, the member access expression facilitates in
+        TypeKey qualification -- we need the name of a field/property to
+        get an appropriately filtered TypeList for a specific TypeKey on a
+        specific field in an entity.</return>
+  </method>
+  <method name="setMemberAccessContext">
+    <desc/>
+    <param name="ma" type="gw.lang.parser.expressions.IMemberAccessExpression">A member access expression context to further qualify
+          the expected type.</param>
+  </method>
+  <method name="getAlternateException">
+    <desc>An alternate ParseException that may provide additional information. For example,
+if the type of script is not know in advance (is it an expression or a program?),
+the script is first compiled as an expression. If a ParseException is thrown, the
+script is compiled as a program. If a ParseException is thrown again, the former
+exception is rethrown with the latter as the 'alternate'.</desc>
+  </method>
+  <cons>
+    <desc/>
+    <param name="parserState" type="gw.lang.parser.IParserState">The tokenizer in use by the parser (helpful for</param>
+    <param name="messageKey" type="gw.lang.parser.resources.ResourceKey"/>
+    <param name="args" type="[Ljava.lang.Object;"/>
+  </cons>
+</class>

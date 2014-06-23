@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<class>
+  <desc/>
+  <method name="execute">
+    <desc>Execute this statement.</desc>
+  </method>
+  <method name="execute">
+    <desc>Execute this statement.</desc>
+    <param name="externalSymbols" type="gw.lang.reflect.gs.IExternalSymbolMap"/>
+  </method>
+  <method name="getLeastSignificantTerminalStatement">
+    <desc>Indicates whether or not control flow is terminal at this statement.</desc>
+    <param name="bAsolute" type="[Z"/>
+  </method>
+</class>

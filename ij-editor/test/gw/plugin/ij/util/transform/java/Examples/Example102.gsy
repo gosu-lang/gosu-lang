@@ -1,0 +1,60 @@
+package gw.util.transform.java.Examples
+
+uses java.lang.*
+uses java.util.Random
+
+class Example102  {
+
+    public static function main(args : String[]) : void {
+        if (args.length != 1) {
+            System.out.println("Usage: java Example102 <length>\n")
+        } else {
+            System.out.println("Timing character replacement, abusing a string buffer:")
+            var rnd = new Random()
+            var length_0 : int = Integer.parseInt(args[0])
+            var cbuf = new char[length_0]
+            var i = 0
+            while (i < length_0) {
+                cbuf[i] = (65 + rnd.nextInt(26)) as char
+                i++
+            }
+
+            var s = new String(cbuf)
+            for (i_0 in 0..|10) {
+                var sb = new StringBuilder(s)
+                var t = new Timer()
+                replaceCharString(sb, 'A', "HA")
+                System.out.print(t.check() + " ")
+            }
+
+            System.out.println()
+        }
+    }
+
+    static function replaceCharString(sb : StringBuilder, c1 : char, s2 : String) : void {
+        var i = 0
+        while (i < sb.length()) {
+            if (sb.charAt(i) == c1) {
+                sb.replace(i, i + 1, s2)
+                i += s2.length()
+            } else {
+                i += 1
+            }
+        }
+
+    }
+
+    private static final class Timer  {
+
+        private var starttime : long
+        public construct() {
+            starttime = System.currentTimeMillis()
+        }
+
+        function check() : double {
+            return (System.currentTimeMillis() - starttime) / 1000.0
+        }
+
+    }
+
+}

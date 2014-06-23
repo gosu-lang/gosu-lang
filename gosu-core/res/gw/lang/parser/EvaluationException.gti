@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<class>
+  <desc/>
+  <method name="wrap">
+    <desc/>
+    <deprecated>This method is here to support the historical runtime semantics, and should not be used in standard
+gosu (it is used in code gen, see gw.internal.gosu.ir.transform.statement.TryCatchFinallyStatementTransformer#wrapCatchSymbol(gw.lang.ir.IRExpression)</deprecated>
+    <param name="cause" type="java.lang.Throwable"/>
+  </method>
+</class>

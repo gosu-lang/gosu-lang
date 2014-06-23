@@ -1,0 +1,213 @@
+<?xml version="1.0"?>
+<class>
+  <desc>Represents an XML simple value, such as an xsd:int. Instances of this class know how to translate between
+Gosu representation (42), String representation ("42"), and know how to serialize themselves to the output
+XML, which may differ from the value returned by getStringValue(). For example, in the case of a QName,
+the Gosu representation would be a javax.xml.namespace.QName, the String representation would be the
+QName's namespace prefix and it's local part joined by a colon, yet when serialized to XML, the actual
+namespaces at the time of serialization would be taken into account, and a different prefix might be chosen.</desc>
+  <method name="getGosuValueType">
+    <desc>Returns the Gosu value type.</desc>
+    <return>the Gosu value type</return>
+  </method>
+  <method name="makeBooleanInstance">
+    <desc>Creates a simple value representing an xsd:boolean.</desc>
+    <return>a simple value representing an xsd:boolean</return>
+    <param name="value" type="java.lang.Boolean">The boolean value</param>
+  </method>
+  <method name="makeDecimalInstance">
+    <desc>Creates a simple value representing an xsd:decimal.</desc>
+    <return>a simple value representing an xsd:decimal</return>
+    <param name="value" type="java.math.BigDecimal">The decimal value</param>
+  </method>
+  <method name="makeDoubleInstance">
+    <desc>Creates a simple value representing an xsd:double.</desc>
+    <return>a simple value representing an xsd:double</return>
+    <param name="value" type="java.lang.Double">The double value</param>
+  </method>
+  <method name="makeFloatInstance">
+    <desc>Creates a simple value representing an xsd:float.</desc>
+    <return>a simple value representing an xsd:float</return>
+    <param name="value" type="java.lang.Float">The float value</param>
+  </method>
+  <method name="makeIntegerInstance">
+    <desc>Creates a simple value representing an xsd:integer.</desc>
+    <return>a simple value representing an xsd:integer</return>
+    <param name="value" type="java.math.BigInteger">The integer value</param>
+  </method>
+  <method name="makeLongInstance">
+    <desc>Creates a simple value representing an xsd:long.</desc>
+    <return>a simple value representing an xsd:long</return>
+    <param name="value" type="java.lang.Long">The long value</param>
+  </method>
+  <method name="makeIntInstance">
+    <desc>Creates a simple value representing an xsd:int.</desc>
+    <return>a simple value representing an xsd:int</return>
+    <param name="value" type="java.lang.Integer">The int value</param>
+  </method>
+  <method name="makeShortInstance">
+    <desc>Creates a simple value representing an xsd:short.</desc>
+    <return>a simple value representing an xsd:short</return>
+    <param name="value" type="java.lang.Short">The short value</param>
+  </method>
+  <method name="makeByteInstance">
+    <desc>Creates a simple value representing an xsd:byte.</desc>
+    <return>a simple value representing an xsd:byte</return>
+    <param name="value" type="java.lang.Byte">The byte value</param>
+  </method>
+  <method name="makeUnsignedLongInstance">
+    <desc>Creates a simple value representing an xsd:unsignedLong.</desc>
+    <return>a simple value representing an xsd:unsignedLong</return>
+    <param name="value" type="java.math.BigInteger">The unsignedLong value</param>
+  </method>
+  <method name="makeUnsignedIntInstance">
+    <desc>Creates a simple value representing an xsd:unsignedInt.</desc>
+    <return>a simple value representing an xsd:unsignedInt</return>
+    <param name="value" type="java.lang.Long">The unsignedInt value</param>
+  </method>
+  <method name="makeUnsignedShortInstance">
+    <desc>Creates a simple value representing an xsd:unsignedShort.</desc>
+    <return>a simple value representing an xsd:unsignedShort</return>
+    <param name="value" type="java.lang.Integer">The unsignedShort value</param>
+  </method>
+  <method name="makeUnsignedByteInstance">
+    <desc>Creates a simple value representing an xsd:unsignedByte.</desc>
+    <return>a simple value representing an xsd:unsignedByte</return>
+    <param name="value" type="java.lang.Short">The unsignedByte value</param>
+  </method>
+  <method name="makeEncodedStringInstance">
+    <desc>Creates a simple value representing an xsd:string.</desc>
+    <return>a simple value representing an xsd:string</return>
+    <param name="value" type="java.lang.String">The string value</param>
+  </method>
+  <method name="makeStringInstance">
+    <desc>Creates a simple value representing an xsd:string.</desc>
+    <return>a simple value representing an xsd:string</return>
+    <param name="value" type="java.lang.String">The string value</param>
+  </method>
+  <method name="makeDateInstance">
+    <desc>Creates a simple value representing an xsd:date.</desc>
+    <return>a simple value representing an xsd:date</return>
+    <param name="value" type="gw.xml.date.XmlDate">The date value</param>
+  </method>
+  <method name="makeDateTimeInstance">
+    <desc>Creates a simple value representing an xsd:datetime.</desc>
+    <return>a simple value representing an xsd:datetime</return>
+    <param name="value" type="gw.xml.date.XmlDateTime">The datetime value</param>
+  </method>
+  <method name="makeTimeInstance">
+    <desc>Creates a simple value representing an xsd:time.</desc>
+    <return>a simple value representing an xsd:time</return>
+    <param name="value" type="gw.xml.date.XmlTime">The time value</param>
+  </method>
+  <method name="makeGYearMonthInstance">
+    <desc>Creates a simple value representing an xsd:gYearMonth.</desc>
+    <return>a simple value representing an xsd:gYearMonth</return>
+    <param name="value" type="gw.xml.date.XmlYearMonth">The gYearMonth value</param>
+  </method>
+  <method name="makeGYearInstance">
+    <desc>Creates a simple value representing an xsd:gYear.</desc>
+    <return>a simple value representing an xsd:gYear</return>
+    <param name="value" type="gw.xml.date.XmlYear">The gYear value</param>
+  </method>
+  <method name="makeGMonthDayInstance">
+    <desc>Creates a simple value representing an xsd:gMonthDay.</desc>
+    <return>a simple value representing an xsd:gMonthDay</return>
+    <param name="value" type="gw.xml.date.XmlMonthDay">The gMonthDay value</param>
+  </method>
+  <method name="makeGDayInstance">
+    <desc>Creates a simple value representing an xsd:gDay.</desc>
+    <return>a simple value representing an xsd:gDay</return>
+    <param name="value" type="gw.xml.date.XmlDay">The gDay value</param>
+  </method>
+  <method name="makeGMonthInstance">
+    <desc>Creates a simple value representing an xsd:gMonth.</desc>
+    <return>a simple value representing an xsd:gMonth</return>
+    <param name="value" type="gw.xml.date.XmlMonth">The gMonth value</param>
+  </method>
+  <method name="makeDurationInstance">
+    <desc>Creates a simple value representing an xsd:duration.</desc>
+    <return>a simple value representing an xsd:duration</return>
+    <param name="value" type="gw.xml.date.XmlDuration">The duration value</param>
+  </method>
+  <method name="makeBase64BinaryInstance">
+    <desc>Creates a simple value representing an xsd:base64Binary.</desc>
+    <return>a simple value representing an xsd:base64Binary</return>
+    <param name="value" type="[B">The base64Binary value</param>
+  </method>
+  <method name="makeBase64BinaryInstance">
+    <desc>Creates a simple value representing an xsd:base64Binary.</desc>
+    <return>a simple value representing an xsd:base64Binary</return>
+    <param name="value" type="gw.xml.BinaryData">The base64Binary value</param>
+  </method>
+  <method name="makeHexBinaryInstance">
+    <desc>Creates a simple value representing an xsd:hexBinary.</desc>
+    <return>a simple value representing an xsd:hexBinary</return>
+    <param name="value" type="[B">The hexBinary value</param>
+  </method>
+  <method name="makeAnyURIInstance">
+    <desc>Creates a simple value representing an xsd:anyURI.</desc>
+    <return>a simple value representing an xsd:anyURI</return>
+    <param name="value" type="java.net.URI">The anyURI value</param>
+  </method>
+  <method name="makeQNameInstance">
+    <desc>Creates a simple value representing an xsd:QName.</desc>
+    <return>a simple value representing an xsd:QName</return>
+    <param name="value" type="javax.xml.namespace.QName">The QName value</param>
+  </method>
+  <method name="makeNonValidatingQNameInstance">
+    <desc>Creates a simple value representing an xsd:QName, without validating the QName for valid characters.</desc>
+    <return>a simple value representing an xsd:QName</return>
+    <param name="value" type="javax.xml.namespace.QName">The QName value</param>
+  </method>
+  <method name="makeQNameInstance">
+    <desc>Creates a simple value representing an xsd:QName.</desc>
+    <return>a simple value representing an xsd:QName</return>
+    <param name="value" type="java.lang.String">The colonized value</param>
+    <param name="namespaceContext" type="java.util.Map">The namespace context</param>
+  </method>
+  <method name="makeNonValidatingQNameInstance">
+    <desc>Creates a simple value representing an xsd:QName, without validating the QName for valid characters.</desc>
+    <return>a simple value representing an xsd:QName</return>
+    <param name="value" type="java.lang.String">The colonized value</param>
+    <param name="namespaceContext" type="java.util.Map">The namespace context</param>
+  </method>
+  <method name="makeIDInstance">
+    <desc>Creates a simple value representing an xsd:ID.</desc>
+    <return>a simple value representing an xsd:ID</return>
+    <param name="value" type="java.lang.String">The ID value</param>
+  </method>
+  <method name="makeIDREFInstance">
+    <desc>Creates a simple value representing an xsd:IDREF.</desc>
+    <return>a simple value representing an xsd:IDREF</return>
+    <param name="value" type="gw.xml.XmlElement">The IDREF value</param>
+  </method>
+  <method name="makeEnumInstance">
+    <desc>Creates a simple value representing an enum.</desc>
+    <return>a simple value representing an enum</return>
+    <param name="value" type="gw.xml.IXmlSchemaEnumValue">The enum value</param>
+  </method>
+  <method name="makeListOfQNameInstance">
+    <desc>Creates a simple value representing a list of QName.</desc>
+    <return>a simple value representing a list of QName</return>
+    <param name="value" type="java.util.List">The list of QName value</param>
+  </method>
+  <method name="getStringValue">
+    <desc>Returns a string representation of this simple value. This may differ from the actual value that
+will be serialized to XML.</desc>
+    <return>a string representation of this simple value</return>
+  </method>
+  <method name="getGosuValue">
+    <desc>Returns the Gosu value of this simple value.</desc>
+    <return>the Gosu value of this simple value</return>
+  </method>
+  <method name="getQNames">
+    <desc>Returns a list of QNames associated with this simple value ( such as in the case of xs:QName or an xs:list of
+the same )</desc>
+    <return>the list of qnames</return>
+  </method>
+  <method name="toString">
+    <desc>Returns a string representation for debugging.</desc>
+    <return>a string representation for debugging</return>
+  </method>
+</class>

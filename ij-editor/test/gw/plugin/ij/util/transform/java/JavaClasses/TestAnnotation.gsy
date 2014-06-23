@@ -1,0 +1,15 @@
+package gw.util.transform.java.JavaClasses
+
+uses java.lang.*
+
+public class TestAnnotation extends TestIf  {
+
+    @MyAnnotation(:str = {"Hello", "World"}, :integer = 2 == 1 ? 10 : 100, :doubleN = 4323, :bol = true, :character = '\"', :arr = {@IntAnnotation(:num = 1), @IntAnnotation(:num = 2)}, :value = String, :ann = @MyAnnotation.MyAnnotation2(:shortInt = 1))
+    function bar() : void {
+    }
+
+    @Deprecated
+    override public function foo() : void {
+    }
+
+}

@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<class>
+  <desc/>
+  <method name="getMethodInfo">
+    <desc>An associated IMethodInfo. Optional.</desc>
+  </method>
+  <method name="getParamSignature">
+    <desc>Formatted signature of the form "&lt;function&gt; ( param-list )"</desc>
+  </method>
+  <method name="newInstance">
+    <desc/>
+    <return>a new copy of this IFunctionType with the given parameter and return types</return>
+    <param name="paramTypes" type="[Lgw.lang.reflect.IType;"/>
+    <param name="returnType" type="gw.lang.reflect.IType"/>
+  </method>
+</class>

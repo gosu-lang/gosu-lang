@@ -1,0 +1,69 @@
+package gw.util.transform.java.JavaClasses;
+
+import java.util.*;
+
+public class TestFor {
+  public int tmp = 6;
+
+  void foo() {
+    for (tmp = 0; ; tmp++) {
+      if(1 == 1) break;
+    }
+
+    for (int i = 0, j = 1; ; i++, j++) {
+      int a = 0;
+      if(1 == 1) break;
+    }
+
+    for (int i0 = 0, j0 = 1; i0 < 3; ) {
+      int a = 0;
+      int b = 0;
+    }
+
+    for (; true; ) {
+      break;
+    }
+
+    for (; ; ) {
+      break;
+    }
+
+    int j1;
+
+    for (; true; j1++) {
+      if(1 == 1) break;
+    }
+
+    for (int i2 = 0; true; ) {
+      if(1 == 1) break;
+      ;
+    }
+
+    for (int i3 = 0; ; ) {
+      if(1 == 1) break;
+    }
+
+    for(int i = 0; i < 3; i++) {
+       System.out.println(i);
+    }
+
+    String f = "foo";
+    for(int i = 0; i < f.length(); i++) {
+      System.out.print(f.charAt(i));
+    }
+
+
+    char[] fa = {'f', 'o', 'o'};
+    for(int i = 0; i < fa.length; i++) {
+      System.out.print(fa[i]);
+    }
+
+    List<Character> fc = new ArrayList<Character>();
+    fc.add('f');
+    fc.add('o');
+    fc.add('o');
+    for(int i = 0; i < fc.size(); i++) {
+      System.out.print(fc.get(i));
+    }
+  }
+}

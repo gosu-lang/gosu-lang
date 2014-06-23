@@ -1,0 +1,25 @@
+package gw.util.transform.java.Examples
+
+uses java.lang.*
+
+class Example8  {
+
+    public static function main(args : String[]) : void {
+        equalityAndPlus()
+    }
+
+    static function equalityAndPlus() : void {
+        var s1 = "abc"
+        var s2 : String = s1 + ""
+        var s3 : String = s1
+        var s4 : String = s1.toString()
+        System.out.println("s1 and s2 identical objects: " + (s1 == s2))
+        System.out.println("s1 and s3 identical objects: " + (s1 == s3))
+        System.out.println("s1 and s4 identical objects: " + (s1 == s4))
+        System.out.println("s1 and s2 contain same text: " + (s1.equals(s2)))
+        System.out.println("s1 and s3 contain same text: " + (s1.equals(s3)))
+        System.out.println(10 + 25 + "A")
+        System.out.println("A" + 10 + 25)
+    }
+
+}

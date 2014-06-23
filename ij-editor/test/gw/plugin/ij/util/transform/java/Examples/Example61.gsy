@@ -1,0 +1,36 @@
+package gw.util.transform.java.Examples
+
+uses java.lang.*
+
+class Example61  {
+
+    public static function main(args : String[]) : void {
+        var offset = 10
+        class Pair  {
+
+            public final var fst : int
+            public final var snd : int
+            public construct(fst_0 : int, snd_0 : int) {
+                this.fst = fst_0
+                this.snd = snd_0
+            }
+
+            public function toString() : String {
+                return String.format("(%d,%d)", fst, snd)
+            }
+
+        }
+
+         {
+            var p1 = new Pair(10, 10 + offset)
+            System.out.println(p1)
+        }
+
+         {
+            var p1 = new Pair(200, 300)
+            System.out.println(p1)
+        }
+
+    }
+
+}

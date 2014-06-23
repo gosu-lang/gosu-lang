@@ -1,0 +1,41 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <parent>
+    <groupId>com.guidewire.gosu</groupId>
+    <artifactId>gosu-parent</artifactId>
+    <version>9-gosu-SNAPSHOT</version>
+    <relativePath>../gosu-parent/pom.xml</relativePath>
+  </parent>
+  <modelVersion>4.0.0</modelVersion>
+
+  <artifactId>gosu-test</artifactId>
+
+  <name>Gosu :: Test</name>
+
+  <dependencies>
+    <dependency>
+      <groupId>com.guidewire.gosu</groupId>
+      <artifactId>gosu-test-api</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.guidewire.gosu</groupId>
+      <artifactId>gosu-core</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.guidewire.gosu</groupId>
+      <artifactId>gosu-interactive</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.guidewire.gosu</groupId>
+      <artifactId>gosu-process</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.guidewire.gosu</groupId>
+      <artifactId>gosu-servlet</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.easytesting</groupId>
+      <artifactId>fest-util</artifactId>
+      <version>1.1.4</version>
+    </dependency>
+  </dependencies>
+</project>

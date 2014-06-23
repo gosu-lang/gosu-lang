@@ -1,0 +1,26 @@
+<?xml version="1.0"?>
+<class>
+  <desc/>
+  <method name="isReadable">
+    <desc/>
+    <return>true if the property is readable given the visibility constraint passed in,
+        false otherwise.</return>
+  </method>
+  <method name="isWritable">
+    <desc/>
+    <return>True if the property is writable given the visibility constraint passed in,
+        false otherwise.</return>
+  </method>
+  <method name="isWritable">
+    <desc/>
+    <return>True if the property is writable given the visibility constraint passed in,
+        false otherwise.</return>
+    <param name="whosAskin" type="gw.lang.reflect.IType">The type querying the property writability.  For example, passing in the type the property is on will
+  allow properties that have private access in the setter to be written to.  Passing in an unrelated type will only
+  allow properties that are public to be written to.</param>
+  </method>
+  <method name="getAccessor">
+    <desc/>
+    <return>the PropertyAccessor (for getting and setting) this property.</return>
+  </method>
+</class>

@@ -1,0 +1,52 @@
+package gw.util.transform.java.Examples
+
+uses java.lang.*
+uses java.awt.Color
+
+class Example114  {
+
+    public static function main(args : String[]) : void {
+        var p1 = new LabelPoint<String>(5, 117, "home")
+        var p2 = new LabelPoint<String>(2, 3, "work")
+        var p3 = new LabelPoint<Double>(10, 100, 3.1415)
+        var p4 = new ColorLabelPoint<String, Integer>(20, 30, "foo", 255)
+        var p5 = new ColorLabelPoint<String, Color>(40, 50, "bar", Color.BLUE)
+        var movables : Movable[] = {p1, p2, p3, p4, p5}
+        var stringpoints : LabelPoint<String>[]
+    }
+
+}
+interface Movable  {
+
+    function move(dx : int, dy : int) : void
+}
+class LabelPoint<L> implements Movable {
+
+    protected var x : int
+    protected var y : int
+    private var lab : L
+    public construct(x_0 : int, y_0 : int, lab_0 : L) {
+        this.x = x_0
+        this.y = y_0
+        this.lab = lab_0
+    }
+
+    public function move(dx : int, dy : int) : void {
+        x += dx
+        y += dy
+    }
+
+    public function getLab() : L {
+        return lab
+    }
+
+}
+class ColorLabelPoint<L, C> extends LabelPoint<L>  {
+
+    private var c : C
+    public construct(x : int, y : int, lab : L, c_0 : C) {
+        super(x, y, lab)
+        this.c = c_0
+    }
+
+}

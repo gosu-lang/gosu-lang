@@ -1,0 +1,60 @@
+package gw.util.transform.java.JavaClasses
+
+uses java.lang.*
+uses java.util.Comparator
+
+public class TestExpressions  {
+
+    public var vv : int = 3
+    private var z1 : boolean = true
+    protected var z2 : char = '\t'
+    public static var z3 : double = 10.0
+    static internal var z4 : short = 1
+    internal var z5 : byte = 1
+    internal var z6 : long = 1
+    internal var z7 : float = 1
+    function foo() : void {
+        var o : Object = 1
+        var oo = new Object()
+        var yyy = 1
+        var aaaaa = 33024.0
+        var a = true
+        var c = false
+        var z : boolean = !a and (a or c)
+        var rr = '\t'
+        var rr2 = '\''
+        var n0 = 10.0
+        var e = 100.0
+        var n1 = 1s
+        var n2 = 1b
+        var n3 = 1L
+        var n4 = 1f
+        var n5 = 10.0
+        var e2 = 100.0
+        var n6 = 1s
+        var n7 = 1b
+        var n8 = 1L
+        var n9 = 1.0f
+        var string0 = new String("\"bar\n\"")
+        var string1 = new String[]{"This", "is", "a", "test"}
+        var string2 = new String[][]{{"Hello"}, {"wold"}}
+        var string3 : String = string2[0][1]
+        var string4 = new String[1][2][3]
+        var string5 = new String[2][1][]
+        var string6 : String = null
+        var j : int = vv++
+        var x : int = vv--
+        var x2 : int = vv += 3
+        var y : int = -(~vv)
+        var min : int = ((1.0 as int) + 1) + (new Integer(1) typeis Integer ? this.vv + 1 : 0)
+        var Hello = new Comparator() {
+
+            public function compare(o1 : Object, o2 : Object) : int {
+                return 0
+            }
+
+        }
+
+    }
+
+}

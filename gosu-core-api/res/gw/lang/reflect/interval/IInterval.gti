@@ -1,0 +1,46 @@
+<?xml version="1.0"?>
+<class>
+  <desc/>
+  <method name="getLeftEndpoint">
+    <desc/>
+    <return>The left endpoint of this interval where the left &lt;= right</return>
+  </method>
+  <method name="getRightEndpoint">
+    <desc/>
+    <return>The right endpoint of this interval where the left &lt;= right</return>
+  </method>
+  <method name="isLeftClosed">
+    <desc/>
+    <return>True if this interval &lt;i&gt;includes&lt;/i&gt; the left endpoint.
+E.g., x &gt;= foo indicates a left-closed interval starting with and including
+foo. Conversely, x &gt; foo is said to be left-open because the interface
+starts with, but excludes foo i.e., there is no minimum value defined in
+the interval, rather the interval is open with foo as the limit of minimum
+values.</return>
+  </method>
+  <method name="isRightClosed">
+    <desc/>
+    <return>True if this interval &lt;i&gt;includes&lt;/i&gt; the right endpoint.
+E.g., x &lt;= foo indicates a right-closed interval ending with and including
+foo. Conversely, x &lt; foo is said to be right-open because the interface
+ends with, but excludes foo i.e., there is no maximum value defined in the
+interval, rather the interval is open with foo as the limit of maximum
+values.</return>
+  </method>
+  <method name="contains">
+    <desc/>
+    <return>True if elem is a proper element in the set of elements defining this interval.</return>
+    <param name="elem" type="E">An element to test</param>
+  </method>
+  <method name="contains">
+    <desc/>
+    <return>True if interval's endpoints are proper elements in the set of elements defining this interval.</return>
+    <param name="interval" type="ME">An interval to test for containment</param>
+  </method>
+  <method name="isReverse">
+    <desc/>
+    <return>True if this interval iterates from the right by default e.g.,
+  if the interval is specified in reverse order: 10..1, Gosu will
+  create a reverse intervall</return>
+  </method>
+</class>

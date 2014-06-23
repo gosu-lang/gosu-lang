@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+  ~ Copyright 2014 Guidewire Software, Inc.
+  -->
+
+<serialization xmlns="http://guidewire.com/xml" xmlns:tns="http://guidewire.com/xml"
+               xmlns:xsd="http://www.w3.org/1999/XMLSchema" xmlns:xsi="http://www.w3.org/1999/XMLSchema-instance">
+
+  <common-service-init class="gw.internal.gosu.ShellKernelInit"/>
+  <allow-deprecated-references>true</allow-deprecated-references>
+  <allow-entity-queries>false</allow-entity-queries>
+  <libraries/>
+
+</serialization>

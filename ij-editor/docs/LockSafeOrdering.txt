@@ -1,0 +1,15 @@
+1. The PSI lock must be acquired before the type system lock. This is because IDEA calls our
+   code with the PSI lock acquired and we may call the type system.
+
+    Example from GosuLanguageInjector/
+
+    synchronized (PsiLock.LOCK) {
+      TypeSystem.lock();
+      try {
+        ... stuff ...
+      } finally {
+        TypeSystem.unlock();
+      }
+    }
+
+2.

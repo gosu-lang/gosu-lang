@@ -1,0 +1,35 @@
+/*
+ * This is a sample file.
+ */
+package pkg
+
+uses javax.swing. *
+uses java.lang.Runnable
+
+public class Foo {
+  var field1: int
+  var field2: int
+
+  function foo() {
+    var r = new Runnable() {
+      override function run() {
+      }
+    }
+  }
+
+  function bar() {
+
+  }
+
+  public class InnerClass {
+  }
+
+  public interface InnerInterface {
+    var MAX: int = 10
+    var MIN: int = 1
+
+    function foo()
+
+    function bar()
+  }
+}

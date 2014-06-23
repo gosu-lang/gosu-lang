@@ -1,0 +1,15 @@
+<!--
+  ~ Copyright 2014 Guidewire Software, Inc.
+  -->
+
+<codegen xmlns="http://guidewire.com/config/xml/xsd-codegen">
+  <schema namespace="gw.xsd.w3c.xmlschema"/>
+  <schema namespace="gw.xsd.w3c.xml"/>
+  <schema namespace="gw.xsd.w3c.wsdl"/>
+  <schema namespace="gw.xsd.gw.gw_schema_additions"/>
+  <schema namespace="gw.xsd.config.xml.schemalocations"/>
+  <schema namespace="gw.internal.xsd.config.xml.xsd_codegen"/>
+  <schema namespace="gw.xsd.w3c.soap11"/>
+  <schema namespace="gw.xsd.w3c.soap12"/>
+  <schema namespace="gw.xsd.gw.gw_pl_wsdl_additions"/>
+</codegen>

@@ -1,0 +1,174 @@
+package gw.util.transform.java.JavaClasses;
+
+
+import java.util.*;
+
+
+
+public class TestGenerics<T extends Comparable<T> & CharSequence, B, Q> extends LinkedList<T> implements List<T>, MyGenericPair<T,B>  {
+  private  class FloatCmp<T1 extends Comparable<T1>> implements Comparator<T1> {
+    public int compare(T1 o1, T1 o2) {
+      return o1.compareTo(o2);
+    }
+  }
+
+  class Inner<A, B2> {
+    public <A extends String & Comparable<String>, C> Inner(A a, B2 n, C jj) {}
+  }
+
+  class Builder<S extends T> {
+
+  }
+
+  <T extends Comparable<T> & CharSequence, V, L> TestGenerics(T a0, V a1, T a2, L a3) {
+
+  }
+
+  TestGenerics() {
+  }
+
+  private void innstance() {
+    TestGenerics<String, String, Integer> tmp = new TestGenerics<>();
+    TestGenerics<String, String, Integer> tmpNoDiamond = new TestGenerics<String, String, Integer>();
+    TestGenerics<? super String, ?, ? extends Integer> tmp2 = new TestGenerics<String, String, Integer>();
+    Map<String, List<String>> myMap = new HashMap<>();
+  }
+
+  public void rrrr() {
+    List<Float> floats = new LinkedList<Float>();
+    Float[] nums = new Float[10];
+    Arrays.<Float>sort(nums, new FloatCmp<Float>());
+
+    Inner<String, String> monster = new <String, String>Inner<String, String>("132", "321", "888");
+    Comparator<String> Hello = new Comparator<String>() {
+      @Override
+      public int compare(String o1, String o2) {
+        return 0;
+      }
+
+      @Override
+      public boolean equals(Object obj) {
+        return false;
+      }
+    };
+  }
+
+  private static <J extends Comparable<J>> void cmp(J a, J b ) {
+    a.compareTo(b);
+  }
+  private static <J extends Comparable<J>, K> void uuu(K a, K b, TestGenerics<? extends K, ? super J, ?> c) {
+
+  }
+  @Override
+  public int size() {
+    return 0;
+  }
+
+  @Override
+  public boolean isEmpty() {
+    return false;
+  }
+
+  @Override
+  public boolean contains(Object o) {
+    return false;
+  }
+
+  @Override
+  public Iterator<T> iterator() {
+    return null;
+  }
+
+  @Override
+  public Object[] toArray() {
+    return new Object[0];
+  }
+
+  @Override
+  public <T3> T3[] toArray(T3[] a) {
+    return null;
+  }
+
+  @Override
+  public boolean add(T t) {
+    return false;
+  }
+
+  @Override
+  public boolean remove(Object o) {
+    return false;
+  }
+
+  @Override
+  public boolean containsAll(Collection<?> c) {
+    return false;
+  }
+
+  @Override
+  public boolean addAll(Collection<? extends T> c) {
+    return false;
+  }
+
+  @Override
+  public boolean addAll(int in, Collection<? extends T> c) {
+    return false;
+  }
+
+  @Override
+  public boolean removeAll(Collection<?> c) {
+    return false;
+  }
+
+  @Override
+  public boolean retainAll(Collection<?> c) {
+    return false;
+  }
+
+  @Override
+  public void clear() {
+  }
+
+  @Override
+  public T get(int in) {
+    return null;
+  }
+
+  @Override
+  public T set(int in, T element) {
+    return null;
+  }
+
+  @Override
+  public void add(int in, T element) {
+  }
+
+  @Override
+  public T remove(int in) {
+    return null;
+  }
+
+  @Override
+  public int indexOf(Object o) {
+    return 0;
+  }
+
+  @Override
+  public int lastIndexOf(Object o) {
+    return 0;
+  }
+
+  @Override
+  public ListIterator<T> listIterator() {
+    return null;
+  }
+
+  @Override
+  public ListIterator<T> listIterator(int in) {
+    return null;
+  }
+
+  @Override
+  public List<T> subList(int fromIndex, int toIndex) {
+    return null;
+  }
+}

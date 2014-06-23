@@ -1,0 +1,23 @@
+package gw.util.transform.java.JavaClasses;
+
+public class TestOuterMemberSelect {
+  static int x;
+
+  static class A {
+    static int x;
+  }
+
+  class B {
+    int w;
+
+    class C {
+      class D {
+        int i = TestOuterMemberSelect.this.x;
+        int j = TestOuterMemberSelect.B.C.D.this.i;
+        int u = TestOuterMemberSelect.x;
+        int z = B.C.D.this.i;
+        int o = B.this.w;
+      }
+    }
+  }
+}

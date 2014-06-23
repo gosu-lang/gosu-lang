@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<class>
+  <desc/>
+  <method name="getAssignableClass">
+    <desc/>
+    <return>The class assignable to this literal.</return>
+  </method>
+  <cons>
+    <desc/>
+    <param name="cls" type="gw.lang.reflect.IType"/>
+    <param name="id" type="long">A unique id for the object.</param>
+  </cons>
+</class>

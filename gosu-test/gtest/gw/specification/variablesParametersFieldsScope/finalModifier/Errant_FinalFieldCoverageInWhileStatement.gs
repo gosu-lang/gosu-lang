@@ -1,0 +1,4 @@
+package gw.specification.variablesParametersFieldsScope.finalModifier
+
+class Errant_FinalFieldCoverageInWhileStatement {
+}

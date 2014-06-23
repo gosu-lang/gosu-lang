@@ -1,0 +1,80 @@
+package gw.util.transform.java.Examples
+
+uses java.lang.*
+
+class Vehicle  {
+
+}
+class Car extends Vehicle  {
+
+}
+class Sedan extends Car  {
+
+}
+class Shop<T>  {
+
+    private var thing : T
+    public function buyFrom() : T {
+        return thing
+    }
+
+    public function sellTo(thing_0 : T) : void {
+        this.thing = thing_0
+    }
+
+}
+class Example118  {
+
+    public static function main(args : String[]) : void {
+        var object = new Object()
+        var vehicle = new Vehicle()
+        var car = new Car()
+        var sedan = new Sedan()
+        var b0 : Shop
+        b0 = new Shop<Object>()
+        b0 = new Shop<Vehicle>()
+        b0 = new Shop<Car>()
+        b0 = new Shop<Sedan>()
+        var o0 : Object = b0.buyFrom()
+        b0.sellTo(object)
+        b0.sellTo(vehicle)
+        b0.sellTo(car)
+        b0.sellTo(sedan)
+        b0.sellTo(b0.buyFrom())
+        var b1 : Shop<Car>
+        b1 = new Shop<Car>()
+        var o1 : Object = b1.buyFrom()
+        var v1 : Vehicle = b1.buyFrom()
+        var c1 : Car = b1.buyFrom()
+        b1.sellTo(car)
+        b1.sellTo(sedan)
+        b1.sellTo(b1.buyFrom())
+        var b2 : Shop<?>
+        b2 = new Shop<Object>()
+        b2 = new Shop<Vehicle>()
+        b2 = new Shop<Car>()
+        b2 = new Shop<Sedan>()
+        var o2 : Object = b2.buyFrom()
+        var b3 : Shop<Car>
+        b3 = new Shop<Car>()
+        b3 = new Shop<Sedan>()
+        var o3 : Object = b3.buyFrom()
+        var v3 : Vehicle = b3.buyFrom()
+        var c3 : Car = b3.buyFrom()
+        var b4 : Shop<? super Car>
+        b4 = new Shop<Object>()
+        b4 = new Shop<Vehicle>()
+        b4 = new Shop<Car>()
+        var o4 : Object = b4.buyFrom()
+        b4.sellTo(car)
+        b4.sellTo(sedan)
+        var b5 = new Shop<Object>()
+        var o5 : Object = b5.buyFrom()
+        b5.sellTo(object)
+        b5.sellTo(vehicle)
+        b5.sellTo(car)
+        b5.sellTo(sedan)
+        b5.sellTo(b5.buyFrom())
+    }
+
+}

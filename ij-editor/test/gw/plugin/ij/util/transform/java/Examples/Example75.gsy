@@ -1,0 +1,34 @@
+package gw.util.transform.java.Examples
+
+uses java.lang.*
+
+class Example75  {
+
+    public static function main(args : String[]) : void {
+        System.out.println("Counting sum of eyes until 5 or 6 comes up (10000 dice).")
+        var wait = new int[1000]
+        for (i in 0..|10000) {
+            wait[waitsum()]++
+        }
+
+        System.out.println("sum: frequency")
+        var w = 5
+        while (w < 20) {
+            System.out.println(w + ": " + wait[w])
+            w++
+        }
+
+    }
+
+    static function waitsum() : int {
+        var sum = 0
+        var eyes : int
+        do {
+            eyes = (1 + 6 * Math.random()) as int
+            sum += eyes
+        }
+        while (eyes < 5)
+        return sum
+    }
+
+}

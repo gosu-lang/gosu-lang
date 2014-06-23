@@ -1,0 +1,37 @@
+package gw.util.transform.java.JavaClasses
+
+uses java.lang.*
+
+public class TestIf  {
+
+    public function foo() : void {
+        var a : int
+        var b : int
+        if (true) {
+            a = 0
+        }
+        if (true) {
+            a = 0
+        } else {
+            b = 0
+        }
+        if (0 == 0) {
+            a = 0
+        } else if (1 == 1) {
+            a = 1
+        } else if (12 == 12) {
+            if (1 == 2) {
+                a = 2
+            } else {
+                if (7 == 7) {
+                    a = 3
+                }
+            }
+        } else {
+            a = 4
+            b = 5
+        }
+        return
+    }
+
+}

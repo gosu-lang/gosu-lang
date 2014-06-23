@@ -1,0 +1,1 @@
+<%@ params(p1 : String) %>One Arg Template: <%= p1 %>

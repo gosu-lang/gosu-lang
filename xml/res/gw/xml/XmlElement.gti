@@ -1,0 +1,195 @@
+<?xml version="1.0"?>
+<class>
+  <desc>Represents an XML element. Unlike DOM, it does not directly contain any children. It has a backing XML type
+instance (XmlTypeInstance), however, which contains it's children. Call getTypeInstance() to access the backing
+type instance. All of the methods and properties of the backing type instance have been re-exposed on the
+XmlElement, however, so accessing the backing type instance directly should rarely be necessary.</desc>
+  <method name="getQName">
+    <desc>Returns the QName of this element.</desc>
+    <return>the QName of this element</return>
+  </method>
+  <method name="getNamespace">
+    <desc>Returns the namespace of this element.</desc>
+    <return>the namespace of this element</return>
+  </method>
+  <method name="print">
+    <desc>Serializes this element to the console. Equivalent to System.out.println( asUTFString() )</desc>
+  </method>
+  <method name="print">
+    <desc>Serializes this element to the console. Equivalent to System.out.println( asUTFString() )</desc>
+    <param name="options" type="gw.xml.XmlSerializationOptions">the options to control serialization</param>
+  </method>
+  <method name="asUTFString">
+    <desc>Serializes this element to a string. The returned string is in a format suitable for byte conversion
+to either UTF-8 or UTF-16 (with a leading byte order mark to indicate endianness). The use of
+getBytes() is highly recommended over the use of this method.</desc>
+    <return>a string containing the serialized XML</return>
+  </method>
+  <method name="asUTFString">
+    <desc>Serializes this element to a string. The returned string is in a format suitable for byte conversion
+to either UTF-8 or UTF-16 (with a leading byte order mark to indicate endianness). The use of
+getBytes() is highly recommended over the use of this method.</desc>
+    <return>a string containing the serialized XML</return>
+    <param name="options" type="gw.xml.XmlSerializationOptions">the options to control serialization</param>
+  </method>
+  <method name="bytes">
+    <desc>Serializes this element to a byte array using UTF-8 encoding.</desc>
+    <return>a byte array containing the serialized XML</return>
+  </method>
+  <method name="bytes">
+    <desc>Serializes this element to a byte array using UTF-8 encoding.</desc>
+    <return>a byte array containing the serialized XML</return>
+    <param name="options" type="gw.xml.XmlSerializationOptions">the options to control serialization</param>
+  </method>
+  <method name="writeTo">
+    <desc>Serializes this element to the specified output stream using UTF-8 encoding. The stream will not be closed.</desc>
+    <param name="out" type="java.io.OutputStream">the output stream where the data should be written</param>
+  </method>
+  <method name="writeTo">
+    <desc>Serializes this element to the specified output stream using UTF-8 encoding. The stream will not be closed.</desc>
+    <param name="out" type="java.io.OutputStream">the output stream where the data should be written</param>
+    <param name="options" type="gw.xml.XmlSerializationOptions">the options to control serialization</param>
+  </method>
+  <method name="declareNamespace">
+    <desc>Explicitly declares an XML namespace and a suggested prefix at this level.
+The prefix that actually ends up being bound to the namespace may not be the same as the suggested prefix.</desc>
+    <param name="nsuri" type="java.net.URI">the namespace URI to which the prefix should be bound</param>
+    <param name="suggestedPrefix" type="java.lang.String">the suggested prefix to use</param>
+  </method>
+  <method name="declareNamespace">
+    <desc>Explicitly declares an XML namespace and a suggested prefix at this level.
+The prefix that actually ends up being bound to the namespace may not be the same as the suggested prefix.</desc>
+    <param name="qname" type="javax.xml.namespace.QName">the qname that contains the namespace URI to be declared and the suggested prefix to which the namespace should be bound</param>
+  </method>
+  <method name="declareNamespace">
+    <desc>Explicitly declares an XML namespace and a suggested prefix at this level.
+The prefix that actually ends up being bound to the namespace may not be the same as the suggested prefix.</desc>
+    <param name="ns" type="gw.xml.XmlNamespace">the XmlNamespace that contains the namespace URI to be declared and the suggested prefix to which the namespace should be bound</param>
+  </method>
+  <method name="declareNamespace">
+    <desc>Explicitly declares an XML namespace at this level with the specified namespace URI.</desc>
+    <param name="nsuri" type="java.net.URI">the namespace URI to be declared</param>
+  </method>
+  <method name="parse">
+    <desc>Parses XML from the specified input stream. The input stream will be closed by this method.</desc>
+    <return>An XmlElement representing the XML content</return>
+    <param name="stream" type="java.io.InputStream">The stream containing the XML</param>
+  </method>
+  <method name="parse">
+    <desc>Parses XML from the specified input stream. The input stream will be closed by this method.</desc>
+    <return>An XmlElement representing the XML content</return>
+    <param name="stream" type="java.io.InputStream">The stream containing the XML</param>
+    <param name="options" type="gw.xml.XmlParseOptions">parsing options</param>
+  </method>
+  <method name="parse">
+    <desc>Parses XML from the specified byte array.</desc>
+    <return>An XmlElement representing the XML content</return>
+    <param name="bytes" type="[B">The byte array containing the XML</param>
+  </method>
+  <method name="parse">
+    <desc>Parses XML from the specified byte array.</desc>
+    <return>An XmlElement representing the XML content</return>
+    <param name="bytes" type="[B">The byte array containing the XML</param>
+    <param name="options" type="gw.xml.XmlParseOptions">parsing options</param>
+  </method>
+  <method name="parse">
+    <desc>Parses XML from the specified file.</desc>
+    <return>An XmlElement representing the XML content</return>
+    <param name="file" type="java.io.File">The file containing the XML</param>
+  </method>
+  <method name="parse">
+    <desc>Parses XML from the specified file.</desc>
+    <return>An XmlElement representing the XML content</return>
+    <param name="file" type="java.io.File">The file containing the XML</param>
+    <param name="options" type="gw.xml.XmlParseOptions">parsing options</param>
+  </method>
+  <method name="parse">
+    <desc>Parses XML from the specified string.</desc>
+    <return>An XmlElement representing the XML content</return>
+    <param name="string" type="java.lang.String">The string containing the XML</param>
+  </method>
+  <method name="parse">
+    <desc>Parses XML from the specified string.</desc>
+    <return>An XmlElement representing the XML content</return>
+    <param name="string" type="java.lang.String">The string containing the XML</param>
+    <param name="options" type="gw.xml.XmlParseOptions">parsing options</param>
+  </method>
+  <method name="parse">
+    <desc>Parses XML from the specified reader. The reader will be closed by this method.</desc>
+    <return>An XmlElement representing the XML content</return>
+    <param name="reader" type="java.io.Reader">The reader containing the XML</param>
+  </method>
+  <method name="parse">
+    <desc>Parses XML from the specified reader. The reader will be closed by this method.</desc>
+    <return>An XmlElement representing the XML content</return>
+    <param name="reader" type="java.io.Reader">The reader containing the XML</param>
+    <param name="options" type="gw.xml.XmlParseOptions">parsing options</param>
+  </method>
+  <method name="parse">
+    <desc>Parses XML from the specified URL.</desc>
+    <return>An XmlElement representing the XML content</return>
+    <param name="url" type="java.net.URL">The URL containing the XML</param>
+  </method>
+  <method name="parse">
+    <desc>Parses XML from the specified URL.</desc>
+    <return>An XmlElement representing the XML content</return>
+    <param name="url" type="java.net.URL">The URL containing the XML</param>
+    <param name="options" type="gw.xml.XmlParseOptions">parsing options</param>
+  </method>
+  <method name="getTypeInstance">
+    <desc>Returns the backing type instance of this element.</desc>
+    <return>the backing type instance of this element</return>
+  </method>
+  <method name="setTypeInstance">
+    <desc>Sets the backing type instance of this element.</desc>
+    <param name="xmlTypeInstance" type="gw.xml.XmlTypeInstance">the new backing type instance for this element</param>
+  </method>
+  <method name="toString">
+    <desc>Returns a human-readable description of this element.</desc>
+    <return>a human-readable description of this element</return>
+  </method>
+  <method name="getNamespaceContext">
+    <desc>Returns the namespace context of this element.</desc>
+    <return>the namespace context of this element</return>
+  </method>
+  <method name="getDeclaredNamespaces">
+    <desc>Returns a list of explicitly declared namespaces at this element's level.</desc>
+    <return>a list of explicitly declared namespaces at this element's level</return>
+  </method>
+  <method name="setComment">
+    <desc>Attaches a comment to this element.</desc>
+    <param name="comment" type="java.lang.String">the comment to be set</param>
+  </method>
+  <method name="getComment">
+    <desc>Returns the comment previously set on this element, if applicable.</desc>
+    <return>the comment previously set on this element, if applicable</return>
+  </method>
+  <method name="isNil">
+    <desc>Returns true if this element is nil.</desc>
+    <return>true if this element is nil</return>
+  </method>
+  <method name="setNil">
+    <desc>Sets the nillness of this element.</desc>
+    <param name="nil" type="boolean">the nillness of this element</param>
+  </method>
+  <cons>
+    <desc>Creates a new element with the specified QName, and the specified backing type instance.</desc>
+    <param name="qname" type="javax.xml.namespace.QName">The QName for the element</param>
+    <param name="typeInstance" type="gw.xml.XmlTypeInstance">The backing type instance</param>
+  </cons>
+  <cons>
+    <desc>Creates a new element with the specified name in the null namespace, and the specified backing type instance.</desc>
+    <param name="localPart" type="java.lang.String">the local name for the element in the null namespace</param>
+    <param name="typeInstance" type="gw.xml.XmlTypeInstance">The backing type instance</param>
+  </cons>
+  <cons>
+    <desc>Creates a new element with the specified QName,
+and an empty gw.xsd.w3c.xmlschema.types.complex.AnyType backing type instance.</desc>
+    <param name="qname" type="javax.xml.namespace.QName">The QName for the element</param>
+  </cons>
+  <cons>
+    <desc>Creates a new element with the specified local name in the null namespace,
+and an empty gw.xsd.w3c.xmlschema.types.complex.AnyType backing type instance.</desc>
+    <param name="name" type="java.lang.String">the name of the element in the null namespace</param>
+  </cons>
+</class>

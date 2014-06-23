@@ -1,0 +1,64 @@
+<?xml version="1.0"?>
+<class>
+  <desc/>
+  <method name="getRawArgs">
+    <desc/>
+    <return>the raw string arguments a Gosu program was started with</return>
+  </method>
+  <method name="setRawArgs">
+    <desc/>
+    <param name="args" type="java.util.List">the args to a Gosu program</param>
+  </method>
+  <method name="getCurrentProgram">
+    <desc/>
+    <return>the currently executing program as a file object</return>
+  </method>
+  <method name="setCurrentProgram">
+    <desc/>
+    <param name="currentProgram" type="java.io.File">- the currently executing program</param>
+  </method>
+  <method name="isUseTerminalWidth">
+    <desc/>
+    <return>true if CommandLineAccess will attempt to use the active terminals width
+when printing it's help message</return>
+  </method>
+  <method name="setUseTerminalWidth">
+    <desc>Set to true for CommandLineAccess to use the active terminals width when printing it's help message</desc>
+    <param name="b" type="boolean"/>
+  </method>
+  <method name="initialize">
+    <desc>Initializes the static properties on the given type based on the command
+line arguments.  If the arguments incorrectly map to the given type,
+a help message will be printed and the JVM will exit with a -1 return value.</desc>
+    <param name="commandLineShell" type="gw.lang.reflect.IType">the class to initialize from the passed in arguments</param>
+  </method>
+  <method name="initialize">
+    <desc>Initializes the properties on the given object based on the command
+line arguments.  If the object passed in is a type, static properties
+will be initialized.
+&lt;p/&gt;
+Note that you will get -h, -help and --help for free, there is no need to
+explicitly include a help property on your command line class.</desc>
+    <return>true if initialization was successful</return>
+    <param name="obj" type="java.lang.Object">the class to initialize from the passed in arguments</param>
+    <param name="exitOnBadArgs" type="boolean">if true is passed in and the arguments incorrectly map to the
+       given type, a help message will be printed and the JVM will exit with a -1 return value,
+       otherwise a false value will be returned</param>
+  </method>
+  <method name="showHelp">
+    <desc>Shows a help message for the program arguments derived from the given type, sent
+to stdout</desc>
+    <param name="programName" type="java.lang.String">the name of the program</param>
+    <param name="obj" type="java.lang.Object">either the type of the command line shell if static properties are used, or the instance if instance properties are used</param>
+  </method>
+  <method name="showHelp">
+    <desc>Shows a help message for the program arguments derived from the given type, sent
+to stdout</desc>
+    <param name="obj" type="gw.lang.reflect.IType">either the type of the command line shell if static properties are used, or the instance if instance properties are used</param>
+  </method>
+  <method name="getHelpMessageFor">
+    <desc>Returns the help message derived from the given type</desc>
+    <return>the help message derived from the given type</return>
+    <param name="obj" type="java.lang.Object">the object or type of the command line shell</param>
+  </method>
+</class>

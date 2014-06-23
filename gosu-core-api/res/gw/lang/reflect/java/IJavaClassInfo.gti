@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<class>
+  <desc/>
+  <method name="equals">
+    <desc>Two IJavaClassInfo instances are equal if they are both non-arrays and have the same
+name and module. If the two instances are arrays, then they are equal if their
+component types are equal.</desc>
+    <return>whether the two objects represent the same class.</return>
+    <param name="o" type="java.lang.Object">the other object</param>
+  </method>
+  <method name="hashCode">
+    <desc>In order to maintain consistency with {@link #equals(Object)}, the hash code of a non-array
+IJavaClassInfo must be computed as follows:
+&lt;p/&gt;
+&lt;code&gt;
+  getName().hashCode() * 31 + getModule().hashCode()
+&lt;/code&gt;
+&lt;p/&gt;
+For arrays, the hashCode is equal to the hashCode of the component type.</desc>
+    <return>the hash code</return>
+  </method>
+</class>

@@ -1,0 +1,35 @@
+package gw.util.transform.java.Examples
+
+uses java.lang.*
+
+class B  {
+
+    internal var vf : int
+    static internal var sf : int
+    construct(i : int) {
+        vf = i
+        sf = i + 1
+    }
+
+}
+class C extends B  {
+
+    internal var vf : int
+    static internal var sf : int
+    construct(i : int) {
+        super(i + 20)
+        vf = i
+        sf = i + 2
+    }
+
+}
+class D extends C  {
+
+    internal var vf : int
+    construct(i : int) {
+        super(i + 40)
+        vf = i
+        sf = i + 4
+    }
+
+}

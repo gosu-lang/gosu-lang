@@ -1,0 +1,43 @@
+package gw.util.transform.java.Examples
+
+uses java.lang.*
+uses java.util.*
+
+class ComparablePair<T extends Comparable<T>, U extends Comparable<U>> implements Comparable<ComparablePair<T, U>> {
+
+    public final var fst : T
+    public final var snd : U
+    public construct(fst_0 : T, snd_0 : U) {
+        this.fst = fst_0
+        this.snd = snd_0
+    }
+
+    public function compareTo(that : ComparablePair<T, U>) : int {
+        var firstCmp : int = this.fst.compareTo(that.fst)
+        return firstCmp != 0 ? firstCmp : this.snd.compareTo(that.snd)
+    }
+
+    public function toString() : String {
+        return "(" + fst + ", " + snd + ")"
+    }
+
+}
+class Example110  {
+
+    public static function main(args : String[]) : void {
+        var lst = new ArrayList<ComparablePair<String, Integer>>()
+        lst.add(new ComparablePair<String, Integer>("Brazil", 2002))
+        lst.add(new ComparablePair<String, Integer>("Italy", 1982))
+        lst.add(new ComparablePair<String, Integer>("Argentina", 1978))
+        lst.add(new ComparablePair<String, Integer>("Argentina", 1986))
+        lst.add(new ComparablePair<String, Integer>("Germany", 1990))
+        lst.add(new ComparablePair<String, Integer>("Brazil", 1994))
+        lst.add(new ComparablePair<String, Integer>("France", 1998))
+        Collections.sort(lst)
+        for (pair in lst) {
+            System.out.println(pair)
+        }
+
+    }
+
+}

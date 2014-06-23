@@ -1,0 +1,54 @@
+package gw.util.transform.java.Examples
+
+uses java.lang.*
+uses java.awt.Color
+uses java.awt.Graphics
+
+class ColoredPoint extends Point implements Colored {
+
+    internal var c : Color
+    construct(x : int, y : int, c_0 : Color) {
+        super(x, y)
+        this.c = c_0
+    }
+
+    public function getColor() : Color {
+        return c
+    }
+
+}
+class ColoredDrawablePoint extends ColoredPoint implements ColoredDrawable {
+
+    construct(x : int, y : int, c : Color) {
+        super(x, y, c)
+    }
+
+    public function draw(g : Graphics) : void {
+        g.fillRect(x, y, 1, 1)
+    }
+
+}
+class ColoredRectangle implements ColoredDrawable {
+
+    internal var x1 : int
+    internal var x2 : int
+    internal var y1 : int
+    internal var y2 : int
+    internal var c : Color
+    construct(x1_0 : int, y1_0 : int, x2_0 : int, y2_0 : int, c_0 : Color) {
+        this.x1 = x1_0
+        this.y1 = y1_0
+        this.x2 = x2_0
+        this.y2 = y2_0
+        this.c = c_0
+    }
+
+    public function getColor() : Color {
+        return c
+    }
+
+    public function draw(g : Graphics) : void {
+        g.drawRect(x1, y1, x2 - x1, y2 - y1)
+    }
+
+}

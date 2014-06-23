@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<class>
+  <desc/>
+  <method name="getRoot">
+    <desc>Returns the root directory for this GosuPathEntry.  This method will never return null.</desc>
+    <return>the root directory</return>
+  </method>
+  <method name="getSources">
+    <desc>Returns the source directories for this path entry.  This method will never return null.</desc>
+    <return>the source directories</return>
+  </method>
+  <method name="toDebugString">
+    <desc>Returns a String representation of this path entry suitable for use in debugging.</desc>
+    <return>a debug String representation of this object</return>
+  </method>
+  <cons>
+    <desc>Constructs a new GosuPathEntry with the specified data.  None of the arguments
+are allowed to be null.  Typeloader names should be fully-qualified Java class names.</desc>
+    <param name="root" type="gw.fs.IDirectory">the root IDirectory for this path entry</param>
+    <param name="srcs" type="java.util.List">the set of IDirectories for this entry that should be considered to be source directories</param>
+  </cons>
+</class>

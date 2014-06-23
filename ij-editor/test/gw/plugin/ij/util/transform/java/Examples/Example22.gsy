@@ -1,0 +1,23 @@
+package gw.util.transform.java.Examples
+
+uses java.lang.*
+
+class Example22  {
+
+    public static function main(args : String[]) : void {
+        var r1 = new double[3][2]
+        var r2 = new double[3][]
+        for (i in 0..|3) {
+            r2[i] = new double[2]
+        }
+
+        var t1 = new double[3][]
+        for (i in 0..|3) {
+            t1[i] = new double[i + 1]
+        }
+
+        var t2 : double[][] = {{0.0}, {0.0, 0.0}, {0.0, 0.0, 0.0}}
+        var t3 = new double[][]{{0.0}, {0.0, 0.0}, {0.0, 0.0, 0.0}}
+    }
+
+}

@@ -1,0 +1,23 @@
+package gw.util.transform.java.Examples
+
+uses java.lang.*
+
+class Example76  {
+
+    public static function main(args : String[]) : void {
+        System.out.println("Thursday is " + wdayno3("Thursday"))
+    }
+
+    static function wdayno3(wday : String) : int {
+        for (i in 0..|wdays.length) {
+            if (wday.equals(wdays[i])) {
+                return i + 1
+            }
+        }
+
+        return -1
+    }
+
+    static final internal var wdays : String[] = {"Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"}
+
+}

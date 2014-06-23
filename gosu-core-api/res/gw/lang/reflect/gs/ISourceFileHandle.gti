@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<class>
+  <desc/>
+  <method name="getFileName">
+    <desc/>
+    <return>a relative representation of the file appropriate for debugging/stack traces</return>
+  </method>
+</class>

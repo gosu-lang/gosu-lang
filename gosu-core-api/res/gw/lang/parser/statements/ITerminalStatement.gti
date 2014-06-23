@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+<class>
+  <desc/>
+  <method name="getTerminalType">
+    <desc>Mostly this is important so we can weight the terminal types i.e., the ordinal in the enum is significant</desc>
+  </method>
+</class>

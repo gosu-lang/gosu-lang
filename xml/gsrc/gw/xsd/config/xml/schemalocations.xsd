@@ -1,0 +1,25 @@
+<!--
+  ~ Copyright 2014 Guidewire Software, Inc.
+  -->
+
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           targetNamespace="http://guidewire.com/xml/schemalocations"
+           elementFormDefault="qualified">
+    <xs:element name="schemalocations">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="schema" minOccurs="0" maxOccurs="unbounded">
+                    <xs:complexType>
+                        <xs:attribute name="xmlNamespace" use="required" type="xs:anyURI"/>
+                        <xs:attribute name="resourcePath" use="required" type="xs:string"/>
+                        <xs:attribute name="externalLocations" use="required">
+                            <xs:simpleType>
+                                <xs:list itemType="xs:anyURI"/>
+                            </xs:simpleType>
+                        </xs:attribute>
+                    </xs:complexType>
+                </xs:element>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+</xs:schema>

@@ -1,0 +1,66 @@
+package gw.util.transform.java.Examples
+
+uses java.lang.*
+uses java.io.*
+
+class Example144  {
+
+    public static function main(args : String[]) : void {
+        var expr : Expr = mkAddition(4)
+        expr.output(System.out)
+        System.out.println()
+        var sb = new StringBuilder()
+        expr.output(sb)
+        var s : String = sb.toString()
+        System.out.println(s)
+        var wr : Writer = new FileWriter("expr.txt")
+        System.out.println("Writing to file expr.txt")
+        expr.output(wr)
+        wr.append('\n')
+        wr.close()
+    }
+
+    public static function mkAddition(n : int) : Expr {
+        if (n == 0) {
+            return new Cst(17)
+        } else {
+            var e : Expr = mkAddition(n - 1)
+            return new Add(new Cst(n), new Add(e, e))
+        }
+    }
+
+}
+abstract class Expr  {
+
+    public abstract function output(sink : Appendable) : void
+}
+class Cst extends Expr  {
+
+    private final var i : int
+    public construct(i_0 : int) {
+        this.i = i_0
+    }
+
+    public function output(sink : Appendable) : void {
+        sink.append(Integer.toString(i))
+    }
+
+}
+class Add extends Expr  {
+
+    internal var e1 : Expr
+    internal var e2 : Expr
+    public construct(e1_0 : Expr, e2_0 : Expr) {
+        this.e1 = e1_0
+        this.e2 = e2_0
+    }
+
+    public function output(sink : Appendable) : void {
+        sink.append('(')
+        e1.output(sink)
+        sink.append('+')
+        e2.output(sink)
+        sink.append(')')
+    }
+
+}

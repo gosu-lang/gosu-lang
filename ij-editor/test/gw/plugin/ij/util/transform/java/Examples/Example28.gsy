@@ -1,0 +1,28 @@
+package gw.util.transform.java.Examples
+
+uses java.lang.*
+
+class Example28  {
+
+    public static function main(args : String[]) : void {
+        var v1 : Vessel = new Barrel(3, 10)
+        var v2 : Vessel = new Tank(10, 20, 12)
+        var v3 : Vessel = new Cube(4)
+        var vs : Vessel[] = {v1, v2, v3}
+        v1.fill(90)
+        v1.fill(10)
+        v2.fill(100)
+        v3.fill(80)
+        var sum = 0.0
+        for (i in 0..|vs.length) {
+            sum += vs[i].capacity()
+        }
+
+        System.out.println("Total capacity is " + sum)
+        for (i in 0..|vs.length) {
+            System.out.println("vessel number " + i + ": " + vs[i])
+        }
+
+    }
+
+}

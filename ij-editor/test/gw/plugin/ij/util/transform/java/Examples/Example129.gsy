@@ -1,0 +1,70 @@
+package gw.util.transform.java.Examples
+
+uses java.lang.*
+uses java.util.*
+
+class Example129  {
+
+    public static function main(args : String[]) : void {
+        var list1 : List<String> = new LinkedList<String>()
+        list1.add("list")
+        list1.add("dup")
+        list1.add("x")
+        list1.add("dup")
+        traverse(list1)
+        var list2 : List<String> = new ArrayList<String>()
+        list2.add("list")
+        list2.add("dup")
+        list2.add("x")
+        list2.add("dup")
+        traverse(list2)
+        var set1 : Set<String> = new HashSet<String>()
+        set1.add("set")
+        set1.add("dup")
+        set1.add("x")
+        set1.add("dup")
+        traverse(set1)
+        var set2 : SortedSet<String> = new TreeSet<String>()
+        set2.add("set")
+        set2.add("dup")
+        set2.add("x")
+        set2.add("dup")
+        traverse(set2)
+        var set3 = new LinkedHashSet<String>()
+        set3.add("set")
+        set3.add("dup")
+        set3.add("x")
+        set3.add("dup")
+        traverse(set3)
+        var m1 : Map<String, String> = new HashMap<String, String>()
+        m1.put("map", "J")
+        m1.put("dup", "K")
+        m1.put("x", "M")
+        m1.put("dup", "L")
+        traverse(m1.keySet())
+        traverse(m1.values())
+        var m2 : SortedMap<String, String> = new TreeMap<String, String>()
+        m2.put("map", "J")
+        m2.put("dup", "K")
+        m2.put("x", "M")
+        m2.put("dup", "L")
+        traverse(m2.keySet())
+        traverse(m2.values())
+        var m3 = new LinkedHashMap<String, String>()
+        m3.put("map", "J")
+        m3.put("dup", "K")
+        m3.put("x", "M")
+        m3.put("dup", "L")
+        traverse(m3.keySet())
+        traverse(m3.values())
+    }
+
+    static function traverse(coll : Collection<String>) : void {
+        for (elem in coll) {
+            System.out.print(elem + " ")
+        }
+
+        System.out.println()
+    }
+
+}

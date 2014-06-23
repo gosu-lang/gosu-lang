@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+<class>
+  <desc/>
+  <var name="SCRIPTABLE">
+    <desc/>
+  </var>
+  <var name="HIDDEN">
+    <desc/>
+  </var>
+  <var name="DEPRECATED">
+    <desc/>
+  </var>
+  <var name="EXTERNAL">
+    <desc/>
+  </var>
+  <var name="RULES">
+    <desc/>
+  </var>
+  <var name="UI">
+    <desc/>
+  </var>
+  <var name="WORKFLOW">
+    <desc/>
+  </var>
+  <var name="WEBSERVICE">
+    <desc/>
+  </var>
+</class>

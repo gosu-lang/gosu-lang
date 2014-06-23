@@ -1,0 +1,61 @@
+package pkg
+
+uses java.util.ArrayList
+uses java.util.concurrent.locks.Lock
+uses java.util.concurrent.locks.ReentrantLock
+uses java.lang.Exception
+
+@Annotation("value1", "value2")
+public class Foo<T, U> {
+  static final var ARRAY: int[] = new int[] {1, 3, 5, 6, 7, 87, 1213, 2}
+
+  var _lock: Lock
+
+  property get Lock(     ): Lock {
+    return _lock
+  }
+
+  property set Lock(value: Lock){
+    _lock = value
+  }
+
+  construct() {
+    Lock = new ReentrantLock(   )
+  }
+
+  public function foo(x: int, y: int): int {
+    for (var i in 0..|y) {
+      y += (y ^ 0x123) << 2
+    }
+
+    do {
+      try {
+        using(_lock) {
+          if (0 < x && !(x >= 10)) {
+            while (x != y) {
+              x = foo(x * 3 + 5, y)
+            }
+          } else {
+              switch (y) {
+                case 0: break
+              }
+          }
+        }
+      } catch (e: Exception) {
+        e.printStackTrace()
+      } finally {
+        var arr: int[] = (  int[]  ) bar(y)
+        x = y >= 0 ? arr[y] : -1
+
+        var t = typeof(4 as String)
+      }
+    } while (true)
+
+    return 0
+  }
+
+  function bar(x: int): Object {
+    var list = new ArrayList <String>() {"a", "ab", "abc"}
+    return list.where(\  s  ->   s.length >= 2);
+  }
+}

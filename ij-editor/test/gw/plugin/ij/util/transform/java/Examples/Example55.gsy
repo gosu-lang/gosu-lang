@@ -1,0 +1,38 @@
+package gw.util.transform.java.Examples
+
+uses java.lang.*
+uses java.util.ArrayList
+
+class SPoint  {
+
+    static internal var allpoints : ArrayList<SPoint> = new ArrayList<SPoint>()
+    internal var x : int
+    internal var y : int
+    construct(x_0 : int, y_0 : int) {
+        allpoints.add(this)
+        this.x = x_0
+        this.y = y_0
+    }
+
+    function move(dx : int, dy : int) : void {
+        x += dx
+        y += dy
+    }
+
+    public function toString() : String {
+        return "(" + x + ", " + y + ")"
+    }
+
+    function getIndex() : int {
+        return allpoints.indexOf(this)
+    }
+
+    static function getSize() : int {
+        return allpoints.size()
+    }
+
+    static function getPoint(i : int) : SPoint {
+        return allpoints.get(i)
+    }
+
+}

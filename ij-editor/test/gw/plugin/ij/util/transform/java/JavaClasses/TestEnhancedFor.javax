@@ -1,0 +1,15 @@
+package gw.util.transform.java.JavaClasses;
+
+public class TestEnhancedFor {
+  void foo() {
+    int[] nums = {0, 1, 2, 4};
+    int sum = 0;
+
+    for(int i : nums)
+      sum = sum + i;
+
+    for(int i : nums) {
+      sum = sum + i;
+    }
+  }
+}

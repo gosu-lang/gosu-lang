@@ -1,0 +1,44 @@
+package gw.util.transform.java.JavaClasses
+
+uses java.lang.*
+
+public class TestEnum  {
+
+    public enum Planet  {
+        MERCURY(3.303E23, 2439700.0),
+        VENUS(4.869E24, 6051800.0),
+        EARTH(5.976E24, 6378140.0),
+        MARS(6.421E23, 3397200.0),
+        JUPITER(1.9E27, 7.1492E7),
+        SATURN(5.688E26, 6.0268E7),
+        URANUS(8.686E25, 2.5559E7),
+        NEPTUNE(1.0239999999999999E26, 2.4746E7)
+        private var mass : double
+        private final var radius : double
+        private construct(mass_0 : double, radius_0 : double) {
+            this.mass = mass_0
+            this.radius = radius_0
+            final var MERCURY_0 = 0
+        }
+
+        private function mass() : double {
+            return mass
+        }
+
+        private function radius() : double {
+            return radius
+        }
+
+        public static final var G : double = 6.673E-11
+        function surfaceGravity() : double {
+            return G * mass / (radius * radius)
+        }
+
+        function surfaceWeight(otherMass : double) : double {
+            return otherMass * surfaceGravity()
+        }
+
+
+    }
+
+}

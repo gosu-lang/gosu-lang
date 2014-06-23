@@ -1,0 +1,62 @@
+package gw.util.transform.java.Examples
+
+uses java.lang.*
+
+abstract class Vessel  {
+
+    internal var contents : double
+    abstract function capacity() : double
+    function fill(amount : double) : void {
+        contents = Math.min(contents + amount, capacity())
+    }
+
+}
+class Tank extends Vessel  {
+
+    internal var length : double
+    internal var width : double
+    internal var height : double
+    construct(length_0 : double, width_0 : double, height_0 : double) {
+        this.length = length_0
+        this.width = width_0
+        this.height = height_0
+    }
+
+    function capacity() : double {
+        return length * width * height
+    }
+
+    public function toString() : String {
+        return "tank (" + length + ", " + width + ", " + height + ")"
+    }
+
+}
+class Cube extends Tank  {
+
+    construct(side : double) {
+        super(side, side, side)
+    }
+
+    public function toString() : String {
+        return "cube (" + length + ")"
+    }
+
+}
+class Barrel extends Vessel  {
+
+    internal var radius : double
+    internal var height : double
+    construct(radius_0 : double, height_0 : double) {
+        this.radius = radius_0
+        this.height = height_0
+    }
+
+    function capacity() : double {
+        return height * Math.PI * radius * radius
+    }
+
+    public function toString() : String {
+        return "barrel (" + radius + ", " + height + ")"
+    }
+
+}

@@ -1,0 +1,19 @@
+<!--
+  ~ Copyright 2014 Guidewire Software, Inc.
+  -->
+
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           targetNamespace="http://guidewire.com/config/xml/xsd-codegen"
+           elementFormDefault="qualified">
+  <xs:element name="codegen">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="schema" minOccurs="0" maxOccurs="unbounded">
+          <xs:complexType>
+            <xs:attribute name="namespace" type="xs:string" use="required"/>
+          </xs:complexType>
+        </xs:element>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+</xs:schema>

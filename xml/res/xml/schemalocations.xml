@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<!--
+  ~ Copyright 2014 Guidewire Software, Inc.
+  -->
+
+<!-- XML Namespaces and external schema locations can be registered in this file to map to local resources by default.
+     These defaults are used when an <xsd:import> is encountered without a schemaLocation specified, or an external
+     (non-local) schema location is specified. The "externalLocations" attribute is a space-delimited list of
+     external references to recognize for a particular schema. -->
+<schemalocations xmlns="http://guidewire.com/xml/schemalocations">
+  <schema xmlNamespace="http://schemas.xmlsoap.org/wsdl/" resourcePath="gw/xsd/w3c/wsdl.xsd" externalLocations="http://schemas.xmlsoap.org/wsdl/"/>
+  <schema xmlNamespace="http://www.w3.org/XML/1998/namespace" resourcePath="gw/xsd/w3c/xml.xsd" externalLocations="http://www.w3.org/2001/xml.xsd http://www.w3.org/2001/03/xml.xsd http://www.w3.org/2004/10/xml.xsd http://www.w3.org/2007/08/xml.xsd http://www.w3.org/2009/01/xml.xsd"/>
+  <schema xmlNamespace="http://www.w3.org/2001/XMLSchema" resourcePath="gw/xsd/w3c/XMLSchema.xsd" externalLocations="http://www.w3.org/2001/XMLSchema.xsd"/>
+  <schema xmlNamespace="http://schemas.xmlsoap.org/soap/encoding/" resourcePath="gw/xsd/w3c/soap11_encoding.xsd" externalLocations="http://schemas.xmlsoap.org/soap/encoding/"/>
+  <schema xmlNamespace="http://guidewire.com/xsd" resourcePath="gw/xsd/gw/gw-schema-additions.xsd" externalLocations=""/>
+  <schema xmlNamespace="http://guidewire.com/pl/wsdl" resourcePath="gw/xsd/gw/gw-pl-wsdl-additions.xsd" externalLocations=""/>
+  <schema xmlNamespace="http://guidewire.com/webservice/client/config" resourcePath="gw/xsd/ws/client.xsd" externalLocations=""/>
+  <schema xmlNamespace="http://www.ibm.com/xmlns/prod/db2/mon" resourcePath="gw/xsd/database/DB2MonCommon.xsd" externalLocations="http://www.ibm.com/xmlns/prod/db2/mon"/>
+</schemalocations>

@@ -1,0 +1,45 @@
+package gw.util.transform.java.Examples
+
+uses java.lang.*
+uses java.io.*
+
+class Example149  {
+
+    public static function main(args : String[]) : void {
+        var f = new File("objects2.dat")
+        if (!f.exists()) {
+            System.out.println("Creating objects and writing them to file:")
+            var c = new SC()
+            var o1 = new SO(1, c)
+            var o2 = new SO(2, c)
+            o1.c.ci = 3
+            o2.c.ci = 4
+            o1.cprint()
+            o2.cprint()
+            var os : OutputStream = new FileOutputStream(f)
+            var oos1 = new ObjectOutputStream(os)
+            oos1.writeObject(o1)
+            oos1.flush()
+            var oos2 = new ObjectOutputStream(os)
+            oos2.writeObject(o2)
+            oos2.close()
+            System.out.println("\nRun the example again to read objects from file")
+        } else {
+            System.out.println("Reading objects from file (non-shared c):")
+            var is : InputStream = new FileInputStream(f)
+            var ois1 = new ObjectInputStream(is)
+            var o1i : SO = (ois1.readObject()) as SO
+            var ois2 = new ObjectInputStream(is)
+            var o2i : SO = (ois2.readObject()) as SO
+            o1i.cprint()
+            o2i.cprint()
+            o1i.c.ci = 5
+            o2i.c.ci = 6
+            o1i.cprint()
+            o2i.cprint()
+            f.delete()
+        }
+        System.out.println()
+    }
+
+}

@@ -1,0 +1,37 @@
+<?xml version="1.0"?>
+<class>
+  <desc/>
+  <method name="getSource">
+    <desc/>
+    <return>the parsed element that this issue is associated with</return>
+  </method>
+  <method name="getConsoleMessage">
+    <desc/>
+    <return>the message for this parse issue formatted for printing out to a console</return>
+  </method>
+  <method name="getPlainMessage">
+    <desc/>
+    <return>the raw message for this parse issue, with no formatting</return>
+  </method>
+  <method name="getUIMessage">
+    <desc/>
+    <return>the message fomatted for use by an IDE</return>
+  </method>
+  <method name="appliesToPosition">
+    <desc>Returns true if this issue is relevant to the given position</desc>
+    <param name="iPos" type="int"/>
+  </method>
+  <method name="getLine">
+    <desc/>
+    <return>the line that this issue is on</return>
+  </method>
+  <method name="getSymbolTable">
+    <desc/>
+    <return>the symbol table state at the creation of this issue.  Can return null if no symbol table is present.</return>
+  </method>
+  <method name="getMessageKey">
+    <desc/>
+    <return>the resource key for this ParseIssue, which can be used as a kind of identifier for the
+        type of issue.</return>
+  </method>
+</class>

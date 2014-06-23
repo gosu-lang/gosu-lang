@@ -1,0 +1,11 @@
+package gw.util.transform.java.JavaClasses;
+
+public class TestSynchronized {
+  String bar() {
+    synchronized(new String()) {
+      int b = 0;
+      System.out.print("foo");
+    }
+    return new String("bar");
+  }
+}

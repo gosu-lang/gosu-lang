@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<class>
+  <desc/>
+  <var name="EXECUTION">
+    <desc/>
+  </var>
+  <var name="REQUEST">
+    <desc/>
+  </var>
+  <var name="SESSION">
+    <desc/>
+  </var>
+  <var name="APPLICATION">
+    <desc/>
+  </var>
+  <var name="_strScope">
+    <desc/>
+  </var>
+</class>

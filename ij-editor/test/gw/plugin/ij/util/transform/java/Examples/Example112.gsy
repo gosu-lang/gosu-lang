@@ -1,0 +1,312 @@
+package gw.util.transform.java.Examples
+
+uses java.lang.*
+uses java.io.*
+uses java.util.*
+
+interface Mapper<A, R>  {
+
+    function call(x : A) : R
+}
+interface MyList<T> extends Iterable<T> {
+
+    function getCount() : int
+    function get(i : int) : T
+    function set(i : int, item : T) : void
+    function add(item : T) : void
+    function insert(i : int, item : T) : void
+    function removeAt(i : int) : void
+    function map<U>(f : Mapper<T, U>) : MyList<U>
+}
+class MyLinkedList<T> implements MyList<T> {
+
+    protected var size : int
+    protected var first : Node<T>
+    protected var last : Node<T>
+    protected static class Node<U>  {
+
+        public var prev : Node<U>
+        public var next : Node<U>
+        public var item : U
+        public construct(item_0 : U) {
+            this.item = item_0
+        }
+
+        public construct(item_0 : U, prev_0 : Node<U>, next_0 : Node<U>) {
+            this.item = item_0
+            this.prev = prev_0
+            this.next = next_0
+        }
+
+    }
+
+    public construct() {
+        first = last = null
+        size = 0
+    }
+
+    public construct(arr : T[]) {
+        this()
+        for (x in arr) {
+            add(x)
+        }
+
+    }
+
+    public function getCount() : int {
+        return size
+    }
+
+    public function get(i : int) : T {
+        return getItem(i).item
+    }
+
+    public function set(i : int, item : T) : void {
+        getItem(i).item = item
+    }
+
+    private function getItem(n : int) : Node<T> {
+        if (n < 0 or n >= size) {
+            throw new IndexOutOfBoundsException()
+        } else if (n < size / 2) {
+            var node : Node<T> = first
+            var i = 0
+            while (i < n) {
+                node = node.next
+                i++
+            }
+
+            return node
+        } else {
+            var node : Node<T> = last
+            var i : int = size - 1
+            while (i > n) {
+                node = node.prev
+                i--
+            }
+
+            return node
+        }
+    }
+
+    public function add(item : T) : void {
+        insert(size, item)
+    }
+
+    public function insert(i : int, item : T) : void {
+        if (i == 0) {
+            if (first == null) {
+                first = last = new Node<T>(item)
+            } else {
+                var tmp = new Node<T>(item, null, first)
+                first.prev = tmp
+                first = tmp
+            }
+            size++
+        } else if (i == size) {
+            if (last == null) {
+                first = last = new Node<T>(item)
+            } else {
+                var tmp = new Node<T>(item, last, null)
+                last.next = tmp
+                last = tmp
+            }
+            size++
+        } else {
+            var node : Node<T> = getItem(i)
+            var newnode = new Node<T>(item, node.prev, node)
+            node.prev.next = newnode
+            node.prev = newnode
+            size++
+        }
+    }
+
+    public function removeAt(i : int) : void {
+        var node : Node<T> = getItem(i)
+        if (node.prev == null) {
+            first = node.next
+        } else {
+            node.prev.next = node.next
+        }
+        if (node.next == null) {
+            last = node.prev
+        } else {
+            node.next.prev = node.prev
+        }
+        size--
+    }
+
+    public function equals(that : Object) : boolean {
+        return equals(that as MyList<T>)
+    }
+
+    public function equals(that : MyList<T>) : boolean {
+        if (that != null and this.size == that.getCount()) {
+            var thisnode : Node<T> = this.first
+            var thatiter : Iterator<T> = that.iterator()
+            while (thisnode != null) {
+                if (!thatiter.hasNext()) {
+                    throw new RuntimeException("Impossible: MyLinkedList<T>.equals")
+                }
+                if (!thisnode.item.equals(thatiter.next())) {
+                    return false
+                }
+                thisnode = thisnode.next
+            }
+
+            return true
+        } else {
+            return false
+        }
+    }
+
+    public function map<U>(f : Mapper<T, U>) : MyList<U> {
+        var res = new MyLinkedList<U>()
+        for (x in this) {
+            res.add(f.call(x))
+        }
+
+        return res
+    }
+
+    public function iterator() : Iterator<T> {
+        return new MyLinkedListIterator()
+    }
+
+    private class MyLinkedListIterator implements Iterator<T> {
+
+        internal var next : Node<T>
+        public construct() {
+            next = first
+        }
+
+        public function next() : T {
+            if (next != null) {
+                var res : T = next.item
+                next = next.next
+                return res
+            } else {
+                throw new NoSuchElementException()
+            }
+        }
+
+        public function hasNext() : boolean {
+            return next != null
+        }
+
+        public function remove() : void {
+            throw new UnsupportedOperationException()
+        }
+
+    }
+
+}
+class SortedList<T extends Comparable<T>> extends MyLinkedList<T>  {
+
+    public function insert(x : T) : void {
+        var node : Node<T> = first
+        while (node != null and x.compareTo(node.item) > 0) {
+            node = node.next
+        }
+
+        if (node == null) {
+            add(x)
+        } else {
+            var newnode = new Node<T>(x)
+            if (node.prev == null) {
+                first = newnode
+            } else {
+                node.prev.next = newnode
+            }
+            newnode.next = node
+            newnode.prev = node.prev
+            node.prev = newnode
+        }
+    }
+
+}
+interface Printable  {
+
+    function print(fs : PrintWriter) : void
+}
+class PrintableMyLinkedList<T extends Printable> extends MyLinkedList<T> implements Printable {
+
+    public function print(fs : PrintWriter) : void {
+        var firstElement = true
+        for (x in this) {
+            x.print(fs)
+            if (firstElement) {
+                firstElement = false
+            } else {
+                fs.print(", ")
+            }
+        }
+
+    }
+
+}
+class MyString implements Comparable<MyString> {
+
+    public final var s : String
+    public construct(s_0 : String) {
+        if (s_0 == null) {
+            throw new RuntimeException("null string")
+        } else {
+            this.s = s_0
+        }
+    }
+
+    public function compareTo(that : MyString) : int {
+        return s.compareTo(that.s)
+    }
+
+}
+class Example112  {
+
+    public static function main(args : String[]) : void {
+        var dLst = new MyLinkedList<Double>(7.0, 9.0, 13.0, 0.0)
+        for (d in dLst) {
+            System.out.print(d + " ")
+        }
+
+        System.out.println()
+        var iLst : MyList<Integer> = dLst.map(new Mapper<Double, Integer>() {
+
+            public function call(d : Double) : Integer {
+                return d < 0 ? -1 : d > 0 ? +1 : 0
+            }
+
+        }
+)
+        for (i in iLst) {
+            System.out.print(i + " ")
+        }
+
+        System.out.println()
+        var sLst : MyList<String> = dLst.map(new Mapper<Double, String>() {
+
+            public function call(d : Double) : String {
+                return "s" + d
+            }
+
+        }
+)
+        for (s in sLst) {
+            System.out.print(s + " ")
+        }
+
+        System.out.println()
+        var sortedLst = new SortedList<MyString>()
+        sortedLst.insert(new MyString("New York"))
+        sortedLst.insert(new MyString("Rome"))
+        sortedLst.insert(new MyString("Dublin"))
+        sortedLst.insert(new MyString("Riyadh"))
+        sortedLst.insert(new MyString("Tokyo"))
+        for (s in sortedLst) {
+            System.out.print(s.s + "   ")
+        }
+
+        System.out.println()
+    }
+
+}

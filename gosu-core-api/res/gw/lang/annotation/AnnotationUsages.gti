@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+<class>
+  <desc>This annotation allows you to put multiple AnnotationUsage annotations on a java annotation.
+It is not needed in Gosu classes, since multiple annotations are allowed.
+
+ Copyright 2010 Guidewire Software, Inc.</desc>
+</class>

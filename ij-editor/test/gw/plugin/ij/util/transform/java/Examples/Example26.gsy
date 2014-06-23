@@ -1,0 +1,57 @@
+package gw.util.transform.java.Examples
+
+uses java.lang.*
+
+class TLC  {
+
+    static internal var sf : int
+    internal var nf : int
+    static class SMC  {
+
+        static internal var ssf : int = sf + TLC.sf
+        internal var snf : int = sf + TLC.sf
+
+    }
+
+    class NMC  {
+
+        internal var nnf1 : int = sf + nf
+        internal var nnf2 : int = TLC.sf + outer.nf
+
+    }
+
+    function nm() : void {
+        class NLC  {
+
+            function m(p : int) : int {
+                return sf + nf + p
+            }
+
+        }
+
+    }
+
+    static function sm() : void {
+        class SLC  {
+
+        }
+
+    }
+
+}
+class Example26  {
+
+    public static function main(args : String[]) : void {
+        var sio = new TLC.SMC()
+        TLC.sf = 10
+        var oo = new TLC()
+        oo.nf = 5
+        var io1 : TLC.NMC = oo.new NMC()
+        System.out.println("io1.nnf1 = " + io1.nnf1)
+        oo.nf = 7
+        var io2 : TLC.NMC = oo.new NMC()
+        System.out.println("io1.nnf1 = " + io1.nnf1)
+        System.out.println("io2.nnf1 = " + io2.nnf1)
+    }
+
+}

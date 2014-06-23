@@ -1,0 +1,286 @@
+package gw.util.transform.java.JavaClasses;
+
+import java.io.FileNotFoundException;
+import java.io.IOException;
+
+public class TestScope {
+  int tmp = 6;
+  int tmp2 = 6;
+  int i = 0;
+  int ex;
+  ex p;
+
+  enum ex {
+    TODO;
+    int ex;
+    int tmp; {
+      int i = 1;
+    }
+
+    void todo(int ex) {
+      ex = ex;
+      this.ex = ex;
+      float TODO = 1;
+      new TestScope().p.ex = 1;
+    }
+  }
+
+  interface tmp {
+    int tmp = 0;
+
+    void push(Object tmp);
+
+    Object pop();
+  }
+
+  class inner {
+    int x = 0;
+    int j;
+    int ex;
+
+    void ifScope() {
+      if (x == 0) {
+        int x = 1;
+        if (x == 3) {
+          int i = 1;
+          if (i < 10) {
+            tmp = i + j;
+            {
+              int j = 0;
+            }
+            j = 0;
+          }
+        } else {
+          int i = 0;
+
+          tmp = i + j;
+          {
+            i = 0;
+          }
+          i = 0;
+
+        }
+
+      }
+    }
+
+    void forScope() {
+
+      int tmp = 0;
+      int i_0 = 1;
+
+      for (int i = 0, j = 1; i < 3; i++, j++) {
+        tmp = tmp + i;
+        for (int o = 0; o < i; o++) {
+          int sum = o + i;
+          new TestScope().i = 0;
+          new TestScope();
+        }
+      }
+
+
+      for (int i = 0; i < 3; i++)
+        tmp = tmp + i;
+      for (int i = 0; i < 3; i++) {
+        for (int j = 0; j < 3; i++) {
+          tmp = i + j;
+          {
+            i = 0;
+          }
+        }
+        for (int j = 0; j < 3; i++) {
+          tmp = i + j;
+          {
+            i = 0;
+          }
+        }
+      }
+      int i;
+      for (i = 1, j = 0; i < 10; ) {
+        tmp = i + j;
+        {
+          int j = 0;
+        }
+        j = 0;
+      }
+    }
+
+    void whileScope() {
+      int j = 0;
+      int i_0 = 1;
+      while (i < 10) {
+        int j_0 = 1;
+        while (j < 10) {
+          {
+            int i = 0;
+            j_0 = 12;
+            this.j = 1;
+            new TestScope().i = 0;
+          }
+          j++;
+          {
+            int tmp = 0;
+          }
+          i = 0;
+          j_0 = 12;
+        }
+        i++;
+      }
+    }
+
+    void enhancedForScope() {
+      int[] nums = {0, 1, 2, 4};
+      int ex = 0;
+
+      for(int i : nums)
+        ex = ex + i;
+
+      for(int i : nums) {
+        ex = tmp2 + i;
+      }
+    }
+
+
+    void doWhileScope() {
+      int j = 0;
+      int i_0 = 1;
+      do {
+        int j_0 = 1;
+        do {
+          {
+            int i = 0;
+            j_0 = 12;
+            this.j = 1;
+            new TestScope().i = 0;
+          }
+          j++;
+          {
+            int tmp = 0;
+          }
+          i = 0;
+          j_0 = 12;
+        } while (j < 10);
+        i++;
+      } while (i < 10);
+    }
+
+    void tryScope() throws IOException {
+      int j;
+      try {
+        i = 0;
+        {
+          int tmp = 0;
+          int i = 0;
+          int ex = 1;
+          int bau = 1;
+          this.j = 1;
+          new TestScope().i = 0;
+        }
+        ex = 1;
+        throw new FileNotFoundException();
+      } catch (final NullPointerException bau) {
+        System.out.print("bar0" + bau);
+        try {
+        } catch (final IndexOutOfBoundsException | OutOfMemoryError ex) {
+          int tmp;
+        }
+      } catch (final IndexOutOfBoundsException | FileNotFoundException ex) {
+        System.out.print("bar1" + ex);
+        try {
+        } catch (final IndexOutOfBoundsException | OutOfMemoryError ex0) {
+          int tmp;
+          {
+            int tmp2 = 1;
+            int bau = 1;
+          }
+          new TestScope().ex = 0;
+        }
+      } finally {
+        System.out.print("bar2");
+        try {
+        } catch (final IndexOutOfBoundsException | OutOfMemoryError ex) {
+          int tmp;
+        }
+      }
+
+    }
+
+    void newClassScope() {
+      int o = 0;
+      Object tmp = new BasicInterface() {
+        Object o = null;
+        @Override
+        public void push(Object o) {
+          this.o = o;
+          int ex;
+        }
+
+        @Override
+        public Object pop() {
+          Object tmp = null;
+          return tmp;
+        }
+      };
+    }
+
+    void switchScope() {
+      int tmp = 0;
+      switch (tmp) {
+        case 0:
+          int tmp2 = 0;
+          switch (tmp2) {
+            case 0:
+              break;
+            case 1:
+              break;
+          }
+          break;
+        case 1:
+          tmp2 = 1;
+          switch (tmp2) {
+            case 0:
+              break;
+            case 1:
+              break;
+          }
+          break;
+      }
+    }
+
+  }
+
+  void m1(int x) {
+    x = 7;
+    this.x = x;
+  }
+
+  void m2(int v2) {
+    x = 7;
+  }
+
+  void m3(int v3) {
+    x = 7;
+    int x;
+    x = 7;
+  }
+
+
+  void m4(int v4) {
+    x = 7;
+    {
+      int x;
+      x = 7;
+    }
+    x = 7;
+    {
+      int x;
+      x = 7;
+    }
+    x = 7;
+  }
+
+  int x;
+  {
+    x = 7;
+  }
+}

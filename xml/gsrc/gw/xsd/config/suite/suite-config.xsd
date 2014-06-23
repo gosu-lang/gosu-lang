@@ -1,0 +1,27 @@
+<!--
+  ~ Copyright 2014 Guidewire Software, Inc.
+  -->
+
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           targetNamespace="http://guidewire.com/config/suite/suite-config"
+           elementFormDefault="qualified"
+           xmlns:tns="http://guidewire.com/config/suite/suite-config">
+  <xs:element name="suite-config">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="product" minOccurs="0" maxOccurs="unbounded">
+          <xs:complexType>
+            <xs:attribute name="name" type="xs:string" use="required"/>
+            <xs:attribute name="url" type="xs:string" use="required"/>
+            <xs:attribute name="env" type="xs:string" default=""/>
+          </xs:complexType>
+        </xs:element>
+      </xs:sequence>
+    </xs:complexType>
+    <xs:unique name="uniqueProductSpecification">
+      <xs:selector xpath="tns:product"/>
+      <xs:field xpath="@name"/>
+      <xs:field xpath="@env"/>
+    </xs:unique>
+  </xs:element>
+</xs:schema>

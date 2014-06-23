@@ -1,0 +1,38 @@
+package gw.util.transform.java.Examples
+
+uses java.lang.*
+
+class Example73  {
+
+    public static function main(args : String[]) : void {
+        if (args.length != 1) {
+            System.out.println("Usage:  Example73 <double>\n")
+        } else {
+            var arr : double[] = {2, 3, 5, 5, 7, 11, 13}
+            var k : int = binarySearch(arr, Double.parseDouble(args[0]))
+            if (k >= 0) {
+                System.out.format("Found at %d%n", k)
+            } else {
+                System.out.format("Not found, belongs at %d%n", ~k)
+            }
+        }
+    }
+
+    public static function binarySearch(arr : double[], x : double) : int {
+        var a = 0
+        var b : int = arr.length - 1
+        while (a <= b) {
+            var i : int = (a + b) / 2
+            if (arr[i] < x) {
+                a = i + 1
+            } else if (arr[i] > x) {
+                b = i - 1
+            } else {
+                return i
+            }
+        }
+
+        return ~a
+    }
+
+}

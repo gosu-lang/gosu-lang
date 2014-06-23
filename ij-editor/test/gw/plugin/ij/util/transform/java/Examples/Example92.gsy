@@ -1,0 +1,50 @@
+package gw.util.transform.java.Examples
+
+uses java.lang.*
+
+class Printer extends Thread  {
+
+    static internal var mutex : Object = new Object()
+    public function run() : void {
+        while (true) {
+            using (mutex as IMonitorLock) {
+                System.out.print("-")
+                Util.pause(100, 300)
+                System.out.print("/")
+            }
+
+            Util.pause(200)
+        }
+
+    }
+
+}
+class Example92  {
+
+    public static function main(args : String[]) : void {
+        new Printer().start()
+        new Printer().start()
+    }
+
+}
+class Util  {
+
+    public static function pause(length_0 : int) : void {
+        
+        try {
+            Thread.sleep(length_0)
+        }
+        catch (x : InterruptedException) {
+        }
+
+    }
+
+    public static function pause(a : int, b : int) : void {
+        pause(random(a, b))
+    }
+
+    public static function random(a : int, b : int) : int {
+        return (a + (b - a + 1) * Math.random()) as int
+    }
+
+}

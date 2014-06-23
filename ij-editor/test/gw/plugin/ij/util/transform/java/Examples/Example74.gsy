@@ -1,0 +1,51 @@
+package gw.util.transform.java.Examples
+
+uses java.lang.*
+uses java.util.*
+
+class Example74  {
+
+    public static function main(args : String[]) : void {
+        var ible : Iterable<Integer> = fromTo(13, 17)
+        var iter : Iterator<Integer> = ible.iterator()
+        while (iter.hasNext()) {
+            var i : int = iter.next()
+            System.out.println(i)
+        }
+
+    }
+
+    public static function fromTo(final m : int, final n : int) : Iterable<Integer> {
+        class FromToIterator implements Iterator<Integer> {
+
+            private var i : int = m
+            public function hasNext() : boolean {
+                return i <= n
+            }
+
+            public function next() : Integer {
+                if (i <= n) {
+                    return i++
+                } else {
+                    throw new NoSuchElementException()
+                }
+            }
+
+            public function remove() : void {
+                throw new UnsupportedOperationException()
+            }
+
+        }
+
+        class FromToIterable implements Iterable<Integer> {
+
+            public function iterator() : Iterator<Integer> {
+                return new FromToIterator()
+            }
+
+        }
+
+        return new FromToIterable()
+    }
+
+}

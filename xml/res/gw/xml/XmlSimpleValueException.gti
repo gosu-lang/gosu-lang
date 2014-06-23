@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<class>
+  <desc>Thrown when an attempt is made to set a simple value that does not match the schema. For example, if an
+xsd:union is defined with member types xsd:float and xsd:date, the generated property will be of type
+java.lang.String, but an attempt to assign a value that would not be a valid xsd:float or xsd:date would
+cause this exception to be thrown.</desc>
+  <method name="getSimpleValueExceptionCauses">
+    <desc>Returns the XmlSimpleValueException causes of this exception. If this exception was caused by an exception
+other than an XmlSimpleValueException, returns null, and the getCause() method can be used to get the
+cause, if any. In the case of an xsd:union failure, this list may contain multiple values.</desc>
+    <return>the XmlSimpleValueException causes of this exception, or null</return>
+  </method>
+</class>

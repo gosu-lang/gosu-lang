@@ -1,0 +1,78 @@
+<?xml version="1.0"?>
+<class>
+  <desc/>
+  <method name="getProperties">
+    <desc/>
+    <return>An &lt;b&gt;unmodifiable random access&lt;/b&gt; list of &lt;code&gt;IPropertyInfo&lt;/code&gt;
+        instances. The list is sorted ascending by name. Returns an empty list if
+        there are no properties.</return>
+  </method>
+  <method name="getProperty">
+    <desc>Get a property mapped to the specified name.</desc>
+    <return>An IPropertyInfo corresponding to the property name.</return>
+    <param name="propName" type="java.lang.CharSequence">The property name.</param>
+  </method>
+  <method name="getMethods">
+    <desc/>
+    <return>An &lt;b&gt;unmodifiable random access&lt;/b&gt; list of &lt;code&gt;IMethodInfo&lt;/code&gt;
+        instances. The list is sorted ascending by name. Returns an empty list if
+        there are no methods.</return>
+  </method>
+  <method name="getMethod">
+    <desc>Returns a IMethodInfo matching the specified name and parameter types or
+null if no match is found.
+&lt;p/&gt;
+Note &lt;code&gt;params&lt;/code&gt; must &lt;i&gt;exactly&lt;/i&gt; match those of the target
+method in number, order, and type. If null, &lt;code&gt;params&lt;/code&gt; is treated
+as an empty array.</desc>
+    <return>A IMethodInfo matching the name and parameter types.</return>
+    <param name="methodName" type="java.lang.CharSequence">The name of the method to find.</param>
+    <param name="params" type="[Lgw.lang.reflect.IType;">Represents the &lt;i&gt;exact&lt;/i&gt; number, order, and type of parameters
+                  in the method. A null value here is treated as an empty array.</param>
+  </method>
+  <method name="getCallableMethod">
+    <desc>Returns a IMethodInfo matching the specified name and has parameter types that
+produce the best match.
+&lt;p/&gt;
+If there is a tie with method names then this will throw an illegal argument exception.</desc>
+    <return>A IMethodInfo matching the name and parameter types.</return>
+    <param name="method" type="java.lang.CharSequence">The name of the method to find.</param>
+    <param name="params" type="[Lgw.lang.reflect.IType;">Represents the &lt;i&gt;exact&lt;/i&gt; number, order, and type of parameters
+              in the method. A null value here is treated as an empty array.</param>
+  </method>
+  <method name="getConstructors">
+    <desc/>
+    <return>An &lt;b&gt;unmodifiable random access&lt;/b&gt; list of &lt;code&gt;IConstructorInfo&lt;/code&gt;
+        instances. The list is sorted ascending by name. Returns an empty list if
+        there are no constructors.</return>
+  </method>
+  <method name="getConstructor">
+    <desc>Returns a IConstructorInfo that has parameter types that produce the best match.
+&lt;p/&gt;
+If there is a tie with method names then this will throw an illegal argument exception.</desc>
+    <return>A IConstructorInfo matching the parameter types.</return>
+    <param name="params" type="[Lgw.lang.reflect.IType;">Represents the &lt;i&gt;exact&lt;/i&gt; number, order, and type of parameters
+              in the constructor. A null value here is treated as an empty array.</param>
+  </method>
+  <method name="getCallableConstructor">
+    <desc>Returns a IConstructorInfo matching the specified parameter types or null
+if no match is found.</desc>
+    <return>A IConstructorInfo matching the parameter types.</return>
+    <param name="params" type="[Lgw.lang.reflect.IType;">Represents the &lt;i&gt;exact&lt;/i&gt; number, order, and type of parameters
+              in the constructor. A null value here is treated as an empty array.</param>
+  </method>
+  <method name="getEvents">
+    <desc/>
+    <return>An &lt;b&gt;unmodifiable random access&lt;/b&gt; list of &lt;code&gt;IEventInfo&lt;/code&gt;
+        instances. The list is sorted ascending by name. Returns an empty list if
+        ther are no events.</return>
+  </method>
+  <method name="getEvent">
+    <desc>Get an event mapped to the specified name.</desc>
+    <return>An IEventInfo corresponding to the event name.</return>
+    <param name="event" type="java.lang.CharSequence">The event name.</param>
+  </method>
+  <var name="TYPEINFO_EXT">
+    <desc/>
+  </var>
+</class>

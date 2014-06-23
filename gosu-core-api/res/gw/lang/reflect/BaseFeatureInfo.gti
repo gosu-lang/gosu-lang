@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<class>
+  <desc/>
+  <method name="getAnnotationsOfType">
+    <desc>Returns the list of annotations &lt;b&gt;exactly matching&lt;/b&gt; the annotation passed in.  If the annotation is a sub type
+of the type passed in, this will not return those annotations.
+&lt;p/&gt;
+This is equivilent to calling getAnnotations().get(type).</desc>
+    <param name="type" type="gw.lang.reflect.IType">the type to look for</param>
+  </method>
+</class>

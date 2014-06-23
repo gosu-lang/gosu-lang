@@ -1,0 +1,24 @@
+package gw.util.transform.java.Examples
+
+uses java.lang.*
+
+class Example77  {
+
+    public static function main(args : String[]) : void {
+        var a : double[] = {365.0, 24.0, 60.0, 60.0}
+        System.out.println(shortcutmultiply(a))
+    }
+
+    static function shortcutmultiply(xs : double[]) : double {
+        var prod = 1.0
+        for (i in 0..|xs.length) {
+            prod *= xs[i]
+            if (prod == 0.0) {
+                break
+            }
+        }
+
+        return prod
+    }
+
+}

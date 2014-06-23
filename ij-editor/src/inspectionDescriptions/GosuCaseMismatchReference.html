@@ -1,0 +1,26 @@
+<!--
+  ~ Copyright 2014 Guidewire Software, Inc.
+  -->
+
+<html>
+<body>
+Reports case-sensitive mismatch errors.
+<!-- tooltip end -->
+These errors typically originate in code compiled against an older, case-<b><i>in</i></b>sensitive version of Gosu.
+This inspection is most useful for automatically finding and fixing such errors during an upgrade.
+<p>
+This inspection can Quick Fix most case-sensitive errors including:
+<ul>
+    <li> Type Literals
+    <li> Local Variable references
+    <li> Parameter references
+    <li> Field references
+    <li> Method and Property references
+    <li> Enum constant references
+    <li> Keywords
+</ul>
+Note you can run this inspection over any desired scope (project, module, directory, or file).  Simply right click on the scope in the Project view and select Analyze then type &quot;case&quot; then select this here inspection.
+<p>
+Also note under normal circumstances this inspection should be disabled as it may impact performance.
+</body>
+</html>

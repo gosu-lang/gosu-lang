@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<class>
+  <desc>Indicates that a public Java member is for internal use only, i.e., not supported for customer use. Such members
+are subject to change or removal at any time.</desc>
+  <deprecated>This annotation is a temporary indicator of members on public types that are for internal use only.
+Such members should be moved off the public type as soon as possible. See
+https://confluence.guidewire.com/display/MOD/Removal+of+@InternalAPI+members+from+public+APIs for more details.</deprecated>
+</class>

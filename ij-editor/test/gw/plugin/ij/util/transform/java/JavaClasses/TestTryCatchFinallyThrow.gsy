@@ -1,0 +1,135 @@
+package gw.util.transform.java.JavaClasses
+
+uses java.lang.*
+uses java.io.BufferedReader
+uses java.io.FileNotFoundException
+uses java.io.FileReader
+uses java.io.IOException
+
+public class TestTryCatchFinallyThrow  {
+
+    internal var y : int
+    internal var ex : int
+    function foo() : void {
+        using (var br = new BufferedReader(new FileReader("13")), var zf = new java.util.zip.ZipFile("31")) {
+            System.out.print("bar0")
+        }
+        finally  {
+            System.out.print("bar1")
+        }
+
+        using (var br_0 = new BufferedReader(new FileReader("13")), var zf_0 = new java.util.zip.ZipFile("31")) {
+            System.out.print("bar" + br_0 + zf_0)
+        }
+
+        
+        final var br_1 = new BufferedReader(new FileReader("13"))
+        final var zf_1 = new java.util.zip.ZipFile("31")
+        try {
+            System.out.print("bar0" + br_1 + zf_1)
+        }
+        catch (bau : NullPointerException) {
+            System.out.print("bar1" + bau)
+        }
+        catch (ex_0 : IndexOutOfBoundsException) {
+            System.out.print("bar2" + ex_0)
+        }
+        catch (ex_0 : FileNotFoundException) {
+            System.out.print("bar2" + ex_0)
+        }
+        finally  {
+            if (zf_1 != null) zf_1.close()
+            if (br_1 != null) br_1.close()
+        }
+
+        
+        try {
+            System.out.print("bar0")
+        }
+        finally  {
+            System.out.print("bar1")
+        }
+
+        
+        try {
+            throw new FileNotFoundException()
+        }
+        catch (bau : NullPointerException) {
+            System.out.print("bar0" + bau)
+        }
+        catch (ex_0 : IndexOutOfBoundsException) {
+            System.out.print("bar1" + ex_0)
+        }
+        catch (ex_0 : FileNotFoundException) {
+            System.out.print("bar1" + ex_0)
+        }
+
+        
+        try {
+            throw new FileNotFoundException()
+        }
+        catch (bau : NullPointerException) {
+            System.out.print("bar0" + bau)
+        }
+        catch (ex_0 : IndexOutOfBoundsException) {
+            System.out.print("bar1" + ex_0)
+        }
+        catch (ex_0 : FileNotFoundException) {
+            System.out.print("bar1" + ex_0)
+        }
+        finally  {
+            System.out.print("bar2")
+        }
+
+        
+        try {
+        }
+        finally  {
+        }
+
+    }
+
+    function bar() : void {
+        
+        final var br = new BufferedReader(new FileReader("13"))
+        final var zf = new java.util.zip.ZipFile("31")
+        try {
+            System.out.print("bar0" + br + zf)
+        }
+        catch (bau : NullPointerException) {
+            System.out.print("bar1" + bau)
+            
+            final var br_0 = new BufferedReader(new FileReader("13"))
+            final var zf_0 = new java.util.zip.ZipFile("31")
+            try {
+                System.out.print("bar2-0" + br_0 + zf_0)
+            }
+            catch (ex_0 : IndexOutOfBoundsException) {
+                System.out.print("bar2-1" + ex_0)
+                 {
+                    var y_0 = 0
+                }
+
+                y = 0
+            }
+            finally  {
+                if (zf_0 != null) zf_0.close()
+                if (br_0 != null) br_0.close()
+            }
+
+        }
+        catch (ex_0 : IndexOutOfBoundsException) {
+            System.out.print("bar2-2" + ex_0)
+        }
+        catch (ex_0 : FileNotFoundException) {
+            System.out.print("bar2-2" + ex_0)
+        }
+        finally  {
+            if (zf != null) zf.close()
+            if (br != null) br.close()
+            System.out.print("bar3")
+        }
+
+    }
+
+}

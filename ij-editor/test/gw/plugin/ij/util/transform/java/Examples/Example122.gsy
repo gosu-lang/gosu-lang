@@ -1,0 +1,67 @@
+package gw.util.transform.java.Examples
+
+uses java.lang.*
+uses java.util.*
+
+class Example122  {
+
+    static final internal var keywordarray : String[] = {"abstract", "assert", "boolean", "break", "byte", "case", "catch", "char", "class", "const", "continue", "default", "do", "double", "else", "enum", "extends", "false", "final", "finally", "float", "for", "goto", "if", "implements", "import", "instanceof", "int", "interface", "long", "native", "new", "null", "package", "private", "protected", "public", "return", "short", "static", "strictfp", "super", "switch", "synchronized", "this", "throw", "throws", "transient", "true", "try", "void", "volatile", "while"}
+    static final internal var keywords : Set<String> = new HashSet<String>(Arrays.asList(keywordarray))
+    static function isKeyword1(id : String) : boolean {
+        return keywords.contains(id)
+    }
+
+    static function isKeyword2(id : String) : boolean {
+        return Arrays.binarySearch(keywordarray, id) >= 0
+    }
+
+    public static function main(args : String[]) : void {
+        if (args.length != 2) {
+            System.out.println("Usage: java Example122 <iterations> <word>")
+        } else {
+            final var count : int = Integer.parseInt(args[0])
+            final var id : String = args[1]
+            for (i in 0..|keywordarray.length) {
+                if (isKeyword1(keywordarray[i]) != isKeyword2(keywordarray[i])) {
+                    System.out.println("Error at i = " + i)
+                }
+            }
+
+            if (isKeyword1(id) != isKeyword2(id)) {
+                System.out.println("Error at id = " + id)
+            }
+            System.out.print("HashSet.contains    ")
+            var t1 = new Timer()
+            var i = 0
+            while (i < count) {
+                isKeyword1(id)
+                i++
+            }
+
+            System.out.println(t1.check())
+            System.out.print("Arrays.binarySearch ")
+            var t2 = new Timer()
+            var i_0 = 0
+            while (i_0 < count) {
+                isKeyword2(id)
+                i_0++
+            }
+
+            System.out.println(t2.check())
+        }
+    }
+
+    private static final class Timer  {
+
+        private var starttime : long
+        public construct() {
+            starttime = System.currentTimeMillis()
+        }
+
+        function check() : double {
+            return (System.currentTimeMillis() - starttime) / 1000.0
+        }
+
+    }
+
+}

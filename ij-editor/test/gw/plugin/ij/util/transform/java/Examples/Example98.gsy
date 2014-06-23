@@ -1,0 +1,27 @@
+package gw.util.transform.java.Examples
+
+uses java.lang.*
+
+class Example98  {
+
+    public static function main(args : String[]) : void {
+        printGaussians(100)
+    }
+
+    static function printGaussians(n : int) : void {
+        var i = 0
+        while (i < n) {
+            var x1 : double = Math.random()
+            var x2 : double = Math.random()
+            print(Math.sqrt(-2 * Math.log(x1)) * Math.cos(2 * Math.PI * x2))
+            print(Math.sqrt(-2 * Math.log(x1)) * Math.sin(2 * Math.PI * x2))
+            i += 2
+        }
+
+    }
+
+    static function print(d : double) : void {
+        System.out.println(d)
+    }
+
+}

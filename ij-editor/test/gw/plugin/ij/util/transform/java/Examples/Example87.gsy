@@ -1,0 +1,48 @@
+package gw.util.transform.java.Examples
+
+uses java.lang.*
+uses java.awt.Canvas
+uses java.awt.Color
+uses java.awt.Dimension
+uses java.awt.Frame
+uses java.awt.Graphics
+
+class Example87  {
+
+    static function printcolors(cs : Colored[]) : void {
+        for (i in 0..|cs.length) {
+            System.out.println(cs[i].getColor().toString())
+        }
+
+    }
+
+    static function draw(g : Graphics, cs : ColoredDrawable[]) : void {
+        for (i in 0..|cs.length) {
+            g.setColor(cs[i].getColor())
+            cs[i].draw(g)
+        }
+
+    }
+
+    public static function main(args : String[]) : void {
+        final var cs : ColoredDrawable[] = {new ColoredDrawablePoint(3, 4, Color.red), new ColoredRectangle(50, 100, 60, 110, Color.green)}
+        printcolors(cs)
+        var f = new Frame()
+        f.add(new Canvas() {
+
+            static final internal var serialVersionUID : long = 50L
+            public function paint(g : Graphics) : void {
+                draw(g, cs)
+            }
+
+            public function getPreferredSize() : Dimension {
+                return new Dimension(400, 300)
+            }
+
+        }
+)
+        f.pack()
+        f.setVisible(true)
+    }
+
+}

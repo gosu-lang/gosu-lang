@@ -1,0 +1,37 @@
+<?xml version="1.0"?>
+<class>
+  <desc/>
+  <var name="Enhancement">
+    <desc/>
+  </var>
+  <var name="Program">
+    <desc/>
+  </var>
+  <var name="Template">
+    <desc/>
+  </var>
+  <var name="Eval">
+    <desc/>
+  </var>
+  <var name="Class">
+    <desc/>
+  </var>
+  <var name="Interface">
+    <desc/>
+  </var>
+  <var name="Structure">
+    <desc/>
+  </var>
+  <var name="Annotation">
+    <desc/>
+  </var>
+  <var name="Enum">
+    <desc/>
+  </var>
+  <var name="JavaClass">
+    <desc/>
+  </var>
+  <var name="Unknown">
+    <desc/>
+  </var>
+</class>

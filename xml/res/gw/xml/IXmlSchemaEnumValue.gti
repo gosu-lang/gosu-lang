@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<class>
+  <desc>All schema-based enumerations implement this interface.</desc>
+  <method name="getOrdinal">
+    <desc>Returns the ordinal value of this enum constant.</desc>
+    <return>the ordinal value of this enum constant</return>
+  </method>
+  <method name="getCode">
+    <desc>Returns the code of this enum constant.</desc>
+    <return>the code of this enum constant</return>
+  </method>
+</class>

@@ -1,0 +1,42 @@
+<?xml version="1.0"?>
+<class>
+  <desc/>
+  <method name="iterator">
+    <desc/>
+    <return>An iterator that visits the elements in this interval in order, from left to right.
+  Returns null if this interval does not support iteration.</return>
+  </method>
+  <method name="iterateFromLeft">
+    <desc/>
+    <return>An iterator that visits the elements in this interval in order, from left to right.
+  Returns null if this interval does not support iteration.</return>
+  </method>
+  <method name="iterateFromRight">
+    <desc/>
+    <return>An iterator that visits the elements in this interval in reverse order, from right to left.
+  Returns null if this interval does not support iteration.</return>
+  </method>
+  <method name="getStep">
+    <desc/>
+    <return>The step (or increment) by which this interval visits elements in its set. Returns null
+  if this interval cannot iterate its elements.
+&lt;p&gt;
+For instance, if the interval is a set of decimal values, say [1..10], the step might be a decimal
+increment, say 0.25. Similarly, if the interval is simply a set of integers the step might also be
+an integer value, typically 1. Considering a date interval, say [4/5/10..5/20/10], the step could
+be expressed in terms of a unit of time e.g., 10 seconds, 1 minute, 2 weeks, etc.
+&lt;p&gt;
+Note if non-null, the step is a &lt;i&gt;positive&lt;/i&gt; (or absolute) increment. To iterate the interval
+in reverse order use iterateFromRight().</return>
+  </method>
+  <method name="getFromLeft">
+    <desc/>
+    <return>The nth step from the left endpoint. Returns null if iStepIndex is out of bounds.</return>
+    <param name="iStepIndex" type="int">The index of the step from the left endpoint</param>
+  </method>
+  <method name="getFromRight">
+    <desc/>
+    <return>The nth step from the right endpoint. Returns null if iStepIndex is out of bounds.</return>
+    <param name="iStepIndex" type="int">The index of the step from the right endpoint</param>
+  </method>
+</class>

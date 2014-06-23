@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<class>
+  <desc>Represents a textual entry in an XML mixed content list.</desc>
+  <method name="getText">
+    <desc>Returns the text content.</desc>
+    <return>the text content</return>
+  </method>
+  <method name="toString">
+    <desc>Returns the text content.</desc>
+    <return>the text content</return>
+  </method>
+  <cons>
+    <desc>Creates an instance with the following text.</desc>
+    <param name="text" type="java.lang.String">the text</param>
+  </cons>
+</class>

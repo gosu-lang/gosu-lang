@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<class>
+  <desc/>
+  <method name="createParser">
+    <desc>Creates an IGosuParser appropriate for parsing and executing Gosu.</desc>
+    <return>A parser appropriate for parsing Gosu source.</return>
+    <param name="symTable" type="gw.lang.parser.ISymbolTable">The symbol table the parser uses to parse and execute script.</param>
+    <param name="scriptabilityConstraint" type="gw.lang.reflect.IScriptabilityModifier"/>
+  </method>
+  <method name="createParser">
+    <desc>Creates an IGosuParser appropriate for parsing and executing Gosu.</desc>
+    <return>A parser appropriate for parsing Gosu source.</return>
+    <param name="strSource" type="java.lang.String">The text of the the rule source</param>
+    <param name="symTable" type="gw.lang.parser.ISymbolTable">The symbol table the parser uses to parse and execute the rule</param>
+  </method>
+</class>

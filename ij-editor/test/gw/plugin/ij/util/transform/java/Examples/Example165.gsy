@@ -1,0 +1,67 @@
+package gw.util.transform.java.Examples
+
+uses java.lang.*
+uses java.lang.System.*
+uses java.lang.Math.*
+uses java.util.*
+
+class Example165  {
+
+    public static function main(args : String[]) : void {
+        var giga : double = exp(30.0 * log(2.0))
+        out.println("2^30 = " + giga)
+        out.format("2^30 = %12.2f\n", giga)
+        var res : String = concat("Cop", "en", "hagen")
+        out.format("result = %s\n", res)
+        var dir : Direction = Direction.North
+        dir = dir.turnLeft()
+        out.println(dir)
+        var list : List<Double> = new ArrayList<Double>()
+        list.add(7.2)
+        list.add(22.4)
+        list.add(-9.2)
+        for (d in list) {
+            out.format("%+7.1f\n", d)
+        }
+
+    }
+
+    static function concat(ss : String[]) : String {
+        var sb = new StringBuilder()
+        for (s in ss) {
+            sb.append(s)
+        }
+
+        return sb.toString()
+    }
+
+    enum Direction  {
+        East,
+        North,
+        West,
+        South
+        public function turnLeft() : Direction {
+            switch (this) {
+                case East:
+                    return Direction.North
+                
+                case North:
+                    return Direction.West
+                
+                case West:
+                    return Direction.South
+                
+                case South:
+                    return Direction.East
+                
+                default:
+                    throw new RuntimeException("Impossible")
+                
+            }
+
+        }
+
+
+    }
+
+}

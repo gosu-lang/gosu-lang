@@ -1,0 +1,53 @@
+package gw.util.transform.java.Examples
+
+uses java.lang.*
+
+class Example109  {
+
+    public static function main(args : String[]) : void {
+        var dLst = new MyLinkedList<Double>(7.0, 9.0, 13.0, 0.0)
+        for (d in dLst) {
+            System.out.print(d + " ")
+        }
+
+        System.out.println()
+        var iLst : MyList<Integer> = dLst.map(new Mapper<Double, Integer>() {
+
+            public function call(d : Double) : Integer {
+                return d < 0 ? -1 : d > 0 ? +1 : 0
+            }
+
+        }
+)
+        for (i in iLst) {
+            System.out.print(i + " ")
+        }
+
+        System.out.println()
+        var sLst : MyList<String> = dLst.map(new Mapper<Double, String>() {
+
+            public function call(d : Double) : String {
+                return "s" + d
+            }
+
+        }
+)
+        for (s in sLst) {
+            System.out.print(s + " ")
+        }
+
+        System.out.println()
+        var sortedLst = new SortedList<MyString>()
+        sortedLst.insert(new MyString("New York"))
+        sortedLst.insert(new MyString("Rome"))
+        sortedLst.insert(new MyString("Dublin"))
+        sortedLst.insert(new MyString("Riyadh"))
+        sortedLst.insert(new MyString("Tokyo"))
+        for (s in sortedLst) {
+            System.out.print(s.s + "   ")
+        }
+
+        System.out.println()
+    }
+
+}

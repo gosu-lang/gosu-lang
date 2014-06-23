@@ -1,0 +1,38 @@
+package gw.util.transform.java.Examples
+
+uses java.lang.*
+uses java.io.*
+
+class Example146  {
+
+    public static function main(args : String[]) : void {
+        if (args.length != 1) {
+            System.out.println("Usage: java Example146 <filename>")
+        } else {
+            sumlines(args[0])
+        }
+    }
+
+    static function sumlines(filename : String) : void {
+        var lnr = new LineNumberReader(new FileReader(filename))
+        lnr.setLineNumber(1)
+        var stok = new StreamTokenizer(lnr)
+        stok.eolIsSignificant(true)
+        stok.nextToken()
+        while (stok.ttype != StreamTokenizer.TT_EOF) {
+            var lineno : int = lnr.getLineNumber()
+            var sum = 0.0
+            while (stok.ttype != StreamTokenizer.TT_EOL) {
+                if (stok.ttype == StreamTokenizer.TT_NUMBER) {
+                    sum += stok.nval
+                }
+                stok.nextToken()
+            }
+
+            System.out.println("Sum of line " + lineno + " is " + sum)
+            stok.nextToken()
+        }
+
+    }
+
+}

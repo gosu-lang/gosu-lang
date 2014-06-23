@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<class>
+  <desc/>
+  <method name="getLeastSignificantTerminalStatement">
+    <desc>The switch statement has a non-null terminal stmt iff:
+1) There are no case stmts or all the the case stmts have non-break terminator and
+2) The default stmt exists and has a non-break terminator</desc>
+  </method>
+</class>

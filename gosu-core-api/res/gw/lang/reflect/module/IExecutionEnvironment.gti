@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<class>
+  <desc/>
+  <method name="isSingleModuleMode">
+    <desc/>
+    <return>Whether or not this is the default single module environment.</return>
+  </method>
+  <var name="GLOBAL_MODULE_NAME">
+    <desc/>
+  </var>
+  <var name="DEFAULT_SINGLE_MODULE_NAME">
+    <desc/>
+  </var>
+</class>

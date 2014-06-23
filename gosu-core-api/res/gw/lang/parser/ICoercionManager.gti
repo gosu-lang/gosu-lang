@@ -1,0 +1,84 @@
+<?xml version="1.0"?>
+<class>
+  <desc/>
+  <method name="canCoerce">
+    <desc/>
+    <return>true if a coercion exists from rhsType to lhsType, false otherwise</return>
+    <param name="lhsType" type="gw.lang.reflect.IType">type to be coerced to</param>
+    <param name="rhsType" type="gw.lang.reflect.IType">type to be coerced from</param>
+  </method>
+  <method name="convertValue">
+    <desc/>
+    <return>the converted value</return>
+    <param name="value" type="java.lang.Object">the value to coerce (may not be null)</param>
+    <param name="intrType" type="gw.lang.reflect.IType">type to coerce to</param>
+  </method>
+  <method name="coercionRequiresWarningIfImplicit">
+    <desc/>
+    <return>true if the given coercion should generate a warning</return>
+    <param name="lhsType" type="gw.lang.reflect.IType">type to coerce to</param>
+    <param name="rhsType" type="gw.lang.reflect.IType">type to coerce from</param>
+  </method>
+  <method name="verifyTypesComparable">
+    <desc>Verifies that the right hand type can be converted or coerced to the left hand type.  If bBiDirectional is true,
+it will verify that either converts to another</desc>
+    <param name="lhsType" type="gw.lang.reflect.IType"/>
+    <param name="rhsType" type="gw.lang.reflect.IType"/>
+    <param name="bBiDirectional" type="boolean"/>
+  </method>
+  <method name="verifyTypesComparable">
+    <desc>Verifies that the right hand type can be converted or coerced to the left hand type.  If bBiDirectional is true,
+it will verify that either converts to another.  The parser state will be used to report parse errors with.</desc>
+    <param name="lhsType" type="gw.lang.reflect.IType"/>
+    <param name="rhsType" type="gw.lang.reflect.IType"/>
+    <param name="bBiDirectional" type="boolean"/>
+    <param name="parserState" type="gw.lang.parser.IFullParserState"/>
+  </method>
+  <method name="convertNullAsPrimitive">
+    <desc>Converts a null value to a value compatible with the specified primitive type.</desc>
+    <return>A wrapped primitive value corresponding to null.</return>
+    <param name="intrType" type="gw.lang.reflect.IType">The primitive type to convert to.</param>
+    <param name="isForBoxing" type="boolean"/>
+  </method>
+  <method name="resolveCoercerStatically">
+    <desc>Determine and return a statically valid coercer from the rhsType to the lhsType.  Returns
+null if no coercion is necessary.</desc>
+    <param name="lhsType" type="gw.lang.reflect.IType">the type to coerce to</param>
+    <param name="rhsType" type="gw.lang.reflect.IType">the type to coerce from</param>
+  </method>
+  <method name="isPrimitiveOrBoxed">
+    <desc>Determine whether the specified type is either a primitive or a boxed primitive.</desc>
+    <return>true if the specified type is a primitive or a boxed primitive</return>
+    <param name="type" type="gw.lang.reflect.IType">the type to examine</param>
+  </method>
+  <method name="makePrimitiveBooleanFrom">
+    <desc/>
+    <return>A Boolean for an arbitrary object.</return>
+    <param name="obj" type="java.lang.Object"/>
+  </method>
+  <method name="makeDoubleFrom">
+    <desc>Returns a Double for an arbitrary object. Uses a semi-intelligent
+algorithm to create an appropriate Double instance.  If the Object
+argument is a:
+&lt;pre&gt;
+null value - an appropriate value respecting this parsed element's nullAsZero
+  setting e.g., either null or an 'empty' value.
+Double - returns the argument as is.
+Number - the Number's doubleValue().
+String - Double.parseDouble( String )
+Boolean - a pooled instance of either Double( 0 ) or Double( 1 )
+Date - A Double for Date.getTime().
+default - A parsed Double for the Object argument's toString() method.
+&lt;/pre&gt;</desc>
+    <return>A Double for an arbitrary object (may return a pooled instance).</return>
+    <param name="obj" type="java.lang.Object"/>
+  </method>
+  <method name="makeDateFrom">
+    <desc>Returns a new Date instance representing the object.</desc>
+    <param name="obj" type="java.lang.Object"/>
+  </method>
+  <method name="parseDateTime">
+    <desc>Produce a date from a string using standard DateFormat parsing.</desc>
+    <param name="str" type="java.lang.String"/>
+  </method>
+</class>

@@ -1,0 +1,6 @@
+package gw.util.transform.java.JavaClasses;
+
+public interface BasicInterface {
+  void push(Object o);
+  Object pop();
+}

@@ -1,0 +1,66 @@
+package gw.util.transform.java.Examples
+
+uses java.lang.*
+
+class C1  {
+
+    static function m1(d : double) : void {
+        System.out.println("11d")
+    }
+
+    function m1(i : int) : void {
+        System.out.println("11i")
+    }
+
+    function m2(i : int) : void {
+        System.out.println("12i")
+    }
+
+}
+class C2 extends C1  {
+
+    static function m1(d : double) : void {
+        System.out.println("21d")
+    }
+
+    function m1(i : int) : void {
+        System.out.println("21i")
+    }
+
+    function m2(d : double) : void {
+        System.out.println("22d")
+    }
+
+    function m2(ii : Integer) : void {
+        System.out.println("22ii")
+    }
+
+    function m3(i : int) : void {
+        System.out.println("23i")
+    }
+
+    function m4(ii : Integer) : void {
+        System.out.println("24ii")
+    }
+
+}
+class Example34  {
+
+    public static function main(args : String[]) : void {
+        var i = 17
+        var ii = new Integer(i)
+        var d = 17.0
+        var c2 = new C2()
+        var c1 : C1 = c2
+        c1.m1(i)
+        c2.m1(i)
+        c1.m1(d)
+        c2.m1(d)
+        c1.m2(i)
+        c2.m2(i)
+        c2.m2(ii)
+        c2.m3(ii)
+        c2.m4(i)
+    }
+
+}

@@ -1,0 +1,16 @@
+<!--
+  ~ Copyright 2014 Guidewire Software, Inc.
+  -->
+
+<html>
+<body>
+Upgrade Gosu code that is making an ambiguous method call. <br>
+<!-- tooltip end -->
+Gosu allowed you to make some ambiguous method calls by choosing the best matching method for you. A warning was
+generated to alert the user, while now an error is reported instead. <br>
+This inspection allows you to upgrade your code so that it will continue to behave as before by calling the same method.
+Special care must be taken as the ambiguous method call might mask a real logical error in the code.
+<p>
+    Note that under normal circumstances this inspection should be disabled as it was designed to be run just for the upgrade process.
+</body>
+</html>

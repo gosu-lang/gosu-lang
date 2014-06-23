@@ -1,0 +1,35 @@
+package gw.util.transform.java.Examples
+
+uses java.lang.*
+
+class Example78  {
+
+    public static function main(args : String[]) : void {
+        if (args.length != 1) {
+            System.out.println("Usage: java Example78 <string>\n")
+        } else {
+            var q : String = args[0]
+            System.out.println(q + " substring of hjsdfk: " + substring1(q, "hjsdfk"))
+        }
+    }
+
+    static function substring1(query : String, target : String) : boolean {
+        /*
+            nextposition: 
+        */
+        var j = 0
+        while (j <= target.length() - query.length()) {
+            for (k in 0..|query.length()) {
+                if (target.charAt(j + k) != query.charAt(k)) {
+                    continue nextposition
+                }
+            }
+
+            return true
+            j++
+        }
+
+        return false
+    }
+
+}

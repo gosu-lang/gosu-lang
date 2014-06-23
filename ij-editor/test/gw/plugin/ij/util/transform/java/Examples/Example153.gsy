@@ -1,0 +1,43 @@
+package gw.util.transform.java.Examples
+
+uses java.lang.*
+uses java.io.*
+uses java.util.Random
+
+class Example153  {
+
+    public static function main(args : String[]) : void {
+        final var count = 20
+        System.out.println("Reading " + count + " random strings from string array file")
+        var rnd = new Random()
+        var i = 0
+        while (i < count) {
+            var j : int = rnd.nextInt(10000)
+            
+            try {
+                System.out.println(j + ": " + readOneString("saf.dat", j))
+            }
+            catch (e : IOException) {
+                throw e
+            }
+
+            i++
+        }
+
+    }
+
+    static function readOneString(filename : String, i : int) : String {
+        final var INTSIZE = 4
+        final var LONGSIZE = 8
+        var raf = new RandomAccessFile(filename, "r")
+        raf.seek(raf.length() - INTSIZE)
+        var N : int = raf.readInt()
+        raf.seek(raf.length() - INTSIZE - LONGSIZE * N + LONGSIZE * i)
+        var si : long = raf.readLong()
+        raf.seek(si)
+        var s : String = raf.readUTF()
+        raf.close()
+        return s
+    }
+
+}

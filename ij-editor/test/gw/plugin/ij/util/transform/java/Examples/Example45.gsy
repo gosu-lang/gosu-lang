@@ -1,0 +1,31 @@
+package gw.util.transform.java.Examples
+
+uses java.lang.*
+
+class Example45  {
+
+    public static function main(args : String[]) : void {
+        var max = 2147483647
+        var min = -2147483648
+        println(max + 1)
+        println(min - 1)
+        println(-min)
+        print(10 / 3)
+        println(10 / (-3))
+        print((-10) / 3)
+        println((-10) / (-3))
+        print(10 % 3)
+        println(10 % (-3))
+        print((-10) % 3)
+        println((-10) % (-3))
+    }
+
+    static function print(i : int) : void {
+        System.out.print(i + " ")
+    }
+
+    static function println(i : int) : void {
+        System.out.println(i + " ")
+    }
+
+}

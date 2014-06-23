@@ -1,0 +1,9 @@
+package gw.util.transform.java.JavaClasses
+
+uses java.lang.*
+
+public interface BasicInterface  {
+
+    function push(o : Object) : void
+    function pop() : Object
+}

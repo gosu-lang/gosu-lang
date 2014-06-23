@@ -1,0 +1,84 @@
+<?xml version="1.0"?>
+<class>
+  <desc/>
+  <method name="buildScriptableMethodDescriptorNoArgs">
+    <desc>Builds a no-arg method descriptor that is exposed for scripting everywhere.</desc>
+    <param name="actionClass" type="java.lang.Class"/>
+    <param name="methodName" type="java.lang.String"/>
+  </method>
+  <method name="buildScriptableMethodDescriptor">
+    <desc>Builds a method descriptor that is exposed for scripting everywhere.</desc>
+    <param name="actionClass" type="java.lang.Class"/>
+    <param name="methodName" type="java.lang.String"/>
+    <param name="parameterNames" type="[Ljava.lang.String;"/>
+    <param name="parameterTypes" type="[Ljava.lang.Class;"/>
+  </method>
+  <method name="buildScriptableDeprecatedMethodDescriptor">
+    <desc>Builds a deprecated method descriptor that is exposed for scripting everywhere.</desc>
+    <param name="actionClass" type="java.lang.Class"/>
+    <param name="methodName" type="java.lang.String"/>
+    <param name="parameterNames" type="[Ljava.lang.String;"/>
+    <param name="parameterTypes" type="[Ljava.lang.Class;"/>
+  </method>
+  <method name="buildHiddenMethodDescriptor">
+    <desc>Completely hides a method from scripting.</desc>
+    <param name="actionClass" type="java.lang.Class"/>
+    <param name="methodName" type="java.lang.String"/>
+    <param name="parameterNames" type="[Ljava.lang.String;"/>
+    <param name="parameterTypes" type="[Ljava.lang.Class;"/>
+  </method>
+  <method name="buildMethodDescriptor">
+    <desc/>
+    <deprecated>To properly expose a method for scripting call buildScriptableMethodDescriptor() or a derivative of that.</deprecated>
+    <param name="actionClass" type="java.lang.Class"/>
+    <param name="methodName" type="java.lang.String"/>
+    <param name="parameterNames" type="[Ljava.lang.String;"/>
+    <param name="parameterTypes" type="[Ljava.lang.Class;"/>
+  </method>
+  <method name="buildScriptablePropertyDescriptor">
+    <desc>Builds a scriptable property descriptor with the given information.</desc>
+    <param name="propertyName" type="java.lang.String">name of the setter method, or null if read-only</param>
+    <param name="beanClass" type="java.lang.Class">class of the bean on which the property is found</param>
+    <param name="getterName" type="java.lang.String">name of the getter method, or null if write-only</param>
+    <param name="setterName" type="java.lang.String"/>
+  </method>
+  <method name="makeScriptable">
+    <desc>Expose the method/property descriptor for scripting.</desc>
+    <return>The same descriptor.</return>
+    <param name="descriptor" type="java.beans.FeatureDescriptor">A method or property descriptor.</param>
+  </method>
+  <method name="makeScriptableDeprecated">
+    <desc>Expose the method/property descriptor for scripting, but mark it
+deprecated.</desc>
+    <return>The same descriptor.</return>
+    <param name="descriptor" type="java.beans.FeatureDescriptor">A method or property descriptor.</param>
+  </method>
+  <method name="isScriptable">
+    <desc/>
+    <return>True if the descriptor is exposed for scripting.</return>
+    <param name="descriptor" type="java.beans.FeatureDescriptor"/>
+  </method>
+  <method name="isDeprecated">
+    <desc/>
+    <return>True if the descriptor is deprecated.</return>
+    <param name="descriptor" type="java.beans.FeatureDescriptor"/>
+  </method>
+  <method name="isVisible">
+    <desc>Determine if the descriptor is visible given a visibility constraint.</desc>
+    <param name="descriptor" type="java.beans.FeatureDescriptor"/>
+    <param name="constraint" type="gw.lang.reflect.IScriptabilityModifier"/>
+  </method>
+  <method name="getVisibilityModifier">
+    <desc/>
+    <return>The descriptor's associated visibility modifier.</return>
+    <param name="descriptor" type="java.beans.FeatureDescriptor">A method or property descriptor.</param>
+  </method>
+  <method name="setVisibilityModifier">
+    <desc/>
+    <param name="descriptor" type="java.beans.FeatureDescriptor">A method or property descriptor.</param>
+    <param name="modifier" type="gw.lang.reflect.IScriptabilityModifier">The descriptor's associated visibility modifier.</param>
+  </method>
+  <var name="SCRIPT_VISIBILITY_MODIFIERS">
+    <desc>A FeatureDescriptor value indicating its visibility to Gosu</desc>
+  </var>
+</class>

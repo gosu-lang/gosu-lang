@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<class>
+  <desc>Represents an XML backing type instance. Think of this as all of an element's contents ( attributes,
+child elements, etc ), but without the surrounding element. The reason for the distinction between an element and
+it's backing type instance is due to the separation of these concepts in the XML Schema specification.
+The reason this class is called XmlTypeInstance rather than XmlType is because instances of this class
+represent particular instances of XML Types, they do not represent the types themselves. In other words,
+a particular XML type might allow a child element named &amp;quot;Foo&amp;quot;, but a particular instance
+of that type might have a child element named &amp;quot;Foo&amp;quot; that contains the value &amp;quot;Bar&amp;quot;</desc>
+  <method name="print">
+    <desc>Serializes this type instance to the console. A root element will be supplied whose name is the Gosu typename
+of this type instance type.</desc>
+  </method>
+  <method name="print">
+    <desc>Serializes this type instance to the console. A root element will be supplied whose name is the Gosu typename
+of this type instance type.</desc>
+    <param name="options" type="gw.xml.XmlSerializationOptions">the options to control serialization</param>
+  </method>
+</class>

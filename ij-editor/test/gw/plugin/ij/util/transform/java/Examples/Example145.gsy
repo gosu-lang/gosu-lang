@@ -1,0 +1,33 @@
+package gw.util.transform.java.Examples
+
+uses java.lang.*
+uses java.io.*
+
+class Example145  {
+
+    public static function main(args : String[]) : void {
+        if (args.length != 1) {
+            System.out.println("Usage: java Example145 <filename>")
+        } else {
+            sumfile(args[0])
+        }
+    }
+
+    static function sumfile(filename : String) : void {
+        var r : Reader = new BufferedReader(new FileReader(filename))
+        var stok = new StreamTokenizer(r)
+        var sum = 0.0
+        stok.nextToken()
+        while (stok.ttype != StreamTokenizer.TT_EOF) {
+            if (stok.ttype == StreamTokenizer.TT_NUMBER) {
+                sum += stok.nval
+            } else {
+                System.out.println("Non-number: " + stok.sval)
+            }
+            stok.nextToken()
+        }
+
+        System.out.println("The file sum is " + sum)
+    }
+
+}

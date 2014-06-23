@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+<class>
+  <desc/>
+  <method name="getValue">
+    <desc>Returns the value for the symbol with the given name.  Throws a runtime exception if the name does not
+correspond to a valid external symbol.</desc>
+    <return>the current value of the symbol</return>
+    <param name="name" type="java.lang.String">the name of the symbol</param>
+  </method>
+  <method name="getValue">
+    <desc>Called via bytecode.</desc>
+    <return/>
+    <param name="name" type="java.lang.String"/>
+    <param name="iArrayDims" type="int">the expected number of array dimensions of the the symbol's type, useful for
+                   debugger expr evaluation for dynamically unwrapping type a single elem array (a captured var)</param>
+  </method>
+  <method name="setValue">
+    <desc>Sets the value of the symbol with the given name.  Throws a runtime exception if the name does not
+correspond to a valid external symbol.</desc>
+    <param name="name" type="java.lang.String">the name of the symbol</param>
+    <param name="value" type="java.lang.Object">the new value to give that symbol</param>
+  </method>
+  <method name="invoke">
+    <desc>Invokes the named external function with the given arguments.  The name argument should correspond to
+the result of calling getName() on the external function symbol.</desc>
+    <return>the result of the function invocation</return>
+    <param name="name" type="java.lang.String">the name of the function symbol</param>
+    <param name="args" type="[Ljava.lang.Object;">the arguments to the method</param>
+  </method>
+</class>

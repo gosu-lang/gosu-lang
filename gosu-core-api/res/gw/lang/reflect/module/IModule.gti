@@ -1,0 +1,48 @@
+<?xml version="1.0"?>
+<class>
+  <desc/>
+  <method name="getName">
+    <desc/>
+    <return>A unique name relative to all other modules in a given execution 
+  environment.</return>
+  </method>
+  <method name="getDependencies">
+    <desc/>
+    <return>A list of dependencies for this module. The list may contain both 
+  libraries and other modules. The dependency graph must not have cycles.</return>
+  </method>
+  <method name="getSourcePath">
+    <desc/>
+    <return>The path[s] having source files that should be exposed to this 
+  module.</return>
+  </method>
+  <method name="configurePaths">
+    <desc>Configure both source and Java classpaths of the module in a semi-automated way. First parameter
+is Java classpath. Second parameter is extended with all paths from Java classpath that are marked
+to have Gosu "sources" (through MANIFEST.MF with Contains-Sources header) and used as Gosu source path.</desc>
+    <param name="classpath" type="java.util.List"/>
+    <param name="sourcePaths" type="java.util.List"/>
+  </method>
+  <method name="getNativeModule">
+    <desc/>
+    <return>The module/project from the execution environment that corresponds
+  with this logical module. For example, in Eclipse the native module is of 
+  type IJavaProject.</return>
+  </method>
+  <method name="getTypeLoaders">
+    <desc>Returns typeloaders of the given class that are local to this module as well as such
+typeloaders from dependent modules.</desc>
+    <return/>
+    <param name="typeLoaderClass" type="java.lang.Class"/>
+  </method>
+  <method name="getModuleClassLoader">
+    <desc>Get class loader, associated with this module.</desc>
+    <return/>
+  </method>
+  <var name="CONFIG_RESOURCE_PREFIX">
+    <desc/>
+  </var>
+  <var name="CONFIG_RESOURCE_PREFIX_2">
+    <desc/>
+  </var>
+</class>

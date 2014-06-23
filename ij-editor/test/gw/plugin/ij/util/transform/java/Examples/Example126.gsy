@@ -1,0 +1,26 @@
+package gw.util.transform.java.Examples
+
+uses java.lang.*
+uses java.util.*
+
+class Example126  {
+
+    private static final var wdayNumber : HashMap<String, Integer> = new HashMap<String, Integer>()
+    /*
+        static {
+            int wdayno = 0;
+            String[] wdays = {"Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"};
+            for (String wday : wdays) wdayNumber.put(wday, wdayno++);
+        }
+    */
+
+    public static function wdayno5(wday : String) : int {
+        var res : Integer = wdayNumber.get(wday)
+        return res == null ? -1 : res
+    }
+
+    public static function main(args : String[]) : void {
+        System.out.println("Thursday is " + wdayno5("Thursday"))
+    }
+
+}

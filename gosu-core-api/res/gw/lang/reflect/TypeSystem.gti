@@ -1,0 +1,111 @@
+<?xml version="1.0"?>
+<class>
+  <desc/>
+  <method name="get">
+    <desc>Gets the intrinsic type for a given class.&lt;p&gt;
+&lt;p/&gt;
+&lt;b&gt;Note:&lt;/b&gt; you should use this method only if you do not have an
+Object of class &lt;code&gt;javaClass&lt;/code&gt; to get the type from. If you
+do have such an object, use {@link #getFromObject} instead.</desc>
+    <return>the IType that corresponds to that class</return>
+    <param name="javaClass" type="java.lang.Class">the Class to convert to an intrinsic type</param>
+  </method>
+  <method name="getFromObject">
+    <desc>Returns the intrinsic type for the given Object.</desc>
+    <return>the IType for the object</return>
+    <param name="object" type="java.lang.Object">the object to get an IType for</param>
+  </method>
+  <method name="getByRelativeName">
+    <desc>Gets an intrinsic type based on a relative name.  This could either be the name of an entity,
+like "User", the name of a typekey, like "SystemPermission", or a class name, like
+"java.lang.String" (relative and fully qualified class names are the same as far as this factory
+is concerned).  Names can have [] appended to them to create arrays, and multi-dimensional arrays
+are supported.</desc>
+    <return>the corresponding IType</return>
+    <param name="relativeName" type="java.lang.String">the relative name of the type</param>
+    <param name="typeUses" type="gw.lang.parser.ITypeUsesMap">the map of used types to use when resolving</param>
+    <ex type="ClassNotFoundException">if the specified name doesn't correspond to any type</ex>
+  </method>
+  <method name="getByFullName">
+    <desc>Gets an intrinsic type based on a fully-qualified name.  This could either be the name of an entity,
+like "entity.User", the name of a typekey, like "typekey.SystemPermission", or a class name, like
+"java.lang.String".  Names can have [] appended to them to create arrays, and multi-dimensional arrays
+are supported.</desc>
+    <return>the corresponding IType</return>
+    <param name="fullyQualifiedName" type="java.lang.String">the fully qualified name of the type</param>
+    <ex type="RuntimeException">if the specified name doesn't correspond to any type</ex>
+  </method>
+  <method name="getByFullName">
+    <desc/>
+    <deprecated>call getByFullName( String, IModule )</deprecated>
+    <param name="fullyQualifiedName" type="java.lang.String"/>
+    <param name="moduleName" type="java.lang.String"/>
+  </method>
+  <method name="getByFullNameIfValid">
+    <desc>Gets a type based on a fully-qualified name.  This could either be the name of an entity,
+like "entity.User", the name of a typekey, like "typekey.SystemPermission", or a class name, like
+"java.lang.String".  Names can have [] appended to them to create arrays, and multi-dimensional arrays
+are supported.
+
+This method behaves the same as getByFullName execept instead of throwing it returns null.</desc>
+    <return>the corresponding IType or null if the type does not exist</return>
+    <param name="fullyQualifiedName" type="java.lang.String">the fully qualified name of the type</param>
+  </method>
+  <method name="parseType">
+    <desc>Converts a String name of a type into an IType.</desc>
+    <return>the parsed type</return>
+    <param name="typeString" type="java.lang.String">the type name to parse</param>
+    <ex type="IllegalArgumentException">if the type string doesn't correspond to any known IType</ex>
+  </method>
+  <method name="lock">
+    <desc>Acquires the global type-system lock</desc>
+  </method>
+  <method name="unlock">
+    <desc>Releases the global type-system lock</desc>
+  </method>
+  <method name="getAllTypeNames">
+    <desc>Returns all type names in the system for all type loaders.</desc>
+    <return>all type names in the system.</return>
+  </method>
+  <method name="getOrCreateTypeReference">
+    <desc>IMPORTANT: The only time you should call this method is:
+1) within a class implementing IType, or
+2) wrapping a call to a Type constructor, typically within a type loader
+  e.g., TypeSystem.getOrCreateTypeReference( new MyVeryOwnType() )
+
+Gets or creates a type ref for the specified type.</desc>
+    <return>If the type is already a reference, returns the type as-is, otherwise creates and returns a new type ref.</return>
+    <param name="type" type="gw.lang.reflect.IType">A raw or proxied type.</param>
+  </method>
+  <method name="getTypeReference">
+    <desc>IMPORTANT: The only time you should call this method is:
+1) wrapping a call to a Type constructor, typically within a type loader
+  e.g., TypeSystem.getOrCreateTypeReference( new MyVeryOwnType() )
+
+Do NOT call this when creating the type.  Instead call getOrCreateTypeReference
+Gets or creates a type ref for the specified type.
+
+This method will NOT update the type reference in the proxy.</desc>
+    <return>returns the already created type reference or throws if the ref does not exist</return>
+    <param name="type" type="gw.lang.reflect.IType">A raw or proxied type.</param>
+  </method>
+  <method name="parseTypeLiteral">
+    <desc>Parses a type name such as Iterable&amp;lt;Claim&amp;gt;.</desc>
+    <return>the type</return>
+    <param name="typeName" type="java.lang.String">the name to parse</param>
+  </method>
+  <method name="refresh">
+    <desc>Refresh just the specified type i.e., a gosu editor calls this on changes</desc>
+    <param name="typeRef" type="gw.lang.reflect.ITypeRef"/>
+  </method>
+  <method name="refreshedFiles">
+    <desc>DO NOT USE OR DELETE. Called form the debugging process (IDE).</desc>
+    <param name="filePaths" type="[Ljava.lang.String;"/>
+  </method>
+  <var name="tyeRequestCounter">
+    <desc/>
+  </var>
+  <var name="tyeLoadingCounter">
+    <desc/>
+  </var>
+</class>

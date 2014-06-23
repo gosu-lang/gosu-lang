@@ -1,0 +1,69 @@
+package gw.util.transform.java.Examples
+
+uses java.lang.*
+
+class Example2  {
+
+    internal var x : int
+    construct(x_0 : int) {
+        this.x = x_0
+    }
+
+    function sum(y : int) : int {
+        if (x > 0) {
+            return x + y
+        } else if (x < 0) {
+            var res : int = -x + y
+            return res * 117
+        } else {
+            var sum = 0
+            for (i in 0..|10) {
+                sum += (y - i) * (y - i)
+            }
+
+            return sum
+        }
+    }
+
+    static function checkdate(mth : int, day : int) : boolean {
+        var length_0 : int
+        switch (mth) {
+            case 2:
+                length_0 = 28
+                break
+            
+            case 4:
+            
+            case 6:
+            
+            case 9:
+            
+            case 11:
+                length_0 = 30
+                break
+            
+            case 1:
+            
+            case 3:
+            
+            case 5:
+            
+            case 7:
+            
+            case 8:
+            
+            case 10:
+            
+            case 12:
+                length_0 = 31
+                break
+            
+            default:
+                return false
+            
+        }
+
+        return (day >= 1) and (day <= length_0)
+    }
+
+}

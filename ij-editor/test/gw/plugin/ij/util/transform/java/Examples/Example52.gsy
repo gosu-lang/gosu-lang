@@ -1,0 +1,16 @@
+package gw.util.transform.java.Examples
+
+uses java.lang.*
+
+class Example52  {
+
+    public static function main(args : String[]) : void {
+        var n1 : Number = new Integer(17)
+        var n2 : Number = new Double(3.14)
+        System.out.println("n1   is a Double: " + (n1 typeis Double))
+        System.out.println("n2   is a Double: " + (n2 typeis Double))
+        System.out.println("null is a Double: " + (null typeis Double))
+        System.out.println("n2   is a Number: " + (n2 typeis Number))
+    }
+
+}

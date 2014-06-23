@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<class>
+  <desc/>
+  <var name="CREATION">
+    <desc/>
+  </var>
+  <var name="MODIFICATION">
+    <desc/>
+  </var>
+  <var name="DELETION">
+    <desc/>
+  </var>
+</class>

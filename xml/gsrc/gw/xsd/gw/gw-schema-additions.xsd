@@ -1,0 +1,66 @@
+<?xml version="1.0"?>
+<!--
+  ~ Copyright 2014 Guidewire Software, Inc.
+  -->
+
+<xs:schema
+        targetNamespace="http://guidewire.com/xsd"
+        xmlns:gw="http://guidewire.com/xsd"
+        xmlns:xs="http://www.w3.org/2001/XMLSchema"
+        version="1.0"
+        >
+
+   <xs:attribute name="type" type="xs:string">
+     <xs:annotation>
+      <xs:documentation>
+        Annotates an element definition to be of a particular Gosu type. This is not freeform, only particular
+        types are supported in particular circumstances, and variation from using the correct type can cause
+        unpredictable results. This attribute is for Guidewire internal use at this time.
+      </xs:documentation>
+     </xs:annotation>
+   </xs:attribute>
+
+  <xs:attribute name="itype" type="xs:string">
+    <xs:annotation>
+     <xs:documentation>
+       Annotates an element or reference to be to a particular type with in the app.
+       Where the gw:type attribute affects processing, this is primarily for documentation.
+     </xs:documentation>
+    </xs:annotation>
+  </xs:attribute>
+
+   <xs:attribute name="deprecated" type="xs:string">
+     <xs:annotation>
+      <xs:documentation>
+        Deprecates a schema component with the specified deprecation reason. Not yet fully supported.
+      </xs:documentation>
+     </xs:annotation>
+   </xs:attribute>
+
+   <xs:attribute name="viewas" type="gw:viewas">
+     <xs:annotation>
+      <xs:documentation>
+        Causes an element that would normally appear as a java.util.List to instead appear in the specified form.
+      </xs:documentation>
+     </xs:annotation>
+   </xs:attribute>
+
+  <xs:simpleType name="viewas">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="list"/>
+      <xs:enumeration value="array"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+
+  <xs:simpleType name="encoded-string">
+    <xs:annotation>
+     <xs:documentation>
+       This simple type encodes a string.  Note that as a string this will be further processed to be encoded
+       either as an attribute or as an element, but that is not done by this type provider.
+     </xs:documentation>
+    </xs:annotation>
+    <xs:restriction base="xs:string"/>
+  </xs:simpleType>
+
+</xs:schema>

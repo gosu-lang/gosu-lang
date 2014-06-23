@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<class>
+  <desc/>
+  <method name="clone">
+    <desc/>
+  </method>
+  <method name="getActivationCtx">
+    <desc/>
+  </method>
+</class>

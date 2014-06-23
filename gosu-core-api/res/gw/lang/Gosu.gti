@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<class>
+  <desc/>
+  <method name="init">
+    <desc>Initializes Gosu using the classpath derived from the current classloader and system classpath.</desc>
+  </method>
+  <var name="ARGKEY_FQN">
+    <desc/>
+  </var>
+  <var name="ARGKEY_INTERACTIVE">
+    <desc/>
+  </var>
+  <var name="ARGKEY_VERIFY">
+    <desc/>
+  </var>
+  <var name="ARGKEY_VERSION">
+    <desc/>
+  </var>
+  <var name="ARGKEY_HELP">
+    <desc/>
+  </var>
+</class>

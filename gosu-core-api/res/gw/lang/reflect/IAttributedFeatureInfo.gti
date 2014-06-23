@@ -1,0 +1,37 @@
+<?xml version="1.0"?>
+<class>
+  <desc/>
+  <method name="isScriptable">
+    <desc>True if this feature is exposed for scripting.</desc>
+  </method>
+  <method name="isVisible">
+    <desc>Determine if this feature is visible given a visibility constraint.&lt;p&gt;
+&lt;p/&gt;
+NOTE: implementers of this method are responsible for handling the null
+case, taken to mean that there are not scriptability constraints.</desc>
+    <param name="constraint" type="gw.lang.reflect.IScriptabilityModifier"/>
+  </method>
+  <method name="isHidden">
+    <desc>True if this feature is hidden. Hidden feature should not to be exposed to
+earthlings.</desc>
+  </method>
+  <method name="isStatic">
+    <desc>True if this feature is static, meaning the feature is not specific to a
+particular instance of the feature's containing type.</desc>
+  </method>
+  <method name="isPrivate">
+    <desc>True if this feature is private. Private features are only accessible from
+within the type that owns them.</desc>
+  </method>
+  <method name="isInternal">
+    <desc>True if this feature is internal. Internal features are accessible from
+within the type that owns them and from other types in the same namespace.</desc>
+  </method>
+  <method name="isProtected">
+    <desc>True if this feature is protected. Protected features are accessible from
+within the type that owns them and from derived containers.</desc>
+  </method>
+  <method name="isPublic">
+    <desc>True if this feature is public. Public features are not restricted.</desc>
+  </method>
+</class>

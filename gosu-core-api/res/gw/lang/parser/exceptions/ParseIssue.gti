@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<class>
+  <desc/>
+  <method name="fillInStackTrace">
+    <desc>Don't fill in stack trace since parse issues are not really "exceptional"
+in terms of the parser's Java implementation; we don't care much about the
+Java stack trace when these are thrown. Rather parse issues provide a means
+to tag parsed elements with issues discovered during parsing, such as
+syntax warnings and errors. Hence, the ParseIssue interface.
+&lt;p/&gt;
+Note this method is otherwise very costly from a performance standpoint.
+&lt;p/&gt;
+todo: consider extracting the bulk of this class into a separate non-exception class and reference that class here for when we need to use it as a real exception</desc>
+  </method>
+  <method name="getSource">
+    <desc>Warning:  Only valid if called from the parser thread.  Otherwise we null it out.</desc>
+  </method>
+  <method name="getSymbolTable">
+    <desc>Warning:  Only valid if called from the parser thread.  Otherwise we null it out.</desc>
+  </method>
+</class>

@@ -1,0 +1,1 @@
+<%@ extends gw.internal.gosu.template.SuperClass %><%= priv() %>

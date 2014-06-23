@@ -1,0 +1,29 @@
+package gw.util.transform.java.Examples
+
+uses java.lang.*
+
+class Example47  {
+
+    public static function main(args : String[]) : void {
+        var a = 3
+        var b = 5
+        println4(a)
+        println4(b)
+        println4(~a)
+        println4(~b)
+        println4(a & b)
+        println4(a ^ b)
+        println4(a | b)
+    }
+
+    static function println4(n : int) : void {
+        var i = 3
+        while (i >= 0) {
+            System.out.print(n >> i & 1)
+            i--
+        }
+
+        System.out.println()
+    }
+
+}

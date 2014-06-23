@@ -1,0 +1,24 @@
+package gw.util.transform.java.Examples
+
+uses java.lang.*
+
+class Example59  {
+
+    public static function main(args : String[]) : void {
+        var i = 17
+        var ii = new Integer(i)
+        var d = 17.0
+        var c2 = new C2()
+        var c1 : C1 = c2
+        c1.m1(i)
+        c2.m1(i)
+        c1.m1(d)
+        c2.m1(d)
+        c1.m2(i)
+        c2.m2(i)
+        c2.m2(ii)
+        c2.m3(ii)
+        c2.m4(i)
+    }
+
+}

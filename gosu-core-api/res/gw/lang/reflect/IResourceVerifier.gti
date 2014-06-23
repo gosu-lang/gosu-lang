@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<class>
+  <desc>Typeloaders that implement this interface can perform additional resource verification that can be triggered
+by verification tools.</desc>
+  <method name="verifyResources">
+    <desc>Verify resources specific to this typeloader.</desc>
+    <return>a list of errors that occurred</return>
+    <ex type="Exception">if an exception occurs</ex>
+  </method>
+</class>

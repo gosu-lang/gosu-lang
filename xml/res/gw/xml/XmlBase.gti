@@ -1,0 +1,141 @@
+<?xml version="1.0"?>
+<class>
+  <desc>The base of all XmlElements and XmlTypeInstances. Provides common methods to both, by delegating to the
+type instance.</desc>
+  <method name="getAttributeNames">
+    <desc>Returns a map of all attribute simple values by QName.</desc>
+    <return>a map of all attribute simple values by QName</return>
+  </method>
+  <method name="setAttributeSimpleValue">
+    <desc>Sets the simple value of an attribute by QName.</desc>
+    <return>the old simple value of the attribute, or null if the attribute was not previously set</return>
+    <param name="attributeName" type="javax.xml.namespace.QName">The attribute name</param>
+    <param name="value" type="gw.xml.XmlSimpleValue">The new simple value for the attribute</param>
+  </method>
+  <method name="setAttributeSimpleValue">
+    <desc>Sets the simple value of an attribute in the null namespace by local name.</desc>
+    <return>the old simple value of the attribute, or null if the attribute was not previously set</return>
+    <param name="attributeName" type="java.lang.String">The local name of the attribute in the null namespace</param>
+    <param name="value" type="gw.xml.XmlSimpleValue">The new simple value for the attribute</param>
+  </method>
+  <method name="getAttributeSimpleValue">
+    <desc>Returns the simple value of an attribute by QName.</desc>
+    <return>the simple value of the attribute, or null if the attribute is not set</return>
+    <param name="attributeName" type="javax.xml.namespace.QName">The attribute name</param>
+  </method>
+  <method name="getAttributeSimpleValue">
+    <desc>Returns the simple value of an attribute in the null namespace by local name.</desc>
+    <return>the simple value of the attribute, or null if the attribute is not set</return>
+    <param name="attributeName" type="java.lang.String">The local name of the attribute in the null namespace</param>
+  </method>
+  <method name="getAttributeValue">
+    <desc>Returns the string value of an attribute in the null namespace by local name. This may or may not be
+the same value that will eventually be serialized, such as in the case of QNames, IDREFs, and other
+special purpose simple types.</desc>
+    <return>the string value of the attribute, or null if the attribute is not set</return>
+    <param name="attributeName" type="java.lang.String">The local name of the attribute in the null namespace</param>
+  </method>
+  <method name="getAttributeValue">
+    <desc>Returns the string value of an attribute by QName. This may or may not be the same value that will
+eventually be serialized, such as in the case of QNames, IDREFs, and other special purpose simple types.</desc>
+    <return>the string value of the attribute, or null if the attribute is not set</return>
+    <param name="attributeName" type="javax.xml.namespace.QName">The attribute name</param>
+  </method>
+  <method name="setAttributeValue">
+    <desc>Sets the string value of an attribute in the null namespace by local name. The attribute will lose
+any special simple type treatment, such as QName or IDREF handling, and will be serialized exactly
+as set by this method.</desc>
+    <return>the old string value of the attribute, or null if the attribute was not previously set</return>
+    <param name="attributeName" type="java.lang.String">The local name of the attribute in the null namespace</param>
+    <param name="value" type="java.lang.String">The new string value of the attribute, or null to remove the attribute</param>
+  </method>
+  <method name="setAttributeValue">
+    <desc>Sets the string value of an attribute by name. The attribute will lose any special simple type treatment,
+such as QName or IDREF handling, and will be serialized exactly as set by this method.</desc>
+    <return>the old string value of the attribute, or null if the attribute was not previously set</return>
+    <param name="attributeName" type="javax.xml.namespace.QName">The name of the attribute</param>
+    <param name="value" type="java.lang.String">The new string value of the attribute, or null to remove the attribute</param>
+  </method>
+  <method name="getChildren">
+    <desc>Returns a list of direct child elements by name.</desc>
+    <return>a list of child elements with the specified name</return>
+    <param name="qname" type="javax.xml.namespace.QName">The name of the child elements</param>
+  </method>
+  <method name="getChildren">
+    <desc>Returns a list of direct child elements with the specified local name in the null namespace.</desc>
+    <return>a list of child elements with the specified name</return>
+    <param name="name" type="java.lang.String">The local name of the child elements</param>
+  </method>
+  <method name="removeChildren">
+    <desc>Removes all direct child elements with the specified name.</desc>
+    <return>a list of the removed elements</return>
+    <param name="qname" type="javax.xml.namespace.QName">The name of the child elements</param>
+  </method>
+  <method name="removeChildren">
+    <desc>Removes all direct child elements with the specified local name in the null namespace.</desc>
+    <return>a list of removed elements</return>
+    <param name="name" type="java.lang.String">The local name of the child elements</param>
+  </method>
+  <method name="getChild">
+    <desc>Returns the direct child element with the specified name, or null if no such direct child element exists.</desc>
+    <return>the direct child element with the specified name</return>
+    <param name="qname" type="javax.xml.namespace.QName">The name of the child element</param>
+    <ex type="MultipleContentMatchesException">if there are multiple direct children with the specified name.</ex>
+  </method>
+  <method name="getChild">
+    <desc>Returns the direct child element with the specified local name in the null namespace, or null if no such direct child element exists.</desc>
+    <return>the direct child element with the specified name</return>
+    <param name="name" type="java.lang.String">The local name of the child element in the null namespace</param>
+    <ex type="MultipleContentMatchesException">if there are multiple direct children with the specified name.</ex>
+  </method>
+  <method name="removeChild">
+    <desc>Removes the direct child element with the specified name if it exists.</desc>
+    <return>the direct child element that was removed, or null if no action was taken</return>
+    <param name="qname" type="javax.xml.namespace.QName">The name of the child element to remove</param>
+    <ex type="MultipleContentMatchesException">if there are multiple existing direct children with the specified name.</ex>
+  </method>
+  <method name="removeChild">
+    <desc>Removes the direct child element with the specified local name in the null namespace if it exists.</desc>
+    <return>the direct child element that was removed, or null if no action was taken</return>
+    <param name="name" type="java.lang.String">The local name of the child element in the null namespace to remove</param>
+    <ex type="MultipleContentMatchesException">if there are multiple existing direct children with the specified name.</ex>
+  </method>
+  <method name="getChildren">
+    <desc>Returns a list of all direct child elements.</desc>
+    <return>a list of all direct child elements</return>
+  </method>
+  <method name="addChild">
+    <desc>Adds a new direct child element.</desc>
+    <param name="element" type="gw.xml.XmlElement">The element to add</param>
+  </method>
+  <method name="getSimpleValue">
+    <desc>Returns the simple value content, or null if one does not exist.</desc>
+    <return>The simple value content, or null if one does not exist</return>
+    <ex type="MultipleContentMatchesException">if there are multiple simple value contents.</ex>
+  </method>
+  <method name="setSimpleValue">
+    <desc>Sets the simple value content.</desc>
+    <param name="xmlSimpleValue" type="gw.xml.XmlSimpleValue">The new simple value content, or null to remove the existing simple value content</param>
+  </method>
+  <method name="getText">
+    <desc>Returns the text content.
+This might not be the same text content that will actually be written at serialization time due
+to special serialization-time handling of some simple types, such as xsd:QName or xsd:IDREF.</desc>
+    <return>The text content</return>
+  </method>
+  <method name="setText">
+    <desc>Sets the text content. This string value will be output verbatim at serialization time, removing any special
+serialization-time special simple value handling, such as xsd:QName or xsd:IDREF that previously existed,
+if any. Calling this method with a null parameter will remove any existing text contents or simple values,
+if any.</desc>
+    <param name="text" type="java.lang.String">The new text content, or null to remove the existing text content</param>
+  </method>
+  <method name="getMixedContent">
+    <desc>Returns the mixed content of this element.</desc>
+    <return>the mixed content of this element</return>
+  </method>
+  <method name="toString">
+    <desc>Returns a string representation of this XML type instance.</desc>
+    <return>a string representation of this XML type instance.</return>
+  </method>
+</class>

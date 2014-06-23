@@ -1,0 +1,13 @@
+===================================================================
+dFTree Dynamic Javascript Folder Tree
+===================================================================
+
+DFTree is a javascript+css folder tree with dynamic node
+insertion/erasing/alteration and other functionalities. It is also very
+lightweight and easy to use.
+
+It is CSS 2.1 compliant, although it was developed to be compatible at least
+with Internet Explorer version 6+ . It was tested sucessfully on Mozilla
+Firefox and Internet Explorer.
+
+For documentation see http://dftree.wiki.sourceforge.net/Reference+Manual

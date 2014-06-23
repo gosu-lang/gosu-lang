@@ -1,0 +1,7 @@
+<codegen xmlns="http://guidewire.com/config/xml/xsd-codegen">
+  <schema namespace="gw.xsd.w3c.soap11_envelope"/>
+  <schema namespace="gw.xsd.w3c.soap12_envelope"/>
+  <schema namespace="gw.xsd.w3c.xop_include"/>
+  <schema namespace="gw.xsd.guidewire.soapheaders"/>
+  <schema namespace="gw.xsd.guidewire.soapheaders_ref"/>
+</codegen>

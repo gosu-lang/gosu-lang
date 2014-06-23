@@ -1,0 +1,27 @@
+package gw.util.transform.java.Examples
+
+uses java.lang.*
+
+class Example97  {
+
+    public static function main(args : String[]) : void {
+        var i = 0
+        while (i <= 100) {
+            System.out.println(i + "! = " + fact(i))
+            i++
+        }
+
+    }
+
+    static function fact(n : int) : double {
+        var res = 0.0
+        var i = 1
+        while (i <= n) {
+            res += Math.log(i)
+            i++
+        }
+
+        return Math.exp(res)
+    }
+
+}

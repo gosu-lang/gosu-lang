@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<class>
+  <desc/>
+  <var name="CATCH_VARIABLE">
+    <desc/>
+  </var>
+  <var name="OBJECT_INITIALIZER">
+    <desc/>
+  </var>
+  <var name="NAMED_PARAMETER">
+    <desc/>
+  </var>
+  <var name="PARAMETER_DECLARATION">
+    <desc/>
+  </var>
+  <var name="FOREACH_VARIABLE">
+    <desc/>
+  </var>
+  <var name="isLocal">
+    <desc/>
+  </var>
+</class>

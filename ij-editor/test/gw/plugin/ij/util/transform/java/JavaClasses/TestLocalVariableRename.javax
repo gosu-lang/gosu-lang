@@ -1,0 +1,38 @@
+package gw.util.transform.java.JavaClasses;
+
+import java.util.LinkedList;
+import java.util.List;
+
+class A {
+  int A;
+  int foo;
+
+  class B {
+    int A;
+  }
+
+  String Z(String A, List<A> t) {
+    if (A.equals("")) {
+    }
+    A.toLowerCase();
+    this.Z("world", t);
+    Z("hello", new LinkedList<A>());
+    A = "bar";
+    this.A = 1;
+    int b = new A.B().A;
+    List<A> l = new LinkedList<A>();
+    A c = null;
+    A[] c2 = new A[A.length()];
+    A.B a3 = null;
+    a3.A = 8;
+    A d = new A();
+    d.Z("Hello", t);
+    d.A = 4 + new Integer(A);
+    return A;
+  }
+
+  void foo(int foo) {
+    foo = 1;
+    foo(0);
+  }
+}

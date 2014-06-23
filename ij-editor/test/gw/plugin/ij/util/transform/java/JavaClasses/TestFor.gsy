@@ -1,0 +1,91 @@
+package gw.util.transform.java.JavaClasses
+
+uses java.lang.*
+uses java.util.*
+
+public class TestFor  {
+
+    public var tmp : int = 6
+    function foo() : void {
+        tmp = 0
+        while (true) {
+            if (1 == 1) {
+                break
+            }
+            tmp++
+        }
+
+        var i = 0
+        var j = 1
+        while (true) {
+            var a = 0
+            if (1 == 1) {
+                break
+            }
+            i++
+            j++
+        }
+
+        var i0 = 0
+        var j0 = 1
+        while (i0 < 3) {
+            var a = 0
+            var b = 0
+        }
+
+        while (true) {
+            break
+        }
+
+        while (true) {
+            break
+        }
+
+        var j1 : int
+        while (true) {
+            if (1 == 1) {
+                break
+            }
+            j1++
+        }
+
+        var i2 = 0
+        while (true) {
+            if (1 == 1) {
+                break
+            }
+            
+        }
+
+        var i3 = 0
+        while (true) {
+            if (1 == 1) {
+                break
+            }
+        }
+
+        for (i_0 in 0..|3) {
+            System.out.println(i_0)
+        }
+
+        var f = "foo"
+        for (i_0 in 0..|f.length()) {
+            System.out.print(f.charAt(i_0))
+        }
+
+        var fa : char[] = {'f', 'o', 'o'}
+        for (i_0 in 0..|fa.length) {
+            System.out.print(fa[i_0])
+        }
+
+        var fc : List<Character> = new ArrayList<Character>()
+        fc.add('f')
+        fc.add('o')
+        fc.add('o')
+        for (i_0 in 0..|fc.size()) {
+            System.out.print(fc.get(i_0))
+        }
+
+    }
+
+}

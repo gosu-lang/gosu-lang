@@ -1,0 +1,72 @@
+package gw.util.transform.java.Examples
+
+uses java.lang.*
+
+class Example99  {
+
+    public static function main(args : String[]) : void {
+        mathtest()
+    }
+
+    static function mathtest() : void {
+        print("Illegal arguments, NaN results:")
+        print(Math.sqrt(-1))
+        print(Math.log(-1))
+        print(Math.pow(-1, 2.5))
+        print(Math.acos(1.1))
+        print("Infinite results:")
+        print(Math.log(0))
+        print(Math.pow(0, -1))
+        print(Math.exp(1000.0))
+        print("Infinite arguments:")
+        var infinity : double = Double.POSITIVE_INFINITY
+        print(Math.sqrt(infinity))
+        print(Math.log(infinity))
+        print(Math.exp(-infinity))
+        print("NaN arguments and special cases:")
+        var nan : double = Math.log(-1)
+        print(Math.sqrt(nan))
+        print(Math.pow(nan, 0))
+        print(Math.pow(0, 0))
+        print(Math.round(nan))
+        print(Math.round(1.0E50))
+        var x = -100.0
+        while (x <= 100) {
+            var y = -100.0
+            while (y <= 100) {
+                var r : double = Math.atan2(y, x)
+                if (!(sign(Math.cos(r)) == sign(x) and sign(Math.sin(r)) == sign(y))) {
+                    print("x = " + x + "; y = " + y)
+                }
+                y += 0.125
+            }
+
+            x += 0.125
+        }
+
+    }
+
+    static function sign(x : double) : int {
+        final var tolerance = 1.0E-14
+        if (x < -tolerance) {
+            return -1
+        } else if (x > +tolerance) {
+            return +1
+        } else {
+            return 0
+        }
+    }
+
+    static function print(d : String) : void {
+        System.out.println(d)
+    }
+
+    static function print(d : double) : void {
+        System.out.println(d)
+    }
+
+    static function print(d : long) : void {
+        System.out.println(d)
+    }
+
+}

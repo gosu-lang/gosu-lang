@@ -1,0 +1,20 @@
+package gw.util.transform.java.Examples
+
+uses java.lang.*
+
+class Example46  {
+
+    public static function main(args : String[]) : void {
+        System.out.println(leapyear(1900))
+        System.out.println(leapyear(1999))
+        System.out.println(leapyear(2000))
+        System.out.println(leapyear(2001))
+        System.out.println(leapyear(2004))
+        System.out.println(leapyear(2100))
+    }
+
+    static function leapyear(y : int) : boolean {
+        return y % 4 == 0 and y % 100 != 0 or y % 400 == 0
+    }
+
+}

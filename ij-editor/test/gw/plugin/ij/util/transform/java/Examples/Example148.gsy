@@ -1,0 +1,63 @@
+package gw.util.transform.java.Examples
+
+uses java.lang.*
+uses java.io.*
+
+class SC implements Serializable {
+
+    static final internal var serialVersionUID : long = 50L
+    internal var ci : int
+
+}
+class SO implements Serializable {
+
+    static final internal var serialVersionUID : long = 50L
+    internal var i : int
+    internal var c : SC
+    construct(i_0 : int, c_0 : SC) {
+        this.i = i_0
+        this.c = c_0
+    }
+
+    function cprint() : void {
+        System.out.print("i" + i + "c" + c.ci + " ")
+    }
+
+}
+class Example148  {
+
+    public static function main(args : String[]) : void {
+        var f = new File("objects1.dat")
+        if (!f.exists()) {
+            System.out.println("Creating objects and writing them to file:")
+            var c = new SC()
+            var o1 = new SO(1, c)
+            var o2 = new SO(2, c)
+            o1.c.ci = 3
+            o2.c.ci = 4
+            o1.cprint()
+            o2.cprint()
+            var os : OutputStream = new FileOutputStream(f)
+            var oos = new ObjectOutputStream(os)
+            oos.writeObject(o1)
+            oos.writeObject(o2)
+            oos.close()
+            System.out.println("\nRun the example again to read objects from file")
+        } else {
+            System.out.println("Reading objects from file (shared c):")
+            var is : InputStream = new FileInputStream(f)
+            var ois = new ObjectInputStream(is)
+            var o1i : SO = (ois.readObject()) as SO
+            var o2i : SO = (ois.readObject()) as SO
+            o1i.cprint()
+            o2i.cprint()
+            o1i.c.ci = 5
+            o2i.c.ci = 6
+            o1i.cprint()
+            o2i.cprint()
+            f.delete()
+        }
+        System.out.println()
+    }
+
+}

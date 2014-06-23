@@ -1,0 +1,55 @@
+package gw.util.transform.java.Examples
+
+uses java.lang.*
+uses java.io.*
+
+class Example155  {
+
+    public static function main(args : String[]) : void {
+        var outpipe = new PipedOutputStream()
+        var inpipe = new PipedInputStream(outpipe)
+        final var outds = new DataOutputStream(outpipe)
+        var inds = new DataInputStream(inpipe)
+        class Producer extends Thread  {
+
+            public function run() : void {
+                
+                try {
+                    outds.writeInt(2)
+                    var p = 3
+                    while (true) {
+                        var q = 3
+                        while (q * q <= p and p % q != 0) {
+                            q += 2
+                        }
+
+                        if (q * q > p) {
+                            outds.writeInt(p)
+                            System.out.print(".")
+                        }
+                        p += 2
+                    }
+
+                }
+                catch (e : IOException) {
+                    System.out.println("<terminated>: " + e)
+                }
+
+            }
+
+        }
+
+        new Producer().start()
+        System.out.println("Press Enter for more primes, or ctrl-C to stop")
+        System.out.println("Each dot represents the production of one prime")
+        while (true) {
+            for (n in 0..|10) {
+                System.out.print(inds.readInt() + " ")
+            }
+
+            System.in.read()
+        }
+
+    }
+
+}

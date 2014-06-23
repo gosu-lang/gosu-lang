@@ -1,0 +1,59 @@
+<?xml version="1.0"?>
+<class>
+  <desc/>
+  <method name="isHide">
+    <desc>Return &lt;tt&gt;true&lt;/tt&gt; if the integer argument includes the
+&lt;tt&gt;hide&lt;/tt&gt; modifer, &lt;tt&gt;false&lt;/tt&gt; otherwise.</desc>
+    <return>&lt;tt&gt;true&lt;/tt&gt; if &lt;code&gt;mod&lt;/code&gt; includes the
+        &lt;tt&gt;hide&lt;/tt&gt; modifier; &lt;tt&gt;false&lt;/tt&gt; otherwise.</return>
+    <param name="mod" type="int">a set of modifers</param>
+  </method>
+  <method name="isOverride">
+    <desc>Return &lt;tt&gt;true&lt;/tt&gt; if the integer argument includes the
+&lt;tt&gt;override&lt;/tt&gt; modifer, &lt;tt&gt;false&lt;/tt&gt; otherwise.</desc>
+    <return>&lt;tt&gt;true&lt;/tt&gt; if &lt;code&gt;mod&lt;/code&gt; includes the
+        &lt;tt&gt;override&lt;/tt&gt; modifier; &lt;tt&gt;false&lt;/tt&gt; otherwise.</return>
+    <param name="mod" type="int">a set of modifers</param>
+  </method>
+  <method name="isClassMember">
+    <desc>Return &lt;tt&gt;true&lt;/tt&gt; if the integer argument includes the
+&lt;tt&gt;class member&lt;/tt&gt; modifer, &lt;tt&gt;false&lt;/tt&gt; otherwise.</desc>
+    <return>&lt;tt&gt;true&lt;/tt&gt; if &lt;code&gt;mod&lt;/code&gt; includes the
+        &lt;tt&gt;class member&lt;/tt&gt; modifier; &lt;tt&gt;false&lt;/tt&gt; otherwise.</return>
+    <param name="mod" type="int">a set of modifers</param>
+  </method>
+  <method name="isInternal">
+    <desc>Return &lt;tt&gt;true&lt;/tt&gt; if the integer argument includes the
+&lt;tt&gt;internal&lt;/tt&gt; modifer, &lt;tt&gt;false&lt;/tt&gt; otherwise.</desc>
+    <return>&lt;tt&gt;true&lt;/tt&gt; if &lt;code&gt;mod&lt;/code&gt; includes the
+        &lt;tt&gt;internal&lt;/tt&gt; modifier; &lt;tt&gt;false&lt;/tt&gt; otherwise.</return>
+    <param name="mod" type="int">a set of modifers</param>
+  </method>
+  <method name="isEnum">
+    <desc>Return &lt;tt&gt;true&lt;/tt&gt; if the integer argument includes the
+&lt;tt&gt;enum&lt;/tt&gt; modifer, &lt;tt&gt;false&lt;/tt&gt; otherwise.</desc>
+    <return>&lt;tt&gt;true&lt;/tt&gt; if &lt;code&gt;mod&lt;/code&gt; includes the
+        &lt;tt&gt;enum&lt;/tt&gt; modifier; &lt;tt&gt;false&lt;/tt&gt; otherwise.</return>
+    <param name="mod" type="int">a set of modifers</param>
+  </method>
+  <var name="OVERRIDE">
+    <desc>The &lt;code&gt;int&lt;/code&gt; value representing the &lt;code&gt;override&lt;/code&gt; modifier.</desc>
+  </var>
+  <var name="HIDE">
+    <desc>The &lt;code&gt;int&lt;/code&gt; value representing the &lt;code&gt;hide&lt;/code&gt; modifier.</desc>
+  </var>
+  <var name="CLASS_MEMBER">
+    <desc>The code indicating something is a class member</desc>
+  </var>
+  <var name="INTERNAL">
+    <desc>The &lt;code&gt;int&lt;/code&gt; value representing the &lt;code&gt;internal&lt;/code&gt; modifier.</desc>
+  </var>
+  <var name="ENUM">
+    <desc>The &lt;code&gt;int&lt;/code&gt; value representing the &lt;code&gt;enum&lt;/code&gt; modifier.  This value should match
+the Java version of the enum modifier (which isn't publically exposed).  Note that the enum modifier
+may mean different things in different contexts.</desc>
+  </var>
+  <var name="ANNOTATION">
+    <desc/>
+  </var>
+</class>

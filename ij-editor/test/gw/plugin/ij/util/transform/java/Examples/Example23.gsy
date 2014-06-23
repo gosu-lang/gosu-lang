@@ -1,0 +1,46 @@
+package gw.util.transform.java.Examples
+
+uses java.lang.*
+
+class Example23  {
+
+    public static function main(args : String[]) : void {
+        var ecoliK12MG1655 = "AGCTTTTCATTCTGACTGCAACGGGCAATATGTCTCTGTGTGGATTAAAAAAAGAGTGTCTGATAGCAGCTTCTGAACTGGTTACCTGCCGTGAGTAAATTAAAATTTTATTGACTTAGGTCACTAAATACTTTAACCAATATAGGCATAGCGCACAGACAGATAAAAATTACAGAGTACACAACATCCATGAAACGCATTAGCACCACCATTACCACCACCATCACCATTACCACAGGTAACGGTGCGGGCTGACGCGTACAGGAAACACAGAAAAAAGCCCGCACCTGACAGTGCGGGCTTTTTTTTTCGACCAAAGGTAACGAGGTAACAACCATGCGAGTGTTGAAGTTCGGCGGTACATCAGTGGCAAATGCAGAACGTTTTCTGCGTGTTGCCGATATTCTGGAAAGCAATGCCAGGCAGGGGCAGGTGGCCACCGTCCTCTCTGCCCCCGCCAAAATCACCAACCACCTGGTGGCGATGATTGAAAAAACCATTAGCGGCCAGGATGCTTTACCCAATATCAGCGATGCCGAACGTATTTTTGCCGAACTTTT"
+        codonfreq(ecoliK12MG1655)
+    }
+
+    static function codonfreq(s : String) : void {
+        var fromNuc = new int[128]
+        for (i in 0..|fromNuc.length) {
+            fromNuc[i] = -1
+        }
+
+        fromNuc['a'] = fromNuc['A'] = 0
+        fromNuc['c'] = fromNuc['C'] = 1
+        fromNuc['g'] = fromNuc['G'] = 2
+        fromNuc['t'] = fromNuc['T'] = 3
+        var freq = new int[4][4][4]
+        var i = 0
+        while (i + 2 < s.length()) {
+            var nuc1 : int = fromNuc[s.charAt(i)]
+            var nuc2 : int = fromNuc[s.charAt(i + 1)]
+            var nuc3 : int = fromNuc[s.charAt(i + 2)]
+            freq[nuc1][nuc2][nuc3] += 1
+            i += 3
+        }
+
+        final var toNuc : char[] = {'A', 'C', 'G', 'T'}
+        for (i_0 in 0..|4) {
+            for (j in 0..|4) {
+                for (k in 0..|4) {
+                    System.out.print(" " + toNuc[i_0] + toNuc[j] + toNuc[k] + ": " + freq[i_0][j][k])
+                }
+
+                System.out.println()
+            }
+
+        }
+
+    }
+
+}

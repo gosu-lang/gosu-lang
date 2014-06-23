@@ -1,0 +1,356 @@
+package gw.util.transform.java.Examples
+
+uses java.lang.*
+uses java.util.*
+uses java.io.*
+
+class Nfa  {
+
+    private var startState : Integer
+    private var exitState : Integer
+    private var trans : Map<Integer, List<Transition>>
+    public construct(startState_0 : Integer, exitState_0 : Integer) {
+        this.startState = startState_0
+        this.exitState = exitState_0
+        trans = new HashMap<Integer, List<Transition>>()
+        if (!startState_0.equals(exitState_0)) {
+            trans.put(exitState_0, new LinkedList<Transition>())
+        }
+    }
+
+    public function getStart() : Integer {
+        return startState
+    }
+
+    public function getExit() : Integer {
+        return exitState
+    }
+
+    public function getTrans() : Map<Integer, List<Transition>> {
+        return trans
+    }
+
+    public function addTrans(s1 : Integer, lab : String, s2 : Integer) : void {
+        var s1Trans : List<Transition>
+        if (trans.containsKey(s1)) {
+            s1Trans = trans.get(s1)
+        } else {
+            s1Trans = new LinkedList<Transition>()
+            trans.put(s1, s1Trans)
+        }
+        s1Trans.add(new Transition(lab, s2))
+    }
+
+    public function addTrans(tr : Map.Entry<Integer, List<Transition>>) : void {
+        trans.put(tr.getKey(), tr.getValue())
+    }
+
+    public function toString() : String {
+        return "NFA start=" + startState + " exit=" + exitState + "\n" + trans
+    }
+
+    static function compositeDfaTrans(s0 : Integer, trans_0 : Map<Integer, List<Transition>>) : Map<Set<Integer>, Map<String, Set<Integer>>> {
+        var S0 : Set<Integer> = epsilonClose(Collections.singleton(s0), trans_0)
+        var worklist = new LinkedList<Set<Integer>>()
+        worklist.add(S0)
+        var res : Map<Set<Integer>, Map<String, Set<Integer>>> = new HashMap<Set<Integer>, Map<String, Set<Integer>>>()
+        while (!worklist.isEmpty()) {
+            var S : Set<Integer> = worklist.removeFirst()
+            if (!res.containsKey(S)) {
+                var STrans : Map<String, Set<Integer>> = new HashMap<String, Set<Integer>>()
+                for (s in S) {
+                    for (tr in trans_0.get(s)) {
+                        if (tr.lab != null) {
+                            var toState : Set<Integer>
+                            if (STrans.containsKey(tr.lab)) {
+                                toState = STrans.get(tr.lab)
+                            } else {
+                                toState = new HashSet<Integer>()
+                                STrans.put(tr.lab, toState)
+                            }
+                            toState.add(tr.target)
+                        }
+                    }
+
+                }
+
+                var STransClosed = new HashMap<String, Set<Integer>>()
+                for (entry in STrans.entrySet()) {
+                    var Tclose : Set<Integer> = epsilonClose(entry.getValue(), trans_0)
+                    STransClosed.put(entry.getKey(), Tclose)
+                    worklist.add(Tclose)
+                }
+
+                res.put(S, STransClosed)
+            }
+        }
+
+        return res
+    }
+
+    static function epsilonClose(S : Set<Integer>, trans_0 : Map<Integer, List<Transition>>) : Set<Integer> {
+        var worklist = new LinkedList<Integer>(S)
+        var res : Set<Integer> = new HashSet<Integer>(S)
+        while (!worklist.isEmpty()) {
+            var s : Integer = worklist.removeFirst()
+            for (tr in trans_0.get(s)) {
+                if (tr.lab == null and !res.contains(tr.target)) {
+                    res.add(tr.target)
+                    worklist.add(tr.target)
+                }
+            }
+
+        }
+
+        return res
+    }
+
+    static function mkRenamer(states : Collection<Set<Integer>>) : Map<Set<Integer>, Integer> {
+        var renamer : Map<Set<Integer>, Integer> = new HashMap<Set<Integer>, Integer>()
+        for (k in states) {
+            renamer.put(k, renamer.size())
+        }
+
+        return renamer
+    }
+
+    static function rename(renamer : Map<Set<Integer>, Integer>, trans_0 : Map<Set<Integer>, Map<String, Set<Integer>>>) : Map<Integer, Map<String, Integer>> {
+        var newtrans : Map<Integer, Map<String, Integer>> = new HashMap<Integer, Map<String, Integer>>()
+        for (entry in trans_0.entrySet()) {
+            var k : Set<Integer> = entry.getKey()
+            var newktrans : Map<String, Integer> = new HashMap<String, Integer>()
+            for (tr in entry.getValue().entrySet()) {
+                newktrans.put(tr.getKey(), renamer.get(tr.getValue()))
+            }
+
+            newtrans.put(renamer.get(k), newktrans)
+        }
+
+        return newtrans
+    }
+
+    static function acceptStates(states : Set<Set<Integer>>, renamer : Map<Set<Integer>, Integer>, exit : Integer) : Set<Integer> {
+        var acceptStates : Set<Integer> = new HashSet<Integer>()
+        for (state in states) {
+            if (state.contains(exit)) {
+                acceptStates.add(renamer.get(state))
+            }
+        }
+
+        return acceptStates
+    }
+
+    public function toDfa() : Dfa {
+        var cDfaTrans : Map<Set<Integer>, Map<String, Set<Integer>>> = compositeDfaTrans(startState, trans)
+        var cDfaStart : Set<Integer> = epsilonClose(Collections.singleton(startState), trans)
+        var cDfaStates : Set<Set<Integer>> = cDfaTrans.keySet()
+        var renamer : Map<Set<Integer>, Integer> = mkRenamer(cDfaStates)
+        var simpleDfaTrans : Map<Integer, Map<String, Integer>> = rename(renamer, cDfaTrans)
+        var simpleDfaStart : Integer = renamer.get(cDfaStart)
+        var simpleDfaAccept : Set<Integer> = acceptStates(cDfaStates, renamer, exitState)
+        return new Dfa(simpleDfaStart, simpleDfaAccept, simpleDfaTrans)
+    }
+
+    static class NameSource  {
+
+        private var nextName : int = 0
+        public function next() : Integer {
+            return nextName++
+        }
+
+    }
+
+    public static class Transition  {
+
+        internal var lab : String
+        internal var target : Integer
+        public construct(lab_0 : String, target_0 : Integer) {
+            this.lab = lab_0
+            this.target = target_0
+        }
+
+        public function toString() : String {
+            return "-" + lab + "-> " + target
+        }
+
+    }
+
+}
+class Dfa  {
+
+    private var startState : Integer
+    private var acceptStates : Set<Integer>
+    private var trans : Map<Integer, Map<String, Integer>>
+    public construct(startState_0 : Integer, acceptStates_0 : Set<Integer>, trans_0 : Map<Integer, Map<String, Integer>>) {
+        this.startState = startState_0
+        this.acceptStates = acceptStates_0
+        this.trans = trans_0
+    }
+
+    public function getStart() : Integer {
+        return startState
+    }
+
+    public function getAccept() : Set<Integer> {
+        return acceptStates
+    }
+
+    public function getTrans() : Map<Integer, Map<String, Integer>> {
+        return trans
+    }
+
+    public function toString() : String {
+        return "DFA start=" + startState + "\naccept=" + acceptStates + "\n" + trans
+    }
+
+    public function writeDot(filename : String) : void {
+        var out = new PrintWriter(new FileWriter(filename))
+        out.println("// Format this file as a Postscript file with ")
+        out.println("//    dot " + filename + " -Tps -o out.ps\n")
+        out.println("digraph dfa {")
+        out.println("size=\"11,8.25\";")
+        out.println("rotate=90;")
+        out.println("rankdir=LR;")
+        out.println("n999999 [style=invis];")
+        out.println("n999999 -> n" + startState)
+        for (state in trans.keySet()) {
+            if (acceptStates.contains(state)) {
+                out.println("n" + state + " [peripheries=2];")
+            }
+        }
+
+        for (entry in trans.entrySet()) {
+            var s1 : Integer = entry.getKey()
+            for (s1Trans in entry.getValue().entrySet()) {
+                var lab : String = s1Trans.getKey()
+                var s2 : Integer = s1Trans.getValue()
+                out.println("n" + s1 + " -> n" + s2 + " [label=" + lab + "];")
+            }
+
+        }
+
+        out.println("}")
+        out.close()
+    }
+
+}
+abstract class Regex  {
+
+    public abstract function mkNfa(names : Nfa.NameSource) : Nfa
+}
+class Sym extends Regex  {
+
+    internal var sym : String
+    public construct(sym_0 : String) {
+        this.sym = sym_0
+    }
+
+    public function mkNfa(names : Nfa.NameSource) : Nfa {
+        var s0s : Integer = names.next()
+        var s0e : Integer = names.next()
+        var nfa0 = new Nfa(s0s, s0e)
+        nfa0.addTrans(s0s, sym, s0e)
+        return nfa0
+    }
+
+}
+class Seq extends Regex  {
+
+    internal var r1 : Regex
+    internal var r2 : Regex
+    public construct(r1_0 : Regex, r2_0 : Regex) {
+        this.r1 = r1_0
+        this.r2 = r2_0
+    }
+
+    public function mkNfa(names : Nfa.NameSource) : Nfa {
+        var nfa1 : Nfa = r1.mkNfa(names)
+        var nfa2 : Nfa = r2.mkNfa(names)
+        var nfa0 = new Nfa(nfa1.getStart(), nfa2.getExit())
+        for (entry in nfa1.getTrans().entrySet()) {
+            nfa0.addTrans(entry)
+        }
+
+        for (entry in nfa2.getTrans().entrySet()) {
+            nfa0.addTrans(entry)
+        }
+
+        nfa0.addTrans(nfa1.getExit(), null, nfa2.getStart())
+        return nfa0
+    }
+
+}
+class Alt extends Regex  {
+
+    internal var r1 : Regex
+    internal var r2 : Regex
+    public construct(r1_0 : Regex, r2_0 : Regex) {
+        this.r1 = r1_0
+        this.r2 = r2_0
+    }
+
+    public function mkNfa(names : Nfa.NameSource) : Nfa {
+        var nfa1 : Nfa = r1.mkNfa(names)
+        var nfa2 : Nfa = r2.mkNfa(names)
+        var s0s : Integer = names.next()
+        var s0e : Integer = names.next()
+        var nfa0 = new Nfa(s0s, s0e)
+        for (entry in nfa1.getTrans().entrySet()) {
+            nfa0.addTrans(entry)
+        }
+
+        for (entry in nfa2.getTrans().entrySet()) {
+            nfa0.addTrans(entry)
+        }
+
+        nfa0.addTrans(s0s, null, nfa1.getStart())
+        nfa0.addTrans(s0s, null, nfa2.getStart())
+        nfa0.addTrans(nfa1.getExit(), null, s0e)
+        nfa0.addTrans(nfa2.getExit(), null, s0e)
+        return nfa0
+    }
+
+}
+class Star extends Regex  {
+
+    internal var r : Regex
+    public construct(r_0 : Regex) {
+        this.r = r_0
+    }
+
+    public function mkNfa(names : Nfa.NameSource) : Nfa {
+        var nfa1 : Nfa = r.mkNfa(names)
+        var s0s : Integer = names.next()
+        var nfa0 = new Nfa(s0s, s0s)
+        for (entry in nfa1.getTrans().entrySet()) {
+            nfa0.addTrans(entry)
+        }
+
+        nfa0.addTrans(s0s, null, nfa1.getStart())
+        nfa0.addTrans(nfa1.getExit(), null, s0s)
+        return nfa0
+    }
+
+}
+class Example139  {
+
+    public static function main(args : String[]) : void {
+        var a : Regex = new Sym("A")
+        var b : Regex = new Sym("B")
+        var r : Regex = new Seq(new Star(new Alt(a, b)), new Seq(a, b))
+        buildAndShow("dfa1.dot", r)
+        buildAndShow("dfa2.dot", new Star(r))
+        buildAndShow("dfa3.dot", new Seq(r, r))
+    }
+
+    public static function buildAndShow(filename : String, r : Regex) : void {
+        var nfa : Nfa = r.mkNfa(new Nfa.NameSource())
+        System.out.println(nfa)
+        var dfa : Dfa = nfa.toDfa()
+        System.out.println(dfa)
+        System.out.println("Writing DFA graph to file " + filename)
+        dfa.writeDot(filename)
+        System.out.println()
+    }
+
+}

@@ -1,0 +1,41 @@
+package gw.util.transform.java.Examples
+
+uses java.lang.*
+uses java.util.Iterator
+
+class Example40  {
+
+    public static function main(args : String[]) : void {
+        if (args.length != 1) {
+            System.out.println("Usage: java Example40 <string>\n")
+        } else {
+            var seq : Iterator<String> = suffixes(args[0])
+            while (seq.hasNext()) {
+                System.out.println(seq.next())
+            }
+
+        }
+    }
+
+    static function suffixes(final s : String) : Iterator<String> {
+        class SuffixIterator implements Iterator<String> {
+
+            internal var startindex : int = 0
+            public function hasNext() : boolean {
+                return startindex < s.length()
+            }
+
+            public function next() : String {
+                return s.substring(startindex++)
+            }
+
+            public function remove() : void {
+                throw new UnsupportedOperationException()
+            }
+
+        }
+
+        return new SuffixIterator()
+    }
+
+}

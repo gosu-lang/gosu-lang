@@ -1,0 +1,84 @@
+package gw.util.transform.java.Examples
+
+uses java.lang.*
+
+class Buffer  {
+
+    private var contents : int
+    private var empty : boolean = true
+    public function get() : int {
+        using (this as IMonitorLock) {
+            while (empty) {
+                
+                try {
+                    this.wait()
+                }
+                catch (x : InterruptedException) {
+                }
+
+            }
+
+            
+            empty = true
+            this.notify()
+            return contents
+        }
+
+    }
+
+    public function put(v : int) : void {
+        using (this as IMonitorLock) {
+            while (!empty) {
+                
+                try {
+                    this.wait()
+                }
+                catch (x : InterruptedException) {
+                }
+
+            }
+
+            
+            empty = false
+            contents = v
+            this.notify()
+        }
+
+    }
+
+}
+class Example94  {
+
+    public static function main(args : String[]) : void {
+        final var buf = new Buffer()
+        class Producer extends Thread  {
+
+            public function run() : void {
+                var i = 1
+                while (true) {
+                    buf.put(i)
+                    Util.pause(10, 100)
+                    i++
+                }
+
+            }
+
+        }
+
+        class Consumer extends Thread  {
+
+            public function run() : void {
+                while (true) {
+                    System.out.println("Consumed " + buf.get())
+                }
+
+            }
+
+        }
+
+        new Producer().start()
+        new Consumer().start()
+        new Consumer().start()
+    }
+
+}

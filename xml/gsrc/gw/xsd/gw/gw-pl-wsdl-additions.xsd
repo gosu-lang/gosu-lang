@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<!--
+  ~ Copyright 2014 Guidewire Software, Inc.
+  -->
+
+<xs:schema
+        targetNamespace="http://guidewire.com/pl/wsdl"
+        xmlns:gwwsdl="http://guidewire.com/pl/wsdl"
+        xmlns:xs="http://www.w3.org/2001/XMLSchema"
+        >
+
+  <!-- TODO: Move to platform... -->
+
+  <xs:element name="address">
+    <xs:annotation>
+      <xs:documentation>
+        An extensibility element that can be used in a WSDL to represent the Guidewire-specific location of a web service.
+      </xs:documentation>
+    </xs:annotation>
+    <xs:complexType>
+      <xs:attribute name="location" type="xs:string"/>
+    </xs:complexType>
+  </xs:element>
+
+</xs:schema>

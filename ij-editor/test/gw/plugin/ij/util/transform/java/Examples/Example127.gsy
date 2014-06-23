@@ -1,0 +1,55 @@
+package gw.util.transform.java.Examples
+
+uses java.lang.*
+uses java.util.*
+uses java.io.*
+
+class Example127  {
+
+    public static function main(args : String[]) : void {
+        if (args.length != 1) {
+            System.out.println("Usage: java Example127 <filename>")
+        } else {
+            var index_0 : SortedMap<String, SortedSet<Integer>> = buildIndex(args[0])
+            printIndex(index_0)
+        }
+    }
+
+    static function buildIndex(filename : String) : SortedMap<String, SortedSet<Integer>> {
+        var r : Reader = new BufferedReader(new FileReader(filename))
+        var stok = new StreamTokenizer(r)
+        stok.quoteChar('\"')
+        stok.ordinaryChars('!', '/')
+        stok.nextToken()
+        var index_0 : SortedMap<String, SortedSet<Integer>> = new TreeMap<String, SortedSet<Integer>>()
+        while (stok.ttype != StreamTokenizer.TT_EOF) {
+            if (stok.ttype == StreamTokenizer.TT_WORD) {
+                var ts : SortedSet<Integer>
+                if (index_0.containsKey(stok.sval)) {
+                    ts = index_0.get(stok.sval)
+                } else {
+                    ts = new TreeSet<Integer>()
+                    index_0.put(stok.sval, ts)
+                }
+                ts.add(stok.lineno())
+            }
+            stok.nextToken()
+        }
+
+        return index_0
+    }
+
+    static function printIndex(index_0 : SortedMap<String, SortedSet<Integer>>) : void {
+        for (entry in index_0.entrySet()) {
+            System.out.print(entry.getKey() + ": ")
+            var lineNoSet : SortedSet<Integer> = entry.getValue()
+            for (lineno in lineNoSet) {
+                System.out.print(lineno + " ")
+            }
+
+            System.out.println()
+        }
+
+    }
+
+}

@@ -1,0 +1,22 @@
+package gw.util.transform.java.Examples
+
+uses java.lang.*
+uses java.util.*
+uses java.io.*
+
+class Example124  {
+
+    public static function main(args : String[]) : void {
+        var filenames : SortedSet<String> = new TreeSet<String>()
+        var cwd = new File(".")
+        for (f in cwd.listFiles()) {
+            filenames.add(f.getName())
+        }
+
+        for (filename in filenames.subSet("P", "T")) {
+            System.out.println(filename)
+        }
+
+    }
+
+}

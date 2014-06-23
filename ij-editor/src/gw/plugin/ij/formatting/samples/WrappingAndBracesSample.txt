@@ -1,0 +1,74 @@
+package pkg
+
+uses java.lang.Exception
+
+/*
+ * This is a sample file.
+ */
+public class ThisIsASampleClass extends C1 implements I1, I2, I3, I4, I5 {
+  var f1: int  = 1
+  var field2: String  = ""
+  function foo1(i1: int, i2: int, i3: int,
+  i4: int, i5: int, i6: int, i7: int) {}
+  function longerMethod() {
+// todo something
+
+  var i:int
+= 0
+    var a: int[] = new int[] {1, 2, 0x0052, 0x0053, 0x0054}
+    var var1:int  = 1 var var2: int  = 2
+    foo1(0x0051, 0x0052, 0x0053, 0x0054, 0x0055, 0x0056, 0x0057)
+    var x: int  = (3 + 4 + 5 + 6) * (7 + 8 + 9 + 10) * (11 + 12 + 13 + 14 + 0xFFFFFFFF)
+    var s1: String
+
+    s1 = "012345678901456"
+
+    var y: int = 2 > 3 ? 7 + 8 + 9 : 11 + 12 + 13
+    super.getFoo().foo().getBar().bar()
+
+    if (2 < 3) return else if (2 > 3) return else return
+    for (var k in 0..|0xFFFFFF) print(k)
+    while (x < 50000) x++
+    do x++ while (x < 10000)
+    switch (var1) {
+    case 0:
+      doCase0()
+      break
+    default:
+      doDefault()
+    }
+    try {
+      doSomething()
+    } catch (e: Exception) {
+      processException(e)
+    } finally {
+      processFinally()
+    }
+    do {
+        x--
+    } while (x > 10)
+  }
+    static function test() {
+        foo.foo().bar("arg1",
+                      "arg2")
+        var t = new Object() {}
+    }
+    class TestInnerClass {}
+    interface TestInnerInterface {}
+
+
+  enum Breed {
+      Dalmatian(), Labrador(), Dachshund()
+  }
+
+@Annotation1 @Annotation2 @Annotation3("value1", "value2") @Annotation4 class Foo {
+    @Annotation1 @Annotation3("value1", "value2") static function foo() {
+    }
+
+    @Annotation1 @Annotation3("value1", "value2") static myFoo: int
+    function method(param: int){
+        @Annotation1 @Annotation3("value1", "value2") final var localVariable: int
+    }
+}
+
+}

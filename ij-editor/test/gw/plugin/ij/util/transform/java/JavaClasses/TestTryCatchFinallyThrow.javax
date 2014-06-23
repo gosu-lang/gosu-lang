@@ -1,0 +1,89 @@
+package gw.util.transform.java.JavaClasses;
+
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
+
+public class TestTryCatchFinallyThrow {
+  int y;
+  int ex;
+
+  void foo() throws IOException {
+
+    try (BufferedReader br = new BufferedReader(new FileReader("13"));
+         java.util.zip.ZipFile zf = new java.util.zip.ZipFile("31")) {
+      System.out.print("bar0");
+    } finally {
+      System.out.print("bar1");
+    }
+
+    try (BufferedReader br = new BufferedReader(new FileReader("13"));
+         java.util.zip.ZipFile zf = new java.util.zip.ZipFile("31")) {
+      System.out.print("bar" + br + zf);
+    }
+
+    try (BufferedReader br = new BufferedReader(new FileReader("13"));
+         java.util.zip.ZipFile zf = new java.util.zip.ZipFile("31")) {
+      System.out.print("bar0" + br + zf);
+    } catch (NullPointerException bau) {
+      System.out.print("bar1" + bau);
+    } catch (IndexOutOfBoundsException | FileNotFoundException ex) {
+      System.out.print("bar2" + ex);
+    }
+    try {
+      System.out.print("bar0");
+    } finally {
+      System.out.print("bar1");
+    }
+
+
+    try {
+      throw new FileNotFoundException();
+    } catch (final NullPointerException bau) {
+      System.out.print("bar0" + bau);
+    } catch (final IndexOutOfBoundsException | FileNotFoundException ex) {
+      System.out.print("bar1" + ex);
+    }
+
+
+    try {
+      throw new FileNotFoundException();
+    } catch (final NullPointerException bau) {
+      System.out.print("bar0" + bau);
+    } catch (final IndexOutOfBoundsException | FileNotFoundException ex) {
+      System.out.print("bar1" + ex);
+    } finally {
+      System.out.print("bar2");
+    }
+
+    try {}
+    finally {}
+
+  }
+
+  void bar() throws IOException{
+    try (BufferedReader br = new BufferedReader(new FileReader("13"));
+         java.util.zip.ZipFile zf = new java.util.zip.ZipFile("31");) {
+      System.out.print("bar0"  + br + zf);
+    } catch (final NullPointerException bau) {
+      System.out.print("bar1" + bau);
+      try (BufferedReader br = new BufferedReader(new FileReader("13"));
+           java.util.zip.ZipFile zf = new java.util.zip.ZipFile("31");) {
+        System.out.print("bar2-0"  + br + zf);
+      }
+      catch (IndexOutOfBoundsException ex){
+        System.out.print("bar2-1" + ex);
+        {
+          int y = 0;
+        }
+        y = 0;
+      }
+      finally{}
+    } catch (final IndexOutOfBoundsException | FileNotFoundException ex) {
+      System.out.print("bar2-2" + ex);
+    } finally {
+      System.out.print("bar3");
+    }
+  }
+}

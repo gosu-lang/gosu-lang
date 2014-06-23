@@ -1,0 +1,46 @@
+package gw.util.transform.java.Examples
+
+uses java.lang.*
+uses java.util.*
+
+class Example138  {
+
+    public static function main(args : String[]) : void {
+        var ss : Set<Set<Integer>> = new HashSet<Set<Integer>>()
+        ss.add(mkIntegerSet(new int[]{2, 3}))
+        ss.add(mkIntegerSet(new int[]{1, 3}))
+        ss.add(mkIntegerSet(new int[]{1, 2}))
+        System.out.println("ss = " + ss)
+        var tt : Set<Set<Integer>> = intersectionClose(ss)
+        System.out.println("tt = " + tt)
+    }
+
+    static function mkIntegerSet(a : int[]) : Set<Integer> {
+        var ts = new TreeSet<Integer>()
+        for (i in 0..|a.length) {
+            ts.add(a[i])
+        }
+
+        return ts
+    }
+
+    static function intersectionClose<T>(ss : Set<Set<T>>) : Set<Set<T>> {
+        var worklist = new LinkedList<Set<T>>(ss)
+        var tt : Set<Set<T>> = new HashSet<Set<T>>()
+        while (!worklist.isEmpty()) {
+            var s : Set<T> = worklist.removeLast()
+            for (t in tt) {
+                var ts : Set<T> = new TreeSet<T>(t)
+                ts.retainAll(s)
+                if (!tt.contains(ts)) {
+                    worklist.add(ts)
+                }
+            }
+
+            tt.add(s)
+        }
+
+        return tt
+    }
+
+}

@@ -1,0 +1,44 @@
+package gw.util.transform.java.Examples
+
+uses java.lang.*
+
+class Scope  {
+
+    function m1(x_0 : int) : void {
+        x_0 = 7
+    }
+
+    function m2(v2 : int) : void {
+        x = 7
+    }
+
+    function m3(v3 : int) : void {
+        x = 7
+        var x_0 : int
+        x_0 = 7
+    }
+
+    function m4(v4 : int) : void {
+        x = 7
+         {
+            var x_0 : int
+            x_0 = 7
+        }
+
+        x = 7
+         {
+            var x_0 : int
+            x_0 = 7
+        }
+
+        x = 7
+    }
+
+    internal var x : int
+    /*
+        {
+            x = 7;
+        }
+    */
+
+}

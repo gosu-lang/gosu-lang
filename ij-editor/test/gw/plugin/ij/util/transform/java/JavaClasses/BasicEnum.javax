@@ -1,0 +1,3 @@
+package gw.util.transform.java.JavaClasses;
+
+enum BasicEnum { ONE, TWO, THREE }

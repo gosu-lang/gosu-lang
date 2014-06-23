@@ -1,0 +1,21 @@
+package gw.util.transform.java.JavaClasses;
+
+
+public class BasicClass {
+  private int x = 8;
+  private final int z = 2;
+  private final int y;
+
+  public BasicClass(int x, int y) {
+    this.x = x;
+    this.y = y + z;
+  }
+
+  public int getX() {
+    return x;
+  }
+
+  public void setX(int x1) {
+    x = x1;
+  }
+}

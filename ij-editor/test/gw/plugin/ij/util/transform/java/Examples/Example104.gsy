@@ -1,0 +1,29 @@
+package gw.util.transform.java.Examples
+
+uses java.lang.*
+uses java.util.*
+
+class Example104  {
+
+    public static function main(args : String[]) : void {
+        var cool = new ArrayList()
+        cool.add(new Person("Kristen"))
+        cool.add(new Person("Bjarne"))
+        cool.add(new Exception("Larry"))
+        cool.add(new Person("Anders"))
+        var p : Person = (cool.get(2)) as Person
+    }
+
+    private static class Person  {
+
+        private static var counter : int = 0
+        private final var name : String
+        private final var serialNumber : int
+        public construct(name_0 : String) {
+            this.name = name_0
+            this.serialNumber = counter++
+        }
+
+    }
+
+}

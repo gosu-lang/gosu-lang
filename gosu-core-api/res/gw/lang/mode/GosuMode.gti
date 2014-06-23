@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<class>
+  <desc/>
+  <var name="GOSU_MODE_PRIORITY_HELP">
+    <desc/>
+  </var>
+  <var name="GOSU_MODE_PRIORITY_VERSION">
+    <desc/>
+  </var>
+  <var name="GOSU_MODE_PRIORITY_VERIFY">
+    <desc/>
+  </var>
+  <var name="GOSU_MODE_PRIORITY_INTERACTIVE">
+    <desc/>
+  </var>
+  <var name="GOSU_MODE_PRIORITY_EXECUTE">
+    <desc/>
+  </var>
+</class>

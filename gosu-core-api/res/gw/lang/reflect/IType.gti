@@ -1,0 +1,180 @@
+<?xml version="1.0"?>
+<class>
+  <desc/>
+  <method name="getName">
+    <desc>The fully qualified name of this intrinsic type.</desc>
+  </method>
+  <method name="getDisplayName">
+    <desc>The display name of this intrinsic type.  Often this is simply the same as
+{@link #getName()}, but in some cases a type may want to modify it's name
+for presentation to the user.</desc>
+  </method>
+  <method name="getRelativeName">
+    <desc>The relative or unqualified name. For a class this should be just the class
+name without the package name.</desc>
+  </method>
+  <method name="getNamespace">
+    <desc>The namespace for this class.  For a java class this will be the package, while
+for other types of intrinsic types it could be another logical name.</desc>
+  </method>
+  <method name="getTypeLoader">
+    <desc>Returns the type loader responsible for loading this intrinsic type.</desc>
+  </method>
+  <method name="getSupertype">
+    <desc>Returns the type representing the supertype of this type. Returns null if
+this type has no supertype.</desc>
+  </method>
+  <method name="getEnclosingType">
+    <desc>Returns the type immediately enclosing this type. If this type is not
+enclosed, returns null.</desc>
+  </method>
+  <method name="getGenericType">
+    <desc>If this is a parameterized type, returns the generic type this type
+parameterizes. Otherwise, returns null.</desc>
+  </method>
+  <method name="isFinal">
+    <desc>True if this type cannot be extended.</desc>
+  </method>
+  <method name="isInterface">
+    <desc>Returns true if this type is an interface.</desc>
+  </method>
+  <method name="isEnum">
+    <desc>Returns true if this type is an enumeration.</desc>
+  </method>
+  <method name="getInterfaces">
+    <desc/>
+    <return>If this is a class, returns a list of all the interfaces this type
+        &lt;i&gt;implements&lt;/i&gt;. Similarly, if this is an interface, returns a list of
+        all the interfaces this type &lt;i&gt;extends&lt;/i&gt;. In any case, returns an
+        empty list if this type neither implements nor extends interfaces.</return>
+  </method>
+  <method name="isParameterizedType">
+    <desc>Returns true if this ia a Parameterized Type.
+&lt;p/&gt;
+Note a Parameterzied Type is not the same as a Generic Type. The difference
+is that a Parameterized Type is a concrete version of a Generic Type. For
+instance, the class ArrayList&lt;T&gt; is a Generic Type, while the class
+ArrayList&lt;String&gt; is a Parameterized Type of the the Generic Type ArrayList&lt;T&gt;.</desc>
+  </method>
+  <method name="isGenericType">
+    <desc>Returns true if this ia a Generic Type.</desc>
+  </method>
+  <method name="getGenericTypeVariables">
+    <desc>Returns an array of GenericTypeVariables declared with this Generic Type.
+Otherwise, returns null if this is not a Generic Type.</desc>
+  </method>
+  <method name="getParameterizedType">
+    <desc>Assuming this intrinsic type is a Generic type, return the parameterized
+type associated with the given list of type parameters. If the type has not
+been created yet, creates the parameterized type. Successive calls to this
+method having identical parameter types must return the identical
+parameterized type.</desc>
+    <return>The concrete type associated with the type parameters.</return>
+    <param name="ofType" type="[Lgw.lang.reflect.IType;">The type parameters.</param>
+  </method>
+  <method name="getTypeParameters">
+    <desc>If this is a parameterized type, returns the specific types used to create
+this type, null otherwies.</desc>
+  </method>
+  <method name="getAllTypesInHierarchy">
+    <desc>Returns a Set of all IIntrinsicTypes that this class is assignable from,
+including this class. This includes implemented interfaces and
+superclasses, recursively up the hieararchy. For array types, this will be
+a Set of all types that its component type is assignable from.</desc>
+  </method>
+  <method name="isArray">
+    <desc>True if this is an array.</desc>
+  </method>
+  <method name="isPrimitive">
+    <desc>True if this type represents a primitive type e.g., Java int, char, etc.</desc>
+  </method>
+  <method name="getArrayType">
+    <desc>Make an array type from this type. E.g., String -&gt; String[]</desc>
+  </method>
+  <method name="makeArrayInstance">
+    <desc>Construct an array instance of specified length.</desc>
+    <param name="iLength" type="int"/>
+  </method>
+  <method name="getArrayComponent">
+    <desc>Returns the value of the indexed component in the specified
+array object.</desc>
+    <return>The value of the indexed component in the specified array.</return>
+    <param name="array" type="java.lang.Object">An array instance of this intrinsic type.</param>
+    <param name="iIndex" type="int">The index of the component to get.</param>
+    <ex type="NullPointerException">If the specified object is null,</ex>
+    <ex type="IllegalArgumentException">If the specified object is not an array.</ex>
+    <ex type="ArrayIndexOutOfBoundsException">If the specified index argument
+                                       is negative, or if it is greater than or equal to the length of the
+                                       specified array</ex>
+  </method>
+  <method name="setArrayComponent">
+    <desc>Sets the value of the indexed component in the specified array object.</desc>
+    <param name="array" type="java.lang.Object">An array instance of this intrinsic type.</param>
+    <param name="iIndex" type="int">The index of the component to set.</param>
+    <param name="value" type="java.lang.Object">The new value of the indexed component.</param>
+    <ex type="NullPointerException">If the specified object is null,</ex>
+    <ex type="IllegalArgumentException">If the specified object is not an array.</ex>
+    <ex type="ArrayIndexOutOfBoundsException">If the specified index argument
+                                       is negative, or if it is greater than or equal to the length of the
+                                       specified array</ex>
+  </method>
+  <method name="getArrayLength">
+    <desc>Returns the length of the specified array object.</desc>
+    <return>The length of the array.</return>
+    <param name="array" type="java.lang.Object">An array instance of this intrinsic type.</param>
+    <ex type="IllegalArgumentException">If the object argument is not an array.</ex>
+  </method>
+  <method name="getComponentType">
+    <desc>If this is an array type, a type representing the component type of the
+array. Otherwise null.</desc>
+  </method>
+  <method name="isAssignableFrom">
+    <desc>Determines if the type represented by this intrinsic type is either the
+same as, or is a super-type of the type represented by the specified type
+parameter.</desc>
+    <param name="type" type="gw.lang.reflect.IType"/>
+  </method>
+  <method name="isMutable">
+    <desc>Are intances of this type mutable? Note sometimes it's difficult to
+determine. For instance, java classes don't contain any information about
+mutability. In which case we always assume mutable, even when the
+underlying type may in fact be immutable. E.g., even though java.lang.String
+is not mutable, its corresponding JavaIntrinsicType will say it is.</desc>
+    <return>True if this type is mutable.</return>
+  </method>
+  <method name="getTypeInfo">
+    <desc>Get the type information for this intrinsic type.</desc>
+  </method>
+  <method name="unloadTypeInfo">
+    <desc>Unload or nullify any references to this IType's ITypeInfo.</desc>
+  </method>
+  <method name="readResolve">
+    <desc>IType requires this method be implemented to ensure IType
+instances can be centrally defined and cached.</desc>
+  </method>
+  <method name="isValid">
+    <desc>Defines this type if it is not yet fully defined. For instance, if this
+type has source code associated with it, it must fully compile the source
+for it to be fully defined.</desc>
+    <return>true if this type is valid.</return>
+  </method>
+  <method name="getModifiers">
+    <desc>Returns the modifiers for this type, encoded in an integer.
+The modifiers consist of the constants for &lt;code&gt;public&lt;/code&gt;, &lt;code&gt;protected&lt;/code&gt;,
+&lt;code&gt;private&lt;/code&gt;, &lt;code&gt;final&lt;/code&gt;, &lt;code&gt;static&lt;/code&gt;,
+&lt;code&gt;abstract&lt;/code&gt; they should be decoded
+using the methods of class &lt;code&gt;Modifier&lt;/code&gt;.</desc>
+  </method>
+  <method name="isDiscarded">
+    <desc>True if this type has been replaced with a newer version of the same name in the type system.</desc>
+  </method>
+  <var name="EMPTY_TYPE_LIST">
+    <desc/>
+  </var>
+  <var name="EMPTY_TYPE_ARRAY">
+    <desc/>
+  </var>
+  <var name="EMPTY_ARRAY">
+    <desc/>
+  </var>
+</class>

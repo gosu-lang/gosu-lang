@@ -1,0 +1,40 @@
+<?xml version="1.0"?>
+<class>
+  <desc/>
+  <var name="GOSU_CLASS_FILE_EXT">
+    <desc/>
+  </var>
+  <var name="GOSU_ENHANCEMENT_FILE_EXT">
+    <desc/>
+  </var>
+  <var name="GOSU_PROGRAM_FILE_EXT">
+    <desc/>
+  </var>
+  <var name="GOSU_TEMPLATE_FILE_EXT">
+    <desc/>
+  </var>
+  <var name="GOSU_RULE_EXT">
+    <desc/>
+  </var>
+  <var name="GOSU_RULE_SET_EXT">
+    <desc/>
+  </var>
+  <var name="ALL_EXTS">
+    <desc/>
+  </var>
+  <var name="ALL_EXTS_SET">
+    <desc/>
+  </var>
+  <var name="EXTENSIONS">
+    <desc/>
+  </var>
+  <var name="BLOCK_PREFIX">
+    <desc/>
+  </var>
+  <var name="INNER_BLOCK_PREFIX">
+    <desc/>
+  </var>
+  <var name="BLOCK_POSTFIX">
+    <desc/>
+  </var>
+</class>

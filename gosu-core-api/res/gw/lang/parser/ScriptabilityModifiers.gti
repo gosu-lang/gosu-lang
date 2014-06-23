@@ -1,0 +1,43 @@
+<?xml version="1.0"?>
+<class>
+  <desc/>
+  <var name="SCRIPTABLE">
+    <desc/>
+  </var>
+  <var name="HIDDEN">
+    <desc/>
+  </var>
+  <var name="DEPRECATED">
+    <desc/>
+  </var>
+  <var name="SCRIPTABLE_DEPRECATED">
+    <desc/>
+  </var>
+  <var name="SCRIPTABLE_EXTERNAL">
+    <desc/>
+  </var>
+  <var name="SCRIPTABLE_EXTERNAL_DEPRECATED">
+    <desc/>
+  </var>
+  <var name="SCRIPTABLE_UI">
+    <desc/>
+  </var>
+  <var name="SCRIPTABLE_UI_DEPRECATED">
+    <desc/>
+  </var>
+  <var name="SCRIPTABLE_RULES">
+    <desc/>
+  </var>
+  <var name="SCRIPTABLE_RULES_DEPRECATED">
+    <desc/>
+  </var>
+  <var name="SCRIPTABLE_WORKFLOW">
+    <desc/>
+  </var>
+  <var name="SCRIPTABLE_WORKFLOW_DEPRECATED">
+    <desc/>
+  </var>
+  <var name="SCRIPTABLE_WEBSERVICE">
+    <desc/>
+  </var>
+</class>

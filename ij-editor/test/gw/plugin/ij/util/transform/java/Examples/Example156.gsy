@@ -1,0 +1,69 @@
+package gw.util.transform.java.Examples
+
+uses java.lang.*
+uses java.io.*
+uses java.net.*
+
+class Example156  {
+
+    static final internal var PORT : int = 2357
+    public static function main(args : String[]) : void {
+        var server : boolean = args.length == 1 and args[0].equals("server")
+        var client : boolean = args.length == 2 and args[0].equals("client")
+        if (server) {
+            var serversock = new ServerSocket(PORT)
+            while (true) {
+                var sock : Socket = serversock.accept()
+                var dis = new DataInputStream(sock.getInputStream())
+                var dos = new DataOutputStream(sock.getOutputStream())
+                var query : int = dis.readInt()
+                System.out.print("[" + query + "]")
+                dos.writeBoolean(isPrime(query))
+                dis.close()
+                dos.close()
+            }
+
+        } else if (client) {
+            var i = 1
+            while (i < 1000) {
+                var sock = new Socket(args[1], PORT)
+                var dos = new DataOutputStream(sock.getOutputStream())
+                var dis = new DataInputStream(sock.getInputStream())
+                dos.writeInt(i)
+                if (dis.readBoolean()) {
+                    System.out.print(i + " ")
+                }
+                dos.close()
+                dis.close()
+                i++
+            }
+
+        } else {
+            System.out.println("Start two copies of this program, possibly on different machines:")
+            System.out.println("   java Example156 server")
+            System.out.println("   java Example156 client <serverhostname>")
+            System.out.println("Use `java Example156 client localhost\' if the")
+            System.out.println("client and server run on the same machine.")
+            System.out.println("You may start several clients all talking to the same server.")
+        }
+    }
+
+    static function isPrime(p : int) : boolean {
+        if (p == 2) {
+            return true
+        }
+        if (p == 1 or p % 2 == 0) {
+            return false
+        }
+        var q = 3
+        while (q * q <= p) {
+            if (p % q == 0) {
+                return false
+            }
+            q += 2
+        }
+
+        return true
+    }
+
+}

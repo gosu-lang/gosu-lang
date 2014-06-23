@@ -1,0 +1,55 @@
+package gw.util.transform.java.Examples
+
+uses java.lang.*
+uses java.io.*
+
+class Timer  {
+
+    private var starttime : long
+    public construct() {
+        starttime = System.currentTimeMillis()
+    }
+
+    function check() : double {
+        return (System.currentTimeMillis() - starttime) / 1000.0
+    }
+
+}
+class Example150  {
+
+    public static function main(args : String[]) : void {
+        var os1 : OutputStream = new FileOutputStream("tmp1.dat")
+        writeints("Unbuffered FileOutputStream: ", 1000000, os1)
+        var os2 : OutputStream = new BufferedOutputStream(new FileOutputStream("tmp2.dat"))
+        writeints("Buffered FileOutputStream:   ", 1000000, os2)
+        var wr1 : Writer = new FileWriter("tmp1.dat")
+        writeints("Unbuffered FileWriter: ", 1000000, wr1)
+        var wr2 : Writer = new BufferedWriter(new FileWriter("tmp2.dat"))
+        writeints("Buffered FileWriter:   ", 1000000, wr2)
+    }
+
+    static function writeints(msg : String, count : int, os : OutputStream) : void {
+        var t = new Timer()
+        var i = 0
+        while (i < count) {
+            os.write(i & 255)
+            i++
+        }
+
+        os.close()
+        System.out.println(msg + t.check())
+    }
+
+    static function writeints(msg : String, count : int, os : Writer) : void {
+        var t = new Timer()
+        var i = 0
+        while (i < count) {
+            os.write(i & 255)
+            i++
+        }
+
+        os.close()
+        System.out.println(msg + t.check())
+    }
+
+}

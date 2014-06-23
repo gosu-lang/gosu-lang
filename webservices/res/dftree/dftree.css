@@ -1,0 +1,105 @@
+table.root {
+	table-layout: auto /* fixed */;
+	margin: 0px 0px 0px 0px;
+	padding: 0px 0px 0px 0px;
+	border-width: 0px 0px 0px 0px;
+	vertical-align:top;
+}
+
+.son {
+	position: relative;
+	vertical-align:top;
+	width: auto;
+	border: 0 /* 1px solid black*/ ;
+}
+
+
+.plus {
+	font-size: 23px;
+	font-weight: bold;
+	cursor: pointer;
+	/* cursor: hand; */
+	color: #000000;
+	font-family: monospace;
+	vertical-align:top;
+	width: auto;
+	border: 0 /* 1px solid black*/ ;
+}
+
+.icon {
+	font-size: 23px;
+	font-weight: bold;
+	cursor: pointer;
+	/* cursor: hand; */
+	color: #000000;
+	font-family: monospace;
+	vertical-align:top;
+	width: auto;
+	border: 0 /* 1px solid black*/ ;
+}
+
+.plus:hover {
+	color: #FF0000;
+	vertical-align:top;
+	width: auto;
+	border: 0 /* 1px solid black*/ ;
+}
+
+.tc {
+	vertical-align:top;
+	width: auto;
+	border: 0 /* 1px solid black*/ ;
+}
+
+/* link */
+.l {
+	/* padding: 2px; */
+	/* border: 1px solid; */
+	font-weight: bold;
+	font-size: 20px;
+	color: #666666;
+	text-decoration: none;
+	cursor: pointer;
+	/* cursor: hand; */
+	white-space: nowrap;
+	font-family: sans-serif;
+	text-align: left;
+	vertical-align:top;
+	width: auto;
+	border: 0 /* 1px solid black*/ ;
+}
+
+.l:hover {
+	text-decoration: underline;
+	margin: 0px 0px 0px 0px;
+	padding: 0px 0px 0px 0px;
+	border-width: 0px 0px 0px 0px;
+	vertical-align:top;
+	width: auto;
+	border: 0 /* 1px solid black*/ ;
+}
+
+/* selected link */
+.sl {
+	font-weight: bold;
+	font-size: 20px;
+	color: #0000FF;
+	text-decoration: none;
+	cursor: pointer;
+	/* cursor: hand; */
+	white-space: nowrap;
+	font-family: sans-serif;
+	margin: 2px 2px 2px 2px;
+	padding: 0px 0px 0px 0px;
+	border-width: 0px 0px 0px 0px;
+	vertical-align:top;
+	width: auto;
+	border: 0 /* 1px solid black*/ ;
+}
+
+.sl:hover {
+	text-decoration: underline;
+	width: auto;
+	border: 0 /* 1px solid black*/ ;
+}
+

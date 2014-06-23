@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<class>
+  <desc/>
+  <method name="validate">
+    <desc>Called after the whole class has been defn compiled.
+Implementors of this method can inspect the parse tree and add warnings/errors as appropriate</desc>
+    <param name="feature" type="gw.lang.parser.IParsedElement">the parsed element that this annotation lives on.</param>
+  </method>
+</class>

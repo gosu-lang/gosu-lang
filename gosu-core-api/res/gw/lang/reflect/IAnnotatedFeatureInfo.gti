@@ -1,0 +1,43 @@
+<?xml version="1.0"?>
+<class>
+  <desc/>
+  <method name="getAnnotations">
+    <desc/>
+    <return>A map of AnnotationInfo objects by type representing all the annotations associated
+        with this feature and all the features in its ancestry, or an empty map if there are no annotations.</return>
+  </method>
+  <method name="getDeclaredAnnotations">
+    <desc/>
+    <return>A map of AnnotationInfo objects by type representing all the annotations associated
+        with this feature, or an empty map if there are no annotations.</return>
+  </method>
+  <method name="getAnnotationsOfType">
+    <desc/>
+    <return>A list of AnnotationInfo objects having the specified type.</return>
+    <param name="type" type="gw.lang.reflect.IType"/>
+  </method>
+  <method name="getAnnotation">
+    <desc/>
+    <return>An AnnotationInfo object having the specified type, or null if no such AnnotationInfo exists.</return>
+    <param name="type" type="gw.lang.reflect.IType"/>
+    <ex type="IllegalStateException">if more than one AnnotationInfo of the given type exists</ex>
+  </method>
+  <method name="hasAnnotation">
+    <desc/>
+    <return>true If this feature has an annotation with of the given type, false otherwise</return>
+    <param name="type" type="gw.lang.reflect.IType">The type of the annotation to test for existence.</param>
+  </method>
+  <method name="hasDeclaredAnnotation">
+    <desc/>
+    <return>true If this feature has a declared annotation of the given type, false otherwise</return>
+    <param name="type" type="gw.lang.reflect.IType">The type of the annotation to test for existence.</param>
+  </method>
+  <method name="isDeprecated">
+    <desc/>
+    <return>True if this feature is deprecated.</return>
+  </method>
+  <method name="getDeprecatedReason">
+    <desc/>
+    <return>The deprecation message, or null if the feature is not deprecated.</return>
+  </method>
+</class>

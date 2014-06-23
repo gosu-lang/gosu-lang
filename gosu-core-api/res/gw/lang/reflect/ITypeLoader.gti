@@ -1,0 +1,77 @@
+<?xml version="1.0"?>
+<class>
+  <desc/>
+  <method name="getModule">
+    <desc/>
+    <return>The module to which this type loader belongs.</return>
+  </method>
+  <method name="getType">
+    <desc>Gets a type based on a fully-qualified name.  This could either be the name of an entity,
+like "entity.User", the name of a typekey, like "typekey.SystemPermission", or a class name, like
+"java.lang.String".  Names can have [] appended to them to create arrays, and multi-dimensional arrays
+are supported.&lt;p&gt;
+&lt;p/&gt;
+If the type can be successfully resolved by the typeloader, it will be returned, otherwise it will
+return null.  The sole exception to this rule is the top-level TypeLoaderAccess, which will throw
+a {@link ClassNotFoundException} if none of its composite typeloaders can load the type.&lt;p&gt;
+&lt;p/&gt;
+&lt;p/&gt;
+There is a global lock in TypeLoaderAccess that is acquired when this method is called.  Basically
+one type at a time can be loaded from the system.  This method is free to release that lock during this call.
+This is needed to deal with reentrant type loaders.  It is the responsibility of this method to make sure the
+lock is reacquired before this method returns.
+&lt;p/&gt;
+Type loader access will guarentee that no duplicate types are put into the type loader.</desc>
+    <return>the corresponding IType or null</return>
+    <param name="fullyQualifiedName" type="java.lang.String">the fully qualified name of the type</param>
+  </method>
+  <method name="getAllTypeNames">
+    <desc/>
+    <return>the set of fully qualified type names this loader is responsible for
+        loading. Note due to the dynamic nature of some type loaders, there is no
+        guarantee that all types for a given loader are known at the time this
+        method is called.</return>
+  </method>
+  <method name="getAllNamespaces">
+    <desc>Don't call this method unless you really know what you're doing.</desc>
+    <return>the set of package (aka namespace) names in which this loader's
+        types reside.</return>
+  </method>
+  <method name="getResource">
+    <desc>Finds the resource with the given name.  A resource is some data
+that can be accessed by class code in a way that may be independent
+of the location of the code.  The exact location of the resource is
+dependent upon the loader implementation
+&lt;p/&gt;
+&lt;p&gt; The name of a resource is a '&lt;tt&gt;/&lt;/tt&gt;'-separated path name that
+identifies the resource.</desc>
+    <return>A &lt;tt&gt;URL&lt;/tt&gt; object for reading the resource, or
+        &lt;tt&gt;null&lt;/tt&gt; if the resource could not be found or the invoker
+        doesn't have adequate  privileges to get the resource.</return>
+    <param name="name" type="java.lang.String">The resource name</param>
+  </method>
+  <method name="getTypesForFile">
+    <desc>Returns ALL type names associated with the given file
+whether or not the types have been loaded yet.
+Type loading should NOT be used in the implementation of this method.</desc>
+    <return>All known types derived from that file</return>
+    <param name="file" type="gw.fs.IFile">The file in question</param>
+  </method>
+  <method name="refreshedFile">
+    <desc>Notifies the type loader that a file has been refreshed.  The type loader should return all
+types that it knows need to be refreshed based on the given file.</desc>
+    <param name="file" type="gw.fs.IFile">The file that was refreshed</param>
+    <param name="types" type="[Ljava.lang.String;"/>
+    <param name="kind" type="gw.lang.reflect.RefreshKind">@return All known types affected by the file change</param>
+  </method>
+  <method name="refreshedTypes">
+    <desc>Fired when an existing type is refreshed, i.e. there are potential changes</desc>
+    <param name="request" type="gw.lang.reflect.RefreshRequest"/>
+  </method>
+  <method name="refreshed">
+    <desc>Fired when the typesystem is fully refreshed</desc>
+  </method>
+  <var name="NO_TYPES">
+    <desc/>
+  </var>
+</class>

@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+<class>
+  <desc/>
+  <method name="getFeature">
+    <desc/>
+    <return>the feature associated with this literal</return>
+  </method>
+  <method name="getFinalRootType">
+    <desc/>
+    <return>the root type of the entire literal chain (if one exists)</return>
+  </method>
+  <method name="getRootType">
+    <desc/>
+    <return>the type that the feature that this literal refers to is on</return>
+  </method>
+  <method name="getBoundArgs">
+    <desc/>
+    <return>bound args of this feature, or null if there are no bound args</return>
+  </method>
+  <method name="isBound">
+    <desc/>
+    <return>true if this literal is bound at its root</return>
+  </method>
+  <method name="getFinalRoot">
+    <desc/>
+    <return>the final root expression of the feature literal</return>
+  </method>
+</class>

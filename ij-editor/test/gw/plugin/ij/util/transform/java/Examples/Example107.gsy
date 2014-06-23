@@ -1,0 +1,77 @@
+package gw.util.transform.java.Examples
+
+uses java.lang.*
+uses java.util.*
+
+class Log<T>  {
+
+    private final var size : int
+    private static var instanceCount : int = 0
+    private var count : int = 0
+    private var log : T[]
+    public construct(log_0 : T[]) {
+        this.log = log_0
+        this.size = log_0.length
+        instanceCount++
+    }
+
+    public static function getInstanceCount() : int {
+        return instanceCount
+    }
+
+    public function add(msg : T) : void {
+        log[count++ % size] = msg
+    }
+
+    public function getCount() : int {
+        return count
+    }
+
+    public function getLast() : T {
+        return count == 0 ? null : log[(count - 1) % size]
+    }
+
+    public function setLast(value : T) : void {
+        if (count == 0) {
+            log[count++] = value
+        } else {
+            log[(count - 1) % size] = value
+        }
+    }
+
+    public function getAll() : ArrayList<T> {
+        var res = new ArrayList<T>()
+        var stop : int = Math.min(count, size)
+        var i = 0
+        while (i < stop) {
+            res.add(log[(count - stop + i) % size])
+            i++
+        }
+
+        return res
+    }
+
+}
+class Example107  {
+
+    public static function main(args : String[]) : void {
+        var log1 = new Log<String>(new String[5])
+        log1.add("Reboot")
+        log1.add("Coffee")
+        var log2 = new Log<Date>(new Date[5])
+        log2.add(new Date())
+        log2.add(new Date(new Date().getTime() + 60 * 60 * 1000))
+        var dts : ArrayList<Date> = log2.getAll()
+        for (s in log1.getAll()) {
+            System.out.print(s + "    ")
+        }
+
+        System.out.println()
+        for (dt in dts) {
+            System.out.print(dt + "   ")
+        }
+
+        System.out.println()
+    }
+
+}

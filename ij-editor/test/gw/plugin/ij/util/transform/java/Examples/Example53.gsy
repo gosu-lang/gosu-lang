@@ -1,0 +1,35 @@
+package gw.util.transform.java.Examples
+
+uses java.lang.*
+
+class Example53  {
+
+    public static function main(args : String[]) : void {
+        var c1 = new C(100)
+        var b1 : B = c1
+        print(C.sf, B.sf)
+        print(c1.sf, b1.sf)
+        print(c1.vf, b1.vf)
+        var c2 = new C(200)
+        var b2 : B = c2
+        print(c2.sf, b2.sf)
+        print(c2.vf, b2.vf)
+        print(c1.sf, b1.sf)
+        print(c1.vf, b1.vf)
+        var d3 = new D(300)
+        var c3 : C = d3
+        var b3 : B = d3
+        print(D.sf, C.sf, B.sf)
+        print(d3.sf, c3.sf, b3.sf)
+        print(d3.vf, c3.vf, b3.vf)
+    }
+
+    static function print(x : int, y : int) : void {
+        System.out.println(x + " " + y)
+    }
+
+    static function print(x : int, y : int, z : int) : void {
+        System.out.println(x + " " + y + " " + z)
+    }
+
+}

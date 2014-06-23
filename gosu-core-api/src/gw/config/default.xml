@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+  ~ Copyright 2014 Guidewire Software, Inc.
+  -->
+
+<serialization xmlns="http://guidewire.com/xml" xmlns:tns="http://guidewire.com/xml"
+               xmlns:xsd="http://www.w3.org/1999/XMLSchema" xmlns:xsi="http://www.w3.org/1999/XMLSchema-instance">
+
+  <!-- register common services  -->
+  <common-service-init class="gw.config.DefaultCommonsServiceKernelInit"/>
+
+  <!-- Indicates if tools should allow deprecated properties/methods? -->
+  <allow-deprecated-references>true</allow-deprecated-references>
+
+  <!-- Indicates if Gosu query expressions can reference entities. -->
+  <allow-entity-queries>false</allow-entity-queries>
+
+  <!-- Custom libraries -->
+  <libraries/>
+
+</serialization>

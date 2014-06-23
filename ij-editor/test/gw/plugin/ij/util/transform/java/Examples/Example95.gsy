@@ -1,0 +1,64 @@
+package gw.util.transform.java.Examples
+
+uses java.lang.*
+uses java.awt.Canvas
+uses java.awt.Dimension
+uses java.awt.Frame
+uses java.awt.Graphics
+
+class AnimatedCanvas extends Canvas implements Runnable {
+
+    static final internal var serialVersionUID : long = 50L
+    private var scale : int = 50
+    private var step : int = 5
+    construct() {
+        var u = new Thread(this)
+        u.start()
+    }
+
+    public function run() : void {
+        while (true) {
+            
+            try {
+                Thread.sleep(100)
+            }
+            catch (e : InterruptedException) {
+            }
+
+            if (scale <= 0 or scale >= 100) {
+                step = -step
+            }
+            scale += step
+            repaint()
+        }
+
+    }
+
+    public function paint(g : Graphics) : void {
+        var size : Dimension = getSize()
+        g.fillRect(scale * (size.width - 20) / 100, 0, 20, 20)
+        g.fillRect((100 - scale) * (size.width - 20) / 100, size.height - 20, 20, 20)
+    }
+
+    public function getPreferredSize() : Dimension {
+        return new Dimension(400, 100)
+    }
+
+    public function getMinimumSize() : Dimension {
+        return getPreferredSize()
+    }
+
+}
+class Example95  {
+
+    public static function main(args : String[]) : void {
+        var anim1 : Canvas = new AnimatedCanvas()
+        var anim2 : Canvas = new AnimatedCanvas()
+        var f = new Frame("Animation with threads")
+        f.add(anim1, "North")
+        f.add(anim2, "South")
+        f.pack()
+        f.setVisible(true)
+    }
+
+}

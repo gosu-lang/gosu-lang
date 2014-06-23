@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+<class>
+  <desc/>
+  <var name="DoublePCoercer">
+    <desc/>
+  </var>
+  <var name="FloatPCoercer">
+    <desc/>
+  </var>
+  <var name="BooleanPCoercer">
+    <desc/>
+  </var>
+  <var name="BytePCoercer">
+    <desc/>
+  </var>
+  <var name="ShortPCoercer">
+    <desc/>
+  </var>
+  <var name="CharPCoercer">
+    <desc/>
+  </var>
+  <var name="IntPCoercer">
+    <desc/>
+  </var>
+  <var name="LongPCoercer">
+    <desc/>
+  </var>
+</class>

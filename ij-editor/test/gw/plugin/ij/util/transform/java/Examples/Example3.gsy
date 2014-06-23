@@ -1,0 +1,54 @@
+package gw.util.transform.java.Examples
+
+uses java.lang.*
+
+class Example3  {
+
+    public static function main(args : String[]) : void {
+        if (args.length != 1) {
+            System.out.println("Usage: Example3 [1|2|3]\n")
+        } else {
+            var bb1 = false
+            var bb2 : Boolean = !bb1
+            var bi1 = 117
+            var bd1 = 1.2
+            var b1 : boolean = bb1
+            if (bb1) {
+                System.out.println("Not true")
+            }
+            var i1 : int = bi1 + 2
+            var l : long = bi1
+            System.out.println(i1)
+            var bi2 : Integer = bi1 + 2
+            System.out.println(bi2)
+            var biarr : Integer[] = {2, 3, 5, 7, 11}
+            var sum = 0
+            for (bi in biarr) {
+                sum += bi
+            }
+
+            for (i in biarr) {
+                sum += i
+            }
+
+            System.out.println(sum)
+            var i = 1934
+            var bi4 : Integer = i
+            var bi5 : Integer = i
+            System.out.format("%b %b %b %b%n", i == i, bi4 == i, i == bi5, bi4 == bi5)
+            if (args[0].equals("1")) {
+                var bbn : Boolean = null
+                var b : boolean = bbn
+            } else if (args[0].equals("2")) {
+                var bbn_0 : Boolean = null
+                if (bbn_0) {
+                    System.out.println("Not true")
+                }
+            } else if (args[0].equals("3")) {
+                var bin : Integer = null
+                var bi6 : Integer = bin + 2
+            }
+        }
+    }
+
+}

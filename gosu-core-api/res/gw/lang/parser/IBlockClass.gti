@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<class>
+  <desc/>
+  <var name="INVOKE_METHOD_NAME">
+    <desc/>
+  </var>
+  <var name="INVOKE_WITH_ARGS_METHOD_NAME">
+    <desc/>
+  </var>
+</class>

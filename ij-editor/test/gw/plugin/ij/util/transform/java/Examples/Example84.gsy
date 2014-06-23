@@ -1,0 +1,156 @@
+package gw.util.transform.java.Examples
+
+uses java.lang.*
+uses java.io.*
+uses java.util.*
+
+class Example84  {
+
+    public static function main(args : String[]) : void {
+        if (args.length != 2) {
+            System.out.println("Usage: java -ea Example84 <textfile> <linewidth>\n")
+        } else {
+            var wordIter : Iterator = new ReaderIterator(new BufferedReader(new FileReader(args[0])))
+            var lineWidth : int = Integer.parseInt(args[1])
+            format(wordIter, lineWidth, new PrintWriter(new OutputStreamWriter(System.out)))
+        }
+    }
+
+    public static function format(wordIter : Iterator, lineWidth : int, pw : PrintWriter) : void {
+        lineWidth = Math.max(0, lineWidth)
+        var curLine = new WordList()
+        while (wordIter.hasNext()) {
+            while (wordIter.hasNext() and curLine.length() < lineWidth) {
+                var word : String = wordIter.next() as String
+                if (!word.equals("")) {
+                    curLine.addLast(word)
+                }
+            }
+
+            var wordCount : int = curLine.size()
+            if (wordCount > 0) {
+                var extraSpaces : int = lineWidth - curLine.length()
+                if (wordCount > 1 and extraSpaces < 0) {
+                    var lastWordLength : int = curLine.getLast().length()
+                    extraSpaces += 1 + lastWordLength
+                    wordCount -= 1
+                } else if (!wordIter.hasNext()) {
+                    extraSpaces = 0
+                }
+                var holes : int = wordCount - 1
+                var spaces : int = holes / 2
+                var sbuf = new StringBuilder()
+                sbuf.append(curLine.removeFirst())
+                var i = 1
+                while (i < wordCount) {
+                    spaces += extraSpaces
+                    appendSpaces(sbuf, 1 + spaces / holes)
+                    spaces %= holes
+                    sbuf.append(curLine.removeFirst())
+                    i++
+                }
+
+                var res : String = sbuf.toString()
+                assert res.length() == lineWidth or wordCount == 1 or !wordIter.hasNext()
+                pw.println(res)
+            }
+        }
+
+        pw.flush()
+    }
+
+    static function appendSpaces(sbuf : StringBuilder, count : int) : void {
+        var i = 0
+        while (i < count) {
+            sbuf.append(' ')
+            i++
+        }
+
+    }
+
+}
+class WordList  {
+
+    private var strings : LinkedList<String> = new LinkedList<String>()
+    private var length : int = -1
+    public function length() : int {
+        return length
+    }
+
+    public function size() : int {
+        return strings.size()
+    }
+
+    public function addLast(s : String) : void {
+        strings.addLast(s)
+        length += 1 + s.length()
+        assert length == computeLength() + strings.size() - 1
+    }
+
+    public function removeFirst() : String {
+        var res : String = strings.removeFirst()
+        length -= 1 + res.length()
+        assert length == computeLength() + strings.size() - 1
+        return res
+    }
+
+    public function getLast() : String {
+        return strings.getLast()
+    }
+
+    private function computeLength() : int {
+        var sum = 0
+        for (s in strings) {
+            sum += s.length()
+        }
+
+        return sum
+    }
+
+}
+class ReaderIterator implements Iterator {
+
+    private var stok : StreamTokenizer
+    public construct(rd : Reader) {
+        stok = new StreamTokenizer(rd)
+        stok.resetSyntax()
+        stok.whitespaceChars(' ', ' ')
+        stok.whitespaceChars('\n', '\n')
+        stok.whitespaceChars('\r', '\r')
+        stok.whitespaceChars('\t', '\t')
+        stok.wordChars('!', '~')
+        
+        try {
+            stok.nextToken()
+        }
+        catch (e : IOException) {
+            stok = null
+        }
+
+    }
+
+    public function hasNext() : boolean {
+        return stok != null and stok.ttype != StreamTokenizer.TT_EOF
+    }
+
+    public function next() : Object {
+        var res : String = null
+        if (hasNext()) {
+            
+            try {
+                res = stok.sval
+                stok.nextToken()
+            }
+            catch (e : IOException) {
+                stok = null
+            }
+
+        }
+        return res
+    }
+
+    public function remove() : void {
+        throw new UnsupportedOperationException()
+    }
+
+}

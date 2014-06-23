@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<class>
+  <desc/>
+  <cons>
+    <desc/>
+    <param name="container" type="gw.lang.reflect.IFeatureInfo"/>
+    <param name="type" type="gw.lang.reflect.IType"/>
+    <param name="parentIndex" type="int"/>
+  </cons>
+</class>

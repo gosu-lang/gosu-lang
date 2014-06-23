@@ -1,0 +1,46 @@
+package gw.util.transform.java.Examples
+
+uses java.lang.*
+
+class D1  {
+
+    construct() {
+        m2()
+    }
+
+    function m1() : void {
+        System.out.println("D1.m1 ")
+    }
+
+    function m2() : void {
+        System.out.print("D1.m2 ")
+        m1()
+    }
+
+}
+class D2 extends D1  {
+
+    internal var f : int
+    construct() {
+        f = 7
+    }
+
+    function m1() : void {
+        System.out.println("D2.m1:" + f)
+    }
+
+}
+class Example60  {
+
+    public static function main(args : String[]) : void {
+        System.out.println("Executing: D1 d1 = new D1()")
+        var d1 = new D1()
+        System.out.println("Executing: D1 d2 = new D2()")
+        var d2 : D1 = new D2()
+        System.out.println("Executing: d1.m2()")
+        d1.m2()
+        System.out.println("Executing: d2.m2()")
+        d2.m2()
+    }
+
+}

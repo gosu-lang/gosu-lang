@@ -1,0 +1,1 @@
+<%@ params( arr : String[] ) %>${arr.join(',')}

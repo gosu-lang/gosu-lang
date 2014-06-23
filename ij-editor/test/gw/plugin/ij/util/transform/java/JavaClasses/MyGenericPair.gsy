@@ -1,0 +1,7 @@
+package gw.util.transform.java.JavaClasses
+
+uses java.lang.*
+
+interface MyGenericPair<T, B>  {
+
+}

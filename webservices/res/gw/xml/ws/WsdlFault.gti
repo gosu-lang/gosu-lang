@@ -1,0 +1,52 @@
+<?xml version="1.0"?>
+<class>
+  <desc/>
+  <method name="getCode">
+    <desc>Gets the fault code.</desc>
+    <return>the fault code</return>
+  </method>
+  <method name="setCode">
+    <desc>Sets the fault code.</desc>
+    <param name="code" type="gw.xml.ws.WsdlFault.FaultCode">the fault code</param>
+  </method>
+  <method name="getCodeQName">
+    <desc>Gets the fault code QName.</desc>
+    <return>the fault code QName</return>
+  </method>
+  <method name="setCodeQName">
+    <desc>Sets the fault code QName.</desc>
+    <param name="codeQName" type="javax.xml.namespace.QName"/>
+  </method>
+  <method name="getDetail">
+    <desc>Gets the detail element.</desc>
+    <return>the detail element</return>
+  </method>
+  <method name="setDetail">
+    <desc>Sets the detail element.</desc>
+    <param name="detail" type="gw.xml.XmlElement">the detail element</param>
+  </method>
+  <method name="getActorRole">
+    <desc>Gets the SOAP 1.1 actor role.</desc>
+    <return>the actor role</return>
+  </method>
+  <method name="setActorRole">
+    <desc>Sets the SOAP 1.1 actor role.</desc>
+    <param name="actorRole" type="java.net.URI">the actor role</param>
+  </method>
+  <cons>
+    <desc>Constructs a WsdlFault.</desc>
+  </cons>
+  <cons>
+    <desc>Constructs a WsdlFault.</desc>
+    <param name="message" type="java.lang.String"/>
+  </cons>
+  <cons>
+    <desc>Constructs a WsdlFault.</desc>
+    <param name="cause" type="java.lang.Throwable">the cause of the wsdl fault</param>
+  </cons>
+  <cons>
+    <desc>Constructs a WsdlFault.</desc>
+    <param name="message" type="java.lang.String"/>
+    <param name="cause" type="java.lang.Throwable">the cause of the wsdl fault</param>
+  </cons>
+</class>

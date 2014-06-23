@@ -1,0 +1,26 @@
+<?xml version="1.0"?>
+<class>
+  <desc/>
+  <method name="getContainer">
+    <desc>Get this feature's containing feature. May be null.</desc>
+  </method>
+  <method name="getOwnersType">
+    <desc>Get this feature's owner's type. If this feature has no owner, this is the
+type of the feature itself. Typically, the only kind of feature w/o an
+owner is an ITypeInfo, so properties, methods, params, etc. s/b considered
+owned. Hence, ultimately an ITypeInfo's type will be the owner's type for
+any given feature.</desc>
+  </method>
+  <method name="getName">
+    <desc>Gets the programmatic name or identifier of this feature. Note this name
+should follow Java identifier naming conventions (alpha-num and
+underscores, but can't start with a digit).</desc>
+  </method>
+  <method name="getDisplayName">
+    <desc>Gets the display name of this feature. There is no guarantee this display
+name is localized.</desc>
+  </method>
+  <method name="getDescription">
+    <desc>A full description of this feature.</desc>
+  </method>
+</class>

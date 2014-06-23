@@ -1,0 +1,36 @@
+package gw.util.transform.java.JavaClasses;
+
+public class TestWhileDoWhile {
+  void foo() {
+    int a, b;
+    boolean flag = false;
+
+    while(flag)
+      a = 0;
+
+    while(flag) {
+      a = 1;
+      b = 1;
+      continue;
+    }
+
+    label:
+    while(flag) {
+      a = 1;
+      b = 1;
+      break label;
+    }
+
+    do a = 0;
+    while(flag);
+
+
+    do {
+      a = 1;
+      ;
+      b = 1;
+    }while(flag);
+
+  }
+
+}

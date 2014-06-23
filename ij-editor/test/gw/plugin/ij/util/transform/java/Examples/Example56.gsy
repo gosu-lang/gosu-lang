@@ -1,0 +1,25 @@
+package gw.util.transform.java.Examples
+
+uses java.lang.*
+
+class Example56  {
+
+    public static function main(args : String[]) : void {
+        System.out.println("Number of points created: " + SPoint.getSize())
+        var p = new SPoint(12, 123)
+        var q = new SPoint(200, 10)
+        var r = new SPoint(99, 12)
+        var s : SPoint = p
+        q = null
+        System.out.println("Number of points created: " + SPoint.getSize())
+        System.out.println("Number of points created: " + q.getSize())
+        System.out.println("r is point number " + r.getIndex())
+        var i = 0
+        while (i < SPoint.getSize()) {
+            System.out.println("SPoint number " + i + " is " + SPoint.getPoint(i))
+            i++
+        }
+
+    }
+
+}

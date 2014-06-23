@@ -1,0 +1,16 @@
+package gw.util.transform.java.JavaClasses
+
+uses java.lang.*
+
+public class TestSynchronized  {
+
+    function bar() : String {
+        using (new String() as IMonitorLock) {
+            var b = 0
+            System.out.print("foo")
+        }
+
+        return new String("bar")
+    }
+
+}

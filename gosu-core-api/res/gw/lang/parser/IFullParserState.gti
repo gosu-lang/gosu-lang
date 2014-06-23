@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<class>
+  <desc/>
+  <method name="getSymbolTable">
+    <desc/>
+    <return>the symbol table at the moment of creation of the parser state</return>
+  </method>
+  <method name="setSymbolTable">
+    <desc>Set the symbol table at the moment of creation of this IParserState</desc>
+    <param name="table" type="gw.lang.parser.ISymbolTable"/>
+  </method>
+  <method name="collapseToken">
+    <desc>Collapses the token captured by this parser state, if possible</desc>
+  </method>
+  <method name="isKeepSymbolTableInIssues">
+    <desc/>
+    <return>true if parse issues need to retain this state's symbol table (e.g. in an IDE)</return>
+  </method>
+</class>

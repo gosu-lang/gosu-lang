@@ -1,0 +1,59 @@
+package gw.util.transform.java.Examples
+
+uses java.lang.*
+uses java.util.*
+uses java.sql.Connection
+uses java.sql.DriverManager
+uses java.sql.ResultSet
+uses java.sql.ResultSetMetaData
+uses java.sql.SQLException
+uses java.sql.Statement
+
+class Example125  {
+
+    public static function main(args : String[]) : void {
+        var url = "jdbc:postgresql://localhost/messages"
+        var usr = "nobody"
+        var pwd = ""
+        System.out.println("To run this example you need a data base server, a")
+        System.out.println("database, and a suitable JDBC driver.")
+        
+        try {
+            Class.forName("postgresql.Driver")
+        }
+        catch (e : ClassNotFoundException) {
+            System.out.println("Cannot find the Postgresql driver")
+        }
+
+        var conn : Connection = DriverManager.getConnection(url, usr, pwd)
+        printNameAndMsg(getRows(conn, "select * from message"))
+    }
+
+    static function getRows(conn : Connection, query : String) : ArrayList<Map<String, Object>> {
+        var stmt : Statement = conn.createStatement()
+        var rset : ResultSet = stmt.executeQuery(query)
+        var rsmd : ResultSetMetaData = rset.getMetaData()
+        var columncount : int = rsmd.getColumnCount()
+        var queryResult = new ArrayList<Map<String, Object>>()
+        while (rset.next()) {
+            var row : Map<String, Object> = new HashMap<String, Object>()
+            var i = 1
+            while (i <= columncount) {
+                row.put(rsmd.getColumnName(i), rset.getObject(i))
+                i++
+            }
+
+            queryResult.add(row)
+        }
+
+        return queryResult
+    }
+
+    static function printNameAndMsg(coll : Collection<Map<String, Object>>) : void {
+        for (row in coll) {
+            System.out.println(row.get("name") + ": " + row.get("msg"))
+        }
+
+    }
+
+}

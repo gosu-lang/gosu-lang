@@ -1,0 +1,62 @@
+package gw.util.transform.java.Examples
+
+uses java.lang.*
+uses java.io.*
+
+class Example147  {
+
+    public static function main(args : String[]) : void {
+        var os : OutputStream = new FileOutputStream("tmp1.dat")
+        var daos = new DataOutputStream(os)
+        writedata(daos)
+        System.out.println("Wrote " + daos.size() + " bytes")
+        daos.close()
+        var is : InputStream = new FileInputStream("tmp1.dat")
+        var dais = new DataInputStream(is)
+        readdata(dais)
+        var raf = new RandomAccessFile("tmp2.dat", "rw")
+        writedata(raf)
+        System.out.println("Wrote " + raf.getFilePointer() + " bytes")
+        raf.seek(0)
+        readdata(raf)
+    }
+
+    static function writedata(out : DataOutput) : void {
+        out.writeBoolean(true)
+        out.writeByte(120)
+        out.writeBytes("foo")
+        out.writeBytes("fo")
+        out.writeChar('A')
+        out.writeChars("foo")
+        out.writeDouble(300.1)
+        out.writeFloat(300.2f)
+        out.writeInt(1234)
+        out.writeLong(12345L)
+        out.writeShort(32000)
+        out.writeUTF("foo")
+        out.writeUTF("Rhne")
+        out.writeByte(-1)
+        out.writeShort(-1)
+    }
+
+    static function readdata(in_0 : DataInput) : void {
+        var buf1 = new byte[3]
+        System.out.print(in_0.readBoolean())
+        System.out.print(" " + in_0.readByte())
+        in_0.readFully(buf1)
+        in_0.readFully(buf1, 0, 2)
+        System.out.print(" " + in_0.readChar())
+        System.out.print(" " + in_0.readChar() + in_0.readChar() + in_0.readChar())
+        System.out.print(" " + in_0.readDouble())
+        System.out.print(" " + in_0.readFloat())
+        System.out.print(" " + in_0.readInt())
+        System.out.print(" " + in_0.readLong())
+        System.out.print(" " + in_0.readShort())
+        System.out.print(" " + in_0.readUTF())
+        System.out.print(" " + in_0.readUTF())
+        System.out.print(" " + in_0.readUnsignedByte())
+        System.out.print(" " + in_0.readUnsignedShort())
+        System.out.println()
+    }
+
+}

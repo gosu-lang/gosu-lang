@@ -1,0 +1,21 @@
+package gw.util.transform.java.Examples
+
+uses java.lang.*
+uses java.io.*
+
+class Example140  {
+
+    public static function main(args : String[]) : void {
+        System.out.println("Type some lines of text, end with an empty line:")
+        var r = new BufferedReader(new InputStreamReader(System.in))
+        var count = 0
+        var s : String = r.readLine()
+        while (s != null and !s.equals("")) {
+            count++
+            s = r.readLine()
+        }
+
+        System.out.println("You entered " + count + " non-empty lines")
+    }
+
+}
