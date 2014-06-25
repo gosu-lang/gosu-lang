@@ -53,12 +53,24 @@ public abstract class IRElement {
     }
   }
 
-  protected IRType maybeEraseStructuralType( IRType type ) {
+  public static IRType maybeEraseStructuralType( IRType type ) {
     return maybeEraseStructuralType( null, type );
   }
-  protected IRType maybeEraseStructuralType( IRType ownersType, IRType type ) {
+  public static IRType maybeEraseStructuralType( IRType ownersType, IRType type ) {
+    IRType originalType = type;
+    int iArrayDims = 0;
+    while( type.isArray() ) {
+      iArrayDims++;
+      type = type.getComponentType();
+    }
     if( ownersType == null ? type.isStructural() : type.isStructuralAndErased( ownersType ) ) {
-      return GosuShop.getIRTypeResolver().getDescriptor( Object.class );
+      type = GosuShop.getIRTypeResolver().getDescriptor( Object.class );
+      while( iArrayDims-- > 0 ) {
+        type = type.getArrayType();
+      }
+    }
+    else {
+      type = originalType;
     }
     return type;
   }
@@ -66,8 +78,8 @@ public abstract class IRElement {
   protected List<IRType> maybeEraseStructuralTypes( IRType ownersType, List<IRType> types ) {
     List<IRType> altTypes = null;
     for( IRType csr: types ) {
-      if( csr.isStructuralAndErased( ownersType ) ) {
-        IRType type = GosuShop.getIRTypeResolver().getDescriptor( Object.class );
+      IRType type = maybeEraseStructuralType( ownersType, csr );
+      if( type != csr ) {
         if( altTypes == null ) {
           altTypes = new ArrayList<IRType>( types );
         }
@@ -78,11 +90,10 @@ public abstract class IRElement {
   }
 
   protected List<IRSymbol> maybeEraseStructuralSymbolTypes( List<IRSymbol> parameters ) {
-    for( IRSymbol sym: parameters ) {
-      IRType type = sym.getType();
-      if( type.isStructural() ) {
-        type = GosuShop.getIRTypeResolver().getDescriptor( Object.class );
-        sym.setType( type );
+    for( IRSymbol csr: parameters ) {
+      IRType type = maybeEraseStructuralType( null, csr.getType() );
+      if( type != csr.getType() ) {
+        csr.setType( type );
       }
     }
     return parameters;

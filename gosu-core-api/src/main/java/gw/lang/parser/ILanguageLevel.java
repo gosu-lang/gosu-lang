@@ -24,7 +24,7 @@ public interface ILanguageLevel
              : g_standardGosu;
     }
 
-    public static boolean DYNAMICE_TYPE()
+    public static boolean DYNAMIC_TYPE()
     {
       return true;
 //             g_dynamicType == null

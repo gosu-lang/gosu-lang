@@ -20,13 +20,13 @@ class StackTraceIntegrationTest extends TestClass {
       var tmp = nullInteger() + 1
       fail("should have thrown")
     } catch( e ) {
-      assertEquals(e.StackTraceAsString, 20, e.StackTrace[1].LineNumber )
+      assertEquals(e.StackTraceAsString, 20, e.StackTrace[0].LineNumber )
     }
     try {
       var tmp = 1 + nullInteger()
       fail("should have thrown")
     } catch( e ) {
-      assertEquals(e.StackTraceAsString, 26, e.StackTrace[1].LineNumber )
+      assertEquals(e.StackTraceAsString, 26, e.StackTrace[0].LineNumber )
     }
     try {
       var tmp = intThrows() + 1

@@ -543,7 +543,9 @@ public class FeatureManager<T extends CharSequence> {
       }
 
       for (IMethodInfo methodInfo : methodInfos) {
-        mergeMethod(methods, methodInfo, replace);
+        if( !type.isInterface() || !methodInfo.isStatic() ) { // static interface methods are not inherited
+          mergeMethod(methods, methodInfo, replace);
+        }
       }
     }
   }

@@ -171,6 +171,7 @@ public class Res
   public static final ResourceKey MSG_NO_VIEWS_FOR_YOUS = new ResourceKey("MSG_NO_VIEWS_FOR_YOUS");
   public static final ResourceKey MSG_VARIABLE_TYPE_OR_VALUE_REQUIRED = new ResourceKey("MSG_VARIABLE_TYPE_OR_VALUE_REQUIRED");
   public static final ResourceKey MSG_VARIABLE_MUST_HAVE_NON_NULL_TYPE = new ResourceKey("MSG_VARIABLE_MUST_HAVE_NON_NULL_TYPE");
+  public static final ResourceKey MSG_CONDITION_IS_ALWAYS_TRUE_FALSE = new ResourceKey("MSG_CONDITION_IS_ALWAYS_TRUE_FALSE");
   public static final ResourceKey MSG_VOID_NOT_ALLOWED = new ResourceKey("MSG_VOID_NOT_ALLOWED");
   public static final ResourceKey MSG_FUNCTIONS_NOT_ALLOWED_IN_THIS_CONTEXT =new ResourceKey( "MSG_FUNCTIONS_NOT_ALLOWED_IN_THIS_CONTEXT" );
   public static final ResourceKey MSG_CONSTRUCTORS_NOT_ALLOWD_IN_THIS_CONTEXT =new ResourceKey( "MSG_CONSTRUCTORS_NOT_ALLOWD_IN_THIS_CONTEXT" );
@@ -198,6 +199,7 @@ public class Res
   public static final ResourceKey MSG_MODIFIER_ABSTRACT_NOT_ALLOWED_HERE = new ResourceKey("MSG_MODIFIER_ABSTRACT_NOT_ALLOWED_HERE");
   public static final ResourceKey MSG_NOT_ALLOWED_IN_INTERFACE = new ResourceKey("MSG_NOT_ALLOWED_IN_INTERFACE");
   public static final ResourceKey MSG_UNIMPLEMENTED_METHOD = new ResourceKey("MSG_UNIMPLEMENTED_METHOD");
+  public static final ResourceKey MSG_INHERITS_UNRELATED_DEFAULTS = new ResourceKey("MSG_INHERITS_UNRELATED_DEFAULTS");
   public static final ResourceKey MSG_INTERFACE_CANNOT_EXTEND_CLASS = new ResourceKey("MSG_INTERFACE_CANNOT_EXTEND_CLASS");
   public static final ResourceKey MSG_CLASS_CANNOT_EXTEND_INTERFACE = new ResourceKey("MSG_CLASS_CANNOT_EXTEND_INTERFACE");
   public static final ResourceKey MSG_CLASS_MUST_HAVE_PACKAGE = new ResourceKey("MSG_CLASS_MUST_HAVE_PACKAGE");
@@ -386,6 +388,7 @@ public class Res
   public static final ResourceKey MSG_PARAMETERIZED_ARRAY_COMPONENT = new ResourceKey( "MSG_PARAMETERIZED_ARRAY_COMPONENT" );
   public static final ResourceKey MSG_CANNOT_EXTEND_RAW_GENERIC_TYPE = new ResourceKey( "MSG_CANNOT_EXTEND_RAW_GENERIC_TYPE" );
   public static final ResourceKey MSG_SUPER_CLASS_METHOD_NAME_SAME_AS_SUBCLASS = new ResourceKey( "MSG_SUPER_CLASS_METHOD_NAME_SAME_AS_SUBCLASS" );
+  public static final ResourceKey MSG_NOT_A_SUPERTYPE = new ResourceKey( "MSG_NOT_A_SUPERTYPE" );
   public static final ResourceKey MSG_EXPECTING_TYPE_TO_FOLLOW_PACKAGE_NAME = new ResourceKey( "MSG_EXPECTING_TYPE_TO_FOLLOW_PACKAGE_NAME" );
   public static final ResourceKey MSG_CANNOT_REFERENCE_OUTER_SYMBOL_WITHIN_ENHANCEMENTS = new ResourceKey( "MSG_CANNOT_REFERENCE_OUTER_SYMBOL_WITHIN_ENHANCEMENTS" );
   public static final ResourceKey MSG_CANNOT_REFERENCE_ENCLOSING_PROPERTIES_WITHIN_ENHANCEMENTS = new ResourceKey( "MSG_CANNOT_REFERENCE_ENCLOSING_PROPERTIES_WITHIN_ENHANCEMENTS" );

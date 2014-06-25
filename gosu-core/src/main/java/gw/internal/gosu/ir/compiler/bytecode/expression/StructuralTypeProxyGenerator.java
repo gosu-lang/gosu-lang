@@ -148,6 +148,9 @@ public class StructuralTypeProxyGenerator {
   //   }
   // }
   private void genInterfaceMethodDecl( StringBuilder sb, IMethodInfo mi, IType rootType ) {
+    if( mi.isDefaultImpl() || mi.isStatic() ) {
+      return;
+    }
     if( mi.getOwnersType() instanceof IGosuEnhancement ) {
       return;
     }
@@ -201,6 +204,9 @@ public class StructuralTypeProxyGenerator {
   }
 
   private void genInterfacePropertyDecl( StringBuilder sb, IPropertyInfo pi, IType rootType ) {
+    if( pi.isDefaultImpl() || pi.isStatic() ) {
+      return;
+    }
     if( pi.isStatic() ) {
       return;
     }

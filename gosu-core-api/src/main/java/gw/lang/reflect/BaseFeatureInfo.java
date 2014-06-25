@@ -271,7 +271,12 @@ public abstract class BaseFeatureInfo implements IAttributedFeatureInfo
   {
     return false;
   }
-  
+
+  public boolean isDefaultImpl()
+  {
+    return false;
+  }
+
   public boolean isDeprecated()
   {
     return !getDeprecatedAnnotation().isEmpty();

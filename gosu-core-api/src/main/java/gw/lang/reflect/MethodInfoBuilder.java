@@ -248,6 +248,11 @@ public class MethodInfoBuilder {
       return _deprecated;
     }
 
+    @Override
+    public boolean isDefaultImpl() {
+      return false;
+    }
+
     public boolean isVisible( IScriptabilityModifier constraint) {
       return true;
     }

@@ -537,6 +537,13 @@ public class JavaMethodInfo extends JavaBaseFeatureInfo implements IJavaMethodIn
   }
 
   @Override
+  public boolean isDefaultImpl() {
+    // Default methods are public non-abstract instance methods declared in an interface.
+    return ((getModifiers() & (java.lang.reflect.Modifier.ABSTRACT | java.lang.reflect.Modifier.PUBLIC | java.lang.reflect.Modifier.STATIC)) ==
+            java.lang.reflect.Modifier.PUBLIC) && getOwnersType().isInterface();
+  }
+
+  @Override
   public boolean isDeprecated()
   {
     return isJavadocDeprecated() || super.isDeprecated() || getMethod().isAnnotationPresent( Deprecated.class ) || getMethod().isAnnotationPresent( java.lang.Deprecated.class );

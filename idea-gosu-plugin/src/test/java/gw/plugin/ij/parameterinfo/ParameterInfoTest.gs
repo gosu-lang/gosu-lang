@@ -47,7 +47,8 @@ class ParameterInfoTest extends GosuTestCase {
       "ch: int, fromIndex: int",
       "str: String",
       "str: String, fromIndex: int",
-      "source: char[], sourceOffset: int, sourceCount: int, target: char[], targetOffset: int, targetCount: int, fromIndex: int"
+      "source: char[], sourceOffset: int, sourceCount: int, target: char[], targetOffset: int, targetCount: int, fromIndex: int",
+      "source: char[], sourceOffset: int, sourceCount: int, target: String, fromIndex: int"
     }, -1
     )
   }
@@ -63,7 +64,8 @@ class ParameterInfoTest extends GosuTestCase {
       "ch: int^^, fromIndex: int",
       "str: String",
       "str: String, fromIndex: int",
-      "source: char[], sourceOffset: int, sourceCount: int, target: char[], targetOffset: int, targetCount: int, fromIndex: int"
+      "source: char[], sourceOffset: int, sourceCount: int, target: char[], targetOffset: int, targetCount: int, fromIndex: int",
+      "source: char[], sourceOffset: int, sourceCount: int, target: String, fromIndex: int"
     }, 0
     )
   }
@@ -79,7 +81,8 @@ class ParameterInfoTest extends GosuTestCase {
           "ch: int, fromIndex: int^^",
           "str: String",
           "str: String, fromIndex: int",
-          "source: char[], sourceOffset: int, sourceCount: int, target: char[], targetOffset: int, targetCount: int, fromIndex: int"
+          "source: char[], sourceOffset: int, sourceCount: int, target: char[], targetOffset: int, targetCount: int, fromIndex: int",
+          "source: char[], sourceOffset: int, sourceCount: int, target: String, fromIndex: int"
       }, 1
     )
   }
@@ -175,7 +178,8 @@ class ParameterInfoTest extends GosuTestCase {
     "obj: Object",
     "str: String",
     "sb: StringBuffer",
-    "str: char[], offset: int, len: int"
+    "str: char[], offset: int, len: int",
+    "asb: AbstractStringBuilder"
   }, 1
     )
   }

@@ -16,6 +16,7 @@ import gw.internal.gosu.parser.GosuVarPropertyInfo;
 import gw.internal.gosu.parser.JavaFieldPropertyInfo;
 import gw.internal.gosu.parser.JavaPropertyInfo;
 import gw.internal.gosu.parser.expressions.Identifier;
+import gw.internal.gosu.parser.expressions.SuperAccess;
 import gw.internal.gosu.parser.statements.MemberAssignmentStatement;
 import gw.internal.gosu.runtime.GosuRuntimeMethods;
 import gw.lang.ir.IRExpression;
@@ -97,7 +98,10 @@ public class MemberAssignmentStatementTransformer extends AbstractStatementTrans
                          rhs );
       }
       else {
-        if( isSuperCall( _stmt().getRootExpression() ) ) {
+        if( rootExpr instanceof SuperAccess ) {
+          return buildMethodCall( callSpecialMethod( getDescriptor( rootExpr.getType() ), irProperty.getSetterMethod(), root, exprList( rhs ) ) );
+        }
+        else if( isSuperCall( _stmt().getRootExpression() ) ) {
           return buildMethodCall( callSpecialMethod( getDescriptor( _cc().getSuperType() ), irProperty.getSetterMethod(), root, exprList( rhs ) ) );
         }
         else {

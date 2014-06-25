@@ -64,6 +64,11 @@ public interface IAnnotatedFeatureInfo extends IFeatureInfo
    */
   public String getDeprecatedReason();
 
+  /**
+   * @return True if this feature is the default implementation e.g., default interface method
+   */
+  boolean isDefaultImpl();
+
   class IAnnotationInfoHelper {
     private IAnnotationInfoHelper(){}
 

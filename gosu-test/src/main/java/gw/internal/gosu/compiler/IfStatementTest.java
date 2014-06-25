@@ -33,20 +33,17 @@ public class IfStatementTest extends GosuSpecTestBase {
     assertEquals("else", callMethod("pByteTest", Byte.valueOf((byte) 0)));
   }
 
-  // TODO - AHK - Make a note in the spec
-  // AHK - Characters are coreced to Strings, then to Booleans . . . meaning that ALL values coerce to false
   public void testPChar() {
-    assertEquals("else", callMethod("pCharTest", (char) 1));
-    assertEquals("else", callMethod("pCharTest", (char) 2));
-    assertEquals("else", callMethod("pCharTest", (char) -1));
+    assertEquals("if", callMethod("pCharTest", (char) 1));
+    assertEquals("if", callMethod("pCharTest", (char) 2));
+    assertEquals("if", callMethod("pCharTest", (char) -1));
     assertEquals("else", callMethod("pCharTest", (char) 0));
   }
 
-  // AHK - Characters are coreced to Strings, then to Booleans . . . meaning that ALL values coerce to false
   public void testCharacter() {
-    assertEquals("else", callMethod("characterTest", Character.valueOf((char) 1)));
-    assertEquals("else", callMethod("characterTest", Character.valueOf((char) 2)));
-    assertEquals("else", callMethod("characterTest", Character.valueOf((char) -1)));
+    assertEquals("if", callMethod("characterTest", Character.valueOf((char) 1)));
+    assertEquals("if", callMethod("characterTest", Character.valueOf((char) 2)));
+    assertEquals("if", callMethod("characterTest", Character.valueOf((char) -1)));
     assertEquals("else", callMethod("characterTest", Character.valueOf((char) 0)));
   }
 

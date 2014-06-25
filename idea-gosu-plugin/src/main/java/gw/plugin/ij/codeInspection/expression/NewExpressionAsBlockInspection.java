@@ -125,7 +125,8 @@ public class NewExpressionAsBlockInspection extends BaseLocalInspectionTool impl
         objMethodSig.add("@IntrinsicType()");
         Iterator<IMethodInfo> iter = methods.iterator();
         while (iter.hasNext()) {
-          if (objMethodSig.contains(trim(iter.next().getName()))) {
+          IMethodInfo info = iter.next();
+          if (info.isStatic() || info.isDefaultImpl() || objMethodSig.contains(trim(info.getName()))) {
             iter.remove();
           }
         }

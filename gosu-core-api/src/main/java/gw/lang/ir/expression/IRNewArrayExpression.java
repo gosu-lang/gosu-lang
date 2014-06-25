@@ -14,7 +14,7 @@ public class IRNewArrayExpression extends IRExpression {
   private IRExpression _sizeExpression;
 
   public IRNewArrayExpression(IRType componentType, IRExpression sizeExpression) {
-    _componentType = componentType;
+    _componentType = maybeEraseStructuralType( componentType );
     _sizeExpression = sizeExpression;
 
     sizeExpression.setParent( this );

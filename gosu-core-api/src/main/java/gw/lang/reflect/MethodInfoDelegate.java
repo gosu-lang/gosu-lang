@@ -94,6 +94,11 @@ public class MethodInfoDelegate implements IMethodInfo, IGenericMethodInfo, IMet
     return _mi.getDeprecatedReason();
   }
 
+  @Override
+  public boolean isDefaultImpl() {
+    return _mi.isDefaultImpl();
+  }
+
   public boolean isVisible( IScriptabilityModifier constraint )
   {
     return _mi.isVisible( constraint );

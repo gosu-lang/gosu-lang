@@ -47,7 +47,6 @@ public final class MultiplicativeExpression extends ArithmeticExpression impleme
 
   public static Object evaluate( IType type, Object lhsValue, Object rhsValue, IType lhsType, IType rhsType, int iOperator, boolean bNullSafe, Object ctx, int startLhs, int endLhs, int startRhs, int endRhs )
   {
-    AdditiveExpression.maybeThrowRichNPE( lhsValue, rhsValue, bNullSafe, ctx, startLhs, endLhs, startRhs, endRhs );
     return evaluate( type, lhsValue, rhsValue, lhsType, rhsType, iOperator, bNullSafe );
   }
 
@@ -84,12 +83,15 @@ public final class MultiplicativeExpression extends ArithmeticExpression impleme
       throw new NullPointerException("right-hand operand was null");
     }
 
-    DimensionOperandResolver customNumberResolver =
-      DimensionOperandResolver.resolve( type, (char)iOperator, lhsType, lhsValue, rhsType, rhsValue );
-    type = customNumberResolver.getRawNumberType();
-    lhsValue = customNumberResolver.getLhsValue();
-    rhsValue = customNumberResolver.getRhsValue();
-    IDimension customNumberBase = customNumberResolver.getBase();
+    IDimension customNumberBase = null;
+    if( JavaTypes.IDIMENSION().isAssignableFrom( type ) ) {
+      DimensionOperandResolver customNumberResolver =
+        DimensionOperandResolver.resolve( type, lhsType, lhsValue, rhsType, rhsValue );
+      type = customNumberResolver.getRawNumberType();
+      lhsValue = customNumberResolver.getLhsValue();
+      rhsValue = customNumberResolver.getRhsValue();
+      customNumberBase = customNumberResolver.getBase();
+    }
 
     Object retValue;
     switch( iOperator )

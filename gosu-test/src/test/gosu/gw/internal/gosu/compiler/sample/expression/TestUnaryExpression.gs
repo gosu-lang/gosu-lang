@@ -130,6 +130,10 @@ class TestUnaryExpression
       override function numberType() : java.lang.Class<Integer> {
         return Integer 
       }
+
+      override function compareTo( o: TestDim ) : int {
+        return _value.compareTo( o._value )
+      }
     }
 
     private static class Foo<T>

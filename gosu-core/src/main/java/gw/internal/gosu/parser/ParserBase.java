@@ -493,7 +493,7 @@ public abstract class ParserBase implements IParserPart
    *
    * @return true if a match occurred, and false otherwise
    */
-  protected boolean match( Token T, String token )
+  final protected boolean match( Token T, String token )
   {
     return match( T, token, 0, false );
   }
@@ -507,7 +507,7 @@ public abstract class ParserBase implements IParserPart
    *
    * @return true if a match occurred, and false otherwise
    */
-  protected boolean match( Token T, int iType )
+  final protected boolean match( Token T, int iType )
   {
     return match( T, null, iType, false );
   }
@@ -522,7 +522,7 @@ public abstract class ParserBase implements IParserPart
    *
    * @return true if a match occurred, and false otherwise
    */
-  public boolean match( Token T, String token, int iType )
+  final public boolean match( Token T, String token, int iType )
   {
     return match( T, token, iType, false );
   }
@@ -539,7 +539,7 @@ public abstract class ParserBase implements IParserPart
    *
    * @return true if a match occurred, and false otherwise
    */
-  public boolean match( Token T, String token, int iType, boolean bPeek )
+  final public boolean match( Token T, String token, int iType, boolean bPeek )
   {
     SourceCodeTokenizer tokenizer = getTokenizer();
     return match( T, token, iType, bPeek, tokenizer );
@@ -582,12 +582,12 @@ public abstract class ParserBase implements IParserPart
            Keyword.isValueKeyword( tokenizer.getStringValue() );
   }
 
-  protected boolean match( Token T, Keyword token )
+  final protected boolean match( Token T, Keyword token )
   {
     return match( T, token, false );
   }
 
-  boolean match( Token T, Keyword token, boolean bPeek )
+  final boolean match( Token T, Keyword token, boolean bPeek )
   {
     boolean bMatch = false;
 
@@ -610,7 +610,7 @@ public abstract class ParserBase implements IParserPart
     return bMatch;
   }
 
-  void addError( ParsedElement parsedElement, ResourceKey errorMsg, Object... args )
+  final void addError( ParsedElement parsedElement, ResourceKey errorMsg, Object... args )
   {
     verify( parsedElement, false, errorMsg, args );
   }
@@ -619,12 +619,12 @@ public abstract class ParserBase implements IParserPart
   //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   // Optimizations to avoid creating vararg array
 
-  void addError( ParsedElement parsedElement, ResourceKey errorMsg )
+  final void addError( ParsedElement parsedElement, ResourceKey errorMsg )
   {
     verify( parsedElement, false, errorMsg, EMPTY_ARRAY );
   }
 
-  boolean verify( ParsedElement parsedElement, boolean bExpression, ResourceKey errorMesg, String arg0 )
+  final boolean verify( ParsedElement parsedElement, boolean bExpression, ResourceKey errorMesg, String arg0 )
   {
     if( !bExpression )
     {
@@ -633,7 +633,7 @@ public abstract class ParserBase implements IParserPart
     return bExpression;
   }
 
-  boolean verify( ParsedElement parsedElement, boolean bExpression, ResourceKey errorMesg, String... args)
+  final boolean verify( ParsedElement parsedElement, boolean bExpression, ResourceKey errorMesg, String... args)
   {
     if( !bExpression )
     {
@@ -644,17 +644,17 @@ public abstract class ParserBase implements IParserPart
   //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 
-  boolean verify( ParsedElement parsedElement, boolean bExpression, ResourceKey errorMesg, Object... args )
+  final boolean verify( ParsedElement parsedElement, boolean bExpression, ResourceKey errorMesg, Object... args )
   {
     return verify( parsedElement, bExpression, false, errorMesg, args );
   }
 
-  boolean verify( ParsedElement parsedElement, boolean bExpression, IParserState parserState, ResourceKey errorMesg, Object... args )
+  final boolean verify( ParsedElement parsedElement, boolean bExpression, IParserState parserState, ResourceKey errorMesg, Object... args )
   {
     return verify( parsedElement, bExpression, false, false, parserState, errorMesg, args );
   }
 
-  boolean verify( ParsedElement parsedElement, boolean bExpression, boolean bNextTokenIfException, ResourceKey errorMesg, Object... args )
+  final boolean verify( ParsedElement parsedElement, boolean bExpression, boolean bNextTokenIfException, ResourceKey errorMesg, Object... args )
   {
     return verify( parsedElement, bExpression, bNextTokenIfException, false, PLACEHOLDER_PARSER_STATE, errorMesg, args );
   }
@@ -664,17 +664,17 @@ public abstract class ParserBase implements IParserPart
     return verify( parsedElement, bExpression, bNextTokenIfException, false, parserState, errorMesg, args );
   }
 
-  boolean warn( ParsedElement target, boolean bExpression, ResourceKey err, Object... args )
+  final boolean warn( ParsedElement target, boolean bExpression, ResourceKey err, Object... args )
   {
     return warn( target, bExpression, makeFullParserState(), err, args );
   }
 
-  boolean warn( ParsedElement target, boolean bExpression, IParserState state, ResourceKey err, Object... args )
+  final boolean warn( ParsedElement target, boolean bExpression, IParserState state, ResourceKey err, Object... args )
   {
     return verify( target, bExpression, false, true, state, err, args );
   }
 
-  boolean verifyOrWarn( ParsedElement target, boolean bExpression, boolean bWarning, ResourceKey err, Object... args )
+  final boolean verifyOrWarn( ParsedElement target, boolean bExpression, boolean bWarning, ResourceKey err, Object... args )
   {
     return verify( target, bExpression, false, bWarning, PLACEHOLDER_PARSER_STATE, err, args );
   }
@@ -710,7 +710,7 @@ public abstract class ParserBase implements IParserPart
   // Advance to the next token so as to include the token being tested in the tokenizer's stored state
   //
 
-  void advanceToNextTokenSilently()
+  final void advanceToNextTokenSilently()
   {
     try
     {
@@ -725,7 +725,7 @@ public abstract class ParserBase implements IParserPart
   /**
    * @return a full parser state, which includes symbol table information, a clone of the tokenizer and everything else
    */
-  IFullParserState makeFullParserState()
+  final IFullParserState makeFullParserState()
   {
     return new StandardParserState(null, getTokenizer(), getOffsetShift(), getLineNumShift(), getOwner().isEditorParser() );
   }
@@ -733,7 +733,7 @@ public abstract class ParserBase implements IParserPart
   /**
    * @return a full parser state, which includes symbol table information, a clone of the tokenizer and everything else
    */
-  IFullParserState makeFullParserStateWithSymbols()
+  final IFullParserState makeFullParserStateWithSymbols()
   {
     ISymbolTable symTable = getOwner().isEditorParser() && getOwner().shouldSnapshotSymbols() ? getSymbolTable().copy() : null;
     return new StandardParserState(symTable, getTokenizer(), getOffsetShift(), getLineNumShift(), getOwner().isEditorParser() );
@@ -743,7 +743,7 @@ public abstract class ParserBase implements IParserPart
    * @return a lightweight parser state, which includes *only* the offset information of the parser, and no symbol information or
    *         a tokenizer state.
    */
-  LightweightParserState makeLightweightParserState()
+  final LightweightParserState makeLightweightParserState()
   {
     return new LightweightParserState( getTokenizer(), getOffsetShift(), getLineNumShift() );
   }

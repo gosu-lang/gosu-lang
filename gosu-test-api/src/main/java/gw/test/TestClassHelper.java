@@ -4,13 +4,15 @@
 
 package gw.test;
 
+import gw.internal.ext.org.objectweb.asm.ClassReader;
+import gw.internal.ext.org.objectweb.asm.Opcodes;
+import gw.internal.ext.org.objectweb.asm.tree.AbstractInsnNode;
+import gw.internal.ext.org.objectweb.asm.tree.ClassNode;
+import gw.internal.ext.org.objectweb.asm.tree.LineNumberNode;
+import gw.internal.ext.org.objectweb.asm.tree.MethodNode;
 import gw.util.StreamUtil;
 import junit.framework.Test;
 import junit.framework.TestCase;
-import org.apache.bcel.classfile.ClassParser;
-import org.apache.bcel.classfile.JavaClass;
-import org.apache.bcel.classfile.LineNumberTable;
-import org.apache.bcel.classfile.Method;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -18,9 +20,9 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -29,7 +31,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * Helper methods for analyzing methods, and instantiating test classes.
  */
 public class TestClassHelper {
-  private static final Map<Class<?>, List<Method>> cache = new ConcurrentHashMap<Class<?>, List<Method>>();
+  private static final Map<Class<?>, List<MethodNode>> cache = new ConcurrentHashMap<Class<?>, List<MethodNode>>();
 
   /**
    * Returns list of methods according to their order in the source file.
@@ -43,25 +45,25 @@ public class TestClassHelper {
    * @return list of method names
    */
   @SuppressWarnings("unchecked")
-  public static <T extends TestCase> List<Method> getMethodsSorted(Class<T> clazz) {
-    List<Method> allMethods = cache.get(clazz);
+  public static <T extends TestCase> List<MethodNode> getMethodsSorted(Class<T> clazz) {
+    List<MethodNode> allMethods = cache.get(clazz);
     if (allMethods != null) {
       return allMethods;
     }
 
-    JavaClass javaClass = parseClass(clazz);
+    ClassNode javaClass = parseClass(clazz);
     if (javaClass == null) {
       return Collections.emptyList();
     }
-    List<Method> currentClassMethods = Arrays.asList(javaClass.getMethods());
-    Collections.sort(currentClassMethods, new Comparator<Method>() {
+    List<MethodNode> currentClassMethods = javaClass.methods;
+    Collections.sort(currentClassMethods, new Comparator<MethodNode>() {
       @Override
-      public int compare(Method o1, Method o2) {
-        return getMethodLineNumber(o1).compareTo(getMethodLineNumber(o2));
+      public int compare(MethodNode o1, MethodNode o2) {
+        return getLineNumber( o1 ) - getLineNumber( o2 );
       }
     });
 
-    allMethods = new ArrayList<Method>();
+    allMethods = new ArrayList<MethodNode>();
     // add method of super class first
     Class<? super T> superclass = clazz.getSuperclass();
     if (superclass != null && !superclass.getClass().equals(TestCase.class)) {
@@ -69,29 +71,40 @@ public class TestClassHelper {
     }
     allMethods.addAll(currentClassMethods);
 
-    cache.put(clazz, Collections.unmodifiableList(new ArrayList<Method>(allMethods)));
+    cache.put(clazz, Collections.unmodifiableList(new ArrayList<MethodNode>(allMethods)));
     return allMethods;
   }
 
-  private static JavaClass parseClass(Class<?> clazz) {
+  private static int getLineNumber( MethodNode o2 ) {
+    for( Iterator iter = o2.instructions.iterator(); iter.hasNext(); ) {
+      AbstractInsnNode next = (AbstractInsnNode)iter.next();
+      if( next instanceof LineNumberNode ) {
+        return ((LineNumberNode)next).line;
+      }
+    }
+    return -1;
+  }
+
+  private static ClassNode parseClass(Class<?> clazz) {
     String pathToClassFile = "/" + clazz.getName().replace('.', '/') + ".class";
     InputStream resourceAsStream = clazz.getResourceAsStream(pathToClassFile);
     if (resourceAsStream == null) {
       return null;
     }
     try {
-      return new ClassParser(resourceAsStream, pathToClassFile).parse();
-    } catch (IOException e) {
-      throw new RuntimeException("Error during analyzing byte code of the class " + clazz.getName(), e);
-    } finally {
+      ClassNode jclass = new ClassNode( Opcodes.ASM5 );
+      ClassReader cr = new ClassReader( resourceAsStream );
+      cr.accept( jclass, 0 );
+      return jclass;
+    }
+    catch( IOException e ) {
+      throw new RuntimeException( "Error during analyzing byte code of the class " + clazz.getName(), e );
+    }
+    finally {
       StreamUtil.closeNoThrow(resourceAsStream);
     }
   }
 
-  private static Integer getMethodLineNumber(Method method) {
-    LineNumberTable lineNumberTable = method.getLineNumberTable();
-    return lineNumberTable == null ? -1 : lineNumberTable.getLineNumberTable()[0].getLineNumber();
-  }
 
   public static <T extends TestCase> Test createTestSuite(Class<T> clazz, Iterable<String> methodNames) {
     try {

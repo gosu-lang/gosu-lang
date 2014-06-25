@@ -24,4 +24,8 @@ class TestDim implements IDimension<TestDim, Integer> {
   override function toString() : String {
     return _value.toString()
   }
+
+  override function compareTo( o: TestDim ) : int {
+    return _value.compareTo( o._value )
+  }
 }

@@ -18,18 +18,16 @@ public final class DimensionOperandResolver
   private IType _rhsType;
   private Object _lhsValue;
   private Object _rhsValue;
-  private char _op;
   private IDimension _base;
 
-  public static DimensionOperandResolver resolve( IType exprType, char op, IType lhsType, Object lhsValue, IType rhsType, Object rhsValue )
+  public static DimensionOperandResolver resolve( IType exprType, IType lhsType, Object lhsValue, IType rhsType, Object rhsValue )
   {
-    return new DimensionOperandResolver( exprType, op, lhsType, lhsValue, rhsType, rhsValue ).resolve();
+    return new DimensionOperandResolver( exprType, lhsType, lhsValue, rhsType, rhsValue ).resolve();
   }
 
-  private DimensionOperandResolver( IType exprType, char op, IType lhsType, Object lhsValue, IType rhsType, Object rhsValue )
+  private DimensionOperandResolver( IType exprType, IType lhsType, Object lhsValue, IType rhsType, Object rhsValue )
   {
     _numType = exprType;
-    _op = op;
     _lhsType = lhsType;
     _lhsValue = lhsValue;
     _rhsType = rhsType;
@@ -38,11 +36,7 @@ public final class DimensionOperandResolver
 
   private DimensionOperandResolver resolve()
   {
-    if( JavaTypes.IDIMENSION().isAssignableFrom( _numType ) )
-    {
-      resolveNumberTypeAndValues();
-    }
-
+    resolveNumberTypeAndValues();
     return this;
   }
 

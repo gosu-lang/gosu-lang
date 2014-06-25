@@ -41,7 +41,7 @@ public class IRClassCompiler extends AbstractBytecodeCompiler
   private static boolean COMPILE_WITH_DEBUG_INFO = true;
 
   //## todo: this s/b configurable
-  public static final int JAVA_VER = Opcodes.V1_6;
+  public static final int JAVA_VER = Opcodes.V1_8;
 
   private ClassVisitor _cv;
   private IRClass _irClass;

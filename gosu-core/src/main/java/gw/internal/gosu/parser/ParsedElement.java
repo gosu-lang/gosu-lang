@@ -12,6 +12,7 @@ import gw.internal.gosu.parser.statements.ClassStatement;
 import gw.internal.gosu.parser.statements.NoOpStatement;
 import gw.internal.gosu.parser.statements.UsesStatement;
 import gw.lang.parser.IExpression;
+import gw.lang.parser.IFullParserState;
 import gw.lang.parser.IParseIssue;
 import gw.lang.parser.IParseTree;
 import gw.lang.parser.IParsedElement;
@@ -291,7 +292,7 @@ public abstract class ParsedElement implements IParsedElement
   public void addParseWarnings( List<IParseIssue> parseWarnings )
   {
     for (int i = 0; i < parseWarnings.size(); i++) {
-      IParseIssue w = parseWarnings.get(i);
+      IParseIssue w = parseWarnings.get( i );
       addParseWarning(w);
     }
   }
@@ -353,6 +354,12 @@ public abstract class ParsedElement implements IParsedElement
   {
     String src = getSource();
     addParseException( new ParseException( new StandardParserState( this, src, false ), msgKey, args ) );
+  }
+
+  public void addParseException( IFullParserState parserState, ResourceKey msgKey, Object... args )
+  {
+    String src = getSource();
+    addParseException( new ParseException( parserState, msgKey, args ) );
   }
 
   /**

@@ -4,6 +4,7 @@
 
 package gw.test;
 
+import gw.internal.ext.org.objectweb.asm.tree.MethodNode;
 import gw.lang.UnstableAPI;
 import gw.lang.reflect.IMethodInfo;
 import gw.lang.reflect.IType;
@@ -106,9 +107,9 @@ public class TestSpec implements Comparable<TestSpec> {
 
   private static List<String> sortMethodsAccordingToSourceOrder(Set<String> testMethods, Class<? extends TestCase> clazz) {
     List<String> sortedMethods = new ArrayList<String>();
-    for (org.apache.bcel.classfile.Method method : TestClassHelper.getMethodsSorted(clazz)) {
-      if (method.getArgumentTypes().length == 0 && testMethods.remove(method.getName())) {
-        sortedMethods.add(method.getName());
+    for (MethodNode method : TestClassHelper.getMethodsSorted(clazz)) {
+      if ((method.parameters == null || method.parameters.size() == 0) && testMethods.remove(method.name)) {
+        sortedMethods.add(method.name);
       }
     }
 

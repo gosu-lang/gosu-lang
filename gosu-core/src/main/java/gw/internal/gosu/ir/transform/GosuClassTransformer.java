@@ -77,6 +77,7 @@ import gw.lang.reflect.Modifier;
 import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.gs.BytecodeOptions;
 import gw.lang.reflect.gs.GosuClassPathThing;
+import gw.lang.reflect.gs.GosuMarker;
 import gw.lang.reflect.gs.IExternalSymbolMap;
 import gw.lang.reflect.gs.IGenericTypeVariable;
 import gw.lang.reflect.gs.IGosuClass;
@@ -160,7 +161,13 @@ public class GosuClassTransformer extends AbstractElementTransformer<ClassStatem
   private void addAnnotations()
   {
     List<IRAnnotation> annotations = getIRAnnotations( _gsClass.getTypeInfo().getAnnotations() );
+//    addGosuMarker( annotations );
     _irClass.setAnnotations( annotations );
+  }
+
+  private void addGosuMarker( List<IRAnnotation> annotations )
+  {
+    annotations.add( new IRAnnotation( getDescriptor( GosuMarker.class ), true ) );
   }
 
   private List<IRAnnotation> getIRAnnotations( List<? extends IAnnotationInfo> gosuAnnotations )
@@ -830,10 +837,26 @@ public class GosuClassTransformer extends AbstractElementTransformer<ClassStatem
       return null;
     }
     IJavaType javaSuperType = (IJavaType)((IGosuClass)gsClass).getJavaType().getSupertype();
-    if( javaSuperType == null )
+    if( javaSuperType != null )
     {
-      return null;
+      DynamicFunctionSymbol superDfs = getSuperDfs( dfs, gsClass, javaSuperType );
+      if( superDfs != null ) {
+        return superDfs;
+      }
     }
+    IType[] interfaces = ((IGosuClass)gsClass).getJavaType().getInterfaces();
+    if( interfaces != null ) {
+      for( IType iface : interfaces ) {
+        DynamicFunctionSymbol superDfs = getSuperDfs( dfs, gsClass, (IJavaType)iface );
+        if( superDfs != null ) {
+          return superDfs;
+        }
+      }
+    }
+    return null;
+  }
+
+  private DynamicFunctionSymbol getSuperDfs( DynamicFunctionSymbol dfs, IType gsClass, IJavaType javaSuperType ) {
     IGosuClassInternal gosuSuperType = IGosuClassInternal.Util.getGosuClassFrom( javaSuperType );
     if( gosuSuperType == null )
     {

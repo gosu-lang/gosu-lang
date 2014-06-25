@@ -924,11 +924,6 @@ public class TypeSystem
   }
 
   public static boolean isDeleted(IType type) {
-    if (type instanceof IErrorType) {
-      // must return false, an error type does not mean deleted
-      return false;
-    }
-
     // a type that's not proxied is never deleted
     return type instanceof ITypeRef && ((ITypeRef)type).isDeleted();
   }

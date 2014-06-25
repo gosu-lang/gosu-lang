@@ -1105,7 +1105,7 @@ public class GosuClass extends AbstractType implements IGosuClassInternal
 
     Map<String, DynamicFunctionSymbol> ctors = getParseInfo().getConstructorFunctions();
     //noinspection unchecked
-    return ctors.isEmpty() ? Collections.<VarStatement>emptyList() : getUnmodifiableValues( ctors );
+    return ctors.isEmpty() ? Collections.emptyList() : getUnmodifiableValues( ctors );
   }
 
   private List getUnmodifiableValues( Map functionSymbolMap )
@@ -1225,7 +1225,7 @@ public class GosuClass extends AbstractType implements IGosuClassInternal
     compileDeclarationsIfNeeded();
 
     Map<String, DynamicFunctionSymbol> memberFunctions = getParseInfo().getMemberFunctions();
-    return memberFunctions.isEmpty() ? Collections.<VarStatement>emptyList() : Collections.unmodifiableList( new ArrayList( memberFunctions.values() ) );
+    return memberFunctions.isEmpty() ? Collections.emptyList() : Collections.unmodifiableList( new ArrayList( memberFunctions.values() ) );
   }
 
   public DynamicFunctionSymbol getMemberFunction( IFunctionType funcType, String signature )
@@ -1318,7 +1318,7 @@ public class GosuClass extends AbstractType implements IGosuClassInternal
     compileDeclarationsIfNeeded();
 
     Map<String, DynamicPropertySymbol> properties = getParseInfo().getMemberProperties();
-    return properties.isEmpty() ? Collections.<VarStatement>emptyList() : getUnmodifiableValues( properties );
+    return properties.isEmpty() ? Collections.emptyList() : getUnmodifiableValues( properties );
   }
 
   public DynamicPropertySymbol getMemberProperty( String name )
@@ -1332,7 +1332,7 @@ public class GosuClass extends AbstractType implements IGosuClassInternal
     compileDeclarationsIfNeeded();
 
     Map<String, VarStatement> fields = getParseInfo().getStaticFields();
-    return fields.isEmpty() ? Collections.<VarStatement>emptyList() : getUnmodifiableValues( fields );
+    return fields.isEmpty() ? Collections.emptyList() : getUnmodifiableValues( fields );
   }
 
   public VarStatement getStaticField( String name )
@@ -1353,7 +1353,7 @@ public class GosuClass extends AbstractType implements IGosuClassInternal
     compileDeclarationsIfNeeded();
 
     Map<String, VarStatement> fields = getParseInfo().getMemberFields();
-    return fields.isEmpty() ? Collections.<VarStatement>emptyList() : getUnmodifiableValues( fields );
+    return fields.isEmpty() ? Collections.emptyList() : getUnmodifiableValues( fields );
   }
 
   public Map<String, VarStatement> getMemberFieldsMap()
@@ -2137,8 +2137,13 @@ public class GosuClass extends AbstractType implements IGosuClassInternal
     boolean bSuperClass = gsContextClass != getOrCreateTypeReference();
 
     putStaticFields( table, gsContextClass, bSuperClass );
-    putStaticFunctions( owner, table, gsContextClass, bSuperClass );
-    putStaticProperties( table, gsContextClass, bSuperClass );
+    if( gsContextClass == null ||
+        !isInterface() ||
+        getOrCreateTypeReference( gsContextClass ) == getOrCreateTypeReference() ) // Static interface methods/properties are NOT inherited
+    {
+      putStaticFunctions( owner, table, gsContextClass, bSuperClass );
+      putStaticProperties( table, gsContextClass, bSuperClass );
+    }
     if( !bStatic )
     {
       putFields( table, gsContextClass, bSuperClass );
@@ -2575,6 +2580,11 @@ public class GosuClass extends AbstractType implements IGosuClassInternal
             unimpled = getUnimplementedMethods( gsInterface, pThis, unimpled, true, false );
             for( IMethodInfo mi : gsInterface.getTypeInfo().getMethods() )
             {
+              if( mi.isDefaultImpl() )
+              {
+                //## todo: see if there are other
+                continue;
+              }
               GosuMethodInfo gmi = (GosuMethodInfo)mi;
               IFunctionType type = new FunctionType( gmi );
               if( unimpled.contains( type ) )
@@ -2629,14 +2639,14 @@ public class GosuClass extends AbstractType implements IGosuClassInternal
   public List<IFunctionType> getUnimplementedMethods()
   {
     List<IFunctionType> emptyList = Collections.emptyList();
-    if( isAbstract() )
-    {
-      return emptyList;
-    }
-    return getUnimplementedMethods( emptyList, (IGosuClassInternal) getOrCreateTypeReference());
+//    if( isAbstract() )
+//    {
+//      return emptyList;
+//    }
+    return getUnimplementedMethods( emptyList, (IGosuClassInternal) getOrCreateTypeReference(), isAbstract() );
   }
 
-  public List<IFunctionType> getUnimplementedMethods( List<IFunctionType> unimpled, IGosuClassInternal implClass )
+  public List<IFunctionType> getUnimplementedMethods( List<IFunctionType> unimpled, IGosuClassInternal implClass, boolean bAcceptAbstract )
   {
     for( IType iface : _interfaces )
     {
@@ -2660,16 +2670,19 @@ public class GosuClass extends AbstractType implements IGosuClassInternal
       iface = Util.getGosuClassFrom( iface );
       if( iface != null )
       {
-        unimpled = getUnimplementedMethods( (IGosuClassInternal)iface, implClass, unimpled, true, false );
+        unimpled = getUnimplementedMethods( (IGosuClassInternal)iface, implClass, unimpled, true, bAcceptAbstract );
       }
     }
-    IType superType = getSupertype();
-    if( superType != null && superType.isAbstract() )
+    if( !bAcceptAbstract )
     {
-      IGosuClassInternal gsSuper = Util.getGosuClassFrom( superType );
-      if (gsSuper != null) {
-        unimpled = getUnimplementedMethods( gsSuper, implClass, unimpled, false, false );
-        unimpled = gsSuper.getUnimplementedMethods( unimpled, implClass );
+      IType superType = getSupertype();
+      if( superType != null && superType.isAbstract() )
+      {
+        IGosuClassInternal gsSuper = Util.getGosuClassFrom( superType );
+        if (gsSuper != null) {
+          unimpled = getUnimplementedMethods( gsSuper, implClass, unimpled, false, false );
+          unimpled = gsSuper.getUnimplementedMethods( unimpled, implClass, bAcceptAbstract );
+        }
       }
     }
     return unimpled;
@@ -2684,7 +2697,7 @@ public class GosuClass extends AbstractType implements IGosuClassInternal
 
     for( IMethodInfo mi : gsIface.getTypeInfo().getMethods( gsIface ) )
     {
-      if( !mi.isAbstract() )
+      if( !mi.isAbstract() && !mi.isDefaultImpl() )
       {
         continue;
       }

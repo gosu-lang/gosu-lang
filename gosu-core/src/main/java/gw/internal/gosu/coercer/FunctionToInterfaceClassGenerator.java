@@ -158,6 +158,10 @@ public class FunctionToInterfaceClassGenerator {
         {
           it.remove();
         }
+        else if( !methodInfo.isAbstract() )
+        {
+          it.remove();
+        }
       }
 
       if( list.size() == 1 )
