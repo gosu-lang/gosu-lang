@@ -6,6 +6,7 @@ package gw.internal.gosu.ir.compiler.bytecode;
 
 import gw.internal.ext.org.objectweb.asm.Label;
 import gw.internal.gosu.ir.nodes.JavaClassIRType;
+import gw.lang.GosuShop;
 import gw.lang.ir.IRSymbol;
 import gw.lang.ir.IRType;
 
@@ -71,8 +72,20 @@ public class IRCompilerLocalVar {
   }
 
   private static IRType maybeEraseStructuralType( IRType type ) {
+    IRType originalType = type;
+    int iArrayDims = 0;
+    while( type.isArray() ) {
+      iArrayDims++;
+      type = type.getComponentType();
+    }
     if( type.isStructural() ) {
-      return JavaClassIRType.get( Object.class );
+      type = GosuShop.getIRTypeResolver().getDescriptor( Object.class );
+      while( iArrayDims-- > 0 ) {
+        type = type.getArrayType();
+      }
+    }
+    else {
+      type = originalType;
     }
     return type;
   }

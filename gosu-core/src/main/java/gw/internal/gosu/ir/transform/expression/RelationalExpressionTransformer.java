@@ -5,6 +5,7 @@
 package gw.internal.gosu.ir.transform.expression;
 
 import gw.internal.gosu.parser.BeanAccess;
+import gw.internal.gosu.parser.ErrorType;
 import gw.internal.gosu.parser.ParserBase;
 import gw.internal.gosu.parser.expressions.RelationalExpression;
 import gw.internal.gosu.parser.expressions.ConditionalExpression;
@@ -12,15 +13,19 @@ import gw.internal.gosu.ir.transform.ExpressionTransformer;
 import gw.internal.gosu.ir.transform.TopLevelTransformationContext;
 import gw.lang.ir.IRExpression;
 import gw.lang.ir.IRSymbol;
+import gw.lang.ir.IRType;
 import gw.lang.ir.expression.IRConditionalAndExpression;
 import gw.lang.ir.expression.IRRelationalExpression;
 import gw.lang.ir.statement.IRAssignmentStatement;
 import gw.lang.parser.GosuParserTypes;
 import gw.lang.parser.ICoercionManager;
 import gw.lang.reflect.IType;
+import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.java.JavaTypes;
 import gw.config.CommonServices;
 
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.Collections;
 import java.util.Date;
 import java.util.ArrayList;
@@ -49,14 +54,87 @@ public class RelationalExpressionTransformer extends AbstractExpressionTransform
     {
       return comparePrimitives();
     }
-    else if( lhsType == rhsType && JavaTypes.COMPARABLE().isAssignableFrom( lhsType ) )
-    {
-      return compareWithCompareTo();
+    else {
+      if( lhsType == rhsType && JavaTypes.COMPARABLE().isAssignableFrom( lhsType ) )
+      {
+        return compareWithCompareTo();
+      }
+      else
+      {
+        IType type = ParserBase.resolveType( lhsType, '>', rhsType );
+        if( !(type instanceof ErrorType) && (isNumberType( type ) || isBigType( type )) ) {
+          return compareNumbers( type );
+        }
+
+        return compareDynamically();
+      }
     }
-    else
-    {
-      return compareDynamically();
+  }
+
+  private IRExpression compareNumbers( IType type ) {
+    if( isBigType( type ) ) {
+      return compareNumbersAsBig( type );
     }
+    else {
+      type = type.isPrimitive() ? type : TypeSystem.getPrimitiveType( type );
+      return compareNumbersAsPrimitive( type );
+    }
+  }
+
+  private IRExpression compareNumbersAsPrimitive( IType type ) {
+    IRSymbol tempLhs = _cc().makeAndIndexTempSymbol( getDescriptor( _expr().getLHS().getType() ) );
+    IRAssignmentStatement tempLhsAssn = buildAssignment( tempLhs, ExpressionTransformer.compile( _expr().getLHS(), _cc() ) );
+    IRSymbol tempRhs = _cc().makeAndIndexTempSymbol( getDescriptor( _expr().getRHS().getType() ) );
+    IRAssignmentStatement tempRhsAssn = buildAssignment( tempRhs, ExpressionTransformer.compile( _expr().getRHS(), _cc() ) );
+
+    IRSymbol tempLhsRet = _cc().makeAndIndexTempSymbol( getDescriptor( type ) );
+    IRAssignmentStatement lhsConversionAssn = convertOperandToPrimitive( type, _expr().getLHS().getType(), identifier( tempLhs ), tempLhsRet );
+    IRSymbol tempRhsRet = _cc().makeAndIndexTempSymbol( getDescriptor( type ) );
+    IRAssignmentStatement rhsConversionAssn = convertOperandToPrimitive( type, _expr().getRHS().getType(), identifier( tempRhs ), tempRhsRet );
+    
+    IRExpression compareExpr = buildComposite( lhsConversionAssn, rhsConversionAssn,
+                                               new IRRelationalExpression( identifier( tempLhsRet ), identifier( tempRhsRet ), IRRelationalExpression.Operation.get( _expr().getOperator() ) ) );
+    IRExpression nullCheckRhs = _expr().getRHS().getType().isPrimitive()
+                                ? compareExpr
+                                : buildTernary( buildEquals( identifier( tempRhs ), nullLiteral() ),
+                                                booleanLiteral( false ),
+                                                compareExpr,
+                                                getDescriptor( boolean.class ) );
+    IRExpression expr = _expr().getLHS().getType().isPrimitive()
+                        ? nullCheckRhs
+                        : buildTernary( buildEquals( identifier( tempLhs ), nullLiteral() ),
+                                        booleanLiteral( false ),
+                                        nullCheckRhs,
+                                        getDescriptor( boolean.class ) );
+    return buildComposite( tempLhsAssn, tempRhsAssn, expr );
+  }
+
+  private IRExpression compareNumbersAsBig( IType type ) {
+    Class bigClass = type == JavaTypes.BIG_DECIMAL() ? BigDecimal.class : BigInteger.class;
+    
+    IRSymbol tempLhs = _cc().makeAndIndexTempSymbol( getDescriptor( _expr().getLHS().getType() ) );
+    IRAssignmentStatement tempLhsAssn = buildAssignment( tempLhs, ExpressionTransformer.compile( _expr().getLHS(), _cc() ) );
+    IRSymbol tempRhs = _cc().makeAndIndexTempSymbol( getDescriptor( _expr().getRHS().getType() ) );
+    IRAssignmentStatement tempRhsAssn = buildAssignment( tempRhs, ExpressionTransformer.compile( _expr().getRHS(), _cc() ) );
+
+    IRSymbol tempLhsRet = _cc().makeAndIndexTempSymbol( getDescriptor( type ) );
+    IRAssignmentStatement lhsConversionAssn = convertOperandToBig( type, bigClass, _expr().getLHS().getType(), identifier( tempLhs ), tempLhsRet );
+    IRSymbol tempRhsRet = _cc().makeAndIndexTempSymbol( getDescriptor( type ) );
+    IRAssignmentStatement rhsConversionAssn = convertOperandToBig( type, bigClass, _expr().getRHS().getType(), identifier( tempRhs ), tempRhsRet );
+    
+    IRExpression compareExpr = buildComposite( lhsConversionAssn, rhsConversionAssn,
+                                               new IRRelationalExpression( callMethod( bigClass, "compareTo", new Class[]{bigClass}, identifier( tempLhsRet ), Collections.<IRExpression>singletonList( identifier( tempRhsRet ) ) ),
+                                                                           pushConstant( 0 ), IRRelationalExpression.Operation.get( _expr().getOperator() ) ) );
+    IRExpression nullCheckRhs = _expr().getRHS().getType().isPrimitive()
+                                ? compareExpr
+                                : buildTernary( buildEquals( identifier( tempRhs ), nullLiteral() ), booleanLiteral( false ), compareExpr, getDescriptor( boolean.class ) );
+    IRExpression expr =  _expr().getLHS().getType().isPrimitive()
+                         ? nullCheckRhs
+                         : buildTernary( buildEquals( identifier( tempLhs ), nullLiteral() ),
+                                         booleanLiteral( false ),
+                                         nullCheckRhs,
+                                         getDescriptor( boolean.class ) );
+    return buildComposite( tempLhsAssn, tempRhsAssn, expr );
   }
 
   private IRExpression compareWithCompareTo()
@@ -66,13 +144,14 @@ public class RelationalExpressionTransformer extends AbstractExpressionTransform
     // Comparable rhs = <rhs-expr>
     // (lhs != null && rhs != null && lhs.compareTo( rhs ) [>, <, >=, <=] 0)
 
-    IRSymbol lhsTemp = _cc().makeAndIndexTempSymbol( getDescriptor( JavaTypes.COMPARABLE() ) );
+    IType lhsType = _expr().getLHS().getType();
+    IRType lhsIrType = getDescriptor( lhsType );
+    IRSymbol lhsTemp = _cc().makeAndIndexTempSymbol( lhsIrType );
     IRAssignmentStatement tempLhsAssignment = buildAssignment( lhsTemp, ExpressionTransformer.compile( _expr().getLHS(), _cc() ) );
-    IRSymbol rhsTemp = _cc().makeAndIndexTempSymbol( getDescriptor( JavaTypes.COMPARABLE() ) );
+    IRSymbol rhsTemp = _cc().makeAndIndexTempSymbol( getDescriptor( _expr().getRHS().getType() ) );
     IRAssignmentStatement tempRhsAssignment = buildAssignment( rhsTemp, ExpressionTransformer.compile( _expr().getRHS(), _cc() ) );
-    IRExpression callCompareTo = callMethod( Comparable.class, "compareTo", new Class[]{Object.class},
-                                             identifier( lhsTemp ),
-                                             Collections.singletonList( (IRExpression)identifier( rhsTemp ) ) );
+    IRExpression callCompareTo = buildMethodCall( lhsIrType, "compareTo", lhsType.isInterface(), getDescriptor( int.class ), Collections.<IRType>singletonList( getDescriptor( Object.class ) ),
+                                                  identifier( lhsTemp ), Collections.singletonList( (IRExpression)identifier( rhsTemp ) ) );
     IRExpression theExpr = new IRConditionalAndExpression( buildNotEquals( identifier( lhsTemp ), nullLiteral() ),
                                                            new IRConditionalAndExpression( buildNotEquals( identifier( rhsTemp ), nullLiteral() ),
                                                                                            new IRRelationalExpression( callCompareTo, pushConstant( 0 ),

@@ -63,6 +63,7 @@ public class ClassJavaClassInfo extends TypeJavaClassType implements IClassJavaC
   private IJavaClassType[] _genericInterfaces;
   private IJavaClassInfo[] _declaredClasses;
   private ISourceFileHandle _fileHandle;
+  private String _namespace;
   private LocklessLazyVar<IType> _enclosingClass = new LocklessLazyVar<IType>() {
     protected IType init() {
       Class enclosingClass = _class.getEnclosingClass();
@@ -389,13 +390,16 @@ public class ClassJavaClassInfo extends TypeJavaClassType implements IClassJavaC
 
   @Override
   public String getNamespace() {
-    Class cls = _class;
-    Package aPackage = cls.getPackage();
-    while (aPackage == null && cls.isArray()) {
-      cls = cls.getComponentType();
-      aPackage = cls.getPackage();
+    if( _namespace == null ) {
+      Class cls = _class;
+      Package aPackage = cls.getPackage();
+      while (aPackage == null && cls.isArray()) {
+        cls = cls.getComponentType();
+        aPackage = cls.getPackage();
+      }
+      _namespace = aPackage == null ? null : aPackage.getName();
     }
-    return aPackage == null ? null : aPackage.getName();
+    return _namespace;
   }
 
   @Override

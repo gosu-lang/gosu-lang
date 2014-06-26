@@ -9,12 +9,15 @@ import gw.lang.reflect.IAnnotationInfo;
 
 @UnstableAPI
 public class IRAnnotation {
-
   private IRType _descriptor;
   private boolean _include;
   private IAnnotationInfo _annotation;
 
-  public IRAnnotation(IRType descriptor, boolean include, IAnnotationInfo annotation) {
+  public IRAnnotation( IRType descriptor, boolean include ) {
+    this( descriptor, include, null );
+  }
+
+  public IRAnnotation( IRType descriptor, boolean include, IAnnotationInfo annotation ) {
     _descriptor = descriptor;
     _include = include;
     _annotation = annotation;
@@ -28,8 +31,7 @@ public class IRAnnotation {
     return _include;
   }
 
-  public IAnnotationInfo getValue()
-  {
+  public IAnnotationInfo getValue() {
     return _annotation;
   }
 }

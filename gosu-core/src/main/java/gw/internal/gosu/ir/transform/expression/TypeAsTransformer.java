@@ -7,6 +7,8 @@ package gw.internal.gosu.ir.transform.expression;
 import gw.config.CommonServices;
 import gw.internal.gosu.ir.nodes.IRTypeFactory;
 import gw.internal.gosu.ir.nodes.JavaClassIRType;
+import gw.internal.gosu.parser.TypeLord;
+import gw.lang.IDimension;
 import gw.lang.ir.IRExpression;
 import gw.lang.ir.IRStatement;
 import gw.lang.ir.IRSymbol;
@@ -17,8 +19,11 @@ import gw.lang.ir.IRType;
 import gw.lang.ir.expression.IRCompositeExpression;
 import gw.lang.ir.expression.IRIdentifier;
 import gw.lang.ir.expression.IRInstanceOfExpression;
+import gw.lang.ir.statement.IRAssignmentStatement;
 import gw.lang.parser.GosuParserTypes;
 import gw.lang.parser.ICoercer;
+import gw.lang.parser.ILanguageLevel;
+import gw.lang.parser.StandardCoercionManager;
 import gw.lang.parser.coercers.BasePrimitiveCoercer;
 import gw.lang.parser.coercers.FunctionFromInterfaceCoercer;
 import gw.lang.parser.coercers.IdentityCoercer;
@@ -29,11 +34,14 @@ import gw.lang.reflect.IRelativeTypeInfo;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.Modifier;
 import gw.lang.reflect.TypeSystem;
+import gw.lang.reflect.gs.IGosuClass;
 import gw.lang.reflect.java.GosuTypes;
 import gw.lang.reflect.java.JavaTypes;
 import gw.util.concurrent.LockingLazyVar;
 
 import java.lang.reflect.Field;
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.Collections;
 
 /**
@@ -68,27 +76,162 @@ public class TypeAsTransformer extends AbstractExpressionTransformer<ITypeAsExpr
       return root;
     }
 
-    if( isPrimitiveNumberType( asType ) &&
-        isPrimitiveNumberType( lhsType ) )
-    {
+    if( lhsType == JavaTypes.pVOID() ) {
+      // null Literal -> Any Type
+      if( !ILanguageLevel.Util.STANDARD_GOSU() && asType.isPrimitive() ) {
+        if( isNumberType( asType ) ) {
+          return convertNullToPrimitive( asType );
+        }
+        else if( asType == JavaTypes.pBOOLEAN() ) {
+          return booleanLiteral( false );
+        }
+        else {
+          return root;
+        }
+      }
+      return checkCast( asType, root );
+    }
+
+    if( asType == JavaTypes.pVOID() ) {
+      // Any -> void (no-op)
+      return root;
+    }
+
+    if( isPrimitiveNumberType( asType ) && isPrimitiveNumberType( lhsType ) ) {
+      // Primitive -> Primitive (bypass coercion manager)
       return numberConvert( lhsType, asType, root );
     }
 
-    if( isPrimitiveNumberType( lhsType ) )
-    {
-      // Handle boxing directly (bypass coercion manager)
-
-      if( asType.isAssignableFrom( TypeSystem.getBoxType( lhsType ) ) )
-      {
-        return boxValue( lhsType, root );
+    if( asType == JavaTypes.pBOOLEAN() ) {
+      if( lhsType == JavaTypes.BOOLEAN() ) {
+        // Boolean -> boolean (bypass coercion manager)
+        IRSymbol tempRoot = _cc().makeAndIndexTempSymbol( getDescriptor( lhsType ) );
+        IRAssignmentStatement tempRootAssn = buildAssignment( tempRoot, root );
+        return buildComposite( tempRootAssn, buildTernary( buildEquals( identifier( tempRoot ), nullLiteral() ),
+                                                           booleanLiteral( false ),
+                                                           callMethod( Boolean.class, "booleanValue", new Class[]{}, identifier( tempRoot ), Collections.<IRExpression>emptyList() ),
+                                                           getDescriptor( boolean.class ) ) );
       }
-      if( isNonBigBoxedNumberType( asType ) )
-      {
-        IType primitiveAsType = TypeSystem.getPrimitiveType( asType );
-        if( isPrimitiveNumberType( primitiveAsType ) )
-        {
-          return boxValueToType( asType, numberConvert( lhsType, primitiveAsType, root ) );
+      else if( isNumberType( lhsType ) ) {
+        // Boxed/Primitive -> boolean (bypass coercion manager)
+        IRSymbol tempLhs = _cc().makeAndIndexTempSymbol( getDescriptor( _expr().getLHS().getType() ) );
+        IRAssignmentStatement tempLhsAssn = buildAssignment( tempLhs, root );
+
+        IRSymbol tempLhsRet = _cc().makeAndIndexTempSymbol( getDescriptor( int.class ) );
+        IRAssignmentStatement lhsConversionAssn = convertOperandToPrimitive( JavaTypes.pINT(), _expr().getLHS().getType(), identifier( tempLhs ), tempLhsRet );
+
+        IRExpression compareExpr = buildComposite( lhsConversionAssn, buildNotEquals( identifier( tempLhsRet ), numericLiteral( 0 ) ) );
+        IRExpression expr = _expr().getLHS().getType().isPrimitive()
+                            ? compareExpr
+                            : buildTernary( buildEquals( identifier( tempLhs ), nullLiteral() ),
+                                            booleanLiteral( false ),
+                                            compareExpr,
+                                            getDescriptor( boolean.class ) );
+        return buildComposite( tempLhsAssn, expr );
+      }
+    }
+
+    if( asType == JavaTypes.BOOLEAN() ) {
+      if( lhsType == JavaTypes.pBOOLEAN() ) {
+        // boolean -> Boolean (bypass coercion manager)
+        return callStaticMethod( Boolean.class, "valueOf", new Class[]{boolean.class}, Collections.singletonList( root ) );
+      }
+      else if( isNumberType( lhsType ) ) {
+        // Boxed/Primitive -> Boolean (bypass coercion manager)
+        IRSymbol tempLhs = _cc().makeAndIndexTempSymbol( getDescriptor( _expr().getLHS().getType() ) );
+        IRAssignmentStatement tempLhsAssn = buildAssignment( tempLhs, root );
+
+        IRSymbol tempLhsRet = _cc().makeAndIndexTempSymbol( getDescriptor( int.class ) );
+        IRAssignmentStatement lhsConversionAssn = convertOperandToPrimitive( JavaTypes.pINT(), _expr().getLHS().getType(), identifier( tempLhs ), tempLhsRet );
+
+        IRExpression compareExpr = buildComposite( lhsConversionAssn, buildNotEquals( identifier( tempLhsRet ), numericLiteral( 0 ) ) );
+        IRExpression expr = _expr().getLHS().getType().isPrimitive()
+                            ? boxValue( getDescriptor( boolean.class ), compareExpr )
+                            : buildTernary( buildEquals( identifier( tempLhs ), nullLiteral() ),
+                                            nullLiteral(),
+                                            boxValue( getDescriptor( boolean.class ), compareExpr ),
+                                            getDescriptor( Boolean.class ) );
+        return buildComposite( tempLhsAssn, expr );
+      }
+    }
+
+    if( isBigType( asType ) && (isNumberType( lhsType ) || isBigType( lhsType )) ) {
+      // Any Big/Boxed/Primitive -> Any Big (bypass coercion manager)
+
+      IRSymbol tempLhs = _cc().makeAndIndexTempSymbol( getDescriptor( lhsType ) );
+      IRAssignmentStatement tempLhsAssn = buildAssignment( tempLhs, root );
+      IRSymbol tempRet = _cc().makeAndIndexTempSymbol( getDescriptor( asType ) );
+      return buildComposite( tempLhsAssn, lhsType.isPrimitive()
+                                          ? buildComposite( convertOperandToBig( asType, asType == JavaTypes.BIG_DECIMAL() ? BigDecimal.class : BigInteger.class, lhsType, identifier( tempLhs ), tempRet ), identifier( tempRet ) )
+                                          : checkCast( asType, buildTernary( buildEquals( identifier( tempLhs ), nullLiteral() ), nullLiteral(), buildComposite( convertOperandToBig( asType, asType == JavaTypes.BIG_DECIMAL() ? BigDecimal.class : BigInteger.class, lhsType, identifier( tempLhs ), tempRet ), identifier( tempRet ) ), getDescriptor( asType ) ) ) );
+    }
+
+    if( isNumberType( asType ) && isNumberType( lhsType ) ) {
+      // Any Boxed/Primitive -> Any Boxed/Primitive  (bypass coercion manager)
+      if( StandardCoercionManager.isBoxed( lhsType ) ) {
+        // Non-primitive type, must handle null
+        IRSymbol tempLhs = _cc().makeAndIndexTempSymbol( getDescriptor( lhsType ) );
+        IRAssignmentStatement tempLhsAssn = buildAssignment( tempLhs, root );
+
+        root = unboxValueFromType( lhsType, identifier( tempLhs ) );
+        IType primitiveTypeAsType = asType.isPrimitive() ? asType : TypeSystem.getPrimitiveType( asType );
+        root = numberConvert( TypeSystem.getPrimitiveType( lhsType ), primitiveTypeAsType, root );
+        if( StandardCoercionManager.isBoxed( asType ) ) {
+          root = boxValueToType( asType, root );
         }
+        return buildComposite( tempLhsAssn, buildTernary( buildEquals( identifier( tempLhs ), nullLiteral() ),
+                                                          asType.isPrimitive()
+                                                          ? ILanguageLevel.Util.STANDARD_GOSU()
+                                                            ? buildComposite( buildThrow( buildNewExpression( getDescriptor( NullPointerException.class ), Collections.<IRType>emptyList(), Collections.<IRExpression>emptyList() ) ) )
+                                                            : convertBoxedNullToPrimitive( TypeLord.getBoxedTypeFromPrimitiveType( asType ) )
+                                                          : nullLiteral(),
+                                                          root, getDescriptor( asType ) ) );
+      }
+      else {
+        IType primitiveTypeAsType = asType.isPrimitive() ? asType : TypeSystem.getPrimitiveType( asType );
+        root = numberConvert( lhsType, primitiveTypeAsType, root );
+
+        if( StandardCoercionManager.isBoxed( asType ) ) {
+          root = boxValueToType( asType, root );
+        }
+        return root;
+      }
+    }
+
+    if( asType == JavaTypes.OBJECT() && lhsType.isPrimitive() ) {
+      // Any Primitive -> Object (bypass coercion manager)
+      return boxValue( lhsType, root );
+    }
+
+    IType lhsDimensionNumberType = findDimensionType( lhsType );
+    if( lhsDimensionNumberType != null ) {
+      // Any Dimension -> Any Number (bypass coercion manager)
+      lhsType = lhsDimensionNumberType;
+      IRSymbol tempLhs = _cc().makeAndIndexTempSymbol( getDescriptor( lhsType ) );
+      IRAssignmentStatement tempLhsAssn = buildAssignment( tempLhs, callMethod( IDimension.class, "toNumber", new Class[]{}, root, Collections.<IRExpression>emptyList() ) );
+
+      if( isNumberType( asType ) ) {
+        // Any Dimension -> Any Boxed/Primitive (bypass coercion manager)
+        root = unboxValueFromType( lhsType, identifier( tempLhs ) );
+        IType primitiveTypeAsType = asType.isPrimitive() ? asType : TypeSystem.getPrimitiveType( asType );
+        root = numberConvert( TypeSystem.getPrimitiveType( lhsType ), primitiveTypeAsType, root );
+        if( StandardCoercionManager.isBoxed( asType ) ) {
+          root = boxValueToType( asType, root );
+        }
+        return buildComposite( tempLhsAssn, buildTernary( buildEquals( identifier( tempLhs ), nullLiteral() ),
+                                                          asType.isPrimitive()
+                                                          ? ILanguageLevel.Util.STANDARD_GOSU()
+                                                            ? buildComposite( buildThrow( buildNewExpression( getDescriptor( NullPointerException.class ), Collections.<IRType>emptyList(), Collections.<IRExpression>emptyList() ) ) )
+                                                            : convertBoxedNullToPrimitive( TypeLord.getBoxedTypeFromPrimitiveType( asType ) )
+                                                          : nullLiteral(),
+                                                          root, getDescriptor( asType ) ) );
+      }
+      else if( isBigType( asType ) ) {
+        //  Any Dimension -> Any Big (bypass coercion manager)
+        IRSymbol tempRet = _cc().makeAndIndexTempSymbol( getDescriptor( asType ) );
+        return buildComposite( tempLhsAssn, lhsType.isPrimitive()
+                                            ? buildComposite( convertOperandToBig( asType, asType == JavaTypes.BIG_DECIMAL() ? BigDecimal.class : BigInteger.class, lhsType, identifier( tempLhs ), tempRet ), identifier( tempRet ) )
+                                            : checkCast( asType, buildTernary( buildEquals( identifier( tempLhs ), nullLiteral() ), nullLiteral(), buildComposite( convertOperandToBig( asType, asType == JavaTypes.BIG_DECIMAL() ? BigDecimal.class : BigInteger.class, lhsType, identifier( tempLhs ), tempRet ), identifier( tempRet ) ), getDescriptor( asType ) ) ) );
       }
     }
 
@@ -116,12 +259,13 @@ public class TypeAsTransformer extends AbstractExpressionTransformer<ITypeAsExpr
       root = boxValue( lhsType, root );
     }
     ICoercer coercer = _expr().getCoercer();
-    if( (coercer == IdentityCoercer.instance() && !_expr().getType().isPrimitive()) ||
-        _expr().getType() instanceof CompoundType )
+    IType exprType = _expr().getType();
+    if( (coercer == IdentityCoercer.instance() && !exprType.isPrimitive()) ||
+        exprType instanceof CompoundType )
     {
-      if( (!lhsType.isPrimitive() || lhsType == JavaTypes.pVOID()) && lhsType != _expr().getType() )
+      if( !lhsType.isPrimitive() && lhsType != exprType )
       {
-        if( (lhsType == JavaTypes.OBJECT() || lhsType.isInterface()) && isBytecodeType( _expr().getType() ) )
+        if( (lhsType == JavaTypes.OBJECT() || lhsType.isInterface()) && (isBytecodeType( exprType ) && !isStructureType( exprType )) )
         {
           //## hack:
 
@@ -133,24 +277,24 @@ public class TypeAsTransformer extends AbstractExpressionTransformer<ITypeAsExpr
           // doing a runtime coercion because that is much more expensive than a
           // simple checkcast.
           //
-          // Geneate code like the following:
+          // Generate code like the following:
           //
           // LhsType temp = <lhs-expr>
           // temp instanceof AsType ? (AsType)temp : coerce( temp, AsType )
           //
-          IRType asType = getDescriptor( _expr().getType() );
+          IRType asType = getDescriptor( exprType );
           IRSymbol rootValue = _cc().makeAndIndexTempSymbol( root.getType() );
           root = buildComposite(
             buildAssignment( rootValue, root ),
             buildTernary( new IRInstanceOfExpression( identifier( rootValue ), asType ),
-                          checkCast( _expr().getType(), identifier( rootValue ) ),
+                          checkCast( exprType, identifier( rootValue ) ),
                           coerce( identifier( rootValue ), RuntimeCoercer.instance() ),
                           asType ) );
 
         }
         else
         {
-          root = checkCast( _expr().getType(), root );
+          root = checkCast( exprType, root );
         }
 
       }
@@ -159,6 +303,10 @@ public class TypeAsTransformer extends AbstractExpressionTransformer<ITypeAsExpr
     }
 
     return coerce( root, coercer );
+  }
+
+  private boolean isStructureType( IType exprType ) {
+    return exprType instanceof IGosuClass && ((IGosuClass)exprType).isStructure();
   }
 
   private IRExpression coerce( IRExpression root, ICoercer coercer )

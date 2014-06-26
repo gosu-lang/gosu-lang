@@ -4,7 +4,7 @@
 
 package gw.lang;
 
-public interface IDimension<S extends IDimension<S,T>, T extends Number>
+public interface IDimension<S extends IDimension<S,T>, T extends Number> extends Comparable<S>
 {
   /**
    * The Gosu runtime calls this method when performing default operations.
