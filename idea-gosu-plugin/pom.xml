@@ -76,7 +76,6 @@
           <descriptors>
             <descriptor>src/main/assembly/assembly.xml</descriptor>
           </descriptors>
-          <appendAssemblyId>false</appendAssemblyId>
           <encoding>UTF-8</encoding>
         </configuration>
         <executions>

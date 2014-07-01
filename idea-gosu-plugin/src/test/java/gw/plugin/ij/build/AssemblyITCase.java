@@ -27,7 +27,7 @@ public class AssemblyITCase extends ITCaseUtils {
     File pom = findPom(AssemblyITCase.class);
     _pluginVersion = getPomVersion(pom);
     assertNotNull(_pluginVersion);
-    File pluginZip = new File(pom.getParentFile(), "target/idea-gosu-plugin-" + _pluginVersion + ".zip");
+    File pluginZip = new File(pom.getParentFile(), "target/idea-gosu-plugin-" + _pluginVersion + "-plugin.zip");
     assertTrue(pluginZip.exists());
     _pluginZip = new JarFileDirectoryImpl(pluginZip);
   }
