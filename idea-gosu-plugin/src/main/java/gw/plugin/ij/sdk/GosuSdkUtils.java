@@ -10,6 +10,7 @@ import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
@@ -262,6 +263,7 @@ public class GosuSdkUtils {
       if (jarsDir != null) {
         Iterable<File> jars = listFiles(jarsDir, withExtension(JAR_EXTENSION));
         addSdkElements(modificator, jars);
+        maybeAddGosuClassFiles(modificator, homePath);
       }
     } // else pluginHome is a jar in the TH environment
 
@@ -271,6 +273,15 @@ public class GosuSdkUtils {
       modificator.setSdkAdditionalData(new GosuSdkAdditionalData(jdk, gosuVersion));
     }
     modificator.commitChanges();
+  }
+
+  private static void maybeAddGosuClassFiles(SdkModificator modificator, String homePath) {
+    File pluginRoot = new File(homePath);
+    File gosuCoreApiJar = findGosuCoreApiJar(pluginRoot);
+    if (gosuCoreApiJar == null) {
+      gosuCoreApiJar = new File(pluginRoot, "classes");
+      addSdkElements(modificator, Lists.newArrayList(gosuCoreApiJar) );
+    }
   }
 
   public static void addJdkFiles(@NotNull SdkModificator modificator, @NotNull Sdk jdk) {
