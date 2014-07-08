@@ -4,10 +4,10 @@
 
 package gw.internal.gosu.properties;
 
-import gw.config.CommonServices;
 import gw.fs.IFile;
 import gw.internal.gosu.util.StringUtil;
 import gw.lang.reflect.module.IModule;
+import gw.util.GosuLoggerFactory;
 import gw.util.Pair;
 import gw.util.concurrent.LockingLazyVar;
 
@@ -98,7 +98,7 @@ public class PropertiesPropertySet implements PropertySet {
             closeSafely(propertiesStream);
           }
         } catch (IOException e) {
-          CommonServices.getEntityAccess().getLogger().error(String.format("Could not read property file %s", file), e);
+          GosuLoggerFactory.getLogger().error(String.format("Could not read property file %s", file), e);
         }
       }
       return result;

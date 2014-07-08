@@ -62,12 +62,6 @@ public interface IEntityAccess extends IService
 
   public boolean isInternal( IType type );
 
-  /**
-   * @return the main logger for all Gosu subsystems.  This logger must be available at all times during Gosu
-   * startup and execution.
-   */
-  public ILogger getLogger();
-
   public Locale getLocale();
 
   public Date getCurrentTime();

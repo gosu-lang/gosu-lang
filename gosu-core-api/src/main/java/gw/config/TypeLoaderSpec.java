@@ -10,6 +10,7 @@ import gw.lang.reflect.IType;
 import gw.lang.reflect.IConstructorInfo;
 import gw.lang.reflect.java.JavaTypes;
 import gw.lang.reflect.module.IExecutionEnvironment;
+import gw.util.GosuLoggerFactory;
 import gw.util.ILogger;
 
 import java.io.File;
@@ -73,7 +74,7 @@ public class TypeLoaderSpec
 
   public static ITypeLoader createTypeLoader( IExecutionEnvironment execEnv, String typeloaderClassName, HashMap additionalArgs )
   {
-    ILogger logger = CommonServices.getEntityAccess().getLogger();
+    ILogger logger = GosuLoggerFactory.getLogger();
     ITypeLoader additionalTypeLoader = null;
     boolean gosu = false;
     try

@@ -4,12 +4,12 @@
 
 package gw.test;
 
-import gw.config.CommonServices;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.TypeSystem;
 import gw.fs.IDirectory;
 import gw.fs.IFile;
 import gw.util.GosuClassUtil;
+import gw.util.GosuLoggerFactory;
 import gw.util.ILogger;
 import gw.util.Predicate;
 
@@ -91,7 +91,7 @@ class TestClassFinder {
           }
         } catch (Exception e) {
           //Log rather than warn, because invalid resources can exist
-          ILogger logger = CommonServices.getEntityAccess().getLogger();
+          ILogger logger = GosuLoggerFactory.getLogger();
           logger.warn("Could not load type " + typeName);
 
           // TODO - AHK

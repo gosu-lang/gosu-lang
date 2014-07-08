@@ -4,7 +4,6 @@
 
 package gw.internal.gosu.parser;
 
-import gw.config.CommonServices;
 import gw.fs.IDirectory;
 import gw.fs.IFile;
 import gw.fs.IResource;
@@ -25,10 +24,10 @@ import gw.lang.reflect.gs.IGosuClass;
 import gw.lang.reflect.gs.IGosuClassRepository;
 import gw.lang.reflect.gs.IGosuObject;
 import gw.lang.reflect.gs.TypeName;
-import gw.lang.reflect.java.JavaTypes;
 import gw.lang.reflect.module.IClassPath;
 import gw.lang.reflect.module.IModule;
 import gw.util.GosuClassUtil;
+import gw.util.GosuLoggerFactory;
 import gw.util.Pair;
 import gw.util.Predicate;
 import gw.util.cache.FqnCacheNode;
@@ -149,13 +148,13 @@ public class ModuleTypeLoader implements ITypeLoaderStackInternal {
         String handledPrefix = handledPrefixes.get( i );
         _loadersByPrefix.put( handledPrefix, typeLoader );
       }
-      CommonServices.getEntityAccess().getLogger().debug("TypeLoader added: " + GosuClassUtil.getShortClassName(typeLoader.getClass()));
+      GosuLoggerFactory.getLogger().debug("TypeLoader added: " + GosuClassUtil.getShortClassName(typeLoader.getClass()));
     }
     finally
     {
       TypeSystem.unlock();
     }
-    CommonServices.getEntityAccess().getLogger().debug( "TypeLoader added: " + GosuClassUtil.getShortClassName( typeLoader.getClass() ) );
+    GosuLoggerFactory.getLogger().debug( "TypeLoader added: " + GosuClassUtil.getShortClassName( typeLoader.getClass() ) );
   }
 
   @Override
@@ -225,7 +224,7 @@ public class ModuleTypeLoader implements ITypeLoaderStackInternal {
         {
           _loadersByPrefix.remove( handledPrefix );
         }
-        CommonServices.getEntityAccess().getLogger().debug("TypeLoader removed: " + GosuClassUtil.getShortClassName(typeLoader.getClass()));
+        GosuLoggerFactory.getLogger().debug("TypeLoader removed: " + GosuClassUtil.getShortClassName(typeLoader.getClass()));
       }
     }
     finally

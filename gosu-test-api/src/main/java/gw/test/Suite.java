@@ -14,6 +14,7 @@ import gw.lang.reflect.TypeSystem;
 import gw.test.remote.ForwardingTestEnvironment;
 import gw.fs.IDirectory;
 import gw.test.remote.RemoteTestClassWrapper;
+import gw.util.GosuLoggerFactory;
 import gw.util.ILogger;
 import gw.util.Predicate;
 import junit.framework.Test;
@@ -371,7 +372,7 @@ public class Suite<T extends Suite> extends junit.framework.TestSuite {
 
   public void logError(String o) {
     if( _logErrorInfo) {
-      ILogger logger = CommonServices.getEntityAccess().getLogger();
+      ILogger logger = GosuLoggerFactory.getLogger();
       logger.warn(o);
     }
   }
