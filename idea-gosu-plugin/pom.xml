@@ -223,11 +223,4 @@
     </profile>
   </profiles>
 
-  <scm>
-    <connection>scm:git:git@gh.guidewire.com:gosu-cr/idea-gosu-plugin.git</connection>
-    <url>scm:git:git@gh.guidewire.com:gosu-cr/idea-gosu-plugin.git</url>
-    <developerConnection>scm:git:git@gh.guidewire.com:gosu-cr/idea-gosu-plugin.git</developerConnection>
-    <tag>HEAD</tag>
-  </scm>
-
 </project>
