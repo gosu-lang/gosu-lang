@@ -112,6 +112,8 @@ public abstract class JavaSourceType extends AbstractJavaClassInfo implements IJ
   private ISourceFileHandle _fileHandle;
   private List<String> _staticImportList;
   private ClassTree _typeDecl;
+  static private JavaCompiler compiler;
+  static private StandardJavaFileManager fileManager;
 
   public static IJavaClassInfo createTopLevel(ISourceFileHandle fileHandle, IModule gosuModule) {
     List<CompilationUnitTree> trees = new ArrayList<CompilationUnitTree>();
@@ -162,11 +164,13 @@ public abstract class JavaSourceType extends AbstractJavaClassInfo implements IJ
   private static boolean parseJavaFile(ISourceFileHandle src, List<CompilationUnitTree> trees) {
     boolean err = false;
     try {
-      JavaCompiler compiler = JavacTool.create();
-      StandardJavaFileManager fileManager = compiler.getStandardFileManager(null, null, Charset.forName("UTF-8"));
+      if(compiler == null) {
+        compiler = JavacTool.create();
+        fileManager = compiler.getStandardFileManager(null, null, Charset.forName("UTF-8"));
+      }
       ArrayList<JavaStringObject> javaStringObjects = new ArrayList<JavaStringObject>();
       javaStringObjects.add(new JavaStringObject(src.getSource().getSource()));
-      JavaCompiler.CompilationTask task = compiler.getTask(null, fileManager, null, null, null, javaStringObjects );
+      JavaCompiler.CompilationTask task = compiler.getTask(null, fileManager, null, Arrays.asList("-proc:none"), null, javaStringObjects );
       JavacTaskImpl javacTask = (JavacTaskImpl) task;
       Iterable<? extends CompilationUnitTree> iterable = javacTask.parse();
       for (CompilationUnitTree x : iterable) {
