@@ -4,12 +4,12 @@
 
 package gw.internal.gosu.parser.java.classinfo;
 
-import com.sun.source.tree.MethodTree;
-import com.sun.source.tree.Tree;
-import com.sun.source.tree.TypeParameterTree;
-import com.sun.source.tree.VariableTree;
 import gw.internal.gosu.parser.GenericTypeVariable;
 import gw.internal.gosu.parser.TypeLord;
+import gw.internal.gosu.parser.java.IJavaASTNode;
+import gw.internal.gosu.parser.java.JavaASTConstants;
+import gw.internal.gosu.parser.java.JavaParser;
+import gw.internal.gosu.parser.java.TypeASTNode;
 import gw.lang.parser.TypeVarToTypeMap;
 import gw.lang.reflect.FunctionType;
 import gw.lang.reflect.IAnnotationInfo;
@@ -28,16 +28,13 @@ import gw.lang.reflect.java.IJavaMethodInfo;
 import gw.lang.reflect.java.ITypeInfoResolver;
 import gw.lang.reflect.module.IModule;
 
-import javax.lang.model.element.Name;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 import java.util.List;
 
-import static gw.internal.gosu.parser.java.classinfo.JavaSourceType.getTypeName;
-
 public class JavaSourceMethod implements IJavaClassMethod, ITypeInfoResolver {
-  protected MethodTree _method;
+  protected IJavaASTNode _methodNode;
   protected JavaSourceType _containingClass;
   protected JavaSourceParameter[] _parameters;
   protected IJavaClassType _genericReturnType;
@@ -47,16 +44,23 @@ public class JavaSourceMethod implements IJavaClassMethod, ITypeInfoResolver {
   protected IJavaClassInfo[] _parameterTypes;
   protected IJavaClassInfo _returnType;
 
-  public JavaSourceMethod(MethodTree method, JavaSourceType containingClass) {
+  public JavaSourceMethod(IJavaASTNode methodNode, JavaSourceType containingClass) {
+    _methodNode = methodNode;
     _containingClass = containingClass;
-    _method = method;
   }
 
   @Override
   public IJavaClassInfo getReturnClassInfo() {
     if (_returnType == null) {
-      final Tree returnType = _method.getReturnType();
-      _returnType = (IJavaClassInfo) JavaSourceType.createType(this, getTypeName(returnType), JavaSourceType.IGNORE_NONE).getConcreteType();
+      int indexOfName = _methodNode.getChildOfTypeIndex(JavaParser.IDENTIFIER);
+      IJavaASTNode typeNode = _methodNode.getChild(indexOfName - 1);
+      String typeName;
+      if (typeNode instanceof TypeASTNode) {
+        typeName = ((TypeASTNode) typeNode).getTypeName();
+      } else {
+        typeName = typeNode.getText();
+      }
+      _returnType = (IJavaClassInfo) JavaSourceType.createType(this, typeName, JavaSourceType.IGNORE_NONE).getConcreteType();
       if (_returnType == null) {
         throw new RuntimeException("Cannot compute return type.");
       }
@@ -66,8 +70,8 @@ public class JavaSourceMethod implements IJavaClassMethod, ITypeInfoResolver {
 
   public IJavaClassType getGenericReturnType() {
     if (_genericReturnType == null) {
-      final Tree returnType = _method.getReturnType();
-      _genericReturnType = JavaSourceType.createType(this, returnType);
+      int indexOfName = _methodNode.getChildOfTypeIndex(JavaParser.IDENTIFIER);
+      _genericReturnType = JavaSourceType.createType(this, _methodNode.getChild(indexOfName - 1));
       if (_genericReturnType == null) {
         throw new RuntimeException("Cannot compute return type.");
       }
@@ -107,18 +111,19 @@ public class JavaSourceMethod implements IJavaClassMethod, ITypeInfoResolver {
   }
 
   public String getName() {
-    return _method.getName().toString();
+    return _methodNode.getChildOfType(JavaParser.IDENTIFIER).getText();
   }
 
   public JavaSourceParameter[] getParameters() {
     if (_parameters == null) {
-      List<? extends VariableTree> parameters = _method.getParameters();
-      if (parameters.isEmpty()) {
+      IJavaASTNode parametersNode = _methodNode.getChildOfTypes(JavaASTConstants.formalParameters);
+      if (parametersNode == null) {
         _parameters = new JavaSourceParameter[0];
       } else {
-        _parameters = new JavaSourceParameter[parameters.size()];
+        List<IJavaASTNode> parameterNodes = parametersNode.getChildrenOfTypes(JavaASTConstants.normalParameterDecl, JavaASTConstants.ellipsisParameterDecl);
+        _parameters = new JavaSourceParameter[parameterNodes.size()];
         for (int i = 0; i < _parameters.length; i++) {
-          _parameters[i] = new JavaSourceParameter(this, parameters.get(i));
+          _parameters[i] = new JavaSourceParameter(this, parameterNodes.get(i));
         }
       }
     }
@@ -140,7 +145,7 @@ public class JavaSourceMethod implements IJavaClassMethod, ITypeInfoResolver {
 
   public IModifierList getModifierList() {
     if (_modifierList == null) {
-      _modifierList = new JavaSourceModifierList(this, _method.getModifiers());
+      _modifierList = new JavaSourceModifierList(this, _methodNode.getChildOfType(JavaASTConstants.modifiers));
     }
     return _modifierList;
   }
@@ -226,11 +231,12 @@ public class JavaSourceMethod implements IJavaClassMethod, ITypeInfoResolver {
 
   public IJavaClassTypeVariable[] getTypeParameters() {
     if (_typeParameters == null) {
-      final List<? extends TypeParameterTree> typeParameters = _method.getTypeParameters();
-      if (!typeParameters.isEmpty()) {
-        _typeParameters = new IJavaClassTypeVariable[typeParameters.size()];
+      IJavaASTNode typeParamsNode = _methodNode.getChildOfType(JavaASTConstants.typeParameters);
+      if (typeParamsNode != null) {
+        List<IJavaASTNode> typeParamNodes = typeParamsNode.getChildrenOfTypes(JavaASTConstants.typeParameter);
+        _typeParameters = new IJavaClassTypeVariable[typeParamNodes.size()];
         for (int i = 0; i < _typeParameters.length; i++) {
-          _typeParameters[i] = JavaSourceTypeVariable.create(this, typeParameters.get(i));
+          _typeParameters[i] = JavaSourceTypeVariable.create(this, typeParamNodes.get(i));
         }
       } else {
         _typeParameters = JavaSourceTypeVariable.EMPTY;
@@ -258,18 +264,18 @@ public class JavaSourceMethod implements IJavaClassMethod, ITypeInfoResolver {
     return false;
   }
 
-  public static JavaSourceMethod create(MethodTree method, JavaSourceType containingClass) {
-    final Name name = method.getName();
-    if(name == null) {
+  public static JavaSourceMethod create(IJavaASTNode methodNode, JavaSourceType containingClass) {
+    IJavaASTNode nameNode = methodNode.getChildOfType(JavaParser.IDENTIFIER);
+    if (nameNode == null) {
       return null;
     }
-    String methodName = name.toString();
-    if (methodName.equals("<init>")) {
-      return new JavaSourceConstructor(method, containingClass);
+    String methodName = nameNode.getText();
+    if (methodName.equals(containingClass.getSimpleName())) {
+      return new JavaSourceConstructor(methodNode, containingClass);
     } else if (containingClass.isAnnotation()) {
-      return new JavaSourceAnnotationMethod(method, containingClass);
+      return new JavaSourceAnnotationMethod(methodNode, containingClass);
     } else {
-      return new JavaSourceMethod(method, containingClass);
+      return new JavaSourceMethod(methodNode, containingClass);
     }
   }
 
@@ -297,8 +303,8 @@ public class JavaSourceMethod implements IJavaClassMethod, ITypeInfoResolver {
 
     IJavaClassMethod jcm = (IJavaClassMethod)o;
     return getName().equals( jcm.getName() ) &&
-           getReturnType() == jcm.getReturnType() &&
-           Arrays.equals( getParameterTypes(), jcm.getParameterTypes() );
+      getReturnType() == jcm.getReturnType() &&
+      Arrays.equals( getParameterTypes(), jcm.getParameterTypes() );
   }
 
   @Override

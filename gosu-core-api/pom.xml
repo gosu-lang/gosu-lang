@@ -38,6 +38,11 @@
     </dependency>
     <dependency>
       <groupId>org.gosu-lang.gosu.managed</groupId>
+      <artifactId>gw-antlr-runtime</artifactId>
+      <version>3.4-3</version>
+    </dependency>
+    <dependency>
+      <groupId>org.gosu-lang.gosu.managed</groupId>
       <artifactId>gw-asm-util</artifactId>
       <version>5.0.1</version>
     </dependency>
