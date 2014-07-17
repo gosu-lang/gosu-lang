@@ -36,7 +36,7 @@
       <plugin>
         <groupId>org.gosu-lang.gosu</groupId>
         <artifactId>gosu-maven-plugin</artifactId>
-        <version>GOSU-PERF-SNAPSHOT</version>
+        <version>1.X-SNAPSHOT</version>
         <executions>
           <execution>
             <goals>
@@ -76,7 +76,6 @@
           <descriptors>
             <descriptor>src/main/assembly/assembly.xml</descriptor>
           </descriptors>
-          <appendAssemblyId>false</appendAssemblyId>
           <encoding>UTF-8</encoding>
         </configuration>
         <executions>
@@ -223,12 +222,5 @@
       </dependencies>
     </profile>
   </profiles>
-
-  <scm>
-    <connection>scm:git:git@gh.guidewire.com:gosu-cr/idea-gosu-plugin.git</connection>
-    <url>scm:git:git@gh.guidewire.com:gosu-cr/idea-gosu-plugin.git</url>
-    <developerConnection>scm:git:git@gh.guidewire.com:gosu-cr/idea-gosu-plugin.git</developerConnection>
-    <tag>HEAD</tag>
-  </scm>
 
 </project>
