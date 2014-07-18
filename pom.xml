@@ -51,11 +51,4 @@
     </plugins>
   </build>
 
-  <scm>
-    <connection>scm:git:git@github.com:gosu-lang/gosu.git</connection>
-    <url>scm:git:git@github.com:gosu-lang/gosu.git</url>
-    <developerConnection>scm:git:git@github.com:gosu-lang/gosu.git</developerConnection>
-    <tag>HEAD</tag>
-  </scm>
-
 </project>
