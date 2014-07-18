@@ -4,11 +4,9 @@
 
 package gw.internal.gosu.parser.java.classinfo;
 
-import com.sun.source.tree.ExpressionTree;
-import com.sun.source.tree.ModifiersTree;
-import com.sun.source.tree.Tree;
-import com.sun.source.tree.VariableTree;
-import com.sun.tools.javac.tree.JCTree;
+import gw.internal.gosu.parser.java.IJavaASTNode;
+import gw.internal.gosu.parser.java.JavaASTConstants;
+import gw.internal.gosu.parser.java.JavaParser;
 import gw.lang.reflect.IAnnotationInfo;
 import gw.lang.reflect.java.IJavaClassField;
 import gw.lang.reflect.java.IJavaClassInfo;
@@ -16,41 +14,34 @@ import gw.lang.reflect.java.IJavaClassType;
 
 import java.lang.annotation.Annotation;
 
-import static com.sun.tools.javac.code.Flags.ENUM;
-
 public class JavaSourceField implements IJavaClassField {
-  protected VariableTree _fieldTree;
+  protected IJavaASTNode _fieldNode;
   protected JavaSourceType _containingClass;
   protected IModifierList _modifierList;
   protected IJavaClassInfo _type;
   protected IJavaClassType _genericType;
 
-  public static JavaSourceField create(VariableTree fieldTree, JavaSourceType containingType) {
-    if (isEnumInit(fieldTree)) {
-      return new JavaSourceEnumConstant(fieldTree, containingType);
-    } else {
-      return new JavaSourceField(fieldTree, containingType);
+  public static JavaSourceField create(IJavaASTNode fieldNode, JavaSourceType containingType) {
+    if (fieldNode.isOfType( JavaASTConstants.fieldDeclaration) || fieldNode.isOfType( JavaASTConstants.interfaceFieldDeclaration)) {
+      return new JavaSourceField(fieldNode, containingType);
+    } else if (fieldNode.isOfType( JavaASTConstants.enumConstant)) {
+      return new JavaSourceEnumConstant(fieldNode, containingType);
     }
+    throw new RuntimeException("Unsupported field node type");
   }
 
-  public static boolean isEnumInit(VariableTree tree) {
-    final ModifiersTree modifiers = tree.getModifiers();
-    final JCTree.JCModifiers mod = (JCTree.JCModifiers) modifiers;
-    return (mod.flags & ENUM) != 0;
-  }
-
-  public JavaSourceField(VariableTree fieldTree, JavaSourceType containingClass) {
-    _fieldTree = fieldTree;
+  public JavaSourceField(IJavaASTNode fieldNode, JavaSourceType containingClass) {
+    _fieldNode = fieldNode;
     _containingClass = containingClass;
   }
 
   public String getName() {
-    return _fieldTree.getName().toString();
+    return _fieldNode.getChildOfType(JavaParser.IDENTIFIER).getText();
   }
 
   public String getRhs() {
-    final ExpressionTree rhs = _fieldTree.getInitializer();
-    return rhs == null ? null : rhs.toString();
+    IJavaASTNode initializerNode = _fieldNode.getChildOfType( JavaASTConstants.variableInitializer );
+    return initializerNode == null ? null : initializerNode.getSource();
   }
 
   @Override
@@ -69,8 +60,7 @@ public class JavaSourceField implements IJavaClassField {
   @Override
   public IJavaClassType getGenericType() {
     if (_genericType == null) {
-      final Tree type = _fieldTree.getType();
-      _genericType = JavaSourceType.createType(getEnclosingClass(), type);
+      _genericType = JavaSourceType.createType(getEnclosingClass(), _fieldNode.getChildOfType(JavaASTConstants.type));
     }
     return _genericType;
   }
@@ -82,8 +72,7 @@ public class JavaSourceField implements IJavaClassField {
 
   public IModifierList getModifierList() {
     if (_modifierList == null) {
-      final ModifiersTree modifiers = _fieldTree.getModifiers();
-      _modifierList = new JavaSourceModifierList(this, modifiers);
+      _modifierList = new JavaSourceModifierList(this, _fieldNode.getChildOfType( JavaASTConstants.modifiers));
     }
     return _modifierList;
   }

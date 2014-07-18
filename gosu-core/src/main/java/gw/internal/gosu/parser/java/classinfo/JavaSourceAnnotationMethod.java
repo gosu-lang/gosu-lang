@@ -4,26 +4,27 @@
 
 package gw.internal.gosu.parser.java.classinfo;
 
-import com.sun.source.tree.MethodTree;
-import com.sun.source.tree.NewArrayTree;
-import com.sun.source.tree.Tree;
+import gw.internal.gosu.parser.java.IJavaASTNode;
+import gw.internal.gosu.parser.java.JavaASTConstants;
 
 public class JavaSourceAnnotationMethod extends JavaSourceMethod {
   private JavaSourceDefaultValue _defaultValue;
 
-  public JavaSourceAnnotationMethod(MethodTree method, JavaSourceType containingClass) {
-    super(method, containingClass);
+  public JavaSourceAnnotationMethod(IJavaASTNode methodNode, JavaSourceType containingClass) {
+    super(methodNode, containingClass);
   }
 
   @Override
   public Object getDefaultValue() {
     if (_defaultValue == null) {
-      final Tree defaultValue = _method.getDefaultValue();
-      if (defaultValue != null) {
-        if(defaultValue instanceof NewArrayTree) {
-          _defaultValue = new JavaSourceDefaultValue(this, "new " + getReturnClassInfo().getName() + defaultValue.toString());
+      IJavaASTNode node = _methodNode.getChildOfType(JavaASTConstants.elementValue);
+      if (node != null) {
+        IJavaASTNode arrayNode = node.getChildOfType(JavaASTConstants.elementValueArrayInitializer);
+        if (arrayNode != null) {
+          _defaultValue = new JavaSourceDefaultValue(this, "new " + getReturnClassInfo().getName() +  " {" + arrayNode.getSource() + "}");
         } else {
-          _defaultValue = new JavaSourceDefaultValue(this, defaultValue.toString());
+          String text = node.getSource();
+          _defaultValue = new JavaSourceDefaultValue(this, text);
         }
       } else {
         _defaultValue = JavaSourceDefaultValue.NULL;
