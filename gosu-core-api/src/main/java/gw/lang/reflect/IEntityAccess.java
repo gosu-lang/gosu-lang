@@ -118,4 +118,8 @@ public interface IEntityAccess extends IService
   List<IDirectory> getAdditionalSourceRoots();
 
   void reloadedTypes(String[] types);
+
+  String getLocalizedTypeName(IType type);
+
+  String getLocalizedTypeInfoName(IType type);
 }

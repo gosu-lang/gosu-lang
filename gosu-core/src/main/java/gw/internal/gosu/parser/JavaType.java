@@ -301,7 +301,7 @@ class JavaType extends AbstractType implements IJavaTypeInternal
 
   public String getDisplayName()
   {
-    return getName();
+    return CommonServices.getEntityAccess().getLocalizedTypeName(thisRef());
   }
 
   public String getRelativeName()

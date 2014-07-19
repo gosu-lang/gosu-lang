@@ -27,6 +27,7 @@ import gw.lang.reflect.RefreshRequest;
 import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.gs.GosuClassTypeLoader;
 import gw.lang.reflect.gs.ICompilableType;
+import gw.lang.reflect.java.IJavaType;
 import gw.lang.reflect.module.IModule;
 import gw.util.GosuExceptionUtil;
 import gw.util.IFeatureFilter;
@@ -505,5 +506,21 @@ public class DefaultEntityAccess extends BaseService implements IEntityAccess
   @Override
   public void reloadedTypes(String[] types) {
     //nothing to do
+  }
+
+  @Override
+  public String getLocalizedTypeName(IType type) {
+    return type.getName();
+  }
+
+  @Override
+  public String getLocalizedTypeInfoName(IType type) {
+    String result;
+    if (type instanceof IJavaType) {
+      result = ((IJavaType) type).getBackingClassInfo().getDisplayName();
+    } else {
+      result = getLocalizedTypeName(type);
+    }
+    return result;
   }
 }
