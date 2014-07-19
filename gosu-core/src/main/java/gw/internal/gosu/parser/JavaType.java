@@ -49,6 +49,8 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
+import static java.lang.String.format;
+
 /**
  */
 class JavaType extends AbstractType implements IJavaTypeInternal
@@ -141,7 +143,8 @@ class JavaType extends AbstractType implements IJavaTypeInternal
     else
     {
       JavaType rawType = new JavaType( new ClassJavaClassInfo(cls, loader.getModule()), loader );
-      type = (IJavaTypeInternal)TypeSystem.getOrCreateTypeReference( rawType );
+      IJavaTypeInternal extendedType = JavaTypeExtensions.maybeExtendType(rawType);
+      type = (IJavaTypeInternal)TypeSystem.getOrCreateTypeReference( extendedType );
       rawType._typeRef = type;
     }
     TYPES_BY_CLASS.put( cls, type );
@@ -160,7 +163,8 @@ class JavaType extends AbstractType implements IJavaTypeInternal
     else
     {
       JavaType rawType = new JavaType( cls, loader );
-      type = (IJavaTypeInternal)TypeSystem.getOrCreateTypeReference( rawType );
+      IJavaTypeInternal extendedType = JavaTypeExtensions.maybeExtendType(rawType);
+      type = (IJavaTypeInternal)TypeSystem.getOrCreateTypeReference( extendedType );
       rawType._typeRef = type;
     }
     return type;
@@ -937,6 +941,11 @@ class JavaType extends AbstractType implements IJavaTypeInternal
       TypeSystem.unlock();
     }
     return _allTypesInHierarchy;
+  }
+
+  @Override
+  protected IType getTheRef() {
+    return thisRef();
   }
 
   private IJavaTypeInternal thisRef()

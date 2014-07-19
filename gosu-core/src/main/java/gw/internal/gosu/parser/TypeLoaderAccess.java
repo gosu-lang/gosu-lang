@@ -831,9 +831,16 @@ public class TypeLoaderAccess extends BaseService implements ITypeSystem
 
     if (IType.class.isAssignableFrom(javaClass) && fqn.endsWith(ITypeRefFactory.SYSTEM_PROXY_SUFFIX)) {
       String typeName = unproxy(fqn);
-      IType theType = TypeSystem.getByFullName(typeName, TypeSystem.getGlobalModule());
-      IModule module = theType.getTypeLoader().getModule();
-      DefaultTypeLoader typeLoader = module.getTypeLoaders(DefaultTypeLoader.class).get(0);
+      IType theType = TypeSystem.getByFullNameIfValid(typeName, TypeSystem.getGlobalModule());
+      DefaultTypeLoader typeLoader;
+      if (theType != null) {
+        IModule module = theType.getTypeLoader().getModule();
+        typeLoader = module.getTypeLoaders(DefaultTypeLoader.class).get(0);
+      } else {
+        // NOTE pdalbora 4-Jun-2014 -- If the underlying type is itself a proxy class, then the unproxy hack
+        // above won't work. In that case, just try the single instance DefaultTypeLoader.
+        typeLoader = DefaultTypeLoader.instance();
+      }
       type = JavaType.get(javaClass, typeLoader);
       if (type != null) {
         return type;

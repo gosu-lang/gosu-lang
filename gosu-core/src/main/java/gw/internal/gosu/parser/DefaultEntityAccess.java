@@ -523,4 +523,8 @@ public class DefaultEntityAccess extends BaseService implements IEntityAccess
     }
     return result;
   }
+
+  public ExtendedTypeDataFactory getExtendedTypeDataFactory(String typeName) {
+    return null;
+  }
 }

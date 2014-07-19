@@ -28,6 +28,7 @@ import gw.lang.reflect.gs.IGosuClass;
 import gw.lang.reflect.gs.IGosuObject;
 import gw.lang.reflect.gs.StringSourceFileHandle;
 import gw.lang.reflect.java.IJavaMethodInfo;
+import gw.lang.reflect.java.IJavaPropertyInfo;
 import gw.lang.reflect.java.IJavaType;
 import gw.lang.reflect.java.JavaTypes;
 import gw.lang.reflect.module.IModule;
@@ -1059,8 +1060,8 @@ public class GosuClassProxyFactory
 
   private static IType getGenericType( IPropertyInfo pi )
   {
-    return (pi instanceof JavaPropertyInfo)
-           ? ((JavaPropertyInfo)pi).getGenericIntrinsicType()
+    return (pi instanceof IJavaPropertyInfo)
+           ? ((IJavaPropertyInfo)pi).getGenericIntrinsicType()
            : pi.getFeatureType();
   }
 
