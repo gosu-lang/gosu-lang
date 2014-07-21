@@ -4,16 +4,16 @@
 
 package gw.internal.gosu.parser.java.classinfo;
 
-import com.sun.source.tree.ModifiersTree;
-import com.sun.source.tree.VariableTree;
+import gw.internal.gosu.parser.java.IJavaASTNode;
+import gw.internal.gosu.parser.java.JavaASTConstants;
 import gw.lang.reflect.Modifier;
 import gw.lang.reflect.java.IJavaClassInfo;
 import gw.lang.reflect.java.IJavaClassType;
 
 public class JavaSourceEnumConstant extends JavaSourceField {
 
-  public JavaSourceEnumConstant(VariableTree fieldTree, JavaSourceType containingClass) {
-    super(fieldTree, containingClass);
+  public JavaSourceEnumConstant(IJavaASTNode fieldNode, JavaSourceType containingClass) {
+    super(fieldNode, containingClass);
   }
 
   @Override
@@ -39,8 +39,7 @@ public class JavaSourceEnumConstant extends JavaSourceField {
 
   public IModifierList getModifierList() {
     if (_modifierList == null) {
-      final ModifiersTree modifiers = _fieldTree.getModifiers();
-      _modifierList = new JavaSourceModifierList(this, modifiers, Modifier.PUBLIC | Modifier.STATIC | Modifier.FINAL);
+      _modifierList = new JavaSourceModifierList(this, _fieldNode.getChildOfType(JavaASTConstants.annotations), Modifier.PUBLIC | Modifier.STATIC | Modifier.FINAL);
     }
     return _modifierList;
   }
