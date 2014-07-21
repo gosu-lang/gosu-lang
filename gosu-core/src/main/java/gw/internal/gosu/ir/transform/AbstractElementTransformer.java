@@ -2702,6 +2702,7 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
   }
 
   protected IRExpression buildInitializedArray( IRType componentType, List<IRExpression> values ) {
+    componentType = IRElement.maybeEraseStructuralType( componentType );
     List<IRElement> elements = new ArrayList<IRElement>();
     IRSymbol tempArray = _cc.makeAndIndexTempSymbol( componentType.getArrayType() );
     elements.add( buildAssignment( tempArray, newArray( componentType, numericLiteral( values.size() ) ) ) );

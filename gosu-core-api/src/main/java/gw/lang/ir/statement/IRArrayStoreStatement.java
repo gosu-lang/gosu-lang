@@ -20,7 +20,7 @@ public class IRArrayStoreStatement extends IRStatement {
     _target = target;
     _index = index;
     _value = value;
-    _componentType = componentType;
+    _componentType = maybeEraseStructuralType( componentType );
 
     target.setParent( this );
     index.setParent( this );

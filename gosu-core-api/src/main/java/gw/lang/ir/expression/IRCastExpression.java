@@ -21,6 +21,8 @@ public class IRCastExpression extends IRExpression {
       throw new IllegalArgumentException("Cannot perform a cast to a primitive type: " + type.getName());
     }
 
+    type = maybeEraseStructuralType( type );
+
     //## hack: Don't ever cast to an external entity type
     type = isExternalEntityType( type ) ? root.getType() : type;
 
