@@ -63,4 +63,12 @@ class StructuralTypeTest extends BaseVerifyErrantTest {
     propStruct.Foo = "fred"
     assertEquals( "fred", propStruct.Foo )
   }
+
+  function testStructureExtendsIterableErasesToObjectArray() {
+    var arr = toArray( {"A"} )
+    assertArrayEquals( arr, {{"A"}} )
+  }
+  private function toArray(x: StructureExtendsIterable): StructureExtendsIterable[] {
+    return {x}
+  }
 }
