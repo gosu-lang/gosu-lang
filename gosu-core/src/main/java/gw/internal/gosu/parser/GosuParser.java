@@ -52,6 +52,7 @@ import gw.internal.gosu.util.StringUtil;
 import gw.lang.IReentrant;
 import gw.lang.annotation.UsageTarget;
 import gw.lang.function.IBlock;
+import gw.lang.ir.IRElement;
 import gw.lang.ir.IRType;
 import gw.lang.parser.ExternalSymbolMapForMap;
 import gw.lang.parser.GlobalScope;
@@ -12460,17 +12461,9 @@ public final class GosuParser extends ParserBase implements IGosuParser
 
   private boolean doTypesReifyToTheSameBytecodeType( IType toArg, IType arg )
   {
-    IRType argType = IRTypeResolver.getDescriptor(arg);
-    argType = eraseIfStructuralType( argType );
-    IRType toArgType = IRTypeResolver.getDescriptor( toArg );
-    toArgType = eraseIfStructuralType( toArgType );
+    IRType toArgType = IRElement.maybeEraseStructuralType( null, IRTypeResolver.getDescriptor( toArg ) );
+    IRType argType = IRElement.maybeEraseStructuralType( null, IRTypeResolver.getDescriptor( arg ) );
     return argType.equals( toArgType );
-  }
-
-  private IRType eraseIfStructuralType( IRType argType ) {
-    return argType.isStructural()
-            ? IRTypeResolver.getDescriptor( Object.class )
-            : argType;
   }
 
   private IGosuClass getOwningTypeForDfs( IDynamicSymbol dfs )
