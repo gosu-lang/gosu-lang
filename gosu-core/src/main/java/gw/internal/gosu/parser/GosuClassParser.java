@@ -4025,6 +4025,13 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
       if( verify( functionStmt, match( null, '{' ), Res.MSG_EXPECTING_OPEN_BRACE_FOR_CONSTRUCTOR_DEF ) )
       {
         IGosuClassInternal superClass = gsClass.getSuperClass();
+        List<DynamicFunctionSymbol> constructorFunctions = gsClass.getConstructorFunctions();
+        if( gsClass.isAnonymous() && !constructorFunctions.isEmpty() )
+        {
+          verify( functionStmt, superClass != null &&
+                                constructorFunctions.size() == superClass.getConstructorFunctions().size(),
+                                Res.MSG_CONSTRUCTORS_NOT_ALLOWD_IN_THIS_CONTEXT);
+        }
         if( superClass != null )
         {
           // If it's an enum, there's no default super constructor:  the enum class extends the Enum java class
