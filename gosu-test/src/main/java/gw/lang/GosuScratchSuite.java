@@ -20,7 +20,7 @@ public class GosuScratchSuite extends Suite
     BytecodeOptions.enableAggressiveVerification();
     return new GosuScratchSuite()
             .withTestEnvironment( new ScratchTestEnvironment() )
-            .withTest( "gw.specification.variablesParametersFieldsScope.finalModifier.FinalVarTest" )
+            .withTest( "gw.specification.temp.generic_signature.GenericSignatureTest" )
             ;
   }
 

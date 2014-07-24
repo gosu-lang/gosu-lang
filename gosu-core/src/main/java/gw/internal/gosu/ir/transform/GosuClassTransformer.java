@@ -1801,6 +1801,7 @@ public class GosuClassTransformer extends AbstractElementTransformer<ClassStatem
     {
       _irClass.addInterface( iface );
     }
+    _irClass.makeGenericSignature( _gsClass );
   }
 
   private IRType getSuperSlashName()
