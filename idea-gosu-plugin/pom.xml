@@ -4,12 +4,12 @@
     <groupId>org.gosu-lang.gosu</groupId>
     <artifactId>gosu-parent</artifactId>
     <relativePath>../gosu-parent/pom.xml</relativePath>
-    <version>GOSU-J8-SNAPSHOT</version>
+    <version>1-java8-SNAPSHOT</version>
   </parent>
 
   <groupId>com.guidewire.studio</groupId>
   <artifactId>idea-gosu-plugin</artifactId>
-  <version>3.4.J8-SNAPSHOT</version>
+  <version>3-java8-SNAPSHOT</version>
 
   <name>Gosu :: IntelliJ IDEA Plugin </name>
 
@@ -36,7 +36,7 @@
       <plugin>
         <groupId>org.gosu-lang.gosu</groupId>
         <artifactId>gosu-maven-plugin</artifactId>
-        <version>GOSU-J8-SNAPSHOT</version>
+        <version>1.X-SNAPSHOT</version>
         <executions>
           <execution>
             <goals>
@@ -76,7 +76,6 @@
           <descriptors>
             <descriptor>src/main/assembly/assembly.xml</descriptor>
           </descriptors>
-          <appendAssemblyId>false</appendAssemblyId>
           <encoding>UTF-8</encoding>
         </configuration>
         <executions>
@@ -183,24 +182,24 @@
     <dependency>
       <groupId>org.gosu-lang.gosu</groupId>
       <artifactId>gosu-core</artifactId>
-      <version>GOSU-J8-SNAPSHOT</version>
+      <version>1-java8-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.gosu-lang.gosu</groupId>
       <artifactId>gosu-test-api</artifactId>
-      <version>GOSU-J8-SNAPSHOT</version>
+      <version>1-java8-SNAPSHOT</version>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.gosu-lang.gosu</groupId>
       <artifactId>gosu-itcase-utils</artifactId>
-      <version>GOSU-J8-SNAPSHOT</version>
+      <version>1-java8-SNAPSHOT</version>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.gosu-lang.gosu</groupId>
       <artifactId>ij-compiler-api</artifactId>
-      <version>GOSU-J8-SNAPSHOT</version>
+      <version>1-java8-SNAPSHOT</version>
     </dependency>
   </dependencies>
 
@@ -223,12 +222,5 @@
       </dependencies>
     </profile>
   </profiles>
-
-  <scm>
-    <connection>scm:git:git@gh.guidewire.com:gosu-cr/idea-gosu-plugin.git</connection>
-    <url>scm:git:git@gh.guidewire.com:gosu-cr/idea-gosu-plugin.git</url>
-    <developerConnection>scm:git:git@gh.guidewire.com:gosu-cr/idea-gosu-plugin.git</developerConnection>
-    <tag>HEAD</tag>
-  </scm>
 
 </project>

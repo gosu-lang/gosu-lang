@@ -4,7 +4,7 @@
   <parent>
     <groupId>org.gosu-lang.gosu</groupId>
     <artifactId>gosu-parent</artifactId>
-    <version>GOSU-J8-SNAPSHOT</version>
+    <version>1-java8-SNAPSHOT</version>
     <relativePath>gosu-parent</relativePath>
   </parent>
   <artifactId>gosu-proj</artifactId>
@@ -50,12 +50,5 @@
       </plugin>
     </plugins>
   </build>
-
-  <scm>
-    <connection>scm:git:git@github.com:gosu-lang/gosu.git</connection>
-    <url>scm:git:git@github.com:gosu-lang/gosu.git</url>
-    <developerConnection>scm:git:git@github.com:gosu-lang/gosu.git</developerConnection>
-    <tag>HEAD</tag>
-  </scm>
 
 </project>
