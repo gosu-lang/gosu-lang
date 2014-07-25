@@ -14,6 +14,7 @@ import gw.lang.reflect.ITypeVariableType;
 import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.gs.IGenericTypeVariable;
 import gw.lang.reflect.gs.IGosuClass;
+import gw.lang.reflect.java.JavaTypes;
 
 import java.util.List;
 import java.util.ArrayList;
@@ -134,12 +135,21 @@ public class IRClass {
           }
           visitType( sv, tv.getBoundingType(), bGeneric );
         }
+        else {
+          SignatureVisitor sv = sw.visitClassBound();
+          visitType( sv, JavaTypes.OBJECT(), bGeneric );
+        }
       }
     }
     if( type.getSupertype() != null ) {
       SignatureVisitor sv = sw.visitSuperclass();
       visitType( sv, type.getSupertype(), bGeneric );
     }
+    else {
+      SignatureVisitor sv = sw.visitSuperclass();
+      visitType( sv, JavaTypes.OBJECT(), bGeneric );
+    }
+
     if( type.getInterfaces() != null ) {
       for( IType iface: type.getInterfaces() ) {
         SignatureVisitor sv = sw.visitInterface();
