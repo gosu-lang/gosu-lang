@@ -5,6 +5,7 @@
 package gw.internal.gosu.ir.transform.expression;
 
 import gw.config.CommonServices;
+import gw.internal.gosu.coercer.FunctionToInterfaceClassGenerator;
 import gw.internal.gosu.ir.nodes.IRTypeFactory;
 import gw.internal.gosu.ir.nodes.JavaClassIRType;
 import gw.internal.gosu.parser.TypeLord;
@@ -29,6 +30,7 @@ import gw.lang.parser.coercers.FunctionFromInterfaceCoercer;
 import gw.lang.parser.coercers.IdentityCoercer;
 import gw.lang.parser.coercers.RuntimeCoercer;
 import gw.lang.parser.expressions.ITypeAsExpression;
+import gw.lang.reflect.IBlockType;
 import gw.lang.reflect.IFunctionType;
 import gw.lang.reflect.IRelativeTypeInfo;
 import gw.lang.reflect.IType;
@@ -201,6 +203,16 @@ public class TypeAsTransformer extends AbstractExpressionTransformer<ITypeAsExpr
     if( asType == JavaTypes.OBJECT() && lhsType.isPrimitive() ) {
       // Any Primitive -> Object (bypass coercion manager)
       return boxValue( lhsType, root );
+    }
+
+    if( asType.isPrimitive() && lhsType == JavaTypes.OBJECT() ) {
+      // Object -> Any Primitive (bypass coercion)
+      return unboxValueToType( asType, root );
+    }
+
+    if( asType.isInterface() && lhsType instanceof IBlockType ) {
+      IGosuClass gsClass = FunctionToInterfaceClassGenerator.getBlockToInterfaceConversionClass( asType, _cc().getGosuClass() );
+      return buildNewExpression( IRTypeFactory.get( gsClass ), Collections.singletonList( IRTypeFactory.get( JavaTypes.IBLOCK() ) ), Collections.singletonList( root ) );
     }
 
     IType lhsDimensionNumberType = findDimensionType( lhsType );

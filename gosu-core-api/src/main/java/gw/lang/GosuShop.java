@@ -253,8 +253,8 @@ public class GosuShop
     return CommonServices.getGosuIndustrialPark().getNullExpressionInstance();
   }
 
-  public static Class getBlockToInterfaceConversionClass( IType typeToCoerceTo ) {
-    return CommonServices.getGosuIndustrialPark().getBlockToInterfaceConversionClass(typeToCoerceTo);
+  public static IGosuClass getBlockToInterfaceConversionClass( IType typeToCoerceTo, IType enclosingType ) {
+    return CommonServices.getGosuIndustrialPark().getBlockToInterfaceConversionClass( typeToCoerceTo, enclosingType );
   }
 
   public static IRTypeResolver getIRTypeResolver() {

@@ -116,6 +116,7 @@ import gw.lang.reflect.gs.IGosuEnhancement;
 import gw.lang.reflect.gs.IGosuMethodInfo;
 import gw.lang.reflect.gs.IGosuProgram;
 import gw.lang.reflect.gs.IGosuVarPropertyInfo;
+import gw.lang.reflect.gs.StringSourceFileHandle;
 import gw.lang.reflect.java.IJavaClassInfo;
 import gw.lang.reflect.java.IJavaClassMethod;
 import gw.lang.reflect.java.IJavaConstructorInfo;
@@ -2768,11 +2769,19 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
 
   public static boolean requiresExternalSymbolCapture( IType type ) {
     IType enclosingType = type.getEnclosingType();
-    if ( enclosingType == null ) {
+    if( enclosingType == null ) {
       return false;
-    } else if ( enclosingType instanceof GosuFragment || enclosingType instanceof IGosuProgram ) {
+    }
+    else if( type instanceof IGosuClass &&
+             !(type instanceof IBlockClass) &&
+             ((IGosuClass)type).getSourceFileHandle() instanceof StringSourceFileHandle ) {
+      // synthetic
+      return false;
+    }
+    else if( enclosingType instanceof GosuFragment || enclosingType instanceof IGosuProgram ) {
       return true;
-    } else {
+    }
+    else {
       return requiresExternalSymbolCapture( enclosingType );
     }
   }
