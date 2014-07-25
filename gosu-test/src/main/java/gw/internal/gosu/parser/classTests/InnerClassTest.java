@@ -391,12 +391,7 @@ public class InnerClassTest extends TestClass
 
   public void testInnerCanHaveSameNameAsOuter() throws ClassNotFoundException
   {
-    IGosuClassInternal gosuClass = (IGosuClassInternal) TypeSystem.getByFullName("gw.internal.gosu.parser.classTests.gwtest.inner.InnerCanHaveSameNameAsOuter1");
-    if (!gosuClass.isValid()) {
-      System.err.println(gosuClass.getParseResultsException().getMessage());
-    }
-    assertTrue(gosuClass.isValid());
-    gosuClass = (IGosuClassInternal) TypeSystem.getByFullName("gw.internal.gosu.parser.classTests.gwtest.inner.InnerCanHaveSameNameAsOuter2");
+    IGosuClassInternal gosuClass =  (IGosuClassInternal) TypeSystem.getByFullName("gw.internal.gosu.parser.classTests.gwtest.inner.InnerCanHaveSameNameAsOuter2");
     if (!gosuClass.isValid()) {
       System.err.println(gosuClass.getParseResultsException().getMessage());
     }

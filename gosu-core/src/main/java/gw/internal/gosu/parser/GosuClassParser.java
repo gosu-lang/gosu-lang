@@ -2833,6 +2833,9 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
     String strInnerClass = t._strValue;
     if( strInnerClass != null )
     {
+      String name = enclosingGsClass.getName();
+      String dotInner = "." + strInnerClass;
+      verify( getClassStatement(), !name.equals(strInnerClass) &&  !name.endsWith(dotInner) , Res.MSG_DUPLICATE_CLASS_FOUND, name + dotInner );
       for( IGosuClass c : enclosingGsClass.getKnownInnerClassesWithoutCompiling().values() )
       {
         IGosuClassInternal innerClass = (IGosuClassInternal)c;
