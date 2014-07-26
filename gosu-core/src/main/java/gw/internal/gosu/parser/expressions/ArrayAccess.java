@@ -232,6 +232,10 @@ public final class ArrayAccess extends Expression implements IArrayAccessExpress
     {
       setType( GosuParserTypes.STRING_TYPE() );
     }
+    else if( rootType == JavaTypes.STRING_BUILDER() )
+    {
+      setType( JavaTypes.pCHAR() );
+    }
     else if( JavaTypes.COLLECTION().isAssignableFrom(rootType) )
     {
       IType paramedType = TypeLord.findParameterizedType(rootType, JavaTypes.COLLECTION());
@@ -276,7 +280,7 @@ public final class ArrayAccess extends Expression implements IArrayAccessExpress
            (type instanceof IDynamicType);
   }
 
-  private static Object getElementFromIterator( Iterator iter, int iIndex )
+  public static Object getElementFromIterator( Iterator iter, int iIndex )
   {
     int iCount = 0;
     while( iter.hasNext() )
