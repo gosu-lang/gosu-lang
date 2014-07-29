@@ -8,6 +8,7 @@ import gw.config.CommonServices;
 import gw.internal.gosu.parser.java.classinfo.CompileTimeExpressionParser;
 import gw.lang.GosuShop;
 import gw.lang.annotation.Annotations;
+import gw.lang.SimplePropertyProcessing;
 import gw.lang.javadoc.IClassDocNode;
 import gw.lang.javadoc.IDocRef;
 import gw.lang.parser.IExpression;
@@ -133,6 +134,7 @@ public class JavaTypeInfo extends JavaBaseFeatureInfo implements IJavaTypeInfo
           TypeSystem.lock();
           try
           {
+            boolean simplePropertyProcessing = _backingClass.getAnnotation(SimplePropertyProcessing.class) != null;
             IJavaClassField[] fields = _backingClass.getDeclaredFields();
             for( IJavaClassField field : fields )
             {
@@ -146,7 +148,7 @@ public class JavaTypeInfo extends JavaBaseFeatureInfo implements IJavaTypeInfo
               {
                 TypeVarToTypeMap actualParamByVarName =
                         TypeLord.mapTypeByVarName( getOwnersType(), getOwnersType(), true );
-                JavaFieldPropertyInfo staticProp = new JavaFieldPropertyInfo( JavaTypeInfo.this, field.getGenericType().getActualType( actualParamByVarName, true ), field, true );
+                JavaFieldPropertyInfo staticProp = new JavaFieldPropertyInfo( JavaTypeInfo.this, field.getGenericType().getActualType( actualParamByVarName, true ), field, true, simplePropertyProcessing );
                 int pos = getPosition(properties, staticProp.getName());
                 // We favor non-static over static
                 if( pos == -1 || properties.get(pos).isStatic() )
@@ -172,7 +174,7 @@ public class JavaTypeInfo extends JavaBaseFeatureInfo implements IJavaTypeInfo
                 if (field.getGenericType() == null) {
                   throw new IllegalStateException("The generic type for the field " + field.getName() + " on " + _backingClass.getName() + " was null");
                 }
-                JavaFieldPropertyInfo prop = new JavaFieldPropertyInfo( JavaTypeInfo.this, field.getGenericType().getActualType( actualParamByVarName, true ), field, false );
+                JavaFieldPropertyInfo prop = new JavaFieldPropertyInfo( JavaTypeInfo.this, field.getGenericType().getActualType( actualParamByVarName, true ), field, false, simplePropertyProcessing );
                 int pos = getPosition(properties, prop.getName());
                 // We favor non-static over static
                 if( pos == -1 || properties.get(pos) instanceof JavaFieldPropertyInfo )
