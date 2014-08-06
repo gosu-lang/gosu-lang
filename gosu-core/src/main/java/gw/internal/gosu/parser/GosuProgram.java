@@ -37,7 +37,7 @@ public class GosuProgram extends GosuClass implements IGosuProgramInternal
   private IType _expectedReturnType;
   private boolean _bGenRootExprAccess;
   private ITokenizerInstructor _tokenizerInstructor;
-  private IProgramInstance _sharedInstance;
+  private volatile IProgramInstance _sharedInstance;
   private boolean _anonymous;
   private boolean _throwaway;
   private boolean _bStatementsOnly;
@@ -357,15 +357,14 @@ public class GosuProgram extends GosuClass implements IGosuProgramInternal
       return _sharedInstance;
     } else {
       if (canShareProgramInstances()) {
-        TypeSystem.lock();
-        try {
-          if (_sharedInstance == null) {
-            _sharedInstance = createNewInstance();
+        if (_sharedInstance == null) {
+          synchronized (this) {
+            if (_sharedInstance == null) {
+              _sharedInstance = createNewInstance();
+            }
           }
-          return _sharedInstance;
-        } finally {
-          TypeSystem.unlock();
         }
+        return _sharedInstance;
       } else {
         return createNewInstance();
       }
