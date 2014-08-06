@@ -163,13 +163,10 @@ public class IRClassCompiler extends AbstractBytecodeCompiler
 
   /**
    * Deals with generics.
-   *
-   * Since Gosu generics are parameterized explicitly in the bytecode world,
-   * we'll probably not ever conform to java generics.
    */
   private String getClassSignature()
   {
-    return null;
+    return _irClass.getGenericSignature();
   }
 
   private String[] getInterfaceNames()
