@@ -138,8 +138,8 @@ public class IRClass {
         else {
           SignatureVisitor sv = sw.visitClassBound();
           visitType( sv, JavaTypes.OBJECT(), bGeneric );
+        }
       }
-    }
     }
     if( type.getSupertype() != null ) {
       SignatureVisitor sv = sw.visitSuperclass();
@@ -157,8 +157,8 @@ public class IRClass {
       }
     }
     if( bGeneric[0] ) {
-    _genericSignature = sw.toString();
-  }
+      _genericSignature = sw.toString();
+    }
   }
 
   private void visitType( SignatureVisitor sv, IType type, boolean[] bGeneric ) {
