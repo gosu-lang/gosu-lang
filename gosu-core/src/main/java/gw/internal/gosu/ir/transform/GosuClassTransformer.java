@@ -97,10 +97,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  */
@@ -676,7 +678,10 @@ public class GosuClassTransformer extends AbstractElementTransformer<ClassStatem
     for( IDynamicFunctionSymbol idfs : methodSet )
     {
       compileMethod( (DynamicFunctionSymbol)idfs );
-      compileBridgeMethods( (DynamicFunctionSymbol)idfs );
+      if( !idfs.isAbstract() )
+      {
+        compileBridgeMethods( (DynamicFunctionSymbol)idfs );
+      }
     }
 
     if( !_gsClass.isInterface() && !isCompilingEnhancement() && !_cc().compilingBlock() )
@@ -713,27 +718,15 @@ public class GosuClassTransformer extends AbstractElementTransformer<ClassStatem
    */
   private void compileBridgeMethods( DynamicFunctionSymbol dfs )
   {
-    if( dfs.isAbstract() )
+    List<DynamicFunctionSymbol> list;
+    list = maybeGetSuperDfs( dfs );
+    if( list.isEmpty() )
     {
       return;
     }
 
-    while( true )
+    for( DynamicFunctionSymbol superDfs: list )
     {
-      DynamicFunctionSymbol superDfs;
-      if( dfs.isOverride() )
-      {
-        superDfs = dfs.getSuperDfs();
-      }
-      else
-      {
-        superDfs = maybeGetSuperDfsFromJavaProxy( dfs );
-        if( superDfs == null )
-        {
-          break;
-        }
-      }
-
       while( superDfs instanceof ParameterizedDynamicFunctionSymbol )
       {
         superDfs = ((ParameterizedDynamicFunctionSymbol)superDfs).getBackingDfs();
@@ -741,7 +734,7 @@ public class GosuClassTransformer extends AbstractElementTransformer<ClassStatem
 
       if( genProxyCovariantBridgeMethod( dfs, superDfs ) )
       {
-        return;
+        continue;
       }
 
       IRType superRetDescriptor = getDescriptorNoStructures( superDfs.getReturnType() );
@@ -812,53 +805,66 @@ public class GosuClassTransformer extends AbstractElementTransformer<ClassStatem
         if( gsProxyClass != null && gsProxyClass.isProxy() )
         {
           if( addCovarientProxyBridgeMethods( superDfs ) ) {
-            break;
+            continue;
           }
         }
       }
-      dfs = superDfs;
+      compileBridgeMethods( superDfs );
     }
   }
 
-  private DynamicFunctionSymbol maybeGetSuperDfsFromJavaProxy( DynamicFunctionSymbol dfs )
+  private List<DynamicFunctionSymbol> maybeGetSuperDfs( DynamicFunctionSymbol dfs )
   {
     IScriptPartId scriptPart = dfs.getScriptPart();
     if( scriptPart == null )
     {
-      return null;
+      return Collections.emptyList();
     }
     IType gsClass = scriptPart.getContainingType();
     if( gsClass == null )
     {
-      return null;
+      return Collections.emptyList();
     }
-    if( !IGosuClass.ProxyUtil.isProxy( gsClass ) )
+    boolean bProxy = IGosuClass.ProxyUtil.isProxy( gsClass );
+    List<DynamicFunctionSymbol> list = new ArrayList<DynamicFunctionSymbol>( 2 );
+    Set<IType> set = new HashSet<IType>();
+    IType superType = bProxy ? (IJavaType)((IGosuClass)gsClass).getJavaType().getSupertype() : gsClass.getSupertype();
+    if( superType != null )
     {
-      return null;
-    }
-    IJavaType javaSuperType = (IJavaType)((IGosuClass)gsClass).getJavaType().getSupertype();
-    if( javaSuperType != null )
-    {
-      DynamicFunctionSymbol superDfs = getSuperDfs( dfs, gsClass, javaSuperType );
-      if( superDfs != null ) {
-        return superDfs;
+      DynamicFunctionSymbol superDfs = getSuperDfs( dfs, gsClass, superType );
+      if( superDfs != null && !set.contains( superDfs.getReturnType() ) ) {
+        list.add( superDfs );
+        set.add( superDfs.getReturnType() );
       }
     }
-    IType[] interfaces = ((IGosuClass)gsClass).getJavaType().getInterfaces();
+    IType[] interfaces = bProxy ? ((IGosuClass)gsClass).getJavaType().getInterfaces() : gsClass.getInterfaces();
     if( interfaces != null ) {
       for( IType iface : interfaces ) {
-        DynamicFunctionSymbol superDfs = getSuperDfs( dfs, gsClass, (IJavaType)iface );
-        if( superDfs != null ) {
-          return superDfs;
+        DynamicFunctionSymbol superDfs = getSuperDfs( dfs, gsClass, iface );
+        if( superDfs != null && !set.contains( superDfs.getReturnType() ) ) {
+          list.add( superDfs );
+          set.add( superDfs.getReturnType() );
         }
       }
     }
-    return null;
+    return list;
   }
 
-  private DynamicFunctionSymbol getSuperDfs( DynamicFunctionSymbol dfs, IType gsClass, IJavaType javaSuperType ) {
-    IGosuClassInternal gosuSuperType = IGosuClassInternal.Util.getGosuClassFrom( javaSuperType );
-    if( gosuSuperType == null )
+  private DynamicFunctionSymbol getSuperDfs( DynamicFunctionSymbol dfs, IType gsClass, IType superType ) {
+    IGosuClassInternal gosuSuperType;
+    if( superType instanceof IJavaType )
+    {
+      gosuSuperType = IGosuClassInternal.Util.getGosuClassFrom( superType );
+      if( gosuSuperType == null )
+      {
+        return null;
+      }
+    }
+    else if( superType instanceof IGosuClass )
+    {
+      gosuSuperType = (IGosuClassInternal)superType;
+    }
+    else
     {
       return null;
     }
