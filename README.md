@@ -81,7 +81,7 @@ You need Java JDK 1.7 and Maven 3.0 to build Gosu and the IntelliJ IDEA plugin.
 
 Simply clone the project from GitHub and run:
 
-    mvn compile
+    mvn process-classes
 
 
 Quick Install

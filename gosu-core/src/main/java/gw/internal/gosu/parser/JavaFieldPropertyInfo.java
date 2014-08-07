@@ -55,7 +55,7 @@ public class JavaFieldPropertyInfo extends JavaBaseFeatureInfo implements IJavaF
     }
   };
 
-  JavaFieldPropertyInfo(IFeatureInfo container, IType type, IJavaClassField field, boolean isStatic)
+  JavaFieldPropertyInfo(IFeatureInfo container, IType type, IJavaClassField field, boolean isStatic, boolean simplePropertyProcessing)
   {
     super( container );
     if (type == null) {
@@ -68,7 +68,7 @@ public class JavaFieldPropertyInfo extends JavaBaseFeatureInfo implements IJavaF
     }
     _isStatic = isStatic;
     //_strName = NewIntrospector.capitalizeFirstChar( _field.getName() ).replace( '$', '_' );
-    _strName = _field.getName().replace( '$', '_' );
+    _strName = simplePropertyProcessing ? _field.getName() : _field.getName().replace( '$', '_' );
     if( _isStatic )
     {
       _accessor = new StaticAccessor();
