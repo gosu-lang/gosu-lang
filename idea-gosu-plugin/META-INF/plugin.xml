@@ -3,9 +3,7 @@
     <id>com.guidewire.gosu</id>
     <description><![CDATA[
     IntelliJ IDEA plugin for the Gosu programming language.
-    <p>
-    Version ${project.version}
-    <p>
+
     The plugin enables you to:
     <ul>
     <li> Create Gosu classes, programs, etc.
@@ -32,8 +30,7 @@
     <li> Hyperlink to Gosu from stack traces
     </ul>
   ]]></description>
-
-    <version>${project.version}</version>
+    <version>3-perf-SNAPSHOT</version>
     <vendor email="gosu-lang@googlegroups.com" url="http://gosu-lang.org">Guidewire Software</vendor>
     <idea-version since-build="123.72"/>
 
