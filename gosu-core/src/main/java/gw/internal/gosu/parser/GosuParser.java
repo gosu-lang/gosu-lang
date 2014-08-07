@@ -12225,61 +12225,59 @@ public final class GosuParser extends ParserBase implements IGosuParser
         DynamicFunctionSymbol dfsExisting = (DynamicFunctionSymbol)existing;
 
         // proxies are ignored and names must match exactly (error if they do not?)
-        if( existing.getDisplayName().equals( dfs.getDisplayName() ) )
+        if( existing.getDisplayName().equals( dfs.getDisplayName() ) &&
+            areDFSsInSameNameSpace( dfs, dfsExisting ))
         {
           // if the parameters match exactly,
           if( areParametersEquivalent( dfs, dfsExisting ) )
           {
-            if( areDFSsInSameNameSpace( dfs, dfsExisting ) )
+            IGosuClass owningTypeForDfs = getOwningTypeForDfs( dfsExisting );
+            if( owningTypeForDfs instanceof IGosuEnhancement )
             {
-              IGosuClass owningTypeForDfs = getOwningTypeForDfs( dfsExisting );
-              if( owningTypeForDfs instanceof IGosuEnhancement )
+              if( dfs.isOverride() || owningTypeForDfs == getGosuClass() )
               {
-                if( dfs.isOverride() || owningTypeForDfs == getGosuClass() )
-                {
-                  verify( element, false, Res.MSG_CANNOT_OVERRIDE_FUNCTION_FROM_ENHANCEMENT );
-                }
-                else
-                {
-                  warn( element, false, Res.MSG_MASKING_ENHANCEMENT_METHODS_MAY_BE_CONFUSING );
-                }
+                verify( element, false, Res.MSG_CANNOT_OVERRIDE_FUNCTION_FROM_ENHANCEMENT );
               }
               else
               {
-                boolean bSameButNotInSameClass = !GosuObjectUtil.equals( dfsExisting.getScriptPart(), dfs.getScriptPart() );
-                if( !verify( element, bSameButNotInSameClass,
-                        Res.MSG_FUNCTION_ALREADY_DEFINED, dfs.getMethodSignature(), getScriptPart() ) )
+                warn( element, false, Res.MSG_MASKING_ENHANCEMENT_METHODS_MAY_BE_CONFUSING );
+              }
+            }
+            else
+            {
+              boolean bSameButNotInSameClass = !GosuObjectUtil.equals( dfsExisting.getScriptPart(), dfs.getScriptPart() );
+              if( !verify( element, bSameButNotInSameClass,
+                      Res.MSG_FUNCTION_ALREADY_DEFINED, dfs.getMethodSignature(), getScriptPart() ) )
+              {
+                return;
+              }
+              boolean bClassAndReturnTypesCompatible = !GosuObjectUtil.equals( dfsExisting.getScriptPart(), dfs.getScriptPart() ) &&
+                      returnTypesCompatible( dfsExisting, dfs );
+              if( verify( element, bClassAndReturnTypesCompatible, Res.MSG_FUNCTION_CLASH,
+                      dfs.getName(), dfs.getScriptPart(), dfsExisting.getName(), dfsExisting.getScriptPart() ) )
+              {
+                boolean b = !dfsExisting.isFinal() && (getGosuClass() == null ||
+                        getGosuClass().getSupertype() == null ||
+                        !getGosuClass().getSupertype().isFinal());
+                verify( element, b, Res.MSG_CANNOT_OVERRIDE_FINAL, dfsExisting.getName(), dfsExisting.getScriptPart() );
+                if( verify( element, !dfs.isStatic() || dfsExisting.isStatic(), Res.MSG_STATIC_METHOD_CANNOT_OVERRIDE, dfs.getName(), dfsExisting.getDeclaringTypeInfo().getName() ) )
                 {
-                  return;
-                }
-                boolean bClassAndReturnTypesCompatible = !GosuObjectUtil.equals( dfsExisting.getScriptPart(), dfs.getScriptPart() ) &&
-                        returnTypesCompatible( dfsExisting, dfs );
-                if( verify( element, bClassAndReturnTypesCompatible, Res.MSG_FUNCTION_CLASH,
-                        dfs.getName(), dfs.getScriptPart(), dfsExisting.getName(), dfsExisting.getScriptPart() ) )
-                {
-                  boolean b = !dfsExisting.isFinal() && (getGosuClass() == null ||
-                          getGosuClass().getSupertype() == null ||
-                          !getGosuClass().getSupertype().isFinal());
-                  verify( element, b, Res.MSG_CANNOT_OVERRIDE_FINAL, dfsExisting.getName(), dfsExisting.getScriptPart() );
-                  if( verify( element, !dfs.isStatic() || dfsExisting.isStatic(), Res.MSG_STATIC_METHOD_CANNOT_OVERRIDE, dfs.getName(), dfsExisting.getDeclaringTypeInfo().getName() ) )
+                  if( !dfs.isStatic() && !dfsExisting.isStatic() )
                   {
-                    if( !dfs.isStatic() && !dfsExisting.isStatic() )
+                    if( !dfs.isOverride() )
                     {
-                      if( !dfs.isOverride() )
+                      boolean bIsConstructorName = getGosuClass() != null && getGosuClass().getRelativeName().equals( dfs.getDisplayName() );
+                      warn( element, bIsConstructorName, Res.MSG_MISSING_OVERRIDE_MODIFIER, dfsExisting.getName(), dfsExisting.getScriptPart().getContainingTypeName() );
+                      if( verify( element, !bIsConstructorName, Res.MSG_SUPER_CLASS_METHOD_NAME_SAME_AS_SUBCLASS, dfsExisting.getName() ) )
                       {
-                        boolean bIsConstructorName = getGosuClass() != null && getGosuClass().getRelativeName().equals( dfs.getDisplayName() );
-                        warn( element, bIsConstructorName, Res.MSG_MISSING_OVERRIDE_MODIFIER, dfsExisting.getName(), dfsExisting.getScriptPart().getContainingTypeName() );
-                        if( verify( element, !bIsConstructorName, Res.MSG_SUPER_CLASS_METHOD_NAME_SAME_AS_SUBCLASS, dfsExisting.getName() ) )
-                        {
-                          // Set the override modifier when the modifier is missing
-                          dfs.setOverride( true );
-                        }
+                        // Set the override modifier when the modifier is missing
+                        dfs.setOverride( true );
                       }
-                      verifyNotWeakerAccess( element, dfs, dfsExisting );
-                      verifySameNumberOfFunctionTypeVars( element, dfs, dfsExisting );
-                      dfs.setSuperDfs( dfsExisting );
-                      bValidOverrideFound = true;
                     }
+                    verifyNotWeakerAccess( element, dfs, dfsExisting );
+                    verifySameNumberOfFunctionTypeVars( element, dfs, dfsExisting );
+                    dfs.setSuperDfs( dfsExisting );
+                    bValidOverrideFound = true;
                   }
                 }
               }
