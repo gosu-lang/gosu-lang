@@ -199,6 +199,7 @@ public class MethodCallExpressionTransformer extends AbstractExpressionTransform
     // Assemble the args
     List<IRExpression> implicitArgs = new ArrayList<IRExpression>();
     IType targetType;
+    _cc().markInvokingSuper();
     if( isSuper )
     {
       // In the case of a super call, we want to push the appropriate enclosing arguments
@@ -224,7 +225,7 @@ public class MethodCallExpressionTransformer extends AbstractExpressionTransform
     {
       implicitArgs.add( identifier( _cc().getSymbol( GosuFragmentTransformer.SYMBOLS_PARAM_NAME + "arg" ) ) );
     }
-    int iTypeParams = pushTypeParametersForConstructor( _expr(), targetType, implicitArgs );
+    int iTypeParams = pushTypeParametersForConstructor( _expr(), targetType, implicitArgs, isSuper );
     pushEnumSuperConstructorArguments( implicitArgs );
     IRMethod irMethod = IRMethodFactory.createConstructorIRMethod( targetType, dfs, iTypeParams );
     List<IRExpression> explicitArgs = pushArguments( irMethod );

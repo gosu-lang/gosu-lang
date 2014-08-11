@@ -156,7 +156,7 @@ public class NewExpressionTransformer extends AbstractExpressionTransformer<NewE
         args.add( pushThisOrOuter( type.getEnclosingType() ) );
       }
       pushCapturedSymbols( type, args, false );
-      pushTypeParametersForConstructor( _expr(), type, args );
+      pushTypeParametersForConstructor( _expr(), type, args, false );
       _cc().pushEnumNameAndOrdinal( type, args );
       args.addAll( explicitArgs );
       constructorCall = buildNewExpression( getDescriptor( type ), irConstructor.getAllParameterTypes(), args );

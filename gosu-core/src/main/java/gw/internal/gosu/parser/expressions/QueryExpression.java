@@ -17,6 +17,7 @@ import gw.lang.parser.expressions.ITypeVariableDefinition;
 import gw.lang.parser.expressions.ILiteralExpression;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.IFunctionType;
+import gw.lang.reflect.LazyTypeResolver;
 
 import java.util.List;
 import java.util.Map;
@@ -208,7 +209,7 @@ public class QueryExpression extends Expression implements IQueryExpression
     if( rhs instanceof EvalExpression )
     {
       return EvalExpressionTransformer.compileAndRunEvalSource( ((StringLiteral)((EvalExpression)rhs).getExpression()).getValue(), ctxArgs[0], (Object[])ctxArgs[1],
-                                                                (IType[])ctxArgs[2], (IType)ctxArgs[3], (EvalExpression)rhs );
+                                                                (LazyTypeResolver[])ctxArgs[2], (IType)ctxArgs[3], rhs );
     }
     else if( rhs instanceof ILiteralExpression )
     {

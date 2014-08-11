@@ -7,6 +7,7 @@ package gw.internal.gosu.ir.nodes;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.IRelativeTypeInfo;
 import gw.lang.reflect.IFunctionType;
+import gw.lang.reflect.LazyTypeResolver;
 import gw.lang.reflect.gs.IGenericTypeVariable;
 import gw.lang.reflect.gs.IGosuEnhancement;
 import gw.lang.reflect.gs.IGosuClass;
@@ -144,7 +145,7 @@ public class IRMethodForConstructorSymbol implements IRMethod {
     {
       for( int i = 0; i < iTypeParams; i++ )
       {
-        params.add(IRTypeConstants.ITYPE());
+        params.add( IRTypeResolver.getDescriptor( LazyTypeResolver.class ) );
       }
     }
 

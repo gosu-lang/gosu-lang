@@ -72,6 +72,7 @@ import gw.lang.reflect.IModifierInfo;
 import gw.lang.reflect.IParameterInfo;
 import gw.lang.reflect.IRelativeTypeInfo;
 import gw.lang.reflect.IType;
+import gw.lang.reflect.LazyTypeResolver;
 import gw.lang.reflect.MethodList;
 import gw.lang.reflect.Modifier;
 import gw.lang.reflect.TypeSystem;
@@ -97,10 +98,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  */
@@ -138,6 +141,7 @@ public class GosuClassTransformer extends AbstractElementTransformer<ClassStatem
     }
 
     _irClass = new IRClass();
+    _cc().setIrClass( _irClass );
 
     compileClassHeader();
 
@@ -405,7 +409,7 @@ public class GosuClassTransformer extends AbstractElementTransformer<ClassStatem
         iModifiers |= (BytecodeOptions.isSingleServingLoader() ? Opcodes.ACC_PUBLIC : 0);
         IRFieldDecl fieldDecl = new IRFieldDecl( iModifiers,
                                                  TYPE_PARAM_PREFIX + genTypeVar.getName(),
-                                                 getDescriptor( IType.class ),
+                                                 getDescriptor( LazyTypeResolver.class ),
                                                  null );
         _irClass.addField( fieldDecl );
       }
@@ -424,7 +428,7 @@ public class GosuClassTransformer extends AbstractElementTransformer<ClassStatem
         iModifiers |= (BytecodeOptions.isSingleServingLoader() ? Opcodes.ACC_PUBLIC : 0);
         IRFieldDecl fieldDecl = new IRFieldDecl( iModifiers,
                                                  TYPE_PARAM_PREFIX + genTypeVar.getName(),
-                                                 getDescriptor( IType.class ),
+                                                 getDescriptor( LazyTypeResolver.class ),
                                                  null );
         _irClass.addField( fieldDecl );
       }
@@ -559,7 +563,7 @@ public class GosuClassTransformer extends AbstractElementTransformer<ClassStatem
   {
     for( int i = 0; i < genTypeVars.size(); i++ )
     {
-      parameters.add( new IRSymbol( getTypeVarParamName( genTypeVars.get( i ) ), getDescriptor( IType.class ), false ) );
+      parameters.add( new IRSymbol( getTypeVarParamName( genTypeVars.get( i ) ), getDescriptor( LazyTypeResolver.class ), false ) );
     }
   }
 
@@ -614,7 +618,7 @@ public class GosuClassTransformer extends AbstractElementTransformer<ClassStatem
     maybePushSupersEnclosingThisRef( superArgs );
 
     pushCapturedSymbols( _cc().getSuperType(), superArgs, false );
-    int iTypeParams = pushTypeParametersForConstructor( null, _cc().getSuperType(), superArgs );
+    int iTypeParams = pushTypeParametersForConstructor( null, _cc().getSuperType(), superArgs, true );
     pushEnumSuperConstructorArguments( superArgs );
     IType[] superParameterTypes = IType.EMPTY_ARRAY;
     if( _gsClass.isEnum() )
@@ -676,7 +680,10 @@ public class GosuClassTransformer extends AbstractElementTransformer<ClassStatem
     for( IDynamicFunctionSymbol idfs : methodSet )
     {
       compileMethod( (DynamicFunctionSymbol)idfs );
-      compileBridgeMethods( (DynamicFunctionSymbol)idfs );
+      if( !idfs.isAbstract() )
+      {
+        compileBridgeMethods( (DynamicFunctionSymbol)idfs );
+      }
     }
 
     if( !_gsClass.isInterface() && !isCompilingEnhancement() && !_cc().compilingBlock() )
@@ -713,27 +720,15 @@ public class GosuClassTransformer extends AbstractElementTransformer<ClassStatem
    */
   private void compileBridgeMethods( DynamicFunctionSymbol dfs )
   {
-    if( dfs.isAbstract() )
+    List<DynamicFunctionSymbol> list;
+    list = maybeGetSuperDfs( dfs );
+    if( list.isEmpty() )
     {
       return;
     }
 
-    while( true )
+    for( DynamicFunctionSymbol superDfs: list )
     {
-      DynamicFunctionSymbol superDfs;
-      if( dfs.isOverride() )
-      {
-        superDfs = dfs.getSuperDfs();
-      }
-      else
-      {
-        superDfs = maybeGetSuperDfsFromJavaProxy( dfs );
-        if( superDfs == null )
-        {
-          break;
-        }
-      }
-
       while( superDfs instanceof ParameterizedDynamicFunctionSymbol )
       {
         superDfs = ((ParameterizedDynamicFunctionSymbol)superDfs).getBackingDfs();
@@ -741,7 +736,7 @@ public class GosuClassTransformer extends AbstractElementTransformer<ClassStatem
 
       if( genProxyCovariantBridgeMethod( dfs, superDfs ) )
       {
-        return;
+        continue;
       }
 
       IRType superRetDescriptor = getDescriptorNoStructures( superDfs.getReturnType() );
@@ -812,53 +807,66 @@ public class GosuClassTransformer extends AbstractElementTransformer<ClassStatem
         if( gsProxyClass != null && gsProxyClass.isProxy() )
         {
           if( addCovarientProxyBridgeMethods( superDfs ) ) {
-            break;
+            continue;
           }
         }
       }
-      dfs = superDfs;
+      compileBridgeMethods( superDfs );
     }
   }
 
-  private DynamicFunctionSymbol maybeGetSuperDfsFromJavaProxy( DynamicFunctionSymbol dfs )
+  private List<DynamicFunctionSymbol> maybeGetSuperDfs( DynamicFunctionSymbol dfs )
   {
     IScriptPartId scriptPart = dfs.getScriptPart();
     if( scriptPart == null )
     {
-      return null;
+      return Collections.emptyList();
     }
     IType gsClass = scriptPart.getContainingType();
     if( gsClass == null )
     {
-      return null;
+      return Collections.emptyList();
     }
-    if( !IGosuClass.ProxyUtil.isProxy( gsClass ) )
+    boolean bProxy = IGosuClass.ProxyUtil.isProxy( gsClass );
+    List<DynamicFunctionSymbol> list = new ArrayList<DynamicFunctionSymbol>( 2 );
+    Set<IType> set = new HashSet<IType>();
+    IType superType = bProxy ? (IJavaType)((IGosuClass)gsClass).getJavaType().getSupertype() : gsClass.getSupertype();
+    if( superType != null )
     {
-      return null;
-    }
-    IJavaType javaSuperType = (IJavaType)((IGosuClass)gsClass).getJavaType().getSupertype();
-    if( javaSuperType != null )
-    {
-      DynamicFunctionSymbol superDfs = getSuperDfs( dfs, gsClass, javaSuperType );
-      if( superDfs != null ) {
-        return superDfs;
+      DynamicFunctionSymbol superDfs = getSuperDfs( dfs, gsClass, superType );
+      if( superDfs != null && !set.contains( superDfs.getReturnType() ) ) {
+        list.add( superDfs );
+        set.add( superDfs.getReturnType() );
       }
     }
-    IType[] interfaces = ((IGosuClass)gsClass).getJavaType().getInterfaces();
+    IType[] interfaces = bProxy ? ((IGosuClass)gsClass).getJavaType().getInterfaces() : gsClass.getInterfaces();
     if( interfaces != null ) {
       for( IType iface : interfaces ) {
-        DynamicFunctionSymbol superDfs = getSuperDfs( dfs, gsClass, (IJavaType)iface );
-        if( superDfs != null ) {
-          return superDfs;
+        DynamicFunctionSymbol superDfs = getSuperDfs( dfs, gsClass, iface );
+        if( superDfs != null && !set.contains( superDfs.getReturnType() ) ) {
+          list.add( superDfs );
+          set.add( superDfs.getReturnType() );
         }
       }
     }
-    return null;
+    return list;
   }
 
-  private DynamicFunctionSymbol getSuperDfs( DynamicFunctionSymbol dfs, IType gsClass, IJavaType javaSuperType ) {
-    IGosuClassInternal gosuSuperType = IGosuClassInternal.Util.getGosuClassFrom( javaSuperType );
-    if( gosuSuperType == null )
+  private DynamicFunctionSymbol getSuperDfs( DynamicFunctionSymbol dfs, IType gsClass, IType superType ) {
+    IGosuClassInternal gosuSuperType;
+    if( superType instanceof IJavaType )
+    {
+      gosuSuperType = IGosuClassInternal.Util.getGosuClassFrom( superType );
+      if( gosuSuperType == null )
+      {
+        return null;
+      }
+    }
+    else if( superType instanceof IGosuClass )
+    {
+      gosuSuperType = (IGosuClassInternal)superType;
+    }
+    else
     {
       return null;
     }
@@ -1169,7 +1177,7 @@ public class GosuClassTransformer extends AbstractElementTransformer<ClassStatem
     System.arraycopy( argTypes, 0, paramTypes, typeVars.size(), argTypes.length );
     for( int i = 0; i < typeVars.size(); i++ )
     {
-      paramTypes[i] = JavaTypes.ITYPE();
+      paramTypes[i] = TypeSystem.get( LazyTypeResolver.class );
     }
     return paramTypes;
   }
@@ -1605,10 +1613,10 @@ public class GosuClassTransformer extends AbstractElementTransformer<ClassStatem
     List<IRExpression> values = new ArrayList<IRExpression>();
     for( IGenericTypeVariable gv : genTypeVars )
     {
-      values.add( getInstanceField( _gsClass, TYPE_PARAM_PREFIX + gv.getName(), IRTypeConstants.ITYPE(), AccessibilityUtil.forTypeParameter(), pushThis() ) );
+      values.add( buildCast( getDescriptor( IType.class ), buildMethodCall( LazyTypeResolver.class, "get", Object.class, new Class[0], getInstanceField( _gsClass, TYPE_PARAM_PREFIX + gv.getName(), getDescriptor( LazyTypeResolver.class ), AccessibilityUtil.forTypeParameter(), pushThis() ), Collections.<IRExpression>emptyList() ) ) );
     }
 
-    return buildInitializedArray(IRTypeConstants.ITYPE(),
+    return buildInitializedArray( IRTypeConstants.ITYPE(),
                                   values );
   }
 
@@ -1630,7 +1638,7 @@ public class GosuClassTransformer extends AbstractElementTransformer<ClassStatem
       for( IGenericTypeVariable genTypeVar : gsClass.getGenericTypeVariables() )
       {
         statements.add(
-          setInstanceField( gsClass, TYPE_PARAM_PREFIX + genTypeVar.getName(), IRTypeConstants.ITYPE(), AccessibilityUtil.forTypeParameter(),
+          setInstanceField( gsClass, TYPE_PARAM_PREFIX + genTypeVar.getName(), getDescriptor( LazyTypeResolver.class ), AccessibilityUtil.forTypeParameter(),
                             pushThis(),
                             identifier( _context.getSymbol( getTypeVarParamName( genTypeVar ) ) ) ) );
       }
@@ -1646,7 +1654,7 @@ public class GosuClassTransformer extends AbstractElementTransformer<ClassStatem
       for( IGenericTypeVariable genTypeVar : getTypeVarsForDFS( dfs ) )
       {
         statements.add(
-          setInstanceField( _gsClass, TYPE_PARAM_PREFIX + genTypeVar.getName(), IRTypeConstants.ITYPE(), AccessibilityUtil.forTypeParameter(),
+          setInstanceField( _gsClass, TYPE_PARAM_PREFIX + genTypeVar.getName(), getDescriptor( LazyTypeResolver.class ), AccessibilityUtil.forTypeParameter(),
                             pushThis(),
                             identifier( _context.getSymbol( getTypeVarParamName( genTypeVar ) ) ) ) );
       }

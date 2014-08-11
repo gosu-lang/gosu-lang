@@ -18,6 +18,7 @@ import gw.internal.gosu.ir.compiler.bytecode.expression.IREqualityExpressionComp
 import gw.internal.gosu.ir.compiler.bytecode.expression.IRFieldGetExpressionCompiler;
 import gw.internal.gosu.ir.compiler.bytecode.expression.IRIdentifierCompiler;
 import gw.internal.gosu.ir.compiler.bytecode.expression.IRInstanceOfExpressionCompiler;
+import gw.internal.gosu.ir.compiler.bytecode.expression.IRLazyTypeMethodCallExpressionCompiler;
 import gw.internal.gosu.ir.compiler.bytecode.expression.IRMethodCallExpressionCompiler;
 import gw.internal.gosu.ir.compiler.bytecode.expression.IRNegationExpressionCompiler;
 import gw.internal.gosu.ir.compiler.bytecode.expression.IRNewArrayExpressionCompiler;
@@ -67,6 +68,7 @@ import gw.lang.ir.expression.IREqualityExpression;
 import gw.lang.ir.expression.IRFieldGetExpression;
 import gw.lang.ir.expression.IRIdentifier;
 import gw.lang.ir.expression.IRInstanceOfExpression;
+import gw.lang.ir.expression.IRLazyTypeMethodCallExpression;
 import gw.lang.ir.expression.IRMethodCallExpression;
 import gw.lang.ir.expression.IRNegationExpression;
 import gw.lang.ir.expression.IRNewArrayExpression;
@@ -188,6 +190,8 @@ public class IRBytecodeCompiler {
         IRIdentifierCompiler.compile((IRIdentifier) expression, context);
       } else if (expression instanceof IRMethodCallExpression) {
         IRMethodCallExpressionCompiler.compile((IRMethodCallExpression) expression, context);
+      } else if (expression instanceof IRLazyTypeMethodCallExpression) {
+        IRLazyTypeMethodCallExpressionCompiler.compile( (IRLazyTypeMethodCallExpression)expression, context );
       } else if (expression instanceof IRNullLiteral) {
         IRNullLiteralCompiler.compile((IRNullLiteral) expression, context);
       } else if (expression instanceof IRPrimitiveTypeConversion) {

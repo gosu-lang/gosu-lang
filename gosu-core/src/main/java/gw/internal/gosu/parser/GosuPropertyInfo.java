@@ -258,12 +258,12 @@ public class GosuPropertyInfo extends GosuBaseAttributedFeatureInfo implements I
 
           argList.add( ctx );
 
-          if(enhancement.isParameterizedType() )
+          if( enhancement.isParameterizedType() )
           {
             IType[] parameters = enhancement.getTypeParameters();
             for( IType parameter : parameters )
             {
-              argList.add( parameter );
+              argList.add( new NotLazyTypeResolver( parameter ) );
             }
           }
           else
@@ -271,7 +271,7 @@ public class GosuPropertyInfo extends GosuBaseAttributedFeatureInfo implements I
             IGenericTypeVariable[] typeVariables = enhancement.getGenericTypeVariables();
             for( IGenericTypeVariable typeVariable : typeVariables )
             {
-              argList.add( typeVariable.getBoundingType() );
+              argList.add( new NotLazyTypeResolver( typeVariable.getBoundingType() ) );
             }
           }
           args = argList.toArray( new Object[argList.size()] );
@@ -317,12 +317,12 @@ public class GosuPropertyInfo extends GosuBaseAttributedFeatureInfo implements I
 
           argList.add( ctx );
 
-          if(enhancement.isParameterizedType() )
+          if( enhancement.isParameterizedType() )
           {
             IType[] parameters = enhancement.getTypeParameters();
             for( IType parameter : parameters )
             {
-              argList.add( parameter );
+              argList.add( new NotLazyTypeResolver( parameter ) );
             }
           }
           else
@@ -330,7 +330,7 @@ public class GosuPropertyInfo extends GosuBaseAttributedFeatureInfo implements I
             IGenericTypeVariable[] typeVariables = enhancement.getGenericTypeVariables();
             for( IGenericTypeVariable typeVariable : typeVariables )
             {
-              argList.add( typeVariable.getBoundingType() );
+              argList.add( new NotLazyTypeResolver( typeVariable.getBoundingType() ) );
             }
           }
 

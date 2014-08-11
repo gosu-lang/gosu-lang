@@ -8,6 +8,7 @@ import gw.internal.gosu.parser.expressions.QueryExpression;
 import gw.internal.gosu.ir.transform.TopLevelTransformationContext;
 import gw.lang.ir.IRExpression;
 import gw.lang.reflect.IType;
+import gw.lang.reflect.LazyTypeResolver;
 import gw.lang.reflect.TypeSystem;
 import gw.lang.parser.EvaluationException;
 import gw.lang.parser.expressions.IQueryExpressionEvaluator;
@@ -24,7 +25,7 @@ import java.util.HashMap;
 public class QueryExpressionTransformer extends EvalBasedTransformer<QueryExpression>
 {
   public static final Map<String, QueryExpression> QUERY_EXPRESSIONS = Collections.synchronizedMap( new HashMap<String, QueryExpression>() );
-  private static final Class[] PARAM_TYPES = new Class[]{Object.class, Object[].class, IType[].class, IType.class, int.class, int.class, String.class};
+  private static final Class[] PARAM_TYPES = new Class[]{Object.class, Object[].class, LazyTypeResolver[].class, IType.class, int.class, int.class, String.class};
 
   public static IRExpression compile( TopLevelTransformationContext cc, QueryExpression expr )
   {

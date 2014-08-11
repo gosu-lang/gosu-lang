@@ -29,6 +29,7 @@ public class FunctionBodyTransformationContext
   public FunctionBodyTransformationContext(TopLevelTransformationContext context, boolean isStatic) {
     _context = context;
     _isStatic = isStatic;
+    _constructorState = ConstructorState.CLEAR;
   }
 
   private enum ConstructorState {
@@ -47,9 +48,12 @@ public class FunctionBodyTransformationContext
 
   public boolean hasSuperBeenInvoked()
   {
-    return _constructorState == ConstructorState.CLEAR;
+    return _constructorState != ConstructorState.PRE_SUPER;
   }
-
+  public void markInvokingSuper()
+  {
+    _constructorState = ConstructorState.PRE_SUPER;
+  }
   public void markSuperInvoked()
   {
     _constructorState = ConstructorState.SUPER_INVOKED;
@@ -59,6 +63,7 @@ public class FunctionBodyTransformationContext
   {
     return makeAndIndexTempSymbol( null, type );
   }
+
   public IRSymbol makeAndIndexTempSymbol( String strNameSuffix, IRType type )
   {
     String strName = strNameSuffix != null ? TEMP_VAR_PREFIX + strNameSuffix : TEMP_VAR_PREFIX + _tempVarCount++;

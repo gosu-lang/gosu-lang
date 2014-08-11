@@ -19,6 +19,7 @@ import gw.lang.parser.IParseResult;
 import gw.lang.parser.IParsedElement;
 import gw.lang.parser.ISymbolTable;
 import gw.lang.reflect.IType;
+import gw.lang.reflect.LazyTypeResolver;
 import gw.lang.reflect.gs.ICompilableType;
 import gw.lang.reflect.gs.IExternalSymbolMap;
 import gw.lang.reflect.gs.IGosuProgram;
@@ -53,7 +54,7 @@ public class EvalExpressionTransformer extends EvalBasedTransformer<EvalExpressi
   protected IRExpression compile_impl()
   {
     putEvalExpression( _expr() );
-    return callStaticMethod( EvalExpressionTransformer.class, "compileAndRunEvalSource", new Class[]{Object.class, Object.class, Object[].class, IType[].class, IType.class, int.class, int.class, String.class},
+    return callStaticMethod( EvalExpressionTransformer.class, "compileAndRunEvalSource", new Class[]{Object.class, Object.class, Object[].class, LazyTypeResolver[].class, IType.class, int.class, int.class, String.class},
             exprList(
                     boxValue( _expr().getType(), ExpressionTransformer.compile( _expr().getExpression(), _cc() ) ),
                     pushEnclosingContext(),
@@ -81,7 +82,7 @@ public class EvalExpressionTransformer extends EvalBasedTransformer<EvalExpressi
   }
 
   public static Object compileAndRunEvalSource( Object source, Object outer, Object[] capturedValues,
-                                                IType[] immediateFuncTypeParams, IType enclosingClass,
+                                                LazyTypeResolver[] immediateFuncTypeParams, IType enclosingClass,
                                                 int iLineNum, int iColumn, String evalExprText )
   {
     String evalExprKey = makeEvalKey( enclosingClass, iLineNum, iColumn, evalExprText );
@@ -94,12 +95,12 @@ public class EvalExpressionTransformer extends EvalBasedTransformer<EvalExpressi
   }
 
   public static Object compileAndRunEvalSource( Object source, Object outer, Object[] capturedValues,
-                                                IType[] immediateFuncTypeParams, IType enclosingClass, IParsedElement evalExpr )
+                                                LazyTypeResolver[] immediateFuncTypeParams, IType enclosingClass, IParsedElement evalExpr )
   {
     return compileAndRunEvalSource( source, outer, capturedValues, immediateFuncTypeParams, enclosingClass, evalExpr, null, null );
   }
   public static Object compileAndRunEvalSource( Object source, Object outer, Object[] capturedValues,
-                                                IType[] immediateFuncTypeParams, IType enclosingClass, IParsedElement evalExpr,
+                                                LazyTypeResolver[] immediateFuncTypeParams, IType enclosingClass, IParsedElement evalExpr,
                                                 ISymbolTable compileTimeLocalContextSymbols, IExternalSymbolMap runtimeLocalSymbolValues )
   {
     String strSource = CommonServices.getCoercionManager().makeStringFrom( source );

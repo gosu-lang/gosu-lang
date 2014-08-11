@@ -8,6 +8,7 @@ import gw.internal.gosu.parser.TypeVariableType;
 import gw.internal.gosu.parser.ICompilableTypeInternal;
 import gw.internal.gosu.parser.DynamicFunctionSymbol;
 import gw.internal.gosu.parser.expressions.InitializerAssignment;
+import gw.lang.ir.IRClass;
 import gw.lang.ir.IRStatement;
 import gw.lang.ir.IRExpression;
 import gw.lang.ir.IRSymbol;
@@ -36,6 +37,9 @@ public interface TopLevelTransformationContext {
   void addAssertionsStaticField();
 
   ICompilableTypeInternal getGosuClass();
+
+  IRClass getIrClass();
+  void setIrClass( IRClass irClass );
 
   boolean shouldUseReflection( IType declaringClass, IRelativeTypeInfo.Accessibility accessibility );
 
@@ -95,9 +99,8 @@ public interface TopLevelTransformationContext {
   IRSymbol createSymbol(String name, IRType type);
 
   boolean hasSuperBeenInvoked();
-
+  void markInvokingSuper();
   void markSuperInvoked();
-
   void updateSuperInvokedAfterLastExpressionCompiles();
 
   Stack<IRScope> getScopes();
@@ -113,4 +116,6 @@ public interface TopLevelTransformationContext {
   boolean currentlyCompilingBlock();
 
   DynamicFunctionSymbol getCurrentFunction();
+
+  int incrementLazyTypeMethodCount();
 }

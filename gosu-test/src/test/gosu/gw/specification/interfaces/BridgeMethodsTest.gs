@@ -12,7 +12,7 @@ class BridgeMethodsTest extends BaseVerifyErrantTest {
     var b : InterfaceB = x
     assertEquals(123, b.Value)
     var d : InterfaceD = x
-    assertEquals(123, d.Value)
+    assertEquals(123L, d.Value)
   }
 
   function testBridgeMethodsClass() {
@@ -26,6 +26,6 @@ class BridgeMethodsTest extends BaseVerifyErrantTest {
     var c : ClassC = x
     assertEquals(123, c.Value)
     var d : InterfaceD = x
-    assertEquals(123, d.Value)
+    assertEquals(123L, d.Value)
   }
 }
