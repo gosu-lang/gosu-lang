@@ -313,6 +313,7 @@ public class GosuClassTransformer extends AbstractElementTransformer<ClassStatem
       IRFieldDecl fieldDecl = new IRFieldDecl( getModifiers( (AbstractDynamicSymbol)field.getSymbol() ),
                                                field.getIdentifierName(),
                                                getDescriptor( field.getType() ),
+                                               field.getType(),
                                                null );
       fieldDecl.setAnnotations( getIRAnnotations( makeAnnotationInfos( ((VarStatement)field).getAnnotations(), getGosuClass().getTypeInfo() ) ) );
       _irClass.addField( fieldDecl );
@@ -326,6 +327,7 @@ public class GosuClassTransformer extends AbstractElementTransformer<ClassStatem
       IRFieldDecl fieldDecl = new IRFieldDecl( getModifiers( (Symbol)field.getSymbol() ),
                                                field.getIdentifierName(),
                                                getDescriptor( field.getType() ),
+                                               field.getType(),
                                                null );
       fieldDecl.setAnnotations( getIRAnnotations( makeAnnotationInfos( ((VarStatement)field).getAnnotations(), getGosuClass().getTypeInfo() ) ) );
       _irClass.addField( fieldDecl );
@@ -487,8 +489,11 @@ public class GosuClassTransformer extends AbstractElementTransformer<ClassStatem
         methodBody,
         "<init>",
         iModifiers,
-              IRTypeConstants.pVOID(),
-        parameters );
+        IRTypeConstants.pVOID(),
+        dfs.getReturnType(),
+        parameters,
+        dfs.getArgTypes(),
+        dfs.getType(), null);
 
       _irClass.addMethod( methodStatement );
     }
@@ -1289,7 +1294,10 @@ public class GosuClassTransformer extends AbstractElementTransformer<ClassStatem
                                                       NameResolver.getFunctionName( dfs ),
                                                       getModifiers( dfs ),
                                                       getDescriptor( dfs.getReturnType() ),
+                                                      dfs.getReturnType(),
                                                       parameters,
+                                                      dfs.getArgTypes(),
+                                                      dfs.getType(),
                                                       annotationDefaultValue );
     method.setAnnotations( getIRAnnotations( makeAnnotationInfos( dfs.getModifierInfo().getAnnotations(), getGosuClass().getTypeInfo() ) ) );
     _irClass.addMethod( method );

@@ -4,10 +4,13 @@
 
 package gw.lang.ir.statement;
 
+import gw.internal.ext.org.objectweb.asm.signature.SignatureWriter;
 import gw.lang.UnstableAPI;
 import gw.lang.ir.IRAnnotation;
 import gw.lang.ir.IRStatement;
 import gw.lang.ir.IRType;
+import gw.lang.ir.SignatureUtil;
+import gw.lang.reflect.IType;
 
 import java.util.Collections;
 import java.util.List;
@@ -19,12 +22,31 @@ public class IRFieldDecl extends IRStatement {
   private IRType _type;
   private Object _value;
   private List<IRAnnotation> _annotations = Collections.emptyList();
+  private String _genericSignature;
 
-  public IRFieldDecl( int modifiers, String name, IRType type, Object value ) {
+  public IRFieldDecl( int modifiers, String name, IRType type, IType iType,  Object value ) {
     _modifiers = modifiers;
     _name = name;
     _type = maybeEraseStructuralType( type );
     _value = value;
+    _genericSignature = makeGenericSignature(iType);
+  }
+
+  public IRFieldDecl( int modifiers, String name, IRType type, Object value ) {
+    this( modifiers, name, type, null, value );
+  }
+
+  private String makeGenericSignature( IType type ) {
+    if( type == null ) {
+      return null;
+    }
+    boolean[] bGeneric = {false};
+    SignatureWriter sw = new SignatureWriter();
+    SignatureUtil.visitType( sw, type, bGeneric );
+    if( bGeneric[0] ) {
+      return sw.toString();
+    }
+    return null;
   }
 
   public int getModifiers() {
@@ -56,5 +78,9 @@ public class IRFieldDecl extends IRStatement {
   public List<IRAnnotation> getAnnotations()
   {
     return _annotations;
+  }
+
+  public String getGenericSignature() {
+    return _genericSignature;
   }
 }
