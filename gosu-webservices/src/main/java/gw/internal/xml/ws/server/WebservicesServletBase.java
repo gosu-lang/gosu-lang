@@ -9,7 +9,6 @@ import gw.fs.IFile;
 import gw.internal.schema.gw.xsd.w3c.soap12_envelope.anonymous.elements.Fault_Code;
 import gw.internal.schema.gw.xsd.w3c.soap12_envelope.anonymous.elements.Fault_Reason;
 import gw.internal.schema.gw.xsd.w3c.soap12_envelope.enums.FaultcodeEnum;
-import gw.internal.xml.IXmlLoggerFactory;
 import gw.internal.xml.XmlElementInternals;
 import gw.internal.xml.XmlSchemaAccessImpl;
 import gw.internal.xml.XmlTypeResolver;
@@ -199,7 +198,7 @@ public abstract class WebservicesServletBase extends HttpServlet implements ITyp
    */
   public static ILogger getILogger() {
     if ( _logger == null ) {
-      _logger = XmlServices.getLogger( IXmlLoggerFactory.Category.Runtime );
+      _logger = XmlServices.getLogger( XmlServices.Category.Runtime );
     }
     return _logger;
   }
@@ -211,7 +210,7 @@ public abstract class WebservicesServletBase extends HttpServlet implements ITyp
    */
   public static ILogger getRequestILogger() {
     if ( _requestLogger == null ) {
-      _requestLogger = XmlServices.getLogger( IXmlLoggerFactory.Category.Request );
+      _requestLogger = XmlServices.getLogger( XmlServices.Category.Request );
     }
     return _requestLogger;
   }

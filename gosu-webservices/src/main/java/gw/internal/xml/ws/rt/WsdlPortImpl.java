@@ -7,7 +7,6 @@ package gw.internal.xml.ws.rt;
 import gw.config.CommonServices;
 import gw.fs.IFile;
 import gw.internal.schema.gw.xsd.w3c.soap12_envelope.Envelope;
-import gw.internal.xml.IXmlLoggerFactory;
 import gw.internal.xml.config.XmlServices;
 import gw.internal.xml.ws.AsyncResponseInternal;
 import gw.internal.xml.ws.IWsdlConfig;
@@ -107,7 +106,7 @@ public class WsdlPortImpl implements IGosuObject, IWsdlPort {
     _wsdl = wsdl;
     _wsdlPort = wsdlPort;
     _portTypePackageName = wsdlPort.getBinding().getPortType().getSchemaIndex().getPackageName();
-    _log = XmlServices.getLogger( IXmlLoggerFactory.Category.Runtime);
+    _log = XmlServices.getLogger( XmlServices.Category.Runtime);
     _ownersType = ownersType;
     _portQName = portQName;
     _config = config;

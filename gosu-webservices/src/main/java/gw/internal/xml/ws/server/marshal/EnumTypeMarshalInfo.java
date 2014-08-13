@@ -4,7 +4,6 @@
 
 package gw.internal.xml.ws.server.marshal;
 
-import gw.internal.xml.IXmlLoggerFactory;
 import gw.internal.xml.config.XmlServices;
 import gw.lang.reflect.IEnumData;
 import gw.lang.reflect.IEnumType;
@@ -38,7 +37,7 @@ public class EnumTypeMarshalInfo extends EnumMarshalInfo {
         }
         throw new RuntimeException("invalid " + getType() + " '" + componentElement.getText() + "");
       } catch (Throwable e) {
-        XmlServices.getLogger(IXmlLoggerFactory.Category.XmlUnMarshal).error("Exception on " + getType() + " '" + componentElement.getText() + "", e);
+        XmlServices.getLogger(XmlServices.Category.XmlUnMarshal).error("Exception on " + getType() + " '" + componentElement.getText() + "", e);
       }
     }
     return super.unmarshal(componentElement, context);
@@ -56,9 +55,9 @@ public class EnumTypeMarshalInfo extends EnumMarshalInfo {
             return;
           }
         }
-        XmlServices.getLogger(IXmlLoggerFactory.Category.XmlMarshal).error("Couldn't find " + getType() + ": " + obj);
+        XmlServices.getLogger(XmlServices.Category.XmlMarshal).error("Couldn't find " + getType() + ": " + obj);
       } catch (Throwable e) {
-        XmlServices.getLogger(IXmlLoggerFactory.Category.XmlUnMarshal).error("Exception on " + getType() + ": " + obj, e);
+        XmlServices.getLogger(XmlServices.Category.XmlUnMarshal).error("Exception on " + getType() + ": " + obj, e);
       }
     }
     else { // typelists, gosu enums

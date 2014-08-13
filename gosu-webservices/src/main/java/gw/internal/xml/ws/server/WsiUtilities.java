@@ -27,7 +27,6 @@ import gw.internal.schema.gw.xsd.w3c.xmlschema.Sequence;
 import gw.internal.schema.gw.xsd.w3c.xmlschema.anonymous.elements.ExplicitGroup_Element;
 import gw.internal.schema.gw.xsd.w3c.xmlschema.anonymous.elements.TopLevelElement_ComplexType;
 import gw.internal.schema.gw.xsd.w3c.xmlschema.enums.FormChoice;
-import gw.internal.xml.IXmlLoggerFactory;
 import gw.internal.xml.config.XmlServices;
 import gw.internal.xml.ws.server.marshal.MarshalInfo;
 import gw.internal.xml.XmlSchemaAccessImpl;
@@ -247,7 +246,7 @@ public class WsiUtilities {
       return serviceInfo;
     }
     catch ( Exception ex ) {
-      XmlServices.getLogger( IXmlLoggerFactory.Category.Runtime )
+      XmlServices.getLogger( XmlServices.Category.Runtime )
         .debug("On " + type + " " + wsdl.asUTFString( XmlSerializationOptions.debug() ) + " caught " + ex);
       throw GosuExceptionUtil.forceThrow( ex );
     }
