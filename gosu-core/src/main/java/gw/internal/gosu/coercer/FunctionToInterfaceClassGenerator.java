@@ -33,14 +33,36 @@ public class FunctionToInterfaceClassGenerator {
 
   public static synchronized IGosuClass getBlockToInterfaceConversionClass( IType typeToCoerceTo, IType enclosingType ) {
     typeToCoerceTo = TypeLord.replaceTypeVariableTypeParametersWithBoundingTypes( typeToCoerceTo, enclosingType );
-    final String relativeNameWithEncodedSuffix = PROXY_FOR + typeToCoerceTo.getName().replace( '<', '\u0143' ).replace( '>', '\u0147' ).replace( '.', '\u0161' );
+    final String relativeNameWithEncodedSuffix = PROXY_FOR + encodeClassName( typeToCoerceTo.getName() );
     return (IGosuClass)((IHasInnerClass)enclosingType).getInnerClass( relativeNameWithEncodedSuffix );
   }
 
   public static synchronized IGosuClass getBlockToInterfaceConversionClass( String relativeNameWithEncodedSuffix, IType enclosingType ) {
-    String name = relativeNameWithEncodedSuffix.substring( PROXY_FOR.length() ).replace( '\u0143', '<' ).replace( '\u0147', '>' ).replace( '\u0161', '.' );
+    String name = decodeClassName( relativeNameWithEncodedSuffix.substring( PROXY_FOR.length() ) );
     IType typeToCoerceTo = TypeLord.parseType( name, new TypeVarToTypeMap() );
     return createProxy( typeToCoerceTo, enclosingType, relativeNameWithEncodedSuffix );
+  }
+
+  private static String encodeClassName( String name ) {
+    StringBuilder sb = new StringBuilder( name );
+    replace( sb, ">", "_L_t_" );
+    replace( sb, "<", "_G_t_" );
+    replace( sb, ".", "_D_t_" );
+    return sb.toString();
+  }
+
+  private static String decodeClassName( String name ) {
+    StringBuilder sb = new StringBuilder( name );
+    replace( sb, "_L_t_", ">" );
+    replace( sb, "_G_t_", "<" );
+    replace( sb, "_D_t_", "." );
+    return sb.toString();
+  }
+
+  private static void replace( StringBuilder sb, String find, String replace ) {
+    for( int i = sb.indexOf( find ); i >= 0; i = sb.indexOf( find ) ) {
+      sb.replace( i, i+find.length(), replace );
+    }
   }
 
   private static IGosuClass createProxy( final IType typeToCoerceTo, IType enclosingType, final String relativeName )
