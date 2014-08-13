@@ -212,7 +212,7 @@ public class IRClassCompiler extends AbstractBytecodeCompiler
       FieldVisitor fv = _cv.visitField( field.getModifiers(),
                                         field.getName(),
                                         field.getType().getDescriptor(),
-                                        null,
+                                        field.getGenericSignature(),
                                         field.getValue() );
       for (IRAnnotation annotation : field.getAnnotations() ) {
         AnnotationVisitor annotationVisitor = fv.visitAnnotation(annotation.getDescriptor().getDescriptor(), annotation.isInclude());
@@ -231,9 +231,10 @@ public class IRClassCompiler extends AbstractBytecodeCompiler
   private void compileMethod( IRMethodStatement method )
   {
     MethodVisitor mv = _cv.visitMethod( method.getModifiers(),
-                                         method.getName(),
-                                         getMethodDescriptor( method ),
-                                         null, null );
+                                        method.getName(),
+                                        getMethodDescriptor( method ),
+                                        method.getGenericSignature(),
+                                        null );
     Object[] annotationDefault = method.getAnnotationDefault();
     if( annotationDefault != null )
     {
