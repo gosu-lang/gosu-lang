@@ -72,7 +72,7 @@ public class FunctionToInterfaceClassGenerator {
     try {
       final String namespace = enclosingType.getNamespace();
       IGosuClassInternal gsClass = (IGosuClassInternal)GosuClassTypeLoader.getDefaultClassLoader().makeNewClass(
-        new LazyStringSourceFileHandle( namespace, namespace + "." + relativeName, TypeLord.getPureGenericType( enclosingType ), new Callable<StringBuilder>() {
+        new LazyStringSourceFileHandle( enclosingType.getName() + "." + relativeName, TypeLord.getPureGenericType( enclosingType ), new Callable<StringBuilder>() {
           public StringBuilder call() {
             return genProxy( typeToCoerceTo, namespace, relativeName );
           }
@@ -158,15 +158,13 @@ public class FunctionToInterfaceClassGenerator {
 
   private static class LazyStringSourceFileHandle extends StringSourceFileHandle {
     private Callable<StringBuilder> _sourceGen;
-    private String _namespace;
     private String _typeNamespace;
 
-    public LazyStringSourceFileHandle( String nspace, String fqn, IType enclosingType, Callable<StringBuilder> sourceGen ) {
+    public LazyStringSourceFileHandle( String fqn, IType enclosingType, Callable<StringBuilder> sourceGen ) {
       super( fqn, null, false, ClassType.Class );
-      _namespace = nspace;
       _sourceGen = sourceGen;
       setParentType( enclosingType.getName() );
-      _typeNamespace = _namespace + '.' + enclosingType.getRelativeName();
+      _typeNamespace = enclosingType.getName();
     }
 
     public String getTypeNamespace() {
