@@ -48,6 +48,8 @@ public class FunctionToInterfaceClassGenerator {
     replace( sb, ">", "_L_t_" );
     replace( sb, "<", "_G_t_" );
     replace( sb, ".", "_D_t_" );
+    replace( sb, ",", "_C_m_" );
+    replace( sb, " ", "" );
     return sb.toString();
   }
 
@@ -56,6 +58,7 @@ public class FunctionToInterfaceClassGenerator {
     replace( sb, "_L_t_", ">" );
     replace( sb, "_G_t_", "<" );
     replace( sb, "_D_t_", "." );
+    replace( sb, "_C_m_", "," );
     return sb.toString();
   }
 
