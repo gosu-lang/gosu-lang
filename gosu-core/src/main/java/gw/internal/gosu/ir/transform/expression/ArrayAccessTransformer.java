@@ -114,18 +114,18 @@ public class ArrayAccessTransformer extends AbstractExpressionTransformer<ArrayA
       arrayAccess = callStaticMethod( ArrayAccess.class, "getArrayElement", new Class[]{Object.class, int.class, boolean.class},
                                       exprList( root, index, pushConstant( bNullSafe ) ) );
       arrayAccess = unboxOrCast( arrayAccess );
+    }
 
-      if( needsAutoinsert )
-      {
-        IType typeToAutoInsert = ArrayAccess.getTypeToAutoInsert( getParsedElement().getRootExpression() );
-        // add an maybeAutoInsert before the array access
-        arrayAccess = buildComposite( buildMethodCall( callStaticMethod( ArrayAccessTransformer.class, "maybeAutoInsert",
-                                                                         new Class[]{Object.class, int.class, IType.class},
-                                                                         Arrays.asList( identifier( tempRoot ),
-                                                                                        identifier( tempIndex ),
-                                                                                        pushType( typeToAutoInsert ) ) ) ),
-                                      arrayAccess );
-      }
+    if( needsAutoinsert )
+    {
+      IType typeToAutoInsert = ArrayAccess.getTypeToAutoInsert( getParsedElement().getRootExpression() );
+      // add an maybeAutoInsert before the array access
+      arrayAccess = buildComposite( buildMethodCall( callStaticMethod( ArrayAccessTransformer.class, "maybeAutoInsert",
+                                                                       new Class[]{Object.class, int.class, IType.class},
+                                                                       Arrays.asList( identifier( tempRoot ),
+                                                                                      identifier( tempIndex ),
+                                                                                      pushType( typeToAutoInsert ) ) ) ),
+                                    arrayAccess );
     }
 
     if( tempRoot != null )
