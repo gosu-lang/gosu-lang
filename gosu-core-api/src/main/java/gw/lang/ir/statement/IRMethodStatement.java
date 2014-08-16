@@ -120,6 +120,10 @@ public class IRMethodStatement extends IRStatement {
   @Override
   public String toString()
   {
+    return signature();
+  }
+
+  public String signature() {
     return _name + "(" + GosuStringUtil.join( _parameters, ", " ) + "):" + _returnType;
   }
 

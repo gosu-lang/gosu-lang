@@ -721,12 +721,18 @@ public class GosuClassTransformer extends AbstractElementTransformer<ClassStatem
    * - method overrides and specifies a concrete type for a parameter that is a
    * type variable in the super e.g., B extends A<String> where B#foo( o: String ) -> A#foo( o: T )
    */
+  Set<String> bridges = new HashSet<String>();
   private void compileBridgeMethods( DynamicFunctionSymbol dfs )
   {
     List<DynamicFunctionSymbol> list;
     list = maybeGetSuperDfs( dfs );
     if( list.isEmpty() )
     {
+      if( dfs.isOverride() )
+      {
+        dfs = dfs.getSuperDfs();
+        compileBridgeMethods( dfs );
+      }
       return;
     }
 
@@ -801,8 +807,11 @@ public class GosuClassTransformer extends AbstractElementTransformer<ClassStatem
           makeModifiersForBridgeMethod( getModifiers( dfs ) ),
           superRetDescriptor,
           parameters );
-        _irClass.addMethod( bridgeMethod );
-
+        if( !bridges.contains( bridgeMethod.signature() ) )
+        {
+          _irClass.addMethod( bridgeMethod );
+          bridges.add( bridgeMethod.signature() );
+        }
       }
       else
       {
@@ -833,7 +842,7 @@ public class GosuClassTransformer extends AbstractElementTransformer<ClassStatem
     boolean bProxy = IGosuClass.ProxyUtil.isProxy( gsClass );
     List<DynamicFunctionSymbol> list = new ArrayList<DynamicFunctionSymbol>( 2 );
     Set<IType> set = new HashSet<IType>();
-    IType superType = bProxy ? (IJavaType)((IGosuClass)gsClass).getJavaType().getSupertype() : gsClass.getSupertype();
+    IType superType = bProxy ? ((IGosuClass)gsClass).getJavaType().getSupertype() : gsClass.getSupertype();
     if( superType != null )
     {
       DynamicFunctionSymbol superDfs = getSuperDfs( dfs, gsClass, superType );
@@ -855,7 +864,8 @@ public class GosuClassTransformer extends AbstractElementTransformer<ClassStatem
     return list;
   }
 
-  private DynamicFunctionSymbol getSuperDfs( DynamicFunctionSymbol dfs, IType gsClass, IType superType ) {
+  private DynamicFunctionSymbol getSuperDfs( DynamicFunctionSymbol dfs, IType gsClass, IType superType )
+  {
     IGosuClassInternal gosuSuperType;
     if( superType instanceof IJavaType )
     {
@@ -890,7 +900,17 @@ public class GosuClassTransformer extends AbstractElementTransformer<ClassStatem
           if( csr.getBackingDfs() != null )
           {
             csr = csr.getBackingDfs();
-            return gosuSuperType.getParseInfo().getMemberFunctions().get( csr.getName() );
+            superDfs = gosuSuperType.getParseInfo().getMemberFunctions().get( csr.getName() );
+            if( superDfs == null )
+            {
+              IScriptPartId scriptPart = csr.getScriptPart();
+              gosuSuperType = scriptPart != null ? (IGosuClassInternal)scriptPart.getContainingType() : null;
+              if( gosuSuperType != null )
+              {
+                superDfs = gosuSuperType.getParseInfo().getMemberFunctions().get( csr.getName() );
+              }
+            }
+            return superDfs;
           }
         }
       }
@@ -1057,7 +1077,11 @@ public class GosuClassTransformer extends AbstractElementTransformer<ClassStatem
         makeModifiersForBridgeMethod( m.getModifiers() ),
         superRetDescriptor,
         parameters );
-      _irClass.addMethod( bridgeMethod );
+      if( !bridges.contains( bridgeMethod.signature() ) )
+      {
+        _irClass.addMethod( bridgeMethod );
+        bridges.add( bridgeMethod.signature() );
+      }
       return true;
     }
     return false;
@@ -1169,7 +1193,11 @@ public class GosuClassTransformer extends AbstractElementTransformer<ClassStatem
       getDescriptor( method.getReturnClassInfo() ),
       parameters
     );
-    _irClass.addMethod( bridgeMethod );
+    if( !bridges.contains( bridgeMethod.signature() ) )
+    {
+      _irClass.addMethod( bridgeMethod );
+      bridges.add( bridgeMethod.signature() );
+    }
   }
 
   private IType[] getParamsIncludingTypeParams( DynamicFunctionSymbol dfs )
