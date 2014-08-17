@@ -7,6 +7,7 @@ package gw.internal.gosu.ir.transform;
 import gw.config.CommonServices;
 import gw.internal.ext.org.objectweb.asm.Opcodes;
 import gw.internal.ext.org.objectweb.asm.Type;
+import gw.internal.gosu.coercer.FunctionToInterfaceClassGenerator;
 import gw.internal.gosu.ir.nodes.GosuClassIRType;
 import gw.internal.gosu.ir.nodes.IRMethod;
 import gw.internal.gosu.ir.nodes.IRMethodFactory;
@@ -2774,7 +2775,8 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
     }
     else if( type instanceof IGosuClass &&
              !(type instanceof IBlockClass) &&
-             ((IGosuClass)type).getSourceFileHandle() instanceof StringSourceFileHandle ) {
+             ((IGosuClass)type).getSourceFileHandle() instanceof StringSourceFileHandle &&
+             type.getRelativeName().startsWith( FunctionToInterfaceClassGenerator.PROXY_FOR ) ) {
       // synthetic
       return false;
     }
