@@ -1469,13 +1469,10 @@ public class GosuClass extends AbstractType implements IGosuClassInternal
         return;
       }
 
-      if( getEnclosingType() != null )
+      if( getEnclosingType() instanceof IGosuClass && !getRelativeName().startsWith( FunctionToInterfaceClassGenerator.PROXY_FOR ) )
       {
         getEnclosingType().compileDefinitionsIfNeeded( bForce );
-        if( isDefinitionsCompiled() || !(getSourceFileHandle() instanceof StringSourceFileHandle) ) {
-          // note we don't return here if we're dealing w a string-based source file handle because it is assumed to be separate from the enclosing class's source file i.e., it won't parse as a result of parsing the enclosing class
-          return;
-        }
+        return;
       }
 
       TypeSystem.lock();
@@ -1622,13 +1619,10 @@ public class GosuClass extends AbstractType implements IGosuClassInternal
       }
 
       ICompilableTypeInternal enclosingType = getEnclosingType();
-      if( enclosingType != null )
+      if( enclosingType instanceof IGosuClass && !getRelativeName().startsWith( FunctionToInterfaceClassGenerator.PROXY_FOR ) )
       {
         enclosingType.compileDeclarationsIfNeeded();
-        if( isDeclarationsCompiled() || !(getSourceFileHandle() instanceof StringSourceFileHandle) ) {
-          // note we don't return here if we're dealing w a string-based source file handle because it is assumed to be separate from the enclosing class's source file i.e., it won't parse as a result of parsing the enclosing class
-          return;
-        }
+        return;
       }
 
       TypeSystem.lock();
@@ -1766,16 +1760,13 @@ public class GosuClass extends AbstractType implements IGosuClassInternal
       return;
     }
 
-    if( getEnclosingType() != null )
+    if( getEnclosingType() instanceof IGosuClass && !getRelativeName().startsWith( FunctionToInterfaceClassGenerator.PROXY_FOR ) )
     {
       getEnclosingType().compileHeaderIfNeeded();
 
       IGosuClassInternal gosuClass = (IGosuClassInternal) getOrCreateTypeReference();
       gosuClass.createNewParseInfo();
-      if( isHeaderCompiled() || !(getSourceFileHandle() instanceof StringSourceFileHandle) ) {
-        // note we don't return here if we're dealing w a string-based source file handle because it is assumed to be separate from the enclosing class's source file i.e., it won't parse as a result of parsing the enclosing class
-        return;
-      }
+      return;
     }
 
     TypeSystem.lock();

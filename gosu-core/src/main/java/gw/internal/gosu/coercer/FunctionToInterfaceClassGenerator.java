@@ -32,6 +32,11 @@ public class FunctionToInterfaceClassGenerator {
   public static final String PROXY_FOR = "ProxyFor_";
 
   public static synchronized IGosuClass getBlockToInterfaceConversionClass( IType typeToCoerceTo, IType enclosingType ) {
+    if( !(enclosingType instanceof IGosuClass) ) {
+      // The enclosing type could be a GosuFragment, for example, which isn't compiled
+      // normally, so we use a predefined Gosu class designated for top-level interface proxies
+      enclosingType = TypeSystem.getByFullName( "gw.lang.TopLevelBlockToInterfaceHolder" );
+    }
     typeToCoerceTo = TypeLord.replaceTypeVariableTypeParametersWithBoundingTypes( typeToCoerceTo, enclosingType );
     final String relativeNameWithEncodedSuffix = PROXY_FOR + encodeClassName( typeToCoerceTo.getName() );
     return (IGosuClass)((IHasInnerClass)enclosingType).getInnerClass( relativeNameWithEncodedSuffix );
