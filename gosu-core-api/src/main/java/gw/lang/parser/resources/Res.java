@@ -171,7 +171,6 @@ public class Res
   public static final ResourceKey MSG_NO_VIEWS_FOR_YOUS = new ResourceKey("MSG_NO_VIEWS_FOR_YOUS");
   public static final ResourceKey MSG_VARIABLE_TYPE_OR_VALUE_REQUIRED = new ResourceKey("MSG_VARIABLE_TYPE_OR_VALUE_REQUIRED");
   public static final ResourceKey MSG_VARIABLE_MUST_HAVE_NON_NULL_TYPE = new ResourceKey("MSG_VARIABLE_MUST_HAVE_NON_NULL_TYPE");
-  public static final ResourceKey MSG_CONDITION_IS_ALWAYS_TRUE_FALSE = new ResourceKey("MSG_CONDITION_IS_ALWAYS_TRUE_FALSE");
   public static final ResourceKey MSG_VOID_NOT_ALLOWED = new ResourceKey("MSG_VOID_NOT_ALLOWED");
   public static final ResourceKey MSG_FUNCTIONS_NOT_ALLOWED_IN_THIS_CONTEXT =new ResourceKey( "MSG_FUNCTIONS_NOT_ALLOWED_IN_THIS_CONTEXT" );
   public static final ResourceKey MSG_CONSTRUCTORS_NOT_ALLOWD_IN_THIS_CONTEXT =new ResourceKey( "MSG_CONSTRUCTORS_NOT_ALLOWD_IN_THIS_CONTEXT" );

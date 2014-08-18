@@ -185,7 +185,6 @@ public class Strings extends ListResourceBundle
        {Res.MSG_VARIABLE_REQUEST_DOES_NOT_ALLOW_VALUE.getKey(), ", request variables cannot have an initial value."},
        {Res.MSG_VARIABLE_TYPE_OR_VALUE_REQUIRED.getKey(), "Expecting an \"as\" and/or \":\" for \"var\" statement."},
        {Res.MSG_VARIABLE_MUST_HAVE_NON_NULL_TYPE.getKey(), "Variables must have a non-null type.  Add an explicit type for this variable."},
-       {Res.MSG_CONDITION_IS_ALWAYS_TRUE_FALSE.getKey(), "Condition is always {0}"},
        {Res.MSG_VOID_NOT_ALLOWED.getKey(), "'void' type not allowed here"},
        {Res.MSG_FUNCTIONS_NOT_ALLOWED_IN_THIS_CONTEXT.getKey(), "Function declarations not allowed in this context"},
        {Res.MSG_CONSTRUCTORS_NOT_ALLOWD_IN_THIS_CONTEXT.getKey(), "Constructors not allowed in this context"},
