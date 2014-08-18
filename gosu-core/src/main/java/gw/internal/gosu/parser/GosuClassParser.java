@@ -1694,12 +1694,9 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
   private ClassType parseAnonymousClassHeader( IGosuClassInternal gsClass )
   {
     ClassType classType = ClassType.Class;
-    IType instanceClass;
     ParsedElement elem;
     if( match( null, null, '(', true ) )
     {
-      // The type name is inferred in this case e.g., var obj : Object = new() {}
-      instanceClass = gsClass.getSupertype();
       elem = getClassStatement();
     }
     else if( !getOwner().parseTypeLiteral() )
@@ -1709,23 +1706,9 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
     else
     {
       elem = popExpression();
-      instanceClass = ((TypeLiteral)elem).getType().getType();
     }
     eatParenthesized( elem, Res.MSG_EXPECTING_FUNCTION_CLOSE );
     //getLocationsList().remove( superTypeLiteral.getLocation() ); // rely on the new-expr to keep the type literal *it* parses
-    instanceClass = TypeLord.makeDefaultParameterizedType( instanceClass );
-    if( instanceClass.isInterface() )
-    {
-      gsClass.addInterface( instanceClass );
-    }
-    else
-    {
-      gsClass.setSuperType( instanceClass );
-      if( instanceClass.isEnum() )
-      {
-        gsClass.setEnum();
-      }
-    }
     return classType;
   }
 
