@@ -137,7 +137,7 @@ public interface IGosuShop extends IService
 
   GosuExceptionUtil.IForceThrower getForceThrower();
 
-  Class getBlockToInterfaceConversionClass( IType typeToCoerceTo );
+  IGosuClass getBlockToInterfaceConversionClass( IType typeToCoerceTo, IType enclosingType );
 
   IRTypeResolver getIRTypeResolver();
 

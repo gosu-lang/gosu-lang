@@ -7,8 +7,8 @@ uses gw.testharness.DoNotVerifyResource
 @DoNotVerifyResource 
 class Errant_UsesPackageRelativeImports {
 
-  var v1 : util.Map  //## issuekeys: MSG_EXPECTING_TYPE_NAME, MSG_INVALID_TYPE
-  var v2 : util.Map.Entry  //## issuekeys: MSG_EXPECTING_TYPE_NAME, MSG_INVALID_TYPE
+  var v1 : util.Map  //## issuekeys: MSG_EXPECTING_TYPE_NAME, MSG_NO_TYPE_ON_NAMESPACE
+  var v2 : util.Map.Entry  //## issuekeys: MSG_EXPECTING_TYPE_NAME, MSG_NO_TYPE_ON_NAMESPACE
   var v3 : java.util.Map
   var v4 : java.util.Map.Entry
   var v5 : Map

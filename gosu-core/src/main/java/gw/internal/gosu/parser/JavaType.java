@@ -925,10 +925,7 @@ class JavaType extends AbstractType implements IJavaTypeInternal
       {
         _allTypesInHierarchy = TypeLord.getAllClassesInClassHierarchyAsIntrinsicTypes( _classInfo );
         Set<IType> includeGenericTypes = new HashSet<IType>( _allTypesInHierarchy );
-        if( isGenericType() || isParameterizedType() )
-        {
-          TypeLord.addAllClassesInClassHierarchy( thisRef(), includeGenericTypes, true );
-        }
+        addGenericTypes( thisRef(), includeGenericTypes);
         _allTypesInHierarchy = new UnmodifiableArraySet<IType>(includeGenericTypes);
       }
     }
@@ -937,6 +934,32 @@ class JavaType extends AbstractType implements IJavaTypeInternal
       TypeSystem.unlock();
     }
     return _allTypesInHierarchy;
+  }
+
+  private void addGenericTypes( IType type, Set<IType> includeGenericTypes)
+  {
+    if( type == null )
+    {
+      return;
+    }
+
+    if( type.isGenericType() || type.isParameterizedType() )
+    {
+      TypeLord.addAllClassesInClassHierarchy( type, includeGenericTypes, true );
+      return;
+    }
+    else
+    {
+      addGenericTypes(type.getSupertype(), includeGenericTypes);
+      IType[] interfaces = type.getInterfaces();
+      if( interfaces != null )
+      {
+        for( IType iface: interfaces )
+        {
+          addGenericTypes( iface, includeGenericTypes );
+        }
+      }
+    }
   }
 
   private IJavaTypeInternal thisRef()

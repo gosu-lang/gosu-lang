@@ -5,6 +5,7 @@
 package gw.internal.gosu.ir.transform.expression;
 
 import gw.config.CommonServices;
+import gw.internal.gosu.coercer.FunctionToInterfaceClassGenerator;
 import gw.internal.gosu.ir.nodes.IRTypeFactory;
 import gw.internal.gosu.ir.nodes.JavaClassIRType;
 import gw.internal.gosu.parser.TypeLord;
@@ -29,6 +30,7 @@ import gw.lang.parser.coercers.FunctionFromInterfaceCoercer;
 import gw.lang.parser.coercers.IdentityCoercer;
 import gw.lang.parser.coercers.RuntimeCoercer;
 import gw.lang.parser.expressions.ITypeAsExpression;
+import gw.lang.reflect.IBlockType;
 import gw.lang.reflect.IFunctionType;
 import gw.lang.reflect.IRelativeTypeInfo;
 import gw.lang.reflect.IType;
@@ -155,15 +157,16 @@ public class TypeAsTransformer extends AbstractExpressionTransformer<ITypeAsExpr
       }
     }
 
+    IRType asTypeDesc = getDescriptor( asType );
     if( isBigType( asType ) && (isNumberType( lhsType ) || isBigType( lhsType )) ) {
       // Any Big/Boxed/Primitive -> Any Big (bypass coercion manager)
 
       IRSymbol tempLhs = _cc().makeAndIndexTempSymbol( getDescriptor( lhsType ) );
       IRAssignmentStatement tempLhsAssn = buildAssignment( tempLhs, root );
-      IRSymbol tempRet = _cc().makeAndIndexTempSymbol( getDescriptor( asType ) );
+      IRSymbol tempRet = _cc().makeAndIndexTempSymbol( asTypeDesc );
       return buildComposite( tempLhsAssn, lhsType.isPrimitive()
                                           ? buildComposite( convertOperandToBig( asType, asType == JavaTypes.BIG_DECIMAL() ? BigDecimal.class : BigInteger.class, lhsType, identifier( tempLhs ), tempRet ), identifier( tempRet ) )
-                                          : checkCast( asType, buildTernary( buildEquals( identifier( tempLhs ), nullLiteral() ), nullLiteral(), buildComposite( convertOperandToBig( asType, asType == JavaTypes.BIG_DECIMAL() ? BigDecimal.class : BigInteger.class, lhsType, identifier( tempLhs ), tempRet ), identifier( tempRet ) ), getDescriptor( asType ) ) ) );
+                                          : checkCast( asType, buildTernary( buildEquals( identifier( tempLhs ), nullLiteral() ), nullLiteral(), buildComposite( convertOperandToBig( asType, asType == JavaTypes.BIG_DECIMAL() ? BigDecimal.class : BigInteger.class, lhsType, identifier( tempLhs ), tempRet ), identifier( tempRet ) ), asTypeDesc ) ) );
     }
 
     if( isNumberType( asType ) && isNumberType( lhsType ) ) {
@@ -185,7 +188,7 @@ public class TypeAsTransformer extends AbstractExpressionTransformer<ITypeAsExpr
                                                             ? buildComposite( buildThrow( buildNewExpression( getDescriptor( NullPointerException.class ), Collections.<IRType>emptyList(), Collections.<IRExpression>emptyList() ) ) )
                                                             : convertBoxedNullToPrimitive( TypeLord.getBoxedTypeFromPrimitiveType( asType ) )
                                                           : nullLiteral(),
-                                                          root, getDescriptor( asType ) ) );
+                                                          root, asTypeDesc ) );
       }
       else {
         IType primitiveTypeAsType = asType.isPrimitive() ? asType : TypeSystem.getPrimitiveType( asType );
@@ -201,6 +204,23 @@ public class TypeAsTransformer extends AbstractExpressionTransformer<ITypeAsExpr
     if( asType == JavaTypes.OBJECT() && lhsType.isPrimitive() ) {
       // Any Primitive -> Object (bypass coercion manager)
       return boxValue( lhsType, root );
+    }
+
+    if( asType.isPrimitive() && lhsType == JavaTypes.OBJECT() ) {
+      // Object -> Any Primitive (bypass coercion)
+
+      IRSymbol tempLhs = _cc().makeAndIndexTempSymbol( getDescriptor( lhsType ) );
+      IRAssignmentStatement tempLhsAssn = buildAssignment( tempLhs, root );
+      IRExpression expr = buildTernary( new IRInstanceOfExpression( root, IRTypeFactory.get( TypeLord.getBoxedTypeFromPrimitiveType( asType ) ) ),
+                                        unboxValueToType( asType, identifier( tempLhs ) ),
+                                        callStaticMethod( TypeAsTransformer.class, "convertToPrimitiveFromBoxOrString_" + asTypeDesc.getName(), new Class[]{Object.class}, Collections.<IRExpression>singletonList( identifier( tempLhs ) ) ),
+                                        asTypeDesc );
+      return buildComposite( tempLhsAssn, expr );
+    }
+
+    if( asType.isInterface() && lhsType instanceof IBlockType ) {
+      IGosuClass gsClass = FunctionToInterfaceClassGenerator.getBlockToInterfaceConversionClass( asType, _cc().getGosuClass() );
+      return buildNewExpression( IRTypeFactory.get( gsClass ), Collections.singletonList( IRTypeFactory.get( JavaTypes.IBLOCK() ) ), Collections.singletonList( root ) );
     }
 
     IType lhsDimensionNumberType = findDimensionType( lhsType );
@@ -224,14 +244,14 @@ public class TypeAsTransformer extends AbstractExpressionTransformer<ITypeAsExpr
                                                             ? buildComposite( buildThrow( buildNewExpression( getDescriptor( NullPointerException.class ), Collections.<IRType>emptyList(), Collections.<IRExpression>emptyList() ) ) )
                                                             : convertBoxedNullToPrimitive( TypeLord.getBoxedTypeFromPrimitiveType( asType ) )
                                                           : nullLiteral(),
-                                                          root, getDescriptor( asType ) ) );
+                                                          root, asTypeDesc ) );
       }
       else if( isBigType( asType ) ) {
         //  Any Dimension -> Any Big (bypass coercion manager)
-        IRSymbol tempRet = _cc().makeAndIndexTempSymbol( getDescriptor( asType ) );
+        IRSymbol tempRet = _cc().makeAndIndexTempSymbol( asTypeDesc );
         return buildComposite( tempLhsAssn, lhsType.isPrimitive()
                                             ? buildComposite( convertOperandToBig( asType, asType == JavaTypes.BIG_DECIMAL() ? BigDecimal.class : BigInteger.class, lhsType, identifier( tempLhs ), tempRet ), identifier( tempRet ) )
-                                            : checkCast( asType, buildTernary( buildEquals( identifier( tempLhs ), nullLiteral() ), nullLiteral(), buildComposite( convertOperandToBig( asType, asType == JavaTypes.BIG_DECIMAL() ? BigDecimal.class : BigInteger.class, lhsType, identifier( tempLhs ), tempRet ), identifier( tempRet ) ), getDescriptor( asType ) ) ) );
+                                            : checkCast( asType, buildTernary( buildEquals( identifier( tempLhs ), nullLiteral() ), nullLiteral(), buildComposite( convertOperandToBig( asType, asType == JavaTypes.BIG_DECIMAL() ? BigDecimal.class : BigInteger.class, lhsType, identifier( tempLhs ), tempRet ), identifier( tempRet ) ), asTypeDesc ) ) );
       }
     }
 
@@ -453,5 +473,30 @@ public class TypeAsTransformer extends AbstractExpressionTransformer<ITypeAsExpr
                     identifier( tempRootSymbol ),
                     convertBoxedNullToPrimitive( lhsType ),
                     callMethod( cls,  methodName, new Class[0], identifier(tempRootSymbol), exprList() ) ) );
+  }
+
+  public static boolean convertToPrimitiveFromBoxOrString_boolean( Object value ) {
+    return CommonServices.getCoercionManager().makePrimitiveBooleanFrom( value );
+  }
+  public static byte convertToPrimitiveFromBoxOrString_byte( Object value ) {
+    return (byte)CommonServices.getCoercionManager().makePrimitiveIntegerFrom( value );
+  }
+  public static char convertToPrimitiveFromBoxOrString_char( Object value ) {
+    return (char)CommonServices.getCoercionManager().makePrimitiveIntegerFrom( value );
+  }
+  public static short convertToPrimitiveFromBoxOrString_short( Object value ) {
+    return (short)CommonServices.getCoercionManager().makePrimitiveIntegerFrom( value );
+  }
+  public static int convertToPrimitiveFromBoxOrString_int( Object value ) {
+    return CommonServices.getCoercionManager().makePrimitiveIntegerFrom( value );
+  }
+  public static long convertToPrimitiveFromBoxOrString_long( Object value ) {
+    return CommonServices.getCoercionManager().makePrimitiveLongFrom( value );
+  }
+  public static float convertToPrimitiveFromBoxOrString_float( Object value ) {
+    return CommonServices.getCoercionManager().makePrimitiveFloatFrom( value );
+  }
+  public static double convertToPrimitiveFromBoxOrString_double( Object value ) {
+    return CommonServices.getCoercionManager().makePrimitiveDoubleFrom( value );
   }
 }

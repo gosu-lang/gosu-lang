@@ -4012,6 +4012,21 @@ public final class GosuParser extends ParserBase implements IGosuParser
     innerSfh.setMark( mark );
     IGosuClassInternal innerGsClass = (IGosuClassInternal)enclosingType.getTypeLoader().makeNewClass( innerSfh );
     ((IGosuClassInternal)enclosingType).addInnerClass(innerGsClass);
+    if( declaringClass != null )
+    {
+      if( declaringClass.isInterface() )
+      {
+        innerGsClass.addInterface( TypeLord.makeDefaultParameterizedType( declaringClass ) );
+      }
+      else
+      {
+        innerGsClass.setSuperType( TypeLord.makeDefaultParameterizedType( declaringClass ) );
+        if( declaringClass.isEnum() )
+        {
+          innerGsClass.setEnum();
+        }
+      }
+    }
     innerGsClass.setEnclosingType( enclosingType );
     innerGsClass.setNamespace( enclosingType.getNamespace() );
     innerGsClass.createNewParseInfo();

@@ -80,7 +80,7 @@ public class IDEAPlatformHelper extends AbstractPlatformHelper implements FileEd
 
   @Override
   public boolean isPathIgnored(String relativePath) {
-    if (_project.isInitialized()) {
+    if (_project.isInitialized() && relativePath != null) {
       Sdk projectSdk = ProjectRootManager.getInstance(_project).getProjectSdk();
       if (projectSdk != null) {
         VirtualFile[] sources = projectSdk.getRootProvider().getFiles(OrderRootType.SOURCES);

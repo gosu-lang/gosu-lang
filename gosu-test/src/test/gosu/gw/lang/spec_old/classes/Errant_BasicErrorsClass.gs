@@ -5,7 +5,7 @@ uses gw.testharness.DoNotVerifyResource
 class Errant_BasicErrorsClass {
 
   function badArgsMethod() {
-    methodWithSomeArgs( new Object(), 1, new Object() )
+    methodWithSomeArgs( new Object() {}, 1, new Object() {} )
   }
   
   function methodWithSomeArgs( i : int, j : int, k : int ) {

@@ -8,7 +8,6 @@ import gw.lang.GosuShop;
 import gw.lang.reflect.IAnnotationInfo;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.TypeSystem;
-import gw.lang.reflect.java.IJavaType;
 import gw.lang.reflect.java.JavaTypes;
 
 import java.lang.annotation.ElementType;
@@ -117,10 +116,24 @@ public enum UsageModifier {
         value = null;
       }
       else if( v.getClass().isArray() ) {
-        value = (String[])v;
+        if( v instanceof String[] ) {
+          value = (String[])v;
+        }
+        else {
+          ElementType[] elems = (ElementType[])v;
+          value = new String[elems.length];
+          for( int i = 0; i < elems.length; i++ ) {
+            value[i] = elems[i].name();
+          }
+        }
       }
       else {
-        value = new String[]{(String)v};
+        if( v instanceof String ) {
+          value = new String[]{(String)v};
+        }
+        else {
+          value = new String[]{((ElementType)v).name()};
+        }
       }
       if( value == null || value.length == 0 ) {
         return bRepeatable ? UsageModifier.Many : UsageModifier.One; // If there are no targets, it can be used everywhere

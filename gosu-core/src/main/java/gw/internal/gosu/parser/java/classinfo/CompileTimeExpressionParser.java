@@ -4,12 +4,16 @@
 
 package gw.internal.gosu.parser.java.classinfo;
 
+import gw.internal.ext.org.antlr.runtime.ANTLRStringStream;
+import gw.internal.ext.org.antlr.runtime.CharStream;
+import gw.internal.ext.org.antlr.runtime.Token;
 import gw.internal.gosu.parser.AnnotationInfoFactoryImpl;
 import gw.internal.gosu.parser.FieldJavaClassField;
 import gw.internal.gosu.parser.GosuParser;
 import gw.internal.gosu.parser.Symbol;
 import gw.internal.gosu.parser.TypeLord;
 import gw.internal.gosu.parser.TypeUsesMap;
+import gw.internal.gosu.parser.java.JavaLexer;
 import gw.lang.parser.GosuParserFactory;
 import gw.lang.parser.IExpression;
 import gw.lang.parser.ISymbol;
@@ -58,6 +62,7 @@ public class CompileTimeExpressionParser
     TypeSystem.pushIncludeAll();
     addEnclosingPackages(usesMap, enclosingType );
     try {
+      text = Java7ToGosuLexicalConversion(text);
       GosuParser scriptParser = (GosuParser)GosuParserFactory.createParser( text );
       maybePushEnumTypes( scriptParser.getSymbolTable(), resultType );
       pushLocalConstants( scriptParser.getSymbolTable(), enclosingType );
@@ -83,6 +88,56 @@ public class CompileTimeExpressionParser
       usesMap.addToTypeUses( jci.getName() );
     }
     addInnerClassNames( enclosingType.getEnclosingClass(), usesMap );
+  }
+
+  private static String Java7ToGosuLexicalConversion(String src) {
+    CharStream cs = new ANTLRStringStream(src);
+    JavaLexer lexer = new JavaLexer(cs);
+    Token t = lexer.nextToken();
+    StringBuilder sb = new StringBuilder();
+
+    while(t.getType() != Token.EOF) {
+      String text = t.getText();
+      if(t.getType() != JavaLexer.IDENTIFIER &&
+         t.getType() != JavaLexer.STRINGLITERAL &&
+         t.getType() != JavaLexer.CHARLITERAL)
+      {
+        text = text.replaceAll("_", "");
+      }
+      if(t.getType() == JavaLexer.BINLITERAL) {
+        String binaryString = text.toLowerCase();
+        int s = 2;
+        int e = binaryString.length();
+
+        if(binaryString.charAt(e-1) == 'l') {
+          e--;
+        }
+        binaryString = binaryString.substring(s, e);
+        text = Long.valueOf(binaryString, 2).toString();
+      }
+      if( t.getType() == JavaLexer.LONGLITERAL || t.getType() == JavaLexer.INTLITERAL) {
+        String number = text.toLowerCase();
+        int s = 0;
+        int e = number.length();
+
+        if(e >= 2 && number.charAt(0) == '0' && number.charAt(1) != 'x') {
+          s = 1;
+
+          if(number.charAt(e-1) == 'l') {
+            e--;
+          }
+          if( s < e ) {
+            number = number.substring(s, e);
+            text = Long.valueOf(number, 8).toString();
+          }
+        }
+      }
+      sb.append(" ");
+      sb.append(text);
+      t = lexer.nextToken();
+    }
+    src = sb.toString();
+    return src;
   }
 
   private static void pushLocalConstants(ISymbolTable symbolTable, IJavaClassInfo enclosingClass) {

@@ -348,8 +348,8 @@ public class GosuIndustrialParkImpl extends BaseService implements IGosuShop
   }
 
   @Override
-  public Class getBlockToInterfaceConversionClass(IType typeToCoerceTo) {
-    return FunctionToInterfaceClassGenerator.getBlockToInterfaceConversionClass( typeToCoerceTo );
+  public IGosuClass getBlockToInterfaceConversionClass( IType typeToCoerceTo, IType enclosingType ) {
+    return FunctionToInterfaceClassGenerator.getBlockToInterfaceConversionClass( typeToCoerceTo, enclosingType );
   }
 
   @Override

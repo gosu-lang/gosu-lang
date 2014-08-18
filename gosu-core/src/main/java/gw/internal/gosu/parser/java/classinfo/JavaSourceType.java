@@ -4,25 +4,16 @@
 
 package gw.internal.gosu.parser.java.classinfo;
 
-import com.sun.source.tree.ArrayTypeTree;
-import com.sun.source.tree.ClassTree;
-import com.sun.source.tree.CompilationUnitTree;
-import com.sun.source.tree.IdentifierTree;
-import com.sun.source.tree.ImportTree;
-import com.sun.source.tree.MemberSelectTree;
-import com.sun.source.tree.MethodTree;
-import com.sun.source.tree.ParameterizedTypeTree;
-import com.sun.source.tree.PrimitiveTypeTree;
-import com.sun.source.tree.Tree;
-import com.sun.source.tree.TypeParameterTree;
-import com.sun.source.tree.VariableTree;
-import com.sun.source.tree.WildcardTree;
-import com.sun.tools.javac.api.JavacTaskImpl;
-import com.sun.tools.javac.api.JavacTool;
-import com.sun.tools.javac.tree.JCTree;
-import com.sun.tools.javac.tree.TreeInfo;
 import gw.internal.gosu.parser.AsmClassJavaClassInfo;
 import gw.internal.gosu.parser.TypeUsesMap;
+import gw.internal.gosu.parser.java.IJavaASTNode;
+import gw.internal.gosu.parser.java.JavaASTConstants;
+import gw.internal.gosu.parser.java.JavaLexer;
+import gw.internal.gosu.parser.java.JavaParser;
+import gw.internal.gosu.parser.java.LeafASTNode;
+import gw.internal.gosu.parser.java.SourceTypeFormatException;
+import gw.internal.gosu.parser.java.TreeBuilder;
+import gw.internal.gosu.parser.java.TypeASTNode;
 import gw.lang.GosuShop;
 import gw.lang.SimplePropertyProcessing;
 import gw.lang.javadoc.IClassDocNode;
@@ -50,13 +41,13 @@ import gw.lang.reflect.java.IJavaPropertyDescriptor;
 import gw.lang.reflect.java.ITypeInfoResolver;
 import gw.lang.reflect.java.JavaTypes;
 import gw.lang.reflect.module.IModule;
+import gw.internal.ext.org.antlr.runtime.ANTLRStringStream;
+import gw.internal.ext.org.antlr.runtime.CharStream;
+import gw.internal.ext.org.antlr.runtime.RecognitionException;
+import gw.internal.ext.org.antlr.runtime.TokenRewriteStream;
 import gw.util.GosuObjectUtil;
 
-import javax.tools.JavaCompiler;
-import javax.tools.JavaFileObject;
-import javax.tools.StandardJavaFileManager;
 import java.lang.annotation.Annotation;
-import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -89,6 +80,9 @@ public abstract class JavaSourceType extends AbstractJavaClassInfo implements IJ
   private static final Object CACHE_MISS = new Object() { public String toString() {return "cache miss";}};
 
   protected IModule _gosuModule;
+  protected IJavaASTNode _typeNode;
+  protected IJavaASTNode _bodyNode;
+  protected int _typeNodeIndex;
   protected String _fullyQualifiedName;
   protected String _namespace;
   protected String _simpleName;
@@ -111,159 +105,149 @@ public abstract class JavaSourceType extends AbstractJavaClassInfo implements IJ
   protected Map<String, Object> _cache;
   private ISourceFileHandle _fileHandle;
   private List<String> _staticImportList;
-  private ClassTree _typeDecl;
 
   public static IJavaClassInfo createTopLevel(ISourceFileHandle fileHandle, IModule gosuModule) {
-    List<CompilationUnitTree> trees = new ArrayList<CompilationUnitTree>();
-    boolean err = parseJavaFile(fileHandle, trees);
-    if(err) {
-      return new JavaSourceUnresolvedClass(fileHandle, gosuModule);
+    CharStream cs = new ANTLRStringStream(fileHandle.getSource().getSource());
+    JavaLexer lexer = new JavaLexer(cs);
+    TokenRewriteStream tokens = new TokenRewriteStream(lexer);
+    JavaParser parser = new JavaParser(tokens);
+    TreeBuilder treeBuilder = new TreeBuilder();
+    parser.setTreeBuilder(treeBuilder);
+    try {
+      parser.compilationUnit();
+    } catch (RecognitionException e) {
+      // ignore parse issues
     }
+    IJavaASTNode tree = treeBuilder.getTree();
 
-    ClassTree def = getTopLevelDefinition(trees, fileHandle.getFileName());
-    if(def != null) {
-      JavaSourceType result = null;
-      final Tree.Kind kind = def.getKind();
-      final List<? extends ImportTree> imports = trees.get(0).getImports();
-      switch(kind) {
-        case CLASS:
-          result = new JavaSourceClass(fileHandle, def, imports, gosuModule);
-          break;
-        case INTERFACE:
-          result = new JavaSourceInterface(fileHandle, def, imports, gosuModule);
-          break;
-        case ENUM:
-          result = new JavaSourceEnum(fileHandle, def, imports, gosuModule);
-          break;
-        case ANNOTATION_TYPE:
-          result = new JavaSourceAnnotation(fileHandle,  def, imports, gosuModule);
-          break;
-      }
+    JavaSourceType result = null;
+    if (tree.getChildOfType(JavaASTConstants.normalClassDeclaration) != null) {
+      result = new JavaSourceClass(fileHandle, tree, gosuModule);
+    } else if (tree.getChildOfType(JavaASTConstants.normalInterfaceDeclaration) != null) {
+      result = new JavaSourceInterface(fileHandle, tree, gosuModule);
+    } else if (tree.getChildOfType(JavaASTConstants.enumDeclaration) != null) {
+      result = new JavaSourceEnum(fileHandle, tree, gosuModule);
+    } else if (tree.getChildOfType(JavaASTConstants.annotationTypeDeclaration) != null) {
+      result = new JavaSourceAnnotation(fileHandle, tree, gosuModule);
+    }
+    if (result != null && result.isValid()) {
       return result;
     } else {
       return new JavaSourceUnresolvedClass(fileHandle, gosuModule);
     }
   }
 
-  private static ClassTree getTopLevelDefinition(List<CompilationUnitTree> trees, String fileName) {
-    String name = fileName.substring(0, fileName.indexOf('.'));
-    // We know that there is just one tree (trees.get(0)) as we parsed one file
-    final List<? extends Tree> typeDecls = trees.get(0).getTypeDecls();
-    for(Tree t : typeDecls) {
-      if(t instanceof ClassTree &&
-         name.equals(((ClassTree) t).getSimpleName().toString()))
-      {
-         return (ClassTree) t;
-      }
-    }
-    return null;
-  }
-
-  private static boolean parseJavaFile(ISourceFileHandle src, List<CompilationUnitTree> trees) {
-    boolean err = false;
-    try {
-      JavaCompiler compiler = JavacTool.create();
-      StandardJavaFileManager fileManager = compiler.getStandardFileManager(null, null, Charset.forName("UTF-8"));
-      ArrayList<JavaStringObject> javaStringObjects = new ArrayList<JavaStringObject>();
-      javaStringObjects.add(new JavaStringObject(src.getSource().getSource()));
-      JavaCompiler.CompilationTask task = compiler.getTask(null, fileManager, null, null, null, javaStringObjects );
-      JavacTaskImpl javacTask = (JavacTaskImpl) task;
-      Iterable<? extends CompilationUnitTree> iterable = javacTask.parse();
-      for (CompilationUnitTree x : iterable) {
-        trees.add(x);
-      }
-      fileManager.close();
-    } catch (Exception e) {
-      err = true;
-    }
-    return err;
-  }
-
-  private static JavaSourceType createInner(ClassTree typeDecl, JavaSourceType containingClass) {
-    final Tree.Kind kind = typeDecl.getKind();
-    switch (kind) {
-      case CLASS:
-        return new JavaSourceClass(typeDecl, containingClass);
-      case INTERFACE:
-        return new JavaSourceInterface(typeDecl, containingClass);
-      case ENUM:
-        return new JavaSourceEnum(typeDecl, containingClass);
-      case ANNOTATION_TYPE:
-        return new JavaSourceAnnotation(typeDecl, containingClass);
-      default:
-        throw new RuntimeException("unsupported node type");
+  private static JavaSourceType createInner(IJavaASTNode tree, JavaSourceType containingClass) {
+    if (tree.isOfType(JavaASTConstants.normalClassDeclaration)) {
+      return new JavaSourceClass(tree, containingClass);
+    } else if (tree.isOfType(JavaASTConstants.normalInterfaceDeclaration)) {
+      return new JavaSourceInterface(tree, containingClass);
+    } else if (tree.isOfType(JavaASTConstants.enumDeclaration)) {
+      return new JavaSourceEnum(tree, containingClass);
+    } else if (tree.isOfType(JavaASTConstants.annotationTypeDeclaration)) {
+      return new JavaSourceAnnotation(tree, containingClass);
+    } else {
+      throw new RuntimeException("unsupported node type");
     }
   }
 
   /**
    * For top level classes.
    */
-  protected JavaSourceType(ISourceFileHandle fileHandle, ClassTree typeDecl, List<? extends ImportTree> imports, IModule gosuModule) {
+  protected JavaSourceType(ISourceFileHandle fileHandle, IJavaASTNode node, String declarationType, int typeNodeType, String bodyType, IModule gosuModule) {
     _fileHandle = fileHandle;
     _namespace = fileHandle.getNamespace();
     _simpleName = fileHandle.getRelativeName();
     _gosuModule = gosuModule;
-    makeImportList(imports);
-    _typeDecl = typeDecl;
+    makeImportList(node);
+    _typeNode = node.getChildOfTypes(declarationType);
+    _typeNodeIndex = _typeNode.getChildOfTypesIndex( typeNodeType );
+    _bodyNode = _typeNode.getChildOfTypes(bodyType);
     _cache = new HashMap<String, Object>();
   }
 
   /**
    * For inner classes.
    */
-  protected JavaSourceType(ClassTree typeDecl, JavaSourceType enclosingClass) {
+  protected JavaSourceType(IJavaASTNode node, JavaSourceType enclosingClass, int typeNodeType, String bodyType) {
+    _typeNode = node;
     _enclosingClass = enclosingClass;
     _gosuModule = enclosingClass.getModule();
+    _bodyNode = _typeNode.getChildOfType(bodyType);
+    _typeNodeIndex = _typeNode.getChildOfTypesIndex(typeNodeType);
     _cache = new HashMap<String, Object>();
     _namespace = enclosingClass.getNamespace();
-    _typeDecl = typeDecl;
-    _simpleName = _typeDecl.getSimpleName().toString();
+    _simpleName = computeSimpleName();
   }
 
-  private static IJavaClassType resolveParameterizedArrayType(ITypeInfoResolver typeResolver, Tree tree, String typeName) {
-    if (!(tree instanceof ArrayTypeTree)) {
-      return resolveParameterizedType(typeResolver, tree, typeName);
+  private String computeSimpleName() {
+    try {
+      if (_typeNodeIndex != -1) {
+        IJavaASTNode child = _typeNode.getChild(_typeNodeIndex + 1);
+        if (checkNode(child, JavaParser.IDENTIFIER)) {
+          return child.getText();
+        }
+      }
+    } catch(IndexOutOfBoundsException e) {
+      // no node for classname field
     }
-    IJavaClassType type = resolveParameterizedArrayType(typeResolver, ((ArrayTypeTree) tree).getType(), typeName.substring(0, typeName.length() - 2));
+    throw new SourceTypeFormatException("no class name");
+  }
+
+  private static IJavaClassType resolveParameterizedArrayType(ITypeInfoResolver typeResolver, TypeASTNode typeASTNode, String typeName) {
+    if (!typeName.endsWith("[]")) {
+      return resolveParameterizedType(typeResolver, typeASTNode, typeName);
+    }
+    IJavaClassType type = resolveParameterizedArrayType(typeResolver, typeASTNode, typeName.substring(0, typeName.length() - 2));
     return new JavaSourceArrayType(type);
   }
 
-  public static IJavaClassType createType(ITypeInfoResolver typeResolver, Tree tree) {
-    final String typeName = getTypeName(tree);
-
-    if (tree instanceof ArrayTypeTree &&
-        ((ArrayTypeTree) tree).getType() instanceof ParameterizedTypeTree )
-    {
-      return resolveParameterizedArrayType(typeResolver, tree, typeName);
-    }
-    else if (tree instanceof ParameterizedTypeTree)
-    {
-      return resolveParameterizedType(typeResolver, tree, typeName);
-    }
-    else if (tree instanceof WildcardTree) {
-      WildcardTree wildcardTree = (WildcardTree) tree;
-      final Tree.Kind kind = wildcardTree.getKind();
-      if(kind == Tree.Kind.UNBOUNDED_WILDCARD) {
-        return new JavaWildcardType(NULL_TYPE);
-      } else if(kind == Tree.Kind.EXTENDS_WILDCARD) {
-        return new JavaWildcardType(createType(typeResolver, wildcardTree.getBound()));
-      } else if(kind == Tree.Kind.SUPER_WILDCARD) {
-        return new JavaWildcardType(JavaTypes.OBJECT().getBackingClassInfo());
+  public static IJavaClassType createType(ITypeInfoResolver typeResolver, IJavaASTNode typeNode) {
+    if (typeNode instanceof TypeASTNode) {
+      TypeASTNode typeASTNode = (TypeASTNode) typeNode;
+      String typeName = typeASTNode.getTypeName();
+      if (typeASTNode.isParameterizedArrayType()) {
+        return resolveParameterizedArrayType(typeResolver, typeASTNode, typeName);
+      } else if (typeASTNode.isParameterized()) {
+        return resolveParameterizedType(typeResolver, typeASTNode, typeName);
+      } else {
+        return createType(typeResolver, typeName, IGNORE_NONE);
       }
+    } else if (isTypeArgument(typeNode)) {
+      if (isWildcardType(typeNode)) {
+        IJavaASTNode childOfType = typeNode.getChildOfType(JavaASTConstants.type);
+        if (childOfType == null) {
+          return new JavaWildcardType(NULL_TYPE);
+        } else {
+          if (isSuper(typeNode)) {
+            return new JavaWildcardType(JavaTypes.OBJECT().getBackingClassInfo());
+          } else {
+            return new JavaWildcardType(createType(typeResolver, childOfType));
+          }
+        }
+      } else {
+        return createType(typeResolver, typeNode.getChildOfType(JavaASTConstants.type));
+      }
+    } else { // 'void' and the like go through here
+      return createType(typeResolver, typeNode.getText(), IGNORE_NONE);
     }
-    else if(tree instanceof IdentifierTree ||
-            tree instanceof PrimitiveTypeTree ||
-            tree instanceof ArrayTypeTree ||
-            tree instanceof MemberSelectTree)
-    {
-      return createType(typeResolver, typeName, IGNORE_NONE);
-    }
-    throw new RuntimeException("Type tree '" + tree  + "' of kind: " + tree.getKind() + " has not been handled");
   }
 
-  private static IJavaClassType resolveParameterizedType(ITypeInfoResolver typeResolver, Tree typeNode, String typeName) {
-    final List<? extends Tree> typeArguments = ((ParameterizedTypeTree) typeNode).getTypeArguments();
-    IJavaClassType[] typeParameters = new IJavaClassType[typeArguments.size()];
+  private static boolean isSuper(IJavaASTNode typeNode) {
+    return typeNode.getChildOfType(JavaParser.SUPER) != null;
+  }
+
+  private static boolean isTypeArgument(IJavaASTNode typeNode) {
+    return typeNode.isOfType(JavaASTConstants.typeArgument);
+  }
+
+  private static boolean isWildcardType(IJavaASTNode typeNode) {
+    return typeNode.getChildOfType(JavaParser.QUES) != null;
+  }
+
+  private static IJavaClassType resolveParameterizedType(ITypeInfoResolver typeResolver, TypeASTNode typeNode, String typeName) {
+    List<IJavaASTNode> typeArgumentNodes = typeNode.getTypeArguments();
+    IJavaClassType[] typeParameters = new IJavaClassType[typeArgumentNodes.size()];
     IJavaClassType concreteType = createType(typeResolver, typeName, IGNORE_NONE);
     if (concreteType == null || concreteType instanceof ErrorJavaClassInfo) {
       return ERROR_TYPE;
@@ -273,7 +257,7 @@ public abstract class JavaSourceType extends AbstractJavaClassInfo implements IJ
       throw new RuntimeException("Type parameters screwup.");
     }
     for (int i = 0; i < typeParameters.length; i++) {
-      typeParameters[i] = createType(typeResolver, typeArguments.get(i));
+      typeParameters[i] = createType(typeResolver, typeArgumentNodes.get(i));
       if (typeParameters[i] instanceof JavaWildcardType && ((JavaWildcardType)typeParameters[i]).getUpperBound() == NULL_TYPE) {
         ((JavaWildcardType)typeParameters[i]).setBound(parameters[i].getBounds()[0]);
       }
@@ -296,18 +280,32 @@ public abstract class JavaSourceType extends AbstractJavaClassInfo implements IJ
     }
   }
 
-  protected void makeImportList(List<? extends ImportTree> imports) {
-    List<String> staticImportList = new ArrayList<String>(imports.size());
-    List<String> importList = new ArrayList<String>(imports.size());
-
+  protected void makeImportList(IJavaASTNode node) {
+    List<IJavaASTNode> importDecls = node.getChildrenOfTypes(JavaASTConstants.importDeclaration);
+    List<String> importList = new ArrayList<String>(importDecls.size());
+    List<String> staticImportList = new ArrayList<String>(importDecls.size());
     importList.add("java.lang.*");
-    for (ImportTree it : imports) {
-      final JCTree qualifiedIdentifier = (JCTree) it.getQualifiedIdentifier();
-      final String importStr = TreeInfo.fullName(qualifiedIdentifier).toString();
-      importList.add(importStr);
-      if(it.isStatic()) {
-        staticImportList.add(importStr);
+    for (IJavaASTNode importDecl : importDecls) {
+      StringBuilder importText = new StringBuilder();
+      List<IJavaASTNode> children = importDecl.getChildren();
+      boolean bStatic = false;
+      for (int i = 1; i < children.size(); i++) {
+        IJavaASTNode leaf = children.get(i);
+        String token = leaf.getText();
+        if ("static".equals(token)) {
+          bStatic = true;
+          continue;
+        }
+        importText.append(token);
       }
+      if (bStatic) {
+        int iDotStar = importText.lastIndexOf(".*");
+        if (iDotStar > 0) {
+          importText.delete(iDotStar, importText.length());
+        }
+        staticImportList.add( importText.toString() );
+      }
+      importList.add(importText.toString());
     }
     Collections.sort(importList, new Comparator<String>() {
       public int compare(String s1, String s2) {
@@ -353,6 +351,10 @@ public abstract class JavaSourceType extends AbstractJavaClassInfo implements IJ
     return false;
   }
 
+  private boolean checkNode(IJavaASTNode node, int tokenType) {
+    return node != null && node.isLeaf() && ((LeafASTNode) node).getTokenType() == tokenType;
+  }
+
   public String getName() {
     if (_fullyQualifiedName == null) {
       if (_enclosingClass == null) {
@@ -370,15 +372,15 @@ public abstract class JavaSourceType extends AbstractJavaClassInfo implements IJ
       TypeSystem.lock();
       try {
         if (_interfaces == null) {
-          final List<? extends Tree> implementsClause = _typeDecl.getImplementsClause();
-          if (implementsClause == null) {
+          IJavaASTNode typeList = _typeNode.getChildOfType(JavaASTConstants.typeList);
+          if (typeList == null) {
             _interfaces = IJavaClassType.EMPTY_ARRAY;
             return _interfaces;
           }
-          IJavaClassInfo[] interfaces = new IJavaClassInfo[implementsClause.size()];
+          List<IJavaASTNode> children = typeList.getChildren();
+          IJavaClassInfo[] interfaces = new IJavaClassInfo[children.size()];
           for (int i = 0; i < interfaces.length; i++) {
-            Tree clause = implementsClause.get(i);
-            String typeName = getTypeName(clause);
+            String typeName = ((TypeASTNode) children.get(i)).getTypeName();
             IJavaClassInfo classInfo = (IJavaClassInfo) createType(this, typeName, IGNORE_SUPERCLASS | IGNORE_INTERFACES);
             interfaces[i] = classInfo;
           }
@@ -391,24 +393,20 @@ public abstract class JavaSourceType extends AbstractJavaClassInfo implements IJ
     return _interfaces;
   }
 
-
-  static public String getTypeName(Tree tree) {
-    return tree.toString().replaceAll("<.*>", "");
-  }
-
   @Override
   public IJavaClassType[] getGenericInterfaces() {
     TypeSystem.lock();
     try {
       if (_genericInterfaces == null) {
-        final List<? extends Tree> implementsClause = _typeDecl.getImplementsClause();
-        if (implementsClause.isEmpty()) {
+        IJavaASTNode typeList = _typeNode.getChildOfType(JavaASTConstants.typeList);
+        if (typeList == null) {
           _genericInterfaces = IJavaClassType.EMPTY_ARRAY;
           return _genericInterfaces;
         }
-        IJavaClassType[] genericInterfaces = new IJavaClassType[implementsClause.size()];
+        List<IJavaASTNode> children = typeList.getChildren();
+        IJavaClassType[] genericInterfaces = new IJavaClassType[children.size()];
         for (int i = 0; i < genericInterfaces.length; i++) {
-          genericInterfaces[i] = createType(this, implementsClause.get(i));
+          genericInterfaces[i] = createType(this, children.get(i));
         }
         _genericInterfaces = genericInterfaces;
       }
@@ -426,10 +424,10 @@ public abstract class JavaSourceType extends AbstractJavaClassInfo implements IJ
       } else if (isEnum()) {
         _superClass = JavaTypes.ENUM().getBackingClassInfo();
       } else {
-        final Tree extendsClause = _typeDecl.getExtendsClause();
-        _superClass = extendsClause != null
-                ? (IJavaClassInfo) createType(this, getTypeName(extendsClause), IGNORE_SUPERCLASS | IGNORE_INTERFACES)
-                : JavaTypes.OBJECT().getBackingClassInfo();
+        IJavaASTNode superTypeNode = _typeNode.getChildOfType(JavaASTConstants.type);
+        _superClass = superTypeNode != null
+          ? (IJavaClassInfo) createType(this, ((TypeASTNode) superTypeNode).getTypeName(), IGNORE_SUPERCLASS | IGNORE_INTERFACES)
+          : JavaTypes.OBJECT().getBackingClassInfo();
       }
       if (hasCyclicInheritance(_superClass)) {
         _superClass = NULL_TYPE;
@@ -456,28 +454,24 @@ public abstract class JavaSourceType extends AbstractJavaClassInfo implements IJ
       } else if (isEnum()) {
         _genericSuperClass = JavaTypes.ENUM().getBackingClassInfo();
       } else {
-        final Tree extendsClause = _typeDecl.getExtendsClause();
-        _genericSuperClass = extendsClause != null ? createType(this, extendsClause) : NULL_TYPE;
+        IJavaASTNode superTypeNode = _typeNode.getChildOfType(JavaASTConstants.type);
+        _genericSuperClass = superTypeNode != null ? createType(this, superTypeNode) : NULL_TYPE;
       }
     }
     return _genericSuperClass == NULL_TYPE ? null : _genericSuperClass;
   }
 
   public void initMethodsAndConstructors() {
-    final List<? extends Tree> members = _typeDecl.getMembers();
+    List<IJavaASTNode> methodNodes = _bodyNode.getChildrenOfTypes(getMethodDeclNodeType());
     List<IJavaClassMethod> methods = new ArrayList<IJavaClassMethod>();
     List<IJavaClassConstructor> constructors = new ArrayList<IJavaClassConstructor>();
-    for(Tree t : members) {
-      if(t.getKind() == Tree.Kind.METHOD)
-      {
-        final MethodTree m = (MethodTree) t;
-        JavaSourceMethod method = JavaSourceMethod.create(m, this);
-        if (method != null) {
-          if (method.isConstructor()) {
-            constructors.add((IJavaClassConstructor) method);
-          } else {
-            methods.add(method);
-          }
+    for (int i = 0; i < methodNodes.size(); i++) {
+      JavaSourceMethod method = JavaSourceMethod.create(methodNodes.get(i), this);
+      if (method != null) {
+        if (method.isConstructor()) {
+          constructors.add((IJavaClassConstructor) method);
+        } else {
+          methods.add(method);
         }
       }
     }
@@ -494,6 +488,18 @@ public abstract class JavaSourceType extends AbstractJavaClassInfo implements IJ
     }
     _methods = methods.toArray(new IJavaClassMethod[methods.size()]);
     _constructors = constructors.toArray(new IJavaClassConstructor[constructors.size()]);
+  }
+
+  private String getMethodDeclNodeType() {
+    if (isClass() ||isEnum()) {
+      return JavaASTConstants.methodDeclaration;
+    } else if (isInterface()) {
+      return JavaASTConstants.interfaceMethodDeclaration;
+    } else if (isAnnotation()) {
+      return JavaASTConstants.annotationMethodDeclaration;
+    } else {
+      throw new RuntimeException("What the heck is this thing.");
+    }
   }
 
   public IJavaClassMethod[] getDeclaredMethods() {
@@ -529,16 +535,14 @@ public abstract class JavaSourceType extends AbstractJavaClassInfo implements IJ
 
   public IJavaClassField[] getDeclaredFields() {
     if (_fields == null) {
-      List<VariableTree> fieldTrees = new ArrayList<VariableTree>();
-      final List<? extends Tree> members = _typeDecl.getMembers();
-      for (Tree t : members) {
-        if (t.getKind() == Tree.Kind.VARIABLE) {
-          fieldTrees.add((VariableTree)t);
-        }
-      }
-      _fields = new JavaSourceField[fieldTrees.size()];
+      List<IJavaASTNode> fieldNodes = _bodyNode.getChildrenOfTypes(
+        JavaASTConstants.fieldDeclaration,
+        JavaASTConstants.interfaceFieldDeclaration,
+        JavaASTConstants.enumConstant
+      );
+      _fields = new JavaSourceField[fieldNodes.size()];
       for (int i = 0; i < _fields.length; i++) {
-        _fields[i] = JavaSourceField.create(fieldTrees.get(i), this);
+        _fields[i] = JavaSourceField.create(fieldNodes.get(i), this);
       }
     }
     return _fields;
@@ -624,7 +628,7 @@ public abstract class JavaSourceType extends AbstractJavaClassInfo implements IJ
           setter = AsmClassJavaClassInfo.maybeFindSetterInSuper( getter, getSuperclass() );
         }
         propertyDescriptors.add(new JavaSourcePropertyDescriptor(
-            propName, (IJavaClassInfo) getterType.getConcreteType(), getter, setter));
+          propName, (IJavaClassInfo) getterType.getConcreteType(), getter, setter));
       }
       else {
         setter = setters.get(propName);
@@ -633,7 +637,7 @@ public abstract class JavaSourceType extends AbstractJavaClassInfo implements IJ
           if( getter != null ) {
             setters.remove( propName );
             propertyDescriptors.add( new JavaSourcePropertyDescriptor(
-                    propName, (IJavaClassInfo)getterType.getConcreteType(), getter, setter ) );
+              propName, (IJavaClassInfo)getterType.getConcreteType(), getter, setter ) );
           }
         }
       }
@@ -654,11 +658,12 @@ public abstract class JavaSourceType extends AbstractJavaClassInfo implements IJ
 
   public IJavaClassTypeVariable[] getTypeParameters() {
     if (_typeParameters == null) {
-      List<? extends TypeParameterTree> typeParameters = _typeDecl.getTypeParameters();
-      if (!typeParameters.isEmpty()) {
-        _typeParameters = new IJavaClassTypeVariable[typeParameters.size()];
+      IJavaASTNode typeParamsNode = _typeNode.getChildOfType(JavaASTConstants.typeParameters);
+      if (typeParamsNode != null) {
+        List<IJavaASTNode> typeParamNodes = typeParamsNode.getChildrenOfTypes(JavaASTConstants.typeParameter);
+        _typeParameters = new IJavaClassTypeVariable[typeParamNodes.size()];
         for (int i = 0; i < _typeParameters.length; i++) {
-          _typeParameters[i] = JavaSourceTypeVariable.create(this, typeParameters.get(i));
+          _typeParameters[i] = JavaSourceTypeVariable.create(this, typeParamNodes.get(i));
         }
       } else {
         _typeParameters = JavaSourceTypeVariable.EMPTY;
@@ -699,7 +704,7 @@ public abstract class JavaSourceType extends AbstractJavaClassInfo implements IJ
 
   public IModifierList getModifierList() {
     if (_modifiersList == null) {
-      _modifiersList = new JavaSourceModifierList(this, _typeDecl.getModifiers());
+      _modifiersList = new JavaSourceModifierList(this, _typeNode.getChildOfType(JavaASTConstants.modifiers));
     }
     return _modifiersList;
   }
@@ -720,21 +725,24 @@ public abstract class JavaSourceType extends AbstractJavaClassInfo implements IJ
   @Override
   public IJavaClassInfo[] getDeclaredClasses() {
     if (_innerClasses == null) {
-      final List<? extends Tree> members = _typeDecl.getMembers();
-      List<ClassTree> innerTrees = new ArrayList<ClassTree>(members.size());
-      for (Tree t : members) {
-        if (t.getKind() == Tree.Kind.CLASS ||
-            t.getKind() == Tree.Kind.INTERFACE ||
-            t.getKind() == Tree.Kind.ENUM ||
-            t.getKind() == Tree.Kind.ANNOTATION_TYPE) {
-          innerTrees.add((ClassTree) t);
-        }
-      }
-      List<JavaSourceType> innerClasses = new ArrayList<JavaSourceType>(innerTrees.size());
+      List<IJavaASTNode> innerNodes = _bodyNode.getChildrenOfTypes(
+        JavaASTConstants.normalClassDeclaration,
+        JavaASTConstants.normalInterfaceDeclaration,
+        JavaASTConstants.annotationTypeDeclaration,
+        JavaASTConstants.enumDeclaration
+      );
+      List<JavaSourceType> innerClasses = new ArrayList<JavaSourceType>(innerNodes.size());
       //noinspection ForLoopReplaceableByForEach
-      for (int i = 0; i < innerTrees.size(); i++) {
-        JavaSourceType inner = JavaSourceType.createInner(innerTrees.get(i), this);
-        innerClasses.add(inner);
+      for (int i = 0; i < innerNodes.size(); i++) {
+        JavaSourceType inner = null;
+        try {
+          inner = JavaSourceType.createInner(innerNodes.get(i), this);
+        } catch (SourceTypeFormatException e) {
+          // malformed class
+        }
+        if (inner != null && inner.isValid()) {
+          innerClasses.add(inner);
+        }
       }
       _innerClasses = innerClasses.toArray(new JavaSourceType[innerClasses.size()]);
     }
@@ -753,6 +761,10 @@ public abstract class JavaSourceType extends AbstractJavaClassInfo implements IJ
       }
     }
     return null;
+  }
+
+  private boolean isValid() {
+    return _typeNode != null && _bodyNode != null;
   }
 
   @Override
@@ -847,9 +859,9 @@ public abstract class JavaSourceType extends AbstractJavaClassInfo implements IJ
 
   public boolean isInternal() {
     return getModifierList().hasModifier(Modifier.INTERNAL) ||
-           (!getModifierList().hasModifier(Modifier.PUBLIC) &&
-            !getModifierList().hasModifier(Modifier.PROTECTED) &&
-            !getModifierList().hasModifier(Modifier.PRIVATE));
+      (!getModifierList().hasModifier(Modifier.PUBLIC) &&
+        !getModifierList().hasModifier(Modifier.PROTECTED) &&
+        !getModifierList().hasModifier(Modifier.PRIVATE));
   }
 
   public IJavaClassType resolveType(String relativeName, int ignoreFlags) {
@@ -1085,7 +1097,7 @@ public abstract class JavaSourceType extends AbstractJavaClassInfo implements IJ
   public List<String> getImportList() {
     return _importList;
   }
-  
+
   public List<String> getStaticImports() {
     return _staticImportList;
   }

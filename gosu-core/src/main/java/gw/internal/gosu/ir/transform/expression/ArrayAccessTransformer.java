@@ -13,8 +13,12 @@ import gw.lang.ir.IRSymbol;
 import gw.lang.ir.expression.IRCompositeExpression;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.IConstructorInfo;
+import gw.lang.reflect.java.JavaTypes;
 
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -80,31 +84,48 @@ public class ArrayAccessTransformer extends AbstractExpressionTransformer<ArrayA
       // Normal array access
       arrayAccess = buildArrayLoad( root, index, getDescriptor( rootType.getComponentType() ) );
     }
+    else if( JavaTypes.LIST().isAssignableFrom( rootType ) )
+    {
+      arrayAccess = buildMethodCall( List.class, "get", Object.class, new Class[]{int.class}, buildCast( getDescriptor( List.class ), root ), Collections.singletonList( index ) );
+      arrayAccess = unboxOrCast( arrayAccess );
+    }
+    else if( JavaTypes.COLLECTION().isAssignableFrom( rootType ) )
+    {
+      IRExpression iterExpr = buildMethodCall( Collection.class, "iterator", Iterator.class, new Class[]{}, buildCast( getDescriptor( Collection.class ), root ), Collections.<IRExpression>emptyList() );
+      arrayAccess = callStaticMethod( ArrayAccess.class, "getElementFromIterator", new Class[]{Iterator.class, int.class}, Arrays.asList( iterExpr, index ) );
+      arrayAccess = unboxOrCast( arrayAccess );
+    }
+    else if( JavaTypes.ITERATOR().isAssignableFrom( rootType ) )
+    {
+      arrayAccess = callStaticMethod( ArrayAccess.class, "getElementFromIterator", new Class[]{Iterator.class, int.class}, Arrays.asList( buildCast( getDescriptor( Iterator.class ), root ), index ) );
+      arrayAccess = unboxOrCast( arrayAccess );
+    }
+    else if( JavaTypes.CHAR_SEQUENCE().isAssignableFrom( rootType ) )
+    {
+      //## todo: this should return just the char not a String, right?
+      arrayAccess = callStaticMethod( String.class, "valueOf", new Class[]{char.class}, Collections.<IRExpression>singletonList(
+        buildMethodCall( CharSequence.class, "charAt", char.class, new Class[]{int.class},
+                         buildCast( getDescriptor( CharSequence.class ), root ), Collections.singletonList( index ) ) ) );
+      arrayAccess = unboxOrCast( arrayAccess );
+    }
     else
     {
-      // Ordered List, Custom Array, etc.
+      // Custom Array Type
       arrayAccess = callStaticMethod( ArrayAccess.class, "getArrayElement", new Class[]{Object.class, int.class, boolean.class},
                                       exprList( root, index, pushConstant( bNullSafe ) ) );
-      if( _expr().getType().isPrimitive() )
-      {
-        arrayAccess = unboxValueToType( _expr().getType(), arrayAccess );
-      }
-      else
-      {
-        arrayAccess = checkCast( _expr().getType(), arrayAccess );
-      }
+      arrayAccess = unboxOrCast( arrayAccess );
+    }
 
-      if( needsAutoinsert )
-      {
-        IType typeToAutoInsert = ArrayAccess.getTypeToAutoInsert( getParsedElement().getRootExpression() );
-        // add an maybeAutoInsert before the array access
-        arrayAccess = buildComposite( buildMethodCall( callStaticMethod( ArrayAccessTransformer.class, "maybeAutoInsert",
-                                                                         new Class[]{Object.class, int.class, IType.class},
-                                                                         Arrays.asList( identifier( tempRoot ),
-                                                                                        identifier( tempIndex ),
-                                                                                        pushType( typeToAutoInsert ) ) ) ),
-                                      arrayAccess );
-      }
+    if( needsAutoinsert )
+    {
+      IType typeToAutoInsert = ArrayAccess.getTypeToAutoInsert( getParsedElement().getRootExpression() );
+      // add an maybeAutoInsert before the array access
+      arrayAccess = buildComposite( buildMethodCall( callStaticMethod( ArrayAccessTransformer.class, "maybeAutoInsert",
+                                                                       new Class[]{Object.class, int.class, IType.class},
+                                                                       Arrays.asList( identifier( tempRoot ),
+                                                                                      identifier( tempIndex ),
+                                                                                      pushType( typeToAutoInsert ) ) ) ),
+                                    arrayAccess );
     }
 
     if( tempRoot != null )
@@ -138,6 +159,18 @@ public class ArrayAccessTransformer extends AbstractExpressionTransformer<ArrayA
       // We're not short-circuiting, so no need to wrap the access expression
       return arrayAccess;
     }
+  }
+
+  private IRExpression unboxOrCast( IRExpression arrayAccess ) {
+    if( _expr().getType().isPrimitive() )
+    {
+      arrayAccess = unboxValueToType( _expr().getType(), arrayAccess );
+    }
+    else
+    {
+      arrayAccess = checkCast( _expr().getType(), arrayAccess );
+    }
+    return arrayAccess;
   }
 
   @SuppressWarnings({"UnusedDeclaration"})

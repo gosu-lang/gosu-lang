@@ -4,12 +4,17 @@
 
 package gw.lang.ir.statement;
 
+import gw.internal.ext.org.objectweb.asm.signature.SignatureVisitor;
+import gw.internal.ext.org.objectweb.asm.signature.SignatureWriter;
 import gw.lang.UnstableAPI;
 import gw.lang.ir.IRAnnotation;
-import gw.lang.ir.IRExpression;
 import gw.lang.ir.IRStatement;
 import gw.lang.ir.IRSymbol;
 import gw.lang.ir.IRType;
+import gw.lang.ir.SignatureUtil;
+import gw.lang.reflect.IType;
+import gw.lang.reflect.gs.IGenericTypeVariable;
+import gw.lang.reflect.java.JavaTypes;
 import gw.util.GosuStringUtil;
 
 import java.util.Collections;
@@ -24,11 +29,16 @@ public class IRMethodStatement extends IRStatement {
   private IRType _returnType;
   private List<IRAnnotation> _annotations;
   private Object[] _annotationDefault;
+  private String _genericSignature;
 
   public IRMethodStatement(IRStatement methodBody, String name, int modifiers, IRType returnType, List<IRSymbol> parameters) {
     this( methodBody, name, modifiers, returnType, parameters, null );
   }
   public IRMethodStatement(IRStatement methodBody, String name, int modifiers, IRType returnType, List<IRSymbol> parameters, Object[] annotationDefault) {
+    this( methodBody, name, modifiers, returnType, null, parameters, null, null, annotationDefault );
+  }
+
+  public IRMethodStatement( IRStatement methodBody, String name, int modifiers, IRType returnType, IType returnIType, List<IRSymbol> parameters, IType[] argTypes, IType methodType, Object[] annotationDefault ) {
     _methodBody = methodBody;
     _name = name;
     _modifiers = modifiers;
@@ -37,6 +47,49 @@ public class IRMethodStatement extends IRStatement {
     _annotations = Collections.emptyList();
     setParentToThis( methodBody );
     _annotationDefault = annotationDefault;
+    _genericSignature = makeGenericSignature( methodType, returnIType, argTypes );
+  }
+
+  private String makeGenericSignature(IType type, IType rtype, IType[] args) {
+    if( type == null || rtype == null || args == null ) {
+      return null;
+    }
+    /*
+      ( visitFormalTypeParameter visitClassBound? visitInterfaceBound* )* ( visitParameterType* visitReturnType visitExceptionType* )
+    */
+    boolean[] bGeneric = {false};
+    SignatureWriter sw = new SignatureWriter();
+    if( type.isGenericType() ) {
+      bGeneric[0] = true;
+      for( IGenericTypeVariable tv: type.getGenericTypeVariables() ) {
+        sw.visitFormalTypeParameter( tv.getName() );
+        if( tv.getBoundingType() != null ) {
+          SignatureVisitor sv;
+          if( tv.getBoundingType().isInterface() ) {
+            sv = sw.visitInterfaceBound();
+          }
+          else {
+            sv = sw.visitClassBound();
+          }
+          SignatureUtil.visitType( sv, tv.getBoundingType(), bGeneric );
+        }
+        else {
+          SignatureVisitor sv = sw.visitClassBound();
+          SignatureUtil.visitType( sv, JavaTypes.OBJECT(), bGeneric );
+        }
+      }
+    }
+    SignatureVisitor sv;
+    sv = sw.visitParameterType();
+    for( IType arg : args ) {
+      SignatureUtil.visitType( sv, arg, bGeneric );
+    }
+    sv = sw.visitReturnType();
+    SignatureUtil.visitType( sv, rtype, bGeneric );
+    if( bGeneric[0] ) {
+      return sw.toString();
+    }
+    return null;
   }
 
   public IRStatement getMethodBody() {
@@ -67,6 +120,10 @@ public class IRMethodStatement extends IRStatement {
   @Override
   public String toString()
   {
+    return signature();
+  }
+
+  public String signature() {
     return _name + "(" + GosuStringUtil.join( _parameters, ", " ) + "):" + _returnType;
   }
 
@@ -82,5 +139,9 @@ public class IRMethodStatement extends IRStatement {
 
   public Object[] getAnnotationDefault() {
     return _annotationDefault;
+  }
+
+  public String getGenericSignature() {
+    return _genericSignature;
   }
 }

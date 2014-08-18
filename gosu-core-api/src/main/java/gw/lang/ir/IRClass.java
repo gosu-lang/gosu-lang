@@ -10,10 +10,7 @@ import gw.lang.ir.statement.IRFieldDecl;
 import gw.lang.ir.statement.IRMethodStatement;
 import gw.lang.UnstableAPI;
 import gw.lang.reflect.IType;
-import gw.lang.reflect.ITypeVariableType;
-import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.gs.IGenericTypeVariable;
-import gw.lang.reflect.gs.IGosuClass;
 import gw.lang.reflect.java.JavaTypes;
 
 import java.util.List;
@@ -133,67 +130,32 @@ public class IRClass {
           else {
             sv = sw.visitClassBound();
           }
-          visitType( sv, tv.getBoundingType(), bGeneric );
+          SignatureUtil.visitType( sv, tv.getBoundingType(), bGeneric );
         }
         else {
           SignatureVisitor sv = sw.visitClassBound();
-          visitType( sv, JavaTypes.OBJECT(), bGeneric );
+          SignatureUtil.visitType( sv, JavaTypes.OBJECT(), bGeneric );
         }
       }
     }
     if( type.getSupertype() != null ) {
       SignatureVisitor sv = sw.visitSuperclass();
-      visitType( sv, type.getSupertype(), bGeneric );
+      SignatureUtil.visitType( sv, type.getSupertype(), bGeneric );
     }
     else {
       SignatureVisitor sv = sw.visitSuperclass();
-      visitType( sv, JavaTypes.OBJECT(), bGeneric );
+      SignatureUtil.visitType( sv, JavaTypes.OBJECT(), bGeneric );
     }
 
     if( type.getInterfaces() != null ) {
       for( IType iface: type.getInterfaces() ) {
         SignatureVisitor sv = sw.visitInterface();
-        visitType( sv, iface, bGeneric );
+        SignatureUtil.visitType( sv, iface, bGeneric );
       }
     }
     if( bGeneric[0] ) {
       _genericSignature = sw.toString();
     }
-  }
-
-  private void visitType( SignatureVisitor sv, IType type, boolean[] bGeneric ) {
-    if( !TypeSystem.isBytecodeType( type ) ) {
-      sv.visitClassType( Object.class.getName().replace( '.', '/' ) );
-      sv.visitEnd();
-    }
-    else if( type.isArray() ) {
-      SignatureVisitor arrSv = sv.visitArrayType();
-      visitType( arrSv, type.getComponentType(), bGeneric );
-      arrSv.visitEnd();
-    }
-    else if( type instanceof ITypeVariableType ) {
-      sv.visitTypeVariable( type.getRelativeName() );
-    }
-    else {
-      IType rawType = type.getGenericType() == null ? type : type.getGenericType();
-      String rawName = processName( rawType.getName() );
-      sv.visitClassType( rawName );
-      if( type.isParameterizedType() ) {
-        bGeneric[0] = true;
-        for( IType param: type.getTypeParameters() ) {
-          sv.visitTypeArgument( '=' );
-          visitType( sv, param, bGeneric );
-        }
-      }
-      sv.visitEnd();
-    }
-  }
-
-  private String processName( String name ) {
-    if( name.length() > IGosuClass.PROXY_PREFIX.length() && name.startsWith( IGosuClass.PROXY_PREFIX ) ) {
-      name = IGosuClass.ProxyUtil.getNameSansProxy( name );
-    }
-    return name.replace( '.', '/' );
   }
 
   public String getGenericSignature() {

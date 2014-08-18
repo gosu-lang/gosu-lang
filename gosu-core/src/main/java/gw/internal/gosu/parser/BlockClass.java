@@ -85,13 +85,6 @@ public class BlockClass extends SyntheticClass implements IBlockClassInternal
     implementInvoke();
 
     implementToString();
-
-    VarStatement varstmt = new VarStatement();
-    varstmt.setModifierInfo( new ModifierInfo(0) );
-    varstmt.setPublic( true );
-    varstmt.setSymbol( new DynamicSymbol( this, new StandardSymbolTable(), "_returnType", JavaTypes.ITYPE(), null ) );
-    varstmt.setScope( GlobalScope.EXECUTION );
-    getParseInfo().addMemberField( varstmt );
   }
 
   private void implementInvoke()
