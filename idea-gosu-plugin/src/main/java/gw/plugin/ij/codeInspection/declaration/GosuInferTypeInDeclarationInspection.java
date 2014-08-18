@@ -17,10 +17,12 @@ import com.intellij.psi.PsiElementVisitor;
 import com.intellij.psi.PsiFile;
 import gw.internal.gosu.parser.Expression;
 import gw.internal.gosu.parser.expressions.InferredNewExpression;
+import gw.internal.gosu.parser.expressions.NewExpression;
 import gw.internal.gosu.parser.expressions.NullExpression;
 import gw.internal.gosu.parser.expressions.NumericLiteral;
 import gw.internal.gosu.parser.expressions.TypeLiteral;
 import gw.internal.gosu.parser.statements.VarStatement;
+import gw.lang.parser.IParseTree;
 import gw.lang.parser.IParsedElement;
 import gw.lang.parser.exceptions.IWarningSuppressor;
 import gw.lang.parser.expressions.IImplicitTypeAsExpression;
@@ -38,6 +40,8 @@ import gw.plugin.ij.lang.psi.impl.GosuElementVisitor;
 import gw.plugin.ij.util.GosuBundle;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.List;
 
 public class GosuInferTypeInDeclarationInspection extends BaseLocalInspectionTool implements IWarningSuppressor {
 
@@ -128,6 +132,15 @@ public class GosuInferTypeInDeclarationInspection extends BaseLocalInspectionToo
       if (expr != null && typeLiteral != null && varStmt.getType().isAssignableFrom(expr.getType()))
       {
         fixable = true;
+        if( expr instanceof NewExpression && expr.getLocation() != null )
+        {
+          // prevent fix in cases like this: var a : Integer =  new(1)
+          List<IParseTree> children = expr.getLocation().getChildren();
+          if( !children.isEmpty() && children.get(0).getTextFromTokens().equals("") )
+          {
+            fixable = false;
+          }
+        }
         if( expr instanceof InferredNewExpression &&
             expr.getLocation().getTextFromTokens().startsWith("{"))
         {

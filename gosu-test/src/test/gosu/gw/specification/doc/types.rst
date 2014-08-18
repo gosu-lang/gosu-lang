@@ -269,6 +269,7 @@ If ``ts`` and ``tt`` are types, then a standard *implicit conversion* from
   that is compatible with the formal parameters and return type of ``m``; and
   vice versa when ``ts`` is a block and ``tt`` is an interface.
 * ``ts`` is a subtype of FeatureReference<R, T> and ``tt`` is the block type T.
+* ``ts`` is a ``char`` or ``Character`` type and `tt`` is the String type.
 
 If ``ts`` and ``tt`` are types, then a standard *explicit conversion* from 
 ``ts`` to ``tt`` exists in these cases:

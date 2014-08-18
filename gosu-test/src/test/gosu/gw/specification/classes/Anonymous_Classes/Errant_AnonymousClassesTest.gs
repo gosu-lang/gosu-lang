@@ -24,6 +24,19 @@ class Errant_AnonymousClassesTest {
     function foo()
   }
 
+  class A2 {}
+
+  function noOwnConstructor() {
+    new B() {
+      override function foo() {
+      }
+      construct() {}  //## issuekeys: MSG_CONSTRUCTORS_NOT_ALLOWD_IN_THIS_CONTEXT
+      construct(i : int) {}  //## issuekeys: MSG_CONSTRUCTORS_NOT_ALLOWD_IN_THIS_CONTEXT
+    }
+    new A2() { construct() {}  //## issuekeys: MSG_CONSTRUCTORS_NOT_ALLOWD_IN_THIS_CONTEXT
+              construct(i : int) {}  //## issuekeys: MSG_CONSTRUCTORS_NOT_ALLOWD_IN_THIS_CONTEXT
+            }
+  }
   function m0() {
     a = new A(8) {
       public var y : int = 1
@@ -39,7 +52,7 @@ class Errant_AnonymousClassesTest {
 
   function m1() {
     new A(1) {
-      construct() {   }  //## issuekeys: MSG_NO_DEFAULT_CTOR_IN
+      construct() {   }  //## issuekeys: MSG_CONSTRUCTORS_NOT_ALLOWD_IN_THIS_CONTEXT, MSG_NO_DEFAULT_CTOR_IN
     }
   }
 

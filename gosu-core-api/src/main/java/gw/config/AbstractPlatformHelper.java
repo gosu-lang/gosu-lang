@@ -100,6 +100,9 @@ public abstract class AbstractPlatformHelper extends BaseService implements IPla
   }
 
   public boolean isPathIgnored(String relativePath) {
+    if (relativePath == null) {
+      return true;
+    }
 
     final IFile file = CommonServices.getFileSystem().getIFile(new File(relativePath));
     // AHK - We use file.getParent().hasChild() instead of file.exists() since we don't want to hit the disk
