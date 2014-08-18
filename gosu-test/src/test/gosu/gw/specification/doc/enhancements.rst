@@ -1,8 +1,8 @@
 .. _enchancements:
 
-***********
+************
 Enhancements
-***********
+************
 
 .. index:: enhancements
 

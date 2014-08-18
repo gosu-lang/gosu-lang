@@ -235,4 +235,13 @@ class ConversionInvolvingReferenceTypesTest extends BaseVerifyErrantTest {
     var m04 : Type<CharAt> = statictypeof MyStaticCharAt
     assertEquals( 'a', (m03 as CharAt).charAt( 0 ) )
   }
+
+  function testCharToStringConversion() {
+    var x1 : char = '1'
+    var y1 : String = x1
+    assertEquals("1", y1)
+    var x2 : Character = '1'
+    var y2 : String = x2
+    assertEquals("1", y2)
+  }
 }

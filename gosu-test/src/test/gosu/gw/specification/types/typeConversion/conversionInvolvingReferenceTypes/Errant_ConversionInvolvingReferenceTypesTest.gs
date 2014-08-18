@@ -258,4 +258,15 @@ class Errant_ConversionInvolvingReferenceTypesTest {
     var u61 : Class<CharAt> = MyNonStaticFoo  //## issuekeys: MSG_TYPE_MISMATCH
     var u71 : Class<CharAt> = "hi"  //## issuekeys: MSG_TYPE_MISMATCH
   }
+
+  function testCharToStringConversion() {
+    var x0 : String = "1"
+    var y0 : char = x0  //## issuekeys: MSG_TYPE_MISMATCH
+
+    var x1 : char = '1'
+    var y1 : String = x1
+
+    var x2 : Character = '1'
+    var y2 : String = x2
+  }
 }
