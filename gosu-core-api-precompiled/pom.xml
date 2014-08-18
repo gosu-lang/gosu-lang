@@ -2,7 +2,7 @@
   <parent>
     <groupId>org.gosu-lang.gosu</groupId>
     <artifactId>gosu-parent</artifactId>
-    <version>1.X-SNAPSHOT</version>
+    <version>1-perf-SNAPSHOT</version>
     <relativePath>../gosu-parent/pom.xml</relativePath>
   </parent>
   <modelVersion>4.0.0</modelVersion>
@@ -15,12 +15,12 @@
     <dependency>
       <groupId>org.gosu-lang.gosu</groupId>
       <artifactId>gosu-core-api</artifactId>
-      <version>1.X-SNAPSHOT</version>
+      <version>1-perf-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.gosu-lang.gosu</groupId>
       <artifactId>gosu-core</artifactId>
-      <version>1.X-SNAPSHOT</version>
+      <version>1-perf-SNAPSHOT</version>
     </dependency>
   </dependencies>
 
@@ -30,7 +30,7 @@
       <plugin>
         <groupId>org.gosu-lang.gosu</groupId>
         <artifactId>gosu-maven-plugin</artifactId>
-        <version>1.X-SNAPSHOT</version>
+        <version>1-perf-SNAPSHOT</version>
         <executions>
           <execution>
             <goals>

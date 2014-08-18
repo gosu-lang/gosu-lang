@@ -30,7 +30,7 @@
     <li> Hyperlink to Gosu from stack traces
     </ul>
   ]]></description>
-    <version>3.X-SNAPSHOT</version>
+    <version>3-perf-SNAPSHOT</version>
     <vendor email="gosu-lang@googlegroups.com" url="http://gosu-lang.org">Guidewire Software</vendor>
     <idea-version since-build="123.72"/>
 
