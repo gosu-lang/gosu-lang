@@ -20,7 +20,7 @@ public class GosuScratchSuite extends Suite
     BytecodeOptions.enableAggressiveVerification();
     return new GosuScratchSuite()
             .withTestEnvironment( new ScratchTestEnvironment() )
-            .withTest( "gw.lang.parser.NumericLiteralSyntaxTest" )
+            .withTest( "gw.lang.parser.RelativeImportsAreNotSupportedTest" )
             ;
   }
 

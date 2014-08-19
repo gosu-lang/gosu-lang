@@ -1694,12 +1694,9 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
   private ClassType parseAnonymousClassHeader( IGosuClassInternal gsClass )
   {
     ClassType classType = ClassType.Class;
-    IType instanceClass;
     ParsedElement elem;
     if( match( null, null, '(', true ) )
     {
-      // The type name is inferred in this case e.g., var obj : Object = new() {}
-      instanceClass = gsClass.getSupertype();
       elem = getClassStatement();
     }
     else if( !getOwner().parseTypeLiteral() )
@@ -1709,23 +1706,9 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
     else
     {
       elem = popExpression();
-      instanceClass = ((TypeLiteral)elem).getType().getType();
     }
     eatParenthesized( elem, Res.MSG_EXPECTING_FUNCTION_CLOSE );
     //getLocationsList().remove( superTypeLiteral.getLocation() ); // rely on the new-expr to keep the type literal *it* parses
-    instanceClass = TypeLord.makeDefaultParameterizedType( instanceClass );
-    if( instanceClass.isInterface() )
-    {
-      gsClass.addInterface( instanceClass );
-    }
-    else
-    {
-      gsClass.setSuperType( instanceClass );
-      if( instanceClass.isEnum() )
-      {
-        gsClass.setEnum();
-      }
-    }
     return classType;
   }
 
@@ -2833,6 +2816,9 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
     String strInnerClass = t._strValue;
     if( strInnerClass != null )
     {
+      String name = enclosingGsClass.getName();
+      String dotInner = "." + strInnerClass;
+      verify( getClassStatement(), !name.equals(strInnerClass) &&  !name.endsWith(dotInner) , Res.MSG_DUPLICATE_CLASS_FOUND, name + dotInner );
       for( IGosuClass c : enclosingGsClass.getKnownInnerClassesWithoutCompiling().values() )
       {
         IGosuClassInternal innerClass = (IGosuClassInternal)c;
@@ -4025,6 +4011,13 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
       if( verify( functionStmt, match( null, '{' ), Res.MSG_EXPECTING_OPEN_BRACE_FOR_CONSTRUCTOR_DEF ) )
       {
         IGosuClassInternal superClass = gsClass.getSuperClass();
+        List<DynamicFunctionSymbol> constructorFunctions = gsClass.getConstructorFunctions();
+        if( gsClass.isAnonymous() && !constructorFunctions.isEmpty() )
+        {
+          verify( functionStmt, superClass != null &&
+                                constructorFunctions.size() == superClass.getConstructorFunctions().size(),
+                                Res.MSG_CONSTRUCTORS_NOT_ALLOWD_IN_THIS_CONTEXT);
+        }
         if( superClass != null )
         {
           // If it's an enum, there's no default super constructor:  the enum class extends the Enum java class
