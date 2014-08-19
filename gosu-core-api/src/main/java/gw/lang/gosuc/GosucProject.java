@@ -89,8 +89,10 @@ public class GosucProject implements IProject {
     _globalLoaders = globalLoaders;
   }
 
-  public GosucProject( ) {
-    IExecutionEnvironment execEnv = TypeSystem.getExecutionEnvironment();
+  public GosucProject() {
+    this( TypeSystem.getExecutionEnvironment() );
+  }
+  public GosucProject( IExecutionEnvironment execEnv ) {
     _name = makeLegalName( execEnv.getProject().getName() );
     assignSdk( execEnv );
     assignModules( execEnv );
