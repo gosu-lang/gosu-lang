@@ -91,11 +91,15 @@ public class SimpleBeanAccess
       IType componentType = TypeLord.getExpandableComponentType( classBean );
       if( componentType != null )
       {
-        // Allow expressions of the form: <array-of-foo>.<property-of-foo>. The
-        // result of evaluating such an expression is of type array-of-property-type.
-        IPropertyInfo propertyInfo = getPropertyInfo(componentType, strProperty, filter, parser, scriptabilityConstraint);
-        if (propertyInfo != null) {
-          return new ArrayExpansionPropertyInfo(propertyInfo);
+        // parser must be != then null otherwise we we have a stack overflow by recursing in getPropertyInfo
+        if( parser != null )
+        {
+          // Allow expressions of the form: <array-of-foo>.<property-of-foo>. The
+          // result of evaluating such an expression is of type array-of-property-type
+          IPropertyInfo propertyInfo = getPropertyInfo(componentType, strProperty, filter, parser, scriptabilityConstraint);
+          if (propertyInfo != null) {
+            return new ArrayExpansionPropertyInfo(propertyInfo);
+          }
         }
       }
     }
