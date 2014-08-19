@@ -81,7 +81,7 @@ public abstract class TemplateRenderer
     }
   }
 
-  protected static String renderToString( ITemplateType type, Object... args )
+  public static String renderToString( ITemplateType type, Object... args )
   {
     ISymbolTable symbolTable;
     symbolTable = new StandardSymbolTable();
