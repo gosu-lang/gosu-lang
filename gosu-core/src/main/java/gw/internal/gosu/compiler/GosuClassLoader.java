@@ -30,6 +30,7 @@ import gw.util.GosuExceptionUtil;
 
 import java.io.IOException;
 import java.lang.reflect.Method;
+import java.net.URLClassLoader;
 import java.util.List;
 
 public class GosuClassLoader implements IGosuClassLoader
@@ -87,7 +88,11 @@ public class GosuClassLoader implements IGosuClassLoader
       // at runtime and therefore can't be precompiled -- they are compiled on demand so the gosuclass protocol,
       // being in the classpath of the app class loader, resolves the name and compile the class and produce the
       // resource/stream associated with the compiled bytes.
-      _loader = parent.getParent();
+      ClassLoader loader = parent.getParent();
+      while( loader instanceof URLClassLoader && ((URLClassLoader)loader).getURLs().length == 0 ) {
+        loader = loader.getParent();
+      }
+      _loader = loader == null ? parent.getParent() : loader;
     }
     else
     {
