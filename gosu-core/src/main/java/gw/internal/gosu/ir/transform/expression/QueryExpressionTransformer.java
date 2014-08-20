@@ -64,7 +64,7 @@ public class QueryExpressionTransformer extends EvalBasedTransformer<QueryExpres
   }
 
   public static Object compileAndRunQuery( Object outer, Object[] capturedValues,
-                                           IType[] immediateFuncTypeParams, IType enclosingClass, int iLineNum, int iColumnNum, String exprText )
+                                           LazyTypeResolver[] immediateFuncTypeParams, IType enclosingClass, int iLineNum, int iColumnNum, String exprText )
   {
     String exprKey = EvalExpressionTransformer.makeEvalKey( enclosingClass, iLineNum, iColumnNum, exprText );
     QueryExpression queryExpr = QUERY_EXPRESSIONS.get( exprKey );
