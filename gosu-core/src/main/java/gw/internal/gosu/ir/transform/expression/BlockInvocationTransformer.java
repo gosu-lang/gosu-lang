@@ -38,8 +38,8 @@ public class BlockInvocationTransformer extends AbstractExpressionTransformer<Bl
     List<IRElement> callElements = handleNamedArgs( explicitArgs, _expr().getNamedArgOrder() );
 
     IRExpression root = ExpressionTransformer.compile( _expr().getRoot(), _cc() );
-    IJavaType interfaceForArity = FunctionClassUtil.getFunctionInterfaceForArity(_expr().getArgs().size());
-    IRExpression call = callMethod(interfaceForArity.getBackingClassInfo(),
+    IJavaType classForArity = FunctionClassUtil.getFunctionClassForArity(_expr().getArgs().size());
+    IRExpression call = callMethod(classForArity.getBackingClassInfo(),
         "invoke", FunctionClassUtil.getArgArrayForArity(_expr().getArgs().size()),
         root, explicitArgs);
     IType returnType = _expr().getType();
