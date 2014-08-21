@@ -60,6 +60,7 @@ public class GosuFragmentTransformer extends AbstractElementTransformer<IExpress
 
   private IRClass transform() {
     IRClass irClass = new IRClass();
+    _cc().setIrClass( irClass );
     addHeader( irClass );
     addDefaultConstructor( irClass );
     addEvaluateMethod( irClass );

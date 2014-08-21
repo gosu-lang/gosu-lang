@@ -32,12 +32,20 @@ public class IRLazyTypeMethodCallExpressionCompiler extends AbstractBytecodeComp
                                               bootstrap,
                                                 resolveDesc,
                                                 new Handle( expression.isStatic() ? Opcodes.H_INVOKESTATIC : Opcodes.H_INVOKESPECIAL,
-                                                            expression.getOwnersType().getSlashName(), expression.getName(), makeDescriptor( expression.getFunctionTypeParamCount() ) ),
+                                                  getOwnersName(expression), expression.getName(), makeDescriptor( expression.getFunctionTypeParamCount() ) ),
                                                 resolveDesc );
     }
     catch( Exception e ) {
       throw new RuntimeException( e );
     }
+  }
+
+  private static String getOwnersName(IRLazyTypeMethodCallExpression expression) {
+    if( !expression.getOwnersType().getName().equals( Object.class.getName() ) ) {
+      return expression.getOwnersType().getSlashName();
+    }
+    // we expect a GosuFragment here...
+    return expression.getOwnerTypeName().replace('.', '/');
   }
 
   private static Type[] getAnonCtorParams( IRLazyTypeMethodCallExpression expression ) {

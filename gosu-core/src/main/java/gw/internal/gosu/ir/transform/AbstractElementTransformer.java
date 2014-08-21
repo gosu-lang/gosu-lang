@@ -121,6 +121,7 @@ import gw.lang.reflect.gs.IGenericTypeVariable;
 import gw.lang.reflect.gs.IGosuClass;
 import gw.lang.reflect.gs.IGosuConstructorInfo;
 import gw.lang.reflect.gs.IGosuEnhancement;
+import gw.lang.reflect.gs.IGosuFragment;
 import gw.lang.reflect.gs.IGosuMethodInfo;
 import gw.lang.reflect.gs.IGosuProgram;
 import gw.lang.reflect.gs.IGosuVarPropertyInfo;
@@ -562,7 +563,9 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
 
   private IRCompositeExpression buildLazyTypeResolverCall( IRMethodStatement method, IGenericTypeVariable[] tvs ) {
     DynamicFunctionSymbol compilingDfs = _cc().getCurrentFunction();
-    if( (compilingDfs != null && compilingDfs.isStatic()) || !_cc().hasSuperBeenInvoked() ) {
+    if( (compilingDfs != null && compilingDfs.isStatic()) ||
+        !_cc().hasSuperBeenInvoked() ||
+        _cc().getGosuClass() instanceof IGosuFragment ) {
       return buildStaticLazyTypeResolverCall( method );
     }
     else if( getGosuClass() instanceof IGosuEnhancement ) {
@@ -584,7 +587,7 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
         exprs[i++] = identifier( _cc().getSymbol( getTypeVarParamName( tv ) ) );
       }
     }
-    exprs[i] = new IRLazyTypeMethodCallExpression( method.getName(), getDescriptor( getGosuClass() ), tvs == null ? 0 : tvs.length, true );
+    exprs[i] = new IRLazyTypeMethodCallExpression( method.getName(), getDescriptor( getGosuClass() ), getGosuClass().getName(), tvs == null ? 0 : tvs.length, true );
     return buildComposite( exprs );
   }
   private IRCompositeExpression buildEnhancementLazyTypeResolverCall( IRMethodStatement method ) {
@@ -596,7 +599,7 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
         exprs[i++] = identifier( _cc().getSymbol( getTypeVarParamName( tv ) ) );
       }
     }
-    exprs[i] = new IRLazyTypeMethodCallExpression( method.getName(), getDescriptor( getGosuClass() ), tvs == null ? 0 : tvs.length, true );
+    exprs[i] = new IRLazyTypeMethodCallExpression( method.getName(), getDescriptor( getGosuClass() ), getGosuClass().getName(), tvs == null ? 0 : tvs.length, true );
     return buildComposite( exprs );
   }
   private IRCompositeExpression buildInstanceLazyTypeResolverCall( IRMethodStatement method ) {
@@ -609,7 +612,7 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
         exprs[i++] = identifier( _cc().getSymbol( getTypeVarParamName( tv ) ) );
       }
     }
-    exprs[i] = new IRLazyTypeMethodCallExpression( method.getName(), getDescriptor( getGosuClass() ), tvs == null ? 0 : tvs.length, false );
+    exprs[i] = new IRLazyTypeMethodCallExpression( method.getName(), getDescriptor( getGosuClass() ), getGosuClass().getName(), tvs == null ? 0 : tvs.length, false );
     return buildComposite( exprs );
   }
   private IRCompositeExpression buildSuperCallLazyTypeResolverCall( IRMethodStatement method, IGenericTypeVariable[] tvs ) {
@@ -621,13 +624,15 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
         exprs[i++] = identifier( _cc().getSymbol( getTypeVarParamName( tv ) ) );
       }
     }
-    exprs[i] = new IRLazyTypeMethodCallExpression( method.getName(), getDescriptor( getGosuClass() ), tvs == null ? 0 : tvs.length, true );
+    exprs[i] = new IRLazyTypeMethodCallExpression( method.getName(), getDescriptor( getGosuClass() ), getGosuClass().getName(), tvs == null ? 0 : tvs.length, true );
     return buildComposite( exprs );
   }
 
   private IRMethodStatement makeLazyTypeMethod( IType type, IGenericTypeVariable[] tvs ) {
     DynamicFunctionSymbol compilingDfs = _cc().getCurrentFunction();
-    if( (compilingDfs != null && compilingDfs.isStatic()) || !_cc().hasSuperBeenInvoked() ) {
+    if( (compilingDfs != null && compilingDfs.isStatic()) ||
+      !_cc().hasSuperBeenInvoked() ||
+      _cc().getGosuClass() instanceof IGosuFragment ) {
       return makeStaticLazyTypeMethod( type );
     }
     else if( getGosuClass() instanceof IGosuEnhancement ) {

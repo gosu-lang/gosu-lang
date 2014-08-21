@@ -11,21 +11,27 @@ import gw.lang.ir.IRType;
 
 @UnstableAPI
 public class IRLazyTypeMethodCallExpression extends IRExpression {
-  private String _name;
+  private String _methodName;
+  private String _ownerTypeName;
   private IRType _ownersType;
   private int _iFunctionTypeParamCount;
   private boolean _bStatic;
 
 
-  public IRLazyTypeMethodCallExpression( String name, IRType ownersType, int iFunctionTypeParamCount, boolean bStatic ) {
-    _name = name;
+  public IRLazyTypeMethodCallExpression( String name, IRType ownersType, String ownerTypeName, int iFunctionTypeParamCount, boolean bStatic ) {
+    _methodName = name;
     _ownersType = ownersType;
+    _ownerTypeName = ownerTypeName;
     _iFunctionTypeParamCount = iFunctionTypeParamCount;
     _bStatic = bStatic;
   }
 
   public String getName() {
-    return _name;
+    return _methodName;
+  }
+
+  public String getOwnerTypeName() {
+    return _ownerTypeName;
   }
 
   public IRType getOwnersType() {
