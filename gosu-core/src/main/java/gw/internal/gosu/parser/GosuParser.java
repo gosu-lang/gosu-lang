@@ -8280,7 +8280,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
         else
         {
           parseTypeLiteral();
-        }
+      }
       }
       else if( match( null, Keyword.KW_super ) )
       {
@@ -8302,8 +8302,8 @@ public final class GosuParser extends ParserBase implements IGosuParser
 
           TypeLiteral typeLiteral = new TypeLiteral( MetaType.getLiteral( boundingType ) );
           pushExpression( typeLiteral );
-        }
       }
+    }
       else
       {
         pushExpression( new TypeLiteral( JavaTypes.OBJECT() ) );
@@ -8311,7 +8311,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
     }
     else
     {
-      parseTypeLiteral();
+    parseTypeLiteral();
     }
     TypeLiteral tl = (TypeLiteral)peekExpression();
     boxTypeLiteralsType( tl );
@@ -9878,6 +9878,12 @@ public final class GosuParser extends ParserBase implements IGosuParser
     try
     {
       parseVarStatementsInUsingStatement( usingStmt );
+      List<IVarStatement> varStatements = usingStmt.getVarStatements();
+      for(IVarStatement vs : varStatements)
+      {
+        ((VarStatement)vs).setFinal(true);
+        verify( usingStmt, vs.getHasInitializer(), Res.MSG_VAR_MIGHT_NOT_HAVE_BEEN_INIT );
+      }
       if( usingStmt.getVarStatements().isEmpty() )
       {
         parseExpression();
