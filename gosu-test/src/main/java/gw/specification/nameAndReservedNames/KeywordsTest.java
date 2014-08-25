@@ -92,7 +92,15 @@ public class KeywordsTest extends TestClass {
     kw.put("uses", false);
     kw.put("using", false);
     kw.put("var", false);
-    kw.put("void", true);
+    kw.put("void", false);
+    kw.put("boolean", false);
+    kw.put("char", false);
+    kw.put("byte", false);
+    kw.put("short", false);
+    kw.put("int", false);
+    kw.put("long", false);
+    kw.put("float", false);
+    kw.put("double", false);
     kw.put("where", true);
     kw.put("while", false);
     kw.put("true", true);

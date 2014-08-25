@@ -4926,7 +4926,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
     int iColumn = getTokenizer().getTokenColumn();
     IParserState state = makeLightweightParserState(); //capture position of word for error reporting
     int markBefore = getTokenizer().mark();
-    if( match( T, SourceCodeTokenizer.TT_WORD ) || match( T, Keyword.KW_super ) || match( T, Keyword.KW_this ) )
+    if( match( T, SourceCodeTokenizer.TT_WORD ) || matchPrimitiveType( T ) || match( T, Keyword.KW_super ) || match( T, Keyword.KW_this ) )
     {
       MethodCallExpression e = new MethodCallExpression();
       IType[] typeParameters = parsePossibleFunctionParameterization( T, e );
@@ -7788,7 +7788,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
     }
     else
     {
-      boolean bNotAWord = !match( T, SourceCodeTokenizer.TT_WORD );
+      boolean bNotAWord = !match( T, SourceCodeTokenizer.TT_WORD ) && !matchPrimitiveType( T );
       if( bNotAWord )
       {
         TypeLiteral typeLiteral = bInterface ? new InterfaceTypeLiteral( ErrorType.getInstance() ) : new TypeLiteral( ErrorType.getInstance() );
@@ -7802,6 +7802,18 @@ public final class GosuParser extends ParserBase implements IGosuParser
     }
 
     return true;
+  }
+
+  private boolean matchPrimitiveType(Token t) {
+    return  match( t, Keyword.KW_void) ||
+            match( t, Keyword.KW_boolean) ||
+            match( t, Keyword.KW_char) ||
+            match( t, Keyword.KW_byte) ||
+            match( t, Keyword.KW_short) ||
+            match( t, Keyword.KW_int) ||
+            match( t, Keyword.KW_long) ||
+            match( t, Keyword.KW_float) ||
+            match( t, Keyword.KW_double);
   }
 
   private void parseAggregateTypeLiteral(boolean bInterface)
