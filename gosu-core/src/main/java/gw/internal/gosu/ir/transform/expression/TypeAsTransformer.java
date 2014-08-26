@@ -281,7 +281,8 @@ public class TypeAsTransformer extends AbstractExpressionTransformer<ITypeAsExpr
     ICoercer coercer = _expr().getCoercer();
     IType exprType = _expr().getType();
     if( (coercer == IdentityCoercer.instance() && !exprType.isPrimitive()) ||
-        exprType instanceof CompoundType )
+        exprType instanceof CompoundType ||
+        areAssignableBytecodeTypes( coercer, exprType, lhsType ) )
     {
       if( !lhsType.isPrimitive() && lhsType != exprType )
       {
@@ -323,6 +324,13 @@ public class TypeAsTransformer extends AbstractExpressionTransformer<ITypeAsExpr
     }
 
     return coerce( root, coercer );
+  }
+
+  private boolean areAssignableBytecodeTypes( ICoercer coercer, IType asType, IType lhsType ) {
+    return (coercer instanceof IdentityCoercer || coercer == null) &&
+           (asType.isAssignableFrom( lhsType ) || lhsType.isAssignableFrom( asType )) &&
+           TypeSystem.isBytecodeType( lhsType ) &&
+           TypeSystem.isBytecodeType( asType );
   }
 
   private boolean isStructureType( IType exprType ) {
