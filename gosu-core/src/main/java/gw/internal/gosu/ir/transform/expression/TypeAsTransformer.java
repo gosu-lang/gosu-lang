@@ -18,6 +18,7 @@ import gw.internal.gosu.ir.transform.TopLevelTransformationContext;
 import gw.internal.gosu.parser.CompoundType;
 import gw.lang.ir.IRType;
 import gw.lang.ir.expression.IRCompositeExpression;
+import gw.lang.ir.expression.IRConditionalOrExpression;
 import gw.lang.ir.expression.IRIdentifier;
 import gw.lang.ir.expression.IRInstanceOfExpression;
 import gw.lang.ir.statement.IRAssignmentStatement;
@@ -301,13 +302,13 @@ public class TypeAsTransformer extends AbstractExpressionTransformer<ITypeAsExpr
           // Generate code like the following:
           //
           // LhsType temp = <lhs-expr>
-          // temp instanceof AsType ? (AsType)temp : coerce( temp, AsType )
+          // (temp instanceof AsType || temp == null) ? (AsType)temp : coerce( temp, AsType )
           //
           IRType asType = getDescriptor( exprType );
           IRSymbol rootValue = _cc().makeAndIndexTempSymbol( root.getType() );
           root = buildComposite(
             buildAssignment( rootValue, root ),
-            buildTernary( new IRInstanceOfExpression( identifier( rootValue ), asType ),
+            buildTernary( new IRConditionalOrExpression( new IRInstanceOfExpression( identifier( rootValue ), asType ), buildEquals( identifier( rootValue ), nullLiteral() ) ),
                           checkCast( exprType, identifier( rootValue ) ),
                           coerce( identifier( rootValue ), RuntimeCoercer.instance() ),
                           asType ) );
