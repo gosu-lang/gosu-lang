@@ -49,6 +49,14 @@ public class SignatureUtil {
     }
   }
 
+  static public IType getPureGenericType(IType type) {
+    while( type.isParameterizedType() )
+    {
+      type = type.getGenericType();
+    }
+    return type;
+  }
+
   static private String processName( String name ) {
     if( name.length() > IGosuClass.PROXY_PREFIX.length() && name.startsWith( IGosuClass.PROXY_PREFIX ) ) {
       name = IGosuClass.ProxyUtil.getNameSansProxy( name );
