@@ -54,7 +54,6 @@ public class FeatureManagerTest extends TestClass {
     publicMethods.put("getClass()", Object.class.getName());
     publicMethods.put("wait()", Object.class.getName());
     publicMethods.put("notifyAll()", Object.class.getName());
-    publicMethods.put("@itype()", "gw.util.GWBaseObjectEnhancement");
 
     protectedMethods.put("clone()", Object.class.getName());
     protectedMethods.put("finalize()", Object.class.getName());
@@ -116,7 +115,6 @@ public class FeatureManagerTest extends TestClass {
     publicProperties.put("publicField", SubType.class.getName());
     publicProperties.put("PublicProp", SubType.class.getName());
     publicProperties.put("Class", Object.class.getName());
-    publicProperties.put("itype", "gw.util.GWBaseObjectEnhancement");
 
     internalProperties.put("InternalSubProp", BaseType.class.getName());
     internalProperties.put("InternalStaticSubProp", SubType.class.getName());
@@ -181,30 +179,35 @@ public class FeatureManagerTest extends TestClass {
     return myMap;
   }
 
-  private void assertFeaturesMatch(Map<String, String> methods, List<? extends IFeatureInfo> methodsFromType) {
+  private void assertFeaturesMatch( Map<String, String> exptectedFeatures, List<? extends IFeatureInfo> featuresFromType ) {
     HashSet<String> missingMethods = new HashSet<String>();
     List<String> badOwningTypes = new ArrayList<String>();
-    for (IFeatureInfo iMethodInfo : methodsFromType) {
-      String aClass = methods.remove(iMethodInfo.getName());
-      if (aClass == null) {
-        missingMethods.add(iMethodInfo.getName());
-      } else {
-        if (!aClass.equals(iMethodInfo.getOwnersType().getName())) {
-          badOwningTypes.add("owning type for method " + iMethodInfo.getName() + " is wrong.  Expected " + aClass + " got " + iMethodInfo.getOwnersType());
+    for( IFeatureInfo fi : featuresFromType ) {
+      String featureName = fi.getName();
+      if( featureName.equals( "itype" ) || featureName.equals( "@itype()" ) ) {
+        continue;
+      }
+      String owningType = exptectedFeatures.remove( featureName );
+      if( owningType == null ) {
+        missingMethods.add( featureName );
+      }
+      else {
+        if( !owningType.equals( fi.getOwnersType().getName() ) ) {
+          badOwningTypes.add( "owning type for method " + featureName + " is wrong.  Expected " + owningType + " got " + fi.getOwnersType() );
         }
       }
     }
 
-    if (!missingMethods.isEmpty()) {
-      fail("found extra features " + missingMethods);
+    if( !missingMethods.isEmpty() ) {
+      fail( "found extra features " + missingMethods );
     }
 
-    if (!badOwningTypes.isEmpty()) {
-      fail(badOwningTypes.toString());
+    if( !badOwningTypes.isEmpty() ) {
+      fail( badOwningTypes.toString() );
     }
 
-    if (!methods.isEmpty()) {
-      fail("could not find features " + methods.keySet());
+    if( !exptectedFeatures.isEmpty() ) {
+      fail( "could not find features " + exptectedFeatures.keySet() );
     }
   }
 }
