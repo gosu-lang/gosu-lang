@@ -12,6 +12,7 @@ import gw.lang.ir.IRStatement;
 import gw.lang.ir.IRSymbol;
 import gw.lang.ir.IRType;
 import gw.lang.ir.SignatureUtil;
+import gw.lang.reflect.ICompoundType;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.gs.IGenericTypeVariable;
 import gw.lang.reflect.java.JavaTypes;
@@ -63,15 +64,24 @@ public class IRMethodStatement extends IRStatement {
       bGeneric[0] = true;
       for( IGenericTypeVariable tv: type.getGenericTypeVariables() ) {
         sw.visitFormalTypeParameter( tv.getName() );
-        if( tv.getBoundingType() != null ) {
+        IType boundingType = tv.getBoundingType();
+        if( boundingType != null ) {
+          IType[] types;
+          if( boundingType instanceof ICompoundType) {
+            types = ((ICompoundType) boundingType).getTypes().toArray(new IType[0]);
+          } else {
+            types = new IType[] {boundingType};
+          }
           SignatureVisitor sv;
-          if( tv.getBoundingType().isInterface() ) {
-            sv = sw.visitInterfaceBound();
+          for(int i = types.length-1; i >= 0 ; i--) {
+            if( types[i].isInterface() ) {
+              sv = sw.visitInterfaceBound();
+            }
+            else {
+              sv = sw.visitClassBound();
+            }
+            SignatureUtil.visitType( sv, SignatureUtil.getPureGenericType(types[i]), bGeneric );
           }
-          else {
-            sv = sw.visitClassBound();
-          }
-          SignatureUtil.visitType( sv, tv.getBoundingType(), bGeneric );
         }
         else {
           SignatureVisitor sv = sw.visitClassBound();
