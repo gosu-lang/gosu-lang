@@ -84,6 +84,7 @@ import gw.lang.parser.ICoercionManager;
 import gw.lang.parser.ICustomExpressionRuntime;
 import gw.lang.parser.IDynamicFunctionSymbol;
 import gw.lang.parser.IExpression;
+import gw.lang.parser.ILanguageLevel;
 import gw.lang.parser.IParsedElement;
 import gw.lang.parser.IReducedSymbol;
 import gw.lang.parser.ISymbol;
@@ -94,6 +95,7 @@ import gw.lang.reflect.FunctionType;
 import gw.lang.reflect.IBlockType;
 import gw.lang.reflect.IConstructorInfo;
 import gw.lang.reflect.IEntityAccess;
+import gw.lang.reflect.IEnumConstant;
 import gw.lang.reflect.IFeatureInfo;
 import gw.lang.reflect.IFunctionType;
 import gw.lang.reflect.IMetaType;
@@ -3067,6 +3069,43 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
       }
       ((IRMethodCallExpression)mc).setStructuralTypeOwner( GosuClassIRType.get( TypeLord.getPureGenericType( rootExpr.getType() ) ) );
     }
+  }
+
+  protected IRExpression fastStringCoercion( IRExpression expr, IType operandType ) {
+    IRExpression stringValueExpr;
+    if( !operandType.isPrimitive() ) {
+      if( JavaTypes.pCHAR().getArrayType().isAssignableFrom( operandType ) ) {
+        stringValueExpr = callStaticMethod( String.class, "valueOf", new Class[]{char[].class}, Collections.singletonList( expr ) );
+      }
+      else if( ILanguageLevel.Util.STANDARD_GOSU() || !isHandledByCustomCoercion( operandType ) ) {
+        stringValueExpr = callMethod( Object.class, "toString", new Class[0], expr, Collections.<IRExpression>emptyList() );
+      }
+      else {
+        stringValueExpr = callMethod( ICoercionManager.class, "makeStringFrom", new Class[]{Object.class},
+                       callStaticMethod( CommonServices.class, "getCoercionManager", new Class[]{}, Collections.<IRExpression>emptyList() ),
+                       Collections.singletonList( expr ) );
+      }
+    }
+    else {
+      Class primitiveClass = getDescriptor( operandType ).getJavaClass();
+      primitiveClass = primitiveClass == short.class || primitiveClass == byte.class
+                       ? int.class
+                       : primitiveClass;
+      stringValueExpr = primitiveClass == void.class
+                        ? nullLiteral()
+                        : callStaticMethod( String.class, "valueOf", new Class[]{primitiveClass}, Collections.<IRExpression>singletonList( expr ) );
+    }
+    return stringValueExpr;
+  }
+  protected boolean isHandledByCustomCoercion( IType operandType ) {
+    return
+      operandType == JavaTypes.BIG_DECIMAL() ||
+      operandType == JavaTypes.FLOAT() ||
+      operandType == JavaTypes.DOUBLE() ||
+      operandType == JavaTypes.DATE() ||
+      TypeSystem.get( IEnumConstant.class ).isAssignableFrom( operandType ) ||
+      CommonServices.getEntityAccess().isTypekey( operandType ) ||
+      CommonServices.getEntityAccess().isEntityClass( operandType );
   }
 
   final protected IType findDimensionType( IType type ) {

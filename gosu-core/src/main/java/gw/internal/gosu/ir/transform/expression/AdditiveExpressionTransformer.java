@@ -13,18 +13,15 @@ import gw.internal.gosu.parser.expressions.AdditiveExpression;
 import gw.internal.gosu.parser.expressions.Identifier;
 import gw.internal.gosu.runtime.GosuRuntimeMethods;
 import gw.lang.IDimension;
-import gw.lang.ir.IRElement;
 import gw.lang.ir.IRExpression;
 import gw.lang.ir.IRSymbol;
 import gw.lang.ir.expression.IRArithmeticExpression;
 import gw.lang.ir.expression.IRStringLiteralExpression;
 import gw.lang.ir.statement.IRAssignmentStatement;
-import gw.lang.ir.statement.IRMethodCallStatement;
 import gw.lang.parser.ICoercionManager;
 import gw.lang.parser.ILanguageLevel;
 import gw.lang.parser.IParseTree;
 import gw.lang.parser.IParsedElement;
-import gw.lang.reflect.IEnumConstant;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.java.IJavaType;
@@ -32,9 +29,7 @@ import gw.lang.reflect.java.JavaTypes;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.List;
 
 /**
  */
@@ -251,17 +246,6 @@ public class AdditiveExpressionTransformer extends ArithmeticExpressionTransform
     else {
       sbHandle.setStringBuilder( expr );
     }
-  }
-
-  private boolean isHandledByCustomCoercion( IType operandType ) {
-    return
-      operandType == JavaTypes.BIG_DECIMAL() ||
-      operandType == JavaTypes.FLOAT() ||
-      operandType == JavaTypes.DOUBLE() ||
-      operandType == JavaTypes.DATE() ||
-      TypeSystem.get( IEnumConstant.class ).isAssignableFrom( operandType ) ||
-      CommonServices.getEntityAccess().isTypekey( operandType ) ||
-      CommonServices.getEntityAccess().isEntityClass( operandType );
   }
 
   private boolean isStringConcatenation() {

@@ -30,6 +30,7 @@ import gw.lang.parser.coercers.BasePrimitiveCoercer;
 import gw.lang.parser.coercers.FunctionFromInterfaceCoercer;
 import gw.lang.parser.coercers.IdentityCoercer;
 import gw.lang.parser.coercers.RuntimeCoercer;
+import gw.lang.parser.coercers.StringCoercer;
 import gw.lang.parser.expressions.ITypeAsExpression;
 import gw.lang.reflect.IBlockType;
 import gw.lang.reflect.IFunctionType;
@@ -275,10 +276,6 @@ public class TypeAsTransformer extends AbstractExpressionTransformer<ITypeAsExpr
   {
     // Ensure the value is boxed (the coercer takes an Object)
     IType lhsType = _expr().getLHS().getType();
-    if( lhsType.isPrimitive() )
-    {
-      root = boxValue( lhsType, root );
-    }
     ICoercer coercer = _expr().getCoercer();
     IType exprType = _expr().getType();
     if( (coercer == IdentityCoercer.instance() && !exprType.isPrimitive()) ||
@@ -302,7 +299,11 @@ public class TypeAsTransformer extends AbstractExpressionTransformer<ITypeAsExpr
           // Generate code like the following:
           //
           // LhsType temp = <lhs-expr>
-          // (temp instanceof AsType || temp == null) ? (AsType)temp : coerce( temp, AsType )
+          // (temp instanceof AsType || temp == null)
+          // ? (AsType)temp
+          // : AsType is a String
+          //   ? fastStringCoercion( temp )
+          //   : coerce( temp, AsType )
           //
           IRType asType = getDescriptor( exprType );
           IRSymbol rootValue = _cc().makeAndIndexTempSymbol( root.getType() );
@@ -310,7 +311,9 @@ public class TypeAsTransformer extends AbstractExpressionTransformer<ITypeAsExpr
             buildAssignment( rootValue, root ),
             buildTernary( new IRConditionalOrExpression( new IRInstanceOfExpression( identifier( rootValue ), asType ), buildEquals( identifier( rootValue ), nullLiteral() ) ),
                           checkCast( exprType, identifier( rootValue ) ),
-                          coerce( identifier( rootValue ), RuntimeCoercer.instance() ),
+                          exprType == JavaTypes.STRING()
+                          ? fastStringCoercion( identifier( rootValue ), lhsType )
+                          : coerce( identifier( rootValue ), RuntimeCoercer.instance() ),
                           asType ) );
 
         }
@@ -318,13 +321,27 @@ public class TypeAsTransformer extends AbstractExpressionTransformer<ITypeAsExpr
         {
           root = checkCast( exprType, root );
         }
-
       }
       // Boxing the value is sufficient; identity coercer simply returns whatever you pass in
-      return root;
+      return boxValue( lhsType, root );
+    }
+    else if( coercer instanceof StringCoercer || exprType == JavaTypes.STRING() ) {
+      if( lhsType.isPrimitive() ) {
+        return fastStringCoercion( root, lhsType );
+      }
+      else {
+        IRType asType = getDescriptor( exprType );
+        IRSymbol rootValue = _cc().makeAndIndexTempSymbol( root.getType() );
+        return buildComposite(
+          buildAssignment( rootValue, root ),
+          buildTernary( new IRConditionalOrExpression( new IRInstanceOfExpression( identifier( rootValue ), asType ), buildEquals( identifier( rootValue ), nullLiteral() ) ),
+                        checkCast( exprType, identifier( rootValue ) ),
+                        fastStringCoercion( identifier( rootValue ), lhsType ),
+                        asType ) );
+      }
     }
 
-    return coerce( root, coercer );
+    return coerce( boxValue( lhsType, root ), coercer );
   }
 
   private boolean areAssignableBytecodeTypes( ICoercer coercer, IType asType, IType lhsType ) {
