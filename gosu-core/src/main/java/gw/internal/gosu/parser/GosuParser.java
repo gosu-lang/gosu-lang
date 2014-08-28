@@ -235,6 +235,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
   private Stack<Boolean> _parsingStaticFeature;
   private boolean _bCaptureSymbolsForEval;
   private boolean _parsingAnnotation;
+  private boolean _allowWildcards;
   private int _ignoreTypeDeprecation;
   private boolean _bGenRootExprAccess;
   private boolean _bProgramCallFunction;
@@ -272,6 +273,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
     _typeCache = new HashMap<IScriptPartId, Map<String, IType>>();
     _bParsed = false;
     _iReturnOk = 1;
+    _allowWildcards = false;
   }
 
   @Override
@@ -8262,8 +8264,14 @@ public final class GosuParser extends ParserBase implements IGosuParser
   //
   boolean parseParameterType( IType boundingType )
   {
+    boolean isWildcard = false;
+    Expression superTypeLiteral = null;
+    int iOffset = _tokenizer.getTokenStart();
+    int iLineNum = _tokenizer.getLineNumber();
+    int iColumn = getTokenizer().getTokenColumn();
     if( match( null, "?", SourceCodeTokenizer.TT_OPERATOR ) )
     {
+      isWildcard = true;
       if( match( null, Keyword.KW_extends ) )
       {
         if( match( null, "?", SourceCodeTokenizer.TT_OPERATOR, true ) )
@@ -8280,7 +8288,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
         else
         {
           parseTypeLiteral();
-      }
+        }
       }
       else if( match( null, Keyword.KW_super ) )
       {
@@ -8298,22 +8306,31 @@ public final class GosuParser extends ParserBase implements IGosuParser
         else
         {
           parseTypeLiteral();
-          popExpression(); // Eat whatever type literal is here (we punt on contravariance)
+          superTypeLiteral = popExpression(); // Eat whatever type literal is here (we punt on contravariance)
 
           TypeLiteral typeLiteral = new TypeLiteral( MetaType.getLiteral( boundingType ) );
           pushExpression( typeLiteral );
+        }
       }
-    }
       else
       {
         pushExpression( new TypeLiteral( JavaTypes.OBJECT() ) );
+        setLocation( iOffset, iLineNum, iColumn );
       }
     }
     else
     {
-    parseTypeLiteral();
+      parseTypeLiteral();
     }
     TypeLiteral tl = (TypeLiteral)peekExpression();
+    if( !isAllowingWildcards() )
+    {
+      if( superTypeLiteral != null )
+      {
+        verify(superTypeLiteral, !isWildcard, Res.MSG_NO_WILDCARDS, tl.getType().getType().getRelativeName() );
+      }
+      verify(tl, !isWildcard, Res.MSG_NO_WILDCARDS, tl.getType().getType().getRelativeName() );
+    }
     boxTypeLiteralsType( tl );
     return true;
   }
@@ -13729,6 +13746,16 @@ public final class GosuParser extends ParserBase implements IGosuParser
   public void setParsingAnnotation( boolean parsingAnnotation )
   {
     _parsingAnnotation = parsingAnnotation;
+  }
+
+  public boolean isAllowingWildcards()
+  {
+    return _allowWildcards;
+  }
+
+  public void setAllowWildcards( boolean allowWildcards )
+  {
+    _allowWildcards = allowWildcards;
   }
 
   public boolean isIgnoreTypeDeprecation()
