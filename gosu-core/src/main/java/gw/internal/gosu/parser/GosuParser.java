@@ -1493,6 +1493,14 @@ public final class GosuParser extends ParserBase implements IGosuParser
       {
         type = ErrorType.getInstance();
       }
+    }
+    else if( GosuParserTypes.NULL_TYPE().equals(first.getType()) && second.getType().isPrimitive() )
+    {
+      return TypeLord.getBoxedTypeFromPrimitiveType( second.getType() );
+    }
+    else if( GosuParserTypes.NULL_TYPE().equals(second.getType()) && first.getType().isPrimitive() )
+    {
+      return TypeLord.getBoxedTypeFromPrimitiveType( first.getType() );
     } // HACK
       // Do not allow literal strings that are coercable to the type of the other side to modify the
       //type of the expression
