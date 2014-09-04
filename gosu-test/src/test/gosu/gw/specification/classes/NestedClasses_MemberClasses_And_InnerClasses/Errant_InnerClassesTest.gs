@@ -65,4 +65,31 @@ class Errant_InnerClassesTest {
     }
   }
 
+  class Foo2 {
+
+    class Bar {
+
+      class Foo2 {    //## issuekeys: MSG_DUPLICATE_CLASS_FOUND
+      }
+    }
+  }
+
+  class Foo3 {
+     class Bar {
+
+       class Foo {
+         class Bar {}  //## issuekeys: MSG_DUPLICATE_CLASS_FOUND
+       }
+     }
+  }
+
+  class Foo4{
+     class Bar {
+
+       class Foo {
+         class Foo4 {}  //## issuekeys: MSG_DUPLICATE_CLASS_FOUND
+       }
+     }
+  }
+
 }
