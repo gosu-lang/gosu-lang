@@ -78,8 +78,12 @@ The plugin enables you to:
 Build instructions
 ------------------
 You need Java JDK 1.7 and Maven 3.0 to build Gosu and the IntelliJ IDEA plugin.
+Set the following environment variables:
 
-Simply clone the project from GitHub and run:
+* JAVA_HOME points to JDK 1.7's home
+* IDEA_HOME points to the root of your IntelliJ 12.1.X 's installation folder
+
+Clone the project from GitHub and run:
 
     mvn process-classes
 
