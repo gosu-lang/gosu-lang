@@ -23,6 +23,7 @@ import gw.plugin.ij.lang.parser.GosuElementTypes;
 import gw.plugin.ij.lang.psi.IGosuFileBase;
 import gw.plugin.ij.lang.psi.api.auxilary.IGosuModifier;
 import gw.plugin.ij.lang.psi.api.auxilary.IGosuModifierList;
+import gw.plugin.ij.lang.psi.api.auxilary.IGosuModifierList;
 import gw.plugin.ij.lang.psi.api.statements.IGosuField;
 import gw.plugin.ij.lang.psi.impl.GosuElementVisitor;
 import gw.plugin.ij.lang.psi.impl.GosuPsiImplUtil;

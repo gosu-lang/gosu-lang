@@ -141,6 +141,7 @@ import gw.lang.reflect.ICanBeAnnotation;
 import gw.lang.reflect.IConstructorInfo;
 import gw.lang.reflect.IConstructorType;
 import gw.lang.reflect.IEnumType;
+import gw.lang.reflect.IEnumValue;
 import gw.lang.reflect.IErrorType;
 import gw.lang.reflect.IFunctionType;
 import gw.lang.reflect.IInvocableType;
@@ -175,6 +176,7 @@ import gw.lang.reflect.gs.IGosuVarPropertyInfo;
 import gw.lang.reflect.gs.ISourceFileHandle;
 import gw.lang.reflect.gs.StringSourceFileHandle;
 import gw.lang.reflect.java.GosuTypes;
+import gw.lang.reflect.java.IJavaPropertyInfo;
 import gw.lang.reflect.java.IJavaType;
 import gw.lang.reflect.java.JavaTypes;
 import gw.lang.reflect.module.IModule;
@@ -248,7 +250,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
 
   GosuParser( ISymbolTable symTable, IScriptabilityModifier scriptabilityConstraint )
   {
-    this(symTable, scriptabilityConstraint, CommonServices.getEntityAccess().getDefaultTypeUses());
+    this(symTable, scriptabilityConstraint, TypeSystem.getDefaultTypeUsesMap());
   }
 
   GosuParser( ISymbolTable symTable, IScriptabilityModifier scriptabilityConstraint, ITypeUsesMap tuMap )
@@ -601,7 +603,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
               previousStatement == null ||
                       currentStatement.isNoOp() ||
                       previousStatement.getLeastSignificantTerminalStatement( bAbsolute ) == null || !bAbsolute[0],
-              !CommonServices.getEntityAccess().isUnreachableCodeDetectionOn(), Res.MSG_UNREACHABLE_STMT );
+              !CommonServices.getEntityAccess().getLanguageLevel().isUnreachableCodeDetectionOn(), Res.MSG_UNREACHABLE_STMT );
     }
 
     if( isParsingFunction() && !isParsingBlock() )
@@ -5620,13 +5622,11 @@ public final class GosuParser extends ParserBase implements IGosuParser
     IType contextType = getContextType().getType();
     if( contextType != null )
     {
-      if( contextType.isEnum() )
+      if( contextType.isEnum() || TypeSystem.get(IEnumValue.class).isAssignableFrom(contextType) )
       {
-        IEnumType enumAccess = (IEnumType)contextType;
-
         try
         {
-          IPropertyInfo property = enumAccess.getTypeInfo().getProperty( strConstValue );
+          IPropertyInfo property = contextType.getTypeInfo().getProperty( strConstValue );
           if( property != null && property.isStatic() )
           {
             MemberAccess ma = new MemberAccess();
@@ -8819,7 +8819,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
   {
     return getGosuClass() == null ||
             (getGosuClass() instanceof IGosuProgramInternal  && ((IGosuProgramInternal) getGosuClass()).allowsUses()) ||
-            CommonServices.getEntityAccess().areUsesStatementsAllowedInStatementLists(getGosuClass());
+            CommonServices.getEntityAccess().getLanguageLevel().areUsesStatementsAllowedInStatementLists(getGosuClass());
   }
 
   private int getStatementDepth()
@@ -10877,11 +10877,11 @@ public final class GosuParser extends ParserBase implements IGosuParser
         if( !(typeExpected instanceof ErrorType) )
         {
           IPropertyInfo lhsPi = ma.getPropertyInfo();
-          if( lhsPi instanceof JavaPropertyInfo &&
-                  ((JavaPropertyInfo)lhsPi).getWriteMethodInfo() == null &&
-                  ((JavaPropertyInfo)lhsPi).getPublicField() != null )
+          if( lhsPi instanceof IJavaPropertyInfo &&
+                  ((IJavaPropertyInfo)lhsPi).getWriteMethodInfo() == null &&
+                  ((IJavaPropertyInfo)lhsPi).getPublicField() != null )
           {
-            typeExpected = TypeSystem.get(((JavaPropertyInfo) lhsPi).getPublicField().getType());
+            typeExpected = TypeSystem.get(((IJavaPropertyInfo) lhsPi).getPublicField().getType());
           }
         }
         verifyComparable( typeExpected, rhs, true );
@@ -11609,7 +11609,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
         pushDynamicFunctionSymbol( dfsDecl );
         functionStmt.setDynamicFunctionSymbol( dfsDecl );
         verifyOrWarn( functionStmt, isTerminal( statement, dfsDecl.getReturnType() ),
-                !CommonServices.getEntityAccess().isUnreachableCodeDetectionOn(),
+                !CommonServices.getEntityAccess().getLanguageLevel().isUnreachableCodeDetectionOn(),
                 Res.MSG_MISSING_RETURN );
       }
       pushStatement( functionStmt );

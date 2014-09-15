@@ -34,6 +34,10 @@ import gw.lang.parser.expressions.IVarStatement;
 import gw.lang.parser.statements.IClassDeclaration;
 import gw.lang.parser.statements.IFunctionStatement;
 import gw.lang.reflect.IType;
+import gw.lang.reflect.ITypeLoader;
+import gw.lang.reflect.module.IGlobalModule;
+import gw.lang.reflect.module.IJreModule;
+import gw.lang.reflect.module.IModule;
 import gw.plugin.ij.actions.TypeSystemAwareAction;
 import gw.plugin.ij.lang.psi.IGosuPsiElement;
 import gw.plugin.ij.util.GosuBundle;
@@ -81,7 +85,21 @@ public class TypeInfoAction extends TypeSystemAwareAction implements DumbAware {
       if (parsedElement != null) {
         final IType type = unwrapMetaType(getType(parsedElement));
         if (type != null) {
-          showInfoTooltip(type.getName(), editor);
+          String message = type.getName();
+          ITypeLoader typeLoader = type.getTypeLoader();
+          if (typeLoader != null) {
+            IModule module = typeLoader.getModule();
+            String m = null;
+            if (module instanceof IJreModule) {
+              m = "SDK";
+            } else if (!(module instanceof IGlobalModule)) {
+              m = module.getName();
+            }
+            if (m != null) {
+              message += " (" + m + ")";
+            }
+          }
+          showInfoTooltip(message, editor);
           return true;
         }
       }

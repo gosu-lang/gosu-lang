@@ -230,6 +230,9 @@ public class MemberAccessTransformer extends AbstractExpressionTransformer<Membe
   }
 
   private boolean mightRequireAutoCreation(IType rootType, IPropertyInfo pi) {
+    if (_expr().toString().toLowerCase().contains("_ao.address")) {
+      int a = 10;
+    }
     if(_expr().getExpressionRuntime() instanceof SinglePropertyMemberAccessRuntime) {
       if (((SinglePropertyMemberAccessRuntime) _expr().getExpressionRuntime()).isNestedInLhs()) {
         // The property in the path is null; attempt to dynamically set its value if @Autocreate annotation is present
@@ -606,7 +609,7 @@ public class MemberAccessTransformer extends AbstractExpressionTransformer<Membe
     List<IAnnotationInfo> annotationInfoList = property.getAnnotationsOfType( GosuTypes.AUTOCREATE() );
     Object value;
     boolean usingAutoCreateAnnotation = annotationInfoList != null && annotationInfoList.size() > 0;
-    if( usingAutoCreateAnnotation )
+    if( usingAutoCreateAnnotation && !ea.isEntityClass(property.getFeatureType()))
     {
       IAnnotationInfo annotation = annotationInfoList.get( 0 );
       Autocreate o = (Autocreate)annotation.getInstance();

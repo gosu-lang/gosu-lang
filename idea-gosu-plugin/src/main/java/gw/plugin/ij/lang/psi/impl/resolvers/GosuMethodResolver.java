@@ -35,7 +35,6 @@ import gw.lang.reflect.IHasParameterInfos;
 import gw.lang.reflect.IMetaType;
 import gw.lang.reflect.IMethodInfo;
 import gw.lang.reflect.IParameterInfo;
-import gw.lang.reflect.IShadowingType;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.ITypeVariableType;
 import gw.lang.reflect.ModifiedParameterInfo;
@@ -117,13 +116,6 @@ public class GosuMethodResolver extends AbstractFeatureResolver {
     if (info instanceof IJavaMethodInfo) {
       final IJavaClassInfo enclosingClass = ((IJavaMethodInfo) info).getMethod().getEnclosingClass();
       final IType type = enclosingClass.getJavaType();
-      if (type instanceof IShadowingType) {
-        for (IType shadowedType : ((IShadowingType) type).getShadowedTypes()) {
-          if (shadowedType.getName().equals(enclosingClass.getName())) {
-            return shadowedType;
-          }
-        }
-      }
       IType ownersType = info.getOwnersType();
       if (ownersType instanceof IJavaType) {
         return ownersType;
@@ -372,19 +364,7 @@ public class GosuMethodResolver extends AbstractFeatureResolver {
         result = unboundedCandidate.equalsToText(patternName);
       }
     }
-    if (!result && type instanceof IShadowingType) {
-      return matchShadowedTypes((IShadowingType) type, candidate, typeVarMap, substitutor, isStatic);
-    }
     return result;
-  }
-
-  private static boolean matchShadowedTypes(@NotNull IShadowingType type, @NotNull PsiType candidate, @NotNull Map<String, IType> typeVarMap, PsiSubstitutor substitutor, boolean isStatic) {
-    for (IType shadowedType : type.getShadowedTypes()) {
-      if (matchParameter(shadowedType, candidate, typeVarMap, substitutor, isStatic)) {
-        return true;
-      }
-    }
-    return false;
   }
 
   // Handles issue with getDisplayName() for java generic constructors, e.g. HashMap<String, String>

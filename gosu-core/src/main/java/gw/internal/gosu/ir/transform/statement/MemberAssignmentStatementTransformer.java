@@ -30,6 +30,7 @@ import gw.lang.reflect.IPropertyInfo;
 import gw.lang.reflect.IPropertyInfoDelegate;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.gs.IGosuVarPropertyInfo;
+import gw.lang.reflect.java.IJavaPropertyInfo;
 
 /**
  */
@@ -134,7 +135,7 @@ public class MemberAssignmentStatementTransformer extends AbstractStatementTrans
     }
 
     IPropertyInfo terminalPi = ((IRPropertyFromPropertyInfo)irPi).getTerminalProperty();
-    return terminalPi instanceof JavaPropertyInfo && isField( terminalPi );
+    return terminalPi instanceof IJavaPropertyInfo && isField( terminalPi );
   }
 
   private IRExpression compileRhs( IRProperty pi ) {
@@ -156,8 +157,8 @@ public class MemberAssignmentStatementTransformer extends AbstractStatementTrans
 
     IRType type;
     IPropertyInfo terminalPi = ((IRPropertyFromPropertyInfo)pi).getTerminalProperty();
-    if( terminalPi instanceof JavaPropertyInfo && isField( terminalPi ) ) {
-      type = IRTypeResolver.getDescriptor( ((JavaPropertyInfo)terminalPi).getPublicField().getType() );
+    if( terminalPi instanceof IJavaPropertyInfo && isField( terminalPi ) ) {
+      type = IRTypeResolver.getDescriptor( ((IJavaPropertyInfo)terminalPi).getPublicField().getType() );
     }
     else {
       type = pi.getType();
@@ -216,8 +217,8 @@ public class MemberAssignmentStatementTransformer extends AbstractStatementTrans
       pi = ((IPropertyInfoDelegate)pi).getSource();
     }
 
-    if( pi instanceof JavaPropertyInfo ) {
-      JavaPropertyInfo jpi = (JavaPropertyInfo)pi;
+    if( pi instanceof IJavaPropertyInfo ) {
+      IJavaPropertyInfo jpi = (IJavaPropertyInfo)pi;
       return jpi.getWriteMethodInfo() == null && jpi.getPublicField() != null;
     }
 
@@ -235,8 +236,8 @@ public class MemberAssignmentStatementTransformer extends AbstractStatementTrans
       pi = ((IPropertyInfoDelegate)pi).getSource();
     }
 
-    if( pi instanceof JavaPropertyInfo ) {
-      JavaPropertyInfo jpi = (JavaPropertyInfo)pi;
+    if( pi instanceof IJavaPropertyInfo ) {
+      IJavaPropertyInfo jpi = (IJavaPropertyInfo)pi;
       return jpi.getPublicField().getName();
     }
 

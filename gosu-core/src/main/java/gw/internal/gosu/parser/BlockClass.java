@@ -38,7 +38,7 @@ public class BlockClass extends SyntheticClass implements IBlockClassInternal
   private BlockClass( BlockExpression blk )
   {
     super("_todo_remove_me", "_todo_remove_me." + GosuClassTypeLoader.BLOCK_PREFIX + TMP_INT_IDENTIFIER.incrementAndGet() + GosuClassTypeLoader.BLOCK_POSTFIX,
-        TypeSystem.getTypeLoader(GosuClassTypeLoader.class), null, CommonServices.getEntityAccess().getDefaultTypeUses());
+        TypeSystem.getTypeLoader(GosuClassTypeLoader.class), null, TypeSystem.getDefaultTypeUsesMap());
     initCompilationState();
     createNewParseInfo();
     getParseInfo().setBlock(blk);

@@ -479,7 +479,7 @@ public class TypeSystem
 
   public static ITypeUsesMap getDefaultTypeUsesMap()
   {
-    return CommonServices.getEntityAccess().getDefaultTypeUses();
+    return CommonServices.getEntityAccess().getLanguageLevel().getDefaultTypeUses();
   }
 
   public static IType getCurrentCompilingType() {

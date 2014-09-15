@@ -63,6 +63,7 @@ import gw.lang.reflect.IFunctionType;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.gs.IGosuClass;
+import gw.lang.reflect.module.IModule;
 import gw.plugin.ij.filetypes.GosuFileTypes;
 import gw.plugin.ij.intentions.ChangeMethodTypeFix;
 import gw.plugin.ij.intentions.CreateClassFix;
@@ -100,6 +101,7 @@ import gw.plugin.ij.lang.psi.impl.expressions.GosuTypeLiteralImpl;
 import gw.plugin.ij.lang.psi.impl.statements.typedef.GosuAnonymousClassDefinitionImpl;
 import gw.plugin.ij.lang.psi.impl.statements.typedef.members.GosuMethodBaseImpl;
 import gw.plugin.ij.lang.psi.impl.statements.typedef.members.GosuMethodImpl;
+import gw.plugin.ij.util.GosuModuleUtil;
 import gw.plugin.ij.util.InjectedElementEditor;
 import gw.util.GosuStringUtil;
 import org.jetbrains.annotations.NotNull;
@@ -133,7 +135,13 @@ public class GosuParserAnnotator implements Annotator, Condition<VirtualFile> {
 
       if( psiFile.isValid() ) {
         if( !psiFile.reparsePsiFromContent() ) {
-          annotateFile( psiFile, holder );
+          IModule module = GosuModuleUtil.findModuleForPsiElement(psiFile);
+          TypeSystem.pushModule(module);
+          try {
+            annotateFile( psiFile, holder );
+          } finally {
+            TypeSystem.popModule(module);
+          }
         }
       }
     }

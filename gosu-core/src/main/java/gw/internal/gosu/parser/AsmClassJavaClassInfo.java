@@ -11,6 +11,7 @@ import gw.internal.gosu.parser.java.classinfo.JavaSourcePropertyDescriptor;
 import gw.internal.gosu.parser.java.classinfo.JavaSourceUtil;
 import gw.lang.GosuShop;
 import gw.lang.SimplePropertyProcessing;
+import gw.lang.SimplePropertyProcessing;
 import gw.lang.javadoc.IClassDocNode;
 import gw.lang.reflect.EnumValuePlaceholder;
 import gw.lang.reflect.IAnnotationInfo;

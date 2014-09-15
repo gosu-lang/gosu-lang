@@ -59,7 +59,7 @@ public class VarStatementTransformer extends AbstractStatementTransformer<IVarSt
       {
         value = ExpressionTransformer.compile( asExp, _cc() );
         // If the value we're assigning isn't assignable to the symbol's type, we need to insert a cast.
-        // This should only happen in strange cases like assigning a GroupBase to a Group or in the case
+        // This should only happen in strange cases like assigning a Group to a Group or in the case
         // of a compound type.
         IRType symbolType = getDescriptor( type );
         if (!(value instanceof IRNullLiteral) &&

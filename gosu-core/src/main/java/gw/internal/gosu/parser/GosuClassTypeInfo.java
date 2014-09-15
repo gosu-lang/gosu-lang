@@ -599,18 +599,18 @@ public class GosuClassTypeInfo extends BaseTypeInfo implements IGosuClassTypeInf
 
       for( IType parentType : parentTypes )
       {
-        CommonServices.getEntityAccess().addEnhancementMethods(parentType, privateMethods );
+        addEnhancementMethods(parentType, privateMethods );
         IType[] list = parentType.getInterfaces();
         for( IType ifaceType : list )
         {
           if (!TypeSystem.isDeleted(ifaceType)) {
-            CommonServices.getEntityAccess().addEnhancementMethods(ifaceType, privateMethods );
+            addEnhancementMethods(ifaceType, privateMethods );
           }
         }
       }
 
       if (!(_gsClass instanceof IGosuEnhancement)) {
-        CommonServices.getEntityAccess().addEnhancementMethods(JavaTypes.OBJECT(), privateMethods);
+        addEnhancementMethods(JavaTypes.OBJECT(), privateMethods);
       }
     }
 
@@ -632,17 +632,17 @@ public class GosuClassTypeInfo extends BaseTypeInfo implements IGosuClassTypeInf
 
       for( IType parentType : parentTypes )
       {
-        CommonServices.getEntityAccess().addEnhancementProperties( parentType, privateProps, true );
+        addEnhancementProperties( parentType, privateProps, true );
         IType[] list = parentType.getInterfaces();
         for( IType ifaceType : list )
         {
-          CommonServices.getEntityAccess().addEnhancementProperties( ifaceType, privateProps, true );
+          addEnhancementProperties( ifaceType, privateProps, true );
         }
       }
 
       if( !(_gsClass instanceof IGosuEnhancement) )
       {
-        CommonServices.getEntityAccess().addEnhancementProperties( JavaTypes.OBJECT(), privateProps, true );
+        addEnhancementProperties( JavaTypes.OBJECT(), privateProps, true );
       }
     }
   }

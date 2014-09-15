@@ -9,7 +9,6 @@ import gw.config.CommonServices;
 import gw.fs.IDirectory;
 import gw.lang.parser.GlobalScope;
 import gw.lang.parser.IAttributeSource;
-import gw.lang.parser.IParseIssue;
 import gw.lang.parser.ITypeUsesMap;
 import gw.lang.parser.ILanguageLevel;
 import gw.lang.parser.exceptions.IncompatibleTypeException;
@@ -24,25 +23,17 @@ import gw.lang.reflect.IType;
 import gw.lang.reflect.ITypeLoader;
 import gw.lang.reflect.AbstractTypeSystemListener;
 import gw.lang.reflect.RefreshRequest;
-import gw.lang.reflect.TypeSystem;
-import gw.lang.reflect.gs.GosuClassTypeLoader;
-import gw.lang.reflect.gs.ICompilableType;
-import gw.lang.reflect.module.IModule;
-import gw.util.GosuExceptionUtil;
+import gw.lang.reflect.java.IJavaType;
 import gw.util.IFeatureFilter;
 import gw.util.ILogger;
 import gw.util.SystemOutLogger;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
-import java.util.Set;
 
 
 /**
@@ -71,12 +62,6 @@ public class DefaultEntityAccess extends BaseService implements IEntityAccess
   public ITypeLoader getDefaultTypeLoader()
   {
     return DefaultTypeLoader.instance();
-  }
-
-  @Override
-  public ITypeUsesMap getDefaultTypeUses()
-  {
-    return EMPTY_TYPE_USES;
   }
 
   /**
@@ -113,30 +98,6 @@ public class DefaultEntityAccess extends BaseService implements IEntityAccess
    * @return x
    */
   @Override
-  public boolean isKeyableEntityClass( IType cls )
-  {
-    return false;
-  }
-
-  /**
-   * @return x
-   */
-  @Override
-  public boolean isDomainClass( IType cls )
-  {
-    return false;
-  }
-
-  @Override
-  public boolean isTypekey( IType cls )
-  {
-    return false;
-  }
-
-  /**
-   * @return x
-   */
-  @Override
   public Object getEntityInstanceFrom( Object entity, IType classEntity )
   {
     return null;
@@ -163,7 +124,7 @@ public class DefaultEntityAccess extends BaseService implements IEntityAccess
     try
     {
       IType valueType = TypeLoaderAccess.instance().getIntrinsicTypeFromObject(value);
-      CommonServices.getCoercionManager().verifyTypesComparable( type, valueType, false );
+      CommonServices.getCoercionManager().verifyTypesComparable(type, valueType, false);
     }
     catch( ParseIssue pe )
     {
@@ -172,18 +133,6 @@ public class DefaultEntityAccess extends BaseService implements IEntityAccess
     }
     return true;
   }
-
-  @Override
-  public String makeStringFrom( Object obj )
-  {
-    if( obj == null )
-    {
-      return null;
-    }
-
-    return obj.toString();
-  }
-
 
   /**
    * @return x
@@ -194,15 +143,6 @@ public class DefaultEntityAccess extends BaseService implements IEntityAccess
     return -1;
   }
 
-  /**
-   * @return x
-   */
-  @Override
-  public boolean isInternal( IType cls )
-  {
-    return false;
-  }
-
   @Override
   public ILogger getLogger()
   {
@@ -210,63 +150,9 @@ public class DefaultEntityAccess extends BaseService implements IEntityAccess
   }
 
   @Override
-  public Locale getLocale()
-  {
-    return Locale.getDefault();
-  }
-
-  @Override
   public Date getCurrentTime()
   {
     return new Date();
-  }
-
-  @Override
-  public void addEnhancementMethods(IType typeToEnhance, Collection methodsToAddTo)
-  {
-    IModule module = TypeSystem.getCurrentModule();
-    addEnhancementMethods(typeToEnhance, methodsToAddTo, module, new HashSet<IModule>());
-  }
-
-  private void addEnhancementMethods(IType typeToEnhance, Collection methodsToAddTo, IModule module, Set<IModule> visited)
-  {
-    if(visited.contains(module)) 
-    {
-      return;
-    }
-    visited.add(module);
-    if( GosuClassTypeLoader.getDefaultClassLoader(module) != null )
-    {
-      GosuClassTypeLoader.getDefaultClassLoader(module).getEnhancementIndex().addEnhancementMethods( typeToEnhance, methodsToAddTo);
-    }
-    for(IModule dep : module.getModuleTraversalList())
-    {
-      addEnhancementMethods(typeToEnhance, methodsToAddTo, dep, visited);
-    }
-  }
-
-  @Override
-  public void addEnhancementProperties(IType typeToEnhance, Map propertyInfosToAddTo, boolean caseSensitive)
-  {
-    IModule module = TypeSystem.getCurrentModule();
-    addEnhancementProperties(typeToEnhance, propertyInfosToAddTo, caseSensitive, module, new HashSet<IModule>());
-  }
-  
-  private void addEnhancementProperties(IType typeToEnhance, Map propertyInfosToAddTo, boolean caseSensitive, IModule module, Set<IModule> visited)
-  {
-    if(visited.contains(module)) 
-    {
-      return;
-    }
-    visited.add(module);
-    if( GosuClassTypeLoader.getDefaultClassLoader(module) != null )
-    {
-      GosuClassTypeLoader.getDefaultClassLoader(module).getEnhancementIndex().addEnhancementProperties( typeToEnhance, propertyInfosToAddTo, caseSensitive);
-    }
-    for(IModule dep : module.getModuleTraversalList())
-    {
-      addEnhancementProperties(typeToEnhance, propertyInfosToAddTo, caseSensitive, dep, visited);
-    }
   }
 
   @Override
@@ -290,19 +176,6 @@ public class DefaultEntityAccess extends BaseService implements IEntityAccess
   public ClassLoader getPluginClassLoader()
   {
     return DefaultEntityAccess.class.getClassLoader();
-  }
-
-  @Override
-  public Object constructObject( Class cls )
-  {
-    try
-    {
-      return cls.newInstance();
-    }
-    catch( Exception e )
-    {
-      throw GosuExceptionUtil.forceThrow( e );
-    }
   }
 
   @Override
@@ -435,18 +308,6 @@ public class DefaultEntityAccess extends BaseService implements IEntityAccess
   }
 
   @Override
-  public boolean isUnreachableCodeDetectionOn()
-  {
-    return true;
-  }
-
-  @Override
-  public boolean isWarnOnImplicitCoercionsOn()
-  {
-    return true;
-  }
-
-  @Override
   public IType getKeyType()
   {
     return null;
@@ -456,29 +317,6 @@ public class DefaultEntityAccess extends BaseService implements IEntityAccess
   public IPropertyInfo getEntityIdProperty( IType rootType )
   {
     return null;
-  }
-
-  @Override
-  public boolean shouldAddWarning( IType type, IParseIssue warning )
-  {
-    return true;
-  }
-
-  @Override
-  public boolean isServerMutable()
-  {
-    return true;
-  }
-
-  @Override
-  public boolean isDevMode() {
-    return true;
-  }
-
-  @Override
-  public boolean isRetainDebugInfo()
-  {
-    return false;
   }
 
   @Override
@@ -493,11 +331,6 @@ public class DefaultEntityAccess extends BaseService implements IEntityAccess
   }
 
   @Override
-  public boolean areUsesStatementsAllowedInStatementLists(ICompilableType gosuClass) {
-    return false;
-  }
-
-  @Override
   public List<IDirectory> getAdditionalSourceRoots() {
     return Collections.EMPTY_LIST;
   }
@@ -506,4 +339,26 @@ public class DefaultEntityAccess extends BaseService implements IEntityAccess
   public void reloadedTypes(String[] types) {
     //nothing to do
   }
+
+  @Override
+  public String getLocalizedTypeName(IType type) {
+    return type.getName();
+  }
+
+  @Override
+  public String getLocalizedTypeInfoName(IType type) {
+    String result;
+    if (type instanceof IJavaType) {
+      result = ((IJavaType) type).getBackingClassInfo().getDisplayName();
+    } else {
+      result = getLocalizedTypeName(type);
+    }
+    return result;
+  }
+
+  @Override
+  public ExtendedTypeDataFactory getExtendedTypeDataFactory(String typeName) {
+    return null;
+  }
+
 }

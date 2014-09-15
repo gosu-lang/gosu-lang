@@ -14,7 +14,6 @@ import gw.lang.parser.ISymbol;
 import gw.lang.parser.exceptions.ParseException;
 import gw.lang.parser.expressions.IQueryExpressionEvaluator;
 import gw.lang.parser.expressions.IQueryPathExpression;
-import gw.lang.reflect.IEntityCovariantLinkHackPropInfo;
 import gw.lang.reflect.IPropertyInfo;
 import gw.lang.reflect.IType;
 import gw.util.GosuExceptionUtil;
@@ -136,8 +135,6 @@ public final class QueryPathExpression extends Expression implements IQueryPathE
         if( pi instanceof ArrayExpansionPropertyInfo)
         {
           pi = ((ArrayExpansionPropertyInfo)pi).getDelegate();
-        } else if (pi instanceof IEntityCovariantLinkHackPropInfo ) {
-          pi = ((IEntityCovariantLinkHackPropInfo) pi).getBackingLinkPropertyInfo();
         }
         return pi;
       }

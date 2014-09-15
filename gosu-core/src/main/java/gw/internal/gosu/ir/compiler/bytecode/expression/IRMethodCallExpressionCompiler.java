@@ -7,6 +7,7 @@ package gw.internal.gosu.ir.compiler.bytecode.expression;
 import gw.internal.ext.org.objectweb.asm.Label;
 import gw.internal.ext.org.objectweb.asm.MethodVisitor;
 import gw.internal.ext.org.objectweb.asm.Opcodes;
+import gw.internal.ext.org.objectweb.asm.Type;
 import gw.internal.gosu.ir.compiler.bytecode.AbstractBytecodeCompiler;
 import gw.internal.gosu.ir.compiler.bytecode.IRBytecodeCompiler;
 import gw.internal.gosu.ir.compiler.bytecode.IRBytecodeContext;
@@ -92,8 +93,6 @@ public class IRMethodCallExpressionCompiler extends AbstractBytecodeCompiler {
       //     Return proxy instance
       //   }
 
-      String structureName = ownersType.getName();
-
       MethodVisitor mv = context.getMv();
       mv.visitInsn( Opcodes.DUP ); // dup the root value
       mv.visitTypeInsn( INSTANCEOF, ownersType.getSlashName() );
@@ -103,11 +102,11 @@ public class IRMethodCallExpressionCompiler extends AbstractBytecodeCompiler {
       Label labelEnd = new Label();
       mv.visitJumpInsn( GOTO, labelEnd );
       mv.visitLabel( labelProxy );
-      mv.visitLdcInsn( structureName );
+      mv.visitLdcInsn( Type.getType( ownersType.getDescriptor() ) );
       mv.visitMethodInsn( Opcodes.INVOKESTATIC,
                           IRMethodCallExpressionCompiler.class.getName().replace( '.', '/' ),
                           "constructProxy",
-                          "(Ljava/lang/Object;Ljava/lang/String;)Ljava/lang/Object;" );
+                          "(Ljava/lang/Object;Ljava/lang/Class;)Ljava/lang/Object;" );
       mv.visitLabel( labelEnd );
       return ownersType;
     }
@@ -115,7 +114,7 @@ public class IRMethodCallExpressionCompiler extends AbstractBytecodeCompiler {
   }
 
   @SuppressWarnings("UnusedDeclaration")
-  public static Object constructProxy( Object root, String iface ) {
+  public static Object constructProxy( Object root, Class iface ) {
     // return findCachedProxy( root, iface ); // this is only beneficial when structural invocation happens in a loop, otherwise too costly
     return createNewProxy( root, iface );
   }
@@ -133,8 +132,8 @@ public class IRMethodCallExpressionCompiler extends AbstractBytecodeCompiler {
 //    return proxyInstance;
 //  }
 
-  private static Map<String, Map<Class, Constructor>> PROXY_CACHE = new ConcurrentHashMap<String, Map<Class, Constructor>>();
-  private static Object createNewProxy( Object root, String iface ) {
+  private static Map<Class, Map<Class, Constructor>> PROXY_CACHE = new ConcurrentHashMap<Class, Map<Class, Constructor>>();
+  private static Object createNewProxy( Object root, Class iface ) {
     Map<Class, Constructor> proxyByClass = PROXY_CACHE.get( iface );
     if( proxyByClass == null ) {
       PROXY_CACHE.put( iface, proxyByClass = new ConcurrentHashMap<Class, Constructor>() );
@@ -167,8 +166,8 @@ public class IRMethodCallExpressionCompiler extends AbstractBytecodeCompiler {
     }
   }
 
-  private static Class createProxy( String iface, Class rootClass, boolean bStaticImpl ) {
-    String relativeProxyName = rootClass.getSimpleName() + "_structuralproxy_" + iface.replace( '.', '_' );
+  private static Class createProxy( Class iface, Class rootClass, boolean bStaticImpl ) {
+    String relativeProxyName = rootClass.getSimpleName() + "_structuralproxy_" + iface.getCanonicalName().replace( '.', '_' );
     return StructuralTypeProxyGenerator.makeProxy( iface, rootClass, relativeProxyName, bStaticImpl );
   }
 

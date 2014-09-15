@@ -290,7 +290,7 @@ public class ForEachStatementTransformer extends AbstractStatementTransformer<Fo
 
     if( bStructuralIterable )
     {
-      return ((Iterable)IRMethodCallExpressionCompiler.constructProxy( obj, Iterable.class.getName() )).iterator();
+      return ((Iterable)IRMethodCallExpressionCompiler.constructProxy( obj, Iterable.class )).iterator();
     }
 
     if( obj instanceof Iterator )

@@ -593,7 +593,7 @@ public abstract class ParsedElement implements IParsedElement
 
     if( getLocation() == null ||
         getLocation().getEnclosingType() == null ||
-        CommonServices.getEntityAccess().shouldAddWarning( getLocation().getEnclosingType(), warning ) )
+        CommonServices.getEntityAccess().getLanguageLevel().shouldAddWarning( getLocation().getEnclosingType(), warning ) )
     {
       maybeInitLikelyNullFields();
 

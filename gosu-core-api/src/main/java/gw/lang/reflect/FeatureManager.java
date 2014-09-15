@@ -6,6 +6,7 @@ package gw.lang.reflect;
 
 import gw.config.CommonServices;
 import gw.lang.parser.CICS;
+import gw.lang.reflect.gs.GosuClassTypeLoader;
 import gw.lang.reflect.gs.IGenericTypeVariable;
 import gw.lang.reflect.gs.IGosuClass;
 import gw.lang.reflect.gs.IGosuEnhancement;
@@ -15,10 +16,13 @@ import gw.lang.reflect.module.IModule;
 import gw.util.GosuExceptionUtil;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 @SuppressWarnings({"unchecked"})
 public class FeatureManager<T extends CharSequence> {
@@ -466,11 +470,11 @@ public class FeatureManager<T extends CharSequence> {
   }
 
   protected void addEnhancementMethods(List<IMethodInfo> privateMethods) {
-    CommonServices.getEntityAccess().addEnhancementMethods(_typeInfo.getOwnersType(), privateMethods );
+    addEnhancementMethods(_typeInfo.getOwnersType(), privateMethods );
   }
 
   protected void addEnhancementProperties(PropertyNameMap<T> privateProps, boolean caseSensitive) {
-    CommonServices.getEntityAccess().addEnhancementProperties(_typeInfo.getOwnersType(), privateProps, caseSensitive );
+    addEnhancementProperties(_typeInfo.getOwnersType(), privateProps, caseSensitive );
   }
 
   public void setSuperPropertyPrefix( String superPropertyPrefix ) {
@@ -523,7 +527,8 @@ public class FeatureManager<T extends CharSequence> {
   protected void mergeProperty(PropertyNameMap<T> props, IPropertyInfo propertyInfo, boolean replace) {
     boolean prependPrefix = _superPropertyPrefix != null && ! propertyInfo.getOwnersType().equals( _typeInfo.getOwnersType() );
     T cs = convertCharSequenceToCorrectSensitivity( prependPrefix ? ( _superPropertyPrefix + propertyInfo.getName() ) : propertyInfo.getName() );
-    if (replace || !props.containsKey(cs)) {
+    final IPropertyInfo iPropertyInfoExisting = props.get(cs);
+    if (replace || iPropertyInfoExisting==null || (propertyInfo.isWritable() && !iPropertyInfoExisting.isWritable())) {
       if ( prependPrefix ) {
         props.put( cs, new PropertyInfoDelegate( propertyInfo.getContainer(), propertyInfo, cs.toString() ) );
       }
@@ -559,7 +564,9 @@ public class FeatureManager<T extends CharSequence> {
         IType[] superParamTypes;
         superParamTypes = removeGenericMethodParameters(superMethodInfo);
         if (argsEqual(superParamTypes, paramTypes)) {
-          if (replace) {
+          if (replace ||
+                  IRelativeTypeInfo.Accessibility.fromModifiers(IAttributedFeatureInfo.MODIFIER.get(thisMethodInfo)).ordinal()
+                          < IRelativeTypeInfo.Accessibility.fromModifiers(IAttributedFeatureInfo.MODIFIER.get(superMethodInfo)).ordinal()) {
             methods.set(replacementIndex, thisMethodInfo);
           }
           add = false;
@@ -638,5 +645,51 @@ public class FeatureManager<T extends CharSequence> {
     NotInitialized,
     Initializing,
     ERROR, Initialized
+  }
+  
+    public void addEnhancementMethods(IType typeToEnhance, Collection methodsToAddTo)
+  {
+    IModule module = TypeSystem.getCurrentModule();
+    addEnhancementMethods(typeToEnhance, methodsToAddTo, module, new HashSet<IModule>());
+  }
+
+  private void addEnhancementMethods(IType typeToEnhance, Collection methodsToAddTo, IModule module, Set<IModule> visited)
+  {
+    if(visited.contains(module))
+    {
+      return;
+    }
+    visited.add(module);
+    if( GosuClassTypeLoader.getDefaultClassLoader(module) != null )
+    {
+      GosuClassTypeLoader.getDefaultClassLoader(module).getEnhancementIndex().addEnhancementMethods( typeToEnhance, methodsToAddTo);
+    }
+    for(IModule dep : module.getModuleTraversalList())
+    {
+      addEnhancementMethods(typeToEnhance, methodsToAddTo, dep, visited);
+    }
+  }
+
+  public void addEnhancementProperties(IType typeToEnhance, Map propertyInfosToAddTo, boolean caseSensitive)
+  {
+    IModule module = TypeSystem.getCurrentModule();
+    addEnhancementProperties(typeToEnhance, propertyInfosToAddTo, caseSensitive, module, new HashSet<IModule>());
+  }
+
+  private void addEnhancementProperties(IType typeToEnhance, Map propertyInfosToAddTo, boolean caseSensitive, IModule module, Set<IModule> visited)
+  {
+    if(visited.contains(module))
+    {
+      return;
+    }
+    visited.add(module);
+    if( GosuClassTypeLoader.getDefaultClassLoader(module) != null )
+    {
+      GosuClassTypeLoader.getDefaultClassLoader(module).getEnhancementIndex().addEnhancementProperties( typeToEnhance, propertyInfosToAddTo, caseSensitive);
+    }
+    for(IModule dep : module.getModuleTraversalList())
+    {
+      addEnhancementProperties(typeToEnhance, propertyInfosToAddTo, caseSensitive, dep, visited);
+    }
   }
 }

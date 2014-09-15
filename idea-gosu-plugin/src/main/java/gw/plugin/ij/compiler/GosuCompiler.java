@@ -109,6 +109,17 @@ public class GosuCompiler implements TranslatingCompiler {
       return false;
     }
 
+//    if ("pcf".equals(extension)
+//        || "en".equals(extension)
+//        || "gx".equals(extension)
+//        || "gr".equals(extension)
+//        || "xml".equals(extension)
+//        ) {
+//      return true;
+//    } else {
+//      return false;
+//    }
+
     return CompilerParser.accepts(file);
   }
 

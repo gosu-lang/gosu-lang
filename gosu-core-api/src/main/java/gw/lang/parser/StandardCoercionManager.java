@@ -20,6 +20,7 @@ import gw.lang.reflect.gs.IGosuEnhancement;
 import gw.lang.reflect.gs.IGosuObject;
 import gw.lang.reflect.java.GosuTypes;
 import gw.lang.reflect.java.IJavaArrayType;
+import gw.lang.reflect.java.IJavaClassInfo;
 import gw.lang.reflect.java.IJavaType;
 import gw.lang.reflect.java.JavaTypes;
 import gw.util.GosuExceptionUtil;
@@ -976,10 +977,12 @@ public class StandardCoercionManager extends BaseService implements ICoercionMan
 
     // Check Java world types
     //noinspection deprecation
-    if( intrType instanceof IJavaType &&
-        ((IJavaType)intrType).getIntrinsicClass().isAssignableFrom( value.getClass() ) )
+    if( intrType instanceof IJavaType)
     {
-      return value;
+      IJavaClassInfo valueClassInfo = TypeSystem.getJavaClassInfo(value.getClass());
+      if (valueClassInfo != null && ((IJavaType)intrType).getBackingClassInfo().isAssignableFrom(valueClassInfo)) {
+        return value;
+      }
     }
 
     //==================================================================================
