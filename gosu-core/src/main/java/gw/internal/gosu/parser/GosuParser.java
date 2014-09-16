@@ -2043,6 +2043,11 @@ public final class GosuParser extends ParserBase implements IGosuParser
       {
         bComparable = true;
       }
+      if( !bComparable )
+      {
+        bComparable = (lhsType instanceof IPlaceholder && ((IPlaceholder)lhsType).isPlaceholder()) ||
+                      (rhsType instanceof IPlaceholder && ((IPlaceholder)rhsType).isPlaceholder());
+      }
     }
     verify( expr, bComparable, Res.MSG_RELATIONAL_OPERATOR_CANNOT_BE_APPLIED_TO_TYPE, expr.getOperator(), lhsType );
   }
