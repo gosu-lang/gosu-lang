@@ -1,7 +1,7 @@
 package gw.specContrib.operators
 
-uses gw.spec.regression.Type1
-uses gw.spec.regression.SubType1
+uses gw.specContrib.Type1
+uses gw.specContrib.SubType1
 
 class Errant_LeftShiftOperator {
   var o: Object
