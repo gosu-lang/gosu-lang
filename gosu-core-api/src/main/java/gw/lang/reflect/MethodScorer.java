@@ -67,6 +67,7 @@ public class MethodScorer {
         // Found cached function type, no need for further scoring
         score.setRawFunctionType( cachedFuncType );
         score.setScore( 0 );
+        score.setBest();
       }
       else {
         // Perform method scoring

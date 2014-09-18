@@ -114,6 +114,7 @@ import gw.lang.parser.exceptions.WrongNumberOfArgsException;
 import gw.lang.parser.expressions.IArithmeticExpression;
 import gw.lang.parser.expressions.IBlockInvocation;
 import gw.lang.parser.expressions.IImplicitTypeAsExpression;
+import gw.lang.parser.expressions.IInferredNewExpression;
 import gw.lang.parser.expressions.IInitializerExpression;
 import gw.lang.parser.expressions.ILiteralExpression;
 import gw.lang.parser.expressions.IParenthesizedExpression;
@@ -2863,7 +2864,9 @@ public final class GosuParser extends ParserBase implements IGosuParser
     }
     else
     {
-      IType intrinsicType = getInitializableType().getType();
+      boolean bAvoidContextType = shouldThisExpressionAvoidTheContextType();
+
+      IType intrinsicType = bAvoidContextType ? null : getInitializableType().getType();
       NewExpression e = new InferredNewExpression();
 
       boolean bPlaceholder = isDynamic( intrinsicType );
@@ -2947,16 +2950,6 @@ public final class GosuParser extends ParserBase implements IGosuParser
           {
             List<Expression> valueExpressions = parseArrayValueList( intrinsicType.getComponentType() );
             e.setValueExpressions( valueExpressions );
-            ArrayList<IType> types = new ArrayList<IType>();
-            for (Object valueExpression : valueExpressions) {
-              types.add(((Expression) valueExpression).getType());
-            }
-            IType componentLeastUpperBound = TypeLord.findLeastUpperBound( types );
-            if( componentLeastUpperBound != GosuParserTypes.NULL_TYPE() &&
-                    !(componentLeastUpperBound instanceof CompoundType) )
-            {
-              e.setType( componentLeastUpperBound.getArrayType());
-            }
             if( !verify( e, match( null, '}' ), Res.MSG_EXPECTING_CLOSE_BRACE_FOR_INITIALIZER ) )
             {
               if( !verify( e, !match( null, "->", SourceCodeTokenizer.TT_OPERATOR ), Res.MSG_UNEXPECTED_ARROW ) )
@@ -2972,33 +2965,6 @@ public final class GosuParser extends ParserBase implements IGosuParser
             e.setInitializer( initializerExpression );
             e.setConstructor( intrinsicType.getTypeInfo().getCallableConstructor() );
 
-            if( getCurrentInitializableContextType().equals( JavaTypes.MAP() ) &&
-                    initializerExpression instanceof MapInitializerExpression )
-            {
-              MapInitializerExpression mapInitializer = (MapInitializerExpression)initializerExpression;
-              IType keysLub = TypeLord.findLeastUpperBound( getTypes( mapInitializer.getKeys() ) );
-              IType valuesLub = TypeLord.findLeastUpperBound( getTypes( mapInitializer.getValues() ) );
-              if( keysLub != GosuParserTypes.NULL_TYPE() && valuesLub != GosuParserTypes.NULL_TYPE() )
-              {
-                e.setType( JavaTypes.MAP().getParameterizedType( keysLub, valuesLub ) );
-              }
-            }
-            else
-            {
-              IType initializerCtxType = getCurrentInitializableContextType().getType();
-              if( (JavaTypes.COLLECTION().equals( initializerCtxType.getGenericType() ) ||
-                      JavaTypes.LIST().equals( initializerCtxType.getGenericType() ) ||
-                      JavaTypes.ITERABLE().equals( initializerCtxType.getGenericType() ))
-                      && initializerExpression instanceof CollectionInitializerExpression )
-              {
-                CollectionInitializerExpression collectionInitializerExpression = (CollectionInitializerExpression)initializerExpression;
-                IType valuesLub = TypeLord.findLeastUpperBound( getTypes( collectionInitializerExpression.getValues() ) );
-                if( valuesLub != GosuParserTypes.NULL_TYPE() )
-                {
-                  e.setType( e.getType().getGenericType().getParameterizedType( valuesLub ) );
-                }
-              }
-            }
             if( !verify( e, match( null, '}' ), Res.MSG_EXPECTING_CLOSE_BRACE_FOR_INITIALIZER ) )
             {
               if( !verify( e, !match( null, "->", SourceCodeTokenizer.TT_OPERATOR ), Res.MSG_UNEXPECTED_ARROW ) )
@@ -3020,6 +2986,25 @@ public final class GosuParser extends ParserBase implements IGosuParser
       pushExpression( e );
       return true;
     }
+  }
+
+  private boolean shouldThisExpressionAvoidTheContextType() {
+    int mark = getTokenizer().mark();
+    eatBlock( '{', '}', false );
+    boolean bAvoidContextType = match( null, null, '.', true ) ||
+      match( null, "?.", SourceCodeTokenizer.TT_OPERATOR, true ) ||
+      match( null, "*.", SourceCodeTokenizer.TT_OPERATOR, true ) ||
+      match( null, "==", SourceCodeTokenizer.TT_OPERATOR, true ) ||
+      match( null, "!=", SourceCodeTokenizer.TT_OPERATOR, true ) ||
+      match( null, "<>", SourceCodeTokenizer.TT_OPERATOR, true ) ||
+      match( null, "===", SourceCodeTokenizer.TT_OPERATOR, true ) ||
+      match( null, "!==", SourceCodeTokenizer.TT_OPERATOR, true ) ||
+      match( null, "#", SourceCodeTokenizer.TT_OPERATOR, true ) ||
+      match( null, "?", SourceCodeTokenizer.TT_OPERATOR, true ) ||
+      match( null, "?[", SourceCodeTokenizer.TT_OPERATOR, true ) ||
+      match( null, null, '[', true );
+    getTokenizer().restoreToMark( mark );
+    return bAvoidContextType;
   }
 
   private List<IType> getTypes( List<? extends IHasType> list )
@@ -6530,7 +6515,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
       score.setParserStates( parserStates );
       scoredMethods.add( score );
 
-      if( score.getScore() == 0 )
+      if( score.isBest() || (score.getScore() == 0 && !hasInitializerExpression( argExpressions )) )
       {
         // perfect score, no need to continue
         break;
@@ -6622,6 +6607,15 @@ public final class GosuParser extends ParserBase implements IGosuParser
       errScore.setArguments( Collections.<IExpression>emptyList() );
       return errScore;
     }
+  }
+
+  private boolean hasInitializerExpression(List<Expression> argExpressions) {
+    for( Expression e : argExpressions ) {
+      if( e instanceof IInferredNewExpression) {
+        return true;
+      }
+    }
+    return false;
   }
 
   private List<? extends IInvocableType> maybeAvoidNestedMethodScoring( List<? extends IInvocableType> listFunctionTypes )
