@@ -24,4 +24,16 @@ class Errant_PropertyDeclaration {
       property get Param(): int { return 0 }      //## issuekeys: MSG_
     }
   }
+
+  var f3: int as Property3
+  property get Property3(): int { return 0 }      // overriding getter for field property
+  property set Property3(v: int) {}               // overriding setter for field property
+
+  class A {
+    var a: int as MyParentProp
+  }
+
+  class B extends A {
+    var b: int as MyParentProp     //## issuekeys: MSG_
+  }
 }
