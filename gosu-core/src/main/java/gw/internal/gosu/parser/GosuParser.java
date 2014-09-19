@@ -2946,10 +2946,24 @@ public final class GosuParser extends ParserBase implements IGosuParser
         e.setType( intrinsicType );
         if( !match( null, '}' ) )
         {
+          ContextType typeToInit = getCurrentInitializableContextType();
           if( intrinsicType.isArray() )
           {
             List<Expression> valueExpressions = parseArrayValueList( intrinsicType.getComponentType() );
             e.setValueExpressions( valueExpressions );
+            if( !typeToInit.isMethodScoring() )
+            {
+              ArrayList<IType> types = new ArrayList<IType>();
+              for (Object valueExpression : valueExpressions) {
+                types.add(((Expression) valueExpression).getType());
+              }
+              IType componentLeastUpperBound = TypeLord.findLeastUpperBound( types );
+              if( componentLeastUpperBound != GosuParserTypes.NULL_TYPE() &&
+                      !(componentLeastUpperBound instanceof CompoundType) )
+              {
+                e.setType( componentLeastUpperBound.getArrayType());
+              }
+            }
             if( !verify( e, match( null, '}' ), Res.MSG_EXPECTING_CLOSE_BRACE_FOR_INITIALIZER ) )
             {
               if( !verify( e, !match( null, "->", SourceCodeTokenizer.TT_OPERATOR ), Res.MSG_UNEXPECTED_ARROW ) )
@@ -2964,7 +2978,41 @@ public final class GosuParser extends ParserBase implements IGosuParser
             IInitializerExpression initializerExpression = (IInitializerExpression)popExpression();
             e.setInitializer( initializerExpression );
             e.setConstructor( intrinsicType.getTypeInfo().getCallableConstructor() );
-
+            if( !typeToInit.isMethodScoring() )
+            {
+              if( ( getCurrentInitializableContextType().equals( JavaTypes.MAP() ) ||
+                    getCurrentInitializableContextType().equals( JavaTypes.HASH_MAP() ) ) &&
+                      initializerExpression instanceof MapInitializerExpression )
+              {
+                MapInitializerExpression mapInitializer = (MapInitializerExpression)initializerExpression;
+                IType keysLub = TypeLord.findLeastUpperBound( getTypes( mapInitializer.getKeys() ) );
+                IType valuesLub = TypeLord.findLeastUpperBound( getTypes( mapInitializer.getValues() ) );
+                if( keysLub != GosuParserTypes.NULL_TYPE() && valuesLub != GosuParserTypes.NULL_TYPE() )
+                {
+                  e.setType( e.getType().getGenericType().getParameterizedType( keysLub, valuesLub ) );
+                }
+              }
+              else
+              {
+                IType initializerCtxType = getCurrentInitializableContextType().getType();
+                if( ( JavaTypes.COLLECTION().equals( initializerCtxType.getGenericType() )  ||
+                      JavaTypes.LIST().equals( initializerCtxType.getGenericType() )        ||
+                      JavaTypes.ARRAY_LIST().equals( initializerCtxType.getGenericType() )  ||
+                      JavaTypes.LINKED_LIST().equals( initializerCtxType.getGenericType() ) ||
+                      JavaTypes.SET().equals( initializerCtxType.getGenericType() )         ||
+                      JavaTypes.HASH_SET().equals( initializerCtxType.getGenericType() )    ||
+                      JavaTypes.ITERABLE().equals( initializerCtxType.getGenericType() ))
+                        && initializerExpression instanceof CollectionInitializerExpression )
+                {
+                  CollectionInitializerExpression collectionInitializerExpression = (CollectionInitializerExpression)initializerExpression;
+                  IType valuesLub = TypeLord.findLeastUpperBound( getTypes( collectionInitializerExpression.getValues() ) );
+                  if( valuesLub != GosuParserTypes.NULL_TYPE() )
+                  {
+                    e.setType( e.getType().getGenericType().getParameterizedType( valuesLub ) );
+                  }
+                }
+              }
+            }
             if( !verify( e, match( null, '}' ), Res.MSG_EXPECTING_CLOSE_BRACE_FOR_INITIALIZER ) )
             {
               if( !verify( e, !match( null, "->", SourceCodeTokenizer.TT_OPERATOR ), Res.MSG_UNEXPECTED_ARROW ) )
