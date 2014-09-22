@@ -33,7 +33,7 @@ public class TestGenerics<T extends Comparable<T> & CharSequence, B, Q> extends 
     private function innstance() : void {
         var tmp = new TestGenerics<String, String, Integer>()
         var tmpNoDiamond = new TestGenerics<String, String, Integer>()
-        var tmp2 : TestGenerics<? super String, ?, Integer> = new TestGenerics<String, String, Integer>()
+        var tmp2 : TestGenerics<Object, Object, Integer> = new TestGenerics<String, String, Integer>()
         var myMap : Map<String, List<String>> = new HashMap<String, List<String>>()
     }
 
@@ -60,7 +60,7 @@ public class TestGenerics<T extends Comparable<T> & CharSequence, B, Q> extends 
         a.compareTo(b)
     }
 
-    private static function uuu<J extends Comparable<J>, K>(a : K, b : K, c : TestGenerics<K, ? super J, ?>) : void {
+    private static function uuu<J extends Comparable<J>, K>(a : K, b : K, c : TestGenerics<K, Object, Object>) : void {
     }
 
     override public function size() : int {
@@ -95,7 +95,7 @@ public class TestGenerics<T extends Comparable<T> & CharSequence, B, Q> extends 
         return false
     }
 
-    override public function containsAll(c : Collection<?>) : boolean {
+    override public function containsAll(c : Collection<Object>) : boolean {
         return false
     }
 
@@ -107,11 +107,11 @@ public class TestGenerics<T extends Comparable<T> & CharSequence, B, Q> extends 
         return false
     }
 
-    override public function removeAll(c : Collection<?>) : boolean {
+    override public function removeAll(c : Collection<Object>) : boolean {
         return false
     }
 
-    override public function retainAll(c : Collection<?>) : boolean {
+    override public function retainAll(c : Collection<Object>) : boolean {
         return false
     }
 

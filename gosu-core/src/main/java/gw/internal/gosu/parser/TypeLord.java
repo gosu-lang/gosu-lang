@@ -356,6 +356,7 @@ public class TypeLord
 
     String strNormalizedType = sbType.toString().replace( "$", "." );
     GosuParser parser = (GosuParser)GosuParserFactory.createParser( strNormalizedType, new StandardSymbolTable(), ScriptabilityModifiers.SCRIPTABLE );
+    parser.setAllowWildcards( true );
     if (typeUsesMap != null) {
       parser.setTypeUsesMap(typeUsesMap);
     }

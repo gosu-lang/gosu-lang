@@ -30,22 +30,22 @@ public abstract class AbstractSimpleGenericsTest extends TestClass
 
   public void testParsesTypeWithWildCard() throws ParseResultsException
   {
-    exec( "var typeWithWildcard : " + _strClassName + "<?>;" );
+    exec( "var typeWithWildcard : " + _strClassName + "<Object>;" );
   }
 
   public void testParsesTypeWithBoundedWildcard() throws ParseResultsException
   {
-    exec( "var typeWithBoundedWildcard : " + _strClassName + "<? extends String>;" );
+    exec( "var typeWithBoundedWildcard : " + _strClassName + "<String>;" );
   }
 
   public void testParsesTypeWithBoundedWildcardWithWildcard() throws ParseResultsException
   {
-    exec( "var typeWithBoundedWildcardWithWildcard : " + _strClassName + "<? extends " + _strClassName + "<?>>;" );
+    exec( "var typeWithBoundedWildcardWithWildcard : " + _strClassName + "<" + _strClassName + "<Object>>;" );
   }
 
   public void testParsesTypeWithBoundedWildcardWithBoundedWildcard() throws ParseResultsException
   {
-    exec( "var typeWithBoundedWildcardWithBoundedWildcard : " + _strClassName + "<? extends " + _strClassName + "<? extends String>>;" );
+    exec( "var typeWithBoundedWildcardWithBoundedWildcard : " + _strClassName + "<" + _strClassName + "<String>>;" );
   }
 
   public void testNonGenericTypeNotParameterizable()
@@ -100,7 +100,7 @@ public abstract class AbstractSimpleGenericsTest extends TestClass
   {
     exec(
       "var typeWithString : " + _strClassName + "<String>;" +
-      "var typeWithWildcard : " + _strClassName + "<?> = typeWithString;" );
+      "var typeWithWildcard : " + _strClassName + "<Object> = typeWithString;" );
   }
 
   public void testUnboundedWildcardTypeIsNotAssignableIncompatibleType() throws ParseResultsException
@@ -109,7 +109,7 @@ public abstract class AbstractSimpleGenericsTest extends TestClass
     {
       exec(
         "var typeWithString : java.util.List<String>" +
-        "var typeWithWildcard : " + _strClassName + "<?> = typeWithString;" );
+        "var typeWithWildcard : " + _strClassName + "<Object> = typeWithString;" );
     }
     catch( ParseResultsException pe )
     {
@@ -121,29 +121,29 @@ public abstract class AbstractSimpleGenericsTest extends TestClass
   public void testUnboundedWildcardTypeIsAssignableFromUnboundedWildcardType() throws ParseResultsException
   {
     exec(
-      "var typeWithWildcard : " + _strClassName + "<?>;" +
-      "var typeWithWildcard2 : " + _strClassName + "<?> = typeWithWildcard;" );
+      "var typeWithWildcard : " + _strClassName + "<Object>;" +
+      "var typeWithWildcard2 : " + _strClassName + "<Object> = typeWithWildcard;" );
   }
 
   public void testUnboundedWildcardTypeIsAssignableFromBoundedWildcardType() throws ParseResultsException
   {
     exec(
-      "var typeWithWildcard : " + _strClassName + "<? extends java.lang.CharSequence>;" +
-      "var typeWithWildcard2 : " + _strClassName + "<?> = typeWithWildcard;" );
+      "var typeWithWildcard : " + _strClassName + "<java.lang.CharSequence>;" +
+      "var typeWithWildcard2 : " + _strClassName + "<Object> = typeWithWildcard;" );
   }
 
   public void testBoundedWildcardTypeIsAssignableFromBoundaryType() throws ParseResultsException
   {
     exec(
       "var typeWithList : " + _strClassName + "<java.util.List>;" +
-      "var typeWithBoundedWildcard : " + _strClassName + "<? extends java.util.List> = typeWithList;" );
+      "var typeWithBoundedWildcard : " + _strClassName + "<java.util.List<Object>> = typeWithList;" );
   }
 
   public void testBoundedWildcardTypeIsAssignableFromImplOfBoundaryType() throws ParseResultsException
   {
     exec(
       "var typeWithArrayList : " + _strClassName + "<java.util.ArrayList>;" +
-      "var typeWithBoundedWildcard : " + _strClassName + "<? extends java.util.List> = typeWithArrayList;" );
+      "var typeWithBoundedWildcard : " + _strClassName + "<java.util.List<Object>> = typeWithArrayList;" );
   }
 
   public void testBoundedWildcardTypeIsNotAssignableFromIncompatibleBoundaryType() throws ParseResultsException
@@ -152,7 +152,7 @@ public abstract class AbstractSimpleGenericsTest extends TestClass
     {
       exec(
         "var typeWithArrayList : " + _strClassName + "<java.util.List>;" +
-        "var typeWithBoundedWildcard : " + _strClassName + "<? extends java.util.ArrayList> = typeWithArrayList;" );
+        "var typeWithBoundedWildcard : " + _strClassName + "<java.util.ArrayList> = typeWithArrayList;" );
     }
     catch( ParseResultsException pe )
     {
@@ -165,7 +165,7 @@ public abstract class AbstractSimpleGenericsTest extends TestClass
   {
     exec(
       "var typeWithStringBuffer : " + _strClassName + "<java.lang.StringBuffer>;" +
-      "var typeWithBoundedWildcard : " + _strClassName + "<? extends java.lang.Object> = typeWithStringBuffer;" );
+      "var typeWithBoundedWildcard : " + _strClassName + "<java.lang.Object> = typeWithStringBuffer;" );
   }
 
   public void testBoundedWildcardTypeIsNotAssignableFromDisparateType() throws ParseResultsException
@@ -174,7 +174,7 @@ public abstract class AbstractSimpleGenericsTest extends TestClass
     {
       exec(
         "var typeWithStringBuffer : " + _strClassName + "<java.lang.StringBuffer>;" +
-        "var typeWithBoundedWildcard : " + _strClassName + "<? extends java.lang.String> = typeWithStringBuffer;" );
+        "var typeWithBoundedWildcard : " + _strClassName + "<java.lang.String> = typeWithStringBuffer;" );
     }
     catch( ParseResultsException pe )
     {

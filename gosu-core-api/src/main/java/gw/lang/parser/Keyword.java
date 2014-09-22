@@ -94,7 +94,15 @@ public class Keyword implements CharSequence
   public static final Keyword KW_request = addReservedWord( "request", true );
   public static final Keyword KW_session = addReservedWord( "session", true );
   public static final Keyword KW_application = addReservedWord( "application", true );
-  public static final Keyword KW_void = addReservedWord( "void", true );
+  public static final Keyword KW_void = addReservedWord( "void" );
+  public static final Keyword KW_boolean = addReservedWord( "boolean" );
+  public static final Keyword KW_char = addReservedWord( "char" );
+  public static final Keyword KW_byte = addReservedWord( "byte" );
+  public static final Keyword KW_short = addReservedWord( "short" );
+  public static final Keyword KW_int = addReservedWord( "int" );
+  public static final Keyword KW_long = addReservedWord( "long" );
+  public static final Keyword KW_float = addReservedWord( "float" );
+  public static final Keyword KW_double = addReservedWord( "double" );
   public static final Keyword KW_block = addReservedWord( "block", true );
   public static final Keyword KW_enhancement = addReservedWord( "enhancement", true );
   public static final Keyword KW_classpath = addReservedWord( "classpath", true );

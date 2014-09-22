@@ -212,6 +212,7 @@ public class Res
   public static final ResourceKey MSG_NON_PRIVATE_MEMBERS_MUST_DECLARE_TYPE = new ResourceKey("MSG_NON_PRIVATE_MEMBERS_MUST_DECLARE_TYPE");
   public static final ResourceKey MSG_DELEGATES_CANNOT_BE_STATIC = new ResourceKey("MSG_DELEGATES_CANNOT_BE_STATIC");
   public static final ResourceKey MSG_EXTENSION_CLASS_NOT_FOUND = new ResourceKey("MSG_EXTENSION_CLASS_NOT_FOUND");
+  public static final ResourceKey MSG_NO_WILDCARDS = new ResourceKey("MSG_NO_WILDCARDS");
   public static final ResourceKey MSG_CANNOT_CALL_METHOD_WITH_WILDCARD_PARAM = new ResourceKey("MSG_CANNOT_CALL_METHOD_WITH_WILDCARD_PARAM");
   public static final ResourceKey MSG_COULD_NOT_PARAMETERIZE = new ResourceKey("MSG_COULD_NOT_PARAMETERIZE");
   public static final ResourceKey MSG_USE_EXPANSION_OPERATOR = new ResourceKey("MSG_USE_EXPANSION_OPERATOR");

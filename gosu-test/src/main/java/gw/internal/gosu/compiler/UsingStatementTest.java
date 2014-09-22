@@ -28,11 +28,6 @@ public class UsingStatementTest extends ByteCodeTestBase
     invokeTestMethodAndVerifyAssertions( "testMultipleDisposableVar", 6 );
   }
 
-  public void testDisposableVarReassigned() throws Exception
-  {
-    invokeTestMethodAndVerifyAssertions( "testDisposableVarReassigned", 3 );
-  }
-
   public void testCloseableVar() throws Exception
   {
     invokeTestMethodAndVerifyAssertions( "testCloseableVar", 2 );

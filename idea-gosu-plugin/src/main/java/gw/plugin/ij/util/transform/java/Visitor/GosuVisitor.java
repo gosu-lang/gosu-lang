@@ -676,9 +676,9 @@ public class GosuVisitor implements TreeVisitor<String, Void> {
     if(kind == Tree.Kind.EXTENDS_WILDCARD) {
       out = boundStr;
     } else if(kind == Tree.Kind.SUPER_WILDCARD) {
-      out = "? super " + boundStr;
+      out = "Object";
     } else {//if(kind == Tree.Kind.UNBOUNDED_WILDCARD) {
-      out = "?";
+      out = "Object";
     }
     return out;
   }
