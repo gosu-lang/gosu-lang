@@ -1,7 +1,7 @@
 package gw.specContrib.statements
 
 uses java.util.Date
-uses gw.spec.regression.Type1
+uses gw.specContrib.Type1
 
 class Errant_DuplicateCaseInSwitch  {
 

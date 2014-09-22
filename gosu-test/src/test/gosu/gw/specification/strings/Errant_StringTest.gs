@@ -4,6 +4,7 @@ uses java.util.Date
 
 class Errant_StringTest {
   function basic() {
+    var b : char = 'B'
     var x0 = "Don't worry"
     var x1 = 'Don't worry'  //## issuekeys: MSG_NOT_A_STATEMENT, MSG_BAD_IDENTIFIER_NAME, MSG_NOT_A_STATEMENT, MSG_BAD_IDENTIFIER_NAME, MSG_UNEXPECTED_TOKEN
     var x2 = 'Don\'t worry'
@@ -23,6 +24,12 @@ class Errant_StringTest {
     var i = 0
     var x15 = "hello" + i - 1 + "!"  //## issuekeys: MSG_TYPE_MISMATCH, MSG_TYPE_MISMATCH
     var x16 = "A\101\u0041"
+    var x17 = "A" + null
+    var x18 = "A" % null  //## issuekeys: MSG_TYPE_MISMATCH
+    var x19 = "A" + b
+    var x20 = 8 + "A"
+    var x21 = "A" + 8
+    var x22 = "A" + true
   }
 
 }

@@ -9,10 +9,10 @@ class Errant_AnnotationTargets1 {
   @TestAnnotation
   function somefun(@TestAnnotation x: int, @TestAnnotation y: int) {
 
-    @TestAnnotation     //## issuekeys: MSG_
+    @TestAnnotation       //## issuekeys: MSG_UNEXPECTED_TOKEN, MSG_UNEXPECTED_TOKEN
     var int1 = 42
 
-    @TestAnnotation     //## issuekeys: MSG_
+    @TestAnnotation      //## issuekeys: MSG_UNEXPECTED_TOKEN, MSG_UNEXPECTED_TOKEN
     if (true) {
       print("hello")
     }

@@ -7,7 +7,7 @@ uses gw.specification.expressions.TestDim
 
 class ArithmeticOperatorsTest extends BaseVerifyErrantTest {
   function testErrant_ArithmeticOperatorsTest() {
-//    processErrantType(Errant_ArithmeticOperatorsTest)
+    processErrantType(Errant_ArithmeticOperatorsTest)
   }
 
   function testBasicInteger() {

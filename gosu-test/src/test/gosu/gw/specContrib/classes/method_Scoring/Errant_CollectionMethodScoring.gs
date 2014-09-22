@@ -6,8 +6,8 @@ uses java.util.HashMap
 uses java.util.HashSet
 uses java.util.Map
 
-uses gw.spec.regression.Type1
-uses gw.spec.regression.Type2
+uses gw.specContrib.Type1
+uses gw.specContrib.Type2
 
 class Errant_CollectionMethodScoring {
 

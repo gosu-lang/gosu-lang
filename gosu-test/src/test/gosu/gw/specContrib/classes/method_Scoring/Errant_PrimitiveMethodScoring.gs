@@ -1,7 +1,7 @@
 package gw.specContrib.classes.method_Scoring
 
-uses gw.spec.regression.Type1
-uses gw.spec.regression.Type2
+uses gw.specContrib.Type1
+uses gw.specContrib.Type2
 
 class Errant_PrimitiveMethodScoring {
 

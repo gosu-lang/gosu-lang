@@ -12,6 +12,6 @@ class ShiftAssignmentOperatorTest extends BaseVerifyErrantTest {
     assertEquals(i, -2)
     i = -8
     i >>>= 2
-    assertEquals(i, 2147483644)
+    assertEquals(i, 1073741822)
   }
 }

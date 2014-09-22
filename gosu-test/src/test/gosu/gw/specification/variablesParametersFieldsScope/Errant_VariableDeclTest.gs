@@ -13,4 +13,10 @@ class Errant_VariableDeclTest {
     x1 = 2
     var x7  //## issuekeys: MSG_VARIABLE_TYPE_OR_VALUE_REQUIRED
   }
+
+  var f = f                   //## issuekeys: MSG_BAD_IDENTIFIER_NAME
+
+  function foo(p: int = p) {   //## issuekeys: MSG_BAD_IDENTIFIER_NAME
+    var a = a                   //## issuekeys: MSG_BAD_IDENTIFIER_NAME
+  }
 }

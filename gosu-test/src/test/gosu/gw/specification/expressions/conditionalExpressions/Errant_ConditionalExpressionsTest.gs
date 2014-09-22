@@ -21,7 +21,9 @@ class Errant_ConditionalExpressionsTest {
     var c8 : Serializable & Cloneable = true ? new LinkedList() : new HashMap()
     var run : Runnable =  \-> {}
     var c10 : Runnable = true ? run : \-> {}    //## issuekeys: MSG_TYPE_MISMATCH
-
+    var c11 : int = 'c' ? 1 : 0   //## issuekeys: MSG_CONDITIONAL_EXPRESSION_EXPECTS_BOOLEAN
+    var c12 : int[] = true ? 8 : {1, 2, 3}  //## issuekeys: MSG_TYPE_MISMATCH
+    var c13 : Object = true ? 8 : {1, 2, 3}
     var r : int
     var x = 0
     var setX = \ y : int -> {
@@ -214,13 +216,16 @@ class Errant_ConditionalExpressionsTest {
     var d : double = 0.0
     var c : char = ' '
     var o : Object = null
+    var str : String
 
+    i = null ? 1 : 0  //## issuekeys: MSG_CONDITIONAL_EXPRESSION_EXPECTS_BOOLEAN, MSG_TYPE_MISMATCH
+    str = true ? "hello" : null
     t = true ? t : null
     c = true ? c : null
     b = true ? b : null
     s = true ? s : null
     i = true ? i : null
-    L =true ? L : null
+    L = true ? L : null
     f = true ? f : null
     d = true ? d : null
     t = true ? new Boolean(t) : null
@@ -233,6 +238,7 @@ class Errant_ConditionalExpressionsTest {
     d = true ? new Double(d) : null
     var list : LinkedList = true ? new LinkedList() : null
     o  = true ? null : null
+    var xx  = true ? null : null  //## issuekeys: MSG_VARIABLE_MUST_HAVE_NON_NULL_TYPE
   }
 
   function testShorthandConditionalExpressions() {

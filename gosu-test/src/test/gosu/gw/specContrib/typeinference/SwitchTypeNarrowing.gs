@@ -19,8 +19,8 @@ class SwitchTypeNarrowing {
         } else {
           break
         }
-      case String:
-        x.contains("ne")
+      case String:  //## issuekeys: MSG_NONTERMINAL_CASE_CLAUSE
+        x.contains("ne")  //## issuekeys: MSG_NO_METHOD_DESCRIPTOR_FOUND_FOR_METHOD, MSG_NO_METHOD_DESCRIPTOR_FOUND_FOR_METHOD, MSG_NO_SUCH_FUNCTION
     }
   }
 }
