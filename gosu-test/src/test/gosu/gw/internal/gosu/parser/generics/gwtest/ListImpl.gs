@@ -22,7 +22,7 @@ class ListImpl<E> extends AbstractList<E>
     return _list.add( p )
   }
 
-  override function addAll( p : Collection<? extends E> ) : boolean
+  override function addAll( p : Collection<E > ) : boolean
   {
     return p == null
   }

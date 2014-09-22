@@ -5,6 +5,7 @@
 package gw.plugin.ij.util;
 
 import com.intellij.psi.*;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -14,6 +15,12 @@ public class ClassTypeSearcher extends PsiTypeVisitor<Boolean> {
 
   public Boolean visitArrayType(final PsiArrayType arrayType) {
     return arrayType.getComponentType().accept(this);
+  }
+
+  @Nullable
+  @Override
+  public Boolean visitPrimitiveType(PsiPrimitiveType primitiveType) {
+    return false;
   }
 
   public Boolean visitClassType(final PsiClassType classType) {

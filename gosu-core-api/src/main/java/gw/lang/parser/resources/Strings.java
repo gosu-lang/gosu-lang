@@ -222,6 +222,7 @@ public class Strings extends ListResourceBundle
        {Res.MSG_EXTENSION_CLASS_NOT_FOUND.getKey(), "Could not find class {0} to extend."},
        {Res.MSG_CANNOT_DEREF_PROPERTIES_IN_WHERE.getKey(), "Cannot dereference property in where clause. Consider using 'exists' clause."},
        {Res.MSG_CANNOT_CALL_METHOD_WITH_WILDCARD_PARAM.getKey(), "Cannot call function having wildcard parameters."},
+       {Res.MSG_NO_WILDCARDS.getKey(), "Wildcards are deprecated in Gosu. Please replace the type parameter with \"{0}\""},
        {Res.MSG_EXPECTING_COLON_ENHANCEMENT.getKey(), "Expecting ':' in enhancement."},
        {Res.MSG_EXPECTING_CLOSE_BRACKET_FOR_LIST_LITERAL.getKey(), "Expecting ']' at the end of a list literal."},
        {Res.MSG_CANNOT_PARAMETERIZE_NONGENERIC.getKey(), "Cannot parameterize a non-generic type."},

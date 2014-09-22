@@ -1,6 +1,8 @@
 package gw.specification.expressions.methodCallExpressions.methodCallDeterminingWhichMethodIsCalled
 
 uses gw.specification.types.signaturesAndSubsumption.*
+uses java.util.*
+uses java.lang.Integer
 
 class Errant_OverloadedCallsTest {
   function callsWithPrimitives() {
@@ -156,5 +158,24 @@ class Errant_OverloadedCallsTest {
     k.m(new GDog(), new GAnimal())
     k.m(new GDog(), new GDog())  //## issuekeys: MSG_AMBIGUOUS_METHOD_INVOCATION
 
+  }
+
+  function initFun0(x : Set) {}
+  function initFun0(x : List) {}
+
+  function initFun1(x : HashSet) {}
+  function initFun1(x : ArrayList) {}
+
+  function initFun2(x : ArrayList<Integer>) {}
+  function initFun2(x : Integer[]) {}
+
+  function initFun3(x : ArrayList) {}
+  function initFun3(x : Object[]) {}
+
+  function callsWithInitializer() {
+    initFun0( {1, 2})  //## issuekeys: MSG_AMBIGUOUS_METHOD_INVOCATION
+    initFun1( {1, 2})  //## issuekeys: MSG_AMBIGUOUS_METHOD_INVOCATION
+    initFun2( {1, 2})  //## issuekeys: MSG_AMBIGUOUS_METHOD_INVOCATION
+    initFun3( {1, 2})  //## issuekeys: MSG_AMBIGUOUS_METHOD_INVOCATION
   }
 }
