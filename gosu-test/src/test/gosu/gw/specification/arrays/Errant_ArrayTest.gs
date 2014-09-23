@@ -79,7 +79,7 @@ class Errant_ArrayTest {
     var x0 : A[] = { new A(), new B(), new C()}
     var x1 : A[] = { new A(), new Object(), new C()}  //## issuekeys: MSG_TYPE_MISMATCH
     var x2 : A[] = { new A(), x0[0], new C()}
-    var x3 : A[] = { new x3[0], x0[0], new C()}  //## issuekeys: MSG_TYPE_MISMATCH, MSG_INVALID_TYPE
+    var x3 : A[] = { new x3[0], x0[0], new C()}  //## issuekeys: MSG_TYPE_MISMATCH, MSG_TYPE_MISMATCH, MSG_INVALID_TYPE
     var x4 : A[] = new A[] { new A(), new B(), new C()}
     var x5 = new A[] { new A(), new B(), new C()}
 

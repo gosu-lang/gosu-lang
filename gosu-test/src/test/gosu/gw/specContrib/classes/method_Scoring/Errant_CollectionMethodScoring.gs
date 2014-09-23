@@ -22,17 +22,17 @@ class Errant_CollectionMethodScoring {
 
   function caller() {
     var r1: Type1 = fun({1,2,3})
-    var r2: Type2 = fun({1,2,3})  //## issuekeys: MSG_
+    var r2: Type2 = fun({1,2,3})  //## issuekeys: MSG_TYPE_MISMATCH
 
-    var r3: Type1 = fun2({1,2,3})    //## issuekeys: MSG_
+    var r3: Type1 = fun2({1,2,3})    //## issuekeys: MSG_TYPE_MISMATCH
     var r4: Type2 = fun2({1,2,3})
 
     var r5: Type2 = foo({"1", "2", "3"})
-    var r6: Type1 = foo({"1", "2", "3"} as List<Integer>)
+    var r6: Type1 = foo({"1", "2", "3"} as List<Integer>)  //## issuekeys: MSG_TYPE_MISMATCH, MSG_TYPE_MISMATCH, MSG_TYPE_MISMATCH
     var r7: Type2 = foo({
-        1,       //## issuekeys: MSG_
+        1,       //## issuekeys: MSG_IMPLICIT_COERCION_ERROR
         "2",
-        3         //## issuekeys: MSG_
+        3         //## issuekeys: MSG_IMPLICIT_COERCION_ERROR
     })
   }
 
