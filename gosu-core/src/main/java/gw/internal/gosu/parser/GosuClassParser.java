@@ -2957,6 +2957,9 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
     DynamicPropertySymbol dpsVarProperty = getOwner().parseVarPropertyClause( varStmt, strIdentifier, type, false );
     if( dpsVarProperty != null )
     {
+      String propertyName = dpsVarProperty.getName();
+      bAlreadyDefined = getSymbolTable().getSymbol(propertyName) != null;
+      verify( varStmt, !bAlreadyDefined, Res.MSG_VARIABLE_ALREADY_DEFINED, propertyName );
       getSymbolTable().putSymbol( dpsVarProperty );
 
       verifyPropertiesAreSymmetric( true, dpsVarProperty.getGetterDfs(), dpsVarProperty, varStmt );

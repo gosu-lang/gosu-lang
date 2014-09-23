@@ -9006,10 +9006,14 @@ public final class GosuParser extends ParserBase implements IGosuParser
     }
     else if( bClassMember && eas != null )
     {
-      // Assign inferred type to var property corresponding with this field
-      IGosuVarPropertyInfo vpi = (IGosuVarPropertyInfo) getGosuClass().getTypeInfo().getProperty( getGosuClass(), strIdentifier );
-      vpi.assignActualType( eas.getType() );
-      vpi.assignSymbolType( eas.getType() );
+      IPropertyInfo varProperty = getGosuClass().getTypeInfo().getProperty(getGosuClass(), strIdentifier);
+      if( varProperty instanceof IGosuVarPropertyInfo )
+      {
+        // Assign inferred type to var property corresponding with this field
+        IGosuVarPropertyInfo vpi = (IGosuVarPropertyInfo) varProperty;
+        vpi.assignActualType( eas.getType() );
+        vpi.assignSymbolType( eas.getType() );
+      }
     }
 
     verify( varStmt, !JavaTypes.pVOID().equals(type), Res.MSG_VARIABLE_MUST_HAVE_NON_NULL_TYPE );

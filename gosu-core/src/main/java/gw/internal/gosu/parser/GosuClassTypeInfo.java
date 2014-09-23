@@ -374,11 +374,7 @@ public class GosuClassTypeInfo extends BaseTypeInfo implements IGosuClassTypeInf
         }
         else
         {
-          if (dps instanceof ParameterizedDynamicPropertySymbol) {
-            property = new GosuPropertyInfo( this, dps );
-          } else {
-            property = new ParameterizedGosuPropertyInfo( this, dps, new GosuPropertyInfo( this, dps) );
-          }
+          property = new GosuPropertyInfo( this, dps );
         }
         declaredPropertiesMap.add( property );
       }
