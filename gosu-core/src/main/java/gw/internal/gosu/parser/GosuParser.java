@@ -6577,14 +6577,18 @@ public final class GosuParser extends ParserBase implements IGosuParser
 
     if( scoredMethods.size() > 1 )
     {
-      // Check for ambiguity, quit with an error if so
-      MethodScore score0 = scoredMethods.get( 0 );
-      MethodScore score1 = scoredMethods.get( 1 );
-      if( score0.getScore() == score1.getScore() && score0.matchesArgSize() )
+      scoredMethods = factorInParseErrors( scoredMethods );
+      if( scoredMethods.size() > 1 )
       {
-        addError( element, Res.MSG_AMBIGUOUS_METHOD_INVOCATION );
-        score0.setValid( false );
-        return score0;
+        // Check for ambiguity, quit with an error if so
+        MethodScore score0 = scoredMethods.get( 0 );
+        MethodScore score1 = scoredMethods.get( 1 );
+        if( score0.getScore() == score1.getScore() && score0.matchesArgSize() )
+        {
+          addError( element, Res.MSG_AMBIGUOUS_METHOD_INVOCATION );
+          score0.setValid( false );
+          return score0;
+        }
       }
     }
 
@@ -6655,6 +6659,33 @@ public final class GosuParser extends ParserBase implements IGosuParser
       errScore.setArguments( Collections.<IExpression>emptyList() );
       return errScore;
     }
+  }
+
+  private List<MethodScore> factorInParseErrors( List<MethodScore> scoredMethods )
+  {
+    List<MethodScore> factored = new ArrayList<MethodScore>( scoredMethods.size() );
+    long bestScore = -1;
+    for( MethodScore score : scoredMethods )
+    {
+      for( IExpression arg: score.getArguments() )
+      {
+        if( arg.hasParseExceptions() )
+        {
+          // change the score to reflect errors
+          score.incScore( 1 );
+        }
+      }
+      // determine best score among the ambiguous calls
+      bestScore = bestScore >= 0 ? Math.min( bestScore, score.getScore() ) : score.getScore();
+    }
+    for( MethodScore score : scoredMethods )
+    {
+      if( score.getScore() == bestScore )
+      {
+        factored.add( score );
+      }
+    }
+    return factored;
   }
 
   private boolean hasInitializerExpression(List<Expression> argExpressions) {
