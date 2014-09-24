@@ -1,13 +1,12 @@
 package gw.specContrib.classes.method_Scoring
 
+uses gw.specContrib.Type1
+uses gw.specContrib.Type2
+
 uses java.lang.Integer
 uses java.util.ArrayList
 uses java.util.HashMap
 uses java.util.HashSet
-uses java.util.Map
-
-uses gw.spec.regression.Type1
-uses gw.spec.regression.Type2
 
 class Errant_CollectionMethodScoring {
 
@@ -22,17 +21,17 @@ class Errant_CollectionMethodScoring {
 
   function caller() {
     var r1: Type1 = fun({1,2,3})
-    var r2: Type2 = fun({1,2,3})  //## issuekeys: MSG_
+    var r2: Type2 = fun({1,2,3})  //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'GW.SPECCONTRIB.TYPE1', REQUIRED: 'GW.SPECCONTRIB.TYPE2'
 
-    var r3: Type1 = fun2({1,2,3})    //## issuekeys: MSG_
+    var r3: Type1 = fun2({1,2,3})    //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'GW.SPECCONTRIB.TYPE2', REQUIRED: 'GW.SPECCONTRIB.TYPE1'
     var r4: Type2 = fun2({1,2,3})
 
     var r5: Type2 = foo({"1", "2", "3"})
     var r6: Type1 = foo({"1", "2", "3"} as List<Integer>)
     var r7: Type2 = foo({
-        1,       //## issuekeys: MSG_
+        1,       //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'INT', REQUIRED: 'JAVA.LANG.STRING'
         "2",
-        3         //## issuekeys: MSG_
+        3         //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'INT', REQUIRED: 'JAVA.LANG.STRING'
     })
   }
 

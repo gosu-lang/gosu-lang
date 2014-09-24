@@ -1,7 +1,7 @@
 package gw.specContrib.classes.method_Scoring
 
-uses gw.spec.regression.Type1
-uses gw.spec.regression.Type2
+uses gw.specContrib.Type1
+uses gw.specContrib.Type2
 
 class Errant_PrimitiveMethodScoring {
 
@@ -15,7 +15,7 @@ class Errant_PrimitiveMethodScoring {
 
   function test1() {
     var fun1: Type1 = fun(1.0f, 1)
-    var fun2: Type2 = fun(1.0f, 1)   //## issuekeys: MSG_
+    var fun2: Type2 = fun(1.0f, 1)   //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'GW.SPECCONTRIB.TYPE1', REQUIRED: 'GW.SPECCONTRIB.TYPE2'
   }
 
 
