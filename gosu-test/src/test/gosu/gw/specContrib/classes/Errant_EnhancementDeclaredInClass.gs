@@ -1,6 +1,6 @@
 package gw.specContrib.classes
 
-enhancement Errant_EnhancementDeclaredInClass: String {       //## issuekeys: CLASS DECLARATION EXPECTED
+enhancement Errant_EnhancementDeclaredInClass: String {       //## issuekeys: MSG_MUST_BE_DEFINED_AS_CLASS, MSG_EXPECTING_OPEN_BRACE_FOR_CLASS_DEF, MSG_UNEXPECTED_TOKEN, MSG_UNEXPECTED_TOKEN, MSG_UNEXPECTED_TOKEN, MSG_UNEXPECTED_TOKEN
 
 
-}
+}  //## issuekeys: MSG_EXPECTING_CLOSE_BRACE_FOR_CLASS_DEF

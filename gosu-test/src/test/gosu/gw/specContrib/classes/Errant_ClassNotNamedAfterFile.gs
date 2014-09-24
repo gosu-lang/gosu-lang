@@ -2,7 +2,7 @@ package gw.specContrib.classes
 
 uses java.lang.Runnable
 
-class Errant_ClassNotNamedAfterFile_222 {      //## issuekeys: CLASS 'ERRANT_CLASSNOTNAMEDAFTERFILE_222' SHOULD BE DECLARED IN A FILE NAMED 'ERRANT_CLASSNOTNAMEDAFTERFILE_222'
+class Errant_ClassNotNamedAfterFile_222 {      //## issuekeys: MSG_WRONG_CLASSNAME
 
   class Inner {
   }

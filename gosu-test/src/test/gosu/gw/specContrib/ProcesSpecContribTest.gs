@@ -5,7 +5,11 @@ uses gw.BaseVerifyErrantTest
 
 class ProcesSpecContribTest extends BaseVerifyErrantTest {
     function testThemAll() {
+      /*
+        https://jira.guidewire.com/browse/PL-31650
       processErrantType(gw.specContrib.typeinference.SwitchTypeNarrowing)
+      */
+
       processErrantType(gw.specContrib.typeinference.Errant_SwitchTypeNarrowing)
       processErrantType(gw.specContrib.typeinference.IfTypeNarrowing)
       processErrantType(gw.specContrib.statements.Errant_DuplicateCaseInSwitch)
@@ -23,6 +27,11 @@ class ProcesSpecContribTest extends BaseVerifyErrantTest {
       processErrantType(gw.specContrib.classes.method_Scoring.Errant_CollectionMethodScoring)
       processErrantType(gw.specContrib.annotations.Errant_AnnotationTargets1)
       processErrantType(gw.specContrib.annotations.Errant_AnnotationTargets2)
+      //processErrantType(gw.specContrib.classes.Errant_ClassDeclaredInEnhancement)
+      //processErrantType(gw.specContrib.classes.Errant_ClassNotNamedAfterFile)
+      //processErrantType(gw.specContrib.classes.Errant_EnhancementDeclaredInClass)
+      //processErrantType(gw.specContrib.classes.Errant_EnhancementNotNamedAfterFile)
+      processErrantType(gw.specContrib.scopes.Errant_PropertyDeclaration)
 
   }
 }
