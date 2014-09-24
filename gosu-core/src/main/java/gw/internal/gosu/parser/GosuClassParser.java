@@ -2958,8 +2958,9 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
     if( dpsVarProperty != null )
     {
       String propertyName = dpsVarProperty.getName();
-      bAlreadyDefined = getSymbolTable().getSymbol(propertyName) != null;
-      verify( varStmt, !bAlreadyDefined, Res.MSG_VARIABLE_ALREADY_DEFINED, propertyName );
+      ISymbol existingSym = getSymbolTable().getSymbol(propertyName);
+      bAlreadyDefined = existingSym != null;
+      verify( varStmt, !bAlreadyDefined || existingSym instanceof DynamicPropertySymbol, Res.MSG_VARIABLE_ALREADY_DEFINED, propertyName );
       getSymbolTable().putSymbol( dpsVarProperty );
 
       verifyPropertiesAreSymmetric( true, dpsVarProperty.getGetterDfs(), dpsVarProperty, varStmt );
