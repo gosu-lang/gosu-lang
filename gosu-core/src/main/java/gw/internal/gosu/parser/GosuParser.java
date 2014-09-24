@@ -1497,7 +1497,8 @@ public final class GosuParser extends ParserBase implements IGosuParser
     }
     else if( GosuParserTypes.NULL_TYPE().equals(first.getType()) && GosuParserTypes.NULL_TYPE().equals(second.getType()) )
     {
-      return JavaTypes.OBJECT();
+      IType ctxType = getContextType().getType();
+      return ctxType != null && !ctxType.isPrimitive() ? ctxType : GosuParserTypes.NULL_TYPE();
     }
     else if( GosuParserTypes.NULL_TYPE().equals(first.getType()) && second.getType().isPrimitive() )
     {
@@ -9016,7 +9017,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
       }
     }
 
-    verify( varStmt, !JavaTypes.pVOID().equals(type), Res.MSG_VARIABLE_MUST_HAVE_NON_NULL_TYPE );
+    verify( varStmt, !JavaTypes.pVOID().equals(type) && !JavaTypes.VOID().equals( type ), Res.MSG_VARIABLE_MUST_HAVE_NON_NULL_TYPE );
 
 
     //if no type was found, we have added an error so give the symbol the error type
