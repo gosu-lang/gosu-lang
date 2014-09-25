@@ -4,6 +4,7 @@
 
 package gw.internal.gosu.compiler.protocols.gosuclass;
 
+import gw.fs.IFile;
 import gw.internal.gosu.compiler.GosuClassLoader;
 import gw.internal.gosu.compiler.SingleServingGosuClassLoader;
 import gw.lang.reflect.IHasJavaClass;
@@ -11,6 +12,7 @@ import gw.lang.reflect.IType;
 import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.gs.ICompilableType;
 import gw.lang.reflect.gs.IGosuProgram;
+import gw.lang.reflect.gs.ISourceFileHandle;
 import gw.lang.reflect.java.IJavaBackedType;
 import gw.lang.reflect.module.IModule;
 import gw.lang.reflect.module.TypeSystemLockHelper;
@@ -19,7 +21,9 @@ import gw.util.GosuExceptionUtil;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.Method;
 import java.net.URL;
+import java.net.URLClassLoader;
 import java.net.URLConnection;
 import java.net.URLDecoder;
 
@@ -30,6 +34,7 @@ public class GosuClassesUrlConnection extends URLConnection {
     "java/", "javax/", "sun/"
   };
   private ICompilableType _type;
+  private ClassLoader _loader;
   private boolean _bDirectory;
   private boolean _bInvalid;
 
@@ -53,14 +58,14 @@ public class GosuClassesUrlConnection extends URLConnection {
       return false;
     }
     if( _type == null && !_bDirectory ) {
-      String strPath = URLDecoder.decode(getURL().getPath());
+      String strPath = URLDecoder.decode( getURL().getPath() );
       String strClass = strPath.substring( 1 );
       if( !ignoreJavaClass( strClass ) ) {
         String strType = strClass.replace( '/', '.' );
         int iIndexClass = strType.lastIndexOf( ".class" );
         if( iIndexClass > 0 ) {
           strType = strType.substring( 0, iIndexClass ).replace( '$', '.' );
-          maybeAssignGosuType( strType );
+          maybeAssignGosuType( findClassLoader( getURL().getHost() ), strType );
         }
         else if( strPath.endsWith( "/" ) ) {
           _bDirectory = true;
@@ -71,31 +76,90 @@ public class GosuClassesUrlConnection extends URLConnection {
     return !_bInvalid;
   }
 
-  private void maybeAssignGosuType( String strType ) {
+  private ClassLoader findClassLoader( String host ) {
+    int identityHash = Integer.parseInt( host );
+    ClassLoader loader = TypeSystem.getGosuClassLoader().getActualLoader();
+    while( loader != null ) {
+      if( System.identityHashCode( loader ) == identityHash ) {
+        return loader;
+      }
+      loader = loader.getParent();
+    }
+    throw new IllegalStateException( "Can't find ClassLoader with identity hash: " + identityHash );
+  }
+
+  private void maybeAssignGosuType( ClassLoader loader, String strType ) {
     if( strType.contains( IGosuProgram.NAME_PREFIX + "eval_" ) ) {
       // Never load an eval class here, they should always load in a single-serving loader
       return;
     }
-    ClassLoader loader = TypeSystem.getGosuClassLoader().getActualLoader();
     TypeSystemLockHelper.getTypeSystemLockWithMonitor( loader );
     try {
-
       IModule global = TypeSystem.getGlobalModule();
       IType type;
-      TypeSystem.pushModule(global);
+      TypeSystem.pushModule( global );
       try {
         type = TypeSystem.getByFullNameIfValidNoJava( strType );
-      } finally {
-        TypeSystem.popModule(global);
+      }
+      finally {
+        TypeSystem.popModule( global );
       }
       if( type instanceof ICompilableType ) {
         if( !isInSingleServingLoader( type.getEnclosingType() ) ) {
-          _type = (ICompilableType)type;
+          String ext = getFileExt( (ICompilableType)type );
+          if( ext == null ) {
+            // This is a program or some other intangible, make sure we load these in the base loader
+            if( loader == TypeSystem.getGosuClassLoader().getActualLoader() ) {
+              _type = (ICompilableType)type;
+              _loader = loader;
+            }
+          }
+          else if( isResourceInLoader( loader, ext ) ) {
+            _type = (ICompilableType)type;
+            _loader = loader;
+          }
         }
       }
     }
     finally {
       TypeSystem.unlock();
+    }
+  }
+
+  private String getFileExt( ICompilableType type ) {
+    while( type instanceof ICompilableType ) {
+      ISourceFileHandle sfh = type.getSourceFileHandle();
+      IFile file = sfh.getFile();
+      if( file != null ) {
+        return '.' + file.getExtension();
+      }
+      type = type.getEnclosingType();
+    }
+    return null;
+  }
+
+  private static Method _findResource = null;
+  private boolean isResourceInLoader( ClassLoader loader, String ext ) {
+    String strPath = URLDecoder.decode( getURL().getPath() );
+    strPath = strPath.substring( 1 );
+    int iIndex = strPath.indexOf( "$" ); // Get the location of the top-level type (only one file for a nesting of types)
+    iIndex = iIndex < 0 ? strPath.lastIndexOf( ".class" ) : iIndex;
+    if( iIndex > 0 ) {
+      strPath = strPath.substring( 0, iIndex ) + ext;
+    }
+    if( loader instanceof URLClassLoader ) {
+      return ((URLClassLoader)loader).findResource( strPath ) != null;
+    }
+    else {
+      try {
+        if( _findResource == null ) {
+          _findResource = ClassLoader.class.getDeclaredMethod( "findResource", new Class[] {String.class} );
+        }
+        return _findResource.invoke( loader, strPath ) != null;
+      }
+      catch( Exception e ) {
+        throw new RuntimeException( e );
+      }
     }
   }
 
@@ -110,7 +174,7 @@ public class GosuClassesUrlConnection extends URLConnection {
   }
 
   private boolean ignoreJavaClass( String strClass ) {
-    for( String namespace: JAVA_NAMESPACES_TO_IGNORE ) {
+    for( String namespace : JAVA_NAMESPACES_TO_IGNORE ) {
       if( strClass.startsWith( namespace ) ) {
         return true;
       }
@@ -135,8 +199,7 @@ public class GosuClassesUrlConnection extends URLConnection {
     return connectImpl();
   }
 
-  class LazyByteArrayInputStream extends InputStream
-  {
+  class LazyByteArrayInputStream extends InputStream {
     protected byte _buf[];
     protected int _pos;
     protected int _mark;
@@ -144,11 +207,10 @@ public class GosuClassesUrlConnection extends URLConnection {
 
     private void init() {
       if( _buf == null ) {
-        ClassLoader loader = TypeSystem.getGosuClassLoader().getActualLoader();
-        TypeSystemLockHelper.getTypeSystemLockWithMonitor( loader );
+        TypeSystemLockHelper.getTypeSystemLockWithMonitor( _loader );
         try {
           //System.out.println( "Compiling: " + _type.getName() );
-          _buf = GosuClassLoader.instance().getBytes( _type);
+          _buf = GosuClassLoader.instance().getBytes( _type );
           _pos = 0;
           _count = _buf.length;
         }

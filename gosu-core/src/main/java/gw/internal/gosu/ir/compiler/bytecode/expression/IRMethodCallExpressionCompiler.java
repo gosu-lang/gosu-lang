@@ -26,6 +26,8 @@ import static gw.internal.ext.org.objectweb.asm.Opcodes.*;
 
 public class IRMethodCallExpressionCompiler extends AbstractBytecodeCompiler {
 
+  public static final String STRUCTURAL_PROXY = "_structuralproxy_";
+
   public static void compile( IRMethodCallExpression expression, IRBytecodeContext context ) {
     IRType type = null;
     if (expression.getRoot() != null) {
@@ -168,7 +170,7 @@ public class IRMethodCallExpressionCompiler extends AbstractBytecodeCompiler {
   }
 
   private static Class createProxy( String iface, Class rootClass, boolean bStaticImpl ) {
-    String relativeProxyName = rootClass.getSimpleName() + "_structuralproxy_" + iface.replace( '.', '_' );
+    String relativeProxyName = rootClass.getSimpleName() + STRUCTURAL_PROXY + iface.replace( '.', '_' );
     return StructuralTypeProxyGenerator.makeProxy( iface, rootClass, relativeProxyName, bStaticImpl );
   }
 

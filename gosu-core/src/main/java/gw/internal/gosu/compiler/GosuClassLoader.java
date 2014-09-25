@@ -73,6 +73,7 @@ public class GosuClassLoader implements IGosuClassLoader
     init();
   }
 
+  // Note this really assigns the actual class loader associated with Gosu (now that Gosu loads its classes in the java App loader)
   public void assignParent( ClassLoader parent )
   {
     if( parent instanceof ModuleClassLoader && ((ModuleClassLoader)parent).isDeferToParent() )
@@ -88,11 +89,7 @@ public class GosuClassLoader implements IGosuClassLoader
       // at runtime and therefore can't be precompiled -- they are compiled on demand so the gosuclass protocol,
       // being in the classpath of the app class loader, resolves the name and compile the class and produce the
       // resource/stream associated with the compiled bytes.
-      ClassLoader loader = parent.getParent();
-      while( loader instanceof URLClassLoader && ((URLClassLoader)loader).getURLs().length == 0 ) {
-        loader = loader.getParent();
-      }
-      _loader = loader == null ? parent.getParent() : loader;
+      _loader = parent.getParent();
     }
     else
     {
