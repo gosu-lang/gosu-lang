@@ -48,10 +48,10 @@ public class MethodScorer {
   private MethodScorer() {
   }
 
-  public List<MethodScore> scoreMethods( List<IInvocableType> funcTypes, List<IType> argTypes, List<IType> inferringTypes ) {
+  public List<MethodScore> scoreMethods( List<IInvocableType> funcTypes, List<IType> argTypes ) {
     List<MethodScore> scores = new ArrayList<MethodScore>();
     for( IInvocableType funcType : funcTypes ) {
-      scores.add( scoreMethod( funcType, Collections.<IInvocableType>emptyList(), argTypes, inferringTypes, funcTypes.size() == 1 ) );
+      scores.add( scoreMethod( funcType, Collections.<IInvocableType>emptyList(), argTypes, Collections.<IType>emptyList(), funcTypes.size() == 1 ) );
     }
     Collections.sort( scores );
     return scores;
