@@ -2633,6 +2633,19 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
         return null;
       }
 
+      if( dfs.getDisplayName().length() > 0 &&
+          dfs.getDisplayName().charAt(0) == '@' )
+      {
+        String name = dfs.getDisplayName().substring(1);
+        boolean bAlreadyDefinedField = findMemberFieldInOuters(getGosuClass(), name);
+        boolean bOuterLocalDefined = false;
+        if( !bAlreadyDefinedField )
+        {
+          bOuterLocalDefined = findLocalInOuters(getGosuClass(), name);
+        }
+        verifyOrWarn( fs, !bAlreadyDefinedField && !bOuterLocalDefined, bAlreadyDefinedField, Res.MSG_VARIABLE_ALREADY_DEFINED, name );
+      }
+
       fs.setDynamicFunctionSymbol( dfs );
       pushStatement( fs );
       setLocation( location[0], location[1], location[2] );
@@ -2959,8 +2972,15 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
     {
       String propertyName = dpsVarProperty.getName();
       ISymbol existingSym = getSymbolTable().getSymbol(propertyName);
-      bAlreadyDefined = existingSym != null;
+      boolean bAlreadyDefinedField = findMemberFieldInOuters(getGosuClass(), propertyName);
+      boolean bOuterLocalDefined = false;
+      if( !bAlreadyDefinedField )
+      {
+        bOuterLocalDefined = findLocalInOuters(getGosuClass(), propertyName);
+      }
+      bAlreadyDefined = existingSym != null || bOuterLocalDefined;
       verify( varStmt, !bAlreadyDefined || existingSym instanceof DynamicPropertySymbol, Res.MSG_VARIABLE_ALREADY_DEFINED, propertyName );
+      warn( varStmt, !bAlreadyDefinedField, Res.MSG_VARIABLE_ALREADY_DEFINED, propertyName );
       getSymbolTable().putSymbol( dpsVarProperty );
 
       verifyPropertiesAreSymmetric( true, dpsVarProperty.getGetterDfs(), dpsVarProperty, varStmt );
@@ -3653,7 +3673,6 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
     if( !bAlreadyDefinedField )
     {
       bOuterLocalDefined = findLocalInOuters(gsClass, strIdentifier);
-
     }
     if( !bStatic )
     {
