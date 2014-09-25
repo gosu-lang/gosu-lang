@@ -238,8 +238,11 @@ class Errant_ConditionalExpressionsTest {
     d = true ? new Double(d) : null
     var list : LinkedList = true ? new LinkedList() : null
     o  = true ? null : null
-    var xx  = true ? null : null
+    var xx  = true ? null : null  //## issuekeys: MSG_VARIABLE_MUST_HAVE_NON_NULL_TYPE
+    callMe(true ? null : null)
   }
+
+  function callMe(s : String) {}
 
   function testShorthandConditionalExpressions() {
     var cond : String = "true"

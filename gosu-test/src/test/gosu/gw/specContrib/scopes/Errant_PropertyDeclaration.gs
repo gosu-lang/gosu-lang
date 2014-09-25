@@ -1,6 +1,7 @@
 package gw.specContrib.scopes
 
 class Errant_PropertyDeclaration {
+  var fLocal : int
   var Property1: int
   var f1: int as Property1     //## issuekeys: MSG_VARIABLE_ALREADY_DEFINED
 
@@ -19,9 +20,26 @@ class Errant_PropertyDeclaration {
   function foo(final Param: int) {
     final var Local = 2
     var o = new Object() {
-      property get Local(): int { return 0 }
+      property get Local(): int { return 0 }      //## issuekeys: MSG_VARIABLE_ALREADY_DEFINED
+
+      property get Param(): int { return 0 }      //## issuekeys: MSG_VARIABLE_ALREADY_DEFINED
+    }
+
+    var o2 = new Object() {
+      var _local : int as Local  //## issuekeys: MSG_VARIABLE_ALREADY_DEFINED
+      var _param : int as Param  //## issuekeys: MSG_VARIABLE_ALREADY_DEFINED
+    }
+  }
+
+  function foo2() {
+    var o = new Object() {
+      property get fLocal(): int { return 0 }  //## issuekeys: MSG_VARIABLE_ALREADY_DEFINED
 
       property get Param(): int { return 0 }
+    }
+
+    var o2 = new Object() {
+      var _local : int as fLocal  //## issuekeys: MSG_VARIABLE_ALREADY_DEFINED
     }
   }
 
