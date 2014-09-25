@@ -23,8 +23,6 @@ class ProcesSpecContribTest extends BaseVerifyErrantTest {
       processErrantType(gw.specContrib.classes.property_Declarations.Errant_PropertyWithInconsistentModifiers)
       processErrantType(gw.specContrib.classes.property_Declarations.Errant_PropertyWithInconsistentTypes)
       processErrantType(gw.specContrib.classes.modifiers.Errant_ModifiersOnInterfaceMethod)
-      processErrantType(gw.specContrib.classes.method_Scoring.Errant_PrimitiveMethodScoring)
-      processErrantType(gw.specContrib.classes.method_Scoring.Errant_CollectionMethodScoring)
       processErrantType(gw.specContrib.annotations.Errant_AnnotationTargets1)
       processErrantType(gw.specContrib.annotations.Errant_AnnotationTargets2)
       //processErrantType(gw.specContrib.classes.Errant_ClassDeclaredInEnhancement)
