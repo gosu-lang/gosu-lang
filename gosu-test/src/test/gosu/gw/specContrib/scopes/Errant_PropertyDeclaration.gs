@@ -54,4 +54,27 @@ class Errant_PropertyDeclaration {
   class B extends A {
     var b: int as MyParentProp     //## issuekeys: MSG_PROPERTY_ALREADY_DEFINED
   }
+
+  class Hello {
+    var _bar : int as Bar
+    property get Foo() : int { return 0 }
+    property get Bar() : int { return 1 }
+    override property set Foo(x : int) { }  //## issuekeys: MSG_FUNCTION_NOT_OVERRIDE
+  }
+
+  class World extends Hello{
+    override property get Foo() : int { return 2 }
+    property get Bar() : int { return 3 }  //## issuekeys: MSG_MISSING_OVERRIDE_MODIFIER
+  }
+
+  class WorldAno {
+    var _x : String as Hi
+
+    function m()  {
+      new World() {
+        override property get Foo() : int { return 4 }
+        property get Bar() : int { return 5 }  //## issuekeys: MSG_MISSING_OVERRIDE_MODIFIER
+      }
+    }
+  }
 }

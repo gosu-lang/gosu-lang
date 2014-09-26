@@ -2641,7 +2641,7 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
         boolean bOuterLocalDefined = false;
         if( !bAlreadyDefinedField )
         {
-          bOuterLocalDefined = findLocalInOuters(getGosuClass(), name);
+          bOuterLocalDefined = findLocalInOuters( name ) instanceof CapturedSymbol;
         }
         verifyOrWarn( fs, !bAlreadyDefinedField && !bOuterLocalDefined, bAlreadyDefinedField, Res.MSG_VARIABLE_ALREADY_DEFINED, name );
       }
@@ -2976,7 +2976,7 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
       boolean bOuterLocalDefined = false;
       if( !bAlreadyDefinedField )
       {
-        bOuterLocalDefined = findLocalInOuters(getGosuClass(), propertyName);
+        bOuterLocalDefined = findLocalInOuters( propertyName ) instanceof CapturedSymbol;
       }
       bAlreadyDefined = existingSym != null || bOuterLocalDefined;
       verify( varStmt, !bAlreadyDefined || existingSym instanceof DynamicPropertySymbol, Res.MSG_VARIABLE_ALREADY_DEFINED, propertyName );
@@ -3672,7 +3672,7 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
     boolean bOuterLocalDefined = false;
     if( !bAlreadyDefinedField )
     {
-      bOuterLocalDefined = findLocalInOuters(gsClass, strIdentifier);
+      bOuterLocalDefined = findLocalInOuters( strIdentifier ) != null;
     }
     if( !bStatic )
     {
@@ -3743,12 +3743,12 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
     }
   }
 
-  private boolean findLocalInOuters(IGosuClassInternal gsClass, String strIdentifier) {
+  private ISymbol findLocalInOuters( String strIdentifier ) {
     if( (isParsingBlock() || getParsingAnonymousClass() != null) && !getOwner().isParsingAnnotation() )
     {
-      return captureSymbol( getCurrentEnclosingGosuClass(), strIdentifier, null ) != null;
+      return captureSymbol( getCurrentEnclosingGosuClass(), strIdentifier, null );
     }
-    return false;
+    return null;
   }
 
   private boolean findMemberFieldInOuters( IGosuClassInternal gsClass, String name )
