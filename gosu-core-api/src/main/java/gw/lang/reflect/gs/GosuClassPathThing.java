@@ -200,7 +200,7 @@ public class GosuClassPathThing {
       }
 
       try {
-        Object invoke = _addUrl.invoke( _loader );
+        Object invoke = _getURLs.invoke( _loader );
         if( invoke.getClass().isArray() ) {
           invoke = Arrays.asList( (Object[])invoke );
         }
