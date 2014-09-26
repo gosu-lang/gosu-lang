@@ -33,6 +33,8 @@ public class GosuClassesUrlConnection extends URLConnection {
   private static final String[] JAVA_NAMESPACES_TO_IGNORE = {
     "java/", "javax/", "sun/"
   };
+  private static final String META_INF_MANIFEST_MF = "META-INF/MANIFEST.MF";
+
   private ICompilableType _type;
   private ClassLoader _loader;
   private boolean _bDirectory;
@@ -60,6 +62,10 @@ public class GosuClassesUrlConnection extends URLConnection {
     if( _type == null && !_bDirectory ) {
       String strPath = URLDecoder.decode( getURL().getPath() );
       String strClass = strPath.substring( 1 );
+      if( isManifest( strClass ) ) {
+        // Some tools (Equinox) expect to find a jar manifest file in the path entry, so we fake an empty one here
+        return true;
+      }
       if( !ignoreJavaClass( strClass ) ) {
         String strType = strClass.replace( '/', '.' );
         int iIndexClass = strType.lastIndexOf( ".class" );
@@ -74,6 +80,10 @@ public class GosuClassesUrlConnection extends URLConnection {
       _bInvalid = _type == null && !_bDirectory;
     }
     return !_bInvalid;
+  }
+
+  private boolean isManifest( String strClass ) {
+    return strClass.equalsIgnoreCase( META_INF_MANIFEST_MF );
   }
 
   private ClassLoader findClassLoader( String host ) {
@@ -126,11 +136,22 @@ public class GosuClassesUrlConnection extends URLConnection {
     }
   }
 
+  /**
+   * @param type a type that is dynamically compiled to bytecode from source by Gosu
+   * @return the corresponding file extension to replace the URL's .class extension when
+   *  searching for the source file to compile.  Otherwise if the type has no physical
+   *  file or the file is not obtained from the classpath corresponding with a ClassLoader,
+   *  returns null.
+   */
   private String getFileExt( ICompilableType type ) {
     while( type instanceof ICompilableType ) {
       ISourceFileHandle sfh = type.getSourceFileHandle();
       IFile file = sfh.getFile();
       if( file != null ) {
+        if( !sfh.isStandardPath() ) {
+          // The path is not in the target classpath of any ClassLoader e.g., it's added to Gosu's type sys repo in StandardEntityAccess#getAdditionalSourceRoots()
+          return null;
+        }
         return '.' + file.getExtension();
       }
       type = type.getEnclosingType();
@@ -190,6 +211,9 @@ public class GosuClassesUrlConnection extends URLConnection {
       return new LazyByteArrayInputStream();
     }
     else if( _bDirectory ) {
+      return new ByteArrayInputStream( new byte[0] );
+    }
+    else if( getURL().getPath().toUpperCase().endsWith( META_INF_MANIFEST_MF ) ) {
       return new ByteArrayInputStream( new byte[0] );
     }
     throw new IOException( "Invalid or missing Gosu class for: " + url.toString() );

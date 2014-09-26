@@ -6,39 +6,35 @@ package gw.lang.reflect.gs;
 
 import gw.lang.Gosu;
 import gw.lang.reflect.TypeSystem;
-import gw.util.concurrent.ConcurrentHashSet;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.net.URLClassLoader;
-import java.util.Arrays;
 import java.util.Hashtable;
-import java.util.List;
-import java.util.Set;
 
 /**
  */
 public class GosuClassPathThing {
-
+  public static final String GOSU_CLASS_PROTOCOL = "gosuclass";
   private static final String PROTOCOL_PACKAGE = "gw.internal.gosu.compiler.protocols";
-  private static final Set<Integer> VISITED_LOADER_IDS = new ConcurrentHashSet<Integer>();
 
   private static void setupLoaderChainWithGosuUrl( ClassLoader loader ) {
-    URLClassLoaderWrapper wrapped = URLClassLoaderWrapper.wrap( loader );
+    UrlClassLoaderWrapper wrapped = UrlClassLoaderWrapper.wrapIfNotAlreadyVisited( loader );
     if( wrapped != null ) {
       addGosuClassUrl( wrapped );
     }
-    loader = loader.getParent();
-    if( loader != null ) {
-      setupLoaderChainWithGosuUrl( loader );
+    if( loader != ClassLoader.getSystemClassLoader() ) { // we don't bother messing with any loaders above the system loader e.g., AppClassLoader
+      loader = loader.getParent();
+      if( loader != null ) {
+        setupLoaderChainWithGosuUrl( loader );
+      }
     }
   }
 
-  private static void addGosuClassUrl( URLClassLoaderWrapper urlLoader ) {
+  private static void addGosuClassUrl( UrlClassLoaderWrapper urlLoader ) {
     try {
-      URL url = makeUrl( urlLoader._loader );
+      URL url = makeUrl( urlLoader.getLoader() );
       if( !urlLoader.getURLs().contains( url ) ) {
         urlLoader.addURL( url );
       }
@@ -49,7 +45,8 @@ public class GosuClassPathThing {
   }
 
   private static URL makeUrl( ClassLoader loader ) throws MalformedURLException {
-    String spec = "gosuclass://" + System.identityHashCode( loader ) + "/";
+    int loaderAddress = System.identityHashCode( loader );
+    String spec = GOSU_CLASS_PROTOCOL + "://" + loaderAddress + "/";
     URL url;
     try {
       url = new URL( null, spec );
@@ -135,81 +132,4 @@ public class GosuClassPathThing {
     removeOurProtocolHandler();
   }
 
-  private static class URLClassLoaderWrapper {
-    final ClassLoader _loader;
-    final Method _getURLs;
-    final Method _addUrl;
-
-    static URLClassLoaderWrapper wrap( ClassLoader loader ) {
-      int loaderId = System.identityHashCode( loader );
-      if( VISITED_LOADER_IDS.contains( loaderId ) ) {
-        // Already visited
-        return null;
-      }
-      VISITED_LOADER_IDS.add( loaderId );
-      Method getURLs = findMethod( loader.getClass(), "getURLs", new Class[0], List.class, URL[].class );
-      if( getURLs != null ) {
-        Method addUrl = findMethod( loader.getClass(), "addUrl", new Class[] {URL.class}, void.class );
-        if( addUrl != null ) {
-          return new URLClassLoaderWrapper( loader, getURLs, addUrl );
-        }
-      }
-      return null;
-    }
-
-    private static Method findMethod( Class cls, String methodName, Class[] paramTypes, Class... returnType ) {
-      outer: for( Method m: cls.getDeclaredMethods() ) {
-        if( m.getName().equalsIgnoreCase( methodName ) ) {
-          Class<?>[] types = m.getParameterTypes();
-          if( types.length == paramTypes.length ) {
-            for( int i = 0; i < paramTypes.length; i++ ) {
-              if( !paramTypes[i].equals( types[i] ) ) {
-                continue outer;
-              }
-            }
-            for( Class t: returnType ) {
-              if( m.getReturnType().equals( t ) ) {
-                m.setAccessible( true );
-                return m;
-              }
-            }
-          }
-        }
-      }
-      return cls.getSuperclass() != null ? findMethod( cls.getSuperclass(), methodName, paramTypes, returnType ) : null;
-    }
-
-    private URLClassLoaderWrapper( ClassLoader loader, Method getURLs, Method addUrl ) {
-      _loader = loader;
-      _getURLs = getURLs;
-      _addUrl = addUrl;
-    }
-
-    void addURL(URL url) {
-      try {
-        _addUrl.invoke( _loader, new Object[] {url} );
-      }
-      catch( Exception e ) {
-        throw new RuntimeException( e );
-      }
-    }
-
-    List<URL> getURLs() {
-      if( _loader instanceof URLClassLoader ) {
-        return Arrays.asList( ((URLClassLoader)_loader).getURLs() );
-      }
-
-      try {
-        Object invoke = _getURLs.invoke( _loader );
-        if( invoke.getClass().isArray() ) {
-          invoke = Arrays.asList( (Object[])invoke );
-        }
-        return (List<URL>)invoke;
-      }
-      catch( Exception e ) {
-        throw new RuntimeException( e );
-      }
-    }
-
-  }
 }

@@ -101,4 +101,9 @@ public class JarEntryDirectoryImpl extends JarEntryResourceImpl implements IJarF
     IFile childFile = file(path);
     return childFile != null && childFile.exists();
   }
+
+  @Override
+  public boolean isAdditional() {
+    return false;
+  }
 }
