@@ -1,6 +1,7 @@
 package gw.specContrib.classes.method_Scoring
 
 uses java.lang.Integer
+uses java.lang.Long
 uses java.util.ArrayList
 uses java.util.HashMap
 uses java.util.HashSet
@@ -20,6 +21,12 @@ class Errant_CollectionMethodScoring {
   function foo(list11: List<Integer>): Type1 {return null}
   function foo(list22: String[]): Type2 {return null}
 
+  function fun3(i: int, l: ArrayList<Integer>): Type1 { return null }
+  function fun3(i: long, l: ArrayList<Object>): Type2 { return null }
+
+  function fun4(i: int, l: ArrayList<Integer>): Type1 { return null }
+  function fun4(i: long, l: ArrayList<Long>): Type2 { return null }
+
   function caller() {
     var r1: Type1 = fun({1,2,3})
     var r2: Type2 = fun({1,2,3})  //## issuekeys: MSG_TYPE_MISMATCH
@@ -34,6 +41,10 @@ class Errant_CollectionMethodScoring {
         "2",
         3         //## issuekeys: MSG_IMPLICIT_COERCION_ERROR
     })
+
+    var r8: Type2 = fun3(1, new ArrayList())
+    var r9: Type1 = fun3(1, {1, 2, 3})
+    var r10: Type2 = fun4(1, new ArrayList<Long>())
   }
 
 }
