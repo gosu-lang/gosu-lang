@@ -6,6 +6,7 @@ import java.lang.reflect.Method;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -81,15 +82,20 @@ public class UrlClassLoaderWrapper {
 
   public List<URL> getURLs() {
     if( _loader instanceof URLClassLoader ) {
-      return Arrays.asList( ((URLClassLoader)_loader).getURLs() );
+      URL[] urls = ((URLClassLoader)_loader).getURLs();
+      return urls == null ? Collections.<URL>emptyList() : Arrays.asList( urls );
     }
 
     try {
-      Object invoke = _getURLs.invoke( _loader );
-      if( invoke.getClass().isArray() ) {
-        invoke = Arrays.asList( (Object[])invoke );
+      Object urls = _getURLs.invoke( _loader );
+      if( urls.getClass().isArray() ) {
+        urls = urls == null
+               ? Collections.<URL>emptyList()
+               : urls.getClass().isArray()
+                 ? Arrays.asList( (URL[])urls )
+                 : urls;
       }
-      return (List<URL>)invoke;
+      return (List<URL>)urls;
     }
     catch( Exception e ) {
       throw new RuntimeException( e );
