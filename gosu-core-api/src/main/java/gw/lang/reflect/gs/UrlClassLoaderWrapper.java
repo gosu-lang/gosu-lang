@@ -88,14 +88,12 @@ public class UrlClassLoaderWrapper {
 
     try {
       Object urls = _getURLs.invoke( _loader );
-      if( urls.getClass().isArray() ) {
-        urls = urls == null
-               ? Collections.<URL>emptyList()
-               : urls.getClass().isArray()
-                 ? Arrays.asList( (URL[])urls )
-                 : urls;
-      }
-      return (List<URL>)urls;
+      urls = urls == null
+             ? Collections.<URL>emptyList()
+             : urls.getClass().isArray()
+               ? Arrays.asList( (URL[])urls )
+               : urls;
+      return (List)urls;
     }
     catch( Exception e ) {
       throw new RuntimeException( e );
