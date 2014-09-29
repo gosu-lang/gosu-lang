@@ -117,6 +117,12 @@ public class GosuClassesUrlConnection extends URLConnection {
       if( type instanceof ICompilableType ) {
         if( !isInSingleServingLoader( type.getEnclosingType() ) ) {
           String ext = getFileExt( (ICompilableType)type );
+
+          if( type.getName().equals( "gw.plugin.impl.DESEncryptionPlugin" ) ) {
+            crap( (ICompilableType)type, loader, ext );
+          }
+
+
           if( ext == null ) {
             // This is a program or some other intangible, make sure we load these in the base loader
             if( loader == TypeSystem.getGosuClassLoader().getActualLoader() ) {
@@ -133,6 +139,17 @@ public class GosuClassesUrlConnection extends URLConnection {
     }
     finally {
       TypeSystem.unlock();
+    }
+  }
+
+  private void crap( ICompilableType type, ClassLoader loader, String ext ) {
+    System.out.println( "Loading: " + type.getName() + "   ext: " + ext );
+    System.out.println( "Source File: " + type.getSourceFileHandle().getFile() == null ? "none" : type.getSourceFileHandle().getFile().getPath().getFileSystemPathString() );
+    System.out.println( "Module: " + type.getTypeLoader().getModule().getName() );
+    System.out.println( "Current Loader: " + loader );
+    System.out.println( "Gosu Loader: " + TypeSystem.getGosuClassLoader().getActualLoader() );
+    if( ext != null ) {
+      System.out.println( "Resource in loader?: " + isResourceInLoader( loader, ext ) );
     }
   }
 
