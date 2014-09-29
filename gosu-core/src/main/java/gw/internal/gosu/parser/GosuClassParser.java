@@ -2978,7 +2978,7 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
       {
         bOuterLocalDefined = findLocalInOuters( propertyName ) instanceof CapturedSymbol;
       }
-      bAlreadyDefined = existingSym != null || bOuterLocalDefined;
+      bAlreadyDefined = existingSym != null || bOuterLocalDefined || propertyName.equals( strIdentifier );
       verify( varStmt, !bAlreadyDefined || existingSym instanceof DynamicPropertySymbol, Res.MSG_VARIABLE_ALREADY_DEFINED, propertyName );
       warn( varStmt, !bAlreadyDefinedField, Res.MSG_VARIABLE_ALREADY_DEFINED, propertyName );
       getSymbolTable().putSymbol( dpsVarProperty );

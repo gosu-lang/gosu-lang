@@ -14,6 +14,8 @@ class Errant_PropertyDeclaration {
   property get Property12( ) : String { return null }
   var Property12 = 42                                  //## issuekeys: MSG_VARIABLE_ALREADY_DEFINED
 
+  var Zxc : int as Zxc  //## issuekeys: MSG_VARIABLE_ALREADY_DEFINED, MSG_PROPERTY_ALREADY_DEFINED
+
   var f21: int as Property21  //## issuekeys: MSG_PROPERTY_ALREADY_DEFINED
   var f22: int as Property21             //## issuekeys: MSG_PROPERTY_ALREADY_DEFINED
 
