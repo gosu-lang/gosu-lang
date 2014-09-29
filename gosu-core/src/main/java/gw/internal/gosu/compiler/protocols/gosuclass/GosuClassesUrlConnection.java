@@ -146,11 +146,19 @@ public class GosuClassesUrlConnection extends URLConnection {
     System.out.println( "Loading: " + type.getName() + "   ext: " + ext );
     System.out.println( "Source File: " + type.getSourceFileHandle().getFile() == null ? "none" : type.getSourceFileHandle().getFile().getPath().getFileSystemPathString() );
     System.out.println( "Module: " + type.getTypeLoader().getModule().getName() );
-    System.out.println( "Current Loader: " + loader );
-    System.out.println( "Gosu Loader: " + TypeSystem.getGosuClassLoader().getActualLoader() );
+    System.out.println( "Current Loader: " + loader.getClass() );
+    System.out.println( "Gosu Loader: " + TypeSystem.getGosuClassLoader().getActualLoader().getClass() );
+    System.out.println( "Loader Chain from current: " + loaderChain( loader ) );
     if( ext != null ) {
       System.out.println( "Resource in loader?: " + isResourceInLoader( loader, ext ) );
     }
+  }
+
+  private String loaderChain( ClassLoader loader ) {
+    if( loader == null ) {
+      return "<null>";
+    }
+    return loader.getClass().getName() + " -> " + loaderChain( loader.getParent() );
   }
 
   /**
