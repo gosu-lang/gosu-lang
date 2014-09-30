@@ -3069,7 +3069,7 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
         IType iface = ifaceLiteral.getType().getType();
         if( !(iface instanceof ErrorType) )
         {
-          verify( ifaceLiteral, iface.isInterface(), Res.MSG_DELEGATES_REPRESENT_INTERFACES_ONLY );
+          verify( ifaceLiteral, iface.isInterface() && !iface.isCompoundType(), Res.MSG_DELEGATES_REPRESENT_INTERFACES_ONLY );
           verify( ifaceLiteral, iface.isAssignableFrom( gsClass ), Res.MSG_CLASS_DOES_NOT_IMPL, iface );
           verify( typeLiteral, typeLiteral == null || iface.isAssignableFrom( typeLiteral.getType().getType() ), Res.MSG_CLASS_DOES_NOT_IMPL, iface );
         }
