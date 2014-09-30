@@ -13,7 +13,9 @@ import gw.lang.reflect.IRelativeTypeInfo;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.gs.BytecodeOptions;
+import gw.lang.reflect.gs.GosuClassPathThing;
 import gw.lang.reflect.gs.IGosuProgram;
+import gw.lang.reflect.java.IJavaType;
 
 public class RequiresReflectionDeterminer
 {
@@ -136,8 +138,12 @@ public class RequiresReflectionDeterminer
     return (accessibility == IRelativeTypeInfo.Accessibility.PROTECTED ||
             accessibility == IRelativeTypeInfo.Accessibility.INTERNAL ||
             AccessibilityUtil.forType( declaringClass ) == IRelativeTypeInfo.Accessibility.INTERNAL)
-           && isInSeparateClassLoader( callingClass, declaringClass  )
+           && (javaClassLoadsInSeparateLoader( declaringClass ) || isInSeparateClassLoader( callingClass, declaringClass ))
            && getTopLevelNamespace( callingClass ).equals( getTopLevelNamespace( declaringClass ) );
+  }
+
+  private static boolean javaClassLoadsInSeparateLoader( IType declaringClass ) {
+    return (!GosuClassPathThing.canWrapChain() && declaringClass instanceof IJavaType);
   }
 
   private static boolean isGosuClassAccessingProtectedMemberOfClassNotInHierarchy( ICompilableTypeInternal callingClass, IType declaringClass, IRelativeTypeInfo.Accessibility accessibility )

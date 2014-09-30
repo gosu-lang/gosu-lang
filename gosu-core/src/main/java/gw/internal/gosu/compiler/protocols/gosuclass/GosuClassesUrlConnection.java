@@ -10,6 +10,7 @@ import gw.internal.gosu.compiler.SingleServingGosuClassLoader;
 import gw.lang.reflect.IHasJavaClass;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.TypeSystem;
+import gw.lang.reflect.gs.GosuClassPathThing;
 import gw.lang.reflect.gs.ICompilableType;
 import gw.lang.reflect.gs.IGosuProgram;
 import gw.lang.reflect.gs.ISourceFileHandle;
@@ -116,71 +117,33 @@ public class GosuClassesUrlConnection extends URLConnection {
       }
       if( type instanceof ICompilableType ) {
         if( !isInSingleServingLoader( type.getEnclosingType() ) ) {
-          String ext = getFileExt( (ICompilableType)type );
-
-//          if( type.getName().equals( "gw.plugin.impl.DESEncryptionPlugin" ) ) {
-//            crap( (ICompilableType)type, loader, ext );
-//          }
-
-          if( ext == null ) {
-            // This is a program or some other intangible, make sure we load these in the base loader
-            if( loader == TypeSystem.getGosuClassLoader().getActualLoader() ) {
-              _type = (ICompilableType)type;
-              _loader = loader;
-            }
-          }
-          else if( isResourceInLoader( loader, ext ) ) {
+          if( !GosuClassPathThing.canWrapChain() ) {
             _type = (ICompilableType)type;
             _loader = loader;
           }
-//          if( ext == null ) {
-//            // This is a program or some other intangible, make sure we load these in the base loader
-//            if( loader == TypeSystem.getGosuClassLoader().getActualLoader() ) {
-//              _type = (ICompilableType)type;
-//              _loader = loader;
-//            }
-//          }
-//          else if( loader == TypeSystem.getGosuClassLoader().getActualLoader() ) {
-//            // So, at this point we don't care if it's in the loader or not, we have to load it
-//            // Note this case should only happen when a loader isn't URLClassLoader compatible, like webshpere or weblogic,
-//            // where those servers have custom loaders below the AppClassLoader for loading a "module" from a war/ear etc.
-//            //
-//            // IBM class loader chain:
-//            // ~~~~~~~~~~~~~~~~~~~~~~~
-//            // com.guidewire.pl.system.gosu.GosuPluginContainer ->
-//            //   com.guidewire.pl.system.integration.plugins.PluginContainer ->
-//            //     com.guidewire.pl.system.integration.plugins.SharedPluginContainer ->
-//            //       com.guidewire.pl.system.integration.plugins.PluginContainer ->
-//            //         weblogic.utils.classloaders.ChangeAwareClassLoader ->
-//            //           weblogic.utils.classloaders.FilteringClassLoader ->
-//            //             weblogic.utils.classloaders.GenericClassLoader -> ... ->
-//            //               sun.misc.Launcher$AppClassLoader ->
-//            //                 sun.misc.Launcher$ExtClassLoader ->
-//            //                   <null>
-//            //
-//            // WebLogic class loader chain:
-//            // ~~~~~~~~~~~~~~~~~~~~~~~~~~~
-//            // com.guidewire.pl.system.gosu.GosuPluginContainer ->
-//            //   com.guidewire.pl.system.integration.plugins.PluginContainer ->
-//            //     com.guidewire.pl.system.integration.plugins.SharedPluginContainer ->
-//            //        com.guidewire.pl.system.integration.plugins.PluginContainer ->
-//            //          org.jboss.modules.ModuleClassLoader ->
-//            //            sun.misc.Launcher$AppClassLoader ->
-//            //              sun.misc.Launcher$ExtClassLoader ->
-//            //                <null>
-//
-//            _type = (ICompilableType)type;
-//            _loader = loader;
-//          }
-//          else if( isResourceInLoader( loader, ext ) ) {
-//            _type = (ICompilableType)type;
-//            _loader = loader;
-//          }
+          else {
+            handleChainedLoading( loader, (ICompilableType)type );
+          }
         }
       }
     }
     finally {
       TypeSystem.unlock();
+    }
+  }
+
+  private void handleChainedLoading( ClassLoader loader, ICompilableType type ) {
+    String ext = getFileExt( type );
+    if( ext == null ) {
+      // This is a program or some other intangible, make sure we load these in the base loader
+      if( loader == TypeSystem.getGosuClassLoader().getActualLoader() ) {
+        _type = (ICompilableType)type;
+        _loader = loader;
+      }
+    }
+    else if( isResourceInLoader( loader, ext ) ) {
+      _type = (ICompilableType)type;
+      _loader = loader;
     }
   }
 

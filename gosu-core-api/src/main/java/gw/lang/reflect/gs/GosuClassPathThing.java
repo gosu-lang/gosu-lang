@@ -20,17 +20,17 @@ public class GosuClassPathThing {
   private static final String PROTOCOL_PACKAGE = "gw.internal.gosu.compiler.protocols";
   private static Boolean CAN_WRAP = null;
 
-  private static void setupLoaderChainWithGosuUrl( ClassLoader loader, boolean bChain ) {
+  private static void setupLoaderChainWithGosuUrl( ClassLoader loader ) {
     UrlClassLoaderWrapper wrapped = UrlClassLoaderWrapper.wrapIfNotAlreadyVisited( loader );
     if( wrapped == null ) {
       return;
     }
     addGosuClassUrl( wrapped );
-    if( bChain ) {
+    if( canWrapChain() ) {
       if( loader != ClassLoader.getSystemClassLoader() ) { // we don't bother messing with any loaders above the system loader e.g., ExtClassLoader
         loader = loader.getParent();
         if( loader != null ) {
-          setupLoaderChainWithGosuUrl( loader, bChain );
+          setupLoaderChainWithGosuUrl( loader );
         }
       }
     }
@@ -40,6 +40,35 @@ public class GosuClassPathThing {
     We don't currently wrap the chain of loaders for WebSphere or WebLogic or JBoss
     because they use "module" class loaders that are not URLClassLoader-like.  We
     can maybe someday handle them seperately.
+
+    IBM class loader chain:
+    ~~~~~~~~~~~~~~~~~~~~~~~
+    com.guidewire.pl.system.gosu.GosuPluginContainer ->
+       com.guidewire.pl.system.integration.plugins.PluginContainer ->
+         com.guidewire.pl.system.integration.plugins.SharedPluginContainer ->
+           com.guidewire.pl.system.integration.plugins.PluginContainer ->
+
+             [weblogic.utils.classloaders.ChangeAwareClassLoader ->
+               weblogic.utils.classloaders.FilteringClassLoader ->
+                 weblogic.utils.classloaders.GenericClassLoader]* ->
+
+                   sun.misc.Launcher$AppClassLoader ->
+                     sun.misc.Launcher$ExtClassLoader ->
+                       <null>
+
+    WebLogic class loader chain:
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    com.guidewire.pl.system.gosu.GosuPluginContainer ->
+       com.guidewire.pl.system.integration.plugins.PluginContainer ->
+         com.guidewire.pl.system.integration.plugins.SharedPluginContainer ->
+            com.guidewire.pl.system.integration.plugins.PluginContainer ->
+
+              org.jboss.modules.ModuleClassLoader ->
+
+                sun.misc.Launcher$AppClassLoader ->
+                  sun.misc.Launcher$ExtClassLoader ->
+                    <null>
+
    */
   private static boolean canWrapChain( ClassLoader loader ) {
     if( loader == null ) {
@@ -144,8 +173,12 @@ public class GosuClassPathThing {
       }
     }
     ClassLoader loader = TypeSystem.getGosuClassLoader().getActualLoader();
-    setupLoaderChainWithGosuUrl( loader, CAN_WRAP == null ? CAN_WRAP = canWrapChain( loader ) : CAN_WRAP );
+    setupLoaderChainWithGosuUrl( loader );
     return true;
+  }
+
+  public static boolean canWrapChain() {
+    return CAN_WRAP == null ? CAN_WRAP = canWrapChain( TypeSystem.getGosuClassLoader().getActualLoader() ) : CAN_WRAP;
   }
 
   public synchronized static void cleanup() {
