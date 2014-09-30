@@ -172,11 +172,15 @@ class Errant_OverloadedCallsTest {
   function initFun3(x : ArrayList) {}
   function initFun3(x : Object[]) {}
 
+  function initFun4(x : HashSet<Integer>) {}
+  function initFun4(x : ArrayList<Integer>) {}
+
   function callsWithInitializer() {
     initFun0( {1, 2})  //## issuekeys: MSG_AMBIGUOUS_METHOD_INVOCATION
     initFun1( {1, 2})  //## issuekeys: MSG_AMBIGUOUS_METHOD_INVOCATION
     initFun2( {1, 2})  //## issuekeys: MSG_AMBIGUOUS_METHOD_INVOCATION
     initFun3( {1, 2})  //## issuekeys: MSG_AMBIGUOUS_METHOD_INVOCATION
+    initFun4( {1, 2})  //## issuekeys: MSG_AMBIGUOUS_METHOD_INVOCATION
   }
 
   class A {}
