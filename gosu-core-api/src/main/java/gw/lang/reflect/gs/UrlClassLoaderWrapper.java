@@ -25,7 +25,11 @@ public class UrlClassLoaderWrapper {
       return null;
     }
     VISITED_LOADER_IDS.add( loaderId );
-    return wrap( loader );
+    UrlClassLoaderWrapper wrapped = wrap( loader );
+    if( wrapped == null ) {
+      throw new IllegalStateException( "Could not wrap loader: " + loader.getClass().getName() );
+    }
+    return wrapped;
   }
 
   public static UrlClassLoaderWrapper wrap( ClassLoader loader ) {

@@ -18,18 +18,40 @@ import java.util.Hashtable;
 public class GosuClassPathThing {
   public static final String GOSU_CLASS_PROTOCOL = "gosuclass";
   private static final String PROTOCOL_PACKAGE = "gw.internal.gosu.compiler.protocols";
+  private static Boolean CAN_WRAP = null;
 
-  private static void setupLoaderChainWithGosuUrl( ClassLoader loader ) {
+  private static void setupLoaderChainWithGosuUrl( ClassLoader loader, boolean bChain ) {
     UrlClassLoaderWrapper wrapped = UrlClassLoaderWrapper.wrapIfNotAlreadyVisited( loader );
-    if( wrapped != null ) {
-      addGosuClassUrl( wrapped );
+    if( wrapped == null ) {
+      return;
     }
-    if( loader != ClassLoader.getSystemClassLoader() ) { // we don't bother messing with any loaders above the system loader e.g., AppClassLoader
-      loader = loader.getParent();
-      if( loader != null ) {
-        setupLoaderChainWithGosuUrl( loader );
+    addGosuClassUrl( wrapped );
+    if( bChain ) {
+      if( loader != ClassLoader.getSystemClassLoader() ) { // we don't bother messing with any loaders above the system loader e.g., ExtClassLoader
+        loader = loader.getParent();
+        if( loader != null ) {
+          setupLoaderChainWithGosuUrl( loader, bChain );
+        }
       }
     }
+  }
+
+  /*
+    We don't currently wrap the chain of loaders for WebSphere or WebLogic or JBoss
+    because they use "module" class loaders that are not URLClassLoader-like.  We
+    can maybe someday handle them seperately.
+   */
+  private static boolean canWrapChain( ClassLoader loader ) {
+    if( loader == null ) {
+      return false;
+    }
+    UrlClassLoaderWrapper wrapped = UrlClassLoaderWrapper.wrap( loader );
+    boolean bSysLoader = loader == ClassLoader.getSystemClassLoader();
+    if( bSysLoader ) {
+      return wrapped != null;
+    }
+    loader = loader.getParent();
+    return wrapped != null && canWrapChain( loader );
   }
 
   private static void addGosuClassUrl( UrlClassLoaderWrapper urlLoader ) {
@@ -121,7 +143,8 @@ public class GosuClassPathThing {
         TypeSystem.pushModule( TypeSystem.getGlobalModule() );
       }
     }
-    setupLoaderChainWithGosuUrl( TypeSystem.getGosuClassLoader().getActualLoader() );
+    ClassLoader loader = TypeSystem.getGosuClassLoader().getActualLoader();
+    setupLoaderChainWithGosuUrl( loader, CAN_WRAP == null ? CAN_WRAP = canWrapChain( loader ) : CAN_WRAP );
     return true;
   }
 
