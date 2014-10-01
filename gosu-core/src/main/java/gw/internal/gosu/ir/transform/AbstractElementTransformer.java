@@ -3077,7 +3077,7 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
       if( JavaTypes.pCHAR().getArrayType().isAssignableFrom( operandType ) ) {
         stringValueExpr = callStaticMethod( String.class, "valueOf", new Class[]{char[].class}, Collections.singletonList( expr ) );
       }
-      else if( ILanguageLevel.Util.STANDARD_GOSU() || !isHandledByCustomCoercion( operandType ) ) {
+      else if( !isHandledByCustomCoercion( operandType ) ) {
         stringValueExpr = callMethod( Object.class, "toString", new Class[0], expr, Collections.<IRExpression>emptyList() );
       }
       else {
@@ -3088,20 +3088,34 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
     }
     else {
       Class primitiveClass = getDescriptor( operandType ).getJavaClass();
-      primitiveClass = primitiveClass == short.class || primitiveClass == byte.class
-                       ? int.class
-                       : primitiveClass;
-      stringValueExpr = primitiveClass == void.class
-                        ? nullLiteral()
-                        : callStaticMethod( String.class, "valueOf", new Class[]{primitiveClass}, Collections.<IRExpression>singletonList( expr ) );
+      if( !isHandledByCustomCoercion( operandType ) ) {
+        primitiveClass = primitiveClass == short.class || primitiveClass == byte.class
+                         ? int.class
+                         : primitiveClass;
+        stringValueExpr = primitiveClass == void.class
+                          ? nullLiteral()
+                          : callStaticMethod( String.class, "valueOf", new Class[]{primitiveClass}, Collections.<IRExpression>singletonList( expr ) );
+      }
+      else {
+        // This is really stupid, but the pl coercion mgr converts double/float to non-decimal strings if the value is non-fractional, so instead of printing 1.0 for a normal _decimal_ value it prints 1  (fart)
+        stringValueExpr = callMethod( ICoercionManager.class, "makeStringFrom", new Class[]{Object.class},
+                       callStaticMethod( CommonServices.class, "getCoercionManager", new Class[]{}, Collections.<IRExpression>emptyList() ),
+                       Collections.singletonList( boxValue( getDescriptor( primitiveClass ), expr ) ) );
+      }
     }
     return stringValueExpr;
   }
+
   protected boolean isHandledByCustomCoercion( IType operandType ) {
+    if( ILanguageLevel.Util.STANDARD_GOSU() ) {
+      return false;
+    }
     return
       operandType == JavaTypes.BIG_DECIMAL() ||
       operandType == JavaTypes.FLOAT() ||
+      operandType == JavaTypes.pFLOAT() ||
       operandType == JavaTypes.DOUBLE() ||
+      operandType == JavaTypes.pDOUBLE() ||
       operandType == JavaTypes.DATE() ||
       TypeSystem.get( IEnumConstant.class ).isAssignableFrom( operandType ) ||
       CommonServices.getEntityAccess().isTypekey( operandType ) ||
