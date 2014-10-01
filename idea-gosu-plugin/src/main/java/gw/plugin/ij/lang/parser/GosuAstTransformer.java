@@ -583,7 +583,7 @@ public class GosuAstTransformer {
         // skip
       } else {
         final IElementType elementType = GosuTokenTypes.getTypeFrom(token);
-        if (tokenType == ISourceCodeTokenizer.TT_WORD || bIdentfier || tokenText.equals("void")) {
+        if (tokenType == ISourceCodeTokenizer.TT_WORD || bIdentfier || isPrimitive(tokenText) ) {
           node.rawAddChildrenWithoutNotifications(new GosuIdentifierImpl(elementType, tokenText));
         } else {
           if (elementType == GosuTokenTypes.TT_COMMENT_MULTILINE && tokenText.startsWith("/**")) {
@@ -605,6 +605,18 @@ public class GosuAstTransformer {
         }
       }
     }
+  }
+
+  private boolean isPrimitive(String text) {
+    return text.equals("void") ||
+           text.equals("boolean" ) ||
+           text.equals("char" ) ||
+           text.equals( "byte" ) ||
+           text.equals("short" ) ||
+           text.equals("int" ) ||
+           text.equals("long" ) ||
+           text.equals("float" ) ||
+           text.equals("double" );
   }
 
   @Nullable
