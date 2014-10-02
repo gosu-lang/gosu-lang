@@ -17,10 +17,12 @@ import gw.internal.ext.org.objectweb.asm.util.CheckClassAdapter;
 import gw.internal.gosu.compiler.DebugFlag;
 import gw.internal.gosu.ir.nodes.IRTypeFactory;
 import gw.internal.gosu.ir.nodes.JavaClassIRType;
+import gw.internal.gosu.ir.transform.util.IRTypeResolver;
 import gw.lang.ir.IRClass;
 import gw.lang.ir.IRType;
 import gw.lang.ir.IRSymbol;
 import gw.lang.ir.IRAnnotation;
+import gw.lang.ir.Internal;
 import gw.lang.ir.statement.IRFieldDecl;
 import gw.lang.ir.statement.IRMethodStatement;
 import gw.lang.reflect.IAnnotationInfo;
@@ -217,6 +219,10 @@ public class IRClassCompiler extends AbstractBytecodeCompiler
       for (IRAnnotation annotation : field.getAnnotations() ) {
         AnnotationVisitor annotationVisitor = fv.visitAnnotation(annotation.getDescriptor().getDescriptor(), annotation.isInclude());
         new IRAnnotationCompiler( annotationVisitor, annotation ).compile();
+      }
+      if( field.isExplicitInternal() ) {
+        AnnotationVisitor annotationVisitor = fv.visitAnnotation( Type.getDescriptor( Internal.class ), true );
+        new IRAnnotationCompiler( annotationVisitor, new IRAnnotation( IRTypeResolver.getDescriptor( Internal.class ), true ) ).compile();
       }
       fv.visitEnd();
     }

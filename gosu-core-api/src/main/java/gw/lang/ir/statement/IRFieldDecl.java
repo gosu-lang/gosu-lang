@@ -21,19 +21,21 @@ public class IRFieldDecl extends IRStatement {
   private String _name;
   private IRType _type;
   private Object _value;
+  private boolean _explicitInternal;
   private List<IRAnnotation> _annotations = Collections.emptyList();
   private String _genericSignature;
 
-  public IRFieldDecl( int modifiers, String name, IRType type, IType iType,  Object value ) {
+  public IRFieldDecl( int modifiers, boolean explicitInternal, String name, IRType type, IType iType,  Object value ) {
     _modifiers = modifiers;
+    _explicitInternal = explicitInternal;
     _name = name;
     _type = maybeEraseStructuralType( type );
     _value = value;
     _genericSignature = makeGenericSignature(iType);
   }
 
-  public IRFieldDecl( int modifiers, String name, IRType type, Object value ) {
-    this( modifiers, name, type, null, value );
+  public IRFieldDecl( int modifiers, boolean explicitInternal, String name, IRType type, Object value ) {
+    this( modifiers, explicitInternal, name, type, null, value );
   }
 
   private String makeGenericSignature( IType type ) {
@@ -82,5 +84,9 @@ public class IRFieldDecl extends IRStatement {
 
   public String getGenericSignature() {
     return _genericSignature;
+  }
+
+  public boolean isExplicitInternal() {
+    return _explicitInternal;
   }
 }
