@@ -121,4 +121,8 @@ public interface IEntityAccess extends IService
   void reloadedTypes(String[] types);
 
   ExtendedTypeDataFactory getExtendedTypeDataFactory(String typeName);
+
+  String getLocalizedTypeName(IType type);
+
+  String getLocalizedTypeInfoName(IType type);
 }

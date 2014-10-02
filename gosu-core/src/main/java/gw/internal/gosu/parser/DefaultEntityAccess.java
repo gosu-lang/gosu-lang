@@ -24,6 +24,7 @@ import gw.lang.reflect.IType;
 import gw.lang.reflect.ITypeLoader;
 import gw.lang.reflect.AbstractTypeSystemListener;
 import gw.lang.reflect.RefreshRequest;
+import gw.lang.reflect.java.IJavaType;
 import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.gs.GosuClassTypeLoader;
 import gw.lang.reflect.gs.ICompilableType;
@@ -511,4 +512,21 @@ public class DefaultEntityAccess extends BaseService implements IEntityAccess
   public ExtendedTypeDataFactory getExtendedTypeDataFactory(String typeName) {
     return null;
   }
+
+  @Override
+  public String getLocalizedTypeName(IType type) {
+    return type.getName();
+  }
+
+  @Override
+  public String getLocalizedTypeInfoName(IType type) {
+    String result;
+    if (type instanceof IJavaType) {
+      result = ((IJavaType) type).getBackingClassInfo().getDisplayName();
+    } else {
+      result = getLocalizedTypeName(type);
+    }
+    return result;
+  }
+
 }
