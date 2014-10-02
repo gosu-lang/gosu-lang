@@ -6554,7 +6554,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
           return makeDynamicMethodScore( listFunctionTypes, argExpressions );
         }
 
-        score = scoreMethod( funcType, listFunctionTypes, argExpressions, !bShouldScoreMethods );
+        score = scoreMethod( funcType, listFunctionTypes, argExpressions, !bShouldScoreMethods, !hasInitializerExpression( argExpressions ) );
       }
       finally
       {
@@ -6568,7 +6568,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
       score.setParserStates( parserStates );
       scoredMethods.add( score );
 
-      if( score.isBest() || (score.getScore() == 0 && !hasInitializerExpression( argExpressions )) )
+      if( score.getScore() == 0 && !hasInitializerExpression( argExpressions ) )
       {
         // perfect score, no need to continue
         break;
@@ -7066,12 +7066,12 @@ public final class GosuParser extends ParserBase implements IGosuParser
     return score;
   }
 
-  private MethodScore scoreMethod( IInvocableType funcType, List<? extends IInvocableType> listFunctionTypes, List<Expression> argExpressions, boolean bSimple ) {
+  private MethodScore scoreMethod(IInvocableType funcType, List<? extends IInvocableType> listFunctionTypes, List<Expression> argExpressions, boolean bSimple, boolean bLookInCache) {
     List<IType> argTypes = new ArrayList<IType>( argExpressions.size() );
     for( Expression argExpression : argExpressions ) {
       argTypes.add( argExpression.getType() );
     }
-    return MethodScorer.instance().scoreMethod(funcType, listFunctionTypes, argTypes, getCurrentlyInferringFunctionTypeVars(), bSimple);
+    return MethodScorer.instance().scoreMethod(funcType, listFunctionTypes, argTypes, getCurrentlyInferringFunctionTypeVars(), bSimple, bLookInCache);
   }
 
   private IType boundCtxType( IType ctxType )
