@@ -506,4 +506,9 @@ public class DefaultEntityAccess extends BaseService implements IEntityAccess
   public void reloadedTypes(String[] types) {
     //nothing to do
   }
+
+  @Override
+  public ExtendedTypeDataFactory getExtendedTypeDataFactory(String typeName) {
+    return null;
+  }
 }

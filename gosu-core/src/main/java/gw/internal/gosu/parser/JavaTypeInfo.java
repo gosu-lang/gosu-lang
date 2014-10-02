@@ -40,6 +40,7 @@ import gw.lang.reflect.java.IJavaClassMethod;
 import gw.lang.reflect.java.IJavaMethodDescriptor;
 import gw.lang.reflect.java.IJavaMethodInfo;
 import gw.lang.reflect.java.IJavaPropertyDescriptor;
+import gw.lang.reflect.java.IJavaPropertyInfo;
 import gw.lang.reflect.java.IJavaType;
 import gw.lang.reflect.java.IJavaTypeInfo;
 import gw.util.concurrent.LockingLazyVar;
@@ -103,7 +104,7 @@ public class JavaTypeInfo extends JavaBaseFeatureInfo implements IJavaTypeInfo
                 }
               }
 
-              JavaPropertyInfo pi = new JavaPropertyInfo(JavaTypeInfo.this, property);
+              IJavaPropertyInfo pi = JavaPropertyInfo.newInstance(JavaTypeInfo.this, property);
               // We only want properties that are at least readable
               if (pi.isReadable()) {
                 ret.add(pi);
@@ -284,8 +285,8 @@ public class JavaTypeInfo extends JavaBaseFeatureInfo implements IJavaTypeInfo
         for( IPropertyInfo propertyInfo : _declaredProperties.get() )
         {
           if( propertyInfo.getName().equals( propName ) &&
-              (!(propertyInfo instanceof JavaPropertyInfo) ||
-               ((JavaPropertyInfo)propertyInfo).getPropertyDescriptor().getReadMethod().equals(md.getMethod())) )
+              (!(propertyInfo instanceof IJavaPropertyInfo) ||
+               ((IJavaPropertyInfo)propertyInfo).getPropertyDescriptor().getReadMethod().equals(md.getMethod())) )
           {
             return true;
           }

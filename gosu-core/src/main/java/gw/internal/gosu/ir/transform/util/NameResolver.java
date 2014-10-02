@@ -31,9 +31,9 @@ public class NameResolver {
       ReducedDynamicPropertySymbol dps = ((GosuPropertyInfo)pi).getDps();
       return getGetterNameForDPS( dps );
     }
-    else if( pi.getClass() == JavaPropertyInfo.class )
+    else if( pi instanceof IJavaPropertyInfo && !(pi instanceof LengthProperty) )
     {
-      return ((JavaPropertyInfo)pi).getPropertyDescriptor().getReadMethod().getName();
+      return ((IJavaPropertyInfo)pi).getPropertyDescriptor().getReadMethod().getName();
     }
     else if( pi instanceof PropertyInfoBuilder.BuiltPropertyInfo )
     {
@@ -76,9 +76,9 @@ public class NameResolver {
       ReducedDynamicPropertySymbol dps = ((GosuPropertyInfo)pi).getDps();
       return getSetterNameForDPS( dps );
     }
-    else if( pi.getClass() == JavaPropertyInfo.class )
+    else if( pi instanceof IJavaPropertyInfo && !(pi instanceof LengthProperty) )
     {
-      return ((JavaPropertyInfo)pi).getPropertyDescriptor().getWriteMethod().getName();
+      return ((IJavaPropertyInfo)pi).getPropertyDescriptor().getWriteMethod().getName();
     }
     else if( pi instanceof PropertyInfoBuilder.BuiltPropertyInfo )
     {

@@ -6,6 +6,7 @@ package gw.lang.reflect;
 
 import gw.config.IService;
 import gw.fs.IDirectory;
+import gw.internal.gosu.parser.ExtendedTypeDataFactory;
 import gw.lang.UnstableAPI;
 import gw.lang.parser.GlobalScope;
 import gw.lang.parser.IAttributeSource;
@@ -118,4 +119,6 @@ public interface IEntityAccess extends IService
   List<IDirectory> getAdditionalSourceRoots();
 
   void reloadedTypes(String[] types);
+
+  ExtendedTypeDataFactory getExtendedTypeDataFactory(String typeName);
 }
