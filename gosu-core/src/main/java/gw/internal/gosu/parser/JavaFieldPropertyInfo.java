@@ -248,8 +248,16 @@ public class JavaFieldPropertyInfo extends JavaBaseFeatureInfo implements IJavaF
       if( rhs == null ) {
         return false;
       }
-      IExpression pr = CompileTimeExpressionParser.parse( rhs, field.getEnclosingClass(), getFeatureType() );
-      return pr.isCompileTimeConstant();
+      // NOTE pdalbora 14-Jan-2014 -- Restoring the try/catch here. The reason is that if the field initializer is not
+      // a compile-time constant, then the source will be unparseable (not sure if that's a bug in getRhs()) and will
+      // throw an exception. In that case, we can assume that the field initializer is not a compile-time constant
+      // and return false.
+      try {
+        IExpression pr = CompileTimeExpressionParser.parse( rhs, field.getEnclosingClass(), getFeatureType() );
+        return pr.isCompileTimeConstant();
+      } catch (Exception e) {
+        return false;
+      }
     }
     else if( field instanceof AsmFieldJavaClassField &&
              ((AsmFieldJavaClassField)field).getStaticValue() != null ) {

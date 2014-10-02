@@ -112,10 +112,6 @@ public class GosuClassLoader implements IGosuClassLoader
     try
     {
       String strGsName = strName.replace( '$', '.' );
-      //## hack:
-      if (strGsName.startsWith("com.guidewire.commons.metadata.proxy._generated.iface.")) {
-        strGsName = "entity." + strGsName.substring(strName.lastIndexOf('.') + 1);
-      }
       IType type = TypeSystem.getByFullNameIfValid( strGsName );
       if( type instanceof IGosuClassInternal )
       {

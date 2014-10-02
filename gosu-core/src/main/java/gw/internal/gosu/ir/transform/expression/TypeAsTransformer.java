@@ -29,6 +29,7 @@ import gw.lang.reflect.IRelativeTypeInfo;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.Modifier;
 import gw.lang.reflect.TypeSystem;
+import gw.lang.reflect.gs.IGosuClass;
 import gw.lang.reflect.java.GosuTypes;
 import gw.lang.reflect.java.JavaTypes;
 import gw.util.concurrent.LockingLazyVar;
@@ -116,12 +117,13 @@ public class TypeAsTransformer extends AbstractExpressionTransformer<ITypeAsExpr
       root = boxValue( lhsType, root );
     }
     ICoercer coercer = _expr().getCoercer();
-    if( (coercer == IdentityCoercer.instance() && !_expr().getType().isPrimitive()) ||
-        _expr().getType() instanceof CompoundType )
+    IType exprType = _expr().getType();
+    if( (coercer == IdentityCoercer.instance() && !exprType.isPrimitive()) ||
+        exprType instanceof CompoundType )
     {
-      if( (!lhsType.isPrimitive() || lhsType == JavaTypes.pVOID()) && lhsType != _expr().getType() )
+      if( (!lhsType.isPrimitive() || lhsType == JavaTypes.pVOID()) && lhsType != exprType )
       {
-        if( (lhsType == JavaTypes.OBJECT() || lhsType.isInterface()) && isBytecodeType( _expr().getType() ) )
+        if( (lhsType == JavaTypes.OBJECT() || lhsType.isInterface()) && (isBytecodeType( exprType ) && !isStructureType( exprType )) )
         {
           //## hack:
 
@@ -138,19 +140,19 @@ public class TypeAsTransformer extends AbstractExpressionTransformer<ITypeAsExpr
           // LhsType temp = <lhs-expr>
           // temp instanceof AsType ? (AsType)temp : coerce( temp, AsType )
           //
-          IRType asType = getDescriptor( _expr().getType() );
+          IRType asType = getDescriptor( exprType );
           IRSymbol rootValue = _cc().makeAndIndexTempSymbol( root.getType() );
           root = buildComposite(
             buildAssignment( rootValue, root ),
             buildTernary( new IRInstanceOfExpression( identifier( rootValue ), asType ),
-                          checkCast( _expr().getType(), identifier( rootValue ) ),
+                          checkCast( exprType, identifier( rootValue ) ),
                           coerce( identifier( rootValue ), RuntimeCoercer.instance() ),
                           asType ) );
 
         }
         else
         {
-          root = checkCast( _expr().getType(), root );
+          root = checkCast( exprType, root );
         }
 
       }
@@ -159,6 +161,10 @@ public class TypeAsTransformer extends AbstractExpressionTransformer<ITypeAsExpr
     }
 
     return coerce( root, coercer );
+  }
+
+  private boolean isStructureType( IType exprType ) {
+    return exprType instanceof IGosuClass && ((IGosuClass)exprType).isStructure();
   }
 
   private IRExpression coerce( IRExpression root, ICoercer coercer )

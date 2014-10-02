@@ -30,6 +30,7 @@ import gw.lang.parser.exceptions.ParseException;
 import gw.lang.parser.resources.Res;
 import gw.lang.reflect.IPropertyInfo;
 import gw.lang.reflect.IType;
+import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.java.JavaTypes;
 
 import java.util.List;
@@ -612,7 +613,7 @@ class QueryExpressionParser extends ParserBase
     {
       try
       {
-        IType intrType = TypeLoaderAccess.instance().getByRelativeName( strRoot, CommonServices.getEntityAccess().getDefaultTypeUses() );
+        IType intrType = TypeLoaderAccess.instance().getByRelativeName( strRoot, TypeSystem.getDefaultTypeUsesMap() );
         verify( e, intrType != null && CommonServices.getEntityAccess().isEntityClass( intrType ), Res.MSG_EXPECTING_ENTITY_TYPE );
         if( CommonServices.getEntityAccess().isViewEntityClass( intrType ) )
         {

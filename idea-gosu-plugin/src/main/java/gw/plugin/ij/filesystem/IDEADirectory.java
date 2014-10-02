@@ -8,6 +8,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.vfs.VirtualFile;
 import gw.config.CommonServices;
 import gw.fs.IDirectory;
+import gw.fs.IDirectoryUtil;
 import gw.fs.IFile;
 import gw.fs.IResource;
 import org.jetbrains.annotations.NotNull;
@@ -81,9 +82,7 @@ public class IDEADirectory extends IDEAResource implements IDirectory {
 
   @Override
   public String relativePath(@NotNull IResource resource) {
-    String path = ((IDEAResource) resource)._path;
-    int index = _path.length() + 1;
-    return index > path.length() ? "" : path.substring(index);
+    return IDirectoryUtil.relativePath(this, resource);
   }
 
   @Override

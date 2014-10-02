@@ -31,14 +31,6 @@ public class Loader {
       return GosuClassLoader.instance().getBytes(type);
     }
 
-    // FIXME: Copied from PluginContainer. Why do we need to treat them specially?
-    if (strType.startsWith("com.guidewire.commons.metadata.proxy._generated.iface.")) {
-      strType = "entity." + strType.substring(strType.lastIndexOf('.') + 1);
-      IType type2 = TypeSystem.getByFullNameIfValid(strType);
-      if (type2 instanceof IJavaBackedType) {
-        return ((IJavaBackedType) type2).getBackingClass();
-      }
-    }
     return null;
   }
 

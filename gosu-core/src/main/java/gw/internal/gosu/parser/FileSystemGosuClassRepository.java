@@ -663,7 +663,7 @@ public class FileSystemGosuClassRepository implements IFileSystemGosuClassReposi
       _fileType = fileType;
       _innerClassParts = innerClassParts;
       _isTestClass = isTestClass;
-      _file = outerSfh.getFile();
+      _file = outerSfh != null ? outerSfh.getFile() : null;
     }
 
     @Override

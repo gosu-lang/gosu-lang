@@ -1599,7 +1599,7 @@ public abstract class ParserBase implements IParserPart
         isImplicit = coercionManager.coercionRequiresWarningIfImplicit(rhsType, lhsType);
       }
       if( bWarnOnCoercion &&
-          CommonServices.getEntityAccess().isWarnOnImplicitCoercionsOn() &&
+          CommonServices.getEntityAccess().getLanguageLevel().isWarnOnImplicitCoercionsOn() &&
           isImplicit )
       {
         if( CommonServices.getEntityAccess().getLanguageLevel().allowAllImplicitCoercions() )

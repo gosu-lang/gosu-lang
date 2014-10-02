@@ -24,9 +24,12 @@ import gw.xml.XmlElement;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Comparator;
+import java.util.HashMap;
 
 import javax.xml.XMLConstants;
 import javax.xml.namespace.QName;
+
+import static java.lang.String.format;
 
 /**
  * This is what the marshaller does, marshal, unmarshal, valid types, create schemas</desc>
@@ -58,8 +61,18 @@ public class XmlMarshaller {
     }
   };
 
+  private static final HashMap<IType, MarshalInfoFactory> _customMarshalInfoFactories =
+          new HashMap<IType, MarshalInfoFactory>();
+
   private XmlMarshaller() {
     
+  }
+
+  public static void addCustomMarshallerFactory(IType type, MarshalInfoFactory factory) {
+    MarshalInfoFactory prev = _customMarshalInfoFactories.put(type, factory);
+    if (prev != null && !prev.equals(factory)) {
+      throw new IllegalArgumentException(format("Custom marshaller factory already registered for type %s", type));
+    }
   }
 
   public static String createTargetNamespace( String prefix, IType type ) {
@@ -108,8 +121,12 @@ public class XmlMarshaller {
     if (type == null) {
       return null;
     }
+    MarshalInfoFactory factory = _customMarshalInfoFactories.get(type);
+    if (factory != null) {
+      return factory.createMarshalInfoForType(type, isComponent, serviceInfo);
+    }
     if ( type.isEnum() && serviceInfo != null && ! serviceInfo.getExposeEnumAsStringTypes().contains( type ) ) {
-       return new EnumMarshalInfo((IEnumType)type, isComponent); 
+       return new EnumTypeMarshalInfo((IEnumType)type, isComponent);
     }
     Pair<QName, XmlSimpleValueFactory> pair = XmlSchemaTypeToGosuTypeMappings.gosuToSchemaIfValid( type );
     if ( pair != null ) {

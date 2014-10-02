@@ -25,6 +25,12 @@ public class PropertyReference<R, T> extends FeatureReference<R, T> implements I
     _pi = getPropertyInfo( rootType, property );
   }
 
+  public PropertyReference( IType rootType, IPropertyInfo property )
+  {
+    _rootType = rootType;
+    _pi = property;
+  }
+
   static IPropertyInfo getPropertyInfo( IType rootType, String propName )
   {
     ITypeInfo typeInfo = rootType.getTypeInfo();
