@@ -2972,14 +2972,14 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
       symbol = new ScopedDynamicSymbol( getSymbolTable(), strIdentifier, getGosuClass().getName(), type, varStmt.getScope() );
     }
     modifiers.addAll( symbol.getModifierInfo() );
-    symbol.setModifierInfo( modifiers );
-    varStmt.setSymbol( symbol );
-    varStmt.setNameOffset( iNameStart, T._strValue );
     if( varStmt.isPrivate() )
     {
       // Ensure private bit is explicit
       modifiers.setModifiers( Modifier.setPrivate( modifiers.getModifiers(), true ) );
     }
+    symbol.setModifierInfo( modifiers );
+    varStmt.setSymbol( symbol );
+    varStmt.setNameOffset( iNameStart, T._strValue );
 
     if( bAlreadyDefined )
     {
