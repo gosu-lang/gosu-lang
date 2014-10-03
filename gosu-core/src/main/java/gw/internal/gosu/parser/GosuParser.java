@@ -141,6 +141,7 @@ import gw.lang.reflect.ICanBeAnnotation;
 import gw.lang.reflect.IConstructorInfo;
 import gw.lang.reflect.IConstructorType;
 import gw.lang.reflect.IEnumType;
+import gw.lang.reflect.IEnumValue;
 import gw.lang.reflect.IErrorType;
 import gw.lang.reflect.IFunctionType;
 import gw.lang.reflect.IInvocableType;
@@ -5621,13 +5622,11 @@ public final class GosuParser extends ParserBase implements IGosuParser
     IType contextType = getContextType().getType();
     if( contextType != null )
     {
-      if( contextType.isEnum() )
+      if( contextType.isEnum() || TypeSystem.get(IEnumValue.class).isAssignableFrom(contextType) )
       {
-        IEnumType enumAccess = (IEnumType)contextType;
-
         try
         {
-          IPropertyInfo property = enumAccess.getTypeInfo().getProperty( strConstValue );
+          IPropertyInfo property = contextType.getTypeInfo().getProperty( strConstValue );
           if( property != null && property.isStatic() )
           {
             MemberAccess ma = new MemberAccess();
