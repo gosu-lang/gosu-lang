@@ -109,6 +109,7 @@ import java.util.Set;
 public class GosuClassTransformer extends AbstractElementTransformer<ClassStatement>
 {
   public static final String ENUM_VALUES_FIELD = "ENUM$VALUES";
+  public static final String ENHANCED_TYPE_FIELD = "ENHANCED$TYPE";
 
   private IGosuClassInternal _gsClass;
   private EnumOrdinalCounter _enumCounter;
@@ -319,6 +320,26 @@ public class GosuClassTransformer extends AbstractElementTransformer<ClassStatem
       fieldDecl.setAnnotations( getIRAnnotations( makeAnnotationInfos( ((VarStatement)field).getAnnotations(), getGosuClass().getTypeInfo() ) ) );
       _irClass.addField( fieldDecl );
     }
+
+    maybeAddEnhancedTypeMarkerField();
+  }
+
+  /**
+   * If this is an enhancement, add a (hacky) marker field to indicate the enhanced type for tooling.  E.g.,
+   *  private static final <enhanced-type> ENHNANCED$TYPE;
+   *
+   */
+  private void maybeAddEnhancedTypeMarkerField() {
+    if( getGosuClass() instanceof IGosuEnhancementInternal ) {
+      int iModifiers = Opcodes.ACC_STATIC | Opcodes.ACC_FINAL | Opcodes.ACC_SYNTHETIC;
+      iModifiers |= (BytecodeOptions.isSingleServingLoader() ? Opcodes.ACC_PUBLIC : Opcodes.ACC_PRIVATE);
+      IRFieldDecl enhancedTypeMarkerField = new IRFieldDecl( iModifiers,
+                                               false,
+                                               ENHANCED_TYPE_FIELD,
+                                               IRTypeResolver.getDescriptor( ((IGosuEnhancementInternal)getGosuClass()).getEnhancedType() ),
+                                               null );
+      _irClass.addField( enhancedTypeMarkerField );
+    }
   }
 
   private void addStaticFields()
@@ -337,7 +358,7 @@ public class GosuClassTransformer extends AbstractElementTransformer<ClassStatem
 
     // Enums automatically get a synthetic field that holds an array of all enum values
     // in the appropriate order and which is used to implement values() method.  The field
-    // is intialized statically, immediately after all the enum constants have been initialized.
+    // is initialized statically, immediately after all the enum constants have been initialized.
     if( _gsClass.isEnum() )
     {
       int iModifiers = Opcodes.ACC_STATIC | Opcodes.ACC_FINAL | Opcodes.ACC_SYNTHETIC;
