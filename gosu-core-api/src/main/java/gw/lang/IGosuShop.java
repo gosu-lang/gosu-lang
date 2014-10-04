@@ -29,7 +29,6 @@ import gw.lang.parser.exceptions.ParseException;
 import gw.lang.parser.expressions.IIdentifierExpression;
 import gw.lang.parser.expressions.INullExpression;
 import gw.lang.parser.template.ITemplateHost;
-import gw.lang.parser.template.ITemplateObserver;
 import gw.lang.parser.template.TemplateParseException;
 import gw.lang.reflect.IAnnotationInfo;
 import gw.lang.reflect.IAnnotationInfoFactory;
@@ -164,8 +163,6 @@ public interface IGosuShop extends IService
   IMetaType createMetaType(IType type, boolean literal);
 
   byte[] updateReloadClassesIndicator( List<String> changedTypes, String strScript );
-
-  ITemplateObserver.ITemplateObserverManager makeTemplateObserverManager();
 
   void print( Object ret );
 

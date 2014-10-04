@@ -10,13 +10,10 @@ import gw.lang.parser.ISymbol;
 import gw.lang.parser.ISymbolTable;
 import gw.lang.parser.StandardSymbolTable;
 import gw.lang.parser.template.ITemplateGenerator;
-import gw.lang.parser.template.ITemplateObserver;
 import gw.lang.parser.template.StringEscaper;
 import gw.lang.parser.template.TemplateParseException;
-import gw.lang.reflect.IType;
 import gw.lang.reflect.gs.ITemplateType;
 import gw.lang.reflect.java.JavaTypes;
-import gw.util.Stack;
 
 import java.io.StringWriter;
 import java.io.Writer;
@@ -27,24 +24,11 @@ import java.util.List;
  */
 public abstract class TemplateRenderer
 {
-  static final ThreadLocal<Stack<ITemplateObserver>> OBSERVERS_STACK = new ThreadLocal<Stack<ITemplateObserver>>();
-  private static final ITemplateObserver BASIC_OBSERVER = new ITemplateObserver() {
-    @Override
-    public boolean beforeTemplateRender(IType type, Writer writer) {
-      return true;
-    }
-
-    @Override
-    public StringEscaper getEscaper() {
-      return null;
-    }
-
-    @Override
-    public void afterTemplateRender(IType type, Writer writer) {
-    }
-  };
-
   public static void render( ITemplateType type, Writer writer, Object[] args )
+  {
+    render( type, writer, null, args );
+  }
+  public static void render( ITemplateType type, Writer writer, StringEscaper escaper, Object[] args )
   {
     ISymbolTable symbolTable;
     symbolTable = new StandardSymbolTable();
@@ -62,22 +46,18 @@ public abstract class TemplateRenderer
       symbolTable.putSymbol( new Symbol( "writer", JavaTypes.getJreType( Writer.class ), writer ) );
     }
 
-    ITemplateObserver currentObserver = getCurrentObserver();
-    if (currentObserver.beforeTemplateRender(type, writer)) {
-      CompiledGosuClassSymbolTable.instance().pushCompileTimeSymbolTable( symbolTable );
-      try
-      {
-        templateGenerator.execute( writer, currentObserver.getEscaper(), CompiledGosuClassSymbolTable.instance() );
-      }
-      catch( TemplateParseException e )
-      {
-        throw new RuntimeException( e );
-      }
-      finally
-      {
-        CompiledGosuClassSymbolTable.instance().popCompileTimeSymbolTable();
-      }
-      currentObserver.afterTemplateRender(type, writer);
+    CompiledGosuClassSymbolTable.instance().pushCompileTimeSymbolTable( symbolTable );
+    try
+    {
+      templateGenerator.execute( writer, escaper, CompiledGosuClassSymbolTable.instance() );
+    }
+    catch( TemplateParseException e )
+    {
+      throw new RuntimeException( e );
+    }
+    finally
+    {
+      CompiledGosuClassSymbolTable.instance().popCompileTimeSymbolTable();
     }
   }
 
@@ -100,50 +80,19 @@ public abstract class TemplateRenderer
       symbolTable.putSymbol( new Symbol( "writer", JavaTypes.getJreType( Writer.class ), writer ) );
     }
 
-    ITemplateObserver currentObserver = getCurrentObserver();
-    if (currentObserver.beforeTemplateRender(type, writer)) {
-      CompiledGosuClassSymbolTable.instance().pushCompileTimeSymbolTable( symbolTable );
-      try
-      {
-        type.getTemplateGenerator().execute( writer, currentObserver.getEscaper(), CompiledGosuClassSymbolTable.instance() );
-      }
-      catch( TemplateParseException e )
-      {
-        throw new RuntimeException( e );
-      }
-      finally
-      {
-        CompiledGosuClassSymbolTable.instance().popCompileTimeSymbolTable();
-      }
-      currentObserver.afterTemplateRender(type, writer);
+    CompiledGosuClassSymbolTable.instance().pushCompileTimeSymbolTable( symbolTable );
+    try
+    {
+      type.getTemplateGenerator().execute( writer, null, CompiledGosuClassSymbolTable.instance() );
+    }
+    catch( TemplateParseException e )
+    {
+      throw new RuntimeException( e );
+    }
+    finally
+    {
+      CompiledGosuClassSymbolTable.instance().popCompileTimeSymbolTable();
     }
     return writer.toString();
-  }
-
-  public static ITemplateObserver getCurrentObserver() {
-    Stack<ITemplateObserver> iTemplateObserverStack = OBSERVERS_STACK.get();
-    if (iTemplateObserverStack == null || iTemplateObserverStack.size() == 0) {
-      return BASIC_OBSERVER;
-    } else {
-      return iTemplateObserverStack.peek();
-    }
-  }
-
-  public static void pushTemplateObserver(ITemplateObserver observer) {
-    Stack<ITemplateObserver> iTemplateObserverStack = OBSERVERS_STACK.get();
-    if (iTemplateObserverStack == null) {
-      iTemplateObserverStack = new Stack<ITemplateObserver>();
-      OBSERVERS_STACK.set(iTemplateObserverStack);
-    }
-    iTemplateObserverStack.push(observer);
-  }
-
-  public static void popTemplateObserver() {
-    Stack<ITemplateObserver> iTemplateObserverStack = OBSERVERS_STACK.get();
-    if (iTemplateObserverStack == null) {
-      iTemplateObserverStack = new Stack<ITemplateObserver>();
-      OBSERVERS_STACK.set(iTemplateObserverStack);
-    }
-    iTemplateObserverStack.pop();
   }
 }
