@@ -830,10 +830,26 @@ public class GosuClassTransformer extends AbstractElementTransformer<ClassStatem
       return null;
     }
     IJavaType javaSuperType = (IJavaType)((IGosuClass)gsClass).getJavaType().getSupertype();
-    if( javaSuperType == null )
+    if( javaSuperType != null )
     {
-      return null;
+      DynamicFunctionSymbol superDfs = getSuperDfs( dfs, gsClass, javaSuperType );
+      if( superDfs != null ) {
+        return superDfs;
+      }
     }
+    IType[] interfaces = ((IGosuClass)gsClass).getJavaType().getInterfaces();
+    if( interfaces != null ) {
+      for( IType iface : interfaces ) {
+        DynamicFunctionSymbol superDfs = getSuperDfs( dfs, gsClass, (IJavaType)iface );
+        if( superDfs != null ) {
+          return superDfs;
+        }
+      }
+    }
+    return null;
+  }
+
+  private DynamicFunctionSymbol getSuperDfs( DynamicFunctionSymbol dfs, IType gsClass, IJavaType javaSuperType ) {
     IGosuClassInternal gosuSuperType = IGosuClassInternal.Util.getGosuClassFrom( javaSuperType );
     if( gosuSuperType == null )
     {
