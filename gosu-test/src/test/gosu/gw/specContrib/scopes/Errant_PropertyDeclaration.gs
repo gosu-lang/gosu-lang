@@ -54,7 +54,7 @@ class Errant_PropertyDeclaration {
   }
 
   class B extends A {
-    var b: int as MyParentProp     //## issuekeys: MSG_PROPERTY_ALREADY_DEFINED
+    var b: int as MyParentProp
   }
 
   class Hello {

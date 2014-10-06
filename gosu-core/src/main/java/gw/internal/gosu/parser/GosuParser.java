@@ -9172,8 +9172,9 @@ public final class GosuParser extends ParserBase implements IGosuParser
       symbol = null;
     }
     if( symbol instanceof DynamicPropertySymbol &&
-            (((DynamicPropertySymbol)symbol).getVarIdentifier() != null &&
-                    !((DynamicPropertySymbol)symbol).getVarIdentifier().equals( strVarIdentifier) ) )
+        symbol.getGosuClass() == getGosuClass() &&
+        (((DynamicPropertySymbol)symbol).getVarIdentifier() != null &&
+        !((DynamicPropertySymbol)symbol).getVarIdentifier().equals( strVarIdentifier) ) )
     {
       varStmt.addParseException( new ParseException( makeFullParserState(), Res.MSG_PROPERTY_ALREADY_DEFINED, strPropertyName) );
     }
