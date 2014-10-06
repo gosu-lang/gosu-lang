@@ -59,7 +59,6 @@ import gw.lang.reflect.gs.IGosuArrayClass;
 import gw.lang.reflect.gs.IGosuClass;
 import gw.lang.reflect.gs.IGosuEnhancement;
 import gw.lang.reflect.gs.ISourceFileHandle;
-import gw.lang.reflect.gs.StringSourceFileHandle;
 import gw.lang.reflect.java.IJavaType;
 import gw.lang.reflect.java.JavaTypes;
 import gw.lang.reflect.module.IModule;
@@ -130,7 +129,6 @@ public class GosuClass extends AbstractType implements IGosuClassInternal
   transient private GosuParser _parser;
   transient private ITypeUsesMap _typeUsesMap;
   transient private ModifierInfo _modifierInfo;
-  transient private boolean _bCompiledToUberModule;
   transient private boolean _bHasAssertions;
 
   public GosuClass( String strNamespace, String strRelativeName, GosuClassTypeLoader classTypeLoader,
@@ -2762,7 +2760,7 @@ public class GosuClass extends AbstractType implements IGosuClassInternal
 
   private static boolean isAssignable( DynamicFunctionSymbol implDfs, IFunctionType ifaceFuncType )
   {
-    if( ifaceFuncType.isAssignableFrom( implDfs.getType() ) )
+    if( ifaceFuncType.isAssignableFrom( implDfs.getType(), false ) )
     {
       return true;
     }
