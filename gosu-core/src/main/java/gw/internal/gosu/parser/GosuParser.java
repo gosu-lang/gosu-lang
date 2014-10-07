@@ -1867,6 +1867,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
     int iOffset = _tokenizer.getTokenStart();
     int iLineNum = _tokenizer.getLineNumber();
     int iColumn = getTokenizer().getTokenColumn();
+    boolean matchOldNotEqOp = false;
 
     parseRelationalExpression();
 
@@ -1907,13 +1908,13 @@ public final class GosuParser extends ParserBase implements IGosuParser
         pushExpression( e );
       }
       else if( match( T, "==", SourceCodeTokenizer.TT_OPERATOR ) ||
-              match( T, "!=", SourceCodeTokenizer.TT_OPERATOR ) ||
-              match( T, "<>", SourceCodeTokenizer.TT_OPERATOR ) )
+               match( T, "!=", SourceCodeTokenizer.TT_OPERATOR ) ||
+              (matchOldNotEqOp = match( T, "<>", SourceCodeTokenizer.TT_OPERATOR )) )
       {
-
         EqualityExpression e = new EqualityExpression();
         Expression lhs = popExpression();
 
+        verify(e, !matchOldNotEqOp, Res.MSG_OBSOLETE_NOT_EQUAL_OP);
         pushInferredContextTypes( new ContextType( lhs.getType() ) );
         try
         {
@@ -3049,7 +3050,6 @@ public final class GosuParser extends ParserBase implements IGosuParser
       match( null, "*.", SourceCodeTokenizer.TT_OPERATOR, true ) ||
       match( null, "==", SourceCodeTokenizer.TT_OPERATOR, true ) ||
       match( null, "!=", SourceCodeTokenizer.TT_OPERATOR, true ) ||
-      match( null, "<>", SourceCodeTokenizer.TT_OPERATOR, true ) ||
       match( null, "===", SourceCodeTokenizer.TT_OPERATOR, true ) ||
       match( null, "!==", SourceCodeTokenizer.TT_OPERATOR, true ) ||
       match( null, "#", SourceCodeTokenizer.TT_OPERATOR, true ) ||

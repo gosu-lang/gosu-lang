@@ -275,6 +275,7 @@ public class Res
   public static final ResourceKey MSG_NOT_A_VALID_EXCEPTION_TYPE = new ResourceKey("MSG_NOT_A_VALID_EXCEPTION_TYPE");
   public static final ResourceKey MSG_CANNOT_INFER_ARGUMENT_TYPE_AT_THIS_POSTION = new ResourceKey("MSG_CANNOT_INFER_ARGUMENT_TYPE_AT_THIS_POSTION");
   public static final ResourceKey MSG_OBSOLETE_CTOR_SYNTAX = new ResourceKey("MSG_OBSOLETE_CTOR_SYNTAX");
+  public static final ResourceKey MSG_OBSOLETE_NOT_EQUAL_OP = new ResourceKey("MSG_OBSOLETE_NOT_EQUAL_OP");
   public static final ResourceKey MSG_MUST_BE_IN_OUTER_TO_CONSTRUCT_INNER = new ResourceKey("MSG_MUST_BE_IN_OUTER_TO_CONSTRUCT_INNER");
   public static final ResourceKey MSG_TYPE_DOES_NOT_HAVE_EMPTY_CONSTRUCTOR = new ResourceKey("MSG_TYPE_DOES_NOT_HAVE_EMPTY_CONSTRUCTOR");
   public static final ResourceKey MSG_ENHANCEMENT_DOES_NOT_ACCEPT_THIS_STATEMENT = new ResourceKey("MSG_ENHANCEMENT_DOES_NOT_ACCEPT_THIS_STATEMENT");
