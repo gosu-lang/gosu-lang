@@ -226,22 +226,19 @@ public class MethodScorer {
     return type;
   }
 
-  private static class MethodScoreCache extends HashMap<MethodScoreKey, IInvocableType> {
+  private static class MethodScoreCache extends HashMap<MethodScoreKey, IInvocableType> implements ITypeLoaderListener {
     MethodScoreCache() {
-      //super( 2000 );
-      TypeSystem.addTypeLoaderListenerAsWeakRef( new CacheClearer() );
+      TypeSystem.addTypeLoaderListenerAsWeakRef( this );
     }
 
-    private class CacheClearer extends AbstractTypeSystemListener {
-      @Override
-      public void refreshed() {
-        clear();
-      }
+    @Override
+    public void refreshed() {
+      clear();
+    }
 
-      @Override
-      public void refreshedTypes( RefreshRequest request ) {
-        clear();
-      }
+    @Override
+    public void refreshedTypes( RefreshRequest request ) {
+      clear();
     }
   }
 
