@@ -51,23 +51,22 @@ public class MethodScorer {
   public List<MethodScore> scoreMethods( List<IInvocableType> funcTypes, List<IType> argTypes, List<IType> inferringTypes ) {
     List<MethodScore> scores = new ArrayList<MethodScore>();
     for( IInvocableType funcType : funcTypes ) {
-      scores.add( scoreMethod( funcType, Collections.<IInvocableType>emptyList(), argTypes, inferringTypes, funcTypes.size() == 1 ) );
+      scores.add( scoreMethod( funcType, Collections.<IInvocableType>emptyList(), argTypes, inferringTypes, funcTypes.size() == 1, true ) );
     }
     Collections.sort( scores );
     return scores;
   }
 
-  public MethodScore scoreMethod( IInvocableType funcType, List<? extends IInvocableType> listFunctionTypes, List<IType> argTypes, List<IType> inferringTypes, boolean bSkipScoring ) {
+  public MethodScore scoreMethod( IInvocableType funcType, List<? extends IInvocableType> listFunctionTypes, List<IType> argTypes, List<IType> inferringTypes, boolean bSkipScoring, boolean bLookInCache ) {
     MethodScore score = new MethodScore();
     score.setValid( true );
     if( !bSkipScoring ) {
-      IInvocableType cachedFuncType = getCachedMethodScore( funcType, argTypes );
+      IInvocableType cachedFuncType = bLookInCache ? getCachedMethodScore( funcType, argTypes ) : null;
       cachedFuncType = matchInOverloads( listFunctionTypes, cachedFuncType );
       if( cachedFuncType != null ) {
         // Found cached function type, no need for further scoring
         score.setRawFunctionType( cachedFuncType );
         score.setScore( 0 );
-        score.setBest();
       }
       else {
         // Perform method scoring
@@ -306,6 +305,17 @@ public class MethodScorer {
       result = 31 * result + (_enclosingType != null ? _enclosingType.hashCode() : 0);
       result = 31 * result + _argTypes.hashCode();
       return result;
+    }
+
+    @Override
+    public String toString() {
+      String ret = "_methodName " + _methodName + "\n"
+           + "_enclosingType " + _enclosingType.getName() + "\n"
+           + "_argTypes ";
+      for( IType a : _argTypes ) {
+        ret += " " + a.getName() + "\n";
+      }
+      return ret;
     }
   }
 }

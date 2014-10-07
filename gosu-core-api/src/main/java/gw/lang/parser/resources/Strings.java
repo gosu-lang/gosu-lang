@@ -292,6 +292,7 @@ public class Strings extends ListResourceBundle
        {Res.MSG_NOT_A_VALID_EXCEPTION_TYPE.getKey(), "{0} does not extend Throwable, and cannot be caught."},
        {Res.MSG_CANNOT_INFER_ARGUMENT_TYPE_AT_THIS_POSTION.getKey(), "The argument {0} must provide a type declaration, because it cannot be inferred."},
        {Res.MSG_OBSOLETE_CTOR_SYNTAX.getKey(), "This constructor syntax is obsolete. Use the 'construct' keyword instead."},
+       {Res.MSG_OBSOLETE_NOT_EQUAL_OP.getKey(), "The <> operator is obsolete and must be replaced with !="},
        {Res.MSG_MUST_BE_IN_OUTER_TO_CONSTRUCT_INNER.getKey(), "Must be in or derive from class {0} to construct non-static inner class {1}."},
        {Res.MSG_TYPE_DOES_NOT_HAVE_EMPTY_CONSTRUCTOR.getKey(), "The type {0} does not have a default constructor and cannot be implicitly created here."},
        {Res.MSG_ENHANCEMENT_DOES_NOT_ACCEPT_THIS_STATEMENT.getKey(), "Enhancements cannot have statements of this type."},
