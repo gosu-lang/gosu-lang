@@ -32,7 +32,49 @@ its run-time value is an object of class String, a subclass of Object.
 Table of Expression Forms
 =========================
 
-TODO
+
+The table of expression forms shows the form, meaning, associativity, argument
+(operand) types, and result types for expressions. The expressions are grouped
+according to precedence, as indicated by the horizontal rules, from high
+precedence to low precedence. Higher-precedence forms are evaluated before
+lower-precedence forms. Parentheses may be used to emphasize or force a
+particular order of evaluation.
+
+When an operator (such as ``+``) is left-associative, a sequence ``e1 + e2 +
+e3`` of operators is evaluated as if parenthesized ``(e1 + e2) + e3``. When an
+operator (such as ``=``) is right-associative, a sequence ``e1 = e2 = e3`` of
+operators is evaluated as if parenthesized ``e1 = (e2 = e3)``.
+
+In the argument type and result type columns of the table, *integer* stands for
+any of ``char``, ``byte``, ``short``, ``int``, ``long`` or ``BigInteger`` (TODO
+Add dimensiona and maybe more?), or their boxed forms Character, Byte, Short,
+Integer or Long (section XXX); and *numeric* stands for integer or ``float`` or
+``double`` or ``BigDecimal``, or their boxed forms Float or Double. The type
+*boolean* stands for ``boolean`` or its boxed form Boolean.
+
+For an operator with one integer or numeric operand, the *promotion type* is
+``double`` if the operand has type ``double``; it is ``float`` if the operand
+has type ``float``; it is ``long`` if the operand has type ``long``; otherwise
+it is ``int`` (that is, if the operand has type ``byte``, ``char``, ``short``,
+or ``int``). TODO add BigXXX to the mix and dimensions
+
+For an operator with two integer or numeric operands (except the shift
+operators; section XXX), the promotion type is ``double`` if any operand has
+type ``double``; otherwise, it is ``float`` if any operand has type ``float``;
+otherwise, it is ``long`` if any operand has type ``long``; otherwise it is
+``int``.
+
+Before the operation is performed, the operands are promoted, that is,
+converted to the promotion type by a widening type conversion (section XXX).
+
+If the result type is given as numeric also, it equals the promotion type. For
+example, ``10 / 3`` has type ``int``, whereas ``10 / 3.0`` has type ``double``,
+and ``c + 1 as byte`` has type ``int`` when ``c`` has type ``char``.
+
+
+
+
+TODO TABLE
 
 Arithmetic Operators
 ====================
@@ -261,7 +303,7 @@ It is informative to contrast a non-static field access and a non-static method 
 
 PROPERTY ACCESS
 ?.
-*. 
+\*. 
 super.a property 
   
 
@@ -403,7 +445,7 @@ In an instance method call ``o.M(`` *actual-list* ``)``, arguments names used in
 Type Cast Expressions and Type Conversion
 =========================================
 
-.. index:: tyep cast, type conversion
+.. index:: type cast, type conversion
 
 A *type conversion* converts a value from one type to another. A *widening* conversion converts from a
 type to a supertype. A *narrowing* conversion converts from a type to another type. This requires an

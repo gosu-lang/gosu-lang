@@ -15,6 +15,7 @@ class Errant_CollectionAndMapInitializersTest {
     var x10  =  new String() {1, 2, 3}  //## issuekeys: MSG_UNEXPECTED_TOKEN, MSG_UNEXPECTED_TOKEN, MSG_UNEXPECTED_TOKEN, MSG_UNEXPECTED_TOKEN, MSG_UNEXPECTED_TOKEN
     var x15 : Collection = new ArrayList(2) {1, 2, 3}
     var x16 : List = new ArrayList({4,5}) {1, 2, 3}
+    var list2 : List = {"a", 1}
   }
 
   function testBasicMap() {
@@ -22,6 +23,9 @@ class Errant_CollectionAndMapInitializersTest {
     var x2 = { 1-> "2", 2 -> "4"}
     var x3 : Map = {{1->2} -> 3}
     var x1 : Map = { 1, 2 -> 3}  //## issuekeys: MSG_EXPECTING_ARROW_AFTER_MAP_KEY
+    var hash5 : Map = {1 -> "a", 1}   //## issuekeys: MSG_EXPECTING_ARROW_AFTER_MAP_KEY
+    var hash1 : Map = {1, 1, "foo"}  //## issuekeys: MSG_EXPECTING_ARROW_AFTER_MAP_KEY, MSG_EXPECTING_ARROW_AFTER_MAP_KEY, MSG_EXPECTING_ARROW_AFTER_MAP_KEY
+    var hash7 : Map = { {1 -> 2} -> 3 }
   }
 
   function testErrors(){

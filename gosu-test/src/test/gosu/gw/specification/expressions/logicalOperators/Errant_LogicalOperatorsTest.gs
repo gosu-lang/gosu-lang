@@ -9,6 +9,8 @@ uses java.util.LinkedList
 
 class Errant_LogicalOperatorsTest {
 
+  class K {}
+
   function testEqualityOperator() {
     var r : boolean
 
@@ -97,6 +99,22 @@ class Errant_LogicalOperatorsTest {
     r = a74 == b74
     var b75 = new int[] {1,2,3}
     r = a7 == b75  //## issuekeys: MSG_TYPE_MISMATCH
+    var a76 : int = 8
+    var b76 : boolean = true
+    r = a76 == b76  //## issuekeys: MSG_IMPLICIT_COERCION_ERROR
+    var a77 : int = 8
+    var b77 : Object
+    r = a77 == b77  //## issuekeys: MSG_ASYMMETRICAL_COMPARISON
+    var a78 : int = 8
+    var b78 : String = "hello"
+    r = a78 == b78
+    var a79 : int = 8
+    var b79 : K
+    r = a79 == b79  //## issuekeys: MSG_TYPE_MISMATCH
+    var a80 : K
+    var b80 : Object
+    r = a80 == b80
+    r =  {1->4, 5->6} != {1, 2, 3}  //## issuekeys: MSG_EXPECTING_ARROW_AFTER_MAP_KEY, MSG_EXPECTING_ARROW_AFTER_MAP_KEY, MSG_EXPECTING_ARROW_AFTER_MAP_KEY
   }
 
   function testIdentityOperator() {
@@ -147,6 +165,12 @@ class Errant_LogicalOperatorsTest {
 
     r = !setX(1, true)
     r = !setX(1, false)
+    var y0 = (4 > 3) && ("string" == "hello")
+    var y1 = 8 || "hello"      //## issuekeys: MSG_IMPLICIT_COERCION_ERROR
+    var y2 = !false || !2       //## issuekeys: MSG_IMPLICIT_COERCION_ERROR
+    var y3 = true or false
+    var y4 = true and 5  //## issuekeys: MSG_IMPLICIT_COERCION_ERROR
+    var y5 = !not true
   }
 
 }

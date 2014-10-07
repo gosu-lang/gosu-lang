@@ -29,6 +29,17 @@ class StringTest extends BaseVerifyErrantTest {
     var x = 3
     var a = new A()
     assertTrue(((""+x+a).equals(String.valueOf(x).concat(a.toString()))))
+    var s6 = "A" + null
+    assertTrue(s6.equals("Anull"))
+    var b : char = 'B'
+    var s7 = "A" + b
+    assertTrue(s7.equals("AB"))
+    var s8 = "A" + 8
+    assertTrue(s8.equals("A8"))
+    var s9 =  8 + "A"
+    assertTrue(s9.equals("8A"))
+    var s10 = "A" + true
+    assertTrue(s10.equals("Atrue"))
 
   }
 

@@ -52,7 +52,7 @@ class VictorTetstTest extends TestClass {
   
     static function iff<T>(b : boolean, p() : T) : Option<T> { return b ? some(p()) : none<T>() }
   
-    static function nonNull<T>(t : T) : Option<T> { return iff(t <> null, t) }
+    static function nonNull<T>(t : T) : Option<T> { return iff(t != null, t) }
   
     static function IsNone<T>() : block(t : Option<T>) : boolean { return \ t : Option<T> -> t.IsNone }
   
@@ -174,7 +174,7 @@ class VictorTetstTest extends TestClass {
       mbox = _qs.queue<A>() 
       act = Actor.of(s, \ u : Unit -> {  
         var a = mbox.poll()     
-        if (a <> null) { 
+        if (a != null) {
           _f(a) 
           return act.act(u) 
         } else {  

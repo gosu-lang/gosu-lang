@@ -123,12 +123,4 @@ public final class MethodScore implements Comparable<MethodScore>
       _namedArgOrder = null;
     }
   }
-
-  public boolean isBest() {
-    return _best;
-  }
-
-  public void setBest() {
-    _best = true;
-  }
 }

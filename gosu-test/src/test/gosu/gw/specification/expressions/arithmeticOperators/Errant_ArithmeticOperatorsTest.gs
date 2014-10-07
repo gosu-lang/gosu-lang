@@ -12,6 +12,7 @@ class Errant_ArithmeticOperatorsTest {
     c = a-b
     c = a*b
     c = a/b
+    c = a + null  //## issuekeys: MSG_TYPE_MISMATCH
   }
 
   function testBasicDouble() {
