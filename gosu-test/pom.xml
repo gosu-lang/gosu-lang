@@ -2,7 +2,7 @@
   <parent>
     <groupId>org.gosu-lang.gosu</groupId>
     <artifactId>gosu-parent</artifactId>
-    <version>1.X-SNAPSHOT</version>
+    <version>1-perf-SNAPSHOT</version>
     <relativePath>../gosu-parent/pom.xml</relativePath>
   </parent>
   <modelVersion>4.0.0</modelVersion>
@@ -15,27 +15,27 @@
     <dependency>
       <groupId>org.gosu-lang.gosu</groupId>
       <artifactId>gosu-test-api</artifactId>
-      <version>1.X-SNAPSHOT</version>
+      <version>1-perf-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.gosu-lang.gosu</groupId>
       <artifactId>gosu-core</artifactId>
-      <version>1.X-SNAPSHOT</version>
+      <version>1-perf-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.gosu-lang.gosu</groupId>
       <artifactId>gosu-interactive</artifactId>
-      <version>1.X-SNAPSHOT</version>
+      <version>1-perf-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.gosu-lang.gosu</groupId>
       <artifactId>gosu-process</artifactId>
-      <version>1.X-SNAPSHOT</version>
+      <version>1-perf-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.gosu-lang.gosu</groupId>
       <artifactId>gosu-servlet</artifactId>
-      <version>1.X-SNAPSHOT</version>
+      <version>1-perf-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.easytesting</groupId>
