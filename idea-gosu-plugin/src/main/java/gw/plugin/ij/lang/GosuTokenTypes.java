@@ -115,6 +115,14 @@ public class GosuTokenTypes {
   public static final GosuElementType TT_session = addKeyword("session");
   public static final GosuElementType TT_application = addKeyword("application");
   public static final GosuElementType TT_void = addKeyword("void");
+  public static final GosuElementType TT_boolean = addKeyword("boolean");
+  public static final GosuElementType TT_char = addKeyword("char");
+  public static final GosuElementType TT_byte = addKeyword("byte");
+  public static final GosuElementType TT_short = addKeyword("short");
+  public static final GosuElementType TT_int = addKeyword("int");
+  public static final GosuElementType TT_long = addKeyword("long");
+  public static final GosuElementType TT_float = addKeyword("float");
+  public static final GosuElementType TT_double = addKeyword("double");
   public static final GosuElementType TT_block = addKeyword("block");
   public static final GosuElementType TT_enhancement = addKeyword("enhancement");
   public static final GosuElementType TT_classpath = addKeyword("classpath");

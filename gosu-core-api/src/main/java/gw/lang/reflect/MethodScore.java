@@ -17,6 +17,7 @@ public final class MethodScore implements Comparable<MethodScore>
   private List<IExpression> _exprs;
   private List _parserStates;
   private int[] _namedArgOrder;
+  private boolean _best;
 
   /**
    * @return true if this score represents an actual matching method score rather than

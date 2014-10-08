@@ -120,23 +120,23 @@ class Errant_FunctionProblems {
       return false
     }
 
-    override function containsAll( c: java.util.Collection <?> ): boolean{
+    override function containsAll( c: java.util.Collection <Object> ): boolean{
       return false
     }
 
-    override function addAll( c: java.util.Collection <? extends T> ): boolean{
+    override function addAll( c: java.util.Collection <T> ): boolean{
       return false
     }
 
-    override function addAll( index: int, c: java.util.Collection <? extends T> ): boolean{
+    override function addAll( index: int, c: java.util.Collection <T> ): boolean{
       return false
     }
 
-    override function removeAll( c: java.util.Collection <?> ): boolean{
+    override function removeAll( c: java.util.Collection <Object> ): boolean{
       return false
     }
 
-    override function retainAll( c: java.util.Collection <?> ): boolean{
+    override function retainAll( c: java.util.Collection <Object> ): boolean{
       return false
     }
 

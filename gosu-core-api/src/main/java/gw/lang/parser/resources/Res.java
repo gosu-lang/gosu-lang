@@ -212,6 +212,7 @@ public class Res
   public static final ResourceKey MSG_NON_PRIVATE_MEMBERS_MUST_DECLARE_TYPE = new ResourceKey("MSG_NON_PRIVATE_MEMBERS_MUST_DECLARE_TYPE");
   public static final ResourceKey MSG_DELEGATES_CANNOT_BE_STATIC = new ResourceKey("MSG_DELEGATES_CANNOT_BE_STATIC");
   public static final ResourceKey MSG_EXTENSION_CLASS_NOT_FOUND = new ResourceKey("MSG_EXTENSION_CLASS_NOT_FOUND");
+  public static final ResourceKey MSG_NO_WILDCARDS = new ResourceKey("MSG_NO_WILDCARDS");
   public static final ResourceKey MSG_CANNOT_CALL_METHOD_WITH_WILDCARD_PARAM = new ResourceKey("MSG_CANNOT_CALL_METHOD_WITH_WILDCARD_PARAM");
   public static final ResourceKey MSG_COULD_NOT_PARAMETERIZE = new ResourceKey("MSG_COULD_NOT_PARAMETERIZE");
   public static final ResourceKey MSG_USE_EXPANSION_OPERATOR = new ResourceKey("MSG_USE_EXPANSION_OPERATOR");
@@ -274,6 +275,7 @@ public class Res
   public static final ResourceKey MSG_NOT_A_VALID_EXCEPTION_TYPE = new ResourceKey("MSG_NOT_A_VALID_EXCEPTION_TYPE");
   public static final ResourceKey MSG_CANNOT_INFER_ARGUMENT_TYPE_AT_THIS_POSTION = new ResourceKey("MSG_CANNOT_INFER_ARGUMENT_TYPE_AT_THIS_POSTION");
   public static final ResourceKey MSG_OBSOLETE_CTOR_SYNTAX = new ResourceKey("MSG_OBSOLETE_CTOR_SYNTAX");
+  public static final ResourceKey MSG_OBSOLETE_NOT_EQUAL_OP = new ResourceKey("MSG_OBSOLETE_NOT_EQUAL_OP");
   public static final ResourceKey MSG_MUST_BE_IN_OUTER_TO_CONSTRUCT_INNER = new ResourceKey("MSG_MUST_BE_IN_OUTER_TO_CONSTRUCT_INNER");
   public static final ResourceKey MSG_TYPE_DOES_NOT_HAVE_EMPTY_CONSTRUCTOR = new ResourceKey("MSG_TYPE_DOES_NOT_HAVE_EMPTY_CONSTRUCTOR");
   public static final ResourceKey MSG_ENHANCEMENT_DOES_NOT_ACCEPT_THIS_STATEMENT = new ResourceKey("MSG_ENHANCEMENT_DOES_NOT_ACCEPT_THIS_STATEMENT");

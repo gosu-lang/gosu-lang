@@ -233,7 +233,7 @@ public class StandardCoercionManagerTest extends TestClass
     Object o = eval( "function foo() : Object { return java.lang.String as java.lang.Class } return foo()" );
     Assert.assertEquals( String.class, o );
 
-    o = eval( "function foo() : Object { return java.lang.String as java.lang.Class<?> } return foo()" );
+    o = eval( "function foo() : Object { return java.lang.String as java.lang.Class<Object> } return foo()" );
     Assert.assertEquals( String.class, o );
 
     o = eval( "function foo() : Object { return java.lang.String as java.lang.Class<String> } return foo()" );

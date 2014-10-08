@@ -138,11 +138,11 @@ public class JavaGenericsTest extends TestClass
     typeLiteral = (TypeLiteral)expr;
     IType typeString = typeLiteral.getType().getType();
 
-    expr = parseExpr( "java.util.ArrayList<? extends java.lang.CharSequence>" );
+    expr = parseExpr( "java.util.ArrayList<java.lang.CharSequence>" );
     typeLiteral = (TypeLiteral)expr;
     IType typeWild = typeLiteral.getType().getType();
 
-    expr = parseExpr( "java.util.ArrayList<?>" );
+    expr = parseExpr( "java.util.ArrayList<Object>" );
     typeLiteral = (TypeLiteral)expr;
     IType typeWildest = typeLiteral.getType().getType();
 
@@ -160,7 +160,7 @@ public class JavaGenericsTest extends TestClass
     typeLiteral = (TypeLiteral)expr;
     typeString = typeLiteral.getType().getType();
 
-    expr = parseExpr( "java.util.List<? extends java.lang.CharSequence>" );
+    expr = parseExpr( "java.util.List<java.lang.CharSequence>" );
     typeLiteral = (TypeLiteral)expr;
     typeWild = typeLiteral.getType().getType();
 
