@@ -71,4 +71,14 @@ class Errant_TypeCastExpressionsTest {
     var x11 = d as CharAt
   }
 
+  interface I0 {}
+  interface I1<T> {}
+  interface Bar extends I0 {}
+  class Foo<E extends I0> implements  I1<E>
+  {
+     function testgenericInterfacesClash() {
+       var ggg = this as I1<Bar>
+     }
+  }
+
 }
