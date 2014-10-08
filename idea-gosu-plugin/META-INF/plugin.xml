@@ -200,6 +200,12 @@
                        bundle="messages.Gosu"
                        level="ERROR"
                        implementationClass="gw.plugin.ij.codeInspection.method.GosuAmbiguousMethodCallInspection"/>
+      <localInspection language="Gosu" groupPath="Gosu" shortName="GosuWildCardInspection" enabledByDefault="false"
+                       key="inspection.wildcard"
+                       groupKey="inspection.group.name.upgrade.issues"
+                       bundle="messages.Gosu"
+                       level="ERROR"
+                       implementationClass="gw.plugin.ij.codeInspection.declaration.GosuWildCardInspection"/>
        <localInspection language="Gosu" groupPath="Gosu" shortName="GosuInferTypeInDeclaration" enabledByDefault="true"
                        key="inspection.variable.type.inferred"
                        groupKey="inspection.group.name.declaration.issues"

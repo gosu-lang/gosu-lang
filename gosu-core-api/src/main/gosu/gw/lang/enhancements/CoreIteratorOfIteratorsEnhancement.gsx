@@ -14,7 +14,7 @@ enhancement CoreIteratorOfIteratorsEnhancement<E, T extends Iterator<E>> : Itera
 
       override function hasNext() : boolean {
         this.maybeAdvanceCursor()
-        return _cur <> null and _cur.hasNext()
+        return _cur != null and _cur.hasNext()
       }
       
       override function next() : E {

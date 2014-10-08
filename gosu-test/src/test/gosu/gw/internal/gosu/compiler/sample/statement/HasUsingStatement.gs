@@ -70,18 +70,6 @@ class HasUsingStatement
     assertTrue( disposable2.Disposed )
   }
 
-  function testDisposableVarReassigned()
-  {
-    var disposable = new DisposableImpl()
-    assertFalse( disposable.Disposed )
-    using( var d = disposable )
-    {
-      assertFalse( d.Disposed )
-      d = null
-    }
-    assertTrue( disposable.Disposed )
-  }
-
   function testCloseableVar()
   {
     var sw = new StringWriter()

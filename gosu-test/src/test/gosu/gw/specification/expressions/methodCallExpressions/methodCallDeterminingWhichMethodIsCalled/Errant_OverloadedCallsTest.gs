@@ -1,6 +1,8 @@
 package gw.specification.expressions.methodCallExpressions.methodCallDeterminingWhichMethodIsCalled
 
 uses gw.specification.types.signaturesAndSubsumption.*
+uses java.util.*
+uses java.lang.Integer
 
 class Errant_OverloadedCallsTest {
   function callsWithPrimitives() {
@@ -157,4 +159,117 @@ class Errant_OverloadedCallsTest {
     k.m(new GDog(), new GDog())  //## issuekeys: MSG_AMBIGUOUS_METHOD_INVOCATION
 
   }
+
+  function initFun0(x : Set) {}
+  function initFun0(x : List) {}
+
+  function initFun1(x : HashSet) {}
+  function initFun1(x : ArrayList) {}
+
+  function initFun2(x : ArrayList<Integer>) {}
+  function initFun2(x : Integer[]) {}
+
+  function initFun3(x : ArrayList) {}
+  function initFun3(x : Object[]) {}
+
+  function initFun4(x : HashSet<Integer>) {}
+  function initFun4(x : ArrayList<Integer>) {}
+
+  function callsWithInitializer() {
+    initFun0( {1, 2})  //## issuekeys: MSG_AMBIGUOUS_METHOD_INVOCATION
+    initFun1( {1, 2})  //## issuekeys: MSG_AMBIGUOUS_METHOD_INVOCATION
+    initFun2( {1, 2})  //## issuekeys: MSG_AMBIGUOUS_METHOD_INVOCATION
+    initFun3( {1, 2})  //## issuekeys: MSG_AMBIGUOUS_METHOD_INVOCATION
+    initFun4( {1, 2})  //## issuekeys: MSG_AMBIGUOUS_METHOD_INVOCATION
+  }
+
+  class A {}
+  class B {}
+  class C {}
+
+  function fun(i: int, j: int): A {return null }
+  function fun(i: float, j: float): B {return null }
+
+  function caller() {
+    var r0 : A = fun(42.5f, 42)  //## issuekeys: MSG_AMBIGUOUS_METHOD_INVOCATION
+    var r1 : B = fun(42.5f, 42)  //## issuekeys: MSG_AMBIGUOUS_METHOD_INVOCATION
+  }
+
+  function fun2(i: int, j: int): A {return null }
+  function fun2(i: float, j: float): B {return null }
+  function fun2(i: double, j: double): C {return null }
+
+  function caller2() {
+    var r0 : A = fun2(42.5f, 42)  //## issuekeys: MSG_TYPE_MISMATCH
+    var r1 : B = fun2(42.5f, 42)  //## issuekeys: MSG_TYPE_MISMATCH
+    var r2 : C = fun2(42.5f, 42)
+  }
+
+  function fun3(i: short, j: short): A {return null }
+  function fun3(i: int, j: int): B {return null }
+
+  function caller3() {
+    var s : short
+    var r0 : A = fun3(42s, 33333)  //## issuekeys: MSG_TYPE_MISMATCH
+    var r1 : B = fun3(42s, 33333)
+    var r2 : A = fun3(42s, s)
+  }
+
+  function fun4(i: long, j: long): A {return null }
+  function fun4(i: float, j: float): B {return null }
+
+  function caller4() {
+
+    var r0 : A = fun4(42L, 42.5f)  //## issuekeys: MSG_AMBIGUOUS_METHOD_INVOCATION
+    var r1 : B = fun4(42L, 42.5f)  //## issuekeys: MSG_AMBIGUOUS_METHOD_INVOCATION
+    var r2 : B = fun4(42, 42.5f)
+
+  }
+
+  function fun11(i : float, j : float): A {return null }
+  function fun11(i: float, j: int): B {return null }
+
+  function caller11() {
+
+    var r0 : A = fun11(1.0f, 1)  //## issuekeys: MSG_TYPE_MISMATCH
+    var r1 : B = fun11(1.0f, 1)
+
+  }
+
+  function fun7<T>(s: T) : A {return null }
+  function fun7(s: String) : B {return null }
+
+  function caller7() {
+    var r0 : A = fun7("")  //## issuekeys: MSG_TYPE_MISMATCH
+    var r1 : B = fun7("")
+    var r2 : A = fun7<String>("")
+  }
+
+
+  function fun8(arrayList1 : ArrayList<Integer>): A {return null}
+  function fun8(hashMap1 : HashMap<Integer, String>): B {return null}
+
+  function fun9(list11: HashMap<Integer, String>): A {return null}
+  function fun9(list11: HashSet<Integer>): B {return null}
+
+  function fun10(list11: List<Integer>): A {return null}
+  function fun10(list22: String[]): B {return null}
+
+  function callers() {
+    var r1: A = fun8({1,2,3})
+    var r2: B = fun8({1,2,3})  //## issuekeys: MSG_TYPE_MISMATCH
+
+    var r3: A = fun9({1,2,3})    //## issuekeys: MSG_TYPE_MISMATCH
+    var r4: B = fun9({1,2,3})
+
+    var r5: B = fun10({"1", "2", "3"})
+    var r6: A = fun10({"1", "2", "3"} as List<Integer>)  //## issuekeys: MSG_TYPE_MISMATCH, MSG_TYPE_MISMATCH, MSG_TYPE_MISMATCH, MSG_TYPE_MISMATCH
+    var r7: B = fun10({
+        1,       //## issuekeys: MSG_IMPLICIT_COERCION_ERROR
+        "2",
+        3         //## issuekeys: MSG_IMPLICIT_COERCION_ERROR
+    })
+  }
+
+
 }

@@ -1,5 +1,8 @@
 package gw.specification.expressions.objectInitializers
 
+uses java.lang.*
+uses java.util.*
+
 class Errant_ObjectInitializersTest {
   function testBasic() {
     var x0 : C0 = new C0() {:a = 1, :b = 2 }
@@ -20,6 +23,21 @@ class Errant_ObjectInitializersTest {
 
     var x7 : C1 = new C1(1, 2) { :a = 5}
     var x16 : C4 = new C4() {:a = 1, :b = new C4() { :a = 2 } }
+
+    var x17 = new Integer[]{
+        1,
+        ""    //## issuekeys: MSG_TYPE_MISMATCH
+    }
+
+    var x18 = new ArrayList<Integer>(){
+        "a",           //## issuekeys: MSG_TYPE_MISMATCH
+        23,
+        1.1            //## issuekeys: MSG_IMPROPER_VALUE_FOR_NUMERIC_TYPE
+    }
+
+    var x19 = new C0(){
+          print("?")  //## issuekeys: MSG_UNEXPECTED_TOKEN, MSG_UNEXPECTED_TOKEN, MSG_UNEXPECTED_TOKEN, MSG_UNEXPECTED_TOKEN
+      }
   }
 
   class C0 {

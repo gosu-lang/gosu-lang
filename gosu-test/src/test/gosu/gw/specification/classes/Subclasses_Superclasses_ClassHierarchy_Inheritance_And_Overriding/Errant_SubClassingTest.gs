@@ -1,6 +1,12 @@
 package gw.specification.classes.Subclasses_Superclasses_ClassHierarchy_Inheritance_And_Overriding
 
 class Errant_SubClassingTest {
+  class cycA extends cycA {}   //## issuekeys: MSG_CYCLIC_INHERITANCE
+
+  class cycB extends cycC {}
+
+  class cycC extends cycB {}   //## issuekeys: MSG_CYCLIC_INHERITANCE
+
   class X {
     final function foo() : int { return 1}
   }

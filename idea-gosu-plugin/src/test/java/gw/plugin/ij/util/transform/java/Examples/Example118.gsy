@@ -49,7 +49,7 @@ class Example118  {
         b1.sellTo(car)
         b1.sellTo(sedan)
         b1.sellTo(b1.buyFrom())
-        var b2 : Shop<?>
+        var b2 : Shop<Object>
         b2 = new Shop<Object>()
         b2 = new Shop<Vehicle>()
         b2 = new Shop<Car>()
@@ -61,7 +61,7 @@ class Example118  {
         var o3 : Object = b3.buyFrom()
         var v3 : Vehicle = b3.buyFrom()
         var c3 : Car = b3.buyFrom()
-        var b4 : Shop<? super Car>
+        var b4 : Shop<Object>
         b4 = new Shop<Object>()
         b4 = new Shop<Vehicle>()
         b4 = new Shop<Car>()

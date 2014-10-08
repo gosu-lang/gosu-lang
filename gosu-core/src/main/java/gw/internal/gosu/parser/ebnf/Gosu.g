@@ -404,7 +404,7 @@ assignmentOp :
     
 incrementOp : '++' | '--' ;
 
-equalityOp : '===' | '!==' | '==' | '!=' | '<>' ;
+equalityOp : '===' | '!==' | '==' | '!=';
 
 intervalOp : '..' | '|..' | '..|' | '|..|' ;
 
