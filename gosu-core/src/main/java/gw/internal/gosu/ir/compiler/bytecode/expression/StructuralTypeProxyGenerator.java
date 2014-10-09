@@ -35,10 +35,10 @@ public class StructuralTypeProxyGenerator {
     _bStatic = bStatic;
   }
 
-  public static Class makeProxy( String iface, Class<?> rootClass, final String name, final boolean bStaticImpl ) {
+  public static Class makeProxy( Class<?> iface, Class<?> rootClass, final String name, final boolean bStaticImpl ) {
 
     final IType type = TypeLord.getPureGenericType( TypeSystem.get( rootClass ) );
-    final IType ifaceType = TypeLord.getPureGenericType( TypeSystem.getByFullName( iface ) );
+    final IType ifaceType = TypeLord.getPureGenericType( TypeSystem.get( iface ) );
     final IModule module = ifaceType.getTypeLoader().getModule();
     GosuClassTypeLoader loader = GosuClassTypeLoader.getDefaultClassLoader( module );
     final StructuralTypeProxyGenerator gen = new StructuralTypeProxyGenerator( bStaticImpl );
