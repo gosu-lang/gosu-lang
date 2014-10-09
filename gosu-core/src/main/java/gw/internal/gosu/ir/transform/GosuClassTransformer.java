@@ -293,7 +293,7 @@ public class GosuClassTransformer extends AbstractElementTransformer<ClassStatem
     {
       initStatements.add( new IRReturnStatement() );
       IRMethodStatement clinit = new IRMethodStatement( new IRStatementList( false, initStatements ),
-                                                        "<clinit>", Opcodes.ACC_STATIC, IRTypeConstants.pVOID(), Collections.<IRSymbol>emptyList() );
+                                                        "<clinit>", Opcodes.ACC_STATIC, false, IRTypeConstants.pVOID(), Collections.<IRSymbol>emptyList() );
       _irClass.addMethod( clinit );
     }
   }
@@ -518,6 +518,7 @@ public class GosuClassTransformer extends AbstractElementTransformer<ClassStatem
         methodBody,
         "<init>",
         iModifiers,
+        dfs.isInternal(),
         IRTypeConstants.pVOID(),
         dfs.getReturnType(),
         parameters,
@@ -834,6 +835,7 @@ public class GosuClassTransformer extends AbstractElementTransformer<ClassStatem
           methodBody,
           NameResolver.getFunctionName( superDfs ),
           makeModifiersForBridgeMethod( getModifiers( dfs ) ),
+          dfs.isInternal(),
           superRetDescriptor,
           parameters );
         if( !bridges.contains( bridgeMethod.signature() ) )
@@ -1104,6 +1106,7 @@ public class GosuClassTransformer extends AbstractElementTransformer<ClassStatem
         methodBody,
         bridge.getName(),
         makeModifiersForBridgeMethod( m.getModifiers() ),
+        Modifier.isInternal( m.getModifiers() ),
         superRetDescriptor,
         parameters );
       if( !bridges.contains( bridgeMethod.signature() ) )
@@ -1219,6 +1222,7 @@ public class GosuClassTransformer extends AbstractElementTransformer<ClassStatem
       methodBody,
       method.getName(),
       makeModifiersForBridgeMethod( getModifiers( dfs ) ),
+      dfs.isInternal(),
       getDescriptor( method.getReturnClassInfo() ),
       parameters
     );
@@ -1271,6 +1275,7 @@ public class GosuClassTransformer extends AbstractElementTransformer<ClassStatem
       body,
       OUTER_ACCESS,
       iModifiers,
+      false,
       getDescriptor( getRuntimeEnclosingType( _gsClass ) ),
       Collections.singletonList( staticThis )
     ) );
@@ -1350,6 +1355,7 @@ public class GosuClassTransformer extends AbstractElementTransformer<ClassStatem
     IRMethodStatement method = new IRMethodStatement( methodBody,
                                                       NameResolver.getFunctionName( dfs ),
                                                       getModifiers( dfs ),
+                                                      dfs.isInternal(),
                                                       getDescriptor( dfs.getReturnType() ),
                                                       dfs.getReturnType(),
                                                       parameters,
@@ -1451,6 +1457,7 @@ public class GosuClassTransformer extends AbstractElementTransformer<ClassStatem
       "getIntrinsicType",
       // Note this is synthetic as a hacky way to hide property from tools (e.g. hibernate)
       Opcodes.ACC_PUBLIC | Opcodes.ACC_SYNTHETIC,
+      false,
       getDescriptor( IType.class ),
       Collections.<IRSymbol>emptyList()
     );
@@ -1491,6 +1498,7 @@ public class GosuClassTransformer extends AbstractElementTransformer<ClassStatem
       methodBody,
       "main",
       Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC,
+      false,
       getDescriptor( void.class ),
       Collections.singletonList( new IRSymbol( "args", getDescriptor( String[].class ), false ) )
     );
@@ -1534,6 +1542,7 @@ public class GosuClassTransformer extends AbstractElementTransformer<ClassStatem
       new IRStatementList( true, bodyStatements ),
       "values",
       Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC,
+      false,
       getDescriptor( _gsClass.getArrayType() ),
       Collections.<IRSymbol>emptyList()
     );
@@ -1551,6 +1560,7 @@ public class GosuClassTransformer extends AbstractElementTransformer<ClassStatem
       new IRStatementList( true, new IRReturnStatement( null, result ) ),
       "getAllValues",
       Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC,
+      false,
       getDescriptor( List.class ),
       Collections.<IRSymbol>emptyList()
     );
@@ -1568,6 +1578,7 @@ public class GosuClassTransformer extends AbstractElementTransformer<ClassStatem
       new IRStatementList( true, new IRReturnStatement( null, checkCast( _gsClass, result ) ) ),
       "valueOf",
       Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC,
+      false,
       getDescriptor( _gsClass ),
       Collections.singletonList( argSymbol )
     );
@@ -1582,7 +1593,8 @@ public class GosuClassTransformer extends AbstractElementTransformer<ClassStatem
       new IRStatementList( true, new IRReturnStatement( null, pushThis() ) ),
       "getValue",
       Opcodes.ACC_PUBLIC | Opcodes.ACC_FINAL,
-            IRTypeConstants.OBJECT(),
+      false,
+      IRTypeConstants.OBJECT(),
       Collections.<IRSymbol>emptyList()
     );
     _irClass.addMethod( method );
@@ -1604,7 +1616,8 @@ public class GosuClassTransformer extends AbstractElementTransformer<ClassStatem
       new IRStatementList( true, new IRReturnStatement( null, returnValue ) ),
       "getCode",
       Opcodes.ACC_PUBLIC | Opcodes.ACC_FINAL,
-            IRTypeConstants.STRING(),
+      false,
+      IRTypeConstants.STRING(),
       Collections.<IRSymbol>emptyList()
     );
     _irClass.addMethod( method );
@@ -1619,7 +1632,8 @@ public class GosuClassTransformer extends AbstractElementTransformer<ClassStatem
       new IRStatementList( true, new IRReturnStatement( null, returnValue ) ),
       "getOrdinal",
       Opcodes.ACC_PUBLIC | Opcodes.ACC_FINAL,
-            IRTypeConstants.pINT(),
+      false,
+      IRTypeConstants.pINT(),
       Collections.<IRSymbol>emptyList()
     );
     _irClass.addMethod( method );
@@ -1641,7 +1655,8 @@ public class GosuClassTransformer extends AbstractElementTransformer<ClassStatem
       new IRStatementList( true, new IRReturnStatement( null, returnValue ) ),
       "getName",
       Opcodes.ACC_PUBLIC | Opcodes.ACC_FINAL,
-            IRTypeConstants.STRING(),
+      false,
+      IRTypeConstants.STRING(),
       Collections.<IRSymbol>emptyList()
     );
     _irClass.addMethod( method );
@@ -1663,7 +1678,8 @@ public class GosuClassTransformer extends AbstractElementTransformer<ClassStatem
       new IRStatementList( true, new IRReturnStatement( null, returnValue ) ),
       "getDisplayName",
       Opcodes.ACC_PUBLIC | Opcodes.ACC_FINAL,
-            IRTypeConstants.STRING(),
+      false,
+      IRTypeConstants.STRING(),
       Collections.<IRSymbol>emptyList()
     );
     _irClass.addMethod( method );

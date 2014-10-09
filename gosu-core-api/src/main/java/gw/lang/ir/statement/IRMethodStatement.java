@@ -29,20 +29,22 @@ public class IRMethodStatement extends IRStatement {
   private List<IRSymbol> _parameters;
   private IRType _returnType;
   private List<IRAnnotation> _annotations;
+  private boolean _explicitInternal;
   private Object[] _annotationDefault;
   private String _genericSignature;
 
-  public IRMethodStatement(IRStatement methodBody, String name, int modifiers, IRType returnType, List<IRSymbol> parameters) {
-    this( methodBody, name, modifiers, returnType, parameters, null );
+  public IRMethodStatement(IRStatement methodBody, String name, int modifiers, boolean explicitInternal, IRType returnType, List<IRSymbol> parameters) {
+    this( methodBody, name, modifiers, explicitInternal, returnType, parameters, null );
   }
-  public IRMethodStatement(IRStatement methodBody, String name, int modifiers, IRType returnType, List<IRSymbol> parameters, Object[] annotationDefault) {
-    this( methodBody, name, modifiers, returnType, null, parameters, null, null, annotationDefault );
+  public IRMethodStatement(IRStatement methodBody, String name, int modifiers, boolean explicitInternal, IRType returnType, List<IRSymbol> parameters, Object[] annotationDefault) {
+    this( methodBody, name, modifiers, explicitInternal, returnType, null, parameters, null, null, annotationDefault );
   }
 
-  public IRMethodStatement( IRStatement methodBody, String name, int modifiers, IRType returnType, IType returnIType, List<IRSymbol> parameters, IType[] argTypes, IType methodType, Object[] annotationDefault ) {
+  public IRMethodStatement( IRStatement methodBody, String name, int modifiers, boolean explicitInternal, IRType returnType, IType returnIType, List<IRSymbol> parameters, IType[] argTypes, IType methodType, Object[] annotationDefault ) {
     _methodBody = methodBody;
     _name = name;
     _modifiers = modifiers;
+    _explicitInternal = explicitInternal;
     _returnType = maybeEraseStructuralType( returnType );
     _parameters = maybeEraseStructuralSymbolTypes( parameters );
     _annotations = Collections.emptyList();
@@ -153,5 +155,9 @@ public class IRMethodStatement extends IRStatement {
 
   public String getGenericSignature() {
     return _genericSignature;
+  }
+
+  public boolean isExplicitInternal() {
+    return _explicitInternal;
   }
 }

@@ -253,6 +253,11 @@ public class IRClassCompiler extends AbstractBytecodeCompiler
       AnnotationVisitor annotationVisitor = mv.visitAnnotation( annotation.getDescriptor().getDescriptor(), annotation.isInclude() );
       new IRAnnotationCompiler( annotationVisitor, annotation ).compile();
     }
+    if( method.isExplicitInternal() ) {
+      AnnotationVisitor annotationVisitor = mv.visitAnnotation( Type.getDescriptor( Internal.class ), true );
+      new IRAnnotationCompiler( annotationVisitor, new IRAnnotation( IRTypeResolver.getDescriptor( Internal.class ), true ) ).compile();
+    }
+
     for( IRSymbol param: method.getParameters() )
     {
       List<IRAnnotation> paramAnnotations = param.getAnnotations();

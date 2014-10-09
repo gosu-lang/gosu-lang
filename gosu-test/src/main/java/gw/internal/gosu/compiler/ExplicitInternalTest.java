@@ -9,6 +9,7 @@ import gw.lang.reflect.Modifier;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 
 /**
  */
@@ -33,6 +34,23 @@ public class ExplicitInternalTest extends ByteCodeTestBase
     assertFalse( Modifier.isProtected( f.getModifiers() ) );
     assertFalse( Modifier.isPrivate( f.getModifiers() ) );
     annotations = f.getDeclaredAnnotations();
+    assertZero( annotations.length );
+
+    // The compiler adds the @Internal annotation so tooling can distinguish between actual internal methods and those we changed from private to internal so they are accessible to inner classes
+    Method m = obj.getClass().getDeclaredMethod( "explicitInternal" );
+    assertFalse( Modifier.isPublic( m.getModifiers() ) );
+    assertFalse( Modifier.isProtected( m.getModifiers() ) );
+    assertFalse( Modifier.isPrivate( m.getModifiers() ) );
+    annotations = m.getDeclaredAnnotations();
+    assertEquals( 1, annotations.length );
+    assertEquals( Internal.class, annotations[0].annotationType() );
+
+    // Private fields are made internal by the compiler so they are accessible to inner classes
+    m = obj.getClass().getDeclaredMethod( "implicitInternal" );
+    assertFalse( Modifier.isPublic( m.getModifiers() ) );
+    assertFalse( Modifier.isProtected( m.getModifiers() ) );
+    assertFalse( Modifier.isPrivate( m.getModifiers() ) );
+    annotations = m.getDeclaredAnnotations();
     assertZero( annotations.length );
   }
 
