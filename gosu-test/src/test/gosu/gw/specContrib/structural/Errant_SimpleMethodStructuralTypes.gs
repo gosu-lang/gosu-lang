@@ -1,6 +1,6 @@
 package gw.specContrib.structural
 
-class Errant_SimpleStructuralTypes {
+class Errant_SimpleMethodStructuralTypes {
   class A {}
   class B extends A {}
   class C extends B {}
