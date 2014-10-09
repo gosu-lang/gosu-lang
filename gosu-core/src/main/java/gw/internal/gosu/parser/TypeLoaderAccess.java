@@ -1326,6 +1326,7 @@ public class TypeLoaderAccess extends BaseService implements ITypeSystem
     }
     IType lhsTypeInRhs = TypeLord.findParameterizedType( lhsType, rhsType.getGenericType() );
     if( lhsTypeInRhs != null ) {
+      lhsTypeInRhs = TypeLord.replaceTypeVariableTypeParametersWithBoundingTypes( lhsTypeInRhs, lhsTypeInRhs.getEnclosingType() );
       return !rhsType.isAssignableFrom( lhsTypeInRhs ) && !lhsTypeInRhs.isAssignableFrom( rhsType );
     }
     return false;
