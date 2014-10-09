@@ -39,7 +39,7 @@ public class IRFieldBuilder extends IRFeatureBuilder<IRFieldBuilder> {
   }
 
   public IRFieldDecl build() {
-    IRFieldDecl fieldDecl = new IRFieldDecl( _modifiers, _name, _type, null );
+    IRFieldDecl fieldDecl = new IRFieldDecl( _modifiers, false, _name, _type, null );
     _classBuilder.withField( fieldDecl );
     return fieldDecl;
   }

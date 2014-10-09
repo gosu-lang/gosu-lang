@@ -199,14 +199,14 @@ public class GeneratedJavaAnnotationInstancesTest extends TestClass {
   public void test_simple_string_internal_static_var() throws Exception {
     IGosuClass gsClass = (IGosuClass) TypeSystem.getByFullName( "gw.spec.core.annotations.java.GeneratedJavaAnnotationHolderClass" );
     Annotation[] annotations = gsClass.getBackingClass().getDeclaredField("var_simple_string_internal_static").getAnnotations();
-    assertEquals( 1, annotations.length );
+    assertEquals( 2, annotations.length );
     assertEquals( "foo", ((SingleStringAnnotation) annotations[0]).value() );
   }
 
   public void test_simple_string_internal__var() throws Exception {
     IGosuClass gsClass = (IGosuClass) TypeSystem.getByFullName( "gw.spec.core.annotations.java.GeneratedJavaAnnotationHolderClass" );
     Annotation[] annotations = gsClass.getBackingClass().getDeclaredField("var_simple_string_internal_").getAnnotations();
-    assertEquals( 1, annotations.length );
+    assertEquals( 2, annotations.length );
     assertEquals( "foo", ((SingleStringAnnotation) annotations[0]).value() );
   }
 
@@ -511,12 +511,12 @@ public class GeneratedJavaAnnotationInstancesTest extends TestClass {
   public void test_simple_string_class_retention_string_internal_static_var() throws Exception {
     IGosuClass gsClass = (IGosuClass) TypeSystem.getByFullName( "gw.spec.core.annotations.java.GeneratedJavaAnnotationHolderClass" );
     Annotation[] annotations = gsClass.getBackingClass().getDeclaredField("var_simple_string_class_retention_string_internal_static").getAnnotations();
-    assertEquals( 0, annotations.length );  }
+    assertEquals( 1, annotations.length );  }
 
   public void test_simple_string_class_retention_string_internal__var() throws Exception {
     IGosuClass gsClass = (IGosuClass) TypeSystem.getByFullName( "gw.spec.core.annotations.java.GeneratedJavaAnnotationHolderClass" );
     Annotation[] annotations = gsClass.getBackingClass().getDeclaredField("var_simple_string_class_retention_string_internal_").getAnnotations();
-    assertEquals( 0, annotations.length );  }
+    assertEquals( 1, annotations.length );  }
 
   public void test_simple_string_class_retention_string_protected_static_var() throws Exception {
     IGosuClass gsClass = (IGosuClass) TypeSystem.getByFullName( "gw.spec.core.annotations.java.GeneratedJavaAnnotationHolderClass" );
@@ -771,12 +771,12 @@ public class GeneratedJavaAnnotationInstancesTest extends TestClass {
   public void test_simple_string_source_retention_string_internal_static_var() throws Exception {
     IGosuClass gsClass = (IGosuClass) TypeSystem.getByFullName( "gw.spec.core.annotations.java.GeneratedJavaAnnotationHolderClass" );
     Annotation[] annotations = gsClass.getBackingClass().getDeclaredField("var_simple_string_source_retention_string_internal_static").getAnnotations();
-    assertEquals( 0, annotations.length );  }
+    assertEquals( 1, annotations.length );  }
 
   public void test_simple_string_source_retention_string_internal__var() throws Exception {
     IGosuClass gsClass = (IGosuClass) TypeSystem.getByFullName( "gw.spec.core.annotations.java.GeneratedJavaAnnotationHolderClass" );
     Annotation[] annotations = gsClass.getBackingClass().getDeclaredField("var_simple_string_source_retention_string_internal_").getAnnotations();
-    assertEquals( 0, annotations.length );  }
+    assertEquals( 1, annotations.length );  }
 
   public void test_simple_string_source_retention_string_protected_static_var() throws Exception {
     IGosuClass gsClass = (IGosuClass) TypeSystem.getByFullName( "gw.spec.core.annotations.java.GeneratedJavaAnnotationHolderClass" );
@@ -1083,14 +1083,14 @@ public class GeneratedJavaAnnotationInstancesTest extends TestClass {
   public void test_simple_int_internal_static_var() throws Exception {
     IGosuClass gsClass = (IGosuClass) TypeSystem.getByFullName( "gw.spec.core.annotations.java.GeneratedJavaAnnotationHolderClass" );
     Annotation[] annotations = gsClass.getBackingClass().getDeclaredField("var_simple_int_internal_static").getAnnotations();
-    assertEquals( 1, annotations.length );
+    assertEquals( 2, annotations.length );
     assertEquals( 42, ((SingleIntAnnotation) annotations[0]).value() );
   }
 
   public void test_simple_int_internal__var() throws Exception {
     IGosuClass gsClass = (IGosuClass) TypeSystem.getByFullName( "gw.spec.core.annotations.java.GeneratedJavaAnnotationHolderClass" );
     Annotation[] annotations = gsClass.getBackingClass().getDeclaredField("var_simple_int_internal_").getAnnotations();
-    assertEquals( 1, annotations.length );
+    assertEquals( 2, annotations.length );
     assertEquals( 42, ((SingleIntAnnotation) annotations[0]).value() );
   }
 
@@ -1447,14 +1447,14 @@ public class GeneratedJavaAnnotationInstancesTest extends TestClass {
   public void test_simple_enum_internal_static_var() throws Exception {
     IGosuClass gsClass = (IGosuClass) TypeSystem.getByFullName( "gw.spec.core.annotations.java.GeneratedJavaAnnotationHolderClass" );
     Annotation[] annotations = gsClass.getBackingClass().getDeclaredField("var_simple_enum_internal_static").getAnnotations();
-    assertEquals( 1, annotations.length );
+    assertEquals( 2, annotations.length );
     assertEquals( SampleEnum.BAR, ((SingleEnumAnnotation) annotations[0]).value() );
   }
 
   public void test_simple_enum_internal__var() throws Exception {
     IGosuClass gsClass = (IGosuClass) TypeSystem.getByFullName( "gw.spec.core.annotations.java.GeneratedJavaAnnotationHolderClass" );
     Annotation[] annotations = gsClass.getBackingClass().getDeclaredField("var_simple_enum_internal_").getAnnotations();
-    assertEquals( 1, annotations.length );
+    assertEquals( 2, annotations.length );
     assertEquals( SampleEnum.BAR, ((SingleEnumAnnotation) annotations[0]).value() );
   }
 
@@ -1811,14 +1811,14 @@ public class GeneratedJavaAnnotationInstancesTest extends TestClass {
   public void test_simple_enum_fully_qualified_internal_static_var() throws Exception {
     IGosuClass gsClass = (IGosuClass) TypeSystem.getByFullName( "gw.spec.core.annotations.java.GeneratedJavaAnnotationHolderClass" );
     Annotation[] annotations = gsClass.getBackingClass().getDeclaredField("var_simple_enum_fully_qualified_internal_static").getAnnotations();
-    assertEquals( 1, annotations.length );
+    assertEquals( 2, annotations.length );
     assertEquals( SampleEnum.BAR, ((SingleEnumAnnotation) annotations[0]).value() );
   }
 
   public void test_simple_enum_fully_qualified_internal__var() throws Exception {
     IGosuClass gsClass = (IGosuClass) TypeSystem.getByFullName( "gw.spec.core.annotations.java.GeneratedJavaAnnotationHolderClass" );
     Annotation[] annotations = gsClass.getBackingClass().getDeclaredField("var_simple_enum_fully_qualified_internal_").getAnnotations();
-    assertEquals( 1, annotations.length );
+    assertEquals( 2, annotations.length );
     assertEquals( SampleEnum.BAR, ((SingleEnumAnnotation) annotations[0]).value() );
   }
 
@@ -2175,14 +2175,14 @@ public class GeneratedJavaAnnotationInstancesTest extends TestClass {
   public void test_simple_class_internal_static_var() throws Exception {
     IGosuClass gsClass = (IGosuClass) TypeSystem.getByFullName( "gw.spec.core.annotations.java.GeneratedJavaAnnotationHolderClass" );
     Annotation[] annotations = gsClass.getBackingClass().getDeclaredField("var_simple_class_internal_static").getAnnotations();
-    assertEquals( 1, annotations.length );
+    assertEquals( 2, annotations.length );
     assertEquals( String.class, ((SingleClassAnnotation) annotations[0]).value() );
   }
 
   public void test_simple_class_internal__var() throws Exception {
     IGosuClass gsClass = (IGosuClass) TypeSystem.getByFullName( "gw.spec.core.annotations.java.GeneratedJavaAnnotationHolderClass" );
     Annotation[] annotations = gsClass.getBackingClass().getDeclaredField("var_simple_class_internal_").getAnnotations();
-    assertEquals( 1, annotations.length );
+    assertEquals( 2, annotations.length );
     assertEquals( String.class, ((SingleClassAnnotation) annotations[0]).value() );
   }
 
@@ -2565,7 +2565,7 @@ public class GeneratedJavaAnnotationInstancesTest extends TestClass {
   public void test_simple_annotation_internal_static_var() throws Exception {
     IGosuClass gsClass = (IGosuClass) TypeSystem.getByFullName( "gw.spec.core.annotations.java.GeneratedJavaAnnotationHolderClass" );
     Annotation[] annotations = gsClass.getBackingClass().getDeclaredField("var_simple_annotation_internal_static").getAnnotations();
-    assertEquals( 1, annotations.length );
+    assertEquals( 2, annotations.length );
     SingleStringAnnotation ssa = ((SingleAnnotationAnnotation) annotations[0]).value();
     assertEquals( "foo",  ssa.value() );
   }
@@ -2573,7 +2573,7 @@ public class GeneratedJavaAnnotationInstancesTest extends TestClass {
   public void test_simple_annotation_internal__var() throws Exception {
     IGosuClass gsClass = (IGosuClass) TypeSystem.getByFullName( "gw.spec.core.annotations.java.GeneratedJavaAnnotationHolderClass" );
     Annotation[] annotations = gsClass.getBackingClass().getDeclaredField("var_simple_annotation_internal_").getAnnotations();
-    assertEquals( 1, annotations.length );
+    assertEquals( 2, annotations.length );
     SingleStringAnnotation ssa = ((SingleAnnotationAnnotation) annotations[0]).value();
     assertEquals( "foo",  ssa.value() );
   }
@@ -2955,14 +2955,14 @@ public class GeneratedJavaAnnotationInstancesTest extends TestClass {
   public void test_simple_string_array_internal_static_var() throws Exception {
     IGosuClass gsClass = (IGosuClass) TypeSystem.getByFullName( "gw.spec.core.annotations.java.GeneratedJavaAnnotationHolderClass" );
     Annotation[] annotations = gsClass.getBackingClass().getDeclaredField("var_simple_string_array_internal_static").getAnnotations();
-    assertEquals( 1, annotations.length );
+    assertEquals( 2, annotations.length );
     assertArrayEquals( new String[]{"foo", "bar"}, ((SingleStringArrayAnnotation) annotations[0]).value() );
   }
 
   public void test_simple_string_array_internal__var() throws Exception {
     IGosuClass gsClass = (IGosuClass) TypeSystem.getByFullName( "gw.spec.core.annotations.java.GeneratedJavaAnnotationHolderClass" );
     Annotation[] annotations = gsClass.getBackingClass().getDeclaredField("var_simple_string_array_internal_").getAnnotations();
-    assertEquals( 1, annotations.length );
+    assertEquals( 2, annotations.length );
     assertArrayEquals( new String[]{"foo", "bar"}, ((SingleStringArrayAnnotation) annotations[0]).value() );
   }
 
@@ -3319,14 +3319,14 @@ public class GeneratedJavaAnnotationInstancesTest extends TestClass {
   public void test_simple_string_array_explicit_new_internal_static_var() throws Exception {
     IGosuClass gsClass = (IGosuClass) TypeSystem.getByFullName( "gw.spec.core.annotations.java.GeneratedJavaAnnotationHolderClass" );
     Annotation[] annotations = gsClass.getBackingClass().getDeclaredField("var_simple_string_array_explicit_new_internal_static").getAnnotations();
-    assertEquals( 1, annotations.length );
+    assertEquals( 2, annotations.length );
     assertArrayEquals( new String[]{"foo", "bar"}, ((SingleStringArrayAnnotation) annotations[0]).value() );
   }
 
   public void test_simple_string_array_explicit_new_internal__var() throws Exception {
     IGosuClass gsClass = (IGosuClass) TypeSystem.getByFullName( "gw.spec.core.annotations.java.GeneratedJavaAnnotationHolderClass" );
     Annotation[] annotations = gsClass.getBackingClass().getDeclaredField("var_simple_string_array_explicit_new_internal_").getAnnotations();
-    assertEquals( 1, annotations.length );
+    assertEquals( 2, annotations.length );
     assertArrayEquals( new String[]{"foo", "bar"}, ((SingleStringArrayAnnotation) annotations[0]).value() );
   }
 
@@ -3683,14 +3683,14 @@ public class GeneratedJavaAnnotationInstancesTest extends TestClass {
   public void test_simple_string_array_no_values_internal_static_var() throws Exception {
     IGosuClass gsClass = (IGosuClass) TypeSystem.getByFullName( "gw.spec.core.annotations.java.GeneratedJavaAnnotationHolderClass" );
     Annotation[] annotations = gsClass.getBackingClass().getDeclaredField("var_simple_string_array_no_values_internal_static").getAnnotations();
-    assertEquals( 1, annotations.length );
+    assertEquals( 2, annotations.length );
     assertArrayEquals( new String[0], ((SingleStringArrayAnnotation) annotations[0]).value() );
   }
 
   public void test_simple_string_array_no_values_internal__var() throws Exception {
     IGosuClass gsClass = (IGosuClass) TypeSystem.getByFullName( "gw.spec.core.annotations.java.GeneratedJavaAnnotationHolderClass" );
     Annotation[] annotations = gsClass.getBackingClass().getDeclaredField("var_simple_string_array_no_values_internal_").getAnnotations();
-    assertEquals( 1, annotations.length );
+    assertEquals( 2, annotations.length );
     assertArrayEquals( new String[0], ((SingleStringArrayAnnotation) annotations[0]).value() );
   }
 
@@ -4073,7 +4073,7 @@ public class GeneratedJavaAnnotationInstancesTest extends TestClass {
   public void test_simple_int_array_internal_static_var() throws Exception {
     IGosuClass gsClass = (IGosuClass) TypeSystem.getByFullName( "gw.spec.core.annotations.java.GeneratedJavaAnnotationHolderClass" );
     Annotation[] annotations = gsClass.getBackingClass().getDeclaredField("var_simple_int_array_internal_static").getAnnotations();
-    assertEquals( 1, annotations.length );
+    assertEquals( 2, annotations.length );
     assertEquals( 1, ((SingleIntArrayAnnotation) annotations[0]).value()[0] );
     assertEquals( 2, ((SingleIntArrayAnnotation) annotations[0]).value()[1] );
   }
@@ -4081,7 +4081,7 @@ public class GeneratedJavaAnnotationInstancesTest extends TestClass {
   public void test_simple_int_array_internal__var() throws Exception {
     IGosuClass gsClass = (IGosuClass) TypeSystem.getByFullName( "gw.spec.core.annotations.java.GeneratedJavaAnnotationHolderClass" );
     Annotation[] annotations = gsClass.getBackingClass().getDeclaredField("var_simple_int_array_internal_").getAnnotations();
-    assertEquals( 1, annotations.length );
+    assertEquals( 2, annotations.length );
     assertEquals( 1, ((SingleIntArrayAnnotation) annotations[0]).value()[0] );
     assertEquals( 2, ((SingleIntArrayAnnotation) annotations[0]).value()[1] );
   }
@@ -4463,14 +4463,14 @@ public class GeneratedJavaAnnotationInstancesTest extends TestClass {
   public void test_simple_enum_array_internal_static_var() throws Exception {
     IGosuClass gsClass = (IGosuClass) TypeSystem.getByFullName( "gw.spec.core.annotations.java.GeneratedJavaAnnotationHolderClass" );
     Annotation[] annotations = gsClass.getBackingClass().getDeclaredField("var_simple_enum_array_internal_static").getAnnotations();
-    assertEquals( 1, annotations.length );
+    assertEquals( 2, annotations.length );
     assertArrayEquals( new SampleEnum[]{SampleEnum.FOO, SampleEnum.BAR}, ((SingleEnumArrayAnnotation) annotations[0]).value() );
   }
 
   public void test_simple_enum_array_internal__var() throws Exception {
     IGosuClass gsClass = (IGosuClass) TypeSystem.getByFullName( "gw.spec.core.annotations.java.GeneratedJavaAnnotationHolderClass" );
     Annotation[] annotations = gsClass.getBackingClass().getDeclaredField("var_simple_enum_array_internal_").getAnnotations();
-    assertEquals( 1, annotations.length );
+    assertEquals( 2, annotations.length );
     assertArrayEquals( new SampleEnum[]{SampleEnum.FOO, SampleEnum.BAR}, ((SingleEnumArrayAnnotation) annotations[0]).value() );
   }
 
@@ -4827,14 +4827,14 @@ public class GeneratedJavaAnnotationInstancesTest extends TestClass {
   public void test_simple_enum_array_fully_qualified_internal_static_var() throws Exception {
     IGosuClass gsClass = (IGosuClass) TypeSystem.getByFullName( "gw.spec.core.annotations.java.GeneratedJavaAnnotationHolderClass" );
     Annotation[] annotations = gsClass.getBackingClass().getDeclaredField("var_simple_enum_array_fully_qualified_internal_static").getAnnotations();
-    assertEquals( 1, annotations.length );
+    assertEquals( 2, annotations.length );
     assertArrayEquals( new SampleEnum[]{SampleEnum.FOO, SampleEnum.BAR}, ((SingleEnumArrayAnnotation) annotations[0]).value() );
   }
 
   public void test_simple_enum_array_fully_qualified_internal__var() throws Exception {
     IGosuClass gsClass = (IGosuClass) TypeSystem.getByFullName( "gw.spec.core.annotations.java.GeneratedJavaAnnotationHolderClass" );
     Annotation[] annotations = gsClass.getBackingClass().getDeclaredField("var_simple_enum_array_fully_qualified_internal_").getAnnotations();
-    assertEquals( 1, annotations.length );
+    assertEquals( 2, annotations.length );
     assertArrayEquals( new SampleEnum[]{SampleEnum.FOO, SampleEnum.BAR}, ((SingleEnumArrayAnnotation) annotations[0]).value() );
   }
 
@@ -5191,14 +5191,14 @@ public class GeneratedJavaAnnotationInstancesTest extends TestClass {
   public void test_simple_class_array_internal_static_var() throws Exception {
     IGosuClass gsClass = (IGosuClass) TypeSystem.getByFullName( "gw.spec.core.annotations.java.GeneratedJavaAnnotationHolderClass" );
     Annotation[] annotations = gsClass.getBackingClass().getDeclaredField("var_simple_class_array_internal_static").getAnnotations();
-    assertEquals( 1, annotations.length );
+    assertEquals( 2, annotations.length );
     assertArrayEquals( new Class[]{String.class, String.class}, ((SingleClassArrayAnnotation) annotations[0]).value() );
   }
 
   public void test_simple_class_array_internal__var() throws Exception {
     IGosuClass gsClass = (IGosuClass) TypeSystem.getByFullName( "gw.spec.core.annotations.java.GeneratedJavaAnnotationHolderClass" );
     Annotation[] annotations = gsClass.getBackingClass().getDeclaredField("var_simple_class_array_internal_").getAnnotations();
-    assertEquals( 1, annotations.length );
+    assertEquals( 2, annotations.length );
     assertArrayEquals( new Class[]{String.class, String.class}, ((SingleClassArrayAnnotation) annotations[0]).value() );
   }
 
@@ -5607,7 +5607,7 @@ public class GeneratedJavaAnnotationInstancesTest extends TestClass {
   public void test_simple_annotation_array_internal_static_var() throws Exception {
     IGosuClass gsClass = (IGosuClass) TypeSystem.getByFullName( "gw.spec.core.annotations.java.GeneratedJavaAnnotationHolderClass" );
     Annotation[] annotations = gsClass.getBackingClass().getDeclaredField("var_simple_annotation_array_internal_static").getAnnotations();
-    assertEquals( 1, annotations.length );
+    assertEquals( 2, annotations.length );
     SingleStringAnnotation[] ssa = ((SingleAnnotationArrayAnnotation) annotations[0]).value();
     assertEquals( "foo",  ssa[0].value() );
     assertEquals( "bar",  ssa[1].value() );
@@ -5616,7 +5616,7 @@ public class GeneratedJavaAnnotationInstancesTest extends TestClass {
   public void test_simple_annotation_array_internal__var() throws Exception {
     IGosuClass gsClass = (IGosuClass) TypeSystem.getByFullName( "gw.spec.core.annotations.java.GeneratedJavaAnnotationHolderClass" );
     Annotation[] annotations = gsClass.getBackingClass().getDeclaredField("var_simple_annotation_array_internal_").getAnnotations();
-    assertEquals( 1, annotations.length );
+    assertEquals( 2, annotations.length );
     SingleStringAnnotation[] ssa = ((SingleAnnotationArrayAnnotation) annotations[0]).value();
     assertEquals( "foo",  ssa[0].value() );
     assertEquals( "bar",  ssa[1].value() );

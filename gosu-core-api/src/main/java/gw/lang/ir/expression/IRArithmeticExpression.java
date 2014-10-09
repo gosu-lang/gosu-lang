@@ -15,7 +15,62 @@ public class IRArithmeticExpression extends IRExpression {
    * The operation being performed.
    */
   public static enum Operation {
-    Addition, Subtraction, Multiplication, Division, Remainder, ShiftLeft, ShiftRight, UnsignedShiftRight, BitwiseAnd, BitwiseOr, BitwiseXor
+    Addition("+"),
+    Subtraction("-"),
+    Multiplication("*"),
+    Division("/"),
+    Remainder("%"),
+    ShiftLeft("<<"),
+    ShiftRight(">>"),
+    UnsignedShiftRight(">>>"),
+    BitwiseAnd("&"),
+    BitwiseOr("|"),
+    BitwiseXor("^");
+    private String _op;
+
+    Operation( String op ) {
+      _op = op;
+    }
+
+    public static Operation fromString( String op ) {
+      if( op.charAt( 0 ) == '?' ) {
+        op = op.substring( 1 );
+      }
+      if( op.equals( "+" ) ) {
+        return Addition;
+      }
+      if( op.equals( "-" ) ) {
+        return Subtraction;
+      }
+      if( op.equals( "*" ) ) {
+        return Multiplication;
+      }
+      if( op.equals( "/" ) ) {
+        return Division;
+      }
+      if( op.equals( "%" ) ) {
+        return Remainder;
+      }
+      if( op.equals( "<<" ) ) {
+        return ShiftLeft;
+      }
+      if( op.equals( ">>" ) ) {
+        return ShiftRight;
+      }
+      if( op.equals( ">>>" ) ) {
+        return UnsignedShiftRight;
+      }
+      if( op.equals( "&" ) ) {
+        return BitwiseAnd;
+      }
+      if( op.equals( "|" ) ) {
+        return BitwiseOr;
+      }
+      if( op.equals( "^" ) ) {
+        return BitwiseXor;
+      }
+      throw new IllegalStateException( "Undefined operator: " + op );
+    }
   }
 
   private IRType _type;

@@ -4,133 +4,193 @@
 
 package gw.internal.gosu.coercer;
 
-import gw.internal.gosu.ir.builders.SimpleCompiler;
+import gw.internal.gosu.parser.GosuClassProxyFactory;
+import gw.internal.gosu.parser.IGosuClassInternal;
 import gw.internal.gosu.parser.TypeLord;
-import gw.lang.GosuShop;
-import gw.lang.function.IBlock;
-import gw.lang.ir.IRClass;
-import gw.lang.ir.IRTypeConstants;
-import gw.lang.ir.builder.IRClassBuilder;
-import gw.lang.ir.builder.IRExpressionBuilder;
-import gw.lang.ir.builder.IRMethodBuilder;
-import gw.lang.parser.ICoercer;
-import gw.lang.reflect.IHasJavaClass;
+import gw.lang.parser.IHasInnerClass;
+import gw.lang.parser.ISource;
+import gw.lang.parser.TypeVarToTypeMap;
 import gw.lang.reflect.IMethodInfo;
 import gw.lang.reflect.IParameterInfo;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.TypeSystem;
+import gw.lang.reflect.gs.ClassType;
+import gw.lang.reflect.gs.GosuClassTypeLoader;
+import gw.lang.reflect.gs.IGosuClass;
 import gw.lang.reflect.gs.IGosuEnhancement;
 import gw.lang.reflect.gs.IGosuObject;
+import gw.lang.reflect.gs.StringSourceFileHandle;
 import gw.lang.reflect.java.JavaTypes;
+import gw.lang.reflect.module.IModule;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
-
-import static gw.lang.ir.builder.IRBuilderMethods.*;
+import java.util.concurrent.Callable;
 
 public class FunctionToInterfaceClassGenerator {
+  public static final String PROXY_FOR = "ProxyFor_";
 
-  private static Map<Class, Class> _classesToBlockCoercers = new HashMap<Class, Class>();
-
-  public static synchronized void clearCachedClasses() {
-    _classesToBlockCoercers.clear();
-  }
-
-  public static synchronized Class getBlockToInterfaceConversionClass( IType typeToCoerceTo ) {
-    Class coercionClass = _classesToBlockCoercers.get( ((IHasJavaClass)typeToCoerceTo).getBackingClass() );
-    if (coercionClass == null) {
-      coercionClass = generateBlockToInterfaceConversionClass( typeToCoerceTo );
-      _classesToBlockCoercers.put( ((IHasJavaClass)typeToCoerceTo).getBackingClass(), coercionClass );
+  public static synchronized IGosuClass getBlockToInterfaceConversionClass( IType typeToCoerceTo, IType enclosingType ) {
+    if( !(enclosingType instanceof IGosuClass) ) {
+      // The enclosing type could be a GosuFragment, for example, which isn't compiled
+      // normally, so we use a predefined Gosu class designated for top-level interface proxies
+      enclosingType = TypeSystem.getByFullName( "gw.lang.TopLevelBlockToInterfaceHolder" );
     }
-    return coercionClass;
-  }
-  
-  private static Class generateBlockToInterfaceConversionClass( IType typeToCoerceTo ) {
-    typeToCoerceTo = TypeLord.getPureGenericType( typeToCoerceTo );
-
-    IRClassBuilder classBuilder = initializeClass( typeToCoerceTo );
-
-    addFields( classBuilder );
-
-    addConstructor( classBuilder );
-
-    addInterfaceMethod( classBuilder, typeToCoerceTo );
-    addToStringMethod( classBuilder );
-
-    IRClass irClass = classBuilder.build();
-
-    byte[] bytes = SimpleCompiler.INSTANCE.compile(irClass, false);
-    return TypeSystem.getGosuClassLoader().defineClass( irClass.getName(), bytes );
+    typeToCoerceTo = TypeLord.replaceTypeVariableTypeParametersWithBoundingTypes( typeToCoerceTo, enclosingType );
+    final String relativeNameWithEncodedSuffix = PROXY_FOR + encodeClassName( typeToCoerceTo.getName() );
+    return (IGosuClass)((IHasInnerClass)enclosingType).getInnerClass( relativeNameWithEncodedSuffix );
   }
 
-  private static IRClassBuilder initializeClass( IType typeToCoerceTo ) {
-    IRClassBuilder classBuilder = new IRClassBuilder( "__proxy.generated.blocktointerface.ProxyFor" + typeToCoerceTo.getRelativeName(), Object.class );
-    classBuilder.withInterface( typeToCoerceTo );
-    return classBuilder;
+  public static synchronized IGosuClass getBlockToInterfaceConversionClass( String relativeNameWithEncodedSuffix, IType enclosingType ) {
+    String name = decodeClassName( relativeNameWithEncodedSuffix.substring( PROXY_FOR.length() ) );
+    IType typeToCoerceTo = TypeLord.parseType( name, new TypeVarToTypeMap() );
+    return createProxy( typeToCoerceTo, enclosingType, relativeNameWithEncodedSuffix );
   }
 
-  private static void addFields( IRClassBuilder classBuilder ) {
-    classBuilder.createField().withName( "_block" ).withType( IBlock.class )._private().build();
-    classBuilder.createField().withName( "_coercer" ).withType( ICoercer.class )._private().build();
-    classBuilder.createField().withName( "_returnType" ).withType( IType.class )._private().build();
+  private static String encodeClassName( String name ) {
+    StringBuilder sb = new StringBuilder( name );
+    replace( sb, ">", "_L_t_" );
+    replace( sb, "<", "_G_t_" );
+    replace( sb, ".", "_D_t_" );
+    replace( sb, ",", "_C_m_" );
+    replace( sb, " ", "" );
+    return sb.toString();
   }
 
-  private static void addConstructor( IRClassBuilder classBuilder ) {
-    IRMethodBuilder method = classBuilder.createConstructor();
-    method._public().parameters("block", IBlock.class, "coercer", ICoercer.class, "returnType", IType.class).body(
-            set("_block", var("block")),
-            set("_coercer", var("coercer")),
-            set("_returnType", var("returnType")),
-            _superInit(),
-            _return()
-    );
+  private static String decodeClassName( String name ) {
+    StringBuilder sb = new StringBuilder( name );
+    replace( sb, "_L_t_", ">" );
+    replace( sb, "_G_t_", "<" );
+    replace( sb, "_D_t_", "." );
+    replace( sb, "_C_m_", "," );
+    return sb.toString();
   }
 
-  private static void addInterfaceMethod( IRClassBuilder classBuilder, IType typeToCoerceTo ) {
-
-    IMethodInfo proxiedMethod = getSingleMethod( typeToCoerceTo );
-
-    IRMethodBuilder method = classBuilder.createMethod();
-    method.name( proxiedMethod.getDisplayName() )
-            ._public()
-            .copyParameters( proxiedMethod )
-            .returns( GosuShop.getIRTypeResolver().getDescriptor( proxiedMethod.getReturnType() ) );
-
-    List<IRExpressionBuilder> arrayContents = new ArrayList<IRExpressionBuilder>();
-    IParameterInfo[] parameters = proxiedMethod.getParameters();
-    for (int i = 0; i < parameters.length; i++) {
-      arrayContents.add(var("arg" + i));
-    }
-
-    if (proxiedMethod.getReturnType() == JavaTypes.pVOID()) {
-      method.body(
-        field("_block").call("invokeWithArgs", newArray(Object.class, arrayContents)),
-        _return()
-      );
-    } else {
-      method.body(
-        assign("value", IRTypeConstants.OBJECT(), field("_block").call("invokeWithArgs", newArray(Object.class, arrayContents))),
-        _if(field("_coercer").isNotNull()).then(
-          assign("value", field("_coercer").call("coerceValue", field("_returnType"), var("value")))
-        ),
-        _return(var("value"))
-      );
+  private static void replace( StringBuilder sb, String find, String replace ) {
+    for( int i = sb.indexOf( find ); i >= 0; i = sb.indexOf( find ) ) {
+      sb.replace( i, i+find.length(), replace );
     }
   }
 
-  private static void addToStringMethod( IRClassBuilder classBuilder ) {
-    IRMethodBuilder method = classBuilder.createMethod();
-    method.name( "toString" )
-      ._public()
-      .returns( IRTypeConstants.STRING() );
+  private static IGosuClass createProxy( final IType typeToCoerceTo, IType enclosingType, final String relativeName )
+  {
+    IModule mod = enclosingType.getTypeLoader().getModule();
+    TypeSystem.pushModule( mod );
+    try {
+      final String namespace = enclosingType.getNamespace();
+      IGosuClassInternal gsClass = (IGosuClassInternal)GosuClassTypeLoader.getDefaultClassLoader().makeNewClass(
+        new LazyStringSourceFileHandle( enclosingType.getName() + "." + relativeName, TypeLord.getPureGenericType( enclosingType ), new Callable<StringBuilder>() {
+          public StringBuilder call() {
+            return genProxy( typeToCoerceTo, namespace, relativeName );
+          }
+        } ) );
+      gsClass.setEnclosingType( enclosingType );
+      ((IGosuClassInternal)enclosingType).addInnerClass( gsClass );
+      gsClass.compileDeclarationsIfNeeded();
+      return gsClass;
+    }
+    finally {
+      TypeSystem.popModule( mod );
+    }
+  }
 
-    method.body(
-      assign( "value", IRTypeConstants.OBJECT(), field( "_block" ).call( "toString" ) ),
-      _return( var( "value" ) )
-    );
+  private static StringBuilder genProxy( IType type, String namespace, String relativeName )
+  {
+    //
+    // Note we generate from Gosu source instead of generating ASM directly to take advantage
+    // of the TypeAsTransformer for the return value of the generated interface method implementation.
+    // Since the return type of a given interface can vary if the interface is generic e.g., see Callable<V>
+    //
+
+    IType genType = type.isParameterizedType() ? type.getGenericType() : type;
+    StringBuilder sb = new StringBuilder()
+      .append( "package " ).append( namespace ).append( "\n" )
+      .append( "\n" )
+      .append( "static class " ).append( relativeName ).append( " implements " ).append( genType.getName() ).append( " {\n" )
+      .append( "  final var _block: gw.lang.function.IBlock\n" )
+      .append( "  \n" )
+      .append( "  construct( brock: gw.lang.function.IBlock ) {\n" )
+      .append( "    _block = brock\n" )
+      .append( "  }\n" )
+      .append( "  \n" )
+      .append( "  override function toString() : String {\n" )
+      .append( "    return _block.toString()\n" )
+      .append( "  }\n" )
+      .append( "\n" );
+    implementIface( sb, type );
+    sb.append( "}" );
+    return sb;
+  }
+
+  private static void implementIface( StringBuilder sb, IType type ) {
+    IMethodInfo mi = getSingleMethod( type );
+    IType returnType = TypeLord.replaceTypeVariableTypeParametersWithBoundingTypes( mi.getReturnType() );
+    mi = getSingleMethod( TypeLord.getPureGenericType( type ) );
+    if( mi.getName().startsWith( "@" ) ) {
+      if( returnType == JavaTypes.pVOID() ) {
+        sb.append( "  property set " );
+      }
+      else {
+        sb.append( "  property get " );
+      }
+    }
+    else {
+      sb.append( "  function " );
+    }
+    sb.append( mi.getDisplayName() ).append( "(" );
+    IParameterInfo[] params = GosuClassProxyFactory.getGenericParameters( mi );
+    for( int i = 0; i < params.length; i++ ) {
+      IParameterInfo pi = params[i];
+      sb.append( ' ' ).append( "p" ).append( i ).append( ": " ).append( TypeLord.replaceTypeVariableTypeParametersWithBoundingTypes( pi.getFeatureType() ).getName() );
+      sb.append( i < params.length - 1 ? ',' : ' ' );
+    }
+    sb.append( ") : " ).append( returnType.getName() ).append( " {\n" )
+      .append( returnType == JavaTypes.pVOID()
+               ? "    "
+               : "    return " )
+      .append( "_block.invokeWithArgs( {" );
+    for( int i = 0; i < params.length; i++ ) {
+      sb.append( ' ' ).append( "p" ).append( i )
+        .append( i < params.length - 1 ? ',' : ' ' );
+    }
+    sb.append( "} )\n" ).append( maybeCastReturnType( returnType ) )
+      .append( "  }\n" );
+  }
+
+  private static String maybeCastReturnType( IType returnType ) {
+    return returnType != JavaTypes.pVOID()
+           ? " as " + returnType.getName()
+           : "";
+  }
+
+  private static class LazyStringSourceFileHandle extends StringSourceFileHandle {
+    private Callable<StringBuilder> _sourceGen;
+    private String _typeNamespace;
+
+    public LazyStringSourceFileHandle( String fqn, IType enclosingType, Callable<StringBuilder> sourceGen ) {
+      super( fqn, null, false, ClassType.Class );
+      _sourceGen = sourceGen;
+      setParentType( enclosingType.getName() );
+      _typeNamespace = enclosingType.getName();
+    }
+
+    public String getTypeNamespace() {
+      return _typeNamespace;
+    }
+
+    @Override
+    public ISource getSource() {
+      if( getRawSource() == null ) {
+        try {
+          setRawSource( _sourceGen.call().toString() );
+        }
+        catch( Exception e ) {
+          throw new RuntimeException( e );
+        }
+      }
+      return super.getSource();
+    }
   }
 
   private static IMethodInfo getSingleMethod( IType interfaceType )

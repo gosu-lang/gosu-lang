@@ -1137,7 +1137,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
   // GosuParser methods
 
   @Override
-  public SourceCodeTokenizer getTokenizer()
+  final public SourceCodeTokenizer getTokenizer()
   {
     return _tokenizer;
   }
@@ -2018,6 +2018,10 @@ public final class GosuParser extends ParserBase implements IGosuParser
 
   private void verifyRelationalOperandsComparable( BinaryExpression expr )
   {
+    if( !verify( expr, expr.getRHS().getType() != JavaTypes.OBJECT(), Res.MSG_RELATIONAL_OPERATOR_CANNOT_BE_APPLIED_TO_TYPE, expr.getOperator(), Object.class.getName() ) )
+    {
+      return;
+    }
     boolean bComparable = false;
     IType lhsType = expr.getLHS().getType();
     if( BeanAccess.isNumericType( lhsType ) )
@@ -2332,9 +2336,11 @@ public final class GosuParser extends ParserBase implements IGosuParser
 
         // Rhs must be an int
         Expression rhs = popExpression();
-        verifyTypesComparable( rhs, JavaTypes.pINT(), rhs.getType(), false, true );
-        rhs = possiblyWrapWithImplicitCoercion( rhs, JavaTypes.pINT() );
-
+        IType rhsType = rhs.getType();
+        if( verify( rhs, rhsType != JavaTypes.OBJECT() , Res.MSG_TYPE_MISMATCH, "int", "Object" ) ) {
+          verifyTypesComparable( rhs, JavaTypes.pINT(), rhsType, false, true );
+          rhs = possiblyWrapWithImplicitCoercion( rhs, JavaTypes.pINT() );
+        }
         // Lhs must be an int or a long
         Expression lhs = popExpression();
         IType lhsType = lhs.getType();
@@ -2657,8 +2663,10 @@ public final class GosuParser extends ParserBase implements IGosuParser
       UnaryNotPlusMinusExpression ue = new UnaryNotPlusMinusExpression();
       Expression e = popExpression();
       IType type = e.getType();
-      verifyTypesComparable( e, JavaTypes.pBOOLEAN(), type, false, true );
-      e = possiblyWrapWithImplicitCoercion( e, JavaTypes.pBOOLEAN() );
+      if( verify( e, type != JavaTypes.OBJECT() , Res.MSG_TYPE_MISMATCH, "boolean", "Object" ) ) {
+        verifyTypesComparable( e, JavaTypes.pBOOLEAN(), type, false, true );
+        e = possiblyWrapWithImplicitCoercion( e, JavaTypes.pBOOLEAN() );
+      }
       ue.setExpression( e );
       ue.setNot( true );
       ue.setType( JavaTypes.pBOOLEAN() );
@@ -2679,8 +2687,10 @@ public final class GosuParser extends ParserBase implements IGosuParser
       {
         if( verify( e, !isDynamic( type ), Res.MSG_DYNAMIC_TYPE_NOT_ALLOWED_HERE ) )
         {
-          verifyTypesComparable( e, JavaTypes.pINT(), type, false, true );
-          e = possiblyWrapWithImplicitCoercion( e, JavaTypes.pINT() );
+          if( verify( e, type != JavaTypes.OBJECT() , Res.MSG_TYPE_MISMATCH, "int", "Object" ) ) {
+            verifyTypesComparable( e, JavaTypes.pINT(), type, false, true );
+            e = possiblyWrapWithImplicitCoercion( e, JavaTypes.pINT() );
+          }
         }
       }
       ue.setExpression( e );

@@ -8,47 +8,107 @@ import gw.lang.Gosu;
 import gw.lang.reflect.TypeSystem;
 
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.net.URLClassLoader;
-import java.util.Arrays;
 import java.util.Hashtable;
-import java.util.List;
 
 /**
  */
 public class GosuClassPathThing {
-
+  public static final String GOSU_CLASS_PROTOCOL = "gosuclass";
   private static final String PROTOCOL_PACKAGE = "gw.internal.gosu.compiler.protocols";
+  private static Boolean CAN_WRAP = null;
 
-  private static void addGosuClassProtocolToClasspath() {
-    try {
-      URLClassLoaderWrapper urlLoader = findUrlLoader();
-      URL url = makeURL();
-      if (!urlLoader.getURLs().contains(url)) {
-        urlLoader.addURL(url);
+  private static void setupLoaderChainWithGosuUrl( ClassLoader loader ) {
+    UrlClassLoaderWrapper wrapped = UrlClassLoaderWrapper.wrapIfNotAlreadyVisited( loader );
+    if( wrapped == null ) {
+      return;
+    }
+    addGosuClassUrl( wrapped );
+    if( canWrapChain() ) {
+      if( loader != ClassLoader.getSystemClassLoader() ) { // we don't bother messing with any loaders above the system loader e.g., ExtClassLoader
+        loader = loader.getParent();
+        if( loader != null ) {
+          setupLoaderChainWithGosuUrl( loader );
+        }
       }
     }
-    catch( Exception e ) {
+  }
+
+  /*
+    We don't currently wrap the chain of loaders for WebSphere or WebLogic or JBoss
+    because they use "module" class loaders that are not URLClassLoader-like.  We
+    can maybe someday handle them seperately.
+
+    IBM class loader chain:
+    ~~~~~~~~~~~~~~~~~~~~~~~
+    com.guidewire.pl.system.gosu.GosuPluginContainer ->
+       com.guidewire.pl.system.integration.plugins.PluginContainer ->
+         com.guidewire.pl.system.integration.plugins.SharedPluginContainer ->
+           com.guidewire.pl.system.integration.plugins.PluginContainer ->
+
+             [weblogic.utils.classloaders.ChangeAwareClassLoader ->
+               weblogic.utils.classloaders.FilteringClassLoader ->
+                 weblogic.utils.classloaders.GenericClassLoader]* ->
+
+                   sun.misc.Launcher$AppClassLoader ->
+                     sun.misc.Launcher$ExtClassLoader ->
+                       <null>
+
+    WebLogic class loader chain:
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    com.guidewire.pl.system.gosu.GosuPluginContainer ->
+       com.guidewire.pl.system.integration.plugins.PluginContainer ->
+         com.guidewire.pl.system.integration.plugins.SharedPluginContainer ->
+            com.guidewire.pl.system.integration.plugins.PluginContainer ->
+
+              org.jboss.modules.ModuleClassLoader ->
+
+                sun.misc.Launcher$AppClassLoader ->
+                  sun.misc.Launcher$ExtClassLoader ->
+                    <null>
+
+   */
+  private static boolean canWrapChain( ClassLoader loader ) {
+    if( loader == null ) {
+      return false;
+    }
+    UrlClassLoaderWrapper wrapped = UrlClassLoaderWrapper.wrap( loader );
+    boolean bSysLoader = loader == ClassLoader.getSystemClassLoader();
+    if( bSysLoader ) {
+      return wrapped != null;
+    }
+    loader = loader.getParent();
+    return wrapped != null && canWrapChain( loader );
+  }
+
+  private static void addGosuClassUrl( UrlClassLoaderWrapper urlLoader ) {
+    try {
+      URL url = makeUrl( urlLoader.getLoader() );
+      if( !urlLoader.getURLs().contains( url ) ) {
+        urlLoader.addURL( url );
+      }
+    }
+    catch( MalformedURLException e ) {
       throw new RuntimeException( e );
     }
   }
 
-  private static URL makeURL() throws MalformedURLException {
-    String protocol = "gosuclass";
+  private static URL makeUrl( ClassLoader loader ) throws MalformedURLException {
+    int loaderAddress = System.identityHashCode( loader );
+    String spec = GOSU_CLASS_PROTOCOL + "://" + loaderAddress + "/";
     URL url;
     try {
-      url = new URL( null, protocol + "://honeybadger/" );
+      url = new URL( null, spec );
     }
     catch( Exception e ) {
       // If our Handler class is not in the system loader and not accessible within the Caller's
       // classloader from the URL constructor (3 activation records deep), then our Handler class
-      // is not loadable by the URL class, but the honey badget  doesn't really care; it gets
+      // is not loadable by the URL class, but the honey badger doesn't really care; it gets
       // what it wants.
       addOurProtocolHandler();
-      url = new URL( null, protocol + "://honeybadger/" );
+      url = new URL( null, spec );
     }
     return url;
   }
@@ -95,37 +155,12 @@ public class GosuClassPathThing {
 
   private static void removeOurProtocolPackage() {
     String strProtocolProp = "java.protocol.handler.pkgs";
-    String ours = "gw.internal.gosu.compiler.protocols";
     String protocols = System.getProperty( strProtocolProp );
     if( protocols != null ) {
       // Remove our protocol from the list
       protocols = protocols.replace( PROTOCOL_PACKAGE + '|' , "" );
       System.setProperty( strProtocolProp, protocols );
     }
-  }
-
-  private static URLClassLoaderWrapper findUrlLoader() {
-    ClassLoader loader = TypeSystem.getGosuClassLoader().getActualLoader();
-    if (loader instanceof URLClassLoader) {
-      return new SunURLClassLoaderWrapper((URLClassLoader) loader);
-    }
-    else {
-      Class<?> ijUrlClassLoaderClass = findSuperClass(loader.getClass(), IJUrlClassLoaderWrapper.CLASS_NAME);
-      if (ijUrlClassLoaderClass != null) {
-        return new IJUrlClassLoaderWrapper(loader, ijUrlClassLoaderClass);
-      }
-    }
-    throw new IllegalStateException("class loader not identified as a URL-based loader: " + loader.getClass().getName());
-  }
-
-  private static Class<?> findSuperClass(Class<?> loaderClass, String possibleSuperClassName) {
-    if (loaderClass == null) {
-      return null;
-    }
-    if (loaderClass.getName().equals(possibleSuperClassName)) {
-      return loaderClass;
-    }
-    return findSuperClass(loaderClass.getSuperclass(), possibleSuperClassName);
   }
 
   public synchronized static boolean init() {
@@ -137,8 +172,13 @@ public class GosuClassPathThing {
         TypeSystem.pushModule( TypeSystem.getGlobalModule() );
       }
     }
-    addGosuClassProtocolToClasspath();
+    ClassLoader loader = TypeSystem.getGosuClassLoader().getActualLoader();
+    setupLoaderChainWithGosuUrl( loader );
     return true;
+  }
+
+  public static boolean canWrapChain() {
+    return CAN_WRAP == null ? CAN_WRAP = canWrapChain( TypeSystem.getGosuClassLoader().getActualLoader() ) : CAN_WRAP;
   }
 
   public synchronized static void cleanup() {
@@ -148,65 +188,4 @@ public class GosuClassPathThing {
     removeOurProtocolHandler();
   }
 
-  private static abstract class URLClassLoaderWrapper {
-    final ClassLoader _loader;
-    final Class _classLoaderClass;
-
-    URLClassLoaderWrapper(ClassLoader loader, Class classLoaderClass) {
-      _loader = loader;
-      _classLoaderClass = classLoaderClass;
-    }
-
-    abstract void addURL(URL url);
-    abstract List<URL> getURLs();
-
-    Object invokeMethod(String methodName, Class<?>[] paramTypes, Object[] params) {
-      try {
-        Method method = _classLoaderClass.getDeclaredMethod( methodName, paramTypes );
-        method.setAccessible(true);
-        return method.invoke(_loader, params);
-      } catch (NoSuchMethodException e) {
-        throw new RuntimeException( e );
-      } catch (IllegalAccessException e) {
-        throw new RuntimeException( e );
-      } catch (InvocationTargetException e) {
-        throw new RuntimeException( e );
-      }
-    }
-  }
-
-  private static class SunURLClassLoaderWrapper extends URLClassLoaderWrapper {
-    SunURLClassLoaderWrapper(URLClassLoader loader) {
-      super(loader, URLClassLoader.class);
-    }
-
-    @Override
-    void addURL(URL url) {
-      invokeMethod("addURL", new Class[] { URL.class }, new Object[] { url });
-    }
-
-    @Override
-    List<URL> getURLs() {
-      return Arrays.asList(((URLClassLoader) _loader).getURLs());
-    }
-  }
-
-  private static class IJUrlClassLoaderWrapper extends URLClassLoaderWrapper {
-    static final String CLASS_NAME = "com.intellij.util.lang.UrlClassLoader";
-
-    IJUrlClassLoaderWrapper(ClassLoader loader, Class<?> classLoaderClass) {
-      super(loader, classLoaderClass);
-    }
-
-    @Override
-    void addURL(URL url) {
-      invokeMethod("addURL", new Class<?>[] { URL.class }, new Object[] { url });
-    }
-
-    @Override
-    List<URL> getURLs() {
-      //noinspection unchecked
-      return (List<URL>) invokeMethod("getUrls", new Class<?>[0], new Object[0]);
-    }
-  }
 }

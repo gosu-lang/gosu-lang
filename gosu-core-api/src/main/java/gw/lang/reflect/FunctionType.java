@@ -635,6 +635,10 @@ public class FunctionType extends AbstractType implements IFunctionType, IGeneri
 
   public boolean isAssignableFrom( IType type )
   {
+    return isAssignableFrom( type, true );
+  }
+  public boolean isAssignableFrom( IType type, boolean bContravariant )
+  {
     if( this == type )
     {
       return true;
@@ -648,7 +652,7 @@ public class FunctionType extends AbstractType implements IFunctionType, IGeneri
     {
       FunctionType otherType = (FunctionType)type;
       //contravariant arg types
-      if( areParamsCompatible( this, otherType ) )
+      if( areParamsCompatible( this, otherType, bContravariant ) )
       {
         //covariant return types
         return getReturnType().isAssignableFrom( otherType.getReturnType() ) ||
@@ -665,6 +669,10 @@ public class FunctionType extends AbstractType implements IFunctionType, IGeneri
 
   public static boolean areParamsCompatible( IFunctionType lhsType, IFunctionType rhsType )
   {
+    return areParamsCompatible( lhsType, rhsType, true );
+  }
+  private static boolean areParamsCompatible( IFunctionType lhsType, IFunctionType rhsType, boolean bContravariant )
+  {
     IType[] lhsParams = lhsType.getParameterTypes();
     IType[] rhsParams = rhsType.getParameterTypes();
 
@@ -676,12 +684,21 @@ public class FunctionType extends AbstractType implements IFunctionType, IGeneri
     for( int i = 0; i < rhsParams.length; i++ )
     {
       IType myParamType = lhsParams[i];
-      IType otherParamType = rhsParams[i];                    //## todo: this is a hack; we need to tighten this up
-      if( !StandardCoercionManager.arePrimitiveTypesAssignable( otherParamType, myParamType ) ) {
-        if( !(otherParamType.isAssignableFrom( myParamType ) || myParamType instanceof ITypeVariableType) )
-        {
-          return false;
+      IType otherParamType = rhsParams[i];
+      if( bContravariant )
+      {
+        if( !StandardCoercionManager.arePrimitiveTypesAssignable( otherParamType, myParamType ) ) {
+              //## todo: this condition re type vars is a hack; we need to tighten this up
+          if( !(myParamType instanceof ITypeVariableType) &&
+              !otherParamType.isAssignableFrom( myParamType ) )
+          {
+            return false;
+          }
         }
+      }
+      else if( !otherParamType.equals( myParamType ) && !(myParamType instanceof ITypeVariableType) )
+      {
+        return false;
       }
     }
     return true;
@@ -749,11 +766,6 @@ public class FunctionType extends AbstractType implements IFunctionType, IGeneri
       functionType.setScriptPart(getScriptPart());
     }
     return functionType;
-  }
-
-  @Override
-  public Pair<Long, String> getRetainedMemory() {
-    return null;
   }
 
   private IGenericTypeVariable[] cloneTypeVars() {

@@ -260,4 +260,9 @@ public class JarFileDirectoryImpl implements IJarFileDirectory {
     IFile childFile = file(path);
     return childFile != null && childFile.exists();
   }
+
+  @Override
+  public boolean isAdditional() {
+    return false;
+  }
 }

@@ -39,7 +39,9 @@
               text="Mark Errors for Gosu Language Test"/>
       <action id="Gosu.PerfAction" class="com.guidewire.editor.devtools.perf.PerfAction"
               text="Run Perf Action"/>
-      <separator/>
+        <action id="Gosu.SaveGosucProject" class="com.guidewire.editor.devtools.gosuc.SaveGosucProjectAction"
+                text="Save Gosuc Project (for testing)"/>
+        <separator/>      <separator/>
       <add-to-group group-id="MainMenu" anchor="after" relative-to-action="ToolsMenu"/>
     </group>
   </actions>

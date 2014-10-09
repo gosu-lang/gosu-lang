@@ -5,6 +5,7 @@
 package gw.internal.gosu.template;
 
 import gw.internal.gosu.parser.*;
+import gw.lang.parser.template.StringEscaper;
 import gw.lang.reflect.gs.ClassType;
 import gw.lang.reflect.gs.ISourceFileHandle;
 import gw.lang.reflect.*;
@@ -114,13 +115,14 @@ public class GosuTemplateType extends GosuProgram implements IGosuTemplateIntern
 
           mi = (IMethodInfo)dfs.getMethodOrConstructorInfo();
           String strMethodName = mi.getDisplayName();
-          mi = ((IRelativeTypeInfo)iface.getTypeInfo()).getMethod( iface, strMethodName, ((IFunctionType)dfs.getType()).getParameterTypes() );
+          IType[] parameterTypes = ((IFunctionType)dfs.getType()).getParameterTypes();
+          mi = ((IRelativeTypeInfo)iface.getTypeInfo()).getMethod( iface, strMethodName, parameterTypes );
 
           symTable.pushScope();
           TemplateRenderFunctionSymbol forwardFs;
           try
           {
-            forwardFs = new TemplateRenderFunctionSymbol( pThis, symTable, dfs, mi, this, getParameterTypes( "render".equals( strMethodName ) ) );
+            forwardFs = new TemplateRenderFunctionSymbol( pThis, symTable, dfs, mi, this, getParameterTypes( parameterTypes ) );
           }
           finally
           {
@@ -133,14 +135,18 @@ public class GosuTemplateType extends GosuProgram implements IGosuTemplateIntern
     }
   }
 
-  public IType[] getParameterTypes( boolean bWithWriter )
+  public IType[] getParameterTypes( IType[] delegateParamTypes )
   {
     ITemplateGenerator templateGenerator = getTemplateGenerator();
     List<ISymbol> params = templateGenerator.getParameters();
     List<IType> paramTypes = new ArrayList<IType>();
-    if( bWithWriter )
+    if( delegateParamTypes.length >= 3 )
     {
       paramTypes.add( JavaTypes.getJreType( Writer.class ) );
+      if( delegateParamTypes.length >= 4 )
+      {
+        paramTypes.add( JavaTypes.getJreType( StringEscaper.class ) );
+      }
     }
     for( int i = 0; i < params.size(); i++ )
     {

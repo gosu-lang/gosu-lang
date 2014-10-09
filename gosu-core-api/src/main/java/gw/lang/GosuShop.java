@@ -29,7 +29,6 @@ import gw.lang.parser.ITypeUsesMap;
 import gw.lang.parser.expressions.IIdentifierExpression;
 import gw.lang.parser.expressions.INullExpression;
 import gw.lang.parser.template.ITemplateHost;
-import gw.lang.parser.template.ITemplateObserver;
 import gw.lang.parser.template.TemplateParseException;
 import gw.lang.reflect.IAnnotationInfo;
 import gw.lang.reflect.IAnnotationInfoFactory;
@@ -253,8 +252,8 @@ public class GosuShop
     return CommonServices.getGosuIndustrialPark().getNullExpressionInstance();
   }
 
-  public static Class getBlockToInterfaceConversionClass( IType typeToCoerceTo ) {
-    return CommonServices.getGosuIndustrialPark().getBlockToInterfaceConversionClass(typeToCoerceTo);
+  public static IGosuClass getBlockToInterfaceConversionClass( IType typeToCoerceTo, IType enclosingType ) {
+    return CommonServices.getGosuIndustrialPark().getBlockToInterfaceConversionClass( typeToCoerceTo, enclosingType );
   }
 
   public static IRTypeResolver getIRTypeResolver() {
@@ -453,10 +452,6 @@ public class GosuShop
 
   public static byte[] updateReloadClassesIndicator(List<String> changedTypes, String strScript ) {
     return CommonServices.getGosuIndustrialPark().updateReloadClassesIndicator(changedTypes, strScript);
-  }
-
-  public static ITemplateObserver.ITemplateObserverManager makeTemplateObserverManager() {
-    return CommonServices.getGosuIndustrialPark().makeTemplateObserverManager();
   }
 
   public static void print( Object ret ) {

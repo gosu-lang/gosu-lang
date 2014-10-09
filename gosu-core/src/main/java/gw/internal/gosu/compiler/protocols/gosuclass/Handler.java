@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.net.URLStreamHandler;
+import java.util.Arrays;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -17,6 +18,12 @@ public class Handler extends URLStreamHandler
   public static final ConcurrentHashMap<URL, URL> _visited = new ConcurrentHashMap<URL, URL>();
 
   public static final Handler INSTANCE = new Handler();
+
+  static {
+    // Preload the Url Connection classes to prevent LinkageErrors during initial load
+    Arrays.asList( GosuClassesUrlConnection.class,
+                   GosuClassesUrlConnection.LazyByteArrayInputStream.class );
+  }
 
   @Override
   protected URLConnection openConnection( URL u ) throws IOException
