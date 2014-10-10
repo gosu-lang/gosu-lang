@@ -1734,20 +1734,21 @@ public final class GosuParser extends ParserBase implements IGosuParser
     while( true );
   }
 
-  private Expression ensureOperandIntOrLong( Expression lhs )
+  private Expression ensureOperandIntOrLong( Expression op )
   {
-    IType lhsType = lhs.getType();
-    if( verify( lhs,
-            lhsType == JavaTypes.LONG() || lhsType == JavaTypes.pLONG() ||
-                    lhsType == JavaTypes.INTEGER() || lhsType == JavaTypes.pINT() ||
-                    lhsType == JavaTypes.SHORT() || lhsType == JavaTypes.pSHORT() ||
-                    lhsType == JavaTypes.BYTE() || lhsType == JavaTypes.pBYTE(),
+    IType opType = op.getType();
+    if( verify( op,
+            opType == JavaTypes.LONG() || opType == JavaTypes.pLONG() ||
+                    opType == JavaTypes.CHARACTER() || opType == JavaTypes.pCHAR() ||
+                    opType == JavaTypes.INTEGER() || opType == JavaTypes.pINT() ||
+                    opType == JavaTypes.SHORT() || opType == JavaTypes.pSHORT() ||
+                    opType == JavaTypes.BYTE() || opType == JavaTypes.pBYTE(),
             Res.MSG_BITWISE_OPERAND_MUST_BE_INT_OR_LONG ) )
     {
-      lhsType = lhsType == JavaTypes.LONG() || lhsType == JavaTypes.pLONG() ? JavaTypes.pLONG() : JavaTypes.pINT();
-      lhs = possiblyWrapWithImplicitCoercion( lhs, lhsType );
+      opType = opType == JavaTypes.LONG() || opType == JavaTypes.pLONG() ? JavaTypes.pLONG() : JavaTypes.pINT();
+      op = possiblyWrapWithImplicitCoercion( op, opType );
     }
-    return lhs;
+    return op;
   }
 
   //------------------------------------------------------------------------------
