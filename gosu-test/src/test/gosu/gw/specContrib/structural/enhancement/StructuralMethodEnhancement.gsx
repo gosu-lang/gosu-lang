@@ -1,5 +1,5 @@
 package gw.specContrib.structural.enhancement
 
-enhancement Errant_StructuralEnhancement_Enh: Errant_StructuralEnhancement {
+enhancement StructuralMethodEnhancement: Errant_StructuralMethodEnhancement {
     function structFunTwo() {}
 }
