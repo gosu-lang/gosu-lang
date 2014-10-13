@@ -57,7 +57,7 @@ class ShiftLeftPrecedenceTest extends PrecedenceTestBase {
   function testShiftLeftIsHigherPrecedenceThanBlock() {
     var x = \ -> 3 << 2
     assertEquals(12, x())
-    assertParseError("(\\ -> 3) << 2", "The left-hand side operand must be an int or a long.")  
+    assertParseError("(\\ -> 3) << 2", "Bit-wise logical operand must be an int or a long.")
   }
 
 }

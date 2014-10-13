@@ -49,17 +49,17 @@ class StatictypeofPrecedenceTest extends PrecedenceTestBase {
   // Shift
 
   function testStatictypeofIsHigherPrecedenceThanShiftLeft() {
-    assertParseError("statictypeof 5 << 3", "The left-hand side operand must be an int or a long")
+    assertParseError("statictypeof 5 << 3", "Bit-wise logical operand must be an int or a long")
     assertEquals(int.Type, statictypeof (5 << 3))
   }
 
   function testStatictypeofIsHigherPrecedenceThanShiftRight() {
-    assertParseError("statictypeof 20 >> 3", "The left-hand side operand must be an int or a long")
+    assertParseError("statictypeof 20 >> 3", "Bit-wise logical operand must be an int or a long")
     assertEquals(int.Type, statictypeof (20 >> 3))
   }
 
   function testStatictypeofIsHigherPrecedenceThanUnsignedShiftRight() {
-    assertParseError("statictypeof 20 >>> 3", "The left-hand side operand must be an int or a long")
+    assertParseError("statictypeof 20 >>> 3", "Bit-wise logical operand must be an int or a long")
     assertEquals(int.Type, statictypeof (20 >>> 3))
   }
 
@@ -112,14 +112,14 @@ class StatictypeofPrecedenceTest extends PrecedenceTestBase {
   // Bitwise XOR
 
   function testStatictypeofIsHigherPrecedenceThanBitwiseXor() {
-    assertParseError("statictypeof 5 ^ 7", "The type \"int\" cannot be converted to \"Type<int>\"")
+    assertParseError("statictypeof 5 ^ 7", null)
     assertEquals(int.Type, statictypeof (5 ^ 7))
   }
 
   // Bitwise OR
 
   function testStatictypeofIsHigherPrecedenceThanBitwiseOr() {
-    assertParseError("statictypeof 5 | 7", "The type \"int\" cannot be converted to \"Type<int>\"")
+    assertParseError("statictypeof 5 | 7", null)
     assertEquals(int.Type, statictypeof (5 | 7))
   }
 
