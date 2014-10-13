@@ -21,6 +21,7 @@ import gw.lang.reflect.java.IJavaClassType;
 import gw.lang.reflect.java.IJavaClassTypeVariable;
 import gw.lang.reflect.java.IJavaMethodDescriptor;
 import gw.lang.reflect.java.IJavaPropertyDescriptor;
+import gw.lang.reflect.java.IJavaType;
 import gw.lang.reflect.java.ITypeInfoResolver;
 import gw.lang.reflect.java.JavaTypes;
 import gw.lang.reflect.module.IModule;
@@ -188,6 +189,9 @@ public class JavaSourceUnresolvedClass extends AbstractJavaClassInfo implements 
   @Override
   public IType getJavaType() {
     return JavaTypes.OBJECT();
+  }
+  public void setJavaType(IJavaType javaType) {
+    throw new IllegalStateException();
   }
 
   @Override

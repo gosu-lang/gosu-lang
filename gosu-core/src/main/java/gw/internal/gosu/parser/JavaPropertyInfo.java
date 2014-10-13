@@ -64,14 +64,14 @@ public class JavaPropertyInfo extends JavaBaseFeatureInfo implements IJavaProper
    * @param container Typically this will be the containing ITypeInfo
    * @param pd        The property descriptor (from BeanInfo)
    */
-  public JavaPropertyInfo( IFeatureInfo container, IJavaPropertyDescriptor pd )
+  JavaPropertyInfo( IFeatureInfo container, IJavaPropertyDescriptor pd )
   {
     super( container );
     _pd = pd;
     initFlags();
   }
 
-  public JavaPropertyInfo( IFeatureInfo container, IJavaPropertyDescriptor pd, IType propertyType )
+  private JavaPropertyInfo( IFeatureInfo container, IJavaPropertyDescriptor pd, IType propertyType )
   {
     super( container );
     _pd = pd;
@@ -79,10 +79,22 @@ public class JavaPropertyInfo extends JavaBaseFeatureInfo implements IJavaProper
     initFlags();
   }
 
-  public JavaPropertyInfo( IFeatureInfo container, IJavaPropertyDescriptor pd, IType propertyType, IPresentationInfo presInfo )
+  private JavaPropertyInfo( IFeatureInfo container, IJavaPropertyDescriptor pd, IType propertyType, IPresentationInfo presInfo )
   {
     this( container, pd, propertyType );
     _presInfo = presInfo;
+  }
+
+  public static IJavaPropertyInfo newInstance(IFeatureInfo container, IJavaPropertyDescriptor pd) {
+    return JavaTypeExtensions.maybeExtendProperty(new JavaPropertyInfo(container, pd));
+  }
+
+  public static IJavaPropertyInfo newInstance(IFeatureInfo container, IJavaPropertyDescriptor pd, IType propertyType) {
+    return JavaTypeExtensions.maybeExtendProperty(new JavaPropertyInfo(container, pd, propertyType));
+  }
+
+  public static IJavaPropertyInfo newInstance(IFeatureInfo container, IJavaPropertyDescriptor pd, IType propertyType, IPresentationInfo presInfo) {
+    return JavaTypeExtensions.maybeExtendProperty(new JavaPropertyInfo(container, pd, propertyType, presInfo));
   }
 
   private void initFlags()
@@ -529,6 +541,7 @@ public class JavaPropertyInfo extends JavaBaseFeatureInfo implements IJavaProper
     return null;
   }
 
+  @Override
   public IJavaClassField getPublicField()
   {
     return _publicField;

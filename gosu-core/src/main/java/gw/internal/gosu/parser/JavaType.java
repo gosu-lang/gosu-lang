@@ -141,7 +141,8 @@ class JavaType extends AbstractType implements IJavaTypeInternal
     else
     {
       JavaType rawType = new JavaType( new ClassJavaClassInfo(cls, loader.getModule()), loader );
-      type = (IJavaTypeInternal)TypeSystem.getOrCreateTypeReference( rawType );
+      IJavaTypeInternal extendedType = JavaTypeExtensions.maybeExtendType(rawType, cls);
+      type = (IJavaTypeInternal)TypeSystem.getOrCreateTypeReference( extendedType );
       rawType._typeRef = type;
     }
     TYPES_BY_CLASS.put( cls, type );
@@ -160,7 +161,8 @@ class JavaType extends AbstractType implements IJavaTypeInternal
     else
     {
       JavaType rawType = new JavaType( cls, loader );
-      type = (IJavaTypeInternal)TypeSystem.getOrCreateTypeReference( rawType );
+      IJavaTypeInternal extendedType = JavaTypeExtensions.maybeExtendType(rawType);
+      type = (IJavaTypeInternal)TypeSystem.getOrCreateTypeReference( extendedType );
       rawType._typeRef = type;
     }
     return type;
@@ -209,6 +211,7 @@ class JavaType extends AbstractType implements IJavaTypeInternal
 
   public JavaType(IJavaClassInfo cls, DefaultTypeLoader loader) {
     init(cls, loader);
+    cls.setJavaType( thisRef() );
     _strName = computeQualifiedName();
   }
 
@@ -223,7 +226,9 @@ class JavaType extends AbstractType implements IJavaTypeInternal
 
   JavaType( Class cls, DefaultTypeLoader loader )
   {
-    init(TypeSystem.getJavaClassInfo(cls, loader.getModule()), loader);
+    IJavaClassInfo javaClassInfo = TypeSystem.getJavaClassInfo(cls, loader.getModule());
+    init(javaClassInfo, loader);
+    javaClassInfo.setJavaType( thisRef() );
     _strName = computeQualifiedName();
   }
 
@@ -301,7 +306,7 @@ class JavaType extends AbstractType implements IJavaTypeInternal
 
   public String getDisplayName()
   {
-    return getName();
+    return CommonServices.getEntityAccess().getLocalizedTypeName(thisRef());
   }
 
   public String getRelativeName()
@@ -1381,5 +1386,10 @@ class JavaType extends AbstractType implements IJavaTypeInternal
   @Override
   public boolean isAnnotation() {
     return _classInfo.isAnnotation();
+  }
+
+  @Override
+  protected IJavaTypeInternal getTheRef() {
+    return thisRef();
   }
 }
