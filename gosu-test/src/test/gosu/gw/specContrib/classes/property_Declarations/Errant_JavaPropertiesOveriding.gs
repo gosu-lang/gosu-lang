@@ -1,6 +1,6 @@
 package gw.specContrib.classes.property_Declarations
 
-class Errant_JavaPropertiesOveriding implements JavaClass {
+class Errant_JavaPropertiesOveriding implements JavaClass1 {
 
   override function setDestinationID(destinationID: int) {      //## issuekeys: METHOD DOES NOT OVERRIDE METHOD FROM ITS SUPERCLASS. CONVERT THE METHOD INTO A PROPERTY
 

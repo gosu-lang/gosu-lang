@@ -1,6 +1,6 @@
 package gw.specContrib.classes.property_Declarations;
 
-public interface JavaClass {
+public interface JavaClass1 {
   void setDestinationID(int destinationID);
   int getDestinationID();
 

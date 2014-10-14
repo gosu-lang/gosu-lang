@@ -1,6 +1,6 @@
 package gw.specContrib.classes.property_Declarations;
 
-public class JClass {
+public class JavaClass2 {
 
     public String getText1() {
         return null;
