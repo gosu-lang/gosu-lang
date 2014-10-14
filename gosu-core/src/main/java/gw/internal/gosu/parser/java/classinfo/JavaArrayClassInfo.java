@@ -115,7 +115,6 @@ public class JavaArrayClassInfo extends AbstractJavaClassInfo {
     return _component.getJavaType().getArrayType();
   }
   public void setJavaType(IJavaType javaType) {
-    throw new IllegalStateException();
   }
 
   @Override
