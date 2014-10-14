@@ -14,6 +14,7 @@ class CompilationState implements ICompilationState
   private boolean _bHeaderCompiled;
   private boolean _bCompilingDeclarations;
   private boolean _bDeclarationsCompiled;
+  private boolean _bDeclarationsBypassed;
   private boolean _bCompilingDefinitions;
   private boolean _bDefinitionsCompiled;
   private boolean _bReparsingHeader;
@@ -60,6 +61,15 @@ class CompilationState implements ICompilationState
   void setDeclarationsCompiled()
   {
     _bDeclarationsCompiled = true;
+  }
+
+  public boolean isDeclarationsBypassed()
+  {
+    return _bDeclarationsBypassed;
+  }
+  void setDeclarationsBypassed()
+  {
+    _bDeclarationsBypassed = true;
   }
 
   public boolean isInnerDeclarationsCompiled()

@@ -1854,6 +1854,15 @@ public class GosuClass extends AbstractType implements IGosuClassInternal
     return getCompilationState().isDeclarationsCompiled();
   }
 
+  public boolean isDeclarationsBypassed()
+  {
+    return getCompilationState().isDeclarationsBypassed();
+  }
+  public void setDeclarationsBypassed()
+  {
+    getCompilationState().setDeclarationsBypassed();
+  }
+
   public boolean isInnerDeclarationsCompiled()
   {
     return getCompilationState().isInnerDeclarationsCompiled();
