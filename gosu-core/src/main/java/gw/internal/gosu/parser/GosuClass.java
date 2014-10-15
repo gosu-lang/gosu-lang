@@ -2361,7 +2361,7 @@ public class GosuClass extends AbstractType implements IGosuClassInternal
 
   public boolean isAccessible( IGosuClassInternal compilingClass, AbstractDynamicSymbol ads )
   {
-    return isInEnclosingTypeChain( compilingClass ) ||
+    return getOuterMostEnclosingClass( compilingClass ) == getOuterMostEnclosingClass( getOrCreateTypeReference() ) ||
            ads.isPublic() ||
            ads.isProtected() ||
            (ads.isInternal() && (isProxy() ? getNamespace().endsWith( compilingClass.getNamespace() ) :
@@ -2370,26 +2370,21 @@ public class GosuClass extends AbstractType implements IGosuClassInternal
 
   private boolean isAccessible( IGosuClassInternal compilingClass, IVarStatement varStmt )
   {
-    return isInEnclosingTypeChain( compilingClass ) ||
+    return getOuterMostEnclosingClass( compilingClass ) == getOuterMostEnclosingClass( getOrCreateTypeReference() ) ||
            varStmt.isPublic() ||
            varStmt.isProtected() ||
            (varStmt.isInternal() && (isProxy() ? getNamespace().endsWith( compilingClass.getNamespace() ) :
                                                  getNamespace().equals( compilingClass.getNamespace() )));
   }
 
-  private boolean isInEnclosingTypeChain( ICompilableTypeInternal gosuClass )
+  private IType getOuterMostEnclosingClass( IType innerClass )
   {
-    ICompilableTypeInternal csr = gosuClass;
-    IType thisRef = getOrCreateTypeReference();
-    if( thisRef.getGenericType() != null )
+    IType outerMost = innerClass;
+    while( outerMost != null && outerMost.getEnclosingType() != null )
     {
-      thisRef = thisRef.getGenericType();
+      outerMost = outerMost.getEnclosingType();
     }
-    while( csr != thisRef && csr != null )
-    {
-      csr = csr.getEnclosingType();
-    }
-    return csr == thisRef;
+    return outerMost;
   }
 
   public void setParseResultsException( ParseResultsException pe )
