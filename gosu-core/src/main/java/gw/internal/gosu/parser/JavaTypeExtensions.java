@@ -40,11 +40,8 @@ class JavaTypeExtensions {
   }
 
   public static IJavaTypeInternal maybeExtendType(JavaType javaType) {
-    return maybeExtendType( javaType, null );
-  }
-  public static IJavaTypeInternal maybeExtendType(JavaType javaType, Class javaClass) {
     IJavaTypeInternal result = javaType;
-    ExtendedTypeDataFactory factory = javaClass == null ? getExtendedTypeDataFactory(javaType) : getExtendedTypeDataFactory( javaClass );
+    ExtendedTypeDataFactory factory = getExtendedTypeDataFactory(javaType);
     if (factory != null) {
       ExtendedTypeData extendedTypeInfoData = factory.newTypeData(javaType.getName());
       result = (IJavaTypeInternal) Proxy.newProxyInstance(
@@ -58,12 +55,16 @@ class JavaTypeExtensions {
 
   private static ExtendedTypeDataFactory getExtendedTypeDataFactory(IJavaType javaType) {
     boolean extendedType;
+    Class<?> backingClass = javaType.getBackingClass();
+    if (backingClass != null) {
+      // Server runtime case. We can't go through the IJavaClassInfo for this case, because it leads to a
+      // circularity w.r.t. the JavaType (ClassAnnotationInfo attempts to get the JavaType)
+      extendedType = backingClass.isAnnotationPresent(ExtendedType.class);
+    } else {
+      // Studio case
     extendedType = javaType.getBackingClassInfo().getAnnotation(ExtendedType.class) != null;
+    }
     return extendedType ? CommonServices.getEntityAccess().getExtendedTypeDataFactory(javaType.getName()) : null;
-  }
-  private static ExtendedTypeDataFactory getExtendedTypeDataFactory(Class javaClass) {
-    boolean extendedType = javaClass.isAnnotationPresent(ExtendedType.class);
-    return extendedType ? CommonServices.getEntityAccess().getExtendedTypeDataFactory(javaClass.getName()) : null;
   }
 
   private static abstract class CompositeObjectInvocationHandler<T> implements InvocationHandler {

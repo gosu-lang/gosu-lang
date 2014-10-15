@@ -141,7 +141,7 @@ class JavaType extends AbstractType implements IJavaTypeInternal
     else
     {
       JavaType rawType = new JavaType( new ClassJavaClassInfo(cls, loader.getModule()), loader );
-      IJavaTypeInternal extendedType = JavaTypeExtensions.maybeExtendType(rawType, cls);
+      IJavaTypeInternal extendedType = JavaTypeExtensions.maybeExtendType(rawType);
       type = (IJavaTypeInternal)TypeSystem.getOrCreateTypeReference( extendedType );
       rawType._typeRef = type;
     }
@@ -211,7 +211,6 @@ class JavaType extends AbstractType implements IJavaTypeInternal
 
   public JavaType(IJavaClassInfo cls, DefaultTypeLoader loader) {
     init(cls, loader);
-    cls.setJavaType( thisRef() );
     _strName = computeQualifiedName();
   }
 
@@ -226,9 +225,7 @@ class JavaType extends AbstractType implements IJavaTypeInternal
 
   JavaType( Class cls, DefaultTypeLoader loader )
   {
-    IJavaClassInfo javaClassInfo = TypeSystem.getJavaClassInfo(cls, loader.getModule());
-    init(javaClassInfo, loader);
-    javaClassInfo.setJavaType( thisRef() );
+    init(TypeSystem.getJavaClassInfo(cls, loader.getModule()), loader);
     _strName = computeQualifiedName();
   }
 
@@ -1389,7 +1386,7 @@ class JavaType extends AbstractType implements IJavaTypeInternal
   }
 
   @Override
-  protected IJavaTypeInternal getTheRef() {
+  protected IType getTheRef() {
     return thisRef();
   }
 }

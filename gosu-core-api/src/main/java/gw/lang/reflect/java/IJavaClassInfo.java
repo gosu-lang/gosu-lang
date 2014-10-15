@@ -77,7 +77,6 @@ public interface IJavaClassInfo extends IJavaAnnotatedElement, IJavaClassType, I
 
 
   IType getJavaType();
-  void setJavaType(IJavaType javaType);
 
   IJavaClassTypeVariable[] getTypeParameters();
 
