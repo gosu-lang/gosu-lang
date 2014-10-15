@@ -450,6 +450,13 @@ class JavaType extends AbstractType implements IJavaTypeInternal
 
   public ITypeInfo getTypeInfo()
   {
+    if (!getTypeLoader().getModule().equals(TypeSystem.getCurrentModule())) {
+      final IType reResolveByFullName = TypeSystem.getByFullNameIfValid(getName());
+      if (reResolveByFullName!=null && !equals(reResolveByFullName)) {
+        return reResolveByFullName.getTypeInfo();
+      }
+    }
+
     ITypeInfo typeInfo = _typeInfo;
     if( typeInfo == null || hasAncestorBeenUpdated() )
     {
