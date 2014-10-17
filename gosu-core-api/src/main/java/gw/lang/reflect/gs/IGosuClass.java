@@ -61,6 +61,8 @@ public interface IGosuClass extends IFileBasedType, ICompilableType, IEnumType, 
 
   boolean isDeclarationsCompiled();
 
+  boolean isDeclarationsBypassed();
+
   boolean isInnerDeclarationsCompiled();
 
   boolean isCompilingDefinitions();

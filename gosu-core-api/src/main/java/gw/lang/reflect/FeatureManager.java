@@ -82,6 +82,8 @@ public class FeatureManager<T extends CharSequence> {
   }
 
   public static boolean isInSameNamespace(IType ownersClass, IType whosAskin) {
+    ownersClass = IGosuClass.ProxyUtil.getProxiedType( ownersClass );
+    whosAskin = IGosuClass.ProxyUtil.getProxiedType( whosAskin );
     String whosAskinNamespace = getTopLevelEnclosingClassNamespace(whosAskin);
     return whosAskinNamespace != null &&
            whosAskinNamespace.equals( getTopLevelEnclosingClassNamespace( ownersClass ) );

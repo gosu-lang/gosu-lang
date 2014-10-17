@@ -50,8 +50,9 @@ public class FunctionToInterfaceClassGenerator {
 
   private static String encodeClassName( String name ) {
     StringBuilder sb = new StringBuilder( name );
-    replace( sb, ">", "_L_t_" );
-    replace( sb, "<", "_G_t_" );
+    replace( sb, "<", "_L_t_" );
+    replace( sb, ">", "_G_t_" );
+    replace( sb, "[]", "_A_r_" );
     replace( sb, ".", "_D_t_" );
     replace( sb, ",", "_C_m_" );
     replace( sb, " ", "" );
@@ -60,8 +61,9 @@ public class FunctionToInterfaceClassGenerator {
 
   private static String decodeClassName( String name ) {
     StringBuilder sb = new StringBuilder( name );
-    replace( sb, "_L_t_", ">" );
-    replace( sb, "_G_t_", "<" );
+    replace( sb, "_L_t_", "<" );
+    replace( sb, "_G_t_", ">" );
+    replace( sb, "_A_r_", "[]" );
     replace( sb, "_D_t_", "." );
     replace( sb, "_C_m_", "," );
     return sb.toString();

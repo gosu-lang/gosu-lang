@@ -165,6 +165,8 @@ public interface IGosuClassInternal extends IGosuClass, ICompilableTypeInternal
 
   void setDeclarationsCompiled();
 
+  void setDeclarationsBypassed();
+
   void setInnerDeclarationsCompiled();
 
   void setCompilingDefinitions( boolean bCompilingDefinitions );
