@@ -22,6 +22,7 @@ import gw.lang.ir.expression.IRConditionalOrExpression;
 import gw.lang.ir.expression.IRIdentifier;
 import gw.lang.ir.expression.IRInstanceOfExpression;
 import gw.lang.ir.statement.IRAssignmentStatement;
+import gw.lang.ir.statement.IRStatementList;
 import gw.lang.parser.GosuParserTypes;
 import gw.lang.parser.ICoercer;
 import gw.lang.parser.ILanguageLevel;
@@ -224,13 +225,18 @@ public class TypeAsTransformer extends AbstractExpressionTransformer<ITypeAsExpr
       IGosuClass gsClass = FunctionToInterfaceClassGenerator.getBlockToInterfaceConversionClass( asType, _cc().getGosuClass() );
       return buildNewExpression( IRTypeFactory.get( gsClass ), Collections.singletonList( IRTypeFactory.get( JavaTypes.IBLOCK() ) ), Collections.singletonList( root ) );
     }
-
+   /*
     IType lhsDimensionNumberType = findDimensionType( lhsType );
     if( lhsDimensionNumberType != null ) {
       // Any Dimension -> Any Number (bypass coercion manager)
       lhsType = lhsDimensionNumberType;
-      IRSymbol tempLhs = _cc().makeAndIndexTempSymbol( getDescriptor( lhsType ) );
-      IRAssignmentStatement tempLhsAssn = buildAssignment( tempLhs, callMethod( IDimension.class, "toNumber", new Class[]{}, root, Collections.<IRExpression>emptyList() ) );
+
+      IRSymbol rootSym = _cc().makeAndIndexTempSymbol( root.getType() );
+      IRAssignmentStatement rootSymAssn = buildAssignment( rootSym, root );
+
+      IRSymbol tempLhs = _cc().makeAndIndexTempSymbol(getDescriptor(lhsType));
+      IRStatement tempLhsAssn = new IRStatementList( true, rootSymAssn, buildAssignment( tempLhs,
+        buildTernary( buildEquals( identifier( rootSym ), nullLiteral() ), nullLiteral(), callMethod( IDimension.class, "toNumber", new Class[]{}, identifier( rootSym ), Collections.<IRExpression>emptyList() ), getDescriptor( Number.class ) ) ) );
 
       if( isNumberType( asType ) ) {
         // Any Dimension -> Any Boxed/Primitive (bypass coercion manager)
@@ -255,7 +261,8 @@ public class TypeAsTransformer extends AbstractExpressionTransformer<ITypeAsExpr
                                             ? buildComposite( convertOperandToBig( asType, asType == JavaTypes.BIG_DECIMAL() ? BigDecimal.class : BigInteger.class, lhsType, identifier( tempLhs ), tempRet ), identifier( tempRet ) )
                                             : checkCast( asType, buildTernary( buildEquals( identifier( tempLhs ), nullLiteral() ), nullLiteral(), buildComposite( convertOperandToBig( asType, asType == JavaTypes.BIG_DECIMAL() ? BigDecimal.class : BigInteger.class, lhsType, identifier( tempLhs ), tempRet ), identifier( tempRet ) ), asTypeDesc ) ) );
       }
-    }
+      root = identifier( rootSym );
+    } */
 
     IRExpression asPrimitive = maybeMakePrimitive( root );
     if( asPrimitive != null )
