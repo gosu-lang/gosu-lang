@@ -322,6 +322,14 @@ public class StandardCoercionManager extends BaseService implements ICoercionMan
         }
       }
     }
+    //=============================================================================
+    // JavaType interface <- block class
+    //=============================================================================
+    if( rhsType instanceof IBlockClass && lhsType.isInterface() )
+    {
+      // Note this condition is only ever called at runtime e.g., block cast to Object cast to Interface
+      return FunctionToInterfaceCoercer.instance();
+    }
 
     //=============================================================================
     // block <- compatible block
@@ -650,6 +658,14 @@ public class StandardCoercionManager extends BaseService implements ICoercionMan
     // Structurally suitable (static duck typing)
     //==================================================================================
     if( isStructurallyAssignable( lhsT, rhsT ) )
+    {
+      return lhsType;
+    }
+
+    //==================================================================================
+    // Object unboxing
+    //==================================================================================
+    if( rhsT == JavaTypes.OBJECT() && lhsT.isPrimitive() && lhsT != JavaTypes.pVOID() )
     {
       return lhsType;
     }

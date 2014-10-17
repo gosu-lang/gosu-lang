@@ -87,6 +87,7 @@ public class GosuFragmentTransformer extends AbstractElementTransformer<IExpress
             new IRStatementList( true, statements),
             "<init>",
             Opcodes.ACC_PUBLIC,
+            false,
             IRTypeConstants.pVOID(),
             Collections.<IRSymbol>emptyList());
 
@@ -136,6 +137,7 @@ public class GosuFragmentTransformer extends AbstractElementTransformer<IExpress
             new IRStatementList( true, statements),
             "evaluate",
             Opcodes.ACC_PUBLIC,
+            false,
             IRTypeConstants.OBJECT(),
             Collections.singletonList(symbolsParam));
 
@@ -166,6 +168,7 @@ public class GosuFragmentTransformer extends AbstractElementTransformer<IExpress
               new IRStatementList( true, statements),
               "evaluateRootExpression",
               Opcodes.ACC_PUBLIC,
+              false,
               IRTypeConstants.OBJECT(),
               Collections.singletonList(symbolsParam));
 

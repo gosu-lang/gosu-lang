@@ -19,7 +19,6 @@ import gw.internal.gosu.runtime.GosuRuntimeMethods;
 import gw.internal.gosu.template.GosuTemplateType;
 import gw.internal.gosu.template.SimpleTemplateHost;
 import gw.internal.gosu.template.TemplateGenerator;
-import gw.internal.gosu.template.TemplateObserverAccess;
 import gw.internal.gosu.template.TemplateTokenizerInstructor;
 import gw.lang.IGosuShop;
 import gw.lang.annotation.UsageModifier;
@@ -48,7 +47,6 @@ import gw.lang.parser.exceptions.ParseException;
 import gw.lang.parser.expressions.IIdentifierExpression;
 import gw.lang.parser.expressions.INullExpression;
 import gw.lang.parser.template.ITemplateHost;
-import gw.lang.parser.template.ITemplateObserver;
 import gw.lang.parser.template.TemplateParseException;
 import gw.lang.reflect.FunctionType;
 import gw.lang.reflect.IAnnotationInfo;
@@ -348,8 +346,8 @@ public class GosuIndustrialParkImpl extends BaseService implements IGosuShop
   }
 
   @Override
-  public Class getBlockToInterfaceConversionClass(IType typeToCoerceTo) {
-    return FunctionToInterfaceClassGenerator.getBlockToInterfaceConversionClass( typeToCoerceTo );
+  public IGosuClass getBlockToInterfaceConversionClass( IType typeToCoerceTo, IType enclosingType ) {
+    return FunctionToInterfaceClassGenerator.getBlockToInterfaceConversionClass( typeToCoerceTo, enclosingType );
   }
 
   @Override
@@ -393,11 +391,6 @@ public class GosuIndustrialParkImpl extends BaseService implements IGosuShop
   public byte[] updateReloadClassesIndicator( List<String> changedTypes, String strScript )
   {
     return ReloadClassesIndicatorCompiler.updateReloadClassesIndicator( changedTypes, strScript );
-  }
-
-  @Override
-  public ITemplateObserver.ITemplateObserverManager makeTemplateObserverManager() {
-    return new TemplateObserverAccess();
   }
 
   @Override

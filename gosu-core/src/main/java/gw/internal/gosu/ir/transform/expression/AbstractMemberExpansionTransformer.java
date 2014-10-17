@@ -267,9 +267,18 @@ public abstract class AbstractMemberExpansionTransformer<T extends IMemberAccess
     }
     else
     {
-      IType arrayComponentType = getMoreSpecificType(resultCompType, resultType.getComponentType());
-      IRExpression listToArrayCall = callStaticMethod( AbstractMemberExpansionTransformer.class, "listToArray", new Class[]{List.class, IType.class},
-              exprList( identifier( resultArrayList ), pushType( arrayComponentType ) ));
+      IType arrayComponentType = getMoreSpecificType( resultCompType, resultType.getComponentType() );
+      IRExpression listToArrayCall;
+      if( isBytecodeType( arrayComponentType ) )
+      {
+        listToArrayCall = callStaticMethod( AbstractMemberExpansionTransformer.class, "listToArray", new Class[]{List.class, Class.class},
+                            exprList( identifier( resultArrayList ), classLiteral( getDescriptor( arrayComponentType ) ) ));
+      }
+      else
+      {
+        listToArrayCall = callStaticMethod( AbstractMemberExpansionTransformer.class, "listToArray", new Class[]{List.class, IType.class},
+                            exprList( identifier( resultArrayList ), pushType( arrayComponentType ) ));
+      }
       return checkCast( arrayComponentType.getArrayType(), listToArrayCall );
     }
   }
@@ -419,6 +428,17 @@ public abstract class AbstractMemberExpansionTransformer<T extends IMemberAccess
     for( int i = 0; i < iCount; i++ )
     {
       compType.setArrayComponent( array, i, l.get( i ) );
+    }
+    return array;
+  }
+
+  public static Object listToArray( List l, Class compType )
+  {
+    int iCount = l.size();
+    Object array = Array.newInstance( compType, iCount );
+    for( int i = 0; i < iCount; i++ )
+    {
+      Array.set( array, i, l.get( i ) );
     }
     return array;
   }

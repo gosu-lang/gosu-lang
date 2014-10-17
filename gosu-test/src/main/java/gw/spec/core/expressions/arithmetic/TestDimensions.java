@@ -102,7 +102,11 @@ public abstract class TestDimensions {
     public float add(TestStrictBigDecimalDimension number) {
       return 17.0f;
     }
-    
+
+    @Override
+    public int compareTo( TestDimensionWithAllAddOverrides o ) {
+      return _number.compareTo( o._number );
+    }
   }
 
   public static final class TestDimensionWithThreeAddOverrides implements IDimension<TestDimensionWithThreeAddOverrides, BigDecimal> {
@@ -144,6 +148,11 @@ public abstract class TestDimensions {
     public boolean isAddInvoked() {
       return _addInvoked;
     }
+
+    @Override
+    public int compareTo( TestDimensionWithThreeAddOverrides o ) {
+      return _number.compareTo( o._number );
+    }
   }
 
   // Strict dimensions
@@ -169,6 +178,11 @@ public abstract class TestDimensions {
     public Class<BigDecimal> numberType() {
       return BigDecimal.class;
     }
+
+    @Override
+    public int compareTo( TestStrictBigDecimalDimension o ) {
+      return _number.compareTo( o._number );
+    }
   }
 
   public static final class TestStrictBigIntegerDimension implements IDimension<TestStrictBigIntegerDimension, BigInteger> {
@@ -191,6 +205,11 @@ public abstract class TestDimensions {
     @Override
     public Class<BigInteger> numberType() {
       return BigInteger.class;
+    }
+
+    @Override
+    public int compareTo( TestStrictBigIntegerDimension o ) {
+      return _number.compareTo( o._number );
     }
   }
 
@@ -215,6 +234,11 @@ public abstract class TestDimensions {
     public Class<Double> numberType() {
       return Double.class;
     }
+
+    @Override
+    public int compareTo( TestStrictDoubleDimension o ) {
+      return _number.compareTo( o._number );
+    }
   }
 
   public static final class TestStrictFloatDimension implements IDimension<TestStrictFloatDimension, Float> {
@@ -237,6 +261,11 @@ public abstract class TestDimensions {
     @Override
     public Class<Float> numberType() {
       return Float.class;
+    }
+
+    @Override
+    public int compareTo( TestStrictFloatDimension o ) {
+      return _number.compareTo( o._number );
     }
   }
 
@@ -261,6 +290,11 @@ public abstract class TestDimensions {
     public Class<Long> numberType() {
       return Long.class;
     }
+
+    @Override
+    public int compareTo( TestStrictLongDimension o ) {
+      return _number.compareTo( o._number );
+    }
   }
 
   public static final class TestStrictIntegerDimension implements IDimension<TestStrictIntegerDimension, Integer> {
@@ -283,6 +317,11 @@ public abstract class TestDimensions {
     @Override
     public Class<Integer> numberType() {
       return Integer.class;
+    }
+
+    @Override
+    public int compareTo( TestStrictIntegerDimension o ) {
+      return _number.compareTo( o._number );
     }
   }
 
@@ -307,6 +346,11 @@ public abstract class TestDimensions {
     public Class<Short> numberType() {
       return Short.class;
     }
+
+    @Override
+    public int compareTo( TestStrictShortDimension o ) {
+      return _number.compareTo( o._number );
+    }
   }
 
   public static final class TestStrictByteDimension implements IDimension<TestStrictByteDimension, Byte> {
@@ -329,6 +373,11 @@ public abstract class TestDimensions {
     @Override
     public Class<Byte> numberType() {
       return Byte.class;
+    }
+
+    @Override
+    public int compareTo( TestStrictByteDimension o ) {
+      return _number.compareTo( o._number );
     }
   }
 
@@ -361,6 +410,11 @@ public abstract class TestDimensions {
     public boolean wasFromNumberInvoked() {
       return _fromNumberInvoked;
     }
+
+    @Override
+    public int compareTo( TestStrictDimensionWithMethodSpy o ) {
+      return Integer.compare( _number, o._number );
+    }
   }
 
   // Error cases
@@ -387,5 +441,9 @@ public abstract class TestDimensions {
       return BigDecimal.class;
     }
 
+    @Override
+    public int compareTo( TestNonFinalDimension o ) {
+      return _number.compareTo( o._number );
+    }
   }
 }

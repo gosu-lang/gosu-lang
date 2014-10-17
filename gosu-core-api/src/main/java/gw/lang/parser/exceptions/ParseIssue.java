@@ -175,7 +175,7 @@ public abstract class ParseIssue extends Exception implements IParseIssue
   {
     if( getStateSource() != null )
     {
-      return makeContextString( _lineNumber - _lineOffset + 1, getStateSource(), getLineReportingOffset() );
+      return makeContextString( _lineNumber, getStateSource(), getLineReportingOffset() );
     }
     else
     {
@@ -186,7 +186,7 @@ public abstract class ParseIssue extends Exception implements IParseIssue
   public String getContextStringNoLineNumbers() {
     if( getStateSource() != null )
     {
-      return makeContextString( _lineNumber - _lineOffset + 1, getStateSource(), getLineReportingOffset(), false );
+      return makeContextString( _lineNumber, getStateSource(), getLineReportingOffset(), false );
     }
     else
     {
@@ -229,7 +229,7 @@ public abstract class ParseIssue extends Exception implements IParseIssue
     retVal.append( getMyMessage() );
     if( _lineNumber != null )
     {
-      retVal.append( " [line:" ).append( _lineNumber - _lineOffset - getLineReportingOffset() + 1 ).append( " col:" ).append( _tokenColumn );
+      retVal.append( " [line:" ).append( _lineNumber - getLineReportingOffset() ).append( " col:" ).append( _tokenColumn );
       retVal.append( "]" );
 
       if( getStateSource() != null )

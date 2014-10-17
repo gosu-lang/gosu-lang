@@ -550,6 +550,12 @@ public class FileSystemGosuClassRepository implements IFileSystemGosuClassReposi
     }
 
     @Override
+    public boolean isStandardPath()
+    {
+      return !_fileInfo.getEntry().getPath().isAdditional();
+    }
+
+    @Override
     public void cleanAfterCompile()
     {
       _source = null;

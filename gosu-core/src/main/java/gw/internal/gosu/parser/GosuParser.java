@@ -2018,6 +2018,10 @@ public final class GosuParser extends ParserBase implements IGosuParser
 
   private void verifyRelationalOperandsComparable( BinaryExpression expr )
   {
+    if( !verify( expr, expr.getRHS().getType() != JavaTypes.OBJECT(), Res.MSG_RELATIONAL_OPERATOR_CANNOT_BE_APPLIED_TO_TYPE, expr.getOperator(), Object.class.getName() ) )
+    {
+      return;
+    }
     boolean bComparable = false;
     IType lhsType = expr.getLHS().getType();
     if( BeanAccess.isNumericType( lhsType ) )

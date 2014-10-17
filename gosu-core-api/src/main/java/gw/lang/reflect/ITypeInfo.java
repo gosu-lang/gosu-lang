@@ -188,7 +188,7 @@ public interface ITypeInfo extends IAnnotatedFeatureInfo
           mis.put( new FunctionType( methodInfo ), methodInfo );
         }
       }
-      List<MethodScore> list = MethodScorer.instance().scoreMethods( new ArrayList<IInvocableType>( mis.keySet() ), Arrays.asList( params ), Collections.<IType>emptyList() );
+      List<MethodScore> list = MethodScorer.instance().scoreMethods( new ArrayList<IInvocableType>( mis.keySet() ), Arrays.asList( params ) );
       if( list.size() == 0 )
       {
         return null;
@@ -251,7 +251,7 @@ public interface ITypeInfo extends IAnnotatedFeatureInfo
           cis.put( GosuShop.getConstructorInfoFactory().makeConstructorType( constructorInfo ), constructorInfo );
         }
       }
-      List<MethodScore> list = MethodScorer.instance().scoreMethods( new ArrayList<IInvocableType>( cis.keySet() ), Arrays.asList( params ), Collections.<IType>emptyList() );
+      List<MethodScore> list = MethodScorer.instance().scoreMethods( new ArrayList<IInvocableType>( cis.keySet() ), Arrays.asList( params ) );
       if( list.size() == 0 )
       {
         return null;

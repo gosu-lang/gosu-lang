@@ -30,6 +30,7 @@ import gw.util.GosuExceptionUtil;
 
 import java.io.IOException;
 import java.lang.reflect.Method;
+import java.net.URLClassLoader;
 import java.util.List;
 
 public class GosuClassLoader implements IGosuClassLoader
@@ -72,6 +73,7 @@ public class GosuClassLoader implements IGosuClassLoader
     init();
   }
 
+  // Note this really assigns the actual class loader associated with Gosu (now that Gosu loads its classes in the java App loader)
   public void assignParent( ClassLoader parent )
   {
     if( parent instanceof ModuleClassLoader && ((ModuleClassLoader)parent).isDeferToParent() )

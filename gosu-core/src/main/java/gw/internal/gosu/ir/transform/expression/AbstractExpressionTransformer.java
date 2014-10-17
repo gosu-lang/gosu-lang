@@ -18,6 +18,7 @@ import gw.lang.reflect.IPlaceholder;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.gs.IGosuConstructorInfo;
 import gw.lang.reflect.java.IJavaConstructorInfo;
+import gw.lang.reflect.java.JavaTypes;
 
 import java.util.ArrayList;
 import java.util.Collections;

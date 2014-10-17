@@ -115,6 +115,11 @@ public class JavaDirectoryImpl extends JavaResourceImpl implements IDirectory {
     }
   }
 
+  @Override
+  public boolean isAdditional() {
+    return false;
+  }
+
   private interface FileRetrievalStrategy {
     List<? extends IDirectory> listDirs();
 

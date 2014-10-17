@@ -48,10 +48,10 @@ public class MethodScorer {
   private MethodScorer() {
   }
 
-  public List<MethodScore> scoreMethods( List<IInvocableType> funcTypes, List<IType> argTypes, List<IType> inferringTypes ) {
+  public List<MethodScore> scoreMethods( List<IInvocableType> funcTypes, List<IType> argTypes) {
     List<MethodScore> scores = new ArrayList<MethodScore>();
     for( IInvocableType funcType : funcTypes ) {
-      scores.add( scoreMethod( funcType, Collections.<IInvocableType>emptyList(), argTypes, inferringTypes, funcTypes.size() == 1, true ) );
+      scores.add( scoreMethod( funcType, Collections.<IInvocableType>emptyList(), argTypes,  Collections.<IType>emptyList(), funcTypes.size() == 1, true ) );
     }
     Collections.sort( scores );
     return scores;
@@ -304,15 +304,15 @@ public class MethodScorer {
       return result;
     }
 
-    @Override
-    public String toString() {
-      String ret = "_methodName " + _methodName + "\n"
-           + "_enclosingType " + _enclosingType.getName() + "\n"
-           + "_argTypes ";
-      for( IType a : _argTypes ) {
-        ret += " " + a.getName() + "\n";
-      }
-      return ret;
-    }
+//    @Override
+//    public String toString() {
+//      String ret = "_methodName " + _methodName + "\n"
+//           + "_enclosingType " + _enclosingType.getName() + "\n"
+//           + "_argTypes ";
+//      for( IType a : _argTypes ) {
+//        ret += " " + a.getName() + "\n";
+//      }
+//      return ret;
+//    }
   }
 }
