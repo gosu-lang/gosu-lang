@@ -32,7 +32,7 @@ class Errant_constructorsTest {
 
   class Y3 extends XPrivate {
     construct() {
-      super()  //## issuekeys: MSG_NO_SUCH_FUNCTION
+      super()
       var b = 0
     }
   }

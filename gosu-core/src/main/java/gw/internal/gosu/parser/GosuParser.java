@@ -1137,7 +1137,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
   // GosuParser methods
 
   @Override
-  final public SourceCodeTokenizer getTokenizer()
+  public SourceCodeTokenizer getTokenizer()
   {
     return _tokenizer;
   }
@@ -1716,7 +1716,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
 
         parseBitwiseXorExpression();
         Expression rhs = popExpression();
-        verifyComparable( lhs.getType(), rhs, true, true );
+        rhs = ensureOperandIntOrLong( rhs );
         rhs = possiblyWrapWithImplicitCoercion( rhs, lhs.getType() );
 
         e.setLHS( lhs );
@@ -1738,12 +1738,12 @@ public final class GosuParser extends ParserBase implements IGosuParser
   {
     IType opType = op.getType();
     if( verify( op,
-            opType == JavaTypes.LONG() || opType == JavaTypes.pLONG() ||
-                    opType == JavaTypes.CHARACTER() || opType == JavaTypes.pCHAR() ||
-                    opType == JavaTypes.INTEGER() || opType == JavaTypes.pINT() ||
-                    opType == JavaTypes.SHORT() || opType == JavaTypes.pSHORT() ||
-                    opType == JavaTypes.BYTE() || opType == JavaTypes.pBYTE(),
-            Res.MSG_BITWISE_OPERAND_MUST_BE_INT_OR_LONG ) )
+          opType == JavaTypes.LONG() || opType == JavaTypes.pLONG() ||
+          opType == JavaTypes.CHARACTER() || opType == JavaTypes.pCHAR() ||
+          opType == JavaTypes.INTEGER() || opType == JavaTypes.pINT() ||
+          opType == JavaTypes.SHORT() || opType == JavaTypes.pSHORT() ||
+          opType == JavaTypes.BYTE() || opType == JavaTypes.pBYTE(),
+          Res.MSG_BITWISE_OPERAND_MUST_BE_INT_OR_LONG ) )
     {
       opType = opType == JavaTypes.LONG() || opType == JavaTypes.pLONG() ? JavaTypes.pLONG() : JavaTypes.pINT();
       op = possiblyWrapWithImplicitCoercion( op, opType );
@@ -1788,8 +1788,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
 
         parseBitwiseAndExpression();
         Expression rhs = popExpression();
-
-        verifyComparable( lhs.getType(), rhs, true, true );
+        rhs = ensureOperandIntOrLong( rhs );
         rhs = possiblyWrapWithImplicitCoercion( rhs, lhs.getType() );
 
         e.setLHS( lhs );
@@ -2335,31 +2334,19 @@ public final class GosuParser extends ParserBase implements IGosuParser
         parseAdditiveExpression();
         BitshiftExpression e = new BitshiftExpression();
 
-        // Rhs must be an int
         Expression rhs = popExpression();
-        IType rhsType = rhs.getType();
-        if( verify( rhs, rhsType != JavaTypes.OBJECT() , Res.MSG_TYPE_MISMATCH, "int", "Object" ) ) {
-          verifyTypesComparable( rhs, JavaTypes.pINT(), rhsType, false, true );
-          rhs = possiblyWrapWithImplicitCoercion( rhs, JavaTypes.pINT() );
-        }
+
         // Lhs must be an int or a long
         Expression lhs = popExpression();
-        IType lhsType = lhs.getType();
-        if( verify( lhs,
-                lhsType == JavaTypes.LONG() || lhsType == JavaTypes.pLONG() ||
-                        lhsType == JavaTypes.INTEGER() || lhsType == JavaTypes.pINT() ||
-                        lhsType == JavaTypes.SHORT() || lhsType == JavaTypes.pSHORT() ||
-                        lhsType == JavaTypes.BYTE() || lhsType == JavaTypes.pBYTE(),
-                Res.MSG_BITSHIFT_LHS_MUST_BE_INT_OR_LONG ) )
-        {
-          lhsType = lhsType == JavaTypes.LONG() || lhsType == JavaTypes.pLONG() ? JavaTypes.pLONG() : JavaTypes.pINT();
-          lhs = possiblyWrapWithImplicitCoercion( lhs, lhsType );
-        }
+        lhs = ensureOperandIntOrLong( lhs );
+        // Rhs must be an int
+        rhs = ensureOperandIntOrLong( rhs );
+        rhs = possiblyWrapWithImplicitCoercion( rhs, JavaTypes.pINT() );
 
         e.setLHS( lhs );
         e.setRHS( rhs );
         e.setOperator( T._strValue );
-        e.setType( lhsType );
+        e.setType( lhs.getType() );
         pushExpression( e );
       }
       else
@@ -2664,10 +2651,8 @@ public final class GosuParser extends ParserBase implements IGosuParser
       UnaryNotPlusMinusExpression ue = new UnaryNotPlusMinusExpression();
       Expression e = popExpression();
       IType type = e.getType();
-      if( verify( e, type != JavaTypes.OBJECT() , Res.MSG_TYPE_MISMATCH, "boolean", "Object" ) ) {
-        verifyTypesComparable( e, JavaTypes.pBOOLEAN(), type, false, true );
-        e = possiblyWrapWithImplicitCoercion( e, JavaTypes.pBOOLEAN() );
-      }
+      verifyTypesComparable( e, JavaTypes.pBOOLEAN(), type, false, true );
+      e = possiblyWrapWithImplicitCoercion( e, JavaTypes.pBOOLEAN() );
       ue.setExpression( e );
       ue.setNot( true );
       ue.setType( JavaTypes.pBOOLEAN() );
@@ -2688,10 +2673,8 @@ public final class GosuParser extends ParserBase implements IGosuParser
       {
         if( verify( e, !isDynamic( type ), Res.MSG_DYNAMIC_TYPE_NOT_ALLOWED_HERE ) )
         {
-          if( verify( e, type != JavaTypes.OBJECT() , Res.MSG_TYPE_MISMATCH, "int", "Object" ) ) {
-            verifyTypesComparable( e, JavaTypes.pINT(), type, false, true );
-            e = possiblyWrapWithImplicitCoercion( e, JavaTypes.pINT() );
-          }
+          verifyTypesComparable( e, JavaTypes.pINT(), type, false, true );
+          e = possiblyWrapWithImplicitCoercion( e, JavaTypes.pINT() );
         }
       }
       ue.setExpression( e );
@@ -11099,6 +11082,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
     {
       BitwiseAndExpression and = new BitwiseAndExpression();
       lhs = ensureOperandIntOrLong( lhs );
+      rhs = ensureOperandIntOrLong( rhs );
       rhs = possiblyWrapWithImplicitCoercion( rhs, lhs.getType() );
       and.setLHS( lhs );
       and.setRHS( rhs );
@@ -11120,6 +11104,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
     {
       BitwiseXorExpression xor = new BitwiseXorExpression();
       lhs = ensureOperandIntOrLong( lhs );
+      rhs = ensureOperandIntOrLong( rhs );
       rhs = possiblyWrapWithImplicitCoercion( rhs, lhs.getType() );
       xor.setLHS( lhs );
       xor.setRHS( rhs );
@@ -11130,6 +11115,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
     {
       BitwiseOrExpression or = new BitwiseOrExpression();
       lhs = ensureOperandIntOrLong( lhs );
+      rhs = ensureOperandIntOrLong( rhs );
       rhs = possiblyWrapWithImplicitCoercion( rhs, lhs.getType() );
       or.setLHS( lhs );
       or.setRHS( rhs );

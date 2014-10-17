@@ -26,7 +26,7 @@ class Errant_PrivateAccessModifier {
     var f4 : int  //## issuekeys: MSG_VARIABLE_ALREADY_DEFINED
     var f0 : int  //## issuekeys: MSG_VARIABLE_ALREADY_DEFINED
     var foo : int  //## issuekeys: MSG_VARIABLE_ALREADY_DEFINED
-    var foo2 : int = f1  //## issuekeys: MSG_BAD_IDENTIFIER_NAME
+    var foo2 : int = f1
     var foo3 : int = new nested().f1
   }
 

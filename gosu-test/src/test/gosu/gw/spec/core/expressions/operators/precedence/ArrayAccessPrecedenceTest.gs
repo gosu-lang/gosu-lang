@@ -93,19 +93,19 @@ class ArrayAccessPrecedenceTest extends PrecedenceTestBase {
   function testArrayAccessIsHigherPrecedenceThanShiftLeft() {
     var x : int[] = {3}
     assertEquals(40, 5 << x[0])
-    assertParseError(\ -> eval("(5 << x)[0]"), "The type \"int[]\" cannot be converted to \"int\"")
+    assertParseError(\ -> eval("(5 << x)[0]"), null)
   }
 
   function testArrayAccessIsHigherPrecedenceThanShiftRight() {
     var x : int[] = {3}
     assertEquals(0, 5 >> x[0])
-    assertParseError(\ -> eval("(5 >> x)[0]"), "The type \"int[]\" cannot be converted to \"int\"")
+    assertParseError(\ -> eval("(5 >> x)[0]"), null)
   }
 
   function testArrayAccessIsHigherPrecedenceThanUnsignedShiftRight() {
     var x : int[] = {3}
     assertEquals(0, 5 >>> x[0])
-    assertParseError(\ -> eval("(5 >>> x)[0]"), "The type \"int[]\" cannot be converted to \"int\"")
+    assertParseError(\ -> eval("(5 >>> x)[0]"), null)
   }
 
   // Relational

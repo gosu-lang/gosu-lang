@@ -851,6 +851,7 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
 
     if( !putClassMembersOfSuperAndInterfaces( gsClass ) )
     {
+      gsClass.setDeclarationsBypassed();
       return;
     }
     if( isInnerClass( gsClass ) && !gsClass.isStatic() )
@@ -2842,7 +2843,7 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
         {
           int i = 0;
           String relativeName = innerClass.getName();
-          while( innerClass.isDeclarationsCompiled() )
+          while( innerClass.isDeclarationsCompiled() || innerClass.isDeclarationsBypassed() )
           {
             // The inner class is already declaration-compiled, maybe this is a duplicate inner class...
 
