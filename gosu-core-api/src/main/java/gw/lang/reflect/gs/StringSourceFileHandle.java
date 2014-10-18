@@ -104,6 +104,11 @@ public class StringSourceFileHandle implements ISourceFileHandle
     return true;
   }
 
+  public boolean isStandardPath()
+  {
+    return false;
+  }
+
   public void cleanAfterCompile()
   {
     _source = null;

@@ -307,9 +307,6 @@ public class DefaultTypeLoader extends SimpleTypeLoader implements IExtendedType
   void dumpGosuClassLoader() {
     if (_gosuClassLoader != null) {
       _gosuClassLoader.dumpAllClasses();
-      // The FunctionToInterfaceClassGenerator holds onto Class objects that could be from
-      // the GosuClassLoader; if we don't clear its map, we'll end up leaking the old GosuClassLoader
-      FunctionToInterfaceClassGenerator.clearCachedClasses();
       // The module classloader should be a PluginContainer, which should be new at this point; the old one should be disposed
       if( !haveWeRecreatedTheModuleLoader() ) {
         // Gosu's classloader hasn't been recreated, which implies the _classCache was not recreated,

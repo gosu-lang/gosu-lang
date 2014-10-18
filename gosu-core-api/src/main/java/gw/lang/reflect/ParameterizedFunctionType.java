@@ -247,6 +247,10 @@ public class ParameterizedFunctionType extends AbstractType implements IFunction
   {
     return type.getAllTypesInHierarchy().contains( this );
   }
+  public boolean isAssignableFrom( IType type, boolean bContravariant )
+  {
+    return isAssignableFrom( type );
+  }
 
   public boolean isMutable()
   {
@@ -368,10 +372,6 @@ public class ParameterizedFunctionType extends AbstractType implements IFunction
 
   public Set<IType> getCompoundTypeComponents()
   {
-    return null;
-  }
-
-  public Pair<Long, String> getRetainedMemory() {
     return null;
   }
 

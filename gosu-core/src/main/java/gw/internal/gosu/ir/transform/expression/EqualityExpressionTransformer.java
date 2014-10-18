@@ -7,13 +7,15 @@ package gw.internal.gosu.ir.transform.expression;
 import gw.internal.gosu.ir.nodes.IRTypeFactory;
 import gw.internal.gosu.ir.nodes.JavaClassIRType;
 import gw.internal.gosu.parser.BeanAccess;
+import gw.internal.gosu.parser.ErrorType;
 import gw.internal.gosu.parser.ParserBase;
 import gw.internal.gosu.parser.expressions.ConditionalExpression;
 import gw.internal.gosu.parser.expressions.EqualityExpression;
-import gw.internal.gosu.parser.expressions.NullExpression;
 import gw.internal.gosu.ir.transform.ExpressionTransformer;
 import gw.internal.gosu.ir.transform.TopLevelTransformationContext;
+import gw.internal.gosu.parser.expressions.NullExpression;
 import gw.lang.ir.IRExpression;
+import gw.lang.ir.IRStatement;
 import gw.lang.ir.IRSymbol;
 import gw.lang.ir.IRType;
 import gw.lang.ir.expression.IRConditionalAndExpression;
@@ -21,9 +23,13 @@ import gw.lang.ir.expression.IRConditionalOrExpression;
 import gw.lang.ir.expression.IREqualityExpression;
 import gw.lang.ir.expression.IRNotExpression;
 import gw.lang.ir.statement.IRAssignmentStatement;
+import gw.lang.reflect.IPlaceholder;
 import gw.lang.reflect.IType;
+import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.java.JavaTypes;
 
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -57,31 +63,104 @@ public class EqualityExpressionTransformer extends AbstractExpressionTransformer
     {
       return comparePrimitives();
     }
-    else if( lhsType == rhsType )
-    {
-      if( lhsType.isArray() )
-      {
-        return compareArrays();
-      }
-
-      if( (JavaTypes.NUMBER().isAssignableFrom( lhsType ) ||
-           JavaTypes.IDIMENSION().isAssignableFrom( lhsType )) &&
-          JavaTypes.COMPARABLE().isAssignableFrom( lhsType ) )
-      {
-        // Standard Number types in Java implement Comparable to handle ==, <, > etc.
-        return compareWithCompareTo();
-      }
-      return compareWithEquals();
-    }
-    //## todo: maybe do a quick identity compare, if same we can avoid calling into gs runtime
-//    else if( !lhsType.isPrimitive() && !rhsType.isPrimitive() )
-//    {
-//
-//    }
     else
     {
-      return compareDynamically();
+      if( lhsType.isAssignableFrom( rhsType ) &&
+          !isDynamic( lhsType ) && !isDynamic( rhsType ) )
+      {
+        if( lhsType.isArray() )
+        {
+          return compareArrays();
+        }
+
+        if( (JavaTypes.NUMBER().isAssignableFrom( lhsType ) ||
+             JavaTypes.IDIMENSION().isAssignableFrom( lhsType )) &&
+            JavaTypes.COMPARABLE().isAssignableFrom( lhsType ) )
+        {
+          // Standard Number types in Java implement Comparable to handle ==, <, > etc.
+          return compareWithCompareTo();
+        }
+        return compareWithEquals();
+      }
+      else
+      {
+        IType type = ParserBase.resolveType( lhsType, '>', rhsType );
+        if( !(type instanceof ErrorType) && (isNumberType( type ) || isBigType( type )) ) {
+          return compareNumbers( type );
+        }
+        return compareDynamically();
+      }
     }
+  }
+
+  private boolean isDynamic( IType type ) {
+    return type instanceof IPlaceholder && ((IPlaceholder)type).isPlaceholder();
+  }
+
+  private IRExpression compareNumbers( IType type ) {
+    if( isBigType( type ) ) {
+      return compareNumbersAsBig( type );
+    }
+    else {
+      type = type.isPrimitive() ? type : TypeSystem.getPrimitiveType( type );
+      return compareNumbersAsPrimitive( type );
+    }
+  }
+
+  private IRExpression compareNumbersAsPrimitive( IType type ) {
+    IRSymbol tempLhs = _cc().makeAndIndexTempSymbol( getDescriptor( _expr().getLHS().getType() ) );
+    IRAssignmentStatement tempLhsAssn = buildAssignment( tempLhs, ExpressionTransformer.compile( _expr().getLHS(), _cc() ) );
+    IRSymbol tempRhs = _cc().makeAndIndexTempSymbol( getDescriptor( _expr().getRHS().getType() ) );
+    IRAssignmentStatement tempRhsAssn = buildAssignment( tempRhs, ExpressionTransformer.compile( _expr().getRHS(), _cc() ) );
+
+    IRSymbol tempLhsRet = _cc().makeAndIndexTempSymbol( getDescriptor( type ) );
+    IRStatement lhsConversionAssn = convertOperandToPrimitive( type, _expr().getLHS().getType(), identifier( tempLhs ), tempLhsRet );
+    IRSymbol tempRhsRet = _cc().makeAndIndexTempSymbol( getDescriptor( type ) );
+    IRStatement rhsConversionAssn = convertOperandToPrimitive( type, _expr().getRHS().getType(), identifier( tempRhs ), tempRhsRet );
+
+    IRExpression compareExpr = buildComposite( lhsConversionAssn, rhsConversionAssn,
+                                               new IREqualityExpression( identifier( tempLhsRet ), identifier( tempRhsRet ), _expr().isEquals() ) );
+    IRExpression nullCheckRhs = _expr().getRHS().getType().isPrimitive()
+                                ? compareExpr
+                                : buildTernary( buildEquals( identifier( tempRhs ), nullLiteral() ),
+                                                booleanLiteral( false ),
+                                                compareExpr,
+                                                getDescriptor( boolean.class ) );
+    IRExpression expr = _expr().getLHS().getType().isPrimitive()
+                        ? nullCheckRhs
+                        : buildTernary( buildEquals( identifier( tempLhs ), nullLiteral() ),
+                                        booleanLiteral( false ),
+                                        nullCheckRhs,
+                                        getDescriptor( boolean.class ) );
+    return buildComposite( tempLhsAssn, tempRhsAssn, expr );
+  }
+
+  private IRExpression compareNumbersAsBig( IType type ) {
+    Class bigClass = type == JavaTypes.BIG_DECIMAL() ? BigDecimal.class : BigInteger.class;
+
+    IRSymbol tempLhs = _cc().makeAndIndexTempSymbol( getDescriptor( _expr().getLHS().getType() ) );
+    IRAssignmentStatement tempLhsAssn = buildAssignment( tempLhs, ExpressionTransformer.compile( _expr().getLHS(), _cc() ) );
+    IRSymbol tempRhs = _cc().makeAndIndexTempSymbol( getDescriptor( _expr().getRHS().getType() ) );
+    IRAssignmentStatement tempRhsAssn = buildAssignment( tempRhs, ExpressionTransformer.compile( _expr().getRHS(), _cc() ) );
+
+    IRSymbol tempLhsRet = _cc().makeAndIndexTempSymbol( getDescriptor( type ) );
+    IRStatement lhsConversionAssn = convertOperandToBig( type, bigClass, _expr().getLHS().getType(), identifier( tempLhs ), tempLhsRet );
+    IRSymbol tempRhsRet = _cc().makeAndIndexTempSymbol( getDescriptor( type ) );
+    IRStatement rhsConversionAssn = convertOperandToBig( type, bigClass, _expr().getRHS().getType(), identifier( tempRhs ), tempRhsRet );
+
+    IRExpression compareExpr = buildComposite( lhsConversionAssn, rhsConversionAssn,
+                                               new IREqualityExpression( callMethod( bigClass, "compareTo", new Class[]{bigClass}, identifier( tempLhsRet ), Collections.<IRExpression>singletonList( identifier( tempRhsRet ) ) ),
+                                                                         pushConstant( 0 ), _expr().isEquals() ) );
+    IRExpression nullCheckRhs = _expr().getRHS().getType().isPrimitive()
+                                ? compareExpr
+                                : buildTernary( buildEquals( identifier( tempRhs ), nullLiteral() ), booleanLiteral( false ), compareExpr, getDescriptor( boolean.class ) );
+    IRExpression expr =  _expr().getLHS().getType().isPrimitive()
+                         ? nullCheckRhs
+                         : buildTernary( buildEquals( identifier( tempLhs ), nullLiteral() ),
+                                         booleanLiteral( false ),
+                                         nullCheckRhs,
+                                         getDescriptor( boolean.class ) );
+    return buildComposite( tempLhsAssn, tempRhsAssn, expr );
   }
 
   private IRExpression compareArrays() {
@@ -89,7 +168,6 @@ public class EqualityExpressionTransformer extends AbstractExpressionTransformer
     IRExpression rhs = ExpressionTransformer.compile( _expr().getRHS(), _cc() );
 
     IType lhsType = _expr().getLHS().getType();
-    IType rhsType = _expr().getRHS().getType();
 
     if( isBytecodeType( lhsType ) )
     {
@@ -172,13 +250,14 @@ public class EqualityExpressionTransformer extends AbstractExpressionTransformer
     // Comparable rhs = <rhs-expr>
     // [!](lhs == rhs || (lhs != null && rhs != null && lhs.compareTo( rhs ) == 0))
 
-    IRSymbol lhsTemp = _cc().makeAndIndexTempSymbol( getDescriptor( JavaTypes.COMPARABLE() ) );
+    IType lhsType = _expr().getLHS().getType();
+    IRType lhsIrType = getDescriptor( lhsType );
+    IRSymbol lhsTemp = _cc().makeAndIndexTempSymbol( lhsIrType );
     IRAssignmentStatement tempLhsAssignment = buildAssignment( lhsTemp, ExpressionTransformer.compile( _expr().getLHS(), _cc() ) );
-    IRSymbol rhsTemp = _cc().makeAndIndexTempSymbol( getDescriptor( JavaTypes.COMPARABLE() ) );
+    IRSymbol rhsTemp = _cc().makeAndIndexTempSymbol( getDescriptor( _expr().getRHS().getType() ) );
     IRAssignmentStatement tempRhsAssignment = buildAssignment( rhsTemp, ExpressionTransformer.compile( _expr().getRHS(), _cc() ) );
-    IRExpression callCompareTo = callMethod( Comparable.class, "compareTo", new Class[]{Object.class},
-                                             identifier( lhsTemp ),
-                                             Collections.singletonList( (IRExpression)identifier( rhsTemp ) ) );
+    IRExpression callCompareTo = buildMethodCall( lhsIrType, "compareTo", lhsType.isInterface(), getDescriptor( int.class ), Collections.<IRType>singletonList( getDescriptor( Object.class ) ),
+                                                  identifier( lhsTemp ), Collections.singletonList( (IRExpression)identifier( rhsTemp ) ) );
     IRExpression theExpr = new IRConditionalOrExpression( buildEquals( identifier( lhsTemp ), identifier( rhsTemp ) ),
                                                           new IRConditionalAndExpression( buildNotEquals( identifier( lhsTemp ), nullLiteral() ),
                                                                                           new IRConditionalAndExpression(
@@ -191,27 +270,24 @@ public class EqualityExpressionTransformer extends AbstractExpressionTransformer
 
   private IRExpression compareDynamically()
   {
+    IRSymbol lhsTemp = _cc().makeAndIndexTempSymbol( getDescriptor( Object.class ) );
+    IRAssignmentStatement tempLhsAssignment = buildAssignment( lhsTemp,  boxValue( _expr().getLHS().getType(), ExpressionTransformer.compile( _expr().getLHS(), _cc() ) ) );
+    IRSymbol rhsTemp = _cc().makeAndIndexTempSymbol( getDescriptor( Object.class ) );
+    IRAssignmentStatement tempRhsAssignment = buildAssignment( rhsTemp,  boxValue( _expr().getRHS().getType(), ExpressionTransformer.compile( _expr().getRHS(), _cc() ) ) );
+
     List<IRExpression> args = new ArrayList<IRExpression>();
-
-    // Push the LHS expression value and make sure it's boxed for the method call
-    args.add( boxValue( _expr().getLHS().getType(), ExpressionTransformer.compile( _expr().getLHS(), _cc() ) ) );
-
-    // Push the LHS Type
+    args.add( identifier( lhsTemp ) );
     args.add( pushType( _expr().getLHS().getType() ) );
-
-    // Push is-equals
     args.add( pushConstant( _expr().isEquals() ) );
-
-    // Push the RHS expression value and make sure it's boxed for the method call
-    args.add( boxValue( _expr().getRHS().getType(), ExpressionTransformer.compile( _expr().getRHS(), _cc() ) ) );
-
-    // Push the RHS Type
+    args.add( identifier( rhsTemp ) );
     args.add( pushType( _expr().getRHS().getType() ) );
 
-    // Call into Gosu runtime for equality
-    return callStaticMethod( EqualityExpressionTransformer.class, "evaluate",
-                             new Class[]{Object.class, IType.class, boolean.class, Object.class, IType.class},
-                             args);
+    // lhs === rhs ? true : compareDynamically( ... )
+    return buildComposite( tempLhsAssignment, tempRhsAssignment,
+                           buildTernary( buildEquals( identifier( lhsTemp ), identifier( rhsTemp ) ), booleanLiteral( _expr().isEquals() ),
+                                         callStaticMethod( EqualityExpressionTransformer.class, "evaluate",
+                                                           new Class[]{Object.class, IType.class, boolean.class, Object.class, IType.class},
+                                                           args ), getDescriptor( boolean.class ) ) );
   }
 
   public static boolean evaluate( Object lhsValue, IType lhsType, boolean bEquals, Object rhsValue, IType rhsType )

@@ -7,6 +7,7 @@ package gw.internal.gosu.ir.transform;
 import gw.config.CommonServices;
 import gw.internal.ext.org.objectweb.asm.Opcodes;
 import gw.internal.ext.org.objectweb.asm.Type;
+import gw.internal.gosu.coercer.FunctionToInterfaceClassGenerator;
 import gw.internal.gosu.ir.nodes.GosuClassIRType;
 import gw.internal.gosu.ir.nodes.IRMethod;
 import gw.internal.gosu.ir.nodes.IRMethodFactory;
@@ -38,6 +39,7 @@ import gw.internal.gosu.parser.TypeVariableType;
 import gw.internal.gosu.parser.expressions.BlockType;
 import gw.internal.gosu.parser.fragments.GosuFragment;
 import gw.internal.gosu.runtime.GosuRuntimeMethods;
+import gw.lang.IDimension;
 import gw.lang.ir.IRElement;
 import gw.lang.ir.IRExpression;
 import gw.lang.ir.IRStatement;
@@ -82,22 +84,27 @@ import gw.lang.parser.ICoercionManager;
 import gw.lang.parser.ICustomExpressionRuntime;
 import gw.lang.parser.IDynamicFunctionSymbol;
 import gw.lang.parser.IExpression;
+import gw.lang.parser.ILanguageLevel;
 import gw.lang.parser.IParsedElement;
 import gw.lang.parser.IReducedSymbol;
 import gw.lang.parser.ISymbol;
 import gw.lang.parser.Keyword;
+import gw.lang.parser.StandardCoercionManager;
 import gw.lang.parser.statements.IFunctionStatement;
 import gw.lang.reflect.FunctionType;
 import gw.lang.reflect.IBlockType;
 import gw.lang.reflect.IConstructorInfo;
 import gw.lang.reflect.IEntityAccess;
+import gw.lang.reflect.IEnumConstant;
 import gw.lang.reflect.IFeatureInfo;
 import gw.lang.reflect.IFunctionType;
 import gw.lang.reflect.IMetaType;
+import gw.lang.reflect.IMethodInfo;
 import gw.lang.reflect.IParameterInfo;
 import gw.lang.reflect.IPropertyInfo;
 import gw.lang.reflect.IRelativeTypeInfo;
 import gw.lang.reflect.IType;
+import gw.lang.reflect.ITypeInfo;
 import gw.lang.reflect.ITypeVariableType;
 import gw.lang.reflect.Modifier;
 import gw.lang.reflect.PropertyInfoDelegate;
@@ -112,6 +119,7 @@ import gw.lang.reflect.gs.IGosuEnhancement;
 import gw.lang.reflect.gs.IGosuMethodInfo;
 import gw.lang.reflect.gs.IGosuProgram;
 import gw.lang.reflect.gs.IGosuVarPropertyInfo;
+import gw.lang.reflect.gs.StringSourceFileHandle;
 import gw.lang.reflect.java.IJavaClassInfo;
 import gw.lang.reflect.java.IJavaClassMethod;
 import gw.lang.reflect.java.IJavaConstructorInfo;
@@ -121,6 +129,8 @@ import gw.lang.reflect.module.IModule;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -1411,6 +1421,129 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
     }
   }
 
+  protected IRAssignmentStatement convertOperandToBig( IType bigType, Class bigClass, IType operandType, IRExpression operand, IRSymbol tempRet ) {
+    IRAssignmentStatement tempOperandAssn;
+    if( operandType == bigType ) {
+      tempOperandAssn = buildAssignment( tempRet, operand );
+    }
+    else {
+      IType dimensionType = findDimensionType( operandType );
+      if( dimensionType != null ) {
+        return convertOperandToBig( bigType, bigClass, dimensionType, callMethod( IDimension.class, "toNumber", new Class[]{}, operand, Collections.<IRExpression>emptyList() ), tempRet );
+      }
+
+      if( operandType == JavaTypes.BIG_INTEGER() ) {
+        tempOperandAssn = buildAssignment( tempRet, buildNewExpression( BigDecimal.class, new Class[]{BigInteger.class}, Collections.<IRExpression>singletonList( operand ) ) );
+      }
+      else if( operandType == JavaTypes.BIG_DECIMAL() ) {
+        tempOperandAssn = buildAssignment( tempRet, buildMethodCall( BigDecimal.class, "toBigInteger", BigInteger.class, new Class[]{}, operand, Collections.<IRExpression>emptyList() ) );
+      }
+      else if( StandardCoercionManager.isBoxed( operandType ) ) {
+        if( bigClass == BigInteger.class || isBoxedIntType( operandType ) || operandType == JavaTypes.LONG() ) {
+          if( operandType == JavaTypes.CHARACTER() ) {
+            tempOperandAssn = buildAssignment( tempRet, callStaticMethod( bigClass, "valueOf", new Class[] {long.class},
+                                                                      Collections.<IRExpression>singletonList( numberConvert( getDescriptor( char.class ), getDescriptor( long.class ),
+                                                                                                                              buildMethodCall( getDescriptor( operandType ), "charValue", false,
+                                                                                                                                               getDescriptor( char.class ), Collections.<IRType>emptyList(), operand,
+                                                                                                                                               Collections.<IRExpression>emptyList() ) ) ) ) );
+          }
+          else {
+            tempOperandAssn = buildAssignment( tempRet, callStaticMethod( bigClass, "valueOf", new Class[] {long.class},
+                                                                      Collections.<IRExpression>singletonList( buildMethodCall( getDescriptor( operandType ), "longValue", false,
+                                                                                                                  getDescriptor( long.class ), Collections.<IRType>emptyList(), operand,
+                                                                                                                  Collections.<IRExpression>emptyList() ) ) ) );
+          }
+        }
+        else {
+          if( operandType == JavaTypes.CHARACTER() ) {
+            tempOperandAssn = buildAssignment( tempRet, callStaticMethod( bigClass, "valueOf", new Class[] {double.class},
+                                                                      Collections.<IRExpression>singletonList( numberConvert( getDescriptor( char.class ), getDescriptor( double.class ),
+                                                                                                                 buildMethodCall( getDescriptor( operandType ), "charValue", false,
+                                                                                                                                  getDescriptor( char.class ), Collections.<IRType>emptyList(), operand,
+                                                                                                                                  Collections.<IRExpression>emptyList() ) ) ) ) );
+          }
+          else if( operandType == JavaTypes.FLOAT() ) {
+            tempOperandAssn = buildAssignment( tempRet, buildNewExpression( bigClass, new Class[] {String.class},
+                                                Collections.<IRExpression>singletonList( buildMethodCall( getDescriptor( Float.class ), "toString", false,
+                                                                                                          getDescriptor( String.class ), Collections.<IRType>emptyList(), operand,
+                                                                                                          Collections.<IRExpression>emptyList() ) ) ) );
+          }
+          else {
+            tempOperandAssn = buildAssignment( tempRet, callStaticMethod( bigClass, "valueOf", new Class[] {double.class},
+                                                                      Collections.<IRExpression>singletonList( buildMethodCall( getDescriptor( operandType ), "doubleValue", false,
+                                                                                                                  getDescriptor( double.class ), Collections.<IRType>emptyList(), operand,
+                                                                                                                  Collections.<IRExpression>emptyList() ) ) ) );
+          }
+        }
+      }
+      else if( operandType.isPrimitive() ) {
+        if( bigClass == BigDecimal.class && operandType == JavaTypes.pFLOAT() ) {
+          tempOperandAssn = buildAssignment( tempRet,  buildNewExpression( bigClass, new Class[]{String.class}, Collections.singletonList( callStaticMethod( String.class, "valueOf", new Class[]{float.class}, Collections.<IRExpression>singletonList( operand ) ) ) ) );
+        }
+        else if( bigClass == BigInteger.class || isIntType( operandType ) || operandType == JavaTypes.pLONG() ) {
+          tempOperandAssn = buildAssignment( tempRet, callStaticMethod( bigClass, "valueOf", new Class[] {long.class}, Collections.singletonList( numberConvert( operandType, JavaTypes.pLONG(), operand ) ) ) );
+        }
+        else {
+          tempOperandAssn = buildAssignment( tempRet, callStaticMethod( BigDecimal.class, "valueOf", new Class[] {double.class}, Collections.singletonList( numberConvert( operandType, JavaTypes.pDOUBLE(), operand ) ) ) );
+        }
+      }
+      else {
+        throw new IllegalStateException( "Unhandled type: " + operandType.getName() );
+      }
+    }
+    return tempOperandAssn;
+  }
+
+  protected IRAssignmentStatement convertOperandToPrimitive( IType primitiveType, IType operandType, IRExpression operand, IRSymbol tempRet ) {
+    IRAssignmentStatement tempOperandAssn;
+    if( operandType == primitiveType ) {
+      tempOperandAssn = buildAssignment( tempRet, operand );
+    }
+    else {
+      IType dimensionType = findDimensionType( operandType );
+      if( dimensionType != null ) {
+        return convertOperandToPrimitive( primitiveType, dimensionType, callMethod( IDimension.class, "toNumber", new Class[]{}, operand, Collections.<IRExpression>emptyList() ), tempRet );
+      }
+
+      if( operandType == JavaTypes.BIG_INTEGER() ) {
+        tempOperandAssn = buildAssignment( tempRet, numberConvert( JavaTypes.pLONG(), primitiveType,
+                                                                   callMethod( BigInteger.class, "longValue", new Class[]{}, operand, Collections.<IRExpression>emptyList() ) ) );
+      }
+      else if( operandType == JavaTypes.BIG_DECIMAL() ) {
+        tempOperandAssn = buildAssignment( tempRet, numberConvert( JavaTypes.pDOUBLE(), primitiveType,
+                                                                   callMethod( BigDecimal.class, "doubleValue", new Class[]{}, operand, Collections.<IRExpression>emptyList() ) ) );
+      }
+      else if( StandardCoercionManager.isBoxed( operandType ) ) {
+        if( operandType == JavaTypes.CHARACTER() ) {
+          tempOperandAssn = buildAssignment( tempRet, numberConvert( JavaTypes.pCHAR(), primitiveType,
+                                                                     callMethod( Character.class, "charValue", new Class[]{}, operand, Collections.<IRExpression>emptyList() ) ) );
+        }
+        else if( isBoxedIntType( operandType ) || operandType == JavaTypes.LONG() ) {
+          tempOperandAssn = buildAssignment( tempRet, numberConvert( JavaTypes.pLONG(), primitiveType,
+                                                                     callMethod( Number.class, "longValue", new Class[]{}, operand, Collections.<IRExpression>emptyList() ) ) );
+        }
+        else if( operandType == JavaTypes.FLOAT() ) {
+          tempOperandAssn = buildAssignment( tempRet, numberConvert( JavaTypes.pFLOAT(), primitiveType,
+                                                                     callMethod( Float.class, "floatValue", new Class[]{}, operand, Collections.<IRExpression>emptyList() ) ) );
+        }
+        else if( operandType == JavaTypes.DOUBLE() ) {
+          tempOperandAssn = buildAssignment( tempRet, numberConvert( JavaTypes.pDOUBLE(), primitiveType,
+                                                                     callMethod( Float.class, "doubleValue", new Class[]{}, operand, Collections.<IRExpression>emptyList() ) ) );
+        }
+        else {
+          throw new IllegalStateException( "Unhandled type: " + operandType.getName() );
+        }
+      }
+      else if( operandType.isPrimitive() ) {
+        tempOperandAssn = buildAssignment( tempRet, numberConvert( operandType, primitiveType, operand ) );
+      }
+      else {
+        throw new IllegalStateException( "Unhandled type: " + operandType.getName() );
+      }
+    }
+    return tempOperandAssn;
+  }
+
   protected IRExpression numberConvert( IType from, IType to, IRExpression root )
   {
     if (from.equals(to)) {
@@ -1442,6 +1575,11 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
     return type.isPrimitive() && BeanAccess.isNumericType( type );
   }
 
+  protected boolean isBigType( IType type )
+  {
+    return type == JavaTypes.BIG_DECIMAL() || type == JavaTypes.BIG_INTEGER();
+  }
+
   public static boolean isNonBigBoxedNumberType( IType type )
   {
     return
@@ -1461,6 +1599,13 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
       type == JavaTypes.CHARACTER() ||
       type == JavaTypes.SHORT() ||
       type == JavaTypes.INTEGER();
+  }
+
+  public static boolean isNumberType( IType type )
+  {
+    return type != JavaTypes.pBOOLEAN() &&
+           type != JavaTypes.BOOLEAN() &&
+           CommonServices.getCoercionManager().isPrimitiveOrBoxed( type );
   }
 
   // The symbol is considered to be on an enclosing type if the symbol is defined on a class that encloses this
@@ -2627,11 +2772,20 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
 
   public static boolean requiresExternalSymbolCapture( IType type ) {
     IType enclosingType = type.getEnclosingType();
-    if ( enclosingType == null ) {
+    if( enclosingType == null ) {
       return false;
-    } else if ( enclosingType instanceof GosuFragment || enclosingType instanceof IGosuProgram ) {
+    }
+    else if( type instanceof IGosuClass &&
+             !(type instanceof IBlockClass) &&
+             ((IGosuClass)type).getSourceFileHandle() instanceof StringSourceFileHandle &&
+             type.getRelativeName().startsWith( FunctionToInterfaceClassGenerator.PROXY_FOR ) ) {
+      // synthetic
+      return false;
+    }
+    else if( enclosingType instanceof GosuFragment || enclosingType instanceof IGosuProgram ) {
       return true;
-    } else {
+    }
+    else {
       return requiresExternalSymbolCapture( enclosingType );
     }
   }
@@ -2915,5 +3069,109 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
       }
       ((IRMethodCallExpression)mc).setStructuralTypeOwner( GosuClassIRType.get( TypeLord.getPureGenericType( rootExpr.getType() ) ) );
     }
+  }
+
+  protected IRExpression fastStringCoercion( IRExpression expr, IType operandType ) {
+    IRExpression stringValueExpr;
+    if( !operandType.isPrimitive() ) {
+      if( JavaTypes.pCHAR().getArrayType().isAssignableFrom( operandType ) ) {
+        stringValueExpr = callStaticMethod( String.class, "valueOf", new Class[]{char[].class}, Collections.singletonList( expr ) );
+      }
+      else if( !isHandledByCustomCoercion( operandType ) ) {
+        stringValueExpr = callMethod( Object.class, "toString", new Class[0], expr, Collections.<IRExpression>emptyList() );
+      }
+      else {
+        stringValueExpr = callMethod( ICoercionManager.class, "makeStringFrom", new Class[]{Object.class},
+                       callStaticMethod( CommonServices.class, "getCoercionManager", new Class[]{}, Collections.<IRExpression>emptyList() ),
+                       Collections.singletonList( expr ) );
+      }
+    }
+    else {
+      Class primitiveClass = getDescriptor( operandType ).getJavaClass();
+      if( !isHandledByCustomCoercion( operandType ) ) {
+        primitiveClass = primitiveClass == short.class || primitiveClass == byte.class
+                         ? int.class
+                         : primitiveClass;
+        stringValueExpr = primitiveClass == void.class
+                          ? nullLiteral()
+                          : callStaticMethod( String.class, "valueOf", new Class[]{primitiveClass}, Collections.<IRExpression>singletonList( expr ) );
+      }
+      else {
+        // This is really stupid, but the pl coercion mgr converts double/float to non-decimal strings if the value is non-fractional, so instead of printing 1.0 for a normal _decimal_ value it prints 1  (fart)
+        stringValueExpr = callMethod( ICoercionManager.class, "makeStringFrom", new Class[]{Object.class},
+                       callStaticMethod( CommonServices.class, "getCoercionManager", new Class[]{}, Collections.<IRExpression>emptyList() ),
+                       Collections.singletonList( boxValue( getDescriptor( primitiveClass ), expr ) ) );
+      }
+    }
+    return stringValueExpr;
+  }
+
+  protected boolean isHandledByCustomCoercion( IType operandType ) {
+    if( ILanguageLevel.Util.STANDARD_GOSU() ) {
+      return false;
+    }
+    return
+      operandType == JavaTypes.BIG_DECIMAL() ||
+      operandType == JavaTypes.FLOAT() ||
+      operandType == JavaTypes.pFLOAT() ||
+      operandType == JavaTypes.DOUBLE() ||
+      operandType == JavaTypes.pDOUBLE() ||
+      operandType == JavaTypes.DATE() ||
+      TypeSystem.get( IEnumConstant.class ).isAssignableFrom( operandType ) ||
+      CommonServices.getEntityAccess().isTypekey( operandType ) ||
+      CommonServices.getEntityAccess().isEntityClass( operandType );
+  }
+
+  final protected IType findDimensionType( IType type ) {
+    if( !JavaTypes.IDIMENSION().isAssignableFrom( type ) ) {
+      return null;
+    }
+    IType dimType = TypeLord.findParameterizedType( type, JavaTypes.IDIMENSION() );
+    return dimType.isGenericType() ? null : dimType.getTypeParameters()[1];
+  }
+
+  final protected IType findComparableParamType( IType type ) {
+    if( !JavaTypes.COMPARABLE().isAssignableFrom( type ) ) {
+      return null;
+    }
+    type = TypeLord.getPureGenericType( type );
+    return findCompareToParamType( type );
+  }
+
+  private IType findCompareToParamType( IType type ) {
+    if( type == null ) {
+      return null;
+    }
+    type = TypeLord.getPureGenericType( type );
+    ITypeInfo ti = type.getTypeInfo();
+    if( ti instanceof IRelativeTypeInfo ) {
+      for( IMethodInfo csr : ((IRelativeTypeInfo)ti).getDeclaredMethods() ) {
+        if( "compareTo".equals( csr.getDisplayName() ) ) {
+          IParameterInfo[] params = csr.getParameters();
+          if( params != null && params.length == 1 ) {
+            IType paramType = TypeLord.getPureGenericType( TypeLord.getDefaultParameterizedTypeWithTypeVars( params[0].getFeatureType() ) );
+            if( paramType.isAssignableFrom( type ) ) {
+              return paramType;
+            }
+          }
+        }
+      }
+    }
+    if( !type.isInterface() ) {
+      IType paramType = findCompareToParamType( type.getSupertype() );
+      if( paramType != null ) {
+        return paramType;
+      }
+    }
+    IType[] interfaces = type.getInterfaces();
+    if( interfaces != null ) {
+      for( IType iface: interfaces ) {
+        IType paramType = findCompareToParamType( iface );
+        if( paramType != null ) {
+          return paramType;
+        }
+      }
+    }
+    return null;
   }
 }

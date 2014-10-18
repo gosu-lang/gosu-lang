@@ -4,7 +4,6 @@
 
 package gw.internal.gosu.ir.transform.expression;
 
-import gw.config.CommonServices;
 import gw.internal.gosu.ir.transform.ExpressionTransformer;
 import gw.internal.gosu.ir.transform.TopLevelTransformationContext;
 import gw.internal.gosu.parser.BeanAccess;
@@ -84,35 +83,35 @@ public class UnaryExpressionTransformer extends AbstractExpressionTransformer<Un
 
       if( value instanceof BigDecimal )
       {
-        value = CommonServices.getCoercionManager().makeBigDecimalFrom( value ).negate();
+        value = ((BigDecimal)value).negate();
       }
       else if( value instanceof BigInteger )
       {
-        value = CommonServices.getCoercionManager().makeBigIntegerFrom( value ).negate();
+        value = ((BigInteger)value).negate();
       }
       else if( value instanceof Integer )
       {
-        value = -CommonServices.getCoercionManager().makeIntegerFrom( value );
+        value = -(Integer)value;
       }
       else if( value instanceof Long )
       {
-        value = -CommonServices.getCoercionManager().makeLongFrom( value );
+        value = -(Long)value;
       }
       else if( value instanceof Double )
       {
-        value = -CommonServices.getCoercionManager().makeDoubleFrom( value );
+        value = -(Double)value;
       }
       else if( value instanceof Float )
       {
-        value = -CommonServices.getCoercionManager().makeFloatFrom( value );
+        value = -(Float)value;
       }
       else if( value instanceof Short )
       {
-        value = (short)-CommonServices.getCoercionManager().makeIntegerFrom( value ).shortValue();
+        value = Short.valueOf( (short)-((Short)value).shortValue() );
       }
       else if( value instanceof Byte )
       {
-        value = (byte)-CommonServices.getCoercionManager().makeIntegerFrom( value ).byteValue();
+        value = Byte.valueOf( (byte)-((Byte)value).byteValue() );
       }
       else
       {

@@ -35,24 +35,27 @@ public class IRAnnotationCompiler
 
   public void compile()
   {
-    IAnnotationInfo annotationValue = _annotation.getValue();
-    compileAnnotationInfo( annotationValue );
+    compileAnnotationInfo( _annotation );
   }
 
-  private void compileAnnotationInfo( IAnnotationInfo gai )
+  private void compileAnnotationInfo( IRAnnotation anno )
   {
-    IType classInfo = gai.getType();
-    List<? extends IMethodInfo> methods = ((IRelativeTypeInfo)classInfo.getTypeInfo()).getDeclaredMethods();
-    for( IMethodInfo method : methods )
+    IAnnotationInfo gai = anno.getValue();
+    if( gai != null )
     {
-      if( method.getParameters().length == 0 )
+      IType classInfo = gai.getType();
+      List<? extends IMethodInfo> methods = ((IRelativeTypeInfo)classInfo.getTypeInfo()).getDeclaredMethods();
+      for( IMethodInfo method : methods )
       {
-        String fieldName = method.getDisplayName();
-        if( !fieldName.equals( "hashCode" ) && !fieldName.equals( "toString" ) && !fieldName.equals( "annotationType" ) )
+        if( method.getParameters().length == 0 )
         {
-          IRType returnIRType = AbstractElementTransformer.getDescriptor( method.getReturnType() );
-          Object value = gai.getFieldValue( fieldName );
-          visitAnnotationField( _visitor, method.getReturnType(), fieldName, returnIRType, value );
+          String fieldName = method.getDisplayName();
+          if( !fieldName.equals( "hashCode" ) && !fieldName.equals( "toString" ) && !fieldName.equals( "annotationType" ) )
+          {
+            IRType returnIRType = AbstractElementTransformer.getDescriptor( method.getReturnType() );
+            Object value = gai.getFieldValue( fieldName );
+            visitAnnotationField( _visitor, method.getReturnType(), fieldName, returnIRType, value );
+          }
         }
       }
     }

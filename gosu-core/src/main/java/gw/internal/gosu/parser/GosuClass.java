@@ -6,11 +6,13 @@ package gw.internal.gosu.parser;
 
 import gw.config.CommonServices;
 import gw.fs.IFile;
+import gw.internal.gosu.coercer.FunctionToInterfaceClassGenerator;
 import gw.internal.gosu.compiler.GosuClassLoader;
 import gw.internal.gosu.compiler.SingleServingGosuClassLoader;
 import gw.internal.gosu.ir.TransformingCompiler;
 import gw.internal.gosu.parser.expressions.TypeVariableDefinition;
 import gw.internal.gosu.parser.expressions.TypeVariableDefinitionImpl;
+import gw.internal.gosu.parser.statements.ClassFileStatement;
 import gw.internal.gosu.parser.statements.ClassStatement;
 import gw.internal.gosu.parser.statements.DelegateStatement;
 import gw.internal.gosu.parser.statements.VarStatement;
@@ -127,7 +129,6 @@ public class GosuClass extends AbstractType implements IGosuClassInternal
   transient private GosuParser _parser;
   transient private ITypeUsesMap _typeUsesMap;
   transient private ModifierInfo _modifierInfo;
-  transient private boolean _bCompiledToUberModule;
   transient private boolean _bHasAssertions;
 
   public GosuClass( String strNamespace, String strRelativeName, GosuClassTypeLoader classTypeLoader,
@@ -1466,9 +1467,8 @@ public class GosuClass extends AbstractType implements IGosuClassInternal
         return;
       }
 
-      if( getEnclosingType() != null )
+      if( getEnclosingType() instanceof IGosuClass && !getRelativeName().startsWith( FunctionToInterfaceClassGenerator.PROXY_FOR ) )
       {
-        //## todo: does this handle the case where an inner gosu class is embedded in a synthetic type (is that possible?)
         getEnclosingType().compileDefinitionsIfNeeded( bForce );
         return;
       }
@@ -1556,9 +1556,11 @@ public class GosuClass extends AbstractType implements IGosuClassInternal
   {
     if( !isAnonymous()  )
     {
-      assert getEnclosingType() == null : "Should only analyze from top-level";
-
-      PostCompilationAnalysis.maybeAnalyze( getClassStatement().getClassFileStatement(), getClassStatement() );
+      if( getEnclosingType() == null )
+      {
+        // Only analyze from top-level class
+        PostCompilationAnalysis.maybeAnalyze( getClassStatement().getClassFileStatement(), getClassStatement() );
+      }
     }
   }
 
@@ -1584,18 +1586,23 @@ public class GosuClass extends AbstractType implements IGosuClassInternal
     if( getParseResultsException() == null )
     {
       //noinspection ThrowableInstanceNeverThrown
-      setParseResultsException( new ParseResultsException( getClassStatement().getClassFileStatement() ) );
+      ClassFileStatement classFileStmt = getClassStatement().getClassFileStatement();
+      setParseResultsException( new ParseResultsException( classFileStmt == null ? getClassStatement() : classFileStmt ) );
     }
     else
     {
-      Statement classFileStmt = (Statement)getParseResultsException().getParsedElement();
-      if( classFileStmt == null || !classFileStmt.hasParseExceptions() )
+      Statement stmt = (Statement)getParseResultsException().getParsedElement();
+      if( stmt == null || !stmt.hasParseExceptions() )
       {
         // Update the ClassFileStmt in with the definition-compiled version only if
         // the decl-compiled version does not have errors
-        classFileStmt = getParseInfo().getClassFileStatement();
+        stmt = getParseInfo().getClassFileStatement();
+        if( stmt == null ) {
+          // can happen if inner class is sythetic (generated at compile-time)
+          stmt = getParseInfo().getClassStatement();
+        }
       }
-      getParseResultsException().reset(classFileStmt);
+      getParseResultsException().reset( stmt );
     }
   }
 
@@ -1610,7 +1617,7 @@ public class GosuClass extends AbstractType implements IGosuClassInternal
       }
 
       ICompilableTypeInternal enclosingType = getEnclosingType();
-      if( enclosingType != null )
+      if( enclosingType instanceof IGosuClass && !getRelativeName().startsWith( FunctionToInterfaceClassGenerator.PROXY_FOR ) )
       {
         enclosingType.compileDeclarationsIfNeeded();
         return;
@@ -1751,13 +1758,12 @@ public class GosuClass extends AbstractType implements IGosuClassInternal
       return;
     }
 
-    if( getEnclosingType() != null )
+    if( getEnclosingType() instanceof IGosuClass && !getRelativeName().startsWith( FunctionToInterfaceClassGenerator.PROXY_FOR ) )
     {
       getEnclosingType().compileHeaderIfNeeded();
 
       IGosuClassInternal gosuClass = (IGosuClassInternal) getOrCreateTypeReference();
       gosuClass.createNewParseInfo();
-
       return;
     }
 
@@ -1980,7 +1986,24 @@ public class GosuClass extends AbstractType implements IGosuClassInternal
       }
     }
 
+    if( innerClass == null )
+    {
+      innerClass = maybeLoadBlockToInterfaceProxy( strRelativeName );
+      if( innerClass != null )
+      {
+        assert getInnerClassesMap().get( strRelativeName ) == innerClass;
+      }
+    }
     return innerClass;
+  }
+
+  private IGosuClassInternal maybeLoadBlockToInterfaceProxy( String relativeName )
+  {
+    if( relativeName.startsWith( FunctionToInterfaceClassGenerator.PROXY_FOR ) )
+    {
+      return (IGosuClassInternal)FunctionToInterfaceClassGenerator.getBlockToInterfaceConversionClass( relativeName, getOrCreateTypeReference() );
+    }
+    return null;
   }
 
   public VarStatement getMemberField( String charSequence )
@@ -2741,7 +2764,7 @@ public class GosuClass extends AbstractType implements IGosuClassInternal
 
   private static boolean isAssignable( DynamicFunctionSymbol implDfs, IFunctionType ifaceFuncType )
   {
-    if( ifaceFuncType.isAssignableFrom( implDfs.getType() ) )
+    if( ifaceFuncType.isAssignableFrom( implDfs.getType(), false ) )
     {
       return true;
     }

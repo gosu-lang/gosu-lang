@@ -69,7 +69,7 @@ class BadClassesTest extends TestClass
     assertNotNull( "Should be a single error on the first parameter of badArgsMethod()", 
                    errs.singleWhere( \ err -> err.Line == 8 and err.Column == 25 ) )
     assertNotNull( "Should be a single error on the third parameter of badArgsMethod()", 
-                   errs.singleWhere( \ err -> err.Line == 8 and err.Column == 42 ) )
+                   errs.singleWhere( \ err -> err.Line == 8 and err.Column == 45 ) )
   }
 
   function testCannotCatchTypeVariableTypeInCatchClause() {
