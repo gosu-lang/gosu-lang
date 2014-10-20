@@ -1780,6 +1780,10 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
         verify( getClassStatement(), !Modifier.isOverride( modifiers.getModifiers() ), Res.MSG_ILLEGAL_USE_OF_MODIFIER, Keyword.KW_override, classType.name() );
         verify( getClassStatement(), !Modifier.isFinal( modifiers.getModifiers() ), Res.MSG_ILLEGAL_USE_OF_MODIFIER, Keyword.KW_final, classType.name() );
         verify( getClassStatement(), !Modifier.isTransient( modifiers.getModifiers() ), Res.MSG_ILLEGAL_USE_OF_MODIFIER, Keyword.KW_transient, classType.name() );
+        if( gsClass.getEnclosingType() != null )
+        {
+          modifiers.addModifiers( Modifier.STATIC );
+        }
         gsClass.setModifierInfo(modifiers);
       }
     }
@@ -1792,6 +1796,10 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
         verify( getClassStatement(), !Modifier.isOverride( modifiers.getModifiers() ), Res.MSG_ILLEGAL_USE_OF_MODIFIER, Keyword.KW_override, classType.name() );
         verify( getClassStatement(), !Modifier.isFinal( modifiers.getModifiers() ), Res.MSG_ILLEGAL_USE_OF_MODIFIER, Keyword.KW_final, classType.name() );
         verify( getClassStatement(), !Modifier.isTransient( modifiers.getModifiers() ), Res.MSG_ILLEGAL_USE_OF_MODIFIER, Keyword.KW_transient, classType.name() );
+        if( gsClass.getEnclosingType() != null )
+        {
+          modifiers.addModifiers( Modifier.STATIC );
+        }
         gsClass.setModifierInfo(modifiers);
       }
     }
@@ -1805,6 +1813,10 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
         verify( getClassStatement(), !Modifier.isFinal( modifiers.getModifiers() ), Res.MSG_ILLEGAL_USE_OF_MODIFIER, Keyword.KW_final, classType.name() );
         verify( getClassStatement(), !Modifier.isTransient( modifiers.getModifiers() ), Res.MSG_ILLEGAL_USE_OF_MODIFIER, Keyword.KW_transient, classType.name() );
         modifiers.addModifiers( Modifier.ANNOTATION );
+        if( gsClass.getEnclosingType() != null )
+        {
+          modifiers.addModifiers( Modifier.STATIC );
+        }
         gsClass.setModifierInfo(modifiers);
       }
     }

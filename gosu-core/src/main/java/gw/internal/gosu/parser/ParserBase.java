@@ -1924,8 +1924,7 @@ public abstract class ParserBase implements IParserPart
 
   protected void verifyModifiersForFeature( IParsedElement pe, ModifierInfo modInfo )
   {
-    if( getGosuClass().getEnclosingType() != null &&
-        !getGosuClass().isStatic())
+    if( getGosuClass().getEnclosingType() != null && !getGosuClass().isStatic() )
     {
       verify( (ParsedElement) pe, !Modifier.isStatic( modInfo.getModifiers() ), Res.MSG_STATIC_MODIFIER_NOT_ALLOWED_HERE );
     }
