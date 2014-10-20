@@ -1,6 +1,6 @@
 package gw.specContrib.classes.enhancements
 
-class Errant_EnhancementSymbolNameCollision<T> {
+class Errant_SymbolCollision_Class<T> {
   var someField: int      //## issuekeys: VARIABLE 'SOMEFIELD' IS ALREADY DEFINED IN THE SCOPE
   var someField2: int as SomeField2
 

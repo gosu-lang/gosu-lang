@@ -1,6 +1,6 @@
 package gw.specContrib.classes.enhancements
 
-enhancement Errant_EnhancementSymbolNameCollision1<B>: Errant_EnhancementSymbolNameCollision<B> {
+enhancement Errant_SymbolCollision_ClassEnh<B>: Errant_SymbolCollision_Class<B> {
 
   property get someField(): int {return 1}
 
