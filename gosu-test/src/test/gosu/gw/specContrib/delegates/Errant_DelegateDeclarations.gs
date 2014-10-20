@@ -23,6 +23,7 @@ class Errant_DelegateDeclarations {
     delegate d3 represents Runnable           //## issuekeys: MSG_
     delegate d4: int represents Serializable  //## issuekeys: MSG_
     delegate d5: AbstractClass represents Serializable  //## issuekeys: MSG_
+    delegate d6: Cloneable & Serializable represents Cloneable, Serializable
   }
 
   class ExtendClassWithDelegates extends ClassWithDelegates {
