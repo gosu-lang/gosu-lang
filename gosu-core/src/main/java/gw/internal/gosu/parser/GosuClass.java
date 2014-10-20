@@ -1229,12 +1229,12 @@ public class GosuClass extends AbstractType implements IGosuClassInternal
     return memberFunctions.isEmpty() ? Collections.<VarStatement>emptyList() : Collections.unmodifiableList( new ArrayList( memberFunctions.values() ) );
   }
 
-  public DynamicFunctionSymbol getMemberFunction( IFunctionType funcType, String signature )
+  public DynamicFunctionSymbol getMemberFunction( IFunctionType funcType, String signature, boolean bContravariant )
   {
     DynamicFunctionSymbol dfs = getParseInfo().getMemberFunctions().get( signature );
     if( dfs == null )
     {
-      dfs = getMemberFunction( funcType );
+      dfs = getMemberFunction( funcType, bContravariant );
     }
     return dfs;
   }
@@ -1253,7 +1253,7 @@ public class GosuClass extends AbstractType implements IGosuClassInternal
     return returnDFSs;
   }
 
-  public DynamicFunctionSymbol getMemberFunction( IFunctionType funcType )
+  public DynamicFunctionSymbol getMemberFunction( IFunctionType funcType, boolean bContravariant )
   {
     String name = funcType.getDisplayName();
     for( DynamicFunctionSymbol dfs : getParseInfo().getMemberFunctions().values() )
@@ -1264,7 +1264,7 @@ public class GosuClass extends AbstractType implements IGosuClassInternal
         {
           dfs = dfs.getParameterizedVersion( (IGosuClass)getOrCreateTypeReference() );
         }
-        if( isAssignable( funcType, dfs ) )
+        if( isAssignable( funcType, dfs, bContravariant ) )
         {
           return dfs;
         }
@@ -1273,23 +1273,23 @@ public class GosuClass extends AbstractType implements IGosuClassInternal
     return null;
   }
 
-  private boolean isAssignable( IFunctionType funcType, IDynamicFunctionSymbol dfs )
+  private boolean isAssignable( IFunctionType funcType, IDynamicFunctionSymbol dfs, boolean bContravariant )
   {
     if( dfs == null )
     {
       return false;
     }
-    if( funcType.isAssignableFrom( dfs.getType() ) )
+    if( funcType.isAssignableFrom( dfs.getType(), bContravariant ) )
     {
       return true;
     }
     if( dfs.getBackingDfs() != dfs &&
-        isAssignable( funcType, dfs.getBackingDfs() ) )
+        isAssignable( funcType, dfs.getBackingDfs(), bContravariant ) )
     {
       return true;
     }
     return dfs.getSuperDfs() != dfs &&
-           isAssignable( funcType, dfs.getSuperDfs() );
+           isAssignable( funcType, dfs.getSuperDfs(), bContravariant );
   }
 
   public DynamicPropertySymbol getStaticProperty( String name )
@@ -2804,7 +2804,7 @@ public class GosuClass extends AbstractType implements IGosuClassInternal
 
     String signature = ifaceFuncType.getParamSignatureForCurrentModule();
 
-    DynamicFunctionSymbol implDfs = implClass.getMemberFunction( ifaceFuncType, signature );
+    DynamicFunctionSymbol implDfs = implClass.getMemberFunction( ifaceFuncType, signature, false );
     if( implDfs != null && implClass.isParameterizedType() )
     {
       implDfs = implDfs.getParameterizedVersion( implClass );
