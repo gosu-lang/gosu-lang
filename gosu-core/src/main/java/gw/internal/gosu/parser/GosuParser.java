@@ -12453,19 +12453,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
             DynamicFunctionSymbol existingDfs = (DynamicFunctionSymbol)func;
             if( areDFSsInSameNameSpace( dfs, existingDfs ) )
             {
-              if( existingDfs.getArgs().size() == 1 )
-              {
-                IType argType = dfs.getArgs().get( 0 ).getType();
-                IType existingArgType = existingDfs.getArgs().get( 0 ).getType();
-                if( argType.equals( existingArgType ) )
-                {
-                  verify( element, false, Res.MSG_PROPERTY_AND_FUNCTION_CONFLICT, existingDfs.getName(), propName );
-                }
-                if( doTypesReifyToTheSameBytecodeType( argType, existingArgType ) )
-                {
-                  verify( element, false, Res.MSG_PROPERTY_AND_FUNCTION_CONFLICT_UPON_REIFICATION, existingDfs.getName(), propName );
-                }
-              }
+              verifyPropertySetterConflictsWithFunction( element, dfs, propName, existingDfs );
             }
           }
         }
@@ -12481,18 +12469,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
           DynamicPropertySymbol dps = (DynamicPropertySymbol)symbol;
           if( areDFSsInSameNameSpace( dfs, dps ) )
           {
-            if( dps.getSetterDfs() != null )
-            {
-              IType argType = dfs.getArgs().get( 0 ).getType();
-              if( argType.equals( dps.getType() ) )
-              {
-                verify( element, false, Res.MSG_PROPERTY_AND_FUNCTION_CONFLICT, dfs.getName(), dps.getName() );
-              }
-              else if( doTypesReifyToTheSameBytecodeType( argType, dps.getType() ) )
-              {
-                verify( element, false, Res.MSG_PROPERTY_AND_FUNCTION_CONFLICT_UPON_REIFICATION, dfs.getName(), dps.getName() );
-              }
-            }
+            verifyFunctionConflictsWithPropoertySetter( element, dfs, dps );
           }
         }
       }
@@ -12507,6 +12484,39 @@ public final class GosuParser extends ParserBase implements IGosuParser
             verify( element, dps.getGetterDfs() == null, Res.MSG_PROPERTY_AND_FUNCTION_CONFLICT, dfs.getName(), dps.getName() );
           }
         }
+      }
+    }
+  }
+
+  void verifyFunctionConflictsWithPropoertySetter( ParsedElement element, DynamicFunctionSymbol dfs, DynamicPropertySymbol dps )
+  {
+    if( dps.getSetterDfs() != null )
+    {
+      IType argType = dfs.getArgs().get( 0 ).getType();
+      if( argType.equals( dps.getType() ) )
+      {
+        verify( element, false, Res.MSG_PROPERTY_AND_FUNCTION_CONFLICT, dfs.getName(), dps.getName() );
+      }
+      else if( doTypesReifyToTheSameBytecodeType( argType, dps.getType() ) )
+      {
+        verify( element, false, Res.MSG_PROPERTY_AND_FUNCTION_CONFLICT_UPON_REIFICATION, dfs.getName(), dps.getName() );
+      }
+    }
+  }
+
+  void verifyPropertySetterConflictsWithFunction( ParsedElement element, DynamicFunctionSymbol dfs, String propName, DynamicFunctionSymbol existingDfs )
+  {
+    if( existingDfs.getArgs().size() == 1 )
+    {
+      IType argType = dfs.getArgs().get( 0 ).getType();
+      IType existingArgType = existingDfs.getArgs().get( 0 ).getType();
+      if( argType.equals( existingArgType ) )
+      {
+        verify( element, false, Res.MSG_PROPERTY_AND_FUNCTION_CONFLICT, existingDfs.getName(), propName );
+      }
+      if( doTypesReifyToTheSameBytecodeType( argType, existingArgType ) )
+      {
+        verify( element, false, Res.MSG_PROPERTY_AND_FUNCTION_CONFLICT_UPON_REIFICATION, existingDfs.getName(), propName );
       }
     }
   }
@@ -12601,7 +12611,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
     return true;
   }
 
-  private boolean doTypesReifyToTheSameBytecodeType( IType toArg, IType arg )
+  boolean doTypesReifyToTheSameBytecodeType( IType toArg, IType arg )
   {
     IRType toArgType = IRElement.maybeEraseStructuralType( null, IRTypeResolver.getDescriptor( toArg ) );
     IRType argType = IRElement.maybeEraseStructuralType( null, IRTypeResolver.getDescriptor( arg ) );

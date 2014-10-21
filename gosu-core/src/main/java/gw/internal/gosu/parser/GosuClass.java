@@ -2151,7 +2151,7 @@ public class GosuClass extends AbstractType implements IGosuClassInternal
       }
     }
     if( getEnclosingType() instanceof IGosuClassInternal &&
-        ((IGosuClassInternal)getEnclosingType()).isHeaderCompiled() )
+        ((IGosuClassInternal)getEnclosingType()).isHeaderCompiled() && TypeLord.encloses( getEnclosingType(), owner.getGosuClass() ) )
     {
       getEnclosingType().putClassMembers( loader, owner, table, gsContextClass, bStatic || isStatic() );
     }
