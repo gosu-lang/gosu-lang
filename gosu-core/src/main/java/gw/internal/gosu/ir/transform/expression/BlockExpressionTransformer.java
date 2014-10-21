@@ -48,14 +48,8 @@ public class BlockExpressionTransformer extends AbstractExpressionTransformer<IB
 
     IRExpression newExpr = buildNewExpression( getDescriptor( blockClazz ), paramTypes, args );
 
-    IRSymbol temp = _cc().makeAndIndexTempSymbol( getDescriptor( blockClazz ) );
-    IRAssignmentStatement tempAssignment = buildAssignment( temp, newExpr );
-
-    IRStatement setReturnType = buildFieldSet( getDescriptor( blockClazz ), "_returnType", JavaClassIRType.get( IType.class ), identifier( temp ), pushType( ((IBlockType)blk.getReturnType()).getReturnType() ) );
-
-    IRCompositeExpression blockExpr = buildComposite( tempAssignment, setReturnType, identifier( temp ) );
-    blockExpr.setImplicit( true );
-    return blockExpr;
+    newExpr.setImplicit( true );
+    return newExpr;
   }
 
   public static IRExpression compile( TopLevelTransformationContext cc, BlockExpression blockExpression )

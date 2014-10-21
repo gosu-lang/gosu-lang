@@ -16,6 +16,7 @@ import gw.lang.gosuc.ICustomParser;
 import gw.lang.gosuc.IGosuc;
 import gw.lang.parser.ISymbolTable;
 import gw.lang.parser.ITypeUsesMap;
+import gw.lang.parser.StandardCoercionManager;
 import gw.lang.parser.TypeVarToTypeMap;
 import gw.lang.parser.exceptions.ParseResultsException;
 import gw.lang.parser.expressions.ITypeLiteralExpression;
@@ -1305,24 +1306,36 @@ public class TypeLoaderAccess extends BaseService implements ITypeSystem
       if( lhsType.isAssignableFrom( rhsType ) ) {
         return true;
       }
-      else if( rhsType.isInterface() && lhsType.isInterface() ) {
+      else if( rhsType.isInterface() && lhsType.isInterface() && !genericInterfacesClash( rhsType, lhsType ) && !genericInterfacesClash( lhsType, rhsType ) ) {
         return true;
       }
-      else if( rhsType.isInterface() && ((!lhsType.isFinal() && !lhsType.isPrimitive() && !(lhsType instanceof IFunctionType) && !(lhsType.isArray())) || canCastMetaType( lhsType, rhsType )) ) {
+      else if( rhsType.isInterface() && ((!lhsType.isFinal() && !lhsType.isPrimitive() && !(lhsType instanceof IFunctionType) && !(lhsType.isArray()) && !genericInterfacesClash( rhsType, lhsType)) || canCastMetaType( lhsType, rhsType )) ) {
         // Support cross-casting to an interface
         return true;
       }
-      else if( lhsType.isInterface() && ((!rhsType.isFinal() && !rhsType.isPrimitive() && !(rhsType instanceof IFunctionType) && !(rhsType.isArray())) || canCastMetaType( lhsType, rhsType )) ) {
+      else if( lhsType.isInterface() && ((!rhsType.isFinal() && !rhsType.isPrimitive() && !(rhsType instanceof IFunctionType) && !(rhsType.isArray()) && !genericInterfacesClash( lhsType, rhsType))) ) {
         return true;
       }
     }
     return false;
   }
 
+  private boolean genericInterfacesClash(IType rhsType, IType lhsType) {
+    if( !rhsType.isParameterizedType() || !lhsType.isParameterizedType() ) {
+      return false;
+    }
+    IType lhsTypeInRhs = TypeLord.findParameterizedType( lhsType, rhsType.getGenericType() );
+    if( lhsTypeInRhs != null ) {
+      lhsTypeInRhs = TypeLord.replaceTypeVariableTypeParametersWithBoundingTypes( lhsTypeInRhs, lhsTypeInRhs.getEnclosingType() );
+      return !rhsType.isAssignableFrom( lhsTypeInRhs ) && !lhsTypeInRhs.isAssignableFrom( rhsType );
+    }
+    return false;
+  }
+
   private boolean canCastMetaType( IType lhsType, IType rhsType ) {
     return rhsType instanceof IGosuClass && ((IGosuClass)rhsType).isStructure() &&
-           (lhsType instanceof IMetaType && canCast( ((IMetaType)lhsType).getType(), rhsType ) ||
-            JavaTypes.CLASS().isAssignableFrom( lhsType ) && (lhsType.isParameterizedType() || canCast( lhsType.getTypeParameters()[0], rhsType )));
+           (lhsType instanceof IMetaType && StandardCoercionManager.isStructurallyAssignable( rhsType, ((IMetaType) lhsType).getType() ) ||
+            JavaTypes.CLASS().isAssignableFrom( lhsType ) && (!lhsType.isParameterizedType() || StandardCoercionManager.isStructurallyAssignable( rhsType, lhsType.getTypeParameters()[0] )));
   }
 
   public IJavaType getPrimitiveType(String name) {

@@ -171,8 +171,8 @@ public class OrderedList<T> extends AbstractList<T> implements IOrderedList<T>
     }
   }
 
-  public static interface IToComparable<T>
+  public static interface IToComparable<E>
   {
-    Comparable toComparable(T elt);
+    Comparable toComparable(E elt);
   }
 }

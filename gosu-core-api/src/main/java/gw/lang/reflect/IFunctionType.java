@@ -5,7 +5,6 @@
 package gw.lang.reflect;
 
 import gw.lang.parser.IScriptPartId;
-import gw.util.Pair;
 
 
 public interface IFunctionType extends IInvocableType
@@ -31,11 +30,12 @@ public interface IFunctionType extends IInvocableType
 
   boolean areParamsCompatible( IFunctionType rhsFunctionType );
 
+  public boolean isAssignableFrom( IType type, boolean bContravariant );
+
   IScriptPartId getScriptPart();
 
   /**
    * @return a new copy of this IFunctionType with the given parameter and return types
    */
   IType newInstance( IType[] paramTypes, IType returnType );
-  Pair<Long, String> getRetainedMemory();
 }

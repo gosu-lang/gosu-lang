@@ -4,10 +4,8 @@
 
 package gw.lang.parser.coercers;
 
-import gw.config.CommonServices;
 import gw.lang.GosuShop;
 import gw.lang.function.IBlock;
-import gw.lang.parser.ICoercer;
 import gw.lang.parser.IResolvingCoercer;
 import gw.lang.reflect.IFunctionType;
 import gw.lang.reflect.IMethodInfo;
@@ -15,6 +13,7 @@ import gw.lang.reflect.IParameterInfo;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.ITypeInfo;
 import gw.lang.reflect.ITypeVariableType;
+import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.gs.IGenericTypeVariable;
 import gw.lang.reflect.gs.IGosuClass;
 import gw.lang.reflect.gs.IGosuEnhancement;
@@ -24,7 +23,6 @@ import gw.lang.reflect.java.IJavaMethodInfo;
 import gw.lang.reflect.java.IJavaType;
 import gw.lang.reflect.java.JavaTypes;
 
-import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -46,40 +44,20 @@ public class FunctionToInterfaceCoercer extends BaseCoercer implements IResolvin
   {
     if( value instanceof IBlock )
     {
-      Class proxyClass = GosuShop.getBlockToInterfaceConversionClass( typeToCoerceTo );
-
+      IGosuClass proxyClass = GosuShop.getBlockToInterfaceConversionClass( typeToCoerceTo, TypeSystem.get( value.getClass().getEnclosingClass() ) );
       IBlock blk = (IBlock)value;
-      IType methodReturnType  = getSingleMethod( typeToCoerceTo ).getReturnType();
       try {
-        Field field = blk.getClass().getField( "_returnType" );
-        ICoercer coercer = getCoercer( (IType)field.get( blk ), methodReturnType );
-        return proxyClass.getConstructor(IBlock.class, ICoercer.class, IType.class).newInstance(blk, coercer, methodReturnType );
-      } catch (Exception e) {
-        throw new RuntimeException(e);
+        //noinspection unchecked
+        return proxyClass.getBackingClass().getConstructor( IBlock.class ).newInstance( blk );
+      }
+      catch( Exception e ) {
+        throw new RuntimeException( e );
       }
     }
     else
     {
       throw new IllegalStateException();
     }
-  }
-
-  private ICoercer getCoercer( IType type, IType returnType )
-  {
-    if( !returnType.isAssignableFrom( type ) )
-    {
-      final ICoercer coercer = CommonServices.getCoercionManager().findCoercer( returnType, type, true );
-      if( coercer == null )
-      {
-        if( JavaTypes.pVOID().equals(returnType) )
-        {
-          return IdentityCoercer.instance();
-        }
-        throw new IllegalStateException( "Unable to coerce return value " + type + " of block to " + returnType );
-      }
-      return coercer;
-    }
-    return null;
   }
 
   public static IFunctionType getRepresentativeFunctionType( IType interfaceType )

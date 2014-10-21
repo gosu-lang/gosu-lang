@@ -851,6 +851,7 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
 
     if( !putClassMembersOfSuperAndInterfaces( gsClass ) )
     {
+      gsClass.setDeclarationsBypassed();
       return;
     }
     if( isInnerClass( gsClass ) && !gsClass.isStatic() )
@@ -1779,6 +1780,10 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
         verify( getClassStatement(), !Modifier.isOverride( modifiers.getModifiers() ), Res.MSG_ILLEGAL_USE_OF_MODIFIER, Keyword.KW_override, classType.name() );
         verify( getClassStatement(), !Modifier.isFinal( modifiers.getModifiers() ), Res.MSG_ILLEGAL_USE_OF_MODIFIER, Keyword.KW_final, classType.name() );
         verify( getClassStatement(), !Modifier.isTransient( modifiers.getModifiers() ), Res.MSG_ILLEGAL_USE_OF_MODIFIER, Keyword.KW_transient, classType.name() );
+        if( gsClass.getEnclosingType() != null )
+        {
+          modifiers.addModifiers( Modifier.STATIC );
+        }
         gsClass.setModifierInfo(modifiers);
       }
     }
@@ -1791,6 +1796,10 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
         verify( getClassStatement(), !Modifier.isOverride( modifiers.getModifiers() ), Res.MSG_ILLEGAL_USE_OF_MODIFIER, Keyword.KW_override, classType.name() );
         verify( getClassStatement(), !Modifier.isFinal( modifiers.getModifiers() ), Res.MSG_ILLEGAL_USE_OF_MODIFIER, Keyword.KW_final, classType.name() );
         verify( getClassStatement(), !Modifier.isTransient( modifiers.getModifiers() ), Res.MSG_ILLEGAL_USE_OF_MODIFIER, Keyword.KW_transient, classType.name() );
+        if( gsClass.getEnclosingType() != null )
+        {
+          modifiers.addModifiers( Modifier.STATIC );
+        }
         gsClass.setModifierInfo(modifiers);
       }
     }
@@ -1804,6 +1813,10 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
         verify( getClassStatement(), !Modifier.isFinal( modifiers.getModifiers() ), Res.MSG_ILLEGAL_USE_OF_MODIFIER, Keyword.KW_final, classType.name() );
         verify( getClassStatement(), !Modifier.isTransient( modifiers.getModifiers() ), Res.MSG_ILLEGAL_USE_OF_MODIFIER, Keyword.KW_transient, classType.name() );
         modifiers.addModifiers( Modifier.ANNOTATION );
+        if( gsClass.getEnclosingType() != null )
+        {
+          modifiers.addModifiers( Modifier.STATIC );
+        }
         gsClass.setModifierInfo(modifiers);
       }
     }
@@ -2842,7 +2855,7 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
         {
           int i = 0;
           String relativeName = innerClass.getName();
-          while( innerClass.isDeclarationsCompiled() )
+          while( innerClass.isDeclarationsCompiled() || innerClass.isDeclarationsBypassed() )
           {
             // The inner class is already declaration-compiled, maybe this is a duplicate inner class...
 
@@ -2999,14 +3012,14 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
       symbol = new ScopedDynamicSymbol( getSymbolTable(), strIdentifier, getGosuClass().getName(), type, varStmt.getScope() );
     }
     modifiers.addAll( symbol.getModifierInfo() );
-    symbol.setModifierInfo( modifiers );
-    varStmt.setSymbol( symbol );
-    varStmt.setNameOffset( iNameStart, T._strValue );
     if( varStmt.isPrivate() )
     {
       // Ensure private bit is explicit
       modifiers.setModifiers( Modifier.setPrivate( modifiers.getModifiers(), true ) );
     }
+    symbol.setModifierInfo( modifiers );
+    varStmt.setSymbol( symbol );
+    varStmt.setNameOffset( iNameStart, T._strValue );
 
     if( bAlreadyDefined )
     {

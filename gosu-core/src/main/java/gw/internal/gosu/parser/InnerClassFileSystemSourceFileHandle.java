@@ -88,6 +88,12 @@ public class InnerClassFileSystemSourceFileHandle implements ISourceFileHandle
     return enclosingType != null && enclosingType.getInnerClass( getRelativeName() ) != null;
   }
 
+  @Override
+  public boolean isStandardPath() {
+    IFileRepositoryBasedType enclosingType = (IFileRepositoryBasedType) TypeSystem.getByFullNameIfValid(_strEnclosingType);
+    return enclosingType.getSourceFileHandle().isStandardPath();
+  }
+
   public void cleanAfterCompile()
   {
     // nothing required

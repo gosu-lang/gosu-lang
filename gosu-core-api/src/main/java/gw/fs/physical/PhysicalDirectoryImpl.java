@@ -78,4 +78,9 @@ public class PhysicalDirectoryImpl extends PhysicalResourceImpl implements IDire
     IFile childFile = file(path);
     return childFile != null && childFile.exists();
   }
+
+  @Override
+  public boolean isAdditional() {
+    return false;
+  }
 }

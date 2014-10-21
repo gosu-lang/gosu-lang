@@ -17,10 +17,12 @@ import gw.internal.ext.org.objectweb.asm.util.CheckClassAdapter;
 import gw.internal.gosu.compiler.DebugFlag;
 import gw.internal.gosu.ir.nodes.IRTypeFactory;
 import gw.internal.gosu.ir.nodes.JavaClassIRType;
+import gw.internal.gosu.ir.transform.util.IRTypeResolver;
 import gw.lang.ir.IRClass;
 import gw.lang.ir.IRType;
 import gw.lang.ir.IRSymbol;
 import gw.lang.ir.IRAnnotation;
+import gw.lang.ir.Internal;
 import gw.lang.ir.statement.IRFieldDecl;
 import gw.lang.ir.statement.IRMethodStatement;
 import gw.lang.reflect.IAnnotationInfo;
@@ -163,13 +165,10 @@ public class IRClassCompiler extends AbstractBytecodeCompiler
 
   /**
    * Deals with generics.
-   *
-   * Since Gosu generics are parameterized explicitly in the bytecode world,
-   * we'll probably not ever conform to java generics.
    */
   private String getClassSignature()
   {
-    return null;
+    return _irClass.getGenericSignature();
   }
 
   private String[] getInterfaceNames()
@@ -215,11 +214,15 @@ public class IRClassCompiler extends AbstractBytecodeCompiler
       FieldVisitor fv = _cv.visitField( field.getModifiers(),
                                         field.getName(),
                                         field.getType().getDescriptor(),
-                                        null,
+                                        field.getGenericSignature(),
                                         field.getValue() );
       for (IRAnnotation annotation : field.getAnnotations() ) {
         AnnotationVisitor annotationVisitor = fv.visitAnnotation(annotation.getDescriptor().getDescriptor(), annotation.isInclude());
         new IRAnnotationCompiler( annotationVisitor, annotation ).compile();
+      }
+      if( field.isExplicitInternal() ) {
+        AnnotationVisitor annotationVisitor = fv.visitAnnotation( Type.getDescriptor( Internal.class ), true );
+        new IRAnnotationCompiler( annotationVisitor, new IRAnnotation( IRTypeResolver.getDescriptor( Internal.class ), true ) ).compile();
       }
       fv.visitEnd();
     }
@@ -234,9 +237,10 @@ public class IRClassCompiler extends AbstractBytecodeCompiler
   private void compileMethod( IRMethodStatement method )
   {
     MethodVisitor mv = _cv.visitMethod( method.getModifiers(),
-                                         method.getName(),
-                                         getMethodDescriptor( method ),
-                                         null, null );
+                                        method.getName(),
+                                        getMethodDescriptor( method ),
+                                        method.getGenericSignature(),
+                                        null );
     Object[] annotationDefault = method.getAnnotationDefault();
     if( annotationDefault != null )
     {
@@ -249,6 +253,11 @@ public class IRClassCompiler extends AbstractBytecodeCompiler
       AnnotationVisitor annotationVisitor = mv.visitAnnotation( annotation.getDescriptor().getDescriptor(), annotation.isInclude() );
       new IRAnnotationCompiler( annotationVisitor, annotation ).compile();
     }
+    if( method.isExplicitInternal() ) {
+      AnnotationVisitor annotationVisitor = mv.visitAnnotation( Type.getDescriptor( Internal.class ), true );
+      new IRAnnotationCompiler( annotationVisitor, new IRAnnotation( IRTypeResolver.getDescriptor( Internal.class ), true ) ).compile();
+    }
+
     for( IRSymbol param: method.getParameters() )
     {
       List<IRAnnotation> paramAnnotations = param.getAnnotations();

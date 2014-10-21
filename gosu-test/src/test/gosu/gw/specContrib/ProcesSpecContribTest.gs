@@ -30,6 +30,7 @@ class ProcesSpecContribTest extends BaseVerifyErrantTest {
       //processErrantType(gw.specContrib.classes.Errant_EnhancementDeclaredInClass)
       //processErrantType(gw.specContrib.classes.Errant_EnhancementNotNamedAfterFile)
       processErrantType(gw.specContrib.scopes.Errant_PropertyDeclaration)
+      processErrantType(gw.specContrib.operators.Errant_OperatorsPrimitiveAndObject)
 
   }
 }

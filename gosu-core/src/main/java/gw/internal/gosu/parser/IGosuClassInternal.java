@@ -119,7 +119,7 @@ public interface IGosuClassInternal extends IGosuClass, ICompilableTypeInternal
   void addInnerClass( IGosuClassInternal innerGsClass );
   void removeInnerClass( IGosuClassInternal innerGsClass );
 
-  DynamicFunctionSymbol getMemberFunction( IFunctionType ifaceFuncType, String name );
+  DynamicFunctionSymbol getMemberFunction( IFunctionType ifaceFuncType, String name, boolean bContravariant );
 
   DynamicPropertySymbol getStaticProperty( String name );
 
@@ -164,6 +164,8 @@ public interface IGosuClassInternal extends IGosuClass, ICompilableTypeInternal
   void setCompilingDeclarations( boolean bCompilingDeclarations );
 
   void setDeclarationsCompiled();
+
+  void setDeclarationsBypassed();
 
   void setInnerDeclarationsCompiled();
 

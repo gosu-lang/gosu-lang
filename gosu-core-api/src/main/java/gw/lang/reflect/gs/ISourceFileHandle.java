@@ -21,6 +21,8 @@ public interface ISourceFileHandle
 
   boolean isValid();
 
+  boolean isStandardPath();
+
   public void cleanAfterCompile();
 
   ClassType getClassType();

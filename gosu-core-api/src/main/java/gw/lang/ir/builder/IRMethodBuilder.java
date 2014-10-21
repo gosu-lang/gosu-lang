@@ -174,7 +174,7 @@ public class IRMethodBuilder extends IRFeatureBuilder<IRMethodBuilder> {
   }
 
   private IRMethodStatement build(IRStatement body) {
-    IRMethodStatement method = new IRMethodStatement(body, _name, _modifiers, _returnType, _parameters);
+    IRMethodStatement method = new IRMethodStatement(body, _name, _modifiers, false, _returnType, _parameters);
     _classBuilder.withMethod( method );
     return method;
   }

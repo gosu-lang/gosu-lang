@@ -125,7 +125,10 @@ public class Module implements IModule
   public void setSourcePath( List<IDirectory> sourcePaths )
   {
     List<IDirectory> sources = new ArrayList<IDirectory>(sourcePaths);
+
+    //## todo: Kill this so the classpath from the ClassLoaders is 1:1 with Modules i.e., why are we not copying these into the target classpath??!!
     sources.addAll(getAdditionalSourceRoots());
+
     _fileRepository.setSourcePath(sources.toArray(new IDirectory[sourcePaths.size()]));
   }
 

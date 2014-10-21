@@ -47,25 +47,21 @@ public abstract class ConditionalExpression extends BinaryExpression implements 
 
   public static int compareNumbers( Object lhsValue, Object rhsValue, IType lhsType, IType rhsType )
   {
-    if( JavaTypes.IDIMENSION().isAssignableFrom( lhsType ) && JavaTypes.COMPARABLE().isAssignableFrom( lhsType ) )
+    if( JavaTypes.COMPARABLE().isAssignableFrom( lhsType ) && lhsType == rhsType )
     {
-      IType comparableType = TypeLord.findParameterizedTypeInHierarchy(lhsType, JavaTypes.COMPARABLE());
-      if( comparableType != null && (comparableType.isGenericType() || comparableType.getTypeParameters()[0].isAssignableFrom( rhsType ) ) )
-      {
-        // The dimension is explicitly comparable. Enable relational operator overloading via compareTo().
-        //noinspection unchecked
-        return ((Comparable)lhsValue).compareTo( rhsValue );
-      }
+      return ((Comparable)lhsValue).compareTo( rhsValue );
     }
     
     lhsType = ParserBase.resolveType( lhsType, '>', rhsType );
     try
     {
-      DimensionOperandResolver customNumberResolver =
-        DimensionOperandResolver.resolve( lhsType, '>', lhsType, lhsValue, rhsType, rhsValue );
-      lhsType = customNumberResolver.getRawNumberType();
-      lhsValue = customNumberResolver.getLhsValue();
-      rhsValue = customNumberResolver.getRhsValue();
+      if( JavaTypes.IDIMENSION().isAssignableFrom( lhsType ) ) {
+        DimensionOperandResolver customNumberResolver =
+          DimensionOperandResolver.resolve( lhsType, lhsType, lhsValue, rhsType, rhsValue );
+        lhsType = customNumberResolver.getRawNumberType();
+        lhsValue = customNumberResolver.getLhsValue();
+        rhsValue = customNumberResolver.getRhsValue();
+      }
 
       if( lhsType == JavaTypes.BIG_DECIMAL() )
       {

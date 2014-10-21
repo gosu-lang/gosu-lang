@@ -3,7 +3,7 @@ package gw.specification.expressions
 uses java.lang.Integer
 uses java.lang.Comparable
 
-final class TestDim implements IDimension<TestDim, Integer>, Comparable<TestDim> {
+final class TestDim implements IDimension<TestDim, Integer> {
   var _value: Integer
   
   construct(value: Integer) {

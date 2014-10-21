@@ -11,6 +11,7 @@ import gw.internal.gosu.module.DefaultSingleModule;
 import gw.internal.gosu.module.JreModule;
 import gw.internal.gosu.module.Module;
 import gw.lang.cli.SystemExitIgnoredException;
+import gw.lang.gosuc.GosucProject;
 import gw.lang.init.GosuPathEntry;
 import gw.lang.parser.GosuParserFactory;
 import gw.lang.parser.IGosuParser;
@@ -380,7 +381,19 @@ public class ExecutionEnvironment implements IExecutionEnvironment
 
   public void renameModule(IModule module, String newName) {
     ((ExecutionEnvironment)module.getExecutionEnvironment()).checkForDuplicates(newName);
-    ((Module) module).setName(newName);
+    module.setName(newName);
+  }
+
+  @Override
+  public String makeGosucProjectFile( String projectClassName ) {
+    try {
+      Class prjClass = ILanguageLevel.Util.STANDARD_GOSU() ? GosucProject.class : Class.forName( "com.guidewire.pl.gosuc.PlGosucProject" );
+      GosucProject gosucProject = (GosucProject)prjClass.getConstructor( IExecutionEnvironment.class ).newInstance( this );
+      return gosucProject.write();
+    }
+    catch( Exception e ) {
+      throw new RuntimeException( e );
+    }
   }
 
   public void shutdown() {

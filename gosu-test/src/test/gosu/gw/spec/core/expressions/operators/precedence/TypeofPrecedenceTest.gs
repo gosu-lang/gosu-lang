@@ -51,17 +51,17 @@ class TypeofPrecedenceTest extends PrecedenceTestBase {
   // Shift
 
   function testTypeofIsHigherPrecedenceThanShiftLeft() {
-    assertParseError("typeof 5 << 3", "The left-hand side operand must be an int or a long")
+    assertParseError("typeof 5 << 3", "Bit-wise logical operand must be an int or a long")
     assertEquals(int.Type, typeof (5 << 3))
   }
 
   function testTypeofIsHigherPrecedenceThanShiftRight() {
-    assertParseError("typeof 20 >> 3", "The left-hand side operand must be an int or a long")
+    assertParseError("typeof 20 >> 3", "Bit-wise logical operand must be an int or a long")
     assertEquals(int.Type, typeof (20 >> 3))
   }
 
   function testTypeofIsHigherPrecedenceThanUnsignedShiftRight() {
-    assertParseError("typeof 20 >>> 3", "The left-hand side operand must be an int or a long")
+    assertParseError("typeof 20 >>> 3", "Bit-wise logical operand must be an int or a long")
     assertEquals(int.Type, typeof (20 >>> 3))
   }
 
@@ -119,14 +119,14 @@ class TypeofPrecedenceTest extends PrecedenceTestBase {
   // Bitwise XOR
 
   function testTypeofIsHigherPrecedenceThanBitwiseXor() {
-    assertParseError("typeof 5 ^ 7", "The type \"int\" cannot be converted to \"Type<gw.internal.gosu.parser.MetaType.DefaultType>\"")
+    assertParseError("typeof 5 ^ 7", null)
     assertEquals(int.Type, typeof (5 ^ 7))
   }
 
   // Bitwise OR
 
   function testTypeofIsHigherPrecedenceThanBitwiseOr() {
-    assertParseError("typeof 5 | 7", "The type \"int\" cannot be converted to \"Type<gw.internal.gosu.parser.MetaType.DefaultType>\"")
+    assertParseError("typeof 5 | 7", null)
     assertEquals(int.Type, typeof (5 | 7))
   }
 

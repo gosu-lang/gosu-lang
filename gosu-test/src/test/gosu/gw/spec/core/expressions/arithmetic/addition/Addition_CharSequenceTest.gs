@@ -12,7 +12,7 @@ class Addition_CharSequenceTest extends ArithmeticTestBase {
     private var _value : String
     
     construct(value : String) {
-      _value = value  
+      _value = value + "bonus"
     }
 
     override function charAt(p0 : int) : char {
@@ -28,7 +28,7 @@ class Addition_CharSequenceTest extends ArithmeticTestBase {
     }
     
     override function toString() : String {
-      return _value + "bonus"  
+      return _value
     }
   }
   

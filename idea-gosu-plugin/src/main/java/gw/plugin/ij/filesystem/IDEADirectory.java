@@ -97,6 +97,11 @@ public class IDEADirectory extends IDEAResource implements IDirectory {
     return childFile != null && childFile.exists();
   }
 
+  @Override
+  public boolean isAdditional() {
+    return false;
+  }
+
   protected VirtualFile create(@NotNull final VirtualFile virtualFile, @NotNull final String name) throws IOException {
    final VirtualFile[] result = new VirtualFile[1];
     ApplicationManager.getApplication().runWriteAction(new Runnable() {

@@ -43,9 +43,9 @@ class Errant_BitwiseOperatorsAndShiftOperatorsTest {
     r2 = l >>> 2
     i = (-8>>2) + (2L<<~2)  //## issuekeys: MSG_IMPLICIT_COERCION_ERROR
     l = (-8>>2) + (2L<<~2)
-    var x0 = 8 << true  //## issuekeys: MSG_IMPLICIT_COERCION_ERROR
-    var x1 = 8 << o  //## issuekeys: MSG_TYPE_MISMATCH
-    var x2 = 8 << "Hello"  //## issuekeys: MSG_TYPE_MISMATCH
+    var x0 = 8 << true  //## issuekeys: MSG_BITWISE_OPERAND_MUST_BE_INT_OR_LONG
+    var x1 = 8 << o  //## issuekeys: MSG_BITWISE_OPERAND_MUST_BE_INT_OR_LONG
+    var x2 = 8 << "Hello"  //## issuekeys: MSG_BITWISE_OPERAND_MUST_BE_INT_OR_LONG
   }
 
 }

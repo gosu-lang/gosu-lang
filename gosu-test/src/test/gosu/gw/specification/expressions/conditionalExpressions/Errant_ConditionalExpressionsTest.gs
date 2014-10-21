@@ -13,7 +13,7 @@ class Errant_ConditionalExpressionsTest {
     var c0 : int = true ? 1 : 0
     var c1 : int = new Boolean(true) ? 1 : 0
     var c2 : int = 8 ? 1 : 0  //## issuekeys: MSG_CONDITIONAL_EXPRESSION_EXPECTS_BOOLEAN
-    var c3 : int = new Object() ? 1 : 0  //## issuekeys: MSG_CONDITIONAL_EXPRESSION_EXPECTS_BOOLEAN, MSG_TYPE_MISMATCH
+    var c3 : int = new Object() ? 1 : 0  //## issuekeys: MSG_CONDITIONAL_EXPRESSION_EXPECTS_BOOLEAN
     var c4 : int = "true" ? 1 : 0  //## issuekeys: MSG_CONDITIONAL_EXPRESSION_EXPECTS_BOOLEAN, MSG_TYPE_MISMATCH
     var c5 : Object = true ? new LinkedList() : 3.4
     var c6 : AbstractMap = true ? new TreeMap() : new HashMap()

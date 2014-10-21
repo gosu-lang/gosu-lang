@@ -25,7 +25,7 @@ abstract class PrecedenceTestBase extends TestClass {
       var x = eval(evalString)
       fail("Expected a parse exception")
     } catch (e : Exception) {
-      assertTrue("Error message was ${e}", e.Message.contains(expectedError))
+      assertTrue("Error message was ${e}", expectedError == null || e.Message.contains(expectedError))
     }
   }
 
@@ -35,7 +35,7 @@ abstract class PrecedenceTestBase extends TestClass {
       evalBlock()
       fail("Expected a parse exception")
     } catch (e : Exception) {
-      assertTrue("Error message was ${e}", e.Message.contains(expectedError))
+      assertTrue("Error message was ${e}", expectedError == null || e.Message.contains(expectedError))
     }
   }
 

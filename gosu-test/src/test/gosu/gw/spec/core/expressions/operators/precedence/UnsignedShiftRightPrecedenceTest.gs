@@ -17,7 +17,7 @@ class UnsignedShiftRightPrecedenceTest extends PrecedenceTestBase {
 
     assertEquals(false, 8 < 2 >>> 2)
     assertEquals(boolean.Type, statictypeof( 8 < 2 >>> 2))
-    assertParseError("(8 < 2) >>> 2", "The left-hand side operand must be an int or a long")
+    assertParseError("(8 < 2) >>> 2", "Bit-wise logical operand must be an int or a long")
   }
 
   function testUnsignedShiftRightIsHigherPrecedenceThanLessThanOrEquals() {
@@ -26,7 +26,7 @@ class UnsignedShiftRightPrecedenceTest extends PrecedenceTestBase {
 
     assertEquals(false, 8 <= 2 >>> 2)
     assertEquals(boolean.Type, statictypeof( 8 <= 2 >>> 2))
-    assertParseError("(8 <= 2) >>> 2", "The left-hand side operand must be an int or a long")
+    assertParseError("(8 <= 2) >>> 2", "Bit-wise logical operand must be an int or a long")
   }
 
   function testUnsignedShiftRightIsHigherPrecedenceThanGreaterThan() {
@@ -35,7 +35,7 @@ class UnsignedShiftRightPrecedenceTest extends PrecedenceTestBase {
 
     assertEquals(true, 1 > 2 >>> 2)
     assertEquals(boolean.Type, statictypeof( 1 > 2 >>> 2))
-    assertParseError("(1 > 2) >>> 2", "The left-hand side operand must be an int or a long")
+    assertParseError("(1 > 2) >>> 2", "Bit-wise logical operand must be an int or a long")
   }
 
   function testUnsignedShiftRightIsHigherPrecedenceThanGreaterThanOrEquals() {
@@ -44,7 +44,7 @@ class UnsignedShiftRightPrecedenceTest extends PrecedenceTestBase {
 
     assertEquals(true, 1 >= 2 >>> 2)
     assertEquals(boolean.Type, statictypeof( 1 >= 2 >>> 2))
-    assertParseError("(1 >= 2) >>> 2", "The left-hand side operand must be an int or a long")
+    assertParseError("(1 >= 2) >>> 2", "Bit-wise logical operand must be an int or a long")
   }
 
   // Equality
@@ -55,7 +55,7 @@ class UnsignedShiftRightPrecedenceTest extends PrecedenceTestBase {
 
     assertEquals(false, 3 == 8 >>> 1)
     assertEquals(boolean.Type, statictypeof(3 == 8 >>> 1))
-    assertParseError("(1 == 2) >>> 2", "The left-hand side operand must be an int or a long")
+    assertParseError("(1 == 2) >>> 2", "Bit-wise logical operand must be an int or a long")
   }
 
   function testUnsignedShiftRightIsHigherPrecedenceThanNotEquals() {
@@ -64,7 +64,7 @@ class UnsignedShiftRightPrecedenceTest extends PrecedenceTestBase {
 
     assertEquals(true, 3 != 8 >>> 1)
     assertEquals(boolean.Type, statictypeof(3 != 8 >>> 1))
-    assertParseError("(1 != 2) >>> 2", "The left-hand side operand must be an int or a long")
+    assertParseError("(1 != 2) >>> 2", "Bit-wise logical operand must be an int or a long")
   }
 
    // Bitwise AND
@@ -115,7 +115,7 @@ class UnsignedShiftRightPrecedenceTest extends PrecedenceTestBase {
   function testShiftLeftIsHigherPrecedenceThanBlock() {
     var x = \ -> 20 >>> 2
     assertEquals(5, x())
-    assertParseError("(\\ -> 20) >>> 2", "The left-hand side operand must be an int or a long.")  
+    assertParseError("(\\ -> 20) >>> 2", "Bit-wise logical operand must be an int or a long.")  
   }
 
 }

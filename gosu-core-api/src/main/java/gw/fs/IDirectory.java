@@ -44,4 +44,9 @@ public interface IDirectory extends IResource {
    * @return true if the path represents a file that exists as a child of this directory
    */
   boolean hasChildFile(String path);
+
+  /**
+   * @return true if this is an "additional" path for resources not copied to the target classpath e.g., config bullshit.
+   */
+  boolean isAdditional();
 }
