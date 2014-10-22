@@ -19,7 +19,7 @@ class Errant_OperatorsPrimitiveAndObject {
     i >>>= o  //## issuekeys: MSG_TYPE_MISMATCH
     o >>>= i  //## issuekeys: MSG_BITSHIFT_LHS_MUST_BE_INT_OR_LONG, MSG_TYPE_MISMATCH
 
-    var y0 : boolean  = !o
-    var y1 : int  =  ~o
+    var y0 : boolean = !o   //## issuekeys: MSG_TYPE_MISMATCH
+    var y1 : int = ~o   //## issuekeys: MSG_TYPE_MISMATCH
   }
 }
