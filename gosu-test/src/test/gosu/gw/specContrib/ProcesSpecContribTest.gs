@@ -20,6 +20,7 @@ class ProcesSpecContribTest extends BaseVerifyErrantTest {
       processErrantType(gw.specContrib.operators.ShiftAssignmentOperatorTest)
       processErrantType(gw.specContrib.expressions.Errant_MapKeyValueInitializers)
       processErrantType(gw.specContrib.types.Errant_VoidType)
+      processErrantType(gw.specContrib.types.Errant_CompoundType)
       processErrantType(gw.specContrib.classes.property_Declarations.Errant_PropertyWithInconsistentModifiers)
       processErrantType(gw.specContrib.classes.property_Declarations.Errant_PropertyWithInconsistentTypes)
       processErrantType(gw.specContrib.classes.modifiers.Errant_ModifiersOnInterfaceMethod)

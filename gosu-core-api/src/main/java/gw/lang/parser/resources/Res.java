@@ -331,6 +331,8 @@ public class Res
   public static final ResourceKey MSG_EXPECTING_RIGHTPAREN_AGGREGATE = new ResourceKey( "MSG_EXPECTING_RIGHTPAREN_AGGREGATE" );
   public static final ResourceKey MSG_ONLY_INTERFACES_ALLOWED_HERE = new ResourceKey( "MSG_ONLY_INTERFACES_ALLOWED_HERE" );
   public static final ResourceKey MSG_ONLY_ONE_CLASS_IN_COMPONENT_TYPE = new ResourceKey( "MSG_ONLY_ONE_CLASS_IN_COMPONENT_TYPE" );
+  public static final ResourceKey MSG_NO_ARRAY_IN_COMPONENT_TYPE = new ResourceKey( "MSG_NO_ARRAY_IN_COMPONENT_TYPE" );
+  public static final ResourceKey MSG_NO_PRIMITIVE_IN_COMPONENT_TYPE = new ResourceKey( "MSG_NO_PRIMITIVE_IN_COMPONENT_TYPE" );
   public static final ResourceKey MSG_DYNAMIC_TYPE_NOT_ALLOWED_HERE = new ResourceKey( "MSG_DYNAMIC_TYPE_NOT_ALLOWED_HERE" );
   public static final ResourceKey MSG_COMPOUND_TYPE_NOT_ALLOWED_HERE = new ResourceKey( "MSG_COMPOUND_TYPE_NOT_ALLOWED_HERE" );
   public static final ResourceKey MSG_CANNOT_EXTEND_INTERNAL_JAVATYPE = new ResourceKey( "MSG_CANNOT_EXTEND_INTERNAL_JAVATYPE" );
