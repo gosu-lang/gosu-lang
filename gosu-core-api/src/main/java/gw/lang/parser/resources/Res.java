@@ -323,6 +323,7 @@ public class Res
   public static final ResourceKey MSG_BITWISE_OPERAND_MUST_BE_INT_OR_LONG = new ResourceKey("MSG_BITWISE_OPERAND_MUST_BE_INT_OR_LONG");
   public static final ResourceKey MSG_DELEGATION_NOT_ALLOWED_HERE = new ResourceKey( "MSG_DELEGATION_NOT_ALLOWED_HERE" );
   public static final ResourceKey MSG_DELEGATES_REPRESENT_INTERFACES_ONLY = new ResourceKey( "MSG_DELEGATES_REPRESENT_INTERFACES_ONLY" );
+  public static final ResourceKey MSG_DELEGATES_SHOULD_NOT_SELF_DELEGATE = new ResourceKey( "MSG_DELEGATES_SHOULD_NOT_SELF_DELEGATE" );
   public static final ResourceKey MSG_CALLING_OVERRIDABLE_FROM_CTOR = new ResourceKey("MSG_CALLING_OVERRIDABLE_FROM_CTOR");
   public static final ResourceKey MSG_CLASS_DOES_NOT_IMPL = new ResourceKey( "MSG_CLASS_DOES_NOT_IMPL" );
   public static final ResourceKey MSG_EXPECTING_REPRESENTS = new ResourceKey( "MSG_EXPECTING_REPRESENTS" );

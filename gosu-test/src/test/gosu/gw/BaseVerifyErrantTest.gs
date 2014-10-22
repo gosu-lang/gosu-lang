@@ -14,6 +14,7 @@ uses java.lang.Integer
 class BaseVerifyErrantTest extends TestClass {
 
   protected function processErrantType( gsClass: IGosuClass ) {
+    print("Verifying ${gsClass.Name}")
     var bValid = gsClass.Valid
 
     var issuesByLine = bValid and gsClass.ParseResultsException == null

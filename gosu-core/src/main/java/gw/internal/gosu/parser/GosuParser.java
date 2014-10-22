@@ -9252,6 +9252,9 @@ public final class GosuParser extends ParserBase implements IGosuParser
     {
       parseTypeLiteral();
       typeLiteral = (TypeLiteral)popExpression();
+      warn( delegateStmt, typeLiteral.getType().getType() != null &&
+                          !typeLiteral.getType().getType().equals( getCurrentEnclosingGosuClass() ),
+            Res.MSG_DELEGATES_SHOULD_NOT_SELF_DELEGATE );
     }
     ICompilableType gsClass = getGosuClass();
     List<IType> constituents = new ArrayList<IType>();
