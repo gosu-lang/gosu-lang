@@ -2651,7 +2651,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
       UnaryNotPlusMinusExpression ue = new UnaryNotPlusMinusExpression();
       Expression e = popExpression();
       IType type = e.getType();
-      verifyTypesComparable( e, JavaTypes.pBOOLEAN(), type, false, true );
+      verify( e, type == JavaTypes.pBOOLEAN() || type == JavaTypes.BOOLEAN() || isDynamic( type ), Res.MSG_TYPE_MISMATCH, "boolean", type.getDisplayName() );
       e = possiblyWrapWithImplicitCoercion( e, JavaTypes.pBOOLEAN() );
       ue.setExpression( e );
       ue.setNot( true );
@@ -2673,8 +2673,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
       {
         if( verify( e, !isDynamic( type ), Res.MSG_DYNAMIC_TYPE_NOT_ALLOWED_HERE ) )
         {
-          verifyTypesComparable( e, JavaTypes.pINT(), type, false, true );
-          e = possiblyWrapWithImplicitCoercion( e, JavaTypes.pINT() );
+          e = ensureOperandIntOrLong( e );
         }
       }
       ue.setExpression( e );

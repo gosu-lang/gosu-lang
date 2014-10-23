@@ -4,8 +4,8 @@ class Errant_BitwiseOperatorsAndShiftOperatorsTest {
   function testBitwiseOperator() {
     var r : int
 
-    r = ~4.0  //## issuekeys: MSG_IMPLICIT_COERCION_ERROR
-    r = ~4.0f  //## issuekeys: MSG_IMPLICIT_COERCION_ERROR
+    r = ~4.0  //## issuekeys: MSG_IMPLICIT_COERCION_ERROR, MSG_BITWISE_OPERAND_MUST_BE_INT_OR_LONG
+    r = ~4.0f  //## issuekeys: MSG_IMPLICIT_COERCION_ERROR, MSG_BITWISE_OPERAND_MUST_BE_INT_OR_LONG
     r = ~8
   }
 
