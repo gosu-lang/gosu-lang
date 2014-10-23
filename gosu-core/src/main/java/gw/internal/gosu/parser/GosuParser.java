@@ -2651,7 +2651,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
       UnaryNotPlusMinusExpression ue = new UnaryNotPlusMinusExpression();
       Expression e = popExpression();
       IType type = e.getType();
-      verifyTypesComparable( e, JavaTypes.pBOOLEAN(), type, false, true );
+      verify( e, type == JavaTypes.pBOOLEAN() || type == JavaTypes.BOOLEAN() || isDynamic( type ), Res.MSG_TYPE_MISMATCH, "boolean", type.getDisplayName() );
       e = possiblyWrapWithImplicitCoercion( e, JavaTypes.pBOOLEAN() );
       ue.setExpression( e );
       ue.setNot( true );
@@ -2673,8 +2673,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
       {
         if( verify( e, !isDynamic( type ), Res.MSG_DYNAMIC_TYPE_NOT_ALLOWED_HERE ) )
         {
-          verifyTypesComparable( e, JavaTypes.pINT(), type, false, true );
-          e = possiblyWrapWithImplicitCoercion( e, JavaTypes.pINT() );
+          e = ensureOperandIntOrLong( e );
         }
       }
       ue.setExpression( e );
@@ -7952,6 +7951,8 @@ public final class GosuParser extends ParserBase implements IGosuParser
                 componentType.isInterface() || !bFoundClassAlready,
                 Res.MSG_ONLY_ONE_CLASS_IN_COMPONENT_TYPE );
       }
+      verify( typeLiteralComponent, !componentType.isArray(), Res.MSG_NO_ARRAY_IN_COMPONENT_TYPE);
+      verify( typeLiteralComponent, !componentType.isPrimitive(), Res.MSG_NO_PRIMITIVE_IN_COMPONENT_TYPE);
       types.add( componentType );
     }
   }
@@ -9252,6 +9253,9 @@ public final class GosuParser extends ParserBase implements IGosuParser
     {
       parseTypeLiteral();
       typeLiteral = (TypeLiteral)popExpression();
+      warn( delegateStmt, typeLiteral.getType().getType() != null &&
+                          !typeLiteral.getType().getType().equals( getCurrentEnclosingGosuClass() ),
+            Res.MSG_DELEGATES_SHOULD_NOT_SELF_DELEGATE );
     }
     ICompilableType gsClass = getGosuClass();
     List<IType> constituents = new ArrayList<IType>();
@@ -9603,7 +9607,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
 
     // index decl *expression* is only for editors
     LocalVarDeclaration varIndexDecl = new LocalVarDeclaration( strIndexIdentifier == null ? "#err" : strIndexIdentifier );
-    varIndexDecl.setType(JavaTypes.pINT());
+    varIndexDecl.setType( JavaTypes.pINT() );
     verify( forEachStmt, _symTable.getSymbol( strIndexIdentifier ) == null, Res.MSG_VARIABLE_ALREADY_DEFINED, strIndexIdentifier );
 
     forEachStmt.setIndexNameOffset( Tindex.getTokenStart() );
@@ -9613,9 +9617,9 @@ public final class GosuParser extends ParserBase implements IGosuParser
     Symbol indexIdentifier = new TypedSymbol( strIndexIdentifier, JavaTypes.pINT(), _symTable, null, SymbolType.FOREACH_VARIABLE );
     indexIdentifier.setFinal( true );
     _symTable.putSymbol( indexIdentifier );
-    forEachStmt.setIndexIdentifier(indexIdentifier);
+    forEachStmt.setIndexIdentifier( indexIdentifier );
 
-    pushExpression(varIndexDecl);
+    pushExpression( varIndexDecl );
     setLocation( iOffset, iLineNum, iColumn, strIndexIdentifier == null, false );
     popExpression();
   }
@@ -9659,12 +9663,12 @@ public final class GosuParser extends ParserBase implements IGosuParser
     forEachStmt.setIndexNameOffset( Titer.getTokenStart() );
 
     Symbol iteratorIdentifier = new TypedSymbol( strIterIdentifier, iterType, _symTable, null, SymbolType.FOREACH_VARIABLE );
-    iteratorIdentifier.setFinal(true);
+    iteratorIdentifier.setFinal( true );
     _symTable.putSymbol( iteratorIdentifier );
-    forEachStmt.setIteratorIdentifier(iteratorIdentifier);
+    forEachStmt.setIteratorIdentifier( iteratorIdentifier );
 
-    pushExpression(varIteratorDecl);
-    setLocation(iOffset, iLineNum, iColumn, strIterIdentifier == null, false);
+    pushExpression( varIteratorDecl );
+    setLocation( iOffset, iLineNum, iColumn, strIterIdentifier == null, false );
     popExpression();
   }
 
@@ -10152,7 +10156,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
     }
     else
     {
-      parseNamespaceStatement_normal(t);
+      parseNamespaceStatement_normal( t );
     }
   }
   void parseNamespaceStatement_editor( Token t )
@@ -10238,18 +10242,18 @@ public final class GosuParser extends ParserBase implements IGosuParser
 
   void parseUsesStatement( Token t )
   {
-    parseUsesStatement(t, true);
+    parseUsesStatement( t, true );
   }
 
   void parseUsesStatement( Token t, boolean bResolveTypes )
   {
     if( isEditorParser() )
     {
-      parseUsesStatement_editor(t, bResolveTypes);
+      parseUsesStatement_editor( t, bResolveTypes );
     }
     else
     {
-      parseUsesStatement_normal(t, bResolveTypes);
+      parseUsesStatement_normal( t, bResolveTypes );
     }
   }
   void parseUsesStatement_editor( Token t, boolean bResolveTypes )
@@ -10321,7 +10325,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
     int iLineNum = _tokenizer.getLineNumber();
     int iColumn = getTokenizer().getTokenColumn();
     verify( usesStmt, match( t, SourceCodeTokenizer.TT_WORD ), Res.MSG_EXPECTING_TYPELITERAL_OR_NAMESPACE );
-    parseDotPathWord(t);
+    parseDotPathWord( t );
     boolean bForwardRefToInnerClass =
             getGosuClass() instanceof IGosuClassInternal &&
                     t._strValue != null && t._strValue.startsWith( getGosuClass().getName() );
@@ -10552,7 +10556,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
     verify( switchStmt, switchStmt.getDefaultStatements() == null, Res.MSG_MULTIPLE_DEFAULT_CLAUSES_NOT_PERMITTED );
 
     List<Statement> defaultStatements = new ArrayList<Statement>();
-    parseStatementsAndDetectUnreachable(defaultStatements);
+    parseStatementsAndDetectUnreachable( defaultStatements );
     switchStmt.setDefaultStatements( defaultStatements );
 
     return true;
@@ -11384,7 +11388,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
                       (gsClass != null && gsClass.isInterface()),
               Res.MSG_SETTER_FOR_PROPERTY_ALREADY_DEFINED,
               strPropertyName );
-      dps.setSetterDfs(dfs);
+      dps.setSetterDfs( dfs );
     }
     return dps;
   }
@@ -11397,7 +11401,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
   boolean parseFunctionDefinition()
   {
     ModifierInfo modifiers = parseModifiers();
-    if( !isParsingBlock() && match(null, Keyword.KW_function) )
+    if( !isParsingBlock() && match( null, Keyword.KW_function ) )
     {
       parseBaseFunctionDefinition( new FunctionStatement(), false, false, modifiers );
       return true;
@@ -11892,7 +11896,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
 
   private DynamicFunctionSymbol getProgramEntryPointDfs()
   {
-    String functionNameWithArgs = DynamicFunctionSymbol.getSignatureName("evaluate", Collections.<ISymbol>singletonList(new Symbol("symbols", JavaTypes.IEXTERNAL_SYMBOL_MAP(), null)));
+    String functionNameWithArgs = DynamicFunctionSymbol.getSignatureName( "evaluate", Collections.<ISymbol>singletonList( new Symbol( "symbols", JavaTypes.IEXTERNAL_SYMBOL_MAP(), null ) ) );
     return (DynamicFunctionSymbol)_symTable.getSymbol( functionNameWithArgs );
   }
 
@@ -12928,9 +12932,9 @@ public final class GosuParser extends ParserBase implements IGosuParser
     int iOffset = getTokenizer().getTokenStart();
     int iLineNum = getTokenizer().getLineNumber();
     int iColumn = getTokenizer().getTokenColumn();
-    if( _parseTypeVariableDefinition(parsedElem, typeVarDef) )
+    if( _parseTypeVariableDefinition( parsedElem, typeVarDef ) )
     {
-      setLocation(iOffset, iLineNum, iColumn);
+      setLocation( iOffset, iLineNum, iColumn );
     }
   }
 
@@ -13222,7 +13226,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
 
   protected List<IFunctionType> getFunctionTypesForName( String strFunctionName )
   {
-    List<IFunctionSymbol> list = getDfsDeclsForFunction(strFunctionName);
+    List<IFunctionSymbol> list = getDfsDeclsForFunction( strFunctionName );
     List<IFunctionType> listOfTypes = new ArrayList<IFunctionType>( list.size() );
     for (IFunctionSymbol dfs : list)
     {
@@ -13363,7 +13367,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
 
   private ITypeVariableDefinition getTypeVarDef( String strTypeName )
   {
-    ITypeVariableDefinition typeVarDef = getTypeVariables().get(strTypeName);
+    ITypeVariableDefinition typeVarDef = getTypeVariables().get( strTypeName );
     if( typeVarDef != null && getGosuClass() != null && getGosuClass().isStatic() && TypeLord.encloses( typeVarDef.getEnclosingType(), getGosuClass() ) )
     {
       // Static inner class cannot access enclosing type vars
