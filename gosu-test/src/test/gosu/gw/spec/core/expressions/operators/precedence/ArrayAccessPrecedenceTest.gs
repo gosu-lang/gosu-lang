@@ -33,7 +33,7 @@ class ArrayAccessPrecedenceTest extends PrecedenceTestBase {
   function testArrayAccessIsHigherPrecedenceThanLogicalNot() {
     var x : int[] = {5}
     assertEquals(-6, ~x[0])
-    assertParseError(\ -> eval("(~x)[0]"), "The type \"int[]\" cannot be converted to \"int\"")
+    assertParseError(\ -> eval("(~x)[0]"), "Bit-wise logical operand must be an int or a long")
   }
 
   function testArrayAccessIsHigherPrecedenceThanTypeof() {
