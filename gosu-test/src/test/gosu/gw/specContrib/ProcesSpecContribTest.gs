@@ -2,8 +2,8 @@ package gw.specContrib
 
 uses gw.BaseVerifyErrantTest
 
-
 class ProcesSpecContribTest extends BaseVerifyErrantTest {
+
     function testThemAll() {
       /*
         https://jira.guidewire.com/browse/PL-31650
@@ -20,6 +20,7 @@ class ProcesSpecContribTest extends BaseVerifyErrantTest {
       processErrantType(gw.specContrib.operators.ShiftAssignmentOperatorTest)
       processErrantType(gw.specContrib.expressions.Errant_MapKeyValueInitializers)
       processErrantType(gw.specContrib.types.Errant_VoidType)
+      processErrantType(gw.specContrib.types.Errant_CompoundType)
       processErrantType(gw.specContrib.classes.property_Declarations.Errant_PropertyWithInconsistentModifiers)
       processErrantType(gw.specContrib.classes.property_Declarations.Errant_PropertyWithInconsistentTypes)
       processErrantType(gw.specContrib.classes.modifiers.Errant_ModifiersOnInterfaceMethod)
@@ -30,7 +31,10 @@ class ProcesSpecContribTest extends BaseVerifyErrantTest {
       //processErrantType(gw.specContrib.classes.Errant_EnhancementDeclaredInClass)
       //processErrantType(gw.specContrib.classes.Errant_EnhancementNotNamedAfterFile)
       processErrantType(gw.specContrib.scopes.Errant_PropertyDeclaration)
+      processErrantType(gw.specContrib.delegates.Errant_DelegateCompoundType)
+      processErrantType(gw.specContrib.delegates.Errant_SelfReferencingDelegateType)
       processErrantType(gw.specContrib.operators.Errant_OperatorsPrimitiveAndObject)
 
   }
+
 }
