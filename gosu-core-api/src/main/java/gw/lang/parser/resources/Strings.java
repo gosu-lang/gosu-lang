@@ -218,6 +218,7 @@ public class Strings extends ListResourceBundle
        {Res.MSG_CANNOT_CAPTURE_SYMBOL_IN_ANON_CLASS_IN_BLOCK.getKey(), "You cannot capture symbols in an anonymous class nested inside of a block."},
        {Res.MSG_EXPECTING_ENHANCE_KEYWORD.getKey(), "Expected \"enhance\""},
        {Res.MSG_DELEGATES_CANNOT_BE_STATIC.getKey(), "Delegates cannot be static."},
+       {Res.MSG_DELEGATES_SHOULD_NOT_SELF_DELEGATE.getKey(), "Delegates should not self-delegate."},
        {Res.MSG_NON_PRIVATE_MEMBERS_MUST_DECLARE_TYPE.getKey(), "Non-private data members must declare a type explicitly."},
        {Res.MSG_EXTENSION_CLASS_NOT_FOUND.getKey(), "Could not find class {0} to extend."},
        {Res.MSG_CANNOT_DEREF_PROPERTIES_IN_WHERE.getKey(), "Cannot dereference property in where clause. Consider using 'exists' clause."},
