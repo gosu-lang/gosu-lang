@@ -325,7 +325,6 @@ public class Strings extends ListResourceBundle
        {Res.MSG_DELEGATION_NOT_ALLOWED_HERE.getKey(), "Delegation is not allowed here"},
        {Res.MSG_DELEGATES_REPRESENT_INTERFACES_ONLY.getKey(), "A delegate can only represent interface types"},
        {Res.MSG_ONLY_INTERFACES_ALLOWED_HERE.getKey(), "Only interfaces allowed here"},
-       {Res.MSG_ONLY_ONE_CLASS_IN_COMPONENT_TYPE.getKey(), "Only one non-interface is allowed in a component type"},
        {Res.MSG_NO_ARRAY_IN_COMPONENT_TYPE.getKey(), "Arrays are not allowed in a component type"},
        {Res.MSG_NO_PRIMITIVE_IN_COMPONENT_TYPE.getKey(), "Primitives are not allowed in a component type"},
        {Res.MSG_ONLY_ONE_CLASS_IN_COMPONENT_TYPE.getKey(), "Only one non-interface is allowed in a component type"},
