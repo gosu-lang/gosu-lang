@@ -1,4 +1,4 @@
-package gw.specification.expressions.typeCastExpressionsAndTypeConversion
+package gw.specContrib.expressions.cast
 
 uses java.lang.Integer
 uses java.lang.Runnable

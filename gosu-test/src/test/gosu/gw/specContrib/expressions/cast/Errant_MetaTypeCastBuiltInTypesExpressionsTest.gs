@@ -1,4 +1,4 @@
-package gw.specification.expressions.typeCastExpressionsAndTypeConversion
+package gw.specContrib.expressions.cast
 
 uses java.util.*
 uses java.lang.*
