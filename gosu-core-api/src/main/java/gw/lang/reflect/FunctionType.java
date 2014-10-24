@@ -835,7 +835,7 @@ public class FunctionType extends AbstractType implements IFunctionType, IGeneri
     return getEnclosingType() == null || funcType.getEnclosingType() == null;
   }
 
-  private boolean areSameTypes( IType t1, IType t2 )
+  protected boolean areSameTypes( IType t1, IType t2 )
   {
     return t1 instanceof INonLoadableType
            ? t1.equals( t2 )

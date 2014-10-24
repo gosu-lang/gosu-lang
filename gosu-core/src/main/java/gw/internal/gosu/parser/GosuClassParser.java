@@ -1303,11 +1303,11 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
                                : typeInfo.getMethod( func.getFunctionName(), func.getDynamicFunctionSymbol().getArgTypes() );
               if( overridesMethodWithDefaultParams(func, typeInfo) )
               {
-                addFunctionNameParseError( func, Res.MSG_OVERLOADING_NOT_ALLOWED_WITH_OPTIONAL_PARAMS, mi.getDisplayName(), enhancedType.getRelativeName() );
+                addDeclaredNameParseError( func, Res.MSG_OVERLOADING_NOT_ALLOWED_WITH_OPTIONAL_PARAMS, mi.getDisplayName(), enhancedType.getRelativeName() );
               }
               else if( (mi != null) && (!featureIsOwnedByEnhancement( enhancement, mi ) || (enhancedType != JavaTypes.OBJECT() && GosuClass.isObjectMethod( mi ))) )
               {
-                addFunctionNameParseError( func, Res.MSG_CANNOT_OVERRIDE_FUNCTIONS_IN_ENHANCEMENTS, mi.getDisplayName(), enhancedType.getRelativeName() );
+                addDeclaredNameParseError( func, Res.MSG_CANNOT_OVERRIDE_FUNCTIONS_IN_ENHANCEMENTS, mi.getDisplayName(), enhancedType.getRelativeName() );
               }
               else if( enhancedType instanceof IGosuClass )
               {
@@ -1325,11 +1325,11 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
                       IType argType = dfs.getArgs().get( 0 ).getType();
                       if( argType.equals( dps.getType() ) )
                       {
-                        addFunctionNameParseError( func, Res.MSG_PROPERTY_AND_FUNCTION_CONFLICT, dfs.getName(), dps.getName() );
+                        addDeclaredNameParseError( func, Res.MSG_PROPERTY_AND_FUNCTION_CONFLICT, dfs.getName(), dps.getName() );
                       }
                       else if( getOwner().doTypesReifyToTheSameBytecodeType( argType, dps.getType() ) )
                       {
-                        addFunctionNameParseError( func, Res.MSG_PROPERTY_AND_FUNCTION_CONFLICT_UPON_REIFICATION, dfs.getName(), dps.getName() );
+                        addDeclaredNameParseError( func, Res.MSG_PROPERTY_AND_FUNCTION_CONFLICT_UPON_REIFICATION, dfs.getName(), dps.getName() );
                       }
                     }
                   }
@@ -1343,7 +1343,7 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
                     ReducedDynamicPropertySymbol dps = ((GosuPropertyInfo)pi).getDps();
                     if( dps.getGetterDfs() != null )
                     {
-                      addFunctionNameParseError( func, Res.MSG_PROPERTY_AND_FUNCTION_CONFLICT, dfs.getName(), dps.getName() );
+                      addDeclaredNameParseError( func, Res.MSG_PROPERTY_AND_FUNCTION_CONFLICT, dfs.getName(), dps.getName() );
                     }
                   }
                 }
@@ -1362,7 +1362,7 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
                                : typeInfo.getProperty( prop.getFunctionName() );
             if( pi != null && !featureIsOwnedByEnhancement( enhancement, pi ) )
             {
-              addFunctionNameParseError( prop, Res.MSG_CANNOT_OVERRIDE_PROPERTIES_IN_ENHANCEMENTS, pi.getDisplayName(), enhancedType.getRelativeName() );
+              addDeclaredNameParseError( prop, Res.MSG_CANNOT_OVERRIDE_PROPERTIES_IN_ENHANCEMENTS, pi.getDisplayName(), enhancedType.getRelativeName() );
             }
             else
             {
@@ -1376,7 +1376,7 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
                 mi = mi == null ? ((IRelativeTypeInfo)ti).getMethod( enhancement, "is" + name ) : mi;
                 if( mi != null )
                 {
-                  addFunctionNameParseError( prop, Res.MSG_PROPERTY_AND_FUNCTION_CONFLICT, mi.getName(), name );
+                  addDeclaredNameParseError( prop, Res.MSG_PROPERTY_AND_FUNCTION_CONFLICT, mi.getName(), name );
                 }
               }
               else if( funcStmt.getParameters().size() > 0 )
@@ -1389,11 +1389,11 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
                     IType argType = mi.getParameters()[0].getFeatureType();
                     if( argType.equals( dfs.getArgTypes()[0] ) )
                     {
-                      addFunctionNameParseError( prop, Res.MSG_PROPERTY_AND_FUNCTION_CONFLICT, mi.getName(), dfs.getName() );
+                      addDeclaredNameParseError( prop, Res.MSG_PROPERTY_AND_FUNCTION_CONFLICT, mi.getName(), dfs.getName() );
                     }
                     else if( getOwner().doTypesReifyToTheSameBytecodeType( argType, dfs.getArgTypes()[0] ) )
                     {
-                      addFunctionNameParseError( prop, Res.MSG_PROPERTY_AND_FUNCTION_CONFLICT, mi.getName(), dfs.getName() );
+                      addDeclaredNameParseError( prop, Res.MSG_PROPERTY_AND_FUNCTION_CONFLICT, mi.getName(), dfs.getName() );
                     }
                   }
                 }
@@ -1419,10 +1419,10 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
     }
   }
 
-  private void addFunctionNameParseError( IParsedElementWithAtLeastOneDeclaration stmt, ResourceKey key, Object... args )
+  void addDeclaredNameParseError( IParsedElementWithAtLeastOneDeclaration stmt, ResourceKey key, Object... args )
   {
     int nameOffset = stmt.getNameOffset( null );
-    ParseException parseException = new ParseException( stmt.getLineNum(), 1, stmt.getLocation().getColumn(), nameOffset, nameOffset + stmt.getFunctionName().length(),
+    ParseException parseException = new ParseException( stmt.getLineNum(), 1, stmt.getLocation().getColumn(), nameOffset, nameOffset + ((stmt instanceof VarStatement) ? ((VarStatement)stmt).getIdentifierName().length() : stmt.getFunctionName().length()),
                                                         getSymbolTable(), key, args );
     stmt.addParseException( parseException );
   }
