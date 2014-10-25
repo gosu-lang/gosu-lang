@@ -673,6 +673,25 @@ public class TypeLord
     return sb.toString();
   }
 
+  public static boolean isDelegatableInterface( IType declaringType, IType iface ) {
+    if( iface.isAssignableFrom( declaringType ) ) {
+      return true;
+    }
+    IType superClass = declaringType.getSupertype();
+    if( superClass != null && isDelegatableInterface( superClass, iface ) ) {
+      return true;
+    }
+    IType[] interfaces = declaringType.getInterfaces();
+    if( interfaces != null ) {
+      for( IType t : interfaces ) {
+        if( isDelegatableInterface( t, iface ) ) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
   /**
    * Finds a parameterized type in the ancestry of a given type. For instance,
    * given the type for ArrayList&lt;Person&gt; as the sourceType and List as
