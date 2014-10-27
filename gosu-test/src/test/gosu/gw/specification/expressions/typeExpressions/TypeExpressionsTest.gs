@@ -80,7 +80,8 @@ class TypeExpressionsTest extends BaseVerifyErrantTest {
 
     o = \ ->  {}
     type = typeof o
-    assertEquals(type.RelativeName, "block_0_")
+    assertEquals(type, block_0_)
+
     var w : Writer = new A()
     type = typeof w
     assertEquals(type, A)
