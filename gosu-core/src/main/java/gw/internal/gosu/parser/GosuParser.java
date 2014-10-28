@@ -2025,9 +2025,21 @@ public final class GosuParser extends ParserBase implements IGosuParser
     }
     boolean bComparable = false;
     IType lhsType = expr.getLHS().getType();
+    IType rhsType = expr.getRHS().getType();
     if( BeanAccess.isNumericType( lhsType ) )
     {
-      bComparable = true;
+      if( (JavaTypes.IDIMENSION().isAssignableFrom( lhsType ) && isFinalDimension( this, lhsType, expr ) ||
+           JavaTypes.IDIMENSION().isAssignableFrom( rhsType ) && isFinalDimension( this, rhsType, expr )) &&
+           lhsType != rhsType )
+      {
+        // Operands must both be Dimensions for comparison
+        addError( expr, Res.MSG_DIMENSION_ADDITION_MUST_BE_SAME_TYPE );
+        return;
+      }
+      else
+      {
+        bComparable = true;
+      }
     }
     else if( lhsType == GosuParserTypes.DATETIME_TYPE() )
     {
@@ -2035,7 +2047,6 @@ public final class GosuParser extends ParserBase implements IGosuParser
     }
     else
     {
-      IType rhsType = expr.getRHS().getType();
       if( BeanAccess.isBeanType( lhsType ) )
       {
         if( BeanAccess.isBeanType( rhsType ) )
