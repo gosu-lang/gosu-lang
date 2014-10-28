@@ -1054,7 +1054,7 @@ public abstract class ParserBase implements IParserPart
     return null;
   }
 
-  private static boolean isFinalDimension( ParserBase parser, IType lhsType, ParsedElement pe )
+  static boolean isFinalDimension(ParserBase parser, IType lhsType, ParsedElement pe)
   {
     if( JavaTypes.IDIMENSION().isAssignableFrom( lhsType ) )
     {
