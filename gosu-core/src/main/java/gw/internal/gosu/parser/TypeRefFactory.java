@@ -34,6 +34,7 @@ import java.lang.ref.WeakReference;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.lang.reflect.Proxy;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -632,6 +633,9 @@ public class TypeRefFactory implements ITypeRefFactory
       if( superClass != null )
       {
         getInterfacesFrom( superClass, interfaces );
+      }
+      if (Proxy.isProxyClass(classOfType) && !interfaces.contains(ITypeImplementedByProxy.class)) {
+        interfaces.add(ITypeImplementedByProxy.class);
       }
     }
   }
