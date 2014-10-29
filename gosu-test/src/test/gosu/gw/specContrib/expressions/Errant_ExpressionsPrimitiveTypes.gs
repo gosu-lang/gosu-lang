@@ -173,4 +173,18 @@ class Errant_ExpressionsPrimitiveTypes {
   var bigDecimal12: BigDecimal = BigInteger.TEN
   var bigDecimal13: BigDecimal = BigDecimal.ZERO
 
+  var string1: String = 3b      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'BYTE', REQUIRED: 'JAVA.LANG.STRING'
+  var string2: String = 3s      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'SHORT', REQUIRED: 'JAVA.LANG.STRING'
+  var string3: String = 3      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'INT', REQUIRED: 'JAVA.LANG.STRING'
+  var string4: String = 3L      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'LONG', REQUIRED: 'JAVA.LANG.STRING'
+  var string5: String = 3.3f      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'FLOAT', REQUIRED: 'JAVA.LANG.STRING'
+  var string6: String = 3.3      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'DOUBLE', REQUIRED: 'JAVA.LANG.STRING'
+  var string7: String = true      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'BOOLEAN', REQUIRED: 'JAVA.LANG.STRING'
+  var string8: String = 'c'
+  var string9: String = date1      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.DATE', REQUIRED: 'JAVA.LANG.STRING'
+  var string10:String = new Object()      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.LANG.OBJECT', REQUIRED: 'JAVA.LANG.STRING'
+  var string11:String = "string"
+  var string12:String = BigInteger.TEN      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.MATH.BIGINTEGER', REQUIRED: 'JAVA.LANG.STRING'
+  var string13:String = BigDecimal.ZERO      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.MATH.BIGDECIMAL', REQUIRED: 'JAVA.LANG.STRING'
+
 }
