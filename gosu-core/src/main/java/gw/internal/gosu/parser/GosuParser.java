@@ -1844,6 +1844,8 @@ public final class GosuParser extends ParserBase implements IGosuParser
         parseEqualityExpression();
         Expression rhs = popExpression();
 
+        rhs = ensureOperandIntOrLong( rhs );
+
         verifyComparable( lhs.getType(), rhs, true, true );
         rhs = possiblyWrapWithImplicitCoercion( rhs, lhs.getType() );
 
