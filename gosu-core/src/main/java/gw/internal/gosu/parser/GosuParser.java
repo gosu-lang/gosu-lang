@@ -2280,9 +2280,25 @@ public final class GosuParser extends ParserBase implements IGosuParser
       Expression rhs = popExpression();
       Expression lhs = popExpression();
       rhs = verifyConditionalTypes( lhs, rhs );
+
       IType type = IntervalExpression.getIntervalType( rhs.getType() );
       verifyComparable( rhs.getType(), lhs, true );
-      lhs = possiblyWrapWithImplicitCoercion( lhs, rhs.getType() );
+      if( !lhs.hasImmediateParseIssue( Res.MSG_IMPLICIT_COERCION_ERROR ) &&
+          !lhs.hasImmediateParseIssue( Res.MSG_TYPE_MISMATCH ) )
+      {
+        lhs = possiblyWrapWithImplicitCoercion( lhs, rhs.getType() );
+      }
+      else
+      {
+        //noinspection ThrowableResultOfMethodCallIgnored
+        lhs.removeParseException( Res.MSG_IMPLICIT_COERCION_ERROR );
+        //noinspection ThrowableResultOfMethodCallIgnored
+        lhs.removeParseException( Res.MSG_TYPE_MISMATCH );
+        type = IntervalExpression.getIntervalType( lhs.getType() );
+        verifyComparable( lhs.getType(), rhs, true );
+
+        rhs = possiblyWrapWithImplicitCoercion( rhs, lhs.getType() );
+      }
       IntervalExpression e = new IntervalExpression( bClosed || !bLeftOpen, bClosed || !bRightOpen, lhs, rhs );
       verify( e, !bNextTokenIsDotNoWhitespace, Res.MSG_EXTRA_DOT_FOUND_IN_INTERVAL );
       //## todo: move to foreach: verify( e, JavaTypes.ITERABLE().isAssignableFrom( type ), Res.MSG_INTERVAL_MUST_BE_ITERABLE_HERE );
