@@ -1025,8 +1025,10 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
     Token t = new Token();
     int state = getTokenizer().mark();
     boolean bAtLeastOneConst = false;
+    boolean bConst;
     do
     {
+      bConst = false;
       int iOffset = getTokenizer().getTokenStart();
       int iLineNum = getTokenizer().getLineNumber();
       int iColumn = getTokenizer().getTokenColumn();
@@ -1041,13 +1043,13 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
         popStatement();
 
         processVarStmt( gsClass, varStmt );
-        bAtLeastOneConst = true;
+        bAtLeastOneConst = bConst = true;
       }
       if( match( null, ';' ) )
       {
         break;
       }
-    } while( match( null, ',' ) );
+    } while( bConst && match( null, ',' ) );
     if( !bAtLeastOneConst )
     {
       getTokenizer().restoreToMark( state );
@@ -3662,8 +3664,10 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
 
     Set<String> constants = new HashSet<String>();
     Token t = new Token();
+    boolean bConst;
     do
     {
+      bConst = false;
       int iOffset = getTokenizer().getTokenStart();
       int iLineNum = getTokenizer().getLineNumber();
       int iColumn = getTokenizer().getTokenColumn();
@@ -3676,12 +3680,13 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
         setLocation(iOffset, iLineNum, iColumn);
         constants.add( t._strValue );
         popStatement();
+        bConst = true;
       }
       if( match( null, ';' ) )
       {
         break;
       }
-    } while( match( null, ',' ) );
+    } while( bConst && match( null, ',' ) );
   }
 
   private void parseEnumConstant( String strIdentifier, ClassScopeCache scopeCache, boolean bIsDuplicate )
