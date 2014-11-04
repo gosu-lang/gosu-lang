@@ -96,7 +96,7 @@ public class Res
   public static final ResourceKey MSG_DUPLICATE_CASE_EXPRESSION = new ResourceKey("MSG_DUPLICATE_CASE_EXPRESSION");
   public static final ResourceKey MSG_EXPECTING_COLON_TERNARY = new ResourceKey("MSG_EXPECTING_COLON_TERNARY");
   public static final ResourceKey MSG_EXPECTING_REFERENCE_TYPE = new ResourceKey("MSG_EXPECTING_REFERENCE_TYPE");  
-  public static final ResourceKey MSG_TYPE_MISMATCH_IN_CONDIITIONAL_EXP = new ResourceKey("MSG_TYPE_MISMATCH_IN_CONDIITIONAL_EXP");
+  public static final ResourceKey MSG_LOSS_OF_PRECISION_IN_CONDITIONAL_EXP = new ResourceKey("MSG_LOSS_OF_PRECISION_IN_CONDITIONAL_EXP");
   public static final ResourceKey MSG_EXPECTING_IDENTIFIER_VAR = new ResourceKey("MSG_EXPECTING_IDENTIFIER_VAR");
   public static final ResourceKey MSG_EXPECTING_VAR_STMT = new ResourceKey("MSG_EXPECTING_VAR_STMT");
   public static final ResourceKey MSG_EXPECTING_TYPELITERAL = new ResourceKey("MSG_EXPECTING_TYPELITERAL");

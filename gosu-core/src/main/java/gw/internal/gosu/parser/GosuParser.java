@@ -1490,7 +1490,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
         isPrimitiveOrBoxedOrBigIntegerOrBigDecimal(second.getType()) )
     {
       type = TypeLord.getLeastUpperBoundForPrimitiveTypes(first.getType(), second.getType());
-      if( !verify( cte, type != null, Res.MSG_TYPE_MISMATCH_IN_CONDIITIONAL_EXP ) )
+      if( !verify( cte, type != null, Res.MSG_LOSS_OF_PRECISION_IN_CONDITIONAL_EXP ) )
       {
         type = ErrorType.getInstance();
       }
