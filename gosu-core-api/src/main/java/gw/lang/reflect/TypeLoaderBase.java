@@ -6,6 +6,7 @@ package gw.lang.reflect;
 
 import gw.config.BaseService;
 import gw.config.CommonServices;
+import gw.config.ExecutionMode;
 import gw.fs.IDirectory;
 import gw.fs.IFile;
 import gw.lang.reflect.gs.TypeName;
@@ -236,7 +237,7 @@ public abstract class TypeLoaderBase extends BaseService implements ITypeLoader 
       if (names != null) {
         _typeNames = names;
       } else {
-        _typeNames = CommonServices.getPlatformHelper().isInIDE()
+        _typeNames = ExecutionMode.isIDE()
                      ? new HashSet<String>( computeTypeNames() )
                      : new HashSet<String>( computeTypeNames() );
       }

@@ -5,6 +5,7 @@
 package gw.lang.init;
 
 import gw.lang.UnstableAPI;
+import gw.lang.gosuc.GosucModule;
 import gw.lang.reflect.module.IExecutionEnvironment;
 import gw.lang.reflect.module.IModule;
 import gw.util.GosuExceptionUtil;
@@ -65,6 +66,34 @@ public class GosuInitialization
     }
     callMethod("initializeRuntime", pathEntries);
     _initialized = true;
+  }
+
+  public void initializeCompiler(GosucModule module) {
+    if (_initialized) {
+      throw new IllegalStateException("Illegal attempt to re-initialize Gosu");
+    }
+    try {
+      Class cls = Class.forName("gw.internal.gosu.init.InternalGosuInit");
+      Method m = cls.getMethod("initializeCompiler", IExecutionEnvironment.class, GosucModule.class);
+      m.invoke(null, _execEnv, module);
+    } catch (Exception e) {
+      throw GosuExceptionUtil.forceThrow( e );
+    }
+    _initialized = true;
+  }
+
+  public void uninitializeCompiler() {
+    if (!_initialized) {
+      throw new IllegalStateException("Illegal attempt to uninitialize Gosu");
+    }
+    try {
+      Class cls = Class.forName("gw.internal.gosu.init.InternalGosuInit");
+      Method m = cls.getMethod("uninitializeCompiler", IExecutionEnvironment.class );
+      m.invoke(null, _execEnv );
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
+    _initialized = false;
   }
 
   public void reinitializeRuntime( List<GosuPathEntry> pathEntries ) {

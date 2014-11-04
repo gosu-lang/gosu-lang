@@ -17,6 +17,11 @@ import java.util.List;
 
 public class DefaultSingleModule extends GlobalModule
 {
+  public DefaultSingleModule( ExecutionEnvironment execEnv, String name )
+  {
+    super(execEnv, name);
+  }
+
   public DefaultSingleModule( ExecutionEnvironment execEnv )
   {
     super(execEnv, IExecutionEnvironment.DEFAULT_SINGLE_MODULE_NAME);
@@ -34,12 +39,6 @@ public class DefaultSingleModule extends GlobalModule
       CommonServices.getTypeSystem().pushTypeLoader( this, new DynamicTypeLoader( this ) );
     }
     createGlobalTypeloaders( );
-  }
-
-  @Override
-  public IDirectory getOutputPath()
-  {
-    return null;
   }
 
   @Override
