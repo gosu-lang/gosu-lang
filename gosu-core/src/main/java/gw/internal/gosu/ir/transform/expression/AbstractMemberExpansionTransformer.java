@@ -152,7 +152,7 @@ public abstract class AbstractMemberExpansionTransformer<T extends IMemberAccess
       return buildComposite(
               tempRootAssignment,
               buildNullCheckTernary( identifier( tempRoot ),
-                                    checkCast( _expr().getType(), pushNull() ),
+                                    checkCast( _expr().getType(), makeArray(resultCompType, numericLiteral(0)) ),
                                     checkCast( _expr().getType(), expansion ) )
       );
     } else {

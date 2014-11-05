@@ -31,6 +31,7 @@ import gw.lang.reflect.java.IJavaClassType;
 import gw.lang.reflect.java.IJavaClassTypeVariable;
 import gw.lang.reflect.java.IJavaMethodDescriptor;
 import gw.lang.reflect.java.IJavaPropertyDescriptor;
+import gw.lang.reflect.java.IJavaType;
 import gw.lang.reflect.java.asm.AsmAnnotation;
 import gw.lang.reflect.java.asm.AsmClass;
 import gw.lang.reflect.java.asm.AsmField;
@@ -71,6 +72,7 @@ public class AsmClassJavaClassInfo extends AsmTypeJavaClassType implements IAsmJ
   private IEnumValue[] _enumConstants;
   private String _simpleName;
   private String _namespace;
+  private IJavaType _javaType;
 
   public AsmClassJavaClassInfo( AsmClass cls, IModule module ) {
     super( cls, module );
@@ -175,7 +177,10 @@ public class AsmClassJavaClassInfo extends AsmTypeJavaClassType implements IAsmJ
 
   @Override
   public IType getJavaType() {
-    return TypeSystem.get( this );
+    return _javaType == null ? (_javaType = (IJavaType) TypeSystem.get(this)) : _javaType;
+  }
+  public void setJavaType( IJavaType javaType ) {
+    _javaType = javaType;
   }
 
   @Override

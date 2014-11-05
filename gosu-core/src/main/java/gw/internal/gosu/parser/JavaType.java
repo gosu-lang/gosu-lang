@@ -141,7 +141,8 @@ class JavaType extends AbstractType implements IJavaTypeInternal
     else
     {
       JavaType rawType = new JavaType( new ClassJavaClassInfo(cls, loader.getModule()), loader );
-      type = (IJavaTypeInternal)TypeSystem.getOrCreateTypeReference( rawType );
+      IJavaTypeInternal extendedType = JavaTypeExtensions.maybeExtendType(rawType);
+      type = (IJavaTypeInternal)TypeSystem.getOrCreateTypeReference( extendedType );
       rawType._typeRef = type;
     }
     TYPES_BY_CLASS.put( cls, type );
@@ -160,7 +161,8 @@ class JavaType extends AbstractType implements IJavaTypeInternal
     else
     {
       JavaType rawType = new JavaType( cls, loader );
-      type = (IJavaTypeInternal)TypeSystem.getOrCreateTypeReference( rawType );
+      IJavaTypeInternal extendedType = JavaTypeExtensions.maybeExtendType(rawType);
+      type = (IJavaTypeInternal)TypeSystem.getOrCreateTypeReference( extendedType );
       rawType._typeRef = type;
     }
     return type;
@@ -301,7 +303,7 @@ class JavaType extends AbstractType implements IJavaTypeInternal
 
   public String getDisplayName()
   {
-    return getName();
+    return CommonServices.getEntityAccess().getLocalizedTypeName(thisRef());
   }
 
   public String getRelativeName()
@@ -448,6 +450,21 @@ class JavaType extends AbstractType implements IJavaTypeInternal
 
   public ITypeInfo getTypeInfo()
   {
+    if( !TypeSystem.getExecutionEnvironment().isSingleModuleMode() ) {
+      // Enforce Guidwewire's legacy type shadowing rules where, for example, a
+      // type in an App module such as PX shadows a type in PL having the same name.
+      // This isn't kosher in general because the type in PL is the one that is
+      // referenced and resolved in PL and the one for which the code was designed.
+      // But we have a history of allowing modules to shadow types by name, allowing
+      // for additional features and behavior.
+      if (!getTypeLoader().getModule().equals(TypeSystem.getCurrentModule())) {
+        final IType reResolveByFullName = TypeSystem.getByFullNameIfValid(getName());
+        if (reResolveByFullName!=null && !equals(reResolveByFullName)) {
+          return reResolveByFullName.getTypeInfo();
+        }
+      }
+    }
+
     ITypeInfo typeInfo = _typeInfo;
     if( typeInfo == null || hasAncestorBeenUpdated() )
     {
@@ -1381,5 +1398,10 @@ class JavaType extends AbstractType implements IJavaTypeInternal
   @Override
   public boolean isAnnotation() {
     return _classInfo.isAnnotation();
+  }
+
+  @Override
+  protected IType getTheRef() {
+    return thisRef();
   }
 }

@@ -104,7 +104,7 @@ class TestMemberExpansionAccess
     return l*.PropDouble
   }
 
-  static function testNullList() : String[]
+  static function testNotNullList() : String[]
   {
     var l : List<TestMemberExpansionAccess>
     var x : TestMemberExpansionAccess
