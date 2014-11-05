@@ -450,10 +450,18 @@ class JavaType extends AbstractType implements IJavaTypeInternal
 
   public ITypeInfo getTypeInfo()
   {
-    if (!getTypeLoader().getModule().equals(TypeSystem.getCurrentModule())) {
-      final IType reResolveByFullName = TypeSystem.getByFullNameIfValid(getName());
-      if (reResolveByFullName!=null && !equals(reResolveByFullName)) {
-        return reResolveByFullName.getTypeInfo();
+    if( !TypeSystem.getExecutionEnvironment().isSingleModuleMode() ) {
+      // Enforce Guidwewire's legacy type shadowing rules where, for example, a
+      // type in an App module such as PX shadows a type in PL having the same name.
+      // This isn't kosher in general because the type in PL is the one that is
+      // referenced and resolved in PL and the one for which the code was designed.
+      // But we have a history of allowing modules to shadow types by name, allowing
+      // for additional features and behavior.
+      if (!getTypeLoader().getModule().equals(TypeSystem.getCurrentModule())) {
+        final IType reResolveByFullName = TypeSystem.getByFullNameIfValid(getName());
+        if (reResolveByFullName!=null && !equals(reResolveByFullName)) {
+          return reResolveByFullName.getTypeInfo();
+        }
       }
     }
 
