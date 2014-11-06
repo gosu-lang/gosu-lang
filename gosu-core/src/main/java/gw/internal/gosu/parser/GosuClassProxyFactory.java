@@ -677,7 +677,7 @@ public class GosuClassProxyFactory
     {
       return;
     }
-    if( mi.getDisplayName().equals( "hashCode" ) || mi.getDisplayName().equals( "equals" ) || mi.getDisplayName().equals( "toString" ) )
+    if( mi.getDisplayName().equals( "hashCode" ) || (mi.getDisplayName().equals( "equals" ) && mi.getParameters().length == 1 && mi.getParameters()[0].getFeatureType() == JavaTypes.OBJECT()) || mi.getDisplayName().equals( "toString" ) )
     {
       if( !mi.getOwnersType().getName().equals( IGosuObject.class.getName() ) )
       {
