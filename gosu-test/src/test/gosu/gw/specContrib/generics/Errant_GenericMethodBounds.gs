@@ -35,6 +35,6 @@ class Errant_GenericMethodBounds {
     var m = {1 -> 2}
     var l = {1, 2, 3}
     upperBoundSerializable(m, l)  // note this is intersection type: Serializable & Cloneable
-    upperBoundSerializable({1 -> 2}, {1, 2, 3})  //## issuekeys: MSG_EXPECTING_ARROW_AFTER_MAP_KEY, MSG_EXPECTING_ARROW_AFTER_MAP_KEY, MSG_EXPECTING_ARROW_AFTER_MAP_KEY
+    upperBoundSerializable({1 -> 2}, {1, 2, 3})  // note this is intersection type: Serializable & Cloneable
   }
 }

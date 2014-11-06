@@ -203,7 +203,6 @@ import java.util.Stack;
 @SuppressWarnings({"ThrowableInstanceNeverThrown"})
 public final class GosuParser extends ParserBase implements IGosuParser
 {
-  private static final IType AMBIGUOUS_TYPE = ErrorType.getInstance( "Ambiguous Type" );
   public static final IType PENDING_BOUNDING_TYPE = ErrorType.getInstance( "Pending Bounding Type");
   public static ErrorType notfound = ErrorType.getInstance( "_notfound_" );
 
@@ -2883,6 +2882,13 @@ public final class GosuParser extends ParserBase implements IGosuParser
 
   private boolean parseStandAloneDataStructureInitialization()
   {
+    return parseStandAloneDataStructureInitialization( false, false );
+  }
+  private boolean parseStandAloneDataStructureInitialization( boolean bAvoidContextType, boolean bBacktracking )
+  {
+    int mark = getTokenizer().mark();
+    int iLocationsCount = _locations.size();
+
     IToken startToken = getTokenizer().getCurrentToken();
 
     Token token = new Token();
@@ -2893,13 +2899,13 @@ public final class GosuParser extends ParserBase implements IGosuParser
     }
     else
     {
-      boolean bAvoidContextType = shouldThisExpressionAvoidTheContextType();
+      bAvoidContextType = bAvoidContextType || shouldThisExpressionAvoidTheContextType();
 
       IType intrinsicType = bAvoidContextType ? null : getInitializableType().getType();
       NewExpression e = new InferredNewExpression();
 
       boolean bPlaceholder = isDynamic( intrinsicType );
-      if( intrinsicType == null || intrinsicType == AMBIGUOUS_TYPE || bPlaceholder )
+      if( intrinsicType == null || bPlaceholder )
       {
         IInitializerExpression initializer;
         IType type;
@@ -3052,6 +3058,10 @@ public final class GosuParser extends ParserBase implements IGosuParser
             pushExpression( (Expression)initializerExpression );
             setLocation( startToken.getTokenStart(), startToken.getLine(), startToken.getTokenColumn(), true );
             popExpression();
+            if( !bBacktracking && initializerExpression.hasParseExceptions() )
+            {
+              return maybeReparseWithoutContextType( mark, iLocationsCount, (Expression)initializerExpression );
+            }
           }
         }
         else
@@ -3062,6 +3072,21 @@ public final class GosuParser extends ParserBase implements IGosuParser
 
       pushExpression( e );
       return true;
+    }
+  }
+
+  private boolean maybeReparseWithoutContextType( int mark, int iLocationsCount, Expression initializerExpression )
+  {
+    backtrack( mark, iLocationsCount, initializerExpression );
+    boolean bRes = parseStandAloneDataStructureInitialization( true, true );
+    if( peekExpression().hasParseExceptions() )
+    {
+      backtrack( mark, iLocationsCount, initializerExpression );
+      return parseStandAloneDataStructureInitialization( false, true );
+    }
+    else
+    {
+      return bRes;
     }
   }
 

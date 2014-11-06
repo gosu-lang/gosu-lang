@@ -197,7 +197,7 @@ public class Strings extends ListResourceBundle
        {Res.MSG_FUNCTION_ARG_NAME_CONFLICTS_WITH_CLASS_VAR.getKey(), "The argument \"{0}\" of function {1} conflicts with a class field."},
        {Res.MSG_EXPECTING_ARROW_AFTER_BLOCK_ARGS.getKey(), "Expecting '->' to follow block argument declarations."},
        {Res.MSG_EXPECTING_CLOSE_BRACE_FOR_BLOCK.getKey(), "Expecting '}' to follow block statement list."},
-       {Res.MSG_EXPECTING_ARROW_AFTER_MAP_KEY.getKey(), "Expecting '->' to follow block argument declarations."},
+       {Res.MSG_EXPECTING_ARROW_AFTER_MAP_KEY.getKey(), "Expecting '->' for map initializer entry."},
        {Res.MSG_UNEXPECTED_ARROW.getKey(), "Unexpected '->' in list initializer"},
        {Res.MSG_EXPECTING_CLOSE_BRACE_FOR_INITIALIZER.getKey(), "Expecting '}' to follow initializer statement."},
        {Res.MSG_MODIFIER_ABSTRACT_NOT_ALLOWED_HERE.getKey(), "Modifier 'abstract' not allowed here."},
