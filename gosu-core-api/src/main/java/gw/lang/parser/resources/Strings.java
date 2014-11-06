@@ -97,7 +97,7 @@ public class Strings extends ListResourceBundle
        {Res.MSG_EXPECTING_REFERENCE_TYPE.getKey(), "Expecting reference type, primitive type not allowed here."},
        {Res.MSG_EXPECTING_CASE_COLON.getKey(), "Expecting ':' to close \"case\" expression."},
        {Res.MSG_DUPLICATE_CASE_EXPRESSION.getKey(), "Duplicate case expression."},
-       {Res.MSG_TYPE_MISMATCH_IN_CONDIITIONAL_EXP.getKey(), "Type mismatch in conditional ternary expression."},
+       {Res.MSG_LOSS_OF_PRECISION_IN_CONDITIONAL_EXP.getKey(), "Types cannot be converted without a loss of precision.  Please convert them explicitly."},
        {Res.MSG_EXPECTING_IDENTIFIER_VAR.getKey(), "Expecting a variable name."},
        {Res.MSG_EXPECTING_VAR_STMT.getKey(), "Expecting \"var\" declaration."},
        {Res.MSG_EXPECTING_TYPELITERAL.getKey(), "Expecting a type literal on right side of expression."},
