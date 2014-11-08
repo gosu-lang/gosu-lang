@@ -205,7 +205,7 @@ class JavaType extends AbstractType implements IJavaTypeInternal
     final int n = _classInfo.getTypeParameters().length;
     for( int i = 0; i < n; i++ )
     {
-      _tempGenericTypeVars[i] = new GenericTypeVariable( String.valueOf( (char)('A' + i) ), JavaTypes.OBJECT() );
+      _tempGenericTypeVars[i] = new GenericTypeVariable( String.valueOf( 'A' ) + i, JavaTypes.OBJECT() );
     }
   }
 
