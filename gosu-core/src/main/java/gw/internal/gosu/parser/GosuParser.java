@@ -3015,9 +3015,10 @@ public final class GosuParser extends ParserBase implements IGosuParser
             e.setConstructor( intrinsicType.getTypeInfo().getCallableConstructor() );
             if( !typeToInit.isMethodScoring() )
             {
-              if( ( getCurrentInitializableContextType().equals( JavaTypes.MAP() ) ||
-                    getCurrentInitializableContextType().equals( JavaTypes.HASH_MAP() ) ) &&
-                      initializerExpression instanceof MapInitializerExpression )
+              IType initializerCtxType = getCurrentInitializableContextType().getType();
+              if( (initializerCtxType.equals( JavaTypes.MAP() ) ||
+                   initializerCtxType.equals( JavaTypes.HASH_MAP() )) &&
+                  initializerExpression instanceof MapInitializerExpression )
               {
                 MapInitializerExpression mapInitializer = (MapInitializerExpression)initializerExpression;
                 IType keysLub = TypeLord.findLeastUpperBound( getTypes( mapInitializer.getKeys() ) );
@@ -3029,7 +3030,6 @@ public final class GosuParser extends ParserBase implements IGosuParser
               }
               else
               {
-                IType initializerCtxType = getCurrentInitializableContextType().getType();
                 if( ( JavaTypes.COLLECTION().equals( initializerCtxType.getGenericType() )  ||
                       JavaTypes.LIST().equals( initializerCtxType.getGenericType() )        ||
                       JavaTypes.ARRAY_LIST().equals( initializerCtxType.getGenericType() )  ||
@@ -6717,19 +6717,31 @@ public final class GosuParser extends ParserBase implements IGosuParser
   private List<MethodScore> factorInParseErrors( List<MethodScore> scoredMethods )
   {
     List<MethodScore> factored = new ArrayList<MethodScore>( scoredMethods.size() );
+    List<MethodScore> noErrors = new ArrayList<MethodScore>( scoredMethods.size() );
     long bestScore = -1;
     for( MethodScore score : scoredMethods )
     {
+      boolean bErrors = false;
       for( IExpression arg: score.getArguments() )
       {
         if( arg.hasParseExceptions() )
         {
           // change the score to reflect errors
           score.incScore( 1 );
+          bErrors = true;
         }
+      }
+      if( !bErrors )
+      {
+        noErrors.add( score );
       }
       // determine best score among the ambiguous calls
       bestScore = bestScore >= 0 ? Math.min( bestScore, score.getScore() ) : score.getScore();
+    }
+    if( noErrors.size() > 0 )
+    {
+      // favor non-errant calls
+      return noErrors;
     }
     for( MethodScore score : scoredMethods )
     {

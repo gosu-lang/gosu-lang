@@ -264,10 +264,10 @@ class Errant_OverloadedCallsTest {
 
     var r5: B = fun10({"1", "2", "3"})
     var r6: A = fun10({"1", "2", "3"} as List<Integer>)  //## issuekeys: MSG_TYPE_MISMATCH
-    var r7: B = fun10({
-        1,       //## issuekeys: MSG_IMPLICIT_COERCION_ERROR
+    var r7: B = fun10({  //## issuekeys: MSG_TYPE_MISMATCH, MSG_TYPE_MISMATCH
+        1,
         "2",
-        3         //## issuekeys: MSG_IMPLICIT_COERCION_ERROR
+        3
     })
   }
 
