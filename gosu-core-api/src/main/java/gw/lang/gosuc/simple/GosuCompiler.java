@@ -35,32 +35,27 @@ import static gw.lang.gosuc.simple.ICompilerDriver.ERROR;
 import static gw.lang.gosuc.simple.ICompilerDriver.WARNING;
 
 public class GosuCompiler implements IGosuCompiler {
-  protected static ICompilerDriver _driver;
   protected GosuInitialization _gosuInitialization;
   protected File _compilingSourceFile;
 
-  public GosuCompiler(ICompilerDriver driver) {
-    _driver = driver;
-  }
-
-  public boolean compile(File sourceFile) throws Exception {
+  public boolean compile(File sourceFile, ICompilerDriver driver) throws Exception {
     _compilingSourceFile = sourceFile;
 
     IType type = getType(_compilingSourceFile);
     if (type == null) {
-      _driver.sendCompileIssue(_compilingSourceFile, ERROR, 0, 0, 0, "Cannot find type in the Gosu Type System.");
+      driver.sendCompileIssue(_compilingSourceFile, ERROR, 0, 0, 0, "Cannot find type in the Gosu Type System.");
       return false;
     }
 
     if (isCompilable(type)) {
       if (type.isValid()) {
-        createOutputFiles((IGosuClass) type);
+        createOutputFiles((IGosuClass) type, driver);
       } else {
         ParseResultsException parseException = ((IGosuClass) type).getParseResultsException();
         if (parseException != null) {
           for (IParseIssue issue : parseException.getParseIssues()) {
             int category = issue instanceof ParseWarning ? WARNING : ERROR;
-            _driver.sendCompileIssue(_compilingSourceFile, category, issue.getTokenStart(), issue.getLine(), issue.getColumn(), issue.getUIMessage());
+            driver.sendCompileIssue(_compilingSourceFile, category, issue.getTokenStart(), issue.getLine(), issue.getColumn(), issue.getUIMessage());
           }
         }
       }
@@ -84,7 +79,7 @@ public class GosuCompiler implements IGosuCompiler {
     return type instanceof IGosuClass && !type.getTypeInfo().hasAnnotation(doNotVerifyAnnotation);
   }
 
-  private void createOutputFiles(IGosuClass gsClass) {
+  private void createOutputFiles(IGosuClass gsClass, ICompilerDriver driver) {
     IDirectory moduleOutputDirectory = TypeSystem.getGlobalModule().getOutputPath();
     if (moduleOutputDirectory == null) {
       throw new RuntimeException("Can't make class file, no output path defined.");
@@ -105,13 +100,13 @@ public class GosuCompiler implements IGosuCompiler {
           }
         }
       }
-      createClassFile(child, gsClass);
+      createClassFile(child, gsClass, driver);
     } catch (Exception e) {
       e.printStackTrace();
-      _driver.sendCompileIssue(_compilingSourceFile, ERROR, 0, 0, 0, combine("Cannot create .class files.", toMessage(e)));
+      driver.sendCompileIssue(_compilingSourceFile, ERROR, 0, 0, 0, combine("Cannot create .class files.", toMessage(e)));
     }
 
-    maybeCopySourceFile(child.getParentFile(), gsClass, _compilingSourceFile);
+    maybeCopySourceFile(child.getParentFile(), gsClass, _compilingSourceFile, driver);
   }
 
   private String toMessage(Throwable e) {
@@ -147,7 +142,7 @@ public class GosuCompiler implements IGosuCompiler {
     file.createNewFile();
   }
 
-  private void maybeCopySourceFile(File parent, IGosuClass gsClass, File sourceFile) {
+  private void maybeCopySourceFile(File parent, IGosuClass gsClass, File sourceFile, ICompilerDriver driver) {
     ISourceFileHandle sfh = gsClass.getSourceFileHandle();
     IFile srcFile = sfh.getFile();
     if (srcFile != null) {
@@ -156,10 +151,10 @@ public class GosuCompiler implements IGosuCompiler {
         try {
           File destFile = new File(parent, file.getName());
           copyFile(file, destFile);
-          _driver.registerOutput(_compilingSourceFile, destFile);
+          driver.registerOutput(_compilingSourceFile, destFile);
         } catch (IOException e) {
           e.printStackTrace();
-          _driver.sendCompileIssue(sourceFile, ERROR, 0, 0, 0, "Cannot copy source file to output folder.");
+          driver.sendCompileIssue(sourceFile, ERROR, 0, 0, 0, "Cannot copy source file to output folder.");
         }
       }
     }
@@ -182,11 +177,11 @@ public class GosuCompiler implements IGosuCompiler {
     }
   }
 
-  private void createClassFile(File outputFile, IGosuClass gosuClass) throws IOException {
+  private void createClassFile(File outputFile, IGosuClass gosuClass, ICompilerDriver driver) throws IOException {
     final byte[] bytes = TypeSystem.getGosuClassLoader().getBytes(gosuClass);
     try (OutputStream out = new FileOutputStream(outputFile)) {
       out.write(bytes);
-      _driver.registerOutput(_compilingSourceFile, outputFile);
+      driver.registerOutput(_compilingSourceFile, outputFile);
     }
     for (IGosuClass innerClass : gosuClass.getInnerClasses()) {
       final String innerClassName = String.format("%s$%s.class", outputFile.getName().substring(0, outputFile.getName().lastIndexOf('.')), innerClass.getRelativeName());
@@ -194,7 +189,7 @@ public class GosuCompiler implements IGosuCompiler {
       if (innerClassFile.isFile()) {
         createNewFile(innerClassFile);
       }
-      createClassFile(innerClassFile, innerClass);
+      createClassFile(innerClassFile, innerClass, driver);
     }
   }
 
