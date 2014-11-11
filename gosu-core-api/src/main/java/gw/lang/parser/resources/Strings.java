@@ -354,6 +354,7 @@ public class Strings extends ListResourceBundle
        {Res.MSG_LOSS_OF_PRECISION_IN_NUMERIC_LITERAL.getKey(), "This double literal loses precision in this operation.  You must explicitly declare it as a BigDecimal instead: {0}"},
        {Res.MSG_PROPERTIES_MUST_AGREE_ON_STATIC_MODIFIERS.getKey(), "The getter and setter of properties must either both be static or non-static"},
        {Res.MSG_PROPERTIES_MUST_AGREE_ON_TYPE.getKey(), "The getter and setter of properties must agree on the type of the property"},
+       {Res.MSG_PROPERTY_OVERRIDES_WITH_INCOMPATIBLE_TYPE.getKey(), "Property overrides with incompatible type"},
        {Res.MSG_NO_ENCLOSING_INSTANCE_IN_SCOPE.getKey(), "No enclosing instance of type '{0}' in scope" },
        {Res.MSG_EXPECTING_CONDITION_FOR_ASSERT.getKey(), "Expecting condition for 'assert'" },
        {Res.MSG_EXPECTING_MESSAGE_FOR_ASSERT.getKey(), "Expecting message for 'assert'" },

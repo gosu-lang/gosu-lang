@@ -12444,6 +12444,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
           {
             // if the parameters do not match, but reify to the same IR types, it is an error
             verify( element, !doParametersReifyToSameBytecodeType( dfs, dfsExisting ), Res.MSG_METHOD_REIFIES_TO_SAME_SIGNATURE_AS_ANOTHER_METHOD );
+            verify( element, !propertyTypeDiffers( dfs, dfsExisting ), Res.MSG_PROPERTY_OVERRIDES_WITH_INCOMPATIBLE_TYPE );
             verify( element, !dfs.hasOptionalParameters() && !dfsExisting.hasOptionalParameters(), Res.MSG_OVERLOADING_NOT_ALLOWED_WITH_OPTIONAL_PARAMS );
           }
         }
@@ -12454,6 +12455,13 @@ public final class GosuParser extends ParserBase implements IGosuParser
       verifyOverrideNotOnMethodThatDoesNotExtend( element, dfs );
     }
     verifyNoImplicitPropertyMethodConflicts( element, dfs );
+  }
+
+  private boolean propertyTypeDiffers( DynamicFunctionSymbol dfs, DynamicFunctionSymbol dfsExisting )
+  {
+    return dfs.getDisplayName().startsWith( "@" ) &&
+           dfs.getArgTypes().length > 0 && dfsExisting.getArgTypes().length > 0 &&
+           dfs.getArgTypes()[0] != dfsExisting.getArgTypes()[0];
   }
 
   private void verifySameNumberOfFunctionTypeVars( ParsedElement element, DynamicFunctionSymbol dfs, DynamicFunctionSymbol dfsExisting )

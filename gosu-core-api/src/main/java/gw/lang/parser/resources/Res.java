@@ -401,6 +401,7 @@ public class Res
   public static final ResourceKey MSG_LOSS_OF_PRECISION_IN_NUMERIC_LITERAL = new ResourceKey( "MSG_LOSS_OF_PRECISION_IN_NUMERIC_LITERAL");
   public static final ResourceKey MSG_PROPERTIES_MUST_AGREE_ON_STATIC_MODIFIERS = new ResourceKey( "MSG_PROPERTIES_MUST_AGREE_ON_STATIC_MODIFIERS");
   public static final ResourceKey MSG_PROPERTIES_MUST_AGREE_ON_TYPE = new ResourceKey( "MSG_PROPERTIES_MUST_AGREE_ON_TYPE");
+  public static final ResourceKey MSG_PROPERTY_OVERRIDES_WITH_INCOMPATIBLE_TYPE = new ResourceKey( "MSG_PROPERTY_OVERRIDES_WITH_INCOMPATIBLE_TYPE");
   public static final ResourceKey MSG_NO_ENCLOSING_INSTANCE_IN_SCOPE = new ResourceKey( "MSG_NO_ENCLOSING_INSTANCE_IN_SCOPE" );
   public static final ResourceKey MSG_EXPECTING_CONDITION_FOR_ASSERT = new ResourceKey( "MSG_EXPECTING_CONDITION_FOR_ASSERT" );
   public static final ResourceKey MSG_EXPECTING_MESSAGE_FOR_ASSERT = new ResourceKey( "MSG_EXPECTING_MESSAGE_FOR_ASSERT" );
