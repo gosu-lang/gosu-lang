@@ -70,16 +70,19 @@ public class TypeAsTransformer extends AbstractExpressionTransformer<ITypeAsExpr
     IRExpression root = ExpressionTransformer.compile( _expr().getLHS(), _cc() );
     IType asType = _expr().getType();
     IType lhsType = _expr().getLHS().getType();
+    IType concreteType = TypeLord.replaceTypeVariableTypeParametersWithBoundingTypes( lhsType, lhsType.getEnclosingType() );
 
     if( _expr().getType().getName().equals( GosuTypes.IMONITORLOCK().getName() ) )
     {
       return root;
     }
 
-    if( lhsType == asType )
+    if( lhsType == asType || concreteType == asType )
     {
       return root;
     }
+
+    lhsType = concreteType;
 
     if( lhsType == JavaTypes.pVOID() ) {
       // null Literal -> Any Type
@@ -283,7 +286,7 @@ public class TypeAsTransformer extends AbstractExpressionTransformer<ITypeAsExpr
       return asPrimitive;
     }
 
-    IRExpression result = callCoercer( root );
+    IRExpression result = callCoercer( root, lhsType );
 
     if( asType.isPrimitive() )
     {
@@ -311,10 +314,9 @@ public class TypeAsTransformer extends AbstractExpressionTransformer<ITypeAsExpr
                                                       root, asTypeDesc ) );
   }
 
-  private IRExpression callCoercer( IRExpression root )
+  private IRExpression callCoercer( IRExpression root, IType lhsType )
   {
     // Ensure the value is boxed (the coercer takes an Object)
-    IType lhsType = _expr().getLHS().getType();
     ICoercer coercer = _expr().getCoercer();
     IType exprType = _expr().getType();
     if( (coercer == IdentityCoercer.instance() && !exprType.isPrimitive()) ||
