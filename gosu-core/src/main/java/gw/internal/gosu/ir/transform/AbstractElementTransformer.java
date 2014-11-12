@@ -3117,6 +3117,7 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
       operandType == JavaTypes.DOUBLE() ||
       operandType == JavaTypes.pDOUBLE() ||
       operandType == JavaTypes.DATE() ||
+      operandType == JavaTypes.OBJECT() ||
       TypeSystem.get( IEnumConstant.class ).isAssignableFrom( operandType ) ||
       CommonServices.getEntityAccess().isTypekey( operandType ) ||
       CommonServices.getEntityAccess().isEntityClass( operandType );
