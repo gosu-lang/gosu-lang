@@ -872,11 +872,16 @@ public class TypeLord
       for( int i = 0; i < boundingTypes.length; i++ )
       {
         boundingTypes[i] = type.getGenericTypeVariables()[i].getBoundingType();
-        if( bHandleRecursiveParameterizedType &&
-            boundingTypes[i].isParameterizedType() &&
-            isRecursiveType( boundingTypes[i], boundingTypes[i].getTypeParameters() ) )
+        if( bHandleRecursiveParameterizedType && boundingTypes[i].isParameterizedType() )
         {
-          boundingTypes[i] = getDefaultParameterizedType( boundingTypes[i] );
+          if( isRecursiveType( boundingTypes[i], boundingTypes[i].getTypeParameters() ) )
+          {
+            boundingTypes[i] = getDefaultParameterizedType( boundingTypes[i] );
+          }
+          else
+          {
+            boundingTypes[i] = getActualType( boundingTypes[i], TypeLord.mapTypeByVarName( type, type, false ), true );
+          }
         }
       }
 

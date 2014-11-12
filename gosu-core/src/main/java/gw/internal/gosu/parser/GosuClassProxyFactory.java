@@ -109,11 +109,11 @@ public class GosuClassProxyFactory
       outerProxy.getInnerClasses();
       if( !outerProxy.isCompilingDeclarations() )
       {
-        gsAdapterClass = (IGosuClassInternal)outerProxy.getInnerClass( type.getRelativeName().substring( type.getRelativeName().indexOf( '.' ) + 1 ) );
+        gsAdapterClass = getAdapterClass(type, outerProxy);
         if( gsAdapterClass == null )
         {
           TypeSystem.refresh( (ITypeRef)outerProxy);
-          gsAdapterClass = (IGosuClassInternal)outerProxy.getInnerClass( type.getRelativeName().substring( type.getRelativeName().indexOf( '.' ) + 1 ) );
+          gsAdapterClass = getAdapterClass(type, outerProxy);
         }
       }
       else
@@ -137,6 +137,26 @@ public class GosuClassProxyFactory
 
     if( gsAdapterClass != null ) {
       gsAdapterClass.setJavaType( type );
+    }
+    return gsAdapterClass;
+  }
+
+  private IGosuClassInternal getAdapterClass(IJavaTypeInternal type, IGosuClass outerProxy) {
+    IGosuClassInternal gsAdapterClass;
+
+    String proxyName = getProxyName(type);
+    int index = outerProxy.getName().length() + 1;
+
+    if(index < 0 || index >= proxyName.length()) {
+      return null;
+    }
+    String[] dotPath = proxyName.substring(index).split("\\.");
+    int i = 0;
+    gsAdapterClass = (IGosuClassInternal)outerProxy;
+    while(i < dotPath.length && gsAdapterClass != null)
+    {
+      gsAdapterClass = (IGosuClassInternal) gsAdapterClass.getInnerClass( dotPath[i] );
+      i++;
     }
     return gsAdapterClass;
   }
@@ -677,7 +697,7 @@ public class GosuClassProxyFactory
     {
       return;
     }
-    if( mi.getDisplayName().equals( "hashCode" ) || mi.getDisplayName().equals( "equals" ) || mi.getDisplayName().equals( "toString" ) )
+    if( mi.getDisplayName().equals( "hashCode" ) || (mi.getDisplayName().equals( "equals" ) && mi.getParameters().length == 1 && mi.getParameters()[0].getFeatureType() == JavaTypes.OBJECT()) || mi.getDisplayName().equals( "toString" ) )
     {
       if( !mi.getOwnersType().getName().equals( IGosuObject.class.getName() ) )
       {
