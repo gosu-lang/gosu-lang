@@ -286,7 +286,7 @@ enhancement CoreIterableEnhancement<T> : java.lang.Iterable<T> {
       if( i > 0 ) {
         retVal.append( delimiter )
       }
-      retVal.append( elt as String )
+      retVal.append( gw.config.CommonServices.getCoercionManager().makeStringFrom( elt ) )
     }
     return retVal.toString()
   }
