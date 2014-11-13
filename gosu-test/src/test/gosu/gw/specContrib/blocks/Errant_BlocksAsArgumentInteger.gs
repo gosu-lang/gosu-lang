@@ -1,4 +1,4 @@
-package test.gosu.gw.specContrib.blocks
+package gw.specContrib.blocks
 
 uses java.lang.Integer
 uses java.lang.Short
@@ -33,18 +33,18 @@ class Errant_BlocksAsArgumentInteger {
     blockIntegerFun113(\_ -> print("hello"))
     blockIntegerFun114(\s -> print("hello"))
 
-    //IDE-1336 & IDE-1347. Should show error
-    blockIntegerFun114(\String -> print("hello"))  //## issuekeys:
+    //IDE-1336 - Not A Bug. The type is actually a variable name here. No error expected
+    blockIntegerFun114(\String -> print("hello"))
     blockIntegerFun114(\s: String -> print("hello"))      //## issuekeys: 'BLOCKINTEGERFUN114(GW.LANG.__PSI__.IBLOCK1<VOID,JAVA.LANG.INTEGER>)' IN 'TEST.GOSU.GW.SPECCONTRIB.AAA.PARSERVSOPENSOURCE.BLOCKS.BLOCKSMAIN.ERRANT_BLOCKSASARGUMENTINTEGER' CANNOT BE APPLIED TO '(BLOCK(STRING))'
     blockIntegerFun115(\s -> print("hello"))        //## issuekeys: 'BLOCKINTEGERFUN115(GW.LANG.__PSI__.IBLOCK1<JAVA.LANG.INTEGER,JAVA.LANG.INTEGER>)' IN 'TEST.GOSU.GW.SPECCONTRIB.AAA.PARSERVSOPENSOURCE.BLOCKS.BLOCKSMAIN.ERRANT_BLOCKSASARGUMENTINTEGER' CANNOT BE APPLIED TO '(BLOCK(INTEGER))'
     blockIntegerFun115(\s -> 42)
     blockIntegerFun115(\s: Integer -> 42)
 
-    //IDE-1336
-    blockIntegerFun115(\Integer -> 42)    //## issuekeys:
+    //IDE-1336 - Not A Bug. The type is actually a variable name here. No error expected
+    blockIntegerFun115(\Integer -> 42)
 
-    //IDE-1336 & IDE-1347. Should show error
-    blockIntegerFun115(\String -> 42)   //## issuekeys:
+    //IDE-1336 - Not A Bug. The type is actually a variable name here. No error expected
+    blockIntegerFun115(\String -> 42)
 
     blockIntegerFun115(\s: String -> 42)    //## issuekeys: 'BLOCKINTEGERFUN115(GW.LANG.__PSI__.IBLOCK1<JAVA.LANG.INTEGER,JAVA.LANG.INTEGER>)' IN 'TEST.GOSU.GW.SPECCONTRIB.AAA.PARSERVSOPENSOURCE.BLOCKS.BLOCKSMAIN.ERRANT_BLOCKSASARGUMENTINTEGER' CANNOT BE APPLIED TO '(BLOCK(STRING):INT)'
 

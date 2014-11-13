@@ -1,4 +1,4 @@
-package test.gosu.gw.specContrib.blocks
+package gw.specContrib.blocks
 
 uses java.lang.Integer
 uses java.util.HashMap
@@ -33,8 +33,8 @@ class Errant_BlocksAsArgumentHashMap {
     blockHashMapFun114(\s: HashMap -> print("hello"))
     blockHashMapFun114(\s: HashMap -> print("hello"))
 
-    //IDE-1336 - argument name missing
-    blockHashMapFun114(\HashMap -> print("hello"))  //## issuekeys:
+    //IDE-1336 - Not A Bug. The type is actually a variable name here. No error expected
+    blockHashMapFun114(\HashMap -> print("hello"))
 
     blockHashMapFun115(\s -> print("hello"))     //## issuekeys: 'BLOCKHASHMAPFUN115(GW.LANG.__PSI__.IBLOCK1<JAVA.UTIL.HASHMAP,JAVA.UTIL.HASHMAP>)' IN 'TEST.GOSU.GW.SPECCONTRIB.AAA.PARSERVSOPENSOURCE.BLOCKS.BLOCKSMAIN.ERRANT_BLOCKSASARGUMENTHASHMAP' CANNOT BE APPLIED TO '(BLOCK(HASHMAP<OBJECT, OBJECT>))'
     blockHashMapFun115(\s -> {
@@ -47,8 +47,8 @@ class Errant_BlocksAsArgumentHashMap {
       return {1->2, 3->4}
     })
 
-    //IDE-1336 Error expected. as the argument name is not specified
-    blockHashMapFun115(\HashMap -> { //## issuekeys:
+    //IDE-1336 - Not A Bug. The type is actually a variable name here. No error expected
+    blockHashMapFun115(\HashMap -> {
       return {1->2, 3->4}
     })
     blockHashMapFun115(\s -> {

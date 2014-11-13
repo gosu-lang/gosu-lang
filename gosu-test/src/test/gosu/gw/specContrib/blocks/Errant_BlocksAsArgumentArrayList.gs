@@ -1,4 +1,4 @@
-package test.gosu.gw.specContrib.blocks
+package gw.specContrib.blocks
 
 uses java.lang.Integer
 uses java.lang.Short
@@ -33,8 +33,8 @@ class Errant_BlocksAsArgumentArrayList {
     blockArrayListFun114(\s -> print("hello"))
     blockArrayListFun114(\s: ArrayList -> print("hello"))
 
-    //IDE-1336 - argument name missing
-    blockArrayListFun114(\ArrayList -> print("hello"))  //## issuekeys:
+    //IDE-1336 - Not A Bug. The type is actually a variable name here. No error expected
+    blockArrayListFun114(\ArrayList -> print("hello"))
 
     blockArrayListFun115(\s -> print("hello"))      //## issuekeys: 'BLOCKARRAYLISTFUN115(GW.LANG.__PSI__.IBLOCK1<JAVA.UTIL.ARRAYLIST,JAVA.UTIL.ARRAYLIST>)' IN 'TEST.GOSU.GW.SPECCONTRIB.AAA.PARSERVSOPENSOURCE.BLOCKS.BLOCKSMAIN.ERRANT_BLOCKSASARGUMENTARRAYLIST' CANNOT BE APPLIED TO '(BLOCK(ARRAYLIST<OBJECT>))'
 
@@ -48,8 +48,8 @@ class Errant_BlocksAsArgumentArrayList {
       return {1, 'c', "mystring"}
     })
 
-    //IDE-1336 - argument name missing
-    blockArrayListFun115(\ArrayList -> {   //## issuekeys:
+    //IDE-1336 - Not A Bug. The type is actually a variable name here. No error expected
+    blockArrayListFun115(\ArrayList -> {
       return {1, 'c', "mystring"}
     })
     blockArrayListFun115(\s -> {

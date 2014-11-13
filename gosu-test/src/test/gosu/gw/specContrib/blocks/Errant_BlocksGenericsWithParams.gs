@@ -1,4 +1,4 @@
-package test.gosu.gw.specContrib.blocks
+package gw.specContrib.blocks
 
 uses java.lang.Integer
 uses java.util.ArrayList
@@ -13,8 +13,8 @@ class Errant_BlocksGenericsWithParams {
     //Set1 : Variable type not specified on LHS
     var x1210 = hello1(\x -> new ArrayList())
 
-    //ALERT - IDE-1336 Should show error here. var name not specified
-    var x11211 = hello1(\ArrayList -> new ArrayList())  //## issuekeys:
+    //IDE-1336 - Not A Bug. The type of the block argument is actually a variable name here. No error expected
+    var x11211 = hello1(\ArrayList -> new ArrayList())
 
     var x11212 = hello1(\x: ArrayList -> new ArrayList())
     var x11213 = hello1(\x: ArrayList -> {
@@ -51,8 +51,8 @@ class Errant_BlocksGenericsWithParams {
 
     //Set2 : Variable type 'ArrayList' specified on LHS
     var x12220 = hello1(\x -> new ArrayList())
-    //ALERT - IDE-1336 Should show error here. var name not specified
-    var x12221: ArrayList = hello1(\ArrayList -> new ArrayList())  //## issuekeys:
+    //IDE-1336 - Not A Bug. The type of the block argument is actually a variable name here. No error expected
+    var x12221: ArrayList = hello1(\ArrayList -> new ArrayList())
     var x12223: ArrayList = hello1(\x: ArrayList -> new ArrayList())
     var x12224: ArrayList = hello1(\x: ArrayList -> {
       return new ArrayList()
@@ -88,8 +88,8 @@ class Errant_BlocksGenericsWithParams {
 
     //Set3 : Variable type 'ArrayList<Integer>' specified on LHS
     var x13230 = hello1(\x -> new ArrayList())
-    //ALERT - IDE-1336 Should show error here. var name not specified
-    var x13231: ArrayList<Integer> = hello1(\ArrayList -> new ArrayList<Integer>())      //## issuekeys:
+    //IDE-1336 - Not A Bug. The type of the block argument is actually a variable name here. No error expected
+    var x13231: ArrayList<Integer> = hello1(\ArrayList -> new ArrayList<Integer>())
     var x13233: ArrayList<Integer> = hello1(\x: ArrayList<Integer> -> new ArrayList<Integer>())
     var x13234: ArrayList<Integer> = hello1(\x: ArrayList<Integer> -> {
       return new ArrayList<Integer>()

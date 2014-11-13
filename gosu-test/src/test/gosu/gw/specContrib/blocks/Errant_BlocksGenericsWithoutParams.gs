@@ -1,4 +1,4 @@
-package test.gosu.gw.specContrib.blocks
+package gw.specContrib.blocks
 
 uses java.lang.Integer
 uses java.util.ArrayList

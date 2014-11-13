@@ -1,4 +1,4 @@
-package test.gosu.gw.specContrib.blocks
+package gw.specContrib.blocks
 
 uses java.lang.CharSequence
 uses java.lang.Integer
@@ -46,8 +46,8 @@ class Errant_BlocksAsArgumentString {
 
     blockStringFun115(\s: String -> "hello")
 
-    //IDE-1336 - Error expected, as the argument name is not specified
-    blockStringFun115(\String -> "hello")        //## issuekeys:
+    //IDE-1336 - Not A Bug. The type of the block argument is actually a variable name here. No error expected
+    blockStringFun115(\String -> "hello")
 
     blockStringFun115(\s -> {
       return "hello"
