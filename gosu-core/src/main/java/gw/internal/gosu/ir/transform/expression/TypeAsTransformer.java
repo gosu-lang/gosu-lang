@@ -230,8 +230,14 @@ public class TypeAsTransformer extends AbstractExpressionTransformer<ITypeAsExpr
     }
 
     if( asType.isInterface() && lhsType instanceof IBlockType ) {
+      IRSymbol tempLhs = _cc().makeAndIndexTempSymbol( getDescriptor( lhsType ) );
+      IRAssignmentStatement tempLhsAssn = buildAssignment( tempLhs, root );
       IGosuClass gsClass = FunctionToInterfaceClassGenerator.getBlockToInterfaceConversionClass( asType, _cc().getGosuClass() );
-      return buildNewExpression( IRTypeFactory.get( gsClass ), Collections.singletonList( IRTypeFactory.get( JavaTypes.IBLOCK() ) ), Collections.singletonList( root ) );
+      return buildComposite( tempLhsAssn,
+                            buildNullCheckTernary( identifier( tempLhs ), nullLiteral(),
+                              buildNewExpression( IRTypeFactory.get( gsClass ),
+                                Collections.singletonList( IRTypeFactory.get( JavaTypes.IBLOCK() ) ),
+                                Collections.<IRExpression>singletonList( identifier( tempLhs ) ) ) ) );
     }
 
     IType lhsDimensionNumberType = findDimensionType( lhsType );
