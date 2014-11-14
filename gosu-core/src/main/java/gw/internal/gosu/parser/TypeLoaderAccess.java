@@ -384,18 +384,20 @@ public class TypeLoaderAccess extends BaseService implements ITypeSystem
   public IType getTypeByRelativeNameIfValid_NoGenerics(String relativeName, ITypeUsesMap typeUses)
   {
     IType type;
-    IType defaultType = getDefaultType(relativeName);
-    if( defaultType != null )
-    {
-      return defaultType;
-    }
     if( typeUses != null )
     {
       // Then if we have a type uses map and we are resolving let it try
       type = typeUses.resolveType(relativeName);
-    } else {
-      // Else just ask for it by full name
+    }
+    else
+    {
+      // ask for it by full name
       type = getByFullNameIfValid(relativeName);
+    }
+
+    if( type == null )
+    {
+      type = getDefaultType(relativeName);
     }
     return type;
   }
