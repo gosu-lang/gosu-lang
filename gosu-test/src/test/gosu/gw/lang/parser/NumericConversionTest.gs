@@ -31,8 +31,8 @@ class NumericConversionTest extends TestClass {
     assertEquals( 1b, n )
 
     // errors
-    assertHasCompilationError( "var n : byte = 128", Res.MSG_IMPROPER_VALUE_FOR_NUMERIC_TYPE )
-    assertHasCompilationError( "var n : byte = 0x80", Res.MSG_IMPROPER_VALUE_FOR_NUMERIC_TYPE )
+    assertHasCompilationError( "var n : byte = 128" )
+    assertHasCompilationError( "var n : byte = 0x80" )
   }
 
   function testShortConversions() {
@@ -60,8 +60,8 @@ class NumericConversionTest extends TestClass {
     assertEquals( 1s, n )
 
     // errors
-    assertHasCompilationError( "var n : short = 32768", Res.MSG_IMPROPER_VALUE_FOR_NUMERIC_TYPE )
-    assertHasCompilationError( "var n : short = 0x8000", Res.MSG_IMPROPER_VALUE_FOR_NUMERIC_TYPE )
+    assertHasCompilationError( "var n : short = 32768" )
+    assertHasCompilationError( "var n : short = 0x8000" )
   }
   
   function testIntConversions() {
@@ -245,7 +245,7 @@ class NumericConversionTest extends TestClass {
     assertHasCompilationError("100bd / 1.10", Res.MSG_LOSS_OF_PRECISION_IN_NUMERIC_LITERAL ) 
   }
 
-  function assertHasCompilationError( prog : String, key : ResourceKey ) {
+  function assertHasCompilationError( prog : String, key : ResourceKey = null ) {
     try 
     {
       eval( prog )
@@ -253,7 +253,9 @@ class NumericConversionTest extends TestClass {
     }
     catch( e : ParseResultsException ) 
     {
-      assertEquals( key, e.ParseIssues.first().MessageKey )
+      if( key != null ) {
+        assertEquals( key, e.ParseIssues.first().MessageKey )
+      }
     }
   }
 

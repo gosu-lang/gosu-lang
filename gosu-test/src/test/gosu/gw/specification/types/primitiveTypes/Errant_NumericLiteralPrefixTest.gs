@@ -46,7 +46,7 @@ class Errant_NumericLiteralPrefixTest {
     var a = 0b1010f  //## issuekeys: MSG_IMPROPER_VALUE_FOR_NUMERIC_TYPE
     var b = 0b1010d  //## issuekeys: MSG_IMPROPER_VALUE_FOR_NUMERIC_TYPE
     var c = 0b1010bd  //## issuekeys: MSG_IMPROPER_VALUE_FOR_NUMERIC_TYPE
-    var d : byte  = 0b10000000  //## issuekeys: MSG_IMPROPER_VALUE_FOR_NUMERIC_TYPE
+    var d : byte  = 0b10000000  //## issuekeys: MSG_IMPLICIT_COERCION_ERROR
   }
 
   function errHexLiteral() {

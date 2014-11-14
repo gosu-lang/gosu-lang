@@ -1358,7 +1358,8 @@ public final class GosuParser extends ParserBase implements IGosuParser
           }
           catch( NumberFormatException ex )
           {
-            addError( literal, Res.MSG_IMPROPER_VALUE_FOR_NUMERIC_TYPE, strValue, ctxNumberType.getName() );
+            return;
+            //addError( literal, Res.MSG_IMPROPER_VALUE_FOR_NUMERIC_TYPE, strValue, ctxNumberType.getName() );
           }
           literal.setType( ctxNumberType );
           if( unary != null )

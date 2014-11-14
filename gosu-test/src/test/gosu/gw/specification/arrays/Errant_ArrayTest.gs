@@ -23,7 +23,7 @@ class Errant_ArrayTest {
     var u7 = u[3]
     var u8 = u[3L]  //## issuekeys: MSG_IMPLICIT_COERCION_ERROR
     var u9 = u[3.0f]  //## issuekeys: MSG_IMPLICIT_COERCION_ERROR
-    var u10 = u[3.0]  //## issuekeys: MSG_IMPROPER_VALUE_FOR_NUMERIC_TYPE
+    var u10 = u[3.0]  //## issuekeys: MSG_IMPLICIT_COERCION_ERROR
 
     u = new int[true]  //## issuekeys: MSG_IMPLICIT_COERCION_ERROR
     u = new int['3']
@@ -32,7 +32,7 @@ class Errant_ArrayTest {
     u = new int[3]
     u = new int[3L]  //## issuekeys: MSG_IMPLICIT_COERCION_ERROR
     u = new int[3.0f]  //## issuekeys: MSG_IMPLICIT_COERCION_ERROR
-    u = new int[3.0]  //## issuekeys: MSG_IMPROPER_VALUE_FOR_NUMERIC_TYPE
+    u = new int[3.0]  //## issuekeys: MSG_IMPLICIT_COERCION_ERROR
 
     var uA = new A[u.length]
     var uB = new B[u.length]
