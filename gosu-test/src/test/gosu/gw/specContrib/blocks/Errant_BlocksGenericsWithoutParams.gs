@@ -35,7 +35,6 @@ class Errant_BlocksGenericsWithoutParams {
     var x1213: ArrayList = hello1(\-> {
       return new ArrayList<Integer>()
     })
-    //IDE-1338 Should not show error - Next 6 cases
     var x1214: ArrayList = hello1(\-> {
       return {1, 2, 3}
     })
@@ -61,11 +60,10 @@ class Errant_BlocksGenericsWithoutParams {
     var x1313: ArrayList<Integer> = hello1(\-> {
       return new ArrayList<Integer>()
     })
-    //IDE-1338 Should not show error - Next 4 cases
-    //Also x1315, x1316, x1317 are affected by IDE-1346 in OS Gosu
     var x1314: ArrayList<Integer> = hello1(\-> {
       return {1, 2, 3}
     })
+    //IDE-1346 Should not show error - Next 3 cases (issue in both Parser and OS Gosu)
     var x1315: ArrayList<Integer> = hello1(\-> {
       return {42, 'c'}
     })
@@ -75,7 +73,7 @@ class Errant_BlocksGenericsWithoutParams {
     var x1317: ArrayList<Integer> = hello1(\-> {
       return {42, 1s}
     })
-    //Should show error but NOT because of IDE-1338
+
     var x1318: ArrayList<Integer> = hello1(\-> {      //## issuekeys: 'HELLO1(GW.LANG.__PSI__.IBLOCK0<T>)' IN 'TEST.GOSU.GW.SPECCONTRIB.AAA.PARSERVSOPENSOURCE.BLOCKS.BLOCKSMAIN.ERRANT_BLOCKSGENERICSWITHOUTPARAMS' CANNOT BE APPLIED TO '(BLOCK():ARRAYLIST<FLOAT>)'
       return {42, 'c', 42.5f}
     })
