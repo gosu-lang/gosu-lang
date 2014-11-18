@@ -22,6 +22,7 @@ public interface ISourceFileHandle
   boolean isValid();
 
   boolean isStandardPath();
+  boolean isIncludeModulePath();
 
   public void cleanAfterCompile();
 
