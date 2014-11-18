@@ -114,7 +114,7 @@ class Errant_LogicalOperatorsTest {
     var a80 : K
     var b80 : Object
     r = a80 == b80
-    r =  {1->4, 5->6} != {1, 2, 3}  //## issuekeys: MSG_EXPECTING_ARROW_AFTER_MAP_KEY, MSG_EXPECTING_ARROW_AFTER_MAP_KEY, MSG_EXPECTING_ARROW_AFTER_MAP_KEY
+    r =  {1->4, 5->6} != {1, 2, 3}  //## issuekeys: MSG_TYPE_MISMATCH
   }
 
   function testIdentityOperator() {
@@ -167,7 +167,7 @@ class Errant_LogicalOperatorsTest {
     r = !setX(1, false)
     var y0 = (4 > 3) && ("string" == "hello")
     var y1 = 8 || "hello"      //## issuekeys: MSG_IMPLICIT_COERCION_ERROR
-    var y2 = !false || !2       //## issuekeys: MSG_IMPLICIT_COERCION_ERROR
+    var y2 = !false || !2       //## issuekeys: MSG_TYPE_MISMATCH
     var y3 = true or false
     var y4 = true and 5  //## issuekeys: MSG_IMPLICIT_COERCION_ERROR
     var y5 = !not true

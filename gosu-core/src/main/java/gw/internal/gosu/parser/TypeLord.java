@@ -45,6 +45,7 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.lang.reflect.TypeVariable;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -673,6 +674,25 @@ public class TypeLord
     return sb.toString();
   }
 
+  public static boolean isDelegatableInterface( IType declaringType, IType iface ) {
+    if( iface.isAssignableFrom( declaringType ) ) {
+      return true;
+    }
+    IType superClass = declaringType.getSupertype();
+    if( superClass != null && isDelegatableInterface( superClass, iface ) ) {
+      return true;
+    }
+    IType[] interfaces = declaringType.getInterfaces();
+    if( interfaces != null ) {
+      for( IType t : interfaces ) {
+        if( isDelegatableInterface( t, iface ) ) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
   /**
    * Finds a parameterized type in the ancestry of a given type. For instance,
    * given the type for ArrayList&lt;Person&gt; as the sourceType and List as
@@ -853,11 +873,16 @@ public class TypeLord
       for( int i = 0; i < boundingTypes.length; i++ )
       {
         boundingTypes[i] = type.getGenericTypeVariables()[i].getBoundingType();
-        if( bHandleRecursiveParameterizedType &&
-            boundingTypes[i].isParameterizedType() &&
-            isRecursiveType( boundingTypes[i], boundingTypes[i].getTypeParameters() ) )
+        if( bHandleRecursiveParameterizedType && boundingTypes[i].isParameterizedType() )
         {
-          boundingTypes[i] = getDefaultParameterizedType( boundingTypes[i] );
+          if( isRecursiveType( boundingTypes[i], boundingTypes[i].getTypeParameters() ) )
+          {
+            boundingTypes[i] = getDefaultParameterizedType( boundingTypes[i] );
+          }
+          else
+          {
+            boundingTypes[i] = getActualType( boundingTypes[i], TypeLord.mapTypeByVarName( type, type, false ), true );
+          }
         }
       }
 
@@ -1745,6 +1770,10 @@ public class TypeLord
    */
   public static void inferTypeVariableTypesFromGenParamTypeAndConcreteType( IType genParamType, IType argType, TypeVarToTypeMap inferenceMap )
   {
+    inferTypeVariableTypesFromGenParamTypeAndConcreteType( genParamType, argType, inferenceMap, new HashSet<ITypeVariableType>() );
+  }
+  public static void inferTypeVariableTypesFromGenParamTypeAndConcreteType( IType genParamType, IType argType, TypeVarToTypeMap inferenceMap, HashSet<ITypeVariableType> inferredInCallStack )
+  {
     if( argType == GosuParserTypes.NULL_TYPE() ||
         argType instanceof IErrorType ||
         (argType instanceof IMetaType && ((IMetaType)argType).getType() instanceof IErrorType) )
@@ -1759,14 +1788,15 @@ public class TypeLord
 
     if( genParamType.isArray() )
     {
-      if ( !argType.isArray()) {
+      if( !argType.isArray() )
+      {
         return;
       }
       //## todo: DON'T allow a null component type here; we do it now as a hack that enables gosu arrays to be compatible with java arrays
       //## todo: same as JavaMethodInfo.inferTypeVariableTypesFromGenParamTypeAndConcreteType()
       if( argType.getComponentType() == null || !argType.getComponentType().isPrimitive() )
       {
-        inferTypeVariableTypesFromGenParamTypeAndConcreteType( genParamType.getComponentType(), argType.getComponentType(), inferenceMap );
+        inferTypeVariableTypesFromGenParamTypeAndConcreteType( genParamType.getComponentType(), argType.getComponentType(), inferenceMap, inferredInCallStack );
       }
     }
     else if( genParamType.isParameterizedType() )
@@ -1782,7 +1812,7 @@ public class TypeLord
         int i = 0;
         for( IType typeArg : genParamType.getTypeParameters() )
         {
-          inferTypeVariableTypesFromGenParamTypeAndConcreteType( typeArg, concreteTypeParams[i++], inferenceMap );
+          inferTypeVariableTypesFromGenParamTypeAndConcreteType( typeArg, concreteTypeParams[i++], inferenceMap, inferredInCallStack );
         }
       }
     }
@@ -1795,11 +1825,24 @@ public class TypeLord
       {
         // Infer the type
         inferenceMap.put( tvType, argType );
+        inferredInCallStack.add( tvType );
+      }
+      else if( !inferredInCallStack.contains( tvType ) )
+      {
+        // Infer the type as the intersection of the existing inferred type and this one.  This is most relevant for
+        // case where we infer a given type var from more than one type context e.g., a method call:
+        // var l : String
+        // var s : StringBuilder
+        // var r = foo( l, s ) // here we must use the LUB of String and StringBuilder, which is CharSequence & Serializable
+        // function foo<T>( t1: T, t2: T ) {}
+
+        IType lubType = TypeLord.findLeastUpperBound( Arrays.asList( type, argType ) );
+        inferenceMap.put( tvType, lubType );
       }
       IType boundingType = ((ITypeVariableType)genParamType).getBoundingType();
       if( !isRecursiveType( genParamType, new IType[]{boundingType} ) )
       {
-        inferTypeVariableTypesFromGenParamTypeAndConcreteType( boundingType, argType, inferenceMap );
+        inferTypeVariableTypesFromGenParamTypeAndConcreteType( boundingType, argType, inferenceMap, inferredInCallStack );
       }
     }
     else if( genParamType instanceof FunctionType )
@@ -1811,7 +1854,7 @@ public class TypeLord
         return;
       }
       inferTypeVariableTypesFromGenParamTypeAndConcreteType(
-        genBlockType.getReturnType(), ((FunctionType)argType).getReturnType(), inferenceMap );
+        genBlockType.getReturnType(), ((FunctionType)argType).getReturnType(), inferenceMap, inferredInCallStack );
 
       IType[] genBlockParamTypes = genBlockType.getParameterTypes();
       if( genBlockParamTypes != null )
@@ -1822,7 +1865,7 @@ public class TypeLord
           for( int i = 0; i < genBlockParamTypes.length; i++ )
           {
             inferTypeVariableTypesFromGenParamTypeAndConcreteType(
-              genBlockParamTypes[i], ((FunctionType)argType).getParameterTypes()[i], inferenceMap );
+              genBlockParamTypes[i], ((FunctionType)argType).getParameterTypes()[i], inferenceMap, inferredInCallStack );
           }
         }
       }

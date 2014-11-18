@@ -38,6 +38,7 @@ import gw.lang.parser.IFunctionSymbol;
 import gw.lang.parser.IParseIssue;
 import gw.lang.parser.IParseTree;
 import gw.lang.parser.IParsedElement;
+import gw.lang.parser.IParsedElementWithAtLeastOneDeclaration;
 import gw.lang.parser.IScope;
 import gw.lang.parser.ISymbol;
 import gw.lang.parser.ISymbolTable;
@@ -57,6 +58,7 @@ import gw.lang.parser.expressions.IParameterDeclaration;
 import gw.lang.parser.expressions.ITypeVariableDefinition;
 import gw.lang.parser.expressions.ITypeVariableDefinitionExpression;
 import gw.lang.parser.resources.Res;
+import gw.lang.parser.resources.ResourceKey;
 import gw.lang.parser.statements.IClassStatement;
 import gw.lang.parser.statements.IFunctionStatement;
 import gw.lang.parser.statements.ITerminalStatement;
@@ -1023,8 +1025,10 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
     Token t = new Token();
     int state = getTokenizer().mark();
     boolean bAtLeastOneConst = false;
+    boolean bConst;
     do
     {
+      bConst = false;
       int iOffset = getTokenizer().getTokenStart();
       int iLineNum = getTokenizer().getLineNumber();
       int iColumn = getTokenizer().getTokenColumn();
@@ -1039,13 +1043,13 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
         popStatement();
 
         processVarStmt( gsClass, varStmt );
-        bAtLeastOneConst = true;
+        bAtLeastOneConst = bConst = true;
       }
       if( match( null, ';' ) )
       {
         break;
       }
-    } while( match( null, ',' ) );
+    } while( bConst && match( null, ',' ) );
     if( !bAtLeastOneConst )
     {
       getTokenizer().restoreToMark( state );
@@ -1225,6 +1229,7 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
       DynamicFunctionSymbol dfs = getOwner().parseFunctionDecl( fs, false, false, modifiers );
       fs.setDynamicFunctionSymbol( dfs );
       pushStatement( fs );
+      verify( fs, !Modifier.isTransient( modifiers.getModifiers() ), Res.MSG_ILLEGAL_USE_OF_MODIFIER, Keyword.KW_transient, Keyword.KW_function );
       if( dfs != null )
       {
         dfs.setClassMember( true );
@@ -1248,7 +1253,7 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
       pushStatement( fs );
       setLocation( iOffset, iLineNum, iColumn );
       popStatement();
-
+      verify( fs, !Modifier.isTransient( modifiers.getModifiers() ), Res.MSG_ILLEGAL_USE_OF_MODIFIER, Keyword.KW_transient, Keyword.KW_function );
       if( dfs != null )
       {
         dfs.setClassMember( true );
@@ -1301,15 +1306,50 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
                                : typeInfo.getMethod( func.getFunctionName(), func.getDynamicFunctionSymbol().getArgTypes() );
               if( overridesMethodWithDefaultParams(func, typeInfo) )
               {
-                ParseException parseException = new ParseException( stmt.getLineNum(), 1, stmt.getLocation().getColumn(), stmt.getLocation().getOffset(), stmt.getLocation().getExtent(),
-                                                                    getSymbolTable(), Res.MSG_OVERLOADING_NOT_ALLOWED_WITH_OPTIONAL_PARAMS, mi.getDisplayName(), enhancedType.getRelativeName() );
-                stmt.addParseException( parseException );
+                addDeclaredNameParseError( func, Res.MSG_OVERLOADING_NOT_ALLOWED_WITH_OPTIONAL_PARAMS, mi.getDisplayName(), enhancedType.getRelativeName() );
               }
               else if( (mi != null) && (!featureIsOwnedByEnhancement( enhancement, mi ) || (enhancedType != JavaTypes.OBJECT() && GosuClass.isObjectMethod( mi ))) )
               {
-                ParseException parseException = new ParseException( stmt.getLineNum(), 1, stmt.getLocation().getColumn(), stmt.getLocation().getOffset(), stmt.getLocation().getExtent(),
-                                                                    getSymbolTable(), Res.MSG_CANNOT_OVERRIDE_FUNCTIONS_IN_ENHANCEMENTS, mi.getDisplayName(), enhancedType.getRelativeName() );
-                stmt.addParseException( parseException );
+                addDeclaredNameParseError( func, Res.MSG_CANNOT_OVERRIDE_FUNCTIONS_IN_ENHANCEMENTS, mi.getDisplayName(), enhancedType.getRelativeName() );
+              }
+              else if( enhancedType instanceof IGosuClass )
+              {
+                String name = func.getFunctionName();
+                DynamicFunctionSymbol dfs = func.getDynamicFunctionSymbol();
+                if( name.startsWith( "set" ) && dfs.getArgs().size() == 1 )
+                {
+                  ITypeInfo ti = enhancedType.getTypeInfo();
+                  IPropertyInfo pi = ((IRelativeTypeInfo)ti).getProperty( enhancement, name.substring( 3, name.length() ) );
+                  if( pi instanceof GosuPropertyInfo )
+                  {
+                    ReducedDynamicPropertySymbol dps = ((GosuPropertyInfo)pi).getDps();
+                    if( dps.getSetterDfs() != null )
+                    {
+                      IType argType = dfs.getArgs().get( 0 ).getType();
+                      if( argType.equals( dps.getType() ) )
+                      {
+                        addDeclaredNameParseError( func, Res.MSG_PROPERTY_AND_FUNCTION_CONFLICT, dfs.getName(), dps.getName() );
+                      }
+                      else if( getOwner().doTypesReifyToTheSameBytecodeType( argType, dps.getType() ) )
+                      {
+                        addDeclaredNameParseError( func, Res.MSG_PROPERTY_AND_FUNCTION_CONFLICT_UPON_REIFICATION, dfs.getName(), dps.getName() );
+                      }
+                    }
+                  }
+                }
+                else if( (name.startsWith( "get" ) || name.startsWith( "is" )) && dfs.getArgs().size() == 0 )
+                {
+                  ITypeInfo ti = enhancedType.getTypeInfo();
+                  IPropertyInfo pi = ((IRelativeTypeInfo)ti).getProperty( enhancement, name.substring( name.startsWith( "get" ) ? 3 : 2, name.length() ) );
+                  if( pi instanceof GosuPropertyInfo )
+                  {
+                    ReducedDynamicPropertySymbol dps = ((GosuPropertyInfo)pi).getDps();
+                    if( dps.getGetterDfs() != null )
+                    {
+                      addDeclaredNameParseError( func, Res.MSG_PROPERTY_AND_FUNCTION_CONFLICT, dfs.getName(), dps.getName() );
+                    }
+                  }
+                }
               }
             }
           }
@@ -1325,19 +1365,48 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
                                : typeInfo.getProperty( prop.getFunctionName() );
             if( pi != null && !featureIsOwnedByEnhancement( enhancement, pi ) )
             {
-              ParseException parseException = new ParseException( stmt.getLineNum(), 1, stmt.getLocation().getColumn(), stmt.getLocation().getOffset(), stmt.getLocation().getExtent(),
-                                                                  getSymbolTable(), Res.MSG_CANNOT_OVERRIDE_PROPERTIES_IN_ENHANCEMENTS, pi.getDisplayName(), enhancedType.getRelativeName() );
-              stmt.addParseException( parseException );
+              addDeclaredNameParseError( prop, Res.MSG_CANNOT_OVERRIDE_PROPERTIES_IN_ENHANCEMENTS, pi.getDisplayName(), enhancedType.getRelativeName() );
+            }
+            else
+            {
+              FunctionStatement funcStmt = prop.getPropertyGetterOrSetter();
+              DynamicFunctionSymbol dfs = funcStmt.getDynamicFunctionSymbol();
+              String name = dfs.getDisplayName().substring( 1 );
+              if( dfs.getArgs().size() == 0 )
+              {
+                ITypeInfo ti = enhancedType.getTypeInfo();
+                IMethodInfo mi = ((IRelativeTypeInfo)ti).getMethod( enhancement, "get" + name );
+                mi = mi == null ? ((IRelativeTypeInfo)ti).getMethod( enhancement, "is" + name ) : mi;
+                if( mi != null )
+                {
+                  addDeclaredNameParseError( prop, Res.MSG_PROPERTY_AND_FUNCTION_CONFLICT, mi.getName(), name );
+                }
+              }
+              else if( funcStmt.getParameters().size() > 0 )
+              {
+                ITypeInfo ti = enhancedType.getTypeInfo();
+                for( IMethodInfo mi: ((IRelativeTypeInfo)ti).getMethods( enhancement ) )
+                {
+                  if( mi.getDisplayName().equals( "set" + name ) && mi.getParameters().length == 1 )
+                  {
+                    IType argType = mi.getParameters()[0].getFeatureType();
+                    if( argType.equals( dfs.getArgTypes()[0] ) )
+                    {
+                      addDeclaredNameParseError( prop, Res.MSG_PROPERTY_AND_FUNCTION_CONFLICT, mi.getName(), dfs.getName() );
+                    }
+                    else if( getOwner().doTypesReifyToTheSameBytecodeType( argType, dfs.getArgTypes()[0] ) )
+                    {
+                      addDeclaredNameParseError( prop, Res.MSG_PROPERTY_AND_FUNCTION_CONFLICT, mi.getName(), dfs.getName() );
+                    }
+                  }
+                }
+              }
             }
           }
         }
-        else if( stmt instanceof NoOpStatement ||
-                 stmt instanceof NamespaceStatement ||
-                 stmt instanceof UsesStatement )
-        {
-          //ignore
-        }
-        else
+        else if( !(stmt instanceof NoOpStatement ||
+                   stmt instanceof NamespaceStatement ||
+                   stmt instanceof UsesStatement) )
         {
           ParseException parseException = new ParseException( stmt.getLineNum(), 1, stmt.getLocation().getColumn(), stmt.getLocation().getOffset(), stmt.getLocation().getExtent(),
                                                               getSymbolTable(), Res.MSG_ENHANCEMENT_DOES_NOT_ACCEPT_THIS_STATEMENT );
@@ -1351,6 +1420,14 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
     {
       getSymbolTable().popScope();
     }
+  }
+
+  void addDeclaredNameParseError( IParsedElementWithAtLeastOneDeclaration stmt, ResourceKey key, Object... args )
+  {
+    int nameOffset = stmt.getNameOffset( null );
+    ParseException parseException = new ParseException( stmt.getLineNum(), 1, stmt.getLocation().getColumn(), nameOffset, nameOffset + ((stmt instanceof VarStatement) ? ((VarStatement)stmt).getIdentifierName().length() : stmt.getFunctionName().length()),
+                                                        getSymbolTable(), key, args );
+    stmt.addParseException( parseException );
   }
 
   private boolean overridesMethodWithDefaultParams(FunctionStatement func, ITypeInfo typeInfo) {
@@ -3083,8 +3160,8 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
         if( !(iface instanceof ErrorType) )
         {
           verify( ifaceLiteral, iface.isInterface() && !iface.isCompoundType(), Res.MSG_DELEGATES_REPRESENT_INTERFACES_ONLY );
-          verify( ifaceLiteral, iface.isAssignableFrom( gsClass ), Res.MSG_CLASS_DOES_NOT_IMPL, iface );
-          verify( typeLiteral, typeLiteral == null || iface.isAssignableFrom( typeLiteral.getType().getType() ), Res.MSG_CLASS_DOES_NOT_IMPL, iface );
+          verify( ifaceLiteral, TypeLord.isDelegatableInterface( gsClass, iface ), Res.MSG_CLASS_DOES_NOT_IMPL, iface );
+          verify( typeLiteral, typeLiteral == null || TypeLord.isDelegatableInterface( typeLiteral.getType().getType(), iface ), Res.MSG_CLASS_DOES_NOT_IMPL, iface );
         }
         constituents.add( iface );
       } while( match( null, ',' ) );
@@ -3588,8 +3665,10 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
 
     Set<String> constants = new HashSet<String>();
     Token t = new Token();
+    boolean bConst;
     do
     {
+      bConst = false;
       int iOffset = getTokenizer().getTokenStart();
       int iLineNum = getTokenizer().getLineNumber();
       int iColumn = getTokenizer().getTokenColumn();
@@ -3602,12 +3681,13 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
         setLocation(iOffset, iLineNum, iColumn);
         constants.add( t._strValue );
         popStatement();
+        bConst = true;
       }
       if( match( null, ';' ) )
       {
         break;
       }
-    } while( match( null, ',' ) );
+    } while( bConst && match( null, ',' ) );
   }
 
   private void parseEnumConstant( String strIdentifier, ClassScopeCache scopeCache, boolean bIsDuplicate )
