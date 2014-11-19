@@ -448,6 +448,8 @@ public class Strings extends ListResourceBundle
        {Res.MSG_FL_PROPERTY_NOT_FOUND.getKey(), "A property with the name {0} was not found"},
        {Res.MSG_FL_STATIC_FEATURES_MUST_BE_REFERENCED_FROM_THEIR_TYPES.getKey(), "A static feature or constructor must be referenced directly on the type that the feature belongs to."},
 
+       {Res.MSG_AMBIGUOUS_SYMBOL_REFERENCE.getKey(), "This is an ambiguous reference.  Please fully qualify the symbol."},
+
        {Res.WSDL_DUPLICATE_WEB_SERVICE.getKey(), "Duplicate web service name.  Only one webservice with the given name can be defined."},
        {Res.WSDL_UNSUPPORTED_TYPE.getKey(), "Web Service cannot reference the following unsupported type: {0} {1}"},
        {Res.WSDL_NOT_WEBSERVICE.getKey(), "This annotation is only available on Web Service"},

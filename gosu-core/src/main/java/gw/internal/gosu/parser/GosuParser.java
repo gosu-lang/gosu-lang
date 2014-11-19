@@ -5574,6 +5574,8 @@ public final class GosuParser extends ParserBase implements IGosuParser
 
     }
 
+    verify( e, !(s instanceof AmbiguousSymbol), Res.MSG_AMBIGUOUS_SYMBOL_REFERENCE, name );
+
     pushExpression( e );
 
     verify( e, !(getCurrentEnclosingGosuClass() instanceof IBlockClass) ||

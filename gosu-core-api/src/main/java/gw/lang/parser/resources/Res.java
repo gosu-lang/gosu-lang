@@ -424,6 +424,8 @@ public class Res
 
   public static final ResourceKey MSG_ARRAY_INDEX_MUST_BE_INT = new ResourceKey( "MSG_ARRAY_INDEX_MUST_BE_INT");
 
+  public static final ResourceKey MSG_AMBIGUOUS_SYMBOL_REFERENCE = new ResourceKey( "MSG_AMBIGUOUS_SYMBOL_REFERENCE");
+
   // Web service errors
   public static final ResourceKey WSDL_DUPLICATE_WEB_SERVICE = new ResourceKey("WSDL_DUPLICATE_WEB_SERVICE");
   public static final ResourceKey WSDL_DUPLICATE_METHOD = new ResourceKey("WSDL_DUPLICATE_METHOD");
