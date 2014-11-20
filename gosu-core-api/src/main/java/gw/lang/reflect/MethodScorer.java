@@ -132,7 +132,7 @@ public class MethodScorer {
       // null  +1
       iScore = 1;
     }
-    else if( StandardCoercionManager.arePrimitiveTypesAssignable( paramType, argType ) ) {
+    else if( arePrimitiveTypesCompatible( paramType, argType ) ) {
       // Primitive coercion  +(2..9)
       iScore = BasePrimitiveCoercer.getPriorityOf( paramType, argType );
     }
@@ -142,7 +142,7 @@ public class MethodScorer {
       iScore = 10;
     }
     else if( paramType instanceof IInvocableType && argType instanceof IInvocableType ) {
-      // Assignable function types  +10 + average-degress-of-separation-of-sum-of-params-and-return-type
+      // Assignable function types  +10 + average-degrees-of-separation-of-sum-of-params-and-return-type
       int iDegrees = addDegreesOfSeparation( paramType, argType, inferringTypes );
       iScore = Math.min( Byte.MAX_VALUE - 10,
                          10 + iDegrees / (Math.max( ((IInvocableType)paramType).getParameterTypes().length,
@@ -151,7 +151,7 @@ public class MethodScorer {
     else {
       if( paramType.isAssignableFrom( argType ) ) {
         if( !(argType instanceof IInvocableType) ) {
-          // Assignable types  +10 + degress-of-separation
+          // Assignable types  +10 + degrees-of-separation
           iScore = 10 + addDegreesOfSeparation( paramType, argType, inferringTypes );
         }
         else {
@@ -163,7 +163,7 @@ public class MethodScorer {
         ICoercer iCoercer = CommonServices.getCoercionManager().findCoercer( paramType, argType, false );
         if( iCoercer != null ) {
           if( iCoercer instanceof BasePrimitiveCoercer ) {
-            // Coercible (non-standard primitive)  +24 + primitive-coercion-score  (0 is best score for pimitivie coercer)
+            // Coercible (non-standard primitive)  +24 + primitive-coercion-score  (0 is best score for primitive coercer)
             iScore = 24 + iCoercer.getPriority( paramType, argType );
           }
           else {
@@ -178,6 +178,14 @@ public class MethodScorer {
       }
     }
     return iScore;
+  }
+
+  private boolean arePrimitiveTypesCompatible( IType paramType, IType argType ) {
+    return StandardCoercionManager.arePrimitiveTypesAssignable( paramType, argType ) ||
+           (paramType.isPrimitive() && argType.isPrimitive() &&
+            (paramType != JavaTypes.pBOOLEAN()) && (argType != JavaTypes.pBOOLEAN()) &&
+            (paramType != JavaTypes.pVOID()) && (argType != JavaTypes.pVOID()) &&
+           BasePrimitiveCoercer.losesInformation( argType, paramType ) <= 1);
   }
 
   public int addDegreesOfSeparation( IType parameterType, IType exprType, List<IType> inferringTypes ) {

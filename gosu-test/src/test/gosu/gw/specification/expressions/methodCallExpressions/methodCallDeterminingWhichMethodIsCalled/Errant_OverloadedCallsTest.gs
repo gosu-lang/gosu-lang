@@ -191,8 +191,8 @@ class Errant_OverloadedCallsTest {
   function fun(i: float, j: float): B {return null }
 
   function caller() {
-    var r0 : A = fun(42.5f, 42)  //## issuekeys: MSG_AMBIGUOUS_METHOD_INVOCATION
-    var r1 : B = fun(42.5f, 42)  //## issuekeys: MSG_AMBIGUOUS_METHOD_INVOCATION
+    var r0 : A = fun(42.5f, 42) //## issuekeys: MSG_TYPE_MISMATCH
+    var r1 : B = fun(42.5f, 42)
   }
 
   function fun2(i: int, j: int): A {return null }
@@ -201,8 +201,8 @@ class Errant_OverloadedCallsTest {
 
   function caller2() {
     var r0 : A = fun2(42.5f, 42)  //## issuekeys: MSG_TYPE_MISMATCH
-    var r1 : B = fun2(42.5f, 42)  //## issuekeys: MSG_TYPE_MISMATCH
-    var r2 : C = fun2(42.5f, 42)
+    var r1 : B = fun2(42.5f, 42)
+    var r2 : C = fun2(42.5f, 42)  //## issuekeys: MSG_TYPE_MISMATCH
   }
 
   function fun3(i: short, j: short): A {return null }

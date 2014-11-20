@@ -129,11 +129,11 @@ public class BasePrimitiveCoercer extends StandardCoercer implements IResolvingC
       return 8;                       // score = 8 (max)
     }
 
-    boolean bLosesInfo = losesInformation( from, to );
+    int infoLoss = losesInformation( from, to );
     boolean bSameFamily = isInSameFamily( from, to );
 
     int iScore = 1;
-    if( bLosesInfo ) {
+    if( infoLoss > 1 ) {
       iScore += 4;                    // score = 5
       if( !bSameFamily ) {
         iScore += 2;                  // score = 7
@@ -143,7 +143,8 @@ public class BasePrimitiveCoercer extends StandardCoercer implements IResolvingC
       iScore += distance( from, to ); // score = (2..4)
     }
     else {
-      iScore += 5;                    // score = 6
+      iScore += infoLoss;             // score = (1..2)
+      iScore += 3;                    // score = (4..5)
     }
     return iScore;
   }
@@ -153,24 +154,24 @@ public class BasePrimitiveCoercer extends StandardCoercer implements IResolvingC
     return iDistance >= 0 ? iDistance : 5;
   }
 
-  private static boolean losesInformation( IType from, IType to ) {
-    boolean[][] tab =
+  public static int losesInformation( IType from, IType to ) {
+    int[][] tab =
     {                                        //TO
       //FROM       boolean  byte    char    short   int     long    float   double
-      /*boolean*/  {false,  false,  false,  false,  false,  false,  false,  false },
-      /*char   */  {true,   true,   false,  true,   false,  false,  false,  false },
-      /*byte   */  {true,   false,  false,  false,  false,  false,  false,  false },
-      /*short  */  {true,   true,   true,   false,  false,  false,  false,  false },
-      /*int    */  {true,   true,   true,   true,   false,  false,  true,   false },
-      /*long   */  {true,   true,   true,   true,   true,   false,  true,   true  },
-      /*float  */  {true,   true,   true,   true,   true,   true,   false,  false },
-      /*double */  {true,   true,   true,   true,   true,   true,   true,   false },
+      /*boolean*/  {0,      0,      0,      0,      0,      0,      0,      0 },
+      /*char   */  {2,      2,      0,      2,      0,      0,      0,      0 },
+      /*byte   */  {2,      0,      0,      0,      0,      0,      0,      0 },
+      /*short  */  {2,      2,      2,      0,      0,      0,      0,      0 },
+      /*int    */  {2,      2,      2,      2,      0,      0,      1,      0 },
+      /*long   */  {2,      2,      2,      2,      2,      0,      2,      1 },
+      /*float  */  {2,      2,      2,      2,      2,      2,      0,      0 },
+      /*double */  {2,      2,      2,      2,      2,      2,      2,      0 },
     };
     final int i = getIndex(from);
     final int j = getIndex(to);
-    if(i == -1 || j == -1 )
+    if( i == -1 || j == -1 )
     {
-      return false;
+      return 0;
     }
     return tab[i][j];
   }
