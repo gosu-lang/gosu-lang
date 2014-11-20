@@ -17,7 +17,7 @@ class Errant_PrivateAccessModifierAndSubclasses extends Errant_PrivateAccessModi
   }
 
   class subNested extends nested {
-    var f4 : int  //## issuekeys: MSG_VARIABLE_ALREADY_DEFINED (warning, since parent class has accessible field f4)
+    var f4 : int  //## issuekeys: MSG_VARIABLE_ALREADY_DEFINED
     var f6 : int
     var f0 : int
     var foo : int  //## issuekeys: MSG_VARIABLE_ALREADY_DEFINED
