@@ -222,7 +222,7 @@ public class TypeAsTransformer extends AbstractExpressionTransformer<ITypeAsExpr
 
       IRSymbol tempLhs = _cc().makeAndIndexTempSymbol( getDescriptor( lhsType ) );
       IRAssignmentStatement tempLhsAssn = buildAssignment( tempLhs, root );
-      IRExpression expr = buildTernary( new IRInstanceOfExpression( root, IRTypeFactory.get( TypeLord.getBoxedTypeFromPrimitiveType( asType ) ) ),
+      IRExpression expr = buildTernary( new IRInstanceOfExpression( identifier( tempLhs ), IRTypeFactory.get( TypeLord.getBoxedTypeFromPrimitiveType( asType ) ) ),
                                         unboxValueToType( asType, identifier( tempLhs ) ),
                                         callStaticMethod( TypeAsTransformer.class, "convertToPrimitiveFromBoxOrString_" + asTypeDesc.getName(), new Class[]{Object.class}, Collections.<IRExpression>singletonList( identifier( tempLhs ) ) ),
                                         asTypeDesc );
