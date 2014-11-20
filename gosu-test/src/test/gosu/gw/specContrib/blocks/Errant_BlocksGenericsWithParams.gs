@@ -33,7 +33,7 @@ class Errant_BlocksGenericsWithParams {
     var x11218 = hello1(\x: ArrayList<Integer> -> {
       return {1, 2, 3}
     })
-    //x11219 : OS Gosu issue - IDE-1346. Parser is good : No error
+    //x11219 : IDE-1346 Should not show error (issue in both Parser and OS Gosu)
     var x11219 = hello1(\x: ArrayList<Integer> -> {
       return {1, 2, 'c'}
     })
@@ -70,7 +70,7 @@ class Errant_BlocksGenericsWithParams {
     var x12229: ArrayList = hello1(\x: ArrayList<Integer> -> {
       return {1, 2, 3}
     })
-    //x12230 : OS Gosu issue - IDE-1346. Parser is good : No error
+    //x12230 : IDE-1346 Should not show error (issue in both Parser and OS Gosu)
     var x12230: ArrayList = hello1(\x: ArrayList<Integer> -> {
       return {1, 2, 'c'}
     })
@@ -94,15 +94,14 @@ class Errant_BlocksGenericsWithParams {
     var x13234: ArrayList<Integer> = hello1(\x: ArrayList<Integer> -> {
       return new ArrayList<Integer>()
     })
-    //x13235 : Parser and OS Gosu show error because of different issues
-    // Parser should not show error IDE-1344. And OS Gosu should not show error IDE-1346
+    //x13235 : IDE-1346 Should not show error (issue in both Parser and OS Gosu)
     var x13235: ArrayList<Integer> = hello1(\x: ArrayList -> {
       return {1, 2, 'c'}
     })
     var x13236: ArrayList<Integer> = hello1(\x: ArrayList<Integer> -> {
       return {1, 2, 3}
     })
-    //IDE-1346 Next 3 cases. OS Gosu Bug only. Parser is good
+    //IDE-1346 Next 3 cases should not show error (issue in both Parser and OS Gosu)
     var x13237: ArrayList<Integer> = hello1(\x: ArrayList<Integer> -> {
       return {1, 2, 'c'}
     })
