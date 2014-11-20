@@ -43,6 +43,7 @@ public class TypeSystemLockHelper {
         // and try again to acquire the type sys lock. The idea is to prevent deadlock by ensuring
         // we can acquire both locks or none at all... albeit expensively.
         try {
+          maybeWaitOnContextLoader( objectToLock );
           objectToLock.wait(100);
         } catch (IllegalMonitorStateException e) {
           // Ugh! It turns out to be non-deterministic whether or not the VM will invoke this loop with the classloader's
@@ -68,6 +69,18 @@ public class TypeSystemLockHelper {
       catch( InterruptedException e )
       {
         throw new RuntimeException( e );
+      }
+    }
+  }
+
+  private static void maybeWaitOnContextLoader(Object objectToLock) throws InterruptedException {
+    ClassLoader ctxLoader = Thread.currentThread().getContextClassLoader();
+    if( objectToLock != ctxLoader && ctxLoader != null ) {
+      try {
+        ctxLoader.wait( 100 );
+      }
+      catch (IllegalMonitorStateException e) {
+        // ok, only wait if this thread owns the monitor, otherwise keep rolling
       }
     }
   }
