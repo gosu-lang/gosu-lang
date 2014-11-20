@@ -38,6 +38,7 @@ import gw.lang.parser.exceptions.ErrantGosuClassException;
 import gw.lang.parser.exceptions.ParseResultsException;
 import gw.lang.parser.expressions.ITypeVariableDefinition;
 import gw.lang.parser.expressions.IVarStatement;
+import gw.lang.parser.resources.Res;
 import gw.lang.parser.statements.IFunctionStatement;
 import gw.lang.parser.statements.IUsesStatement;
 import gw.lang.reflect.AbstractType;
@@ -73,6 +74,7 @@ import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -2151,7 +2153,7 @@ public class GosuClass extends AbstractType implements IGosuClassInternal
       }
     }
     if( getEnclosingType() instanceof IGosuClassInternal &&
-        ((IGosuClassInternal)getEnclosingType()).isHeaderCompiled() )
+        ((IGosuClassInternal)getEnclosingType()).isHeaderCompiled() && TypeLord.encloses( getEnclosingType(), owner.getGosuClass() ) )
     {
       getEnclosingType().putClassMembers( loader, owner, table, gsContextClass, bStatic || isStatic() );
     }
@@ -2587,13 +2589,16 @@ public class GosuClass extends AbstractType implements IGosuClassInternal
 
   public void addDelegateImpls( ISymbolTable symTable, GosuClassParser parser )
   {
+    List<DynamicPropertySymbol> props = new ArrayList<DynamicPropertySymbol>();
+    List<DelegateFunctionSymbol> meths = new ArrayList<DelegateFunctionSymbol>();
+    Map<IFunctionType, IFunctionType> delegated = new HashMap<IFunctionType, IFunctionType>();
+    IGosuClassInternal pThis = (IGosuClassInternal) getOrCreateTypeReference();
     for( VarStatement varStmt : getMemberFieldsMap().values() )
     {
       if( varStmt instanceof DelegateStatement )
       {
         DelegateStatement delegateStmt = (DelegateStatement)varStmt;
         List<IFunctionType> unimpled = new ArrayList<IFunctionType>();
-        IGosuClassInternal pThis = (IGosuClassInternal) getOrCreateTypeReference();
         for( IType iface : delegateStmt.getConstituents() )
         {
           IGosuClassInternal gsInterface = Util.getGosuClassFrom( iface );
@@ -2606,6 +2611,16 @@ public class GosuClass extends AbstractType implements IGosuClassInternal
               IFunctionType type = new FunctionType( gmi );
               if( unimpled.contains( type ) )
               {
+                DelegateFunctionType dft = new DelegateFunctionType( gmi );
+                if( delegated.containsKey( dft ) )
+                {
+                  IFunctionType existing = delegated.get( dft );
+                  parser.addDeclaredNameParseError( delegateStmt, Res.MSG_DELEGATE_METHOD_CONFLICT,
+                                                    existing.getEnclosingType() + "#" + existing.getParamSignature(),
+                                                    dft.getEnclosingType() + "#" + dft.getParamSignature());
+                  continue;
+                }
+                delegated.put( dft, dft );
                 ReducedDynamicFunctionSymbol dfs = gmi.getDfs();
 
                 mi = (IMethodInfo)dfs.getMethodOrConstructorInfo();
@@ -2639,17 +2654,27 @@ public class GosuClass extends AbstractType implements IGosuClassInternal
                   // Handle case where the dfs is a property getter or setter
                   DynamicPropertySymbol dps = parser.getOrCreateDynamicPropertySymbol(
                     getParseInfo().getClassStatement(), pThis, delegateFs, delegateFs.getReturnType() != GosuParserTypes.NULL_TYPE() );
-                  parser.processPropertySymbol( dps, pThis );
+                  //parser.processPropertySymbol( dps, pThis );
+                  props.add( dps );
                 }
                 else
                 {
-                  parser.processFunctionSymbol( delegateFs, pThis );
+                  //parser.processFunctionSymbol( delegateFs, pThis );
+                  meths.add( delegateFs );
                 }
               }
             }
           }
         }
       }
+    }
+    for( DynamicPropertySymbol dps : props )
+    {
+      parser.processPropertySymbol( dps, pThis );
+    }
+    for( DelegateFunctionSymbol delegateFs : meths )
+    {
+      parser.processFunctionSymbol( delegateFs, pThis );
     }
   }
 

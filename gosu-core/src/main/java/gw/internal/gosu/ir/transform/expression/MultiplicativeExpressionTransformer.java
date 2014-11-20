@@ -125,7 +125,7 @@ public class MultiplicativeExpressionTransformer extends ArithmeticExpressionTra
     else {
       rhsExpr = callMethod( IDimension.class, "toNumber", new Class[]{}, identifier( tempRhsInit ), Collections.<IRExpression>emptyList() );
       IRSymbol tempLhsConv = _cc().makeAndIndexTempSymbol( getDescriptor( type ) );
-      lhsExpr = buildComposite( convertOperandToBig( type, type == JavaTypes.BIG_DECIMAL() ? BigDecimal.class : BigInteger.class, _expr().getLHS().getType(), identifier( tempRhsInit ), tempLhsConv ),
+      lhsExpr = buildComposite( convertOperandToBig( type, type == JavaTypes.BIG_DECIMAL() ? BigDecimal.class : BigInteger.class, _expr().getLHS().getType(), identifier( tempLhsInit ), tempLhsConv ),
                                 identifier( tempLhsConv ) );
     }
 

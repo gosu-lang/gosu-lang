@@ -95,7 +95,7 @@ class Errant_BlocksGenericsWithParams {
       return new ArrayList<Integer>()
     })
     //x13235 : Parser and OS Gosu show error because of different issues
-    // Parser should not show error IDE-1338. And OS Gosu should not show error IDE-1346
+    // Parser should not show error IDE-1344. And OS Gosu should not show error IDE-1346
     var x13235: ArrayList<Integer> = hello1(\x: ArrayList -> {
       return {1, 2, 'c'}
     })

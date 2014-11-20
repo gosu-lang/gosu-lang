@@ -13,14 +13,14 @@ class Errant_OverloadedCallsTest {
     a.m(1, 1)
 
     var b = new GB()
-    b.m(1.0, 1.0)  //## issuekeys: MSG_IMPROPER_VALUE_FOR_NUMERIC_TYPE
+    b.m(1.0, 1.0)  //## issuekeys: MSG_IMPLICIT_COERCION_ERROR
     b.m(1.0, 1)
-    b.m(1, 1.0)  //## issuekeys: MSG_IMPROPER_VALUE_FOR_NUMERIC_TYPE
+    b.m(1, 1.0)  //## issuekeys: MSG_IMPLICIT_COERCION_ERROR
     b.m(1, 1)
 
     var c = new GC()
-    c.m(1.0, 1.0)  //## issuekeys: MSG_IMPROPER_VALUE_FOR_NUMERIC_TYPE
-    c.m(1.0, 1)  //## issuekeys: MSG_IMPROPER_VALUE_FOR_NUMERIC_TYPE
+    c.m(1.0, 1.0)  //## issuekeys: MSG_IMPLICIT_COERCION_ERROR
+    c.m(1.0, 1)  //## issuekeys: MSG_IMPLICIT_COERCION_ERROR
     c.m(1, 1.0)
     c.m(1, 1)
 
@@ -263,11 +263,11 @@ class Errant_OverloadedCallsTest {
     var r4: B = fun9({1,2,3})
 
     var r5: B = fun10({"1", "2", "3"})
-    var r6: A = fun10({"1", "2", "3"} as List<Integer>)  //## issuekeys: MSG_TYPE_MISMATCH, MSG_TYPE_MISMATCH, MSG_TYPE_MISMATCH, MSG_TYPE_MISMATCH
-    var r7: B = fun10({
-        1,       //## issuekeys: MSG_IMPLICIT_COERCION_ERROR
+    var r6: A = fun10({"1", "2", "3"} as List<Integer>)  //## issuekeys: MSG_TYPE_MISMATCH
+    var r7: B = fun10({  //## issuekeys: MSG_TYPE_MISMATCH, MSG_TYPE_MISMATCH
+        1,
         "2",
-        3         //## issuekeys: MSG_IMPLICIT_COERCION_ERROR
+        3
     })
   }
 

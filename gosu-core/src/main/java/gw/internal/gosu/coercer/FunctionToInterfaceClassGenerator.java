@@ -128,7 +128,7 @@ public class FunctionToInterfaceClassGenerator {
   private static void implementIface( StringBuilder sb, IType type ) {
     IMethodInfo mi = getSingleMethod( type );
     IType returnType = TypeLord.replaceTypeVariableTypeParametersWithBoundingTypes( mi.getReturnType() );
-    mi = getSingleMethod( TypeLord.getPureGenericType( type ) );
+    mi = getSingleMethod( IGosuClassInternal.Util.getGosuClassFrom( TypeLord.getPureGenericType( type ) ) );
     if( mi.getName().startsWith( "@" ) ) {
       if( returnType == JavaTypes.pVOID() ) {
         sb.append( "  property set " );
@@ -136,11 +136,12 @@ public class FunctionToInterfaceClassGenerator {
       else {
         sb.append( "  property get " );
       }
+      sb.append( mi.getDisplayName().substring( 1 ) ).append( "(" );
     }
     else {
       sb.append( "  function " );
+      sb.append( mi.getDisplayName() ).append( "(" );
     }
-    sb.append( mi.getDisplayName() ).append( "(" );
     IParameterInfo[] params = GosuClassProxyFactory.getGenericParameters( mi );
     for( int i = 0; i < params.length; i++ ) {
       IParameterInfo pi = params[i];

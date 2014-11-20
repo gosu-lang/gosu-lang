@@ -1,6 +1,5 @@
 package gw.lang;
 
-import gw.internal.gosu.parser.annotation.AnnotationUsageTest;
 import gw.lang.init.ClasspathToGosuPathEntryUtil;
 import gw.lang.init.GosuInitialization;
 import gw.lang.reflect.TypeSystem;
