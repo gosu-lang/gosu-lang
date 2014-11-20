@@ -76,7 +76,12 @@ public class TypeSystemLockHelper {
   private static void maybeWaitOnContextLoader(Object objectToLock) throws InterruptedException {
     ClassLoader ctxLoader = Thread.currentThread().getContextClassLoader();
     if( objectToLock != ctxLoader && ctxLoader != null ) {
-      ctxLoader.wait( 100 );
+      try {
+        ctxLoader.wait( 100 );
+      }
+      catch (IllegalMonitorStateException e) {
+        // ok, only wait if this thread owns the monitor, otherwise keep rolling
+      }
     }
   }
 }
