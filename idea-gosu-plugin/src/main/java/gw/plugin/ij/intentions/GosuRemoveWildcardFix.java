@@ -49,7 +49,7 @@ public class GosuRemoveWildcardFix extends LocalQuickFixAndIntentionActionOnPsiE
                           .getElement();
 
     if(tl != null) {
-      PsiElement prev = startElement.getPrevSibling();
+      PsiElement prev = "?".equals(startElement.getText()) ? startElement : startElement.getPrevSibling();
       PsiElement toDeleteEnd = prev;
       PsiElement toDeleteStart = null;
       PsiElement parent = startElement.getParent();
@@ -62,8 +62,12 @@ public class GosuRemoveWildcardFix extends LocalQuickFixAndIntentionActionOnPsiE
         prev = prev.getPrevSibling();
       }
       if(toDeleteStart != null) {
-        parent.deleteChildRange(toDeleteStart, toDeleteEnd);
-        startElement.replace(tl);
+        if(toDeleteStart == toDeleteEnd) {
+          toDeleteStart.replace(tl);
+        } else {
+          parent.deleteChildRange(toDeleteStart, toDeleteEnd);
+          startElement.replace(tl);
+        }
       }
     }
   }

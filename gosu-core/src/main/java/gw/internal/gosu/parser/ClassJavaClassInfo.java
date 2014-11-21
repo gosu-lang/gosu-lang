@@ -26,6 +26,7 @@ import gw.lang.reflect.java.IJavaClassType;
 import gw.lang.reflect.java.IJavaClassTypeVariable;
 import gw.lang.reflect.java.IJavaMethodDescriptor;
 import gw.lang.reflect.java.IJavaPropertyDescriptor;
+import gw.lang.reflect.java.IJavaType;
 import gw.lang.reflect.module.IModule;
 import gw.util.concurrent.LockingLazyVar;
 import gw.util.concurrent.LocklessLazyVar;
@@ -63,6 +64,7 @@ public class ClassJavaClassInfo extends TypeJavaClassType implements IClassJavaC
   private IJavaClassType[] _genericInterfaces;
   private IJavaClassInfo[] _declaredClasses;
   private ISourceFileHandle _fileHandle;
+  private IJavaType _javaType;
   private String _namespace;
   private LocklessLazyVar<IType> _enclosingClass = new LocklessLazyVar<IType>() {
     protected IType init() {
@@ -163,7 +165,10 @@ public class ClassJavaClassInfo extends TypeJavaClassType implements IClassJavaC
 
   @Override
   public IType getJavaType() {
-    return TypeSystem.get(_class, _module);
+    return _javaType == null ? (_javaType = (IJavaType) TypeSystem.get(_class, _module)) : _javaType;
+  }
+  public void setJavaType( IJavaType javaType ) {
+    _javaType = javaType;
   }
 
   @Override

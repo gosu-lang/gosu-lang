@@ -25,7 +25,7 @@ public class PropertyInfoFactory
   {
     PropertyDescriptor property = new PropertyDescriptor( strName, javaClass, strGetter, strSetter );
     BeanInfoUtil.makeScriptable( property );
-    return new JavaPropertyInfo( container, new PropertyDescriptorJavaPropertyDescriptor(property, propertyType.getTypeLoader().getModule()), propertyType );
+    return JavaPropertyInfo.newInstance( container, new PropertyDescriptorJavaPropertyDescriptor(property, propertyType.getTypeLoader().getModule()), propertyType );
   }
 
   public static IPropertyInfo make( IFeatureInfo container, String strName, Class javaClass,
@@ -35,7 +35,7 @@ public class PropertyInfoFactory
   {
     PropertyDescriptor property = new PropertyDescriptor( strName, javaClass, strGetter, strSetter );
     BeanInfoUtil.makeScriptable( property );
-    return new JavaPropertyInfo( container, new PropertyDescriptorJavaPropertyDescriptor(property, propertyType.getTypeLoader().getModule()), propertyType, presInfo );
+    return JavaPropertyInfo.newInstance( container, new PropertyDescriptorJavaPropertyDescriptor(property, propertyType.getTypeLoader().getModule()), propertyType, presInfo );
   }
 
 }

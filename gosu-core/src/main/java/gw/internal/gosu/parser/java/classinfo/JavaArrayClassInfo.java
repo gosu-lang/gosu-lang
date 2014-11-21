@@ -19,6 +19,7 @@ import gw.lang.reflect.java.IJavaClassType;
 import gw.lang.reflect.java.IJavaClassTypeVariable;
 import gw.lang.reflect.java.IJavaMethodDescriptor;
 import gw.lang.reflect.java.IJavaPropertyDescriptor;
+import gw.lang.reflect.java.IJavaType;
 import gw.lang.reflect.module.IModule;
 
 import java.lang.annotation.Annotation;
@@ -112,6 +113,8 @@ public class JavaArrayClassInfo extends AbstractJavaClassInfo {
   @Override
   public IType getJavaType() {
     return _component.getJavaType().getArrayType();
+  }
+  public void setJavaType(IJavaType javaType) {
   }
 
   @Override

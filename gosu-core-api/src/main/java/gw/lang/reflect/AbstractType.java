@@ -26,7 +26,7 @@ public abstract class AbstractType implements IType {
     return _literalMetaType;
   }
 
-  private IType getTheRef() {
+  protected IType getTheRef() {
     if (this instanceof INonLoadableType) {
       return this;
     } else {

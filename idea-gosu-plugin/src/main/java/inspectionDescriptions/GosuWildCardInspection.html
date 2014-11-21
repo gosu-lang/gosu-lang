@@ -7,7 +7,7 @@ supported them at the semantic level. It was just syntactic sugar as shown by th
 <ul>
     <li>from List&lt;?&gt; to List&lt;Object&gt;
     <li>from List&lt;? extends T&gt; to List&lt;T&gt;
-    <li>from List&lt;? super T&gt; to List&lt;Object&gt;
+    <li>from List&lt;? super T&gt; to List&lt;UPPERBOUND(T)&gt;
 </ul>
 
 This inspection allows you to upgrade your code so that it will continue to behave as before by doing the above replacements.
