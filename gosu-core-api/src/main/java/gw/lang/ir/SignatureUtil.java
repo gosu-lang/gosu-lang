@@ -34,7 +34,7 @@ public class SignatureUtil {
     }
     else {
       IType rawType = type.getGenericType() == null ? type : type.getGenericType();
-      String rawName = rawType.isPrimitive() ? rawType.getName() : processName( rawType.getName() );
+      String rawName = rawType.isPrimitive() ? rawType.getName() : processName( rawType );
       sv.visitClassType( rawName );
       if( type.isParameterizedType() ) {
         bGeneric[0] = true;
@@ -49,7 +49,7 @@ public class SignatureUtil {
     }
   }
 
-  static public IType getPureGenericType(IType type) {
+  public static IType getPureGenericType(IType type) {
     while( type.isParameterizedType() )
     {
       type = type.getGenericType();
@@ -57,10 +57,27 @@ public class SignatureUtil {
     return type;
   }
 
-  static private String processName( String name ) {
+  private static String processName( IType type ) {
+    String name = makeJavaName( type );
     if( name.length() > IGosuClass.PROXY_PREFIX.length() && name.startsWith( IGosuClass.PROXY_PREFIX ) ) {
       name = IGosuClass.ProxyUtil.getNameSansProxy( name );
     }
     return name.replace( '.', '/' );
+  }
+
+  private static String makeJavaName( IType type ) {
+    IType enclosingType = type.getEnclosingType();
+    if( enclosingType != null ) {
+      return makeJavaName( enclosingType ) + '$' + getSimpleName( type.getRelativeName() );
+    }
+    return type.getName();
+  }
+
+  private static String getSimpleName( String name ) {
+    int iDot = name.lastIndexOf( '.' );
+    if( iDot >= 0 ) {
+      return name.substring( iDot + 1 );
+    }
+    return name;
   }
 }
