@@ -382,6 +382,7 @@ public class Res
   public static final ResourceKey USING_INTERNAL_CLASS = new ResourceKey( "USING_INTERNAL_CLASS" );
   public static final ResourceKey MSG_FUNCTION_DECL_MISSING = new ResourceKey( "MSG_FUNCTION_DECL_MISSING" );
   public static final ResourceKey MSG_EXPECTING_DEFAULT_VALUE = new ResourceKey( "MSG_EXPECTING_DEFAULT_VALUE" );
+  public static final ResourceKey MSG_DEFAULT_VALUE_NOT_ALLOWED = new ResourceKey( "MSG_DEFAULT_VALUE_NOT_ALLOWED" );
   public static final ResourceKey MSG_COMPILE_TIME_CONSTANT_REQUIRED = new ResourceKey( "MSG_COMPILE_TIME_CONSTANT_REQUIRED" );
   public static final ResourceKey MSG_OVERLOADING_NOT_ALLOWED_WITH_OPTIONAL_PARAMS = new ResourceKey( "MSG_OVERLOADING_NOT_ALLOWED_WITH_OPTIONAL_PARAMS" );
   public static final ResourceKey MSG_MISSING_REQUIRED_ARGUMENTS = new ResourceKey( "MSG_MISSING_REQUIRED_ARGUMENTS" );

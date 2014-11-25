@@ -175,6 +175,7 @@ public class Strings extends ListResourceBundle
        {Res.MSG_VARIABLE_ALREADY_DEFINED.getKey(), "{0}, is already defined. Please use a different name."},
        {Res.MSG_FUNCTION_DECL_MISSING.getKey(), "Internal Error. Could not find decl function symbol for, {0}." },
        {Res.MSG_EXPECTING_DEFAULT_VALUE.getKey(), "Expecting default value assignment. Required parameters must precede optional paramters."},
+       {Res.MSG_DEFAULT_VALUE_NOT_ALLOWED.getKey(), "Default value not allowed here"},
        {Res.MSG_COMPILE_TIME_CONSTANT_REQUIRED.getKey(), "Expression must be compile-time constant here."},
        {Res.MSG_OVERLOADING_NOT_ALLOWED_WITH_OPTIONAL_PARAMS.getKey(), "Overloading not allowed with optional parameters."},
        {Res.MSG_MISSING_REQUIRED_ARGUMENTS.getKey(), "Missing one or more required arguments"},
