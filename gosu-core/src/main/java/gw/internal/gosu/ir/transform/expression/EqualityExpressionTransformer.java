@@ -21,6 +21,7 @@ import gw.lang.ir.IRType;
 import gw.lang.ir.expression.IRConditionalAndExpression;
 import gw.lang.ir.expression.IRConditionalOrExpression;
 import gw.lang.ir.expression.IREqualityExpression;
+import gw.lang.ir.expression.IRMethodCallExpression;
 import gw.lang.ir.expression.IRNotExpression;
 import gw.lang.ir.statement.IRAssignmentStatement;
 import gw.lang.reflect.IPlaceholder;
@@ -123,13 +124,17 @@ public class EqualityExpressionTransformer extends AbstractExpressionTransformer
     IRExpression nullCheckRhs = _expr().getRHS().getType().isPrimitive()
                                 ? compareExpr
                                 : buildTernary( buildEquals( identifier( tempRhs ), nullLiteral() ),
-                                                booleanLiteral( false ),
+                                                _expr().isEquals()
+                                                  ? _expr().getLHS().getType().isPrimitive() ? booleanLiteral( false ) : buildEquals( identifier( tempLhs ), nullLiteral() )
+                                                  : _expr().getLHS().getType().isPrimitive() ? booleanLiteral( true ) : buildNotEquals( identifier( tempLhs ), nullLiteral() ),
                                                 compareExpr,
                                                 getDescriptor( boolean.class ) );
     IRExpression expr = _expr().getLHS().getType().isPrimitive()
                         ? nullCheckRhs
                         : buildTernary( buildEquals( identifier( tempLhs ), nullLiteral() ),
-                                        booleanLiteral( false ),
+                                        _expr().isEquals()
+                                          ? _expr().getRHS().getType().isPrimitive() ? booleanLiteral( false ) : buildEquals( identifier( tempRhs ), nullLiteral() )
+                                          : _expr().getRHS().getType().isPrimitive() ? booleanLiteral( true ) : buildNotEquals( identifier( tempRhs ), nullLiteral() ),
                                         nullCheckRhs,
                                         getDescriptor( boolean.class ) );
     return buildComposite( tempLhsAssn, tempRhsAssn, expr );
@@ -180,7 +185,8 @@ public class EqualityExpressionTransformer extends AbstractExpressionTransformer
       {
         arrayType = JavaClassIRType.get( Object.class ).getArrayType();
       }
-      return buildMethodCall(JavaClassIRType.get( Arrays.class ), "equals", false, JavaClassIRType.get( boolean.class ), Arrays.asList( arrayType, arrayType ), null, Arrays.asList( lhs, rhs ) );
+      IRMethodCallExpression equalsCall = buildMethodCall( JavaClassIRType.get( Arrays.class ), "equals", false, JavaClassIRType.get( boolean.class ), Arrays.asList( arrayType, arrayType ), null, Arrays.asList( lhs, rhs ) );
+      return _expr().isEquals() ? equalsCall : new IRNotExpression( equalsCall );
     }
     return compareDynamically();
   }
