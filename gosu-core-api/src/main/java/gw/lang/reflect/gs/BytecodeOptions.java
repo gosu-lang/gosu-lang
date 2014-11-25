@@ -58,7 +58,8 @@ public class BytecodeOptions
   @SuppressWarnings({"UnusedDeclaration"})
   public static boolean shouldDebug( String strClass )
   {
-    return false;
+    boolean debug = false;
+    return debug;
     //return strClass.endsWith( "Brap" ) || strClass.endsWith( "FirstTemplate" );
   }
 

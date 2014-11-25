@@ -5,5 +5,6 @@ uses java.lang.Number
 
 class UsesStatementHasPrecedenceOverRelativeDefaultTypeLiteral {
   function foo() : Number {
+    return null
   }
 }

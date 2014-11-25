@@ -109,6 +109,11 @@ public class StringSourceFileHandle implements ISourceFileHandle
     return false;
   }
 
+  public boolean isIncludeModulePath()
+  {
+    return false;
+  }
+
   public void cleanAfterCompile()
   {
     _source = null;

@@ -136,7 +136,8 @@ public class GosuClassesUrlConnection extends URLConnection {
     String ext = getFileExt( type );
     if( ext == null ) {
       // This is a program or some other intangible, make sure we load these in the base loader
-      if( loader == TypeSystem.getGosuClassLoader().getActualLoader() ) {
+      if( loader == TypeSystem.getGosuClassLoader().getActualLoader() ||
+        type.getSourceFileHandle().isIncludeModulePath() ) {
         _type = (ICompilableType)type;
         _loader = loader;
       }

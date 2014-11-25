@@ -38,6 +38,7 @@ import gw.lang.reflect.java.IJavaClassType;
 import gw.lang.reflect.java.IJavaClassTypeVariable;
 import gw.lang.reflect.java.IJavaMethodDescriptor;
 import gw.lang.reflect.java.IJavaPropertyDescriptor;
+import gw.lang.reflect.java.IJavaType;
 import gw.lang.reflect.java.ITypeInfoResolver;
 import gw.lang.reflect.java.JavaTypes;
 import gw.lang.reflect.module.IModule;
@@ -105,6 +106,7 @@ public abstract class JavaSourceType extends AbstractJavaClassInfo implements IJ
   protected Map<String, Object> _cache;
   private ISourceFileHandle _fileHandle;
   private List<String> _staticImportList;
+  private IJavaType _javaType;
 
   public static IJavaClassInfo createTopLevel(ISourceFileHandle fileHandle, IModule gosuModule) {
     CharStream cs = new ANTLRStringStream(fileHandle.getSource().getSource());
@@ -653,7 +655,10 @@ public abstract class JavaSourceType extends AbstractJavaClassInfo implements IJ
 
   @Override
   public IType getJavaType() {
-    return TypeSystem.get(this);
+    return _javaType == null ? (_javaType = (IJavaType) TypeSystem.get(this)) : _javaType;
+  }
+  public void setJavaType( IJavaType javaType ) {
+    _javaType = javaType;
   }
 
   public IJavaClassTypeVariable[] getTypeParameters() {

@@ -166,11 +166,11 @@ public class MemberExpansionAccessTest extends ByteCodeTestBase
 //    assertEquals( 7d, ret[6] );
 //  }
 
-  public void testNullList() throws Exception
+  public void testNotNullList() throws Exception
   {
     Object obj = newTestArrayAccess();
-    Object val = invokeMethod( obj,  "testNullList" );
-    assertNull( val );
+    Object val = invokeMethod( obj,  "testNotNullList" );
+    assertTrue( val!= null );
   }
 
   private Object newTestArrayAccess() throws ClassNotFoundException, InstantiationException, IllegalAccessException

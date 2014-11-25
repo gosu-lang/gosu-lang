@@ -106,6 +106,9 @@ public class ErrorJavaClassInfo implements IJavaClassInfo {
 
     return TypeSystem.getErrorType();
   }
+  public void setJavaType(IJavaType javaType) {
+    throw new IllegalStateException();
+  }
 
   @Override
   public IJavaClassInfo[] getInterfaces() {

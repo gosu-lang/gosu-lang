@@ -10,7 +10,6 @@ class ProcesSpecContribTest extends BaseVerifyErrantTest {
       processErrantType(gw.specContrib.typeinference.SwitchTypeNarrowing)
       */
 
-      /*
       processErrantType(gw.specContrib.typeinference.Errant_SwitchTypeNarrowing)
       processErrantType(gw.specContrib.typeinference.IfTypeNarrowing)
       processErrantType(gw.specContrib.statements.Errant_DuplicateCaseInSwitch)
@@ -36,7 +35,6 @@ class ProcesSpecContribTest extends BaseVerifyErrantTest {
       processErrantType(gw.specContrib.delegates.Errant_DelegateCompoundType)
       processErrantType(gw.specContrib.delegates.Errant_SelfReferencingDelegateType)
       processErrantType(gw.specContrib.operators.Errant_OperatorsPrimitiveAndObject)
-      */
 
       processErrantType(gw.specContrib.interfaces.Errant_AmbiguousInterfaceFieldReference)
 
