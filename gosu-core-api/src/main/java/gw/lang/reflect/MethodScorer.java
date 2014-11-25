@@ -184,6 +184,7 @@ public class MethodScorer {
     return StandardCoercionManager.arePrimitiveTypesAssignable( paramType, argType ) ||
            (paramType.isPrimitive() && argType.isPrimitive() &&
             (paramType != JavaTypes.pBOOLEAN()) && (argType != JavaTypes.pBOOLEAN()) &&
+            (paramType != JavaTypes.pCHAR()) && (argType != JavaTypes.pCHAR()) &&
             (paramType != JavaTypes.pVOID()) && (argType != JavaTypes.pVOID()) &&
            BasePrimitiveCoercer.losesInformation( argType, paramType ) <= 1);
   }

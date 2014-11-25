@@ -157,9 +157,9 @@ public class BasePrimitiveCoercer extends StandardCoercer implements IResolvingC
   public static int losesInformation( IType from, IType to ) {
     int[][] tab =
     {                                        //TO
-      //FROM       boolean  byte    char    short   int     long    float   double
+      //FROM       boolean  char    byte    short   int     long    float   double
       /*boolean*/  {0,      0,      0,      0,      0,      0,      0,      0 },
-      /*char   */  {2,      2,      0,      2,      0,      0,      0,      0 },
+      /*char   */  {2,      0,      2,      2,      0,      0,      0,      0 },
       /*byte   */  {2,      0,      0,      0,      0,      0,      0,      0 },
       /*short  */  {2,      2,      2,      0,      0,      0,      0,      0 },
       /*int    */  {2,      2,      2,      2,      0,      0,      1,      0 },
