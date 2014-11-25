@@ -1,4 +1,4 @@
-package gw.specification.temp.generics
+package gw.specification.temp.equality.numeric
 
 uses gw.BaseVerifyErrantTest
 uses java.lang.Integer
