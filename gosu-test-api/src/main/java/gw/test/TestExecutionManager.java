@@ -44,7 +44,7 @@ public class TestExecutionManager {
   // TODO - AHK - Combine with _suiteStartTime
   private long _suiteStartTimeNs = 0L;
 
-  private static boolean INCLUDE_TEST_TIMING_INFO = false;
+  private static boolean INCLUDE_TEST_TIMING_INFO = Boolean.getBoolean("gw.test.timing.info");
 
   public void setEnvironment(TestEnvironment environment) {
     _environment = environment;
