@@ -130,6 +130,7 @@ public final class UnaryExpression extends Expression implements IUnaryExpressio
       type == JavaTypes.FLOAT() || type == JavaTypes.pFLOAT() ||
       type == JavaTypes.SHORT() || type == JavaTypes.pSHORT() ||
       type == JavaTypes.BYTE() || type == JavaTypes.pBYTE() ||
+      type == JavaTypes.CHARACTER() || type == JavaTypes.pCHAR() ||
       JavaTypes.IDIMENSION().isAssignableFrom( type ) ||
       (type instanceof IPlaceholder && ((IPlaceholder)type).isPlaceholder());
   }

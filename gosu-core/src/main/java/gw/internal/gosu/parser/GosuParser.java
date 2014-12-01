@@ -2598,7 +2598,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
       boolean negation = T._strValue.charAt( 0 ) == (int)'-';
       if( negation && atNumberLiteralStart() )
       {
-        parseNumberLiteral(true);
+        parseNumberLiteral( true );
       }
       else
       {
@@ -2607,8 +2607,19 @@ public final class GosuParser extends ParserBase implements IGosuParser
         UnaryExpression ue = new UnaryExpression();
         Expression e = popExpression();
         verify( e, ue.isSupportedType( e.getType() ), Res.MSG_NUMERIC_TYPE_EXPECTED );
-        ue.setExpression( e );
         ue.setNegated( negation );
+        if( negation )
+        {
+          if( e.getType() == JavaTypes.pCHAR() )
+          {
+            e = possiblyWrapWithCoercion( e, JavaTypes.pINT(), true );
+          }
+          else if( e.getType() == JavaTypes.CHARACTER() )
+          {
+            e = possiblyWrapWithCoercion( e, JavaTypes.INTEGER(), true );
+          }
+        }
+        ue.setExpression( e );
         ue.setType( e.getType() );
         pushExpression( ue );
       }
