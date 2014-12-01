@@ -73,9 +73,7 @@ class ProcesSpecContribTest extends BaseVerifyErrantTest {
                                    "gw.specContrib.blocks.Errant_BlocksGenericsWithoutParams",  // IDE-1346
                                    "gw.specContrib.typeinference.Errant_SwitchTypeNarrowing",  // IDE-426
                                    "gw.specContrib.generics.Errant_GenericMethodBounds2",  // IDE-538
-                                   "gw.specContrib.expressions.intervals.Errant_CharInterval",  // fixed in 08cdc1c0b5
                                    "gw.specContrib.expressions.Errant_ExpressionsPrimitiveTypes",  // IDE-1276
-                                   "gw.specContrib.classes.property_Declarations.Errant_PropertySetterWithOptionalParameter",  // fixed in  921587e0b5
 
                                    /* to skip as we don't support this check in our testing framework */
                                    "gw.specContrib.classes.Errant_ClassDeclaredInEnhancement",
