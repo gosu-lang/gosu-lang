@@ -50,6 +50,6 @@ class Errant_PrivateAccessModifier {
   }
 
   function testObvious() {
-    var array = "".value  //## issuekeys: 'VALUE' HAS PRIVATE ACCESS IN 'JAVA.LANG.STRING'
+    var array = "".value  //## issuekeys: MSG_NO_PROPERTY_DESCRIPTOR_FOUND
   }
 }
