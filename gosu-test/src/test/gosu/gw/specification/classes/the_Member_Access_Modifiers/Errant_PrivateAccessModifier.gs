@@ -48,4 +48,8 @@ class Errant_PrivateAccessModifier {
       m6()
     }
   }
+
+  function testObvious() {
+    var array = "".value  //## issuekeys: 'VALUE' HAS PRIVATE ACCESS IN 'JAVA.LANG.STRING'
+  }
 }

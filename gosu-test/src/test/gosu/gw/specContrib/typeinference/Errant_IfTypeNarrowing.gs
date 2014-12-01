@@ -2,7 +2,7 @@ package gw.specContrib.typeinference
 
 uses java.util.Date
 
-class IfTypeNarrowing {
+class Errant_IfTypeNarrowing {
 
   function test() {
     var x: Object = "neat"
