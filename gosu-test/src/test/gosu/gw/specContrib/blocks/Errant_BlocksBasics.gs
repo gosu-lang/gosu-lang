@@ -19,14 +19,14 @@ class Errant_BlocksBasics {
     var block0118: block() = \-> 42
     var block0119: block(): int = \-> 42
     var block0120: block(): int = \-> {
-      42      //## issuekeys: NOT A STATEMENT
-    }      //## issuekeys: MISSING RETURN STATEMENT
+      42      //## issuekeys: MSG_UNEXPECTED_TOKEN
+    }      //## issuekeys: MSG_MISSING_RETURN
     var block0121: block(): int = \-> {
       return 42
     }
     //IDE-1321
     var block0122: block() = \-> {
-      return 42    //## issuekeys: UNEXPECTED TOKEN
+      return 42    //## issuekeys: MSG_UNEXPECTED_TOKEN
     }
 
     var block0123(): int = \-> 42
@@ -40,13 +40,13 @@ class Errant_BlocksBasics {
   }
 
   function testBlock111() {
-    var blockString111(String): String
-    var blockString112: block(String): String
-    var blockString113 = block(String): String
+    var blockString111(s : String): String
+    var blockString112: block(s : String): String
+    var blockString113 = block(s : String): String
 
     var result111 = blockString111('c')
     var result112 = blockString112('c')
-    var result113 = blockString113('c')      //## issuekeys: METHOD CALL EXPECTED
+    var result113 = blockString113('c')      //## issuekeys: MSG_NO_SUCH_FUNCTION
   }
 
   //Block Type in function Argument Lists
@@ -59,8 +59,8 @@ class Errant_BlocksBasics {
   function callFunWithsBlockAsArgument() {
     functionArgument111(\-> "sdf")
     functionArgument112(\-> "sdf")
-    functionArgument111(\-> 42)      //## issuekeys: 'FUNCTIONARGUMENT111(GW.LANG.__PSI__.IBLOCK0<JAVA.LANG.STRING>)' IN 'GW.SPECCONTRIB.AAA.PARSERVSOPENSOURCE.BLOCKS.BLOCKSMAIN.ERRANT_BLOCKSBASICS' CANNOT BE APPLIED TO '(BLOCK():INT)'
-    functionArgument112(\-> 42)      //## issuekeys: 'FUNCTIONARGUMENT112(GW.LANG.__PSI__.IBLOCK0<JAVA.LANG.STRING>)' IN 'GW.SPECCONTRIB.AAA.PARSERVSOPENSOURCE.BLOCKS.BLOCKSMAIN.ERRANT_BLOCKSBASICS' CANNOT BE APPLIED TO '(BLOCK():INT)'
+    functionArgument111(\-> 42)      //## issuekeys: MSG_IMPLICIT_COERCION_ERROR
+    functionArgument112(\-> 42)      //## issuekeys: MSG_IMPLICIT_COERCION_ERROR
   }
 
 }

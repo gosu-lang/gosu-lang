@@ -4,13 +4,10 @@ uses java.lang.Double
 
 class Errant_FieldPropertyWithInconsistentTypes {
 
-  var prop: Double as Prop = 1      //## issuekeys: INVALID PROPERTY DECLARATION; GETTER/SETTER SHOULD HAVE THE SAME TYPE AS THE PROPERTY IT OVERRIDES
+  var prop: Double as Prop = 1      //## issuekeys: MSG_PROPERTIES_MUST_AGREE_ON_TYPE
 
-  property get Prop(): String {      //## issuekeys: INVALID PROPERTY DECLARATION; GETTER/SETTER SHOULD HAVE THE SAME TYPE AS THE PROPERTY IT OVERRIDES
-    return null
-  }
+  property get Prop(): String { return null }     //## issuekeys: MSG_PROPERTIES_MUST_AGREE_ON_TYPE
 
-  property set Prop(d: String) {      //## issuekeys: INVALID PROPERTY DECLARATION; GETTER/SETTER SHOULD HAVE THE SAME TYPE AS THE PROPERTY IT OVERRIDES
-  }
+  property set Prop(d: String) { }     //## issuekeys: MSG_PROPERTIES_MUST_AGREE_ON_TYPE
 
 }

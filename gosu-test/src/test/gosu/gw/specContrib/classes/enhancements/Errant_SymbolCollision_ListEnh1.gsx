@@ -2,16 +2,16 @@ package gw.specContrib.classes.enhancements
 
 enhancement Errant_SymbolCollision_ListEnh1<B>: List<B> {
 
-  property get someField(): int {return 1}      //## issuekeys: THE FUNCTION 'GETSOMEFIELD()' IS ALREADY DEFINED IN THE TYPE 'GW.SPECCONTRIB.CLASSES.ENHANCEMENTS.A.ERRANT_ENHANCEMENTSYMBOLNAMECOLLISION2'. ENHANCEMENTS CANNOT OVERRIDE FUNCTIONS.
+  property get someField(): int {return 1}
 
   private function privateFunction(b: B) {}
-  protected function protectedFunction(b: B) {}      //## issuekeys: THE FUNCTION 'PROTECTEDFUNCTION(B)' IS ALREADY DEFINED IN THE TYPE 'GW.SPECCONTRIB.CLASSES.ENHANCEMENTS.A.ERRANT_ENHANCEMENTSYMBOLNAMECOLLISION2'. ENHANCEMENTS CANNOT OVERRIDE FUNCTIONS.
-  internal function internalFunction(b: B) {}      //## issuekeys: THE FUNCTION 'INTERNALFUNCTION(B)' IS ALREADY DEFINED IN THE TYPE 'GW.SPECCONTRIB.CLASSES.ENHANCEMENTS.A.ERRANT_ENHANCEMENTSYMBOLNAMECOLLISION2'. ENHANCEMENTS CANNOT OVERRIDE FUNCTIONS.
-  public function publicFunction(b: B) {}      //## issuekeys: THE FUNCTION 'PUBLICFUNCTION(B)' IS ALREADY DEFINED IN THE TYPE 'GW.SPECCONTRIB.CLASSES.ENHANCEMENTS.A.ERRANT_ENHANCEMENTSYMBOLNAMECOLLISION2'. ENHANCEMENTS CANNOT OVERRIDE FUNCTIONS.
+  protected function protectedFunction(b: B) {}
+  internal function internalFunction(b: B) {}
+  public function publicFunction(b: B) {}
 
   private property set PrivateProperty(b: B) {}
-  protected property set ProtectedProperty(b: B) {}      //## issuekeys: THE FUNCTION 'SETPROTECTEDPROPERTY(B)' IS ALREADY DEFINED IN THE TYPE 'GW.SPECCONTRIB.CLASSES.ENHANCEMENTS.A.ERRANT_ENHANCEMENTSYMBOLNAMECOLLISION2'. ENHANCEMENTS CANNOT OVERRIDE FUNCTIONS.
-  internal property set InternalProperty(b: B) {}      //## issuekeys: THE FUNCTION 'SETINTERNALPROPERTY(B)' IS ALREADY DEFINED IN THE TYPE 'GW.SPECCONTRIB.CLASSES.ENHANCEMENTS.A.ERRANT_ENHANCEMENTSYMBOLNAMECOLLISION2'. ENHANCEMENTS CANNOT OVERRIDE FUNCTIONS.
-  public property set PublicProperty(b: B) {}      //## issuekeys: THE FUNCTION 'SETPUBLICPROPERTY(B)' IS ALREADY DEFINED IN THE TYPE 'GW.SPECCONTRIB.CLASSES.ENHANCEMENTS.A.ERRANT_ENHANCEMENTSYMBOLNAMECOLLISION2'. ENHANCEMENTS CANNOT OVERRIDE FUNCTIONS.
+  protected property set ProtectedProperty(b: B) {}
+  internal property set InternalProperty(b: B) {}
+  public property set PublicProperty(b: B) {}
 
 }

@@ -11,7 +11,7 @@ class Errant_BlocksAsArgumentString {
   function blockStringFun112(block1: block()) {
   }
 
-  function blockStringFun113(block1: block(String)) {
+  function blockStringFun113(block1: block(String)) {  //## issuekeys: MSG_BLOCK_TYPES_SHOULD_HAVE_ARG_NAMES
   }
 
   function blockStringFun114(block1: block(s: String)) {
@@ -37,10 +37,10 @@ class Errant_BlocksAsArgumentString {
 
     //IDE-1321 - should show error. Block has return statement but is not supposed to return anything
     blockStringFun114(\s: String -> {
-      return s                  //## issuekeys:
+      return s                  //## issuekeys: MSG_NOT_A_STATEMENT
     })
 
-    blockStringFun115(\s -> print("hello"))   //## issuekeys: 'BLOCKSTRINGFUN115(GW.LANG.__PSI__.IBLOCK1<JAVA.LANG.STRING,JAVA.LANG.STRING>)' IN 'AAA.PARSERVSOPENSOURCE.BLOCKS.BLOCKSMAIN.ERRANT_BLOCKSASARGUMENTSSTRING' CANNOT BE APPLIED TO '(BLOCK(STRING))'
+    blockStringFun115(\s -> print("hello"))   //## issuekeys: MSG_TYPE_MISMATCH, MSG_VOID_RETURN_IN_CTX_EXPECTING_VALUE
 
     blockStringFun115(\s -> "hello")
 
@@ -63,12 +63,12 @@ class Errant_BlocksAsArgumentString {
   }
 
   function mixedCases() {
-    blockStringFun112(\s: String -> print(""))      //## issuekeys: 'BLOCKSTRINGFUN112(GW.LANG.__PSI__.IBLOCK0<VOID>)' IN 'AAA.PARSERVSOPENSOURCE.BLOCKS.BLOCKSMAIN.ERRANT_BLOCKSASARGUMENTSSTRING' CANNOT BE APPLIED TO '(BLOCK(STRING))'
+    blockStringFun112(\s: String -> print(""))      //## issuekeys: MSG_TYPE_MISMATCH
     blockStringFun113(\s: CharSequence -> print(""))
     blockStringFun114(\s: CharSequence -> print(""))
-    blockStringFun113(\s: Integer -> print(""))      //## issuekeys: 'BLOCKSTRINGFUN113(GW.LANG.__PSI__.IBLOCK1<VOID,JAVA.LANG.STRING>)' IN 'AAA.PARSERVSOPENSOURCE.BLOCKS.BLOCKSMAIN.ERRANT_BLOCKSASARGUMENTSSTRING' CANNOT BE APPLIED TO '(BLOCK(INTEGER))'
+    blockStringFun113(\s: Integer -> print(""))      //## issuekeys: MSG_TYPE_MISMATCH
     blockStringFun115(\s: CharSequence -> "hello")
-    blockStringFun115(\s: String -> new Object())      //## issuekeys: 'BLOCKSTRINGFUN115(GW.LANG.__PSI__.IBLOCK1<JAVA.LANG.STRING,JAVA.LANG.STRING>)' IN 'AAA.PARSERVSOPENSOURCE.BLOCKS.BLOCKSMAIN.ERRANT_BLOCKSASARGUMENTSSTRING' CANNOT BE APPLIED TO '(BLOCK(STRING):OBJECT)'
+    blockStringFun115(\s: String -> new Object())      //## issuekeys: MSG_IMPLICIT_COERCION_ERROR
     blockStringFun115(\s: String -> new String("mystring"))
     blockStringFun115(\s: String -> new Object().toString())
   }
@@ -81,10 +81,10 @@ class Errant_BlocksAsArgumentString {
 
     function caller111() {
 
-      myFun111(\c: CharSequence -> cseq2)      //## issuekeys: 'MYFUN111(GW.LANG.__PSI__.IBLOCK1<JAVA.LANG.STRING,JAVA.LANG.CHARSEQUENCE>)' IN 'AAA.PARSERVSOPENSOURCE.BLOCKS.BLOCKSMAIN.ERRANT_BLOCKSASARGUMENTSSTRING.COCONTRAVARIANCETEST' CANNOT BE APPLIED TO '(BLOCK(CHARSEQUENCE):CHARSEQUENCE)'
+      myFun111(\c: CharSequence -> cseq2)      //## issuekeys: MSG_IMPLICIT_COERCION_ERROR
       myFun111(\c: CharSequence -> "mystring")
-      myFun111(\c: String -> "mystring")      //## issuekeys: 'MYFUN111(GW.LANG.__PSI__.IBLOCK1<JAVA.LANG.STRING,JAVA.LANG.CHARSEQUENCE>)' IN 'AAA.PARSERVSOPENSOURCE.BLOCKS.BLOCKSMAIN.ERRANT_BLOCKSASARGUMENTSSTRING.COCONTRAVARIANCETEST' CANNOT BE APPLIED TO '(BLOCK(STRING):STRING)'
-      myFun111(\c: String -> cseq2)      //## issuekeys: 'MYFUN111(GW.LANG.__PSI__.IBLOCK1<JAVA.LANG.STRING,JAVA.LANG.CHARSEQUENCE>)' IN 'AAA.PARSERVSOPENSOURCE.BLOCKS.BLOCKSMAIN.ERRANT_BLOCKSASARGUMENTSSTRING.COCONTRAVARIANCETEST' CANNOT BE APPLIED TO '(BLOCK(STRING):CHARSEQUENCE)'
+      myFun111(\c: String -> "mystring")      //## issuekeys: MSG_TYPE_MISMATCH
+      myFun111(\c: String -> cseq2)      //## issuekeys: MSG_TYPE_MISMATCH, MSG_IMPLICIT_COERCION_ERROR
 
       myFun111(\c: CharSequence -> 'ccc')
       myFun111(\c: CharSequence -> 'c')
@@ -100,8 +100,8 @@ class Errant_BlocksAsArgumentString {
       myFun222(\c: String -> cseq2)
 
       myFun222(\c: CharSequence -> 'ccc')
-      myFun222(\c: CharSequence -> 'c')      //## issuekeys: 'MYFUN222(GW.LANG.__PSI__.IBLOCK1<JAVA.LANG.CHARSEQUENCE,JAVA.LANG.STRING>)' IN 'AAA.PARSERVSOPENSOURCE.BLOCKS.BLOCKSMAIN.ERRANT_BLOCKSASARGUMENTSSTRING.COCONTRAVARIANCETEST' CANNOT BE APPLIED TO '(BLOCK(CHARSEQUENCE):CHAR)'
-      myFun222(\c: char -> 'ccc')      //## issuekeys: 'MYFUN222(GW.LANG.__PSI__.IBLOCK1<JAVA.LANG.CHARSEQUENCE,JAVA.LANG.STRING>)' IN 'AAA.PARSERVSOPENSOURCE.BLOCKS.BLOCKSMAIN.ERRANT_BLOCKSASARGUMENTSSTRING.COCONTRAVARIANCETEST' CANNOT BE APPLIED TO '(BLOCK(CHAR):STRING)'
+      myFun222(\c: CharSequence -> 'c')      //## issuekeys: MSG_TYPE_MISMATCH, MSG_TYPE_MISMATCH
+      myFun222(\c: char -> 'ccc')      //## issuekeys: MSG_TYPE_MISMATCH
     }
   }
 }

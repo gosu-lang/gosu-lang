@@ -10,8 +10,7 @@ class Errant_PropertyAcrossHierarchy {
 
   class Inner extends Errant_PropertyAcrossHierarchy {
 
-    property set Prop(d: Integer) {      //## issuekeys: INVALID PROPERTY DECLARATION; GETTER/SETTER SHOULD HAVE THE SAME TYPE AS THE PROPERTY IT OVERRIDES
-    }
+    property set Prop(d: Integer) { }     //## issuekeys: MSG_PROPERTIES_MUST_AGREE_ON_TYPE
 
   }
 

@@ -13,7 +13,7 @@ class Errant_BlocksAsArgumentArrayList {
   function blockArrayListFun112(block1: block()) {
   }
 
-  function blockArrayListFun113(block1: block(ArrayList)) {
+  function blockArrayListFun113(block1: block(ArrayList)) {  //## issuekeys: MSG_BLOCK_TYPES_SHOULD_HAVE_ARG_NAMES
   }
 
   function blockArrayListFun114(block1: block(s: ArrayList)) {
@@ -39,8 +39,8 @@ class Errant_BlocksAsArgumentArrayList {
     blockArrayListFun115(\s -> print("hello"))      //## issuekeys: 'BLOCKARRAYLISTFUN115(GW.LANG.__PSI__.IBLOCK1<JAVA.UTIL.ARRAYLIST,JAVA.UTIL.ARRAYLIST>)' IN 'TEST.GOSU.GW.SPECCONTRIB.AAA.PARSERVSOPENSOURCE.BLOCKS.BLOCKSMAIN.ERRANT_BLOCKSASARGUMENTARRAYLIST' CANNOT BE APPLIED TO '(BLOCK(ARRAYLIST<OBJECT>))'
 
     blockArrayListFun115(\s -> {
-      1,2,3         //## issuekeys: NOT A STATEMENT
-    })
+      1,2,3 })        //## issuekeys: MSG_UNEXPECTED_TOKEN, MSG_UNEXPECTED_TOKEN, MSG_UNEXPECTED_TOKEN, MSG_UNEXPECTED_TOKEN, MSG_UNEXPECTED_TOKEN
+
     blockArrayListFun115(\s -> {
       return {1, 'c', "mystring"}
     })
@@ -70,7 +70,7 @@ class Errant_BlocksAsArgumentArrayList {
   function blockArrayListIntegerFun112(block1: block()) {
   }
 
-  function blockArrayListIntegerFun113(block1: block(ArrayList<Integer>)) {
+  function blockArrayListIntegerFun113(block1: block(ArrayList<Integer>)) {  //## issuekeys: MSG_BLOCK_TYPES_SHOULD_HAVE_ARG_NAMES
   }
 
   function blockArrayListIntegerFun114(block1: block(s: ArrayList<Integer>)) {
@@ -101,8 +101,8 @@ class Errant_BlocksAsArgumentArrayList {
     blockArrayListIntegerFun114(\ArrayList<Integer> -> print("hello"))      //## issuekeys: UNEXPECTED TOKEN: <
     blockArrayListIntegerFun115(\s -> print("hello"))        //## issuekeys: 'BLOCKARRAYLISTINTEGERFUN115(GW.LANG.__PSI__.IBLOCK1<JAVA.UTIL.ARRAYLIST<JAVA.LANG.INTEGER>,JAVA.UTIL.ARRAYLIST<JAVA.LANG.INTEGER>>)' IN 'TEST.GOSU.GW.SPECCONTRIB.AAA.PARSERVSOPENSOURCE.BLOCKS.BLOCKSMAIN.ERRANT_BLOCKSASARGUMENTARRAYLIST' CANNOT BE APPLIED TO '(BLOCK(ARRAYLIST<INTEGER>))'
     blockArrayListIntegerFun115(\s -> {
-      1,2,3    //ERROR Expected      //## issuekeys: NOT A STATEMENT
-    })
+      1,2,3 })    //ERROR Expected      //## issuekeys: MSG_UNEXPECTED_TOKEN, MSG_UNEXPECTED_TOKEN, MSG_UNEXPECTED_TOKEN, MSG_UNEXPECTED_TOKEN, MSG_UNEXPECTED_TOKEN
+
     blockArrayListIntegerFun115(\s -> {
       return {1, 2, 3}
     })
@@ -118,7 +118,7 @@ class Errant_BlocksAsArgumentArrayList {
     blockArrayListIntegerFun115(\s -> {
       print("blockfun5");
       return {1, 2, 3}
-    })
+    })  //## issuekeys: MSG_UNREACHABLE_STMT
 
     var blockArrayListIntVar116: ArrayList<Integer> = blockArrayListIntegerFun116(\s -> {
       print("blockfun5");
@@ -146,12 +146,10 @@ class Errant_BlocksAsArgumentArrayList {
       myFun111(\c: ArrayList -> {
         return {1s, 2s, 3s}
       })
-      myFun111(\c: ArrayList<Number> -> {      //## issuekeys: 'MYFUN111(GW.LANG.__PSI__.IBLOCK1<JAVA.UTIL.ARRAYLIST<JAVA.LANG.INTEGER>,JAVA.UTIL.ARRAYLIST>)' IN 'TEST.GOSU.GW.SPECCONTRIB.AAA.PARSERVSOPENSOURCE.BLOCKS.BLOCKSMAIN.ERRANT_BLOCKSASARGUMENTARRAYLIST.COCONTRAVARIANCETEST' CANNOT BE APPLIED TO '(BLOCK(ARRAYLIST<NUMBER>):ARRAYLIST<INTEGER>)'
-        return {1s, 2s, 3s}
-      })
-      myFun111(\c: ArrayList -> {      //## issuekeys: 'MYFUN111(GW.LANG.__PSI__.IBLOCK1<JAVA.UTIL.ARRAYLIST<JAVA.LANG.INTEGER>,JAVA.UTIL.ARRAYLIST>)' IN 'TEST.GOSU.GW.SPECCONTRIB.AAA.PARSERVSOPENSOURCE.BLOCKS.BLOCKSMAIN.ERRANT_BLOCKSASARGUMENTARRAYLIST.COCONTRAVARIANCETEST' CANNOT BE APPLIED TO '(BLOCK(ARRAYLIST):ARRAYLIST<SHORT>)'
-        return new ArrayList<Short>()
-      })
+      myFun111(\c: ArrayList<Number> -> {  return {1s, 2s, 3s}  })     //## issuekeys: MSG_TYPE_MISMATCH
+
+      myFun111(\c: ArrayList -> { return new ArrayList<Short>()   })     //## issuekeys: MSG_TYPE_MISMATCH
+
     }
 
     function myFun222(block(a: ArrayList<Integer>): ArrayList) {
@@ -163,9 +161,8 @@ class Errant_BlocksAsArgumentArrayList {
       myFun222(\c: ArrayList<Integer> -> alistInteger1)
       myFun222(\c: ArrayList<Integer> -> alist1)
 
-      myFun222(\c: ArrayList<Number> -> {      //## issuekeys: 'MYFUN222(GW.LANG.__PSI__.IBLOCK1<JAVA.UTIL.ARRAYLIST,JAVA.UTIL.ARRAYLIST<JAVA.LANG.INTEGER>>)' IN 'TEST.GOSU.GW.SPECCONTRIB.AAA.PARSERVSOPENSOURCE.BLOCKS.BLOCKSMAIN.ERRANT_BLOCKSASARGUMENTARRAYLIST.COCONTRAVARIANCETEST' CANNOT BE APPLIED TO '(BLOCK(ARRAYLIST<NUMBER>):ARRAYLIST<SHORT>)'
-        return new ArrayList<Short>()
-      })
+      myFun222(\c: ArrayList<Number> -> { return new ArrayList<Short>()  })      //## issuekeys: MSG_TYPE_MISMATCH
+
     }
   }
 }

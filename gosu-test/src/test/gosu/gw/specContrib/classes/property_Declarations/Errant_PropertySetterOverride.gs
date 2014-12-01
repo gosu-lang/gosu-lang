@@ -13,8 +13,7 @@ class Errant_PropertySetterOverride {
 
   class Inner extends Errant_PropertySetterOverride {
 
-    property set Prop(s: Integer) {      //## issuekeys: INVALID PROPERTY DECLARATION; GETTER AND SETTER SHOULD AGREE ON THE TYPE OF THE PROPERTY
-    }
+    property set Prop(s: Integer) {}      //## issuekeys: INVALID PROPERTY DECLARATION; GETTER AND SETTER SHOULD AGREE ON THE TYPE OF THE PROPERTY
 
   }
 

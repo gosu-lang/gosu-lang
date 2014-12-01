@@ -12,7 +12,7 @@ class Errant_BlocksAsArgumentHashMap {
   function blockHashMapFun112(block1: block()) {
   }
 
-  function blockHashMapFun113(block1: block(HashMap)) {
+  function blockHashMapFun113(block1: block(HashMap)) {  //## issuekeys: MSG_BLOCK_TYPES_SHOULD_HAVE_ARG_NAMES
   }
 
   function blockHashMapFun114(block1: block(s: HashMap)) {
@@ -36,10 +36,9 @@ class Errant_BlocksAsArgumentHashMap {
     //IDE-1336 - Not A Bug. The type is actually a variable name here. No error expected
     blockHashMapFun114(\HashMap -> print("hello"))
 
-    blockHashMapFun115(\s -> print("hello"))     //## issuekeys: 'BLOCKHASHMAPFUN115(GW.LANG.__PSI__.IBLOCK1<JAVA.UTIL.HASHMAP,JAVA.UTIL.HASHMAP>)' IN 'TEST.GOSU.GW.SPECCONTRIB.AAA.PARSERVSOPENSOURCE.BLOCKS.BLOCKSMAIN.ERRANT_BLOCKSASARGUMENTHASHMAP' CANNOT BE APPLIED TO '(BLOCK(HASHMAP<OBJECT, OBJECT>))'
+    blockHashMapFun115(\s -> print("hello"))     //## issuekeys: MSG_TYPE_MISMATCH, MSG_VOID_RETURN_IN_CTX_EXPECTING_VALUE
     blockHashMapFun115(\s -> {
-      1->2,3->4    //ERROR Expected      //## issuekeys: NOT A STATEMENT
-    })
+      1->2,3->4 })   //ERROR Expected      //## issuekeys: MSG_UNEXPECTED_TOKEN, MSG_UNEXPECTED_TOKEN, MSG_UNEXPECTED_TOKEN, MSG_UNEXPECTED_TOKEN, MSG_UNEXPECTED_TOKEN, MSG_UNEXPECTED_TOKEN, MSG_UNEXPECTED_TOKEN, MSG_MISSING_RETURN
     blockHashMapFun115(\s -> {
       return {1->2, 3->4}
     })
@@ -69,7 +68,7 @@ class Errant_BlocksAsArgumentHashMap {
   function blockHashMapIntegerFun112(block1: block()) {
   }
 
-  function blockHashMapIntegerFun113(block1: block(HashMap<Integer, Integer>)) {
+  function blockHashMapIntegerFun113(block1: block(HashMap<Integer, Integer>)) {  //## issuekeys: MSG_BLOCK_TYPES_SHOULD_HAVE_ARG_NAMES
   }
 
   function blockHashMapIntegerFun114(block1: block(s: HashMap<Integer, Integer>)) {
@@ -95,14 +94,13 @@ class Errant_BlocksAsArgumentHashMap {
     blockHashMapIntegerFun114(\s: HashMap<Integer, Integer> -> print("hello"))
 
     //IDE-1336 Error expected. as the argument name is not specified
-    blockHashMapIntegerFun114(\HashMap<Integer,Integer>->print("hello"))      //## issuekeys: UNEXPECTED TOKEN: <
+    blockHashMapIntegerFun114(\HashMap<Integer,Integer>->print("hello"))      //## issuekeys: MSG_WRONG_NUMBER_OF_ARGS_TO_FUNCTION, MSG_EXPECTING_FUNCTION_CLOSE, MSG_TYPE_MISMATCH, MSG_EXPECTING_ARROW_AFTER_BLOCK_ARGS, MSG_TYPE_MISMATCH, MSG_SYNTAX_ERROR, MSG_UNEXPECTED_TOKEN, MSG_UNEXPECTED_TOKEN
 
-    blockHashMapIntegerFun115(\s -> print("hello"))        //## issuekeys: 'BLOCKHASHMAPINTEGERFUN115(GW.LANG.__PSI__.IBLOCK1<JAVA.UTIL.HASHMAP<JAVA.LANG.INTEGER,JAVA.LANG.INTEGER>,JAVA.UTIL.HASHMAP<JAVA.LANG.INTEGER,JAVA.LANG.INTEGER>>)' IN 'TEST.GOSU.GW.SPECCONTRIB.AAA.PARSERVSOPENSOURCE.BLOCKS.BLOCKSMAIN.ERRANT_BLOCKSASARGUMENTHASHMAP' CANNOT BE APPLIED TO '(BLOCK(HASHMAP<INTEGER, INTEGER>))'
+    blockHashMapIntegerFun115(\s -> print("hello"))        //## issuekeys: MSG_TYPE_MISMATCH, MSG_VOID_RETURN_IN_CTX_EXPECTING_VALUE
 
     //ERROR Expected. Need to have return statement. Cannot return a HashMap directly
     blockHashMapIntegerFun115(\s -> {
-      1->2,3->4      //## issuekeys: NOT A STATEMENT
-    })
+      1->2,3->4 })      //## issuekeys: MSG_UNEXPECTED_TOKEN, MSG_UNEXPECTED_TOKEN, MSG_UNEXPECTED_TOKEN, MSG_UNEXPECTED_TOKEN, MSG_UNEXPECTED_TOKEN, MSG_UNEXPECTED_TOKEN, MSG_UNEXPECTED_TOKEN
     blockHashMapIntegerFun115(\s -> {
       return {1->2, 3->4}
     })
@@ -111,14 +109,14 @@ class Errant_BlocksAsArgumentHashMap {
     })
 
     //IDE-1336 : Error expected. as the argument name is not specified
-    blockHashMapIntegerFun115(\HashMap<Integer,Integer>->{      //## issuekeys: UNEXPECTED TOKEN: <
-      return {1->2, 3->4}      //## issuekeys: CANNOT RETURN A VALUE FROM A METHOD WITH VOID RESULT TYPE
-    })      //## issuekeys: UNEXPECTED TOKEN: <
+    blockHashMapIntegerFun115(\HashMap<Integer,Integer>->{      //## issuekeys: MSG_WRONG_NUMBER_OF_ARGS_TO_FUNCTION, MSG_EXPECTING_FUNCTION_CLOSE, MSG_TYPE_MISMATCH, MSG_EXPECTING_ARROW_AFTER_BLOCK_ARGS, MSG_TYPE_MISMATCH, MSG_SYNTAX_ERROR, MSG_UNEXPECTED_TOKEN
+      return {1->2, 3->4}      //## issuekeys: MSG_UNREACHABLE_STMT, MSG_UNEXPECTED_TOKEN, MSG_UNEXPECTED_TOKEN, MSG_UNEXPECTED_TOKEN, MSG_UNEXPECTED_TOKEN, MSG_UNEXPECTED_TOKEN, MSG_UNEXPECTED_TOKEN, MSG_UNEXPECTED_TOKEN
+    })      //## issuekeys: MSG_UNEXPECTED_TOKEN
 
     blockHashMapIntegerFun115(\s -> {
       print("blockfun5");
       return {1->2, 3->4}
-    })
+    })  //## issuekeys: MSG_UNREACHABLE_STMT
 
     var blockHashMapIntVar116: HashMap<Integer, Integer> = blockHashMapIntegerFun116(\s -> {
       print("blockfun5");
@@ -138,10 +136,10 @@ class Errant_BlocksAsArgumentHashMap {
 
     function caller() {
 
-      myFun111(\c: HashMap -> hMap1)      //## issuekeys: 'MYFUN111(GW.LANG.__PSI__.IBLOCK1<JAVA.UTIL.HASHMAP<JAVA.LANG.INTEGER,JAVA.LANG.INTEGER>,JAVA.UTIL.HASHMAP>)' IN 'TEST.GOSU.GW.SPECCONTRIB.AAA.PARSERVSOPENSOURCE.BLOCKS.BLOCKSMAIN.ERRANT_BLOCKSASARGUMENTHASHMAP.COCONTRAVARIANCETEST' CANNOT BE APPLIED TO '(BLOCK(HASHMAP):HASHMAP<OBJECT, OBJECT>)'
+      myFun111(\c: HashMap -> hMap1)      //## issuekeys: MSG_TYPE_MISMATCH
       myFun111(\c: HashMap -> hMapInteger1)
-      myFun111(\c: HashMap<Integer, Integer> -> hMapInteger1)      //## issuekeys: 'MYFUN111(GW.LANG.__PSI__.IBLOCK1<JAVA.UTIL.HASHMAP<JAVA.LANG.INTEGER,JAVA.LANG.INTEGER>,JAVA.UTIL.HASHMAP>)' IN 'TEST.GOSU.GW.SPECCONTRIB.AAA.PARSERVSOPENSOURCE.BLOCKS.BLOCKSMAIN.ERRANT_BLOCKSASARGUMENTHASHMAP.COCONTRAVARIANCETEST' CANNOT BE APPLIED TO '(BLOCK(HASHMAP<INTEGER, INTEGER>):HASHMAP<INTEGER, INTEGER>)'
-      myFun111(\c: HashMap<Integer, Integer> -> hMap1)      //## issuekeys: 'MYFUN111(GW.LANG.__PSI__.IBLOCK1<JAVA.UTIL.HASHMAP<JAVA.LANG.INTEGER,JAVA.LANG.INTEGER>,JAVA.UTIL.HASHMAP>)' IN 'TEST.GOSU.GW.SPECCONTRIB.AAA.PARSERVSOPENSOURCE.BLOCKS.BLOCKSMAIN.ERRANT_BLOCKSASARGUMENTHASHMAP.COCONTRAVARIANCETEST' CANNOT BE APPLIED TO '(BLOCK(HASHMAP<INTEGER, INTEGER>):HASHMAP<OBJECT, OBJECT>)'
+      myFun111(\c: HashMap<Integer, Integer> -> hMapInteger1)      //## issuekeys: MSG_TYPE_MISMATCH
+      myFun111(\c: HashMap<Integer, Integer> -> hMap1)      //## issuekeys: MSG_TYPE_MISMATCH, MSG_TYPE_MISMATCH
     }
 
     function myFun222(block(a: HashMap<Integer, Integer>): HashMap) {

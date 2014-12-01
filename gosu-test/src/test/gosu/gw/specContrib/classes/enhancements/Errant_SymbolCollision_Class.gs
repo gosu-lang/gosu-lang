@@ -1,17 +1,17 @@
 package gw.specContrib.classes.enhancements
 
 class Errant_SymbolCollision_Class<T> {
-  var someField: int      //## issuekeys: VARIABLE 'SOMEFIELD' IS ALREADY DEFINED IN THE SCOPE
+  var someField: int
   var someField2: int as SomeField2
 
   private function privateFunction(b: T)  {}
-  protected function protectedFunction(b: T) {}      //## issuekeys: THE FUNCTION 'PROTECTEDFUNCTION(T)' IS ALREADY DEFINED IN THE TYPE 'GW.SPECCONTRIB.CLASSES.ENHANCEMENT.ERRANT_ENHANCEMENTSYMBOLNAMECOLLISION1'. ENHANCEMENTS CANNOT OVERRIDE FUNCTIONS.
-  internal function internalFunction(b: T) {}      //## issuekeys: THE FUNCTION 'INTERNALFUNCTION(T)' IS ALREADY DEFINED IN THE TYPE 'GW.SPECCONTRIB.CLASSES.ENHANCEMENT.ERRANT_ENHANCEMENTSYMBOLNAMECOLLISION1'. ENHANCEMENTS CANNOT OVERRIDE FUNCTIONS.
-  public function publicFunction(b: T) {}      //## issuekeys: THE FUNCTION 'PUBLICFUNCTION(T)' IS ALREADY DEFINED IN THE TYPE 'GW.SPECCONTRIB.CLASSES.ENHANCEMENT.ERRANT_ENHANCEMENTSYMBOLNAMECOLLISION1'. ENHANCEMENTS CANNOT OVERRIDE FUNCTIONS.
+  protected function protectedFunction(b: T) {}
+  internal function internalFunction(b: T) {}
+  public function publicFunction(b: T) {}
 
   private property set PrivateProperty(b: T) {}
-  protected property set ProtectedProperty(b: T) {}      //## issuekeys: THE FUNCTION 'SETPROTECTEDPROPERTY(T)' IS ALREADY DEFINED IN THE TYPE 'GW.SPECCONTRIB.CLASSES.ENHANCEMENT.ERRANT_ENHANCEMENTSYMBOLNAMECOLLISION1'. ENHANCEMENTS CANNOT OVERRIDE FUNCTIONS.
-  internal property set InternalProperty(b: T) {}      //## issuekeys: THE FUNCTION 'SETINTERNALPROPERTY(T)' IS ALREADY DEFINED IN THE TYPE 'GW.SPECCONTRIB.CLASSES.ENHANCEMENT.ERRANT_ENHANCEMENTSYMBOLNAMECOLLISION1'. ENHANCEMENTS CANNOT OVERRIDE FUNCTIONS.
-  public property set PublicProperty(b: T) {}      //## issuekeys: THE FUNCTION 'SETPUBLICPROPERTY(T)' IS ALREADY DEFINED IN THE TYPE 'GW.SPECCONTRIB.CLASSES.ENHANCEMENT.ERRANT_ENHANCEMENTSYMBOLNAMECOLLISION1'. ENHANCEMENTS CANNOT OVERRIDE FUNCTIONS.
+  protected property set ProtectedProperty(b: T) {}
+  internal property set InternalProperty(b: T) {}
+  public property set PublicProperty(b: T) {}
 
 }
