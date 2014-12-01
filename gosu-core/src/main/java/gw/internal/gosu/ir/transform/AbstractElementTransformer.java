@@ -2730,21 +2730,33 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
     }
   }
 
-  public static ICustomExpressionRuntime getCustomRuntime( String id ) {
-    return CUSTOM_RUNTIMES.get( id );
+  public static ICustomExpressionRuntime getCustomRuntime( String id, IType enclosingClass ) {
+    ICustomExpressionRuntime runtime = CUSTOM_RUNTIMES.get( id );
+    if( runtime == null && enclosingClass instanceof ICompilableType ) {
+      ((ICompilableType)enclosingClass).compile(); // force compilation of enclosing class indirectly compiles custom runtime expr which caches itself
+      runtime = CUSTOM_RUNTIMES.get( id );
+    }
+
+    return runtime;
   }
 
   protected IRExpression handleCustomExpressionRuntime( ICustomExpressionRuntime customRuntime, IType expectedType ) {
     String customRuntimeId;
     synchronized( CUSTOM_RUNTIMES )
     {
-      customRuntimeId = "customRuntime:" + CUSTOM_RUNTIMES.size();
+      int iLine = getParsedElement().getLineNum();
+      int iColumnNum = getParsedElement().getColumn();
+      customRuntimeId = makeCustomRuntimeKey( getGosuClass(), iLine, iColumnNum );
       CUSTOM_RUNTIMES.put( customRuntimeId, customRuntime );
     }
 
-    IRExpression getCustomExpression = callMethod( AbstractElementTransformer.class, "getCustomRuntime", new Class[]{String.class}, null, exprList( pushConstant( customRuntimeId ) ) );
+    IRExpression getCustomExpression = callMethod( AbstractElementTransformer.class, "getCustomRuntime", new Class[]{String.class, IType.class}, null, exprList( pushConstant( customRuntimeId ), pushType( getGosuClass() ) ) );
     IRExpression result = callMethod( ICustomExpressionRuntime.class, "evaluate", new Class[0], getCustomExpression, exprList() );
     return unboxValueToType( expectedType, result );
+  }
+
+  private static String makeCustomRuntimeKey( IType enclosingClass, int iLineNum, int iColumnNum ) {
+    return enclosingClass.getName() + '.' + IGosuProgram.NAME_PREFIX + "customRuntime_" + iLineNum + ":" + iColumnNum;
   }
 
   protected IRExpression pushExternalSymbolsMap()

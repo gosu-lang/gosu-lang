@@ -12,7 +12,7 @@ class Errant_BlockTest {
 
     y = x
     y = y //## issuekeys: MSG_SILLY_ASSIGNMENT
-    y = z
+    y = z //## issuekeys: MSG_TYPE_MISMATCH
 
     z = x
     z = y
@@ -41,7 +41,7 @@ class Errant_BlockTest {
 
     y = x
     y = y //## issuekeys: MSG_SILLY_ASSIGNMENT
-    y = z
+    y = z //## issuekeys: MSG_TYPE_MISMATCH
 
     z = x
     z = y

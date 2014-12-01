@@ -4,7 +4,9 @@
 
 package gw.internal.gosu.parser.expressions;
 
+import gw.lang.parser.GosuParserTypes;
 import gw.lang.parser.IExpression;
+import gw.lang.parser.StandardCoercionManager;
 import gw.lang.parser.TypeVarToTypeMap;
 import gw.lang.reflect.FunctionType;
 import gw.lang.reflect.IBlockType;
@@ -109,6 +111,17 @@ public class BlockType extends FunctionType implements IBlockType
   public String[] getParameterNames()
   {
     return _argNames;
+  }
+
+  @Override
+  protected boolean areReturnTypesAssignable( FunctionType that ) {
+    IType thisType = getReturnType();
+    IType thatType = that.getReturnType();
+    return
+      thisType == thatType ||
+      thatType != JavaTypes.pVOID() && thisType.isAssignableFrom( thatType ) ||
+      StandardCoercionManager.arePrimitiveTypesAssignable( thisType, thatType ) ||
+      thisType == GosuParserTypes.NULL_TYPE();
   }
 
   @Override

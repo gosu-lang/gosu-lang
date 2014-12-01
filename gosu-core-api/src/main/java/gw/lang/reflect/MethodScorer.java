@@ -116,7 +116,15 @@ public class MethodScorer {
   public int addToScoreForTypes( List<IType> inferringTypes, IType paramType, IType argType ) {
     if( inferringTypes.isEmpty() || !(paramType instanceof IInvocableType) ) {
       paramType = inferringTypes.isEmpty() ? paramType : TypeSystem.boundTypes( paramType, inferringTypes );
+      if( argType == paramType )
+      {
+        return 0;
+      }
       return _typeScoreCache.get( new Pair<IType, IType>( paramType, argType ) );
+    }
+    if( argType == paramType )
+    {
+      return 0;
     }
     return _addToScoreForTypes( inferringTypes, paramType, argType );
   }
@@ -186,7 +194,7 @@ public class MethodScorer {
             (paramType != JavaTypes.pBOOLEAN()) && (argType != JavaTypes.pBOOLEAN()) &&
             (paramType != JavaTypes.pCHAR()) && (argType != JavaTypes.pCHAR()) &&
             (paramType != JavaTypes.pVOID()) && (argType != JavaTypes.pVOID()) &&
-           BasePrimitiveCoercer.losesInformation( argType, paramType ) <= 1);
+            BasePrimitiveCoercer.losesInformation( argType, paramType ) <= 1);
   }
 
   public int addDegreesOfSeparation( IType parameterType, IType exprType, List<IType> inferringTypes ) {

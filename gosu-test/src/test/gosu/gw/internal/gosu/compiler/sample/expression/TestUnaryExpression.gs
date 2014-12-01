@@ -1,4 +1,5 @@
 package gw.internal.gosu.compiler.sample.expression
+uses java.lang.Character
 uses java.lang.Byte
 uses java.lang.Short
 uses java.lang.Integer
@@ -13,23 +14,34 @@ class TestUnaryExpression
     function testNegatePbyte() : byte
     {
       var n : byte = 8
-      return -n
+      return (-n) as byte
     }
     function testNegateByte() : Byte
     {
       var n : Byte = 8
-      return -n
+      return (-n) as Byte
+    }
+
+    function testNegatePchar() : char
+    {
+      var n : char = 8 as char
+      return (-n) as char
+    }
+    function testNegateCharacter() : Character
+    {
+      var n : Character = 8 as Character
+      return (-n) as Character
     }
 
     function testNegatePshort() : short
     {
       var n : short = 8
-      return -n
+      return (-n) as short
     }
     function testNegateShort() : Short
     {
       var n : Short = 8
-      return -n
+      return (-n) as Short
     }
 
     function testNegatePint() : int

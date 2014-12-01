@@ -90,6 +90,8 @@ class Errant_MethodDeclarationTest {
   function m41(x : A<C>) {}  //## issuekeys: MSG_METHOD_REIFIES_TO_SAME_SIGNATURE_AS_ANOTHER_METHOD
   function m24(i: int, j : int = 8) { }  //## issuekeys: MSG_OVERLOADING_NOT_ALLOWED_WITH_OPTIONAL_PARAMS
 
+  property get MyProp() : String { return ""}
+  property set MyProp( s: String = "" ) {}  //## issuekeys: MSG_DEFAULT_VALUE_NOT_ALLOWED
 
   //Method Body
   function m42() {
