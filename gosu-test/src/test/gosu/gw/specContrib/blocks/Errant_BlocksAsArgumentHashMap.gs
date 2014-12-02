@@ -108,15 +108,10 @@ class Errant_BlocksAsArgumentHashMap {
       return {1->2, 3->4}
     })
 
-    //IDE-1336 : Error expected. as the argument name is not specified
-    blockHashMapIntegerFun115(\HashMap<Integer,Integer>->{      //## issuekeys: MSG_WRONG_NUMBER_OF_ARGS_TO_FUNCTION, MSG_EXPECTING_FUNCTION_CLOSE, MSG_TYPE_MISMATCH, MSG_EXPECTING_ARROW_AFTER_BLOCK_ARGS, MSG_TYPE_MISMATCH, MSG_SYNTAX_ERROR, MSG_UNEXPECTED_TOKEN
-      return {1->2, 3->4}      //## issuekeys: MSG_UNREACHABLE_STMT, MSG_UNEXPECTED_TOKEN, MSG_UNEXPECTED_TOKEN, MSG_UNEXPECTED_TOKEN, MSG_UNEXPECTED_TOKEN, MSG_UNEXPECTED_TOKEN, MSG_UNEXPECTED_TOKEN, MSG_UNEXPECTED_TOKEN
-    })      //## issuekeys: MSG_UNEXPECTED_TOKEN
-
     blockHashMapIntegerFun115(\s -> {
       print("blockfun5");
       return {1->2, 3->4}
-    })  //## issuekeys: MSG_UNREACHABLE_STMT
+    })
 
     var blockHashMapIntVar116: HashMap<Integer, Integer> = blockHashMapIntegerFun116(\s -> {
       print("blockfun5");
@@ -125,6 +120,11 @@ class Errant_BlocksAsArgumentHashMap {
     var blockHashMapListIntVar117: HashMap<Integer, Integer> = blockHashMapIntegerFun117(\-> {
       return {1->2, 3->4}
     })
+
+    //IDE-1336 : Error expected. as the argument name is not specified
+    blockHashMapIntegerFun115(\HashMap<Integer,Integer>->{      //## issuekeys: MSG_WRONG_NUMBER_OF_ARGS_TO_FUNCTION, MSG_EXPECTING_FUNCTION_CLOSE, MSG_TYPE_MISMATCH, MSG_EXPECTING_ARROW_AFTER_BLOCK_ARGS, MSG_TYPE_MISMATCH, MSG_SYNTAX_ERROR, MSG_UNEXPECTED_TOKEN
+      return {1->2, 3->4}      //## issuekeys: MSG_UNREACHABLE_STMT, MSG_UNEXPECTED_TOKEN, MSG_UNEXPECTED_TOKEN, MSG_UNEXPECTED_TOKEN, MSG_UNEXPECTED_TOKEN, MSG_UNEXPECTED_TOKEN, MSG_UNEXPECTED_TOKEN, MSG_UNEXPECTED_TOKEN
+    })      //## issuekeys: MSG_UNEXPECTED_TOKEN
   }
 
   class CoContraVarianceTest {
