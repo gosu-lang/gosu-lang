@@ -33,8 +33,8 @@ class Errant_BlocksGenericsWithParams {
     var x11218 = hello1(\x: ArrayList<Integer> -> {
       return {1, 2, 3}
     })
-    //x11219 : IDE-1346 Should not show error (issue in both Parser and OS Gosu)
-    var x11219 = hello1(\x: ArrayList<Integer> -> {
+    //x11219 : IDE-1346 will not be fixed. Both OS Gosu and Parser show error. Keeping the errors
+    var x11219 = hello1(\x: ArrayList<Integer> -> {      //## issuekeys: INCOMPATIBLE TYPES
       return {1, 2, 'c'}
     })
     var x11220 = hello1(\x: ArrayList<Integer> -> {      //## issuekeys: 'HELLO1(GW.LANG.__PSI__.IBLOCK1<JAVA.UTIL.ARRAYLIST<JAVA.LANG.INTEGER>,JAVA.UTIL.ARRAYLIST<JAVA.LANG.INTEGER>>)' IN 'TEST.GOSU.GW.SPECCONTRIB.AAA.PARSERVSOPENSOURCE.BLOCKS.BLOCKSMAIN.ERRANT_BLOCKSGENERICSWITHPARAMS' CANNOT BE APPLIED TO '(BLOCK(ARRAYLIST<INTEGER>):ARRAYLIST<SERIALIZABLE & COMPARABLE<SERIALIZABLE & COMPARABLE<? EXTENDS COMPARABLE<?>>>>)'
@@ -70,8 +70,8 @@ class Errant_BlocksGenericsWithParams {
     var x12229: ArrayList = hello1(\x: ArrayList<Integer> -> {
       return {1, 2, 3}
     })
-    //x12230 : IDE-1346 Should not show error (issue in both Parser and OS Gosu)
-    var x12230: ArrayList = hello1(\x: ArrayList<Integer> -> {
+    //x12230 : IDE-1346 will not be fixed. Both OS Gosu and Parser show error. Keeping the errors
+    var x12230: ArrayList = hello1(\x: ArrayList<Integer> -> {      //## issuekeys: INCOMPATIBLE TYPES
       return {1, 2, 'c'}
     })
     var x12231: ArrayList = hello1(\x: ArrayList<Integer> -> {      //## issuekeys: 'HELLO1(GW.LANG.__PSI__.IBLOCK1<JAVA.UTIL.ARRAYLIST<JAVA.LANG.INTEGER>,JAVA.UTIL.ARRAYLIST<JAVA.LANG.INTEGER>>)' IN 'TEST.GOSU.GW.SPECCONTRIB.AAA.PARSERVSOPENSOURCE.BLOCKS.BLOCKSMAIN.ERRANT_BLOCKSGENERICSWITHPARAMS' CANNOT BE APPLIED TO '(BLOCK(ARRAYLIST<INTEGER>):ARRAYLIST<SERIALIZABLE & COMPARABLE<SERIALIZABLE & COMPARABLE<? EXTENDS COMPARABLE<?>>>>)'
