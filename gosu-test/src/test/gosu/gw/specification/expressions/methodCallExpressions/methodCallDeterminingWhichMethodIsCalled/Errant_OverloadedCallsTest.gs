@@ -220,8 +220,7 @@ class Errant_OverloadedCallsTest {
 
   function caller4() {
 
-    var r0 : A = fun4(42L, 42.5f)  //## issuekeys: MSG_AMBIGUOUS_METHOD_INVOCATION
-    var r1 : B = fun4(42L, 42.5f)  //## issuekeys: MSG_AMBIGUOUS_METHOD_INVOCATION
+    var r1 : B = fun4(42L, 42.5f)
     var r2 : B = fun4(42, 42.5f)
 
   }
@@ -271,5 +270,30 @@ class Errant_OverloadedCallsTest {
     })
   }
 
+  class asdfasfd {
+    class AA{}
+    class BB{}
+    class CC{}
+    function funIntLongFloat(i: int, j: int): AA {
+      return null
+    }
+    function funIntLongFloat(i: float, j: float): BB {
+      return null
+    }
+    function funIntLongFloat(i: long, j: long): CC {
+      return null
+    }
 
+    function caller() {
+      var d1 : double
+      var res1 : BB
+      res1 = funIntLongFloat('c', 42.5)
+      res1 = funIntLongFloat(1b, 42.5)
+      res1 = funIntLongFloat(1s, 42.5)
+      res1 = funIntLongFloat(42, 42.5)
+      res1 = funIntLongFloat(100L, 42.5)
+      res1 = funIntLongFloat(42.5f, 42.5)
+      res1 = funIntLongFloat(42.5, 42.5)
+    }
+  }
 }

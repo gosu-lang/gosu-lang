@@ -140,6 +140,9 @@ public class BasePrimitiveCoercer extends StandardCoercer implements IResolvingC
       }
     }
     else if( bSameFamily ) {
+      if( from == JavaTypes.pCHAR() || from == JavaTypes.CHARACTER() ) {
+        from = JavaTypes.pSHORT(); // char same distance to int as short
+      }
       iScore += distance( from, to ); // score = (2..4)
     }
     else {
@@ -163,9 +166,9 @@ public class BasePrimitiveCoercer extends StandardCoercer implements IResolvingC
       /*byte   */  {2,      0,      0,      0,      0,      0,      0,      0 },
       /*short  */  {2,      2,      2,      0,      0,      0,      0,      0 },
       /*int    */  {2,      2,      2,      2,      0,      0,      1,      0 },
-      /*long   */  {2,      2,      2,      2,      2,      0,      2,      1 },
+      /*long   */  {2,      2,      2,      2,      2,      0,      1,      0 },
       /*float  */  {2,      2,      2,      2,      2,      2,      0,      0 },
-      /*double */  {2,      2,      2,      2,      2,      2,      2,      0 },
+      /*double */  {2,      2,      2,      2,      2,      2,      1,      0 },
     };
     final int i = getIndex(from);
     final int j = getIndex(to);
@@ -216,7 +219,7 @@ public class BasePrimitiveCoercer extends StandardCoercer implements IResolvingC
     int indexT1 = getIndex( t1 );
     int indexT2 = getIndex( t2 );
     return indexT1 == indexT2 ||
-           indexT1 > 1 && indexT1 < 6 && indexT2 > 1 && indexT2 < 6 ||
+           indexT1 > 0 && indexT1 < 6 && indexT2 > 0 && indexT2 < 6 ||
            indexT1 > 5 && indexT2 > 5;
   }
 }
