@@ -94,21 +94,21 @@ class Errant_BlocksGenericsWithParams {
     var x13234: ArrayList<Integer> = hello1(\x: ArrayList<Integer> -> {
       return new ArrayList<Integer>()
     })
-    //x13235 : IDE-1346 Should not show error (issue in both Parser and OS Gosu)
-    var x13235: ArrayList<Integer> = hello1(\x: ArrayList -> {
+    //x13235 : IDE-1346 will not be fixed. Both OS Gosu and Parser show error. Keeping the errors
+    var x13235: ArrayList<Integer> = hello1(\x: ArrayList -> {     //## issuekeys: INCOMPATIBLE TYPES
       return {1, 2, 'c'}
     })
     var x13236: ArrayList<Integer> = hello1(\x: ArrayList<Integer> -> {
       return {1, 2, 3}
     })
-    //IDE-1346 Next 3 cases should not show error (issue in both Parser and OS Gosu)
-    var x13237: ArrayList<Integer> = hello1(\x: ArrayList<Integer> -> {
+    //IDE-1346 will not be fixed. Both OS Gosu and Parser show error. Impacts x1315, x1316, x1317. Keeping the errors
+    var x13237: ArrayList<Integer> = hello1(\x: ArrayList<Integer> -> {   //## issuekeys: INCOMPATIBLE TYPES
       return {1, 2, 'c'}
     })
-    var x13238: ArrayList<Integer> = hello1(\x: ArrayList<Integer> -> {
+    var x13238: ArrayList<Integer> = hello1(\x: ArrayList<Integer> -> {   //## issuekeys: INCOMPATIBLE TYPES
       return {1, 2, 3b}
     })
-    var x13239: ArrayList<Integer> = hello1(\x: ArrayList<Integer> -> {
+    var x13239: ArrayList<Integer> = hello1(\x: ArrayList<Integer> -> {   //## issuekeys: INCOMPATIBLE TYPES
       return {1, 2, 3s}
     })
 
