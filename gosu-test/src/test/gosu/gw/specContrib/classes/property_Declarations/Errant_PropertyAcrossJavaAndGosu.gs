@@ -4,8 +4,7 @@ uses java.lang.Integer
 
 class Errant_PropertyAcrossJavaAndGosu extends JavaClass2 {
 
-  property set Text1(t: Integer) {      //## issuekeys: INVALID PROPERTY DECLARATION; GETTER AND SETTER SHOULD AGREE ON THE TYPE OF THE PROPERTY
-  }
+  property set Text1(t: Integer) {}      //## issuekeys: MSG_PROPERTIES_MUST_AGREE_ON_TYPE
 
   property get Text2(): Integer {
     return null

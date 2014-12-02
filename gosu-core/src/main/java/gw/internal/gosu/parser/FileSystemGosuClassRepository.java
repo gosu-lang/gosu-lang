@@ -9,6 +9,7 @@ import gw.fs.IDirectory;
 import gw.fs.IDirectoryUtil;
 import gw.fs.IFile;
 import gw.fs.IResource;
+import gw.fs.IncludeModuleDirectory;
 import gw.lang.parser.FileSource;
 import gw.lang.parser.ISource;
 import gw.lang.reflect.ITypeLoader;
@@ -553,6 +554,12 @@ public class FileSystemGosuClassRepository implements IFileSystemGosuClassReposi
     public boolean isStandardPath()
     {
       return !_fileInfo.getEntry().getPath().isAdditional();
+    }
+
+    @Override
+    public boolean isIncludeModulePath()
+    {
+      return _fileInfo.getEntry().getPath() instanceof IncludeModuleDirectory;
     }
 
     @Override

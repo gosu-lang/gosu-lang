@@ -12,7 +12,7 @@ class Errant_BlocksAndInterfaces {
     var b2: block(o: Object)
 
     var b = new MyBInterface() {
-      function myfun() {
+      override function myfun() {
       }
     }
     //IDE-1329

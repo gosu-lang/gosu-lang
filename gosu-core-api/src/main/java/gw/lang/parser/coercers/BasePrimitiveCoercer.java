@@ -129,21 +129,25 @@ public class BasePrimitiveCoercer extends StandardCoercer implements IResolvingC
       return 8;                       // score = 8 (max)
     }
 
-    boolean bLosesInfo = losesInformation( from, to );
+    int infoLoss = losesInformation( from, to );
     boolean bSameFamily = isInSameFamily( from, to );
 
     int iScore = 1;
-    if( bLosesInfo ) {
+    if( infoLoss > 1 ) {
       iScore += 4;                    // score = 5
       if( !bSameFamily ) {
         iScore += 2;                  // score = 7
       }
     }
     else if( bSameFamily ) {
+      if( from == JavaTypes.pCHAR() || from == JavaTypes.CHARACTER() ) {
+        from = JavaTypes.pSHORT(); // char same distance to int as short
+      }
       iScore += distance( from, to ); // score = (2..4)
     }
     else {
-      iScore += 5;                    // score = 6
+      iScore += infoLoss;             // score = (1..2)
+      iScore += 3;                    // score = (4..5)
     }
     return iScore;
   }
@@ -153,24 +157,24 @@ public class BasePrimitiveCoercer extends StandardCoercer implements IResolvingC
     return iDistance >= 0 ? iDistance : 5;
   }
 
-  private static boolean losesInformation( IType from, IType to ) {
-    boolean[][] tab =
+  public static int losesInformation( IType from, IType to ) {
+    int[][] tab =
     {                                        //TO
-      //FROM       boolean  byte    char    short   int     long    float   double
-      /*boolean*/  {false,  false,  false,  false,  false,  false,  false,  false },
-      /*char   */  {true,   true,   false,  true,   false,  false,  false,  false },
-      /*byte   */  {true,   false,  false,  false,  false,  false,  false,  false },
-      /*short  */  {true,   true,   true,   false,  false,  false,  false,  false },
-      /*int    */  {true,   true,   true,   true,   false,  false,  true,   false },
-      /*long   */  {true,   true,   true,   true,   true,   false,  true,   true  },
-      /*float  */  {true,   true,   true,   true,   true,   true,   false,  false },
-      /*double */  {true,   true,   true,   true,   true,   true,   true,   false },
+      //FROM       boolean  char    byte    short   int     long    float   double
+      /*boolean*/  {0,      0,      0,      0,      0,      0,      0,      0 },
+      /*char   */  {2,      0,      2,      2,      0,      0,      0,      0 },
+      /*byte   */  {2,      0,      0,      0,      0,      0,      0,      0 },
+      /*short  */  {2,      2,      2,      0,      0,      0,      0,      0 },
+      /*int    */  {2,      2,      2,      2,      0,      0,      1,      0 },
+      /*long   */  {2,      2,      2,      2,      2,      0,      1,      0 },
+      /*float  */  {2,      2,      2,      2,      2,      2,      0,      0 },
+      /*double */  {2,      2,      2,      2,      2,      2,      1,      0 },
     };
     final int i = getIndex(from);
     final int j = getIndex(to);
-    if(i == -1 || j == -1 )
+    if( i == -1 || j == -1 )
     {
-      return false;
+      return 0;
     }
     return tab[i][j];
   }
@@ -215,7 +219,7 @@ public class BasePrimitiveCoercer extends StandardCoercer implements IResolvingC
     int indexT1 = getIndex( t1 );
     int indexT2 = getIndex( t2 );
     return indexT1 == indexT2 ||
-           indexT1 > 1 && indexT1 < 6 && indexT2 > 1 && indexT2 < 6 ||
+           indexT1 > 0 && indexT1 < 6 && indexT2 > 0 && indexT2 < 6 ||
            indexT1 > 5 && indexT2 > 5;
   }
 }

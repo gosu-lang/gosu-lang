@@ -175,6 +175,7 @@ public class Strings extends ListResourceBundle
        {Res.MSG_VARIABLE_ALREADY_DEFINED.getKey(), "{0}, is already defined. Please use a different name."},
        {Res.MSG_FUNCTION_DECL_MISSING.getKey(), "Internal Error. Could not find decl function symbol for, {0}." },
        {Res.MSG_EXPECTING_DEFAULT_VALUE.getKey(), "Expecting default value assignment. Required parameters must precede optional paramters."},
+       {Res.MSG_DEFAULT_VALUE_NOT_ALLOWED.getKey(), "Default value not allowed here"},
        {Res.MSG_COMPILE_TIME_CONSTANT_REQUIRED.getKey(), "Expression must be compile-time constant here."},
        {Res.MSG_OVERLOADING_NOT_ALLOWED_WITH_OPTIONAL_PARAMS.getKey(), "Overloading not allowed with optional parameters."},
        {Res.MSG_MISSING_REQUIRED_ARGUMENTS.getKey(), "Missing one or more required arguments"},
@@ -447,6 +448,8 @@ public class Strings extends ListResourceBundle
        {Res.MSG_FL_METHOD_NOT_FOUND.getKey(), "A method with the name {0} and types {1} was not found"},
        {Res.MSG_FL_PROPERTY_NOT_FOUND.getKey(), "A property with the name {0} was not found"},
        {Res.MSG_FL_STATIC_FEATURES_MUST_BE_REFERENCED_FROM_THEIR_TYPES.getKey(), "A static feature or constructor must be referenced directly on the type that the feature belongs to."},
+
+       {Res.MSG_AMBIGUOUS_SYMBOL_REFERENCE.getKey(), "This is an ambiguous reference.  Please fully qualify the symbol."},
 
        {Res.WSDL_DUPLICATE_WEB_SERVICE.getKey(), "Duplicate web service name.  Only one webservice with the given name can be defined."},
        {Res.WSDL_UNSUPPORTED_TYPE.getKey(), "Web Service cannot reference the following unsupported type: {0} {1}"},

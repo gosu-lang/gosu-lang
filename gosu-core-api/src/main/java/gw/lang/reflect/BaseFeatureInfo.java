@@ -168,7 +168,7 @@ public abstract class BaseFeatureInfo implements IAttributedFeatureInfo
   @Override
   public IAnnotationInfo getAnnotation( IType type )
   {
-    return ANNOTATION_HELPER.getAnnotation(type, getAnnotations(), type.getDisplayName());
+    return ANNOTATION_HELPER.getAnnotation(type, getAnnotations(), type.getName());
   }
 
   @Override

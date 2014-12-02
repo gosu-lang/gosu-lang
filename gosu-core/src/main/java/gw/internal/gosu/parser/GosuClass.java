@@ -64,6 +64,7 @@ import gw.lang.reflect.java.IJavaType;
 import gw.lang.reflect.java.JavaTypes;
 import gw.lang.reflect.module.IModule;
 import gw.util.GosuExceptionUtil;
+import gw.util.GosuObjectUtil;
 import gw.util.GosuStringUtil;
 import gw.util.concurrent.LockingLazyVar;
 
@@ -2363,7 +2364,16 @@ public class GosuClass extends AbstractType implements IGosuClassInternal
     {
       if( !bSuperClass || (isAccessible( gsContextClass, varStmt ) && !isHidden( varStmt )) )
       {
-        table.putSymbol( varStmt.getSymbol() );
+        ISymbol existingSymbol = table.getSymbol( varStmt.getSymbol().getName() );
+        if( existingSymbol != null && !GosuObjectUtil.equals( existingSymbol.getScriptPart(),
+                                                              varStmt.getSymbol().getScriptPart() ) )
+        {
+          table.putSymbol( new AmbiguousSymbol( varStmt.getSymbol().getName() ) );
+        }
+        else
+        {
+          table.putSymbol( varStmt.getSymbol() );
+        }
       }
     }
   }

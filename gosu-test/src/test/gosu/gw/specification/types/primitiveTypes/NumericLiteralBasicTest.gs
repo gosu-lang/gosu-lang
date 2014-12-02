@@ -22,6 +22,15 @@ class NumericLiteralBasicTest extends BaseVerifyErrantTest {
     assertEquals(x4, 1 as byte)
   }
 
+  function testCharLiteral() {
+    var c1 = 'c'
+    assertEquals( typeof c1, char )
+    var c2 = -'c'
+    assertEquals( typeof c2, int )
+    assertTrue( c1 != c2 )
+    assertTrue( -c1 == c2 )
+  }
+
   function testErrant_NumericLiteralBasicTest() {
     processErrantType(Errant_NumericLiteralBasicTest)
   }

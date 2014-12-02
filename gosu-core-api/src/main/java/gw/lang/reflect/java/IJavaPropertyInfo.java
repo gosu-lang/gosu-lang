@@ -26,4 +26,5 @@ public interface IJavaPropertyInfo extends IAttributedFeatureInfo, IPropertyInfo
 
   IJavaPropertyDescriptor getPropertyDescriptor();
 
+  IJavaClassField getPublicField();
 }
