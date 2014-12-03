@@ -663,14 +663,6 @@ public class StandardCoercionManager extends BaseService implements ICoercionMan
     }
 
     //==================================================================================
-    // Object unboxing
-    //==================================================================================
-    if( rhsT == JavaTypes.OBJECT() && lhsT.isPrimitive() && lhsT != JavaTypes.pVOID() )
-    {
-      return lhsType;
-    }
-
-    //==================================================================================
     // Coercion
     //==================================================================================
     if( canCoerce( lhsT, rhsT ) )
