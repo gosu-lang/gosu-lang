@@ -7,9 +7,9 @@ class ProcesSpecContribScratchTest extends BaseVerifyErrantTest {
 
   function testIt() {
     // add the test in question here
-    var t = gw.specContrib.expressions.cast.Errant_CastToPrimitiveTest
+    var t = gw.specContrib.expressions.Errant_FeatureLiteralMethodLookup
 
-    if((t as IGosuClass).ParseResultsException != null ) {
+    if(not (t as IGosuClass).Valid) {
       print((t as IGosuClass).ParseResultsException)
     } else {
       print( "No errors found..." )
