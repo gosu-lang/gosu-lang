@@ -19,7 +19,7 @@ class Errant_ExpressionsPrimitiveTypes {
   var char7: char = true      //## issuekeys: MSG_IMPLICIT_COERCION_ERROR
   var char8: char = 'c'
   var char9: char = date1      //## issuekeys: MSG_TYPE_MISMATCH
-  var char10: char = new Object()
+  var char10: char = new Object()  //## issuekeys: MSG_TYPE_MISMATCH
   var char11: char = "string"      //## issuekeys: MSG_TYPE_MISMATCH
   var char12: char = BigInteger.TEN      //## issuekeys: MSG_IMPLICIT_COERCION_ERROR
   var char13: char = BigDecimal.ZERO      //## issuekeys: MSG_IMPLICIT_COERCION_ERROR
@@ -41,7 +41,7 @@ class Errant_ExpressionsPrimitiveTypes {
   var byte10: byte = new Date()      //## issuekeys: MSG_TYPE_MISMATCH
   var byte11: byte = date1      //## issuekeys: MSG_TYPE_MISMATCH
   //  IDE-1276 : OS Gosu issue in the following case
-  var byte12: byte = new Object()
+  var byte12: byte = new Object()      //## issuekeys: MSG_TYPE_MISMATCH
   var byte13: byte = BigInteger.ONE      //## issuekeys: MSG_IMPLICIT_COERCION_ERROR
   var byte14: byte = BigDecimal.ONE      //## issuekeys: MSG_IMPLICIT_COERCION_ERROR
   var byte15: byte = null      //## issuekeys: MSG_TYPE_MISMATCH
@@ -58,7 +58,7 @@ class Errant_ExpressionsPrimitiveTypes {
   var short8: short = 'c'      //## issuekeys: MSG_IMPLICIT_COERCION_ERROR
   var short9: short = "string"      //## issuekeys: MSG_TYPE_MISMATCH
   var short10: short = date1      //## issuekeys: MSG_TYPE_MISMATCH
-  var short11: short = new Object()
+  var short11: short = new Object()     //## issuekeys: MSG_TYPE_MISMATCH
   var short12: short = BigInteger.ONE      //## issuekeys: MSG_IMPLICIT_COERCION_ERROR
   var short13: short = BigDecimal.ONE      //## issuekeys: MSG_IMPLICIT_COERCION_ERROR
 
@@ -73,7 +73,7 @@ class Errant_ExpressionsPrimitiveTypes {
   var int8: int = 'c'
   var int9: int = "string"      //## issuekeys: MSG_TYPE_MISMATCH
   var int10: int = date1      //## issuekeys: MSG_TYPE_MISMATCH
-  var int11: int = new Object()
+  var int11: int = new Object()     //## issuekeys: MSG_TYPE_MISMATCH
   var int12: int = BigInteger.ONE      //## issuekeys: MSG_IMPLICIT_COERCION_ERROR
   var int13: int = BigDecimal.TEN       //## issuekeys: MSG_IMPLICIT_COERCION_ERROR
 
@@ -88,7 +88,7 @@ class Errant_ExpressionsPrimitiveTypes {
   var long8: long = 'c'
   var long9: long = "string"      //## issuekeys: MSG_TYPE_MISMATCH
   var long10: long = date1      //## issuekeys: MSG_TYPE_MISMATCH
-  var long11: long = new Object()
+  var long11: long = new Object()       //## issuekeys: MSG_TYPE_MISMATCH
   var long12: long = BigInteger.ONE      //## issuekeys: MSG_IMPLICIT_COERCION_ERROR
   var long13: long = BigDecimal.ZERO      //## issuekeys: MSG_IMPLICIT_COERCION_ERROR
 
@@ -109,7 +109,7 @@ class Errant_ExpressionsPrimitiveTypes {
   var float8: float = 'c'
   var float9: float = "string"      //## issuekeys: MSG_TYPE_MISMATCH
   var float10: float = date1      //## issuekeys: MSG_TYPE_MISMATCH
-  var float11: float = new Object()
+  var float11: float = new Object()      //## issuekeys: MSG_TYPE_MISMATCH
   var float12: float = BigInteger.ONE      //## issuekeys: MSG_IMPLICIT_COERCION_ERROR
   var float13: float = BigDecimal.TEN      //## issuekeys: MSG_IMPLICIT_COERCION_ERROR
 
@@ -123,7 +123,7 @@ class Errant_ExpressionsPrimitiveTypes {
   var double7: double = true      //## issuekeys: MSG_IMPLICIT_COERCION_ERROR
   var double8: double = 'c'
   var double9: double = date1      //## issuekeys: MSG_TYPE_MISMATCH
-  var double10: double = new Object()
+  var double10: double = new Object()  //## issuekeys: MSG_TYPE_MISMATCH
   var double11: double = "string"      //## issuekeys: MSG_TYPE_MISMATCH
   var double12: double = BigInteger.TEN      //## issuekeys: MSG_IMPLICIT_COERCION_ERROR
   var double13: double = BigDecimal.ZERO      //## issuekeys: MSG_IMPLICIT_COERCION_ERROR
@@ -138,7 +138,7 @@ class Errant_ExpressionsPrimitiveTypes {
   var boolean7: boolean = true
   var boolean8: boolean = 'c'      //## issuekeys: MSG_IMPLICIT_COERCION_ERROR
   var boolean9: boolean = date1      //## issuekeys: MSG_TYPE_MISMATCH
-  var boolean10: boolean = new Object()
+  var boolean10: boolean = new Object()  //## issuekeys: MSG_TYPE_MISMATCH
   var boolean11: boolean = "string"      //## issuekeys: MSG_TYPE_MISMATCH
   var boolean12: boolean = BigInteger.TEN      //## issuekeys: MSG_TYPE_MISMATCH
   var boolean13: boolean = BigDecimal.ONE      //## issuekeys: MSG_TYPE_MISMATCH
