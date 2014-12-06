@@ -92,7 +92,7 @@ public class FeatureLiteral extends Expression implements IFeatureLiteralExpress
     {
       methodInfo = typeInfo.getMethod( methodName, argTypes );
     }
-    if( methodInfo == null )
+    if( methodInfo == null && argTypes.length == 0)
     {
       if( typeInfo instanceof IRelativeTypeInfo )
       {

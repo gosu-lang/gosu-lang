@@ -4936,6 +4936,10 @@ public final class GosuParser extends ParserBase implements IGosuParser
             else
             {
               IInvocableType funcType = score.getRawFunctionType();
+
+              verify( fle, funcType != null && funcType.getParameterTypes().length == score.getArguments().size(),
+                      Res.MSG_FL_METHOD_NOT_FOUND, T._strValue, "" );
+
               if( funcType == null )
               {
                 fle.setBoundFeature( ErrorType.getInstance().getTypeInfo().getMethod( T._strValue ), score.getArguments() );
@@ -4973,7 +4977,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
         }
       }
 
-      if( fle.isStaticish() )
+      if( fle.isStaticish() && !fle.hasParseExceptions() )
       {
         verify( fle, root instanceof TypeLiteral, Res.MSG_FL_STATIC_FEATURES_MUST_BE_REFERENCED_FROM_THEIR_TYPES );
       }
