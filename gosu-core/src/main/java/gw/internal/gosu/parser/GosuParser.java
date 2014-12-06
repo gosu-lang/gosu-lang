@@ -7470,7 +7470,18 @@ public final class GosuParser extends ParserBase implements IGosuParser
           }
           else
           {
-            e = parseDoubleOrBigDec( strValue );
+            if( ctxType == JavaTypes.pFLOAT() )
+            {
+              e = parseFloat( strValue );
+            }
+            else if( ctxType == JavaTypes.pDOUBLE() )
+            {
+              e = parseDouble( strValue );
+            }
+            else
+            {
+              e = parseDoubleOrBigDec( strValue );
+            }
           }
         }
         else
@@ -7487,7 +7498,25 @@ public final class GosuParser extends ParserBase implements IGosuParser
           {
             try
             {
-              e = parseIntOrLongOrBigInt( strValue );
+              if( !strValue.startsWith( "0" ) )
+              {
+                if( ctxType == JavaTypes.pFLOAT() )
+                {
+                  e = parseFloat( strValue );
+                }
+                else if( ctxType == JavaTypes.pDOUBLE() )
+                {
+                  e = parseDouble( strValue );
+                }
+                else
+                {
+                  e = parseIntOrLongOrBigInt( strValue );
+                }
+              }
+              else
+              {
+                e = parseIntOrLongOrBigInt( strValue );
+              }
             }
             catch( NumberFormatException ex )
             {
@@ -7561,6 +7590,22 @@ public final class GosuParser extends ParserBase implements IGosuParser
     {
       return new NumericLiteral( strValue, dValue, JavaTypes.pDOUBLE() );
     }
+  }
+
+  private NumericLiteral parseFloat( String strValue )
+  {
+    float fValue = Float.parseFloat( strValue );
+    NumericLiteral floatLiteral = new NumericLiteral( strValue, fValue, JavaTypes.pFLOAT() );
+    verify( floatLiteral, fValue != Float.POSITIVE_INFINITY && fValue != Float.NEGATIVE_INFINITY, Res.MSG_NUMBER_LITERAL_TOO_LARGE );
+    return floatLiteral;
+  }
+
+  private NumericLiteral parseDouble( String strValue )
+  {
+    double dValue = Double.parseDouble( strValue );
+    NumericLiteral doubleLiteral = new NumericLiteral( strValue, dValue, JavaTypes.pDOUBLE() );
+    verify( doubleLiteral, dValue != Double.POSITIVE_INFINITY && dValue != Double.NEGATIVE_INFINITY, Res.MSG_NUMBER_LITERAL_TOO_LARGE );
+    return doubleLiteral;
   }
 
   private void parseExplicitlyTypedNumericLiteral( String strValue, IType numericTypeFrom )
@@ -7639,11 +7684,15 @@ public final class GosuParser extends ParserBase implements IGosuParser
       }
       else if( JavaTypes.pFLOAT().equals( numericTypeFrom ) )
       {
-        e = new NumericLiteral( strValue, Float.parseFloat( strValue ), JavaTypes.pFLOAT() );
+        float value = Float.parseFloat( strValue );
+        e = new NumericLiteral( strValue, value, JavaTypes.pFLOAT() );
+        verify( e, !Float.isInfinite( value ), Res.MSG_NUMBER_LITERAL_TOO_LARGE );
       }
       else if( JavaTypes.pDOUBLE().equals( numericTypeFrom ) )
       {
-        e = new NumericLiteral( strValue, Double.parseDouble( strValue ), JavaTypes.pDOUBLE() );
+        double value = Double.parseDouble( strValue );
+        e = new NumericLiteral( strValue, value, JavaTypes.pDOUBLE() );
+        verify( e, !Double.isInfinite( value ), Res.MSG_NUMBER_LITERAL_TOO_LARGE );
       }
       else if( JavaTypes.BIG_INTEGER().equals( numericTypeFrom ) )
       {
