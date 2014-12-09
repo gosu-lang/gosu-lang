@@ -49,7 +49,7 @@ class BaseVerifyErrantTest extends TestClass {
   }
 
   private function verifySameIssues( typeName: String, iLine: int, issues: List <IParseIssue>, resKey: ArrayList <ResourceKey> ) {
-    assertSame( typeName + " : Different number of errors found for line " + iLine, issues.Count, resKey.Count )
+    assertSame( typeName + " : Different number of errors found for line " + iLine + " found: ${issues.map( \ i -> i.MessageKey.Key )}", issues.Count, resKey.Count )
     issues.eachWithIndex( \ issue, i -> assertTrue( typeName + " : Different error messages on line " + iLine + "\n" + issue.MessageKey.Key + " vs. " + resKey[i].Key, issue.MessageKey.Key == resKey[i].Key ) )
   }
 

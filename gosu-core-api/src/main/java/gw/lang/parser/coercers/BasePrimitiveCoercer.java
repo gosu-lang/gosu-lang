@@ -147,7 +147,7 @@ public class BasePrimitiveCoercer extends StandardCoercer implements IResolvingC
     }
     else {
       iScore += infoLoss;             // score = (1..2)
-      iScore += 3;                    // score = (4..5)
+      iScore += 4;                    // score = (5..6)
     }
     return iScore;
   }
@@ -162,11 +162,11 @@ public class BasePrimitiveCoercer extends StandardCoercer implements IResolvingC
     {                                        //TO
       //FROM       boolean  char    byte    short   int     long    float   double
       /*boolean*/  {0,      0,      0,      0,      0,      0,      0,      0 },
-      /*char   */  {2,      0,      2,      2,      0,      0,      0,      0 },
-      /*byte   */  {2,      0,      0,      0,      0,      0,      0,      0 },
-      /*short  */  {2,      2,      2,      0,      0,      0,      0,      0 },
-      /*int    */  {2,      2,      2,      2,      0,      0,      1,      0 },
-      /*long   */  {2,      2,      2,      2,      2,      0,      1,      0 },
+      /*char   */  {2,      0,      2,      2,      0,      0,      0,      1 },
+      /*byte   */  {2,      0,      0,      0,      0,      0,      0,      1 },
+      /*short  */  {2,      2,      2,      0,      0,      0,      0,      1 },
+      /*int    */  {2,      2,      2,      2,      0,      0,      0,      1 },
+      /*long   */  {2,      2,      2,      2,      2,      0,      0,      1 },
       /*float  */  {2,      2,      2,      2,      2,      2,      0,      0 },
       /*double */  {2,      2,      2,      2,      2,      2,      1,      0 },
     };

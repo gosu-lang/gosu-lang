@@ -1325,6 +1325,10 @@ public class TypeLoaderAccess extends BaseService implements ITypeSystem
       else if( lhsType.isInterface() && ((!rhsType.isFinal() && !rhsType.isPrimitive() && !(rhsType instanceof IFunctionType) && !(rhsType.isArray()) && !genericInterfacesClash( lhsType, rhsType))) ) {
         return true;
       }
+      else if( lhsType == JavaTypes.OBJECT() && rhsType.isPrimitive() && rhsType != JavaTypes.pVOID() )
+      {
+        return true;
+      }
     }
     return false;
   }
