@@ -171,8 +171,8 @@ class Errant_AllPrimitiveTypesMethods {
     //IDE-820 Needs to be fixed in Parser. Should go to (float, float)
     var primTypeF1114: Float1 = fun(42.5f, 42)
     var primTypeF1115: Float1 = fun(42.5f, 42.5f)
-    //IDE-474 Needs to be fixed in Parser. Should go to (double, double)
-    var primTypeF1116: Float1 = fun(42.5f, 100L)      //## issuekeys: INCOMPATIBLE TYPES. FOUND:
+    //IDE-474 Goes to (float, float) as Java does
+    var primTypeF1116: Float1 = fun(42.5f, 100L)
     var primTypeF1117: Float1 = fun(42.5f, 42.5)      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'GW.SPECCONTRIB.AAA.PARSERVSOPENSOURCE.METHODSCORINGOVERLOADING.PRIMITIVES_METHODSCORING.ERRANT_ALLPRIMITIVETYPES.DOUBLE1', REQUIRED: 'GW.SPECCONTRIB.AAA.PARSERVSOPENSOURCE.METHODSCORINGOVERLOADING.PRIMITIVES_METHODSCORING.ERRANT_ALLPRIMITIVETYPES.FLOAT1'
 
     var primTypeF2111: Float1 = fun('c', 42.5f)
@@ -181,8 +181,8 @@ class Errant_AllPrimitiveTypesMethods {
     //IDE-820 Needs to be fixed in Parser. Should go to (float, float)
     var primTypeF2114: Float1 = fun(42, 42.5f)
     var primTypeF2115: Float1 = fun(42.5f, 42.5f)
-    //IDE-474 Needs to be fixed in Parser. Should go to (double, double)
-    var primTypeF2116: Float1 = fun(100L, 42.5f)      //## issuekeys: INCOMPATIBLE TYPES. FOUND:
+    //IDE-474 Goes to (float, float) as Java does
+    var primTypeF2116: Float1 = fun(100L, 42.5f)
     var primTypeF2117: Float1 = fun(42.5, 42.5f)      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'GW.SPECCONTRIB.AAA.PARSERVSOPENSOURCE.METHODSCORINGOVERLOADING.PRIMITIVES_METHODSCORING.ERRANT_ALLPRIMITIVETYPES.DOUBLE1', REQUIRED: 'GW.SPECCONTRIB.AAA.PARSERVSOPENSOURCE.METHODSCORINGOVERLOADING.PRIMITIVES_METHODSCORING.ERRANT_ALLPRIMITIVETYPES.FLOAT1'
 
     var primTypeF3111 = fun(42.5f, 'c')
