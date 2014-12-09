@@ -32,7 +32,7 @@
     <li> Hyperlink to Gosu from stack traces
     </ul>
   ]]></description>
-
+    <version>3.6.1-SNAPSHOT</version>
     <version>${project.version}</version>
     <vendor email="gosu-lang@googlegroups.com" url="http://gosu-lang.org">Guidewire Software</vendor>
     <idea-version since-build="123.72"/>
