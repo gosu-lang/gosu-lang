@@ -45,8 +45,11 @@ import gw.internal.xml.xsd.typeprovider.schema.XmlSchemaAny;
 import gw.internal.xml.xsd.typeprovider.schema.XmlSchemaAttribute;
 import gw.internal.xml.xsd.typeprovider.schema.XmlSchemaAttributeGroup;
 import gw.internal.xml.xsd.typeprovider.schema.XmlSchemaCollection;
+import gw.internal.xml.xsd.typeprovider.schema.XmlSchemaComplexContent;
+import gw.internal.xml.xsd.typeprovider.schema.XmlSchemaComplexContentExtension;
 import gw.internal.xml.xsd.typeprovider.schema.XmlSchemaComplexType;
 import gw.internal.xml.xsd.typeprovider.schema.XmlSchemaContent;
+import gw.internal.xml.xsd.typeprovider.schema.XmlSchemaContentModel;
 import gw.internal.xml.xsd.typeprovider.schema.XmlSchemaElement;
 import gw.internal.xml.xsd.typeprovider.schema.XmlSchemaFacet;
 import gw.internal.xml.xsd.typeprovider.schema.XmlSchemaGroup;
@@ -2103,6 +2106,7 @@ public class XmlSchemaIndex<T> {
   }
 
   public static XmlSimpleValueFactory getSimpleValueFactoryForSchemaType( XmlSchemaType schemaType ) {
+    schemaType = discardInterveningComplexContentExtensions( schemaType );
     XmlSimpleValueFactory factory = null;
     if ( schemaType instanceof XmlSchemaSimpleType ) {
       factory = getSimpleValueFactoryForSimpleType( (XmlSchemaSimpleType) schemaType );
@@ -2117,6 +2121,7 @@ public class XmlSchemaIndex<T> {
   }
 
   public static XmlSimpleValueValidator getSimpleValueValidatorForSchemaType( XmlSchemaType schemaType ) {
+    schemaType = discardInterveningComplexContentExtensions( schemaType );
     XmlSimpleValueValidator factory = null;
     if ( schemaType instanceof XmlSchemaSimpleType ) {
       factory = getSimpleValueValidatorForType( schemaType );
@@ -2449,6 +2454,22 @@ public class XmlSchemaIndex<T> {
 
   public URL getSchemaURL() {
     return _schemaEF;
+  }
+
+  private static XmlSchemaType discardInterveningComplexContentExtensions( final XmlSchemaType xsdType ) {
+    if ( xsdType instanceof XmlSchemaComplexType ) {
+      final XmlSchemaContentModel contentModel = ( (XmlSchemaComplexType) xsdType ).getContentModel();
+      if ( contentModel instanceof XmlSchemaComplexContent ) {
+        final XmlSchemaContent contentDerivation = contentModel.getContent();
+        if ( contentDerivation instanceof XmlSchemaComplexContentExtension ) {
+          final QName baseTypeName = ( (XmlSchemaComplexContentExtension) contentDerivation ).getBaseTypeName();
+          if ( baseTypeName != null ) {
+            return xsdType.getSchemaIndex().getXmlSchemaTypeByQName( baseTypeName );
+          }
+        }
+      }
+    }
+    return xsdType;
   }
 
 }
