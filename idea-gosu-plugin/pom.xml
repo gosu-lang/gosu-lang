@@ -4,12 +4,12 @@
     <groupId>org.gosu-lang.gosu</groupId>
     <artifactId>gosu-parent</artifactId>
     <relativePath>../gosu-parent/pom.xml</relativePath>
-    <version>1.2</version>
+    <version>1.2.1-SNAPSHOT</version>
   </parent>
 
   <groupId>com.guidewire.studio</groupId>
   <artifactId>idea-gosu-plugin</artifactId>
-  <version>3.6</version>
+  <version>3.6.1-SNAPSHOT</version>
 
   <name>Gosu :: IntelliJ IDEA Plugin </name>
 
@@ -182,24 +182,24 @@
     <dependency>
       <groupId>org.gosu-lang.gosu</groupId>
       <artifactId>gosu-core</artifactId>
-      <version>1.2</version>
+      <version>1.2.1-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.gosu-lang.gosu</groupId>
       <artifactId>gosu-test-api</artifactId>
-      <version>1.2</version>
+      <version>1.2.1-SNAPSHOT</version>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.gosu-lang.gosu</groupId>
       <artifactId>gosu-itcase-utils</artifactId>
-      <version>1.2</version>
+      <version>1.2.1-SNAPSHOT</version>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.gosu-lang.gosu</groupId>
       <artifactId>ij-compiler-api</artifactId>
-      <version>1.2</version>
+      <version>1.2.1-SNAPSHOT</version>
     </dependency>
   </dependencies>
 
