@@ -23,6 +23,7 @@ public final class MapAssignmentStatement extends Statement implements IMapAssig
    */
   protected Expression _expression;
 
+  private boolean _compoundStatement;
 
   public MapAssignmentStatement()
   {
@@ -81,4 +82,13 @@ public final class MapAssignmentStatement extends Statement implements IMapAssig
     return null;
   }
 
+  public void setCompoundStatement( boolean compoundStatement )
+  {
+    _compoundStatement = compoundStatement;
+  }
+
+  public boolean isCompoundStatement()
+  {
+    return _compoundStatement;
+  }
 }

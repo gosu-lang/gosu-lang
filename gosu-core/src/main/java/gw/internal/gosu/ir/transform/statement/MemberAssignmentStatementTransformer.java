@@ -20,7 +20,10 @@ import gw.internal.gosu.parser.statements.MemberAssignmentStatement;
 import gw.internal.gosu.runtime.GosuRuntimeMethods;
 import gw.lang.ir.IRExpression;
 import gw.lang.ir.IRStatement;
+import gw.lang.ir.IRSymbol;
 import gw.lang.ir.IRType;
+import gw.lang.ir.statement.IRAssignmentStatement;
+import gw.lang.ir.statement.IRStatementList;
 import gw.lang.parser.IExpression;
 import gw.lang.parser.Keyword;
 import gw.lang.parser.exceptions.ParseException;
@@ -78,19 +81,37 @@ public class MemberAssignmentStatementTransformer extends AbstractStatementTrans
 
   private IRStatement assignInstanceMember( IPropertyInfo pi, IRProperty irProperty ) {
     IExpression rootExpr = _stmt().getRootExpression();
-    IRExpression root = pushRootExpression( getConcreteType( rootExpr.getType() ), rootExpr, irProperty );
+    IRExpression root;
+    IRSymbol tempRoot;
+    IRStatement ret;
+
+    IRAssignmentStatement tempRootAssn;
+    if( _stmt().isCompoundStatement() )
+    {
+      IType concreteType = getConcreteType( rootExpr.getType() );
+      root = pushRootExpression( concreteType, rootExpr, irProperty );
+      tempRoot = _cc().makeAndIndexTempSymbol( getDescriptor(concreteType) );
+      tempRootAssn = buildAssignment( tempRoot, root );
+      root = identifier( tempRoot );
+      ExpressionTransformer.addTempSymbolForCompoundAssignment( rootExpr, tempRoot );
+    }
+    else
+    {
+      root = pushRootExpression( getConcreteType( rootExpr.getType() ), rootExpr, irProperty );
+      tempRootAssn = null;
+    }
 
     if( isScopedField( pi ) ) {
       IGosuVarPropertyInfo propertyInfo = getActualPropertyInfo( pi );
-      return setScopedSymbolValue( propertyInfo, _stmt().getExpression() );
+      ret =  setScopedSymbolValue( propertyInfo, _stmt().getExpression() );
     }
     else if( irProperty.isBytecodeProperty() ) {
-      IRExpression rhs = compileRhs( irProperty );
+      IRExpression rhs = compileRhs( irProperty);
       if( irProperty.isField() ) {
-        return setField( irProperty, root, rhs );
+        ret = setField( irProperty, root, rhs );
       }
       else if( isWriteMethodMissingAndUsingLikeNamedField( irProperty ) ) {
-        return setField( irProperty.getOwningIType(),
+        ret = setField( irProperty.getOwningIType(),
                          getField( ((IRPropertyFromPropertyInfo)irProperty).getTerminalProperty() ),
                          getWritableType( irProperty ),
                          irProperty.getAccessibility(),
@@ -99,18 +120,24 @@ public class MemberAssignmentStatementTransformer extends AbstractStatementTrans
       }
       else {
         if( isSuperCall( _stmt().getRootExpression() ) ) {
-          return buildMethodCall( callSpecialMethod( getDescriptor( _cc().getSuperType() ), irProperty.getSetterMethod(), root, exprList( rhs ) ) );
+          ret =  buildMethodCall( callSpecialMethod( getDescriptor( _cc().getSuperType() ), irProperty.getSetterMethod(), root, exprList( rhs ) ) );
         }
         else {
           IRExpression irMethodCall = callMethod( irProperty.getSetterMethod(), root, exprList( rhs ) );
           assignStructuralTypeOwner( rootExpr, irMethodCall );
-          return buildMethodCall( irMethodCall );
+          ret = buildMethodCall( irMethodCall );
         }
       }
     }
     else {
-      return reflectivelySetProperty( pi.getOwnersType(), pushConstant( pi.getDisplayName() ), root, false );
+      ret = reflectivelySetProperty( pi.getOwnersType(), pushConstant( pi.getDisplayName() ), root, false );
     }
+    if( _stmt().isCompoundStatement() )
+    {
+      ExpressionTransformer.clearTempSymbolForCompoundAssignment();
+      return new IRStatementList( false, tempRootAssn, ret );
+    }
+    return ret;
   }
 
   private IRExpression pushRootExpression( IType rootType, IExpression rootExpr, IRProperty pi ) {
@@ -186,7 +213,7 @@ public class MemberAssignmentStatementTransformer extends AbstractStatementTrans
   }
 
   private IRStatement assignStaticMember( IPropertyInfo pi, IRProperty irProperty, IRType propertyType ) {
-    // Unwrap the property, and use the real owner's type as the type to compile against 
+    // Unwrap the property, and use the real owner's type as the type to compile against
     while( pi instanceof IPropertyInfoDelegate ) {
       pi = ((IPropertyInfoDelegate)pi).getSource();
     }

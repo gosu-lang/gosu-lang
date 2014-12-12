@@ -1,5 +1,0 @@
-package gw.specification.expressions.fieldAndPropertyAccessExpressions
-
-class Errant_FieldAndPropertyAccessExpressionsTest {
-
-}

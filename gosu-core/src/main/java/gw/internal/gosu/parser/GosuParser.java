@@ -11067,6 +11067,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
         }
         rhs = possiblyWrapWithImplicitCoercion(rhs, typeExpected);
         as.setExpression( rhs );
+        as.setCompoundStatement( !"=".equals( T._strValue ) );
       }
       //noinspection ThrowableResultOfMethodCallIgnored
       ma.removeParseException( Res.MSG_CANNOT_READ_A_WRITE_ONLY_PROPERTY );
@@ -11095,6 +11096,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
 
         as.setExpression( rhs );
         as.setArrayAccessExpression( aa );
+        as.setCompoundStatement( !"=".equals( T._strValue ) );
         statement = as;
       }
       else
@@ -11124,6 +11126,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
 
         as.setExpression( rhs );
         as.setMapAccessExpression( ma );
+        as.setCompoundStatement( !"=".equals( T._strValue ) );
         statement = as;
       }
       else
