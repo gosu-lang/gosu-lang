@@ -150,17 +150,17 @@ public class MethodScorer {
       iScore = 10;
     }
     else if( paramType instanceof IInvocableType && argType instanceof IInvocableType ) {
-      // Assignable function types  +10 + average-degrees-of-separation-of-sum-of-params-and-return-type
+      // Assignable function types  0 + average-degrees-of-separation-of-sum-of-params-and-return-type
       int iDegrees = addDegreesOfSeparation( paramType, argType, inferringTypes );
       iScore = Math.min( Byte.MAX_VALUE - 10,
-                         10 + iDegrees / (Math.max( ((IInvocableType)paramType).getParameterTypes().length,
-                                                   ((IInvocableType)argType).getParameterTypes().length ) + 1) );
+                         iDegrees / (Math.max( ((IInvocableType)paramType).getParameterTypes().length,
+                                               ((IInvocableType)argType).getParameterTypes().length ) + 1) );
     }
     else {
       if( paramType.isAssignableFrom( argType ) ) {
         if( !(argType instanceof IInvocableType) ) {
-          // Assignable types  +10 + degrees-of-separation
-          iScore = 10 + addDegreesOfSeparation( paramType, argType, inferringTypes );
+          // Assignable types  0 + degrees-of-separation
+          iScore = addDegreesOfSeparation( paramType, argType, inferringTypes );
         }
         else {
           // Crooked assignable types involving function type and non-function type  +Max - 2
@@ -211,7 +211,11 @@ public class MethodScorer {
       if( type.isParameterizedType() ) {
         type = getGenericType( type );
       }
-
+      if( parameterType == type ) {
+        // don't include the same type in the hierarchy.  We are adding degrees because the arg type and param type are different, but assignable, which
+        // means there must be at least one type in the hierarchy, if not the arg type itself, that is not the parameter type.
+        continue;
+      }
       if( parameterType instanceof IInvocableType && type instanceof IInvocableType ) {
         // Recursively apply over params and return type
         iScore += scoreMethod( (IInvocableType)parameterType, Arrays.asList( ((IInvocableType)type).getParameterTypes() ), inferringTypes );

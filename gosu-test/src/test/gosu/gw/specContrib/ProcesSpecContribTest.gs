@@ -61,7 +61,7 @@ class ProcesSpecContribTest extends BaseVerifyErrantTest {
   }
 
   private function convertToClassPath(f : File) : String {
-    var dotPath = f.AbsolutePath.replaceAll(File.separator, ".")
+    var dotPath = f.AbsolutePath.replace(File.separator, ".")
     var i = dotPath.indexOf("gw.specContrib")
     var extLength = f.Extension.length()+1
     return dotPath.substring(i, dotPath.length() - extLength)

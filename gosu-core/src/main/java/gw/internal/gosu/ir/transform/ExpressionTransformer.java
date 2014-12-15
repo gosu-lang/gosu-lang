@@ -94,11 +94,15 @@ import gw.internal.gosu.parser.expressions.UnaryExpression;
 import gw.internal.gosu.parser.expressions.UnaryNotPlusMinusExpression;
 import gw.lang.ir.IRExpression;
 import gw.lang.ir.IRStatement;
+import gw.lang.ir.IRSymbol;
+import gw.lang.ir.expression.IRIdentifier;
 import gw.lang.parser.IExpression;
 import gw.lang.parser.expressions.IIdentifierExpression;
 import gw.lang.parser.expressions.ITypeAsExpression;
 import gw.lang.parser.expressions.ITypeOfExpression;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.List;
 
 /**
@@ -107,6 +111,7 @@ public class ExpressionTransformer
 {
   private IExpression _expr;
   private TopLevelTransformationContext _cc;
+  private static Map<IExpression, IRSymbol> _tempSymbolsForCompoundAssignment = new HashMap<IExpression, IRSymbol>();
 
   public static IRExpression compile( IExpression expr, TopLevelTransformationContext cc )
   {
@@ -120,6 +125,16 @@ public class ExpressionTransformer
     return gen.compileInitializer( root );
   }
 
+  public static void addTempSymbolForCompoundAssignment( IExpression e, IRSymbol s )
+  {
+    _tempSymbolsForCompoundAssignment.put( e, s );
+  }
+
+  public static void clearTempSymbolForCompoundAssignment()
+  {
+    _tempSymbolsForCompoundAssignment.clear();
+  }
+
   private ExpressionTransformer( IExpression expr, TopLevelTransformationContext cc )
   {
     _expr = expr;
@@ -128,7 +143,11 @@ public class ExpressionTransformer
 
   private IRExpression compile()
   {
-    if( _expr instanceof IIdentifierExpression )
+    IRSymbol symbol = _tempSymbolsForCompoundAssignment.get( _expr );
+    if(  symbol != null ) {
+      return new IRIdentifier( symbol );
+    }
+    else if( _expr instanceof IIdentifierExpression )
     {
       return IdentifierTransformer.compile( _cc, (IIdentifierExpression)_expr );
     }
