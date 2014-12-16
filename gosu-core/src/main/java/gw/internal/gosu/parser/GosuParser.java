@@ -4770,8 +4770,15 @@ public final class GosuParser extends ParserBase implements IGosuParser
               : MapAccess.supportsMapAccess( rootType )
               ? MapAccess.getKeyType( rootType )
               : null;
-
-      parseExpression( new ContextType( indexType ) );
+      boolean bDynamicRoot = rootType instanceof IPlaceholder && ((IPlaceholder)rootType).isPlaceholder();
+      if( bDynamicRoot )
+      {
+        parseExpression();
+      }
+      else
+      {
+        parseExpression( new ContextType( indexType ) );
+      }
       Expression indexExpression = popExpression();
 
 
@@ -4785,16 +4792,12 @@ public final class GosuParser extends ParserBase implements IGosuParser
       {
         ArrayAccess aa = new ArrayAccess();
         aa.setRootExpression( rootExpression );
-        if( (indexExpression.getType() != JavaTypes.pINT() || indexExpression.getType() != JavaTypes.INTEGER()) &&
-                !(indexExpression.getType() instanceof IErrorType ||
-                        (indexExpression.getType() instanceof IMetaType) &&
-                                ((IMetaType)indexExpression.getType()).getType() instanceof IErrorType) )
+        if( verify( indexExpression, indexExpression.getType() == JavaTypes.pINT() ||
+                                     indexExpression.getType() == JavaTypes.INTEGER() ||
+                                     bDynamicRoot,
+                    Res.MSG_ARRAY_INDEX_MUST_BE_INT ) )
         {
           aa.setMemberExpression( indexExpression );
-        }
-        else
-        {
-          verify( indexExpression, false, Res.MSG_ARRAY_INDEX_MUST_BE_INT );
         }
         aa.setNullSafe( bNullSafe );
         pushExpression( aa );
