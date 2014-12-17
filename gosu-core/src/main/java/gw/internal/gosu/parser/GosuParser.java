@@ -2070,8 +2070,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
       }
       if( !bComparable )
       {
-        bComparable = (lhsType instanceof IPlaceholder && ((IPlaceholder)lhsType).isPlaceholder()) ||
-                      (rhsType instanceof IPlaceholder && ((IPlaceholder)rhsType).isPlaceholder());
+        bComparable = isDynamic( lhsType ) || isDynamic( rhsType );
       }
     }
     verify( expr, bComparable, Res.MSG_RELATIONAL_OPERATOR_CANNOT_BE_APPLIED_TO_TYPE, expr.getOperator(), lhsType );
@@ -3255,7 +3254,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
           //Infer the parameter types of the block
           List<IType> inferredContextTypes = getContextTypesForBlockArgument( contextType.getType() );
 
-          ArrayList<ISymbol> args = parseParameterDeclarationList( block, false, inferredContextTypes );
+          ArrayList<ISymbol> args = parseParameterDeclarationList( block, false, inferredContextTypes, false, false, false, isDynamic( contextType.getType() ) );
           for (ISymbol arg : args) {
             _symTable.putSymbol(arg);
           }
@@ -4770,7 +4769,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
               : MapAccess.supportsMapAccess( rootType )
               ? MapAccess.getKeyType( rootType )
               : null;
-      boolean bDynamicRoot = rootType instanceof IPlaceholder && ((IPlaceholder)rootType).isPlaceholder();
+      boolean bDynamicRoot = isDynamic( rootType );
       if( bDynamicRoot )
       {
         parseExpression();
@@ -6989,6 +6988,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
       else
       {
         IType ctxType = iArgPos < paramTypes.length ? paramTypes[iArgPos] : null;
+        ctxType = ctxType == null ? useDynamicTypeIfDynamicRoot( funcType, ctxType ) : ctxType;
         rawCtxType = ctxType == null ? null : inferArgType( ctxType, inferenceMap );
         if( ctxType == null )
         {
@@ -7039,6 +7039,19 @@ public final class GosuParser extends ParserBase implements IGosuParser
         popInferringFunctionTypeVariableTypes();
       }
     }
+  }
+
+  private IType useDynamicTypeIfDynamicRoot( IInvocableType funcType, IType ctxType )
+  {
+    if( funcType instanceof FunctionType && ((FunctionType)funcType).getMethodInfo() != null )
+    {
+      IMethodInfo mi = ((FunctionType)funcType).getMethodInfo();
+      if( isDynamic( mi.getOwnersType() ) )
+      {
+        ctxType = ((FunctionType)funcType).getReturnType();
+      }
+    }
+    return ctxType;
   }
 
   private Expression getDefaultValueOrPlaceHolderForParam( int iParam, IInvocableType invType )
@@ -11613,7 +11626,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
         IType[] argTypes = null;
         if( !match( null, null, ')', true ) )
         {
-          args = parseParameterDeclarationList( functionStmt, Modifier.isStatic( modifiers.getModifiers() ), null, bProperty, bGetter, false );
+          args = parseParameterDeclarationList( functionStmt, Modifier.isStatic( modifiers.getModifiers() ), null, bProperty, bGetter, false, false );
           argTypes = new IType[args.size()];
           for( int i = 0; i < args.size(); i++ )
           {
@@ -11623,7 +11636,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
         }
         else
         {
-          parseParameterDeclarationList( functionStmt, Modifier.isStatic( modifiers.getModifiers() ), null, bProperty, bGetter, true );
+          parseParameterDeclarationList( functionStmt, Modifier.isStatic( modifiers.getModifiers() ), null, bProperty, bGetter, true, false );
           verify ( functionStmt, ! bProperty || bGetter, Res.MSG_PROPERTY_SET_MUST_HAVE_ONE_PARAMETER );
         }
         verify( functionStmt, match( null, ')' ), Res.MSG_EXPECTING_RIGHTPAREN_FUNCTION_DEF );
@@ -12338,7 +12351,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
         IType[] paramTypes = null;
         if( !match( null, ')' ) )
         {
-          params = parseParameterDeclarationList( element, Modifier.isStatic( modifiers.getModifiers() ), null, bProperty, bGetter, false );
+          params = parseParameterDeclarationList( element, Modifier.isStatic( modifiers.getModifiers() ), null, bProperty, bGetter, false, false );
           paramTypes = new IType[params.size()];
           for( int i = 0; i < params.size(); i++ )
           {
@@ -12812,10 +12825,10 @@ public final class GosuParser extends ParserBase implements IGosuParser
   //------------------------------------------------------------------------------
   public ArrayList<ISymbol> parseParameterDeclarationList( IParsedElement element, boolean bStatic, List<IType> inferredArgumentTypes )
   {
-    return parseParameterDeclarationList( element, bStatic, inferredArgumentTypes, false, false, false );
+    return parseParameterDeclarationList( element, bStatic, inferredArgumentTypes, false, false, false, false );
   }
 
-  public ArrayList<ISymbol> parseParameterDeclarationList( IParsedElement element, boolean bStatic, List<IType> inferredArgumentTypes, boolean bProperty, boolean bGetter, boolean bEmpty )
+  public ArrayList<ISymbol> parseParameterDeclarationList( IParsedElement element, boolean bStatic, List<IType> inferredArgumentTypes, boolean bProperty, boolean bGetter, boolean bEmpty, boolean bVarDynamicArg )
   {
     ArrayList<ISymbol> params = new ArrayList<ISymbol>();
     Token T = new Token();
@@ -12891,11 +12904,15 @@ public final class GosuParser extends ParserBase implements IGosuParser
       boolean bColonFound = match( null, ":", SourceCodeTokenizer.TT_OPERATOR );
       boolean bEqualsFound = match( null, "=", SourceCodeTokenizer.TT_OPERATOR );
       boolean bParenFound = match( null, null, '(', true );
-      if( inferredArgumentTypes != null && !bColonFound && !bEqualsFound && !bParenFound )
+      if( (inferredArgumentTypes != null || bVarDynamicArg) && !bColonFound && !bEqualsFound && !bParenFound )
       {
-        if( inferredArgumentTypes.size() > iParamPos )
+        if( inferredArgumentTypes != null && inferredArgumentTypes.size() > iParamPos )
         {
           argType = inferredArgumentTypes.get(iParamPos);
+        }
+        else if( bVarDynamicArg )
+        {
+          argType = TypeSystem.getByFullName( "dynamic.Dynamic" );
         }
         else
         {

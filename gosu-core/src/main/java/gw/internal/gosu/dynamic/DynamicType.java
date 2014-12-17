@@ -4,7 +4,6 @@
 
 package gw.internal.gosu.dynamic;
 
-import gw.lang.reflect.IPlaceholder;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.ITypeInfo;
 import gw.lang.reflect.ITypeLoader;
