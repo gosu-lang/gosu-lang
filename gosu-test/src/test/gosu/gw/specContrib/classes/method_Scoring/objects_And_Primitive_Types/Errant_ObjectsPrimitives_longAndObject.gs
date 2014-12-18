@@ -1,9 +1,9 @@
-package gw.specContrib.classes.method_Scoring.collections_And_Generics
+package gw.specContrib.classes.method_Scoring.objects_And_Primitive_Types
 
 uses java.lang.Integer
 uses java.lang.Long
 
-class Errant_Generics_MethodScoring_7 {
+class Errant_ObjectsPrimitives_longAndObject {
   class A{}
   class B{}
 
