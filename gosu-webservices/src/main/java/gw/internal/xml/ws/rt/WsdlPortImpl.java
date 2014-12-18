@@ -20,6 +20,7 @@ import gw.internal.xml.xsd.typeprovider.schema.WsdlPort;
 import gw.internal.xml.xsd.typeprovider.schemaparser.SoapVersion;
 import gw.lang.PublishedType;
 import gw.lang.PublishedTypes;
+import gw.lang.reflect.IConstructorHandler;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.gs.IGosuObject;
@@ -70,6 +71,22 @@ public class WsdlPortImpl implements IGosuObject, IWsdlPort {
   final private QName _serviceQName;
   final protected Wsdl _wsdl;
   final private IFile _resourceFile;
+
+  private static LocklessLazyVar<IType> ASYNC_RESPONSE_IMPL_TYPE = new LocklessLazyVar<IType>() {
+    protected IType init() {
+      return TypeSystem.getByFullName( "gw.internal.xml.ws.AsyncResponseImpl" );
+    }
+  };
+  private static LocklessLazyVar<IConstructorHandler> ASYNC_RESPONSE_IMPL_GENERIC_CONSTRUCTOR = new LocklessLazyVar<IConstructorHandler>() {
+    protected IConstructorHandler init() {
+      return ASYNC_RESPONSE_IMPL_TYPE.get().getTypeInfo().getConstructors().get( 0 ).getConstructor();
+    }
+  };
+  private static LocklessLazyVar<IType> ASYNC_RESPONSE_TYPE = new LocklessLazyVar<IType>() {
+    protected IType init() {
+      return TypeSystem.getByFullName( "gw.xml.ws.AsyncResponse" );
+    }
+  };
 
   /**
    * Constructs a port.
@@ -230,19 +247,9 @@ public class WsdlPortImpl implements IGosuObject, IWsdlPort {
       envelope = requestEnvelope;
     }
 
-    return (AsyncResponseInternal) getParameterizedAsyncResponseType( opTypeData, soapVersion, true ).getTypeInfo().getConstructors().get( 0 ).getConstructor().newInstance( opTypeData, this, envelope, getSchemaAccess(), getSoapVersion(), _portTypePackageName );
+    // dlank: trying to parameterize the type before invoking the constructor causes a race condition at multiple customer sites, so we simply construct the generic type
+    return (AsyncResponseInternal) ASYNC_RESPONSE_IMPL_GENERIC_CONSTRUCTOR.get().newInstance( opTypeData, this, envelope, getSchemaAccess(), getSoapVersion(), _portTypePackageName );
   }
-
-  static LocklessLazyVar<IType> asyncResponseImpl = new LocklessLazyVar<IType>() {
-    protected IType init() {
-      return TypeSystem.getByFullName("gw.internal.xml.ws.AsyncResponseImpl");
-    }
-  };
-  static LocklessLazyVar<IType> asyncResponse = new LocklessLazyVar<IType>() {
-    protected IType init() {
-      return TypeSystem.getByFullName("gw.xml.ws.AsyncResponse");
-    }
-  };
 
   public static IType getParameterizedAsyncResponseType( WsdlOperationInfo opTypeData, SoapVersion soapVersion, boolean impl ) {
     IType parameterType;
@@ -256,7 +263,7 @@ public class WsdlPortImpl implements IGosuObject, IWsdlPort {
       parameterType = opTypeData.getOutputInfo().getReturnType();
     }
     IType envelopeType = soapVersion == SoapVersion.SOAP_12 ? Envelope.TYPE.get() : gw.internal.schema.gw.xsd.w3c.soap11_envelope.Envelope.TYPE.get();
-    IType responseType = impl ? asyncResponseImpl.get() : asyncResponse.get();
+    IType responseType = impl ? ASYNC_RESPONSE_IMPL_TYPE.get() : ASYNC_RESPONSE_TYPE.get();
     return responseType.getParameterizedType(parameterType, envelopeType);
   }
 
