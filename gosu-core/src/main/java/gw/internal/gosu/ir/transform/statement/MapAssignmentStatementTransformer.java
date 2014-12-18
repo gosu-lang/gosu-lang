@@ -4,12 +4,14 @@
 
 package gw.internal.gosu.ir.transform.statement;
 
+import gw.internal.gosu.parser.Expression;
 import gw.internal.gosu.parser.statements.MapAssignmentStatement;
 import gw.lang.ir.IRStatement;
 import gw.lang.ir.IRExpression;
 import gw.internal.gosu.ir.transform.ExpressionTransformer;
 import gw.internal.gosu.ir.transform.TopLevelTransformationContext;
-import gw.lang.reflect.TypeSystem;
+import gw.lang.ir.IRSymbol;
+import gw.lang.ir.statement.IRStatementList;
 import gw.lang.reflect.java.JavaTypes;
 
 import java.util.AbstractMap;
@@ -34,34 +36,34 @@ public class MapAssignmentStatementTransformer extends AbstractStatementTransfor
   protected IRStatement compile_impl()
   {
     // Push the Map value
-    IRExpression root = ExpressionTransformer.compile( _stmt().getMapAccessExpression().getRootExpression(), _cc() );
+    Expression rootExpression = _stmt().getMapAccessExpression().getRootExpression();
+    IRExpression originalRoot = ExpressionTransformer.compile( rootExpression, _cc() );
 
-    // Null check
-//    Label endLabel = new Label();
-//    mv.visitInsn( Opcodes.DUP );
-//    Label nullLabel = new Label();
-//    mv.visitJumpInsn( Opcodes.IFNULL, nullLabel );
+    IRSymbol tempRoot = null;
+    IRExpression root;
+    if( _stmt().isCompoundStatement() )
+    {
+      tempRoot = _cc().makeAndIndexTempSymbol( originalRoot.getType() );
+      root = identifier( tempRoot );
+      ExpressionTransformer.addTempSymbolForCompoundAssignment( rootExpression, tempRoot );
+    } else
+    {
+      root = originalRoot;
+    }
 
-    // Call Map.put( k, v )
     Class clsMap = getMapType();
     IRExpression key = ExpressionTransformer.compile( _stmt().getMapAccessExpression().getKeyExpression(), _cc() );
     IRExpression value = ExpressionTransformer.compile( _stmt().getExpression(), _cc() );
     IRExpression putCall = callMethod( clsMap, "put", new Class[]{Object.class, Object.class},
-            root,
-            exprList( key, value ) );
+                                      root,
+                                      exprList( key, value ) );
+    if( _stmt().isCompoundStatement() )
+    {
+      ExpressionTransformer.clearTempSymbolForCompoundAssignment();
+      return new IRStatementList( false, buildAssignment( tempRoot, originalRoot ), buildMethodCall( putCall ) );
+    }
     return buildMethodCall( putCall );
 
-//    mv.visitInsn( Opcodes.POP );  // put returns a value, so it must be popped
-//    mv.visitJumpInsn( Opcodes.GOTO, endLabel );
-
-    // Throw exception for null map
-//    mv.visitLabel( nullLabel );
-//    mv.visitInsn( Opcodes.POP );
-//    pushConstant( "Null reference for map." );
-//    callStaticMethod( EvaluationException.class, "create", String.class );
-//    mv.visitInsn( Opcodes.ATHROW );
-//
-//    mv.visitLabel( endLabel );
   }
 
   private Class getMapType()

@@ -269,55 +269,106 @@ The expression ``typeof e`` is evaluated by evaluating ``e`` and returning its
 run-time type.
 
 
-Field And Property Access Expressions
-=====================================
+Field Access Expressions
+========================
 
 .. index:: field access expression, property access expression
 
 A *field* access must have one of these three forms:
 
-  ``f``
-  ``C.f``
-  ``o.f``
+- ``f``
+- ``C.f``
+- ``o.f``
 
 where ``C`` is a class and ``o`` an expression of reference type.
 
-A field access ``f`` must refer to a static or non-static field declared in or inherited by a class whose
-declaration encloses the field access expression. The class declaring the field is the
-target class ``TC``.
+A field access ``f`` must refer to a static or non-static field declared in or
+inherited by a class whose declaration encloses the field access expression.
+The class declaring the field is the target class ``TC``.
 
-A field access ``C.f`` must refer to a static field in class ``C`` or a superclass of ``C``. That class is the target
-class ``TC``.
+A field access ``C.f`` must refer to a static field in class ``C`` or a
+superclass of ``C``. That class is the target class ``TC``.
 
-A field access ``o.f``, where expression ``o`` has type ``C``, must refer to a static or non-static field in class ``C`` or
-a superclass of ``C``. That class is the target class ``TC``. To evaluate the field access, the expression ``o`` is
-evaluated to obtain an object. If the field is static, the object is ignored and the value of ``o.f`` is the ``TC``-field ``f``.
-If the field is non-static, the value of ``o`` must be non-``null`` and the value of ``o.f`` is the
-value of the ``TC``-field ``f`` in object ``o``.
-It is informative to contrast a non-static field access and a non-static method call (section XXX):
+A field access ``o.f``, where expression ``o`` has type ``C``, must refer to a
+static or non-static field in class ``C`` or a superclass of ``C``. That class
+is the target class ``TC``. To evaluate the field access, the expression ``o``
+is evaluated to obtain an object. If the field is static, the object is ignored
+and the value of ``o.f`` is the ``TC``-field ``f``. If the field is non-static,
+the value of ``o`` must be non-``null`` and the value of ``o.f`` is the value
+of the ``TC``-field ``f`` in object ``o``. It is informative to contrast a
+non-static field access and a non-static method call (section XXX):
 
-* In a non-static field access ``o.f``, the field referred to is determined by the compile-time *type*
-  of the object expression ``o``.
-* In a non-static call to a non-private method ``o.m(``...``)``, the method called is determined by the
-  run-time *class* of the target object: the object to which ``o`` evaluates.
+* In a non-static field access ``o.f``, the field referred to is determined by
+  the compile-time *type* of the object expression ``o``.
+* In a non-static call to a non-private method ``o.m(``...\ ``)``, the method
+  called is determined by the run-time *class* of the target object: the object
+  to which ``o`` evaluates.
 
-PROPERTY ACCESS
-?.
-\*. 
-super.a property 
-  
 
 The Current Object Reference ``this``
 =====================================
 
-The name ``this`` may be used in non-static code to refer to the current object (section 9.1). When
-non-static code in a given object is executed, the object reference ``this`` refers to the object as a whole.
-Hence, when ``f`` is a field and m is a method (declared in the innermost enclosing class), then ``this.f``
-means the same as ``f`` (when ``f`` has not been shadowed by a variable or parameter of the same name),
-and ``this.m(``...``)`` means the same as ``m(``...``)``.
-When ``C`` is an inner class in an enclosing class ``D``, then inside ``C`` the notation ``D.this`` refers to the ``D``
-object enclosing the inner ``C`` object. See example 31 where ``TLC.this.nf`` refers to field ``nf`` of the
-enclosing class ``TLC``.
+The name ``this`` may be used in non-static code to refer to the current object
+(section XXX). When non-static code in a given object is executed, the object
+reference ``this`` refers to the object as a whole. Hence, when ``f`` is a
+field and ``m`` is a method (declared in the innermost enclosing class), then
+``this.f`` means the same as ``f``, and ``this.m(``...\ ``)`` means the same as
+``m(``...\ ``)``.
+
+
+Property Access Expressions
+===========================
+
+A property get-access must have one of these three forms:
+
+- ``P``
+- ``C.P``
+- ``o.P``
+
+where ``C`` is a class and ``o`` an expression of reference type. In the first
+case, ``P`` must be a static or instance property declared in an enclosing
+class. In the second case, ``P`` must be a static property declared in class
+``C``. In the third case, ``P`` must be an instance property declared in the
+type of ``o``, where ``o`` is a value. Property declarations are described in
+section XXX.
+
+In each case, the type of the property get-access expression is the declared
+type of the property ``P``. A property get-access is evaluated by evaluating
+``o``, if present, and then executing the body of the get-accessor. The value
+of the expression is the value returned by the ``return``-statement that
+terminates the execution of the get-accessor’s body. Such a
+``return``-statement will eventually be executed, provided the get-accessor
+terminates normally; see section XXX. If ``o`` is present but evaluates to
+``null``, NullPointerException is thrown.
+
+A *property set-access* must have one of these three forms:
+
+- ``P =`` *expression*
+- ``C.P =`` *expression*
+- ``o.P =`` *expression*
+
+where ``C`` is a class and ``o`` an expression of reference type. Each case
+must satisfy the same requirements as for get-access above. In each case, the
+type of the entire expression is the declared type of the property ``P``. The
+type of the right-hand side *expression* must be implicitly convertible to the
+declared type of the property. A property set-access is evaluated by evaluating
+``o``, if present, and then evaluating *expression* to a value which is
+implicitly converted to obtain a value ``v`` of the declared type of ``P``.
+Then parameter ``value`` is bound to ``v`` and the body of the set-accessor is
+executed. If ``o`` is present but evaluates to ``null``, NullPointerException
+is thrown. The value of the property set-access expression is the value passed
+to the set-accessor of ``P``.
+
+A read-write property ``P`` may be used in a compound assignment such as ``o.P
+*= 2`` or with increment and decrement operators as in ``o.P++``. First the
+get-accessor is called to get the value of ``P``, and then the set-accessor is
+called to set it. The expression ``o`` is evaluated only once.
+
+PROPERTY ACCESS
+?.
+\*.
+super.a property
+
 
 Method Call Expressions
 =======================

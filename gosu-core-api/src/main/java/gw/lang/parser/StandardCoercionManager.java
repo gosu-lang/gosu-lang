@@ -1146,6 +1146,10 @@ public class StandardCoercionManager extends BaseService implements ICoercionMan
         {
           return identityOrRuntime( typeToCoerceTo, typeToCoerceFrom );
         }
+        else if( typeToCoerceTo.isPrimitive() && typeToCoerceFrom instanceof IPlaceholder && ((IPlaceholder)typeToCoerceFrom).isPlaceholder() )
+        {
+          return IdentityCoercer.instance();
+        }
       }
       return coercerInternal;
     }

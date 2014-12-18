@@ -695,7 +695,8 @@ public class FunctionType extends AbstractType implements IFunctionType, IGeneri
         if( !StandardCoercionManager.arePrimitiveTypesAssignable( otherParamType, myParamType ) ) {
               //## todo: this condition re type vars is a hack; we need to tighten this up
           if( !(myParamType instanceof ITypeVariableType) &&
-              !otherParamType.isAssignableFrom( myParamType ) )
+              !otherParamType.isAssignableFrom( myParamType ) &&
+              !isDynamic( otherParamType ) && !isDynamic( myParamType ) )
           {
             return false;
           }
@@ -707,6 +708,11 @@ public class FunctionType extends AbstractType implements IFunctionType, IGeneri
       }
     }
     return true;
+  }
+
+  private static boolean isDynamic( IType otherParamType )
+  {
+    return otherParamType instanceof IPlaceholder && ((IPlaceholder)otherParamType).isPlaceholder();
   }
 
   public boolean isMutable()
