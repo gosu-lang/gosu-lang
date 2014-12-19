@@ -11,7 +11,7 @@ class Errant_BindJavaMethods {
   var internalFunction114 = JavaClass#javaInternalFun(JavaClass, String)  //## issuekeys:
   var internalFunction115 = JavaClass#javaInternalFun(String)             //## issuekeys:
   var internalFunction116 = JavaClass#javaInternalFun(int, int, int)      //## issuekeys:
-  var internalFunction117 = JavaClass#javaInternalFun()                   //## issuekeys:
+  var internalFunction117 = JavaClass#javaInternalFun()
   var internalFunction118 = JavaClass#javaInternalFun      //## issuekeys: CANNOT RESOLVE SYMBOL 'JAVAINTERNALFUN'
 
   var privateFunction111 = JavaClass#javaPrivateFun(String, int)
@@ -20,7 +20,7 @@ class Errant_BindJavaMethods {
   var privateFunction114 = JavaClass#javaPrivateFun(JavaClass, String) //## issuekeys:
   var privateFunction115 = JavaClass#javaPrivateFun(String)         //## issuekeys:
   var privateFunction116 = JavaClass#javaPrivateFun(int, int, int)    //## issuekeys:
-  var privateFunction117 = JavaClass#javaPrivateFun()   //## issuekeys:
+  var privateFunction117 = JavaClass#javaPrivateFun()
   var privateFunction118 = JavaClass#javaPrivateFun      //## issuekeys: CANNOT RESOLVE SYMBOL 'JAVAPRIVATEFUN'
 
   var protectedFunction111 = JavaClass#javaProtectedFun(String, int)
@@ -29,7 +29,7 @@ class Errant_BindJavaMethods {
   var protectedFunction114 = JavaClass#javaProtectedFun(JavaClass, String)    //## issuekeys:
   var protectedFunction115 = JavaClass#javaProtectedFun(String)   //## issuekeys:
   var protectedFunction116 = JavaClass#javaProtectedFun(int, int, int)    //## issuekeys:
-  var protectedFunction117 = JavaClass#javaProtectedFun()   //## issuekeys:
+  var protectedFunction117 = JavaClass#javaProtectedFun()
   var protectedFunction118 = JavaClass#javaProtectedFun      //## issuekeys: CANNOT RESOLVE SYMBOL 'JAVAPROTECTEDFUN'
 
   var publicFunction111 = JavaClass#javaPublicFun(String, int)
@@ -38,7 +38,7 @@ class Errant_BindJavaMethods {
   var publicFunction114 = JavaClass#javaPublicFun(JavaClass, String)//## issuekeys:
   var publicFunction115 = JavaClass#javaPublicFun(String)//## issuekeys:
   var publicFunction116 = JavaClass#javaPublicFun(int, int, int)//## issuekeys:
-  var publicFunction117 = JavaClass#javaPublicFun()//## issuekeys:
+  var publicFunction117 = JavaClass#javaPublicFun()
   var publicFunction118 = JavaClass#javaPublicFun      //## issuekeys: CANNOT RESOLVE SYMBOL 'JAVAPUBLICFUN'
 
 

@@ -34,12 +34,12 @@ class Errant_BindJavaFields {
     javaFieldProtectedProp.set(jInstance, "protected", 42)        //## issuekeys: WRONG NUMBER OF ARGUMENTS
     javaFieldProtectedProp.set(jInstance, 42)                     //## issuekeys: WRONG NUMBER OF ARGUMENTS
     javaFieldProtectedProp.set("protected")                       //## issuekeys: WRONG NUMBER OF ARGUMENTS
-    javaFieldProtectedProp.set("protected", 42)
+    javaFieldProtectedProp.set("protected", 42)                    //## issuekeys: MSG_TYPE_MISMATCH, MSG_IMPLICIT_COERCION_ERROR
 
     javaFieldPublicProp.set(jInstance, "public", 42)              //## issuekeys: WRONG NUMBER OF ARGUMENTS
     javaFieldPublicProp.set(jInstance, 42)                        //## issuekeys: WRONG NUMBER OF ARGUMENTS
     javaFieldPublicProp.set("public")                             //## issuekeys: WRONG NUMBER OF ARGUMENTS
-    javaFieldPublicProp.set("public", 42)
+    javaFieldPublicProp.set("public", 42)                         //## issuekeys: MSG_TYPE_MISMATCH, MSG_IMPLICIT_COERCION_ERROR
 
     //get the values
     var javaGetterInternal11 = javaFieldInternalProp.get(jInstance)

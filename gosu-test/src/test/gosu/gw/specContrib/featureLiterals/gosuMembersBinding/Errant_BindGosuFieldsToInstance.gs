@@ -57,7 +57,7 @@ class Errant_BindGosuFieldsToInstance {
 
     var javaGetterProtected11 = gosuFieldProtectedInstanceProp.get()
     var javaGetterProtected12 = gosuFieldProtectedInstanceProp.get(gInstance)  //## issuekeys: WRONG NUMBER OF ARGUMENTS
-    var javaGetterProtected13 = gosuFieldProtectedInstanceProp.get("hi")
+    var javaGetterProtected13 = gosuFieldProtectedInstanceProp.get("hi") //## issuekeys: WRONG NUMBER OF ARGUMENTS
 
     var javaGetterPublic11 = gosuFieldPublicInstanceProp.get()
     var javaGetterPublic12 = gosuFieldPublicInstanceProp.get(gInstance) //## issuekeys: WRONG NUMBER OF ARGUMENTS

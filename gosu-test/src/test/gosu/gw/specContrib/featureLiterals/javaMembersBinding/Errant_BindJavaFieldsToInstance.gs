@@ -57,7 +57,7 @@ class Errant_BindJavaFieldsToInstance {
 
     var javaGetterProtected11 = javaFieldProtectedInstanceProp.get()
     var javaGetterProtected12 = javaFieldProtectedInstanceProp.get(jInstance)  //## issuekeys: WRONG NUMBER OF ARGUMENTS
-    var javaGetterProtected13 = javaFieldProtectedInstanceProp.get("hi")
+    var javaGetterProtected13 = javaFieldProtectedInstanceProp.get("hi")      //## issuekeys: WRONG NUMBER OF ARGUMENTS
 
     var javaGetterPublic11 = javaFieldPublicInstanceProp.get()
     var javaGetterPublic12 = javaFieldPublicInstanceProp.get(jInstance) //## issuekeys: WRONG NUMBER OF ARGUMENTS

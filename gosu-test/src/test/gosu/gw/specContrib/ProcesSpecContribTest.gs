@@ -20,7 +20,7 @@ class ProcesSpecContribTest extends BaseVerifyErrantTest {
     for(f in files) {
       if(f.Directory) {
         findAllErrantFiles(f, errantClasses)
-      } else if(f.File and f.Name.startsWith("Errant")) {
+      } else if(f.File and f.Name.startsWith("Errant") and !f.Name.endsWith(".java")) {
         errantClasses.add(convertToClassPath(f))
       } else {
         print("Not an Errant file: " + f.AbsolutePath)
@@ -74,6 +74,7 @@ class ProcesSpecContribTest extends BaseVerifyErrantTest {
                                    "gw.specContrib.typeinference.Errant_SwitchTypeNarrowing",  // IDE-426
                                    "gw.specContrib.generics.Errant_GenericMethodBounds2",  // IDE-538
                                    "gw.specContrib.expressions.Errant_ExpressionsPrimitiveTypes",  // IDE-1276
+                                   "gw.specContrib.classes.method_Scoring.objects_And_Primitive_Types.Errant_ObjectsPrimitives_intAndObject",  //IDE-1523 IDE-1522 IDE-1523 IDE-1522
 
                                    /* to skip as we don't support this check in our testing framework */
                                    "gw.specContrib.classes.Errant_ClassDeclaredInEnhancement",

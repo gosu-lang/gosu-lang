@@ -32,12 +32,12 @@ class Errant_BindGosuFields {
     fieldProtectedProp.set(gInstance, "protected", 42 )        //## issuekeys: WRONG NUMBER OF ARGUMENTS
     fieldProtectedProp.set(gInstance, 42)                     //## issuekeys: WRONG NUMBER OF ARGUMENTS
     fieldProtectedProp.set("protected")                       //## issuekeys: WRONG NUMBER OF ARGUMENTS
-    fieldProtectedProp.set("protected", 42)
+    fieldProtectedProp.set("protected", 42)                   //## issuekeys: MSG_TYPE_MISMATCH, MSG_IMPLICIT_COERCION_ERROR
 
     fieldPublicProp.set(gInstance, "public", 42)              //## issuekeys: WRONG NUMBER OF ARGUMENTS
     fieldPublicProp.set(gInstance, 42)                        //## issuekeys: WRONG NUMBER OF ARGUMENTS
     fieldPublicProp.set("public")                             //## issuekeys: WRONG NUMBER OF ARGUMENTS
-    fieldPublicProp.set("public", 42)
+    fieldPublicProp.set("public", 42)                        //## issuekeys: MSG_TYPE_MISMATCH, MSG_IMPLICIT_COERCION_ERROR
 
     //get the values
     var javaGetterInternal11 = fieldInternalProp.get(gInstance)
