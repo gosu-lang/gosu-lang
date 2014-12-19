@@ -12,29 +12,13 @@ class Errant_MapKeyValueInitializers {
   }
 
   function caller() {
-    foo3({  //## issuekeys: MSG_TYPE_MISMATCH
-        "bar"->
-        "foo"
-    })
+    foo3({ "bar"-> "foo"} )  //## issuekeys: MSG_TYPE_MISMATCH
 
-    foo3({  //## issuekeys: MSG_TYPE_MISMATCH
-        1->
-        2,
-        1->
-        "2",
-        "2"->
-        "1"
-    })
+    foo3({ 1 -> 2, 1 -> "2", "2" -> "1" })  //## issuekeys: MSG_TYPE_MISMATCH
 
-    foo4({  //## issuekeys: MSG_TYPE_MISMATCH
-        {1, 2, 3}->
-        "foo"
-    })
+    foo4({ {1, 2, 3} -> "foo" })  //## issuekeys: MSG_TYPE_MISMATCH
 
-    foo4({  //## issuekeys: MSG_TYPE_MISMATCH
-        {1, 2, 3}->
-        {1, 2, 3}
-    })
+    foo4({ {1, 2, 3} -> {1, 2, 3} })  //## issuekeys: MSG_TYPE_MISMATCH
   }
 
 }

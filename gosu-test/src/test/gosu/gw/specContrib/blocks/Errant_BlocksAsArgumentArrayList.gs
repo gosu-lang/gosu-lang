@@ -110,15 +110,10 @@ class Errant_BlocksAsArgumentArrayList {
       return {1, 2, 3}
     })
 
-    //IDE-1336 - Error expected. Good in this case (the argument name is not specified)
-    blockArrayListIntegerFun115(\ArrayList<Integer>->{      //## issuekeys: UNEXPECTED TOKEN: <
-      return {1, 2, 3}      //## issuekeys: CANNOT RETURN A VALUE FROM A METHOD WITH VOID RESULT TYPE
-    })      //## issuekeys: UNEXPECTED TOKEN: <
-
     blockArrayListIntegerFun115(\s -> {
       print("blockfun5");
       return {1, 2, 3}
-    })  //## issuekeys: MSG_UNREACHABLE_STMT
+    })
 
     var blockArrayListIntVar116: ArrayList<Integer> = blockArrayListIntegerFun116(\s -> {
       print("blockfun5");
@@ -127,6 +122,11 @@ class Errant_BlocksAsArgumentArrayList {
     var blockArrayListIntVar117: ArrayList<Integer> = blockArrayListIntegerFun117(\-> {
       return {1, 2, 3}
     })
+
+    //IDE-1336 - Error expected. Good in this case (the argument name is not specified)
+    blockArrayListIntegerFun115(\ArrayList<Integer>->{      //## issuekeys: UNEXPECTED TOKEN: <
+      return {1, 2, 3}      //## issuekeys: CANNOT RETURN A VALUE FROM A METHOD WITH VOID RESULT TYPE
+    })      //## issuekeys: UNEXPECTED TOKEN: <
   }
 
   class CoContraVarianceTest {
