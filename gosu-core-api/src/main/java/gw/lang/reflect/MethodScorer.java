@@ -19,6 +19,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Set;
 
 public class MethodScorer {
   private static volatile MethodScorer INSTANCE = null;
@@ -201,7 +202,7 @@ public class MethodScorer {
     return addDegreesOfSeparation( parameterType, exprType instanceof IInvocableType ? Collections.singleton( exprType ) : exprType.getAllTypesInHierarchy(), inferringTypes );
   }
 
-  public int addDegreesOfSeparation( IType parameterType, Iterable<? extends IType> types, List<IType> inferringTypes ) {
+  public int addDegreesOfSeparation( IType parameterType, Set<? extends IType> types, List<IType> inferringTypes ) {
     int iScore = 0;
 
     if( parameterType.isParameterizedType() ) {
@@ -210,6 +211,10 @@ public class MethodScorer {
     for( IType type : types ) {
       if( type.isParameterizedType() ) {
         type = getGenericType( type );
+        if( types.contains( type ) ) {
+          // don't double-count a generic type
+          continue;
+        }
       }
       if( parameterType == type ) {
         // don't include the same type in the hierarchy.  We are adding degrees because the arg type and param type are different, but assignable, which
