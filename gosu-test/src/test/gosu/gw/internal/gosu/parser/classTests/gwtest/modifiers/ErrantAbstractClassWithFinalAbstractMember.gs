@@ -5,4 +5,5 @@ uses gw.testharness.DoNotVerifyResource
 abstract class ErrantAbstractClassWithFinalAbstractMember
 {
   abstract final function foo()
+  final abstract function foo1()
 }
