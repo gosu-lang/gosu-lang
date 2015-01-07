@@ -1713,16 +1713,32 @@ public final class GosuParser extends ParserBase implements IGosuParser
         BitwiseOrExpression e = new BitwiseOrExpression();
         Expression lhs = popExpression();
 
-        lhs = ensureOperandIntOrLong( lhs );
+        lhs = ensureOperandIntOrLongOrBoolean( lhs );
 
         parseBitwiseXorExpression();
         Expression rhs = popExpression();
-        rhs = ensureOperandIntOrLong( rhs );
+
+        if( lhs.getType() == JavaTypes.pBOOLEAN() )
+        {
+          rhs = ensureOperandBoolean( rhs );
+        }
+        else
+        {
+          rhs = ensureOperandIntOrLong( rhs );
+        }
+
         rhs = possiblyWrapWithImplicitCoercion( rhs, lhs.getType() );
 
         e.setLHS( lhs );
         e.setRHS( rhs );
-        e.setType( resolveType( e, lhs.getType(), '|', rhs.getType() ) );
+        if( lhs.getType() == JavaTypes.pBOOLEAN() )
+        {
+          e.setType( lhs.getType() );
+        }
+        else
+        {
+          e.setType( resolveType( e, lhs.getType(), '|', rhs.getType() ) );
+        }
         pushExpression( e );
       }
       else
@@ -1733,6 +1749,38 @@ public final class GosuParser extends ParserBase implements IGosuParser
       setLocation( iOffset, iLineNum, iColumn );
     }
     while( true );
+  }
+
+  private Expression ensureOperandIntOrLongOrBoolean( Expression op )
+  {
+    IType opType = op.getType();
+    if( verify( op,
+          opType == JavaTypes.LONG() || opType == JavaTypes.pLONG() ||
+          opType == JavaTypes.CHARACTER() || opType == JavaTypes.pCHAR() ||
+          opType == JavaTypes.INTEGER() || opType == JavaTypes.pINT() ||
+          opType == JavaTypes.SHORT() || opType == JavaTypes.pSHORT() ||
+          opType == JavaTypes.BYTE() || opType == JavaTypes.pBYTE() ||
+          opType == JavaTypes.BOOLEAN() || opType == JavaTypes.pBOOLEAN(),
+          Res.MSG_BITWISE_OPERAND_MUST_BE_INT_OR_LONG ) )
+    {
+      opType = opType == JavaTypes.LONG() || opType == JavaTypes.pLONG()
+               ? JavaTypes.pLONG()
+               : opType == JavaTypes.BOOLEAN() || opType == JavaTypes.pBOOLEAN()
+                 ? JavaTypes.pBOOLEAN()
+                 : JavaTypes.pINT();
+      op = possiblyWrapWithImplicitCoercion( op, opType );
+    }
+    return op;
+  }
+
+  private Expression ensureOperandBoolean( Expression op )
+  {
+    IType opType = op.getType();
+    if( verify( op, opType == JavaTypes.BOOLEAN() || opType == JavaTypes.pBOOLEAN(), Res.MSG_CONDITIONAL_EXPRESSION_EXPECTS_BOOLEAN ) )
+    {
+      op = possiblyWrapWithImplicitCoercion( op, JavaTypes.pBOOLEAN() );
+    }
+    return op;
   }
 
   private Expression ensureOperandIntOrLong( Expression op )
@@ -1785,16 +1833,32 @@ public final class GosuParser extends ParserBase implements IGosuParser
         BitwiseXorExpression e = new BitwiseXorExpression();
         Expression lhs = popExpression();
 
-        lhs = ensureOperandIntOrLong( lhs );
+        lhs = ensureOperandIntOrLongOrBoolean( lhs );
 
         parseBitwiseAndExpression();
         Expression rhs = popExpression();
-        rhs = ensureOperandIntOrLong( rhs );
+
+        if( lhs.getType() == JavaTypes.pBOOLEAN() )
+        {
+          rhs = ensureOperandBoolean( rhs );
+        }
+        else
+        {
+          rhs = ensureOperandIntOrLong( rhs );
+        }
+
         rhs = possiblyWrapWithImplicitCoercion( rhs, lhs.getType() );
 
         e.setLHS( lhs );
         e.setRHS( rhs );
-        e.setType( resolveType( e, lhs.getType(), '^', rhs.getType() ) );
+        if( lhs.getType() == JavaTypes.pBOOLEAN() )
+        {
+          e.setType( lhs.getType() );
+        }
+        else
+        {
+          e.setType( resolveType( e, lhs.getType(), '^', rhs.getType() ) );
+        }
         pushExpression( e );
       }
       else
@@ -1840,19 +1904,33 @@ public final class GosuParser extends ParserBase implements IGosuParser
         BitwiseAndExpression e = new BitwiseAndExpression();
         Expression lhs = popExpression();
 
-        lhs = ensureOperandIntOrLong( lhs );
+        lhs = ensureOperandIntOrLongOrBoolean( lhs );
 
         parseEqualityExpression();
         Expression rhs = popExpression();
 
-        rhs = ensureOperandIntOrLong( rhs );
+        if( lhs.getType() == JavaTypes.pBOOLEAN() )
+        {
+          rhs = ensureOperandBoolean( rhs );
+        }
+        else
+        {
+          rhs = ensureOperandIntOrLong( rhs );
+        }
 
         verifyComparable( lhs.getType(), rhs, true, true );
         rhs = possiblyWrapWithImplicitCoercion( rhs, lhs.getType() );
 
         e.setLHS( lhs );
         e.setRHS( rhs );
-        e.setType( resolveType( e, lhs.getType(), '&', rhs.getType() ) );
+        if( lhs.getType() == JavaTypes.pBOOLEAN() )
+        {
+          e.setType( lhs.getType() );
+        }
+        else
+        {
+          e.setType( resolveType( e, lhs.getType(), '&', rhs.getType() ) );
+        }
         pushExpression( e );
       }
       else
