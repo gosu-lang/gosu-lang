@@ -7,6 +7,7 @@ package gw.lang.parser.coercers;
 import gw.lang.parser.IResolvingCoercer;
 import gw.lang.parser.ICoercer;
 import gw.lang.reflect.IType;
+import gw.lang.reflect.MethodScorer;
 import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.TypeSystemShutdownListener;
 import gw.lang.reflect.java.JavaTypes;
@@ -126,7 +127,7 @@ public class BasePrimitiveCoercer extends StandardCoercer implements IResolvingC
       return 0;                       // score = 0
     }
     if( JavaTypes.OBJECT().equals( to ) ) {
-      return 8;                       // score = 8 (max)
+      return MethodScorer.BOXED_COERCION_SCORE + 1;   // score = 11 (must be consistent with MethodScorer)
     }
 
     int infoLoss = losesInformation( from, to );
@@ -134,9 +135,10 @@ public class BasePrimitiveCoercer extends StandardCoercer implements IResolvingC
 
     int iScore = 1;
     if( infoLoss > 1 ) {
-      iScore += 4;                    // score = 5
+      // Errant incompatible primitive types are treated identical to errant explicit coercible types because, same thing
+      iScore += MethodScorer.PRIMITIVE_COERCION_SCORE; // score = 25
       if( !bSameFamily ) {
-        iScore += 2;                  // score = 7
+        iScore += 1;                                   // score = 26
       }
     }
     else if( bSameFamily ) {

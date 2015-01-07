@@ -22,6 +22,8 @@ import java.util.List;
 import java.util.Set;
 
 public class MethodScorer {
+  public static final int BOXED_COERCION_SCORE = 10;
+  public static final int PRIMITIVE_COERCION_SCORE = 24;
   private static volatile MethodScorer INSTANCE = null;
 
   private final TypeSystemAwareCache<Pair<IType, IType>, Integer> _typeScoreCache =
@@ -148,7 +150,11 @@ public class MethodScorer {
     else if( TypeSystem.isBoxedTypeFor( paramType, argType ) ||
              TypeSystem.isBoxedTypeFor( argType, paramType ) ) {
       // Boxed coercion  +10
-      iScore = 10;
+      iScore = BOXED_COERCION_SCORE;
+    }
+    else if( argType.isPrimitive() && paramType == JavaTypes.OBJECT() ) {
+      // Boxed coercion  +11
+      iScore = BOXED_COERCION_SCORE + 1;
     }
     else if( paramType instanceof IInvocableType && argType instanceof IInvocableType ) {
       // Assignable function types  0 + average-degrees-of-separation-of-sum-of-params-and-return-type
@@ -173,7 +179,7 @@ public class MethodScorer {
         if( iCoercer != null ) {
           if( iCoercer instanceof BasePrimitiveCoercer ) {
             // Coercible (non-standard primitive)  +24 + primitive-coercion-score  (0 is best score for primitive coercer)
-            iScore = 24 + iCoercer.getPriority( paramType, argType );
+            iScore = PRIMITIVE_COERCION_SCORE + iCoercer.getPriority( paramType, argType );
           }
           else {
             // Coercible  +Max - priority - 1
