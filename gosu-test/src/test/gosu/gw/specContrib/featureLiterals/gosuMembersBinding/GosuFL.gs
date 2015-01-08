@@ -1,6 +1,11 @@
 package gw.specContrib.featureLiterals.gosuMembersBinding
 
 class GosuFL {
+  //constructors
+  construct() {}
+  construct(str : String) {}
+  construct(str : String, i : int) {}
+
   //fields
   internal var gosuFieldInternal: String
   private var gosuFieldPrivate: String
@@ -55,5 +60,11 @@ class GosuFL {
   public function gosuPublicFun(str1: String, int1: int): String {
     return null
   }
+
+  //overloaded functions
+  function overloadedFun(i : int) {}
+  function overloadedFun(str : String) {}
+  function overloadedFun(str : String, i : int) {}
+
 
 }
