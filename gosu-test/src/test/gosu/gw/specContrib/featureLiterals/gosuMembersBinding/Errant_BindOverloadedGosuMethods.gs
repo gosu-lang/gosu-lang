@@ -86,25 +86,25 @@ class Errant_BindOverloadedGosuMethods {
 
     //overloadedFun121
     //Same as overloadedFun111
-    //overloadedFun121.invoke(gInstance, "mystring")            //## issuekeys: CANNOT RESOLVE METHOD 'INVOKE(GW.SPECCONTRIB.AAA.PARSERVSOPENSOURCE.FEATURELITERALS.FEATURELITERALSMAIN.GOSUFEATURELITERALS.GOSUFL, JAVA.LANG.STRING)'
+    //overloadedFun121.invoke(gInstance, "mystring")
 
     //overloadedFun122
     //Same as overloadedFun111
-    //overloadedFun122.invoke(gInstance, 42)            //## issuekeys: CANNOT RESOLVE METHOD 'INVOKE(GW.SPECCONTRIB.AAA.PARSERVSOPENSOURCE.FEATURELITERALS.FEATURELITERALSMAIN.GOSUFEATURELITERALS.GOSUFL, INT)'
+    //overloadedFun122.invoke(gInstance, 42)
 
     //overloadedFun123
     //Same as overloadedFun111
-    //overloadedFun123.invoke(gInstance, "mystring", 42)            //## issuekeys: CANNOT RESOLVE METHOD 'INVOKE(GW.SPECCONTRIB.AAA.PARSERVSOPENSOURCE.FEATURELITERALS.FEATURELITERALSMAIN.GOSUFEATURELITERALS.GOSUFL, JAVA.LANG.STRING, INT)'
+    //overloadedFun123.invoke(gInstance, "mystring", 42)
 
     //overloadedFun124
     //Same as overloadedFun111
     //overloadedFun124.invoke(gInstance)
-    //overloadedFun124.invoke(gInstance, "mystring")            //## issuekeys: 'INVOKE(GW.SPECCONTRIB.AAA.PARSERVSOPENSOURCE.FEATURELITERALS.FEATURELITERALSMAIN.GOSUFEATURELITERALS.GOSUFL)' IN '' CANNOT BE APPLIED TO '(GW.SPECCONTRIB.AAA.PARSERVSOPENSOURCE.FEATURELITERALS.FEATURELITERALSMAIN.GOSUFEATURELITERALS.GOSUFL, JAVA.LANG.STRING)'
+    //overloadedFun124.invoke(gInstance, "mystring")
 
     //overloadedFun125
     //Same as overloadedFun111
     //overloadedFun125.invoke(gInstance)
-    //overloadedFun125.invoke(gInstance, 42)            //## issuekeys: 'INVOKE(GW.SPECCONTRIB.AAA.PARSERVSOPENSOURCE.FEATURELITERALS.FEATURELITERALSMAIN.GOSUFEATURELITERALS.GOSUFL)' IN '' CANNOT BE APPLIED TO '(GW.SPECCONTRIB.AAA.PARSERVSOPENSOURCE.FEATURELITERALS.FEATURELITERALSMAIN.GOSUFEATURELITERALS.GOSUFL, INT)'
+    //overloadedFun125.invoke(gInstance, 42)
 
     //overloadedFun126
     //Same as overloadedFun111

@@ -26,7 +26,7 @@ class Errant_BindOverloadedGosuMethodsToInstance {
 
     //overloadedFun111
     //This method FL is not visible in Parser as the definition has an error. But OS Gosu can see this. So commenting
-    //overloadedFun111.invoke()      //## issuekeys: CANNOT RESOLVE METHOD 'INVOKE()'
+    //overloadedFun111.invoke()
 
     //overloadedFun112
     overloadedFun112.invoke()      //## issuekeys: 'INVOKE(JAVA.LANG.STRING)' IN '' CANNOT BE APPLIED TO '()'
@@ -96,32 +96,32 @@ class Errant_BindOverloadedGosuMethodsToInstance {
 
     //overloadedFun121
     //Same as overloadedFun111
-    //overloadedFun121.invoke(gInstance, "mystring")      //## issuekeys: CANNOT RESOLVE METHOD 'INVOKE(GW.SPECCONTRIB.AAA.PARSERVSOPENSOURCE.FEATURELITERALS.FEATURELITERALSMAIN.GOSUFEATURELITERALS.GOSUFL, JAVA.LANG.STRING)'
+    //overloadedFun121.invoke(gInstance, "mystring")
 
     //overloadedFun122
     //Same as overloadedFun111
-    // overloadedFun122.invoke(gInstance, 42)      //## issuekeys: CANNOT RESOLVE METHOD 'INVOKE(GW.SPECCONTRIB.AAA.PARSERVSOPENSOURCE.FEATURELITERALS.FEATURELITERALSMAIN.GOSUFEATURELITERALS.GOSUFL, INT)'
+    // overloadedFun122.invoke(gInstance, 42)
 
     //overloadedFun123
     //Same as overloadedFun111
-    //overloadedFun123.invoke(gInstance, "mystring", 42)      //## issuekeys: CANNOT RESOLVE METHOD 'INVOKE(GW.SPECCONTRIB.AAA.PARSERVSOPENSOURCE.FEATURELITERALS.FEATURELITERALSMAIN.GOSUFEATURELITERALS.GOSUFL, JAVA.LANG.STRING, INT)'
+    //overloadedFun123.invoke(gInstance, "mystring", 42)
 
     //overloadedFun124
     //Same as overloadedFun111
     //overloadedFun124.invoke()
-    //overloadedFun124.invoke(gInstance)      //## issuekeys: 'INVOKE()' IN '' CANNOT BE APPLIED TO '(GW.SPECCONTRIB.AAA.PARSERVSOPENSOURCE.FEATURELITERALS.FEATURELITERALSMAIN.GOSUFEATURELITERALS.GOSUFL)'
-    //overloadedFun124.invoke(gInstance, "mystring")      //## issuekeys: 'INVOKE()' IN '' CANNOT BE APPLIED TO '(GW.SPECCONTRIB.AAA.PARSERVSOPENSOURCE.FEATURELITERALS.FEATURELITERALSMAIN.GOSUFEATURELITERALS.GOSUFL, JAVA.LANG.STRING)'
+    //overloadedFun124.invoke(gInstance)
+    //overloadedFun124.invoke(gInstance, "mystring")
 
     //overloadedFun125
     //Same as overloadedFun111
     // overloadedFun125.invoke()
-    //overloadedFun125.invoke(gInstance)      //## issuekeys: 'INVOKE()' IN '' CANNOT BE APPLIED TO '(GW.SPECCONTRIB.AAA.PARSERVSOPENSOURCE.FEATURELITERALS.FEATURELITERALSMAIN.GOSUFEATURELITERALS.GOSUFL)'
-    //overloadedFun125.invoke(gInstance, 42)      //## issuekeys: 'INVOKE()' IN '' CANNOT BE APPLIED TO '(GW.SPECCONTRIB.AAA.PARSERVSOPENSOURCE.FEATURELITERALS.FEATURELITERALSMAIN.GOSUFEATURELITERALS.GOSUFL, INT)'
+    //overloadedFun125.invoke(gInstance)
+    //overloadedFun125.invoke(gInstance, 42)
 
     //overloadedFun126
     //Same as overloadedFun111
     //overloadedFun126.invoke()
-    //overloadedFun126.invoke(gInstance)      //## issuekeys: 'INVOKE()' IN '' CANNOT BE APPLIED TO '(GW.SPECCONTRIB.AAA.PARSERVSOPENSOURCE.FEATURELITERALS.FEATURELITERALSMAIN.GOSUFEATURELITERALS.GOSUFL)'
+    //overloadedFun126.invoke(gInstance)
 
     //overloadedFun127
     overloadedFun127.invoke()      //## issuekeys: CANNOT RESOLVE METHOD 'INVOKE()'
