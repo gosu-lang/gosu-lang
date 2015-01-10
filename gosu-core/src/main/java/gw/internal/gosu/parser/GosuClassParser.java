@@ -972,7 +972,7 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
           if( innerClass.getSourceFileHandle() instanceof InnerClassFileSystemSourceFileHandle )
           {
             int state = getTokenizer().mark();
-            new GosuClassParser( getOwner(), innerClass ).parseDeclarations( innerClass );
+            parseInnerClassDeclaration( innerClass );
             getTokenizer().restoreToMark( state );
           }
           iCount += (innerClass.isDeclarationsCompiled() && innerClass.isInnerDeclarationsCompiled()) ? 0 : 1;
@@ -2944,17 +2944,26 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
             }
           }
 
-          Map<String, Set<IFunctionSymbol>> restoreDfsDecls = copyDFSDecls( getOwner() );
-          new GosuClassParser( getOwner(), innerClass ).parseDeclarations( innerClass );
-          if( innerClass.isInterface() )
-          {
-            ModifierInfo mi = (ModifierInfo)innerClass.getModifierInfo();
-            mi.setModifiers( Modifier.setStatic( mi.getModifiers(), true ));
-          }
-          getOwner().setDfsDeclInSetByName( restoreDfsDecls );
+          parseInnerClassDeclaration( innerClass );
           break;
         }
       }
+    }
+  }
+
+  private void parseInnerClassDeclaration( IGosuClassInternal innerClass ) {
+    // Preserve dfs decls map of outer class
+    Map<String, Set<IFunctionSymbol>> restoreDfsDecls = copyDFSDecls( getOwner() );
+    try {
+      new GosuClassParser( getOwner(), innerClass ).parseDeclarations( innerClass );
+      if( innerClass.isInterface() )
+      {
+        ModifierInfo mi = (ModifierInfo)innerClass.getModifierInfo();
+        mi.setModifiers( Modifier.setStatic( mi.getModifiers(), true ));
+      }
+    }
+    finally {
+      getOwner().setDfsDeclInSetByName( restoreDfsDecls );
     }
   }
 
