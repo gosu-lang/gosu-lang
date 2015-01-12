@@ -22,6 +22,10 @@ public abstract class TypeSystemAwareAction extends AnAction {
     super(text);
   }
 
+  protected TypeSystemAwareAction(@Nullable Icon icon) {
+    super(icon);
+  }
+
   protected TypeSystemAwareAction(String text, @Nullable String description, @Nullable Icon icon) {
     super(text, description, icon);
   }
