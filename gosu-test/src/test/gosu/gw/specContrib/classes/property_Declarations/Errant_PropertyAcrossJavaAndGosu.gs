@@ -1,6 +1,7 @@
 package gw.specContrib.classes.property_Declarations
 
 uses java.lang.Integer
+uses java.util.Set
 
 class Errant_PropertyAcrossJavaAndGosu extends JavaClass2 {
 
@@ -10,4 +11,5 @@ class Errant_PropertyAcrossJavaAndGosu extends JavaClass2 {
     return null
   }
 
+  var myVar: Set<A> as Set1
 }
