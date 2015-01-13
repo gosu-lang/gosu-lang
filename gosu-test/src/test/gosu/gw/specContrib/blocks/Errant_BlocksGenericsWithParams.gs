@@ -33,8 +33,8 @@ class Errant_BlocksGenericsWithParams {
     var x11218 = hello1(\x: ArrayList<Integer> -> {
       return {1, 2, 3}
     })
-    //x11219 : OS Gosu issue - IDE-1346. Parser is good : No error
-    var x11219 = hello1(\x: ArrayList<Integer> -> {
+    //x11219 : IDE-1346 will not be fixed. Both OS Gosu and Parser show error. Keeping the errors
+    var x11219 = hello1(\x: ArrayList<Integer> -> {      //## issuekeys: INCOMPATIBLE TYPES
       return {1, 2, 'c'}
     })
     var x11220 = hello1(\x: ArrayList<Integer> -> {      //## issuekeys: 'HELLO1(GW.LANG.__PSI__.IBLOCK1<JAVA.UTIL.ARRAYLIST<JAVA.LANG.INTEGER>,JAVA.UTIL.ARRAYLIST<JAVA.LANG.INTEGER>>)' IN 'TEST.GOSU.GW.SPECCONTRIB.AAA.PARSERVSOPENSOURCE.BLOCKS.BLOCKSMAIN.ERRANT_BLOCKSGENERICSWITHPARAMS' CANNOT BE APPLIED TO '(BLOCK(ARRAYLIST<INTEGER>):ARRAYLIST<SERIALIZABLE & COMPARABLE<SERIALIZABLE & COMPARABLE<? EXTENDS COMPARABLE<?>>>>)'
@@ -70,8 +70,8 @@ class Errant_BlocksGenericsWithParams {
     var x12229: ArrayList = hello1(\x: ArrayList<Integer> -> {
       return {1, 2, 3}
     })
-    //x12230 : OS Gosu issue - IDE-1346. Parser is good : No error
-    var x12230: ArrayList = hello1(\x: ArrayList<Integer> -> {
+    //x12230 : IDE-1346 will not be fixed. Both OS Gosu and Parser show error. Keeping the errors
+    var x12230: ArrayList = hello1(\x: ArrayList<Integer> -> {      //## issuekeys: INCOMPATIBLE TYPES
       return {1, 2, 'c'}
     })
     var x12231: ArrayList = hello1(\x: ArrayList<Integer> -> {      //## issuekeys: 'HELLO1(GW.LANG.__PSI__.IBLOCK1<JAVA.UTIL.ARRAYLIST<JAVA.LANG.INTEGER>,JAVA.UTIL.ARRAYLIST<JAVA.LANG.INTEGER>>)' IN 'TEST.GOSU.GW.SPECCONTRIB.AAA.PARSERVSOPENSOURCE.BLOCKS.BLOCKSMAIN.ERRANT_BLOCKSGENERICSWITHPARAMS' CANNOT BE APPLIED TO '(BLOCK(ARRAYLIST<INTEGER>):ARRAYLIST<SERIALIZABLE & COMPARABLE<SERIALIZABLE & COMPARABLE<? EXTENDS COMPARABLE<?>>>>)'
@@ -94,22 +94,21 @@ class Errant_BlocksGenericsWithParams {
     var x13234: ArrayList<Integer> = hello1(\x: ArrayList<Integer> -> {
       return new ArrayList<Integer>()
     })
-    //x13235 : Parser and OS Gosu show error because of different issues
-    // Parser should not show error IDE-1344. And OS Gosu should not show error IDE-1346
-    var x13235: ArrayList<Integer> = hello1(\x: ArrayList -> {
+    //x13235 : IDE-1346 will not be fixed. Both OS Gosu and Parser show error. Keeping the errors
+    var x13235: ArrayList<Integer> = hello1(\x: ArrayList -> {     //## issuekeys: INCOMPATIBLE TYPES
       return {1, 2, 'c'}
     })
     var x13236: ArrayList<Integer> = hello1(\x: ArrayList<Integer> -> {
       return {1, 2, 3}
     })
-    //IDE-1346 Next 3 cases. OS Gosu Bug only. Parser is good
-    var x13237: ArrayList<Integer> = hello1(\x: ArrayList<Integer> -> {
+    //IDE-1346 will not be fixed. Both OS Gosu and Parser show error. Impacts x1315, x1316, x1317. Keeping the errors
+    var x13237: ArrayList<Integer> = hello1(\x: ArrayList<Integer> -> {   //## issuekeys: INCOMPATIBLE TYPES
       return {1, 2, 'c'}
     })
-    var x13238: ArrayList<Integer> = hello1(\x: ArrayList<Integer> -> {
+    var x13238: ArrayList<Integer> = hello1(\x: ArrayList<Integer> -> {   //## issuekeys: INCOMPATIBLE TYPES
       return {1, 2, 3b}
     })
-    var x13239: ArrayList<Integer> = hello1(\x: ArrayList<Integer> -> {
+    var x13239: ArrayList<Integer> = hello1(\x: ArrayList<Integer> -> {   //## issuekeys: INCOMPATIBLE TYPES
       return {1, 2, 3s}
     })
 

@@ -132,11 +132,12 @@ public class VarInitializationVerifier {
     ArrayList<AssignmentOrReference> assignments = new ArrayList<AssignmentOrReference>();
     AssignedState state = getAssignedStateForStatements( varStmt.getSymbol(), assignments, trailingStmts.toArray( new IStatement[trailingStmts.size()] ), AssignedState.Unassigned );
     verifyVar( varStmt, false, bFinal, bAssigned, assignments );
-    if( bFinal && !bAssigned && state != AssignedState.Fully ) {
-      ParseException parseException = new ParseException( varStmt.getLineNum(), 1, varStmt.getLocation().getColumn(), varStmt.getLocation().getOffset(), varStmt.getLocation().getExtent(),
-                                                          new StandardSymbolTable(), Res.MSG_VAR_MIGHT_NOT_HAVE_BEEN_INIT, varStmt.getSymbol().getName() );
-      varStmt.addParseException( parseException );
-    }
+// IDE-1508. Don't verify that a local var statement is initialized (we only need to verify references to the var, not the var itself)
+//    if( bFinal && !bAssigned && state != AssignedState.Fully ) {
+//      ParseException parseException = new ParseException( varStmt.getLineNum(), 1, varStmt.getLocation().getColumn(), varStmt.getLocation().getOffset(), varStmt.getLocation().getExtent(),
+//                                                          new StandardSymbolTable(), Res.MSG_VAR_MIGHT_NOT_HAVE_BEEN_INIT, varStmt.getSymbol().getName() );
+//      varStmt.addParseException( parseException );
+//    }
   }
 
   private List<IStatement> findTrailingStmts( IStatement enclosingStatement, IVarStatement finalVar ) {

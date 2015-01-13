@@ -63,14 +63,14 @@ class Errant_BlocksGenericsWithoutParams {
     var x1314: ArrayList<Integer> = hello1(\-> {
       return {1, 2, 3}
     })
-    //IDE-1346 Should not show error - Next 3 cases (issue in both Parser and OS Gosu)
-    var x1315: ArrayList<Integer> = hello1(\-> {
+    //IDE-1346 will not be fixed. Both OS Gosu and Parser show error. Impacts x1315, x1316, x1317. Keeping the errors
+    var x1315: ArrayList<Integer> = hello1(\-> {  //## issuekeys: INCOMPATIBLE TYPES
       return {42, 'c'}
     })
-    var x1316: ArrayList<Integer> = hello1(\-> {
+    var x1316: ArrayList<Integer> = hello1(\-> {  //## issuekeys: INCOMPATIBLE TYPES
       return {42, 1b}
     })
-    var x1317: ArrayList<Integer> = hello1(\-> {
+    var x1317: ArrayList<Integer> = hello1(\-> {  //## issuekeys: INCOMPATIBLE TYPES
       return {42, 1s}
     })
 
