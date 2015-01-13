@@ -26,17 +26,63 @@ class Errant_AnonymousClassesTest {
 
   class A2 {}
 
+  class A3 {
+    construct( i: int ) {}
+  }
+  class Blah {
+    construct(s: String) {}
+    construct(i: int) {}
+  }
+
   function noOwnConstructor() {
+    new Blah("hey") {
+      construct(s: String) {super(s)}
+    }
+    new Blah("hey") {
+      construct(i: int) {super(i)}     //## issuekeys: MSG_ANON_CTOR_PARAMS_CONFLICT_WITH_CALL_SITE
+    }
+    new Blah("hey") {
+      construct(i: int) {super(i)}    //## issuekeys: MSG_SINGLE_ANON_CTOR
+      construct(i: String) {super(i)}    //## issuekeys: MSG_SINGLE_ANON_CTOR
+    }
+
     new B() {
       override function foo() {
       }
-      construct() {}  //## issuekeys: MSG_CONSTRUCTORS_NOT_ALLOWD_IN_THIS_CONTEXT
-      construct(i : int) {}  //## issuekeys: MSG_CONSTRUCTORS_NOT_ALLOWD_IN_THIS_CONTEXT
+      construct() {}    //## issuekeys: MSG_SINGLE_ANON_CTOR
+      construct(i: int) {}      //## issuekeys: MSG_SINGLE_ANON_CTOR
     }
-    new A2() { construct() {}  //## issuekeys: MSG_CONSTRUCTORS_NOT_ALLOWD_IN_THIS_CONTEXT
-              construct(i : int) {}  //## issuekeys: MSG_CONSTRUCTORS_NOT_ALLOWD_IN_THIS_CONTEXT
-            }
+    new B() {
+      override function foo() {
+      }
+      construct(i: int) {}    //## issuekeys: MSG_ANON_CTOR_PARAMS_CONFLICT_WITH_CALL_SITE
+    }
+    new B() {
+      override function foo() {
+      }
+      construct() {}
+    }
+
+    new A2() {
+      construct() {}    //## issuekeys: MSG_SINGLE_ANON_CTOR
+      construct(i : int) {}    //## issuekeys: MSG_SINGLE_ANON_CTOR
+    }
+    new A2() {
+      construct() {}
+    }
+
+    new A3() {    //## issuekeys: MSG_NO_CONSTRUCTOR_FOUND_FOR_CLASS
+      construct(i : int) { super( i ) }
+    }
+    new A3( 2 ) {
+      construct(i : int) { super( i ) }
+    }
+    new A3( 2 ) {
+      construct() { super( 9 ) }    //## issuekeys: MSG_SINGLE_ANON_CTOR
+      construct(i : int) { super( i ) }    //## issuekeys: MSG_SINGLE_ANON_CTOR
+    }
   }
+
   function m0() {
     a = new A(8) {
       public var y : int = 1
@@ -52,7 +98,7 @@ class Errant_AnonymousClassesTest {
 
   function m1() {
     new A(1) {
-      construct() {   }  //## issuekeys: MSG_CONSTRUCTORS_NOT_ALLOWD_IN_THIS_CONTEXT, MSG_NO_DEFAULT_CTOR_IN
+      construct() {   }  //## issuekeys: MSG_ANON_CTOR_PARAMS_CONFLICT_WITH_CALL_SITE, MSG_NO_DEFAULT_CTOR_IN
     }
   }
 
