@@ -174,6 +174,8 @@ public class Res
   public static final ResourceKey MSG_VOID_NOT_ALLOWED = new ResourceKey("MSG_VOID_NOT_ALLOWED");
   public static final ResourceKey MSG_FUNCTIONS_NOT_ALLOWED_IN_THIS_CONTEXT =new ResourceKey( "MSG_FUNCTIONS_NOT_ALLOWED_IN_THIS_CONTEXT" );
   public static final ResourceKey MSG_CONSTRUCTORS_NOT_ALLOWD_IN_THIS_CONTEXT =new ResourceKey( "MSG_CONSTRUCTORS_NOT_ALLOWD_IN_THIS_CONTEXT" );
+  public static final ResourceKey MSG_SINGLE_ANON_CTOR =new ResourceKey( "MSG_SINGLE_ANON_CTOR" );
+  public static final ResourceKey MSG_ANON_CTOR_PARAMS_CONFLICT_WITH_CALL_SITE =new ResourceKey( "MSG_ANON_CTOR_PARAMS_CONFLICT_WITH_CALL_SITE" );
   public static final ResourceKey MSG_INNER_CLASSES_NOT_ALLOWED_IN_THIS_CONTEXT =new ResourceKey( "MSG_INNER_CLASSES_NOT_ALLOWED_IN_THIS_CONTEXT" );
   public static final ResourceKey MSG_VARIABLE_ALREADY_DEFINED = new ResourceKey("MSG_VARIABLE_ALREADY_DEFINED");
   public static final ResourceKey MSG_VARIABLE_REQUEST_DOES_NOT_ALLOW_VALUE = new ResourceKey("MSG_VARIABLE_REQUEST_DOES_NOT_ALLOW_VALUE");

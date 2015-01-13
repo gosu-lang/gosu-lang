@@ -189,6 +189,8 @@ public class Strings extends ListResourceBundle
        {Res.MSG_VOID_NOT_ALLOWED.getKey(), "'void' type not allowed here"},
        {Res.MSG_FUNCTIONS_NOT_ALLOWED_IN_THIS_CONTEXT.getKey(), "Function declarations not allowed in this context"},
        {Res.MSG_CONSTRUCTORS_NOT_ALLOWD_IN_THIS_CONTEXT.getKey(), "Constructors not allowed in this context"},
+       {Res.MSG_ANON_CTOR_PARAMS_CONFLICT_WITH_CALL_SITE.getKey(), "Anonymous constructor parameter types conflict with arg types at the call site"},
+       {Res.MSG_SINGLE_ANON_CTOR.getKey(), "An anonymous class may define at most one constructor"},
        {Res.MSG_INNER_CLASSES_NOT_ALLOWED_IN_THIS_CONTEXT.getKey(), "Inner class declarations not allowed in this context"},
        {Res.MSG_NO_SOURCE_FOUND.getKey(), "No source found for class."},
        {Res.MSG_CANNOT_RETURN_VALUE_FROM_VOID.getKey(), "Cannot return a value from a void function."},
