@@ -272,7 +272,7 @@ run-time type.
 Field Access Expressions
 ========================
 
-.. index:: field access expression, property access expression
+.. index:: field access expression
 
 A *field* access must have one of these three forms:
 
@@ -308,6 +308,8 @@ non-static field access and a non-static method call (section XXX):
 The Current Object Reference ``this``
 =====================================
 
+.. index:: this
+
 The name ``this`` may be used in non-static code to refer to the current object
 (section XXX). When non-static code in a given object is executed, the object
 reference ``this`` refers to the object as a whole. Hence, when ``f`` is a
@@ -319,33 +321,38 @@ field and ``m`` is a method (declared in the innermost enclosing class), then
 Property Access Expressions
 ===========================
 
-A property get-access must have one of these three forms:
+.. index:: property access expression
+
+A property get-access must have one of these four forms:
 
 - ``P``
 - ``C.P``
 - ``o.P``
+- ``super.P``
 
 where ``C`` is a class and ``o`` an expression of reference type. In the first
 case, ``P`` must be a static or instance property declared in an enclosing
 class. In the second case, ``P`` must be a static property declared in class
 ``C``. In the third case, ``P`` must be an instance property declared in the
-type of ``o``, where ``o`` is a value. Property declarations are described in
-section XXX.
+type of ``o``, where ``o`` is a value. In the fourth case, the property ``P``
+must be an instance property in the base class. Property declarations are
+described in section XXX.
 
 In each case, the type of the property get-access expression is the declared
 type of the property ``P``. A property get-access is evaluated by evaluating
 ``o``, if present, and then executing the body of the get-accessor. The value
 of the expression is the value returned by the ``return``-statement that
-terminates the execution of the get-accessor’s body. Such a
-``return``-statement will eventually be executed, provided the get-accessor
-terminates normally; see section XXX. If ``o`` is present but evaluates to
-``null``, NullPointerException is thrown.
+terminates the execution of the get-accessor’s body. Such a ``return``
+statement will eventually be executed, provided the get-accessor terminates
+normally; see section XXX. If ``o`` is present but evaluates to ``null``,
+NullPointerException is thrown.
 
-A *property set-access* must have one of these three forms:
+A *property set-access* must have one of these four forms:
 
 - ``P =`` *expression*
 - ``C.P =`` *expression*
 - ``o.P =`` *expression*
+- ``super.P =`` *expression*
 
 where ``C`` is a class and ``o`` an expression of reference type. Each case
 must satisfy the same requirements as for get-access above. In each case, the
@@ -364,11 +371,51 @@ A read-write property ``P`` may be used in a compound assignment such as ``o.P
 get-accessor is called to get the value of ``P``, and then the set-accessor is
 called to set it. The expression ``o`` is evaluated only once.
 
-PROPERTY ACCESS
-?.
-\*.
-super.a property
 
+Expansion Expressions
+=====================
+
+.. index:: expansion expression
+
+
+An expansion expression must have one of these two forms:
+
+- ``o*.m``
+- ``o*.p``
+
+where ``o`` is an expression of one of the following types:
+
+- ``T[]``
+- ``Iterator<T>``
+- ``Iterable<T>``
+
+
+In the first case ``m`` is a non-static method of T. It will be invoked for
+every element of ``o``.
+
+The type of ``o*.m`` is:
+
+- ``void`` if ``m`` has a ``void`` return type
+-  ``R[]`` where ``R`` is the return type of ``m``.
+   A new array ``r`` will be instantiated to hold the results of the ``m``'s
+   invocations. If R is itself an array it will be flattened by adding its
+   elements to ``r``.
+
+In the second case ``p`` is a non-static property of T. For every element of
+``o`` its property ``p`` will be stored in a new instantiated array ``r`` of
+type ``R[]``, where R is the type of the property ``p``. If R is itself an
+array it will be flattened by adding its elements to ``r``.
+
+If ``o`` evaluates to ``null`` the value of ``o*.p`` or ``o*.m`` will be
+an empty ``R[]``. If an element ``e`` of ``o`` is ``null`` then ``e.p`` or
+``e.m`` will evaluate to ``null``.
+
+TODO
+----
+?.
+map access/array access
+interval expressions
+named/default param in call site
 
 Method Call Expressions
 =======================

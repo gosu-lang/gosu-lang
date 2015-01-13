@@ -22,6 +22,10 @@ class B extends A {
     _p2 = i
   }
 
+  function superProp() {
+    super.p0 = super.p00 + 10
+  }
+
   static property get sp3() : int {
     return _sp3
   }
