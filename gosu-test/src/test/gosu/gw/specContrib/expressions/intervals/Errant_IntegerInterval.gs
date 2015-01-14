@@ -1,8 +1,13 @@
 package gw.specContrib.expressions.intervals
 
+uses java.lang.Integer
+uses java.lang.Byte
+uses java.lang.Short
+uses java.lang.Character
 uses java.math.BigDecimal
 uses java.math.BigInteger
 uses java.util.Date
+uses gw.lang.reflect.interval.IntegerInterval
 
 class Errant_IntegerInterval {
   class A {
@@ -88,5 +93,14 @@ class Errant_IntegerInterval {
     for (i in (42..aaa)) {}      //## issuekeys: OPERATOR '..' CANNOT BE APPLIED TO 'INT', 'GW.SPECCONTRIB.AAA.PARSERVSOPENSOURCE.INTERVALSANDDIMENSIONS.INTERVALSBASIC.INTERVAL_INTEGER.A'
   }
 
-
+  function testBoxedTypes() {
+    var ch: Character
+    var chI: IntegerInterval = 0..ch
+    var b: Byte
+    var bI: IntegerInterval = 0..b
+    var s: Short
+    var sI: IntegerInterval = 0..s
+    var i: Integer
+    var iI: IntegerInterval = 0..i
+  }
 }
