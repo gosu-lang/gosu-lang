@@ -418,7 +418,6 @@ public class Strings extends ListResourceBundle
        {Res.MSG_CANNOT_REFERENCE_NON_STATIC_PROPERTY_FROM_STATIC_CONTEXT.getKey(), "You cannot reference non-static properties in a static context." },
        {Res.MSG_CANNOT_READ_A_WRITE_ONLY_PROPERTY.getKey(), "Write-only properties may only be written" },
        {Res.MSG_CANNOT_EXTEND_RAW_GENERIC_TYPE.getKey(), "The generic type {0} requires type argument[s]" },
-       {Res.MSG_SUPER_CLASS_METHOD_NAME_SAME_AS_SUBCLASS.getKey(), "The super class method {0} conflicts with the class' internal constructor name. Please change either the super class method name or this class name." },
        {Res.USING_INTERNAL_CLASS.getKey(), "This is an internal class that will change in the future.  It is dangerous and unsupported to use this class."},
        {Res.MSG_APPLICATION_MODIFIER_HAS_BEEN_DEPRECATED.getKey(), "The \"application\" modifier has been deprecated.  Use the gw.api.web.Scopes.Application map instead." },
        {Res.MSG_SESSION_MODIFIER_HAS_BEEN_DEPRECATED.getKey(), "The \"session\" modifier has been deprecated.  Use gw.api.web.SessionVar instead." },

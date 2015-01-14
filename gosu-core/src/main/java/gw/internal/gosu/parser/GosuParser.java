@@ -12589,7 +12589,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
                       {
                         boolean bIsConstructorName = getGosuClass() != null && getGosuClass().getRelativeName().equals( dfs.getDisplayName() );
                         warn( element, bIsConstructorName, Res.MSG_MISSING_OVERRIDE_MODIFIER, dfsExisting.getName(), dfsExisting.getScriptPart().getContainingTypeName() );
-                        if( verify( element, !bIsConstructorName, Res.MSG_SUPER_CLASS_METHOD_NAME_SAME_AS_SUBCLASS, dfsExisting.getName() ) )
+                        if( !bIsConstructorName )
                         {
                           // Set the override modifier when the modifier is missing
                           dfs.setOverride( true );
