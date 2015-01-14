@@ -398,7 +398,7 @@ public class FeatureLiteral extends Expression implements IFeatureLiteralExpress
       if( getRoot() instanceof TypeLiteral )
       {
         Class<ConstructorReference> clazz = ConstructorReference.class;
-        IType parameterizedType = TypeSystem.get( clazz ).getParameterizedType( getFinalRootType(), makeBlockType( getFinalRootType(), getParameterTypes() ) );
+        IType parameterizedType = TypeSystem.get( clazz ).getParameterizedType( getFinalRootType(), makeBlockType( getFinalRootType(), getFeatureReferenceParameters() ) );
         return parameterizedType;
       }
       else
@@ -434,14 +434,7 @@ public class FeatureLiteral extends Expression implements IFeatureLiteralExpress
     {
       return ((IPropertyInfo)_feature).isStatic();
     }
-    else if( _feature instanceof IConstructorInfo )
-    {
-      return true;
-    }
-    else
-    {
-      return false;
-    }
+    else return _feature instanceof IConstructorInfo;
   }
 
   public IType[] getFeatureReferenceParameters() {
