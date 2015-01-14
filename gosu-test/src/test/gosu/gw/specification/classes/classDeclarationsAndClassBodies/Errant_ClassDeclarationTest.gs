@@ -61,7 +61,7 @@ class Errant_ClassDeclarationTest implements List {
     property get X() : int { return _x }
     property set X(x : int) {  _x = x }
 
-    delegate myList represents List = new ArrayList()
+    delegate myList represents List = new ArrayList() //## issuekeys: MSG_VARIABLE_ALREADY_DEFINED
 
     class C {}
     enum E {}

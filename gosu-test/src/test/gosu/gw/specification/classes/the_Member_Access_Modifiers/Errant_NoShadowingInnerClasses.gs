@@ -70,14 +70,14 @@ class Errant_NoShadowingInnerClasses implements Runnable {
   }
 
   static class staticNested{
-    var v0 = 1  //## issuekeys: MSG_VARIABLE_ALREADY_DEFINED
+    var v0 = 1
     var v1 = 1  //## issuekeys: MSG_VARIABLE_ALREADY_DEFINED
     var m = 1
     var c = 1
     var i = 1
     var s = 1
     var e = 1
-    var d = 1  //## issuekeys: MSG_VARIABLE_ALREADY_DEFINED
+    var d = 1
     function m() {}
     class c {}
     enum e {}

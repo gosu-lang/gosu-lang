@@ -924,21 +924,28 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
       return true;
     }
 
+    ICompilableTypeInternal enclosingType = gsClass.getEnclosingType();
+    if( enclosingType instanceof IGosuClassInternal &&
+        ((IGosuClassInternal)enclosingType).isHeaderCompiled() && TypeLord.encloses( enclosingType, getOwner().getGosuClass() ) )
+    {
+      enclosingType.putClassMembers( getOwner(), getSymbolTable(), getGosuClass(), gsClass.isStatic() );
+    }
+
     for( IType type : gsClass.getInterfaces() )
     {
       if( !(type instanceof ErrorType) )
       {
-        if( !putClassMembersOfSuperOrInterface( type ) )
+        if( !putClassMembers( type ) )
         {
           return false;
         }
       }
     }
 
-    return putClassMembersOfSuperOrInterface( gsClass.getSuperClass() );
+    return putClassMembers( gsClass.getSuperClass() );
   }
 
-  private boolean putClassMembersOfSuperOrInterface( IType type )
+  private boolean putClassMembers( IType type )
   {
     IGosuClassInternal gsType = IGosuClassInternal.Util.getGosuClassFrom( type );
     if( gsType != null )
@@ -2727,13 +2734,8 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
           dfs.getDisplayName().charAt(0) == '@' )
       {
         String name = dfs.getDisplayName().substring(1);
-        boolean bAlreadyDefinedField = findMemberFieldInOuters(getGosuClass(), name);
-        boolean bOuterLocalDefined = false;
-        if( !bAlreadyDefinedField )
-        {
-          bOuterLocalDefined = findLocalInOuters( name ) instanceof CapturedSymbol;
-        }
-        verifyOrWarn( fs, !bAlreadyDefinedField && !bOuterLocalDefined, bAlreadyDefinedField, Res.MSG_VARIABLE_ALREADY_DEFINED, name );
+        boolean bOuterLocalDefined = findLocalInOuters( name ) instanceof CapturedSymbol;
+        verifyOrWarn( fs, !bOuterLocalDefined, false, Res.MSG_VARIABLE_ALREADY_DEFINED, name );
       }
 
       fs.setDynamicFunctionSymbol( dfs );
@@ -3071,15 +3073,9 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
     {
       String propertyName = dpsVarProperty.getName();
       ISymbol existingSym = getSymbolTable().getSymbol(propertyName);
-      boolean bAlreadyDefinedField = findMemberFieldInOuters(getGosuClass(), propertyName);
-      boolean bOuterLocalDefined = false;
-      if( !bAlreadyDefinedField )
-      {
-        bOuterLocalDefined = findLocalInOuters( propertyName ) instanceof CapturedSymbol;
-      }
+      boolean bOuterLocalDefined = findLocalInOuters( propertyName ) instanceof CapturedSymbol;
       bAlreadyDefined = existingSym != null || bOuterLocalDefined || propertyName.equals( strIdentifier );
       verify( varStmt, !bAlreadyDefined || existingSym instanceof DynamicPropertySymbol, Res.MSG_VARIABLE_ALREADY_DEFINED, propertyName );
-      warn( varStmt, !bAlreadyDefinedField, Res.MSG_VARIABLE_ALREADY_DEFINED, propertyName );
       getSymbolTable().putSymbol( dpsVarProperty );
 
       verifyPropertiesAreSymmetric( true, dpsVarProperty.getGetterDfs(), dpsVarProperty, varStmt );
@@ -3768,21 +3764,15 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
       t._strValue = null;
     }
     getOwner().maybeEatNonDeclKeyword( bHasName, strIdentifier );
-    String insensitveIdentifier = strIdentifier;
     VarStatement varStmt;
-    boolean bAlreadyDefinedField = findMemberFieldInOuters(gsClass, strIdentifier);
-    boolean bOuterLocalDefined = false;
-    if( !bAlreadyDefinedField )
-    {
-      bOuterLocalDefined = findLocalInOuters( strIdentifier ) != null;
-    }
+    boolean bOuterLocalDefined = findLocalInOuters( strIdentifier ) != null;
     if( !bStatic )
     {
-      varStmt = findMemberField( gsClass, insensitveIdentifier );
+      varStmt = findMemberField( gsClass, strIdentifier );
       if( varStmt == null )
       {
         // It might not be in the non-static map if it is a scoped variable
-        varStmt = findStaticMemberField( gsClass, insensitveIdentifier );
+        varStmt = findStaticMemberField( gsClass, strIdentifier );
         if( varStmt != null )
         {
           bStatic = true;
@@ -3791,9 +3781,9 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
     }
     else
     {
-      varStmt = findStaticMemberField( gsClass, insensitveIdentifier );
+      varStmt = findStaticMemberField( gsClass, strIdentifier );
     }
-    verifyOrWarn( varStmt, !bAlreadyDefinedField && !bOuterLocalDefined, bAlreadyDefinedField, Res.MSG_VARIABLE_ALREADY_DEFINED, strIdentifier );
+    verifyOrWarn( varStmt, !bOuterLocalDefined, false, Res.MSG_VARIABLE_ALREADY_DEFINED, strIdentifier );
 
     if( !bStatic && varStmt != null && varStmt.isStatic() )
     {
@@ -3845,29 +3835,13 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
     }
   }
 
-  private ISymbol findLocalInOuters( String strIdentifier ) {
+  private ISymbol findLocalInOuters( String strIdentifier )
+  {
     if( (isParsingBlock() || getParsingAnonymousClass() != null) && !getOwner().isParsingAnnotation() )
     {
       return captureSymbol( getCurrentEnclosingGosuClass(), strIdentifier, null );
     }
     return null;
-  }
-
-  private boolean findMemberFieldInOuters( IGosuClassInternal gsClass, String name )
-  {
-    IGosuClassInternal enclosingType = (IGosuClassInternal) gsClass.getEnclosingType();
-    VarStatement varStmt0;
-    VarStatement varStmt1;
-    boolean found = false;
-    while(enclosingType != null && !found) {
-      varStmt0 = findMemberField( enclosingType, name );
-      varStmt1 = findStaticMemberField( enclosingType, name );
-      if(varStmt0 != null || varStmt1 != null) {
-        found = true;
-      }
-      enclosingType = (IGosuClassInternal) enclosingType.getEnclosingType();
-    }
-    return found;
   }
 
   private VarStatement findMemberField( IGosuClassInternal gsClass, String name )
