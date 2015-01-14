@@ -25,13 +25,13 @@ class Errant_Generics_MethodScoring_1 {
   function caller() {
 
     //IDE-1509
-    var a1111 : A =  foo('c')       //## issuekeys: INCOMPATIBLE TYPES.
-    var a1112 : A =  foo(1b)        //## issuekeys: INCOMPATIBLE TYPES.
-    var a1113 : A =  foo(1s)        //## issuekeys: INCOMPATIBLE TYPES.
-    var a1114 : A =  foo(42)        //## issuekeys: INCOMPATIBLE TYPES.
-    var a1115 : A =  foo(42.5f)     //## issuekeys: INCOMPATIBLE TYPES.
-    var a1116 : A =  foo(100L)      //## issuekeys: INCOMPATIBLE TYPES.
-    var a1117 : A =  foo(42.5)      //## issuekeys: INCOMPATIBLE TYPES.
+    var a1111 : A =  foo('c')
+    var a1112 : A =  foo(1b)
+    var a1113 : A =  foo(1s)
+    var a1114 : A =  foo(42)
+    var a1115 : A =  foo(42.5f)
+    var a1116 : A =  foo(100L)
+    var a1117 : A =  foo(42.5)
     var a1118 : A =  foo(pp)
     var a1119 : A =  foo(qq)            //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'GW.SPECCONTRIB.AAA.PARSERVSOPENSOURCE.METHODSCORINGOVERLOADING.GENERICS_METHODSCORING.GENERICS_METHODSCORING_1.B', REQUIRED: 'GW.SPECCONTRIB.AAA.PARSERVSOPENSOURCE.METHODSCORINGOVERLOADING.GENERICS_METHODSCORING.GENERICS_METHODSCORING_1.A'
     var a1120 : A =  foo(rr)            //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'GW.SPECCONTRIB.AAA.PARSERVSOPENSOURCE.METHODSCORINGOVERLOADING.GENERICS_METHODSCORING.GENERICS_METHODSCORING_1.B', REQUIRED: 'GW.SPECCONTRIB.AAA.PARSERVSOPENSOURCE.METHODSCORINGOVERLOADING.GENERICS_METHODSCORING.GENERICS_METHODSCORING_1.A'
@@ -42,13 +42,13 @@ class Errant_Generics_MethodScoring_1 {
     var a1125 : A =  foo({qq, qq, qq})            //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'GW.SPECCONTRIB.AAA.PARSERVSOPENSOURCE.METHODSCORINGOVERLOADING.GENERICS_METHODSCORING.GENERICS_METHODSCORING_1.B', REQUIRED: 'GW.SPECCONTRIB.AAA.PARSERVSOPENSOURCE.METHODSCORINGOVERLOADING.GENERICS_METHODSCORING.GENERICS_METHODSCORING_1.A'
 
     //IDE-1509
-    var b1111 : B =  foo('c')
-    var b1112 : B =  foo(1b)
-    var b1113 : B =  foo(1s)
-    var b1114 : B =  foo(42)
-    var b1115 : B =  foo(42.5f)
-    var b1116 : B =  foo(100L)
-    var b1117 : B =  foo(42.5)
+    var b1111 : B =  foo('c')    //## issuekeys:
+    var b1112 : B =  foo(1b)      //## issuekeys:
+    var b1113 : B =  foo(1s)      //## issuekeys:
+    var b1114 : B =  foo(42)      //## issuekeys:
+    var b1115 : B =  foo(42.5f)    //## issuekeys:
+    var b1116 : B =  foo(100L)      //## issuekeys:
+    var b1117 : B =  foo(42.5)       //## issuekeys:
     var b1118 : B =  foo(pp)            //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'GW.SPECCONTRIB.AAA.PARSERVSOPENSOURCE.METHODSCORINGOVERLOADING.GENERICS_METHODSCORING.GENERICS_METHODSCORING_1.A', REQUIRED: 'GW.SPECCONTRIB.AAA.PARSERVSOPENSOURCE.METHODSCORINGOVERLOADING.GENERICS_METHODSCORING.GENERICS_METHODSCORING_1.B'
     var b1119 : B =  foo(qq)
     var b1120 : B =  foo(rr)

@@ -69,12 +69,8 @@ class ProcesSpecContribTest extends BaseVerifyErrantTest {
 
   function testAnalyzeSpecContrib() {
     var excluded : Set<String> = {
-                                   "gw.specContrib.blocks.Errant_BlocksGenericsWithParams",   // IDE-1346
-                                   "gw.specContrib.blocks.Errant_BlocksGenericsWithoutParams",  // IDE-1346
                                    "gw.specContrib.typeinference.Errant_SwitchTypeNarrowing",  // IDE-426
                                    "gw.specContrib.generics.Errant_GenericMethodBounds2",  // IDE-538
-                                   "gw.specContrib.expressions.Errant_ExpressionsPrimitiveTypes",  // IDE-1276
-                                   "gw.specContrib.classes.method_Scoring.objects_And_Primitive_Types.Errant_ObjectsPrimitives_intAndObject",  //IDE-1523 IDE-1522 IDE-1523 IDE-1522
 
                                    /* to skip as we don't support this check in our testing framework */
                                    "gw.specContrib.classes.Errant_ClassDeclaredInEnhancement",
