@@ -57,6 +57,13 @@ class Errant_AnonymousClassesTest {
       }
       construct(i: int) {}    //## issuekeys: MSG_ANON_CTOR_PARAMS_CONFLICT_WITH_CALL_SITE
     }
+
+    new B(1) {  //## issuekeys: MSG_NO_CONSTRUCTOR_FOUND_FOR_CLASS
+      override function foo() {
+      }
+      construct(i: int) {}    //## issuekeys: MSG_ANON_CTOR_PARAMS_CONFLICT_WITH_CALL_SITE
+    }
+
     new B() {
       override function foo() {
       }

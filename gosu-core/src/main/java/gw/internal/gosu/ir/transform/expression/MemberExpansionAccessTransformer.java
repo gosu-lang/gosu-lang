@@ -41,21 +41,10 @@ public class MemberExpansionAccessTransformer extends AbstractMemberExpansionTra
     // Make MemberAccessExpr for *temp_mae_X.<property>
 
     MemberAccess ma;
-    if( rootComponentType.isArray() || JavaTypes.COLLECTION().isAssignableFrom( rootComponentType ) )
-    {
-      // The MemberExpansionAccess just chains together, so the return type of the nested one is the same as the
-      // return type of the outer one
-      ma = new MemberExpansionAccess();
-      ma.setType( _expr().getType() );
-      ma.setMemberAccessKind( MemberAccessKind.EXPANSION ); // expansion implies null-safety on root
-    }
-    else
-    {
-      ma = new MemberAccess();
-      // We need to set the type of the MemberAccess to exactly the type of the property in question
-      ma.setType( getPropertyOrMethodType(rootComponentType, compType) );
-      ma.setMemberAccessKind( MemberAccessKind.NULL_SAFE ); // expansion implies null-safety on elements
-    }
+    ma = new MemberAccess();
+    // We need to set the type of the MemberAccess to exactly the type of the property in question
+    ma.setType( getPropertyOrMethodType(rootComponentType, compType) );
+    ma.setMemberAccessKind( MemberAccessKind.NULL_SAFE ); // expansion implies null-safety on elements
     Identifier id = new Identifier();
     id.setType( rootComponentType );
     StandardSymbolTable symTable = new StandardSymbolTable();

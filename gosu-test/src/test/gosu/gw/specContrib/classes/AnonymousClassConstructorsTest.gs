@@ -13,9 +13,4 @@ class AnonymousClassConstructorsTest extends BaseVerifyErrantTest {
     }
     assertTrue(wasSet)
   }
-
-  function testOverrideOfConstructorNotInvokedCausesError() {
-    processErrantType(Errant_BadConstructorOverrideInAnonymousClass)
-  }
-
 }
