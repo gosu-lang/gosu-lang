@@ -3,6 +3,16 @@ package gw.specification.expressions.propertyAccessExpression
 uses java.lang.NullPointerException
 
 class Errant_PropertyAccessExpressionsTest {
+
+  class subA extends A {
+    construct() {
+      super(10)
+    }
+    function superProp() {
+      super.p0 = super.p00 + 10
+    }
+  }
+
   function testPropertyAccessNPE() {
     var a : A  = null
     var i : int  = 0
