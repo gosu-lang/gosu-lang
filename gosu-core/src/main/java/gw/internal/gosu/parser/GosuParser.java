@@ -2780,8 +2780,9 @@ public final class GosuParser extends ParserBase implements IGosuParser
     }
     else if( match( T, "~", SourceCodeTokenizer.TT_OPERATOR ) )
     {
+      pushInferredContextTypes( ContextType.EMPTY );
       parseUnaryExpression();
-
+      popInferredContextTypes();
       UnaryNotPlusMinusExpression ue = new UnaryNotPlusMinusExpression();
       Expression e = popExpression();
       IType type = e.getType();
