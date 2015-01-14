@@ -4,7 +4,7 @@ class Errant_BadConstructorOverrideInAnonymousClass {
 
   function test1() {
     var x = new Object() {
-      construct(s:String) {}  //## issuekeys: MSG_CONSTRUCTORS_NOT_ALLOWD_IN_THIS_CONTEXT
+      construct(s:String) {}  //## issuekeys: MSG_ANON_CTOR_PARAMS_CONFLICT_WITH_CALL_SITE
     }
   }
 
