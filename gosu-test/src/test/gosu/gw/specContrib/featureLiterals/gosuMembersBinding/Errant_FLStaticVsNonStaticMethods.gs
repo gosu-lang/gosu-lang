@@ -1,6 +1,6 @@
 package gw.specContrib.featureLiterals.gosuMembersBinding
 
-class Errant_FLStaticVsNonStatic {
+class Errant_FLStaticVsNonStaticMethods {
   function nonstaticfun() {}
   static function staticfun() {}
 
