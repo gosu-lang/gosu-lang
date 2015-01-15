@@ -2364,7 +2364,8 @@ public abstract class ParserBase implements IParserPart
       IToken followingToken = tokenizer.getTokenAt( iTokenIndex + (bPeek ? 1 : 0) );
       IToken priorToken = iTokenIndex <= 1 ? null : tokenizer.getTokenAt( iTokenIndex + (bPeek ? -1 : -2) );
 
-      bMatch = (followingToken == null || followingToken.getType() != '.') && (priorToken == null || priorToken.getType() != '.');
+      bMatch = (followingToken == null || followingToken.getType() != '.') &&
+               (priorToken == null || !(priorToken.getType() == '.' || "#".equals( priorToken.getStringValue() )));
     }
     return bMatch;
   }
