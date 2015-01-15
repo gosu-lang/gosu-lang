@@ -68,4 +68,33 @@ class Errant_ExpansionExpressionsTest {
     var f2 =  x5*.num
   }
 
+  function testExpansionOn2DArray(){
+    var int2DArray : int[][] = {{1, 2, 3}, {4, 5, 6}}
+    var ret = int2DArray*.length                       // test against property
+    ret = int2DArray*.sum()                            // test against method
+
+    var str2DArray : String[][] = {{"test1", "test2"}, {"test11", "test12"}}
+    ret = str2DArray*.join("-")*.length()
+    var retFromStrArray = str2DArray*.join("-")
+
+    var ret1 = str2DArray*.split({"t"})    //## issuekeys: MSG_NO_METHOD_DESCRIPTOR_FOUND_FOR_METHOD, MSG_NO_METHOD_DESCRIPTOR_FOUND_FOR_METHOD, MSG_NO_SUCH_FUNCTION
+    var ret2 = str2DArray*.concat({"t"})
+    var ret3 = str2DArray*.toUpperCase()  //## issuekeys: MSG_NO_METHOD_DESCRIPTOR_FOUND_FOR_METHOD, MSG_NO_METHOD_DESCRIPTOR_FOUND_FOR_METHOD, MSG_NO_METHOD_DESCRIPTOR_FOUND_FOR_METHOD
+    var ret4 = str2DArray*.concat({"t"})*.toUpperCase()
+  }
+
+  function testExpansionOn3DArray(){
+    var str3DArray : String[][][] =  {{{"a","b"}, {"c","d"}},
+        {{"e"},{"g"},{"i"}},
+        {{"j","k","m"}}}
+    var ret = str3DArray*.length
+    var retFrom3DArray1 = str3DArray*.concat({{"1"}})*.length
+    var retFrom3DArray2 = str3DArray*.concat({{"1"}})*.concat({"2"})*.toUpperCase()
+
+
+    var ret1 = str3DArray*.concat({{"x"},{"y"}})*.length()    //## issuekeys: MSG_NO_METHOD_DESCRIPTOR_FOUND_FOR_METHOD, MSG_NO_METHOD_DESCRIPTOR_FOUND_FOR_METHOD, MSG_NO_METHOD_DESCRIPTOR_FOUND_FOR_METHOD
+    var ret2 = str3DArray*.concat({{"x"},{"y"}})*.toUpperCase()    //## issuekeys: MSG_NO_METHOD_DESCRIPTOR_FOUND_FOR_METHOD, MSG_NO_METHOD_DESCRIPTOR_FOUND_FOR_METHOD, MSG_NO_METHOD_DESCRIPTOR_FOUND_FOR_METHOD
+    var ret3 = str3DArray*.toList()*.toString()
+
+  }
 }

@@ -87,4 +87,35 @@ class ExpansionExpressionsTest extends BaseVerifyErrantTest {
     assertTrue(Arrays.equals({8, 8}, f2))
   }
 
+  function testExpansionOn2DArray(){
+    var int2DArray : int[][] = {{1, 2, 3}, {4, 5, 6}}
+    var ret = int2DArray*.length                       // test against property
+    assertTrue(Arrays.equals({3,3}, ret))
+
+    ret = int2DArray*.sum()                            // test against method
+    assertTrue(Arrays.equals({6,15}, ret))
+
+    var str2DArray : String[][] = {{"test1", "test2"}, {"test11", "test12"}}
+    ret = str2DArray*.join("-")*.length()
+    assertTrue(Arrays.equals({11,13}, ret))
+
+    var retFromStrArray = str2DArray*.join("-")
+    assertTrue(Arrays.equals({"test1-test2","test11-test12"}, retFromStrArray))
+  }
+
+  function testExpansionOn3DArray(){
+    var str3DArray : String[][][] =  {{{"a","b"}, {"c","d"}},
+                                      {{"e"},{"g"},{"i"}},
+                                      {{"j","k","m"}}}
+    var ret = str3DArray*.length
+    assertTrue(Arrays.equals({2, 3, 1}, ret))
+
+    var retFrom3DArray1 = str3DArray*.concat({{"1"}})*.length
+    assertTrue(Arrays.equals({2,2,1,1,1,1,1,3,1},retFrom3DArray1))
+
+    var retFrom3DArray2 = str3DArray*.concat({{"1"}})*.concat({"2"})*.toUpperCase()
+    assertTrue(Arrays.equals({"A","B","2","C","D","2","1","2",
+                              "E","2","G","2","I","2","1","2",
+                              "J","K","M","2","1","2"},retFrom3DArray2))
+  }
 }
