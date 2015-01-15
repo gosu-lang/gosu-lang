@@ -14,6 +14,7 @@ import gw.lang.parser.expressions.IFeatureLiteralExpression;
 import gw.lang.reflect.FunctionType;
 import gw.lang.reflect.IConstructorInfo;
 import gw.lang.reflect.IFeatureInfo;
+import gw.lang.reflect.IHasParameterInfos;
 import gw.lang.reflect.IInvocableType;
 import gw.lang.reflect.IMethodInfo;
 import gw.lang.reflect.IParameterInfo;
@@ -33,6 +34,7 @@ import gw.lang.reflect.features.MethodReference;
 import gw.lang.reflect.features.PropertyReference;
 import gw.lang.reflect.features.SimplePropertyChainReference;
 import gw.lang.reflect.java.JavaTypes;
+import gw.util.GosuObjectUtil;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -92,6 +94,9 @@ public class FeatureLiteral extends Expression implements IFeatureLiteralExpress
     {
       methodInfo = typeInfo.getMethod( methodName, argTypes );
     }
+
+    methodInfo = ensureExactMatch(methodInfo, argTypes);
+
     if( methodInfo == null && argTypes.length == 0)
     {
       if( typeInfo instanceof IRelativeTypeInfo )
@@ -113,6 +118,28 @@ public class FeatureLiteral extends Expression implements IFeatureLiteralExpress
       _feature = methodInfo;
       return true;
     }
+  }
+
+  private <T extends IHasParameterInfos> T  ensureExactMatch( T methodInfo, IType[]  argTypes )
+  {
+    if( methodInfo == null )
+    {
+      return null;
+    }
+    IParameterInfo[] parameters = methodInfo.getParameters();
+    if( argTypes.length != parameters.length )
+    {
+      return null;
+    }
+    for( int i = 0; i < parameters.length; i++ )
+    {
+      IType parameter = parameters[i].getFeatureType();
+      if( !GosuObjectUtil.equals( parameter, argTypes[i] ) )
+      {
+        return null;
+      }
+    }
+    return methodInfo;
   }
 
   private IMethodInfo findSingleMethodMatchingName( String methodName, List<? extends IMethodInfo> methods )
@@ -151,6 +178,9 @@ public class FeatureLiteral extends Expression implements IFeatureLiteralExpress
         constructorInfo = typeInfo.getConstructor( argTypes );
       }
     }
+
+    constructorInfo = ensureExactMatch(constructorInfo, argTypes);
+
     if( constructorInfo == null )
     {
       if( typeInfo instanceof IRelativeTypeInfo )
