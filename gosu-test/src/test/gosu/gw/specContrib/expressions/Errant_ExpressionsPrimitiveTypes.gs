@@ -23,6 +23,23 @@ class Errant_ExpressionsPrimitiveTypes {
   var char11: char = "string"      //## issuekeys: MSG_TYPE_MISMATCH
   var char12: char = BigInteger.TEN      //## issuekeys: MSG_IMPLICIT_COERCION_ERROR
   var char13: char = BigDecimal.ZERO      //## issuekeys: MSG_IMPLICIT_COERCION_ERROR
+  var char14: char = '\u1ab8'
+  var char15: char = '\u55555'   //## issuekeys: MSG_TYPE_MISMATCH
+  var char16: char = '\123'
+  var char17: char = '\7'
+  var char18: char = '\77'
+  var char19: char = '\18'       //## issuekeys: MSG_TYPE_MISMATCH
+  var char20: char = '\18'       //## issuekeys: MSG_TYPE_MISMATCH
+  var char21: char = '\400'      //## issuekeys: MSG_TYPE_MISMATCH
+  var char22: char = '\b'
+  var char23: char = '\t'
+  var char24: char = '\n'
+  var char25: char = '\f'
+  var char26: char = '\r'
+  var char27: char = '\''
+  var char28: char = '\"'
+  var char29: char = '\\'
+  var char30: char = '\a'        //## issuekeys: ILLEGAL ESCAPE CHARACTER
 
   //byte
   var byte1: byte = 1b
