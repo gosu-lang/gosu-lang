@@ -18,4 +18,9 @@ class Errant_MetaType {
   function foo<T>(): T[] {
     return T.Type.makeArrayInstance(2) as T[]
   }
+
+  var t1 = String.Type
+  var t2 = boolean.Type
+  var t3 = boolean[].Type
+  var t4 = String[][].Type
 }
