@@ -66,6 +66,15 @@ class Errant_ExpansionExpressionsTest {
 
     var x5 : C[]  = {new C(), new C()}
     var f2 =  x5*.num
+
+    var x6 : C[]  = {new C(){ :PropInt = 3}, new C(){ :PropInt = 5}}
+    var f6 = x6*.PropInt
+    var f61 = x6*._propInt
+
+    var x7 : C[]  = {new C(){ :PropDoubleArray = {3.1, 5.3}}, new C(){ :PropDoubleArray = {1.2, 5.6, 7.9}}}
+    var f7 = x7*.PropDoubleArray
+    var f71 = x7*._propDoubleArray
+    var f72 = x7*.PropDoubleArray*.toString()
   }
 
   function testExpansionOn2DArray(){

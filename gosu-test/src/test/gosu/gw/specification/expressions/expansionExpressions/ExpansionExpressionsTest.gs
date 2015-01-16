@@ -85,6 +85,20 @@ class ExpansionExpressionsTest extends BaseVerifyErrantTest {
     var x5 : C[]  = {new C(), new C()}
     var f2 =  x5*.num
     assertTrue(Arrays.equals({8, 8}, f2))
+
+    var x6 : C[]  = {new C(){ :PropInt = 3}, new C(){ :PropInt = 5}}
+    var f6 = x6*.PropInt
+    assertTrue(Arrays.equals({3, 5}, f6))
+    var f61 = x6*._propInt
+    assertTrue(Arrays.equals({3, 5}, f61))
+
+    var x7 : C[]  = {new C(){ :PropDoubleArray = {3.1, 5.3}}, new C(){ :PropDoubleArray = {1.2, 5.6, 7.9}}}
+    var f7 = x7*.PropDoubleArray
+    assertTrue(Arrays.equals({3.1, 5.3, 1.2, 5.6, 7.9}, f7))
+    var f71 = x7*._propDoubleArray
+    assertTrue(Arrays.equals({3.1, 5.3, 1.2, 5.6, 7.9}, f71))
+    var f72 = x7*.PropDoubleArray*.toString()
+    assertTrue(Arrays.equals({"3.1", "5.3", "1.2", "5.6", "7.9"}, f72))
   }
 
   function testExpansionOn2DArray(){
