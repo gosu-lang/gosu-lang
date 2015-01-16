@@ -1921,6 +1921,7 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
       if( bSetModifiers )
       {
         verifyNoAbstractHideOverrideModifierDefined( getClassStatement(), false, modifiers.getModifiers(), Keyword.KW_final );
+        verify( getClassStatement(), !Modifier.isFinal( modifiers.getModifiers() ), Res.MSG_ILLEGAL_USE_OF_MODIFIER, Keyword.KW_final, classType.name() );
         verify( getClassStatement(), !Modifier.isTransient( modifiers.getModifiers() ), Res.MSG_ILLEGAL_USE_OF_MODIFIER, Keyword.KW_transient, classType.name() );
         gsClass.setModifierInfo(modifiers);
       }

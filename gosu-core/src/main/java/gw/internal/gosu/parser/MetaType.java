@@ -9,7 +9,6 @@ import gw.lang.reflect.*;
 import gw.lang.reflect.java.IJavaType;
 import gw.lang.reflect.java.JavaTypes;
 import gw.util.concurrent.LockingLazyVar;
-import gw.util.concurrent.LocklessLazyVar;
 
 import java.io.ObjectStreamException;
 import java.lang.reflect.Array;
@@ -18,19 +17,22 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  */
 public class MetaType extends AbstractType implements IMetaType
 {
+  private static final Lock MEAT_LOCKER = new ReentrantLock();
   static class RootType{}
   static class DefaultType{}
 
   /**
    * These fields need to be lazu vars to avoid bombarding the typesystem with calls
    */
-  private static final LocklessLazyVar<IJavaType> ROOT_TYPE =
-    new LocklessLazyVar<IJavaType>()
+  private static final LockingLazyVar<IJavaType> ROOT_TYPE =
+    new LockingLazyVar<IJavaType>( MEAT_LOCKER )
     {
       public IJavaType init()
       {
@@ -42,8 +44,8 @@ public class MetaType extends AbstractType implements IMetaType
         return type;
       }
     };
-  static final LocklessLazyVar<IJavaType> DEFAULT_TYPE =
-    new LocklessLazyVar<IJavaType>()
+  static final LockingLazyVar<IJavaType> DEFAULT_TYPE =
+    new LockingLazyVar<IJavaType>( MEAT_LOCKER )
     {
       public IJavaType init()
       {
@@ -51,16 +53,16 @@ public class MetaType extends AbstractType implements IMetaType
       }
     };
 
-  public static LocklessLazyVar<MetaType> ROOT_TYPE_TYPE =
-    new LocklessLazyVar<MetaType>()
+  public static LockingLazyVar<MetaType> ROOT_TYPE_TYPE =
+    new LockingLazyVar<MetaType>( MEAT_LOCKER )
     {
       public MetaType init()
       {
         return MetaType.get( ROOT_TYPE.get() );
       }
     };
-  public static LocklessLazyVar<IType> DEFAULT_TYPE_TYPE =
-    new LocklessLazyVar<IType>()
+  public static LockingLazyVar<IType> DEFAULT_TYPE_TYPE =
+    new LockingLazyVar<IType>( MEAT_LOCKER )
     {
       public IType init()
       {
@@ -110,9 +112,9 @@ public class MetaType extends AbstractType implements IMetaType
     _bLiteral = bLiteral;
     _typeInfoByAccessibility = new HashMap<IRelativeTypeInfo.Accessibility, ITypeInfo>( 2 );
 
-    if( type == ROOT_TYPE.get() )
+    if( type.equals( ROOT_TYPE.get() ) )
     {
-      _typeVars = new GenericTypeVariable[]{new GenericTypeVariable("T", JavaTypes.OBJECT())};
+      _typeVars = new GenericTypeVariable[]{new GenericTypeVariable( "T", JavaTypes.OBJECT() )};
       _typeParams = IType.EMPTY_ARRAY;
     }
     else
@@ -184,7 +186,7 @@ public class MetaType extends AbstractType implements IMetaType
      return
        _type instanceof MetaType
        ? ((MetaType)_type).isDefault()
-       : _type == DEFAULT_TYPE.get();
+       : _type.equals( DEFAULT_TYPE.get() );
   }
 
   @Override
@@ -327,13 +329,13 @@ public class MetaType extends AbstractType implements IMetaType
   @Override
   public boolean isParameterizedType()
   {
-    return _type != ROOT_TYPE.get();
+    return !_type.equals( ROOT_TYPE.get() );
   }
 
   @Override
   public boolean isGenericType()
   {
-    return _type == ROOT_TYPE.get();
+    return _type.equals( ROOT_TYPE.get() );
   }
 
   @Override
@@ -349,8 +351,12 @@ public class MetaType extends AbstractType implements IMetaType
   }
 
   @Override
-  public IType getParameterizedType( IType... ofType )
+  public IMetaType getParameterizedType( IType... ofType )
   {
+    if( ofType.length == 0 )
+    {
+      throw new IllegalStateException( "Empty paramter types" );
+    }
     return get( ofType[0] );
   }
 
@@ -368,7 +374,7 @@ public class MetaType extends AbstractType implements IMetaType
 
   private Set<IType> getTypeInterfaces( IType type, Set<IType> set )
   {
-    if( getType() == DEFAULT_TYPE.get() )
+    if( getType().equals( DEFAULT_TYPE.get() ) )
     {
       return Collections.singleton( (IType)JavaTypes.ITYPE() );
     }
