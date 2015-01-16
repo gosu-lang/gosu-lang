@@ -85,6 +85,51 @@ class ExpansionExpressionsTest extends BaseVerifyErrantTest {
     var x5 : C[]  = {new C(), new C()}
     var f2 =  x5*.num
     assertTrue(Arrays.equals({8, 8}, f2))
+
+    var x6 : C[]  = {new C(){ :PropInt = 3}, new C(){ :PropInt = 5}}
+    var f6 = x6*.PropInt
+    assertTrue(Arrays.equals({3, 5}, f6))
+    var f61 = x6*._propInt
+    assertTrue(Arrays.equals({3, 5}, f61))
+
+    var x7 : C[]  = {new C(){ :PropDoubleArray = {3.1, 5.3}}, new C(){ :PropDoubleArray = {1.2, 5.6, 7.9}}}
+    var f7 = x7*.PropDoubleArray
+    assertTrue(Arrays.equals({3.1, 5.3, 1.2, 5.6, 7.9}, f7))
+    var f71 = x7*._propDoubleArray
+    assertTrue(Arrays.equals({3.1, 5.3, 1.2, 5.6, 7.9}, f71))
+    var f72 = x7*.PropDoubleArray*.toString()
+    assertTrue(Arrays.equals({"3.1", "5.3", "1.2", "5.6", "7.9"}, f72))
   }
 
+  function testExpansionOn2DArray(){
+    var int2DArray : int[][] = {{1, 2, 3}, {4, 5, 6}}
+    var ret = int2DArray*.length                       // test against property
+    assertTrue(Arrays.equals({3,3}, ret))
+
+    ret = int2DArray*.sum()                            // test against method
+    assertTrue(Arrays.equals({6,15}, ret))
+
+    var str2DArray : String[][] = {{"test1", "test2"}, {"test11", "test12"}}
+    ret = str2DArray*.join("-")*.length()
+    assertTrue(Arrays.equals({11,13}, ret))
+
+    var retFromStrArray = str2DArray*.join("-")
+    assertTrue(Arrays.equals({"test1-test2","test11-test12"}, retFromStrArray))
+  }
+
+  function testExpansionOn3DArray(){
+    var str3DArray : String[][][] =  {{{"a","b"}, {"c","d"}},
+                                      {{"e"},{"g"},{"i"}},
+                                      {{"j","k","m"}}}
+    var ret = str3DArray*.length
+    assertTrue(Arrays.equals({2, 3, 1}, ret))
+
+    var retFrom3DArray1 = str3DArray*.concat({{"1"}})*.length
+    assertTrue(Arrays.equals({2,2,1,1,1,1,1,3,1},retFrom3DArray1))
+
+    var retFrom3DArray2 = str3DArray*.concat({{"1"}})*.concat({"2"})*.toUpperCase()
+    assertTrue(Arrays.equals({"A","B","2","C","D","2","1","2",
+                              "E","2","G","2","I","2","1","2",
+                              "J","K","M","2","1","2"},retFrom3DArray2))
+  }
 }

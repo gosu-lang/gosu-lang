@@ -122,7 +122,7 @@ class Errant_BitwiseXOR {
   var bitwiseXOR624 = 42.55 ^ BigDecimal.ONE      //## issuekeys: OPERATOR '^' CANNOT BE APPLIED TO 'DOUBLE', 'JAVA.MATH.BIGDECIMAL'
 
   //IDE-585 Parser does not show error. OS Gosu does
-  var bitwiseXOR710 = true ^ true     //## issuekeys: OPERATOR '&' CANNOT BE APPLIED TO 'BOOLEAN', 'BOOLEAN'
+  var bitwiseXOR710 = true ^ true
   var bitwiseXOR711 = true ^ 'c'      //## issuekeys: OPERATOR '^' CANNOT BE APPLIED TO 'BOOLEAN', 'CHAR'
   var bitwiseXOR712 = true ^ 3b      //## issuekeys: OPERATOR '^' CANNOT BE APPLIED TO 'BOOLEAN', 'BYTE'
   var bitwiseXOR713 = true ^ 3s      //## issuekeys: OPERATOR '^' CANNOT BE APPLIED TO 'BOOLEAN', 'SHORT'

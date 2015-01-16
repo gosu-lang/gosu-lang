@@ -123,7 +123,7 @@ class Errant_BitwiseOR {
   var bitwiseOR624 = 42.55 | BigDecimal.ONE      //## issuekeys: OPERATOR '|' CANNOT BE APPLIED TO 'DOUBLE', 'JAVA.MATH.BIGDECIMAL'
 
   //IDE-585 OS Gosu Shows error here. Parser does not
-  var bitwiseOR710 = true | true     //## issuekeys: OPERATOR '|' CANNOT BE APPLIED TO 'BOOLEAN', 'BOOLEAN'
+  var bitwiseOR710 = true | true
   var bitwiseOR711 = true | 'c'      //## issuekeys: OPERATOR '|' CANNOT BE APPLIED TO 'BOOLEAN', 'CHAR'
   var bitwiseOR712 = true | 3b      //## issuekeys: OPERATOR '|' CANNOT BE APPLIED TO 'BOOLEAN', 'BYTE'
   var bitwiseOR713 = true | 3s      //## issuekeys: OPERATOR '|' CANNOT BE APPLIED TO 'BOOLEAN', 'SHORT'
