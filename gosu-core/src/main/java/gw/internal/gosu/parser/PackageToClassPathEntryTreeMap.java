@@ -14,6 +14,8 @@ import gw.lang.reflect.ITypeLoader;
 import gw.lang.reflect.gs.IFileSystemGosuClassRepository;
 import gw.lang.reflect.gs.TypeName;
 import gw.lang.reflect.module.IModule;
+import gw.util.GosuLoggerFactory;
+import gw.util.ILogger;
 
 import java.io.File;
 import java.io.IOException;
@@ -30,6 +32,8 @@ import java.util.Set;
  */
 class PackageToClassPathEntryTreeMap
 {
+  private static final ILogger logger = GosuLoggerFactory.getLogger(PackageToClassPathEntryTreeMap.class);
+
   private String _strFullPackageName;
   private String _strRelativePackageName;
   private Map<String, PackageToClassPathEntryTreeMap> _children = new HashMap<String, PackageToClassPathEntryTreeMap>();
@@ -56,6 +60,7 @@ class PackageToClassPathEntryTreeMap
   {
     if( !_classPathEntries.contains( entry ) )
     {
+      logger.trace("Add classpath entry {} for package {} for module {}", entry, _strFullPackageName, _module);
       _classPathEntries.add( entry );
     }
   }
@@ -67,6 +72,7 @@ class PackageToClassPathEntryTreeMap
     {
       packageTree = new PackageToClassPathEntryTreeMap( this, packageName, _module );
       _children.put( packageName, packageTree );
+      logger.trace("Added child package tree for name {}. Current package {}, module {}", packageName, _strFullPackageName, _module);
     }
     if(entry != null) {
       packageTree.addClassPathEntry( entry );
@@ -80,7 +86,9 @@ class PackageToClassPathEntryTreeMap
   }
 
   public FileSystemGosuClassRepository.ClassFileInfo resolveToClassFileInfo(String strQualifiedClassName, String[] extensions) {
+    logger.trace("Resolving class file info for class {} in package {}", strQualifiedClassName, _strFullPackageName);
     if (strQualifiedClassName.length() <= _strFullPackageName.length()) {
+      logger.trace("Class name {} is less or equal than current package name {}", strQualifiedClassName, _strFullPackageName);
       return null;
     }
     String remainingPart = _strFullPackageName.isEmpty()
@@ -92,9 +100,13 @@ class PackageToClassPathEntryTreeMap
       FileSystemGosuClassRepository.ClassFileInfo info =
               getClassFileInfo(classPathEntry, fileName, dotIndex, remainingPart, extensions);
       if (info != null) {
+        logger.trace("Resolved class info for fileName {}, classPathEntry {}, remainingPart {}, extensions {}",
+                fileName, classPathEntry, remainingPart, extensions);
         return info;
       }
     }
+    logger.trace("Failed to find class info for fileName {}, remainingPart {}, extensions {}",
+            fileName, remainingPart, extensions);
     return null;
   }
 
@@ -198,19 +210,30 @@ class PackageToClassPathEntryTreeMap
     if (dir.hasChildFile(strFileName)) {
       IFile file = dir.file( strFileName );
       if (IFileUtil.getBaseName( strFileName ).equals( file.getBaseName() )) {
+        logger.trace("Got existing file {} for file name {} in package {} in directory {} in module {}",
+                file, strFileName, _strFullPackageName, dir, _module);
         return file;
       } else {
+        logger.trace(
+                "About to return null instead of file {} " +
+                        "as file case does not match. " +
+                        "File name {} in package {} in directory {} in module {}",
+                file, strFileName, _strFullPackageName, dir, _module);
         return null;
       }
     } else {
+      logger.trace("Got null file for file name {} in package {} in directory {} in module {}",
+              strFileName, _strFullPackageName, dir, _module);
       return null;
     }
   }
 
   private IDirectory getDir(IFileSystemGosuClassRepository.ClassPathEntry root) {
-    return _strFullPackageName.isEmpty()
+    IDirectory dir =  _strFullPackageName.isEmpty()
             ? root.getPath()
             : root.getPath().dir(_strFullPackageName.replace('.', File.separatorChar));
+    logger.trace("Got directory {} for package {} in module {}", dir, _strFullPackageName, _module);
+    return dir;
   }
 
   public void delete( IDirectory dir ) {

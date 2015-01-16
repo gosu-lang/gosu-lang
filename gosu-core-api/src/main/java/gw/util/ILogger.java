@@ -21,6 +21,8 @@ public interface ILogger
 
   void trace(Object o, Throwable throwable);
 
+  void trace(String format, Object... arguments);
+
   boolean isTraceEnabled();
 
   void info(Object o);

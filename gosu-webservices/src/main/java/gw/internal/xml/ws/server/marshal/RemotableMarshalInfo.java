@@ -8,7 +8,6 @@ import gw.internal.schema.gw.xsd.w3c.xmlschema.Enumeration;
 import gw.internal.schema.gw.xsd.w3c.xmlschema.Restriction;
 import gw.internal.schema.gw.xsd.w3c.xmlschema.SimpleType;
 import gw.internal.schema.gw.xsd.w3c.xmlschema.types.complex.LocalElement;
-import gw.internal.xml.IXmlLoggerFactory;
 import gw.internal.xml.Marshaller;
 import gw.internal.xml.config.XmlServices;
 import gw.internal.xml.ws.server.WsiServiceInfo;
@@ -97,9 +96,9 @@ public class RemotableMarshalInfo extends ClassBasedMarshalInfo {
       if (Modifier.isStatic(modifiers) && Modifier.isPublic(modifiers) && clazz.equals(field.getType())) {
         return field.get(null);
       }
-      XmlServices.getLogger(IXmlLoggerFactory.Category.XmlUnMarshal).error("Unable to unmarshal " + _type + ": " + name);
+      XmlServices.getLogger(XmlServices.Category.XmlUnMarshal).error("Unable to unmarshal " + _type + ": " + name);
     } catch (Throwable e) {
-      XmlServices.getLogger(IXmlLoggerFactory.Category.XmlUnMarshal).error("Unable to unmarshal " + _type + ": " + name, e);
+      XmlServices.getLogger(XmlServices.Category.XmlUnMarshal).error("Unable to unmarshal " + _type + ": " + name, e);
     }
     return null;
   }
@@ -117,10 +116,10 @@ public class RemotableMarshalInfo extends ClassBasedMarshalInfo {
           return;
         }
       } catch (IllegalAccessException e) {
-        XmlServices.getLogger(IXmlLoggerFactory.Category.XmlMarshal).error("Exception on " + _type + ": " + obj, e);
+        XmlServices.getLogger(XmlServices.Category.XmlMarshal).error("Exception on " + _type + ": " + obj, e);
       }
     }
-    XmlServices.getLogger(IXmlLoggerFactory.Category.XmlMarshal).error("Unable to marshal " + _type + ": " + obj);
+    XmlServices.getLogger(XmlServices.Category.XmlMarshal).error("Unable to marshal " + _type + ": " + obj);
   }
 
   @Override

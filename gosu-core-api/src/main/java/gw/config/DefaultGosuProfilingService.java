@@ -4,6 +4,7 @@
 
 package gw.config;
 
+import gw.util.GosuLoggerFactory;
 import gw.util.ILogger;
 
 /**
@@ -23,7 +24,7 @@ public class DefaultGosuProfilingService extends BaseService implements IGosuPro
    * @param waitTime  any wait times that were consumed during this execution
    */
   public void completed(long startTime, long endTime, String path, String location, int count, long waitTime) {
-   ILogger logger = CommonServices.getEntityAccess().getLogger();
+   ILogger logger = GosuLoggerFactory.getLogger();
     if (logger.isDebugEnabled()) {
       if (endTime <= 0) {
         endTime = CommonServices.getEntityAccess().getCurrentTime().getTime();

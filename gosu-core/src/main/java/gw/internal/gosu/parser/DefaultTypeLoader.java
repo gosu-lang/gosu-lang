@@ -28,6 +28,8 @@ import gw.lang.reflect.java.IJavaType;
 import gw.lang.reflect.java.JavaTypes;
 import gw.lang.reflect.java.asm.AsmClass;
 import gw.lang.reflect.module.IModule;
+import gw.util.GosuLoggerFactory;
+import gw.util.ILogger;
 
 import java.net.URL;
 import java.util.Collections;
@@ -39,6 +41,8 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class DefaultTypeLoader extends SimpleTypeLoader implements IExtendedTypeLoader, IDefaultTypeLoader {
+  private static final ILogger logger = GosuLoggerFactory.getLogger(DefaultTypeLoader.class);
+
   private static final boolean USE_ASM_LOADER = true;
   private ClassCache _classCache;
   private IGosuClassLoader _gosuClassLoader;            //## todo: use a ConcurrentWeakValueHashMap here?
@@ -86,6 +90,7 @@ public class DefaultTypeLoader extends SimpleTypeLoader implements IExtendedType
       throw new IllegalArgumentException("Cannot call getJavaClassInfo with a raw array descriptor");
     }
     if (!TypeSystem.isSingleModuleMode() && _module.equals(TypeSystem.getGlobalModule())) {
+      logger.trace("Returning null java class info for global module in single module type system");
       return null;
     }
 
@@ -96,9 +101,12 @@ public class DefaultTypeLoader extends SimpleTypeLoader implements IExtendedType
     if (result == null) {
       result = resolveJavaClassInfo(fqnNoArrays);
       if (result == null) {
+        logger.trace("Qualified name {} resolved to null class info", fullyQualifiedName);
         result = IJavaClassInfo.NULL_TYPE;
       }
       _classInfoCache.put(fqnNoArrays, result);
+    } else if (logger.isTraceEnabled()) {
+      logger.trace("Found cached java class info for name {}", fullyQualifiedName);
     }
     if( result != IJavaClassType.NULL_TYPE ) {
       int numArrays = (fullyQualifiedName.length() - fqnNoArrays.length()) / 2;
@@ -143,19 +151,25 @@ public class DefaultTypeLoader extends SimpleTypeLoader implements IExtendedType
 
   public IJavaClassInfo resolveJavaClassInfo(String fullyQualifiedName) {
     if (!CommonServices.getPlatformHelper().isInIDE()) {
+      logger.trace("In IDE");
       return getByClass(fullyQualifiedName, _module, _module);
     }
 
     ISourceFileHandle fileHandle = getSouceFileHandle( fullyQualifiedName );
     if (fileHandle == null) {
+      logger.trace("Found NO source file handle for qualified name {}", fullyQualifiedName);
       return getByClass(fullyQualifiedName, _module, _module);
     }
     if( fileHandle.getParentType() != null && !fileHandle.getParentType().isEmpty() )
     {
+      logger.trace("File handle has parent type, qualified name {}", fullyQualifiedName);
       String parentType = fileHandle.getTypeNamespace();
       IJavaClassInfo parentClassInfo = getJavaClassInfo(parentType);
       if (parentClassInfo == null) {
+        logger.trace("No parent class info found for parent type {}", parentType);
         return null;
+      } else {
+        logger.trace("Found class info for parent type {}", parentType);
       }
       IJavaClassInfo[] declaredClasses = parentClassInfo.getDeclaredClasses();
       IJavaClassInfo inner = null;
@@ -171,9 +185,11 @@ public class DefaultTypeLoader extends SimpleTypeLoader implements IExtendedType
           inner = declaredClass;
         }
       }
+      logger.trace("Found inner class for qualified name {}", fullyQualifiedName);
       return inner;
     }
 
+    logger.trace("Creating top level java class info for handle {} in module {}", fileHandle, _module);
     return JavaSourceClass.createTopLevel(fileHandle, _module);
   }
 
@@ -191,6 +207,7 @@ public class DefaultTypeLoader extends SimpleTypeLoader implements IExtendedType
     if( USE_ASM_LOADER && CommonServices.getPlatformHelper().isInIDE() ) {
       AsmClass theClass = loader.loadAsmClass( className );
       if( theClass == null ) {
+      logger.trace("Loaded NULL class for name {} in lookupModule {}", className, lookupModule);
         return null;
       }
       return getJavaClassInfo( theClass, actualModule );

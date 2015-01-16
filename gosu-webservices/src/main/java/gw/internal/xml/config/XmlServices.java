@@ -6,23 +6,35 @@ package gw.internal.xml.config;
 
 import gw.config.ServiceKernel;
 import gw.internal.xml.IMarshaller;
-import gw.internal.xml.IXmlLoggerFactory;
 import gw.internal.xml.ws.server.IWsiWebService;
 import gw.internal.xml.ws.server.WsiUtilities;
 import gw.internal.xml.ws.server.marshal.MarshalContext;
 import gw.internal.xml.ws.server.marshal.UnmarshalContext;
 import gw.lang.parser.IParsedElement;
 import gw.lang.reflect.IType;
+import gw.util.GosuLoggerFactory;
 import gw.util.ILogger;
-import gw.util.SystemOutLogger;
 import gw.xml.XmlElement;
 
+import java.util.HashMap;
 import java.util.Map;
 
 public class XmlServices extends ServiceKernel {
-  private static String _xmlLoggerFactoryClassName = "gw.internal.xml.XmlLoggerFactory";
   private static String _marshallerClassName = "gw.internal.xml.Marshaller";
   private static XmlServices _instance;
+
+  private static Map<Category,ILogger> _loggers;
+
+  static {
+    _loggers = new HashMap<Category,ILogger>(Category.values().length);
+    for (Category category : Category.values()) {
+      ILogger logger = GosuLoggerFactory.getLogger("XML." + category.name());
+      _loggers.put(category, logger);
+    }
+  }
+
+  /* these categories need to be defined in PLLoggerCategory as well */
+  public enum Category { Loading, Runtime, XmlMarshal, XmlUnMarshal, Request }
 
   private XmlServices() {
   }
@@ -37,7 +49,6 @@ public class XmlServices extends ServiceKernel {
   protected void defineServices() {
     _instance = this;
     try {
-      defineService( IXmlLoggerFactory.class, (IXmlLoggerFactory)Class.forName(_xmlLoggerFactoryClassName).newInstance() );
       defineService( IMarshaller.class, (IMarshaller)Class.forName(_marshallerClassName).newInstance() );
     }
     catch( Exception e )
@@ -59,16 +70,7 @@ public class XmlServices extends ServiceKernel {
 
 
   public static void redefineService(Class serviceInterface, String className) {
-    if (IXmlLoggerFactory.class.equals(serviceInterface)) {
-      _xmlLoggerFactoryClassName = className;
-      if (_instance != null) {
-        final IXmlLoggerFactory factory = _instance.getService(IXmlLoggerFactory.class);
-        if (factory != null /* && !factory.getClass().getName().equals(className)*/) { // logging properties may have changed
-          _instance.resetKernel();
-        }
-      }
-    }
-    else if (IMarshaller.class.equals(serviceInterface)) {
+    if (IMarshaller.class.equals(serviceInterface)) {
       _marshallerClassName = className;
       if (_instance != null) {
         final IMarshaller service = _instance.getService(IMarshaller.class);
@@ -84,19 +86,8 @@ public class XmlServices extends ServiceKernel {
    * @param category the category needed
    * @return the logger
    */
-  public static ILogger getLogger( IXmlLoggerFactory.Category category) {
-    return getInstance().getService(IXmlLoggerFactory.class).getLogger(category);
-  }
-
-  /** This will get the logger for any custom category, it will also initialize it to
-   * a console appender at warning level if not otherwise configured.
-   *
-   * @param category the category needed
-   * @param level the level to set this temporary logger to
-   * @return the logger
-   */
-  public static ILogger getTempLogger(String category, SystemOutLogger.LoggingLevel level) {
-    return getInstance().getService(IXmlLoggerFactory.class).getTempLogger(category, level);
+  public static ILogger getLogger( Category category) {
+    return _loggers.get(category);
   }
 
   /** This will get the logger for any custom category, it will also initialize it to
@@ -106,7 +97,7 @@ public class XmlServices extends ServiceKernel {
    * @return the logger
    */
   public static ILogger getLogger(String category) {
-    return getInstance().getService(IXmlLoggerFactory.class).getLogger(category);
+    return GosuLoggerFactory.getLogger(category);
   }
 
   /** this will check that the supplied type is valid for a webservice, if it is not valid it will format a exception on the

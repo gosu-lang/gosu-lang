@@ -30,7 +30,9 @@ import gw.lang.reflect.java.JavaTypes;
 import gw.lang.reflect.module.IExecutionEnvironment;
 import gw.lang.reflect.module.IModule;
 import gw.lang.reflect.module.IProject;
+import gw.util.GosuLoggerFactory;
 import gw.util.IFeatureFilter;
+import gw.util.ILogger;
 import gw.util.perf.InvocationCounter;
 
 import java.io.File;
@@ -44,6 +46,8 @@ import java.util.concurrent.locks.ReentrantLock;
 @UnstableAPI
 public class TypeSystem
 {
+  private static final ILogger logger = GosuLoggerFactory.getLogger(TypeSystem.class);
+
   private static final Lock GLOBAL_LOCK = new ReentrantLock();
   public static InvocationCounter tyeRequestCounter = new InvocationCounter(false);
   public static InvocationCounter tyeLoadingCounter = new InvocationCounter(false);
@@ -206,7 +210,15 @@ public class TypeSystem
   public static IType getByFullNameIfValid(String typeName, IModule module) {
     TypeSystem.pushModule(module);
     try {
-      return getByFullNameIfValid(typeName);
+      IType type = getByFullNameIfValid(typeName);
+      if (logger.isTraceEnabled()) {
+        if (type != null) {
+          logger.trace("Type {} found in module {}", typeName, module.getName());
+        } else {
+          logger.trace("Type {} NOT found in module {}", typeName, module.getName());
+        }
+      }
+      return type;
     } finally {
       TypeSystem.popModule(module);
     }
@@ -726,20 +738,42 @@ public class TypeSystem
   }
 
   public static IJavaClassInfo getJavaClassInfo(Class jClass, IModule module) {
+    logger.trace("Getting java class info for class '{}' in module '{}'", jClass, module != null? module.getName() : null);
     if (jClass == null) {
       return null;
     }
     String fqn = jClass.getName().replace('$', '.');
     if (IType.class.isAssignableFrom(jClass) && fqn.endsWith(ITypeRefFactory.SYSTEM_PROXY_SUFFIX)) {
       IJavaType type = (IJavaType) get(jClass);
-      return type.getBackingClassInfo();
+      IJavaClassInfo javaClassInfo = type.getBackingClassInfo();
+      if (logger.isTraceEnabled()) {
+        if (javaClassInfo != null)
+          logger.trace("Got NOT NULL class info for java backed class");
+        else
+          logger.trace("Got NULL class info for java backed class");
+      }
+      return javaClassInfo;
     } else if (jClass.isArray()) {
       Class componentType = jClass.getComponentType();
       IJavaClassInfo javaClassInfo = getJavaClassInfo(componentType, module);
-      return javaClassInfo.getArrayType();
+      javaClassInfo = javaClassInfo.getArrayType();
+      if (logger.isTraceEnabled()) {
+        if (javaClassInfo != null)
+          logger.trace("Got NOT NULL class info for array class");
+        else
+          logger.trace("Got NULL class info for array class");
+      }
+      return javaClassInfo;
     } else if(Proxy.class.isAssignableFrom(jClass)) {
       IDefaultTypeLoader defaultTypeLoader = module.getModuleTypeLoader().getDefaultTypeLoader();
-      return defaultTypeLoader.getJavaClassInfoForClassDirectly(jClass, module);
+      IJavaClassInfo javaClassInfo = defaultTypeLoader.getJavaClassInfoForClassDirectly(jClass, module);
+      if (logger.isTraceEnabled()) {
+        if (javaClassInfo != null)
+          logger.trace("Got NOT NULL class info for java proxy class");
+        else
+          logger.trace("Got NULL class info for java proxy class");
+      }
+      return javaClassInfo;
     } else {
       return getJavaClassInfo(fqn, module);
     }
@@ -796,13 +830,19 @@ public class TypeSystem
         if (defaultTypeLoader != null) {
           IJavaClassInfo javaClassInfo = defaultTypeLoader.getJavaClassInfo(fullyQualifiedName);
           if (javaClassInfo != null) {
+            logger.trace("Got NOT NULL class info for class name {} in module {}", fullyQualifiedName, m.getName());
             return javaClassInfo;
+          } else if (logger.isTraceEnabled()) {
+            logger.trace("NULL class info found for class name {} in module {}", fullyQualifiedName, m.getName());
           }
+        } else if (logger.isTraceEnabled()) {
+          logger.trace("Default type loader not found for module {}", m.getName());
         }
       } finally {
         TypeSystem.popModule(m);
       }
     }
+    logger.trace("Class info not found for {} in module list {}", fullyQualifiedName, module.getModuleTraversalList());
     return null;
   }
 

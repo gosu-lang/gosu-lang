@@ -31,6 +31,7 @@ import gw.lang.reflect.IPropertyInfo;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.gs.IGosuClass;
 import gw.lang.reflect.java.JavaTypes;
+import gw.util.GosuLoggerFactory;
 
 import java.lang.reflect.Constructor;
 import java.util.List;
@@ -196,7 +197,7 @@ public class CompileTimeAnnotationHandler
             mcv = ctor.newInstance();
           }
           catch( Exception e ) {
-            CommonServices.getEntityAccess().getLogger().warn( "Unable to instantiate IUsageSiteValidator of type " + validator.getName() );
+            GosuLoggerFactory.getLogger().warn("Unable to instantiate IUsageSiteValidator of type " + validator.getName());
           }
         }
       }

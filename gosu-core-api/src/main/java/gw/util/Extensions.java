@@ -4,7 +4,6 @@
 
 package gw.util;
 
-import gw.config.CommonServices;
 import gw.fs.IDirectory;
 import gw.fs.IFile;
 import gw.fs.ResourcePath;
@@ -49,7 +48,7 @@ public final class Extensions {
       // FIXME: For some reason, WebSphere changes JARs in WEB-INF/lib, breaking signatures. So ignore errors.
       ResourcePath path = dir.getPath();
       String str = path != null ? path.getFileSystemPathString() : dir.toString();
-      CommonServices.getEntityAccess().getLogger().warn("Cannot read manifest from jar " + str + ", ignoring");
+      GosuLoggerFactory.getLogger().warn("Cannot read manifest from jar " + str + ", ignoring");
     } finally {
       if (in != null) {
         try {

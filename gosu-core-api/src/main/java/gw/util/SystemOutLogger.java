@@ -44,6 +44,12 @@ public class SystemOutLogger implements ILogger {
     log(TRACE, o, throwable );
   }
 
+  @Override
+  public void trace(String format, Object... arguments) {
+    String result = LogMessageFormatter.arrayFormat(format, arguments);
+    log(TRACE, result);
+  }
+
   public boolean isTraceEnabled()
   {
     return _level.compareTo(LoggingLevel.TRACE) < 0;
