@@ -18,6 +18,10 @@ class EnumErrantCasesTest extends TestClass   {
     testErrantType(Errant_AbstractEnum, Res.MSG_ILLEGAL_USE_OF_MODIFIER, 1, 0) 
   }
   
+  function testErrantFinalEnum() {
+    testErrantType(Errant_FinalEnum, Res.MSG_ILLEGAL_USE_OF_MODIFIER, 1, 0)
+  }
+
   function testErrantDuplicateConstantsEnum() {
     testErrantType(Errant_DuplicateConstantsEnum, Res.MSG_VARIABLE_ALREADY_DEFINED, 1, 0)
   }

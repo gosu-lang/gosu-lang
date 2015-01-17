@@ -373,12 +373,6 @@ class EnumTest extends TestClass
     assertTrue(EmptyEnum.AllValues.Empty)  
   }
 
-  // ------------------- EnumExplicitlyDeclaredFinal
-  
-  function testEnumExplicitlyDeclaredFinal() {
-    assertListEquals({EnumExplicitlyDeclaredFinal.RED, EnumExplicitlyDeclaredFinal.GREEN, EnumExplicitlyDeclaredFinal.BLUE}, EnumExplicitlyDeclaredFinal.AllValues)   
-  }
-  
   // ------------------- EnumImplementingGosuInterface
   
   function testEnumImplementingGosuInterface() {
