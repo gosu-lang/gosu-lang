@@ -67,6 +67,6 @@ public class TypeVariableArrayType extends DefaultNonLoadableArrayType implement
       return true;
     }
 
-    return type.isArray() && !type.getComponentType().isPrimitive();
+    return type.isArray() && getComponentType().isAssignableFrom( type.getComponentType() );
   }
 }
