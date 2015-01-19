@@ -10,10 +10,15 @@ class Errant_EnumLiteral {
   }
 
   function acceptEnum(p: GosuEnum) {}
+
+  function acceptEnumOverloadWithTypeParameter<T>(p: T) {}  // to make type inference more complex
+  function acceptEnumOverloadWithTypeParameter(p: GosuEnum) {}
+
   function acceptMap(p: Map<GosuEnum, String>) {}
 
   function test() {
     acceptEnum(VAL2)
+    acceptEnumOverloadWithTypeParameter(VAL1)
     acceptMap({VAL1 -> "val"})
     // IDE-1528
     var a = new HashMap<GosuEnum, String>() { VAL1 -> "val1" }
