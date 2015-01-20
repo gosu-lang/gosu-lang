@@ -166,6 +166,8 @@ equals ``n>>s``; the signed right shift of a negative n equals ``(n>>s) +
 ``long``, where ``2L`` is the ``long`` constant with value 2. 
 
 
+.. _conditionalExpressions:
+
 Conditional Expressions
 =======================
 
@@ -410,9 +412,37 @@ If ``o`` evaluates to ``null`` the value of ``o*.p`` or ``o*.m`` will be
 an empty ``R[]``. If an element ``e`` of ``o`` is ``null`` then ``e.p`` or
 ``e.m`` will evaluate to ``null``.
 
+
+Null Safe Expressions
+=====================
+
+.. index::  null safe expression
+
+Null safe expression are expression involving the null safe operators: ``?:``,
+``?+``, ``?-``, ``?*``, ``?/``, ``?%``, ``?.``, ``?[]``.
+
+The ``?:`` is described in :ref:`conditionalExpressions`.
+
+The null safe arithmetic operators (``?+``, ``?-``, ``?*``, ``?/``, ``?%``)
+behave like the regular arithmetic operators with the only difference that if
+one of the operands  evaluates to ``null`` the result of the expression
+will be ``null`` and no NullPointerException will be thrown. The null safe
+arithmetic operators can not be used with primitive types.
+
+Null safe property/field/method access expressions have the form ``o?.x``.
+The null safe ``?.`` operator behaves like the ``.`` operator  with the only
+difference that if ``o`` evaluates to ``null`` the expression ``o?.x`` will be
+``null`` and no NullPointerException will be thrown.
+
+Null safe array access expressions have the form ``o?[e]``.  The null safe
+``?[]`` operator behave like the ``[]`` operator  with the only difference that
+if ``o`` evaluates to ``null`` the expression ``o?[e]`` will be ``null``,
+the expression ``e`` will not be evaluated and no NullPointerException will be
+thrown.
+
 TODO
 ----
-?.
+
 map access/array access
 interval expressions
 named/default param in call site
