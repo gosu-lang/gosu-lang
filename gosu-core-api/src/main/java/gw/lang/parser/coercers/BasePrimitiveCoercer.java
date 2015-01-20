@@ -126,9 +126,9 @@ public class BasePrimitiveCoercer extends StandardCoercer implements IResolvingC
     if( to == from ) {
       return 0;                       // score = 0
     }
-    if( JavaTypes.OBJECT().equals( to ) ) {
-      return MethodScorer.BOXED_COERCION_SCORE + 1;   // score = 11 (must be consistent with MethodScorer)
-    }
+//    if( JavaTypes.OBJECT().equals( to ) ) {
+//      return MethodScorer.BOXED_COERCION_SCORE + 1;   // score = 11 (must be consistent with MethodScorer)
+//    }
 
     int infoLoss = losesInformation( from, to );
     boolean bSameFamily = isInSameFamily( from, to );
