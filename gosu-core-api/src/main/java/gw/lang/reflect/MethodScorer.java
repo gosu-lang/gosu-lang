@@ -134,6 +134,8 @@ public class MethodScorer {
 
   public int _addToScoreForTypes( List<IType> inferringTypes, IType paramType, IType argType ) {
     int iScore;
+    IType primitiveArgType;
+    IType primitiveParamType;
     paramType = TypeSystem.boundTypes( paramType, inferringTypes );
     if( paramType.equals( argType ) ) {
       // Same types  +0
@@ -151,6 +153,21 @@ public class MethodScorer {
              TypeSystem.isBoxedTypeFor( argType, paramType ) ) {
       // Boxed coercion  +10
       iScore = BOXED_COERCION_SCORE;
+    }
+    else if( argType.isPrimitive() && StandardCoercionManager.isBoxed( paramType ) &&
+             arePrimitiveTypesCompatible( primitiveParamType = TypeSystem.getPrimitiveType( paramType ), argType ) ) {
+      // primitive -> Boxed coercion  +10 + Primitive coercion  +(12..19)
+      iScore = BOXED_COERCION_SCORE + BasePrimitiveCoercer.getPriorityOf( primitiveParamType, argType );
+    }
+    else if( StandardCoercionManager.isBoxed( argType ) && paramType.isPrimitive() &&
+             arePrimitiveTypesCompatible( paramType, primitiveArgType = TypeSystem.getPrimitiveType( argType ) ) ) {
+      // Boxed -> primitive coercion  +10 + Primitive coercion  +(12..19)
+      iScore = BOXED_COERCION_SCORE + BasePrimitiveCoercer.getPriorityOf( paramType, primitiveArgType );
+    }
+    else if( StandardCoercionManager.isBoxed( argType ) && StandardCoercionManager.isBoxed( paramType ) &&
+             arePrimitiveTypesCompatible( primitiveParamType = TypeSystem.getPrimitiveType( paramType ), primitiveArgType = TypeSystem.getPrimitiveType( argType ) ) ) {
+      // Boxed -> Boxed coercion  +10 + Primitive coercion  +(12..19)
+      iScore = BOXED_COERCION_SCORE + BasePrimitiveCoercer.getPriorityOf( primitiveParamType, primitiveArgType );
     }
     else if( paramType instanceof IInvocableType && argType instanceof IInvocableType ) {
       // Assignable function types  0 + average-degrees-of-separation-of-sum-of-params-and-return-type
