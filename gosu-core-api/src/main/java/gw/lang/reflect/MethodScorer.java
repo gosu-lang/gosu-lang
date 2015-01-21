@@ -166,8 +166,8 @@ public class MethodScorer {
     }
     else if( StandardCoercionManager.isBoxed( argType ) && StandardCoercionManager.isBoxed( paramType ) &&
              arePrimitiveTypesCompatible( primitiveParamType = TypeSystem.getPrimitiveType( paramType ), primitiveArgType = TypeSystem.getPrimitiveType( argType ) ) ) {
-      // Boxed -> Boxed coercion  +10 + Primitive coercion  +(12..19)
-      iScore = BOXED_COERCION_SCORE + BasePrimitiveCoercer.getPriorityOf( primitiveParamType, primitiveArgType );
+      // Boxed -> Boxed coercion  +10 + 10 + Primitive coercion  +(22..29)
+      iScore = BOXED_COERCION_SCORE + BOXED_COERCION_SCORE + BasePrimitiveCoercer.getPriorityOf( primitiveParamType, primitiveArgType );
     }
     else if( paramType instanceof IInvocableType && argType instanceof IInvocableType ) {
       // Assignable function types  0 + average-degrees-of-separation-of-sum-of-params-and-return-type
