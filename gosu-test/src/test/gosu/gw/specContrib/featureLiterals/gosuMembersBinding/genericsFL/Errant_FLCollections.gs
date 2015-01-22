@@ -20,7 +20,7 @@ class Errant_FLCollections {
 
   var aavgArrayArrayFL = Array#average()
   var agetCountArrayFL = Array#getCount()
-  var asumArrayFL = Array#sum()
+  var asumArrayFL = Array#sum()            //## issuekeys: AMBIGUOUS METHOD CALL: BOTH 'CoreArrayDoubleSumEnhancement.sum(IBlock1<Double, Object>)' AND 'CoreArrayFloatSumEnhancement.sum(IBlock1<Float, Object>)' MATCH
   var acloneArrayFL = Array#clone()
   var atoListArrayFL = Array#toList()
   var aequalsArrayFL = Array#equals(Object)
