@@ -37,11 +37,10 @@ class Errant_FLThis {
    var staticMethodFL12 = this#staticMethod1()      //## issuekeys: A STATIC FEATURE OR CONSTRUCTOR MUST BE REFERENCED DIRECTLY ON THE TYPE THAT THE FEATURE BELONGS TO
 
   function testInvoke() {
-    //the following Method FL used implicit 'this' to refer it
-    //so here no instance is required as argument
-    //OS Gosu has exisitng bug which treats it as unbounded so it shows error
+    //the following Method FL is unbounded
+    //so here instance is required as argument
     //IDE-1587
-    methodFL11.invoke()
+    methodFL11.invoke(this)
     methodFL12.invoke()
 
     staticMethodFL11.invoke()

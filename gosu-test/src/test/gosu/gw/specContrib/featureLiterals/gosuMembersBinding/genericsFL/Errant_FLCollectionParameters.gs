@@ -49,19 +49,18 @@ class Errant_FLCollectionParameters {
   function invoke() {
 
     //funhm2
-    //the following Method FL used implicit 'this' to refer it
-    //so here no instance is required as argument
-    //OS Gosu has exisitng bug which treats it as unbounded so it shows error
+    //the following Method FL is unbound
+    //so here instance is required as argument
     //IDE-1587
-    funhm111.invoke(new HashMap<String, String>())
-    funhm111.invoke({"foo"->"bar"})
+    funhm111.invoke(this, new HashMap<String, String>())
+    funhm111.invoke(this, {"foo"->"bar"})
     //IDE-1589
     funhm111.invoke({"foo"->42})                //## issuekeys: ERROR
     funhm111.invoke(new HashMap<String, Integer>())      //## issuekeys: 'INVOKE(JAVA.UTIL.HASHMAP<JAVA.LANG.STRING,JAVA.LANG.STRING>)' IN '' CANNOT BE APPLIED TO '(JAVA.UTIL.HASHMAP<JAVA.LANG.STRING,JAVA.LANG.INTEGER>)'
 
     //IDE-1587
-    funhm112.invoke(new HashMap<String, String>())
-    funhm112.invoke({"foo"->"bar"})
+    funhm112.invoke(this, new HashMap<String, String>())
+    funhm112.invoke(this, {"foo"->"bar"})
     //IDE-1589
     funhm112.invoke({"foo"->42})                 //## issuekeys: ERROR
     funhm112.invoke(new HashMap<String, Integer>())      //## issuekeys: 'INVOKE(JAVA.UTIL.HASHMAP<JAVA.LANG.STRING,JAVA.LANG.STRING>)' IN '' CANNOT BE APPLIED TO '(JAVA.UTIL.HASHMAP<JAVA.LANG.STRING,JAVA.LANG.INTEGER>)'
