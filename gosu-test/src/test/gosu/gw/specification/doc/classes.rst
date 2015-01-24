@@ -373,8 +373,11 @@ declared, and exactly one instance created, using the special expression syntax
 where ``C`` is a class name. This creates an anonymous subclass of class ``C``, 
 with the given *class-body* (section XXX). Moreover, it creates an object of 
 that anonymous subclass and calls the appropriate ``C`` constructor with the 
-arguments in *actual-list*, as if by ``super(`` *actual-list* ``)``. An 
-anonymous class cannot declare its own constructors. 
+arguments in *actual-list*, as if by ``super(`` *actual-list* ``)``.
+
+An anonymous class can declare at most one constructor. The arguments in
+the *actual-list* must be compatible with the formal parameters of the
+declared constructor.
 
 When ``I`` is an interface name, the similar expression syntax
 
@@ -382,5 +385,7 @@ When ``I`` is an interface name, the similar expression syntax
   
 creates an anonymous class, with the given *class-body* (section XXX), that must 
 implement the interface ``I``, and also creates an object of that anonymous 
-class. Note that the parameter list after ``I`` must be empty. 
+class. Note that the parameter list after ``I`` must be empty. An anonymous
+class implementing the interface ``I`` can declare at most one default
+constructor.
 

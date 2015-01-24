@@ -1,37 +1,41 @@
 package gw.specification.variablesParametersFieldsScope.finalModifier
 
 class Errant_FinalLocalVarCoverageInSwitchStatement {
-  static enum MyEnum { En1, En2, En3 }
+  enum MyEnum { En1, En2, En3 }
 
   class C1 {
 
     function foo( value: int ) {
-      final var _field1 : int  //## issuekeys: MSG_VAR_MIGHT_NOT_HAVE_BEEN_INIT
+      final var v1 : int
       switch( value )
       {
       }
+      print( v1 )  //## issuekeys: MSG_VAR_MIGHT_NOT_HAVE_BEEN_INIT
     }
   }
 
   class C2 {
 
     function foo( value: int ) {
-      final var _field1 : int  //## issuekeys: MSG_VAR_MIGHT_NOT_HAVE_BEEN_INIT
+      final var v1 : int
       switch( value )
       {
         default:
       }
+      print( v1 )  //## issuekeys: MSG_VAR_MIGHT_NOT_HAVE_BEEN_INIT
     }
   }
 
   class C3 {
 
     function foo( value: int ) {
-      final var _field1 : int
+      final var v1 : int
       switch( value )
       {
         default:
-          _field1 = 0
+          print( v1 )  //## issuekeys: MSG_VAR_MIGHT_NOT_HAVE_BEEN_INIT
+          v1 = 0
+          print( v1 )
       }
     }
   }
@@ -39,11 +43,13 @@ class Errant_FinalLocalVarCoverageInSwitchStatement {
   class C4 {
 
     function foo( value: int ) {
-      final var _field1 : int
+      final var v1 : int
       switch( value )
       {
         default:
-          _field1 = 0
+          print( v1 )  //## issuekeys: MSG_VAR_MIGHT_NOT_HAVE_BEEN_INIT
+          v1 = 0
+          print( v1 )
           break
       }
     }
@@ -52,12 +58,12 @@ class Errant_FinalLocalVarCoverageInSwitchStatement {
   class C5 {
 
     function foo( value: int ) {
-      final var _field1 : int
+      final var v1 : int
       switch( value )
       {
         case 1:
         default:
-          _field1 = 0
+          v1 = 0
           return
       }
     }
@@ -66,13 +72,14 @@ class Errant_FinalLocalVarCoverageInSwitchStatement {
   class C5_2 {
 
     function foo( value: int ) {
-      final var _field1 : int  //## issuekeys: MSG_VAR_MIGHT_NOT_HAVE_BEEN_INIT
+      final var v1 : int
       switch( value )
       {
         case 1:
+          print( v1 )  //## issuekeys: MSG_VAR_MIGHT_NOT_HAVE_BEEN_INIT
           break
         default:
-          _field1 = 0
+          v1 = 0
           return
       }
     }
@@ -81,13 +88,14 @@ class Errant_FinalLocalVarCoverageInSwitchStatement {
   class C5_2_1 {
 
     function foo( value: MyEnum ) {
-      final var _field1 : int  //## issuekeys: MSG_VAR_MIGHT_NOT_HAVE_BEEN_INIT
+      final var v1 : int
       switch( value )
       {
         case En1:
+          print( v1 )  //## issuekeys: MSG_VAR_MIGHT_NOT_HAVE_BEEN_INIT
           break
         default:
-          _field1 = 0
+          v1 = 0
           return
       }
     }
@@ -96,12 +104,12 @@ class Errant_FinalLocalVarCoverageInSwitchStatement {
   class C5_2_2 {
 
     function foo( value: MyEnum ) {
-      final var _field1 : int
+      final var v1 : int
       switch( value )
       {
         case En1:
         default:
-          _field1 = 0
+          v1 = 0
           return
       }
     }
@@ -110,14 +118,16 @@ class Errant_FinalLocalVarCoverageInSwitchStatement {
   class C5_3 {
 
     function foo( value: int ) {
-      final var _field1 : int
+      final var v1 : int
       switch( value )
       {
         case 1:
-          _field1 = 1
+          print( v1 )  //## issuekeys: MSG_VAR_MIGHT_NOT_HAVE_BEEN_INIT
+          v1 = 1
+          print( v1 )
           break
         default:
-          _field1 = 0
+          v1 = 0
           return
       }
     }
@@ -126,7 +136,7 @@ class Errant_FinalLocalVarCoverageInSwitchStatement {
   class C6 {
 
     function foo( value: int ) {
-      final var _field1 : int  //## issuekeys: MSG_VAR_MIGHT_NOT_HAVE_BEEN_INIT
+      final var v1 : int
       switch( value )
       {
         case 1:
@@ -137,11 +147,13 @@ class Errant_FinalLocalVarCoverageInSwitchStatement {
   class C7 {
 
     function foo( value: int ) {
-      final var _field1 : int  //## issuekeys: MSG_VAR_MIGHT_NOT_HAVE_BEEN_INIT
+      final var v1 : int
       switch( value )
       {
         case 1:
-          _field1 = 0
+          print( v1 )  //## issuekeys: MSG_VAR_MIGHT_NOT_HAVE_BEEN_INIT
+          v1 = 0
+          print( v1 )
       }
     }
   }
@@ -149,11 +161,11 @@ class Errant_FinalLocalVarCoverageInSwitchStatement {
   class C8 {
 
     function foo( value: int ) {
-      final var _field1 : int  //## issuekeys: MSG_VAR_MIGHT_NOT_HAVE_BEEN_INIT
+      final var v1 : int
       switch( value )
       {
         case 1:
-          _field1 = 0
+          v1 = 0
           break
       }
     }
@@ -162,7 +174,7 @@ class Errant_FinalLocalVarCoverageInSwitchStatement {
   class C9 {
 
     function foo( value: int ) {
-      final var _field1 : int  //## issuekeys: MSG_VAR_MIGHT_NOT_HAVE_BEEN_INIT
+      final var v1 : int
       switch( value )
       {
         case 1:
@@ -174,11 +186,13 @@ class Errant_FinalLocalVarCoverageInSwitchStatement {
   class C10 {
 
     function foo( value: int ) {
-      final var _field1 : int  //## issuekeys: MSG_VAR_MIGHT_NOT_HAVE_BEEN_INIT
+      final var v1 : int
       switch( value )
       {
         case 1:
-          _field1 = 0
+          print( v1 )  //## issuekeys: MSG_VAR_MIGHT_NOT_HAVE_BEEN_INIT
+          v1 = 0
+          print( v1 )
         case 2:  //## issuekeys: MSG_NONTERMINAL_CASE_CLAUSE
       }
     }
@@ -187,11 +201,13 @@ class Errant_FinalLocalVarCoverageInSwitchStatement {
   class C11 {
 
     function foo( value: int ) {
-      final var _field1 : int  //## issuekeys: MSG_VAR_MIGHT_NOT_HAVE_BEEN_INIT
+      final var v1 : int
       switch( value )
       {
         case 1:
-          _field1 = 0
+          print( v1 )  //## issuekeys: MSG_VAR_MIGHT_NOT_HAVE_BEEN_INIT
+          v1 = 0
+          print( v1 )
           break
         case 2:
       }
@@ -201,12 +217,14 @@ class Errant_FinalLocalVarCoverageInSwitchStatement {
   class C12 {
 
     function foo( value: int ) {
-      final var _field1 : int  //## issuekeys: MSG_VAR_MIGHT_NOT_HAVE_BEEN_INIT
+      final var v1 : int
       switch( value )
       {
         case 1:
         case 2:
-          _field1 = 0
+          print( v1 )  //## issuekeys: MSG_VAR_MIGHT_NOT_HAVE_BEEN_INIT
+          v1 = 0
+          print( v1 )
       }
     }
   }
@@ -214,12 +232,14 @@ class Errant_FinalLocalVarCoverageInSwitchStatement {
   class C13 {
 
     function foo( value: int ) {
-      final var _field1 : int  //## issuekeys: MSG_VAR_MIGHT_NOT_HAVE_BEEN_INIT
+      final var v1 : int
       switch( value )
       {
         case 1:
         case 2:
-          _field1 = 0
+          print( v1 )  //## issuekeys: MSG_VAR_MIGHT_NOT_HAVE_BEEN_INIT
+          v1 = 0
+          print( v1 )
           break
       }
     }
@@ -228,13 +248,17 @@ class Errant_FinalLocalVarCoverageInSwitchStatement {
   class C14 {
 
     function foo( value: int ) {
-      final var _field1 : int  //## issuekeys: MSG_VAR_MIGHT_NOT_HAVE_BEEN_INIT
+      final var v1 : int
       switch( value )
       {
         case 1:
-          _field1 = 0
+          print( v1 )  //## issuekeys: MSG_VAR_MIGHT_NOT_HAVE_BEEN_INIT
+          v1 = 0
+          print( v1 )
         case 2:  //## issuekeys: MSG_NONTERMINAL_CASE_CLAUSE
-          _field1 = 0  //## issuekeys: MSG_VAR_MIGHT_ALREADY_HAVE_BEEN_INIT
+          print( v1 )  //## issuekeys: MSG_VAR_MIGHT_NOT_HAVE_BEEN_INIT
+          v1 = 0  //## issuekeys: MSG_VAR_MIGHT_ALREADY_HAVE_BEEN_INIT
+          print( v1 )
       }
     }
   }
@@ -242,14 +266,18 @@ class Errant_FinalLocalVarCoverageInSwitchStatement {
   class C15 {
 
     function foo( value: int ) {
-      final var _field1 : int  //## issuekeys: MSG_VAR_MIGHT_NOT_HAVE_BEEN_INIT
+      final var v1 : int
       switch( value )
       {
         case 1:
-          _field1 = 0
+          print( v1 )  //## issuekeys: MSG_VAR_MIGHT_NOT_HAVE_BEEN_INIT
+          v1 = 0
+          print( v1 )
           break
         case 2:
-          _field1 = 0
+          print( v1 )  //## issuekeys: MSG_VAR_MIGHT_NOT_HAVE_BEEN_INIT
+          v1 = 0
+          print( v1 )
       }
     }
   }
@@ -257,13 +285,17 @@ class Errant_FinalLocalVarCoverageInSwitchStatement {
   class C16 {
 
     function foo( value: int ) {
-      final var _field1 : int  //## issuekeys: MSG_VAR_MIGHT_NOT_HAVE_BEEN_INIT
+      final var v1 : int
       switch( value )
       {
         case 1:
-          _field1 = 0
+          print( v1 )  //## issuekeys: MSG_VAR_MIGHT_NOT_HAVE_BEEN_INIT
+          v1 = 0
+          print( v1 )
         case 2:  //## issuekeys: MSG_NONTERMINAL_CASE_CLAUSE
-          _field1 = 0  //## issuekeys: MSG_VAR_MIGHT_ALREADY_HAVE_BEEN_INIT
+          print( v1 )  //## issuekeys: MSG_VAR_MIGHT_NOT_HAVE_BEEN_INIT
+          v1 = 0  //## issuekeys: MSG_VAR_MIGHT_ALREADY_HAVE_BEEN_INIT
+          print( v1 )
           break
       }
     }
@@ -272,14 +304,14 @@ class Errant_FinalLocalVarCoverageInSwitchStatement {
   class C17 {
 
     function foo( value: int ) {
-      final var _field1 : int  //## issuekeys: MSG_VAR_MIGHT_NOT_HAVE_BEEN_INIT
+      final var v1 : int
       switch( value )
       {
         case 1:
-          _field1 = 0
+          v1 = 0
           break
         case 2:
-          _field1 = 0
+          v1 = 0
           break
       }
     }
@@ -288,7 +320,7 @@ class Errant_FinalLocalVarCoverageInSwitchStatement {
   class C18 {
 
     function foo( value: int ) {
-      final var _field1 : int  //## issuekeys: MSG_VAR_MIGHT_NOT_HAVE_BEEN_INIT
+      final var v1 : int
       switch( value )
       {
         case 1:
@@ -301,13 +333,15 @@ class Errant_FinalLocalVarCoverageInSwitchStatement {
   class C19 {
 
     function foo( value: int ) {
-      final var _field1 : int
+      final var v1 : int
       switch( value )
       {
         case 1:
         case 2:
         default:
-          _field1 = 0
+          print( v1 )  //## issuekeys: MSG_VAR_MIGHT_NOT_HAVE_BEEN_INIT
+          v1 = 0
+          print( v1 )
       }
     }
   }
@@ -315,13 +349,13 @@ class Errant_FinalLocalVarCoverageInSwitchStatement {
   class C20 {
 
     function foo( value: int ) {
-      final var _field1 : int
+      final var v1 : int
       switch( value )
       {
         case 1:
         case 2:
         default:
-          _field1 = 0
+          v1 = 0
           break
       }
     }
@@ -330,14 +364,18 @@ class Errant_FinalLocalVarCoverageInSwitchStatement {
   class C21 {
 
     function foo( value: int ) {
-      final var _field1 : int
+      final var v1 : int
       switch( value )
       {
         case 1:
-          _field1 = 0
+          print( v1 )  //## issuekeys: MSG_VAR_MIGHT_NOT_HAVE_BEEN_INIT
+          v1 = 0
+          print( v1 )
         case 2:  //## issuekeys: MSG_NONTERMINAL_CASE_CLAUSE
         default:
-          _field1 = 0  //## issuekeys: MSG_VAR_MIGHT_ALREADY_HAVE_BEEN_INIT
+          print( v1 )  //## issuekeys: MSG_VAR_MIGHT_NOT_HAVE_BEEN_INIT
+          v1 = 0  //## issuekeys: MSG_VAR_MIGHT_ALREADY_HAVE_BEEN_INIT
+          print( v1 )
       }
     }
   }
@@ -345,15 +383,17 @@ class Errant_FinalLocalVarCoverageInSwitchStatement {
   class C22 {
 
     function foo( value: int ) {
-      final var _field1 : int
+      final var v1 : int
       switch( value )
       {
         case 1:
-          _field1 = 0
+          v1 = 0
           break
         case 2:
         default:
-          _field1 = 0
+          print( v1 )  //## issuekeys: MSG_VAR_MIGHT_NOT_HAVE_BEEN_INIT
+          v1 = 0
+          print( v1 )
       }
     }
   }
@@ -361,16 +401,17 @@ class Errant_FinalLocalVarCoverageInSwitchStatement {
   class C23 {
 
     function foo( value: int ) {
-      final var _field1 : int  //## issuekeys: MSG_VAR_MIGHT_NOT_HAVE_BEEN_INIT
+      final var v1 : int
       switch( value )
       {
         case 1:
-          _field1 = 0
+          v1 = 0
           break
         case 2:
+          print( v1 )  //## issuekeys: MSG_VAR_MIGHT_NOT_HAVE_BEEN_INIT
           break
         default:
-          _field1 = 0
+          v1 = 0
       }
     }
   }
@@ -378,16 +419,18 @@ class Errant_FinalLocalVarCoverageInSwitchStatement {
   class C24 {
 
     function foo( value: int ) {
-      final var _field1 : int
+      final var v1 : int
       switch( value )
       {
         case 1:
-          _field1 = 0
+          v1 = 0
           break
         case 2:
-          _field1 = 0
+          print( v1 )  //## issuekeys: MSG_VAR_MIGHT_NOT_HAVE_BEEN_INIT
+          v1 = 0
+          print( v1 )
         default:  //## issuekeys: MSG_NONTERMINAL_CASE_CLAUSE
-          _field1 = 0  //## issuekeys: MSG_VAR_MIGHT_ALREADY_HAVE_BEEN_INIT
+          v1 = 0  //## issuekeys: MSG_VAR_MIGHT_ALREADY_HAVE_BEEN_INIT
       }
     }
   }
@@ -395,17 +438,17 @@ class Errant_FinalLocalVarCoverageInSwitchStatement {
   class C25 {
 
     function foo( value: int ) {
-      final var _field1 : int
+      final var v1 : int
       switch( value )
       {
         case 1:
-          _field1 = 0
+          v1 = 0
           break
         case 2:
-          _field1 = 0
+          v1 = 0
           break
         default:
-          _field1 = 0
+          v1 = 0
       }
     }
   }
@@ -413,11 +456,13 @@ class Errant_FinalLocalVarCoverageInSwitchStatement {
   class C26 {
 
     function foo( value: MyEnum ) {
-      final var _field1 : int  //## issuekeys: MSG_VAR_MIGHT_NOT_HAVE_BEEN_INIT
+      final var v1 : int
       switch( value )
       {
         case En1:
-          _field1 = 0
+          print( v1 )  //## issuekeys: MSG_VAR_MIGHT_NOT_HAVE_BEEN_INIT
+          v1 = 0
+          print( v1 )
           break
       }
     }
@@ -426,12 +471,12 @@ class Errant_FinalLocalVarCoverageInSwitchStatement {
   class C27 {
 
     function foo( value: MyEnum ) {
-      final var _field1 : int  //## issuekeys: MSG_VAR_MIGHT_NOT_HAVE_BEEN_INIT
+      final var v1 : int
       switch( value )
       {
         case En1:
         case En2:
-          _field1 = 0
+          v1 = 0
           break
       }
     }
@@ -440,15 +485,17 @@ class Errant_FinalLocalVarCoverageInSwitchStatement {
   class C28 {
 
     function foo( value: MyEnum ) {
-      final var _field1 : int
+      final var v1 : int
       switch( value )
       {
         case En1:
         case En2:
         case En3:
-          _field1 = 0
+          print( v1 )  //## issuekeys: MSG_VAR_MIGHT_NOT_HAVE_BEEN_INIT
+          v1 = 0
+          print( v1 )
           break
-        // no default necessary
+          // no default necessary
       }
     }
   }
@@ -456,17 +503,17 @@ class Errant_FinalLocalVarCoverageInSwitchStatement {
   class C29 {
 
     function foo( value: MyEnum ) {
-      final var _field1 : int
+      final var v1 : int
       switch( value )
       {
         case En1:
-          _field1 = 0
+          v1 = 0
           break
         case En2:
         case En3:
-          _field1 = 0
+          v1 = 0
           break
-        // no default necessary
+          // no default necessary
       }
     }
   }
@@ -474,18 +521,19 @@ class Errant_FinalLocalVarCoverageInSwitchStatement {
   class C30 {
 
     function foo( value: MyEnum ) {
-      final var _field1 : int  //## issuekeys: MSG_VAR_MIGHT_NOT_HAVE_BEEN_INIT
+      final var v1 : int
       switch( value )
       {
         case En1:
-          _field1 = 0
+          v1 = 0
           break
         case En2:
+          print( v1 )  //## issuekeys: MSG_VAR_MIGHT_NOT_HAVE_BEEN_INIT
           break
         case En3:
-          _field1 = 0
+          v1 = 0
           break
-        // no default necessary
+          // no default necessary
       }
     }
   }
@@ -493,19 +541,21 @@ class Errant_FinalLocalVarCoverageInSwitchStatement {
   class C31 {
 
     function foo( value: MyEnum ) {
-      final var _field1 : int
+      final var v1 : int
       switch( value )
       {
         case En1:
-          _field1 = 0
+          v1 = 0
           break
         case En2:
-          _field1 = 0
+          v1 = 0
           break
         case En3:
-          _field1 = 0
+          print( v1 )  //## issuekeys: MSG_VAR_MIGHT_NOT_HAVE_BEEN_INIT
+          v1 = 0
+          print( v1 )
           break
-        // no default necessary
+          // no default necessary
       }
     }
   }

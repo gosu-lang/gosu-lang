@@ -122,9 +122,9 @@ class Errant_BitwiseAND {
   var bitwiseAnd624 = 42.55 & BigDecimal.ONE      //## issuekeys: OPERATOR '&' CANNOT BE APPLIED TO 'DOUBLE', 'JAVA.MATH.BIGDECIMAL'
 
   //IDE-585 Parser does not show error. OS Gosu does
-  var bitwiseAnd710 = true & false    //## issuekeys: OPERATOR '&' CANNOT BE APPLIED TO 'BOOLEAN', 'BOOLEAN'
-  var bitwiseAnd7101 = true | false   //## issuekeys: OPERATOR '&' CANNOT BE APPLIED TO 'BOOLEAN', 'BOOLEAN'
-  var bitwiseAnd7102 = true ^ false   //## issuekeys: OPERATOR '&' CANNOT BE APPLIED TO 'BOOLEAN', 'BOOLEAN'
+  var bitwiseAnd710 = true & false
+  var bitwiseAnd7101 = true | false
+  var bitwiseAnd7102 = true ^ false
 
   var bitwiseAnd711 = true & 'c'      //## issuekeys: OPERATOR '&' CANNOT BE APPLIED TO 'BOOLEAN', 'CHAR'
   var bitwiseAnd712 = true & 3b      //## issuekeys: OPERATOR '&' CANNOT BE APPLIED TO 'BOOLEAN', 'BYTE'

@@ -34,6 +34,12 @@ class PropertyAccessExpressionsTest extends BaseVerifyErrantTest {
 
    }
 
+  function testSuperProperty() {
+    var b : B  = new B(10)
+    b.superProp()
+    assertEquals(b.p0, 40)
+   }
+
   function testPropertyGetAccess() {
     var b : B = new B(10)
     var a : A  = b
