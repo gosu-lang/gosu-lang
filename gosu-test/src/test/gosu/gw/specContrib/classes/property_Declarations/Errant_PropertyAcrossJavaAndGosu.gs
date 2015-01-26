@@ -12,4 +12,8 @@ class Errant_PropertyAcrossJavaAndGosu extends JavaClass2 {
   }
 
   var myVar: Set<A> as Set1
+
+  // IDE-1667
+  class InnerClass extends JavaIntfImpl {
+  }
 }
