@@ -16,4 +16,14 @@ class Errant_PropertyAcrossJavaAndGosu extends JavaClass2 {
   // IDE-1667
   class InnerClass extends JavaIntfImpl {
   }
+
+  interface GosuIntf {
+    function getPod(): String
+
+    function isEditable(): boolean
+  }
+
+  // IDE-1238
+  class InnerClass2 extends JavaIntfImpl implements GosuIntf {  // issuekeys: MUST BE DECLARED ABSTRACT OR IMPLEMENT 'isEditable()' in 'GosuIntf'
+  }
 }
