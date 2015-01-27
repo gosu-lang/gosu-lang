@@ -13,8 +13,6 @@
   <name>Gosu :: Distribution POM</name>
 
   <properties>
-    <full.launcher.path>gosu-core-api-${project.parent.version}.jar,gosu-core-${project.parent.version}.jar,gosu-interactive-${project.parent.version}.jar,jline-${jline.version}.jar</full.launcher.path>
-    <thin.launcher.path>remote:releases:gosu-lang.org-releases:http://gosu-lang.org/nexus/content/repositories/gosu,org.gosu-lang.gosu:gosu-interactive:${project.parent.version}</thin.launcher.path>
     <project.build.assemblyDescriptorDirectory>src/main/assembly</project.build.assemblyDescriptorDirectory>
     <project.build.textDirectory>src/main/text</project.build.textDirectory>
   </properties>
@@ -31,56 +29,10 @@
       <version>${project.parent.version}</version>
       <scope>runtime</scope>
     </dependency>
-    <dependency>
-      <groupId>org.gosu-lang.gosu</groupId>
-      <artifactId>gosu-launcher-aether</artifactId>
-      <scope>runtime</scope>
-      <optional>true</optional>
-    </dependency>
-    <dependency>
-      <groupId>org.gosu-lang.gosu</groupId>
-      <artifactId>gosu-interactive</artifactId>
-      <version>${project.parent.version}</version>
-      <scope>runtime</scope>
-      <optional>true</optional>
-    </dependency>
-    <dependency>
-      <groupId>org.gosu-lang.gosu</groupId>
-      <artifactId>gosu-process</artifactId>
-      <version>${project.parent.version}</version>
-      <scope>runtime</scope>
-      <optional>true</optional>
-    </dependency>
-    <dependency>
-      <groupId>org.gosu-lang.gosu</groupId>
-      <artifactId>gosu-servlet</artifactId>
-      <version>${project.parent.version}</version>
-      <scope>runtime</scope>
-      <optional>true</optional>
-    </dependency>
-    <dependency>
-      <groupId>org.gosu-lang.gosu</groupId>
-      <artifactId>gosu-itcase-utils</artifactId>
-      <version>${project.parent.version}</version>
-      <scope>test</scope>
-    </dependency>
   </dependencies>
 
   <build>
     <plugins>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-compiler-plugin</artifactId>
-        <version>2.5.1</version>
-        <executions>
-          <execution>
-            <phase>package</phase>
-            <goals>
-              <goal>testCompile</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-assembly-plugin</artifactId>
@@ -111,18 +63,6 @@
             <version>2.2</version>
           </dependency>
         </dependencies>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-failsafe-plugin</artifactId>
-        <executions>
-          <execution>
-            <goals>
-              <goal>integration-test</goal>
-              <goal>verify</goal>
-            </goals>
-          </execution>
-        </executions>
       </plugin>
     </plugins>
   </build>

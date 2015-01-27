@@ -18,15 +18,6 @@
 
   <dependencies>
     <dependency>
-      <groupId>org.gosu-lang.gosu</groupId>
-      <artifactId>gosu-launcher-api</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.gosu-lang.gosu</groupId>
-      <artifactId>gosu-launcher-impl</artifactId>
-      <scope>runtime</scope>
-    </dependency>
-    <dependency>
       <groupId>org.gosu-lang.gosu.managed</groupId>
       <artifactId>gw-commons-cli</artifactId>
       <version>1.2-1</version>
@@ -46,31 +37,6 @@
       <artifactId>gw-asm-util</artifactId>
       <version>5.0.1</version>
     </dependency>
-      <dependency>
-          <groupId>org.gosu-lang.gosu.managed</groupId>
-          <artifactId>gw-asm</artifactId>
-          <version>5.0.1</version>
-      </dependency>
-      <dependency>
-          <groupId>org.gosu-lang.gosu.managed</groupId>
-          <artifactId>gw-asm-analysis</artifactId>
-          <version>5.0.1</version>
-      </dependency>
-      <dependency>
-          <groupId>org.gosu-lang.gosu.managed</groupId>
-          <artifactId>gw-asm-commons</artifactId>
-          <version>5.0.1</version>
-      </dependency>
-      <dependency>
-          <groupId>org.gosu-lang.gosu.managed</groupId>
-          <artifactId>gw-asm-tree</artifactId>
-          <version>5.0.1</version>
-      </dependency>
-      <dependency>
-          <groupId>org.gosu-lang.gosu.managed</groupId>
-          <artifactId>gw-commons-collections</artifactId>
-          <version>3.2.1-3</version>
-      </dependency>
   </dependencies>
   <profiles>
     <profile>
@@ -161,14 +127,6 @@
             </goals>
           </execution>
         </executions>
-        <configuration>
-          <artifactSet>
-            <excludes>
-              <exclude>org.gosu-lang.gosu:gosu-launcher-api</exclude>
-              <exclude>org.gosu-lang.gosu:gosu-launcher-impl</exclude>
-            </excludes>
-          </artifactSet>
-        </configuration>
       </plugin>-->
     </plugins>
   </build>

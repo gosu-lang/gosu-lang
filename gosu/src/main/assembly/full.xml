@@ -10,21 +10,8 @@
 
   <dependencySets>
     <dependencySet>
-      <excludes>
-        <exclude>org.gosu-lang.gosu:gosu-process</exclude>
-        <exclude>org.gosu-lang.gosu:gosu-servlet</exclude>
-      </excludes>
       <useProjectArtifact>false</useProjectArtifact>
       <outputDirectory>lib</outputDirectory>
-      <unpack>false</unpack>
-    </dependencySet>
-    <dependencySet>
-      <includes>
-        <include>org.gosu-lang.gosu:gosu-process</include>
-        <include>org.gosu-lang.gosu:gosu-servlet</include>
-      </includes>
-      <useProjectArtifact>false</useProjectArtifact>
-      <outputDirectory>ext</outputDirectory>
       <unpack>false</unpack>
     </dependencySet>
   </dependencySets>
@@ -42,12 +29,6 @@
       <outputDirectory>bin</outputDirectory>
       <filtered>true</filtered>
       <lineEnding>dos</lineEnding>
-    </file>
-    <file>
-      <source>${project.build.scriptSourceDirectory}/full.gosulaunch.properties</source>
-      <outputDirectory>bin</outputDirectory>
-      <destName>gosulaunch.properties</destName>
-      <filtered>true</filtered>
     </file>
   </files>
   <fileSets>

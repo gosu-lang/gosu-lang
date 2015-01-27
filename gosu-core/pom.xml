@@ -33,8 +33,6 @@
             <configuration>
               <artifactSet>
                 <excludes>
-                  <exclude>org.gosu-lang.gosu:gosu-launcher-api</exclude>
-                  <exclude>org.gosu-lang.gosu:gosu-launcher-impl</exclude>
                   <exclude>org.gosu-lang.gosu:gosu-core-api</exclude>
                 </excludes>
               </artifactSet>

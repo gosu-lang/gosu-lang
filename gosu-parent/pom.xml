@@ -17,10 +17,6 @@
   </licenses>
 
   <properties>
-    <launcher.api.version>2</launcher.api.version>
-    <launcher.impl.version>2.1</launcher.impl.version>
-    <launcher.aether.version>2.1</launcher.aether.version>
-    <jline.version>0.9.94</jline.version>
     <dist.man.repo.url>http://gosu-lang.org/nexus/content/repositories/gosu</dist.man.repo.url>
     <dist.man.snapshotrepo.url>http://gosu-lang.org/nexus/content/repositories/snapshots</dist.man.snapshotrepo.url>
   </properties>
@@ -119,11 +115,6 @@
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-release-plugin</artifactId>
-          <version>2.3.2</version>
-        </plugin>
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-jar-plugin</artifactId>
           <version>2.3.2</version>
           <configuration>
@@ -186,21 +177,6 @@
   <dependencyManagement>
     <dependencies>
       <dependency>
-        <groupId>org.gosu-lang.gosu</groupId>
-        <artifactId>gosu-launcher-api</artifactId>
-        <version>${launcher.api.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.gosu-lang.gosu</groupId>
-        <artifactId>gosu-launcher-impl</artifactId>
-        <version>${launcher.impl.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.gosu-lang.gosu</groupId>
-        <artifactId>gosu-launcher-aether</artifactId>
-        <version>${launcher.aether.version}</version>
-      </dependency>
-      <dependency>
         <groupId>junit</groupId>
         <artifactId>junit</artifactId>
         <version>4.8.2</version>
@@ -212,15 +188,5 @@
       </dependency>
     </dependencies>
   </dependencyManagement>
-
-  <profiles>
-    <profile>
-      <id>deploy.test-run</id>
-      <properties>
-        <dist.man.repo.url>file://${java.io.tmpdir}/testRunRepository/releases</dist.man.repo.url>
-        <dist.man.snapshotrepo.url>file://${java.io.tmpdir}/testRunRepository/snapshots</dist.man.snapshotrepo.url>
-      </properties>
-    </profile>
-  </profiles>
 
 </project>

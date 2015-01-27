@@ -192,12 +192,6 @@
     </dependency>
     <dependency>
       <groupId>org.gosu-lang.gosu</groupId>
-      <artifactId>gosu-itcase-utils</artifactId>
-      <version>1-noGosuLauncher-SNAPSHOT</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.gosu-lang.gosu</groupId>
       <artifactId>ij-compiler-api</artifactId>
       <version>1-noGosuLauncher-SNAPSHOT</version>
     </dependency>

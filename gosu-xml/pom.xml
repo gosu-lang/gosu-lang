@@ -33,12 +33,6 @@
       <artifactId>gw-xercesImpl</artifactId>
       <version>2.11.0</version>
     </dependency>
-    <dependency>
-      <groupId>org.gosu-lang.gosu</groupId>
-      <artifactId>gosu-itcase-utils</artifactId>
-      <version>1-noGosuLauncher-SNAPSHOT</version>
-      <scope>test</scope>
-    </dependency>
   </dependencies>
 
       <build>
@@ -69,25 +63,11 @@
         <configuration>
           <artifactSet>
             <excludes>
-              <exclude>org.gosu-lang.gosu:gosu-launcher-api</exclude>
-              <exclude>org.gosu-lang.gosu:gosu-launcher-impl</exclude>
               <exclude>org.gosu-lang.gosu:gosu-core-api</exclude>
               <exclude>org.gosu-lang.gosu:gosu-core</exclude>
             </excludes>
           </artifactSet>
         </configuration>
-          </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-failsafe-plugin</artifactId>
-        <executions>
-          <execution>
-            <goals>
-              <goal>integration-test</goal>
-              <goal>verify</goal>
-            </goals>
-          </execution>
-        </executions>
       </plugin>
         </plugins>
       </build>
