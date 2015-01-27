@@ -65,7 +65,7 @@ class Errant_TypeCastExpressionsTest {
     var x7 =  fun as List<String>  //## issuekeys: MSG_TYPE_MISMATCH
 
     var x8 = A as CharAt   //## issuekeys: MSG_TYPE_MISMATCH
-    var x9 = D as CharAt
+    var x9 = D as CharAt  //## issuekeys: MSG_TYPE_MISMATCH
     var x10 = D as Class<CharAt>
     var d : Class<D>
     var x11 = d as CharAt

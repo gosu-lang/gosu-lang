@@ -1312,6 +1312,11 @@ public class TypeLoaderAccess extends BaseService implements ITypeSystem
     if( lhsType != null ) {
       // Support explicit downcast
 
+      if( lhsType instanceof IMetaType && rhsType instanceof IMetaType ) {
+        // unwrap metatypes
+        return canCast( ((IMetaType)lhsType).getType(), ((IMetaType)rhsType).getType() );
+      }
+
       if( lhsType.isAssignableFrom( rhsType ) ) {
         return true;
       }

@@ -507,7 +507,7 @@ public class StandardCoercionManagerTest extends TestClass
     try {
       GosuTestUtil.evalGosu("var x = String as gw.internal.gosu.parser.GosuClass");
       Assert.fail("Should not have been able to coerce Type<String> to GosuClass");
-    } catch (ClassCastException e) {
+    } catch (ParseResultsException e) {
       // pass
     }
   }

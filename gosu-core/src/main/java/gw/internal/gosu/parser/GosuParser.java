@@ -2618,10 +2618,10 @@ public final class GosuParser extends ParserBase implements IGosuParser
           IType rhsType = ((TypeLiteral)rhs).getType().getType();
           verify( rhs, rhsType != JavaTypes.pVOID(), Res.MSG_VOID_NOT_ALLOWED );
           verifyComparable( TypeLord.replaceTypeVariableTypeParametersWithBoundingTypes( rhsType ), lhs, false, false );
-          if( rhs.hasParseExceptions() || lhs.hasParseExceptions() )
+          if( (rhs.hasParseExceptions() || lhs.hasParseExceptions()) && !(lhs instanceof TypeLiteral)  )
           {
             IType lhsType = lhs.getType();
-            if (TypeSystem.canCast(lhsType, rhsType))
+            if( TypeSystem.canCast( lhsType, rhsType ) )
             {
               //noinspection ThrowableResultOfMethodCallIgnored
               lhs.removeParseException( Res.MSG_TYPE_MISMATCH );
