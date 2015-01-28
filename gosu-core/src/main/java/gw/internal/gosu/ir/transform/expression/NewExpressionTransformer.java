@@ -11,6 +11,7 @@ import gw.internal.gosu.ir.transform.TopLevelTransformationContext;
 import gw.internal.gosu.parser.Expression;
 import gw.internal.gosu.parser.TypeVariableType;
 import gw.internal.gosu.parser.expressions.NewExpression;
+import gw.internal.gosu.runtime.GosuRuntimeMethods;
 import gw.lang.ir.IRElement;
 import gw.lang.ir.IRExpression;
 import gw.lang.ir.IRSymbol;
@@ -216,8 +217,14 @@ public class NewExpressionTransformer extends AbstractExpressionTransformer<NewE
     pushArgumentsDirectly( _expr().getArgs(), explicitArgs );
     newExprElements = handleNamedArgs( explicitArgs, _expr().getNamedArgOrder() );
 
+    List<IRExpression> args = new ArrayList<IRExpression>();
+    pushCapturedSymbols( type, args, false );
+    pushTypeParametersForConstructor( _expr(), type, args );
+    _cc().pushEnumNameAndOrdinal( type, args );
+    args.addAll( explicitArgs );
+
     // Call the IConstructorInfo dynamically
-    constructorCall = callTypeVarConstructorInfo( type, _expr().getArgs(), explicitArgs );
+    constructorCall = callTypeVarConstructorInfo( type, args );
 
     if( newExprElements.size() > 0 )
     {
@@ -292,53 +299,20 @@ public class NewExpressionTransformer extends AbstractExpressionTransformer<NewE
     return checkCast( rootType, instance );
   }
 
-  private IRExpression callTypeVarConstructorInfo( IType rootType, IExpression[] params, List<IRExpression> explicitArgs )
+  private IRExpression callTypeVarConstructorInfo( IType rootType, List<IRExpression> ctorArgs )
   {
-    //
-    // rootType
-    // .getTypeInfo()
-    // .getConstructor( argTypes )
-    // .getConstructor()
-    // .newInstance( args )
-    //
-
-    IRExpression typeInfo = callMethod( IType.class, "getTypeInfo", new Class[0], pushType( rootType ), exprList() );
-
-    IRExpression constructorInfo;
-
-    typeInfo = checkCast( IRelativeTypeInfo.class, typeInfo );
-    constructorInfo = callMethod( IRelativeTypeInfo.class, "getConstructor", new Class[]{IType.class, IType[].class},
-                                  typeInfo,
-                                  exprList( pushType( rootType ), pushParamTypes( params )));
-
-    IRExpression constructorHandler = callMethod( IConstructorInfo.class, "getConstructor", new Class[0], constructorInfo, exprList() );
-
-    IRExpression instance = callMethod( IConstructorHandler.class, "newInstance", new Class[]{Object[].class},
-                                        constructorHandler,
-                                        exprList( collectArgsIntoObjArray( explicitArgs ) ) );
-
-    return checkCast( rootType, instance );
-  }
-
-  private IRExpression pushParamTypes( IExpression[] params )
-  {
-    if( params == null || params.length == 0 )
+    List<IRExpression> args = new ArrayList<IRExpression>();
+    args.add( pushType( rootType ) );
+    if( _cc().getCurrentFunction() != null && !_cc().getCurrentFunction().isStatic() )
     {
-      return pushNull();
+      args.add( pushThis() );
     }
     else
     {
-      return pushArrayOfTypes( getTypes( params ) );
+      args.add( pushNull() );
     }
-  }
-
-  private IType[] getTypes( IExpression[] params )
-  {
-    IType[] types = new IType[params.length];
-    for( int i = 0; i < params.length; i++ )
-    {
-      types[i] = params[i].getType();
-    }
-    return types;
+    args.add( collectArgsIntoObjArray( ctorArgs ) );
+    IRExpression instance = callStaticMethod( GosuRuntimeMethods.class, "newInstance", new Class[]{IType.class, Object.class, Object[].class}, args );
+    return checkCast( rootType, instance );
   }
 }

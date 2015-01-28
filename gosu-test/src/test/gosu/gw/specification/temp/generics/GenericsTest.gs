@@ -2,6 +2,7 @@ package gw.specification.temp.generics
 
 uses gw.BaseVerifyErrantTest
 uses java.lang.Integer
+uses java.lang.StringBuilder
 
 class GenericsTest extends BaseVerifyErrantTest {
   function testRecursiveType() {
@@ -24,15 +25,36 @@ class GenericsTest extends BaseVerifyErrantTest {
     catch( e: java.lang.NullPointerException ) {
       // expected
     }
+
+    t.testInnerClasses()
   }
 
-  class Test<T> {
+  static class Test<T> {
     function foo() : T {
       return new T( "8" )
     }
 
     function bar() : T {
       return new T()
+    }
+
+    function fu( p: Object ) : T {
+      return new T( p )
+    }
+
+    class One {
+      construct( s: String ) { print( typeof s ) }
+    }
+    static class Two {
+      construct( s: StringBuilder ) { print( typeof s ) }
+    }
+
+    function testInnerClasses() {
+      var t = new Test<One>()
+      assertTrue( One == typeof t.fu( "hi" ) )
+
+      var x = new Test<Two>()
+      assertTrue( Two == typeof x.fu( new StringBuilder( "blah" ) ) )
     }
   }
 }
