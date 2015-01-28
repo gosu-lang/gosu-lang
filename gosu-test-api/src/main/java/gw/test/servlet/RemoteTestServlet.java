@@ -279,15 +279,8 @@ public class RemoteTestServlet extends HttpServlet {
     }
   }   
 
-  private void handleRefreshTypesRequest(HttpServletResponse response) {
-    try {
-      ChangedTypesRefresher.getInstance().reloadChangedTypes();
-      response.getOutputStream().close();
-    } catch (IOException e) {
-      e.printStackTrace();
-    } catch (Throwable t) {
-      t.printStackTrace();
-    }
+  protected void handleRefreshTypesRequest(HttpServletResponse response) {
+    // Override me
   }
 
   private void handlePingRequest(HttpServletResponse response) {
