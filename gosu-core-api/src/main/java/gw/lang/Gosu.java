@@ -52,11 +52,12 @@ public class Gosu
   {
     try
     {
+      int ret;
+
       if( args.length == 0 )
       {
         showHelpAndQuit();
       }
-
       int i = 0;
       String cpValue = null;
       boolean cmdLineCP = args[0].equals( "-classpath" );
@@ -70,21 +71,26 @@ public class Gosu
         cpValue = args[1];
       }
 
-      File script = new File( args[i] );
-      if( !script.isFile() || !script.exists() )
+      if(args[i].equals( "-e" )) {
+        List<File> classpath = makeClasspath( cpValue, "", cmdLineCP );
+        init(classpath);
+        ret = runWithInlineScript(args[i+1], collectArgs(i+2, args));
+      }
+      else
       {
-        showHelpAndQuit();
+        File script = new File( args[i] );
+        if( !script.isFile() || !script.exists() )
+        {
+          showHelpAndQuit();
+        }
+        if ( cpValue == null ) {
+          cpValue = extractClassPathFromSrc( script.getAbsolutePath() );
+        }
+        List<File> classpath = makeClasspath( cpValue, script.getParent(), cmdLineCP );
+        init(classpath);
+        ret = runWithFile(script, collectArgs(i+1, args));
       }
-
-      List<String> scriptArgs = collectArgs(i, args);
-      if ( cpValue == null ) {
-        cpValue = extractClassPathFromSrc( script.getAbsolutePath() );
-      }
-
-      List<File> classpath = makeClasspath( cpValue, script.getParent(), cmdLineCP );
-      init(classpath);
-
-      return run(script, scriptArgs );
+      return ret;
     }
     catch( Throwable t )
     {
@@ -95,7 +101,7 @@ public class Gosu
 
   private List<String> collectArgs(int i, String[] args) {
     List<String> scriptArgs = new ArrayList<String>();
-    i++;
+
     while( i < args.length )
     {
       scriptArgs.add( args[i] );
@@ -261,7 +267,8 @@ public class Gosu
   static void showHelpAndQuit()
   {
     System.out.println("Usage:\n" +
-      "    gosu [-classpath 'entry1,entry2...'] program.gsp [args...]\n\n");
+      "    gosu [-classpath 'entry1,entry2...'] program.gsp [args...]\n" +
+      "    gosu [-classpath 'entry1,entry2...'] -e 'inline script' [args...]\n\n");
     System.exit(1);
   }
 
@@ -301,7 +308,7 @@ public class Gosu
     return GosuVersion.parse(reader);
   }
 
-  private int run(File script, List<String> args) throws IOException, ParseResultsException
+  private int runWithFile(File script, List<String> args) throws IOException, ParseResultsException
   {
     CommandLineAccess.setCurrentProgram(script);
     // set remaining arguments as arguments to the Gosu program
@@ -313,6 +320,23 @@ public class Gosu
     IGosuProgramParser programParser = GosuParserFactory.createProgramParser();
     ParserOptions options = new ParserOptions().withFileContext( ctx );
     IParseResult result = programParser.parseExpressionOrProgram( content, new StandardSymbolTable( true ), options );
+    IGosuProgram program = result.getProgram();
+    Object ret = program.getProgramInstance().evaluate(null); // evaluate it
+    IType expressionType = result.getType();
+    if( expressionType != null && !JavaTypes.pVOID().equals(expressionType) )
+    {
+      GosuShop.print( ret );
+    }
+    return 0;
+  }
+
+  private int runWithInlineScript(String script, List<String> args) throws IOException, ParseResultsException
+  {
+    CommandLineAccess.setCurrentProgram(null);
+    // set remaining arguments as arguments to the Gosu program
+    CommandLineAccess.setRawArgs( args );
+    IGosuProgramParser programParser = GosuParserFactory.createProgramParser();
+    IParseResult result = programParser.parseExpressionOrProgram( script, new StandardSymbolTable( true ), new ParserOptions() );
     IGosuProgram program = result.getProgram();
     Object ret = program.getProgramInstance().evaluate(null); // evaluate it
     IType expressionType = result.getType();
