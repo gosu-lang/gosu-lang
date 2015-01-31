@@ -12556,7 +12556,8 @@ public final class GosuParser extends ParserBase implements IGosuParser
         if( existing.getDisplayName().equals( dfs.getDisplayName() ) )
         {
           // if the parameters match exactly,
-          if( areParametersEquivalent( dfs, dfsExisting ) )
+          if( areParametersEquivalent( dfs, dfsExisting ) ||
+              !dfs.isStatic() && dfs.getDeclaringTypeInfo().getOwnersType() instanceof IGosuEnhancement && areParametersEquivalent( dfs, dfsExisting, ((IGosuEnhancement)dfs.getDeclaringTypeInfo().getOwnersType()).getEnhancedType() ) )
           {
             if( areDFSsInSameNameSpace( dfs, dfsExisting ) )
             {
@@ -12788,9 +12789,23 @@ public final class GosuParser extends ParserBase implements IGosuParser
     }
   }
 
-  public boolean areParametersEquivalent(IDynamicFunctionSymbol dfs1, IDynamicFunctionSymbol dfs2) {
-    IType[] args = ((FunctionType)dfs1.getType()).getParameterTypes();
-    IType[] toArgs = ((FunctionType)dfs2.getType()).getParameterTypes();
+  private boolean areParametersEquivalent( IDynamicFunctionSymbol dfs, IDynamicFunctionSymbol dfsExisting, IType... extraParams )
+  {
+    IType[] args = ((FunctionType)dfs.getType()).getParameterTypes();
+    IType[] toArgs = ((FunctionType)dfsExisting.getType()).getParameterTypes();
+    if( extraParams != null && extraParams.length > 0 )
+    {
+      // these are inserted at beginning, to handle case in enhancement where static function and nonstatic function can conflict in bytecode because both are static and the nonstatic one has an implicit 1st pararm that is the enhanced type
+      IType[] argsPlus = new IType[args.length+extraParams.length];
+      System.arraycopy( extraParams, 0, argsPlus, 0, extraParams.length );
+      System.arraycopy( args, 0, argsPlus, extraParams.length, args.length );
+      args = argsPlus;
+    }
+    return _areParametersEquivalent( dfs, dfsExisting, args, toArgs );
+  }
+
+  private boolean _areParametersEquivalent( IDynamicFunctionSymbol dfs1, IDynamicFunctionSymbol dfs2, IType[] args, IType[] toArgs )
+  {
     if( args == null || args.length == 0 )
     {
       return toArgs == null || toArgs.length == 0;
