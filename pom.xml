@@ -21,8 +21,6 @@
     <module>gosu-parent</module>
     <module>gosu-test</module>
     <module>gosu-test-api</module>
-    <module>gosu-webservices</module>
-    <module>gosu-xml</module>
   </modules>
   <profiles>
     <profile>
