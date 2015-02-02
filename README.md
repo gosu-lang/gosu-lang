@@ -82,7 +82,7 @@ Set the JAVA_HOME environment variable to JDK 1.7's home.
 
 Clone the project from GitHub and run:
 
-    mvn process-classes
+    mvn compile
 
 If you also want to build the IntelliJ IDEA plugin, set the IDEA_HOME
 environment variable to the root of your IntelliJ 12.1.X 's
@@ -90,7 +90,7 @@ installation folder.
 
 You can now build Gosu and the IntelliJ IDEA plugin with:
 
-    mvn process-classes -P ij
+    mvn compile -P ij
 
 
 Quick Install
