@@ -17,6 +17,7 @@
   </licenses>
 
   <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <dist.man.repo.url>http://gosu-lang.org/nexus/content/repositories/gosu</dist.man.repo.url>
     <dist.man.snapshotrepo.url>http://gosu-lang.org/nexus/content/repositories/snapshots</dist.man.snapshotrepo.url>
   </properties>
