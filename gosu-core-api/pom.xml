@@ -60,48 +60,6 @@
   <build>
     <plugins>
       <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>build-helper-maven-plugin</artifactId>
-        <version>1.7</version>
-        <executions>
-          <execution>
-            <id>parse-version</id>
-            <phase>generate-sources</phase>
-            <goals>
-              <goal>parse-version</goal>
-            </goals>
-            <configuration>
-              <propertyPrefix>gosu</propertyPrefix>
-              <versionString>${project.version}</versionString>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-antrun-plugin</artifactId>
-        <version>1.7</version>
-        <executions>
-          <execution>
-            <id>generate-gosu-version</id>
-            <phase>generate-sources</phase>
-            <configuration>
-              <target>
-                <echo message="writing POM version to ${gosu.version.properties}" />
-                <echo message="gosu.version.major=${gosu.majorVersion}${line.separator}" file="${gosu.version.properties}" />
-                <echo message="gosu.version.minor=${gosu.minorVersion}${line.separator}" file="${gosu.version.properties}" append="true" />
-                <echo message="gosu.version.incremental=${gosu.incrementalVersion}${line.separator}" file="${gosu.version.properties}" append="true" />
-                <echo message="gosu.version.build=${gosu.buildNumber}${line.separator}" file="${gosu.version.properties}" append="true" />
-                <echo message="gosu.version.qualifier=${gosu.qualifier}${line.separator}" file="${gosu.version.properties}" append="true" />
-              </target>
-            </configuration>
-            <goals>
-              <goal>run</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
-      <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-jar-plugin</artifactId>
         <configuration>
@@ -112,22 +70,6 @@
           </archive>
         </configuration>
       </plugin>
-      <!--
-      disable the maven-shade-plugin so that the final published pom doesn't have
-      hardcoded references to ${java.home}
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-shade-plugin</artifactId>
-        <version>1.5</version>
-        <executions>
-          <execution>
-            <phase>package</phase>
-            <goals>
-              <goal>shade</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>-->
     </plugins>
   </build>
 </project>

@@ -40,9 +40,6 @@
         <configuration>
           <descriptors>
             <descriptor>${project.build.assemblyDescriptorDirectory}/full.xml</descriptor>
-<!--
-            <descriptor>assembly/thin.xml</descriptor>
--->
           </descriptors>
           <encoding>UTF-8</encoding>
         </configuration>
