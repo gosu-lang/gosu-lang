@@ -1,0 +1,66 @@
+package gw.specContrib.expressions.cast
+
+uses java.lang.*
+uses java.util.ArrayList
+uses java.util.HashMap
+
+class Errant_TypeCastHashMap {
+  function testHashMap1(b : HashMap) {
+    var x111 = b as HashMap<Boolean, Boolean>
+    var x112 = b as HashMap<Character, Character>
+    var x113 = b as HashMap<Byte, Byte>
+    var x114 = b as HashMap<Short, Short>
+    var x115 = b as HashMap<Integer, Integer>
+    var x116 = b as HashMap<Float, Float>
+    var x117 = b as HashMap<Long, Long>
+    var x118 = b as HashMap<Double, Double>
+
+    var x211 = b as HashMap
+    var x212 = b as HashMap<String, String>
+    var x213 = b as HashMap<Array, Array>
+    var x214 = b as HashMap<ArrayList, ArrayList>
+    var x215 = b as HashMap<ArrayList<Integer>, ArrayList<Integer>>
+    var x216 = b as HashMap<HashMap, HashMap>
+    var x217 = b as HashMap<HashMap<Integer, Integer>, HashMap<Integer, Integer>>
+  }
+  function testHashMap2(b : HashMap<Boolean, Boolean>) {
+    var x111 = b as HashMap<Boolean, Boolean>
+    var x112 = b as HashMap<Character, Character>            //## issuekeys: INCONVERTIBLE TYPES; CANNOT CAST 'JAVA.UTIL.HASHMAP<JAVA.LANG.BOOLEAN,JAVA.LANG.BOOLEAN>' TO 'JAVA.UTIL.HASHMAP<JAVA.LANG.CHARACTER,JAVA.LANG.CHARACTER>'
+    var x113 = b as HashMap<Byte, Byte>            //## issuekeys: INCONVERTIBLE TYPES; CANNOT CAST 'JAVA.UTIL.HASHMAP<JAVA.LANG.BOOLEAN,JAVA.LANG.BOOLEAN>' TO 'JAVA.UTIL.HASHMAP<JAVA.LANG.BYTE,JAVA.LANG.BYTE>'
+    var x114 = b as HashMap<Short, Short>            //## issuekeys: INCONVERTIBLE TYPES; CANNOT CAST 'JAVA.UTIL.HASHMAP<JAVA.LANG.BOOLEAN,JAVA.LANG.BOOLEAN>' TO 'JAVA.UTIL.HASHMAP<JAVA.LANG.SHORT,JAVA.LANG.SHORT>'
+    var x115 = b as HashMap<Integer, Integer>            //## issuekeys: INCONVERTIBLE TYPES; CANNOT CAST 'JAVA.UTIL.HASHMAP<JAVA.LANG.BOOLEAN,JAVA.LANG.BOOLEAN>' TO 'JAVA.UTIL.HASHMAP<JAVA.LANG.INTEGER,JAVA.LANG.INTEGER>'
+    var x116 = b as HashMap<Float, Float>            //## issuekeys: INCONVERTIBLE TYPES; CANNOT CAST 'JAVA.UTIL.HASHMAP<JAVA.LANG.BOOLEAN,JAVA.LANG.BOOLEAN>' TO 'JAVA.UTIL.HASHMAP<JAVA.LANG.FLOAT,JAVA.LANG.FLOAT>'
+    var x117 = b as HashMap<Long, Long>            //## issuekeys: INCONVERTIBLE TYPES; CANNOT CAST 'JAVA.UTIL.HASHMAP<JAVA.LANG.BOOLEAN,JAVA.LANG.BOOLEAN>' TO 'JAVA.UTIL.HASHMAP<JAVA.LANG.LONG,JAVA.LANG.LONG>'
+    var x118 = b as HashMap<Double, Double>            //## issuekeys: INCONVERTIBLE TYPES; CANNOT CAST 'JAVA.UTIL.HASHMAP<JAVA.LANG.BOOLEAN,JAVA.LANG.BOOLEAN>' TO 'JAVA.UTIL.HASHMAP<JAVA.LANG.DOUBLE,JAVA.LANG.DOUBLE>'
+
+    var x211 = b as HashMap
+    var x212 = b as HashMap<String, String>            //## issuekeys: INCONVERTIBLE TYPES; CANNOT CAST 'JAVA.UTIL.HASHMAP<JAVA.LANG.BOOLEAN,JAVA.LANG.BOOLEAN>' TO 'JAVA.UTIL.HASHMAP<JAVA.LANG.STRING,JAVA.LANG.STRING>'
+    var x213 = b as HashMap<Array, Array>            //## issuekeys: INCONVERTIBLE TYPES; CANNOT CAST 'JAVA.UTIL.HASHMAP<JAVA.LANG.BOOLEAN,JAVA.LANG.BOOLEAN>' TO 'JAVA.UTIL.HASHMAP<_DUMMY_.__ARRAY__,_DUMMY_.__ARRAY__>'
+    var x214 = b as HashMap<ArrayList, ArrayList>            //## issuekeys: INCONVERTIBLE TYPES; CANNOT CAST 'JAVA.UTIL.HASHMAP<JAVA.LANG.BOOLEAN,JAVA.LANG.BOOLEAN>' TO 'JAVA.UTIL.HASHMAP<JAVA.UTIL.ARRAYLIST,JAVA.UTIL.ARRAYLIST>'
+    var x215 = b as HashMap<ArrayList<Integer>, ArrayList<Integer>>            //## issuekeys: INCONVERTIBLE TYPES; CANNOT CAST 'JAVA.UTIL.HASHMAP<JAVA.LANG.BOOLEAN,JAVA.LANG.BOOLEAN>' TO 'JAVA.UTIL.HASHMAP<JAVA.UTIL.ARRAYLIST<JAVA.LANG.INTEGER>,JAVA.UTIL.ARRAYLIST<JAVA.LANG.INTEGER>>'
+    var x216 = b as HashMap<HashMap, HashMap>            //## issuekeys: INCONVERTIBLE TYPES; CANNOT CAST 'JAVA.UTIL.HASHMAP<JAVA.LANG.BOOLEAN,JAVA.LANG.BOOLEAN>' TO 'JAVA.UTIL.HASHMAP<JAVA.UTIL.HASHMAP,JAVA.UTIL.HASHMAP>'
+    var x217 = b as HashMap<HashMap<Integer, Integer>, HashMap<Integer, Integer>>            //## issuekeys: INCONVERTIBLE TYPES; CANNOT CAST 'JAVA.UTIL.HASHMAP<JAVA.LANG.BOOLEAN,JAVA.LANG.BOOLEAN>' TO 'JAVA.UTIL.HASHMAP<JAVA.UTIL.HASHMAP<JAVA.LANG.INTEGER,JAVA.LANG.INTEGER>,JAVA.UTIL.HASHMAP<JAVA.LANG.INTEGER,JAVA.LANG.INTEGER>>'
+  }
+  function testHashMap3(b : HashMap<Integer, Integer>) {
+    var x111 = b as HashMap<Boolean, Boolean>            //## issuekeys: INCONVERTIBLE TYPES; CANNOT CAST 'JAVA.UTIL.HASHMAP<JAVA.LANG.INTEGER,JAVA.LANG.INTEGER>' TO 'JAVA.UTIL.HASHMAP<JAVA.LANG.BOOLEAN,JAVA.LANG.BOOLEAN>'
+    var x112 = b as HashMap<Character, Character>            //## issuekeys: INCONVERTIBLE TYPES; CANNOT CAST 'JAVA.UTIL.HASHMAP<JAVA.LANG.INTEGER,JAVA.LANG.INTEGER>' TO 'JAVA.UTIL.HASHMAP<JAVA.LANG.CHARACTER,JAVA.LANG.CHARACTER>'
+    var x113 = b as HashMap<Byte, Byte>            //## issuekeys: INCONVERTIBLE TYPES; CANNOT CAST 'JAVA.UTIL.HASHMAP<JAVA.LANG.INTEGER,JAVA.LANG.INTEGER>' TO 'JAVA.UTIL.HASHMAP<JAVA.LANG.BYTE,JAVA.LANG.BYTE>'
+    var x114 = b as HashMap<Short, Short>            //## issuekeys: INCONVERTIBLE TYPES; CANNOT CAST 'JAVA.UTIL.HASHMAP<JAVA.LANG.INTEGER,JAVA.LANG.INTEGER>' TO 'JAVA.UTIL.HASHMAP<JAVA.LANG.SHORT,JAVA.LANG.SHORT>'
+    var x115 = b as HashMap<Integer, Integer>
+    var x116 = b as HashMap<Float, Float>            //## issuekeys: INCONVERTIBLE TYPES; CANNOT CAST 'JAVA.UTIL.HASHMAP<JAVA.LANG.INTEGER,JAVA.LANG.INTEGER>' TO 'JAVA.UTIL.HASHMAP<JAVA.LANG.FLOAT,JAVA.LANG.FLOAT>'
+    var x117 = b as HashMap<Long, Long>            //## issuekeys: INCONVERTIBLE TYPES; CANNOT CAST 'JAVA.UTIL.HASHMAP<JAVA.LANG.INTEGER,JAVA.LANG.INTEGER>' TO 'JAVA.UTIL.HASHMAP<JAVA.LANG.LONG,JAVA.LANG.LONG>'
+    var x118 = b as HashMap<Double, Double>            //## issuekeys: INCONVERTIBLE TYPES; CANNOT CAST 'JAVA.UTIL.HASHMAP<JAVA.LANG.INTEGER,JAVA.LANG.INTEGER>' TO 'JAVA.UTIL.HASHMAP<JAVA.LANG.DOUBLE,JAVA.LANG.DOUBLE>'
+
+    var x211 = b as HashMap
+    var x212 = b as HashMap<String, String>            //## issuekeys: INCONVERTIBLE TYPES; CANNOT CAST 'JAVA.UTIL.HASHMAP<JAVA.LANG.INTEGER,JAVA.LANG.INTEGER>' TO 'JAVA.UTIL.HASHMAP<JAVA.LANG.STRING,JAVA.LANG.STRING>'
+    var x213 = b as HashMap<Array, Array>            //## issuekeys: INCONVERTIBLE TYPES; CANNOT CAST 'JAVA.UTIL.HASHMAP<JAVA.LANG.INTEGER,JAVA.LANG.INTEGER>' TO 'JAVA.UTIL.HASHMAP<_DUMMY_.__ARRAY__,_DUMMY_.__ARRAY__>'
+    var x214 = b as HashMap<ArrayList, ArrayList>            //## issuekeys: INCONVERTIBLE TYPES; CANNOT CAST 'JAVA.UTIL.HASHMAP<JAVA.LANG.INTEGER,JAVA.LANG.INTEGER>' TO 'JAVA.UTIL.HASHMAP<JAVA.UTIL.ARRAYLIST,JAVA.UTIL.ARRAYLIST>'
+    var x215 = b as HashMap<ArrayList<Integer>, ArrayList<Integer>>            //## issuekeys: INCONVERTIBLE TYPES; CANNOT CAST 'JAVA.UTIL.HASHMAP<JAVA.LANG.INTEGER,JAVA.LANG.INTEGER>' TO 'JAVA.UTIL.HASHMAP<JAVA.UTIL.ARRAYLIST<JAVA.LANG.INTEGER>,JAVA.UTIL.ARRAYLIST<JAVA.LANG.INTEGER>>'
+    var x216 = b as HashMap<HashMap, HashMap>            //## issuekeys: INCONVERTIBLE TYPES; CANNOT CAST 'JAVA.UTIL.HASHMAP<JAVA.LANG.INTEGER,JAVA.LANG.INTEGER>' TO 'JAVA.UTIL.HASHMAP<JAVA.UTIL.HASHMAP,JAVA.UTIL.HASHMAP>'
+    var x217 = b as HashMap<HashMap<Integer, Integer>, HashMap<Integer, Integer>>            //## issuekeys: INCONVERTIBLE TYPES; CANNOT CAST 'JAVA.UTIL.HASHMAP<JAVA.LANG.INTEGER,JAVA.LANG.INTEGER>' TO 'JAVA.UTIL.HASHMAP<JAVA.UTIL.HASHMAP<JAVA.LANG.INTEGER,JAVA.LANG.INTEGER>,JAVA.UTIL.HASHMAP<JAVA.LANG.INTEGER,JAVA.LANG.INTEGER>>'
+  }
+
+
+
+
+}
