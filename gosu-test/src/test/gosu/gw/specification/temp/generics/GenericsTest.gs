@@ -9,6 +9,10 @@ class GenericsTest extends BaseVerifyErrantTest {
     assertTrue( gw.specification.temp.generics.AssAssert.Type.Valid )
   }
 
+  function testIDE_1720() {
+    processErrantType( IDE_1720 )
+  }
+
   function testIDE_572() {
     assertTrue( IDE_572.Type.Valid )
   }

@@ -1334,6 +1334,31 @@ public class TypeLoaderAccess extends BaseService implements ITypeSystem
       {
         return true;
       }
+      else if( lhsType.isParameterizedType() && rhsType.isParameterizedType() ) {
+        boolean bRawAssignable = rhsType.getGenericType().isAssignableFrom( lhsType.getGenericType() );
+        if( bRawAssignable || canCast( lhsType.getGenericType(), rhsType.getGenericType() ) ) {
+          IType compatibleRhsType;
+          if( bRawAssignable ) {
+            compatibleRhsType = rhsType;
+          }
+          else {
+            compatibleRhsType = TypeLord.findParameterizedType( rhsType, lhsType.getGenericType() );
+            if( compatibleRhsType == null ) {
+              return false;
+              //throw new IllegalStateException(); // generic types are assignable, so there must be a corresponding compatible type
+            }
+          }
+          IType[] lhsParams = lhsType.getTypeParameters();
+          IType[] rhsParams = compatibleRhsType.getTypeParameters();
+          for( int i = 0; i < lhsParams.length; i++ ) {
+            if( !rhsParams[i].isAssignableFrom( lhsParams[i] ) &&
+                !canCast( lhsParams[i], rhsParams[i] ) ) {
+              return false;
+            }
+          }
+          return true;
+        }
+      }
     }
     return false;
   }
