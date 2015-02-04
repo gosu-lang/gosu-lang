@@ -1286,25 +1286,34 @@ public class TypeLord
       return types.get( 0 );
     }
 
-    IType type = null;
+    for( IType type: types )
+    {
+      if( type instanceof IPlaceholder && ((IPlaceholder)type).isPlaceholder() )
+      {
+        // Dynamic type trumps all
+        return type;
+      }
+    }
+
+    IType lubType = null;
     boolean disJointTypes = false;
     boolean foundOnlyNullTypes = true;
     for( Iterator<? extends IType> it = types.iterator(); it.hasNext(); )
     {
-      IType iIntrinsicType = it.next();
+      IType type = it.next();
       //nuke null types, which don't contribute to the type
-      if( iIntrinsicType.equals( GosuParserTypes.NULL_TYPE() ) )
+      if( type.equals( GosuParserTypes.NULL_TYPE() ) )
       {
         continue;
       }
       foundOnlyNullTypes = false;
-      if( type == null )
+      if( lubType == null )
       {
-        type = iIntrinsicType;
+        lubType = type;
       }
-      if( !type.equals( iIntrinsicType ) &&
-          !BeanAccess.isBoxedTypeFor( type, iIntrinsicType ) &&
-          !BeanAccess.isBoxedTypeFor( iIntrinsicType, type ) )
+      if( !lubType.equals( type ) &&
+          !BeanAccess.isBoxedTypeFor( lubType, type ) &&
+          !BeanAccess.isBoxedTypeFor( type, lubType ) )
       {
         disJointTypes = true;
         break;
@@ -1316,7 +1325,7 @@ public class TypeLord
     }
     if( !disJointTypes )
     {
-      return type;
+      return lubType;
     }
 
     // Short circuit recursive LUBs
