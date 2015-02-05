@@ -35,6 +35,7 @@ import gw.lang.parser.coercers.StringCoercer;
 import gw.lang.parser.expressions.ITypeAsExpression;
 import gw.lang.reflect.IBlockType;
 import gw.lang.reflect.IFunctionType;
+import gw.lang.reflect.IMetaType;
 import gw.lang.reflect.IRelativeTypeInfo;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.Modifier;
@@ -290,6 +291,11 @@ public class TypeAsTransformer extends AbstractExpressionTransformer<ITypeAsExpr
     if( asPrimitive != null )
     {
       return asPrimitive;
+    }
+
+    if( asType instanceof IMetaType && lhsType instanceof IMetaType ) {
+      // If casting MetaType to a MetaType, don't push the runtime metatype e.g., a checkcast from GosuClass_Proxy to JavaType_Proxy will fail at runtime, instead treat as base IType
+      return root;
     }
 
     IRExpression result = callCoercer( root, lhsType );

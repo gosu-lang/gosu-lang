@@ -19,6 +19,7 @@ import gw.internal.gosu.parser.expressions.Identifier;
 import gw.internal.gosu.parser.expressions.Literal;
 import gw.internal.gosu.parser.expressions.MemberAccess;
 import gw.internal.gosu.parser.expressions.MemberExpansionAccess;
+import gw.internal.gosu.parser.expressions.TypeLiteral;
 import gw.internal.gosu.parser.optimizer.SinglePropertyMemberAccessRuntime;
 import gw.internal.gosu.runtime.GosuRuntimeMethods;
 import gw.lang.Autocreate;
@@ -328,8 +329,15 @@ public class MemberAccessTransformer extends AbstractExpressionTransformer<Membe
 
     if( isTypeProperty( pi ) )
     {
-      IRExpression result = checkCast( pi.getFeatureType(), pushType( rootType ) );
-      return maybeEvalRoot( rootExpr, result );
+      if( rootExpr instanceof TypeLiteral )
+      {
+        IRExpression result = checkCast( pi.getFeatureType(), pushType( rootType ) );
+        return maybeEvalRoot( rootExpr, result );
+      }
+      else
+      {
+        return pushRootExpression( rootType, rootExpr, irProperty );
+      }
     }
     else if( isScopedField( pi ) )
     {
