@@ -213,4 +213,35 @@ class Errant_TypeCastInBuiltTypes {
      var b413 = s as HashMap      //## issuekeys: INCONVERTIBLE TYPES; CANNOT CAST 'JAVA.MATH.BIGDECIMAL' TO 'JAVA.UTIL.HASHMAP'
    }
 
+  function testObject (s : Object ) {
+    var b111 = s as char
+    var b112 = s as byte
+    var b113 = s as short
+    var b114 = s as int
+    var b115 = s as float
+    var b116 = s as long
+    var b117 = s as double
+    var b118 = s as boolean
+
+    var b211 = s as Character
+    var b212 = s as Byte
+    var b213 = s as Short
+    var b214 = s as Integer
+    var b215 = s as Float
+    var b216 = s as Long
+    var b217 = s as Double
+    var b218 = s as Boolean
+
+    var b311 = s as String
+    var b312 = s as DateTime
+    var b313 = s as Object
+    var b314 = s as BigInteger
+    var b315 = s as BigDecimal
+
+
+    var b411 = s as int[]
+    var b412 = s as ArrayList
+    var b413 = s as HashMap
+  }
+
 }
