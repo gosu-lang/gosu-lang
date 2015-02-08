@@ -44,4 +44,12 @@ class Errant_PropertyVsFunctionConflict {
   class SubClass5 extends Class5 {
     function getProp() :  int { return 0 }
   }
+
+  class Class6 {
+    function getProp(): String { return null }
+  }
+
+  class SubClass6 extends Class6 {
+    property get prop(): String { return null }
+  }
 }
