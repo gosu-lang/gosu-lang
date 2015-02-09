@@ -3,7 +3,7 @@
 
   <groupId>org.gosu-lang.gosu</groupId>
   <artifactId>gosu-parent</artifactId>
-  <version>1-spec-SNAPSHOT</version>
+  <version>1.X-SNAPSHOT</version>
   <packaging>pom</packaging>
 
   <name>Gosu :: Parent POM</name>
