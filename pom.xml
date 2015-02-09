@@ -4,7 +4,7 @@
   <parent>
     <groupId>org.gosu-lang.gosu</groupId>
     <artifactId>gosu-parent</artifactId>
-    <version>1.4-SNAPSHOT</version>
+    <version>1.4</version>
     <relativePath>gosu-parent</relativePath>
   </parent>
   <artifactId>gosu-proj</artifactId>
