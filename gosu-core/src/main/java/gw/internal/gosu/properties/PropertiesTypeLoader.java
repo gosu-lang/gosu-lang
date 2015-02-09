@@ -85,10 +85,6 @@ public class PropertiesTypeLoader extends TypeLoaderBase {
 
   @Override
   public IType getType(String fullyQualifiedName) {
-      // hack to not allow property file in jline to shadow the java type
-      if (fullyQualifiedName.startsWith("jline.")) {
-        return null;
-      }
     for (PropertySetSource source : _sources) {
       TypeNameSet typeNameSet = _rootTypeNames.get().get(source);
       if (typeNameSet != null) {

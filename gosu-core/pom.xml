@@ -18,30 +18,4 @@
       <version>1.X-SNAPSHOT</version>
     </dependency>
   </dependencies>
-
-  <build>
-    <plugins>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-shade-plugin</artifactId>
-        <executions>
-          <execution>
-            <phase>package</phase>
-            <goals>
-              <goal>shade</goal>
-            </goals>
-            <configuration>
-              <artifactSet>
-                <excludes>
-                  <exclude>org.gosu-lang.gosu:gosu-launcher-api</exclude>
-                  <exclude>org.gosu-lang.gosu:gosu-launcher-impl</exclude>
-                  <exclude>org.gosu-lang.gosu:gosu-core-api</exclude>
-                </excludes>
-              </artifactSet>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-    </plugins>
-  </build>
 </project>
