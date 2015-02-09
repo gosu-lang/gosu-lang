@@ -8,7 +8,6 @@ import gw.lang.reflect.IAnnotationInfo;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.TypeSystem;
 import gw.util.Predicate;
-import org.fest.util.Arrays;
 
 public class KnownBreakConditionPredicate implements Predicate<IAnnotationInfo> {
   @Override
@@ -35,7 +34,7 @@ public class KnownBreakConditionPredicate implements Predicate<IAnnotationInfo> 
   public static boolean isKnownBreakCondition( IAnnotationInfo kbCond ) {
     Object values = kbCond.getFieldValue( "value" );
     if( !(values instanceof Object[]) ) {
-      values = Arrays.array( values );
+      values = new Object[] { values };
     }
     for (Object conditionClass : (Object[])values ) {
       IType type = conditionClass instanceof Class ? TypeSystem.get( (Class)conditionClass ) : (IType)conditionClass;

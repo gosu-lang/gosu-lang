@@ -7,7 +7,6 @@ package gw.test;
 import gw.lang.reflect.IMethodInfo;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.TypeSystem;
-import gw.test.remote.RemoteTestClass;
 import junit.framework.AssertionFailedError;
 import junit.framework.Test;
 import junit.framework.TestResult;
@@ -90,7 +89,7 @@ public class TestExecutionManager {
     // If we're configured to remotely execute and the test isn't already a remote test, then swap it out before we proceed.
     // This will happen if a test is run from IntelliJ, since IntelliJ will instantiate the test object before we get a chance
     // to intercept it
-    if (_environment.isRemoteExecutionEnvironment() && !(testClass instanceof RemoteTestClass)) {
+    if (_environment.isRemoteExecutionEnvironment() && !(testClass instanceof BaseRemoteTestClass)) {
       TestInfo testInfo = _testInfos.get(testClass.getTypeName());
       if (testInfo == null) {
         // We could be running the whole test, or just one method, so we get the number of test instances that were created
@@ -99,7 +98,7 @@ public class TestExecutionManager {
         testInfo = new TestInfo(TestClass.getNumberOfInstancesOfTestClassCreated(testClass.getTypeName()));
         _testInfos.put(testClass.getTypeName(), testInfo);
       }
-      testClass = new RemoteTestClassIDEExecutionWrapper(testClass.getTypeName(), testClass.getName(), testInfo._testCount, this, testClass);
+      testClass = ((IForwardingTestEnvironment) _environment).makeRemoteTestClassIDEExecutionWrapper(testClass.getTypeName(), testClass.getName(), testInfo._testCount, this, testClass);
     }
 
     try {
@@ -157,8 +156,8 @@ public class TestExecutionManager {
   }
 
   protected TestClass maybeUnwrapTestClass(TestClass testClass) {
-    if (testClass instanceof RemoteTestClassIDEExecutionWrapper) {
-      return ((RemoteTestClassIDEExecutionWrapper) testClass)._wrapped;
+    if (testClass instanceof IRemoteTestClassIDEExecutionWrapper) {
+      return ((IRemoteTestClassIDEExecutionWrapper) testClass).getWrapped();
     } else {
       return testClass;
     }
@@ -318,35 +317,5 @@ public class TestExecutionManager {
     public boolean isAtLastTest() {
       return _testsRun == _testCount;
     }
-  }
-
-  // In order for the IDE to be happy about how results are reported when running a single class remotely, we need
-  // to report the results on the original TestClass object, even though we really want to be executing all the methods
-  // remotely.  To that end, we extend the normal RemoteTestClass so that it overrides the reallyRun method and simulates
-  // what TestResult.run() does
-  private static class RemoteTestClassIDEExecutionWrapper extends RemoteTestClass {
-
-    private TestClass _wrapped;
-
-    private RemoteTestClassIDEExecutionWrapper(String typeName, String methodName, int totalNumMethods, TestExecutionManager executionManager, TestClass wrapped) {
-      super(typeName, methodName, totalNumMethods, executionManager);
-      _wrapped = wrapped;
-    }
-
-    void reallyRun(TestResult result) {
-      result.startTest(_wrapped);
-      try {
-        runBare();
-      } catch (AssertionFailedError e) {
-        result.addFailure(_wrapped, e);
-      } catch (ThreadDeath e) { // don't catch ThreadDeath by accident
-        throw e;
-      } catch (Throwable e) {
-        result.addError(_wrapped, e);
-      }
-      result.endTest(_wrapped);
-    }
-
-
   }
 }
