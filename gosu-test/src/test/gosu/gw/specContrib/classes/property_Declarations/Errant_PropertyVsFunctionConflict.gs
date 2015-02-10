@@ -52,4 +52,16 @@ class Errant_PropertyVsFunctionConflict {
   class SubClass6 extends Class6 {
     property get prop(): String { return null }
   }
+
+  // IDE-1192
+  class SubClass7 extends JavaClass3 {
+    property set Text(s: String) {}         //## issuekeys: PROPERTY OVERRIDES PARENT CLASS FUNCTION
+    property set Text2(s: String) {}
+
+  }
+
+  class SubClass8 extends JavaClass3 {
+    var prop1: String as Text               //## issuekeys: PROPERTY OVERRIDES PARENT CLASS FUNCTION
+    var prop2: String as Text2
+  }
 }
