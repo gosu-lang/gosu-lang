@@ -13,6 +13,10 @@
 
   <name>Gosu :: IntelliJ IDEA Plugin </name>
 
+  <properties>
+    <ij.plugin>true</ij.plugin>
+  </properties>
+
   <build>
     <plugins>
       <plugin>
