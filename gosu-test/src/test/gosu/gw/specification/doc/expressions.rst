@@ -393,15 +393,16 @@ where ``o`` is an expression of one of the following types:
 
 
 In the first case ``m`` is a non-static method of T. It will be invoked for
-every element of ``o``.
+every element of ``o``. If T is itself an array or Iterator or Iterable, ``m``
+will be called on T's elements, recursively.
 
 The type of ``o*.m`` is:
 
 - ``void`` if ``m`` has a ``void`` return type
 -  ``R[]`` where ``R`` is the return type of ``m``.
    A new array ``r`` will be instantiated to hold the results of the ``m``'s
-   invocations. If R is itself an array it will be flattened by adding its
-   elements to ``r``.
+   invocations. If R is itself an array it will be flattened one level down
+   by adding its elements to ``r``.
 
 In the second case ``p`` is a non-static property of T. For every element of
 ``o`` its property ``p`` will be stored in a new instantiated array ``r`` of

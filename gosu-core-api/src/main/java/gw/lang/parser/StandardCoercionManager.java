@@ -1141,7 +1141,7 @@ public class StandardCoercionManager extends BaseService implements ICoercionMan
           }
           return identityOrRuntime( typeToCoerceTo, typeToCoerceFrom );
         }
-        else if( (typeToCoerceFrom.isInterface() || typeToCoerceTo.isInterface()) &&
+        else if( (typeToCoerceFrom.isInterface() || typeToCoerceTo.isInterface() || TypeSystem.canCast( typeToCoerceFrom, typeToCoerceTo )) &&
                  !typeToCoerceFrom.isPrimitive() && !typeToCoerceTo.isPrimitive() )
         {
           return identityOrRuntime( typeToCoerceTo, typeToCoerceFrom );
