@@ -387,7 +387,7 @@ class JavaType extends AbstractType implements IJavaTypeInternal
              getComponentType().isAssignableFrom( type.getComponentType() );
     }
 
-    if( isArray() || type.isArray() )
+    if( isArray() )
     {
       return false;
     }
@@ -936,7 +936,9 @@ class JavaType extends AbstractType implements IJavaTypeInternal
 
       if( _classInfo.isArray() )
       {
-        _allTypesInHierarchy = new UnmodifiableArraySet<IType>(TypeLord.getArrayVersionsOfEachType(getComponentType().getAllTypesInHierarchy()));
+        Set<IType> types = TypeLord.getAllClassesInClassHierarchyAsIntrinsicTypes( _classInfo );
+        types.addAll( new HashSet<IType>( TypeLord.getArrayVersionsOfEachType( getComponentType().getAllTypesInHierarchy() ) ) );
+        _allTypesInHierarchy = new UnmodifiableArraySet<IType>( types );
       }
       else
       {
