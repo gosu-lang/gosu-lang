@@ -18,23 +18,68 @@ class ExpansionExpressionsTest extends BaseVerifyErrantTest {
     assertArrayEquals({"A", "B", "C"}, ret)
 
     var f1 : String[][] = { {"a", "b", "c"},{"d"}}
-    ret = f1*.concat({"h"})*.toUpperCase()
-    assertArrayEquals({"A", "B", "C", "H", "D", "H"}, ret)
+    ret = f1*.concat("h")*.toUpperCase()
+    assertArrayEquals({"AH", "BH", "CH", "DH"}, ret)
+
+    var f2 : String[][][] = { {{"a"},{ "b", "c"}},{{"d"}}}
+    ret = f2*.concat("h")*.toUpperCase()
+    assertArrayEquals({"AH", "BH", "CH", "DH"}, ret)
   }
+
+  function testbasicExpansionProperty() {
+    var f0 : String[] = {"a", "b", "c"}
+    var ret : boolean[]  = f0*.Alpha
+    assertArrayEquals({true, true, true}, ret)
+
+    var f1 : String[][][] = { {{"a"},{ "b", "c"}},{{"d"}}}
+    ret = f1*.Alpha
+    assertArrayEquals({true, true, true, true}, ret)
+  }
+
+  function testExpansionArrayIteratorIterableProperty() {
+    var f4 : Iterable<String> =  {"a", "b", "c"}
+    var ret : boolean[]  = f4*.Alpha
+    assertArrayEquals({true, true, true}, ret)
+
+    var f8 : Iterable<Iterable<Iterable<String>>> = { {{"a"},{ "b", "c"}},{{"d"}}}
+    ret = f8*.Alpha
+    assertArrayEquals({true, true, true, true}, ret)
+
+
+    var f7: Iterator<String>  = {"a", "b", "c"}.iterator()
+    ret = f7*.Alpha
+    assertArrayEquals({true, true, true}, ret)
+
+    var f9 : Iterator<Iterator<Iterator<String>>> = { {{"a"}.iterator(),{ "b", "c"}.iterator()}.iterator(),{{"d"}.iterator()}.iterator()}.iterator()
+    ret = f9*.Alpha
+    assertArrayEquals({true, true, true, true}, ret)
+  }
+
 
   function testExpansionArrayIteratorIterable() {
     var f4 : Iterable<String> =  {"a", "b", "c"}
     var ret : String[] = f4*.toUpperCase()
     assertArrayEquals({"A", "B", "C"}, ret)
 
+    var f8 : Iterable<Iterable<Iterable<String>>> = { {{"a"},{ "b", "c"}},{{"d"}}}
+    ret = f8*.toUpperCase()
+    assertArrayEquals({"A", "B", "C", "D"}, ret)
+
     var f5 : Iterable<Object> =  {"a", "b", "c"}
-    var f6: Iterable =  {"a", "b", "c"}
-    ret = f6*.toString()
+    ret = f5*.toString()
     assertArrayEquals({"a", "b", "c"}, ret)
 
-    var f7: Iterator<String>  = {"a", "b", "c"} .listIterator()
+    var f7: Iterator<String>  = {"a", "b", "c"}.iterator()
     ret = f7*.toUpperCase()
     assertArrayEquals({"A", "B", "C"}, ret)
+
+    var f9 : Iterator<Iterator<Iterator<String>>> = { {{"a"}.iterator(),{ "b", "c"}.iterator()}.iterator(),{{"d"}.iterator()}.iterator()}.iterator()
+    ret = f9*.toUpperCase()
+    assertArrayEquals({"A", "B", "C", "D"}, ret)
+
+    var f10 : Iterable<List<Iterable<String>>> = { {{"a"},{ "b", "c"}},{{"d"}}}
+    ret = f10*.toUpperCase()
+    assertArrayEquals({"A", "B", "C", "D"}, ret)
   }
 
   function testExpansionDynamic() {
@@ -66,70 +111,65 @@ class ExpansionExpressionsTest extends BaseVerifyErrantTest {
     var x1 : List<A>  = {new A(), new A()}
     A.i = 0
     var ints : int[] = x1*.getNum()
+    assertTrue(Arrays.equals({1, 1}, ints))
+    assertEquals(2, A.i)
+
+    var x18 : List<A>  = {new A(), new A()}
+    A.i = 0
+    ints = x18*.Bar
+    assertTrue(Arrays.equals({2, 2}, ints))
+    assertEquals(2, A.i)
+
+    A.i = 0
+    var x2 : A[][][]  = {{{new A()}}, {{new A()}}}
+    ints = x2*.getNum()
+    assertTrue(Arrays.equals({1, 1}, ints))
     assertEquals(2, A.i)
 
 
-    var x2 : A[][]  = {{new A()}, {new A()}}
-    ints = x2*.length
-    assertTrue(Arrays.equals({1, 1}, ints))
-
-
     var x3 : C[]  = {new C()}
-    var f : int[] = x3*.arr
-    assertTrue(Arrays.equals({1, 2, 3}, f))
+    var f3 : int[] = x3*.arr1
+    assertTrue(Arrays.equals({1, 2, 3}, f3))
 
     var x4 : C[]  = {new C()}
-    var f1 : LinkedList<Integer>[] = x4*.lst
-    assertTrue(Arrays.equals({{1, 2, 3}}, f1))
+    var f4 : int[] = x4*.retArr1()
+    assertTrue(Arrays.equals({1, 2, 3}, f4))
 
-    var x5 : C[]  = {new C(), new C()}
-    var f2 =  x5*.num
-    assertTrue(Arrays.equals({8, 8}, f2))
+    var x6 : C[]  = {new C()}
+    var f6 : int[][] = x6*.arr2
 
-    var x6 : C[]  = {new C(){ :PropInt = 3}, new C(){ :PropInt = 5}}
-    var f6 = x6*.PropInt
-    assertTrue(Arrays.equals({3, 5}, f6))
-    var f61 = x6*._propInt
-    assertTrue(Arrays.equals({3, 5}, f61))
+    assert2ArrayEquals({{1, 2}, {3}}, f6)
 
-    var x7 : C[]  = {new C(){ :PropDoubleArray = {3.1, 5.3}}, new C(){ :PropDoubleArray = {1.2, 5.6, 7.9}}}
-    var f7 = x7*.PropDoubleArray
-    assertTrue(Arrays.equals({3.1, 5.3, 1.2, 5.6, 7.9}, f7))
-    var f71 = x7*._propDoubleArray
-    assertTrue(Arrays.equals({3.1, 5.3, 1.2, 5.6, 7.9}, f71))
-    var f72 = x7*.PropDoubleArray*.toString()
-    assertTrue(Arrays.equals({"3.1", "5.3", "1.2", "5.6", "7.9"}, f72))
+    var x7 : C[]  = {new C()}
+    var f7 : int[][] = x7*.retArr2()
+    assert2ArrayEquals({{1, 2}, {3}}, f7)
+
+    var x9 : C[]  = {new C()}
+    var f9 : int[][][] = x9*.arr3
+    assert3ArrayEquals({{{1, 2}}, {{3}}}, f9)
+
+    var x10 : C[]  = {new C()}
+    var f10 : int[][][] = x10*.retArr3()
+    assert3ArrayEquals({{{1, 2}}, {{3}}}, f10)
   }
 
-  function testExpansionOn2DArray(){
-    var int2DArray : int[][] = {{1, 2, 3}, {4, 5, 6}}
-    var ret = int2DArray*.length                       // test against property
-    assertTrue(Arrays.equals({3,3}, ret))
-
-    ret = int2DArray*.sum()                            // test against method
-    assertTrue(Arrays.equals({6,15}, ret))
-
-    var str2DArray : String[][] = {{"test1", "test2"}, {"test11", "test12"}}
-    ret = str2DArray*.join("-")*.length()
-    assertTrue(Arrays.equals({11,13}, ret))
-
-    var retFromStrArray = str2DArray*.join("-")
-    assertTrue(Arrays.equals({"test1-test2","test11-test12"}, retFromStrArray))
+  function assertArrayEquals(a : boolean[], b : boolean[])  {
+    assertTrue(Arrays.equals(a, b))
   }
 
-  function testExpansionOn3DArray(){
-    var str3DArray : String[][][] =  {{{"a","b"}, {"c","d"}},
-                                      {{"e"},{"g"},{"i"}},
-                                      {{"j","k","m"}}}
-    var ret = str3DArray*.length
-    assertTrue(Arrays.equals({2, 3, 1}, ret))
+  function assert2ArrayEquals(a : int[][], b : int[][])  {
+    var i = 0
+    while(i < a.length) {
+     assertTrue(Arrays.equals(a[i], b[i]))
+     i++
+    }
+  }
 
-    var retFrom3DArray1 = str3DArray*.concat({{"1"}})*.length
-    assertTrue(Arrays.equals({2,2,1,1,1,1,1,3,1},retFrom3DArray1))
-
-    var retFrom3DArray2 = str3DArray*.concat({{"1"}})*.concat({"2"})*.toUpperCase()
-    assertTrue(Arrays.equals({"A","B","2","C","D","2","1","2",
-                              "E","2","G","2","I","2","1","2",
-                              "J","K","M","2","1","2"},retFrom3DArray2))
+  function assert3ArrayEquals(a : int[][][], b : int[][][])  {
+    var i = 0
+    while(i < a.length) {
+     assert2ArrayEquals(a[i], b[i])
+     i++
+    }
   }
 }
