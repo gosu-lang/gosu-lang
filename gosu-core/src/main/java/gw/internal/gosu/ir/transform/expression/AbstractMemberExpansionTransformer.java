@@ -59,7 +59,7 @@ public abstract class AbstractMemberExpansionTransformer<T extends IMemberAccess
     }
     final IType compType = bVoid ? arrayType : getConcreteType( arrayType.getComponentType() );
     IType rootType = _expr().getRootType();
-    final IType rootComponentType = TypeLord.getExpandableComponentType( rootType );
+    final IType rootComponentType = TypeLord.getExpandableComponentType( rootType, false );
 
     IType propertyType = getPropertyOrMethodType(rootComponentType, compType);
 
