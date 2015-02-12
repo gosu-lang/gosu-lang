@@ -1738,41 +1738,53 @@ public class TypeLord
 
   public static IType getExpandableComponentType( IType type )
   {
-    IType retType = null;
-    if( type.isArray() )
+    return getExpandableComponentType( type, true );
+  }
+  public static IType getExpandableComponentType( IType type, boolean bCore )
+  {
+    while( true )
     {
-      retType = type.getComponentType();
-    }
-    else if( JavaTypes.INTEGER_INTERVAL().isAssignableFrom( type ) )
-    {
-      retType = JavaTypes.pINT();
-    }
-    else if( JavaTypes.LONG_INTERVAL().isAssignableFrom( type ) )
-    {
-      retType = JavaTypes.pLONG();
-    }
-    else if( type instanceof IPlaceholder && ((IPlaceholder)type).isPlaceholder() )
-    {
-      retType = type.getComponentType();
-    }
-    else
-    {
-      IType parameterized = TypeLord.findParameterizedType( type, JavaTypes.ITERABLE() );
-      if( parameterized != null && parameterized.isParameterizedType() )
+      if( type.isArray() )
       {
-        retType = parameterized.getTypeParameters()[0];
+        type = type.getComponentType();
+      }
+      else if( JavaTypes.INTEGER_INTERVAL().isAssignableFrom( type ) )
+      {
+        return JavaTypes.pINT();
+      }
+      else if( JavaTypes.LONG_INTERVAL().isAssignableFrom( type ) )
+      {
+        return JavaTypes.pLONG();
+      }
+      else if( type instanceof IPlaceholder && ((IPlaceholder)type).isPlaceholder() )
+      {
+        return type.getComponentType();
       }
       else
       {
-        parameterized = TypeLord.findParameterizedType( type, JavaTypes.ITERATOR() );
+        IType parameterized = TypeLord.findParameterizedType( type, JavaTypes.ITERABLE() );
         if( parameterized != null && parameterized.isParameterizedType() )
         {
-          retType = parameterized.getTypeParameters()[0];
+          type = parameterized.getTypeParameters()[0];
+        }
+        else
+        {
+          parameterized = TypeLord.findParameterizedType( type, JavaTypes.ITERATOR() );
+          if( parameterized != null && parameterized.isParameterizedType() )
+          {
+            type = parameterized.getTypeParameters()[0];
+          }
+          else
+          {
+            return type;
+          }
         }
       }
+      if( !bCore )
+      {
+        return type;
+      }
     }
-
-    return retType;
   }
 
   /**
