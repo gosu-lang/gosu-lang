@@ -151,7 +151,7 @@ public abstract class TestClass extends TestCase implements ITestWithMetadata {
     getExecutionManager().runTestClass(this, result);
   }
 
-  void reallyRun(TestResult result) {
+  public void reallyRun(TestResult result) {
     super.run(result);
   }
   
