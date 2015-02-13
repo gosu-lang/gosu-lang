@@ -89,7 +89,7 @@ public class TypeVarToTypeMap
         if( looseEquals( key, o ) )
         {
           type = _map.get( key );
-          break;
+          //break; don't break here as we want to use the last match
         }
       }
     }

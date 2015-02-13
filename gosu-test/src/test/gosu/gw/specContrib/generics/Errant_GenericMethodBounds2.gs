@@ -62,4 +62,10 @@ class Errant_GenericMethodBounds2 {
 
   }
 
+  class JavaMethodCalls<A> {
+    function testJavaMethodWithTypeVarHavingSameNameAsEnclosingClass( p: A ) {
+      JavaClass<A>.foo(p)   //## issuekeys: MSG_TYPE_MISMATCH
+    }
+  }
+
 }
