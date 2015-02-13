@@ -10705,7 +10705,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
 
   private void verifyCaseIsUnique( Expression e, List<CaseClause> cases )
   {
-    if( e.getType() instanceof IErrorType || !e.isCompileTimeConstant() )
+    if( e.getType() instanceof IErrorType || !e.isCompileTimeConstant() && !(e instanceof Literal)  )
     {
       return; // Can't verify this
     }
@@ -10725,7 +10725,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
     for( CaseClause cc: cases )
     {
       Expression expr = cc.getExpression();
-      if( expr != null && expr.isCompileTimeConstant() ) {
+      if( expr != null && (expr.isCompileTimeConstant() || e instanceof Literal) ) {
         Object csr;
         try {
           csr = expr.evaluate();

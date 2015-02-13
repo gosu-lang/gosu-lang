@@ -22,6 +22,13 @@ class Errant_DuplicateCaseInSwitch  {
       case 1 + 1:       //## issuekeys: MSG_DUPLICATE_CASE_EXPRESSION
         break;
     }
+
+    switch (x) {
+      case 42:
+          break
+      case 42:  //## issuekeys: MSG_DUPLICATE_CASE_EXPRESSION
+          break
+    }
   }
 
 }
