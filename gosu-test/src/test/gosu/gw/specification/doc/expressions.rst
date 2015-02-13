@@ -404,10 +404,13 @@ The type of ``o*.m`` is:
    invocations. If R is itself an array it will be flattened one level down
    by adding its elements to ``r``.
 
-In the second case ``p`` is a non-static property of T. For every element of
-``o`` its property ``p`` will be stored in a new instantiated array ``r`` of
+In the second case ``p`` is a non-static property of T. It will be accessed for
+every element of ``o``. If T is itself an array or Iterator or Iterable, ``p``
+will be accessed on T's elements, recursively.
+
+The  property ``p`` will be stored in a new instantiated array ``r`` of
 type ``R[]``, where R is the type of the property ``p``. If R is itself an
-array it will be flattened by adding its elements to ``r``.
+array it will be flattened one level down by adding its elements to ``r``.
 
 If ``o`` evaluates to ``null`` the value of ``o*.p`` or ``o*.m`` will be
 an empty ``R[]``. If an element ``e`` of ``o`` is ``null`` then ``e.p`` or
