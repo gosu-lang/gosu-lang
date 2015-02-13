@@ -2160,10 +2160,18 @@ public final class GosuParser extends ParserBase implements IGosuParser
   {
     IType lhsType = lhs.getType();
     IType rhsType = rhs.getType();
+
+    if( lhsType.isPrimitive() && !(lhs instanceof NullExpression) && rhs instanceof NullExpression ||
+        rhsType.isPrimitive() && !(rhs instanceof NullExpression) && lhs instanceof NullExpression )
+    {
+      rhs.addParseException( new ParseException( makeFullParserState(), lhsType, Res.MSG_RELATIONAL_OPERATOR_CANNOT_BE_APPLIED_TO_TYPE, "",  JavaTypes.pVOID().getName() ) );
+      return rhs;
+    }
+
     IType numberType = ParserBase.resolveType(lhsType, '>', rhsType);
     if( numberType instanceof ErrorType ||
-            JavaTypes.IDIMENSION().isAssignableFrom( lhsType ) ||
-            JavaTypes.IDIMENSION().isAssignableFrom( rhsType ) )
+        JavaTypes.IDIMENSION().isAssignableFrom( lhsType ) ||
+        JavaTypes.IDIMENSION().isAssignableFrom( rhsType ) )
     {
       Expression wrappedRhs = verifyWithComparableDimension( rhs, lhsType );
       if( wrappedRhs != null )
