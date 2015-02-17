@@ -63,4 +63,24 @@ class Errant_BlocksBasics {
     functionArgument112(\-> 42)      //## issuekeys: MSG_IMPLICIT_COERCION_ERROR
   }
 
+  function testBlockTypeWithReturnNull() {
+    // IDE-1772
+    var b1: block(): String = \-> {
+      if (true) {
+        return ""
+      }
+      return null
+    }
+
+    var b2: block(): String = \-> {
+      return null
+    }
+
+    var b3: block(): String = \-> {
+      if (true) {
+        return null
+      }
+      return null
+    }
+  }
 }
