@@ -23,4 +23,7 @@ class Errant_MetaType {
   var t2 = boolean.Type
   var t3 = boolean[].Type
   var t4 = String[][].Type
+  var t5 = java.util.List<Object>.Type
+  // IDE-1797
+  var t6 = gw.lang.reflect.Type<Object>.Type
 }
