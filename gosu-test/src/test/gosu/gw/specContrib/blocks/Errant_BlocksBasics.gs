@@ -82,5 +82,12 @@ class Errant_BlocksBasics {
       }
       return null
     }
+
+    var b4: block(): java.lang.Integer = \-> {
+      if (true) {
+        return 0
+      }
+      return null
+    }
   }
 }
