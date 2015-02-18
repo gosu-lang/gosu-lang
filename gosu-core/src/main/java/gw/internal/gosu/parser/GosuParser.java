@@ -12570,7 +12570,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
         {
           // if the parameters match exactly,
           if( areParametersEquivalent( dfs, dfsExisting ) ||
-              !dfs.isStatic() && dfs.getDeclaringTypeInfo().getOwnersType() instanceof IGosuEnhancement && areParametersEquivalent( dfs, dfsExisting, ((IGosuEnhancement)dfs.getDeclaringTypeInfo().getOwnersType()).getEnhancedType() ) )
+              !dfs.isStatic() && dfsExisting.isStatic() && dfs.getDeclaringTypeInfo().getOwnersType() instanceof IGosuEnhancement && areParametersEquivalent( dfs, dfsExisting, ((IGosuEnhancement)dfs.getDeclaringTypeInfo().getOwnersType()).getEnhancedType() ) )
           {
             if( areDFSsInSameNameSpace( dfs, dfsExisting ) )
             {
