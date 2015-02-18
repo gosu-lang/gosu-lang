@@ -107,7 +107,14 @@ public class MethodScorer {
       }
       IType argType = argTypes.get( i );
       // Argument  +(0..Max)
-      iScore += addToScoreForTypes( inferringTypes, paramTypes[i], argType );
+      if( funcType instanceof IBlockType ) {
+        // block params are contravariant wrt assignability between block types
+        iScore += addToScoreForTypes( inferringTypes, argType, paramTypes[i] );
+      }
+      else {
+        // function params are covariant wrt assignability from a call site
+        iScore += addToScoreForTypes( inferringTypes, paramTypes[i], argType );
+      }
     }
     for( int i = argTypes.size(); i < paramTypes.length; i++ ) {
       // Missing argument  +Max
