@@ -11203,7 +11203,8 @@ public final class GosuParser extends ParserBase implements IGosuParser
       ArrayAssignmentStatement as = new ArrayAssignmentStatement();
       if( verify( as, matchAssignmentOperator(T), Res.MSG_EXPECTING_EQUALS_ASSIGN ) )
       {
-        verify( as, aa.getRootExpression().getType() != JavaTypes.STRING(), Res.MSG_STR_IMMUTABLE );
+        IType type = aa.getRootExpression().getType();
+        verify( as, type != JavaTypes.STRING() && type != JavaTypes.CHAR_SEQUENCE(), Res.MSG_STR_IMMUTABLE );
         Expression rhs = parseAssignmentRhs( T, typeExpected, aa );
         verifyComparable( typeExpected, rhs, true );
         rhs = buildRhsOfCompoundOperator( e, T, rhs );
