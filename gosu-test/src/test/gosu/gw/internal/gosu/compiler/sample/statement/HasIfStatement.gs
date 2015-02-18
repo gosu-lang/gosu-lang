@@ -260,13 +260,4 @@ class HasIfStatement {
       
     return "else"   
   }
-
-  static function testComparePrimitiveWithNull(arg : boolean) : boolean {
-    if ( arg == null) {
-      return false
-    } else  {
-      return true
-    }
-  }
-
 }

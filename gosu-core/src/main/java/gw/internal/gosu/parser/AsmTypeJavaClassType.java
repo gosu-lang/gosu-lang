@@ -16,6 +16,8 @@ import gw.lang.reflect.java.asm.AsmWildcardType;
 import gw.lang.reflect.java.asm.IAsmType;
 import gw.lang.reflect.module.IModule;
 
+import java.util.HashSet;
+
 public abstract class AsmTypeJavaClassType implements IJavaClassType {
   private IAsmType _type;
   protected IModule _module;
@@ -36,7 +38,7 @@ public abstract class AsmTypeJavaClassType implements IJavaClassType {
 
   @Override
   public IType getActualType( TypeVarToTypeMap typeMap, boolean bKeepTypeVars ) {
-    return TypeLord.getActualType( _type, typeMap, bKeepTypeVars );
+    return TypeLord.getActualType( _type, typeMap, bKeepTypeVars, new HashSet<IAsmType>() );
   }
 
   public static IJavaClassType createType( IAsmType rawType, IModule module ) {

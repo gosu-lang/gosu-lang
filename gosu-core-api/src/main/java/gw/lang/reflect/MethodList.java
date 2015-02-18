@@ -151,7 +151,9 @@ public class MethodList extends DynamicArray<IMethodInfo> {
         toReturnType = TypeSystem.replaceTypeVariableTypeParametersWithBoundingTypes( toReturnType, miTo.getOwnersType() );
         if( !toReturnType.equals( fromReturnType ) &&
             !toReturnType.isAssignableFrom( fromReturnType ) &&
-            !StandardCoercionManager.arePrimitiveTypesAssignable( toReturnType, fromReturnType ) ) {
+            !StandardCoercionManager.arePrimitiveTypesAssignable( toReturnType, fromReturnType ) &&
+            !TypeSystem.isBoxedTypeFor( toReturnType, fromReturnType ) &&
+            !TypeSystem.isBoxedTypeFor( fromReturnType, toReturnType ) ) {
           continue;
         }
         IParameterInfo[] fromParams = miFrom.getParameters();
@@ -170,7 +172,9 @@ public class MethodList extends DynamicArray<IMethodInfo> {
               iScore += 2;
             }
             else if( fromParamType.isAssignableFrom( toParamType ) ||
-                     StandardCoercionManager.arePrimitiveTypesAssignable( fromParamType, toParamType ) ) {
+                     StandardCoercionManager.arePrimitiveTypesAssignable( fromParamType, toParamType ) ||
+                     TypeSystem.isBoxedTypeFor( toParamType, fromParamType ) ||
+                     TypeSystem.isBoxedTypeFor( fromParamType, toParamType ) ) {
               // types are contravariant
               iScore += 1;
             }

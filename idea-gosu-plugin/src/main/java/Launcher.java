@@ -22,7 +22,7 @@ public class Launcher {
       String strProgram = props.getProperty( "Program" );
       String strBundled = props.getProperty( "BundledGosu" );
       if( strBundled != null && strBundled.equalsIgnoreCase( "true" ) ) {
-        Gosu.main( "-classpath", "\"" + jarLoc + "\"", "-fqn", strProgram );
+        Gosu.main( new String[] { "-classpath", "\"" + jarLoc + "\"", strProgram} );
       }
       else {
         launchFromInstalledGosu( jarLoc, strProgram );

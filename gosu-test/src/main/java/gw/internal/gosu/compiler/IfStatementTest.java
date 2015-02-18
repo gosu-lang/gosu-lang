@@ -179,11 +179,6 @@ public class IfStatementTest extends GosuSpecTestBase {
     assertEquals("else", callMethod("testCascadingIfElseWithNoElse", "d"));
   }
 
-  public void testIfWithNullComparisonWithPrimitive() {
-    assertEquals(true, callMethod("testComparePrimitiveWithNull", Boolean.TRUE));
-    assertEquals(true, callMethod("testComparePrimitiveWithNull", Boolean.FALSE));
-  }
-
   public void testIfWithNoCurlyBracesWithVariableInsideInnerStatement() {
     assertEquals("true", callMethod("testIfWithNoCurlyBracesWithVariableInsideInnerStatement", "true"));
   }

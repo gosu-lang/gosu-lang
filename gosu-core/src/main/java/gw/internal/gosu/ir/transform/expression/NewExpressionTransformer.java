@@ -9,12 +9,15 @@ import gw.internal.gosu.ir.nodes.IRMethodFactory;
 import gw.internal.gosu.ir.transform.ExpressionTransformer;
 import gw.internal.gosu.ir.transform.TopLevelTransformationContext;
 import gw.internal.gosu.parser.Expression;
+import gw.internal.gosu.parser.TypeVariableType;
 import gw.internal.gosu.parser.expressions.NewExpression;
+import gw.internal.gosu.runtime.GosuRuntimeMethods;
 import gw.lang.ir.IRElement;
 import gw.lang.ir.IRExpression;
 import gw.lang.ir.IRSymbol;
 import gw.lang.ir.expression.IRCompositeExpression;
 import gw.lang.ir.expression.IRNewMultiDimensionalArrayExpression;
+import gw.lang.parser.IExpression;
 import gw.lang.parser.expressions.IInitializerExpression;
 import gw.lang.reflect.IConstructorHandler;
 import gw.lang.reflect.IConstructorInfo;
@@ -46,10 +49,18 @@ public class NewExpressionTransformer extends AbstractExpressionTransformer<NewE
     IConstructorInfo ci = _expr().getConstructor();
     if( !_expr().getType().isArray() )
     {
-      // Constructor invocation
-      // e.g., new Foo()
-
-      return compileConstructorCall( ci );
+      if( _expr().getType() instanceof TypeVariableType )
+      {
+        // TypeVar Constructor invocation
+        // e.g., new T( <params> )
+        return compileTypeVarConstructorCall();
+      }
+      else
+      {
+        // Constructor invocation
+        // e.g., new Foo()
+        return compileConstructorCall( ci );
+      }
     }
     else if( _expr().getValueExpressions() != null )
     {
@@ -194,6 +205,63 @@ public class NewExpressionTransformer extends AbstractExpressionTransformer<NewE
     return constructorCall;
   }
 
+  private IRExpression compileTypeVarConstructorCall()
+  {
+    IType type = _expr().getType();
+
+    IRExpression constructorCall;
+
+    List<IRElement> newExprElements;
+
+    List<IRExpression> explicitArgs = new ArrayList<IRExpression>();
+    pushArgumentsDirectly( _expr().getArgs(), explicitArgs );
+    newExprElements = handleNamedArgs( explicitArgs, _expr().getNamedArgOrder() );
+
+    List<IRExpression> args = new ArrayList<IRExpression>();
+    pushCapturedSymbols( type, args, false );
+    pushTypeParametersForConstructor( _expr(), type, args );
+    _cc().pushEnumNameAndOrdinal( type, args );
+    args.addAll( explicitArgs );
+
+    // Call the IConstructorInfo dynamically
+    constructorCall = callTypeVarConstructorInfo( type, args );
+
+    if( newExprElements.size() > 0 )
+    {
+      // Include temp var assignments so named args are evaluated in lexical order before the ctor call
+      newExprElements.add( constructorCall );
+      constructorCall = new IRCompositeExpression( newExprElements );
+    }
+
+    IInitializerExpression initializer = _expr().getInitializer();
+    if( initializer != null )
+    {
+      // If there's an initializer, save the result of the constructor to a temp symbol, execute the initializer
+      // statements, and then load the temp symbol back so it's the result of the expression
+      IRSymbol tempSymbol = _cc().makeAndIndexTempSymbol( constructorCall.getType() );
+      List<IRElement> constructorElements = new ArrayList<IRElement>();
+      constructorElements.add( buildAssignment( tempSymbol, constructorCall ) );
+      constructorElements.addAll( ExpressionTransformer.compileInitializer( initializer, _cc(), identifier( tempSymbol ) ) );
+      constructorElements.add( identifier( tempSymbol ) );
+      constructorCall = new IRCompositeExpression( constructorElements );
+    }
+
+    return constructorCall;
+  }
+
+  private void pushArgumentsDirectly( IExpression[] args, List<IRExpression> irArgs )
+  {
+    if( args != null )
+    {
+      for( int i = 0; i < args.length; i++ )
+      {
+        IExpression arg = args[i];
+        IRExpression irArg = ExpressionTransformer.compile( arg, _cc() );
+        irArgs.add( irArg );
+      }
+    }
+  }
+
   private IRExpression callConstructorInfo( IType rootType, IConstructorInfo ci, List<IRExpression> explicitArgs )
   {
     //
@@ -228,6 +296,23 @@ public class NewExpressionTransformer extends AbstractExpressionTransformer<NewE
                                         constructorHandler,
                                         exprList( collectArgsIntoObjArray( explicitArgs ) ) );
 
+    return checkCast( rootType, instance );
+  }
+
+  private IRExpression callTypeVarConstructorInfo( IType rootType, List<IRExpression> ctorArgs )
+  {
+    List<IRExpression> args = new ArrayList<IRExpression>();
+    args.add( pushType( rootType ) );
+    if( _cc().getCurrentFunction() != null && !_cc().getCurrentFunction().isStatic() )
+    {
+      args.add( pushThis() );
+    }
+    else
+    {
+      args.add( pushNull() );
+    }
+    args.add( collectArgsIntoObjArray( ctorArgs ) );
+    IRExpression instance = callStaticMethod( GosuRuntimeMethods.class, "newInstance", new Class[]{IType.class, Object.class, Object[].class}, args );
     return checkCast( rootType, instance );
   }
 }

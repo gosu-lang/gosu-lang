@@ -228,11 +228,7 @@ public final class ArrayAccess extends Expression implements IArrayAccessExpress
     {
       setType( rootType.getComponentType() );
     }
-    else if( rootType == GosuParserTypes.STRING_TYPE() )
-    {
-      setType( GosuParserTypes.STRING_TYPE() );
-    }
-    else if( rootType == JavaTypes.STRING_BUILDER() )
+    else if(JavaTypes.CHAR_SEQUENCE().isAssignableFrom(rootType) )
     {
       setType( JavaTypes.pCHAR() );
     }

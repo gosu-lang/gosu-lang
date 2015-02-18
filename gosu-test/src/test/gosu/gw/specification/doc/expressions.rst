@@ -393,20 +393,24 @@ where ``o`` is an expression of one of the following types:
 
 
 In the first case ``m`` is a non-static method of T. It will be invoked for
-every element of ``o``.
+every element of ``o``. If T is itself an array or Iterator or Iterable, ``m``
+will be called on T's elements, recursively.
 
 The type of ``o*.m`` is:
 
 - ``void`` if ``m`` has a ``void`` return type
--  ``R[]`` where ``R`` is the return type of ``m``.
-   A new array ``r`` will be instantiated to hold the results of the ``m``'s
-   invocations. If R is itself an array it will be flattened by adding its
-   elements to ``r``.
+- ``R[]`` where ``R`` is the return type of ``m``.
+  A new array ``r`` will be instantiated to hold the results of the ``m``'s
+  invocations. If R is itself an array it will be flattened one level down
+  by adding its elements to ``r``.
 
-In the second case ``p`` is a non-static property of T. For every element of
-``o`` its property ``p`` will be stored in a new instantiated array ``r`` of
+In the second case ``p`` is a non-static property of T. It will be accessed for
+every element of ``o``. If T is itself an array or Iterator or Iterable, ``p``
+will be accessed on T's elements, recursively.
+
+The  property ``p`` will be stored in a new instantiated array ``r`` of
 type ``R[]``, where R is the type of the property ``p``. If R is itself an
-array it will be flattened by adding its elements to ``r``.
+array it will be flattened one level down by adding its elements to ``r``.
 
 If ``o`` evaluates to ``null`` the value of ``o*.p`` or ``o*.m`` will be
 an empty ``R[]``. If an element ``e`` of ``o`` is ``null`` then ``e.p`` or
@@ -440,12 +444,37 @@ if ``o`` evaluates to ``null`` the expression ``o?[e]`` will be ``null``,
 the expression ``e`` will not be evaluated and no NullPointerException will be
 thrown.
 
+Element access expression
+=========================
+
+.. index:: element access expression
+
+An element access expression has the form:
+
+  ``o[e]``
+
+where ``o`` is an expression of reference type and ``e`` is an expression.
+The type of ``o`` can be:
+
+- an array type, in this case the ``o[e]`` is a  *array access* expression (see
+  :ref:`arrayCreationAndAccess`.)
+- ``List`` (but not ``LinkedList``), in this case ``e`` must be of type
+  ``Integer`` or ``int`` and  ``o[e]`` is equivalent to ``List.get(e)``
+- ``CharSequence``, in this case ``e`` must be of type ``Integer`` or ``int``
+  and ``o[e]`` is equivalent to ``CharSequence.charAt(e)``
+- ``dynamic.Dynamic``  this is covered in XXX
+- ``Map<K, V>``, in this case ``e`` must be of type ``K`` and ``o[e]`` is
+  equivalent to ``Map.get(e)``
+- any other type and ``e`` has type ``CharSequence``, in this case ``o[e]`` is
+  equivalent to a reflective access to the property ``e``
+  (``ReflectUtil.getProperty``)
+
+
 TODO
 ----
-
-map access/array access
 interval expressions
 named/default param in call site
+dimension chapter
 
 Method Call Expressions
 =======================

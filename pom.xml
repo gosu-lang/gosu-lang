@@ -16,22 +16,20 @@
     <module>gosu</module>
     <module>gosu-core</module>
     <module>gosu-core-api</module>
-    <module>gosu-core-api-precompiled</module>
-    <module>gosu-interactive</module>
-    <module>gosu-itcase-utils</module>
-    <module>gosu-maven-plugin</module>
     <module>gosu-parent</module>
-    <module>gosu-process</module>
-    <module>gosu-servlet</module>
     <module>gosu-test</module>
     <module>gosu-test-api</module>
-    <module>gosu-webservices</module>
-    <module>gosu-xml</module>
-    <module>idea-gosu-plugin</module>
-    <module>ij-compiler-api</module>
-    <module>ij-editor-devtools</module>
   </modules>
-
+  <profiles>
+    <profile>
+      <id>ij</id>
+      <modules>
+        <module>idea-gosu-plugin</module>
+        <module>ij-compiler-api</module>
+        <module>ij-editor-devtools</module>
+      </modules>
+    </profile>
+  </profiles>
   <build>
     <plugins>
       <plugin>
@@ -39,13 +37,6 @@
         <artifactId>maven-deploy-plugin</artifactId>
         <configuration>
           <skip>true</skip>
-        </configuration>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-release-plugin</artifactId>
-        <configuration>
-          <autoVersionSubmodules>false</autoVersionSubmodules>
         </configuration>
       </plugin>
     </plugins>

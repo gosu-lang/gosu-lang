@@ -97,4 +97,16 @@ class Errant_ArrayTest {
     var i = t2[0][1]
 
   }
+
+  function arrayAssignableToCloneableAndSerializable() {
+    var ids : java.lang.Long[] = {1}
+    var a : java.lang.Cloneable = ids
+    var b : java.io.Serializable = ids
+    var c : java.lang.Cloneable & java.io.Serializable = ids
+
+    var gids : A[] = {new A()}
+    var d : java.lang.Cloneable = gids
+    var e : java.io.Serializable = gids
+    var f : java.lang.Cloneable & java.io.Serializable = gids
+  }
 }

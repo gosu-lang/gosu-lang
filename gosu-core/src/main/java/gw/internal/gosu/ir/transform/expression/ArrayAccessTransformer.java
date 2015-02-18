@@ -82,6 +82,7 @@ public class ArrayAccessTransformer extends AbstractExpressionTransformer<ArrayA
 
     // Non-null
     IType rootType = _expr().getRootExpression().getType();
+    boolean skip = false;
     if( rootType.isArray() && isBytecodeType( rootType ) )
     {
       // Normal array access
@@ -93,21 +94,21 @@ public class ArrayAccessTransformer extends AbstractExpressionTransformer<ArrayA
       {
         arrayAccess = buildMethodCall( List.class, "get", Object.class, new Class[]{int.class}, buildCast( getDescriptor( List.class ), root ), Collections.singletonList( index ) );
       }
+      // todo remove this case: given ArrayAccess#supportsArrayAccess() impl this will never be true
       else if( JavaTypes.COLLECTION().isAssignableFrom( rootType ) )
       {
         IRExpression iterExpr = buildMethodCall( Collection.class, "iterator", Iterator.class, new Class[]{}, buildCast( getDescriptor( Collection.class ), root ), Collections.<IRExpression>emptyList() );
         arrayAccess = callStaticMethod( ArrayAccess.class, "getElementFromIterator", new Class[]{Iterator.class, int.class}, Arrays.asList( iterExpr, index ) );
       }
+      // todo remove this case: given ArrayAccess#supportsArrayAccess() impl this will never be true
       else if( JavaTypes.ITERATOR().isAssignableFrom( rootType ) )
       {
         arrayAccess = callStaticMethod( ArrayAccess.class, "getElementFromIterator", new Class[]{Iterator.class, int.class}, Arrays.asList( buildCast( getDescriptor( Iterator.class ), root ), index ) );
       }
       else if( JavaTypes.CHAR_SEQUENCE().isAssignableFrom( rootType ) )
       {
-        //## todo: this should return just the char not a String, right?
-        arrayAccess = callStaticMethod( String.class, "valueOf", new Class[]{char.class}, Collections.<IRExpression>singletonList(
-          buildMethodCall( CharSequence.class, "charAt", char.class, new Class[]{int.class},
-                           buildCast( getDescriptor( CharSequence.class ), root ), Collections.singletonList( index ) ) ) );
+        arrayAccess = buildMethodCall( CharSequence.class, "charAt", char.class, new Class[]{int.class}, buildCast( getDescriptor( CharSequence.class ), root ), Collections.singletonList( index ) );
+        skip = true;
       }
       else if( rootType instanceof IPlaceholder && ((IPlaceholder)rootType).isPlaceholder() )
       {
@@ -121,7 +122,9 @@ public class ArrayAccessTransformer extends AbstractExpressionTransformer<ArrayA
         arrayAccess = callStaticMethod( ArrayAccess.class, "getArrayElement", new Class[]{Object.class, int.class, boolean.class},
                                         exprList( root, index, pushConstant( bNullSafe ) ) );
       }
-      arrayAccess = unboxOrCast( arrayAccess );
+      if(!skip) {
+        arrayAccess = unboxOrCast( arrayAccess );
+      }
     }
     if( needsAutoinsert )
     {

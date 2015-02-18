@@ -107,7 +107,14 @@ public class MethodScorer {
       }
       IType argType = argTypes.get( i );
       // Argument  +(0..Max)
-      iScore += addToScoreForTypes( inferringTypes, paramTypes[i], argType );
+      if( funcType instanceof IBlockType ) {
+        // block params are contravariant wrt assignability between block types
+        iScore += addToScoreForTypes( inferringTypes, argType, paramTypes[i] );
+      }
+      else {
+        // function params are covariant wrt assignability from a call site
+        iScore += addToScoreForTypes( inferringTypes, paramTypes[i], argType );
+      }
     }
     for( int i = argTypes.size(); i < paramTypes.length; i++ ) {
       // Missing argument  +Max
@@ -172,9 +179,10 @@ public class MethodScorer {
     else if( paramType instanceof IInvocableType && argType instanceof IInvocableType ) {
       // Assignable function types  0 + average-degrees-of-separation-of-sum-of-params-and-return-type
       int iDegrees = addDegreesOfSeparation( paramType, argType, inferringTypes );
-      iScore = Math.min( Byte.MAX_VALUE - 10,
-                         iDegrees / (Math.max( ((IInvocableType)paramType).getParameterTypes().length,
-                                               ((IInvocableType)argType).getParameterTypes().length ) + 1) );
+      int paramCountPlusReturn = Math.max( ((IInvocableType)paramType).getParameterTypes().length,
+                                 ((IInvocableType)argType).getParameterTypes().length ) + 1;
+      // round up to prevent false perfect scores
+      iScore = Math.min( Byte.MAX_VALUE - 10, (iDegrees + paramCountPlusReturn - 1) / paramCountPlusReturn );
     }
     else {
       IType boxedArgType;

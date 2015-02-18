@@ -8,13 +8,29 @@ import gw.lang.reflect.gs.IGenericTypeVariable;
 import gw.lang.reflect.java.IJavaClassInfo;
 import gw.lang.reflect.java.IJavaType;
 import gw.lang.reflect.java.JavaTypes;
+import gw.util.concurrent.LocklessLazyVar;
 
+import java.io.Serializable;
 import java.lang.reflect.Array;
+import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 public class DefaultArrayType extends AbstractType implements IDefaultArrayType, IHasJavaClass
 {
+  public static final LocklessLazyVar<List<IJavaType>> INTERFACES =
+    new LocklessLazyVar<List<IJavaType>>()
+    {
+      @Override
+      protected List<IJavaType> init()
+      {
+        // All Java arrays are Cloneable and Serializable (see javadoc for Class#getGenericInterfaces())
+        return Arrays.asList( JavaTypes.getJreType( Cloneable.class ),
+                              JavaTypes.getJreType( Serializable.class ) );
+      }
+    };
+
   private IType _componentType;
 
   transient private ITypeLoader _typeLoader;
@@ -185,7 +201,6 @@ public class DefaultArrayType extends AbstractType implements IDefaultArrayType,
       }
       if( _concreteClass != null )
       {
-//        Set<? extends IType> allTypesInHierarchy = TypeSystem.get( _concreteClass.getComponentType() ).getAllTypesInHierarchy();
         Set<? extends IType> allTypesInHierarchy = _componentType.getAllTypesInHierarchy();
         for( IType type : allTypesInHierarchy )
         {
@@ -195,6 +210,7 @@ public class DefaultArrayType extends AbstractType implements IDefaultArrayType,
           }
         }
       }
+      allTypes.addAll( INTERFACES.get() );
       _allTypesInHierarchy = allTypes;
     }
 

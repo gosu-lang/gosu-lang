@@ -6,8 +6,10 @@ package gw.internal.gosu.runtime;
 
 import gw.config.CommonServices;
 import gw.internal.gosu.ir.transform.AbstractElementTransformer;
+import gw.internal.gosu.parser.IGosuClassInternal;
 import gw.internal.gosu.parser.TypeLord;
 import gw.lang.parser.StandardCoercionManager;
+import gw.lang.reflect.IConstructorInfo;
 import gw.lang.reflect.IExpando;
 import gw.lang.reflect.IMethodInfo;
 import gw.lang.reflect.IPlaceholder;
@@ -22,6 +24,7 @@ import gw.lang.reflect.java.IJavaType;
 import gw.lang.reflect.java.JavaTypes;
 import gw.util.GosuExceptionUtil;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
@@ -179,6 +182,51 @@ public class GosuRuntimeMethods {
   public static IType getType( Object obj )
   {
     return TypeSystem.get( obj.getClass() );
+  }
+
+  public static Object newInstance( IType type, Object ctx, Object[] args )
+  {
+    ITypeInfo typeInfo = type.getTypeInfo();
+    IConstructorInfo method;
+    IType[] runtimeTypes = ReflectUtil.extractRuntimeTypes( args );
+    method = typeInfo.getCallableConstructor( runtimeTypes );
+    args = ReflectUtil.coerceArgsIfNecessary( method.getParameters(), args );
+    args = maybeAddOuter( type, ctx, args );
+    return method.getConstructor().newInstance( args );
+  }
+
+  private static Object[] maybeAddOuter( IType type, Object ctx, Object[] args ) {
+    if( ctx == null )
+    {
+      return args;
+    }
+    if( type instanceof IGosuClassInternal && ((IGosuClassInternal)type).isStatic() )
+    {
+      return args;
+    }
+    IType enclosingType = type.getEnclosingType();
+    if( enclosingType == null )
+    {
+      return args;
+    }
+    IType outerType = TypeLord.getPureGenericType( TypeSystem.getFromObject( ctx ) );
+    enclosingType = TypeLord.getPureGenericType( enclosingType );
+    while( outerType != enclosingType )
+    {
+      try {
+        Field outerThis = ctx.getClass().getDeclaredField( "this$0" );
+        outerThis.setAccessible( true );
+        ctx = outerThis.get( ctx );
+      }
+      catch( Exception e ) {
+        return args;
+      }
+      outerType = TypeLord.getPureGenericType( TypeSystem.getFromObject( ctx ) );
+    }
+    Object[] args2 = new Object[args.length + 1];
+    args2[0] = ctx;
+    System.arraycopy( args, 0, args2, 1, args.length );
+    return args2;
   }
 
   public static Object invokeMethod( Class c, String methodName, Class[] argTypes, Object root, Object[] args )

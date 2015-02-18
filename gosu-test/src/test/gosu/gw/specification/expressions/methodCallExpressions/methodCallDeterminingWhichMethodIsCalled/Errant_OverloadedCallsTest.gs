@@ -292,4 +292,16 @@ class Errant_OverloadedCallsTest {
       res1 = funIntLongFloat(42.5, 42.5)
     }
   }
+
+  static class AmbiguousEnumConstantTesting {
+    enum MyEnum1 { CONSTANT }
+    enum MyEnum2 { CONSTANT }
+
+    function acceptEnum(par : MyEnum1) {}
+    function acceptEnum(par : MyEnum2) {}
+
+    function ambiguousUnqualifiedEnum() {
+      acceptEnum(CONSTANT)  //## issuekeys: MSG_AMBIGUOUS_METHOD_INVOCATION
+    }
+  }
 }

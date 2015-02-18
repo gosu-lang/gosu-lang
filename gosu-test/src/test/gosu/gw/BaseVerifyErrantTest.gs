@@ -14,7 +14,7 @@ uses java.lang.System
 uses java.util.regex.Pattern
 
 class BaseVerifyErrantTest extends TestClass {
-  var _skipKnownBreak : boolean
+  var _skipKnownBreak : boolean as readonly skipKnownBreak
 
   construct()  {
     var propValue = System.getProperty("gw.tests.skip.knownbreak")
@@ -37,7 +37,7 @@ class BaseVerifyErrantTest extends TestClass {
         iLine++
         if( line.indexOf( "//## KB(" ) != -1 ) {
           assertTrue( gsClass.Name + " : Wrong jira format in known break on line " + iLine, kbPattern.matcher(line).find())
-          if(!_skipKnownBreak) {
+          if(!skipKnownBreak) {
             knowBreakLines.add(iLine)
           }
         } else {

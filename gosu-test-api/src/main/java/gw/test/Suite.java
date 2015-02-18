@@ -11,9 +11,6 @@ import gw.lang.init.ClasspathToGosuPathEntryUtil;
 import gw.lang.reflect.IMethodInfo;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.TypeSystem;
-import gw.test.remote.ForwardingTestEnvironment;
-import gw.fs.IDirectory;
-import gw.test.remote.RemoteTestClassWrapper;
 import gw.util.ILogger;
 import gw.util.Predicate;
 import junit.framework.Test;
@@ -264,7 +261,7 @@ public class Suite<T extends Suite> extends junit.framework.TestSuite {
       for (TestSpec spec : _testSpecs) {
         if (_testEnvironment.isRemoteExecutionEnvironment()) {
           String[] methods = spec.runAllMethods() ? null : spec.getMethods();
-          RemoteTestClassWrapper remoteWrapper = new RemoteTestClassWrapper(_executionManager, spec.getTestTypeName(), methods);
+          Test remoteWrapper = ((IForwardingTestEnvironment) _testEnvironment).makeRemoteTestClassWrapper(_executionManager, spec.getTestTypeName(), methods);
           addTest(remoteWrapper);
         } else {
           IType type = spec.getTestType();
@@ -280,7 +277,7 @@ public class Suite<T extends Suite> extends junit.framework.TestSuite {
         System.out.println("Dynamically determined the test environment to be " + _testEnvironment.getClass());
         // This is pretty hacky, but RemoteTestEnvironments need a chance to tell the remote server
         // what sort of environment to set up, and that actually needs to be done prior to beginning the suite
-        if (_testEnvironment instanceof ForwardingTestEnvironment) {
+        if (_testEnvironment instanceof IForwardingTestEnvironment) {
           _testEnvironment.initializeTypeSystem();
         }
         _executionManager.setEnvironment(_testEnvironment);

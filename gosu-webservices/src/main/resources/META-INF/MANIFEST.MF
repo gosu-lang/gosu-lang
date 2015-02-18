@@ -1,4 +1,0 @@
-Manifest-Version: 1.0
-Contains-Sources: true
-Gosu-Typeloaders: gw.internal.xml.ws.typeprovider.WsdlTypeLoader
-

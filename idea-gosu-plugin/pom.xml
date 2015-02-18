@@ -30,23 +30,6 @@
           </execution>
         </executions>
       </plugin>
-      <!--
-       Excluding IJ Editor test from compilation.
-       We have to fix this if we want to run them as continuous tests.
-      <plugin>
-        <groupId>org.gosu-lang.gosu</groupId>
-        <artifactId>gosu-maven-plugin</artifactId>
-        <version>1.X-SNAPSHOT</version>
-        <executions>
-          <execution>
-            <goals>
-              <goal>test-compile</goal>
-            </goals>
-            <phase>test-compile</phase>
-          </execution>
-        </executions>
-      </plugin>
-      -->
       <plugin>
         <artifactId>maven-resources-plugin</artifactId>
         <version>2.6</version>
@@ -91,21 +74,10 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
+        <version>2.10</version>
         <configuration>
           <skip>true</skip>
         </configuration>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-failsafe-plugin</artifactId>
-        <executions>
-          <execution>
-            <goals>
-              <goal>integration-test</goal>
-              <goal>verify</goal>
-            </goals>
-          </execution>
-        </executions>
       </plugin>
     </plugins>
   </build>
@@ -187,12 +159,6 @@
     <dependency>
       <groupId>org.gosu-lang.gosu</groupId>
       <artifactId>gosu-test-api</artifactId>
-      <version>1-spec-SNAPSHOT</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.gosu-lang.gosu</groupId>
-      <artifactId>gosu-itcase-utils</artifactId>
       <version>1-spec-SNAPSHOT</version>
       <scope>test</scope>
     </dependency>

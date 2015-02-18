@@ -37,7 +37,7 @@ class Errant_Generics_MethodScoring_1 {
     var a1120 : A =  foo(rr)            //## issuekeys: MSG_TYPE_MISMATCH
     var a1121 : A =  foo(aList)            //## issuekeys: MSG_TYPE_MISMATCH
     var a1122 : A =  foo(aListInt)            //## issuekeys: MSG_TYPE_MISMATCH
-    var a1123 : A =  foo(intArray)
+    var a1123 : A =  foo(intArray)  //## issuekeys: MSG_TYPE_MISMATCH
     var a1124 : A =  foo({1,2,3})            //## issuekeys: MSG_TYPE_MISMATCH
     var a1125 : A =  foo({qq, qq, qq})            //## issuekeys: MSG_TYPE_MISMATCH
 
@@ -54,7 +54,7 @@ class Errant_Generics_MethodScoring_1 {
     var b1120 : B =  foo(rr)
     var b1121 : B =  foo(aList)
     var b1122 : B =  foo(aListInt)
-    var b1123 : B =  foo(intArray)            //## issuekeys: MSG_TYPE_MISMATCH
+    var b1123 : B =  foo(intArray)
     var b1124 : B =  foo({1,2,3})
     var b1125 : B =  foo({qq, qq, qq})
 

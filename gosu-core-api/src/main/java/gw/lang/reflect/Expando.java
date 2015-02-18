@@ -4,17 +4,17 @@
 
 package gw.lang.reflect;
 
-import gw.internal.ext.org.apache.commons.collections.map.ListOrderedMap;
 import gw.lang.function.IBlock;
 import gw.util.GosuEscapeUtil;
 
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
 /**
  */
 public class Expando implements IExpando {
-  private Map<String, Object> _map = new ListOrderedMap();
+  private Map<String, Object> _map = new LinkedHashMap<String, Object>();
 
   @Override
   public Object getFieldValue( String field ) {
