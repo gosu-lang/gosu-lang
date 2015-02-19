@@ -10,7 +10,7 @@ class FeatureLiteralContribTest extends TestClass {
   }
 
   function testOverloadedMethodResolutionWorks() {
-    assertNotNull( Foo#hello(String, int) )
+    assertNotNull( Foo#hello( asdf, int) )
   }
 
 }

@@ -4971,81 +4971,50 @@ public final class GosuParser extends ParserBase implements IGosuParser
         throw new IllegalStateException();
       }
       FeatureLiteral fle = new FeatureLiteral( root );
-      boolean foundWord = verify( fle, match( T, SourceCodeTokenizer.TT_WORD ) ||
-              match( T, Keyword.KW_construct ),
-              Res.MSG_FL_EXPECTING_FEATURE_NAME );
+      boolean foundWord = verify( fle, match( T, SourceCodeTokenizer.TT_WORD ) || match(T, Keyword.KW_construct ),
+                                  Res.MSG_FL_EXPECTING_FEATURE_NAME );
       if( foundWord )
       {
         if( match( null, '<' ) )
         {
-          while( verify( fle, parseTypeLiteral(), null ) )
-          {
-            popExpression(); // TypeLiteral expr
-            if( !match( null, ',' ) )
-            {
-              break;
-            }
-          }
-          verify( fle, match( null, '>' ), Res.MSG_FL_EXPECTING_RIGHT_CARET );
-          verify( fle, false, Res.MSG_FL_GENERIC_FUNCTION_REFERENCES_NOT_YET_SUPPORTED );
+          parseErrantFeatureLiteralParameterization(fle);
         }
         if( match( null, '(' ) )
         {
           if( !match( null, ')' ) )
           {
             MethodScore score = parseArgumentList2( fle, fle.getFunctionTypes( T._strValue ), IType.EMPTY_ARRAY, true, false );
-            boolean allTypeLiterals = true;
-
-            for( IExpression arg : score.getArguments() )
+            if( allTypeLiterals( score.getArguments() ) )
             {
-              if( !(arg instanceof TypeLiteral || (arg instanceof ImplicitTypeAsExpression && ((ImplicitTypeAsExpression)arg).getLHS() instanceof TypeLiteral)) )
-              {
-                allTypeLiterals = false;
-              }
-            }
-
-            if( allTypeLiterals )
-            {
-              List<IType> types = new ArrayList<IType>();
+              //noinspection ThrowableResultOfMethodCallIgnored
               fle.removeParseException( Res.MSG_AMBIGUOUS_METHOD_INVOCATION );
-              for( IExpression expression : score.getArguments() )
-              {
-                expression.clearParseExceptions();
-                expression.clearParseWarnings();
-                if( expression instanceof ImplicitTypeAsExpression )
-                {
-                  expression = ((ImplicitTypeAsExpression)expression).getLHS();
-                }
-                types.add( ((TypeLiteral)expression).evaluate() );
-              }
-              IType[] typesArr = types.toArray( new IType[types.size()] );
+
+              List<IType> types = evalTypes( score.getArguments() );
+
               if( T._strValue.equals( Keyword.KW_construct.getName() ) )
               {
-                verify( fle, fle.resolveConstructor( typesArr ), Res.MSG_FL_CONSTRUCTOR_NOT_FOUND, StringUtil.join( ",", types ) );
+                verify( fle, fle.resolveConstructor( types ), Res.MSG_FL_CONSTRUCTOR_NOT_FOUND, StringUtil.join( ",", types ) );
               }
               else
               {
-                verify( fle, fle.resolveMethod( T._strValue, typesArr ), Res.MSG_FL_METHOD_NOT_FOUND, T._strValue, StringUtil.join(",", types) );
+                verify( fle, fle.resolveMethod( T._strValue, types ), Res.MSG_FL_METHOD_NOT_FOUND, T._strValue, StringUtil.join( ",", types ) );
               }
             }
             else
             {
               IInvocableType funcType = score.getRawFunctionType();
-
-              verify( fle, funcType != null && funcType.getParameterTypes().length == score.getArguments().size(),
-                      Res.MSG_FL_METHOD_NOT_FOUND, T._strValue, "" );
-
-              if( funcType == null )
+              if( funcType == null || funcType.getParameterTypes().length == score.getArguments().size() )
               {
-                fle.setBoundFeature( ErrorType.getInstance().getTypeInfo().getMethod( T._strValue ), score.getArguments() );
+                fle.setFeature( ErrorType.getInstance().getTypeInfo().getMethod( T._strValue ), score.getArguments() );
+                verify( fle, false, Res.MSG_FL_METHOD_NOT_FOUND, T._strValue, "" );
               }
-              else if( funcType instanceof FunctionType )
+              else if( funcType instanceof IConstructorType )
               {
-                fle.setBoundFeature( ((FunctionType)funcType).getMethodInfo(), score.getArguments() );
+                fle.setFeature( ((IConstructorType)funcType).getConstructor(), score.getArguments() );
               }
               else
               {
-                fle.setBoundFeature( ((ConstructorType)funcType).getConstructor(), score.getArguments() );
+                fle.setFeature( ((IFunctionType)funcType).getMethodInfo(), score.getArguments() );
               }
             }
             verify( fle, match( null, ')' ), Res.MSG_FL_EXPECTING_RIGHT_PAREN );
@@ -5054,11 +5023,11 @@ public final class GosuParser extends ParserBase implements IGosuParser
           {
             if( T._strValue.equals( Keyword.KW_construct.getName() ) )
             {
-              verify( fle, fle.resolveConstructor(), Res.MSG_FL_CONSTRUCTOR_NOT_FOUND, "" );
+              verify( fle, fle.resolveConstructor( Collections.<IType>emptyList() ), Res.MSG_FL_CONSTRUCTOR_NOT_FOUND, "" );
             }
             else
             {
-              verify( fle, fle.resolveMethod( T._strValue ), Res.MSG_FL_METHOD_NOT_FOUND, T._strValue, "" );
+              verify( fle, fle.resolveMethod( T._strValue, Collections.<IType>emptyList() ), Res.MSG_FL_METHOD_NOT_FOUND, T._strValue, "" );
             }
           }
         }
@@ -5077,7 +5046,6 @@ public final class GosuParser extends ParserBase implements IGosuParser
         verify( fle, root instanceof TypeLiteral, Res.MSG_FL_STATIC_FEATURES_MUST_BE_REFERENCED_FROM_THEIR_TYPES );
       }
 
-      fle.resolveType();
       pushExpression( fle );
       return true;
     }
@@ -5085,6 +5053,46 @@ public final class GosuParser extends ParserBase implements IGosuParser
     {
       return false;
     }
+  }
+
+  private void parseErrantFeatureLiteralParameterization(FeatureLiteral fle) {
+    while( verify( fle, parseTypeLiteral(), null ) )
+    {
+      popExpression(); // TypeLiteral expr
+      if( !match( null, ',' ) )
+      {
+        break;
+      }
+    }
+    verify( fle, match( null, '>' ), Res.MSG_FL_EXPECTING_RIGHT_CARET );
+    verify( fle, false, Res.MSG_FL_GENERIC_FUNCTION_REFERENCES_NOT_YET_SUPPORTED );
+  }
+
+  private List<IType> evalTypes(List<IExpression> arguments) {
+    List<IType> types = new ArrayList<IType>();
+    for( IExpression expression : arguments)
+    {
+      expression.clearParseExceptions();
+      expression.clearParseWarnings();
+      if( expression instanceof ImplicitTypeAsExpression)
+      {
+        expression = ((ImplicitTypeAsExpression)expression).getLHS();
+      }
+      types.add( ((TypeLiteral)expression).evaluate() );
+    }
+    return types;
+  }
+
+  private boolean allTypeLiterals(List<IExpression> args) {
+    boolean allTypeLiterals = true;
+    for( IExpression arg : args)
+    {
+      if( !(arg instanceof TypeLiteral || (arg instanceof ImplicitTypeAsExpression && ((ImplicitTypeAsExpression)arg).getLHS() instanceof TypeLiteral)) )
+      {
+        allTypeLiterals = false;
+      }
+    }
+    return allTypeLiterals;
   }
 
   private void setOperatorLineNumber( Expression expression, int operatorLineNumber )
