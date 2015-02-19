@@ -243,94 +243,6 @@ class CoreFeatureLiteralTest extends TestClass {
      var val = cr.invoke(false, false)
      assertNotNull( val )
   }
-  
-  function testBasicMethodChaningWithPropRoot() {
-    var mc = FeatureLiteralClass#ThisProp#instFunc1()
-    assertEquals( "doh", mc.invoke( new FeatureLiteralClass() ) )
-
-    var mc2 = FeatureLiteralClass#ThisProp#instFunc2(Object)
-    assertEquals( "foo", mc2.invoke( new FeatureLiteralClass(), null ) )
-
-    var mc3 = FeatureLiteralClass#ThisProp#instFunc2(String)
-    assertEquals( "bar", mc3.invoke( new FeatureLiteralClass(), null ) )
-  }
-  
-  function testBasicBoundMethodChaningWithPropRoot() {
-    var mc = new FeatureLiteralClass()#ThisProp#instFunc1()
-    assertEquals( "doh", mc.invoke() )
-
-    var mc2 = new FeatureLiteralClass()#ThisProp#instFunc2(Object)
-    assertEquals( "foo", mc2.invoke( null ) )
-
-    var mc3 = new FeatureLiteralClass()#ThisProp#instFunc2(String)
-    assertEquals( "bar", mc3.invoke( null ) )
-  }
-
-  function testBasicMethodChaningWithStaticPropRoot() {
-    var mc = FeatureLiteralClass#StaticNewProp#instFunc1()
-    assertEquals( "doh", mc.invoke() )
-
-    var mc2 = FeatureLiteralClass#StaticNewProp#instFunc2(Object)
-    assertEquals( "foo", mc2.invoke( null ) )
-
-    var mc3 = FeatureLiteralClass#StaticNewProp#instFunc2(String)
-    assertEquals( "bar", mc3.invoke( "foo" ) )
-  }
-
-  function testBasicMethodChaningWithFuncRoot() {
-    var mc = FeatureLiteralClass#thisFunc()#instFunc1()
-    assertEquals( "doh", mc.invoke( new FeatureLiteralClass() ) )
-
-    var mc2 = FeatureLiteralClass#thisFunc()#instFunc2(Object)
-    assertEquals( "foo", mc2.invoke( new FeatureLiteralClass(), null ) )
-
-    var mc3 = FeatureLiteralClass#thisFunc()#instFunc2(String)
-    assertEquals( "bar", mc3.invoke( new FeatureLiteralClass(), null ) )
-  }
-  
-  function testBasicBoundMethodChaningWithFuncRoot() {
-    var mc = new FeatureLiteralClass()#thisFunc()#instFunc1()
-    assertEquals( "doh", mc.invoke() )
-
-    var mc2 = new FeatureLiteralClass()#thisFunc()#instFunc2(Object)
-    assertEquals( "foo", mc2.invoke( null ) )
-
-    var mc3 = new FeatureLiteralClass()#thisFunc()#instFunc2(String)
-    assertEquals( "bar", mc3.invoke( null ) )
-  }
-
-  function testBasicMethodChaningWithFuncRootWArg() {
-    var mc = FeatureLiteralClass#thisFunc(String)#instFunc1()
-    assertEquals( "doh", mc.invoke( new FeatureLiteralClass(), "foo" ) )
-
-    var mc2 = FeatureLiteralClass#thisFunc(String)#instFunc2(Object)
-    assertEquals( "foo", mc2.invoke( new FeatureLiteralClass(), "foo", null ) )
-
-    var mc3 = FeatureLiteralClass#thisFunc(String)#instFunc2(String)
-    assertEquals( "bar", mc3.invoke( new FeatureLiteralClass(), "foo", null ) )
-  }
-  
-  function testBasicBoundMethodChaningWithFuncRootWArg() {
-    var mc = new FeatureLiteralClass()#thisFunc(String)#instFunc1()
-    assertEquals( "doh", mc.invoke("foo") )
-
-    var mc2 = new FeatureLiteralClass()#thisFunc(String)#instFunc2(Object)
-    assertEquals( "foo", mc2.invoke( "foo", null ) )
-
-    var mc3 = new FeatureLiteralClass()#thisFunc(String)#instFunc2(String)
-    assertEquals( "bar", mc3.invoke( "foo", null ) )
-  }
-
-  function testBasicMethodChaningWithStaticFuncRoot() {
-    var mc = FeatureLiteralClass#staticNewFunc()#instFunc1()
-    assertEquals( "doh", mc.invoke() )
-
-    var mc2 = FeatureLiteralClass#staticNewFunc()#instFunc2(Object)
-    assertEquals( "foo", mc2.invoke( null ) )
-
-    var mc3 = FeatureLiteralClass#staticNewFunc()#instFunc2(String)
-    assertEquals( "bar", mc3.invoke( "foo" ) )
-  }
 
   function testBasicSimplePropertyChaningWithPropRoot() {
     var mc = FeatureLiteralClass<String>#ThisProp#Tee
@@ -350,28 +262,9 @@ class CoreFeatureLiteralTest extends TestClass {
     assertEquals( null, mc.get(null) )
   }
 
-  function testBasicPropertyChaningWithFuncRoot() {
-    var mc = FeatureLiteralClass#thisFunc()#Tee
-    var flc1 = new FeatureLiteralClass<String>("foo")
-    assertEquals( "foo", mc.get( flc1, {} ) )
-    mc.set( flc1, {}, "bar" )
-    assertEquals( "bar", mc.get( flc1, {} ) )
-
-    var mc2 = FeatureLiteralClass#thisFunc(String)#Tee
-    var flc2 = new FeatureLiteralClass<String>("foo")
-    assertEquals( "foo", mc2.get( flc2, {"bar"} ) )
-    mc2.set( flc2, {"bar"}, "bar" )
-    assertEquals( "bar", mc2.get( flc2, {"bar"} ) )
-  }
-
   function testBasicBoundPropertyChaning() {
     var mc = new FeatureLiteralClass<String>("bar")#ThisProp#Tee
     assertEquals( "bar", mc.get() )
-  }
-
-  function testComplexBoundPropertyChaning() {
-    var mc = new FeatureLiteralClass<String>("bar")#thisFunc()#Tee
-    assertEquals( "bar", mc.get({}) )
   }
 
   function testBasicFunctionBoundArguments() {
@@ -380,34 +273,6 @@ class CoreFeatureLiteralTest extends TestClass {
 
      var fl2 = new FeatureLiteralClass()#instFunc5(null, "foo", false)
      assertEquals( {null, "foo", false}, fl2.invoke() )
-
-     var fl3 = new FeatureLiteralClass()#thisFunc()#instFunc5(null, "foo", false)
-     assertEquals( {null, "foo", false}, fl3.invoke() )
-     
-     var fl4 = new FeatureLiteralClass()#ThisProp#instFunc5(null, "foo", false)
-     assertEquals( {null, "foo", false}, fl4.invoke() )
-  }
-
-  function testNestedFunctionBoundArguments() {
-     var fl = FeatureLiteralClass#thisAndSetFunc("asdf")#instFunc5(null, "foo", false)
-     var flc1 = new FeatureLiteralClass()
-     assertEquals( {null, "foo", false}, fl.invoke(flc1 ) )
-     assertEquals( "asdf", flc1.Tee )
-
-     var flc2 = new FeatureLiteralClass()
-     var fl2 = flc2#thisAndSetFunc(true)#instFunc5(null, "foo", false)
-     assertEquals( {null, "foo", false}, fl2.invoke() )
-     assertEquals( true, flc2.Tee )
-
-     var flc3 = new FeatureLiteralClass()
-     var fl3 = flc3#thisFunc()#thisAndSetFunc("bar")#instFunc5(null, "foo", false)
-     assertEquals( {null, "foo", false}, fl3.invoke() )
-     assertEquals( "bar", flc3.Tee )
-     
-     var flc4 = new FeatureLiteralClass()
-     var fl4 = flc4#ThisProp#thisAndSetFunc("it works?")#instFunc5(null, "foo", false)
-     assertEquals( {null, "foo", false}, fl4.invoke() )
-     assertEquals( "it works?", flc4.Tee )
   }
 
   function testAnnotationHasFeatures() {

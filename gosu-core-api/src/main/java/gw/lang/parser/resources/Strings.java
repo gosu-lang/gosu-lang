@@ -448,6 +448,7 @@ public class Strings extends ListResourceBundle
        {Res.MSG_FL_CONSTRUCTOR_NOT_FOUND.getKey(), "A constructor with the types {0} was not found"},
        {Res.MSG_FL_METHOD_NOT_FOUND.getKey(), "A method with the name {0} and types {1} was not found"},
        {Res.MSG_FL_PROPERTY_NOT_FOUND.getKey(), "A property with the name {0} was not found"},
+       {Res.MSG_FL_ONLY_PROPERTIES_MAY_BE_CHAINED.getKey(), "Only property literals may be chained."},
        {Res.MSG_FL_STATIC_FEATURES_MUST_BE_REFERENCED_FROM_THEIR_TYPES.getKey(), "A static feature or constructor must be referenced directly on the type that the feature belongs to."},
 
        {Res.MSG_AMBIGUOUS_SYMBOL_REFERENCE.getKey(), "This is an ambiguous reference.  Please fully qualify the symbol."},

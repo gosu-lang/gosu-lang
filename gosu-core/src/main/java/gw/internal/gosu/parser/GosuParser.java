@@ -115,6 +115,7 @@ import gw.lang.parser.exceptions.ParseWarningForDeprecatedMember;
 import gw.lang.parser.exceptions.WrongNumberOfArgsException;
 import gw.lang.parser.expressions.IArithmeticExpression;
 import gw.lang.parser.expressions.IBlockInvocation;
+import gw.lang.parser.expressions.IFeatureLiteralExpression;
 import gw.lang.parser.expressions.IImplicitTypeAsExpression;
 import gw.lang.parser.expressions.IInferredNewExpression;
 import gw.lang.parser.expressions.IInitializerExpression;
@@ -4975,7 +4976,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
                                   Res.MSG_FL_EXPECTING_FEATURE_NAME );
       if( foundWord )
       {
-        if( match( null, '<' ) )
+        if( match( null, "<", SourceCodeTokenizer.TT_OPERATOR, true ) )
         {
           parseErrantFeatureLiteralParameterization(fle);
         }
@@ -5003,7 +5004,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
             else
             {
               IInvocableType funcType = score.getRawFunctionType();
-              if( funcType == null || funcType.getParameterTypes().length == score.getArguments().size() )
+              if( funcType == null || funcType.getParameterTypes().length != score.getArguments().size() )
               {
                 fle.setFeature( ErrorType.getInstance().getTypeInfo().getMethod( T._strValue ), score.getArguments() );
                 verify( fle, false, Res.MSG_FL_METHOD_NOT_FOUND, T._strValue, "" );
@@ -5041,6 +5042,11 @@ public final class GosuParser extends ParserBase implements IGosuParser
         }
       }
 
+      if( root instanceof IFeatureLiteralExpression )
+      {
+        verify( fle, fle.isPropertyLiteral(), Res.MSG_FL_ONLY_PROPERTIES_MAY_BE_CHAINED );
+      }
+
       if( fle.isStaticish() && !fle.hasParseExceptions() )
       {
         verify( fle, root instanceof TypeLiteral, Res.MSG_FL_STATIC_FEATURES_MUST_BE_REFERENCED_FROM_THEIR_TYPES );
@@ -5064,7 +5070,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
         break;
       }
     }
-    verify( fle, match( null, '>' ), Res.MSG_FL_EXPECTING_RIGHT_CARET );
+    verify( fle, match( null, ">", SourceCodeTokenizer.TT_OPERATOR, true ), Res.MSG_FL_EXPECTING_RIGHT_CARET );
     verify( fle, false, Res.MSG_FL_GENERIC_FUNCTION_REFERENCES_NOT_YET_SUPPORTED );
   }
 
