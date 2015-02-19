@@ -2,14 +2,13 @@ package gw.specContrib.expressions.cast
 
 uses java.lang.Integer
 uses java.util.ArrayList
-uses junit.framework.TestCase
 uses java.lang.Deprecated
 /**
  * Created by Sky on 2015/02/02 with IntelliJ IDEA.
  */
 
 
-class Errant_AutomaticDowncastingTest extends TestCase{
+class Errant_AutomaticDowncastingTest {
   static class A { }
   static class B extends A{
     function bar() : String {
@@ -183,7 +182,7 @@ class Errant_AutomaticDowncastingTest extends TestCase{
           var s : String = x
           x.charAt(0)
       case ArrayList<Integer> :  //## issuekeys: MSG_NONTERMINAL_CASE_CLAUSE
-          var s2 : String = x  //## KB(IDE-1625)
+          var s2 : String = x  //## issuekeys: MSG_IMPLICIT_COERCION_ERROR
           break
     }
 
