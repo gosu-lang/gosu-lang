@@ -83,7 +83,6 @@ class ProcesSpecContribTest extends BaseVerifyErrantTest {
   function testAnalyzeSpecContrib() {
     var excluded : Set<String> = {
                                    "gw.specContrib.typeinference.Errant_SwitchTypeNarrowing",  // IDE-426
-                                   "gw.specContrib.generics.Errant_GenericMethodBounds2",  // IDE-538
 
                                    /* to skip as we don't support this check in our testing framework */
                                    "gw.specContrib.classes.Errant_ClassDeclaredInEnhancement",
