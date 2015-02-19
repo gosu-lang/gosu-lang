@@ -122,4 +122,12 @@ class Errant_ExpansionExpressionsTest {
     var x11 : C[]  = {new C()}
     var f11: LinkedList<LinkedList<Integer>>[] = x11*.retLst3()  //## issuekeys: MSG_TYPE_MISMATCH, MSG_PARAMETERIZED_ARRAY_COMPONENT
   }
+
+  function testMixedArrayAndCollectionTypes() {
+    var x1: Iterable<Iterator<A[]>>
+    var f1: int[] = x1*.getNum()
+
+    var x2: Iterator<List<A>[][]>
+    var f2: int[] = x2*.getNum()
+  }
 }
