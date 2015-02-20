@@ -329,7 +329,9 @@ public class AsmClass implements IAsmType, IGeneric {
       AsmField field = new AsmField( AsmClass.this, access, name, desc, value );
       if( signature != null ) {
         SignatureReader sr = new SignatureReader( signature );
-        sr.accept( new FieldSignatureVisitor( field ) );
+        DeclarationPartSignatureVisitor visitor = new DeclarationPartSignatureVisitor();
+        sr.accept( visitor );
+        field.setType( visitor.getCurrentType() );
       }
       addField( field );
       return new FieldDeclarationVisitor( field );
@@ -340,7 +342,9 @@ public class AsmClass implements IAsmType, IGeneric {
       AsmMethod method = new AsmMethod( AsmClass.this, access, name, desc, exceptions );
       if( signature != null ) {
         SignatureReader sr = new SignatureReader( signature );
-        sr.accept( new MethodDeclarationSignatureVisitor( method, method.getMethodType() ) );
+        MethodDeclarationSignatureVisitor visitor = new MethodDeclarationSignatureVisitor( method, method.getMethodType() );
+        sr.accept( visitor );
+        method.update( visitor.getParamVisitors(), visitor.getReturnVisitor(), visitor.getExceptionVisitors() );
       }
       addMethod( method );
       return new MethodDeclarationVisitor( method );

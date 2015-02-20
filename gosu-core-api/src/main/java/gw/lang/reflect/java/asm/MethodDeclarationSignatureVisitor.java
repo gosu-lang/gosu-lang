@@ -6,36 +6,59 @@ package gw.lang.reflect.java.asm;
 
 import gw.internal.ext.org.objectweb.asm.signature.SignatureVisitor;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
 /**
  */
 public class MethodDeclarationSignatureVisitor extends TypeDeclarationSignatureVisitor {
-  private int _iParamCsr;
-  private int _iExceptionCsr;
+  private List<DeclarationPartSignatureVisitor> _paramVisitors;
+  private DeclarationPartSignatureVisitor _returnVisitor;
+  private List<DeclarationPartSignatureVisitor> _exceptionVisitors;
 
   MethodDeclarationSignatureVisitor( AsmMethod asmMethod, AsmType type ) {
     super( asmMethod, type );
-    asmMethod.initGenericParameters();
+    _paramVisitors = Collections.emptyList();
+    _exceptionVisitors = Collections.emptyList();
+  }
+
+  public List<DeclarationPartSignatureVisitor> getParamVisitors() {
+    return _paramVisitors;
+  }
+
+  public DeclarationPartSignatureVisitor getReturnVisitor() {
+    return _returnVisitor;
+  }
+
+  public List<DeclarationPartSignatureVisitor> getExceptionVisitors() {
+    return _exceptionVisitors;
   }
 
   @Override
   public SignatureVisitor visitParameterType() {
-    AsmMethod asmMethod = (AsmMethod)getGenericType();
-    AsmType param = asmMethod.getGenericParameters().get( _iParamCsr++ );
-    return new MethodPartSignatureVisitor( param );
+    if( _paramVisitors.isEmpty() ) {
+      _paramVisitors = new ArrayList<DeclarationPartSignatureVisitor>();
+    }
+    DeclarationPartSignatureVisitor visitor = new DeclarationPartSignatureVisitor();
+    _paramVisitors.add( visitor );
+    return visitor;
   }
 
   @Override
   public SignatureVisitor visitReturnType() {
     AsmMethod asmMethod = (AsmMethod)getGenericType();
     asmMethod.initGenericReturnType();
-    return new MethodPartSignatureVisitor( asmMethod.getGenericReturnType() );
+    return _returnVisitor = new DeclarationPartSignatureVisitor();
   }
 
   @Override
   public SignatureVisitor visitExceptionType() {
-    AsmMethod asmMethod = (AsmMethod)getGenericType();
-    AsmType exception = asmMethod.getExceptions().get( _iExceptionCsr++ );
-    return new MethodPartSignatureVisitor( exception );
+    if( _exceptionVisitors.isEmpty() ) {
+      _exceptionVisitors = new ArrayList<DeclarationPartSignatureVisitor>();
+    }
+    DeclarationPartSignatureVisitor visitor = new DeclarationPartSignatureVisitor();
+    _exceptionVisitors.add( visitor );
+    return visitor;
   }
-
 }

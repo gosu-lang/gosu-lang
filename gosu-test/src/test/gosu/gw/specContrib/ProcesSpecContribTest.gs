@@ -83,6 +83,18 @@ class ProcesSpecContribTest extends BaseVerifyErrantTest {
   function testAnalyzeSpecContrib() {
     var excluded : Set<String> = {
                                    "gw.specContrib.typeinference.Errant_SwitchTypeNarrowing",  // IDE-426
+                                   "gw.specContrib.typeinference.Errant_CollectionInitializerTypeInference", // IDE-1798 // IDE-1807
+                                   "gw.specContrib.expressions.cast.generics.Errant_TypeParamExtending", //IDE-1731
+                                   "gw.specContrib.classes.Errant_ConstructorOverrideInAnonymousClass",  // IDE-1821
+                                   "gw.specContrib.classes.enhancements.Errant_SymbolCollision_ListEnh2", // IDE-1824
+
+                                   /* Feature literals broken tests */
+                                   "gw.specContrib.featureLiterals.gosuMembersBinding.genericsFL.Errant_FLCollections", //IDE-???
+                                   "gw.specContrib.featureLiterals.gosuMembersBinding.genericsFL.Errant_FLCollectionOfCollections", //IDE-???
+                                   "gw.specContrib.featureLiterals.gosuMembersBinding.genericsFL.Errant_FLParameterizedFunction", //IDE-???
+                                   "gw.specContrib.featureLiterals.gosuMembersBinding.Errant_FLExpressionValue", //IDE-???
+                                   "gw.specContrib.featureLiterals.gosuMembersBinding.Errant_FLStaticVsNonStaticMethods", //IDE-???
+                                   "gw.specContrib.featureLiterals.gosuMembersBinding.namedParams.Errant_FLNamedParams", //IDE-1611
 
                                    /* to skip as we don't support this check in our testing framework */
                                    "gw.specContrib.classes.Errant_ClassDeclaredInEnhancement",

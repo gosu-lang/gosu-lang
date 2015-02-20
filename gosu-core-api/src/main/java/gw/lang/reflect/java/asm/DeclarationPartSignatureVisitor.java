@@ -7,26 +7,29 @@ package gw.lang.reflect.java.asm;
 import gw.internal.ext.org.objectweb.asm.Opcodes;
 import gw.internal.ext.org.objectweb.asm.signature.SignatureVisitor;
 
+
 /**
  */
-public class FieldSignatureVisitor extends SignatureVisitor {
-  private AsmField _asmField;
+public class DeclarationPartSignatureVisitor extends SignatureVisitor {
   private AsmType _currentType;
   private AsmType _typeArg;
-  private boolean _bArray;
+  private int _iArrayDims;
   private Boolean _variance; // null = none, true = covariant, false = contravariant
 
-  FieldSignatureVisitor( AsmField field ) {
+  DeclarationPartSignatureVisitor() {
     super( Opcodes.ASM5 );
-    _asmField = field;
   }
-  FieldSignatureVisitor( AsmField field, AsmType type ) {
-    this( field );
+  DeclarationPartSignatureVisitor( AsmType type ) {
+    super( Opcodes.ASM5 );
     _currentType = type;
   }
-  FieldSignatureVisitor( AsmField field, AsmType type, char wildcardVariance ) {
-    this( field, type );
+  DeclarationPartSignatureVisitor( AsmType type, char wildcardVariance ) {
+    this( type );
     _variance = wildcardVariance == '+';
+  }
+
+  public AsmType getCurrentType() {
+    return _currentType;
   }
 
   @Override
@@ -74,32 +77,58 @@ public class FieldSignatureVisitor extends SignatureVisitor {
 
   @Override
   public void visitBaseType( char c ) {
+    AsmType type = AsmPrimitiveType.findPrimitive( String.valueOf( c ) );
+    if( _iArrayDims > 0 ) {
+      // primitive types are immutable...
+      type = AsmUtil.makeType( type.getName() );
+    }
+    if( _currentType == null ) {
+      _currentType = type;
+      if( _variance != null ) {
+        _currentType = new AsmWildcardType( _currentType, _variance );
+      }
+      for( int i = 0; i < _iArrayDims; i++ ) {
+        _currentType.incArrayDims();
+      }
+    }
+    else {
+      _typeArg = type;
+      if( _variance != null ) {
+        _typeArg = new AsmWildcardType( _typeArg, _variance );
+      }
+      for( int i = 0; i < _iArrayDims; i++ ) {
+        _typeArg.incArrayDims();
+      }
+    }
   }
 
   @Override
   public void visitTypeVariable( String tv ) {
     if( _currentType == null ) {
       _currentType = AsmUtil.makeTypeVariable( tv );
+      for( int i = 0; i < _iArrayDims; i++ ) {
+        _currentType.incArrayDims();
+      }
       if( _variance != null ) {
         _currentType = new AsmWildcardType( _currentType, _variance );
       }
-      _asmField.setType( _currentType );
     }
     else {
-      _typeArg = AsmUtil.makeTypeVariable( tv );
-      if( _variance != null ) {
-        _typeArg = new AsmWildcardType( _typeArg, _variance );
+      AsmType typeArg = AsmUtil.makeTypeVariable( tv );
+      for( int i = 0; i < _iArrayDims; i++ ) {
+        typeArg.incArrayDims();
       }
-      _currentType.addTypeParameter( _typeArg );
+      if( _variance != null ) {
+        typeArg = new AsmWildcardType( typeArg, _variance );
+      }
+      _currentType.addTypeParameter( typeArg );
     }
   }
 
   @Override
   public SignatureVisitor visitArrayType() {
-    FieldSignatureVisitor visitor = new FieldSignatureVisitor( _asmField, _currentType );
-    visitor._typeArg = _typeArg;
-    visitor._bArray = true;
-    return visitor;
+    _iArrayDims++;
+    return this;
   }
 
   @Override
@@ -109,14 +138,12 @@ public class FieldSignatureVisitor extends SignatureVisitor {
       if( _variance != null ) {
         _currentType = new AsmWildcardType( _currentType, _variance );
       }
-      _asmField.setType( _currentType );
     }
     else {
       _typeArg = AsmUtil.makeType( name );
       if( _variance != null ) {
         _typeArg = new AsmWildcardType( _typeArg, _variance );
       }
-      _currentType.addTypeParameter( _typeArg );
     }
   }
 
@@ -127,14 +154,20 @@ public class FieldSignatureVisitor extends SignatureVisitor {
       if( _variance != null ) {
         _currentType = new AsmWildcardType( _currentType, _variance );
       }
-      _asmField.setType( _currentType );
     }
     else {
-      _typeArg = AsmUtil.makeType( name );
-      if( _variance != null ) {
-        _typeArg = new AsmWildcardType( _typeArg, _variance );
+      if( _typeArg != null ) {
+        _typeArg = AsmUtil.makeType( (_typeArg instanceof AsmWildcardType ? ((AsmWildcardType)_typeArg).getBound().getName() : _typeArg.getName()) + "$" + name );
+        if( _variance != null ) {
+          _typeArg = new AsmWildcardType( _typeArg, _variance );
+        }
       }
-      _currentType.addTypeParameter( _typeArg );
+      else {
+        _currentType = AsmUtil.makeType( (_currentType instanceof AsmWildcardType ? ((AsmWildcardType)_currentType).getBound().getName() : _currentType.getName()) + "$" + name );
+        if( _variance != null ) {
+          _currentType = new AsmWildcardType( _currentType, _variance );
+        }
+      }
     }
   }
 
@@ -146,15 +179,27 @@ public class FieldSignatureVisitor extends SignatureVisitor {
   @Override
   public SignatureVisitor visitTypeArgument( char wildcard ) {
     if( wildcard != '=' ) {
-      return new FieldSignatureVisitor( _asmField, _typeArg == null ? _currentType : _typeArg, wildcard );
+      return new DeclarationPartSignatureVisitor( _typeArg == null ? _currentType : _typeArg, wildcard );
     }
-    return new FieldSignatureVisitor( _asmField, _typeArg == null ? _currentType : _typeArg );
+    return new DeclarationPartSignatureVisitor( _typeArg == null ? _currentType : _typeArg );
   }
 
   @Override
   public void visitEnd() {
-    if( _bArray ) {
-      _currentType.incArrayDims();
+    if( _iArrayDims > 0 ) {
+      if( _typeArg != null ) {
+        for( int i = 0; i < _iArrayDims; i++ ) {
+          _typeArg.incArrayDims();
+        }
+      }
+      else {
+        for( int i = 0; i < _iArrayDims; i++ ) {
+          _currentType.incArrayDims();
+        }
+      }
+    }
+    if( _typeArg != null ) {
+      _currentType.addTypeParameter( _typeArg );
     }
   }
 }

@@ -2,6 +2,7 @@ package gw.specContrib.classes.property_Declarations
 
 uses java.lang.Integer
 uses java.util.Set
+uses gw.specContrib.classes.property_Declarations.JavaClass2.A
 
 class Errant_PropertyAcrossJavaAndGosu extends JavaClass2 {
 
@@ -24,6 +25,6 @@ class Errant_PropertyAcrossJavaAndGosu extends JavaClass2 {
   }
 
   // IDE-1238
-  class InnerClass2 extends JavaIntfImpl implements GosuIntf {  // issuekeys: MUST BE DECLARED ABSTRACT OR IMPLEMENT 'isEditable()' in 'GosuIntf'
+  class InnerClass2 extends JavaIntfImpl implements GosuIntf {  //## issuekeys: MUST BE DECLARED ABSTRACT OR IMPLEMENT 'isEditable()' in 'GosuIntf'
   }
 }

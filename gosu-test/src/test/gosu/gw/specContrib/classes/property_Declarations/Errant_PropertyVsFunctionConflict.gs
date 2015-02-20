@@ -56,7 +56,7 @@ class Errant_PropertyVsFunctionConflict {
   // IDE-1192
   class SubClass7 extends JavaClass3 {
     property set Text(s: String) {}         //## issuekeys: PROPERTY OVERRIDES PARENT CLASS FUNCTION
-    property set Text2(s: String) {}
+    override property set Text2(s: String) {}
 
   }
 

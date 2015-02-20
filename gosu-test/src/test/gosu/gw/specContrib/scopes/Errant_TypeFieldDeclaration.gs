@@ -21,7 +21,7 @@ class Errant_TypeFieldDeclaration {
 
     var t3 = A2.Type
     i = t3
-    var t4 = new A2().Type
+    var t4 = new A2().Type  //## issuekeys: MSG_NON_STATIC_ACCESS_OF_STATIC_MEMBER
     i = t4
 
     var t5 = A3.Type
@@ -31,7 +31,7 @@ class Errant_TypeFieldDeclaration {
 
     var t7 = A4.Type
     i = t7
-    var t8 = new A4().Type
+    var t8 = new A4().Type  //## issuekeys: MSG_NON_STATIC_ACCESS_OF_STATIC_MEMBER
     i = t8
   }
 }

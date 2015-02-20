@@ -13,7 +13,7 @@ class Errant_ReferenceCast {
 
   function test() {
     var a1: String
-    var b1 = a1 as Serializable
+    var b1 = a1 as Serializable  //## issuekeys: MSG_UNNECESSARY_COERCION
 
     var a2: Cloneable
     var b2 = a2 as Serializable
@@ -22,7 +22,7 @@ class Errant_ReferenceCast {
     var b3 = a3 as Cloneable         //## issuekeys: MSG_TYPE_MISMATCH
 
     var a4: C
-    var b4 = a4 as Serializable
+    var b4 = a4 as Serializable  //## issuekeys: MSG_UNNECESSARY_COERCION
 
     var a5: A
     var b5 = a5 as Cloneable         //## issuekeys: MSG_TYPE_MISMATCH

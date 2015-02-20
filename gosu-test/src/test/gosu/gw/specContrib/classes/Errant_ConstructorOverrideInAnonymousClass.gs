@@ -16,7 +16,7 @@ class Errant_ConstructorOverrideInAnonymousClass<T> {
   function test2() {
     var a1 = new Errant_ConstructorOverrideInAnonymousClass(1) {
       construct(p: Object, i: int) {
-        super(null)
+        super(null)         // IDE-1821
       }
     }
     var a2 = new Errant_ConstructorOverrideInAnonymousClass<Integer>(1) {

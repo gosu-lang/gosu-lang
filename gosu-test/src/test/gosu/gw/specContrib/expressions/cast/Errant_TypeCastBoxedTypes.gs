@@ -22,13 +22,13 @@ class Errant_TypeCastBoxedTypes {
     var b215 = b as Float
     var b216 = b as Long
     var b217 = b as Double
-    var b218 = b as Boolean
+    var b218 = b as Boolean  //## issuekeys: MSG_UNNECESSARY_COERCION
 
     var b311 = b as String
-    var b312 = b as DateTime      //## issuekeys: INCONVERTIBLE TYPES; CANNOT CAST 'JAVA.LANG.BOOLEAN' TO 'JAVA.UTIL.DATE'
-    var b313 = b as Object
-    var b314 = b as BigInteger      //## issuekeys: INCONVERTIBLE TYPES; CANNOT CAST 'JAVA.LANG.BOOLEAN' TO 'JAVA.MATH.BIGINTEGER'
-    var b315 = b as BigDecimal      //## issuekeys: INCONVERTIBLE TYPES; CANNOT CAST 'JAVA.LANG.BOOLEAN' TO 'JAVA.MATH.BIGDECIMAL'
+    var b312 = b as DateTime      //## issuekeys: MSG_TYPE_MISMATCH
+    var b313 = b as Object  //## issuekeys: MSG_UNNECESSARY_COERCION
+    var b314 = b as BigInteger      //## issuekeys: MSG_TYPE_MISMATCH
+    var b315 = b as BigDecimal      //## issuekeys: MSG_TYPE_MISMATCH
   }
   function testCharacter(b: Character) {
     var b111 = b as char
@@ -40,7 +40,7 @@ class Errant_TypeCastBoxedTypes {
     var b117 = b as double
     var b118 = b as boolean
 
-    var b211 = b as Character
+    var b211 = b as Character  //## issuekeys: MSG_UNNECESSARY_COERCION
     var b212 = b as Byte
     var b213 = b as Short
     var b214 = b as Integer
@@ -50,8 +50,8 @@ class Errant_TypeCastBoxedTypes {
     var b218 = b as Boolean
 
     var b311 = b as String
-    var b312 = b as DateTime      //## issuekeys: INCONVERTIBLE TYPES; CANNOT CAST 'JAVA.LANG.CHARACTER' TO 'JAVA.UTIL.DATE'
-    var b313 = b as Object
+    var b312 = b as DateTime      //## issuekeys: MSG_TYPE_MISMATCH
+    var b313 = b as Object  //## issuekeys: MSG_UNNECESSARY_COERCION
     var b314 = b as BigInteger
     var b315 = b as BigDecimal
   }
@@ -66,7 +66,7 @@ class Errant_TypeCastBoxedTypes {
     var b118 = b as boolean
 
     var b211 = b as Character
-    var b212 = b as Byte
+    var b212 = b as Byte  //## issuekeys: MSG_UNNECESSARY_COERCION
     var b213 = b as Short
     var b214 = b as Integer
     var b215 = b as Float
@@ -75,8 +75,8 @@ class Errant_TypeCastBoxedTypes {
     var b218 = b as Boolean
 
     var b311 = b as String
-    var b312 = b as DateTime      //## issuekeys: INCONVERTIBLE TYPES; CANNOT CAST 'JAVA.LANG.BYTE' TO 'JAVA.UTIL.DATE'
-    var b313 = b as Object
+    var b312 = b as DateTime      //## issuekeys: MSG_TYPE_MISMATCH
+    var b313 = b as Object  //## issuekeys: MSG_UNNECESSARY_COERCION
     var b314 = b as BigInteger
     var b315 = b as BigDecimal
   }
@@ -92,7 +92,7 @@ class Errant_TypeCastBoxedTypes {
 
     var b211 = b as Character
     var b212 = b as Byte
-    var b213 = b as Short
+    var b213 = b as Short  //## issuekeys: MSG_UNNECESSARY_COERCION
     var b214 = b as Integer
     var b215 = b as Float
     var b216 = b as Long
@@ -100,8 +100,8 @@ class Errant_TypeCastBoxedTypes {
     var b218 = b as Boolean
 
     var b311 = b as String
-    var b312 = b as DateTime      //## issuekeys: INCONVERTIBLE TYPES; CANNOT CAST 'JAVA.LANG.SHORT' TO 'JAVA.UTIL.DATE'
-    var b313 = b as Object
+    var b312 = b as DateTime      //## issuekeys: MSG_TYPE_MISMATCH
+    var b313 = b as Object  //## issuekeys: MSG_UNNECESSARY_COERCION
     var b314 = b as BigInteger
     var b315 = b as BigDecimal
   }
@@ -118,15 +118,15 @@ class Errant_TypeCastBoxedTypes {
     var b211 = b as Character
     var b212 = b as Byte
     var b213 = b as Short
-    var b214 = b as Integer
+    var b214 = b as Integer  //## issuekeys: MSG_UNNECESSARY_COERCION
     var b215 = b as Float
     var b216 = b as Long
     var b217 = b as Double
     var b218 = b as Boolean
 
     var b311 = b as String
-    var b312 = b as DateTime      //## issuekeys: INCONVERTIBLE TYPES; CANNOT CAST 'JAVA.LANG.INTEGER' TO 'JAVA.UTIL.DATE'
-    var b313 = b as Object
+    var b312 = b as DateTime      //## issuekeys: MSG_TYPE_MISMATCH
+    var b313 = b as Object  //## issuekeys: MSG_UNNECESSARY_COERCION
     var b314 = b as BigInteger
     var b315 = b as BigDecimal
   }
@@ -144,14 +144,14 @@ class Errant_TypeCastBoxedTypes {
     var b212 = b as Byte
     var b213 = b as Short
     var b214 = b as Integer
-    var b215 = b as Float
+    var b215 = b as Float  //## issuekeys: MSG_UNNECESSARY_COERCION
     var b216 = b as Long
     var b217 = b as Double
     var b218 = b as Boolean
 
     var b311 = b as String
-    var b312 = b as DateTime      //## issuekeys: INCONVERTIBLE TYPES; CANNOT CAST 'JAVA.LANG.FLOAT' TO 'JAVA.UTIL.DATE'
-    var b313 = b as Object
+    var b312 = b as DateTime      //## issuekeys: MSG_TYPE_MISMATCH
+    var b313 = b as Object  //## issuekeys: MSG_UNNECESSARY_COERCION
     var b314 = b as BigInteger
     var b315 = b as BigDecimal
   }
@@ -170,13 +170,13 @@ class Errant_TypeCastBoxedTypes {
     var b213 = b as Short
     var b214 = b as Integer
     var b215 = b as Float
-    var b216 = b as Long
+    var b216 = b as Long  //## issuekeys: MSG_UNNECESSARY_COERCION
     var b217 = b as Double
     var b218 = b as Boolean
 
     var b311 = b as String
-    var b312 = b as DateTime      //## issuekeys: INCONVERTIBLE TYPES; CANNOT CAST 'JAVA.LANG.LONG' TO 'JAVA.UTIL.DATE'
-    var b313 = b as Object
+    var b312 = b as DateTime      //## issuekeys: MSG_TYPE_MISMATCH
+    var b313 = b as Object  //## issuekeys: MSG_UNNECESSARY_COERCION
     var b314 = b as BigInteger
     var b315 = b as BigDecimal
   }
@@ -196,12 +196,12 @@ class Errant_TypeCastBoxedTypes {
     var b214 = b as Integer
     var b215 = b as Float
     var b216 = b as Long
-    var b217 = b as Double
+    var b217 = b as Double  //## issuekeys: MSG_UNNECESSARY_COERCION
     var b218 = b as Boolean
 
     var b311 = b as String
-    var b312 = b as DateTime      //## issuekeys: INCONVERTIBLE TYPES; CANNOT CAST 'JAVA.LANG.DOUBLE' TO 'JAVA.UTIL.DATE'
-    var b313 = b as Object
+    var b312 = b as DateTime      //## issuekeys: MSG_TYPE_MISMATCH
+    var b313 = b as Object  //## issuekeys: MSG_UNNECESSARY_COERCION
     var b314 = b as BigInteger
     var b315 = b as BigDecimal
   }

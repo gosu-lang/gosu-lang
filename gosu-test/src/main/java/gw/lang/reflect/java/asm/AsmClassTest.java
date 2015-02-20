@@ -61,6 +61,13 @@ public class AsmClassTest extends TestClass {
     assertEquals( "private java.util.List<? extends java.util.List<S>> _listofWildListS", fields.get( i++ ).toString() );
     assertEquals( "private java.util.List<? super java.util.List<S>> _listofContraWildListS", fields.get( i++ ).toString() );
     assertEquals( "private java.util.Map<java.lang.String, java.util.List<java.lang.String>> _mapStringListOfString", fields.get( i++ ).toString() );
+    assertEquals( "private java.util.Map<java.lang.String, gw.lang.reflect.java.asm.Asm_Simple$InnerClass<java.lang.String>> _mapStringInnerClassOfString", fields.get( i++ ).toString() );
+    assertEquals( "private java.util.Map<java.lang.String, gw.lang.reflect.java.asm.Asm_Simple$InnerClass<T>> _mapStringInnerClassOfT", fields.get( i++ ).toString() );
+
+    assertEquals( "private gw.lang.reflect.java.asm.Asm_Simple$InnerClass _yay", fields.get( i++ ).toString() );
+    assertEquals( "private gw.lang.reflect.java.asm.Asm_Simple$InnerClass<T> _yay1", fields.get( i++ ).toString() );
+    assertEquals( "private gw.lang.reflect.java.asm.Asm_Simple$InnerClass<java.lang.String> _yay2", fields.get( i++ ).toString() );
+    assertEquals( "private gw.lang.reflect.java.asm.Asm_Simple$InnerClass<gw.lang.reflect.java.asm.Asm_Simple$InnerClass<java.lang.String>> _yay3", fields.get( i++ ).toString() );
 
     assertEquals( "private java.util.List<java.lang.String>[] _listOfStringA", fields.get( i++ ).toString() );
     assertEquals( "private java.util.List<java.util.List<java.lang.String>>[] _listOfListOfStringA", fields.get( i++ ).toString() );
@@ -71,8 +78,9 @@ public class AsmClassTest extends TestClass {
     assertEquals( "private java.util.List<? extends java.util.List<S>>[] _listofWildListSA", fields.get( i++ ).toString() );
     assertEquals( "private java.util.List<? super java.util.List<S>>[] _listofContraWildListSA", fields.get( i++ ).toString() );
     assertEquals( "private java.util.Map<java.lang.String, java.util.List<java.lang.String>>[] _mapStringListOfStringA", fields.get( i++ ).toString() );
+    assertEquals( "private java.util.Map<java.lang.String, gw.lang.reflect.java.asm.Asm_Simple$InnerClass<java.lang.String>>[] _mapStringInnerClassOfStringA", fields.get( i++ ).toString() );
   }
- 
+
   public void testMethods() {
     AsmClass asmClass = loadAsmClass( Asm_Simple.class );
     List<AsmMethod> methods = asmClass.getDeclaredMethodsAndConstructors();
@@ -83,6 +91,7 @@ public class AsmClassTest extends TestClass {
     assertEquals( "public transient int varArgIntMethod(int[])", methods.get( i++ ).toString() );
     assertEquals( "public transient int varArgStringMethod(java.lang.String[])", methods.get( i++ ).toString() );
     assertEquals( "public transient <E<java.lang.Object>>E varArgStringMethod(int[])", methods.get( i++ ).toString() );
+    assertEquals( "public java.util.List<java.lang.Object[]> varArgStringMethod()", methods.get( i++ ).toString() );
     assertEquals( "public int[] intArrayMethod(int[])", methods.get( i++ ).toString() );
     assertEquals( "public int[][] intArrayArrayMethod(int[][])", methods.get( i++ ).toString() );
     assertEquals( "public java.lang.String[][] stringArrayArrayMethod(java.lang.String[][])", methods.get( i++ ).toString() );
@@ -99,6 +108,7 @@ public class AsmClassTest extends TestClass {
     assertEquals( "public java.util.List<? super java.util.List<S>> listofContraWildListSMethod()", methods.get( i++ ).toString() );
     assertEquals( "public java.util.Map<java.lang.String, java.util.List<java.lang.String>> mapStringListOfStringMethod()", methods.get( i++ ).toString() );
     assertEquals( "public static transient <E<java.lang.Object>>java.util.HashSet<E> newHashSet(E[])", methods.get( i++ ).toString() );
+    assertEquals( "public <E<java.lang.Object>>gw.lang.reflect.java.asm.Asm_Simple$InnerClass<E> returnsInnerClass(gw.lang.reflect.java.asm.Asm_Simple$InnerClass)", methods.get( i++ ).toString() );
   }
 
   public void testInnerClasses() {

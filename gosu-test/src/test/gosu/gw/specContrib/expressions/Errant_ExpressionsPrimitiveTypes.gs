@@ -39,7 +39,7 @@ class Errant_ExpressionsPrimitiveTypes {
   var char27: char = '\''
   var char28: char = '\"'
   var char29: char = '\\'
-  var char30: char = '\a'        //## issuekeys: ILLEGAL ESCAPE CHARACTER
+  var char30: char = '\a'
 
   //byte
   var byte1: byte = 1b

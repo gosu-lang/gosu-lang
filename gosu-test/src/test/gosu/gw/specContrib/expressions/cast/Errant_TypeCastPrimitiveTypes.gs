@@ -13,7 +13,7 @@ class Errant_TypeCastPrimitiveTypes {
     var b115 = b as float
     var b116 = b as long
     var b117 = b as double
-    var b118 = b as boolean
+    var b118 = b as boolean  //## issuekeys: MSG_UNNECESSARY_COERCION
 
     //IDE-1709
     var b211 = b as Character
@@ -26,13 +26,13 @@ class Errant_TypeCastPrimitiveTypes {
     var b218 = b as Boolean
 
     var b311 = b as String
-    var b312 = b as DateTime      //## issuekeys: INCONVERTIBLE TYPES; CANNOT CAST 'BOOLEAN' TO 'JAVA.UTIL.DATE'
+    var b312 = b as DateTime      //## issuekeys: MSG_TYPE_MISMATCH
     var b313 = b as Object
-    var b314 = b as BigInteger      //## issuekeys: INCONVERTIBLE TYPES; CANNOT CAST 'BOOLEAN' TO 'JAVA.MATH.BIGINTEGER'
-    var b315 = b as BigDecimal      //## issuekeys: INCONVERTIBLE TYPES; CANNOT CAST 'BOOLEAN' TO 'JAVA.MATH.BIGDECIMAL'
+    var b314 = b as BigInteger      //## issuekeys: MSG_TYPE_MISMATCH
+    var b315 = b as BigDecimal      //## issuekeys: MSG_TYPE_MISMATCH
   }
   function testChar(b: char) {
-    var b111 = b as char
+    var b111 = b as char  //## issuekeys: MSG_UNNECESSARY_COERCION
     var b112 = b as byte
     var b113 = b as short
     var b114 = b as int
@@ -51,14 +51,14 @@ class Errant_TypeCastPrimitiveTypes {
     var b218 = b as Boolean
 
     var b311 = b as String
-    var b312 = b as DateTime      //## issuekeys: INCONVERTIBLE TYPES; CANNOT CAST 'CHAR' TO 'JAVA.UTIL.DATE'
+    var b312 = b as DateTime      //## issuekeys: MSG_TYPE_MISMATCH
     var b313 = b as Object
     var b314 = b as BigInteger
     var b315 = b as BigDecimal
   }
   function testByte(b: byte) {
     var b111 = b as char
-    var b112 = b as byte
+    var b112 = b as byte  //## issuekeys: MSG_UNNECESSARY_COERCION
     var b113 = b as short
     var b114 = b as int
     var b115 = b as float
@@ -77,7 +77,7 @@ class Errant_TypeCastPrimitiveTypes {
     var b218 = b as Boolean
 
     var b311 = b as String
-    var b312 = b as DateTime      //## issuekeys: INCONVERTIBLE TYPES; CANNOT CAST 'BYTE' TO 'JAVA.UTIL.DATE'
+    var b312 = b as DateTime      //## issuekeys: MSG_TYPE_MISMATCH
     var b313 = b as Object
     var b314 = b as BigInteger
     var b315 = b as BigDecimal
@@ -85,7 +85,7 @@ class Errant_TypeCastPrimitiveTypes {
   function testShort(b: short) {
     var b111 = b as char
     var b112 = b as byte
-    var b113 = b as short
+    var b113 = b as short  //## issuekeys: MSG_UNNECESSARY_COERCION
     var b114 = b as int
     var b115 = b as float
     var b116 = b as long
@@ -102,7 +102,7 @@ class Errant_TypeCastPrimitiveTypes {
     var b218 = b as Boolean
 
     var b311 = b as String
-    var b312 = b as DateTime      //## issuekeys: INCONVERTIBLE TYPES; CANNOT CAST 'SHORT' TO 'JAVA.UTIL.DATE'
+    var b312 = b as DateTime      //## issuekeys: MSG_TYPE_MISMATCH
     var b313 = b as Object
     var b314 = b as BigInteger
     var b315 = b as BigDecimal
@@ -111,7 +111,7 @@ class Errant_TypeCastPrimitiveTypes {
     var b111 = b as char
     var b112 = b as byte
     var b113 = b as short
-    var b114 = b as int
+    var b114 = b as int  //## issuekeys: MSG_UNNECESSARY_COERCION
     var b115 = b as float
     var b116 = b as long
     var b117 = b as double
@@ -127,7 +127,7 @@ class Errant_TypeCastPrimitiveTypes {
     var b218 = b as Boolean
 
     var b311 = b as String
-    var b312 = b as DateTime      //## issuekeys: INCONVERTIBLE TYPES; CANNOT CAST 'INT' TO 'JAVA.UTIL.DATE'
+    var b312 = b as DateTime      //## issuekeys: MSG_TYPE_MISMATCH
     var b313 = b as Object
     var b314 = b as BigInteger
     var b315 = b as BigDecimal
@@ -137,7 +137,7 @@ class Errant_TypeCastPrimitiveTypes {
     var b112 = b as byte
     var b113 = b as short
     var b114 = b as int
-    var b115 = b as float
+    var b115 = b as float  //## issuekeys: MSG_UNNECESSARY_COERCION
     var b116 = b as long
     var b117 = b as double
     var b118 = b as boolean
@@ -152,7 +152,7 @@ class Errant_TypeCastPrimitiveTypes {
     var b218 = b as Boolean
 
     var b311 = b as String
-    var b312 = b as DateTime      //## issuekeys: INCONVERTIBLE TYPES; CANNOT CAST 'FLOAT' TO 'JAVA.UTIL.DATE'
+    var b312 = b as DateTime      //## issuekeys: MSG_TYPE_MISMATCH
     var b313 = b as Object
     var b314 = b as BigInteger
     var b315 = b as BigDecimal
@@ -163,7 +163,7 @@ class Errant_TypeCastPrimitiveTypes {
     var b113 = b as short
     var b114 = b as int
     var b115 = b as float
-    var b116 = b as long
+    var b116 = b as long  //## issuekeys: MSG_UNNECESSARY_COERCION
     var b117 = b as double
     var b118 = b as boolean
 
@@ -177,7 +177,7 @@ class Errant_TypeCastPrimitiveTypes {
     var b218 = b as Boolean
 
     var b311 = b as String
-    var b312 = b as DateTime      //## issuekeys: INCONVERTIBLE TYPES; CANNOT CAST 'LONG' TO 'JAVA.UTIL.DATE'
+    var b312 = b as DateTime      //## issuekeys: MSG_TYPE_MISMATCH
     var b313 = b as Object
     var b314 = b as BigInteger
     var b315 = b as BigDecimal
@@ -189,7 +189,7 @@ class Errant_TypeCastPrimitiveTypes {
     var b114 = b as int
     var b115 = b as float
     var b116 = b as long
-    var b117 = b as double
+    var b117 = b as double  //## issuekeys: MSG_UNNECESSARY_COERCION
     var b118 = b as boolean
 
     var b211 = b as Character
@@ -202,7 +202,7 @@ class Errant_TypeCastPrimitiveTypes {
     var b218 = b as Boolean
 
     var b311 = b as String
-    var b312 = b as DateTime      //## issuekeys: INCONVERTIBLE TYPES; CANNOT CAST 'DOUBLE' TO 'JAVA.UTIL.DATE'
+    var b312 = b as DateTime      //## issuekeys: MSG_TYPE_MISMATCH
     var b313 = b as Object
     var b314 = b as BigInteger
     var b315 = b as BigDecimal
