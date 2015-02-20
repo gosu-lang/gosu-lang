@@ -1,9 +1,8 @@
 package gw.specContrib.statements
 
-uses java.util.Date
-uses gw.specContrib.Type1
-
 class Errant_DuplicateCaseInSwitch  {
+  class Type1 {}
+  enum E { ONE, TWO }
 
   function test() {
     var x: Object = "neat"
@@ -24,11 +23,32 @@ class Errant_DuplicateCaseInSwitch  {
     }
 
     switch (x) {
+      case "one":
+        break
+      case "one":       //## issuekeys: MSG_DUPLICATE_CASE_EXPRESSION
+        break
+    }
+
+    switch (x) {
+      case null:
+        break
+      case null:       //## issuekeys: MSG_DUPLICATE_CASE_EXPRESSION
+        break
+    }
+
+    switch (x) {
       case 42:
-          break
-      case 42:  //## issuekeys: MSG_DUPLICATE_CASE_EXPRESSION
-          break
+        break
+      case 42:       //## issuekeys: MSG_DUPLICATE_CASE_EXPRESSION
+        break
+    }
+
+    var e: E
+    switch (e) {
+      case ONE:
+        break;
+      case ONE:      //## issuekeys: MSG_DUPLICATE_CASE_EXPRESSION
+        break;
     }
   }
-
 }

@@ -35,9 +35,7 @@ class Errant_ObjectInitializersTest {
         1.1            //## issuekeys: MSG_IMPLICIT_COERCION_ERROR
     }
 
-    var x19 = new C0(){
-          print("?")  //## issuekeys: MSG_UNEXPECTED_TOKEN, MSG_UNEXPECTED_TOKEN, MSG_UNEXPECTED_TOKEN, MSG_UNEXPECTED_TOKEN
-      }
+    var x19 = new C0() { print("?") }  //## issuekeys: MSG_UNEXPECTED_TOKEN, MSG_UNEXPECTED_TOKEN, MSG_UNEXPECTED_TOKEN, MSG_UNEXPECTED_TOKEN
   }
 
   class C0 {

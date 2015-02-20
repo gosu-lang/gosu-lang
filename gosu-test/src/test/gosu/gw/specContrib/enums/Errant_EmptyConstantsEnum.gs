@@ -1,5 +1,15 @@
 package gw.specContrib.enums
 
-enum Errant_EmptyConstantsEnum {
-  RED, BLUE, , , , , , GREEN   //## issuekeys: MSG_
+class Errant_EmptyConstantsEnum {
+  enum E1 {
+    RED, BLUE, , , , , , GREEN   //## issuekeys: MSG_
+  }
+
+  enum E2 {
+    RED,
+  }
+
+  enum E3 {
+    RED, ;
+  }
 }
