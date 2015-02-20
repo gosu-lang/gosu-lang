@@ -45,6 +45,22 @@ public class AsmMethod implements IGeneric {
     assignExceptions( exceptions );
   }
 
+  public void update( List<DeclarationPartSignatureVisitor> paramTypes, DeclarationPartSignatureVisitor returnType, List<DeclarationPartSignatureVisitor> exceptionTypes  ) {
+    for( DeclarationPartSignatureVisitor v: paramTypes ) {
+      if( _genericParameters.isEmpty() ) {
+        _genericParameters = new ArrayList<AsmType>();
+      }
+      _genericParameters.add( v.getCurrentType() );
+    }
+    _genericReturnType = returnType.getCurrentType();
+    for( DeclarationPartSignatureVisitor v: exceptionTypes ) {
+      if( _genericExceptions.isEmpty() ) {
+        _genericExceptions = new ArrayList<AsmType>();
+      }
+      _genericExceptions.add( v.getCurrentType() );
+    }
+  }
+
   public String getName() {
     return _methodType.getName();
   }
@@ -62,25 +78,6 @@ public class AsmMethod implements IGeneric {
   }
   public List<AsmType> getGenericParameters() {
     return _genericParameters.isEmpty() ? _parameters : _genericParameters;
-  }
-  void initGenericParameters() {
-    int iOffset = 0;
-    if( isConstructor() ) {
-      if( _owner.isEnum() ) {
-        iOffset = 2;
-      }
-      else if( _owner.getEnclosingType() != null && !Modifier.isStatic( _owner.getModifiers() ) ) {
-        iOffset = 1;
-      }
-    }
-    int iParamCount = _parameters.size() - iOffset;
-    if( iParamCount < 0 ) {
-      throw new IllegalStateException();
-    }
-    _genericParameters = new ArrayList<AsmType>( iParamCount );
-    for( int i = iOffset; i < _parameters.size(); i++ ) {
-      _genericParameters.add( _parameters.get( i ).copyNoArrayOrParameters() );
-    }
   }
 
   public AsmType getReturnType() {
