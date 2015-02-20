@@ -50,7 +50,7 @@ class Errant_GenericMethodBounds2 {
       var ub111 = testUnboundedParams(1.5f, "MyString")
 
       var myStringArray: String[] = {"foo", "bar"}
-      var ub112 = testUnboundedParams(new ArrayList<Integer>(), myStringArray)  //## issuekeys: 'TESTUNBOUNDEDPARAMS(JAVA.IO.SERIALIZABLE & JAVA.LANG.CLONEABLE, JAVA.IO.SERIALIZABLE & JAVA.LANG.CLONEABLE)' IN 'GW.SPECCONTRIB.GENERICS.ERRANT_GENERICMETHODBOUNDS2.UNBOUNDEDPARAMSTEST' CANNOT BE APPLIED TO '(JAVA.UTIL.ARRAYLIST<JAVA.LANG.INTEGER>, JAVA.LANG.STRING[])'
+      var ub112 = testUnboundedParams(new ArrayList<Integer>(), myStringArray)
     }
 
     //IDE-538 - Parser fine. Problem in Compiler
