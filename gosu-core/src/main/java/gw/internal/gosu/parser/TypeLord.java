@@ -1891,8 +1891,15 @@ public class TypeLord
   }
   public static IType getExpandableComponentType( IType type, boolean bCore )
   {
+    Set<IType> visited = new HashSet<IType>();
     while( true )
     {
+      if( !visited.add( type ) )
+      {
+        // short-circuit recursive types
+        return type;
+      }
+
       if( type.isArray() )
       {
         type = type.getComponentType();
