@@ -105,11 +105,11 @@ public class FunctionToInterfaceClassGenerator {
     // Since the return type of a given interface can vary if the interface is generic e.g., see Callable<V>
     //
 
-    IType genType = type.isParameterizedType() ? type.getGenericType() : type;
+    IType ifaceType = type.isParameterizedType() ? TypeLord.replaceTypeVariableTypeParametersWithBoundingTypes( type ): type;
     StringBuilder sb = new StringBuilder()
       .append( "package " ).append( namespace ).append( "\n" )
       .append( "\n" )
-      .append( "static class " ).append( relativeName ).append( " implements " ).append( genType.getName() ).append( " {\n" )
+      .append( "static class " ).append( relativeName ).append( " implements " ).append( ifaceType.getName() ).append( " {\n" )
       .append( "  final var _block: gw.lang.function.IBlock\n" )
       .append( "  \n" )
       .append( "  construct( brock: gw.lang.function.IBlock ) {\n" )
@@ -128,7 +128,6 @@ public class FunctionToInterfaceClassGenerator {
   private static void implementIface( StringBuilder sb, IType type ) {
     IMethodInfo mi = getSingleMethod( type );
     IType returnType = TypeLord.replaceTypeVariableTypeParametersWithBoundingTypes( mi.getReturnType() );
-    mi = getSingleMethod( IGosuClassInternal.Util.getGosuClassFrom( TypeLord.getPureGenericType( type ) ) );
     if( mi.getName().startsWith( "@" ) ) {
       if( returnType == JavaTypes.pVOID() ) {
         sb.append( "  property set " );
