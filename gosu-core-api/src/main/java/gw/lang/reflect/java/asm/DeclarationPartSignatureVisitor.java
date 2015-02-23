@@ -99,6 +99,7 @@ public class DeclarationPartSignatureVisitor extends SignatureVisitor {
       for( int i = 0; i < _iArrayDims; i++ ) {
         _typeArg.incArrayDims();
       }
+      _currentType.addTypeParameter( _typeArg );
     }
   }
 

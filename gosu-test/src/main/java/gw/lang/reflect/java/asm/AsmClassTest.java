@@ -109,6 +109,9 @@ public class AsmClassTest extends TestClass {
     assertEquals( "public java.util.Map<java.lang.String, java.util.List<java.lang.String>> mapStringListOfStringMethod()", methods.get( i++ ).toString() );
     assertEquals( "public static transient <E<java.lang.Object>>java.util.HashSet<E> newHashSet(E[])", methods.get( i++ ).toString() );
     assertEquals( "public <E<java.lang.Object>>gw.lang.reflect.java.asm.Asm_Simple$InnerClass<E> returnsInnerClass(gw.lang.reflect.java.asm.Asm_Simple$InnerClass)", methods.get( i++ ).toString() );
+    assertEquals( "public java.util.Map<java.lang.String, byte[]> mapOfStringToPrimitiveByteArray()", methods.get( i++ ).toString() );
+    assertEquals( "public java.util.Map<java.lang.String, byte[][]> mapOfStringToPrimitiveByteArrayArray()", methods.get( i++ ).toString() );
+    assertEquals( "public java.util.Map<byte[][], java.lang.String> mapOfPrimitiveByteArrayArrayToString()", methods.get( i++ ).toString() );
   }
 
   public void testInnerClasses() {

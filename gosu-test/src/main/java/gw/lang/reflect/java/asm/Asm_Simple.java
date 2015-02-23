@@ -68,6 +68,9 @@ public class Asm_Simple<S extends List<T>, T extends Comparable<T>> extends Arra
   public Map<String, List<String>> mapStringListOfStringMethod() {return null;}
   public static <E> HashSet<E> newHashSet(E... elements) {return null;}
   public <E> InnerClass<E> returnsInnerClass( InnerClass p0 ) {return null;}
+  public Map<String,byte[]> mapOfStringToPrimitiveByteArray() {return null;}
+  public Map<String,byte[][]> mapOfStringToPrimitiveByteArrayArray() {return null;}
+  public Map<byte[][], String> mapOfPrimitiveByteArrayArrayToString() {return null;}
 
   private class InnerClass<F> {}
 }
