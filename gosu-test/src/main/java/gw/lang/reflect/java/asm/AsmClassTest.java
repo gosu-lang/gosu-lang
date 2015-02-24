@@ -98,7 +98,7 @@ public class AsmClassTest extends TestClass {
     assertEquals( "public java.util.List<java.lang.Object[]> enumArrayArrayMethod(gw.lang.reflect.java.asm.Asm_Enum[][], java.lang.String[], java.lang.String, int[], int)", methods.get( i++ ).toString() );
     assertEquals( "public <E<java.lang.Object>>java.lang.String stringMethod(E, java.lang.String)", methods.get( i++ ).toString() );
     assertEquals( "public <E<java.util.List<java.lang.String>>>java.lang.String[] stringArrayMethod(E)", methods.get( i++ ).toString() );
-    assertEquals( "public <E<java.lang.Object>, R<java.util.List<java.lang.String>>>java.util.List<java.lang.String> listOfStringMethod(E, R)", methods.get( i++ ).toString() );
+    assertEquals( "public <E<java.lang.Object>, R<java.util.List<? extends java.lang.String>>>java.util.List<java.lang.String> listOfStringMethod(E, R)", methods.get( i++ ).toString() );
     assertEquals( "public java.util.List<java.util.List<java.lang.String>> listOfListOfStringMethod()", methods.get( i++ ).toString() );
     assertEquals( "public java.util.List<S> listOfSMethod()", methods.get( i++ ).toString() );
     assertEquals( "public java.util.List<?> listofWildMethod()", methods.get( i++ ).toString() );
@@ -117,7 +117,7 @@ public class AsmClassTest extends TestClass {
   public void testInnerClasses() {
     AsmClass asmClass = loadAsmClass( Asm_InnerClasses.class );
     Map<String, AsmInnerClassType> innerClasses = asmClass.getInnerClasses();
-    assertEquals( 2, innerClasses.size() );
+    assertEquals( 3, innerClasses.size() );
 
     asmClass = loadAsmClass( Asm_InnerClasses.Inner1.class );
     innerClasses = asmClass.getInnerClasses();
@@ -126,6 +126,15 @@ public class AsmClassTest extends TestClass {
     asmClass = loadAsmClass( Asm_InnerClasses.Inner2.class );
     innerClasses = asmClass.getInnerClasses();
     assertEquals( 3, innerClasses.size() );
+
+    AsmClass muhInner = loadAsmClass( Asm_InnerClasses.Muh.Inner.class );
+    assertEquals( 1, muhInner.getInterfaces().size() );
+    assertEquals( "java.lang.Comparable<gw.lang.reflect.java.asm.Asm_InnerClasses$Muh$Inner>", muhInner.getInterfaces().get( 0 ).toString() );
+    List<AsmMethod> methods = muhInner.getDeclaredMethodsAndConstructors();
+    assertEquals( Asm_InnerClasses.Muh.Inner.class.getDeclaredMethods().length + Asm_InnerClasses.Muh.Inner.class.getDeclaredConstructors().length, methods.size() );
+    int i = 0;
+    assertEquals( "public void <init>(gw.lang.reflect.java.asm.Asm_InnerClasses$Muh)", methods.get( i++ ).toString() );
+    assertEquals( "public int compareTo(gw.lang.reflect.java.asm.Asm_InnerClasses$Muh$Inner)", methods.get( i++ ).toString() );
   }
 
   public void testClassAnnotations() {

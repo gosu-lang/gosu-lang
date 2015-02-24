@@ -103,6 +103,9 @@ public class AsmClass implements IAsmType, IGeneric {
   public AsmType getSuperClass() {
     return _superClass;
   }
+  public void setSuperClass( AsmType type ) {
+    _superClass = type;
+  }
 
   public Map<String, AsmInnerClassType> getInnerClasses() {
     return _innerClasses;
@@ -342,7 +345,7 @@ public class AsmClass implements IAsmType, IGeneric {
       AsmMethod method = new AsmMethod( AsmClass.this, access, name, desc, exceptions );
       if( signature != null ) {
         SignatureReader sr = new SignatureReader( signature );
-        MethodDeclarationSignatureVisitor visitor = new MethodDeclarationSignatureVisitor( method, method.getMethodType() );
+        MethodDeclarationSignatureVisitor visitor = new MethodDeclarationSignatureVisitor( method );
         sr.accept( visitor );
         method.update( visitor.getParamVisitors(), visitor.getReturnVisitor(), visitor.getExceptionVisitors() );
       }
@@ -357,8 +360,9 @@ public class AsmClass implements IAsmType, IGeneric {
     private void assignGenericInfo( String signature ) {
       if( signature != null ) {
         SignatureReader sr = new SignatureReader( signature );
-        sr.accept( new TypeDeclarationSignatureVisitor( AsmClass.this, _type ) );
-
+        TypeDeclarationSignatureVisitor visitor = new TypeDeclarationSignatureVisitor( AsmClass.this );
+        sr.accept( visitor );
+        visitor.update();
       }
     }
 

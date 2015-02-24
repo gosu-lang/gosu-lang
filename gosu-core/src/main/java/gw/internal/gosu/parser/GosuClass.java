@@ -2826,7 +2826,9 @@ public class GosuClass extends AbstractType implements IGosuClassInternal
       paramTypes[i] = params[i].getFeatureType();
     }
     IRelativeTypeInfo ti = (IRelativeTypeInfo)JavaTypes.OBJECT().getTypeInfo();
-    IMethodInfo objMethod = ti.getMethod( JavaTypes.OBJECT(), mi.getDisplayName(), paramTypes );
+    String name = mi.getDisplayName();
+    name = name.equals( "@Class" ) ? "getClass" : name;
+    IMethodInfo objMethod = ti.getMethod( JavaTypes.OBJECT(), name, paramTypes );
     return objMethod != null;
   }
 
