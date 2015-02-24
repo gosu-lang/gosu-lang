@@ -23,5 +23,12 @@ class Errant_EnumLiteral {
     // IDE-1528
     var a = new HashMap<GosuEnum, String>() { VAL1 -> "val1" }
     var b = new ArrayList<GosuEnum>() { VAL1 }
+
+    // IDE-1846
+    var v1: String = {GosuEnum.VAL1 -> ""}[VAL1]
+    var v2: String = ({GosuEnum.VAL1 -> ""})[VAL1]
+    var v3: String = ({GosuEnum.VAL2 -> ""})[(VAL1)]
+    var m = {GosuEnum.VAL1 -> "val1", GosuEnum.VAL2 -> "val2"}
+    var v4: String = m[VAL2]
   }
 }
