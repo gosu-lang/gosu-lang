@@ -1,10 +1,16 @@
-package gw.specification.temp.dimensions
+package gw.specification.dimensions
 
 uses gw.BaseVerifyErrantTest
-uses java.math.BigDecimal
-uses java.lang.Double
+uses gw.specification.dimensions.p0.SampleDim
 
-class DimensionToNumberCoercionTest extends BaseVerifyErrantTest {
+uses java.lang.Double
+uses java.math.BigDecimal
+
+class DimensionConversionTest extends BaseVerifyErrantTest {
+  function testErrant_DimensionConversionTest(){
+    processErrantType(Errant_DimensionConversionTest)
+  }
+
   function testBigDecimal() {
     var dim = new SampleDim( 7 )
     assertEquals( 7BD, toBd( dim ) )
@@ -19,10 +25,10 @@ class DimensionToNumberCoercionTest extends BaseVerifyErrantTest {
     assertNull( toDouble( dim ) )
   }
 
-  function toBd( bd: BigDecimal ) : BigDecimal {
+  function toBd( bd: BigDecimal) : BigDecimal {
     return bd
   }
-  function toDouble( d: Double ) : Double {
+  function toDouble( d: Double) : Double {
     return d
   }
 }

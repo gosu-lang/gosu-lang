@@ -1,7 +1,7 @@
 package gw.specification.expressions.logicalOperators
 
 uses java.lang.*
-uses gw.specification.expressions.TestDim
+uses gw.specification.dimensions.p0.TestDim
 uses java.math.BigInteger
 uses java.math.BigDecimal
 uses java.util.ArrayList

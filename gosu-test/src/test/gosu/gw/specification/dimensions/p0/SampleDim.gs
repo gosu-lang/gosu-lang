@@ -1,4 +1,4 @@
-package gw.specification.temp.dimensions
+package gw.specification.dimensions.p0
 uses java.lang.Integer
 uses java.lang.Class
 uses gw.lang.IDimension
