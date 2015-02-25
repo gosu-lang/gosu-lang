@@ -129,9 +129,10 @@ public class FunctionToInterfaceClassGenerator {
   private static void implementIface( StringBuilder sb, IType type ) {
     IMethodInfo mi = getSingleMethod( type );
     IType returnType = TypeLord.replaceTypeVariableTypeParametersWithBoundingTypes( mi.getReturnType() );
-    mi = mi instanceof IJavaMethodInfo
-         ? getSingleMethod( IGosuClassInternal.Util.getGosuClassFrom( type ) )
-         : mi;
+    if( mi instanceof IJavaMethodInfo ) {
+      IMethodInfo miGosu = getSingleMethod( IGosuClassInternal.Util.getGosuClassFrom( type ) );
+      mi = miGosu == null ? mi : miGosu;
+    }
     if( mi.getName().startsWith( "@" ) ) {
       if( returnType == JavaTypes.pVOID() ) {
         sb.append( "  property set " );
