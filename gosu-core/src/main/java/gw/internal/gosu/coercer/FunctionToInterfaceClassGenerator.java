@@ -20,6 +20,7 @@ import gw.lang.reflect.gs.IGosuClass;
 import gw.lang.reflect.gs.IGosuEnhancement;
 import gw.lang.reflect.gs.IGosuObject;
 import gw.lang.reflect.gs.StringSourceFileHandle;
+import gw.lang.reflect.java.IJavaMethodInfo;
 import gw.lang.reflect.java.JavaTypes;
 import gw.lang.reflect.module.IModule;
 
@@ -128,6 +129,9 @@ public class FunctionToInterfaceClassGenerator {
   private static void implementIface( StringBuilder sb, IType type ) {
     IMethodInfo mi = getSingleMethod( type );
     IType returnType = TypeLord.replaceTypeVariableTypeParametersWithBoundingTypes( mi.getReturnType() );
+    mi = mi instanceof IJavaMethodInfo
+         ? getSingleMethod( IGosuClassInternal.Util.getGosuClassFrom( type ) )
+         : mi;
     if( mi.getName().startsWith( "@" ) ) {
       if( returnType == JavaTypes.pVOID() ) {
         sb.append( "  property set " );
