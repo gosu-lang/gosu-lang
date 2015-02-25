@@ -48,6 +48,7 @@ import gw.lang.reflect.IEnumValue;
 import gw.lang.reflect.IFunctionType;
 import gw.lang.reflect.IMethodInfo;
 import gw.lang.reflect.IParameterInfo;
+import gw.lang.reflect.IPropertyInfo;
 import gw.lang.reflect.IRelativeTypeInfo;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.ITypeRef;
@@ -2365,8 +2366,7 @@ public class GosuClass extends AbstractType implements IGosuClassInternal
       if( !bSuperClass || (isAccessible( gsContextClass, varStmt ) && !isHidden( varStmt )) )
       {
         ISymbol existingSymbol = table.getSymbol( varStmt.getSymbol().getName() );
-        if( existingSymbol != null && !GosuObjectUtil.equals( existingSymbol.getScriptPart(),
-                                                              varStmt.getSymbol().getScriptPart() ) )
+        if( existingSymbol != null && !areSymbolsFromSameDeclaration(varStmt, existingSymbol))
         {
           table.putSymbol( new AmbiguousSymbol( varStmt.getSymbol().getName() ) );
         }
@@ -2376,6 +2376,22 @@ public class GosuClass extends AbstractType implements IGosuClassInternal
         }
       }
     }
+  }
+
+  private boolean areSymbolsFromSameDeclaration(IVarStatement varStmt, ISymbol existingSymbol) {
+    boolean sameDeclaringType = GosuObjectUtil.equals(existingSymbol.getScriptPart(), varStmt.getSymbol().getScriptPart());
+    if( sameDeclaringType ) {
+      return true;
+    }
+    IGosuClassInternal existingDeclaringType = (IGosuClassInternal) existingSymbol.getScriptPart().getContainingType();
+    if( isProxy() && existingDeclaringType.isProxy() ) {
+      // This class is a Java proxy and so is the declaring class of the existing symbol.  In this case we need to get
+      // the JavaType corresponding with this class' proxy and find where the existing symbol comes from within the Java
+      // hierarchy.
+      IPropertyInfo pi = ((IRelativeTypeInfo) getJavaType().getTypeInfo()).getProperty( getTheRef(), existingSymbol.getName() );
+      return pi != null && pi.getOwnersType() == existingDeclaringType.getJavaType();
+    }
+    return false;
   }
 
   private void putFields( ISymbolTable table, IGosuClassInternal gsContextClass, boolean bSuperClass )
