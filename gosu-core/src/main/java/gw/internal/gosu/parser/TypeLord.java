@@ -1440,7 +1440,8 @@ public class TypeLord
       if( type instanceof IPlaceholder && ((IPlaceholder)type).isPlaceholder() )
       {
         // Dynamic type trumps all
-        return type;
+        //## todo: cache this type already!
+        return type.getName().equals( "dynamic.Dynamic" ) ? type : TypeSystem.getByFullName( "dynamic.Dynamic" );
       }
     }
 
