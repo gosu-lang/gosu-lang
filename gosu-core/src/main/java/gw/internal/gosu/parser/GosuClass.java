@@ -553,7 +553,21 @@ public class GosuClass extends AbstractType implements IGosuClassInternal
 
   public IJavaType getJavaType()
   {
-    return _proxiedJavaClassInGosuProxy;
+    if( _proxiedJavaClassInGosuProxy != null )
+    {
+      return _proxiedJavaClassInGosuProxy;
+    }
+    if( getEnclosingType() != null && isProxy() )
+    {
+      IJavaType javaType = ((IGosuClass) getEnclosingType()).getJavaType();
+      if( javaType != null )
+      {
+        IType proxiedJavaClass = javaType.getInnerClass(getRelativeName());
+        setJavaType((IJavaType) proxiedJavaClass);
+        return (IJavaType) proxiedJavaClass;
+      }
+    }
+    return null;
   }
 
   public void setJavaType( IJavaType javaType )
