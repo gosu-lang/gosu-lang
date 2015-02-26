@@ -144,15 +144,11 @@ class Errant_MetaTypeCastBuiltInTypesExpressionsTest <T extends java.lang.Number
 
   //Cast to Class<T>
   var classInteger1 : Class<Integer> = Integer as Class<Integer>
-  var classInteger2 : Class<Integer> = Integer as Object as Class<Integer>
 
   var classNumber1 : Class<Number> = Number as Class<Number>
-  var classNumber2 : Class<Number> = Number as Object as Class<Number>
 
   var classBigDecimal1 : Class<BigDecimal> = BigDecimal as Class<BigDecimal>
-  var classBigDecimal2 : Class<BigDecimal> = BigDecimal as Object as Class<BigDecimal>
 
   var classGeneric1 : Class<T> = T as Class<T>
-  var classGeneric2 : Class<T> = T as Object as Class<T>
 
 }
