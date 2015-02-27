@@ -2072,27 +2072,25 @@ public class GosuClass extends AbstractType implements IGosuClassInternal
     Class clazz = _javaClass;
     if( clazz == null )
     {
-      TypeSystem.lock();
-      try
+      synchronized( GosuClassLoader.instance().getActualLoader() )
       {
-        clazz = _javaClass;
-        if( clazz == null )
+        try
         {
-          clazz = GosuClassLoader.instance().defineClass( (IGosuClassInternal)getOrCreateTypeReference(), false );
-          // Only retain the class if this Gosu class is NOT some kind of transient type e.g., corresponds with an eval expresion or is a PCF fragment.
-          if( !(clazz.getClassLoader() instanceof SingleServingGosuClassLoader) )
+          clazz = _javaClass;
+          if( clazz == null )
           {
-            _javaClass = clazz;
+            clazz = GosuClassLoader.instance().defineClass( (IGosuClassInternal)getOrCreateTypeReference(), false );
+            // Only retain the class if this Gosu class is NOT some kind of transient type e.g., corresponds with an eval expresion or is a PCF fragment.
+            if( !(clazz.getClassLoader() instanceof SingleServingGosuClassLoader) )
+            {
+              _javaClass = clazz;
+            }
           }
         }
-      }
-      catch( ClassNotFoundException e )
-      {
-        throw GosuExceptionUtil.forceThrow( e );
-      }
-      finally
-      {
-        TypeSystem.unlock();
+        catch( ClassNotFoundException e )
+        {
+          throw GosuExceptionUtil.forceThrow( e );
+        }
       }
     }
     return clazz;
