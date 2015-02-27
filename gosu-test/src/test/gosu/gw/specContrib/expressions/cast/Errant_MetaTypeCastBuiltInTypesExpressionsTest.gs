@@ -2,8 +2,10 @@ package gw.specContrib.expressions.cast
 
 uses java.util.*
 uses java.lang.*
+uses java.math.BigDecimal
+uses java.lang.Class
 
-class Errant_MetaTypeCastBuiltInTypesExpressionsTest {
+class Errant_MetaTypeCastBuiltInTypesExpressionsTest <T extends java.lang.Number> {
 
   interface IA {}
   structure SA {}
@@ -139,5 +141,14 @@ class Errant_MetaTypeCastBuiltInTypesExpressionsTest {
   var interface120 = SA as SA
   var interface121 = SA as AImpl  //## issuekeys: MSG_TYPE_MISMATCH
   var interface122 = SA as String
+
+  //Cast to Class<T>
+  var classInteger1 : Class<Integer> = Integer as Class<Integer>
+
+  var classNumber1 : Class<Number> = Number as Class<Number>
+
+  var classBigDecimal1 : Class<BigDecimal> = BigDecimal as Class<BigDecimal>
+
+  var classGeneric1 : Class<T> = T as Class<T>
 
 }

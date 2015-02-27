@@ -2806,9 +2806,8 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
       {
         IType setterType = setter.getArgTypes()[0];
         IType returnType = getter.getReturnType();
-        if( !GosuObjectUtil.equals( returnType, setterType ) ||
-            !GosuObjectUtil.equals( propertySymbol.getType(), setterType ) ||
-            !GosuObjectUtil.equals( propertySymbol.getType(), setterType ) )
+        if( !setterType.isAssignableFrom( returnType ) ||
+            !setterType.isAssignableFrom( propertySymbol.getType() ) )
         {
           verify( stmt, false, Res.MSG_PROPERTIES_MUST_AGREE_ON_TYPE );
         }
