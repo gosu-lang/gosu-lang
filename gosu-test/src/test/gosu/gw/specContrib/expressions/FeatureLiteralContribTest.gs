@@ -1,6 +1,7 @@
 package gw.specContrib.expressions
 
 uses gw.test.TestClass
+uses java.lang.Math
 
 class FeatureLiteralContribTest extends TestClass {
 
@@ -10,7 +11,12 @@ class FeatureLiteralContribTest extends TestClass {
   }
 
   function testOverloadedMethodResolutionWorks() {
-    assertNotNull( Foo#hello( asdf, int) )
+    assertNotNull( Foo#hello(String, int) )
+    assertNotNull( Foo#hello("", 1) )
+    assertNotNull( Foo#hello(String, double) )
+    assertNotNull( Foo#hello("", 1.0) )
+    assertNotNull( Math#min(int, int) )
+    assertNotNull( Math#min(1, 1) )
   }
 
 }

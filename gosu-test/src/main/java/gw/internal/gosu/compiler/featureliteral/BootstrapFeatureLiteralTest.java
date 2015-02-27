@@ -58,30 +58,11 @@ public class BootstrapFeatureLiteralTest extends TestClass
     assertTrue( eval( "\"foo\"#substring(1) as Object == \"foo\"#substring(1)" ) );
     assertFalse( eval( "\"bar\"#substring(1) as Object == \"foo\"#substring(1)" ) );
     
-    // chained method refs
-    assertTrue( eval( "String#substring(int)#substring(int) as Object == String#substring(int)#substring(int)" ) );
-    assertFalse( eval( "String#substring(int)#substring(1)  as Object == String#substring(int)#substring(int)" ) );
-    assertFalse( eval( "\"foo\"#substring(int)#substring(int) as Object == String#substring(int)#substring(int)" ) );
-    assertFalse( eval( "\"foo\"#substring(int)#substring(1) as Object == String#substring(int)#substring(int)" ) );
-    assertTrue( eval( "String#substring(int)#substring(1) as Object == String#substring(int)#substring(1)" ) );
-    assertFalse( eval( "\"foo\"#substring(int)#substring(int) as Object == String#substring(int)#substring(1)" ) );
-    assertFalse( eval( "\"foo\"#substring(int)#substring(1) as Object == String#substring(int)#substring(1)" ) );
-    assertTrue( eval( "\"foo\"#substring(int)#substring(int) as Object == \"foo\"#substring(int)#substring(int)" ) );
-    assertFalse( eval( "\"foo\"#substring(int)#substring(int) as Object == String#substring(int)#substring(1)" ) );
-    assertTrue( eval( "\"foo\"#substring(int)#substring(1) as Object == \"foo\"#substring(int)#substring(1)" ) );
-    assertFalse( eval( "\"bar\"#substring(int)#substring(1) as Object == \"foo\"#substring(int)#substring(1)" ) );
-    
     // property refs
     assertTrue( eval( "String#Bytes as Object == String#Bytes" ) );
     assertFalse( eval( "\"foo\"#Bytes as Object == String#Bytes" ) );
     assertTrue( eval( "\"foo\"#Bytes as Object == \"foo\"#Bytes" ) );
     assertFalse( eval( "\"bar\"#Bytes as Object == \"foo\"#Bytes" ) );
-
-    // chained property refs
-    assertTrue( eval( "String#substring(int)#Bytes as Object == String#substring(int)#Bytes" ) );
-    assertFalse( eval( "\"foo\"#substring(int)#Bytes as Object == String#substring(int)#Bytes" ) );
-    assertTrue( eval( "\"foo\"#substring(int)#Bytes as Object == \"foo\"#substring(int)#Bytes" ) );
-    assertFalse( eval( "\"bar\"#substring(int)#Bytes as Object == \"foo\"#substring(int)#Bytes" ) );
   }
 
   private void assertTrue( Object o )
