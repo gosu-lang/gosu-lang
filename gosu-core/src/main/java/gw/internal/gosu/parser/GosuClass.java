@@ -64,6 +64,7 @@ import gw.lang.reflect.gs.ISourceFileHandle;
 import gw.lang.reflect.java.IJavaType;
 import gw.lang.reflect.java.JavaTypes;
 import gw.lang.reflect.module.IModule;
+import gw.lang.reflect.module.TypeSystemLockHelper;
 import gw.util.GosuExceptionUtil;
 import gw.util.GosuObjectUtil;
 import gw.util.GosuStringUtil;
@@ -2086,25 +2087,27 @@ public class GosuClass extends AbstractType implements IGosuClassInternal
     Class clazz = _javaClass;
     if( clazz == null )
     {
-      synchronized( GosuClassLoader.instance().getActualLoader() )
+      TypeSystemLockHelper.getTypeSystemLockWithMonitor( GosuClassLoader.instance().getActualLoader() );
+      try
       {
-        try
+        clazz = _javaClass;
+        if( clazz == null )
         {
-          clazz = _javaClass;
-          if( clazz == null )
+          clazz = GosuClassLoader.instance().defineClass( (IGosuClassInternal)getOrCreateTypeReference(), false );
+          // Only retain the class if this Gosu class is NOT some kind of transient type e.g., corresponds with an eval expresion or is a PCF fragment.
+          if( !(clazz.getClassLoader() instanceof SingleServingGosuClassLoader) )
           {
-            clazz = GosuClassLoader.instance().defineClass( (IGosuClassInternal)getOrCreateTypeReference(), false );
-            // Only retain the class if this Gosu class is NOT some kind of transient type e.g., corresponds with an eval expresion or is a PCF fragment.
-            if( !(clazz.getClassLoader() instanceof SingleServingGosuClassLoader) )
-            {
-              _javaClass = clazz;
-            }
+            _javaClass = clazz;
           }
         }
-        catch( ClassNotFoundException e )
-        {
-          throw GosuExceptionUtil.forceThrow( e );
-        }
+      }
+      catch( ClassNotFoundException e )
+      {
+        throw GosuExceptionUtil.forceThrow( e );
+      }
+      finally
+      {
+        TypeSystem.unlock();
       }
     }
     return clazz;

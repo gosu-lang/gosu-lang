@@ -2,6 +2,7 @@ package gw.lang.reflect.gs;
 
 import gw.util.concurrent.ConcurrentHashSet;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.net.URLClassLoader;
@@ -29,7 +30,26 @@ public class UrlClassLoaderWrapper {
     if( wrapped == null ) {
       throw new IllegalStateException( "Could not wrap loader: " + loader.getClass().getName() );
     }
+    makeLoaderNotParallelCapable( loader );
     return wrapped;
+  }
+
+  private static void makeLoaderNotParallelCapable( ClassLoader loader )
+  {
+    try
+    {
+      Field field = ClassLoader.class.getDeclaredField( "parallelLockMap" );
+      field.setAccessible( true );
+      field.set( loader, null );
+
+      field = ClassLoader.class.getDeclaredField( "assertionLock" );
+      field.setAccessible( true );
+      field.set( loader, loader );
+    }
+    catch( Exception e )
+    {
+      // don't care
+    }
   }
 
   public static UrlClassLoaderWrapper wrap( ClassLoader loader ) {
