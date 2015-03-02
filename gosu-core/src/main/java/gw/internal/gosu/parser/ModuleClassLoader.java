@@ -9,10 +9,8 @@ import gw.fs.IDirectory;
 import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.TypeSystemLock;
 import gw.lang.reflect.module.IExecutionEnvironment;
-import gw.lang.reflect.module.IJreModule;
 import gw.lang.reflect.module.IModule;
 
-import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
@@ -21,6 +19,14 @@ import java.util.Collections;
 import java.util.List;
 
 public class ModuleClassLoader extends URLClassLoader implements IModuleClassLoader {
+  static {
+    registerAsParallelCapable();
+  }
+  @Override
+  protected Object getClassLoadingLock( String className ) {
+    return TypeSystemLock.getMonitor();
+  }
+
   private IModule _module;
 
   private ModuleClassLoader(URL[] urls, ClassLoader parent, IModule module) {
@@ -38,12 +44,6 @@ public class ModuleClassLoader extends URLClassLoader implements IModuleClassLoa
 
   public boolean isDeferToParent() {
     return getURLs().length == 0 && (_module == _module.getExecutionEnvironment().getJreModule());
-  }
-
-  @Override
-  protected Object getClassLoadingLock( String className )
-  {
-    return TypeSystemLock.getMonitor();
   }
 
   @Override
