@@ -12,7 +12,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 /**
  */
-class TypeSystemLock implements Lock
+public class TypeSystemLock implements Lock
 {
   private Lock _interimLock = new ReentrantLock();
   private ThreadLocal<Integer> _interimCount = new ThreadLocal<>();
@@ -82,29 +82,39 @@ class TypeSystemLock implements Lock
     throw new UnsupportedOperationException();
   }
 
+  public static ClassLoader getMonitor()
+  {
+    return ClassLoader.getSystemClassLoader();
+//    return
+//      GosuClassPathThing.canWrapChain()
+//      ? ClassLoader.getSystemClassLoader()
+//      : TypeSystem.getGosuClassLoader().getActualLoader();
+  }
+
   private static void enterLoaderChainMonitors()
   {
-    _enterLoaderChainMonitors( TypeSystem.getGosuClassLoader().getActualLoader() );
+    //_enterLoaderChainMonitors( TypeSystem.getGosuClassLoader().getActualLoader() );
+    _enterLoaderChainMonitors( getMonitor() );
   }
   private static void _enterLoaderChainMonitors( ClassLoader cl )
   {
     GosuUnsafeUtil.monitorEnter( cl );
-    if( cl != ClassLoader.getSystemClassLoader() && GosuClassPathThing.canWrapChain() )
-    {
-      _enterLoaderChainMonitors( cl.getParent() );
-    }
+//    if( cl != ClassLoader.getSystemClassLoader() && GosuClassPathThing.canWrapChain() )
+//    {
+//      _enterLoaderChainMonitors( cl.getParent() );
+//    }
   }
 
   private static void exitLoaderChainMonitors()
   {
-    _exitLoaderChainMonitors( TypeSystem.getGosuClassLoader().getActualLoader() );
+    _exitLoaderChainMonitors( getMonitor() );
   }
   private static void _exitLoaderChainMonitors( ClassLoader cl )
   {
-    if( cl != ClassLoader.getSystemClassLoader() && GosuClassPathThing.canWrapChain() )
-    {
-      _exitLoaderChainMonitors( cl.getParent() );
-    }
+//    if( cl != ClassLoader.getSystemClassLoader() && GosuClassPathThing.canWrapChain() )
+//    {
+//      _exitLoaderChainMonitors( cl.getParent() );
+//    }
     GosuUnsafeUtil.monitorExit( cl );
   }
 }

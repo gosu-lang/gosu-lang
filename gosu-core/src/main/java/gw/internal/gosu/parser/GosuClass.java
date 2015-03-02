@@ -2087,7 +2087,7 @@ public class GosuClass extends AbstractType implements IGosuClassInternal
     Class clazz = _javaClass;
     if( clazz == null )
     {
-      TypeSystemLockHelper.getTypeSystemLockWithMonitor( GosuClassLoader.instance().getActualLoader() );
+      TypeSystem.lock();
       try
       {
         clazz = _javaClass;
