@@ -10,17 +10,12 @@ class Errant_AnonymousClassCallsFunction {
   }
 
   function somefunOne() {
-    //IDE-1059 - Error shown on different lines in Parser as compared to OS Gosu. Not an issue. Just implementation difference
-    var xx = new AA() {
-      foo()                 //## issuekeys: UNEXPECTED TOKEN
-    }
+    //IDE-1059
+    var xx = new AA() { foo() }                //## issuekeys: UNEXPECTED TOKEN
   }
 
   function someFunTwo() {
-    //IDE-1059 - Error shown on different lines in Parser as compared to OS Gosu. Not an issue. Just implementation difference
-    var yy = new AA() {
-      print("hello")        //## issuekeys: UNEXPECTED TOKEN
-    }
+    //IDE-1059
+    var yy = new AA() { print("hello") }       //## issuekeys: UNEXPECTED TOKEN
   }
-
 }
