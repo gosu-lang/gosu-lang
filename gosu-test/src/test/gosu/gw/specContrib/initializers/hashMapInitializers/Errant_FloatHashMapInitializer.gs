@@ -22,8 +22,8 @@ class Errant_FloatHashMapInitializer {
   var floatHashMap1112 : HashMap<Float, Float> = {42.5f->1s}
   var floatHashMap1113 : HashMap<Float, Float> = {42.5f->42}
   var floatHashMap1114 : HashMap<Float, Float> = {42.5f->42.5f}
-  //TODO Waiting for IDE-494
-  //var floatHashMap1115 : HashMap<Float, Float> = {42.5f->42.5}
+  //IDE-494 Fixed
+  var floatHashMap1115 : HashMap<Float, Float> = {42.5f->42.5}
   var floatHashMap1116 : HashMap<Float, Float> = {42.5f->BigInteger.ONE}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.MATH.BIGINTEGER', REQUIRED: 'JAVA.LANG.FLOAT'
   var floatHashMap1117 : HashMap<Float, Float> = {42.5f->BigDecimal.TEN}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.MATH.BIGDECIMAL', REQUIRED: 'JAVA.LANG.FLOAT'
   var floatHashMap1118 : HashMap<Float, Float> = {42.5f->d1}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.DATE', REQUIRED: 'JAVA.LANG.FLOAT'
@@ -38,8 +38,8 @@ class Errant_FloatHashMapInitializer {
   var floatHashMap1212 : HashMap<Float, Float> = {1s-> 42.5f}
   var floatHashMap1213 : HashMap<Float, Float> = {42-> 42.5f}
   var floatHashMap1214 : HashMap<Float, Float> = {42.5f-> 42.5f}
-  //TODO Waiting for IDE-494
-  //var floatHashMap1215 : HashMap<Float, Float> = {42.5-> 42.5f}
+  //IDE-494 Fixed
+  var floatHashMap1215 : HashMap<Float, Float> = {42.5-> 42.5f}
   var floatHashMap1216 : HashMap<Float, Float> = {BigInteger.ONE-> 42.5f}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.MATH.BIGINTEGER', REQUIRED: 'JAVA.LANG.FLOAT'
   var floatHashMap1217 : HashMap<Float, Float> = {BigDecimal.TEN-> 42.5f}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.MATH.BIGDECIMAL', REQUIRED: 'JAVA.LANG.FLOAT'
   var floatHashMap1218 : HashMap<Float, Float> = {d1-> 42.5f}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.DATE', REQUIRED: 'JAVA.LANG.FLOAT'
@@ -54,8 +54,8 @@ class Errant_FloatHashMapInitializer {
   var floatHashMap1312 : HashMap<Float, Float> = {42.5f->43.5f, 42.5f->1s}
   var floatHashMap1313 : HashMap<Float, Float> = {42.5f->43.5f, 42.5f->42}
   var floatHashMap1314 : HashMap<Float, Float> = {42.5f->43.5f, 42.5f->42.5f}
-  //TODO Waiting for IDE-494
-  //var floatHashMap1315 : HashMap<Float, Float> = {42.5f->43.5f, 42.5f->42.5}
+  //IDE-494 Fixed
+  var floatHashMap1315 : HashMap<Float, Float> = {42.5f->43.5f, 42.5f->42.5}
   var floatHashMap1316 : HashMap<Float, Float> = {42.5f->43.5f, 42.5f->BigInteger.ONE}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.MATH.BIGINTEGER', REQUIRED: 'JAVA.LANG.FLOAT'
   var floatHashMap1317 : HashMap<Float, Float> = {42.5f->43.5f, 42.5f->BigDecimal.TEN}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.MATH.BIGDECIMAL', REQUIRED: 'JAVA.LANG.FLOAT'
   var floatHashMap1318 : HashMap<Float, Float> = {42.5f->43.5f, 42.5f->d1}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.DATE', REQUIRED: 'JAVA.LANG.FLOAT'
@@ -70,8 +70,8 @@ class Errant_FloatHashMapInitializer {
   var floatHashMap1412 : HashMap<Float, Float> = {42.5f->43.5f, 1s->43.5f}
   var floatHashMap1413 : HashMap<Float, Float> = {42.5f->43.5f, 42->43.5f}
   var floatHashMap1414 : HashMap<Float, Float> = {42.5f->43.5f, 42.5f->43.5f}
-  //TODO Waiting for IDE-494
-  //var floatHashMap1415 : HashMap<Float, Float> = {42.5f->43.5f, 42.5->43.5f}
+  //IDE-494 Fixed
+  var floatHashMap1415 : HashMap<Float, Float> = {42.5f->43.5f, 42.5->43.5f}
   var floatHashMap1416 : HashMap<Float, Float> = {42.5f->43.5f, BigInteger.ONE->43.5f}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.MATH.BIGINTEGER', REQUIRED: 'JAVA.LANG.FLOAT'
   var floatHashMap1417 : HashMap<Float, Float> = {42.5f->43.5f, BigDecimal.TEN->43.5f}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.MATH.BIGDECIMAL', REQUIRED: 'JAVA.LANG.FLOAT'
   var floatHashMap1418 : HashMap<Float, Float> = {42.5f->43.5f, d1->43.5f}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.DATE', REQUIRED: 'JAVA.LANG.FLOAT'
