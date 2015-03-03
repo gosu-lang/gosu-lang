@@ -257,34 +257,48 @@ public class TypeLord
           List<IType> types = new ArrayList<IType>( typeArgs.size() );
           for( AsmType typeArg: typeArgs )
           {
+            IType typeParam = null;
             if( !bKeepTypeVars && typeArg.isTypeVariable() )
             {
-              List<AsmType> typeParameters = typeArg.getTypeParameters();
-              if( typeParameters.isEmpty() )
+              if( !recursiveTypes.contains( typeArg ) )
               {
-                types.add( JavaTypes.OBJECT() );
-              }
-              else
-              {
-                AsmType bound = typeParameters.get( 0 );
-                if( !recursiveTypes.contains( bound ) )
+                IType t = getActualType( typeArg, actualParamByVarName, bKeepTypeVars, recursiveTypes );
+                if( !(t instanceof ErrorType) )
                 {
-                  types.add( getActualType( bound, actualParamByVarName, bKeepTypeVars, recursiveTypes ) );
+                  typeParam = t;
                 }
-                else if( bound.isParameterized() )
+              }
+
+              if( typeParam == null )
+              {
+                List<AsmType> typeParameters = typeArg.getTypeParameters();
+                if( typeParameters.isEmpty() )
                 {
-                  types.add( getActualType( bound.getRawType(), actualParamByVarName, bKeepTypeVars, recursiveTypes ) );
+                  typeParam = JavaTypes.OBJECT();
                 }
                 else
                 {
-                  throw new IllegalStateException( "Expecting bound to be a parameterized here" );
+                  AsmType bound = typeParameters.get( 0 );
+                  if( !recursiveTypes.contains( bound ) )
+                  {
+                    typeParam = getActualType( bound, actualParamByVarName, bKeepTypeVars, recursiveTypes );
+                  }
+                  else if( bound.isParameterized() )
+                  {
+                    typeParam = getActualType( bound.getRawType(), actualParamByVarName, bKeepTypeVars, recursiveTypes );
+                  }
+                  else
+                  {
+                    throw new IllegalStateException( "Expecting bound to be a parameterized here" );
+                  }
                 }
               }
             }
             else
             {
-              types.add( getActualType( typeArg, actualParamByVarName, bKeepTypeVars, recursiveTypes ) );
+              typeParam = getActualType( typeArg, actualParamByVarName, bKeepTypeVars, recursiveTypes );
             }
+            types.add( typeParam );
           }
           IType genType = TypeSystem.getByFullNameIfValid( type.getRawType().getName() );//getActualType( type.getRawType(), actualParamByVarName, bKeepTypeVars, recursiveTypes );
           return genType.getParameterizedType( types.toArray( new IType[types.size()] ) );
