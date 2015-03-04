@@ -36,10 +36,14 @@ class Errant_ElementAccessExpressionTest {
     var a : int[] = {1,2,3}
     i = a[0]
     a[0] = 8
+    a["x"] = 3  //## issuekeys: MSG_TYPE_MISMATCH, MSG_ARRAY_INDEX_MUST_BE_INT
+    a['x'] = 3
 
     var b : List<Integer> = {1,2,3}
     i = b[0]
     b[new Integer(0)] = 8
+    b["x"] = 3  //## issuekeys: MSG_TYPE_MISMATCH, MSG_ARRAY_INDEX_MUST_BE_INT
+    b['x'] = 3
 
     var c : Collection<Integer> = {1,2,3}
     i = c[0]  //## issuekeys: MSG_TYPE_MISMATCH, MSG_PROPERTY_REFLECTION_ONLY_WITH_STRINGS
@@ -48,10 +52,14 @@ class Errant_ElementAccessExpressionTest {
     var e : ArrayList<Integer> = {1,2,3}
     i = e[0]
     e[0] = 8
+    i = e[new Integer(1)]
+    e[new Integer(1)] = 8
 
     var f : CharSequence = "123"
     x = f[0]
+    x = f[new Integer(1)]
     f[0] = '8'  //## issuekeys: MSG_STR_IMMUTABLE
+    x = f["A"]   //## issuekeys: MSG_TYPE_MISMATCH, MSG_ARRAY_INDEX_MUST_BE_INT
 
     var g : StringBuilder = new StringBuilder("123")
     x = g[0]
@@ -72,6 +80,7 @@ class Errant_ElementAccessExpressionTest {
      x = l[1]  //## issuekeys: MSG_IMPLICIT_COERCION_ERROR
     x = l["A"]
     l["A"] = '8'
+    l['a'] = '6'
 
     var m : Map =  {1-> 'a', 2 -> 'b', 3 -> 'c'}
     x = m[1] as Character
