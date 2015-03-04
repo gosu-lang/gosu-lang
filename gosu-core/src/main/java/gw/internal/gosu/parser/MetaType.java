@@ -4,6 +4,7 @@
 
 package gw.internal.gosu.parser;
 
+import gw.config.CommonServices;
 import gw.lang.parser.StandardCoercionManager;
 import gw.lang.reflect.*;
 import gw.lang.reflect.java.IJavaType;
@@ -186,7 +187,7 @@ public class MetaType extends AbstractType implements IMetaType
      return
        _type instanceof MetaType
        ? ((MetaType)_type).isDefault()
-       : _type.equals( DEFAULT_TYPE.get() );
+       : _type.equals(DEFAULT_TYPE.get());
   }
 
   @Override
@@ -232,14 +233,19 @@ public class MetaType extends AbstractType implements IMetaType
       return getComponentType().isAssignableFrom( type.getComponentType() );
     }
 
-    return !(isArray() || type.isArray()) && type.getAllTypesInHierarchy().contains( JavaTypes.ITYPE() ) &&
-           (!(type instanceof IMetaType) ||
-            getType().equals( DEFAULT_TYPE.get() ) ||
-            ((IMetaType)type).getType().equals( DEFAULT_TYPE.get() ) ||
-            getType().equals( ROOT_TYPE.get() ) ||
-            ((IMetaType)type).getType().equals( ROOT_TYPE.get() ) ||
-            getType().isAssignableFrom( ((IMetaType)type).getType() ) ||
-            StandardCoercionManager.isStructurallyAssignable( getType(), ((IMetaType)type).getType() ));
+    return !(isArray() || type.isArray()) && type.getAllTypesInHierarchy().contains(JavaTypes.ITYPE()) &&
+           ((!(type instanceof IMetaType) && (isDefaultOrRootType() || type.isAssignableFrom( getType() ) || CommonServices.getEntityAccess().isTypekey( getType() ) || CommonServices.getEntityAccess().isEntityClass( getType() ))) ||
+            ((type instanceof IMetaType) &&
+             (isDefaultOrRootType() ||
+              ((IMetaType) type).getType().equals(DEFAULT_TYPE.get()) ||
+              ((IMetaType) type).getType().equals(ROOT_TYPE.get()) ||
+              getType().isAssignableFrom(((IMetaType) type).getType()) ||
+              StandardCoercionManager.isStructurallyAssignable(getType(), ((IMetaType) type).getType()))));
+  }
+
+  private boolean isDefaultOrRootType() {
+    return getType().equals(DEFAULT_TYPE.get()) ||
+      getType().equals(ROOT_TYPE.get());
   }
 
   /**
