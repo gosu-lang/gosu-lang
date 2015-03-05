@@ -12,6 +12,8 @@ uses java.util.Map
 uses java.lang.Character
 uses java.lang.IllegalArgumentException
 uses gw.specification.expressions.elementAccessExpression.p0.MyClass
+uses gw.specification.expressions.elementAccessExpression.p0.B
+uses java.lang.IllegalAccessException
 
 class ElementAccessExpressionTest extends BaseVerifyErrantTest {
 
@@ -144,6 +146,24 @@ class ElementAccessExpressionTest extends BaseVerifyErrantTest {
      assertEquals(3, i2)
      n2["c"] = 6
      assertEquals(6, n2["c"])
+
+     var n3 : B = new B(10, "test")
+     // Access instance field/property
+     assertEquals("test", n3["BField2"])
+     assertEquals("test", n3["bf2"])
+     assertEquals(10, n3["AField1"])
+     var ex1 : boolean = false
+     try {i = n3["bf1"] as int}
+         catch (e_ : IllegalArgumentException){ ex1 = true}
+     assertTrue(ex1)
+     // Access static field/property
+     assertEquals("from class B", n3["bf4"])
+     assertEquals("from class B", n3["BField4"])
+     assertEquals("from class A", n3["AField3"])
+     var ex2 : boolean = false
+     try {i = n3["af3"] as int}
+         catch (e_ : IllegalArgumentException){ ex2 = true}
+     assertTrue(ex2)
    }
 
 }
