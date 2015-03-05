@@ -89,7 +89,7 @@ public class MetaType extends AbstractType implements IMetaType
 
   private IType _type;
   transient private Map<IRelativeTypeInfo.Accessibility, ITypeInfo> _typeInfoByAccessibility;
-  transient private Set<IJavaType> _allTypesInHierarchy;
+  transient private Set<IType> _allTypesInHierarchy;
   transient private LockingLazyVar<IType> _arrayType;
   transient private GenericTypeVariable[] _typeVars;
   transient private boolean _bLiteral;
@@ -373,7 +373,11 @@ public class MetaType extends AbstractType implements IMetaType
     {
       //noinspection unchecked,RedundantCast
       IType type = TypeSystem.get(getType().getClass(), TypeSystem.getGlobalModule());
-      _allTypesInHierarchy = (Set)getTypeInterfaces(type, new HashSet<IType>() );
+      Set<IType> types = getTypeInterfaces(type, new HashSet<IType>());
+      for( IType t: getType().getAllTypesInHierarchy() ) {
+        types.add( MetaType.get( t ) );
+      }
+      _allTypesInHierarchy = types;
     }
     return _allTypesInHierarchy;
   }
@@ -382,7 +386,8 @@ public class MetaType extends AbstractType implements IMetaType
   {
     if( getType().equals( DEFAULT_TYPE.get() ) )
     {
-      return Collections.singleton( (IType)JavaTypes.ITYPE() );
+      set.add( (IType)JavaTypes.ITYPE() );
+      return set;
     }
     for( IType iface : type.getInterfaces() )
     {

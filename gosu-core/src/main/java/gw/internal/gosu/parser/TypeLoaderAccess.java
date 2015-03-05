@@ -1376,9 +1376,10 @@ public class TypeLoaderAccess extends BaseService implements ITypeSystem
   }
 
   private boolean canCastMetaType( IType lhsType, IType rhsType ) {
-    return rhsType instanceof IGosuClass && ((IGosuClass)rhsType).isStructure() &&
+    return (lhsType instanceof IMetaType && ((IMetaType) lhsType).getType() instanceof ITypeVariableType && canCast( ((ITypeVariableType) ((IMetaType) lhsType).getType()).getBoundingType(), rhsType )) ||
+      (rhsType instanceof IGosuClass && ((IGosuClass)rhsType).isStructure() &&
            (lhsType instanceof IMetaType && StandardCoercionManager.isStructurallyAssignable( rhsType, ((IMetaType) lhsType).getType() ) ||
-            JavaTypes.CLASS().isAssignableFrom( lhsType ) && (!lhsType.isParameterizedType() || StandardCoercionManager.isStructurallyAssignable( rhsType, lhsType.getTypeParameters()[0] )));
+            JavaTypes.CLASS().isAssignableFrom( lhsType ) && (!lhsType.isParameterizedType() || StandardCoercionManager.isStructurallyAssignable( rhsType, lhsType.getTypeParameters()[0] ))));
   }
 
   public IJavaType getPrimitiveType(String name) {
