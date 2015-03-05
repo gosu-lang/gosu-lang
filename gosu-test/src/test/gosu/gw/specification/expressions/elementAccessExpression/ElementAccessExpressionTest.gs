@@ -11,6 +11,7 @@ uses java.lang.StringBuilder
 uses java.util.Map
 uses java.lang.Character
 uses java.lang.IllegalArgumentException
+uses gw.specification.expressions.elementAccessExpression.p0.MyClass
 
 class ElementAccessExpressionTest extends BaseVerifyErrantTest {
 
@@ -18,22 +19,6 @@ class ElementAccessExpressionTest extends BaseVerifyErrantTest {
     processErrantType(Errant_ElementAccessExpressionTest)
   }
 
-  static class MyList extends ArrayList<Integer> {
-
-    function food() {
-      var f : Integer = this[0]
-    }
-  }
-
-  static class MyClass {
-    public var A : int
-    var b : int as B
-
-    construct() {
-      A = 1
-      b = 2
-    }
-  }
    function testBasic() {
      var i : int
      var x : char
@@ -59,12 +44,18 @@ class ElementAccessExpressionTest extends BaseVerifyErrantTest {
      assertEquals(1, i)
      e[0] = 8
      assertEquals(8, e[0])
+     i = e[new Integer(1)]
+     assertEquals(2, i)
+     e[new Integer(1)] = 8
+     assertEquals(8, e[1])
 
      var f : CharSequence = "123"
      x = f[0]
      assertEquals('1', x)
      //f[0] = '8'
      //assertEquals('8', f[0])
+     x = f[new Integer(1)]
+     assertEquals('2', x)
 
      var g : StringBuilder = new StringBuilder("123")
      x = g[0]
@@ -77,15 +68,30 @@ class ElementAccessExpressionTest extends BaseVerifyErrantTest {
      assertEquals('1', x)
      //h[0] = '8'
      //assertEquals('8', x)
+
      var j : dynamic.Dynamic = {1,2,3}
      i = j[0]
      assertEquals(1, i)
      j[0] = 8
      assertEquals(8, j[0])
+     j[new Integer(0)] = 6
+     assertEquals(6, j[0])
+     var j1 : dynamic.Dynamic = {"A"-> 'a', "B"-> 'b', "C" -> 'c'}
+     x = j1["A"]
+     assertEquals('a', x)
+//     j1['A'] = 'x'                  //## KB(IDE-1893)
+//     assertEquals('x', j1["A"])     //## KB(IDE-1893)
+     var j2 : dynamic.Dynamic = new MyClass()
+     i = j2["A"] as int
+     assertEquals(1, i)
+//     j2["A"] = 8                    //## KB(IDE-1893)
+//     assertEquals(8, j2["A"])       //## KB(IDE-1893)
 
      var k : Map<Integer, Character> = {1-> 'a', 2 -> 'b', 3 -> 'c'}
      x = k[1]
      assertEquals('a', x)
+     x = k[new Integer(2)]
+     assertEquals('b', x)
      k[1] = '8'
      assertEquals('8', k[1])
 
@@ -93,8 +99,15 @@ class ElementAccessExpressionTest extends BaseVerifyErrantTest {
     // x = l[1]
      x = l["A"]
      assertEquals('a', x)
+     x = l['A']
+     assertEquals('a', x)
+     x = l[new String(new char[]{'B'})]
+     assertEquals('b', x)
      l["A"] = '8'
      assertEquals('8', l["A"])
+     l['a'] = '1'
+     assertEquals('8', l["A"])
+     assertEquals('1', l["a"])
 
      var m : Map =  {1-> 'a', 2 -> 'b', 3 -> 'c'}
      x = m[1] as Character
@@ -117,6 +130,20 @@ class ElementAccessExpressionTest extends BaseVerifyErrantTest {
      assertTrue(ex)
 
 
+     //Reflective property/field access to private field/property
+     var n2 : MyClass = new MyClass()
+     var i2 = n2["b"] as int
+     assertEquals(2, i2)
+     n2["b"] = 6
+     assertEquals(6, n2["b"])
+     i2 = n2["B"] as int
+     assertEquals(6, i2)
+     n2["B"] = 2
+     assertEquals(2, n2["B"])
+     i2 = n2["c"] as int
+     assertEquals(3, i2)
+     n2["c"] = 6
+     assertEquals(6, n2["c"])
    }
 
 }
