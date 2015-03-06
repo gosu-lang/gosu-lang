@@ -33,4 +33,7 @@ class Errant_PropertyCovarianceInSameClass {
   property get PropCNegative() : B {return null}      //## issuekeys: INVALID PROPERTY DECLARATION: GETTER AND SETTER SHOULD AGREE ON THE TYPE OF THE PROPERTY
   property set PropCNegative(a : C) {}      //## issuekeys: INVALID PROPERTY DECLARATION: GETTER AND SETTER SHOULD AGREE ON THE TYPE OF THE PROPERTY
 
+  var f3: java.lang.Number as MyProp3
+  property get MyProp3(): Integer { return null }
+  property set MyProp3(v: Object) {}
 }
