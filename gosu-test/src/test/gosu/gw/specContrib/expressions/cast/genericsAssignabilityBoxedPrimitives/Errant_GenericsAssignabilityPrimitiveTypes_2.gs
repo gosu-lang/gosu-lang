@@ -6,13 +6,13 @@ package gw.specContrib.expressions.cast.genericsAssignabilityBoxedPrimitives
  * Tests involve assigning list of one type to list of another type
  */
 class Errant_GenericsAssignabilityPrimitiveTypes_2 {
-  var charList: List<char>
-  var byteList : List<byte>
-  var shortList : List<short>
-  var intList: List<int>
-  var floatList : List<float>
-  var longList : List<long>
-  var doubleList : List<double>
+  var charList: List<char>       //## issuekeys: MSG_PRIMITIVE_TYPE_PARAM
+  var byteList : List<byte>      //## issuekeys: MSG_PRIMITIVE_TYPE_PARAM
+  var shortList : List<short>    //## issuekeys: MSG_PRIMITIVE_TYPE_PARAM
+  var intList: List<int>         //## issuekeys: MSG_PRIMITIVE_TYPE_PARAM
+  var floatList : List<float>    //## issuekeys: MSG_PRIMITIVE_TYPE_PARAM
+  var longList : List<long>      //## issuekeys: MSG_PRIMITIVE_TYPE_PARAM
+  var doubleList : List<double>  //## issuekeys: MSG_PRIMITIVE_TYPE_PARAM
 
   function testCharacter() {
     charList = charList
