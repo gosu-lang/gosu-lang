@@ -34,6 +34,20 @@ class Errant_PropertyCovariance2 {
 
   }
 
+  interface IHasNum2 {
+    property get Num1(): java.lang.Number
+    property set Num1(v: java.lang.Number)
+  }
 
+  class Impl2 implements IHasNum2 {
+    var _value: Integer as Num1         //## issuekeys: ERROR. INCOMPATIBLE TYPES
+
+    property get Num1(): Integer {
+      return _value
+    }
+    property set Num1(v: java.lang.Number ) {
+      _value = v.intValue()
+    }
+  }
 
 }
