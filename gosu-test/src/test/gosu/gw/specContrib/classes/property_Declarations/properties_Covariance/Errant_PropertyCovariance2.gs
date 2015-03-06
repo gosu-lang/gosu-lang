@@ -9,7 +9,7 @@ package gw.specContrib.classes.property_Declarations.properties_Covariance
 uses java.lang.Integer
 uses java.lang.Float
 
-class PropertyCovariance2 {
+class Errant_PropertyCovariance2 {
 
   interface IHasNum {
     property get Num1() : java.lang.Number

@@ -5,7 +5,7 @@ package gw.specContrib.classes.property_Declarations.properties_Covariance
  * One positive case and one negative
  */
 
-class GosuClassInterfacesStructures {
+class Errant_GosuClassInterfacesStructures {
   structure MyStructure{}
   interface MyInterface extends MyStructure {}
 

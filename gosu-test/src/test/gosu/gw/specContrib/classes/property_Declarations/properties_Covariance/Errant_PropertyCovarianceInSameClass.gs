@@ -7,7 +7,7 @@ uses java.lang.CharSequence
  * Property covariance for several types
  * Getter returns type is subtype of setter argument
  */
-class PropertyCovarianceInSameClass {
+class Errant_PropertyCovarianceInSameClass {
   property get MyProp1() : Integer { return null }
   property set MyProp1(i :java.lang.Number) {}
 

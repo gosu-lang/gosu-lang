@@ -9,7 +9,7 @@ uses java.lang.Float
  * The property setter argument is supertype of the getter
  */
 
-class PropertyCovariance1 {
+class Errant_PropertyCovariance1 {
 
   interface IHasNum {
     property get Num1() : java.lang.Number
