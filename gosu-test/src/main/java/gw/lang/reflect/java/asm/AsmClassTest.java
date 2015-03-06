@@ -112,6 +112,7 @@ public class AsmClassTest extends TestClass {
     assertEquals( "public java.util.Map<java.lang.String, byte[]> mapOfStringToPrimitiveByteArray()", methods.get( i++ ).toString() );
     assertEquals( "public java.util.Map<java.lang.String, byte[][]> mapOfStringToPrimitiveByteArrayArray()", methods.get( i++ ).toString() );
     assertEquals( "public java.util.Map<byte[][], java.lang.String> mapOfPrimitiveByteArrayArrayToString()", methods.get( i++ ).toString() );
+    assertEquals( "public java.util.Set<gw.lang.reflect.java.asm.Asm_Simple$AccountSyncedField<? extends java.lang.CharSequence, ?>> getAccountSyncedFields()", methods.get( i++ ).toString() );
   }
 
   public void testInnerClasses() {
