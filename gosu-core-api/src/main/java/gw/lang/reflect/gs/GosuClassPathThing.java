@@ -12,6 +12,8 @@ import java.lang.reflect.Method;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Hashtable;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  */
@@ -173,6 +175,7 @@ public class GosuClassPathThing {
       }
     }
     ClassLoader loader = TypeSystem.getGosuClassLoader().getActualLoader();
+    makeLoaderChainLockOnSystemLoader( loader );
     setupLoaderChainWithGosuUrl( loader );
     return true;
   }
@@ -181,11 +184,72 @@ public class GosuClassPathThing {
     return CAN_WRAP == null ? CAN_WRAP = canWrapChain( TypeSystem.getGosuClassLoader().getActualLoader() ) : CAN_WRAP;
   }
 
+  private static void makeLoaderChainLockOnSystemLoader( ClassLoader loader )
+  {
+    makeLoaderUseSystemLoaderLock( loader );
+    if( loader != ClassLoader.getSystemClassLoader() ) // we don't bother messing with any loaders above the system loader e.g., ExtClassLoader
+    {
+      loader = loader.getParent();
+      if( loader != null )
+      {
+        makeLoaderChainLockOnSystemLoader( loader );
+      }
+    }
+  }
+
+  private static void makeLoaderUseSystemLoaderLock( ClassLoader loader )
+  {
+    try
+    {
+      Field field = ClassLoader.class.getDeclaredField( "parallelLockMap" );
+      field.setAccessible( true );
+      field.set( loader, new FuMap() ); // make the loader use the system class loader's monitor
+
+      field = ClassLoader.class.getDeclaredField( "package2certs" );
+      field.setAccessible( true );
+      field.set( loader, new ConcurrentHashMap() );
+
+      field = ClassLoader.class.getDeclaredField( "assertionLock" );
+      field.setAccessible( true );
+      field.set( loader, ClassLoader.getSystemClassLoader() );
+    }
+    catch( Exception e )
+    {
+      throw new RuntimeException( e );
+    }
+  }
+
   public synchronized static void cleanup() {
     removeOurProtocolPackage();
     // XXX: We can't remove URL from classloader easily.
     //removeGosuClassProtocolToClasspath();
     removeOurProtocolHandler();
+  }
+
+  private static class FuMap extends ConcurrentHashMap<String, Object>
+  {
+    @Override
+    public Object put( String key, Object value )
+    {
+      return null;
+    }
+
+    @Override
+    public void putAll( Map<? extends String, ?> m )
+    {
+    }
+
+    @Override
+    public Object putIfAbsent( String key, Object value )
+    {
+      return ClassLoader.getSystemClassLoader();
+    }
+
+    @Override
+    public Object get( Object key )
+    {
+      return ClassLoader.getSystemClassLoader();
+    }
   }
 
 }
