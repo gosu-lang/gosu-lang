@@ -17,9 +17,9 @@ public class GosuUnsafeUtil
     getUnsafe().monitorEnter( monitor );
   }
 
-  public static void tryMonitorEnter( Object monitor )
+  public static boolean tryMonitorEnter( Object monitor )
   {
-    getUnsafe().tryMonitorEnter( monitor );
+    return getUnsafe().tryMonitorEnter( monitor );
   }
 
   public static void monitorExit( Object monitor )
