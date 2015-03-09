@@ -7,7 +7,6 @@ package gw.internal.gosu.compiler;
 import gw.config.CommonServices;
 import gw.internal.gosu.ir.TransformingCompiler;
 import gw.lang.reflect.TypeSystem;
-import gw.lang.reflect.TypeSystemLock;
 import gw.lang.reflect.gs.ICompilableType;
 import gw.lang.reflect.gs.IGosuClassLoader;
 import gw.lang.reflect.java.IJavaType;
@@ -50,25 +49,19 @@ public class SingleServingGosuClassLoader extends ClassLoader implements IGosuCl
   }
 
   @Override
-  protected Object getClassLoadingLock( String className )
-  {
-    return TypeSystemLock.getMonitor();
-  }
+  protected Class<?> loadClass( String name, boolean resolve ) throws ClassNotFoundException {
+    // Acquire the type system lock and this loader's lock in a consistent order to prevent deadlock.
+    // Note this is only important here for the case where the parent loader of this loader
+    // loads a gosu class that is turn needs to load
 
-//  @Override
-//  protected Class<?> loadClass( String name, boolean resolve ) throws ClassNotFoundException {
-//    // Acquire the type system lock and this loader's lock in a consistent order to prevent deadlock.
-//    // Note this is only important here for the case where the parent loader of this loader
-//    // loads a gosu class that is turn needs to load
-//
-//    TypeSystemLockHelper.getTypeSystemLockWithMonitor( this );
-//    try {
-//      return super.loadClass( name, resolve );
-//    }
-//    finally {
-//      TypeSystem.unlock();
-//    }
-//  }
+    TypeSystemLockHelper.getTypeSystemLockWithMonitor( this );
+    try {
+      return super.loadClass( name, resolve );
+    }
+    finally {
+      TypeSystem.unlock();
+    }
+  }
 
   @Override
   public void dumpAllClasses() {
