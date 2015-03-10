@@ -6,7 +6,6 @@ package gw.lang.reflect.module;
 
 import gw.lang.UnstableAPI;
 import gw.lang.reflect.TypeSystem;
-import gw.lang.reflect.gs.GosuClassPathThing;
 
 import java.util.Map;
 
@@ -45,15 +44,13 @@ public class TypeSystemLockHelper {
         // we can acquire both locks or none at all... albeit expensively.
         try {
           maybeWaitOnContextLoader( objectToLock );
-          if( waitOnLoaderChain( objectToLock ) ) {
-            Thread.sleep( 10 );
-          }
+          objectToLock.wait(100);
         } catch (IllegalMonitorStateException e) {
           // Ugh! It turns out to be non-deterministic whether or not the VM will invoke this loop with the classloader's
           // monitor acquired.  However, there can still be deadlocks due to other locks (not the monitor, but VM-level
           // locks around loading specific class names), so we have to just sleep and try again, even though it's
           // inefficient
-          Thread.sleep( 10 );
+          Thread.sleep(100);
         }
         if( !isStudioRunning() && System.currentTimeMillis() - lStart > 1000000 )  // wait pretty long (1000 secs as opposed to 10 secs) to avoid a false positive deadlock detection
         {
@@ -74,30 +71,6 @@ public class TypeSystemLockHelper {
         throw new RuntimeException( e );
       }
     }
-  }
-
-  private static boolean waitOnLoaderChain( Object cl )
-  {
-    boolean bSleep = false;
-    try
-    {
-      cl.wait( 10 );
-    }
-    catch (IllegalMonitorStateException e)
-    {
-      bSleep = true;
-    }
-    catch( InterruptedException e )
-    {
-      throw new RuntimeException( e );
-    }
-    if( cl instanceof ClassLoader &&
-        cl != ClassLoader.getSystemClassLoader() &&
-        GosuClassPathThing.canWrapChain() )
-    {
-      bSleep |= waitOnLoaderChain( ((ClassLoader)cl).getParent() );
-    }
-    return bSleep;
   }
 
   private static void maybeWaitOnContextLoader(Object objectToLock) throws InterruptedException {
