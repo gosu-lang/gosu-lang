@@ -167,9 +167,15 @@ public class Gosu
   private static String makeFqn( File file )
   {
     String path = file.getAbsolutePath();
-    int iIndex = path.indexOf( "src" + File.separatorChar );
-    String fqn = path.substring( iIndex + 4 ).replace( File.separatorChar, '.' );
-    return fqn.substring( 0, fqn.lastIndexOf( '.' ) );
+    int srcIndex = path.indexOf( "src" + File.separatorChar );
+    if (srcIndex >= 0) {
+      String fqn = path.substring(srcIndex + 4).replace(File.separatorChar, '.');
+      return fqn.substring(0, fqn.lastIndexOf('.'));
+    } else { // the Gosu Scratchpad case
+      String fqn = file.getName();
+      fqn = "nopackage." + fqn.substring(0, fqn.lastIndexOf('.')).replace(" ", "");
+      return fqn;
+    }
   }
 
 

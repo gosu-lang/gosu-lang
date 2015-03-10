@@ -5,6 +5,7 @@
 package gw.internal.gosu.parser;
 
 import gw.config.CommonServices;
+import gw.config.ExecutionMode;
 import gw.fs.IFile;
 import gw.internal.gosu.annotations.AnnotationMap;
 import gw.lang.parser.TypeVarToTypeMap;
@@ -450,7 +451,7 @@ class JavaType extends AbstractType implements IJavaTypeInternal
 
   public ITypeInfo getTypeInfo()
   {
-    if( !TypeSystem.getExecutionEnvironment().isSingleModuleMode() ) {
+    if( ExecutionMode.isIDE() ) {
       // Enforce Guidwewire's legacy type shadowing rules where, for example, a
       // type in an App module such as PX shadows a type in PL having the same name.
       // This isn't kosher in general because the type in PL is the one that is

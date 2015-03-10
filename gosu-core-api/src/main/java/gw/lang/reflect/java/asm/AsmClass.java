@@ -246,7 +246,7 @@ public class AsmClass implements IAsmType, IGeneric {
 
     @Override
     public void visit( int version, int access, String name, String signature, String superName, String[] interfaces ) {
-      _type = AsmUtil.makeType( name );
+      _type = AsmUtil.makeNonPrimitiveType(name);
       AsmClass outerClass = ensureOuterIsLoadedFirst(); // barf
       _version = version;
       _modifiers = access;

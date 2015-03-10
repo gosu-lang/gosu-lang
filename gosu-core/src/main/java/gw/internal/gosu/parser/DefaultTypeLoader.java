@@ -4,9 +4,8 @@
 
 package gw.internal.gosu.parser;
 
-import gw.config.CommonServices;
+import gw.config.ExecutionMode;
 import gw.fs.IDirectory;
-import gw.internal.gosu.coercer.FunctionToInterfaceClassGenerator;
 import gw.internal.gosu.compiler.GosuClassLoader;
 import gw.internal.gosu.parser.java.classinfo.JavaSourceClass;
 import gw.lang.reflect.IDefaultTypeLoader;
@@ -39,7 +38,6 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class DefaultTypeLoader extends SimpleTypeLoader implements IExtendedTypeLoader, IDefaultTypeLoader {
-  private static final boolean USE_ASM_LOADER = true;
   private ClassCache _classCache;
   private IGosuClassLoader _gosuClassLoader;            //## todo: use a ConcurrentWeakValueHashMap here?
   private Map<String, IJavaClassInfo> _classInfoCache = new ConcurrentHashMap<String, IJavaClassInfo>(1000);
@@ -85,7 +83,7 @@ public class DefaultTypeLoader extends SimpleTypeLoader implements IExtendedType
     if (fullyQualifiedName.startsWith("[")) {
       throw new IllegalArgumentException("Cannot call getJavaClassInfo with a raw array descriptor");
     }
-    if (!TypeSystem.isSingleModuleMode() && _module.equals(TypeSystem.getGlobalModule())) {
+    if (ExecutionMode.isIDE() && _module.equals(TypeSystem.getGlobalModule())) {
       return null;
     }
 
@@ -116,7 +114,7 @@ public class DefaultTypeLoader extends SimpleTypeLoader implements IExtendedType
   }
 
   public IJavaClassInfo getJavaClassInfo( Class aClass, IModule gosuModule ) {
-    if( !TypeSystem.isSingleModuleMode() && _module.equals( TypeSystem.getGlobalModule() ) ) {
+    if( ExecutionMode.isIDE() && _module.equals( TypeSystem.getGlobalModule() ) ) {
       return null;
     }
     String fullyQualifiedName = aClass.getName().replace('$', '.');
@@ -129,9 +127,9 @@ public class DefaultTypeLoader extends SimpleTypeLoader implements IExtendedType
   }
 
   public IJavaClassInfo getJavaClassInfo( AsmClass aClass, IModule gosuModule ) {
-    if( !TypeSystem.isSingleModuleMode() && _module.equals( TypeSystem.getGlobalModule() ) ) {
+    if (ExecutionMode.isIDE() && _module.equals( TypeSystem.getGlobalModule() )) {
       return null;
-    }
+    } else {
     String fullyQualifiedName = aClass.getName().replace('$', '.');
     IJavaClassInfo result = _classInfoCache.get( fullyQualifiedName );
     if( result == null ) {
@@ -140,9 +138,10 @@ public class DefaultTypeLoader extends SimpleTypeLoader implements IExtendedType
     }
     return result == IJavaClassInfo.NULL_TYPE ? null : result;
   }
+  }
 
   public IJavaClassInfo resolveJavaClassInfo(String fullyQualifiedName) {
-    if (!CommonServices.getPlatformHelper().isInIDE()) {
+    if (!ExecutionMode.isIDE()) {
       return getByClass(fullyQualifiedName, _module, _module);
     }
 
@@ -188,15 +187,14 @@ public class DefaultTypeLoader extends SimpleTypeLoader implements IExtendedType
 
   private IJavaClassInfo getByClass( String className, IModule lookupModule, IModule actualModule ) {
     DefaultTypeLoader loader = (DefaultTypeLoader)lookupModule.getTypeLoaders( IDefaultTypeLoader.class ).get( 0 );
-    if( USE_ASM_LOADER && CommonServices.getPlatformHelper().isInIDE() ) {
-      AsmClass theClass = loader.loadAsmClass( className );
+    if(ExecutionMode.isRuntime() ) {
+      Class theClass = loader.loadClass( className );
       if( theClass == null ) {
         return null;
       }
       return getJavaClassInfo( theClass, actualModule );
-    }
-    else {
-      Class theClass = loader.loadClass( className );
+    } else {
+      AsmClass theClass = loader.loadAsmClass( className );
       if( theClass == null ) {
         return null;
       }
@@ -262,7 +260,7 @@ public class DefaultTypeLoader extends SimpleTypeLoader implements IExtendedType
 
   public void refreshedImpl() {
     JavaType.unloadTypes();
-    if (TypeSystem.isSingleModuleMode()) {
+    if (ExecutionMode.isRuntime()) {
       _classCache.clearClasspathInfo();
     } else {
       _classCache.dispose();
