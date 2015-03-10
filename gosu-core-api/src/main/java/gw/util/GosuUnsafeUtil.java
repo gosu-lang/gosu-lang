@@ -3,6 +3,7 @@ package gw.util;
 import sun.misc.Unsafe;
 
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
 
 /**
  */
@@ -15,11 +16,6 @@ public class GosuUnsafeUtil
   public static void monitorEnter( Object monitor )
   {
     getUnsafe().monitorEnter( monitor );
-  }
-
-  public static void tryMonitorEnter( Object monitor )
-  {
-    getUnsafe().tryMonitorEnter( monitor );
   }
 
   public static void monitorExit( Object monitor )
