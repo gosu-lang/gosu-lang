@@ -45,7 +45,7 @@ import java.util.concurrent.locks.ReentrantLock;
 @UnstableAPI
 public class TypeSystem
 {
-  private static final Lock GLOBAL_LOCK = new TypeSystemLock();
+  private static final Lock GLOBAL_LOCK = new ReentrantLock();
   public static InvocationCounter tyeRequestCounter = new InvocationCounter(false);
   public static InvocationCounter tyeLoadingCounter = new InvocationCounter(false);
 
