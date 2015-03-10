@@ -8,7 +8,6 @@ import gw.config.CommonServices;
 import gw.config.ExecutionMode;
 import gw.fs.IDirectory;
 import gw.lang.reflect.TypeSystem;
-import gw.lang.reflect.TypeSystemLock;
 import gw.lang.reflect.module.IExecutionEnvironment;
 import gw.lang.reflect.module.IJreModule;
 import gw.lang.reflect.module.IModule;
@@ -39,12 +38,6 @@ public class ModuleClassLoader extends URLClassLoader implements IModuleClassLoa
 
   public boolean isDeferToParent() {
     return getURLs().length == 0 && (_module == _module.getExecutionEnvironment().getJreModule());
-  }
-
-  @Override
-  protected Object getClassLoadingLock( String className )
-  {
-    return TypeSystemLock.getMonitor();
   }
 
   @Override
