@@ -15,6 +15,6 @@ public interface IGosuCompiler {
 
   boolean isPathIgnored(String sourceFile);
 
-  boolean compile(File sourceFile) throws Exception;
+  boolean compile(File sourceFile, ICompilerDriver driver) throws Exception;
 
 }
