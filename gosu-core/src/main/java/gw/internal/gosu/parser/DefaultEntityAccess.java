@@ -29,7 +29,6 @@ import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.gs.GosuClassTypeLoader;
 import gw.lang.reflect.gs.ICompilableType;
 import gw.lang.reflect.module.IModule;
-import gw.util.GosuExceptionUtil;
 import gw.util.IFeatureFilter;
 import gw.util.ILogger;
 import gw.util.SystemOutLogger;
@@ -94,42 +93,6 @@ public class DefaultEntityAccess extends BaseService implements IEntityAccess
    */
   @Override
   public boolean isEntityClass( IType cls )
-  {
-    return false;
-  }
-
-  @Override
-  public boolean isViewEntityClass( IType type )
-  {
-    return false;
-  }
-
-  @Override
-  public IType getPrimaryEntityClass( IType type )
-  {
-    return null;
-  }
-
-  /**
-   * @return x
-   */
-  @Override
-  public boolean isKeyableEntityClass( IType cls )
-  {
-    return false;
-  }
-
-  /**
-   * @return x
-   */
-  @Override
-  public boolean isDomainClass( IType cls )
-  {
-    return false;
-  }
-
-  @Override
-  public boolean isTypekey( IType cls )
   {
     return false;
   }
@@ -294,19 +257,6 @@ public class DefaultEntityAccess extends BaseService implements IEntityAccess
   }
 
   @Override
-  public Object constructObject( Class cls )
-  {
-    try
-    {
-      return cls.newInstance();
-    }
-    catch( Exception e )
-    {
-      throw GosuExceptionUtil.forceThrow( e );
-    }
-  }
-
-  @Override
   public IAttributeSource getAttributeSource( GlobalScope scope )
   {
     IAttributeSource source = (IAttributeSource)_scopes.get( scope );
@@ -463,23 +413,6 @@ public class DefaultEntityAccess extends BaseService implements IEntityAccess
   public boolean shouldAddWarning( IType type, IParseIssue warning )
   {
     return true;
-  }
-
-  @Override
-  public boolean isServerMutable()
-  {
-    return true;
-  }
-
-  @Override
-  public boolean isDevMode() {
-    return true;
-  }
-
-  @Override
-  public boolean isRetainDebugInfo()
-  {
-    return false;
   }
 
   @Override

@@ -4,6 +4,7 @@
 
 package gw.internal.gosu.parser;
 
+import gw.config.ExecutionMode;
 import gw.internal.gosu.parser.expressions.BlockExpression;
 import gw.internal.gosu.parser.expressions.Identifier;
 import gw.internal.gosu.parser.expressions.MethodCallExpression;
@@ -498,7 +499,7 @@ public class GosuClassParseInfo {
   }
 
   public void maybeClearDebugInfo() {
-    if (_gosuClass.getTypeLoader().getModule().getExecutionEnvironment().isSingleModuleMode()) {
+    if (ExecutionMode.isRuntime()) {
       TypeSystem.lock();
       try {
         if (!_gosuClass.getTypeLoader().shouldKeepDebugInfo(_gosuClass)) {

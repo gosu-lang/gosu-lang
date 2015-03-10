@@ -93,7 +93,8 @@ public class ClassPath implements IClassPath
   {
     List<IDirectory> javaClassPath = _module.getJavaClassPath();
     IDirectory[] paths = javaClassPath.toArray(new IDirectory[javaClassPath.size()]);
-    for (IDirectory path : paths) {
+    for (int i = paths.length - 1; i >= 0; i--) {
+      IDirectory path = paths[i];
       addClassNames(path, path, _filter);
     }
   }

@@ -15,6 +15,7 @@ import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.openapi.vfs.JarFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import gw.config.AbstractPlatformHelper;
+import gw.config.ExecutionMode;
 import gw.lang.reflect.module.IModule;
 import gw.plugin.ij.lang.psi.impl.GosuClassParseDataCache;
 import org.jetbrains.annotations.NotNull;
@@ -29,8 +30,8 @@ public class IDEAPlatformHelper extends AbstractPlatformHelper implements FileEd
   }
 
   @Override
-  public boolean isInIDE() {
-    return true;
+  public ExecutionMode getExecutionMode() {
+    return ExecutionMode.IDE;
   }
 
   @Override

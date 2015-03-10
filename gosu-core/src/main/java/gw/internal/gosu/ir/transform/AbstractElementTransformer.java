@@ -3131,8 +3131,7 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
       operandType == JavaTypes.DATE() ||
       operandType == JavaTypes.OBJECT() ||
       TypeSystem.get( IEnumConstant.class ).isAssignableFrom( operandType ) ||
-      CommonServices.getEntityAccess().isTypekey( operandType ) ||
-      CommonServices.getEntityAccess().isEntityClass( operandType );
+      CommonServices.getEntityAccess().isDomainInstance( operandType );
   }
 
   final protected IType findDimensionType( IType type ) {

@@ -5,6 +5,7 @@
 package gw.internal.gosu.parser;
 
 import gw.config.CommonServices;
+import gw.config.ExecutionMode;
 import gw.fs.IFile;
 import gw.internal.gosu.dynamic.DynamicConstructorInfo;
 import gw.internal.gosu.dynamic.DynamicMethodInfo;
@@ -13715,7 +13716,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
   public IGosuClassInternal parseClass( String strQualifiedClassName, ISourceFileHandle sourceFile, boolean bThrowOnWarnings, boolean bFullyCompile ) throws ParseResultsException
   {
     GosuClassTypeLoader classLoader;
-    if (!CommonServices.getPlatformHelper().isInIDE()) {
+    if (!ExecutionMode.isIDE()) {
       classLoader = GosuClassTypeLoader.getDefaultClassLoader(TypeSystem.getGlobalModule());
     } else {
       IFile file = sourceFile.getFile();
