@@ -243,7 +243,7 @@ public class MetaType extends AbstractType implements IMetaType
 
   private boolean isMetadataType() {
     String namespace = getType().getNamespace();
-    return namespace.equals("entity") || namespace.equals("typekey");
+    return "entity".equals(namespace) || "typekey".equals(namespace);
   }
 
   private boolean isDefaultOrRootType() {
