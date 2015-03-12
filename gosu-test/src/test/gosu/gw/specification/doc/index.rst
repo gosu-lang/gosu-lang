@@ -24,5 +24,6 @@ implementers.
    enhancements
    expressions
    blocks
+   featureLiterals
    statements
    
