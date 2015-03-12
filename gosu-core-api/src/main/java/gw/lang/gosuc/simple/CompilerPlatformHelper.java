@@ -1,19 +1,14 @@
-/*
- * Copyright 2014 Guidewire Software, Inc.
- */
-
-package gw.internal.gosu.parser;
+package gw.lang.gosuc.simple;
 
 import gw.config.AbstractPlatformHelper;
 import gw.config.ExecutionMode;
 import gw.lang.reflect.module.IModule;
 
-public class DefaultPlatformHelper extends AbstractPlatformHelper {
-  public static ExecutionMode EXECUTION_MODE = ExecutionMode.RUNTIME;
+public class CompilerPlatformHelper extends AbstractPlatformHelper {
 
   @Override
   public ExecutionMode getExecutionMode() {
-    return EXECUTION_MODE;
+    return ExecutionMode.COMPILER;
   }
 
   @Override

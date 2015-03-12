@@ -49,4 +49,12 @@ public class GosucUtil {
       return null;
     }
   }
+
+  public static List<IDirectory> toDirectories(List<String> paths) {
+    List<IDirectory> dirs = new ArrayList<IDirectory>();
+    for (String path : paths) {
+      dirs.add(CommonServices.getFileSystem().getIDirectory(new File(path)));
+    }
+    return dirs;
+  }
 }

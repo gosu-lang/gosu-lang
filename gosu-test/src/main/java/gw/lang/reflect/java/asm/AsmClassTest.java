@@ -4,6 +4,7 @@
 
 package gw.lang.reflect.java.asm;
 
+import gw.config.ExecutionMode;
 import gw.fs.FileFactory;
 import gw.fs.IFile;
 import gw.internal.gosu.parser.DefaultPlatformHelper;
@@ -23,13 +24,13 @@ public class AsmClassTest extends TestClass {
   @Override
   public void beforeTestMethod() {
     super.beforeTestMethod();
-    DefaultPlatformHelper.IN_IDE = true;
+    DefaultPlatformHelper.EXECUTION_MODE = ExecutionMode.COMPILER;
   }
 
   @Override
   public void afterTestMethod( Throwable possibleException ) {
     super.afterTestMethod( possibleException );
-    DefaultPlatformHelper.IN_IDE = false;
+    DefaultPlatformHelper.EXECUTION_MODE = ExecutionMode.RUNTIME;
   }
 
   public void testClassDeclaration() {
@@ -112,6 +113,7 @@ public class AsmClassTest extends TestClass {
     assertEquals( "public java.util.Map<java.lang.String, byte[]> mapOfStringToPrimitiveByteArray()", methods.get( i++ ).toString() );
     assertEquals( "public java.util.Map<java.lang.String, byte[][]> mapOfStringToPrimitiveByteArrayArray()", methods.get( i++ ).toString() );
     assertEquals( "public java.util.Map<byte[][], java.lang.String> mapOfPrimitiveByteArrayArrayToString()", methods.get( i++ ).toString() );
+    assertEquals( "public java.util.Set<gw.lang.reflect.java.asm.Asm_Simple$AccountSyncedField<? extends java.lang.CharSequence, ?>> getAccountSyncedFields()", methods.get( i++ ).toString() );
   }
 
   public void testInnerClasses() {
@@ -271,6 +273,8 @@ public class AsmClassTest extends TestClass {
 //      throw new RuntimeException( e );
 //    }
 //  }
+  AsmClassLoader _asmClassLoader = new AsmClassLoader(null);
+
   private AsmClass loadAsmClass( Class<?> cls ) {
     URL location = cls.getProtectionDomain().getCodeSource().getLocation();
     String fileLocation = "";
@@ -278,13 +282,13 @@ public class AsmClassTest extends TestClass {
       if( location.getFile().toLowerCase().endsWith( ".jar" ) ) {
         fileLocation = "jar:" + location.toExternalForm() + "!/" + cls.getPackage().getName().replace( '.', '/' ) + '/' + getSimpleName( cls ) + ".class";
         IFile classFile = FileFactory.instance().getIFile( new URL( fileLocation ), false );
-        return AsmClassLoader.loadClass( null, cls.getName(), classFile.openInputStream() );
+        return _asmClassLoader.findClass( cls.getName(), classFile.openInputStream() );
       }
       else {
         File dir = new File( location.toURI() );
         dir = new File( dir, cls.getPackage().getName().replace( '.', '/' ) );
         File classFile = new File( dir, getSimpleName( cls ) + ".class" );
-        return AsmClassLoader.loadClass( null, cls.getName(), new FileInputStream( classFile ) );
+        return _asmClassLoader.findClass( cls.getName(), new FileInputStream( classFile ) );
       }
     }
     catch( Exception e ) {

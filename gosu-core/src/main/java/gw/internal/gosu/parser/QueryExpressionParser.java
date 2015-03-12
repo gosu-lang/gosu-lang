@@ -614,12 +614,6 @@ class QueryExpressionParser extends ParserBase
       {
         IType intrType = TypeLoaderAccess.instance().getByRelativeName( strRoot, CommonServices.getEntityAccess().getDefaultTypeUses() );
         verify( e, intrType != null && CommonServices.getEntityAccess().isEntityClass( intrType ), Res.MSG_EXPECTING_ENTITY_TYPE );
-        if( CommonServices.getEntityAccess().isViewEntityClass( intrType ) )
-        {
-          verify( e, !CommonServices.getEntityAccess().isViewEntityClass( intrType ),
-                  Res.MSG_NO_VIEWS_FOR_YOUS,
-                  CommonServices.getEntityAccess().getPrimaryEntityClass( intrType ).getName() );
-        }
         if( !Registry.instance().isAllowEntityQueires() )
         {
           verify( e, intrType != null && !intrType.isMutable(), Res.MSG_EXPECTING_READONLY_ENTITY_TYPE );

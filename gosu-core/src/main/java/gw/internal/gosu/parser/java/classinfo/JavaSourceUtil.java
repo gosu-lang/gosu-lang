@@ -5,6 +5,7 @@
 package gw.internal.gosu.parser.java.classinfo;
 
 import gw.config.CommonServices;
+import gw.config.ExecutionMode;
 import gw.internal.gosu.parser.DefaultTypeLoader;
 import gw.lang.reflect.IDefaultTypeLoader;
 import gw.lang.reflect.ITypeRefFactory;
@@ -24,7 +25,7 @@ public class JavaSourceUtil {
     if( isProxy( cls ) ) {
       return getJavaClassInfo( cls, module );
     } else {
-      if( !CommonServices.getPlatformHelper().isInIDE() ) {
+      if( !ExecutionMode.isIDE() ) {
         // Don't try to load from source unless we have to, this saves a load of time esp. for case
         // where we're loading an inner java class where replacing the '$' below with '.' we bascially
         // put the type system through a load of unnecessary work.
@@ -65,7 +66,7 @@ public class JavaSourceUtil {
       IModule module = classInfo.getModule();
       return loader.getJavaClassInfo(aClass, module);
     } else {
-      if( !CommonServices.getPlatformHelper().isInIDE() ) {
+      if( !ExecutionMode.isIDE() ) {
         // Don't try to load from source unless we have to, this saves a load of time esp. for case
         // where we're loading an inner java class where replacing the '$' below with '.' we bascially
         // put the type system through a load of unnecessary work.

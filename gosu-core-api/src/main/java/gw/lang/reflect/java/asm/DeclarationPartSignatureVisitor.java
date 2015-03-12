@@ -174,7 +174,12 @@ public class DeclarationPartSignatureVisitor extends SignatureVisitor {
 
   @Override
   public void visitTypeArgument() {
-    _currentType.addTypeParameter( new AsmWildcardType( null, true ) );
+    if( _typeArg != null ) {
+      _typeArg.addTypeParameter( new AsmWildcardType( null, true ) );
+    }
+    else {
+      _currentType.addTypeParameter( new AsmWildcardType( null, true ) );
+    }
   }
 
   @Override

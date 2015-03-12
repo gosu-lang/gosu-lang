@@ -104,25 +104,31 @@ public class GosuClassesUrlConnection extends URLConnection {
       // Never load an eval class here, they should always load in a single-serving loader
       return;
     }
-    IModule global = TypeSystem.getGlobalModule();
-    IType type;
-    TypeSystem.pushModule( global );
+    TypeSystemLockHelper.getTypeSystemLockWithMonitor( loader );
     try {
-      type = TypeSystem.getByFullNameIfValidNoJava( strType );
-    }
-    finally {
-      TypeSystem.popModule( global );
-    }
-    if( type instanceof ICompilableType ) {
-      if( !isInSingleServingLoader( type.getEnclosingType() ) ) {
-        if( !GosuClassPathThing.canWrapChain() ) {
-          _type = (ICompilableType)type;
-          _loader = loader;
-        }
-        else {
-          handleChainedLoading( loader, (ICompilableType)type );
+      IModule global = TypeSystem.getGlobalModule();
+      IType type;
+      TypeSystem.pushModule( global );
+      try {
+        type = TypeSystem.getByFullNameIfValidNoJava( strType );
+      }
+      finally {
+        TypeSystem.popModule( global );
+      }
+      if( type instanceof ICompilableType ) {
+        if( !isInSingleServingLoader( type.getEnclosingType() ) ) {
+          if( !GosuClassPathThing.canWrapChain() ) {
+            _type = (ICompilableType)type;
+            _loader = loader;
+          }
+          else {
+            handleChainedLoading( loader, (ICompilableType)type );
+          }
         }
       }
+    }
+    finally {
+      TypeSystem.unlock();
     }
   }
 
@@ -256,6 +262,7 @@ public class GosuClassesUrlConnection extends URLConnection {
 
     private void init() {
       if( _buf == null ) {
+        TypeSystemLockHelper.getTypeSystemLockWithMonitor( _loader );
         try {
           //System.out.println( "Compiling: " + _type.getName() );
           _buf = GosuClassLoader.instance().getBytes( _type );
@@ -266,6 +273,9 @@ public class GosuClassesUrlConnection extends URLConnection {
           // log the exception, it tends to get swollowed esp. if it's the class doesn't parse
           e.printStackTrace();
           throw GosuExceptionUtil.forceThrow( e );
+        }
+        finally {
+          TypeSystem.unlock();
         }
       }
     }

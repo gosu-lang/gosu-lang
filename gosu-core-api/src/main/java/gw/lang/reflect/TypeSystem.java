@@ -5,6 +5,7 @@
 package gw.lang.reflect;
 
 import gw.config.CommonServices;
+import gw.config.ExecutionMode;
 import gw.fs.IFile;
 import gw.fs.IResource;
 import gw.internal.gosu.parser.TypeSystemState;
@@ -44,7 +45,7 @@ import java.util.concurrent.locks.ReentrantLock;
 @UnstableAPI
 public class TypeSystem
 {
-  private static final Lock GLOBAL_LOCK = new TypeSystemLock();
+  private static final Lock GLOBAL_LOCK = new ReentrantLock();
   public static InvocationCounter tyeRequestCounter = new InvocationCounter(false);
   public static InvocationCounter tyeLoadingCounter = new InvocationCounter(false);
 
@@ -459,11 +460,6 @@ public class TypeSystem
     return CommonServices.getEntityAccess().getKeyType();
   }
 
-  public static boolean areBeansEqual( Object o1, Object o2 )
-  {
-    return CommonServices.getTypeSystem().areBeansEqual( o1, o2 );
-  }
-
   public static void pushIncludeAll()
   {
     CommonServices.getTypeSystem().pushIncludeAll();
@@ -841,10 +837,6 @@ public class TypeSystem
 
   public static IModule getGlobalModule() {
     return getExecutionEnvironment().getGlobalModule();
-  }
-
-  public static boolean isSingleModuleMode() {
-    return CommonServices.getTypeSystem().isSingleModuleMode();
   }
 
   public static IMetaType getDefaultType() {

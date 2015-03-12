@@ -4,7 +4,6 @@
 
 package gw.internal.gosu.parser;
 
-import gw.config.CommonServices;
 import gw.lang.parser.StandardCoercionManager;
 import gw.lang.reflect.*;
 import gw.lang.reflect.java.IJavaType;
@@ -13,7 +12,6 @@ import gw.util.concurrent.LockingLazyVar;
 
 import java.io.ObjectStreamException;
 import java.lang.reflect.Array;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -234,13 +232,18 @@ public class MetaType extends AbstractType implements IMetaType
     }
 
     return !(isArray() || type.isArray()) && type.getAllTypesInHierarchy().contains(JavaTypes.ITYPE()) &&
-           ((!(type instanceof IMetaType) && (isDefaultOrRootType() || type.isAssignableFrom( getType() ) || CommonServices.getEntityAccess().isTypekey( getType() ) || CommonServices.getEntityAccess().isEntityClass( getType() ))) ||
+           ((!(type instanceof IMetaType) && (isDefaultOrRootType() || type.isAssignableFrom(getType()) || isMetadataType())) ||
             ((type instanceof IMetaType) &&
              (isDefaultOrRootType() ||
               ((IMetaType) type).getType().equals(DEFAULT_TYPE.get()) ||
               ((IMetaType) type).getType().equals(ROOT_TYPE.get()) ||
               getType().isAssignableFrom(((IMetaType) type).getType()) ||
               StandardCoercionManager.isStructurallyAssignable(getType(), ((IMetaType) type).getType()))));
+  }
+
+  private boolean isMetadataType() {
+    String namespace = getType().getNamespace();
+    return "entity".equals(namespace) || "typekey".equals(namespace);
   }
 
   private boolean isDefaultOrRootType() {

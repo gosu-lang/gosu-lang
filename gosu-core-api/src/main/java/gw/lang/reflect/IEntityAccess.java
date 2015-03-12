@@ -40,16 +40,6 @@ public interface IEntityAccess extends IService
 
   public boolean isEntityClass( IType type );
 
-  public boolean isViewEntityClass( IType type );
-
-  public IType getPrimaryEntityClass( IType type );
-
-  public boolean isKeyableEntityClass( IType type );
-
-  public boolean isDomainClass( IType type );
-
-  public boolean isTypekey( IType type );
-
   public Object getEntityInstanceFrom( Object entity, IType classDomain );
 
   public boolean areBeansEqual( Object bean1, Object bean2 );
@@ -82,8 +72,6 @@ public interface IEntityAccess extends IService
 
   public ClassLoader getPluginClassLoader();
 
-  public Object constructObject( Class cls );
-
   public IAttributeSource getAttributeSource( GlobalScope scope );
 
   public Object[] convertToExternalIfNecessary( Object[] args, Class[] argTypes, Class methodOwner );
@@ -105,10 +93,6 @@ public interface IEntityAccess extends IService
   IPropertyInfo getEntityIdProperty( IType rootType );
 
   boolean shouldAddWarning( IType type, IParseIssue warning );
-
-  boolean isServerMutable();
-  boolean isRetainDebugInfo();
-  boolean isDevMode();
 
   ILanguageLevel getLanguageLevel();
 
