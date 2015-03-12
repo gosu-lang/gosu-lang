@@ -5,15 +5,19 @@
 package gw.internal.gosu.parser;
 
 import gw.config.CommonServices;
+import gw.config.ExecutionMode;
 import gw.fs.IDirectory;
 import gw.fs.IResource;
 import gw.fs.IncludeModuleDirectory;
 import gw.internal.gosu.module.DefaultSingleModule;
+import gw.internal.gosu.module.GlobalModule;
 import gw.internal.gosu.module.JreModule;
 import gw.internal.gosu.module.Module;
 import gw.fs.AdditionalDirectory;
 import gw.lang.cli.SystemExitIgnoredException;
+import gw.lang.gosuc.GosucModule;
 import gw.lang.gosuc.GosucProject;
+import gw.lang.gosuc.GosucUtil;
 import gw.lang.init.GosuPathEntry;
 import gw.lang.parser.GosuParserFactory;
 import gw.lang.parser.IGosuParser;
@@ -25,6 +29,7 @@ import gw.lang.reflect.IType;
 import gw.lang.reflect.ITypeRef;
 import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.gs.BytecodeOptions;
+import gw.lang.reflect.gs.GosuClassPathThing;
 import gw.lang.reflect.gs.GosuClassTypeLoader;
 import gw.lang.reflect.java.JavaTypes;
 import gw.lang.reflect.module.Dependency;
@@ -265,6 +270,46 @@ public class ExecutionEnvironment implements IExecutionEnvironment
     }
   }
 
+  public void initializeCompiler(GosucModule gosucModule) {
+    _state = TypeSystemState.STARTING;
+    try {
+//      DefaultPlatformHelper.DISABLE_COMPILE_TIME_ANNOTATION = true;
+
+      DefaultSingleModule module = new DefaultSingleModule( this, gosucModule.getName() );
+      module.setNativeModule(gosucModule);
+      module.setRoots(GosucUtil.toDirectories(gosucModule.getContentRoots()));
+      module.configurePaths(GosucUtil.toDirectories(gosucModule.getClasspath()), GosucUtil.toDirectories(gosucModule.getAllSourceRoots()));
+      _defaultModule = module;
+      _modules = new ArrayList<IModule>(Collections.singletonList(module));
+
+      module.initializeTypeLoaders();
+      CommonServices.getEntityAccess().init();
+
+      FrequentUsedJavaTypeCache.instance( this ).init();
+    } finally {
+      _state = TypeSystemState.STARTED;
+    }
+  }
+
+  public void uninitializeCompiler() {
+    _state = TypeSystemState.STOPPING;
+    try {
+      if (_defaultModule != null) {
+        GlobalModule m = (GlobalModule) _defaultModule;
+        m.getModuleTypeLoader().uninitializeTypeLoaders();
+        m.getModuleTypeLoader().reset();
+        m.setRoots(Collections.<IDirectory>emptyList());
+        m.configurePaths(Collections.<IDirectory>emptyList(), Collections.<IDirectory>emptyList());
+
+        GosuClassPathThing.cleanup();
+      }
+
+      _jreModule = null;
+    } finally {
+      _state = TypeSystemState.STOPPED;
+    }
+  }
+
   void checkForDuplicates(String moduleName) {
     for (IModule m : getModules()) {
       if (m.getName().equals(moduleName)) {
@@ -283,7 +328,7 @@ public class ExecutionEnvironment implements IExecutionEnvironment
         return m;
       }
     }
-    if( isSingleModuleMode() && GLOBAL_MODULE_NAME.equals( strModuleName ) ) {
+    if( !ExecutionMode.isIDE() && GLOBAL_MODULE_NAME.equals( strModuleName ) ) {
       return getGlobalModule();
     }
     return null;
@@ -338,32 +383,13 @@ public class ExecutionEnvironment implements IExecutionEnvironment
    */
   public IModule getJreModule() {
     if (_jreModule == null) {
-      if (isSingleModuleMode()) {
+      if (!ExecutionMode.isIDE()) {
         _jreModule = getGlobalModule();
       } else {
         throw new RuntimeException("The JRE module was not created. Please create it before trying to get it.");
       }
     }
     return _jreModule;
-  }
-
-  public boolean isSingleModuleMode()
-  {
-    return _modules != null && _modules.size() == 1 && _modules.get(0) instanceof DefaultSingleModule;
-  }
-
-  public static boolean isDefaultSingleModuleMode()
-  {
-    if( INSTANCES.size() == 1 )
-    {
-      if( THE_ONE != null )
-      {
-        return THE_ONE.isSingleModuleMode();
-      }
-      Collection<ExecutionEnvironment> values = INSTANCES.values();
-      return values.iterator().next().isSingleModuleMode();
-    }
-    return false;
   }
 
   public IModule getGlobalModule() {

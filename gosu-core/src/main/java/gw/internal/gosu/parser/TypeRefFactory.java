@@ -4,6 +4,7 @@
 
 package gw.internal.gosu.parser;
 
+import gw.config.ExecutionMode;
 import gw.internal.ext.org.objectweb.asm.ClassReader;
 import gw.internal.ext.org.objectweb.asm.ClassVisitor;
 import gw.internal.ext.org.objectweb.asm.ClassWriter;
@@ -83,7 +84,7 @@ public class TypeRefFactory implements ITypeRefFactory
     }
 
     ITypeRef ref;
-    if (TypeSystem.isSingleModuleMode()) {
+    if (ExecutionMode.isRuntime()) {
       ref = getRefTheFastWay(type, strTypeName);
     } else {
       ref = getRefTheSafeWay(type, strTypeName);
