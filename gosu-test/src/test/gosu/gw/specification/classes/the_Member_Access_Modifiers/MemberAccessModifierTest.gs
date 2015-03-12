@@ -29,4 +29,8 @@ class MemberAccessModifierTest extends BaseVerifyErrantTest {
   function testErrant_InternalAccessModifierAndSubclasses() {
     processErrantType(Errant_InternalAccessModifierAndSubclasses)
   }
+
+  function testErrant_DefaultAccess() {
+    processErrantType(Errant_DefaultAccess)
+  }
 }
