@@ -107,3 +107,85 @@ Constructor Feature Literals
 Constructors can be referred to by using the ``construct`` keyword and the argument resolution rules for Method Feature
 Literals specified above.  Feature literals of this type are referred to as "Constructor Feature Literals" or
 "Constructor Feature Literals With Bound Parameters", depending on the form of the literal.
+
+Feature Literal Expression Typing
+=================================
+
+Preamble
+--------
+
+Let the "final root type" of an expression be defined thusly: If an expression ``E`` is of the form TypeLiteral,
+its final root type is the type value of the evaluated expression ``E``.  Otherwise it is the type of ``E``.
+
+Typing Table
+--------
+
+Feature literal expression typing consists of 12 cases:
+
+Given a Feature Literal ``E`` of the form ``rootExpression#featureReference``, the type of ``E`` is as follows:
+
+#) If the Feature Literal is a Method Feature Literal with no bound parameters and refers to a static method
+   ``M``, then ``E`` is ``gw.lang.reflect.features.MethodReference<R, T>``, where ``R`` is the final root type of
+   the rootExpression and ``T`` is a block type matching the type signature of ``M``
+
+#) If the Feature Literal is a Method Feature Literal with no bound parameters and refers to a non-static method ``M``,
+   then ``E`` is ``gw.lang.reflect.features.MethodReference<R, T>``, where ``R`` is the final root type of the
+   rootExpression and ``T`` is a block type with parameters that consist of ``R``, followed by the parameters of ``M``,
+   and with a return type that is the same  as the return type of ``M``.
+
+#) If the Feature Literal is a Method Feature Literal with bound parameters and refers to a static method ``M``,
+   then ``E`` is ``gw.lang.reflect.features.MethodReference<R, T>``, where ``R`` is the final root type of the
+   rootExpression and ``T`` is a block type with no parameters and with a return type that is the same as the
+   return type of ``M``.
+
+#) If the Feature Literal is a Method Feature Literal with bound parameters and refers to a non-static method ``M``,
+   then ``E`` is ``gw.lang.reflect.features.MethodReference<R, T>``, where ``R`` is the final root type of the
+   rootExpression and ``T`` is a block type with one parameter of type ``R`` and with a return type that is the same as
+   the return type of ``M``.
+
+#) If the Feature Literal is a Bound Method Feature Literal with no bound parameters and refers to a method ``M``, then
+   ``E`` is ``gw.lang.reflect.features.BoundMethodReference<R, T>``, where ``R`` is the final root type of the
+   rootExpression and ``T`` is a block type matching the type signature of ``M``.
+
+#) If the Feature Literal is a Bound Method Feature Literal with bound parameters and refers to a method ``M``, then
+   ``E`` is ``gw.lang.reflect.features.BoundMethodReference<R, T>``, where ``R`` is the final root type of the
+   rootExpression and ``T`` is a block type with no parameters an a return type that is the same as the return type of
+   ``M``
+
+#) If the Feature Literal is a Property Feature Literal and refers to a property ``P``, then ``E`` is
+   ``gw.lang.reflect.features.PropertyReference<R, T>``, where ``R`` is the type of the final root type of the
+   rootExpression and ``T`` is the type of the property ``P``.
+
+#) If the Feature Literal is a Bound Property Feature Literal and refers to a property ``P``, then ``E`` is
+   ``gw.lang.reflect.features.BoundPropertyReference<R, T>``, where ``R`` is the final root type of the rootExpression
+   and ``T`` is the type of the property ``P``.
+
+#) If the Feature Literal is a Constructor Feature Literal with no bound parameters and refers to a constructor ``C``,
+   then ``E`` is ``gw.lang.reflect.features.ConstructorReference<R, T>``, where ``R`` is the final root type of the
+   rootExpression and ``T`` is a block type whose parameters match the constructor ``C`` and whose return type is ``R``.
+
+#) If the Feature Literal is a Constructor Feature Literal with bound parameters and refers to a constructor ``C``,
+   then ``E`` is ``gw.lang.reflect.features.ConstructorReference<R, T>``, where ``R`` is the final root type of the
+   rootExpression and ``T`` is a block type with no parameters and whose return type is ``R``.
+
+#) If the Feature Literal is a Property Literal Chain that begins with a Feature Literal ``FL1`` and finishes with a
+   Property Feature Literal referencing property ``P2``, then ``E`` is
+   ``gw.lang.reflect.features.PropertyChainReference<R, T>``, where ``R`` is the final root type of the
+   rootExpression of ``FL1`` and ``T`` is the type of property ``P2``.
+
+#) If the Feature Literal is a Bound Property Literal Chain that begins with an expression  Feature Literal ``FL1`` and
+   finishes with a Property Feature Literal referencing  property ``P2``, then ``E`` is
+   ``gw.lang.reflect.features.BoundPropertyChainReference<R, T>``, where ``R`` is the final root type of the
+   rootExpression of ``FL1`` and ``T`` is the type of property ``P2``.
+
+Generics & Feature Literals
+===========================
+
+Generics type variables interact with feature literals in two ways, depending on the kind of the type parameter in
+question.
+
+- Generic class type parameters are respected in feature literal expressions.
+
+- Generic method type parameters are not usable in feature literal expressions, and are always set to their
+  bounding type. There is no way to refer to a specific parameterized version of a generic method.
+  Attempting to parameterize a generic method literal is an error.
