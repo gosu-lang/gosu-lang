@@ -23,13 +23,17 @@ import gw.lang.reflect.gs.StringSourceFileHandle;
 import gw.lang.reflect.java.IJavaMethodInfo;
 import gw.lang.reflect.java.JavaTypes;
 import gw.lang.reflect.module.IModule;
+import gw.util.fingerprint.FP64;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.Callable;
 
 public class FunctionToInterfaceClassGenerator {
+  private static final Map<String, String> MAP = new HashMap<>();
   public static final String PROXY_FOR = "ProxyFor_";
 
   public static synchronized IGosuClass getBlockToInterfaceConversionClass( IType typeToCoerceTo, IType enclosingType ) {
@@ -50,30 +54,17 @@ public class FunctionToInterfaceClassGenerator {
   }
 
   private static String encodeClassName( String name ) {
-    StringBuilder sb = new StringBuilder( name );
-    replace( sb, "<", "_L_t_" );
-    replace( sb, ">", "_G_t_" );
-    replace( sb, "[]", "_A_r_" );
-    replace( sb, ".", "_D_t_" );
-    replace( sb, ",", "_C_m_" );
-    replace( sb, " ", "" );
-    return sb.toString();
+    String fp = String.valueOf( new FP64( name ).getRawFingerprint() ).replace( '-', '_' );
+    MAP.put( fp, name );
+    return fp;
   }
 
-  private static String decodeClassName( String name ) {
-    StringBuilder sb = new StringBuilder( name );
-    replace( sb, "_L_t_", "<" );
-    replace( sb, "_G_t_", ">" );
-    replace( sb, "_A_r_", "[]" );
-    replace( sb, "_D_t_", "." );
-    replace( sb, "_C_m_", "," );
-    return sb.toString();
-  }
-
-  private static void replace( StringBuilder sb, String find, String replace ) {
-    for( int i = sb.indexOf( find ); i >= 0; i = sb.indexOf( find ) ) {
-      sb.replace( i, i+find.length(), replace );
+  private static String decodeClassName( String fp ) {
+    String name = MAP.get( fp );
+    if( name == null ) {
+      throw new IllegalStateException();
     }
+    return name;
   }
 
   private static IGosuClass createProxy( final IType typeToCoerceTo, IType enclosingType, final String relativeName )
