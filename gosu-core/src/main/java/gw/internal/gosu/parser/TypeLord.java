@@ -2018,8 +2018,12 @@ public class TypeLord
         // Infer the type
         inferenceMap.put( tvType, argType );
         inferredInCallStack.add( tvType );
+        if( type != null && type.equals( argType ) )
+        {
+          return;
+        }
       }
-      else if( !inferredInCallStack.contains( tvType ) )
+      else if( type != null )
       {
         // Infer the type as the intersection of the existing inferred type and this one.  This is most relevant for
         // case where we infer a given type var from more than one type context e.g., a method call:
@@ -2028,7 +2032,7 @@ public class TypeLord
         // var r = foo( l, s ) // here we must use the LUB of String and StringBuilder, which is CharSequence & Serializable
         // function foo<T>( t1: T, t2: T ) {}
 
-        IType lubType = TypeLord.findLeastUpperBound( Arrays.asList( type, argType ) );
+        IType lubType = argType.equals( genParamType ) ? type : TypeLord.findLeastUpperBound( Arrays.asList( type, argType ) );
         inferenceMap.put( tvType, lubType );
       }
       IType boundingType = ((ITypeVariableType)genParamType).getBoundingType();
@@ -2140,6 +2144,10 @@ public class TypeLord
 
   public static IType boundTypes( IType type, List<IType> typesToBound )
   {
+    return boundTypes( type, typesToBound, false );
+  }
+  public static IType boundTypes( IType type, List<IType> typesToBound, boolean bKeepTypeVars )
+  {
     IType inferringType;
     if( type == null )
     {
@@ -2148,7 +2156,11 @@ public class TypeLord
     else if( type instanceof ITypeVariableType && (inferringType = inferringType(type, typesToBound)) != null )
     {
       // inferringType removes type from the list, to prevent stack overflow.
-      IType boundType = boundTypes( ((ITypeVariableType)type).getBoundingType(), typesToBound );
+      if( bKeepTypeVars )
+      {
+        return inferringType;
+      }
+      IType boundType = boundTypes( ((ITypeVariableType)type).getBoundingType(), typesToBound, bKeepTypeVars );
       typesToBound.add(inferringType); // add it back
       // FIXME-idubrov: Should we replace all type variables equal to type inside boundType with boundType?
       return boundType;
@@ -2156,14 +2168,14 @@ public class TypeLord
     else if( type instanceof ITypeVariableArrayType )
     {
       IType componentType = type.getComponentType();
-      return boundTypes( componentType, typesToBound ).getArrayType();
+      return boundTypes( componentType, typesToBound, bKeepTypeVars ).getArrayType();
     }
     else if( type.isParameterizedType() )
     {
       IType[] parameters = type.getTypeParameters().clone();
       for( int i = 0; i < parameters.length; i++ )
       {
-        parameters[i] = boundTypes( parameters[i], typesToBound );
+        parameters[i] = boundTypes( parameters[i], typesToBound, bKeepTypeVars );
       }
       return type.getGenericType().getParameterizedType( parameters );
     }
@@ -2173,9 +2185,9 @@ public class TypeLord
       IType[] paramTypes = funType.getParameterTypes().clone();
       for( int i = 0; i < paramTypes.length; i++ )
       {
-        paramTypes[i] = boundTypes( paramTypes[i], typesToBound );
+        paramTypes[i] = boundTypes( paramTypes[i], typesToBound, bKeepTypeVars );
       }
-      IType returnType = boundTypes( funType.getReturnType(), typesToBound );
+      IType returnType = boundTypes( funType.getReturnType(), typesToBound, bKeepTypeVars );
       return funType.newInstance( paramTypes, returnType );
     }
     else
@@ -2194,7 +2206,7 @@ public class TypeLord
         TypeVariableType inferringTypeVarType = (TypeVariableType)currentlyInferringType;
         if( areTypeVariablesEquivalent( typeVarType, inferringTypeVarType ) )
         {
-          currentlyInferringTypes.remove(inferringTypeVarType);
+          //currentlyInferringTypes.remove(inferringTypeVarType);
           return inferringTypeVarType;
         }
       }

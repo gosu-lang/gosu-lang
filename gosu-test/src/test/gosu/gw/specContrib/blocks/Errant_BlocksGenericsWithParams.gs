@@ -4,7 +4,7 @@ uses java.lang.Integer
 uses java.util.ArrayList
 
 class Errant_BlocksGenericsWithParams {
-  function hello1<T>(p: block(t: T): T): T {
+  function hello1<T>(p(t: T): T): T {
     return p(null)
   }
 
@@ -117,7 +117,7 @@ class Errant_BlocksGenericsWithParams {
     })
 
     //IDE-1344 - Parser bug
-    var x13241: ArrayList<Integer> = hello1(\x: ArrayList -> {
+    var x13241: ArrayList<Integer> = hello1(\x: ArrayList -> {  //## issuekeys: MSG_TYPE_MISMATCH
       return new ArrayList<Integer>()
     })
     //Error Expected. Both show

@@ -3346,7 +3346,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
         if( !match( null, "->", SourceCodeTokenizer.TT_OPERATOR ) )
         {
           //Infer the parameter types of the block
-          List<IType> inferredContextTypes = getContextTypesForBlockArgument( contextType.getType() );
+          List<IType> inferredContextTypes = getContextTypesForBlockArgument( contextType );
 
           ArrayList<ISymbol> args = parseParameterDeclarationList( block, false, inferredContextTypes, false, false, false, isDynamic( contextType.getType() ) );
           for (ISymbol arg : args) {
@@ -3517,21 +3517,31 @@ public final class GosuParser extends ParserBase implements IGosuParser
   }
 
 
-  private List<IType> getContextTypesForBlockArgument( IType ctxType )
+  private List<IType> getContextTypesForBlockArgument( ContextType ctxType )
   {
     if( ctxType == null )
     {
       return null;
     }
 
-    //first look for function types
-    if( ctxType instanceof FunctionType )
+    IType type = ctxType.getType();
+    if( type == null )
     {
-      return Arrays.asList( ((FunctionType)ctxType).getParameterTypes() );
+      return null;
+    }
+
+    if( type instanceof FunctionType )
+    {
+      if( ctxType.getAlternateType() instanceof FunctionType )
+      {
+        // Alternate type includes type vars so that untyped parameters in the block can potentially be inferred *after* the block expression parses
+        type = ctxType.getAlternateType();
+      }
+      return Arrays.asList( ((FunctionType)type).getParameterTypes() );
     }
     else
     {
-      IFunctionType functionType = FunctionToInterfaceCoercer.getRepresentativeFunctionType( ctxType );
+      IFunctionType functionType = FunctionToInterfaceCoercer.getRepresentativeFunctionType( type );
       if( functionType != null )
       {
         ArrayList<IType> paramTypes = new ArrayList<IType>();
@@ -7074,6 +7084,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
       int iArgPos = iArgs;
       boolean bAlreadyDef = false;
       IType[] paramTypes = funcType == null ? IType.EMPTY_ARRAY : funcType.getParameterTypes();
+      IBlockType retainTypeVarsCtxType = null;
       if( match( null, ":", ISourceCodeTokenizer.TT_OPERATOR, true ) )
       {
         iArgPos = parseNamedParamExpression( funcType, bMethodScoring );
@@ -7117,9 +7128,16 @@ public final class GosuParser extends ParserBase implements IGosuParser
         }
         else
         {
-          boundCtxType = boundCtxType( rawCtxType );
+          boundCtxType = boundCtxType( rawCtxType, false );
+          if( rawCtxType instanceof IBlockType )
+          {
+            retainTypeVarsCtxType = (IBlockType)boundCtxType( rawCtxType, true );
+          }
         }
-        parseExpressionNoVerify( new ContextType( boundCtxType, bMethodScoring ) );
+        ContextType ctx = retainTypeVarsCtxType != null
+                          ? ContextType.makeBlockContexType( (IBlockType)ctxType, retainTypeVarsCtxType, bMethodScoring )
+                          : new ContextType( boundCtxType, bMethodScoring );
+        parseExpressionNoVerify( ctx );
 
         // Do not support non java value annotation w/o named args
         if( !namedArgs.isEmpty() )
@@ -7130,6 +7148,12 @@ public final class GosuParser extends ParserBase implements IGosuParser
       Expression expression = popExpression();
 
       inferFunctionTypeVariables( rawCtxType, boundCtxType, expression.getType(), inferenceMap );
+      if( retainTypeVarsCtxType != null )
+      {
+        IType actualType = TypeLord.getActualType( expression.getType(), inferenceMap, true );
+        actualType = boundCtxType( actualType, false );
+        expression.setType( actualType );
+      }
       iArgPos = iArgPos < 0 ? iArgs : iArgPos;
       if( iArgPos >= 0 )
       {
@@ -7287,8 +7311,12 @@ public final class GosuParser extends ParserBase implements IGosuParser
 
   private IType boundCtxType( IType ctxType )
   {
+    return boundCtxType( ctxType, false );
+  }
+  private IType boundCtxType( IType ctxType, boolean bKeepTypeVars )
+  {
     List<IType> inferringTypes = getCurrentlyInferringFunctionTypeVars();
-    return TypeLord.boundTypes( ctxType, inferringTypes );
+    return TypeLord.boundTypes( ctxType, inferringTypes, bKeepTypeVars );
   }
 
   private void inferFunctionTypeVariables( IType rawContextType, IType boundContextType, IType expressionType, TypeVarToTypeMap inferenceMap )
