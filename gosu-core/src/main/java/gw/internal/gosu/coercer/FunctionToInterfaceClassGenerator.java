@@ -4,6 +4,7 @@
 
 package gw.internal.gosu.coercer;
 
+import gw.internal.gosu.compiler.GosuClassLoader;
 import gw.internal.gosu.parser.GosuClassProxyFactory;
 import gw.internal.gosu.parser.IGosuClassInternal;
 import gw.internal.gosu.parser.TypeLord;
@@ -48,9 +49,9 @@ public class FunctionToInterfaceClassGenerator {
   }
 
   public static synchronized IGosuClass getBlockToInterfaceConversionClass( String relativeNameWithEncodedSuffix, IType enclosingType ) {
-    String name = decodeClassName( relativeNameWithEncodedSuffix.substring( PROXY_FOR.length() ) );
+    String name = decodeClassName( enclosingType, relativeNameWithEncodedSuffix.substring( PROXY_FOR.length() ) );
     IType typeToCoerceTo = TypeLord.parseType( name, new TypeVarToTypeMap() );
-    return createProxy( typeToCoerceTo, enclosingType, relativeNameWithEncodedSuffix );
+    return createProxy( name, typeToCoerceTo, enclosingType, relativeNameWithEncodedSuffix );
   }
 
   private static String encodeClassName( String name ) {
@@ -59,15 +60,22 @@ public class FunctionToInterfaceClassGenerator {
     return fp;
   }
 
-  private static String decodeClassName( String fp ) {
+  private static String decodeClassName( IType enclosingType, String fp ) {
     String name = MAP.get( fp );
     if( name == null ) {
-      throw new IllegalStateException();
+      // class must already have been compiled
+      try {
+        Class<?> cls = GosuClassLoader.instance().getActualLoader().loadClass( ((IGosuClass)enclosingType).getBackingClass().getName() + "$" + PROXY_FOR.length() + fp );
+        name = (String)cls.getField( "$REDRUM" ).get( null );
+      }
+      catch( Exception e ) {
+        throw new RuntimeException( e );
+      }
     }
     return name;
   }
 
-  private static IGosuClass createProxy( final IType typeToCoerceTo, IType enclosingType, final String relativeName )
+  private static IGosuClass createProxy( final String name, final IType typeToCoerceTo, IType enclosingType, final String relativeName )
   {
     IModule mod = enclosingType.getTypeLoader().getModule();
     TypeSystem.pushModule( mod );
@@ -76,7 +84,7 @@ public class FunctionToInterfaceClassGenerator {
       IGosuClassInternal gsClass = (IGosuClassInternal)GosuClassTypeLoader.getDefaultClassLoader().makeNewClass(
         new LazyStringSourceFileHandle( enclosingType.getName() + "." + relativeName, TypeLord.getPureGenericType( enclosingType ), new Callable<StringBuilder>() {
           public StringBuilder call() {
-            return genProxy( typeToCoerceTo, namespace, relativeName );
+            return genProxy( name, typeToCoerceTo, namespace, relativeName );
           }
         } ) );
       gsClass.setEnclosingType( enclosingType );
@@ -89,7 +97,7 @@ public class FunctionToInterfaceClassGenerator {
     }
   }
 
-  private static StringBuilder genProxy( IType type, String namespace, String relativeName )
+  private static StringBuilder genProxy( String name, IType type, String namespace, String relativeName )
   {
     //
     // Note we generate from Gosu source instead of generating ASM directly to take advantage
@@ -102,6 +110,7 @@ public class FunctionToInterfaceClassGenerator {
       .append( "package " ).append( namespace ).append( "\n" )
       .append( "\n" )
       .append( "static class " ).append( relativeName ).append( " implements " ).append( ifaceType.getName() ).append( " {\n" )
+      .append( "  static final var $REDRUM = \"" ).append( name ).append( "\"\n" )
       .append( "  final var _block: gw.lang.function.IBlock\n" )
       .append( "  \n" )
       .append( "  construct( brock: gw.lang.function.IBlock ) {\n" )
