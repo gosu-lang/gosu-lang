@@ -432,7 +432,6 @@ public class BlockExpressionTest extends TestClass
            "return testFun(\\ y -> y.length() as String, \"test\" )");
       Assert.fail("Should not allow overloaded block parameters to provide type inference info");
     } catch (ParseResultsException e) {
-      e.printStackTrace();
       //pass
     }
   }
