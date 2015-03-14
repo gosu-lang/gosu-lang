@@ -26,6 +26,7 @@ import gw.lang.reflect.java.JavaTypes;
 import gw.lang.reflect.module.IModule;
 import gw.util.fingerprint.FP64;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -65,8 +66,10 @@ public class FunctionToInterfaceClassGenerator {
     if( name == null ) {
       // class must already have been compiled
       try {
-        Class<?> cls = GosuClassLoader.instance().getActualLoader().loadClass( ((IGosuClass)enclosingType).getBackingClass().getName() + "$" + PROXY_FOR.length() + fp );
-        name = (String)cls.getField( "$REDRUM" ).get( null );
+        Class<?> cls = GosuClassLoader.instance().getActualLoader().loadClass( ((IGosuClass)enclosingType).getBackingClass().getName() + "$" + PROXY_FOR + fp );
+        Field field = cls.getDeclaredField( "$REDRUM" );
+        field.setAccessible( true );
+        name = (String)field.get( null );
       }
       catch( Exception e ) {
         throw new RuntimeException( e );
