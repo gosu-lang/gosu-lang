@@ -20,4 +20,9 @@ class Errant_RecursiveTypeParameter {
   static class B311 extends A311<C311> {}  //## issuekeys: TYPE PARAMETER IS NOT WITHIN THE BOUNDS
   static class C311 extends A311<D311> {}
   static class D311 extends A311<D311> {}
+
+  // IDE-1938
+  function test(p: List<Errant_JavaRecursiveTypeParameter>) {
+    var deepNode: Errant_JavaRecursiveTypeParameter = p.get(0).Children.get(0).Children.get(0)
+  }
 }
