@@ -314,10 +314,15 @@ public class StandardCoercionManager extends BaseService implements ICoercionMan
         {
           if( lhsFunctionType.areParamsCompatible( rhsFunctionType ) )
           {
-            ICoercer coercer = findCoercer( lhsFunctionType.getReturnType(), rhsFunctionType.getReturnType(), runtime );
-            if( coercer != null )
+            IType thisType = lhsFunctionType.getReturnType();
+            IType thatType = rhsFunctionType.getReturnType();
+            if( !(thisType != JavaTypes.pVOID() && thisType != JavaTypes.VOID() && (thatType == JavaTypes.pVOID() || thatType == JavaTypes.VOID())) )
             {
-              return FunctionToInterfaceCoercer.instance();
+              ICoercer coercer = findCoercer( lhsFunctionType.getReturnType(), rhsFunctionType.getReturnType(), runtime );
+              if( coercer != null )
+              {
+                return FunctionToInterfaceCoercer.instance();
+              }
             }
           }
         }

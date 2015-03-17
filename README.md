@@ -98,7 +98,7 @@ Quick Install
 
 The Gosu Plugin for IntelliJ is the recommended way to use Gosu.
 The plugin is hosted on the IntelliJ IDEA Plugin Repository and you can download it directly from within IntelliJ IDEA.
-For complete installation instructions and important information about the IntelliJ IDEA plugins, refer to the [plugin page](http://gosu-lang.org/intellij.html "Plugin").
+For complete installation instructions and important information about the IntelliJ IDEA plugins, refer to the [downloads page](http://gosu-lang.github.io/downloads.html "Downloads").
 
 
 
@@ -108,7 +108,7 @@ Support
 Need help getting your project off the ground? Want to discuss features in the next release, among both users and the Gosu team? Participate in our discussion forum or report a bug:
 
 * [Forum](http://groups.google.com/group/gosu-lang "Forum")
-* [Issue tracking](https://github.com/gosu-lang/gosu/issues "Issues")
+* [Issue tracking](https://github.com/gosu-lang/gosu-lang/issues "Issues")
 
 License
 -------
