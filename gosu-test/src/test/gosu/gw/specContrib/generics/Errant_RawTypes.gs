@@ -1,6 +1,7 @@
 package gw.specContrib.generics
 
 uses java.lang.CharSequence
+uses java.lang.Comparable
 
 class Errant_RawTypes {
   function test() {
@@ -23,5 +24,16 @@ class Errant_RawTypes {
   class C11 extends B11 {
     override function foo1(p: A11<CharSequence>) {}
     override function foo2(): A11 { return null }
+  }
+
+  // IDE-1939
+  class A21<T> {}
+
+  interface B21 {
+    function foo1(p: A21<Comparable>)
+  }
+
+  class C21 implements B21 {
+    override function foo1(p: A21<Comparable<Object>>) {}
   }
 }
