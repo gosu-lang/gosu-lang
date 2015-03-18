@@ -1,5 +1,6 @@
 package gw.specification.expressions.typeExpressions
 
+uses java.lang.Integer
 uses java.util.*
 uses java.lang.Runnable
 uses gw.lang.reflect.IType
@@ -38,6 +39,12 @@ class Errant_TypeExpressionsTest {
     b = l typeis new ArrayList()  //## issuekeys: MSG_EXPECTING_TYPE_NAME
     b = l typeis 10  //## issuekeys: MSG_EXPECTING_TYPE_NAME, MSG_UNEXPECTED_TOKEN
     b = 10 typeis ArrayList  //## issuekeys: MSG_PRIMITIVES_NOT_ALLOWED_HERE, MSG_INCONVERTIBLE_TYPES
+
+    var c: String & Comparator
+    b = c typeis Integer
+
+    var i: Integer
+    b = i typeis String & Comparator
   }
 
   function testTypeofBasic() {
