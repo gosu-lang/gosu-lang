@@ -236,7 +236,7 @@ public class TypeLord
     else if( type instanceof AsmWildcardType )
     {
       AsmType bound = ((AsmWildcardType)type).getBound();
-      if( bound == null )
+      if( bound == null || !((AsmWildcardType) type).isCovariant())
       {
         return JavaTypes.OBJECT();
       }
