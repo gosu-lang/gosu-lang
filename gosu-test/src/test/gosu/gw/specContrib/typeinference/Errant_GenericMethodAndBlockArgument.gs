@@ -16,4 +16,15 @@ class Errant_GenericMethodAndBlockArgument {
       var b: List<String> = a
     }
   }
+
+  // IDE-1943
+  static class GosuClass2 {
+    function foo<T>(p1: T, p2: block(p: T): int) {}
+
+    function test() {
+      foo("", \s -> s.length())
+      foo(:p1 = "", :p2 = \s -> s.length())
+      foo(:p2 = \s -> s.length(), :p1 = "")
+    }
+  }
 }
