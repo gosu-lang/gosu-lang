@@ -65,6 +65,11 @@ public class BootstrapFeatureLiteralTest extends TestClass
     assertFalse( eval( "\"bar\"#Bytes as Object == \"foo\"#Bytes" ) );
   }
 
+  public void testConstructorReferencesInProgram() {
+    Object object = eval( "java.lang.String#construct()" );
+    assertNotNull( object );
+  }
+
   private void assertTrue( Object o )
   {
     assertTrue( ((Boolean)o).booleanValue() );
