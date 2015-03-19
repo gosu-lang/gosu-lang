@@ -635,9 +635,6 @@ public class TypeRefFactory implements ITypeRefFactory
       {
         getInterfacesFrom( superClass, interfaces );
       }
-      if (Proxy.isProxyClass(classOfType) && !interfaces.contains(ITypeImplementedByProxy.class)) {
-        interfaces.add(ITypeImplementedByProxy.class);
-      }
     }
   }
 
