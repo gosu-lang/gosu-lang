@@ -6602,7 +6602,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
       {
         IType boundingType = typeVars[i].getBoundingType();
         boundingType = TypeLord.isParameterizedType( boundingType ) && TypeLord.isRecursiveType( boundingType, boundingType.getTypeParameters() )
-                ? TypeLord.getDefaultParameterizedType( boundingType )
+                ? TypeLord.getDefaultParameterizedTypeWithTypeVars( boundingType )
                 : getActualBoundingType( typeVars, typeParam, boundingType );
         bRet = bRet &&
                 verify( elem,

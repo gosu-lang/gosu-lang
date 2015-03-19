@@ -1155,25 +1155,44 @@ public class TypeLord
 
   public static IType getDefaultParameterizedTypeWithTypeVars( IType type )
   {
+    return getDefaultParameterizedTypeWithTypeVars( type, new HashSet<IType>() );
+  }
+
+  public static IType getDefaultParameterizedTypeWithTypeVars( IType type, Set<IType> visited )
+  {
     if( type.isArray() )
     {
-      return getDefaultParameterizedTypeWithTypeVars( type.getComponentType() ).getArrayType();
+      return getDefaultParameterizedTypeWithTypeVars( type.getComponentType(), visited ).getArrayType();
     }
 
     if( type instanceof ITypeVariableType )
     {
-      return getDefaultParameterizedTypeWithTypeVars( ((ITypeVariableType)type).getBoundingType() );
+      return getDefaultParameterizedTypeWithTypeVars( ((ITypeVariableType)type).getBoundingType(), visited );
     }
 
     if( type instanceof ITypeVariableArrayType )
     {
-      return getDefaultParameterizedTypeWithTypeVars( ((ITypeVariableType)type.getComponentType()).getBoundingType() ).getArrayType();
+      return getDefaultParameterizedTypeWithTypeVars( ((ITypeVariableType)type.getComponentType()).getBoundingType(), visited ).getArrayType();
     }
 
     if( !type.isGenericType() && !type.isParameterizedType() )
     {
       return type;
     }
+
+    IType[] typeParameters = type.getTypeParameters();
+    if( !visited.contains( type ) && TypeLord.isParameterizedType( type ) && TypeLord.isRecursiveType( type, typeParameters) )
+    {
+      visited.add( type );
+      IType[] typeParams = new IType[typeParameters.length];
+      int i = 0;
+      for( IType param: typeParameters)
+      {
+        typeParams[i++] = getDefaultParameterizedTypeWithTypeVars( param, visited );
+      }
+      return getPureGenericType( type ).getParameterizedType( typeParams );
+    }
+
     type = getPureGenericType( type );
     return makeDefaultParameterizedType( type );
   }
