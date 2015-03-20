@@ -36,4 +36,27 @@ class Errant_RawTypes {
   class C21 implements B21 {
     override function foo1(p: A21<Comparable<Object>>) {}
   }
+
+  // IDE-1953
+  class A31<T extends B31<T>> {}
+
+  class B31<T extends B31<T>> {
+    var val: A31<T>
+  }
+
+  function test(p: B31): A31 {
+    return p.val
+  }
+
+  class C32<T> {}
+
+  class A32<T extends C32<T>> {}
+
+  class B32<T extends C32<T>> {
+    var val: A32<T>
+  }
+
+  function test(p: B32): A32 {
+    return p.val
+  }
 }
