@@ -3878,7 +3878,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
         boolean bAnnotationType = ownersType instanceof ICanBeAnnotation && ((ICanBeAnnotation)ownersType).isAnnotation() && JavaTypes.ANNOTATION().isAssignableFrom( ownersType );
         verify( e, bAnnotationType || !ownersType.isAbstract(), Res.MSG_CANNOT_CONSTRUCT_ABSTRACT_CLASS, declaringClass.getName() );
         // Prevent recursive types from being constructed directly
-        verify( e, !isRecursiveTypeFromBase( declaringClass ), Res.MSG_CANNOT_CONSTRUCT_RECURSIVE_CLASS, declaringClass.getName() );
+        verify( e, !TypeLord.isRecursiveTypeFromBase( declaringClass ), Res.MSG_CANNOT_CONSTRUCT_RECURSIVE_CLASS, declaringClass.getName() );
       }
 
       pushExpression( e );
@@ -4090,39 +4090,6 @@ public final class GosuParser extends ParserBase implements IGosuParser
         }
       }
     }
-  }
-
-  private boolean isRecursiveTypeFromBase( IType declaringClass )
-  {
-    if( !declaringClass.isGenericType() && !declaringClass.isParameterizedType() )
-    {
-      return false;
-    }
-
-    IType genType = TypeLord.getPureGenericType( declaringClass );
-    if( genType != TypeLord.getDefaultParameterizedType( genType ) )
-    {
-      return false;
-    }
-
-    if( declaringClass.isGenericType() && !declaringClass.isParameterizedType() )
-    {
-      if( declaringClass == TypeLord.getDefaultParameterizedType( declaringClass ) )
-      {
-        return true;
-      }
-    }
-    else if( declaringClass.isParameterizedType() )
-    {
-      for( IType typeParam : declaringClass.getTypeParameters() )
-      {
-        if( isRecursiveTypeFromBase( typeParam ) )
-        {
-          return true;
-        }
-      }
-    }
-    return false;
   }
 
   private boolean isAnnotation( IType type )
@@ -6598,12 +6565,19 @@ public final class GosuParser extends ParserBase implements IGosuParser
     {
       assert typeParam != null;
       boolean bRet = true;
+      TypeVarToTypeMap typeVarToTypeMap = new TypeVarToTypeMap();
       for( int i = 0; i < typeVars.length; i++ )
       {
         IType boundingType = typeVars[i].getBoundingType();
-        boundingType = TypeLord.isParameterizedType( boundingType ) && TypeLord.isRecursiveType( boundingType, boundingType.getTypeParameters() )
-                ? TypeLord.getDefaultParameterizedTypeWithTypeVars( boundingType )
-                : getActualBoundingType( typeVars, typeParam, boundingType );
+        boundingType = TypeLord.isRecursiveTypeFromBase( type ) || TypeLord.isParameterizedType( boundingType ) && TypeLord.isRecursiveType( boundingType, boundingType.getTypeParameters() )
+                ? TypeLord.getDefaultParameterizedTypeWithTypeVars( boundingType, typeVarToTypeMap )
+                : TypeLord.getActualType( boundingType, typeVarToTypeMap, true );
+
+        if( typeVars[i].getTypeVariableDefinition() != null )
+        {
+          typeVarToTypeMap.put( typeVars[i].getTypeVariableDefinition().getType(), typeParam[i] );
+        }
+
         bRet = bRet &&
                 verify( elem,
 
@@ -6618,17 +6592,6 @@ public final class GosuParser extends ParserBase implements IGosuParser
       return bRet;
     }
     return false;
-  }
-
-  private IType getActualBoundingType( IGenericTypeVariable[] typeVars, IType[] typeParams, IType boundingType ) {
-    TypeVarToTypeMap typeVarToTypeMap = new TypeVarToTypeMap();
-    for( int i = 0; i < typeVars.length; i++ ) {
-      IGenericTypeVariable gv = typeVars[i];
-      if( gv.getTypeVariableDefinition() != null ) {
-        typeVarToTypeMap.put( gv.getTypeVariableDefinition().getType(), typeParams.length > i ? typeParams[i] : gv.getTypeVariableDefinition().getType() );
-      }
-    }
-    return TypeLord.getActualType( boundingType, typeVarToTypeMap, true );
   }
 
   private boolean isTypeParamHeaderCompiling( IType typeParam )
@@ -7262,7 +7225,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
     Token t = new Token();
     Identifier expr = new Identifier();
     verify( expr, match( t, SourceCodeTokenizer.TT_WORD ) ||
-            match( t, SourceCodeTokenizer.TT_KEYWORD ), Res.MSG_EXPECTING_NAME_PARAM );
+                  match( t, SourceCodeTokenizer.TT_KEYWORD ), Res.MSG_EXPECTING_NAME_PARAM );
     expr.setSymbol( new TypedSymbol( t._strValue, null, null, null, SymbolType.NAMED_PARAMETER ), null );
     pushExpression( expr );
     setLocation( iOffset, iLineNum, iColumn );
@@ -7895,7 +7858,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
 
   private boolean hasTypeModifier( String strValue )
   {
-    boolean hex = isHexLiteral(strValue);
+    boolean hex = isHexLiteral( strValue );
     char ch = strValue.toLowerCase().charAt( strValue.length() - 1 );
     if( hex && ( ch == 's' ) || ( ch == 'l' ) )
     {
@@ -8150,7 +8113,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
 
     if( match( null, "&", SourceCodeTokenizer.TT_OPERATOR, true ) )
     {
-      parseAggregateTypeLiteral(bInterface);
+      parseAggregateTypeLiteral( bInterface );
     }
     return bRet;
   }
@@ -8459,7 +8422,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
       }
     }
     setLocation(iOffset, iLineNum, iColumn);
-    parseIndirectMemberAccess(iOffset, iLineNum, iColumn, true);
+    parseIndirectMemberAccess( iOffset, iLineNum, iColumn, true );
   }
 
   private boolean isTypeParameterErrorMsg( Expression expr, List<IParseIssue> exceptions )
@@ -8490,10 +8453,8 @@ public final class GosuParser extends ParserBase implements IGosuParser
         TypeLiteral typeLiteral = (TypeLiteral)peekExpression();
         IType type = typeLiteral.getType().getType();
         List<TypeLiteral> paramTypes = Collections.emptyList();
-        boolean bRecursiveGosuClass = type instanceof IGosuClassInternal &&
-                ((IGosuClassInternal)type).isCompilingHeader();
-        if( (type instanceof IJavaTypeInternal && ((IJavaTypeInternal)type).isDefiningGenericTypes()) ||
-                bRecursiveGosuClass )
+        boolean bRecursiveGosuClass = type instanceof IGosuClassInternal && ((IGosuClassInternal)type).isCompilingHeader();
+        if( (type instanceof IJavaTypeInternal && ((IJavaTypeInternal)type).isDefiningGenericTypes()) || bRecursiveGosuClass )
         {
           // If defining generic types, we assume a recursive type and, for now, use the raw generic type
           eatPossibleParametarization( false );
@@ -8516,11 +8477,12 @@ public final class GosuParser extends ParserBase implements IGosuParser
           IType[] types = new IType[paramTypes.size()];
           for( int i = 0; i < paramTypes.size(); i++ )
           {
-            TypeLiteral tl = (TypeLiteral)paramTypes.get( i );
+            TypeLiteral tl = paramTypes.get( i );
             types[i] = (tl.getType()).getType();
           }
-          if( !bRecursiveGosuClass && verifyCanParameterizeType( e, type, types ) )
+          if( !bRecursiveGosuClass )
           {
+            verifyCanParameterizeType( e, type, types );
             typeLiteral.setParameterTypes( types );
             type = typeLiteral.getType().getType();
           }
@@ -8721,7 +8683,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
     IType tlType = tl.getType().getType();
     if( !warn( tl, !tlType.isPrimitive(), Res.MSG_PRIMITIVE_TYPE_PARAM, tlType.getName(), TypeSystem.getBoxType( tlType ) ) )
     {
-      tl.setType(TypeSystem.getBoxType(tlType));
+      tl.setType( TypeSystem.getBoxType( tlType ) );
     }
   }
 

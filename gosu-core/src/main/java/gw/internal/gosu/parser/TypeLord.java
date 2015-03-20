@@ -1155,24 +1155,35 @@ public class TypeLord
 
   public static IType getDefaultParameterizedTypeWithTypeVars( IType type )
   {
-    return getDefaultParameterizedTypeWithTypeVars( type, new HashSet<IType>() );
+    return getDefaultParameterizedTypeWithTypeVars( type, null, new HashSet<IType>() );
   }
-
-  public static IType getDefaultParameterizedTypeWithTypeVars( IType type, Set<IType> visited )
+  public static IType getDefaultParameterizedTypeWithTypeVars( IType type, TypeVarToTypeMap map )
+  {
+    return getDefaultParameterizedTypeWithTypeVars( type, map, new HashSet<IType>() );
+  }
+  public static IType getDefaultParameterizedTypeWithTypeVars( IType type, TypeVarToTypeMap map, Set<IType> visited )
   {
     if( type.isArray() )
     {
-      return getDefaultParameterizedTypeWithTypeVars( type.getComponentType(), visited ).getArrayType();
+      return getDefaultParameterizedTypeWithTypeVars( type.getComponentType(), map, visited ).getArrayType();
     }
 
     if( type instanceof ITypeVariableType )
     {
-      return getDefaultParameterizedTypeWithTypeVars( ((ITypeVariableType)type).getBoundingType(), visited );
+      if( map != null )
+      {
+        final IType assignedType = map.get( (ITypeVariableType)type );
+        if( assignedType != null )
+        {
+          return assignedType;
+        }
+      }
+      return getDefaultParameterizedTypeWithTypeVars( ((ITypeVariableType)type).getBoundingType(), map, visited );
     }
 
     if( type instanceof ITypeVariableArrayType )
     {
-      return getDefaultParameterizedTypeWithTypeVars( ((ITypeVariableType)type.getComponentType()).getBoundingType(), visited ).getArrayType();
+      return getDefaultParameterizedTypeWithTypeVars( ((ITypeVariableType)type.getComponentType()).getBoundingType(), map, visited ).getArrayType();
     }
 
     if( !type.isGenericType() && !type.isParameterizedType() )
@@ -1180,21 +1191,76 @@ public class TypeLord
       return type;
     }
 
-    IType[] typeParameters = type.getTypeParameters();
-    if( !visited.contains( type ) && TypeLord.isParameterizedType( type ) && TypeLord.isRecursiveType( type, typeParameters) )
+    if( !visited.contains( type ) )
     {
       visited.add( type );
-      IType[] typeParams = new IType[typeParameters.length];
-      int i = 0;
-      for( IType param: typeParameters)
+      IType[] typeParameters = type.getTypeParameters();
+      if( isParameterizedType( type ) && isRecursiveType( type, typeParameters ) )
       {
-        typeParams[i++] = getDefaultParameterizedTypeWithTypeVars( param, visited );
+        IType[] typeParams = new IType[typeParameters.length];
+        int i = 0;
+        for( IType param: typeParameters )
+        {
+          typeParams[i++] = getDefaultParameterizedTypeWithTypeVars( param, map, visited );
+        }
+        return getPureGenericType( type ).getParameterizedType( typeParams );
       }
-      return getPureGenericType( type ).getParameterizedType( typeParams );
+      else if( type.isGenericType() && !type.isParameterizedType() && isRecursiveTypeFromBase( type ) )
+      {
+        final IGenericTypeVariable[] gvs = type.getGenericTypeVariables();
+        IType[] typeParams = new IType[gvs.length];
+        int i = 0;
+        for( IGenericTypeVariable param: gvs )
+        {
+          final ITypeVariableDefinition typeDef = param.getTypeVariableDefinition();
+          if( typeDef != null )
+          {
+            typeParams[i++] = getDefaultParameterizedTypeWithTypeVars( typeDef.getType(), map, visited );
+          }
+          else
+          {
+            typeParams[i++] = getDefaultParameterizedTypeWithTypeVars( typeDef.getBoundingType(), map, visited );
+          }
+        }
+        return getPureGenericType( type ).getParameterizedType( typeParams );
+      }
     }
 
     type = getPureGenericType( type );
     return makeDefaultParameterizedType( type );
+  }
+
+  public static boolean isRecursiveTypeFromBase( IType declaringClass )
+  {
+    if( !declaringClass.isGenericType() && !declaringClass.isParameterizedType() )
+    {
+      return false;
+    }
+
+    IType genType = TypeLord.getPureGenericType( declaringClass );
+    if( genType != TypeLord.getDefaultParameterizedType( genType ) )
+    {
+      return false;
+    }
+
+    if( declaringClass.isGenericType() && !declaringClass.isParameterizedType() )
+    {
+      if( declaringClass == TypeLord.getDefaultParameterizedType( declaringClass ) )
+      {
+        return true;
+      }
+    }
+    else if( declaringClass.isParameterizedType() )
+    {
+      for( IType typeParam : declaringClass.getTypeParameters() )
+      {
+        if( isRecursiveTypeFromBase( typeParam ) )
+        {
+          return true;
+        }
+      }
+    }
+    return false;
   }
 
   public static boolean isSubtype( IType subtype, IType supertype )
