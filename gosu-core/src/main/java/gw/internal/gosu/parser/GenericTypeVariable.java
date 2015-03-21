@@ -108,27 +108,31 @@ public class GenericTypeVariable implements IGenericTypeVariable
     IJavaClassType[] fromBounds = typeVar.getBounds();
     IType[] boundingTypes = new IType[fromBounds.length];
     IType myType = actualParamByVarName.getByString( _strName );
-    boolean bTemporaryMap = false;
+
+    TypeVariableType typeVarType = null;
     if( myType == null )
     {
-      // Need to map a Object to this tyepvar's for case where this typevar's
-      // bounds references itself. Behold such an example exists e.g.,
-      // Collections: public static <T extends Comparable<? super T>> void sort(List<T> list).
-      // Comparable<? super T> is the bounds of T itself.
-      bTemporaryMap = true;
+      // Handle recursive types
       if( actualParamByVarName.isEmpty() )
       {
         actualParamByVarName = new TypeVarToTypeMap();
       }
-      actualParamByVarName.putByString( _strName, JavaTypes.OBJECT() );
+      final TypeVariableDefinitionImpl typeVarDef = new TypeVariableDefinitionImpl( null, _strName, enclosingType, null, this );
+      typeVarType = new TypeVariableType( typeVarDef, false );
+      actualParamByVarName.putByString( _strName, typeVarType );
     }
+
     for( int j = 0; j < fromBounds.length; j++ )
     {
-      if(fromBounds[j] != null) {
-        boundingTypes[j] = fromBounds[j].getActualType( actualParamByVarName );
-      } else {
+      if( fromBounds[j] != null )
+      {
+        boundingTypes[j] = fromBounds[j].getActualType( actualParamByVarName, true );
+      }
+      else
+      {
         boundingTypes[j] = TypeSystem.getErrorType();
       }
+
       if( boundingTypes[j] == null )
       {
         throw new IllegalArgumentException( "bounding type [" + j + "] is null" );
@@ -143,14 +147,19 @@ public class GenericTypeVariable implements IGenericTypeVariable
       }
     }
     setBoundingType( boundingTypes.length == 1 ? boundingTypes[0] : CompoundType.get( boundingTypes ) );
-    if( bTemporaryMap )
-    {
-      actualParamByVarName.removeByString( _strName );
-    }
 
     if( enclosingType != null )
     {
-      _typeVariableDefinition = (TypeVariableDefinitionImpl) new TypeVariableDefinition( enclosingType, this ).getTypeVarDef();
+      TypeVariableDefinition typeVariableDefinition;
+      if( typeVarType != null )
+      {
+        typeVariableDefinition = new TypeVariableDefinition( enclosingType, this, (TypeVariableDefinitionImpl)typeVarType.getTypeVarDef(), typeVarType );
+      }
+      else
+      {
+        typeVariableDefinition = new TypeVariableDefinition( enclosingType, this );
+      }
+      _typeVariableDefinition = (TypeVariableDefinitionImpl) typeVariableDefinition.getTypeVarDef();
     }
   }
 
