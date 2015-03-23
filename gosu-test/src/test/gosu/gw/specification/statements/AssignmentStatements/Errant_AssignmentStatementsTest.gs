@@ -1,5 +1,7 @@
 package gw.specification.statements.AssignmentStatements
 
+uses java.lang.*
+
 class Errant_AssignmentStatementsTest {
 
   var num : int = 0
@@ -43,5 +45,31 @@ class Errant_AssignmentStatementsTest {
     c = new C()
     c.num = 0
     c.plus5Map()
+  }
+
+  function testIncrementWithPrimitiveIntegerTypes() {
+    var x0 : int = 0
+    var x1 : long  = 0L
+    var x2 : char = '0'
+    var x3 : byte = 0b
+    var x4  :short= 0s
+    x0++
+    x1++
+    x2++
+    x2++
+    x4++
+  }
+
+  function testIncrementWithBoxedIntegerTypes() {
+    var x0 : Integer = 0;
+    var x1 : Long = 0L;
+    var x2 : Character = '0';
+    var x3 : Byte = 0;
+    var x4 : Short= 0;
+    x0++
+    x1++
+    x2++
+    x2++
+    x4++
   }
 }
