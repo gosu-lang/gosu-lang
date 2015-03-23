@@ -1155,7 +1155,7 @@ public class TypeLord
 
   public static IType getDefaultParameterizedTypeWithTypeVars( IType type )
   {
-    return getDefaultParameterizedTypeWithTypeVars( type, null, new HashSet<IType>() );
+    return getDefaultParameterizedTypeWithTypeVars(type, null, new HashSet<IType>());
   }
   public static IType getDefaultParameterizedTypeWithTypeVars( IType type, TypeVarToTypeMap map )
   {
@@ -1178,7 +1178,7 @@ public class TypeLord
           return assignedType;
         }
       }
-      return getDefaultParameterizedTypeWithTypeVars( ((ITypeVariableType)type).getBoundingType(), map, visited );
+      return getDefaultParameterizedTypeWithTypeVars(((ITypeVariableType) type).getBoundingType(), map, visited);
     }
 
     if( type instanceof ITypeVariableArrayType )
@@ -2060,7 +2060,7 @@ public class TypeLord
 
     if( argType.isPrimitive() )
     {
-      argType = getBoxedTypeFromPrimitiveType( argType );
+      argType = getBoxedTypeFromPrimitiveType(argType);
     }
 
     if( genParamType.isArray() )
@@ -2238,7 +2238,7 @@ public class TypeLord
     {
       return null;
     }
-    else if( type instanceof ITypeVariableType && (inferringType = inferringType(type, typesToBound)) != null )
+    else if( type instanceof ITypeVariableType && (inferringType = inferringType( type, typesToBound, bKeepTypeVars )) != null )
     {
       // inferringType removes type from the list, to prevent stack overflow.
       if( bKeepTypeVars )
@@ -2281,7 +2281,7 @@ public class TypeLord
     }
   }
 
-  private static IType inferringType( IType type, List<IType> currentlyInferringTypes )
+  private static IType inferringType(IType type, List<IType> currentlyInferringTypes, boolean bKeepTypeVars)
   {
     if( type instanceof TypeVariableType )
     {
@@ -2291,7 +2291,10 @@ public class TypeLord
         TypeVariableType inferringTypeVarType = (TypeVariableType)currentlyInferringType;
         if( areTypeVariablesEquivalent( typeVarType, inferringTypeVarType ) )
         {
-          //currentlyInferringTypes.remove(inferringTypeVarType);
+          if( !bKeepTypeVars )
+          {
+            currentlyInferringTypes.remove(inferringTypeVarType);
+          }
           return inferringTypeVarType;
         }
       }
