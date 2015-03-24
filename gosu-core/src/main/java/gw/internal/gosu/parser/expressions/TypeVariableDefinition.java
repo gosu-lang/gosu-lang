@@ -44,6 +44,18 @@ public class TypeVariableDefinition extends Expression implements ITypeVariableD
     _typeVarDef._type = (TypeVariableType)_type;
   }
 
+  // Uses for recursive type vars and as a copy ctor
+  public TypeVariableDefinition( IType enclosingType, IGenericTypeVariable typeVar, TypeVariableDefinitionImpl typeVarDef, TypeVariableType typeVarType )
+  {
+    _typeVarDef = typeVarDef;
+    _typeVarDef._typeVar = (GenericTypeVariable)typeVar;
+    _type = typeVarType;
+    _typeVarDef._enclosingType = enclosingType;
+    _typeVarDef._strName = typeVar.getName();
+    _typeVarDef._boundingType = typeVar.getBoundingType();
+    _typeVarDef._type = (TypeVariableType)_type;
+  }
+
   // Copy constructor used for cloning
   private TypeVariableDefinition(TypeVariableDefinitionImpl typeVarDef, boolean isFunctionStatement) {
     _typeVarDef = typeVarDef;

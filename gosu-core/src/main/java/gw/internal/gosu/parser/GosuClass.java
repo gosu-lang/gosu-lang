@@ -5,6 +5,7 @@
 package gw.internal.gosu.parser;
 
 import gw.config.CommonServices;
+import gw.config.ExecutionMode;
 import gw.fs.IFile;
 import gw.internal.gosu.coercer.FunctionToInterfaceClassGenerator;
 import gw.internal.gosu.compiler.GosuClassLoader;
@@ -48,6 +49,7 @@ import gw.lang.reflect.IEnumValue;
 import gw.lang.reflect.IFunctionType;
 import gw.lang.reflect.IMethodInfo;
 import gw.lang.reflect.IParameterInfo;
+import gw.lang.reflect.IPropertyInfo;
 import gw.lang.reflect.IRelativeTypeInfo;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.ITypeRef;
@@ -552,7 +554,21 @@ public class GosuClass extends AbstractType implements IGosuClassInternal
 
   public IJavaType getJavaType()
   {
-    return _proxiedJavaClassInGosuProxy;
+    if( _proxiedJavaClassInGosuProxy != null )
+    {
+      return _proxiedJavaClassInGosuProxy;
+    }
+    if( getEnclosingType() != null && isProxy() )
+    {
+      IJavaType javaType = ((IGosuClass) getEnclosingType()).getJavaType();
+      if( javaType != null )
+      {
+        IType proxiedJavaClass = javaType.getInnerClass(getRelativeName());
+        setJavaType((IJavaType) proxiedJavaClass);
+        return (IJavaType) proxiedJavaClass;
+      }
+    }
+    return null;
   }
 
   public void setJavaType( IJavaType javaType )
@@ -2365,8 +2381,7 @@ public class GosuClass extends AbstractType implements IGosuClassInternal
       if( !bSuperClass || (isAccessible( gsContextClass, varStmt ) && !isHidden( varStmt )) )
       {
         ISymbol existingSymbol = table.getSymbol( varStmt.getSymbol().getName() );
-        if( existingSymbol != null && !GosuObjectUtil.equals( existingSymbol.getScriptPart(),
-                                                              varStmt.getSymbol().getScriptPart() ) )
+        if( existingSymbol != null && !areSymbolsFromSameDeclaration(varStmt, existingSymbol))
         {
           table.putSymbol( new AmbiguousSymbol( varStmt.getSymbol().getName() ) );
         }
@@ -2376,6 +2391,22 @@ public class GosuClass extends AbstractType implements IGosuClassInternal
         }
       }
     }
+  }
+
+  private boolean areSymbolsFromSameDeclaration(IVarStatement varStmt, ISymbol existingSymbol) {
+    boolean sameDeclaringType = GosuObjectUtil.equals(existingSymbol.getScriptPart(), varStmt.getSymbol().getScriptPart());
+    if( sameDeclaringType ) {
+      return true;
+    }
+    IGosuClassInternal existingDeclaringType = (IGosuClassInternal) existingSymbol.getScriptPart().getContainingType();
+    if( isProxy() && existingDeclaringType.isProxy() ) {
+      // This class is a Java proxy and so is the declaring class of the existing symbol.  In this case we need to get
+      // the JavaType corresponding with this class' proxy and find where the existing symbol comes from within the Java
+      // hierarchy.
+      IPropertyInfo pi = ((IRelativeTypeInfo) getJavaType().getTypeInfo()).getProperty( getTheRef(), existingSymbol.getName() );
+      return pi != null && pi.getOwnersType() == existingDeclaringType.getJavaType();
+    }
+    return false;
   }
 
   private void putFields( ISymbolTable table, IGosuClassInternal gsContextClass, boolean bSuperClass )
@@ -2481,7 +2512,7 @@ public class GosuClass extends AbstractType implements IGosuClassInternal
     ISource source = _sourceFileHandle.getSource();
     parser.setScript(source);
     _parseInfo.updateSource(source.getSource());
-    if (CommonServices.getPlatformHelper().isInIDE()) {
+    if (ExecutionMode.isIDE()) {
       parser.setThrowParseExceptionForWarnings(true);
       parser.setDontOptimizeStatementLists(true);
       parser.setWarnOnCaseIssue(true);
@@ -2567,7 +2598,7 @@ public class GosuClass extends AbstractType implements IGosuClassInternal
       return _parser;
     } else {
       GosuParser parser = createParser(symbolTable);
-      if (CommonServices.getPlatformHelper().isInIDE()) {
+      if (ExecutionMode.isIDE()) {
         _parser = parser;
       }
       return parser;
@@ -2826,7 +2857,9 @@ public class GosuClass extends AbstractType implements IGosuClassInternal
       paramTypes[i] = params[i].getFeatureType();
     }
     IRelativeTypeInfo ti = (IRelativeTypeInfo)JavaTypes.OBJECT().getTypeInfo();
-    IMethodInfo objMethod = ti.getMethod( JavaTypes.OBJECT(), mi.getDisplayName(), paramTypes );
+    String name = mi.getDisplayName();
+    name = name.equals( "@Class" ) ? "getClass" : name;
+    IMethodInfo objMethod = ti.getMethod( JavaTypes.OBJECT(), name, paramTypes );
     return objMethod != null;
   }
 

@@ -18,7 +18,9 @@ import java.util.Hashtable;
 public class GosuClassPathThing {
   public static final String GOSU_CLASS_PROTOCOL = "gosuclass";
   private static final String PROTOCOL_PACKAGE = "gw.internal.gosu.compiler.protocols";
-  private static Boolean CAN_WRAP = null;
+
+  //## todo: set this back to null after we upgrade to tomcat8 and reapply the changes to use a single ClassLoader monitor as the type sys lock
+  private static Boolean CAN_WRAP = Boolean.FALSE; //= null;
 
   private static void setupLoaderChainWithGosuUrl( ClassLoader loader ) {
     UrlClassLoaderWrapper wrapped = UrlClassLoaderWrapper.wrapIfNotAlreadyVisited( loader );

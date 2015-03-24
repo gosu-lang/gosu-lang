@@ -421,6 +421,7 @@ public class Res
   public static final ResourceKey MSG_FL_CONSTRUCTOR_NOT_FOUND = new ResourceKey( "MSG_FL_CONSTRUCTOR_NOT_FOUND");
   public static final ResourceKey MSG_FL_METHOD_NOT_FOUND = new ResourceKey( "MSG_FL_METHOD_NOT_FOUND");
   public static final ResourceKey MSG_FL_PROPERTY_NOT_FOUND = new ResourceKey( "MSG_FL_PROPERTY_NOT_FOUND");
+  public static final ResourceKey MSG_FL_ONLY_PROPERTIES_MAY_BE_CHAINED = new ResourceKey( "MSG_FL_ONLY_PROPERTIES_MAY_BE_CHAINED");
   public static final ResourceKey MSG_FL_STATIC_FEATURES_MUST_BE_REFERENCED_FROM_THEIR_TYPES = new ResourceKey( "MSG_FL_STATIC_FEATURES_MUST_BE_REFERENCED_FROM_THEIR_TYPES");
 
 

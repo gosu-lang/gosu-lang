@@ -76,8 +76,6 @@ class GenericBugsTest extends TestClass
   function testBadlyContrainedGosuClassWithSuperSelfParamerizedDoesNotCauseException() {
     var clazz = Errant_BadlyConstrainedClass as IGosuClass
     assertFalse( clazz.Valid )
-    assertEquals( Res.MSG_TYPE_PARAM_NOT_ASSIGNABLE_TO,
-                  clazz.ParseResultsException.ParseIssues[0].MessageKey )
   }
 
   static class Test1<A> {

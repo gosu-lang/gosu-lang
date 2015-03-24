@@ -12,28 +12,28 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
-public class BoundSimplePropertyChainReference<R, T> extends FeatureReference<R, T> implements IPropertyReference<R, T>, IFeatureChain
+public class PropertyChainReference<R, T> extends FeatureReference<R, T> implements IPropertyReference<R, T>, IFeatureChain
 {
   private FeatureReference _root;
   private IType _rootType;
   private IPropertyInfo _pi;
 
-  public BoundSimplePropertyChainReference( IType rootType, FeatureReference root, String property )
+  public PropertyChainReference(IType rootType, FeatureReference root, String property)
   {
     _rootType = rootType;
     _pi = PropertyReference.getPropertyInfo( rootType, property );
     _root = root;
   }
 
-  public T get()
+  public T get( R ctx )
   {
-    Object fromRoot = _root.evaluate(Collections.singleton(null).iterator());
+    Object fromRoot = _root.evaluate(Collections.singleton(ctx).iterator());
     return (T)getPropertyInfo().getAccessor().getValue( fromRoot );
   }
 
-  public void set( T val )
+  public void set( R ctx, T val )
   {
-    Object fromRoot = _root.evaluate(Collections.singleton(null).iterator());
+    Object fromRoot = _root.evaluate(Collections.singleton(ctx).iterator());
     getPropertyInfo().getAccessor().setValue( fromRoot, val );
   }
 
@@ -80,7 +80,7 @@ public class BoundSimplePropertyChainReference<R, T> extends FeatureReference<R,
       return false;
     }
 
-    BoundSimplePropertyChainReference that = (BoundSimplePropertyChainReference)o;
+    PropertyChainReference that = (PropertyChainReference)o;
 
     if( _pi != null ? !_pi.equals( that._pi ) : that._pi != null )
     {

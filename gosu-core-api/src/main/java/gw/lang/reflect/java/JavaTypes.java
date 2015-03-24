@@ -166,6 +166,10 @@ public class JavaTypes {
     return getJreType(StringBuilder.class);
   }
 
+  public static IJavaType STRING_BUFFER() {
+    return getJreType(StringBuffer.class);
+  }
+
   public static IJavaType INTEGER() {
     return getJreType(Integer.class);
   }

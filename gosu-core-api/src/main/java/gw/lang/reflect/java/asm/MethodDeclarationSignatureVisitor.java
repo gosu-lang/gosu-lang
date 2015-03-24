@@ -4,6 +4,7 @@
 
 package gw.lang.reflect.java.asm;
 
+import gw.internal.ext.org.objectweb.asm.Opcodes;
 import gw.internal.ext.org.objectweb.asm.signature.SignatureVisitor;
 
 import java.util.ArrayList;
@@ -12,13 +13,16 @@ import java.util.List;
 
 /**
  */
-public class MethodDeclarationSignatureVisitor extends TypeDeclarationSignatureVisitor {
+public class MethodDeclarationSignatureVisitor extends SignatureVisitor {
+  private final AsmMethod _asmMethod;
+  private AsmType _csrTypeVar;
   private List<DeclarationPartSignatureVisitor> _paramVisitors;
   private DeclarationPartSignatureVisitor _returnVisitor;
   private List<DeclarationPartSignatureVisitor> _exceptionVisitors;
 
-  MethodDeclarationSignatureVisitor( AsmMethod asmMethod, AsmType type ) {
-    super( asmMethod, type );
+  MethodDeclarationSignatureVisitor( AsmMethod asmMethod ) {
+    super( Opcodes.ASM5 );
+    _asmMethod = asmMethod;
     _paramVisitors = Collections.emptyList();
     _exceptionVisitors = Collections.emptyList();
   }
@@ -36,6 +40,23 @@ public class MethodDeclarationSignatureVisitor extends TypeDeclarationSignatureV
   }
 
   @Override
+  public void visitFormalTypeParameter( String tv ) {
+    _csrTypeVar = AsmUtil.makeTypeVariable( tv );
+    _asmMethod.setGeneric();
+    _asmMethod.getMethodType().addTypeParameter( _csrTypeVar );
+  }
+
+  @Override
+  public SignatureVisitor visitClassBound() {
+    return new DeclarationPartSignatureVisitor( _csrTypeVar );
+  }
+
+  @Override
+  public SignatureVisitor visitInterfaceBound() {
+    return new DeclarationPartSignatureVisitor( _csrTypeVar );
+  }
+
+  @Override
   public SignatureVisitor visitParameterType() {
     if( _paramVisitors.isEmpty() ) {
       _paramVisitors = new ArrayList<DeclarationPartSignatureVisitor>();
@@ -47,8 +68,7 @@ public class MethodDeclarationSignatureVisitor extends TypeDeclarationSignatureV
 
   @Override
   public SignatureVisitor visitReturnType() {
-    AsmMethod asmMethod = (AsmMethod)getGenericType();
-    asmMethod.initGenericReturnType();
+    _asmMethod.initGenericReturnType();
     return _returnVisitor = new DeclarationPartSignatureVisitor();
   }
 

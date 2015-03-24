@@ -1,7 +1,6 @@
-package gw.specification.expressions
+package gw.specification.dimensions.p0
 
 uses java.lang.Integer
-uses java.lang.Comparable
 
 final class TestDim implements IDimension<TestDim, Integer> {
   var _value: Integer
@@ -36,6 +35,10 @@ final class TestDim implements IDimension<TestDim, Integer> {
 
   function divide(p0 : TestDim) : TestDim {
     return new TestDim(_value / p0.toNumber())
+  }
+
+  function modulo(p0 : TestDim) : TestDim {
+    return new TestDim(_value % p0.toNumber())
   }
 
   override function toString(): String {

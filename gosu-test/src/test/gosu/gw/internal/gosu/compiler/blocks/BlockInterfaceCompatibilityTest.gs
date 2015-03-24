@@ -14,4 +14,9 @@ class BlockInterfaceCompatibilityTest extends gw.test.TestClass
     var caller = new BlockInterfaceCompatibiltyHelper<String>()
     assertEquals( "test", caller.callItIndirectlyUnparameterized( \ genericIface -> genericIface.returnTestString() ) )
   }
+
+  function testJavaFunctionalInterfaceHavingGetter() {
+    var hiya = TestClassLocal.constant( \ -> "hi" )
+    assertEquals( "hi", hiya.Init )
+  }
 }

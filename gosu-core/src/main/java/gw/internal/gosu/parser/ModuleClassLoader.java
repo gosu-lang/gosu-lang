@@ -5,6 +5,7 @@
 package gw.internal.gosu.parser;
 
 import gw.config.CommonServices;
+import gw.config.ExecutionMode;
 import gw.fs.IDirectory;
 import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.module.IExecutionEnvironment;
@@ -91,7 +92,7 @@ public class ModuleClassLoader extends URLClassLoader implements IModuleClassLoa
     }
 
     IExecutionEnvironment environment = module.getExecutionEnvironment();
-    if (environment.isSingleModuleMode()) {
+    if (ExecutionMode.isRuntime()) {
       // XXX-isd: we need discardable classloader for JRE module, so we can use it for defining throw-away proxy classes.
       urls = Collections.emptyList();
       //return CommonServices.getEntityAccess().getPluginClassLoader();

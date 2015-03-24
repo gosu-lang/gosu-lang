@@ -5,6 +5,7 @@
 package gw.internal.gosu.parser;
 
 import gw.config.CommonServices;
+import gw.config.ExecutionMode;
 import gw.internal.gosu.parser.expressions.BeanMethodCallExpression;
 import gw.internal.gosu.parser.expressions.Identifier;
 import gw.internal.gosu.parser.expressions.MemberAccess;
@@ -39,7 +40,7 @@ public class CompileTimeAnnotationHandler
 {
   public static void postDefinitionVerification( IParsedElement elt )
   {
-    if( !ILanguageLevel.Util.STANDARD_GOSU() && !CommonServices.getPlatformHelper().isInIDE() )
+    if( !ILanguageLevel.Util.STANDARD_GOSU() && !ExecutionMode.isIDE() )
     {
       // Only support this insanity in gw gosu
       postDefinitionVerification( elt, true );
@@ -209,7 +210,7 @@ public class CompileTimeAnnotationHandler
 
   private static void verifyDeclarationSite( IParsedElement feature, List<IAnnotationInfo> annotations )
   {
-    if( annotations != null )
+    if( ExecutionMode.isRuntime() && annotations != null )
     {
       for( IAnnotationInfo annotationInfo : annotations )
       {
@@ -227,6 +228,10 @@ public class CompileTimeAnnotationHandler
 
   private static Object evalAndHandleError( IAnnotationInfo ai, IParsedElement elt )
   {
+    if (!ExecutionMode.isRuntime()) {
+      return null;
+    }
+
     try
     {
       IType gsClass = ai.getType();

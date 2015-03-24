@@ -4,7 +4,6 @@
 
 package gw.internal.gosu.compiler;
 
-import gw.config.CommonServices;
 import gw.internal.gosu.ir.TransformingCompiler;
 import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.gs.ICompilableType;
@@ -33,10 +32,6 @@ public class SingleServingGosuClassLoader extends ClassLoader implements IGosuCl
   {
     super( parent.getActualLoader() );
     _parent = parent;
-    if( CommonServices.getPlatformHelper().isInIDE() ) {
-      //## todo: uncomment
-      //throw new IllegalStateException( "Class loading with single-serving loader is probably wrong in the IDE" );
-    }
   }
 
   public Class<?> findClass( String strName ) throws ClassNotFoundException

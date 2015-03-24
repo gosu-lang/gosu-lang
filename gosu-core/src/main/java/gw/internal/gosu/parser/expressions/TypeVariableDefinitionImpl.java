@@ -23,8 +23,7 @@ public class TypeVariableDefinitionImpl implements ITypeVariableDefinition
 
   public TypeVariableDefinitionImpl() { }
 
-  // Copy constructor
-  private TypeVariableDefinitionImpl(TypeVariableType type, String strName, IType enclosingType, IType boundingType, GenericTypeVariable typeVar) {
+  public TypeVariableDefinitionImpl(TypeVariableType type, String strName, IType enclosingType, IType boundingType, GenericTypeVariable typeVar) {
     _type = type;
     _strName = strName;
     _enclosingType = enclosingType;

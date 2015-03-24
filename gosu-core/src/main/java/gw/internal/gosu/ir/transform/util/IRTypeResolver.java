@@ -8,7 +8,6 @@ import gw.internal.gosu.compiler.FunctionClassUtil;
 import gw.internal.gosu.ir.nodes.GosuClassIRType;
 import gw.internal.gosu.ir.nodes.JavaClassIRType;
 import gw.internal.gosu.ir.transform.AbstractElementTransformer;
-import gw.internal.gosu.parser.ITypeImplementedByProxy;
 import gw.internal.gosu.parser.IGosuClassInternal;
 import gw.internal.gosu.parser.MetaType;
 import gw.internal.gosu.parser.TypeLord;
@@ -107,7 +106,7 @@ public class IRTypeResolver {
       return getDescriptor( IType.class );
     }
     IType underlyingType = metaType.getType();
-    if( AbstractElementTransformer.isBytecodeType( underlyingType ) && !(underlyingType instanceof ITypeImplementedByProxy))
+    if( AbstractElementTransformer.isBytecodeType( underlyingType ) && !isEntityType(underlyingType))
     {
       return getDescriptor( underlyingType.getClass() );
     }
@@ -115,6 +114,11 @@ public class IRTypeResolver {
     {
       return getDescriptor( IType.class );
     }
+  }
+
+  private static boolean isEntityType(IType type) {
+    String namespace = type.getNamespace();
+    return "entity".equals(namespace) || "typekey".equals(namespace);
   }
 
   public static IJavaClassInfo getJavaBackedClass( IType arg )

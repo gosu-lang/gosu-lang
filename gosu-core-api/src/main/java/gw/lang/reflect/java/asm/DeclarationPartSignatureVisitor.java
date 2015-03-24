@@ -99,6 +99,7 @@ public class DeclarationPartSignatureVisitor extends SignatureVisitor {
       for( int i = 0; i < _iArrayDims; i++ ) {
         _typeArg.incArrayDims();
       }
+      _currentType.addTypeParameter( _typeArg );
     }
   }
 
@@ -173,7 +174,12 @@ public class DeclarationPartSignatureVisitor extends SignatureVisitor {
 
   @Override
   public void visitTypeArgument() {
-    _currentType.addTypeParameter( new AsmWildcardType( null, true ) );
+    if( _typeArg != null ) {
+      _typeArg.addTypeParameter( new AsmWildcardType( null, true ) );
+    }
+    else {
+      _currentType.addTypeParameter( new AsmWildcardType( null, true ) );
+    }
   }
 
   @Override

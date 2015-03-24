@@ -662,10 +662,17 @@ public class FunctionType extends AbstractType implements IFunctionType, IGeneri
   protected boolean areReturnTypesAssignable( FunctionType that ) {
     IType thisType = getReturnType();
     IType thatType = that.getReturnType();
+    if( isThisReturnTypeNotVoidThatReturnTypeVoid( thisType, thatType ) ) {
+      return false;
+    }
     return thisType == thatType ||
            thisType.isAssignableFrom( thatType ) ||
             StandardCoercionManager.arePrimitiveTypesAssignable( thisType, thatType ) ||
            thisType == GosuParserTypes.NULL_TYPE();
+  }
+
+  private boolean isThisReturnTypeNotVoidThatReturnTypeVoid(IType thisType, IType thatType) {
+    return thisType != JavaTypes.pVOID() && thisType != JavaTypes.VOID() && (thatType == JavaTypes.pVOID() || thatType == JavaTypes.VOID());
   }
 
   public boolean areParamsCompatible(IFunctionType rhsFunctionType) {

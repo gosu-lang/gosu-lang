@@ -193,7 +193,8 @@ public class JavaPropertyInfo extends JavaBaseFeatureInfo implements IJavaProper
   @Override
   public IType getFeatureType()
   {
-    return getIntrinsicType( false );
+    IType ownerType = getOwnersType();
+    return getIntrinsicType( !ownerType.isGenericType() || ownerType.isParameterizedType() );
   }
 
   private IType getIntrinsicType( boolean bKeepTypeVars )
@@ -203,7 +204,7 @@ public class JavaPropertyInfo extends JavaBaseFeatureInfo implements IJavaProper
       return _propertyType;
     }
 
-    IType propType = null;
+    IType propType;
     IType ownersType = getOwnersType();
     if( _getMethod != null )
     {
@@ -212,24 +213,21 @@ public class JavaPropertyInfo extends JavaBaseFeatureInfo implements IJavaProper
       {
         propType = _pd.getPropertyType();
       }
-      else if(genericType != null)
+      else if( genericType != null )
       {
         TypeVarToTypeMap actualParamByVarName =
           TypeLord.mapTypeByVarName( ownersType, _getMethod.getEnclosingClass().getJavaType(), bKeepTypeVars );
-//          actualParamByVarName = JavaMethodInfo.addEnclosingTypeParams(ownersType, actualParamByVarName);
         propType = genericType.getActualType( actualParamByVarName, bKeepTypeVars );
       }
       else
       {
         propType = TypeSystem.getErrorType();
       }
-//        _propertyType = TypeLoaderAccess.instance().getIntrinsicType( _pd.getPropertyType() );
     }
     else if( _setMethod != null )
     {
       TypeVarToTypeMap actualParamByVarName =
         TypeLord.mapTypeByVarName( ownersType, _setMethod.getEnclosingClass().getJavaType(), bKeepTypeVars );
-//        actualParamByVarName = JavaMethodInfo.addEnclosingTypeParams(ownersType, actualParamByVarName);
       propType = _setMethod.getGenericParameterTypes()[0].getActualType( actualParamByVarName, bKeepTypeVars );
     }
     else
@@ -243,11 +241,13 @@ public class JavaPropertyInfo extends JavaBaseFeatureInfo implements IJavaProper
     }
 
     IJavaClassInfo declaringClass = getDeclaringClass();
-    if (declaringClass != null) {
-      propType = ClassInfoUtil.getPublishedType(propType, declaringClass);
+    if( declaringClass != null )
+    {
+      propType = ClassInfoUtil.getPublishedType( propType, declaringClass );
     }
 
-    if (!bKeepTypeVars){
+    if( !bKeepTypeVars )
+    {
       //Cache the non-generic value.
       _propertyType = propType;
     }

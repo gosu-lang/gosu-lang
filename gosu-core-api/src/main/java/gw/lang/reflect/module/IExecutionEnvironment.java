@@ -30,11 +30,6 @@ public interface IExecutionEnvironment
 
   IModule getJreModule();
 
-  /**
-   * @return Whether or not this is the default single module environment.
-   */
-  boolean isSingleModuleMode();
-
   TypeSystemState getState();
 
   boolean isShadowingMode();

@@ -14,17 +14,8 @@ import gw.lang.ir.IRExpression;
 import gw.lang.ir.expression.IRNewExpression;
 import gw.lang.parser.IExpression;
 import gw.lang.reflect.IType;
-import gw.lang.reflect.features.BoundComplexPropertyChainReference;
-import gw.lang.reflect.features.BoundMethodReference;
-import gw.lang.reflect.features.BoundPropertyReference;
-import gw.lang.reflect.features.BoundSimplePropertyChainReference;
-import gw.lang.reflect.features.ComplexPropertyChainReference;
-import gw.lang.reflect.features.ConstructorReference;
-import gw.lang.reflect.features.FeatureReference;
-import gw.lang.reflect.features.MethodChainReference;
-import gw.lang.reflect.features.MethodReference;
-import gw.lang.reflect.features.PropertyReference;
-import gw.lang.reflect.features.SimplePropertyChainReference;
+import gw.lang.reflect.features.*;
+import gw.lang.reflect.features.BoundPropertyChainReference;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -56,30 +47,16 @@ public class FeatureLiteralTransformer extends AbstractExpressionTransformer<Fea
       else if( root instanceof FeatureLiteral )
       {
         IRNewExpression expression = (IRNewExpression)ExpressionTransformer.compile( root, _cc() );
-        if( JavaClassIRType.get( SimplePropertyChainReference.class ).isAssignableFrom( IRTypeFactory.get( _expr().getType() ) ) )
+        if( JavaClassIRType.get( PropertyChainReference.class ).isAssignableFrom( IRTypeFactory.get( _expr().getType() ) ) )
         {
-          return buildNewExpression( SimplePropertyChainReference.class, new Class[]{IType.class, FeatureReference.class, String.class},
-                                     exprList( pushType( _expr().getRootType() ),
-                                               expression,
-                                               stringLiteral( _expr().getPropertyName() ) ) );
-        }
-        else if( JavaClassIRType.get( BoundSimplePropertyChainReference.class ).isAssignableFrom( IRTypeFactory.get( _expr().getType() ) ) )
-        {
-          return buildNewExpression( BoundSimplePropertyChainReference.class, new Class[]{IType.class, FeatureReference.class, String.class},
-                                     exprList( pushType( _expr().getRootType() ),
-                                               expression,
-                                               stringLiteral( _expr().getPropertyName() ) ) );
-        }
-        else if( JavaClassIRType.get( BoundComplexPropertyChainReference.class ).isAssignableFrom( IRTypeFactory.get( _expr().getType() ) ) )
-        {
-          return buildNewExpression( BoundComplexPropertyChainReference.class, new Class[]{IType.class, FeatureReference.class, String.class},
+          return buildNewExpression( PropertyChainReference.class, new Class[]{IType.class, FeatureReference.class, String.class},
                                      exprList( pushType( _expr().getRootType() ),
                                                expression,
                                                stringLiteral( _expr().getPropertyName() ) ) );
         }
         else
         {
-          return buildNewExpression( ComplexPropertyChainReference.class, new Class[]{IType.class, FeatureReference.class, String.class},
+          return buildNewExpression( BoundPropertyChainReference.class, new Class[]{IType.class, FeatureReference.class, String.class},
                                      exprList( pushType( _expr().getRootType() ),
                                                expression,
                                                stringLiteral( _expr().getPropertyName() ) ) );
@@ -103,16 +80,6 @@ public class FeatureLiteralTransformer extends AbstractExpressionTransformer<Fea
                                              stringLiteral( _expr().getMethodName() ),
                                              pushArrayOfTypes( _expr().getParameterTypes() ),
                                              getBoundValues()) );
-      }
-      else if( root instanceof FeatureLiteral )
-      {
-        IRNewExpression expression = (IRNewExpression) ExpressionTransformer.compile(root, _cc());
-        return buildNewExpression( MethodChainReference.class, new Class[]{IType.class, FeatureReference.class, String.class, IType[].class, Object[].class},
-                                   exprList( pushType( _expr().getRootType() ),
-                                             expression,
-                                             stringLiteral( _expr().getMethodName() ),
-                                             pushArrayOfTypes( _expr().getParameterTypes() ),
-                                             getBoundValues() ) );
       }
       else
       {

@@ -12,7 +12,6 @@ import gw.util.concurrent.LockingLazyVar;
 
 import java.io.ObjectStreamException;
 import java.lang.reflect.Array;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -88,7 +87,7 @@ public class MetaType extends AbstractType implements IMetaType
 
   private IType _type;
   transient private Map<IRelativeTypeInfo.Accessibility, ITypeInfo> _typeInfoByAccessibility;
-  transient private Set<IJavaType> _allTypesInHierarchy;
+  transient private Set<IType> _allTypesInHierarchy;
   transient private LockingLazyVar<IType> _arrayType;
   transient private GenericTypeVariable[] _typeVars;
   transient private boolean _bLiteral;
@@ -186,7 +185,7 @@ public class MetaType extends AbstractType implements IMetaType
      return
        _type instanceof MetaType
        ? ((MetaType)_type).isDefault()
-       : _type.equals( DEFAULT_TYPE.get() );
+       : _type.equals(DEFAULT_TYPE.get());
   }
 
   @Override
@@ -232,14 +231,24 @@ public class MetaType extends AbstractType implements IMetaType
       return getComponentType().isAssignableFrom( type.getComponentType() );
     }
 
-    return !(isArray() || type.isArray()) && type.getAllTypesInHierarchy().contains( JavaTypes.ITYPE() ) &&
-           (!(type instanceof IMetaType) ||
-            getType().equals( DEFAULT_TYPE.get() ) ||
-            ((IMetaType)type).getType().equals( DEFAULT_TYPE.get() ) ||
-            getType().equals( ROOT_TYPE.get() ) ||
-            ((IMetaType)type).getType().equals( ROOT_TYPE.get() ) ||
-            getType().isAssignableFrom( ((IMetaType)type).getType() ) ||
-            StandardCoercionManager.isStructurallyAssignable( getType(), ((IMetaType)type).getType() ));
+    return !(isArray() || type.isArray()) && type.getAllTypesInHierarchy().contains(JavaTypes.ITYPE()) &&
+           ((!(type instanceof IMetaType) && (isDefaultOrRootType() || type.isAssignableFrom(getType()) || isMetadataType())) ||
+            ((type instanceof IMetaType) &&
+             (isDefaultOrRootType() ||
+              ((IMetaType) type).getType().equals(DEFAULT_TYPE.get()) ||
+              ((IMetaType) type).getType().equals(ROOT_TYPE.get()) ||
+              getType().isAssignableFrom(((IMetaType) type).getType()) ||
+              StandardCoercionManager.isStructurallyAssignable(getType(), ((IMetaType) type).getType()))));
+  }
+
+  private boolean isMetadataType() {
+    String namespace = getType().getNamespace();
+    return "entity".equals(namespace) || "typekey".equals(namespace);
+  }
+
+  private boolean isDefaultOrRootType() {
+    return getType().equals(DEFAULT_TYPE.get()) ||
+      getType().equals(ROOT_TYPE.get());
   }
 
   /**
@@ -367,7 +376,11 @@ public class MetaType extends AbstractType implements IMetaType
     {
       //noinspection unchecked,RedundantCast
       IType type = TypeSystem.get(getType().getClass(), TypeSystem.getGlobalModule());
-      _allTypesInHierarchy = (Set)getTypeInterfaces(type, new HashSet<IType>() );
+      Set<IType> types = getTypeInterfaces(type, new HashSet<IType>());
+      for( IType t: getType().getAllTypesInHierarchy() ) {
+        types.add( MetaType.get( t ) );
+      }
+      _allTypesInHierarchy = types;
     }
     return _allTypesInHierarchy;
   }
@@ -376,7 +389,8 @@ public class MetaType extends AbstractType implements IMetaType
   {
     if( getType().equals( DEFAULT_TYPE.get() ) )
     {
-      return Collections.singleton( (IType)JavaTypes.ITYPE() );
+      set.add( (IType)JavaTypes.ITYPE() );
+      return set;
     }
     for( IType iface : type.getInterfaces() )
     {
