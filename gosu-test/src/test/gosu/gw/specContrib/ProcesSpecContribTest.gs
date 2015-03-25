@@ -89,10 +89,7 @@ class ProcesSpecContribTest extends BaseVerifyErrantTest {
                                    "gw.specContrib.classes.enhancements.Errant_SymbolCollision_ListEnh2", // IDE-1824
 
                                    "gw.specContrib.typeinference.Errant_GenericMethodAndBlockArgument", // IDE-1943
-                                   "gw.specContrib.generics.Errant_RecursiveTypeParameter", // IDE-???
-                                   "gw.specContrib.expressions.cast.generics.Errant_TypeParameterIsInvolvedInBoundary", // IDE-???
-                                   "gw.specContrib.expressions.cast.genericsAssignabilityBoxedPrimitives.Errant_GenericsAssignabilityPrimitiveTypes_2", // IDE-???
-                                   "gw.specContrib.expressions.cast.genericsAssignabilityBoxedPrimitives.Errant_GenericsAssignabilityBoxedTypes_1", // IDE-???
+
 
                                    /* Feature literals broken tests */
                                    "gw.specContrib.featureLiterals.gosuMembersBinding.genericsFL.Errant_FLCollections", //IDE-???

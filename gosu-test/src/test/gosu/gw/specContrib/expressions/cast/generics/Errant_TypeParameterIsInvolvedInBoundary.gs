@@ -9,6 +9,6 @@ class Errant_TypeParameterIsInvolvedInBoundary {
   class B<T extends A<T>> {}
 
   class C extends A<C> {
-    var b = a as B
+    var b = a as B     //## issuekeys: MSG_UNNECESSARY_COERCION
   }
 }

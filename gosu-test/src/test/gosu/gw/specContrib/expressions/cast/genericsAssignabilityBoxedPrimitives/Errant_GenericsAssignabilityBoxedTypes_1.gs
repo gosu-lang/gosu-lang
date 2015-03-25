@@ -29,7 +29,7 @@ class Errant_GenericsAssignabilityBoxedTypes_1 {
   var numberList : List<java.lang.Number>
 
   function testCharacter() {
-    characterList = characterList
+    characterList = characterList  //## issuekeys: MSG_SILLY_ASSIGNMENT
     characterList = byteList      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.LIST<JAVA.LANG.BYTE>', REQUIRED: 'JAVA.UTIL.LIST<JAVA.LANG.CHARACTER>'
     characterList = shortList      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.LIST<JAVA.LANG.SHORT>', REQUIRED: 'JAVA.UTIL.LIST<JAVA.LANG.CHARACTER>'
     characterList = integerList      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.LIST<JAVA.LANG.INTEGER>', REQUIRED: 'JAVA.UTIL.LIST<JAVA.LANG.CHARACTER>'
@@ -48,7 +48,7 @@ class Errant_GenericsAssignabilityBoxedTypes_1 {
   }
   function testByte() {
     byteList = characterList      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.LIST<JAVA.LANG.CHARACTER>', REQUIRED: 'JAVA.UTIL.LIST<JAVA.LANG.BYTE>'
-    byteList = byteList
+    byteList = byteList  //## issuekeys: MSG_SILLY_ASSIGNMENT
     byteList = shortList      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.LIST<JAVA.LANG.SHORT>', REQUIRED: 'JAVA.UTIL.LIST<JAVA.LANG.BYTE>'
     byteList = integerList      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.LIST<JAVA.LANG.INTEGER>', REQUIRED: 'JAVA.UTIL.LIST<JAVA.LANG.BYTE>'
     byteList = floatList      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.LIST<JAVA.LANG.FLOAT>', REQUIRED: 'JAVA.UTIL.LIST<JAVA.LANG.BYTE>'
@@ -65,7 +65,7 @@ class Errant_GenericsAssignabilityBoxedTypes_1 {
   function testShort() {
     shortList = characterList      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.LIST<JAVA.LANG.CHARACTER>', REQUIRED: 'JAVA.UTIL.LIST<JAVA.LANG.SHORT>'
     shortList = byteList      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.LIST<JAVA.LANG.BYTE>', REQUIRED: 'JAVA.UTIL.LIST<JAVA.LANG.SHORT>'
-    shortList = shortList
+    shortList = shortList  //## issuekeys: MSG_SILLY_ASSIGNMENT
     shortList = integerList      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.LIST<JAVA.LANG.INTEGER>', REQUIRED: 'JAVA.UTIL.LIST<JAVA.LANG.SHORT>'
     shortList = floatList      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.LIST<JAVA.LANG.FLOAT>', REQUIRED: 'JAVA.UTIL.LIST<JAVA.LANG.SHORT>'
     shortList = longList      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.LIST<JAVA.LANG.LONG>', REQUIRED: 'JAVA.UTIL.LIST<JAVA.LANG.SHORT>'
@@ -82,7 +82,7 @@ class Errant_GenericsAssignabilityBoxedTypes_1 {
     integerList = characterList      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.LIST<JAVA.LANG.CHARACTER>', REQUIRED: 'JAVA.UTIL.LIST<JAVA.LANG.INTEGER>'
     integerList = byteList      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.LIST<JAVA.LANG.BYTE>', REQUIRED: 'JAVA.UTIL.LIST<JAVA.LANG.INTEGER>'
     integerList = shortList      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.LIST<JAVA.LANG.SHORT>', REQUIRED: 'JAVA.UTIL.LIST<JAVA.LANG.INTEGER>'
-    integerList = integerList
+    integerList = integerList  //## issuekeys: MSG_SILLY_ASSIGNMENT
     integerList = floatList      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.LIST<JAVA.LANG.FLOAT>', REQUIRED: 'JAVA.UTIL.LIST<JAVA.LANG.INTEGER>'
     integerList = longList      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.LIST<JAVA.LANG.LONG>', REQUIRED: 'JAVA.UTIL.LIST<JAVA.LANG.INTEGER>'
     integerList = doubleList      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.LIST<JAVA.LANG.DOUBLE>', REQUIRED: 'JAVA.UTIL.LIST<JAVA.LANG.INTEGER>'
@@ -99,7 +99,7 @@ class Errant_GenericsAssignabilityBoxedTypes_1 {
     floatList = byteList      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.LIST<JAVA.LANG.BYTE>', REQUIRED: 'JAVA.UTIL.LIST<JAVA.LANG.FLOAT>'
     floatList = shortList      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.LIST<JAVA.LANG.SHORT>', REQUIRED: 'JAVA.UTIL.LIST<JAVA.LANG.FLOAT>'
     floatList = integerList      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.LIST<JAVA.LANG.INTEGER>', REQUIRED: 'JAVA.UTIL.LIST<JAVA.LANG.FLOAT>'
-    floatList = floatList
+    floatList = floatList  //## issuekeys: MSG_SILLY_ASSIGNMENT
     floatList = longList      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.LIST<JAVA.LANG.LONG>', REQUIRED: 'JAVA.UTIL.LIST<JAVA.LANG.FLOAT>'
     floatList = doubleList      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.LIST<JAVA.LANG.DOUBLE>', REQUIRED: 'JAVA.UTIL.LIST<JAVA.LANG.FLOAT>'
     floatList = bigIntegerList      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.LIST<JAVA.MATH.BIGINTEGER>', REQUIRED: 'JAVA.UTIL.LIST<JAVA.LANG.FLOAT>'
@@ -116,7 +116,7 @@ class Errant_GenericsAssignabilityBoxedTypes_1 {
     longList = shortList      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.LIST<JAVA.LANG.SHORT>', REQUIRED: 'JAVA.UTIL.LIST<JAVA.LANG.LONG>'
     longList = integerList      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.LIST<JAVA.LANG.INTEGER>', REQUIRED: 'JAVA.UTIL.LIST<JAVA.LANG.LONG>'
     longList = floatList      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.LIST<JAVA.LANG.FLOAT>', REQUIRED: 'JAVA.UTIL.LIST<JAVA.LANG.LONG>'
-    longList = longList
+    longList = longList  //## issuekeys: MSG_SILLY_ASSIGNMENT
     longList = doubleList      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.LIST<JAVA.LANG.DOUBLE>', REQUIRED: 'JAVA.UTIL.LIST<JAVA.LANG.LONG>'
     longList = bigIntegerList      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.LIST<JAVA.MATH.BIGINTEGER>', REQUIRED: 'JAVA.UTIL.LIST<JAVA.LANG.LONG>'
     longList = bigDecimalList      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.LIST<JAVA.MATH.BIGDECIMAL>', REQUIRED: 'JAVA.UTIL.LIST<JAVA.LANG.LONG>'
@@ -133,7 +133,7 @@ class Errant_GenericsAssignabilityBoxedTypes_1 {
     doubleList = integerList      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.LIST<JAVA.LANG.INTEGER>', REQUIRED: 'JAVA.UTIL.LIST<JAVA.LANG.DOUBLE>'
     doubleList = floatList      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.LIST<JAVA.LANG.FLOAT>', REQUIRED: 'JAVA.UTIL.LIST<JAVA.LANG.DOUBLE>'
     doubleList = longList      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.LIST<JAVA.LANG.LONG>', REQUIRED: 'JAVA.UTIL.LIST<JAVA.LANG.DOUBLE>'
-    doubleList = doubleList
+    doubleList = doubleList  //## issuekeys: MSG_SILLY_ASSIGNMENT
     doubleList = bigIntegerList      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.LIST<JAVA.MATH.BIGINTEGER>', REQUIRED: 'JAVA.UTIL.LIST<JAVA.LANG.DOUBLE>'
     doubleList = bigDecimalList      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.LIST<JAVA.MATH.BIGDECIMAL>', REQUIRED: 'JAVA.UTIL.LIST<JAVA.LANG.DOUBLE>'
     doubleList = objectList      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.LIST<JAVA.LANG.OBJECT>', REQUIRED: 'JAVA.UTIL.LIST<JAVA.LANG.DOUBLE>'
@@ -150,7 +150,7 @@ class Errant_GenericsAssignabilityBoxedTypes_1 {
     bigIntegerList = floatList      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.LIST<JAVA.LANG.FLOAT>', REQUIRED: 'JAVA.UTIL.LIST<JAVA.MATH.BIGINTEGER>'
     bigIntegerList = longList      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.LIST<JAVA.LANG.LONG>', REQUIRED: 'JAVA.UTIL.LIST<JAVA.MATH.BIGINTEGER>'
     bigIntegerList = doubleList      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.LIST<JAVA.LANG.DOUBLE>', REQUIRED: 'JAVA.UTIL.LIST<JAVA.MATH.BIGINTEGER>'
-    bigIntegerList = bigIntegerList
+    bigIntegerList = bigIntegerList  //## issuekeys: MSG_SILLY_ASSIGNMENT
     bigIntegerList = bigDecimalList      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.LIST<JAVA.MATH.BIGDECIMAL>', REQUIRED: 'JAVA.UTIL.LIST<JAVA.MATH.BIGINTEGER>'
     bigIntegerList = objectList      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.LIST<JAVA.LANG.OBJECT>', REQUIRED: 'JAVA.UTIL.LIST<JAVA.MATH.BIGINTEGER>'
     bigIntegerList = stringList      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.LIST<JAVA.LANG.STRING>', REQUIRED: 'JAVA.UTIL.LIST<JAVA.MATH.BIGINTEGER>'
@@ -167,7 +167,7 @@ class Errant_GenericsAssignabilityBoxedTypes_1 {
     bigDecimalList = longList      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.LIST<JAVA.LANG.LONG>', REQUIRED: 'JAVA.UTIL.LIST<JAVA.MATH.BIGDECIMAL>'
     bigDecimalList = doubleList      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.LIST<JAVA.LANG.DOUBLE>', REQUIRED: 'JAVA.UTIL.LIST<JAVA.MATH.BIGDECIMAL>'
     bigDecimalList = bigIntegerList      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.LIST<JAVA.MATH.BIGINTEGER>', REQUIRED: 'JAVA.UTIL.LIST<JAVA.MATH.BIGDECIMAL>'
-    bigDecimalList = bigDecimalList
+    bigDecimalList = bigDecimalList  //## issuekeys: MSG_SILLY_ASSIGNMENT
     bigDecimalList = objectList      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.LIST<JAVA.LANG.OBJECT>', REQUIRED: 'JAVA.UTIL.LIST<JAVA.MATH.BIGDECIMAL>'
     bigDecimalList = stringList      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.LIST<JAVA.LANG.STRING>', REQUIRED: 'JAVA.UTIL.LIST<JAVA.MATH.BIGDECIMAL>'
     bigDecimalList = booleanList      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.LIST<JAVA.LANG.BOOLEAN>', REQUIRED: 'JAVA.UTIL.LIST<JAVA.MATH.BIGDECIMAL>'
@@ -184,7 +184,7 @@ class Errant_GenericsAssignabilityBoxedTypes_1 {
     objectList = doubleList
     objectList = bigIntegerList
     objectList = bigDecimalList
-    objectList = objectList
+    objectList = objectList  //## issuekeys: MSG_SILLY_ASSIGNMENT
     objectList = stringList
     objectList = booleanList
     objectList = dateList
@@ -201,7 +201,7 @@ class Errant_GenericsAssignabilityBoxedTypes_1 {
     stringList = bigIntegerList      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.LIST<JAVA.MATH.BIGINTEGER>', REQUIRED: 'JAVA.UTIL.LIST<JAVA.LANG.STRING>'
     stringList = bigDecimalList      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.LIST<JAVA.MATH.BIGDECIMAL>', REQUIRED: 'JAVA.UTIL.LIST<JAVA.LANG.STRING>'
     stringList = objectList      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.LIST<JAVA.LANG.OBJECT>', REQUIRED: 'JAVA.UTIL.LIST<JAVA.LANG.STRING>'
-    stringList = stringList
+    stringList = stringList  //## issuekeys: MSG_SILLY_ASSIGNMENT
     stringList = booleanList      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.LIST<JAVA.LANG.BOOLEAN>', REQUIRED: 'JAVA.UTIL.LIST<JAVA.LANG.STRING>'
     stringList = dateList      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.LIST<JAVA.UTIL.DATE>', REQUIRED: 'JAVA.UTIL.LIST<JAVA.LANG.STRING>'
     stringList = numberList      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.LIST<JAVA.LANG.NUMBER>', REQUIRED: 'JAVA.UTIL.LIST<JAVA.LANG.STRING>'
@@ -218,7 +218,7 @@ class Errant_GenericsAssignabilityBoxedTypes_1 {
     booleanList = bigDecimalList      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.LIST<JAVA.MATH.BIGDECIMAL>', REQUIRED: 'JAVA.UTIL.LIST<JAVA.LANG.BOOLEAN>'
     booleanList = objectList      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.LIST<JAVA.LANG.OBJECT>', REQUIRED: 'JAVA.UTIL.LIST<JAVA.LANG.BOOLEAN>'
     booleanList = stringList      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.LIST<JAVA.LANG.STRING>', REQUIRED: 'JAVA.UTIL.LIST<JAVA.LANG.BOOLEAN>'
-    booleanList = booleanList
+    booleanList = booleanList  //## issuekeys: MSG_SILLY_ASSIGNMENT
     booleanList = dateList      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.LIST<JAVA.UTIL.DATE>', REQUIRED: 'JAVA.UTIL.LIST<JAVA.LANG.BOOLEAN>'
     booleanList = numberList      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.LIST<JAVA.LANG.NUMBER>', REQUIRED: 'JAVA.UTIL.LIST<JAVA.LANG.BOOLEAN>'
   }
@@ -235,8 +235,8 @@ class Errant_GenericsAssignabilityBoxedTypes_1 {
     dateList = objectList      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.LIST<JAVA.LANG.OBJECT>', REQUIRED: 'JAVA.UTIL.LIST<JAVA.UTIL.DATE>'
     dateList = stringList      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.LIST<JAVA.LANG.STRING>', REQUIRED: 'JAVA.UTIL.LIST<JAVA.UTIL.DATE>'
     dateList = booleanList      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.LIST<JAVA.LANG.BOOLEAN>', REQUIRED: 'JAVA.UTIL.LIST<JAVA.UTIL.DATE>'
-    dateList = dateList
-    dateList = numberList      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.LIST<JAVA.LANG.NUMBER>', REQUIRED: 'JAVA.UTIL.LIST<JAVA.UTIL.DATE>'
+    dateList = dateList  //## issuekeys: MSG_SILLY_ASSIGNMENT
+    dateList = numberList      //## issuekeys: MSG_TYPE_MISMATCH
   }
   function testNumber() {
     numberList = characterList      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.LIST<JAVA.LANG.CHARACTER>', REQUIRED: 'JAVA.UTIL.LIST<JAVA.LANG.NUMBER>'
@@ -252,7 +252,7 @@ class Errant_GenericsAssignabilityBoxedTypes_1 {
     numberList = stringList      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.LIST<JAVA.LANG.STRING>', REQUIRED: 'JAVA.UTIL.LIST<JAVA.LANG.NUMBER>'
     numberList = booleanList      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.LIST<JAVA.LANG.BOOLEAN>', REQUIRED: 'JAVA.UTIL.LIST<JAVA.LANG.NUMBER>'
     numberList = dateList      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.LIST<JAVA.UTIL.DATE>', REQUIRED: 'JAVA.UTIL.LIST<JAVA.LANG.NUMBER>'
-    numberList = numberList
+    numberList = numberList  //## issuekeys: MSG_SILLY_ASSIGNMENT
   }
 
 
