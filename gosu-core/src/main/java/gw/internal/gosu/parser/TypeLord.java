@@ -255,8 +255,9 @@ public class TypeLord
         try
         {
           List<IType> types = new ArrayList<IType>( typeArgs.size() );
-          for( AsmType typeArg: typeArgs )
+          for( int i = 0; i < typeArgs.size(); i++ )
           {
+            AsmType typeArg = typeArgs.get( i );
             IType typeParam = null;
             if( !bKeepTypeVars && typeArg.isTypeVariable() )
             {
@@ -296,6 +297,19 @@ public class TypeLord
             }
             else
             {
+              if( typeArg instanceof AsmWildcardType && ((AsmWildcardType) typeArg).getBound() == null )
+              {
+                IJavaClassInfo classInfo = TypeSystem.getDefaultTypeLoader().getJavaClassInfo( type.getRawType().getName() );
+                if( classInfo != null )
+                {
+                  List<AsmType> boundingTypes = ((AsmTypeJavaClassType)classInfo.getTypeParameters()[i]).getType().getTypeParameters();
+                  AsmType boundingType = boundingTypes.isEmpty() ? null : boundingTypes.get( 0 );
+                  if( boundingType != null )
+                  {
+                    typeArg = boundingType;
+                  }
+                }
+              }
               typeParam = getActualType( typeArg, actualParamByVarName, bKeepTypeVars, recursiveTypes );
             }
             types.add( typeParam );
@@ -352,8 +366,11 @@ public class TypeLord
   {
     return getActualType( type, actualParamByVarName, false );
   }
-
   public static IType getActualType( IType type, TypeVarToTypeMap actualParamByVarName, boolean bKeepTypeVars )
+  {
+    return getActualType( type, actualParamByVarName, bKeepTypeVars, new HashSet<IType>() );
+  }
+  public static IType getActualType( IType type, TypeVarToTypeMap actualParamByVarName, boolean bKeepTypeVars, Set<IType> visited )
   {
     int iArrayDims = 0;
     if( type != null && type.isArray() )
@@ -363,6 +380,12 @@ public class TypeLord
         type = type.getComponentType();
       }
     }
+
+    if( visited.contains( type ) )
+    {
+      return type;
+    }
+    visited.add( type );
 
     if( type instanceof TypeVariableType )
     {
@@ -379,7 +402,8 @@ public class TypeLord
       {
         if( !isParameterizedWith( type, saveType ) )
         {
-          type = getActualType( type, actualParamByVarName, bKeepTypeVars );
+          type = getActualType( type, actualParamByVarName, bKeepTypeVars, visited );
+          visited.remove( type );
         }
         else if( !bKeepTypeVars )
         {
@@ -400,7 +424,9 @@ public class TypeLord
       IType[] actualParamTypes = new IType[typeParams.length];
       for( int i = 0; i < typeParams.length; i++ )
       {
-        IType actualType = getActualType(typeParams[i], actualParamByVarName, bKeepTypeVars);
+        IType actualType = getActualType( typeParams[i], actualParamByVarName, bKeepTypeVars, visited );
+        visited.remove( typeParams[i] );
+        visited.remove( type );
         if (actualType == null) {
           actualType = JavaTypes.OBJECT();
         }
@@ -1215,7 +1241,16 @@ public class TypeLord
           final ITypeVariableDefinition typeDef = param.getTypeVariableDefinition();
           if( typeDef != null )
           {
-            typeParams[i++] = getDefaultParameterizedTypeWithTypeVars( typeDef.getType(), map, visited );
+            ITypeVariableType typeVarType = typeDef.getType();
+            if( isRecursiveType( typeVarType, new IType[] {typeVarType.getBoundingType()} ) )
+            {
+              // short-circuit recursive typevar
+              typeParams[i++] = typeVarType.getBoundingType().getGenericType();
+            }
+            else
+            {
+              typeParams[i++] = getDefaultParameterizedTypeWithTypeVars( typeVarType, map, visited );
+            }
           }
           else
           {

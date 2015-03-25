@@ -26,8 +26,9 @@ public class AsmClassLoader {
     if( asmClass == null ) {
       asmClass = _cache.get( fqn );
       if( asmClass == null ) {
-        asmClass = new AsmClass( _module, getContent( is ) );
+        asmClass = new AsmClass( _module );
         _cache.add( fqn, asmClass );
+        asmClass.init( getContent( is ) );
       }
     }
     return asmClass;
