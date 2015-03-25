@@ -201,6 +201,25 @@ class Errant_BitwiseAND {
   var bitwiseAnd11171 = 42 | 10 & 3.5      //## issuekeys: OPERATOR '&' CANNOT BE APPLIED TO 'INT', 'DOUBLE'
   var bitwiseAnd1119 = 42.5 | 10 & 6      //## issuekeys: OPERATOR '|' CANNOT BE APPLIED TO 'DOUBLE', 'INT'
 
+  //IDE-1196 - checking type info
+  var lvar111 : int = 'c' & 12
+  var lvar112 : int = 12 & 'c'
+  var lvar113 : char = 12 & 'c'      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'INT', REQUIRED: 'CHAR'
+  var lvar114 : char = 12 & 'c'      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'INT', REQUIRED: 'CHAR'
+
+  var byte111 : byte = -128
+  var byte222 : byte = -byte111      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'INT', REQUIRED: 'BYTE'
+  var byte333 : int = -byte111
+
+  var char111 : char = +'c'
+  var char112 : int = +'c'
+  var char113 = +'c'
+
+  var char114 : char = -'c'      //## issuekeys: INCOMPATIBLE TYPES.
+  var char115 : int = -'c'
+  var char116 = -'c'
+
+
 }
 
 

@@ -88,6 +88,12 @@ class ProcesSpecContribTest extends BaseVerifyErrantTest {
                                    "gw.specContrib.classes.Errant_ConstructorOverrideInAnonymousClass",  // IDE-1821
                                    "gw.specContrib.classes.enhancements.Errant_SymbolCollision_ListEnh2", // IDE-1824
 
+                                   "gw.specContrib.typeinference.Errant_GenericMethodAndBlockArgument", // IDE-1943
+                                   "gw.specContrib.generics.Errant_RecursiveTypeParameter", // IDE-???
+                                   "gw.specContrib.expressions.cast.generics.Errant_TypeParameterIsInvolvedInBoundary", // IDE-???
+                                   "gw.specContrib.expressions.cast.genericsAssignabilityBoxedPrimitives.Errant_GenericsAssignabilityPrimitiveTypes_2", // IDE-???
+                                   "gw.specContrib.expressions.cast.genericsAssignabilityBoxedPrimitives.Errant_GenericsAssignabilityBoxedTypes_1", // IDE-???
+
                                    /* Feature literals broken tests */
                                    "gw.specContrib.featureLiterals.gosuMembersBinding.genericsFL.Errant_FLCollections", //IDE-???
                                    "gw.specContrib.featureLiterals.gosuMembersBinding.genericsFL.Errant_FLCollectionOfCollections", //IDE-???
@@ -95,6 +101,7 @@ class ProcesSpecContribTest extends BaseVerifyErrantTest {
                                    "gw.specContrib.featureLiterals.gosuMembersBinding.Errant_FLExpressionValue", //IDE-???
                                    "gw.specContrib.featureLiterals.gosuMembersBinding.Errant_FLStaticVsNonStaticMethods", //IDE-???
                                    "gw.specContrib.featureLiterals.gosuMembersBinding.namedParams.Errant_FLNamedParams", //IDE-1611
+                                   "gw.specContrib.expressions.Errant_FeatureLiteralMethodLookup.gs", //IDE-??
 
                                    /* to skip as we don't support this check in our testing framework */
                                    "gw.specContrib.classes.Errant_ClassDeclaredInEnhancement",

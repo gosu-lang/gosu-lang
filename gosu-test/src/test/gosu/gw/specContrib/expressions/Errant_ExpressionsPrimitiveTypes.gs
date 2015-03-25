@@ -39,7 +39,13 @@ class Errant_ExpressionsPrimitiveTypes {
   var char27: char = '\''
   var char28: char = '\"'
   var char29: char = '\\'
-  var char30: char = '\a'
+  var char30: char = '\a'     //IDE-1538
+  var char31: char = '\v'
+  var char32: char = '\$'       //## issuekeys: MSG_TYPE_MISMATCH
+  var char33: char = '\<'       //## issuekeys: MSG_TYPE_MISMATCH
+  var char34: char = '\333'
+  var char35: char = '\999'     //## issuekeys: MSG_TYPE_MISMATCH
+  var char36: char = '\u9999'
 
   //byte
   var byte1: byte = 1b

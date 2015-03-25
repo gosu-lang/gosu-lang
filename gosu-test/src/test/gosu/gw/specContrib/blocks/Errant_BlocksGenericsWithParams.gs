@@ -33,7 +33,7 @@ class Errant_BlocksGenericsWithParams {
     var x11218 = hello1(\x: ArrayList<Integer> -> {
       return {1, 2, 3}
     })
-    //x11219 : IDE-1346 will not be fixed. Both OS Gosu and Parser show error. Keeping the errors
+    //x11219 : IDE-1346 OS Gosu could be improved to not show error, but the improvement is postponed indefinitely, so keeping the errors
     var x11219 = hello1(\x: ArrayList<Integer> -> {      //## issuekeys: INCOMPATIBLE TYPES
       return {1, 2, 'c'}
     })
@@ -70,7 +70,7 @@ class Errant_BlocksGenericsWithParams {
     var x12229: ArrayList = hello1(\x: ArrayList<Integer> -> {
       return {1, 2, 3}
     })
-    //x12230 : IDE-1346 will not be fixed. Both OS Gosu and Parser show error. Keeping the errors
+    //x12230 : IDE-1346 OS Gosu could be improved to not show error, but the improvement is postponed indefinitely, so keeping the errors
     var x12230: ArrayList = hello1(\x: ArrayList<Integer> -> {      //## issuekeys: INCOMPATIBLE TYPES
       return {1, 2, 'c'}
     })
@@ -94,14 +94,13 @@ class Errant_BlocksGenericsWithParams {
     var x13234: ArrayList<Integer> = hello1(\x: ArrayList<Integer> -> {
       return new ArrayList<Integer>()
     })
-    //x13235 : IDE-1346 will not be fixed. Both OS Gosu and Parser show error. Keeping the errors
     var x13235: ArrayList<Integer> = hello1(\x: ArrayList -> {     //## issuekeys: INCOMPATIBLE TYPES
       return {1, 2, 'c'}
     })
     var x13236: ArrayList<Integer> = hello1(\x: ArrayList<Integer> -> {
       return {1, 2, 3}
     })
-    //IDE-1346 will not be fixed. Both OS Gosu and Parser show error. Impacts x1315, x1316, x1317. Keeping the errors
+    //x13237, x13238, x13239 : IDE-1346 OS Gosu could be improved to not show error, but the improvement is postponed indefinitely, so keeping the errors
     var x13237: ArrayList<Integer> = hello1(\x: ArrayList<Integer> -> {   //## issuekeys: INCOMPATIBLE TYPES
       return {1, 2, 'c'}
     })

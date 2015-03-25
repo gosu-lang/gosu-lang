@@ -5,6 +5,7 @@ uses java.lang.Integer
 uses java.util.Collection
 uses java.util.Iterator
 uses java.lang.CharSequence
+uses java.lang.StringBuffer
 uses java.lang.StringBuilder
 uses java.util.Map
 uses java.lang.Character
@@ -28,6 +29,8 @@ class Errant_ElementAccessExpressionTest {
       b = 2
     }
   }
+
+  interface SubCharSeq extends CharSequence {}
 
   function testBasic() {
     var i : int
@@ -65,12 +68,20 @@ class Errant_ElementAccessExpressionTest {
     x = g[0]
     g[0] = '8'
 
+    var sBuf: StringBuffer = new StringBuffer("123")
+    x = sBuf[0]
+    sBuf[0] = '8'
+
     var h : String = "123"
     x = h[0]
     h[0] = '8'  //## issuekeys: MSG_STR_IMMUTABLE
     var j : dynamic.Dynamic = {1,2,3}
     i = j[0]
     j[0] = 8
+
+    var subChSeq: SubCharSeq
+    x = subChSeq[0]
+    subChSeq[0] = '8'  //## issuekeys: MSG_STR_IMMUTABLE
 
     var k : Map<Integer, Character> = {1-> 'a', 2 -> 'b', 3 -> 'c'}
     x = k[1]
