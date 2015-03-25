@@ -127,7 +127,7 @@ class Errant_ExpansionExpressionsTest {
     var x1: Iterable<Iterator<A[]>>
     var f1: int[] = x1*.getNum()
 
-    var x2: Iterator<List<A>[][]>
+    var x2: Iterator<List<A>[][]>    //## issuekeys: MSG_PARAMETERIZED_ARRAY_COMPONENT
     var f2: int[] = x2*.getNum()
   }
 }

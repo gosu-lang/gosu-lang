@@ -19,7 +19,7 @@ class Errant_PropertyCovariance2 {
   class Impl implements IHasNum {      //## issuekeys: CLASS 'IMPL' MUST EITHER BE DECLARED ABSTRACT OR IMPLEMENT ABSTRACT METHOD 'SETNUM1(NUMBER)' IN 'IHASNUM'
     var _value : Integer
 
-    property get Num1() : Integer {
+    override property get Num1() : Integer {
       return _value
     }
     //Setter argument has to be supertype of getter return type. Error expected
@@ -42,10 +42,10 @@ class Errant_PropertyCovariance2 {
   class Impl2 implements IHasNum2 {
     var _value: Integer as Num1         //## issuekeys: ERROR. INCOMPATIBLE TYPES
 
-    property get Num1(): Integer {
+    override property get Num1(): Integer {
       return _value
     }
-    property set Num1(v: java.lang.Number ) {
+    override property set Num1(v: java.lang.Number ) {
       _value = v.intValue()
     }
   }

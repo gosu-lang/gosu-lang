@@ -4,8 +4,8 @@ uses java.lang.Integer
 
 class Errant_GosuSub_FunctionVsProperty_3 extends Errant_JavaSuper_FunctionVsProperty_3 {
 
-  property get NormalProperty() : String { return null }
-  property set NormalProperty(s: String) {}
+  override property get NormalProperty() : String { return null }
+  override property set NormalProperty(s: String) {}
 
   property get smallCaseProperty1() : String { return null }
   property set smallCaseProperty1(s: String) {}
@@ -18,10 +18,10 @@ class Errant_GosuSub_FunctionVsProperty_3 extends Errant_JavaSuper_FunctionVsPro
   property get smallCaseProperty2() : String { return null }  //## issuekeys: ERROR
   property set smallCaseProperty2(s: String) {}               //## issuekeys: ERROR
 
-  property get SmallCaseProperty3() : String { return null }
-  property set SmallCaseProperty3(s: String) {}
+  override property get SmallCaseProperty3() : String { return null }
+  override property set SmallCaseProperty3(s: String) {}
 
-  property get OnlyGetter1() : String { return null }
+  override property get OnlyGetter1() : String { return null }
   property set OnlyGetter2(s : String){}
   var onlyGetter3 : String as OnlyGetter3
 
