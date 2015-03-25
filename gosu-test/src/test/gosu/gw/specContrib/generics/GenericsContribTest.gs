@@ -9,8 +9,4 @@ class GenericsContribTest extends TestClass {
     assertEquals( JavaClassWithRecursiveTypeVar.Type.GenericType.GenericTypeVariables[0].BoundingType.Name,
                   "java.util.List<T>" )
   }
-
-  function testExtendsJavaClassWithRecursiveTypeVar() {
-    assertTrue( ExtendsJavaClassWithRecursiveTypeVar.Valid )
-  }
 }
