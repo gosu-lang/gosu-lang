@@ -96,7 +96,6 @@ class ProcesSpecContribTest extends BaseVerifyErrantTest {
                                    "gw.specContrib.featureLiterals.gosuMembersBinding.Errant_FLExpressionValue", //IDE-???
                                    "gw.specContrib.featureLiterals.gosuMembersBinding.Errant_FLStaticVsNonStaticMethods", //IDE-???
                                    "gw.specContrib.featureLiterals.gosuMembersBinding.namedParams.Errant_FLNamedParams", //IDE-1611
-                                   "gw.specContrib.expressions.Errant_FeatureLiteralMethodLookup.gs", //IDE-??
 
                                    /* to skip as we don't support this check in our testing framework */
                                    "gw.specContrib.classes.Errant_ClassDeclaredInEnhancement",
