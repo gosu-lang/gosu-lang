@@ -87,13 +87,7 @@ class ProcesSpecContribTest extends BaseVerifyErrantTest {
                                    "gw.specContrib.expressions.cast.generics.Errant_TypeParamExtending", //IDE-1731
                                    "gw.specContrib.classes.Errant_ConstructorOverrideInAnonymousClass",  // IDE-1821
                                    "gw.specContrib.classes.enhancements.Errant_SymbolCollision_ListEnh2", // IDE-1824
-
                                    "gw.specContrib.typeinference.Errant_GenericMethodAndBlockArgument", // IDE-1943
-
-
-                                   /* Feature literals broken tests */
-                                   "gw.specContrib.featureLiterals.gosuMembersBinding.namedParams.Errant_FLNamedParams", //IDE-1611
-
                                    /* to skip as we don't support this check in our testing framework */
                                    "gw.specContrib.classes.Errant_ClassDeclaredInEnhancement",
                                    "gw.specContrib.classes.Errant_ClassNotNamedAfterFile",

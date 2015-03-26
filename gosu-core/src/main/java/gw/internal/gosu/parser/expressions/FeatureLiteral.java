@@ -29,6 +29,7 @@ import java.util.List;
  */
 public class FeatureLiteral extends Expression implements IFeatureLiteralExpression
 {
+  private static final int MAX_BLOCK_ARGS = 16;
   private IExpression _root;
   IFeatureInfo _feature;
   private IType[] _parameterTypes;
@@ -367,15 +368,15 @@ public class FeatureLiteral extends Expression implements IFeatureLiteralExpress
     return typesToBound;
   }
 
-  private IBlockType makeBlockType( IType returnType, IType[] params )
+  private IBlockType makeBlockType( IType returnType, IType[] params, List<String> argNames )
   {
-    if( params.length > 16 )
+    if( params.length > MAX_BLOCK_ARGS )
     {
-      return new BlockType( returnType, Arrays.copyOfRange( params, 0, 15 ), Collections.<String>emptyList(), Collections.<IExpression>emptyList() );
+      return new BlockType( returnType, Arrays.copyOfRange( params, 0, 15 ), argNames, Collections.<IExpression>emptyList() );
     }
     else
     {
-      return new BlockType( returnType, params, Collections.<String>emptyList(), Collections.<IExpression>emptyList() );
+      return new BlockType( returnType, params, argNames, Collections.<IExpression>emptyList() );
     }
   }
 
@@ -470,7 +471,7 @@ public class FeatureLiteral extends Expression implements IFeatureLiteralExpress
     _parameterTypes = boundGenericFunctionTypeVariables( methodInfo, getParameterTypes( methodInfo ) );
 
     _blockType = makeBlockType( TypeLord.boundTypes( methodInfo.getReturnType(), getFunctionTypeVarsToBound( methodInfo ) ),
-                                adjustParametersForFeature( methodInfo, _parameterTypes ) );
+                                adjustParametersForFeature( methodInfo, _parameterTypes ), argNames( methodInfo ) );
 
     return rawType.getParameterizedType( getFinalRootType(), _blockType );
   }
@@ -482,15 +483,31 @@ public class FeatureLiteral extends Expression implements IFeatureLiteralExpress
     _parameterTypes = boundGenericFunctionTypeVariables( constructorInfo, getParameterTypes( constructorInfo ) );
 
     _blockType = makeBlockType( constructorInfo.getOwnersType(),
-                                adjustParametersForFeature( constructorInfo, _parameterTypes ) );
+                                adjustParametersForFeature( constructorInfo, _parameterTypes ),
+                                argNames(constructorInfo) );
 
     return rawType.getParameterizedType( getFinalRootType(), _blockType );
+  }
+
+  private List<String> argNames( IHasParameterInfos hasParams )
+  {
+    if( hasBoundArgs( hasParams ) )
+    {
+      return Collections.emptyList();
+    }
+    ArrayList<String> names = new ArrayList<>();
+    for( int i = 0; i < hasParams.getParameters().length && i <= MAX_BLOCK_ARGS; i++ )
+    {
+      IParameterInfo iParameterInfo = hasParams.getParameters()[i];
+      names.add( iParameterInfo.getName() );
+    }
+    return names;
   }
 
 
   private IType[] adjustParametersForFeature( IHasParameterInfos feature, IType[] params )
   {
-    if( _boundArgs != null && _boundArgs.size() > 0 && _boundArgs.size() == feature.getParameters().length )
+    if( hasBoundArgs( feature ) )
     {
       params = new IType[0]; // clear out parameters if there are bound values
     }
@@ -502,6 +519,11 @@ public class FeatureLiteral extends Expression implements IFeatureLiteralExpress
       params = combined.toArray( new IType[combined.size()] );
     }
     return params;
+  }
+
+  private boolean hasBoundArgs( IHasParameterInfos feature )
+  {
+    return _boundArgs != null && _boundArgs.size() > 0 && _boundArgs.size() == feature.getParameters().length;
   }
 
   private boolean hasImplicitFirstArg()
