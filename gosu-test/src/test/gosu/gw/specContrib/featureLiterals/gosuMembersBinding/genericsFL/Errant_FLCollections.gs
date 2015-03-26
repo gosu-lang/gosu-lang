@@ -10,7 +10,7 @@ class Errant_FLCollections {
   //IDE-1605 - Parser Issue
   var avgArrayArrayFL = array1#average()
   //IDE-1606 - OS Gosu + IDE-1605 - Parser Issue
-  var getCountArrayFL = array1#getCount()
+  // var getCountArrayFL = array1#getCount() - we do not support resolving implicit getters via typeinfo
   var sumArrayFL = array1#sum()
   var cloneArrayFL = array1#clone()
   var toListArrayFL = array1#toList()
@@ -19,7 +19,7 @@ class Errant_FLCollections {
   var toStringArrayFL = array1#toString()
 
   var aavgArrayArrayFL = Array#average()
-  var agetCountArrayFL = Array#getCount()
+  // var agetCountArrayFL = Array#getCount()  - we do not support resolving implicit getters via typeinfo
   var asumArrayFL = Array#sum()            //## issuekeys: AMBIGUOUS METHOD CALL: BOTH 'CoreArrayDoubleSumEnhancement.sum(IBlock1<Double, Object>)' AND 'CoreArrayFloatSumEnhancement.sum(IBlock1<Float, Object>)' MATCH
   var acloneArrayFL = Array#clone()
   var atoListArrayFL = Array#toList()
