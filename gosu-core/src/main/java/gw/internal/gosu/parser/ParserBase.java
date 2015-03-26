@@ -1926,7 +1926,12 @@ public abstract class ParserBase implements IParserPart
   {
     if( getGosuClass().getEnclosingType() != null && !getGosuClass().isStatic() )
     {
-      verify( (ParsedElement) pe, !Modifier.isStatic( modInfo.getModifiers() ), Res.MSG_STATIC_MODIFIER_NOT_ALLOWED_HERE );
+      verify( (ParsedElement)pe, !Modifier.isStatic( modInfo.getModifiers() ) ||
+                                  (Modifier.isFinal( modInfo.getModifiers() ) &&
+                                   pe instanceof VarStatement &&
+                                   ((VarStatement)pe).getAsExpression() != null &&
+                                   ((VarStatement)pe).getAsExpression().isCompileTimeConstant()),
+              Res.MSG_STATIC_MODIFIER_NOT_ALLOWED_HERE );
     }
   }
 

@@ -12,8 +12,11 @@ class Errant_InnerClassesTest {
   }
 
   class NMC {
-    static var f : int  //## issuekeys: MSG_STATIC_MODIFIER_NOT_ALLOWED_HERE
-    final static var g : int  //## issuekeys: MSG_STATIC_MODIFIER_NOT_ALLOWED_HERE, MSG_VAR_MIGHT_NOT_HAVE_BEEN_INIT
+    static var f0 : int  //## issuekeys: MSG_STATIC_MODIFIER_NOT_ALLOWED_HERE
+    static var f1 : String = "no dice, not final" //## issuekeys: MSG_STATIC_MODIFIER_NOT_ALLOWED_HERE
+    static final var f2 : int  //## issuekeys: MSG_STATIC_MODIFIER_NOT_ALLOWED_HERE, MSG_VAR_MIGHT_NOT_HAVE_BEEN_INIT
+    static final var f3: int = Errant_InnerClassesTest.sf //## issuekeys: MSG_STATIC_MODIFIER_NOT_ALLOWED_HERE
+    static final var f4 : String = "static final compile-time constant ok in non-static inner class"
 
     var nnf1t = sf + nf
     var nnf2 = Errant_InnerClassesTest.sf + outer.nf
