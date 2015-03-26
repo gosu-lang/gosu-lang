@@ -356,24 +356,6 @@ public class DefaultEntityAccess extends BaseService implements IEntityAccess
   }
 
   @Override
-  public Object[] convertToExternalIfNecessary( Object[] args, Class[] argTypes, Class methodOwner )
-  {
-    return args;
-  }
-
-  @Override
-  public Object convertToInternalIfNecessary( Object obj, Class methodOwner )
-  {
-    return obj;
-  }
-
-  @Override
-  public boolean isExternal( Class methodOwner )
-  {
-    return false;
-  }
-
-  @Override
   public StringBuilder getPluginRepositories()
   {
     return new StringBuilder();

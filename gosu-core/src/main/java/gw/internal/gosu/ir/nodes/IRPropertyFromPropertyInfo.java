@@ -165,11 +165,10 @@ public class IRPropertyFromPropertyInfo implements IRProperty {
 
   @Override
   public boolean isBytecodeProperty() {
-    return (_terminalProperty instanceof IJavaPropertyInfo ||
+    return _terminalProperty instanceof IJavaPropertyInfo ||
             _terminalProperty instanceof IGosuPropertyInfo ||
             _terminalProperty instanceof IJavaFieldPropertyInfo ||
-            _terminalProperty instanceof IGosuVarPropertyInfo) &&
-            !IRFeatureBase.isExternalEntityJavaType( _terminalProperty );
+            _terminalProperty instanceof IGosuVarPropertyInfo;
   }
 
   public IRType getPropertyIRType( IPropertyInfo pi )
