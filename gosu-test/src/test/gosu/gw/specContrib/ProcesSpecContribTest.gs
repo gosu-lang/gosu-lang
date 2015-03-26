@@ -92,7 +92,6 @@ class ProcesSpecContribTest extends BaseVerifyErrantTest {
 
 
                                    /* Feature literals broken tests */
-                                   "gw.specContrib.featureLiterals.gosuMembersBinding.Errant_FLStaticVsNonStaticMethods", //IDE-???
                                    "gw.specContrib.featureLiterals.gosuMembersBinding.namedParams.Errant_FLNamedParams", //IDE-1611
 
                                    /* to skip as we don't support this check in our testing framework */
