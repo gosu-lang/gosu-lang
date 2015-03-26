@@ -76,29 +76,8 @@ class Errant_FLExpressionValue {
   var expCons1012 : ConstructorReference<Errant_FLExpressionValue, block(): Errant_FLExpressionValue> = #construct("mystring")
 
   //Case 11: Feature Literal Chain consisting only of Property Feature Literals
-  var expChainedProp1111 : SimplePropertyChainReference<Errant_FLExpressionValue, String> = Errant_FLExpressionValue#FLEValue#Prop1
+  var expChainedProp1111 : PropertyChainReference<Errant_FLExpressionValue, String> = Errant_FLExpressionValue#FLEValue#Prop1
 
   //Case 12: BOUND Feature Literal Chain consisting only of Property Feature Literals
-  var expChainedProp1211 : BoundSimplePropertyChainReference<Errant_FLExpressionValue, String> = gInstance#FLEValue#Prop1
-
-  //Case 13 : Feature Literal Chain which consists not only of Propery Feature Literals and ends with a Property Feature Literal
-  var expChainedComplex1311 : ComplexPropertyChainReference<Errant_FLExpressionValue, Integer> = Errant_FLExpressionValue#getAddress()#ZipCode
-
-  //Case 14 : Bound Feature Literal Chain which consists not only of Property Feature Literals and ends with a Method Feature Literal
-  var expChaingedComplex1411 : gw.lang.reflect.features.MethodChainReference<Errant_FLExpressionValue, block(String, int):String> = gInstance#FLEValue#nonStaticFunction1()
-
-  //The following case is not in spec, so adding one for unbound MethodChainReference
-  //Case 14.2 : UNBound Feature Literal Chain which consists not only of Property Feature Literals and ends with a Method Feature Literal
-  //IDE-1602 - Parser Issue
-  var expChaingedComplex1421 : MethodChainReference<Errant_FLExpressionValue, block(Errant_FLExpressionValue, String, int):String> = Errant_FLExpressionValue#FLEValue#nonStaticFunction1()
-  //IDE-1602 - Parser Issue
-  var expChaingedComplex1422 : MethodChainReference<Errant_FLExpressionValue, block(Errant_FLExpressionValue):Integer> = Errant_FLExpressionValue#getAddress()#showZipCode()
-
-  //According to current spec, Case #15 is identical to Case #13 so making it bound
-  //Case 15 : Feature Literal Chain consisting not only of Property Feature Literals and ending with a Property Feature Literal
-  var expChainedComplex1511 : BoundComplexPropertyChainReference<Errant_FLExpressionValue, Integer> = gInstance#getAddress()#ZipCode
-
-
-
-
+  var expChainedProp1211 : BoundPropertyChainReference<Errant_FLExpressionValue, String> = gInstance#FLEValue#Prop1
 }
