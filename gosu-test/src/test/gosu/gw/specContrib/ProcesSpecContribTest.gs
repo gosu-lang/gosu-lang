@@ -65,9 +65,9 @@ class ProcesSpecContribTest extends BaseVerifyErrantTest {
     var err = new StringBuilder()
     err.append(gsClass.Name)
     if(!issuesByLine.Empty) {
-      for(l in issuesByLine.Keys) {
-        err.append("\nNot found expected error[s] on line ").append(l).append(":  ")
-                                                            .append(issuesByLine[l].reduce(new StringBuilder(), \ ret, el -> ret.append(el.MessageKey.Key).append(", ")))
+      err.append("\nFound Unannotated Errors:");
+      for(l in issuesByLine.Keys.toList().sort()) {
+        err.append("\n    Line ${l}: ").append(issuesByLine[l].map( \ el -> el.MessageKey.Key).join(","))
       }
     }
     assertTrue(err.toString(), issuesByLine.Empty )
@@ -93,7 +93,6 @@ class ProcesSpecContribTest extends BaseVerifyErrantTest {
 
                                    /* Feature literals broken tests */
                                    "gw.specContrib.featureLiterals.gosuMembersBinding.genericsFL.Errant_FLCollections", //IDE-???
-                                   "gw.specContrib.featureLiterals.gosuMembersBinding.genericsFL.Errant_FLCollectionOfCollections", //IDE-???
                                    "gw.specContrib.featureLiterals.gosuMembersBinding.genericsFL.Errant_FLParameterizedFunction", //IDE-???
                                    "gw.specContrib.featureLiterals.gosuMembersBinding.Errant_FLExpressionValue", //IDE-???
                                    "gw.specContrib.featureLiterals.gosuMembersBinding.Errant_FLStaticVsNonStaticMethods", //IDE-???
