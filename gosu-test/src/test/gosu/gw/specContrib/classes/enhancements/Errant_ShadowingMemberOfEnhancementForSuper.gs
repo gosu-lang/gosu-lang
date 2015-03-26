@@ -6,7 +6,7 @@ class Errant_ShadowingMemberOfEnhancementForSuper {
 
   // IDE-1880
   static class B extends A {
-    function foo() {}  // method masks method defined in enhancement for A
+    function foo() {}   //## issuekeys: MSG_MASKING_ENHANCEMENT_METHODS_MAY_BE_CONFUSING
 
     function test() {
       foo()

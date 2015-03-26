@@ -31,7 +31,7 @@ class Errant_GosuSuperGosuSub_1 {
   }
 
   class Case1sub extends Case1Super {
-    property get MyProp1(): String {return null}
+    override property get MyProp1(): String {return null}
 
     property get NormalPropertyInSub(): String {return null}
 

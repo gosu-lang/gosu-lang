@@ -18,8 +18,8 @@ class Errant_GosuSuperGosuSub_2 {
     property set GetterInSubSetterInSuper(s : String) {}
   }
   class Case2Sub extends Case2Super {
-    property get NormalProperty() : String { return null }
-    property set NormalProperty(s: String) {}
+    override property get NormalProperty() : String { return null }
+    override property set NormalProperty(s: String) {}
 
     //IDE-1812 - Parser issue - should not show error
     property get DifferntCaseProperty() : Integer { return null }

@@ -15,11 +15,11 @@ class Errant_PropertyCovariance3 {
   }
 
   class B extends A {
-    property get MyProp1(): Integer { return 0 }
-    property set MyProp1(p: java.lang.Number) {}
+    override property get MyProp1(): Integer { return 0 }
+    override property set MyProp1(p: java.lang.Number) {}
 
-    property get MyProp2(): Integer { return 0 }
-    property set MyProp2(p: java.lang.Number) {}
+    override property get MyProp2(): Integer { return 0 }
+    override property set MyProp2(p: java.lang.Number) {}
   }
 
 }

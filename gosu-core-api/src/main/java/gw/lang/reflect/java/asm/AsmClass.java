@@ -67,10 +67,8 @@ public class AsmClass implements IAsmType, IGeneric {
   private List<AsmAnnotation> _annotations;
 
 
-  AsmClass( Object module, byte[] classBytes ) {
+  AsmClass( Object module ) {
     _module = module;
-    ClassReader cr = new ClassReader( classBytes );
-    cr.accept( new AsmClassVisitor(), ClassReader.SKIP_CODE | ClassReader.SKIP_DEBUG | ClassReader.SKIP_FRAMES );
   }
 
   private AsmClass( AsmPrimitiveType ptype ) {
@@ -83,7 +81,12 @@ public class AsmClass implements IAsmType, IGeneric {
     _methodsAndCtors = Collections.emptyList();
     _annotations = Collections.emptyList();
   }
-  
+
+  public void init( byte[] classBytes ) {
+    ClassReader cr = new ClassReader( classBytes );
+    cr.accept( new AsmClassVisitor(), ClassReader.SKIP_CODE | ClassReader.SKIP_DEBUG | ClassReader.SKIP_FRAMES );
+  }
+
   public AsmType getType() {
     return _type;
   }

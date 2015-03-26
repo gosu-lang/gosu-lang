@@ -19,10 +19,10 @@ class Errant_PropertyCovariance1 {
   class Impl implements IHasNum {
     var _value : Integer
 
-    property get Num1() : Integer {
+    override property get Num1() : Integer {
       return _value
     }
-    property set Num1(value:java.lang.Number ) {
+    override property set Num1(value:java.lang.Number ) {
       _value = value.intValue()
     }
   }

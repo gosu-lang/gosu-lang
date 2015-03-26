@@ -15,7 +15,7 @@ class Errant_GenericsAssignabilityPrimitiveTypes_2 {
   var doubleList : List<double>  //## issuekeys: MSG_PRIMITIVE_TYPE_PARAM
 
   function testCharacter() {
-    charList = charList
+    charList = charList  //## issuekeys: MSG_SILLY_ASSIGNMENT
     charList = byteList      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.LIST<BYTE>', REQUIRED: 'JAVA.UTIL.LIST<CHAR>'
     charList = shortList      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.LIST<SHORT>', REQUIRED: 'JAVA.UTIL.LIST<CHAR>'
     charList = intList      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.LIST<INT>', REQUIRED: 'JAVA.UTIL.LIST<CHAR>'
@@ -25,7 +25,7 @@ class Errant_GenericsAssignabilityPrimitiveTypes_2 {
   }
   function testByte() {
     byteList = charList      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.LIST<CHAR>', REQUIRED: 'JAVA.UTIL.LIST<BYTE>'
-    byteList = byteList
+    byteList = byteList  //## issuekeys: MSG_SILLY_ASSIGNMENT
     byteList = shortList      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.LIST<SHORT>', REQUIRED: 'JAVA.UTIL.LIST<BYTE>'
     byteList = intList      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.LIST<INT>', REQUIRED: 'JAVA.UTIL.LIST<BYTE>'
     byteList = floatList      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.LIST<FLOAT>', REQUIRED: 'JAVA.UTIL.LIST<BYTE>'
@@ -36,7 +36,7 @@ class Errant_GenericsAssignabilityPrimitiveTypes_2 {
     shortList = charList      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.LIST<CHAR>', REQUIRED: 'JAVA.UTIL.LIST<SHORT>'
     //IDE-1859 - Parser issue
     shortList = byteList        //## issuekeys: INCOMPATIBLE TYPES.
-    shortList = shortList
+    shortList = shortList  //## issuekeys: MSG_SILLY_ASSIGNMENT
     shortList = intList      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.LIST<INT>', REQUIRED: 'JAVA.UTIL.LIST<SHORT>'
     shortList = floatList      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.LIST<FLOAT>', REQUIRED: 'JAVA.UTIL.LIST<SHORT>'
     shortList = longList      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.LIST<LONG>', REQUIRED: 'JAVA.UTIL.LIST<SHORT>'
@@ -47,7 +47,7 @@ class Errant_GenericsAssignabilityPrimitiveTypes_2 {
     intList = charList            //## issuekeys: INCOMPATIBLE TYPES.
     intList = byteList            //## issuekeys: INCOMPATIBLE TYPES.
     intList = shortList           //## issuekeys: INCOMPATIBLE TYPES.
-    intList = intList
+    intList = intList  //## issuekeys: MSG_SILLY_ASSIGNMENT
     intList = floatList      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.LIST<FLOAT>', REQUIRED: 'JAVA.UTIL.LIST<INT>'
     intList = longList      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.LIST<LONG>', REQUIRED: 'JAVA.UTIL.LIST<INT>'
     intList = doubleList      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.LIST<DOUBLE>', REQUIRED: 'JAVA.UTIL.LIST<INT>'
@@ -57,7 +57,7 @@ class Errant_GenericsAssignabilityPrimitiveTypes_2 {
     floatList = byteList          //## issuekeys: INCOMPATIBLE TYPES.
     floatList = shortList         //## issuekeys: INCOMPATIBLE TYPES.
     floatList = intList           //## issuekeys: INCOMPATIBLE TYPES.
-    floatList = floatList
+    floatList = floatList  //## issuekeys: MSG_SILLY_ASSIGNMENT
     floatList = longList          //## issuekeys: INCOMPATIBLE TYPES.
     floatList = doubleList      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.LIST<DOUBLE>', REQUIRED: 'JAVA.UTIL.LIST<FLOAT>'
   }
@@ -67,7 +67,7 @@ class Errant_GenericsAssignabilityPrimitiveTypes_2 {
     longList = shortList           //## issuekeys: INCOMPATIBLE TYPES.
     longList = intList             //## issuekeys: INCOMPATIBLE TYPES.
     longList = floatList      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.LIST<FLOAT>', REQUIRED: 'JAVA.UTIL.LIST<LONG>'
-    longList = longList
+    longList = longList  //## issuekeys: MSG_SILLY_ASSIGNMENT
     longList = doubleList      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.LIST<DOUBLE>', REQUIRED: 'JAVA.UTIL.LIST<LONG>'
   }
   function testDouble() {
@@ -77,7 +77,7 @@ class Errant_GenericsAssignabilityPrimitiveTypes_2 {
     doubleList = intList          //## issuekeys: INCOMPATIBLE TYPES.
     doubleList = floatList        //## issuekeys: INCOMPATIBLE TYPES.
     doubleList = longList         //## issuekeys: INCOMPATIBLE TYPES.
-    doubleList = doubleList
+    doubleList = doubleList  //## issuekeys: MSG_SILLY_ASSIGNMENT
   }
 
 }
