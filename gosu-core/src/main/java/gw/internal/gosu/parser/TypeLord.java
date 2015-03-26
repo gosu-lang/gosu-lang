@@ -1094,11 +1094,18 @@ public class TypeLord
   {
     if( type instanceof ITypeVariableType )
     {
+      if( isRecursiveType( type, new IType[] {((ITypeVariableType)type).getBoundingType()} ) )
+      {
+        // short-circuit recursive typevar
+        return ((ITypeVariableType)type).getBoundingType().getGenericType();
+      }
+
       if( enclType != null && enclType.isParameterizedType() )
       {
         TypeVarToTypeMap map = mapTypeByVarName( enclType, enclType );
         return replaceTypeVariableTypeParametersWithBoundingTypes( getActualType( ((ITypeVariableType)type).getBoundingType(), map, true ) );
       }
+
       return replaceTypeVariableTypeParametersWithBoundingTypes( ((ITypeVariableType)type).getBoundingType(), enclType );
     }
 
@@ -1110,10 +1117,6 @@ public class TypeLord
     if( type.isParameterizedType() )
     {
       IType[] typeParams = type.getTypeParameters();
-      if( TypeLord.isRecursiveType( type, typeParams ) )
-      {
-        return type;
-      }
       IType[] concreteParams = new IType[typeParams.length];
       for( int i = 0; i < typeParams.length; i++ )
       {
