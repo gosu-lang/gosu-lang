@@ -15,44 +15,38 @@ class Errant_FLCollectionOfCollections {
 
   function fooFun<T>(hm : HashMap<T, T>) : T {return null}
 
-  var fooFL111 = gInstance#fooFun(HashMap<HashMap, HashMap>)
+  var fooFL111 = gInstance#fooFun(HashMap) // OK
+  var fooFL111a = gInstance#fooFun(HashMap<Object, Object>) // OK
+  var fooFL111a = gInstance#fooFun(HashMap<String, String>) //## issuekeys: MSG_FL_METHOD_NOT_FOUND
   var fooFL112 = gInstance#fooFun({{1->2} -> {3->4}})
   var fooFL113 = gInstance#fooFun({{1->2} -> {3->"bar"}})
   //T is Serializable
   var fooFL114 = gInstance#fooFun({{1->2} -> {"foo", "bar"}})
-  var fooFL115 = gInstance#fooFun(HashMap<HashMap<String, String>, HashMap<String, String>>)
+  var fooFL115 = gInstance#fooFun(HashMap<HashMap<String, String>, HashMap<String, String>>) //## issuekeys: MSG_FL_METHOD_NOT_FOUND
   var fooFL116 = gInstance#fooFun({{"foo"->"bar"}->{"foo"->"bar"}})
 
 
 
   function funInvoke111() {
-    //IDE-1592 OS Gosu Issue
-    var foo111 : HashMap = fooFL111.invoke(new HashMap<HashMap, HashMap>())
-    //IDE-1592 OS Gosu Issue
-    var foo112 : HashMap = fooFL111.invoke({{1->2} -> {3->4}})
 
-    //IDE-1592 OS Gosu Issue
-    var foo211 : HashMap<Integer,Integer> = fooFL112.invoke()
-    var foo212 : HashMap<Integer,Integer> = fooFL112.invoke({{1->2} -> {3->4}})      //## issuekeys: 'INVOKE()' IN '' CANNOT BE APPLIED TO '(JAVA.UTIL.HASHMAP<JAVA.UTIL.HASHMAP<JAVA.LANG.INTEGER,JAVA.LANG.INTEGER>,JAVA.UTIL.HASHMAP<JAVA.LANG.INTEGER,JAVA.LANG.INTEGER>>)'
+    var foo111 : Object = fooFL111.invoke(new HashMap())
 
-    //IDE-1592 OS Gosu Issue
-    var foo311 : HashMap<Integer,Serializable> = fooFL113.invoke()
+    var foo112 : Object = fooFL111.invoke({{1->2} -> {3->4}})
 
-    //IDE-1592 OS Gosu Issue
-    var foo411 : Serializable & Cloneable = fooFL114.invoke()
+    var foo211 : Object  = fooFL112.invoke()
+    var foo212 : Object  = fooFL112.invoke({{1->2} -> {3->4}}) //## issuekeys: MSG_WRONG_NUM_OF_ARGS
 
-    //IDE-1592 OS Gosu Issue
-    var foo511 : HashMap<String,String> = fooFL115.invoke(new HashMap<HashMap<String, String>, HashMap<String, String>>())
-    //IDE-1589 - Parser Issue
-    var foo512 = fooFL115.invoke({{1->2} -> {3->4}})  //## issuekeys: ERROR
+    var foo311 : Object  = fooFL113.invoke()
 
-    //IDE-1592 OS Gosu Issue
-    var foo611 : HashMap<String,String> = fooFL116.invoke()
+    var foo411 : Object = fooFL114.invoke()
 
+    var foo511 : Object = fooFL115.invoke(new HashMap<HashMap<String, String>, HashMap<String, String>>())
+
+    var foo611 : Object = fooFL116.invoke()
   }
 
   function barFun<T1, T2>(hm : HashMap<T1, T2>) : T1 {return null}
-  var barFL111 = gInstance#barFun(HashMap<HashMap, HashMap<String, String>>)
+  var barFL111 = gInstance#barFun(HashMap<Object, Object>)
   var barFL112 = gInstance#barFun({{1->2}->{"foo"->"bar"}})
   //IDE-1591 - Parser issue
   var barFL113 = gInstance#barFun(HashMap)(HashMap) //## issuekeys: ERROR
@@ -61,11 +55,11 @@ class Errant_FLCollectionOfCollections {
 
   function funInvoke222() {
     //IDE-1592 OS Gosu Issue
-    var bar111 : HashMap = barFL111.invoke(new HashMap<HashMap, HashMap<String, String>>())
-    var bar112 : HashMap  = barFL111.invoke({{1->2} -> {"foo"->"bar"}})
+    var bar111 : Object = barFL111.invoke(new HashMap<HashMap, HashMap<String, String>>())
+    var bar112 : Object  = barFL111.invoke({{1->2} -> {"foo"->"bar"}})
     //IDE-1589
     var bar113 : HashMap = barFL111.invoke({{1,2} -> {"foo"->"bar"}})  //## issuekeys: ERROR
 
-    var bar211 : HashMap<Integer, Integer> = barFL112.invoke()
+    var bar211 : Object = barFL112.invoke()
   }
 }
