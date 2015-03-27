@@ -3096,7 +3096,8 @@ public class GosuClass extends AbstractType implements IGosuClassInternal
     }
   }
 
-  public List<ITypeVariableDefinition> getTypeVarDefs() {
+  public List<ITypeVariableDefinition> getTypeVarDefs()
+  {
     return _typeVarDefs;
   }
 
@@ -3107,8 +3108,17 @@ public class GosuClass extends AbstractType implements IGosuClassInternal
       typeVarExprList = Collections.emptyList();
     }
     _typeVarDefs = new ArrayList<ITypeVariableDefinition>(typeVarExprList.size());
-    for (int i = 0; i < typeVarExprList.size(); i++) {
-      _typeVarDefs.add(getTypeVarDefImpl(typeVarExprList.get(i)));
+    for( int i = 0; i < typeVarExprList.size(); i++ )
+    {
+      _typeVarDefs.add( getTypeVarDefImpl( typeVarExprList.get( i ) ) );
+    }
+    if( _genTypeVar != null && _genTypeVar.length > 0 )
+    {
+      // Update Type Vars (this can happen with recursive types)
+      for( int i = 0; i < _typeVarDefs.size(); i++ )
+      {
+        _genTypeVar[i] = (GenericTypeVariable) _typeVarDefs.get(i).getTypeVar();
+      }
     }
   }
 

@@ -3,6 +3,12 @@ package gw.specContrib.generics
 uses gw.test.TestClass
 
 class GenericsContribTest extends TestClass {
+
+  static class Foo<N extends Foo<N>> {}
+  function testRecursiveBoundingTypePreserved() {
+    assertSame( Foo.Type.GenericType.GenericTypeVariables[0].BoundingType.TypeParameters[0], Foo.Type.GenericType.GenericTypeVariables[0].TypeVariableDefinition.Type )
+  }
+
   function testJavaClassWithRecursiveTypeVarRetainsRecursiveBounds() {
     assertSame( JavaClassWithRecursiveTypeVar.Type.GenericType.GenericTypeVariables[0].BoundingType,
                 java.util.List.Type.GenericType.getParameterizedType( {JavaClassWithRecursiveTypeVar.Type.GenericType.GenericTypeVariables[0].TypeVariableDefinition.Type} ) )
