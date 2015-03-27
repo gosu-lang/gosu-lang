@@ -183,6 +183,21 @@ public class TypeLord
             }
             else
             {
+              final Type typeArg = typeArgs[i];
+              if( typeArg instanceof WildcardType && (((WildcardType)typeArg).getUpperBounds()[0].equals( Object.class )) )
+              {
+                IJavaClassInfo classInfo = TypeSystem.getDefaultTypeLoader().getJavaClassInfo( ((Class)((ParameterizedType)type).getRawType()).getName() );
+                if( classInfo != null )
+                {
+                  Type[] boundingTypes = classInfo.getBackingClass().getTypeParameters()[i].getBounds();
+                  Type boundingType = boundingTypes.length == 0 ? null : boundingTypes[0];
+                  if( boundingType != null )
+                  {
+                    typeArgs[i] = boundingType;
+                  }
+                }
+              }
+
               types[i] = getActualType( typeArgs[i], actualParamByVarName, bKeepTypeVars, recursiveTypes );
             }
           }
