@@ -183,8 +183,7 @@ public class IRMethodFromMethodInfo extends IRFeatureBase implements IRMethod {
 
   @Override
   public boolean isBytecodeMethod() {
-    return (_terminalMethod instanceof IGosuMethodInfo || _terminalMethod instanceof IJavaMethodInfo) &&
-           !IRFeatureBase.isExternalEntityJavaType( _terminalMethod );
+    return _terminalMethod instanceof IGosuMethodInfo || _terminalMethod instanceof IJavaMethodInfo;
   }
 
   private static IRType getTrueOwningType( IMethodInfo mi ) {

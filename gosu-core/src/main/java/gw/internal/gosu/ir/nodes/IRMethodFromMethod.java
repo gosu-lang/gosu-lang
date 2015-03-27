@@ -4,7 +4,6 @@
 
 package gw.internal.gosu.ir.nodes;
 
-import gw.config.CommonServices;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.IRelativeTypeInfo;
 import gw.lang.reflect.TypeSystem;
@@ -87,7 +86,7 @@ public class IRMethodFromMethod implements IRMethod {
 
   @Override
   public boolean isBytecodeMethod() {
-    return !CommonServices.getEntityAccess().isExternal( _method.getDeclaringClass() );
+    return true;
   }
 
   @Override

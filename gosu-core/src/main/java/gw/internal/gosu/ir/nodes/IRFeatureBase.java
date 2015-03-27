@@ -157,11 +157,4 @@ public class IRFeatureBase {
     }
     return paramTypes;
   }
-
-  public static boolean isExternalEntityJavaType( IFeatureInfo fi )
-  {
-    return fi.getOwnersType() instanceof IJavaType &&
-           ((IJavaType)fi.getOwnersType()).getBackingClass() != null &&
-           CommonServices.getEntityAccess().isExternal( ((IJavaType)fi.getOwnersType()).getBackingClass() );
-  }
 }

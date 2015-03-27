@@ -262,7 +262,7 @@ public class JavaConstructorInfo extends JavaBaseFeatureInfo implements IJavaCon
         {
           return _ctor.newInstance( null );
         }
-        return _ctor.newInstance( CommonServices.getEntityAccess().convertToExternalIfNecessary( args, ((ConstructorJavaClassConstructor)_ctor).getJavaParameterTypes(), ((ConstructorJavaClassConstructor)_ctor).getDeclaringJavaClass() ) );
+        return _ctor.newInstance( args );
       }
       catch( IllegalArgumentException e )
       {

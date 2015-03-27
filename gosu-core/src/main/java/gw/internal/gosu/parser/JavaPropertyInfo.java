@@ -46,7 +46,6 @@ public class JavaPropertyInfo extends JavaBaseFeatureInfo implements IJavaProper
   private IType _propertyType;
   private IPropertyAccessor _accessor;
   private Boolean _bStatic;
-  private boolean _bExternal;
   private boolean _bReadable;
   private IJavaClassMethod _getMethod;
   private IJavaClassMethod _setMethod;
@@ -140,28 +139,6 @@ public class JavaPropertyInfo extends JavaBaseFeatureInfo implements IJavaProper
       findFieldOn(_getMethod.getEnclosingClass(), true);
     }
 
-    if( isWritable( getOwnersType()) ) {
-      if (_pd.getWriteMethod() != null) {
-        IJavaClassInfo declClass = _pd.getWriteMethod().getEnclosingClass();
-        _bExternal = declClass instanceof ClassJavaClassInfo && CommonServices.getEntityAccess().isExternal(((ClassJavaClassInfo)declClass).getJavaClass());
-      } else {
-        IJavaClassInfo declClass = _publicField.getEnclosingClass();
-        _bExternal = declClass instanceof ClassJavaClassInfo && CommonServices.getEntityAccess().isExternal(((ClassJavaClassInfo)declClass).getJavaClass());
-      }
-    }
-    else if( isReadable() ) {
-      if (_pd.getReadMethod() != null) {
-        IJavaClassInfo declClass = _pd.getReadMethod().getEnclosingClass();
-        _bExternal = declClass instanceof ClassJavaClassInfo && CommonServices.getEntityAccess().isExternal(((ClassJavaClassInfo)declClass).getJavaClass());
-      } else {
-        if (_publicField == null) {
-          _bExternal = false;
-        } else {
-          IJavaClassInfo declClass = _publicField.getEnclosingClass();
-          _bExternal = declClass instanceof ClassJavaClassInfo && CommonServices.getEntityAccess().isExternal(((ClassJavaClassInfo) declClass).getJavaClass());
-        }
-      }
-    }
     _bReadable = isReadable();
   }
 
@@ -598,14 +575,7 @@ public class JavaPropertyInfo extends JavaBaseFeatureInfo implements IJavaProper
           rVal = ((FieldJavaClassField)_publicField).get(ctx);
           rVal = CommonServices.getCoercionManager().convertValue(rVal, getFeatureType());
         }
-        if( _bExternal )
-        {
-          return CommonServices.getEntityAccess().convertToInternalIfNecessary( rVal, getOwningClass() );
-        }
-        else
-        {
-          return rVal;
-        }
+        return rVal;
       }
       catch( InvocationTargetException ite )
       {
@@ -629,12 +599,6 @@ public class JavaPropertyInfo extends JavaBaseFeatureInfo implements IJavaProper
       {
         Object[] args = new Object[]{value};
         if (_setMethod != null) {
-          if( _bExternal )
-          {
-            args = CommonServices.getEntityAccess().convertToExternalIfNecessary(
-                    args, ((MethodJavaClassMethod)_setMethod).getJavaParameterTypes(), getOwningClass() );
-          }
-
           _setMethod.invoke( ctx, args );
         } else {
           value = CommonServices.getCoercionManager().convertValue(value, TypeSystem.get(_publicField.getType()));
