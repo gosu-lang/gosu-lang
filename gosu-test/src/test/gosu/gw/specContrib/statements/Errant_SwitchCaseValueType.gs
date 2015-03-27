@@ -3,7 +3,7 @@ package gw.specContrib.statements
 class Errant_SwitchCaseValueType  {
   enum E { ONE, TWO }
 
-  function test() {
+  function test<T>(p: T) {
     var x: Object
 
     switch (x) {
@@ -44,6 +44,12 @@ class Errant_SwitchCaseValueType  {
       case ONE:
         break
       case 1:          //## issuekeys: INCOMPATIBLE CASE VALUE TYPE
+        break
+    }
+
+    // IDE-2118
+    switch (typeof(p)) {
+      case Boolean:
         break
     }
   }
