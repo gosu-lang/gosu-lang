@@ -165,9 +165,10 @@ public class TypeLord
           IType[] types = new IType[typeArgs.length];
           for( int i = 0; i < types.length; i++ )
           {
-            if( !bKeepTypeVars && typeArgs[i] instanceof TypeVariable )
+            Type typeArg = typeArgs[i];
+            if( !bKeepTypeVars && typeArg instanceof TypeVariable )
             {
-              Type bound = ((TypeVariable)typeArgs[i]).getBounds()[0];
+              Type bound = ((TypeVariable)typeArg).getBounds()[0];
               if( !recursiveTypes.contains( bound ) )
               {
                 types[i] = getActualType( bound, actualParamByVarName, bKeepTypeVars, recursiveTypes );
@@ -183,22 +184,18 @@ public class TypeLord
             }
             else
             {
-              final Type typeArg = typeArgs[i];
               if( typeArg instanceof WildcardType && (((WildcardType)typeArg).getUpperBounds()[0].equals( Object.class )) )
               {
-                IJavaClassInfo classInfo = TypeSystem.getDefaultTypeLoader().getJavaClassInfo( ((Class)((ParameterizedType)type).getRawType()).getName() );
-                if( classInfo != null )
+                // Object is the default type for the naked <?> wildcard, so we have to get the actual bound, if different, from the corresponding type var
+                Type[] boundingTypes = ((Class)((ParameterizedType)type).getRawType()).getTypeParameters()[i].getBounds();
+                Type boundingType = boundingTypes.length == 0 ? null : boundingTypes[0];
+                if( boundingType != null )
                 {
-                  Type[] boundingTypes = classInfo.getBackingClass().getTypeParameters()[i].getBounds();
-                  Type boundingType = boundingTypes.length == 0 ? null : boundingTypes[0];
-                  if( boundingType != null )
-                  {
-                    typeArgs[i] = boundingType;
-                  }
+                  typeArg = boundingType;
                 }
               }
 
-              types[i] = getActualType( typeArgs[i], actualParamByVarName, bKeepTypeVars, recursiveTypes );
+              types[i] = getActualType( typeArg, actualParamByVarName, bKeepTypeVars, recursiveTypes );
             }
           }
           retType = genType.getParameterizedType( types );
@@ -314,6 +311,7 @@ public class TypeLord
             {
               if( typeArg instanceof AsmWildcardType && ((AsmWildcardType) typeArg).getBound() == null )
               {
+                // Get the bounding type from the corresponding type var
                 IJavaClassInfo classInfo = TypeSystem.getDefaultTypeLoader().getJavaClassInfo( type.getRawType().getName() );
                 if( classInfo != null )
                 {
