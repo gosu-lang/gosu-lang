@@ -858,24 +858,6 @@ class JavaType extends AbstractType implements IJavaTypeInternal
       return TypeLord.getPureGenericType( thisRef() ).getParameterizedType( paramTypes );
     }
 
-    if( _bDefiningGenericTypes )
-    {
-      // If this type references itself in its type variables, we kinda have to
-      // bail out and return the generic type. This can actually happen; behold
-      // java.lang.Enum...
-      //   public abstract class Enum<E extends Enum<E>>
-      // Here the Enum<E> references Enum, which is itself, so we just return this
-      // generic version, which is compatible with any parameterization of itself.
-      // Essentially this is the same as Enum<E extends Enum>, which not only makes
-      // more sense, but more importantly avoids the cyclic reference.
-      return thisRef();
-    }
-
-//    if( !isGenericType() )
-//    {
-//      throw new IllegalStateException( "Cannot parameterize non-generic type: " + getName() );
-//    }
-
     if( _parameterizationByParamsName == null )
     {
       TypeSystem.lock();

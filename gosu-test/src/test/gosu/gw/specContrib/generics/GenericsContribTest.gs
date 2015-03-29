@@ -4,9 +4,10 @@ uses gw.test.TestClass
 
 class GenericsContribTest extends TestClass {
 
-  static class Foo<N extends Foo<N>> {}
   function testRecursiveBoundingTypePreserved() {
-    assertSame( Foo.Type.GenericType.GenericTypeVariables[0].BoundingType.TypeParameters[0], Foo.Type.GenericType.GenericTypeVariables[0].TypeVariableDefinition.Type )
+    assertTrue( RecursiveGosu.Type.Valid )
+    assertSame( RecursiveGosu.Type.GenericType.GenericTypeVariables[0].BoundingType.TypeParameters[0], RecursiveGosu.Type.GenericType.GenericTypeVariables[0].TypeVariableDefinition.Type )
+    assertSame( RecursiveJava.Type.GenericType.GenericTypeVariables[0].BoundingType.TypeParameters[0], RecursiveJava.Type.GenericType.GenericTypeVariables[0].TypeVariableDefinition.Type )
   }
 
   function testJavaClassWithRecursiveTypeVarRetainsRecursiveBounds() {
