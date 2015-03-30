@@ -585,7 +585,7 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
       IRExpression result = callStaticMethod( TypeSystem.class, "getByFullName", new Class[]{String.class, String.class},
               Arrays.asList(pushConstant( genType.getName() ), module == null ? pushNull() : pushConstant( module.getName() ) ) );
 
-      if( type.isParameterizedType() && !isRecursivelyParameterized( type ) )
+      if( type.isParameterizedType() && !TypeLord.isRecursiveType( type, type.getTypeParameters() ) && !isRecursiveTypeParsing( type ) )
       {
         result = callMethod( IType.class, "getParameterizedType", new Class[]{IType[].class},
                 result,
@@ -595,7 +595,7 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
     }
   }
 
-  private boolean isRecursivelyParameterized( IType type )
+  private boolean isRecursiveTypeParsing( IType type )
   {
     for( IType typeParam : type.getTypeParameters() )
     {

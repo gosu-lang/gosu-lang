@@ -321,7 +321,14 @@ public class JavaMethodInfo extends JavaBaseFeatureInfo implements IJavaMethodIn
       {
         actualParamByVarName = new TypeVarToTypeMap();
       }
-      actualParamByVarName.put( tv.getTypeVariableDefinition().getType(), tv.getBoundingType() );
+      if( !TypeLord.isRecursiveType( tv.getTypeVariableDefinition().getType(), tv.getBoundingType() ) )
+      {
+        actualParamByVarName.put( tv.getTypeVariableDefinition().getType(), tv.getBoundingType() );
+      }
+      else
+      {
+        actualParamByVarName.put( tv.getTypeVariableDefinition().getType(), TypeLord.getPureGenericType( tv.getBoundingType() ) );
+      }
     }
 
     TypeVarToTypeMap map = new TypeVarToTypeMap();

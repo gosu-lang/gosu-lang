@@ -909,6 +909,10 @@ public class TypeLord
    */
   public static IType findParameterizedType( IType sourceType, IType rawGenericType )
   {
+    return findParameterizedType( sourceType, rawGenericType, false );
+  }
+  public static IType findParameterizedType( IType sourceType, IType rawGenericType, boolean bForAssignability )
+  {
     if( sourceType == null )
     {
       return null;
@@ -916,13 +920,14 @@ public class TypeLord
 
     rawGenericType = getPureGenericType( rawGenericType );
 
-    if( //sourceType.isParameterizedType() &&
-        sourceType.getGenericType() == rawGenericType )
+    final IType srcRawType = sourceType.getGenericType();
+    if( srcRawType == rawGenericType ||
+        !bForAssignability && srcRawType instanceof IMetaType && rawGenericType == JavaTypes.CLASS() )
     {
       return sourceType;
     }
 
-    IType parameterizedType = findParameterizedType( sourceType.getSupertype(), rawGenericType );
+    IType parameterizedType = findParameterizedType( sourceType.getSupertype(), rawGenericType, bForAssignability );
     if( parameterizedType != null )
     {
       return parameterizedType;
@@ -931,7 +936,7 @@ public class TypeLord
     IType[] interfaces = sourceType.getInterfaces();
     for (int i = 0; i < interfaces.length; i++) {
       IType iface = interfaces[i];
-      parameterizedType = findParameterizedType( iface, rawGenericType );
+      parameterizedType = findParameterizedType( iface, rawGenericType, bForAssignability );
       if( parameterizedType != null )
       {
         return parameterizedType;
@@ -1444,7 +1449,7 @@ public class TypeLord
     }
     else if( to.isParameterizedType() || to.isGenericType() )
     {
-      IType relatedParameterizedType = findParameterizedType( from, to.getGenericType() );
+      IType relatedParameterizedType = findParameterizedType( from, to.getGenericType(), true );
       if( relatedParameterizedType == null )
       {
         if( from == to.getGenericType() )
@@ -1838,7 +1843,7 @@ public class TypeLord
     return getDefaultParameterizedType( javaType ).isGenericType();
   }
 
-  public static boolean isRecursiveType( IType subject, IType[] types )
+  public static boolean isRecursiveType( IType subject, IType... types )
   {
     if( subject instanceof CompoundType )
     {

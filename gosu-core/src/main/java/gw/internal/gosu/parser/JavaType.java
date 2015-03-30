@@ -698,6 +698,11 @@ class JavaType extends AbstractType implements IJavaTypeInternal
       IJavaClassType genericSuperclass = _classInfo.getGenericSuperclass();
       if( genericSuperclass instanceof IJavaClassInfo )
       {
+        if( _classInfo.isEnum() ) {
+          // JavaSourceType doesn't give us the generic superclass of an enum, so we make up for that here
+          _superType = _superType.getParameterizedType( thisRef() );
+        }
+
         // Super is not generic, we're done
         return notDeletedSupertype();
       }
@@ -724,6 +729,7 @@ class JavaType extends AbstractType implements IJavaTypeInternal
     if (TypeSystem.isDeleted(_superType)) {
       _superType = TypeSystem.getErrorType();
     }
+    //## todo: this seems unnecessary
     // Ensure we return a non-raw generic type here
     return _superType.isGenericType() && !_superType.isParameterizedType()
            ? TypeLord.getDefaultParameterizedType( _superType )
@@ -948,7 +954,6 @@ class JavaType extends AbstractType implements IJavaTypeInternal
     if( type.isGenericType() || type.isParameterizedType() )
     {
       TypeLord.addAllClassesInClassHierarchy( type, includeGenericTypes, true );
-      return;
     }
     else
     {

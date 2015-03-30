@@ -30,11 +30,13 @@ import gw.lang.parser.StandardCoercionManager;
 import gw.lang.parser.coercers.BasePrimitiveCoercer;
 import gw.lang.parser.coercers.FunctionFromInterfaceCoercer;
 import gw.lang.parser.coercers.IdentityCoercer;
+import gw.lang.parser.coercers.MetaTypeToClassCoercer;
 import gw.lang.parser.coercers.RuntimeCoercer;
 import gw.lang.parser.coercers.StringCoercer;
 import gw.lang.parser.expressions.ITypeAsExpression;
 import gw.lang.reflect.IBlockType;
 import gw.lang.reflect.IFunctionType;
+import gw.lang.reflect.IHasJavaClass;
 import gw.lang.reflect.IMetaType;
 import gw.lang.reflect.IRelativeTypeInfo;
 import gw.lang.reflect.IType;
@@ -330,6 +332,18 @@ public class TypeAsTransformer extends AbstractExpressionTransformer<ITypeAsExpr
   {
     // Ensure the value is boxed (the coercer takes an Object)
     ICoercer coercer = _expr().getCoercer();
+
+    if( coercer == MetaTypeToClassCoercer.instance() && ((IMetaType)lhsType).getType() instanceof IHasJavaClass )
+    {
+      // Handle MetaType-to-Class coercion directly
+      IRSymbol rootValue = _cc().makeAndIndexTempSymbol( root.getType() );
+      return buildComposite(
+        buildAssignment( rootValue, root ),
+        buildNullCheckTernary( identifier( rootValue ), pushNull(),
+                               callMethod( IHasJavaClass.class, "getBackingClass", new Class[0],
+                                           checkCast( IHasJavaClass.class, identifier( rootValue ) ), Collections.<IRExpression>emptyList() ) ) );
+    }
+
     IType exprType = _expr().getType();
     if( (coercer == IdentityCoercer.instance() && !exprType.isPrimitive()) ||
         exprType instanceof CompoundType ||
