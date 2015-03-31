@@ -16,4 +16,9 @@ class GenericsContribTest extends TestClass {
     assertEquals( JavaClassWithRecursiveTypeVar.Type.GenericType.GenericTypeVariables[0].BoundingType.Name,
                   "java.util.List<T>" )
   }
+
+  function testMohrRecursives() {
+    var yey: Yey
+    assertEquals( Yey, statictypeof yey.foo() )
+  }
 }

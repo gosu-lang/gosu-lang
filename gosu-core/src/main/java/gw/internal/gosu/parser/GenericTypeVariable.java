@@ -85,10 +85,6 @@ public class GenericTypeVariable implements IGenericTypeVariable
       {
         throw new IllegalArgumentException( "bounding type [" + j + "] is null" );
       }
-      if( boundingTypes[j].isGenericType() && !boundingTypes[j].isParameterizedType() )
-      {
-        boundingTypes[j] = TypeSystem.getDefaultParameterizedType( boundingTypes[j] );
-      }
       if( boundingTypes[j].isPrimitive() )
       {
         boundingTypes[j] = TypeSystem.getBoxType( boundingTypes[j] );
