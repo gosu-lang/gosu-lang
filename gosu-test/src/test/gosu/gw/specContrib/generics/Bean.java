@@ -8,8 +8,9 @@ package gw.specContrib.generics;
  * To change this template use File | Settings | File Templates.
  */
 public class Bean {
-  static <T extends Bean> void addPopulator( BeanPopulator<? super T> populator) {
-     populator.foo();
+  static <T extends Bean> BeanPopulator<? super T> addPopulator( BeanPopulator<? super T> populator) {
+    populator.foo();
+    return null;
   }
 
 }
