@@ -1,6 +1,7 @@
 package gw.specContrib.generics
 
 uses gw.test.TestClass
+uses gw.lang.reflect.IRelativeTypeInfo
 
 class GenericsContribTest extends TestClass {
 
@@ -15,6 +16,10 @@ class GenericsContribTest extends TestClass {
                 java.util.List.Type.GenericType.getParameterizedType( {JavaClassWithRecursiveTypeVar.Type.GenericType.GenericTypeVariables[0].TypeVariableDefinition.Type} ) )
     assertEquals( JavaClassWithRecursiveTypeVar.Type.GenericType.GenericTypeVariables[0].BoundingType.Name,
                   "java.util.List<T>" )
+  }
+
+  function testContravariantWildcardTypeUsesBoundingTypeOfItsTypeVarBound() {
+    assertEquals( BeanPopulator<Bean>, (Bean.Type.TypeInfo as IRelativeTypeInfo).getMethod( Bean, "addPopulator", {BeanPopulator<Bean>} ).Parameters[0].FeatureType )
   }
 
   function testMohrRecursives() {
