@@ -309,7 +309,8 @@ public class TypeLord
             }
             else
             {
-              if( typeArg instanceof AsmWildcardType && ((AsmWildcardType) typeArg).getBound() == null )
+              if( typeArg instanceof AsmWildcardType &&
+                  (((AsmWildcardType)typeArg).getBound() == null || !((AsmWildcardType)typeArg).isCovariant() ) )
               {
                 // Get the bounding type from the corresponding type var
                 IJavaClassInfo classInfo = TypeSystem.getDefaultTypeLoader().getJavaClassInfo( type.getRawType().getName() );

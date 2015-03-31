@@ -222,7 +222,8 @@ public abstract class JavaSourceType extends AbstractJavaClassInfo implements IJ
           return new JavaWildcardType(NULL_TYPE);
         } else {
           if (isSuper(typeNode)) {
-            return new JavaWildcardType(JavaTypes.OBJECT().getBackingClassInfo());
+            //return new JavaWildcardType(JavaTypes.OBJECT().getBackingClassInfo());
+            return new JavaWildcardType(NULL_TYPE);
           } else {
             return new JavaWildcardType(createType(typeResolver, childOfType));
           }
