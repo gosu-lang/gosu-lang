@@ -8501,7 +8501,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
           if( type.isGenericType() )
           {
             // If a generic type, assume the default parameterized version e.g., List => List<Object>
-            type = TypeLord.makeDefaultParameterizedType( type, !type.isParameterizedType() && (!(getGosuClass() instanceof IGosuClass) || !((IGosuClass)getGosuClass()).isCompilingHeader()) );
+            type = TypeLord.makeDefaultParameterizedType( type );
             typeLiteral.setType( MetaType.getLiteral( type ) );
           }
         }

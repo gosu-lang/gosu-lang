@@ -1063,14 +1063,8 @@ public class TypeLord
 
   public static IType makeDefaultParameterizedType( IType type )
   {
-    return makeDefaultParameterizedType( type, false );
-  }
-  public static IType makeDefaultParameterizedType( IType type, boolean bHandleRecursiveParameterizedType )
-  {
     if( type != null && !(type instanceof IGosuEnhancementInternal) &&
-        type.isGenericType() &&
-        (!type.isParameterizedType() ||
-         (bHandleRecursiveParameterizedType && isRecursiveType( type, type.getTypeParameters() ))) )
+        !type.isParameterizedType() && type.isGenericType() )
     {
       if( type instanceof MetaType )
       {
@@ -1081,17 +1075,6 @@ public class TypeLord
       for( int i = 0; i < boundingTypes.length; i++ )
       {
         boundingTypes[i] = type.getGenericTypeVariables()[i].getBoundingType();
-        if( bHandleRecursiveParameterizedType && boundingTypes[i].isParameterizedType() )
-        {
-          if( isRecursiveType( boundingTypes[i], boundingTypes[i].getTypeParameters() ) )
-          {
-            boundingTypes[i] = getDefaultParameterizedType( boundingTypes[i] );
-          }
-          else
-          {
-            boundingTypes[i] = getActualType( boundingTypes[i], TypeLord.mapTypeByVarName( type, type, false ), true );
-          }
-        }
       }
 
       if( boundingTypes.length == 0 ||
