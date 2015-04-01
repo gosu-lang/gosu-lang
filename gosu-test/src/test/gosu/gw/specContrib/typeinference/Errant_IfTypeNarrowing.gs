@@ -1,6 +1,7 @@
 package gw.specContrib.typeinference
 
 uses java.util.Date
+uses java.util.List
 
 class Errant_IfTypeNarrowing {
   interface I1 {
@@ -9,6 +10,14 @@ class Errant_IfTypeNarrowing {
 
   interface I2 {
     function foo2()
+  }
+
+  class A implements I1 {
+    function foo1() {}
+  }
+
+  class B implements I2 {
+    function foo2() {}
   }
 
   function test() {
@@ -37,6 +46,16 @@ class Errant_IfTypeNarrowing {
     if (i1 typeis I2) {
       i1.foo1()
       i1.foo2()
+    }
+
+    var l: List<Object>
+    // IDE-2131
+    if (l.get(0) typeis A &&
+        l.get(1) typeis B) {
+    }
+
+    if (l.get(0) typeis A) {
+      l.get(0).foo1()                //## issuekeys: CANNOT RESOLVE 'foo1()'
     }
   }
 }
