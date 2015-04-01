@@ -346,14 +346,14 @@ public class GosuClass extends AbstractType implements IGosuClassInternal
     else if( genSuperType instanceof IJavaType )
     {
       IJavaTypeInternal javaGenSuperType = (IJavaTypeInternal)genSuperType;
-      TypeVarToTypeMap actualParamByVarName = TypeLord.mapTypeByVarName( getOrCreateTypeReference(), getOrCreateTypeReference(), true );
+      TypeVarToTypeMap actualParamByVarName = TypeLord.mapTypeByVarName( getOrCreateTypeReference(), getOrCreateTypeReference() );
       setSuperType( TypeLord.getActualType( javaGenSuperType, actualParamByVarName, true ) );
       ((IJavaTypeInternal)_superType).setAdapterClass( javaGenSuperType.getAdapterClass() );
     }
     else if( genSuperType instanceof IGosuClassInternal )
     {
       IGosuClassInternal gsGenSuperType = (IGosuClassInternal)genSuperType;
-      TypeVarToTypeMap actualParamByVarName = TypeLord.mapTypeByVarName( getOrCreateTypeReference(), getOrCreateTypeReference(), true );
+      TypeVarToTypeMap actualParamByVarName = TypeLord.mapTypeByVarName( getOrCreateTypeReference(), getOrCreateTypeReference() );
       setSuperType(TypeLord.getActualType( gsGenSuperType, actualParamByVarName, true ));
     }
   }
@@ -378,14 +378,14 @@ public class GosuClass extends AbstractType implements IGosuClassInternal
         if( genInterface instanceof IJavaType)
         {
           IJavaTypeInternal javaGenInterface = (IJavaTypeInternal)genInterface;
-          TypeVarToTypeMap actualParamByVarName = TypeLord.mapTypeByVarName(getOrCreateTypeReference(), getOrCreateTypeReference(), true );
+          TypeVarToTypeMap actualParamByVarName = TypeLord.mapTypeByVarName( getOrCreateTypeReference(), getOrCreateTypeReference() );
           genInterface = TypeLord.getActualType( javaGenInterface, actualParamByVarName, true );
           ((IJavaTypeInternal)genInterface).setAdapterClass( javaGenInterface.getAdapterClass() );
         }
         else if( genInterface instanceof IGosuClassInternal )
         {
           IGosuClassInternal gsGenInterface = (IGosuClassInternal)genInterface;
-          TypeVarToTypeMap actualParamByVarName = TypeLord.mapTypeByVarName(getOrCreateTypeReference(), getOrCreateTypeReference(), true );
+          TypeVarToTypeMap actualParamByVarName = TypeLord.mapTypeByVarName( getOrCreateTypeReference(), getOrCreateTypeReference() );
           genInterface = TypeLord.getActualType( gsGenInterface, actualParamByVarName, true );
         }
       }

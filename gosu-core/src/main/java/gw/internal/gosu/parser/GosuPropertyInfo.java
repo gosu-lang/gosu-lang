@@ -22,7 +22,6 @@ import gw.lang.reflect.IRelativeTypeInfo;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.gs.IGosuPropertyInfo;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.ArrayList;
 import java.lang.reflect.Method;

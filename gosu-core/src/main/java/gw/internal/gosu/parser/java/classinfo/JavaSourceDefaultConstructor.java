@@ -24,7 +24,7 @@ public class JavaSourceDefaultConstructor implements IJavaClassConstructor {
   }
 
   @Override
-  public IParameterInfo[] convertGenericParameterTypes(IFeatureInfo container, TypeVarToTypeMap actualParamByVarName, boolean bKeepTypeVars) {
+  public IParameterInfo[] convertGenericParameterTypes(IFeatureInfo container, TypeVarToTypeMap actualParamByVarName) {
     return new IParameterInfo[0];
   }
 

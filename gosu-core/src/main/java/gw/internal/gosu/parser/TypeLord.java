@@ -212,7 +212,8 @@ public class TypeLord
     }
     else
     {
-      retType = parseType( normalizeJavaTypeName( type ), actualParamByVarName, bKeepTypeVars, null );
+      //retType = parseType( normalizeJavaTypeName( type ), actualParamByVarName, bKeepTypeVars, null );
+      throw new IllegalStateException();
     }
     return retType;
   }
@@ -337,43 +338,8 @@ public class TypeLord
         }
       }
     }
-    return parseType( type.getFqn(), actualParamByVarName, bKeepTypeVars, null );
-  }
-
-  private static String normalizeJavaTypeName( Type type )
-  {
-    if( type instanceof Class )
-    {
-      IType itype = TypeSystem.get( (Class<?>)type );
-      if ( itype == null )
-      {
-        throw new RuntimeException( "Class " + type + " is not loadable through the TypeSystem!" );
-      }
-      return itype.getName();
-    }
-    if( type instanceof TypeVariable )
-    {
-      return ((TypeVariable)type).getName();
-    }
-    if( type instanceof ParameterizedType )
-    {
-      ParameterizedType ptype = (ParameterizedType)type;
-      String strName = normalizeJavaTypeName( ptype.getRawType() );
-      strName += "<";
-      boolean bFirst = true;
-      for( Type param : ptype.getActualTypeArguments() )
-      {
-        if( !bFirst )
-        {
-          strName += ", ";
-        }
-        bFirst = false;
-        strName += normalizeJavaTypeName( param );
-      }
-      strName += ">";
-      return strName;
-    }
-    return fixSunInnerClassBug( type.toString() );
+    throw new IllegalStateException();
+    //return parseType( type.getFqn(), actualParamByVarName, bKeepTypeVars, null );
   }
 
   public static IType getActualType( IType type, TypeVarToTypeMap actualParamByVarName )
@@ -638,11 +604,6 @@ public class TypeLord
 
   public static TypeVarToTypeMap mapTypeByVarName( IType ownersType, IType declaringType )
   {
-    return mapTypeByVarName( ownersType, declaringType, false );
-  }
-
-  public static TypeVarToTypeMap mapTypeByVarName( IType ownersType, IType declaringType, boolean bKeepTypeVars )
-  {
     TypeVarToTypeMap actualParamByVarName;
     ownersType = findActualDeclaringType( ownersType, declaringType );
     if( ownersType != null && ownersType.isParameterizedType() )
@@ -651,13 +612,13 @@ public class TypeLord
     }
     else
     {
-      actualParamByVarName = mapGenericTypeByVarName( ownersType, bKeepTypeVars );
+      actualParamByVarName = mapGenericTypeByVarName( ownersType );
       if( ownersType != null )
       {
         while( ownersType.getEnclosingType() != null )
         {
           ownersType = ownersType.getEnclosingType();
-          TypeVarToTypeMap vars = mapGenericTypeByVarName( ownersType, bKeepTypeVars );
+          TypeVarToTypeMap vars = mapGenericTypeByVarName( ownersType );
           if( actualParamByVarName.isEmpty() )
           {
             actualParamByVarName = vars;
@@ -744,7 +705,7 @@ public class TypeLord
     return actualParamByVarName;
   }
 
-  private static TypeVarToTypeMap mapGenericTypeByVarName( IType ownersType, boolean bKeepTypeVars )
+  private static TypeVarToTypeMap mapGenericTypeByVarName( IType ownersType )
   {
     TypeVarToTypeMap genericParamByVarName = TypeVarToTypeMap.EMPTY_MAP;
     IType genType = null;
@@ -764,9 +725,7 @@ public class TypeLord
           Object key = typeVar.getTypeVariableDefinition() == null ? typeVar.getName() : typeVar.getTypeVariableDefinition().getType();
           if( !genericParamByVarName.containsKeyRaw( key ) )
           {
-            genericParamByVarName.putRaw( key, bKeepTypeVars
-                                               ? new TypeVariableType( ownersType, typeVar )
-                                               : typeVar.getBoundingType() );
+            genericParamByVarName.putRaw( key, new TypeVariableType( ownersType, typeVar ) );
           }
         }
       }
@@ -1096,7 +1055,7 @@ public class TypeLord
   {
     if( type instanceof ITypeVariableType )
     {
-      if( isRecursiveType( type, new IType[] {((ITypeVariableType)type).getBoundingType()} ) )
+      if( isRecursiveType( type, ((ITypeVariableType)type).getBoundingType() ) )
       {
         // short-circuit recursive typevar
         return ((ITypeVariableType)type).getBoundingType().getGenericType();
@@ -1934,33 +1893,26 @@ public class TypeLord
     return (type instanceof IGosuProgram) && ((IGosuProgram)type).isAnonymous();
   }
 
-  public static void addReferencedTypeVarsThatAreNotInMap( IType type, TypeVarToTypeMap map, boolean bKeepTypeVars )
+  public static void addReferencedTypeVarsThatAreNotInMap( IType type, TypeVarToTypeMap map )
   {
     if( type instanceof TypeVariableType )
     {
       IType existingType = map.get( (TypeVariableType)type );
       if( existingType == null )
       {
-        if( bKeepTypeVars )
-        {
-          map.put( (ITypeVariableType)type, type );
-        }
-        else
-        {
-          map.put( (ITypeVariableType)type, ((TypeVariableType)type).getBoundingType() );
-        }
+        map.put( (ITypeVariableType)type, type );
       }
     }
     else if( type.isParameterizedType() )
     {
       for( IType typeParam : type.getTypeParameters() )
       {
-        addReferencedTypeVarsThatAreNotInMap( typeParam, map, bKeepTypeVars );
+        addReferencedTypeVarsThatAreNotInMap( typeParam, map );
       }
     }
     else if( type.isArray() )
     {
-      addReferencedTypeVarsThatAreNotInMap( type.getComponentType(), map, bKeepTypeVars );
+      addReferencedTypeVarsThatAreNotInMap( type.getComponentType(), map );
     }
     else if( type instanceof IFunctionType )
     {
@@ -1968,9 +1920,9 @@ public class TypeLord
       IType[] types = funType.getParameterTypes();
       for( IType iType : types )
       {
-        addReferencedTypeVarsThatAreNotInMap( iType, map, bKeepTypeVars );
+        addReferencedTypeVarsThatAreNotInMap( iType, map );
       }
-      addReferencedTypeVarsThatAreNotInMap( funType.getReturnType(), map, bKeepTypeVars );
+      addReferencedTypeVarsThatAreNotInMap( funType.getReturnType(), map );
     }
   }
 

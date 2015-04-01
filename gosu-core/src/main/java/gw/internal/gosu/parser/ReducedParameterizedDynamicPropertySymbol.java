@@ -7,8 +7,6 @@ package gw.internal.gosu.parser;
 import gw.lang.parser.TypeVarToTypeMap;
 import gw.lang.reflect.IType;
 
-import java.util.Map;
-
 /**
  */
 public class ReducedParameterizedDynamicPropertySymbol extends ReducedDynamicPropertySymbol
@@ -34,7 +32,7 @@ public class ReducedParameterizedDynamicPropertySymbol extends ReducedDynamicPro
   {
     if( ownerType.isParameterizedType() )
     {
-      TypeVarToTypeMap actualParamByVarName =TypeLord.mapTypeByVarName( ownerType, ownerType, true );
+      TypeVarToTypeMap actualParamByVarName = TypeLord.mapTypeByVarName( ownerType, ownerType );
       propType = TypeLord.getActualType( propType, actualParamByVarName, true );
     }
     return propType;

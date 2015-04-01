@@ -50,11 +50,7 @@ public class MethodNode extends BeanInfoNode {
   }
 
   public IType getReturnType() {
-    IType retType = ((IFunctionType) getType()).getReturnType();
-    if (retType != JavaTypes.pVOID() && methodInfo instanceof IJavaMethodInfo) {
-      retType = ((IJavaMethodInfo) methodInfo).getGenericReturnType();
-    }
-    return retType;
+    return ((IFunctionType)getType()).getReturnType();
   }
 
   public String getReturnTypeName() {

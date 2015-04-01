@@ -116,7 +116,7 @@ public class AbstractGenericMethodInfo extends GosuBaseAttributedFeatureInfo imp
 
   public IType getParameterizedReturnType( IType... typeParams )
   {
-    TypeVarToTypeMap actualParamByVarName = TypeLord.mapTypeByVarName( getOwnersType(), getOwnersType(), true );
+    TypeVarToTypeMap actualParamByVarName = TypeLord.mapTypeByVarName( getOwnersType(), getOwnersType() );
     int i = 0;
     for( IGenericTypeVariable tv : getTypeVariables() )
     {
@@ -136,7 +136,7 @@ public class AbstractGenericMethodInfo extends GosuBaseAttributedFeatureInfo imp
   public IType[] getParameterizedParameterTypes2( IGosuClass ownersType, IType... typeParams )
   {
     IGosuClass ot = ownersType == null ? getOwnersType() : ownersType;
-    TypeVarToTypeMap actualParamByVarName = TypeLord.mapTypeByVarName( ownersType, ownersType, true );
+    TypeVarToTypeMap actualParamByVarName = TypeLord.mapTypeByVarName( ownersType, ownersType );
     int i = 0;
     for( IGenericTypeVariable tv : getTypeVariables() )
     {
@@ -165,7 +165,7 @@ public class AbstractGenericMethodInfo extends GosuBaseAttributedFeatureInfo imp
     FunctionType funcType = (FunctionType)getDfs().getType();
     IType[] genParamTypes = funcType.getParameterTypes();
     IGosuClass ownersType = owningParameterizedType == null ? getOwnersType() : owningParameterizedType;
-    TypeVarToTypeMap actualParamByVarName = TypeLord.mapTypeByVarName( ownersType, ownersType, true );
+    TypeVarToTypeMap actualParamByVarName = TypeLord.mapTypeByVarName( ownersType, ownersType );
     IGenericTypeVariable[] typeVars = getTypeVariables();
     for( IGenericTypeVariable tv : typeVars )
     {

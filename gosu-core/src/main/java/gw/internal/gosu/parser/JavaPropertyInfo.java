@@ -26,7 +26,6 @@ import gw.lang.reflect.java.IJavaAnnotatedElement;
 import gw.lang.reflect.java.IJavaClassField;
 import gw.lang.reflect.java.IJavaClassInfo;
 import gw.lang.reflect.java.IJavaClassMethod;
-import gw.lang.reflect.java.IJavaClassType;
 import gw.lang.reflect.java.IJavaMethodInfo;
 import gw.lang.reflect.java.IJavaPropertyDescriptor;
 import gw.lang.reflect.java.IJavaPropertyInfo;
@@ -43,7 +42,7 @@ import java.util.List;
 public class JavaPropertyInfo extends JavaBaseFeatureInfo implements IJavaPropertyInfo
 {
   private IJavaPropertyDescriptor _pd;
-  private IType _propertyType;
+  private IType _propertyTypeWithTypeVars;
   private IPropertyAccessor _accessor;
   private Boolean _bStatic;
   private boolean _bReadable;
@@ -74,7 +73,7 @@ public class JavaPropertyInfo extends JavaBaseFeatureInfo implements IJavaProper
   {
     super( container );
     _pd = pd;
-    _propertyType = propertyType;
+    _propertyTypeWithTypeVars = propertyType;
     initFlags();
   }
 
@@ -164,57 +163,28 @@ public class JavaPropertyInfo extends JavaBaseFeatureInfo implements IJavaProper
   @Override
   public IType getGenericIntrinsicType()
   {
-    return getIntrinsicType( true );
+    return getFeatureType();
   }
 
   @Override
   public IType getFeatureType()
   {
-    IType ownerType = getOwnersType();
-    return getIntrinsicType( !ownerType.isGenericType() || ownerType.isParameterizedType() );
-  }
-
-  private IType getIntrinsicType( boolean bKeepTypeVars )
-  {
-    if( _propertyType != null && !bKeepTypeVars )
+    if( _propertyTypeWithTypeVars != null )
     {
-      return _propertyType;
+      return _propertyTypeWithTypeVars;
     }
-
     IType propType;
-    IType ownersType = getOwnersType();
     if( _getMethod != null )
     {
-      IJavaClassType genericType = _getMethod.getGenericReturnType();
-      if( genericType instanceof IJavaClassInfo )
-      {
-        propType = _pd.getPropertyType();
-      }
-      else if( genericType != null )
-      {
-        TypeVarToTypeMap actualParamByVarName =
-          TypeLord.mapTypeByVarName( ownersType, _getMethod.getEnclosingClass().getJavaType(), bKeepTypeVars );
-        propType = genericType.getActualType( actualParamByVarName, bKeepTypeVars );
-      }
-      else
-      {
-        propType = TypeSystem.getErrorType();
-      }
+      propType = getTypeFromMethod( _getMethod );
     }
     else if( _setMethod != null )
     {
-      TypeVarToTypeMap actualParamByVarName =
-        TypeLord.mapTypeByVarName( ownersType, _setMethod.getEnclosingClass().getJavaType(), bKeepTypeVars );
-      propType = _setMethod.getGenericParameterTypes()[0].getActualType( actualParamByVarName, bKeepTypeVars );
+      propType = getTypeFromMethod( _setMethod );
     }
     else
     {
       propType = _pd.getPropertyType();
-    }
-
-    if( propType.isGenericType() && !propType.isParameterizedType() )
-    {
-      propType = TypeLord.getDefaultParameterizedType( propType );
     }
 
     IJavaClassInfo declaringClass = getDeclaringClass();
@@ -223,12 +193,25 @@ public class JavaPropertyInfo extends JavaBaseFeatureInfo implements IJavaProper
       propType = ClassInfoUtil.getPublishedType( propType, declaringClass );
     }
 
-    if( !bKeepTypeVars )
+    return _propertyTypeWithTypeVars = propType;
+  }
+
+  private IType getTypeFromMethod( IJavaClassMethod m )
+  {
+    IType declaringClass = m.getEnclosingClass().getJavaType();
+    TypeVarToTypeMap actualParamByVarName = TypeLord.mapTypeByVarName( getOwnersType(), declaringClass );
+    actualParamByVarName = JavaMethodInfo.addEnclosingTypeParams( declaringClass, actualParamByVarName );
+
+    IType retType = ClassInfoUtil.getActualReturnType( m.getGenericReturnType(), actualParamByVarName, true );
+    if( TypeSystem.isDeleted( retType ) )
     {
-      //Cache the non-generic value.
-      _propertyType = propType;
+      return null;
     }
-    return propType;
+
+    //## barf
+    retType = ClassInfoUtil.getPublishedType( retType, m.getEnclosingClass() );
+
+    return retType;
   }
 
   private IJavaClassInfo getDeclaringClass() {
@@ -250,12 +233,6 @@ public class JavaPropertyInfo extends JavaBaseFeatureInfo implements IJavaProper
 
   @Override
   public boolean isWritable(IType whosAskin) {
-    /* causes stack overflow loading the parent type info...
-    IMethodInfo methodInfo = getWriteMethodInfo();
-    if (methodInfo != null) {
-      return methodInfo.isVisible(scriptabilityLevel);
-    }
-    */
     IJavaClassMethod set = _pd.getWriteMethod();
     if ((set != null && !_pd.isHidden()) || (_publicField != null && !Modifier.isFinal(_publicField.getModifiers()))) {
       if (getContainer() instanceof IRelativeTypeInfo) {

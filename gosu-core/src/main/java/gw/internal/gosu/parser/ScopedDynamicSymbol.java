@@ -70,9 +70,9 @@ public class ScopedDynamicSymbol extends AbstractDynamicSymbol
 
   public ISymbol getLightWeightReference()
   {
-    ScopedDynamicSymbol copy = new ScopedDynamicSymbol( _symTable, (String)getName(), _typePrefixName, getType(), _scope );
+    ScopedDynamicSymbol copy = new ScopedDynamicSymbol( _symTable, getName(), _typePrefixName, getType(), _scope );
     copy.setScriptPart( getScriptPart() );
-    copy.setName( (String)getName() );
+    copy.setName( getName() );
     return copy;
   }
 
@@ -83,9 +83,9 @@ public class ScopedDynamicSymbol extends AbstractDynamicSymbol
       return this;
     }
 
-    TypeVarToTypeMap actualParamByVarName = TypeLord.mapTypeByVarName( gsClass, gsClass, true );
+    TypeVarToTypeMap actualParamByVarName = TypeLord.mapTypeByVarName( gsClass, gsClass );
     IType type = TypeLord.getActualType( getType(), actualParamByVarName, true );
-    return new ScopedDynamicSymbol( _symTable, (String)getName(), _typePrefixName, type, _scope );
+    return new ScopedDynamicSymbol( _symTable, getName(), _typePrefixName, type, _scope );
   }
 
   private void resetAttributeSource()

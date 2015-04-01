@@ -230,13 +230,13 @@ public class JavaGenericsTest extends TestClass
     IExpression expr = parseExpr( "gw.internal.gosu.parser.generics.TestGenericClass" );
     TypeLiteral typeLiteral = (TypeLiteral)expr;
     IType typeNonParam = typeLiteral.getType().getType().getGenericType();
-    IMethodInfo mi = typeNonParam.getTypeInfo().getMethod( "genericMethod", JavaTypes.CHAR_SEQUENCE() );
+    IMethodInfo mi = typeNonParam.getTypeInfo().getCallableMethod( "genericMethod", JavaTypes.CHAR_SEQUENCE() );
     assertNotNull( mi );
     IGenericTypeVariable[] tvs = ((IGenericMethodInfo)mi).getTypeVariables();
     assertEquals( 1, tvs.length );
     IType boundingType = tvs[0].getBoundingType();
     assertTrue( boundingType == JavaTypes.CHAR_SEQUENCE() );
-    assertTrue( mi.getReturnType() == JavaTypes.CHAR_SEQUENCE() );
+    assertTrue( mi.getReturnType().getName().equals( "Q" ) );
   }
 
   public void testCannotParameterizeGenericMethodWithIncompatibleType()

@@ -14,6 +14,7 @@ import gw.lang.reflect.IType;
 import gw.lang.reflect.ITypeInfo;
 import gw.lang.reflect.ITypeLoader;
 import gw.lang.reflect.Modifier;
+import gw.lang.reflect.gs.IGosuClass;
 
 import java.io.ObjectStreamException;
 import java.util.Collections;
@@ -242,8 +243,17 @@ public class TypeVariableType extends AbstractType implements ITypeVariableType
       return false;
     }
 
-    return getRelativeName().equals( type.getRelativeName() ) &&
-           type.getEnclosingType() == getEnclosingType();
+    if( !getRelativeName().equals( type.getRelativeName() ) )
+    {
+      return false;
+    }
+
+    IType thatEncType = type.getEnclosingType();
+    IType thisEncType = getEnclosingType();
+    return thatEncType == thisEncType ||
+           thatEncType instanceof IGosuClassInternal &&
+           ((IGosuClassInternal)thatEncType).isProxy() &&
+           thisEncType == ((IGosuClassInternal)thatEncType).getJavaType();
   }
 
   /**
@@ -278,10 +288,13 @@ public class TypeVariableType extends AbstractType implements ITypeVariableType
   {
     return obj instanceof IType && isAssignableFrom( (IType)obj );
   }
+
+  @Override
   public int hashCode()
   {
-    //!! This is here to prevent anyone from doing anything other than identity equality for TypeVariableType
-    return super.hashCode();
+    int result = getName().hashCode();
+    result = 31 * result + (_bFunctionStatement ? 1 : 0);
+    return result;
   }
 
   public boolean isMutable()

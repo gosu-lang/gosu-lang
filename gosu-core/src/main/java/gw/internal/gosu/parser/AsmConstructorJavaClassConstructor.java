@@ -53,8 +53,8 @@ public class AsmConstructorJavaClassConstructor implements IJavaClassConstructor
   }
 
   @Override
-  public IParameterInfo[] convertGenericParameterTypes( IFeatureInfo container, TypeVarToTypeMap actualParamByVarName, boolean bKeepTypeVars ) {
-    return JavaMethodInfo.convertGenericParameterTypes( container, actualParamByVarName, getGenericParameterTypes(), bKeepTypeVars, getEnclosingClass() );
+  public IParameterInfo[] convertGenericParameterTypes( IFeatureInfo container, TypeVarToTypeMap actualParamByVarName ) {
+    return JavaMethodInfo.convertGenericParameterTypes( container, actualParamByVarName, getGenericParameterTypes(), getEnclosingClass() );
   }
 
   private IJavaClassType[] getGenericParameterTypes() {

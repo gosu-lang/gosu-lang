@@ -7296,7 +7296,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
 
   private IType inferArgType( IType contextType, TypeVarToTypeMap inferenceMap )
   {
-    TypeLord.addReferencedTypeVarsThatAreNotInMap( contextType, inferenceMap, true );
+    TypeLord.addReferencedTypeVarsThatAreNotInMap( contextType, inferenceMap );
     return TypeLord.getActualType( contextType, inferenceMap, true );
   }
 

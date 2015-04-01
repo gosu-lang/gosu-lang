@@ -161,7 +161,7 @@ public class StructuralTypeProxyGenerator {
       return;
     }
     sb.append( "  function " ).append( mi.getDisplayName() ).append( TypeInfoUtil.getTypeVarList( mi ) ).append( "(" );
-    IParameterInfo[] params = GosuClassProxyFactory.getGenericParameters( mi );
+    IParameterInfo[] params = mi.getParameters();
     for( int i = 0; i < params.length; i++ ) {
       IParameterInfo pi = params[i];
       sb.append( ' ' ).append( "p" ).append( i ).append( ": " ).append( TypeLord.replaceTypeVariableTypeParametersWithBoundingTypes( pi.getFeatureType() ).getName() );

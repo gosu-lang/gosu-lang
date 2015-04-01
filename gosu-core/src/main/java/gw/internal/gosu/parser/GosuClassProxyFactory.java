@@ -28,7 +28,6 @@ import gw.lang.reflect.gs.IGosuClass;
 import gw.lang.reflect.gs.IGosuObject;
 import gw.lang.reflect.gs.StringSourceFileHandle;
 import gw.lang.reflect.java.IJavaMethodInfo;
-import gw.lang.reflect.java.IJavaPropertyInfo;
 import gw.lang.reflect.java.IJavaType;
 import gw.lang.reflect.java.JavaTypes;
 import gw.lang.reflect.module.IModule;
@@ -105,7 +104,7 @@ public class GosuClassProxyFactory
     if( type.getEnclosingType() != null )
     {
       // Ensure enclosing type is proxied; it contains the gosu source for the inner type
-      IGosuClass outerProxy = (IGosuClass)TypeSystem.getByFullName( getProxyName( (IJavaType)TypeLord.getOuterMostEnclosingClass( type ) ) );
+      IGosuClass outerProxy = (IGosuClass)TypeSystem.getByFullName( getProxyName( TypeLord.getOuterMostEnclosingClass( type ) ) );
       outerProxy.getInnerClasses();
       if( !outerProxy.isCompilingDeclarations() )
       {
@@ -536,7 +535,7 @@ public class GosuClassProxyFactory
       sb.append( "\n/** " ).append( ci.getDescription() ).append( " */\n" );
     }
     sb.append( "  " ).append( sbModifiers ).append( "  construct(" );
-    IParameterInfo[] params = getGenericParameters( ci );
+    IParameterInfo[] params = ci.getParameters();
     for( int i = 0; i < params.length; i++ )
     {
       IParameterInfo pi = params[i];
@@ -603,14 +602,14 @@ public class GosuClassProxyFactory
       sb.append( "\n/** " ).append( mi.getDescription() ).append( " */\n" );
     }
     sb.append( "  " ).append( sbModifiers ).append( "function " ).append( mi.getDisplayName() ).append( TypeInfoUtil.getTypeVarList( mi ) ).append( "(" );
-    IParameterInfo[] params = getGenericParameters( mi );
+    IParameterInfo[] params = mi.getParameters();
     for( int i = 0; i < params.length; i++ )
     {
       IParameterInfo pi = params[i];
       sb.append( ' ' ).append( "p" ).append( i ).append( " : " ).append( pi.getFeatureType().getName() )
         .append( i < params.length - 1 ? ',' : ' ' );
     }
-    sb.append( ") : " ).append( getGenericReturnType( mi ).getName() ).append( "\n" );
+    sb.append( ") : " ).append( mi.getReturnType().getName() ).append( "\n" );
     if( !mi.isAbstract() )
     {
       generateStub( sb, mi.getReturnType() );
@@ -674,14 +673,14 @@ public class GosuClassProxyFactory
       sb.append( "\n/** " ).append( mi.getDescription() ).append( " */\n" );
     }
     sb.append( "  " ).append( sbModifiers ).append( "static function " ).append( mi.getDisplayName() ).append( TypeInfoUtil.getTypeVarList( mi ) ).append( "(" );
-    IParameterInfo[] params = getGenericParameters( mi );
+    IParameterInfo[] params = mi.getParameters();
     for( int i = 0; i < params.length; i++ )
     {
       IParameterInfo pi = params[i];
       sb.append( ' ' ).append( "p" ).append( i ).append( " : " ).append( pi.getFeatureType().getName() )
         .append( i < params.length - 1 ? ',' : ' ' );
     }
-    sb.append( ") : " ).append( getGenericReturnType( mi ).getName() ).append( "\n" );
+    sb.append( ") : " ).append( mi.getReturnType().getName() ).append( "\n" );
     generateStub( sb, mi.getReturnType() );
   }
 
@@ -709,14 +708,14 @@ public class GosuClassProxyFactory
       sb.append( "\n/** " ).append( mi.getDescription() ).append( " */\n" );
     }
     sb.append( "  function " ).append( mi.getDisplayName() ).append( TypeInfoUtil.getTypeVarList( mi ) ).append( "(" );
-    IParameterInfo[] params = getGenericParameters( mi );
+    IParameterInfo[] params = mi.getParameters();
     for( int i = 0; i < params.length; i++ )
     {
       IParameterInfo pi = params[i];
       sb.append( ' ' ).append( "p" ).append( i ).append( " : " ).append( pi.getFeatureType().getName() );
       sb.append( i < params.length - 1 ? ',' : ' ' );
     }
-    sb.append( ") : " ).append( getGenericReturnType( mi ).getName() ).append( ";\n" );
+    sb.append( ") : " ).append( mi.getReturnType().getName() ).append( ";\n" );
   }
 
   public static boolean isPropertyMethod( IMethodInfo mi )
@@ -747,7 +746,7 @@ public class GosuClassProxyFactory
                            ? ((IRelativeTypeInfo)ti).getProperty( mi.getOwnersType(), strProp )
                            : ti.getProperty( strProp );
         if( pi != null && pi.isReadable() && mi.isStatic() == pi.isStatic() &&
-            getGenericType( pi ).getName().equals( getGenericParameters( mi )[0].getFeatureType().getName() ) )
+            pi.getFeatureType().getName().equals( mi.getParameters()[0].getFeatureType().getName() ) )
         {
           return !Keyword.isKeyword( pi.getName() ) || Keyword.isValueKeyword( pi.getName() );
         }
@@ -769,7 +768,7 @@ public class GosuClassProxyFactory
         IPropertyInfo pi = ti instanceof IRelativeTypeInfo
                            ? ((IRelativeTypeInfo)ti).getProperty( mi.getOwnersType(), strProp )
                            : ti.getProperty( strProp );
-        if( pi != null && getGenericType( pi ).getName().equals( getGenericReturnType( mi ).getName() ) )
+        if( pi != null && pi.getFeatureType().getName().equals( mi.getReturnType().getName() ) )
         {
           return !Keyword.isKeyword( pi.getName() ) || Keyword.isValueKeyword( pi.getName() );
         }
@@ -795,7 +794,7 @@ public class GosuClassProxyFactory
       // E.g., enhancement methods. Gosu does not support extending these.
       return;
     }
-    IType type = getGenericType( pi );
+    IType type = pi.getFeatureType();
     if( pi.getDescription() != null )
     {
       sb.append( "\n/** " ).append( pi.getDescription() ).append( " */\n" );
@@ -848,7 +847,7 @@ public class GosuClassProxyFactory
     if( pi instanceof JavaFieldPropertyInfo )
     {
       StringBuilder sbModifiers = appendFieldVisibilityModifier( pi );
-      sb.append( "  " ).append( sbModifiers ).append( " var " ).append( pi.getName() ).append( " : " ).append( getGenericType( pi ).getName() ).append( "\n" );
+      sb.append( "  " ).append( sbModifiers ).append( " var " ).append( pi.getName() ).append( " : " ).append( pi.getFeatureType().getName() ).append( "\n" );
     }
     else
     {
@@ -867,7 +866,7 @@ public class GosuClassProxyFactory
           sb.append( "\n/** " ).append( mi.getDescription() ).append( " */\n" );
         }
         StringBuilder sbModifiers = buildModifiers( mi );
-        sb.append( "  " ).append( sbModifiers ).append( "property get " ).append( pi.getName() ).append( "() : " ).append( getGenericType( pi ).getName() ).append( "\n" );
+        sb.append( "  " ).append( sbModifiers ).append( "property get " ).append( pi.getName() ).append( "() : " ).append( pi.getFeatureType().getName() ).append( "\n" );
         if( !mi.isAbstract() )
         {
           generateStub( sb, mi.getReturnType() );
@@ -886,10 +885,10 @@ public class GosuClassProxyFactory
         {
           sbModifiers = appendVisibilityModifier( pi );
         }
-        sb.append( "  " ).append( sbModifiers ).append( "property get " ).append( pi.getName() ).append( "() : " ).append( getGenericType( pi ).getName() ).append( "\n" );
+        sb.append( "  " ).append( sbModifiers ).append( "property get " ).append( pi.getName() ).append( "() : " ).append( pi.getFeatureType().getName() ).append( "\n" );
         if( !bAbstact )
         {
-          generateStub( sb, getGenericType( pi ) );
+          generateStub( sb, pi.getFeatureType() );
         }
       }
 
@@ -906,7 +905,7 @@ public class GosuClassProxyFactory
         StringBuilder sbModifiers = buildModifiers( mi );
         if( pi.isWritable( pi.getOwnersType() ) )
         {
-          sb.append( "  " ).append( sbModifiers ).append( "property set " ).append( pi.getName() ).append( "( _proxy_arg_value : " ).append( getGenericType( pi ).getName() ).append( " )\n" );
+          sb.append( "  " ).append( sbModifiers ).append( "property set " ).append( pi.getName() ).append( "( _proxy_arg_value : " ).append( pi.getFeatureType().getName() ).append( " )\n" );
           if( !mi.isAbstract() )
           {
             generateStub( sb, JavaTypes.pVOID() );
@@ -928,7 +927,7 @@ public class GosuClassProxyFactory
           {
             sbModifiers = appendVisibilityModifier( pi );
           }
-          sb.append( "  " ).append( sbModifiers ).append( "property set " ).append( pi.getName() ).append( "( _proxy_arg_value : " ).append( getGenericType( pi ).getName() ).append( " )\n" );
+          sb.append( "  " ).append( sbModifiers ).append( "property set " ).append( pi.getName() ).append( "( _proxy_arg_value : " ).append( pi.getFeatureType().getName() ).append( " )\n" );
           if( !bAbstact )
           {
             generateStub( sb, JavaTypes.pVOID() );
@@ -1055,54 +1054,26 @@ public class GosuClassProxyFactory
     if( pi instanceof JavaFieldPropertyInfo )
     {
       StringBuilder sbModifiers = appendFieldVisibilityModifier( pi );
-      sb.append( "  " ).append( sbModifiers ).append( "static var " ).append( pi.getName() ).append( " : " ).append( getGenericType( pi ).getName() ).append( "\n" );
+      sb.append( "  " ).append( sbModifiers ).append( "static var " ).append( pi.getName() ).append( " : " ).append( pi.getFeatureType().getName() ).append( "\n" );
     }
     else
     {
       StringBuilder sbModifiers = appendVisibilityModifier( pi );
-      sb.append( "  " ).append( sbModifiers ).append( "static property get " ).append( pi.getName() ).append( "() : " ).append( getGenericType( pi ).getName() ).append( "\n" );
+      sb.append( "  " ).append( sbModifiers ).append( "static property get " ).append( pi.getName() ).append( "() : " ).append( pi.getFeatureType().getName() ).append( "\n" );
       if( !pi.isAbstract() )
       {
-        generateStub( sb, getGenericType( pi ) );
+        generateStub( sb, pi.getFeatureType() );
       }
 
       if( pi.isWritable( pi.getOwnersType() ) )
       {
         sb
-          .append( "  static property set " ).append( pi.getName() ).append( "( _proxy_arg_value : " ).append( getGenericType( pi ).getName() ).append( " )\n" );
+          .append( "  static property set " ).append( pi.getName() ).append( "( _proxy_arg_value : " ).append( pi.getFeatureType().getName() ).append( " )\n" );
           if( !pi.isAbstract() )
           {
             generateStub( sb, JavaTypes.pVOID() );
           }
       }
     }
-  }
-
-  private static IType getGenericType( IPropertyInfo pi )
-  {
-    return (pi instanceof IJavaPropertyInfo)
-           ? ((IJavaPropertyInfo)pi).getGenericIntrinsicType()
-           : pi.getFeatureType();
-  }
-
-  public static IType getGenericReturnType( IMethodInfo mi )
-  {
-    return (mi instanceof JavaMethodInfo)
-           ? ((JavaMethodInfo)mi).getGenericReturnType()
-           : mi.getReturnType();
-  }
-
-  public static IParameterInfo[] getGenericParameters( IMethodInfo mi )
-  {
-    return (mi instanceof JavaMethodInfo)
-           ? ((JavaMethodInfo)mi).getGenericParameters()
-           : mi.getParameters();
-  }
-
-  private static IParameterInfo[] getGenericParameters( IConstructorInfo ci )
-  {
-    return (ci instanceof JavaConstructorInfo)
-           ? ((JavaConstructorInfo)ci).getGenericParameters()
-           : ci.getParameters();
   }
 }

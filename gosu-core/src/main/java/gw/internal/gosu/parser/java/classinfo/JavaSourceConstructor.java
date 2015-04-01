@@ -23,8 +23,8 @@ public class JavaSourceConstructor extends JavaSourceMethod implements IJavaClas
   }
 
   @Override
-  public IParameterInfo[] convertGenericParameterTypes(IFeatureInfo container, TypeVarToTypeMap actualParamByVarName, boolean bKeepTypeVars) {
-    return getActualParameterInfos(container, actualParamByVarName, bKeepTypeVars);
+  public IParameterInfo[] convertGenericParameterTypes(IFeatureInfo container, TypeVarToTypeMap actualParamByVarName ) {
+    return getActualParameterInfos(container, actualParamByVarName, true);
   }
 
   @Override

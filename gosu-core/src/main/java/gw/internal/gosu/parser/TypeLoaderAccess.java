@@ -65,7 +65,6 @@ import java.lang.reflect.Proxy;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -1188,8 +1187,8 @@ public class TypeLoaderAccess extends BaseService implements ITypeSystem
     return new FunctionType(strFunctionName, retType, paramTypes);
   }
 
-  public TypeVarToTypeMap mapTypeByVarName(IType ownersType, IType declaringType, boolean bKeepTypeVars) {
-    return TypeLord.mapTypeByVarName(ownersType, declaringType, bKeepTypeVars);
+  public TypeVarToTypeMap mapTypeByVarName( IType ownersType, IType declaringType ) {
+    return TypeLord.mapTypeByVarName( ownersType, declaringType );
   }
 
   public IType getActualType(IType type, TypeVarToTypeMap actualParamByVarName, boolean bKeepTypeVars) {

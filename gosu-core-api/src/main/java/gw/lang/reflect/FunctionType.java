@@ -157,7 +157,7 @@ public class FunctionType extends AbstractType implements IFunctionType, IGeneri
     if( gsClass.isParameterizedType() )
     {
       _owningParameterizedType = gsClass;
-      TypeVarToTypeMap actualParamByVarName = TypeSystem.mapTypeByVarName( gsClass, gsClass, true );
+      TypeVarToTypeMap actualParamByVarName = TypeSystem.mapTypeByVarName( gsClass, gsClass );
 
       IGenericTypeVariable[] tvs = source.getTypeVariables();
       if( tvs != null )
