@@ -1433,6 +1433,13 @@ public class TypeLord
     }
     else if( to.isParameterizedType() || to.isGenericType() )
     {
+      if( from.isGenericType() && !from.isParameterizedType() && to.isParameterizedType() &&
+          TypeLord.getPureGenericType( to ).isAssignableFrom( from ) )
+      {
+        // Raw generic type is assignable to any parameterized version of it
+        return true;
+      }
+
       IType relatedParameterizedType = findParameterizedType( from, to.getGenericType(), true );
       if( relatedParameterizedType == null )
       {
