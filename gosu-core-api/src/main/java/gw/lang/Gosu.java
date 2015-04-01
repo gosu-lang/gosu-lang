@@ -272,9 +272,10 @@ public class Gosu
 
   static void showHelpAndQuit()
   {
-    System.out.println("Usage:\n" +
-      "    gosu [-classpath 'entry1,entry2...'] program.gsp [args...]\n" +
-      "    gosu [-classpath 'entry1,entry2...'] -e 'inline script' [args...]\n\n");
+    System.out.println("Gosu version: " + getVersion() +
+                       "\nUsage:\n" +
+                       "    gosu [-classpath 'entry1,entry2...'] program.gsp [args...]\n" +
+                       "    gosu [-classpath 'entry1,entry2...'] -e 'inline script' [args...]\n");
     System.exit(1);
   }
 
