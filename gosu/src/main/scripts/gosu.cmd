@@ -3,7 +3,7 @@ setLocal EnableDelayedExpansion
 
 set _G_ROOT_DIR=%~dp0
 
-set _G_CLASSPATH=%_G_ROOT_DIR%..\lib\*
+set _G_CLASSPATH=%_G_ROOT_DIR%..\src;%_G_ROOT_DIR%..\lib\*
 set _CMD_LINE_ARGS=
 
 set _DEBUG=
