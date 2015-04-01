@@ -15,7 +15,7 @@ class Errant_FinalLocalVarInOtherLocalVars {
     function foo () {
       var _field : int
       var _field0 = _field1  //## issuekeys: MSG_BAD_IDENTIFIER_NAME
-      final var _field1 : int  //## issuekeys: MSG_VAR_MIGHT_NOT_HAVE_BEEN_INIT
+      final var _field1 : int
       var _field2 = _field1  //## issuekeys: MSG_VAR_MIGHT_NOT_HAVE_BEEN_INIT
       var _field3 : int
     }

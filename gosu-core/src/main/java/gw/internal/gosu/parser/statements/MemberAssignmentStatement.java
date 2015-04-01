@@ -28,6 +28,7 @@ public final class MemberAssignmentStatement extends Statement implements IMembe
   private Expression _memberExpression;
   private Expression _expression;
   private MemberAccess _ma;
+  private boolean _compoundStatement;
 
   /**
    * Constructs a MemberAssignmentStatement given an ISymbolTable instance.
@@ -131,4 +132,13 @@ public final class MemberAssignmentStatement extends Statement implements IMembe
     _ma = ma;
   }
 
+  public void setCompoundStatement( boolean compoundStatement )
+  {
+    _compoundStatement = compoundStatement;
+  }
+
+  public boolean isCompoundStatement()
+  {
+    return _compoundStatement;
+  }
 }

@@ -336,7 +336,7 @@ public class ContextInferenceManager
 
   private boolean areExpressionsEquivalent( Expression e1, Expression e2 )
   {
-    if( e1.hasParseExceptions() || e2.hasParseIssues() )
+    if( e1.hasParseExceptions() || e2.hasParseExceptions() )
     {
       return false;
     }

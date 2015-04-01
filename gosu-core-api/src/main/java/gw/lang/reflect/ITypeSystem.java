@@ -177,8 +177,6 @@ public interface ITypeSystem extends IService
   void pushTypeLoader( IModule module, ITypeLoader loader );
   void removeTypeLoader( Class<? extends ITypeLoader> loader );
 
-  boolean areBeansEqual( Object o1, Object o2 );
-
   void pushIncludeAll();
   void popIncludeAll();
   boolean isIncludeAll();
@@ -239,8 +237,6 @@ public interface ITypeSystem extends IService
   void dumpGosuClassLoader();
 
   IMetaType getDefaultType();
-
-  boolean isSingleModuleMode();
 
   void addShutdownListener(TypeSystemShutdownListener listener);
 

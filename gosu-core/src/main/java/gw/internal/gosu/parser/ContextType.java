@@ -4,6 +4,7 @@
 
 package gw.internal.gosu.parser;
 
+import gw.lang.reflect.IBlockType;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.java.JavaTypes;
 
@@ -41,6 +42,10 @@ public class ContextType {
     return _type;
   }
 
+  public IType getAlternateType() {
+    return null;
+  }
+
   private static class CommonContextType extends ContextType {
     private CommonType _ctype;
 
@@ -61,6 +66,23 @@ public class ContextType {
         default:
           throw new IllegalStateException();
       }
+    }
+  }
+
+  public static ContextType makeBlockContexType( IBlockType ctxType, IBlockType ctxTypeWithTypeVars, boolean bScoring ) {
+    return new BlockContextType( ctxType, ctxTypeWithTypeVars, bScoring );
+  }
+
+  private static class BlockContextType extends ContextType {
+    private IBlockType _ctxTypeWithTypeVars;
+
+    private BlockContextType( IBlockType ctxType, IBlockType ctxTypeWithTypeVars, boolean bScoring ) {
+      super( ctxType, bScoring );
+      _ctxTypeWithTypeVars = ctxTypeWithTypeVars;
+    }
+
+    public IBlockType getAlternateType() {
+      return _ctxTypeWithTypeVars;
     }
   }
 }

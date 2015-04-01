@@ -46,7 +46,6 @@ public class JavaPropertyInfo extends JavaBaseFeatureInfo implements IJavaProper
   private IType _propertyType;
   private IPropertyAccessor _accessor;
   private Boolean _bStatic;
-  private boolean _bExternal;
   private boolean _bReadable;
   private IJavaClassMethod _getMethod;
   private IJavaClassMethod _setMethod;
@@ -140,28 +139,6 @@ public class JavaPropertyInfo extends JavaBaseFeatureInfo implements IJavaProper
       findFieldOn(_getMethod.getEnclosingClass(), true);
     }
 
-    if( isWritable( getOwnersType()) ) {
-      if (_pd.getWriteMethod() != null) {
-        IJavaClassInfo declClass = _pd.getWriteMethod().getEnclosingClass();
-        _bExternal = declClass instanceof ClassJavaClassInfo && CommonServices.getEntityAccess().isExternal(((ClassJavaClassInfo)declClass).getJavaClass());
-      } else {
-        IJavaClassInfo declClass = _publicField.getEnclosingClass();
-        _bExternal = declClass instanceof ClassJavaClassInfo && CommonServices.getEntityAccess().isExternal(((ClassJavaClassInfo)declClass).getJavaClass());
-      }
-    }
-    else if( isReadable() ) {
-      if (_pd.getReadMethod() != null) {
-        IJavaClassInfo declClass = _pd.getReadMethod().getEnclosingClass();
-        _bExternal = declClass instanceof ClassJavaClassInfo && CommonServices.getEntityAccess().isExternal(((ClassJavaClassInfo)declClass).getJavaClass());
-      } else {
-        if (_publicField == null) {
-          _bExternal = false;
-        } else {
-          IJavaClassInfo declClass = _publicField.getEnclosingClass();
-          _bExternal = declClass instanceof ClassJavaClassInfo && CommonServices.getEntityAccess().isExternal(((ClassJavaClassInfo) declClass).getJavaClass());
-        }
-      }
-    }
     _bReadable = isReadable();
   }
 
@@ -193,7 +170,8 @@ public class JavaPropertyInfo extends JavaBaseFeatureInfo implements IJavaProper
   @Override
   public IType getFeatureType()
   {
-    return getIntrinsicType( false );
+    IType ownerType = getOwnersType();
+    return getIntrinsicType( !ownerType.isGenericType() || ownerType.isParameterizedType() );
   }
 
   private IType getIntrinsicType( boolean bKeepTypeVars )
@@ -203,7 +181,7 @@ public class JavaPropertyInfo extends JavaBaseFeatureInfo implements IJavaProper
       return _propertyType;
     }
 
-    IType propType = null;
+    IType propType;
     IType ownersType = getOwnersType();
     if( _getMethod != null )
     {
@@ -212,24 +190,21 @@ public class JavaPropertyInfo extends JavaBaseFeatureInfo implements IJavaProper
       {
         propType = _pd.getPropertyType();
       }
-      else if(genericType != null)
+      else if( genericType != null )
       {
         TypeVarToTypeMap actualParamByVarName =
           TypeLord.mapTypeByVarName( ownersType, _getMethod.getEnclosingClass().getJavaType(), bKeepTypeVars );
-//          actualParamByVarName = JavaMethodInfo.addEnclosingTypeParams(ownersType, actualParamByVarName);
         propType = genericType.getActualType( actualParamByVarName, bKeepTypeVars );
       }
       else
       {
         propType = TypeSystem.getErrorType();
       }
-//        _propertyType = TypeLoaderAccess.instance().getIntrinsicType( _pd.getPropertyType() );
     }
     else if( _setMethod != null )
     {
       TypeVarToTypeMap actualParamByVarName =
         TypeLord.mapTypeByVarName( ownersType, _setMethod.getEnclosingClass().getJavaType(), bKeepTypeVars );
-//        actualParamByVarName = JavaMethodInfo.addEnclosingTypeParams(ownersType, actualParamByVarName);
       propType = _setMethod.getGenericParameterTypes()[0].getActualType( actualParamByVarName, bKeepTypeVars );
     }
     else
@@ -243,11 +218,13 @@ public class JavaPropertyInfo extends JavaBaseFeatureInfo implements IJavaProper
     }
 
     IJavaClassInfo declaringClass = getDeclaringClass();
-    if (declaringClass != null) {
-      propType = ClassInfoUtil.getPublishedType(propType, declaringClass);
+    if( declaringClass != null )
+    {
+      propType = ClassInfoUtil.getPublishedType( propType, declaringClass );
     }
 
-    if (!bKeepTypeVars){
+    if( !bKeepTypeVars )
+    {
       //Cache the non-generic value.
       _propertyType = propType;
     }
@@ -598,14 +575,7 @@ public class JavaPropertyInfo extends JavaBaseFeatureInfo implements IJavaProper
           rVal = ((FieldJavaClassField)_publicField).get(ctx);
           rVal = CommonServices.getCoercionManager().convertValue(rVal, getFeatureType());
         }
-        if( _bExternal )
-        {
-          return CommonServices.getEntityAccess().convertToInternalIfNecessary( rVal, getOwningClass() );
-        }
-        else
-        {
-          return rVal;
-        }
+        return rVal;
       }
       catch( InvocationTargetException ite )
       {
@@ -629,12 +599,6 @@ public class JavaPropertyInfo extends JavaBaseFeatureInfo implements IJavaProper
       {
         Object[] args = new Object[]{value};
         if (_setMethod != null) {
-          if( _bExternal )
-          {
-            args = CommonServices.getEntityAccess().convertToExternalIfNecessary(
-                    args, ((MethodJavaClassMethod)_setMethod).getJavaParameterTypes(), getOwningClass() );
-          }
-
           _setMethod.invoke( ctx, args );
         } else {
           value = CommonServices.getCoercionManager().convertValue(value, TypeSystem.get(_publicField.getType()));

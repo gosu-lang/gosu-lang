@@ -164,7 +164,12 @@ public class Module implements IModule
     extensions.addAll(Arrays.asList(GosuClassTypeLoader.ALL_EXTS));
     for (IDirectory root : paths) {
       // roots without manifests are considered source roots
-      if (!Extensions.containsManifest(root) || !Extensions.getExtensions(root, Extensions.CONTAINS_SOURCES).isEmpty()) {
+      if (!Extensions.containsManifest(root) || !Extensions.getExtensions(root, Extensions.CONTAINS_SOURCES).isEmpty() ||
+              // Weblogic packages all WEB-INF/classes content into this JAR
+              // http://middlewaremagic.com/weblogic/?p=408
+              // http://www.coderanch.com/t/69641/BEA-Weblogic/wl-cls-gen-jar-coming
+              // So we need to always treat it as containing sources
+              root.getName().equals("_wl_cls_gen.jar")) {
         roots.add(root);
       }
     }

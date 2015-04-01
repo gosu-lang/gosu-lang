@@ -32,12 +32,10 @@ class Errant_ObjectInitializersTest {
     var x18 = new ArrayList<Integer>(){
         "a",           //## issuekeys: MSG_TYPE_MISMATCH
         23,
-        1.1            //## issuekeys: MSG_IMPROPER_VALUE_FOR_NUMERIC_TYPE
+        1.1            //## issuekeys: MSG_IMPLICIT_COERCION_ERROR
     }
 
-    var x19 = new C0(){
-          print("?")  //## issuekeys: MSG_UNEXPECTED_TOKEN, MSG_UNEXPECTED_TOKEN, MSG_UNEXPECTED_TOKEN, MSG_UNEXPECTED_TOKEN
-      }
+    var x19 = new C0() { print("?") }  //## issuekeys: MSG_UNEXPECTED_TOKEN, MSG_UNEXPECTED_TOKEN, MSG_UNEXPECTED_TOKEN, MSG_UNEXPECTED_TOKEN
   }
 
   class C0 {

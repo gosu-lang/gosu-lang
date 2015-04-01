@@ -247,6 +247,7 @@ public class StandardCoercionManager extends BaseService implements ICoercionMan
     if( (JavaTypes.CLASS().equals( lhsType.getGenericType() ) &&
          (rhsType instanceof IMetaType &&
           (((IMetaType)rhsType).getType() instanceof IHasJavaClass ||
+           ((IMetaType)rhsType).getType() instanceof ITypeVariableType ||
            ((IMetaType)rhsType).getType() instanceof IMetaType && ((IMetaType)((IMetaType)rhsType).getType()).getType() instanceof IHasJavaClass)))  )
     {
       if( !lhsType.isParameterizedType() ||
@@ -313,10 +314,15 @@ public class StandardCoercionManager extends BaseService implements ICoercionMan
         {
           if( lhsFunctionType.areParamsCompatible( rhsFunctionType ) )
           {
-            ICoercer coercer = findCoercer( lhsFunctionType.getReturnType(), rhsFunctionType.getReturnType(), runtime );
-            if( coercer != null )
+            IType thisType = lhsFunctionType.getReturnType();
+            IType thatType = rhsFunctionType.getReturnType();
+            if( !(thisType != JavaTypes.pVOID() && thisType != JavaTypes.VOID() && (thatType == JavaTypes.pVOID() || thatType == JavaTypes.VOID())) )
             {
-              return FunctionToInterfaceCoercer.instance();
+              ICoercer coercer = findCoercer( lhsFunctionType.getReturnType(), rhsFunctionType.getReturnType(), runtime );
+              if( coercer != null )
+              {
+                return FunctionToInterfaceCoercer.instance();
+              }
             }
           }
         }
@@ -658,14 +664,6 @@ public class StandardCoercionManager extends BaseService implements ICoercionMan
     // Structurally suitable (static duck typing)
     //==================================================================================
     if( isStructurallyAssignable( lhsT, rhsT ) )
-    {
-      return lhsType;
-    }
-
-    //==================================================================================
-    // Object unboxing
-    //==================================================================================
-    if( rhsT == JavaTypes.OBJECT() && lhsT.isPrimitive() && lhsT != JavaTypes.pVOID() )
     {
       return lhsType;
     }
@@ -1149,10 +1147,14 @@ public class StandardCoercionManager extends BaseService implements ICoercionMan
           }
           return identityOrRuntime( typeToCoerceTo, typeToCoerceFrom );
         }
-        else if( (typeToCoerceFrom.isInterface() || typeToCoerceTo.isInterface()) &&
+        else if( (typeToCoerceFrom.isInterface() || typeToCoerceTo.isInterface() || TypeSystem.canCast( typeToCoerceFrom, typeToCoerceTo )) &&
                  !typeToCoerceFrom.isPrimitive() && !typeToCoerceTo.isPrimitive() )
         {
           return identityOrRuntime( typeToCoerceTo, typeToCoerceFrom );
+        }
+        else if( typeToCoerceTo.isPrimitive() && typeToCoerceFrom instanceof IPlaceholder && ((IPlaceholder)typeToCoerceFrom).isPlaceholder() )
+        {
+          return IdentityCoercer.instance();
         }
       }
       return coercerInternal;

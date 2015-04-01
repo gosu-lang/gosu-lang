@@ -12,7 +12,6 @@ import gw.lang.reflect.IType;
 import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.FunctionType;
 import gw.lang.reflect.gs.IGenericTypeVariable;
-import gw.internal.gosu.ir.transform.AbstractElementTransformer;
 import gw.lang.reflect.module.IModule;
 
 import java.lang.reflect.Method;
@@ -127,12 +126,16 @@ public class MethodJavaClassMethod implements IJavaClassMethod, IJavaClassByteco
   }
 
   @Override
-  public IGenericTypeVariable[] getTypeVariables(IJavaMethodInfo javaMethodInfo) {
-    TypeVariable<Method>[] typeVars = _method.getTypeParameters();
+  public IGenericTypeVariable[] getTypeVariables( IJavaMethodInfo javaMethodInfo ) {
+    TypeVariable<Method>[] rawTypeVariables = _method.getTypeParameters();
+    IJavaClassTypeVariable[] typeVariables = new IJavaClassTypeVariable[rawTypeVariables.length];
+    for( int i = 0; i < rawTypeVariables.length; i++ ) {
+      typeVariables[i] = new TypeVariableJavaTypeVariable( rawTypeVariables[i], _module );
+    }
     IType declClass = TypeSystem.get( _method.getDeclaringClass() );
     TypeVarToTypeMap actualParamByVarName = TypeLord.mapTypeByVarName( declClass, declClass );
-    FunctionType functionType = new FunctionType(javaMethodInfo, true);
-    return GenericTypeVariable.convertTypeVars( functionType, typeVars, actualParamByVarName );
+    FunctionType functionType = new FunctionType( javaMethodInfo, true );
+    return GenericTypeVariable.convertTypeVars( functionType, typeVariables, actualParamByVarName );
   }
 
   @Override

@@ -5,6 +5,7 @@
 package gw.internal.gosu.parser;
 
 import gw.config.CommonServices;
+import gw.config.ExecutionMode;
 import gw.fs.IFile;
 import gw.internal.gosu.annotations.AnnotationMap;
 import gw.lang.parser.TypeVarToTypeMap;
@@ -387,7 +388,7 @@ class JavaType extends AbstractType implements IJavaTypeInternal
              getComponentType().isAssignableFrom( type.getComponentType() );
     }
 
-    if( isArray() || type.isArray() )
+    if( isArray() )
     {
       return false;
     }
@@ -450,7 +451,7 @@ class JavaType extends AbstractType implements IJavaTypeInternal
 
   public ITypeInfo getTypeInfo()
   {
-    if( !TypeSystem.getExecutionEnvironment().isSingleModuleMode() ) {
+    if( ExecutionMode.isIDE() ) {
       // Enforce Guidwewire's legacy type shadowing rules where, for example, a
       // type in an App module such as PX shadows a type in PL having the same name.
       // This isn't kosher in general because the type in PL is the one that is
@@ -697,6 +698,11 @@ class JavaType extends AbstractType implements IJavaTypeInternal
       IJavaClassType genericSuperclass = _classInfo.getGenericSuperclass();
       if( genericSuperclass instanceof IJavaClassInfo )
       {
+        if( _classInfo.isEnum() ) {
+          // JavaSourceType doesn't give us the generic superclass of an enum, so we make up for that here
+          _superType = _superType.getParameterizedType( thisRef() );
+        }
+
         // Super is not generic, we're done
         return notDeletedSupertype();
       }
@@ -723,6 +729,7 @@ class JavaType extends AbstractType implements IJavaTypeInternal
     if (TypeSystem.isDeleted(_superType)) {
       _superType = TypeSystem.getErrorType();
     }
+    //## todo: this seems unnecessary
     // Ensure we return a non-raw generic type here
     return _superType.isGenericType() && !_superType.isParameterizedType()
            ? TypeLord.getDefaultParameterizedType( _superType )
@@ -857,24 +864,6 @@ class JavaType extends AbstractType implements IJavaTypeInternal
       return TypeLord.getPureGenericType( thisRef() ).getParameterizedType( paramTypes );
     }
 
-    if( _bDefiningGenericTypes )
-    {
-      // If this type references itself in its type variables, we kinda have to
-      // bail out and return the generic type. This can actually happen; behold
-      // java.lang.Enum...
-      //   public abstract class Enum<E extends Enum<E>>
-      // Here the Enum<E> references Enum, which is itself, so we just return this
-      // generic version, which is compatible with any parameterization of itself.
-      // Essentially this is the same as Enum<E extends Enum>, which not only makes
-      // more sense, but more importantly avoids the cyclic reference.
-      return thisRef();
-    }
-
-//    if( !isGenericType() )
-//    {
-//      throw new IllegalStateException( "Cannot parameterize non-generic type: " + getName() );
-//    }
-
     if( _parameterizationByParamsName == null )
     {
       TypeSystem.lock();
@@ -936,7 +925,9 @@ class JavaType extends AbstractType implements IJavaTypeInternal
 
       if( _classInfo.isArray() )
       {
-        _allTypesInHierarchy = new UnmodifiableArraySet<IType>(TypeLord.getArrayVersionsOfEachType(getComponentType().getAllTypesInHierarchy()));
+        Set<IType> types = TypeLord.getAllClassesInClassHierarchyAsIntrinsicTypes( _classInfo );
+        types.addAll( new HashSet<IType>( TypeLord.getArrayVersionsOfEachType( getComponentType().getAllTypesInHierarchy() ) ) );
+        _allTypesInHierarchy = new UnmodifiableArraySet<IType>( types );
       }
       else
       {
@@ -963,7 +954,6 @@ class JavaType extends AbstractType implements IJavaTypeInternal
     if( type.isGenericType() || type.isParameterizedType() )
     {
       TypeLord.addAllClassesInClassHierarchy( type, includeGenericTypes, true );
-      return;
     }
     else
     {

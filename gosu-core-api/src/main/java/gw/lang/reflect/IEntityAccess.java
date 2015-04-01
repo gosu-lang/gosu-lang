@@ -16,6 +16,7 @@ import gw.lang.parser.ILanguageLevel;
 import gw.lang.parser.expressions.IQueryExpression;
 import gw.lang.parser.expressions.IQueryExpressionEvaluator;
 import gw.lang.reflect.gs.ICompilableType;
+import gw.lang.reflect.java.IJavaType;
 import gw.util.IFeatureFilter;
 import gw.util.ILogger;
 
@@ -34,81 +35,59 @@ public interface IEntityAccess extends IService
    *
    * @return Set of type names that are automatically imported
    */
-  public ITypeUsesMap getDefaultTypeUses();
+  ITypeUsesMap getDefaultTypeUses();
 
-  public boolean isDomainInstance( Object value );
+  boolean isDomainInstance( Object value );
 
-  public boolean isEntityClass( IType type );
+  boolean isEntityClass( IType type );
 
-  public boolean isViewEntityClass( IType type );
+  Object getEntityInstanceFrom( Object entity, IType classDomain );
 
-  public IType getPrimaryEntityClass( IType type );
+  boolean areBeansEqual( Object bean1, Object bean2 );
 
-  public boolean isKeyableEntityClass( IType type );
+  boolean verifyValueForType( IType type, Object value );
 
-  public boolean isDomainClass( IType type );
+  String makeStringFrom( Object obj );
 
-  public boolean isTypekey( IType type );
+  long getHashedEntityId( String strId, IType classEntity );
 
-  public Object getEntityInstanceFrom( Object entity, IType classDomain );
-
-  public boolean areBeansEqual( Object bean1, Object bean2 );
-
-  public boolean verifyValueForType( IType type, Object value );
-
-  public String makeStringFrom( Object obj );
-
-  public long getHashedEntityId( String strId, IType classEntity );
-
-  public boolean isInternal( IType type );
+  boolean isInternal( IType type );
 
   /**
    * @return the main logger for all Gosu subsystems.  This logger must be available at all times during Gosu
    * startup and execution.
    */
-  public ILogger getLogger();
+  ILogger getLogger();
 
-  public Locale getLocale();
+  Locale getLocale();
 
-  public Date getCurrentTime();
+  Date getCurrentTime();
 
-  public void addEnhancementMethods(IType typeToEnhance, Collection methodsToAddTo);
+  void addEnhancementMethods(IType typeToEnhance, Collection methodsToAddTo);
 
-  public void addEnhancementProperties(IType typeToEnhance, Map propertyInfosToAddTo, boolean caseSensitive);
+  void addEnhancementProperties(IType typeToEnhance, Map propertyInfosToAddTo, boolean caseSensitive);
 
-  public IQueryExpressionEvaluator getQueryExpressionEvaluator( IQueryExpression queryExpression );
+  IQueryExpressionEvaluator getQueryExpressionEvaluator( IQueryExpression queryExpression );
 
-  public IFeatureFilter getQueryExpressionFeatureFilter();
+  IFeatureFilter getQueryExpressionFeatureFilter();
 
-  public ClassLoader getPluginClassLoader();
+  ClassLoader getPluginClassLoader();
 
-  public Object constructObject( Class cls );
+  IAttributeSource getAttributeSource( GlobalScope scope );
 
-  public IAttributeSource getAttributeSource( GlobalScope scope );
+  StringBuilder getPluginRepositories();
 
-  public Object[] convertToExternalIfNecessary( Object[] args, Class[] argTypes, Class methodOwner );
+  String getWebServerPaths();
 
-  public Object convertToInternalIfNecessary( Object obj, Class methodOwner );
+  boolean isUnreachableCodeDetectionOn();
 
-  public boolean isExternal( Class methodOwner );
-
-  public StringBuilder getPluginRepositories();
-
-  public String getWebServerPaths();
-
-  public boolean isUnreachableCodeDetectionOn();
-
-  public boolean isWarnOnImplicitCoercionsOn();
+  boolean isWarnOnImplicitCoercionsOn();
 
   IType getKeyType();
 
   IPropertyInfo getEntityIdProperty( IType rootType );
 
   boolean shouldAddWarning( IType type, IParseIssue warning );
-
-  boolean isServerMutable();
-  boolean isRetainDebugInfo();
-  boolean isDevMode();
 
   ILanguageLevel getLanguageLevel();
 

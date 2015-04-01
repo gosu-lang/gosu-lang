@@ -1926,7 +1926,12 @@ public abstract class ParserBase implements IParserPart
   {
     if( getGosuClass().getEnclosingType() != null && !getGosuClass().isStatic() )
     {
-      verify( (ParsedElement) pe, !Modifier.isStatic( modInfo.getModifiers() ), Res.MSG_STATIC_MODIFIER_NOT_ALLOWED_HERE );
+      verify( (ParsedElement)pe, !Modifier.isStatic( modInfo.getModifiers() ) ||
+                                  (Modifier.isFinal( modInfo.getModifiers() ) &&
+                                   pe instanceof VarStatement &&
+                                   ((VarStatement)pe).getAsExpression() != null &&
+                                   ((VarStatement)pe).getAsExpression().isCompileTimeConstant()),
+              Res.MSG_STATIC_MODIFIER_NOT_ALLOWED_HERE );
     }
   }
 
@@ -2364,7 +2369,8 @@ public abstract class ParserBase implements IParserPart
       IToken followingToken = tokenizer.getTokenAt( iTokenIndex + (bPeek ? 1 : 0) );
       IToken priorToken = iTokenIndex <= 1 ? null : tokenizer.getTokenAt( iTokenIndex + (bPeek ? -1 : -2) );
 
-      bMatch = (followingToken == null || followingToken.getType() != '.') && (priorToken == null || priorToken.getType() != '.');
+      bMatch = (followingToken == null || followingToken.getType() != '.') &&
+               (priorToken == null || !(priorToken.getType() == '.' || "#".equals( priorToken.getStringValue() )));
     }
     return bMatch;
   }

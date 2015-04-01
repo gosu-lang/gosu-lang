@@ -24,7 +24,7 @@ class Errant_CollectionAndMapInitializersTest {
     var x3 : Map = {{1->2} -> 3}
     var x1 : Map = { 1, 2 -> 3}  //## issuekeys: MSG_EXPECTING_ARROW_AFTER_MAP_KEY
     var hash5 : Map = {1 -> "a", 1}   //## issuekeys: MSG_EXPECTING_ARROW_AFTER_MAP_KEY
-    var hash1 : Map = {1, 1, "foo"}  //## issuekeys: MSG_EXPECTING_ARROW_AFTER_MAP_KEY, MSG_EXPECTING_ARROW_AFTER_MAP_KEY, MSG_EXPECTING_ARROW_AFTER_MAP_KEY
+    var hash1 : Map = {1, 1, "foo"}  //## issuekeys: MSG_TYPE_MISMATCH
     var hash7 : Map = { {1 -> 2} -> 3 }
   }
 

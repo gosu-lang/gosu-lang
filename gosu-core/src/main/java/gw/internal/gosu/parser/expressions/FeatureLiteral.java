@@ -5,34 +5,17 @@
 package gw.internal.gosu.parser.expressions;
 
 import gw.internal.gosu.parser.ErrorType;
-import gw.internal.gosu.parser.ErrorTypeInfo;
 import gw.internal.gosu.parser.Expression;
+import gw.internal.gosu.parser.TypeLord;
 import gw.internal.gosu.parser.types.ConstructorType;
 import gw.lang.parser.IExpression;
 import gw.lang.parser.Keyword;
 import gw.lang.parser.expressions.IFeatureLiteralExpression;
-import gw.lang.reflect.FunctionType;
-import gw.lang.reflect.IConstructorInfo;
-import gw.lang.reflect.IFeatureInfo;
-import gw.lang.reflect.IInvocableType;
-import gw.lang.reflect.IMethodInfo;
-import gw.lang.reflect.IParameterInfo;
-import gw.lang.reflect.IPropertyInfo;
-import gw.lang.reflect.IRelativeTypeInfo;
-import gw.lang.reflect.IType;
-import gw.lang.reflect.ITypeInfo;
-import gw.lang.reflect.TypeSystem;
-import gw.lang.reflect.features.BoundComplexPropertyChainReference;
-import gw.lang.reflect.features.BoundMethodReference;
-import gw.lang.reflect.features.BoundPropertyReference;
-import gw.lang.reflect.features.BoundSimplePropertyChainReference;
-import gw.lang.reflect.features.ComplexPropertyChainReference;
-import gw.lang.reflect.features.ConstructorReference;
-import gw.lang.reflect.features.MethodChainReference;
-import gw.lang.reflect.features.MethodReference;
-import gw.lang.reflect.features.PropertyReference;
-import gw.lang.reflect.features.SimplePropertyChainReference;
-import gw.lang.reflect.java.JavaTypes;
+import gw.lang.reflect.*;
+import gw.lang.reflect.features.*;
+import gw.lang.reflect.features.BoundPropertyChainReference;
+import gw.lang.reflect.gs.IGenericTypeVariable;
+import gw.util.GosuObjectUtil;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -46,9 +29,12 @@ import java.util.List;
  */
 public class FeatureLiteral extends Expression implements IFeatureLiteralExpression
 {
+  private static final int MAX_BLOCK_ARGS = 16;
   private IExpression _root;
   IFeatureInfo _feature;
+  private IType[] _parameterTypes;
   private List<IExpression> _boundArgs;
+  private IBlockType _blockType;
 
   public FeatureLiteral( Expression rootExpr )
   {
@@ -57,7 +43,8 @@ public class FeatureLiteral extends Expression implements IFeatureLiteralExpress
 
   public boolean resolveProperty( String propName )
   {
-    IType typeToResolveAgainst = getRootTypeToResolveAgainst();
+    IType typeToResolveAgainst = getRootTypeToResolveFeaturesAgainst();
+
     IPropertyInfo property;
     if( typeToResolveAgainst.getTypeInfo() instanceof IRelativeTypeInfo )
     {
@@ -67,23 +54,23 @@ public class FeatureLiteral extends Expression implements IFeatureLiteralExpress
     {
       property = typeToResolveAgainst.getTypeInfo().getProperty( propName );
     }
-    if( property == null )
-    {
-      _feature = ErrorType.getInstance().getTypeInfo().getProperty( propName );
-      return false;
-    }
-    else
-    {
-      _feature = property;
-      return true;
-    }
+
+    boolean foundProp = property != null;
+    _feature = foundProp ? property : ErrorType.getInstance().getTypeInfo().getProperty( propName );
+
+    resolveExpressionType();
+
+    return foundProp;
   }
 
-  public boolean resolveMethod( String methodName, IType... argTypes )
+  public boolean resolveMethod( String methodName, List<IType> typesList )
   {
-    IType typeToResolveAgainst = getRootTypeToResolveAgainst();
-    IMethodInfo methodInfo;
+    IType[] argTypes = typesList.toArray( new IType[typesList.size()] );
+
+    IType typeToResolveAgainst = getRootTypeToResolveFeaturesAgainst();
     ITypeInfo typeInfo = typeToResolveAgainst.getTypeInfo();
+    IMethodInfo methodInfo;
+
     if( typeInfo instanceof IRelativeTypeInfo )
     {
       methodInfo = ((IRelativeTypeInfo)typeInfo).getMethod( typeToResolveAgainst, methodName, argTypes );
@@ -92,141 +79,67 @@ public class FeatureLiteral extends Expression implements IFeatureLiteralExpress
     {
       methodInfo = typeInfo.getMethod( methodName, argTypes );
     }
-    if( methodInfo == null )
+
+    methodInfo = ensureExactMatch( methodInfo, argTypes );
+
+    if( methodInfo == null && argTypes.length == 0 )
     {
-      if( typeInfo instanceof IRelativeTypeInfo )
-      {
-        methodInfo = findSingleMethodMatchingName( methodName, ((IRelativeTypeInfo)typeInfo).getMethods( typeToResolveAgainst ) );
-      }
-      else
-      {
-        methodInfo = findSingleMethodMatchingName( methodName, typeInfo.getMethods() );
-      }
+      methodInfo = getSingleMethodWithName( methodName, typeToResolveAgainst, typeInfo );
     }
-    if( methodInfo == null )
-    {
-      _feature = ErrorType.getInstance().getTypeInfo().getMethod( methodName, argTypes );
-      return false;
-    }
-    else
-    {
-      _feature = methodInfo;
-      return true;
-    }
+
+    boolean foundMethod = methodInfo != null;
+
+    methodInfo = foundMethod ? methodInfo : ErrorType.getInstance().getTypeInfo().getMethod( methodName, argTypes );
+
+    setFeature( methodInfo, null );
+
+    return foundMethod;
   }
 
-  private IMethodInfo findSingleMethodMatchingName( String methodName, List<? extends IMethodInfo> methods )
+  public boolean resolveConstructor( List<IType> typesList )
   {
-    IMethodInfo match = null;
-    for( IMethodInfo possibleMatch : methods )
-    {
-      if( possibleMatch.getDisplayName().equals( methodName ) )
-      {
-        if( match != null )
-        {
-          return null;
-        }
-        else
-        {
-          match = possibleMatch;
-        }
-      }
-    }
-    return match;
-  }
+    IType[] argTypes = typesList.toArray( new IType[typesList.size()] );
 
-  public boolean resolveConstructor( IType... argTypes )
-  {
-    IType typeToResolveAgainst = getRootTypeToResolveAgainst();
+    IType typeToResolveAgainst = getRootTypeToResolveFeaturesAgainst();
     ITypeInfo typeInfo = typeToResolveAgainst.getTypeInfo();
-    IConstructorInfo constructorInfo = null;
-    if( !(typeInfo instanceof ErrorTypeInfo) )
+    IConstructorInfo constructorInfo;
+
+    if( typeInfo instanceof IRelativeTypeInfo )
     {
-      if( typeInfo instanceof IRelativeTypeInfo )
-      {
-        constructorInfo = ((IRelativeTypeInfo) typeInfo).getConstructor( typeToResolveAgainst, argTypes );
-      }
-      else
-      {
-        constructorInfo = typeInfo.getConstructor( argTypes );
-      }
-    }
-    if( constructorInfo == null )
-    {
-      if( typeInfo instanceof IRelativeTypeInfo )
-      {
-        List<? extends IConstructorInfo> constructors = ((IRelativeTypeInfo)typeInfo).getConstructors( typeToResolveAgainst );
-        if( constructors != null && constructors.size() == 1 )
-        {
-          constructorInfo = constructors.get( 0 );
-        }
-      }
-      else
-      {
-        List<? extends IConstructorInfo> constructors = typeInfo.getConstructors();
-        if( constructors != null && constructors.size() == 1 )
-        {
-          constructorInfo = constructors.get( 0 );
-        }
-      }
-    }
-    if( constructorInfo == null )
-    {
-      _feature = JavaTypes.OBJECT().getTypeInfo().getConstructor();
-      return false;
+      constructorInfo = ((IRelativeTypeInfo)typeInfo).getConstructor( typeToResolveAgainst, argTypes );
     }
     else
     {
-      _feature = constructorInfo;
-      return true;
+      constructorInfo = typeInfo.getConstructor( argTypes );
     }
+
+    constructorInfo = ensureExactMatch( constructorInfo, argTypes );
+
+    if( constructorInfo == null && argTypes.length == 0 )
+    {
+      constructorInfo = getSingleConsructor( typeToResolveAgainst, typeInfo );
+    }
+
+    boolean foundConstructor = constructorInfo != null;
+
+    constructorInfo = foundConstructor ? constructorInfo : ErrorType.getInstance().getTypeInfo().getConstructor( argTypes );
+
+    setFeature( constructorInfo, null );
+
+    return foundConstructor;
+  }
+
+  public void setFeature( IHasParameterInfos feature, List<IExpression> arguments )
+  {
+    _feature = feature;
+    _boundArgs = arguments;
+    resolveExpressionType();
   }
 
   @Override
   public String toString()
   {
     return _root.toString() + featureRepresentation();
-  }
-
-  private String featureRepresentation()
-  {
-    return _feature == null ? "<ERROR>" : _feature.getName();
-  }
-
-  private IType getRootTypeToResolveAgainst()
-  {
-    if( _root instanceof FeatureLiteral )
-    {
-      return ((FeatureLiteral)_root).getFeatureReturnType();
-    }
-    else if( _root instanceof TypeLiteral )
-    {
-      return ((TypeLiteral)_root).getType().getType();
-    }
-    else
-    {
-      return _root.getType();
-    }
-  }
-
-  public IType getFeatureReturnType()
-  {
-    if( isPropertyLiteral() )
-    {
-      return ((IPropertyInfo)_feature).getFeatureType();
-    }
-    else if( isMethodLiteral() )
-    {
-      return ((IMethodInfo)_feature).getReturnType();
-    }
-    else if( isConstructorLiteral() )
-    {
-      return ((IConstructorInfo)_feature).getType();
-    }
-    else
-    {
-      return ErrorType.getInstance();
-    }
   }
 
   public boolean isConstructorLiteral()
@@ -244,17 +157,13 @@ public class FeatureLiteral extends Expression implements IFeatureLiteralExpress
     return _feature instanceof IPropertyInfo;
   }
 
-  public void resolveType()
-  {
-    setType( getExpressionType() );
-  }
-
   public IExpression getRoot()
   {
     return _root;
   }
 
-  public IExpression getFinalRoot() {
+  public IExpression getFinalRoot()
+  {
     IExpression root = getRoot();
     if( root instanceof IFeatureLiteralExpression )
     {
@@ -263,8 +172,8 @@ public class FeatureLiteral extends Expression implements IFeatureLiteralExpress
     return root;
   }
 
-
-  public IType getFinalRootType() {
+  public IType getFinalRootType()
+  {
     if( _root instanceof TypeLiteral )
     {
       return ((TypeLiteral)_root).getType().getType();
@@ -305,123 +214,26 @@ public class FeatureLiteral extends Expression implements IFeatureLiteralExpress
     return _feature.getDisplayName();
   }
 
+  public List<IExpression> getBoundArgs()
+  {
+    return _boundArgs;
+  }
+
+  public boolean isBound()
+  {
+    if( _root instanceof FeatureLiteral )
+    {
+      return ((FeatureLiteral)_root).isBound();
+    }
+    else
+    {
+      return !(_root instanceof TypeLiteral);
+    }
+  }
 
   public IType[] getParameterTypes()
   {
-    ArrayList<IType> types = new ArrayList<IType>();
-
-    IParameterInfo[] parameterInfos;
-    if( _feature instanceof IMethodInfo )
-    {
-      parameterInfos = ((IMethodInfo)_feature).getParameters();
-    }
-    else if( _feature instanceof IConstructorInfo )
-    {
-      parameterInfos = ((IConstructorInfo)_feature).getParameters();
-    }
-    else
-    {
-      parameterInfos = new IParameterInfo[0];
-    }
-
-    for( IParameterInfo pi : parameterInfos )
-    {
-      types.add( pi.getFeatureType() );
-    }
-    return types.toArray( new IType[types.size()] );
-  }
-
-  public IType getExpressionType() {
-    if( isPropertyLiteral() )
-    {
-      IExpression root = getRoot();
-      Class clazz;
-      if( root instanceof TypeLiteral )
-      {
-        clazz = PropertyReference.class;
-      }
-      else if( root instanceof FeatureLiteral )
-      {
-        if( JavaTypes.getGosuType( PropertyReference.class ).isAssignableFrom( root.getType() ) ||
-            JavaTypes.getGosuType( SimplePropertyChainReference.class ).isAssignableFrom( root.getType() ))
-        {
-          clazz = SimplePropertyChainReference.class;
-        }
-        else if( JavaTypes.getGosuType( BoundPropertyReference.class ).isAssignableFrom( root.getType() ) ||
-                  JavaTypes.getGosuType( BoundSimplePropertyChainReference.class ).isAssignableFrom( root.getType() )  )
-        {
-          clazz = BoundSimplePropertyChainReference.class;
-        }
-        else
-        {
-          if( ((FeatureLiteral)root).isBound() )
-          {
-            clazz = BoundComplexPropertyChainReference.class;
-          }
-          else
-          {
-            clazz = ComplexPropertyChainReference.class;
-          }
-        }
-      }
-      else
-      {
-        clazz = BoundPropertyReference.class;
-      }
-      IType rawType = TypeSystem.get( clazz );
-      IType parameterizedType = rawType.getParameterizedType( getFinalRootType(), getFeatureReturnType() );
-      return parameterizedType;
-    }
-    else if( isMethodLiteral() )
-    {
-      IExpression root = getRoot();
-      Class clazz;
-      if( root instanceof TypeLiteral )
-      {
-        clazz = MethodReference.class;
-      }
-      else if( root instanceof FeatureLiteral )
-      {
-        clazz = MethodChainReference.class;
-      }
-      else
-      {
-        clazz = BoundMethodReference.class;
-      }
-      IType rawType = TypeSystem.get( clazz );
-      IMethodInfo mi = (IMethodInfo)_feature;
-      IType bt = makeBlockType(mi.getReturnType(), getFeatureReferenceParameters());
-      return rawType.getParameterizedType(getFinalRootType(), bt);
-    }
-    else if( isConstructorLiteral() )
-    {
-      if( getRoot() instanceof TypeLiteral )
-      {
-        Class<ConstructorReference> clazz = ConstructorReference.class;
-        IType parameterizedType = TypeSystem.get( clazz ).getParameterizedType( getFinalRootType(), makeBlockType( getFinalRootType(), getParameterTypes() ) );
-        return parameterizedType;
-      }
-      else
-      {
-        return ErrorType.getInstance();        
-      }
-    }
-    else
-    {
-      return ErrorType.getInstance();
-    }
-  }
-
-  private IType makeBlockType( IType returnType, IType[] params )
-  {
-    if( params.length > 16 )
-    {
-      return JavaTypes.OBJECT();
-    }
-    else
-    {
-      return new BlockType( returnType, params, Collections.<String>emptyList(), Collections.<IExpression>emptyList() );
-    }
+    return _parameterTypes;
   }
 
   public boolean isStaticish()
@@ -434,52 +246,10 @@ public class FeatureLiteral extends Expression implements IFeatureLiteralExpress
     {
       return ((IPropertyInfo)_feature).isStatic();
     }
-    else if( _feature instanceof IConstructorInfo )
-    {
-      return true;
-    }
     else
     {
-      return false;
+      return _feature instanceof IConstructorInfo;
     }
-  }
-
-  public IType[] getFeatureReferenceParameters() {
-    ArrayList<IType> actualParams = new ArrayList<IType>();
-    IExpression root = getRoot();
-    if( root instanceof TypeLiteral )
-    {
-      if( _feature instanceof IPropertyInfo && !((IPropertyInfo)_feature).isStatic() )
-      {
-        actualParams.add( ((TypeLiteral)root).evaluate() );
-      }
-      if( _feature instanceof IMethodInfo && !((IMethodInfo)_feature).isStatic() )
-      {
-        actualParams.add( ((TypeLiteral)root).evaluate() );
-      }
-    }
-    else if( root instanceof FeatureLiteral )
-    {
-      actualParams.addAll( Arrays.asList( ((FeatureLiteral)root).getFeatureReferenceParameters() ) );
-    }
-    if( _boundArgs == null )
-    {
-      if( _feature instanceof IConstructorInfo )
-      {
-        for( IParameterInfo pi : ((IConstructorInfo)_feature).getParameters() )
-        {
-          actualParams.add( pi.getFeatureType() );
-        }
-      }
-      else if( _feature instanceof IMethodInfo )
-      {
-        for( IParameterInfo mi : ((IMethodInfo)_feature).getParameters() )
-        {
-          actualParams.add( mi.getFeatureType() );
-        }
-      }
-    }
-    return actualParams.toArray( new IType[actualParams.size()] );
   }
 
   public IFeatureInfo getFeature()
@@ -489,62 +259,328 @@ public class FeatureLiteral extends Expression implements IFeatureLiteralExpress
 
   public List<? extends IInvocableType> getFunctionTypes( String name )
   {
-    ArrayList<IInvocableType> lst = new ArrayList<IInvocableType>();
-    IType rootType = getRootTypeToResolveAgainst();
     if( name.equals( Keyword.KW_construct.toString() ) )
     {
-      ITypeInfo typeInfo = rootType.getTypeInfo();
-      List<? extends IConstructorInfo> constructors;
-      if (typeInfo instanceof IRelativeTypeInfo) {
-        constructors = ((IRelativeTypeInfo) typeInfo).getConstructors(rootType);
-      } else {
-        constructors = typeInfo.getConstructors();
-      }
-      for( IConstructorInfo ci : constructors)
-      {
-        lst.add( new ConstructorType( ci ) );
-      }
+      return getConstructorTypes();
     }
     else
     {
-      ITypeInfo typeInfo = rootType.getTypeInfo();
-      List<? extends IMethodInfo> methods;
-      if (typeInfo instanceof IRelativeTypeInfo) {
-        methods = ((IRelativeTypeInfo) typeInfo).getMethods(rootType);
-      } else {
-        methods = typeInfo.getMethods();
-      }
-      for( IMethodInfo mi : methods )
+      return getMethodTypes( name );
+    }
+  }
+
+  //============================================================
+  //  Internals
+  //============================================================
+
+  private IMethodInfo getSingleMethodWithName( String methodName, IType typeToResolveAgainst, ITypeInfo typeInfo )
+  {
+    MethodList methods;
+    if( typeInfo instanceof IRelativeTypeInfo )
+    {
+      methods = ((IRelativeTypeInfo)typeInfo).getMethods( typeToResolveAgainst );
+    }
+    else
+    {
+      methods = typeInfo.getMethods();
+    }
+
+    IMethodInfo match = null;
+    for( IMethodInfo possibleMatch : methods )
+    {
+      if( possibleMatch.getDisplayName().equals( methodName ) )
       {
-        if( mi.getDisplayName().equals( name ) )
+        if( match != null )
         {
-          lst.add( new FunctionType( mi ) );
+          return null; // more than one, bail
+        }
+        else
+        {
+          match = possibleMatch;
         }
       }
     }
-    return lst;
+    return match;
   }
 
-  public void setBoundFeature( IFeatureInfo fi, List<IExpression> arguments )
+  private IConstructorInfo getSingleConsructor( IType typeToResolveAgainst, ITypeInfo typeInfo )
   {
-    _feature = fi;
-    _boundArgs = arguments;
-  }
-
-  public List<IExpression> getBoundArgs()
-  {
-    return _boundArgs;
-  }
-
-  public boolean isBound()
-  {
-    if( _root instanceof FeatureLiteral )
+    List<? extends IConstructorInfo> constructors;
+    if( typeInfo instanceof IRelativeTypeInfo )
     {
-      return ((FeatureLiteral) _root).isBound();
+      constructors = ((IRelativeTypeInfo)typeInfo).getConstructors( typeToResolveAgainst );
     }
     else
     {
-      return !(_root instanceof TypeLiteral);
+      constructors = typeInfo.getConstructors();
+    }
+
+    return constructors.size() == 1 ? constructors.get( 0 ) : null;
+  }
+
+  private <T extends IHasParameterInfos> T ensureExactMatch( T methodInfo, IType[] argTypes )
+  {
+    if( methodInfo == null )
+    {
+      return null;
+    }
+    IParameterInfo[] parameters = methodInfo.getParameters();
+    if( argTypes.length != parameters.length )
+    {
+      return null;
+    }
+
+    IType[] boundParamTypes = boundGenericFunctionTypeVariables( methodInfo, getParameterTypes( methodInfo ) );
+
+    for( int i = 0; i < boundParamTypes.length; i++ )
+    {
+      IType parameterType = boundParamTypes[i];
+      if( !GosuObjectUtil.equals( parameterType, argTypes[i] ) )
+      {
+        return null;
+      }
+    }
+    return methodInfo;
+  }
+
+  private IType[] boundGenericFunctionTypeVariables( IHasParameterInfos methodInfo, IType[] parametersTypes )
+  {
+    List<IType> typesToBound = getFunctionTypeVarsToBound( methodInfo );
+    List<IType> boundParamTypes = new ArrayList<>();
+    for( IType parameter : parametersTypes )
+    {
+      boundParamTypes.add( TypeLord.boundTypes( parameter, typesToBound ) );
+    }
+    return boundParamTypes.toArray( new IType[boundParamTypes.size()] );
+  }
+
+  private List<IType> getFunctionTypeVarsToBound( IHasParameterInfos methodInfo )
+  {
+    List<IType> typesToBound = new ArrayList<>();
+    if( methodInfo instanceof IGenericMethodInfo )
+    {
+      IGenericTypeVariable[] typeVars = ((IGenericMethodInfo)methodInfo).getTypeVariables();
+      for( IGenericTypeVariable typeVar : typeVars )
+      {
+        typesToBound.add( typeVar.getTypeVariableDefinition().getType() );
+      }
+    }
+    return typesToBound;
+  }
+
+  private IBlockType makeBlockType( IType returnType, IType[] params, List<String> argNames )
+  {
+    if( params.length > MAX_BLOCK_ARGS )
+    {
+      return new BlockType( returnType, Arrays.copyOfRange( params, 0, 15 ), argNames, Collections.<IExpression>emptyList() );
+    }
+    else
+    {
+      return new BlockType( returnType, params, argNames, Collections.<IExpression>emptyList() );
+    }
+  }
+
+  private List<? extends IInvocableType> getMethodTypes( String name )
+  {
+    ArrayList<IInvocableType> functionTypes = new ArrayList<>();
+    IType rootType = getRootTypeToResolveFeaturesAgainst();
+    ITypeInfo typeInfo = rootType.getTypeInfo();
+    List<? extends IMethodInfo> methods;
+    if( typeInfo instanceof IRelativeTypeInfo )
+    {
+      methods = ((IRelativeTypeInfo)typeInfo).getMethods( rootType );
+    }
+    else
+    {
+      methods = typeInfo.getMethods();
+    }
+    for( IMethodInfo mi : methods )
+    {
+      if( mi.getDisplayName().equals( name ) )
+      {
+        functionTypes.add( new FunctionType( mi ) );
+      }
+    }
+    return functionTypes;
+  }
+
+  private List<? extends IInvocableType> getConstructorTypes()
+  {
+    ArrayList<IInvocableType> constructorTypes = new ArrayList<>();
+    IType rootType = getRootTypeToResolveFeaturesAgainst();
+    ITypeInfo typeInfo = rootType.getTypeInfo();
+
+    List<? extends IConstructorInfo> constructors;
+
+    if( typeInfo instanceof IRelativeTypeInfo )
+    {
+      constructors = ((IRelativeTypeInfo)typeInfo).getConstructors( rootType );
+    }
+    else
+    {
+      constructors = typeInfo.getConstructors();
+    }
+
+    for( IConstructorInfo ci : constructors )
+    {
+      constructorTypes.add( new ConstructorType( ci ) );
+    }
+
+    return constructorTypes;
+  }
+
+  private void resolveExpressionType()
+  {
+    if( _feature instanceof IPropertyInfo )
+    {
+      setType( resolvePropertyLiteralType( (IPropertyInfo)_feature ) );
+    }
+    else if( _feature instanceof IMethodInfo )
+    {
+      setType( resolveMethodLiteralType( (IMethodInfo)_feature ) );
+    }
+    else if( _feature instanceof IConstructorInfo )
+    {
+      setType( resolveConstructorLiteralType( (IConstructorInfo)_feature ) );
+    }
+    else
+    {
+      setType( ErrorType.getInstance() );
+    }
+  }
+
+  private IType resolvePropertyLiteralType( IPropertyInfo propertyInfo )
+  {
+    _parameterTypes = new IType[0];
+    IType propertyReferenceType;
+    if( getRoot() instanceof FeatureLiteral )
+    {
+      propertyReferenceType = TypeSystem.get( isBound() ? BoundPropertyChainReference.class : PropertyChainReference.class );
+    }
+    else
+    {
+      propertyReferenceType = TypeSystem.get( isBound() ? BoundPropertyReference.class : PropertyReference.class );
+    }
+    return propertyReferenceType.getParameterizedType( getFinalRootType(), propertyInfo.getFeatureType() );
+  }
+
+  private IType resolveMethodLiteralType( IMethodInfo methodInfo )
+  {
+    IType rawType = TypeSystem.get( isBound() ? BoundMethodReference.class : MethodReference.class );
+
+    _parameterTypes = boundGenericFunctionTypeVariables( methodInfo, getParameterTypes( methodInfo ) );
+
+    _blockType = makeBlockType( TypeLord.boundTypes( methodInfo.getReturnType(), getFunctionTypeVarsToBound( methodInfo ) ),
+                                adjustParametersForFeature( methodInfo, _parameterTypes ), argNames( methodInfo ) );
+
+    return rawType.getParameterizedType( getFinalRootType(), _blockType );
+  }
+
+  private IType resolveConstructorLiteralType( IConstructorInfo constructorInfo )
+  {
+    IType rawType = TypeSystem.get( ConstructorReference.class );
+
+    _parameterTypes = boundGenericFunctionTypeVariables( constructorInfo, getParameterTypes( constructorInfo ) );
+
+    _blockType = makeBlockType( constructorInfo.getOwnersType(),
+                                adjustParametersForFeature( constructorInfo, _parameterTypes ),
+                                argNames(constructorInfo) );
+
+    return rawType.getParameterizedType( getFinalRootType(), _blockType );
+  }
+
+  private List<String> argNames( IHasParameterInfos hasParams )
+  {
+    if( hasBoundArgs( hasParams ) )
+    {
+      return Collections.emptyList();
+    }
+    ArrayList<String> names = new ArrayList<>();
+    for( int i = 0; i < hasParams.getParameters().length && i <= MAX_BLOCK_ARGS; i++ )
+    {
+      IParameterInfo iParameterInfo = hasParams.getParameters()[i];
+      names.add( iParameterInfo.getName() );
+    }
+    return names;
+  }
+
+
+  private IType[] adjustParametersForFeature( IHasParameterInfos feature, IType[] params )
+  {
+    if( hasBoundArgs( feature ) )
+    {
+      params = new IType[0]; // clear out parameters if there are bound values
+    }
+    if( hasImplicitFirstArg() )
+    {
+      ArrayList<IType> combined = new ArrayList<>();
+      combined.add( getRootType() );
+      combined.addAll( Arrays.asList( params ) );
+      params = combined.toArray( new IType[combined.size()] );
+    }
+    return params;
+  }
+
+  private boolean hasBoundArgs( IHasParameterInfos feature )
+  {
+    return _boundArgs != null && _boundArgs.size() > 0 && _boundArgs.size() == feature.getParameters().length;
+  }
+
+  private boolean hasImplicitFirstArg()
+  {
+    return !isBound() && !isStaticish();
+  }
+
+  private IType[] getParameterTypes( IHasParameterInfos hasParameterInfos )
+  {
+    IParameterInfo[] parameters = hasParameterInfos.getParameters();
+    List<IType> types = new ArrayList<>();
+    for( IParameterInfo parameter : parameters )
+    {
+      types.add( parameter.getFeatureType() );
+    }
+    return types.toArray( new IType[types.size()] );
+  }
+
+
+  private String featureRepresentation()
+  {
+    return _feature == null ? "<ERROR>" : _feature.getName();
+  }
+
+  private IType getRootTypeToResolveFeaturesAgainst()
+  {
+    if( _root instanceof FeatureLiteral )
+    {
+      return ((FeatureLiteral)_root).getFeatureReturnType();
+    }
+    else if( _root instanceof TypeLiteral )
+    {
+      return ((TypeLiteral)_root).getType().getType();
+    }
+    else
+    {
+      return _root.getType();
+    }
+  }
+
+  private IType getFeatureReturnType()
+  {
+    if( _feature instanceof IPropertyInfo )
+    {
+      return ((IPropertyInfo)_feature).getFeatureType();
+    }
+    else if( _feature instanceof IMethodInfo )
+    {
+      return ((IMethodInfo)_feature).getReturnType();
+    }
+    else if( _feature instanceof IConstructorInfo )
+    {
+      return ((IConstructorInfo)_feature).getType();
+    }
+    else
+    {
+      return ErrorType.getInstance();
     }
   }
 }

@@ -20,12 +20,30 @@ import gw.lang.reflect.java.IJavaClassTypeVariable;
 import gw.lang.reflect.java.IJavaMethodDescriptor;
 import gw.lang.reflect.java.IJavaPropertyDescriptor;
 import gw.lang.reflect.java.IJavaType;
+import gw.lang.reflect.java.JavaTypes;
 import gw.lang.reflect.module.IModule;
+import gw.util.concurrent.LocklessLazyVar;
 
+import java.io.Serializable;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Array;
 
-public class JavaArrayClassInfo extends AbstractJavaClassInfo {
+public class JavaArrayClassInfo extends AbstractJavaClassInfo
+{
+  public static final LocklessLazyVar<IJavaClassInfo[]> INTERFACES =
+    new LocklessLazyVar<IJavaClassInfo[]>()
+    {
+      @Override
+      protected IJavaClassInfo[] init()
+      {
+        // All Java arrays are Cloneable and Serializable (see javadoc for Class#getGenericInterfaces())
+        return new IJavaClassInfo[] {
+          JavaTypes.getJreType( Cloneable.class ).getBackingClassInfo(),
+          JavaTypes.getJreType( Serializable.class ).getBackingClassInfo(),
+        };
+      }
+    };
+
   private IJavaClassInfo _component;
 
   public JavaArrayClassInfo( IJavaClassInfo component ) {
@@ -97,7 +115,7 @@ public class JavaArrayClassInfo extends AbstractJavaClassInfo {
 
   @Override
   public IJavaClassType[] getGenericInterfaces() {
-    return new IJavaClassType[0];
+    return INTERFACES.get();
   }
 
   @Override
@@ -107,7 +125,7 @@ public class JavaArrayClassInfo extends AbstractJavaClassInfo {
 
   @Override
   public IJavaClassInfo[] getInterfaces() {
-    return new IJavaClassInfo[0];
+    return INTERFACES.get();
   }
 
   @Override

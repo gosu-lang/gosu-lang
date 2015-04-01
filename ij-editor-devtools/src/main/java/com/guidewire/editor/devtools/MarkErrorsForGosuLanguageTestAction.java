@@ -13,6 +13,7 @@ import com.intellij.openapi.util.TextRange;
 import com.intellij.psi.PsiFile;
 import gw.lang.parser.IParseIssue;
 import gw.lang.parser.exceptions.ParseResultsException;
+import gw.lang.parser.resources.ResourceKey;
 import gw.lang.reflect.TypeSystem;
 import gw.plugin.ij.actions.TypeSystemAwareAction;
 import gw.plugin.ij.lang.psi.impl.AbstractGosuClassFileImpl;
@@ -43,13 +44,17 @@ public class MarkErrorsForGosuLanguageTestAction extends TypeSystemAwareAction {
 
         final Map<Integer, List<String>> map = new HashMap<Integer, List<String>>();
         for( IParseIssue pi: pre.getParseIssues() ) {
-          String issue = pi.getMessageKey().getKey();
-          int iLine = pi.getLine();
-          List<String> issues = map.get( iLine );
-          if( issues == null ) {
-            map.put( iLine, issues = new ArrayList<String>() );
+          ResourceKey messageKey = pi.getMessageKey();
+          if( messageKey != null )
+          {
+            String issue = messageKey.getKey();
+            int iLine = pi.getLine();
+            List<String> issues = map.get( iLine );
+            if( issues == null ) {
+              map.put( iLine, issues = new ArrayList<String>() );
+            }
+            issues.add( issue );
           }
-          issues.add( issue );
         }
         final List<Integer> lines = new ArrayList<Integer>( map.keySet() );
         Collections.sort( lines );

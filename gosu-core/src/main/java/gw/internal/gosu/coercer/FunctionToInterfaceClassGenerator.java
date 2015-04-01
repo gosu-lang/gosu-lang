@@ -219,8 +219,13 @@ public class FunctionToInterfaceClassGenerator {
         {
           paramTypes[i] = parameterInfos[i].getFeatureType();
         }
-        if( JavaTypes.OBJECT().getTypeInfo().getMethod( methodInfo.getDisplayName(), paramTypes ) != null ||
+        String methodName = methodInfo.getDisplayName();
+        if( JavaTypes.OBJECT().getTypeInfo().getMethod(methodName, paramTypes ) != null ||
             methodInfo.getOwnersType() instanceof IGosuEnhancement)
+        {
+          it.remove();
+        }
+        else if( methodName.startsWith( "@" ) && JavaTypes.OBJECT().getTypeInfo().getProperty( methodName.substring( 1 ) ) != null )
         {
           it.remove();
         }

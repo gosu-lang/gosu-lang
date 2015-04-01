@@ -61,6 +61,18 @@ public class AsmUtil {
     return new AsmType( makeDotName( name ), iDims );
   }
 
+  public static AsmType makeNonPrimitiveType(String name) {
+    int iDims = 0;
+    while( name.charAt( 0 ) == '[' ) {
+      iDims++;
+      name = name.substring( 1 );
+    }
+    if( name.endsWith( ";" ) ) {
+      name = name.substring( 1, name.length() - 1 );
+    }
+    return new AsmType( makeDotName( name ), iDims );
+  }
+
   public static AsmType makeTypeVariable( String tv ) {
     AsmType typeVarType = new AsmType( tv );
     typeVarType.setTypeVariable();

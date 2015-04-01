@@ -48,4 +48,14 @@ public class Asm_InnerClasses {
     Inner2.Inner2_Inner y = null;
     return x;
   }
+
+
+  public class Muh <S, T>  {
+      public Muh() {}
+
+      public abstract class Inner implements java.lang.Comparable<Inner> {
+          public Inner() {}
+          public int compareTo( Inner o ) { return 0; }
+      }
+  }
 }

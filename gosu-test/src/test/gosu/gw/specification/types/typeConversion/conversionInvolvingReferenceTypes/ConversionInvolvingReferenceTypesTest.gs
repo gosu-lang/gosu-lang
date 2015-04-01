@@ -6,6 +6,7 @@ uses java.math.BigDecimal
 uses gw.BaseVerifyErrantTest
 uses gw.lang.reflect.features.BoundMethodReference
 uses gw.lang.reflect.features.FeatureReference
+uses gw.specification.dimensions.p0.TestDim
 
 class ConversionInvolvingReferenceTypesTest extends BaseVerifyErrantTest {
   structure struct {}

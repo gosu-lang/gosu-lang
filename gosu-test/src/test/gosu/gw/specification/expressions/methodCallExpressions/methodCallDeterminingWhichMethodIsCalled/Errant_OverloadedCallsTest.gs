@@ -13,14 +13,14 @@ class Errant_OverloadedCallsTest {
     a.m(1, 1)
 
     var b = new GB()
-    b.m(1.0, 1.0)  //## issuekeys: MSG_IMPROPER_VALUE_FOR_NUMERIC_TYPE
+    b.m(1.0, 1.0)  //## issuekeys: MSG_IMPLICIT_COERCION_ERROR
     b.m(1.0, 1)
-    b.m(1, 1.0)  //## issuekeys: MSG_IMPROPER_VALUE_FOR_NUMERIC_TYPE
+    b.m(1, 1.0)  //## issuekeys: MSG_IMPLICIT_COERCION_ERROR
     b.m(1, 1)
 
     var c = new GC()
-    c.m(1.0, 1.0)  //## issuekeys: MSG_IMPROPER_VALUE_FOR_NUMERIC_TYPE
-    c.m(1.0, 1)  //## issuekeys: MSG_IMPROPER_VALUE_FOR_NUMERIC_TYPE
+    c.m(1.0, 1.0)  //## issuekeys: MSG_IMPLICIT_COERCION_ERROR
+    c.m(1.0, 1)  //## issuekeys: MSG_IMPLICIT_COERCION_ERROR
     c.m(1, 1.0)
     c.m(1, 1)
 
@@ -191,8 +191,8 @@ class Errant_OverloadedCallsTest {
   function fun(i: float, j: float): B {return null }
 
   function caller() {
-    var r0 : A = fun(42.5f, 42)  //## issuekeys: MSG_AMBIGUOUS_METHOD_INVOCATION
-    var r1 : B = fun(42.5f, 42)  //## issuekeys: MSG_AMBIGUOUS_METHOD_INVOCATION
+    var r0 : A = fun(42.5f, 42) //## issuekeys: MSG_TYPE_MISMATCH
+    var r1 : B = fun(42.5f, 42)
   }
 
   function fun2(i: int, j: int): A {return null }
@@ -201,8 +201,8 @@ class Errant_OverloadedCallsTest {
 
   function caller2() {
     var r0 : A = fun2(42.5f, 42)  //## issuekeys: MSG_TYPE_MISMATCH
-    var r1 : B = fun2(42.5f, 42)  //## issuekeys: MSG_TYPE_MISMATCH
-    var r2 : C = fun2(42.5f, 42)
+    var r1 : B = fun2(42.5f, 42)
+    var r2 : C = fun2(42.5f, 42)  //## issuekeys: MSG_TYPE_MISMATCH
   }
 
   function fun3(i: short, j: short): A {return null }
@@ -220,8 +220,7 @@ class Errant_OverloadedCallsTest {
 
   function caller4() {
 
-    var r0 : A = fun4(42L, 42.5f)  //## issuekeys: MSG_AMBIGUOUS_METHOD_INVOCATION
-    var r1 : B = fun4(42L, 42.5f)  //## issuekeys: MSG_AMBIGUOUS_METHOD_INVOCATION
+    var r1 : B = fun4(42L, 42.5f)
     var r2 : B = fun4(42, 42.5f)
 
   }
@@ -263,13 +262,46 @@ class Errant_OverloadedCallsTest {
     var r4: B = fun9({1,2,3})
 
     var r5: B = fun10({"1", "2", "3"})
-    var r6: A = fun10({"1", "2", "3"} as List<Integer>)  //## issuekeys: MSG_TYPE_MISMATCH, MSG_TYPE_MISMATCH, MSG_TYPE_MISMATCH, MSG_TYPE_MISMATCH
-    var r7: B = fun10({
-        1,       //## issuekeys: MSG_IMPLICIT_COERCION_ERROR
-        "2",
-        3         //## issuekeys: MSG_IMPLICIT_COERCION_ERROR
-    })
+    var r6: A = fun10({"1", "2", "3"} as List<Integer>)  //## issuekeys: MSG_TYPE_MISMATCH
+    var r7: B = fun10({1, "2", 3})  //## issuekeys: MSG_TYPE_MISMATCH, MSG_TYPE_MISMATCH
   }
 
+  class asdfasfd {
+    class AA{}
+    class BB{}
+    class CC{}
+    function funIntLongFloat(i: int, j: int): AA {
+      return null
+    }
+    function funIntLongFloat(i: float, j: float): BB {
+      return null
+    }
+    function funIntLongFloat(i: long, j: long): CC {
+      return null
+    }
 
+    function caller() {
+      var d1 : double
+      var res1 : BB
+      res1 = funIntLongFloat('c', 42.5)
+      res1 = funIntLongFloat(1b, 42.5)
+      res1 = funIntLongFloat(1s, 42.5)
+      res1 = funIntLongFloat(42, 42.5)
+      res1 = funIntLongFloat(100L, 42.5)
+      res1 = funIntLongFloat(42.5f, 42.5)
+      res1 = funIntLongFloat(42.5, 42.5)
+    }
+  }
+
+  static class AmbiguousEnumConstantTesting {
+    enum MyEnum1 { CONSTANT }
+    enum MyEnum2 { CONSTANT }
+
+    function acceptEnum(par : MyEnum1) {}
+    function acceptEnum(par : MyEnum2) {}
+
+    function ambiguousUnqualifiedEnum() {
+      acceptEnum(CONSTANT)  //## issuekeys: MSG_AMBIGUOUS_METHOD_INVOCATION
+    }
+  }
 }

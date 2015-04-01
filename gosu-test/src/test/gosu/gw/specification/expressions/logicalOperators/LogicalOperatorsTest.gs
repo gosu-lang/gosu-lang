@@ -3,7 +3,7 @@ package gw.specification.expressions.logicalOperators
 uses java.lang.*
 uses java.math.BigInteger
 uses java.math.BigDecimal
-uses gw.specification.expressions.TestDim
+uses gw.specification.dimensions.p0.TestDim
 uses gw.BaseVerifyErrantTest
 uses java.util.ArrayList
 uses java.util.LinkedList

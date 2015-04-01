@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  */
@@ -27,6 +28,13 @@ public class Asm_Simple<S extends List<T>, T extends Comparable<T>> extends Arra
   private List<? extends List<S>> _listofWildListS;
   private List<? super List<S>> _listofContraWildListS;
   private Map<String, List<String>> _mapStringListOfString;
+  private Map<String, InnerClass<String>> _mapStringInnerClassOfString;
+  private Map<String, InnerClass<T>> _mapStringInnerClassOfT;
+
+  private InnerClass _yay;
+  private InnerClass<T> _yay1;
+  private InnerClass<String> _yay2;
+  private InnerClass<InnerClass<String>> _yay3;
 
   private List<String>[] _listOfStringA;
   private List<List<String>>[] _listOfListOfStringA;
@@ -37,11 +45,13 @@ public class Asm_Simple<S extends List<T>, T extends Comparable<T>> extends Arra
   private List<? extends List<S>>[] _listofWildListSA;
   private List<? super List<S>>[] _listofContraWildListSA;
   private Map<String, List<String>>[] _mapStringListOfStringA;
+  private Map<String, InnerClass<String>>[] _mapStringInnerClassOfStringA;
 
   public int intMethod( int p0 ) {return 0;}
   public int varArgIntMethod( int... p0 ) {return 0;}
   public int varArgStringMethod( String... p0 ) {return 0;}
   public <E> E varArgStringMethod( int... p0 ) {return null;}
+  public java.util.List<Object[]> varArgStringMethod() {return null;}
   public int[] intArrayMethod( int[] p0 ) {return null;}
   public int[][] intArrayArrayMethod( int[][] p0 ) {return null;}
   public String[][] stringArrayArrayMethod( String[][] p0 ) {return null;}
@@ -58,4 +68,13 @@ public class Asm_Simple<S extends List<T>, T extends Comparable<T>> extends Arra
   public List<? super List<S>> listofContraWildListSMethod() {return null;}
   public Map<String, List<String>> mapStringListOfStringMethod() {return null;}
   public static <E> HashSet<E> newHashSet(E... elements) {return null;}
+  public <E> InnerClass<E> returnsInnerClass( InnerClass p0 ) {return null;}
+  public Map<String,byte[]> mapOfStringToPrimitiveByteArray() {return null;}
+  public Map<String,byte[][]> mapOfStringToPrimitiveByteArrayArray() {return null;}
+  public Map<byte[][], String> mapOfPrimitiveByteArrayArrayToString() {return null;}
+  public Set<AccountSyncedField<? extends CharSequence,?>> getAccountSyncedFields() {return null;}
+
+  private class InnerClass<F> {}
+
+  private static class AccountSyncedField<T,S> {}
 }

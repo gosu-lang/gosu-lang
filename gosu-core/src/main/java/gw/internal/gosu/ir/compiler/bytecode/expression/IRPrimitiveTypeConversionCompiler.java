@@ -26,6 +26,18 @@ public class IRPrimitiveTypeConversionCompiler extends AbstractBytecodeCompiler 
       {
         mv.visitInsn( Opcodes.I2L );
       }
+      else if( to.isByte() )
+      {
+        mv.visitInsn( Opcodes.I2B );
+      }
+      else if( to.isChar() )
+      {
+        mv.visitInsn( Opcodes.I2C );
+      }
+      else if( to.isShort() )
+      {
+        mv.visitInsn( Opcodes.I2S );
+      }
       else if( to.isFloat() )
       {
         mv.visitInsn( Opcodes.I2F );
@@ -40,6 +52,7 @@ public class IRPrimitiveTypeConversionCompiler extends AbstractBytecodeCompiler 
       if( isIntType( to ) )
       {
         mv.visitInsn( Opcodes.L2I );
+        maybeConvertIntToByteCharShort(mv, to);
       }
       else if( to.isFloat() )
       {
@@ -55,6 +68,7 @@ public class IRPrimitiveTypeConversionCompiler extends AbstractBytecodeCompiler 
       if( isIntType( to ) )
       {
         mv.visitInsn( Opcodes.F2I );
+        maybeConvertIntToByteCharShort(mv, to);
       }
       else if( to.isLong() )
       {
@@ -70,6 +84,7 @@ public class IRPrimitiveTypeConversionCompiler extends AbstractBytecodeCompiler 
       if( isIntType( to ) )
       {
         mv.visitInsn( Opcodes.D2I );
+        maybeConvertIntToByteCharShort(mv, to);
       }
       else if( to.isLong() )
       {
@@ -79,6 +94,21 @@ public class IRPrimitiveTypeConversionCompiler extends AbstractBytecodeCompiler 
       {
         mv.visitInsn( Opcodes.D2F );
       }
+    }
+  }
+
+  private static void maybeConvertIntToByteCharShort(MethodVisitor mv, IRType to) {
+    if( to.isByte() )
+    {
+      mv.visitInsn( Opcodes.I2B );
+    }
+    else if( to.isChar() )
+    {
+      mv.visitInsn( Opcodes.I2C );
+    }
+    else if( to.isShort() )
+    {
+      mv.visitInsn( Opcodes.I2S );
     }
   }
 

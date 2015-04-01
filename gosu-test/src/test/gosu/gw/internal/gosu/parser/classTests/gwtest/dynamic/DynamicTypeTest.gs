@@ -285,6 +285,10 @@ class DynamicTypeTest extends gw.BaseVerifyErrantTest {
     dyn = \ x: int -> x
     assertEquals( 1, dyn( 1 ) )
 
+    // w/ inferred param type
+    dyn = \ x -> x
+    assertEquals( 1, dyn( 1 ) )
+
     // w/ statements
     dyn = \ x: int -> {x *= x return x}
     assertEquals( 4, dyn( 2 ) )

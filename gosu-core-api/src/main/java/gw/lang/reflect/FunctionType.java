@@ -16,7 +16,6 @@ import gw.lang.reflect.java.IJavaClassInfo;
 import gw.lang.parser.IBlockClass;
 import gw.lang.parser.ScriptPartId;
 import gw.lang.parser.TypeVarToTypeMap;
-import gw.util.Pair;
 import gw.util.concurrent.LockingLazyVar;
 
 import java.io.ObjectStreamException;
@@ -28,7 +27,6 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class FunctionType extends AbstractType implements IFunctionType, IGenericMethodInfo
 {
-  public static final ThreadLocal<IFunctionType> CURRENT = new ThreadLocal<IFunctionType>();
   private static final IGenericTypeVariable[] EMPTY_TYPE_VARS = new IGenericTypeVariable[0];
   private static final IType[] EMPTY_ARGS = new IType[0];
 
@@ -380,7 +378,7 @@ public class FunctionType extends AbstractType implements IFunctionType, IGeneri
     IType[] paramTypes = getParameterTypes();
     if( paramTypes.length == 0 )
     {
-      sig = (String)(_strFunctionName + "()");
+      sig = _strFunctionName + "()";
     }
     else
     {
@@ -391,7 +389,7 @@ public class FunctionType extends AbstractType implements IFunctionType, IGeneri
       }
       strParams += ")";
 
-      sig = (String)strParams;
+      sig = strParams;
     }
     return sig;
   }
@@ -650,17 +648,31 @@ public class FunctionType extends AbstractType implements IFunctionType, IGeneri
     }
     if( type instanceof FunctionType )
     {
-      FunctionType otherType = (FunctionType)type;
+      FunctionType that = (FunctionType)type;
       //contravariant arg types
-      if( areParamsCompatible( this, otherType, bContravariant ) )
+      if( areParamsCompatible( this, that, bContravariant ) )
       {
         //covariant return types
-        return getReturnType().isAssignableFrom( otherType.getReturnType() ) ||
-                StandardCoercionManager.arePrimitiveTypesAssignable( getReturnType(), otherType.getReturnType() ) ||
-               getReturnType() == GosuParserTypes.NULL_TYPE();
+        return areReturnTypesAssignable( that );
       }
     }
     return false;
+  }
+
+  protected boolean areReturnTypesAssignable( FunctionType that ) {
+    IType thisType = getReturnType();
+    IType thatType = that.getReturnType();
+    if( isThisReturnTypeNotVoidThatReturnTypeVoid( thisType, thatType ) ) {
+      return false;
+    }
+    return thisType == thatType ||
+           thisType.isAssignableFrom( thatType ) ||
+            StandardCoercionManager.arePrimitiveTypesAssignable( thisType, thatType ) ||
+           thisType == GosuParserTypes.NULL_TYPE();
+  }
+
+  private boolean isThisReturnTypeNotVoidThatReturnTypeVoid(IType thisType, IType thatType) {
+    return thisType != JavaTypes.pVOID() && thisType != JavaTypes.VOID() && (thatType == JavaTypes.pVOID() || thatType == JavaTypes.VOID());
   }
 
   public boolean areParamsCompatible(IFunctionType rhsFunctionType) {
@@ -690,7 +702,8 @@ public class FunctionType extends AbstractType implements IFunctionType, IGeneri
         if( !StandardCoercionManager.arePrimitiveTypesAssignable( otherParamType, myParamType ) ) {
               //## todo: this condition re type vars is a hack; we need to tighten this up
           if( !(myParamType instanceof ITypeVariableType) &&
-              !otherParamType.isAssignableFrom( myParamType ) )
+              !otherParamType.isAssignableFrom( myParamType ) &&
+              !isDynamic( otherParamType ) && !isDynamic( myParamType ) )
           {
             return false;
           }
@@ -702,6 +715,11 @@ public class FunctionType extends AbstractType implements IFunctionType, IGeneri
       }
     }
     return true;
+  }
+
+  private static boolean isDynamic( IType otherParamType )
+  {
+    return otherParamType instanceof IPlaceholder && ((IPlaceholder)otherParamType).isPlaceholder();
   }
 
   public boolean isMutable()

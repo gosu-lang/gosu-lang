@@ -195,6 +195,7 @@ abstract class Errant_MethodModifiersTest {
   transient public internal function m191() {}  //## issuekeys: MSG_ILLEGAL_USE_OF_MODIFIER, MSG_ILLEGAL_USE_OF_MODIFIER
   transient internal function m192() {}  //## issuekeys: MSG_ILLEGAL_USE_OF_MODIFIER
   abstract function m193()
+  final abstract function m193_1()  //## issuekeys: MSG_ILLEGAL_USE_OF_MODIFIER
   abstract final function m194()  //## issuekeys: MSG_ILLEGAL_USE_OF_MODIFIER, MSG_ILLEGAL_USE_OF_MODIFIER
   abstract final private function m195()  //## issuekeys: MSG_ILLEGAL_USE_OF_MODIFIER, MSG_ILLEGAL_USE_OF_MODIFIER, MSG_ILLEGAL_USE_OF_MODIFIER
   abstract final private protected function m196()  //## issuekeys: MSG_ILLEGAL_USE_OF_MODIFIER, MSG_ILLEGAL_USE_OF_MODIFIER, MSG_ILLEGAL_USE_OF_MODIFIER, MSG_ILLEGAL_USE_OF_MODIFIER

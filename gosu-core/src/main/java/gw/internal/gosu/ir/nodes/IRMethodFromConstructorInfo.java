@@ -65,7 +65,6 @@ public class IRMethodFromConstructorInfo extends IRFeatureBase implements IRMeth
     return getTrueOwningType(_constructor);
   }
 
-  // TODO - AHK - Duplicate of method in AbstractElementTransformer
   @Override
   public IType getOwningIType() {
     IType owningType;
@@ -97,7 +96,6 @@ public class IRMethodFromConstructorInfo extends IRFeatureBase implements IRMeth
     return false;
   }
 
-  // TODO - AHK - Duplicate of method in AbstractElementTransformer
   public IRType getTargetRootIRType( )
   {
     IRType owner = getOwningIRType();
@@ -131,8 +129,7 @@ public class IRMethodFromConstructorInfo extends IRFeatureBase implements IRMeth
 
   @Override
   public boolean isBytecodeMethod() {
-    return (_constructor instanceof IGosuConstructorInfo || _constructor instanceof IJavaConstructorInfo) &&
-           !isExternalEntityJavaType( _constructor );
+    return _constructor instanceof IGosuConstructorInfo || _constructor instanceof IJavaConstructorInfo;
   }
 
   private static IRType getTrueOwningType( IConstructorInfo mi ) {

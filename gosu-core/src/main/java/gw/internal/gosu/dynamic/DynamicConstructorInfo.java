@@ -13,6 +13,7 @@ import gw.lang.reflect.IExceptionInfo;
 import gw.lang.reflect.IExpando;
 import gw.lang.reflect.IParameterInfo;
 import gw.lang.reflect.IType;
+import gw.lang.reflect.ITypeInfo;
 import gw.lang.reflect.SimpleParameterInfo;
 
 import java.util.Collections;
@@ -23,7 +24,7 @@ import java.util.List;
 public class DynamicConstructorInfo extends BaseFeatureInfo implements IConstructorInfo {
   private IParameterInfo[] _paramInfos;
 
-  public DynamicConstructorInfo( DynamicTypeInfo dynamicTypeInfo, IType... paramTypes ) {
+  public DynamicConstructorInfo( ITypeInfo dynamicTypeInfo, IType... paramTypes ) {
     super( dynamicTypeInfo );
     makeParameters( paramTypes );
   }

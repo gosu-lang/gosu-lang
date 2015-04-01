@@ -10,16 +10,20 @@ import gw.internal.gosu.parser.expressions.ArrayAccess;
 import gw.internal.gosu.parser.statements.ArrayAssignmentStatement;
 import gw.internal.gosu.ir.transform.ExpressionTransformer;
 import gw.internal.gosu.ir.transform.TopLevelTransformationContext;
+import gw.internal.gosu.runtime.GosuRuntimeMethods;
 import gw.lang.ir.IRStatement;
 import gw.lang.ir.IRExpression;
 import gw.lang.ir.IRSymbol;
 import gw.lang.ir.statement.IRStatementList;
 import gw.lang.parser.EvaluationException;
+import gw.lang.reflect.IPlaceholder;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.java.JavaTypes;
 
+import java.lang.reflect.Array;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 /**
  */
@@ -46,10 +50,14 @@ public class ArrayAssignmentStatementTransformer extends AbstractStatementTransf
     IRSymbol tempRoot = null;
     IRExpression root;
     boolean needsAutoinsert = needsAutoinsert( arrayAccess );
-    if( needsAutoinsert)
+    if( needsAutoinsert || _stmt().isCompoundStatement() )
     {
       tempRoot = _cc().makeAndIndexTempSymbol( originalRoot.getType() );
       root = identifier( tempRoot );
+      if(_stmt().isCompoundStatement())
+      {
+        ExpressionTransformer.addTempSymbolForCompoundAssignment(arrayAccess.getRootExpression(), tempRoot );
+      }
     } else {
       root = originalRoot;
     }
@@ -57,10 +65,14 @@ public class ArrayAssignmentStatementTransformer extends AbstractStatementTransf
     IRExpression originalIndex = ExpressionTransformer.compile( arrayAccess.getMemberExpression(), _cc() );
     IRSymbol tempIndex = null;
     IRExpression index;
-    if( needsAutoinsert )
+    if( needsAutoinsert || _stmt().isCompoundStatement() )
     {
       tempIndex = _cc().makeAndIndexTempSymbol( originalIndex.getType() );
       index = identifier( tempIndex );
+      if( _stmt().isCompoundStatement() )
+      {
+        ExpressionTransformer.addTempSymbolForCompoundAssignment( arrayAccess.getMemberExpression(), tempIndex );
+      }
     }
     else
     {
@@ -73,10 +85,17 @@ public class ArrayAssignmentStatementTransformer extends AbstractStatementTransf
     if( rootType.isArray() && isBytecodeType( rootType ) )
     {
       // Normal array access
-      return buildArrayStore( root, index, value, getDescriptor( rootType.getComponentType() ) );
+      IRStatement ret = buildArrayStore( root, index, value, getDescriptor( rootType.getComponentType() ) );
+      if( _stmt().isCompoundStatement() )
+      {
+        ExpressionTransformer.clearTempSymbolForCompoundAssignment();
+        return new IRStatementList( false, buildAssignment( tempRoot, originalRoot ), buildAssignment( tempIndex, originalIndex ), ret );
+      }
+      return ret;
     }
     else
     {
+      IRStatement ret;
       if( needsAutoinsert )
       {
         return new IRStatementList( false, buildAssignment( tempRoot, originalRoot ),
@@ -86,20 +105,32 @@ public class ArrayAssignmentStatementTransformer extends AbstractStatementTransf
       }
       else if( JavaTypes.LIST().isAssignableFrom( rootType ) )
       {
-        return buildMethodCall( buildMethodCall( List.class, "set", Object.class, new Class[]{int.class, Object.class},
+        ret = buildMethodCall( buildMethodCall( List.class, "set", Object.class, new Class[]{int.class, Object.class},
                                                  buildCast( getDescriptor( List.class ), root ), Arrays.asList( index, value ) ) );
       }
       else if( JavaTypes.STRING_BUILDER().isAssignableFrom( rootType ) )
       {
-        return buildMethodCall( buildMethodCall( StringBuilder.class, "setCharAt", void.class, new Class[]{int.class, char.class},
+        ret = buildMethodCall( buildMethodCall( StringBuilder.class, "setCharAt", void.class, new Class[]{int.class, char.class},
                                                  buildCast( getDescriptor( StringBuilder.class ), root ), Arrays.asList( index, value ) ) );
+      }
+      else if( rootType instanceof IPlaceholder )
+      {
+        ret = buildMethodCall(
+          callStaticMethod( ArrayAssignmentStatementTransformer.class, "setPropertyOrElementOnDynamicType", new Class[]{Object.class, Object.class, Object.class},
+                            exprList( root, index, value ) ) );
       }
       else
       {
-        return buildMethodCall(
+        ret = buildMethodCall(
           callStaticMethod( ArrayAssignmentStatementTransformer.class, "setArrayElement", new Class[]{Object.class, int.class, Object.class},
                             exprList( root, index, value ) ) );
       }
+      if( _stmt().isCompoundStatement() )
+      {
+        ExpressionTransformer.clearTempSymbolForCompoundAssignment();
+        return new IRStatementList( false, buildAssignment( tempRoot, originalRoot ), buildAssignment( tempIndex, originalIndex ), ret );
+      }
+      return ret;
     }
   }
 
@@ -110,6 +141,82 @@ public class ArrayAssignmentStatementTransformer extends AbstractStatementTransf
       return ArrayAccess.needsAutoinsert((ArrayAccess) arrayAccess.getRootExpression());
     } else {
       return false;
+    }
+  }
+
+  public static void setPropertyOrElementOnDynamicType( Object obj, Object index, Object value )
+  {
+    if( obj == null )
+    {
+      throw new NullPointerException();
+    }
+
+    if( index instanceof Number )
+    {
+      if( obj instanceof Map )
+      {
+        ((Map)obj).put( index, value );
+      }
+      else if( obj.getClass().isArray() )
+      {
+        Array.set( obj, ((Number)index).intValue(), value );
+      }
+      else if( obj instanceof List )
+      {
+        ((List)obj).set( ((Number)index).intValue(), value );
+      }
+      else if( obj instanceof StringBuilder )
+      {
+        if( value instanceof Character )
+        {
+          ((StringBuilder)obj).setCharAt( ((Number)index).intValue(), (Character)value );
+        }
+        else if( value instanceof Number )
+        {
+          ((StringBuilder)obj).setCharAt( ((Number)index).intValue(), (char)((Number)value).intValue() );
+        }
+        else
+        {
+          replaceAt( (StringBuilder)obj, (Number)index, value );
+        }
+      }
+      else
+      {
+        IType classObj = TypeLoaderAccess.instance().getIntrinsicTypeFromObject( obj );
+        if( classObj.isArray() )
+        {
+          value = CommonServices.getCoercionManager().convertValue( value, classObj.getComponentType() );
+          classObj.setArrayComponent( obj, ((Number)index).intValue(), value );
+        }
+        else
+        {
+          throw new UnsupportedOperationException( "Don't know how to assign [" + value + "] to [" + obj + "] at index [" + index  + "]" );
+        }
+      }
+    }
+    else if( obj instanceof Map )
+    {
+      ((Map)obj).put( index, value );
+    }
+    else
+    {
+      GosuRuntimeMethods.setPropertyDynamically( obj, index.toString(), value );
+    }
+  }
+
+  private static void replaceAt( StringBuilder obj, Number index, Object value )
+  {
+    int start = index.intValue();
+    int end = start + ((CharSequence)value).length();
+    if( end <= obj.length() )
+    {
+      obj.replace( start, end, value.toString() );
+    }
+    else
+    {
+      obj.delete( start, obj.length() );
+      String s = value.toString();
+      obj.append( s );
     }
   }
 

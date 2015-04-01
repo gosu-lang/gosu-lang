@@ -48,4 +48,8 @@ class Errant_PrivateAccessModifier {
       m6()
     }
   }
+
+  function testObvious() {
+    var array = "".value  //## issuekeys: MSG_NO_PROPERTY_DESCRIPTOR_FOUND
+  }
 }

@@ -507,9 +507,19 @@ public class StandardCoercionManagerTest extends TestClass
     try {
       GosuTestUtil.evalGosu("var x = String as gw.internal.gosu.parser.GosuClass");
       Assert.fail("Should not have been able to coerce Type<String> to GosuClass");
-    } catch (ClassCastException e) {
+    } catch (ParseResultsException e) {
       // pass
     }
+
+    try {
+      GosuTestUtil.evalGosu("var x = String as gw.lang.reflect.gs.IGosuClass");
+      Assert.fail("Should not have been able to coerce Type<String> to IGosuClass");
+    } catch (ParseResultsException e) {
+      // pass
+    }
+
+    GosuTestUtil.evalGosu("var x = String as gw.lang.reflect.java.IJavaType");
+    // pass
   }
 
   public void testMetaTypeNotCoercedToWrongTypeTypeDynamically() {

@@ -194,9 +194,16 @@ public class AbstractGenericMethodInfo extends GosuBaseAttributedFeatureInfo imp
     {
       IType inferredType = map.getRaw( s );
       IType boundingType = actualParamByVarName.getRaw( s );
-      if( boundingType != null && !boundingType.isAssignableFrom( inferredType ) )
+      if( boundingType != null )
       {
-        map.putRaw( s, boundingType );
+        if( boundingType.isParameterizedType() && TypeLord.isRecursiveType( boundingType, boundingType.getTypeParameters() ) )
+        {
+          boundingType = TypeLord.getPureGenericType( boundingType );
+        }
+        if( !boundingType.isAssignableFrom( inferredType ) )
+        {
+          map.putRaw( s, boundingType );
+        }
       }
     }
   }

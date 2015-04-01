@@ -16,6 +16,8 @@ an array whose element type ``t`` is a subtype of ``u``. If ``u`` is a
 primitive type, then ``t`` must equal ``u``.
 
 
+.. _arrayCreationAndAccess:
+
 Array Creation and Access
 =========================
 

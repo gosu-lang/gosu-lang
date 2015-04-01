@@ -31,6 +31,7 @@ import com.intellij.util.ReflectionUtil;
 import com.intellij.util.messages.MessageBusConnection;
 import com.intellij.util.ui.UIUtil;
 import gw.config.CommonServices;
+import gw.config.ExecutionMode;
 import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.module.IModule;
 import gw.lang.reflect.module.IProject;
@@ -287,7 +288,7 @@ public class PluginLoaderUtil {
   }
 
   private boolean hasRanPreviously() {
-    return CommonServices.getPlatformHelper().isInIDE();
+    return ExecutionMode.isIDE();
   }
 
   public void closeProject(PluginFailureReason failureReason) {

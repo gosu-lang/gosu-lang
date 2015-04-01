@@ -26,7 +26,7 @@ import java.util.Set;
  * It also captures state information for use by our parser e.g., current token
  * location, line number and column.
  */
-public class SourceCodeTokenizerInternal
+final public class SourceCodeTokenizerInternal
 {
   protected static final int CT_WHITESPACE = 1;
   protected static final int CT_DIGIT = 2;

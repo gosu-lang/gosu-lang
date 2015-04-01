@@ -37,6 +37,7 @@ public final class ArrayAssignmentStatement extends Statement implements IArrayA
    * The right-hand-side expression
    */
   protected Expression _expression;
+  private boolean _compoundStatement;
 
 
   public ArrayAssignmentStatement()
@@ -94,6 +95,16 @@ public final class ArrayAssignmentStatement extends Statement implements IArrayA
   public String toString()
   {
     return getArrayAccessExpression().toString() + " = " + getExpression().toString();
+  }
+
+  public void setCompoundStatement( boolean compoundStatement )
+  {
+    _compoundStatement = compoundStatement;
+  }
+
+  public boolean isCompoundStatement()
+  {
+    return _compoundStatement;
   }
 
 }

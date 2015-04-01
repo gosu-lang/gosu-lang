@@ -10,7 +10,7 @@ import java.io.File;
 
 public interface IPlatformHelper extends IService {
 
-  boolean isInIDE();
+  ExecutionMode getExecutionMode();
 
   boolean shouldCacheTypeNames();
 

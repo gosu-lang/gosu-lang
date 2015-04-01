@@ -3,7 +3,7 @@ package gw.specification.expressions.arithmeticOperators
 uses gw.BaseVerifyErrantTest
 uses java.lang.Double
 uses java.lang.ArithmeticException
-uses gw.specification.expressions.TestDim
+uses gw.specification.dimensions.p0.TestDim
 
 class ArithmeticOperatorsTest extends BaseVerifyErrantTest {
   function testErrant_ArithmeticOperatorsTest() {
@@ -29,6 +29,7 @@ class ArithmeticOperatorsTest extends BaseVerifyErrantTest {
     var a = new TestDim(10)
     var b = new TestDim(2)
     var c = new TestDim(0)
+    var d = new TestDim(3)
 
     c = a+b
     assertEquals(c.toNumber(), 12)
@@ -38,10 +39,16 @@ class ArithmeticOperatorsTest extends BaseVerifyErrantTest {
     assertEquals(c.toNumber(), 20)
     c = a/b
     assertEquals(c.toNumber(), 5)
+    c = a%d
+    assertEquals(c.toNumber(), 1)
     c = a*2
     assertEquals(c.toNumber(), 20)
+    c = a*3.5
+    assertEquals(c.toNumber(), 30)
     c = a/2
     assertEquals(c.toNumber(), 5)
+    c = a/3.5
+    assertEquals(c.toNumber(), 3)
   }
 
   function testBasicDouble() {

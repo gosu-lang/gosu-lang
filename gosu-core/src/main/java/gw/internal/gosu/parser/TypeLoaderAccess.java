@@ -6,6 +6,7 @@ package gw.internal.gosu.parser;
 
 import gw.config.BaseService;
 import gw.config.CommonServices;
+import gw.config.ExecutionMode;
 import gw.fs.IFile;
 import gw.fs.IResource;
 import gw.internal.gosu.compiler.SingleServingGosuClassLoader;
@@ -125,7 +126,7 @@ public class TypeLoaderAccess extends BaseService implements ITypeSystem
 
   public Module getCurrentModule()
   {
-    if( TypeSystem.isSingleModuleMode() )
+    if( !ExecutionMode.isIDE() )
     {
       return (Module)TypeSystem.getGlobalModule();
     }
@@ -384,18 +385,20 @@ public class TypeLoaderAccess extends BaseService implements ITypeSystem
   public IType getTypeByRelativeNameIfValid_NoGenerics(String relativeName, ITypeUsesMap typeUses)
   {
     IType type;
-    IType defaultType = getDefaultType(relativeName);
-    if( defaultType != null )
-    {
-      return defaultType;
-    }
     if( typeUses != null )
     {
       // Then if we have a type uses map and we are resolving let it try
       type = typeUses.resolveType(relativeName);
-    } else {
-      // Else just ask for it by full name
+    }
+    else
+    {
+      // ask for it by full name
       type = getByFullNameIfValid(relativeName);
+    }
+
+    if( type == null )
+    {
+      type = getDefaultType(relativeName);
     }
     return type;
   }
@@ -780,14 +783,14 @@ public class TypeLoaderAccess extends BaseService implements ITypeSystem
     typeMap.put( "void",    new TypeGetter() { public IType get() { return JavaType.get(Void.TYPE, _getDefaultLoader()); }} );
 
     // build-in types
-    typeMap.put( "Number",  new TypeGetter() { public IType get() { return JavaType.get(Double.class, _getDefaultLoader()); }} );
-    typeMap.put( "String",  new TypeGetter() { public IType get() { return JavaType.get(String.class, _getDefaultLoader()); }} );
-    typeMap.put( "Boolean", new TypeGetter() { public IType get() { return JavaType.get(Boolean.class, _getDefaultLoader()); }} );
-    typeMap.put( "DateTime",new TypeGetter() { public IType get() { return JavaType.get(Date.class, _getDefaultLoader()); }} );
-    typeMap.put( "List",    new TypeGetter() { public IType get() { return JavaType.get(List.class, _getDefaultLoader()); }} );
-    typeMap.put( "Object",  new TypeGetter() { public IType get() { return JavaType.get(Object.class, _getDefaultLoader()); }} );
-    typeMap.put( "Array",   new TypeGetter() { public IType get() { return JavaType.get(Object.class, _getDefaultLoader()).getArrayType(); }} );
-    typeMap.put( "Bean",    new TypeGetter() { public IType get() { return JavaType.get(Object.class, _getDefaultLoader()); }} );
+    typeMap.put( "Number",  new TypeGetter() { public IType get() { return JavaTypes.DOUBLE(); }} );
+    typeMap.put( "String",  new TypeGetter() { public IType get() { return JavaTypes.STRING(); }} );
+    typeMap.put( "Boolean", new TypeGetter() { public IType get() { return JavaTypes.BOOLEAN(); }} );
+    typeMap.put( "DateTime",new TypeGetter() { public IType get() { return JavaTypes.DATE(); }} );
+    typeMap.put( "List",    new TypeGetter() { public IType get() { return JavaTypes.LIST(); }} );
+    typeMap.put( "Object",  new TypeGetter() { public IType get() { return JavaTypes.OBJECT(); }} );
+    typeMap.put( "Array",   new TypeGetter() { public IType get() { return JavaTypes.OBJECT().getArrayType(); }} );
+    typeMap.put( "Bean",    new TypeGetter() { public IType get() { return JavaTypes.OBJECT(); }} );
     typeMap.put( "Type",    new TypeGetter() { public IType get() { return MetaType.ROOT_TYPE_TYPE.get(); }} );
     typeMap.put( "Key",     new TypeGetter() { public IType get() { return TypeSystem.getKeyType(); }} );
   }
@@ -1225,10 +1228,6 @@ public class TypeLoaderAccess extends BaseService implements ITypeSystem
     pushTypeLoader(null, loader);
   }
 
-  public boolean areBeansEqual(Object o1, Object o2) {
-    return BeanAccess.areBeansEqual(o1, o2);
-  }
-
   public void pushIncludeAll() {
     GosuClassTypeInfo.pushIncludeAll();
   }
@@ -1310,6 +1309,11 @@ public class TypeLoaderAccess extends BaseService implements ITypeSystem
     if( lhsType != null ) {
       // Support explicit downcast
 
+      if( lhsType instanceof IMetaType && rhsType instanceof IMetaType ) {
+        // unwrap metatypes
+        return canCast( ((IMetaType)lhsType).getType(), ((IMetaType)rhsType).getType() );
+      }
+
       if( lhsType.isAssignableFrom( rhsType ) ) {
         return true;
       }
@@ -1322,6 +1326,35 @@ public class TypeLoaderAccess extends BaseService implements ITypeSystem
       }
       else if( lhsType.isInterface() && ((!rhsType.isFinal() && !rhsType.isPrimitive() && !(rhsType instanceof IFunctionType) && !(rhsType.isArray()) && !genericInterfacesClash( lhsType, rhsType))) ) {
         return true;
+      }
+      else if( lhsType == JavaTypes.OBJECT() && rhsType.isPrimitive() && rhsType != JavaTypes.pVOID() )
+      {
+        return true;
+      }
+      else if( lhsType.isParameterizedType() && rhsType.isParameterizedType() ) {
+        boolean bRawAssignable = rhsType.getGenericType().isAssignableFrom( lhsType.getGenericType() );
+        if( bRawAssignable || canCast( lhsType.getGenericType(), rhsType.getGenericType() ) ) {
+          IType compatibleRhsType;
+          if( bRawAssignable ) {
+            compatibleRhsType = rhsType;
+          }
+          else {
+            compatibleRhsType = TypeLord.findParameterizedType( rhsType, lhsType.getGenericType() );
+            if( compatibleRhsType == null ) {
+              return false;
+              //throw new IllegalStateException(); // generic types are assignable, so there must be a corresponding compatible type
+            }
+          }
+          IType[] lhsParams = lhsType.getTypeParameters();
+          IType[] rhsParams = compatibleRhsType.getTypeParameters();
+          for( int i = 0; i < lhsParams.length; i++ ) {
+            if( !rhsParams[i].isAssignableFrom( lhsParams[i] ) &&
+                !canCast( lhsParams[i], rhsParams[i] ) ) {
+              return false;
+            }
+          }
+          return true;
+        }
       }
     }
     return false;
@@ -1340,9 +1373,10 @@ public class TypeLoaderAccess extends BaseService implements ITypeSystem
   }
 
   private boolean canCastMetaType( IType lhsType, IType rhsType ) {
-    return rhsType instanceof IGosuClass && ((IGosuClass)rhsType).isStructure() &&
+    return (lhsType instanceof IMetaType && ((IMetaType) lhsType).getType() instanceof ITypeVariableType && canCast( ((ITypeVariableType) ((IMetaType) lhsType).getType()).getBoundingType(), rhsType )) ||
+      (rhsType instanceof IGosuClass && ((IGosuClass)rhsType).isStructure() &&
            (lhsType instanceof IMetaType && StandardCoercionManager.isStructurallyAssignable( rhsType, ((IMetaType) lhsType).getType() ) ||
-            JavaTypes.CLASS().isAssignableFrom( lhsType ) && (!lhsType.isParameterizedType() || StandardCoercionManager.isStructurallyAssignable( rhsType, lhsType.getTypeParameters()[0] )));
+            JavaTypes.CLASS().isAssignableFrom( lhsType ) && (!lhsType.isParameterizedType() || StandardCoercionManager.isStructurallyAssignable( rhsType, lhsType.getTypeParameters()[0] ))));
   }
 
   public IJavaType getPrimitiveType(String name) {
@@ -1415,11 +1449,6 @@ public class TypeLoaderAccess extends BaseService implements ITypeSystem
   @Override
   public IMetaType getDefaultType() {
     return (IMetaType) MetaType.DEFAULT_TYPE_TYPE.get();
-  }
-
-  @Override
-  public boolean isSingleModuleMode() {
-    return ExecutionEnvironment.isDefaultSingleModuleMode();
   }
 
 }

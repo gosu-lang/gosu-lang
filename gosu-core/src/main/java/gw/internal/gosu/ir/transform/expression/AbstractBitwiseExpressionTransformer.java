@@ -43,7 +43,9 @@ public abstract class AbstractBitwiseExpressionTransformer<T extends ArithmeticE
                                        " lhs=" + _expr().getLHS().getType().getName() +
                                        " rhs=" + _expr().getRHS().getType().getName() );
     }
-    if( _expr().getLHS().getType() != JavaTypes.pINT() && _expr().getLHS().getType() != JavaTypes.pLONG() )
+    if( _expr().getLHS().getType() != JavaTypes.pINT() &&
+        _expr().getLHS().getType() != JavaTypes.pLONG() &&
+        _expr().getLHS().getType() != JavaTypes.pBOOLEAN() )
     {
       throw new IllegalStateException( "Operands must be int or long, found: " + _expr().getLHS().getType().getName() );
     }

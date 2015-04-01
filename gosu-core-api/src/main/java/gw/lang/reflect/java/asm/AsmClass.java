@@ -67,10 +67,8 @@ public class AsmClass implements IAsmType, IGeneric {
   private List<AsmAnnotation> _annotations;
 
 
-  AsmClass( Object module, byte[] classBytes ) {
+  AsmClass( Object module ) {
     _module = module;
-    ClassReader cr = new ClassReader( classBytes );
-    cr.accept( new AsmClassVisitor(), ClassReader.SKIP_CODE | ClassReader.SKIP_DEBUG | ClassReader.SKIP_FRAMES );
   }
 
   private AsmClass( AsmPrimitiveType ptype ) {
@@ -83,7 +81,12 @@ public class AsmClass implements IAsmType, IGeneric {
     _methodsAndCtors = Collections.emptyList();
     _annotations = Collections.emptyList();
   }
-  
+
+  public void init( byte[] classBytes ) {
+    ClassReader cr = new ClassReader( classBytes );
+    cr.accept( new AsmClassVisitor(), ClassReader.SKIP_CODE | ClassReader.SKIP_DEBUG | ClassReader.SKIP_FRAMES );
+  }
+
   public AsmType getType() {
     return _type;
   }
@@ -102,6 +105,9 @@ public class AsmClass implements IAsmType, IGeneric {
 
   public AsmType getSuperClass() {
     return _superClass;
+  }
+  public void setSuperClass( AsmType type ) {
+    _superClass = type;
   }
 
   public Map<String, AsmInnerClassType> getInnerClasses() {
@@ -243,7 +249,7 @@ public class AsmClass implements IAsmType, IGeneric {
 
     @Override
     public void visit( int version, int access, String name, String signature, String superName, String[] interfaces ) {
-      _type = AsmUtil.makeType( name );
+      _type = AsmUtil.makeNonPrimitiveType(name);
       AsmClass outerClass = ensureOuterIsLoadedFirst(); // barf
       _version = version;
       _modifiers = access;
@@ -329,7 +335,9 @@ public class AsmClass implements IAsmType, IGeneric {
       AsmField field = new AsmField( AsmClass.this, access, name, desc, value );
       if( signature != null ) {
         SignatureReader sr = new SignatureReader( signature );
-        sr.accept( new FieldSignatureVisitor( field ) );
+        DeclarationPartSignatureVisitor visitor = new DeclarationPartSignatureVisitor();
+        sr.accept( visitor );
+        field.setType( visitor.getCurrentType() );
       }
       addField( field );
       return new FieldDeclarationVisitor( field );
@@ -340,7 +348,9 @@ public class AsmClass implements IAsmType, IGeneric {
       AsmMethod method = new AsmMethod( AsmClass.this, access, name, desc, exceptions );
       if( signature != null ) {
         SignatureReader sr = new SignatureReader( signature );
-        sr.accept( new MethodDeclarationSignatureVisitor( method, method.getMethodType() ) );
+        MethodDeclarationSignatureVisitor visitor = new MethodDeclarationSignatureVisitor( method );
+        sr.accept( visitor );
+        method.update( visitor.getParamVisitors(), visitor.getReturnVisitor(), visitor.getExceptionVisitors() );
       }
       addMethod( method );
       return new MethodDeclarationVisitor( method );
@@ -353,8 +363,9 @@ public class AsmClass implements IAsmType, IGeneric {
     private void assignGenericInfo( String signature ) {
       if( signature != null ) {
         SignatureReader sr = new SignatureReader( signature );
-        sr.accept( new TypeDeclarationSignatureVisitor( AsmClass.this, _type ) );
-
+        TypeDeclarationSignatureVisitor visitor = new TypeDeclarationSignatureVisitor( AsmClass.this );
+        sr.accept( visitor );
+        visitor.update();
       }
     }
 

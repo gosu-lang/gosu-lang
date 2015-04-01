@@ -96,7 +96,7 @@ public class Res
   public static final ResourceKey MSG_DUPLICATE_CASE_EXPRESSION = new ResourceKey("MSG_DUPLICATE_CASE_EXPRESSION");
   public static final ResourceKey MSG_EXPECTING_COLON_TERNARY = new ResourceKey("MSG_EXPECTING_COLON_TERNARY");
   public static final ResourceKey MSG_EXPECTING_REFERENCE_TYPE = new ResourceKey("MSG_EXPECTING_REFERENCE_TYPE");  
-  public static final ResourceKey MSG_TYPE_MISMATCH_IN_CONDIITIONAL_EXP = new ResourceKey("MSG_TYPE_MISMATCH_IN_CONDIITIONAL_EXP");
+  public static final ResourceKey MSG_LOSS_OF_PRECISION_IN_CONDITIONAL_EXP = new ResourceKey("MSG_LOSS_OF_PRECISION_IN_CONDITIONAL_EXP");
   public static final ResourceKey MSG_EXPECTING_IDENTIFIER_VAR = new ResourceKey("MSG_EXPECTING_IDENTIFIER_VAR");
   public static final ResourceKey MSG_EXPECTING_VAR_STMT = new ResourceKey("MSG_EXPECTING_VAR_STMT");
   public static final ResourceKey MSG_EXPECTING_TYPELITERAL = new ResourceKey("MSG_EXPECTING_TYPELITERAL");
@@ -174,6 +174,8 @@ public class Res
   public static final ResourceKey MSG_VOID_NOT_ALLOWED = new ResourceKey("MSG_VOID_NOT_ALLOWED");
   public static final ResourceKey MSG_FUNCTIONS_NOT_ALLOWED_IN_THIS_CONTEXT =new ResourceKey( "MSG_FUNCTIONS_NOT_ALLOWED_IN_THIS_CONTEXT" );
   public static final ResourceKey MSG_CONSTRUCTORS_NOT_ALLOWD_IN_THIS_CONTEXT =new ResourceKey( "MSG_CONSTRUCTORS_NOT_ALLOWD_IN_THIS_CONTEXT" );
+  public static final ResourceKey MSG_SINGLE_ANON_CTOR =new ResourceKey( "MSG_SINGLE_ANON_CTOR" );
+  public static final ResourceKey MSG_ANON_CTOR_PARAMS_CONFLICT_WITH_CALL_SITE =new ResourceKey( "MSG_ANON_CTOR_PARAMS_CONFLICT_WITH_CALL_SITE" );
   public static final ResourceKey MSG_INNER_CLASSES_NOT_ALLOWED_IN_THIS_CONTEXT =new ResourceKey( "MSG_INNER_CLASSES_NOT_ALLOWED_IN_THIS_CONTEXT" );
   public static final ResourceKey MSG_VARIABLE_ALREADY_DEFINED = new ResourceKey("MSG_VARIABLE_ALREADY_DEFINED");
   public static final ResourceKey MSG_VARIABLE_REQUEST_DOES_NOT_ALLOW_VALUE = new ResourceKey("MSG_VARIABLE_REQUEST_DOES_NOT_ALLOW_VALUE");
@@ -382,6 +384,7 @@ public class Res
   public static final ResourceKey USING_INTERNAL_CLASS = new ResourceKey( "USING_INTERNAL_CLASS" );
   public static final ResourceKey MSG_FUNCTION_DECL_MISSING = new ResourceKey( "MSG_FUNCTION_DECL_MISSING" );
   public static final ResourceKey MSG_EXPECTING_DEFAULT_VALUE = new ResourceKey( "MSG_EXPECTING_DEFAULT_VALUE" );
+  public static final ResourceKey MSG_DEFAULT_VALUE_NOT_ALLOWED = new ResourceKey( "MSG_DEFAULT_VALUE_NOT_ALLOWED" );
   public static final ResourceKey MSG_COMPILE_TIME_CONSTANT_REQUIRED = new ResourceKey( "MSG_COMPILE_TIME_CONSTANT_REQUIRED" );
   public static final ResourceKey MSG_OVERLOADING_NOT_ALLOWED_WITH_OPTIONAL_PARAMS = new ResourceKey( "MSG_OVERLOADING_NOT_ALLOWED_WITH_OPTIONAL_PARAMS" );
   public static final ResourceKey MSG_MISSING_REQUIRED_ARGUMENTS = new ResourceKey( "MSG_MISSING_REQUIRED_ARGUMENTS" );
@@ -391,7 +394,6 @@ public class Res
   public static final ResourceKey MSG_PARAM_NOT_FOUND = new ResourceKey( "MSG_PARAM_NOT_FOUND" );
   public static final ResourceKey MSG_PARAMETERIZED_ARRAY_COMPONENT = new ResourceKey( "MSG_PARAMETERIZED_ARRAY_COMPONENT" );
   public static final ResourceKey MSG_CANNOT_EXTEND_RAW_GENERIC_TYPE = new ResourceKey( "MSG_CANNOT_EXTEND_RAW_GENERIC_TYPE" );
-  public static final ResourceKey MSG_SUPER_CLASS_METHOD_NAME_SAME_AS_SUBCLASS = new ResourceKey( "MSG_SUPER_CLASS_METHOD_NAME_SAME_AS_SUBCLASS" );
   public static final ResourceKey MSG_EXPECTING_TYPE_TO_FOLLOW_PACKAGE_NAME = new ResourceKey( "MSG_EXPECTING_TYPE_TO_FOLLOW_PACKAGE_NAME" );
   public static final ResourceKey MSG_CANNOT_REFERENCE_OUTER_SYMBOL_WITHIN_ENHANCEMENTS = new ResourceKey( "MSG_CANNOT_REFERENCE_OUTER_SYMBOL_WITHIN_ENHANCEMENTS" );
   public static final ResourceKey MSG_CANNOT_REFERENCE_ENCLOSING_PROPERTIES_WITHIN_ENHANCEMENTS = new ResourceKey( "MSG_CANNOT_REFERENCE_ENCLOSING_PROPERTIES_WITHIN_ENHANCEMENTS" );
@@ -401,6 +403,7 @@ public class Res
   public static final ResourceKey MSG_LOSS_OF_PRECISION_IN_NUMERIC_LITERAL = new ResourceKey( "MSG_LOSS_OF_PRECISION_IN_NUMERIC_LITERAL");
   public static final ResourceKey MSG_PROPERTIES_MUST_AGREE_ON_STATIC_MODIFIERS = new ResourceKey( "MSG_PROPERTIES_MUST_AGREE_ON_STATIC_MODIFIERS");
   public static final ResourceKey MSG_PROPERTIES_MUST_AGREE_ON_TYPE = new ResourceKey( "MSG_PROPERTIES_MUST_AGREE_ON_TYPE");
+  public static final ResourceKey MSG_PROPERTY_OVERRIDES_WITH_INCOMPATIBLE_TYPE = new ResourceKey( "MSG_PROPERTY_OVERRIDES_WITH_INCOMPATIBLE_TYPE");
   public static final ResourceKey MSG_NO_ENCLOSING_INSTANCE_IN_SCOPE = new ResourceKey( "MSG_NO_ENCLOSING_INSTANCE_IN_SCOPE" );
   public static final ResourceKey MSG_EXPECTING_CONDITION_FOR_ASSERT = new ResourceKey( "MSG_EXPECTING_CONDITION_FOR_ASSERT" );
   public static final ResourceKey MSG_EXPECTING_MESSAGE_FOR_ASSERT = new ResourceKey( "MSG_EXPECTING_MESSAGE_FOR_ASSERT" );
@@ -418,10 +421,13 @@ public class Res
   public static final ResourceKey MSG_FL_CONSTRUCTOR_NOT_FOUND = new ResourceKey( "MSG_FL_CONSTRUCTOR_NOT_FOUND");
   public static final ResourceKey MSG_FL_METHOD_NOT_FOUND = new ResourceKey( "MSG_FL_METHOD_NOT_FOUND");
   public static final ResourceKey MSG_FL_PROPERTY_NOT_FOUND = new ResourceKey( "MSG_FL_PROPERTY_NOT_FOUND");
+  public static final ResourceKey MSG_FL_ONLY_PROPERTIES_MAY_BE_CHAINED = new ResourceKey( "MSG_FL_ONLY_PROPERTIES_MAY_BE_CHAINED");
   public static final ResourceKey MSG_FL_STATIC_FEATURES_MUST_BE_REFERENCED_FROM_THEIR_TYPES = new ResourceKey( "MSG_FL_STATIC_FEATURES_MUST_BE_REFERENCED_FROM_THEIR_TYPES");
 
 
   public static final ResourceKey MSG_ARRAY_INDEX_MUST_BE_INT = new ResourceKey( "MSG_ARRAY_INDEX_MUST_BE_INT");
+
+  public static final ResourceKey MSG_AMBIGUOUS_SYMBOL_REFERENCE = new ResourceKey( "MSG_AMBIGUOUS_SYMBOL_REFERENCE");
 
   // Web service errors
   public static final ResourceKey WSDL_DUPLICATE_WEB_SERVICE = new ResourceKey("WSDL_DUPLICATE_WEB_SERVICE");
