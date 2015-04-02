@@ -20,11 +20,13 @@ import gw.lang.reflect.module.IExecutionEnvironment;
 import gw.lang.reflect.module.IFileSystem;
 import gw.lang.reflect.module.IModule;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.PrintStream;
 import java.lang.reflect.Constructor;
 import java.nio.channels.FileChannel;
 import java.util.Collections;
@@ -101,12 +103,16 @@ public class GosuCompiler implements IGosuCompiler {
         }
       }
       createClassFile(child, gsClass, driver);
+      maybeCopySourceFile(child.getParentFile(), gsClass, _compilingSourceFile, driver);
     } catch (Exception e) {
-      e.printStackTrace();
-      driver.sendCompileIssue(_compilingSourceFile, ERROR, 0, 0, 0, combine("Cannot create .class files.", toMessage(e)));
+      driver.sendCompileIssue(_compilingSourceFile, ERROR, 0, 0, 0, combine("Cannot create .class files.", getStackTarce(e)));
     }
+  }
 
-    maybeCopySourceFile(child.getParentFile(), gsClass, _compilingSourceFile, driver);
+  public static String getStackTarce(Throwable e) {
+    ByteArrayOutputStream out = new ByteArrayOutputStream();
+    e.printStackTrace(new PrintStream(out));
+    return out.toString();
   }
 
   private String toMessage(Throwable e) {
