@@ -104,12 +104,12 @@ public class GosuCompiler implements IGosuCompiler {
       }
       createClassFile(child, gsClass, driver);
       maybeCopySourceFile(child.getParentFile(), gsClass, _compilingSourceFile, driver);
-    } catch (Exception e) {
-      driver.sendCompileIssue(_compilingSourceFile, ERROR, 0, 0, 0, combine("Cannot create .class files.", getStackTarce(e)));
+    } catch (Throwable e) {
+      driver.sendCompileIssue(_compilingSourceFile, ERROR, 0, 0, 0, combine("Cannot create .class files.", getStackTrace(e)));
     }
   }
 
-  public static String getStackTarce(Throwable e) {
+  public static String getStackTrace(Throwable e) {
     ByteArrayOutputStream out = new ByteArrayOutputStream();
     e.printStackTrace(new PrintStream(out));
     return out.toString();
