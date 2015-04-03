@@ -16,35 +16,35 @@ class TypeofPrecedenceTest extends PrecedenceTestBase {
     assertEquals("int", typeof 5 as String)
     assertEquals(String.Type, statictypeof(typeof 5 as String))
     assertEquals(String.Type, typeof (5 as String))
-    assertEquals("Type<gw.internal.gosu.parser.MetaType.DefaultType>", statictypeof(typeof (5 as String)) as String )
+    assertEquals("Type<java.lang.Object>", statictypeof(typeof (5 as String)) as String )
   }
 
   // Multiplicative
 
   function testTypeofIsHigherPrecedenceThanMultiplication() {
-    assertParseError("typeof 5 * 3", "The type \"Type<gw.internal.gosu.parser.MetaType.DefaultType>\" cannot be converted to \"int\"")
+    assertParseError("typeof 5 * 3", "The type \"Type<java.lang.Object>\" cannot be converted to \"int\"")
     assertEquals(int.Type, typeof (5 * 3))
   }
 
   function testTypeofIsHigherPrecedenceThanDivision() {
-    assertParseError("typeof 5 / 2", "The type \"Type<gw.internal.gosu.parser.MetaType.DefaultType>\" cannot be converted to \"int\"")
+    assertParseError("typeof 5 / 2", "The type \"Type<java.lang.Object>\" cannot be converted to \"int\"")
     assertEquals(int.Type, typeof (5 / 2))
   }
 
   function testTypeofIsHigherPrecedenceThanRemainder() {
-    assertParseError("typeof 5 % 2", "The type \"Type<gw.internal.gosu.parser.MetaType.DefaultType>\" cannot be converted to \"int\"")
+    assertParseError("typeof 5 % 2", "The type \"Type<java.lang.Object>\" cannot be converted to \"int\"")
     assertEquals(int.Type, typeof (5 % 2))
   }
 
   // Additive
 
   function testTypeofIsHigherPrecedenceThanAddition() {
-    assertParseError("typeof 5 + 6", "The type \"Type<gw.internal.gosu.parser.MetaType.DefaultType>\" cannot be converted to \"int\"")
+    assertParseError("typeof 5 + 6", "The type \"Type<java.lang.Object>\" cannot be converted to \"int\"")
     assertEquals(int.Type, typeof (5 + 6))
   }
 
   function testTypeofIsHigherPrecedenceThanSubtraction() {
-    assertParseError("typeof 5 - 6", "The type \"Type<gw.internal.gosu.parser.MetaType.DefaultType>\" cannot be converted to \"int\"")
+    assertParseError("typeof 5 - 6", "The type \"Type<java.lang.Object>\" cannot be converted to \"int\"")
     assertEquals(int.Type, typeof (5 - 6))
   }
 
@@ -68,22 +68,22 @@ class TypeofPrecedenceTest extends PrecedenceTestBase {
   // Relational
 
   function testTypeofIsHigherPrecedenceThanLessThan() {
-    assertParseError("typeof 5 < 2", "The type \"int\" cannot be converted to \"Type<gw.internal.gosu.parser.MetaType.DefaultType>\"")
+    assertParseError("typeof 5 < 2", "The type \"int\" cannot be converted to \"Type<java.lang.Object>\"")
     assertEquals(boolean.Type, typeof (5 < 2))
   }
 
   function testTypeofIsHigherPrecedenceThanLessThanOrEquals() {
-    assertParseError("typeof 5 <= 2", "The type \"int\" cannot be converted to \"Type<gw.internal.gosu.parser.MetaType.DefaultType>\"")
+    assertParseError("typeof 5 <= 2", "The type \"int\" cannot be converted to \"Type<java.lang.Object>\"")
     assertEquals(boolean.Type, typeof (5 <= 2))
   }
 
   function testTypeofIsHigherPrecedenceThanGreaterThan() {
-    assertParseError("typeof 5 > 2", "The type \"int\" cannot be converted to \"Type<gw.internal.gosu.parser.MetaType.DefaultType>\"")
+    assertParseError("typeof 5 > 2", "The type \"int\" cannot be converted to \"Type<java.lang.Object>\"")
     assertEquals(boolean.Type, typeof (5 > 2))
   }
 
   function testTypeofIsHigherPrecedenceThanGreaterThanOrEquals() {
-    assertParseError("typeof 5 >= 2", "The type \"int\" cannot be converted to \"Type<gw.internal.gosu.parser.MetaType.DefaultType>\"")
+    assertParseError("typeof 5 >= 2", "The type \"int\" cannot be converted to \"Type<java.lang.Object>\"")
     assertEquals(boolean.Type, typeof (5 >= 2))
   }
 
@@ -95,12 +95,12 @@ class TypeofPrecedenceTest extends PrecedenceTestBase {
   // Equality
 
   function testTypeofIsHigherPrecedenceThanEquals() {
-    assertParseError("typeof 5 == 5", "The type \"int\" cannot be converted to \"Type<gw.internal.gosu.parser.MetaType.DefaultType>\"")
+    assertParseError("typeof 5 == 5", "The type \"int\" cannot be converted to \"Type<java.lang.Object>\"")
     assertEquals(boolean.Type, typeof (5 == 5))
   }
 
   function testTypeofIsHigherPrecedenceThanNotEquals() {
-    assertParseError("typeof 5 != 5", "The type \"int\" cannot be converted to \"Type<gw.internal.gosu.parser.MetaType.DefaultType>\"")
+    assertParseError("typeof 5 != 5", "The type \"int\" cannot be converted to \"Type<java.lang.Object>\"")
     assertEquals(boolean.Type, typeof (5 != 5))
   }
 
@@ -112,7 +112,7 @@ class TypeofPrecedenceTest extends PrecedenceTestBase {
   // Bitwise AND
 
   function testTypeofIsHigherPrecedenceThanBitwiseAnd() {
-    assertParseError("typeof 5 & 7", "The type \"int\" cannot be converted to \"Type<gw.internal.gosu.parser.MetaType.DefaultType>\"")
+    assertParseError("typeof 5 & 7", "The type \"int\" cannot be converted to \"Type<java.lang.Object>\"")
     assertEquals(int.Type, typeof (5 & 7))
   }
 
@@ -133,8 +133,8 @@ class TypeofPrecedenceTest extends PrecedenceTestBase {
   // Conditional AND
 
   function testTypeofIsHigherPrecedenceThanConditionalAnd() {
-    assertParseError("typeof false and true", "The type \"Type<gw.internal.gosu.parser.MetaType.DefaultType>\" cannot be converted to \"boolean\"")
-    assertParseError("typeof false && true", "The type \"Type<gw.internal.gosu.parser.MetaType.DefaultType>\" cannot be converted to \"boolean\"")
+    assertParseError("typeof false and true", "The type \"Type<java.lang.Object>\" cannot be converted to \"boolean\"")
+    assertParseError("typeof false && true", "The type \"Type<java.lang.Object>\" cannot be converted to \"boolean\"")
     assertEquals(boolean.Type, typeof (false and true))
     assertEquals(boolean.Type, typeof (false && true))
   }
@@ -142,8 +142,8 @@ class TypeofPrecedenceTest extends PrecedenceTestBase {
   // Conditional OR
 
   function testTypeofIsHigherPrecedenceThanConditionalOr() {
-    assertParseError("typeof false or true", "The type \"Type<gw.internal.gosu.parser.MetaType.DefaultType>\" cannot be converted to \"boolean\"")
-    assertParseError("typeof false || true", "The type \"Type<gw.internal.gosu.parser.MetaType.DefaultType>\" cannot be converted to \"boolean\"")
+    assertParseError("typeof false or true", "The type \"Type<java.lang.Object>\" cannot be converted to \"boolean\"")
+    assertParseError("typeof false || true", "The type \"Type<java.lang.Object>\" cannot be converted to \"boolean\"")
     assertEquals(boolean.Type, typeof (false or true))
     assertEquals(boolean.Type, typeof (false || true))
   }

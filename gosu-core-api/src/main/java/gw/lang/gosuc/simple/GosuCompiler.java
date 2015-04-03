@@ -25,6 +25,8 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.lang.reflect.Constructor;
 import java.nio.channels.FileChannel;
 import java.util.Collections;
@@ -101,12 +103,16 @@ public class GosuCompiler implements IGosuCompiler {
         }
       }
       createClassFile(child, gsClass, driver);
-    } catch (Exception e) {
-      e.printStackTrace();
-      driver.sendCompileIssue(_compilingSourceFile, ERROR, 0, 0, 0, combine("Cannot create .class files.", toMessage(e)));
+      maybeCopySourceFile(child.getParentFile(), gsClass, _compilingSourceFile, driver);
+    } catch (Throwable e) {
+      driver.sendCompileIssue(_compilingSourceFile, ERROR, 0, 0, 0, combine("Cannot create .class files.", getStackTrace(e)));
     }
+  }
 
-    maybeCopySourceFile(child.getParentFile(), gsClass, _compilingSourceFile, driver);
+  public static String getStackTrace(Throwable e) {
+    StringWriter stringWriter = new StringWriter();
+    e.printStackTrace(new PrintWriter(stringWriter));
+    return stringWriter.toString();
   }
 
   private String toMessage(Throwable e) {

@@ -196,7 +196,7 @@ public class AbstractGenericMethodInfo extends GosuBaseAttributedFeatureInfo imp
       IType boundingType = actualParamByVarName.getRaw( s );
       if( boundingType != null )
       {
-        if( boundingType.isParameterizedType() && TypeLord.isRecursiveType( boundingType, boundingType.getTypeParameters() ) )
+        if( boundingType.isParameterizedType() && TypeLord.isRecursiveType( boundingType ) )
         {
           boundingType = TypeLord.getPureGenericType( boundingType );
         }
