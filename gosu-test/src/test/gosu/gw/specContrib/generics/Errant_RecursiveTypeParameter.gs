@@ -18,7 +18,7 @@ class Errant_RecursiveTypeParameter {
   // IDE-1786
   static class A311<T extends A311> {}  // note: it's not 'T extends A<T>'
   static class D311 extends A311<D311> {}
-  static class B311 extends A311<C311> {}
+  static class B311 extends A311<C311> {}  //## issuekeys: TYPE PARAMETER IS NOT WITHIN THE BOUNDS
   static class C311 extends A311<D311> {}
 
   // IDE-1938

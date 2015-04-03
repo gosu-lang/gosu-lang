@@ -1924,6 +1924,17 @@ public class TypeLord
           return true;
         }
       }
+      else if( csr.isGenericType() )
+      {
+        for( IGenericTypeVariable gtv: csr.getGenericTypeVariables() )
+        {
+          ITypeVariableDefinition tvd = gtv.getTypeVariableDefinition();
+          if( tvd != null && tvd.getType() != null && isRecursiveType( subject, tvd.getType() ) )
+          {
+            return true;
+          }
+        }
+      }
       else if( csr instanceof TypeVariableType )
       {
         if( isRecursiveType( (ITypeVariableType)csr, ((TypeVariableType)csr).getBoundingType() ) )

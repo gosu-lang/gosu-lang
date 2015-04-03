@@ -1394,6 +1394,10 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
   }
   protected IRExpression checkCast( IType type, IRExpression expression )
   {
+    return checkCast( type, expression, true );
+  }
+  protected IRExpression checkCast( IType type, IRExpression expression, boolean bGetConcreteTypeForMetaType )
+  {
     if( type instanceof CompoundType )
     {
       CompoundType ct = (CompoundType)type;
@@ -1411,13 +1415,13 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
       // Nest the casts, with the concrete type last
       for( IType t : ltypes )
       {
-        last = checkCast(t, last);
+        last = checkCast( t, last, !(t instanceof IMetaType) );
       }
       return last;
     }
     else
     {
-      return buildCast(getDescriptor(type, true), expression);
+      return buildCast( getDescriptor( type, bGetConcreteTypeForMetaType ), expression );
     }
   }
 
