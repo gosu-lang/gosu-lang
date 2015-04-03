@@ -20,13 +20,13 @@ import gw.lang.reflect.module.IExecutionEnvironment;
 import gw.lang.reflect.module.IFileSystem;
 import gw.lang.reflect.module.IModule;
 
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.io.PrintStream;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.lang.reflect.Constructor;
 import java.nio.channels.FileChannel;
 import java.util.Collections;
@@ -110,9 +110,9 @@ public class GosuCompiler implements IGosuCompiler {
   }
 
   public static String getStackTrace(Throwable e) {
-    ByteArrayOutputStream out = new ByteArrayOutputStream();
-    e.printStackTrace(new PrintStream(out));
-    return out.toString();
+    StringWriter stringWriter = new StringWriter();
+    e.printStackTrace(new PrintWriter(stringWriter));
+    return stringWriter.toString();
   }
 
   private String toMessage(Throwable e) {
