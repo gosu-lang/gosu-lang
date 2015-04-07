@@ -14,8 +14,8 @@ class Errant_ConstructRecursiveType
 
   function errors()
   {
-    var def = new Blah()    // error
-    def = new Blah<Blah>()  // error 
+    var def = new Blah()     //## issuekeys: MSG_CANNOT_CONSTRUCT_RECURSIVE_CLASS
+    def = new Blah<Blah>()   //## issuekeys: MSG_CANNOT_CONSTRUCT_RECURSIVE_CLASS
     def = new Blah<Fubar>() // valid
     def = new Fubar()       // valid
   }

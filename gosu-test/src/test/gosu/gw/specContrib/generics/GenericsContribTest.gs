@@ -26,4 +26,8 @@ class GenericsContribTest extends TestClass {
     var yey: Yey
     assertEquals( Yey, statictypeof yey.foo() )
   }
+
+  function testDefaultMetaType() {
+    assertEquals( String, typeof new DefaultMetaType().foo() )
+  }
 }
