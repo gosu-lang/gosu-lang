@@ -173,4 +173,11 @@ class Errant_LogicalOperatorsTest {
     var y5 = !not true
   }
 
+  function testCompoundTypes() {
+    var param: java.lang.Comparable<java.lang.Object> & java.lang.Integer
+    var q1 = param < 11000
+    var q2 = param != 11000
+    var q3 = param + 11000
+  }
+
 }
