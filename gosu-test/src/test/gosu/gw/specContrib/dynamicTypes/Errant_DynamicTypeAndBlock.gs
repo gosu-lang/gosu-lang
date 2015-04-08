@@ -7,7 +7,10 @@ class Errant_DynamicTypeAndBlock {
 
   function test() {
     // IDE-2011
-    var d: Dynamic = \x -> x
+    var d1: Dynamic = \x -> x
     foo(\x -> x.Type)
+
+    var d2: Dynamic
+    d2.func(\a -> a.field)
   }
 }
