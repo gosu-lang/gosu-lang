@@ -1,14 +1,15 @@
 package gw.lang.enhancements
 
+uses java.math.BigDecimal
+
 /*
  *  Copyright 2014 Guidewire Software, Inc.
  */
-enhancement CoreBigDecimalEnhancement : java.math.BigDecimal
+enhancement CoreBigDecimalEnhancement : BigDecimal
 {
-  
   property get IsZero() : boolean
   {
-    return this.negate() == this
+    return BigDecimal.ZERO === this ||
+           this.compareTo( BigDecimal.ZERO ) == 0
   }
-
 }
