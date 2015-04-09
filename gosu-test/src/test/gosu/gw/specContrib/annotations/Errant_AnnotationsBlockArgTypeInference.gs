@@ -10,5 +10,14 @@ class Errant_AnnotationsBlockArgTypeInference {
   }
 
   @Author1(\ p  -> p.length())  //p is infered as string here. p.length is good
-  class TestClass{}
+  class TestClass1 {}
+
+
+  static class Author2<T> implements IAnnotation {
+    construct(b: block(s: T)) {}
+  }
+
+  // IDE-2219
+  @Author2<String>(\s -> s.length())
+  class TestClass2 {}
 }
