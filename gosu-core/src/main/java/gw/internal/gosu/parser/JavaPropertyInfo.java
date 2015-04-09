@@ -161,12 +161,6 @@ public class JavaPropertyInfo extends JavaBaseFeatureInfo implements IJavaProper
   }
 
   @Override
-  public IType getGenericIntrinsicType()
-  {
-    return getFeatureType();
-  }
-
-  @Override
   public IType getFeatureType()
   {
     if( _propertyTypeWithTypeVars != null )

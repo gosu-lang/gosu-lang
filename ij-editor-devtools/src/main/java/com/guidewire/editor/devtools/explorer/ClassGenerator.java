@@ -151,7 +151,7 @@ public class ClassGenerator {
     }
 
     sb.append("  construct(");
-    IParameterInfo[] params = getGenericParameters(ci);
+    IParameterInfo[] params = ci.getParameters();
     for (int i = 0; i < params.length; i++) {
       IParameterInfo pi = params[i];
       sb.append(' ').append("p").append(i).append(" : ").append(pi.getFeatureType().getName())
@@ -180,13 +180,13 @@ public class ClassGenerator {
       sb.append("/** ").append(mi.getDescription()).append(" */");
     }
     sb.append("  ").append(sbModifiers).append("function ").append(mi.getDisplayName()).append(TypeInfoUtil.getTypeVarList(mi)).append("(");
-    IParameterInfo[] params = getGenericParameters(mi);
+    IParameterInfo[] params = mi.getParameters();
     for (int i = 0; i < params.length; i++) {
       IParameterInfo pi = params[i];
       sb.append(' ').append("p").append(i).append(" : ").append(pi.getFeatureType().getName())
           .append(i < params.length - 1 ? ',' : ' ');
     }
-    sb.append(") : ").append(getGenericReturnType(mi).getName()).append("\n");
+    sb.append(") : ").append( mi.getReturnType().getName()).append("\n");
     if (!mi.isAbstract()) {
       generateStub(sb, mi.getReturnType());
     }
@@ -219,13 +219,13 @@ public class ClassGenerator {
       sb.append("/** ").append(mi.getDescription()).append(" */");
     }
     sb.append("  ").append(sbModifiers).append("static function ").append(mi.getDisplayName()).append(TypeInfoUtil.getTypeVarList(mi)).append("(");
-    IParameterInfo[] params = getGenericParameters(mi);
+    IParameterInfo[] params = mi.getParameters();
     for (int i = 0; i < params.length; i++) {
       IParameterInfo pi = params[i];
       sb.append(' ').append("p").append(i).append(" : ").append(pi.getFeatureType().getName())
           .append(i < params.length - 1 ? ',' : ' ');
     }
-    sb.append(") : ").append(getGenericReturnType(mi).getName()).append("\n")
+    sb.append(") : ").append( mi.getReturnType().getName()).append("\n")
         .append("{\n")
         .append((mi.getReturnType() == GosuParserTypes.NULL_TYPE()
             ? ""
@@ -251,13 +251,13 @@ public class ClassGenerator {
       sb.append("/** ").append(mi.getDescription()).append(" */");
     }
     sb.append("  function ").append(mi.getDisplayName()).append(TypeInfoUtil.getTypeVarList(mi)).append("(");
-    IParameterInfo[] params = getGenericParameters(mi);
+    IParameterInfo[] params = mi.getParameters();
     for (int i = 0; i < params.length; i++) {
       IParameterInfo pi = params[i];
       sb.append(' ').append("p").append(i).append(" : ").append(pi.getFeatureType().getName());
       sb.append(i < params.length - 1 ? ',' : ' ');
     }
-    sb.append(") : ").append(getGenericReturnType(mi).getName()).append(";\n");
+    sb.append(") : ").append( mi.getReturnType().getName()).append(";\n");
   }
 
   private boolean isPropertyMethod(IMethodInfo mi) {
@@ -283,7 +283,7 @@ public class ClassGenerator {
             ? ((IRelativeTypeInfo) ti).getProperty(mi.getOwnersType(), strProp)
             : ti.getProperty(strProp);
         if (pi != null && pi.isReadable() &&
-            getGenericType(pi).getName().equals(getGenericParameters(mi)[0].getFeatureType().getName())) {
+            pi.getFeatureType().getName().equals( mi.getParameters()[0].getFeatureType().getName())) {
           return !Keyword.isKeyword( pi.getName() ) || Keyword.isValueKeyword( pi.getName() );
         }
       }
@@ -301,7 +301,7 @@ public class ClassGenerator {
         IPropertyInfo pi = ti instanceof IRelativeTypeInfo
             ? ((IRelativeTypeInfo) ti).getProperty(mi.getOwnersType(), strProp)
             : ti.getProperty(strProp);
-        if (pi != null && getGenericType(pi).getName().equals(getGenericReturnType(mi).getName())) {
+        if (pi != null && pi.getFeatureType().getName().equals( mi.getReturnType().getName())) {
           return !Keyword.isKeyword( pi.getName() ) || Keyword.isValueKeyword( pi.getName() );
         }
       }
@@ -317,7 +317,7 @@ public class ClassGenerator {
     if (!pi.isReadable()) {
       return;
     }
-    IType type = getGenericType(pi);
+    IType type = pi.getFeatureType();
     if (pi.getDescription() != null) {
       sb.append("/** ").append(pi.getDescription()).append(" */");
     }
@@ -359,7 +359,7 @@ public class ClassGenerator {
           sb.append("/** ").append(mi.getDescription()).append(" */");
         }
         StringBuilder sbModifiers = buildModifiers(mi);
-        sb.append("  ").append(sbModifiers).append("property get ").append(pi.getName()).append("() : ").append(getGenericType(pi).getName()).append("\n");
+        sb.append("  ").append(sbModifiers).append("property get ").append(pi.getName()).append("() : ").append( pi.getFeatureType().getName()).append("\n");
         if (!mi.isAbstract()) {
           generateStub(sb, mi.getReturnType());
         }
@@ -372,9 +372,9 @@ public class ClassGenerator {
         } else {
           sbModifiers = appendVisibilityModifier(pi);
         }
-        sb.append("  ").append(sbModifiers).append("property get ").append(pi.getName()).append("() : ").append(getGenericType(pi).getName()).append("\n");
+        sb.append("  ").append(sbModifiers).append("property get ").append(pi.getName()).append("() : ").append( pi.getFeatureType().getName()).append("\n");
         if (!bAbstact) {
-          generateStub(sb, getGenericType(pi));
+          generateStub(sb, pi.getFeatureType() );
         }
       }
 
@@ -384,7 +384,7 @@ public class ClassGenerator {
       if (mi != null && !bFinal) {
         StringBuilder sbModifiers = buildModifiers(mi);
         if (pi.isWritable(pi.getOwnersType())) {
-          sb.append("  ").append(sbModifiers).append("property set ").append(pi.getName()).append("( _proxy_arg_value : ").append(getGenericType(pi).getName()).append(" )\n");
+          sb.append("  ").append(sbModifiers).append("property set ").append(pi.getName()).append("( _proxy_arg_value : ").append( pi.getFeatureType().getName()).append(" )\n");
           if (!mi.isAbstract()) {
             generateStub(sb, JavaTypes.pVOID());
           }
@@ -399,7 +399,7 @@ public class ClassGenerator {
           } else {
             sbModifiers = appendVisibilityModifier(pi);
           }
-          sb.append("  ").append(sbModifiers).append("property set ").append(pi.getName()).append("( _proxy_arg_value : ").append(getGenericType(pi).getName()).append(" )\n");
+          sb.append("  ").append(sbModifiers).append("property set ").append(pi.getName()).append("( _proxy_arg_value : ").append( pi.getFeatureType().getName()).append(" )\n");
           if (!bAbstact) {
             generateStub(sb, JavaTypes.pVOID());
           }
@@ -473,35 +473,19 @@ public class ClassGenerator {
     }
   {
       StringBuilder sbModifiers = appendVisibilityModifier(pi);
-      sb.append("  ").append(sbModifiers).append("static property get ").append(pi.getName()).append("() : ").append(getGenericType(pi).getName()).append("\n")
+    sb.append("  ").append(sbModifiers).append("static property get ").append(pi.getName()).append("() : ").append( pi.getFeatureType().getName()).append("\n")
           .append("  {\n")
           .append("    return ").append(type.getName()).append('.').append(pi.getName()).append(";\n")
           .append("  }\n");
 
       if (pi.isWritable(pi.getOwnersType())) {
         sb
-            .append("  static property set ").append(pi.getName()).append("( _proxy_arg_value : ").append(getGenericType(pi).getName()).append(" )\n")
+            .append("  static property set ").append(pi.getName()).append("( _proxy_arg_value : ").append( pi.getFeatureType().getName()).append(" )\n")
             .append("  {\n")
             .append("  ").append(type.getName()).append('.').append(pi.getName()).append(" = _proxy_arg_value;\n")
             .append("  }\n");
       }
     }
-  }
-
-  private IType getGenericType(IPropertyInfo pi) {
-    return pi.getFeatureType();
-  }
-
-  private IType getGenericReturnType(IMethodInfo mi) {
-    return mi.getReturnType();
-  }
-
-  private IParameterInfo[] getGenericParameters(IMethodInfo mi) {
-    return mi.getParameters();
-  }
-
-  private IParameterInfo[] getGenericParameters(IConstructorInfo ci) {
-    return ci.getParameters();
   }
 
 }

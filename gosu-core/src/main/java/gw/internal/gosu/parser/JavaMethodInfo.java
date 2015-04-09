@@ -92,12 +92,6 @@ public class JavaMethodInfo extends JavaBaseFeatureInfo implements IJavaMethodIn
   }
 
   @Override
-  public IParameterInfo[] getGenericParameters()
-  {
-    return getParameters();
-  }
-
-  @Override
   public IParameterInfo[] getParameters()
   {
     if( _params == null )
@@ -105,12 +99,6 @@ public class JavaMethodInfo extends JavaBaseFeatureInfo implements IJavaMethodIn
       _params = convertParameterDescriptors();
     }
     return _params;
-  }
-
-  @Override
-  public IType getGenericReturnType()
-  {
-    return getReturnType();
   }
 
   @Override

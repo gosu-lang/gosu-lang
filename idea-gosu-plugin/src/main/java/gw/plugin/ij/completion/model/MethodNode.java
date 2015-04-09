@@ -14,8 +14,6 @@ import gw.lang.reflect.IType;
 import gw.lang.reflect.TypeInfoUtil;
 import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.gs.IGosuClass;
-import gw.lang.reflect.java.IJavaMethodInfo;
-import gw.lang.reflect.java.JavaTypes;
 import org.jetbrains.annotations.NotNull;
 
 public class MethodNode extends BeanInfoNode {
@@ -78,7 +76,7 @@ public class MethodNode extends BeanInfoNode {
   }
 
   public String getParameterDisplay() {
-    IParameterInfo[] pd = (methodInfo instanceof IJavaMethodInfo) ? ((IJavaMethodInfo) methodInfo).getGenericParameters() : methodInfo.getParameters();
+    IParameterInfo[] pd = methodInfo.getParameters();
     if (pd == null || pd.length == 0) {
       return TypeInfoUtil.getTypeVarList(methodInfo, true) + "()";
     }

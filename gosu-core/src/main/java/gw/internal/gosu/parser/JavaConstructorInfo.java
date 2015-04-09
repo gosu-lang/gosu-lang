@@ -79,12 +79,6 @@ public class JavaConstructorInfo extends JavaBaseFeatureInfo implements IJavaCon
   }
 
   @Override
-  public IParameterInfo[] getGenericParameters()
-  {
-    return getParameters();
-  }
-
-  @Override
   public IParameterInfo[] getParameters()
   {
     if( _params != null )
