@@ -51,6 +51,7 @@ import java.lang.reflect.TypeVariable;
 import java.lang.reflect.WildcardType;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -1114,11 +1115,58 @@ public class TypeLord
     return type;
   }
 
+  public static IType replaceRawGenericTypesWithDefaultParameterizedTypes( IType type )
+  {
+    if( type == null )
+    {
+      return null;
+    }
+
+    if( type.isArray() )
+    {
+      IType compType = replaceRawGenericTypesWithDefaultParameterizedTypes( type.getComponentType() );
+      if( compType != type.getComponentType() )
+      {
+        return compType.getArrayType();
+      }
+      return type;
+    }
+
+    if( type.isParameterizedType() )
+    {
+      final IType[] typeParameters = type.getTypeParameters();
+      IType[] typeParams = new IType[typeParameters.length];
+      boolean bReplaced = false;
+      for( int i = 0; i < typeParameters.length; i++ )
+      {
+        IType typeParam = typeParameters[i];
+        typeParams[i] = replaceRawGenericTypesWithDefaultParameterizedTypes( typeParam );
+        if( typeParam != typeParams[i] )
+        {
+          bReplaced = true;
+        }
+      }
+      return bReplaced ? type.getParameterizedType( typeParams ) : type;
+    }
+
+    if( type.isGenericType() )
+    {
+      return getDefaultParameterizedType( type );
+    }
+
+    return type;
+  }
+
   public static IType getDefaultParameterizedType( IType type )
   {
     if( type.isArray() )
     {
-      return getDefaultParameterizedType( type.getComponentType() ).getArrayType();
+      IType defType = getDefaultParameterizedType( type.getComponentType() );
+      if( defType != type )
+      {
+        return defType.getArrayType();
+      }
+      return type;
     }
     if( type instanceof CompoundType )
     {

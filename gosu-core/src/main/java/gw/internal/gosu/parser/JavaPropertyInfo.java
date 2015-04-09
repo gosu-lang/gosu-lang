@@ -187,6 +187,8 @@ public class JavaPropertyInfo extends JavaBaseFeatureInfo implements IJavaProper
       propType = ClassInfoUtil.getPublishedType( propType, declaringClass );
     }
 
+    propType = TypeLord.replaceRawGenericTypesWithDefaultParameterizedTypes( propType );
+
     return _propertyTypeWithTypeVars = propType;
   }
 

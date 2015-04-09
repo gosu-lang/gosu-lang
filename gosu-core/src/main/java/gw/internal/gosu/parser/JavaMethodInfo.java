@@ -133,6 +133,8 @@ public class JavaMethodInfo extends JavaBaseFeatureInfo implements IJavaMethodIn
 
     retType = ClassInfoUtil.getPublishedType(retType, _md.getMethod().getEnclosingClass());
 
+    retType = TypeLord.replaceRawGenericTypesWithDefaultParameterizedTypes( retType );
+
     _retType = retType;
 
     return retType;
@@ -582,6 +584,8 @@ public class JavaMethodInfo extends JavaBaseFeatureInfo implements IJavaMethodIn
       }
 
       parameterType = ClassInfoUtil.getPublishedType(parameterType, declaringClass);
+
+      parameterType = TypeLord.replaceRawGenericTypesWithDefaultParameterizedTypes( parameterType );
 
       pi[i] = new SimpleParameterInfo( container, parameterType, i );
     }

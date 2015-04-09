@@ -283,7 +283,9 @@ public class JavaSourceMethod implements IJavaClassMethod, ITypeInfoResolver {
     IType[] paramTypes = ClassInfoUtil.getActualTypes(getGenericParameterTypes(), actualParamByVarName, bKeepTypeVars);
     IParameterInfo[] paramInfos = new IParameterInfo[paramTypes.length];
     for (int i = 0; i < paramTypes.length; i++) {
-      paramInfos[i] = new SimpleParameterInfo(container, paramTypes[i], i);
+      IType paramType = paramTypes[i];
+      paramType = TypeLord.replaceRawGenericTypesWithDefaultParameterizedTypes( paramType );
+      paramInfos[i] = new SimpleParameterInfo(container, paramType, i);
     }
     return paramInfos;
   }
