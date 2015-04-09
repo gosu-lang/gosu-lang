@@ -28,7 +28,7 @@ class DotOperatorPrecedenceTest extends PrecedenceTestBase {
   function testDotIsHigherPrecedenceThanTypeof() {
     var x : BigInteger = 5
     assertEquals(boolean.Type, typeof x.IsZero)
-    assertParseError(\ -> eval("(typeof x).IsZero"), "No static property descriptor found for property, IsZero, on class, Type<gw.internal.gosu.parser.MetaType.DefaultType>")
+    assertParseError(\ -> eval("(typeof x).IsZero"), "No static property descriptor found for property, IsZero, on class, Type<java.lang.Object>")
   }
 
   function testDotIsHigherPrecedenceThanStatictypeof() {
