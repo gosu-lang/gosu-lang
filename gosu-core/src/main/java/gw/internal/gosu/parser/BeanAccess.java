@@ -147,7 +147,6 @@ public class BeanAccess
    * <li> If the LHS is a Bean,
    * <ul>
    * <li> If the RHS is a Bean, compare with equals().
-   * <li> If the RHS is an ObjectLiteral, compare hash codes.
    * <li> Otherwise, attempt to determine which operand is coercible to the other, coerce, and compare with equals().
    * </ul>
    * <li> Otherwise, compare with equals().

@@ -20,7 +20,6 @@ public class Res
   public static final ResourceKey METATYPENAME = new ResourceKey("METATYPENAME");
   public static final ResourceKey NULLTYPENAME = new ResourceKey("NULLTYPENAME");
   public static final ResourceKey NUMERIC = new ResourceKey("NUMERIC");
-  public static final ResourceKey OBJECT_LITERAL = new ResourceKey("OBJECT_LITERAL");
   public static final ResourceKey STRING = new ResourceKey("STRING");
   public static final ResourceKey MSG_SYNTAX_ERROR = new ResourceKey("MSG_SYNTAX_ERROR");
   public static final ResourceKey MSG_BAD_IDENTIFIER_NAME = new ResourceKey("MSG_BAD_IDENTIFIER_NAME");

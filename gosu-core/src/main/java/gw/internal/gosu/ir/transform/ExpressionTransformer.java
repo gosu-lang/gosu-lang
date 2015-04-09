@@ -37,7 +37,6 @@ import gw.internal.gosu.ir.transform.expression.NewExpressionTransformer;
 import gw.internal.gosu.ir.transform.expression.NullExpressionTransformer;
 import gw.internal.gosu.ir.transform.expression.NumericLiteralTransformer;
 import gw.internal.gosu.ir.transform.expression.ObjectInitializerExpressionTransformer;
-import gw.internal.gosu.ir.transform.expression.ObjectLiteralExpressionTransformer;
 import gw.internal.gosu.ir.transform.expression.QueryExpressionTransformer;
 import gw.internal.gosu.ir.transform.expression.RelationalExpressionTransformer;
 import gw.internal.gosu.ir.transform.expression.StaticTypeOfTransformer;
@@ -82,7 +81,6 @@ import gw.internal.gosu.parser.expressions.NewExpression;
 import gw.internal.gosu.parser.expressions.NullExpression;
 import gw.internal.gosu.parser.expressions.NumericLiteral;
 import gw.internal.gosu.parser.expressions.ObjectInitializerExpression;
-import gw.internal.gosu.parser.expressions.ObjectLiteralExpression;
 import gw.internal.gosu.parser.expressions.QueryExpression;
 import gw.internal.gosu.parser.expressions.RelationalExpression;
 import gw.internal.gosu.parser.expressions.StaticTypeOfExpression;
@@ -302,10 +300,6 @@ public class ExpressionTransformer
     else if( _expr instanceof BlockExpression)
     {
       return BlockExpressionTransformer.compile( _cc, (BlockExpression)_expr );
-    }
-    else if( _expr instanceof ObjectLiteralExpression)
-    {
-      return ObjectLiteralExpressionTransformer.compile( _cc, (ObjectLiteralExpression)_expr );
     }
     else if( _expr instanceof TemplateStringLiteral )
     {

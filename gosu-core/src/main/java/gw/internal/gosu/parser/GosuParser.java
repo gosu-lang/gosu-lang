@@ -5276,22 +5276,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
       if( !bMatched )
       {
         IType entityType = resolveTypeName( t._strValue, true );
-        if( entityType != null && CommonServices.getEntityAccess().isEntityClass( entityType ) )
-        {
-          ObjectLiteralExpression objE = new ObjectLiteralExpression( entityType );
-          IType[] argTypes = new IType[]{GosuParserTypes.STRING_TYPE(), GosuParserTypes.STRING_TYPE()};
-          if( verify( objE, bestMethod.getArguments().size() > 0, Res.MSG_EXPECTING_ARGS, t._strValue ) )
-          {
-            if( verify( objE, bestMethod.getArguments().size() == 1 || bestMethod.getArguments().size() == argTypes.length,
-                    Res.MSG_WRONG_NUM_OF_ARGS, t._strValue + ".  Expecting " + argTypes.length + " or 1" ) )
-            {
-              warn( objE, false, Res.MSG_OBJECT_LITERALS_DEPRECATED );
-            }
-          }
-          objE.setArgs( eArgs );
-          exp = objE;
-        }
-        else if( listFunctionTypes.isEmpty() )
+        if( listFunctionTypes.isEmpty() )
         {
           if( staticRefToNonStaticFunc( strFunction, eArgs ) )
           {

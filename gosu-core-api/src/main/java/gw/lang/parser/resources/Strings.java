@@ -18,7 +18,6 @@ public class Strings extends ListResourceBundle
        {Res.METATYPENAME.getKey(), "Type"},
        {Res.NULLTYPENAME.getKey(), "Null"},
        {Res.NUMERIC.getKey(), "Number"},
-       {Res.OBJECT_LITERAL.getKey(), "ObjectLiteral"},
        {Res.STRING.getKey(), "String"},
        {Res.MSG_SYNTAX_ERROR.getKey(), "Syntax error."},
        {Res.MSG_BAD_IDENTIFIER_NAME.getKey(), "Could not resolve symbol for : {0}"},
