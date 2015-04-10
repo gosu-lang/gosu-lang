@@ -2,6 +2,7 @@ package gw.specContrib.types
 
 class Errant_MetaType {
   public static final var OH: String = "oh"
+  static function staticFunc() {}
 
   static function main(args: String[]) {
     var b = new Errant_MetaType()
@@ -13,6 +14,10 @@ class Errant_MetaType {
     print(t1.OH)
     print(t2.OH)  //## issuekeys: MSG_INVALID_REFERENCE
     print(t3.OH)  //## issuekeys: MSG_INVALID_REFERENCE
+
+    t1.staticFunc()
+    t2.staticFunc()  //## issuekeys: MSG_INVALID_REFERENCE
+    t3.staticFunc()  //## issuekeys: MSG_INVALID_REFERENCE
   }
 
   function foo<T>(): T[] {
