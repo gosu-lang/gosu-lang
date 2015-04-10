@@ -13066,8 +13066,9 @@ public final class GosuParser extends ParserBase implements IGosuParser
           defExpr = expr;
           argType = defExpr.hasParseExceptions()
                     ? JavaTypes.pVOID()
-                    : expr.getType();
-          verify( expr, !(expr instanceof NullExpression), Res.MSG_VARIABLE_MUST_HAVE_NON_NULL_TYPE );
+                    : expr instanceof NullExpression
+                      ? JavaTypes.OBJECT()
+                      : expr.getType();
         }
         else
         {
