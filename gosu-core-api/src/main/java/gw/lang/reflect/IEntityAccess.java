@@ -13,11 +13,7 @@ import gw.lang.parser.IAttributeSource;
 import gw.lang.parser.IParseIssue;
 import gw.lang.parser.ITypeUsesMap;
 import gw.lang.parser.ILanguageLevel;
-import gw.lang.parser.expressions.IQueryExpression;
-import gw.lang.parser.expressions.IQueryExpressionEvaluator;
 import gw.lang.reflect.gs.ICompilableType;
-import gw.lang.reflect.java.IJavaType;
-import gw.util.IFeatureFilter;
 import gw.util.ILogger;
 
 import java.util.Collection;
@@ -66,10 +62,6 @@ public interface IEntityAccess extends IService
   void addEnhancementMethods(IType typeToEnhance, Collection methodsToAddTo);
 
   void addEnhancementProperties(IType typeToEnhance, Map propertyInfosToAddTo, boolean caseSensitive);
-
-  IQueryExpressionEvaluator getQueryExpressionEvaluator( IQueryExpression queryExpression );
-
-  IFeatureFilter getQueryExpressionFeatureFilter();
 
   ClassLoader getPluginClassLoader();
 

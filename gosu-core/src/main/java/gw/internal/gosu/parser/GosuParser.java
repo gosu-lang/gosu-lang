@@ -2923,12 +2923,6 @@ public final class GosuParser extends ParserBase implements IGosuParser
     {
       parseExistsExpression();
     }
-    else if( match( null, Keyword.KW_find, true ) )
-    {
-      Token T = new Token();
-      T._strValue = Keyword.KW_find.toString();
-      parseQueryExpression( T );
-    }
     else if( parseNameOrMethodCall() )
     {
     }
@@ -3657,12 +3651,6 @@ public final class GosuParser extends ParserBase implements IGosuParser
     existsExp.setWhereExpression( ewhere );
 
     pushExpression( existsExp );
-  }
-
-  boolean parseQueryExpression( Token T )
-  {
-    QueryExpressionParser queryParser = new QueryExpressionParser( this );
-    return queryParser.parse( T );
   }
 
   /**

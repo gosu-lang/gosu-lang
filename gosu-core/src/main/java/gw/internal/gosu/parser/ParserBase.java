@@ -338,7 +338,6 @@ public abstract class ParserBase implements IParserPart
     if( (match( null, Keyword.KW_for ) ||
          match( null, Keyword.KW_foreach ) ||
          match( null, Keyword.KW_exists ) ||
-         match( null, Keyword.KW_find ) ||
          match( null, Keyword.KW_using )) &&
         match( null, '(' ) )
     {

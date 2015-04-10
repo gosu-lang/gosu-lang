@@ -166,7 +166,6 @@ public class GosuElementTypes extends GosuTokenTypes {
   public static final GosuElementType ELEM_TYPE_NewStatement = new GosuElementType(INewStatement.class);
   public static final GosuElementType ELEM_TYPE_AnnotationExpression = new GosuElementType(IAnnotationExpression.class);
   public static final GosuElementType ELEM_TYPE_EvalExpression = new GosuElementType(IEvalExpression.class);
-  public static final GosuElementType ELEM_TYPE_QueryExpression = new GosuElementType(IQueryExpression.class);
   public static final GosuElementType ELEM_TYPE_ConditionalTernaryExpression = new GosuElementType(IConditionalTernaryExpression.class);
   public static final GosuElementType ELEM_TYPE_ArrayAccess = new GosuElementType(IArrayAccessExpression.class);
   public static final GosuElementType ELEM_TYPE_MapAccess = new GosuElementType(IMapAccessExpression.class);

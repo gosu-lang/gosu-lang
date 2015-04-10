@@ -481,8 +481,6 @@ public class GosuAstTransformer {
       node = new GosuCompositeElement(GosuElementTypes.ELEM_TYPE_NewStatement);
     } else if (pe instanceof IEvalExpression) {
       node = new GosuCompositeElement(GosuElementTypes.ELEM_TYPE_EvalExpression);
-    } else if (pe instanceof IQueryExpression) {
-      node = new GosuCompositeElement(GosuElementTypes.ELEM_TYPE_QueryExpression);
     } else if (pe instanceof IConditionalTernaryExpression) {
       node = new GosuCompositeElement(GosuElementTypes.ELEM_TYPE_ConditionalTernaryExpression);
     } else if (pe instanceof IArrayAccessExpression) {

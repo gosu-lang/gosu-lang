@@ -14,10 +14,7 @@ import gw.lang.parser.ITypeUsesMap;
 import gw.lang.parser.ILanguageLevel;
 import gw.lang.parser.exceptions.IncompatibleTypeException;
 import gw.lang.parser.exceptions.ParseIssue;
-import gw.lang.parser.expressions.IQueryExpression;
-import gw.lang.parser.expressions.IQueryExpressionEvaluator;
 import gw.lang.reflect.IEntityAccess;
-import gw.lang.reflect.IFeatureInfo;
 import gw.lang.reflect.IGosuClassLoadingObserver;
 import gw.lang.reflect.IPropertyInfo;
 import gw.lang.reflect.IType;
@@ -29,7 +26,6 @@ import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.gs.GosuClassTypeLoader;
 import gw.lang.reflect.gs.ICompilableType;
 import gw.lang.reflect.module.IModule;
-import gw.util.IFeatureFilter;
 import gw.util.ILogger;
 import gw.util.SystemOutLogger;
 
@@ -231,23 +227,6 @@ public class DefaultEntityAccess extends BaseService implements IEntityAccess
     {
       addEnhancementProperties(typeToEnhance, propertyInfosToAddTo, caseSensitive, dep, visited);
     }
-  }
-
-  @Override
-  public IQueryExpressionEvaluator getQueryExpressionEvaluator( IQueryExpression queryExpression )
-  {
-    return null;
-  }
-
-  @Override
-  public IFeatureFilter getQueryExpressionFeatureFilter()
-  {
-    return new IFeatureFilter() {
-      @Override
-      public boolean acceptFeature(IType beanType, IFeatureInfo fi) {
-        return false;
-      }
-    };
   }
 
   @Override
