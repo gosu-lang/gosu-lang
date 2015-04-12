@@ -9,6 +9,7 @@ import gw.internal.gosu.parser.TypeVariableType;
 import gw.lang.parser.Keyword;
 import gw.lang.parser.expressions.ITypeVariableDefinition;
 import gw.lang.reflect.IType;
+import gw.lang.reflect.gs.IGenericTypeVariable;
 import gw.lang.reflect.java.JavaTypes;
 
 /**
@@ -34,6 +35,10 @@ public class TypeVariableDefinitionImpl implements ITypeVariableDefinition
   public TypeVariableType getType()
   {
     return _type;
+  }
+  public void setType( TypeVariableType type )
+  {
+    _type = type;
   }
 
   public IType getEnclosingType()
@@ -63,6 +68,10 @@ public class TypeVariableDefinitionImpl implements ITypeVariableDefinition
                                                 : _boundingType );
     }
     return _typeVar;
+  }
+  public void setTypeVar( GenericTypeVariable typeVar )
+  {
+    _typeVar = typeVar;
   }
 
   public IType getBoundingType()
@@ -120,6 +129,15 @@ public class TypeVariableDefinitionImpl implements ITypeVariableDefinition
 
   @Override
   public TypeVariableDefinitionImpl clone() {
-    return new TypeVariableDefinitionImpl(_type, _strName, _enclosingType, _boundingType, _typeVar);
+    return new TypeVariableDefinitionImpl( _type, _strName, _enclosingType, _boundingType, _typeVar );
+  }
+
+  public TypeVariableDefinitionImpl cloneShallow( IType boundingType ) {
+    return new TypeVariableDefinitionImpl( _type, _strName, _enclosingType, boundingType, _typeVar );
+  }
+
+  public TypeVariableDefinitionImpl clone( IType boundingType ) {
+    IGenericTypeVariable gtv = _typeVar.clone( boundingType );
+    return (TypeVariableDefinitionImpl)gtv.getTypeVariableDefinition();
   }
 }

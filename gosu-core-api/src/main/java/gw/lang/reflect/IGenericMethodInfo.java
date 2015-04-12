@@ -19,7 +19,7 @@ public interface IGenericMethodInfo
   IType getParameterizedReturnType( IType... typeParams );
 
   IType[] getParameterizedParameterTypes( IType... typeParams );
-  IType[] getParameterizedParameterTypes2( IGosuClass owningParameterizedType, IType[] typeParams );
+  IType[] getParameterizedParameterTypes2( IType owningParameterizedType, IType[] typeParams );
 
   /**
    * @param argTypes The argument types from a generic method call.
@@ -34,5 +34,5 @@ public interface IGenericMethodInfo
    *         based on the new String[0].
    */
   TypeVarToTypeMap inferTypeParametersFromArgumentTypes( IType... argTypes );
-  TypeVarToTypeMap inferTypeParametersFromArgumentTypes2( IGosuClass owningParameterizedType, IType... argTypes );
+  TypeVarToTypeMap inferTypeParametersFromArgumentTypes2( IType owningParameterizedType, IType... argTypes );
 }

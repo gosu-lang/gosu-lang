@@ -108,9 +108,11 @@ public class GenericTypeVariable implements IGenericTypeVariable
   }
 
   // Copy-constructor used for clone operations
-  private GenericTypeVariable(String strName, TypeVariableDefinitionImpl typeVariableDefinition, IType boundingType) {
+  private GenericTypeVariable( String strName, TypeVariableDefinitionImpl typeVariableDefinition, IType boundingType )
+  {
     _strName = strName;
     _typeVariableDefinition = typeVariableDefinition;
+    _typeVariableDefinition.setTypeVar( this );
     _boundingType = boundingType;
   }
 
@@ -186,12 +188,30 @@ public class GenericTypeVariable implements IGenericTypeVariable
     return toVars.length == 0 ? EMPTY_TYPEVARS : toVars;
   }
 
-  public IGenericTypeVariable clone() {
-    return new GenericTypeVariable(_strName, _typeVariableDefinition.clone(), _boundingType);
+  public IGenericTypeVariable clone()
+  {
+    return new GenericTypeVariable( _strName, _typeVariableDefinition.clone(), _boundingType );
   }
 
-  public void createTypeVariableDefinition(IType enclosingType) {
-    _typeVariableDefinition = (TypeVariableDefinitionImpl) new TypeVariableDefinition( enclosingType, this ).getTypeVarDef();
+  public IGenericTypeVariable clone( IType boundingType )
+  {
+    TypeVariableDefinitionImpl tvd = _typeVariableDefinition.cloneShallow( boundingType );
+    return new GenericTypeVariable( _strName, tvd, boundingType );
   }
-  
+
+  @Override
+  public IGenericTypeVariable remapBounds( TypeVarToTypeMap actualParamByVarName )
+  {
+    IType boundingType = TypeLord.getActualType( _boundingType, actualParamByVarName, true );
+    if( boundingType == _boundingType )
+    {
+      return this;
+    }
+    return clone( boundingType );
+  }
+
+  public void createTypeVariableDefinition( IType enclosingType )
+  {
+    _typeVariableDefinition = (TypeVariableDefinitionImpl)new TypeVariableDefinition( enclosingType, this ).getTypeVarDef();
+  }
 }

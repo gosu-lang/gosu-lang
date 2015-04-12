@@ -90,7 +90,7 @@ public class GosuVarPropertyInfo extends GosuBaseAttributedFeatureInfo implement
 
   public String getName()
   {
-    return _strIdentifer == null ? null : _strIdentifer.toString();
+    return _strIdentifer == null ? null : _strIdentifer;
   }
 
   public IType getFeatureType()
@@ -228,7 +228,7 @@ public class GosuVarPropertyInfo extends GosuBaseAttributedFeatureInfo implement
   {
     return IType.EMPTY_ARRAY;
   }
-  public IType[] getParameterizedParameterTypes2( IGosuClass ownersType, IType... typeParams )
+  public IType[] getParameterizedParameterTypes2( IType ownersType, IType... typeParams )
   {
     return IType.EMPTY_ARRAY;
   }
@@ -239,7 +239,7 @@ public class GosuVarPropertyInfo extends GosuBaseAttributedFeatureInfo implement
   }
 
   @Override
-  public TypeVarToTypeMap inferTypeParametersFromArgumentTypes2( IGosuClass owningParameterizedType, IType... argTypes )
+  public TypeVarToTypeMap inferTypeParametersFromArgumentTypes2( IType owningParameterizedType, IType... argTypes )
   {
     return null;
   }
@@ -286,7 +286,7 @@ public class GosuVarPropertyInfo extends GosuBaseAttributedFeatureInfo implement
     }
     for( VarStatement varStmt : getOwnersType().getParseInfo().getStaticFields().values() )
     {                                 // barf
-      if( varStmt.getIdentifierName().toString().equals( getName() ) )
+      if( varStmt.getIdentifierName().equals( getName() ) )
       {
         Expression initiazerExpr = varStmt.getAsExpression();
         if( initiazerExpr != null )

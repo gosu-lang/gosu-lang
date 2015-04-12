@@ -4,6 +4,7 @@
 
 package gw.internal.gosu.parser;
 
+import gw.internal.gosu.parser.expressions.TypeVariableDefinitionImpl;
 import gw.lang.parser.GosuParserFactory;
 import gw.lang.parser.GosuParserTypes;
 import gw.lang.parser.IGosuParser;
@@ -144,6 +145,20 @@ public class TypeLord
         // the type must come from the map, otherwise it comes from a context where there is no argument for the type var, hence the error type
         return ErrorType.getInstance( ((TypeVariable)type).getName() );
       }
+      if( bKeepTypeVars && retType instanceof ITypeVariableType && ((TypeVariable)type).getName().equals( retType.getName() ) && ((ITypeVariableType)retType).getBoundingType() != null )
+      {
+        IType boundingType = ((ITypeVariableType)retType).getBoundingType();
+        IType actualBoundingType = getActualType( boundingType, actualParamByVarName, bKeepTypeVars );
+        if( !actualBoundingType.getName().equals( boundingType.toString() ) )
+        {
+          TypeVariableDefinitionImpl tvd = ((TypeVariableDefinitionImpl)((ITypeVariableType)retType).getTypeVarDef()).clone( actualBoundingType );
+          retType = new TypeVariableType( tvd, false );
+        }
+      }
+      else if( !bKeepTypeVars )
+      {
+        retType = getDefaultParameterizedTypeWithTypeVars( retType );
+      }
     }
     else if( type instanceof WildcardType )
     {
@@ -245,6 +260,21 @@ public class TypeLord
         // the type must come from the map, otherwise it comes from a context where there is no argument for the type var, hence the error type
         retType = ErrorType.getInstance( type.getName() );
       }
+      if( bKeepTypeVars && retType instanceof ITypeVariableType && type.getName().equals( retType.getName() ) && ((ITypeVariableType)retType).getBoundingType() != null )
+      {
+        IType boundingType = ((ITypeVariableType)retType).getBoundingType();
+        IType actualBoundingType = getActualType( boundingType, actualParamByVarName, bKeepTypeVars );
+        if( !actualBoundingType.getName().equals( boundingType.getName() ) )
+        {
+          TypeVariableDefinitionImpl tvd = ((TypeVariableDefinitionImpl)((ITypeVariableType)retType).getTypeVarDef()).clone( actualBoundingType );
+          retType = new TypeVariableType( tvd, false );
+        }
+      }
+      else if( !bKeepTypeVars )
+      {
+        retType = getDefaultParameterizedTypeWithTypeVars( retType );
+      }
+
       return retType;
     }
     else if( type instanceof AsmWildcardType )
@@ -381,7 +411,18 @@ public class TypeLord
       }
       else
       {
-        if( !isParameterizedWith( type, saveType ) )
+        if( bKeepTypeVars && type.equals( saveType ) && ((ITypeVariableType)type).getBoundingType() != null )
+        {
+          IType boundingType = ((ITypeVariableType)type).getBoundingType();
+          IType actualBoundingType = getActualType( boundingType, actualParamByVarName, bKeepTypeVars, visited );
+          visited.remove( boundingType );
+          if( actualBoundingType != boundingType )
+          {
+            TypeVariableDefinitionImpl tvd = ((TypeVariableDefinitionImpl)((ITypeVariableType)type).getTypeVarDef()).clone( actualBoundingType );
+            type = new TypeVariableType( tvd, false );
+          }
+        }
+        else if( !isParameterizedWith( type, saveType ) )
         {
           type = getActualType( type, actualParamByVarName, bKeepTypeVars, visited );
           visited.remove( type );
@@ -403,17 +444,23 @@ public class TypeLord
     {
       IType[] typeParams = type.getTypeParameters();
       IType[] actualParamTypes = new IType[typeParams.length];
+      boolean bDifferent = false;
       for( int i = 0; i < typeParams.length; i++ )
       {
         IType actualType = getActualType( typeParams[i], actualParamByVarName, bKeepTypeVars, visited );
         visited.remove( typeParams[i] );
         visited.remove( type );
-        if (actualType == null) {
+        if( actualType == null )
+        {
           actualType = JavaTypes.OBJECT();
         }
         actualParamTypes[i] = actualType;
+        if( actualType != typeParams[i] )
+        {
+          bDifferent = true;
+        }
       }
-      type = TypeLord.getPureGenericType( type ).getParameterizedType( actualParamTypes );
+      type = bDifferent ? TypeLord.getPureGenericType( type ).getParameterizedType( actualParamTypes ) : type;
     }
 
     if( iArrayDims > 0 && type != null )

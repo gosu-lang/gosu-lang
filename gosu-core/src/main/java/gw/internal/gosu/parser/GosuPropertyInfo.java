@@ -224,7 +224,7 @@ public class GosuPropertyInfo extends GosuBaseAttributedFeatureInfo implements I
   {
     return IType.EMPTY_ARRAY; 
   }
-  public IType[] getParameterizedParameterTypes2( IGosuClass ownersType, IType... typeParams )
+  public IType[] getParameterizedParameterTypes2( IType ownersType, IType... typeParams )
   {
     return IType.EMPTY_ARRAY;
   }
@@ -235,7 +235,7 @@ public class GosuPropertyInfo extends GosuBaseAttributedFeatureInfo implements I
   }
 
   @Override
-  public TypeVarToTypeMap inferTypeParametersFromArgumentTypes2( IGosuClass owningParameterizedType, IType... argTypes )
+  public TypeVarToTypeMap inferTypeParametersFromArgumentTypes2( IType owningParameterizedType, IType... argTypes )
   {
     return null;
   }

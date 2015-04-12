@@ -23,11 +23,11 @@ import gw.lang.reflect.IMethodCallHandler;
 import gw.lang.reflect.IParameterInfo;
 import gw.lang.reflect.IScriptabilityModifier;
 import gw.lang.reflect.IType;
+import gw.lang.reflect.ITypeVariableType;
 import gw.lang.reflect.SimpleParameterInfo;
 import gw.lang.reflect.TypeInfoUtil;
 import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.gs.IGenericTypeVariable;
-import gw.lang.reflect.gs.IGosuClass;
 import gw.lang.reflect.java.ClassInfoUtil;
 import gw.lang.reflect.java.IJavaAnnotatedElement;
 import gw.lang.reflect.java.IJavaClassGenericArrayType;
@@ -178,7 +178,7 @@ public class JavaMethodInfo extends JavaBaseFeatureInfo implements IJavaMethodIn
   {
     if( _typeVars == null )
     {
-      _typeVars = _md.getMethod().getTypeVariables(this);
+      _typeVars = _md.getMethod().getTypeVariables( this );
     }
     return _typeVars;
   }
@@ -205,7 +205,7 @@ public class JavaMethodInfo extends JavaBaseFeatureInfo implements IJavaMethodIn
   {
     return getParameterizedParameterTypes2( null, typeParams );
   }
-  public IType[] getParameterizedParameterTypes2( IGosuClass ownersType, IType... typeParams )
+  public IType[] getParameterizedParameterTypes2( IType ownersType, IType... typeParams )
   {
     IType ot = ownersType == null ? getOwnersType() : ownersType;
     TypeVarToTypeMap actualParamByVarName =
@@ -230,7 +230,7 @@ public class JavaMethodInfo extends JavaBaseFeatureInfo implements IJavaMethodIn
     return inferTypeParametersFromArgumentTypes2( null, argTypes );
   }
   @Override
-  public TypeVarToTypeMap inferTypeParametersFromArgumentTypes2( IGosuClass ownersType, IType... argTypes )
+  public TypeVarToTypeMap inferTypeParametersFromArgumentTypes2( IType ownersType, IType... argTypes )
   {
     IJavaClassType[] genParamTypes = _md.getMethod().getGenericParameterTypes();
     IType ot = ownersType == null ? getOwnersType() : ownersType;
@@ -272,6 +272,21 @@ public class JavaMethodInfo extends JavaBaseFeatureInfo implements IJavaMethodIn
     {
       IType inferredType = map.getRaw( s );
       IType boundingType = actualParamByVarName.getRaw( s );
+      List<ITypeVariableType> visited = null;
+      while( boundingType instanceof ITypeVariableType )
+      {
+        if( visited == null )
+        {
+          visited = new ArrayList<ITypeVariableType>( 2 );
+        }
+        else if( visited.contains( boundingType ) )
+        {
+          break;
+        }
+        visited.add( (ITypeVariableType)boundingType );
+        IType t = actualParamByVarName.get( (ITypeVariableType)boundingType );
+        boundingType = t == null ? boundingType : t;
+      }
       if( !boundingType.isAssignableFrom( inferredType ) )
       {
         map.putRaw( s, boundingType );

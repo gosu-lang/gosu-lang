@@ -18,7 +18,6 @@ import gw.lang.reflect.IParameterInfo;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.gs.IGenericTypeVariable;
-import gw.lang.reflect.gs.IGosuClass;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -133,9 +132,8 @@ public class AbstractGenericMethodInfo extends GosuBaseAttributedFeatureInfo imp
   {
     return getParameterizedParameterTypes2( null, typeParams );
   }
-  public IType[] getParameterizedParameterTypes2( IGosuClass ownersType, IType... typeParams )
+  public IType[] getParameterizedParameterTypes2( IType ownersType, IType... typeParams )
   {
-    IGosuClass ot = ownersType == null ? getOwnersType() : ownersType;
     TypeVarToTypeMap actualParamByVarName = TypeLord.mapTypeByVarName( ownersType, ownersType );
     int i = 0;
     for( IGenericTypeVariable tv : getTypeVariables() )
@@ -160,11 +158,11 @@ public class AbstractGenericMethodInfo extends GosuBaseAttributedFeatureInfo imp
   {
     return inferTypeParametersFromArgumentTypes2( null, argTypes );
   }
-  public TypeVarToTypeMap inferTypeParametersFromArgumentTypes2( IGosuClass owningParameterizedType, IType... argTypes )
+  public TypeVarToTypeMap inferTypeParametersFromArgumentTypes2( IType owningParameterizedType, IType... argTypes )
   {
     FunctionType funcType = (FunctionType)getDfs().getType();
     IType[] genParamTypes = funcType.getParameterTypes();
-    IGosuClass ownersType = owningParameterizedType == null ? getOwnersType() : owningParameterizedType;
+    IType ownersType = owningParameterizedType == null ? getOwnersType() : owningParameterizedType;
     TypeVarToTypeMap actualParamByVarName = TypeLord.mapTypeByVarName( ownersType, ownersType );
     IGenericTypeVariable[] typeVars = getTypeVariables();
     for( IGenericTypeVariable tv : typeVars )

@@ -5,6 +5,7 @@
 package gw.internal.gosu.parser;
 
 import gw.internal.gosu.parser.expressions.TypeVariableDefinition;
+import gw.internal.gosu.parser.expressions.TypeVariableDefinitionImpl;
 import gw.lang.reflect.AbstractType;
 import gw.lang.reflect.FunctionType;
 import gw.lang.reflect.gs.IGenericTypeVariable;
@@ -14,7 +15,6 @@ import gw.lang.reflect.IType;
 import gw.lang.reflect.ITypeInfo;
 import gw.lang.reflect.ITypeLoader;
 import gw.lang.reflect.Modifier;
-import gw.lang.reflect.gs.IGosuClass;
 
 import java.io.ObjectStreamException;
 import java.util.Collections;
@@ -31,6 +31,10 @@ public class TypeVariableType extends AbstractType implements ITypeVariableType
   public TypeVariableType( ITypeVariableDefinition typeVarDef, boolean forFunction )
   {
     _typeVarDef = typeVarDef;
+    if( typeVarDef instanceof TypeVariableDefinitionImpl )
+    {
+      ((TypeVariableDefinitionImpl)typeVarDef).setType( this );
+    }
     _bFunctionStatement = forFunction;
   }
 

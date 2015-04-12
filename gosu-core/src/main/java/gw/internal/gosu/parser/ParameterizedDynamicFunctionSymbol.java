@@ -29,7 +29,7 @@ public class ParameterizedDynamicFunctionSymbol extends DynamicFunctionSymbol
     {
       strName = '@' + strName;
     }
-    setName( (String)strName );
+    setName( strName );
     setDisplayName( dfsDelegate.getDisplayName() );
     setScriptPart( new ScriptPartId( owner, null ) );
     assignSuperDfs( dfsDelegate, owner );
