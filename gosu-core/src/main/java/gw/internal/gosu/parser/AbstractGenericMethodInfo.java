@@ -171,7 +171,14 @@ public class AbstractGenericMethodInfo extends GosuBaseAttributedFeatureInfo imp
       {
         actualParamByVarName = new TypeVarToTypeMap();
       }
-      actualParamByVarName.put( tv.getTypeVariableDefinition().getType(), tv.getBoundingType() );
+      if( !TypeLord.isRecursiveType( tv.getTypeVariableDefinition().getType(), tv.getBoundingType() ) )
+      {
+        actualParamByVarName.put( tv.getTypeVariableDefinition().getType(), tv.getBoundingType() );
+      }
+      else
+      {
+        actualParamByVarName.put( tv.getTypeVariableDefinition().getType(), TypeLord.getPureGenericType( tv.getBoundingType() ) );
+      }
     }
 
     TypeVarToTypeMap map = new TypeVarToTypeMap();
@@ -186,7 +193,7 @@ public class AbstractGenericMethodInfo extends GosuBaseAttributedFeatureInfo imp
     return map;
   }
 
-  private void ensureInferredTypeAssignableToBoundingType( TypeVarToTypeMap actualParamByVarName, TypeVarToTypeMap map )
+  public static void ensureInferredTypeAssignableToBoundingType( TypeVarToTypeMap actualParamByVarName, TypeVarToTypeMap map )
   {
     for( Object s : map.keySet() )
     {
@@ -194,6 +201,7 @@ public class AbstractGenericMethodInfo extends GosuBaseAttributedFeatureInfo imp
       IType boundingType = actualParamByVarName.getRaw( s );
       if( boundingType != null )
       {
+        boundingType = TypeLord.getActualType( boundingType, actualParamByVarName, true );
         if( boundingType.isParameterizedType() && TypeLord.isRecursiveType( boundingType ) )
         {
           boundingType = TypeLord.getPureGenericType( boundingType );

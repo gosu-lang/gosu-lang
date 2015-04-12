@@ -23,7 +23,6 @@ import gw.lang.reflect.IMethodCallHandler;
 import gw.lang.reflect.IParameterInfo;
 import gw.lang.reflect.IScriptabilityModifier;
 import gw.lang.reflect.IType;
-import gw.lang.reflect.ITypeVariableType;
 import gw.lang.reflect.SimpleParameterInfo;
 import gw.lang.reflect.TypeInfoUtil;
 import gw.lang.reflect.TypeSystem;
@@ -257,41 +256,11 @@ public class JavaMethodInfo extends JavaBaseFeatureInfo implements IJavaMethodIn
     {
       if( genParamTypes.length > i )
       {
-        IType argType = argTypes[i];
-        IJavaClassType genParamType = genParamTypes[i];
-        inferTypeVariableTypesFromGenParamTypeAndConcreteType( genParamType, argType, map );
-        ensureInferredTypeAssignableToBoundingType( actualParamByVarName, map );
+        inferTypeVariableTypesFromGenParamTypeAndConcreteType( genParamTypes[i], argTypes[i], map );
+        AbstractGenericMethodInfo.ensureInferredTypeAssignableToBoundingType( actualParamByVarName, map );
       }
     }
     return map;
-  }
-
-  private void ensureInferredTypeAssignableToBoundingType( TypeVarToTypeMap actualParamByVarName, TypeVarToTypeMap map )
-  {
-    for( Object s : map.keySet() )
-    {
-      IType inferredType = map.getRaw( s );
-      IType boundingType = actualParamByVarName.getRaw( s );
-      List<ITypeVariableType> visited = null;
-      while( boundingType instanceof ITypeVariableType )
-      {
-        if( visited == null )
-        {
-          visited = new ArrayList<ITypeVariableType>( 2 );
-        }
-        else if( visited.contains( boundingType ) )
-        {
-          break;
-        }
-        visited.add( (ITypeVariableType)boundingType );
-        IType t = actualParamByVarName.get( (ITypeVariableType)boundingType );
-        boundingType = t == null ? boundingType : t;
-      }
-      if( !boundingType.isAssignableFrom( inferredType ) )
-      {
-        map.putRaw( s, boundingType );
-      }
-    }
   }
 
   private void inferTypeVariableTypesFromGenParamTypeAndConcreteType( IJavaClassType genParamType, IType argType, TypeVarToTypeMap map )
