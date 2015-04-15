@@ -34,4 +34,7 @@ class Errant_RecursiveTypeParameter {
   function test411() {
     var a: B411 = new C411()
   }
+
+  class A51<T extends A51> {}
+  var a5: A51<A51> = new A51()
 }
