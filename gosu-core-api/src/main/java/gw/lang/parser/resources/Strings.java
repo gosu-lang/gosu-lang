@@ -290,7 +290,6 @@ public class Strings extends ListResourceBundle
        {Res.MSG_EXTRA_DOT_FOUND_IN_INTERVAL.getKey(), "Interval operator has two dots, found three"},
        {Res.MSG_EXPECTING_NUMBER_TO_FOLLOW_DECIMAL.getKey(), "Expecting a decimal number"},
        {Res.MSG_IMPROPER_VALUE_FOR_NUMERIC_TYPE.getKey(), "The value {0} does not fall within the domain of numbers of type {1}"},
-       {Res.MSG_USE_EXPANSION_OPERATOR.getKey(), "Use the expansion operator '*.' to access component properties"},
        {Res.MSG_EXPECTING_MEMBER_ACCESS_PATH.getKey(), "Expecting member access path."},
        {Res.MSG_CANNOT_CREATE_NEW_ARRAY_FROM_TYPE_VAR.getKey(), "Cannot create a new instance array from a type variable.  The type can only be accessed and written to."},
        {Res.MSG_NOT_A_VALID_EXCEPTION_TYPE.getKey(), "{0} does not extend Throwable, and cannot be caught."},

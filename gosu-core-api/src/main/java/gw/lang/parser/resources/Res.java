@@ -217,7 +217,6 @@ public class Res
   public static final ResourceKey MSG_NO_WILDCARDS = new ResourceKey("MSG_NO_WILDCARDS");
   public static final ResourceKey MSG_CANNOT_CALL_METHOD_WITH_WILDCARD_PARAM = new ResourceKey("MSG_CANNOT_CALL_METHOD_WITH_WILDCARD_PARAM");
   public static final ResourceKey MSG_COULD_NOT_PARAMETERIZE = new ResourceKey("MSG_COULD_NOT_PARAMETERIZE");
-  public static final ResourceKey MSG_USE_EXPANSION_OPERATOR = new ResourceKey("MSG_USE_EXPANSION_OPERATOR");
   public static final ResourceKey MSG_EXPECTING_COLON_ENHANCEMENT = new ResourceKey("MSG_EXPECTING_COLON_ENHANCEMENT");
   public static final ResourceKey MSG_EXPECTING_CLOSE_BRACKET_FOR_LIST_LITERAL = new ResourceKey("MSG_EXPECTING_CLOSE_BRACKET_FOR_LIST_LITERAL");
   public static final ResourceKey MSG_CANNOT_PARAMETERIZE_NONGENERIC = new ResourceKey("MSG_CANNOT_PARAMETERIZE_NONGENERIC");

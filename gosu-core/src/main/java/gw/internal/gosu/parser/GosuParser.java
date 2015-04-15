@@ -6347,7 +6347,6 @@ public final class GosuParser extends ParserBase implements IGosuParser
               !((Identifier)rootExpression).getSymbol().getName().equals( Keyword.KW_super.toString() ),
               Res.MSG_ABSTRACT_METHOD_CANNOT_BE_ACCESSED_DIRECTLY, strMemberName );
     }
-    verifyOrWarn( ma, bExpansion || !(pi instanceof ArrayExpansionPropertyInfo), true, Res.MSG_USE_EXPANSION_OPERATOR );
     pushExpression( ma );
   }
 
