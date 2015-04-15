@@ -1,8 +1,9 @@
-package gw.specification.classes.Subclasses_Superclasses_ClassHierarchy_Inheritance_And_Overriding
+package gw.specification.classes.Subclasses_Superclasses_ClassHierarchy_Inheritance_And_Overriding.p0
 
 class B0 {
   public var x : int
   private var y : int
+  static var z : int as PropZ = 6
 
   construct() {
     x = 1
@@ -17,5 +18,7 @@ class B0 {
   function readY() : int {
     return y
   }
+
+  static function test(){}
 
 }
