@@ -399,18 +399,70 @@ public class BeanAccess
         return property;
       }
     }
-    else
+
+    throw new PropertyNotFoundException( strProperty, classBean, parser == null ? null : parser.makeFullParserState() );
+  }
+
+  /**
+   * Resolves the property directly, as if the type were requesting it, giving access to all properties
+   */
+  public static IPropertyInfo getPropertyInfoDirectly_NoException( IType classBean, String strProperty )
+  {
+    return getPropertyInfo_NoException( classBean, classBean, strProperty, null, null, null );
+  }
+
+  public static IPropertyInfo getPropertyInfo_NoException( IType classBean, String strProperty, IFeatureFilter filter, ParserBase parser, IScriptabilityModifier scriptabilityConstraint)
+  {
+    IType whosaskin = classBean;
+    if( parser != null )
     {
-      IType expComponentType = TypeLord.getExpandableComponentType( classBean );
-      if( expComponentType != null && expComponentType != classBean )
+      whosaskin = parser.getGosuClass();
+      // Hack to ensure that we adhere to visibility rules when parsing
+      whosaskin = whosaskin != null || GosuClassTypeInfo.isIncludeAll() ? whosaskin : JavaTypes.OBJECT();
+      if( GosuClassTypeInfo.isIncludeAll() && whosaskin instanceof IGosuProgram &&
+          // Well... downstream we check for null on whosaskin and ignore TypeSystem.isIncludeAll(), that can't happen for CompileTimeExpressionParser
+          !whosaskin.getName().startsWith( IGosuProgram.PACKAGE )  )
       {
-        // Allow expressions of the form: <array-of-foo>.<property-of-foo>. The
-        // result of evaluating such an expression is of type array-of-property-type.
-        return new ArrayExpansionPropertyInfo( getPropertyInfo( expComponentType, strProperty, filter, parser, scriptabilityConstraint ) );
+        whosaskin = null;
+      }
+    }
+    return getPropertyInfo_NoException( classBean, whosaskin, strProperty, filter, parser, scriptabilityConstraint );
+  }
+
+  private static IPropertyInfo getPropertyInfo_NoException( IType classBean, IType whosAskin, String strProperty, IFeatureFilter filter, ParserBase parser, IScriptabilityModifier scriptabilityConstraint )
+  {
+    if( classBean == null )
+    {
+      return null;
+    }
+
+    ITypeInfo beanInfo = classBean.getTypeInfo();
+    if( beanInfo == null )
+    {
+      return null;
+    }
+
+    int iArrayBracket = strProperty.indexOf( '[' );
+    if( iArrayBracket > 0 )
+    {
+      strProperty = strProperty.substring( 0, iArrayBracket );
+    }
+
+    IPropertyInfo property = getProperty( beanInfo, whosAskin, strProperty );
+    if( property != null )
+    {
+      if( !BeanAccess.isDescriptorHidden(property) &&
+          (filter == null || filter.acceptFeature(classBean, property )) )
+      {
+        if( !property.isVisible(scriptabilityConstraint) )
+        {
+          return null;
+        }
+        return property;
       }
     }
 
-    throw new PropertyNotFoundException( strProperty, classBean, parser == null ? null : parser.makeFullParserState() );
+    return null;
   }
 
   public static IPropertyInfo getProperty( ITypeInfo beanInfo, IType classBean, String strMember )

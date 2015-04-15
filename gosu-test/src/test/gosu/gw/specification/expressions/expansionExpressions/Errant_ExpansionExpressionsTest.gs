@@ -68,7 +68,7 @@ class Errant_ExpansionExpressionsTest {
 
   function testExpansionInterval() {
     var f1 = 1..3
-    var ret = f1*.toString()  //## issuekeys: MSG_NO_METHOD_DESCRIPTOR_FOUND_FOR_METHOD, MSG_NO_METHOD_DESCRIPTOR_FOUND_FOR_METHOD, MSG_NO_METHOD_DESCRIPTOR_FOUND_FOR_METHOD
+    var ret = f1*.toString()  //## issuekeys: MSG_EXPECTING_BEANTYPE, MSG_NO_METHOD_DESCRIPTOR_FOUND_FOR_METHOD, MSG_NO_METHOD_DESCRIPTOR_FOUND_FOR_METHOD
   }
 
   function testExpansionNullSafety() {

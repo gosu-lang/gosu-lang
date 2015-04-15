@@ -5898,7 +5898,8 @@ public final class GosuParser extends ParserBase implements IGosuParser
     BeanMethodCallExpression e = new BeanMethodCallExpression();
     IType rootType = rootExpression.getType();
     rootType = IGosuClass.ProxyUtil.isProxy( rootType ) && rootType instanceof IGosuClass ? ((IGosuClass) rootType).getJavaType() : rootType;
-
+    boolean bExpansion = kind == MemberAccessKind.EXPANSION;
+    rootType = bExpansion ? TypeLord.getExpandableComponentType( rootType ) : rootType;
     if( rootType != null && !rootType.isArray() )
     {
       boolean bAcceptableType =
@@ -5910,15 +5911,14 @@ public final class GosuParser extends ParserBase implements IGosuParser
       verify( e, bAcceptableType, Res.MSG_EXPECTING_BEANTYPE, rootType.getName() );
     }
 
-    boolean bExpansion = kind == MemberAccessKind.EXPANSION;
     IType[] typeParameters = null;
     try
     {
-      if( !(bParseTypeLiteralOnly || rootType instanceof ErrorType) )
+      if( !bParseTypeLiteralOnly && !(rootType instanceof ErrorType) && match( null, "<", SourceCodeTokenizer.TT_OPERATOR, true ) )
       {
         List<IFunctionType> list = new ArrayList<IFunctionType>();
         // if any function with the specified name is generic, parse parameterization
-        getFunctionType( bExpansion ? TypeLord.getExpandableComponentType( rootType ) : rootType, strMemberName, null, list, this, true );
+        getFunctionType( rootType, strMemberName, null, list, this, true );
         for( IFunctionType ftype : list )
         {
           if( ftype.isGenericType() )
@@ -5936,11 +5936,12 @@ public final class GosuParser extends ParserBase implements IGosuParser
 
     int iParenStart = _tokenizer.getTokenStart();
     int mark = _tokenizer.mark();
-    if( !bParseTypeLiteralOnly && !isBlockInvoke( rootExpression, strMemberName ) && match( null, '(' ) )
+    if( !bParseTypeLiteralOnly && match( null, null, '(', true ) && !isBlockInvoke( rootExpression, strMemberName, rootType ) )
     {
       // Method call
 
-      parseMethodMember(rootExpression, kind, iTokenStart, strMemberName, state, bParseTypeLiteralOnly, createSynthesizedProperty, e, rootType, bExpansion, typeParameters, iParenStart, mark);
+      match( null, '(' );
+      parseMethodMember( rootExpression, kind, iTokenStart, strMemberName, state, bParseTypeLiteralOnly, createSynthesizedProperty, e, rootType, bExpansion, typeParameters, iParenStart, mark);
     }
     else
     {
@@ -5981,7 +5982,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
       removeInnerClasses( expr );
       removeLocationsFrom( iLocationsCount );
 
-      parseMethodMember(rootExpression, kind, iTokenStart, strMemberName, state, bParseTypeLiteralOnly, e, rootType, bExpansion, typeParameters, iParenStart);
+      parseMethodMember( rootExpression, kind, iTokenStart, strMemberName, state, bParseTypeLiteralOnly, e, rootType, bExpansion, typeParameters, iParenStart );
     }
   }
 
@@ -6001,7 +6002,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
     e.setRootExpression( rootExpression );
     IMethodInfo md = null;
 
-    List<IFunctionType> listFunctionTypes = getPreliminaryFunctionTypes( strMemberName, e, rootType, bExpansion, typeParameters );
+    List<IFunctionType> listFunctionTypes = getPreliminaryFunctionTypes( strMemberName, e, rootType, typeParameters );
     boolean bNoArgsProvided;
     if( !(bNoArgsProvided = match( null, ')' )) ||
             (listFunctionTypes.size() == 1 && listFunctionTypes.get( 0 ).hasOptionalParams()) )
@@ -6065,7 +6066,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
         IFunctionType funcType;
         try
         {
-          funcType = getFunctionType( bExpansion ? TypeLord.getExpandableComponentType( rootType ) : rootType, strMemberName, new Expression[0], null, this, true );
+          funcType = getFunctionType( rootType, strMemberName, new Expression[0], null, this, true );
         }
         catch( ParseException pe )
         {
@@ -6075,7 +6076,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
           {
             try
             {
-              funcType = getFunctionType( bExpansion ? TypeLord.getExpandableComponentType( rootType ) : rootType, strMemberName, new Expression[0], null, this, false );
+              funcType = getFunctionType( rootType, strMemberName, new Expression[0], null, this, false );
               e.addParseException( pe );
             }
             catch( ParseException e1 )
@@ -6232,7 +6233,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
           memberType = getInnerClass( strMemberName, memberType, (IHasInnerClass)typeLiteralType );
           if( memberType != null )
           {
-            if( !shouldParseMemberInstead( strMemberName, rootType, bExpansion, memberType ) )
+            if( !shouldParseMemberInstead( strMemberName, rootType, memberType ) )
             {
               Token T = new Token();
               T._strValue = memberType.getName();
@@ -6267,8 +6268,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
         }
         else
         {
-          pi = BeanAccess.getPropertyInfo( bExpansion ? TypeLord.getExpandableComponentType( rootType ) : rootType,
-                  strMemberName, null, this, getVisibilityConstraint() );
+          pi = BeanAccess.getPropertyInfo( rootType, strMemberName, null, this, getVisibilityConstraint() );
           memberType = bExpansion ? new ArrayExpansionPropertyInfo( pi ).getFeatureType() : pi.getFeatureType();
 
           if( pi != null )
@@ -6351,7 +6351,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
     pushExpression( ma );
   }
 
-  private boolean shouldParseMemberInstead( String strMemberName, IType rootType, boolean bExpansion, IType memberType )
+  private boolean shouldParseMemberInstead( String strMemberName, IType rootType, IType memberType )
   {
     IType ctxType = getOwner().getContextType().getType();
     if( !(ctxType instanceof IMetaType) )
@@ -6360,8 +6360,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
       {
         try
         {
-          BeanAccess.getPropertyInfo( bExpansion ? TypeLord.getExpandableComponentType( rootType ) : rootType,
-                  strMemberName, null, this, getVisibilityConstraint() );
+          BeanAccess.getPropertyInfo( rootType, strMemberName, null, this, getVisibilityConstraint() );
           // The case exists where both an inner class and a member share the same simple name.
           // Favor the member parse when the context type is not a MetaType
           return true;
@@ -6398,7 +6397,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
     return funcType;
   }
 
-  private List<IFunctionType> getPreliminaryFunctionTypes( String strMemberName, BeanMethodCallExpression e, IType rootType, boolean bExpansion, IType[] typeParameters )
+  private List<IFunctionType> getPreliminaryFunctionTypes( String strMemberName, BeanMethodCallExpression e, IType rootType, IType[] typeParameters )
   {
     // Get a preliminary funcTypes to check arguments. Note we do this to aid in in error feedback and value popup completion.
     List<IFunctionType> listFunctionTypes = new ArrayList<IFunctionType>( 8 );
@@ -6406,7 +6405,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
     {
       if( !(rootType instanceof ErrorType) )
       {
-        getFunctionType( bExpansion ? TypeLord.getExpandableComponentType( rootType ) : rootType, strMemberName, null, listFunctionTypes, this, true );
+        getFunctionType( rootType, strMemberName, null, listFunctionTypes, this, true );
       }
     }
     catch( ParseException pe )
@@ -6421,38 +6420,29 @@ public final class GosuParser extends ParserBase implements IGosuParser
     return listFunctionTypes;
   }
 
-  private boolean isBlockInvoke( Expression rootExpression, String strMemberName )
+  private boolean isBlockInvoke( Expression rootExpression, String strMemberName, IType rootType )
   {
-    try
+    if( rootExpression instanceof TypeLiteral )
     {
-      IType rootType = rootExpression.getType();
-
       // Don't look up inner classes
-      if( rootExpression instanceof TypeLiteral )
-      {
-        IType typeLiteralType = ((MetaType)rootType).getType();
-        if( typeLiteralType instanceof IHasInnerClass )
-        {
-          if( ((IHasInnerClass)typeLiteralType).getInnerClass( strMemberName ) != null )
-          {
-            return false;
-          }
-        }
-      }
 
-      // ignore namepspaces and other functions
-      if( !isErrorType(rootType) && !(rootType instanceof INamespaceType) && !(rootType instanceof IFunctionType) )
+      IType typeLiteralType = ((MetaType)rootType).getType();
+      if( typeLiteralType instanceof IHasInnerClass )
       {
-        IPropertyInfo pi = BeanAccess.getPropertyInfo( rootExpression.getType(), strMemberName, null, this, getVisibilityConstraint() );
-        if( pi != null )
+        if( ((IHasInnerClass)typeLiteralType).getInnerClass( strMemberName ) != null )
         {
-          return pi.getFeatureType() instanceof IBlockType;
+          return false;
         }
       }
     }
-    catch( ParseException e )
+
+    if( !isErrorType( rootType ) && !(rootType instanceof INamespaceType) && !(rootType instanceof IFunctionType) )
     {
-      //ignore
+      IPropertyInfo pi = BeanAccess.getPropertyInfo_NoException( rootType, strMemberName, null, this, getVisibilityConstraint() );
+      if( pi != null )
+      {
+        return pi.getFeatureType() instanceof IBlockType;
+      }
     }
     return false;
   }
