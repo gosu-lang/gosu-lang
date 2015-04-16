@@ -2,6 +2,7 @@ package gw.specContrib.typeinference
 
 uses java.util.Date
 uses java.util.List
+uses java.util.Map
 
 class Errant_IfTypeNarrowing {
   interface I1 {
@@ -56,6 +57,24 @@ class Errant_IfTypeNarrowing {
 
     if (l.get(0) typeis A) {
       l.get(0).foo1()                //## issuekeys: CANNOT RESOLVE 'foo1()'
+    }
+
+    var arr: Object[]
+    if (arr[0] typeis A) {
+      arr[0].foo1()                 //## issuekeys: CANNOT RESOLVE 'foo1()'
+    }
+    var ind: int
+    if (arr[ind] typeis A) {
+      arr[ind].foo1()               //## issuekeys: CANNOT RESOLVE 'foo1()'
+    }
+
+    var map: Map<String, Object>
+    if (map["key"] typeis A) {
+      map["key"].foo1()             //## issuekeys: CANNOT RESOLVE 'foo1()'
+    }
+    var key: String
+    if (map[key] typeis A) {
+      map[key].foo1()               //## issuekeys: CANNOT RESOLVE 'foo1()'
     }
   }
 }
