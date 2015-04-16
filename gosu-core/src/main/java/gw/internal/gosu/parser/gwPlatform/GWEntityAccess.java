@@ -158,10 +158,10 @@ public class GWEntityAccess extends DefaultEntityAccess
     }
   }
 
-//  @Override
-//  public IFeatureFilter getQueryExpressionFeatureFilter() {
-//    return QUERY_EXPRESSION_FEATURE_FILTER;
-//  }
+  @Override
+  public IFeatureFilter getQueryExpressionFeatureFilter() {
+    return QUERY_EXPRESSION_FEATURE_FILTER;
+  }
 
   @Override
   public ILanguageLevel getLanguageLevel() {
