@@ -2292,7 +2292,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
           verify( lhs, !lhs.getType().isPrimitive(), Res.MSG_PRIMITIVES_NOT_ALLOWED_HERE );
           IType rhsType = ((TypeLiteral)rhs).getType().getType();
           verify( rhs, !rhsType.isPrimitive(), Res.MSG_PRIMITIVES_NOT_ALLOWED_HERE );
-          warn( rhs, TypeLord.isInstanceOfPossible( lhs.getType(), rhsType ), Res.MSG_INCONVERTIBLE_TYPES, lhs.getType().getName(), rhsType.getName() );
+          verify( rhs, TypeLoaderAccess.instance().canCast( lhs.getType(), rhsType ), Res.MSG_INCONVERTIBLE_TYPES, lhs.getType().getName(), rhsType.getName() );
           e.setRHS( (TypeLiteral)rhs );
           _ctxInferenceMgr.updateType( ContextInferenceManager.getUnwrappedExpression( lhs ), e.getRHS().evaluate() );
         }

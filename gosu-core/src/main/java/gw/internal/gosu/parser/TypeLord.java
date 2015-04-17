@@ -2485,25 +2485,6 @@ public class TypeLord
     return match;
   }
 
-  public static boolean isInstanceOfPossible( IType lhsType, IType rhsType )
-  {
-    if( (!(rhsType instanceof IGosuClass) && !(rhsType instanceof IJavaType)) ||
-        (!(lhsType instanceof IGosuClass) && !(lhsType instanceof IJavaType)) )
-    {
-      return true;
-    }
-
-    if( rhsType.isFinal() )
-    {
-      return lhsType.isAssignableFrom( rhsType );
-    }
-    else if( !rhsType.isInterface() && !lhsType.isInterface() )
-    {
-      return rhsType.isAssignableFrom( lhsType ) || lhsType.isAssignableFrom( rhsType );
-    }
-    return true;
-  }
-
   public static IType getTopLevelType(IType type) {
     IType topType = getCoreType(type);
     topType = getPureGenericType(topType);

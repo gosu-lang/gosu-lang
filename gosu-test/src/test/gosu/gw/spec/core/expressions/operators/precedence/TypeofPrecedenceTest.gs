@@ -88,7 +88,7 @@ class TypeofPrecedenceTest extends PrecedenceTestBase {
   }
 
   function testTypeofIsHigherPrecedenceThanTypeis() {
-    assertEquals(false, typeof "" typeis String)
+    assertEquals(true, typeof "" typeis Type<String>)
     assertEquals(boolean.Type, typeof ("" typeis String))
   }
 

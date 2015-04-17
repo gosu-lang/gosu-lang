@@ -86,8 +86,8 @@ class TypeisPrecedenceTest extends PrecedenceTestBase {
   function testTypeisIsHigherPrecedenceThanBlock() {
     var x = \ -> "foo" typeis String
     assertEquals(true, x())
-    var y = (\ -> "foo") typeis String
-    assertEquals(false, y)  
+    var y = (\ -> "foo") typeis gw.lang.function.IBlock
+    assertEquals(true, y)
   }
 
 }

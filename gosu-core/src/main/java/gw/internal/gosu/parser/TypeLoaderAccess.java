@@ -1313,7 +1313,10 @@ public class TypeLoaderAccess extends BaseService implements ITypeSystem
         return canCast( ((IMetaType)lhsType).getType(), ((IMetaType)rhsType).getType() );
       }
 
-      if( lhsType.isAssignableFrom( rhsType ) ) {
+      if( rhsType.isAssignableFrom( lhsType ) ) {
+        return true;
+      }
+      else if( lhsType.isAssignableFrom( rhsType ) ) {
         return true;
       }
       else if( rhsType.isInterface() && lhsType.isInterface() && !genericInterfacesClash( rhsType, lhsType ) && !genericInterfacesClash( lhsType, rhsType ) ) {
@@ -1326,8 +1329,7 @@ public class TypeLoaderAccess extends BaseService implements ITypeSystem
       else if( lhsType.isInterface() && ((!rhsType.isFinal() && !rhsType.isPrimitive() && !(rhsType instanceof IFunctionType) && !(rhsType.isArray()) && !genericInterfacesClash( lhsType, rhsType))) ) {
         return true;
       }
-      else if( lhsType == JavaTypes.OBJECT() && rhsType.isPrimitive() && rhsType != JavaTypes.pVOID() )
-      {
+      else if( lhsType == JavaTypes.OBJECT() && rhsType.isPrimitive() && rhsType != JavaTypes.pVOID() ) {
         return true;
       }
       else if( lhsType.isParameterizedType() && rhsType.isParameterizedType() ) {
