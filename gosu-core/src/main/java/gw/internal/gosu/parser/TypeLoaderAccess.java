@@ -1319,7 +1319,7 @@ public class TypeLoaderAccess extends BaseService implements ITypeSystem
       else if( lhsType.isAssignableFrom( rhsType ) ) {
         return true;
       }
-      else if( rhsType.isInterface() && lhsType.isInterface() && !genericInterfacesClash( rhsType, lhsType ) && !genericInterfacesClash( lhsType, rhsType ) ) {
+      else if( rhsType.isInterface() && lhsType.isInterface() && !genericInterfacesClash( rhsType, lhsType ) ) {
         return true;
       }
       else if( rhsType.isInterface() && ((!lhsType.isFinal() && !lhsType.isPrimitive() && !(lhsType instanceof IFunctionType) && !(lhsType.isArray()) && !genericInterfacesClash( rhsType, lhsType)) || canCastMetaType( lhsType, rhsType )) ) {
@@ -1361,7 +1361,10 @@ public class TypeLoaderAccess extends BaseService implements ITypeSystem
     return false;
   }
 
-  private boolean genericInterfacesClash(IType rhsType, IType lhsType) {
+  private boolean genericInterfacesClash( IType rhsType, IType lhsType ) {
+    return _genericInterfacesClash( rhsType, lhsType ) || _genericInterfacesClash( lhsType, rhsType );
+  }
+  private boolean _genericInterfacesClash( IType rhsType, IType lhsType ) {
     if( !rhsType.isParameterizedType() || !lhsType.isParameterizedType() ) {
       return false;
     }
