@@ -3,7 +3,7 @@ package gw.specContrib
 uses gw.BaseVerifyErrantTest
 uses gw.lang.reflect.gs.IGosuClass
 
-class ProcesSpecContribScratchTest extends BaseVerifyErrantTest {
+class ProcessSpecContribScratchTest extends BaseVerifyErrantTest {
 
   function testIt() {
     // add the test in question here

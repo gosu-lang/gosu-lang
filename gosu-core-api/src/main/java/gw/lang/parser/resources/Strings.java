@@ -107,7 +107,6 @@ public class Strings extends ListResourceBundle
        {Res.MSG_EXPECTING_ARRAYLENGTH.getKey(), "Expecting 'length' array property."},
        {Res.MSG_ENTITYBEANS_ARE_IMMUTABLE.getKey(), "The property of the object cannot be modified directly."},
        {Res.MSG_MULTIPLE_DEFAULT_CLAUSES_NOT_PERMITTED.getKey(), "Multiple 'default' clauses detected in \"switch\" statement."},
-       {Res.MSG_CASE_CLAUSE_MAY_NOT_FOLLOW_DEFAULT_CLAUSE.getKey(), "A case clause may not follow the 'default' clause."},
        {Res.MSG_METHOD_NOT_VISIBLE.getKey(), "The function, \"{0}\", is not visible under the parser's visibility constraints."},
        {Res.MSG_PROPERTY_NOT_VISIBLE.getKey(), "The property, \"{0}\", is not visible under the parser's visibility constraints."},
        {Res.MSG_OBJECT_RETIRED.getKey(), "The ID, \"{0}\", references a retired object."},

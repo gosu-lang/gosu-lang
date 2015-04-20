@@ -1,4 +1,4 @@
-package gw.specification.statements.AssignmentStatements
+package gw.specification.statements.assignmentStatements
 
 uses gw.BaseVerifyErrantTest
 
