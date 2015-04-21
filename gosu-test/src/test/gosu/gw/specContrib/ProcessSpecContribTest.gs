@@ -14,7 +14,7 @@ uses gw.lang.reflect.TypeSystem
 uses java.util.Set
 uses java.util.regex.Pattern
 
-class ProcesSpecContribTest extends BaseVerifyErrantTest {
+class ProcessSpecContribTest extends BaseVerifyErrantTest {
 
   private function findAllErrantFiles(file : File, errantClasses: List<String>) {
     var files = file.listFiles()

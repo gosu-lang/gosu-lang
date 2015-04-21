@@ -106,7 +106,6 @@ public class Res
   public static final ResourceKey MSG_EXPECTING_ARRAYLENGTH = new ResourceKey("MSG_EXPECTING_ARRAYLENGTH");
   public static final ResourceKey MSG_ENTITYBEANS_ARE_IMMUTABLE = new ResourceKey("MSG_ENTITYBEANS_ARE_IMMUTABLE");
   public static final ResourceKey MSG_MULTIPLE_DEFAULT_CLAUSES_NOT_PERMITTED = new ResourceKey("MSG_MULTIPLE_DEFAULT_CLAUSES_NOT_PERMITTED");
-  public static final ResourceKey MSG_CASE_CLAUSE_MAY_NOT_FOLLOW_DEFAULT_CLAUSE = new ResourceKey("MSG_CASE_CLAUSE_MAY_NOT_FOLLOW_DEFAULT_CLAUSE");
   public static final ResourceKey MSG_METHOD_NOT_VISIBLE = new ResourceKey("MSG_METHOD_NOT_VISIBLE");
   public static final ResourceKey MSG_PROPERTY_NOT_VISIBLE = new ResourceKey("MSG_PROPERTY_NOT_VISIBLE");
   public static final ResourceKey MSG_OBJECT_RETIRED = new ResourceKey("MSG_OBJECT_RETIRED");

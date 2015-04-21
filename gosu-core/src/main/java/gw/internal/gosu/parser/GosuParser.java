@@ -2623,20 +2623,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
         else
         {
           IType rhsType = ((TypeLiteral)rhs).getType().getType();
-          verify( rhs, rhsType != JavaTypes.pVOID(), Res.MSG_VOID_NOT_ALLOWED );
-          verifyComparable( TypeLord.replaceTypeVariableTypeParametersWithBoundingTypes( rhsType ), lhs, false, false );
-          if( (rhs.hasParseExceptions() || lhs.hasParseExceptions()) &&
-              (!(lhs instanceof TypeLiteral) ||
-               ((TypeLiteral)lhs).getType().getType() instanceof TypeVariableType ||
-               !(rhsType instanceof IGosuClass && ((IGosuClass) rhsType).isStructure())) )
-          {
-            IType lhsType = lhs.getType();
-            if( TypeSystem.canCast( lhsType, rhsType ) )
-            {
-              //noinspection ThrowableResultOfMethodCallIgnored
-              lhs.removeParseException( Res.MSG_TYPE_MISMATCH );
-            }
-          }
+          checkComparableAndCastable( lhs, rhs );
           e.setType( rhsType );
           e.setCoercer( CommonServices.getCoercionManager().resolveCoercerStatically( rhsType, lhs.getType() ) );
 
@@ -2658,6 +2645,28 @@ public final class GosuParser extends ParserBase implements IGosuParser
       setLocation( iOffset, iLineNum, iColumn );
     }
     while( true );
+  }
+
+  private boolean checkComparableAndCastable(Expression lhs, Expression rhs )
+  {
+    IType rhsType =  ((TypeLiteral)rhs).getType().getType();
+    verify( rhs, rhsType != JavaTypes.pVOID(), Res.MSG_VOID_NOT_ALLOWED );
+    verifyComparable( TypeLord.replaceTypeVariableTypeParametersWithBoundingTypes( rhsType ), lhs, false, false );
+    boolean hasExceptions = rhs.hasParseExceptions() || lhs.hasParseExceptions();
+    if( hasExceptions &&
+        (!(lhs instanceof TypeLiteral) ||
+         ((TypeLiteral)lhs).getType().getType() instanceof TypeVariableType ||
+         !(rhsType instanceof IGosuClass && ((IGosuClass) rhsType).isStructure())) )
+    {
+      IType lhsType = lhs.getType();
+      if( TypeSystem.canCast( lhsType, rhsType ) )
+      {
+        //noinspection ThrowableResultOfMethodCallIgnored
+        lhs.removeParseException( Res.MSG_TYPE_MISMATCH );
+        hasExceptions = false;
+      }
+    }
+    return !hasExceptions;
   }
 
   //------------------------------------------------------------------------------
@@ -10657,8 +10666,6 @@ public final class GosuParser extends ParserBase implements IGosuParser
       return false;
     }
 
-    verify( switchStmt, switchStmt.getDefaultStatements() == null, Res.MSG_CASE_CLAUSE_MAY_NOT_FOLLOW_DEFAULT_CLAUSE );
-
     if( !cases.isEmpty() )
     {
       warnIfCaseNotTerminated( cases.get( cases.size()-1 ).getStatements() );
@@ -10669,15 +10676,21 @@ public final class GosuParser extends ParserBase implements IGosuParser
     verify( switchStmt, match( null, ":", SourceCodeTokenizer.TT_OPERATOR ), Res.MSG_EXPECTING_CASE_COLON );
     Expression e = popExpression();
     verifyCaseIsUnique( e, cases );
-    boolean typeInfered = switchExpr instanceof TypeOfExpression && e instanceof TypeLiteral && isIsolatedCase( cases );
+    boolean typeInferred = switchExpr instanceof TypeOfExpression && e instanceof TypeLiteral && isIsolatedCase( cases );
     List<Statement> statements = new ArrayList<Statement>();
     CaseClause caseClause = new CaseClause( e, statements );
     cases.add( caseClause );
-    if( typeInfered )
+    if( typeInferred )
     {
-      TypeOfExpression toe = (TypeOfExpression)switchExpr;
-      _ctxInferenceMgr.pushCtx();
-      _ctxInferenceMgr.updateType( toe.getExpression(), (IType)e.evaluate() );
+      IType caseExprType = (IType)e.evaluate();
+      Expression typeOfExpr = ((TypeOfExpression)switchExpr).getExpression();
+      typeInferred = checkComparableAndCastable( typeOfExpr, e );
+      if( verify( e, typeInferred, Res.MSG_TYPE_MISMATCH, typeOfExpr.getType().getDisplayName(), caseExprType.getDisplayName() ) )
+      {
+        TypeOfExpression toe = (TypeOfExpression)switchExpr;
+        _ctxInferenceMgr.pushCtx();
+        _ctxInferenceMgr.updateType( toe.getExpression(), caseExprType );
+      }
     }
 
     _symTable.pushScope();
@@ -10690,7 +10703,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
         if( match( null, Keyword.KW_case, true ) ||
                 match( null, Keyword.KW_default, true ) )
         {
-          if( typeInfered )
+          if( typeInferred )
           {
             _ctxInferenceMgr.popCtx( false );
             typeInferenceCancelled = true;
@@ -10708,7 +10721,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
     finally
     {
       _symTable.popScope();
-      if( typeInfered && !typeInferenceCancelled )
+      if( typeInferred && !typeInferenceCancelled )
       {
         _ctxInferenceMgr.popCtx( false );
       }
