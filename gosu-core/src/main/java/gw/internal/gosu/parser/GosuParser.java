@@ -3089,10 +3089,31 @@ public final class GosuParser extends ParserBase implements IGosuParser
                 types.add(((Expression) valueExpression).getType());
               }
               IType componentLeastUpperBound = TypeLord.findLeastUpperBound( types );
-              if( componentLeastUpperBound != GosuParserTypes.NULL_TYPE() &&
-                      !(componentLeastUpperBound instanceof CompoundType) )
+              if( componentLeastUpperBound != GosuParserTypes.NULL_TYPE() )
               {
-                e.setType( componentLeastUpperBound.getArrayType());
+                //## todo: consider finding a way to preserve the compound type so that it can be coerced to a compatible array type
+                //  if( componentLeastUpperBound instanceof CompoundType )
+                //  {
+                //    e.setType( JavaTypes.ARRAY_LIST().getParameterizedType( componentLeastUpperBound ) );
+                //  }
+                if( componentLeastUpperBound instanceof CompoundType )
+                {
+                  // Instead of not supporting compound type arrays (no way in java runtime)
+                  // we grab one component of the type and use that (better than just Object[], right?)
+                  for( IType comp: componentLeastUpperBound.getCompoundTypeComponents() )
+                  {
+                    componentLeastUpperBound = comp;
+                    if( !comp.isInterface() )
+                    {
+                      // Favor class type over interface type
+                      break;
+                    }
+                  }
+                }
+                if( !(componentLeastUpperBound instanceof CompoundType) )
+                {
+                  e.setType( componentLeastUpperBound.getArrayType());
+                }
               }
             }
             if( !verify( e, match( null, '}' ), Res.MSG_EXPECTING_CLOSE_BRACE_FOR_INITIALIZER ) )
@@ -6620,6 +6641,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
       List<LightweightParserState> parserStates = new ArrayList<LightweightParserState>( 4 );
 
       IInvocableType funcType = listFunctionTypes.isEmpty() ? null : listFunctionTypes.get( i );
+      maybeInferFunctionTypeVarsFromReturnType( funcType, inferenceMap );
       pushInferredFunctionTypeVariableTypes( funcType );
       try
       {
@@ -6774,6 +6796,23 @@ public final class GosuParser extends ParserBase implements IGosuParser
       errScore.setValid( false );
       errScore.setArguments( Collections.<IExpression>emptyList() );
       return errScore;
+    }
+  }
+
+  private void maybeInferFunctionTypeVarsFromReturnType( IInvocableType invType, TypeVarToTypeMap inferenceMap )
+  {
+    if( !(invType instanceof IFunctionType) )
+    {
+      return;
+    }
+    IFunctionType funcType = (IFunctionType)invType;
+    if( funcType.isGenericType() &&
+        TypeLord.hasTypeVariable( funcType.getReturnType() ) &&
+        !getContextType().isMethodScoring() &&
+        getContextType().getType() != null &&
+        getContextType() != ContextType.EMPTY )
+    {
+      TypeLord.inferTypeVariableTypesFromGenParamTypeAndConcreteType( funcType.getReturnType(), getContextType().getType(), inferenceMap );
     }
   }
 
@@ -7055,7 +7094,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
           }
         }
         ContextType ctx = retainTypeVarsCtxType != null
-                          ? ContextType.makeBlockContexType( (IBlockType)ctxType, retainTypeVarsCtxType, bMethodScoring )
+                          ? ContextType.makeBlockContexType( ctxType, retainTypeVarsCtxType, bMethodScoring )
                           : new ContextType( boundCtxType, bMethodScoring );
         parseExpressionNoVerify( ctx );
 
@@ -7226,7 +7265,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
     for( Expression argExpression : argExpressions ) {
       argTypes.add( argExpression.getType() );
     }
-    return MethodScorer.instance().scoreMethod(funcType, listFunctionTypes, argTypes, getCurrentlyInferringFunctionTypeVars(), bSimple, bLookInCache);
+    return MethodScorer.instance().scoreMethod( funcType, listFunctionTypes, argTypes, getCurrentlyInferringFunctionTypeVars(), bSimple, bLookInCache );
   }
 
   private IType boundCtxType( IType ctxType )
@@ -8378,7 +8417,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
         expr.addParseException( pe );
       }
     }
-    setLocation(iOffset, iLineNum, iColumn);
+    setLocation( iOffset, iLineNum, iColumn );
     parseIndirectMemberAccess( iOffset, iLineNum, iColumn, true );
   }
 
@@ -8500,8 +8539,8 @@ public final class GosuParser extends ParserBase implements IGosuParser
     if( baseType != tl.getType().getType() )
     {
       warn( tl, !tl.getType().getType().isParameterizedType() ||
-              TypeLord.getDefaultParameterizedType( tl.getType().getType() ) == tl.getType().getType(),
-              Res.MSG_PARAMETERIZED_ARRAY_COMPONENT );
+                TypeLord.getDefaultParameterizedType( tl.getType().getType() ) == tl.getType().getType(),
+            Res.MSG_PARAMETERIZED_ARRAY_COMPONENT );
       tl.setType( MetaType.getLiteral( baseType ) );
       verify( tl, bBalancedBrackets, Res.MSG_EXPECTING_ARRAY_BRACKET );
       return true;

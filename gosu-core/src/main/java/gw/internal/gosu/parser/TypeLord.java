@@ -433,7 +433,7 @@ public class TypeLord
         }
       }
     }
-    else if( type instanceof FunctionType)
+    else if( type instanceof FunctionType )
     {
       if( !(type instanceof ErrorTypeInfo.UniversalFunctionType) )
       {

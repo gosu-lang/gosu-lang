@@ -69,14 +69,14 @@ public class ContextType {
     }
   }
 
-  public static ContextType makeBlockContexType( IBlockType ctxType, IBlockType ctxTypeWithTypeVars, boolean bScoring ) {
+  public static ContextType makeBlockContexType( IType ctxType, IBlockType ctxTypeWithTypeVars, boolean bScoring ) {
     return new BlockContextType( ctxType, ctxTypeWithTypeVars, bScoring );
   }
 
   private static class BlockContextType extends ContextType {
     private IBlockType _ctxTypeWithTypeVars;
 
-    private BlockContextType( IBlockType ctxType, IBlockType ctxTypeWithTypeVars, boolean bScoring ) {
+    private BlockContextType( IType ctxType, IBlockType ctxTypeWithTypeVars, boolean bScoring ) {
       super( ctxType, bScoring );
       _ctxTypeWithTypeVars = ctxTypeWithTypeVars;
     }
