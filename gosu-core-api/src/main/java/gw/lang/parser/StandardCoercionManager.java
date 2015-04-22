@@ -577,33 +577,19 @@ public class StandardCoercionManager extends BaseService implements ICoercionMan
 
   public IType verifyTypesComparable( IType lhsType, IType rhsType, boolean bBiDirectional, IFullParserState parserState ) throws ParseException
   {
-    IType lhsT;
-    IType rhsT;
-    if( bBiDirectional )
-    {
-      // Bi-Directional indicates comparison as opposed to assignability, therefore for comparison
-      // we need to test comparability between type variables' bounds
-      lhsT = TypeSystem.getDefaultParameterizedTypeWithTypeVars( lhsType );
-      rhsT = TypeSystem.getDefaultParameterizedTypeWithTypeVars( rhsType );
-    }
-    else
-    {
-      lhsT = lhsType;
-      rhsT = rhsType;
-    }
-    
+
     //==================================================================================
     // Upcasting
     //==================================================================================
-    if( lhsT == rhsT )
+    if( lhsType == rhsType )
     {
       return lhsType;
     }
-    if( lhsT.equals( rhsT ) )
+    if( lhsType.equals( rhsType ) )
     {
       return lhsType;
     }
-    if( lhsT.isAssignableFrom( rhsT ) )
+    if( lhsType.isAssignableFrom( rhsType ) )
     {
       return lhsType;
     }
@@ -611,11 +597,11 @@ public class StandardCoercionManager extends BaseService implements ICoercionMan
     //==================================================================================
     // null/void confusion (see http://jira/jira/browse/PL-12766)
     //==================================================================================
-    if( JavaTypes.pVOID().equals( rhsT ) && !lhsT.isPrimitive() )
+    if( JavaTypes.pVOID().equals( rhsType ) && !lhsType.isPrimitive() )
     {
       return lhsType;
     }
-    if( JavaTypes.pVOID().equals( lhsT ) && !rhsT.isPrimitive() )
+    if( JavaTypes.pVOID().equals( lhsType ) && !rhsType.isPrimitive() )
     {
       return rhsType;
     }
@@ -623,11 +609,11 @@ public class StandardCoercionManager extends BaseService implements ICoercionMan
     //==================================================================================
     // Error type handling
     //==================================================================================
-    if( lhsT instanceof IErrorType)
+    if( lhsType instanceof IErrorType)
     {
       return lhsType;
     }
-    if( rhsT instanceof IErrorType )
+    if( rhsType instanceof IErrorType )
     {
       return rhsType;
     }
@@ -635,8 +621,8 @@ public class StandardCoercionManager extends BaseService implements ICoercionMan
     //==================================================================================
     // IPlaceholderType type handling
     //==================================================================================
-    if( (lhsT instanceof IPlaceholder && ((IPlaceholder)lhsT).isPlaceholder()) ||
-        (rhsT instanceof IPlaceholder && ((IPlaceholder)rhsT).isPlaceholder()) )
+    if( (lhsType instanceof IPlaceholder && ((IPlaceholder)lhsType).isPlaceholder()) ||
+        (rhsType instanceof IPlaceholder && ((IPlaceholder)rhsType).isPlaceholder()) )
     {
       return lhsType;
     }
@@ -644,11 +630,11 @@ public class StandardCoercionManager extends BaseService implements ICoercionMan
     //==================================================================================
     //Covariant arrays
     //==================================================================================
-    if( lhsT.isArray() && rhsT.isArray() )
+    if( lhsType.isArray() && rhsType.isArray() )
     {
       // Note an array of primitives and an array of non-primitives are never assignable
-      if( lhsT.getComponentType().isPrimitive() == rhsT.getComponentType().isPrimitive() &&
-          lhsT.getComponentType().isAssignableFrom( rhsT.getComponentType() ) )
+      if( lhsType.getComponentType().isPrimitive() == rhsType.getComponentType().isPrimitive() &&
+          lhsType.getComponentType().isAssignableFrom( rhsType.getComponentType() ) )
       {
         return lhsType;
       }
@@ -659,13 +645,13 @@ public class StandardCoercionManager extends BaseService implements ICoercionMan
     //==================================================================================
     if( bBiDirectional )
     {
-      if( rhsT.isAssignableFrom( lhsT ) )
+      if( rhsType.isAssignableFrom( lhsType ) )
       {
         return lhsType;
       }
-      if( lhsT.isArray() && rhsT.isArray() )
+      if( lhsType.isArray() && rhsType.isArray() )
       {
-        if( rhsT.getComponentType().isAssignableFrom( lhsT.getComponentType() ) )
+        if( rhsType.getComponentType().isAssignableFrom( lhsType.getComponentType() ) )
         {
           return lhsType;
         }
@@ -675,7 +661,7 @@ public class StandardCoercionManager extends BaseService implements ICoercionMan
     //==================================================================================
     // Structurally suitable (static duck typing)
     //==================================================================================
-    if( isStructurallyAssignable( lhsT, rhsT ) )
+    if( isStructurallyAssignable( lhsType, rhsType ) )
     {
       return lhsType;
     }
@@ -683,14 +669,14 @@ public class StandardCoercionManager extends BaseService implements ICoercionMan
     //==================================================================================
     // Coercion
     //==================================================================================
-    if( canCoerce( lhsT, rhsT ) )
+    if( canCoerce( lhsType, rhsType ) )
     {
       return lhsType;
     }
 
     if( bBiDirectional )
     {
-      if( canCoerce( rhsT, lhsT ) )
+      if( canCoerce( rhsType, lhsType ) )
       {
         return rhsType;
       }
