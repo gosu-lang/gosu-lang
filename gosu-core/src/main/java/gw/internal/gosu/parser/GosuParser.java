@@ -2913,11 +2913,14 @@ public final class GosuParser extends ParserBase implements IGosuParser
       implicitTypeAsFromRecovery.getLocation().addChild(eas.getLocation());
       eas.setParent( implicitTypeAsFromRecovery );
     }
-    parseIndirectMemberAccess(iOffset, iLineNum, iColumn);
+    parseIndirectMemberAccess( iOffset, iLineNum, iColumn );
   }
 
   boolean _parsePrimaryExpression()
   {
+    int mark = getTokenizer().mark();
+    int iLocationsCount = _locations.size();
+
     boolean bRet = false;
 
     if( match( null, Keyword.KW_block ) )
@@ -2952,6 +2955,28 @@ public final class GosuParser extends ParserBase implements IGosuParser
     else
     {
       parseLiteral();
+    }
+
+    bRet = maybeParseWithoutContextTypeIfMemberAccessFollows( mark, iLocationsCount, bRet );
+
+    return bRet;
+  }
+
+  private boolean maybeParseWithoutContextTypeIfMemberAccessFollows( int mark, int iLocationsCount, boolean bRet )
+  {
+    if( getContextType() != null && getContextType() != ContextType.EMPTY && getContextType().getType() != null && getContextType().getType().isAssignableFrom( peekExpression().getType() ) )
+    {
+      if( match( null, null, '.', true ) ||
+          match( null, "?.", SourceCodeTokenizer.TT_OPERATOR, true ) ||
+          match( null, "*.", SourceCodeTokenizer.TT_OPERATOR, true ) )
+      {
+        popExpression();
+        backtrack( mark, iLocationsCount, peekExpression() );
+        pushInferredContextTypes( null );
+        bRet = _parsePrimaryExpression();
+        popInferredContextTypes();
+      }
+
     }
     return bRet;
   }
@@ -3704,17 +3729,8 @@ public final class GosuParser extends ParserBase implements IGosuParser
       TypeLiteral typeLiteral = null;
       if( match( null, null, '(', true ) )
       {
-        IType ctxType = getContextType().getType();
-        if( ctxType != null && !getContextType().isMethodScoring() )
-        {
-          typeLiteral = new TypeLiteral( ctxType );
-          pushExpression( typeLiteral );
-          int iOffset = getTokenizer().getTokenStart();
-          int iLineNum = getTokenizer().getLineNumber();
-          int iColumn = getTokenizer().getTokenColumn();
-          setLocation( iOffset, iLineNum, iColumn, true );
-          popExpression();
-        }
+        // handle typeless 'new()' syntax
+        typeLiteral = maybeInferTypeLiteralFromContextType();
       }
       if( typeLiteral == null )
       {
@@ -3746,6 +3762,23 @@ public final class GosuParser extends ParserBase implements IGosuParser
     {
       setParsingAnnotation( original );
     }
+  }
+
+  private TypeLiteral maybeInferTypeLiteralFromContextType()
+  {
+    TypeLiteral typeLiteral = null;
+    IType ctxType = getContextType().getType();
+    if( ctxType != null && !getContextType().isMethodScoring() )
+    {
+      typeLiteral = new InferredTypeLiteral( ctxType );
+      pushExpression( typeLiteral );
+      int iOffset = getTokenizer().getTokenStart();
+      int iLineNum = getTokenizer().getLineNumber();
+      int iColumn = getTokenizer().getTokenColumn();
+      setLocation( iOffset, iLineNum, iColumn, true );
+      popExpression();
+    }
+    return typeLiteral;
   }
 
   private IType handleListType( TypeLiteral typeLiteral, IType declaringClass )
@@ -4555,11 +4588,11 @@ public final class GosuParser extends ParserBase implements IGosuParser
     IGosuClassInternal constructingFromClass = getScriptPart() != null && getScriptPart().getContainingType() instanceof IGosuClass
                                          ? (IGosuClassInternal)getScriptPart().getContainingType()
                                          : null;
-    verify(e, isConstructingNonStaticInnerClassFromNonStaticContext(innersEnclosingClass, constructingFromClass),
-            Res.MSG_CANNOT_INSTANTIATE_NON_STATIC_CLASSES_HERE, innersEnclosingClass.getName(), innerClass.getRelativeName());
-    verify(e, constructingFromClass != null &&
-            isNonStaticInnerClassConstructableFromCurrentFunction(innersEnclosingClass, constructingFromClass),
-            Res.MSG_MUST_BE_IN_OUTER_TO_CONSTRUCT_INNER, innersEnclosingClass.getName(), innerClass.getRelativeName());
+    verify( e, isConstructingNonStaticInnerClassFromNonStaticContext( innersEnclosingClass, constructingFromClass ),
+            Res.MSG_CANNOT_INSTANTIATE_NON_STATIC_CLASSES_HERE, innersEnclosingClass.getName(), innerClass.getRelativeName() );
+    verify( e, constructingFromClass != null &&
+               isNonStaticInnerClassConstructableFromCurrentFunction( innersEnclosingClass, constructingFromClass ),
+            Res.MSG_MUST_BE_IN_OUTER_TO_CONSTRUCT_INNER, innersEnclosingClass.getName(), innerClass.getRelativeName() );
   }
 
   private boolean isConstructingNonStaticInnerClassFromNonStaticContext(IType innersEnclosingClass, IGosuClassInternal constructingFromClass)
@@ -4739,7 +4772,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
 
   private void parseIndirectMemberAccess( int iOffset, int iLineNum, int iColumn )
   {
-    parseIndirectMemberAccess(iOffset, iLineNum, iColumn, false);
+    parseIndirectMemberAccess( iOffset, iLineNum, iColumn, false );
   }
   private void parseIndirectMemberAccess( int iOffset, int iLineNum, int iColumn, boolean bParsingTypeLiteralOnly )
   {
@@ -4818,8 +4851,8 @@ public final class GosuParser extends ParserBase implements IGosuParser
     int operatorLineNumber = getTokenizer().getLineNumber();
     Token T = new Token();
     if( match( null, '.' ) ||
-            match( T, "?.", SourceCodeTokenizer.TT_OPERATOR ) ||
-            match( T, "*.", SourceCodeTokenizer.TT_OPERATOR ) )
+        match( T, "?.", SourceCodeTokenizer.TT_OPERATOR ) ||
+        match( T, "*.", SourceCodeTokenizer.TT_OPERATOR ) )
     {
       MemberAccessKind kind = MemberAccessKind.getForOperator( T._strValue );
       Expression expression = popExpression();
@@ -7960,7 +7993,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
   private boolean parseStringLiteral()
   {
     Token T = new Token();
-    if( match(T, (int) '"') )
+    if( match( T, (int)'"' ) )
     {
       _parseStringLiteral( T._bUnterminated, T );
       return true;
