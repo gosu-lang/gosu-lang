@@ -52,7 +52,6 @@ import java.lang.reflect.TypeVariable;
 import java.lang.reflect.WildcardType;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -64,7 +63,7 @@ import java.util.StringTokenizer;
 public class TypeLord
 {
   // LRUish cache of assignability results (recent tests indicate 99% hit rates)
-  public static final TypeSystemAwareCache<Pair<IType, IType>, Boolean> ASSIGNABILITY_CACHE =
+  private static final TypeSystemAwareCache<Pair<IType, IType>, Boolean> ASSIGNABILITY_CACHE =
     TypeSystemAwareCache.make( "Assignability Cache", 1000,
                                new Cache.MissHandler<Pair<IType, IType>, Boolean>()
                                {
@@ -1943,18 +1942,6 @@ public class TypeLord
 
   public static boolean isRecursiveType( ITypeVariableType subject, IType... types )
   {
-    if( subject instanceof CompoundType )
-    {
-      for( IType compType : subject.getCompoundTypeComponents() )
-      {
-        if( isParameterizedType( compType ) &&
-            isRecursiveType( subject, compType.getTypeParameters() ) )
-        {
-          return true;
-        }
-      }
-    }
-
     for( IType csr : types )
     {
       if( getPureGenericType( csr ).equals( getPureGenericType( subject ) ) )

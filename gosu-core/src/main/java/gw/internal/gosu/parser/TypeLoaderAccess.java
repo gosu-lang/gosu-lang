@@ -1300,9 +1300,11 @@ public class TypeLoaderAccess extends BaseService implements ITypeSystem
   }
 
   public boolean canCast( IType lhsType, IType rhsType ) {
-    if( lhsType instanceof TypeVariableType ) {
-      // Support casting from a type variable
+    while( lhsType instanceof TypeVariableType && !TypeLord.isRecursiveType( (TypeVariableType)lhsType, ((TypeVariableType)lhsType).getBoundingType() ) ) {
       lhsType = ((TypeVariableType)lhsType).getBoundingType();
+    }
+    while( rhsType instanceof TypeVariableType && !TypeLord.isRecursiveType( (TypeVariableType)rhsType, ((TypeVariableType)rhsType).getBoundingType() ) ) {
+      rhsType = ((TypeVariableType)rhsType).getBoundingType();
     }
 
     if( lhsType != null ) {
