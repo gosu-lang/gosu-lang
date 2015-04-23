@@ -84,7 +84,6 @@ class ProcessSpecContribTest extends BaseVerifyErrantTest {
     var excluded : Set<String> = {
                                    "gw.specContrib.typeinference.Errant_SwitchTypeNarrowing",  // IDE-426
                                    "gw.specContrib.typeinference.Errant_CollectionInitializerTypeInference", // IDE-1798 // IDE-1807
-                                   "gw.specContrib.expressions.cast.generics.Errant_TypeParamExtending", //IDE-1731
                                    "gw.specContrib.classes.Errant_ConstructorOverrideInAnonymousClass",  // IDE-1821
                                    "gw.specContrib.classes.enhancements.Errant_SymbolCollision_ListEnh2", // IDE-1824
                                    "gw.specContrib.typeinference.Errant_GenericMethodAndBlockArgument", // IDE-1943
