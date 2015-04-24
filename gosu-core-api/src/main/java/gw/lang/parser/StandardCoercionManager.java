@@ -891,6 +891,19 @@ public class StandardCoercionManager extends BaseService implements ICoercionMan
     }
 
     //==================================================================================
+    // Structurally suitable (static duck typing)
+    //==================================================================================
+    if( isStructurallyAssignable( lhsType, rhsType ) )
+    {
+      return false;
+    }
+
+    if( JavaTypes.pVOID() == lhsType )
+    {
+      return false;
+    }
+
+    //==================================================================================
     // Coercion
     //==================================================================================
     if( TypeSystem.isNumericType( lhsType ) &&
@@ -908,7 +921,7 @@ public class StandardCoercionManager extends BaseService implements ICoercionMan
       else
       {
         ICoercer iCoercer = findCoercer( lhsType, rhsType, false );
-        return iCoercer != null && iCoercer.isExplicitCoercion();
+        return iCoercer == null || iCoercer.isExplicitCoercion();
       }
     }
   }
