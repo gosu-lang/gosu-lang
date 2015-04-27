@@ -130,4 +130,12 @@ class Errant_ExpansionExpressionsTest {
     var x2: Iterator<List<A>[][]>    //## issuekeys: MSG_PARAMETERIZED_ARRAY_COMPONENT
     var f2: int[] = x2*.getNum()
   }
+
+  function testNoImplicitExpansion() {
+    var arr: String[]
+    var expArr = arr.toUpperCase()  //## issuekeys: CANNOT RESOLVE METHOD
+
+    var l: List<String>
+    var expL = l.toUpperCase()      //## issuekeys: CANNOT RESOLVE METHOD
+  }
 }
