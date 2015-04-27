@@ -48,7 +48,6 @@ import gw.lang.parser.ScriptPartId;
 import gw.lang.parser.StandardCoercionManager;
 import gw.lang.parser.StandardScope;
 import gw.lang.parser.exceptions.ImplicitCoercionError;
-import gw.lang.parser.exceptions.ImplicitCoercionWarning;
 import gw.lang.parser.exceptions.IncompatibleTypeException;
 import gw.lang.parser.exceptions.ParseException;
 import gw.lang.parser.exceptions.ParseIssue;
@@ -1493,17 +1492,17 @@ public abstract class ParserBase implements IParserPart
            getGosuClass().isAnonymous();
   }
 
-  protected void verifyComparable( IType lhsType, Expression rhs, boolean bWarnOnCoercion )
+  protected void verifyComparable( IType lhsType, Expression rhs )
   {
-    verifyComparable( lhsType, rhs, false, bWarnOnCoercion );
+    verifyComparable( lhsType, rhs, false, true );
   }
 
-  protected void verifyComparable( IType lhsType, Expression rhs, boolean bBiDirectional, boolean bWarnOnCoercion )
+  protected void verifyComparable( IType lhsType, Expression rhs, boolean bBiDirectional, boolean bErrorIfCoercion )
   {
-    verifyComparable( lhsType, rhs, bBiDirectional, bWarnOnCoercion, makeFullParserState() );
+    verifyComparable( lhsType, rhs, bBiDirectional, bErrorIfCoercion, makeFullParserState() );
   }
 
-  protected void verifyComparable( IType lhsType, Expression rhs, boolean bBiDirectional, boolean bWarnOnCoercion, IParserState state )
+  protected void verifyComparable( IType lhsType, Expression rhs, boolean bBiDirectional, boolean bErrorIfCoercion, IParserState state )
   {
     IType rhsType = rhs.getType();
     if (TypeSystem.isDeleted(lhsType) || TypeSystem.isDeleted(rhsType)) {
@@ -1520,7 +1519,7 @@ public abstract class ParserBase implements IParserPart
 
     if( rhsType != null )
     {
-      verifyTypesComparable( rhs, lhsType, rhsType, bBiDirectional, bWarnOnCoercion, state );
+      verifyTypesComparable( rhs, lhsType, rhsType, bBiDirectional, bErrorIfCoercion, state );
       if( lhsType == GosuParserTypes.DATETIME_TYPE() )
       {
         if( rhs instanceof StringLiteral )
@@ -1578,38 +1577,26 @@ public abstract class ParserBase implements IParserPart
     }
   }
 
-  protected IType verifyTypesComparable( ParsedElement element, IType lhsType, IType rhsType, boolean bBiDirectional,
-                                         boolean bWarnOnCoercion )
+  protected IType verifyTypesComparable( ParsedElement element, IType lhsType, IType rhsType, boolean bBiDirectional, boolean bErrorIfCoercion )
   {
-    return verifyTypesComparable( element, lhsType, rhsType, bBiDirectional, bWarnOnCoercion, makeFullParserState() );
+    return verifyTypesComparable( element, lhsType, rhsType, bBiDirectional, bErrorIfCoercion, makeFullParserState() );
   }
 
-  protected IType verifyTypesComparable( ParsedElement element, IType lhsType, IType rhsType, boolean bBiDirectional,
-                                         boolean bWarnOnCoercion, IParserState state )
+  protected IType verifyTypesComparable( ParsedElement element, IType lhsType, IType rhsType, boolean bBiDirectional, boolean bErrorIfCoercion, IParserState state )
   {
     try
     {
       final ICoercionManager coercionManager = CommonServices.getCoercionManager();
-      coercionManager.verifyTypesComparable(lhsType, rhsType, bBiDirectional);
+      coercionManager.verifyTypesComparable( lhsType, rhsType, bBiDirectional );
 
-      boolean isImplicit = coercionManager.coercionRequiresWarningIfImplicit(lhsType, rhsType);
-      if( isImplicit && bBiDirectional )
+      if( bErrorIfCoercion )
       {
-        isImplicit = coercionManager.coercionRequiresWarningIfImplicit(rhsType, lhsType);
-      }
-      if( bWarnOnCoercion &&
-          CommonServices.getEntityAccess().isWarnOnImplicitCoercionsOn() &&
-          isImplicit )
-      {
-        if( CommonServices.getEntityAccess().getLanguageLevel().allowAllImplicitCoercions() )
+        boolean bNotCoercibleOrRequiresExplicitCoercion = coercionManager.notCoercibleOrRequiresExplicitCoercion( lhsType, rhsType );
+        if( bNotCoercibleOrRequiresExplicitCoercion && bBiDirectional )
         {
-          element.addParseWarning( new ImplicitCoercionWarning( state,
-                                                                Res.MSG_IMPLICIT_COERCION_WARNING,
-                                                                lhsType,
-                                                                rhsType.getDisplayName(),
-                                                                lhsType.getDisplayName() ) );
+          bNotCoercibleOrRequiresExplicitCoercion = coercionManager.notCoercibleOrRequiresExplicitCoercion( rhsType, lhsType );
         }
-        else
+        if( bNotCoercibleOrRequiresExplicitCoercion )
         {
           element.addParseException( new ImplicitCoercionError( state,
                                                                 Res.MSG_IMPLICIT_COERCION_ERROR,
@@ -1618,6 +1605,7 @@ public abstract class ParserBase implements IParserPart
                                                                 lhsType.getDisplayName() ) );
         }
       }
+
       if( rhsType instanceof ErrorType )
       {
         List<IParseIssue> pes = element.getParseExceptions();

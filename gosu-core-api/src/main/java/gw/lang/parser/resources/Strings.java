@@ -250,7 +250,6 @@ public class Strings extends ListResourceBundle
        {Res.MSG_PROPERTY_SET_MUST_HAVE_ONE_PARAMETER.getKey(), "Property setters must have exactly one parameter."},
        {Res.MSG_PROPERTY_SET_MUST_RETURN_VOID.getKey(), "Property setters must return void."},
        {Res.MSG_MISSING_PROPERTY_RETURN.getKey(), "Missing property return type."},
-       {Res.MSG_IMPLICIT_COERCION_WARNING.getKey(), "An implicit coercion from type {0} to {1} occurs here.  Consider making this explicit with an \"as {1}\"."},
        {Res.MSG_IMPLICIT_COERCION_ERROR.getKey(), "You must explicitly coerce {0} to {1} using the 'as' keyword."},
        {Res.MSG_ASYMMETRICAL_COMPARISON.getKey(), "Asymmetric comparison between {0} and {1}. Consider casting one of the operands." },
        {Res.MSG_SILLY_ASSIGNMENT.getKey(), "An unnecessary assignment from {0} to itself occurs here."},

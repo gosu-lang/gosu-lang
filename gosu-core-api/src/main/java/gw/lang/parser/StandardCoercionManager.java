@@ -390,8 +390,7 @@ public class StandardCoercionManager extends BaseService implements ICoercionMan
         IType rightType = rBlock.getReturnType();
         if( rightType != JavaTypes.pVOID() )
         {
-          ICoercer iCoercer = findCoercer( leftType, rightType, runtime );
-          if( iCoercer != null && !coercionRequiresWarningIfImplicit( leftType, rightType ))
+          if( !notCoercibleOrRequiresExplicitCoercion( leftType, rightType ))
           {
             return BlockCoercer.instance();
           }
@@ -824,7 +823,7 @@ public class StandardCoercionManager extends BaseService implements ICoercionMan
     return objMethod != null;
   }
 
-  public boolean coercionRequiresWarningIfImplicit( IType lhsType, IType rhsType )
+  public boolean notCoercibleOrRequiresExplicitCoercion( IType lhsType, IType rhsType )
   {
 
     //==================================================================================
@@ -914,7 +913,7 @@ public class StandardCoercionManager extends BaseService implements ICoercionMan
     else
     {
       if( TypeSystem.isBoxedTypeFor( lhsType, rhsType ) ||
-               TypeSystem.isBoxedTypeFor( rhsType, lhsType ) )
+          TypeSystem.isBoxedTypeFor( rhsType, lhsType ) )
       {
         return false;
       }
@@ -1000,7 +999,7 @@ public class StandardCoercionManager extends BaseService implements ICoercionMan
     }
 
     // Check Java world types
-    //noinspection deprecation
+    //noinspection deprecation,unchecked
     if( intrType instanceof IJavaType &&
         ((IJavaType)intrType).getIntrinsicClass().isAssignableFrom( value.getClass() ) )
     {
@@ -1673,44 +1672,6 @@ public class StandardCoercionManager extends BaseService implements ICoercionMan
     }
 
     return DateFormat.getDateInstance().parse(str);
-  }
-
-  /**
-   * Convert a string to an array of specified type.
-   * @param strValue the string to convert
-   * @param intrType the array component type
-   * @return the string converted to an array
-   */
-  public static Object makeArrayFromString( String strValue, IType intrType )
-  {
-    if( JavaTypes.pCHAR() == intrType )
-    {
-      return strValue.toCharArray();
-    }
-
-    if( JavaTypes.CHARACTER() == intrType )
-    {
-      Character[] characters = new Character[strValue.length()];
-      for( int i = 0; i < characters.length; i++ )
-      {
-        characters[i] = strValue.charAt(i);
-      }
-
-      return characters;
-    }
-
-    if( JavaTypes.STRING() == intrType )
-    {
-      String[] strings = new String[strValue.length()];
-      for( int i = 0; i < strings.length; i++ )
-      {
-        strings[i] = String.valueOf( strValue.charAt( i ) );
-      }
-
-      return strings;
-    }
-
-    throw GosuShop.createEvaluationException( "The type, " + intrType.getName() + ", is not supported as a coercible component type to a String array." );
   }
 
   public String formatDate( Date value, String strFormat )

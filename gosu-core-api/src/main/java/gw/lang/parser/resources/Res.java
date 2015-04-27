@@ -234,7 +234,6 @@ public class Res
   public static final ResourceKey MSG_PROPERTY_SET_MUST_RETURN_VOID = new ResourceKey("MSG_PROPERTY_SET_MUST_RETURN_VOID");
   public static final ResourceKey MSG_MISSING_PROPERTY_RETURN = new ResourceKey("MSG_MISSING_PROPERTY_RETURN");
   public static final ResourceKey MSG_CANNOT_DEREF_PROPERTIES_IN_WHERE = new ResourceKey("MSG_CANNOT_DEREF_PROPERTIES_IN_WHERE");
-  public static final ResourceKey MSG_IMPLICIT_COERCION_WARNING = new ResourceKey("MSG_IMPLICIT_COERCION_WARNING");
   public static final ResourceKey MSG_IMPLICIT_COERCION_ERROR = new ResourceKey("MSG_IMPLICIT_COERCION_ERROR");
   public static final ResourceKey MSG_ASYMMETRICAL_COMPARISON = new ResourceKey("MSG_ASYMMETRICAL_COMPARISON");
   public static final ResourceKey MSG_SILLY_ASSIGNMENT = new ResourceKey("MSG_SILLY_ASSIGNMENT");

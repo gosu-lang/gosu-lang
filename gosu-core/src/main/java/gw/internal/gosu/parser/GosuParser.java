@@ -1201,7 +1201,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
     if( bVerify && ctxType.getType() != null && !ctxType.isMethodScoring() )
     {
       Expression expr = popExpression();
-      verifyComparable( ctxType.getType(), expr, true );
+      verifyComparable( ctxType.getType(), expr );
       expr = possiblyWrapWithImplicitCoercion( expr, ctxType.getType() );
       pushExpression( expr );
     }
@@ -1430,11 +1430,10 @@ public final class GosuParser extends ParserBase implements IGosuParser
       if( !JavaTypes.pBOOLEAN().equals( condition.getType() ) &&
           !JavaTypes.BOOLEAN().equals( condition.getType() ) )
       {
-        verifyOrWarn( condition, false, CommonServices.getEntityAccess().getLanguageLevel().allowAllImplicitCoercions(),
-                Res.MSG_CONDITIONAL_EXPRESSION_EXPECTS_BOOLEAN );
+        condition.addParseException( Res.MSG_CONDITIONAL_EXPRESSION_EXPECTS_BOOLEAN );
       }
       condition = possiblyWrapWithImplicitCoercion( condition, JavaTypes.pBOOLEAN() );
-      verifyComparable( JavaTypes.pBOOLEAN(), condition, true );
+      verifyComparable( JavaTypes.pBOOLEAN(), condition );
 
       parseConditionalExpression();
       Expression first = popExpression();
@@ -2074,17 +2073,8 @@ public final class GosuParser extends ParserBase implements IGosuParser
   {
     if( !lhs.hasParseExceptions() && !rhs.hasParseExceptions() )
     {
-      boolean bHasCoercionWarning = false;
-      for( IParseIssue p: rhs.getParseIssues() )
-      {
-        if( p.getMessageKey() == Res.MSG_IMPLICIT_COERCION_WARNING )
-        {
-          bHasCoercionWarning = true;
-          break;
-        }
-      }
       ICoercionManager cocerionManager = CommonServices.getCoercionManager();
-      boolean bDontWarn = bHasCoercionWarning ||                                     // rhs has coercion warning, or
+      boolean bDontWarn =
               ((lhs.getType() != JavaTypes.OBJECT() && rhs.getType() != JavaTypes.OBJECT()) || // neither side is Object, or
                       (lhs.getType() == JavaTypes.pVOID() || rhs.getType() == JavaTypes.pVOID()) ||   // one side is "null", or
                       (lhs.getType() != null && BeanAccess.isBeanType( lhs.getType() ) &&         // both sides are "beans"
@@ -2183,11 +2173,6 @@ public final class GosuParser extends ParserBase implements IGosuParser
       // Get coercion warnings if any
       verifyComparable( numberType, rhs, false, true );
       verifyComparable( numberType, lhs, false, true );
-    }
-    if( !(rhs instanceof ImplicitTypeAsExpression) &&
-            rhs.hasImmediateParseWarning( Res.MSG_IMPLICIT_COERCION_WARNING ) )
-    {
-      rhs = possiblyWrapWithImplicitCoercion( rhs, lhs.getType() );
     }
     return rhs;
   }
@@ -2367,7 +2352,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
       rhs = verifyConditionalTypes( lhs, rhs );
 
       IType type = IntervalExpression.getIntervalType( rhs.getType() );
-      verifyComparable( rhs.getType(), lhs, true );
+      verifyComparable( rhs.getType(), lhs );
       if( !lhs.hasImmediateParseIssue( Res.MSG_IMPLICIT_COERCION_ERROR ) &&
           !lhs.hasImmediateParseIssue( Res.MSG_TYPE_MISMATCH ) )
       {
@@ -2380,7 +2365,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
         //noinspection ThrowableResultOfMethodCallIgnored
         lhs.removeParseException( Res.MSG_TYPE_MISMATCH );
         type = IntervalExpression.getIntervalType( lhs.getType() );
-        verifyComparable( lhs.getType(), rhs, true );
+        verifyComparable( lhs.getType(), rhs );
 
         rhs = possiblyWrapWithImplicitCoercion( rhs, lhs.getType() );
       }
@@ -3373,7 +3358,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
     try
     {
       ContextType contextType = getContextType();
-      IType expectedBlockReturnType = inferReturnTypeForBlockArgument( contextType.isMethodScoring() ? null : contextType.getType() );
+      IType expectedBlockReturnType = inferReturnTypeForBlockArgument( contextType );
       _blockReturnTypeStack.push( expectedBlockReturnType );
       pushed = true;
 
@@ -3600,17 +3585,27 @@ public final class GosuParser extends ParserBase implements IGosuParser
     return null;
   }
 
-  private IType inferReturnTypeForBlockArgument( IType ctxType )
+  private IType inferReturnTypeForBlockArgument( ContextType contextType )
   {
+    if( contextType.isMethodScoring() )
+    {
+      return null;
+    }
+
+    IType ctxType = contextType.getType();
     if( ctxType == null )
     {
       return null;
     }
 
     IType returnType = null;
-
     if( ctxType instanceof FunctionType )
     {
+      if( contextType.getAlternateType() instanceof FunctionType )
+      {
+        // Alternate type includes type vars so that untyped parameters in the block can potentially be inferred *after* the block expression parses
+        ctxType = contextType.getAlternateType();
+      }
       returnType = ((FunctionType)ctxType).getReturnType();
     }
 
@@ -9528,7 +9523,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
         popParsingFieldInitializer();
       }
       Expression expression = popExpression();
-      verifyComparable( varType, expression, true );
+      verifyComparable( varType, expression );
       expression = possiblyWrapWithImplicitCoercion( expression, varType );
       varStmt.setAsExpression( expression );
     }
@@ -10063,7 +10058,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
     Expression e = popExpression();
     if( !JavaTypes.THROWABLE().isAssignableFrom( e.getType() ) )
     {
-      verifyComparable( JavaTypes.STRING(), e, true );
+      verifyComparable( JavaTypes.STRING(), e );
       e = possiblyWrapWithImplicitCoercion( e, JavaTypes.STRING() );
     }
 
@@ -11145,7 +11140,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
         _ctxInferenceMgr.cancelInferences( id, rhs );
         if(!incrOrDecr || !isPrimitiveOrBoxedIntegerType( rhs.getType() ) || !isPrimitiveOrBoxedIntegerType( id.getType() ) )
         {
-          verifyComparable( id.getType(), rhs, true );
+          verifyComparable( id.getType(), rhs );
         }
         rhs = possiblyWrapWithImplicitCoercion( rhs, id.getType() );
         as.setExpression( rhs );
@@ -11225,7 +11220,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
             typeExpected = TypeSystem.get(((IJavaPropertyInfo) lhsPi).getPublicField().getType());
           }
         }
-        verifyComparable( typeExpected, rhs, true );
+        verifyComparable( typeExpected, rhs );
 
         rhs = buildRhsOfCompoundOperator( e, T, rhs );
 
@@ -11261,7 +11256,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
                                                    JavaTypes.STRING_BUILDER().isAssignableFrom(type) ||
                                                    JavaTypes.STRING_BUFFER().isAssignableFrom(type)), Res.MSG_STR_IMMUTABLE );
         Expression rhs = parseAssignmentRhs( T, typeExpected, aa );
-        verifyComparable( typeExpected, rhs, true );
+        verifyComparable( typeExpected, rhs );
         rhs = buildRhsOfCompoundOperator( e, T, rhs );
         rhs = possiblyWrapWithImplicitCoercion( rhs, typeExpected );
 
@@ -11291,7 +11286,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
       if( verify( as, matchAssignmentOperator(T), Res.MSG_EXPECTING_EQUALS_ASSIGN ) )
       {
         Expression rhs = parseAssignmentRhs( T, typeExpected, e );
-        verifyComparable( typeExpected, rhs, true );
+        verifyComparable( typeExpected, rhs );
         rhs = buildRhsOfCompoundOperator(e, T, rhs);
         rhs = possiblyWrapWithImplicitCoercion( rhs, ma.getComponentType() );
 
@@ -13143,7 +13138,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
         Symbol symbol = new TypedSymbol( strArgIdentifier, argType, _symTable, null, SymbolType.PARAMETER_DECLARATION );
         if( defExpr != null )
         {
-          verifyComparable( argType, defExpr, true );
+          verifyComparable( argType, defExpr );
           verify( defExpr, defExpr.isCompileTimeConstant(), Res.MSG_COMPILE_TIME_CONSTANT_REQUIRED );
           verify( (ParsedElement)element, argType != JavaTypes.pVOID() || !defExpr.hasParseExceptions(),
                   Res.MSG_PARAM_TYPE_CANT_BE_INFERRED_FROM_LATE_BOUND_EXPRESSION );

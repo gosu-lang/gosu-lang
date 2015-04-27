@@ -73,8 +73,6 @@ public interface IEntityAccess extends IService
 
   boolean isUnreachableCodeDetectionOn();
 
-  boolean isWarnOnImplicitCoercionsOn();
-
   IType getKeyType();
 
   IPropertyInfo getEntityIdProperty( IType rootType );

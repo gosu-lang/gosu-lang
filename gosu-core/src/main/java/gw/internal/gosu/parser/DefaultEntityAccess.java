@@ -353,12 +353,6 @@ public class DefaultEntityAccess extends BaseService implements IEntityAccess
   }
 
   @Override
-  public boolean isWarnOnImplicitCoercionsOn()
-  {
-    return true;
-  }
-
-  @Override
   public IType getKeyType()
   {
     return null;
