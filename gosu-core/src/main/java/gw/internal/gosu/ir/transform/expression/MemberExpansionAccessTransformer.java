@@ -38,10 +38,10 @@ public class MemberExpansionAccessTransformer extends AbstractMemberExpansionTra
   {
     // Make MemberAccessExpr for *temp_mae_X.<property>
 
+    IType iterExprType = getPropertyOrMethodType( rootComponentType, compType );
     MemberAccess ma;
-    ma = new MemberAccess();
-    // We need to set the type of the MemberAccess to exactly the type of the property in question
-    ma.setType( getPropertyOrMethodType( rootComponentType, compType ) );
+    ma = isNestedExpansion( rootComponentType ) ? new MemberExpansionAccess() : new MemberAccess();
+    ma.setType( iterExprType );
     ma.setMemberAccessKind( MemberAccessKind.NULL_SAFE ); // expansion implies null-safety on elements
     Identifier id = new Identifier();
     id.setType( rootComponentType );
@@ -52,6 +52,17 @@ public class MemberExpansionAccessTransformer extends AbstractMemberExpansionTra
     ma.setMemberName( _expr().getMemberName() );
 
     return ExpressionTransformer.compile( ma, _cc() );
+  }
+
+  private boolean isNestedExpansion( IType rootComponentType )
+  {
+    IPropertyInfo pi = _expr().getPropertyInfo();
+    if( pi instanceof ArrayExpansionPropertyInfo )
+    {
+      pi = ((ArrayExpansionPropertyInfo)pi).getDelegate();
+    }
+    IType type = pi.getFeatureType();
+    return rootComponentType != TypeLord.getExpandableComponentType( rootComponentType );
   }
 
   @Override

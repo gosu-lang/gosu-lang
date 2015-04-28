@@ -3,6 +3,7 @@ package gw.specification.expressions.typeExpressions
 uses java.lang.Integer
 uses java.util.*
 uses java.lang.Runnable
+uses java.lang.CharSequence
 uses gw.lang.reflect.IType
 
 class Errant_TypeExpressionsTest {
@@ -41,10 +42,12 @@ class Errant_TypeExpressionsTest {
     b = 10 typeis ArrayList  //## issuekeys: MSG_PRIMITIVES_NOT_ALLOWED_HERE, MSG_INCONVERTIBLE_TYPES
 
     var c: String & Comparator
-    b = c typeis Integer
+    b = c typeis Integer  //## issuekeys: MSG_INCONVERTIBLE_TYPES
+    b = c typeis String
+    b = c typeis CharSequence
 
     var i: Integer
-    b = i typeis String & Comparator
+    b = i typeis String & Comparator  //## issuekeys: MSG_INCONVERTIBLE_TYPES
   }
 
   function testTypeofBasic() {

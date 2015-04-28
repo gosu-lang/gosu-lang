@@ -77,10 +77,10 @@ class LogicalOperatorsTest extends BaseVerifyErrantTest {
 
     var a5 = "123.0"
     var b5 = new BigDecimal("123.0")
-    r = a5 == b5
+    r = a5 == (b5 as String)
     assertTrue(r)
     var a51 = "x"
-    var b51 = new BigDecimal("123.0")
+    var b51 = new BigDecimal("123.0") as String
     r = a51 == b51
     assertFalse(r)
     var a52 = new BigDecimal("123.0")

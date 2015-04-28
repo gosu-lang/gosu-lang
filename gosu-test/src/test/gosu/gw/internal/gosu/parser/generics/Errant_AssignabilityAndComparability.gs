@@ -11,7 +11,7 @@ class Errant_AssignabilityAndComparability<T extends AbstractList> {
     var x : T
     t = x
 
-    var test = t == new ArrayList()
+    var test = t == new ArrayList() //## issuekeys: MSG_TYPE_MISMATCH
     test = t == new Integer( 2 )  //## issuekeys: MSG_TYPE_MISMATCH
   }
 }

@@ -57,7 +57,7 @@ public class GosuMethodInfo extends AbstractGenericMethodInfo implements IGosuMe
           //## Since DFSs are parameterized now, I'm not sure we ever need to get the actual type here (or in the params)
           !(getDfs() instanceof ReducedParameterizedDynamicFunctionSymbol) )
       {
-        TypeVarToTypeMap actualParamByVarName = TypeLord.mapTypeByVarName( ownerType, ownerType, true );
+        TypeVarToTypeMap actualParamByVarName = TypeLord.mapTypeByVarName( ownerType, ownerType );
         for( IGenericTypeVariable tv : getTypeVariables() )
         {
           if( actualParamByVarName.isEmpty() )

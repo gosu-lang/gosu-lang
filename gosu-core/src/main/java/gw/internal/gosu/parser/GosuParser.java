@@ -1201,7 +1201,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
     if( bVerify && ctxType.getType() != null && !ctxType.isMethodScoring() )
     {
       Expression expr = popExpression();
-      verifyComparable( ctxType.getType(), expr, true );
+      verifyComparable( ctxType.getType(), expr );
       expr = possiblyWrapWithImplicitCoercion( expr, ctxType.getType() );
       pushExpression( expr );
     }
@@ -1430,11 +1430,10 @@ public final class GosuParser extends ParserBase implements IGosuParser
       if( !JavaTypes.pBOOLEAN().equals( condition.getType() ) &&
           !JavaTypes.BOOLEAN().equals( condition.getType() ) )
       {
-        verifyOrWarn( condition, false, CommonServices.getEntityAccess().getLanguageLevel().allowAllImplicitCoercions(),
-                Res.MSG_CONDITIONAL_EXPRESSION_EXPECTS_BOOLEAN );
+        condition.addParseException( Res.MSG_CONDITIONAL_EXPRESSION_EXPECTS_BOOLEAN );
       }
       condition = possiblyWrapWithImplicitCoercion( condition, JavaTypes.pBOOLEAN() );
-      verifyComparable( JavaTypes.pBOOLEAN(), condition, true );
+      verifyComparable( JavaTypes.pBOOLEAN(), condition );
 
       parseConditionalExpression();
       Expression first = popExpression();
@@ -2074,17 +2073,8 @@ public final class GosuParser extends ParserBase implements IGosuParser
   {
     if( !lhs.hasParseExceptions() && !rhs.hasParseExceptions() )
     {
-      boolean bHasCoercionWarning = false;
-      for( IParseIssue p: rhs.getParseIssues() )
-      {
-        if( p.getMessageKey() == Res.MSG_IMPLICIT_COERCION_WARNING )
-        {
-          bHasCoercionWarning = true;
-          break;
-        }
-      }
       ICoercionManager cocerionManager = CommonServices.getCoercionManager();
-      boolean bDontWarn = bHasCoercionWarning ||                                     // rhs has coercion warning, or
+      boolean bDontWarn =
               ((lhs.getType() != JavaTypes.OBJECT() && rhs.getType() != JavaTypes.OBJECT()) || // neither side is Object, or
                       (lhs.getType() == JavaTypes.pVOID() || rhs.getType() == JavaTypes.pVOID()) ||   // one side is "null", or
                       (lhs.getType() != null && BeanAccess.isBeanType( lhs.getType() ) &&         // both sides are "beans"
@@ -2183,11 +2173,6 @@ public final class GosuParser extends ParserBase implements IGosuParser
       // Get coercion warnings if any
       verifyComparable( numberType, rhs, false, true );
       verifyComparable( numberType, lhs, false, true );
-    }
-    if( !(rhs instanceof ImplicitTypeAsExpression) &&
-            rhs.hasImmediateParseWarning( Res.MSG_IMPLICIT_COERCION_WARNING ) )
-    {
-      rhs = possiblyWrapWithImplicitCoercion( rhs, lhs.getType() );
     }
     return rhs;
   }
@@ -2292,7 +2277,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
           verify( lhs, !lhs.getType().isPrimitive(), Res.MSG_PRIMITIVES_NOT_ALLOWED_HERE );
           IType rhsType = ((TypeLiteral)rhs).getType().getType();
           verify( rhs, !rhsType.isPrimitive(), Res.MSG_PRIMITIVES_NOT_ALLOWED_HERE );
-          warn( rhs, TypeLord.isInstanceOfPossible( lhs.getType(), rhsType ), Res.MSG_INCONVERTIBLE_TYPES, lhs.getType().getName(), rhsType.getName() );
+          verify( rhs, TypeLoaderAccess.instance().canCast( lhs.getType(), rhsType ), Res.MSG_INCONVERTIBLE_TYPES, lhs.getType().getName(), rhsType.getName() );
           e.setRHS( (TypeLiteral)rhs );
           _ctxInferenceMgr.updateType( ContextInferenceManager.getUnwrappedExpression( lhs ), e.getRHS().evaluate() );
         }
@@ -2367,7 +2352,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
       rhs = verifyConditionalTypes( lhs, rhs );
 
       IType type = IntervalExpression.getIntervalType( rhs.getType() );
-      verifyComparable( rhs.getType(), lhs, true );
+      verifyComparable( rhs.getType(), lhs );
       if( !lhs.hasImmediateParseIssue( Res.MSG_IMPLICIT_COERCION_ERROR ) &&
           !lhs.hasImmediateParseIssue( Res.MSG_TYPE_MISMATCH ) )
       {
@@ -2380,7 +2365,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
         //noinspection ThrowableResultOfMethodCallIgnored
         lhs.removeParseException( Res.MSG_TYPE_MISMATCH );
         type = IntervalExpression.getIntervalType( lhs.getType() );
-        verifyComparable( lhs.getType(), rhs, true );
+        verifyComparable( lhs.getType(), rhs );
 
         rhs = possiblyWrapWithImplicitCoercion( rhs, lhs.getType() );
       }
@@ -2623,20 +2608,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
         else
         {
           IType rhsType = ((TypeLiteral)rhs).getType().getType();
-          verify( rhs, rhsType != JavaTypes.pVOID(), Res.MSG_VOID_NOT_ALLOWED );
-          verifyComparable( TypeLord.replaceTypeVariableTypeParametersWithBoundingTypes( rhsType ), lhs, false, false );
-          if( (rhs.hasParseExceptions() || lhs.hasParseExceptions()) &&
-              (!(lhs instanceof TypeLiteral) ||
-               ((TypeLiteral)lhs).getType().getType() instanceof TypeVariableType ||
-               !(rhsType instanceof IGosuClass && ((IGosuClass) rhsType).isStructure())) )
-          {
-            IType lhsType = lhs.getType();
-            if( TypeSystem.canCast( lhsType, rhsType ) )
-            {
-              //noinspection ThrowableResultOfMethodCallIgnored
-              lhs.removeParseException( Res.MSG_TYPE_MISMATCH );
-            }
-          }
+          checkComparableAndCastable( lhs, rhs );
           e.setType( rhsType );
           e.setCoercer( CommonServices.getCoercionManager().resolveCoercerStatically( rhsType, lhs.getType() ) );
 
@@ -2658,6 +2630,28 @@ public final class GosuParser extends ParserBase implements IGosuParser
       setLocation( iOffset, iLineNum, iColumn );
     }
     while( true );
+  }
+
+  private boolean checkComparableAndCastable(Expression lhs, Expression rhs )
+  {
+    IType rhsType =  ((TypeLiteral)rhs).getType().getType();
+    verify( rhs, rhsType != JavaTypes.pVOID(), Res.MSG_VOID_NOT_ALLOWED );
+    verifyComparable( TypeLord.replaceTypeVariableTypeParametersWithBoundingTypes( rhsType ), lhs, false, false );
+    boolean hasExceptions = rhs.hasParseExceptions() || lhs.hasParseExceptions();
+    if( hasExceptions &&
+        (!(lhs instanceof TypeLiteral) ||
+         ((TypeLiteral)lhs).getType().getType() instanceof TypeVariableType ||
+         !(rhsType instanceof IGosuClass && ((IGosuClass) rhsType).isStructure())) )
+    {
+      IType lhsType = lhs.getType();
+      if( TypeSystem.canCast( lhsType, rhsType ) )
+      {
+        //noinspection ThrowableResultOfMethodCallIgnored
+        lhs.removeParseException( Res.MSG_TYPE_MISMATCH );
+        hasExceptions = false;
+      }
+    }
+    return !hasExceptions;
   }
 
   //------------------------------------------------------------------------------
@@ -2904,11 +2898,14 @@ public final class GosuParser extends ParserBase implements IGosuParser
       implicitTypeAsFromRecovery.getLocation().addChild(eas.getLocation());
       eas.setParent( implicitTypeAsFromRecovery );
     }
-    parseIndirectMemberAccess(iOffset, iLineNum, iColumn);
+    parseIndirectMemberAccess( iOffset, iLineNum, iColumn );
   }
 
   boolean _parsePrimaryExpression()
   {
+    int mark = getTokenizer().mark();
+    int iLocationsCount = _locations.size();
+
     boolean bRet = false;
 
     if( match( null, Keyword.KW_block ) )
@@ -2922,12 +2919,6 @@ public final class GosuParser extends ParserBase implements IGosuParser
     else if( match( null, Keyword.KW_exists ) )
     {
       parseExistsExpression();
-    }
-    else if( match( null, Keyword.KW_find, true ) )
-    {
-      Token T = new Token();
-      T._strValue = Keyword.KW_find.toString();
-      parseQueryExpression( T );
     }
     else if( parseNameOrMethodCall() )
     {
@@ -2949,6 +2940,28 @@ public final class GosuParser extends ParserBase implements IGosuParser
     else
     {
       parseLiteral();
+    }
+
+    bRet = maybeParseWithoutContextTypeIfMemberAccessFollows( mark, iLocationsCount, bRet );
+
+    return bRet;
+  }
+
+  private boolean maybeParseWithoutContextTypeIfMemberAccessFollows( int mark, int iLocationsCount, boolean bRet )
+  {
+    if( getContextType() != null && getContextType() != ContextType.EMPTY && getContextType().getType() != null && getContextType().getType().isAssignableFrom( peekExpression().getType() ) )
+    {
+      if( match( null, null, '.', true ) ||
+          match( null, "?.", SourceCodeTokenizer.TT_OPERATOR, true ) ||
+          match( null, "*.", SourceCodeTokenizer.TT_OPERATOR, true ) )
+      {
+        popExpression();
+        backtrack( mark, iLocationsCount, peekExpression() );
+        pushInferredContextTypes( null );
+        bRet = _parsePrimaryExpression();
+        popInferredContextTypes();
+      }
+
     }
     return bRet;
   }
@@ -3095,10 +3108,31 @@ public final class GosuParser extends ParserBase implements IGosuParser
                 types.add(((Expression) valueExpression).getType());
               }
               IType componentLeastUpperBound = TypeLord.findLeastUpperBound( types );
-              if( componentLeastUpperBound != GosuParserTypes.NULL_TYPE() &&
-                      !(componentLeastUpperBound instanceof CompoundType) )
+              if( componentLeastUpperBound != GosuParserTypes.NULL_TYPE() )
               {
-                e.setType( componentLeastUpperBound.getArrayType());
+                //## todo: consider finding a way to preserve the compound type so that it can be coerced to a compatible array type
+                //  if( componentLeastUpperBound instanceof CompoundType )
+                //  {
+                //    e.setType( JavaTypes.ARRAY_LIST().getParameterizedType( componentLeastUpperBound ) );
+                //  }
+                if( componentLeastUpperBound instanceof CompoundType )
+                {
+                  // Instead of not supporting compound type arrays (no way in java runtime)
+                  // we grab one component of the type and use that (better than just Object[], right?)
+                  for( IType comp: componentLeastUpperBound.getCompoundTypeComponents() )
+                  {
+                    componentLeastUpperBound = comp;
+                    if( !comp.isInterface() )
+                    {
+                      // Favor class type over interface type
+                      break;
+                    }
+                  }
+                }
+                if( !(componentLeastUpperBound instanceof CompoundType) )
+                {
+                  e.setType( componentLeastUpperBound.getArrayType());
+                }
               }
             }
             if( !verify( e, match( null, '}' ), Res.MSG_EXPECTING_CLOSE_BRACE_FOR_INITIALIZER ) )
@@ -3324,7 +3358,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
     try
     {
       ContextType contextType = getContextType();
-      IType expectedBlockReturnType = inferReturnTypeForBlockArgument( contextType.isMethodScoring() ? null : contextType.getType() );
+      IType expectedBlockReturnType = inferReturnTypeForBlockArgument( contextType );
       _blockReturnTypeStack.push( expectedBlockReturnType );
       pushed = true;
 
@@ -3551,17 +3585,27 @@ public final class GosuParser extends ParserBase implements IGosuParser
     return null;
   }
 
-  private IType inferReturnTypeForBlockArgument( IType ctxType )
+  private IType inferReturnTypeForBlockArgument( ContextType contextType )
   {
+    if( contextType.isMethodScoring() )
+    {
+      return null;
+    }
+
+    IType ctxType = contextType.getType();
     if( ctxType == null )
     {
       return null;
     }
 
     IType returnType = null;
-
     if( ctxType instanceof FunctionType )
     {
+      if( contextType.getAlternateType() instanceof FunctionType )
+      {
+        // Alternate type includes type vars so that untyped parameters in the block can potentially be inferred *after* the block expression parses
+        ctxType = contextType.getAlternateType();
+      }
       returnType = ((FunctionType)ctxType).getReturnType();
     }
 
@@ -3659,12 +3703,6 @@ public final class GosuParser extends ParserBase implements IGosuParser
     pushExpression( existsExp );
   }
 
-  boolean parseQueryExpression( Token T )
-  {
-    QueryExpressionParser queryParser = new QueryExpressionParser( this );
-    return queryParser.parse( T );
-  }
-
   /**
    * <i>new-expression</i>
    * <b>new</b> &lt;type-expression&gt; <b>(</b> [&lt;argument-list&gt;] <b>)</b> <b>{</b> [&lt;initialization-expression&gt;] <b>}</b>
@@ -3686,17 +3724,8 @@ public final class GosuParser extends ParserBase implements IGosuParser
       TypeLiteral typeLiteral = null;
       if( match( null, null, '(', true ) )
       {
-        IType ctxType = getContextType().getType();
-        if( ctxType != null && !getContextType().isMethodScoring() )
-        {
-          typeLiteral = new TypeLiteral( ctxType );
-          pushExpression( typeLiteral );
-          int iOffset = getTokenizer().getTokenStart();
-          int iLineNum = getTokenizer().getLineNumber();
-          int iColumn = getTokenizer().getTokenColumn();
-          setLocation( iOffset, iLineNum, iColumn, true );
-          popExpression();
-        }
+        // handle typeless 'new()' syntax
+        typeLiteral = maybeInferTypeLiteralFromContextType();
       }
       if( typeLiteral == null )
       {
@@ -3728,6 +3757,23 @@ public final class GosuParser extends ParserBase implements IGosuParser
     {
       setParsingAnnotation( original );
     }
+  }
+
+  private TypeLiteral maybeInferTypeLiteralFromContextType()
+  {
+    TypeLiteral typeLiteral = null;
+    IType ctxType = getContextType().getType();
+    if( ctxType != null && !getContextType().isMethodScoring() )
+    {
+      typeLiteral = new InferredTypeLiteral( ctxType );
+      pushExpression( typeLiteral );
+      int iOffset = getTokenizer().getTokenStart();
+      int iLineNum = getTokenizer().getLineNumber();
+      int iColumn = getTokenizer().getTokenColumn();
+      setLocation( iOffset, iLineNum, iColumn, true );
+      popExpression();
+    }
+    return typeLiteral;
   }
 
   private IType handleListType( TypeLiteral typeLiteral, IType declaringClass )
@@ -3873,7 +3919,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
         boolean bAnnotationType = ownersType instanceof ICanBeAnnotation && ((ICanBeAnnotation)ownersType).isAnnotation() && JavaTypes.ANNOTATION().isAssignableFrom( ownersType );
         verify( e, bAnnotationType || !ownersType.isAbstract(), Res.MSG_CANNOT_CONSTRUCT_ABSTRACT_CLASS, declaringClass.getName() );
         // Prevent recursive types from being constructed directly
-        verify( e, !TypeLord.isRecursiveTypeFromBase( declaringClass ), Res.MSG_CANNOT_CONSTRUCT_RECURSIVE_CLASS, declaringClass.getName() );
+        warn( e, declaringClass instanceof ITypeVariableType || !TypeLord.isRecursiveType( declaringClass ), Res.MSG_CANNOT_CONSTRUCT_RECURSIVE_CLASS, declaringClass.getName() );
       }
 
       pushExpression( e );
@@ -4537,11 +4583,11 @@ public final class GosuParser extends ParserBase implements IGosuParser
     IGosuClassInternal constructingFromClass = getScriptPart() != null && getScriptPart().getContainingType() instanceof IGosuClass
                                          ? (IGosuClassInternal)getScriptPart().getContainingType()
                                          : null;
-    verify(e, isConstructingNonStaticInnerClassFromNonStaticContext(innersEnclosingClass, constructingFromClass),
-            Res.MSG_CANNOT_INSTANTIATE_NON_STATIC_CLASSES_HERE, innersEnclosingClass.getName(), innerClass.getRelativeName());
-    verify(e, constructingFromClass != null &&
-            isNonStaticInnerClassConstructableFromCurrentFunction(innersEnclosingClass, constructingFromClass),
-            Res.MSG_MUST_BE_IN_OUTER_TO_CONSTRUCT_INNER, innersEnclosingClass.getName(), innerClass.getRelativeName());
+    verify( e, isConstructingNonStaticInnerClassFromNonStaticContext( innersEnclosingClass, constructingFromClass ),
+            Res.MSG_CANNOT_INSTANTIATE_NON_STATIC_CLASSES_HERE, innersEnclosingClass.getName(), innerClass.getRelativeName() );
+    verify( e, constructingFromClass != null &&
+               isNonStaticInnerClassConstructableFromCurrentFunction( innersEnclosingClass, constructingFromClass ),
+            Res.MSG_MUST_BE_IN_OUTER_TO_CONSTRUCT_INNER, innersEnclosingClass.getName(), innerClass.getRelativeName() );
   }
 
   private boolean isConstructingNonStaticInnerClassFromNonStaticContext(IType innersEnclosingClass, IGosuClassInternal constructingFromClass)
@@ -4721,7 +4767,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
 
   private void parseIndirectMemberAccess( int iOffset, int iLineNum, int iColumn )
   {
-    parseIndirectMemberAccess(iOffset, iLineNum, iColumn, false);
+    parseIndirectMemberAccess( iOffset, iLineNum, iColumn, false );
   }
   private void parseIndirectMemberAccess( int iOffset, int iLineNum, int iColumn, boolean bParsingTypeLiteralOnly )
   {
@@ -4800,8 +4846,8 @@ public final class GosuParser extends ParserBase implements IGosuParser
     int operatorLineNumber = getTokenizer().getLineNumber();
     Token T = new Token();
     if( match( null, '.' ) ||
-            match( T, "?.", SourceCodeTokenizer.TT_OPERATOR ) ||
-            match( T, "*.", SourceCodeTokenizer.TT_OPERATOR ) )
+        match( T, "?.", SourceCodeTokenizer.TT_OPERATOR ) ||
+        match( T, "*.", SourceCodeTokenizer.TT_OPERATOR ) )
     {
       MemberAccessKind kind = MemberAccessKind.getForOperator( T._strValue );
       Expression expression = popExpression();
@@ -5276,22 +5322,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
       if( !bMatched )
       {
         IType entityType = resolveTypeName( t._strValue, true );
-        if( entityType != null && CommonServices.getEntityAccess().isEntityClass( entityType ) )
-        {
-          ObjectLiteralExpression objE = new ObjectLiteralExpression( entityType );
-          IType[] argTypes = new IType[]{GosuParserTypes.STRING_TYPE(), GosuParserTypes.STRING_TYPE()};
-          if( verify( objE, bestMethod.getArguments().size() > 0, Res.MSG_EXPECTING_ARGS, t._strValue ) )
-          {
-            if( verify( objE, bestMethod.getArguments().size() == 1 || bestMethod.getArguments().size() == argTypes.length,
-                    Res.MSG_WRONG_NUM_OF_ARGS, t._strValue + ".  Expecting " + argTypes.length + " or 1" ) )
-            {
-              warn( objE, false, Res.MSG_OBJECT_LITERALS_DEPRECATED );
-            }
-          }
-          objE.setArgs( eArgs );
-          exp = objE;
-        }
-        else if( listFunctionTypes.isEmpty() )
+        if( listFunctionTypes.isEmpty() )
         {
           if( staticRefToNonStaticFunc( strFunction, eArgs ) )
           {
@@ -5925,7 +5956,8 @@ public final class GosuParser extends ParserBase implements IGosuParser
     BeanMethodCallExpression e = new BeanMethodCallExpression();
     IType rootType = rootExpression.getType();
     rootType = IGosuClass.ProxyUtil.isProxy( rootType ) && rootType instanceof IGosuClass ? ((IGosuClass) rootType).getJavaType() : rootType;
-
+    boolean bExpansion = kind == MemberAccessKind.EXPANSION;
+    rootType = bExpansion ? TypeLord.getExpandableComponentType( rootType ) : rootType;
     if( rootType != null && !rootType.isArray() )
     {
       boolean bAcceptableType =
@@ -5937,15 +5969,14 @@ public final class GosuParser extends ParserBase implements IGosuParser
       verify( e, bAcceptableType, Res.MSG_EXPECTING_BEANTYPE, rootType.getName() );
     }
 
-    boolean bExpansion = kind == MemberAccessKind.EXPANSION;
     IType[] typeParameters = null;
     try
     {
-      if( !(bParseTypeLiteralOnly || rootType instanceof ErrorType) )
+      if( !bParseTypeLiteralOnly && !(rootType instanceof ErrorType) && match( null, "<", SourceCodeTokenizer.TT_OPERATOR, true ) )
       {
         List<IFunctionType> list = new ArrayList<IFunctionType>();
         // if any function with the specified name is generic, parse parameterization
-        getFunctionType( bExpansion ? TypeLord.getExpandableComponentType( rootType ) : rootType, strMemberName, null, list, this, true );
+        getFunctionType( rootType, strMemberName, null, list, this, true );
         for( IFunctionType ftype : list )
         {
           if( ftype.isGenericType() )
@@ -5963,11 +5994,12 @@ public final class GosuParser extends ParserBase implements IGosuParser
 
     int iParenStart = _tokenizer.getTokenStart();
     int mark = _tokenizer.mark();
-    if( !bParseTypeLiteralOnly && !isBlockInvoke( rootExpression, strMemberName ) && match( null, '(' ) )
+    if( !bParseTypeLiteralOnly && match( null, null, '(', true ) && !isBlockInvoke( rootExpression, strMemberName, rootType ) )
     {
       // Method call
 
-      parseMethodMember(rootExpression, kind, iTokenStart, strMemberName, state, bParseTypeLiteralOnly, createSynthesizedProperty, e, rootType, bExpansion, typeParameters, iParenStart, mark);
+      match( null, '(' );
+      parseMethodMember( rootExpression, kind, iTokenStart, strMemberName, state, bParseTypeLiteralOnly, createSynthesizedProperty, e, rootType, bExpansion, typeParameters, iParenStart, mark);
     }
     else
     {
@@ -6008,7 +6040,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
       removeInnerClasses( expr );
       removeLocationsFrom( iLocationsCount );
 
-      parseMethodMember(rootExpression, kind, iTokenStart, strMemberName, state, bParseTypeLiteralOnly, e, rootType, bExpansion, typeParameters, iParenStart);
+      parseMethodMember( rootExpression, kind, iTokenStart, strMemberName, state, bParseTypeLiteralOnly, e, rootType, bExpansion, typeParameters, iParenStart );
     }
   }
 
@@ -6028,7 +6060,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
     e.setRootExpression( rootExpression );
     IMethodInfo md = null;
 
-    List<IFunctionType> listFunctionTypes = getPreliminaryFunctionTypes( strMemberName, e, rootType, bExpansion, typeParameters );
+    List<IFunctionType> listFunctionTypes = getPreliminaryFunctionTypes( strMemberName, e, rootType, typeParameters );
     boolean bNoArgsProvided;
     if( !(bNoArgsProvided = match( null, ')' )) ||
             (listFunctionTypes.size() == 1 && listFunctionTypes.get( 0 ).hasOptionalParams()) )
@@ -6092,7 +6124,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
         IFunctionType funcType;
         try
         {
-          funcType = getFunctionType( bExpansion ? TypeLord.getExpandableComponentType( rootType ) : rootType, strMemberName, new Expression[0], null, this, true );
+          funcType = getFunctionType( rootType, strMemberName, new Expression[0], null, this, true );
         }
         catch( ParseException pe )
         {
@@ -6102,7 +6134,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
           {
             try
             {
-              funcType = getFunctionType( bExpansion ? TypeLord.getExpandableComponentType( rootType ) : rootType, strMemberName, new Expression[0], null, this, false );
+              funcType = getFunctionType( rootType, strMemberName, new Expression[0], null, this, false );
               e.addParseException( pe );
             }
             catch( ParseException e1 )
@@ -6259,7 +6291,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
           memberType = getInnerClass( strMemberName, memberType, (IHasInnerClass)typeLiteralType );
           if( memberType != null )
           {
-            if( !shouldParseMemberInstead( strMemberName, rootType, bExpansion, memberType ) )
+            if( !shouldParseMemberInstead( strMemberName, rootType, memberType ) )
             {
               Token T = new Token();
               T._strValue = memberType.getName();
@@ -6294,8 +6326,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
         }
         else
         {
-          pi = BeanAccess.getPropertyInfo( bExpansion ? TypeLord.getExpandableComponentType( rootType ) : rootType,
-                  strMemberName, null, this, getVisibilityConstraint() );
+          pi = BeanAccess.getPropertyInfo( rootType, strMemberName, null, this, getVisibilityConstraint() );
           memberType = bExpansion ? new ArrayExpansionPropertyInfo( pi ).getFeatureType() : pi.getFeatureType();
 
           if( pi != null )
@@ -6374,11 +6405,10 @@ public final class GosuParser extends ParserBase implements IGosuParser
               !((Identifier)rootExpression).getSymbol().getName().equals( Keyword.KW_super.toString() ),
               Res.MSG_ABSTRACT_METHOD_CANNOT_BE_ACCESSED_DIRECTLY, strMemberName );
     }
-    verifyOrWarn( ma, bExpansion || !(pi instanceof ArrayExpansionPropertyInfo), true, Res.MSG_USE_EXPANSION_OPERATOR );
     pushExpression( ma );
   }
 
-  private boolean shouldParseMemberInstead( String strMemberName, IType rootType, boolean bExpansion, IType memberType )
+  private boolean shouldParseMemberInstead( String strMemberName, IType rootType, IType memberType )
   {
     IType ctxType = getOwner().getContextType().getType();
     if( !(ctxType instanceof IMetaType) )
@@ -6387,8 +6417,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
       {
         try
         {
-          BeanAccess.getPropertyInfo( bExpansion ? TypeLord.getExpandableComponentType( rootType ) : rootType,
-                  strMemberName, null, this, getVisibilityConstraint() );
+          BeanAccess.getPropertyInfo( rootType, strMemberName, null, this, getVisibilityConstraint() );
           // The case exists where both an inner class and a member share the same simple name.
           // Favor the member parse when the context type is not a MetaType
           return true;
@@ -6425,7 +6454,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
     return funcType;
   }
 
-  private List<IFunctionType> getPreliminaryFunctionTypes( String strMemberName, BeanMethodCallExpression e, IType rootType, boolean bExpansion, IType[] typeParameters )
+  private List<IFunctionType> getPreliminaryFunctionTypes( String strMemberName, BeanMethodCallExpression e, IType rootType, IType[] typeParameters )
   {
     // Get a preliminary funcTypes to check arguments. Note we do this to aid in in error feedback and value popup completion.
     List<IFunctionType> listFunctionTypes = new ArrayList<IFunctionType>( 8 );
@@ -6433,7 +6462,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
     {
       if( !(rootType instanceof ErrorType) )
       {
-        getFunctionType( bExpansion ? TypeLord.getExpandableComponentType( rootType ) : rootType, strMemberName, null, listFunctionTypes, this, true );
+        getFunctionType( rootType, strMemberName, null, listFunctionTypes, this, true );
       }
     }
     catch( ParseException pe )
@@ -6448,38 +6477,29 @@ public final class GosuParser extends ParserBase implements IGosuParser
     return listFunctionTypes;
   }
 
-  private boolean isBlockInvoke( Expression rootExpression, String strMemberName )
+  private boolean isBlockInvoke( Expression rootExpression, String strMemberName, IType rootType )
   {
-    try
+    if( rootExpression instanceof TypeLiteral )
     {
-      IType rootType = rootExpression.getType();
-
       // Don't look up inner classes
-      if( rootExpression instanceof TypeLiteral )
-      {
-        IType typeLiteralType = ((MetaType)rootType).getType();
-        if( typeLiteralType instanceof IHasInnerClass )
-        {
-          if( ((IHasInnerClass)typeLiteralType).getInnerClass( strMemberName ) != null )
-          {
-            return false;
-          }
-        }
-      }
 
-      // ignore namepspaces and other functions
-      if( !isErrorType(rootType) && !(rootType instanceof INamespaceType) && !(rootType instanceof IFunctionType) )
+      IType typeLiteralType = ((MetaType)rootType).getType();
+      if( typeLiteralType instanceof IHasInnerClass )
       {
-        IPropertyInfo pi = BeanAccess.getPropertyInfo( rootExpression.getType(), strMemberName, null, this, getVisibilityConstraint() );
-        if( pi != null )
+        if( ((IHasInnerClass)typeLiteralType).getInnerClass( strMemberName ) != null )
         {
-          return pi.getFeatureType() instanceof IBlockType;
+          return false;
         }
       }
     }
-    catch( ParseException e )
+
+    if( !isErrorType( rootType ) && !(rootType instanceof INamespaceType) && !(rootType instanceof IFunctionType) )
     {
-      //ignore
+      IPropertyInfo pi = BeanAccess.getPropertyInfo_NoException( rootType, strMemberName, null, this, getVisibilityConstraint() );
+      if( pi != null )
+      {
+        return pi.getFeatureType() instanceof IBlockType;
+      }
     }
     return false;
   }
@@ -6564,7 +6584,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
       for( int i = 0; i < typeVars.length; i++ )
       {
         IType boundingType = typeVars[i].getBoundingType();
-        boundingType = TypeLord.isRecursiveTypeFromBase( type ) || TypeLord.isParameterizedType( boundingType ) && TypeLord.isRecursiveType( boundingType, boundingType.getTypeParameters() )
+        boundingType = TypeLord.isRecursiveTypeFromBase( type ) || TypeLord.isParameterizedType( boundingType ) && TypeLord.isRecursiveType( boundingType )
                 ? TypeLord.getDefaultParameterizedTypeWithTypeVars( boundingType, typeVarToTypeMap )
                 : TypeLord.getActualType( boundingType, typeVarToTypeMap, true );
 
@@ -6658,6 +6678,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
       List<LightweightParserState> parserStates = new ArrayList<LightweightParserState>( 4 );
 
       IInvocableType funcType = listFunctionTypes.isEmpty() ? null : listFunctionTypes.get( i );
+      maybeInferFunctionTypeVarsFromReturnType( funcType, inferenceMap );
       pushInferredFunctionTypeVariableTypes( funcType );
       try
       {
@@ -6812,6 +6833,23 @@ public final class GosuParser extends ParserBase implements IGosuParser
       errScore.setValid( false );
       errScore.setArguments( Collections.<IExpression>emptyList() );
       return errScore;
+    }
+  }
+
+  private void maybeInferFunctionTypeVarsFromReturnType( IInvocableType invType, TypeVarToTypeMap inferenceMap )
+  {
+    if( !(invType instanceof IFunctionType) )
+    {
+      return;
+    }
+    IFunctionType funcType = (IFunctionType)invType;
+    if( funcType.isGenericType() &&
+        TypeLord.hasTypeVariable( funcType.getReturnType() ) &&
+        !getContextType().isMethodScoring() &&
+        getContextType().getType() != null &&
+        getContextType() != ContextType.EMPTY )
+    {
+      TypeLord.inferTypeVariableTypesFromGenParamTypeAndConcreteType( funcType.getReturnType(), getContextType().getType(), inferenceMap );
     }
   }
 
@@ -7093,7 +7131,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
           }
         }
         ContextType ctx = retainTypeVarsCtxType != null
-                          ? ContextType.makeBlockContexType( (IBlockType)ctxType, retainTypeVarsCtxType, bMethodScoring )
+                          ? ContextType.makeBlockContexType( ctxType, retainTypeVarsCtxType, bMethodScoring )
                           : new ContextType( boundCtxType, bMethodScoring );
         parseExpressionNoVerify( ctx );
 
@@ -7264,7 +7302,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
     for( Expression argExpression : argExpressions ) {
       argTypes.add( argExpression.getType() );
     }
-    return MethodScorer.instance().scoreMethod(funcType, listFunctionTypes, argTypes, getCurrentlyInferringFunctionTypeVars(), bSimple, bLookInCache);
+    return MethodScorer.instance().scoreMethod( funcType, listFunctionTypes, argTypes, getCurrentlyInferringFunctionTypeVars(), bSimple, bLookInCache );
   }
 
   private IType boundCtxType( IType ctxType )
@@ -7296,7 +7334,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
 
   private IType inferArgType( IType contextType, TypeVarToTypeMap inferenceMap )
   {
-    TypeLord.addReferencedTypeVarsThatAreNotInMap( contextType, inferenceMap, true );
+    TypeLord.addReferencedTypeVarsThatAreNotInMap( contextType, inferenceMap );
     return TypeLord.getActualType( contextType, inferenceMap, true );
   }
 
@@ -7950,7 +7988,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
   private boolean parseStringLiteral()
   {
     Token T = new Token();
-    if( match(T, (int) '"') )
+    if( match( T, (int)'"' ) )
     {
       _parseStringLiteral( T._bUnterminated, T );
       return true;
@@ -8416,7 +8454,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
         expr.addParseException( pe );
       }
     }
-    setLocation(iOffset, iLineNum, iColumn);
+    setLocation( iOffset, iLineNum, iColumn );
     parseIndirectMemberAccess( iOffset, iLineNum, iColumn, true );
   }
 
@@ -8501,7 +8539,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
           if( type.isGenericType() )
           {
             // If a generic type, assume the default parameterized version e.g., List => List<Object>
-            type = TypeLord.makeDefaultParameterizedType( type, !type.isParameterizedType() && (!(getGosuClass() instanceof IGosuClass) || !((IGosuClass)getGosuClass()).isCompilingHeader()) );
+            type = TypeLord.makeDefaultParameterizedType( type );
             typeLiteral.setType( MetaType.getLiteral( type ) );
           }
         }
@@ -8538,8 +8576,8 @@ public final class GosuParser extends ParserBase implements IGosuParser
     if( baseType != tl.getType().getType() )
     {
       warn( tl, !tl.getType().getType().isParameterizedType() ||
-              TypeLord.getDefaultParameterizedType( tl.getType().getType() ) == tl.getType().getType(),
-              Res.MSG_PARAMETERIZED_ARRAY_COMPONENT );
+                TypeLord.getDefaultParameterizedType( tl.getType().getType() ) == tl.getType().getType(),
+            Res.MSG_PARAMETERIZED_ARRAY_COMPONENT );
       tl.setType( MetaType.getLiteral( baseType ) );
       verify( tl, bBalancedBrackets, Res.MSG_EXPECTING_ARRAY_BRACKET );
       return true;
@@ -9485,7 +9523,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
         popParsingFieldInitializer();
       }
       Expression expression = popExpression();
-      verifyComparable( varType, expression, true );
+      verifyComparable( varType, expression );
       expression = possiblyWrapWithImplicitCoercion( expression, varType );
       varStmt.setAsExpression( expression );
     }
@@ -10020,7 +10058,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
     Expression e = popExpression();
     if( !JavaTypes.THROWABLE().isAssignableFrom( e.getType() ) )
     {
-      verifyComparable( JavaTypes.STRING(), e, true );
+      verifyComparable( JavaTypes.STRING(), e );
       e = possiblyWrapWithImplicitCoercion( e, JavaTypes.STRING() );
     }
 
@@ -10656,8 +10694,6 @@ public final class GosuParser extends ParserBase implements IGosuParser
       return false;
     }
 
-    verify( switchStmt, switchStmt.getDefaultStatements() == null, Res.MSG_CASE_CLAUSE_MAY_NOT_FOLLOW_DEFAULT_CLAUSE );
-
     if( !cases.isEmpty() )
     {
       warnIfCaseNotTerminated( cases.get( cases.size()-1 ).getStatements() );
@@ -10668,15 +10704,21 @@ public final class GosuParser extends ParserBase implements IGosuParser
     verify( switchStmt, match( null, ":", SourceCodeTokenizer.TT_OPERATOR ), Res.MSG_EXPECTING_CASE_COLON );
     Expression e = popExpression();
     verifyCaseIsUnique( e, cases );
-    boolean typeInfered = switchExpr instanceof TypeOfExpression && e instanceof TypeLiteral && isIsolatedCase( cases );
+    boolean typeInferred = switchExpr instanceof TypeOfExpression && e instanceof TypeLiteral && isIsolatedCase( cases );
     List<Statement> statements = new ArrayList<Statement>();
     CaseClause caseClause = new CaseClause( e, statements );
     cases.add( caseClause );
-    if( typeInfered )
+    if( typeInferred )
     {
-      TypeOfExpression toe = (TypeOfExpression)switchExpr;
-      _ctxInferenceMgr.pushCtx();
-      _ctxInferenceMgr.updateType( toe.getExpression(), (IType)e.evaluate() );
+      IType caseExprType = (IType)e.evaluate();
+      Expression typeOfExpr = ((TypeOfExpression)switchExpr).getExpression();
+      typeInferred = checkComparableAndCastable( typeOfExpr, e );
+      if( verify( e, typeInferred, Res.MSG_TYPE_MISMATCH, typeOfExpr.getType().getDisplayName(), caseExprType.getDisplayName() ) )
+      {
+        TypeOfExpression toe = (TypeOfExpression)switchExpr;
+        _ctxInferenceMgr.pushCtx();
+        _ctxInferenceMgr.updateType( toe.getExpression(), caseExprType );
+      }
     }
 
     _symTable.pushScope();
@@ -10689,7 +10731,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
         if( match( null, Keyword.KW_case, true ) ||
                 match( null, Keyword.KW_default, true ) )
         {
-          if( typeInfered )
+          if( typeInferred )
           {
             _ctxInferenceMgr.popCtx( false );
             typeInferenceCancelled = true;
@@ -10707,7 +10749,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
     finally
     {
       _symTable.popScope();
-      if( typeInfered && !typeInferenceCancelled )
+      if( typeInferred && !typeInferenceCancelled )
       {
         _ctxInferenceMgr.popCtx( false );
       }
@@ -11098,7 +11140,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
         _ctxInferenceMgr.cancelInferences( id, rhs );
         if(!incrOrDecr || !isPrimitiveOrBoxedIntegerType( rhs.getType() ) || !isPrimitiveOrBoxedIntegerType( id.getType() ) )
         {
-          verifyComparable( id.getType(), rhs, true );
+          verifyComparable( id.getType(), rhs );
         }
         rhs = possiblyWrapWithImplicitCoercion( rhs, id.getType() );
         as.setExpression( rhs );
@@ -11178,7 +11220,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
             typeExpected = TypeSystem.get(((IJavaPropertyInfo) lhsPi).getPublicField().getType());
           }
         }
-        verifyComparable( typeExpected, rhs, true );
+        verifyComparable( typeExpected, rhs );
 
         rhs = buildRhsOfCompoundOperator( e, T, rhs );
 
@@ -11214,7 +11256,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
                                                    JavaTypes.STRING_BUILDER().isAssignableFrom(type) ||
                                                    JavaTypes.STRING_BUFFER().isAssignableFrom(type)), Res.MSG_STR_IMMUTABLE );
         Expression rhs = parseAssignmentRhs( T, typeExpected, aa );
-        verifyComparable( typeExpected, rhs, true );
+        verifyComparable( typeExpected, rhs );
         rhs = buildRhsOfCompoundOperator( e, T, rhs );
         rhs = possiblyWrapWithImplicitCoercion( rhs, typeExpected );
 
@@ -11244,7 +11286,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
       if( verify( as, matchAssignmentOperator(T), Res.MSG_EXPECTING_EQUALS_ASSIGN ) )
       {
         Expression rhs = parseAssignmentRhs( T, typeExpected, e );
-        verifyComparable( typeExpected, rhs, true );
+        verifyComparable( typeExpected, rhs );
         rhs = buildRhsOfCompoundOperator(e, T, rhs);
         rhs = possiblyWrapWithImplicitCoercion( rhs, ma.getComponentType() );
 
@@ -13066,9 +13108,8 @@ public final class GosuParser extends ParserBase implements IGosuParser
           defExpr = expr;
           argType = defExpr.hasParseExceptions()
                     ? JavaTypes.pVOID()
-                    : expr instanceof NullExpression
-                      ? JavaTypes.OBJECT()
-                      : expr.getType();
+                    : expr.getType();
+          verify( expr, !(expr instanceof NullExpression), Res.MSG_VARIABLE_MUST_HAVE_NON_NULL_TYPE );
         }
         else
         {
@@ -13097,7 +13138,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
         Symbol symbol = new TypedSymbol( strArgIdentifier, argType, _symTable, null, SymbolType.PARAMETER_DECLARATION );
         if( defExpr != null )
         {
-          verifyComparable( argType, defExpr, true );
+          verifyComparable( argType, defExpr );
           verify( defExpr, defExpr.isCompileTimeConstant(), Res.MSG_COMPILE_TIME_CONSTANT_REQUIRED );
           verify( (ParsedElement)element, argType != JavaTypes.pVOID() || !defExpr.hasParseExceptions(),
                   Res.MSG_PARAM_TYPE_CANT_BE_INFERRED_FROM_LATE_BOUND_EXPRESSION );

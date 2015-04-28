@@ -5,7 +5,6 @@
 package gw.internal.gosu.coercer;
 
 import gw.internal.gosu.compiler.GosuClassLoader;
-import gw.internal.gosu.parser.GosuClassProxyFactory;
 import gw.internal.gosu.parser.IGosuClassInternal;
 import gw.internal.gosu.parser.TypeLord;
 import gw.lang.parser.IHasInnerClass;
@@ -149,7 +148,7 @@ public class FunctionToInterfaceClassGenerator {
       sb.append( "  function " );
       sb.append( mi.getDisplayName() ).append( "(" );
     }
-    IParameterInfo[] params = GosuClassProxyFactory.getGenericParameters( mi );
+    IParameterInfo[] params = mi.getParameters();
     for( int i = 0; i < params.length; i++ ) {
       IParameterInfo pi = params[i];
       sb.append( ' ' ).append( "p" ).append( i ).append( ": " ).append( TypeLord.replaceTypeVariableTypeParametersWithBoundingTypes( pi.getFeatureType() ).getName() );

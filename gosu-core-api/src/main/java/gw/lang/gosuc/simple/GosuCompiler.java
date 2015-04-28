@@ -3,15 +3,18 @@ package gw.lang.gosuc.simple;
 import gw.config.CommonServices;
 import gw.config.IMemoryMonitor;
 import gw.config.IPlatformHelper;
+import gw.config.Registry;
 import gw.fs.FileFactory;
 import gw.fs.IDirectory;
 import gw.fs.IFile;
 import gw.lang.gosuc.GosucDependency;
 import gw.lang.gosuc.GosucModule;
 import gw.lang.init.GosuInitialization;
+import gw.lang.parser.ICoercionManager;
 import gw.lang.parser.IParseIssue;
 import gw.lang.parser.exceptions.ParseResultsException;
 import gw.lang.parser.exceptions.ParseWarning;
+import gw.lang.reflect.IEntityAccess;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.gs.IGosuClass;
@@ -25,6 +28,8 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.lang.reflect.Constructor;
 import java.nio.channels.FileChannel;
 import java.util.Collections;
@@ -101,12 +106,16 @@ public class GosuCompiler implements IGosuCompiler {
         }
       }
       createClassFile(child, gsClass, driver);
-    } catch (Exception e) {
-      e.printStackTrace();
-      driver.sendCompileIssue(_compilingSourceFile, ERROR, 0, 0, 0, combine("Cannot create .class files.", toMessage(e)));
+      maybeCopySourceFile(child.getParentFile(), gsClass, _compilingSourceFile, driver);
+    } catch (Throwable e) {
+      driver.sendCompileIssue(_compilingSourceFile, ERROR, 0, 0, 0, combine("Cannot create .class files.", getStackTrace(e)));
     }
+  }
 
-    maybeCopySourceFile(child.getParentFile(), gsClass, _compilingSourceFile, driver);
+  public static String getStackTrace(Throwable e) {
+    StringWriter stringWriter = new StringWriter();
+    e.printStackTrace(new PrintWriter(stringWriter));
+    return stringWriter.toString();
   }
 
   private String toMessage(Throwable e) {
@@ -199,6 +208,18 @@ public class GosuCompiler implements IGosuCompiler {
     CommonServices.getKernel().redefineService_Privileged(IFileSystem.class, createFileSystemInstance());
     CommonServices.getKernel().redefineService_Privileged(IMemoryMonitor.class, new CompilerMemoryMonitor());
     CommonServices.getKernel().redefineService_Privileged(IPlatformHelper.class, new CompilerPlatformHelper());
+
+    if ("gw".equals(System.getProperty("compiler.type"))) {
+      try {
+        IEntityAccess access = (IEntityAccess) Class.forName("gw.internal.gosu.parser.gwPlatform.GWEntityAccess").newInstance();
+        ICoercionManager coercionManager = (ICoercionManager) Class.forName("gw.internal.gosu.parser.gwPlatform.GWCoercionManager").newInstance();
+        CommonServices.getKernel().redefineService_Privileged(IEntityAccess.class, access);
+        CommonServices.getKernel().redefineService_Privileged(ICoercionManager.class, coercionManager);
+        Registry.instance().setAllowEntityQueires(true);
+      } catch (Exception e) {
+        throw new RuntimeException(e);
+      }
+    }
 
     IExecutionEnvironment execEnv = TypeSystem.getExecutionEnvironment();
     _gosuInitialization = GosuInitialization.instance(execEnv);

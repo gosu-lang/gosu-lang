@@ -627,10 +627,10 @@ class JavaType extends AbstractType implements IJavaTypeInternal
           }
           else
           {
-            TypeVarToTypeMap actualParamByVarName = TypeLord.mapTypeByVarName( thisRef(), thisRef(), true );
+            TypeVarToTypeMap actualParamByVarName = TypeLord.mapTypeByVarName( thisRef(), thisRef() );
             if( actualParamByVarName.isEmpty() )
             {
-              actualParamByVarName = TypeLord.mapTypeByVarName( notParameterizedInterface, notParameterizedInterface, true );
+              actualParamByVarName = TypeLord.mapTypeByVarName( notParameterizedInterface, notParameterizedInterface );
             }
             IType parameterizedIface = interfaceType.getActualType( actualParamByVarName, true );
             if( parameterizedIface.isGenericType() && !parameterizedIface.isParameterizedType() ) {
@@ -698,16 +698,21 @@ class JavaType extends AbstractType implements IJavaTypeInternal
       IJavaClassType genericSuperclass = _classInfo.getGenericSuperclass();
       if( genericSuperclass instanceof IJavaClassInfo )
       {
+        if( _classInfo.isEnum() ) {
+          // JavaSourceType doesn't give us the generic superclass of an enum, so we make up for that here
+          _superType = _superType.getParameterizedType( thisRef() );
+        }
+
         // Super is not generic, we're done
         return notDeletedSupertype();
       }
 
       // Get fully parameterized version of generic supertype...
 
-      TypeVarToTypeMap actualParamByVarName = TypeLord.mapTypeByVarName( thisRef(), thisRef(), true );
+      TypeVarToTypeMap actualParamByVarName = TypeLord.mapTypeByVarName( thisRef(), thisRef() );
       if( actualParamByVarName.isEmpty() )
       {
-        actualParamByVarName = TypeLord.mapTypeByVarName( notParameterizedSuperType, notParameterizedSuperType, true );
+        actualParamByVarName = TypeLord.mapTypeByVarName( notParameterizedSuperType, notParameterizedSuperType );
       }
       if(genericSuperclass != null) {
         _superType = genericSuperclass.getActualType( actualParamByVarName, true );
@@ -724,6 +729,7 @@ class JavaType extends AbstractType implements IJavaTypeInternal
     if (TypeSystem.isDeleted(_superType)) {
       _superType = TypeSystem.getErrorType();
     }
+    //## todo: this seems unnecessary
     // Ensure we return a non-raw generic type here
     return _superType.isGenericType() && !_superType.isParameterizedType()
            ? TypeLord.getDefaultParameterizedType( _superType )
@@ -858,24 +864,6 @@ class JavaType extends AbstractType implements IJavaTypeInternal
       return TypeLord.getPureGenericType( thisRef() ).getParameterizedType( paramTypes );
     }
 
-    if( _bDefiningGenericTypes )
-    {
-      // If this type references itself in its type variables, we kinda have to
-      // bail out and return the generic type. This can actually happen; behold
-      // java.lang.Enum...
-      //   public abstract class Enum<E extends Enum<E>>
-      // Here the Enum<E> references Enum, which is itself, so we just return this
-      // generic version, which is compatible with any parameterization of itself.
-      // Essentially this is the same as Enum<E extends Enum>, which not only makes
-      // more sense, but more importantly avoids the cyclic reference.
-      return thisRef();
-    }
-
-//    if( !isGenericType() )
-//    {
-//      throw new IllegalStateException( "Cannot parameterize non-generic type: " + getName() );
-//    }
-
     if( _parameterizationByParamsName == null )
     {
       TypeSystem.lock();
@@ -945,7 +933,7 @@ class JavaType extends AbstractType implements IJavaTypeInternal
       {
         _allTypesInHierarchy = TypeLord.getAllClassesInClassHierarchyAsIntrinsicTypes( _classInfo );
         Set<IType> includeGenericTypes = new HashSet<IType>( _allTypesInHierarchy );
-        addGenericTypes( thisRef(), includeGenericTypes);
+        addGenericTypes( thisRef(), includeGenericTypes );
         _allTypesInHierarchy = new UnmodifiableArraySet<IType>(includeGenericTypes);
       }
     }
@@ -966,7 +954,6 @@ class JavaType extends AbstractType implements IJavaTypeInternal
     if( type.isGenericType() || type.isParameterizedType() )
     {
       TypeLord.addAllClassesInClassHierarchy( type, includeGenericTypes, true );
-      return;
     }
     else
     {

@@ -334,7 +334,7 @@ public abstract class BaseFeatureInfo implements IAttributedFeatureInfo
     IType ownerType = container.getOwnersType();
     if( ownerType.isParameterizedType() )
     {
-      TypeVarToTypeMap actualParamByVarName = TypeSystem.mapTypeByVarName( ownerType, ownerType, true );
+      TypeVarToTypeMap actualParamByVarName = TypeSystem.mapTypeByVarName( ownerType, ownerType );
       if( container instanceof IGenericMethodInfo )
       {
         for( IGenericTypeVariable tv : ((IGenericMethodInfo)container).getTypeVariables() )

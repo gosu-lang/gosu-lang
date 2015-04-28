@@ -4,11 +4,15 @@
 
 package gw.internal.gosu.parser.java.classinfo;
 
+import gw.internal.gosu.parser.TypeLord;
+import gw.internal.gosu.parser.TypeVariableType;
+import gw.internal.gosu.parser.expressions.TypeVariableDefinitionImpl;
 import gw.internal.gosu.parser.java.IJavaASTNode;
 import gw.internal.gosu.parser.java.JavaASTConstants;
 import gw.internal.gosu.parser.java.JavaParser;
 import gw.lang.parser.TypeVarToTypeMap;
 import gw.lang.reflect.IType;
+import gw.lang.reflect.ITypeVariableType;
 import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.java.IJavaClassType;
 import gw.lang.reflect.java.IJavaClassTypeVariable;
@@ -92,6 +96,16 @@ public class JavaSourceTypeVariable implements IJavaClassTypeVariable {
   public IType getActualType(TypeVarToTypeMap typeMap, boolean bKeepTypeVars) {
     IType typeFromMap = typeMap.getByString(getName());
     if (typeFromMap != null) {
+      if( typeFromMap.getName().equals( getName() ) )
+      {
+        IType boundingType = ((ITypeVariableType)typeFromMap).getBoundingType();
+        IType boundingTypeFromMap = TypeLord.getActualType( boundingType, typeMap, bKeepTypeVars );
+        if( boundingType != boundingTypeFromMap )
+        {
+          TypeVariableDefinitionImpl tvd = ((TypeVariableDefinitionImpl)((ITypeVariableType)typeFromMap).getTypeVarDef()).clone( boundingTypeFromMap );
+          typeFromMap = new TypeVariableType( tvd, false );
+        }
+      }
       return typeFromMap;
     } else {
       return TypeSystem.getErrorType(getName());

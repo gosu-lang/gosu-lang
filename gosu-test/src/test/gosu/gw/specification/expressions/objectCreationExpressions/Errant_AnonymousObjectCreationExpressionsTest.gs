@@ -78,6 +78,13 @@ class Errant_AnonymousObjectCreationExpressionsTest {
     return new()
   }
 
+  function testErrorWhenRootOfMemberAccess() {
+    // context type applies to entire member-access expr, not the root...
+    var x1 : java.util.ArrayList = new().Children  //## issuekeys: MSG_EXPECTING_TYPE_NAME
+    var x2 : java.util.ArrayList = new().isEmpty()  //## issuekeys: MSG_EXPECTING_TYPE_NAME
+    var x3 : java.util.ArrayList = (new()).isEmpty()  //## issuekeys: MSG_EXPECTING_TYPE_NAME
+  }
+
   class Pogo {
     public var StringProperty : String
   }

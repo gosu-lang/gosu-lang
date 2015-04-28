@@ -9,7 +9,6 @@ import gw.lang.parser.CICS;
 import gw.lang.reflect.gs.IGenericTypeVariable;
 import gw.lang.reflect.gs.IGosuClass;
 import gw.lang.reflect.gs.IGosuEnhancement;
-import gw.lang.reflect.java.IJavaMethodInfo;
 import gw.lang.reflect.java.JavaTypes;
 import gw.lang.reflect.module.IModule;
 import gw.util.GosuExceptionUtil;
@@ -576,21 +575,12 @@ public class FeatureManager<T extends CharSequence> {
   }
 
   private boolean isOverride(IMethodInfo thisMethodInfo, IMethodInfo superMethodInfo) {
-//    if( ILanguageLevel.Util.STANDARD_GOSU() ) {
-      return superMethodInfo.getDisplayName().equals(thisMethodInfo.getDisplayName());
-//    }
-//    return superMethodInfo.getDisplayName().equalsIgnoreCase(thisMethodInfo.getDisplayName());
+    return superMethodInfo.getDisplayName().equals(thisMethodInfo.getDisplayName());
   }
 
   private IType[] removeGenericMethodParameters(IMethodInfo thisMethodInfo) {
-    IParameterInfo[] parameters;
-    if (thisMethodInfo instanceof IJavaMethodInfo) {
-      parameters = ((IJavaMethodInfo) thisMethodInfo).getGenericParameters();
-    } else {
-      parameters = thisMethodInfo.getParameters();
-    }
+    IParameterInfo[] parameters = thisMethodInfo.getParameters();
     IType[] paramTypes = new IType[parameters.length];
-
     List<IType> methodTypeVars = null;
     if (thisMethodInfo instanceof IGenericMethodInfo) {
       IGenericTypeVariable[] typeVariables = ((IGenericMethodInfo) thisMethodInfo).getTypeVariables();

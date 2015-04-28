@@ -13,10 +13,7 @@ import gw.lang.parser.IAttributeSource;
 import gw.lang.parser.IParseIssue;
 import gw.lang.parser.ITypeUsesMap;
 import gw.lang.parser.ILanguageLevel;
-import gw.lang.parser.expressions.IQueryExpression;
-import gw.lang.parser.expressions.IQueryExpressionEvaluator;
 import gw.lang.reflect.gs.ICompilableType;
-import gw.util.IFeatureFilter;
 import gw.util.ILogger;
 
 import java.util.Collection;
@@ -34,59 +31,47 @@ public interface IEntityAccess extends IService
    *
    * @return Set of type names that are automatically imported
    */
-  public ITypeUsesMap getDefaultTypeUses();
+  ITypeUsesMap getDefaultTypeUses();
 
-  public boolean isDomainInstance( Object value );
+  boolean isDomainInstance( Object value );
 
-  public boolean isEntityClass( IType type );
+  boolean isEntityClass( IType type );
 
-  public Object getEntityInstanceFrom( Object entity, IType classDomain );
+  Object getEntityInstanceFrom( Object entity, IType classDomain );
 
-  public boolean areBeansEqual( Object bean1, Object bean2 );
+  boolean areBeansEqual( Object bean1, Object bean2 );
 
-  public boolean verifyValueForType( IType type, Object value );
+  boolean verifyValueForType( IType type, Object value );
 
-  public String makeStringFrom( Object obj );
+  String makeStringFrom( Object obj );
 
-  public long getHashedEntityId( String strId, IType classEntity );
+  long getHashedEntityId( String strId, IType classEntity );
 
-  public boolean isInternal( IType type );
+  boolean isInternal( IType type );
 
   /**
    * @return the main logger for all Gosu subsystems.  This logger must be available at all times during Gosu
    * startup and execution.
    */
-  public ILogger getLogger();
+  ILogger getLogger();
 
-  public Locale getLocale();
+  Locale getLocale();
 
-  public Date getCurrentTime();
+  Date getCurrentTime();
 
-  public void addEnhancementMethods(IType typeToEnhance, Collection methodsToAddTo);
+  void addEnhancementMethods(IType typeToEnhance, Collection methodsToAddTo);
 
-  public void addEnhancementProperties(IType typeToEnhance, Map propertyInfosToAddTo, boolean caseSensitive);
+  void addEnhancementProperties(IType typeToEnhance, Map propertyInfosToAddTo, boolean caseSensitive);
 
-  public IQueryExpressionEvaluator getQueryExpressionEvaluator( IQueryExpression queryExpression );
+  ClassLoader getPluginClassLoader();
 
-  public IFeatureFilter getQueryExpressionFeatureFilter();
+  IAttributeSource getAttributeSource( GlobalScope scope );
 
-  public ClassLoader getPluginClassLoader();
+  StringBuilder getPluginRepositories();
 
-  public IAttributeSource getAttributeSource( GlobalScope scope );
+  String getWebServerPaths();
 
-  public Object[] convertToExternalIfNecessary( Object[] args, Class[] argTypes, Class methodOwner );
-
-  public Object convertToInternalIfNecessary( Object obj, Class methodOwner );
-
-  public boolean isExternal( Class methodOwner );
-
-  public StringBuilder getPluginRepositories();
-
-  public String getWebServerPaths();
-
-  public boolean isUnreachableCodeDetectionOn();
-
-  public boolean isWarnOnImplicitCoercionsOn();
+  boolean isUnreachableCodeDetectionOn();
 
   IType getKeyType();
 

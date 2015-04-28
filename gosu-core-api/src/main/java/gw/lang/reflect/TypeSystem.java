@@ -398,9 +398,9 @@ public class TypeSystem
     return false;
   }
 
-  public static TypeVarToTypeMap mapTypeByVarName( IType ownersType, IType declaringType, boolean bKeepTypeVars )
+  public static TypeVarToTypeMap mapTypeByVarName( IType ownersType, IType declaringType )
   {
-    return CommonServices.getTypeSystem().mapTypeByVarName(ownersType, declaringType, bKeepTypeVars);
+    return CommonServices.getTypeSystem().mapTypeByVarName( ownersType, declaringType );
   }
 
   public static IType getActualType( IType type, TypeVarToTypeMap actualParamByVarName, boolean bKeepTypeVars )

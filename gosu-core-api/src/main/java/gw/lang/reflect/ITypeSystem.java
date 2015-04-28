@@ -155,7 +155,7 @@ public interface ITypeSystem extends IService
   IFunctionType getOrCreateFunctionType( IMethodInfo mi );
   IFunctionType getOrCreateFunctionType( String strFunctionName, IType retType, IType[] paramTypes );
 
-  TypeVarToTypeMap mapTypeByVarName( IType ownersType, IType declaringType, boolean bKeepTypeVars );
+  TypeVarToTypeMap mapTypeByVarName( IType ownersType, IType declaringType );
 
   IType getActualType( IType type, TypeVarToTypeMap actualParamByVarName, boolean bKeepTypeVars );
 

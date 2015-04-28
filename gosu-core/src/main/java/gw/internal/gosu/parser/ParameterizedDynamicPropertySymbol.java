@@ -52,7 +52,7 @@ public class ParameterizedDynamicPropertySymbol extends DynamicPropertySymbol
   {
     if( ownerType.isParameterizedType() )
     {
-      TypeVarToTypeMap actualParamByVarName = TypeLord.mapTypeByVarName( ownerType, ownerType, true );
+      TypeVarToTypeMap actualParamByVarName = TypeLord.mapTypeByVarName( ownerType, ownerType );
       propType = TypeLord.getActualType( propType, actualParamByVarName, true );
     }
     return propType;

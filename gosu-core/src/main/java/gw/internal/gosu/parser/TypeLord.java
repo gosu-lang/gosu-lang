@@ -4,6 +4,7 @@
 
 package gw.internal.gosu.parser;
 
+import gw.internal.gosu.parser.expressions.TypeVariableDefinitionImpl;
 import gw.lang.parser.GosuParserFactory;
 import gw.lang.parser.GosuParserTypes;
 import gw.lang.parser.IGosuParser;
@@ -62,7 +63,7 @@ import java.util.StringTokenizer;
 public class TypeLord
 {
   // LRUish cache of assignability results (recent tests indicate 99% hit rates)
-  public static final TypeSystemAwareCache<Pair<IType, IType>, Boolean> ASSIGNABILITY_CACHE =
+  private static final TypeSystemAwareCache<Pair<IType, IType>, Boolean> ASSIGNABILITY_CACHE =
     TypeSystemAwareCache.make( "Assignability Cache", 1000,
                                new Cache.MissHandler<Pair<IType, IType>, Boolean>()
                                {
@@ -143,6 +144,20 @@ public class TypeLord
         // the type must come from the map, otherwise it comes from a context where there is no argument for the type var, hence the error type
         return ErrorType.getInstance( ((TypeVariable)type).getName() );
       }
+      if( bKeepTypeVars && retType instanceof ITypeVariableType && ((TypeVariable)type).getName().equals( retType.getName() ) && ((ITypeVariableType)retType).getBoundingType() != null )
+      {
+        IType boundingType = ((ITypeVariableType)retType).getBoundingType();
+        IType actualBoundingType = getActualType( boundingType, actualParamByVarName, bKeepTypeVars );
+        if( !actualBoundingType.getName().equals( boundingType.toString() ) )
+        {
+          TypeVariableDefinitionImpl tvd = ((TypeVariableDefinitionImpl)((ITypeVariableType)retType).getTypeVarDef()).clone( actualBoundingType );
+          retType = new TypeVariableType( tvd, false );
+        }
+      }
+      else if( !bKeepTypeVars )
+      {
+        retType = getDefaultParameterizedTypeWithTypeVars( retType );
+      }
     }
     else if( type instanceof WildcardType )
     {
@@ -165,9 +180,10 @@ public class TypeLord
           IType[] types = new IType[typeArgs.length];
           for( int i = 0; i < types.length; i++ )
           {
-            if( !bKeepTypeVars && typeArgs[i] instanceof TypeVariable )
+            Type typeArg = typeArgs[i];
+            if( !bKeepTypeVars && typeArg instanceof TypeVariable )
             {
-              Type bound = ((TypeVariable)typeArgs[i]).getBounds()[0];
+              Type bound = ((TypeVariable)typeArg).getBounds()[0];
               if( !recursiveTypes.contains( bound ) )
               {
                 types[i] = getActualType( bound, actualParamByVarName, bKeepTypeVars, recursiveTypes );
@@ -183,7 +199,18 @@ public class TypeLord
             }
             else
             {
-              types[i] = getActualType( typeArgs[i], actualParamByVarName, bKeepTypeVars, recursiveTypes );
+              if( typeArg instanceof WildcardType && (((WildcardType)typeArg).getUpperBounds()[0].equals( Object.class )) )
+              {
+                // Object is the default type for the naked <?> wildcard, so we have to get the actual bound, if different, from the corresponding type var
+                Type[] boundingTypes = ((Class)((ParameterizedType)type).getRawType()).getTypeParameters()[i].getBounds();
+                Type boundingType = boundingTypes.length == 0 ? null : boundingTypes[0];
+                if( boundingType != null )
+                {
+                  typeArg = boundingType;
+                }
+              }
+
+              types[i] = getActualType( typeArg, actualParamByVarName, bKeepTypeVars, recursiveTypes );
             }
           }
           retType = genType.getParameterizedType( types );
@@ -200,7 +227,8 @@ public class TypeLord
     }
     else
     {
-      retType = parseType( normalizeJavaTypeName( type ), actualParamByVarName, bKeepTypeVars, null );
+      //retType = parseType( normalizeJavaTypeName( type ), actualParamByVarName, bKeepTypeVars, null );
+      throw new IllegalStateException();
     }
     return retType;
   }
@@ -231,6 +259,21 @@ public class TypeLord
         // the type must come from the map, otherwise it comes from a context where there is no argument for the type var, hence the error type
         retType = ErrorType.getInstance( type.getName() );
       }
+      if( bKeepTypeVars && retType instanceof ITypeVariableType && type.getName().equals( retType.getName() ) && ((ITypeVariableType)retType).getBoundingType() != null )
+      {
+        IType boundingType = ((ITypeVariableType)retType).getBoundingType();
+        IType actualBoundingType = getActualType( boundingType, actualParamByVarName, bKeepTypeVars );
+        if( !actualBoundingType.getName().equals( boundingType.getName() ) )
+        {
+          TypeVariableDefinitionImpl tvd = ((TypeVariableDefinitionImpl)((ITypeVariableType)retType).getTypeVarDef()).clone( actualBoundingType );
+          retType = new TypeVariableType( tvd, false );
+        }
+      }
+      else if( !bKeepTypeVars )
+      {
+        retType = getDefaultParameterizedTypeWithTypeVars( retType );
+      }
+
       return retType;
     }
     else if( type instanceof AsmWildcardType )
@@ -297,8 +340,10 @@ public class TypeLord
             }
             else
             {
-              if( typeArg instanceof AsmWildcardType && ((AsmWildcardType) typeArg).getBound() == null )
+              if( typeArg instanceof AsmWildcardType &&
+                  (((AsmWildcardType)typeArg).getBound() == null || !((AsmWildcardType)typeArg).isCovariant() ) )
               {
+                // Get the bounding type from the corresponding type var
                 IJavaClassInfo classInfo = TypeSystem.getDefaultTypeLoader().getJavaClassInfo( type.getRawType().getName() );
                 if( classInfo != null )
                 {
@@ -323,43 +368,8 @@ public class TypeLord
         }
       }
     }
-    return parseType( type.getFqn(), actualParamByVarName, bKeepTypeVars, null );
-  }
-
-  private static String normalizeJavaTypeName( Type type )
-  {
-    if( type instanceof Class )
-    {
-      IType itype = TypeSystem.get( (Class<?>)type );
-      if ( itype == null )
-      {
-        throw new RuntimeException( "Class " + type + " is not loadable through the TypeSystem!" );
-      }
-      return itype.getName();
-    }
-    if( type instanceof TypeVariable )
-    {
-      return ((TypeVariable)type).getName();
-    }
-    if( type instanceof ParameterizedType )
-    {
-      ParameterizedType ptype = (ParameterizedType)type;
-      String strName = normalizeJavaTypeName( ptype.getRawType() );
-      strName += "<";
-      boolean bFirst = true;
-      for( Type param : ptype.getActualTypeArguments() )
-      {
-        if( !bFirst )
-        {
-          strName += ", ";
-        }
-        bFirst = false;
-        strName += normalizeJavaTypeName( param );
-      }
-      strName += ">";
-      return strName;
-    }
-    return fixSunInnerClassBug( type.toString() );
+    throw new IllegalStateException();
+    //return parseType( type.getFqn(), actualParamByVarName, bKeepTypeVars, null );
   }
 
   public static IType getActualType( IType type, TypeVarToTypeMap actualParamByVarName )
@@ -400,7 +410,18 @@ public class TypeLord
       }
       else
       {
-        if( !isParameterizedWith( type, saveType ) )
+        if( bKeepTypeVars && type.equals( saveType ) && ((ITypeVariableType)type).getBoundingType() != null )
+        {
+          IType boundingType = ((ITypeVariableType)type).getBoundingType();
+          IType actualBoundingType = getActualType( boundingType, actualParamByVarName, bKeepTypeVars, visited );
+          visited.remove( boundingType );
+          if( actualBoundingType != boundingType )
+          {
+            TypeVariableDefinitionImpl tvd = ((TypeVariableDefinitionImpl)((ITypeVariableType)type).getTypeVarDef()).clone( actualBoundingType );
+            type = new TypeVariableType( tvd, false );
+          }
+        }
+        else if( !isParameterizedWith( type, saveType ) )
         {
           type = getActualType( type, actualParamByVarName, bKeepTypeVars, visited );
           visited.remove( type );
@@ -411,7 +432,7 @@ public class TypeLord
         }
       }
     }
-    else if( type instanceof FunctionType)
+    else if( type instanceof FunctionType )
     {
       if( !(type instanceof ErrorTypeInfo.UniversalFunctionType) )
       {
@@ -422,17 +443,23 @@ public class TypeLord
     {
       IType[] typeParams = type.getTypeParameters();
       IType[] actualParamTypes = new IType[typeParams.length];
+      boolean bDifferent = false;
       for( int i = 0; i < typeParams.length; i++ )
       {
         IType actualType = getActualType( typeParams[i], actualParamByVarName, bKeepTypeVars, visited );
         visited.remove( typeParams[i] );
         visited.remove( type );
-        if (actualType == null) {
+        if( actualType == null )
+        {
           actualType = JavaTypes.OBJECT();
         }
         actualParamTypes[i] = actualType;
+        if( actualType != typeParams[i] )
+        {
+          bDifferent = true;
+        }
       }
-      type = TypeLord.getPureGenericType( type ).getParameterizedType( actualParamTypes );
+      type = bDifferent ? TypeLord.getPureGenericType( type ).getParameterizedType( actualParamTypes ) : type;
     }
 
     if( iArrayDims > 0 && type != null )
@@ -624,11 +651,6 @@ public class TypeLord
 
   public static TypeVarToTypeMap mapTypeByVarName( IType ownersType, IType declaringType )
   {
-    return mapTypeByVarName( ownersType, declaringType, false );
-  }
-
-  public static TypeVarToTypeMap mapTypeByVarName( IType ownersType, IType declaringType, boolean bKeepTypeVars )
-  {
     TypeVarToTypeMap actualParamByVarName;
     ownersType = findActualDeclaringType( ownersType, declaringType );
     if( ownersType != null && ownersType.isParameterizedType() )
@@ -637,13 +659,13 @@ public class TypeLord
     }
     else
     {
-      actualParamByVarName = mapGenericTypeByVarName( ownersType, bKeepTypeVars );
+      actualParamByVarName = mapGenericTypeByVarName( ownersType );
       if( ownersType != null )
       {
         while( ownersType.getEnclosingType() != null )
         {
           ownersType = ownersType.getEnclosingType();
-          TypeVarToTypeMap vars = mapGenericTypeByVarName( ownersType, bKeepTypeVars );
+          TypeVarToTypeMap vars = mapGenericTypeByVarName( ownersType );
           if( actualParamByVarName.isEmpty() )
           {
             actualParamByVarName = vars;
@@ -730,7 +752,7 @@ public class TypeLord
     return actualParamByVarName;
   }
 
-  private static TypeVarToTypeMap mapGenericTypeByVarName( IType ownersType, boolean bKeepTypeVars )
+  private static TypeVarToTypeMap mapGenericTypeByVarName( IType ownersType )
   {
     TypeVarToTypeMap genericParamByVarName = TypeVarToTypeMap.EMPTY_MAP;
     IType genType = null;
@@ -750,9 +772,7 @@ public class TypeLord
           Object key = typeVar.getTypeVariableDefinition() == null ? typeVar.getName() : typeVar.getTypeVariableDefinition().getType();
           if( !genericParamByVarName.containsKeyRaw( key ) )
           {
-            genericParamByVarName.putRaw( key, bKeepTypeVars
-                                               ? new TypeVariableType( ownersType, typeVar )
-                                               : typeVar.getBoundingType() );
+            genericParamByVarName.putRaw( key, new TypeVariableType( ownersType, typeVar ) );
           }
         }
       }
@@ -896,6 +916,10 @@ public class TypeLord
    */
   public static IType findParameterizedType( IType sourceType, IType rawGenericType )
   {
+    return findParameterizedType( sourceType, rawGenericType, false );
+  }
+  public static IType findParameterizedType( IType sourceType, IType rawGenericType, boolean bForAssignability )
+  {
     if( sourceType == null )
     {
       return null;
@@ -903,13 +927,14 @@ public class TypeLord
 
     rawGenericType = getPureGenericType( rawGenericType );
 
-    if( //sourceType.isParameterizedType() &&
-        sourceType.getGenericType() == rawGenericType )
+    final IType srcRawType = sourceType.getGenericType();
+    if( srcRawType == rawGenericType ||
+        !bForAssignability && srcRawType instanceof IMetaType && rawGenericType == JavaTypes.CLASS() )
     {
       return sourceType;
     }
 
-    IType parameterizedType = findParameterizedType( sourceType.getSupertype(), rawGenericType );
+    IType parameterizedType = findParameterizedType( sourceType.getSupertype(), rawGenericType, bForAssignability );
     if( parameterizedType != null )
     {
       return parameterizedType;
@@ -918,7 +943,7 @@ public class TypeLord
     IType[] interfaces = sourceType.getInterfaces();
     for (int i = 0; i < interfaces.length; i++) {
       IType iface = interfaces[i];
-      parameterizedType = findParameterizedType( iface, rawGenericType );
+      parameterizedType = findParameterizedType( iface, rawGenericType, bForAssignability );
       if( parameterizedType != null )
       {
         return parameterizedType;
@@ -1044,14 +1069,8 @@ public class TypeLord
 
   public static IType makeDefaultParameterizedType( IType type )
   {
-    return makeDefaultParameterizedType( type, false );
-  }
-  public static IType makeDefaultParameterizedType( IType type, boolean bHandleRecursiveParameterizedType )
-  {
     if( type != null && !(type instanceof IGosuEnhancementInternal) &&
-        type.isGenericType() &&
-        (!type.isParameterizedType() ||
-         (bHandleRecursiveParameterizedType && isRecursiveType( type, type.getTypeParameters() ))) )
+        !type.isParameterizedType() && type.isGenericType() )
     {
       if( type instanceof MetaType )
       {
@@ -1062,21 +1081,15 @@ public class TypeLord
       for( int i = 0; i < boundingTypes.length; i++ )
       {
         boundingTypes[i] = type.getGenericTypeVariables()[i].getBoundingType();
-        if( bHandleRecursiveParameterizedType && boundingTypes[i].isParameterizedType() )
+
+        IGenericTypeVariable typeVar = type.getGenericTypeVariables()[i];
+        if( TypeLord.isRecursiveType( typeVar.getTypeVariableDefinition().getType(), typeVar.getBoundingType() ) )
         {
-          if( isRecursiveType( boundingTypes[i], boundingTypes[i].getTypeParameters() ) )
-          {
-            boundingTypes[i] = getDefaultParameterizedType( boundingTypes[i] );
-          }
-          else
-          {
-            boundingTypes[i] = getActualType( boundingTypes[i], TypeLord.mapTypeByVarName( type, type, false ), true );
-          }
+          return type;
         }
       }
 
-      if( boundingTypes.length == 0 ||
-          TypeLord.isRecursiveType( type, boundingTypes ) )
+      if( boundingTypes.length == 0 )
       {
         return type;
       }
@@ -1094,11 +1107,18 @@ public class TypeLord
   {
     if( type instanceof ITypeVariableType )
     {
+      if( isRecursiveType( (ITypeVariableType)type, ((ITypeVariableType)type).getBoundingType() ) )
+      {
+        // short-circuit recursive typevar
+        return ((ITypeVariableType)type).getBoundingType().getGenericType();
+      }
+
       if( enclType != null && enclType.isParameterizedType() )
       {
         TypeVarToTypeMap map = mapTypeByVarName( enclType, enclType );
         return replaceTypeVariableTypeParametersWithBoundingTypes( getActualType( ((ITypeVariableType)type).getBoundingType(), map, true ) );
       }
+
       return replaceTypeVariableTypeParametersWithBoundingTypes( ((ITypeVariableType)type).getBoundingType(), enclType );
     }
 
@@ -1110,10 +1130,6 @@ public class TypeLord
     if( type.isParameterizedType() )
     {
       IType[] typeParams = type.getTypeParameters();
-      if( TypeLord.isRecursiveType( type, typeParams ) )
-      {
-        return type;
-      }
       IType[] concreteParams = new IType[typeParams.length];
       for( int i = 0; i < typeParams.length; i++ )
       {
@@ -1129,10 +1145,11 @@ public class TypeLord
         for( int i = 0; i < boundingTypes.length; i++ )
         {
           boundingTypes[i] = type.getGenericTypeVariables()[i].getBoundingType();
-        }
-        if( TypeLord.isRecursiveType( type, boundingTypes ) )
-        {
-          return type;
+
+          if( TypeLord.isRecursiveType( type.getGenericTypeVariables()[i].getTypeVariableDefinition().getType(), boundingTypes[i] ) )
+          {
+            return type;
+          }
         }
         for( int i = 0; i < boundingTypes.length; i++ )
         {
@@ -1144,11 +1161,58 @@ public class TypeLord
     return type;
   }
 
+  public static IType replaceRawGenericTypesWithDefaultParameterizedTypes( IType type )
+  {
+    if( type == null )
+    {
+      return null;
+    }
+
+    if( type.isArray() )
+    {
+      IType compType = replaceRawGenericTypesWithDefaultParameterizedTypes( type.getComponentType() );
+      if( compType != type.getComponentType() )
+      {
+        return compType.getArrayType();
+      }
+      return type;
+    }
+
+    if( type.isParameterizedType() )
+    {
+      final IType[] typeParameters = type.getTypeParameters();
+      IType[] typeParams = new IType[typeParameters.length];
+      boolean bReplaced = false;
+      for( int i = 0; i < typeParameters.length; i++ )
+      {
+        IType typeParam = typeParameters[i];
+        typeParams[i] = replaceRawGenericTypesWithDefaultParameterizedTypes( typeParam );
+        if( typeParam != typeParams[i] )
+        {
+          bReplaced = true;
+        }
+      }
+      return bReplaced ? type.getParameterizedType( typeParams ) : type;
+    }
+
+    if( type.isGenericType() )
+    {
+      return getDefaultParameterizedType( type );
+    }
+
+    return type;
+  }
+
   public static IType getDefaultParameterizedType( IType type )
   {
     if( type.isArray() )
     {
-      return getDefaultParameterizedType( type.getComponentType() ).getArrayType();
+      IType defType = getDefaultParameterizedType( type.getComponentType() );
+      if( defType != type )
+      {
+        return defType.getArrayType();
+      }
+      return type;
     }
     if( type instanceof CompoundType )
     {
@@ -1220,9 +1284,9 @@ public class TypeLord
     if( !visited.contains( type ) )
     {
       visited.add( type );
-      IType[] typeParameters = type.getTypeParameters();
-      if( isParameterizedType( type ) && isRecursiveType( type, typeParameters ) )
+      if( isParameterizedType( type ) && isRecursiveType( type ) )
       {
+        IType[] typeParameters = type.getTypeParameters();
         IType[] typeParams = new IType[typeParameters.length];
         int i = 0;
         for( IType param: typeParameters )
@@ -1242,7 +1306,7 @@ public class TypeLord
           if( typeDef != null )
           {
             ITypeVariableType typeVarType = typeDef.getType();
-            if( isRecursiveType( typeVarType, new IType[] {typeVarType.getBoundingType()} ) )
+            if( isRecursiveType( typeVarType, typeVarType.getBoundingType() ) )
             {
               // short-circuit recursive typevar
               typeParams[i++] = typeVarType.getBoundingType().getGenericType();
@@ -1265,31 +1329,91 @@ public class TypeLord
     return makeDefaultParameterizedType( type );
   }
 
-  public static boolean isRecursiveTypeFromBase( IType declaringClass )
+  public static boolean isRecursiveTypeFromBase( IType rootType )
   {
-    if( !declaringClass.isGenericType() && !declaringClass.isParameterizedType() )
+    if( !rootType.isGenericType() && !rootType.isParameterizedType() )
     {
       return false;
     }
 
-    IType genType = TypeLord.getPureGenericType( declaringClass );
+    IType genType = TypeLord.getPureGenericType( rootType );
     if( genType != TypeLord.getDefaultParameterizedType( genType ) )
+    {
+      return false;
+    }
+
+    if( rootType.isGenericType() && !rootType.isParameterizedType() )
+    {
+      if( rootType == TypeLord.getDefaultParameterizedType( rootType ) )
+      {
+        return true;
+      }
+    }
+    else if( rootType.isParameterizedType() )
+    {
+      for( IType typeParam : rootType.getTypeParameters() )
+      {
+        if( isRecursiveTypeFromBase( typeParam ) )
+        {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  public static boolean isRecursiveType( IType declaringClass )
+  {
+    return _isRecursiveType( declaringClass, new HashSet<IType>() );
+  }
+  private static boolean _isRecursiveType( IType declaringClass, Set<IType> visited )
+  {
+    if( declaringClass instanceof ITypeVariableType )
+    {
+      if( visited.contains( declaringClass ) )
+      {
+        return true;
+      }
+      visited.add( declaringClass );
+      try
+      {
+        return _isRecursiveType( ((ITypeVariableType)declaringClass).getBoundingType(), visited );
+      }
+      finally
+      {
+        visited.remove( declaringClass );
+      }
+    }
+
+    if( declaringClass.isArray() )
+    {
+      return _isRecursiveType( declaringClass.getComponentType(), visited );
+    }
+
+    if( !declaringClass.isGenericType() && !declaringClass.isParameterizedType() )
     {
       return false;
     }
 
     if( declaringClass.isGenericType() && !declaringClass.isParameterizedType() )
     {
-      if( declaringClass == TypeLord.getDefaultParameterizedType( declaringClass ) )
+      for( IGenericTypeVariable gtv: declaringClass.getGenericTypeVariables() )
       {
-        return true;
+        ITypeVariableDefinition tvd = gtv.getTypeVariableDefinition();
+        if( tvd != null )
+        {
+          if( _isRecursiveType( tvd.getType(), visited ) )
+          {
+            return true;
+          }
+        }
       }
     }
     else if( declaringClass.isParameterizedType() )
     {
       for( IType typeParam : declaringClass.getTypeParameters() )
       {
-        if( isRecursiveTypeFromBase( typeParam ) )
+        if( _isRecursiveType( typeParam, visited ) )
         {
           return true;
         }
@@ -1428,7 +1552,14 @@ public class TypeLord
     }
     else if( to.isParameterizedType() || to.isGenericType() )
     {
-      IType relatedParameterizedType = findParameterizedType( from, to.getGenericType() );
+      if( from.isGenericType() && !from.isParameterizedType() && to.isParameterizedType() &&
+          TypeLord.getPureGenericType( to ).isAssignableFrom( from ) )
+      {
+        // Raw generic type is assignable to any parameterized version of it
+        return true;
+      }
+
+      IType relatedParameterizedType = findParameterizedType( from, to.getGenericType(), true );
       if( relatedParameterizedType == null )
       {
         if( from == to.getGenericType() )
@@ -1444,21 +1575,8 @@ public class TypeLord
 
       if( from.isGenericType() &&
           to.isParameterizedType() &&
-          ((!from.isParameterizedType() &&
-            (to == makeDefaultParameterizedType( from ) ||
-             // Handle recursive type Foo where we want Foo<Foo> assignable from Foo
-             isRecursiveType( getPureGenericType( to ), to.getTypeParameters() ) && getPureGenericType( to ) == from)) ||
-           sameAsDefaultProxiedType( to, from )) )
+          sameAsDefaultProxiedType( to, from ) )
       {
-        //## todo: this is a hack so that we can assign a generic type to its default parameterized type e.g.,
-        // var listOfObj = List<Object>; var list = List; listOfObj = list;
-        //
-        // Why support this? Primarily because type information coming from Java and other types
-        // may have generic types e.g., a java class with method, List getMyList(), is exposed
-        // with a return type of List, not List<Object>. Since an unparamaterized Gosu type
-        // literal is parsed as its default parameterized type (List parses as List<Object>) we
-        // would otherwise have a lot of potential unintentional errors.
-
         return true;
       }
 
@@ -1822,20 +1940,8 @@ public class TypeLord
     return getDefaultParameterizedType( javaType ).isGenericType();
   }
 
-  public static boolean isRecursiveType( IType subject, IType[] types )
+  public static boolean isRecursiveType( ITypeVariableType subject, IType... types )
   {
-    if( subject instanceof CompoundType )
-    {
-      for( IType compType : subject.getCompoundTypeComponents() )
-      {
-        if( isParameterizedType( compType ) &&
-            isRecursiveType( compType, compType.getTypeParameters() ) )
-        {
-          return true;
-        }
-      }
-    }
-
     for( IType csr : types )
     {
       if( getPureGenericType( csr ).equals( getPureGenericType( subject ) ) )
@@ -1859,20 +1965,31 @@ public class TypeLord
           return true;
         }
       }
+      else if( csr.isGenericType() )
+      {
+        for( IGenericTypeVariable gtv: csr.getGenericTypeVariables() )
+        {
+          ITypeVariableDefinition tvd = gtv.getTypeVariableDefinition();
+          if( tvd != null && tvd.getType() != null && isRecursiveType( subject, tvd.getType() ) )
+          {
+            return true;
+          }
+        }
+      }
       else if( csr instanceof TypeVariableType )
       {
-        if( isRecursiveType( csr, new IType[] {((TypeVariableType)csr).getBoundingType()} ) )
+        if( isRecursiveType( (ITypeVariableType)csr, ((TypeVariableType)csr).getBoundingType() ) )
         {
           return true;
         }
-        if( isRecursiveType( subject, new IType[] {((TypeVariableType)csr).getBoundingType()} ) )
+        if( isRecursiveType( subject, ((TypeVariableType)csr).getBoundingType() ) )
         {
           return true;
         }
       }
       else if( csr.isArray() )
       {
-        if( isRecursiveType( subject, new IType[] {csr.getComponentType()} ) )
+        if( isRecursiveType( subject, csr.getComponentType() ) )
         {
           return true;
         }
@@ -1929,33 +2046,26 @@ public class TypeLord
     return (type instanceof IGosuProgram) && ((IGosuProgram)type).isAnonymous();
   }
 
-  public static void addReferencedTypeVarsThatAreNotInMap( IType type, TypeVarToTypeMap map, boolean bKeepTypeVars )
+  public static void addReferencedTypeVarsThatAreNotInMap( IType type, TypeVarToTypeMap map )
   {
     if( type instanceof TypeVariableType )
     {
       IType existingType = map.get( (TypeVariableType)type );
       if( existingType == null )
       {
-        if( bKeepTypeVars )
-        {
-          map.put( (ITypeVariableType)type, type );
-        }
-        else
-        {
-          map.put( (ITypeVariableType)type, ((TypeVariableType)type).getBoundingType() );
-        }
+        map.put( (ITypeVariableType)type, type );
       }
     }
     else if( type.isParameterizedType() )
     {
       for( IType typeParam : type.getTypeParameters() )
       {
-        addReferencedTypeVarsThatAreNotInMap( typeParam, map, bKeepTypeVars );
+        addReferencedTypeVarsThatAreNotInMap( typeParam, map );
       }
     }
     else if( type.isArray() )
     {
-      addReferencedTypeVarsThatAreNotInMap( type.getComponentType(), map, bKeepTypeVars );
+      addReferencedTypeVarsThatAreNotInMap( type.getComponentType(), map );
     }
     else if( type instanceof IFunctionType )
     {
@@ -1963,9 +2073,9 @@ public class TypeLord
       IType[] types = funType.getParameterTypes();
       for( IType iType : types )
       {
-        addReferencedTypeVarsThatAreNotInMap( iType, map, bKeepTypeVars );
+        addReferencedTypeVarsThatAreNotInMap( iType, map );
       }
-      addReferencedTypeVarsThatAreNotInMap( funType.getReturnType(), map, bKeepTypeVars );
+      addReferencedTypeVarsThatAreNotInMap( funType.getReturnType(), map );
     }
   }
 
@@ -2156,7 +2266,7 @@ public class TypeLord
         inferenceMap.put( tvType, lubType );
       }
       IType boundingType = ((ITypeVariableType)genParamType).getBoundingType();
-      if( !isRecursiveType( genParamType, new IType[]{boundingType} ) )
+      if( !isRecursiveType( (ITypeVariableType)genParamType, boundingType ) )
       {
         inferTypeVariableTypesFromGenParamTypeAndConcreteType( boundingType, argType, inferenceMap, inferredInCallStack );
       }
@@ -2360,25 +2470,6 @@ public class TypeLord
       }
     }
     return match;
-  }
-
-  public static boolean isInstanceOfPossible( IType lhsType, IType rhsType )
-  {
-    if( (!(rhsType instanceof IGosuClass) && !(rhsType instanceof IJavaType)) ||
-        (!(lhsType instanceof IGosuClass) && !(lhsType instanceof IJavaType)) )
-    {
-      return true;
-    }
-
-    if( rhsType.isFinal() )
-    {
-      return lhsType.isAssignableFrom( rhsType );
-    }
-    else if( !rhsType.isInterface() && !lhsType.isInterface() )
-    {
-      return rhsType.isAssignableFrom( lhsType ) || lhsType.isAssignableFrom( rhsType );
-    }
-    return true;
   }
 
   public static IType getTopLevelType(IType type) {

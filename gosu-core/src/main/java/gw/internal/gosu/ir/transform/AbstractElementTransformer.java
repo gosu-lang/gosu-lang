@@ -585,7 +585,7 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
       IRExpression result = callStaticMethod( TypeSystem.class, "getByFullName", new Class[]{String.class, String.class},
               Arrays.asList(pushConstant( genType.getName() ), module == null ? pushNull() : pushConstant( module.getName() ) ) );
 
-      if( type.isParameterizedType() && !isRecursivelyParameterized( type ) )
+      if( type.isParameterizedType() && !TypeLord.isRecursiveType( type ) && !isRecursiveTypeParsing( type ) )
       {
         result = callMethod( IType.class, "getParameterizedType", new Class[]{IType[].class},
                 result,
@@ -595,7 +595,7 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
     }
   }
 
-  private boolean isRecursivelyParameterized( IType type )
+  private boolean isRecursiveTypeParsing( IType type )
   {
     for( IType typeParam : type.getTypeParameters() )
     {
@@ -1394,6 +1394,10 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
   }
   protected IRExpression checkCast( IType type, IRExpression expression )
   {
+    return checkCast( type, expression, true );
+  }
+  protected IRExpression checkCast( IType type, IRExpression expression, boolean bGetConcreteTypeForMetaType )
+  {
     if( type instanceof CompoundType )
     {
       CompoundType ct = (CompoundType)type;
@@ -1411,13 +1415,13 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
       // Nest the casts, with the concrete type last
       for( IType t : ltypes )
       {
-        last = checkCast(t, last);
+        last = checkCast( t, last, !(t instanceof IMetaType) );
       }
       return last;
     }
     else
     {
-      return buildCast(getDescriptor(type, true), expression);
+      return buildCast( getDescriptor( type, bGetConcreteTypeForMetaType ), expression );
     }
   }
 
@@ -3131,7 +3135,7 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
       operandType == JavaTypes.DATE() ||
       operandType == JavaTypes.OBJECT() ||
       TypeSystem.get( IEnumConstant.class ).isAssignableFrom( operandType ) ||
-      CommonServices.getEntityAccess().isDomainInstance( operandType );
+      CommonServices.getEntityAccess().isEntityClass( operandType );
   }
 
   final protected IType findDimensionType( IType type ) {

@@ -61,10 +61,10 @@ class Errant_LogicalOperatorsTest {
 
     var a5 = "123.0"
     var b5 = new BigDecimal("123.0")
-    r = a5 == b5
+    r = a5 == b5  //## issuekeys: MSG_IMPLICIT_COERCION_ERROR
     var a51 = "x"
     var b51 = new BigDecimal("123.0")
-    r = a51 == b51
+    r = a51 == b51  //## issuekeys: MSG_IMPLICIT_COERCION_ERROR
     var a52 = new BigDecimal("123.0")
     var b52 = new BigDecimal("123.0")
     r = a52 == b52
@@ -107,7 +107,7 @@ class Errant_LogicalOperatorsTest {
     r = a77 == b77  //## issuekeys: MSG_ASYMMETRICAL_COMPARISON
     var a78 : int = 8
     var b78 : String = "hello"
-    r = a78 == b78
+    r = a78 == b78  //## issuekeys: MSG_IMPLICIT_COERCION_ERROR
     var a79 : int = 8
     var b79 : K
     r = a79 == b79  //## issuekeys: MSG_TYPE_MISMATCH
@@ -166,7 +166,7 @@ class Errant_LogicalOperatorsTest {
     r = !setX(1, true)
     r = !setX(1, false)
     var y0 = (4 > 3) && ("string" == "hello")
-    var y1 = 8 || "hello"      //## issuekeys: MSG_IMPLICIT_COERCION_ERROR
+    var y1 = 8 || "hello"      //## issuekeys: MSG_IMPLICIT_COERCION_ERROR, MSG_IMPLICIT_COERCION_ERROR
     var y2 = !false || !2       //## issuekeys: MSG_TYPE_MISMATCH
     var y3 = true or false
     var y4 = true and 5  //## issuekeys: MSG_IMPLICIT_COERCION_ERROR

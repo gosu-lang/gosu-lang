@@ -12,7 +12,7 @@ class Errant_AmbiguousMethodCallInvolvingParenthesizedExpression {
   function blah2() {
     var fred = "hello"
     // because the parenthesized expr is on the SAME line we parse it as the parenthesis of an errant function call as: fred.Bytes(barney)
-    var barney = fred.Bytes (barney).toString()  //## issuekeys: MSG_NO_METHOD_DESCRIPTOR_FOUND_FOR_METHOD, MSG_NO_METHOD_DESCRIPTOR_FOUND_FOR_METHOD, MSG_NO_SUCH_FUNCTION, MSG_BAD_IDENTIFIER_NAME
+    var barney = fred.Bytes (barney).toString()  //## issuekeys: MSG_NO_METHOD_DESCRIPTOR_FOUND_FOR_METHOD, MSG_NO_SUCH_FUNCTION, MSG_BAD_IDENTIFIER_NAME
   }
 
   function blah2_1() {

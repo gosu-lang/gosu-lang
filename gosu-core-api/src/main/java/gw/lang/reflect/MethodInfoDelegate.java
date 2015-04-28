@@ -7,7 +7,6 @@ package gw.lang.reflect;
 import gw.lang.parser.IExpression;
 import gw.lang.parser.TypeVarToTypeMap;
 import gw.lang.reflect.gs.IGenericTypeVariable;
-import gw.lang.reflect.gs.IGosuClass;
 
 import java.util.List;
 
@@ -181,7 +180,7 @@ public class MethodInfoDelegate implements IMethodInfo, IGenericMethodInfo, IMet
   {
     return getParameterizedParameterTypes2( null, typeParams );
   }
-  public IType[] getParameterizedParameterTypes2( IGosuClass ownersType, IType... typeParams )
+  public IType[] getParameterizedParameterTypes2( IType ownersType, IType... typeParams )
   {
     if( _mi instanceof IGenericMethodInfo )
     {
@@ -194,7 +193,7 @@ public class MethodInfoDelegate implements IMethodInfo, IGenericMethodInfo, IMet
   {
     return inferTypeParametersFromArgumentTypes2( null, argTypes );
   }
-  public TypeVarToTypeMap inferTypeParametersFromArgumentTypes2( IGosuClass owningParameterizedType, IType... argTypes )
+  public TypeVarToTypeMap inferTypeParametersFromArgumentTypes2( IType owningParameterizedType, IType... argTypes )
   {
     if( _mi instanceof IGenericMethodInfo )
     {

@@ -35,7 +35,7 @@ public class DefaultSingleModule extends GlobalModule
   protected void createStandardTypeLoaders() {
     CommonServices.getTypeSystem().pushTypeLoader( this, new GosuClassTypeLoader( this, getFileRepository( ) ) );
     CommonServices.getTypeSystem().pushTypeLoader( this, new PropertiesTypeLoader( this ) );
-    if( ILanguageLevel.Util.DYNAMICE_TYPE() ) {
+    if( ILanguageLevel.Util.DYNAMIC_TYPE() ) {
       CommonServices.getTypeSystem().pushTypeLoader( this, new DynamicTypeLoader( this ) );
     }
     createGlobalTypeloaders( );

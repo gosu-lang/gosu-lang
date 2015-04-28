@@ -16,7 +16,7 @@ import java.io.Reader;
 
 /**
  */
-public class SourceCodeTokenizer implements ISourceCodeTokenizer
+final public class SourceCodeTokenizer implements ISourceCodeTokenizer
 {
   private int _state;
   private SourceCodeTokenizerInternal _internal;

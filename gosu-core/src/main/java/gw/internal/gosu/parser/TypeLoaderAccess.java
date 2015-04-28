@@ -65,7 +65,6 @@ import java.lang.reflect.Proxy;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -1188,8 +1187,8 @@ public class TypeLoaderAccess extends BaseService implements ITypeSystem
     return new FunctionType(strFunctionName, retType, paramTypes);
   }
 
-  public TypeVarToTypeMap mapTypeByVarName(IType ownersType, IType declaringType, boolean bKeepTypeVars) {
-    return TypeLord.mapTypeByVarName(ownersType, declaringType, bKeepTypeVars);
+  public TypeVarToTypeMap mapTypeByVarName( IType ownersType, IType declaringType ) {
+    return TypeLord.mapTypeByVarName( ownersType, declaringType );
   }
 
   public IType getActualType(IType type, TypeVarToTypeMap actualParamByVarName, boolean bKeepTypeVars) {
@@ -1301,9 +1300,11 @@ public class TypeLoaderAccess extends BaseService implements ITypeSystem
   }
 
   public boolean canCast( IType lhsType, IType rhsType ) {
-    if( lhsType instanceof TypeVariableType ) {
-      // Support casting from a type variable
+    while( lhsType instanceof TypeVariableType && !TypeLord.isRecursiveType( (TypeVariableType)lhsType, ((TypeVariableType)lhsType).getBoundingType() ) ) {
       lhsType = ((TypeVariableType)lhsType).getBoundingType();
+    }
+    while( rhsType instanceof TypeVariableType && !TypeLord.isRecursiveType( (TypeVariableType)rhsType, ((TypeVariableType)rhsType).getBoundingType() ) ) {
+      rhsType = ((TypeVariableType)rhsType).getBoundingType();
     }
 
     if( lhsType != null ) {
@@ -1314,10 +1315,13 @@ public class TypeLoaderAccess extends BaseService implements ITypeSystem
         return canCast( ((IMetaType)lhsType).getType(), ((IMetaType)rhsType).getType() );
       }
 
-      if( lhsType.isAssignableFrom( rhsType ) ) {
+      if( rhsType.isAssignableFrom( lhsType ) ) {
         return true;
       }
-      else if( rhsType.isInterface() && lhsType.isInterface() && !genericInterfacesClash( rhsType, lhsType ) && !genericInterfacesClash( lhsType, rhsType ) ) {
+      else if( lhsType.isAssignableFrom( rhsType ) ) {
+        return true;
+      }
+      else if( rhsType.isInterface() && lhsType.isInterface() && !genericInterfacesClash( rhsType, lhsType ) ) {
         return true;
       }
       else if( rhsType.isInterface() && ((!lhsType.isFinal() && !lhsType.isPrimitive() && !(lhsType instanceof IFunctionType) && !(lhsType.isArray()) && !genericInterfacesClash( rhsType, lhsType)) || canCastMetaType( lhsType, rhsType )) ) {
@@ -1327,8 +1331,7 @@ public class TypeLoaderAccess extends BaseService implements ITypeSystem
       else if( lhsType.isInterface() && ((!rhsType.isFinal() && !rhsType.isPrimitive() && !(rhsType instanceof IFunctionType) && !(rhsType.isArray()) && !genericInterfacesClash( lhsType, rhsType))) ) {
         return true;
       }
-      else if( lhsType == JavaTypes.OBJECT() && rhsType.isPrimitive() && rhsType != JavaTypes.pVOID() )
-      {
+      else if( lhsType == JavaTypes.OBJECT() && rhsType.isPrimitive() && rhsType != JavaTypes.pVOID() ) {
         return true;
       }
       else if( lhsType.isParameterizedType() && rhsType.isParameterizedType() ) {
@@ -1360,7 +1363,10 @@ public class TypeLoaderAccess extends BaseService implements ITypeSystem
     return false;
   }
 
-  private boolean genericInterfacesClash(IType rhsType, IType lhsType) {
+  private boolean genericInterfacesClash( IType rhsType, IType lhsType ) {
+    return _genericInterfacesClash( rhsType, lhsType ) || _genericInterfacesClash( lhsType, rhsType );
+  }
+  private boolean _genericInterfacesClash( IType rhsType, IType lhsType ) {
     if( !rhsType.isParameterizedType() || !lhsType.isParameterizedType() ) {
       return false;
     }

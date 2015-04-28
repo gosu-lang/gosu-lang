@@ -27,7 +27,6 @@ import gw.lang.reflect.SimpleParameterInfo;
 import gw.lang.reflect.TypeInfoUtil;
 import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.gs.IGenericTypeVariable;
-import gw.lang.reflect.gs.IGosuClass;
 import gw.lang.reflect.java.ClassInfoUtil;
 import gw.lang.reflect.java.IJavaAnnotatedElement;
 import gw.lang.reflect.java.IJavaClassGenericArrayType;
@@ -56,10 +55,8 @@ public class JavaMethodInfo extends JavaBaseFeatureInfo implements IJavaMethodIn
 
   private IJavaMethodDescriptor _md;
   private boolean _forceHidden;
-  private IParameterInfo[] _paramsWithoutTypeVars;
-  private IParameterInfo[] _paramsWithTypeVars;
-  private IType _retTypeWithTypeVars;
-  private IType _retTypeWithoutTypeVars;
+  private IParameterInfo[] _params;
+  private IType _retType;
   private IMethodCallHandler _callHandler;
   private IGenericTypeVariable[] _typeVars;
   private int _staticCache = UNINITED;
@@ -94,100 +91,25 @@ public class JavaMethodInfo extends JavaBaseFeatureInfo implements IJavaMethodIn
   }
 
   @Override
-  public IParameterInfo[] getGenericParameters()
-  {
-    return getParameters( true );
-  }
-
-  @Override
   public IParameterInfo[] getParameters()
   {
-    IType ownerType = getOwnersType();
-    return getParameters( !ownerType.isGenericType() || ownerType.isParameterizedType() );
-  }
-
-  private IParameterInfo[] getParameters( boolean bKeepTypeVars )
-  {
-    if( bKeepTypeVars )
+    if( _params == null )
     {
-      if( _paramsWithTypeVars == null )
-      {
-        _paramsWithTypeVars = convertParameterDescriptors( bKeepTypeVars );
-      }
-      return _paramsWithTypeVars;
+      _params = convertParameterDescriptors();
     }
-    else
-    {
-      if( _paramsWithoutTypeVars == null )
-      {
-        _paramsWithoutTypeVars = convertParameterDescriptors( bKeepTypeVars );
-      }
-      return _paramsWithoutTypeVars;
-    }
-  }
-
-  @Override
-  public IType getGenericReturnType()
-  {
-    return getReturnType( true );
+    return _params;
   }
 
   @Override
   public IType getReturnType()
   {
-    IType ownerType = getOwnersType();
-    return getReturnType( !ownerType.isGenericType() || ownerType.isParameterizedType() );
-  }
-
-  private IType getReturnType( boolean bKeepTypeVars )
-  {
-    return bKeepTypeVars ? getReturnTypeWithTypeVars() : getReturnTypeWithoutTypeVars();
-  }
-  private IType getReturnTypeWithoutTypeVars()
-  {
-    if( _retTypeWithoutTypeVars != null )
+    if( _retType != null )
     {
-      return _retTypeWithoutTypeVars;
+      return _retType;
     }
 
     IType declaringClass = _md.getMethod().getEnclosingClass().getJavaType();
-    TypeVarToTypeMap actualParamByVarName = TypeLord.mapTypeByVarName( getOwnersType(), declaringClass, false );
-    actualParamByVarName = addEnclosingTypeParams( declaringClass, actualParamByVarName );
-
-    for( IGenericTypeVariable tv : getTypeVariables() )
-    {
-      if( actualParamByVarName.isEmpty() )
-      {
-        actualParamByVarName = new TypeVarToTypeMap();
-      }
-      actualParamByVarName.put( tv.getTypeVariableDefinition().getType(), tv.getBoundingType() );
-    }
-
-    IType retType = ClassInfoUtil.getActualReturnType( _md.getMethod().getGenericReturnType(), actualParamByVarName, false );
-    if( TypeSystem.isDeleted( retType ) )
-    {
-      return null;
-    }
-    if( retType.isGenericType() && !retType.isParameterizedType() )
-    {
-      retType = TypeLord.getDefaultParameterizedType( retType );
-    }
-
-    retType = ClassInfoUtil.getPublishedType(retType, _md.getMethod().getEnclosingClass());
-
-    _retTypeWithoutTypeVars = retType;
-
-    return retType;
-  }
-  private IType getReturnTypeWithTypeVars()
-  {
-    if( _retTypeWithTypeVars != null )
-    {
-      return _retTypeWithTypeVars;
-    }
-
-    IType declaringClass = _md.getMethod().getEnclosingClass().getJavaType();
-    TypeVarToTypeMap actualParamByVarName = TypeLord.mapTypeByVarName( getOwnersType(), declaringClass, true );
+    TypeVarToTypeMap actualParamByVarName = TypeLord.mapTypeByVarName( getOwnersType(), declaringClass );
     actualParamByVarName = addEnclosingTypeParams( declaringClass, actualParamByVarName );
 
     for( IGenericTypeVariable tv : getTypeVariables() )
@@ -207,14 +129,12 @@ public class JavaMethodInfo extends JavaBaseFeatureInfo implements IJavaMethodIn
     {
       return null;
     }
-    if( retType.isGenericType() && !retType.isParameterizedType() )
-    {
-      retType = TypeLord.getDefaultParameterizedType( retType );
-    }
 
     retType = ClassInfoUtil.getPublishedType(retType, _md.getMethod().getEnclosingClass());
 
-    _retTypeWithTypeVars = retType;
+    retType = TypeLord.replaceRawGenericTypesWithDefaultParameterizedTypes( retType );
+
+    _retType = retType;
 
     return retType;
   }
@@ -257,7 +177,7 @@ public class JavaMethodInfo extends JavaBaseFeatureInfo implements IJavaMethodIn
   {
     if( _typeVars == null )
     {
-      _typeVars = _md.getMethod().getTypeVariables(this);
+      _typeVars = _md.getMethod().getTypeVariables( this );
     }
     return _typeVars;
   }
@@ -267,7 +187,7 @@ public class JavaMethodInfo extends JavaBaseFeatureInfo implements IJavaMethodIn
   public IType getParameterizedReturnType( IType... typeParams )
   {
     TypeVarToTypeMap actualParamByVarName =
-      TypeLord.mapTypeByVarName( getOwnersType(), _md.getMethod().getEnclosingClass().getJavaType(), true );
+      TypeLord.mapTypeByVarName( getOwnersType(), _md.getMethod().getEnclosingClass().getJavaType() );
     int i = 0;
     for( IGenericTypeVariable tv : getTypeVariables() )
     {
@@ -284,11 +204,11 @@ public class JavaMethodInfo extends JavaBaseFeatureInfo implements IJavaMethodIn
   {
     return getParameterizedParameterTypes2( null, typeParams );
   }
-  public IType[] getParameterizedParameterTypes2( IGosuClass ownersType, IType... typeParams )
+  public IType[] getParameterizedParameterTypes2( IType ownersType, IType... typeParams )
   {
     IType ot = ownersType == null ? getOwnersType() : ownersType;
     TypeVarToTypeMap actualParamByVarName =
-      TypeLord.mapTypeByVarName( ot, _md.getMethod().getEnclosingClass().getJavaType(), true );
+      TypeLord.mapTypeByVarName( ot, _md.getMethod().getEnclosingClass().getJavaType() );
     int i = 0;
     for( IGenericTypeVariable tv : getTypeVariables() )
     {
@@ -309,11 +229,11 @@ public class JavaMethodInfo extends JavaBaseFeatureInfo implements IJavaMethodIn
     return inferTypeParametersFromArgumentTypes2( null, argTypes );
   }
   @Override
-  public TypeVarToTypeMap inferTypeParametersFromArgumentTypes2( IGosuClass ownersType, IType... argTypes )
+  public TypeVarToTypeMap inferTypeParametersFromArgumentTypes2( IType ownersType, IType... argTypes )
   {
     IJavaClassType[] genParamTypes = _md.getMethod().getGenericParameterTypes();
     IType ot = ownersType == null ? getOwnersType() : ownersType;
-    TypeVarToTypeMap actualParamByVarName = TypeLord.mapTypeByVarName( ot, _md.getMethod().getEnclosingClass().getJavaType(), true );
+    TypeVarToTypeMap actualParamByVarName = TypeLord.mapTypeByVarName( ot, _md.getMethod().getEnclosingClass().getJavaType() );
     IGenericTypeVariable[] typeVars = getTypeVariables();
     for( IGenericTypeVariable tv : typeVars )
     {
@@ -321,7 +241,14 @@ public class JavaMethodInfo extends JavaBaseFeatureInfo implements IJavaMethodIn
       {
         actualParamByVarName = new TypeVarToTypeMap();
       }
-      actualParamByVarName.put( tv.getTypeVariableDefinition().getType(), tv.getBoundingType() );
+      if( !TypeLord.isRecursiveType( tv.getTypeVariableDefinition().getType(), tv.getBoundingType() ) )
+      {
+        actualParamByVarName.put( tv.getTypeVariableDefinition().getType(), tv.getBoundingType() );
+      }
+      else
+      {
+        actualParamByVarName.put( tv.getTypeVariableDefinition().getType(), TypeLord.getPureGenericType( tv.getBoundingType() ) );
+      }
     }
 
     TypeVarToTypeMap map = new TypeVarToTypeMap();
@@ -329,26 +256,11 @@ public class JavaMethodInfo extends JavaBaseFeatureInfo implements IJavaMethodIn
     {
       if( genParamTypes.length > i )
       {
-        IType argType = argTypes[i];
-        IJavaClassType genParamType = genParamTypes[i];
-        inferTypeVariableTypesFromGenParamTypeAndConcreteType( genParamType, argType, map );
-        ensureInferredTypeAssignableToBoundingType( actualParamByVarName, map );
+        inferTypeVariableTypesFromGenParamTypeAndConcreteType( genParamTypes[i], argTypes[i], map );
+        AbstractGenericMethodInfo.ensureInferredTypeAssignableToBoundingType( actualParamByVarName, map );
       }
     }
     return map;
-  }
-
-  private void ensureInferredTypeAssignableToBoundingType( TypeVarToTypeMap actualParamByVarName, TypeVarToTypeMap map )
-  {
-    for( Object s : map.keySet() )
-    {
-      IType inferredType = map.getRaw( s );
-      IType boundingType = actualParamByVarName.getRaw( s );
-      if( !boundingType.isAssignableFrom( inferredType ) )
-      {
-        map.putRaw( s, boundingType );
-      }
-    }
   }
 
   private void inferTypeVariableTypesFromGenParamTypeAndConcreteType( IJavaClassType genParamType, IType argType, TypeVarToTypeMap map )
@@ -456,7 +368,7 @@ public class JavaMethodInfo extends JavaBaseFeatureInfo implements IJavaMethodIn
     String name = getDisplayName();
     name += TypeInfoUtil.getTypeVarList( this, true );
     name += "(";
-    IParameterInfo[] parameterInfos = getGenericParameters();
+    IParameterInfo[] parameterInfos = getParameters();
     if (parameterInfos.length > 0) {
       name += " ";
       for (int i = 0; i < parameterInfos.length; i++) {
@@ -603,15 +515,16 @@ public class JavaMethodInfo extends JavaBaseFeatureInfo implements IJavaMethodIn
   }
 
   @Override
-  public Object getAnnotationDefault() {
+  public Object getAnnotationDefault()
+  {
     return getMethod().getDefaultValue();
   }
 
-  private IParameterInfo[] convertParameterDescriptors( boolean bKeepTypeVars )
+  private IParameterInfo[] convertParameterDescriptors()
   {
     IType declaringClass = _md.getMethod().getEnclosingClass().getJavaType();
     TypeVarToTypeMap actualParamByVarName =
-      TypeLord.mapTypeByVarName( getOwnersType(), declaringClass, bKeepTypeVars );
+      TypeLord.mapTypeByVarName( getOwnersType(), declaringClass );
     actualParamByVarName = addEnclosingTypeParams( declaringClass, actualParamByVarName );
 
     for( IGenericTypeVariable tv : getTypeVariables() )
@@ -620,26 +533,18 @@ public class JavaMethodInfo extends JavaBaseFeatureInfo implements IJavaMethodIn
       {
         actualParamByVarName = new TypeVarToTypeMap();
       }
-      if( bKeepTypeVars )
-      {
-        actualParamByVarName.put( tv.getTypeVariableDefinition().getType(),
-                                  tv.getTypeVariableDefinition() != null
-                                  ? tv.getTypeVariableDefinition().getType()
-                                  : new TypeVariableType( getOwnersType(), tv ) );
-      }
-      else
-      {
-        actualParamByVarName.put( tv.getTypeVariableDefinition().getType(), tv.getBoundingType() );
-      }
+      actualParamByVarName.put( tv.getTypeVariableDefinition().getType(),
+                                tv.getTypeVariableDefinition() != null
+                                ? tv.getTypeVariableDefinition().getType()
+                                : new TypeVariableType( getOwnersType(), tv ) );
     }
     IJavaClassType[] paramTypes = _md.getMethod().getGenericParameterTypes();
-    return convertGenericParameterTypes( this, actualParamByVarName, paramTypes, bKeepTypeVars, _md.getMethod().getEnclosingClass());
+    return convertGenericParameterTypes( this, actualParamByVarName, paramTypes, _md.getMethod().getEnclosingClass() );
   }
 
   static IParameterInfo[] convertGenericParameterTypes( IFeatureInfo container,
                                                         TypeVarToTypeMap actualParamByVarName,
                                                         IJavaClassType[] paramTypes,
-                                                        boolean bKeepTypeVars,
                                                         IJavaClassInfo declaringClass )
   {
     if( paramTypes == null )
@@ -652,15 +557,19 @@ public class JavaMethodInfo extends JavaBaseFeatureInfo implements IJavaMethodIn
     {
       IType parameterType = null;
 
-      if(paramTypes[i] != null) {
-        parameterType = paramTypes[i].getActualType( actualParamByVarName, bKeepTypeVars );
+      if( paramTypes[i] != null )
+      {
+        parameterType = paramTypes[i].getActualType( actualParamByVarName, true );
       }
 
-      if (parameterType == null) {
+      if( parameterType == null )
+      {
         parameterType = TypeSystem.getErrorType();
       }
 
       parameterType = ClassInfoUtil.getPublishedType(parameterType, declaringClass);
+
+      parameterType = TypeLord.replaceRawGenericTypesWithDefaultParameterizedTypes( parameterType );
 
       pi[i] = new SimpleParameterInfo( container, parameterType, i );
     }

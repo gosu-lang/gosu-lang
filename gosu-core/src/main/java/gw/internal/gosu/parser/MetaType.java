@@ -24,8 +24,7 @@ import java.util.concurrent.locks.ReentrantLock;
 public class MetaType extends AbstractType implements IMetaType
 {
   private static final Lock MEAT_LOCKER = new ReentrantLock();
-  static class RootType{}
-  static class DefaultType{}
+  public static class RootType{}
 
   /**
    * These fields need to be lazu vars to avoid bombarding the typesystem with calls
@@ -48,7 +47,7 @@ public class MetaType extends AbstractType implements IMetaType
     {
       public IJavaType init()
       {
-        return (IJavaType) TypeSystem.getByFullNameIfValid( DefaultType.class.getName().replace('$', '.'), TypeSystem.getGlobalModule() );
+        return (IJavaType) TypeSystem.getByFullNameIfValid( Object.class.getName(), TypeSystem.getGlobalModule() );
       }
     };
 
@@ -221,6 +220,7 @@ public class MetaType extends AbstractType implements IMetaType
    * <li> - or - one of them is the DEFAULT_TYPE
    * <li> - or - one of them is the ROOT_TYPE
    * <li> - or - their core types are assignable
+   * <li> - or - their core types are structurally assignable
    * </ul>
    */
   @Override
@@ -389,7 +389,7 @@ public class MetaType extends AbstractType implements IMetaType
   {
     if( getType().equals( DEFAULT_TYPE.get() ) )
     {
-      set.add( (IType)JavaTypes.ITYPE() );
+      set.add( JavaTypes.ITYPE() );
       return set;
     }
     for( IType iface : type.getInterfaces() )

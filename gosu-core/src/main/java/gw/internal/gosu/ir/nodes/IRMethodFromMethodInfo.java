@@ -183,8 +183,7 @@ public class IRMethodFromMethodInfo extends IRFeatureBase implements IRMethod {
 
   @Override
   public boolean isBytecodeMethod() {
-    return (_terminalMethod instanceof IGosuMethodInfo || _terminalMethod instanceof IJavaMethodInfo) &&
-           !IRFeatureBase.isExternalEntityJavaType( _terminalMethod );
+    return _terminalMethod instanceof IGosuMethodInfo || _terminalMethod instanceof IJavaMethodInfo;
   }
 
   private static IRType getTrueOwningType( IMethodInfo mi ) {
@@ -324,14 +323,9 @@ public class IRMethodFromMethodInfo extends IRFeatureBase implements IRMethod {
     for( int i = 0; i < boundedDfsParams.length; i++ )
     {
       IType param = dfs.getArgs().get(i).getType();
-      if( param instanceof ITypeVariableType && (param.getEnclosingType() instanceof IGosuClass || TypeLord.isRecursiveType( javaType )) )
-      {
-        param = ((ITypeVariableType)param).getBoundingType();
-      }
-      boundedDfsParams[i] = TypeLord.getPureGenericType( param );
+      boundedDfsParams[i] = param;
     }
 
-    javaType = (IJavaType)TypeLord.getDefaultParameterizedType( javaType );
     IJavaMethodInfo jmi = (IJavaMethodInfo)((IRelativeTypeInfo)javaType.getTypeInfo()).getMethod( javaType, dfs.getDisplayName(), boundedDfsParams );
     return jmi.getMethod();
   }

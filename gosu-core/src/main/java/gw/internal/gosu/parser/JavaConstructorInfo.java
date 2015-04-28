@@ -4,7 +4,6 @@
 
 package gw.internal.gosu.parser;
 
-import gw.config.CommonServices;
 import gw.lang.GosuShop;
 import gw.lang.javadoc.IDocRef;
 import gw.lang.javadoc.IClassDocNode;
@@ -80,31 +79,15 @@ public class JavaConstructorInfo extends JavaBaseFeatureInfo implements IJavaCon
   }
 
   @Override
-  public IParameterInfo[] getGenericParameters()
-  {
-    return getParameters( true );
-  }
-
-  @Override
   public IParameterInfo[] getParameters()
   {
-    IType ownerType = getOwnersType();
-    return getParameters( !ownerType.isGenericType() || ownerType.isParameterizedType() );
-  }
-
-  private IParameterInfo[] getParameters( boolean bKeepTypeVars )
-  {
-    if( _params != null && !bKeepTypeVars )
+    if( _params != null )
     {
       return _params;
     }
-    TypeVarToTypeMap actualParamByVarName = TypeLord.mapTypeByVarName( getOwnersType(), getType(), bKeepTypeVars );
-    IParameterInfo[] params = _ctor.convertGenericParameterTypes( this, actualParamByVarName, bKeepTypeVars );
-    if( !bKeepTypeVars )
-    {
-      _params = params;
-    }
-    return params;
+    TypeVarToTypeMap actualParamByVarName = TypeLord.mapTypeByVarName( getOwnersType(), getType() );
+    IParameterInfo[] params = _ctor.convertGenericParameterTypes( this, actualParamByVarName );
+    return _params = params;
   }
 
   @Override
@@ -262,7 +245,7 @@ public class JavaConstructorInfo extends JavaBaseFeatureInfo implements IJavaCon
         {
           return _ctor.newInstance( null );
         }
-        return _ctor.newInstance( CommonServices.getEntityAccess().convertToExternalIfNecessary( args, ((ConstructorJavaClassConstructor)_ctor).getJavaParameterTypes(), ((ConstructorJavaClassConstructor)_ctor).getDeclaringJavaClass() ) );
+        return _ctor.newInstance( args );
       }
       catch( IllegalArgumentException e )
       {

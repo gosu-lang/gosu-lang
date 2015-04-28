@@ -38,7 +38,7 @@ class Errant_StaticMethodTest {
     new A().m()
     new A().sm()
     A.sm()
-    A.m()  //## issuekeys: MSG_METHOD_IS_NOT_STATIC, MSG_METHOD_IS_NOT_STATIC, MSG_METHOD_IS_NOT_STATIC
+    A.m()  //## issuekeys: MSG_METHOD_IS_NOT_STATIC, MSG_METHOD_IS_NOT_STATIC
     m0()
     new Errant_StaticMethodTest().m0()
     Errant_StaticMethodTest.m0()

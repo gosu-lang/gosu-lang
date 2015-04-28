@@ -129,8 +129,7 @@ public class IRMethodFromConstructorInfo extends IRFeatureBase implements IRMeth
 
   @Override
   public boolean isBytecodeMethod() {
-    return (_constructor instanceof IGosuConstructorInfo || _constructor instanceof IJavaConstructorInfo) &&
-           !isExternalEntityJavaType( _constructor );
+    return _constructor instanceof IGosuConstructorInfo || _constructor instanceof IJavaConstructorInfo;
   }
 
   private static IRType getTrueOwningType( IConstructorInfo mi ) {

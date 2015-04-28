@@ -28,7 +28,7 @@ public final class TypeOfExpression extends Expression implements ITypeOfExpress
   @Override
   public IType getTypeImpl()
   {
-    // Note the static type of typeof must always be the raw/defaut metatype, Type<DefaultType>,
+    // Note the static type of typeof must always be the raw/defaut metatype, Type<Object>,
     // because it is the least upper bound of all meta types.
     return MetaType.DEFAULT_TYPE_TYPE.get();
   }

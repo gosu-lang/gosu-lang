@@ -5,21 +5,16 @@
 package gw.internal.gosu.parser;
 
 import gw.config.CommonServices;
-import gw.internal.gosu.parser.java.classinfo.CompileTimeExpressionParser;
 import gw.lang.GosuShop;
-import gw.lang.annotation.Annotations;
 import gw.lang.SimplePropertyProcessing;
 import gw.lang.javadoc.IClassDocNode;
 import gw.lang.javadoc.IDocRef;
-import gw.lang.parser.IExpression;
 import gw.lang.parser.ISymbol;
 import gw.lang.parser.ISymbolTable;
 import gw.lang.parser.Keyword;
 import gw.lang.parser.TypeVarToTypeMap;
-import gw.lang.reflect.ConstructorInfoBuilder;
 import gw.lang.reflect.FeatureManager;
 import gw.lang.reflect.IAnnotationInfo;
-import gw.lang.reflect.IConstructorHandler;
 import gw.lang.reflect.IConstructorInfo;
 import gw.lang.reflect.IEventInfo;
 import gw.lang.reflect.IMethodInfo;
@@ -44,14 +39,11 @@ import gw.lang.reflect.java.IJavaTypeInfo;
 import gw.util.concurrent.LockingLazyVar;
 
 import java.beans.IndexedPropertyDescriptor;
-import java.lang.annotation.Annotation;
 import java.lang.ref.WeakReference;
-import java.lang.reflect.Array;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.locks.ReentrantLock;
@@ -146,7 +138,7 @@ public class JavaTypeInfo extends JavaBaseFeatureInfo implements IJavaTypeInfo
               if( Modifier.isStatic( field.getModifiers() ) )
               {
                 TypeVarToTypeMap actualParamByVarName =
-                        TypeLord.mapTypeByVarName( getOwnersType(), getOwnersType(), true );
+                  TypeLord.mapTypeByVarName( getOwnersType(), getOwnersType() );
                 JavaFieldPropertyInfo staticProp = new JavaFieldPropertyInfo( JavaTypeInfo.this, field.getGenericType().getActualType( actualParamByVarName, true ), field, true, simplePropertyProcessing );
                 int pos = getPosition(properties, staticProp.getName());
                 // We favor non-static over static
@@ -166,7 +158,7 @@ public class JavaTypeInfo extends JavaBaseFeatureInfo implements IJavaTypeInfo
               }
               else if( !_backingClass.hasCustomBeanInfo() )
               {
-                TypeVarToTypeMap actualParamByVarName = TypeLord.mapTypeByVarName( getOwnersType(), getOwnersType(), true );
+                TypeVarToTypeMap actualParamByVarName = TypeLord.mapTypeByVarName( getOwnersType(), getOwnersType() );
                 if (field == null) {
                   throw new IllegalStateException("A null field was found for " + _backingClass.getName() + " : " + Arrays.toString(fields));
                 }

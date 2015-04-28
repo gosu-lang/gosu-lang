@@ -23,14 +23,12 @@ public class MethodCallAdapter implements IMethodCallHandler
 {
   private Method _method = null;
   private Class[] _argTypes = null;
-  private boolean _external;
 
   public MethodCallAdapter( Method method )
   {
     _method = method;
     _argTypes = method.getParameterTypes(); // Cache this so we don't have to create a copy every time
     _method.setAccessible( true );
-    _external = CommonServices.getEntityAccess().isExternal( _method.getDeclaringClass() );
   }
 
   public Object handleCall( Object ctx, Object... argValues )
@@ -64,23 +62,7 @@ public class MethodCallAdapter implements IMethodCallHandler
     }
     try
     {
-
-      if( _external && argValues != null && argValues.length > 0 )
-      {
-        argValues = CommonServices.getEntityAccess().convertToExternalIfNecessary(
-          argValues, _argTypes, _method.getDeclaringClass() );
-      }
-
-      Object result = _method.invoke( ctx, argValues );
-
-      if( _external )
-      {
-        return CommonServices.getEntityAccess().convertToInternalIfNecessary( result, _method.getDeclaringClass() );
-      }
-      else
-      {
-        return result;
-      }
+      return _method.invoke( ctx, argValues );
     }
     catch( InvocationTargetException ex )
     {
