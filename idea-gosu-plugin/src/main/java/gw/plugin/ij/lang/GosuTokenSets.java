@@ -67,12 +67,15 @@ public abstract class GosuTokenSets extends GosuTokenTypes {
   public static final TokenSet ADDITIVE_OPS = TokenSet.create(
       TT_OP_plus,
       TT_OP_nullsafe_plus,
+      TT_OP_unchecked_plus,
       TT_OP_minus,
-      TT_OP_nullsafe_minus);
+      TT_OP_nullsafe_minus,
+      TT_OP_unchecked_minus);
 
   public static final TokenSet MULTIPLICATIVE_OPS = TokenSet.create(
       TT_OP_multiply,
       TT_OP_nullsafe_multiply,
+      TT_OP_unchecked_multiply,
       TT_OP_divide,
       TT_OP_nullsafe_divide,
       TT_OP_modulo,

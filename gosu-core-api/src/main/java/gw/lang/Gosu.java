@@ -47,6 +47,12 @@ public class Gosu
     new Gosu().start( args );
   }
 
+  private void checkArgsLength(int i, int length) {
+    if(i >= length)
+    {
+      showHelpAndQuit();
+    }
+  }
 
   private int start( String[] args )
   {
@@ -54,21 +60,23 @@ public class Gosu
     {
       int ret;
 
-      if( args.length == 0 )
-      {
-        showHelpAndQuit();
-      }
       int i = 0;
+      checkArgsLength(i, args.length);
       String cpValue = null;
-      boolean cmdLineCP = args[0].equals( "-classpath" );
-      if(cmdLineCP)
+      boolean cmdLineCP = false;
+      if(args[i].equals( "-checkedArithmetic" ))
       {
-        i = 2;
-        if(i >= args.length)
-        {
-          showHelpAndQuit();
-        }
-        cpValue = args[1];
+        i++;
+        checkArgsLength(i, args.length);
+        System.setProperty("checkedArithmetic", "true");
+      }
+
+      if(args[i].equals( "-classpath" ))
+      {
+        cmdLineCP = true;
+        i+=2;
+        checkArgsLength(i, args.length);
+        cpValue = args[i-1];
       }
 
       if(args[i].equals( "-e" )) {
@@ -86,7 +94,7 @@ public class Gosu
         if ( cpValue == null ) {
           cpValue = extractClassPathFromSrc( script.getAbsolutePath() );
         }
-        List<File> classpath = makeClasspath( cpValue, script.getParent(), cmdLineCP );
+        List<File> classpath = makeClasspath( cpValue, script.getAbsoluteFile().getParent(), cmdLineCP );
         init(classpath);
         ret = runWithFile(script, collectArgs(i+1, args));
       }
@@ -274,8 +282,8 @@ public class Gosu
   {
     System.out.println("Gosu version: " + getVersion() +
                        "\nUsage:\n" +
-                       "    gosu [-classpath 'entry1,entry2...'] program.gsp [args...]\n" +
-                       "    gosu [-classpath 'entry1,entry2...'] -e 'inline script' [args...]\n");
+                       "    gosu [-checkedArithmetic] [-classpath 'entry1,entry2...'] program.gsp [args...]\n" +
+                       "    gosu [-checkedArithmetic] [-classpath 'entry1,entry2...'] -e 'inline script' [args...]\n");
     System.exit(1);
   }
 

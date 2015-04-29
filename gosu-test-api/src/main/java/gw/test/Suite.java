@@ -62,6 +62,7 @@ public class Suite<T extends Suite> extends junit.framework.TestSuite {
   public static final String SPLIT_PARTITION = "split.partition";
 
   public Suite() {
+    System.setProperty("checkedArithmetic", "true");
     Integer splitPartition = readIntegerSystemProperty(SPLIT_PARTITION);
     if(splitPartition != null && splitPartition > 1){
       throw new UnsupportedOperationException("V3 tests doesn't support more than one split");

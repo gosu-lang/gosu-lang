@@ -88,12 +88,20 @@ division or remainder by zero throws the exception ArithmeticException. Integer
 overflow does not throw an exception but wraps around. That is, the result is 
 truncated by discarding any higher-order bits that do not fit in the type. Thus,
 in the ``int`` type, the expression ``2147483647+1`` evaluates to -2147483648, 
-and the expression ``-2147483648-1`` evaluates to 2147483647. 
+and the expression ``-2147483648-1`` evaluates to 2147483647.
+If you provide the ``checkedArithmetic`` compiler flag, integer overflow will
+throw an ArithmeticException unless:
+
+- the expressions are inside a method overriding Object.hashCode.
+- the expressions use the unchecked operators: ``!+``, ``!-``, ``!*``.
+  these operators will always be unchecked regardless the compiler flag and
+  can be mixed with regular arithmetic operators.
+
 
 The floating-point remainder ``x%y`` roughly equals ``x-((x/y) as int)*y`` when 
 ``y`` is non-zero. Floating-point division by zero and floating-point overflow 
 do not throw exceptions but produce special IEEE754 values (of type ``float`` or 
-``double``) such as ``Infinity`` or ``NaN`` ("not a number"). 
+``double``) such as ``Infinity`` or ``NaN`` ("not a number").
 
 Logical Operators
 =================

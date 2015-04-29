@@ -51,6 +51,12 @@ public abstract class Expression extends ParsedElement implements IExpression
   }
 
   @Override
+  public boolean isUnchecked()
+  {
+    return true;
+  }
+
+  @Override
   public Object evaluate()
   {
     if( getGosuProgram() == null )

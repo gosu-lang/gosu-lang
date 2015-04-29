@@ -160,11 +160,13 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
 
   private TopLevelTransformationContext _cc;
   private T _parsedElement;
+  private static boolean _checkedArithmetic;
 
   public AbstractElementTransformer( TopLevelTransformationContext cc, T parsedElem )
   {
     _cc = cc;
     _parsedElement = parsedElem;
+    _checkedArithmetic = Boolean.valueOf( System.getProperty("checkedArithmetic") );
   }
 
   public static void clearCustomRuntimes() {
@@ -3021,6 +3023,12 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
       annotationInfos.add( new GosuAnnotationInfo( ga, fiAnnotated, (IGosuClassInternal)ga.getOwnersType() ) );
     }
     return annotationInfos;
+  }
+
+  protected boolean isCheckedArithmeticEnabled()
+  {
+    DynamicFunctionSymbol currentFunction = _cc().getCurrentFunction();
+    return _checkedArithmetic && currentFunction != null && !"hashCode()".equals( currentFunction.getName() );
   }
 
   // --------------------- Methods moved from GosuClassTransformer
