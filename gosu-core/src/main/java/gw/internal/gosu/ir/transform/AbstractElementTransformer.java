@@ -126,6 +126,7 @@ import gw.lang.reflect.java.IJavaConstructorInfo;
 import gw.lang.reflect.java.IJavaType;
 import gw.lang.reflect.java.JavaTypes;
 import gw.lang.reflect.module.IModule;
+import gw.util.concurrent.LocklessLazyVar;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -160,13 +161,18 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
 
   private TopLevelTransformationContext _cc;
   private T _parsedElement;
-  private static boolean _checkedArithmetic;
+  private static LocklessLazyVar<Boolean> _checkedArithmetic = new LocklessLazyVar<Boolean>() {
+                                                                                                @Override
+                                                                                                protected Boolean init()
+                                                                                                {
+                                                                                                  return Boolean.valueOf( System.getProperty("checkedArithmetic") );
+                                                                                                }
+                                                                                              };
 
   public AbstractElementTransformer( TopLevelTransformationContext cc, T parsedElem )
   {
     _cc = cc;
     _parsedElement = parsedElem;
-    _checkedArithmetic = Boolean.valueOf( System.getProperty("checkedArithmetic") );
   }
 
   public static void clearCustomRuntimes() {
@@ -3028,7 +3034,7 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
   protected boolean isCheckedArithmeticEnabled()
   {
     DynamicFunctionSymbol currentFunction = _cc().getCurrentFunction();
-    return _checkedArithmetic && currentFunction != null && !"hashCode()".equals( currentFunction.getName() );
+    return _checkedArithmetic.get() && currentFunction != null && !"hashCode()".equals( currentFunction.getName() );
   }
 
   // --------------------- Methods moved from GosuClassTransformer
