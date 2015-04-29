@@ -414,7 +414,8 @@ public class StandardCoercionManager extends BaseService implements ICoercionMan
            || lhsType == JavaTypes.FLOAT()
            || lhsType == JavaTypes.INTEGER()
            || lhsType == JavaTypes.LONG()
-           || lhsType == JavaTypes.SHORT();
+           || lhsType == JavaTypes.SHORT()
+           || lhsType == JavaTypes.VOID();
   }
 
   protected ICoercer getPrimitiveOrBoxedConverter( IType type )
@@ -482,10 +483,6 @@ public class StandardCoercionManager extends BaseService implements ICoercionMan
     else if( type == JavaTypes.SHORT() )
     {
       return ShortCoercer.instance();
-    }
-    else if( type == JavaTypes.pVOID() )
-    {
-      return IdentityCoercer.instance();
     }
     else
     {
@@ -560,6 +557,10 @@ public class StandardCoercionManager extends BaseService implements ICoercionMan
       return ShortHighPriorityCoercer.instance();
     }
     else if( type == JavaTypes.pVOID() )
+    {
+      return IdentityCoercer.instance();
+    }
+    else if( type == JavaTypes.VOID() )
     {
       return IdentityCoercer.instance();
     }

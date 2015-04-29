@@ -394,6 +394,10 @@ public class TypeSystem
       {
         return true;
       }
+      if( primitiveType == JavaTypes.pVOID() && boxedType == JavaTypes.VOID() )
+      {
+        return true;
+      }
     }
     return false;
   }
