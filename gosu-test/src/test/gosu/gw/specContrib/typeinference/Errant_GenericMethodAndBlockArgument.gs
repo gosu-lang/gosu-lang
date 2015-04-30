@@ -3,6 +3,7 @@ package gw.specContrib.typeinference
 uses java.util.ArrayList
 uses java.util.List
 uses java.lang.CharSequence
+uses java.lang.Integer
 
 class Errant_GenericMethodAndBlockArgument {
   // IDE-1882
