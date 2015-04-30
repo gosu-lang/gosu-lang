@@ -19,7 +19,6 @@ import java.util.List;
 public interface IModule
 {
   public static final String CONFIG_RESOURCE_PREFIX = "config";
-  public static final String CONFIG_RESOURCE_PREFIX_2 = "./config";
 
   IExecutionEnvironment getExecutionEnvironment();
 
@@ -32,10 +31,6 @@ public interface IModule
   String getName();
 
   void setName(String name);
-
-  List<IDirectory> getRoots();
-
-  void setRoots(List<IDirectory> roots);
 
   /**
    * @return A list of dependencies for this module. The list may contain both 
@@ -98,8 +93,6 @@ public interface IModule
   IModule[] getModuleTraversalList();
 
   IFileSystemGosuClassRepository getFileRepository();
-
-  String pathRelativeToRoot(IResource resource);
 
   /**
    * Get class loader, associated with this module.

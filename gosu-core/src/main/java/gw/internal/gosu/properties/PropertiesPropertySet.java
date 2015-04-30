@@ -5,6 +5,7 @@
 package gw.internal.gosu.properties;
 
 import gw.config.CommonServices;
+import gw.fs.IDirectory;
 import gw.fs.IFile;
 import gw.internal.gosu.util.StringUtil;
 import gw.lang.reflect.module.IModule;
@@ -13,6 +14,8 @@ import gw.util.concurrent.LockingLazyVar;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -39,7 +42,7 @@ public class PropertiesPropertySet implements PropertySet {
     private final LockingLazyVar<Map<String,IFile>> _filesByTypeName = new LockingLazyVar<Map<String, IFile>>() {
       @Override
       protected Map<String, IFile> init() {
-        List<Pair<String, IFile>> propertiesFiles = _module.getFileRepository().findAllFilesByExtension(EXTENSION);
+        List<Pair<String, IFile>> propertiesFiles = findAllFilesByExtension( EXTENSION );
         final int initialCapacity = propertiesFiles.size();
         Map<String,IFile> result = new HashMap<String, IFile>( initialCapacity );
         for (Pair<String,IFile> pair : propertiesFiles) {
@@ -54,6 +57,48 @@ public class PropertiesPropertySet implements PropertySet {
         return result;
       }
     };
+
+    public List<Pair<String, IFile>> findAllFilesByExtension(String extension) {
+      List<Pair<String, IFile>> results = new ArrayList<>();
+
+      for (IDirectory sourceEntry : _module.getSourcePath()) {
+        if (sourceEntry.exists()) {
+          String prefix = sourceEntry.getName().equals(IModule.CONFIG_RESOURCE_PREFIX) ? IModule.CONFIG_RESOURCE_PREFIX : "";
+          addAllLocalResourceFilesByExtensionInternal(prefix, sourceEntry, extension, results);
+        }
+      }
+      return results;
+    }
+
+    private void addAllLocalResourceFilesByExtensionInternal(String relativePath, IDirectory dir, String extension, List<Pair<String, IFile>> results) {
+      List<IDirectory> excludedPath = Arrays.asList(_module.getFileRepository().getExcludedPath());
+      if ( excludedPath.contains( dir )) {
+        return;
+      }
+      if (!CommonServices.getPlatformHelper().isPathIgnored(relativePath)) {
+        for (IFile file : dir.listFiles()) {
+          if (file.getName().endsWith(extension)) {
+            String path = appendResourceNameToPath(relativePath, file.getName());
+            results.add(new Pair<String, IFile>(path, file));
+          }
+        }
+        for (IDirectory subdir : dir.listDirs()) {
+          String path = appendResourceNameToPath(relativePath, subdir.getName());
+          addAllLocalResourceFilesByExtensionInternal(path, subdir, extension, results);
+        }
+      }
+    }
+
+    private static String appendResourceNameToPath( String relativePath, String resourceName ) {
+      String path;
+      if ( relativePath.length() > 0 ) {
+        path = relativePath + '/' + resourceName;
+      }
+      else {
+        path = resourceName;
+      }
+      return path;
+    }
 
     @Override
     public PropertySet getPropertySetForFile(IFile file) {
