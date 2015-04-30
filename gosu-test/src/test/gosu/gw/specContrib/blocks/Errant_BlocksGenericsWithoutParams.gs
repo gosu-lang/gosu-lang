@@ -74,12 +74,8 @@ class Errant_BlocksGenericsWithoutParams {
       return {42, 1s}
     })
 
-    var x1318: ArrayList<Integer> = hello1(\-> {
-      return {42, 'c', 42.5f}    //## issuekeys: MSG_TYPE_MISMATCH
-    })
-    var x1319: ArrayList<Integer> = hello1(\-> {
-      return {42, 'c', 42.5f, "string"}   //## issuekeys: MSG_TYPE_MISMATCH
-    })
+    var x1318: ArrayList<Integer> = hello1(\-> { return {42, 'c', 42.5f} })    //## issuekeys: MSG_TYPE_MISMATCH
+    var x1319: ArrayList<Integer> = hello1(\-> { return {42, 'c', 42.5f, "string"} })  //## issuekeys: MSG_TYPE_MISMATCH
 
     var x1320: ArrayList<Integer> = hello1(\-> new ArrayList<String>())      //## issuekeys: 'HELLO1(GW.LANG.__PSI__.IBLOCK0<T>)' IN 'TEST.GOSU.GW.SPECCONTRIB.AAA.PARSERVSOPENSOURCE.BLOCKS.BLOCKSMAIN.ERRANT_BLOCKSGENERICSWITHOUTPARAMS' CANNOT BE APPLIED TO '(BLOCK():ARRAYLIST<STRING>)'
 

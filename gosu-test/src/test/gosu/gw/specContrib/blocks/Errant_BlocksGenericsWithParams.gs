@@ -111,18 +111,14 @@ class Errant_BlocksGenericsWithParams {
       return {1, 2, 3s}
     })
 
-    var x13240: ArrayList<Integer> = hello1(\x: ArrayList<Integer> -> {
-      return {1, 2, 'c', "string"} //## issuekeys: MSG_TYPE_MISMATCH
-    })
+    var x13240: ArrayList<Integer> = hello1(\x: ArrayList<Integer> -> { return {1, 2, 'c', "string"} })  //## issuekeys: MSG_TYPE_MISMATCH
 
     //IDE-1344 - Parser bug
     var x13241: ArrayList<Integer> = hello1(\x: ArrayList -> {  //## issuekeys: MSG_TYPE_MISMATCH
       return new ArrayList<Integer>()
     })
     //Error Expected. Both show
-    var x13242: ArrayList<Integer> = hello1(\x: ArrayList<Integer> -> {
-      return new ArrayList()  //## issuekeys: MSG_TYPE_MISMATCH
-    })
+    var x13242: ArrayList<Integer> = hello1(\x: ArrayList<Integer> -> { return new ArrayList() })  //## issuekeys: MSG_TYPE_MISMATCH
 
   }
 
