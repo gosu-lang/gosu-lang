@@ -56,8 +56,17 @@ class Errant_AssignmentStatementsTest {
     x0++
     x1++
     x2++
-    x2++
+    x3++
     x4++
+
+    ++x0;  //## issuekeys: MSG_UNEXPECTED_TOKEN, MSG_NOT_A_STATEMENT
+    ++x1;  //## issuekeys: MSG_UNEXPECTED_TOKEN, MSG_NOT_A_STATEMENT
+    ++x2;  //## issuekeys: MSG_UNEXPECTED_TOKEN, MSG_NOT_A_STATEMENT
+    --x3;  //## issuekeys: MSG_UNEXPECTED_TOKEN, MSG_NOT_A_STATEMENT
+    --x4;  //## issuekeys: MSG_UNEXPECTED_TOKEN, MSG_NOT_A_STATEMENT
+
+    print(x0++)  //## issuekeys: MSG_EXPECTING_FUNCTION_CLOSE, MSG_UNEXPECTED_TOKEN, MSG_UNEXPECTED_TOKEN
+    print(++x0)  //## issuekeys: MSG_EXPECTING_FUNCTION_CLOSE, MSG_SYNTAX_ERROR, MSG_UNEXPECTED_TOKEN, MSG_NOT_A_STATEMENT, MSG_UNEXPECTED_TOKEN
   }
 
   function testIncrementWithBoxedIntegerTypes() {
@@ -69,7 +78,22 @@ class Errant_AssignmentStatementsTest {
     x0++
     x1++
     x2++
-    x2++
+    x3++
     x4++
+
+    ++x0;  //## issuekeys: MSG_UNEXPECTED_TOKEN, MSG_NOT_A_STATEMENT
+    ++x1;  //## issuekeys: MSG_UNEXPECTED_TOKEN, MSG_NOT_A_STATEMENT
+    ++x2;  //## issuekeys: MSG_UNEXPECTED_TOKEN, MSG_NOT_A_STATEMENT
+    --x3;  //## issuekeys: MSG_UNEXPECTED_TOKEN, MSG_NOT_A_STATEMENT
+    --x4;  //## issuekeys: MSG_UNEXPECTED_TOKEN, MSG_NOT_A_STATEMENT
+
+    print(x0++)  //## issuekeys: MSG_EXPECTING_FUNCTION_CLOSE, MSG_UNEXPECTED_TOKEN, MSG_UNEXPECTED_TOKEN
+    print(++x0)  //## issuekeys: MSG_EXPECTING_FUNCTION_CLOSE, MSG_SYNTAX_ERROR, MSG_UNEXPECTED_TOKEN, MSG_NOT_A_STATEMENT, MSG_UNEXPECTED_TOKEN
+  }
+
+  function testChainingAssignmentStatement(){
+    var a = 1
+    var b = 2
+    var c = a = b  //## issuekeys: MSG_UNEXPECTED_TOKEN, MSG_NOT_A_STATEMENT
   }
 }
