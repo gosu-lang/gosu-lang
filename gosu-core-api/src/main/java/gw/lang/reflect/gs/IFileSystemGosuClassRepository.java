@@ -26,12 +26,6 @@ public interface IFileSystemGosuClassRepository extends IGosuClassRepository
 
   String getClassNameFromFile( IDirectory root, IFile file, String[] fileExts );
 
-  List<Pair<String, IFile>> findAllFilesByExtension(String extension);
-
-  String getResourceName(URL url);
-
-  IFile findFirstFile(String resourceName);
-
   public static class ClassPathEntry
   {
     private final IDirectory _path;

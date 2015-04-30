@@ -95,10 +95,6 @@ public class TypeSystemSetup
     URL url = getClass().getProtectionDomain().getCodeSource().getLocation();
     File path = new File( url.getFile() );
 
-    File moduleLocation = path.getParentFile();
-    IDirectory eclipseModuleRoot = CommonServices.getFileSystem().getIDirectory( moduleLocation );
-
-
     String strPath = path.getAbsolutePath();
     int iClasses = strPath.indexOf( File.separatorChar + "classes" );
     if( iClasses >= 0 ) {
@@ -109,11 +105,6 @@ public class TypeSystemSetup
     }
     IDirectory root = CommonServices.getFileSystem().getIDirectory( new File( strPath ) );
     gosuModule.configurePaths(Collections.singletonList(root), Collections.singletonList(root));
-
-    List<IDirectory> roots = new ArrayList<IDirectory>();
-    roots.add(eclipseModuleRoot);
-    roots.add(root);
-    gosuModule.setRoots(roots);
 
     //Fix this
 //    ModuleRootManager rootManager = ModuleRootManager.getInstance(ijModule);
