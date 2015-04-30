@@ -87,14 +87,12 @@ public class Gosuc implements IGosuc {
     _globalModule.addDependency( new Dependency( execEnv.getJreModule(), true ) );
 
     List<IDirectory> allSourcePaths = new ArrayList<IDirectory>();
-    List<IDirectory> allRoots = new ArrayList<IDirectory>();
     Map<String, IModule> modules = new HashMap<String, IModule>();
     List<IModule> allModules = new ArrayList<IModule>();
     for( GosucModule gosucModule : _allGosucModules ) {
       IModule module = defineModule( project, gosucModule );
       if( module != null ) {
         allSourcePaths.addAll( module.getSourcePath() );
-        allRoots.addAll( module.getRoots() );
         modules.put( gosucModule.getName(), module );
         allModules.add( module );
       }
@@ -118,7 +116,6 @@ public class Gosuc implements IGosuc {
       _globalModule.addDependency(new Dependency(rootModule, true));
     }
     _globalModule.setSourcePath( allSourcePaths );
-    _globalModule.setRoots(allRoots);
     return allModules;
   }
 
@@ -138,9 +135,6 @@ public class Gosuc implements IGosuc {
     List<IDirectory> sourceFolders = getSourceFolders( gosucModule );
     gosuModule.configurePaths(getClassPaths(gosucModule), sourceFolders);
     IDirectory sourceRoot = computeCommonRoot( sourceFolders );
-    if( sourceRoot != null ) {
-      gosuModule.setRoots(Collections.<IDirectory>singletonList(sourceRoot));
-    }
     gosuModule.setNativeModule( gosucModule );
     gosuModule.setExcludedPaths(getExcludedFolders( gosucModule ));
     return gosuModule;

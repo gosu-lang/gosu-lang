@@ -55,7 +55,6 @@ public class Module implements IModule
   private ModuleTypeLoader _modTypeLoader;
 
   // Paths
-  private List<IDirectory> _roots = new ArrayList<IDirectory>();
   protected List<IDirectory> _classpath = new ArrayList<IDirectory>();
 
   private INativeModule _nativeModule;
@@ -84,16 +83,6 @@ public class Module implements IModule
   public void setDependencies(List<Dependency> newDeps) {
     _dependencies = new ArrayList<Dependency>(newDeps);
     _traversalList.clear();
-  }
-
-  @Override
-  public List<IDirectory> getRoots() {
-    return _roots;
-  }
-
-  @Override
-  public void setRoots(List<IDirectory> roots) {
-    _roots = new ArrayList<IDirectory>(roots);
   }
 
   @Override
@@ -497,18 +486,4 @@ public class Module implements IModule
     }
   }
 
-  @Override
-  public String pathRelativeToRoot(IResource resource) {
-    for (IDirectory root : getSourcePath()) {
-      if (resource.isDescendantOf(root)) {
-        return root.relativePath(resource);
-      }
-    }
-    for (IDirectory root : getRoots()) {
-      if (resource.isDescendantOf(root)) {
-        return root.relativePath(resource);
-      }
-    }
-    return null;
-  }
 }
