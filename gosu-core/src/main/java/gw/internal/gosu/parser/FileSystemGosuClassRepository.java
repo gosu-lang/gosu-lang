@@ -842,30 +842,13 @@ public class FileSystemGosuClassRepository implements IFileSystemGosuClassReposi
     return file.toString().endsWith( "gtest" );
   }
 
-  @Override
-  public String getResourceName(URL url) {
-    IFile file = CommonServices.getFileSystem().getIFile(url);
-    String resourceName = _module.pathRelativeToRoot(file);
-    if (resourceName == null) {
-      throw new RuntimeException("Could not find resource " + url);
-    }
-
-    return resourceName;
-  }
-
   public List<Pair<String, IFile>> findAllFilesByExtension(String extension) {
-    List<Pair<String, IFile>> results = new ArrayList<Pair<String, IFile>>();
-
-    for (IDirectory dir : _module.getRoots()) {
-      IDirectory configDir = dir.dir(IModule.CONFIG_RESOURCE_PREFIX);
-      if (configDir.exists()) {
-        addAllLocalResourceFilesByExtensionInternal(IModule.CONFIG_RESOURCE_PREFIX, configDir, extension, results);
-      }
-    }
+    List<Pair<String, IFile>> results = new ArrayList<>();
 
     for (IDirectory sourceEntry : _module.getSourcePath()) {
-      if (sourceEntry.exists() && !sourceEntry.getName().equals(IModule.CONFIG_RESOURCE_PREFIX)) {
-        addAllLocalResourceFilesByExtensionInternal("", sourceEntry, extension, results);
+      if (sourceEntry.exists()) {
+        String prefix = sourceEntry.getName().equals(IModule.CONFIG_RESOURCE_PREFIX) ? IModule.CONFIG_RESOURCE_PREFIX : "";
+        addAllLocalResourceFilesByExtensionInternal(prefix, sourceEntry, extension, results);
       }
     }
     return results;
@@ -898,26 +881,6 @@ public class FileSystemGosuClassRepository implements IFileSystemGosuClassReposi
       path = resourceName;
     }
     return path;
-  }
-
-  @Override
-  public IFile findFirstFile(String resourceName) {
-    if (resourceName.startsWith(IModule.CONFIG_RESOURCE_PREFIX) || resourceName.startsWith(IModule.CONFIG_RESOURCE_PREFIX_2)) {
-      return findFirstFile(resourceName, _module.getRoots());
-    } else {
-      return findFirstFile(resourceName, _module.getSourcePath());
-    }
-  }
-
-  private IFile findFirstFile(String resourceName, List<? extends IDirectory> searchPath) {
-    for (IDirectory dir : searchPath) {
-      IFile file = dir.file(resourceName);
-      if (file != null && file.exists()) {
-        return file;
-      }
-    }
-
-    return null;
   }
 
   public String toString() {

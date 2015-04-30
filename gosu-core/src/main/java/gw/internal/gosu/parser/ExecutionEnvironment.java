@@ -162,11 +162,9 @@ public class ExecutionEnvironment implements IExecutionEnvironment
     try {
       DefaultSingleModule singleModule = _defaultModule == null ? new DefaultSingleModule( this ) : (DefaultSingleModule)_defaultModule;
       List<IDirectory> allSources = new ArrayList<IDirectory>();
-      List<IDirectory> allRoots = new ArrayList<IDirectory>();
       for( GosuPathEntry pathEntry : pathEntries )
       {
         IDirectory root = pathEntry.getRoot();
-        allRoots.add(root);
         for( IDirectory dir: pathEntry.getSources() ) {
           IDirectory srcDir;
           if( root instanceof IncludeModuleDirectory ) {
@@ -183,7 +181,6 @@ public class ExecutionEnvironment implements IExecutionEnvironment
         allSources.addAll(pathEntry.getSources());
       }
       singleModule.configurePaths(createDefaultClassPath(), allSources);
-      singleModule.setRoots(allRoots);
       _defaultModule = singleModule;
       _modules = new ArrayList<IModule>(Collections.singletonList(singleModule));
 
@@ -204,7 +201,6 @@ public class ExecutionEnvironment implements IExecutionEnvironment
         DefaultSingleModule m = (DefaultSingleModule) _defaultModule;
         m.getModuleTypeLoader().uninitializeTypeLoaders();
         m.getModuleTypeLoader().reset();
-        m.setRoots(Collections.<IDirectory>emptyList());
         m.configurePaths(Collections.<IDirectory>emptyList(), Collections.<IDirectory>emptyList());
       }
       _modules.clear();
@@ -277,7 +273,6 @@ public class ExecutionEnvironment implements IExecutionEnvironment
 
       DefaultSingleModule module = new DefaultSingleModule( this, gosucModule.getName() );
       module.setNativeModule(gosucModule);
-      module.setRoots(GosucUtil.toDirectories(gosucModule.getContentRoots()));
       module.configurePaths(GosucUtil.toDirectories(gosucModule.getClasspath()), GosucUtil.toDirectories(gosucModule.getAllSourceRoots()));
       _defaultModule = module;
       _modules = new ArrayList<IModule>(Collections.singletonList(module));
@@ -298,7 +293,6 @@ public class ExecutionEnvironment implements IExecutionEnvironment
         GlobalModule m = (GlobalModule) _defaultModule;
         m.getModuleTypeLoader().uninitializeTypeLoaders();
         m.getModuleTypeLoader().reset();
-        m.setRoots(Collections.<IDirectory>emptyList());
         m.configurePaths(Collections.<IDirectory>emptyList(), Collections.<IDirectory>emptyList());
 
         GosuClassPathThing.cleanup();

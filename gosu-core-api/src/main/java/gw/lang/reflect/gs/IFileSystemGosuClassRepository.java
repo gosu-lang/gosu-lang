@@ -28,10 +28,6 @@ public interface IFileSystemGosuClassRepository extends IGosuClassRepository
 
   List<Pair<String, IFile>> findAllFilesByExtension(String extension);
 
-  String getResourceName(URL url);
-
-  IFile findFirstFile(String resourceName);
-
   public static class ClassPathEntry
   {
     private final IDirectory _path;
