@@ -141,11 +141,19 @@ class ArithmeticOperatorsTest extends BaseVerifyErrantTest {
   override public function hashCode() : int {
     var c = Integer.MAX_VALUE + 1
     assertEquals(c, Integer.MIN_VALUE)
+    c = Integer.MAX_VALUE
+    c++
+    assertEquals(c, Integer.MIN_VALUE)
     c = Integer.MIN_VALUE - 1
+    assertEquals(c, Integer.MAX_VALUE)
+    c = Integer.MIN_VALUE
+    c--
     assertEquals(c, Integer.MAX_VALUE)
     c = Integer.MAX_VALUE * 2
     assertEquals(c, -2)
     c = -Integer.MIN_VALUE
+    assertEquals(c, Integer.MIN_VALUE)
+    c = Integer.MIN_VALUE/-1
     assertEquals(c, Integer.MIN_VALUE)
     return 0
   }
@@ -168,7 +176,23 @@ class ArithmeticOperatorsTest extends BaseVerifyErrantTest {
 
     try {
       overflow = false
+      c = Integer.MAX_VALUE
+      c++
+    }
+    catch( e : ArithmeticException) {  overflow = true }
+    assertTrue(overflow)
+
+    try {
+      overflow = false
       c = Integer.MIN_VALUE - 1
+    }
+    catch( e : ArithmeticException) {  overflow = true }
+    assertTrue(overflow)
+
+    try {
+      overflow = false
+      c = Integer.MIN_VALUE
+      c--
     }
     catch( e : ArithmeticException) {  overflow = true }
     assertTrue(overflow)
@@ -317,6 +341,8 @@ class ArithmeticOperatorsTest extends BaseVerifyErrantTest {
     }
     catch( e : ArithmeticException) {  overflow = true }
     assertTrue(overflow)
+    c = Integer.MIN_VALUE/-1
+    assertEquals(c, Integer.MIN_VALUE)
   }
 
   function testHashCode() {

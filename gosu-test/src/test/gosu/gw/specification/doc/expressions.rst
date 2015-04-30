@@ -97,6 +97,8 @@ throw an ArithmeticException unless:
   these operators will always be unchecked regardless the compiler flag and
   can be mixed with regular arithmetic operators.
 
+The increment, decrement and compound assignments are affected by the
+``checkedArithmetic`` compiler flag as well.
 
 The floating-point remainder ``x%y`` roughly equals ``x-((x/y) as int)*y`` when 
 ``y`` is non-zero. Floating-point division by zero and floating-point overflow 

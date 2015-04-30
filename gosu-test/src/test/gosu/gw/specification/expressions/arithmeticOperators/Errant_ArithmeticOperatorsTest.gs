@@ -91,8 +91,14 @@ class Errant_ArithmeticOperatorsTest {
 
   override public function hashCode() : int {
     var c = Integer.MAX_VALUE + 1
+    c = Integer.MAX_VALUE
+    c++
     c = Integer.MIN_VALUE - 1
+    c = Integer.MIN_VALUE
+    c--
     c = Integer.MAX_VALUE * 2
+    c = -Integer.MIN_VALUE
+    c = Integer.MIN_VALUE/-1
     return 0
   }
 
@@ -110,7 +116,21 @@ class Errant_ArithmeticOperatorsTest {
 
     try {
       overflow = false
+      c = Integer.MAX_VALUE
+      c++
+    }
+    catch( e : ArithmeticException) {  overflow = true }
+
+    try {
+      overflow = false
       c = Integer.MIN_VALUE - 1
+    }
+    catch( e : ArithmeticException) {  overflow = true }
+
+    try {
+      overflow = false
+      c = Integer.MIN_VALUE
+      c--
     }
     catch( e : ArithmeticException) {  overflow = true }
 
@@ -231,5 +251,6 @@ class Errant_ArithmeticOperatorsTest {
       c1 = 0 - Integer.MIN_VALUE
     }
     catch( e : ArithmeticException) {  overflow = true }
+    c = Integer.MIN_VALUE/-1
   }
 }
