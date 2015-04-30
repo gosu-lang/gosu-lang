@@ -5,9 +5,6 @@ uses gw.gosudoc.doc.GSProgramElementDocImpl
 uses gw.gosudoc.doc.GSRootDocImpl
 uses gw.lang.reflect.IType
 
-uses java.lang.Override
-
-
 class GSParameterizedTypeImpl extends GSClassTypeImpl implements ParameterizedType{
 
   //==========PROTECTED FIELDS==========//
@@ -19,8 +16,7 @@ class GSParameterizedTypeImpl extends GSClassTypeImpl implements ParameterizedTy
     super( type, rootDoc, owner )
   }
 
-  @Override
-  function asParameterizedType(): ParameterizedType{
+  override function asParameterizedType(): ParameterizedType{
     return this
   }
 
@@ -28,8 +24,7 @@ class GSParameterizedTypeImpl extends GSClassTypeImpl implements ParameterizedTy
     return _typeArguments
   }
 
-  @Override
-  function initialize(){
+  override function initialize(){
     setSimpleNames()
     handleGenericType( GosuIType )
     if(GosuIType.Supertype == null) {

@@ -20,7 +20,6 @@ uses gw.lang.reflect.TypeSystem
 
 uses java.io.File
 uses java.lang.IllegalArgumentException
-uses java.lang.Override
 uses java.lang.System
 uses java.util.ArrayList
 uses java.util.HashMap
@@ -104,8 +103,7 @@ class GSRootDocImpl extends GSDocImpl implements RootDoc{
   }
 
 
-  @Override
-  function options(): String[][]{
+  override function options(): String[][]{
     var l = new ArrayList<String[]>()
     //TODO cgross - reenable external javadocs!
 //    var externalJavadocs = _classManager.getExternalJavadocs()
@@ -130,63 +128,52 @@ class GSRootDocImpl extends GSDocImpl implements RootDoc{
     }
   }
 
-  @Override
-  function specifiedPackages(): PackageDoc[]{
+  override function specifiedPackages(): PackageDoc[]{
     return getAllPackages()
   }
 
-  @Override
-  function specifiedClasses(): ClassDoc[]{
+  override function specifiedClasses(): ClassDoc[]{
     return classes()
   }
 
-  @Override
-  function classes(): ClassDoc[]{
+  override function classes(): ClassDoc[]{
     return specifiedPackages().flatMap( \elt -> elt.allClasses() )
   }
 
-  @Override
-  function packageNamed( name: String ): GSPackageDocImpl{
+  override function packageNamed( name: String ): GSPackageDocImpl{
     return _packagesByName.get( name )
   }
 
-  @Override
-  function classNamed( qualifiedName: String ): ClassDoc{
+  override function classNamed( qualifiedName: String ): ClassDoc{
     var packageName = getPackageNameFromTypeName( qualifiedName )
     return packageNamed( packageName ).findClass( qualifiedName )
   }
 
-  @Override
-  function printError( msg: String ){
+  override function printError( msg: String ){
     System.err.println( "ERROR: ${msg}}" )
   }
 
-  @Override
-  function printError( pos: SourcePosition, msg: String ){
+  override function printError( pos: SourcePosition, msg: String ){
     System.err.println( "ERROR: ${msg} ${processPos( pos )}" )
   }
 
-  @Override
-  function printWarning( msg: String ){
+  override function printWarning( msg: String ){
     if( warningIsUnexpected( msg ) ){
       System.err.println( "WARNING: ${msg}}" )
     }
   }
 
-  @Override
-  function printWarning( pos: SourcePosition, msg: String ){
+  override function printWarning( pos: SourcePosition, msg: String ){
     if( warningIsUnexpected( msg ) ){
       System.err.println( "WARNING: ${msg} ${processPos( pos )}" )
     }
   }
 
-  @Override
-  function printNotice( msg: String ){
+  override function printNotice( msg: String ){
     System.err.println( msg )
   }
 
-  @Override
-  function printNotice( pos: SourcePosition, msg: String ){
+  override function printNotice( pos: SourcePosition, msg: String ){
     System.err.println( "${msg} ${pos}" )
   }
 

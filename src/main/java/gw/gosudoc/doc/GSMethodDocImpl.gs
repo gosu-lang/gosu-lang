@@ -10,7 +10,6 @@ uses gw.lang.reflect.MethodInfoDelegate
 uses gw.lang.reflect.gs.IGosuEnhancement
 
 uses java.lang.NullPointerException
-uses java.lang.Override
 
 class GSMethodDocImpl extends GSExecutableMemberDocImpl implements MethodDoc{
 
@@ -24,76 +23,62 @@ class GSMethodDocImpl extends GSExecutableMemberDocImpl implements MethodDoc{
   }
 
   //==========PUBLIC METHODS IMPLEMENTING INTERFACES==========//
-  @Override
-  property get Abstract(): boolean{
+  override property get Abstract(): boolean{
     return false  //To change body of implemented methods use File | Settings | File Templates.
   }
 
-  @Override
-      property get Default(): boolean{
+  /*override*/ property get Default(): boolean{
     return false  //To change body of implemented methods use File | Settings | File Templates.
   }
 
-  @Override
-  function returnType(): com.sun.javadoc.Type{
+  override function returnType(): com.sun.javadoc.Type{
     return _returnType
   }
 
-  @Override
-  function overriddenClass(): ClassDoc{
+  override function overriddenClass(): ClassDoc{
     return null
   }
 
-  @Override
-  function overriddenType(): com.sun.javadoc.Type{
+  override function overriddenType(): com.sun.javadoc.Type{
     return null
   }
 
-  @Override
-  function overriddenMethod(): MethodDoc{
+  override function overriddenMethod(): MethodDoc{
     return null
   }
 
-  @Override
-  function overrides( meth: MethodDoc ): boolean{
+  override function overrides( meth: MethodDoc ): boolean{
     return false
   }
 
-  @Override
-  function thrownExceptionTypes(): com.sun.javadoc.Type[]{
+  override function thrownExceptionTypes(): com.sun.javadoc.Type[]{
     return _iMethodInfo.getExceptions().map( \elt -> getRootDoc().getType( elt.getExceptionType(), this ) ).toTypedArray()
   }
 
-  @Override
-  function receiverType(): com.sun.javadoc.Type{
+  /*override*/ function receiverType(): com.sun.javadoc.Type{
     return null  //To change body of implemented methods use File | Settings | File Templates.
   }
 
-  @Override
-  function signature(): String{
+  override function signature(): String{
     var returnTypeString = returnType()?.qualifiedTypeName()?:"void"
     return returnTypeString + " " + super.signature()
   }
 
-  @Override
-  function flatSignature(): String{
+  override function flatSignature(): String{
     var returnTypeString = returnType()?.simpleTypeName()?:"void"
     return returnTypeString + " " + super.flatSignature()
   }
 
-  @Override
-      property get Static(): boolean{
+  override property get Static(): boolean{
     return _iMethodInfo.isStatic()
   }
 
-  @Override
-      property get Method(): boolean{
+  override property get Method(): boolean{
     return true
   }
 
   //==========PUBLIC METHODS==========//
-  @Override
-  function shouldBeIncluded(): boolean{
+  override function shouldBeIncluded(): boolean{
     var b = super.shouldBeIncluded()
     var ownersIType = _iMethodInfo.getOwnersType()
     var isFromEnhancement = (ownersIType typeis IGosuEnhancement)

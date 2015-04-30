@@ -8,7 +8,6 @@ uses gw.lang.reflect.IType
 
 uses java.lang.IllegalArgumentException
 uses java.lang.NullPointerException
-uses java.lang.Override
 uses java.util.Map
 
 class GSPackageDocImpl extends GSDocImpl implements PackageDoc{
@@ -24,56 +23,46 @@ class GSPackageDocImpl extends GSDocImpl implements PackageDoc{
     }
   }
 
-  @Override
-  function allClasses( filter: boolean ): ClassDoc[]{
+  override function allClasses( filter: boolean ): ClassDoc[]{
     return allClasses()
   }
 
-  @Override
-  function allClasses(): ClassDoc[]{
+  override function allClasses(): ClassDoc[]{
     return _includedClasses.toArray( new ClassDoc[_includedClasses.size()] )
   }
 
-  @Override
-  function ordinaryClasses(): ClassDoc[]{
+  override function ordinaryClasses(): ClassDoc[]{
     return allClasses()
   }
 
-  @Override
-  function exceptions(): ClassDoc[]{
+  override function exceptions(): ClassDoc[]{
     return new ClassDoc[0]
   }
 
-  @Override
-  function errors(): ClassDoc[]{
+  override function errors(): ClassDoc[]{
     return new ClassDoc[0]  //To change body of implemented methods use File | Settings | File Templates.
   }
 
-  @Override
-  function enums(): ClassDoc[]{
+  override function enums(): ClassDoc[]{
     return new ClassDoc[0]  //To change body of implemented methods use File | Settings | File Templates.
   }
 
-  @Override
-  function interfaces(): ClassDoc[]{
+  override function interfaces(): ClassDoc[]{
     return new ClassDoc[0]  //To change body of implemented methods use File | Settings | File Templates.
   }
 
-  @Override
-  function annotationTypes(): AnnotationTypeDoc[]{
+  override function annotationTypes(): AnnotationTypeDoc[]{
     return new AnnotationTypeDoc[0]  //To change body of implemented methods use File | Settings | File Templates.
   }
 
-  @Override
-  function annotations(): AnnotationDesc[]{
+  override function annotations(): AnnotationDesc[]{
     return new AnnotationDesc[0]  //To change body of implemented methods use File | Settings | File Templates.
   }
 
-  @Override
   /**
    * @className The fully qualified name name of the class
    */
-  function findClass( className: String ): GSClassDocImpl{
+  override function findClass( className: String ): GSClassDocImpl{
     var obligatoryPrefix = name() + "."
     if( !className.startsWith( obligatoryPrefix ) ){
       return null
@@ -83,8 +72,7 @@ class GSPackageDocImpl extends GSDocImpl implements PackageDoc{
     return _classesByShortName.get( shortName )
   }
 
-  @Override
-  property get Included(): boolean{
+  override property get Included(): boolean{
     return _includedClasses.size() > 0
   }
 

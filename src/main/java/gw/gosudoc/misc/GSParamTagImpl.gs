@@ -6,8 +6,6 @@ uses com.sun.javadoc.SourcePosition
 uses com.sun.javadoc.Tag
 uses com.sun.tools.doclets.internal.toolkit.util.TextTag
 
-uses java.lang.Override
-
 class GSParamTagImpl implements ParamTag{
 
   //==========PRIVATE FIELDS==========//
@@ -22,54 +20,44 @@ class GSParamTagImpl implements ParamTag{
   }
 
   //==========PUBLIC METHODS IMPLEMENTING INTERFACES==========//
-  @Override
-  function parameterName(): String{
+  override function parameterName(): String{
     return _paramName
   }
 
-  @Override
-  function parameterComment(): String{
+  override function parameterComment(): String{
     return "parameterComment"
   }
 
 
-  @Override
-  property get TypeParameter(): boolean{
+  override property get TypeParameter(): boolean{
     return false
   }
 
-  @Override
-  function name(): String{
+  override function name(): String{
     return kind()
   }
 
-  @Override
-  function holder(): Doc{
+  override function holder(): Doc{
     return _holder
   }
 
-  @Override
-  function kind(): String{
+  override function kind(): String{
     return "param"
   }
 
-  @Override
-  function text(): String{
+  override function text(): String{
     return "${kind()} ${_paramName} ${_content}"
   }
 
-  @Override
-  function inlineTags(): Tag[]{
+  override function inlineTags(): Tag[]{
     return {_content}
   }
 
-  @Override
-  function firstSentenceTags(): Tag[]{
+  override function firstSentenceTags(): Tag[]{
     return {}
   }
 
-  @Override
-  function position(): SourcePosition{
+  override function position(): SourcePosition{
     return null
   }
 }

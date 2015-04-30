@@ -12,8 +12,6 @@ uses gw.lang.reflect.IAttributedFeatureInfo
 uses gw.lang.reflect.IParameterInfo
 uses gw.lang.reflect.IType
 
-uses java.lang.Override
-
 abstract class GSExecutableMemberDocImpl extends GSMemberDocImpl implements ExecutableMemberDoc {
 
   //==========PROTECTED STATIC METHODS==========//
@@ -44,73 +42,62 @@ abstract class GSExecutableMemberDocImpl extends GSMemberDocImpl implements Exec
   }
 
   //==========PUBLIC METHODS IMPLEMENTING INTERFACES==========//
-  @Override
-  function thrownExceptions(): ClassDoc[]{
+  override function thrownExceptions(): ClassDoc[]{
     return new ClassDoc[0]  //To change body of implemented methods use File | Settings | File Templates.
   }
 
-  @Override
-  function thrownExceptionTypes(): com.sun.javadoc.Type[]{
+  override function thrownExceptionTypes(): com.sun.javadoc.Type[]{
     return new com.sun.javadoc.Type[0]  //To change body of implemented methods use File | Settings | File Templates.
   }
 
-  @Override
-      property get Native(): boolean{
+  override property get Native(): boolean{
     return false
   }
 
-  @Override
-      property get Synchronized(): boolean{
+  override property get Synchronized(): boolean{
     return false
   }
 
-  @Override
-      property get VarArgs(): boolean{
+  override property get VarArgs(): boolean{
     return false
   }
 
-  @Override
-  function parameters(): Parameter[]{
+  override function parameters(): Parameter[]{
     return _parameters
   }
 
-  @Override
-  function throwsTags(): ThrowsTag[]{
+  override function throwsTags(): ThrowsTag[]{
     return tags().whereTypeIs( ThrowsTag )
   }
 
-  @Override
-  function paramTags(): ParamTag[]{
+  override function paramTags(): ParamTag[]{
     return tags().whereTypeIs( ParamTag )
   }
 
-  @Override
-  function typeParamTags(): ParamTag[]{
+  override function typeParamTags(): ParamTag[]{
     return new ParamTag[0]
   }
 
-  @Override
-    // We don't have the return type here, since it isn't used for constructors.  This is added in tbe subclass where
-    // necessary.
-  function signature(): String{
+
+  // We don't have the return type here, since it isn't used for constructors.  This is added in tbe subclass where
+  // necessary.
+  override function signature(): String{
     var params = parameters()
         .map( \p -> p.type().qualifiedTypeName() + " " + p.name() )
         .join( ", " )
     return "(${params})"
   }
 
-  @Override
-    // We don't have the return type here, since it isn't used for constructors.  This is added in the subclass where
-    // necessary.
-  function flatSignature(): String{
+  // We don't have the return type here, since it isn't used for constructors.  This is added in the subclass where
+  // necessary.
+  override function flatSignature(): String{
     var params = parameters()
         .map( \p -> p.type().simpleTypeName() + " " + p.name() )
         .join( ", " )
     return "(${params})"
   }
 
-  @Override
-  function typeParameters(): TypeVariable[]{
+  override function typeParameters(): TypeVariable[]{
     return new TypeVariable[0]
   }
 

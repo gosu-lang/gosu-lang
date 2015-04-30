@@ -6,7 +6,6 @@ uses gw.gosudoc.doc.GSRootDocImpl
 uses gw.lang.reflect.IType
 
 uses java.lang.Exception
-uses java.lang.Override
 uses java.lang.reflect.InvocationHandler
 uses java.lang.reflect.Method
 uses java.lang.reflect.Proxy
@@ -38,8 +37,7 @@ class GSClassTypeImpl extends GSTypeImpl implements com.sun.javadoc.Type, ClassD
     Dimension = _baseType.dimension()
   }
 
-  @Override
-  function initialize() {
+  override function initialize() {
     setSimpleNames()
     handleGenericType(GosuIType)
     verify()

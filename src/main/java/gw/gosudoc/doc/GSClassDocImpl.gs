@@ -16,7 +16,6 @@ uses gw.lang.reflect.ITypeInfo
 uses gw.lang.reflect.gs.IGosuEnhancement
 
 uses java.lang.NullPointerException
-uses java.lang.Override
 
 class GSClassDocImpl extends GSProgramElementDocImpl implements ClassDoc{
 
@@ -45,48 +44,39 @@ class GSClassDocImpl extends GSProgramElementDocImpl implements ClassDoc{
   }
 
   // VITAL this returns null: otherwise we get an infinite loop during HTML generation.
-  @Override
-  function containingClass(): ClassDoc{
+  override function containingClass(): ClassDoc{
     return null
   }
 
-  @Override
-      property get Abstract(): boolean{
+  override property get Abstract(): boolean{
     return false
   }
 
-  @Override
-      property get Serializable(): boolean{
+  override property get Serializable(): boolean{
     return false
   }
 
-  @Override
-      property get Externalizable(): boolean{
+  override property get Externalizable(): boolean{
     return false
   }
 
-  @Override
-  function serializationMethods(): MethodDoc[]{
+  override function serializationMethods(): MethodDoc[]{
     return {}
   }
 
-  @Override
-  function serializableFields(): FieldDoc[]{
+  override function serializableFields(): FieldDoc[]{
     return {}
   }
 
-  @Override
-  function definesSerializableFields(): boolean{
+  override function definesSerializableFields(): boolean{
     return false
   }
 
-  @Override
-  function superclass(): ClassDoc{
+  override function superclass(): ClassDoc{
     return _superclass
   }
 
-  @Override
-  function superclassType(): com.sun.javadoc.Type{
+  override function superclassType(): com.sun.javadoc.Type{
     var retVal: com.sun.javadoc.Type = null
     if( _superclass != null ){
       retVal = _superclass.type()
@@ -94,8 +84,7 @@ class GSClassDocImpl extends GSProgramElementDocImpl implements ClassDoc{
     return retVal
   }
 
-  @Override
-  function subclassOf( cd: ClassDoc ): boolean{
+  override function subclassOf( cd: ClassDoc ): boolean{
     if( _superclass == cd ){
       return true
     }
@@ -105,103 +94,83 @@ class GSClassDocImpl extends GSProgramElementDocImpl implements ClassDoc{
     return _superclass.subclassOf( cd )
   }
 
-  @Override
-  function interfaces(): ClassDoc[]{
+  override function interfaces(): ClassDoc[]{
     return _interfaces.toTypedArray()
   }
 
-  @Override
-  function interfaceTypes(): com.sun.javadoc.Type[]{
+  override function interfaceTypes(): com.sun.javadoc.Type[]{
     return interfaces().map( \elt -> (elt as GSClassDocImpl).type() )
   }
 
-  @Override
-  function typeParameters(): TypeVariable[] {
+  override function typeParameters(): TypeVariable[] {
     return _typeVariables
   }
 
-  @Override
-  function typeParamTags(): ParamTag[]{
+  override function typeParamTags(): ParamTag[]{
     return {}
   }
 
-  @Override
-  function fields(): FieldDoc[]{
+  override function fields(): FieldDoc[]{
     return _fields.toTypedArray()
   }
 
-  @Override
-  function fields( filter: boolean ): FieldDoc[]{
+  override function fields( filter: boolean ): FieldDoc[]{
     return fields()
   }
 
-  @Override
-  function enumConstants(): FieldDoc[]{
+  override function enumConstants(): FieldDoc[]{
     return {}
   }
 
-  @Override
-  function methods(): MethodDoc[]{
+  override function methods(): MethodDoc[]{
     return _methods.toTypedArray()
   }
 
-  @Override
-  function methods( filter: boolean ): MethodDoc[]{
+  override function methods( filter: boolean ): MethodDoc[]{
     return methods()
   }
 
-  @Override
-  function constructors(): ConstructorDoc[]{
+  override function constructors(): ConstructorDoc[]{
     return _constructors.toTypedArray()
   }
 
-  @Override
-  function constructors( filter: boolean ): ConstructorDoc[]{
+  override function constructors( filter: boolean ): ConstructorDoc[]{
     return constructors()
   }
 
-  @Override
-  function innerClasses(): ClassDoc[]{
+  override function innerClasses(): ClassDoc[]{
     return {}
   }
 
-  @Override
-  function innerClasses( filter: boolean ): ClassDoc[]{
+  override function innerClasses( filter: boolean ): ClassDoc[]{
     return {}
   }
 
-  @Override
-  function findClass( className: String ): ClassDoc{
+  override function findClass( className: String ): ClassDoc{
     return null
   }
 
-  @Override
-  function importedClasses(): ClassDoc[]{
+  override function importedClasses(): ClassDoc[]{
     return {}
   }
 
-  @Override
-  function importedPackages(): PackageDoc[]{
+  override function importedPackages(): PackageDoc[]{
     return {}
   }
 
-  @Override
-  function name(): String{
+  override function name(): String{
     return typeName()
   }
 
-  @Override
-      property get OrdinaryClass(): boolean{
+  override property get OrdinaryClass(): boolean{
     return true
   }
 
-  @Override
-      property get IsClassShimmed(): boolean{
+  override property get IsClassShimmed(): boolean{
     return true
   }
 
-  @Override
-      property get Included(): boolean{
+  override property get Included(): boolean{
     if( !super.isIncluded() ){
       return false
     }
@@ -217,13 +186,11 @@ class GSClassDocImpl extends GSProgramElementDocImpl implements ClassDoc{
     return not getRootDoc().isExcluded( _iType.getName() )
   }
 
-  @Override
-  function typeName(): String{
+  override function typeName(): String{
     return _iType.Name
   }
 
-  @Override
-  function qualifiedTypeName(): String{
+  override function qualifiedTypeName(): String{
     var t = _iType
     while( t.Array ){
       t = t.ComponentType
@@ -231,49 +198,40 @@ class GSClassDocImpl extends GSProgramElementDocImpl implements ClassDoc{
     return t.Name
   }
 
-  @Override
-  function simpleTypeName(): String{
+  override function simpleTypeName(): String{
     return typeName()
   }
 
-  @Override
-  function dimension(): String{
+  override function dimension(): String{
     return "" //TODO cgross - does this need to work?  Didn't work previously
   }
 
-  @Override
-      property get Primitive(): boolean{
+  override property get Primitive(): boolean{
     return _iType.isPrimitive()
   }
 
-  @Override
-  function asClassDoc(): ClassDoc{
+  override function asClassDoc(): ClassDoc{
     return this
   }
 
-  @Override
-  function asParameterizedType(): ParameterizedType{
+  override function asParameterizedType(): ParameterizedType{
     return null
   }
 
-  @Override
-  function asTypeVariable(): TypeVariable{
+  override function asTypeVariable(): TypeVariable{
     return null
   }
 
-  @Override
-  function asWildcardType(): WildcardType{
+  override function asWildcardType(): WildcardType{
     return null
   }
 
-  @Override
-  function asAnnotationTypeDoc(): AnnotationTypeDoc{
+  override function asAnnotationTypeDoc(): AnnotationTypeDoc{
     return null
   }
 
   //==========PROTECTED METHODS==========//
-  @Override
-  function initialize(){
+  override function initialize(){
     _typeImpl = getRootDoc().getType( _iType, null )
     ClassDoc = this
     addInterfaces()

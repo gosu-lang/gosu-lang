@@ -5,8 +5,6 @@ uses gw.gosudoc.doc.GSProgramElementDocImpl
 uses gw.gosudoc.doc.GSRootDocImpl
 uses gw.lang.reflect.IType
 
-uses java.lang.Override
-
 abstract class GSTypeImpl implements com.sun.javadoc.Type {
 
   var _owner: GSProgramElementDocImpl as readonly Owner
@@ -28,8 +26,7 @@ abstract class GSTypeImpl implements com.sun.javadoc.Type {
     return _shortName
   }
 
-  @Override
-      property get ElementType(): com.sun.javadoc.Type{
+  /*override*/ property get ElementType(): com.sun.javadoc.Type{
     return null
   }
 
@@ -47,8 +44,7 @@ abstract class GSTypeImpl implements com.sun.javadoc.Type {
     return _dimension
   }
 
-  @Override
-      property get Primitive(): boolean{
+  override property get Primitive(): boolean{
     return false
   }
 

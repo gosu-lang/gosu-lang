@@ -9,7 +9,6 @@ uses gw.gosudoc.misc.GSSourcePositionImpl
 uses gw.lang.reflect.IType
 uses gw.lang.reflect.TypeSystem
 
-uses java.lang.Override
 uses java.lang.RuntimeException
 uses java.util.ArrayList
 uses java.util.HashMap
@@ -28,48 +27,39 @@ class GSDocImpl extends GSDocImplShim implements Doc{
     _rootDoc = rootDoc
   }
 
-  @Override
-  function commentText(): String{
+  override function commentText(): String{
     return _commentText
   }
 
-  @Override
-  function tags(): Tag[]{
+  override function tags(): Tag[]{
     return _tagsByKind.values().flatten().toTypedArray()
   }
 
-  @Override
-  function tags( tagname: String ): Tag[]{
+  override function tags( tagname: String ): Tag[]{
     return _tagsByKind[tagname]?.toTypedArray()?:{}
   }
 
-  @Override
-  function seeTags(): SeeTag[]{
+  override function seeTags(): SeeTag[]{
     return tags( "see" ).whereTypeIs( SeeTag )
   }
 
-  @Override
-  function inlineTags(): Tag[]{
+  override function inlineTags(): Tag[]{
     return _inlineTags.toTypedArray()
   }
 
-  @Override
-  function firstSentenceTags(): Tag[]{
+  override function firstSentenceTags(): Tag[]{
     return inlineTags()
   }
 
-  @Override
-      property get RawCommentText(): String{
+  override property get RawCommentText(): String{
     return "rawCommentText"
   }
 
-  @Override
-      property set RawCommentText( rawDocumentation: String ){
+  override property set RawCommentText( rawDocumentation: String ){
     throw new RuntimeException( "Operation not supported" )
   }
 
-  @Override
-  function name(): String{
+  override function name(): String{
     return _name
   }
 
@@ -122,18 +112,15 @@ class GSDocImpl extends GSDocImplShim implements Doc{
     return false
   }
 
-  @Override
-  property get Included(): boolean{
+  override property get Included(): boolean{
     return true
   }
 
-  @Override
-  function position(): SourcePosition{
+  override function position(): SourcePosition{
     return new GSSourcePositionImpl()
   }
 
-  @Override
-  function compareTo( obj: Object ): int{
+  override function compareTo( obj: Object ): int{
     return name().compareTo( (obj as Doc).name() )
   }
 

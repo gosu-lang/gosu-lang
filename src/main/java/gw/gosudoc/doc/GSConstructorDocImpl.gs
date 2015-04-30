@@ -4,8 +4,6 @@ uses com.sun.javadoc.ConstructorDoc
 uses gw.lang.reflect.IConstructorInfo
 uses gw.lang.reflect.IType
 
-uses java.lang.Override
-
 class GSConstructorDocImpl extends GSExecutableMemberDocImpl implements ConstructorDoc{
 
   var _iConstructorInfo: IConstructorInfo
@@ -17,18 +15,15 @@ class GSConstructorDocImpl extends GSExecutableMemberDocImpl implements Construc
   }
 
   //==========PUBLIC METHODS IMPLEMENTING INTERFACES==========//
-  @Override
-  property get Constructor(): boolean{
+  override property get Constructor(): boolean{
     return true
   }
 
-  @Override
-  function thrownExceptionTypes(): com.sun.javadoc.Type[]{
+  override function thrownExceptionTypes(): com.sun.javadoc.Type[]{
     return _iConstructorInfo.getExceptions().map( \elt -> getRootDoc().getType( elt.getExceptionType(), this ) ).toTypedArray()
   }
 
-  @Override
-  function receiverType(): com.sun.javadoc.Type{
+  /*override*/ function receiverType(): com.sun.javadoc.Type{
     return null  //To change body of implemented methods use File | Settings | File Templates.
   }
 
@@ -41,8 +36,7 @@ class GSConstructorDocImpl extends GSExecutableMemberDocImpl implements Construc
     initialize( parameters, desc, comments )
   }
 
-  @Override
-  function shouldBeIncluded(): boolean{
+  override function shouldBeIncluded(): boolean{
     var b = super.shouldBeIncluded()
     b &&= (_iConstructorInfo.isProtected() || _iConstructorInfo.isPublic())
     return b

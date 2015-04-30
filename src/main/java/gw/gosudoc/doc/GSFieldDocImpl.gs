@@ -6,8 +6,6 @@ uses gw.lang.reflect.IPropertyInfo
 uses gw.lang.reflect.IPropertyInfoDelegate
 uses gw.lang.reflect.IType
 
-uses java.lang.Override
-
 class GSFieldDocImpl extends GSMemberDocImpl implements FieldDoc{
 
   //==========PRIVATE FIELDS==========//
@@ -22,49 +20,40 @@ class GSFieldDocImpl extends GSMemberDocImpl implements FieldDoc{
   }
 
   //==========PUBLIC METHODS IMPLEMENTING INTERFACES==========//
-  @Override
-  function type(): com.sun.javadoc.Type{
+  override function type(): com.sun.javadoc.Type{
     return _type
   }
 
-  @Override
-      property get Transient(): boolean{
+  override property get Transient(): boolean{
     return false
   }
 
-  @Override
-      property get Volatile(): boolean{
+  override property get Volatile(): boolean{
     return false
   }
 
-  @Override
-  function serialFieldTags(): SerialFieldTag[]{
+  override function serialFieldTags(): SerialFieldTag[]{
     return new SerialFieldTag[0]
   }
 
-  @Override
-  function constantValue(): Object{
+  override function constantValue(): Object{
     return null
   }
 
-  @Override
-  function constantValueExpression(): String{
+  override function constantValueExpression(): String{
     return null
   }
 
-  @Override
-      property get Static(): boolean{
+  override property get Static(): boolean{
     return _propertyInfo.isStatic()
   }
 
-  @Override
-      property get Field(): boolean{
+  override property get Field(): boolean{
     return true
   }
 
   //==========PUBLIC METHODS==========//
-  @Override
-  function shouldBeIncluded(): boolean{
+  override function shouldBeIncluded(): boolean{
     var b = super.shouldBeIncluded()
     if( _propertyInfo typeis IPropertyInfoDelegate ){
       b &&= (OwnersType.equals( _propertyInfo.getSource().getOwnersType() ))

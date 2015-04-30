@@ -2,8 +2,6 @@ package gw.gosudoc.type
 
 uses gw.gosudoc.doc.GSRootDocImpl
 
-uses java.lang.Override
-
 class GSVoidTypeImpl extends GSPrimitiveTypeImpl {
 
   //==========PUBLIC CONSTRUCTORS==========//
@@ -12,19 +10,16 @@ class GSVoidTypeImpl extends GSPrimitiveTypeImpl {
   }
 
   //==========PUBLIC METHODS IMPLEMENTING INTERFACES==========//
-  @Override
-  function typeName(): String{
+  override function typeName(): String{
     return "void"
   }
 
-  @Override
-  function qualifiedTypeName(): String{
+  override function qualifiedTypeName(): String{
     return "void"
   }
 
   //==========PUBLIC METHODS==========//
-  @Override
-  function initialize(){
+  override function initialize(){
     // do nothing.
   }
 }

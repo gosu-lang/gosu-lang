@@ -8,8 +8,6 @@ uses gw.gosudoc.doc.GSProgramElementDocImpl
 uses gw.gosudoc.doc.GSRootDocImpl
 uses gw.lang.reflect.IType
 
-uses java.lang.Override
-
 class GSTypeVariableImpl extends GSTypeImpl implements TypeVariable{
 
   var _boundingType: IType
@@ -22,8 +20,7 @@ class GSTypeVariableImpl extends GSTypeImpl implements TypeVariable{
   }
 
   //==========PUBLIC METHODS IMPLEMENTING INTERFACES==========//
-  @Override
-  function bounds(): com.sun.javadoc.Type[]{
+  override function bounds(): com.sun.javadoc.Type[]{
     return {getBoundingType()}
   }
 
@@ -31,30 +28,25 @@ class GSTypeVariableImpl extends GSTypeImpl implements TypeVariable{
     return RootDoc.getType( _boundingType, Owner )
   }
 
-  @Override
-  function owner(): ProgramElementDoc{
+  override function owner(): ProgramElementDoc{
     return Owner
   }
 
-  @Override
-  function annotations(): AnnotationDesc[]{
+  /*override*/ function annotations(): AnnotationDesc[]{
     return {}
   }
 
-  @Override
-  function initialize(){
+  override function initialize(){
     ShortName = _name
     QualifiedName = _name
     verify()
   }
 
-  @Override
-  function asTypeVariable(): TypeVariable{
+  override function asTypeVariable(): TypeVariable{
     return this
   }
 
-  @Override
-  function asClassDoc(): ClassDoc{
+  override function asClassDoc(): ClassDoc{
     if( _boundingType != null ){
       return RootDoc.getOrCreateClass( _boundingType )
     } else{

@@ -2,8 +2,6 @@ package gw.gosudoc.misc
 
 uses com.sun.javadoc.*
 
-uses java.lang.Override
-
 /**
  * Created by carson on 4/17/15.
  */
@@ -17,23 +15,19 @@ class GSParameterImpl implements Parameter {
     _type = type
   }
 
-  @Override
-  function type(): com.sun.javadoc.Type{
+  override function type(): com.sun.javadoc.Type{
     return _type
   }
 
-  @Override
-  function name(): String{
+  override function name(): String{
     return _name
   }
 
-  @Override
-  function typeName(): String{
+  override function typeName(): String{
     return type().typeName()
   }
 
-  @Override
-  function annotations(): AnnotationDesc[]{
+  override function annotations(): AnnotationDesc[]{
     return {}
   }
 }
