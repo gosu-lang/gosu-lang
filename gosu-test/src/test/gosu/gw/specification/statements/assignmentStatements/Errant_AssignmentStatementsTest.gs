@@ -52,7 +52,7 @@ class Errant_AssignmentStatementsTest {
     var x1 : long  = 0L
     var x2 : char = '0'
     var x3 : byte = 0b
-    var x4  :short= 0s
+    var x4 : short= 0s
     x0++
     x1++
     x2++
