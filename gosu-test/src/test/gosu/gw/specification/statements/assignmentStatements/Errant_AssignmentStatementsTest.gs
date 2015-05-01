@@ -1,6 +1,7 @@
 package gw.specification.statements.assignmentStatements
 
 uses java.lang.*
+uses java.math.BigInteger
 
 class Errant_AssignmentStatementsTest {
 
@@ -12,7 +13,13 @@ class Errant_AssignmentStatementsTest {
     thisC(c).p++
 
     num = 0
+    thisC(c).p+=5
+
+    num = 0
     thisC(c).sp++  //## issuekeys: MSG_NON_STATIC_ACCESS_OF_STATIC_MEMBER
+
+    num = 0
+    thisC(c).sp+=5 //## issuekeys: MSG_NON_STATIC_ACCESS_OF_STATIC_MEMBER
   }
 
   function thisC(c : C) : C {
@@ -25,6 +32,9 @@ class Errant_AssignmentStatementsTest {
     num = 0
     thisC(c).l[1]++
 
+    num = 0
+    thisC(c).l[1]+=5
+
     c = new C()
     c.num = 0
     c.plus5Array()
@@ -35,12 +45,17 @@ class Errant_AssignmentStatementsTest {
                  return 1}
     arr[fun()]++
 
+    i  = 0
+    arr[fun()]+=5
   }
 
   function testMapAssignmentStatement() {
     var c = new C()
     num = 0
     thisC(c).m[1]++
+
+    num = 0
+    thisC(c).m[1]+=5
 
     c = new C()
     c.num = 0
@@ -95,5 +110,18 @@ class Errant_AssignmentStatementsTest {
     var a = 1
     var b = 2
     var c = a = b  //## issuekeys: MSG_UNEXPECTED_TOKEN, MSG_NOT_A_STATEMENT
+  }
+
+  function testConvertibility() {
+    var x : BigInteger = 1bi
+    x += 5
+
+    x = 1bi
+    var y : java.lang.Number = 5
+    x += (y as BigInteger)
+    var arr : BigInteger[] = {1, 2}
+    var i : int  = 0
+    var fun = \->{i++ return 1}  //## issuekeys: MSG_STATEMENT_ON_SAME_LINE
+    arr[fun()]+=(y as BigInteger)
   }
 }
