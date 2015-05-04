@@ -8,8 +8,7 @@ import java.util.List;
  */
 public interface IGosuCompiler {
 
-  long initializeGosu(List<String> contentRoots, List<File> cfaModules, List<String> sourceFolders,
-                      List<String> classpath, String outputPath);
+  long initializeGosu(List<String> sourceFolders, List<String> classpath, String outputPath);
 
   void unitializeGosu();
 
