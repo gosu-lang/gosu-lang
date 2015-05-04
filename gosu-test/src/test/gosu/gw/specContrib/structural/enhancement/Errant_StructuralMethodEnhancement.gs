@@ -13,7 +13,6 @@ class Errant_StructuralMethodEnhancement {
   }
 
   function structFunOne() {}
-  function structFunTwo() {}
 
   function main() {
     var myEnhStructure1: MyEnhStructure1 = new Errant_StructuralMethodEnhancement()
