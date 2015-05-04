@@ -13061,6 +13061,16 @@ public final class GosuParser extends ParserBase implements IGosuParser
       {
         bSymbolConflict = existingSymbol.isStatic();
       }
+      if( !bSymbolConflict )
+      {
+        IGosuClassInternal anonClass = getParsingAnonymousClass();
+        if( anonClass != null && !isParsingAnnotation() )
+        {
+          // Conflicts with potential captured symbols?
+          bSymbolConflict = captureSymbol( anonClass, strArgIdentifier, null ) != null;
+        }
+      }
+
       verify( parameterIdentifier, !bSymbolConflict, Res.MSG_VARIABLE_ALREADY_DEFINED, strArgIdentifier );
       verify( parameterIdentifier, ! bProperty || bGetter || iParamPos == 0, Res.MSG_PROPERTY_SET_MUST_HAVE_ONE_PARAMETER );
 
