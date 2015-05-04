@@ -95,6 +95,7 @@ import gw.util.Stack;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -2475,7 +2476,6 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
     }
   }
 
-
   private IType parseEnhancedOrImplementedType( IGosuClassInternal gsClass, boolean bExtended, List<IType> interfaces )
   {
     IType extendedType = null;
@@ -2516,8 +2516,14 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
           }
           verify( extendedTypeExpr, !extendedType.isPrimitive(), Res.MSG_CANNOT_EXTEND_PRIMITIVE_TYPE );
           verify( extendedTypeExpr, !extendedType.isFinal(), Res.MSG_CANNOT_EXTEND_FINAL_TYPE, extendedType.getName() );
-          verify( extendedTypeExpr, !interfaces.contains( extendedType ), Res.MSG_DUPLICATE_CLASS_FOUND, extendedType.getRelativeName() );
-
+          if( verify( extendedTypeExpr, !interfaces.contains( extendedType ), Res.MSG_DUPLICATE_CLASS_FOUND, extendedType.getRelativeName() ) )
+          {
+            IType[] conflict = inheritsWithDifferentTypeParams( gsClass.getSupertype(), interfaces, extendedType );
+            if( conflict != null )
+            {
+              extendedTypeExpr.addParseException( Res.MSG_INHEREITED_WITH_DIFF_ARG_TYPES, TypeLord.getPureGenericType( conflict[0] ).getName(), Arrays.toString( conflict[0].getTypeParameters() ) + " , " + Arrays.toString( conflict[1].getTypeParameters() ) );
+            }
+          }
           if( isCyclicInheritance( extendedType, gsClass ) )
           {
             extendedType = ErrorType.getInstance( extendedType.getName() );
@@ -2561,6 +2567,40 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
     }
 
     return extendedType;
+  }
+
+  private IType[] inheritsWithDifferentTypeParams( IType superType, List<IType> interfaces, IType iface )
+  {
+    if( superType != null )
+    {
+      IType[] conflict = inheritsWithDifferentTypeParams( null, Arrays.asList( superType.getInterfaces() ), iface );
+      if( conflict != null )
+      {
+        return conflict;
+      }
+    }
+
+    IType rawIface = TypeLord.getPureGenericType( iface );
+    for( IType csr: interfaces )
+    {
+      if( TypeLord.getPureGenericType( csr ) == rawIface && csr != iface )
+      {
+        return new IType[] {csr, iface};
+      }
+
+      IType[] conflict = inheritsWithDifferentTypeParams( null, Arrays.asList( csr.getInterfaces() ), iface );
+      if( conflict != null )
+      {
+        return conflict;
+      }
+
+      conflict = inheritsWithDifferentTypeParams( null, Arrays.asList( iface.getInterfaces() ), csr );
+      if( conflict != null )
+      {
+        return conflict;
+      }
+    }
+    return null;
   }
 
   private void makeProxy( IGosuClassInternal gsClass, IType extendedType )
