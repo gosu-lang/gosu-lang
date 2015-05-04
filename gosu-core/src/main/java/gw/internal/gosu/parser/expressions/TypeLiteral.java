@@ -150,7 +150,8 @@ public class TypeLiteral extends Literal implements ITypeLiteralExpression
   public boolean isCompileTimeConstant()
   {
     IType type = getType().getType();
-    return !type.isParameterizedType() && !(type instanceof TypeVariableType);
+    return (!type.isParameterizedType() || TypeLord.getDefaultParameterizedType( type ) == type) &&
+           !(type instanceof TypeVariableType);
   }
 
   public IType evaluate()
