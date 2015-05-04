@@ -16,6 +16,7 @@ public class AsmType implements IAsmType {
   protected List<AsmType> _typeParameters;
   private int _iArrayDims;
   private boolean _bTypeVariable;
+  private boolean _bFunctionTypeVar;
 
 
   AsmType( String normalDotName ) {
@@ -125,10 +126,17 @@ public class AsmType implements IAsmType {
   public boolean isTypeVariable() {
     return _bTypeVariable;
   }
-
   void setTypeVariable() {
     _bTypeVariable = true;
   }
+
+  public void setFunctionTypeVariable( boolean bFunctionTypeVariable ) {
+    _bFunctionTypeVar = bFunctionTypeVariable;
+  }
+  public boolean isFunctionTypeVariable() {
+    return _bFunctionTypeVar;
+  }
+
   public void incArrayDims() {
     _iArrayDims++;
   }

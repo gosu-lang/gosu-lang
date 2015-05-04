@@ -1148,7 +1148,7 @@ public class TypeLoaderAccess extends BaseService implements ITypeSystem
   }
 
   public ITypeLiteralExpression parseTypeExpression(String typeString, TypeVarToTypeMap actualParamByVarName, ITypeUsesMap typeUsesMap) throws ParseResultsException {
-    return TypeLord.parseTypeLiteral(typeString, actualParamByVarName, false, typeUsesMap);
+    return TypeLord.parseTypeLiteral(typeString, actualParamByVarName, typeUsesMap);
   }
 
   public IType getComponentType(IType valueType) {

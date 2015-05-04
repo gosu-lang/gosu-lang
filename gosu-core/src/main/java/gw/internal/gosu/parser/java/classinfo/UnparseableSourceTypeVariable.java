@@ -6,6 +6,7 @@ package gw.internal.gosu.parser.java.classinfo;
 
 import gw.lang.parser.TypeVarToTypeMap;
 import gw.lang.reflect.IType;
+import gw.lang.reflect.java.IJavaClassMethod;
 import gw.lang.reflect.java.IJavaClassType;
 import gw.lang.reflect.java.IJavaClassTypeVariable;
 import gw.lang.reflect.java.ITypeInfoResolver;
@@ -57,5 +58,10 @@ public class UnparseableSourceTypeVariable implements IJavaClassTypeVariable {
   @Override
   public IJavaClassType[] getBounds() {
     return new IJavaClassType[] {JavaTypes.OBJECT().getBackingClassInfo()};
+  }
+
+  @Override
+  public boolean isFunctionTypeVar() {
+    return _owner instanceof IJavaClassMethod;
   }
 }

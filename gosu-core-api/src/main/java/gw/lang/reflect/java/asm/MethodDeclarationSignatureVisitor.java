@@ -43,6 +43,7 @@ public class MethodDeclarationSignatureVisitor extends SignatureVisitor {
   public void visitFormalTypeParameter( String tv ) {
     _csrTypeVar = AsmUtil.makeTypeVariable( tv );
     _asmMethod.setGeneric();
+    _csrTypeVar.setFunctionTypeVariable( true );
     _asmMethod.getMethodType().addTypeParameter( _csrTypeVar );
   }
 

@@ -132,9 +132,8 @@ public class MethodJavaClassMethod implements IJavaClassMethod, IJavaClassByteco
     for( int i = 0; i < rawTypeVariables.length; i++ ) {
       typeVariables[i] = new TypeVariableJavaTypeVariable( rawTypeVariables[i], _module );
     }
-    TypeVarToTypeMap actualParamByVarName = TypeLord.mapTypeByVarName( mi.getOwnersType(), mi.getOwnersType() );
     FunctionType functionType = new FunctionType( mi, true );
-    return GenericTypeVariable.convertTypeVars( functionType, typeVariables, actualParamByVarName );
+    return GenericTypeVariable.convertTypeVars( functionType, typeVariables );
   }
 
   @Override

@@ -46,6 +46,11 @@ public class AsmTypeVariableJavaClassTypeVariable extends AsmTypeJavaClassType i
   }
 
   @Override
+  public boolean isFunctionTypeVar() {
+    return getType() instanceof AsmType && ((AsmType)getType()).isFunctionTypeVariable();
+  }
+
+  @Override
   public IModule getModule() {
     return _module;
   }

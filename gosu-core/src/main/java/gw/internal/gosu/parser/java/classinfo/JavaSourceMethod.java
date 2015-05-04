@@ -248,9 +248,8 @@ public class JavaSourceMethod implements IJavaClassMethod, ITypeInfoResolver {
   @Override
   public IGenericTypeVariable[] getTypeVariables( IJavaMethodInfo mi ) {
     IJavaClassTypeVariable[] rawTypeParams = getTypeParameters();
-    TypeVarToTypeMap actualParamByVarName = TypeLord.mapTypeByVarName( mi.getOwnersType(), mi.getOwnersType() );
     FunctionType functionType = new FunctionType( mi, true );
-    return GenericTypeVariable.convertTypeVars( functionType, rawTypeParams, actualParamByVarName );
+    return GenericTypeVariable.convertTypeVars( functionType, rawTypeParams );
   }
 
   @Override

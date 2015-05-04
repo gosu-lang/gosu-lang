@@ -16,6 +16,7 @@ import gw.lang.reflect.IGenericMethodInfo;
 import gw.lang.reflect.IModifierInfo;
 import gw.lang.reflect.IParameterInfo;
 import gw.lang.reflect.IType;
+import gw.lang.reflect.ITypeVariableType;
 import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.gs.IGenericTypeVariable;
 
@@ -195,10 +196,10 @@ public class AbstractGenericMethodInfo extends GosuBaseAttributedFeatureInfo imp
 
   public static void ensureInferredTypeAssignableToBoundingType( TypeVarToTypeMap actualParamByVarName, TypeVarToTypeMap map )
   {
-    for( Object s : map.keySet() )
+    for( ITypeVariableType s : map.keySet() )
     {
-      IType inferredType = map.getRaw( s );
-      IType boundingType = actualParamByVarName.getRaw( s );
+      IType inferredType = map.get( s );
+      IType boundingType = actualParamByVarName.get( s );
       if( boundingType != null )
       {
         boundingType = TypeLord.getActualType( boundingType, actualParamByVarName, true );
@@ -208,7 +209,7 @@ public class AbstractGenericMethodInfo extends GosuBaseAttributedFeatureInfo imp
         }
         if( !boundingType.isAssignableFrom( inferredType ) )
         {
-          map.putRaw( s, boundingType );
+          map.put( s, boundingType );
         }
       }
     }

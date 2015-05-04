@@ -9,6 +9,7 @@ import gw.internal.gosu.parser.expressions.TypeVariableDefinitionImpl;
 import gw.lang.parser.Keyword;
 import gw.lang.parser.TypeVarToTypeMap;
 import gw.lang.parser.expressions.ITypeVariableDefinition;
+import gw.lang.reflect.IFunctionType;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.gs.IGenericTypeVariable;
@@ -50,25 +51,17 @@ public class GenericTypeVariable implements IGenericTypeVariable
     }
   }
 
-  public GenericTypeVariable( IType enclosingType, IJavaClassTypeVariable typeVar, TypeVarToTypeMap actualParamByVarName )
+  public GenericTypeVariable( IType enclosingType, IJavaClassTypeVariable typeVar )
   {
     _strName = typeVar.getName();
     IJavaClassType[] fromBounds = typeVar.getBounds();
     IType[] boundingTypes = new IType[fromBounds.length];
-    IType myType = actualParamByVarName.getByString( _strName );
 
-    TypeVariableType typeVarType = null;
-    if( myType == null )
-    {
-      // Handle recursive types
-      if( actualParamByVarName.isEmpty() )
-      {
-        actualParamByVarName = new TypeVarToTypeMap();
-      }
-      final TypeVariableDefinitionImpl typeVarDef = new TypeVariableDefinitionImpl( null, _strName, enclosingType, null, this );
-      typeVarType = new TypeVariableType( typeVarDef, false );
-      actualParamByVarName.putByString( _strName, typeVarType );
-    }
+    TypeVariableDefinitionImpl typeVarDef = new TypeVariableDefinitionImpl( null, _strName, enclosingType, null, this );
+    TypeVariableType typeVarType = new TypeVariableType( typeVarDef, enclosingType instanceof IFunctionType );
+
+    TypeVarToTypeMap actualParamByVarName = new TypeVarToTypeMap();
+    actualParamByVarName.put( typeVarType, typeVarType );
 
     for( int j = 0; j < fromBounds.length; j++ )
     {
@@ -176,13 +169,13 @@ public class GenericTypeVariable implements IGenericTypeVariable
     return _strName.hashCode();
   }
   
-  public static GenericTypeVariable[] convertTypeVars( IType enclosingType, IJavaClassTypeVariable[] fromVars, TypeVarToTypeMap actualParamByVarName )
+  public static GenericTypeVariable[] convertTypeVars( IType enclosingType, IJavaClassTypeVariable[] fromVars )
   {
-    TypeVarToTypeMap paramByVarNameIncludingMethod = new TypeVarToTypeMap( actualParamByVarName );
+    TypeVarToTypeMap paramByVarNameIncludingMethod = new TypeVarToTypeMap();
     GenericTypeVariable[] toVars = new GenericTypeVariable[fromVars.length];
     for( int i = 0; i < toVars.length; i++ )
     {
-      toVars[i] = new GenericTypeVariable( enclosingType, fromVars[i], paramByVarNameIncludingMethod );
+      toVars[i] = new GenericTypeVariable( enclosingType, fromVars[i] );
       paramByVarNameIncludingMethod.put( toVars[i].getTypeVariableDefinition().getType(), toVars[i].getTypeVariableDefinition().getType() );
     }
     return toVars.length == 0 ? EMPTY_TYPEVARS : toVars;
