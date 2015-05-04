@@ -2,7 +2,7 @@ package gw.specContrib.expressions.cast
 
 class Errant_TypeCastToObjectArray {
     //IDE-1524
-    function testCast{
+    function testCast() {
           var y : Object[] = {1,2}
 
           var a101 = {1, 2, 3} as Object[]   //## issuekeys: ERROR: INCONVERTIBLE TYPES
