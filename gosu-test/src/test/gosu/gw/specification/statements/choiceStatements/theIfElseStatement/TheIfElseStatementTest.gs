@@ -63,7 +63,7 @@ class TheIfElseStatementTest extends BaseVerifyErrantTest  {
     if(aa typeis B) {
       aa.mb()
     } else {
-      //aa.mb()  //## issuekeys: MSG_NO_METHOD_DESCRIPTOR_FOUND_FOR_METHOD, MSG_NO_METHOD_DESCRIPTOR_FOUND_FOR_METHOD, MSG_NO_METHOD_DESCRIPTOR_FOUND_FOR_METHOD
+      //aa.mb()  // error: no 'mb()'
       aa.ma()
     }
   }
