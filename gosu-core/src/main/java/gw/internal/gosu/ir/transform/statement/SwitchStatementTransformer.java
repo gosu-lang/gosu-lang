@@ -106,7 +106,7 @@ public class SwitchStatementTransformer extends AbstractStatementTransformer<Swi
         irDefaultStatements.add( _cc().compile( defaultStatement ) );
       }
     }
-    else if( isCoveredEnumSwitch( _stmt() ) )
+    else if( _stmt().isCoveredEnumSwitch() )
     {
       // If all enum constants are covered by case-clauses and no default case is explicitly provided,
       // generate a default to throw NPE for unhandled null case and IllegalStateException for new constants
@@ -125,38 +125,6 @@ public class SwitchStatementTransformer extends AbstractStatementTransformer<Swi
     }
 
     return new IRSwitchStatement( init, irCases, irDefaultStatements );
-  }
-
-  private boolean isCoveredEnumSwitch( SwitchStatement s )
-  {
-    IExpression switchExpression = ((ISwitchStatement)s).getSwitchExpression();
-    IType switchType = switchExpression.getType();
-    if( !switchType.isEnum() )
-    {
-      // Not an enum switch
-      return false;
-    }
-    List<String> enumValues = ((IEnumType)switchType).getEnumConstants();
-    ICaseClause[] cases = ((ISwitchStatement)s).getCases();
-    for( ICaseClause caseClause : cases )
-    {
-      if( enumValues != null && caseClause.getExpression().isCompileTimeConstant() )
-      {
-        try
-        {
-          Object value = caseClause.getExpression().evaluate();
-          if( value != null )
-          {
-            enumValues.remove( value.toString() );
-          }
-        }
-        catch( Exception err )
-        {
-          // ignore
-        }
-      }
-    }
-    return cases.length > 0 && enumValues.isEmpty();
   }
 
   private IRExpression compileCaseExpr_int( IRSymbol tempRoot, Expression caseExpression )

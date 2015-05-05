@@ -16,4 +16,6 @@ public interface ISwitchStatement extends IStatement
   ICaseClause[] getCases();
 
   List<? extends IStatement> getDefaultStatements();
+
+  boolean isCoveredEnumSwitch();
 }
