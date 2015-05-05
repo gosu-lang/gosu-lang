@@ -2506,10 +2506,12 @@ public final class GosuParser extends ParserBase implements IGosuParser
     {
       Token T = new Token();
       boolean bPlus = match( T, "+", SourceCodeTokenizer.TT_OPERATOR ) ||
-              match( T, "?+", SourceCodeTokenizer.TT_OPERATOR );
+                      match( T, "?+", SourceCodeTokenizer.TT_OPERATOR ) ||
+                      match( T, "!+", SourceCodeTokenizer.TT_OPERATOR );
       if( bPlus ||
               match( T, "-", SourceCodeTokenizer.TT_OPERATOR ) ||
-              match( T, "?-", SourceCodeTokenizer.TT_OPERATOR ))
+              match( T, "?-", SourceCodeTokenizer.TT_OPERATOR ) ||
+              match( T, "!-", SourceCodeTokenizer.TT_OPERATOR ))
       {
         parseMultiplicativeExpression();
 
@@ -2559,6 +2561,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
               match( T, "/", SourceCodeTokenizer.TT_OPERATOR ) ||
               match( T, "%", SourceCodeTokenizer.TT_OPERATOR ) ||
               match( T, "?*", SourceCodeTokenizer.TT_OPERATOR ) ||
+              match( T, "!*", SourceCodeTokenizer.TT_OPERATOR ) ||
               match( T, "?/", SourceCodeTokenizer.TT_OPERATOR ) ||
               match( T, "?%", SourceCodeTokenizer.TT_OPERATOR ) )
       {
@@ -2674,9 +2677,11 @@ public final class GosuParser extends ParserBase implements IGosuParser
     Token T = new Token();
 
     if( match( T, "+", SourceCodeTokenizer.TT_OPERATOR ) ||
-        match( T, "-", SourceCodeTokenizer.TT_OPERATOR ) )
+        match( T, "-", SourceCodeTokenizer.TT_OPERATOR ) ||
+        match( T, "!-", SourceCodeTokenizer.TT_OPERATOR ) )
     {
-      boolean negation = T._strValue.charAt( 0 ) == (int)'-';
+      boolean unchecked = "!-".equals( T._strValue );
+      boolean negation = T._strValue.charAt( 0 ) == '-' || unchecked;
       if( negation && atNumberLiteralStart() )
       {
         parseNumberLiteral( true );
@@ -2690,6 +2695,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
         IType type = e.getType();
         verify( e, ue.isSupportedType( type ), Res.MSG_NUMERIC_TYPE_EXPECTED );
         ue.setNegated( negation );
+        ue.setUnchecked( unchecked );
         if( negation )
         {
           if( type == JavaTypes.pCHAR() || type == JavaTypes.pBYTE() || type == JavaTypes.pSHORT()  )

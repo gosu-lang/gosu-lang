@@ -36,13 +36,13 @@ public class IRArithmeticExpression extends IRExpression {
       if( op.charAt( 0 ) == '?' ) {
         op = op.substring( 1 );
       }
-      if( op.equals( "+" ) ) {
+      if( op.equals( "+" ) || op.equals( "!+" ) ) {
         return Addition;
       }
-      if( op.equals( "-" ) ) {
+      if( op.equals( "-" ) || op.equals( "!-" ) ) {
         return Subtraction;
       }
-      if( op.equals( "*" ) ) {
+      if( op.equals( "*" ) || op.equals( "!*" ) ) {
         return Multiplication;
       }
       if( op.equals( "/" ) ) {

@@ -275,7 +275,7 @@ multiplicativeExpr : typeAsExpr (multiplicativeOp typeAsExpr)* ;
 
 typeAsExpr : unaryExpr (typeAsOp typeLiteral)* ;
 
-unaryExpr :  ('+' | '-') unaryExprNotPlusMinus | unaryExprNotPlusMinus ;
+unaryExpr :  ('+' | '-' | '!-') unaryExprNotPlusMinus | unaryExprNotPlusMinus ;
 
 unaryExprNotPlusMinus :  unaryOp unaryExpr | 
                          '\\' blockExpr    | 
@@ -441,9 +441,9 @@ bitshiftOp :
           $t1.getCharPositionInLine() + 1 == $t2.getCharPositionInLine() }? 
     ;
 
-additiveOp : '+' | '-' | '?+' | '?-';
+additiveOp : '+' | '-' | '?+' | '?-' | '!+' | '!-';
 
-multiplicativeOp : '*' | '/' | '%' | '?*' | '?/' | '?%' ;
+multiplicativeOp : '*' | '/' | '%' | '?*' | '!*' | '?/' | '?%' ;
 
 typeAsOp : 'typeas' | 'as' ;
 

@@ -126,6 +126,7 @@ import gw.lang.reflect.java.IJavaConstructorInfo;
 import gw.lang.reflect.java.IJavaType;
 import gw.lang.reflect.java.JavaTypes;
 import gw.lang.reflect.module.IModule;
+import gw.util.concurrent.LocklessLazyVar;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -160,6 +161,13 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
 
   private TopLevelTransformationContext _cc;
   private T _parsedElement;
+  private static LocklessLazyVar<Boolean> _checkedArithmetic = new LocklessLazyVar<Boolean>() {
+                                                                                                @Override
+                                                                                                protected Boolean init()
+                                                                                                {
+                                                                                                  return Boolean.valueOf( System.getProperty("checkedArithmetic") );
+                                                                                                }
+                                                                                              };
 
   public AbstractElementTransformer( TopLevelTransformationContext cc, T parsedElem )
   {
@@ -3021,6 +3029,12 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
       annotationInfos.add( new GosuAnnotationInfo( ga, fiAnnotated, (IGosuClassInternal)ga.getOwnersType() ) );
     }
     return annotationInfos;
+  }
+
+  protected boolean isCheckedArithmeticEnabled()
+  {
+    DynamicFunctionSymbol currentFunction = _cc().getCurrentFunction();
+    return _checkedArithmetic.get() && currentFunction != null && !"hashCode()".equals( currentFunction.getName() );
   }
 
   // --------------------- Methods moved from GosuClassTransformer
