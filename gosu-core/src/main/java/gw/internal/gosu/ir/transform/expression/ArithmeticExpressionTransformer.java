@@ -11,9 +11,11 @@ import gw.internal.gosu.ir.transform.TopLevelTransformationContext;
 import gw.internal.gosu.parser.BeanAccess;
 import gw.internal.gosu.parser.Expression;
 import gw.internal.gosu.parser.expressions.ArithmeticExpression;
+import gw.internal.gosu.runtime.GosuRuntimeMethods;
 import gw.lang.ir.IRExpression;
 import gw.lang.ir.IRStatement;
 import gw.lang.ir.IRSymbol;
+import gw.lang.ir.IRType;
 import gw.lang.ir.expression.IRArithmeticExpression;
 import gw.lang.ir.expression.IRCompositeExpression;
 import gw.lang.ir.statement.IRAssignmentStatement;
@@ -159,7 +161,7 @@ abstract class ArithmeticExpressionTransformer<T extends ArithmeticExpression> e
         compExpr.addElement( buildAssignment( rhsPrim, numberConvert( rhsExpr.getType(), primitiveType, identifier( tempRhs ) ) ) );
       }
 
-      IRExpression expr = new IRArithmeticExpression( getDescriptor( primitiveType ), identifier( lhsPrim ), identifier( rhsPrim ), IRArithmeticExpression.Operation.fromString( strOp ) );
+      IRExpression expr = makeIRArithmeticExpression( primitiveType , identifier( lhsPrim ), identifier( rhsPrim ), isCheckedArithmeticEnabled() );
       if( StandardCoercionManager.isBoxed( exprType ) ) {
         expr = boxValueToType( exprType, expr );
       }
@@ -183,7 +185,7 @@ abstract class ArithmeticExpressionTransformer<T extends ArithmeticExpression> e
       }
       rhs = numberConvert( rhs.getType(), getDescriptor( primitiveType ), rhs );
 
-      IRExpression expr = new IRArithmeticExpression( getDescriptor( primitiveType ), lhs, rhs, IRArithmeticExpression.Operation.fromString( strOp ) );
+      IRExpression expr = makeIRArithmeticExpression( primitiveType , lhs, rhs, isCheckedArithmeticEnabled() );
       if( StandardCoercionManager.isBoxed( exprType ) ) {
         expr = boxValueToType( exprType, expr );
       }
@@ -265,15 +267,18 @@ abstract class ArithmeticExpressionTransformer<T extends ArithmeticExpression> e
   final IRExpression bigDecimalArithmetic( IRExpression lhs, IRExpression rhs, String strOp )
   {
     if( strOp.equals( "+" ) ||
-        strOp.equals( "?+" ) ) {
+        strOp.equals( "?+" ) ||
+        strOp.equals( "!+" ) ) {
       return callMethod( BigDecimal.class, "add", new Class[] {BigDecimal.class}, lhs, Collections.singletonList( rhs ) );
     }
     else if( strOp.equals( "-" ) ||
-             strOp.equals( "?-" ) ) {
+             strOp.equals( "?-" ) ||
+             strOp.equals( "!-" ) ) {
       return callMethod( BigDecimal.class, "subtract", new Class[] {BigDecimal.class}, lhs, Collections.singletonList( rhs ) );
     }
     else if( strOp.equals( "*" ) ||
-             strOp.equals( "?*" ) )
+             strOp.equals( "?*" ) ||
+             strOp.equals( "!*" ) )
     {
       return callMethod( BigDecimal.class, "multiply", new Class[] {BigDecimal.class}, lhs, Collections.singletonList( rhs ) );
     }
@@ -298,17 +303,20 @@ abstract class ArithmeticExpressionTransformer<T extends ArithmeticExpression> e
   final IRExpression bigIntegerArithmetic( IRExpression lhs, IRExpression rhs, String strOp )
   {
     if( strOp.equals( "+" ) ||
-        strOp.equals( "?+" ) )
+        strOp.equals( "?+" ) ||
+        strOp.equals( "!+" ) )
     {
       return callMethod( BigInteger.class, "add", new Class[] {BigInteger.class}, lhs, Collections.singletonList( rhs ) );
     }
     else if( strOp.equals( "-" ) ||
-             strOp.equals( "?-" ) )
+             strOp.equals( "?-" ) ||
+             strOp.equals( "!-" ) )
     {
       return callMethod( BigInteger.class, "subtract", new Class[] {BigInteger.class}, lhs, Collections.singletonList( rhs ) );
     }
     else if( strOp.equals( "*" ) ||
-             strOp.equals( "?*" ) )
+             strOp.equals( "?*" ) ||
+             strOp.equals( "!*" ) )
     {
       return callMethod( BigInteger.class, "multiply", new Class[] {BigInteger.class}, lhs, Collections.singletonList( rhs ) );
     }
@@ -335,6 +343,29 @@ abstract class ArithmeticExpressionTransformer<T extends ArithmeticExpression> e
     IRExpression rhs = ExpressionTransformer.compile( _expr().getRHS(), _cc() );
     rhs = numberConvert( _expr().getRHS().getType(), type, rhs );
 
-    return new IRArithmeticExpression( getDescriptor( type ), lhs, rhs, IRArithmeticExpression.Operation.fromString( _expr().getOperator() ) );
+    return makeIRArithmeticExpression( type, lhs, rhs, isCheckedArithmeticEnabled() );
+  }
+
+  private IRExpression makeIRArithmeticExpression( IType type, IRExpression lhs, IRExpression rhs, boolean checked )
+  {
+    IRType descriptor = getDescriptor( type );
+    IRArithmeticExpression.Operation op = IRArithmeticExpression.Operation.fromString( _expr().getOperator() );
+    if( checked && ( type == JavaTypes.pINT() || type == JavaTypes.pLONG() ) && !_expr().isUnchecked() )
+    {
+      Class[] paramTypes = type == JavaTypes.pINT() ? new Class[]{int.class, int.class} : new Class[]{long.class, long.class};
+      switch( op )
+      {
+         //todo: switch to  Math.xxExact instead when we move to Java 8
+        case Addition:
+          return callStaticMethod( GosuRuntimeMethods.class, "addExact", paramTypes, Arrays.asList( lhs, rhs ) );
+        case Subtraction:
+          return callStaticMethod( GosuRuntimeMethods.class, "subtractExact", paramTypes, Arrays.asList( lhs, rhs ) );
+        case Multiplication:
+          return callStaticMethod( GosuRuntimeMethods.class, "multiplyExact", paramTypes, Arrays.asList( lhs, rhs ) );
+        default:
+          return new IRArithmeticExpression( descriptor, lhs, rhs, op );
+      }
+    }
+    return new IRArithmeticExpression( descriptor, lhs, rhs, op );
   }
 }

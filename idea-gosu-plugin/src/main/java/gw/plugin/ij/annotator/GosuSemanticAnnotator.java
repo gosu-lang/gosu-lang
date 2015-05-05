@@ -369,6 +369,11 @@ public class GosuSemanticAnnotator implements Annotator {
     COLOR_MAP.put(GosuElementTypes.TT_OP_nullsafe_divide, GosuHighlighterColors.OPERATOR);
     COLOR_MAP.put(GosuElementTypes.TT_OP_nullsafe_modulo, GosuHighlighterColors.OPERATOR);
 
+    // Unchecked overflow arithmetic operators for integers
+    COLOR_MAP.put(GosuElementTypes.TT_OP_unchecked_plus, GosuHighlighterColors.OPERATOR);
+    COLOR_MAP.put(GosuElementTypes.TT_OP_unchecked_minus, GosuHighlighterColors.OPERATOR);
+    COLOR_MAP.put(GosuElementTypes.TT_OP_unchecked_multiply, GosuHighlighterColors.OPERATOR);
+
     // Compound operators
     COLOR_MAP.put(GosuElementTypes.TT_OP_assign_plus, GosuHighlighterColors.OPERATOR);
     COLOR_MAP.put(GosuElementTypes.TT_OP_assign_minus, GosuHighlighterColors.OPERATOR);

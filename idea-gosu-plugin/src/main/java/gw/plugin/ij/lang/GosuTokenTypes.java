@@ -175,6 +175,11 @@ public class GosuTokenTypes {
   public static final GosuElementType TT_OP_nullsafe_divide = addTokenType("?/");
   public static final GosuElementType TT_OP_nullsafe_modulo = addTokenType("?%");
 
+  // Unchecked overflow arithmetic operators for integers
+  public static final GosuElementType TT_OP_unchecked_plus = addTokenType("!+");
+  public static final GosuElementType TT_OP_unchecked_minus = addTokenType("!-");
+  public static final GosuElementType TT_OP_unchecked_multiply = addTokenType("!*");
+
   // Compound operators
   public static final GosuElementType TT_OP_assign_plus = addTokenType("+=");
   public static final GosuElementType TT_OP_assign_minus = addTokenType("-=");

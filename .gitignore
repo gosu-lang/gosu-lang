@@ -2,5 +2,6 @@
 *.iml
 *.ipr
 *.iws
+*.tcl
 target
 _build
