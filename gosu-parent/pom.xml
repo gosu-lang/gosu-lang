@@ -61,12 +61,10 @@
   </distributionManagement>
 
   <build>
+    <scriptSourceDirectory>src/test/gosu</scriptSourceDirectory>
     <resources>
       <resource>
         <directory>src/main/gosu</directory>
-      </resource>
-      <resource>
-        <directory>src/test/gosu</directory>
       </resource>
       <resource>
         <directory>src/main/java</directory>
