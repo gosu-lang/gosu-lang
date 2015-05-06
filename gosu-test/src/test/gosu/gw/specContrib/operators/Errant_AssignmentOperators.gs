@@ -17,7 +17,17 @@ class Errant_AssignmentOperators {
 
     b &&= d
     b ||= d
+    b &&= null      //## issuekeys: MSG_TYPE_MISMATCH
+    b ||= null      //## issuekeys: MSG_TYPE_MISMATCH
+
     d &&= true
     d ||= false
+  }
+
+  // IDE-2319
+  function testNullToBoolean(): boolean {
+    if (true && null) {}   //## issuekeys: MSG_TYPE_MISMATCH
+    if (false || null) {}  //## issuekeys: MSG_TYPE_MISMATCH
+    return null            //## issuekeys: MSG_TYPE_MISMATCH
   }
 }
