@@ -61,10 +61,12 @@
   </distributionManagement>
 
   <build>
-    <scriptSourceDirectory>src/test/gosu</scriptSourceDirectory>
     <resources>
       <resource>
         <directory>src/main/gosu</directory>
+      </resource>
+      <resource>
+        <directory>src/test/gosu</directory>
       </resource>
       <resource>
         <directory>src/main/java</directory>
@@ -122,6 +124,24 @@
       </plugins>
     </pluginManagement>
     <plugins>
+    <plugin>
+      <groupId>org.codehaus.mojo</groupId>
+      <artifactId>build-helper-maven-plugin</artifactId>
+      <version>1.7</version>
+      <executions>
+        <execution>
+          <phase>generate-sources</phase>
+          <goals>
+            <goal>add-source</goal>
+          </goals>
+          <configuration>
+            <sources>
+              <source>src/test/gosu</source>
+            </sources>
+          </configuration>
+        </execution>
+      </executions>
+    </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-resources-plugin</artifactId>
