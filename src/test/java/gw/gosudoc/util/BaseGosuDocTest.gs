@@ -1,6 +1,6 @@
-package gw.gosudoc
+package gw.gosudoc.util
 
-uses com.example.bootstrap.Example
+uses gw.gosudoc.GSDocHTMLWriter
 uses org.junit.BeforeClass
 
 uses java.io.File

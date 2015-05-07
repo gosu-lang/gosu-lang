@@ -5,7 +5,10 @@ class Example {
   construct() {
   }
 
-  function foo() {
+  function publicMethod() {
+  }
+
+  private function privateMethod() {
   }
 
   /**

@@ -1,10 +1,11 @@
 package gw.gosudoc
 
 uses com.example.bootstrap.Example
+uses gw.gosudoc.util.BaseGosuDocTest
 uses org.junit.Assert
 uses org.junit.Test
 
-class BootstrapTest extends BaseGosuDocTest {
+class BootstrapTest extends BaseGosuDocTest{
 
   @Test
   function publicClassIsDocumented() {
