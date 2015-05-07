@@ -7083,6 +7083,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
       IType rawCtxType;
       IType boundCtxType;
 
+      boolean bError_AnonymousArgFollowsNamedArg = false;
       int iArgPos = iArgs;
       boolean bAlreadyDef = false;
       IType[] paramTypes = funcType == null ? IType.EMPTY_ARRAY : funcType.getParameterTypes();
@@ -7100,10 +7101,6 @@ public final class GosuParser extends ParserBase implements IGosuParser
           bAlreadyDef = namedArgs.add( parameterNames[iArgPos] );
         }
 
-        IType ctxType = iArgPos < paramTypes.length && iArgPos >= 0 ? paramTypes[iArgPos] : null;
-        rawCtxType = ctxType == null ? null : inferArgType( ctxType, inferenceMap );
-        boundCtxType = ctxType == null ? null : boundCtxType( rawCtxType );
-
         if( argExpressions.size() < iArgPos+1 )
         {
           // Extend the args list with default (or empty) values up to, but not including, the newly parsed arg
@@ -7115,39 +7112,38 @@ public final class GosuParser extends ParserBase implements IGosuParser
           assert argExpressions.size() == iArgPos;
         }
       }
+      else if( !namedArgs.isEmpty() )
+      {
+        bError_AnonymousArgFollowsNamedArg = true;
+      }
+
+      IType ctxType = iArgPos < 0 ? ErrorType.getInstance() : iArgPos < paramTypes.length ? paramTypes[iArgPos] : null;
+      ctxType = ctxType == null ? useDynamicTypeIfDynamicRoot( funcType, ctxType ) : ctxType;
+      rawCtxType = ctxType == null ? null : inferArgType( ctxType, inferenceMap );
+      if( ctxType == null )
+      {
+        boundCtxType = null;
+      }
+      else if( rawCtxType.isGenericType() && !rawCtxType.isParameterizedType() )
+      {
+        boundCtxType = TypeLord.getDefaultParameterizedType( rawCtxType );
+      }
       else
       {
-        IType ctxType = iArgPos < paramTypes.length ? paramTypes[iArgPos] : null;
-        ctxType = ctxType == null ? useDynamicTypeIfDynamicRoot( funcType, ctxType ) : ctxType;
-        rawCtxType = ctxType == null ? null : inferArgType( ctxType, inferenceMap );
-        if( ctxType == null )
+        boundCtxType = boundCtxType( rawCtxType, false );
+        if( rawCtxType instanceof IBlockType )
         {
-          boundCtxType = null;
-        }
-        else if( rawCtxType.isGenericType() && !rawCtxType.isParameterizedType() )
-        {
-          boundCtxType = TypeLord.getDefaultParameterizedType( rawCtxType );
-        }
-        else
-        {
-          boundCtxType = boundCtxType( rawCtxType, false );
-          if( rawCtxType instanceof IBlockType )
-          {
-            retainTypeVarsCtxType = (IBlockType)boundCtxType( rawCtxType, true );
-          }
-        }
-        ContextType ctx = retainTypeVarsCtxType != null
-                          ? ContextType.makeBlockContexType( ctxType, retainTypeVarsCtxType, bMethodScoring )
-                          : new ContextType( boundCtxType, bMethodScoring );
-        parseExpressionNoVerify( ctx );
-
-        // Do not support non java value annotation w/o named args
-        if( !namedArgs.isEmpty() )
-        {
-          addError( peekExpression(), Res.MSG_EXPECTING_NAMED_ARG );
+          retainTypeVarsCtxType = (IBlockType)boundCtxType( rawCtxType, true );
         }
       }
+      ContextType ctx = retainTypeVarsCtxType != null
+                        ? ContextType.makeBlockContexType( ctxType, retainTypeVarsCtxType, bMethodScoring )
+                        : new ContextType( boundCtxType, bMethodScoring );
+
+      parseExpressionNoVerify( ctx );
       Expression expression = popExpression();
+
+      verify( expression, !bError_AnonymousArgFollowsNamedArg, Res.MSG_EXPECTING_NAMED_ARG );
 
       inferFunctionTypeVariables( rawCtxType, boundCtxType, expression.getType(), inferenceMap );
       if( retainTypeVarsCtxType != null )
@@ -7228,13 +7224,6 @@ public final class GosuParser extends ParserBase implements IGosuParser
     verify( identifier, !(type instanceof ErrorType), Res.MSG_PARAM_NOT_FOUND );
     verify( identifier, match( null, "=", SourceCodeTokenizer.TT_OPERATOR ), Res.MSG_EXPECTING_EQUALS_ASSIGN );
 
-    parseExpression( new ContextType( type, bMethodScoring ) );
-    Expression value = popExpression();
-    if( value.hasParseExceptions() )
-    {
-      value.getParseExceptions().get( 0 ).setExpectedType( type );
-    }
-    pushExpression( value );
     return iPos[0];
   }
 
