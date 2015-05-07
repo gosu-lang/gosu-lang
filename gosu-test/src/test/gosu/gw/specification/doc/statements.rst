@@ -65,8 +65,8 @@ no effect at all: ``;``
 Choice Statements
 =================
 
-The if-else Statement
----------------------
+The ``if-else`` Statement
+-------------------------
 
 .. index:: if statement
 
@@ -85,8 +85,8 @@ The *condition* must have type ``boolean`` or ``Boolean``, and *truebranch* and
 If the *condition* is a type test of the form ``e typeis T``, any occurrence of
 ``e`` in *truebranch* will be implicitly guarded by a cast: ``e as T``.
 
-The switch Statement
---------------------
+The ``switch`` Statement
+------------------------
 
 .. index:: switch statement
 
@@ -163,3 +163,109 @@ similar.
 The increment statement ``x++`` has the effect to increment ``x`` by ``1``; and
 similarly for decrement ``x--``. They are a special case of *compound
 assignment*
+
+Loop Statements
+===============
+
+The ``while`` Statement
+-----------------------
+
+.. index:: while statement
+
+A ``while`` statement has the form
+
+    ``while`` ``(`` *condition* ``)`` *body*
+
+where *condition* is an expression of type ``boolean`` or Boolean, and ``body``
+is a statement. It is executed as follows:
+
+1. The *condition* is evaluated. If it is ``false``, the loop terminates.
+2. If it is ``true``, then
+
+  a. The *body* is executed.
+  b. Execution continues at (1).
+
+Just after the ``while`` loop, the negation of *condition* must hold(unless
+the loop is exited by ```break``.). This fact provides a useful information
+about program's state after the loop.
+
+When a *loop invariant* -- a property that always holds at the beginning and
+end of the loop body -- is known as well, then one can combine it with the
+negation of the *condition* to get precise information about the program's
+state after the ``while`` loop. This often helps understanding short but subtle
+loops.
+
+The ``do-while`` Statement
+--------------------------
+
+.. index:: do-while statement
+
+A ``do-while`` statement has the form
+
+    ``do`` *body* ``while`` ``(`` *condition* ``)``
+
+where *condition* is an expression of ttype ``boolean`` or Boolean, and ``body``
+is a statement. The *body* is executed at least once, because the ``do-while``
+statement is executed as follows:
+
+  1. The *body* is executed.
+  2. The *condition* is evaluated. If it is ``false``, the loop terminates.
+  3. If it is ``true``, then execution continues at (1).
+
+Hence the ``do-while`` statement above is equivalent to the following statement
+using ``while``:
+
+    *body* ``while`` ``(`` *condition* ``)`` *body*
+
+Returns, Exits, and Exceptions
+==============================
+
+The ``return`` Statement
+------------------------
+
+.. index:: return statement
+
+The simplest form of a ``return`` statement, without an expression argument, is
+
+   ``return``
+
+That form of ``return`` statement must occur inside the body of a method or
+block whose return type is ``void``, in the body of a constructor or in a
+``property set``, but not in a ``property get``. Execution of the
+``return`` statement exits the method or constructor and continues execution at
+the place from which it was called.
+
+Alternatively, a ``return`` statement may have an expression argument:
+
+    ``return`` *expression*
+
+That form of ``return`` statement must occur inside the body of a method or
+block whose return type is non-``void``, in the a ``property get``, but not in
+a constructor or in a ``property set``. The type of the *expression* must be
+implicitly convertible to the return type of the enclosing function. The
+``return`` statement is executed as follows. First the *expression* is evaluated
+to some value ``v``. Then it exits the method and continues execution at the
+method call expression that called the method; the value of that expression will
+be v.
+
+The ``break`` Statement
+-----------------------
+
+A ``break`` statement is legal only inside a ``switch`` or ``loop``, and has the
+form
+
+    ``break``
+
+Executing ``break`` exits the innermost enclosing ``switch`` or loop, and
+continues execution after that ``switch`` or loop.
+
+The ``continue`` Statement
+--------------------------
+
+A ``continue`` statement is legal only inside a loop, and has the form
+
+    ``continue``
+
+Executing ``continue`` terminates the current iteration of the innermost
+enclosing loop, and continues the execution at  with the next element
+(in ``for`` loops) or the *condition* (in ``while`` and ``do-while`` loops).
