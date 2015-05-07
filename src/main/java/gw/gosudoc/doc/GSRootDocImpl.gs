@@ -5,6 +5,7 @@ uses com.sun.javadoc.RootDoc
 uses com.sun.javadoc.ClassDoc
 uses com.sun.javadoc.PackageDoc
 uses com.sun.javadoc.SourcePosition
+uses gw.config.CommonServices
 uses gw.gosudoc.type.GSArrayTypeImpl
 uses gw.gosudoc.type.GSClassTypeImpl
 uses gw.gosudoc.type.GSFunctionalTypeImpl
@@ -17,6 +18,7 @@ uses gw.lang.reflect.IFunctionType
 uses gw.lang.reflect.IType
 uses gw.lang.reflect.ITypeVariableType
 uses gw.lang.reflect.TypeSystem
+uses gw.lang.reflect.gs.IGosuClass
 
 uses java.io.File
 uses java.lang.IllegalArgumentException
@@ -36,18 +38,13 @@ class GSRootDocImpl extends GSDocImpl implements RootDoc{
 
   // Config info
   var _externalDocs : Map<String, List<Pattern>> as ExternalDocs = new HashMap<String, List<Pattern>>().toAutoMap( \k -> ({}) )
-  var _entryPoints : List<Pattern> as EntryPoints = {}
-  var _exclusions : List<Pattern> as Exclusions = {
-      Pattern.compile( "com.sun.*" ),
-      Pattern.compile( "javax.*" ),
-      Pattern.compile( "java.*" ),
-      Pattern.compile( "gw.*" ),
-      Pattern.compile( "Type" )
-  }
+  var _inputDirs : List<File> as InputDirs = {}
+  var _exclusions : List<Pattern> as Exclusions = {}
   var _outputDirectory : File as OutputDirectory
 
-  construct( outputDir: File ){
+  construct( inputDirs : List<File>, outputDir: File ){
     super( "Root", null )
+    _inputDirs = inputDirs
     _outputDirectory = outputDir
   }
 
@@ -66,13 +63,27 @@ class GSRootDocImpl extends GSDocImpl implements RootDoc{
       } else if( key.startsWith( "exclude." ) ){
         _exclusions.add( getPattern( val ) )
       } else if( key.startsWith( "entrypoint." ) ){
-        _entryPoints.add( getPattern( val ) )
+        printNotice( "Ignoring entrypoint entry in properties file" )
       }
     }
   }
 
-  function isEntryPoint( name: String ): boolean{
-    return _entryPoints.hasMatch( \p -> p.matcher( name ).find() ) && not isExcluded( name )
+  function shouldDocumentType( iType : Type ): boolean{
+
+    if(isExcluded( iType.getName() )) {
+      return false
+    }
+
+    if(iType typeis IGosuClass ) {
+      var file = iType.SourceFileHandle.File
+      for(f in _inputDirs) {
+        var dir = CommonServices.FileSystem.getIDirectory( f )
+        if(file.isDescendantOf( dir )) {
+          return true
+        }
+      }
+    }
+    return false
   }
 
   function isExcluded( name: String ): boolean{
@@ -80,7 +91,7 @@ class GSRootDocImpl extends GSDocImpl implements RootDoc{
   }
 
   function isSynthetic( name: String ): boolean{
-    return name.endsWith( ".PLACEHOLDER" ) || name.startsWith( "_proxy_" )
+    return name.endsWith( ".PLACEHOLDER" ) || name.startsWith( "_proxy_" ) || name.equals( 'Key' )
   }
 
   function isExternal( name: String ): boolean{
@@ -105,11 +116,9 @@ class GSRootDocImpl extends GSDocImpl implements RootDoc{
 
   override function options(): String[][]{
     var l = new ArrayList<String[]>()
-    //TODO cgross - reenable external javadocs!
-//    var externalJavadocs = _classManager.getExternalJavadocs()
-//    for( externalJavadoc in externalJavadocs ){
-//      l.add( {"-link", externalJavadoc.getUrl()} )
-//    }
+    for( externalJavadoc in _externalDocs.keySet() ){
+      l.add( {"-link", externalJavadoc} )
+    }
     l.add( {"-d", _outputDirectory.getCanonicalPath()} )
     return l.toTypedArray()
   }
@@ -117,14 +126,16 @@ class GSRootDocImpl extends GSDocImpl implements RootDoc{
   function genDocs(){
     printNotice( "Loading types to generate GosuDoc" )
     for( typeName in TypeSystem.getAllTypeNames() ){
-      if( isEntryPoint( typeName.toString() ) ){
         try{
-          getOrCreateClass( TypeSystem.getByFullName( typeName.toString() ) )
+          if(!isExcluded( typeName.toString() )) {
+            var iType = TypeSystem.getByFullName( typeName.toString() )
+            if( shouldDocumentType( iType ) ){
+              getOrCreateClass( iType )
+            }
+          }
         } catch( e ){
-          e.printStackTrace()
           printWarning( "Could not load type ${typeName}: ${e.Message}" )
         }
-      }
     }
   }
 
@@ -239,7 +250,7 @@ class GSRootDocImpl extends GSDocImpl implements RootDoc{
       return iType
     }
     if( iType typeis ITypeVariableType ){
-      return getBaseClassType( iType.getBoundingType() )
+      return getBaseClassType( iType.BoundingType )
     }
     if( iType.isParameterizedType() ){
       return getBaseClassType( iType.getGenericType() )

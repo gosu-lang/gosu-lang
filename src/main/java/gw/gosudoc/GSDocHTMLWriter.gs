@@ -7,11 +7,11 @@ uses java.io.File
 
 class GSDocHTMLWriter {
 
+  var _inputDirs: List<File> as InputDirs = {}
   var _output: File as Output
   var _config: File as ConfigFile
 
   function write(){
-
     // Init output directory
     Output.mkdirs()
     if( not Output.Directory ){
@@ -19,11 +19,12 @@ class GSDocHTMLWriter {
     }
 
     // Create Javadoc Data Structure
-    var rootDoc = new GSRootDocImpl(Output)
+    var rootDoc = new GSRootDocImpl(InputDirs, Output)
+
     if(ConfigFile != null) {
+      rootDoc.printNotice( "Using configuration file ${ConfigFile}" )
       rootDoc.initWithPropertiesFile( ConfigFile )
     }
-    rootDoc.printNotice( "Using configuration file ${ConfigFile}" )
     rootDoc.genDocs()
     rootDoc.printNotice( "Finished loading types:  now generating GosuDoc HTML to: ${Output.AbsolutePath}" )
 

@@ -171,18 +171,6 @@ class GSClassDocImpl extends GSProgramElementDocImpl implements ClassDoc{
   }
 
   override property get Included(): boolean{
-    if( !super.isIncluded() ){
-      return false
-    }
-    // exclude primitives
-    if( isPrimitive() ){
-      return false
-    }
-    // exclude enhancements
-    if( _iType typeis IGosuEnhancement ){
-      return false
-    }
-
     return not getRootDoc().isExcluded( _iType.getName() )
   }
 
