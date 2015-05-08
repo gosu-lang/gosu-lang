@@ -32,4 +32,28 @@ class MethodDocsTest extends BaseGosuDocTest {
     Assert.assertNull(methodDocs)
   }
 
+  @Test
+  function publicMethodWithDocCommentHasDescription() {
+    var docs = gosuDocForType( MethodsClass )
+    var doc = Jsoup.parse(docs.read())
+    var methodDocs = doc.findMethodList( MethodsClass#publicMethodWithDocComment() )
+    Assert.assertTrue(methodDocs.text().contains( "publicMethodWithDocComment comment" ))
+  }
+
+  @Test
+  function publicMethodWithCStyleCommentHasDescription() {
+    var docs = gosuDocForType( MethodsClass )
+    var doc = Jsoup.parse(docs.read())
+    var methodDocs = doc.findMethodList( MethodsClass#publicMethodWithCComment() )
+    Assert.assertTrue(methodDocs.text().contains( "publicMethodWithCComment comment" ))
+  }
+
+  @Test
+  function publicMethodWithLineCommentDoesNotHaveDescription() {
+    var docs = gosuDocForType( MethodsClass )
+    var doc = Jsoup.parse(docs.read())
+    var methodDocs = doc.findMethodList( MethodsClass#publicMethodWithLineComment() )
+    Assert.assertFalse(methodDocs.text().contains( "publicMethodWithLineComment comment" ))
+  }
+
 }
