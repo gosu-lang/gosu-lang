@@ -5,11 +5,6 @@ uses gw.gosudoc.doc.GSProgramElementDocImpl
 uses gw.gosudoc.doc.GSRootDocImpl
 uses gw.lang.reflect.IType
 
-uses java.lang.Exception
-uses java.lang.reflect.InvocationHandler
-uses java.lang.reflect.Method
-uses java.lang.reflect.Proxy
-
 class GSClassTypeImpl extends GSTypeImpl implements com.sun.javadoc.Type, ClassDoc {
 
   var _baseType : GSTypeImpl

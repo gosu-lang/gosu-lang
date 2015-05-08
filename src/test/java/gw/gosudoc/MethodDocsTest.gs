@@ -17,6 +17,14 @@ class MethodDocsTest extends BaseGosuDocTest {
   }
 
   @Test
+  function publicMethodWithArgsIsInDocs() {
+    var docs = gosuDocForType( MethodsClass )
+    var doc = Jsoup.parse(docs.read())
+    var methodDocs = doc.findMethodList( MethodsClass#publicMethodWithArgs() )
+    Assert.assertNotNull(methodDocs)
+  }
+
+  @Test
   function privateMethodIsNotInDocs() {
     var docs = gosuDocForType( MethodsClass )
     var doc = Jsoup.parse(docs.read())

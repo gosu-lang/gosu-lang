@@ -171,7 +171,7 @@ class GSClassDocImpl extends GSProgramElementDocImpl implements ClassDoc{
   }
 
   override property get Included(): boolean{
-    return not getRootDoc().isExcluded( _iType.getName() )
+    return getRootDoc().shouldDocumentType( _iType )
   }
 
   override function typeName(): String{

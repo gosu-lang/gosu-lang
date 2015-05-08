@@ -19,4 +19,16 @@ class BootstrapTest extends BaseGosuDocTest{
     Assert.assertNull( "Should not find gosu doc for PrivateClass", html )
   }
 
+  @Test
+  function javaStandardClassesAreNotDocumented() {
+    var html = gosuDocForType( String )
+    Assert.assertNull( "Should not find gosu doc for String", html )
+  }
+
+  @Test
+  function gosuStandardClassesAreNotDocumented() {
+    var html = gosuDocForType( gw.lang.Gosu )
+    Assert.assertNull( "Should not find gosu doc for Gosu class", html )
+  }
+
 }
