@@ -229,6 +229,15 @@ public class AsmMethod implements IGeneric {
     return tvString;
   }
 
+  public AsmType findTypeVariable( String tv ) {
+    for( AsmType p: _methodType.getTypeParameters() ) {
+      if( p.getName().equals( tv ) ) {
+        return p;
+      }
+    }
+    return null;
+  }
+
   @Override
   public boolean equals( Object o ) {
     if( this == o ) {

@@ -47,7 +47,7 @@ public class TypeVarToTypeMap
   {
     for( ITypeVariableType key : _map.keySet() )
     {
-      if( matcher.matches( tv, (ITypeVariableType)key ) )
+      if( matcher.matches( tv, key ) )
       {
         return _map.get( key );
       }
