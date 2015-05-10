@@ -842,6 +842,21 @@ public class FileSystemGosuClassRepository implements IFileSystemGosuClassReposi
     return file.toString().endsWith( "gtest" );
   }
 
+  @Override
+  public IFile findFirstFile(String resourceName) {
+    return findFirstFile(resourceName, _module.getSourcePath());
+  }
+
+  private IFile findFirstFile(String resourceName, List<? extends IDirectory> searchPath) {
+    for (IDirectory dir : searchPath) {
+      IFile file = dir.file(resourceName);
+      if (file != null && file.exists()) {
+        return file;
+      }
+    }
+
+    return null;
+  }
 
   public String toString() {
     return _module.getName();
