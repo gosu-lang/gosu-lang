@@ -2931,7 +2931,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
     }
     else if( match( null, '(' ) )
     {
-      parseExpressionNoVerify( getContextType() );
+      parseExpressionNoVerify( isParenthesisTerminalExpression() ? getContextType() : ContextType.EMPTY );
       _ctxInferenceMgr.restoreLastCtx();
       Expression e = popExpression();
       ParenthesizedExpression expr = new ParenthesizedExpression( e );
@@ -2948,27 +2948,6 @@ public final class GosuParser extends ParserBase implements IGosuParser
       parseLiteral();
     }
 
-    bRet = maybeParseWithoutContextTypeIfMemberAccessFollows( mark, iLocationsCount, bRet );
-
-    return bRet;
-  }
-
-  private boolean maybeParseWithoutContextTypeIfMemberAccessFollows( int mark, int iLocationsCount, boolean bRet )
-  {
-    if( getContextType() != null && getContextType() != ContextType.EMPTY && getContextType().getType() != null && getContextType().getType().isAssignableFrom( peekExpression().getType() ) )
-    {
-      if( match( null, null, '.', true ) ||
-          match( null, "?.", SourceCodeTokenizer.TT_OPERATOR, true ) ||
-          match( null, "*.", SourceCodeTokenizer.TT_OPERATOR, true ) )
-      {
-        popExpression();
-        backtrack( mark, iLocationsCount, peekExpression() );
-        pushInferredContextTypes( null );
-        bRet = _parsePrimaryExpression();
-        popInferredContextTypes();
-      }
-
-    }
     return bRet;
   }
 
@@ -3728,7 +3707,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
     {
       int mark = getTokenizer().mark();
       TypeLiteral typeLiteral = null;
-      if( match( null, null, '(', true ) )
+      if( match( null, null, '(', true ) && isParenthesisTerminalExpression( true ) )
       {
         // handle typeless 'new()' syntax
         typeLiteral = maybeInferTypeLiteralFromContextType();
@@ -5458,7 +5437,10 @@ public final class GosuParser extends ParserBase implements IGosuParser
           }
         }
         assert funcType != null;
-        funcType = maybeParameterizeOnCtxType( funcType );
+        if( isEndOfExpression() )
+        {
+          funcType = maybeParameterizeOnCtxType( funcType );
+        }
         IFunctionType boundFuncType = boundFunctionType( funcType );
         e.setType( boundFuncType.getReturnType() );
         e.setFunctionType( boundFuncType );
@@ -6185,7 +6167,10 @@ public final class GosuParser extends ParserBase implements IGosuParser
         }
 
         assert funcType != null;
-        funcType = maybeParameterizeOnCtxType( funcType );
+        if( isEndOfExpression() )
+        {
+          funcType = maybeParameterizeOnCtxType( funcType );
+        }
         IFunctionType boundType = boundFunctionType( funcType );
 
         e.setType( (!bExpansion || funcType.getReturnType().isArray() || funcType.getReturnType() == JavaTypes.pVOID())
@@ -6435,6 +6420,48 @@ public final class GosuParser extends ParserBase implements IGosuParser
       }
     }
     return false;
+  }
+
+  private boolean isEndOfArgExpression()
+  {
+    int mark = _tokenizer.mark();
+    try
+    {
+      return match( null, ')' ) && isEndOfExpression();
+    }
+    finally
+    {
+      _tokenizer.restoreToMark( mark );
+    }
+  }
+
+  private boolean isParenthesisTerminalExpression()
+  {
+    return isParenthesisTerminalExpression( false );
+  }
+  private boolean isParenthesisTerminalExpression( boolean bMatchOpeningParen )
+  {
+    int mark = _tokenizer.mark();
+    try
+    {
+      if( bMatchOpeningParen )
+      {
+        assert match( null, '(' );
+      }
+      eatBlock( '(', ')', false );
+      return isEndOfExpression();
+    }
+    finally
+    {
+      _tokenizer.restoreToMark( mark );
+    }
+  }
+
+  private boolean isEndOfExpression()
+  {
+    return !(match( null, null, '.', true ) ||
+             match( null, "?.", SourceCodeTokenizer.TT_OPERATOR, true ) ||
+             match( null, "*.", SourceCodeTokenizer.TT_OPERATOR, true ));
   }
 
   private IType getInnerClass( String strMemberName, IType memberType, IHasInnerClass typeLiteralType )
@@ -6799,7 +6826,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
         maybeReassignOffsetForArgumentListClause( argExpressions.size(), argExpressions, iOffset, iLineNum, iColumn );
 
         // Infer the function type
-        IInvocableType inferredFunctionType = inferFunctionType( rawFunctionType, bestScore.getArguments() );
+        IInvocableType inferredFunctionType = inferFunctionType( rawFunctionType, bestScore.getArguments(), isEndOfArgExpression() );
 
         if( !getContextType().isMethodScoring() )
         {
@@ -6855,7 +6882,10 @@ public final class GosuParser extends ParserBase implements IGosuParser
         getContextType().getType() != null &&
         getContextType() != ContextType.EMPTY )
     {
-      TypeLord.inferTypeVariableTypesFromGenParamTypeAndConcreteType( funcType.getReturnType(), getContextType().getType(), inferenceMap );
+      if( isParenthesisTerminalExpression() )
+      {
+        TypeLord.inferTypeVariableTypesFromGenParamTypeAndConcreteType( funcType.getReturnType(), getContextType().getType(), inferenceMap );
+      }
     }
   }
 
@@ -13934,7 +13964,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
     }
   }
 
-  private IInvocableType inferFunctionType( IInvocableType funcType, List<? extends IExpression> eArgs )
+  private IInvocableType inferFunctionType( IInvocableType funcType, List<? extends IExpression> eArgs, boolean bUseCtx )
   {
     if( funcType instanceof IFunctionType && funcType.isGenericType() )
     {
@@ -13957,7 +13987,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
           }
         }
       }
-      return ((IFunctionType) funcType).inferParameterizedTypeFromArgTypesAndContextType( argTypes, getContextType().getType() );
+      return ((IFunctionType) funcType).inferParameterizedTypeFromArgTypesAndContextType( argTypes, bUseCtx ? getContextType().getType() : null );
     }
     else
     {
