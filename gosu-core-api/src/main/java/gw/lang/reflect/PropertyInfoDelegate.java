@@ -87,6 +87,10 @@ public class PropertyInfoDelegate implements IPropertyInfoDelegate
     return _source.getDeprecatedReason();
   }
 
+  public boolean isDefaultImpl() {
+    return _source.isDefaultImpl();
+  }
+
   public IFeatureInfo getContainer()
   {
     return _container;

@@ -20,6 +20,7 @@ import gw.internal.gosu.parser.expressions.Literal;
 import gw.internal.gosu.parser.expressions.MemberAccess;
 import gw.internal.gosu.parser.expressions.MemberExpansionAccess;
 import gw.internal.gosu.parser.expressions.TypeLiteral;
+import gw.internal.gosu.parser.expressions.MemberExpansionAccess;
 import gw.internal.gosu.parser.optimizer.SinglePropertyMemberAccessRuntime;
 import gw.internal.gosu.runtime.GosuRuntimeMethods;
 import gw.lang.Autocreate;
@@ -187,13 +188,13 @@ public class MemberAccessTransformer extends AbstractExpressionTransformer<Membe
        (mightRequireAutoCreation && !_expr().getType().isPrimitive()));
   }
 
-  private IRExpression buildAccessExpression(IExpression rootExpr, IType rootType, IPropertyInfo pi, IRProperty irProperty, IRExpression root) {
+  private IRExpression buildAccessExpression( IExpression rootExpr, IType rootType, IPropertyInfo pi, IRProperty irProperty, IRExpression root )
+  {
     if( irProperty == null )
     {
       // a reflective member access.  Why is this the same type of ParsedElement?
       return callStaticMethod( ReflectUtil.class, "getProperty", new Class[]{Object.class, String.class},
                                exprList( root, pushString( _expr().getMemberExpression() ) ) );
-
     }
 
     if( isScopedField( pi ) )
@@ -209,6 +210,10 @@ public class MemberAccessTransformer extends AbstractExpressionTransformer<Membe
     else if( isLengthProperty( pi ) )
     {
       return buildArrayLength( root );
+    }
+    else if( rootExpr instanceof SuperAccess )
+    {
+      return callSpecialMethod( getDescriptor( rootExpr.getType() ), irProperty.getGetterMethod(), root, exprList(  ) );
     }
     else if( isSuperCall( rootExpr ) )
     {

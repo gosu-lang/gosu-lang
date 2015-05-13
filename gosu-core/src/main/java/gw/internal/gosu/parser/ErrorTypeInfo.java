@@ -431,4 +431,8 @@ public class ErrorTypeInfo implements ITypeInfo
   public String getDeprecatedReason() {
     return null;
   }
+
+  public boolean isDefaultImpl() {
+    return false;
+  }
 }

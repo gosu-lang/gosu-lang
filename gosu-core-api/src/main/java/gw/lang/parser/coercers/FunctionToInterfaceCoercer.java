@@ -99,6 +99,10 @@ public class FunctionToInterfaceCoercer extends BaseCoercer implements IResolvin
         {
           it.remove();
         }
+        else if( !methodInfo.isAbstract() )
+        {
+          it.remove();
+        }
       }
 
       if( list.size() == 1 )

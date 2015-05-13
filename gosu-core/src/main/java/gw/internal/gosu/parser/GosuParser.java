@@ -140,6 +140,7 @@ import gw.lang.parser.template.TemplateParseException;
 import gw.lang.reflect.ConstructorInfoBuilder;
 import gw.lang.reflect.FeatureManager;
 import gw.lang.reflect.FunctionType;
+import gw.lang.reflect.IAttributedFeatureInfo;
 import gw.lang.reflect.IBlockType;
 import gw.lang.reflect.ICanBeAnnotation;
 import gw.lang.reflect.IConstructorInfo;
@@ -4862,10 +4863,10 @@ public final class GosuParser extends ParserBase implements IGosuParser
       IType rootType = rootExpression.getType();
 
       IType indexType = ArrayAccess.supportsArrayAccess( rootType )
-              ? JavaTypes.pINT()
-              : MapAccess.supportsMapAccess( rootType )
-              ? MapAccess.getKeyType( rootType )
-              : null;
+                        ? JavaTypes.pINT()
+                        : MapAccess.supportsMapAccess( rootType )
+                          ? MapAccess.getKeyType( rootType )
+                          : null;
       boolean bDynamicRoot = isDynamic( rootType );
       if( bDynamicRoot )
       {
@@ -4876,7 +4877,6 @@ public final class GosuParser extends ParserBase implements IGosuParser
         parseExpression( new ContextType( indexType ) );
       }
       Expression indexExpression = popExpression();
-
 
       Expression arrayAccess;
 
@@ -4905,6 +4905,16 @@ public final class GosuParser extends ParserBase implements IGosuParser
         ma.setRootExpression( rootExpression );
         ma.setKeyExpression( indexExpression );
         ma.setNullSafe( bNullSafe );
+        pushExpression( ma );
+        arrayAccess = ma;
+      }
+      else if( isSuperCall( rootExpression, indexExpression ) )
+      {
+        SuperAccess ma = new SuperAccess();
+        ma.setRootExpression( (Identifier)rootExpression );
+        ma.setKeyExpression( (TypeLiteral)indexExpression );
+        IType superType = verifySuperTypeIsDeclaredInCompilingClass( (TypeLiteral)indexExpression );
+        ma.setType( superType );
         pushExpression( ma );
         arrayAccess = ma;
       }
@@ -4964,6 +4974,35 @@ public final class GosuParser extends ParserBase implements IGosuParser
 
     setOperatorLineNumber(peekExpression(), operatorLineNumber);
     return true;
+  }
+
+  private IType verifySuperTypeIsDeclaredInCompilingClass( TypeLiteral superTypeLiteral )
+  {
+    IType type = TypeLord.getPureGenericType( superTypeLiteral.getType().getType() );
+    ICompilableTypeInternal gosuClass = getGosuClass();
+    IType superType = gosuClass.getSupertype();
+    if( superType != null && TypeLord.getPureGenericType( superType ) == type )
+    {
+      return superType;
+    }
+
+    for( IType iface : gosuClass.getInterfaces() )
+    {
+      if( TypeLord.getPureGenericType( iface ) == type )
+      {
+        return iface;
+      }
+    }
+
+    addError( superTypeLiteral, Res.MSG_NOT_A_SUPERTYPE, type );
+    return type;
+  }
+
+  private boolean isSuperCall( Expression rootExpression, Expression indexExpression )
+  {
+    return indexExpression instanceof TypeLiteral &&
+           rootExpression instanceof Identifier &&
+           ((Identifier)rootExpression).getSymbol().getName().equals( Keyword.KW_super.getName() );
   }
 
   private boolean parseFeatureLiteral( Expression root )
@@ -5174,7 +5213,9 @@ public final class GosuParser extends ParserBase implements IGosuParser
       {
         parseMethodCall( T, iOffset, iLineNum, iColumn, state, e, typeParameters, strFunction, functionSymbol, mark );
       }
-      else if( !Keyword.KW_super.equals( T._strValue ) || getTokenizer().getCurrentToken().getType() == '.' )
+      else if( !Keyword.KW_super.equals( T._strValue ) ||
+               getTokenizer().getCurrentToken().getType() == '.' ||
+               getTokenizer().getCurrentToken().getType() == '[' )
       {
         parseIdentifierOrTypeLiteralOrEnumConstant( T, iOffset, iLineNum, iColumn );
       }
@@ -6082,6 +6123,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
         e.setMemberAccessKind( kind );
         e.setNamedArgOrder( methodScore.getNamedArgOrder() );
         verifyCase( e, strMemberName, funcType.getName(), state, Res.MSG_FUNCTION_CASE_MISMATCH, false );
+        verifySuperAccess( rootExpression, e, funcType.getMethodInfo(), strMemberName );
       }
       else
       {
@@ -6193,8 +6235,8 @@ public final class GosuParser extends ParserBase implements IGosuParser
         e.setMemberAccessKind( kind );
 
         verifyCase( e, strMemberName, md.getDisplayName(), state, Res.MSG_FUNCTION_CASE_MISMATCH, false );
-
         verifyArgCount( e, 0, funcType );
+        verifySuperAccess( rootExpression, e, funcType.getMethodInfo(), strMemberName );
         e.setArgs( null );
       }
     }
@@ -6396,10 +6438,21 @@ public final class GosuParser extends ParserBase implements IGosuParser
               !((Identifier)rootExpression).getSymbol().getName().equals( Keyword.KW_super.toString() ),
               Res.MSG_ABSTRACT_METHOD_CANNOT_BE_ACCESSED_DIRECTLY, strMemberName );
     }
+    verifySuperAccess( rootExpression, ma, pi, strMemberName );
     pushExpression( ma );
   }
 
-  private boolean shouldParseMemberInstead( String strMemberName, IType rootType, IType memberType )
+  private void verifySuperAccess( Expression rootExpression, Expression memberExpr, IAttributedFeatureInfo feature, String strMemberName )
+  {
+    if( feature == null )
+    {
+      return;
+    }
+    verify( memberExpr, !(rootExpression instanceof SuperAccess) || !feature.isAbstract(),
+            Res.MSG_ABSTRACT_METHOD_CANNOT_BE_ACCESSED_DIRECTLY, strMemberName );
+  }
+
+  private boolean shouldParseMemberInstead( String strMemberName, IType rootType, boolean bExpansion, IType memberType )
   {
     IType ctxType = getOwner().getContextType().getType();
     if( !(ctxType instanceof IMetaType) )
@@ -8561,7 +8614,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
         IType type = typeLiteral.getType().getType();
         try
         {
-          if( type.isGenericType() )
+          if( type.isGenericType() && !isParsingCompileTimeConstantExpression() )
           {
             // If a generic type, assume the default parameterized version e.g., List => List<Object>
             type = TypeLord.makeDefaultParameterizedType( type );
@@ -8575,6 +8628,10 @@ public final class GosuParser extends ParserBase implements IGosuParser
       }
     }
     return bArrayOrParameterization;
+  }
+
+  private boolean isParsingCompileTimeConstantExpression() {
+    return getContextType() != null && getContextType().isCompileTimeConstant();
   }
 
   private boolean parseArrayType( TypeLiteral tl )
@@ -11795,7 +11852,8 @@ public final class GosuParser extends ParserBase implements IGosuParser
       // activation record.
 
       // We push a scope to parse the function decl, then we pop it to find the dfs, then we push it again to parse the body.
-      _symTable.pushIsolatedScope( new GosuParserTransparentActivationContext( getScriptPart() ) );
+      final IScriptPartId scriptPart = getScriptPart();
+      _symTable.pushIsolatedScope( new GosuParserTransparentActivationContext( scriptPart ) );
       try
       {
         IType[] argTypes = null;
@@ -11853,7 +11911,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
           }
           else
           {
-            parseExpression( new ContextType( ctxType ) );
+            parseExpression( new ContextType( ctxType, false, true ) );
             annotationDefault = popExpression();
           }
           if( !annotationDefault.hasParseExceptions() )
@@ -11899,16 +11957,17 @@ public final class GosuParser extends ParserBase implements IGosuParser
           type.setArgumentTypes( argTypes );
         }
 
-        type.setScriptPart( getScriptPart() );
+        type.setScriptPart( scriptPart );
         type.setModifiers( modifiers.getModifiers() );
 
         putThisAndSuperSymbols( modifiers );
 
         if( !Modifier.isAbstract( modifiers.getModifiers() ) && !Modifier.isNative( modifiers.getModifiers() ) )
         {
-          if( getScriptPart() == null ||
-                  !(getScriptPart().getContainingType() instanceof IGosuClassInternal) ||
-                  !getScriptPart().getContainingType().isInterface() )
+          if( scriptPart == null ||
+              !(scriptPart.getContainingType() instanceof IGosuClassInternal) ||
+              !scriptPart.getContainingType().isInterface() ||
+              match( null, null, '{', true ) ) // default iface method
           {
             if( parseFunctionBody( functionStmt, type ) )
             {
@@ -12574,7 +12633,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
           }
           else
           {
-            parseExpression( new ContextType( ctxType ) );
+            parseExpression( new ContextType( ctxType, false, true ) );
             annotationDefault = popExpression();
           }
           if( !annotationDefault.hasParseExceptions() )
@@ -12641,62 +12700,60 @@ public final class GosuParser extends ParserBase implements IGosuParser
         DynamicFunctionSymbol dfsExisting = (DynamicFunctionSymbol)existing;
 
         // proxies are ignored and names must match exactly (error if they do not?)
-        if( existing.getDisplayName().equals( dfs.getDisplayName() ) )
+        if( existing.getDisplayName().equals( dfs.getDisplayName() ) &&
+            areDFSsInSameNameSpace( dfs, dfsExisting ))
         {
           // if the parameters match exactly,
           if( areParametersEquivalent( dfs, dfsExisting ) ||
               !dfs.isStatic() && dfsExisting.isStatic() && dfs.getDeclaringTypeInfo().getOwnersType() instanceof IGosuEnhancement && areParametersEquivalent( dfs, dfsExisting, ((IGosuEnhancement)dfs.getDeclaringTypeInfo().getOwnersType()).getEnhancedType() ) )
           {
-            if( areDFSsInSameNameSpace( dfs, dfsExisting ) )
+            IGosuClass owningTypeForDfs = getOwningTypeForDfs( dfsExisting );
+            if( owningTypeForDfs instanceof IGosuEnhancement )
             {
-              IGosuClass owningTypeForDfs = getOwningTypeForDfs( dfsExisting );
-              if( owningTypeForDfs instanceof IGosuEnhancement )
+              if( dfs.isOverride() || owningTypeForDfs == getGosuClass() )
               {
-                if( dfs.isOverride() || owningTypeForDfs == getGosuClass() )
-                {
-                  verify( element, false, Res.MSG_CANNOT_OVERRIDE_FUNCTION_FROM_ENHANCEMENT );
-                }
-                else
-                {
-                  warn( element, false, Res.MSG_MASKING_ENHANCEMENT_METHODS_MAY_BE_CONFUSING );
-                }
+                verify( element, false, Res.MSG_CANNOT_OVERRIDE_FUNCTION_FROM_ENHANCEMENT );
               }
               else
               {
-                boolean bSameButNotInSameClass = !GosuObjectUtil.equals( dfsExisting.getScriptPart(), dfs.getScriptPart() );
-                if( !verify( element, bSameButNotInSameClass,
-                        Res.MSG_FUNCTION_ALREADY_DEFINED, dfs.getMethodSignature(), getScriptPart() ) )
+                warn( element, false, Res.MSG_MASKING_ENHANCEMENT_METHODS_MAY_BE_CONFUSING );
+              }
+            }
+            else
+            {
+              boolean bSameButNotInSameClass = !GosuObjectUtil.equals( dfsExisting.getScriptPart(), dfs.getScriptPart() );
+              if( !verify( element, bSameButNotInSameClass,
+                      Res.MSG_FUNCTION_ALREADY_DEFINED, dfs.getMethodSignature(), getScriptPart() ) )
+              {
+                return;
+              }
+              boolean bClassAndReturnTypesCompatible = !GosuObjectUtil.equals( dfsExisting.getScriptPart(), dfs.getScriptPart() ) &&
+                      returnTypesCompatible( dfsExisting, dfs );
+              if( verify( element, bClassAndReturnTypesCompatible, Res.MSG_FUNCTION_CLASH,
+                      dfs.getName(), dfs.getScriptPart(), dfsExisting.getName(), dfsExisting.getScriptPart() ) )
+              {
+                boolean b = !dfsExisting.isFinal() && (getGosuClass() == null ||
+                        getGosuClass().getSupertype() == null ||
+                        !getGosuClass().getSupertype().isFinal());
+                verify( element, b, Res.MSG_CANNOT_OVERRIDE_FINAL, dfsExisting.getName(), dfsExisting.getScriptPart() );
+                if( verify( element, !dfs.isStatic() || dfsExisting.isStatic(), Res.MSG_STATIC_METHOD_CANNOT_OVERRIDE, dfs.getName(), dfsExisting.getDeclaringTypeInfo().getName() ) )
                 {
-                  return;
-                }
-                boolean bClassAndReturnTypesCompatible = !GosuObjectUtil.equals( dfsExisting.getScriptPart(), dfs.getScriptPart() ) &&
-                        returnTypesCompatible( dfsExisting, dfs );
-                if( verify( element, bClassAndReturnTypesCompatible, Res.MSG_FUNCTION_CLASH,
-                        dfs.getName(), dfs.getScriptPart(), dfsExisting.getName(), dfsExisting.getScriptPart() ) )
-                {
-                  boolean b = !dfsExisting.isFinal() && (getGosuClass() == null ||
-                          getGosuClass().getSupertype() == null ||
-                          !getGosuClass().getSupertype().isFinal());
-                  verify( element, b, Res.MSG_CANNOT_OVERRIDE_FINAL, dfsExisting.getName(), dfsExisting.getScriptPart() );
-                  if( verify( element, !dfs.isStatic() || dfsExisting.isStatic(), Res.MSG_STATIC_METHOD_CANNOT_OVERRIDE, dfs.getName(), dfsExisting.getDeclaringTypeInfo().getName() ) )
+                  if( !dfs.isStatic() && !dfsExisting.isStatic() )
                   {
-                    if( !dfs.isStatic() && !dfsExisting.isStatic() )
+                    if( !dfs.isOverride() )
                     {
-                      if( !dfs.isOverride() )
+                      boolean bIsConstructorName = getGosuClass() != null && getGosuClass().getRelativeName().equals( dfs.getDisplayName() );
+                      warn( element, bIsConstructorName, Res.MSG_MISSING_OVERRIDE_MODIFIER, dfsExisting.getName(), dfsExisting.getScriptPart().getContainingTypeName() );
+                      if( !bIsConstructorName )
                       {
-                        boolean bIsConstructorName = getGosuClass() != null && getGosuClass().getRelativeName().equals( dfs.getDisplayName() );
-                        warn( element, bIsConstructorName, Res.MSG_MISSING_OVERRIDE_MODIFIER, dfsExisting.getName(), dfsExisting.getScriptPart().getContainingTypeName() );
-                        if( !bIsConstructorName )
-                        {
-                          // Set the override modifier when the modifier is missing
-                          dfs.setOverride( true );
-                        }
+                        // Set the override modifier when the modifier is missing
+                        dfs.setOverride( true );
                       }
-                      verifyNotWeakerAccess( element, dfs, dfsExisting );
-                      verifySameNumberOfFunctionTypeVars( element, dfs, dfsExisting );
-                      dfs.setSuperDfs( dfsExisting );
-                      bValidOverrideFound = true;
                     }
+                    verifyNotWeakerAccess( element, dfs, dfsExisting );
+                    verifySameNumberOfFunctionTypeVars( element, dfs, dfsExisting );
+                    dfs.setSuperDfs( dfsExisting );
+                    bValidOverrideFound = true;
                   }
                 }
               }
@@ -13130,7 +13187,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
           verify( parameterIdentifier, bColonFound || bEqualsFound, Res.MSG_EXPECTING_TYPE_FUNCTION_DEF );
           if( bEqualsFound )
           {
-            parseExpression();
+            parseExpression( new ContextType( null, false, true ) );
           }
           else
           {
@@ -13158,7 +13215,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
           int iOffsetDef = getTokenizer().getTokenStart();
           int iLineNumDef = getTokenizer().getLineNumber();
           int iColumnDef = getTokenizer().getTokenColumn();
-          parseExpression( new ContextType( argType ) );
+          parseExpression( new ContextType( argType, false, true ) );
           defExpr = popExpression();
           defExpr = possiblyWrapWithImplicitCoercion( defExpr, argType );
           pushExpression( defExpr );

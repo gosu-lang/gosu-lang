@@ -11,6 +11,8 @@ import gw.test.TestEnvironment;
 import gw.util.Predicate;
 import junit.framework.Test;
 
+import java.util.List;
+
 public class PLGosuBytecodeSuite extends Suite
 {
   public PLGosuBytecodeSuite() {

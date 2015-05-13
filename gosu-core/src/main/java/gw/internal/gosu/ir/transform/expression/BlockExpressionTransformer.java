@@ -42,7 +42,7 @@ public class BlockExpressionTransformer extends AbstractExpressionTransformer<IB
       args.add( pushThisOrOuter( blockClazz.getEnclosingType() ) );
     }
     pushCapturedSymbols( blockClazz, args, false );
-    int typeParams = pushTypeParametersForConstructor( _expr(), blockClazz, args );
+    int typeParams = pushTypeParametersForConstructor( _expr(), blockClazz, args, false );
 
     List<IRType> paramTypes = Arrays.asList( getConstructorParamTypes( new IType[0], typeParams, blockClazz ) );
 

@@ -12,9 +12,6 @@ interface Errant_InterfaceWithImplemetation {
   construct() {} 
   function Errant_InterfaceWithImplemetation( b : boolean ) {} 
   static function staticMethodWithImpl() {}  
-  function instanceMethodWithImpl() {} 
-  static function staticMethodWithImpl() {}  
-  static property get StaticGetterProp() : String { return "foo" }  
+  static property get StaticGetterProp() : String { return "foo" }
   static property set StaticSetterProp( x : String ) {}
-   
 } 

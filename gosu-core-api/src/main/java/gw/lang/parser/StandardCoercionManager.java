@@ -736,6 +736,9 @@ public class StandardCoercionManager extends BaseService implements ICoercionMan
       if( toMi.getOwnersType() instanceof IGosuEnhancement ) {
         continue;
       }
+      if( toMi instanceof IAttributedFeatureInfo && toMi.isDefaultImpl() || toMi.isStatic() ) {
+        continue;
+      }
       IMethodInfo fromMi = fromMethods.findAssignableMethod( toMi, fromType instanceof IMetaType && (!(((IMetaType)fromType).getType() instanceof IGosuClass) || !((IGosuClass)((IMetaType)fromType).getType()).isStructure()) );
       if( fromMi == null ) {
         if( toMi.getDisplayName().startsWith( "@" ) ) {

@@ -13,6 +13,7 @@ import gw.lang.parser.exceptions.ErrantGosuClassException;
 import gw.lang.reflect.IConstructorHandler;
 import gw.lang.reflect.IFeatureInfo;
 import gw.lang.reflect.IType;
+import gw.lang.reflect.NotLazyTypeResolver;
 import gw.lang.reflect.gs.IGenericTypeVariable;
 import gw.lang.reflect.gs.IGosuConstructorInfo;
 import gw.lang.reflect.java.GosuTypes;
@@ -106,9 +107,14 @@ public class GosuConstructorInfo extends AbstractGenericMethodInfo implements IG
         IGosuClassInternal type = getOwnersType();
         if( type.isParameterizedType() )
         {
-          ArrayList<Object> argList = new ArrayList<Object>( Arrays.asList( getOwnersType().getTypeParameters() ) );
-          argList.addAll( Arrays.asList( args ) );
-          args = argList.toArray();
+          IType[] typeParams = getOwnersType().getTypeParameters();
+          Object[] argsTemp = new Object[typeParams.length + args.length];
+          int i = 0;
+          for( ; i < typeParams.length; i++ ) {
+            argsTemp[i] = new NotLazyTypeResolver( typeParams[i] );
+          }
+          System.arraycopy( args, 0, argsTemp, i, args.length );
+          args = argsTemp;
         }
         else
         {
@@ -118,7 +124,7 @@ public class GosuConstructorInfo extends AbstractGenericMethodInfo implements IG
             ArrayList<Object> argList = new ArrayList<Object>();
             for( IGenericTypeVariable typeVariable : typeVariables )
             {
-              argList.add( typeVariable.getBoundingType() );
+              argList.add( new NotLazyTypeResolver( typeVariable.getBoundingType() ) );
             }
             argList.addAll( Arrays.asList( args ) );
             args = argList.toArray( new Object[argList.size()] );

@@ -99,6 +99,13 @@ public class AbstractGenericMethodInfo extends GosuBaseAttributedFeatureInfo imp
     return getDfs().isFinal();
   }
 
+  @Override
+  public boolean isDefaultImpl() {
+    // Default methods are public non-abstract instance methods declared in an interface.
+    return ((getDfs().getModifiers() & (java.lang.reflect.Modifier.ABSTRACT | java.lang.reflect.Modifier.PUBLIC | java.lang.reflect.Modifier.STATIC)) ==
+            java.lang.reflect.Modifier.PUBLIC) && getOwnersType().isInterface();
+  }
+
   public IParameterInfo[] getParameters()
   {
     if( _params != null )

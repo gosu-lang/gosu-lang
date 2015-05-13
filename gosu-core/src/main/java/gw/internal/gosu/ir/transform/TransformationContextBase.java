@@ -9,6 +9,7 @@ import gw.internal.gosu.parser.TypeVariableType;
 import gw.internal.gosu.parser.IGosuEnhancementInternal;
 import gw.internal.gosu.parser.ICompilableTypeInternal;
 import gw.internal.gosu.parser.expressions.InitializerAssignment;
+import gw.lang.ir.IRClass;
 import gw.lang.ir.IRSymbol;
 import gw.lang.ir.IRType;
 import gw.lang.ir.IRStatement;
@@ -26,6 +27,8 @@ public abstract class TransformationContextBase implements TopLevelTransformatio
 
   private FunctionBodyTransformationContext _bodyContext;
   private ICompilableTypeInternal _compilingType;
+  private IRClass _irClass;
+  private int _iLazyMethodCount;
 
   protected TransformationContextBase( ICompilableTypeInternal compilingType ) {
     _compilingType = compilingType;
@@ -38,8 +41,13 @@ public abstract class TransformationContextBase implements TopLevelTransformatio
   public void initBodyContext(  boolean isStatic, DynamicFunctionSymbol dfs ) {
     _bodyContext = new DFSFunctionBodyTransformationContext( this, isStatic, dfs );
   }
-  
-  // We good
+
+  public IRClass getIrClass() {
+    return _irClass;
+  }
+  public void setIrClass( IRClass irClass ) {
+    _irClass = irClass;
+  }
 
   @Override
   public IRStatement compile( IStatement stmt ) {
@@ -170,6 +178,11 @@ public abstract class TransformationContextBase implements TopLevelTransformatio
   }
 
   @Override
+  public void markInvokingSuper() {
+    _bodyContext.markInvokingSuper();
+  }
+
+  @Override
   public void updateSuperInvokedAfterLastExpressionCompiles() {
     _bodyContext.updateSuperInvokedAfterLastExpressionCompiles();
   }
@@ -190,6 +203,11 @@ public abstract class TransformationContextBase implements TopLevelTransformatio
   @Override
   public DynamicFunctionSymbol getCurrentFunction() {
     return _bodyContext.getCurrentDFS();
+  }
+
+  @Override
+  public int incrementLazyTypeMethodCount() {
+    return _iLazyMethodCount++;
   }
 
   @Override

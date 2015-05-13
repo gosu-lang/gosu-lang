@@ -12,6 +12,7 @@ import gw.internal.gosu.ir.transform.TopLevelTransformationContext;
 import gw.internal.gosu.parser.ArrayExpansionMethodInfo;
 import gw.internal.gosu.parser.expressions.BeanMethodCallExpression;
 import gw.internal.gosu.parser.expressions.Identifier;
+import gw.internal.gosu.parser.expressions.SuperAccess;
 import gw.internal.gosu.parser.statements.BeanMethodCallStatement;
 import gw.internal.gosu.runtime.GosuRuntimeMethods;
 import gw.lang.ir.IRElement;
@@ -107,7 +108,11 @@ public class BeanMethodCallExpressionTransformer extends AbstractExpressionTrans
       {
         List<IRExpression> irArgs = new ArrayList<IRExpression>();
         pushArgumentsWithCasting( irMethod, _expr().getArgs(), irArgs );
-        if( isSuperCall( rootExpr ) )
+        if( rootExpr instanceof SuperAccess )
+        {
+          irMethodCall = callSpecialMethod( getDescriptor( rootExpr.getType() ), irMethod, irRoot, irArgs, namedArgOrder );
+        }
+        else if( isSuperCall( rootExpr ) )
         {
           irMethodCall = callSpecialMethod( getDescriptor( _cc().getSuperType() ), irMethod, irRoot, irArgs, namedArgOrder );
         }

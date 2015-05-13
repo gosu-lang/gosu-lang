@@ -29,6 +29,7 @@ public class AsmMethod implements IGeneric {
   private AsmClass _owner;
   private boolean _bGeneric;
   private Object _defaultAnnoValue;
+  private int _iLine;
 
   public AsmMethod( AsmClass owner, int access, String name, String desc, String[] exceptions ) {
     _owner = owner;
@@ -39,6 +40,7 @@ public class AsmMethod implements IGeneric {
     _parameters = Collections.emptyList();
     _genericExceptions = Collections.emptyList();
     _genericParameters = Collections.emptyList();
+    _iLine = -1;
     assignTypeFromDesc( desc );
     //noinspection unchecked
     _paramAnnotations = new List[_parameters.size()];
@@ -229,6 +231,15 @@ public class AsmMethod implements IGeneric {
     return tvString;
   }
 
+  void assignLineNumber( int iLine ) {
+    if( _iLine < 0 ) {
+      _iLine = iLine;
+    }
+  }
+  public int getLineNumber() {
+    return _iLine;
+  }
+
   public AsmType findTypeVariable( String tv ) {
     for( AsmType p: _methodType.getTypeParameters() ) {
       if( p.getName().equals( tv ) ) {
@@ -237,6 +248,7 @@ public class AsmMethod implements IGeneric {
     }
     return null;
   }
+
 
   @Override
   public boolean equals( Object o ) {

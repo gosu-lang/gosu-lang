@@ -4,15 +4,11 @@
 
 package gw.lang.reflect;
 
-import gw.config.CommonServices;
 import gw.lang.GosuShop;
 import gw.util.concurrent.LockingLazyVar;
 
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 public class DefaultArrayTypeInfo extends TypeInfoBase implements IRelativeTypeInfo {
   private IType _type;
@@ -67,6 +63,10 @@ public class DefaultArrayTypeInfo extends TypeInfoBase implements IRelativeTypeI
   }
 
   public boolean hasAnnotation( IType type ) {
+    return false;
+  }
+
+  public boolean isDefaultImpl() {
     return false;
   }
 

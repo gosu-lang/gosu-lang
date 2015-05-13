@@ -29,6 +29,11 @@ public abstract class PropertyInfoBase implements IPropertyInfo
     return null;
   }
 
+  @Override
+  public boolean isDefaultImpl() {
+    return false;
+  }
+
   public boolean isVisible( IScriptabilityModifier constraint )
   {
     return true;

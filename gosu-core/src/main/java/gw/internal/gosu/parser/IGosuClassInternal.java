@@ -32,7 +32,7 @@ public interface IGosuClassInternal extends IGosuClass, ICompilableTypeInternal
 
   void assignTypeUsesMap( GosuParser parser );
 
-  List<IFunctionType> getUnimplementedMethods( List<IFunctionType> unimpled, IGosuClassInternal implClass );
+  List<IFunctionType> getUnimplementedMethods( List<IFunctionType> unimpled, IGosuClassInternal implClass, boolean bAcceptAbstract );
 
   void setJavaType( IJavaType javaType );
 

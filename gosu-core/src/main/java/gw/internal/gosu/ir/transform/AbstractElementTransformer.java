@@ -58,6 +58,7 @@ import gw.lang.ir.expression.IRCompositeExpression;
 import gw.lang.ir.expression.IREqualityExpression;
 import gw.lang.ir.expression.IRFieldGetExpression;
 import gw.lang.ir.expression.IRIdentifier;
+import gw.lang.ir.expression.IRLazyTypeMethodCallExpression;
 import gw.lang.ir.expression.IRMethodCallExpression;
 import gw.lang.ir.expression.IRNegationExpression;
 import gw.lang.ir.expression.IRNewArrayExpression;
@@ -73,8 +74,10 @@ import gw.lang.ir.statement.IRAssignmentStatement;
 import gw.lang.ir.statement.IRFieldSetStatement;
 import gw.lang.ir.statement.IRIfStatement;
 import gw.lang.ir.statement.IRMethodCallStatement;
+import gw.lang.ir.statement.IRMethodStatement;
 import gw.lang.ir.statement.IRNewStatement;
 import gw.lang.ir.statement.IRReturnStatement;
+import gw.lang.ir.statement.IRStatementList;
 import gw.lang.ir.statement.IRThrowStatement;
 import gw.lang.parser.GlobalScope;
 import gw.lang.parser.IAttributeSource;
@@ -91,6 +94,7 @@ import gw.lang.parser.ISymbol;
 import gw.lang.parser.Keyword;
 import gw.lang.parser.StandardCoercionManager;
 import gw.lang.parser.statements.IFunctionStatement;
+import gw.lang.reflect.ClassLazyTypeResolver;
 import gw.lang.reflect.FunctionType;
 import gw.lang.reflect.IBlockType;
 import gw.lang.reflect.IConstructorInfo;
@@ -106,8 +110,11 @@ import gw.lang.reflect.IRelativeTypeInfo;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.ITypeInfo;
 import gw.lang.reflect.ITypeVariableType;
+import gw.lang.reflect.LazyTypeResolver;
 import gw.lang.reflect.Modifier;
+import gw.lang.reflect.ParameterizedFunctionType;
 import gw.lang.reflect.PropertyInfoDelegate;
+import gw.lang.reflect.SimpleTypeLazyTypeResolver;
 import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.gs.BytecodeOptions;
 import gw.lang.reflect.gs.ICompilableType;
@@ -116,6 +123,7 @@ import gw.lang.reflect.gs.IGenericTypeVariable;
 import gw.lang.reflect.gs.IGosuClass;
 import gw.lang.reflect.gs.IGosuConstructorInfo;
 import gw.lang.reflect.gs.IGosuEnhancement;
+import gw.lang.reflect.gs.IGosuFragment;
 import gw.lang.reflect.gs.IGosuMethodInfo;
 import gw.lang.reflect.gs.IGosuProgram;
 import gw.lang.reflect.gs.IGosuVarPropertyInfo;
@@ -392,14 +400,14 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
     {
       for( IType typeParam : enhancementType.getTypeParameters() )
       {
-        args.add( pushType( typeParam ) );
+        args.add( pushLazyType( typeParam ) );
       }
     }
     else if( enhancementType.isGenericType() )
     {
       for( IGenericTypeVariable typeVariable : enhancementType.getGenericTypeVariables() )
       {
-        args.add( pushType( typeVariable.getTypeVariableDefinition().getType() ) );
+        args.add( pushLazyType( typeVariable.getTypeVariableDefinition().getType() ) );
       }
     }
   }
@@ -407,7 +415,6 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
   private IRExpression callMethodReflectively( IType owner, String strMethod, IRType returnType, List<IRType> paramTypes,
                                                IRExpression root, List<IRExpression> args)
   {
-
     // Our three arguments to getDeclaredMethods are the owners Class, the name of the method, and
     // a Class[] containing the types of the parameters
     List<IRExpression> argExprs = new ArrayList<IRExpression>();
@@ -458,7 +465,7 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
       IType[] typeParams = funcType.getTypeParameters();
       for( IType typeParam : typeParams )
       {
-        args.add( pushType( typeParam ) );
+        args.add( pushLazyType( typeParam ) );
       }
     }
     else if( irMethod.getTypeVariables() != null )
@@ -466,14 +473,14 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
       IGenericTypeVariable[] typeVars = irMethod.getTypeVariables();
       for( IGenericTypeVariable typeVariable : typeVars )
       {
-        args.add( pushType( typeVariable.getBoundingType() ) );
+        args.add( pushLazyType( typeVariable.getBoundingType() ) );
       }
     }
     else if( funcType.isGenericType() )
     {
       for( IGenericTypeVariable typeVariable : funcType.getGenericTypeVariables() )
       {
-        args.add( pushType( typeVariable.getTypeVariableDefinition().getType().getBoundingType() ) );
+        args.add( pushLazyType( typeVariable.getTypeVariableDefinition().getType().getBoundingType() ) );
       }
     }
   }
@@ -483,6 +490,255 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
     return new IRIfStatement( new IREqualityExpression( identifier( symbol ), nullLiteral(), true ),
                               new IRThrowStatement( buildNewExpression( getDescriptor(NullPointerException.class), Collections.<IRType>emptyList(), exprList())),
                               null);
+  }
+
+  public IRExpression pushLazyType( IType type )
+  {
+    return pushLazyType( type, null );
+  }
+  public IRExpression pushLazyType( IType type, IGenericTypeVariable[] tvs )
+  {
+    if( tvs == null || tvs.length == 0 )
+    {
+      IRExpression fastAccessType = maybePushFastLazyType( type );
+      if( fastAccessType != null ) {
+        return fastAccessType;
+      }
+    }
+    return pushLazyTypeWithInvokeDynamic( type, tvs );
+  }
+
+  private IRExpression pushLazyTypeWithInvokeDynamic( IType type, IGenericTypeVariable[] tvs ) {
+    IRMethodStatement method = makeLazyTypeMethod( type, tvs );
+    _cc().getIrClass().addMethod( method );
+    return buildNewExpression( LazyTypeResolver.class, new Class[]{LazyTypeResolver.ITypeResolver.class},
+                               Collections.<IRExpression>singletonList( buildLazyTypeResolverCall( method, tvs ) ) );
+  }
+
+  private IRExpression maybePushFastLazyType( IType type )
+  {
+    IType genType = TypeLord.getPureGenericType( type );
+
+    if( genType == type &&
+        (!type.isArray() || !TypeLord.getCoreType( type ).isParameterizedType()) &&
+        Modifier.isPublic( TypeLord.getCoreType( type ).getModifiers() ) )
+    {
+      // Non-generic Java or Gosu type (can be array)...
+
+      if( type instanceof IJavaType )
+      {
+        Class backingClass = ((IJavaType)type).getBackingClass();
+        if( backingClass != null )
+        {
+          ClassLoader cl = backingClass.getClassLoader();
+          if( cl == null || cl == ClassLoader.getSystemClassLoader() )
+          {
+            String fieldName = ClassLazyTypeResolver.getCachedFieldName( backingClass );
+            if( fieldName != null )
+            {
+              // Frequently used Java system classes
+
+              // Extra Fast (static field access) lazy resolves using cached frequenlty used Java type
+              return buildFieldGet( getDescriptor( ClassLazyTypeResolver.class ), fieldName, getDescriptor( ClassLazyTypeResolver.class ), null );
+            }
+            else
+            {
+              // Other Java system classes
+
+              // Fast -- (new expr) lazy resolves with class-based lookup
+              return buildNewExpression( ClassLazyTypeResolver.class, new Class[]{Class.class}, Collections.singletonList( classLiteral( getDescriptor( type ) ) ) );
+            }
+          }
+        }
+      }
+
+      if( type instanceof IGosuClass )
+      {
+        // Fast -- (new expr) lazy resolves using fqn + module name lookup
+        IModule module = getModule( genType );
+        return buildNewExpression( SimpleTypeLazyTypeResolver.class, new Class[]{String.class, String.class},
+                                   Arrays.<IRExpression>asList( pushConstant( type.getName() ), module == null ? pushNull() : pushConstant( module.getName() ) ) );
+      }
+
+      else if( genType instanceof TypeVariableType )
+      {
+        // OMG Fast, straight reference (ALoad or GetField access) to existing LazyTypeResolver for type var
+        return getRuntimeTypeParameter( (TypeVariableType)genType );
+      }
+    }
+
+    // Fast Enough -- (invokedynamic) lazy resolves by calling into generated method on enclosing class, which in turn looks up by name etc. (basically the code generated by pushType() is what is executed inside the generated itype$X method)
+    return null;
+  }
+
+  private IRCompositeExpression buildLazyTypeResolverCall( IRMethodStatement method, IGenericTypeVariable[] tvs ) {
+    DynamicFunctionSymbol compilingDfs = _cc().getCurrentFunction();
+    if( (compilingDfs != null && compilingDfs.isStatic()) ||
+        !_cc().hasSuperBeenInvoked() ||
+        _cc().getGosuClass() instanceof IGosuFragment ) {
+      return buildStaticLazyTypeResolverCall( method );
+    }
+    else if( getGosuClass() instanceof IGosuEnhancement ) {
+      return buildEnhancementLazyTypeResolverCall( method );
+    }
+    else if( tvs != null ) {
+      return buildSuperCallLazyTypeResolverCall( method, tvs );
+    }
+    else {
+      return buildInstanceLazyTypeResolverCall( method );
+    }
+  }
+  private IRCompositeExpression buildStaticLazyTypeResolverCall( IRMethodStatement method ) {
+    IGenericTypeVariable[] tvs = getGenericFunctionTypeVariables( _cc().getCurrentFunction() );
+    IRElement[] exprs = new IRElement[1 + (tvs == null ? 0 : tvs.length)];
+    int i = 0;
+    if( tvs != null ) {
+      for( IGenericTypeVariable tv: tvs ) {
+        exprs[i++] = identifier( _cc().getSymbol( getTypeVarParamName( tv ) ) );
+      }
+    }
+    exprs[i] = new IRLazyTypeMethodCallExpression( method.getName(), getDescriptor( getGosuClass() ), getGosuClass().getName(), tvs == null ? 0 : tvs.length, true );
+    return buildComposite( exprs );
+  }
+  private IRCompositeExpression buildEnhancementLazyTypeResolverCall( IRMethodStatement method ) {
+    IGenericTypeVariable[] tvs = getGenericFunctionTypeVariables( _cc().getCurrentFunction() );
+    IRElement[] exprs = new IRElement[1 + (tvs == null ? 0 : tvs.length)];
+    int i = 0;
+    if( tvs != null ) {
+      for( IGenericTypeVariable tv: tvs ) {
+        exprs[i++] = identifier( _cc().getSymbol( getTypeVarParamName( tv ) ) );
+      }
+    }
+    exprs[i] = new IRLazyTypeMethodCallExpression( method.getName(), getDescriptor( getGosuClass() ), getGosuClass().getName(), tvs == null ? 0 : tvs.length, true );
+    return buildComposite( exprs );
+  }
+  private IRCompositeExpression buildInstanceLazyTypeResolverCall( IRMethodStatement method ) {
+    IGenericTypeVariable[] tvs = getGenericFunctionTypeVariables( _cc().getCurrentFunction() );
+    IRElement[] exprs = new IRElement[2 + (tvs == null ? 0 : tvs.length)];
+    int i = 0;
+    exprs[i++] = pushThis();
+    if( tvs != null ) {
+      for( IGenericTypeVariable tv: tvs ) {
+        exprs[i++] = identifier( _cc().getSymbol( getTypeVarParamName( tv ) ) );
+      }
+    }
+    exprs[i] = new IRLazyTypeMethodCallExpression( method.getName(), getDescriptor( getGosuClass() ), getGosuClass().getName(), tvs == null ? 0 : tvs.length, false );
+    return buildComposite( exprs );
+  }
+  private IRCompositeExpression buildSuperCallLazyTypeResolverCall( IRMethodStatement method, IGenericTypeVariable[] tvs ) {
+    tvs = tvs != null ? tvs : getGenericFunctionTypeVariables( _cc().getCurrentFunction() );
+    IRElement[] exprs = new IRElement[1 + (tvs == null ? 0 : tvs.length)];
+    int i = 0;
+    if( tvs != null ) {
+      for( IGenericTypeVariable tv: tvs ) {
+        exprs[i++] = identifier( _cc().getSymbol( getTypeVarParamName( tv ) ) );
+      }
+    }
+    exprs[i] = new IRLazyTypeMethodCallExpression( method.getName(), getDescriptor( getGosuClass() ), getGosuClass().getName(), tvs == null ? 0 : tvs.length, true );
+    return buildComposite( exprs );
+  }
+
+  private IRMethodStatement makeLazyTypeMethod( IType type, IGenericTypeVariable[] tvs ) {
+    DynamicFunctionSymbol compilingDfs = _cc().getCurrentFunction();
+    if( (compilingDfs != null && compilingDfs.isStatic()) ||
+      !_cc().hasSuperBeenInvoked() ||
+      _cc().getGosuClass() instanceof IGosuFragment ) {
+      return makeStaticLazyTypeMethod( type );
+    }
+    else if( getGosuClass() instanceof IGosuEnhancement ) {
+      return makeEnhancementLazyTypeMethod( type );
+    }
+    else if( tvs != null ) {
+      return makeSuperCallLazyTypeMethod( type, tvs );
+    }
+    else {
+      return makeInstanceLazyTypeMethod( type );
+    }
+  }
+  private IRMethodStatement makeStaticLazyTypeMethod( IType type ) {
+    IGenericTypeVariable[] tvs = getGenericFunctionTypeVariables( _cc().getCurrentFunction() );
+    List<IRSymbol> functionTypeVarParams = new ArrayList<IRSymbol>();
+    if( tvs != null ) {
+      for( IGenericTypeVariable tv: tvs ) {
+          functionTypeVarParams.add( _cc().getSymbol( getTypeVarParamName( tv ) ) );
+      }
+    }
+    int iIndex = _cc().incrementLazyTypeMethodCount();
+    String methodName = "itype$" + iIndex;
+
+    return new IRMethodStatement(
+      new IRStatementList( true, new IRReturnStatement( null, pushType( type ) ) ),
+      methodName,
+      Opcodes.ACC_PRIVATE | Opcodes.ACC_SYNTHETIC | Opcodes.ACC_STATIC,
+      getDescriptor( IType.class ),
+      functionTypeVarParams );
+  }
+  private IRMethodStatement makeEnhancementLazyTypeMethod( IType type ) {
+    IGenericTypeVariable[] tvs = getGenericFunctionTypeVariables( _cc().getCurrentFunction() );
+    List<IRSymbol> functionTypeVarParams = new ArrayList<IRSymbol>();
+    if( tvs != null ) {
+      for( IGenericTypeVariable tv: tvs ) {
+          functionTypeVarParams.add( _cc().getSymbol( getTypeVarParamName( tv ) ) );
+      }
+    }
+    int iIndex = _cc().incrementLazyTypeMethodCount();
+    String methodName = "itype$" + iIndex;
+
+    return new IRMethodStatement(
+      new IRStatementList( true, new IRReturnStatement( null, pushType( type ) ) ),
+      methodName,
+      Opcodes.ACC_PRIVATE | Opcodes.ACC_SYNTHETIC | Opcodes.ACC_STATIC,
+      getDescriptor( IType.class ),
+      functionTypeVarParams );
+  }
+  private IRMethodStatement makeSuperCallLazyTypeMethod( IType type, IGenericTypeVariable[] tvs ) {
+    boolean bStatic = tvs != null;
+    tvs = tvs == null ? getGenericFunctionTypeVariables( _cc().getCurrentFunction() ) : tvs;
+    List<IRSymbol> functionTypeVarParams = new ArrayList<IRSymbol>();
+    if( tvs != null ) {
+      for( IGenericTypeVariable tv: tvs ) {
+          functionTypeVarParams.add( _cc().getSymbol( getTypeVarParamName( tv ) ) );
+      }
+    }
+    int iIndex = _cc().incrementLazyTypeMethodCount();
+    String methodName = "itype$" + iIndex;
+
+    return new IRMethodStatement(
+      new IRStatementList( true, new IRReturnStatement( null, pushType( type ) ) ),
+      methodName,
+      Opcodes.ACC_PRIVATE | Opcodes.ACC_SYNTHETIC | (bStatic ? Opcodes.ACC_STATIC : 0),
+      getDescriptor( IType.class ),
+      functionTypeVarParams );
+  }
+  private IRMethodStatement makeInstanceLazyTypeMethod( IType type ) {
+    IGenericTypeVariable[] tvs = getGenericFunctionTypeVariables( _cc().getCurrentFunction() );
+    List<IRSymbol> functionTypeVarParams = new ArrayList<IRSymbol>();
+    if( tvs != null ) {
+      for( IGenericTypeVariable tv: tvs ) {
+        functionTypeVarParams.add( _cc().getSymbol( getTypeVarParamName( tv ) ) );
+      }
+    }
+    int iIndex = _cc().incrementLazyTypeMethodCount();
+    String methodName = "itype$" + iIndex;
+
+    return new IRMethodStatement(
+      new IRStatementList( true, new IRReturnStatement( null, pushType( type ) ) ),
+      methodName,
+      Opcodes.ACC_PRIVATE | Opcodes.ACC_SYNTHETIC,
+      getDescriptor( IType.class ),
+      functionTypeVarParams );
+  }
+
+  private IGenericTypeVariable[] getGenericFunctionTypeVariables( IDynamicFunctionSymbol currentFunction ) {
+    if( currentFunction == null ) {
+      return null;
+    }
+    IDynamicFunctionSymbol csr = currentFunction;
+    while( csr != null && csr.getType() instanceof ParameterizedFunctionType ) {
+      currentFunction = currentFunction.getBackingDfs();
+    }
+    List<IGenericTypeVariable> typeVarsForDFS = getTypeVarsForDFS( currentFunction );
+    return typeVarsForDFS.toArray( new IGenericTypeVariable[typeVarsForDFS.size()] );
   }
 
   public IRExpression pushType( IType type )
@@ -546,7 +802,7 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
       //## todo: this won't work, IExpression is not a constant type
       args.add( pushArrayOfDefValueExpr( blockType.getDefaultValueExpressions() ) );
       return buildNewExpression( getDescriptor( BlockType.class ),
-                                 Arrays.asList(IRTypeConstants.ITYPE(), getDescriptor( IType[].class ), getDescriptor( String[].class ), getDescriptor( IExpression[].class ) ),
+                                 Arrays.asList( IRTypeConstants.ITYPE(), getDescriptor( IType[].class ), getDescriptor( String[].class ), getDescriptor( IExpression[].class ) ),
                                  args );
     }
     else if( type instanceof IFunctionType )
@@ -557,7 +813,7 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
       args.add( pushType( funcType.getReturnType() ) );
       args.add( pushArrayOfTypes( funcType.getParameterTypes() ) );
       return buildNewExpression( getDescriptor( FunctionType.class ),
-                                 Arrays.asList(IRTypeConstants.STRING(), IRTypeConstants.ITYPE(), getDescriptor( IType[].class ) ),
+                                 Arrays.asList( IRTypeConstants.STRING(), IRTypeConstants.ITYPE(), getDescriptor( IType[].class ) ),
                                  args );
     }
     else if( type instanceof CompoundType )
@@ -648,10 +904,10 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
   public IRExpression pushArrayOfTypes( IType[] types )
   {
     List<IRExpression> values = new ArrayList<IRExpression>();
-    for (IType type : types) {
+    for( IType type : types ) {
       values.add( pushType( type ) );
     }
-    return buildInitializedArray(IRTypeConstants.ITYPE(), values );
+    return buildInitializedArray( IRTypeConstants.ITYPE(), values );
   }
 
   public static boolean requiresImplicitEnhancementArg( ReducedDynamicFunctionSymbol dfs )
@@ -2144,7 +2400,7 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
 
     if( rtType instanceof TypeVariableType )
     {
-      return getRuntimeTypeParameter( (TypeVariableType)rtType );
+      return buildCast( getDescriptor( IType.class ), buildMethodCall( LazyTypeResolver.class, "get", Object.class, new Class[0], getRuntimeTypeParameter( (TypeVariableType)rtType ), Collections.<IRExpression>emptyList() ) );
     }
     else if( rtType instanceof TypeVariableArrayType )
     {
@@ -2157,12 +2413,11 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
         rtType = rtType.getComponentType();
       }
       IRExpression typeNameExpression = callMethod( String.class, "concat", new Class[]{String.class},
-              callMethod( IType.class, "getName", new Class[0],
-                      getRuntimeTypeParameter( (TypeVariableType)rtType ),
-                      Collections.<IRExpression>emptyList()),
-              Collections.singletonList( pushConstant( brackets.toString() )) );
-      return callStaticMethod( TypeSystem.class, "getByFullName", new Class[]{String.class},
-              Collections.singletonList(typeNameExpression) );
+        callMethod( IType.class, "getName", new Class[0],
+                    buildCast( getDescriptor( IType.class ), buildMethodCall( LazyTypeResolver.class, "get", Object.class, new Class[0], getRuntimeTypeParameter( (TypeVariableType)rtType ), Collections.<IRExpression>emptyList() ) ),
+                    Collections.<IRExpression>emptyList() ),
+        Collections.singletonList( pushConstant( brackets.toString() ) ) );
+      return callStaticMethod( TypeSystem.class, "getByFullName", new Class[]{String.class}, Collections.singletonList( typeNameExpression ) );
     }
     else
     {
@@ -2235,7 +2490,7 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
     {
       if( gv.getName().equals( type.getName() ) )
       {
-        return getInstanceField( getGosuClass(), strTypeVarField, IRTypeConstants.ITYPE(), AccessibilityUtil.forTypeParameter(), pushThis() );
+        return getInstanceField( getGosuClass(), strTypeVarField, getDescriptor( LazyTypeResolver.class ), AccessibilityUtil.forTypeParameter(), pushThis() );
       }
     }
 
@@ -2262,7 +2517,7 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
       {
         if( gv.getName().equals( type.getName() ) )
         {
-          return getInstanceField( gsClass, strTypeVarField, IRTypeConstants.ITYPE(), AccessibilityUtil.forTypeParameter(), pushOuter( gsClass ) );
+          return getInstanceField( gsClass, strTypeVarField, getDescriptor( LazyTypeResolver.class ), AccessibilityUtil.forTypeParameter(), pushOuter( gsClass ) );
         }
       }
 
@@ -2298,7 +2553,7 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
         {
           if( gv.getName().equals( type.getName() ) )
           {
-            return getInstanceField( gsClass, strTypeVarField, IRTypeConstants.ITYPE(), AccessibilityUtil.forTypeParameter(), pushThisOrOuter( gsClass ) );
+            return getInstanceField( gsClass, strTypeVarField, getDescriptor( LazyTypeResolver.class ), AccessibilityUtil.forTypeParameter(), pushThisOrOuter( gsClass ) );
           }
         }
       }
@@ -2342,6 +2597,14 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
     if( dfs.getType().isGenericType() )
     {
       typeVars.addAll( Arrays.asList( dfs.getType().getGenericTypeVariables() ) );
+    }
+    else if( dfs.isConstructor() )
+    {
+      IType declaringType = TypeLord.getPureGenericType( dfs.getDeclaringTypeInfo().getOwnersType() );
+      if( declaringType.isGenericType() )
+      {
+        typeVars.addAll( Arrays.asList( declaringType.getGenericTypeVariables() ) );
+      }
     }
     return typeVars;
   }
@@ -2395,33 +2658,31 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
     //
     // Insert type-parameter types
     //
-    if( iTypeParams > 0 )
-    {
-      for( int i = 0; i < iTypeParams; i++ )
-      {
-        params.add(IRTypeConstants.ITYPE());
+    if( iTypeParams > 0 ) {
+      for( int i = 0; i < iTypeParams; i++ ) {
+        params.add( getDescriptor( LazyTypeResolver.class ) );
       }
     }
 
     //
     // Enums have name and ordinal arguments implicitly added to their constructors
     //
-    if (type.isEnum()) {
-      params.add(IRTypeConstants.STRING());
-      params.add(IRTypeConstants.pINT());
+    if( type.isEnum() ) {
+      params.add( IRTypeConstants.STRING() );
+      params.add( IRTypeConstants.pINT() );
     }
 
     //
     // Add declared parameters
     //
-    for (IType declaredParam : declaredParams ) {
+    for( IType declaredParam : declaredParams ) {
       params.add( getDescriptor( declaredParam ) );
     }
 
-    return params.toArray(new IRType[params.size()]);
+    return params.toArray( new IRType[params.size()] );
   }
 
-  protected int pushTypeParametersForConstructor( IExpression expr, IType type, List<IRExpression> args )
+  protected int pushTypeParametersForConstructor( IExpression expr, IType type, List<IRExpression> args, boolean bSuperCall )
   {
     if( !(type instanceof IGosuClassInternal) )
     {
@@ -2433,14 +2694,17 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
     {
       for( IType typeParam : type.getTypeParameters() )
       {
-        args.add( pushType( typeParam ) );
+        args.add( bSuperCall
+                  ? pushLazyType( typeParam, TypeLord.getPureGenericType( getGosuClass() ).getGenericTypeVariables() )
+                  : pushLazyType( typeParam ) );
         iCount++;
       }
-    } else if (type.isGenericType()) {
+    }
+    else if( type.isGenericType() ) {
       // We should only be here if it's a this() call, so we grab the type parameters out of the current scope,
       // i.e. just pass through whatever was passed to this constructor
       for ( IGenericTypeVariable typeVariable : type.getGenericTypeVariables() ) {
-        args.add( identifier( new IRSymbol( getTypeVarParamName( typeVariable ), getDescriptor( IType.class ), false) ) );
+        args.add( identifier( new IRSymbol( getTypeVarParamName( typeVariable ), getDescriptor( LazyTypeResolver.class ), false) ) );
         iCount++;
       }
     }
@@ -2491,8 +2755,8 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
             else
             {
               args.add( getInstanceField( gsClass, TYPE_PARAM_PREFIX + genTypeVars.get( i ).getName(),
-                      IRTypeConstants.ITYPE(), AccessibilityUtil.forTypeParameter(),
-                      pushThisOrOuter( gsClass ) ) );
+                                          getDescriptor( LazyTypeResolver.class ), AccessibilityUtil.forTypeParameter(),
+                        pushThisOrOuter( gsClass ) ) );
             }
             iCount++;
           }
@@ -2908,7 +3172,7 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
     return new IRNewExpression( getDescriptor(type), getIRTypes(parameterTypes), args );
   }
 
-  protected String getTypeVarParamName( IGenericTypeVariable typeVar ) {
+  protected final String getTypeVarParamName( IGenericTypeVariable typeVar ) {
     return TYPE_PARAM_PREFIX + typeVar.getName();
   }
 
