@@ -29,7 +29,7 @@ class MethodDocsTest extends BaseGosuDocTest {
     var docs = gosuDocForType( MethodsClass )
     var doc = Jsoup.parse(docs.read())
     var methodDocs = doc.findMethodList( MethodsClass#privateMethod() )
-    Assert.assertNull(methodDocs)
+    Assert.assertNull( methodDocs )
   }
 
   @Test
@@ -37,7 +37,7 @@ class MethodDocsTest extends BaseGosuDocTest {
     var docs = gosuDocForType( MethodsClass )
     var doc = Jsoup.parse(docs.read())
     var methodDocs = doc.findMethodList( MethodsClass#publicMethodWithDocComment() )
-    Assert.assertTrue(methodDocs.text().contains( "publicMethodWithDocComment comment" ))
+    Assert.assertTrue( methodDocs.text().contains( "publicMethodWithDocComment comment" ) )
   }
 
   @Test
@@ -45,7 +45,7 @@ class MethodDocsTest extends BaseGosuDocTest {
     var docs = gosuDocForType( MethodsClass )
     var doc = Jsoup.parse(docs.read())
     var methodDocs = doc.findMethodList( MethodsClass#publicMethodWithCComment() )
-    Assert.assertTrue(methodDocs.text().contains( "publicMethodWithCComment comment" ))
+    Assert.assertTrue( methodDocs.text().contains( "publicMethodWithCComment comment" ) )
   }
 
   @Test
@@ -53,7 +53,39 @@ class MethodDocsTest extends BaseGosuDocTest {
     var docs = gosuDocForType( MethodsClass )
     var doc = Jsoup.parse(docs.read())
     var methodDocs = doc.findMethodList( MethodsClass#publicMethodWithLineComment() )
-    Assert.assertFalse(methodDocs.text().contains( "publicMethodWithLineComment comment" ))
+    Assert.assertFalse( methodDocs.text().contains( "publicMethodWithLineComment comment" ) )
+  }
+
+  @Test
+  function publicMethodOnParentIsNotIncluded() {
+    var docs = gosuDocForType( MethodsClass )
+    var doc = Jsoup.parse(docs.read())
+    var methodDocs = doc.findMethodList( MethodsClass#publicMethodFromParent() )
+    Assert.assertNull( methodDocs )
+  }
+
+  @Test
+  function publicMethodOnDirectEnhancementIsIncluded() {
+    var docs = gosuDocForType( MethodsClass )
+    var doc = Jsoup.parse(docs.read())
+    var methodDocs = doc.findMethodList( MethodsClass#publicMethodFromDirectEnhancement() )
+    Assert.assertNotNull( methodDocs )
+  }
+
+  @Test
+  function publicMethodOnParentEnhancementIsIncluded() {
+    var docs = gosuDocForType( MethodsClass )
+    var doc = Jsoup.parse(docs.read())
+    var methodDocs = doc.findMethodList( MethodsClass#publicMethodFromParentEnhancement() )
+    Assert.assertNotNull( methodDocs )
+  }
+
+  @Test
+  function publicMethodWithJavadocStyleThrowsAnnotationHasProperDocs() {
+    var docs = gosuDocForType( MethodsClass )
+    var doc = Jsoup.parse(docs.read())
+    var methodDocs = doc.findMethodList( MethodsClass#publicMethodWithJavaStyleThrows() )
+    Assert.assertTrue( methodDocs.text().contains( "throws java.lang.NullPointerException" ) )
   }
 
 }

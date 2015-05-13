@@ -1,6 +1,6 @@
 package com.example.bootstrap
 
-class MethodsClass {
+class MethodsClass extends MethodClassParent {
 
   function publicMethod() {}
 
@@ -17,5 +17,9 @@ class MethodsClass {
   // publicMethodWithLineComment comment
   function publicMethodWithLineComment() {}
 
+  /**
+   * @throws java.lang.NullPointerException
+   */
+  function publicMethodWithJavaStyleThrows() {}
 
 }
