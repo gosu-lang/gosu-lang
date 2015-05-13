@@ -670,7 +670,7 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
       new IRStatementList( true, new IRReturnStatement( null, pushType( type ) ) ),
       methodName,
       Opcodes.ACC_PRIVATE | Opcodes.ACC_SYNTHETIC | Opcodes.ACC_STATIC,
-      getDescriptor( IType.class ),
+      false, getDescriptor( IType.class ),
       functionTypeVarParams );
   }
   private IRMethodStatement makeEnhancementLazyTypeMethod( IType type ) {
@@ -688,7 +688,7 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
       new IRStatementList( true, new IRReturnStatement( null, pushType( type ) ) ),
       methodName,
       Opcodes.ACC_PRIVATE | Opcodes.ACC_SYNTHETIC | Opcodes.ACC_STATIC,
-      getDescriptor( IType.class ),
+      false, getDescriptor( IType.class ),
       functionTypeVarParams );
   }
   private IRMethodStatement makeSuperCallLazyTypeMethod( IType type, IGenericTypeVariable[] tvs ) {
@@ -707,7 +707,7 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
       new IRStatementList( true, new IRReturnStatement( null, pushType( type ) ) ),
       methodName,
       Opcodes.ACC_PRIVATE | Opcodes.ACC_SYNTHETIC | (bStatic ? Opcodes.ACC_STATIC : 0),
-      getDescriptor( IType.class ),
+      false, getDescriptor( IType.class ),
       functionTypeVarParams );
   }
   private IRMethodStatement makeInstanceLazyTypeMethod( IType type ) {
@@ -725,7 +725,7 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
       new IRStatementList( true, new IRReturnStatement( null, pushType( type ) ) ),
       methodName,
       Opcodes.ACC_PRIVATE | Opcodes.ACC_SYNTHETIC,
-      getDescriptor( IType.class ),
+      false, getDescriptor( IType.class ),
       functionTypeVarParams );
   }
 

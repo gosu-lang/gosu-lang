@@ -19,8 +19,8 @@ import gw.internal.gosu.parser.expressions.Identifier;
 import gw.internal.gosu.parser.expressions.Literal;
 import gw.internal.gosu.parser.expressions.MemberAccess;
 import gw.internal.gosu.parser.expressions.MemberExpansionAccess;
+import gw.internal.gosu.parser.expressions.SuperAccess;
 import gw.internal.gosu.parser.expressions.TypeLiteral;
-import gw.internal.gosu.parser.expressions.MemberExpansionAccess;
 import gw.internal.gosu.parser.optimizer.SinglePropertyMemberAccessRuntime;
 import gw.internal.gosu.runtime.GosuRuntimeMethods;
 import gw.lang.Autocreate;
@@ -211,7 +211,7 @@ public class MemberAccessTransformer extends AbstractExpressionTransformer<Membe
     {
       return buildArrayLength( root );
     }
-    else if( rootExpr instanceof SuperAccess )
+    else if( rootExpr instanceof SuperAccess)
     {
       return callSpecialMethod( getDescriptor( rootExpr.getType() ), irProperty.getGetterMethod(), root, exprList(  ) );
     }
@@ -334,7 +334,7 @@ public class MemberAccessTransformer extends AbstractExpressionTransformer<Membe
 
     if( isTypeProperty( pi ) )
     {
-      if( rootExpr instanceof TypeLiteral )
+      if( rootExpr instanceof TypeLiteral)
       {
         IRExpression result = checkCast( pi.getFeatureType(), pushType( rootType ) );
         return maybeEvalRoot( rootExpr, result );

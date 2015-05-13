@@ -6452,7 +6452,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
             Res.MSG_ABSTRACT_METHOD_CANNOT_BE_ACCESSED_DIRECTLY, strMemberName );
   }
 
-  private boolean shouldParseMemberInstead( String strMemberName, IType rootType, boolean bExpansion, IType memberType )
+  private boolean shouldParseMemberInstead( String strMemberName, IType rootType, IType memberType )
   {
     IType ctxType = getOwner().getContextType().getType();
     if( !(ctxType instanceof IMetaType) )

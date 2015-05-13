@@ -11,7 +11,6 @@ import gw.internal.gosu.ir.transform.TopLevelTransformationContext;
 import gw.internal.gosu.parser.BeanAccess;
 import gw.internal.gosu.parser.Expression;
 import gw.internal.gosu.parser.expressions.ArithmeticExpression;
-import gw.internal.gosu.runtime.GosuRuntimeMethods;
 import gw.lang.ir.IRExpression;
 import gw.lang.ir.IRStatement;
 import gw.lang.ir.IRSymbol;
@@ -357,11 +356,11 @@ abstract class ArithmeticExpressionTransformer<T extends ArithmeticExpression> e
       {
          //todo: switch to  Math.xxExact instead when we move to Java 8
         case Addition:
-          return callStaticMethod( GosuRuntimeMethods.class, "addExact", paramTypes, Arrays.asList( lhs, rhs ) );
+          return callStaticMethod( Math.class, "addExact", paramTypes, Arrays.asList( lhs, rhs ) );
         case Subtraction:
-          return callStaticMethod( GosuRuntimeMethods.class, "subtractExact", paramTypes, Arrays.asList( lhs, rhs ) );
+          return callStaticMethod( Math.class, "subtractExact", paramTypes, Arrays.asList( lhs, rhs ) );
         case Multiplication:
-          return callStaticMethod( GosuRuntimeMethods.class, "multiplyExact", paramTypes, Arrays.asList( lhs, rhs ) );
+          return callStaticMethod( Math.class, "multiplyExact", paramTypes, Arrays.asList( lhs, rhs ) );
         default:
           return new IRArithmeticExpression( descriptor, lhs, rhs, op );
       }
