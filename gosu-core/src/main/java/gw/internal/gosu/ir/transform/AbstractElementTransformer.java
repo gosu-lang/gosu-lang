@@ -2400,7 +2400,14 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
 
     if( rtType instanceof TypeVariableType )
     {
-      return buildCast( getDescriptor( IType.class ), buildMethodCall( LazyTypeResolver.class, "get", Object.class, new Class[0], getRuntimeTypeParameter( (TypeVariableType)rtType ), Collections.<IRExpression>emptyList() ) );
+      if( TypeLord.getOuterMostEnclosingClass( rtType ) instanceof IGosuClass )
+      {
+        return buildCast( getDescriptor( IType.class ), buildMethodCall( LazyTypeResolver.class, "get", Object.class, new Class[0], getRuntimeTypeParameter( (TypeVariableType)rtType ), Collections.<IRExpression>emptyList() ) );
+      }
+      else
+      {
+        return getRuntimeTypeParameter( (TypeVariableType)rtType );
+      }
     }
     else if( rtType instanceof TypeVariableArrayType )
     {
@@ -2414,7 +2421,7 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
       }
       IRExpression typeNameExpression = callMethod( String.class, "concat", new Class[]{String.class},
         callMethod( IType.class, "getName", new Class[0],
-                    buildCast( getDescriptor( IType.class ), buildMethodCall( LazyTypeResolver.class, "get", Object.class, new Class[0], getRuntimeTypeParameter( (TypeVariableType)rtType ), Collections.<IRExpression>emptyList() ) ),
+                    pushRuntimeTypeOfTypeVar( rtType ),
                     Collections.<IRExpression>emptyList() ),
         Collections.singletonList( pushConstant( brackets.toString() ) ) );
       return callStaticMethod( TypeSystem.class, "getByFullName", new Class[]{String.class}, Collections.singletonList( typeNameExpression ) );

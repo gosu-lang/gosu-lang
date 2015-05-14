@@ -6986,7 +6986,8 @@ public final class GosuParser extends ParserBase implements IGosuParser
     for( Expression e : argExpressions )
     {
       if( e instanceof IInferredNewExpression ||
-          e instanceof UnqualifiedEnumMemberAccess )
+          e instanceof UnqualifiedEnumMemberAccess ||
+          e instanceof Identifier && e.hasParseExceptions() )
       {
         return true;
       }
