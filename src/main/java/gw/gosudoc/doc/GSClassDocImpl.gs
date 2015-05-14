@@ -1,5 +1,6 @@
 package gw.gosudoc.doc
 
+uses com.sun.javadoc.AnnotationDesc
 uses com.sun.javadoc.AnnotationTypeDoc
 uses com.sun.javadoc.ClassDoc
 uses com.sun.javadoc.ConstructorDoc
@@ -16,6 +17,7 @@ uses gw.lang.reflect.ITypeInfo
 uses gw.lang.reflect.gs.IGosuEnhancement
 
 uses java.lang.NullPointerException
+uses java.lang.reflect.Modifier
 
 class GSClassDocImpl extends GSProgramElementDocImpl implements ClassDoc{
 
@@ -46,6 +48,34 @@ class GSClassDocImpl extends GSProgramElementDocImpl implements ClassDoc{
   // VITAL this returns null: otherwise we get an infinite loop during HTML generation.
   override function containingClass(): ClassDoc{
     return null
+  }
+
+  override function annotations(): AnnotationDesc[]{
+    return new AnnotationDesc[0] //TODO cgross - implement this
+  }
+
+  override property get Public(): boolean{
+    return Modifier.isPublic( _iType.Modifiers )
+  }
+
+  override property get Protected(): boolean{
+    return Modifier.isProtected( _iType.Modifiers )
+  }
+
+  override property get Private(): boolean{
+    return Modifier.isPrivate( _iType.Modifiers )
+  }
+
+  override property get PackagePrivate(): boolean{
+    return false
+  }
+
+  override property get Static(): boolean{
+    return Modifier.isStatic( _iType.Modifiers )
+  }
+
+  override property get Final(): boolean{
+    return Modifier.isFinal( _iType.Modifiers )
   }
 
   override property get Abstract(): boolean{

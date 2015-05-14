@@ -22,4 +22,7 @@ class MethodsClass extends MethodClassParent {
    */
   function publicMethodWithJavaStyleThrows() {}
 
+  /** staticPublicMethodWithDocComment comment */
+  static function staticPublicMethodWithDocComment() {}
+
 }

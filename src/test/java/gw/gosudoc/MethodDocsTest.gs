@@ -88,4 +88,13 @@ class MethodDocsTest extends BaseGosuDocTest {
     Assert.assertTrue( methodDocs.text().contains( "throws java.lang.NullPointerException" ) )
   }
 
+  @Test
+  function publicStaticMethodWithDocCommentHasDescriptionAndStaticModifier() {
+    var docs = gosuDocForType( MethodsClass )
+    var doc = Jsoup.parse(docs.read())
+    var methodDocs = doc.findMethodList( MethodsClass#staticPublicMethodWithDocComment() )
+    var text = methodDocs.text()
+    Assert.assertTrue( text.contains( " public static void staticPublicMethodWithDocComment" ) )
+  }
+
 }

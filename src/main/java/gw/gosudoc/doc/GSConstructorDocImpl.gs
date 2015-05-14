@@ -10,7 +10,7 @@ class GSConstructorDocImpl extends GSExecutableMemberDocImpl implements Construc
 
   //==========PUBLIC CONSTRUCTORS==========//
   construct( ownersIntrinsicType: IType, iConstructorInfo: IConstructorInfo, rootDoc: GSRootDocImpl, clazz: GSClassDocImpl ){
-    super( calculateFeatureName( iConstructorInfo ), rootDoc, clazz, ownersIntrinsicType )
+    super( iConstructorInfo, rootDoc, clazz, ownersIntrinsicType )
     _iConstructorInfo = iConstructorInfo
   }
 

@@ -6,6 +6,8 @@ uses com.sun.javadoc.PackageDoc
 uses com.sun.javadoc.ProgramElementDoc
 uses gw.lang.reflect.IType
 
+uses java.lang.reflect.Modifier
+
 abstract class GSProgramElementDocImpl extends GSDocImpl implements ProgramElementDoc{
 
   var _clazz: GSClassDocImpl as ClassDoc
@@ -30,40 +32,30 @@ abstract class GSProgramElementDocImpl extends GSDocImpl implements ProgramEleme
     return name()
   }
 
-  override function modifierSpecifier(): int{
-    return 0  //To change body of implemented methods use File | Settings | File Templates.
+  override function modifierSpecifier(): int {
+    var modifiers = 0
+    if(Public) {
+      modifiers |= Modifier.PUBLIC
+    } else if(Protected) {
+      modifiers |= Modifier.PROTECTED
+    }
+    if(Static) {
+      modifiers |= Modifier.STATIC
+    }
+    return modifiers
   }
 
-  override function modifiers(): String{
-    return "public"
-  }
-
-  override function annotations(): AnnotationDesc[]{
-    return new AnnotationDesc[0]  //To change body of implemented methods use File | Settings | File Templates.
-  }
-
-  override property get Public(): boolean{
-    return true
-  }
-
-  override property get Protected(): boolean{
-    return false  //To change body of implemented methods use File | Settings | File Templates.
-  }
-
-  override property get Private(): boolean{
-    return false  //To change body of implemented methods use File | Settings | File Templates.
-  }
-
-  override property get PackagePrivate(): boolean{
-    return false  //To change body of implemented methods use File | Settings | File Templates.
-  }
-
-  override property get Static(): boolean{
-    return false  //To change body of implemented methods use File | Settings | File Templates.
-  }
-
-  override property get Final(): boolean{
-    return false  //To change body of implemented methods use File | Settings | File Templates.
+  override function modifiers() : String {
+    var modifiers = ""
+    if(Public) {
+      modifiers+= "public "
+    } else if(Protected) {
+      modifiers+= "protected "
+    }
+    if(Static) {
+      modifiers+= "static "
+    }
+    return modifiers
   }
 
 // TODO cgross - enable for java 8

@@ -1,5 +1,6 @@
 package gw.gosudoc.doc
 
+uses com.sun.javadoc.AnnotationDesc
 uses com.sun.javadoc.FieldDoc
 uses com.sun.javadoc.SerialFieldTag
 uses gw.lang.reflect.IPropertyInfo
@@ -50,6 +51,30 @@ class GSFieldDocImpl extends GSMemberDocImpl implements FieldDoc{
 
   override property get Field(): boolean{
     return true
+  }
+
+  override function annotations(): AnnotationDesc[]{
+    return new AnnotationDesc[0] //TODO cgross - implement this
+  }
+
+  override property get Public(): boolean{
+    return _propertyInfo.Public
+  }
+
+  override property get Protected(): boolean{
+    return _propertyInfo.Protected
+  }
+
+  override property get Private(): boolean{
+    return _propertyInfo.Private
+  }
+
+  override property get PackagePrivate(): boolean{
+    return _propertyInfo.Internal
+  }
+
+  override property get Final(): boolean{
+    return _propertyInfo.Final
   }
 
   //==========PUBLIC METHODS==========//

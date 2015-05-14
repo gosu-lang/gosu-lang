@@ -18,7 +18,7 @@ class GSMethodDocImpl extends GSExecutableMemberDocImpl implements MethodDoc{
 
   //==========PUBLIC CONSTRUCTORS==========//
   construct( ownersIntrinsicType: IType, iMethodInfo: IMethodInfo, rootDoc: GSRootDocImpl, clazz: GSClassDocImpl ){
-    super( calculateFeatureName( iMethodInfo ), rootDoc, clazz, ownersIntrinsicType )
+    super( iMethodInfo, rootDoc, clazz, ownersIntrinsicType )
     _iMethodInfo = iMethodInfo
   }
 
@@ -67,10 +67,6 @@ class GSMethodDocImpl extends GSExecutableMemberDocImpl implements MethodDoc{
   override function flatSignature(): String{
     var returnTypeString = returnType()?.simpleTypeName()?:"void"
     return returnTypeString + " " + super.flatSignature()
-  }
-
-  override property get Static(): boolean{
-    return _iMethodInfo.isStatic()
   }
 
   override property get Method(): boolean{
