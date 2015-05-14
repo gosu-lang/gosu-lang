@@ -271,7 +271,7 @@ public class JavaTypes {
   }
 
   public static IJavaType REPEATABLE() {
-    return getGosuType(Repeatable.class);
+    return getJreType(Repeatable.class);
   }
 
   public static IJavaType INHERITED() {
