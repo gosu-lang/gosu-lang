@@ -4,6 +4,7 @@ uses com.example.bootstrap.MethodsClass
 uses gw.gosudoc.util.BaseGosuDocTest
 uses org.junit.Assert
 uses org.jsoup.Jsoup
+uses org.junit.Ignore
 uses org.junit.Test
 
 class MethodDocsTest extends BaseGosuDocTest {
@@ -37,7 +38,7 @@ class MethodDocsTest extends BaseGosuDocTest {
     var docs = gosuDocForType( MethodsClass )
     var doc = Jsoup.parse(docs.read())
     var methodDocs = doc.findMethodList( MethodsClass#publicMethodWithDocComment() )
-    Assert.assertTrue( methodDocs.text().contains( "publicMethodWithDocComment comment" ) )
+    Assert.assertContains( methodDocs.text(),  "publicMethodWithDocComment comment" )
   }
 
   @Test
@@ -45,7 +46,7 @@ class MethodDocsTest extends BaseGosuDocTest {
     var docs = gosuDocForType( MethodsClass )
     var doc = Jsoup.parse(docs.read())
     var methodDocs = doc.findMethodList( MethodsClass#publicMethodWithCComment() )
-    Assert.assertTrue( methodDocs.text().contains( "publicMethodWithCComment comment" ) )
+    Assert.assertContains( methodDocs.text(), "publicMethodWithCComment comment" )
   }
 
   @Test
@@ -53,7 +54,7 @@ class MethodDocsTest extends BaseGosuDocTest {
     var docs = gosuDocForType( MethodsClass )
     var doc = Jsoup.parse(docs.read())
     var methodDocs = doc.findMethodList( MethodsClass#publicMethodWithLineComment() )
-    Assert.assertFalse( methodDocs.text().contains( "publicMethodWithLineComment comment" ) )
+    Assert.assertDoesNotContain( methodDocs.text(), "publicMethodWithLineComment comment" )
   }
 
   @Test
@@ -85,7 +86,7 @@ class MethodDocsTest extends BaseGosuDocTest {
     var docs = gosuDocForType( MethodsClass )
     var doc = Jsoup.parse(docs.read())
     var methodDocs = doc.findMethodList( MethodsClass#publicMethodWithJavaStyleThrows() )
-    Assert.assertTrue( methodDocs.text().contains( "throws java.lang.NullPointerException" ) )
+    Assert.assertContains( methodDocs.text(), "throws java.lang.NullPointerException" )
   }
 
   @Test
@@ -93,8 +94,73 @@ class MethodDocsTest extends BaseGosuDocTest {
     var docs = gosuDocForType( MethodsClass )
     var doc = Jsoup.parse(docs.read())
     var methodDocs = doc.findMethodList( MethodsClass#staticPublicMethodWithDocComment() )
-    var text = methodDocs.text()
-    Assert.assertTrue( text.contains( " public static void staticPublicMethodWithDocComment" ) )
+    Assert.assertContains( methodDocs.text(), " public static void staticPublicMethodWithDocComment" )
+  }
+
+  @Test
+  function publicMethodWithParametersHaveParametersDocumented() {
+    var docs = gosuDocForType( MethodsClass )
+    var doc = Jsoup.parse(docs.read())
+    var methodDocs = doc.findMethodList( MethodsClass#publicMethodWithOneArgNoComment() )
+    Assert.assertContains( methodDocs.text(), "Parameters: str -" )
+  }
+
+  @Test
+  function publicMethodWithParameterDocumentedJavaDocStyleIncludesDocs() {
+    var docs = gosuDocForType( MethodsClass )
+    var doc = Jsoup.parse(docs.read())
+    var methodDocs = doc.findMethodList( MethodsClass#publicMethodWithOneArgJavaDocStyleComment() )
+    Assert.assertContains( methodDocs.text(), "Parameters: str - javadoc-style comment" )
+  }
+
+  @Test
+  function publicMethodWithParameterDocumentedGosuStyleIncludesDocs() {
+    var docs = gosuDocForType( MethodsClass )
+    var doc = Jsoup.parse(docs.read())
+    var methodDocs = doc.findMethodList( MethodsClass#publicMethodWithOneArgGosuStyleComment() )
+    Assert.assertContains( methodDocs.text(), "Parameters: str - gosu-style param" )
+  }
+
+  @Test
+  @Ignore("@Params annotation is not currently working")
+  function publicMethodWithParameterDocumentedWithParamsAnntationIncludesDocs() {
+    var docs = gosuDocForType( MethodsClass )
+    var doc = Jsoup.parse(docs.read())
+    var methodDocs = doc.findMethodList( MethodsClass#publicMethodWithOneArgsAndParamsAnnotationComment() )
+    Assert.assertContains( methodDocs.text(), "Parameters: str - str1 param" )
+  }
+
+  @Test
+  function publicMethodWithTwoParametersHaveParametersDocumented() {
+    var docs = gosuDocForType( MethodsClass )
+    var doc = Jsoup.parse(docs.read())
+    var methodDocs = doc.findMethodList( MethodsClass#publicMethodWithTwoArgNoComment() )
+    Assert.assertContains( methodDocs.text(), "str2 -" )
+  }
+
+  @Test
+  function publicMethodWithTwoParametersDocumentedJavaDocStyleIncludesDocs() {
+    var docs = gosuDocForType( MethodsClass )
+    var doc = Jsoup.parse(docs.read())
+    var methodDocs = doc.findMethodList( MethodsClass#publicMethodWithTwoArgJavaDocStyleComment() )
+    Assert.assertContains( methodDocs.text(), "str2 - javadoc-style comment 2" )
+  }
+
+  @Test
+  function publicMethodWithTwoParametersDocumentedGosuStyleIncludesDocs() {
+    var docs = gosuDocForType( MethodsClass )
+    var doc = Jsoup.parse(docs.read())
+    var methodDocs = doc.findMethodList( MethodsClass#publicMethodWithTwoArgGosuStyleComment() )
+    Assert.assertContains( methodDocs.text(), "str2 - gosu-style param 2" )
+  }
+
+  @Test
+  @Ignore("@Params annotation is not currently working")
+  function publicMethodWithTwoParametersDocumentedWithParamsAnntationIncludesDocs() {
+    var docs = gosuDocForType( MethodsClass )
+    var doc = Jsoup.parse(docs.read())
+    var methodDocs = doc.findMethodList( MethodsClass#publicMethodWithTwoArgsAndParamsAnnotationComment() )
+    Assert.assertContains( methodDocs.text(), "str2 - str2 param" )
   }
 
 }
