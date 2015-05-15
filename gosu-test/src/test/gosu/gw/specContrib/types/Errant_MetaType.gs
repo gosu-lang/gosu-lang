@@ -31,4 +31,12 @@ class Errant_MetaType {
   var t5 = java.util.List<Object>.Type
   // IDE-1797
   var t6 = gw.lang.reflect.Type<Object>.Type
+
+  static class GosuClass1 {
+    enum Type {
+      ONE
+    }
+    // IDE-2283
+    var a = GosuClass1.Type.ONE   // here 'Type' is enum
+  }
 }
