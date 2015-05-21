@@ -69,5 +69,14 @@ class MethodsClass extends MethodClassParent {
   })
   function publicMethodWithTwoArgsAndParamsAnnotationComment( str: String, str2 : String ) {}
 
+  /**
+   * Overloaded 1
+   */
+  function publicOverloadedMethod() {}
+  /**
+   * Overloaded 2
+   */
+  function publicOverloadedMethod(s : String) {}
+
 
 }

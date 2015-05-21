@@ -163,4 +163,15 @@ class MethodDocsTest extends BaseGosuDocTest {
     Assert.assertContains( methodDocs.text(), "str2 - str2 param" )
   }
 
+  @Test
+  function overLoadedMethodsAppearInDocs() {
+    var docs = gosuDocForType( MethodsClass )
+    var doc = Jsoup.parse(docs.read())
+    var methodDocs = doc.findMethodList( MethodsClass#publicOverloadedMethod() )
+    Assert.assertContains( methodDocs.text(), "Overloaded 1" )
+
+    methodDocs = doc.findMethodList( MethodsClass#publicOverloadedMethod(String) )
+    Assert.assertContains( methodDocs.text(), "Overloaded 2" )
+  }
+
 }
