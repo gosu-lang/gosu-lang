@@ -1,4 +1,4 @@
-package gw.specification.statements.returns_LabeledStatements_Exits_And_Exceptions
+package gw.specification.statements.returnsExitsAndExceptions
 
 uses gw.BaseVerifyErrantTest
 
