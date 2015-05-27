@@ -34,4 +34,12 @@ class GSDocHTMLWriter {
     doclet.start( doclet, rootDoc )
   }
 
+  // helper function for reflection
+  static function go(inputDirs : List<File>, outputDir : File) {
+    var writer = new GSDocHTMLWriter()
+    writer.InputDirs = inputDirs
+    writer.Output = outputDir
+    writer.write()
+  }
+
 }
