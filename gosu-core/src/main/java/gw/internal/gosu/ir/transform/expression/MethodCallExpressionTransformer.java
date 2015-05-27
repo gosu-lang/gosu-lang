@@ -190,7 +190,7 @@ public class MethodCallExpressionTransformer extends AbstractExpressionTransform
     return castIfReturnTypeDerivedFromTypeVariable( dfs, result );
   }
 
-  private IRExpression callSuperOrThisConstructorSymbol( DynamicFunctionSymbol dfs, boolean isSuper )
+  private IRExpression callSuperOrThisConstructorSymbol( DynamicFunctionSymbol dfs, boolean bSuper )
   {
     IRExpression result;
     List<IRStatement> bonusStatements = new ArrayList<IRStatement>();
@@ -200,7 +200,7 @@ public class MethodCallExpressionTransformer extends AbstractExpressionTransform
     List<IRExpression> implicitArgs = new ArrayList<IRExpression>();
     IType targetType;
     _cc().markInvokingSuper();
-    if( isSuper )
+    if( bSuper )
     {
       // In the case of a super call, we want to push the appropriate enclosing arguments
       _cc().maybePushSupersEnclosingThisRef( implicitArgs );
@@ -218,14 +218,12 @@ public class MethodCallExpressionTransformer extends AbstractExpressionTransform
 
     pushCapturedSymbols( _cc().getSuperType(), implicitArgs, true );
 
-    // This is a bit nasty, but if the super type requires external symbol capture, then we need to use
-    // the identifier instead of the field value, since it's prior to the super invocation.  So we do it
-    // ourselves, rather than in pushCapturedSymbols
-    if( requiresExternalSymbolCapture( _cc().getSuperType() ) )
+    if( bSuper && requiresExternalSymbolCapture( _cc().getSuperType() ) ||
+        !bSuper && requiresExternalSymbolCapture( getGosuClass() ) )
     {
       implicitArgs.add( identifier( _cc().getSymbol( GosuFragmentTransformer.SYMBOLS_PARAM_NAME + "arg" ) ) );
     }
-    int iTypeParams = pushTypeParametersForConstructor( _expr(), targetType, implicitArgs, isSuper );
+    int iTypeParams = pushTypeParametersForConstructor( _expr(), targetType, implicitArgs, bSuper );
     pushEnumSuperConstructorArguments( implicitArgs );
     IRMethod irMethod = IRMethodFactory.createConstructorIRMethod( targetType, dfs, iTypeParams );
     List<IRExpression> explicitArgs = pushArguments( irMethod );
