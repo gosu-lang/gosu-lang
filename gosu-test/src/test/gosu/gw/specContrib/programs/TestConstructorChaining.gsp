@@ -12,3 +12,4 @@ static class TestClass {
 }
 
 var a = new TestClass()
+return a.Foo
