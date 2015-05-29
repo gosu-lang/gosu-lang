@@ -162,7 +162,7 @@ similar.
 
 The increment statement ``x++`` has the effect to increment ``x`` by ``1``; and
 similarly for decrement ``x--``. They are a special case of *compound
-assignment*
+assignment*.
 
 Loop Statements
 ===============

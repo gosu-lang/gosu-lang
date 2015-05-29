@@ -13,10 +13,24 @@ class TheSwitchStatementTest extends BaseVerifyErrantTest {
     var x : int = 1
     var isCase1 = false
     switch(x) {
-    case 1:
+      case 1:
         isCase1 = true
     }
     assertEquals(true, isCase1)
+
+    switch(x){}
+
+    switch(x){
+      case 2:
+        isCase1 = false
+    }
+    assertEquals(true, isCase1)
+
+    switch(x){
+      default:
+        isCase1 = false
+    }
+    assertEquals(false, isCase1)
   }
 
   function testSwitchExpression01() {
@@ -126,7 +140,7 @@ class TheSwitchStatementTest extends BaseVerifyErrantTest {
       case 2:
           ret = 2
           break
-        default:
+      default:
         ret = -1
     }
     assertEquals(-1, ret)
@@ -170,5 +184,51 @@ class TheSwitchStatementTest extends BaseVerifyErrantTest {
           flag = true
     }
     assertEquals(true, flag)
+  }
+
+  function testSwitchInference03(){
+    var x : A = new B()
+    var anotherFlag = false
+    switch(x typeis B){
+      case true:
+          //x.b   //auto-downcasting doesn't work for 'typeis' in switch statement
+          anotherFlag = true
+    }
+    assertEquals(true, anotherFlag)
+  }
+
+  function testNestedSwitchStatement(){
+    var x = 1
+    var y = 2
+    var z = 3
+    var flag = 1
+
+    switch(x){
+      case 1:{
+        switch(y){
+          default:{
+            switch(z){
+              case 1:
+                flag = 2
+                break
+              default:
+            }
+            break
+          }
+        }
+        flag = 3
+      }
+    }
+    assertEquals(flag, 3)
+  }
+
+  function testSwitchCaseNull(){
+    var x : Object
+    var isCase = true
+    switch(x){
+      case null:
+          isCase = false
+    }
+    assertEquals(isCase, false)
   }
 }

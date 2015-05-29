@@ -11,6 +11,18 @@ class Errant_TheSwitchStatementTest {
       case 1:
           isCase1 = true
     }
+
+    switch(x){}
+
+    switch(x){
+      case 2:
+          isCase1 = false
+    }
+
+    switch(x){
+        default:
+        isCase1 = false
+    }
   }
 
   function testSwitchExpression01() {
@@ -229,6 +241,49 @@ class Errant_TheSwitchStatementTest {
     var x : String
     switch(typeof x) {  //## issuekeys: MSG_TYPE_MISMATCH
       case Boolean:  //## issuekeys: MSG_TYPE_MISMATCH
+    }
+  }
+
+  function testSwitchInference03(){
+    var y : A = new B()
+    var anotherFlag = false
+    switch(y typeis B){
+      case true:
+          y.b = 0  //## issuekeys: MSG_NO_PROPERTY_DESCRIPTOR_FOUND, MSG_NO_PROPERTY_DESCRIPTOR_FOUND
+          anotherFlag = true
+    }
+  }
+
+  function testNestedSwitchStatement(){
+    var x = 1
+    var y = 2
+    var z = 3
+    var flag = 1
+
+    switch(x){
+      case 1:{
+        switch(y){
+            default:{
+          switch(z){
+            case 1:
+                flag = 2
+                break
+              default:
+          }
+          break
+        }
+        }
+        flag = 3
+      }
+    }
+  }
+
+  function testSwitchCaseNull(){
+    var x : Object
+    var isCase = true
+    switch(x){
+      case null:
+          isCase = false
     }
   }
 

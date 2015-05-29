@@ -119,7 +119,7 @@ class Errant_TheIfElseStatementTest {
       a1.mc()
     }else if(typeof a1 == C){
       a1.ma()
-      //a1.mc()
+      a1.mc()  //## issuekeys: MSG_NO_METHOD_DESCRIPTOR_FOUND_FOR_METHOD, MSG_NO_METHOD_DESCRIPTOR_FOUND_FOR_METHOD
     }
   }
 
