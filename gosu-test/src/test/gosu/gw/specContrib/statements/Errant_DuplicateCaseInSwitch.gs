@@ -51,4 +51,22 @@ class Errant_DuplicateCaseInSwitch  {
         break;
     }
   }
+
+  //IDE-1454
+  class Gosu123{}
+  function test(o: Object) {
+    switch (o) {
+      case Gosu123:
+        break;
+      case null:
+        break
+    }
+
+    switch (o) {
+      case null:
+        break;
+      case Gosu123:
+        break
+    }
+  }
 }
