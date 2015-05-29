@@ -81,13 +81,13 @@ class ElementAccessExpressionTest extends BaseVerifyErrantTest {
      var j1 : dynamic.Dynamic = {"A"-> 'a', "B"-> 'b', "C" -> 'c'}
      x = j1["A"]
      assertEquals('a', x)
-     j1["A"] = 'x'                  //## KB(IDE-1893)
-     assertEquals('x', j1["A"])     //## KB(IDE-1893)
+     j1["A"] = 'x'
+     assertEquals('x', j1["A"])
      var j2 : dynamic.Dynamic = new MyClass()
      i = j2["A"] as int
      assertEquals(1, i)
-     j2["A"] = 8                    //## KB(IDE-1893)
-     assertEquals(8, j2["A"])       //## KB(IDE-1893)
+     j2["A"] = 8
+     assertEquals(8, j2["A"])
 
      var k : Map<Integer, Character> = {1-> 'a', 2 -> 'b', 3 -> 'c'}
      x = k[1]
