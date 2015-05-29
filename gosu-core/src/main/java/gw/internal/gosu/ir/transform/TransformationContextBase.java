@@ -173,6 +173,11 @@ public abstract class TransformationContextBase implements TopLevelTransformatio
   }
 
   @Override
+  public boolean isStatic() {
+    return _bodyContext.isStatic();
+  }
+
+  @Override
   public void markSuperInvoked() {
     _bodyContext.markSuperInvoked();
   }

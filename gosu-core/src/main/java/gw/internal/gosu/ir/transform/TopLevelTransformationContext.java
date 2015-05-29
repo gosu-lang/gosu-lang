@@ -99,6 +99,7 @@ public interface TopLevelTransformationContext {
   IRSymbol createSymbol(String name, IRType type);
 
   boolean hasSuperBeenInvoked();
+  boolean isStatic();
   void markInvokingSuper();
   void markSuperInvoked();
   void updateSuperInvokedAfterLastExpressionCompiles();

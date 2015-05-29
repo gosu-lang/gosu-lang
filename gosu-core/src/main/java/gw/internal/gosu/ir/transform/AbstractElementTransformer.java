@@ -573,7 +573,8 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
 
   private IRCompositeExpression buildLazyTypeResolverCall( IRMethodStatement method, IGenericTypeVariable[] tvs ) {
     DynamicFunctionSymbol compilingDfs = _cc().getCurrentFunction();
-    if( (compilingDfs != null && compilingDfs.isStatic()) ||
+    if( _cc().isStatic() ||
+        (compilingDfs != null && compilingDfs.isStatic()) ||
         !_cc().hasSuperBeenInvoked() ||
         _cc().getGosuClass() instanceof IGosuFragment ) {
       return buildStaticLazyTypeResolverCall( method );
