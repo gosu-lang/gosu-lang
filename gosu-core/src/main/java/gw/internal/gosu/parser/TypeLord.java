@@ -2350,7 +2350,8 @@ public class TypeLord
       {
         boundType = inferringType;
       }
-      else if( isRecursiveType( (ITypeVariableType)type, ((ITypeVariableType)type).getBoundingType() ) )
+      else if( isRecursiveType( (ITypeVariableType)type, ((ITypeVariableType)type).getBoundingType() ) &&
+               !(((ITypeVariableType)type).getBoundingType() instanceof ITypeVariableType) )
       {
         // short-circuit recursive typevar
         boundType = ((ITypeVariableType)type).getBoundingType().getGenericType();
