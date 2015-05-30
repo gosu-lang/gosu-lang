@@ -2345,11 +2345,20 @@ public class TypeLord
     else if( type instanceof ITypeVariableType && (inferringType = inferringType( type, typesToBound, bKeepTypeVars )) != null )
     {
       // inferringType removes type from the list, to prevent stack overflow.
+      IType boundType;
       if( bKeepTypeVars )
       {
-        return inferringType;
+        boundType = inferringType;
       }
-      IType boundType = boundTypes( ((ITypeVariableType)type).getBoundingType(), typesToBound, bKeepTypeVars );
+      else if( isRecursiveType( (ITypeVariableType)type, ((ITypeVariableType)type).getBoundingType() ) )
+      {
+        // short-circuit recursive typevar
+        boundType = ((ITypeVariableType)type).getBoundingType().getGenericType();
+      }
+      else
+      {
+        boundType = boundTypes( ((ITypeVariableType)type).getBoundingType(), typesToBound, bKeepTypeVars );
+      }
       typesToBound.add(inferringType); // add it back
       // FIXME-idubrov: Should we replace all type variables equal to type inside boundType with boundType?
       return boundType;
