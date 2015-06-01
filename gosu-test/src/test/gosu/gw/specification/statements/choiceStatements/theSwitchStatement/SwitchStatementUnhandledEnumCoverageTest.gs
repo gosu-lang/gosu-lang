@@ -1,4 +1,4 @@
-package gw.specContrib.statements
+package gw.specification.statements.choiceStatements.theSwitchStatement
 
 uses java.lang.Runnable
 uses java.lang.NullPointerException
