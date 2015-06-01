@@ -14,11 +14,11 @@ class Errant_ObjectArrayObject {
 
     // IDE-1770
     var i1: java.lang.Integer[][]
-    var a1 : AAA = foo(s)      //## issuekeys: INCOMPATIBLE TYPES
-    var b1 : BBB = foo(s)
+    var a1 : AAA = foo(i1)      //## issuekeys: INCOMPATIBLE TYPES
+    var b1 : BBB = foo(i1)
 
     var i2: java.lang.Integer[][][]
-    var a2 : AAA = foo(s)      //## issuekeys: INCOMPATIBLE TYPES
-    var b2 : BBB = foo(s)
+    var a2 : AAA = foo(i2)      //## issuekeys: INCOMPATIBLE TYPES
+    var b2 : BBB = foo(i2)
   }
 }
