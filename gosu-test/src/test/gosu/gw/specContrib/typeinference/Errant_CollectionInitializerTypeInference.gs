@@ -10,5 +10,12 @@ class Errant_CollectionInitializerTypeInference {
     acceptObject({1, 2}.toTypedArray())
     acceptArray({1, 2}.toTypedArray())
     acceptArray(({1, 2}).toTypedArray())
+
+    // IDE-2279
+    var map = { "string" -> null }
+    var map2: java.util.Map<String, Object> = map
+
+    var list1 = { null }
+    var list2: java.util.ArrayList<Object> = list1
   }
 }
