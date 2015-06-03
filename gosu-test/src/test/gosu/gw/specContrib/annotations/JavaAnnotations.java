@@ -5,4 +5,11 @@ public class JavaAnnotations {
     String a() default "a";
     String b() default "b";
   }
+
+  public static @interface JavaAnno2 {
+    String a() default "a";
+    String b();
+    String c() default "c";
+    String d();
+  }
 }
