@@ -12,4 +12,9 @@ public class JavaAnnotations {
     String c() default "c";
     String d();
   }
+
+  public static @interface JavaAnno3 {
+    String a();
+    String b() default "b";
+  }
 }
