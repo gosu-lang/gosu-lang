@@ -24,6 +24,7 @@ import gw.lang.ir.expression.IREqualityExpression;
 import gw.lang.ir.expression.IRFieldGetExpression;
 import gw.lang.ir.expression.IRIdentifier;
 import gw.lang.ir.expression.IRInstanceOfExpression;
+import gw.lang.ir.expression.IRLazyTypeMethodCallExpression;
 import gw.lang.ir.expression.IRMethodCallExpression;
 import gw.lang.ir.expression.IRNegationExpression;
 import gw.lang.ir.expression.IRNewArrayExpression;
@@ -453,6 +454,8 @@ public class IRJavaCompiler {
       compileIRIdentifier((IRIdentifier) expression);
     } else if (expression instanceof IRMethodCallExpression) {
       compileIRMethodCallExpression((IRMethodCallExpression) expression);
+    } else if (expression instanceof IRLazyTypeMethodCallExpression ) {
+      compileIRLazyTypeMethodCallExpression((IRLazyTypeMethodCallExpression) expression);
     } else if (expression instanceof IRNullLiteral) {
       compileIRNullLiteral((IRNullLiteral) expression);
     } else if (expression instanceof IRPrimitiveTypeConversion) {
@@ -719,6 +722,10 @@ public class IRJavaCompiler {
       compileIRElement(irMethodCallExpression.getArgs().get(i));
     }
     _output.append(")");
+  }
+
+  private void compileIRLazyTypeMethodCallExpression(IRLazyTypeMethodCallExpression irMethodCallExpression) {
+    _output.append(irMethodCallExpression.getOwnerTypeName()).append( '.' ).append(irMethodCallExpression.getName());
   }
 
   private void compileIRNullLiteral(IRNullLiteral irNullLiteral) {
