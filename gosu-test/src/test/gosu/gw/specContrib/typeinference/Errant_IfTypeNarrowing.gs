@@ -77,4 +77,41 @@ class Errant_IfTypeNarrowing {
       map[key].foo1()               //## issuekeys: CANNOT RESOLVE 'foo1()'
     }
   }
+
+  property get Prop(): Object { return null }
+
+  function testProperties(c: Errant_IfTypeNarrowingJava) {
+    if (c.nonProp() typeis Errant_IfTypeNarrowingJava.A) {
+      c.nonProp().foo()  //## issuekeys: CANNOT RESOLVE 'foo()'
+    }
+
+    // Java property
+    // IDE-2278
+    if (c.getProp() typeis Errant_IfTypeNarrowingJava.A) {
+      c.getProp().foo()
+    }
+    if (c.getProp() typeis Errant_IfTypeNarrowingJava.A) {
+      c.Prop.foo()
+    }
+    if (c.Prop typeis Errant_IfTypeNarrowingJava.A) {
+      c.getProp().foo()
+    }
+    if (c.Prop typeis Errant_IfTypeNarrowingJava.A) {
+      c.Prop.foo()
+    }
+
+    // Gosu property
+    if (getProp() typeis Errant_IfTypeNarrowingJava.A) {
+      getProp().foo()
+    }
+    if (getProp() typeis Errant_IfTypeNarrowingJava.A) {
+      Prop.foo()
+    }
+    if (Prop typeis Errant_IfTypeNarrowingJava.A) {
+      getProp().foo()
+    }
+    if (Prop typeis Errant_IfTypeNarrowingJava.A) {
+      Prop.foo()
+    }
+  }
 }
