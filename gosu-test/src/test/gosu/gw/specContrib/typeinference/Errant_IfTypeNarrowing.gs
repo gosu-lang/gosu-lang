@@ -15,6 +15,8 @@ class Errant_IfTypeNarrowing {
 
   class A implements I1 {
     function foo1() {}
+
+     property get Prop(): boolean { return false }
   }
 
   class B implements I2 {
@@ -42,6 +44,9 @@ class Errant_IfTypeNarrowing {
       x.foo1()
       x.foo2()
     }
+
+    // IDE-2249
+    if (x typeis I2 && x typeis A && x.Prop) {}
 
     var i1: I1
     if (i1 typeis I2) {
