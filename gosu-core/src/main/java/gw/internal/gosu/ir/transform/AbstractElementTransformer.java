@@ -641,9 +641,10 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
 
   private IRMethodStatement makeLazyTypeMethod( IType type, IGenericTypeVariable[] tvs ) {
     DynamicFunctionSymbol compilingDfs = _cc().getCurrentFunction();
-    if( (compilingDfs != null && compilingDfs.isStatic()) ||
-      !_cc().hasSuperBeenInvoked() ||
-      _cc().getGosuClass() instanceof IGosuFragment ) {
+    if( _cc().isStatic() ||
+        (compilingDfs != null && compilingDfs.isStatic()) ||
+        !_cc().hasSuperBeenInvoked() ||
+        _cc().getGosuClass() instanceof IGosuFragment ) {
       return makeStaticLazyTypeMethod( type );
     }
     else if( getGosuClass() instanceof IGosuEnhancement ) {
