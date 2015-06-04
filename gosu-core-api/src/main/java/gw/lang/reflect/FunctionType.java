@@ -460,9 +460,10 @@ public class FunctionType extends AbstractType implements IFunctionType, IGeneri
 
   public IType getEnclosingType()
   {
-    if( _scriptPart instanceof IType)
+    IType type = null;
+    if( _scriptPart != null && (type = _scriptPart.getContainingType()) != null )
     {
-      return (IType)_scriptPart;
+      return type;
     }
     final IFeatureInfo methodInfo = getMethodOrConstructorInfo();
     if( methodInfo != null )
