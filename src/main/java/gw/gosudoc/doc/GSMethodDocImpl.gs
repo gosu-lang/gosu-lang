@@ -81,6 +81,8 @@ class GSMethodDocImpl extends GSExecutableMemberDocImpl implements MethodDoc{
     // Exclude methods starting with @ (these are just equivalents of properties)
     b &&= (!name().startsWith( "@" ))
 
+    b &&= getRootDoc().shouldDocumentMethod( _iMethodInfo )
+
     // Excluded methods that are inherited
     b &&= (isFromEnhancement || OwnersType.equals( ownersIType ))
 

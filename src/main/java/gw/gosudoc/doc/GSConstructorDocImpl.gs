@@ -38,6 +38,7 @@ class GSConstructorDocImpl extends GSExecutableMemberDocImpl implements Construc
 
   override function shouldBeIncluded(): boolean{
     var b = super.shouldBeIncluded()
+    b &&= getRootDoc().shouldDocumentConstructor( _iConstructorInfo )
     b &&= (_iConstructorInfo.isProtected() || _iConstructorInfo.isPublic())
     return b
   }

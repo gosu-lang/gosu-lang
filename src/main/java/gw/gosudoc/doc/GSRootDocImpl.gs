@@ -6,6 +6,11 @@ uses com.sun.javadoc.ClassDoc
 uses com.sun.javadoc.PackageDoc
 uses com.sun.javadoc.SourcePosition
 uses gw.config.CommonServices
+uses gw.gosudoc.filter.ConstructorFilter
+uses gw.gosudoc.filter.FeatureFilter
+uses gw.gosudoc.filter.MethodFilter
+uses gw.gosudoc.filter.PropertyFilter
+uses gw.gosudoc.filter.TypeFilter
 uses gw.gosudoc.type.GSArrayTypeImpl
 uses gw.gosudoc.type.GSClassTypeImpl
 uses gw.gosudoc.type.GSFunctionalTypeImpl
@@ -14,7 +19,10 @@ uses gw.gosudoc.type.GSPrimitiveTypeImpl
 uses gw.gosudoc.type.GSTypeImpl
 uses gw.gosudoc.type.GSTypeVariableImpl
 uses gw.gosudoc.type.GSVoidTypeImpl
+uses gw.lang.reflect.IConstructorInfo
 uses gw.lang.reflect.IFunctionType
+uses gw.lang.reflect.IMethodInfo
+uses gw.lang.reflect.IPropertyInfo
 uses gw.lang.reflect.IType
 uses gw.lang.reflect.ITypeVariableType
 uses gw.lang.reflect.TypeSystem
@@ -41,30 +49,28 @@ class GSRootDocImpl extends GSDocImpl implements RootDoc{
   var _inputDirs : List<File> as InputDirs = {}
   var _exclusions : List<Pattern> as Exclusions = {}
   var _outputDirectory : File as OutputDirectory
+  var _typeFilters : List<TypeFilter> as readonly TypeFilters = {}
+  var _methodFilters : List<MethodFilter> as readonly MethodFilters  = {}
+  var _propertyFilters : List<PropertyFilter> as readonly PropertyFilters  = {}
+  var _constructorFilters : List<ConstructorFilter> as readonly ConstructorFilters = {}
+  var _featureFilters : List<FeatureFilter> as readonly FeatureFilters = {}
 
-  construct( inputDirs : List<File>, outputDir: File ){
+  construct( inputDirs : List<File>, outputDir: File, filters : List = null ){
     super( "Root", null )
     _inputDirs = inputDirs
     _outputDirectory = outputDir
-  }
-
-  function initWithPropertiesFile( propsFile : File ) {
-    if( propsFile != null ){
-      readPropFile( propsFile )
+    if(filters != null) {
+      initFilters(filters)
     }
   }
 
-  function readPropFile( propFile: File ){
-    for( entry in Properties.readFromPropertiesFile( propFile ).entrySet() ){
-      var key = entry.getKey()
-      var val = entry.getValue()
-      if( key.startsWith( "external." ) ){
-        handleExternalJavadoc( key, val )
-      } else if( key.startsWith( "exclude." ) ){
-        _exclusions.add( getPattern( val ) )
-      } else if( key.startsWith( "entrypoint." ) ){
-        printNotice( "Ignoring entrypoint entry in properties file" )
-      }
+  private function initFilters( filters: List<Object> ){
+    for(o in filters) {
+      if(o typeis TypeFilter) TypeFilters.add(o)
+      if(o typeis MethodFilter ) MethodFilters.add(o)
+      if(o typeis PropertyFilter ) PropertyFilters.add(o)
+      if(o typeis ConstructorFilter ) ConstructorFilters.add(o)
+      if(o typeis FeatureFilter ) FeatureFilters.add(o)
     }
   }
 
@@ -72,6 +78,12 @@ class GSRootDocImpl extends GSDocImpl implements RootDoc{
 
     if(isExcluded( iType.getName() )) {
       return false
+    }
+
+    for(filter in TypeFilters) {
+      if(not filter.shouldIncludeType( iType )) {
+        return false
+      }
     }
 
     if(iType typeis IGosuClass ) {
@@ -264,5 +276,47 @@ class GSRootDocImpl extends GSDocImpl implements RootDoc{
 
   private function warningIsUnexpected( msg: String ): boolean{
     return !(msg.startsWith( "Parameter" ) && msg.contains( " is documented more than once" ))
+  }
+
+  function shouldDocumentConstructor( iConstructorInfo: IConstructorInfo ): boolean{
+    for(filter in ConstructorFilters) {
+      if(not filter.shouldIncludeConstructor( iConstructorInfo )) {
+        return false
+      }
+    }
+    for(filter in FeatureFilters) {
+      if(not filter.shouldIncludeFeature( iConstructorInfo )) {
+        return false
+      }
+    }
+    return true
+  }
+
+  function shouldDocumentProperty( iPropertyInfo: IPropertyInfo ): boolean{
+    for(filter in PropertyFilters) {
+      if(not filter.shouldIncludeProperty( iPropertyInfo )) {
+        return false
+      }
+    }
+    for(filter in FeatureFilters) {
+      if(not filter.shouldIncludeFeature( iPropertyInfo )) {
+        return false
+      }
+    }
+    return true
+  }
+
+  function shouldDocumentMethod( iMethodInfo: IMethodInfo ): boolean{
+    for(filter in MethodFilters) {
+      if(not filter.shouldIncludeMethod( iMethodInfo )) {
+        return false
+      }
+    }
+    for(filter in FeatureFilters) {
+      if(not filter.shouldIncludeFeature( iMethodInfo )) {
+        return false
+      }
+    }
+    return true
   }
 }

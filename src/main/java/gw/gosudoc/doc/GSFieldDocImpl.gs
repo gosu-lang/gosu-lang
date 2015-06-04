@@ -80,6 +80,9 @@ class GSFieldDocImpl extends GSMemberDocImpl implements FieldDoc{
   //==========PUBLIC METHODS==========//
   override function shouldBeIncluded(): boolean{
     var b = super.shouldBeIncluded()
+
+    b &&= getRootDoc().shouldDocumentProperty( _propertyInfo )
+
     if( _propertyInfo typeis IPropertyInfoDelegate ){
       b &&= (OwnersType.equals( _propertyInfo.getSource().getOwnersType() ))
     }

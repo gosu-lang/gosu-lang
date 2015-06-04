@@ -1,6 +1,10 @@
 package gw.gosudoc.cli
 
+uses gw.gosudoc.GSDocHTMLWriter
 uses gw.lang.cli.*
+uses gw.lang.reflect.ReflectUtil
+
+uses java.io.File
 
 class GosuDocArgs {
 
@@ -10,7 +14,37 @@ class GosuDocArgs {
   @LongName( "out" ) @ShortName( "o" ) @ArgOptional
   var _out : String as Out
 
-  function toString() : String {
-    return (typeof this).TypeInfo.Properties.map( \ p -> "${p.Name} : ${p.Accessor.getValue(this)}" ).join( ", " )
+  @LongName( "filters" ) @ShortName( "f" ) @ArgOptional
+  var _filters : String as FiltersString
+
+  function init( writer : GSDocHTMLWriter ){
+    writer.InputDirs = parseInputDirs()
+    writer.Output = parseOutpuDir()
+    writer.Filters = parseFilters()
   }
+
+  private function parseInputDirs() : List<File> {
+    if(_in == null) {
+      return { new File(".") }
+    } else {
+      return _in.split( "[;:]" ).map( \ s -> new File(s) ).toList()
+    }
+  }
+
+  private function parseOutpuDir() : File {
+    if(_out == null) {
+      return new File(".")
+    } else {
+      return new File(_out)
+    }
+  }
+
+  private function parseFilters() : List {
+    if(_filters == null) {
+      return {}
+    } else {
+      return _filters.split( "," ).map( \ elt -> ReflectUtil.construct( elt, {} ) ).toList()
+    }
+  }
+
 }
