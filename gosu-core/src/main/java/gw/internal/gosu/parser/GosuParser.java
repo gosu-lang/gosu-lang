@@ -3002,22 +3002,22 @@ public final class GosuParser extends ParserBase implements IGosuParser
     {
       bAvoidContextType = bAvoidContextType || shouldThisExpressionAvoidTheContextType();
 
-      IType intrinsicType = bAvoidContextType ? null : getInitializableType().getType();
+      IType ctxType = bAvoidContextType ? null : getInitializableType().getType();
       NewExpression e = new InferredNewExpression();
 
-      boolean bPlaceholder = isDynamic( intrinsicType );
-      if( intrinsicType == null || bPlaceholder )
+      boolean bPlaceholder = isDynamic( ctxType );
+      if( ctxType == null || bPlaceholder )
       {
         IInitializerExpression initializer;
         IType type;
         if( match( token, null, '}', true ) )
         {
           initializer = new CollectionInitializerExpression();
-          type = JavaTypes.ARRAY_LIST().getParameterizedType( bPlaceholder ? intrinsicType : JavaTypes.OBJECT() );
+          type = JavaTypes.ARRAY_LIST().getParameterizedType( bPlaceholder ? ctxType : JavaTypes.OBJECT() );
         }
         else
         {
-          parseExpression( bPlaceholder ? new ContextType( intrinsicType, false ) : ContextType.OBJECT_FALSE );
+          parseExpression( bPlaceholder ? new ContextType( ctxType, false ) : ContextType.OBJECT_FALSE );
           Expression initialExpression = popExpression();
           Expression actualInitExpr = initialExpression;
           if( actualInitExpr instanceof ImplicitTypeAsExpression )
@@ -3027,22 +3027,22 @@ public final class GosuParser extends ParserBase implements IGosuParser
           verify( actualInitExpr, actualInitExpr.getType() != JavaTypes.pVOID(), Res.MSG_VOID_NOT_ALLOWED );
           if( match( token, ',' ) )
           {
-            _parseInitializerExpression( new ContextType( JavaTypes.ARRAY_LIST().getParameterizedType( bPlaceholder ? intrinsicType : JavaTypes.OBJECT() ), false ) );
+            _parseInitializerExpression( new ContextType( JavaTypes.ARRAY_LIST().getParameterizedType( bPlaceholder ? ctxType : JavaTypes.OBJECT() ), false ) );
             CollectionInitializerExpression collectionInit = (CollectionInitializerExpression)popExpression();
             collectionInit.addFirst( initialExpression );
-            IType lub = bPlaceholder ? intrinsicType : TypeLord.findLeastUpperBound( getTypes( collectionInit.getValues() ) );
+            IType lub = bPlaceholder ? ctxType : TypeLord.findLeastUpperBound( getTypes( collectionInit.getValues() ) );
             type = JavaTypes.ARRAY_LIST().getParameterizedType( lub );
             initializer = collectionInit;
           }
           else if( match( token, "->", SourceCodeTokenizer.TT_OPERATOR ) )
           {
-            parseExpression( bPlaceholder ? new ContextType( intrinsicType, false ) : ContextType.OBJECT_FALSE );
+            parseExpression( bPlaceholder ? new ContextType( ctxType, false ) : ContextType.OBJECT_FALSE );
             Expression initialValueExpression = popExpression();
             MapInitializerExpression mapInitializer;
             if( match( token, ',' ) )
             {
-              parseMapInitializerList( new ContextType( JavaTypes.HASH_MAP().getParameterizedType( bPlaceholder ? intrinsicType : JavaTypes.OBJECT(),
-                      bPlaceholder ? intrinsicType : JavaTypes.OBJECT() ), false ) );
+              parseMapInitializerList( new ContextType( JavaTypes.HASH_MAP().getParameterizedType( bPlaceholder ? ctxType : JavaTypes.OBJECT(),
+                      bPlaceholder ? ctxType : JavaTypes.OBJECT() ), false ) );
               mapInitializer = (MapInitializerExpression)popExpression();
             }
             else
@@ -3061,7 +3061,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
           {
             CollectionInitializerExpression collectionInit= new CollectionInitializerExpression();
             collectionInit.addFirst( initialExpression );
-            IType lub = bPlaceholder ? intrinsicType : TypeLord.findLeastUpperBound( getTypes( collectionInit.getValues() ) );
+            IType lub = bPlaceholder ? ctxType : TypeLord.findLeastUpperBound( getTypes( collectionInit.getValues() ) );
             type = JavaTypes.ARRAY_LIST().getParameterizedType( lub );
             initializer = collectionInit;
           }
@@ -3079,13 +3079,14 @@ public final class GosuParser extends ParserBase implements IGosuParser
       }
       else
       {
-        e.setType( intrinsicType );
+        e.setType( ctxType );
         if( !match( null, '}' ) )
         {
           ContextType typeToInit = getCurrentInitializableContextType();
-          if( intrinsicType.isArray() )
+          if( ctxType.isArray() )
           {
-            List<Expression> valueExpressions = parseArrayValueList( intrinsicType.getComponentType() );
+            IType ctxComponentType = ctxType.getComponentType();
+            List<Expression> valueExpressions = parseArrayValueList( ctxComponentType );
             e.setValueExpressions( valueExpressions );
             if( !typeToInit.isMethodScoring() )
             {
@@ -3107,11 +3108,19 @@ public final class GosuParser extends ParserBase implements IGosuParser
                   // we grab one component of the type and use that (better than just Object[], right?)
                   for( IType comp: componentLeastUpperBound.getCompoundTypeComponents() )
                   {
-                    componentLeastUpperBound = comp;
-                    if( !comp.isInterface() )
+                    if( ctxComponentType.isAssignableFrom( comp ) )
                     {
-                      // Favor class type over interface type
-                      break;
+                      componentLeastUpperBound = comp;
+                      if( !comp.isInterface() )
+                      {
+                        if( ctxComponentType.isInterface() && comp instanceof IMetaType )
+                        {
+                          componentLeastUpperBound = ctxComponentType;
+                        }
+
+                        // Favor class type over interface type
+                        break;
+                      }
                     }
                   }
                 }
@@ -3134,7 +3143,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
             _parseInitializerExpression( new ContextType( e.getType(), false ) );
             IInitializerExpression initializerExpression = (IInitializerExpression)popExpression();
             e.setInitializer( initializerExpression );
-            e.setConstructor( intrinsicType.getTypeInfo().getCallableConstructor() );
+            e.setConstructor( ctxType.getTypeInfo().getCallableConstructor() );
             if( !typeToInit.isMethodScoring() )
             {
               IType initializerCtxType = getCurrentInitializableContextType().getType();
@@ -3188,7 +3197,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
         }
         else
         {
-          e.setConstructor( intrinsicType.getTypeInfo().getCallableConstructor() );
+          e.setConstructor( ctxType.getTypeInfo().getCallableConstructor() );
         }
       }
 
