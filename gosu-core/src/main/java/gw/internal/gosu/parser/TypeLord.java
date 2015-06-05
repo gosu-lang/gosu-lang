@@ -4,6 +4,7 @@
 
 package gw.internal.gosu.parser;
 
+import gw.internal.gosu.parser.expressions.TypeVariableDefinition;
 import gw.internal.gosu.parser.expressions.TypeVariableDefinitionImpl;
 import gw.lang.parser.AsmTypeVarMatcher;
 import gw.lang.parser.GosuParserFactory;
@@ -151,7 +152,12 @@ public class TypeLord
         IType actualBoundingType = getActualType( boundingType, actualParamByVarName, bKeepTypeVars );
         if( !actualBoundingType.getName().equals( boundingType.toString() ) )
         {
-          TypeVariableDefinitionImpl tvd = ((TypeVariableDefinitionImpl)((ITypeVariableType)retType).getTypeVarDef()).clone( actualBoundingType );
+          ITypeVariableDefinition typeVarDef = ((ITypeVariableType)retType).getTypeVarDef();
+          if( typeVarDef instanceof TypeVariableDefinition )
+          {
+            typeVarDef = ((TypeVariableDefinition)typeVarDef).getTypeVarDef();
+          }
+          TypeVariableDefinitionImpl tvd = ((TypeVariableDefinitionImpl)typeVarDef).clone( actualBoundingType );
           retType = new TypeVariableType( tvd, ((ITypeVariableType)retType).getTypeVarDef().getEnclosingType() instanceof IFunctionType );
         }
       }
