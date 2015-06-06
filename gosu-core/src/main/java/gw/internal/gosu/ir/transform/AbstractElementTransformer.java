@@ -555,9 +555,7 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
       if( type instanceof IGosuClass )
       {
         // Fast -- (new expr) lazy resolves using fqn + module name lookup
-        IModule module = getModule( genType );
-        return buildNewExpression( SimpleTypeLazyTypeResolver.class, new Class[]{String.class, String.class},
-                                   Arrays.<IRExpression>asList( pushConstant( type.getName() ), module == null ? pushNull() : pushConstant( module.getName() ) ) );
+        return pushLazyTypeByFqn( type );
       }
 
       else if( genType instanceof TypeVariableType )
@@ -2402,14 +2400,7 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
 
     if( rtType instanceof TypeVariableType )
     {
-      if( TypeLord.getOuterMostEnclosingClass( rtType ) instanceof IGosuClass )
-      {
-        return buildCast( getDescriptor( IType.class ), buildMethodCall( LazyTypeResolver.class, "get", Object.class, new Class[0], getRuntimeTypeParameter( (TypeVariableType)rtType ), Collections.<IRExpression>emptyList() ) );
-      }
-      else
-      {
-        return getRuntimeTypeParameter( (TypeVariableType)rtType );
-      }
+      return buildCast( getDescriptor( IType.class ), buildMethodCall( LazyTypeResolver.class, "get", Object.class, new Class[0], getRuntimeTypeParameter( (TypeVariableType)rtType ), Collections.<IRExpression>emptyList() ) );
     }
     else if( rtType instanceof TypeVariableArrayType )
     {
@@ -2540,7 +2531,21 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
       }
     }
 
-    return pushType( type.getBoundingType() );
+    // lazy resolves using fqn + module name lookup
+    IType boundingType = type.getBoundingType();
+    if( boundingType instanceof TypeVariableType )
+    {
+      return getRuntimeTypeParameter( (TypeVariableType)boundingType );
+    }
+    return pushLazyTypeByFqn( boundingType );
+  }
+
+  private IRExpression pushLazyTypeByFqn( IType boundingType )
+  {
+    boundingType = TypeLord.getPureGenericType( boundingType );
+    IModule module = getModule( boundingType );
+    return buildNewExpression( SimpleTypeLazyTypeResolver.class, new Class[]{String.class, String.class},
+                               Arrays.<IRExpression>asList( pushConstant( boundingType.getName() ), module == null ? pushNull() : pushConstant( module.getName() ) ) );
   }
 
   private boolean equivalentTypes( IType type1, IType type2 )
