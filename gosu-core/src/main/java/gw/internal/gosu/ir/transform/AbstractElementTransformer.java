@@ -1014,7 +1014,8 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
     }
     else
     {
-      return nullLiteral();
+      // Note we cast the Null value to make ASM's stack map frame calculations work, otherwise ASM has a bug where it calculates the wrong type
+      return checkCast( type, nullLiteral() );
     }
   }
 
