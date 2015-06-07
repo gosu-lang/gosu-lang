@@ -9,7 +9,6 @@ import gw.lang.ir.IRExpression;
 import gw.lang.ir.IRStatement;
 import gw.lang.ir.IRType;
 import gw.lang.ir.expression.IRNullLiteral;
-import gw.lang.ir.statement.IRAssignmentStatement;
 import gw.lang.ir.statement.IRNoOpStatement;
 import gw.internal.gosu.ir.transform.ExpressionTransformer;
 import gw.internal.gosu.ir.transform.TopLevelTransformationContext;
@@ -58,6 +57,11 @@ public class VarStatementTransformer extends AbstractStatementTransformer<IVarSt
       else
       {
         value = ExpressionTransformer.compile( asExp, _cc() );
+        if( value instanceof IRNullLiteral && _stmt().getType() != null )
+        {
+          value = checkCast( _stmt().getType(), value );
+        }
+
         // If the value we're assigning isn't assignable to the symbol's type, we need to insert a cast.
         // This should only happen in strange cases like assigning a GroupBase to a Group or in the case
         // of a compound type.
