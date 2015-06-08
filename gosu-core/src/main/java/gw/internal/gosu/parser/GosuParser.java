@@ -11432,14 +11432,15 @@ public final class GosuParser extends ParserBase implements IGosuParser
     {
       AdditiveExpression add = new AdditiveExpression();
       add.setLHS( lhs );
-      NumericLiteral one = new NumericLiteral( "1", 1, JavaTypes.pINT() );
+      Expression one = new NumericLiteral( "1", 1, JavaTypes.pINT() );
+      IType type = resolveType(lhs, lhs.getType(), operation._strValue.charAt(0), lhs.getType());
       pushExpression( one );
       setLocation( lhs.getLocation().getExtent() + 1, lhs.getLineNum(), lhs.getLocation().getColumn() + 1 );
       popExpression();
+      one = possiblyWrapWithImplicitCoercion(one, type);
       add.setRHS( one );
-      one.setType( typeExpected );
       add.setOperator( "++".equals( operation._strValue ) ? "+" : "-" );
-      add.setType( resolveType( lhs, lhs.getType(), operation._strValue.charAt( 0 ), lhs.getType() ) );
+      add.setType( type);
 
       pushExpression( add );
       setLocation( lhs.getLocation().getOffset(), lhs.getLineNum(), lhs.getLocation().getColumn()+1 );
