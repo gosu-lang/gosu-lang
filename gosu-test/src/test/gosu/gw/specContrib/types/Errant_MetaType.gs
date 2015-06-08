@@ -39,4 +39,20 @@ class Errant_MetaType {
     // IDE-2283
     var a = GosuClass1.Type.ONE   // here 'Type' is enum
   }
+
+  // IDE-1958
+  class Foo {
+    construct(p: String) {}
+    construct(p: Type<String>) {}
+
+    function test() {
+      var x: gw.lang.reflect.IType
+      var p: Type<String>
+
+      new Foo(x)  //## issuekeys: CANNOT RESOLVE
+
+      x = p
+      p = x       //## issuekeys: NOT ASSIGNABLE
+    }
+  }
 }
