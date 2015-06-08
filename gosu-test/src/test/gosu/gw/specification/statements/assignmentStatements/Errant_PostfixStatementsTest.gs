@@ -124,10 +124,10 @@ class Errant_PostfixStatementsTest {
     x5--;
     x6--;
 
-    x7++;  //## issuekeys: MSG_TYPE_MISMATCH
-    x7--;  //## issuekeys: MSG_TYPE_MISMATCH
-    x8++;  //## issuekeys: MSG_TYPE_MISMATCH
-    x8--;  //## issuekeys: MSG_TYPE_MISMATCH
+    x7++;  //## issuekeys: MSG_TYPE_MISMATCH         //## KB(IDE-2537)
+    x7--;  //## issuekeys: MSG_TYPE_MISMATCH         //## KB(IDE-2537)
+    x8++;  //## issuekeys: MSG_TYPE_MISMATCH         //## KB(IDE-2537)
+    x8--;  //## issuekeys: MSG_TYPE_MISMATCH         //## KB(IDE-2537)
     x9++;  //## issuekeys: MSG_TYPE_MISMATCH
     x9--;  //## issuekeys: MSG_TYPE_MISMATCH
   }
