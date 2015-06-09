@@ -12,9 +12,11 @@ import gw.internal.ext.org.objectweb.asm.FieldVisitor;
 import gw.internal.ext.org.objectweb.asm.MethodVisitor;
 import gw.internal.ext.org.objectweb.asm.Opcodes;
 import gw.internal.ext.org.objectweb.asm.TypePath;
+import gw.internal.gosu.parser.TypeLord;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.java.IJavaBackedTypeData;
+import gw.lang.reflect.java.JavaTypes;
 
 public class GosuClassWriter extends ClassVisitor
 {
@@ -102,23 +104,37 @@ public class GosuClassWriter extends ClassVisitor
           return "java/lang/Object";
         }
       }
+      IType fromT1 = findCommonClass( t1, t2 );
+      IType fromT2 = findCommonClass( t2, t1 );
+      IType commonSuper;
+      if( fromT1.isAssignableFrom( fromT2 ) ) {
+        commonSuper = fromT2;
+      }
+      else {
+        commonSuper = fromT1;
+      }
+
+      String superTypeName;
+      if( commonSuper instanceof IJavaBackedTypeData ) {
+        // Ensure we use the backing Java class's name e.g., entity types use a different name
+        superTypeName = ((IJavaBackedTypeData)commonSuper).getBackingClassInfo().getName();
+      }
+      else {
+        superTypeName = commonSuper.getName();
+      }
+      return superTypeName.replace( '.', '/' );
+    }
+
+    private IType findCommonClass( IType t1, IType t2 )
+    {
       do {
         t1 = t1.getSupertype();
         if( t1 == null ) {
-          return "java/lang/Object";
+          return JavaTypes.OBJECT();
         }
+        t1 = TypeLord.getPureGenericType( t1 );
       } while( !t1.isAssignableFrom( t2 ) );
-
-      String superTypeName;
-
-      if( t1 instanceof IJavaBackedTypeData ) {
-        // Ensure we use the backing Java class's name e.g., entity types use a different name
-        superTypeName = ((IJavaBackedTypeData)t1).getBackingClassInfo().getName();
-      }
-      else {
-        superTypeName = t1.getName();
-      }
-      return superTypeName.replace( '.', '/' );
+      return t1;
     }
   }
 }
