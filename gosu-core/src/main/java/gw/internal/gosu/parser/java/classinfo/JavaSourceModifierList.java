@@ -4,10 +4,9 @@
 
 package gw.internal.gosu.parser.java.classinfo;
 
-import gw.internal.gosu.parser.java.IJavaASTNode;
-import gw.internal.gosu.parser.java.JavaASTConstants;
-import gw.internal.gosu.parser.java.JavaParser;
-import gw.internal.gosu.parser.java.LeafASTNode;
+import com.sun.source.tree.AnnotationTree;
+import com.sun.source.tree.ModifiersTree;
+import com.sun.tools.javac.tree.JCTree;
 import gw.lang.reflect.IAnnotationInfo;
 import gw.lang.reflect.Modifier;
 import gw.lang.reflect.java.IJavaAnnotatedElement;
@@ -19,7 +18,7 @@ import java.util.List;
 
 public class JavaSourceModifierList implements IModifierList {
   private static final JavaSourceAnnotationInfo[] NONE = new JavaSourceAnnotationInfo[0];
-  private IJavaASTNode _modifiersOrAnnotationsNode;
+  private ModifiersTree _modifiersTree;
   private int _modifiers;
   private IJavaAnnotatedElement _owner;
   private JavaSourceAnnotationInfo[] _annotations;
@@ -27,57 +26,16 @@ public class JavaSourceModifierList implements IModifierList {
   /**
    * For enum constants.
    */
-  public JavaSourceModifierList(JavaSourceEnumConstant owner, IJavaASTNode annotationsNode, int modifiers) {
+  public JavaSourceModifierList(JavaSourceEnumConstant owner, ModifiersTree modifiersTree, int modifiers) {
     _owner = owner;
     _modifiers = modifiers;
-    _modifiersOrAnnotationsNode = annotationsNode;
+    _modifiersTree = modifiersTree;
   }
 
-  public JavaSourceModifierList(IJavaAnnotatedElement owner, IJavaASTNode modifiersNode) {
+  public JavaSourceModifierList(IJavaAnnotatedElement owner, ModifiersTree modifiersTree) {
     _owner = owner;
-    _modifiersOrAnnotationsNode = modifiersNode;
-    for (IJavaASTNode child : modifiersNode.getChildren()) {
-      if (child.isLeaf()) {
-        int tokenType = ((LeafASTNode) child).getTokenType();
-        switch (tokenType) {
-          case JavaParser.PUBLIC:
-            _modifiers |= Modifier.PUBLIC;
-            break;
-          case JavaParser.PROTECTED:
-            _modifiers |= Modifier.PROTECTED;
-            break;
-          case JavaParser.PRIVATE:
-            _modifiers |= Modifier.PRIVATE;
-            break;
-          case JavaParser.STATIC:
-            _modifiers |= Modifier.STATIC;
-            break;
-          case JavaParser.ABSTRACT:
-            _modifiers |= Modifier.ABSTRACT;
-            break;
-          case JavaParser.FINAL:
-            _modifiers |= Modifier.FINAL;
-            break;
-          case JavaParser.NATIVE:
-            _modifiers |= Modifier.NATIVE;
-            break;
-          case JavaParser.SYNCHRONIZED:
-            _modifiers |= Modifier.SYNCHRONIZED;
-            break;
-          case JavaParser.STRICTFP:
-            _modifiers |= Modifier.STRICT;
-            break;
-          case JavaParser.TRANSIENT:
-            _modifiers |= Modifier.TRANSIENT;
-            break;
-          case JavaParser.VOLATILE:
-            _modifiers |= Modifier.VOLATILE;
-            break;
-          default:
-            throw new RuntimeException("Unknown modifier " + child.getText());
-        }
-      }
-    }
+    _modifiersTree = modifiersTree;
+    _modifiers = (int)((JCTree.JCModifiers)_modifiersTree).flags;
     IJavaClassInfo declaringOwner = owner instanceof JavaSourceType ? (IJavaClassInfo) owner : owner.getEnclosingClass();
     if (declaringOwner.isInterface() || declaringOwner.isAnnotation()) {
       _modifiers |= Modifier.PUBLIC;
@@ -107,13 +65,13 @@ public class JavaSourceModifierList implements IModifierList {
 
   private void maybeInitAnnotations() {
     if (_annotations == null) {
-      if (_modifiersOrAnnotationsNode == null) {
+      List<? extends AnnotationTree> annotationsTrees = _modifiersTree.getAnnotations();
+      if (annotationsTrees.isEmpty()) {
         _annotations = NONE;
       } else {
-        List<IJavaASTNode> annotationNodes = _modifiersOrAnnotationsNode.getChildrenOfTypes(JavaASTConstants.annotation);
         List<JavaSourceAnnotationInfo> annotations = new ArrayList<JavaSourceAnnotationInfo>();
-        for (IJavaASTNode annotationNode : annotationNodes) {
-          annotations.add(new JavaSourceAnnotationInfo(annotationNode, _owner));
+        for (AnnotationTree annotationTree : annotationsTrees) {
+          annotations.add(new JavaSourceAnnotationInfo(annotationTree, _owner));
         }
         _annotations = annotations.toArray(new JavaSourceAnnotationInfo[annotations.size()]);
       }

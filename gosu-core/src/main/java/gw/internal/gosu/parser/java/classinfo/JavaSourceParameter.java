@@ -4,10 +4,8 @@
 
 package gw.internal.gosu.parser.java.classinfo;
 
-import gw.internal.gosu.parser.java.IJavaASTNode;
-import gw.internal.gosu.parser.java.JavaASTConstants;
-import gw.internal.gosu.parser.java.JavaLexer;
-import gw.internal.gosu.parser.java.LeafASTNode;
+import com.sun.source.tree.Tree;
+import com.sun.source.tree.VariableTree;
 import gw.lang.reflect.IAnnotationInfo;
 import gw.lang.reflect.java.IJavaAnnotatedElement;
 import gw.lang.reflect.java.IJavaClassInfo;
@@ -17,32 +15,20 @@ import java.lang.annotation.Annotation;
 
 public class JavaSourceParameter implements IJavaAnnotatedElement {
   private JavaSourceMethod _method;
-  private IJavaASTNode _parameterNode;
+  private VariableTree _parameterTree;
   private IJavaClassType _genericType;
   private JavaSourceModifierList _modifierList;
   private IJavaClassInfo _type;
 
-  public JavaSourceParameter(JavaSourceMethod sourceJavaMethod, IJavaASTNode parameterNode) {
-    _parameterNode = parameterNode;
+  public JavaSourceParameter(JavaSourceMethod sourceJavaMethod, VariableTree parameterTree) {
+    _parameterTree = parameterTree;
     _method = sourceJavaMethod;
   }
 
   public IJavaClassType getGenericType() {
     if (_genericType == null) {
-      IJavaClassType type = JavaSourceType.createType(_method, _parameterNode.getChildOfType(JavaASTConstants.type));
-      if (_parameterNode.isOfType(JavaASTConstants.ellipsisParameterDecl)) {
-        type = new JavaSourceArrayType(type);
-      }
-
-      //handle c-style array declarations correctly
-      int cStyleArrayDeclCheck = _parameterNode.getChildOfTypeIndex(JavaLexer.IDENTIFIER) + 1;
-      while (cStyleArrayDeclCheck < _parameterNode.getChildren().size()) {
-        IJavaASTNode child = _parameterNode.getChild(cStyleArrayDeclCheck);
-        if (child instanceof LeafASTNode && ((LeafASTNode) child).getTokenType() == JavaLexer.LBRACKET) {
-          type = new JavaSourceArrayType(type);
-        }
-        cStyleArrayDeclCheck++;
-      }
+      final Tree parType = _parameterTree.getType();
+      IJavaClassType type = JavaSourceType.createType(_method,parType);
 
       if (type == null) {
         throw new RuntimeException("Parameter generic type cannot be null");
@@ -68,7 +54,7 @@ public class JavaSourceParameter implements IJavaAnnotatedElement {
 
   public IModifierList getModifierList() {
     if (_modifierList == null) {
-      _modifierList = new JavaSourceModifierList(this, _parameterNode.getChildOfType( JavaASTConstants.variableModifiers));
+      _modifierList = new JavaSourceModifierList(this, _parameterTree.getModifiers());
     }
     return _modifierList;
   }
