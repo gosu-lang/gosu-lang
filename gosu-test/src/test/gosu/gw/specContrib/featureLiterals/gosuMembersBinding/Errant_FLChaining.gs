@@ -14,7 +14,7 @@ class Errant_FLChaining {
       _boss2 = boss
     }
 
-    function empFun() {}
+    function empFun(): Employee { return null }
   }
 
   function chainFeatureLiterals () {
@@ -56,5 +56,13 @@ class Errant_FLChaining {
     var boss2AgeFLBound11 = anEmp#Boss2#Age
     var boss2AgeFLBound12 = anEmp#Boss2.get()#Age
     anEmp#Boss2#Age.set(42)
+
+
+    // non-property chaining
+    var invalid1: Object = Employee#Boss1#empFun()  //## issuekeys: NON-PROPERTY LITERAL CHAINING
+    // IDE-2556
+    var invalid2: Object = Employee#empFun()#Boss1  //## issuekeys: NON-PROPERTY LITERAL CHAINING
+    var invalid3: Object = anEmp#Boss1#empFun()     //## issuekeys: NON-PROPERTY LITERAL CHAINING
+    var invalid4: Object = anEmp#empFun()#Boss2     //## issuekeys: NON-PROPERTY LITERAL CHAINING
   }
 }
