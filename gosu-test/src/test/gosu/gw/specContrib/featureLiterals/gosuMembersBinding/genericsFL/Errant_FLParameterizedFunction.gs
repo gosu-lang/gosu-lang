@@ -1,5 +1,8 @@
 package gw.specContrib.featureLiterals.gosuMembersBinding.genericsFL
 
+uses java.lang.CharSequence
+uses java.lang.Integer
+
 class Errant_FLParameterizedFunction {
   var gInstance : Errant_FLParameterizedFunction
   //Parameterized method
@@ -63,5 +66,26 @@ class Errant_FLParameterizedFunction {
     //IDE-1587
     var pFunFLInvoke3122 = pFunFL112.invoke(gInstance)
     var pFunFLInvoke3123 = pFunFL112.invoke(gInstance, new Object())      //## issuekeys: 'INVOKE()' IN '' CANNOT BE APPLIED TO '(JAVA.LANG.OBJECT)'
+  }
+
+  function fun<T extends CharSequence>(p: T): T { return null }
+  function fun<T>(p: T): T { return null }
+
+  function testOverloadedGenericMethod() {
+    // IDE-2557
+    var fl1 = this#fun(CharSequence)
+    var res11: String = fl1.invoke("")        //## issuekeys: MSG_TYPE_MISMATCH
+    var res12: CharSequence = fl1.invoke("")
+
+    var fl2 = this#fun("")
+    var res21: String = fl2.invoke()          //## issuekeys: MSG_TYPE_MISMATCH
+    var res22: CharSequence = fl2.invoke()
+
+    var fl3 = this#fun(Object)
+    var res2: Object = fl3.invoke(fl3)
+
+    var fl4 = this#fun(Integer.MAX_VALUE)
+    var res41: Integer = fl4.invoke()        //## issuekeys: MSG_TYPE_MISMATCH
+    var res42: Object = fl4.invoke()
   }
 }
