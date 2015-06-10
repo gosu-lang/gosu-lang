@@ -10,6 +10,7 @@ import gw.internal.gosu.ir.transform.ExpressionTransformer;
 import gw.internal.gosu.ir.transform.TopLevelTransformationContext;
 import gw.internal.gosu.parser.Expression;
 import gw.internal.gosu.parser.TypeVariableType;
+import gw.internal.gosu.parser.expressions.BeanMethodCallExpression;
 import gw.internal.gosu.parser.expressions.NewExpression;
 import gw.internal.gosu.runtime.GosuRuntimeMethods;
 import gw.lang.ir.IRElement;
@@ -19,6 +20,7 @@ import gw.lang.ir.expression.IRCompositeExpression;
 import gw.lang.ir.expression.IRNewMultiDimensionalArrayExpression;
 import gw.lang.parser.IExpression;
 import gw.lang.parser.expressions.IInitializerExpression;
+import gw.lang.parser.expressions.IMemberExpansionExpression;
 import gw.lang.reflect.IConstructorHandler;
 import gw.lang.reflect.IConstructorInfo;
 import gw.lang.reflect.IRelativeTypeInfo;
@@ -153,7 +155,8 @@ public class NewExpressionTransformer extends AbstractExpressionTransformer<NewE
     List<IRElement> newExprElements;
 
     if( irConstructor.isBytecodeMethod() &&
-        isBytecodeType( type ) && 
+        isBytecodeType( type ) &&
+        !hasExpansionExpressionInArguments() &&
         !_cc().shouldUseReflection( irConstructor.getOwningIType(), irConstructor.getAccessibility() ) )
     {
       List<IRExpression> explicitArgs = new ArrayList<IRExpression>();
@@ -203,6 +206,41 @@ public class NewExpressionTransformer extends AbstractExpressionTransformer<NewE
     }
 
     return constructorCall;
+  }
+
+  /**
+   * Sadly, the JVM verifier does not like the loops (backward jumps) between a NEW call on a type and the call for its ctor.
+   * Otherwise this results in "java.lang.VerifyError: Uninitialized object exists on backward branch".  So we opt to just
+   * call the ctor reflectively instead of making up some other bullshit.
+   */
+  private boolean hasExpansionExpressionInArguments()
+  {
+    Expression[] args = _expr().getArgs();
+    if( args == null )
+    {
+      return false;
+    }
+
+    for( Expression arg: args )
+    {
+      if( arg.getContainedParsedElementsByType( IMemberExpansionExpression.class, null ) )
+      {
+        return true;
+      }
+
+      List<BeanMethodCallExpression> list = new ArrayList<>();
+      if( arg.getContainedParsedElementsByType( BeanMethodCallExpression.class, list ) )
+      {
+        for( BeanMethodCallExpression expr: list )
+        {
+          if( expr.isExpansion() )
+          {
+            return true;
+          }
+        }
+      }
+    }
+    return false;
   }
 
   private IRExpression compileTypeVarConstructorCall()
