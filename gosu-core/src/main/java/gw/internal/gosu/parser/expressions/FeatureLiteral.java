@@ -73,11 +73,11 @@ public class FeatureLiteral extends Expression implements IFeatureLiteralExpress
 
     if( typeInfo instanceof IRelativeTypeInfo )
     {
-      methodInfo = ((IRelativeTypeInfo)typeInfo).getMethod( typeToResolveAgainst, methodName, argTypes );
+      methodInfo = ITypeInfo.FIND.callableMethod(((IRelativeTypeInfo)typeInfo).getMethods( typeToResolveAgainst), methodName, argTypes );
     }
     else
     {
-      methodInfo = typeInfo.getMethod( methodName, argTypes );
+      methodInfo = ITypeInfo.FIND.callableMethod( typeInfo.getMethods(), methodName, argTypes );
     }
 
     methodInfo = ensureExactMatch( methodInfo, argTypes );

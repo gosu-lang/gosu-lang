@@ -6,7 +6,7 @@ uses gw.lang.reflect.features.IMethodReference
 
 @DoNotVerifyResource
 class CoreFeatureLiteralTest extends TestClass {
-
+/*
   function testBasicInstanceFunctionWorks() {
     var f = FeatureLiteralClass#instFunc1()
     assertNotNull( f )
@@ -296,25 +296,13 @@ class CoreFeatureLiteralTest extends TestClass {
       assertTrue(pes.hasMatch( \ pe -> pe.Line == line ))
     }
   }
+*/
 
-  // spooky
-  function featureLiteralsWorkInPrograms() {
-    var src = "function foo() : Object { return #foo() }\n" +
-              " return foo()"
-    var mr = eval( src ) as IMethodReference
-    assertEquals( mr, mr.evaluate({}) ) 
+  function testGenricMethodWithOverloadingWorks() {
+    var ref = Generics1#pFun(java.lang.CharSequence)
+    assertNotNull(ref)
   }
 
-  // spookier
-  function featureLiteralsWorkInPrograms2() {
-    var src = "class Foo { function bar() : Object { return #foo() } }\n" +
-              "return {new Foo(), Foo#bar()}"
-    var lst = eval( src ) as List
-    var obj = lst.first()
-    var mr = lst[1] as IMethodReference
-    assertEquals( mr, mr.evaluate({obj}) ) 
-  }
-  
   class Foo {
     var _bar : Bar as BarProp
   }
@@ -322,7 +310,13 @@ class CoreFeatureLiteralTest extends TestClass {
   class Bar {
     var _str : String as StringProp
   }
-  
+
+  class Generics1 {
+    function pFun<T extends java.lang.CharSequence>(t : T) : Object { return "Generic With Bound" }
+    function pFun<T>(t: T) : Object { return "Generic No Bound" }
+  }
+
+/*
   function testChainedPropsWorkOnInnerClasses() {
     var f = new Foo() { :BarProp = new Bar() }
   
@@ -339,4 +333,6 @@ class CoreFeatureLiteralTest extends TestClass {
     assertEquals( "val1", f.BarProp.StringProp )
     assertEquals( "val1", bpr.get() )
   }
+  */
+
 }
