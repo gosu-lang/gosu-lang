@@ -6,7 +6,7 @@ uses gw.lang.reflect.features.IMethodReference
 
 @DoNotVerifyResource
 class CoreFeatureLiteralTest extends TestClass {
-/*
+
   function testBasicInstanceFunctionWorks() {
     var f = FeatureLiteralClass#instFunc1()
     assertNotNull( f )
@@ -296,7 +296,13 @@ class CoreFeatureLiteralTest extends TestClass {
       assertTrue(pes.hasMatch( \ pe -> pe.Line == line ))
     }
   }
-*/
+
+  function testBadFeatureLiteralCausesError() {
+    assertFalse(Errant_BadChainingInFeatureLiteral.Type.Valid)
+    var pes = Errant_BadChainingInFeatureLiteral.Type.ParseResultsException.ParseExceptions
+    assertTrue(pes.hasMatch( \ pe -> pe.Line == 11 ))
+    assertTrue(pes.hasMatch( \ pe -> pe.Line == 12 ))
+  }
 
   function testGenricMethodWithOverloadingWorks() {
     var ref = Generics1#pFun(java.lang.CharSequence)
@@ -316,7 +322,6 @@ class CoreFeatureLiteralTest extends TestClass {
     function pFun<T>(t: T) : Object { return "Generic No Bound" }
   }
 
-/*
   function testChainedPropsWorkOnInnerClasses() {
     var f = new Foo() { :BarProp = new Bar() }
   
@@ -333,6 +338,5 @@ class CoreFeatureLiteralTest extends TestClass {
     assertEquals( "val1", f.BarProp.StringProp )
     assertEquals( "val1", bpr.get() )
   }
-  */
 
 }

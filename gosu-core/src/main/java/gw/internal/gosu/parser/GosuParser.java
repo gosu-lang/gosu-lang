@@ -5094,9 +5094,10 @@ public final class GosuParser extends ParserBase implements IGosuParser
         }
       }
 
-      if( root instanceof IFeatureLiteralExpression )
+      if( root instanceof FeatureLiteral )
       {
         verify( fle, fle.isPropertyLiteral(), Res.MSG_FL_ONLY_PROPERTIES_MAY_BE_CHAINED );
+        verify( fle, ((FeatureLiteral) root).isPropertyLiteral(), Res.MSG_FL_ONLY_PROPERTIES_MAY_BE_CHAINED );
       }
 
       if( fle.isStaticish() && !fle.hasParseExceptions() )
