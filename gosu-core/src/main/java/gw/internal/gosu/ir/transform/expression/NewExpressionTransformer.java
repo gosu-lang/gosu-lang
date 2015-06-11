@@ -181,6 +181,10 @@ public class NewExpressionTransformer extends AbstractExpressionTransformer<NewE
     else
     {
       List<IRExpression> explicitArgs = new ArrayList<IRExpression>();
+      if( isNonStaticInnerClass( type ) )
+      {
+        explicitArgs.add( pushThisOrOuter( type.getEnclosingType() ) );
+      }
       pushArgumentsNoCasting( irConstructor, _expr().getArgs(), explicitArgs );
       newExprElements = handleNamedArgs( explicitArgs, _expr().getNamedArgOrder() );
 

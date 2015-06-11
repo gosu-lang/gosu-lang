@@ -95,8 +95,9 @@ public class GosuConstructorInfo extends AbstractGenericMethodInfo implements IG
 
   public class GosuConstructorHandler implements IConstructorHandler
   {
-    public Object newInstance( Object... args )
+    public Object newInstance( Object... a )
     {
+      List<Object> args = new ArrayList<>( Arrays.asList( a ) );
       IGosuClassInternal gsClass = (IGosuClassInternal)getType();
       if( !gsClass.isValid() )
       {
@@ -105,29 +106,28 @@ public class GosuConstructorInfo extends AbstractGenericMethodInfo implements IG
       try
       {
         IGosuClassInternal type = getOwnersType();
+        int iOuterOffset = 0;
+        if( type.getEnclosingType() != null && !type.isStatic() )
+        {
+          iOuterOffset = 1;
+        }
         if( type.isParameterizedType() )
         {
           IType[] typeParams = getOwnersType().getTypeParameters();
-          Object[] argsTemp = new Object[typeParams.length + args.length];
-          int i = 0;
-          for( ; i < typeParams.length; i++ ) {
-            argsTemp[i] = new NotLazyTypeResolver( typeParams[i] );
+          for( int i = 0; i < typeParams.length; i++ ) {
+            args.add( i + iOuterOffset, new NotLazyTypeResolver( typeParams[i] ) );
           }
-          System.arraycopy( args, 0, argsTemp, i, args.length );
-          args = argsTemp;
         }
         else
         {
           if( type.isGenericType() )
           {
             IGenericTypeVariable[] typeVariables = type.getGenericTypeVariables();
-            ArrayList<Object> argList = new ArrayList<Object>();
+            int i = 0;
             for( IGenericTypeVariable typeVariable : typeVariables )
             {
-              argList.add( new NotLazyTypeResolver( typeVariable.getBoundingType() ) );
+              args.add( i + iOuterOffset, new NotLazyTypeResolver( typeVariable.getBoundingType() ) );
             }
-            argList.addAll( Arrays.asList( args ) );
-            args = argList.toArray( new Object[argList.size()] );
           }
         }
         Class<?> aClass = getOwnersType().getBackingClass();
@@ -142,7 +142,7 @@ public class GosuConstructorInfo extends AbstractGenericMethodInfo implements IG
         {
           constructor.setAccessible( true );
         }
-        return constructor.newInstance( args );
+        return constructor.newInstance( args.toArray() );
       }
       catch( InvocationTargetException e )
       {
