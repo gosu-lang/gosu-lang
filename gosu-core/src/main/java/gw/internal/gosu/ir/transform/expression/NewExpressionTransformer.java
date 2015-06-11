@@ -19,8 +19,11 @@ import gw.lang.ir.IRSymbol;
 import gw.lang.ir.expression.IRCompositeExpression;
 import gw.lang.ir.expression.IRNewMultiDimensionalArrayExpression;
 import gw.lang.parser.IExpression;
+import gw.lang.parser.IParsedElement;
+import gw.lang.parser.expressions.IBlockExpression;
 import gw.lang.parser.expressions.IInitializerExpression;
 import gw.lang.parser.expressions.IMemberExpansionExpression;
+import gw.lang.parser.expressions.INewExpression;
 import gw.lang.reflect.IConstructorHandler;
 import gw.lang.reflect.IConstructorInfo;
 import gw.lang.reflect.IRelativeTypeInfo;
@@ -223,9 +226,16 @@ public class NewExpressionTransformer extends AbstractExpressionTransformer<NewE
 
     for( Expression arg: args )
     {
-      if( arg.getContainedParsedElementsByType( IMemberExpansionExpression.class, null ) )
+      List<IMemberExpansionExpression> l = new ArrayList<>();
+      if( arg.getContainedParsedElementsByType( IMemberExpansionExpression.class, l ) )
       {
-        return true;
+        for( IMemberExpansionExpression expr: l )
+        {
+          if( isInThisNew( expr ) )
+          {
+            return true;
+          }
+        }
       }
 
       List<BeanMethodCallExpression> list = new ArrayList<>();
@@ -233,7 +243,7 @@ public class NewExpressionTransformer extends AbstractExpressionTransformer<NewE
       {
         for( BeanMethodCallExpression expr: list )
         {
-          if( expr.isExpansion() )
+          if( expr.isExpansion() && isInThisNew( expr ) )
           {
             return true;
           }
@@ -241,6 +251,24 @@ public class NewExpressionTransformer extends AbstractExpressionTransformer<NewE
       }
     }
     return false;
+  }
+
+  private boolean isInThisNew( IParsedElement expr )
+  {
+    if( expr == this )
+    {
+      return true;
+    }
+
+    if( expr == null || // should throw for null probably
+        expr instanceof INewExpression ||
+        expr instanceof IBlockExpression ||
+        expr.getGosuClass() != _expr().getGosuClass() )
+    {
+      return false;
+    }
+
+    return isInThisNew( expr.getParent() );
   }
 
   private IRExpression compileTypeVarConstructorCall()
