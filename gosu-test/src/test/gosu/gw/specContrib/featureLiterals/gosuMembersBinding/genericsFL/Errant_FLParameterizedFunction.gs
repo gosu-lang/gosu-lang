@@ -11,6 +11,8 @@ class Errant_FLParameterizedFunction {
   //1st Set
   var pFunFL111 = #pFun()
   var pFunFL112 = #pFun("mystring")
+  var pFunFL112a = #pFun<CharSequence>("mystring")  //## issuekeys: ERROR FL cannot refer to a specific parameterized version of a generic method
+  var pFunFL112b = #pFun<Object>("mystring")   //## issuekeys: ERROR FL cannot refer to a specific parameterized version of a generic method
   //IDE-1588 - OS Gosu issue
   var pFunFL113 = #pFun(String) //## issuekeys: MSG_FL_METHOD_NOT_FOUND
 
