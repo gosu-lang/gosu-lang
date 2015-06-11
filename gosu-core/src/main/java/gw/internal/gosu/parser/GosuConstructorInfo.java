@@ -97,7 +97,7 @@ public class GosuConstructorInfo extends AbstractGenericMethodInfo implements IG
   {
     public Object newInstance( Object... a )
     {
-      List<Object> args = new ArrayList<>( Arrays.asList( a ) );
+      List<Object> args = a == null || a.length == 0 ? new ArrayList<>() : new ArrayList<>( Arrays.asList( a ) );
       IGosuClassInternal gsClass = (IGosuClassInternal)getType();
       if( !gsClass.isValid() )
       {
