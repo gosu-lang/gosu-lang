@@ -255,7 +255,7 @@ public class NewExpressionTransformer extends AbstractExpressionTransformer<NewE
 
   private boolean isInThisNew( IParsedElement expr )
   {
-    if( expr == this )
+    if( expr == _expr() )
     {
       return true;
     }
