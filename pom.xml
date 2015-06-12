@@ -5,15 +5,72 @@
   <groupId>org.gosu-lang.gosu</groupId>
   <artifactId>gosu-doc</artifactId>
   <packaging>jar</packaging>
-  <version>1.0-SNAPSHOT</version>
+  <version>0.1-SNAPSHOT</version>
   <name>gosu-doc</name>
-  <url>http://maven.apache.org</url>
+  <url>https://github.com/gosu-lang/gosu-doc</url>
+
+  <repositories>
+    <repository>
+      <id>gosu-lang.org-gosu</id>
+      <name>Official Gosu website (gosu)</name>
+      <url>http://gosu-lang.org/nexus/content/repositories/gosu</url>
+      <releases>
+        <enabled>true</enabled>
+      </releases>
+      <snapshots>
+        <enabled>false</enabled>
+      </snapshots>
+    </repository>
+
+    <repository>
+      <id>gosu-lang.org-snapshots</id>
+      <name>Official Gosu website (snapshots)</name>
+      <url>http://gosu-lang.org/nexus/content/repositories/snapshots</url>
+      <releases>
+        <enabled>false</enabled>
+      </releases>
+      <snapshots>
+        <enabled>true</enabled>
+      </snapshots>
+    </repository>
+  </repositories>
+
+  <parent>
+    <groupId>org.sonatype.oss</groupId>
+    <artifactId>oss-parent</artifactId>
+    <version>7</version>
+  </parent>
+
+
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <dist.man.repo.url>http://gosu-lang.org/nexus/content/repositories/gosu</dist.man.repo.url>
+    <dist.man.snapshotrepo.url>http://gosu-lang.org/nexus/content/repositories/snapshots</dist.man.snapshotrepo.url>
+  </properties>
+
+  <distributionManagement>
+    <repository>
+      <id>gosu-lang.org-gosu</id>
+      <url>${dist.man.repo.url}</url>
+    </repository>
+    <snapshotRepository>
+      <id>gosu-lang.org-snapshots</id>
+      <url>${dist.man.snapshotrepo.url}</url>
+      <uniqueVersion>false</uniqueVersion>
+    </snapshotRepository>
+  </distributionManagement>
 
   <dependencies>
     <dependency>
       <groupId>org.gosu-lang.gosu</groupId>
       <artifactId>gosu-core-api</artifactId>
-      <version>1.4.1</version>
+      <version>1-j8-fixasm-SNAPSHOT</version>
+    </dependency>
+    <dependency>
+      <groupId>org.gosu-lang.gosu</groupId>
+      <artifactId>gosu-core</artifactId>
+      <version>1-j8-fixasm-SNAPSHOT</version>
+      <scope>runtime</scope>
     </dependency>
     <dependency>
       <groupId>junit</groupId>
@@ -26,12 +83,6 @@
       <artifactId>jsoup</artifactId>
       <version>1.8.2</version>
       <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.gosu-lang.gosu</groupId>
-      <artifactId>gosu-core</artifactId>
-      <version>1.4.1</version>
-      <scope>runtime</scope>
     </dependency>
   </dependencies>
 
