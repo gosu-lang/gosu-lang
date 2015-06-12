@@ -127,4 +127,16 @@ class Errant_BindOverloadedGosuMethodsToInstance {
     overloadedFun127.invoke()      //## issuekeys: CANNOT RESOLVE METHOD 'INVOKE()'
   }
 
+  class OverloadMethodsInstance1 {
+    function hello(s: String , i: int): String { return null }
+    function hello(s: String , i: double): String { return null }
+
+    var gInstance : OverloadMethodsInstance1
+
+    var f111 = gInstance#hello(String, int)
+    var f112 = gInstance#hello(String, double)
+    var f113 = gInstance#hello("mystring", 10)
+    var f114 = gInstance#hello("mystring", 42.5)
+  }
+
 }
