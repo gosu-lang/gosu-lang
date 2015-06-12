@@ -1,5 +1,9 @@
 package gw.specContrib.featureLiterals.gosuMembersBinding
 
+uses gw.lang.reflect.features.BoundMethodReference
+
+uses java.lang.Double
+
 class Errant_BindOverloadedGosuMethodsToInstance {
   var jake : GosuFL
 
@@ -129,14 +133,14 @@ class Errant_BindOverloadedGosuMethodsToInstance {
 
   class OverloadMethodsInstance1 {
     function hello(s: String , i: int): String { return null }
-    function hello(s: String , i: double): String { return null }
+    function hello(s: String , i: Double): String { return null }
 
     var gInstance : OverloadMethodsInstance1
 
-    var f111 = gInstance#hello(String, int)
-    var f112 = gInstance#hello(String, double)
-    var f113 = gInstance#hello("mystring", 10)
-    var f114 = gInstance#hello("mystring", 42.5)
+    var f111 : BoundMethodReference<OverloadMethodsInstance1, block(String, int) : String> = gInstance#hello(String, int)
+    var f112 : BoundMethodReference<OverloadMethodsInstance1, block(String, Double) : String>  = gInstance#hello(String, Double)
+    var f113 : BoundMethodReference<OverloadMethodsInstance1, block() : String>  = gInstance#hello("mystring", 10)
+    var f114 : BoundMethodReference<OverloadMethodsInstance1, block() : String>  = gInstance#hello("mystring", 42.5)
   }
 
 }
