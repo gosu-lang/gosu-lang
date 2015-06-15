@@ -15,6 +15,7 @@ class Errant_FLParameterizedFunction {
   var pFunFL112b = #pFun<Object>("mystring")   //## issuekeys: ERROR FL cannot refer to a specific parameterized version of a generic method
   //IDE-1588 - OS Gosu issue
   var pFunFL113 = #pFun(String) //## issuekeys: MSG_FL_METHOD_NOT_FOUND
+  var pFunFL114 = #pFun(Object)
 
   //2nd Set
   var pFunFL211 = Errant_FLParameterizedFunction#pFun()
@@ -90,4 +91,10 @@ class Errant_FLParameterizedFunction {
     var res41: Integer = fl4.invoke()        //## issuekeys: MSG_TYPE_MISMATCH
     var res42: Object = fl4.invoke()
   }
+
+  //More tests for new FL+generics change.
+  //Generic method type parameters are not usable in feature literal expressions, and are always set to their bounding type.
+    function qFun<T extends Integer>(t : T) :T { return null}
+    var q111 = #qFun(Integer)
+    var qInvoke111 : Integer = q111.invoke(new Errant_FLParameterizedFunction(), 42)
 }
