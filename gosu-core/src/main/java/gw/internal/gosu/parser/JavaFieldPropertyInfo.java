@@ -61,7 +61,6 @@ public class JavaFieldPropertyInfo extends JavaBaseFeatureInfo implements IJavaF
     if (type == null) {
       throw new IllegalArgumentException("Feature type cannot be null");
     }
-    type = TypeLord.replaceRawGenericTypesWithDefaultParameterizedTypes( type );
     _type = type;
     _field = field;
     if (_field instanceof FieldJavaClassField) {
