@@ -3,42 +3,45 @@
 
   <groupId>org.gosu-lang.gosu</groupId>
   <artifactId>gosu-parent</artifactId>
-  <version>1.X-SNAPSHOT</version>
+  <version>1.6</version>
   <packaging>pom</packaging>
 
   <name>Gosu :: Parent POM</name>
+  <description>Gosu is a pragmatic programming language for the JVM.</description>
+  <url>http://gosu-lang.github.io/</url>
 
   <licenses>
     <license>
-      <name>The Apache Software License, Version 2.0</name>
+    <name>The Apache License, Version 2.0</name>
       <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
-      <distribution>repo</distribution>
     </license>
   </licenses>
 
+  <developers>
+    <developer>
+      <name>The Gosu Team</name>
+      <email>gosu.lang.team@gmail.com</email>
+      <organization>Guidewire</organization>
+      <organizationUrl>http://gosu-lang.github.io/</organizationUrl>
+    </developer>
+  </developers>
+
+  <scm>
+    <connection>scm:git:git@github.com:gosu-lang/gosu-lang.git</connection>
+    <developerConnection>scm:git:git@github.com:gosu-lang/gosu-lang.git</developerConnection>
+    <url>git@github.com:gosu-lang/gosu-lang.git</url>
+  </scm>
+
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <dist.man.repo.url>http://gosu-lang.org/nexus/content/repositories/gosu</dist.man.repo.url>
     <dist.man.snapshotrepo.url>http://gosu-lang.org/nexus/content/repositories/snapshots</dist.man.snapshotrepo.url>
   </properties>
 
   <repositories>
     <repository>
-      <id>gosu-lang.org-gosu</id>
-      <name>Official Gosu website (gosu)</name>
-      <url>http://gosu-lang.org/nexus/content/repositories/gosu</url>
-      <releases>
-        <enabled>true</enabled>
-      </releases>
-      <snapshots>
-        <enabled>false</enabled>
-      </snapshots>
-    </repository>
-
-    <repository>
       <id>gosu-lang.org-snapshots</id>
       <name>Official Gosu website (snapshots)</name>
-      <url>http://gosu-lang.org/nexus/content/repositories/snapshots</url>
+      <url>${dist.man.snapshotrepo.url}</url>
       <releases>
         <enabled>false</enabled>
       </releases>
@@ -49,15 +52,15 @@
   </repositories>
 
   <distributionManagement>
-    <repository>
-      <id>gosu-lang.org-gosu</id>
-      <url>${dist.man.repo.url}</url>
-    </repository>
     <snapshotRepository>
       <id>gosu-lang.org-snapshots</id>
       <url>${dist.man.snapshotrepo.url}</url>
       <uniqueVersion>false</uniqueVersion>
     </snapshotRepository>
+    <repository>
+      <id>ossrh</id>
+      <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+    </repository>
   </distributionManagement>
 
   <build>
@@ -165,7 +168,6 @@
         <executions>
           <execution>
             <id>attach-sources</id>
-            <phase>verify</phase>
             <goals>
               <goal>jar-no-fork</goal>
             </goals>
@@ -174,6 +176,46 @@
       </plugin>
     </plugins>
   </build>
+
+  <profiles>
+    <profile>
+      <id>release</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-javadoc-plugin</artifactId>
+            <version>2.9.1</version>
+            <configuration>
+              <additionalparam>-Xdoclint:none</additionalparam>
+            </configuration>
+            <executions>
+              <execution>
+                <id>attach-javadocs</id>
+                <goals>
+                  <goal>jar</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-gpg-plugin</artifactId>
+            <version>1.5</version>
+            <executions>
+              <execution>
+                <id>sign-artifacts</id>
+                <phase>verify</phase>
+                <goals>
+                  <goal>sign</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
 
   <dependencyManagement>
     <dependencies>
