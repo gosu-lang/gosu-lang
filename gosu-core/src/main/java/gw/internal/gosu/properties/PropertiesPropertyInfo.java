@@ -8,8 +8,6 @@ import gw.lang.reflect.IAnnotationInfo;
 import gw.lang.reflect.IPropertyAccessor;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.PropertyInfoBase;
-import gw.lang.reflect.java.IJavaType;
-import gw.lang.reflect.java.JavaTypes;
 import gw.lang.reflect.java.JavaTypes;
 
 import java.util.Collections;
@@ -23,7 +21,7 @@ class PropertiesPropertyInfo extends PropertyInfoBase implements IPropertiesProp
   private final PropertyNode _propertyNode;
   private final boolean _isStatic;
   private final IPropertyAccessor _accessor = new IPropertyAccessor() {
-    
+
     @Override
     public Object getValue(Object ctx) {
       return _propertyNode.isLeaf() ? _propertyNode.getValue() : _propertyNode;
@@ -85,5 +83,11 @@ class PropertiesPropertyInfo extends PropertyInfoBase implements IPropertiesProp
   public String getPropertyEntryName()
   {
     return _propertyNode.getPath();
+  }
+
+  @Override
+  public int getOffset()
+  {
+    return ((PropertiesType)getOwnersType()).findOffsetOf( _propertyNode );
   }
 }
