@@ -39,7 +39,6 @@ public class KeywordsTest extends TestClass {
     kw.put("false", true);
     kw.put("final", true);
     kw.put("finally", false);
-    kw.put("find", true);
     kw.put("for", false);
     kw.put("foreach", false);
     kw.put("function", false);

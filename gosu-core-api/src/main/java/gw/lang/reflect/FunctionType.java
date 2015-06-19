@@ -35,7 +35,7 @@ public class FunctionType extends AbstractType implements IFunctionType, IGeneri
   private IMethodInfo _mi;
   private String _strFunctionName;
   private IScriptPartId _scriptPart;
-  private IGosuClass _owningParameterizedType;
+  private IType _owningParameterizedType;
   private volatile IGenericTypeVariable[] _typeVars;
   private int _iModifiers;
   transient private FunctionTypeInfo _typeInfo;
@@ -152,12 +152,12 @@ public class FunctionType extends AbstractType implements IFunctionType, IGeneri
     }
   }
 
-  public FunctionType( FunctionType source, IGosuClass gsClass )
+  public FunctionType( FunctionType source, IType gsClass )
   {
     if( gsClass.isParameterizedType() )
     {
       _owningParameterizedType = gsClass;
-      TypeVarToTypeMap actualParamByVarName = TypeSystem.mapTypeByVarName( gsClass, gsClass, true );
+      TypeVarToTypeMap actualParamByVarName = TypeSystem.mapTypeByVarName( gsClass, gsClass );
 
       IGenericTypeVariable[] tvs = source.getTypeVariables();
       if( tvs != null )
@@ -171,6 +171,7 @@ public class FunctionType extends AbstractType implements IFunctionType, IGeneri
           actualParamByVarName.put( tv.getTypeVariableDefinition().getType(), tv.getTypeVariableDefinition().getType() );
         }
       }
+      assignTypeVars( source.getGenericTypeVariables(), actualParamByVarName );
       assignReturnTypeFromTypeParams( source, actualParamByVarName, true );
       assignParamTypesFromTypeParams( source, actualParamByVarName, true );
     }
@@ -205,7 +206,7 @@ public class FunctionType extends AbstractType implements IFunctionType, IGeneri
     _mi = source._mi;
     _strFunctionName = source._strFunctionName;
     _scriptPart = source._scriptPart;
-    _typeVars = source.getGenericTypeVariables();
+    _typeVars = _typeVars == null ? source.getGenericTypeVariables() : _typeVars;
     _typeInfo = source._typeInfo;
     _allTypesInHierarchy = source._allTypesInHierarchy;
     _signature = source._signature;
@@ -259,6 +260,17 @@ public class FunctionType extends AbstractType implements IFunctionType, IGeneri
       }
       clearParamSignature();
     }
+  }
+
+  private void assignTypeVars( IGenericTypeVariable[] gtvs, TypeVarToTypeMap actualParamByVarName )
+  {
+    IGenericTypeVariable[] newGtvs = new IGenericTypeVariable[gtvs.length];
+    for( int i = 0; i < gtvs.length; i++ )
+    {
+      IGenericTypeVariable gtv = gtvs[i];
+      newGtvs[i] = gtv.remapBounds( actualParamByVarName );
+    }
+    _typeVars = newGtvs;
   }
 
   private void assignReturnTypeFromTypeParams( FunctionType source, TypeVarToTypeMap actualParamByVarName, boolean bKeepTypeVars )
@@ -448,9 +460,10 @@ public class FunctionType extends AbstractType implements IFunctionType, IGeneri
 
   public IType getEnclosingType()
   {
-    if( _scriptPart instanceof IType)
+    IType type = null;
+    if( _scriptPart != null && (type = _scriptPart.getContainingType()) != null )
     {
-      return (IType)_scriptPart;
+      return type;
     }
     final IFeatureInfo methodInfo = getMethodOrConstructorInfo();
     if( methodInfo != null )
@@ -891,7 +904,7 @@ public class FunctionType extends AbstractType implements IFunctionType, IGeneri
     return getParamSignature().toString() + ":" + getReturnType().getName();
   }
 
-  public TypeVarToTypeMap inferTypeParametersFromArgumentTypes2( IGosuClass owningParameterizedType, IType... argTypes )
+  public TypeVarToTypeMap inferTypeParametersFromArgumentTypes2( IType owningParameterizedType, IType... argTypes )
   {
     return inferTypeParametersFromArgumentTypes( argTypes );
   }
@@ -929,7 +942,7 @@ public class FunctionType extends AbstractType implements IFunctionType, IGeneri
   {
     return getParameterizedParameterTypes2( null, typeParams );
   }
-  public IType[] getParameterizedParameterTypes2( IGosuClass ownersType, IType... typeParams )
+  public IType[] getParameterizedParameterTypes2( IType ownersType, IType... typeParams )
   {
     TypeVarToTypeMap actualParamByVarName = new TypeVarToTypeMap();
     int i = 0;
@@ -1045,7 +1058,7 @@ public class FunctionType extends AbstractType implements IFunctionType, IGeneri
     return new String[0];
   }
 
-  public IGosuClass getOwningParameterizedType()
+  public IType getOwningParameterizedType()
   {
     return _owningParameterizedType;
   }

@@ -41,7 +41,7 @@ public class DynamicSymbol extends AbstractDynamicSymbol
       return this;
     }
 
-    TypeVarToTypeMap actualParamByVarName = TypeLord.mapTypeByVarName( gsClass, gsClass, true );
+    TypeVarToTypeMap actualParamByVarName = TypeLord.mapTypeByVarName( gsClass, gsClass );
     IType type = TypeLord.getActualType( getType(), actualParamByVarName, true );
     DynamicSymbol dynamicSymbol = new DynamicSymbol( gsClass, _symTable, getName(), type, getValueDirectly() );
     dynamicSymbol.setModifierInfo( getModifierInfo() );

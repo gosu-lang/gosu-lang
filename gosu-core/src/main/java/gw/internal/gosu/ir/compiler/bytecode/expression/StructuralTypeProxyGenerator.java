@@ -148,6 +148,9 @@ public class StructuralTypeProxyGenerator {
   //   }
   // }
   private void genInterfaceMethodDecl( StringBuilder sb, IMethodInfo mi, IType rootType ) {
+    if( mi.isDefaultImpl() || mi.isStatic() ) {
+      return;
+    }
     if( mi.getOwnersType() instanceof IGosuEnhancement ) {
       return;
     }
@@ -161,7 +164,7 @@ public class StructuralTypeProxyGenerator {
       return;
     }
     sb.append( "  function " ).append( mi.getDisplayName() ).append( TypeInfoUtil.getTypeVarList( mi ) ).append( "(" );
-    IParameterInfo[] params = GosuClassProxyFactory.getGenericParameters( mi );
+    IParameterInfo[] params = mi.getParameters();
     for( int i = 0; i < params.length; i++ ) {
       IParameterInfo pi = params[i];
       sb.append( ' ' ).append( "p" ).append( i ).append( ": " ).append( TypeLord.replaceTypeVariableTypeParametersWithBoundingTypes( pi.getFeatureType() ).getName() );
@@ -201,6 +204,9 @@ public class StructuralTypeProxyGenerator {
   }
 
   private void genInterfacePropertyDecl( StringBuilder sb, IPropertyInfo pi, IType rootType ) {
+    if( pi.isDefaultImpl() || pi.isStatic() ) {
+      return;
+    }
     if( pi.isStatic() ) {
       return;
     }

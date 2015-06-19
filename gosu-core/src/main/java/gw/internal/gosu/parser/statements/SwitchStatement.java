@@ -7,9 +7,13 @@ package gw.internal.gosu.parser.statements;
 import gw.internal.gosu.parser.CannotExecuteGosuException;
 import gw.internal.gosu.parser.Expression;
 import gw.internal.gosu.parser.Statement;
+import gw.lang.parser.IExpression;
 import gw.lang.parser.statements.IBreakStatement;
+import gw.lang.parser.statements.ICaseClause;
 import gw.lang.parser.statements.ISwitchStatement;
 import gw.lang.parser.statements.ITerminalStatement;
+import gw.lang.reflect.IEnumType;
+import gw.lang.reflect.IType;
 
 import java.util.List;
 
@@ -93,6 +97,7 @@ public final class SwitchStatement extends Statement implements ISwitchStatement
     ITerminalStatement termRet = null;
     bAbsolute[0] = true;
     boolean bBreak = false;
+    ITerminalStatement lastCaseTerm = null;
     if( _cases != null )
     {
       for( int i = 0; i < _cases.length; i++ )
@@ -110,6 +115,9 @@ public final class SwitchStatement extends Statement implements ISwitchStatement
               bCaseAbs = bCsr[0];
               if( !(terminalStmt instanceof IBreakStatement) ) {
                 termRet = getLeastSignificant( termRet, terminalStmt );
+                if( i == _cases.length-1 ) {
+                  lastCaseTerm = termRet;
+                }
               }
               else {
                 bAbsolute[0] = bCaseAbs = false;
@@ -123,30 +131,71 @@ public final class SwitchStatement extends Statement implements ISwitchStatement
       }
     }
     boolean bDefaultContributed = false;
-    if( _defaultStatements != null && _defaultStatements.size() > 0 ) {
-      if( !bBreak ) {
-        // If none of the cases have a break, the cases all either fall through to the default clause
-        // or never flow to the next stmt following this switch.  Therefore, the default clause's terminal,
-        // if one is present, establishes the switch's terminal.
-        bAbsolute[0] = true;
-      }
-      boolean bDefaultAbs = false;
-      for( int i = 0; i < _defaultStatements.size(); i++ )
-      {
-        boolean[] bCsr = {false};
-        ITerminalStatement terminalStmt = _defaultStatements.get( i ).getLeastSignificantTerminalStatement( bCsr );
-        if( terminalStmt != null ) {
-          if( !(terminalStmt instanceof IBreakStatement) ) {
-            bDefaultAbs = bCsr[0];
-            termRet = getLeastSignificant( termRet, terminalStmt );
-            bDefaultContributed = true;
+    if( _defaultStatements != null ) {
+      if( _defaultStatements.size() > 0 ) {
+        if( !bBreak ) {
+          // If none of the cases have a break, the cases all either fall through to the default clause
+          // or never flow to the next stmt following this switch.  Therefore, the default clause's terminal,
+          // if one is present, establishes the switch's terminal.
+          bAbsolute[0] = true;
+        }
+        boolean bDefaultAbs = false;
+        for( int i = 0; i < _defaultStatements.size(); i++ )
+        {
+          boolean[] bCsr = {false};
+          ITerminalStatement terminalStmt = _defaultStatements.get( i ).getLeastSignificantTerminalStatement( bCsr );
+          if( terminalStmt != null ) {
+            if( !(terminalStmt instanceof IBreakStatement) ) {
+              bDefaultAbs = bCsr[0];
+              termRet = getLeastSignificant( termRet, terminalStmt );
+              bDefaultContributed = true;
+            }
           }
         }
+        bAbsolute[0] = bAbsolute[0] && bDefaultAbs;
       }
-      bAbsolute[0] = bAbsolute[0] && bDefaultAbs;
+    }
+    else if( !bBreak && lastCaseTerm != null && isCoveredEnumSwitch() ) {
+      // Switch is a covered Enum where all cases are non-breaking terminators
+      // (Note the compiler generate what is effectively a default clause that throws an exception for the 'null' case or if the Enum changes where new values are added)
+      // (Note also, the compiler generates an implicit break statement in the last case-clause if it does not terminate explicitly)
+      termRet = getLeastSignificant( new ThrowStatement(), lastCaseTerm );
+      bAbsolute[0] = bDefaultContributed = true;
     }
     bAbsolute[0] = bAbsolute[0] && termRet != null && bDefaultContributed;
     return termRet;
+  }
+
+  public boolean isCoveredEnumSwitch()
+  {
+    IExpression switchExpression = getSwitchExpression();
+    IType switchType = switchExpression.getType();
+    if( !switchType.isEnum() )
+    {
+      // Not an enum switch
+      return false;
+    }
+    List<String> enumValues = ((IEnumType)switchType).getEnumConstants();
+    ICaseClause[] cases = getCases();
+    for( ICaseClause caseClause : cases )
+    {
+      if( enumValues != null && caseClause.getExpression().isCompileTimeConstant() )
+      {
+        try
+        {
+          Object value = caseClause.getExpression().evaluate();
+          if( value != null )
+          {
+            enumValues.remove( value.toString() );
+          }
+        }
+        catch( Exception err )
+        {
+          // ignore
+        }
+      }
+    }
+    return cases.length > 0 && enumValues.isEmpty();
   }
 
   @Override

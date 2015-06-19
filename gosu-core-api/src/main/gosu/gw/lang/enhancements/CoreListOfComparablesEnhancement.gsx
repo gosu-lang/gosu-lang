@@ -13,11 +13,15 @@ enhancement CoreListOfComparablesEnhancement<T extends Comparable> : List<T>
     return this
   }
 
-  function sort( comparator : Comparator ) : List<T> {
-    Collections.sort( this, comparator )
-    return this
-  }
-  
+//
+//## note: removed to support Java 8 where default interface method List#sort(Comparator) replaces this, but it does not return itself :(
+//
+//  function sort( comparator : Comparator ) : List<T> {
+//    Collections.sort( this, comparator )
+//    return this
+//  }
+//
+
   function sortDescending() : List<T> {
     Collections.sort( this, Collections.reverseOrder<T>() )
     return this

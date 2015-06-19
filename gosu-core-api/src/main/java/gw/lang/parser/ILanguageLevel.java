@@ -12,7 +12,6 @@ public interface ILanguageLevel
 
   static class Util {
     private static Boolean g_standardGosu = null;
-    private static Boolean g_dynamicType = null;
     public static void reset() {
       g_standardGosu = null;
     }
@@ -24,7 +23,7 @@ public interface ILanguageLevel
              : g_standardGosu;
     }
 
-    public static boolean DYNAMICE_TYPE()
+    public static boolean DYNAMIC_TYPE()
     {
       return true;
 //             g_dynamicType == null
@@ -35,8 +34,6 @@ public interface ILanguageLevel
 
 
   //## todo: These all should be implied by the answer to isStandard() above... better, just stop supporting this crap
-
-  boolean allowAllImplicitCoercions();
 
   boolean supportsNakedCatchStatements();
 }

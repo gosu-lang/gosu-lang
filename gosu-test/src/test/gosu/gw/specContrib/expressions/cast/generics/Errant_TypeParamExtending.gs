@@ -93,25 +93,25 @@ class Errant_TypeParamExtending {
     }
     function testCastability() {
       //Set#1
-      var superP111 = superP as Super<Parent>
-      var superP112 = subP as Super<Parent>
-      var superP113 = superC as Super<Parent>
-      var superP114 = subC as Super<Parent>
-      var superP115 = superT as Super<Parent>
-      var superP116 = subT as Super<Parent>
+      var superP111 = superP as Super<Parent>  //## issuekeys: MSG_UNNECESSARY_COERCION
+      var superP112 = subP as Super<Parent>  //## issuekeys: MSG_UNNECESSARY_COERCION
+      var superP113 = superC as Super<Parent>  //## issuekeys: MSG_UNNECESSARY_COERCION
+      var superP114 = subC as Super<Parent>  //## issuekeys: MSG_UNNECESSARY_COERCION
+      var superP115 = superT as Super<Parent>  //## issuekeys: MSG_UNNECESSARY_COERCION
+      var superP116 = subT as Super<Parent>  //## issuekeys: MSG_UNNECESSARY_COERCION
 
       var subP111 = superP as Sub<Parent>
-      var subP112 = subP as Sub<Parent>
+      var subP112 = subP as Sub<Parent>  //## issuekeys: MSG_UNNECESSARY_COERCION
       var subP113 = superC as Sub<Parent>
-      var subP114 = subC as Sub<Parent>
+      var subP114 = subC as Sub<Parent>  //## issuekeys: MSG_UNNECESSARY_COERCION
       var subP115 = superT as Sub<Parent>
-      var subP116 = subT as Sub<Parent>
+      var subP116 = subT as Sub<Parent>  //## issuekeys: MSG_UNNECESSARY_COERCION
 
       //IDE-1731 - Parser Issue
       var superC111 = superP as Super<Child>
       var superC112 = subP as Super<Child>
-      var superC113 = superC as Super<Child>
-      var superC114 = subC as Super<Child>
+      var superC113 = superC as Super<Child>  //## issuekeys: MSG_UNNECESSARY_COERCION
+      var superC114 = subC as Super<Child>  //## issuekeys: MSG_UNNECESSARY_COERCION
       //IDE-1731 - Issue in both Parser and OS Gosu. T can be Child
       var superC115 = superT as Super<Child>
       //IDE-1731 - Issue in OS Gosu
@@ -121,7 +121,7 @@ class Errant_TypeParamExtending {
       var subC111 = superP as Sub<Child>
       var subC112 = subP as Sub<Child>
       var subC113 = superC as Sub<Child>
-      var subC114 = subC as Sub<Child>
+      var subC114 = subC as Sub<Child>  //## issuekeys: MSG_UNNECESSARY_COERCION
       //IDE-1731
       var subC115 = superT as Sub<Child>
       var subC116 = subT as Sub<Child>

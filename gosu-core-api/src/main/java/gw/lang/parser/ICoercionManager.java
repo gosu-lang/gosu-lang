@@ -30,13 +30,7 @@ public interface ICoercionManager extends IService
    */
   Object convertValue(Object value, IType intrType);
 
-  /**
-   * @param lhsType type to coerce to
-   * @param rhsType type to coerce from
-   *
-   * @return true if the given coercion should generate a warning
-   */
-  boolean coercionRequiresWarningIfImplicit( IType lhsType, IType rhsType );
+  boolean notCoercibleOrRequiresExplicitCoercion( IType lhsType, IType rhsType );
 
   /**
    * Verifies that the right hand type can be converted or coerced to the left hand type.  If bBiDirectional is true,

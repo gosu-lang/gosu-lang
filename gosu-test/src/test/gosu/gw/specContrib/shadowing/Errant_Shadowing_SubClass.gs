@@ -73,6 +73,23 @@ class Errant_Shadowing_SubClass extends Errant_Shadowing_BaseClass {
       }
     }
   }
+
+  function testAnon_ParamConflict(p: int) {
+    new Object() {
+      function foo(p: int) {  //## issuekeys: MSG_VARIABLE_ALREADY_DEFINED
+      }
+      property set Foo(p: String) {}  //## issuekeys: MSG_VARIABLE_ALREADY_DEFINED
+    }
+  }
+
+  function testAnon_LocalConflict() {
+    var p = 0
+    new Object() {
+      function foo(p: int) {  //## issuekeys: MSG_VARIABLE_ALREADY_DEFINED
+      }
+      property set Foo(p: String) {}  //## issuekeys: MSG_VARIABLE_ALREADY_DEFINED
+    }
+  }
 }
 
 

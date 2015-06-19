@@ -16,9 +16,9 @@ import gw.lang.reflect.IGenericMethodInfo;
 import gw.lang.reflect.IModifierInfo;
 import gw.lang.reflect.IParameterInfo;
 import gw.lang.reflect.IType;
+import gw.lang.reflect.ITypeVariableType;
 import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.gs.IGenericTypeVariable;
-import gw.lang.reflect.gs.IGosuClass;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -99,6 +99,13 @@ public class AbstractGenericMethodInfo extends GosuBaseAttributedFeatureInfo imp
     return getDfs().isFinal();
   }
 
+  @Override
+  public boolean isDefaultImpl() {
+    // Default methods are public non-abstract instance methods declared in an interface.
+    return ((getDfs().getModifiers() & (java.lang.reflect.Modifier.ABSTRACT | java.lang.reflect.Modifier.PUBLIC | java.lang.reflect.Modifier.STATIC)) ==
+            java.lang.reflect.Modifier.PUBLIC) && getOwnersType().isInterface();
+  }
+
   public IParameterInfo[] getParameters()
   {
     if( _params != null )
@@ -116,7 +123,7 @@ public class AbstractGenericMethodInfo extends GosuBaseAttributedFeatureInfo imp
 
   public IType getParameterizedReturnType( IType... typeParams )
   {
-    TypeVarToTypeMap actualParamByVarName = TypeLord.mapTypeByVarName( getOwnersType(), getOwnersType(), true );
+    TypeVarToTypeMap actualParamByVarName = TypeLord.mapTypeByVarName( getOwnersType(), getOwnersType() );
     int i = 0;
     for( IGenericTypeVariable tv : getTypeVariables() )
     {
@@ -133,10 +140,9 @@ public class AbstractGenericMethodInfo extends GosuBaseAttributedFeatureInfo imp
   {
     return getParameterizedParameterTypes2( null, typeParams );
   }
-  public IType[] getParameterizedParameterTypes2( IGosuClass ownersType, IType... typeParams )
+  public IType[] getParameterizedParameterTypes2( IType ownersType, IType... typeParams )
   {
-    IGosuClass ot = ownersType == null ? getOwnersType() : ownersType;
-    TypeVarToTypeMap actualParamByVarName = TypeLord.mapTypeByVarName( ownersType, ownersType, true );
+    TypeVarToTypeMap actualParamByVarName = TypeLord.mapTypeByVarName( ownersType, ownersType );
     int i = 0;
     for( IGenericTypeVariable tv : getTypeVariables() )
     {
@@ -160,12 +166,12 @@ public class AbstractGenericMethodInfo extends GosuBaseAttributedFeatureInfo imp
   {
     return inferTypeParametersFromArgumentTypes2( null, argTypes );
   }
-  public TypeVarToTypeMap inferTypeParametersFromArgumentTypes2( IGosuClass owningParameterizedType, IType... argTypes )
+  public TypeVarToTypeMap inferTypeParametersFromArgumentTypes2( IType owningParameterizedType, IType... argTypes )
   {
     FunctionType funcType = (FunctionType)getDfs().getType();
     IType[] genParamTypes = funcType.getParameterTypes();
-    IGosuClass ownersType = owningParameterizedType == null ? getOwnersType() : owningParameterizedType;
-    TypeVarToTypeMap actualParamByVarName = TypeLord.mapTypeByVarName( ownersType, ownersType, true );
+    IType ownersType = owningParameterizedType == null ? getOwnersType() : owningParameterizedType;
+    TypeVarToTypeMap actualParamByVarName = TypeLord.mapTypeByVarName( ownersType, ownersType );
     IGenericTypeVariable[] typeVars = getTypeVariables();
     for( IGenericTypeVariable tv : typeVars )
     {
@@ -173,7 +179,14 @@ public class AbstractGenericMethodInfo extends GosuBaseAttributedFeatureInfo imp
       {
         actualParamByVarName = new TypeVarToTypeMap();
       }
-      actualParamByVarName.put( tv.getTypeVariableDefinition().getType(), tv.getBoundingType() );
+      if( !TypeLord.isRecursiveType( tv.getTypeVariableDefinition().getType(), tv.getBoundingType() ) )
+      {
+        actualParamByVarName.put( tv.getTypeVariableDefinition().getType(), tv.getBoundingType() );
+      }
+      else
+      {
+        actualParamByVarName.put( tv.getTypeVariableDefinition().getType(), TypeLord.getPureGenericType( tv.getBoundingType() ) );
+      }
     }
 
     TypeVarToTypeMap map = new TypeVarToTypeMap();
@@ -188,21 +201,22 @@ public class AbstractGenericMethodInfo extends GosuBaseAttributedFeatureInfo imp
     return map;
   }
 
-  private void ensureInferredTypeAssignableToBoundingType( TypeVarToTypeMap actualParamByVarName, TypeVarToTypeMap map )
+  public static void ensureInferredTypeAssignableToBoundingType( TypeVarToTypeMap actualParamByVarName, TypeVarToTypeMap map )
   {
-    for( Object s : map.keySet() )
+    for( ITypeVariableType s : map.keySet() )
     {
-      IType inferredType = map.getRaw( s );
-      IType boundingType = actualParamByVarName.getRaw( s );
+      IType inferredType = map.get( s );
+      IType boundingType = actualParamByVarName.get( s );
       if( boundingType != null )
       {
+        boundingType = TypeLord.getActualType( boundingType, actualParamByVarName, true );
         if( boundingType.isParameterizedType() && TypeLord.isRecursiveType( boundingType ) )
         {
           boundingType = TypeLord.getPureGenericType( boundingType );
         }
         if( !boundingType.isAssignableFrom( inferredType ) )
         {
-          map.putRaw( s, boundingType );
+          map.put( s, boundingType );
         }
       }
     }

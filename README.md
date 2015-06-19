@@ -77,8 +77,8 @@ The plugin enables you to:
 
 Build instructions
 ------------------
-You need Java JDK 1.7 and Maven 3.0 to build Gosu.
-Set the JAVA_HOME environment variable to JDK 1.7's home.
+You need Java JDK 1.8 and Maven 3.0 to build Gosu.
+Set the JAVA_HOME environment variable to JDK 1.8's home.
 
 Clone the project from GitHub and run:
 

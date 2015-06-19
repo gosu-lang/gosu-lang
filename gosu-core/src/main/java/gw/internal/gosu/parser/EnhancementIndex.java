@@ -14,6 +14,7 @@ import gw.lang.reflect.IParameterInfo;
 import gw.lang.reflect.IPropertyInfo;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.ITypeRef;
+import gw.lang.reflect.ITypeVariableType;
 import gw.lang.reflect.RefreshKind;
 import gw.lang.reflect.RefreshRequest;
 import gw.lang.reflect.TypeSystem;
@@ -606,13 +607,13 @@ public class EnhancementIndex implements IEnhancementIndex
           }
         }
         // Bound any types that cannot be inferred via the relationship with the enhanced type
-        for( Object key : new ArrayList<Object>( map.keySet() ) )
+        for( ITypeVariableType key : new ArrayList<ITypeVariableType>( map.keySet() ) )
         {
-          if( map.getRaw( key ) == null )
+          if( map.get( key ) == null )
           {
             for( IGenericTypeVariable gtv : enhancementType.getGenericTypeVariables() )
             {
-              if( TypeVarToTypeMap.looseEquals( gtv.getTypeVariableDefinition().getType(), key ) )
+              if( gtv.getTypeVariableDefinition().getType().equals( key ) )
               {
                 map.put( gtv.getTypeVariableDefinition().getType(), gtv.getBoundingType() );
                 break;
@@ -636,7 +637,7 @@ public class EnhancementIndex implements IEnhancementIndex
       List<IType> typeParams = new ArrayList<IType>();
       for( IGenericTypeVariable gtv : enhancementType.getGenericTypeVariables() )
       {
-        typeParams.add( map.getRaw( gtv.getTypeVariableDefinition().getType() ) );
+        typeParams.add( map.get( gtv.getTypeVariableDefinition().getType() ) );
       }
       return typeParams;
     }

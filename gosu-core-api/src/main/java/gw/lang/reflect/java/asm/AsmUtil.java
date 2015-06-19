@@ -74,8 +74,12 @@ public class AsmUtil {
   }
 
   public static AsmType makeTypeVariable( String tv ) {
+    return makeTypeVariable( tv, false );
+  }
+  public static AsmType makeTypeVariable( String tv, boolean bFunctionTypeVar ) {
     AsmType typeVarType = new AsmType( tv );
     typeVarType.setTypeVariable();
+    typeVarType.setFunctionTypeVariable( bFunctionTypeVar );
     return typeVarType;
   }
 }

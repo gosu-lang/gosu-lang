@@ -21,6 +21,7 @@ import gw.lang.reflect.IFunctionType;
 import gw.lang.reflect.IMethodCallHandler;
 import gw.lang.reflect.IMethodInfo;
 import gw.lang.reflect.IType;
+import gw.lang.reflect.NotLazyTypeResolver;
 import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.gs.IGenericTypeVariable;
 import gw.lang.reflect.gs.IGosuMethodInfo;
@@ -57,7 +58,7 @@ public class GosuMethodInfo extends AbstractGenericMethodInfo implements IGosuMe
           //## Since DFSs are parameterized now, I'm not sure we ever need to get the actual type here (or in the params)
           !(getDfs() instanceof ReducedParameterizedDynamicFunctionSymbol) )
       {
-        TypeVarToTypeMap actualParamByVarName = TypeLord.mapTypeByVarName( ownerType, ownerType, true );
+        TypeVarToTypeMap actualParamByVarName = TypeLord.mapTypeByVarName( ownerType, ownerType );
         for( IGenericTypeVariable tv : getTypeVariables() )
         {
           if( actualParamByVarName.isEmpty() )
@@ -253,14 +254,18 @@ public class GosuMethodInfo extends AbstractGenericMethodInfo implements IGosuMe
             {
               if( dfsClass.isParameterizedType() )
               {
-                argList.addAll( Arrays.asList( dfsClass.getTypeParameters() ) );
+                for( int i = 0; i < dfsClass.getTypeParameters().length; i++ )
+                {
+                  IType paramType = dfsClass.getTypeParameters()[i];
+                  argList.add( new NotLazyTypeResolver( paramType ) );
+                }
               }
               else
               {
                 for( int i = 0; i < dfsClass.getGenericTypeVariables().length; i++ )
                 {
                   IGenericTypeVariable tv = dfsClass.getGenericTypeVariables()[i];
-                  argList.add( tv.getBoundingType() );
+                  argList.add( new NotLazyTypeResolver( tv.getBoundingType() ) );
                 }
               }
             }
@@ -269,7 +274,7 @@ public class GosuMethodInfo extends AbstractGenericMethodInfo implements IGosuMe
           //handle function args
           for( IGenericTypeVariable typeVar : dfs.getType().getGenericTypeVariables() )
           {
-            argList.add( typeVar.getBoundingType() );
+            argList.add( new NotLazyTypeResolver( typeVar.getBoundingType() ) );
           }
 
           // If it's an instance of a Gosu program, for now pass through null for the external symbols argument

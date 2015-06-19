@@ -15,16 +15,26 @@ public class DeclarationPartSignatureVisitor extends SignatureVisitor {
   private AsmType _typeArg;
   private int _iArrayDims;
   private Boolean _variance; // null = none, true = covariant, false = contravariant
+  private AsmMethod _method;
 
   DeclarationPartSignatureVisitor() {
     super( Opcodes.ASM5 );
   }
-  DeclarationPartSignatureVisitor( AsmType type ) {
+
+  DeclarationPartSignatureVisitor( AsmMethod method ) {
     super( Opcodes.ASM5 );
+    _method = method;
+  }
+  DeclarationPartSignatureVisitor( AsmMethod method, AsmType type ) {
+    super( Opcodes.ASM5 );
+    _method = method;
     _currentType = type;
   }
-  DeclarationPartSignatureVisitor( AsmType type, char wildcardVariance ) {
-    this( type );
+  DeclarationPartSignatureVisitor( AsmType type ) {
+    this( null, type );
+  }
+  DeclarationPartSignatureVisitor( AsmMethod method, AsmType type, char wildcardVariance ) {
+    this( method, type );
     _variance = wildcardVariance == '+';
   }
 
@@ -106,7 +116,7 @@ public class DeclarationPartSignatureVisitor extends SignatureVisitor {
   @Override
   public void visitTypeVariable( String tv ) {
     if( _currentType == null ) {
-      _currentType = AsmUtil.makeTypeVariable( tv );
+      _currentType = AsmUtil.makeTypeVariable( tv, isFunctionTypeVar( tv ) );
       for( int i = 0; i < _iArrayDims; i++ ) {
         _currentType.incArrayDims();
       }
@@ -115,7 +125,7 @@ public class DeclarationPartSignatureVisitor extends SignatureVisitor {
       }
     }
     else {
-      AsmType typeArg = AsmUtil.makeTypeVariable( tv );
+      AsmType typeArg = AsmUtil.makeTypeVariable( tv, isFunctionTypeVar( tv ) );
       for( int i = 0; i < _iArrayDims; i++ ) {
         typeArg.incArrayDims();
       }
@@ -124,6 +134,14 @@ public class DeclarationPartSignatureVisitor extends SignatureVisitor {
       }
       _currentType.addTypeParameter( typeArg );
     }
+  }
+
+  private boolean isFunctionTypeVar( String tv ) {
+    if( _method == null ) {
+      return false;
+    }
+    AsmType typeVar = _method.findTypeVariable( tv );
+    return typeVar != null;
   }
 
   @Override
@@ -185,9 +203,9 @@ public class DeclarationPartSignatureVisitor extends SignatureVisitor {
   @Override
   public SignatureVisitor visitTypeArgument( char wildcard ) {
     if( wildcard != '=' ) {
-      return new DeclarationPartSignatureVisitor( _typeArg == null ? _currentType : _typeArg, wildcard );
+      return new DeclarationPartSignatureVisitor( _method, _typeArg == null ? _currentType : _typeArg, wildcard );
     }
-    return new DeclarationPartSignatureVisitor( _typeArg == null ? _currentType : _typeArg );
+    return new DeclarationPartSignatureVisitor( _method, _typeArg == null ? _currentType : _typeArg );
   }
 
   @Override

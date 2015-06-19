@@ -220,6 +220,7 @@ public class MetaType extends AbstractType implements IMetaType
    * <li> - or - one of them is the DEFAULT_TYPE
    * <li> - or - one of them is the ROOT_TYPE
    * <li> - or - their core types are assignable
+   * <li> - or - their core types are structurally assignable
    * </ul>
    */
   @Override

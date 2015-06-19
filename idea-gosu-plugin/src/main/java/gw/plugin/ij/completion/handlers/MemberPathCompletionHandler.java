@@ -90,12 +90,6 @@ public class MemberPathCompletionHandler extends AbstractPathCompletionHandler {
       if (_rootType instanceof IErrorType || _rootType instanceof INamespaceType || (_rootType instanceof IMetaType && ((IMetaType) _rootType).getType() instanceof IErrorType)) {
         return;
       }
-
-//      IFeatureFilter filter = null;
-//      if (expr.getParent() instanceof IFieldAccessExpression && IQueryPathExpression.Util.isQueryPathExpressionPart((IFieldAccessExpression) expr.getParent())) {
-//        filter = CommonServices.getEntityAccess().getQueryExpressionFeatureFilter();
-//      }
-
         IType type = expr.getType();
         if (starDot) {
           IType componentType = JavaTypes.OBJECT();

@@ -23,4 +23,12 @@ class Errant_PropertyGetCovariance {
     }
 
   }
+
+  function testSetter() {
+    var base : Base
+    var sub : Sub
+    var num : java.lang.Number
+    base.A = num
+    sub.A = num   //## issuekeys: MSG_IMPLICIT_COERCION_ERROR
+  }
 }

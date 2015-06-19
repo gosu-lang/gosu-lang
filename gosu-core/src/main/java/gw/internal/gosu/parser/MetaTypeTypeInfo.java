@@ -530,6 +530,11 @@ public class MetaTypeTypeInfo extends BaseFeatureInfo implements IRelativeTypeIn
     {
       return "Access this property from the Type property e.g., SomeType.Type." + getName();
     }
+
+    @Override
+    public boolean isDefaultImpl() {
+      return false;
+    }
   }
 
   private static class StaticMethodInfoDelegate extends MethodInfoDelegate
@@ -618,6 +623,11 @@ public class MetaTypeTypeInfo extends BaseFeatureInfo implements IRelativeTypeIn
     public List<IAnnotationInfo> getDeclaredAnnotations()
     {
       return Collections.emptyList();
+    }
+
+    @Override
+    public boolean isDefaultImpl() {
+      return false;
     }
 
     public String getName()

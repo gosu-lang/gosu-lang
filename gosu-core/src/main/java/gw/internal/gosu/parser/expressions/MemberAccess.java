@@ -7,7 +7,6 @@ package gw.internal.gosu.parser.expressions;
 import gw.internal.gosu.parser.BeanAccess;
 import gw.internal.gosu.parser.Expression;
 import gw.internal.gosu.parser.RuntimeExceptionWithNoStacktrace;
-import gw.internal.gosu.parser.SimpleBeanAccess;
 import gw.internal.gosu.parser.StringCache;
 import gw.lang.parser.MemberAccessKind;
 import gw.internal.gosu.parser.optimizer.SinglePropertyMemberAccessRuntime;
@@ -158,7 +157,7 @@ public class MemberAccess extends Expression implements IFieldAccessExpression, 
     {
       return null;
     }
-    return SimpleBeanAccess.getPropertyInfoDirectly(getRootType(), _strMemberName);
+    return BeanAccess.getPropertyInfoDirectly_NoException( getRootType(), _strMemberName );
   }
 
   public String getMethodNameForSyntheticAccess()

@@ -94,4 +94,16 @@ class TestConditionaryTernaryExpression
     return x < 0 ? 1 : 2
   }
 
+  function testElvisDoesNotEvaluatingConditionTwice() : int
+  {
+    var counter = 0
+    var incr : block() : String = \ -> {
+      counter += 1
+      return "a"
+    }
+
+    var t = incr() ?: "b"  // incr() should only be evaluated once
+
+    return counter // should be 1
+  }
 }

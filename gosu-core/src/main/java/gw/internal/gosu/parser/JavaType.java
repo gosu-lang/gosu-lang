@@ -186,8 +186,7 @@ class JavaType extends AbstractType implements IJavaTypeInternal
       try
       {
         assignGenericTypeVarPlaceholders();
-        TypeVarToTypeMap actualParamByVarName = TypeLord.mapTypeByVarName( thisRef(), thisRef() );
-        return GenericTypeVariable.convertTypeVars( thisRef(), _classInfo.getTypeParameters(), actualParamByVarName );
+        return GenericTypeVariable.convertTypeVars( thisRef(), _classInfo.getTypeParameters() );
       }
       finally
       {
@@ -627,10 +626,10 @@ class JavaType extends AbstractType implements IJavaTypeInternal
           }
           else
           {
-            TypeVarToTypeMap actualParamByVarName = TypeLord.mapTypeByVarName( thisRef(), thisRef(), true );
+            TypeVarToTypeMap actualParamByVarName = TypeLord.mapTypeByVarName( thisRef(), thisRef() );
             if( actualParamByVarName.isEmpty() )
             {
-              actualParamByVarName = TypeLord.mapTypeByVarName( notParameterizedInterface, notParameterizedInterface, true );
+              actualParamByVarName = TypeLord.mapTypeByVarName( notParameterizedInterface, notParameterizedInterface );
             }
             IType parameterizedIface = interfaceType.getActualType( actualParamByVarName, true );
             if( parameterizedIface.isGenericType() && !parameterizedIface.isParameterizedType() ) {
@@ -709,10 +708,10 @@ class JavaType extends AbstractType implements IJavaTypeInternal
 
       // Get fully parameterized version of generic supertype...
 
-      TypeVarToTypeMap actualParamByVarName = TypeLord.mapTypeByVarName( thisRef(), thisRef(), true );
+      TypeVarToTypeMap actualParamByVarName = TypeLord.mapTypeByVarName( thisRef(), thisRef() );
       if( actualParamByVarName.isEmpty() )
       {
-        actualParamByVarName = TypeLord.mapTypeByVarName( notParameterizedSuperType, notParameterizedSuperType, true );
+        actualParamByVarName = TypeLord.mapTypeByVarName( notParameterizedSuperType, notParameterizedSuperType );
       }
       if(genericSuperclass != null) {
         _superType = genericSuperclass.getActualType( actualParamByVarName, true );
@@ -933,7 +932,7 @@ class JavaType extends AbstractType implements IJavaTypeInternal
       {
         _allTypesInHierarchy = TypeLord.getAllClassesInClassHierarchyAsIntrinsicTypes( _classInfo );
         Set<IType> includeGenericTypes = new HashSet<IType>( _allTypesInHierarchy );
-        addGenericTypes( thisRef(), includeGenericTypes);
+        addGenericTypes( thisRef(), includeGenericTypes );
         _allTypesInHierarchy = new UnmodifiableArraySet<IType>(includeGenericTypes);
       }
     }

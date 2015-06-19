@@ -16,7 +16,7 @@ public interface IJavaClassConstructor extends IJavaAnnotatedElement, Serializab
 
   int getModifiers();
 
-  IParameterInfo[] convertGenericParameterTypes(IFeatureInfo container, TypeVarToTypeMap actualParamByVarName, boolean bKeepTypeVars);
+  IParameterInfo[] convertGenericParameterTypes( IFeatureInfo container, TypeVarToTypeMap actualParamByVarName );
 
   IJavaClassInfo[] getParameterTypes();
 

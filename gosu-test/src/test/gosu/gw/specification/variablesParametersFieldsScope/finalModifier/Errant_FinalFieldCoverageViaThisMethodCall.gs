@@ -69,7 +69,7 @@ class Errant_FinalFieldCoverageViaThisMethodCall {
     final var _field1 : int  //## issuekeys: MSG_VAR_MIGHT_NOT_HAVE_BEEN_INIT
 
     construct( s: String ) {
-      this( _field1 )  //## issuekeys: MSG_AMBIGUOUS_METHOD_INVOCATION, MSG_BAD_IDENTIFIER_NAME, MSG_VAR_MIGHT_NOT_HAVE_BEEN_INIT
+      this( _field1 )  //## issuekeys: MSG_AMBIGUOUS_METHOD_INVOCATION, MSG_BAD_IDENTIFIER_NAME
     }
 
     construct() {

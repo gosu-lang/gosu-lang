@@ -69,7 +69,7 @@ public class UnaryExpressionTransformer extends AbstractExpressionTransformer<Un
           paramTypes = new Class[]{long.class, long.class};
           zero = pushConstant( 0L );
         }
-        return callStaticMethod( GosuRuntimeMethods.class, "subtractExact", paramTypes, Arrays.asList( zero, root ) );
+        return callStaticMethod( Math.class, "subtractExact", paramTypes, Arrays.asList( zero, root ) );
       }
       else
       {

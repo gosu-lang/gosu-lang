@@ -22,7 +22,6 @@ import gw.lang.reflect.IRelativeTypeInfo;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.gs.IGosuPropertyInfo;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.ArrayList;
 import java.lang.reflect.Method;
@@ -225,7 +224,7 @@ public class GosuPropertyInfo extends GosuBaseAttributedFeatureInfo implements I
   {
     return IType.EMPTY_ARRAY; 
   }
-  public IType[] getParameterizedParameterTypes2( IGosuClass ownersType, IType... typeParams )
+  public IType[] getParameterizedParameterTypes2( IType ownersType, IType... typeParams )
   {
     return IType.EMPTY_ARRAY;
   }
@@ -236,7 +235,7 @@ public class GosuPropertyInfo extends GosuBaseAttributedFeatureInfo implements I
   }
 
   @Override
-  public TypeVarToTypeMap inferTypeParametersFromArgumentTypes2( IGosuClass owningParameterizedType, IType... argTypes )
+  public TypeVarToTypeMap inferTypeParametersFromArgumentTypes2( IType owningParameterizedType, IType... argTypes )
   {
     return null;
   }
@@ -259,12 +258,12 @@ public class GosuPropertyInfo extends GosuBaseAttributedFeatureInfo implements I
 
           argList.add( ctx );
 
-          if(enhancement.isParameterizedType() )
+          if( enhancement.isParameterizedType() )
           {
             IType[] parameters = enhancement.getTypeParameters();
             for( IType parameter : parameters )
             {
-              argList.add( parameter );
+              argList.add( new NotLazyTypeResolver( parameter ) );
             }
           }
           else
@@ -272,7 +271,7 @@ public class GosuPropertyInfo extends GosuBaseAttributedFeatureInfo implements I
             IGenericTypeVariable[] typeVariables = enhancement.getGenericTypeVariables();
             for( IGenericTypeVariable typeVariable : typeVariables )
             {
-              argList.add( typeVariable.getBoundingType() );
+              argList.add( new NotLazyTypeResolver( typeVariable.getBoundingType() ) );
             }
           }
           args = argList.toArray( new Object[argList.size()] );
@@ -318,12 +317,12 @@ public class GosuPropertyInfo extends GosuBaseAttributedFeatureInfo implements I
 
           argList.add( ctx );
 
-          if(enhancement.isParameterizedType() )
+          if( enhancement.isParameterizedType() )
           {
             IType[] parameters = enhancement.getTypeParameters();
             for( IType parameter : parameters )
             {
-              argList.add( parameter );
+              argList.add( new NotLazyTypeResolver( parameter ) );
             }
           }
           else
@@ -331,7 +330,7 @@ public class GosuPropertyInfo extends GosuBaseAttributedFeatureInfo implements I
             IGenericTypeVariable[] typeVariables = enhancement.getGenericTypeVariables();
             for( IGenericTypeVariable typeVariable : typeVariables )
             {
-              argList.add( typeVariable.getBoundingType() );
+              argList.add( new NotLazyTypeResolver( typeVariable.getBoundingType() ) );
             }
           }
 

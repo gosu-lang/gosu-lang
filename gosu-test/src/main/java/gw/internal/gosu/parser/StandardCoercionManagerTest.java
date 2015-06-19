@@ -39,12 +39,12 @@ public class StandardCoercionManagerTest extends TestClass
   public void testCoercionFromObjectToStringIsNotImplicit() {
     StandardCoercionManager cm = (StandardCoercionManager) CommonServices.getCoercionManager();
     Assert.assertTrue(cm.canCoerce(JavaTypes.STRING(), JavaTypes.OBJECT()));
-    Assert.assertTrue(cm.coercionRequiresWarningIfImplicit(JavaTypes.STRING(), JavaTypes.OBJECT()));
+    Assert.assertTrue(cm.notCoercibleOrRequiresExplicitCoercion( JavaTypes.STRING(), JavaTypes.OBJECT() ));
   }
 
   public void testCoercionFromPrimitiveIntToComparableDoesNotHaveWarning() {
     StandardCoercionManager cm = (StandardCoercionManager) CommonServices.getCoercionManager();
-    Assert.assertFalse( cm.coercionRequiresWarningIfImplicit( JavaTypes.COMPARABLE(), JavaTypes.pINT() ) );
+    Assert.assertFalse( cm.notCoercibleOrRequiresExplicitCoercion( JavaTypes.COMPARABLE(), JavaTypes.pINT() ) );
   }
 
   public void testMetaIntrinsicTypeCoercesToClass()

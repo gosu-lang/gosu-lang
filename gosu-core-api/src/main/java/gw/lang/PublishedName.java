@@ -13,6 +13,7 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
 @Inherited
+@Deprecated("This annotation is deprecated and will be ignored if you add it to a new file. Do NOT use.")
 public @interface PublishedName
 {
   public String value();

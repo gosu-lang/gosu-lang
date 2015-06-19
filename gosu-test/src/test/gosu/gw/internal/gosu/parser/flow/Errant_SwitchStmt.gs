@@ -1351,6 +1351,17 @@ class Errant_SwitchStmt {
 
   //-------
 
+  function f1_3_2( value: MyEnum ) : int {
+    switch( value ) {
+      case A:
+      case B:
+          return 1
+      case C:
+          return 1
+    }
+    return 1  //## issuekeys: MSG_UNREACHABLE_STMT
+  }
+
   function f2_3_2( value: MyEnum ) : int {
     switch( value ) {
       case A:
@@ -1359,7 +1370,7 @@ class Errant_SwitchStmt {
       case C:
           return 1
     }
-  }  //## issuekeys: MSG_MISSING_RETURN
+  }
 
   function f3_3_2( value: MyEnum ) : int {
     switch( value ) {
@@ -1381,7 +1392,7 @@ class Errant_SwitchStmt {
       case C:
           return 1
     }
-  }  //## issuekeys: MSG_MISSING_RETURN
+  }
 
   function f5_3_2( value: MyEnum ) : int {
     switch( value ) {
@@ -1392,7 +1403,7 @@ class Errant_SwitchStmt {
       case C:
           return 1
     }
-  }  //## issuekeys: MSG_MISSING_RETURN
+  }
 
   function f6_3_2( value: MyEnum ) : int {
     switch( value ) {
@@ -1403,7 +1414,7 @@ class Errant_SwitchStmt {
       case C:
           return 1
     }
-  }  //## issuekeys: MSG_MISSING_RETURN
+  }
 
   function f7_3_2( value: MyEnum ) : int {
     switch( value ) {
@@ -1415,7 +1426,7 @@ class Errant_SwitchStmt {
       case C:
           return 1
     }
-  }  //## issuekeys: MSG_MISSING_RETURN
+  }
 
   //-------
 
@@ -1427,7 +1438,7 @@ class Errant_SwitchStmt {
       case C:
           return 1
     }
-  }  //## issuekeys: MSG_MISSING_RETURN
+  }
 
   function f3_4_2( value: MyEnum ) : int {
     switch( value ) {
@@ -1460,7 +1471,7 @@ class Errant_SwitchStmt {
       case C:
           return 1
     }
-  }  //## issuekeys: MSG_MISSING_RETURN
+  }
 
   function f6_4_2( value: MyEnum ) : int {
     switch( value ) {
@@ -1471,7 +1482,7 @@ class Errant_SwitchStmt {
       case C:
           return 1
     }
-  }  //## issuekeys: MSG_MISSING_RETURN
+  }
 
   function f7_4_2( value: MyEnum ) : int {
     switch( value ) {
@@ -1483,7 +1494,7 @@ class Errant_SwitchStmt {
       case C:
           return 1
     }
-  }  //## issuekeys: MSG_MISSING_RETURN
+  }
 
   //-------
 
@@ -1495,7 +1506,7 @@ class Errant_SwitchStmt {
       case C:  //## issuekeys: MSG_NONTERMINAL_CASE_CLAUSE
           return 1
     }
-  }  //## issuekeys: MSG_MISSING_RETURN
+  }
 
   function f3_5_2( value: MyEnum ) : int {
     switch( value ) {
@@ -1517,7 +1528,7 @@ class Errant_SwitchStmt {
       case C:  //## issuekeys: MSG_NONTERMINAL_CASE_CLAUSE
           return 1
     }
-  }  //## issuekeys: MSG_MISSING_RETURN
+  }
 
   function f5_5_2( value: MyEnum ) : int {
     switch( value ) {
@@ -1528,7 +1539,7 @@ class Errant_SwitchStmt {
       case C:  //## issuekeys: MSG_NONTERMINAL_CASE_CLAUSE
           return 1
     }
-  }  //## issuekeys: MSG_MISSING_RETURN
+  }
 
   function f6_5_2( value: MyEnum ) : int {
     switch( value ) {
@@ -1539,7 +1550,7 @@ class Errant_SwitchStmt {
       case C:  //## issuekeys: MSG_NONTERMINAL_CASE_CLAUSE
           return 1
     }
-  }  //## issuekeys: MSG_MISSING_RETURN
+  }
 
   function f7_5_2( value: MyEnum ) : int {
     switch( value ) {
@@ -1551,7 +1562,7 @@ class Errant_SwitchStmt {
       case C:  //## issuekeys: MSG_NONTERMINAL_CASE_CLAUSE
           return 1
     }
-  }  //## issuekeys: MSG_MISSING_RETURN
+  }
 
   //-------
 
@@ -1564,7 +1575,7 @@ class Errant_SwitchStmt {
       case C:
           return 1
     }
-  }  //## issuekeys: MSG_MISSING_RETURN
+  }
 
   function f3_6_2( value: MyEnum ) : int {
     switch( value ) {
@@ -1588,7 +1599,7 @@ class Errant_SwitchStmt {
       case C:
           return 1
     }
-  }  //## issuekeys: MSG_MISSING_RETURN
+  }
 
   function f5_6_2( value: MyEnum ) : int {
     switch( value ) {
@@ -1600,7 +1611,7 @@ class Errant_SwitchStmt {
       case C:
           return 1
     }
-  }  //## issuekeys: MSG_MISSING_RETURN
+  }
 
   function f6_6_2( value: MyEnum ) : int {
     switch( value ) {
@@ -1612,7 +1623,7 @@ class Errant_SwitchStmt {
       case C:
           return 1
     }
-  }  //## issuekeys: MSG_MISSING_RETURN
+  }
 
   function f7_6_2( value: MyEnum ) : int {
     switch( value ) {
@@ -1625,7 +1636,7 @@ class Errant_SwitchStmt {
       case C:
           return 1
     }
-  }  //## issuekeys: MSG_MISSING_RETURN
+  }
 
   //-------
 
@@ -1649,7 +1660,7 @@ class Errant_SwitchStmt {
       case C:  //## issuekeys: MSG_NONTERMINAL_CASE_CLAUSE
           return 1
     }
-  }  //## issuekeys: MSG_MISSING_RETURN
+  }
 
   function f5_7_2( value: MyEnum ) : int {
     switch( value ) {
@@ -1660,7 +1671,7 @@ class Errant_SwitchStmt {
       case C:  //## issuekeys: MSG_NONTERMINAL_CASE_CLAUSE
           return 1
     }
-  }  //## issuekeys: MSG_MISSING_RETURN
+  }
 
   function f6_7_2( value: MyEnum ) : int {
     switch( value ) {
@@ -1671,7 +1682,7 @@ class Errant_SwitchStmt {
       case C:  //## issuekeys: MSG_NONTERMINAL_CASE_CLAUSE
           return 1
     }
-  }  //## issuekeys: MSG_MISSING_RETURN
+  }
 
   function f7_7_2( value: MyEnum ) : int {
     switch( value ) {
@@ -1683,7 +1694,56 @@ class Errant_SwitchStmt {
       case C:  //## issuekeys: MSG_NONTERMINAL_CASE_CLAUSE
           return 1
     }
+  }
+
+  function f8_7_2( value: MyEnum ) : int {
+    switch( value ) {
+      case A:
+          while( true ) {
+          }
+      case B:
+          return 1
+      case C:
+    }
   }  //## issuekeys: MSG_MISSING_RETURN
+
+  function f9_7_2( value: MyEnum ) : int {
+    switch( value ) {
+      case A:
+          return 1
+      case B:
+          return 1
+      case C:
+          return 1
+      default:
+    }
+  }  //## issuekeys: MSG_MISSING_RETURN
+
+  function f10_7_2( value: MyEnum ) : int {
+    switch( value ) {
+      case A:
+          return 1
+      case B:
+          return 1
+      case C:
+          return 1
+      default:
+          break
+    }
+  }  //## issuekeys: MSG_MISSING_RETURN
+
+  function f11_7_2( value: MyEnum ) : int {
+    switch( value ) {
+      case A:
+          return 1
+      case B:
+          return 1
+      case C:
+          return 1
+      default:
+          return 1
+    }
+  }
 
   ///////////////////////////////////////////////////
 

@@ -166,7 +166,6 @@ public class GosuElementTypes extends GosuTokenTypes {
   public static final GosuElementType ELEM_TYPE_NewStatement = new GosuElementType(INewStatement.class);
   public static final GosuElementType ELEM_TYPE_AnnotationExpression = new GosuElementType(IAnnotationExpression.class);
   public static final GosuElementType ELEM_TYPE_EvalExpression = new GosuElementType(IEvalExpression.class);
-  public static final GosuElementType ELEM_TYPE_QueryExpression = new GosuElementType(IQueryExpression.class);
   public static final GosuElementType ELEM_TYPE_ConditionalTernaryExpression = new GosuElementType(IConditionalTernaryExpression.class);
   public static final GosuElementType ELEM_TYPE_ArrayAccess = new GosuElementType(IArrayAccessExpression.class);
   public static final GosuElementType ELEM_TYPE_MapAccess = new GosuElementType(IMapAccessExpression.class);
@@ -174,7 +173,6 @@ public class GosuElementTypes extends GosuTokenTypes {
   public static final GosuElementType ELEM_TYPE_ParenthesizedExpression = new GosuElementType(IParenthesizedExpression.class);
   public static final GosuElementType ELEM_TYPE_NullExpression = new GosuElementType(INullExpression.class);
   public static final GosuElementType ELEM_TYPE_BlockExpression = new GosuElementType(IBlockExpression.class);
-  public static final GosuElementType ELEM_TYPE_ObjectLiteralExpression = new GosuElementType(IObjectLiteralExpression.class);
   public static final GosuElementType ELEM_TYPE_TemplateStringLiteral = new GosuElementType(ITemplateStringLiteral.class);
   public static final GosuElementType ELEM_TYPE_ExistsExpression = new GosuElementType(IExistsExpression.class);
   public static final GosuElementType ELEM_TYPE_BlockInvocation = new GosuElementType(IBlockInvocation.class);

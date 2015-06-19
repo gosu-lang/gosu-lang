@@ -261,6 +261,18 @@ public class StandardCoercionManager extends BaseService implements ICoercionMan
     }
 
     //=============================================================================
+    // Meta<T> <- Class<T' instanceof JavaType>
+    //=============================================================================
+    if( lhsType instanceof IMetaType &&
+        rhsType instanceof IJavaType && JavaTypes.CLASS().equals( rhsType.getGenericType() ) ) {
+      if( !rhsType.isParameterizedType() ||
+          TypeSystem.canCast( ((IMetaType)lhsType).getType(), rhsType.getTypeParameters()[0] ) ||
+          isStructurallyAssignable( ((IMetaType)lhsType).getType(), rhsType.getTypeParameters()[0] ) ) {
+        return IdentityCoercer.instance();
+      }
+    }
+
+    //=============================================================================
     // Numeric type unification
     //=============================================================================
     if( TypeSystem.isNumericType( lhsType ) && TypeSystem.isNumericType( rhsType ) )
@@ -378,8 +390,7 @@ public class StandardCoercionManager extends BaseService implements ICoercionMan
         IType rightType = rBlock.getReturnType();
         if( rightType != JavaTypes.pVOID() )
         {
-          ICoercer iCoercer = findCoercer( leftType, rightType, runtime );
-          if( iCoercer != null && !coercionRequiresWarningIfImplicit( leftType, rightType ))
+          if( !notCoercibleOrRequiresExplicitCoercion( leftType, rightType ))
           {
             return BlockCoercer.instance();
           }
@@ -403,7 +414,8 @@ public class StandardCoercionManager extends BaseService implements ICoercionMan
            || lhsType == JavaTypes.FLOAT()
            || lhsType == JavaTypes.INTEGER()
            || lhsType == JavaTypes.LONG()
-           || lhsType == JavaTypes.SHORT();
+           || lhsType == JavaTypes.SHORT()
+           || lhsType == JavaTypes.VOID();
   }
 
   protected ICoercer getPrimitiveOrBoxedConverter( IType type )
@@ -471,10 +483,6 @@ public class StandardCoercionManager extends BaseService implements ICoercionMan
     else if( type == JavaTypes.SHORT() )
     {
       return ShortCoercer.instance();
-    }
-    else if( type == JavaTypes.pVOID() )
-    {
-      return IdentityCoercer.instance();
     }
     else
     {
@@ -552,6 +560,10 @@ public class StandardCoercionManager extends BaseService implements ICoercionMan
     {
       return IdentityCoercer.instance();
     }
+    else if( type == JavaTypes.VOID() )
+    {
+      return IdentityCoercer.instance();
+    }
     else
     {
       return null;
@@ -565,33 +577,19 @@ public class StandardCoercionManager extends BaseService implements ICoercionMan
 
   public IType verifyTypesComparable( IType lhsType, IType rhsType, boolean bBiDirectional, IFullParserState parserState ) throws ParseException
   {
-    IType lhsT;
-    IType rhsT;
-    if( bBiDirectional )
-    {
-      // Bi-Directional indicates comparison as opposed to assignability, therefore for comparison
-      // we need to test comparability between type variables' bounds
-      lhsT = TypeSystem.getDefaultParameterizedTypeWithTypeVars( lhsType );
-      rhsT = TypeSystem.getDefaultParameterizedTypeWithTypeVars( rhsType );
-    }
-    else
-    {
-      lhsT = lhsType;
-      rhsT = rhsType;
-    }
-    
+
     //==================================================================================
     // Upcasting
     //==================================================================================
-    if( lhsT == rhsT )
+    if( lhsType == rhsType )
     {
       return lhsType;
     }
-    if( lhsT.equals( rhsT ) )
+    if( lhsType.equals( rhsType ) )
     {
       return lhsType;
     }
-    if( lhsT.isAssignableFrom( rhsT ) )
+    if( lhsType.isAssignableFrom( rhsType ) )
     {
       return lhsType;
     }
@@ -599,11 +597,11 @@ public class StandardCoercionManager extends BaseService implements ICoercionMan
     //==================================================================================
     // null/void confusion (see http://jira/jira/browse/PL-12766)
     //==================================================================================
-    if( JavaTypes.pVOID().equals( rhsT ) && !lhsT.isPrimitive() )
+    if( JavaTypes.pVOID().equals( rhsType ) && !lhsType.isPrimitive() )
     {
       return lhsType;
     }
-    if( JavaTypes.pVOID().equals( lhsT ) && !rhsT.isPrimitive() )
+    if( JavaTypes.pVOID().equals( lhsType ) && !rhsType.isPrimitive() )
     {
       return rhsType;
     }
@@ -611,11 +609,11 @@ public class StandardCoercionManager extends BaseService implements ICoercionMan
     //==================================================================================
     // Error type handling
     //==================================================================================
-    if( lhsT instanceof IErrorType)
+    if( lhsType instanceof IErrorType)
     {
       return lhsType;
     }
-    if( rhsT instanceof IErrorType )
+    if( rhsType instanceof IErrorType )
     {
       return rhsType;
     }
@@ -623,8 +621,8 @@ public class StandardCoercionManager extends BaseService implements ICoercionMan
     //==================================================================================
     // IPlaceholderType type handling
     //==================================================================================
-    if( (lhsT instanceof IPlaceholder && ((IPlaceholder)lhsT).isPlaceholder()) ||
-        (rhsT instanceof IPlaceholder && ((IPlaceholder)rhsT).isPlaceholder()) )
+    if( (lhsType instanceof IPlaceholder && ((IPlaceholder)lhsType).isPlaceholder()) ||
+        (rhsType instanceof IPlaceholder && ((IPlaceholder)rhsType).isPlaceholder()) )
     {
       return lhsType;
     }
@@ -632,11 +630,11 @@ public class StandardCoercionManager extends BaseService implements ICoercionMan
     //==================================================================================
     //Covariant arrays
     //==================================================================================
-    if( lhsT.isArray() && rhsT.isArray() )
+    if( lhsType.isArray() && rhsType.isArray() )
     {
       // Note an array of primitives and an array of non-primitives are never assignable
-      if( lhsT.getComponentType().isPrimitive() == rhsT.getComponentType().isPrimitive() &&
-          lhsT.getComponentType().isAssignableFrom( rhsT.getComponentType() ) )
+      if( lhsType.getComponentType().isPrimitive() == rhsType.getComponentType().isPrimitive() &&
+          lhsType.getComponentType().isAssignableFrom( rhsType.getComponentType() ) )
       {
         return lhsType;
       }
@@ -647,13 +645,13 @@ public class StandardCoercionManager extends BaseService implements ICoercionMan
     //==================================================================================
     if( bBiDirectional )
     {
-      if( rhsT.isAssignableFrom( lhsT ) )
+      if( rhsType.isAssignableFrom( lhsType ) )
       {
         return lhsType;
       }
-      if( lhsT.isArray() && rhsT.isArray() )
+      if( lhsType.isArray() && rhsType.isArray() )
       {
-        if( rhsT.getComponentType().isAssignableFrom( lhsT.getComponentType() ) )
+        if( rhsType.getComponentType().isAssignableFrom( lhsType.getComponentType() ) )
         {
           return lhsType;
         }
@@ -663,7 +661,7 @@ public class StandardCoercionManager extends BaseService implements ICoercionMan
     //==================================================================================
     // Structurally suitable (static duck typing)
     //==================================================================================
-    if( isStructurallyAssignable( lhsT, rhsT ) )
+    if( isStructurallyAssignable( lhsType, rhsType ) )
     {
       return lhsType;
     }
@@ -671,14 +669,14 @@ public class StandardCoercionManager extends BaseService implements ICoercionMan
     //==================================================================================
     // Coercion
     //==================================================================================
-    if( canCoerce( lhsT, rhsT ) )
+    if( canCoerce( lhsType, rhsType ) )
     {
       return lhsType;
     }
 
     if( bBiDirectional )
     {
-      if( canCoerce( rhsT, lhsT ) )
+      if( canCoerce( rhsType, lhsType ) )
       {
         return rhsType;
       }
@@ -736,6 +734,9 @@ public class StandardCoercionManager extends BaseService implements ICoercionMan
         continue;
       }
       if( toMi.getOwnersType() instanceof IGosuEnhancement ) {
+        continue;
+      }
+      if( toMi instanceof IAttributedFeatureInfo && toMi.isDefaultImpl() || toMi.isStatic() ) {
         continue;
       }
       IMethodInfo fromMi = fromMethods.findAssignableMethod( toMi, fromType instanceof IMetaType && (!(((IMetaType)fromType).getType() instanceof IGosuClass) || !((IGosuClass)((IMetaType)fromType).getType()).isStructure()) );
@@ -826,7 +827,7 @@ public class StandardCoercionManager extends BaseService implements ICoercionMan
     return objMethod != null;
   }
 
-  public boolean coercionRequiresWarningIfImplicit( IType lhsType, IType rhsType )
+  public boolean notCoercibleOrRequiresExplicitCoercion( IType lhsType, IType rhsType )
   {
 
     //==================================================================================
@@ -893,6 +894,19 @@ public class StandardCoercionManager extends BaseService implements ICoercionMan
     }
 
     //==================================================================================
+    // Structurally suitable (static duck typing)
+    //==================================================================================
+    if( isStructurallyAssignable( lhsType, rhsType ) )
+    {
+      return false;
+    }
+
+    if( JavaTypes.pVOID() == lhsType )
+    {
+      return false;
+    }
+
+    //==================================================================================
     // Coercion
     //==================================================================================
     if( TypeSystem.isNumericType( lhsType ) &&
@@ -903,14 +917,14 @@ public class StandardCoercionManager extends BaseService implements ICoercionMan
     else
     {
       if( TypeSystem.isBoxedTypeFor( lhsType, rhsType ) ||
-               TypeSystem.isBoxedTypeFor( rhsType, lhsType ) )
+          TypeSystem.isBoxedTypeFor( rhsType, lhsType ) )
       {
         return false;
       }
       else
       {
         ICoercer iCoercer = findCoercer( lhsType, rhsType, false );
-        return iCoercer != null && iCoercer.isExplicitCoercion();
+        return iCoercer == null || iCoercer.isExplicitCoercion();
       }
     }
   }
@@ -989,7 +1003,7 @@ public class StandardCoercionManager extends BaseService implements ICoercionMan
     }
 
     // Check Java world types
-    //noinspection deprecation
+    //noinspection deprecation,unchecked
     if( intrType instanceof IJavaType &&
         ((IJavaType)intrType).getIntrinsicClass().isAssignableFrom( value.getClass() ) )
     {
@@ -1662,44 +1676,6 @@ public class StandardCoercionManager extends BaseService implements ICoercionMan
     }
 
     return DateFormat.getDateInstance().parse(str);
-  }
-
-  /**
-   * Convert a string to an array of specified type.
-   * @param strValue the string to convert
-   * @param intrType the array component type
-   * @return the string converted to an array
-   */
-  public static Object makeArrayFromString( String strValue, IType intrType )
-  {
-    if( JavaTypes.pCHAR() == intrType )
-    {
-      return strValue.toCharArray();
-    }
-
-    if( JavaTypes.CHARACTER() == intrType )
-    {
-      Character[] characters = new Character[strValue.length()];
-      for( int i = 0; i < characters.length; i++ )
-      {
-        characters[i] = strValue.charAt(i);
-      }
-
-      return characters;
-    }
-
-    if( JavaTypes.STRING() == intrType )
-    {
-      String[] strings = new String[strValue.length()];
-      for( int i = 0; i < strings.length; i++ )
-      {
-        strings[i] = String.valueOf( strValue.charAt( i ) );
-      }
-
-      return strings;
-    }
-
-    throw GosuShop.createEvaluationException( "The type, " + intrType.getName() + ", is not supported as a coercible component type to a String array." );
   }
 
   public String formatDate( Date value, String strFormat )

@@ -150,16 +150,14 @@ public class AsmMethodJavaClassMethod implements IJavaClassMethod, IJavaClassByt
   }
 
   @Override
-  public IGenericTypeVariable[] getTypeVariables( IJavaMethodInfo javaMethodInfo ) {
+  public IGenericTypeVariable[] getTypeVariables( IJavaMethodInfo mi ) {
     List<AsmType> typeVars = _method.getMethodType().getTypeParameters();
-    IType declClass = TypeSystem.getByFullNameIfValid( _method.getDeclaringClass().getName(), _module );
-    TypeVarToTypeMap actualParamByVarName = TypeLord.mapTypeByVarName( declClass, declClass );
-    FunctionType functionType = new FunctionType( javaMethodInfo, true );
+    FunctionType functionType = new FunctionType( mi, true );
     IJavaClassTypeVariable[] javaTypeVars = new IJavaClassTypeVariable[typeVars.size()];
     for( int i = 0; i < typeVars.size(); i++ ) {
       javaTypeVars[i] = (IJavaClassTypeVariable)AsmTypeJavaClassType.createType( typeVars.get( i ), _module );
     }
-    return GenericTypeVariable.convertTypeVars( functionType, javaTypeVars, actualParamByVarName );
+    return GenericTypeVariable.convertTypeVars( functionType, javaTypeVars );
   }
 
   @Override

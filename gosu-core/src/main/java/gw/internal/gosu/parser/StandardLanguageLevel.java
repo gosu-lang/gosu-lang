@@ -9,12 +9,6 @@ import gw.lang.parser.ILanguageLevel;
 public class StandardLanguageLevel implements ILanguageLevel
 {
   @Override
-  public boolean allowAllImplicitCoercions()
-  {
-    return false;
-  }
-
-  @Override
   public boolean isStandard()
   {
     return true;

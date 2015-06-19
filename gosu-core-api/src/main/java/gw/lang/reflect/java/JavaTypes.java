@@ -14,7 +14,7 @@ import gw.lang.Throws;
 import gw.lang.annotation.AnnotationUsage;
 import gw.lang.annotation.AnnotationUsages;
 import gw.lang.annotation.IInherited;
-import gw.lang.annotation.Repeatable;
+import java.lang.annotation.Repeatable;
 import gw.lang.function.IBlock;
 import gw.lang.parser.expressions.IBlockExpression;
 import gw.lang.reflect.FunctionType;
@@ -271,7 +271,7 @@ public class JavaTypes {
   }
 
   public static IJavaType REPEATABLE() {
-    return getGosuType(Repeatable.class);
+    return getJreType(Repeatable.class);
   }
 
   public static IJavaType INHERITED() {

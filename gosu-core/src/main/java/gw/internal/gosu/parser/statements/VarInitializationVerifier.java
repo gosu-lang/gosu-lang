@@ -522,7 +522,7 @@ public class VarInitializationVerifier {
     return retState;
   }
 
-  private boolean doStatementsTerminate( List<? extends IStatement> statements ) {
+  public static boolean doStatementsTerminate( List<? extends IStatement> statements ) {
     for( IStatement stmt : statements ) {
       boolean[] bAbsolute = {false};
       ITerminalStatement terminalStmt = stmt.getLeastSignificantTerminalStatement( bAbsolute );

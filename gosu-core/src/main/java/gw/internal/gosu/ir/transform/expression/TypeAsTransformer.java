@@ -300,6 +300,11 @@ public class TypeAsTransformer extends AbstractExpressionTransformer<ITypeAsExpr
       return root;
     }
 
+    if( asType instanceof IMetaType && TypeLord.getPureGenericType( lhsType ) == JavaTypes.CLASS() ) {
+      // If casting Class to a MetaType, call TypeSystem.get( class )
+      return callStaticMethod( TypeSystem.class, "get", new Class[] {Class.class}, Collections.singletonList( root ) );
+    }
+
     IRExpression result = callCoercer( root, lhsType );
 
     if( asType.isPrimitive() )

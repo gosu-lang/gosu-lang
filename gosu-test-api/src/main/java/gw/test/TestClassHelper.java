@@ -98,8 +98,9 @@ public class TestClassHelper {
       return jclass;
     }
     catch( IOException e ) {
-      throw new RuntimeException("Error during analyzing byte code of the class " + clazz.getName(), e);
-    } finally {
+      throw new RuntimeException( "Error during analyzing byte code of the class " + clazz.getName(), e );
+    }
+    finally {
       StreamUtil.closeNoThrow(resourceAsStream);
     }
   }

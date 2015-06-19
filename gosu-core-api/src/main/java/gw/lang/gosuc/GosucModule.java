@@ -16,7 +16,6 @@ import java.util.List;
 
 public class GosucModule implements INativeModule, Serializable {
   private String _name;
-  private List<String> _contentRoots;
   private List<String> _allSourceRoots;
   private List<String> _excludedRoots;
   private List<String> _classpath;
@@ -29,17 +28,6 @@ public class GosucModule implements INativeModule, Serializable {
                      String outputPath,
                      List<GosucDependency> dependencies,
                      List<String> excludedRoots) {
-    this(name, Collections.EMPTY_LIST, allSourceRoots, classpath, outputPath, dependencies, excludedRoots);
-  }
-
-  public GosucModule(String name,
-                     List<String> contentRoots,
-                     List<String> allSourceRoots,
-                     List<String> classpath,
-                     String outputPath,
-                     List<GosucDependency> dependencies,
-                     List<String> excludedRoots) {
-    _contentRoots = contentRoots;
     _allSourceRoots = new ArrayList<String>();
     for (String sourceRoot : allSourceRoots) {
       if (!sourceRoot.endsWith(".jar")) {
@@ -51,14 +39,6 @@ public class GosucModule implements INativeModule, Serializable {
     _outputPath = outputPath;
     _dependencies = dependencies;
     _name = name;
-  }
-
-  public List<String> getContentRoots() {
-    return _contentRoots;
-  }
-
-  public String getContentRoot() {
-    return _contentRoots.get(0);
   }
 
   public List<String> getAllSourceRoots() {
@@ -229,9 +209,6 @@ public class GosucModule implements INativeModule, Serializable {
 
     GosucModule that = (GosucModule) o;
 
-    if (!_contentRoots.equals(that._contentRoots)) {
-      return false;
-    }
     if (!_allSourceRoots.equals(that._allSourceRoots)) {
       return false;
     }
@@ -257,7 +234,6 @@ public class GosucModule implements INativeModule, Serializable {
   @Override
   public int hashCode() {
     int result = _name.hashCode();
-    result = 31 * result + _contentRoots.hashCode();
     result = 31 * result + _allSourceRoots.hashCode();
     result = 31 * result + _excludedRoots.hashCode();
     result = 31 * result + _classpath.hashCode();

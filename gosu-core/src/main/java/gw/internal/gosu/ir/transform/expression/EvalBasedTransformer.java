@@ -4,6 +4,7 @@
 
 package gw.internal.gosu.ir.transform.expression;
 
+import gw.lang.reflect.LazyTypeResolver;
 import gw.lang.parser.IExpression;
 import gw.lang.parser.ICapturedSymbol;
 import gw.lang.parser.IDynamicFunctionSymbol;
@@ -75,7 +76,7 @@ public abstract class EvalBasedTransformer<T extends IExpression> extends Abstra
     }
   }
 
-  protected static void addEnclosingTypeParams( IType[] immediateFuncTypeParams, List<Object> args )
+  protected static void addEnclosingTypeParams( LazyTypeResolver[] immediateFuncTypeParams, List<Object> args )
   {
     if( immediateFuncTypeParams != null )
     {
@@ -115,12 +116,12 @@ public abstract class EvalBasedTransformer<T extends IExpression> extends Abstra
             else
             {
               pushThisOrOuter( gsClass );
-              values.add( getInstanceField( gsClass, TYPE_PARAM_PREFIX + genTypeVars[i].getName(), IRTypeConstants.ITYPE(),
+              values.add( getInstanceField( gsClass, TYPE_PARAM_PREFIX + genTypeVars[i].getName(), getDescriptor( LazyTypeResolver.class ),
                       AccessibilityUtil.forTypeParameter(),
                       pushThisOrOuter( gsClass ) ) );
             }
           }
-          return buildInitializedArray(IRTypeConstants.ITYPE(), values );
+          return buildInitializedArray( getDescriptor( LazyTypeResolver.class ), values );
         }
       }
       IType type = funcStmt.getDynamicFunctionSymbol().getScriptPart().getContainingType();

@@ -87,14 +87,12 @@ public class Gosuc implements IGosuc {
     _globalModule.addDependency( new Dependency( execEnv.getJreModule(), true ) );
 
     List<IDirectory> allSourcePaths = new ArrayList<IDirectory>();
-    List<IDirectory> allRoots = new ArrayList<IDirectory>();
     Map<String, IModule> modules = new HashMap<String, IModule>();
     List<IModule> allModules = new ArrayList<IModule>();
     for( GosucModule gosucModule : _allGosucModules ) {
       IModule module = defineModule( project, gosucModule );
       if( module != null ) {
         allSourcePaths.addAll( module.getSourcePath() );
-        allRoots.addAll( module.getRoots() );
         modules.put( gosucModule.getName(), module );
         allModules.add( module );
       }
@@ -118,7 +116,6 @@ public class Gosuc implements IGosuc {
       _globalModule.addDependency(new Dependency(rootModule, true));
     }
     _globalModule.setSourcePath( allSourcePaths );
-    _globalModule.setRoots(allRoots);
     return allModules;
   }
 
@@ -137,50 +134,9 @@ public class Gosuc implements IGosuc {
                                                 gosucModule.getName() );
     List<IDirectory> sourceFolders = getSourceFolders( gosucModule );
     gosuModule.configurePaths(getClassPaths(gosucModule), sourceFolders);
-    IDirectory sourceRoot = computeCommonRoot( sourceFolders );
-    if( sourceRoot != null ) {
-      gosuModule.setRoots(Collections.<IDirectory>singletonList(sourceRoot));
-    }
     gosuModule.setNativeModule( gosucModule );
     gosuModule.setExcludedPaths(getExcludedFolders( gosucModule ));
     return gosuModule;
-  }
-
-  private IDirectory computeCommonRoot( List<IDirectory> sourceFolders ) {
-    if( sourceFolders.isEmpty() ) {
-      return null;
-    }
-    else if( sourceFolders.size() == 1 ) {
-      return sourceFolders.get( 0 ).getParent();
-    }
-    else {
-      String[] paths = new String[sourceFolders.size()];
-      int minLength = Integer.MAX_VALUE;
-      for( int i = 0; i < paths.length; i++ ) {
-        paths[i] = sourceFolders.get( i ).getPath().getFileSystemPathString();
-        if( paths[i].length() < minLength ) {
-          minLength = paths[i].length();
-        }
-      }
-      int charIndex;
-      outer:
-      for( charIndex = 0; charIndex < minLength; charIndex++ ) {
-        char c0 = paths[0].charAt( charIndex );
-        for( int i = 1; i < paths.length; i++ ) {
-          if( paths[i].charAt( charIndex ) != c0 ) {
-            break outer;
-          }
-        }
-      }
-      String dirName = paths[0].substring( 0, charIndex );
-      File dir = new File( dirName );
-      if( !dir.exists() ) {
-        return null;
-      }
-      else {
-        return CommonServices.getFileSystem().getIDirectory( dir );
-      }
-    }
   }
 
   private List<IDirectory> getSourceFolders( GosucModule gosucModule ) {

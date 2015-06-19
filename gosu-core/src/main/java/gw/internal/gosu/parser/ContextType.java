@@ -21,21 +21,31 @@ public class ContextType {
 
   private IType _type;
   private boolean _bMethodScoring;
+  private final boolean _bCompileTimeConstant;
 
   private ContextType( boolean bScoring ) {
     _bMethodScoring = bScoring;
+    _bCompileTimeConstant = false;
   }
 
   public ContextType( IType type ) {
     this( type, false );
   }
   public ContextType( IType type, boolean bScoring ) {
+    this( type, bScoring, false );
+  }
+  public ContextType( IType type, boolean bScoring, boolean bCompileTimeConstant ) {
     _type = type;
     _bMethodScoring = bScoring;
+    _bCompileTimeConstant = bCompileTimeConstant;
   }
 
   public boolean isMethodScoring() {
     return _bMethodScoring;
+  }
+
+  public boolean isCompileTimeConstant() {
+    return _bCompileTimeConstant;
   }
 
   public IType getType() {
@@ -69,14 +79,14 @@ public class ContextType {
     }
   }
 
-  public static ContextType makeBlockContexType( IBlockType ctxType, IBlockType ctxTypeWithTypeVars, boolean bScoring ) {
+  public static ContextType makeBlockContexType( IType ctxType, IBlockType ctxTypeWithTypeVars, boolean bScoring ) {
     return new BlockContextType( ctxType, ctxTypeWithTypeVars, bScoring );
   }
 
   private static class BlockContextType extends ContextType {
     private IBlockType _ctxTypeWithTypeVars;
 
-    private BlockContextType( IBlockType ctxType, IBlockType ctxTypeWithTypeVars, boolean bScoring ) {
+    private BlockContextType( IType ctxType, IBlockType ctxTypeWithTypeVars, boolean bScoring ) {
       super( ctxType, bScoring );
       _ctxTypeWithTypeVars = ctxTypeWithTypeVars;
     }

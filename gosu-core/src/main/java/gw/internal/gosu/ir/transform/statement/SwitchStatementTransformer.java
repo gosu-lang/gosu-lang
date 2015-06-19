@@ -11,16 +11,22 @@ import gw.internal.gosu.parser.statements.CaseClause;
 import gw.internal.gosu.parser.statements.SwitchStatement;
 import gw.internal.gosu.ir.transform.ExpressionTransformer;
 import gw.internal.gosu.ir.transform.TopLevelTransformationContext;
+import gw.internal.gosu.parser.statements.VarInitializationVerifier;
 import gw.lang.ir.IRStatement;
 import gw.lang.ir.IRSymbol;
 import gw.lang.ir.IRExpression;
+import gw.lang.ir.statement.IRBreakStatement;
 import gw.lang.ir.statement.IRCaseClause;
 import gw.lang.ir.statement.IRSwitchStatement;
+import gw.lang.parser.IExpression;
+import gw.lang.parser.IStatement;
+import gw.lang.parser.statements.ICaseClause;
+import gw.lang.parser.statements.ISwitchStatement;
+import gw.lang.reflect.IEnumType;
 import gw.lang.reflect.IType;
-import gw.lang.reflect.java.IJavaType;
-import gw.lang.reflect.java.JavaTypes;
 import gw.lang.reflect.java.JavaTypes;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.ArrayList;
 
@@ -92,13 +98,30 @@ public class SwitchStatementTransformer extends AbstractStatementTransformer<Swi
 
     List<Statement> defaultStmts = _stmt().getDefaultStatements();
     List<IRStatement> irDefaultStatements = new ArrayList<IRStatement>();
-    if( defaultStmts != null && !defaultStmts.isEmpty() )
+    if( defaultStmts != null )
     {
       // Push a scope so that locals don't bleed through to the next case
-      //## todo: er, do the same thing in the parser since it's really not quite legal
-      for (Statement defaultStatement : defaultStmts) {
+      for( Statement defaultStatement : defaultStmts )
+      {
         irDefaultStatements.add( _cc().compile( defaultStatement ) );
       }
+    }
+    else if( _stmt().isCoveredEnumSwitch() )
+    {
+      // If all enum constants are covered by case-clauses and no default case is explicitly provided,
+      // generate a default to throw NPE for unhandled null case and IllegalStateException for new constants
+      // potentially added later
+      IRCaseClause lastIrCase = irCases.get( irCases.size() - 1 );
+      ICaseClause lastCase = cases[cases.length-1];
+      List<? extends IStatement> statements = lastCase.getStatements();
+      if( !VarInitializationVerifier.doStatementsTerminate( statements ) )
+      {
+        // Jump over implicit default clause we're about to generate
+        lastIrCase.getStatements().add( new IRBreakStatement() );
+      }
+      irDefaultStatements.add( buildIfElse( buildEquals( identifier( tempRoot ), pushNull() ),
+                                            buildThrow( buildNewExpression( NullPointerException.class, new Class[] {String.class}, Collections.singletonList( pushConstant( "null case unhandled for enum type" ) ) ) ),
+                                            buildThrow( buildNewExpression( IllegalStateException.class, new Class[] {String.class}, Collections.singletonList( pushConstant( "Enum constant unhandled, recompile with new version of enum class" ) ) ) ) ) );
     }
 
     return new IRSwitchStatement( init, irCases, irDefaultStatements );

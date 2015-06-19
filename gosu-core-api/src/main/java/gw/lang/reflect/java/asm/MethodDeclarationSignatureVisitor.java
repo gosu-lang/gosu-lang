@@ -43,6 +43,7 @@ public class MethodDeclarationSignatureVisitor extends SignatureVisitor {
   public void visitFormalTypeParameter( String tv ) {
     _csrTypeVar = AsmUtil.makeTypeVariable( tv );
     _asmMethod.setGeneric();
+    _csrTypeVar.setFunctionTypeVariable( true );
     _asmMethod.getMethodType().addTypeParameter( _csrTypeVar );
   }
 
@@ -61,7 +62,7 @@ public class MethodDeclarationSignatureVisitor extends SignatureVisitor {
     if( _paramVisitors.isEmpty() ) {
       _paramVisitors = new ArrayList<DeclarationPartSignatureVisitor>();
     }
-    DeclarationPartSignatureVisitor visitor = new DeclarationPartSignatureVisitor();
+    DeclarationPartSignatureVisitor visitor = new DeclarationPartSignatureVisitor( _asmMethod );
     _paramVisitors.add( visitor );
     return visitor;
   }
@@ -69,7 +70,7 @@ public class MethodDeclarationSignatureVisitor extends SignatureVisitor {
   @Override
   public SignatureVisitor visitReturnType() {
     _asmMethod.initGenericReturnType();
-    return _returnVisitor = new DeclarationPartSignatureVisitor();
+    return _returnVisitor = new DeclarationPartSignatureVisitor( _asmMethod );
   }
 
   @Override
@@ -77,7 +78,7 @@ public class MethodDeclarationSignatureVisitor extends SignatureVisitor {
     if( _exceptionVisitors.isEmpty() ) {
       _exceptionVisitors = new ArrayList<DeclarationPartSignatureVisitor>();
     }
-    DeclarationPartSignatureVisitor visitor = new DeclarationPartSignatureVisitor();
+    DeclarationPartSignatureVisitor visitor = new DeclarationPartSignatureVisitor( _asmMethod );
     _exceptionVisitors.add( visitor );
     return visitor;
   }

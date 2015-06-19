@@ -29,7 +29,6 @@ public class Keyword implements CharSequence
   public static final Keyword KW_startswith = addReservedWord( "startswith", true );
   public static final Keyword KW_contains = addReservedWord( "contains", true );
   public static final Keyword KW_where = addReservedWord( "where", true );
-  public static final Keyword KW_find = addReservedWord( "find", true );
   public static final Keyword KW_var = addReservedWord( "var" );
   public static final Keyword KW_delegate = addReservedWord( "delegate" );
   public static final Keyword KW_represents = addReservedWord( "represents" );

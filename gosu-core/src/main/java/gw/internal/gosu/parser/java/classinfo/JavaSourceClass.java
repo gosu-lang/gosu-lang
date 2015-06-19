@@ -4,25 +4,26 @@
 
 package gw.internal.gosu.parser.java.classinfo;
 
-import gw.internal.gosu.parser.java.IJavaASTNode;
-import gw.internal.gosu.parser.java.JavaASTConstants;
-import gw.internal.gosu.parser.java.JavaParser;
+import com.sun.source.tree.ClassTree;
+import com.sun.source.tree.ImportTree;
 import gw.lang.reflect.gs.ISourceFileHandle;
 import gw.lang.reflect.module.IModule;
+
+import java.util.List;
 
 public class JavaSourceClass extends JavaSourceType {
 
   /**
    * For top level classes.
    */
-  public JavaSourceClass(ISourceFileHandle fileHandle, IJavaASTNode node, IModule gosuModule) {
-    super(fileHandle, node, JavaASTConstants.normalClassDeclaration, JavaParser.CLASS, JavaASTConstants.classBody, gosuModule);
+  public JavaSourceClass(ISourceFileHandle fileHandle, ClassTree typeDecl, List<? extends ImportTree> imports, IModule gosuModule) {
+    super(fileHandle, typeDecl, imports, gosuModule);
   }
 
   /**
    * For inner classes.
    */
-  public JavaSourceClass(IJavaASTNode node, JavaSourceType parent) {
-    super(node, parent, JavaParser.CLASS, JavaASTConstants.classBody);
+  public JavaSourceClass(ClassTree typeDecl, JavaSourceType parent) {
+    super(typeDecl, parent);
   }
 }

@@ -40,11 +40,6 @@ public class GWEntityAccess extends DefaultEntityAccess
 
   private final ILanguageLevel LANGUAGE_LEVEL = new ILanguageLevel() {
     @Override
-    public boolean allowAllImplicitCoercions() {
-      return false;
-    }
-
-    @Override
     public boolean isStandard() {
       return false;
     }
@@ -156,11 +151,6 @@ public class GWEntityAccess extends DefaultEntityAccess
         loader.getEnhancementIndex().addEnhancementProperties(typeToEnhance, propertyInfosToAddTo, caseSensitive);
       }
     }
-  }
-
-  @Override
-  public IFeatureFilter getQueryExpressionFeatureFilter() {
-    return QUERY_EXPRESSION_FEATURE_FILTER;
   }
 
   @Override

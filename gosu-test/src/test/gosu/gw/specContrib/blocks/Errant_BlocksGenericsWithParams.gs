@@ -101,18 +101,18 @@ class Errant_BlocksGenericsWithParams {
       return {1, 2, 3}
     })
     //x13237, x13238, x13239 : IDE-1346 OS Gosu could be improved to not show error, but the improvement is postponed indefinitely, so keeping the errors
-    var x13237: ArrayList<Integer> = hello1(\x: ArrayList<Integer> -> {   //## issuekeys: INCOMPATIBLE TYPES
+    var x13237: ArrayList<Integer> = hello1(\x: ArrayList<Integer> -> {
       return {1, 2, 'c'}
     })
-    var x13238: ArrayList<Integer> = hello1(\x: ArrayList<Integer> -> {   //## issuekeys: INCOMPATIBLE TYPES
+    var x13238: ArrayList<Integer> = hello1(\x: ArrayList<Integer> -> {
       return {1, 2, 3b}
     })
-    var x13239: ArrayList<Integer> = hello1(\x: ArrayList<Integer> -> {   //## issuekeys: INCOMPATIBLE TYPES
+    var x13239: ArrayList<Integer> = hello1(\x: ArrayList<Integer> -> {
       return {1, 2, 3s}
     })
 
-    var x13240: ArrayList<Integer> = hello1(\x: ArrayList<Integer> -> {      //## issuekeys: 'HELLO1(GW.LANG.__PSI__.IBLOCK1<JAVA.UTIL.ARRAYLIST<JAVA.LANG.INTEGER>,JAVA.UTIL.ARRAYLIST<JAVA.LANG.INTEGER>>)' IN 'TEST.GOSU.GW.SPECCONTRIB.AAA.PARSERVSOPENSOURCE.BLOCKS.BLOCKSMAIN.ERRANT_BLOCKSGENERICSWITHPARAMS' CANNOT BE APPLIED TO '(BLOCK(ARRAYLIST<INTEGER>):ARRAYLIST<SERIALIZABLE & COMPARABLE<SERIALIZABLE & COMPARABLE<? EXTENDS COMPARABLE<?>>>>)'
-      return {1, 2, 'c', "string"}
+    var x13240: ArrayList<Integer> = hello1(\x: ArrayList<Integer> -> {
+      return {1, 2, 'c', "string"} //## issuekeys: MSG_TYPE_MISMATCH
     })
 
     //IDE-1344 - Parser bug
@@ -120,8 +120,8 @@ class Errant_BlocksGenericsWithParams {
       return new ArrayList<Integer>()
     })
     //Error Expected. Both show
-    var x13242: ArrayList<Integer> = hello1(\x: ArrayList<Integer> -> {      //## issuekeys: 'HELLO1(GW.LANG.__PSI__.IBLOCK1<JAVA.UTIL.ARRAYLIST<JAVA.LANG.INTEGER>,JAVA.UTIL.ARRAYLIST<JAVA.LANG.INTEGER>>)' IN 'TEST.GOSU.GW.SPECCONTRIB.AAA.PARSERVSOPENSOURCE.BLOCKS.BLOCKSMAIN.ERRANT_BLOCKSGENERICSWITHPARAMS' CANNOT BE APPLIED TO '(BLOCK(ARRAYLIST<INTEGER>):ARRAYLIST)'
-      return new ArrayList()
+    var x13242: ArrayList<Integer> = hello1(\x: ArrayList<Integer> -> {
+      return new ArrayList()  //## issuekeys: MSG_TYPE_MISMATCH
     })
 
   }

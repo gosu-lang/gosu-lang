@@ -37,11 +37,10 @@ import gw.internal.gosu.ir.transform.expression.NewExpressionTransformer;
 import gw.internal.gosu.ir.transform.expression.NullExpressionTransformer;
 import gw.internal.gosu.ir.transform.expression.NumericLiteralTransformer;
 import gw.internal.gosu.ir.transform.expression.ObjectInitializerExpressionTransformer;
-import gw.internal.gosu.ir.transform.expression.ObjectLiteralExpressionTransformer;
-import gw.internal.gosu.ir.transform.expression.QueryExpressionTransformer;
 import gw.internal.gosu.ir.transform.expression.RelationalExpressionTransformer;
 import gw.internal.gosu.ir.transform.expression.StaticTypeOfTransformer;
 import gw.internal.gosu.ir.transform.expression.StringLiteralTransformer;
+import gw.internal.gosu.ir.transform.expression.SuperAccessTransformer;
 import gw.internal.gosu.ir.transform.expression.TemplateStringLiteralTransformer;
 import gw.internal.gosu.ir.transform.expression.TypeAsTransformer;
 import gw.internal.gosu.ir.transform.expression.TypeIsTransformer;
@@ -82,11 +81,10 @@ import gw.internal.gosu.parser.expressions.NewExpression;
 import gw.internal.gosu.parser.expressions.NullExpression;
 import gw.internal.gosu.parser.expressions.NumericLiteral;
 import gw.internal.gosu.parser.expressions.ObjectInitializerExpression;
-import gw.internal.gosu.parser.expressions.ObjectLiteralExpression;
-import gw.internal.gosu.parser.expressions.QueryExpression;
 import gw.internal.gosu.parser.expressions.RelationalExpression;
 import gw.internal.gosu.parser.expressions.StaticTypeOfExpression;
 import gw.internal.gosu.parser.expressions.StringLiteral;
+import gw.internal.gosu.parser.expressions.SuperAccess;
 import gw.internal.gosu.parser.expressions.TemplateStringLiteral;
 import gw.internal.gosu.parser.expressions.TypeIsExpression;
 import gw.internal.gosu.parser.expressions.TypeLiteral;
@@ -267,10 +265,6 @@ public class ExpressionTransformer
     {
       return EvalExpressionTransformer.compile( _cc, (EvalExpression)_expr );
     }
-    else if( _expr instanceof QueryExpression )
-    {
-      return QueryExpressionTransformer.compile( _cc, (QueryExpression)_expr );
-    }
     else if( _expr instanceof ConditionalTernaryExpression)
     {
       return ConditionalTernaryExpressionTransformer.compile( _cc, (ConditionalTernaryExpression)_expr );
@@ -282,6 +276,10 @@ public class ExpressionTransformer
     else if( _expr instanceof MapAccess)
     {
       return MapAccessTransformer.compile( _cc, (MapAccess)_expr );
+    }
+    else if( _expr instanceof SuperAccess )
+    {
+      return SuperAccessTransformer.compile( _cc, (SuperAccess)_expr );
     }
     else if( _expr instanceof IntervalExpression )
     {
@@ -302,10 +300,6 @@ public class ExpressionTransformer
     else if( _expr instanceof BlockExpression)
     {
       return BlockExpressionTransformer.compile( _cc, (BlockExpression)_expr );
-    }
-    else if( _expr instanceof ObjectLiteralExpression)
-    {
-      return ObjectLiteralExpressionTransformer.compile( _cc, (ObjectLiteralExpression)_expr );
     }
     else if( _expr instanceof TemplateStringLiteral )
     {

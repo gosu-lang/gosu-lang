@@ -8,6 +8,7 @@ import gw.lang.reflect.java.IJavaClassType;
 import gw.lang.reflect.java.IJavaClassTypeVariable;
 import gw.lang.reflect.module.IModule;
 
+import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 import java.lang.reflect.TypeVariable;
 
@@ -44,5 +45,10 @@ public class TypeVariableJavaTypeVariable extends TypeJavaClassType implements I
       bounds[i] = TypeJavaClassType.createType(rawBounds[i], _module);
     }
     return bounds;
+  }
+
+  @Override
+  public boolean isFunctionTypeVar() {
+    return _typeParameter.getGenericDeclaration() instanceof Method;
   }
 }

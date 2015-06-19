@@ -4,13 +4,8 @@
 
 package gw.lang.reflect;
 
-import gw.config.CommonServices;
-import gw.fs.IFile;
 import gw.lang.UnstableAPI;
 import gw.lang.parser.IExpression;
-import gw.lang.parser.TypeVarToTypeMap;
-import gw.lang.reflect.gs.IGenericTypeVariable;
-import gw.lang.reflect.gs.IGosuClass;
 import gw.lang.reflect.java.JavaTypes;
 
 import java.util.Arrays;
@@ -35,7 +30,6 @@ public class MethodInfoBuilder {
   private boolean _isStatic;
   private String _description;
   private String _returnDescription;
-  private IGenericTypeVariable[] _typeVars;
   private boolean _hidden;
   private LocationInfo _locationInfo;
 
@@ -92,11 +86,6 @@ public class MethodInfoBuilder {
     return this;
   }
 
-  public MethodInfoBuilder withTypeVars(IGenericTypeVariable... typeVars) {
-    _typeVars = typeVars;
-    return this;
-  }
-
   public MethodInfoBuilder withHidden() {
     return withHidden(true);
   }
@@ -149,7 +138,7 @@ public class MethodInfoBuilder {
   }
 
   public IMethodInfo build(IFeatureInfo container) {
-    return _typeVars == null ? new BuiltMethodInfo(this, container) : new BuiltGenericMethodInfo(this, container);
+    return new BuiltMethodInfo(this, container);
   }
 
   public MethodInfoBuilder withLocation( LocationInfo locationInfo ) {
@@ -246,6 +235,11 @@ public class MethodInfoBuilder {
 
     public String getDeprecatedReason() {
       return _deprecated;
+    }
+
+    @Override
+    public boolean isDefaultImpl() {
+      return false;
     }
 
     public boolean isVisible( IScriptabilityModifier constraint) {
@@ -362,89 +356,4 @@ public class MethodInfoBuilder {
       return getName();
     }
   }
-
-  private static class BuiltGenericMethodInfo extends BuiltMethodInfo implements IGenericMethodInfo {
-    private IGenericTypeVariable[] _typeVars;
-
-    public BuiltGenericMethodInfo(MethodInfoBuilder builder, IFeatureInfo container) {
-      super(builder, container);
-      _typeVars = builder._typeVars;
-    }
-
-    public IGenericTypeVariable[] getTypeVariables() {
-      return _typeVars;
-    }
-
-
-    public IType getParameterizedReturnType(IType... typeParams) {
-      TypeVarToTypeMap actualParamByVarName = TypeSystem.mapTypeByVarName( getOwnersType(), getOwnersType(), false);
-      int i = 0;
-      for (IGenericTypeVariable tv : getTypeVariables()) {
-        if (actualParamByVarName.isEmpty()) {
-          actualParamByVarName = new TypeVarToTypeMap();
-        }
-        actualParamByVarName.put(tv.getTypeVariableDefinition().getType(), typeParams[i++]);
-      }
-      return TypeSystem.getActualType(getReturnType(), actualParamByVarName, false);
-    }
-
-    public IType[] getParameterizedParameterTypes(IType... typeParams) {
-      return getParameterizedParameterTypes2( null, typeParams );
-    }
-    public IType[] getParameterizedParameterTypes2( IGosuClass ownersType, IType... typeParams) {
-      IType ot = ownersType == null ? getOwnersType() : ownersType;
-      TypeVarToTypeMap actualParamByVarName = TypeSystem.mapTypeByVarName( ot, ot, false);
-      int i = 0;
-      for (IGenericTypeVariable tv : getTypeVariables()) {
-        if (actualParamByVarName.isEmpty()) {
-          actualParamByVarName = new TypeVarToTypeMap();
-        }
-        actualParamByVarName.put(tv.getTypeVariableDefinition().getType(), typeParams[i++]);
-      }
-
-      IType[] paramTypes = getParameterTypes();
-
-      for (int j = 0; j < paramTypes.length; j++) {
-        paramTypes[j] = TypeSystem.getActualType(paramTypes[j], actualParamByVarName, false);
-      }
-
-      return paramTypes;
-    }
-
-    private IType[] getParameterTypes() {
-      IParameterInfo[] parameters = getParameters();
-      IType[] paramTypes = new IType[parameters.length];
-      for (int j = 0; j < parameters.length; j++) {
-        paramTypes[j] = parameters[j].getFeatureType();
-      }
-      return paramTypes;
-    }
-
-    public TypeVarToTypeMap inferTypeParametersFromArgumentTypes( IType... argTypes )
-    {
-      return inferTypeParametersFromArgumentTypes2( null, argTypes );
-    }
-    public TypeVarToTypeMap inferTypeParametersFromArgumentTypes2( IGosuClass ownersTypes, IType... argTypes) {
-      IFunctionType funcType = TypeSystem.getOrCreateFunctionType(getDisplayName(), getReturnType(), getParameterTypes());
-      IType[] genParamTypes = funcType.getParameterTypes();
-      IType ot = ownersTypes == null ? getOwnersType() : ownersTypes;
-      TypeVarToTypeMap actualParamByVarName = TypeSystem.mapTypeByVarName( ot, ot, false);
-      IGenericTypeVariable[] typeVars = getTypeVariables();
-      for (IGenericTypeVariable tv : typeVars) {
-        if (actualParamByVarName.isEmpty()) {
-          actualParamByVarName = new TypeVarToTypeMap();
-        }
-        actualParamByVarName.put(tv.getTypeVariableDefinition().getType(), tv.getBoundingType());
-      }
-
-      TypeVarToTypeMap map = new TypeVarToTypeMap();
-      for (int i = 0; i < argTypes.length; i++) {
-        if (genParamTypes.length > i) {
-          TypeSystem.inferTypeVariableTypesFromGenParamTypeAndConcreteType(genParamTypes[i], argTypes[i], map);
-        }
-      }
-      return map;
-    }
-  }
-
 }
