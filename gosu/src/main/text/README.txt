@@ -5,7 +5,7 @@ Thanks for downloading Gosu.  You are using version ${project.version}.
 
 QUICK INSTALL
 
-1. Confirm that you have Java version 1.7 (Sun/Oracle J2SE release 7) or
+1. Confirm that you have Java version 1.8 (Sun/Oracle J2SE release 8 or
 later on your computer. Gosu works with both the JRE version and the 
 SDK version of Java. For Java downloads, visit http://java.com 
 
