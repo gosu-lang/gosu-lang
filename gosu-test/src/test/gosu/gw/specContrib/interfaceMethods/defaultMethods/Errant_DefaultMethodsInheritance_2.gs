@@ -26,7 +26,7 @@ class Errant_DefaultMethodsInheritance_2 {
 
   class C2 implements Cloneable {
     function clone(): Object {
-      return super[Object].clone()      //## issuekeys: 'CLONE()' HAS PROTECTED ACCESS IN 'JAVA.LANG.OBJECT'
+      return super[Object].clone()
     }
   }
   class C3 implements Cloneable {
