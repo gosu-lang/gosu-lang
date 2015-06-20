@@ -1086,6 +1086,9 @@ public class TypeLoaderAccess extends BaseService implements ITypeSystem
     // The module will be null for files that are not part of any source root
     if (module != null) {
       ((ITypeLoaderStackInternal) module.getModuleTypeLoader()).refresh(file, typeName, refreshKind);
+      // We need to refresh the global loaders as well because the modification of a Java class belonging
+      // to an entity needs to refresh the entity
+      getGlobalModuleTypeLoader().refresh(file, typeName, refreshKind);
     }
   }
 

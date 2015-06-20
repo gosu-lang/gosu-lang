@@ -8,8 +8,6 @@ import gw.internal.gosu.parser.expressions.ConditionalTernaryExpression;
 import gw.internal.gosu.ir.transform.ExpressionTransformer;
 import gw.internal.gosu.ir.transform.TopLevelTransformationContext;
 import gw.lang.ir.IRExpression;
-import gw.lang.ir.IRSymbol;
-import gw.lang.ir.statement.IRAssignmentStatement;
 
 /**
  */
@@ -28,27 +26,22 @@ public class ConditionalTernaryExpressionTransformer extends AbstractExpressionT
 
   protected IRExpression compile_impl()
   {
+    IRExpression condition;
     if( _expr().getCondition() == null )
     {
       // Handle the "elvis" version of the ternary
-      // e.g., <first> ?: <second>  which is short for:
-      // var temp = <first>
-      // temp != null ? temp : <second>
-      IRSymbol firstSym = _cc().makeAndIndexTempSymbol( getDescriptor( _expr().getFirst().getType() ) );
-      IRAssignmentStatement firstAssn = buildAssignment( firstSym, ExpressionTransformer.compile( _expr().getFirst(), _cc() ) );
-      return buildTernary(
-        buildComposite( firstAssn, buildNotEquals( identifier( firstSym ), nullLiteral() ) ),
-        identifier( firstSym ),
-        ExpressionTransformer.compile( _expr().getSecond(), _cc() ),
-        getDescriptor( _expr().getType() ) );
+      // e.g., first ?: second  which is short for:  first != null ? first : second
+      condition = buildNotEquals( ExpressionTransformer.compile( _expr().getFirst(), _cc() ), nullLiteral() );
     }
     else
     {
-      return buildTernary(
-        ExpressionTransformer.compile( _expr().getCondition(), _cc() ),
-        ExpressionTransformer.compile( _expr().getFirst(), _cc() ),
-        ExpressionTransformer.compile( _expr().getSecond(), _cc() ),
-        getDescriptor( _expr().getType() ) );
+      condition = ExpressionTransformer.compile( _expr().getCondition(), _cc() );
     }
+    return buildTernary(
+      condition,
+      ExpressionTransformer.compile( _expr().getFirst(), _cc() ),
+      ExpressionTransformer.compile( _expr().getSecond(), _cc() ),
+      getDescriptor( _expr().getType() )
+    );
   }
 }

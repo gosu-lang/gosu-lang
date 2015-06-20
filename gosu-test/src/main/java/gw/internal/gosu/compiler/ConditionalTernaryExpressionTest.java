@@ -128,14 +128,6 @@ public class ConditionalTernaryExpressionTest extends ByteCodeTestBase
     assertEquals( 2.0d, ret );
   }
 
-  public void testElvisDoesNotEvaluatingConditionTwice() throws Exception
-  {
-    Object obj = newTestNewExpression();
-    Object val = invokeMethod( obj,  "testElvisDoesNotEvaluatingConditionTwice" );
-    int ret = (Integer)val;
-    assertEquals( 1, ret );
-  }
-
   private Object newTestNewExpression() throws ClassNotFoundException, InstantiationException, IllegalAccessException
   {
     final String cls = "gw.internal.gosu.compiler.sample.expression.TestConditionaryTernaryExpression";
