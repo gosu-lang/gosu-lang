@@ -54,26 +54,4 @@ public class StringLiteral extends Literal implements IStringLiteralExpression
     return strValue;
   }
 
-  @Override
-  public boolean equals( Object o )
-  {
-    if( this == o )
-    {
-      return true;
-    }
-    if( o == null || getClass() != o.getClass() )
-    {
-      return false;
-    }
-
-    StringLiteral that = (StringLiteral)o;
-
-    return !(_strValue != null ? !_strValue.equals( that._strValue ) : that._strValue != null);
-  }
-
-  @Override
-  public int hashCode()
-  {
-    return _strValue != null ? _strValue.hashCode() : 0;
-  }
 }

@@ -5,7 +5,6 @@ uses java.lang.CharSequence
 uses java.util.ArrayList
 uses java.util.List
 uses java.util.AbstractList
-uses java.util.AbstractMap
 uses java.lang.Integer
 
 class Errant_ClassToMetaType {
@@ -21,13 +20,13 @@ class Errant_ClassToMetaType {
     var t2 = a2 as Type<AbstractList>
 
     var a3 : java.lang.Class<ArrayList>
-    var t3 = a3 as Type<CharSequence>
+    var t3 = a3 as Type<CharSequence>  //## issuekeys: MSG_TYPE_MISMATCH
 
     var a4 : java.lang.Class<AbstractList>
     var t4 = a4 as Type<List>
 
     var a5 : java.lang.Class<AbstractList>
-    var t5 = a5 as Type<ArrayList>
+    var t5 = a5 as Type<ArrayList>  //## issuekeys: MSG_TYPE_MISMATCH
 
     var a6 : java.lang.Class<Errant_ClassToMetaType>
     var t6 = a6 as Type<Errant_ClassToMetaType>
@@ -37,14 +36,11 @@ class Errant_ClassToMetaType {
 
     var a8 : java.lang.Class<MyInner>
     var t8 = a8 as Type<MyStructure>  //## issuekeys: MSG_TYPE_MISMATCH
-
-    var a9 : java.lang.Class<AbstractList>
-    var t9 = a9 as Type<AbstractMap>  //## issuekeys: MSG_TYPE_MISMATCH
   }
 
   function foo( s: Integer ): String { return null }
 
-  static final class MyInner {}
+  static class MyInner {}
 
   structure MyStructure {
     function foo( s: Integer ) : String
