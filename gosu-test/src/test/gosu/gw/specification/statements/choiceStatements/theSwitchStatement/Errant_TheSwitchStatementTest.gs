@@ -84,8 +84,6 @@ class Errant_TheSwitchStatementTest {
     switch(x) {
         case 1:  //## issuekeys: MSG_IMPLICIT_COERCION_ERROR
           isCase1 = true
-        case 1+1:  //## issuekeys: MSG_IMPLICIT_COERCION_ERROR, MSG_NONTERMINAL_CASE_CLAUSE
-          break
     }
   }
 
@@ -95,42 +93,6 @@ class Errant_TheSwitchStatementTest {
     switch(x) {
       case \-> {}:
           isCase1 = true
-    }
-  }
-
-  function testCaseExpressionCompatibility03(){
-    var x: Object
-
-    switch (x) {
-      case "one":
-          break
-      case 42:
-          break
-      case String:
-          break
-    }
-
-    switch (typeof(x)) {
-      case String:
-          break
-      case 1:  //## issuekeys: MSG_TYPE_MISMATCH
-          break
-    }
-
-    var i: int
-    switch (i) {
-      case 1:
-          break
-      case "one":  //## issuekeys: MSG_TYPE_MISMATCH
-          break
-    }
-
-    var e: num
-    switch (e) {
-      case ONE:
-          break
-      case 1:  //## issuekeys: MSG_TYPE_MISMATCH
-          break
     }
   }
 
@@ -155,41 +117,6 @@ class Errant_TheSwitchStatementTest {
           isCase1 = true
       default:  //## issuekeys: MSG_NONTERMINAL_CASE_CLAUSE
       default:  //## issuekeys: MSG_UNEXPECTED_TOKEN, MSG_UNEXPECTED_TOKEN
-    }
-
-    var y : Object = "neat"
-    switch(typeof(y)){
-      case int:
-      case int:  //## issuekeys: MSG_DUPLICATE_CASE_EXPRESSION
-        break
-      case String:
-        break
-    }
-    switch(y){
-      case 2:
-          break;
-      case 1 + 1:
-          break;
-    }
-    switch (y) {
-      case null:
-          break
-      case null:  //## issuekeys: MSG_DUPLICATE_CASE_EXPRESSION
-          break
-    }
-    switch (y) {
-      case "one":
-          break
-      case "one":  //## issuekeys: MSG_DUPLICATE_CASE_EXPRESSION
-          break
-    }
-    var e: num
-    switch (e) {
-      case ONE:
-          break;
-      case ONE:  //## issuekeys: MSG_DUPLICATE_CASE_EXPRESSION
-          break;
-
     }
   }
 
@@ -357,28 +284,6 @@ class Errant_TheSwitchStatementTest {
     switch(x){
       case null:
           isCase = false
-    }
-  }
-
-  function testEmptyCaseClause(){
-    var x: Object
-    switch (x) {
-      case 1:
-        default:
-        break
-    }
-  }
-
-
-  class Test1 {
-    function foo() {
-      switch( "b" ) {
-        case "a" :
-            return
-        case "b":
-            print( "foo" )
-            break
-      }
     }
   }
 
