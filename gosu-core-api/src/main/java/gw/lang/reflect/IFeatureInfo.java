@@ -45,4 +45,12 @@ public interface IFeatureInfo
   {
     return -1;
   }
+
+  /**
+   * The length of the feature's text in its top-level container
+   */
+  public default int getTextLength()
+  {
+    return -1;
+  }
 }

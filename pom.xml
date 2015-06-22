@@ -29,6 +29,12 @@
         <module>ij-editor-devtools</module>
       </modules>
     </profile>
+    <profile>
+      <id>ij13</id>
+      <modules>
+        <module>gosu-custom-types-plugin</module>
+      </modules>
+    </profile>
   </profiles>
   <build>
     <plugins>

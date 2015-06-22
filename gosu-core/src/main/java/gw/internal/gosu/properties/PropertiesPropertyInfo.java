@@ -90,4 +90,9 @@ class PropertiesPropertyInfo extends PropertyInfoBase implements IPropertiesProp
   {
     return ((PropertiesType)getOwnersType()).findOffsetOf( _propertyNode );
   }
+  @Override
+  public int getTextLength()
+  {
+    return getName().length();
+  }
 }
