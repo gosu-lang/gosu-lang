@@ -14,6 +14,7 @@ import com.intellij.psi.PsiJavaFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.impl.PsiManagerImpl;
 import com.intellij.psi.impl.PsiModificationTrackerImpl;
+import gw.lang.parser.IHasInnerClass;
 import gw.lang.reflect.AbstractTypeSystemListener;
 import gw.lang.reflect.IAttributedFeatureInfo;
 import gw.lang.reflect.IConstructorInfo;
@@ -122,6 +123,12 @@ public class CustomPsiClassCache extends AbstractTypeSystemListener
   {
     StringBuilder sb = new StringBuilder()
       .append( "package " ).append( type.getNamespace() ).append( "\n\n" );
+    generateClass( type, sb );
+    return sb.toString();
+  }
+
+  private void generateClass( IType type, StringBuilder sb )
+  {
     if( Modifier.isPublic( type.getModifiers() ) )
     {
       sb.append( "public " );
@@ -149,8 +156,22 @@ public class CustomPsiClassCache extends AbstractTypeSystemListener
     generateConstructors( type, sb );
     generateMethods( type, sb );
     generateProperties( type, sb );
-    sb.append( "}" );
-    return sb.toString();
+    generateInnerClasses( type, sb );
+    sb.append( "}\n\n" );
+
+  }
+
+  private void generateInnerClasses( IType type, StringBuilder sb )
+  {
+    if( type instanceof IHasInnerClass )
+    {
+      int i = 0;
+      for( IType innerClass : ((IHasInnerClass)type).getInnerClasses() )
+      {
+        sb.append( "  @InnerClassInfoId(" ).append( i++ ).append( ")\n" );
+        generateClass( innerClass, sb );
+      }
+    }
   }
 
   private void generateConstructors( IType type, StringBuilder sb )
