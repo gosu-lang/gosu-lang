@@ -21,4 +21,6 @@ public interface IExpression extends IParsedElement, IHasType
   IType getContextType();
 
   boolean isNullSafe();
+
+  boolean isUnchecked();
 }

@@ -12,6 +12,11 @@ import gw.internal.ext.org.objectweb.asm.FieldVisitor;
 import gw.internal.ext.org.objectweb.asm.MethodVisitor;
 import gw.internal.ext.org.objectweb.asm.Opcodes;
 import gw.internal.ext.org.objectweb.asm.TypePath;
+import gw.internal.gosu.parser.TypeLord;
+import gw.lang.reflect.IType;
+import gw.lang.reflect.TypeSystem;
+import gw.lang.reflect.java.IJavaBackedTypeData;
+import gw.lang.reflect.java.JavaTypes;
 
 public class GosuClassWriter extends ClassVisitor
 {
@@ -20,7 +25,7 @@ public class GosuClassWriter extends ClassVisitor
   public GosuClassWriter()
   {
     super( Opcodes.ASM5 );
-    _cw = new ClassWriter( ClassWriter.COMPUTE_MAXS );
+    _cw = new MyWriter();
   }
 
   @Override
@@ -77,5 +82,59 @@ public class GosuClassWriter extends ClassVisitor
   @Override
   public AnnotationVisitor visitTypeAnnotation( int i, TypePath typePath, String s, boolean b ) {
     return _cw.visitTypeAnnotation( i, typePath, s, b );
+  }
+
+  private static class MyWriter extends ClassWriter {
+    public MyWriter() {
+      super( ClassWriter.COMPUTE_MAXS | ClassWriter.COMPUTE_FRAMES );
+    }
+
+    @Override
+    protected String getCommonSuperClass( String type1, String type2 ) {
+      IType t1 = TypeSystem.getByFullNameIfValid( type1.replace( '/', '.' ).replace( '$', '.' ) );
+      IType t2 = TypeSystem.getByFullNameIfValid( type2.replace( '/', '.' ).replace( '$', '.' ) );
+      if( t1 != null && t2 != null ) {
+        if( t1.isAssignableFrom( t2 ) ) {
+          return type1;
+        }
+        if( t2.isAssignableFrom( t1 ) ) {
+          return type2;
+        }
+        if( t1.isInterface() || t2.isInterface() ) {
+          return "java/lang/Object";
+        }
+      }
+      IType fromT1 = findCommonClass( t1, t2 );
+      IType fromT2 = findCommonClass( t2, t1 );
+      IType commonSuper;
+      if( fromT1.isAssignableFrom( fromT2 ) ) {
+        commonSuper = fromT2;
+      }
+      else {
+        commonSuper = fromT1;
+      }
+
+      String superTypeName;
+      if( commonSuper instanceof IJavaBackedTypeData ) {
+        // Ensure we use the backing Java class's name e.g., entity types use a different name
+        superTypeName = ((IJavaBackedTypeData)commonSuper).getBackingClassInfo().getName();
+      }
+      else {
+        superTypeName = commonSuper.getName();
+      }
+      return superTypeName.replace( '.', '/' );
+    }
+
+    private IType findCommonClass( IType t1, IType t2 )
+    {
+      do {
+        t1 = t1.getSupertype();
+        if( t1 == null ) {
+          return JavaTypes.OBJECT();
+        }
+        t1 = TypeLord.getPureGenericType( t1 );
+      } while( !t1.isAssignableFrom( t2 ) );
+      return t1;
+    }
   }
 }

@@ -8,6 +8,7 @@ import gw.lang.reflect.java.IJavaClassType;
 import gw.lang.reflect.java.IJavaClassTypeVariable;
 import gw.lang.reflect.module.IModule;
 
+import java.lang.reflect.Method;
 import java.lang.reflect.TypeVariable;
 
 public class TypeVariableJavaClassTypeVariable extends TypeJavaClassType implements IJavaClassTypeVariable {
@@ -36,6 +37,11 @@ public class TypeVariableJavaClassTypeVariable extends TypeJavaClassType impleme
   @Override
   public IJavaClassType[] getBounds() {
     return new IJavaClassType[0];  //To change body of implemented methods use File | Settings | File Templates.
+  }
+
+  @Override
+  public boolean isFunctionTypeVar() {
+    return _typeVariable.getGenericDeclaration() instanceof Method;
   }
 
   @Override

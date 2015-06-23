@@ -4,12 +4,14 @@
 
 package gw.internal.gosu.parser;
 
+import gw.internal.gosu.parser.expressions.TypeVariableDefinition;
 import gw.internal.gosu.parser.expressions.TypeVariableDefinitionImpl;
+import gw.lang.parser.AsmTypeVarMatcher;
 import gw.lang.parser.GosuParserFactory;
 import gw.lang.parser.GosuParserTypes;
-import gw.lang.parser.IGosuParser;
 import gw.lang.parser.IScriptPartId;
 import gw.lang.parser.ITypeUsesMap;
+import gw.lang.parser.RawTypeVarMatcher;
 import gw.lang.parser.ScriptabilityModifiers;
 import gw.lang.parser.StandardCoercionManager;
 import gw.lang.parser.StandardSymbolTable;
@@ -138,7 +140,7 @@ public class TypeLord
     }
     else if( type instanceof TypeVariable )
     {
-      retType = actualParamByVarName.getByString( ((TypeVariable)type).getName() );
+      retType = actualParamByVarName.getByMatcher( (TypeVariable)type, RawTypeVarMatcher.instance() );
       if( retType == null )
       {
         // the type must come from the map, otherwise it comes from a context where there is no argument for the type var, hence the error type
@@ -150,8 +152,13 @@ public class TypeLord
         IType actualBoundingType = getActualType( boundingType, actualParamByVarName, bKeepTypeVars );
         if( !actualBoundingType.getName().equals( boundingType.toString() ) )
         {
-          TypeVariableDefinitionImpl tvd = ((TypeVariableDefinitionImpl)((ITypeVariableType)retType).getTypeVarDef()).clone( actualBoundingType );
-          retType = new TypeVariableType( tvd, false );
+          ITypeVariableDefinition typeVarDef = ((ITypeVariableType)retType).getTypeVarDef();
+          if( typeVarDef instanceof TypeVariableDefinition )
+          {
+            typeVarDef = ((TypeVariableDefinition)typeVarDef).getTypeVarDef();
+          }
+          TypeVariableDefinitionImpl tvd = ((TypeVariableDefinitionImpl)typeVarDef).clone( actualBoundingType );
+          retType = new TypeVariableType( tvd, ((ITypeVariableType)retType).getTypeVarDef().getEnclosingType() instanceof IFunctionType );
         }
       }
       else if( !bKeepTypeVars )
@@ -253,7 +260,7 @@ public class TypeLord
     }
     if( type.isTypeVariable() )
     {
-      IType retType = actualParamByVarName.getByString( type.getName() );
+      IType retType = actualParamByVarName.getByMatcher( type, AsmTypeVarMatcher.instance() );
       if( retType == null )
       {
         // the type must come from the map, otherwise it comes from a context where there is no argument for the type var, hence the error type
@@ -266,7 +273,7 @@ public class TypeLord
         if( !actualBoundingType.getName().equals( boundingType.getName() ) )
         {
           TypeVariableDefinitionImpl tvd = ((TypeVariableDefinitionImpl)((ITypeVariableType)retType).getTypeVarDef()).clone( actualBoundingType );
-          retType = new TypeVariableType( tvd, false );
+          retType = new TypeVariableType( tvd, type instanceof AsmType && ((AsmType)type).isFunctionTypeVariable() );
         }
       }
       else if( !bKeepTypeVars )
@@ -418,7 +425,7 @@ public class TypeLord
           if( actualBoundingType != boundingType )
           {
             TypeVariableDefinitionImpl tvd = ((TypeVariableDefinitionImpl)((ITypeVariableType)type).getTypeVarDef()).clone( actualBoundingType );
-            type = new TypeVariableType( tvd, false );
+            type = new TypeVariableType( tvd, ((ITypeVariableType)type).getTypeVarDef().getEnclosingType() instanceof IFunctionType );
           }
         }
         else if( !isParameterizedWith( type, saveType ) )
@@ -515,14 +522,9 @@ public class TypeLord
   }
   public static IType parseType( String strParameterizedTypeName, TypeVarToTypeMap actualParamByVarName, ITypeUsesMap typeUsesMap )
   {
-    return parseType( strParameterizedTypeName, actualParamByVarName, false, typeUsesMap );
-  }
-
-  private static IType parseType( String strParameterizedTypeName, TypeVarToTypeMap actualParamByVarName, boolean bKeepTypeVars, ITypeUsesMap typeUsesMap )
-  {
     try
     {
-      ITypeLiteralExpression expression = parseTypeLiteral( strParameterizedTypeName, actualParamByVarName, bKeepTypeVars, typeUsesMap );
+      ITypeLiteralExpression expression = parseTypeLiteral( strParameterizedTypeName, actualParamByVarName, typeUsesMap );
       return expression.getType().getType();
     }
     catch( ParseResultsException e )
@@ -532,8 +534,7 @@ public class TypeLord
     }
   }
 
-  public static ITypeLiteralExpression parseTypeLiteral( String strParameterizedTypeName, TypeVarToTypeMap actualParamByVarName,
-                                                         boolean bKeepTypeVars, ITypeUsesMap typeUsesMap) throws ParseResultsException
+  public static ITypeLiteralExpression parseTypeLiteral( String strParameterizedTypeName, TypeVarToTypeMap actualParamByVarName, ITypeUsesMap typeUsesMap ) throws ParseResultsException
   {
     StringTokenizer tokenizer = new StringTokenizer( strParameterizedTypeName, " <>[]?:(),", true );
     StringBuilder sbType = new StringBuilder();
@@ -545,14 +546,14 @@ public class TypeLord
       String resolvedTypeName;
       if( type != null )
       {
-        if (type.isParameterizedType()) {
-          type = resolveParameterizedType( type, actualParamByVarName, bKeepTypeVars );
+        if( type.isParameterizedType() )
+        {
+          type = resolveParameterizedType( type, actualParamByVarName );
         }
         if( type instanceof TypeVariableType )
         {
-          type = bKeepTypeVars ? type : ((TypeVariableType)type).getBoundingType();
+          type = ((TypeVariableType)type).getBoundingType();
         }
-
         resolvedTypeName = type instanceof TypeVariableType ? type.getRelativeName() : type.getName();
       }
       else
@@ -574,16 +575,13 @@ public class TypeLord
     String strNormalizedType = sbType.toString().replace( "$", "." );
     GosuParser parser = (GosuParser)GosuParserFactory.createParser( strNormalizedType, new StandardSymbolTable(), ScriptabilityModifiers.SCRIPTABLE );
     parser.setAllowWildcards( true );
-    if (typeUsesMap != null) {
+    if( typeUsesMap != null )
+    {
       parser.setTypeUsesMap(typeUsesMap);
     }
     parser.pushIgnoreTypeDeprecation();
     try
     {
-      if( bKeepTypeVars )
-      {
-        addTypeVars( actualParamByVarName, parser );
-      }
       return parser.parseTypeLiteral( null );
     }
     finally
@@ -592,27 +590,20 @@ public class TypeLord
     }
   }
 
-  private static IType resolveParameterizedType( IType parameterizedType, TypeVarToTypeMap actualParamByVarName, boolean bKeepTypeVars )
+  private static IType resolveParameterizedType( IType parameterizedType, TypeVarToTypeMap actualParamByVarName )
   {
     List<IType> resolvedParams = new ArrayList<IType>();
     for( IType paramType : parameterizedType.getTypeParameters() )
     {
       if( paramType instanceof TypeVariableType && actualParamByVarName.containsKey( (ITypeVariableType)paramType ) )
       {
-        if( !bKeepTypeVars )
-        {
-          resolvedParams.add( actualParamByVarName.get( (ITypeVariableType)paramType ) );
-        }
-        else
-        {
-          resolvedParams.add( paramType );
-        }
+        resolvedParams.add( actualParamByVarName.get( (ITypeVariableType)paramType ) );
       }
       else
       {
         if( paramType.isParameterizedType() )
         {
-          resolvedParams.add( resolveParameterizedType( paramType, actualParamByVarName, bKeepTypeVars ) );
+          resolvedParams.add( resolveParameterizedType( paramType, actualParamByVarName ) );
         }
         else
         {
@@ -621,32 +612,6 @@ public class TypeLord
       }
     }
     return parameterizedType.getGenericType().getParameterizedType( resolvedParams.toArray( new IType[resolvedParams.size()] ) );
-  }
-
-  private static void addTypeVars( TypeVarToTypeMap types, IGosuParser parser )
-  {
-    for( Object passedInTvKey : types.keySet() )
-    {
-      IType type = types.getRaw( passedInTvKey );
-      if( type instanceof TypeVariableType )
-      {
-        ITypeVariableDefinition existingTv = parser.getTypeVariables().get( type.getName() );
-        if( existingTv == null || TypeVarToTypeMap.looseEquals( passedInTvKey, existingTv.getType() ) )
-        {
-          parser.getTypeVariables().put( type.getRelativeName(), ((TypeVariableType)type).getTypeVarDef() );
-        }
-      }
-      else if( type.isParameterizedType() )
-      {
-        TypeVarToTypeMap map = new TypeVarToTypeMap();
-        for( int i = 0; i < type.getTypeParameters().length; i++ )
-        {
-          IType t = type.getTypeParameters()[i];
-          map.putRaw( String.valueOf( i ), t );
-        }
-        addTypeVars( map, parser );
-      }
-    }
   }
 
   public static TypeVarToTypeMap mapTypeByVarName( IType ownersType, IType declaringType )
@@ -769,10 +734,10 @@ public class TypeLord
         for( int i = 0; i < vars.length; i++ )
         {
           IGenericTypeVariable typeVar = vars[i];
-          Object key = typeVar.getTypeVariableDefinition() == null ? typeVar.getName() : typeVar.getTypeVariableDefinition().getType();
-          if( !genericParamByVarName.containsKeyRaw( key ) )
+          ITypeVariableType type = typeVar.getTypeVariableDefinition().getType();
+          if( !genericParamByVarName.containsKey( type ) )
           {
-            genericParamByVarName.putRaw( key, new TypeVariableType( ownersType, typeVar ) );
+            genericParamByVarName.put( type, new TypeVariableType( ownersType, typeVar ) );
           }
         }
       }
@@ -2386,11 +2351,21 @@ public class TypeLord
     else if( type instanceof ITypeVariableType && (inferringType = inferringType( type, typesToBound, bKeepTypeVars )) != null )
     {
       // inferringType removes type from the list, to prevent stack overflow.
+      IType boundType;
       if( bKeepTypeVars )
       {
-        return inferringType;
+        boundType = inferringType;
       }
-      IType boundType = boundTypes( ((ITypeVariableType)type).getBoundingType(), typesToBound, bKeepTypeVars );
+      else if( isRecursiveType( (ITypeVariableType)type, ((ITypeVariableType)type).getBoundingType() ) &&
+               !(((ITypeVariableType)type).getBoundingType() instanceof ITypeVariableType) )
+      {
+        // short-circuit recursive typevar
+        boundType = ((ITypeVariableType)type).getBoundingType().getGenericType();
+      }
+      else
+      {
+        boundType = boundTypes( ((ITypeVariableType)type).getBoundingType(), typesToBound, bKeepTypeVars );
+      }
       typesToBound.add(inferringType); // add it back
       // FIXME-idubrov: Should we replace all type variables equal to type inside boundType with boundType?
       return boundType;

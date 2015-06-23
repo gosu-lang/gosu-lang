@@ -21,6 +21,7 @@ import gw.config.CommonServices;
 public final class UnaryExpression extends Expression implements IUnaryExpression
 {
   protected boolean _bNegated;
+  protected boolean _bUnchecked;
   protected Expression _expression;
 
   public boolean isNegated()
@@ -41,6 +42,17 @@ public final class UnaryExpression extends Expression implements IUnaryExpressio
   public void setExpression( Expression e )
   {
     _expression = e;
+  }
+
+  public void setUnchecked( boolean flag )
+  {
+    _bUnchecked = flag;
+  }
+
+  @Override
+  public boolean isUnchecked()
+  {
+    return _bUnchecked;
   }
 
   public boolean isCompileTimeConstant()

@@ -4,6 +4,9 @@ uses java.util.ArrayList
 uses java.util.List
 uses java.lang.CharSequence
 uses java.lang.Integer
+uses gw.lang.reflect.IType
+uses java.lang.CharSequence
+uses java.util.Map
 
 class Errant_GenericMethodAndBlockArgument {
   // IDE-1882
@@ -49,5 +52,17 @@ class Errant_GenericMethodAndBlockArgument {
 
     function hey<T>( doit(t:T) ) : List<T> { return null }
     function foo( l: List<CharSequence> ) {}
+  }
+
+  static class GosuClass4 {
+    function foo<M extends CharSequence>() : List<M> {
+      var map: Map<IType,CharSequence>
+
+      return map
+          .keySet()
+          .where( \ type -> true )
+          .flatMap( \ mapping -> new ArrayList<Object>() ) // should not apply ctx type here, List<M> only applies to entire expression i.e., the *last* flatMap() call
+          .flatMap( \ mapping -> null )
+    }
   }
 }

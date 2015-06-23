@@ -85,7 +85,7 @@ bitshiftExpr = additiveExpr {bitshiftOp additiveExpr} .
 additiveExpr = multiplicativeExpr {additiveOp multiplicativeExpr} .
 multiplicativeExpr = typeAsExpr {multiplicativeOp typeAsExpr} .
 typeAsExpr = unaryExpr {typeAsOp typeLiteral} .
-unaryExpr = ("+" | "-") unaryExprNotPlusMinus | unaryExprNotPlusMinus .
+unaryExpr = ("+" | "-" | "!-") unaryExprNotPlusMinus | unaryExprNotPlusMinus .
 unaryExprNotPlusMinus = unaryOp unaryExpr | "\" blockExpr | evalExpr | primaryExpr .
 blockExpr = [parameterDeclarationList] "->" (expression | statementBlock) .
 parameterDeclarationList = parameterDeclaration {"," parameterDeclaration} .
@@ -119,8 +119,8 @@ equalityOp = "===" | "!==" | "==" | "!=" .
 intervalOp = ".." | "|.." | "..|" | "|..|" .
 relOp = "<" "=" | ">" "=" | "<" | ">" .
 bitshiftOp = "<" "<" | ">" ">" ">" | ">" ">" .
-additiveOp = "+" | "-" | "?+" | "?-" .
-multiplicativeOp = "*" | "/" | "%" | "?*" | "?/" | "?%" .
+additiveOp = "+" | "-" | "?+" | "?-" | "!+" | "!-" .
+multiplicativeOp = "*" | "/" | "%" | "?*" | "!*" | "?/" | "?%" .
 typeAsOp = "typeas" | "as" .
 unaryOp = "~" | "!" | "not" | "typeof" | "statictypeof" .
 id = Ident | "true" | "false" | "NaN" | "Infinity" | "null" | "length" | "exists" | "startswith" | "contains" | "where" | "find" | "as" | "except" | "index" | "iterator" | "get" | "set" | "assert" | "private" | "internal" | "protected" | "public" | "abstract" | "hide" | "final" | "static" | "readonly" | "outer" | "execution" | "request" | "session" | "application" | "void" | "block" | "enhancement" | "classpath" | "typeloader" .

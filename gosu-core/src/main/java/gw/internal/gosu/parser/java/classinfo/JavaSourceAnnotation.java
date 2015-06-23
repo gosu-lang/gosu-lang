@@ -4,29 +4,30 @@
 
 package gw.internal.gosu.parser.java.classinfo;
 
-import gw.internal.gosu.parser.java.IJavaASTNode;
-import gw.internal.gosu.parser.java.JavaASTConstants;
-import gw.internal.gosu.parser.java.JavaParser;
+import com.sun.source.tree.ClassTree;
+import com.sun.source.tree.ImportTree;
 import gw.lang.reflect.gs.ISourceFileHandle;
 import gw.lang.reflect.java.IJavaClassInfo;
 import gw.lang.reflect.java.IJavaClassType;
 import gw.lang.reflect.java.JavaTypes;
 import gw.lang.reflect.module.IModule;
 
+import java.util.List;
+
 public class JavaSourceAnnotation extends JavaSourceType {
 
   /**
    * For top level.
    */
-  public JavaSourceAnnotation(ISourceFileHandle fileHandle, IJavaASTNode node, IModule gosuModule) {
-    super(fileHandle, node, JavaASTConstants.annotationTypeDeclaration, JavaParser.INTERFACE, JavaASTConstants.annotationTypeBody, gosuModule);
+  public JavaSourceAnnotation(ISourceFileHandle fileHandle, ClassTree typeDecl, List<? extends ImportTree> imports, IModule gosuModule) {
+    super(fileHandle, typeDecl, imports, gosuModule);
   }
 
   /**
    * For inner.
    */
-  public JavaSourceAnnotation(IJavaASTNode node, JavaSourceType parent) {
-    super(node, parent, JavaParser.INTERFACE, JavaASTConstants.annotationTypeBody);
+  public JavaSourceAnnotation(ClassTree typeDecl, JavaSourceType parent) {
+    super(typeDecl, parent);
   }
 
   @Override

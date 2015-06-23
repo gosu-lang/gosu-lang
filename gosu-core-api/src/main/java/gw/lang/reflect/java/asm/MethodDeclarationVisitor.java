@@ -5,6 +5,7 @@
 package gw.lang.reflect.java.asm;
 
 import gw.internal.ext.org.objectweb.asm.AnnotationVisitor;
+import gw.internal.ext.org.objectweb.asm.Label;
 import gw.internal.ext.org.objectweb.asm.MethodVisitor;
 import gw.internal.ext.org.objectweb.asm.Opcodes;
 
@@ -35,5 +36,10 @@ public class MethodDeclarationVisitor extends MethodVisitor {
     AsmAnnotation asmAnnotation = new AsmAnnotation( desc, bVisibleAtRuntime );
     _asmMethod.addParameterAnnotation( parameter, asmAnnotation );
     return new AsmAnnotationVisitor( asmAnnotation );
+  }
+
+  @Override
+  public void visitLineNumber( int iLine, Label label ) {
+    _asmMethod.assignLineNumber( iLine );
   }
 }

@@ -75,6 +75,11 @@ public abstract class TypeInfoBase implements ITypeInfo
     return null;
   }
 
+  @Override
+  public boolean isDefaultImpl() {
+    return false;
+  }
+
   public IFeatureInfo getContainer()
   {
     return null;

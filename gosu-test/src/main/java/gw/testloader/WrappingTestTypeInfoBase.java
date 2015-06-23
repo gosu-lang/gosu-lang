@@ -296,6 +296,10 @@ public abstract class WrappingTestTypeInfoBase extends TypeInfoBase implements I
       return _wrappedProperty.getDeprecatedReason();
     }
 
+    public boolean isDefaultImpl() {
+      return _wrappedProperty.isDefaultImpl();
+    }
+
     public IFeatureInfo getContainer() {
       return null;
     }
@@ -435,6 +439,11 @@ public abstract class WrappingTestTypeInfoBase extends TypeInfoBase implements I
 
     public String getDeprecatedReason() {
       return _wrappedMethodInfo.getDeprecatedReason();
+    }
+
+    @Override
+    public boolean isDefaultImpl() {
+      return _wrappedMethodInfo.isDefaultImpl();
     }
 
     public IFeatureInfo getContainer() {

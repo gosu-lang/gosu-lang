@@ -7,4 +7,5 @@ package gw.lang.reflect.java;
 public interface IJavaClassTypeVariable extends IJavaClassType {
   String getName();
   IJavaClassType[] getBounds();
+  boolean isFunctionTypeVar();
 }

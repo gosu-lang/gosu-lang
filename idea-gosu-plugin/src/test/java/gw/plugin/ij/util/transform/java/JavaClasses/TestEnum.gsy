@@ -12,7 +12,7 @@ public class TestEnum  {
         JUPITER(1.9E27, 7.1492E7),
         SATURN(5.688E26, 6.0268E7),
         URANUS(8.686E25, 2.5559E7),
-        NEPTUNE(1.0239999999999999E26, 2.4746E7)
+        NEPTUNE(1.024E26, 2.4746E7)
         private var mass : double
         private final var radius : double
         private construct(mass_0 : double, radius_0 : double) {

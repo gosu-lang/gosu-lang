@@ -332,6 +332,8 @@ final public class SourceCodeTokenizerInternal
         "+", "-", "*", "/", "&", "|", "^", "%",
         // Null-safe arithmetic operators
         "?+", "?-", "?*", "?/", "?%",
+        // Unchecked overflow arithmetic operators for integers
+        "!+", "!-", "!*",
 
         // Compound operators
         "+=", "-=", "*=", "/=", "&=", "&&=", "|=", "||=", "^=", "%=",

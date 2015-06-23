@@ -478,4 +478,5 @@ public class GosuRuntimeMethods {
     System.out.println( strError );
     throw new Error( String.valueOf( strError ) );
   }
+
 }

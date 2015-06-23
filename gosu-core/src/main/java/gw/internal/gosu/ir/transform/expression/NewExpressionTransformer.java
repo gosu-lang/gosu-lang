@@ -10,6 +10,7 @@ import gw.internal.gosu.ir.transform.ExpressionTransformer;
 import gw.internal.gosu.ir.transform.TopLevelTransformationContext;
 import gw.internal.gosu.parser.Expression;
 import gw.internal.gosu.parser.TypeVariableType;
+import gw.internal.gosu.parser.expressions.BeanMethodCallExpression;
 import gw.internal.gosu.parser.expressions.NewExpression;
 import gw.internal.gosu.runtime.GosuRuntimeMethods;
 import gw.lang.ir.IRElement;
@@ -18,7 +19,11 @@ import gw.lang.ir.IRSymbol;
 import gw.lang.ir.expression.IRCompositeExpression;
 import gw.lang.ir.expression.IRNewMultiDimensionalArrayExpression;
 import gw.lang.parser.IExpression;
+import gw.lang.parser.IParsedElement;
+import gw.lang.parser.expressions.IBlockExpression;
 import gw.lang.parser.expressions.IInitializerExpression;
+import gw.lang.parser.expressions.IMemberExpansionExpression;
+import gw.lang.parser.expressions.INewExpression;
 import gw.lang.reflect.IConstructorHandler;
 import gw.lang.reflect.IConstructorInfo;
 import gw.lang.reflect.IRelativeTypeInfo;
@@ -153,7 +158,8 @@ public class NewExpressionTransformer extends AbstractExpressionTransformer<NewE
     List<IRElement> newExprElements;
 
     if( irConstructor.isBytecodeMethod() &&
-        isBytecodeType( type ) && 
+        isBytecodeType( type ) &&
+        !hasExpansionExpressionInArguments() &&
         !_cc().shouldUseReflection( irConstructor.getOwningIType(), irConstructor.getAccessibility() ) )
     {
       List<IRExpression> explicitArgs = new ArrayList<IRExpression>();
@@ -167,7 +173,7 @@ public class NewExpressionTransformer extends AbstractExpressionTransformer<NewE
         args.add( pushThisOrOuter( type.getEnclosingType() ) );
       }
       pushCapturedSymbols( type, args, false );
-      pushTypeParametersForConstructor( _expr(), type, args );
+      pushTypeParametersForConstructor( _expr(), type, args, false );
       _cc().pushEnumNameAndOrdinal( type, args );
       args.addAll( explicitArgs );
       constructorCall = buildNewExpression( getDescriptor( type ), irConstructor.getAllParameterTypes(), args );
@@ -175,6 +181,10 @@ public class NewExpressionTransformer extends AbstractExpressionTransformer<NewE
     else
     {
       List<IRExpression> explicitArgs = new ArrayList<IRExpression>();
+      if( isNonStaticInnerClass( type ) )
+      {
+        explicitArgs.add( pushThisOrOuter( type.getEnclosingType() ) );
+      }
       pushArgumentsNoCasting( irConstructor, _expr().getArgs(), explicitArgs );
       newExprElements = handleNamedArgs( explicitArgs, _expr().getNamedArgOrder() );
 
@@ -205,6 +215,66 @@ public class NewExpressionTransformer extends AbstractExpressionTransformer<NewE
     return constructorCall;
   }
 
+  /**
+   * Sadly, the JVM verifier does not like the loops (backward jumps) between a NEW call on a type and the call for its ctor.
+   * Otherwise this results in "java.lang.VerifyError: Uninitialized object exists on backward branch".  So we opt to just
+   * call the ctor reflectively instead of making up some other bullshit.
+   */
+  private boolean hasExpansionExpressionInArguments()
+  {
+    Expression[] args = _expr().getArgs();
+    if( args == null )
+    {
+      return false;
+    }
+
+    for( Expression arg: args )
+    {
+      List<IMemberExpansionExpression> l = new ArrayList<>();
+      if( arg.getContainedParsedElementsByType( IMemberExpansionExpression.class, l ) )
+      {
+        for( IMemberExpansionExpression expr: l )
+        {
+          if( isInThisNew( expr ) )
+          {
+            return true;
+          }
+        }
+      }
+
+      List<BeanMethodCallExpression> list = new ArrayList<>();
+      if( arg.getContainedParsedElementsByType( BeanMethodCallExpression.class, list ) )
+      {
+        for( BeanMethodCallExpression expr: list )
+        {
+          if( expr.isExpansion() && isInThisNew( expr ) )
+          {
+            return true;
+          }
+        }
+      }
+    }
+    return false;
+  }
+
+  private boolean isInThisNew( IParsedElement expr )
+  {
+    if( expr == _expr() )
+    {
+      return true;
+    }
+
+    if( expr == null || // should throw for null probably
+        expr instanceof INewExpression ||
+        expr instanceof IBlockExpression ||
+        expr.getGosuClass() != _expr().getGosuClass() )
+    {
+      return false;
+    }
+
+    return isInThisNew( expr.getParent() );
+  }
+
   private IRExpression compileTypeVarConstructorCall()
   {
     IType type = _expr().getType();
@@ -219,7 +289,7 @@ public class NewExpressionTransformer extends AbstractExpressionTransformer<NewE
 
     List<IRExpression> args = new ArrayList<IRExpression>();
     pushCapturedSymbols( type, args, false );
-    pushTypeParametersForConstructor( _expr(), type, args );
+    pushTypeParametersForConstructor( _expr(), type, args, false );
     _cc().pushEnumNameAndOrdinal( type, args );
     args.addAll( explicitArgs );
 

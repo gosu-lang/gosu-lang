@@ -95,7 +95,7 @@ public class GosuVisitor implements TreeVisitor<String, Void> {
     mode = Mode.NORMAL;
     Name name = node.getSimpleName();
     List<? extends TypeParameterTree> typeParameters = node.getTypeParameters();
-    String declType = null;
+    String declType;
     Tree.Kind kind = node.getKind();
     isEnum = false;
     isInterface = false;
@@ -246,7 +246,7 @@ public class GosuVisitor implements TreeVisitor<String, Void> {
     BlockTree block = node.getBlock();
     List<? extends CatchTree> catches = node.getCatches();
     BlockTree finallyBlock = node.getFinallyBlock();
-    List<String> resIdents = new ArrayList<String>();
+    List<String> resIdents = new ArrayList<>();
 
     if(catches.isEmpty() && !resources.isEmpty()) {
       out.append("using (");
@@ -607,7 +607,7 @@ public class GosuVisitor implements TreeVisitor<String, Void> {
   }
 
   private boolean isAEnumConstant(Tree node) {
-    return ((JCTree)node).getTag() == JCTree.VARDEF && (((JCTree.JCVariableDecl) node).mods.flags & Flags.ENUM) != 0;
+    return ((JCTree)node).getTag() == JCTree.Tag.VARDEF && (((JCTree.JCVariableDecl) node).mods.flags & Flags.ENUM) != 0;
   }
 
 
@@ -664,6 +664,12 @@ public class GosuVisitor implements TreeVisitor<String, Void> {
     return out.toString();
   }
 
+  @Override
+  public String visitMemberReference( MemberReferenceTree node, Void aVoid ) {
+    //## todo: implement
+    return "";
+  }
+
 
   public String visitWildcard(WildcardTree node, Void v) {
     String out;
@@ -688,7 +694,7 @@ public class GosuVisitor implements TreeVisitor<String, Void> {
     StringBuilder out = new StringBuilder();
     ExpressionTree lOp = node.getLeftOperand();
     ExpressionTree rOp = node.getRightOperand();
-    int operator = ((JCTree.JCBinary) node).getTag();
+    JCTree.Tag operator = ((JCTree.JCBinary) node).getTag();
     out.append(lOp.accept(this, v));
     out.append(" ").append(operatorName(operator)).append(" ");
     out.append(rOp.accept(this, v));
@@ -909,13 +915,13 @@ public class GosuVisitor implements TreeVisitor<String, Void> {
 
 
   public String visitUnary(UnaryTree node, Void v) {
-    int op = ((JCTree.JCUnary) node).getTag();
+    JCTree.Tag op = ((JCTree.JCUnary) node).getTag();
     String opName = operatorName(op);
     String expr = node.getExpression().accept(this, v);
-    if(op == JCTree.PREDEC  ||
-       op == JCTree.PREINC  ||
-       op == JCTree.POSTDEC ||
-       op == JCTree.POSTINC) {
+    if(op == JCTree.Tag.PREDEC  ||
+       op == JCTree.Tag.PREINC  ||
+       op == JCTree.Tag.POSTDEC ||
+       op == JCTree.Tag.POSTINC) {
       return expr + opName;
     }
     return opName + expr;
@@ -1002,7 +1008,7 @@ public class GosuVisitor implements TreeVisitor<String, Void> {
       StatementTree inizST = initializer.get(0);
       ExpressionTree expression = update.get(0).getExpression();
       JCTree.JCBinary cond = (JCTree.JCBinary) condition;
-      if (cond.getTag() == JCTree.LT && inizST instanceof JCTree.JCVariableDecl &&
+      if (cond.getTag() == JCTree.Tag.LT && inizST instanceof JCTree.JCVariableDecl &&
           expression instanceof JCTree.JCUnary)
       {
         JCTree.JCVariableDecl iniz = (JCTree.JCVariableDecl) inizST;
@@ -1010,7 +1016,7 @@ public class GosuVisitor implements TreeVisitor<String, Void> {
         String var = cond.getLeftOperand().accept(this, v);
         if (var.equals(up.getExpression().accept(this, v)) &&
             var.equals(iniz.getName().toString()) &&
-            (up.getTag() == JCTree.PREINC || up.getTag() == JCTree.POSTINC) &&
+            (up.getTag() == JCTree.Tag.PREINC || up.getTag() == JCTree.Tag.POSTINC) &&
             "0".equals(iniz.getInitializer().accept(this, v)))
         {
           JCTree.JCExpression condRight = cond.getRightOperand();
@@ -1022,7 +1028,7 @@ public class GosuVisitor implements TreeVisitor<String, Void> {
               if (val >= 0) {
                 validLimit = true;
               }
-            } catch (NumberFormatException ex) {}
+            } catch (NumberFormatException ex) { /* gulp */ }
           } else if (condR.endsWith(".size()") || condR.endsWith(".length()") || condR.endsWith(".length")) {
             validLimit = true;
           }
@@ -1183,6 +1189,12 @@ public class GosuVisitor implements TreeVisitor<String, Void> {
     return out.toString();
   }
 
+  @Override
+  public String visitLambdaExpression( LambdaExpressionTree node, Void aVoid ) {
+    //## todo: implement
+    return "";
+  }
+
 
   public String visitPrimitiveType(PrimitiveTypeTree node, Void v) {
     return node.toString();
@@ -1265,7 +1277,7 @@ public class GosuVisitor implements TreeVisitor<String, Void> {
 
 
   private HashMap<String, String> computeConstructorTypes(List<? extends TypeParameterTree> typeParameters) {
-    HashMap<String, String> constructorTypes = new HashMap<String, String>();
+    HashMap<String, String> constructorTypes = new HashMap<>();
     for(TypeParameterTree t : typeParameters) {
       String key = t.getName().toString();
       String value;
@@ -1417,13 +1429,19 @@ public class GosuVisitor implements TreeVisitor<String, Void> {
     StringBuilder out = new StringBuilder();
     ExpressionTree variable = node.getVariable();
     ExpressionTree expression = node.getExpression();
-    int operator = ((JCTree.JCAssignOp) node).getTag();
+    JCTree.Tag operator = ((JCTree.JCAssignOp) node).getTag();
     out.append(variable.accept(this, v));
     out.append(" ").append(operatorName(operator)).append(" ");
     out.append(expression.accept(this, v));
     return out.toString();
   }
 
+
+  @Override
+  public String visitAnnotatedType( AnnotatedTypeTree node, Void aVoid ) {
+    //## todo: implement
+    return "";
+  }
 
   public String visitAnnotation(AnnotationTree node, Void v) {
     StringBuilder out = new StringBuilder();
@@ -1459,6 +1477,12 @@ public class GosuVisitor implements TreeVisitor<String, Void> {
     return null;
   }
 
+  @Override
+  public String visitIntersectionType( IntersectionTypeTree node, Void aVoid ) {
+    //## todo: implement
+    return "";  //To change body of implemented methods use File | Settings | File Templates.
+  }
+
 
   private void pushIndent() {
     ident += TAB_SIZE;
@@ -1491,85 +1515,85 @@ public class GosuVisitor implements TreeVisitor<String, Void> {
   }
 
 
-  public String operatorName(int tag) {
+  public String operatorName(JCTree.Tag tag) {
     switch (tag) {
-      case JCTree.POS:
+      case POS:
         return "+";
-      case JCTree.NEG:
+      case NEG:
         return "-";
-      case JCTree.NOT:
+      case NOT:
         return "!";
-      case JCTree.COMPL:
+      case COMPL:
         return "~";
-      case JCTree.PREINC:
+      case PREINC:
         return "++";
-      case JCTree.PREDEC:
+      case PREDEC:
         return "--";
-      case JCTree.POSTINC:
+      case POSTINC:
         return "++";
-      case JCTree.POSTDEC:
+      case POSTDEC:
         return "--";
-      case JCTree.NULLCHK:
+      case NULLCHK:
         return "<*nullchk*>";
-      case JCTree.OR:
+      case OR:
         return "or";
-      case JCTree.AND:
+      case AND:
         return "and";
-      case JCTree.BITOR:
+      case BITOR:
         return "|";
-      case JCTree.BITXOR:
+      case BITXOR:
         return "^";
-      case JCTree.BITAND:
+      case BITAND:
         return "&";
-      case JCTree.EQ:
+      case EQ:
         return "==";
-      case JCTree.NE:
+      case NE:
         return "!=";
-      case JCTree.LT:
+      case LT:
         return "<";
-      case JCTree.GT:
+      case GT:
         return ">";
-      case JCTree.LE:
+      case LE:
         return "<=";
-      case JCTree.GE:
+      case GE:
         return ">=";
-      case JCTree.SL:
+      case SL:
         return "<<";
-      case JCTree.SR:
+      case SR:
         return ">>";
-      case JCTree.USR:
+      case USR:
         return ">>>";
-      case JCTree.PLUS:
+      case PLUS:
         return "+";
-      case JCTree.MINUS:
+      case MINUS:
         return "-";
-      case JCTree.MUL:
+      case MUL:
         return "*";
-      case JCTree.DIV:
+      case DIV:
         return "/";
-      case JCTree.MOD:
+      case MOD:
         return "%";
-      case JCTree.BITOR_ASG:
+      case BITOR_ASG:
         return "|=";
-      case JCTree.BITXOR_ASG:
+      case BITXOR_ASG:
         return "^=";
-      case JCTree.BITAND_ASG:
+      case BITAND_ASG:
         return "&=";
-      case JCTree.SL_ASG:
+      case SL_ASG:
         return "<<=";
-      case JCTree.SR_ASG:
+      case SR_ASG:
         return ">>=";
-      case JCTree.USR_ASG:
+      case USR_ASG:
         return ">>>=";
-      case JCTree.PLUS_ASG:
+      case PLUS_ASG:
         return "+=";
-      case JCTree.MINUS_ASG:
+      case MINUS_ASG:
         return "-=";
-      case JCTree.MUL_ASG:
+      case MUL_ASG:
         return "*=";
-      case JCTree.DIV_ASG:
+      case DIV_ASG:
         return "/=";
-      case JCTree.MOD_ASG:
+      case MOD_ASG:
         return "%=";
       default:
         throw new Error();

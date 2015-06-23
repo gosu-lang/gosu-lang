@@ -266,7 +266,7 @@ public class StandardCoercionManager extends BaseService implements ICoercionMan
     if( lhsType instanceof IMetaType &&
         rhsType instanceof IJavaType && JavaTypes.CLASS().equals( rhsType.getGenericType() ) ) {
       if( !rhsType.isParameterizedType() ||
-          ((IMetaType)lhsType).getType().isAssignableFrom( rhsType.getTypeParameters()[0] ) ||
+          TypeSystem.canCast( ((IMetaType)lhsType).getType(), rhsType.getTypeParameters()[0] ) ||
           isStructurallyAssignable( ((IMetaType)lhsType).getType(), rhsType.getTypeParameters()[0] ) ) {
         return IdentityCoercer.instance();
       }
@@ -414,7 +414,8 @@ public class StandardCoercionManager extends BaseService implements ICoercionMan
            || lhsType == JavaTypes.FLOAT()
            || lhsType == JavaTypes.INTEGER()
            || lhsType == JavaTypes.LONG()
-           || lhsType == JavaTypes.SHORT();
+           || lhsType == JavaTypes.SHORT()
+           || lhsType == JavaTypes.VOID();
   }
 
   protected ICoercer getPrimitiveOrBoxedConverter( IType type )
@@ -482,10 +483,6 @@ public class StandardCoercionManager extends BaseService implements ICoercionMan
     else if( type == JavaTypes.SHORT() )
     {
       return ShortCoercer.instance();
-    }
-    else if( type == JavaTypes.pVOID() )
-    {
-      return IdentityCoercer.instance();
     }
     else
     {
@@ -560,6 +557,10 @@ public class StandardCoercionManager extends BaseService implements ICoercionMan
       return ShortHighPriorityCoercer.instance();
     }
     else if( type == JavaTypes.pVOID() )
+    {
+      return IdentityCoercer.instance();
+    }
+    else if( type == JavaTypes.VOID() )
     {
       return IdentityCoercer.instance();
     }
@@ -733,6 +734,9 @@ public class StandardCoercionManager extends BaseService implements ICoercionMan
         continue;
       }
       if( toMi.getOwnersType() instanceof IGosuEnhancement ) {
+        continue;
+      }
+      if( toMi instanceof IAttributedFeatureInfo && toMi.isDefaultImpl() || toMi.isStatic() ) {
         continue;
       }
       IMethodInfo fromMi = fromMethods.findAssignableMethod( toMi, fromType instanceof IMetaType && (!(((IMetaType)fromType).getType() instanceof IGosuClass) || !((IGosuClass)((IMetaType)fromType).getType()).isStructure()) );

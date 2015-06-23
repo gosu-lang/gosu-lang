@@ -14,7 +14,9 @@ import gw.lang.reflect.gs.IPropertiesType;
 import gw.util.GosuClassUtil;
 import gw.util.concurrent.LockingLazyVar;
 
-import java.util.Collections;
+import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.util.List;
 
 /**
  * Type based on a {@link PropertyNode}
@@ -25,6 +27,7 @@ public class PropertiesType extends TypeBase implements IPropertiesType {
   private final PropertiesTypeLoader _typeLoader;
   private final PropertyNode _propertyNode;
   private IFile _file;
+  private String _contentCached;
   private final LockingLazyVar<PropertiesTypeInfo> _typeInfo = new LockingLazyVar<PropertiesTypeInfo>() {
     @Override
     protected PropertiesTypeInfo init() {
@@ -96,5 +99,39 @@ public class PropertiesType extends TypeBase implements IPropertiesType {
       return IFile.EMPTY_ARRAY;
     }
     return new IFile[] {_file};
+  }
+
+  public int findOffsetOf( PropertyNode node )
+  {
+    String fqn = node.getPath();
+    // this is a crappy way to approximate the offset, we really need to parse the file ourselves and store the offsets
+    return getCachedContent().indexOf( fqn );
+  }
+
+  public String getCachedContent()
+  {
+    if( _contentCached == null )
+    {
+      IFile[] files = getSourceFiles();
+      if( files != null && files.length > 0 )
+      {
+        try
+        {
+          StringBuilder sb = new StringBuilder();
+          List<String> lines = Files.readAllLines( files[0].toJavaFile().toPath(), Charset.defaultCharset() );
+          for( String line: lines )
+          {
+            sb.append( line ).append( "\n" );
+          }
+          _contentCached = sb.toString();
+            //new Scanner( files[0].toJavaFile() ).useDelimiter( "\\Z" ).next();
+        }
+        catch( Exception e )
+        {
+          throw new RuntimeException( e );
+        }
+      }
+    }
+    return _contentCached;
   }
 }

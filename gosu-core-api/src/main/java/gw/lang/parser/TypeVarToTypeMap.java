@@ -9,7 +9,6 @@ import gw.lang.reflect.ITypeVariableType;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
@@ -18,25 +17,19 @@ import java.util.Set;
  */
 public class TypeVarToTypeMap
 {
-  public static final TypeVarToTypeMap EMPTY_MAP = new TypeVarToTypeMap( true );
+  public static final TypeVarToTypeMap EMPTY_MAP = new TypeVarToTypeMap( Collections.<ITypeVariableType, IType>emptyMap() );
 
-  private Map<Object, IType> _map;
+  private Map<ITypeVariableType, IType> _map;
 
 
   public TypeVarToTypeMap()
   {
-    this( false );
+    _map = new LinkedHashMap<ITypeVariableType, IType>( 2 );
   }
-  public TypeVarToTypeMap( boolean bEmpty )
+
+  private TypeVarToTypeMap( Map<ITypeVariableType, IType> emptyMap )
   {
-    if( bEmpty )
-    {
-      _map = Collections.emptyMap();
-    }
-    else
-    {
-      _map = new LinkedHashMap<Object, IType>( 2 );
-    }
+    _map = emptyMap;
   }
 
   public TypeVarToTypeMap( TypeVarToTypeMap actualParamByVarName )
@@ -47,117 +40,36 @@ public class TypeVarToTypeMap
 
   public IType get( ITypeVariableType tvType )
   {
-    IType type = _map.get( tvType );
-    if( type == null )
-    {
-      for( Object key : _map.keySet() )
-      {
-        if( looseEquals( tvType, key ) )
-        {
-          type = _map.get( key );
-          break;
-        }
-      }
-    }
-    return type;
+    return _map.get( tvType );
   }
 
-  public IType getByString( String strName )
+  public <E> IType getByMatcher( E tv, ITypeVarMatcher<E> matcher )
   {
-    IType type = _map.get( strName );
-    if( type == null )
+    for( ITypeVariableType key : _map.keySet() )
     {
-      for( Object key : _map.keySet() )
+      if( matcher.matches( tv, key ) )
       {
-        if( looseEquals( key, strName ) )
-        {
-          type = _map.get( key );
-          break;
-        }
+        return _map.get( key );
       }
     }
-    return type;
+    return null;
   }
 
-  public IType getRaw( Object o )
+  public IType getByString( String tv )
   {
-    IType type = _map.get( o );
-    if( type == null )
+    for( ITypeVariableType key: _map.keySet() )
     {
-      for( Object key : _map.keySet() )
+      if( tv.equals( key.getRelativeName() ) || tv.equals( key.getName() ) )
       {
-        if( looseEquals( key, o ) )
-        {
-          type = _map.get( key );
-          //break; don't break here as we want to use the last match
-        }
+        return key;
       }
     }
-    return type;
+    return null;
   }
-
 
   public boolean containsKey( ITypeVariableType tvType )
   {
-    if( _map.containsKey( tvType ) )
-    {
-      return true;
-    }
-    for( Object key : _map.keySet() )
-    {
-      if( looseEquals( key, tvType ) )
-      {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  public boolean containsKeyRaw( Object o )
-  {
-    if( _map.containsKey( o ) )
-    {
-      return true;
-    }
-    for( Object key : _map.keySet() )
-    {
-      if( looseEquals( key, o ) )
-      {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  public static boolean looseEquals( Object p1, Object p2 )
-  {
-    if( p1 instanceof ITypeVariableType )
-    {
-      if( p2 instanceof ITypeVariableType )
-      {
-        return p1.equals( p2 );
-      }
-      if( p2 instanceof String )
-      {
-        ITypeVariableType tvType = (ITypeVariableType)p1;
-        return p2.equals( tvType.getRelativeName() ) ||
-               p2.equals( tvType.getName() );
-      }
-    }
-    else if( p1 instanceof String )
-    {
-      if( p2 instanceof String )
-      {
-        return p1.equals( p2 );
-      }
-      if( p2 instanceof ITypeVariableType )
-      {
-        ITypeVariableType tvType = (ITypeVariableType)p2;
-        return p1.equals( tvType.getRelativeName() ) ||
-               p1.equals( tvType.getName() );
-      }
-    }
-    throw new IllegalStateException( "Unexpected types: " + p1.getClass() + ", " + p2.getClass() );
+    return _map.containsKey( tvType );
   }
 
   public IType put( ITypeVariableType tvType, IType type )
@@ -169,20 +81,10 @@ public class TypeVarToTypeMap
 
   public void putAll( TypeVarToTypeMap from )
   {
-    for( Object x : from._map.keySet() )
+    for( ITypeVariableType x : from._map.keySet() )
     {
-      putRaw( x, from.getRaw( x ) );
+      put( x, from.get( x ) );
     }
-  }
-
-  public IType putByString( String strName, IType object )
-  {
-    return _map.put( strName, object );
-  }
-
-  public IType putRaw( Object o, IType type )
-  {
-    return _map.put( o, type );
   }
 
   public boolean isEmpty()
@@ -195,42 +97,27 @@ public class TypeVarToTypeMap
     return _map.size();
   }
 
-  public Set<Object> keySet()
+  public Set<ITypeVariableType> keySet()
   {
     return _map.keySet();
   }
 
-  public Set<Map.Entry<Object,IType>> entrySet()
+  public Set<Map.Entry<ITypeVariableType,IType>> entrySet()
   {
     return _map.entrySet();
   }
 
   public IType remove( ITypeVariableType tvType )
   {
-    IType type = _map.remove( tvType );
-    if( type == null )
-    {
-      for( Iterator iter = _map.keySet().iterator(); iter.hasNext(); )
-      {
-        Object key = iter.next();
-        if( looseEquals( tvType, key ) )
-        {
-          type = _map.get( key );
-          iter.remove();
-          break;
-        }
-      }
-    }
-    return type;
-  }
-
-  public IType removeByString( String strName )
-  {
-    return _map.remove( strName );
+    return _map.remove( tvType );
   }
 
   public Collection<IType> values()
   {
     return _map.values();
+  }
+
+  public interface ITypeVarMatcher<E> {
+    boolean matches( E thisOne, ITypeVariableType thatOne );
   }
 }

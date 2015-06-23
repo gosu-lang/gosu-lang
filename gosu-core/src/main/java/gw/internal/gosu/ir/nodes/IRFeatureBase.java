@@ -7,6 +7,7 @@ package gw.internal.gosu.ir.nodes;
 import gw.config.CommonServices;
 import gw.internal.gosu.parser.IGosuTemplateInternal;
 import gw.lang.reflect.IFeatureInfo;
+import gw.lang.reflect.LazyTypeResolver;
 import gw.lang.reflect.gs.IGosuEnhancement;
 import gw.lang.reflect.gs.IGosuClass;
 import gw.lang.reflect.gs.IExternalSymbolMap;
@@ -144,7 +145,7 @@ public class IRFeatureBase {
   protected void addTypeVariableParameters( List<IRType> params, int number ) {
     for( int i = 0; i < number; i++ )
     {
-      params.add(IRTypeConstants.ITYPE());
+      params.add( IRTypeResolver.getDescriptor( LazyTypeResolver.class ) );
     }
   }
 

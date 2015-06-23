@@ -186,8 +186,7 @@ class JavaType extends AbstractType implements IJavaTypeInternal
       try
       {
         assignGenericTypeVarPlaceholders();
-        TypeVarToTypeMap actualParamByVarName = TypeLord.mapTypeByVarName( thisRef(), thisRef() );
-        return GenericTypeVariable.convertTypeVars( thisRef(), _classInfo.getTypeParameters(), actualParamByVarName );
+        return GenericTypeVariable.convertTypeVars( thisRef(), _classInfo.getTypeParameters() );
       }
       finally
       {

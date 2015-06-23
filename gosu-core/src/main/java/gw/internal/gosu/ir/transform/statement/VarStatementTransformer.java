@@ -9,7 +9,6 @@ import gw.lang.ir.IRExpression;
 import gw.lang.ir.IRStatement;
 import gw.lang.ir.IRType;
 import gw.lang.ir.expression.IRNullLiteral;
-import gw.lang.ir.statement.IRAssignmentStatement;
 import gw.lang.ir.statement.IRNoOpStatement;
 import gw.internal.gosu.ir.transform.ExpressionTransformer;
 import gw.internal.gosu.ir.transform.TopLevelTransformationContext;

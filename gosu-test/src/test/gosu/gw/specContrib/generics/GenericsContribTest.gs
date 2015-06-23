@@ -30,4 +30,9 @@ class GenericsContribTest extends TestClass {
   function testDefaultMetaType() {
     assertEquals( String, typeof new DefaultMetaType().foo() )
   }
+
+  function testGosuReferencesRecursiveJavaTypeVar() {
+    var t = new GosuReferencesRecursiveJavaTypeVar()
+    assertEquals( MuhEnum.HI, t.getMeBack( MuhEnum.HI ) )
+  }
 }

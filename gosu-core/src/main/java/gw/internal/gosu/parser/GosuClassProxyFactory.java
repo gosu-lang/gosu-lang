@@ -487,7 +487,12 @@ public class GosuClassProxyFactory
     for( Object o : ti.getMethods() )
     {
       IMethodInfo mi = (IMethodInfo)o;
-      genInterfaceMethodDecl( sb, mi );
+      if( mi.isDefaultImpl() || mi.isStatic() ) {
+        genMethodImpl( sb, mi );
+      }
+      else {
+        genInterfaceMethodDecl( sb, mi );
+      }
     }
 
     // Inner interfaces

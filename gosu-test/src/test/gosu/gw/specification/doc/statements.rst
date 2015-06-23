@@ -65,8 +65,8 @@ no effect at all: ``;``
 Choice Statements
 =================
 
-The if-else Statement
----------------------
+The ``if-else`` Statement
+-------------------------
 
 .. index:: if statement
 
@@ -85,8 +85,8 @@ The *condition* must have type ``boolean`` or ``Boolean``, and *truebranch* and
 If the *condition* is a type test of the form ``e typeis T``, any occurrence of
 ``e`` in *truebranch* will be implicitly guarded by a cast: ``e as T``.
 
-The switch Statement
---------------------
+The ``switch`` Statement
+------------------------
 
 .. index:: switch statement
 
@@ -131,31 +131,141 @@ Assignment Statements
 
 .. index:: assignment statements
 
-In the assignment expression x = e, the type of e must be a subtype of the type of x. The type of the
-expression is the same as the type of x. The assignment is executed by evaluating expression x and
-then e, and storing e's value in variable x, after a widening conversion (section 11.12) if necessary.
-When e is a compile-time constant of type byte, char, short, or int, and x has type byte, char, or
-short, a narrowing conversion is done automatically, provided the value of e is within the range
-representable in x (section 5.1). The value of the expression x = e is that of x after the assignment.
-The assignment operator is right-associative, so the multiple assignment x = y = e has the same
-meaning as x = (y = e), that is, evaluate the expression e, assign its value to y, and then to x.
-When e has reference type (object type or array type), only a reference to the object or array is stored in
-x. Thus the assignment x = e does not copy the object or array (example 41).
-When x and e have the same type, the compound assignment x += e is equivalent to x = x + e;
-however, x is evaluated only once, so in a[i++] += e the variable i is incremented only once. When
-the type of x is t, different from the type of e, then x += e is equivalent to x = (t) (x + e), in
-which the intermediate result (x + e) is converted to type t (section 11.12); again x is evaluated only
-once. The other compound assignment operators -=, ``*=``, and so on, are similar.
-Since assignment associates to the right, and the value of sum += e is that of sum after the
-assignment, one can write ps[i] = sum += e to first increment sum by e and then store the result in
-ps[i] (example 30).
+In the *assignment expression* ``x = e``, the type of ``e`` must be implicitly
+convertible to the type of ``x`` (see XXX). The type of the expression ``x =
+e`` is the same as the type of ``x``. The assignment is executed by evaluating
+expression ``x``, then evaluating expression ``e`` and implicitly converting
+the value to the type of ``x``(if necessary), and finally storing the result in
+variable ``x``. The value of the expression ``x = e`` is the value that was
+stored in ``x``.
 
+The left-hand side ``x`` may be a local variable or parameter, or a field, or a
+property or an element access expression (see XXX). When ``e`` is a
+compile-time constant of type ``byte``, ``char``, ``short``, or ``int``, and
+``x`` has type ``byte``, ``char``, or ``short``, a narrowing conversion is done
+automatically, provided the value of ``e`` is within the range representable in
+``x`` (section xxx).
 
-Increment and decrement statements
-==================================
+When ``e`` has reference type (object type or array type), only a reference to
+the object or array is stored in ``x``. Thus the assignment ``x = e`` does not
+copy the object or array.
 
-.. index:: increment statement, decrement statement
+A *compound assignment* has the form ``x += e``, and is legal in two cases.
+Either ``x + e`` must be implicitly convertible to the type of ``x``, in which
+case the compound assignment ``x += e`` is equivalent to ``x = x + e``.
+Otherwise ``x + e`` must be explicitly convertible to the type ``t`` of ``x``,
+and ``e`` must be implicitly convertible to ``t``, in which case the compound
+assignment ``x += e`` is equivalent to ``x = (x + e) as t``. In both cases,
+``x`` is evaluated only once. The other compound assignment operators ``+=``,
+``-=``, ``*=``, ``/=``, ``&=``, ``&&=``, ``|=``, ``||=``, ``^=``, ``%=``, are
+similar.
 
-The value of the postincrement expression x++ is that of x, and its effect is to increment x by 1; and
-similarly for postdecrement x--. The value of the preincrement expression ++x is that of x+1, and its
-effect is to increment x by 1; and similarly for predecrement --x.
+The increment statement ``x++`` has the effect to increment ``x`` by ``1``; and
+similarly for decrement ``x--``. They are a special case of *compound
+assignment*.
+
+Loop Statements
+===============
+
+The ``while`` Statement
+-----------------------
+
+.. index:: while statement
+
+A ``while`` statement has the form
+
+    ``while`` ``(`` *condition* ``)`` *body*
+
+where *condition* is an expression of type ``boolean`` or Boolean, and ``body``
+is a statement. It is executed as follows:
+
+1. The *condition* is evaluated. If it is ``false``, the loop terminates.
+2. If it is ``true``, then
+
+  a. The *body* is executed.
+  b. Execution continues at (1).
+
+Just after the ``while`` loop, the negation of *condition* must hold(unless
+the loop is exited by ```break``.). This fact provides a useful information
+about program's state after the loop.
+
+When a *loop invariant* -- a property that always holds at the beginning and
+end of the loop body -- is known as well, then one can combine it with the
+negation of the *condition* to get precise information about the program's
+state after the ``while`` loop. This often helps understanding short but subtle
+loops.
+
+The ``do-while`` Statement
+--------------------------
+
+.. index:: do-while statement
+
+A ``do-while`` statement has the form
+
+    ``do`` *body* ``while`` ``(`` *condition* ``)``
+
+where *condition* is an expression of ttype ``boolean`` or Boolean, and ``body``
+is a statement. The *body* is executed at least once, because the ``do-while``
+statement is executed as follows:
+
+  1. The *body* is executed.
+  2. The *condition* is evaluated. If it is ``false``, the loop terminates.
+  3. If it is ``true``, then execution continues at (1).
+
+Hence the ``do-while`` statement above is equivalent to the following statement
+using ``while``:
+
+    *body* ``while`` ``(`` *condition* ``)`` *body*
+
+Returns, Exits, and Exceptions
+==============================
+
+The ``return`` Statement
+------------------------
+
+.. index:: return statement
+
+The simplest form of a ``return`` statement, without an expression argument, is
+
+   ``return``
+
+That form of ``return`` statement must occur inside the body of a method or
+block whose return type is ``void``, in the body of a constructor or in a
+``property set``, but not in a ``property get``. Execution of the
+``return`` statement exits the method or constructor and continues execution at
+the place from which it was called.
+
+Alternatively, a ``return`` statement may have an expression argument:
+
+    ``return`` *expression*
+
+That form of ``return`` statement must occur inside the body of a method or
+block whose return type is non-``void``, in the a ``property get``, but not in
+a constructor or in a ``property set``. The type of the *expression* must be
+implicitly convertible to the return type of the enclosing function. The
+``return`` statement is executed as follows. First the *expression* is evaluated
+to some value ``v``. Then it exits the method and continues execution at the
+method call expression that called the method; the value of that expression will
+be v.
+
+The ``break`` Statement
+-----------------------
+
+A ``break`` statement is legal only inside a ``switch`` or ``loop``, and has the
+form
+
+    ``break``
+
+Executing ``break`` exits the innermost enclosing ``switch`` or loop, and
+continues execution after that ``switch`` or loop.
+
+The ``continue`` Statement
+--------------------------
+
+A ``continue`` statement is legal only inside a loop, and has the form
+
+    ``continue``
+
+Executing ``continue`` terminates the current iteration of the innermost
+enclosing loop, and continues the execution at  with the next element
+(in ``for`` loops) or the *condition* (in ``while`` and ``do-while`` loops).

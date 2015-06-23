@@ -5,6 +5,7 @@
 package gw.lang.reflect;
 
 import gw.lang.GosuShop;
+import gw.lang.reflect.java.IJavaMethodInfo;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -185,7 +186,12 @@ public interface ITypeInfo extends IAnnotatedFeatureInfo
         if( methodInfo.getDisplayName().equals( method.toString() ) &&
             methodInfo.getParameters().length == params.length )
         {
-          mis.put( new FunctionType( methodInfo ), methodInfo );
+          FunctionType funcType = new FunctionType( methodInfo );
+          if( funcType.isGenericType() )
+          {
+            funcType = (FunctionType)funcType.getRuntimeType();
+          }
+          mis.put( funcType, methodInfo );
         }
       }
       List<MethodScore> list = MethodScorer.instance().scoreMethods( new ArrayList<IInvocableType>( mis.keySet() ), Arrays.asList( params ) );

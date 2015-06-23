@@ -349,7 +349,9 @@ public class ContextInferenceManager
       MemberAccess m1 = (MemberAccess)e1;
       MemberAccess m2 = (MemberAccess)e2;
       return areExpressionsEquivalent( m1.getRootExpression(), m2.getRootExpression() ) &&
-             GosuObjectUtil.equals( m1.getPropertyInfo(), m2.getPropertyInfo() );
+             m1.getPropertyInfo() != null
+             ? GosuObjectUtil.equals( m1.getPropertyInfo(), m2.getPropertyInfo() )
+             : m1.getMemberExpression() != null && GosuObjectUtil.equals( m1.getMemberExpression(), m2.getMemberExpression() );
     }
     else if (e1 instanceof ImplicitTypeAsExpression && e2 instanceof ImplicitTypeAsExpression) {
       ImplicitTypeAsExpression i1 = (ImplicitTypeAsExpression) e1;

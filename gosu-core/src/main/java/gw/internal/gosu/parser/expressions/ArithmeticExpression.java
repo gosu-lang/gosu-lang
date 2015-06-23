@@ -79,6 +79,14 @@ public abstract class ArithmeticExpression extends Expression implements IArithm
            getOperator().charAt( 0 ) == '?';
   }
 
+  @Override
+  public boolean isUnchecked()
+  {
+    return getOperator() != null &&
+           getOperator().length() > 0 &&
+           getOperator().charAt( 0 ) == '!';
+  }
+
   public boolean isCompileTimeConstant()
   {
     return getLHS().isCompileTimeConstant() && getRHS().isCompileTimeConstant();

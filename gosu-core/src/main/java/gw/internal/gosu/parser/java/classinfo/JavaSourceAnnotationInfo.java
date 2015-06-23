@@ -4,10 +4,12 @@
 
 package gw.internal.gosu.parser.java.classinfo;
 
+import com.sun.source.tree.AnnotationTree;
+import com.sun.source.tree.AssignmentTree;
+import com.sun.source.tree.ExpressionTree;
+import com.sun.source.tree.NewArrayTree;
 import gw.internal.gosu.parser.AsmMethodJavaClassMethod;
 import gw.internal.gosu.parser.MethodJavaClassMethod;
-import gw.internal.gosu.parser.java.IJavaASTNode;
-import gw.internal.gosu.parser.java.JavaASTConstants;
 import gw.lang.parser.IExpression;
 import gw.lang.reflect.IAnnotationInfo;
 import gw.lang.reflect.IType;
@@ -22,14 +24,14 @@ import java.lang.reflect.Array;
 import java.util.List;
 
 public class JavaSourceAnnotationInfo implements IAnnotationInfo {
-  private IJavaASTNode _annotationNode;
+  private AnnotationTree _annotationTree;
   private IJavaAnnotatedElement _owner;
   private IModule _gosuModule;
   private String _name;
   private IJavaClassInfo _type;
 
-  public JavaSourceAnnotationInfo(IJavaASTNode annotationNode, IJavaAnnotatedElement owner) {
-    _annotationNode = annotationNode;
+  public JavaSourceAnnotationInfo(AnnotationTree annotationTree, IJavaAnnotatedElement owner) {
+    _annotationTree = annotationTree;
     _owner = owner;
     _gosuModule = _owner instanceof IJavaClassInfo ? ((IJavaClassInfo) _owner).getModule() : _owner.getEnclosingClass().getModule();
   }
@@ -56,21 +58,23 @@ public class JavaSourceAnnotationInfo implements IAnnotationInfo {
   }
 
   private Object parseValue(IJavaClassMethod method) {
-    IJavaASTNode valueNode = null;
-    IJavaASTNode pairs = _annotationNode.getChildOfType( JavaASTConstants.elementValuePairs );
-    if( pairs != null ) {
-      for( IJavaASTNode pair : pairs.getChildrenOfTypes( JavaASTConstants.elementValuePair ) ) {
-        if( pair.getChild( 0 ).getText().equals( method.getName() ) ) {
-          valueNode = pair.getChildOfType( JavaASTConstants.elementValue );
-          break;
+    ExpressionTree valueTree = null;
+    final List<? extends ExpressionTree> arguments = _annotationTree.getArguments();
+    if( !arguments.isEmpty() ) {
+      for(ExpressionTree a : arguments){
+        if (a instanceof AssignmentTree) {
+          final String id = ((AssignmentTree) a).getVariable().toString();
+          if(id.equals(method.getName())) {
+            valueTree = ((AssignmentTree) a).getExpression();
+            break;
+          }
         }
       }
+      if(valueTree == null && "value".equals(method.getName())) {
+        valueTree = arguments.get(0);
+      }
     }
-    else {
-      valueNode = _annotationNode.getChildOfType( JavaASTConstants.elementValue );
-    }
-
-    if( valueNode == null ) {
+    if( valueTree == null ) {
       Object defaultValue = method.getDefaultValue();
       if (method instanceof MethodJavaClassMethod || method instanceof AsmMethodJavaClassMethod) {
         if (defaultValue.getClass().isArray()) {
@@ -86,32 +90,28 @@ public class JavaSourceAnnotationInfo implements IAnnotationInfo {
         return ((JavaSourceDefaultValue) defaultValue).evaluate();
       }
     }
-
-    return evaluate( method.getReturnClassInfo(), valueNode );
+    return evaluate( method.getReturnClassInfo(), valueTree);
   }
 
-  private Object evaluate( IJavaClassInfo type, IJavaASTNode valueNode ) {
-    IJavaASTNode annotationValue = valueNode.getChildOfType( JavaASTConstants.annotation );
-    if( annotationValue != null ) {
-      return new JavaSourceAnnotationInfo(annotationValue, _owner);
+  private Object evaluate(IJavaClassInfo type, ExpressionTree valueTree) {
+    if( valueTree instanceof AnnotationTree) {
+      return new JavaSourceAnnotationInfo((AnnotationTree)valueTree, _owner);
     }
-
-    IJavaASTNode arrayNode = valueNode.getChildOfType( JavaASTConstants.elementValueArrayInitializer );
-    if( arrayNode != null ) {
-      List<IJavaASTNode> children = arrayNode.getChildrenOfTypes( JavaASTConstants.elementValue );
+    if( valueTree instanceof NewArrayTree) {
+      List<? extends ExpressionTree> initializers = ((NewArrayTree) valueTree).getInitializers();
       Object[] arrayResult = null;
       int i = 0;
-      for( IJavaASTNode elemValue : children ) {
-        Object value = evaluate( type.getComponentType(), elemValue );
+      for( ExpressionTree init : initializers ) {
+        Object value = evaluate( type.getComponentType(), init);
         if( arrayResult == null ) {
-          arrayResult = (Object[])Array.newInstance( value.getClass(), children.size() );
+          arrayResult = (Object[])Array.newInstance( value.getClass(), initializers.size() );
         }
         arrayResult[i++] = value;
       }
       return arrayResult;
     }
 
-    String text = valueNode.getSource();
+    String text = valueTree.toString();
 
     if (type.isEnum()) {
       return parseEnum(text, type);
@@ -164,13 +164,8 @@ public class JavaSourceAnnotationInfo implements IAnnotationInfo {
 
   private void initNameAndType() {
     if (_name == null) {
-      IJavaASTNode qNameNode = _annotationNode.getChildOfType(JavaASTConstants.qualifiedName);
-      String name = "";
-      for (IJavaASTNode node : qNameNode.getChildren()) {
-        name += node.getText();
-      }
       IJavaClassInfo _containingClass = _owner instanceof IJavaClassInfo ? ((IJavaClassInfo) _owner) : _owner.getEnclosingClass();
-      _type = (IJavaClassInfo) JavaSourceType.createType(_containingClass, name, JavaSourceType.IGNORE_NONE);
+      _type = (IJavaClassInfo) JavaSourceType.createType(_containingClass, JavaSourceClass.getTypeName(_annotationTree.getAnnotationType()), JavaSourceType.IGNORE_NONE);
       _name = _type.getName().replace('$', '.');
     }
   }

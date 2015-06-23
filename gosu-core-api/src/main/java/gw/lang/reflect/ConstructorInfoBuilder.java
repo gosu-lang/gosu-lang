@@ -163,6 +163,10 @@ public class ConstructorInfoBuilder {
       return _deprecated;
     }
 
+    public boolean isDefaultImpl() {
+      return false;
+    }
+
     public boolean isVisible( IScriptabilityModifier constraint) {
       return true;
     }

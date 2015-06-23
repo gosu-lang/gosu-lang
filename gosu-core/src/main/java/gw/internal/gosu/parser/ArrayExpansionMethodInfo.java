@@ -81,6 +81,11 @@ public class ArrayExpansionMethodInfo implements IMethodInfo
     return _delegate.getDeprecatedReason();
   }
 
+  @Override
+  public boolean isDefaultImpl() {
+    return _delegate.isDefaultImpl();
+  }
+
   public boolean isVisible( IScriptabilityModifier constraint )
   {
     return _delegate.isVisible( constraint );

@@ -21,21 +21,31 @@ public class ContextType {
 
   private IType _type;
   private boolean _bMethodScoring;
+  private final boolean _bCompileTimeConstant;
 
   private ContextType( boolean bScoring ) {
     _bMethodScoring = bScoring;
+    _bCompileTimeConstant = false;
   }
 
   public ContextType( IType type ) {
     this( type, false );
   }
   public ContextType( IType type, boolean bScoring ) {
+    this( type, bScoring, false );
+  }
+  public ContextType( IType type, boolean bScoring, boolean bCompileTimeConstant ) {
     _type = type;
     _bMethodScoring = bScoring;
+    _bCompileTimeConstant = bCompileTimeConstant;
   }
 
   public boolean isMethodScoring() {
     return _bMethodScoring;
+  }
+
+  public boolean isCompileTimeConstant() {
+    return _bCompileTimeConstant;
   }
 
   public IType getType() {

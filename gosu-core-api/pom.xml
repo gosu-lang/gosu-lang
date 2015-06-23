@@ -29,13 +29,8 @@
     </dependency>
     <dependency>
       <groupId>org.gosu-lang.gosu.managed</groupId>
-      <artifactId>gw-antlr-runtime</artifactId>
-      <version>3.4-3</version>
-    </dependency>
-    <dependency>
-      <groupId>org.gosu-lang.gosu.managed</groupId>
       <artifactId>gw-asm-util</artifactId>
-      <version>5.0.1</version>
+      <version>5.0.4</version>
     </dependency>
   </dependencies>
   <profiles>
@@ -50,7 +45,7 @@
             <dependency>
                 <groupId>com.sun</groupId>
                 <artifactId>tools</artifactId>
-                <version>1.7.0</version>
+                <version>1.8.0</version>
                 <scope>system</scope>
                 <systemPath>${java.home}/../lib/tools.jar</systemPath>
             </dependency>

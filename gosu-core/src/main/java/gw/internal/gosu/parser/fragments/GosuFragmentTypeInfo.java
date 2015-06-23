@@ -55,6 +55,11 @@ public class GosuFragmentTypeInfo implements IRelativeTypeInfo {
   }
 
   @Override
+  public boolean isDefaultImpl() {
+    return false;
+  }
+
+  @Override
   public IFeatureInfo getContainer() {
     return null;
   }

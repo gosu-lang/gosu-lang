@@ -16,6 +16,7 @@ public class AsmType implements IAsmType {
   protected List<AsmType> _typeParameters;
   private int _iArrayDims;
   private boolean _bTypeVariable;
+  private boolean _bFunctionTypeVar;
 
 
   AsmType( String normalDotName ) {
@@ -40,6 +41,7 @@ public class AsmType implements IAsmType {
     copy._typeParameters = _typeParameters.isEmpty() ? Collections.<AsmType>emptyList() : new ArrayList<AsmType>( _typeParameters );
     copy._iArrayDims = _iArrayDims;
     copy._bTypeVariable = _bTypeVariable;
+    copy._bFunctionTypeVar = _bFunctionTypeVar;
     return copy;
   }
 
@@ -49,6 +51,7 @@ public class AsmType implements IAsmType {
     copy._typeParameters = Collections.emptyList();
     copy._iArrayDims = 0;
     copy._bTypeVariable = _bTypeVariable;
+    copy._bFunctionTypeVar = _bFunctionTypeVar;
     return copy;
   }
 
@@ -125,10 +128,17 @@ public class AsmType implements IAsmType {
   public boolean isTypeVariable() {
     return _bTypeVariable;
   }
-
   void setTypeVariable() {
     _bTypeVariable = true;
   }
+
+  public void setFunctionTypeVariable( boolean bFunctionTypeVariable ) {
+    _bFunctionTypeVar = bFunctionTypeVariable;
+  }
+  public boolean isFunctionTypeVariable() {
+    return _bFunctionTypeVar;
+  }
+
   public void incArrayDims() {
     _iArrayDims++;
   }
@@ -176,6 +186,9 @@ public class AsmType implements IAsmType {
     if( _bTypeVariable != asmType._bTypeVariable ) {
       return false;
     }
+    if( _bFunctionTypeVar != asmType._bFunctionTypeVar ) {
+      return false;
+    }
     if( _iArrayDims != asmType._iArrayDims ) {
       return false;
     }
@@ -195,6 +208,7 @@ public class AsmType implements IAsmType {
     result = 31 * result + _typeParameters.hashCode();
     result = 31 * result + _iArrayDims;
     result = 31 * result + (_bTypeVariable ? 1 : 0);
+    result = 31 * result + (_bFunctionTypeVar ? 1 : 0);
     return result;
   }
 

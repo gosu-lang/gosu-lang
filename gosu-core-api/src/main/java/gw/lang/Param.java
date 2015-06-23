@@ -5,7 +5,7 @@
 package gw.lang;
 
 import gw.lang.annotation.Order;
-import gw.lang.annotation.Repeatable;
+import java.lang.annotation.Repeatable;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

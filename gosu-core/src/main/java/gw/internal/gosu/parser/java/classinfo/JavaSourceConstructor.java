@@ -4,7 +4,7 @@
 
 package gw.internal.gosu.parser.java.classinfo;
 
-import gw.internal.gosu.parser.java.IJavaASTNode;
+import com.sun.source.tree.MethodTree;
 import gw.lang.parser.TypeVarToTypeMap;
 import gw.lang.reflect.IFeatureInfo;
 import gw.lang.reflect.IParameterInfo;
@@ -14,8 +14,8 @@ import java.lang.reflect.InvocationTargetException;
 
 public class JavaSourceConstructor extends JavaSourceMethod implements IJavaClassConstructor {
 
-  public JavaSourceConstructor(IJavaASTNode methodNode, JavaSourceType containingClass) {
-    super(methodNode, containingClass);
+  public JavaSourceConstructor(MethodTree method, JavaSourceType containingClass) {
+    super(method, containingClass);
   }
 
   public boolean isConstructor() {

@@ -9,7 +9,6 @@ import java.util.List;
 
 public abstract class MethodInfoBase implements IMethodInfo
 {
-
   private ITypeInfo _container;
 
   protected MethodInfoBase( ITypeInfo container )
@@ -39,6 +38,10 @@ public abstract class MethodInfoBase implements IMethodInfo
 
   public String getDeprecatedReason() {
     return null;
+  }
+
+  public boolean isDefaultImpl() {
+    return false;
   }
 
   public boolean isVisible( IScriptabilityModifier constraint )

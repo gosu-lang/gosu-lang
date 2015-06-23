@@ -193,14 +193,12 @@ public class TypeSystemStarter {
     execEnv.createJreModule( );
 
     final List<IDirectory> allSourcePaths = Lists.newArrayList();
-    final List<IDirectory> allRoots = Lists.newArrayList();
     final Map<Module, IModule> modules = Maps.newHashMap();
     final List<IModule> allModules = Lists.newArrayList();
     for (Module ijModule : _allIJModules) {
       final IModule module = defineModule(ijModule);
       if (module != null) {
         allSourcePaths.addAll(module.getSourcePath());
-        allRoots.addAll(module.getRoots());
         modules.put(ijModule, module);
         allModules.add(module);
       }
@@ -226,7 +224,6 @@ public class TypeSystemStarter {
       _globalModule.addDependency(new Dependency(rootModule, true));
     }
 //    _globalModule.addDependency(new Dependency(execEnv.getJreModule(), true));
-    _globalModule.setRoots(allRoots);
 
     allModules.add(_globalModule);
     return allModules;
@@ -329,11 +326,6 @@ public class TypeSystemStarter {
 //    gosuModule.addRoot(eclipseModuleRoot);
     List<VirtualFile> sourceFolders = getSourceRoots(ijModule);
     gosuModule.configurePaths(getClassPaths(ijModule), Lists.transform(sourceFolders, ToDirectory.INSTANCE));
-    VirtualFile root = sourceFolders.size() == 1 ? sourceFolders.get(0).getParent() : VfsUtil.getCommonAncestor(sourceFolders);
-    if (root != null) {
-      IDirectory sourceRoot = CommonServices.getFileSystem().getIDirectory(new File(root.getPath()));
-      gosuModule.setRoots(Collections.<IDirectory>singletonList(sourceRoot));
-    }
     gosuModule.setExcludedPaths(getExcludedFolders(ijModule));
 
     //Fix this
