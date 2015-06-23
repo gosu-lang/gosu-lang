@@ -104,7 +104,8 @@ class Errant_PostfixStatementsTest {
     var x3 : BigInteger = 0bi
     var x4 : BigInteger = 0BI
     var x5 = 0x7b
-    var x6 = -0X7F               //## KB(IDE-2536)
+    // IDE-2536
+    var x6 = -0X7F
     var x7 : AtomicInteger = new AtomicInteger(0)
     var x8 : AtomicLong = new AtomicLong(0)
     var x9 : Object
@@ -124,10 +125,11 @@ class Errant_PostfixStatementsTest {
     x5--;
     x6--;
 
-    x7++;  //## issuekeys: MSG_TYPE_MISMATCH         //## KB(IDE-2537)
-    x7--;  //## issuekeys: MSG_TYPE_MISMATCH         //## KB(IDE-2537)
-    x8++;  //## issuekeys: MSG_TYPE_MISMATCH         //## KB(IDE-2537)
-    x8--;  //## issuekeys: MSG_TYPE_MISMATCH         //## KB(IDE-2537)
+    // IDE-2537
+    x7++;  //## issuekeys: MSG_TYPE_MISMATCH
+    x7--;  //## issuekeys: MSG_TYPE_MISMATCH
+    x8++;  //## issuekeys: MSG_TYPE_MISMATCH
+    x8--;  //## issuekeys: MSG_TYPE_MISMATCH
     x9++;  //## issuekeys: MSG_TYPE_MISMATCH
     x9--;  //## issuekeys: MSG_TYPE_MISMATCH
   }
