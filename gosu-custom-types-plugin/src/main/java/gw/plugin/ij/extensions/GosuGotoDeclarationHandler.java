@@ -5,6 +5,7 @@ import com.intellij.openapi.editor.Editor;
 import com.intellij.psi.PsiAnnotation;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiModifierListOwner;
 import com.intellij.psi.PsiReference;
 import com.intellij.psi.impl.source.PsiMethodImpl;
 import gw.lang.reflect.IFeatureInfo;
@@ -40,7 +41,7 @@ public class GosuGotoDeclarationHandler extends GotoDeclarationHandlerBase
             JavaFacadePsiClass facade = file.getUserData( JavaFacadePsiClass.KEY_JAVAFACADE );
             if( facade != null )
             {
-              return findTargetFeature( ((PsiMethodImpl)resolve).getModifierList().getAnnotations()[0], facade );
+              return findTargetFeature( ((PsiModifierListOwner)resolve).getModifierList().getAnnotations()[0], facade );
             }
           }
         }
@@ -77,6 +78,11 @@ public class GosuGotoDeclarationHandler extends GotoDeclarationHandlerBase
         fi = ti instanceof IRelativeTypeInfo
              ? ((IRelativeTypeInfo)ti).getConstructors( type ).get( index )
              : ti.getConstructors().get( index );
+      }
+      else if( psiAnnotation.getQualifiedName().equals( "InnerClassInfoId" ) )
+      {
+        //## todo: somehow provide position/location info
+        return null;
       }
       else
       {
