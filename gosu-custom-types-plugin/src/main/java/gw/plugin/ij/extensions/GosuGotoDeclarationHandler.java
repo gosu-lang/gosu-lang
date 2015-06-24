@@ -41,7 +41,11 @@ public class GosuGotoDeclarationHandler extends GotoDeclarationHandlerBase
             JavaFacadePsiClass facade = file.getUserData( JavaFacadePsiClass.KEY_JAVAFACADE );
             if( facade != null )
             {
-              return findTargetFeature( ((PsiModifierListOwner)resolve).getModifierList().getAnnotations()[0], facade );
+              PsiAnnotation[] annotations = ((PsiModifierListOwner)resolve).getModifierList().getAnnotations();
+              if( annotations != null && annotations.length > 0 )
+              {
+                return findTargetFeature( annotations[0], facade );
+              }
             }
           }
         }
@@ -53,7 +57,7 @@ public class GosuGotoDeclarationHandler extends GotoDeclarationHandlerBase
   private PsiElement findTargetFeature( PsiAnnotation psiAnnotation, JavaFacadePsiClass facade )
   {
     int index = Integer.parseInt( psiAnnotation.getParameterList().getAttributes()[0].getValue().getText() );
-    PsiFile sourceFile = facade.getContainingFile();
+    PsiFile sourceFile = facade.getRawFile();
     IModule module = GosuModuleUtil.findModuleForPsiElement( sourceFile );
     TypeSystem.pushModule( module );
     try

@@ -79,7 +79,7 @@ public class PropertyNode implements IGosuObject {
    * @return a non null type name
    */
   public String getTypeName() {
-    return isRoot() ? getFullName() : getFullName() + "$Type";
+    return isRoot() ? getFullName() : getFullName();
   }
 
   /**

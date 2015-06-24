@@ -178,7 +178,7 @@ public class JavaFacadePsiClass implements PsiClass
   @Override
   public PsiManagerEx getManager()
   {
-    return (PsiManagerEx)getContainingFile().getManager();
+    return (PsiManagerEx)_file.getManager();
   }
 
   @Override
@@ -196,6 +196,10 @@ public class JavaFacadePsiClass implements PsiClass
   @Nullable
   @Override
   public PsiFile getContainingFile() throws PsiInvalidElementAccessException
+  {
+    return _delegate.getContainingFile(); //_file;
+  }
+  public PsiFile getRawFile()
   {
     return _file;
   }

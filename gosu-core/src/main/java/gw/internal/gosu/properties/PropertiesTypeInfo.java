@@ -31,7 +31,7 @@ public class PropertiesTypeInfo extends BaseTypeInfo {
     super(type);
     PropertyNode node = type.getPropertyNode();
     for (PropertyNode childNode : node.getChildren()) {
-      PropertiesPropertyInfo info = new PropertiesPropertyInfo(this, childNode, node.isRoot());
+      PropertiesPropertyInfo info = new PropertiesPropertyInfo(this, childNode, true);
       _properties.put(info.getName(), info);
     }
     _methods = createMethodInfos(node);

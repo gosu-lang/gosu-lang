@@ -86,7 +86,7 @@ public class CustomPsiClassCache extends AbstractTypeSystemListener
       _type2Class.put( module, map );
     }
     JavaFacadePsiClass psiFacadeClass = map.get( name );
-    if( psiFacadeClass == null )
+    if( psiFacadeClass == null || !psiFacadeClass.isValid() )
     {
       PsiClass delegate = createPsiClass( type );
       psiFacadeClass = new JavaFacadePsiClass( delegate, (IFileBasedType)type );
@@ -132,6 +132,10 @@ public class CustomPsiClassCache extends AbstractTypeSystemListener
     if( Modifier.isPublic( type.getModifiers() ) )
     {
       sb.append( "public " );
+    }
+    if( Modifier.isStatic( type.getModifiers() ) )
+    {
+      sb.append( "static " );
     }
     sb.append( "class " ).append( type.getRelativeName() ).append( " " ) ;
     IType supertype = type.getSupertype();
@@ -425,13 +429,10 @@ public class CustomPsiClassCache extends AbstractTypeSystemListener
     if( request.file != null )
     {
       String pathString = request.file.getPath().getPathString();
-      JavaFacadePsiClass removed = _psi2Class.get( pathString );
-      if( removed != null )
+      JavaFacadePsiClass removedFacade = _psi2Class.remove( pathString );
+      if( removedFacade != null )
       {
-        ((PsiModificationTrackerImpl) removed.getManager().getModificationTracker()).incCounter();
-//        IType type = TypeSystem.getByFullNameIfValidNoJava( removed.getQualifiedName() );
-//        JavaFacadePsiClass newOne = getPsiClass( type );
-//        removed.initialize( newOne.getDelegate(), (IFileBasedType)type );
+        ((PsiModificationTrackerImpl) removedFacade.getManager().getModificationTracker()).incCounter();
       }
     }
   }
