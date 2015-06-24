@@ -7,23 +7,19 @@ package gw.plugin.ij.core;
 import com.intellij.codeInsight.daemon.impl.EditorTracker;
 import com.intellij.debugger.DebuggerManagerEx;
 import com.intellij.debugger.impl.DebuggerStateManager;
-import com.intellij.openapi.Disposable;
 import com.intellij.openapi.components.ProjectComponent;
-import com.intellij.openapi.editor.colors.EditorColorsListener;
 import com.intellij.openapi.editor.colors.EditorColorsManager;
-import com.intellij.openapi.editor.colors.EditorColorsScheme;
 import com.intellij.openapi.extensions.PluginId;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.impl.DefaultProject;
-import com.intellij.openapi.util.Disposer;
 import org.jetbrains.annotations.NotNull;
 
-public class GosuProjectComponent implements ProjectComponent {
+public class GosuCustomTypesProjectComponent implements ProjectComponent {
   public static final PluginId GOSU_TYPES_PLUGIN_ID = PluginId.getId("gosu.lang.types");
   @NotNull
   private final Project _project;
 
-  protected GosuProjectComponent(@NotNull Project project, EditorTracker editorTracker, @NotNull final EditorColorsManager colorsManager) {
+  protected GosuCustomTypesProjectComponent( @NotNull Project project, EditorTracker editorTracker, @NotNull final EditorColorsManager colorsManager ) {
     _project = project;
   }
 
@@ -59,6 +55,6 @@ public class GosuProjectComponent implements ProjectComponent {
   @NotNull
   @Override
   public String getComponentName() {
-    return "Gosu Project Component";
+    return "Gosu Custom Types Project Component";
   }
 }

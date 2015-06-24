@@ -12,7 +12,7 @@ import org.jetbrains.annotations.NotNull;
 
 public class FileListenerExtensionBean extends AbstractExtensionPointBean
 {
-  public static final ExtensionPointName<FileListenerExtensionBean> PLUGIN_NAME = new ExtensionPointName<>( GosuProjectComponent.GOSU_TYPES_PLUGIN_ID.getIdString() + ".fileListener" );
+  public static final ExtensionPointName<FileListenerExtensionBean> PLUGIN_NAME = new ExtensionPointName<>( GosuCustomTypesProjectComponent.GOSU_TYPES_PLUGIN_ID.getIdString() + ".fileListener" );
 
   @Attribute("class")
   public String className;

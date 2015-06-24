@@ -252,29 +252,52 @@ public class CustomPsiClassCache extends AbstractTypeSystemListener
     int i = 0;
     for( IPropertyInfo pi : properties )
     {
-      if( pi.isReadable() )
+      if( pi.isStatic() )
       {
-        sb.append( "  @PropertyGetInfoId(" ).append( i ).append( ")\n" )
-        .append( "  " );
-        generateModifiers( sb, pi );
-        sb.append( pi.getFeatureType().getName() );
-        sb.append( " " );
-        sb.append( "get" ).append( pi.getDisplayName() );
-        sb.append( "() {throw new RuntimeException();}\n" );
+        generatePropertyAsField( sb, i, pi );
       }
-      if( pi.isWritable( pi.getOwnersType() ) )
+      else
       {
-        sb.append( "  @PropertySetInfoId(" ).append( i ).append( ")\n" )
-        .append( "  " );
-        generateModifiers( sb, pi );
-        sb.append( pi.getFeatureType().getName() );
-        sb.append( " " );
-        sb.append( "set" ).append( pi.getDisplayName() );
-        sb.append( "( " );
-        sb.append( pi.getFeatureType().getName() );
-        sb.append( " ) {}\n" );
+        generateInstanceProperty( sb, i, pi );
       }
       i++;
+    }
+  }
+
+  private void generateInstanceProperty( StringBuilder sb, int i, IPropertyInfo pi )
+  {
+    if( pi.isReadable() )
+    {
+      sb.append( "  @PropertyGetInfoId(" ).append( i ).append( ")\n" )
+        .append( "  " );
+      generateModifiers( sb, pi );
+      sb.append( pi.getFeatureType().getName() );
+      sb.append( " " );
+      sb.append( "get" ).append( pi.getDisplayName() );
+      sb.append( "() {throw new RuntimeException();}\n" );
+    }
+    if( pi.isWritable( pi.getOwnersType() ) )
+    {
+      sb.append( "  @PropertySetInfoId(" ).append( i ).append( ")\n" )
+        .append( "  " );
+      generateModifiers( sb, pi );
+      sb.append( pi.getFeatureType().getName() );
+      sb.append( " " );
+      sb.append( "set" ).append( pi.getDisplayName() );
+      sb.append( "( " );
+      sb.append( pi.getFeatureType().getName() );
+      sb.append( " ) {}\n" );
+    }
+  }
+
+  private void generatePropertyAsField( StringBuilder sb, int i, IPropertyInfo pi )
+  {
+    if( pi.isReadable() )
+    {
+      sb.append( "  @PropertyFieldInfoId(" ).append( i ).append( ")\n" )
+        .append( "  " );
+      generateFieldModifiers( sb, pi );
+      sb.append( pi.getFeatureType().getName() ).append( " " ).append( pi.getDisplayName() ).append( ";\n" );
     }
   }
 
@@ -336,6 +359,30 @@ public class CustomPsiClassCache extends AbstractTypeSystemListener
       sb.append( "protected " );
     }
     else if( !fi.isInternal() )
+    {
+      sb.append( "public " );
+    }
+  }
+
+  private void generateFieldModifiers( StringBuilder sb, IPropertyInfo pi )
+  {
+    if( pi.isStatic() )
+    {
+      sb.append( "static " );
+    }
+    if( !pi.isWritable() )
+    {
+      sb.append( "final " );
+    }
+    if( pi.isPrivate() )
+    {
+      sb.append( "private " );
+    }
+    else if( pi.isProtected() )
+    {
+      sb.append( "protected " );
+    }
+    else if( !pi.isInternal() )
     {
       sb.append( "public " );
     }

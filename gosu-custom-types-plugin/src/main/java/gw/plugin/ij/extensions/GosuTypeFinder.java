@@ -6,15 +6,14 @@ import com.intellij.psi.PsiElementFinder;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.PsiPackage;
 import com.intellij.psi.impl.PsiManagerImpl;
-import com.intellij.psi.impl.file.PsiPackageImpl;
 import com.intellij.psi.search.GlobalSearchScope;
 import gw.lang.reflect.INamespaceType;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.TypeSystem;
+import gw.lang.reflect.gs.IGosuClass;
 import gw.lang.reflect.gs.TypeName;
 import gw.lang.reflect.java.IJavaType;
 import gw.plugin.ij.lang.psi.impl.CustomPsiClassCache;
-import gw.plugin.ij.util.JavaPsiFacadeUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -97,7 +96,10 @@ public class GosuTypeFinder extends PsiElementFinder
           if( acceptType( type ) )
           {
             PsiClass psiClass = CustomPsiClassCache.instance().getPsiClass( type );
-            types.add( psiClass );
+            if( psiClass != null )
+            {
+              types.add( psiClass );
+            }
           }
         }
         return types.toArray( new PsiClass[types.size()] );
@@ -130,7 +132,8 @@ public class GosuTypeFinder extends PsiElementFinder
 
   private boolean acceptType( IType type )
   {
-    return type != null && !(type instanceof IJavaType);
+    //## todo: accept only types with extensions specified in the Manifest
+    return type != null && !(type instanceof IJavaType) && !(type instanceof IGosuClass);
   }
 
   public static GosuTypeFinder instance()

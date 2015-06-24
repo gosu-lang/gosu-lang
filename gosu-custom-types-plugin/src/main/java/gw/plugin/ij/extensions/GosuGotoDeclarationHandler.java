@@ -65,7 +65,9 @@ public class GosuGotoDeclarationHandler extends GotoDeclarationHandlerBase
       IType type = TypeSystem.getByFullNameIfValidNoJava( facade.getQualifiedName() );
       IFeatureInfo fi = null;
       ITypeInfo ti = type.getTypeInfo();
-      if( psiAnnotation.getQualifiedName().equals( "PropertyGetInfoId" ) )
+      if( psiAnnotation.getQualifiedName().equals( "PropertyGetInfoId" ) ||
+          psiAnnotation.getQualifiedName().equals( "PropertySetInfoId" ) ||
+          psiAnnotation.getQualifiedName().equals( "PropertyFieldInfoId" ) )
       {
         fi = ti instanceof IRelativeTypeInfo
              ? ((IRelativeTypeInfo)ti).getProperties( type ).get( index )

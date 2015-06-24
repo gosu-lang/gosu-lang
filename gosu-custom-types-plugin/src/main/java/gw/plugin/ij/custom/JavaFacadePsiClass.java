@@ -184,7 +184,7 @@ public class JavaFacadePsiClass implements PsiClass
   @Override
   public boolean isPhysical()
   {
-    return true;
+    return false;
   }
 
   @Override

@@ -11,7 +11,7 @@
 
   <project-components>
     <component>
-      <implementation-class>gw.plugin.ij.core.GosuProjectComponent</implementation-class>
+      <implementation-class>gw.plugin.ij.core.GosuCustomTypesProjectComponent</implementation-class>
     </component>
   </project-components>
 
