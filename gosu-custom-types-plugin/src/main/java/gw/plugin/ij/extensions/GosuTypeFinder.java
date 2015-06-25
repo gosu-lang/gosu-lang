@@ -7,6 +7,7 @@ import com.intellij.psi.PsiManager;
 import com.intellij.psi.PsiPackage;
 import com.intellij.psi.impl.PsiManagerImpl;
 import com.intellij.psi.search.GlobalSearchScope;
+import gw.lang.reflect.IDefaultTypeLoader;
 import gw.lang.reflect.INamespaceType;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.TypeSystem;
@@ -92,7 +93,7 @@ public class GosuTypeFinder extends PsiElementFinder
         Set<TypeName> children = namespace.getChildren( null );
         for( TypeName tn : children )
         {
-          IType type = TypeSystem.getByFullNameIfValid( tn.name );
+          IType type = TypeSystem.getByFullNameIfValidNoJava( tn.name );
           if( acceptType( type ) )
           {
             PsiClass psiClass = CustomPsiClassCache.instance().getPsiClass( type );
@@ -118,6 +119,39 @@ public class GosuTypeFinder extends PsiElementFinder
   {
     return super.getClasses( className, psiPackage, scope );
   }
+
+  @Nullable
+  @Override
+  public PsiPackage findPackage( @NotNull String qualifiedName )
+  {
+//    PsiPackage pkg = JavaPsiFacadeUtil.findPackage( (Project)TypeSystem.getGlobalModule().getExecutionEnvironment().getProject().getNativeProject(), qualifiedName );
+//    if( pkg != null )
+//    {
+//      return null;
+//    }
+
+    TypeSystem.pushGlobalModule();
+    try
+    {
+      INamespaceType namespace = TypeSystem.getNamespace( qualifiedName );
+      if( namespace != null && !(namespace.getTypeLoader() instanceof IDefaultTypeLoader) )
+      {
+        // If the namespace comes from a non-default typeloader, we assume it is a "virtual" namespace
+        // and that it does not reflect a directory tree like a normal java package, otherwise it would
+        // be resolved by the DefaultTypeloader
+
+        PsiManager manager = PsiManagerImpl.getInstance( (Project)namespace.getModule().getExecutionEnvironment().getProject().getNativeProject() );
+        return new NonDirectoryPackage( manager, namespace.getName() );
+      }
+    }
+    finally
+    {
+      TypeSystem.popGlobalModule();
+    }
+
+    return null;
+  }
+
 
   @NotNull
   @Override
