@@ -64,6 +64,8 @@ abstract class GSTypeImpl implements com.sun.javadoc.Type {
     return null
   }
 
+  override function asAnnotatedType(): AnnotatedType{ return null }
+
   function asAnnotationTypeDoc(): AnnotationTypeDoc{
     return null
   }

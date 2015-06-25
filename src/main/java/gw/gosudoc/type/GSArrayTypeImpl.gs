@@ -1,5 +1,6 @@
 package gw.gosudoc.type
 
+uses com.sun.javadoc.AnnotatedType
 uses com.sun.javadoc.ClassDoc
 uses gw.gosudoc.doc.GSProgramElementDocImpl
 uses gw.gosudoc.doc.GSRootDocImpl
@@ -15,6 +16,7 @@ class GSArrayTypeImpl extends GSTypeImpl{
     var type = GosuIType.getComponentType()
     return RootDoc.getOrCreateClass( type )
   }
+
 
   override function initialize(){
     var componentType = RootDoc.getType( GosuIType.getComponentType(), Owner )

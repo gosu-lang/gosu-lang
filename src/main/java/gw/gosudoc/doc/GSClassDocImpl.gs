@@ -1,5 +1,6 @@
 package gw.gosudoc.doc
 
+uses com.sun.javadoc.AnnotatedType
 uses com.sun.javadoc.AnnotationDesc
 uses com.sun.javadoc.AnnotationTypeDoc
 uses com.sun.javadoc.ClassDoc
@@ -241,6 +242,10 @@ class GSClassDocImpl extends GSProgramElementDocImpl implements ClassDoc{
   }
 
   override function asWildcardType(): WildcardType{
+    return null
+  }
+
+  override function asAnnotatedType(): AnnotatedType{
     return null
   }
 
