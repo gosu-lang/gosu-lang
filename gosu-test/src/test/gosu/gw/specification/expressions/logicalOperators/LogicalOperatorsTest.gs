@@ -49,6 +49,14 @@ class LogicalOperatorsTest extends BaseVerifyErrantTest {
     r = a22 == b22
     assertTrue(r)
 
+    var a3 = new TestDim(2)
+    var b3 : double = 2.0
+    r = a3 == b3
+    assertTrue(r)
+    var a31 = new TestDim(2)
+    var b31 : double = 1.0
+    r = a31 == b31
+    assertFalse(r)
     var a32 = new TestDim(2)
     var b32 = new TestDim(2)
     r = a32 == b32

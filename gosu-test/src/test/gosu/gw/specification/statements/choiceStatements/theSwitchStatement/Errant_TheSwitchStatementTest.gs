@@ -98,6 +98,19 @@ class Errant_TheSwitchStatementTest {
     }
   }
 
+  function testCaseExpressionCompatibility021(j: int) {
+    var r: Runnable
+    r =  \-> {return null}           //## issuekeys: MSG_UNEXPECTED_TOKEN
+    switch (r) {
+      case \-> {return null}:        //## issuekeys: MSG_UNEXPECTED_TOKEN
+        break
+      case new Runnable() { function run() {return null} }:        //## issuekeys: MSG_RETURN_VAL_FROM_VOID_FUNCTION, MSG_MISSING_OVERRIDE_MODIFIER
+        break
+      case \-> {}:
+        break
+    }
+  }
+
   function testCaseExpressionCompatibility03(){
     var x: Object
 
@@ -159,7 +172,7 @@ class Errant_TheSwitchStatementTest {
 
     var y : Object = "neat"
     switch(typeof(y)){
-      case int:  //## KB(IDE-2238)  //## issuekeys: MSG_TYPE_MISMATCH
+      case int:
       case int:  //## issuekeys: MSG_DUPLICATE_CASE_EXPRESSION
         break
       case String:
@@ -168,7 +181,7 @@ class Errant_TheSwitchStatementTest {
     switch(y){
       case 2:
           break;
-      case 1 + 1: //## KB(IDE-2622)  //## issuekeys: MSG_DUPLICATE_CASE_EXPRESSION
+      case 1 + 1: //## issuekeys: MSG_DUPLICATE_CASE_EXPRESSION
           break;
     }
     switch (y) {

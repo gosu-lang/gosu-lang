@@ -42,6 +42,7 @@ class Errant_DoubleInterval {
   var double1120 = (42.5.."mystring")      //## issuekeys: OPERATOR '..' CANNOT BE APPLIED TO 'DOUBLE', 'JAVA.LANG.STRING'
   var double1121 = (42.5..(new Date()))      //## issuekeys: OPERATOR '..' CANNOT BE APPLIED TO 'DOUBLE', 'JAVA.UTIL.DATE'
   var double1122 = (42.5..aaa)      //## issuekeys: OPERATOR '..' CANNOT BE APPLIED TO 'DOUBLE', 'GW.SPECCONTRIB.AAA.PARSERVSOPENSOURCE.INTERVALSANDDIMENSIONS.INTERVALSBASIC.INTERVAL_DOUBLE.A'
+  var double1123 = (42.5..false)      //## issuekeys: OPERATOR '..' CANNOT BE APPLIED TO 'DOUBLE', 'BOOLEAN'
 
   //Lower end point is double with step function
   var double1211 = (42.5..'c').step(1)

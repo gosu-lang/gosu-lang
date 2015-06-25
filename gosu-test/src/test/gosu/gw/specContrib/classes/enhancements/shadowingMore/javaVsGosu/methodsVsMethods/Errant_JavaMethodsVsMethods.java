@@ -1,4 +1,4 @@
-package gw.specContrib.classes.enhancements.shadowingMore.javaVsGosu.gettersSettersVsProperties;
+package gw.specContrib.classes.enhancements.shadowingMore.javaVsGosu.methodsVsMethods;
 
 public class Errant_JavaMethodsVsMethods {
     String methodInternal() {

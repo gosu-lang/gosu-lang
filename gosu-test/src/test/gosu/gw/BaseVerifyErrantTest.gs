@@ -62,7 +62,11 @@ abstract class BaseVerifyErrantTest extends TestClass {
     var issues = line.split(",")
     var resKeys = new ArrayList<ResourceKey>()
     for( issue in issues ) {
-      resKeys.add((Res.Type.TypeInfo.getProperty( issue.trim() ).Accessor.getValue( null )) as ResourceKey )
+      try { // don't allow NPE to mask error report
+        resKeys.add((Res.Type.TypeInfo.getProperty( issue.trim() ).Accessor.getValue( null )) as ResourceKey )
+      } catch (e : Throwable) {
+        System.err.println("Unrecognized annotation " +issue.trim());
+      }
     }
     return resKeys
   }

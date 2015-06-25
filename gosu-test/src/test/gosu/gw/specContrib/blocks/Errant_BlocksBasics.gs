@@ -17,7 +17,7 @@ class Errant_BlocksBasics {
     var block0116 = \-> 42.5 + 42
     var block0117 = \-> 42 + "sdf"
 
-    var block0118: block() = \-> 42
+    var block0118: block() = \-> 42  // allowed due to backward compatibility
     var block0119: block(): int = \-> 42
     var block0120: block(): int = \-> {
       42      //## issuekeys: MSG_UNEXPECTED_TOKEN
