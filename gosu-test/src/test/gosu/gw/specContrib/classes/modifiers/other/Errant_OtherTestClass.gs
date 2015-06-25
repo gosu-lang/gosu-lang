@@ -1,13 +1,15 @@
 package gw.specContrib.classes.modifiers.other
 
 class Errant_OtherTestClass {
-  interface InnerPublicClass {}
+  class InnerPublicClass {}
   interface InnerPublicInterface {}
-  interface InnerPublicStructure {}
+  structure InnerPublicStructure {}
   enum InnerPublicEnum {}
+  annotation InnerPublicAnnotation {}
 
-  private interface InnerPrivateClass {}
+  private class InnerPrivateClass {}
   private interface InnerPrivateInterface {}
-  private interface InnerPrivateStructure {}
+  private structure InnerPrivateStructure {}
   private enum InnerPrivateEnum {}
+  private annotation InnerPrivateAnnotation {}
 }

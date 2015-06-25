@@ -28,8 +28,8 @@ class Errant_DimensionTest2 {
     var f1 = i1 + i2
     var f2 = i1 - i2
     var f3 = i1 * i2       //## issuekeys: OPERATOR '*' CANNOT BE APPLIED TO 'A.GOSU.SAMPLEDIMENSION_INTEGER', 'A.GOSU.SAMPLEDIMENSION_INTEGER'
-    var f4 = i1 / i2
-    var f5 = i1 % i2
+    var f4 = i1 / i2       //## issuekeys: OPERATOR '/' CANNOT BE APPLIED TO 'A.GOSU.SAMPLEDIMENSION_INTEGER', 'A.GOSU.SAMPLEDIMENSION_INTEGER'
+    var f5 = i1 % i2       //## issuekeys: OPERATOR '%' CANNOT BE APPLIED TO 'A.GOSU.SAMPLEDIMENSION_INTEGER', 'A.GOSU.SAMPLEDIMENSION_INTEGER'
     var f6 = i1 ^ i2       //## issuekeys: OPERATOR '^' CANNOT BE APPLIED TO 'A.GOSU.SAMPLEDIMENSION_INTEGER', 'A.GOSU.SAMPLEDIMENSION_INTEGER'
   }
 

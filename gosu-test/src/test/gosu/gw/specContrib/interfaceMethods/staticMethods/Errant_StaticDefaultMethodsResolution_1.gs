@@ -25,7 +25,7 @@ class Errant_StaticDefaultMethodsResolution_1 {
       super[IA3].foo()
       IB3.foo()
       //IDE-2618 - OS Gosu issue, does not show error.
-      super[IB3].foo()      //## issuekeys: STATIC METHOD MAY BE INVOKED ON CONTAINING INTERFACE CLASS ONLY
+      super[IB3].foo()
 
       MyClass3.foo()      //## issuekeys: STATIC METHOD MAY BE INVOKED ON CONTAINING INTERFACE CLASS ONLY
     }

@@ -42,6 +42,7 @@ class Errant_FloatInterval {
   var float1120 = (42.5f.."mystring")      //## issuekeys: OPERATOR '..' CANNOT BE APPLIED TO 'FLOAT', 'JAVA.LANG.STRING'
   var float1121 = (42.5f..(new Date()))      //## issuekeys: OPERATOR '..' CANNOT BE APPLIED TO 'FLOAT', 'JAVA.UTIL.DATE'
   var float1122 = (42.5f..aaa)      //## issuekeys: OPERATOR '..' CANNOT BE APPLIED TO 'FLOAT', 'GW.SPECCONTRIB.AAA.PARSERVSOPENSOURCE.INTERVALSANDDIMENSIONS.INTERVALSBASIC.INTERVAL_FLOAT.A'
+  var float1123 = (42.5f..false)      //## issuekeys: OPERATOR '..' CANNOT BE APPLIED TO 'FLOAT', 'BOOLEAN'
 
   //Lower end point is float with step function
   var float1211 = (42.5f..'c').step(1)
