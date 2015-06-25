@@ -63,7 +63,6 @@ class Errant_BlocksGenericsWithoutParams {
     var x1314: ArrayList<Integer> = hello1(\-> {
       return {1, 2, 3}
     })
-    //IDE-1346 will not be fixed. Both OS Gosu and Parser show error. Impacts x1315, x1316, x1317. Keeping the errors
     var x1315: ArrayList<Integer> = hello1(\-> {
       return {42, 'c'}
     })
