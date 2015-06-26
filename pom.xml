@@ -5,7 +5,7 @@
   <groupId>org.gosu-lang.gosu</groupId>
   <artifactId>gosu-doc</artifactId>
   <packaging>jar</packaging>
-  <version>0.1</version>
+  <version>0.X-SNAPSHOT</version>
   <name>gosu-doc</name>
   <description>Generates Java-doc compatible documentation for Gosu projects</description>
   <url>https://github.com/gosu-lang/gosu-doc</url>
