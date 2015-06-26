@@ -172,7 +172,8 @@ public class CustomPsiClassCache extends AbstractTypeSystemListener
       int i = 0;
       for( IType innerClass : ((IHasInnerClass)type).getInnerClasses() )
       {
-        sb.append( "  @InnerClassInfoId(" ).append( i++ ).append( ")\n" );
+        ITypeInfo ti = innerClass.getTypeInfo();
+        sb.append( "  @InnerClassInfoId(" ).append( i++ ).append( ", \"" ).append( type.getName() ).append( "\", " ).append( ti.getOffset() ).append( ", " ).append( ti.getTextLength() ).append( ")\n" );
         generateClass( innerClass, sb );
       }
     }
