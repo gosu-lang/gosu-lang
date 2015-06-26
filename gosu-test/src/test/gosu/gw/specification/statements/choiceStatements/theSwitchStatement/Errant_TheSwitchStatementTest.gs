@@ -159,7 +159,7 @@ class Errant_TheSwitchStatementTest {
 
     var y : Object = "neat"
     switch(typeof(y)){
-      case int:  //## KB(IDE-2238)
+      case int:  //## KB(IDE-2238)  //## issuekeys: MSG_TYPE_MISMATCH
       case int:  //## issuekeys: MSG_DUPLICATE_CASE_EXPRESSION
         break
       case String:
@@ -168,7 +168,7 @@ class Errant_TheSwitchStatementTest {
     switch(y){
       case 2:
           break;
-      case 1 + 1: //## KB(IDE-2622)
+      case 1 + 1: //## KB(IDE-2622)  //## issuekeys: MSG_DUPLICATE_CASE_EXPRESSION
           break;
     }
     switch (y) {

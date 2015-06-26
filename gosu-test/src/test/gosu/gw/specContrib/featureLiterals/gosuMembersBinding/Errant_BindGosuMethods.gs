@@ -12,6 +12,11 @@ class Errant_BindGosuMethods {
   var internalFunction117 = GosuFL#gosuInternalFun(int, String)      //## issuekeys: CANNOT RESOLVE METHOD 'GOSUINTERNALFUN(INT, JAVA.LANG.STRING)'
   var internalFunction118 = GosuFL#gosuInternalFun(42, "mystring")      //## issuekeys: 'GOSUINTERNALFUN(JAVA.LANG.STRING, INT)' IN 'GW.SPECCONTRIB.AAA.PARSERVSOPENSOURCE.FEATURELITERALS.FEATURELITERALSMAIN.GOSUFEATURELITERALS.GOSUFL' CANNOT BE APPLIED TO '(INT, JAVA.LANG.STRING)'
   var internalFunction119 = GosuFL#gosuInternalFun      //## issuekeys: CANNOT RESOLVE SYMBOL 'GOSUINTERNALFUN'
+  //IDE-1375 - wrong number of args
+  var internalFunction120 = GosuFL#gosuInternalFun(String, int, int)      //## issuekeys: CANNOT RESOLVE SYMBOL 'GOSUINTERNALFUN'
+  var internalFunction121 = GosuFL#gosuInternalFun(int, int, int)      //## issuekeys: CANNOT RESOLVE SYMBOL 'GOSUINTERNALFUN'
+  var internalFunction122 = GosuFL#gosuInternalFun("mystring", 42, 42)              //## issuekeys: CANNOT RESOLVE SYMBOL 'GOSUINTERNALFUN'
+  var internalFunction123 = GosuFL#gosuInternalFun(42, 42, 42)      //## issuekeys: CANNOT RESOLVE SYMBOL 'GOSUINTERNALFUN'
 
   var privateFunction111 = GosuFL#gosuPrivateFun(String, int)
   var privateFunction112 = GosuFL#gosuPrivateFun("mystring", 44)
@@ -22,6 +27,11 @@ class Errant_BindGosuMethods {
   var privateFunction117 = GosuFL#gosuPrivateFun(int, String)      //## issuekeys: CANNOT RESOLVE METHOD 'GOSUPRIVATEFUN(INT, JAVA.LANG.STRING)'
   var privateFunction118 = GosuFL#gosuPrivateFun(42, "mystring")      //## issuekeys: 'GOSUPRIVATEFUN(JAVA.LANG.STRING, INT)' IN 'GW.SPECCONTRIB.AAA.PARSERVSOPENSOURCE.FEATURELITERALS.FEATURELITERALSMAIN.GOSUFEATURELITERALS.GOSUFL' CANNOT BE APPLIED TO '(INT, JAVA.LANG.STRING)'
   var privateFunction119 = GosuFL#gosuPrivateFun      //## issuekeys: CANNOT RESOLVE SYMBOL 'GOSUPRIVATEFUN'
+  //IDE-1375 - wrong number of args
+  var privateFunction120 = GosuFL#gosuPrivateFun(String, int, int)      //## issuekeys: CANNOT RESOLVE SYMBOL 'GOSUPRIVATEFUN'
+  var privateFunction121 = GosuFL#gosuPrivateFun(int, int, int)      //## issuekeys: CANNOT RESOLVE SYMBOL 'GOSUPRIVATEFUN'
+  var privateFunction122 = GosuFL#gosuPrivateFun("mystring", 42, 42)              //## issuekeys: CANNOT RESOLVE SYMBOL 'GOSUPRIVATEFUN'
+  var privateFunction123 = GosuFL#gosuPrivateFun(42, 42, 42)      //## issuekeys: CANNOT RESOLVE SYMBOL 'GOSUPRIVATEFUN'
 
   var protectedFunction111 = GosuFL#gosuProtectedFun(String, int)
   var protectedFunction112 = GosuFL#gosuProtectedFun("mystring", 44)
@@ -32,6 +42,11 @@ class Errant_BindGosuMethods {
   var protectedFunction117 = GosuFL#gosuProtectedFun(int, String)      //## issuekeys: CANNOT RESOLVE METHOD 'GOSUPROTECTEDFUN(INT, JAVA.LANG.STRING)'
   var protectedFunction118 = GosuFL#gosuProtectedFun(42, "mystring")      //## issuekeys: 'GOSUPROTECTEDFUN(JAVA.LANG.STRING, INT)' IN 'GW.SPECCONTRIB.AAA.PARSERVSOPENSOURCE.FEATURELITERALS.FEATURELITERALSMAIN.GOSUFEATURELITERALS.GOSUFL' CANNOT BE APPLIED TO '(INT, JAVA.LANG.STRING)'
   var protectedFunction119 = GosuFL#gosuProtectedFun      //## issuekeys: CANNOT RESOLVE SYMBOL 'GOSUPROTECTEDFUN'
+  //IDE-1375 - wrong number of args
+  var protectedFunction120 = GosuFL#gosuProtectedFun(String, int, int)      //## issuekeys: CANNOT RESOLVE SYMBOL 'GOSUPROTECTEDFUN'
+  var protectedFunction121 = GosuFL#gosuProtectedFun(int, int, int)      //## issuekeys: CANNOT RESOLVE SYMBOL 'GOSUPROTECTEDFUN'
+  var protectedFunction122 = GosuFL#gosuProtectedFun("mystring", 42, 42)              //## issuekeys: CANNOT RESOLVE SYMBOL 'GOSUPROTECTEDFUN'
+  var protectedFunction123 = GosuFL#gosuProtectedFun(42, 42, 42)          //## issuekeys: CANNOT RESOLVE SYMBOL 'GOSUPROTECTEDFUN'
 
 
   var publicFunction111 = GosuFL#gosuPublicFun(String, int)
@@ -43,6 +58,11 @@ class Errant_BindGosuMethods {
   var publicFunction117 = GosuFL#gosuPublicFun(int, String)      //## issuekeys: CANNOT RESOLVE METHOD 'GOSUPUBLICFUN(INT, JAVA.LANG.STRING)'
   var publicFunction118 = GosuFL#gosuPublicFun(42, "mystring")      //## issuekeys: 'GOSUPUBLICFUN(JAVA.LANG.STRING, INT)' IN 'GW.SPECCONTRIB.AAA.PARSERVSOPENSOURCE.FEATURELITERALS.FEATURELITERALSMAIN.GOSUFEATURELITERALS.GOSUFL' CANNOT BE APPLIED TO '(INT, JAVA.LANG.STRING)'
   var publicFunction119 = GosuFL#gosuPublicFun      //## issuekeys: CANNOT RESOLVE SYMBOL 'GOSUPUBLICFUN'
+  //IDE-1375 - wrong number of args
+  var publicFunction120 = GosuFL#gosuPublicFun(String, int, int)   //## issuekeys: CANNOT RESOLVE SYMBOL 'GOSUPUBLICFUN'
+  var publicFunction121 = GosuFL#gosuPublicFun(int, int, int)         //## issuekeys: CANNOT RESOLVE SYMBOL 'GOSUPUBLICFUN'
+  var publicFunction122 = GosuFL#gosuPublicFun("mystring", 42, 42)      //## issuekeys: CANNOT RESOLVE SYMBOL 'GOSUPUBLICFUN'
+  var publicFunction123 = GosuFL#gosuPublicFun(42, 42, 42)              //## issuekeys: CANNOT RESOLVE SYMBOL 'GOSUPUBLICFUN'
 
 
   function invokeGosuFunctions() {
@@ -117,4 +137,5 @@ class Errant_BindGosuMethods {
     publicFunction113.invoke(gInstance, "Ed", 42)
     publicFunction113.invoke(gInstance)      //## issuekeys: 'INVOKE(GW.SPECCONTRIB.AAA.PARSERVSOPENSOURCE.FEATURELITERALS.FEATURELITERALSMAIN.GOSUFEATURELITERALS.GOSUFL, JAVA.LANG.STRING, INT)' IN '' CANNOT BE APPLIED TO '(GW.SPECCONTRIB.AAA.PARSERVSOPENSOURCE.FEATURELITERALS.FEATURELITERALSMAIN.GOSUFEATURELITERALS.GOSUFL)'
   }
+
 }

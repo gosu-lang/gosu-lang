@@ -172,5 +172,4 @@ class Errant_LogicalOperatorsTest {
     var y4 = true and 5  //## issuekeys: MSG_IMPLICIT_COERCION_ERROR
     var y5 = !not true
   }
-
 }

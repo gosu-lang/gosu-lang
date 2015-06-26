@@ -27,4 +27,16 @@ class Errant_CompoundType {
     var sc: Serializable & Cloneable
     var i = sc.hashCode()
   }
+
+  function testCompoundAndDynamic() {
+    var v1: java.io.Serializable & dynamic.Dynamic  //## issuekeys: MSG_INTERFACE_REDUNDANT
+    var v2: java.io.Serializable = v1
+  }
+
+  interface foo {}
+  function testCompoundTypes() {
+    var param: java.lang.Comparable<java.lang.Integer> & foo
+    var q1 = param < 11000
+  }
+
 }

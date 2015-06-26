@@ -1,0 +1,28 @@
+package gw.specContrib.interfaceMethods.defaultMethods
+
+uses java.lang.Double
+uses java.lang.Integer
+uses java.util.ArrayList
+
+class Errant_DefaultMethodsTypeErasure {
+
+
+  interface InterfaceA {
+    function intfun(i: ArrayList<Integer>) {
+    }
+  }
+
+  interface InterfaceB {
+    function intfun(i: ArrayList<Double>) {
+    }
+  }
+
+
+  class MyClass1 implements InterfaceA, InterfaceB {      //## issuekeys: 'INTFUN(ARRAYLIST<DOUBLE>)' IN 'GW.SPECCONTRIB.AAA.PARSERVSOPENSOURCE.JAVA8.DEFAULTMETHODS.ERRANT_DEFAULTMETHODSTYPEERASURE.INTERFACEB' CLASHES WITH 'INTFUN(ARRAYLIST<INTEGER>)' IN 'GW.SPECCONTRIB.AAA.PARSERVSOPENSOURCE.JAVA8.DEFAULTMETHODS.ERRANT_DEFAULTMETHODSTYPEERASURE.INTERFACEA'; BOTH METHODS HAVE SAME ERASURE, YET NEITHER OVERRIDES THE OTHER
+  }
+
+  class MyClass2 implements InterfaceA, InterfaceB {
+    function intfun(i: ArrayList<Integer>) {      //## issuekeys: 'INTFUN(ARRAYLIST<INTEGER>)' IN 'GW.SPECCONTRIB.AAA.PARSERVSOPENSOURCE.JAVA8.DEFAULTMETHODS.ERRANT_DEFAULTMETHODSTYPEERASURE.MYCLASS2' CLASHES WITH 'INTFUN(ARRAYLIST<DOUBLE>)' IN 'GW.SPECCONTRIB.AAA.PARSERVSOPENSOURCE.JAVA8.DEFAULTMETHODS.ERRANT_DEFAULTMETHODSTYPEERASURE.INTERFACEB'; BOTH METHODS HAVE SAME ERASURE, YET NEITHER OVERRIDES THE OTHER
+    }
+  }
+}
