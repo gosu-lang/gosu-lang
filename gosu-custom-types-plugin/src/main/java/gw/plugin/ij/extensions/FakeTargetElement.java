@@ -9,7 +9,6 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.impl.PsiElementBase;
 import com.intellij.util.IncorrectOperationException;
-import gw.lang.reflect.IFeatureInfo;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -19,14 +18,14 @@ class FakeTargetElement extends PsiElementBase
   private final PsiFile _file;
   private final int _iOffset;
   private final int _iLength;
-  private final IFeatureInfo _fi;
+  private final String _name;
 
-  FakeTargetElement( PsiFile file, int iOffset, int iLength, IFeatureInfo fi )
+  FakeTargetElement( PsiFile file, int iOffset, int iLength, String name )
   {
     _file = file;
     _iOffset = iOffset;
     _iLength = iLength;
-    _fi = fi;
+    _name = name;
   }
 
   @Override
@@ -131,7 +130,7 @@ class FakeTargetElement extends PsiElementBase
   @Override
   public String toString()
   {
-    return _fi.getName();
+    return _name;
   }
 
   @Override
@@ -185,7 +184,7 @@ class FakeTargetElement extends PsiElementBase
   @Override
   public String getText()
   {
-    return _fi.getName();
+    return _name;
   }
 
   @Override

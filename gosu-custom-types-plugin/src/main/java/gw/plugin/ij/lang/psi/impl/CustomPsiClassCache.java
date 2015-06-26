@@ -193,7 +193,7 @@ public class CustomPsiClassCache extends AbstractTypeSystemListener
     int i = 0;
     for( IConstructorInfo ci : constructors )
     {
-      sb.append( "  @ConstructorInfoId(" ).append( i++ ).append( ")\n" )
+      sb.append( "  @ConstructorInfoId(" ).append( i++ ).append( ", \"" ).append( ci.getName() ).append( "\", " ).append( ci.getOffset() ).append( ", " ).append( ci.getTextLength() ).append( ")\n" )
       .append( "  " );
       generateModifiers( sb, ci );
       sb.append( " " );
@@ -224,7 +224,7 @@ public class CustomPsiClassCache extends AbstractTypeSystemListener
         i++;
         continue;
       }
-      sb.append( "  @MethodInfoId(" ).append( i++ ).append( ")\n" )
+      sb.append( "  @MethodInfoId(" ).append( i++ ).append( ", \"" ).append( mi.getName() ).append( "\", " ).append( mi.getOffset() ).append( ", " ).append( mi.getTextLength() ).append( ")\n" )
       .append( "  " );
       generateModifiers( sb, mi );
       generateReturnType( sb, mi );
@@ -268,7 +268,7 @@ public class CustomPsiClassCache extends AbstractTypeSystemListener
   {
     if( pi.isReadable() )
     {
-      sb.append( "  @PropertyGetInfoId(" ).append( i ).append( ")\n" )
+      sb.append( "  @PropertyGetInfoId(" ).append( i ).append( ", \"" ).append( pi.getName() ).append( "\", " ).append( pi.getOffset() ).append( ", " ).append( pi.getTextLength() ).append( ")\n" )
         .append( "  " );
       generateModifiers( sb, pi );
       sb.append( pi.getFeatureType().getName() );
@@ -278,7 +278,7 @@ public class CustomPsiClassCache extends AbstractTypeSystemListener
     }
     if( pi.isWritable( pi.getOwnersType() ) )
     {
-      sb.append( "  @PropertySetInfoId(" ).append( i ).append( ")\n" )
+      sb.append( "  @PropertySetInfoId(" ).append( i ).append( ", \"" ).append( pi.getName() ).append( "\", " ).append( pi.getOffset() ).append( ", " ).append( pi.getTextLength() ).append( ")\n" )
         .append( "  " );
       generateModifiers( sb, pi );
       sb.append( pi.getFeatureType().getName() );
@@ -294,7 +294,7 @@ public class CustomPsiClassCache extends AbstractTypeSystemListener
   {
     if( pi.isReadable() )
     {
-      sb.append( "  @PropertyFieldInfoId(" ).append( i ).append( ")\n" )
+      sb.append( "  @PropertyFieldInfoId(" ).append( i ).append( ", \"" ).append( pi.getName() ).append( "\", " ).append( pi.getOffset() ).append( ", " ).append( pi.getTextLength() ).append( ")\n" )
         .append( "  " );
       generateFieldModifiers( sb, pi );
       sb.append( pi.getFeatureType().getName() ).append( " " ).append( pi.getDisplayName() ).append( ";\n" );
