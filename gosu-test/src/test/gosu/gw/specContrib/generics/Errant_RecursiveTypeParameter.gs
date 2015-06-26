@@ -25,4 +25,16 @@ class Errant_RecursiveTypeParameter {
   function test(p: List<Errant_JavaRecursiveTypeParameter>) {
     var deepNode: Errant_JavaRecursiveTypeParameter = p.get(0).Children.get(0).Children.get(0)
   }
+
+  // IDE-2203
+  class A411<T, S extends A411<T, S>>  {}
+  class B411<T, S extends A411<T, S>> extends A411<T, S> {}
+  class C411 extends B411<String, C411> {}
+
+  function test411() {
+    var a: B411 = new C411()
+  }
+
+  class A51<T extends A51> {}
+  var a5: A51<A51> = new A51()
 }

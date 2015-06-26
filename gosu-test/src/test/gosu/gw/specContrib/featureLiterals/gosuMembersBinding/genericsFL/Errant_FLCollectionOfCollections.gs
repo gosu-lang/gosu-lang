@@ -17,7 +17,7 @@ class Errant_FLCollectionOfCollections {
 
   var fooFL111 = gInstance#fooFun(HashMap) // OK
   var fooFL111a = gInstance#fooFun(HashMap<Object, Object>) // OK
-  var fooFL111a = gInstance#fooFun(HashMap<String, String>) //## issuekeys: MSG_FL_METHOD_NOT_FOUND
+  var fooFL111b = gInstance#fooFun(HashMap<String, String>) //## issuekeys: MSG_FL_METHOD_NOT_FOUND
   var fooFL112 = gInstance#fooFun({{1->2} -> {3->4}})
   var fooFL113 = gInstance#fooFun({{1->2} -> {3->"bar"}})
   //T is Serializable

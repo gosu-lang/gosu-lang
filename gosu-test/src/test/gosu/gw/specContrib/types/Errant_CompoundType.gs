@@ -27,4 +27,9 @@ class Errant_CompoundType {
     var sc: Serializable & Cloneable
     var i = sc.hashCode()
   }
+
+  function testCompoundAndDynamic() {
+    var v1: java.io.Serializable & dynamic.Dynamic
+    var v2: java.io.Serializable = v1
+  }
 }

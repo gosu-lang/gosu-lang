@@ -1,5 +1,9 @@
 package gw.specContrib.featureLiterals.gosuMembersBinding
 
+uses gw.lang.reflect.features.MethodReference
+
+uses java.lang.Double
+
 class Errant_BindOverloadedGosuMethods {
 
 
@@ -112,6 +116,16 @@ class Errant_BindOverloadedGosuMethods {
 
     //overloadedFun127
     overloadedFun127.invoke()            //## issuekeys: CANNOT RESOLVE METHOD 'INVOKE()'
+  }
+
+  class OverloadMethods1 {
+    function hello(s: String , i: int): String { return null }
+    function hello(s: String , i: Double): String { return null }
+
+    var f111 : MethodReference<OverloadMethods1, block(OverloadMethods1, String, int) : String> = OverloadMethods1#hello(String, int)
+    var f112 : MethodReference<OverloadMethods1, block(OverloadMethods1, String, Double) : String> = OverloadMethods1#hello(String, Double)
+    var f113 : MethodReference<OverloadMethods1, block(OverloadMethods1) : String>  = OverloadMethods1#hello("mystring", 10)
+    var f114 : MethodReference<OverloadMethods1, block(OverloadMethods1) : String> = OverloadMethods1#hello("mystring", 42.5)
   }
 
 }

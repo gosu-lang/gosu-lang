@@ -13,13 +13,52 @@ class Errant_NullSafeExpressionsTest {
     var rI : Integer
 
     r = a?+b  //## issuekeys: MSG_EXPECTING_REFERENCE_TYPE
+    r = a?-b  //## issuekeys: MSG_EXPECTING_REFERENCE_TYPE
+    r = a?*b  //## issuekeys: MSG_EXPECTING_REFERENCE_TYPE
+    r = a?/b  //## issuekeys: MSG_EXPECTING_REFERENCE_TYPE
+    r = a?%b  //## issuekeys: MSG_EXPECTING_REFERENCE_TYPE
+
     r = a?+bI
+    r = a?-bI
+    r = a?*bI
+    r = a?/bI
+    r = a?%bI
+
     r = aI?+b
+    r = aI?-b
+    r = aI?*b
+    r = aI?/b
+    r = aI?%b
+
     r = aI?+bI
+    r = aI?-bI
+    r = aI?*bI
+    r = aI?/bI
+    r = aI?%bI
+
     rI = a?+b  //## issuekeys: MSG_EXPECTING_REFERENCE_TYPE
+    rI = a?-b  //## issuekeys: MSG_EXPECTING_REFERENCE_TYPE
+    rI = a?*b  //## issuekeys: MSG_EXPECTING_REFERENCE_TYPE
+    rI = a?/b  //## issuekeys: MSG_EXPECTING_REFERENCE_TYPE
+    rI = a?%b  //## issuekeys: MSG_EXPECTING_REFERENCE_TYPE
+
     rI = a?+bI
+    rI = a?-bI
+    rI = a?*bI
+    rI = a?/bI
+    rI = a?%bI
+
     rI = aI?+b
+    rI = aI?-b
+    rI = aI?*b
+    rI = aI?/b
+    rI = aI?%b
+
     rI = aI?+bI
+    rI = aI?-bI
+    rI = aI?*bI
+    rI = aI?/bI
+    rI = aI?%bI
   }
 
   function testNullSafeMethodCallOperator() {
