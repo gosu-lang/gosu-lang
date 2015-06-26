@@ -17,10 +17,14 @@ class GosuDocArgs {
   @LongName( "filters" ) @ShortName( "f" ) @ArgOptional
   var _filters : String as FiltersString
 
+  @LongName( "externalDocs" ) @ShortName( "f" ) @ArgOptional
+  var _externalDocs : String as ExternalDocs
+
   function init( writer : GSDocHTMLWriter ){
     writer.InputDirs = parseInputDirs()
     writer.Output = parseOutpuDir()
     writer.Filters = parseFilters()
+    writer.ExternalDocs = _externalDocs.split( "," ).toList()
   }
 
   private function parseInputDirs() : List<File> {

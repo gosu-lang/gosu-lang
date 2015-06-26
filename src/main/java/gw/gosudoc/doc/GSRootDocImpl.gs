@@ -35,7 +35,6 @@ uses java.util.ArrayList
 uses java.util.HashMap
 uses java.util.IdentityHashMap
 uses java.util.Map
-uses java.util.Properties
 uses java.util.regex.Pattern
 
 class GSRootDocImpl extends GSDocImpl implements RootDoc{
@@ -45,7 +44,7 @@ class GSRootDocImpl extends GSDocImpl implements RootDoc{
   var _packagesByName = new HashMap<String, GSPackageDocImpl>().toAutoMap( \name -> new GSPackageDocImpl( name, this ) )
 
   // Config info
-  var _externalDocs : Map<String, List<Pattern>> as ExternalDocs = new HashMap<String, List<Pattern>>().toAutoMap( \k -> ({}) )
+  var _externalDocs : List<String> as ExternalDocs = {}
   var _inputDirs : List<File> as InputDirs = {}
   var _exclusions : List<Pattern> as Exclusions = {}
   var _outputDirectory : File as OutputDirectory
@@ -55,10 +54,11 @@ class GSRootDocImpl extends GSDocImpl implements RootDoc{
   var _constructorFilters : List<ConstructorFilter> as readonly ConstructorFilters = {}
   var _featureFilters : List<FeatureFilter> as readonly FeatureFilters = {}
 
-  construct( inputDirs : List<File>, outputDir: File, filters : List = null ){
+  construct( inputDirs : List<File>, outputDir: File, filters : List = null, externalDocs : List<String> = null ){
     super( "Root", null )
     _inputDirs = inputDirs
     _outputDirectory = outputDir
+    _externalDocs = externalDocs
     if(filters != null) {
       initFilters(filters)
     }
@@ -99,36 +99,25 @@ class GSRootDocImpl extends GSDocImpl implements RootDoc{
   }
 
   function isExcluded( name: String ): boolean{
-    return _exclusions.hasMatch( \p -> p.matcher( name ).find() ) || isExternal( name ) || isSynthetic( name )
+    return _exclusions.hasMatch( \p -> p.matcher( name ).find() ) || isSynthetic( name )
   }
 
   function isSynthetic( name: String ): boolean{
-    return name.endsWith( ".PLACEHOLDER" ) || name.startsWith( "_proxy_" ) || name.equals( 'Key' )
-  }
-
-  function isExternal( name: String ): boolean{
-    return _externalDocs.values().hasMatch( \l -> l.hasMatch( \p -> p.matcher( name ).find() ) )
+    return name.endsWith( ".PLACEHOLDER" ) ||
+        name.startsWith( "_proxy_" ) ||
+        name.contains( ".block_" ) ||
+        name.contains( ".AnonymouS__" ) ||
+        name.contains( ".ProxyFor__" ) ||
+        name.equals( 'Key' )
   }
 
   function getPattern( val: String ): Pattern{
     return Pattern.compile( "^" + val + "$" )
   }
 
-  function handleExternalJavadoc( key: String, val: String ){
-    var urlAndPrefixes = val.split( "," )
-    if( urlAndPrefixes.length != 2 ){
-      throw new IllegalArgumentException( "Illegal line in properties file: " + key + "=" + val )
-    }
-    var url = urlAndPrefixes.first()
-    var prefixes = urlAndPrefixes.last()
-    var splitPrefixes = prefixes.split( "" ).toList()
-    _externalDocs[url].addAll( splitPrefixes.map( \elt -> getPattern( elt ) ) )
-  }
-
-
   override function options(): String[][]{
     var l = new ArrayList<String[]>()
-    for( externalJavadoc in _externalDocs.keySet() ){
+    for( externalJavadoc in _externalDocs ){
       l.add( {"-link", externalJavadoc} )
     }
     l.add( {"-d", _outputDirectory.getCanonicalPath()} )

@@ -11,6 +11,7 @@ class GSDocHTMLWriter {
   var _inputDirs: List<File> as InputDirs = {}
   var _output: File as Output
   var _filters: List as Filters = {}
+  var _externalDocs : List<String> as ExternalDocs = {}
 
   construct(cliArgs : GosuDocArgs = null){
     if(cliArgs != null) {
