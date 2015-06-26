@@ -5,9 +5,29 @@
   <groupId>org.gosu-lang.gosu</groupId>
   <artifactId>gosu-doc</artifactId>
   <packaging>jar</packaging>
-  <version>0.1-SNAPSHOT</version>
+  <version>0.1</version>
   <name>gosu-doc</name>
+  <description>Generates Java-doc compatible documentation for Gosu projects</description>
   <url>https://github.com/gosu-lang/gosu-doc</url>
+  <licenses>
+    <license>
+      <name>The MIT License (MIT)</name>
+      <url>http://opensource.org/licenses/MIT</url>
+    </license>
+  </licenses>
+  <developers>
+    <developer>
+      <name>Carson Gross</name>
+      <email>carsongross@gmail.com</email>
+      <organization>New Helvetic Software, LLC</organization>
+      <organizationUrl>http://newhelvetic.com</organizationUrl>
+    </developer>
+  </developers>
+  <scm>
+    <connection>scm:git:git@github.com:gosu-lang/gosu-doc.git</connection>
+    <developerConnection>scm:git:git@github.com:gosu-lang/gosu-doc.git</developerConnection>
+    <url>git@github.com:gosu-lang/gosu-doc.git</url>
+  </scm>
 
   <repositories>
     <repository>
