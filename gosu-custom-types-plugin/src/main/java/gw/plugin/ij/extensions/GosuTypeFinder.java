@@ -167,7 +167,7 @@ public class GosuTypeFinder extends PsiElementFinder
   private boolean acceptType( IType type )
   {
     //## todo: accept only types with extensions specified in the Manifest
-    return type != null && !(type instanceof IJavaType) && !(type instanceof IGosuClass);
+    return type != null && !(type instanceof IJavaType); // && !(type instanceof IGosuClass);
   }
 
   public static GosuTypeFinder instance()
