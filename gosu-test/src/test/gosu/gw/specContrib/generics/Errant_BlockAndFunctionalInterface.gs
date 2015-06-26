@@ -24,7 +24,7 @@ class Errant_BlockAndFunctionalInterface {
     var f2: Fun2<Q>
     acceptBlock2(f2)      //## issuekeys: INFERRED TYPE for 'S' is not within its bounds
 
-    acceptBlock1(new Fun1<S>() { function fun(p: S) {} })
+    acceptBlock1(new Fun1<S>() { override function fun(p: S) {} })
     acceptBlock2(new Fun2<Q>() { function fun(): Q { return null } })     //## issuekeys: INFERRED TYPE for 'S' is not within its bounds
   }
 }

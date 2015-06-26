@@ -26,7 +26,7 @@ class Errant_GosuTestClass2 {
   }
 
   class ClassA2 implements JavaInterface2 {
-    function foo(arrayList : ArrayList<Integer>) : List { return null}
+    override function foo(arrayList : ArrayList<Integer>) : List { return null}
     function test() {
       //IDE-2594 - OG Gosu shows error "No function defined for foo" - BAD
       var x1 : List = foo(new ArrayList<Integer>())
@@ -112,7 +112,7 @@ class Errant_GosuTestClass2 {
   }
 
   interface GosuInterface2b extends JavaInterface2 {
-    function foo(arrayList : ArrayList<Integer>) : List { return null }
+    override function foo(arrayList : ArrayList<Integer>) : List { return null }
     function bar(){}
   }
   class TestClassA2 implements GosuInterface2b {

@@ -14,13 +14,13 @@ class Errant_IfTypeNarrowing {
   }
 
   class A implements I1 {
-    function foo1() {}
+     override function foo1() {}
 
      property get Prop(): boolean { return false }
   }
 
   class B implements I2 {
-    function foo2() {}
+    override function foo2() {}
   }
 
   function test() {

@@ -172,12 +172,4 @@ class Errant_LogicalOperatorsTest {
     var y4 = true and 5  //## issuekeys: MSG_IMPLICIT_COERCION_ERROR
     var y5 = !not true
   }
-
-  function testCompoundTypes() {
-    var param: java.lang.Comparable<java.lang.Object> & java.lang.Integer
-    var q1 = param < 11000
-    var q2 = param != 11000
-    var q3 = param + 11000
-  }
-
 }

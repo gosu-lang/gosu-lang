@@ -34,7 +34,7 @@ class Errant_DefaultMethodsProperties {
   }
 
   class MyClass34 implements MyInterface3, MyInterface4 {
-    property get Age(): Integer {
+    override property get Age(): Integer {
       return null
     }
   }
