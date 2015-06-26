@@ -86,12 +86,15 @@ public abstract class IDEAResource implements IResource
 
   @Override
   public boolean isDescendantOf(@NotNull IDirectory dir) {
-    // note, trailing '/' prevents /root/src2 matching against /root/src
-    if(_path.contains(".jar")) {
-      return _path.startsWith(((IDEADirectory) dir)._path);
-    } else {
-     return (_path + '/').startsWith(((IDEADirectory) dir)._path + '/');
+    if( dir instanceof IDEADirectory ) {
+      // note, trailing '/' prevents /root/src2 matching against /root/src
+      if (_path.contains(".jar")) {
+        return _path.startsWith(((IDEADirectory) dir)._path);
+      } else {
+        return (_path + '/').startsWith(((IDEADirectory) dir)._path + '/');
+      }
     }
+    return false;
   }
 
   @NotNull

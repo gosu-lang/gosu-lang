@@ -6,6 +6,7 @@ import com.intellij.psi.PsiElementFinder;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.PsiPackage;
 import com.intellij.psi.impl.PsiManagerImpl;
+import com.intellij.psi.impl.file.PsiPackageImpl;
 import com.intellij.psi.search.GlobalSearchScope;
 import gw.lang.reflect.IDefaultTypeLoader;
 import gw.lang.reflect.INamespaceType;
@@ -134,14 +135,14 @@ public class GosuTypeFinder extends PsiElementFinder
     try
     {
       INamespaceType namespace = TypeSystem.getNamespace( qualifiedName );
-      if( namespace != null && !(namespace.getTypeLoader() instanceof IDefaultTypeLoader) )
+      if( namespace != null )
       {
         // If the namespace comes from a non-default typeloader, we assume it is a "virtual" namespace
         // and that it does not reflect a directory tree like a normal java package, otherwise it would
         // be resolved by the DefaultTypeloader
 
         PsiManager manager = PsiManagerImpl.getInstance( (Project)namespace.getModule().getExecutionEnvironment().getProject().getNativeProject() );
-        return new NonDirectoryPackage( manager, namespace.getName() );
+        return new PsiPackageImpl( manager, namespace.getName() );
       }
     }
     finally
