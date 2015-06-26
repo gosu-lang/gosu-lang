@@ -107,7 +107,7 @@ class GSRootDocImpl extends GSDocImpl implements RootDoc{
         name.startsWith( "_proxy_" ) ||
         name.contains( ".block_" ) ||
         name.contains( ".AnonymouS__" ) ||
-        name.contains( ".ProxyFor__" ) ||
+        name.contains( ".ProxyFor_" ) ||
         name.equals( 'Key' )
   }
 
