@@ -5,7 +5,7 @@ uses com.sun.javadoc.*
 /**
  * Created by carson on 4/17/15.
  */
-class GSParameterImpl implements Parameter {
+class GSParameterImpl implements com.sun.javadoc.Parameter {
 
   var _name : String as Name
   var _type : com.sun.javadoc.Type as Type
