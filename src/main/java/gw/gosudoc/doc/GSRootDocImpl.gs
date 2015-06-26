@@ -111,10 +111,6 @@ class GSRootDocImpl extends GSDocImpl implements RootDoc{
         name.equals( 'Key' )
   }
 
-  function getPattern( val: String ): Pattern{
-    return Pattern.compile( "^" + val + "$" )
-  }
-
   override function options(): String[][]{
     var l = new ArrayList<String[]>()
     for( externalJavadoc in _externalDocs ){

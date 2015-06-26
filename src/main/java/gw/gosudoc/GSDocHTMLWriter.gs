@@ -26,7 +26,7 @@ class GSDocHTMLWriter {
       throw "Destination directory must be a valid directory path"
     }
     // Create Javadoc Data Structure
-    var rootDoc = new GSRootDocImpl(InputDirs, Output, Filters)
+    var rootDoc = new GSRootDocImpl(InputDirs, Output, Filters, ExternalDocs)
     rootDoc.printNotice( "Generating Documentation" )
     rootDoc.genDocs()
     rootDoc.printNotice( "Finished loading types:  now generating GosuDoc HTML to: ${Output.AbsolutePath}" )
