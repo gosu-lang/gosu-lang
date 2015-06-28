@@ -13,10 +13,11 @@ import gw.lang.reflect.Modifier;
 import gw.lang.reflect.TypeBase;
 import gw.lang.reflect.gs.IPropertiesType;
 import gw.util.GosuClassUtil;
+import gw.util.StreamUtil;
 import gw.util.concurrent.LockingLazyVar;
 
-import java.nio.charset.Charset;
-import java.nio.file.Files;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -140,14 +141,9 @@ public class PropertiesType extends TypeBase implements IPropertiesType {
       {
         try
         {
-          StringBuilder sb = new StringBuilder();
-          List<String> lines = Files.readAllLines( files[0].toJavaFile().toPath(), Charset.defaultCharset() );
-          for( String line: lines )
-          {
-            sb.append( line ).append( "\n" );
-          }
-          _contentCached = sb.toString();
-            //new Scanner( files[0].toJavaFile() ).useDelimiter( "\\Z" ).next();
+          InputStream inputStream = files[0].openInputStream();
+          _contentCached = StreamUtil.getContent( new InputStreamReader( inputStream ) );
+          inputStream.close();
         }
         catch( Exception e )
         {
