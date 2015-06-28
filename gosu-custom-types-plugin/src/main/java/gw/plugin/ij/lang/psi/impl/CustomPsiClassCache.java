@@ -285,9 +285,7 @@ public class CustomPsiClassCache extends AbstractTypeSystemListener
       sb.append( pi.getFeatureType().getName() );
       sb.append( " " );
       sb.append( "set" ).append( pi.getDisplayName() );
-      sb.append( "( " );
-      sb.append( pi.getFeatureType().getName() );
-      sb.append( " ) {}\n" );
+      sb.append( "( " ).append( pi.getFeatureType().getName() ).append( " value ) {}\n" );
     }
   }
 
