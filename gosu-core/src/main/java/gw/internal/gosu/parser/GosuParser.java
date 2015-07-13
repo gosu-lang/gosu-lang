@@ -8848,7 +8848,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
   //     <argument-list> , <expression>
   //
   //   if-statement
-  //     if ( <expression> ) <statement> [ else <statement> ] [ unless ( <expression> ) ]
+  //     if ( <expression> ) <statement> [ else <statement> ]
   //
   //   for...in-statement
   //     for ( <identifier> in <expression> [ index <identifier> ] ) <statement>
@@ -10346,18 +10346,6 @@ public final class GosuParser extends ParserBase implements IGosuParser
           ifStmt.setElseStatement( popStatement() );
         }
       }
-
-      //## todo: in Diamond remove usage of 'unless' clause in if-statement
-      if( match( null, Keyword.KW_except ) || match( null, Keyword.KW_unless ) )
-      {
-        verify( ifStmt, match( null, '(' ), Res.MSG_EXPECTING_LEFTPAREN_EXCEPT );
-        parseExpression();
-        verify( ifStmt, match( null, ')' ), Res.MSG_EXPECTING_RIGHTPAREN_EXCEPT );
-        Expression ee = popExpression();
-
-        ifStmt.setExcept( ee );
-      }
-
     }
 
     pushStatement( ifStmt );
