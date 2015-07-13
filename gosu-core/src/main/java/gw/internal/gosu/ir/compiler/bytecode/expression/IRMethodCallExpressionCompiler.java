@@ -42,7 +42,8 @@ public class IRMethodCallExpressionCompiler extends AbstractBytecodeCompiler {
     int opCode;
     if( type != null ) {
       // the type is structural, the root expr is now wrapped in a proxy of the structural interface
-      assert type.isStructural();
+      boolean b = type.isStructural();
+      assert b;
       opCode = Opcodes.INVOKEINTERFACE;
     }
     else if (expression.getRoot() == null) {

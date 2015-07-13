@@ -393,8 +393,9 @@ public class GosuClassProxyFactory
     if( value instanceof IAnnotationInfo ) {
       return makeAnnotationSource( (IAnnotationInfo)value );
     }
+    boolean isArray = returnType.isArray();
     if( value.getClass().isArray() ) {
-      assert returnType.isArray();
+      assert isArray;
       StringBuilder arrayValue = new StringBuilder( "{" );
       for( int i = 0; i < Array.getLength( value ); i++ ) {
         if( i > 0 ) {
@@ -406,7 +407,7 @@ public class GosuClassProxyFactory
       return arrayValue.toString();
     }
     if( List.class.isAssignableFrom( value.getClass() ) ) {
-      assert returnType.isArray();
+      assert isArray;
       List list = (List)value;
       StringBuilder arrayValue = new StringBuilder( "{" );
       for( int i = 0; i < list.size(); i++ ) {
@@ -418,7 +419,7 @@ public class GosuClassProxyFactory
       arrayValue.append( "}" );
       return arrayValue.toString();
     }
-    if( returnType.isArray() ) {
+    if(isArray) {
       StringBuilder arrayValue = new StringBuilder( "{" );
       arrayValue.append( makeValueString( value, returnType.getComponentType() ) );
       arrayValue.append( "}" );

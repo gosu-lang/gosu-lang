@@ -57,7 +57,8 @@ public class RepeatableContainerAnnotationInfo implements IAnnotationInfo {
 
   @Override
   public Object getFieldValue( String fieldName ) {
-    assert fieldName.equals( "value" );
+    boolean value = fieldName.equals("value");
+    assert value;
     try {
       return _annotations;
     }

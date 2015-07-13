@@ -6509,7 +6509,8 @@ public final class GosuParser extends ParserBase implements IGosuParser
     {
       if( bMatchOpeningParen )
       {
-        assert match( null, '(' );
+        boolean b = match(null, '(');
+        assert b;
       }
       eatBlock( '(', ')', false );
       return isEndOfExpression();

@@ -283,14 +283,17 @@ public class Annotations {
           } else if ("hashCode".equals(method.getName())) {
             result = hashCodeImpl();
           } else {
-            assert "toString".equals(method.getName());
+            boolean b = "toString".equals(method.getName());
+            assert b;
             result = toStringImpl();
           }
         } else if ( Annotation.class.equals(method.getDeclaringClass())) {
-          assert "annotationType".equals(method.getName());
+          boolean b = "annotationType".equals(method.getName());
+          assert b;
           result = _annotationType;
         } else {
-          assert _annotationType.equals(method.getDeclaringClass());
+          boolean b = _annotationType.equals(method.getDeclaringClass());
+          assert b;
           result = _elements.get(method).getValue();
         }
         return result;
