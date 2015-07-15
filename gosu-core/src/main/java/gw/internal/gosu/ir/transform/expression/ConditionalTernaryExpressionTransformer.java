@@ -36,11 +36,12 @@ public class ConditionalTernaryExpressionTransformer extends AbstractExpressionT
       // temp != null ? temp : <second>
       IRSymbol firstSym = _cc().makeAndIndexTempSymbol( getDescriptor( _expr().getFirst().getType() ) );
       IRAssignmentStatement firstAssn = buildAssignment( firstSym, ExpressionTransformer.compile( _expr().getFirst(), _cc() ) );
-      return buildTernary(
-        buildComposite( firstAssn, buildNotEquals( identifier( firstSym ), nullLiteral() ) ),
-        identifier( firstSym ),
-        ExpressionTransformer.compile( _expr().getSecond(), _cc() ),
-        getDescriptor( _expr().getType() ) );
+      return buildComposite( firstAssn,
+        buildTernary(
+          buildNotEquals( identifier( firstSym ), nullLiteral() ),
+          identifier( firstSym ),
+          ExpressionTransformer.compile( _expr().getSecond(), _cc() ),
+          getDescriptor( _expr().getType() ) ) );
     }
     else
     {
