@@ -785,7 +785,8 @@ public abstract class ParserBase implements IParserPart
     // be a parse error indicating that one of the dimensions is non-final.
     if( (isNonFinalDimension( lhsType ) || isNonFinalDimension( rhsType )) )
     {
-      assert parsedElement.getParseExceptions().size() > 0;
+      int size = parsedElement.getParseExceptions().size();
+      assert size > 0;
       return ErrorType.getInstance();
     }
 
@@ -1111,7 +1112,8 @@ public abstract class ParserBase implements IParserPart
 
   protected ISymbol resolveSymbol( ParsedElement e, String strName, boolean ignoreFunctionSymbols )
   {
-    assert getSymbolTable() != null : CommonServices.getGosuLocalizationService().localize( Res.MSG_NULL_SYMBOL_TABLE );
+    boolean b = getSymbolTable() != null;
+    assert b : CommonServices.getGosuLocalizationService().localize( Res.MSG_NULL_SYMBOL_TABLE );
 
     ISymbol sym;
 

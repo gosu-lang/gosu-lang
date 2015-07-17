@@ -2010,7 +2010,8 @@ public class GosuClass extends AbstractType implements IGosuClassInternal
       innerClass = maybeLoadBlockToInterfaceProxy( strRelativeName );
       if( innerClass != null )
       {
-        assert getInnerClassesMap().get( strRelativeName ) == innerClass;
+        boolean b = getInnerClassesMap().get(strRelativeName) == innerClass;
+        assert b;
       }
     }
     return innerClass;

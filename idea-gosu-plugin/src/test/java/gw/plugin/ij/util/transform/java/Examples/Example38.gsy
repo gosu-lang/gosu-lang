@@ -5,13 +5,17 @@ uses java.lang.*
 class Example38  {
 
     static internal var ps : double[] = new double[6]
-    /*
-        static {
-            double sum = 0;
-            for (int i = 0; i < ps.length; i++) ps[i] = sum += Math.random();
-            for (int i = 0; i < ps.length; i++) ps[i] /= sum;
+    /* FIX ME: initializer blocks not allowed in Gosu */ {
+        var sum = 0.0
+        for (i in 0..|ps.length) {
+            ps[i] = sum += Math.random()
         }
-    */
+
+        for (i in 0..|ps.length) {
+            ps[i] /= sum
+        }
+
+    }
 
     static function roll() : int {
         var p : double = Math.random()

@@ -11,7 +11,7 @@ import java.io.IOException;
 
 
 public class GosuVisitorExamplesTest extends TestClass {
-  private String folder = "gw/plugin/ij/util/transform/java/Examples/";
+  private String folder = "./idea-gosu-plugin/src/test/java/gw/plugin/ij/util/transform/java/Examples/";
   private GosuVisitorTestUtil helper = new GosuVisitorTestUtil();
 
   public void testExample1() {

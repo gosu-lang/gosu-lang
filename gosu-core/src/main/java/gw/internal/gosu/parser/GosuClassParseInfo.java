@@ -92,7 +92,8 @@ public class GosuClassParseInfo {
 
   public void addStaticFunction( DynamicFunctionSymbol function )
   {
-    assert function.isClassMember();
+    boolean b = function.isClassMember();
+    assert b;
     if( _listStaticFunctions == Collections.EMPTY_LIST )
     {
       _listStaticFunctions = new ArrayList<DynamicFunctionSymbol>( 2 );
@@ -154,7 +155,8 @@ public class GosuClassParseInfo {
 
   public void addMemberFunction( DynamicFunctionSymbol function )
   {
-    assert function.isClassMember();
+    boolean b = function.isClassMember();
+    assert b;
     if( function.isStatic() )
     {
       addStaticFunction( function );
