@@ -42,8 +42,6 @@ public class Keyword implements CharSequence
   public static final Keyword KW_uses = addReservedWord( "uses" );
   public static final Keyword KW_if = addReservedWord( "if" );
   public static final Keyword KW_else = addReservedWord( "else" );
-  public static final Keyword KW_except = addReservedWord( "except", true );
-  public static final Keyword KW_unless = addReservedWord( "unless" );
   public static final Keyword KW_foreach = addReservedWord( "foreach" );
   public static final Keyword KW_for = addReservedWord( "for" );
   public static final Keyword KW_index = addReservedWord( "index", true );

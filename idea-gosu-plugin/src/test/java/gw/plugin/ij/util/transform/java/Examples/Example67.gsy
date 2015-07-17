@@ -6,13 +6,14 @@ uses java.util.*
 class Example67  {
 
     private static final var wdayNumber : HashMap<String, Integer> = new HashMap<String, Integer>()
-    /*
-        static {
-            int wdayno = 0;
-            String[] wdays = {"Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"};
-            for (String wday : wdays) wdayNumber.put(wday, wdayno++);
+    /* FIX ME: initializer blocks not allowed in Gosu */ {
+        var wdayno = 0
+        var wdays : String[] = {"Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"}
+        for (wday in wdays) {
+            wdayNumber.put(wday, wdayno++)
         }
-    */
+
+    }
 
     public static function main(args : String[]) : void {
         if (args.length != 2) {

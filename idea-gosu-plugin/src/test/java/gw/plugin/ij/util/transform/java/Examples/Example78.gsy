@@ -14,9 +14,7 @@ class Example78  {
     }
 
     static function substring1(query : String, target : String) : boolean {
-        /*
-            nextposition: 
-        */
+        /* FIX ME: labeled statements not allowed in Gosu */nextposition:
         var j = 0
         while (j <= target.length() - query.length()) {
             for (k in 0..|query.length()) {

@@ -26,7 +26,6 @@ public final class IfStatement extends Statement implements IIfStatement
   protected Expression _expression;
   protected Statement _statement;
   protected Statement _elseStatement;
-  protected Expression _except;
 
   /**
    * @return The conditional expression.
@@ -88,22 +87,6 @@ public final class IfStatement extends Statement implements IIfStatement
     _elseStatement = elseStatement;
   }
 
-  /**
-   * @return The exceptional conditional expression.
-   * @deprecated
-   */
-  public Expression getExcept()
-  {
-    return _except;
-  }
-  /**
-   * @deprecated
-   */
-  public void setExcept( Expression except )
-  {
-    _except = except;
-  }
-
   public Object execute()
   {
     if( !isCompileTimeConstant() )
@@ -133,8 +116,7 @@ public final class IfStatement extends Statement implements IIfStatement
     //noinspection deprecation
     return "if( " + toString(getExpression()) + " )\n" +
            toString(getStatement()) +
-           strElseStmt +
-           (getExcept() == null ? "" : "\nunless( " + getExcept() + " )" );
+           strElseStmt;
   }
   
   private String toString(Object o) {

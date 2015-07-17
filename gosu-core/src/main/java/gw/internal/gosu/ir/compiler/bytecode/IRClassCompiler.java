@@ -297,7 +297,8 @@ public class IRClassCompiler extends AbstractBytecodeCompiler
   {
     if( value == null )
     {
-      assert !type.isPrimitive();
+      boolean b = !type.isPrimitive();
+      assert b;
       annotationVisitor.visit( name, value );
     }
     else if( JavaClassIRType.get( Enum.class ).isAssignableFrom( type ) )
@@ -318,12 +319,14 @@ public class IRClassCompiler extends AbstractBytecodeCompiler
           cls == Double.class ||
           cls == String.class )
       {
-        assert type.isPrimitive() || type == JavaClassIRType.get( String.class );
+        boolean b = type.isPrimitive() || type == JavaClassIRType.get(String.class);
+        assert b;
         annotationVisitor.visit( name, value );
       }
       else if( cls.isArray() )
       {
-        assert type.isArray();
+        boolean b = type.isArray();
+        assert b;
 
         AnnotationVisitor nestedVisitor = annotationVisitor.visitArray( name );
 

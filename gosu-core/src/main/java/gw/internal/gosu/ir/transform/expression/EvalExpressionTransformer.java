@@ -115,7 +115,8 @@ public class EvalExpressionTransformer extends EvalBasedTransformer<EvalExpressi
     }
 
     Class<?> javaClass = gp.getBackingClass();
-    assert javaClass.getClassLoader() instanceof SingleServingGosuClassLoader;
+    ClassLoader classLoader = javaClass.getClassLoader();
+    assert classLoader instanceof SingleServingGosuClassLoader;
     List<Object> args = new ArrayList<Object>();
     if( !gp.isStatic() )
     {

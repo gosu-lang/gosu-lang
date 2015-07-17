@@ -354,7 +354,8 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
     List<IRElement> namedArgElements = new ArrayList<IRElement>();
     if( namedArgOrder != null && namedArgOrder.length > 0 )
     {
-      assert namedArgOrder.length == explicitArgs.size();
+      boolean b = namedArgOrder.length == explicitArgs.size();
+      assert b;
       //noinspection ForLoopReplaceableByForEach
       for( int i = 0; i < namedArgOrder.length; i++ )
       {

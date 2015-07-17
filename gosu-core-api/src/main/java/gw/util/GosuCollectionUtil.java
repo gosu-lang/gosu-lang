@@ -76,7 +76,8 @@ public class GosuCollectionUtil
     Iterator<?> listIter = list.iterator();
     for( Object prefixElement : prefix )
     {
-      assert listIter.hasNext() :
+      boolean b = listIter.hasNext();
+      assert b :
         "list claims to have at least as many elements as prefix, but its iterator is exhausted first";
       if( !GosuObjectUtil.equals( prefixElement, listIter.next() ) )
       {

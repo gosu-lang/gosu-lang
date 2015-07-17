@@ -70,8 +70,6 @@ public class Strings extends ListResourceBundle
        {Res.MSG_EXPECTING_RIGHTPAREN_SWITCH.getKey(), "Expecting ')' to close \"switch\" expression."},
        {Res.MSG_EXPECTING_LEFTPAREN_WHILE.getKey(), "Expecting '(' to open \"while\" condition."},
        {Res.MSG_EXPECTING_RIGHTPAREN_WHILE.getKey(), "Expecting ')' to close \"while\" condition."},
-       {Res.MSG_EXPECTING_LEFTPAREN_EXCEPT.getKey(), "Expecting '(' to open \"except\" condition."},
-       {Res.MSG_EXPECTING_RIGHTPAREN_EXCEPT.getKey(), "Expecting ')' to close \"except\" condition."},
        {Res.MSG_EXPECTING_LEFTPAREN_USING.getKey(), "Expecting '(' to open \"using\" predicate."},
        {Res.MSG_EXPECTING_RIGHTPAREN_USING.getKey(), "Expecting ')' to close \"using\" predicate."},
        {Res.MSG_EXPECTING_WHILE_DO.getKey(), "Expecting \"while\" clause to close \"do...while\" statement."},

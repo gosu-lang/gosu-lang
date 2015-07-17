@@ -14,6 +14,9 @@ import javax.tools.JavaCompiler;
 import javax.tools.JavaFileObject;
 import javax.tools.StandardJavaFileManager;
 import java.io.*;
+import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Scanner;
 
@@ -50,18 +53,13 @@ public class GosuVisitorTestUtil {
     return output;
   }
 
-  public String readFile(String path) throws FileNotFoundException {
-    InputStream in = getClass().getClassLoader().getResourceAsStream(path);
+  public String readFile(String path) throws IOException {
     StringBuilder src = new StringBuilder();
-    Scanner scanner = null;
-    try {
-      scanner = new Scanner(in, "UTF-8");
-
-      while (scanner.hasNextLine()) {
-        src.append(scanner.nextLine() + "\n");
-      }
-    } finally {
-      scanner.close();
+    Charset charset = Charset.forName("US-ASCII");
+    BufferedReader reader = Files.newBufferedReader( Paths.get(path), charset);
+    String line = null;
+    while ((line = reader.readLine()) != null) {
+      src.append(line).append("\n");
     }
     return src.toString();
   }

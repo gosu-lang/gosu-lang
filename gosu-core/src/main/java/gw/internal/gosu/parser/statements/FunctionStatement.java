@@ -100,7 +100,8 @@ public class FunctionStatement extends Statement implements IFunctionStatement
       return true;
     } else {
       if ( _dfs.getName().charAt( 0 ) == '@') {
-        assert _dfs.getName().toString().contains("(");
+        boolean b = _dfs.getName().toString().contains("(");
+        assert b;
         int indexOfParen = _dfs.getName().length() - 1;
         while(indexOfParen > 0) {
           if ( _dfs.getName().charAt( indexOfParen ) == '(') {

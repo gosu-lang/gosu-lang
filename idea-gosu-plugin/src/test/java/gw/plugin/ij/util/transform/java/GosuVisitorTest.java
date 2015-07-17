@@ -11,7 +11,7 @@ import java.io.IOException;
 
 
 public class GosuVisitorTest extends TestClass {
-  private String folder = "gw/plugin/ij/util/transform/java/JavaClasses/";
+  private String folder = "./idea-gosu-plugin/src/test/java/gw/plugin/ij/util/transform/java/JavaClasses/";
   private GosuVisitorTestUtil helper = new GosuVisitorTestUtil();
 
   public void testBasic() {
@@ -80,6 +80,10 @@ public class GosuVisitorTest extends TestClass {
 
   public void testVisitAnnotation() {
     verify("TestAnnotation");
+  }
+
+  public void testJava8() {
+    verify("TestJava8");
   }
 
   public void testIllegalSyntax() {

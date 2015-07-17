@@ -70,8 +70,6 @@ public class Res
   public static final ResourceKey MSG_EXPECTING_RIGHTPAREN_IF = new ResourceKey("MSG_EXPECTING_RIGHTPAREN_IF");
   public static final ResourceKey MSG_EXPECTING_LEFTPAREN_SWITCH = new ResourceKey("MSG_EXPECTING_LEFTPAREN_SWITCH");
   public static final ResourceKey MSG_EXPECTING_RIGHTPAREN_SWITCH = new ResourceKey("MSG_EXPECTING_RIGHTPAREN_SWITCH");
-  public static final ResourceKey MSG_EXPECTING_LEFTPAREN_EXCEPT = new ResourceKey("MSG_EXPECTING_LEFTPAREN_EXCEPT");
-  public static final ResourceKey MSG_EXPECTING_RIGHTPAREN_EXCEPT = new ResourceKey("MSG_EXPECTING_RIGHTPAREN_EXCEPT");
   public static final ResourceKey MSG_EXPECTING_LEFTPAREN_WHILE = new ResourceKey("MSG_EXPECTING_LEFTPAREN_WHILE");
   public static final ResourceKey MSG_EXPECTING_RIGHTPAREN_WHILE = new ResourceKey("MSG_EXPECTING_RIGHTPAREN_WHILE");
   public static final ResourceKey MSG_EXPECTING_WHILE_DO = new ResourceKey("MSG_EXPECTING_WHILE_DO");
