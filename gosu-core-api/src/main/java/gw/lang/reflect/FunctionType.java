@@ -730,6 +730,46 @@ public class FunctionType extends AbstractType implements IFunctionType, IGeneri
     return true;
   }
 
+  public static IType[] findContravariantParams( IType[] lhsParams, IType[] rhsParams )
+  {
+    if( lhsParams.length != rhsParams.length )
+    {
+      return null;
+    }
+
+    IType[] types = new IType[lhsParams.length];
+    for( int i = 0; i < rhsParams.length; i++ )
+    {
+      IType myParamType = lhsParams[i];
+      IType otherParamType = rhsParams[i];
+      if( StandardCoercionManager.arePrimitiveTypesAssignable( otherParamType, myParamType ) )
+      {
+        types[i] = myParamType;
+      }
+      else if( StandardCoercionManager.arePrimitiveTypesAssignable( myParamType, otherParamType ) )
+      {
+        types[i] = otherParamType;
+      }
+      else if( otherParamType.isAssignableFrom( myParamType ) )
+      {
+        types[i] = myParamType;
+      }
+      else if( myParamType.isAssignableFrom( myParamType ) )
+      {
+        types[i] = otherParamType;
+      }
+      else if( isDynamic( otherParamType ) || isDynamic( myParamType ) )
+      {
+        types[i] = TypeSystem.getByFullName( "dynamic.Dynamic" );
+      }
+      else
+      {
+        return null;
+      }
+    }
+    return types;
+  }
+
   private static boolean isDynamic( IType otherParamType )
   {
     return otherParamType instanceof IPlaceholder && ((IPlaceholder)otherParamType).isPlaceholder();

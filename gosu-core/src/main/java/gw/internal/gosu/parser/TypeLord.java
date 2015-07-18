@@ -4,11 +4,13 @@
 
 package gw.internal.gosu.parser;
 
+import gw.internal.gosu.parser.expressions.BlockType;
 import gw.internal.gosu.parser.expressions.TypeVariableDefinition;
 import gw.internal.gosu.parser.expressions.TypeVariableDefinitionImpl;
 import gw.lang.parser.AsmTypeVarMatcher;
 import gw.lang.parser.GosuParserFactory;
 import gw.lang.parser.GosuParserTypes;
+import gw.lang.parser.IExpression;
 import gw.lang.parser.IScriptPartId;
 import gw.lang.parser.ITypeUsesMap;
 import gw.lang.parser.RawTypeVarMatcher;
@@ -21,6 +23,7 @@ import gw.lang.parser.exceptions.ParseResultsException;
 import gw.lang.parser.expressions.ITypeLiteralExpression;
 import gw.lang.parser.expressions.ITypeVariableDefinition;
 import gw.lang.reflect.FunctionType;
+import gw.lang.reflect.IBlockType;
 import gw.lang.reflect.IErrorType;
 import gw.lang.reflect.IFunctionType;
 import gw.lang.reflect.IMetaType;
@@ -54,6 +57,7 @@ import java.lang.reflect.TypeVariable;
 import java.lang.reflect.WildcardType;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -1708,11 +1712,20 @@ public class TypeLord
     // OK, we have disjoint types, so we need to do the full-monty LUB analysis
     IType seedType = types.get( 0 );
 
-    Set<IType> lubSet = new HashSet<IType>( seedType.getAllTypesInHierarchy() );
-    for( int i = 1; i < types.size(); i++ )
+    Set<IType> lubSet;
+
+    if( areAllTypesBlocks( types ) )
     {
-      IType iIntrinsicType = types.get( i );
-      lubSet.retainAll( iIntrinsicType.getAllTypesInHierarchy() );
+      lubSet = findLubForBlockTypes( (List<IBlockType>)types, resolvingTypes );
+    }
+    else
+    {
+      lubSet = new HashSet<IType>( seedType.getAllTypesInHierarchy() );
+      for( int i = 1; i < types.size(); i++ )
+      {
+        IType iIntrinsicType = types.get( i );
+        lubSet.retainAll( iIntrinsicType.getAllTypesInHierarchy() );
+      }
     }
 
     pruneNonLUBs( lubSet );
@@ -1734,6 +1747,37 @@ public class TypeLord
     {
       return CompoundType.get( lubSet );
     }
+  }
+
+  private static Set<IType> findLubForBlockTypes( List<? extends IBlockType> types, Set<IType> resolvingTypes )
+  {
+    IBlockType lowerBound = types.get( 0 );
+    for( int i = 1; i < types.size(); i++ )
+    {
+      IBlockType csr = types.get( i );
+      if( lowerBound.isAssignableFrom( csr ) )
+      {
+        continue;
+      }
+      IType[] contraTypes = FunctionType.findContravariantParams( lowerBound.getParameterTypes(), csr.getParameterTypes() );
+      if( contraTypes == null )
+      {
+        return Collections.singleton( JavaTypes.IBLOCK() );
+      }
+      IType returnType = findLeastUpperBoundImpl( Arrays.asList( lowerBound.getReturnType(), csr.getReturnType() ), resolvingTypes );
+      lowerBound = new BlockType( returnType, contraTypes, Arrays.asList( lowerBound.getParameterNames() ), Collections.<IExpression>emptyList() );
+    }
+    return Collections.singleton( lowerBound );
+  }
+
+  private static boolean areAllTypesBlocks( List<? extends IType> types )
+  {
+    for( IType t: types ) {
+      if( !(t instanceof IBlockType) ) {
+        return false;
+      }
+    }
+    return true;
   }
 
   public static IType getLeastUpperBoundForPrimitiveTypes(IType t0, IType t1) {
