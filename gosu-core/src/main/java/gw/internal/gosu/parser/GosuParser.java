@@ -12713,7 +12713,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
             {
               if( dfs.isOverride() || owningTypeForDfs == getGosuClass() )
               {
-                verify( element, false, Res.MSG_CANNOT_OVERRIDE_FUNCTION_FROM_ENHANCEMENT );
+                addError( element, Res.MSG_CANNOT_OVERRIDE_FUNCTION_FROM_ENHANCEMENT );
               }
               else
               {
@@ -12723,9 +12723,13 @@ public final class GosuParser extends ParserBase implements IGosuParser
             else
             {
               boolean bSameButNotInSameClass = !GosuObjectUtil.equals( dfsExisting.getScriptPart(), dfs.getScriptPart() );
-              if( !verify( element, bSameButNotInSameClass,
-                      Res.MSG_FUNCTION_ALREADY_DEFINED, dfs.getMethodSignature(), getScriptPart() ) )
+              if( !verify( element, bSameButNotInSameClass, Res.MSG_FUNCTION_ALREADY_DEFINED, dfs.getMethodSignature(), getScriptPart() ) )
               {
+                return;
+              }
+              if( !verify( element, dfs.isStatic() || !dfsExisting.isStatic(), Res.MSG_FUNCTION_ALREADY_DEFINED, dfs.getMethodSignature(), getScriptPart() ) )
+              {
+                // non-static method cannot override/shadow static
                 return;
               }
               boolean bClassAndReturnTypesCompatible = !GosuObjectUtil.equals( dfsExisting.getScriptPart(), dfs.getScriptPart() ) &&

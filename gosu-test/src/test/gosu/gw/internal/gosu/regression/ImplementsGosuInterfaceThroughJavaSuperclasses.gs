@@ -6,9 +6,4 @@ class ImplementsGosuInterfaceThroughJavaSuperclasses extends JavaClassExtendsJav
   function aProtectedMethodOnTheBaseClass() : String {
     return super.aProtectedMethodOnTheBaseClass()
   }
-
-  function aStaticMethodOnTheBaseClass() : String {
-    return "Foo"
-  }
-
 }

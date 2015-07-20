@@ -8,7 +8,6 @@ class GosuInterfaceImplementedThroughSuperClassWorksTest extends TestClass {
     assertEquals( "From JavaClassWithMethod", x.aMethodOnTheBaseClass() )
     assertEquals( "From JavaClassExtendsJavaClassWithMethod", x.aMethodOnTheJavaExtensionClass() )
     assertEquals( "Protected From JavaClassWithMethod", x.aProtectedMethodOnTheBaseClass() )
-    assertEquals( "Foo", x.aStaticMethodOnTheBaseClass() )
   }
 
 }
