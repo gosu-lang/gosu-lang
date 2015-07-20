@@ -15,7 +15,8 @@ class HasWhileStatement
   static function hasWhileNeverEnterBody() : String
   {
     var s = "pass"
-    while( 0 > 1 )
+    var cond = 0 > 1
+    while( cond )
     {
       s = "fail"
     }

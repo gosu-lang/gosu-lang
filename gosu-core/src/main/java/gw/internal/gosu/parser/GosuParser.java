@@ -9807,9 +9807,16 @@ public final class GosuParser extends ParserBase implements IGosuParser
       Expression e = popExpression();
 
       whileStmt.setExpression( e );
+      verifyLoopConditionNotAlwaysFalse( e );
       whileStmt.setStatement( stmt );
     }
     pushStatement(whileStmt);
+  }
+
+  private void verifyLoopConditionNotAlwaysFalse( Expression e )
+  {
+    verify( e, !e.isCompileTimeConstant() || e.hasParseExceptions() || (boolean)e.evaluate(),
+            Res.MSG_CONDITION_IS_ALWAYS_TRUE_FALSE, false );
   }
 
   private void parseWhileStatement()
@@ -9824,6 +9831,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
     try
     {
       whileStmt.setExpression( e );
+      verifyLoopConditionNotAlwaysFalse( e );
       if( verify( whileStmt, parseLoopStatement(), Res.MSG_EXPECTING_STATEMENT ) )
       {
         Statement stmt = popStatement();

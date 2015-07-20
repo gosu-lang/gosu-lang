@@ -8,7 +8,8 @@ class Errant_TheWhileStatementTest  {
     while(i < 10) i++
     while(i) { i++ }  //## issuekeys: MSG_IMPLICIT_COERCION_ERROR
     i = 0
-    while(false) { i++ }
+    while(true) { i++ }
+    while(false) { i++ } //## issuekeys: MSG_UNREACHABLE_STMT, MSG_CONDITION_IS_ALWAYS_TRUE_FALSE
     while(new Boolean(false)) { i++ }
   }
 
