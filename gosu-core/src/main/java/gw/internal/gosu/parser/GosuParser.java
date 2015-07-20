@@ -10854,6 +10854,10 @@ public final class GosuParser extends ParserBase implements IGosuParser
   {
     if( e.getType() instanceof IErrorType || !e.isCompileTimeConstant() && !(e instanceof Literal)  )
     {
+      if( e instanceof ImplicitTypeAsExpression )
+      {
+        verifyCaseIsUnique( ((ImplicitTypeAsExpression)e).getLHS(), cases );
+      }
       return; // Can't verify this
     }
 
@@ -10872,7 +10876,11 @@ public final class GosuParser extends ParserBase implements IGosuParser
     for( CaseClause cc: cases )
     {
       Expression expr = cc.getExpression();
-      if( expr != null && (expr.isCompileTimeConstant() || e instanceof Literal) ) {
+      if( expr instanceof ImplicitTypeAsExpression )
+      {
+        expr = ((ImplicitTypeAsExpression)expr).getLHS();
+      }
+      if( expr != null && !expr.hasParseExceptions() && (expr.isCompileTimeConstant() || expr instanceof Literal) ) {
         Object csr;
         try {
           csr = expr.evaluate();

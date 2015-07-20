@@ -41,6 +41,8 @@ class Errant_DuplicateCaseInSwitch  {
         break
       case 42:       //## issuekeys: MSG_DUPLICATE_CASE_EXPRESSION
         break
+      case 41 + 1:   //## issuekeys: MSG_DUPLICATE_CASE_EXPRESSION
+        break
     }
 
     var e: E
