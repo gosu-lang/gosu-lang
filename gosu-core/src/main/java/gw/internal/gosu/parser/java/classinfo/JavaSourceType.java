@@ -711,7 +711,7 @@ public abstract class JavaSourceType extends AbstractJavaClassInfo implements IJ
 
   @Override
   public int getModifiers() {
-    return getModifierList().getModifiers();
+    return getModifierList().getModifiers() | ((isInterface() && getEnclosingClass() != null) ? Modifier.STATIC : 0);
   }
 
   public IModifierList getModifierList() {
