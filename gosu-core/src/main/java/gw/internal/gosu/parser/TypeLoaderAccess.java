@@ -22,6 +22,7 @@ import gw.lang.parser.TypeVarToTypeMap;
 import gw.lang.parser.exceptions.ParseResultsException;
 import gw.lang.parser.expressions.ITypeLiteralExpression;
 import gw.lang.reflect.FunctionType;
+import gw.lang.reflect.ICompoundType;
 import gw.lang.reflect.IDefaultTypeLoader;
 import gw.lang.reflect.IErrorType;
 import gw.lang.reflect.IFunctionType;
@@ -1297,6 +1298,9 @@ public class TypeLoaderAccess extends BaseService implements ITypeSystem
   }
 
   public boolean canCast( IType lhsType, IType rhsType ) {
+    if( lhsType instanceof ICompoundType ) {
+      return canCastCompountType( (ICompoundType)lhsType, rhsType );
+    }
     while( lhsType instanceof TypeVariableType && !TypeLord.isRecursiveType( (TypeVariableType)lhsType, ((TypeVariableType)lhsType).getBoundingType() ) ) {
       lhsType = ((TypeVariableType)lhsType).getBoundingType();
     }
@@ -1358,6 +1362,16 @@ public class TypeLoaderAccess extends BaseService implements ITypeSystem
       }
     }
     return false;
+  }
+
+  private boolean canCastCompountType( ICompoundType lhsType, IType rhsType )
+  {
+    for( IType type: lhsType.getTypes() ) {
+      if( !canCast( type, rhsType ) ) {
+        return false;
+      }
+    }
+    return true;
   }
 
   private boolean genericInterfacesClash( IType rhsType, IType lhsType ) {
