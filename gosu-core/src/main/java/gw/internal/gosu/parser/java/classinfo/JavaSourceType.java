@@ -27,6 +27,7 @@ import gw.lang.GosuShop;
 import gw.lang.SimplePropertyProcessing;
 import gw.lang.javadoc.IClassDocNode;
 import gw.lang.parser.TypeVarToTypeMap;
+import gw.lang.parser.coercers.FunctionToInterfaceCoercer;
 import gw.lang.reflect.EnumValuePlaceholder;
 import gw.lang.reflect.IAnnotationInfo;
 import gw.lang.reflect.IDefaultTypeLoader;
@@ -282,7 +283,13 @@ public abstract class JavaSourceType extends AbstractJavaClassInfo implements IJ
     for (int i = 0; i < typeParameters.length; i++) {
       typeParameters[i] = createType(typeResolver, typeArguments.get(i));
       if (typeParameters[i] instanceof JavaWildcardType && ((JavaWildcardType)typeParameters[i]).getUpperBound() == NULL_TYPE) {
-        ((JavaWildcardType)typeParameters[i]).setBound(parameters[i].getBounds()[0]);
+        if( FunctionToInterfaceCoercer.getRepresentativeFunctionType( ((IJavaClassInfo)concreteType).getJavaType() ) != null ) {
+          // Functional interfaces parameterized with ? super T wildcard type keep T so contravariance works with blocks
+          ((JavaWildcardType)typeParameters[i]).setBound( parameters[i] );
+        }
+        else {
+          ((JavaWildcardType)typeParameters[i]).setBound( parameters[i].getBounds()[0] );
+        }
       }
     }
     return new JavaParameterizedType(typeParameters, concreteType);

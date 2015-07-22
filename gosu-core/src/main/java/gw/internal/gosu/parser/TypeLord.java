@@ -19,6 +19,7 @@ import gw.lang.parser.StandardCoercionManager;
 import gw.lang.parser.StandardSymbolTable;
 import gw.lang.parser.TypeSystemAwareCache;
 import gw.lang.parser.TypeVarToTypeMap;
+import gw.lang.parser.coercers.FunctionToInterfaceCoercer;
 import gw.lang.parser.exceptions.ParseResultsException;
 import gw.lang.parser.expressions.ITypeLiteralExpression;
 import gw.lang.parser.expressions.ITypeVariableDefinition;
@@ -60,6 +61,8 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import java.util.StringTokenizer;
@@ -133,9 +136,9 @@ public class TypeLord
 
   public static IType getActualType( Type type, TypeVarToTypeMap actualParamByVarName, boolean bKeepTypeVars )
   {
-    return getActualType( type, actualParamByVarName, bKeepTypeVars, new HashSet<Type>() );
+    return getActualType( type, actualParamByVarName, bKeepTypeVars, new LinkedHashSet<Type>() );
   }
-  public static IType getActualType( Type type, TypeVarToTypeMap actualParamByVarName, boolean bKeepTypeVars, Set<Type> recursiveTypes )
+  public static IType getActualType( Type type, TypeVarToTypeMap actualParamByVarName, boolean bKeepTypeVars, LinkedHashSet<Type> recursiveTypes )
   {
     IType retType;
     if( type instanceof Class )
@@ -173,6 +176,11 @@ public class TypeLord
     else if( type instanceof WildcardType )
     {
       Type bound = ((WildcardType)type).getUpperBounds()[0];
+      Type lowerBound = maybeGetLowerBound( (WildcardType)type, actualParamByVarName, bKeepTypeVars, recursiveTypes );
+      if( lowerBound != null )
+      {
+        bound = lowerBound;
+      }
       retType = getActualType( bound, actualParamByVarName, bKeepTypeVars, recursiveTypes );
     }
     else if( type instanceof ParameterizedType )
@@ -212,12 +220,16 @@ public class TypeLord
             {
               if( typeArg instanceof WildcardType && (((WildcardType)typeArg).getUpperBounds()[0].equals( Object.class )) )
               {
-                // Object is the default type for the naked <?> wildcard, so we have to get the actual bound, if different, from the corresponding type var
-                Type[] boundingTypes = ((Class)((ParameterizedType)type).getRawType()).getTypeParameters()[i].getBounds();
-                Type boundingType = boundingTypes.length == 0 ? null : boundingTypes[0];
-                if( boundingType != null )
+                Type lowerBound = maybeGetLowerBound( (WildcardType)typeArg, actualParamByVarName, bKeepTypeVars, recursiveTypes );
+                if( lowerBound == null )
                 {
-                  typeArg = boundingType;
+                  // Object is the default type for the naked <?> wildcard, so we have to get the actual bound, if different, from the corresponding type var
+                  Type[] boundingTypes = ((Class)((ParameterizedType)type).getRawType()).getTypeParameters()[i].getBounds();
+                  Type boundingType = boundingTypes.length == 0 ? null : boundingTypes[0];
+                  if( boundingType != null )
+                  {
+                    typeArg = boundingType;
+                  }
                 }
               }
 
@@ -244,11 +256,40 @@ public class TypeLord
     return retType;
   }
 
+  private static Type maybeGetLowerBound( WildcardType type, TypeVarToTypeMap actualParamByVarName, boolean bKeepTypeVars, LinkedHashSet<Type> recursiveTypes )
+  {
+    Type[] lowers = type.getLowerBounds();
+    if( lowers != null && lowers.length > 0 )
+    {
+      // This is a "super" (contravariant) wildcard
+
+      LinkedList<Type> list = new LinkedList<>( recursiveTypes );
+      for( Iterator<Type> iter = list.descendingIterator(); iter.hasNext(); )
+      {
+        Type enclType = iter.next();
+        if( enclType instanceof ParameterizedType )
+        {
+          IType genType = getActualType( ((ParameterizedType)enclType).getRawType(), actualParamByVarName, bKeepTypeVars, recursiveTypes );
+          if( genType instanceof IJavaType )
+          {
+            if( FunctionToInterfaceCoercer.getSingleMethodFromJavaInterface( (IJavaType)genType ) != null )
+            {
+              // For functional interfaces we keep the lower bound as an upper bound so that blocks maintain contravariance wrt the single method's parameters
+              return lowers[0];
+            }
+          }
+          break;
+        }
+      }
+    }
+    return null;
+  }
+
   public static IType getActualType( IAsmType type, TypeVarToTypeMap actualParamByVarName )
   {
-    return getActualType( type, actualParamByVarName, false, new HashSet<IAsmType>() );
+    return getActualType( type, actualParamByVarName, false, new LinkedHashSet<IAsmType>() );
   }
-  public static IType getActualType( IAsmType type, TypeVarToTypeMap actualParamByVarName, boolean bKeepTypeVars, Set<IAsmType> recursiveTypes )
+  public static IType getActualType( IAsmType type, TypeVarToTypeMap actualParamByVarName, boolean bKeepTypeVars, LinkedHashSet<IAsmType> recursiveTypes )
   {
     if( type instanceof AsmClass )
     {
@@ -290,7 +331,29 @@ public class TypeLord
     else if( type instanceof AsmWildcardType )
     {
       AsmType bound = ((AsmWildcardType)type).getBound();
-      if( bound == null || !((AsmWildcardType) type).isCovariant())
+      if( bound != null && !((AsmWildcardType)type).isCovariant() )
+      {
+        LinkedList<IAsmType> list = new LinkedList<>( recursiveTypes );
+        for( Iterator<IAsmType> iter = list.descendingIterator(); iter.hasNext(); )
+        {
+          IAsmType enclType = iter.next();
+          List<AsmType> typeArgs = enclType.getTypeParameters();
+          if( typeArgs != null && typeArgs.size() > 0 )
+          {
+            IType genType = TypeSystem.getByFullNameIfValid( type.getRawType().getName() );
+            if( genType instanceof IJavaType )
+            {
+              if( FunctionToInterfaceCoercer.getSingleMethodFromJavaInterface( (IJavaType)genType ) != null )
+              {
+                // For functional interfaces we keep the lower bound as an upper bound so that blocks maintain contravariance wrt the single method's parameters
+                return getActualType( bound, actualParamByVarName, bKeepTypeVars, recursiveTypes );
+              }
+            }
+            break;
+          }
+        }
+      }
+      if( bound == null )
       {
         return JavaTypes.OBJECT();
       }
