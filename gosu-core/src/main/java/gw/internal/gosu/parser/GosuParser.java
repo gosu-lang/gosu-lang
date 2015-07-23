@@ -10947,11 +10947,17 @@ public final class GosuParser extends ParserBase implements IGosuParser
 
     verify( switchStmt, match( null, ":", SourceCodeTokenizer.TT_OPERATOR ), Res.MSG_EXPECTING_CASE_COLON );
     verify( switchStmt, switchStmt.getDefaultStatements() == null, Res.MSG_MULTIPLE_DEFAULT_CLAUSES_NOT_PERMITTED );
-
-    List<Statement> defaultStatements = new ArrayList<Statement>();
-    parseStatementsAndDetectUnreachable( defaultStatements );
-    switchStmt.setDefaultStatements( defaultStatements );
-
+    _symTable.pushScope();
+    try
+    {
+      List<Statement> defaultStatements = new ArrayList<Statement>();
+      parseStatementsAndDetectUnreachable( defaultStatements );
+      switchStmt.setDefaultStatements( defaultStatements );
+    }
+    finally
+    {
+      _symTable.popScope();
+    }
     return true;
   }
 
