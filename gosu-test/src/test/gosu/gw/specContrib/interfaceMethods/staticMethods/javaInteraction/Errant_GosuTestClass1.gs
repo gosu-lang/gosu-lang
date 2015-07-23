@@ -6,7 +6,7 @@ class Errant_GosuTestClass1 {
     static function foo(){
     }
   }
-  interface GosuInterface1B extends JavaInterfaces.JavaInterfaceWithStaticMethod {
+  interface GosuInterface1B<T> extends JavaInterfaces.JavaInterfaceWithStaticMethod {
     function foo(){
     }
   }
@@ -40,6 +40,7 @@ class Errant_GosuTestClass1 {
       GosuInterface1B.foo()      //## issuekeys: STATIC METHOD MAY BE INVOKED ON CONTAINING INTERFACE CLASS ONLY
       super.foo()      //## issuekeys: CANNOT RESOLVE METHOD 'FOO()'
       super[GosuInterface1B].foo()
+      super[GosuInterface1B<Object>].foo() //## issuekeys: MSG_PARAMETERIZED_TYPE_NOT_ALLOWED_HERE
 
     }
   }

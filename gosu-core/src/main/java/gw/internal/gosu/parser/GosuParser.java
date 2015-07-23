@@ -116,7 +116,6 @@ import gw.lang.parser.exceptions.ParseWarningForDeprecatedMember;
 import gw.lang.parser.exceptions.WrongNumberOfArgsException;
 import gw.lang.parser.expressions.IArithmeticExpression;
 import gw.lang.parser.expressions.IBlockInvocation;
-import gw.lang.parser.expressions.IFeatureLiteralExpression;
 import gw.lang.parser.expressions.IImplicitTypeAsExpression;
 import gw.lang.parser.expressions.IInferredNewExpression;
 import gw.lang.parser.expressions.IInitializerExpression;
@@ -125,6 +124,7 @@ import gw.lang.parser.expressions.IParenthesizedExpression;
 import gw.lang.parser.expressions.IProgram;
 import gw.lang.parser.expressions.ISynthesizedMemberAccessExpression;
 import gw.lang.parser.expressions.ITypeLiteralExpression;
+import gw.lang.parser.expressions.ITypeParameterListClause;
 import gw.lang.parser.expressions.ITypeVariableDefinition;
 import gw.lang.parser.expressions.ITypeVariableDefinitionExpression;
 import gw.lang.parser.expressions.IVarStatement;
@@ -4987,6 +4987,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
 
   private IType verifySuperTypeIsDeclaredInCompilingClass( TypeLiteral superTypeLiteral )
   {
+    verify( superTypeLiteral, !superTypeLiteral.getContainedParsedElementsByType( ITypeParameterListClause.class, null ), Res.MSG_PARAMETERIZED_TYPE_NOT_ALLOWED_HERE );
     IType type = TypeLord.getPureGenericType( superTypeLiteral.getType().getType() );
     ICompilableTypeInternal gosuClass = getGosuClass();
     IType superType = gosuClass.getSupertype();

@@ -335,6 +335,7 @@ public class Res
   public static final ResourceKey MSG_NO_PRIMITIVE_IN_COMPONENT_TYPE = new ResourceKey( "MSG_NO_PRIMITIVE_IN_COMPONENT_TYPE" );
   public static final ResourceKey MSG_DYNAMIC_TYPE_NOT_ALLOWED_HERE = new ResourceKey( "MSG_DYNAMIC_TYPE_NOT_ALLOWED_HERE" );
   public static final ResourceKey MSG_COMPOUND_TYPE_NOT_ALLOWED_HERE = new ResourceKey( "MSG_COMPOUND_TYPE_NOT_ALLOWED_HERE" );
+  public static final ResourceKey MSG_PARAMETERIZED_TYPE_NOT_ALLOWED_HERE = new ResourceKey( "MSG_PARAMETERIZED_TYPE_NOT_ALLOWED_HERE" );
   public static final ResourceKey MSG_CANNOT_EXTEND_INTERNAL_JAVATYPE = new ResourceKey( "MSG_CANNOT_EXTEND_INTERNAL_JAVATYPE" );
   public static final ResourceKey MSG_ALREADY_CONTAINS_TYPE = new ResourceKey( "MSG_ALREADY_CONTAINS_TYPE" );
   public static final ResourceKey MSG_OVERRIDING_FUNCTION_MUST_HAVE_SAME_NUMBER_OF_TYPE_VARS = new ResourceKey( "MSG_OVERRIDING_FUNCTION_MUST_HAVE_SAME_NUMBER_OF_TYPE_VARS" );

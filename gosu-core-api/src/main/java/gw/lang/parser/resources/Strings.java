@@ -331,6 +331,7 @@ public class Strings extends ListResourceBundle
        {Res.MSG_NO_PRIMITIVE_IN_COMPONENT_TYPE.getKey(), "Primitives are not allowed in a component type"},
        {Res.MSG_ONLY_ONE_CLASS_IN_COMPONENT_TYPE.getKey(), "Only one non-interface is allowed in a component type"},
        {Res.MSG_COMPOUND_TYPE_NOT_ALLOWED_HERE.getKey(), "Compound type is not allowed here"},
+       {Res.MSG_PARAMETERIZED_TYPE_NOT_ALLOWED_HERE.getKey(), "Parameterized type is not allowed here"},
        {Res.MSG_DYNAMIC_TYPE_NOT_ALLOWED_HERE.getKey(), "Dynamic type is not allowed here"},
        {Res.MSG_CANNOT_EXTEND_INTERNAL_JAVATYPE.getKey(), "The Java type {0} has package-protected access and cannot be extended or enhanced in Gosu"},
        {Res.MSG_CLASS_DOES_NOT_IMPL.getKey(), "Delegate interface not implemented by declaring type: {0}"},
