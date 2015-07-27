@@ -305,6 +305,7 @@ public class Strings extends ListResourceBundle
        {Res.MSG_ILLEGAL_FORWARD_REFERENCE.getKey(), "Illegal forward reference"},
        {Res.MSG_MISSING_OVERRIDE_MODIFIER.getKey(), "Missing 'override' modifier. Function {0} overrides and/or implements the function from {1}."},
        {Res.MSG_STATIC_METHOD_CANNOT_OVERRIDE.getKey(), "Static function {0} cannot override/implement the function in {1}."},
+       {Res.MSG_OVERRIDES_OBJECT_METHOD.getKey(), "Default method {0} overrides Object method"},
        {Res.MSG_INHEREITED_WITH_DIFF_ARG_TYPES.getKey(), "\"{0}\" cannot be inherited with different type arguments: {1}"},
        {Res.MSG_NO_IMPLEMENTS_ALLOWED.getKey(), "No implements clause allowed for interface."},
        {Res.MSG_NO_EXTENDS_ALLOWED.getKey(), "No extends clause allowed for annotation."},

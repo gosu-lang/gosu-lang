@@ -12732,9 +12732,10 @@ public final class GosuParser extends ParserBase implements IGosuParser
               !dfs.isStatic() && dfsExisting.isStatic() && dfs.getDeclaringTypeInfo().getOwnersType() instanceof IGosuEnhancement && areParametersEquivalent( dfs, dfsExisting, ((IGosuEnhancement)dfs.getDeclaringTypeInfo().getOwnersType()).getEnhancedType() ) )
           {
             IGosuClass owningTypeForDfs = getOwningTypeForDfs( dfsExisting );
+            ICompilableTypeInternal gsClass = getGosuClass();
             if( owningTypeForDfs instanceof IGosuEnhancement )
             {
-              if( dfs.isOverride() || owningTypeForDfs == getGosuClass() )
+              if( dfs.isOverride() || owningTypeForDfs == gsClass )
               {
                 addError( element, Res.MSG_CANNOT_OVERRIDE_FUNCTION_FROM_ENHANCEMENT );
               }
@@ -12760,28 +12761,31 @@ public final class GosuParser extends ParserBase implements IGosuParser
               if( verify( element, bClassAndReturnTypesCompatible, Res.MSG_FUNCTION_CLASH,
                       dfs.getName(), dfs.getScriptPart(), dfsExisting.getName(), dfsExisting.getScriptPart() ) )
               {
-                boolean b = !dfsExisting.isFinal() && (getGosuClass() == null ||
-                        getGosuClass().getSupertype() == null ||
-                        !getGosuClass().getSupertype().isFinal());
+                boolean b = !dfsExisting.isFinal() && (gsClass == null || gsClass.getSupertype() == null || !gsClass.getSupertype().isFinal());
                 verify( element, b, Res.MSG_CANNOT_OVERRIDE_FINAL, dfsExisting.getName(), dfsExisting.getScriptPart() );
                 if( verify( element, !dfs.isStatic() || dfsExisting.isStatic(), Res.MSG_STATIC_METHOD_CANNOT_OVERRIDE, dfs.getName(), dfsExisting.getDeclaringTypeInfo().getName() ) )
                 {
                   if( !dfs.isStatic() && !dfsExisting.isStatic() )
                   {
-                    if( !dfs.isOverride() )
+                    IGosuClassInternal existingDeclaringClass = dfsExisting.getGosuClass();
+                    boolean bDefaultMethodOverridesClassMethod = gsClass.isInterface() && !dfs.isAbstract() && existingDeclaringClass != null && existingDeclaringClass.isProxy() && existingDeclaringClass.getJavaType() == JavaTypes.IGOSU_OBJECT();
+                    if( verify( element, !bDefaultMethodOverridesClassMethod, Res.MSG_OVERRIDES_OBJECT_METHOD, dfs.getName(), dfsExisting.getDeclaringTypeInfo().getName() ) )
                     {
-                      boolean bIsConstructorName = getGosuClass() != null && getGosuClass().getRelativeName().equals( dfs.getDisplayName() );
-                      warn( element, bIsConstructorName, Res.MSG_MISSING_OVERRIDE_MODIFIER, dfsExisting.getName(), dfsExisting.getScriptPart().getContainingTypeName() );
-                      if( !bIsConstructorName )
+                      if( !dfs.isOverride() )
                       {
-                        // Set the override modifier when the modifier is missing
-                        dfs.setOverride( true );
+                        boolean bIsConstructorName = gsClass != null && gsClass.getRelativeName().equals( dfs.getDisplayName() );
+                        warn( element, bIsConstructorName, Res.MSG_MISSING_OVERRIDE_MODIFIER, dfsExisting.getName(), dfsExisting.getScriptPart().getContainingTypeName() );
+                        if( !bIsConstructorName )
+                        {
+                          // Set the override modifier when the modifier is missing
+                          dfs.setOverride( true );
+                        }
                       }
+                      verifyNotWeakerAccess( element, dfs, dfsExisting );
+                      verifySameNumberOfFunctionTypeVars( element, dfs, dfsExisting );
+                      dfs.setSuperDfs( dfsExisting );
+                      bValidOverrideFound = true;
                     }
-                    verifyNotWeakerAccess( element, dfs, dfsExisting );
-                    verifySameNumberOfFunctionTypeVars( element, dfs, dfsExisting );
-                    dfs.setSuperDfs( dfsExisting );
-                    bValidOverrideFound = true;
                   }
                 }
               }
