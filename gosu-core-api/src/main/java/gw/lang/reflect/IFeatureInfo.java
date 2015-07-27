@@ -38,19 +38,7 @@ public interface IFeatureInfo
    */
   public String getDescription();
 
-  /**
-   * The offset of the feature in its top-level container
-   */
-  public default int getOffset()
-  {
-    return -1;
-  }
-
-  /**
-   * The length of the feature's text in its top-level container
-   */
-  public default int getTextLength()
-  {
-    return -1;
+  default ILocationInfo getLocationInfo() {
+    return ILocationInfo.EMPTY;
   }
 }

@@ -4,14 +4,11 @@
 
 package gw.lang.reflect;
 
-import gw.config.CommonServices;
-import gw.fs.IFile;
 import gw.lang.reflect.java.IJavaClassMethod;
 import gw.lang.reflect.java.IJavaType;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.net.URL;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -28,7 +25,7 @@ public class PropertyInfoBuilder {
   private String _deprecated;
   private String _javaGetterMethodName;
   private List<IAnnotationInfo> _annotations = Collections.emptyList();
-  private LocationInfo _locationInfo;
+  private ILocationInfo _locationInfo;
 
   public PropertyInfoBuilder withName(String name) {
     _name = name;
@@ -107,19 +104,16 @@ public class PropertyInfoBuilder {
       _deprecated = null;
     }
     _annotations = prop.getAnnotations(); // todo dlank - any need to step through annotations and recreate 1-by-1?
-    if ( prop instanceof ILocationAwareFeature ) {
-      ILocationAwareFeature locationAwareFeature = (ILocationAwareFeature) prop;
-      _locationInfo = locationAwareFeature.getLocationInfo();
-    }
+    _locationInfo = prop.getLocationInfo();
     return this;
   }
 
-  public PropertyInfoBuilder withLocation( LocationInfo locationInfo ) {
+  public PropertyInfoBuilder withLocation( ILocationInfo locationInfo ) {
     _locationInfo = locationInfo;
     return this;
   }
 
-  public static class BuiltPropertyInfo extends BaseFeatureInfo implements IPropertyInfo, ILocationAwareFeature {
+  public static class BuiltPropertyInfo extends BaseFeatureInfo implements IPropertyInfo {
 
     private final boolean _isStatic;
     private final String _name;
@@ -131,7 +125,7 @@ public class PropertyInfoBuilder {
     private final String _description;
     private final String _deprecated;
     private List<IAnnotationInfo> _annotations = Collections.emptyList();
-    private final LocationInfo _locationInfo;
+    private final ILocationInfo _locationInfo;
 
     public BuiltPropertyInfo(PropertyInfoBuilder builder, IFeatureInfo container) {
       super(container);
@@ -146,7 +140,7 @@ public class PropertyInfoBuilder {
       _description = builder._description;
       _deprecated = builder._deprecated;
       _annotations = builder._annotations;
-      _locationInfo = builder._locationInfo;
+      _locationInfo = builder._locationInfo == null ? ILocationInfo.EMPTY : builder._locationInfo;
 
       inferAccessorAndTypeFromName();
 
@@ -313,7 +307,7 @@ public class PropertyInfoBuilder {
     }
 
     @Override
-    public LocationInfo getLocationInfo() {
+    public ILocationInfo getLocationInfo() {
       return _locationInfo;
     }
   }

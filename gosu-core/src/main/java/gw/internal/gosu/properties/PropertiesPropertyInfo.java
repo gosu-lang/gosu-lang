@@ -5,10 +5,13 @@
 package gw.internal.gosu.properties;
 
 import gw.lang.reflect.IAnnotationInfo;
+import gw.lang.reflect.ILocationInfo;
 import gw.lang.reflect.IPropertyAccessor;
 import gw.lang.reflect.IType;
+import gw.lang.reflect.LocationInfo;
 import gw.lang.reflect.PropertyInfoBase;
 import gw.lang.reflect.java.JavaTypes;
+import gw.util.concurrent.LocklessLazyVar;
 
 import java.util.Collections;
 import java.util.List;
@@ -20,6 +23,14 @@ class PropertiesPropertyInfo extends PropertyInfoBase implements IPropertiesProp
 
   private final PropertyNode _propertyNode;
   private final boolean _isStatic;
+  private final LocklessLazyVar<ILocationInfo> _locationInfo = new LocklessLazyVar<ILocationInfo>()
+  {
+    protected ILocationInfo init()
+    {
+      return new LocationInfo( ((PropertiesType)getOwnersType()).findOffsetOf( _propertyNode ), getName().length(), -1, -1, null );
+    }
+  };
+
   private final IPropertyAccessor _accessor = new IPropertyAccessor() {
 
     @Override
@@ -31,9 +42,9 @@ class PropertiesPropertyInfo extends PropertyInfoBase implements IPropertiesProp
     public void setValue(Object ctx, Object value) {
       throw new UnsupportedOperationException("Should never be set, property is not writeable");
     }
-    
+
   };
-  
+
   public PropertiesPropertyInfo(PropertiesTypeInfo typeInfo, PropertyNode propertyNode, boolean isStatic) {
     super(typeInfo);
     _propertyNode = propertyNode;
@@ -86,13 +97,8 @@ class PropertiesPropertyInfo extends PropertyInfoBase implements IPropertiesProp
   }
 
   @Override
-  public int getOffset()
+  public ILocationInfo getLocationInfo()
   {
-    return ((PropertiesType)getOwnersType()).findOffsetOf( _propertyNode );
-  }
-  @Override
-  public int getTextLength()
-  {
-    return getName().length();
+    return _locationInfo.get();
   }
 }

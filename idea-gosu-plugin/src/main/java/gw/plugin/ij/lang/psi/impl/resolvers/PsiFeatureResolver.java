@@ -91,7 +91,7 @@ public class PsiFeatureResolver {
   }
 
   private static boolean isResolvable(@NotNull IPropertyInfo pi) {
-    if (pi instanceof ILocationAwareFeature) {
+    if (pi.getLocationInfo().hasLocation()) {
       return true;
     }
     if (!(pi instanceof IFileBasedFeature)) {
@@ -119,7 +119,7 @@ public class PsiFeatureResolver {
     return null;
   }
 
-  public static PsiElement resolveFeatureAtLocation( PsiElement context, LocationInfo location ) {
+  public static PsiElement resolveFeatureAtLocation( PsiElement context, ILocationInfo location ) {
     if ( location == null ) {
       return null;
     }
@@ -131,7 +131,7 @@ public class PsiFeatureResolver {
     }
     final PsiFile psiFile = PsiManagerImpl.getInstance(project).findFile( vfile );
     final Document document = PsiDocumentManagerImpl.getInstance(project).getDocument( psiFile );
-    final int offset = document.getLineStartOffset( location.getLineNumber() - 1 ) + location.getColumnNumber() - 2;
+    final int offset = document.getLineStartOffset( location.getLine() - 1 ) + location.getColumn() - 2;
     PsiElement element = psiFile.findElementAt( offset ); // empty element end
     element = element.getParent(); // element definition that contains the empty element end
     return element;

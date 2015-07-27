@@ -4,14 +4,12 @@
 
 package gw.plugin.ij.lang.psi.impl.resolvers;
 
-import com.intellij.openapi.extensions.Extensions;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.module.ModuleUtil;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.IndexNotReadyException;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.CommonClassNames;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElement;
@@ -20,14 +18,12 @@ import com.intellij.psi.impl.java.stubs.index.JavaFullClassNameIndex;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.stubs.StubIndex;
 import com.intellij.util.graph.DFSTBuilder;
-import gw.fs.IFile;
 import gw.lang.parser.IBlockClass;
 import gw.lang.reflect.*;
 import gw.lang.reflect.gs.IGosuClass;
 import gw.lang.reflect.java.IJavaType;
 import gw.lang.reflect.java.JavaTypes;
 import gw.plugin.ij.lang.psi.IGosuFileBase;
-import gw.plugin.ij.lang.psi.api.IFileShadowingResolver;
 import gw.plugin.ij.lang.psi.api.ITypeResolver;
 import gw.plugin.ij.lang.psi.api.statements.typedef.IGosuAnonymousClassDefinition;
 import gw.plugin.ij.lang.psi.impl.CustomPsiClassCache;
@@ -68,10 +64,6 @@ public class DefaultTypeResolver implements ITypeResolver {
         type = TypeUtil.getConcreteType(type);
         if (type instanceof ITypeVariableType) {
           return PsiTypeResolver.resolveTypeVariable((ITypeVariableType) type, context);
-        } else if (type instanceof ILocationAwareFeature) {
-          ILocationAwareFeature feature = (ILocationAwareFeature) type;
-          LocationInfo location = feature.getLocationInfo();
-          return PsiFeatureResolver.resolveFeatureAtLocation(context, location);
         } else {
           return resolveType(type.getName(), context);
         }
