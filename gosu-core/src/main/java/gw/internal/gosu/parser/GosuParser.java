@@ -2923,10 +2923,6 @@ public final class GosuParser extends ParserBase implements IGosuParser
     {
       parseNewExpression();
     }
-    else if( match( null, Keyword.KW_exists ) )
-    {
-      parseExistsExpression();
-    }
     else if( parseNameOrMethodCall() )
     {
     }
@@ -3623,79 +3619,6 @@ public final class GosuParser extends ParserBase implements IGosuParser
     returnType = TypeLord.boundTypes( returnType, getCurrentlyInferringFunctionTypeVars() );
 
     return returnType;
-  }
-
-  //------------------------------------------------------------------------------
-  // <i>exists-expression</i>
-  // <b>exists</b> <b>(</b> &lt;identifier&gt; <b>in</b> &lt;expression&gt; [ <b>index</b> &lt;identifier&gt; ] <b>where</b> &lt;expression&gt; <b>)</b>
-  //
-  void parseExistsExpression()
-  {
-    ExistsExpression existsExp = new ExistsExpression();
-
-    verify( existsExp, match( null, '(' ), Res.MSG_EXPECTING_LEFTPAREN_EXISTS );
-    match( null, Keyword.KW_var );
-    Token T = new Token();
-    int iNameOffset = getTokenizer().getTokenStart();
-    if( verify( existsExp, match( T, SourceCodeTokenizer.TT_WORD ), Res.MSG_EXPECTING_IDENTIFIER_EXISTS ) )
-    {
-      existsExp.setNameOffset( iNameOffset, T._strValue );
-    }
-
-    String strIdentifier = T._strValue;
-
-    verify( existsExp, match( null, Keyword.KW_in ), Res.MSG_EXPECTING_IN_EXISTS );
-
-    parseExpression();
-
-    Expression ein = popExpression();
-    IType typeIn = ein.getType();
-    verify( existsExp, LoopStatement.isIteratorType( typeIn ) || typeIn instanceof ErrorType,
-            Res.MSG_EXPECTING_ARRAYTYPE_EXISTS, typeIn.getName() );
-
-    Symbol symbol;
-    Symbol symbolIndex = null;
-    _symTable.pushScope();
-    try
-    {
-      if( match( null, Keyword.KW_index ) )
-      {
-        Token Tindex = new Token();
-        verify( existsExp, match( Tindex, SourceCodeTokenizer.TT_WORD ), Res.MSG_EXPECTING_IDENTIFIER_EXISTS_INDEX );
-
-        String strIndexIdentifier = Tindex._strValue;
-        verify( existsExp, _symTable.getSymbol( strIndexIdentifier ) == null, Res.MSG_VARIABLE_ALREADY_DEFINED, strIndexIdentifier );
-
-        // Create a temporary symbol for the identifier part of the exists statement's index
-        // (so it can be legally referenced in the statement).
-        symbolIndex = new Symbol( strIndexIdentifier, JavaTypes.pINT(), _symTable, null );
-        _symTable.putSymbol( symbolIndex );
-      }
-
-      // Create a temporary symbol for the identifier part of the exists expression
-      IType typeIdentifier = LoopStatement.getArrayComponentType( typeIn );
-      symbol = new Symbol( strIdentifier, typeIdentifier, _symTable, null );
-      _symTable.putSymbol( symbol );
-      verify( existsExp, match( null, Keyword.KW_where ), Res.MSG_EXPECTING_WHERE_EXISTS );
-
-      parseExpression( ContextType.pBOOLEAN_FALSE );
-    }
-    finally
-    {
-      // Remove the temporary symbols
-      _symTable.popScope();
-    }
-
-    Expression ewhere = popExpression();
-
-    verify( existsExp, match( null, ')' ), Res.MSG_EXPECTING_RIGHTPAREN_EXISTS );
-
-    existsExp.setIdentifier( symbol );
-    existsExp.setIndexIdentifier( symbolIndex );
-    existsExp.setInExpression( ein );
-    existsExp.setWhereExpression( ewhere );
-
-    pushExpression( existsExp );
   }
 
   /**

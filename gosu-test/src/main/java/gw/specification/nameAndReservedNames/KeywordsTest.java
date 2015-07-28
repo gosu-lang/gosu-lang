@@ -33,7 +33,6 @@ public class KeywordsTest extends TestClass {
     kw.put("enum", false);
     kw.put("eval", false);
     kw.put("execution", true);
-    kw.put("exists", true);
     kw.put("extends", false);
     kw.put("false", true);
     kw.put("final", true);
