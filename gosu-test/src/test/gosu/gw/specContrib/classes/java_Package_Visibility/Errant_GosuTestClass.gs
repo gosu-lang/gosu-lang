@@ -1,6 +1,6 @@
 package gw.specContrib.classes.java_Package_Visibility
 
-class GosuTestClass {
+class Errant_GosuTestClass {
   function testFun() {
     var gc = new GosuSubClass()
     //IDE-1237 - There should not be any error for non-private members.
