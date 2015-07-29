@@ -1,6 +1,6 @@
 package gw.specContrib.interfaceMethods.defaultMethods
 
-static class Errant_AbstractAndDefaultMethodsConflict {
+class Errant_AbstractAndDefaultMethodsConflict {
 
   interface IA {
     function sameFunction() {}
