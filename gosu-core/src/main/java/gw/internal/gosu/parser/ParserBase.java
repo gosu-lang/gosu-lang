@@ -1708,20 +1708,20 @@ public abstract class ParserBase implements IParserPart
       }
       else if( match( null, Keyword.KW_private ) )
       {
-        verify( elem, bIgnoreErrors || bNotInterface || gsClass.getEnclosingType() != null, Res.MSG_NOT_ALLOWED_IN_INTERFACE );
+        verify( elem, bIgnoreErrors || bNotInterface, Res.MSG_NOT_ALLOWED_IN_INTERFACE );
         verifyNoAccessibilityModifierDefined( elem, bIgnoreErrors, iModifiers, Keyword.KW_private );
         verifyNoHideOverrideModifierDefined( elem, bIgnoreErrors, iModifiers, Keyword.KW_private );
         iModifiers = Modifier.setPrivate( iModifiers, true );
       }
       else if( match( null, Keyword.KW_internal ) )
       {
-        verify( elem, bIgnoreErrors || bNotInterface || gsClass.getEnclosingType() != null, Res.MSG_NOT_ALLOWED_IN_INTERFACE );
+        verify( elem, bIgnoreErrors || bNotInterface, Res.MSG_NOT_ALLOWED_IN_INTERFACE );
         verifyNoAccessibilityModifierDefined( elem, bIgnoreErrors, iModifiers, Keyword.KW_internal );
         iModifiers = Modifier.setInternal( iModifiers, true );
       }
       else if( match( null, Keyword.KW_protected ) )
       {
-        verify( elem, bIgnoreErrors || bNotInterface || gsClass.getEnclosingType() != null, Res.MSG_NOT_ALLOWED_IN_INTERFACE );
+        verify( elem, bIgnoreErrors || bNotInterface, Res.MSG_NOT_ALLOWED_IN_INTERFACE );
         verifyNoAccessibilityModifierDefined( elem, bIgnoreErrors, iModifiers, Keyword.KW_protected );
         iModifiers = Modifier.setProtected( iModifiers, true );
       }
