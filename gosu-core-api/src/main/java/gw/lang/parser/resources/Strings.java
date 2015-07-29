@@ -204,6 +204,7 @@ public class Strings extends ListResourceBundle
        {Res.MSG_NOT_ALLOWED_IN_INTERFACE.getKey(), "Not allowed in interface."},
        {Res.MSG_UNIMPLEMENTED_METHOD.getKey(), "{0} function not implemented: {1}"},
        {Res.MSG_INHERITS_UNRELATED_DEFAULTS.getKey(), "{0} Inherits unrelated defaults for {1} from {2} and {3}"},
+       {Res.MSG_INHERITS_ABSTRACT_AND_DEFAULT.getKey(), "{0} Inherits abstract and default methods for {1} from {2} and {3}"},
        {Res.MSG_INTERFACE_CANNOT_EXTEND_CLASS.getKey(), "An interface cannot extend a class, only interfaces."},
        {Res.MSG_CLASS_CANNOT_EXTEND_INTERFACE.getKey(), "A class cannot 'extend' an interface."},
        {Res.MSG_CLASS_MUST_HAVE_PACKAGE.getKey(), "A class must have a package."},

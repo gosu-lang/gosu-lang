@@ -198,6 +198,7 @@ public class Res
   public static final ResourceKey MSG_NOT_ALLOWED_IN_INTERFACE = new ResourceKey("MSG_NOT_ALLOWED_IN_INTERFACE");
   public static final ResourceKey MSG_UNIMPLEMENTED_METHOD = new ResourceKey("MSG_UNIMPLEMENTED_METHOD");
   public static final ResourceKey MSG_INHERITS_UNRELATED_DEFAULTS = new ResourceKey("MSG_INHERITS_UNRELATED_DEFAULTS");
+  public static final ResourceKey MSG_INHERITS_ABSTRACT_AND_DEFAULT = new ResourceKey("MSG_INHERITS_ABSTRACT_AND_DEFAULT");
   public static final ResourceKey MSG_INTERFACE_CANNOT_EXTEND_CLASS = new ResourceKey("MSG_INTERFACE_CANNOT_EXTEND_CLASS");
   public static final ResourceKey MSG_CLASS_CANNOT_EXTEND_INTERFACE = new ResourceKey("MSG_CLASS_CANNOT_EXTEND_INTERFACE");
   public static final ResourceKey MSG_CLASS_MUST_HAVE_PACKAGE = new ResourceKey("MSG_CLASS_MUST_HAVE_PACKAGE");
