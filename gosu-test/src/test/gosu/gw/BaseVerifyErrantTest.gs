@@ -13,7 +13,7 @@ uses java.lang.Integer
 uses java.lang.System
 uses java.util.regex.Pattern
 
-class BaseVerifyErrantTest extends TestClass {
+abstract class BaseVerifyErrantTest extends TestClass {
   var _skipKnownBreak : boolean as readonly skipKnownBreak
 
   construct()  {
