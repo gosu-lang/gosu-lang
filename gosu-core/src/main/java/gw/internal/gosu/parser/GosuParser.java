@@ -4699,6 +4699,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
         {
           maybeReplacePackageExprWithTypeLiteral( iOffset, iLineNum, iColumn, expr );
           verify( peekExpression(), !(peekExpression().getType() instanceof NamespaceType), Res.MSG_EXPECTING_TYPE_TO_FOLLOW_PACKAGE_NAME );
+          verify( peekExpression(), !(peekExpression() instanceof SuperAccess), Res.MSG_MEMBER_ACCESS_REQUIRED_FOR_SUPER );
         }
         break;
       }

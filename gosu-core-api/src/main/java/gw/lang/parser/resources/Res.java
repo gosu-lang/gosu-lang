@@ -409,6 +409,7 @@ public class Res
   public static final ResourceKey MSG_EXPECTING_CONDITION_FOR_ASSERT = new ResourceKey( "MSG_EXPECTING_CONDITION_FOR_ASSERT" );
   public static final ResourceKey MSG_EXPECTING_MESSAGE_FOR_ASSERT = new ResourceKey( "MSG_EXPECTING_MESSAGE_FOR_ASSERT" );
   public static final ResourceKey MSG_ASSERTIONS_NOT_ALLOWED_HERE = new ResourceKey( "MSG_ASSERTIONS_NOT_ALLOWED_HERE" );
+  public static final ResourceKey MSG_MEMBER_ACCESS_REQUIRED_FOR_SUPER = new ResourceKey( "MSG_MEMBER_ACCESS_REQUIRED_FOR_SUPER" );
   public static final ResourceKey MSG_ARRAY_NOT_SUPPORTED = new ResourceKey( "MSG_ARRAY_NOT_SUPPORTED" );
   public static final ResourceKey MSG_IMPROPER_USE_OF_KEYWORD = new ResourceKey( "MSG_IMPROPER_USE_OF_KEYWORD" );
   public static final ResourceKey MSG_USES_STMT_CONFLICT = new ResourceKey( "MSG_USES_STMT_CONFLICT" );

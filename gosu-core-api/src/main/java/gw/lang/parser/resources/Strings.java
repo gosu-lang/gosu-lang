@@ -362,6 +362,7 @@ public class Strings extends ListResourceBundle
        {Res.MSG_EXPECTING_CONDITION_FOR_ASSERT.getKey(), "Expecting condition for 'assert'" },
        {Res.MSG_EXPECTING_MESSAGE_FOR_ASSERT.getKey(), "Expecting message for 'assert'" },
        {Res.MSG_ASSERTIONS_NOT_ALLOWED_HERE.getKey(), "Assert statement not allowed here" },
+       {Res.MSG_MEMBER_ACCESS_REQUIRED_FOR_SUPER.getKey(), "Member access required for 'super'" },
        {Res.MSG_ARRAY_NOT_SUPPORTED.getKey(), "Array type not supported for {0}"},
        {Res.MSG_IMPROPER_USE_OF_KEYWORD.getKey(), "Improper use of keyword, {0}" },
        {Res.MSG_USES_STMT_CONFLICT.getKey(), "Already using type, {0}" },
