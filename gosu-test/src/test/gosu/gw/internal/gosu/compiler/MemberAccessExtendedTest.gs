@@ -86,8 +86,6 @@ class MemberAccessExtendedTest extends TestClass {
 
   function testStaticAccessOfTypeInfoPropertiesWorks() {
     assertEquals( Base, Base.Type )
-    assertTrue( Base.Valid )         // deprecated direct access
-    assertTrue( Base.getValid() )         // deprecated direct access
     assertTrue( Base.Type.Valid )    // non-deprecated access through Type prop
     assertTrue( Base.Type.getValid() )    // non-deprecated access through Type prop
     assertTrue( Base.Type.Static )   // type specific property through Type prop
@@ -96,7 +94,6 @@ class MemberAccessExtendedTest extends TestClass {
 
   //TODO AHK - this should be part of the test suite for method invocation
   function testStaticAccessOfTypeInfoMethodsWorks() {
-    assertTrue( Base.isAssignableFrom( Base ) )         // deprecated direct access
     assertTrue( Base.Type.isAssignableFrom( Base ) )    // non-deprecated access through Type prop
     assertFalse( Base.Type.hasError() )                 // type specific method through Type prop
   }

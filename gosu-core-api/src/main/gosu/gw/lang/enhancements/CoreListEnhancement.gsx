@@ -21,8 +21,8 @@ enhancement CoreListEnhancement<T> : List<T>  {
    */
   function cast<N>( type : Type<N> ) : List<N> {
     for( elt in this ) {
-      if( not type.isAssignableFrom( typeof elt ) ) {
-        throw new IllegalArgumentException( "The element ${elt} is not of type ${type.Name}" )
+      if( not type.Type.isAssignableFrom( typeof elt ) ) {
+        throw new IllegalArgumentException( "The element ${elt} is not of type ${type.Type.Name}" )
       }
     }
     return this as List<N>
