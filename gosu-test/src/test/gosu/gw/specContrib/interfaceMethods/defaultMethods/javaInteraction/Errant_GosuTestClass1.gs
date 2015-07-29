@@ -61,6 +61,9 @@ class Errant_GosuTestClass1 {
       bar()
       super[GosuInterface1b].bar()
 
+      hashCode()
+      super[Object].hashCode()
+      super.hashCode()
     }
   }
   interface GosuInterface1c extends JavaInterface1 {

@@ -4918,6 +4918,10 @@ public final class GosuParser extends ParserBase implements IGosuParser
     {
       return superType;
     }
+    else if( superType == null && type == JavaTypes.OBJECT() )
+    {
+      return type;
+    }
 
     for( IType iface : gosuClass.getInterfaces() )
     {
