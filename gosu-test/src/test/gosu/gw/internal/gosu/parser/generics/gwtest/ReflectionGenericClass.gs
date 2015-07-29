@@ -56,7 +56,7 @@ class ReflectionGenericClass<T>
 
   function constructInstanceOfT() : T
   {
-    return T.TypeInfo.getConstructor( {} ).Constructor.newInstance( {} ) as T
+    return T.Type.TypeInfo.getConstructor( {} ).Constructor.newInstance( {} ) as T
   }
 
   function returnJavaClassParameterizedWithT() : java.util.ArrayList<T>
