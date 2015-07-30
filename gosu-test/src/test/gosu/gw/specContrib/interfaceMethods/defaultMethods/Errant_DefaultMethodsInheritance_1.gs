@@ -30,7 +30,7 @@ class Errant_DefaultMethodsInheritance_1 {
 
   class MyClass2 implements InterfaceB {
     //Need to implement second default method as it was redeclared in InterfaceB
-    function defaultFunctionSecond() {
+    override function defaultFunctionSecond() {
       super[InterfaceB].defaultFunctionThird()
     }
 
@@ -49,7 +49,7 @@ class Errant_DefaultMethodsInheritance_1 {
 
   interface YI extends XI {
 
-    function hello() {
+    override function hello() {
       super[XI].hello()
 
       //IDE-2580 - OS Gosu Issue
@@ -62,7 +62,7 @@ class Errant_DefaultMethodsInheritance_1 {
   }
 
   interface ZI extends YI {
-    function hello() {
+    override function hello() {
       super[YI].hello()
       super[XI].hello()      //## issuekeys: 'GW.SPECCONTRIB.AAA.PARSERVSOPENSOURCE.JAVA8.DEFAULTMETHODS.ERRANT_DEFAULTMETHODSINHERITANCE_1.XI' IS NOT A DIRECT SUPERTYPE
       super[42].hello()      //## issuekeys: UNSPECIFIED SUPER REFERENCE IS NOT ALLOWED IN EXTENSION METHOD

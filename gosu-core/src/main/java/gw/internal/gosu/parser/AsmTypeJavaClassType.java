@@ -42,6 +42,9 @@ public abstract class AsmTypeJavaClassType implements IJavaClassType {
   }
 
   public static IJavaClassType createType( IAsmType rawType, IModule module ) {
+    return createType( null, rawType, module );
+  }
+  public static IJavaClassType createType( IAsmType genType, IAsmType rawType, IModule module ) {
     IJavaClassType type = null;
     if( rawType.isArray() && (rawType.isTypeVariable() || rawType.isParameterized()) ) {
       type = new AsmGenericArrayTypeJavaClassGenericArrayType( rawType, module );
@@ -53,7 +56,7 @@ public abstract class AsmTypeJavaClassType implements IJavaClassType {
       type = new AsmParameterizedTypeJavaClassParameterizedType( rawType, module );
     }
     else if( rawType instanceof AsmWildcardType ) {
-      type = new AsmWildcardTypeJavaClassWildcardType( (AsmWildcardType)rawType, module );
+      type = new AsmWildcardTypeJavaClassWildcardType( genType, (AsmWildcardType)rawType, module );
     }
     else if( rawType instanceof AsmClass ) {
       type = JavaSourceUtil.getClassInfo( (AsmClass)rawType, module );

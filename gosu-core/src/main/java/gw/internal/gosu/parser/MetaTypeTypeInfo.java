@@ -17,6 +17,7 @@ import gw.lang.reflect.IPropertyAccessor;
 import gw.lang.reflect.IPropertyInfo;
 import gw.lang.reflect.IRelativeTypeInfo;
 import gw.lang.reflect.IType;
+import gw.lang.reflect.ITypeDeprecated;
 import gw.lang.reflect.ITypeInfo;
 import gw.lang.reflect.ITypeInfoMethodInfo;
 import gw.lang.reflect.ITypeInfoPropertyInfo;
@@ -181,7 +182,19 @@ public class MetaTypeTypeInfo extends BaseFeatureInfo implements IRelativeTypeIn
     else
     {
       // Include typeinfo from IType for backward compatibility
-      List<? extends IPropertyInfo> properties;
+      IType intrinsicTypeClass = JavaTypes.getGosuType( ITypeDeprecated.class );
+      ITypeInfo intrinsicTypeClassInfo = intrinsicTypeClass.getTypeInfo();
+
+      List<? extends IPropertyInfo> properties = intrinsicTypeClassInfo.getProperties();
+      if( properties != null )
+      {
+        for( IPropertyInfo property : properties )
+        {
+          IPropertyInfo pi = new DeprecatedStaticPropertyInfoDelegate( this, property );
+          propertiesByName.put( pi.getName(), pi );
+        }
+      }
+
       if( typeTypeInfo instanceof IRelativeTypeInfo )
       {
         properties = ((IRelativeTypeInfo)typeTypeInfo).getProperties( typeTypeInfo.getOwnersType() );
@@ -237,7 +250,18 @@ public class MetaTypeTypeInfo extends BaseFeatureInfo implements IRelativeTypeIn
     }
     else
     {
-      List<? extends IMethodInfo> methods = getMethods( typeTypeInfo );
+      // Include typeinfo from IType for backward compatibility
+      IType intrinsicTypeClass = JavaTypes.getGosuType( ITypeDeprecated.class );
+      ITypeInfo intrinsicTypeClassInfo = intrinsicTypeClass.getTypeInfo();
+
+      List<? extends IMethodInfo> methods = getMethods( intrinsicTypeClassInfo );
+      for( IMethodInfo method : methods )
+      {
+        StaticMethodInfoDelegate mi = new DeprecatedStaticMethodInfoDelegate( this, method );
+        tempMethods.add( mi );
+      }
+
+      methods = getMethods( typeTypeInfo );
       for( IMethodInfo method : methods )
       {
         if( method.isStatic() )

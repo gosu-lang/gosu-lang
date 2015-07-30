@@ -4,6 +4,7 @@ uses java.lang.Integer
 uses java.util.ArrayList
 uses java.lang.Character
 uses java.util.stream.Collectors
+uses java.util.Arrays
 
 class BlockInterfaceCompatibilityTest extends gw.test.TestClass
 {
@@ -35,5 +36,11 @@ class BlockInterfaceCompatibilityTest extends gw.test.TestClass
 
     var mapVar = l.stream().map( \ s -> s.length() ).toArray<Integer>( \ len -> new Integer[len] )
     assertArrayEquals( {1, 1, 2, 1, 2, 1}, mapVar )
+  }
+
+  function testComparator() {
+    var strings: String[] = {"b", "c", "a"}
+    Arrays.sort( strings, \ s1, s2 -> s1.compareTo( s2 ) )
+    assertArrayEquals( {"a", "b", "c"}, strings )
   }
 }

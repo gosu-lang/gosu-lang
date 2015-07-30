@@ -19,6 +19,7 @@ import gw.lang.reflect.gs.IGosuClass;
 import gw.lang.reflect.gs.IGosuEnhancement;
 import gw.lang.reflect.gs.IGosuMethodInfo;
 import gw.lang.reflect.gs.IGosuObject;
+import gw.lang.reflect.java.IJavaClassInfo;
 import gw.lang.reflect.java.IJavaClassMethod;
 import gw.lang.reflect.java.IJavaMethodInfo;
 import gw.lang.reflect.java.IJavaType;
@@ -121,13 +122,24 @@ public class FunctionToInterfaceCoercer extends BaseCoercer implements IResolvin
 
   public static IJavaClassMethod getSingleMethodFromJavaInterface( IJavaType interfaceType )
   {
+    if( !interfaceType.isInterface() )
+    {
+      return null;
+    }
+
     List<IJavaClassMethod> list = new ArrayList<>( Arrays.asList( interfaceType.getBackingClassInfo().getDeclaredMethods() ) );
 
-    // extract all "default" methods
+    // extract all "default" and Object methods
+    IJavaClassInfo objTypeInfo = JavaTypes.OBJECT().getBackingClassInfo();
     for( Iterator<? extends IJavaClassMethod> it = list.iterator(); it.hasNext(); )
     {
       IJavaClassMethod method = it.next();
-      if( !Modifier.isAbstract( method.getModifiers() ) )
+      IJavaClassInfo[] paramTypes = method.getParameterTypes();
+      if( hasMethod( objTypeInfo, method.getName(), paramTypes ) )
+      {
+        it.remove();
+      }
+      else if( !Modifier.isAbstract( method.getModifiers() ) )
       {
         it.remove();
       }
@@ -138,6 +150,31 @@ public class FunctionToInterfaceCoercer extends BaseCoercer implements IResolvin
       return list.get( 0 );
     }
     return null;
+  }
+
+  private static boolean hasMethod( IJavaClassInfo jci, String name, IJavaClassInfo[] params )
+  {
+    outer: for( IJavaClassMethod method : jci.getDeclaredMethods() )
+    {
+      if( !method.getName().equals( name ) )
+      {
+        continue;
+      }
+      IJavaClassInfo[] methodParamTypes = method.getParameterTypes();
+      if( params.length != methodParamTypes.length )
+      {
+        continue;
+      }
+      for( int i = 0; i < params.length; i++ )
+      {
+        if( !params[i].equals( methodParamTypes[i] ) )
+        {
+          continue outer;
+        }
+      }
+      return true;
+    }
+    return false;
   }
 
   public boolean isExplicitCoercion()
