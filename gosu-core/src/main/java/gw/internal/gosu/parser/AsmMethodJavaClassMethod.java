@@ -6,7 +6,6 @@ package gw.internal.gosu.parser;
 
 import gw.internal.gosu.parser.java.classinfo.AsmClassAnnotationInfo;
 import gw.internal.gosu.parser.java.classinfo.JavaSourceUtil;
-import gw.lang.parser.TypeVarToTypeMap;
 import gw.lang.reflect.FunctionType;
 import gw.lang.reflect.IAnnotationInfo;
 import gw.lang.reflect.IType;

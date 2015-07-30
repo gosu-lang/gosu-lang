@@ -23,7 +23,7 @@ public class AsmParameterizedTypeJavaClassParameterizedType extends AsmTypeJavaC
     List<AsmType> rawTypes = getType().getTypeParameters();
     IJavaClassType[] types = new IJavaClassType[rawTypes.size()];
     for (int i = 0; i < rawTypes.size(); i++) {
-      types[i] = AsmTypeJavaClassType.createType( rawTypes.get( i ), _module );
+      types[i] = AsmTypeJavaClassType.createType( getType(), rawTypes.get( i ), _module );
     }
     return types;
   }
