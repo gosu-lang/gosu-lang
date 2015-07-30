@@ -91,13 +91,10 @@ class ProcessSpecContribTest extends BaseVerifyErrantTest {
                                    "gw.specContrib.featureLiterals.gosuMembersBinding.Errant_BindOverloadedGosuMethodsToInstance", //IDE-1466
                                    "gw.specContrib.types.Errant_MetaType", // IDE-2283
                                    "gw.specContrib.interfaceMethods.defaultMethods.Errant_DefaultMethodsGenerics", //IDE-2581
-                                   "gw.specContrib.interfaceMethods.defaultMethods.Errant_DefaultMethodsInheritance_1", //IDE-2580
                                    "gw.specContrib.interfaceMethods.defaultMethods.Errant_DefaultMethodsAccessModifier", //IDE-2576
-                                   "gw.specContrib.interfaceMethods.defaultMethods.Errant_DefaultMethodsInheritance_2",  //IDE-2580
                                    "gw.specContrib.interfaceMethods.defaultMethods.Errant_DefaultAndAbstractConflict_1",  //IDE-2607
                                    "gw.specContrib.interfaceMethods.defaultMethods.Errant_DefaultAndAbstractConflict_2", //IDE-2614
                                    "gw.specContrib.interfaceMethods.staticMethods.javaInteraction.Errant_GosuTestClass1", //IDE-2594
-                                   "gw.specContrib.interfaceMethods.staticMethods.Errant_StaticMethodsAccessModifier", //IDE-2576
                                    "gw.specContrib.interfaceMethods.staticMethods.Errant_StaticDefaultMethodsResolution_1", //IDE-2618
                                    "gw.specContrib.types.Errant_CompoundType", // fix me :(
 
