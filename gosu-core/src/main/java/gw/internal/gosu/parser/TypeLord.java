@@ -218,7 +218,8 @@ public class TypeLord
             }
             else
             {
-              if( typeArg instanceof WildcardType && (((WildcardType)typeArg).getUpperBounds()[0].equals( Object.class )) )
+              if( typeArg instanceof WildcardType && (((WildcardType)typeArg).getUpperBounds()[0].equals( Object.class ) ||
+                                                      ((WildcardType)typeArg).getLowerBounds().length > 0) )
               {
                 Type lowerBound = maybeGetLowerBound( (WildcardType)typeArg, actualParamByVarName, bKeepTypeVars, recursiveTypes );
                 if( lowerBound == null )
@@ -412,7 +413,7 @@ public class TypeLord
               {
                 // Get the bounding type from the corresponding type var
                 IJavaClassInfo classInfo = TypeSystem.getDefaultTypeLoader().getJavaClassInfo( type.getRawType().getName() );
-                if( classInfo != null )
+                if( classInfo != null && !isContravariantWildcardOnFunctionalInterface( (AsmWildcardType)typeArg, classInfo.getName() ) )
                 {
                   List<AsmType> boundingTypes = ((AsmTypeJavaClassType)classInfo.getTypeParameters()[i]).getType().getTypeParameters();
                   AsmType boundingType = boundingTypes.isEmpty() ? null : boundingTypes.get( 0 );
@@ -437,6 +438,14 @@ public class TypeLord
     }
     throw new IllegalStateException();
     //return parseType( type.getFqn(), actualParamByVarName, bKeepTypeVars, null );
+  }
+
+  private static boolean isContravariantWildcardOnFunctionalInterface( AsmWildcardType typeArg, String fqn )
+  {
+    IType genType = TypeSystem.getByFullNameIfValid( fqn );
+    return !typeArg.isCovariant() &&
+           genType instanceof IJavaType &&
+           FunctionToInterfaceCoercer.getSingleMethodFromJavaInterface( (IJavaType)genType ) != null;
   }
 
   public static IType getActualType( IType type, TypeVarToTypeMap actualParamByVarName )
