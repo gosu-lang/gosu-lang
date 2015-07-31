@@ -43,4 +43,9 @@ class BlockInterfaceCompatibilityTest extends gw.test.TestClass
     Arrays.sort( strings, \ s1, s2 -> s1.compareTo( s2 ) )
     assertArrayEquals( {"a", "b", "c"}, strings )
   }
+
+  function testGenericFunctionTypeVarsBoundedByClassTypeVarsAsContravariantTypeArgsToFunctionalInterface() {
+    var builder = CacheBuilder.newBuilder()
+    builder.removalListener( \ rn : RemovalNotification -> {} )
+  }
 }

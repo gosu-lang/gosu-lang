@@ -156,7 +156,7 @@ public class AsmMethodJavaClassMethod implements IJavaClassMethod, IJavaClassByt
     for( int i = 0; i < typeVars.size(); i++ ) {
       javaTypeVars[i] = (IJavaClassTypeVariable)AsmTypeJavaClassType.createType( typeVars.get( i ), _module );
     }
-    return GenericTypeVariable.convertTypeVars( functionType, javaTypeVars );
+    return GenericTypeVariable.convertTypeVars( functionType, mi.getOwnersType(), javaTypeVars );
   }
 
   @Override
