@@ -6877,7 +6877,12 @@ public final class GosuParser extends ParserBase implements IGosuParser
     {
       if( isParenthesisTerminalExpression() )
       {
-        TypeLord.inferTypeVariableTypesFromGenParamTypeAndConcreteType( funcType.getReturnType(), getContextType().getType(), inferenceMap );
+        // Note we must infer "outward" because this a return type
+        // For example,
+        //    var list: List<String> = Lists.newArrayList( FooJava.filter( {""}, FooJava.not( \ r -> r.Alpha ) ) )
+        // The context type, List<String>, can infer type var of Lists.newArrayList() by way of its return type, ArrayList<E>.
+        // But the inference relationship is backwards, instead of infering from right-to-left, we infer left-to-right, hence the "Out" call here:
+        TypeLord.inferTypeVariableTypesFromGenParamTypeAndConcreteType_Out( funcType.getReturnType(), getContextType().getType(), inferenceMap );
       }
     }
   }

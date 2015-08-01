@@ -55,7 +55,6 @@ import gw.lang.reflect.module.IModule;
 import gw.util.GosuObjectUtil;
 
 import javax.tools.JavaCompiler;
-import javax.tools.JavaFileObject;
 import javax.tools.StandardJavaFileManager;
 import java.lang.annotation.Annotation;
 import java.nio.charset.Charset;
@@ -247,16 +246,24 @@ public abstract class JavaSourceType extends AbstractJavaClassInfo implements IJ
     {
       return resolveParameterizedType(typeResolver, tree, typeName);
     }
-    else if (tree instanceof WildcardTree) {
-      WildcardTree wildcardTree = (WildcardTree) tree;
+    else if( tree instanceof WildcardTree )
+    {
+      WildcardTree wildcardTree = (WildcardTree)tree;
       final Tree.Kind kind = wildcardTree.getKind();
-      if(kind == Tree.Kind.UNBOUNDED_WILDCARD) {
-        return new JavaWildcardType(NULL_TYPE);
-      } else if(kind == Tree.Kind.EXTENDS_WILDCARD) {
-        return new JavaWildcardType(createType(typeResolver, wildcardTree.getBound()));
-      } else if(kind == Tree.Kind.SUPER_WILDCARD) {
-        //return new JavaWildcardType(JavaTypes.OBJECT().getBackingClassInfo());
-        return new JavaWildcardType(NULL_TYPE);
+      if( kind == Tree.Kind.UNBOUNDED_WILDCARD )
+      {
+        // NULL_TYPE is just a placeholder so the call can use the context type to which this wildcard is an argument to make the actual wildcard type
+        return new JavaWildcardType( NULL_TYPE );
+      }
+      else if( kind == Tree.Kind.EXTENDS_WILDCARD )
+      {
+        return new JavaWildcardType( createType( typeResolver, wildcardTree.getBound() ) );
+      }
+      else if( kind == Tree.Kind.SUPER_WILDCARD )
+      {
+        // NULL_TYPE is just a placeholder so that the caller can know this is a 'super' (contravariant) wildcard
+        // We would prefer to determine the final wildcard type here, but we need the context type to which this wildcard is an argument for the sake of functional interfaces vs. other types
+        return new JavaWildcardType( NULL_TYPE );
       }
     }
     else if(tree instanceof IdentifierTree ||
@@ -281,13 +288,18 @@ public abstract class JavaSourceType extends AbstractJavaClassInfo implements IJ
       throw new RuntimeException("Type parameters screwup.");
     }
     for (int i = 0; i < typeParameters.length; i++) {
-      typeParameters[i] = createType(typeResolver, typeArguments.get(i));
+      Tree tree = typeArguments.get( i );
+      typeParameters[i] = createType( typeResolver, tree );
       if (typeParameters[i] instanceof JavaWildcardType && ((JavaWildcardType)typeParameters[i]).getUpperBound() == NULL_TYPE) {
+        Tree wildcardBound = ((WildcardTree)tree).getBound();
         if( FunctionToInterfaceCoercer.getRepresentativeFunctionType( ((IJavaClassInfo)concreteType).getJavaType() ) != null ) {
-          // Functional interfaces parameterized with ? super T wildcard type keep T so contravariance works with blocks
-          ((JavaWildcardType)typeParameters[i]).setBound( parameters[i] );
+          // Functional interfaces parameterized eg., IFoo<? super T>,  wildcard type keep T so contravariance works with blocks
+          ((JavaWildcardType)typeParameters[i]).setBound( wildcardBound == null
+                                                          ? parameters[i].getBounds()[0] // handle naked wildcard IFoo<?>, use IFoo's type var's bounds
+                                                          : createType( typeResolver, wildcardBound ) );
         }
         else {
+          // handle naked wildcard IFoo<?>, use IFoo's type var's bounds
           ((JavaWildcardType)typeParameters[i]).setBound( parameters[i].getBounds()[0] );
         }
       }
