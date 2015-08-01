@@ -948,6 +948,7 @@ public class TypeLord
    * @return A parameterization of rawGenericType corresponding with the type
    *         params of sourceType.
    */
+             // List<Foo>                    ArrayList<Foo>    List
   public static IType findParameterizedType( IType sourceType, IType rawGenericType )
   {
     return findParameterizedType( sourceType, rawGenericType, false );
@@ -986,56 +987,33 @@ public class TypeLord
 
     return null;
   }
-
- /**
-   * Finds a parameterized type in the ancestry of a given type. For instance,
-   * given the type for List&lt;Person&gt; as the sourceType and ArrayList as
-   * the rawGenericType, returns ArrayList&lt;Person&gt;.
-   *
-   * @param sourceType     The type to search in.
-   * @param rawGenericType The raw generic type of the parameterized type to
-   *                       search for e.g., List is the raw generic type of List&lt;String&gt;.
-   *
-   * @return A parameterization of rawGenericType corresponding with the type
-   *         params of sourceType.
-   */
+             // ArrayList<Foo>                  List<Foo>         ArrayList<Z>
   public static IType findParameterizedTypeOut( IType sourceType, IType rawGenericType )
-  {
-    return findParameterizedTypeOut( sourceType, rawGenericType, false );
-  }
-  public static IType findParameterizedTypeOut( IType sourceType, IType rawGenericType, boolean bForAssignability )
   {
     if( sourceType == null || rawGenericType == null )
     {
       return null;
     }
 
-    rawGenericType = getPureGenericType( rawGenericType );
+    // List<Z>
+    IType sourceTypeInHier = findParameterizedType( rawGenericType, getPureGenericType( sourceType ) );
 
-    final IType srcRawType = sourceType.getGenericType();
-    if( srcRawType == rawGenericType ||
-        !bForAssignability && srcRawType instanceof IMetaType && rawGenericType == JavaTypes.CLASS() )
+    if( sourceTypeInHier == null || !sourceTypeInHier.isParameterizedType() )
     {
-      return sourceType;
+      return null;
     }
 
-    IType parameterizedType = findParameterizedTypeOut( sourceType, rawGenericType.getSupertype(), bForAssignability );
-    if( parameterizedType != null )
+    TypeVarToTypeMap map = new TypeVarToTypeMap();
+    IType[] params = sourceTypeInHier.getTypeParameters();
+    for( int iPos = 0; iPos < params.length; iPos++  )
     {
-      return parameterizedType;
-    }
-
-    IType[] interfaces = rawGenericType.getInterfaces();
-    for (int i = 0; i < interfaces.length; i++) {
-      IType iface = interfaces[i];
-      parameterizedType = findParameterizedTypeOut( sourceType, iface, bForAssignability );
-      if( parameterizedType != null )
+      if( params[iPos] instanceof ITypeVariableType )
       {
-        return parameterizedType;
+        map.put( (ITypeVariableType)params[iPos], sourceType.getTypeParameters()[iPos] );
       }
     }
-
-    return null;
+    // ArrayList<Foo>
+    return getActualType( rawGenericType, map, true );
   }
 
   // Todo: the above method is nearly identical to this one. lets see about combining them
@@ -2352,7 +2330,7 @@ public class TypeLord
     }
     else if( genParamType.isParameterizedType() )
     {
-      IType argTypeInTermsOfParamType = bOut ? findParameterizedTypeOut( argType, genParamType.getGenericType() ) : findParameterizedType( argType, genParamType.getGenericType() );
+      IType argTypeInTermsOfParamType = bOut ? findParameterizedTypeOut( argType, genParamType ) : findParameterizedType( argType, genParamType.getGenericType() );
       if( argTypeInTermsOfParamType == null )
       {
         return;
