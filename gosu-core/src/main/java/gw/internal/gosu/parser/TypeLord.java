@@ -2417,7 +2417,8 @@ public class TypeLord
           for( int i = 0; i < genBlockParamTypes.length; i++ )
           {
             inferTypeVariableTypesFromGenParamTypeAndConcreteType(
-              genBlockParamTypes[i], ((FunctionType)argType).getParameterTypes()[i], inferenceMap, inferredInCallStack, bOut );
+              // Infer param types outward
+              genBlockParamTypes[i], ((FunctionType)argType).getParameterTypes()[i], inferenceMap, inferredInCallStack, true );
           }
         }
       }
