@@ -2330,6 +2330,16 @@ public class TypeLord
     }
     else if( genParamType.isParameterizedType() )
     {
+      if( argType instanceof FunctionType )
+      {
+        IFunctionType funcType = FunctionToInterfaceCoercer.getRepresentativeFunctionType( genParamType );
+        if( funcType != null )
+        {
+          inferTypeVariableTypesFromGenParamTypeAndConcreteType( funcType, argType, inferenceMap, inferredInCallStack, bOut );
+          return;
+        }
+      }
+
       IType argTypeInTermsOfParamType = bOut ? findParameterizedTypeOut( argType, genParamType ) : findParameterizedType( argType, genParamType.getGenericType() );
       if( argTypeInTermsOfParamType == null )
       {
@@ -2383,9 +2393,18 @@ public class TypeLord
       FunctionType genBlockType = (FunctionType)genParamType;
       if( !(argType instanceof FunctionType) )
       {
-        // argType may not be symetric with getParamType if the enclosing expr is errant
-        return;
+        if( argType.isParameterizedType() )
+        {
+          argType = FunctionToInterfaceCoercer.getRepresentativeFunctionType( argType );
+        }
+
+        if( !(argType instanceof FunctionType) )
+        {
+          return;
+        }
       }
+
+      //## todo: add another arg to this method to indicate we are inferring a type so we can handle the intersection of more than one mappings in the inferenceMap i.e., we can check that this type is contravarant wrt the other type[s] i.e., make sure it is assignableFROM the other non-contravariant type[s]
       inferTypeVariableTypesFromGenParamTypeAndConcreteType(
         genBlockType.getReturnType(), ((FunctionType)argType).getReturnType(), inferenceMap, inferredInCallStack, bOut );
 
