@@ -20,6 +20,7 @@ public class ContextType {
   public static final ContextType pINT_FALSE = new CommonContextType( CommonType.pINT, false );
 
   private IType _type;
+  private IType _unboundType;
   private boolean _bMethodScoring;
   private final boolean _bCompileTimeConstant;
 
@@ -34,8 +35,15 @@ public class ContextType {
   public ContextType( IType type, boolean bScoring ) {
     this( type, bScoring, false );
   }
+  public ContextType( IType type, IType unboundType, boolean bScoring ) {
+    this( type, unboundType, bScoring, false );
+  }
   public ContextType( IType type, boolean bScoring, boolean bCompileTimeConstant ) {
+    this( type, null, bScoring, bCompileTimeConstant );
+  }
+  public ContextType( IType type, IType unboundType, boolean bScoring, boolean bCompileTimeConstant ) {
     _type = type;
+    _unboundType = unboundType;
     _bMethodScoring = bScoring;
     _bCompileTimeConstant = bCompileTimeConstant;
   }
@@ -50,6 +58,10 @@ public class ContextType {
 
   public IType getType() {
     return _type;
+  }
+
+  public IType getUnboundType() {
+    return _unboundType;
   }
 
   public IType getAlternateType() {

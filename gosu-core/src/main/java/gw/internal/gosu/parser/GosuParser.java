@@ -6873,7 +6873,8 @@ public final class GosuParser extends ParserBase implements IGosuParser
         TypeLord.hasTypeVariable( funcType.getReturnType() ) &&
         !getContextType().isMethodScoring() &&
         getContextType().getType() != null &&
-        getContextType() != ContextType.EMPTY )
+        getContextType() != ContextType.EMPTY &&
+        (getContextType().getUnboundType() == null || !boundCtxType( getContextType().getUnboundType() ).equals( getContextType().getType() )) ) // no sense in inferring type OUT from default type
     {
       if( isParenthesisTerminalExpression() )
       {
@@ -7159,7 +7160,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
       }
       else
       {
-        boundCtxType = boundCtxType( rawCtxType, false );
+        boundCtxType = boundCtxType( rawCtxType );
         if( rawCtxType instanceof IBlockType )
         {
           retainTypeVarsCtxType = (IBlockType)boundCtxType( rawCtxType, true );
@@ -7167,7 +7168,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
       }
       ContextType ctx = retainTypeVarsCtxType != null
                         ? ContextType.makeBlockContexType( ctxType, retainTypeVarsCtxType, bMethodScoring )
-                        : new ContextType( boundCtxType, bMethodScoring );
+                        : new ContextType( boundCtxType, ctxType, bMethodScoring );
 
       parseExpressionNoVerify( ctx );
       Expression expression = popExpression();
