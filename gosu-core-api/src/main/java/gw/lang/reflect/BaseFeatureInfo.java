@@ -5,8 +5,6 @@
 package gw.lang.reflect;
 
 import gw.lang.parser.ScriptabilityModifiers;
-import gw.lang.parser.TypeVarToTypeMap;
-import gw.lang.reflect.gs.IGenericTypeVariable;
 import gw.lang.reflect.java.JavaTypes;
 import gw.util.GosuCollectionUtil;
 
@@ -28,88 +26,6 @@ public abstract class BaseFeatureInfo implements IAttributedFeatureInfo
 
   transient private volatile Boolean _internalAPI;
 
-  static <T> List<T> compactAndLockList(List<T> list) {
-    if (list == null || list.isEmpty()) {
-      return Collections.emptyList();
-    }
-
-    if (list.size() == 1) {
-      return Collections.singletonList(list.get(0));
-    }
-
-    if (list instanceof ArrayList) {
-      ((ArrayList<T>)list).trimToSize();
-    }
-
-    return Collections.unmodifiableList(list);
-  }
-
-  protected Collection<BaseFeatureInfo> getSuperAnnotatedElements()
-  {
-    List<BaseFeatureInfo> infos = new ArrayList<BaseFeatureInfo>();
-    addAnnotationSuperElement( infos, getOwnersType().getSupertype() );
-    if( !(this instanceof IConstructorInfo) )
-    {
-      IType[] interfaces = getOwnersType().getInterfaces();
-      if( interfaces != null )
-      {
-        for( IType anInterface : interfaces )
-        {
-          if (!TypeSystem.isDeleted(anInterface)) {
-            addAnnotationSuperElement( infos, anInterface );
-          }
-        }
-      }
-    }
-    return infos;
-  }
-
-  private void addAnnotationSuperElement( List<BaseFeatureInfo> infos, IType type )
-  {
-    if( type != null && !(type instanceof IErrorType) )
-    {
-      IFeatureInfo featureInfo;
-      if( this instanceof IConstructorInfo )
-      {
-        featureInfo = type.getTypeInfo().getConstructor( getParamTypes( ((IConstructorInfo)this).getParameters() ) );
-      }
-      else if( this instanceof IMethodInfo)
-      {
-        featureInfo = type.getTypeInfo().getMethod( getDisplayName(), getParamTypes( ((IMethodInfo)this).getParameters() ) );
-      }
-      else if( this instanceof IPropertyInfo)
-      {
-        featureInfo = type.getTypeInfo().getProperty( getName() );
-      }
-      else
-      {
-        assert this instanceof ITypeInfo;
-        featureInfo = type.getTypeInfo();
-      }
-      if( featureInfo != null )
-      {
-        if( featureInfo instanceof BaseFeatureInfo )
-        {
-          BaseFeatureInfo baseFeatureInfo = (BaseFeatureInfo)featureInfo;
-          infos.add( baseFeatureInfo );
-        }
-      }
-    }
-  }
-
-  public static IType[] getParamTypes( IParameterInfo[] parameters )
-  {
-    List<IType> retValue = new ArrayList<IType>();
-    if( parameters != null )
-    {
-      for( IParameterInfo parameterInfo : parameters )
-      {
-        retValue.add( parameterInfo.getFeatureType() );
-      }
-    }
-
-    return retValue.toArray( new IType[retValue.size()] );
-  }
 
   public BaseFeatureInfo( IFeatureInfo container )
   {
@@ -334,29 +250,90 @@ public abstract class BaseFeatureInfo implements IAttributedFeatureInfo
     return true;
   }
 
-  public IType getActualTypeInContainer( IFeatureInfo container, IType type )
+  protected Collection<BaseFeatureInfo> getSuperAnnotatedElements()
   {
-    IType ownerType = container.getOwnersType();
-    if( ownerType.isParameterizedType() )
+    List<BaseFeatureInfo> infos = new ArrayList<BaseFeatureInfo>();
+    addAnnotationSuperElement( infos, getOwnersType().getSupertype() );
+    if( !(this instanceof IConstructorInfo) )
     {
-      TypeVarToTypeMap actualParamByVarName = TypeSystem.mapTypeByVarName( ownerType, ownerType );
-      if( container instanceof IGenericMethodInfo )
+      IType[] interfaces = getOwnersType().getInterfaces();
+      if( interfaces != null )
       {
-        for( IGenericTypeVariable tv : ((IGenericMethodInfo)container).getTypeVariables() )
+        for( IType anInterface : interfaces )
         {
-          if( actualParamByVarName.isEmpty() )
-          {
-            actualParamByVarName = new TypeVarToTypeMap();
+          if (!TypeSystem.isDeleted(anInterface)) {
+            addAnnotationSuperElement( infos, anInterface );
           }
-          actualParamByVarName.put( tv.getTypeVariableDefinition().getType(), tv.getTypeVariableDefinition().getType() );
         }
-        type = TypeSystem.getActualType( type, actualParamByVarName, true );
       }
     }
-    return type;
+    return infos;
+  }
+
+  private void addAnnotationSuperElement( List<BaseFeatureInfo> infos, IType type )
+  {
+    if( type != null && !(type instanceof IErrorType) )
+    {
+      IFeatureInfo featureInfo;
+      if( this instanceof IConstructorInfo )
+      {
+        featureInfo = type.getTypeInfo().getConstructor( getParamTypes( ((IConstructorInfo)this).getParameters() ) );
+      }
+      else if( this instanceof IMethodInfo)
+      {
+        featureInfo = type.getTypeInfo().getMethod( getDisplayName(), getParamTypes( ((IMethodInfo)this).getParameters() ) );
+      }
+      else if( this instanceof IPropertyInfo)
+      {
+        featureInfo = type.getTypeInfo().getProperty( getName() );
+      }
+      else
+      {
+        assert this instanceof ITypeInfo;
+        featureInfo = type.getTypeInfo();
+      }
+      if( featureInfo != null )
+      {
+        if( featureInfo instanceof BaseFeatureInfo )
+        {
+          BaseFeatureInfo baseFeatureInfo = (BaseFeatureInfo)featureInfo;
+          infos.add( baseFeatureInfo );
+        }
+      }
+    }
   }
 
   public String toString() {
     return getName();
+  }
+
+  static <T> List<T> compactAndLockList(List<T> list) {
+    if (list == null || list.isEmpty()) {
+      return Collections.emptyList();
+    }
+
+    if (list.size() == 1) {
+      return Collections.singletonList(list.get(0));
+    }
+
+    if (list instanceof ArrayList) {
+      ((ArrayList<T>)list).trimToSize();
+    }
+
+    return Collections.unmodifiableList(list);
+  }
+
+  public static IType[] getParamTypes( IParameterInfo[] parameters )
+  {
+    List<IType> retValue = new ArrayList<IType>();
+    if( parameters != null )
+    {
+      for( IParameterInfo parameterInfo : parameters )
+      {
+        retValue.add( parameterInfo.getFeatureType() );
+      }
+    }
+
+    return retValue.toArray( new IType[retValue.size()] );
   }
 }

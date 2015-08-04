@@ -45,15 +45,24 @@ public class CompoundType extends AbstractType implements INonLoadableType, ICom
   private boolean _bInterface;
   transient private ITypeInfo _typeInfo;
 
-  public static CompoundType get( IType... types )
+  public static IType get( IType... types )
   {
     HashSet<IType> typeSet = new HashSet<IType>();
     typeSet.addAll( Arrays.asList( types ) );
     return get( typeSet );
   }
 
-  public static CompoundType get( Set<IType> types )
+  public static IType get( Set<IType> types )
   {
+    if( types.contains( JavaTypes.OBJECT() ) )
+    {
+      // necessary to remove Object to prevent some sill shit from creeping into type info e.g., Collections.max()
+      types.remove( JavaTypes.OBJECT() );
+      if( types.size() == 1 )
+      {
+        return types.iterator().next();
+      }
+    }
     String strName = getNameFrom( types, false );
     CompoundType compoundType = CACHE.get( strName );
     if( compoundType == null )

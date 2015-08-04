@@ -25,7 +25,7 @@ public class ParameterizedTypeJavaClassParameterizedType extends TypeJavaClassTy
     Type[] rawTypes = _parameterizedType.getActualTypeArguments();
     IJavaClassType[] types = new IJavaClassType[rawTypes.length];
     for (int i = 0; i < rawTypes.length; i++) {
-      types[i] = TypeJavaClassType.createType(rawTypes[i], _module);
+      types[i] = TypeJavaClassType.createType( _parameterizedType.getRawType(), rawTypes[i], _module );
     }
     return types;
   }

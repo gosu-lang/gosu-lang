@@ -32,9 +32,7 @@ public class KeywordsTest extends TestClass {
     kw.put("enhancement", true);
     kw.put("enum", false);
     kw.put("eval", false);
-    kw.put("except", true);
     kw.put("execution", true);
-    kw.put("exists", true);
     kw.put("extends", false);
     kw.put("false", true);
     kw.put("final", true);
@@ -87,7 +85,6 @@ public class KeywordsTest extends TestClass {
     kw.put("typeis", false);
     kw.put("typeloader", true);
     kw.put("typeof", false);
-    kw.put("unless", false);
     kw.put("uses", false);
     kw.put("using", false);
     kw.put("var", false);

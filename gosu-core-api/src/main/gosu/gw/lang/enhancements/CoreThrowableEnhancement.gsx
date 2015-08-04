@@ -29,7 +29,7 @@ enhancement CoreThrowableEnhancement : java.lang.Throwable
   {
     var visited = new IdentityHashMap<Throwable, Boolean>()
     var cause = this
-    while( cause != null and not causeType.isAssignableFrom( typeof cause ) )
+    while( cause != null and not causeType.Type.isAssignableFrom( typeof cause ) )
     {
       // handle loops in the cause chain
       if( visited.put( cause, true ) )

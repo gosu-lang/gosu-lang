@@ -4,11 +4,13 @@
 
 package gw.internal.gosu.parser;
 
+import gw.internal.gosu.parser.expressions.BlockType;
 import gw.internal.gosu.parser.expressions.TypeVariableDefinition;
 import gw.internal.gosu.parser.expressions.TypeVariableDefinitionImpl;
 import gw.lang.parser.AsmTypeVarMatcher;
 import gw.lang.parser.GosuParserFactory;
 import gw.lang.parser.GosuParserTypes;
+import gw.lang.parser.IExpression;
 import gw.lang.parser.IScriptPartId;
 import gw.lang.parser.ITypeUsesMap;
 import gw.lang.parser.RawTypeVarMatcher;
@@ -17,10 +19,12 @@ import gw.lang.parser.StandardCoercionManager;
 import gw.lang.parser.StandardSymbolTable;
 import gw.lang.parser.TypeSystemAwareCache;
 import gw.lang.parser.TypeVarToTypeMap;
+import gw.lang.parser.coercers.FunctionToInterfaceCoercer;
 import gw.lang.parser.exceptions.ParseResultsException;
 import gw.lang.parser.expressions.ITypeLiteralExpression;
 import gw.lang.parser.expressions.ITypeVariableDefinition;
 import gw.lang.reflect.FunctionType;
+import gw.lang.reflect.IBlockType;
 import gw.lang.reflect.IErrorType;
 import gw.lang.reflect.IFunctionType;
 import gw.lang.reflect.IMetaType;
@@ -54,8 +58,11 @@ import java.lang.reflect.TypeVariable;
 import java.lang.reflect.WildcardType;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import java.util.StringTokenizer;
@@ -129,9 +136,9 @@ public class TypeLord
 
   public static IType getActualType( Type type, TypeVarToTypeMap actualParamByVarName, boolean bKeepTypeVars )
   {
-    return getActualType( type, actualParamByVarName, bKeepTypeVars, new HashSet<Type>() );
+    return getActualType( type, actualParamByVarName, bKeepTypeVars, new LinkedHashSet<Type>() );
   }
-  public static IType getActualType( Type type, TypeVarToTypeMap actualParamByVarName, boolean bKeepTypeVars, Set<Type> recursiveTypes )
+  public static IType getActualType( Type type, TypeVarToTypeMap actualParamByVarName, boolean bKeepTypeVars, LinkedHashSet<Type> recursiveTypes )
   {
     IType retType;
     if( type instanceof Class )
@@ -169,6 +176,11 @@ public class TypeLord
     else if( type instanceof WildcardType )
     {
       Type bound = ((WildcardType)type).getUpperBounds()[0];
+      Type lowerBound = maybeGetLowerBound( (WildcardType)type, actualParamByVarName, bKeepTypeVars, recursiveTypes );
+      if( lowerBound != null )
+      {
+        bound = lowerBound;
+      }
       retType = getActualType( bound, actualParamByVarName, bKeepTypeVars, recursiveTypes );
     }
     else if( type instanceof ParameterizedType )
@@ -206,14 +218,19 @@ public class TypeLord
             }
             else
             {
-              if( typeArg instanceof WildcardType && (((WildcardType)typeArg).getUpperBounds()[0].equals( Object.class )) )
+              if( typeArg instanceof WildcardType && (((WildcardType)typeArg).getUpperBounds()[0].equals( Object.class ) ||
+                                                      ((WildcardType)typeArg).getLowerBounds().length > 0) )
               {
-                // Object is the default type for the naked <?> wildcard, so we have to get the actual bound, if different, from the corresponding type var
-                Type[] boundingTypes = ((Class)((ParameterizedType)type).getRawType()).getTypeParameters()[i].getBounds();
-                Type boundingType = boundingTypes.length == 0 ? null : boundingTypes[0];
-                if( boundingType != null )
+                Type lowerBound = maybeGetLowerBound( (WildcardType)typeArg, actualParamByVarName, bKeepTypeVars, recursiveTypes );
+                if( lowerBound == null )
                 {
-                  typeArg = boundingType;
+                  // Object is the default type for the naked <?> wildcard, so we have to get the actual bound, if different, from the corresponding type var
+                  Type[] boundingTypes = ((Class)((ParameterizedType)type).getRawType()).getTypeParameters()[i].getBounds();
+                  Type boundingType = boundingTypes.length == 0 ? null : boundingTypes[0];
+                  if( boundingType != null )
+                  {
+                    typeArg = boundingType;
+                  }
                 }
               }
 
@@ -240,11 +257,36 @@ public class TypeLord
     return retType;
   }
 
+  private static Type maybeGetLowerBound( WildcardType type, TypeVarToTypeMap actualParamByVarName, boolean bKeepTypeVars, LinkedHashSet<Type> recursiveTypes )
+  {
+    Type[] lowers = type.getLowerBounds();
+    if( lowers != null && lowers.length > 0 && recursiveTypes.size() > 0 )
+    {
+      // This is a "super" (contravariant) wildcard
+
+      LinkedList<Type> list = new LinkedList<>( recursiveTypes );
+      Type enclType = list.getLast();
+      if( enclType instanceof ParameterizedType )
+      {
+        IType genType = getActualType( ((ParameterizedType)enclType).getRawType(), actualParamByVarName, bKeepTypeVars, recursiveTypes );
+        if( genType instanceof IJavaType )
+        {
+          if( FunctionToInterfaceCoercer.getSingleMethodFromJavaInterface( (IJavaType)genType ) != null )
+          {
+            // For functional interfaces we keep the lower bound as an upper bound so that blocks maintain contravariance wrt the single method's parameters
+            return lowers[0];
+          }
+        }
+      }
+    }
+    return null;
+  }
+
   public static IType getActualType( IAsmType type, TypeVarToTypeMap actualParamByVarName )
   {
-    return getActualType( type, actualParamByVarName, false, new HashSet<IAsmType>() );
+    return getActualType( type, actualParamByVarName, false, new LinkedHashSet<IAsmType>() );
   }
-  public static IType getActualType( IAsmType type, TypeVarToTypeMap actualParamByVarName, boolean bKeepTypeVars, Set<IAsmType> recursiveTypes )
+  public static IType getActualType( IAsmType type, TypeVarToTypeMap actualParamByVarName, boolean bKeepTypeVars, LinkedHashSet<IAsmType> recursiveTypes )
   {
     if( type instanceof AsmClass )
     {
@@ -286,7 +328,26 @@ public class TypeLord
     else if( type instanceof AsmWildcardType )
     {
       AsmType bound = ((AsmWildcardType)type).getBound();
-      if( bound == null || !((AsmWildcardType) type).isCovariant())
+      if( bound != null && !((AsmWildcardType)type).isCovariant() && recursiveTypes.size() > 0 )
+      {
+        LinkedList<IAsmType> list = new LinkedList<>( recursiveTypes );
+        IAsmType enclType = list.getLast();
+        List<AsmType> typeArgs = enclType.getTypeParameters();
+        if( typeArgs != null && typeArgs.size() > 0 )
+        {
+          IType genType = TypeSystem.getByFullNameIfValid( enclType.getRawType().getName() );
+          if( genType instanceof IJavaType )
+          {
+            if( FunctionToInterfaceCoercer.getSingleMethodFromJavaInterface( (IJavaType)genType ) != null )
+            {
+              // For functional interfaces we keep the lower bound as an upper bound so that blocks maintain contravariance wrt the single method's parameters
+              return getActualType( bound, actualParamByVarName, bKeepTypeVars, recursiveTypes );
+            }
+            bound = null;
+          }
+        }
+      }
+      if( bound == null )
       {
         return JavaTypes.OBJECT();
       }
@@ -352,7 +413,7 @@ public class TypeLord
               {
                 // Get the bounding type from the corresponding type var
                 IJavaClassInfo classInfo = TypeSystem.getDefaultTypeLoader().getJavaClassInfo( type.getRawType().getName() );
-                if( classInfo != null )
+                if( classInfo != null && !isContravariantWildcardOnFunctionalInterface( (AsmWildcardType)typeArg, classInfo.getName() ) )
                 {
                   List<AsmType> boundingTypes = ((AsmTypeJavaClassType)classInfo.getTypeParameters()[i]).getType().getTypeParameters();
                   AsmType boundingType = boundingTypes.isEmpty() ? null : boundingTypes.get( 0 );
@@ -377,6 +438,14 @@ public class TypeLord
     }
     throw new IllegalStateException();
     //return parseType( type.getFqn(), actualParamByVarName, bKeepTypeVars, null );
+  }
+
+  private static boolean isContravariantWildcardOnFunctionalInterface( AsmWildcardType typeArg, String fqn )
+  {
+    IType genType = TypeSystem.getByFullNameIfValid( fqn );
+    return !typeArg.isCovariant() &&
+           genType instanceof IJavaType &&
+           FunctionToInterfaceCoercer.getSingleMethodFromJavaInterface( (IJavaType)genType ) != null;
   }
 
   public static IType getActualType( IType type, TypeVarToTypeMap actualParamByVarName )
@@ -879,6 +948,7 @@ public class TypeLord
    * @return A parameterization of rawGenericType corresponding with the type
    *         params of sourceType.
    */
+             // List<Foo>                    ArrayList<Foo>    List
   public static IType findParameterizedType( IType sourceType, IType rawGenericType )
   {
     return findParameterizedType( sourceType, rawGenericType, false );
@@ -916,6 +986,34 @@ public class TypeLord
     }
 
     return null;
+  }
+             // ArrayList<Foo>                  List<Foo>         ArrayList<Z>
+  public static IType findParameterizedTypeOut( IType sourceType, IType rawGenericType )
+  {
+    if( sourceType == null || rawGenericType == null )
+    {
+      return null;
+    }
+
+    // List<Z>
+    IType sourceTypeInHier = findParameterizedType( rawGenericType, getPureGenericType( sourceType ) );
+
+    if( sourceTypeInHier == null || !sourceTypeInHier.isParameterizedType() )
+    {
+      return null;
+    }
+
+    TypeVarToTypeMap map = new TypeVarToTypeMap();
+    IType[] params = sourceTypeInHier.getTypeParameters();
+    for( int iPos = 0; iPos < params.length; iPos++  )
+    {
+      if( params[iPos] instanceof ITypeVariableType )
+      {
+        map.put( (ITypeVariableType)params[iPos], sourceType.getTypeParameters()[iPos] );
+      }
+    }
+    // ArrayList<Foo>
+    return getActualType( rawGenericType, map, true );
   }
 
   // Todo: the above method is nearly identical to this one. lets see about combining them
@@ -1708,11 +1806,20 @@ public class TypeLord
     // OK, we have disjoint types, so we need to do the full-monty LUB analysis
     IType seedType = types.get( 0 );
 
-    Set<IType> lubSet = new HashSet<IType>( seedType.getAllTypesInHierarchy() );
-    for( int i = 1; i < types.size(); i++ )
+    Set<IType> lubSet;
+
+    if( areAllTypesBlocks( types ) )
     {
-      IType iIntrinsicType = types.get( i );
-      lubSet.retainAll( iIntrinsicType.getAllTypesInHierarchy() );
+      lubSet = findLubForBlockTypes( (List<IBlockType>)types, resolvingTypes );
+    }
+    else
+    {
+      lubSet = new HashSet<IType>( seedType.getAllTypesInHierarchy() );
+      for( int i = 1; i < types.size(); i++ )
+      {
+        IType iIntrinsicType = types.get( i );
+        lubSet.retainAll( iIntrinsicType.getAllTypesInHierarchy() );
+      }
     }
 
     pruneNonLUBs( lubSet );
@@ -1734,6 +1841,37 @@ public class TypeLord
     {
       return CompoundType.get( lubSet );
     }
+  }
+
+  private static Set<IType> findLubForBlockTypes( List<? extends IBlockType> types, Set<IType> resolvingTypes )
+  {
+    IBlockType lowerBound = types.get( 0 );
+    for( int i = 1; i < types.size(); i++ )
+    {
+      IBlockType csr = types.get( i );
+      if( lowerBound.isAssignableFrom( csr ) )
+      {
+        continue;
+      }
+      IType[] contraTypes = FunctionType.findContravariantParams( lowerBound.getParameterTypes(), csr.getParameterTypes() );
+      if( contraTypes == null )
+      {
+        return Collections.singleton( JavaTypes.IBLOCK() );
+      }
+      IType returnType = findLeastUpperBoundImpl( Arrays.asList( lowerBound.getReturnType(), csr.getReturnType() ), resolvingTypes );
+      lowerBound = new BlockType( returnType, contraTypes, Arrays.asList( lowerBound.getParameterNames() ), Collections.<IExpression>emptyList() );
+    }
+    return Collections.singleton( lowerBound );
+  }
+
+  private static boolean areAllTypesBlocks( List<? extends IType> types )
+  {
+    for( IType t: types ) {
+      if( !(t instanceof IBlockType) ) {
+        return false;
+      }
+    }
+    return true;
   }
 
   public static IType getLeastUpperBoundForPrimitiveTypes(IType t0, IType t1) {
@@ -2157,9 +2295,13 @@ public class TypeLord
    */
   public static void inferTypeVariableTypesFromGenParamTypeAndConcreteType( IType genParamType, IType argType, TypeVarToTypeMap inferenceMap )
   {
-    inferTypeVariableTypesFromGenParamTypeAndConcreteType( genParamType, argType, inferenceMap, new HashSet<ITypeVariableType>() );
+    inferTypeVariableTypesFromGenParamTypeAndConcreteType( genParamType, argType, inferenceMap, new HashSet<ITypeVariableType>(), false );
   }
-  public static void inferTypeVariableTypesFromGenParamTypeAndConcreteType( IType genParamType, IType argType, TypeVarToTypeMap inferenceMap, HashSet<ITypeVariableType> inferredInCallStack )
+  public static void inferTypeVariableTypesFromGenParamTypeAndConcreteType_Out( IType genParamType, IType argType, TypeVarToTypeMap inferenceMap )
+  {
+    inferTypeVariableTypesFromGenParamTypeAndConcreteType( genParamType, argType, inferenceMap, new HashSet<ITypeVariableType>(), true );
+  }
+  public static void inferTypeVariableTypesFromGenParamTypeAndConcreteType( IType genParamType, IType argType, TypeVarToTypeMap inferenceMap, HashSet<ITypeVariableType> inferredInCallStack, boolean bOut )
   {
     if( argType == GosuParserTypes.NULL_TYPE() ||
         argType instanceof IErrorType ||
@@ -2183,12 +2325,22 @@ public class TypeLord
       //## todo: same as JavaMethodInfo.inferTypeVariableTypesFromGenParamTypeAndConcreteType()
       if( argType.getComponentType() == null || !argType.getComponentType().isPrimitive() )
       {
-        inferTypeVariableTypesFromGenParamTypeAndConcreteType( genParamType.getComponentType(), argType.getComponentType(), inferenceMap, inferredInCallStack );
+        inferTypeVariableTypesFromGenParamTypeAndConcreteType( genParamType.getComponentType(), argType.getComponentType(), inferenceMap, inferredInCallStack, bOut );
       }
     }
     else if( genParamType.isParameterizedType() )
     {
-      IType argTypeInTermsOfParamType = findParameterizedType( argType, genParamType.getGenericType() );
+      if( argType instanceof FunctionType )
+      {
+        IFunctionType funcType = FunctionToInterfaceCoercer.getRepresentativeFunctionType( genParamType );
+        if( funcType != null )
+        {
+          inferTypeVariableTypesFromGenParamTypeAndConcreteType( funcType, argType, inferenceMap, inferredInCallStack, bOut );
+          return;
+        }
+      }
+
+      IType argTypeInTermsOfParamType = bOut ? findParameterizedTypeOut( argType, genParamType ) : findParameterizedType( argType, genParamType.getGenericType() );
       if( argTypeInTermsOfParamType == null )
       {
         return;
@@ -2199,7 +2351,7 @@ public class TypeLord
         int i = 0;
         for( IType typeArg : genParamType.getTypeParameters() )
         {
-          inferTypeVariableTypesFromGenParamTypeAndConcreteType( typeArg, concreteTypeParams[i++], inferenceMap, inferredInCallStack );
+          inferTypeVariableTypesFromGenParamTypeAndConcreteType( typeArg, concreteTypeParams[i++], inferenceMap, inferredInCallStack, bOut );
         }
       }
     }
@@ -2233,7 +2385,7 @@ public class TypeLord
       IType boundingType = ((ITypeVariableType)genParamType).getBoundingType();
       if( !isRecursiveType( (ITypeVariableType)genParamType, boundingType ) )
       {
-        inferTypeVariableTypesFromGenParamTypeAndConcreteType( boundingType, argType, inferenceMap, inferredInCallStack );
+        inferTypeVariableTypesFromGenParamTypeAndConcreteType( boundingType, argType, inferenceMap, inferredInCallStack, bOut );
       }
     }
     else if( genParamType instanceof FunctionType )
@@ -2241,11 +2393,20 @@ public class TypeLord
       FunctionType genBlockType = (FunctionType)genParamType;
       if( !(argType instanceof FunctionType) )
       {
-        // argType may not be symetric with getParamType if the enclosing expr is errant
-        return;
+        if( argType.isParameterizedType() )
+        {
+          argType = FunctionToInterfaceCoercer.getRepresentativeFunctionType( argType );
+        }
+
+        if( !(argType instanceof FunctionType) )
+        {
+          return;
+        }
       }
+
+      //## todo: add another arg to this method to indicate we are inferring a type so we can handle the intersection of more than one mappings in the inferenceMap i.e., we can check that this type is contravarant wrt the other type[s] i.e., make sure it is assignableFROM the other non-contravariant type[s]
       inferTypeVariableTypesFromGenParamTypeAndConcreteType(
-        genBlockType.getReturnType(), ((FunctionType)argType).getReturnType(), inferenceMap, inferredInCallStack );
+        genBlockType.getReturnType(), ((FunctionType)argType).getReturnType(), inferenceMap, inferredInCallStack, bOut );
 
       IType[] genBlockParamTypes = genBlockType.getParameterTypes();
       if( genBlockParamTypes != null )
@@ -2256,7 +2417,8 @@ public class TypeLord
           for( int i = 0; i < genBlockParamTypes.length; i++ )
           {
             inferTypeVariableTypesFromGenParamTypeAndConcreteType(
-              genBlockParamTypes[i], ((FunctionType)argType).getParameterTypes()[i], inferenceMap, inferredInCallStack );
+              // Infer param types outward
+              genBlockParamTypes[i], ((FunctionType)argType).getParameterTypes()[i], inferenceMap, inferredInCallStack, true );
           }
         }
       }

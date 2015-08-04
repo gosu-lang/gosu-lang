@@ -13,4 +13,26 @@ class Errant_BlockAssignment {
       a1 = l[0]  //## issuekeys: MSG_TYPE_MISMATCH
     }
   }
+
+  class B extends A {}
+
+  function test(a: block(p: A): A, b: block(p: B): B) {
+    var l: List<block(p: B): A> = {a, b}  // should find LUB of block(B):A
+
+    var c(p: B): A
+    c = a
+    c = b
+
+    var d(p: A): A
+    d = a
+    d = b  //## issuekeys: MSG_TYPE_MISMATCH
+
+    var e(p: A): B
+    e = a  //## issuekeys: MSG_TYPE_MISMATCH
+    e = b  //## issuekeys: MSG_TYPE_MISMATCH
+
+    var f(p: B): B
+    f = a  //## issuekeys: MSG_TYPE_MISMATCH
+    f = b
+  }
 }

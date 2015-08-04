@@ -31,7 +31,7 @@ public class MethodInfoBuilder {
   private String _description;
   private String _returnDescription;
   private boolean _hidden;
-  private LocationInfo _locationInfo;
+  private ILocationInfo _locationInfo;
 
   public MethodInfoBuilder withName(String name) {
     this._name = name;
@@ -130,10 +130,7 @@ public class MethodInfoBuilder {
       exceptions[idx++] = new ExceptionInfoBuilder().like(info);
     }
     withExceptions(exceptions);
-    if ( method instanceof ILocationAwareFeature ) {
-      ILocationAwareFeature locationAwareFeature = (ILocationAwareFeature) method;
-      _locationInfo = locationAwareFeature.getLocationInfo();
-    }
+    _locationInfo = method.getLocationInfo();
     return this;
   }
 
@@ -141,12 +138,12 @@ public class MethodInfoBuilder {
     return new BuiltMethodInfo(this, container);
   }
 
-  public MethodInfoBuilder withLocation( LocationInfo locationInfo ) {
+  public MethodInfoBuilder withLocation( ILocationInfo locationInfo ) {
     _locationInfo = locationInfo;
     return this;
   }
 
-  private static class BuiltMethodInfo implements IMethodInfo, IOptionalParamCapable, ILocationAwareFeature {
+  private static class BuiltMethodInfo implements IMethodInfo, IOptionalParamCapable {
 
     private final IFeatureInfo _container;
     private final String _name;
@@ -160,7 +157,7 @@ public class MethodInfoBuilder {
     private final String _description;
     private final String _returnDescription;
     private final boolean _hidden;
-    private final LocationInfo _locationInfo;
+    private final ILocationInfo _locationInfo;
 
     public BuiltMethodInfo(MethodInfoBuilder builder, IFeatureInfo container) {
       assert container != null;
@@ -184,7 +181,7 @@ public class MethodInfoBuilder {
       this._returnDescription = builder._returnDescription;
       this._hidden = builder._hidden;
       this._signature = makeSignature();
-      this._locationInfo = builder._locationInfo;
+      this._locationInfo = builder._locationInfo == null ? ILocationInfo.EMPTY : builder._locationInfo;
     }
 
     public IParameterInfo[] getParameters() {
@@ -346,7 +343,7 @@ public class MethodInfoBuilder {
     }
 
     @Override
-    public LocationInfo getLocationInfo() {
+    public ILocationInfo getLocationInfo() {
       return _locationInfo;
     }
 

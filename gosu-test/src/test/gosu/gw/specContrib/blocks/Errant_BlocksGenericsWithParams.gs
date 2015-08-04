@@ -1,7 +1,9 @@
 package gw.specContrib.blocks
 
 uses java.lang.Integer
+uses java.lang.ref.WeakReference
 uses java.util.ArrayList
+uses java.util.Map
 
 class Errant_BlocksGenericsWithParams {
   function hello1<T>(p(t: T): T): T {
@@ -111,19 +113,33 @@ class Errant_BlocksGenericsWithParams {
       return {1, 2, 3s}
     })
 
-    var x13240: ArrayList<Integer> = hello1(\x: ArrayList<Integer> -> {
-      return {1, 2, 'c', "string"} //## issuekeys: MSG_TYPE_MISMATCH
-    })
+    var x13240: ArrayList<Integer> = hello1(\x: ArrayList<Integer> -> { return {1, 2, 'c', "string"} })  //## issuekeys: MSG_TYPE_MISMATCH
 
     //IDE-1344 - Parser bug
     var x13241: ArrayList<Integer> = hello1(\x: ArrayList -> {  //## issuekeys: MSG_TYPE_MISMATCH
       return new ArrayList<Integer>()
     })
     //Error Expected. Both show
-    var x13242: ArrayList<Integer> = hello1(\x: ArrayList<Integer> -> {
-      return new ArrayList()  //## issuekeys: MSG_TYPE_MISMATCH
-    })
+    var x13242: ArrayList<Integer> = hello1(\x: ArrayList<Integer> -> { return new ArrayList() })  //## issuekeys: MSG_TYPE_MISMATCH
 
+  }
+
+  abstract class A {
+    abstract property get Prop1(): String
+    abstract property get Prop2(): String
+    abstract property get Prop3(): String
+  }
+
+  function test(l: List<A>, ints: Integer[][]) {
+    //IDE-2297
+    new WeakReference<Map<String, Map<String, List<String>>>>(
+        l.partition(\t -> t.Prop1)
+         .mapValues(\tl1 -> tl1
+           .partition(\t -> t.Prop2)
+           .mapValues(\tl2 -> tl2.map(\t -> t.Prop3))))
+
+    //IDE-2299
+    ints.map( \ array -> array.map( \ elem -> elem + 1 ))
   }
 
 }

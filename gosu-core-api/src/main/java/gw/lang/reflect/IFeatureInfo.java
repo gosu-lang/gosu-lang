@@ -37,4 +37,8 @@ public interface IFeatureInfo
    * A full description of this feature.
    */
   public String getDescription();
+
+  default ILocationInfo getLocationInfo() {
+    return ILocationInfo.EMPTY;
+  }
 }

@@ -6,7 +6,6 @@ package gw.internal.gosu.parser;
 
 import gw.internal.gosu.parser.java.classinfo.AsmClassAnnotationInfo;
 import gw.internal.gosu.parser.java.classinfo.JavaSourceUtil;
-import gw.lang.parser.TypeVarToTypeMap;
 import gw.lang.reflect.FunctionType;
 import gw.lang.reflect.IAnnotationInfo;
 import gw.lang.reflect.IType;
@@ -157,7 +156,7 @@ public class AsmMethodJavaClassMethod implements IJavaClassMethod, IJavaClassByt
     for( int i = 0; i < typeVars.size(); i++ ) {
       javaTypeVars[i] = (IJavaClassTypeVariable)AsmTypeJavaClassType.createType( typeVars.get( i ), _module );
     }
-    return GenericTypeVariable.convertTypeVars( functionType, javaTypeVars );
+    return GenericTypeVariable.convertTypeVars( functionType, mi.getOwnersType(), javaTypeVars );
   }
 
   @Override

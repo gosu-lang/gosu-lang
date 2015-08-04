@@ -159,7 +159,7 @@ class Errant_TheSwitchStatementTest {
 
     var y : Object = "neat"
     switch(typeof(y)){
-      case int:
+      case int:  //## KB(IDE-2238)  //## issuekeys: MSG_TYPE_MISMATCH
       case int:  //## issuekeys: MSG_DUPLICATE_CASE_EXPRESSION
         break
       case String:
@@ -168,7 +168,7 @@ class Errant_TheSwitchStatementTest {
     switch(y){
       case 2:
           break;
-      case 1 + 1:
+      case 1 + 1: //## KB(IDE-2622)  //## issuekeys: MSG_DUPLICATE_CASE_EXPRESSION
           break;
     }
     switch (y) {
@@ -366,19 +366,6 @@ class Errant_TheSwitchStatementTest {
       case 1:
         default:
         break
-    }
-  }
-
-
-  class Test1 {
-    function foo() {
-      switch( "b" ) {
-        case "a" :
-            return
-        case "b":
-            print( "foo" )
-            break
-      }
     }
   }
 

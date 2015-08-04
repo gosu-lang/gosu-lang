@@ -31,7 +31,7 @@ enhancement CoreArrayEnhancement<T> : T[] {
    * an ArrayStoreException will be thrown.
    */
   function cast<N>( type : Type<N> ) : N[] {
-    var newArray = type.makeArrayInstance(this.length) as N[]
+    var newArray = type.Type.makeArrayInstance(this.length) as N[]
     
     if( GosuObjectUtil.isJavaReferenceArray( this ) and GosuObjectUtil.isJavaReferenceArray( newArray ) ) {
       System.arraycopy(this, 0, newArray, 0, this.length)

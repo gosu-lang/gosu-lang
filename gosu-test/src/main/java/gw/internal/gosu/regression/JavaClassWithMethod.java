@@ -13,8 +13,4 @@ public class JavaClassWithMethod
   protected String aProtectedMethodOnTheBaseClass() {
     return "Protected From JavaClassWithMethod";
   }
-
-  static String aStaticMethodOnTheBaseClass() {
-    return "Static From JavaClassWithMethod";
-  }
 }

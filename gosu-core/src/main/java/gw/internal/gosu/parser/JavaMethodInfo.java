@@ -15,13 +15,16 @@ import gw.lang.javadoc.IExceptionNode;
 import gw.lang.javadoc.IMethodNode;
 import gw.lang.javadoc.IParamNode;
 import gw.lang.parser.TypeVarToTypeMap;
+import gw.lang.parser.coercers.FunctionToInterfaceCoercer;
 import gw.lang.reflect.IAnnotationInfo;
 import gw.lang.reflect.IExceptionInfo;
 import gw.lang.reflect.IFeatureInfo;
+import gw.lang.reflect.IFunctionType;
 import gw.lang.reflect.IMethodCallHandler;
 import gw.lang.reflect.IParameterInfo;
 import gw.lang.reflect.IScriptabilityModifier;
 import gw.lang.reflect.IType;
+import gw.lang.reflect.ITypeVariableType;
 import gw.lang.reflect.SimpleParameterInfo;
 import gw.lang.reflect.TypeInfoUtil;
 import gw.lang.reflect.TypeSystem;
@@ -34,11 +37,17 @@ import gw.lang.reflect.java.IJavaClassType;
 import gw.lang.reflect.java.IJavaMethodDescriptor;
 import gw.lang.reflect.java.IJavaMethodInfo;
 import gw.lang.reflect.java.JavaExceptionInfo;
+import gw.util.Pair;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  */
@@ -248,6 +257,7 @@ public class JavaMethodInfo extends JavaBaseFeatureInfo implements IJavaMethodIn
     }
 
     TypeVarToTypeMap map = new TypeVarToTypeMap();
+
     for( int i = 0; i < argTypes.length; i++ )
     {
       if( types.length > i )
@@ -257,7 +267,123 @@ public class JavaMethodInfo extends JavaBaseFeatureInfo implements IJavaMethodIn
       }
     }
     return map;
+//## todo: revisit this, attempting to eliminate types in contravariant params from interfering with inference from types in covariant positions (i saw it in a cartoon once)
+//    List<IType> filtered = Arrays.asList( types ); //removeFunctionalTypesCoveredByNonFunctionalTypes( types );
+//    for( int i = 0; i < argTypes.length; i++ )
+//    {
+//      if( types.length > i )
+//      {
+//        IType type = types[i];
+//
+//        if( filtered.contains( type ) )
+//        {
+//          TypeLord.inferTypeVariableTypesFromGenParamTypeAndConcreteType( type, argTypes[i], map );
+//          AbstractGenericMethodInfo.ensureInferredTypeAssignableToBoundingType( actualParamByVarName, map );
+//        }
+//      }
+//    }
+//    return map;
   }
+
+//  private List<IType> removeFunctionalTypesCoveredByNonFunctionalTypes( IType[] types )
+//  {
+//    if( types.length < 2 )
+//    {
+//      return Arrays.asList( types );
+//    }
+//
+//    Map<ITypeVariableType, List<Pair<IType, Boolean>>> covered = new HashMap<>();
+//    for( IType type: types )
+//    {
+//      coverTypeVar( type, type, covered, false );
+//    }
+//    List<IType> res = new ArrayList<>();
+//    for( List<Pair<IType, Boolean>> t: covered.values() )
+//    {
+//      res.addAll( t.stream().map( Pair::getFirst ).collect( Collectors.toList() ) );
+//    }
+//    return res;
+//  }
+//
+//  private void coverTypeVar( IType saveType, IType type, Map<ITypeVariableType, List<Pair<IType, Boolean>>> coveredTypes, boolean bFunctional )
+//  {
+//    if( type instanceof ITypeVariableType )
+//    {
+//      List<Pair<IType, Boolean>> types = coveredTypes.get( type );
+//      if( !bFunctional || types == null || types.isEmpty() )
+//      {
+//        if( types == null )
+//        {
+//          types = new ArrayList<>();
+//          coveredTypes.put( (ITypeVariableType)type, types );
+//        }
+//        if( !bFunctional )
+//        {
+//          removeFunctionalTypes( types );
+//        }
+//        types.add( new Pair<>( saveType, bFunctional ) );
+//      }
+//      else if( bFunctional && containsOnlyFunctionalTypes( types ) )
+//      {
+//        types.add( new Pair<>( saveType, bFunctional ) );
+//      }
+//    }
+//    else if( type.isParameterizedType() )
+//    {
+//      IFunctionType funcType = FunctionToInterfaceCoercer.getRepresentativeFunctionType( type );
+//      if( funcType != null )
+//      {
+//        coverTypeVar( saveType, funcType, coveredTypes, bFunctional );
+//      }
+//      else
+//      {
+//        for( IType typeArg : type.getTypeParameters() )
+//        {
+//          coverTypeVar( saveType, typeArg, coveredTypes, bFunctional || isFunctionalInterface( type ) );
+//        }
+//      }
+//    }
+//    else if( type instanceof IFunctionType )
+//    {
+//      coverTypeVar( saveType, ((IFunctionType)type).getReturnType(), coveredTypes, bFunctional );
+//      for( IType paramType: ((IFunctionType)type).getParameterTypes() )
+//      {
+//        coverTypeVar( saveType, paramType, coveredTypes, true );
+//      }
+//    }
+//    else if( type.isArray() )
+//    {
+//      coverTypeVar( saveType, type.getComponentType(), coveredTypes, bFunctional );
+//    }
+//  }
+//
+//  private Boolean containsOnlyFunctionalTypes( List<Pair<IType, Boolean>> types )
+//  {
+//    return types.get( 0 ).getSecond();
+//  }
+//
+//  private void removeFunctionalTypes( List<Pair<IType, Boolean>> types )
+//  {
+//    for( Iterator<Pair<IType, Boolean>> iter = types.iterator(); iter.hasNext(); )
+//    {
+//      Pair<IType, Boolean> pair = iter.next();
+//      if( pair.getSecond() )
+//      {
+//        iter.remove();
+//      }
+//    }
+//  }
+//
+//  private boolean isFunctionalInterface( IType type )
+//  {
+//    return FunctionToInterfaceCoercer.getSingleMethod( type ) != null;
+//  }
+//
+//  private boolean covered( Map<ITypeVariableType, List<IType>> coveredTypes, IType tv )
+//  {
+//    List<IType> types = coveredTypes.get( tv );
+//    return types != null && types.contains( tv );
+//  }
 
   private IType[] convertTypes( IJavaClassType[] genParamTypes, IType ownersType )
   {

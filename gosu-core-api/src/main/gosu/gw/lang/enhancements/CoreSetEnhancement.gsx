@@ -19,8 +19,8 @@ enhancement CoreSetEnhancement<T> :  Set<T>
    */
   function cast<N>( type : Type<N> ) : Set<N> {
     for( elt in this ) {
-      if( not type.isAssignableFrom( typeof elt ) ) {
-        throw new IllegalArgumentException( "The element ${elt} is not of type ${type.Name}" )
+      if( not type.Type.isAssignableFrom( typeof elt ) ) {
+        throw new IllegalArgumentException( "The element ${elt} is not of type ${type.Type.Name}" )
       }
     }
     return this as Set<N>

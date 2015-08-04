@@ -24,7 +24,8 @@ class Errant_Shadowing_SubClass extends Errant_Shadowing_BaseClass {
   }
   //Property end
 
-
+  // instance method cannot shadow/override static method
+  function testStaticShadowing() {}  //## issuekeys: MSG_FUNCTION_ALREADY_DEFINED
 
   override function testShadowing(str: String) {
     var baseSubVar = "should be an error"            //## issuekeys: VARIABLE 'BASESUBVAR' IS ALREADY DEFINED IN THE SCOPE

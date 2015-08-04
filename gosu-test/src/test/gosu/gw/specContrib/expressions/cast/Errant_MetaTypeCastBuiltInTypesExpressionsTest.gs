@@ -151,4 +151,9 @@ class Errant_MetaTypeCastBuiltInTypesExpressionsTest <T extends java.lang.Number
 
   var classGeneric1 : Class<T> = T as Class<T>
 
+  // IDE-2116
+  interface MyType extends gw.lang.reflect.IType {}
+  function test<T11>() {
+    var a11 = T as MyType
+  }
 }

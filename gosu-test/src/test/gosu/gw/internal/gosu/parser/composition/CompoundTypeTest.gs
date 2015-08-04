@@ -85,7 +85,7 @@ class CompoundTypeTest extends TestClass
   function testArraysWork() {
     var t = (IBar&IFoo)
     print("foo")
-    var arr = t.makeArrayInstance(1) as Object[]
+    var arr = t.Type.makeArrayInstance(1) as Object[]
     assertNotNull( arr )
     arr[0] = new FooBarImpl("a", "b")
     assertEquals( "a", (arr[0] as IFoo).foo() )

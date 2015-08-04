@@ -51,7 +51,7 @@ public class GenericTypeVariable implements IGenericTypeVariable
     }
   }
 
-  public GenericTypeVariable( IType enclosingType, IJavaClassTypeVariable typeVar )
+  public GenericTypeVariable( IType enclosingType, IJavaClassTypeVariable typeVar, TypeVarToTypeMap actualParamByVarName )
   {
     _strName = typeVar.getName();
     IJavaClassType[] fromBounds = typeVar.getBounds();
@@ -60,7 +60,6 @@ public class GenericTypeVariable implements IGenericTypeVariable
     TypeVariableDefinitionImpl typeVarDef = new TypeVariableDefinitionImpl( null, _strName, enclosingType, null, this );
     TypeVariableType typeVarType = new TypeVariableType( typeVarDef, enclosingType instanceof IFunctionType );
 
-    TypeVarToTypeMap actualParamByVarName = new TypeVarToTypeMap();
     actualParamByVarName.put( typeVarType, typeVarType );
 
     for( int j = 0; j < fromBounds.length; j++ )
@@ -169,13 +168,18 @@ public class GenericTypeVariable implements IGenericTypeVariable
     return _strName.hashCode();
   }
   
-  public static GenericTypeVariable[] convertTypeVars( IType enclosingType, IJavaClassTypeVariable[] fromVars )
+  public static GenericTypeVariable[] convertTypeVars( IType enclosingType, IType classType, IJavaClassTypeVariable[] fromVars )
   {
     TypeVarToTypeMap paramByVarNameIncludingMethod = new TypeVarToTypeMap();
     GenericTypeVariable[] toVars = new GenericTypeVariable[fromVars.length];
     for( int i = 0; i < toVars.length; i++ )
     {
-      toVars[i] = new GenericTypeVariable( enclosingType, fromVars[i] );
+      TypeVarToTypeMap classTypeVars = classType == null ? new TypeVarToTypeMap() : TypeLord.mapTypeByVarName( classType, classType );
+      if( classTypeVars == TypeVarToTypeMap.EMPTY_MAP )
+      {
+        classTypeVars = new TypeVarToTypeMap();
+      }
+      toVars[i] = new GenericTypeVariable( enclosingType, fromVars[i], classTypeVars );
       paramByVarNameIncludingMethod.put( toVars[i].getTypeVariableDefinition().getType(), toVars[i].getTypeVariableDefinition().getType() );
     }
     return toVars.length == 0 ? EMPTY_TYPEVARS : toVars;

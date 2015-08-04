@@ -3316,11 +3316,11 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
       if( mi.isDefaultImpl() )
       {
         // mi is a default interface method the class (or interface) does not override,
-        // check for a duplicate, not-overridden default interface method that comes from
-        // an interface that is unrelated to mi's declaring interface
+        // check for a duplicate, not-overridden method that comes from an interface that
+        // is unrelated to mi's declaring interface
         // i.e., prohibit "diamond" patterns directly interface-inherited from the class (or interface).
 
-        if( conflictsWithUnrelatedDefaultIfaceMethod( gsClass, funcType, unimpled ) )
+        if( conflictsWithUnrelatedIfaceMethod( gsClass, funcType, unimpled ) )
         {
           iter.remove();
         }
@@ -3336,7 +3336,7 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
     }
   }
 
-  private boolean conflictsWithUnrelatedDefaultIfaceMethod( IGosuClassInternal gsClass, IFunctionType ft, List<IFunctionType> unimpled )
+  private boolean conflictsWithUnrelatedIfaceMethod( IGosuClassInternal gsClass, IFunctionType ft, List<IFunctionType> unimpled )
   {
     IMethodInfo mi = ft.getMethodInfo();
     outer:
@@ -3347,8 +3347,7 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
         continue;
       }
       final IMethodInfo csrMi = funcType.getMethodInfo();
-      if( csrMi.isDefaultImpl() &&
-          csrMi.getDisplayName().equals( mi.getDisplayName() ) &&
+      if( csrMi.getDisplayName().equals( mi.getDisplayName() ) &&
           csrMi.getParameters().length == mi.getParameters().length &&
           !csrMi.getOwnersType().isAssignableFrom( mi.getOwnersType() ) &&
           !mi.getOwnersType().isAssignableFrom( csrMi.getOwnersType() ) )
@@ -3366,7 +3365,14 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
             break outer;
           }
         }
-        getClassStatement().addParseException( makeFullParserState(), Res.MSG_INHERITS_UNRELATED_DEFAULTS, gsClass.getName(), funcType, mi.getOwnersType().getName(), csrMi.getOwnersType().getName() );
+        if( csrMi.isDefaultImpl() )
+        {
+          getClassStatement().addParseException( makeFullParserState(), Res.MSG_INHERITS_UNRELATED_DEFAULTS, gsClass.getName(), funcType, mi.getOwnersType().getName(), csrMi.getOwnersType().getName() );
+        }
+        else if( gsClass.isAbstract() ) // interface or abstract class
+        {
+          getClassStatement().addParseException( makeFullParserState(), Res.MSG_INHERITS_ABSTRACT_AND_DEFAULT, gsClass.getName(), funcType, mi.getOwnersType().getName(), csrMi.getOwnersType().getName() );
+        }
         return true;
       }
     }

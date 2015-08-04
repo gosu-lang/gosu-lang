@@ -30,6 +30,8 @@ class Errant_Shadowing_BaseClass {
     var property123 : String            //## issuekeys: VARIABLE 'PROPERTY123' IS ALREADY DEFINED IN THE SCOPE
   }
 
+  static function testStaticShadowing() {}
+
   function testShadowing22(baseInt : int ) {            //## issuekeys: VARIABLE 'BASEINT' IS ALREADY DEFINED IN THE SCOPE
   }
   function testShadowing(subParam : String) {

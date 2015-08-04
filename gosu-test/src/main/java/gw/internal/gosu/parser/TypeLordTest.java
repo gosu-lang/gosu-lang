@@ -255,7 +255,7 @@ public class TypeLordTest extends TestClass
   {
     IType d = TypeSystem.get( ParamD.class );
     IType e = TypeSystem.get( ParamE.class );
-    CompoundType serializableAndComparable = CompoundType.get( TypeSystem.get( Serializable.class ),
+    IType serializableAndComparable = CompoundType.get( TypeSystem.get( Serializable.class ),
                                                   TypeSystem.get( Comparable.class ).getParameterizedType( JavaTypes.OBJECT() ) );
     IType aParameterizedOnSerializableAndComparable = TypeSystem.get( GenA.class ).getParameterizedType( serializableAndComparable );
     IType leastUpperBound = TypeLord.findLeastUpperBound( Arrays.asList( d, e ) );

@@ -86,7 +86,8 @@ class Errant_WhileStmt {
 
   function f06() : int {
     while( true ) {
-      while( !true ) {
+      var notTrue = !true
+      while( notTrue ) {
       }
     }
     return 1    //## issuekeys: MSG_UNREACHABLE_STMT
@@ -94,13 +95,15 @@ class Errant_WhileStmt {
 
   function f06a() : int {
     while( true ) {
-      while( !true ) {
+      var notTrue = !true
+      while( notTrue ) {
       }
     }
   }
 
   function f07() : int {
-    while( !true ) {
+    var notTrue = !true
+    while( notTrue ) {
       while( true ) {
       }
     }
@@ -108,23 +111,26 @@ class Errant_WhileStmt {
   }
 
   function f07a() : int {
-    while( !true ) {
+    var notTrue = !true
+    while( notTrue ) {
       while( true ) {
       }
     }
   }  //## issuekeys: MSG_MISSING_RETURN
 
   function f08() : int {
-    while( !true ) {
-      while( !true ) {
+    var notTrue = !true
+    while( notTrue ) {
+      while( notTrue ) {
       }
     }
     return 1
   }
 
   function f08a() : int {
-    while( !true ) {
-      while( !true ) {
+    var notTrue = !true
+    while( notTrue ) {
+      while( notTrue ) {
       }
     }
   }  //## issuekeys: MSG_MISSING_RETURN

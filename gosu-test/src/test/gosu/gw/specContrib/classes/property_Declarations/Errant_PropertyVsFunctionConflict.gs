@@ -64,4 +64,11 @@ class Errant_PropertyVsFunctionConflict {
     var prop1: String as Text               //## issuekeys: PROPERTY OVERRIDES PARENT CLASS FUNCTION
     var prop2: String as Text2
   }
+
+  class Class9 {
+    function getProp1() : void {}
+  }
+  class SubClass9 extends Class9 {
+    var something : String as Prop1      //## issuekeys: PROPERTY OVERRIDES PARENT CLASS FUNCTION
+  }
 }

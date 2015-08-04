@@ -2,7 +2,6 @@ package gw.specification.statements.choiceStatements.theSwitchStatement
 
 uses java.lang.Runnable
 uses gw.BaseVerifyErrantTest
-uses gw.specification.statements.choiceStatements.theSwitchStatement.Errant_TheSwitchStatementTest.Test1
 
 class TheSwitchStatementTest extends BaseVerifyErrantTest {
 
@@ -38,7 +37,7 @@ class TheSwitchStatementTest extends BaseVerifyErrantTest {
     var x : Object = 1
     var isCase1 = false
     switch(x) {
-      case 1:
+    case 1:
         isCase1 = true
     }
     assertEquals(true, isCase1)

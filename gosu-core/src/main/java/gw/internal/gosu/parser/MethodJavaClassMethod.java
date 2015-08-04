@@ -133,7 +133,7 @@ public class MethodJavaClassMethod implements IJavaClassMethod, IJavaClassByteco
       typeVariables[i] = new TypeVariableJavaTypeVariable( rawTypeVariables[i], _module );
     }
     FunctionType functionType = new FunctionType( mi, true );
-    return GenericTypeVariable.convertTypeVars( functionType, typeVariables );
+    return GenericTypeVariable.convertTypeVars( functionType, mi.getOwnersType(), typeVariables );
   }
 
   @Override

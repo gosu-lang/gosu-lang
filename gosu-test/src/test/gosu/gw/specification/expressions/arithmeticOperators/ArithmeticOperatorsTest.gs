@@ -7,7 +7,16 @@ uses java.lang.Long
 uses java.lang.ArithmeticException
 uses gw.specification.dimensions.p0.TestDim
 
+/**
+ * Note: must be run with -DcheckedArithmetic=true
+ */
 class ArithmeticOperatorsTest extends BaseVerifyErrantTest {
+
+  override function beforeTestClass() {
+    super.beforeTestClass()
+    assertEquals("true", java.lang.System.getProperty("checkedArithmetic"))
+  }
+
   function testErrant_ArithmeticOperatorsTest() {
     processErrantType(Errant_ArithmeticOperatorsTest)
   }

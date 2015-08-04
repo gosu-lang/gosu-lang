@@ -43,7 +43,7 @@ class Errant_TypeExpressionsTest {
 
     var c: String & Comparator
     b = c typeis Integer  //## issuekeys: MSG_INCONVERTIBLE_TYPES
-    b = c typeis String
+    b = c typeis String   //## issuekeys: MSG_INCONVERTIBLE_TYPES
     b = c typeis CharSequence
 
     var i: Integer

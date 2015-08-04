@@ -2,6 +2,7 @@ package gw.specContrib.types
 
 class Errant_MetaType {
   public static final var OH: String = "oh"
+  static function staticFunc() {}
 
   static function main(args: String[]) {
     var b = new Errant_MetaType()
@@ -13,6 +14,10 @@ class Errant_MetaType {
     print(t1.OH)
     print(t2.OH)  //## issuekeys: MSG_INVALID_REFERENCE
     print(t3.OH)  //## issuekeys: MSG_INVALID_REFERENCE
+
+    t1.staticFunc()
+    t2.staticFunc()  //## issuekeys: MSG_INVALID_REFERENCE
+    t3.staticFunc()  //## issuekeys: MSG_INVALID_REFERENCE
   }
 
   function foo<T>(): T[] {
@@ -26,4 +31,28 @@ class Errant_MetaType {
   var t5 = java.util.List<Object>.Type
   // IDE-1797
   var t6 = gw.lang.reflect.Type<Object>.Type
+
+  static class GosuClass1 {
+    enum Type {
+      ONE
+    }
+    // IDE-2283
+    var a = GosuClass1.Type.ONE   // here 'Type' is enum
+  }
+
+  // IDE-1958
+  class Foo {
+    construct(p: String) {}
+    construct(p: Type<String>) {}
+
+    function test() {
+      var x: gw.lang.reflect.IType
+      var p: Type<String>
+
+      new Foo(x)  //## issuekeys: CANNOT RESOLVE
+
+      x = p
+      p = x       //## issuekeys: NOT ASSIGNABLE
+    }
+  }
 }

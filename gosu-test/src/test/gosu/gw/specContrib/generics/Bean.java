@@ -13,4 +13,9 @@ public class Bean {
     return null;
   }
 
+  static <T extends Bean> BeanPopulator<? super T> addPopulatorNonFunctional( BeanPopulatorNonFunctional<? super T> populator) {
+    populator.foo();
+    return null;
+  }
+
 }

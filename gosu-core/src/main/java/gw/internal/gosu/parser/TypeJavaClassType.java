@@ -36,6 +36,9 @@ public abstract class TypeJavaClassType implements IJavaClassType {
   }
 
   public static IJavaClassType createType(Type rawType, IModule module) {
+    return createType( null, rawType, module );
+  }
+  public static IJavaClassType createType(Type genType, Type rawType, IModule module) {
     IJavaClassType type = null;
     if (rawType instanceof TypeVariable) {
       type = new TypeVariableJavaClassTypeVariable((TypeVariable) rawType, module);
@@ -47,7 +50,7 @@ public abstract class TypeJavaClassType implements IJavaClassType {
       type = new ParameterizedTypeJavaClassParameterizedType((ParameterizedType) rawType, module);
     }
     if (rawType instanceof WildcardType) {
-      type = new WildcardTypeJavaClassWildcardType((WildcardType) rawType, module);
+      type = new WildcardTypeJavaClassWildcardType( genType, (WildcardType) rawType, module);
     }
     if (rawType instanceof Class) {
       type = JavaSourceUtil.getClassInfo((Class) rawType, module);

@@ -90,4 +90,12 @@ class Errant_BlocksBasics {
       return null
     }
   }
+
+  function testBlockTypeWithOptionalParameters() {
+    // IDE-2165
+    var b: block(p1: int, p2: boolean = false)
+    b(1)
+    b(1, true)
+    b(1, 1)                 //## issuekeys: INCOMPATIBLE TYPES
+  }
 }

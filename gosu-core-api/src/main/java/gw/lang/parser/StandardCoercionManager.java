@@ -266,7 +266,7 @@ public class StandardCoercionManager extends BaseService implements ICoercionMan
     if( lhsType instanceof IMetaType &&
         rhsType instanceof IJavaType && JavaTypes.CLASS().equals( rhsType.getGenericType() ) ) {
       if( !rhsType.isParameterizedType() ||
-          ((IMetaType)lhsType).getType().isAssignableFrom( rhsType.getTypeParameters()[0] ) ||
+          TypeSystem.canCast( ((IMetaType)lhsType).getType(), rhsType.getTypeParameters()[0] ) ||
           isStructurallyAssignable( ((IMetaType)lhsType).getType(), rhsType.getTypeParameters()[0] ) ) {
         return IdentityCoercer.instance();
       }
