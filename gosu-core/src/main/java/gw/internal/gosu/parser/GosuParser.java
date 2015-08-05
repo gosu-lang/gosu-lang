@@ -5033,6 +5033,10 @@ public final class GosuParser extends ParserBase implements IGosuParser
           }
         }
       }
+      else
+      {
+        fle.setType( ErrorType.getInstance() );
+      }
 
       if( root instanceof FeatureLiteral )
       {
