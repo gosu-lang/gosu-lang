@@ -1491,52 +1491,63 @@ public final class GosuParser extends ParserBase implements IGosuParser
 
   private IType findLeastUpperBoundWithCoercions(ConditionalTernaryExpression cte, Expression first, Expression second) {
     IType type;
-    if( isPrimitiveOrBoxedOrBigIntegerOrBigDecimal(first.getType()) &&
-        isPrimitiveOrBoxedOrBigIntegerOrBigDecimal(second.getType()) )
+    IType firstType = first.getType();
+    IType secondType = second.getType();
+    if( isPrimitiveOrBoxedOrBigIntegerOrBigDecimal( firstType ) &&
+        isPrimitiveOrBoxedOrBigIntegerOrBigDecimal( secondType ) )
     {
-      type = TypeLord.getLeastUpperBoundForPrimitiveTypes(first.getType(), second.getType());
+      type = TypeLord.getLeastUpperBoundForPrimitiveTypes( firstType, secondType );
       if( !verify( cte, type != null, Res.MSG_LOSS_OF_PRECISION_IN_CONDITIONAL_EXP ) )
       {
         type = ErrorType.getInstance();
       }
     }
-    else if( GosuParserTypes.NULL_TYPE().equals(first.getType()) && GosuParserTypes.NULL_TYPE().equals(second.getType()) )
+    else if( GosuParserTypes.NULL_TYPE().equals( firstType ) && GosuParserTypes.NULL_TYPE().equals( secondType ) )
     {
       IType ctxType = getContextType().getType();
       return ctxType != null && !ctxType.isPrimitive() ? ctxType : GosuParserTypes.NULL_TYPE();
     }
-    else if( GosuParserTypes.NULL_TYPE().equals(first.getType()) && second.getType().isPrimitive() )
+    else if( GosuParserTypes.NULL_TYPE().equals( firstType ) && secondType.isPrimitive() )
     {
-      return TypeLord.getBoxedTypeFromPrimitiveType( second.getType() );
+      return TypeLord.getBoxedTypeFromPrimitiveType( secondType );
     }
-    else if( GosuParserTypes.NULL_TYPE().equals(second.getType()) && first.getType().isPrimitive() )
+    else if( GosuParserTypes.NULL_TYPE().equals( secondType ) && firstType.isPrimitive() )
     {
-      return TypeLord.getBoxedTypeFromPrimitiveType( first.getType() );
+      return TypeLord.getBoxedTypeFromPrimitiveType( firstType );
     } // HACK
       // Do not allow literal strings that are coercable to the type of the other side to modify the
       //type of the expression
     else if( canCoerceFromString(first, second) )
     {
-      type = second.getType();
+      type = secondType;
     } // HACK
       // Do not allow literal strings that are coercable to the type of the other side to modify the
       //type of the expression
     else if( canCoerceFromString(second, first) )
     {
-      type = first.getType();
+      type = firstType;
     }
     else
     {
-      List<IType> list = new ArrayList<IType>();
-
-      if( !GosuParserTypes.NULL_TYPE().equals(first.getType()) )
+      if( firstType.isPrimitive() && !GosuParserTypes.NULL_TYPE().equals( firstType ) && !secondType.isPrimitive() && !StandardCoercionManager.isBoxed( secondType ) )
       {
-        list.add( first.getType() );
+        firstType = TypeLord.getBoxedTypeFromPrimitiveType( firstType );
+      }
+      else if( secondType.isPrimitive() && !GosuParserTypes.NULL_TYPE().equals( secondType ) && !firstType.isPrimitive() && !StandardCoercionManager.isBoxed( firstType ) )
+      {
+        secondType = TypeLord.getBoxedTypeFromPrimitiveType( secondType );
       }
 
-      if( !GosuParserTypes.NULL_TYPE().equals(second.getType())  )
+      List<IType> list = new ArrayList<IType>();
+
+      if( !GosuParserTypes.NULL_TYPE().equals( firstType ) )
       {
-        list.add( second.getType() );
+        list.add( firstType );
+      }
+
+      if( !GosuParserTypes.NULL_TYPE().equals( secondType )  )
+      {
+        list.add( secondType );
       }
 
       type = TypeLord.findLeastUpperBound( list );
@@ -4953,13 +4964,13 @@ public final class GosuParser extends ParserBase implements IGosuParser
         throw new IllegalStateException();
       }
       FeatureLiteral fle = new FeatureLiteral( root );
-      boolean foundWord = verify( fle, match( T, SourceCodeTokenizer.TT_WORD ) || match(T, Keyword.KW_construct ),
+      boolean foundWord = verify( fle, match( T, SourceCodeTokenizer.TT_WORD ) || match( T, Keyword.KW_construct ),
                                   Res.MSG_FL_EXPECTING_FEATURE_NAME );
       if( foundWord )
       {
         if( match( null, "<", SourceCodeTokenizer.TT_OPERATOR, true ) )
         {
-          parseErrantFeatureLiteralParameterization(fle);
+          parseErrantFeatureLiteralParameterization( fle );
         }
         if( match( null, '(' ) )
         {
@@ -5836,7 +5847,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
       pe = new DoesNotOverrideFunctionException( makeFullParserState(), Res.MSG_FUNCTION_NOT_OVERRIDE, dfs.getName() );
     }
 
-    element.addParseException(pe);
+    element.addParseException( pe );
   }
 
   private void verifyArgCount( ParsedElement element, int iArgs, IConstructorType ctorType )
@@ -6878,12 +6889,12 @@ public final class GosuParser extends ParserBase implements IGosuParser
     {
       if( isParenthesisTerminalExpression() )
       {
-        // Note we must infer "outward" because this a return type
+        // Note we must infer in "reverse" because the context type flows INTO the return type
         // For example,
         //    var list: List<String> = Lists.newArrayList( FooJava.filter( {""}, FooJava.not( \ r -> r.Alpha ) ) )
         // The context type, List<String>, can infer type var of Lists.newArrayList() by way of its return type, ArrayList<E>.
-        // But the inference relationship is backwards, instead of infering from right-to-left, we infer left-to-right, hence the "Out" call here:
-        TypeLord.inferTypeVariableTypesFromGenParamTypeAndConcreteType_Out( funcType.getReturnType(), getContextType().getType(), inferenceMap );
+        // But the inference relationship is reversed, instead of infering from right-to-left, we infer left-to-right, hence the "Reverse" call here:
+        TypeLord.inferTypeVariableTypesFromGenParamTypeAndConcreteType_Reverse( funcType.getReturnType(), getContextType().getType(), inferenceMap );
       }
     }
   }

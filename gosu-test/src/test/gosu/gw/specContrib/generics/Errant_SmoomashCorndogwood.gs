@@ -39,4 +39,19 @@ class Errant_SmoomashCorndogwood {
   function f2<T>( p: Predicate<ArrayList<T>> ) : T  {
     return null
   }
+
+  function testReverseInferenceOnClosureFromClosureParam_Multiple() {
+    var result = f3( \ p: List<CharSequence> -> true, 8 )
+    var t : Integer = result.Tee
+    var u : CharSequence = result.You
+  }
+
+  function f3<E, F>( f(t: IMyList<E, F>), ff: E ) : IMyList<E, F>  {
+    return null
+  }
+
+  static interface IMyList<T, U> extends List<U> {
+    property get Tee() : T { return null }
+    property get You() : U { return null }
+  }
 }

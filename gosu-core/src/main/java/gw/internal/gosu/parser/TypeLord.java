@@ -987,8 +987,8 @@ public class TypeLord
 
     return null;
   }
-             // ArrayList<Foo>                  List<Foo>         ArrayList<Z>
-  public static IType findParameterizedTypeOut( IType sourceType, IType rawGenericType )
+             // ArrayList<Foo>                      List<Foo>         ArrayList<Z>
+  public static IType findParameterizedType_Reverse( IType sourceType, IType rawGenericType )
   {
     if( sourceType == null || rawGenericType == null )
     {
@@ -2297,11 +2297,11 @@ public class TypeLord
   {
     inferTypeVariableTypesFromGenParamTypeAndConcreteType( genParamType, argType, inferenceMap, new HashSet<ITypeVariableType>(), false );
   }
-  public static void inferTypeVariableTypesFromGenParamTypeAndConcreteType_Out( IType genParamType, IType argType, TypeVarToTypeMap inferenceMap )
+  public static void inferTypeVariableTypesFromGenParamTypeAndConcreteType_Reverse( IType genParamType, IType argType, TypeVarToTypeMap inferenceMap )
   {
     inferTypeVariableTypesFromGenParamTypeAndConcreteType( genParamType, argType, inferenceMap, new HashSet<ITypeVariableType>(), true );
   }
-  public static void inferTypeVariableTypesFromGenParamTypeAndConcreteType( IType genParamType, IType argType, TypeVarToTypeMap inferenceMap, HashSet<ITypeVariableType> inferredInCallStack, boolean bOut )
+  public static void inferTypeVariableTypesFromGenParamTypeAndConcreteType( IType genParamType, IType argType, TypeVarToTypeMap inferenceMap, HashSet<ITypeVariableType> inferredInCallStack, boolean bReverse )
   {
     if( argType == GosuParserTypes.NULL_TYPE() ||
         argType instanceof IErrorType ||
@@ -2325,7 +2325,7 @@ public class TypeLord
       //## todo: same as JavaMethodInfo.inferTypeVariableTypesFromGenParamTypeAndConcreteType()
       if( argType.getComponentType() == null || !argType.getComponentType().isPrimitive() )
       {
-        inferTypeVariableTypesFromGenParamTypeAndConcreteType( genParamType.getComponentType(), argType.getComponentType(), inferenceMap, inferredInCallStack, bOut );
+        inferTypeVariableTypesFromGenParamTypeAndConcreteType( genParamType.getComponentType(), argType.getComponentType(), inferenceMap, inferredInCallStack, bReverse );
       }
     }
     else if( genParamType.isParameterizedType() )
@@ -2335,12 +2335,12 @@ public class TypeLord
         IFunctionType funcType = FunctionToInterfaceCoercer.getRepresentativeFunctionType( genParamType );
         if( funcType != null )
         {
-          inferTypeVariableTypesFromGenParamTypeAndConcreteType( funcType, argType, inferenceMap, inferredInCallStack, bOut );
+          inferTypeVariableTypesFromGenParamTypeAndConcreteType( funcType, argType, inferenceMap, inferredInCallStack, bReverse );
           return;
         }
       }
 
-      IType argTypeInTermsOfParamType = bOut ? findParameterizedTypeOut( argType, genParamType ) : findParameterizedType( argType, genParamType.getGenericType() );
+      IType argTypeInTermsOfParamType = bReverse ? findParameterizedType_Reverse( argType, genParamType ) : findParameterizedType( argType, genParamType.getGenericType() );
       if( argTypeInTermsOfParamType == null )
       {
         return;
@@ -2351,7 +2351,7 @@ public class TypeLord
         int i = 0;
         for( IType typeArg : genParamType.getTypeParameters() )
         {
-          inferTypeVariableTypesFromGenParamTypeAndConcreteType( typeArg, concreteTypeParams[i++], inferenceMap, inferredInCallStack, bOut );
+          inferTypeVariableTypesFromGenParamTypeAndConcreteType( typeArg, concreteTypeParams[i++], inferenceMap, inferredInCallStack, bReverse );
         }
       }
     }
@@ -2385,7 +2385,7 @@ public class TypeLord
       IType boundingType = ((ITypeVariableType)genParamType).getBoundingType();
       if( !isRecursiveType( (ITypeVariableType)genParamType, boundingType ) )
       {
-        inferTypeVariableTypesFromGenParamTypeAndConcreteType( boundingType, argType, inferenceMap, inferredInCallStack, bOut );
+        inferTypeVariableTypesFromGenParamTypeAndConcreteType( boundingType, argType, inferenceMap, inferredInCallStack, bReverse );
       }
     }
     else if( genParamType instanceof FunctionType )
@@ -2404,9 +2404,8 @@ public class TypeLord
         }
       }
 
-      //## todo: add another arg to this method to indicate we are inferring a type so we can handle the intersection of more than one mappings in the inferenceMap i.e., we can check that this type is contravarant wrt the other type[s] i.e., make sure it is assignableFROM the other non-contravariant type[s]
       inferTypeVariableTypesFromGenParamTypeAndConcreteType(
-        genBlockType.getReturnType(), ((FunctionType)argType).getReturnType(), inferenceMap, inferredInCallStack, bOut );
+        genBlockType.getReturnType(), ((FunctionType)argType).getReturnType(), inferenceMap, inferredInCallStack, bReverse );
 
       IType[] genBlockParamTypes = genBlockType.getParameterTypes();
       if( genBlockParamTypes != null )
@@ -2416,8 +2415,8 @@ public class TypeLord
         {
           for( int i = 0; i < genBlockParamTypes.length; i++ )
           {
+            // Infer param types in reverse
             inferTypeVariableTypesFromGenParamTypeAndConcreteType(
-              // Infer param types outward
               genBlockParamTypes[i], ((FunctionType)argType).getParameterTypes()[i], inferenceMap, inferredInCallStack, true );
           }
         }
