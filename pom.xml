@@ -19,6 +19,7 @@
     <module>gosu-parent</module>
     <module>gosu-test</module>
     <module>gosu-test-api</module>
+    <module>plexus-compiler-gosu</module>
   </modules>
   <profiles>
     <profile>
