@@ -125,7 +125,7 @@ public interface ITypeInfo extends IAnnotatedFeatureInfo
   {
     private static final IType[] EMPTY_TYPES = IType.EMPTY_ARRAY;
 
-    static int ii = 0;
+    //static int ii = 0;
     public static IMethodInfo method( MethodList methods, CharSequence method, IType... params )
     {
       params = params == null ? EMPTY_TYPES : params;
@@ -139,7 +139,7 @@ public interface ITypeInfo extends IAnnotatedFeatureInfo
           }
         }
       }
-      System.out.println( "#Missed: " + ii++ );
+      //System.out.println( "#Missed: " + ii++ );
       return null;
     }
 
