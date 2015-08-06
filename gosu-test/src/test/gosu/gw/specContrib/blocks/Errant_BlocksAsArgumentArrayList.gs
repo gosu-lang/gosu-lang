@@ -146,7 +146,7 @@ class Errant_BlocksAsArgumentArrayList {
       myFun111(\c: ArrayList -> {
         return {1s, 2s, 3s}
       })
-      myFun111(\c: ArrayList<Number> -> {  return {1s, 2s, 3s}  })     //## issuekeys: MSG_TYPE_MISMATCH
+      myFun111(\c: ArrayList<Double> -> {  return {1s, 2s, 3s}  })     //## issuekeys: MSG_TYPE_MISMATCH
 
       myFun111(\c: ArrayList -> { return new ArrayList<Short>()   })     //## issuekeys: MSG_TYPE_MISMATCH
 
@@ -161,7 +161,7 @@ class Errant_BlocksAsArgumentArrayList {
       myFun222(\c: ArrayList<Integer> -> alistInteger1)
       myFun222(\c: ArrayList<Integer> -> alist1)
 
-      myFun222(\c: ArrayList<Number> -> { return new ArrayList<Short>()  })      //## issuekeys: MSG_TYPE_MISMATCH
+      myFun222(\c: ArrayList<Double> -> { return new ArrayList<Short>()  })      //## issuekeys: MSG_TYPE_MISMATCH
 
     }
   }

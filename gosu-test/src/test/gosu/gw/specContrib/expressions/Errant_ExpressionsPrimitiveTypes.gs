@@ -6,8 +6,8 @@ uses java.util.Date
 
 class Errant_ExpressionsPrimitiveTypes {
 
-  var date1 = new DateTime()
-  var date2 = new DateTime()
+  var date1 = new java.util.Date()
+  var date2 = new java.util.Date()
 
   //char
   var char1: char = 3b      //## issuekeys: MSG_IMPLICIT_COERCION_ERROR

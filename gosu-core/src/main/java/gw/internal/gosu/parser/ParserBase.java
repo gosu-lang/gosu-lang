@@ -1779,6 +1779,8 @@ public abstract class ParserBase implements IParserPart
       verifyNoCombinedPrivateAbstract( elem, bIgnoreErrors, iModifiers );
     }
 
+    iModifiers = maybeAddJavadocDeprecatedModifier( iModifiers, annotations );
+
     modifiers.setModifiers( iModifiers );
     modifiers.setAnnotations( annotations );
 
@@ -1788,6 +1790,20 @@ public abstract class ParserBase implements IParserPart
     }
 
     return modifiers;
+  }
+
+  private int maybeAddJavadocDeprecatedModifier( int iModifiers, List<IGosuAnnotation> annotations )
+  {
+    for( IGosuAnnotation ann: annotations )
+    {
+      if( ann.getType() == JavaTypes.GW_LANG_DEPRECATED() ||
+          ann.getType() == JavaTypes.JAVA_LANG_DEPRECATED() )
+      {
+        iModifiers = Modifier.setDeprecated( iModifiers, true );
+        break;
+      }
+    }
+    return iModifiers;
   }
 
   private void pushModifierList( int iOffsetList, int iLineNumList, int iColumnList )

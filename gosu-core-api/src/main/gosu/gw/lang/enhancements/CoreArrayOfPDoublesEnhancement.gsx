@@ -1,6 +1,7 @@
 package gw.lang.enhancements
 uses java.lang.Double
 uses java.util.ArrayList
+uses java.util.List
 uses java.lang.StringBuilder
 uses java.math.BigDecimal
 

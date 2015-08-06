@@ -274,6 +274,10 @@ public class JavaTypes {
     return getJreType(Repeatable.class);
   }
 
+  public static IJavaType JAVA_LANG_DEPRECATED() {
+    return getJreType(Deprecated.class);
+  }
+
   public static IJavaType INHERITED() {
     return getJreType(Inherited.class);
   }

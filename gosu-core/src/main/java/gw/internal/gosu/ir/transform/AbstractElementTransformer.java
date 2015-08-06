@@ -1019,14 +1019,14 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
     }
   }
 
-  public int getModifiers( Symbol dfs )
+  public int getModifiers( Symbol symbol )
   {
     int iAccModifiers;
-    int iDfsModifiers = dfs.getModifiers();
+    int iSymModifiers = symbol.getModifiers();
 
     if( BytecodeOptions.isSingleServingLoader() )
     {
-      if ( Modifier.isPrivate( iDfsModifiers ) && isReadObjectOrWriteObjectMethod( dfs ))
+      if ( Modifier.isPrivate( iSymModifiers ) && isReadObjectOrWriteObjectMethod( symbol ))
       {
         // Serialization demands that readObject and writeObject be private methods,
         // so if we're compiling one of them we've got to actually make the thing private
@@ -1039,23 +1039,23 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
         iAccModifiers = Opcodes.ACC_PUBLIC;
       }
     }
-    else if( Modifier.isPublic( iDfsModifiers ) || ( Modifier.isProtected( iDfsModifiers ) && isCompilingEnhancement() ) )
+    else if( Modifier.isPublic( iSymModifiers ) || ( Modifier.isProtected( iSymModifiers ) && isCompilingEnhancement() ) )
     {
       // We compile protected enhancement methods as public so they'll be visible to subclasses without needing
       // reflective hacks.  Protected methods on enhancements should be discouraged:  see PL-10398  
       iAccModifiers = Opcodes.ACC_PUBLIC;
     }
-    else if( Modifier.isProtected( iDfsModifiers ) )
+    else if( Modifier.isProtected( iSymModifiers ) )
     {
       iAccModifiers = Opcodes.ACC_PROTECTED;
     }
-    else if( Modifier.isInternal( iDfsModifiers ) )
+    else if( Modifier.isInternal( iSymModifiers ) )
     {
       iAccModifiers = 0;
     }
-    else if( Modifier.isPrivate( iDfsModifiers ) )
+    else if( Modifier.isPrivate( iSymModifiers ) )
     {
-      if ( isReadObjectOrWriteObjectMethod( dfs ))
+      if ( isReadObjectOrWriteObjectMethod( symbol ))
       {
         // Serialization demands that readObject and writeObject be private methods,
         // so if we're compiling one of them we've got to actually make the thing private
@@ -1074,29 +1074,34 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
       iAccModifiers = Opcodes.ACC_PUBLIC;
     }
 
-    if( Modifier.isFinal( iDfsModifiers ) )
+    if( Modifier.isFinal( iSymModifiers ) )
     {
       iAccModifiers |= Opcodes.ACC_FINAL;
     }
 
-    if( Modifier.isStatic( iDfsModifiers ) )
+    if( Modifier.isStatic( iSymModifiers ) )
     {
       iAccModifiers |= Opcodes.ACC_STATIC;
     }
 
-    if( Modifier.isAbstract( iDfsModifiers ) )
+    if( Modifier.isAbstract( iSymModifiers ) )
     {
       iAccModifiers |= Opcodes.ACC_ABSTRACT;
     }
 
-    if ( Modifier.isEnum( iDfsModifiers ) )
+    if( Modifier.isEnum( iSymModifiers ) )
     {
       iAccModifiers |= Opcodes.ACC_ENUM;
     }
 
-    if ( Modifier.isTransient( iDfsModifiers ) )
+    if( Modifier.isTransient( iSymModifiers ) )
     {
       iAccModifiers |= Opcodes.ACC_TRANSIENT;
+    }
+
+    if( Modifier.isDeprecated( iSymModifiers ) )
+    {
+      iAccModifiers |= Opcodes.ACC_DEPRECATED;
     }
 
     if( isCompilingEnhancement() ) // enhancement methods are always static

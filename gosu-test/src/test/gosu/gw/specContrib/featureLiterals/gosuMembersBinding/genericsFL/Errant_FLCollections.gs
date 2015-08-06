@@ -18,14 +18,14 @@ class Errant_FLCollections {
   var hashCodeArrayFL = array1#hashCode()
   var toStringArrayFL = array1#toString()
 
-  var aavgArrayArrayFL = Array#average()
-  // var agetCountArrayFL = Array#getCount()  - we do not support resolving implicit getters via typeinfo
-  var asumArrayFL = Array#sum()            //## issuekeys: AMBIGUOUS METHOD CALL: BOTH 'CoreArrayDoubleSumEnhancement.sum(IBlock1<Double, Object>)' AND 'CoreArrayFloatSumEnhancement.sum(IBlock1<Float, Object>)' MATCH
-  var acloneArrayFL = Array#clone()
-  var atoListArrayFL = Array#toList()
-  var aequalsArrayFL = Array#equals(Object)
-  var ahashCodeArrayFL = Array#hashCode()
-  var atoStringArrayFL = Array#toString()
+  var aavgArrayArrayFL = Object[]#average()
+  // var agetCountArrayFL = Object[]#getCount()  - we do not support resolving implicit getters via typeinfo
+  var asumArrayFL = Object[]#sum()            //## issuekeys: AMBIGUOUS METHOD CALL: BOTH 'CoreArrayDoubleSumEnhancement.sum(IBlock1<Double, Object>)' AND 'CoreArrayFloatSumEnhancement.sum(IBlock1<Float, Object>)' MATCH
+  var acloneArrayFL = Object[]#clone()
+  var atoListArrayFL = Object[]#toList()
+  var aequalsArrayFL = Object[]#equals(Object)
+  var ahashCodeArrayFL = Object[]#hashCode()
+  var atoStringArrayFL = Object[]#toString()
 
   var hm : HashMap
   var clearHashMapFL = hm#clear()

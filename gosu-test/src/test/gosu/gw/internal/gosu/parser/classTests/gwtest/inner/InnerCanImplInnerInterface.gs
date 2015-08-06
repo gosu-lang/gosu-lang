@@ -10,7 +10,7 @@ class InnerCanImplInnerInterface
   interface IFoo
   {
     function innerInterface1() : String
-    function innerInterface2() : Number
+    function innerInterface2() : java.lang.Double
   }
 
   class Inner implements IFoo
@@ -20,7 +20,7 @@ class InnerCanImplInnerInterface
       return "1"
     }
 
-    function innerInterface2() : Number
+    function innerInterface2() : java.lang.Double
     {
       return 2
     }

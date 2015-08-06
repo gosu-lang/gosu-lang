@@ -5,7 +5,7 @@ uses java.lang.Double
 uses java.lang.Integer
 
 class Errant_GenericMethodBounds {
-  function upperBoundNumber<T extends Number>(t : T) : T { return null }
+  function upperBoundNumber<T extends java.lang.Number>(t : T) : T { return null }
   function caller1() {
     upperBoundNumber("string")   //## issuekeys: MSG_TYPE_MISMATCH
   }

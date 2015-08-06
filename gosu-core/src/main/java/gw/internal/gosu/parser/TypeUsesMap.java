@@ -50,6 +50,8 @@ public class TypeUsesMap implements ITypeUsesMap
     _defaultNamespaces = new DynamicArray<String>();
     _specialNamespaces = new DynamicArray<String>();
     _defaultNamespaces.add( "gw.lang." );
+    _defaultNamespaces.add( "java.lang." );
+    _defaultNamespaces.add( "java.util." );
     _defaultNamespaces.add( "" );
   }
 

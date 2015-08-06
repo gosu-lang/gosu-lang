@@ -11,16 +11,6 @@ public class Res
 {
   public static final ResourceBundle g_resources;
 
-  public static final ResourceKey ARRAY = new ResourceKey("ARRAY");
-  public static final ResourceKey BEAN = new ResourceKey("BEAN");
-  public static final ResourceKey BOOLEAN = new ResourceKey("BOOLEAN");
-  public static final ResourceKey DATETIME = new ResourceKey("DATETIME");
-  public static final ResourceKey FUNCTION = new ResourceKey("FUNCTION");
-  public static final ResourceKey IDENTIFIER = new ResourceKey("IDENTIFIER");
-  public static final ResourceKey METATYPENAME = new ResourceKey("METATYPENAME");
-  public static final ResourceKey NULLTYPENAME = new ResourceKey("NULLTYPENAME");
-  public static final ResourceKey NUMERIC = new ResourceKey("NUMERIC");
-  public static final ResourceKey STRING = new ResourceKey("STRING");
   public static final ResourceKey MSG_SYNTAX_ERROR = new ResourceKey("MSG_SYNTAX_ERROR");
   public static final ResourceKey MSG_BAD_IDENTIFIER_NAME = new ResourceKey("MSG_BAD_IDENTIFIER_NAME");
   public static final ResourceKey MSG_END_OF_STMT = new ResourceKey("MSG_END_OF_STMT");

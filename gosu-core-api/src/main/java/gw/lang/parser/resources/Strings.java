@@ -9,16 +9,6 @@ public class Strings extends ListResourceBundle
  {
    static final Object[][] contents =
      {
-       {Res.ARRAY.getKey(), "Array"},
-       {Res.BEAN.getKey(), "Bean"},
-       {Res.BOOLEAN.getKey(), "Boolean"},
-       {Res.DATETIME.getKey(), "DateTime"},
-       {Res.FUNCTION.getKey(), "Function"},
-       {Res.IDENTIFIER.getKey(), "Identifier"},
-       {Res.METATYPENAME.getKey(), "Type"},
-       {Res.NULLTYPENAME.getKey(), "Null"},
-       {Res.NUMERIC.getKey(), "Number"},
-       {Res.STRING.getKey(), "String"},
        {Res.MSG_SYNTAX_ERROR.getKey(), "Syntax error."},
        {Res.MSG_BAD_IDENTIFIER_NAME.getKey(), "Could not resolve symbol for : {0}"},
        {Res.MSG_END_OF_STMT.getKey(), "Expecting end of statement. Possible bad or missing operator."},

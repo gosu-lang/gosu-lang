@@ -7,6 +7,7 @@ uses java.lang.IllegalArgumentException
 uses java.util.Map
 uses java.util.HashMap
 uses java.util.Comparator
+uses java.util.List
 
 /**
  * List goodies

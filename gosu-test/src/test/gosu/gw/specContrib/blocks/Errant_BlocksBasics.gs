@@ -2,6 +2,7 @@ package gw.specContrib.blocks
 
 uses java.util.ArrayList
 uses java.util.HashMap
+uses java.lang.Double
 
 class Errant_BlocksBasics {
   class A {
@@ -36,7 +37,7 @@ class Errant_BlocksBasics {
   }
 
   function testSpecifyType() {
-    var block1111: block(n: Number) = \x: Number -> x * x
+    var block1111: block(n: Double) = \x: Double -> x * x
   }
 
   function testBlock111() {

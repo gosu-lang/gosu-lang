@@ -2220,12 +2220,12 @@ function testGoToMethodDeclInCompoundType1() {
     testGotoNonProjectFile(f, "java.lang.Boolean", "public final class Boolean")
   }
 
-  //====DateTime
+  //====java.util.Date
   function testGotoDateTimeDecl() {
     var f = new GosuClassFile (
       "package some.pkg\n" +
       "class GosuClass {\n" +
-      "  var myDateTime : [[DateTime]]\n" +
+      "  var myDateTime : [[java.util.Date]]\n" +
       "}"
     )
     testGotoNonProjectFile(f, "java.util.Date", "public class Date")
@@ -2258,7 +2258,7 @@ function testGoToMethodDeclInCompoundType1() {
     var f = new GosuClassFile (
       "package some.pkg\n" +
       "class GosuClass {\n" +
-      "  var myArray : [[Array]]\n" +
+      "  var myArray : [[Object[]]]\n" +
       "}"
     )
     testGotoNonProjectFile(f, "java.lang.Object", "public class Object")
