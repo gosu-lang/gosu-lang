@@ -45,6 +45,6 @@ public class DefaultSingleModule extends GlobalModule
 
   @Override
   protected void createExtensionTypeLoaders() {
-    createExtenxioTypeloadersImpl( );
+    createExtensionTypeloadersImpl();
   }
 }
