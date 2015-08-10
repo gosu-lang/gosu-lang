@@ -15,6 +15,7 @@ import gw.lang.reflect.ITypeInfo;
 import gw.lang.reflect.ITypeVariableType;
 import gw.lang.reflect.Modifier;
 import gw.lang.reflect.TypeSystem;
+import gw.lang.reflect.features.IMethodReference;
 import gw.lang.reflect.gs.IGosuClass;
 import gw.lang.reflect.gs.IGosuEnhancement;
 import gw.lang.reflect.gs.IGosuMethodInfo;
@@ -45,7 +46,11 @@ public class FunctionToInterfaceCoercer extends BaseCoercer implements IResolvin
 
   public Object coerceValue( IType typeToCoerceTo, Object value )
   {
-    if( value instanceof IBlock )
+    if( value instanceof IMethodReference )
+    {
+      return coerceValue( typeToCoerceTo, ((IMethodReference)value).toBlock() );
+    }
+    else if( value instanceof IBlock )
     {
       IGosuClass proxyClass = GosuShop.getBlockToInterfaceConversionClass( typeToCoerceTo, TypeSystem.get( value.getClass().getEnclosingClass() ) );
       IBlock blk = (IBlock)value;
@@ -194,6 +199,11 @@ public class FunctionToInterfaceCoercer extends BaseCoercer implements IResolvin
 
   public IType resolveType( IType target, IType source )
   {
+    if( TypeSystem.get( IMethodReference.class ).isAssignableFrom( source ) )
+    {
+      return resolveType( target, source.getTypeParameters()[1] );
+    }
+
     IFunctionType sourceFun = (IFunctionType)source;
     IType returnType = sourceFun.getReturnType();
     IType methodReturnType = extractReturnTypeFromInterface( target );

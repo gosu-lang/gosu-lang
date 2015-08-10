@@ -23,6 +23,19 @@ class BlockToInterfaceExceptionTest extends TestClass   {
       assertTrue(e typeis IOException)
     }
   }
+
+  function testMethodReferenceThatThrowsCheckedException() {
+    try {
+      takesARunnable(this#likeARunnable())
+      fail()
+    } catch (e : IOException) {
+      assertTrue(e typeis IOException)
+    }
+  }
+
+  function likeARunnable() {
+    throw new IOException()
+  }
   
   function takesARunnable(r : Runnable) {
     r.run()  

@@ -13,6 +13,7 @@ import gw.lang.parser.exceptions.ParseException;
 import gw.lang.parser.resources.Res;
 import gw.lang.reflect.*;
 import gw.lang.reflect.features.FeatureReference;
+import gw.lang.reflect.features.IMethodReference;
 import gw.lang.reflect.gs.IGosuArrayClass;
 import gw.lang.reflect.gs.IGosuArrayClassInstance;
 import gw.lang.reflect.gs.IGosuClass;
@@ -340,6 +341,19 @@ public class StandardCoercionManager extends BaseService implements ICoercionMan
         }
       }
     }
+
+    //=============================================================================
+    // JavaType interface <- feature literal
+    //=============================================================================
+    if( TypeSystem.get(IMethodReference.class).isAssignableFrom( rhsType ) && lhsType.isInterface() )
+    {
+      ICoercer coercerInternal = getCoercerInternal( lhsType, rhsType.getTypeParameters()[1], runtime );
+      if( coercerInternal != null )
+      {
+        return FunctionToInterfaceCoercer.instance();
+      }
+    }
+
     //=============================================================================
     // JavaType interface <- block class
     //=============================================================================
