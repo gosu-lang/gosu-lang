@@ -481,7 +481,7 @@ The type of ``o`` can be:
 
 
 Interval expressions
-===================
+====================
 
 .. index:: interval expression
 

@@ -217,6 +217,47 @@ using ``while``:
 
     *body* ``while`` ``(`` *condition* ``)`` *body*
 
+The ``For`` Statement
+---------------------
+
+.. index:: for statement
+
+A ``for`` statement has one of the following forms:
+
+    ``for`` ``(`` [``var``] *x* ``in`` *expression* ``index`` *i* ``)`` *body*
+
+    ``for`` ``(`` [``var``] *x* ``in`` *expression* ``iterator`` *iter* ``)`` *body*
+
+    ``for`` ``(`` [``var``] *x* ``in`` *expression* ``index`` *i*  ``iterator`` *iter* ``)`` *body*
+    
+
+The *expression* must have one of the following types:
+
+- any array type, ``T[]``
+- ``Iterable<T>``
+- ``Iterator<T>``
+- ``String``
+
+and *x* is a new variable local to the loop *body* of inferred type ``T`` (or 
+``String`` if *expression* is of type ``String``). *body* is  a statement.
+
+First the *expression* is evaluated to obtain an ``Iterator``. Then the *body* 
+is evaluated for each element produced by the iterator with variable ``x`` bound 
+to that element.
+
+The ``var`` keyword is optional. If the ``index`` keyword is present it must 
+be followed by a variable name *i* (of type ``int``) that will be bound to the 
+index of the current iteration. If the *expression*'s type is an ``Iterable`` 
+and the ``iterator`` keyword is present it must be followed by a variable name 
+*iter* that will be bound to the *expression*'s ``Iterator``.
+
+The following special shorthand version of the for loop can be used when the 
+local variable ``x`` is not needed in the *body* of the loop
+
+    ``for`` ``(`` *expression*  [``index`` *i*] ``)`` *body*
+
+Only the ``index`` keyword can be used in this form.
+
 Returns, Exits, and Exceptions
 ==============================
 
