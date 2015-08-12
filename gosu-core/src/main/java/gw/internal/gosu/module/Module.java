@@ -6,7 +6,6 @@ package gw.internal.gosu.module;
 
 import gw.config.CommonServices;
 import gw.fs.IDirectory;
-import gw.fs.IResource;
 import gw.internal.gosu.dynamic.DynamicTypeLoader;
 import gw.internal.gosu.parser.DefaultTypeLoader;
 import gw.internal.gosu.parser.FileSystemGosuClassRepository;
@@ -237,10 +236,10 @@ public class Module implements IModule
   }
 
   protected void createExtensionTypeLoaders() {
-    createExtenxioTypeloadersImpl();
+    createExtensionTypeloadersImpl();
   }
 
-  protected void createExtenxioTypeloadersImpl() {
+  protected void createExtensionTypeloadersImpl() {
     Set<String> typeLoaders = getExtensionTypeloaderNames();
     for( String additionalTypeLoader : typeLoaders) {
       try {

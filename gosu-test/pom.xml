@@ -2,7 +2,7 @@
   <parent>
     <groupId>org.gosu-lang.gosu</groupId>
     <artifactId>gosu-parent</artifactId>
-    <version>1-spec-SNAPSHOT</version>
+    <version>1.X-SNAPSHOT</version>
     <relativePath>../gosu-parent/pom.xml</relativePath>
   </parent>
   <modelVersion>4.0.0</modelVersion>
@@ -15,12 +15,116 @@
     <dependency>
       <groupId>org.gosu-lang.gosu</groupId>
       <artifactId>gosu-test-api</artifactId>
-      <version>1-spec-SNAPSHOT</version>
+      <version>1.X-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.gosu-lang.gosu</groupId>
       <artifactId>gosu-core</artifactId>
-      <version>1-spec-SNAPSHOT</version>
+      <version>1.X-SNAPSHOT</version>
     </dependency>
   </dependencies>
+
+  <profiles>
+    <profile>
+      <id>runGosuTests</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>build-helper-maven-plugin</artifactId>
+            <version>1.9.1</version>
+            <executions>
+              <execution>
+                <id>add-test-source</id>
+                <phase>generate-test-sources</phase>
+                <goals>
+                  <goal>add-test-source</goal>
+                </goals>
+                <configuration>
+                  <sources>
+                    <source>src/main/java</source>
+                    <source>src/test/gosu</source>
+                  </sources>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-compiler-plugin</artifactId>
+            <version>3.3</version>
+            <executions>
+              <execution>
+                <id>Compile Gosu test sources</id>
+                <phase>test-compile</phase>
+                <goals>
+                  <goal>testCompile</goal>
+                </goals>
+                <configuration>
+                  <compilerArgs>
+                    <arg>-DcheckedArithmetic=true</arg>
+                  </compilerArgs>
+                  <compilerId>gosuc</compilerId>
+                  <fork>false</fork>
+                  <useIncrementalCompilation>true</useIncrementalCompilation> <!-- this must be true or else we cannot pick up files with multiple extensions -->
+                  <verbose>true</verbose>
+                  <testIncludes>
+                    <include>**/*.gs</include>
+                    <include>**/*.gsx</include>
+                    <include>**/*.gst</include>
+                  </testIncludes>
+                  <testExcludes>
+                    <exclude>**/Errant_*.gs</exclude>
+                    <exclude>**/Errant_*.gsx</exclude>
+                    <exclude>**/Errant_*.gst</exclude>
+                  </testExcludes>
+                </configuration>
+              </execution>
+            </executions>
+            <dependencies>
+              <dependency>
+                <groupId>org.gosu-lang.gosu</groupId>
+                <artifactId>plexus-compiler-gosu</artifactId>
+                <version>1.X-SNAPSHOT</version>
+              </dependency>
+            </dependencies>
+          </plugin>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-surefire-plugin</artifactId>
+            <version>2.18.1</version>
+            <configuration>
+              <argLine>-Dgw.tests.skip.knownbreak=true -DcheckedArithmetic=true</argLine>
+              <includes>
+                <include>gw/config*/**/*Test.class</include>
+                <include>gw/internal*/**/*Test.class</include>
+                <include>gw/lang*/**/*Test.class</include>
+                <include>gw/spec*/**/*Test.class</include>
+                <include>gw/test*/**/*Test.class</include>
+                <include>gw/util*/**/*Test.class</include>
+                <include>gw/xml*/**/*Test.class</include>
+              </includes>
+              <excludes>
+                <exclude>gw/internal/gosu/parser/java/*</exclude>
+                <exclude>gw/test/SuiteTest*</exclude>
+                <exclude>**/*BenchmarkTest*</exclude>
+              </excludes>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+
+      <reporting>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-surefire-report-plugin</artifactId>
+            <version>2.18.1</version>
+          </plugin>
+        </plugins>
+      </reporting>
+    </profile>
+  </profiles>
+
+
 </project>

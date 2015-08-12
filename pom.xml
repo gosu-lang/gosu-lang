@@ -4,7 +4,7 @@
   <parent>
     <groupId>org.gosu-lang.gosu</groupId>
     <artifactId>gosu-parent</artifactId>
-    <version>1-spec-SNAPSHOT</version>
+    <version>1.X-SNAPSHOT</version>
     <relativePath>gosu-parent</relativePath>
   </parent>
   <artifactId>gosu-proj</artifactId>
@@ -19,6 +19,7 @@
     <module>gosu-parent</module>
     <module>gosu-test</module>
     <module>gosu-test-api</module>
+    <module>plexus-compiler-gosu</module>
   </modules>
   <profiles>
     <profile>
