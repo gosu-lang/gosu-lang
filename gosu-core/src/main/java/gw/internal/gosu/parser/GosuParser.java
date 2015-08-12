@@ -7486,12 +7486,12 @@ public final class GosuParser extends ParserBase implements IGosuParser
   void _parseLiteral()
   {
     if( !parseNumberLiteral() &&
-            !parseRelativeFeatureLiteral() &&
-            !parseStringLiteral() &&
-            !parseCharLiteral() &&
-            !parseBooleanLiteral() &&
-            !parseNullLiteral() &&
-            !parseTypeLiteral() )
+        !parseRelativeFeatureLiteral() &&
+        !parseStringLiteral() &&
+        !parseCharLiteral() &&
+        !parseBooleanLiteral() &&
+        !parseNullLiteral() &&
+        !parseTypeLiteral() )
     {
       Expression expr = popExpression();
       getLocationsList().remove( expr.getLocation() );
@@ -8002,7 +8002,18 @@ public final class GosuParser extends ParserBase implements IGosuParser
       else
       {
         char c = T._strValue.charAt( 0 );
-        Expression e = new CharLiteral( c );
+        IType ctxType = getContextType().getType();
+        Expression e;
+        if( !getContextType().isMethodScoring() &&
+            c >= 0 && c <= Byte.MAX_VALUE &&
+            (ctxType == JavaTypes.pBYTE() || ctxType == JavaTypes.BYTE()) )
+        {
+          e = new NumericLiteral( T._strValue, (byte)c, ctxType );
+        }
+        else
+        {
+          e = new CharLiteral( c );
+        }
         verify( e, T.getInvalidCharPos() < 0, Res.MSG_INVALID_CHAR_AT, T.getInvalidCharPos() );
         verify( e, !T._bUnterminated, Res.MSG_UNTERMINATED_STRING_LITERAL );
         pushExpression( e );

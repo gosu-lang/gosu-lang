@@ -310,3 +310,36 @@ A ``continue`` statement is legal only inside a loop, and has the form
 Executing ``continue`` terminates the current iteration of the innermost
 enclosing loop, and continues the execution at  with the next element
 (in ``for`` loops) or the *condition* (in ``while`` and ``do-while`` loops).
+
+The ``throw`` Statement
+------------------------
+
+A ``throw`` statement has the form
+
+    ``throw`` *expression*
+
+where the type of the *expression* must be a subtype of class Throwable or a
+``String``. The ``throw`` statement is executed as follows: The *expression* is
+evaluated to obtain an exception object ``v``, if *expression* is a ``String``
+a new RuntimeException will be created having that string as argument. If it is
+``null``, then a NullPointerException is thrown; otherwise the exception object
+``v`` is thrown. Thus a thrown exception is never ``null``. In any case, the
+enclosing block statement terminates abruptly.
+
+The thrown exception may be caught in a dynamically enclosing ``try-catch``
+statement (see XXX). If the exception is not caught, then the entire program
+execution will be aborted, and information from the exception will be printed
+on the console.
+
+
+The ``try-catch-finally`` Statement
+-----------------------------------
+
+The ``assert`` Statement
+========================
+
+The ``eval`` Statement
+=======================
+
+The ``using`` Statement
+=======================

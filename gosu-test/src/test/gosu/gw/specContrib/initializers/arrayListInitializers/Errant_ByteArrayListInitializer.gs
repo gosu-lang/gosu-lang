@@ -25,10 +25,13 @@ class Errant_ByteArrayListInitializer {
   var byteArrayList0116 : ArrayList<Byte> = {'c', 1b, 1s, 42, 42.5f, 42L, 42.5, BigInteger.ONE, BigDecimal.TEN}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.IO.SERIALIZABLE & JAVA.LANG.COMPARABLE<JAVA.IO.SERIALIZABLE & JAVA.LANG.COMPARABLE<? EXTENDS JAVA.LANG.COMPARABLE<?>>>>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.BYTE>'
 
 
-  var byteArrayList1111 : ArrayList<Byte> = {'c', 'c'}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.CHARACTER>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.BYTE>'
-  var byteArrayList1110 : ArrayList<Byte> = {'c', 1b}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.INTEGER>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.BYTE>'
+  var byteArrayList1111 : ArrayList<Byte> = {'c', 'c'}
+  var byteArrayList1111_1 : ArrayList<Byte> = {'ü', 'ü'}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.CHARACTER>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.BYTE>'
+  var byteArrayList1110 : ArrayList<Byte> = {'c', 1b}
+  var byteArrayList1110_1 : ArrayList<Byte> = {'ü', 1b}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.INTEGER>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.BYTE>'
   var byteArrayList1112 : ArrayList<Byte> = {'c', 1s}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.INTEGER>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.BYTE>'
-  var byteArrayList1113 : ArrayList<Byte> = {'c', 42}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.INTEGER>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.BYTE>'
+  var byteArrayList1113 : ArrayList<Byte> = {'c', 42}
+  var byteArrayList1113_1 : ArrayList<Byte> = {'ü', 42}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.INTEGER>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.BYTE>'
   var byteArrayList1114 : ArrayList<Byte> = {'c', 42.5f}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.FLOAT>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.BYTE>'
   var byteArrayList1115 : ArrayList<Byte> = {'c', 42.5}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.DOUBLE>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.BYTE>'
   var byteArrayList1116 : ArrayList<Byte> = {'c', BigInteger.ONE}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.IO.SERIALIZABLE & JAVA.LANG.COMPARABLE<JAVA.IO.SERIALIZABLE & JAVA.LANG.COMPARABLE<? EXTENDS JAVA.LANG.COMPARABLE<?>>>>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.BYTE>'
@@ -40,7 +43,8 @@ class Errant_ByteArrayListInitializer {
   var byteArrayList1122 : ArrayList<Byte> = {'c', arrayList}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.IO.SERIALIZABLE>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.BYTE>'
   var byteArrayList1123 : ArrayList<Byte> = {'c', hashMap}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.IO.SERIALIZABLE>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.BYTE>'
 
-  var byteArrayList1211 : ArrayList<Byte> = {1b, 'c'}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.INTEGER>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.BYTE>'
+  var byteArrayList1211 : ArrayList<Byte> = {1b, 'c'}
+  var byteArrayList1211_1 : ArrayList<Byte> = {1b, 'ü'}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.INTEGER>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.BYTE>'
   var byteArrayList1210 : ArrayList<Byte> = {1b, 1b}
   var byteArrayList1212 : ArrayList<Byte> = {1b, 1s}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.INTEGER>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.BYTE>'
   var byteArrayList1213 : ArrayList<Byte> = {1b, 42}
@@ -71,7 +75,8 @@ class Errant_ByteArrayListInitializer {
   var byteArrayList1323 : ArrayList<Byte> = {1s, hashMap}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.IO.SERIALIZABLE>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.BYTE>'
 
 
-  var byteArrayList1411 : ArrayList<Byte> = {42, 'c'}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.INTEGER>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.BYTE>'
+  var byteArrayList1411 : ArrayList<Byte> = {42, 'c'}
+  var byteArrayList1411_1 : ArrayList<Byte> = {42, 'ü'}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.INTEGER>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.BYTE>'
   var byteArrayList1410 : ArrayList<Byte> = {42, 1b}
   var byteArrayList1412 : ArrayList<Byte> = {42, 1s}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.INTEGER>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.BYTE>'
   var byteArrayList1413 : ArrayList<Byte> = {42, 42}
