@@ -1,0 +1,24 @@
+machine:
+
+  timezone:
+    America/Los_Angeles
+
+  java:
+    version:
+      oraclejdk8
+
+general:
+  branches:
+    only:
+      - spec # only build/deploy from spec
+  artifacts:
+    - "gosu-test/target/site" # preserve the generated HTML test reports
+
+test:
+  # Adds profile to pick up Gosu tests
+  override:
+    - mvn integration-test -P runGosuTests
+
+post:
+    - mkdir -p $CIRCLE_TEST_REPORTS/junit/
+    - find . -type f -regex ".*/target/surefire-reports/.*xml" -exec cp {} $CIRCLE_TEST_REPORTS/junit/ \;
