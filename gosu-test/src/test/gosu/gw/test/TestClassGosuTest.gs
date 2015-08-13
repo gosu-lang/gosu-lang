@@ -1,5 +1,8 @@
 package gw.test
 
+uses gw.testharness.KnownBreak
+
+@KnownBreak("", "", "kmoore") // Marking KB since test ordering cannot be guaranteed
 public class TestClassGosuTest extends TestClass {
   static var _beforeTestClassCalled = 0
   static var _beforeTestMethodCalled = 0

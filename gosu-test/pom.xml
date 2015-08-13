@@ -108,6 +108,7 @@
                 <exclude>gw/internal/gosu/parser/java/*</exclude>
                 <exclude>gw/test/SuiteTest*</exclude>
                 <exclude>**/*BenchmarkTest*</exclude>
+                <exclude>**/junit/framework/TestSuite*BenchmarkTest*</exclude>
               </excludes>
             </configuration>
           </plugin>
