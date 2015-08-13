@@ -18,7 +18,6 @@ test:
   # Adds profile to pick up Gosu tests
   override:
     - mvn integration-test -P runGosuTests
-
-post:
+  post:
     - mkdir -p $CIRCLE_TEST_REPORTS/junit/
     - find . -type f -regex ".*/target/surefire-reports/.*xml" -exec cp {} $CIRCLE_TEST_REPORTS/junit/ \;
