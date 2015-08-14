@@ -28,6 +28,7 @@ import gw.lang.reflect.gs.IGosuClass;
 import gw.lang.reflect.gs.IGosuObject;
 import gw.lang.reflect.gs.StringSourceFileHandle;
 import gw.lang.reflect.java.IJavaMethodInfo;
+import gw.lang.reflect.java.IJavaPropertyInfo;
 import gw.lang.reflect.java.IJavaType;
 import gw.lang.reflect.java.JavaTypes;
 import gw.lang.reflect.module.IModule;
@@ -783,7 +784,8 @@ public class GosuClassProxyFactory
                            : ti.getProperty( strProp );
         if( pi != null && pi.getFeatureType().getName().equals( mi.getReturnType().getName() ) )
         {
-          return !Keyword.isKeyword( pi.getName() ) || Keyword.isValueKeyword( pi.getName() );
+          return (!(pi instanceof IJavaPropertyInfo) || ((IJavaPropertyInfo)pi).getPropertyDescriptor().getReadMethod().getName().equals( mi.getDisplayName() )) &&
+                 (!Keyword.isKeyword( pi.getName() ) || Keyword.isValueKeyword( pi.getName() ));
         }
       }
     }
