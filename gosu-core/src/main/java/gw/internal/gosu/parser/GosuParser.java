@@ -1752,7 +1752,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
         }
         else
         {
-          e.setType( resolveType( e, lhs.getType(), '|', rhs.getType() ) );
+          e.setType( resolveTypeForArithmeticExpression( e, lhs.getType(), "|", rhs.getType() ) );
         }
         pushExpression( e );
       }
@@ -1867,7 +1867,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
         }
         else
         {
-          e.setType( resolveType( e, lhs.getType(), '^', rhs.getType() ) );
+          e.setType( resolveTypeForArithmeticExpression( e, lhs.getType(), "^", rhs.getType() ) );
         }
         pushExpression( e );
       }
@@ -1939,7 +1939,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
         }
         else
         {
-          e.setType( resolveType( e, lhs.getType(), '&', rhs.getType() ) );
+          e.setType( resolveTypeForArithmeticExpression( e, lhs.getType(), "&", rhs.getType() ) );
         }
         pushExpression( e );
       }
@@ -2533,7 +2533,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
         e.setLHS( lhs );
         e.setRHS( rhs );
         e.setOperator( T._strValue );
-        e.setType( resolveType( e, lhs.getType(), bPlus ? '+' : '-', rhs.getType() ) );
+        e.setType( resolveTypeForArithmeticExpression( e, lhs.getType(), bPlus ? "+" : "-", rhs.getType() ) );
         verify( e, !(e.isNullSafe() && e.getType().isPrimitive()), Res.MSG_EXPECTING_REFERENCE_TYPE );
         pushExpression( e );
       }
@@ -2585,7 +2585,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
         e.setLHS( lhs );
         e.setRHS( rhs );
         e.setOperator( T._strValue );
-        e.setType( resolveType( e, lhs.getType(), T._strValue.charAt( 0 ), rhs.getType() ) );
+        e.setType( resolveTypeForArithmeticExpression( e, lhs.getType(), T._strValue, rhs.getType() ) );
         verify( e, !(e.isNullSafe() && e.getType().isPrimitive()), Res.MSG_EXPECTING_REFERENCE_TYPE );
         pushExpression( e );
       }
@@ -11406,7 +11406,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
       AdditiveExpression add = new AdditiveExpression();
       add.setLHS( lhs );
       Expression one = new NumericLiteral( "1", 1, JavaTypes.pINT() );
-      IType type = resolveType(lhs, lhs.getType(), operation._strValue.charAt(0), lhs.getType());
+      IType type = resolveTypeForArithmeticExpression( lhs, lhs.getType(), operation._strValue, lhs.getType());
       pushExpression( one );
       setLocation( lhs.getLocation().getExtent() + 1, lhs.getLineNum(), lhs.getLocation().getColumn() + 1 );
       popExpression();
@@ -11439,7 +11439,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
       add.setLHS( lhs );
       add.setRHS( rhs );
       add.setOperator( t._strValue.charAt( 0 ) == '+' ? "+" : "-" );
-      add.setType( resolveType( lhs, lhs.getType(), t._strValue.charAt( 0 ), rhs.getType() ) );
+      add.setType( resolveTypeForArithmeticExpression( lhs, lhs.getType(), t._strValue, rhs.getType() ) );
       synthetic = add;
     }
     else if( "*=".equals( t._strValue ) || "/=".equals( t._strValue ) || "%=".equals( t._strValue ) )
@@ -11448,7 +11448,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
       mult.setLHS( lhs );
       mult.setRHS( rhs );
       mult.setOperator( String.valueOf( t._strValue.charAt( 0 ) ) );
-      mult.setType( resolveType( lhs, lhs.getType(), t._strValue.charAt( 0 ), rhs.getType() ) );
+      mult.setType( resolveTypeForArithmeticExpression( lhs, lhs.getType(), t._strValue, rhs.getType() ) );
       synthetic = mult;
     }
     else if( "&=".equals( t._strValue ) )
@@ -11459,7 +11459,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
       rhs = possiblyWrapWithImplicitCoercion( rhs, lhs.getType() );
       and.setLHS( lhs );
       and.setRHS( rhs );
-      and.setType( resolveType( lhs, lhs.getType(), t._strValue.charAt( 0 ), rhs.getType() ) );
+      and.setType( resolveTypeForArithmeticExpression( lhs, lhs.getType(), t._strValue, rhs.getType() ) );
       synthetic = and;
     }
     else if( "&&=".equals( t._strValue ) )
@@ -11481,7 +11481,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
       rhs = possiblyWrapWithImplicitCoercion( rhs, lhs.getType() );
       xor.setLHS( lhs );
       xor.setRHS( rhs );
-      xor.setType( resolveType( lhs, lhs.getType(), t._strValue.charAt( 0 ), rhs.getType() ) );
+      xor.setType( resolveTypeForArithmeticExpression( lhs, lhs.getType(), t._strValue, rhs.getType() ) );
       synthetic = xor;
     }
     else if( "|=".equals( t._strValue ) )
@@ -11492,7 +11492,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
       rhs = possiblyWrapWithImplicitCoercion( rhs, lhs.getType() );
       or.setLHS( lhs );
       or.setRHS( rhs );
-      or.setType( resolveType( lhs, lhs.getType(), t._strValue.charAt( 0 ), rhs.getType() ) );
+      or.setType( resolveTypeForArithmeticExpression( lhs, lhs.getType(), t._strValue, rhs.getType() ) );
       synthetic = or;
     }
     else if( "||=".equals( t._strValue ) )
@@ -11529,7 +11529,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
       shift.setLHS( lhs );
       shift.setRHS( rhs );
       shift.setOperator( t._strValue );
-      shift.setType( resolveType( lhs, lhs.getType(), t._strValue.charAt( 0 ), rhs.getType() ) );
+      shift.setType( resolveTypeForArithmeticExpression( lhs, lhs.getType(), t._strValue, rhs.getType() ) );
       synthetic = shift;
     }
 

@@ -398,6 +398,7 @@ public class Strings extends ListResourceBundle
        {Res.MSG_DIMENSION_DIVIDE_SCALAR_BY_DIMENSION.getKey(), "Can't divide scalar by dimension" },
        {Res.MSG_DIMENSION_MUST_BE_FINAL.getKey(), "Dimension arithmetic must involve final types. {0} is not final." },
        {Res.MSG_RELATIONAL_OPERATOR_CANNOT_BE_APPLIED_TO_TYPE.getKey(), "Relational operator {0} cannot be applied to type {1}" },
+       {Res.MSG_ARITHMETIC_OPERATOR_CANNOT_BE_APPLIED_TO_TYPES.getKey(), "Operator \"{0}\" cannot be applied to \"{1}\", \"{2}\""},
        {Res.MSG_ASSIGNMENTS_MUST_BE_ENCLOSED_IN_CURLIES_IN_BLOCKS.getKey(), "Assignments in a block body must be enclosed in curly brackets" },
        {Res.MSG_BLOCKS_CAN_HAVE_A_MOST_SIXTEEN_ARGS.getKey(), "Blocks can have at most 16 args." },
        {Res.MSG_BLOCKS_LITERAL_NOT_ALLOWED_IN_NEW_EXPR.getKey(), "Blocks literals are not allowed in a new expression." },

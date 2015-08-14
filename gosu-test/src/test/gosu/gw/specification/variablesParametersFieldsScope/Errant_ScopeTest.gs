@@ -12,10 +12,10 @@ class Errant_ScopeTest {
     for(var j in 0..10 index k) {
       j = k+1
     }
-    j = k+1  //## issuekeys: MSG_BAD_IDENTIFIER_NAME, MSG_TYPE_MISMATCH, MSG_BAD_IDENTIFIER_NAME
+    j = k+1  //## issuekeys: MSG_BAD_IDENTIFIER_NAME, MSG_ARITHMETIC_OPERATOR_CANNOT_BE_APPLIED_TO_TYPES, MSG_BAD_IDENTIFIER_NAME
 
-    for(var j in 0..j+1) {  //## issuekeys: MSG_EXPECTING_ARRAYTYPE_FOREACH, MSG_TYPE_MISMATCH, MSG_BAD_IDENTIFIER_NAME
-      j++  //## issuekeys: MSG_TYPE_MISMATCH
+    for(var j in 0..j+1) {  //## issuekeys: MSG_EXPECTING_ARRAYTYPE_FOREACH, MSG_ARITHMETIC_OPERATOR_CANNOT_BE_APPLIED_TO_TYPES, MSG_BAD_IDENTIFIER_NAME
+      j++  //## issuekeys: MSG_ARITHMETIC_OPERATOR_CANNOT_BE_APPLIED_TO_TYPES
     }
 
   }
@@ -37,7 +37,7 @@ class Errant_ScopeTest {
   function stringTemplateScope() {
     var c = 1
     var str = "${c + 1}"
-    str = "${foo + 1}"  //## issuekeys: MSG_TYPE_MISMATCH, MSG_BAD_IDENTIFIER_NAME
+    str = "${foo + 1}"  //## issuekeys: MSG_ARITHMETIC_OPERATOR_CANNOT_BE_APPLIED_TO_TYPES, MSG_BAD_IDENTIFIER_NAME
   }
 
   function switchScope() : void {

@@ -745,6 +745,17 @@ public abstract class ParserBase implements IParserPart
     return new LightweightParserState( getTokenizer(), getOffsetShift(), getLineNumShift() );
   }
 
+  protected IType resolveTypeForArithmeticExpression( ParsedElement parsedElement, IType lhsType, String op, IType rhsType )
+  {
+    IType type = resolveType( parsedElement, lhsType, op.charAt(0), rhsType );
+    if( parsedElement.hasParseException( Res.MSG_TYPE_MISMATCH ) )
+    {
+      parsedElement.removeParseException( Res.MSG_TYPE_MISMATCH );
+      parsedElement.addParseException( new ParseException(  makeLightweightParserState(), Res.MSG_ARITHMETIC_OPERATOR_CANNOT_BE_APPLIED_TO_TYPES, op, rhsType.getDisplayName(), lhsType.getDisplayName() ) );
+    }
+    return type;
+  }
+
   protected IType resolveType( ParsedElement parsedElement, IType lhsType, int op, IType rhsType )
   {
     if( isDynamic( lhsType ) )
