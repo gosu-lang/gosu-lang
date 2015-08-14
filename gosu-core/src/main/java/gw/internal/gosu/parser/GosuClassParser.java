@@ -3578,7 +3578,7 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
             {
               modifiers.setModifiers( Modifier.setStatic( modifiers.getModifiers(), true ) );
               ModifierInfo existingMI = (ModifierInfo)inner.getModifierInfo();
-              existingMI.setModifiers( modifiers.getModifiers() );
+              existingMI.addModifiers( modifiers.getModifiers() );
             }
             verifyModifiers( inner.getClassStatement(), modifiers, UsageTarget.TypeTarget );
           }
