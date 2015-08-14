@@ -72,13 +72,9 @@ class JavaType extends AbstractType implements IJavaTypeInternal
   transient private LockingLazyVar<Boolean> _bHasSuperType = new LockingLazyVar<Boolean>() {
     @Override
     protected Boolean init() {
-      if(_classInfo != null) {
-          return _classInfo.getSuperclass() != null &&
-              //## hack: avoid cyclic refs from creating AnnotationClass
-              !_classInfo.getName().equals( AnnotationMap.class.getName() );
-      } else {
-        return _classInfo.getSuperclass() != null;
-      }
+      return _classInfo.getSuperclass() != null &&
+          //## hack: avoid cyclic refs from creating AnnotationClass
+          !_classInfo.getName().equals( AnnotationMap.class.getName() );
     }
   };
   transient volatile private IType _superType;  //!! Do NOT make this a lazy var, it's init needs to be re-entrant

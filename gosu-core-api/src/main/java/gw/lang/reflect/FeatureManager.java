@@ -9,6 +9,7 @@ import gw.lang.parser.CICS;
 import gw.lang.reflect.gs.IGenericTypeVariable;
 import gw.lang.reflect.gs.IGosuClass;
 import gw.lang.reflect.gs.IGosuEnhancement;
+import gw.lang.reflect.java.IJavaType;
 import gw.lang.reflect.java.JavaTypes;
 import gw.lang.reflect.module.IModule;
 import gw.util.GosuExceptionUtil;
@@ -288,8 +289,8 @@ public class FeatureManager<T extends CharSequence> {
               for (IType type : _typeInfo.getOwnersType().getInterfaces()) {
                 mergeMethods(privateMethods, convertType(type), false);
               }
-              if ( _typeInfo.getOwnersType().getSupertype() != null) {
-                mergeMethods(privateMethods, convertType( _typeInfo.getOwnersType().getSupertype()), true);
+              if ( getSuperType() != null) {
+                mergeMethods(privateMethods, convertType( getSuperType() ), true);
               }
               List<? extends IMethodInfo> declaredMethods = _typeInfo.getDeclaredMethods();
               for (IMethodInfo methodInfo : declaredMethods) {
@@ -356,7 +357,7 @@ public class FeatureManager<T extends CharSequence> {
               for (IType type : _typeInfo.getOwnersType().getInterfaces()) {
                 mergeProperties(privateProps, convertType(type), false);
               }
-              IType supertype = _typeInfo.getOwnersType().getSupertype();
+              IType supertype = getSuperType();
               if ( supertype != null ) {
                 mergeProperties( privateProps, convertType( supertype ), true );
               }
@@ -399,6 +400,15 @@ public class FeatureManager<T extends CharSequence> {
         TypeSystem.unlock();
       }
     }
+  }
+
+  private IType getSuperType() {
+    IType ownersType = _typeInfo.getOwnersType();
+    IType supertype = ownersType.getSupertype();
+    if( supertype == null && ownersType instanceof IJavaType && !_typeInfo.getOwnersType().equals( JavaTypes.OBJECT() ) ) {
+      supertype = JavaTypes.OBJECT();
+    }
+    return supertype;
   }
 
   @SuppressWarnings({"ConstantConditions"})

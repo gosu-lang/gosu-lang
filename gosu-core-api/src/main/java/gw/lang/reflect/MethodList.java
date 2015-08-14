@@ -14,7 +14,7 @@ import java.util.List;
 public class MethodList extends DynamicArray<IMethodInfo> {
   public static final MethodList EMPTY = new MethodList();
 
-  private HashMap<String, DynamicArray<IMethodInfo>> map = new HashMap<String, DynamicArray<IMethodInfo>>();
+  private HashMap<String, DynamicArray<IMethodInfo>> _map = new HashMap<String, DynamicArray<IMethodInfo>>();
 
   public MethodList() {
   }
@@ -55,10 +55,10 @@ public class MethodList extends DynamicArray<IMethodInfo> {
 
   private void addToMap(IMethodInfo method) {
     String displayName = (String)method.getDisplayName();
-    DynamicArray<IMethodInfo> methods = map.get(displayName);
+    DynamicArray<IMethodInfo> methods = _map.get(displayName);
     if (methods == null) {
       methods = new DynamicArray<IMethodInfo>(1);
-      map.put(displayName, methods);
+      _map.put(displayName, methods);
     }
     methods.add(method);
   }
@@ -67,7 +67,7 @@ public class MethodList extends DynamicArray<IMethodInfo> {
   public IMethodInfo remove(int index) {
     IMethodInfo oldMethod = get(index);
     String displayName = (String)oldMethod.getDisplayName();
-    DynamicArray<IMethodInfo> methods = map.get(displayName);
+    DynamicArray<IMethodInfo> methods = _map.get(displayName);
     int i = methods.indexOf(oldMethod);
     methods.remove(i);
 
@@ -78,7 +78,7 @@ public class MethodList extends DynamicArray<IMethodInfo> {
   public IMethodInfo set(int index, IMethodInfo method) {
     IMethodInfo oldMethod = get(index);
     String displayName = (String)method.getDisplayName();
-    DynamicArray<IMethodInfo> methods = map.get(displayName);
+    DynamicArray<IMethodInfo> methods = _map.get(displayName);
     int i = methods.indexOf(oldMethod);
     methods.set(i, method);
 
@@ -87,7 +87,7 @@ public class MethodList extends DynamicArray<IMethodInfo> {
 
 
   public DynamicArray<? extends IMethodInfo> getMethods(String name) {
-    DynamicArray<IMethodInfo> methodInfoList = map.get( name );
+    DynamicArray<IMethodInfo> methodInfoList = _map.get( name );
     return methodInfoList != null ? methodInfoList : DynamicArray.EMPTY;
   }
 
@@ -119,12 +119,14 @@ public class MethodList extends DynamicArray<IMethodInfo> {
 
   @Override
   public Object clone() {
+    _map = (HashMap<String, DynamicArray<IMethodInfo>>)_map.clone();
     return super.clone();
   }
 
   @Override
   public void clear() {
     super.clear();
+    _map.clear();
   }
 
   @Override

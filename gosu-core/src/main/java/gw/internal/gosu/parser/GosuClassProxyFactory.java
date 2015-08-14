@@ -441,6 +441,13 @@ public class GosuClassProxyFactory
     return objMethod != null;
   }
 
+  public static boolean isObjectProperty( IPropertyInfo pi )
+  {
+    IRelativeTypeInfo ti = (IRelativeTypeInfo)JavaTypes.OBJECT().getTypeInfo();
+    IPropertyInfo objProp = ti.getProperty( JavaTypes.OBJECT(), pi.getDisplayName() );
+    return objProp != null;
+  }
+
   private String getRelativeName( IJavaType type )
   {
     String strName = TypeSystem.getGenericRelativeName( type, false );
