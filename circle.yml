@@ -9,6 +9,7 @@ machine:
 
   environment:
     JAVA_OPTS: "-Xmx2g"
+    MAVEN_OPTS: "-DcheckedArithmetic=true"
 
 general:
   branches:
