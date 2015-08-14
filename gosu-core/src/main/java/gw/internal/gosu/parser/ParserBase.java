@@ -1738,13 +1738,13 @@ public abstract class ParserBase implements IParserPart
       }
       else if( match( null, Keyword.KW_abstract ) )
       {
-        verifyNoAbstractHideOverrideStaticModifierDefined( elem, bIgnoreErrors, iModifiers, Keyword.KW_abstract, matchedAbstract );
+        verifyNoAbstractHideStaticModifierDefined( elem, bIgnoreErrors, iModifiers, Keyword.KW_abstract, matchedAbstract );
         iModifiers = Modifier.setAbstract( iModifiers, true );
         matchedAbstract = true;
       }
       else if( match( null, Keyword.KW_override ) )
       {
-        verifyNoAbstractHideOverrideStaticModifierDefined( elem, bIgnoreErrors, iModifiers, Keyword.KW_override );
+        verifyNoHideOverrideStaticModifierDefined( elem, bIgnoreErrors, iModifiers, Keyword.KW_override );
         verify( elem, bIgnoreErrors || !Modifier.isPrivate( iModifiers ), Res.MSG_ILLEGAL_USE_OF_MODIFIER, Keyword.KW_private, Keyword.KW_override );
         iModifiers = Modifier.setOverride( iModifiers, true );
       }
@@ -1979,6 +1979,31 @@ public abstract class ParserBase implements IParserPart
     verify( elem, !Modifier.isHide( modifier ), Res.MSG_ILLEGAL_USE_OF_MODIFIER, Keyword.KW_hide, kw );
     if( !(elem instanceof ClassStatement) || alreadyMatched )
     {
+      verify( elem, !Modifier.isAbstract( modifier ), Res.MSG_ILLEGAL_USE_OF_MODIFIER, Keyword.KW_abstract, kw );
+      verify( elem, !Modifier.isStatic( modifier ), Res.MSG_ILLEGAL_USE_OF_MODIFIER, Keyword.KW_static, kw );
+    }
+  }
+
+  void verifyNoHideOverrideStaticModifierDefined( ParsedElement elem, boolean bIgnoreErrors, int modifier, Keyword kw )
+  {
+    if( bIgnoreErrors )
+    {
+      return;
+    }
+    verify( elem, !Modifier.isOverride( modifier ), Res.MSG_ILLEGAL_USE_OF_MODIFIER, Keyword.KW_override, kw );
+    verify( elem, !Modifier.isHide( modifier ), Res.MSG_ILLEGAL_USE_OF_MODIFIER, Keyword.KW_hide, kw );
+  }
+
+  void verifyNoAbstractHideStaticModifierDefined( ParsedElement elem, boolean bIgnoreErrors, int modifier, Keyword kw, boolean alreadyMatched )
+  {
+    if( bIgnoreErrors )
+    {
+      return;
+    }
+    verify( elem, !Modifier.isHide( modifier ), Res.MSG_ILLEGAL_USE_OF_MODIFIER, Keyword.KW_hide, kw );
+    if( !(elem instanceof ClassStatement) || alreadyMatched )
+    {
+      verify( elem, !Modifier.isOverride( modifier ), Res.MSG_ILLEGAL_USE_OF_MODIFIER, Keyword.KW_override, kw );
       verify( elem, !Modifier.isAbstract( modifier ), Res.MSG_ILLEGAL_USE_OF_MODIFIER, Keyword.KW_abstract, kw );
       verify( elem, !Modifier.isStatic( modifier ), Res.MSG_ILLEGAL_USE_OF_MODIFIER, Keyword.KW_static, kw );
     }
