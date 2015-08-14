@@ -64,6 +64,28 @@ class Errant_ScopeTest {
     }
   }
 
+  function tryCatchScope() {
+    try {
+      var f = 1/0
+    } catch(e : ArithmeticException) { }
+    f = 1  //## issuekeys: MSG_BAD_IDENTIFIER_NAME
+
+    try {
+      var f = 1/0
+    } catch(e : ArithmeticException) {
+      var e1 = e
+      var g = f  //## issuekeys: MSG_VARIABLE_ALREADY_DEFINED, MSG_BAD_IDENTIFIER_NAME
+    }
+    var e1 = e  //## issuekeys: MSG_BAD_IDENTIFIER_NAME
+
+    try {
+      var f = 1/0
+      try {
+        var f = 1/0  //## issuekeys: MSG_VARIABLE_ALREADY_DEFINED
+      } catch( e : Throwable) {}
+
+    } catch(e : ArithmeticException) { }
+  }
 
   var h = 1 + x  //## issuekeys: MSG_ILLEGAL_FORWARD_REFERENCE
   function m1(x : int): void {  //## issuekeys: MSG_VARIABLE_ALREADY_DEFINED

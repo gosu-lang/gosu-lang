@@ -99,16 +99,16 @@ A ``switch`` statement has the form::
     case cn: branchn
     default: branch
   }
-  
+
 The *expr* can be any expression.
-*c*\ :sub:`1`, ..., *c*\ :sub:`n` can be compile-time *constant* expressions 
-(including enum values) or they can be any expression. 
-No two *constants* may have the same value. Each *c*\ :sub:`i` must have a 
+*c*\ :sub:`1`, ..., *c*\ :sub:`n` can be compile-time *constant* expressions
+(including enum values) or they can be any expression.
+No two *constants* may have the same value. Each *c*\ :sub:`i` must have a
 type compatible the type of *expr*.
 
-Each *branch* is preceded by one or more *case* clauses and is a possibly empty 
-sequence of statements, usually terminated by ``break`` or ``return`` 
-(if inside a method or constructor) or ``continue`` (inside a loop). There can 
+Each *branch* is preceded by one or more *case* clauses and is a possibly empty
+sequence of statements, usually terminated by ``break`` or ``return``
+(if inside a method or constructor) or ``continue`` (inside a loop). There can
 be at most one *default* clause, placed last inside the *switch* statement.
 
 If *expr* is a typeof expression (``e typeof T``) and for a *branch*\ :sub:`i`
@@ -116,12 +116,12 @@ its *c*\ :sub:`i` is a type literal expression then any occurrence of
 ``e`` in *branch*\ :sub:`i` will be implicitly guarded by a cast: ``e as T``.
 
 The *switch* statement is executed as follows: The *expr* is evaluated to obtain
-a value ``v``. If ``v`` equals one of the *c*\ :sub:`1`, ..., *c*\ :sub:`n`, 
+a value ``v``. If ``v`` equals one of the *c*\ :sub:`1`, ..., *c*\ :sub:`n`,
 then the corresponding *branch* is executed. If ``v`` does not equal any of the
-*c*\ :sub:`1`, ..., *c*\ :sub:`n`, then the *branch* following ``default`` is 
-executed; if there is no ``default`` clause, nothing is executed. If a *branch* 
-is not exited by ``break`` or ``return`` or ``continue``, then execution 
-continues with the next *branch* in the switch regardless of the ``case`` 
+*c*\ :sub:`1`, ..., *c*\ :sub:`n`, then the *branch* following ``default`` is
+executed; if there is no ``default`` clause, nothing is executed. If a *branch*
+is not exited by ``break`` or ``return`` or ``continue``, then execution
+continues with the next *branch* in the switch regardless of the ``case``
 clauses, until a *branch* exits or the switch ends.
 
 
@@ -229,7 +229,7 @@ A ``for`` statement has one of the following forms:
     ``for`` ``(`` [``var``] *x* ``in`` *expression* ``iterator`` *iter* ``)`` *body*
 
     ``for`` ``(`` [``var``] *x* ``in`` *expression* ``index`` *i*  ``iterator`` *iter* ``)`` *body*
-    
+
 
 The *expression* must have one of the following types:
 
@@ -238,20 +238,20 @@ The *expression* must have one of the following types:
 - ``Iterator<T>``
 - ``String``
 
-and *x* is a new variable local to the loop *body* of inferred type ``T`` (or 
+and *x* is a new variable local to the loop *body* of inferred type ``T`` (or
 ``String`` if *expression* is of type ``String``). *body* is  a statement.
 
-First the *expression* is evaluated to obtain an ``Iterator``. Then the *body* 
-is evaluated for each element produced by the iterator with variable ``x`` bound 
+First the *expression* is evaluated to obtain an ``Iterator``. Then the *body*
+is evaluated for each element produced by the iterator with variable ``x`` bound
 to that element.
 
-The ``var`` keyword is optional. If the ``index`` keyword is present it must 
-be followed by a variable name *i* (of type ``int``) that will be bound to the 
-index of the current iteration. If the *expression*'s type is an ``Iterable`` 
-and the ``iterator`` keyword is present it must be followed by a variable name 
+The ``var`` keyword is optional. If the ``index`` keyword is present it must
+be followed by a variable name *i* (of type ``int``) that will be bound to the
+index of the current iteration. If the *expression*'s type is an ``Iterable``
+and the ``iterator`` keyword is present it must be followed by a variable name
 *iter* that will be bound to the *expression*'s ``Iterator``.
 
-The following special shorthand version of the for loop can be used when the 
+The following special shorthand version of the for loop can be used when the
 local variable ``x`` is not needed in the *body* of the loop
 
     ``for`` ``(`` *expression*  [``index`` *i*] ``)`` *body*
@@ -292,6 +292,8 @@ be v.
 The ``break`` Statement
 -----------------------
 
+.. index:: break statement
+
 A ``break`` statement is legal only inside a ``switch`` or ``loop``, and has the
 form
 
@@ -303,6 +305,8 @@ continues execution after that ``switch`` or loop.
 The ``continue`` Statement
 --------------------------
 
+.. index:: continue statement
+
 A ``continue`` statement is legal only inside a loop, and has the form
 
     ``continue``
@@ -313,6 +317,8 @@ enclosing loop, and continues the execution at  with the next element
 
 The ``throw`` Statement
 ------------------------
+
+.. index:: throw statement
 
 A ``throw`` statement has the form
 
@@ -334,6 +340,56 @@ on the console.
 
 The ``try-catch-finally`` Statement
 -----------------------------------
+
+.. index:: try-catch-finally statement
+
+A ``try-catch`` statement is used to catch (particular) exceptions thrown by the
+execution of a block of code. It has the following form:
+
+    ``try`` body
+
+    ``catch`` ``(`` [var] ``x1 : E1`` ``)`` catchbody\ :sub:`1`
+
+    ``catch`` ``(`` [var] ``x2 : E2`` ``)`` catchbody\ :sub:`2`
+
+    ``...``
+
+    ``finally`` finallybody
+
+where ``E1, E2, ...`` are names of exception types, ``x1, x2, ...`` are
+variable names, and *body*, *catchbody*\ :sub:`i`, and *finallybody* are
+*block-statements* (section XXX). There can be zero or more ``catch`` clauses,
+and the ``finally`` clause may be absent, but at least one ``catch`` or
+``finally`` clause must be present. The ``var`` keyword in the ``catch` clause
+is optional.
+
+We say that ``Ei`` matches exception type ``E`` if ``E`` is a subtype of ``Ei``
+(possibly equal to ``Ei``). The ``try-catch-finally`` statement is executed by
+executing the *body*. If the execution of the *body* terminates normally, or
+exits by ``return`` or ``break`` or ``continue`` (when inside a method or
+constructor or switch or loop), then the ``catch`` clauses are ignored. If the
+*body* terminates abruptly by throwing exception ``e`` of class ``E``, then the
+first matching ``Ei`` (if any) is located, variable ``xi`` is bound to ``e``,
+and the corresponding *catchbody*\ :sub:`i` is executed. The *catchbody*\
+:sub:`i` may terminate normally, or loop infinitely, or exit by executing
+``return`` or ``break`` or ``continue``, or throw an exception (possibly
+``xi``); if there is no ``finally`` clause, this determines how the entire
+``try-catch`` statement terminates. A thrown exception ``e`` is never ``null``
+(section XXX), so ``xi`` is guaranteed not to be ``null`` either. If there is
+no matching ``Ei``, then the entire ``try-catch`` statement terminates abruptly
+with exception ``e``.
+
+If there is a ``finally`` clause, then *finallybody* will be executed
+regardless of whether the execution of *body* terminated normally, regardless
+of whether *body* exited by executing ``return`` or ``break`` or ``continue``,
+regardless of whether any exception thrown by *body* was caught by a ``catch``
+clause, and regardless of whether the ``catch`` clause exited by executing
+``return`` or ``break`` or ``continue`` or by throwing an exception. If
+execution of *finallybody* terminates normally, then the entire
+``try-catch-finally`` terminates as determined by *body* (or *catchbody*\
+:sub:`i` , if one was executed and terminated abruptly or exited). If execution
+of *finallybody* terminates abruptly, then that determines how the entire
+``try-catch-finally`` terminates.
 
 The ``assert`` Statement
 ========================
