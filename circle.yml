@@ -8,8 +8,8 @@ machine:
       oraclejdk8
 
   environment:
-    JAVA_OPTS: "-Xmx2g"
-    MAVEN_OPTS: "-DcheckedArithmetic=true"
+    JAVA_OPTS: "-Xmx1g"
+    MAVEN_OPTS: "-Xmx1g -DcheckedArithmetic=true"
 
 general:
   branches:
