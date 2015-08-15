@@ -9,14 +9,12 @@ import gw.lang.reflect.gs.IGenericTypeVariable;
 import java.io.ObjectStreamException;
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 import java.util.Set;
 
 
 public interface IType extends Serializable
 {
-  public static final ArrayList<IType> EMPTY_TYPE_LIST = new ArrayList<IType>(0);
+  public static final ArrayList<IType> EMPTY_TYPE_LIST = new ArrayList<>(0);
   public static final IType[] EMPTY_TYPE_ARRAY = new IType[0];
   public static final IType[] EMPTY_ARRAY = new IType[0];
 

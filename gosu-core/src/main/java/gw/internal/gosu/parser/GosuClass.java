@@ -42,7 +42,6 @@ import gw.lang.parser.expressions.IVarStatement;
 import gw.lang.parser.resources.Res;
 import gw.lang.parser.statements.IFunctionStatement;
 import gw.lang.parser.statements.IUsesStatement;
-import gw.lang.reflect.AbstractType;
 import gw.lang.reflect.FunctionType;
 import gw.lang.reflect.IAttributedFeatureInfo;
 import gw.lang.reflect.IEnumValue;
@@ -53,6 +52,7 @@ import gw.lang.reflect.IPropertyInfo;
 import gw.lang.reflect.IRelativeTypeInfo;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.ITypeRef;
+import gw.lang.reflect.InnerClassCapableType;
 import gw.lang.reflect.Modifier;
 import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.gs.ClassType;
@@ -88,7 +88,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  */
-public class GosuClass extends AbstractType implements IGosuClassInternal
+public class GosuClass extends InnerClassCapableType implements IGosuClassInternal
 {
   private static final long serialVersionUID = 5L;
 
@@ -1209,34 +1209,7 @@ public class GosuClass extends AbstractType implements IGosuClassInternal
     }
 
     // Now try to resolve the inner class name relative to this class and its enclosing class[s] and its hierarchy
-    for( ICompilableTypeInternal outerClass = (ICompilableTypeInternal) getOrCreateTypeReference();
-         outerClass != null;
-         outerClass = outerClass.getEnclosingType() )
-    {
-      String strContainingType = outerClass.getName();
-      if( !strRelativeInnerClassName.startsWith( strContainingType ) )
-      {
-        IType innerClass = outerClass.getInnerClass( strRelativeInnerClassName );
-        if( innerClass != null )
-        {
-          return innerClass;
-        }
-        else
-        {
-          IType superType = outerClass.getSupertype();
-          while( superType instanceof IGosuClass )
-          {
-            innerClass = ((IGosuClass)superType).resolveRelativeInnerClass( strRelativeInnerClassName, bForce );
-            if( innerClass != null )
-            {
-              return innerClass;
-            }
-            superType = superType.getSupertype();
-          }
-        }
-      }
-    }
-    return null;
+    return super.resolveRelativeInnerClass( strRelativeInnerClassName, bForce );
   }
 
   @SuppressWarnings({"unchecked"})

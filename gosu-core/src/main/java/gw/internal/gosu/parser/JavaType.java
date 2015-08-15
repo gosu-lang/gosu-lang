@@ -9,11 +9,11 @@ import gw.config.ExecutionMode;
 import gw.fs.IFile;
 import gw.internal.gosu.annotations.AnnotationMap;
 import gw.lang.parser.TypeVarToTypeMap;
-import gw.lang.reflect.AbstractType;
 import gw.lang.reflect.IErrorType;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.ITypeInfo;
 import gw.lang.reflect.ITypeRef;
+import gw.lang.reflect.InnerClassCapableType;
 import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.gs.ClassType;
 import gw.lang.reflect.gs.IGosuClass;
@@ -52,7 +52,7 @@ import java.util.concurrent.ConcurrentMap;
 
 /**
  */
-class JavaType extends AbstractType implements IJavaTypeInternal
+class JavaType extends InnerClassCapableType implements IJavaTypeInternal
 {
   //
   // Persistent fields. See readResolve()
