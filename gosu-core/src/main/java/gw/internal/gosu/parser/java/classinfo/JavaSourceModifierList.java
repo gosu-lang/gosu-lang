@@ -37,8 +37,7 @@ public class JavaSourceModifierList implements IModifierList {
     _modifiersTree = modifiersTree;
     _modifiers = (int)((JCTree.JCModifiers)_modifiersTree).flags;
     IJavaClassInfo declaringOwner = owner instanceof JavaSourceType ? (IJavaClassInfo) owner : owner.getEnclosingClass();
-    if (declaringOwner.isInterface() || declaringOwner.isAnnotation()) {
-      _modifiers |= Modifier.PUBLIC;
+    if( declaringOwner.isInterface() || declaringOwner.isAnnotation() ) {
       if( !modifiersTree.getFlags().contains( javax.lang.model.element.Modifier.DEFAULT ) ) {
         _modifiers |= Modifier.ABSTRACT;
       }
@@ -47,7 +46,7 @@ public class JavaSourceModifierList implements IModifierList {
       }
     }
     // Types, nested in interfaces are public and static
-    if (owner instanceof JavaSourceType && declaringOwner.getEnclosingClass() instanceof JavaSourceInterface) {
+    if( owner instanceof JavaSourceType && declaringOwner.getEnclosingClass() instanceof JavaSourceInterface ) {
       _modifiers |= Modifier.PUBLIC;
       _modifiers |= Modifier.STATIC;
     }
