@@ -1749,6 +1749,7 @@ public abstract class ParserBase implements IParserPart
       }
       else if( match( null, Keyword.KW_abstract ) )
       {
+        verify( elem, bIgnoreErrors || !Modifier.isFinal( iModifiers ), Res.MSG_ILLEGAL_USE_OF_MODIFIER, Keyword.KW_final, Keyword.KW_abstract );
         verifyNoAbstractHideStaticModifierDefined( elem, bIgnoreErrors, iModifiers, Keyword.KW_abstract, matchedAbstract );
         iModifiers = Modifier.setAbstract( iModifiers, true );
         matchedAbstract = true;
