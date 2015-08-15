@@ -8275,26 +8275,22 @@ public final class GosuParser extends ParserBase implements IGosuParser
       boolean bFoundClassAlready = false;
       for( IType csr : types )
       {
-        if( verify( typeLiteralComponent, csr instanceof ErrorType || csr != componentType,
-                Res.MSG_ALREADY_CONTAINS_TYPE, componentType ) )
+        if( !(csr instanceof ErrorType) )
         {
-          verify( typeLiteralComponent,
-                  csr instanceof ErrorType || !csr.isAssignableFrom( componentType ),
-                  Res.MSG_INTERFACE_REDUNDANT, csr, componentType );
-          verify( typeLiteralComponent,
-                  csr instanceof ErrorType || !componentType.isAssignableFrom( csr ),
-                  Res.MSG_INTERFACE_REDUNDANT, componentType, csr );
+          if( verify( typeLiteralComponent, csr != componentType, Res.MSG_ALREADY_CONTAINS_TYPE, componentType ) )
+          {
+            verify( typeLiteralComponent, !csr.isAssignableFrom( componentType ),Res.MSG_INTERFACE_REDUNDANT, csr, componentType );
+            verify( typeLiteralComponent, !componentType.isAssignableFrom( csr ), Res.MSG_INTERFACE_REDUNDANT, componentType, csr );
+          }
         }
         if( !csr.isInterface() )
         {
           bFoundClassAlready = true;
         }
-        verify( typeLiteralComponent,
-                componentType.isInterface() || !bFoundClassAlready,
-                Res.MSG_ONLY_ONE_CLASS_IN_COMPONENT_TYPE );
+        verify( typeLiteralComponent, componentType.isInterface() || !bFoundClassAlready, Res.MSG_ONLY_ONE_CLASS_IN_COMPONENT_TYPE );
       }
-      verify( typeLiteralComponent, !componentType.isArray(), Res.MSG_NO_ARRAY_IN_COMPONENT_TYPE);
-      verify( typeLiteralComponent, !componentType.isPrimitive(), Res.MSG_NO_PRIMITIVE_IN_COMPONENT_TYPE);
+      verify( typeLiteralComponent, !componentType.isArray(), Res.MSG_NO_ARRAY_IN_COMPONENT_TYPE );
+      verify( typeLiteralComponent, !componentType.isPrimitive(), Res.MSG_NO_PRIMITIVE_IN_COMPONENT_TYPE );
       types.add( componentType );
     }
   }

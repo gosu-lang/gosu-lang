@@ -191,6 +191,7 @@ public class Res
   public static final ResourceKey MSG_INHERITS_ABSTRACT_AND_DEFAULT = new ResourceKey("MSG_INHERITS_ABSTRACT_AND_DEFAULT");
   public static final ResourceKey MSG_INTERFACE_CANNOT_EXTEND_CLASS = new ResourceKey("MSG_INTERFACE_CANNOT_EXTEND_CLASS");
   public static final ResourceKey MSG_CLASS_CANNOT_EXTEND_INTERFACE = new ResourceKey("MSG_CLASS_CANNOT_EXTEND_INTERFACE");
+  public static final ResourceKey MSG_CANNOT_EXTEND_ARRAY = new ResourceKey("MSG_CANNOT_EXTEND_ARRAY");
   public static final ResourceKey MSG_CLASS_MUST_HAVE_PACKAGE = new ResourceKey("MSG_CLASS_MUST_HAVE_PACKAGE");
   public static final ResourceKey MSG_CLASS_CANNOT_IMPLEMENT_CLASS = new ResourceKey("MSG_CLASS_CANNOT_IMPLEMENT_CLASS");
   public static final ResourceKey MSG_ENUM_CANNOT_EXTEND_CLASS = new ResourceKey("MSG_ENUM_CANNOT_EXTEND_CLASS");

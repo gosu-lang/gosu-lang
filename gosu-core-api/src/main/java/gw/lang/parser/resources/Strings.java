@@ -197,6 +197,7 @@ public class Strings extends ListResourceBundle
        {Res.MSG_INHERITS_ABSTRACT_AND_DEFAULT.getKey(), "{0} Inherits abstract and default methods for {1} from {2} and {3}"},
        {Res.MSG_INTERFACE_CANNOT_EXTEND_CLASS.getKey(), "An interface cannot extend a class, only interfaces."},
        {Res.MSG_CLASS_CANNOT_EXTEND_INTERFACE.getKey(), "A class cannot 'extend' an interface."},
+       {Res.MSG_CANNOT_EXTEND_ARRAY.getKey(), "A class cannot 'extend' an array."},
        {Res.MSG_CLASS_MUST_HAVE_PACKAGE.getKey(), "A class must have a package."},
        {Res.MSG_CLASS_CANNOT_IMPLEMENT_CLASS.getKey(), "A class cannot 'implement' a class."},
        {Res.MSG_ENUM_CANNOT_EXTEND_CLASS.getKey(), "An enum cannot extend a class"},

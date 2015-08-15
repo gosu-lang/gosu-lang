@@ -2512,6 +2512,7 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
             {
               verify( extendedTypeExpr, !gsClass.isEnum(), Res.MSG_ENUM_CANNOT_EXTEND_CLASS );
               verify( extendedTypeExpr, extendedType != JavaTypes.OBJECT(), Res.MSG_SUBCLASS_OBJECT, gsClass.getRelativeName() );
+              verify( extendedTypeExpr, !extendedType.isArray(), Res.MSG_CANNOT_EXTEND_ARRAY, extendedType.getRelativeName() );
             }
           }
           else
