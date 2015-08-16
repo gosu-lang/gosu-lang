@@ -15,7 +15,7 @@ class Errant_InvalidCompileTimeConstantByCoercion
     print( x )
   }
 
-  function foo3( x: Boolean = true ) // error true (with implicit cast) is not a compile-time constant
+  function foo3( x: Boolean = true ) // OK 'true' is a compile-time constant, the compiler boxes it for us at the call site
   {
     print( x )
   }
