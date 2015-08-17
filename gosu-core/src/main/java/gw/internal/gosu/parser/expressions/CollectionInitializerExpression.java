@@ -7,6 +7,8 @@ package gw.internal.gosu.parser.expressions;
 import gw.internal.gosu.parser.Expression;
 
 import java.lang.reflect.Array;
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -52,7 +54,12 @@ public class CollectionInitializerExpression extends Expression implements IColl
     for( int i = 0; i < Array.getLength( instance ); i++ )
     {
       IExpression expr = values.get( i );
-      Array.set( instance, i, expr.evaluate() );
+      Object value = expr.evaluate();
+      if( value instanceof BigDecimal || value instanceof BigInteger )
+      {
+        value = value.toString();
+      }
+      Array.set( instance, i, value );
     }
     return instance;
   }
@@ -63,9 +70,13 @@ public class CollectionInitializerExpression extends Expression implements IColl
     {
       return Array.newInstance(getArrayClass(type.getTypeParameters()[0]), 0).getClass();
     }
-    if( StandardCoercionManager.isBoxed(type) )
+    if( StandardCoercionManager.isBoxed( type ) )
     {
       type = TypeSystem.getPrimitiveType( type );
+    }
+    else if( type == JavaTypes.BIG_DECIMAL() || type == JavaTypes.BIG_INTEGER())
+    {
+      type = JavaTypes.STRING();
     }
     else if( type.isEnum() )
     {

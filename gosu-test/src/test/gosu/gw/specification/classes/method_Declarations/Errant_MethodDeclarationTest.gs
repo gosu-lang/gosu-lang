@@ -63,7 +63,7 @@ class Errant_MethodDeclarationTest {
   function m35(i = 8, j = 7) { }
   function m36(i = enumeration.ONE) { }
   function m37(i = null) { } //## issuekeys: MSG_PARAM_TYPE_CANT_BE_INFERRED_FROM_LATE_BOUND_EXPRESSION, MSG_VARIABLE_MUST_HAVE_NON_NULL_TYPE
-  function m38(i = {1,2,3}) { }  //## issuekeys: MSG_COMPILE_TIME_CONSTANT_REQUIRED
+  function m38(i = {1,2,3}) { }
 
 
   function defaultMethodCalls() {

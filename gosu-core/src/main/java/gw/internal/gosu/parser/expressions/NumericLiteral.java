@@ -68,7 +68,7 @@ public final class NumericLiteral extends Literal implements INumericLiteralExpr
 
   public boolean isCompileTimeConstant()
   {
-    return getType().isPrimitive();
+    return true;
   }
 
   public Object evaluate()

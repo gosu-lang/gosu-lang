@@ -27,7 +27,7 @@ public class DefaultArgLiteral extends Expression implements ILiteralExpression
   {
     if( getType() == JavaTypes.BIG_DECIMAL() || getType() == JavaTypes.BIG_INTEGER() )
     {
-      return ((ITypeAsExpression)_expr).getLHS().evaluate();
+      return _expr.evaluate().toString();
     }
     else
     {

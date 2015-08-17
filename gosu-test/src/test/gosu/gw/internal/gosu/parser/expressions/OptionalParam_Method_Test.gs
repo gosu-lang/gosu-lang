@@ -137,9 +137,8 @@ class OptionalParam_Method_Test extends gw.test.TestClass
   {
     assertFalse( Errant_InvalidCompileTimeConstantByCoercion.Type.Valid )
     var pes = Errant_InvalidCompileTimeConstantByCoercion.Type.ParseResultsException.ParseExceptions
-    assertEquals( 3, pes.Count )
+    assertEquals( 2, pes.Count )
     assertEquals( Res.MSG_COMPILE_TIME_CONSTANT_REQUIRED, pes[1].MessageKey )
-    assertEquals( Res.MSG_COMPILE_TIME_CONSTANT_REQUIRED, pes[2].MessageKey )
   }
 
   function getValue<V>( value: V, sb: StringBuilder ) : V

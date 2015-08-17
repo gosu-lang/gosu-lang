@@ -5,12 +5,12 @@ uses gw.testharness.DoNotVerifyResource
 @DoNotVerifyResource
 class Errant_InvalidCompileTimeConstantByCoercion
 {
-  function foo( x: BigDecimal = "1.1" ) // error "1.1" coerces as new BigDecimal( "1.1" ), which is not compile-time const
+  function foo( x: BigDecimal = "1.1" ) // error, we do not support implicit coercion from String to BigDecimal
   {
     print( x )
   }
 
-  function foo2( x: BigDecimal = 1.1 ) // error 1.1 coerces as new BigDecimal( "1.1" ), which is not compile-time const
+  function foo2( x: BigDecimal = 1.1 ) // OK, we support primitives as compile-time constant (as new BigDecimal( "1.1" ))
   {
     print( x )
   }
