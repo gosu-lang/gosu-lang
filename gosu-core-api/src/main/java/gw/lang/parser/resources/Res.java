@@ -64,6 +64,7 @@ public class Res
   public static final ResourceKey MSG_EXPECTING_RIGHTPAREN_WHILE = new ResourceKey("MSG_EXPECTING_RIGHTPAREN_WHILE");
   public static final ResourceKey MSG_EXPECTING_WHILE_DO = new ResourceKey("MSG_EXPECTING_WHILE_DO");
   public static final ResourceKey MSG_LOOP_DOESNT_LOOP = new ResourceKey("MSG_LOOP_DOESNT_LOOP");
+  public static final ResourceKey MSG_ASSIGNMENT = new ResourceKey("MSG_LOOP_DOESNT_LOOP");
   public static final ResourceKey MSG_EXPECTING_EQUALS_ASSIGN = new ResourceKey("MSG_EXPECTING_EQUALS_ASSIGN");
   public static final ResourceKey MSG_EXPECTING_EXPRESSSION_ON_RHS = new ResourceKey("MSG_EXPECTING_EXPRESSSION_ON_RHS");
   public static final ResourceKey MSG_EXPECTING_STATEMENT = new ResourceKey("MSG_EXPECTING_STATEMENT");
@@ -306,6 +307,7 @@ public class Res
   public static final ResourceKey MSG_RETURN_VAL_FROM_VOID_FUNCTION = new ResourceKey("MSG_RETURN_VAL_FROM_VOID_FUNCTION");
   public static final ResourceKey MSG_BAD_ANONYMOUS_CLASS_DECLARATION = new ResourceKey("MSG_BAD_ANONYMOUS_CLASS_DECLARATION");
   public static final ResourceKey MSG_ASSIGNMENT_IN_IF_STATEMENT = new ResourceKey("MSG_ASSIGNMENT_IN_IF_STATEMENT");
+  public static final ResourceKey MSG_ASSIGNMENT_IN_LOOP_STATEMENT = new ResourceKey("MSG_ASSIGNMENT_IN_LOOP_STATEMENT");
   public static final ResourceKey MSG_JAVA_STYLE_VARIABLE_DECLARATION = new ResourceKey("MSG_JAVA_STYLE_VARIABLE_DECLARATION");
   public static final ResourceKey MSG_NUMERIC_TYPE_EXPECTED = new ResourceKey("MSG_NUMERIC_TYPE_EXPECTED");
   public static final ResourceKey MSG_GETTER_CANNOT_HAVE_PARAMETERS = new ResourceKey("MSG_GETTER_CANNOT_HAVE_PARAMETERS");

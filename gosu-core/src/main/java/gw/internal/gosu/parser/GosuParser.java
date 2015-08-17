@@ -9760,6 +9760,14 @@ public final class GosuParser extends ParserBase implements IGosuParser
 
       verify( whileStmt, match( null, '(' ), Res.MSG_EXPECTING_LEFTPAREN_IF );
       parseExpression( ContextType.pBOOLEAN_FALSE );
+      // Bad assignment statement in if clause (mistaken for equality "==")
+      if( match( null, "=", SourceCodeTokenizer.TT_OPERATOR ) )
+      {
+        parseExpression();
+        popExpression();
+        verify( whileStmt, false, Res.MSG_ASSIGNMENT_IN_LOOP_STATEMENT);
+      }
+
       verify( whileStmt, match( null, ')' ), Res.MSG_EXPECTING_RIGHTPAREN_IF );
       Expression e = popExpression();
 
@@ -9782,6 +9790,13 @@ public final class GosuParser extends ParserBase implements IGosuParser
     _ctxInferenceMgr.pushLoopCompromised();
     verify( whileStmt, match( null, '(' ), Res.MSG_EXPECTING_LEFTPAREN_WHILE );
     parseExpression( ContextType.pBOOLEAN_FALSE );
+    // Bad assignment statement in if clause (mistaken for equality "==")
+    if( match( null, "=", SourceCodeTokenizer.TT_OPERATOR ) )
+    {
+      parseExpression();
+      popExpression();
+      verify( whileStmt, false, Res.MSG_ASSIGNMENT_IN_LOOP_STATEMENT);
+    }
     verify( whileStmt, match( null, ')' ), Res.MSG_EXPECTING_RIGHTPAREN_WHILE );
     Expression e = popExpression();
     _ctxInferenceMgr.pushLastCtx();

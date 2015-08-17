@@ -366,6 +366,7 @@ public class Strings extends ListResourceBundle
        {Res.MSG_RETURN_VAL_FROM_VOID_FUNCTION.getKey(), "You are attempting to return a value from a void function."},
        {Res.MSG_BAD_ANONYMOUS_CLASS_DECLARATION.getKey(), "Only java and gosu types may be anonymously extended."},
        {Res.MSG_ASSIGNMENT_IN_IF_STATEMENT.getKey(), "Assignments are not legal inside of if condtions"},
+       {Res.MSG_ASSIGNMENT_IN_LOOP_STATEMENT.getKey(), "Assignments are not legal inside of loop condtions"},
        {Res.MSG_JAVA_STYLE_VARIABLE_DECLARATION.getKey(), "This is a java-style variable declaration.  Please use the \"var\" keyword instead."},
        {Res.MSG_NUMERIC_TYPE_EXPECTED.getKey(), "Numeric expression expected."},
        {Res.MSG_GETTER_CANNOT_HAVE_PARAMETERS.getKey(), "A property get definition cannot have parameters."},
