@@ -36,10 +36,13 @@ public abstract class InnerClassCapableType extends AbstractType implements IHas
           }
           for( IType iface: outerClass.getInterfaces() )
           {
-            innerClass = ((IHasInnerClass)iface).resolveRelativeInnerClass( strRelativeInnerClassName, bForce );
-            if( innerClass != null )
+            if( iface instanceof IHasInnerClass )
             {
-              return innerClass;
+              innerClass = ((IHasInnerClass)iface).resolveRelativeInnerClass( strRelativeInnerClassName, bForce );
+              if( innerClass != null )
+              {
+                return innerClass;
+              }
             }
           }
         }
