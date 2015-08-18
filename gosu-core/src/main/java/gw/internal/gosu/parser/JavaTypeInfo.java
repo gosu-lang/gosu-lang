@@ -261,7 +261,8 @@ public class JavaTypeInfo extends JavaBaseFeatureInfo implements IJavaTypeInfo
     if( md.getMethod().getParameterTypes().length == 0 )
     {
       String propName = null;
-      if( name.startsWith( "get" ) || name.startsWith( "set" ) )
+      boolean bSetter = name.startsWith( "set" );
+      if( name.startsWith( "get" ) || bSetter )
       {
         propName = name.substring( 3 );
       }
@@ -276,7 +277,7 @@ public class JavaTypeInfo extends JavaBaseFeatureInfo implements IJavaTypeInfo
         {
           if( propertyInfo.getName().equals( propName ) &&
               (!(propertyInfo instanceof IJavaPropertyInfo) ||
-               ((IJavaPropertyInfo)propertyInfo).getPropertyDescriptor().getReadMethod().equals(md.getMethod())) )
+               (bSetter || ((IJavaPropertyInfo)propertyInfo).getPropertyDescriptor().getReadMethod().getName().equals( md.getMethod().getName() ))) )
           {
             return true;
           }

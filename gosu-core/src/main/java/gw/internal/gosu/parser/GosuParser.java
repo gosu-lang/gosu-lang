@@ -10,6 +10,7 @@ import gw.fs.IFile;
 import gw.internal.gosu.dynamic.DynamicConstructorInfo;
 import gw.internal.gosu.dynamic.DynamicMethodInfo;
 import gw.internal.gosu.ir.transform.util.IRTypeResolver;
+import gw.internal.gosu.ir.transform.util.NameResolver;
 import gw.internal.gosu.parser.expressions.*;
 import gw.internal.gosu.parser.statements.ArrayAssignmentStatement;
 import gw.internal.gosu.parser.statements.AssertStatement;
@@ -12877,16 +12878,18 @@ public final class GosuParser extends ParserBase implements IGosuParser
       }
       else
       {
-        boolean bBool = dfs.getReturnType() == JavaTypes.pBOOLEAN() || dfs.getReturnType() == JavaTypes.BOOLEAN();
-        if( (bBool ? name.startsWith( "is" ) : name.startsWith( "get" )) && dfs.getArgs().size() == 0 )
+        boolean bIs;
+        if( ((bIs = name.startsWith( "is" )) || name.startsWith( "get" )) && dfs.getArgs().size() == 0 )
         {
-          ISymbol symbol = getSymbolTable().getSymbol( name.substring( bBool ? 2 : 3, name.length() ) );
+          ISymbol symbol = getSymbolTable().getSymbol( name.substring( bIs ? 2 : 3, name.length() ) );
           if( symbol instanceof DynamicPropertySymbol )
           {
             DynamicPropertySymbol dps = (DynamicPropertySymbol)symbol;
             if( areDFSsInSameNameSpace( dfs, dps ) )
             {
-              verify( element, dps.getGetterDfs() == null, Res.MSG_PROPERTY_AND_FUNCTION_CONFLICT, dfs.getName(), dps.getName() );
+              DynamicFunctionSymbol getterDfs = dps.getGetterDfs();
+              verify( element, getterDfs == null || !NameResolver.getFunctionName( dfs ).equals( NameResolver.getFunctionName( getterDfs ) ),
+                      Res.MSG_PROPERTY_AND_FUNCTION_CONFLICT, dfs.getName(), dps.getName() );
             }
           }
         }

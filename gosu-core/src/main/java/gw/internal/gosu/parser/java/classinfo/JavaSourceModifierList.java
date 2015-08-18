@@ -44,6 +44,9 @@ public class JavaSourceModifierList implements IModifierList {
       if (owner instanceof JavaSourceField) {
         _modifiers |= Modifier.STATIC;
       }
+      else if( owner instanceof JavaSourceField || owner instanceof JavaSourceMethod ) {
+        _modifiers |= Modifier.PUBLIC;
+      }
     }
     // Types, nested in interfaces are public and static
     if( owner instanceof JavaSourceType && declaringOwner.getEnclosingClass() instanceof JavaSourceInterface ) {
