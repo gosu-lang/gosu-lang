@@ -5,7 +5,7 @@ class Errant_GosuImplementJavaIsGetPropertyMethods implements JavaIsGetPropertyM
     return false
   }
 
-  override function isMyProperty(): boolean {
+  override function isMyProperty(): boolean { //## issuekeys: MSG_PROPERTY_AND_FUNCTION_CONFLICT
     return false
   }
 

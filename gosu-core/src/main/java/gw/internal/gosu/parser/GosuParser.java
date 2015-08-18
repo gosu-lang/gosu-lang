@@ -12826,7 +12826,6 @@ public final class GosuParser extends ParserBase implements IGosuParser
     }
   }
 
-
   private void verifyNoImplicitPropertyMethodConflicts( ParsedElement element, DynamicFunctionSymbol dfs )
   {
     String name = dfs.getDisplayName();
@@ -12876,15 +12875,19 @@ public final class GosuParser extends ParserBase implements IGosuParser
           }
         }
       }
-      else if( name.startsWith( "get" ) && dfs.getArgs().size() == 0 )
+      else
       {
-        ISymbol symbol = getSymbolTable().getSymbol( name.substring( 3, name.length() ) );
-        if( symbol instanceof DynamicPropertySymbol )
+        boolean bBool = dfs.getReturnType() == JavaTypes.pBOOLEAN() || dfs.getReturnType() == JavaTypes.BOOLEAN();
+        if( (bBool ? name.startsWith( "is" ) : name.startsWith( "get" )) && dfs.getArgs().size() == 0 )
         {
-          DynamicPropertySymbol dps = (DynamicPropertySymbol)symbol;
-          if( areDFSsInSameNameSpace( dfs, dps ) )
+          ISymbol symbol = getSymbolTable().getSymbol( name.substring( bBool ? 2 : 3, name.length() ) );
+          if( symbol instanceof DynamicPropertySymbol )
           {
-            verify( element, dps.getGetterDfs() == null, Res.MSG_PROPERTY_AND_FUNCTION_CONFLICT, dfs.getName(), dps.getName() );
+            DynamicPropertySymbol dps = (DynamicPropertySymbol)symbol;
+            if( areDFSsInSameNameSpace( dfs, dps ) )
+            {
+              verify( element, dps.getGetterDfs() == null, Res.MSG_PROPERTY_AND_FUNCTION_CONFLICT, dfs.getName(), dps.getName() );
+            }
           }
         }
       }
@@ -14129,7 +14132,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
       throw new IllegalArgumentException( "Bean member path is null!" );
     }
 
-    IPropertyInfo pi = BeanAccess.getPropertyInfo(classRoot, strProperty, null, null, null);
+    IPropertyInfo pi = BeanAccess.getPropertyInfo( classRoot, strProperty, null, null, null );
     if( pi != null )
     {
       if( !BeanAccess.isDescriptorHidden( pi ) )
