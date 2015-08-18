@@ -7,7 +7,7 @@ uses java.util.ArrayList
 class Errant_BlocksAsArgumentArrayList {
 
   //ArrayList as block argument and return type
-  function blockArrayListFun111(block()) {
+  function blockArrayListFun111(blk()) {
   }
 
   function blockArrayListFun112(block1: block()) {
@@ -64,7 +64,7 @@ class Errant_BlocksAsArgumentArrayList {
 
 
   //ArrayList<Integer> as block argument and return type
-  function blockArrayListIntegerFun111(block()) {
+  function blockArrayListIntegerFun111(blk()) {
   }
 
   function blockArrayListIntegerFun112(block1: block()) {
@@ -133,7 +133,7 @@ class Errant_BlocksAsArgumentArrayList {
     var alist1: ArrayList
     var alistInteger1: ArrayList<Integer>
 
-    function myFun111(block(a: ArrayList): ArrayList<Integer>) {
+    function myFun111(blk(a: ArrayList): ArrayList<Integer>) {
     }
 
     function caller111() {
@@ -152,7 +152,7 @@ class Errant_BlocksAsArgumentArrayList {
 
     }
 
-    function myFun222(block(a: ArrayList<Integer>): ArrayList) {
+    function myFun222(blk(a: ArrayList<Integer>): ArrayList) {
     }
 
     function caller222() {

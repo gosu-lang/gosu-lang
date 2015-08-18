@@ -6,7 +6,7 @@ uses java.util.HashMap
 class Errant_BlocksAsArgumentHashMap {
 
   //HashMap as block argument and return type
-  function blockHashMapFun111(block()) {
+  function blockHashMapFun111(blk()) {
   }
 
   function blockHashMapFun112(block1: block()) {
@@ -62,7 +62,7 @@ class Errant_BlocksAsArgumentHashMap {
 
 
   //HashMap<Integer, Integer> as block argument and return type
-  function blockHashMapIntegerFun111(block()) {
+  function blockHashMapIntegerFun111(blk()) {
   }
 
   function blockHashMapIntegerFun112(block1: block()) {
@@ -131,7 +131,7 @@ class Errant_BlocksAsArgumentHashMap {
     var hMap1: HashMap
     var hMapInteger1: HashMap<Integer, Integer>
 
-    function myFun111(block(a: HashMap): HashMap<Integer, Integer>) {
+    function myFun111(blk(a: HashMap): HashMap<Integer, Integer>) {
     }
 
     function caller() {
@@ -142,7 +142,7 @@ class Errant_BlocksAsArgumentHashMap {
       myFun111(\c: HashMap<Integer, Integer> -> hMap1)      //## issuekeys: MSG_TYPE_MISMATCH, MSG_TYPE_MISMATCH
     }
 
-    function myFun222(block(a: HashMap<Integer, Integer>): HashMap) {
+    function myFun222(blk(a: HashMap<Integer, Integer>): HashMap) {
     }
 
     function caller222() {

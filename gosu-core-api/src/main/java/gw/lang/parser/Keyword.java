@@ -99,7 +99,7 @@ public class Keyword implements CharSequence
   public static final Keyword KW_long = addReservedWord( "long" );
   public static final Keyword KW_float = addReservedWord( "float" );
   public static final Keyword KW_double = addReservedWord( "double" );
-  public static final Keyword KW_block = addReservedWord( "block", true );
+  public static final Keyword KW_block = addReservedWord( "block" );
   public static final Keyword KW_enhancement = addReservedWord( "enhancement", true );
   public static final Keyword KW_classpath = addReservedWord( "classpath", true );
   public static final Keyword KW_typeloader = addReservedWord( "typeloader", true );

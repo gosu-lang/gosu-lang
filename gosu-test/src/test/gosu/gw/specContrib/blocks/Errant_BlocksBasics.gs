@@ -51,7 +51,7 @@ class Errant_BlocksBasics {
   }
 
   //Block Type in function Argument Lists
-  function functionArgument111(block(): String) {
+  function functionArgument111(blk(): String) {
   }
 
   function functionArgument112(mycallback(): String) {
