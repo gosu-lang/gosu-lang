@@ -657,6 +657,12 @@ public class GosuClassProxyFactory
       return false;
     }
 
+    //## todo: maybe support implementing/overriding Java methods having a keyword as a name by escaping the keyword (using @ maybe?) so the parser can throw it away and not stop on the token as a reserved keyword 77
+    if( Keyword.isReservedKeyword( mi.getDisplayName() ) )
+    {
+      return false;
+    }
+
     int iMethodModifiers = ((IJavaMethodInfo)mi).getModifiers();
     return //!java.lang.reflect.Modifier.isFinal( iMethodModifiers ) &&
       !java.lang.reflect.Modifier.isNative( iMethodModifiers ) &&
