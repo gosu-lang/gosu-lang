@@ -10,6 +10,7 @@ import gw.lang.parser.IExpression;
 import gw.lang.parser.StandardCoercionManager;
 import gw.lang.parser.TypeSystemAwareCache;
 import gw.lang.parser.coercers.BasePrimitiveCoercer;
+import gw.lang.parser.coercers.FunctionToInterfaceCoercer;
 import gw.lang.reflect.java.JavaTypes;
 import gw.util.Pair;
 import gw.util.concurrent.Cache;
@@ -176,46 +177,59 @@ public class MethodScorer {
       // Boxed -> Boxed coercion  +10 + 10 + Primitive coercion  +(22..29)
       iScore = BOXED_COERCION_SCORE + BOXED_COERCION_SCORE + BasePrimitiveCoercer.getPriorityOf( primitiveParamType, primitiveArgType );
     }
-    else if( paramType instanceof IInvocableType && argType instanceof IInvocableType ) {
-      // Assignable function types  0 + average-degrees-of-separation-of-sum-of-params-and-return-type
-      int iDegrees = addDegreesOfSeparation( paramType, argType, inferringTypes );
-      int paramCountPlusReturn = Math.max( ((IInvocableType)paramType).getParameterTypes().length,
-                                 ((IInvocableType)argType).getParameterTypes().length ) + 1;
-      // round up to prevent false perfect scores
-      iScore = Math.min( Byte.MAX_VALUE - 10, (iDegrees + paramCountPlusReturn - 1) / paramCountPlusReturn );
-    }
     else {
-      IType boxedArgType;
-      if( argType.isPrimitive() && argType != JavaTypes.pVOID() && !paramType.isPrimitive() &&
-          paramType.isAssignableFrom( boxedArgType = TypeSystem.getBoxType( argType ) ) ) {
-        // Autobox type assignable  10 + Assignable degrees-of-separation
-        iScore = BOXED_COERCION_SCORE + addDegreesOfSeparation( paramType, boxedArgType, inferringTypes );
+      int iFunctionToInterfacePenalty = 0;
+      if( paramType.isInterface() && argType instanceof IInvocableType ) {
+        IFunctionType funcType = FunctionToInterfaceCoercer.getRepresentativeFunctionType( paramType );
+        if( funcType != null ) {
+          paramType = funcType;
+          // Function type assignable to functional interface
+          iFunctionToInterfacePenalty = 2;
+        }
+        // fall through...
       }
-      else if( paramType.isAssignableFrom( argType ) ) {
-        if( !(argType instanceof IInvocableType) ) {
-          // Assignable types  0 + degrees-of-separation
-          iScore = addDegreesOfSeparation( paramType, argType, inferringTypes );
-        }
-        else {
-          // Crooked assignable types involving function type and non-function type  +Max - 2
-          iScore = Byte.MAX_VALUE - 2;
-        }
+      if( paramType instanceof IInvocableType && argType instanceof IInvocableType ) {
+        // Assignable function types  0 + average-degrees-of-separation-of-sum-of-params-and-return-type
+        int iDegrees = addDegreesOfSeparation( paramType, argType, inferringTypes );
+        int paramCountPlusReturn = Math.max( ((IInvocableType)paramType).getParameterTypes().length,
+                                   ((IInvocableType)argType).getParameterTypes().length ) + 1;
+        // round up to prevent false perfect scores
+        iScore = Math.min( Byte.MAX_VALUE - 10, (iDegrees + paramCountPlusReturn - 1) / paramCountPlusReturn );
+        iScore += iFunctionToInterfacePenalty;
       }
       else {
-        ICoercer iCoercer = CommonServices.getCoercionManager().findCoercer( paramType, argType, false );
-        if( iCoercer != null ) {
-          if( iCoercer instanceof BasePrimitiveCoercer ) {
-            // Coercible (non-standard primitive)  +24 + primitive-coercion-score  (0 is best score for primitive coercer)
-            iScore = PRIMITIVE_COERCION_SCORE + iCoercer.getPriority( paramType, argType );
+        IType boxedArgType;
+        if( argType.isPrimitive() && argType != JavaTypes.pVOID() && !paramType.isPrimitive() &&
+            paramType.isAssignableFrom( boxedArgType = TypeSystem.getBoxType( argType ) ) ) {
+          // Autobox type assignable  10 + Assignable degrees-of-separation
+          iScore = BOXED_COERCION_SCORE + addDegreesOfSeparation( paramType, boxedArgType, inferringTypes );
+        }
+        else if( paramType.isAssignableFrom( argType ) ) {
+          if( !(argType instanceof IInvocableType) ) {
+            // Assignable types  0 + degrees-of-separation
+            iScore = addDegreesOfSeparation( paramType, argType, inferringTypes );
           }
           else {
-            // Coercible  +Max - priority - 1
-            iScore = Byte.MAX_VALUE - iCoercer.getPriority( paramType, argType ) - 1;
+            // Crooked assignable types involving function type and non-function type  +Max - 2
+            iScore = Byte.MAX_VALUE - 2;
           }
         }
         else {
-          // Type not compatible  +Max-1
-          iScore = Byte.MAX_VALUE - 1;
+          ICoercer iCoercer = CommonServices.getCoercionManager().findCoercer( paramType, argType, false );
+          if( iCoercer != null ) {
+            if( iCoercer instanceof BasePrimitiveCoercer ) {
+              // Coercible (non-standard primitive)  +24 + primitive-coercion-score  (0 is best score for primitive coercer)
+              iScore = PRIMITIVE_COERCION_SCORE + iCoercer.getPriority( paramType, argType );
+            }
+            else {
+              // Coercible  +Max - priority - 1
+              iScore = Byte.MAX_VALUE - iCoercer.getPriority( paramType, argType ) - 1;
+            }
+          }
+          else {
+            // Type not compatible  +Max-1
+            iScore = Byte.MAX_VALUE - 1;
+          }
         }
       }
     }
