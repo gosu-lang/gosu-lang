@@ -2759,7 +2759,7 @@ public class GosuClass extends InnerClassCapableType implements IGosuClassIntern
   {
     if( gsIface.isGenericType() && !gsIface.isParameterizedType() )
     {
-      throw new IllegalStateException( "Expecting a regular or parameterized interface." );
+      return Collections.emptyList();
     }
 
     for( IMethodInfo mi : gsIface.getTypeInfo().getMethods( gsIface ) )
