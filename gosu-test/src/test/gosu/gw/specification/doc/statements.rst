@@ -391,11 +391,55 @@ execution of *finallybody* terminates normally, then the entire
 of *finallybody* terminates abruptly, then that determines how the entire
 ``try-catch-finally`` terminates.
 
+The ``using`` Statement
+=======================
+
 The ``assert`` Statement
 ========================
+
+.. index:: assert statement
+
+A ``assert`` statement has one of the following forms:
+
+    ``assert`` *boolean-expression*
+    ``assert`` *boolean-expression* : *expression*
+
+The *boolean-expression* must have type ``boolean`` or Boolean.
+
+Under ordinary execution of a program, an ``assert`` statement has no effect at
+all. However, assertions may be enabled at run-time by specifying the option
+*-ea* or *-enableassertions* when executing a program.
+
+When assertions are enabled at run-time, every execution of the ``assert``
+statement will evaluate the *boolean-expression*. If the result is ``true``,
+program execution continues normally. If the result is ``false``, the assertion
+fails and an AssertionError will be thrown; moreover, in the second form of the
+``assert`` statement, the *expression* will be evaluated and its value will be
+passed to the appropriate AssertionError contructor. Thus the value of
+*expression* will be reported along with the exception in case of assertion
+failure. This simplifies troubleshooting in a malfunctioning program.
+
+An AssertionError sgnals the failure of a fundamental assumption in the program
+and should not be caught by a ``try-catch`` statement in the program; it should
+be allowed to propagate to the toplevel.
+
+An ``assert`` statement can serve two purposes: to document the programmer's
+assumption about the state at a certain point in the program, and to check (at
+runtime) that that assumption holds (provided the program is executed using the
+*enableassertions* option).
+
+One may put an ``assert`` statement after a particular complicated piece of
+code, to check that it has achieved what it was supposed to; or in a class that
+has a data representation invariant, one may assert the invariant at the end of
+every method that could modify the state of the current object.
+
+One should not use ``assert`` statements to check the validity of user input or
+the arguments of public methods or constructors, because the check will be
+performed only if assertions are enabled at run-time. Instead use ordinary
+``if`` statements and handle the error.
+
 
 The ``eval`` Statement
 =======================
 
-The ``using`` Statement
-=======================
+
