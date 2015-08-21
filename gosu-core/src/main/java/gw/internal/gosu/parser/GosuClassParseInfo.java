@@ -4,6 +4,7 @@
 
 package gw.internal.gosu.parser;
 
+import gw.config.CommonServices;
 import gw.config.ExecutionMode;
 import gw.internal.gosu.parser.expressions.BlockExpression;
 import gw.internal.gosu.parser.expressions.Identifier;
@@ -527,8 +528,10 @@ public class GosuClassParseInfo {
     }
   }
 
-  public void updateSource(String source) {
-    _sourceFingerprint = new FP64(source).getRawFingerprint();
+  public void updateSource( String source ) {
+    _sourceFingerprint = CommonServices.getPlatformHelper().getExecutionMode() == ExecutionMode.IDE
+                         ? new FP64(source).getRawFingerprint() // only really matters inside an IDE
+                         : source.length();
   }
 
   public long getSourceFingerprint() {
