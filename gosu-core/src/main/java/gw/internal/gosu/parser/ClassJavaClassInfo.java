@@ -66,6 +66,7 @@ public class ClassJavaClassInfo extends TypeJavaClassType implements IClassJavaC
   private ISourceFileHandle _fileHandle;
   private IJavaType _javaType;
   private String _namespace;
+  private volatile Integer _modifiers;
   private LocklessLazyVar<IType> _enclosingClass = new LocklessLazyVar<IType>() {
     protected IType init() {
       Class enclosingClass = _class.getEnclosingClass();
@@ -371,7 +372,7 @@ public class ClassJavaClassInfo extends TypeJavaClassType implements IClassJavaC
 
   @Override
   public int getModifiers() {
-    return _class.getModifiers();
+    return getCachedModifiers();
   }
 
   @Override
@@ -455,12 +456,16 @@ public class ClassJavaClassInfo extends TypeJavaClassType implements IClassJavaC
 
   @Override
   public boolean isPublic() {
-    return Modifier.isPublic(_class.getModifiers());
+    return Modifier.isPublic( getCachedModifiers() );
+  }
+
+  private int getCachedModifiers() {
+    return _modifiers == null ? _modifiers = _class.getModifiers() : _modifiers;
   }
 
   @Override
   public boolean isProtected() {
-    return Modifier.isProtected(_class.getModifiers());
+    return Modifier.isProtected( getCachedModifiers() );
   }
 
   @Override
@@ -470,7 +475,7 @@ public class ClassJavaClassInfo extends TypeJavaClassType implements IClassJavaC
 
   @Override
   public boolean isPrivate() {
-    return Modifier.isPrivate(_class.getModifiers());
+    return Modifier.isPrivate( getCachedModifiers() );
   }
 
   @Override
