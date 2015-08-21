@@ -757,8 +757,8 @@ public class FileSystemGosuClassRepository implements IFileSystemGosuClassReposi
         content = _content.get();
       }
       if( content == null ) {
+        Stream<String> lines = null;
         try {
-          Stream<String> lines;
           if( _file.isJavaFile() ) {
             lines = Files.lines( _file.toJavaFile().toPath() );
           }
@@ -773,6 +773,11 @@ public class FileSystemGosuClassRepository implements IFileSystemGosuClassReposi
         }
         catch( Exception e ) {
           throw new RuntimeException( e );
+        }
+        finally {
+          if( lines != null ) {
+            lines.close();
+          }
         }
         _content = new SoftReference<>( content );
       }
