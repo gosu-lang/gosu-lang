@@ -7,5 +7,5 @@ package gw.lang.parser;
 public interface ISource {
 
   String getSource();
-
+  void stopCachingSource();
 }

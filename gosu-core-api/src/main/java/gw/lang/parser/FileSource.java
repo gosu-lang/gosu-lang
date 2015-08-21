@@ -17,4 +17,8 @@ public class FileSource implements ISource {
     return _file.getContent();
   }
 
+  @Override
+  public void stopCachingSource() {
+    _file.stopCachingContent();
+  }
 }

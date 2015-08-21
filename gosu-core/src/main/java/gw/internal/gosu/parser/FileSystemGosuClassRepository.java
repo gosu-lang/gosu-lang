@@ -23,15 +23,18 @@ import gw.lang.reflect.gs.ISourceFileHandle;
 import gw.lang.reflect.gs.TypeName;
 import gw.lang.reflect.module.IModule;
 import gw.util.DynamicArray;
-import gw.util.Pair;
 import gw.util.StreamUtil;
 import gw.util.cache.FqnCache;
 
+import java.io.BufferedReader;
+import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
 import java.io.Reader;
+import java.io.UncheckedIOException;
+import java.lang.ref.SoftReference;
 import java.net.URL;
-import java.util.ArrayList;
+import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -40,6 +43,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.stream.Stream;
 
 /**
  */
@@ -503,7 +507,7 @@ public class FileSystemGosuClassRepository implements IFileSystemGosuClassReposi
     {
       if( _source == null )
       {
-        _source = new FileSource(_fileInfo);
+        _source = new FileSource( _fileInfo );
       }
       return _source;
     }
@@ -658,6 +662,7 @@ public class FileSystemGosuClassRepository implements IFileSystemGosuClassReposi
     private String _fileType;
     private List<String> _innerClassParts;
     private boolean _isTestClass;
+    private SoftReference<String> _content;
     private IFile _file;
 
     public ClassFileInfo( ClassPathEntry entry, IFile file, boolean isTestClass )
@@ -747,45 +752,47 @@ public class FileSystemGosuClassRepository implements IFileSystemGosuClassReposi
 
     @Override
     public String getContent() {
-      Reader reader = getReader();
-      try
-      {
-        char[] buf = new char[1024];
-        StringBuilder stringBuilder = new StringBuilder();
-        while (true) {
-          int count = reader.read(buf);
-          if (count < 0) {
-            break;
-          }
-          stringBuilder.append(buf, 0, count);
-        }
-
-        char[] processedChars = new char[stringBuilder.length()];
-        int j = 0;
-        for (int i = 0; i < processedChars.length; i++) {
-          char c1 = stringBuilder.charAt(i);
-          if (i < processedChars.length - 1 && c1 == '\r' && stringBuilder.charAt(i + 1) == '\n') {
-            processedChars[j] = '\n';
-            i++;
-          } else {
-            processedChars[j] = c1;
-          }
-          j++;
-        }
-
-        String s = new String(processedChars, 0, j);
-        return s;
+      String content = null;
+      if( _content != null ) {
+        content = _content.get();
       }
-      catch( IOException e )
-      {
-        throw new RuntimeException( e );
-      } finally {
+      if( content == null ) {
         try {
-          if (reader != null) {
-            reader.close();
+          Stream<String> lines;
+          if( _file.isJavaFile() ) {
+            lines = Files.lines( _file.toJavaFile().toPath() );
           }
-        } catch (IOException e) {}
+          else {
+            BufferedReader reader = new BufferedReader( getReader() );
+            lines = reader.lines().onClose( callClose( reader ) );
+          }
+          StringBuilder sb = new StringBuilder();
+          lines.forEach( line -> sb.append( line ).append( '\n') );
+          sb.setLength( sb.length()-1 ); // remove last \n
+          content = sb.toString();
+        }
+        catch( Exception e ) {
+          throw new RuntimeException( e );
+        }
+        _content = new SoftReference<>( content );
       }
+      return content;
+    }
+
+    @Override
+    public void stopCachingContent() {
+      _content.clear();
+    }
+
+    private static Runnable callClose( Closeable c ) {
+      return ()-> {
+        try {
+          c.close();
+        }
+        catch( IOException e ) {
+          throw new RuntimeException( e );
+        }
+      };
     }
 
     public String toString() {

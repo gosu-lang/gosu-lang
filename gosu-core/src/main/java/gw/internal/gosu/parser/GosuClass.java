@@ -1512,6 +1512,7 @@ public class GosuClass extends InnerClassCapableType implements IGosuClassIntern
           finally
           {
             setCompilingDefinitions( false );
+            _sourceFileHandle.getSource().stopCachingSource();
           }
         }
       }
@@ -1519,7 +1520,8 @@ public class GosuClass extends InnerClassCapableType implements IGosuClassIntern
       {
         try
         {
-          if( !isTypeRefreshedOutsideOfLock()) {
+          if( !isTypeRefreshedOutsideOfLock() )
+          {
             ((GosuClass)getPureGenericClass().dontEverCallThis())._hasError = null;
             bHasError = hasError();
 
@@ -2487,11 +2489,11 @@ public class GosuClass extends InnerClassCapableType implements IGosuClassIntern
   {
     createNewParseInfo();
     CompiledGosuClassSymbolTable symbolTable = CompiledGosuClassSymbolTable.instance();
-    GosuParser parser = getOrCreateParser(symbolTable);
+    GosuParser parser = getOrCreateParser( symbolTable );
     ISource source = _sourceFileHandle.getSource();
-    parser.setScript(source);
-    _parseInfo.updateSource(source.getSource());
-    if (ExecutionMode.isIDE()) {
+    parser.setScript( source );
+    _parseInfo.updateSource( source.getSource() );
+    if( ExecutionMode.isIDE() ) {
       parser.setThrowParseExceptionForWarnings(true);
       parser.setDontOptimizeStatementLists(true);
       parser.setWarnOnCaseIssue(true);
