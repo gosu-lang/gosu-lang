@@ -77,12 +77,6 @@ public class EnhancementIndex implements IEnhancementIndex
         {
           EnhancementManager enhancementManager = new EnhancementManager(methodsToAddTo );
           enhancementManager.addAllEnhancementMethodsForType(typeToEnhance);
-
-          IType[] interfaces = typeToEnhance.getInterfaces();
-          for( IType interfaceType : interfaces )
-          {
-            enhancementManager.addAllEnhancementMethodsForType(interfaceType);
-          }
         }
         finally
         {
@@ -110,12 +104,6 @@ public class EnhancementIndex implements IEnhancementIndex
         try {
           EnhancementManager enhancementManager = new EnhancementManager(propertyInfosToAddTo );
           enhancementManager.addAllEnhancementPropsForType(typeToEnhance, caseSensitive);
-
-          IType[] interfaces = typeToEnhance.getInterfaces();
-          for( IType interfaceType : interfaces )
-          {
-            enhancementManager.addAllEnhancementPropsForType(interfaceType, caseSensitive);
-          }
         } finally {
           popEnhancing( typeToEnhance );
         }
@@ -479,7 +467,6 @@ public class EnhancementIndex implements IEnhancementIndex
    */
   private class EnhancementManager
   {
-
     private Collection<IMethodInfo> _methodsToAddTo;
     private Map<CharSequence, IPropertyInfo> _propertyInfosToAddTo;
     private Map<String, List<IMethodInfo>> _methodNamesToMethods;
@@ -509,6 +496,15 @@ public class EnhancementIndex implements IEnhancementIndex
           {
             _methodsToAddTo.add( extensionMethodInfo );
           }
+        }
+      }
+
+      if( enhancements.size() == 0 )
+      {
+        IType[] interfaces = typeToGetEnhancementsFor.getInterfaces();
+        for( IType interfaceType : interfaces )
+        {
+          addAllEnhancementMethodsForType( interfaceType );
         }
       }
     }
@@ -542,6 +538,15 @@ public class EnhancementIndex implements IEnhancementIndex
               _propertyInfosToAddTo.put( convertCharSequenceToCorrectSensitivity(enhancementPropertyInfo.getName(), caseSensitive), enhancementPropertyInfo );
             }
           }
+        }
+      }
+
+      if( enhancements.size() == 0 )
+      {
+        IType[] interfaces = typeToGetEnhancementsFor.getInterfaces();
+        for( IType interfaceType : interfaces )
+        {
+          addAllEnhancementPropsForType( interfaceType, caseSensitive );
         }
       }
     }
