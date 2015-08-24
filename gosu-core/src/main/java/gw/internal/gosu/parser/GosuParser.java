@@ -5170,6 +5170,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
       }
       else if( !Keyword.KW_super.equals( T._strValue ) ||
                getTokenizer().getCurrentToken().getType() == '.' ||
+               "#".equals( getTokenizer().getCurrentToken().getStringValue() ) ||
                getTokenizer().getCurrentToken().getType() == '[' )
       {
         parseIdentifierOrTypeLiteralOrEnumConstant( T, iOffset, iLineNum, iColumn );
