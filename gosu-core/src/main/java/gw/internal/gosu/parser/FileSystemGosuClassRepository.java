@@ -768,7 +768,9 @@ public class FileSystemGosuClassRepository implements IFileSystemGosuClassReposi
           }
           StringBuilder sb = new StringBuilder();
           lines.forEach( line -> sb.append( line ).append( '\n') );
-          sb.setLength( sb.length()-1 ); // remove last \n
+          if( sb.length() > 0 ) {
+            sb.setLength( sb.length() - 1 ); // remove last \n
+          }
           content = sb.toString();
         }
         catch( Exception e ) {
