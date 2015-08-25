@@ -360,7 +360,7 @@ where ``E1, E2, ...`` are names of exception types, ``x1, x2, ...`` are
 variable names, and *body*, *catchbody*\ :sub:`i`, and *finallybody* are
 *block-statements* (section XXX). There can be zero or more ``catch`` clauses,
 and the ``finally`` clause may be absent, but at least one ``catch`` or
-``finally`` clause must be present. The ``var`` keyword in the ``catch` clause
+``finally`` clause must be present. The ``var`` keyword in the ``catch`` clause
 is optional.
 
 We say that ``Ei`` matches exception type ``E`` if ``E`` is a subtype of ``Ei``
@@ -442,4 +442,15 @@ performed only if assertions are enabled at run-time. Instead use ordinary
 The ``eval`` Statement
 =======================
 
+.. index:: eval statement
+
+An ``eval`` statement has the form:
+
+    ``eval`` ``(`` *gosu-source* ``)``
+    
+Where *gosu-source* is any expression of type Object.
+
+After converting *gosu-source* to String, ``eval`` will execute it at runtime 
+and return the result of the evaluation. The statements or expressions in 
+*gosu-source* can access all the variables available in the ``eval``'s context.
 
