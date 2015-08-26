@@ -258,29 +258,30 @@ public class JavaTypeInfo extends JavaBaseFeatureInfo implements IJavaTypeInfo
   private boolean isPropertyMethod( IJavaMethodDescriptor md )
   {
     String name = md.getName();
-    if( md.getMethod().getParameterTypes().length == 0 )
+    int paramCount = md.getMethod().getParameterTypes().length;
+    if( paramCount > 1 ) {
+      return false;
+    }
+    String propName = null;
+    boolean bSetter = name.startsWith( "set" );
+    if( paramCount == 0 && name.startsWith( "get" ) || bSetter && paramCount == 1 )
     {
-      String propName = null;
-      boolean bSetter = name.startsWith( "set" );
-      if( name.startsWith( "get" ) || bSetter )
-      {
-        propName = name.substring( 3 );
-      }
-      else if( name.startsWith( "is" ) )
-      {
-        propName = name.substring( 2 );
-      }
+      propName = name.substring( 3 );
+    }
+    else if( paramCount == 0 && name.startsWith( "is" ) )
+    {
+      propName = name.substring( 2 );
+    }
 
-      if( propName != null )
+    if( propName != null )
+    {
+      for( IPropertyInfo propertyInfo : _declaredProperties.get() )
       {
-        for( IPropertyInfo propertyInfo : _declaredProperties.get() )
+        if( propertyInfo.getName().equals( propName ) &&
+            (!(propertyInfo instanceof IJavaPropertyInfo) ||
+             (!bSetter && ((IJavaPropertyInfo)propertyInfo).getPropertyDescriptor().getReadMethod().getName().equals( md.getMethod().getName() ))) )
         {
-          if( propertyInfo.getName().equals( propName ) &&
-              (!(propertyInfo instanceof IJavaPropertyInfo) ||
-               (bSetter || ((IJavaPropertyInfo)propertyInfo).getPropertyDescriptor().getReadMethod().getName().equals( md.getMethod().getName() ))) )
-          {
-            return true;
-          }
+          return true;
         }
       }
     }
