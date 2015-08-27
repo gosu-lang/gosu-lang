@@ -10356,7 +10356,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
       for(IVarStatement vs : varStatements)
       {
         ((VarStatement)vs).setFinal(true);
-        verify( usingStmt, vs.getHasInitializer(), Res.MSG_VAR_MIGHT_NOT_HAVE_BEEN_INIT );
+        verify( usingStmt, vs.getHasInitializer(), Res.MSG_VAR_MIGHT_NOT_HAVE_BEEN_INIT, vs.getSymbol().getName() );
       }
       if( usingStmt.getVarStatements().isEmpty() )
       {
@@ -10463,7 +10463,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
     if( pe instanceof TypeAsExpression )
     {
       ParseTree after = pe.getLocation().getChildAfter(((TypeAsExpression) pe).getLHS().getLocation());
-      if( after.getParsedElement() instanceof TypeLiteral )
+      if( after != null && after.getParsedElement() instanceof TypeLiteral )
       {
         //noinspection ThrowableResultOfMethodCallIgnored
         after.getParsedElement().removeParseException(Res.MSG_IMONITOR_LOCK_SHOULD_ONLY_BE_USED_WITHIN_USING_STMTS);

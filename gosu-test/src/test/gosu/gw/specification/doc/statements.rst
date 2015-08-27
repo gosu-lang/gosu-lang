@@ -394,6 +394,38 @@ of *finallybody* terminates abruptly, then that determines how the entire
 The ``using`` Statement
 =======================
 
+.. index:: using statement
+
+The purpose of the ``using`` statement is to release a resource *res*, such as a 
+file handle, lock or database connection, after its use. It may have one of 
+the forms:
+
+    ``using`` ``(`` ``var`` *res* [``:`` *type*] ``=`` *initializer*  ... ``)`` ``{`` *body* ``}`` [ ``finally`` ``{`` *finally-body* ``}`` ]
+    
+    ``using`` ``(`` *expression* ``)`` ``{`` *body* ``}`` [ ``finally`` ``{`` *finally-body* ``}`` ]
+    
+The first form declares a variable *res* to have type *type*, or if *type* 
+is missing, the inferred type of *initializer*. There can be multiple declared 
+resources.
+
+*type* must be one of the following types:
+
+- Lock
+- Closeable
+- IReentrant
+- IDisposable
+- IMonitorLock
+- Any type with method ``dispose()``
+- Any type with method ``close()``
+- Any type with method ``lock()`` and ``unlock()``
+
+The *initializer* is evaluated and its result assigned to *res* (if ``res``'s *type* has a 
+``lock`` or ``enter`` method, it will be called on *res*), then the *body* is executed, and finally the "clean-up" method ``dispose`` or ``close`` or ``unlock`` or ``exit`` (depending on ``res``'s *type*)  is called on *res* regardless of whether *body*
+terminates normally, throws an exception, or exits by ``return`` or ``break`` or ``continue``. If ``finally`` is present, *finally-body* will be executed after the call to the "clean-up" method. 
+Resource variables like *res* are implicitly *final* and they are local to the ``using`` statement.
+The second form of the ``using`` statement has an *expression* in place of the variable list and the "clean-up" method is called on the value of the *expression*. It behaves as the first form otherwise.
+
+
 The ``assert`` Statement
 ========================
 
@@ -440,7 +472,7 @@ performed only if assertions are enabled at run-time. Instead use ordinary
 
 
 The ``eval`` Statement
-=======================
+======================
 
 .. index:: eval statement
 
@@ -453,4 +485,9 @@ Where *gosu-source* is any expression of type Object.
 After converting *gosu-source* to String, ``eval`` will execute it at runtime 
 and return the result of the evaluation. The statements or expressions in 
 *gosu-source* can access all the variables available in the ``eval``'s context.
+
+
+The ``uses`` statement
+======================
+
 
