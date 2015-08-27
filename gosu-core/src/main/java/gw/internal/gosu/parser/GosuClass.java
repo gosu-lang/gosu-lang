@@ -68,6 +68,7 @@ import gw.lang.reflect.module.IModule;
 import gw.util.GosuExceptionUtil;
 import gw.util.GosuObjectUtil;
 import gw.util.GosuStringUtil;
+import gw.util.StringPool;
 import gw.util.concurrent.LockingLazyVar;
 
 import java.io.File;
@@ -157,7 +158,7 @@ public class GosuClass extends InnerClassCapableType implements IGosuClassIntern
       _compilationState = new CompilationState();
       _iMdChecksum = TypeSystem.getRefreshChecksum();
       _iTiChecksum = TypeSystem.getSingleRefreshChecksum();
-      _strNamespace = strNamespace.intern();
+      _strNamespace = StringPool.get( strNamespace );
       _strRelativeName = strRelativeName;
       _typeLoader = classTypeLoader;
       _sourceFileHandle = sourceFile;
@@ -415,7 +416,7 @@ public class GosuClass extends InnerClassCapableType implements IGosuClassIntern
 
   public void setNamespace( String namespace )
   {
-    _strNamespace = namespace == null ? null : namespace.intern();
+    _strNamespace = namespace == null ? null : StringPool.get( namespace );
   }
 
   public GosuClassTypeLoader getTypeLoader()
@@ -993,6 +994,9 @@ public class GosuClass extends InnerClassCapableType implements IGosuClassIntern
    }
 
   private boolean hasBeenUpdated(IGosuClassInternal type, int tiChecksum) {
+    if( !ExecutionMode.get().isRefreshSupportEnabled() ) {
+      return false;
+    }
     IGosuClassInternal genType = TypeLord.getPureGenericType( type );
     if (genType.isProxy()) {
       IJavaTypeInternal javaType = (IJavaTypeInternal)genType.getJavaType();
@@ -1188,7 +1192,7 @@ public class GosuClass extends InnerClassCapableType implements IGosuClassIntern
       _mapInnerClasses = new LinkedHashMap<CharSequence, IGosuClassInternal>( 2 );
     }
     // We put in types relative to ours.  I.e. if we are foo.SomeClass and we have an inner class named Bar, we put in Bar.
-    _mapInnerClasses.put( innerGsClass.getName().substring( getName().length() + 1 ).intern(), innerGsClass );
+    _mapInnerClasses.put( StringPool.get( innerGsClass.getName().substring( getName().length() + 1 ) ), innerGsClass );
   }
   public void removeInnerClass( IGosuClassInternal innerGsClass )
   {

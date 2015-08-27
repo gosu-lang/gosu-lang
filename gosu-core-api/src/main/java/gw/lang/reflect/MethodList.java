@@ -27,6 +27,16 @@ public class MethodList extends DynamicArray<IMethodInfo> {
     super(size);
   }
 
+  protected MethodList( MethodList source )
+  {
+    super( source );
+    _map = new HashMap<>( source._map );
+  }
+  @Override
+  public MethodList copy() {
+    return new MethodList( this );
+  }
+
   public MethodList filterMethods(IRelativeTypeInfo.Accessibility accessibility) {
     MethodList ret = new MethodList();
     for (IMethodInfo method : this) {
@@ -115,12 +125,6 @@ public class MethodList extends DynamicArray<IMethodInfo> {
   @Override
   protected void removeRange(int fromIndex, int toIndex) {
     throw new RuntimeException("Not supported");
-  }
-
-  @Override
-  public Object clone() {
-    _map = (HashMap<String, DynamicArray<IMethodInfo>>)_map.clone();
-    return super.clone();
   }
 
   @Override

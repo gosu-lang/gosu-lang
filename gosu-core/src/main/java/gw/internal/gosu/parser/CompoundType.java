@@ -67,21 +67,9 @@ public class CompoundType extends AbstractType implements INonLoadableType, ICom
     CompoundType compoundType = CACHE.get( strName );
     if( compoundType == null )
     {
-      TypeSystem.lock();
-      try
-      {
-        compoundType = CACHE.get( strName );
-        if( compoundType == null )
-        {
-          listenToTypeSystemRefresh();
-          compoundType = new CompoundType( types, strName );
-          CACHE.put( strName, compoundType );
-        }
-      }
-      finally
-      {
-        TypeSystem.unlock();
-      }
+      listenToTypeSystemRefresh();
+      compoundType = new CompoundType( types, strName );
+      CACHE.put( strName, compoundType );
     }
     return compoundType;
   }

@@ -2538,7 +2538,9 @@ public class TypeLord
     }
     else if( type.isParameterizedType() )
     {
-      IType[] parameters = type.getTypeParameters().clone();
+      IType[] typeParameters = type.getTypeParameters();
+      IType[] parameters = new IType[typeParameters.length];
+      System.arraycopy( typeParameters, 0, parameters, 0, typeParameters.length );
       for( int i = 0; i < parameters.length; i++ )
       {
         parameters[i] = boundTypes( parameters[i], typesToBound, bKeepTypeVars );
@@ -2548,7 +2550,9 @@ public class TypeLord
     else if( type instanceof IFunctionType )
     {
       IFunctionType funType = (IFunctionType)type;
-      IType[] paramTypes = funType.getParameterTypes().clone();
+      IType[] parameterTypes = funType.getParameterTypes();
+      IType[] paramTypes = new IType[parameterTypes.length];
+      System.arraycopy( parameterTypes, 0, paramTypes, 0, paramTypes.length );
       for( int i = 0; i < paramTypes.length; i++ )
       {
         paramTypes[i] = boundTypes( paramTypes[i], typesToBound, bKeepTypeVars );

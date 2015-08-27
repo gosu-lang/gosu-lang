@@ -67,6 +67,8 @@ public class ClassJavaClassInfo extends TypeJavaClassType implements IClassJavaC
   private IJavaType _javaType;
   private String _namespace;
   private volatile Integer _modifiers;
+  private Boolean _bArray;
+  private Boolean _bInterface;
   private LocklessLazyVar<IType> _enclosingClass = new LocklessLazyVar<IType>() {
     protected IType init() {
       Class enclosingClass = _class.getEnclosingClass();
@@ -90,7 +92,7 @@ public class ClassJavaClassInfo extends TypeJavaClassType implements IClassJavaC
 
   @Override
   public boolean isInterface() {
-    return _class.isInterface();
+    return _bInterface == null ? _bInterface =_class.isInterface() : _bInterface;
   }
 
   @Override
@@ -362,7 +364,7 @@ public class ClassJavaClassInfo extends TypeJavaClassType implements IClassJavaC
 
   @Override
   public boolean isArray() {
-    return _class.isArray();
+    return _bArray == null ? _bArray = _class.isArray() : _bArray;
   }
 
   @Override
@@ -399,9 +401,11 @@ public class ClassJavaClassInfo extends TypeJavaClassType implements IClassJavaC
     if( _namespace == null ) {
       Class cls = _class;
       Package aPackage = cls.getPackage();
-      while (aPackage == null && cls.isArray()) {
-        cls = cls.getComponentType();
-        aPackage = cls.getPackage();
+      if( aPackage == null && isArray() ) {  // avoid calling class.isArray(), slow native method
+        while( aPackage == null && cls.isArray() ) {
+          cls = cls.getComponentType();
+          aPackage = cls.getPackage();
+        }
       }
       _namespace = aPackage == null ? null : aPackage.getName();
     }

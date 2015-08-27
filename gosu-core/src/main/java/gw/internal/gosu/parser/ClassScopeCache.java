@@ -7,17 +7,17 @@ package gw.internal.gosu.parser;
 import gw.lang.parser.IFunctionSymbol;
 import gw.lang.parser.IScope;
 
+import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 public class ClassScopeCache
 {
   private final IScope _staticScope;
-  private final Map<String, Set<IFunctionSymbol>> _staticDfsMap;
+  private final Map<String, List<IFunctionSymbol>> _staticDfsMap;
   private final IScope _nonstaticScope;
-  private final Map<String, Set<IFunctionSymbol>> _nonstaticDfsMap;
+  private final Map<String, List<IFunctionSymbol>> _nonstaticDfsMap;
 
-  public ClassScopeCache( IScope staticScope, Map<String, Set<IFunctionSymbol>> staticDfsMap, IScope nonstaticScope, Map<String, Set<IFunctionSymbol>> nonstaticDfsMap )
+  public ClassScopeCache( IScope staticScope, Map<String, List<IFunctionSymbol>> staticDfsMap, IScope nonstaticScope, Map<String, List<IFunctionSymbol>> nonstaticDfsMap )
   {
     _staticScope = staticScope;
     _staticDfsMap = staticDfsMap;
@@ -30,7 +30,7 @@ public class ClassScopeCache
     return _staticScope;
   }
 
-  public Map<String, Set<IFunctionSymbol>> getStaticDfsMap()
+  public Map<String, List<IFunctionSymbol>> getStaticDfsMap()
   {
     return _staticDfsMap;
   }
@@ -40,7 +40,7 @@ public class ClassScopeCache
     return _nonstaticScope;
   }
 
-  public Map<String, Set<IFunctionSymbol>> getNonstaticDfsMap()
+  public Map<String, List<IFunctionSymbol>> getNonstaticDfsMap()
   {
     return _nonstaticDfsMap;
   }

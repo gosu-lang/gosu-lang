@@ -8,6 +8,7 @@ import gw.lang.reflect.IType;
 import gw.lang.reflect.TypeSystem;
 import gw.lang.parser.resources.ResourceKey;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.HashSet;
@@ -22,7 +23,7 @@ public class ParserOptions
   private boolean _bGenRootExprAccess;
   private ISymbolTable _additionalDFSDecls;
   private boolean _captureSymbolsForEval;
-  private Map<String, Set<IFunctionSymbol>> _declSymbols;
+  private Map<String, List<IFunctionSymbol>> _declSymbols;
   private boolean _shouldOptimize = true;
   private IGosuParser _parser;
   private IType _superType;
@@ -100,7 +101,7 @@ public class ParserOptions
     return this;
   }
 
-  public ParserOptions withDeclSymbols( Map<String, Set<IFunctionSymbol>> declSymbols )
+  public ParserOptions withDeclSymbols( Map<String, List<IFunctionSymbol>> declSymbols )
   {
     _declSymbols = declSymbols;
     return this;
@@ -189,7 +190,7 @@ public class ParserOptions
     return _captureSymbolsForEval;
   }
 
-  public Map<String, Set<IFunctionSymbol>> getDeclSymbols()
+  public Map<String, List<IFunctionSymbol>> getDeclSymbols()
   {
     return _declSymbols;
   }

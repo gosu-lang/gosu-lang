@@ -149,6 +149,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  */
@@ -156,7 +157,7 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
 {
   public static final String CTX_SYMBOL_SUFFIX = "_instr_ctx";
   public static final String CTX_SYMBOL = FunctionBodyTransformationContext.TEMP_VAR_PREFIX + CTX_SYMBOL_SUFFIX;
-  public static final Map<String, ICustomExpressionRuntime> CUSTOM_RUNTIMES = Collections.synchronizedMap( new HashMap<String, ICustomExpressionRuntime>() );
+  public static final Map<String, ICustomExpressionRuntime> CUSTOM_RUNTIMES = new ConcurrentHashMap<String, ICustomExpressionRuntime>();
 
   public static final Class[] EMPTY_CLASS_ARRAY = new Class[0];
   public static final String OUTER_ACCESS = "access$0";
@@ -3038,13 +3039,10 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
 
   protected IRExpression handleCustomExpressionRuntime( ICustomExpressionRuntime customRuntime, IType expectedType ) {
     String customRuntimeId;
-    synchronized( CUSTOM_RUNTIMES )
-    {
-      int iLine = getParsedElement().getLineNum();
-      int iColumnNum = getParsedElement().getColumn();
-      customRuntimeId = makeCustomRuntimeKey( getGosuClass(), iLine, iColumnNum );
-      CUSTOM_RUNTIMES.put( customRuntimeId, customRuntime );
-    }
+    int iLine = getParsedElement().getLineNum();
+    int iColumnNum = getParsedElement().getColumn();
+    customRuntimeId = makeCustomRuntimeKey( getGosuClass(), iLine, iColumnNum );
+    CUSTOM_RUNTIMES.put( customRuntimeId, customRuntime );
 
     IRExpression getCustomExpression = callMethod( AbstractElementTransformer.class, "getCustomRuntime", new Class[]{String.class, IType.class}, null, exprList( pushConstant( customRuntimeId ), pushType( getGosuClass() ) ) );
     IRExpression result = callMethod( ICustomExpressionRuntime.class, "evaluate", new Class[0], getCustomExpression, exprList() );

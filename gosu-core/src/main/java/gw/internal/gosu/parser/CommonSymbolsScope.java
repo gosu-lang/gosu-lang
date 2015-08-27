@@ -43,6 +43,12 @@ public class CommonSymbolsScope<K extends CharSequence, V extends ISymbol> exten
   }
 
   @Override
+  public CommonSymbolsScope<K, V> copy()
+  {
+    return new CommonSymbolsScope<>();
+  }
+
+  @Override
   public V put( K key, V value )
   {
     throw new UnsupportedOperationException( "Cannot add symbols to the CommonSymbolsScope" );

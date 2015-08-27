@@ -11,6 +11,7 @@ import gw.lang.parser.expressions.ITypeVariableDefinition;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.gs.IGenericTypeVariable;
 import gw.lang.reflect.java.JavaTypes;
+import gw.util.StringPool;
 
 /**
  */
@@ -56,7 +57,7 @@ public class TypeVariableDefinitionImpl implements ITypeVariableDefinition
   }
   void setName( String strName )
   {
-    _strName = strName == null ? null : strName.intern();
+    _strName = strName == null ? null : StringPool.get( strName );
   }
 
   public GenericTypeVariable getTypeVar()
@@ -137,7 +138,7 @@ public class TypeVariableDefinitionImpl implements ITypeVariableDefinition
   }
 
   public TypeVariableDefinitionImpl clone( IType boundingType ) {
-    IGenericTypeVariable gtv = _typeVar.clone( boundingType );
+    IGenericTypeVariable gtv = _typeVar.copy( boundingType );
     return (TypeVariableDefinitionImpl)gtv.getTypeVariableDefinition();
   }
 }

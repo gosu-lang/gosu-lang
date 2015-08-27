@@ -9,6 +9,7 @@ import gw.lang.parser.Keyword;
 import gw.lang.parser.statements.ITerminalStatement;
 import gw.lang.parser.statements.IUsesStatement;
 import gw.lang.reflect.module.IModule;
+import gw.util.StringPool;
 
 /**
  */
@@ -32,7 +33,7 @@ public class UsesStatement extends Statement implements IUsesStatement
 
   public void setTypeName( String strTypeName )
   {
-    _strTypeName = strTypeName.intern();
+    _strTypeName = StringPool.get( strTypeName );
   }
 
   public Object execute()

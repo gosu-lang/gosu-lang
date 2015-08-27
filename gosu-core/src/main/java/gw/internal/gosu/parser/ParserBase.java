@@ -96,7 +96,7 @@ public abstract class ParserBase implements IParserPart
   private int _lineNumShift;  // For class fragments
   protected boolean _bDontOptimizeStatementLists;
   private List<IParseTree> _subTree;
-  private java.util.Stack<List<IType>> _inferringFunctionTypes;
+  private Stack<List<IType>> _inferringFunctionTypes;
   private static final NotAWordExpression NOT_SET_EXPRESSION = new NotAWordExpression();
   private Set<ResourceKey> _ignoreWarnings;
 
@@ -107,7 +107,7 @@ public abstract class ParserBase implements IParserPart
 
   public ParserBase( GosuParser owner )
   {
-    _inferringFunctionTypes = new java.util.Stack<List<IType>>();
+    _inferringFunctionTypes = new Stack<>();
     _owner = owner;
   }
 
@@ -538,8 +538,7 @@ public abstract class ParserBase implements IParserPart
    */
   final public boolean match( Token T, String token, int iType, boolean bPeek )
   {
-    SourceCodeTokenizer tokenizer = getTokenizer();
-    return match( T, token, iType, bPeek, tokenizer );
+    return match( T, token, iType, bPeek, getTokenizer() );
   }
 
   private static boolean match( Token T, String token, int iType, boolean bPeek, SourceCodeTokenizer tokenizer )
@@ -743,6 +742,10 @@ public abstract class ParserBase implements IParserPart
   final LightweightParserState makeLightweightParserState()
   {
     return new LightweightParserState( getTokenizer(), getOffsetShift(), getLineNumShift() );
+  }
+  final LazyLightweightParserState makeLazyLightweightParserState()
+  {
+    return new LazyLightweightParserState( getTokenizer(), getOffsetShift(), getLineNumShift() );
   }
 
   protected IType resolveTypeForArithmeticExpression( ParsedElement parsedElement, IType lhsType, String op, IType rhsType )
@@ -2161,7 +2164,7 @@ public abstract class ParserBase implements IParserPart
   }
 
   private ICompilableTypeInternal getOuterFromScriptPartStack() {
-    java.util.Stack<IScriptPartId> scriptPartIdStack = getOwner().getScriptPartIdStack();
+    Stack<IScriptPartId> scriptPartIdStack = getOwner().getScriptPartIdStack();
     for( int i = scriptPartIdStack.size() - 1; i >= 0; i-- )
     {
       IScriptPartId id = scriptPartIdStack.get( i );
@@ -2452,6 +2455,12 @@ public abstract class ParserBase implements IParserPart
     public int getLineOffset()
     {
       return 0;
+    }
+
+    @Override
+    public IParserState cloneWithNewTokenStartAndTokenEnd( int newTokenStart, int newLength )
+    {
+      return null;
     }
   }
 

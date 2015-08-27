@@ -10,6 +10,7 @@ import gw.test.Suite;
 import gw.test.TestEnvironment;
 import gw.util.Predicate;
 import junit.framework.Test;
+import junit.framework.TestResult;
 
 public class PLGosuBytecodeSuite extends Suite
 {
@@ -31,6 +32,13 @@ public class PLGosuBytecodeSuite extends Suite
           !type.getName().contains("BenchmarkTest");
       }
     });
+  }
+
+  @Override
+  public void run( TestResult result )
+  {
+    super.run( result );
+    //StringPool.printStats();
   }
 
   public static Test suite() {

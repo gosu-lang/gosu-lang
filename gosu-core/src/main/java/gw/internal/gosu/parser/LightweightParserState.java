@@ -16,7 +16,6 @@ public class LightweightParserState implements IParserState
   private int _tokenStart;
   private int _tokenEnd;
 
-
   public LightweightParserState( SourceCodeTokenizer tokenizer, int offsetShift, int lineShift )
   {
     _offsetShift = offsetShift;

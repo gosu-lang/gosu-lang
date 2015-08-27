@@ -528,20 +528,8 @@ public class FunctionType extends AbstractType implements IFunctionType, IGeneri
     ParameterizedFunctionType parameterizedType = _parameterizationByParamsName.get( strNameOfParams );
     if( parameterizedType == null )
     {
-      TypeSystem.lock();
-      try
-      {
-        parameterizedType = _parameterizationByParamsName.get( strNameOfParams );
-        if( parameterizedType == null )
-        {
-          parameterizedType = new ParameterizedFunctionType( this, typeParams );
-          _parameterizationByParamsName.put( strNameOfParams, parameterizedType );
-        }
-      }
-      finally
-      {
-        TypeSystem.unlock();
-      }
+      parameterizedType = new ParameterizedFunctionType( this, typeParams );
+      _parameterizationByParamsName.put( strNameOfParams, parameterizedType );
     }
     return parameterizedType;
   }
@@ -842,7 +830,7 @@ public class FunctionType extends AbstractType implements IFunctionType, IGeneri
   private IGenericTypeVariable[] cloneTypeVars() {
     IGenericTypeVariable[] typeVars = new IGenericTypeVariable[_typeVars.length];
     for (int i = 0; i < typeVars.length; i++) {
-      typeVars[i] = _typeVars[i].clone();
+      typeVars[i] = _typeVars[i].copy();
     }
     return typeVars;
   }

@@ -205,7 +205,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.Stack;
+import gw.util.Stack;
+import gw.util.concurrent.LocklessLazyVar;
 
 @SuppressWarnings({"ThrowableInstanceNeverThrown"})
 public final class GosuParser extends ParserBase implements IGosuParser
@@ -222,7 +223,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
   private Program _parsingProgram;
   private ArrayList<FunctionType> _parsingFunctions;
   private ArrayList<VarStatement> _parsingFieldInitializer;
-  private Map<String, Set<IFunctionSymbol>> _dfsDeclByName;
+  private Map<String, List<IFunctionSymbol>> _dfsDeclByName;
   private ITypeUsesMap _typeUsesMap;
   private String _strNamespace;
   private ITokenizerInstructor _tokenizerInstructor;
@@ -267,7 +268,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
     //noinspection unchecked
     _typeUsesMap = tuMap.copy();
     _scriptabilityConstraint = scriptabilityConstraint;
-    _dfsDeclByName = new HashMap<String, Set<IFunctionSymbol>>();
+    _dfsDeclByName = new HashMap<String, List<IFunctionSymbol>>();
 
     _stack = new Stack<ParsedElement>();
     _stackDFS = new Stack<DynamicFunctionSymbol>();
@@ -339,11 +340,11 @@ public final class GosuParser extends ParserBase implements IGosuParser
       return;
     }
 
-//    ISourceCodeTokenizer tokenizer = src.getTokenizer();
-//    if( tokenizer == null )
+    ISourceCodeTokenizer tokenizer = src.getTokenizer();
+    if( tokenizer == null )
     {
       setScript( src.getSource() );
-//      src.setTokenizer( _tokenizer );
+      src.setTokenizer( _tokenizer );
       _tokenizer.setInstructor( _tokenizerInstructor );
       if( _tokenizerInstructor != null )
       {
@@ -360,16 +361,16 @@ public final class GosuParser extends ParserBase implements IGosuParser
         }
       }
     }
-//    else
-//    {
-//      _tokenizer = (SourceCodeTokenizer)tokenizer;
-//      _tokenizer.setInstructor( _tokenizerInstructor );
-//      if( _tokenizerInstructor != null )
-//      {
-//        _tokenizerInstructor.setTokenizer( _tokenizer );
-//      }
-//      _tokenizer.reset();
-//    }
+    else
+    {
+      _tokenizer = (SourceCodeTokenizer)tokenizer;
+      _tokenizer.setInstructor( _tokenizerInstructor );
+      if( _tokenizerInstructor != null )
+      {
+        _tokenizerInstructor.setTokenizer( _tokenizer );
+      }
+      _tokenizer.reset();
+    }
 
     reset();
   }
@@ -1072,7 +1073,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
       //noinspection CaughtExceptionImmediatelyRethrown
       try
       {
-        Map<String, Set<IFunctionSymbol>> dfsDeclByName = new HashMap<String, Set<IFunctionSymbol>>(_dfsDeclByName);
+        Map<String, List<IFunctionSymbol>> dfsDeclByName = new HashMap<>(_dfsDeclByName);
         resetScript();
         _dfsDeclByName = dfsDeclByName;
         exp = parseProgram( partId, isolatedScope, typeExpected );
@@ -1087,7 +1088,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
         {
           // Note we can't just rethrow the original exception because we need
           // the locations etc. in the parser, so we have to reparse and let it throw.
-          Map<String, Set<IFunctionSymbol>> dfsDeclByName = new HashMap<String, Set<IFunctionSymbol>>(_dfsDeclByName);
+          Map<String, List<IFunctionSymbol>> dfsDeclByName = new HashMap<>(_dfsDeclByName);
           resetScript();
           _dfsDeclByName = dfsDeclByName;
           exp = parseExp( partId, isolatedScope, null, assignRuntime );
@@ -1255,7 +1256,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
   }
   public ContextType getContextType()
   {
-    if( _inferredContextStack.empty() )
+    if( _inferredContextStack.isEmpty() )
     {
       return ContextType.EMPTY;
     }
@@ -4014,6 +4015,10 @@ public final class GosuParser extends ParserBase implements IGosuParser
           {
             return getTokenizer().getLineOffset();
           }
+          public IParserState cloneWithNewTokenStartAndTokenEnd( int newTokenStart, int newLength )
+          {
+            return null;
+          }
         };
       }
       //noinspection ThrowableInstanceNeverThrown
@@ -4785,7 +4790,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
       verify( expression, kind != MemberAccessKind.EXPANSION ||
               TypeLord.getExpandableComponentType( expression.getType() ) != null,
               Res.MSG_TYPE_IS_NOT_ITERABLE, expression.getType().getName() );
-      LightweightParserState state = makeLightweightParserState();
+      LazyLightweightParserState state = makeLazyLightweightParserState();
       verify( expression, match( T, SourceCodeTokenizer.TT_WORD ) ||
               match( T, SourceCodeTokenizer.TT_KEYWORD ),
               Res.MSG_EXPECTING_MEMBER_ACCESS_PATH );
@@ -5150,7 +5155,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
     int iOffset = _tokenizer.getTokenStart();
     int iLineNum = _tokenizer.getLineNumber();
     int iColumn = getTokenizer().getTokenColumn();
-    IParserState state = makeLightweightParserState(); //capture position of word for error reporting
+    IParserState state = makeLazyLightweightParserState(); //capture position of word for error reporting
     int markBefore = getTokenizer().mark();
     if( match( T, SourceCodeTokenizer.TT_WORD ) || matchPrimitiveType( T ) || match( T, Keyword.KW_super ) || match( T, Keyword.KW_this ) )
     {
@@ -5931,12 +5936,12 @@ public final class GosuParser extends ParserBase implements IGosuParser
     pushExpression( e );
   }
 
-  private void parseMemberAccess( Expression rootExpression, MemberAccessKind kind, int iTokenStart, String strMemberName, LightweightParserState state, boolean bParseTypeLiteralOnly )
+  private void parseMemberAccess( Expression rootExpression, MemberAccessKind kind, int iTokenStart, String strMemberName, LazyLightweightParserState state, boolean bParseTypeLiteralOnly )
   {
     parseMemberAccess( rootExpression, kind, iTokenStart, strMemberName, state, bParseTypeLiteralOnly, false );
   }
 
-  private void parseMemberAccess( Expression rootExpression, MemberAccessKind kind, final int iTokenStart, final String strMemberName, LightweightParserState state, boolean bParseTypeLiteralOnly, boolean createSynthesizedProperty )
+  private void parseMemberAccess( Expression rootExpression, MemberAccessKind kind, final int iTokenStart, final String strMemberName, LazyLightweightParserState state, boolean bParseTypeLiteralOnly, boolean createSynthesizedProperty )
   {
     BeanMethodCallExpression e = new BeanMethodCallExpression();
     IType rootType = rootExpression.getType();
@@ -5994,7 +5999,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
     }
   }
 
-  private void parseMethodMember( Expression rootExpression, MemberAccessKind kind, int iTokenStart, String strMemberName, LightweightParserState state, boolean bParseTypeLiteralOnly, boolean createSynthesizedProperty, BeanMethodCallExpression e, IType rootType, boolean bExpansion, IType[] typeParameters, int iParenStart, int mark )
+  private void parseMethodMember( Expression rootExpression, MemberAccessKind kind, int iTokenStart, String strMemberName, LazyLightweightParserState state, boolean bParseTypeLiteralOnly, boolean createSynthesizedProperty, BeanMethodCallExpression e, IType rootType, boolean bExpansion, IType[] typeParameters, int iParenStart, int mark )
   {
     int iLocationsCount = _locations.size();
     parseMethodMember( rootExpression, kind, iTokenStart, strMemberName, state, bParseTypeLiteralOnly, e, rootType, bExpansion, typeParameters, iParenStart );
@@ -6005,7 +6010,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
     }
   }
 
-  private void maybeOpenParenIsForParenthesizedExpr( Expression rootExpression, MemberAccessKind kind, int iTokenStart, String strMemberName, LightweightParserState state, boolean bParseTypeLiteralOnly, boolean createSynthesizedProperty, BeanMethodCallExpression e, IType rootType, boolean bExpansion, IType[] typeParameters, int iParenStart, int mark, int iLocationsCount )
+  private void maybeOpenParenIsForParenthesizedExpr( Expression rootExpression, MemberAccessKind kind, int iTokenStart, String strMemberName, LazyLightweightParserState state, boolean bParseTypeLiteralOnly, boolean createSynthesizedProperty, BeanMethodCallExpression e, IType rootType, boolean bExpansion, IType[] typeParameters, int iParenStart, int mark, int iLocationsCount )
   {
     if( !isOpenParenOnNextLine( mark ) )
     {
@@ -6039,7 +6044,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
     return priorMarkToken != null && priorMarkToken.getType() == ISourceCodeTokenizer.TT_WHITESPACE && priorMarkToken.getText().indexOf( '\n' ) >= 0;
   }
 
-  private void parseMethodMember( Expression rootExpression, MemberAccessKind kind, int iTokenStart, String strMemberName, LightweightParserState state, boolean bParseTypeLiteralOnly, BeanMethodCallExpression e, IType rootType, boolean bExpansion, IType[] typeParameters, int iParenStart )
+  private void parseMethodMember( Expression rootExpression, MemberAccessKind kind, int iTokenStart, String strMemberName, LazyLightweightParserState state, boolean bParseTypeLiteralOnly, BeanMethodCallExpression e, IType rootType, boolean bExpansion, IType[] typeParameters, int iParenStart )
   {
     e.setArgPosition( iParenStart + 1 );
     e.setRootExpression( rootExpression );
@@ -6214,7 +6219,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
     pushExpression( e );
   }
 
-  private void parsePropertyMember( Expression rootExpression, MemberAccessKind kind, int iTokenStart, String strMemberName, LightweightParserState state, boolean bParseTypeLiteralOnly, boolean createSynthesizedProperty, IType rootType, boolean bExpansion )
+  private void parsePropertyMember( Expression rootExpression, MemberAccessKind kind, int iTokenStart, String strMemberName, LazyLightweightParserState state, boolean bParseTypeLiteralOnly, boolean createSynthesizedProperty, IType rootType, boolean bExpansion )
   {
     IPropertyInfo pi = null;
 
@@ -6577,7 +6582,6 @@ public final class GosuParser extends ParserBase implements IGosuParser
   {
     IMethodInfo methodInfo = e.getMethodDescriptor();
     if (methodInfo instanceof GosuMethodInfo ) {
-//      DynamicFunctionSymbol functionSymbol = ((GosuMethodInfo) methodInfo).getDfs();
       if (methodInfo.isAbstract()) {
         //noinspection ThrowableInstanceNeverThrown
         e.addParseException(new ParseException(new IParserState() {
@@ -6603,6 +6607,11 @@ public final class GosuParser extends ParserBase implements IGosuParser
 
           public int getLineOffset() {
             return state.getLineOffset();
+          }
+
+          @Override
+          public IParserState cloneWithNewTokenStartAndTokenEnd( int newTokenStart, int newLength ) {
+            return null;
           }
         },
                 Res.MSG_NO_ABSTRACT_METHOD_CALL_IN_CONSTR,
@@ -13570,25 +13579,31 @@ public final class GosuParser extends ParserBase implements IGosuParser
   public void putDfsDeclInSetByName( IDynamicFunctionSymbol dfs )
   {
     String displayName = dfs.getDisplayName();
-    Set<IFunctionSymbol> dfsDecls = _dfsDeclByName.get( displayName );
+    List<IFunctionSymbol> dfsDecls = _dfsDeclByName.get( displayName );
     if( dfsDecls == null )
     {
-      dfsDecls = new HashSet<IFunctionSymbol>();
+      dfsDecls = new ArrayList<>( 2 );
       try
       {
         _dfsDeclByName.put( displayName, dfsDecls );
+        dfsDecls.add( dfs );
       }
       catch( Exception e )
       {
         throw new RuntimeException( "Map type: " + _dfsDeclByName.getClass().getName(), e );
       }
     }
-    if( !dfsDecls.add(dfs) )
+    else
     {
-      // Replace old
-      dfsDecls.remove( dfs );
-      boolean bAdd = dfsDecls.add(dfs);
-      assert bAdd;
+      int iIndex = dfsDecls.indexOf( dfs );
+      if( iIndex >= 0 )
+      {
+        dfsDecls.set( iIndex, dfs );
+      }
+      else
+      {
+        dfsDecls.add( dfs );
+      }
     }
   }
 
@@ -13642,17 +13657,17 @@ public final class GosuParser extends ParserBase implements IGosuParser
     return false;
   }
 
-  public void setDfsDeclInSetByName( Map<String, Set<IFunctionSymbol>> dfsDecl )
+  public void setDfsDeclInSetByName( Map<String, List<IFunctionSymbol>> dfsDecl )
   {
     _dfsDeclByName = dfsDecl;
   }
 
   protected void newDfsDeclInSetByName()
   {
-    _dfsDeclByName = new HashMap<String, Set<IFunctionSymbol>>();
+    _dfsDeclByName = new HashMap<String, List<IFunctionSymbol>>();
   }
 
-  public Map<String, Set<IFunctionSymbol>> getDfsDecls()
+  public Map<String, List<IFunctionSymbol>> getDfsDecls()
   {
     return _dfsDeclByName;
   }
@@ -13680,8 +13695,8 @@ public final class GosuParser extends ParserBase implements IGosuParser
 
   protected List<IFunctionSymbol> getDfsDeclsForFunction( String strFunctionName )
   {
-    Set<IFunctionSymbol> setOfDfsDecls = _dfsDeclByName.get( strFunctionName );
-    return setOfDfsDecls == null ? Collections.<IFunctionSymbol>emptyList() : new ArrayList<IFunctionSymbol>(setOfDfsDecls);
+    List<IFunctionSymbol> setOfDfsDecls = _dfsDeclByName.get( strFunctionName );
+    return setOfDfsDecls == null ? Collections.<IFunctionSymbol>emptyList() : setOfDfsDecls;
   }
 
   /**

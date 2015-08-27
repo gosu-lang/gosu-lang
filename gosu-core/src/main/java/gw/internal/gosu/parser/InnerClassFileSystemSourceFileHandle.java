@@ -11,6 +11,7 @@ import gw.lang.parser.ISource;
 import gw.lang.reflect.gs.ISourceFileHandle;
 import gw.lang.reflect.gs.ClassType;
 import gw.lang.reflect.TypeSystem;
+import gw.util.StringPool;
 
 /**
  */
@@ -37,14 +38,14 @@ public class InnerClassFileSystemSourceFileHandle implements ISourceFileHandle
     int iLastDot = strEnclosingType.lastIndexOf('.');
     if( iLastDot > 0 )
     {
-      _strNamespace = _strEnclosingType.substring( 0, iLastDot ).intern();
+      _strNamespace = StringPool.get( _strEnclosingType.substring( 0, iLastDot ) );
     }
     else
     {
       _strNamespace = "";
     }
 
-    _strEnclosingType = _strEnclosingType == null ? null : _strEnclosingType.intern();
+    _strEnclosingType = _strEnclosingType == null ? null : StringPool.get( _strEnclosingType );
     _classType = classType;
   }
 

@@ -26,8 +26,12 @@ import gw.lang.reflect.gs.IGosuProgram;
 import gw.lang.reflect.gs.IProgramInstance;
 import gw.util.GosuExceptionUtil;
 import gw.util.GosuStringUtil;
+import gw.util.concurrent.LocklessLazyVar;
 
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Method;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -38,8 +42,81 @@ import java.util.Map;
 public class EvalExpressionTransformer extends EvalBasedTransformer<EvalExpression>
 {
   @SuppressWarnings("unchecked")
+  // ##todo: use a ConcurrentHashMap here somehow i.e., stop using Collections.synchronizedMap(), it's a perf issue here
   public static final Map<String, EvalExpression> EVAL_EXPRESSIONS = Collections.synchronizedMap( new LRUMap( 2000 ) );
 
+  private static interface DeclaredConstructorsAccessor {
+    Constructor getConstructor( Class clz );
+  }
+
+  private static LocklessLazyVar<DeclaredConstructorsAccessor> _ctorAccessor = new LocklessLazyVar<DeclaredConstructorsAccessor>()
+  {
+    @Override
+    protected DeclaredConstructorsAccessor init()
+    {
+      Method result = (Method)AccessController.doPrivileged( new PrivilegedAction()
+      {
+        public Method run()
+        {
+          try
+          {
+            Method m = Class.class.getDeclaredMethod( "privateGetDeclaredConstructors", boolean.class );
+            m.setAccessible( true );
+            return m;
+          }
+          catch( Exception e )
+          {
+            return null;
+          }
+        }
+      } );
+      if( result != null )
+      {
+        return new PrivateGetDeclaredConstructorsAccessor( result );
+      }
+      else
+      {
+        return new PublicGetDeclaredConstructorsAccessor();
+      }
+    }
+  };
+
+  private static class PrivateGetDeclaredConstructorsAccessor implements DeclaredConstructorsAccessor
+  {
+    private Method _getDeclaredConstructors;
+    public PrivateGetDeclaredConstructorsAccessor( Method getDeclaredConstructors )
+    {
+      _getDeclaredConstructors = getDeclaredConstructors;
+    }
+
+    @Override
+    public Constructor getConstructor( final Class clz )
+    {
+      return (Constructor)AccessController.doPrivileged( new PrivilegedAction()
+        {
+          public Object run()
+          {
+            try
+            {
+              return ((Constructor[])_getDeclaredConstructors.invoke( clz, false ))[0];
+            }
+            catch( Exception e )
+            {
+              System.err.println( "WARNING Cannot load constructors of " + clz.getName() + ": " + e.toString() );
+              return null;
+            }
+          }
+        } );
+    }
+  }
+  private static class PublicGetDeclaredConstructorsAccessor implements DeclaredConstructorsAccessor {
+    @Override
+    public Constructor getConstructor( Class clz ) {
+      return clz.getConstructors()[0];
+    }
+  }
+
+  
   public static IRExpression compile( TopLevelTransformationContext cc, EvalExpression expr )
   {
     EvalExpressionTransformer compiler = new EvalExpressionTransformer( cc, expr );
@@ -127,7 +204,7 @@ public class EvalExpressionTransformer extends EvalBasedTransformer<EvalExpressi
 
     addEnclosingTypeParams( immediateFuncTypeParams, args );
 
-    Constructor ctor = javaClass.getConstructors()[0];
+    Constructor ctor = _ctorAccessor.get().getConstructor( javaClass );
     Class[] parameterTypes = ctor.getParameterTypes();
     if( parameterTypes.length != args.size() )
     {

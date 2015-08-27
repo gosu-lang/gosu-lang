@@ -1105,10 +1105,16 @@ class JavaType extends InnerClassCapableType implements IJavaTypeInternal
 
   @Override
   public boolean hasAncestorBeenUpdated() {
+    if( !ExecutionMode.get().isRefreshSupportEnabled() ) {
+      return false;
+    }
     return haveAncestorsBeenUpdated(this, _tiChecksum, new HashSet<IType>());
   }
 
   private static boolean haveAncestorsBeenUpdated(IJavaTypeInternal type, int tiChecksum, Set<IType> visited) {
+    if( !ExecutionMode.get().isRefreshSupportEnabled() ) {
+      return false;
+    }
     final IType supertype = type.getSupertype();
     if (supertype instanceof IJavaTypeInternal && !visited.contains(supertype) && hasBeenUpdated((IJavaTypeInternal) supertype, tiChecksum, visited)) {
       return true;
@@ -1127,6 +1133,9 @@ class JavaType extends InnerClassCapableType implements IJavaTypeInternal
   }
 
   public static boolean hasBeenUpdated(IJavaTypeInternal type, int tiChecksum, Set<IType> visited) {
+    if( !ExecutionMode.get().isRefreshSupportEnabled() ) {
+      return false;
+    }
     visited.add(type);
     if (TypeSystem.isDeleted(type)) {
       return true;

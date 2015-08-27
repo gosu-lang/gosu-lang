@@ -148,7 +148,7 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
   {
     Stack<BlockExpression> enclosingBlocks = gosuParser._blocks;
     gosuParser.setBlocks( null );
-    Map<String, Set<IFunctionSymbol>> restoreDfsDecls = copyDFSDecls( gosuParser );
+    Map<String, List<IFunctionSymbol>> restoreDfsDecls = copyDFSDecls( gosuParser );
     try
     {
       new GosuClassParser( gosuParser, innerGsClass ).parseHeader(innerGsClass, false, true, true );
@@ -772,7 +772,7 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
     // Copy the Non-Static Scope so we can reuse it for each member
     //
     IScope nonstaticScope;
-    Map<String, Set<IFunctionSymbol>> nonstaticDfsMap;
+    Map<String, List<IFunctionSymbol>> nonstaticDfsMap;
     getSymbolTable().pushScope();
     try
     {
@@ -3001,7 +3001,7 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
 
   private void parseInnerClassDeclaration( IGosuClassInternal innerClass ) {
     // Preserve dfs decls map of outer class
-    Map<String, Set<IFunctionSymbol>> restoreDfsDecls = copyDFSDecls( getOwner() );
+    Map<String, List<IFunctionSymbol>> restoreDfsDecls = copyDFSDecls( getOwner() );
     try {
       new GosuClassParser( getOwner(), innerClass ).parseDeclarations( innerClass );
       if( innerClass.isInterface() )
@@ -3015,12 +3015,12 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
     }
   }
 
-  private static Map<String, Set<IFunctionSymbol>> copyDFSDecls( GosuParser owner )
+  private static Map<String, List<IFunctionSymbol>> copyDFSDecls( GosuParser owner )
   {
-    Map<String, Set<IFunctionSymbol>> hashMap = new HashMap<String, Set<IFunctionSymbol>>( owner.getDfsDecls() );
+    Map<String, List<IFunctionSymbol>> hashMap = new HashMap<>( owner.getDfsDecls() );
     for( String name : hashMap.keySet() )
     {
-      hashMap.put( name, new HashSet<IFunctionSymbol>( hashMap.get( name ) ) );
+      hashMap.put( name, new ArrayList<>( hashMap.get( name ) ) );
     }
     return hashMap;
   }
@@ -3655,7 +3655,7 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
     // Copy the Static Scope so we can reuse it for each member
     //
     IScope staticScope;
-    Map<String, Set<IFunctionSymbol>> staticDfsMap;
+    Map<String, List<IFunctionSymbol>> staticDfsMap;
     getSymbolTable().pushScope();
     try
     {
@@ -3672,7 +3672,7 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
     // Copy the Non-Static Scope so we can reuse it for each member
     //
     IScope nonstaticScope;
-    Map<String, Set<IFunctionSymbol>> nonstaticDfsMap;
+    Map<String, List<IFunctionSymbol>> nonstaticDfsMap;
     getSymbolTable().pushScope();
     try
     {

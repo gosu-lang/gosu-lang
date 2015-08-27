@@ -26,7 +26,6 @@ public class DynamicFunctionSymbol extends AbstractDynamicSymbol implements IDyn
   private List<ISymbol> _args;
   private MethodCallStatement _initializer;
   private FunctionStatement _functionStmt;
-  private String _superGenericName;
   private DynamicFunctionSymbol _superDfs;
   private boolean _bLoopImplicitReturn;
   private IExpression _annotationDefault;
@@ -85,7 +84,7 @@ public class DynamicFunctionSymbol extends AbstractDynamicSymbol implements IDyn
     _value = dfs._value;
     _args = dfs._args;
     _initializer = dfs._initializer;
-    setName( (String)dfs.getName() );
+    setName( dfs.getName() );
     _scriptPartId = dfs._scriptPartId;
     replaceModifierInfo(dfs.getModifierInfo());
   }
@@ -470,21 +469,10 @@ public class DynamicFunctionSymbol extends AbstractDynamicSymbol implements IDyn
   public void setSuperDfs( DynamicFunctionSymbol superDfs )
   {
     _superDfs = superDfs;
-
-    if( superDfs instanceof ParameterizedDynamicFunctionSymbol &&
-        superDfs.getBackingDfs() != null &&
-        !superDfs.getBackingDfs().getName().equals( getName() ) )
-    {
-      _superGenericName = superDfs.getBackingDfs().getName();
-    }
   }
   public DynamicFunctionSymbol getSuperDfs()
   {
     return _superDfs;
-  }
-  public String getSuperGenericName()
-  {
-    return _superGenericName;
   }
 
   public boolean hasTypeVariables()

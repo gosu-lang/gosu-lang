@@ -777,9 +777,7 @@ public class FileSystemGosuClassRepository implements IFileSystemGosuClassReposi
           throw new RuntimeException( e );
         }
         finally {
-          if( lines != null ) {
-            lines.close();
-          }
+          lines.close();
         }
         _content = new SoftReference<>( content );
       }

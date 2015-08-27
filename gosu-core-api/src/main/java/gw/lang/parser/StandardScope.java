@@ -34,14 +34,16 @@ public class StandardScope<K extends CharSequence, V extends ISymbol>  extends H
     _activationContext = context;
   }
 
-  /**
-   */
-  @Override
-  public Object clone()
+  protected StandardScope( StandardScope copy )
   {
-    StandardScope scope = (StandardScope)super.clone();
-    scope._activationContext = _activationContext;
-    return scope;
+    super( copy );
+    _activationContext = copy._activationContext;
+  }
+
+  @Override
+  public StandardScope<K,V> copy()
+  {
+    return new StandardScope<>( this );
   }
 
   /**
