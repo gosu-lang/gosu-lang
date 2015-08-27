@@ -639,7 +639,7 @@ class JavaType extends InnerClassCapableType implements IJavaTypeInternal
       }
       if( bReentered )
       {
-        return _tempInterfaces.toArray(new IType[_tempInterfaces.size()]);
+        return _tempInterfaces.toArray( new IType[_tempInterfaces.size()] );
       }
       _tempInterfaces = null;
       interfaces.trimToSize();
@@ -752,31 +752,44 @@ class JavaType extends InnerClassCapableType implements IJavaTypeInternal
     return inners;
   }
 
-  public IJavaType getInnerClass( CharSequence strTypeName )
+  @Override
+  public IType getInnerClass( CharSequence name )
   {
-    List<String> innerClassNames = Arrays.asList( strTypeName.toString().split( "\\." ) );
-    IJavaType enclosingType = this;
-    for( Iterator<String> it = innerClassNames.iterator(); it.hasNext(); )
+    if( name == null )
     {
-      String name = it.next();
-      for( IJavaType javaType : enclosingType.getInnerClasses() )
+      return null;
+    }
+    String strRelativeName = name.toString();
+    int dotIndex = strRelativeName.indexOf( '.' );
+    IJavaTypeInternal innerClass;
+    if( dotIndex == -1 )
+    {
+      innerClass = getInnerClassSimple( strRelativeName );
+    }
+    else
+    {
+      innerClass = getInnerClassSimple( strRelativeName.substring( 0, dotIndex ) );
+      if( innerClass != null )
       {
-        if( GosuClassUtil.getNameNoPackage( javaType.getRelativeName() ).equals( name ) )
-        {
-          if( it.hasNext() )
-          {
-            enclosingType = javaType;
-          }
-          else
-          {
-            return javaType;
-          }
-        }
+        innerClass = (IJavaTypeInternal)innerClass.getInnerClass( strRelativeName.substring( dotIndex + 1, strRelativeName.length() ) );
+      }
+    }
+    return innerClass;
+  }
+
+  public IJavaTypeInternal getInnerClassSimple( String simpleName )
+  {
+    IJavaTypeInternal enclosingType = this;
+    for( IJavaType javaType : enclosingType.getInnerClasses() )
+    {
+      if( GosuClassUtil.getNameNoPackage( javaType.getRelativeName() ).equals( simpleName ) )
+      {
+        return (IJavaTypeInternal)javaType;
       }
     }
     return null;
   }
-
+  
   @Override
   public ISourceFileHandle getSourceFileHandle() {
     return _classInfo.getSourceFileHandle();
