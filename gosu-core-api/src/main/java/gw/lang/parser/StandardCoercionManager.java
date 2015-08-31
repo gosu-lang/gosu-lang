@@ -584,6 +584,61 @@ public class StandardCoercionManager extends BaseService implements ICoercionMan
     }
   }
 
+  class TypesComp {
+    IType _lhs;
+    IType _rhs;
+    boolean _bBiDirectional;
+
+    TypesComp( IType lhs, IType rhs, boolean bBiDirectional )
+    {
+      _lhs = lhs;
+      _rhs = rhs;
+      _bBiDirectional = bBiDirectional;
+    }
+
+    @Override
+    public boolean equals( Object o )
+    {
+      TypesComp typesComp = (TypesComp)o;
+
+      if( _bBiDirectional != typesComp._bBiDirectional )
+      {
+        return false;
+      }
+      if( _lhs != typesComp._lhs )
+      {
+        return false;
+      }
+      return _rhs == typesComp._rhs;
+    }
+
+    @Override
+    public int hashCode()
+    {
+      int result = _lhs.hashCode();
+      result = 31 * result + _rhs.hashCode();
+      result = 31 * result + (_bBiDirectional ? 1 : 0);
+      return result;
+    }
+  }
+  private IType NULL_COMP = TypeSystem.getErrorType( "_NULL_COMP_" );
+  private final TypeSystemAwareCache<TypesComp, IType> _compCache =
+      TypeSystemAwareCache.make( "verifyTypesComparable Cache", 2000,
+                                 tc -> {
+                                   IType type = _verifyTypesComparable( tc._lhs, tc._rhs, tc._bBiDirectional );
+                                   //System.out.println( "hits: " + getCompCache().getHits() );
+                                   //System.out.println( "misses: " + getCompCache().getMisses() );
+                                   if( type == null )
+                                   {
+                                     return NULL_COMP;
+                                   }
+                                   else
+                                   {
+                                     return type;
+                                   }
+                                 } );
+  //private TypeSystemAwareCache<TypesComp, IType> getCompCache() { return _compCache; }
+
   public IType verifyTypesComparable( IType lhsType, IType rhsType, boolean bBiDirectional ) throws ParseException
   {
     return verifyTypesComparable( lhsType, rhsType, bBiDirectional, null );
@@ -591,7 +646,23 @@ public class StandardCoercionManager extends BaseService implements ICoercionMan
 
   public IType verifyTypesComparable( IType lhsType, IType rhsType, boolean bBiDirectional, IFullParserState parserState ) throws ParseException
   {
+    if( lhsType == rhsType )
+    {
+      return lhsType;
+    }
 
+    IType resultType = _compCache.get( new TypesComp( lhsType, rhsType, bBiDirectional ) );
+    if( resultType != NULL_COMP )
+    {
+      return resultType;
+    }
+    String strLhs = TypeSystem.getNameWithQualifiedTypeVariables( lhsType );
+    String strRhs = TypeSystem.getNameWithQualifiedTypeVariables( rhsType );
+    throw new ParseException( parserState, lhsType, Res.MSG_TYPE_MISMATCH, strLhs, strRhs );
+  }
+
+  private IType _verifyTypesComparable( IType lhsType, IType rhsType, boolean bBiDirectional )
+  {
     //==================================================================================
     // Upcasting
     //==================================================================================
@@ -696,9 +767,7 @@ public class StandardCoercionManager extends BaseService implements ICoercionMan
       }
     }
 
-    String strLhs = TypeSystem.getNameWithQualifiedTypeVariables( lhsType );
-    String strRhs = TypeSystem.getNameWithQualifiedTypeVariables( rhsType );
-    throw new ParseException( parserState, lhsType, Res.MSG_TYPE_MISMATCH, strLhs, strRhs );
+    return null;
   }
 
   public static boolean isStructurallyAssignable( IType toType, IType fromType )
