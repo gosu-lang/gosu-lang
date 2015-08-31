@@ -3152,7 +3152,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
             _parseInitializerExpression( new ContextType( e.getType(), false ) );
             IInitializerExpression initializerExpression = (IInitializerExpression)popExpression();
             e.setInitializer( initializerExpression );
-            e.setConstructor( ctxType.getTypeInfo().getCallableConstructor() );
+            e.setConstructor( ctxType.getTypeInfo().getConstructor() );
             if( !typeToInit.isMethodScoring() )
             {
               IType initializerCtxType = getCurrentInitializableContextType().getType();
@@ -3206,7 +3206,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
         }
         else
         {
-          e.setConstructor( ctxType.getTypeInfo().getCallableConstructor() );
+          e.setConstructor( ctxType.getTypeInfo().getConstructor() );
         }
       }
 
@@ -3277,7 +3277,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
 
     if( typeToInit.getType() != null &&
             (typeToInit.getType().isArray() ||
-                    typeToInit.getType().getTypeInfo().getCallableConstructor() != null) )
+                    typeToInit.getType().getTypeInfo().getConstructor() != null) )
     {
       return typeToInit; // An array or collection type with a default constructor
     }
