@@ -68,6 +68,7 @@ public class ClassJavaClassInfo extends TypeJavaClassType implements IClassJavaC
   private String _namespace;
   private volatile Integer _modifiers;
   private Boolean _bArray;
+  private Boolean _bEnum;
   private Boolean _bInterface;
   private LocklessLazyVar<IType> _enclosingClass = new LocklessLazyVar<IType>() {
     protected IType init() {
@@ -369,7 +370,7 @@ public class ClassJavaClassInfo extends TypeJavaClassType implements IClassJavaC
 
   @Override
   public boolean isEnum() {
-    return _class.isEnum();
+    return _bEnum == null ? _bEnum = _class.isEnum() : _bEnum;
   }
 
   @Override
