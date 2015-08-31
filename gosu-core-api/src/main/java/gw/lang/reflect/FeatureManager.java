@@ -562,28 +562,27 @@ public class FeatureManager<T extends CharSequence> {
   }
 
   protected void mergeMethod(List<IMethodInfo> methods, IMethodInfo thisMethodInfo, boolean replace) {
-    IType[] paramTypes = removeGenericMethodParameters(thisMethodInfo);
-    boolean add = true;
+    IType[] paramTypes = null;
     int replacementIndex = -1;
     for (int i = 0; i < methods.size(); i++) {
       IMethodInfo superMethodInfo = methods.get(i);
       replacementIndex++;
       if (isOverride(thisMethodInfo, superMethodInfo)) {
         IType[] superParamTypes;
-        superParamTypes = removeGenericMethodParameters(superMethodInfo);
-        if (argsEqual(superParamTypes, paramTypes)) {
-          if (replace) {
-            methods.set(replacementIndex, thisMethodInfo);
+        if( thisMethodInfo.getParameters().length == superMethodInfo.getParameters().length ) {
+          paramTypes = paramTypes == null ? removeGenericMethodParameters(thisMethodInfo) : paramTypes;
+          superParamTypes = removeGenericMethodParameters(superMethodInfo);
+          if (argsEqual(superParamTypes, paramTypes)) {
+            if (replace) {
+              methods.set(replacementIndex, thisMethodInfo);
+            }
+            return;
           }
-          add = false;
-          break;
         }
       }
     }
 
-    if (add) {
-      methods.add(thisMethodInfo);
-    }
+    methods.add(thisMethodInfo);
   }
 
   private boolean isOverride(IMethodInfo thisMethodInfo, IMethodInfo superMethodInfo) {
