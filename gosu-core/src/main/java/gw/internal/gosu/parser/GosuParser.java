@@ -206,7 +206,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import gw.util.Stack;
-import gw.util.concurrent.LocklessLazyVar;
 
 @SuppressWarnings({"ThrowableInstanceNeverThrown"})
 public final class GosuParser extends ParserBase implements IGosuParser
@@ -5270,16 +5269,14 @@ public final class GosuParser extends ParserBase implements IGosuParser
       }
     }
 
-    Expression exp = e;
     int iParenStart = _tokenizer.getTokenStart();
     e.setArgPosition( iParenStart );
     List<IFunctionType> listFunctionTypes = null;
-    final boolean isThis = GosuObjectUtil.equals( strFunction, Keyword.KW_this.toString() );
+    final boolean bThis = GosuObjectUtil.equals( strFunction, Keyword.KW_this.getName() );
     boolean isRecursiveConstructorCall = false;
     boolean bNoArgsProvided;
     if( !(bNoArgsProvided = match( null, ')' )) ||
-            ((listFunctionTypes = getFunctionTypesForName( strFunction )).size() == 1 &&
-                    listFunctionTypes.get( 0 ).hasOptionalParams()) )
+        ((listFunctionTypes = getFunctionTypesForName( strFunction )).size() == 1 && listFunctionTypes.get( 0 ).hasOptionalParams()) )
     {
       if( listFunctionTypes == null )
       {
@@ -5308,7 +5305,6 @@ public final class GosuParser extends ParserBase implements IGosuParser
 
       if( !bMatched )
       {
-        IType entityType = resolveTypeName( t._strValue, true );
         if( listFunctionTypes.isEmpty() )
         {
           if( staticRefToNonStaticFunc( strFunction, eArgs ) )
@@ -5322,47 +5318,43 @@ public final class GosuParser extends ParserBase implements IGosuParser
         }
       }
 
-      if( exp == e )
+      if( bestMethod.isValid() )
       {
-        if( bestMethod.isValid() )
-        {
-          // Did not parse as object literal
-          IFunctionType rawFunctionType = (IFunctionType)bestMethod.getRawFunctionType();
-          verifyArgCount( e, bestMethod.getArguments().size(), rawFunctionType );
+        // Did not parse as object literal
+        IFunctionType rawFunctionType = (IFunctionType)bestMethod.getRawFunctionType();
+        verifyArgCount( e, bestMethod.getArguments().size(), rawFunctionType );
 
-          if( !(GosuObjectUtil.equals( strFunction, Keyword.KW_super.toString() ) ||
-                isThis) )
-          {
-            verifyCase( e, strFunction, rawFunctionType.getName(), state, Res.MSG_FUNCTION_CASE_MISMATCH, false );
-          }
-          else if(isThis)
-          {
-            final IType[] parameterTypes0 = peekParsingFunction().getParameterTypes();
-            final IType[] parameterTypes1 = rawFunctionType.getParameterTypes();
-            isRecursiveConstructorCall = parameterTypes0.length == parameterTypes1.length &&
-                                         Arrays.equals( parameterTypes0, parameterTypes1 );
-          }
-
-          e.setFunctionSymbol( getDFSForFunctionType( strFunction, bestMethod ) );
-          e.setNamedArgOrder( bestMethod.getNamedArgOrder() );
-          IFunctionType inferredFunctionType = (IFunctionType)bestMethod.getInferredFunctionType();
-          if( inferredFunctionType instanceof FunctionType )
-          {
-            ((FunctionType)inferredFunctionType).setScriptPart( rawFunctionType.getScriptPart() );
-          }
-          e.setType( inferredFunctionType.getReturnType() );
-          e.setFunctionType( inferredFunctionType );
-        }
-        else
+        if( !(bThis || GosuObjectUtil.equals( strFunction, Keyword.KW_super.getName() )) )
         {
-          e.setType( ErrorType.getInstance() );
+          verifyCase( e, strFunction, rawFunctionType.getName(), state, Res.MSG_FUNCTION_CASE_MISMATCH, false );
         }
+        else if( bThis )
+        {
+          final IType[] parameterTypes0 = peekParsingFunction().getParameterTypes();
+          final IType[] parameterTypes1 = rawFunctionType.getParameterTypes();
+          isRecursiveConstructorCall = parameterTypes0.length == parameterTypes1.length &&
+                                       Arrays.equals( parameterTypes0, parameterTypes1 );
+        }
+
+        e.setFunctionSymbol( getDFSForFunctionType( strFunction, bestMethod ) );
+        e.setNamedArgOrder( bestMethod.getNamedArgOrder() );
+        IFunctionType inferredFunctionType = (IFunctionType)bestMethod.getInferredFunctionType();
+        if( inferredFunctionType instanceof FunctionType )
+        {
+          ((FunctionType)inferredFunctionType).setScriptPart( rawFunctionType.getScriptPart() );
+        }
+        e.setType( inferredFunctionType.getReturnType() );
+        e.setFunctionType( inferredFunctionType );
       }
-      verify( exp, bNoArgsProvided || match( null, ')' ), Res.MSG_EXPECTING_FUNCTION_CLOSE );
+      else
+      {
+        e.setType( ErrorType.getInstance() );
+      }
+      verify( e, bNoArgsProvided || match( null, ')' ), Res.MSG_EXPECTING_FUNCTION_CLOSE );
     }
     else
     {
-      if( isThis &&
+      if( bThis &&
           bNoArgsProvided &&
           peekParsingFunction().getParameterTypes().length == 0 &&
           getScriptPart().getContainingType().getName().endsWith( peekParsingFunction().getName() ) )
@@ -5459,16 +5451,16 @@ public final class GosuParser extends ParserBase implements IGosuParser
       e.addParseException( new ParseException( state, Res.MSG_NO_ABSTRACT_METHOD_CALL_IN_CONSTR, e.getFunctionSymbol().getDisplayName() ) );
     }
 
-    if( exp instanceof MethodCallExpression )
+    if( e instanceof MethodCallExpression )
     {
-      verifyNotCallingOverridableFunctionFromCtor( (MethodCallExpression)exp );
+      verifyNotCallingOverridableFunctionFromCtor( (MethodCallExpression)e );
       if( getGosuClass() != null && getGosuClass().isAnonymous() && getGosuClass().getEnclosingType() instanceof IGosuEnhancement )
       {
         verify( e, false, Res.MSG_CANNOT_REFERENCE_ENCLOSING_METHODS_WITHIN_ENHANCEMENTS );
       }
     }
 
-    pushExpression( exp );
+    pushExpression( e );
   }
 
   private boolean isInSeparateStringTemplateExpression()
@@ -13727,15 +13719,26 @@ public final class GosuParser extends ParserBase implements IGosuParser
       intrType = typeVarDef.getType();
       if( intrType == null )
       {
-        intrType = resolveInnerClassByRelativeName( strTypeName );
+        intrType = resolveTypeByRelativeName( strTypeName );
       }
     }
     else
     {
-      intrType = resolveInnerClassByRelativeName( strTypeName );
-      if( intrType == null )
+      if( strTypeName.indexOf( '.' ) >= 0 )
       {
-        intrType = resolveTypeName( strTypeName, bRelative );
+        intrType = resolveTypeName( strTypeName, false );
+        if( intrType == null )
+        {
+          intrType = resolveTypeByRelativeName( strTypeName );
+        }
+      }
+      else
+      {
+        intrType = resolveTypeByRelativeName( strTypeName );
+        if( intrType == null )
+        {
+          intrType = resolveTypeName( strTypeName, bRelative );
+        }
       }
     }
 
@@ -13857,7 +13860,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
     return mapTypeVarDefByName;
   }
 
-  private IType resolveInnerClassByRelativeName( String strTypeName )
+  private IType resolveTypeByRelativeName( String strTypeName )
   {
     ICompilableType gsClass = getGosuClass();
     if( gsClass == null )
