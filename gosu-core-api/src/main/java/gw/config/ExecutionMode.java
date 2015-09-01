@@ -35,16 +35,19 @@ public enum ExecutionMode {
   public static ExecutionMode get() {
     return _mode == null ? (_mode = CommonServices.getPlatformHelper().getExecutionMode()) : _mode;
   }
+  public static void clear() {
+    _mode = null;
+  }
 
   public static boolean isRuntime() {
-    return CommonServices.getPlatformHelper().getExecutionMode() == RUNTIME;
+    return get() == RUNTIME;
   }
 
   public static boolean isIDE() {
-    return CommonServices.getPlatformHelper().getExecutionMode() == IDE;
+    return get() == IDE;
   }
 
   public static boolean isCompiler() {
-    return CommonServices.getPlatformHelper().getExecutionMode() == COMPILER;
+    return get() == COMPILER;
   }
 }

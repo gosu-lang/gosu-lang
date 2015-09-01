@@ -91,6 +91,10 @@ public abstract class AbstractPlatformHelper extends BaseService implements IPla
       "pcf", "eti", "eix", "etx", "tti", "ttx", "tix", "gr", "grs"
   }));
 
+  protected AbstractPlatformHelper() {
+    ExecutionMode.clear();
+  }
+
   public boolean isConfigFile(IFile file) {
     final String extension = file.getExtension();
     if (extension != null) {

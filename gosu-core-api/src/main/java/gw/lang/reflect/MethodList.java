@@ -95,6 +95,16 @@ public class MethodList extends DynamicArray<IMethodInfo> {
     return super.set(index, method);
   }
 
+  @Override
+  public int indexOf( Object o )
+  {
+    for( int i = 0; i < size; i++ ) {
+      if( data[i] == o ) {
+        return i;
+      }
+    }
+    return -1;
+  }
 
   public DynamicArray<? extends IMethodInfo> getMethods(String name) {
     DynamicArray<IMethodInfo> methodInfoList = _map.get( name );

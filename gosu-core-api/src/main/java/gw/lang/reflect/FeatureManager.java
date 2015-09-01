@@ -12,6 +12,7 @@ import gw.lang.reflect.gs.IGosuEnhancement;
 import gw.lang.reflect.java.IJavaType;
 import gw.lang.reflect.java.JavaTypes;
 import gw.lang.reflect.module.IModule;
+import gw.util.DynamicArray;
 import gw.util.GosuExceptionUtil;
 
 import java.util.ArrayList;
@@ -269,7 +270,7 @@ public class FeatureManager<T extends CharSequence> {
             throw new IllegalStateException("Methods for " + _typeInfo.getOwnersType() + " are cyclic.");
           }
           _methodsInitialized.put(module, InitState.Initializing);
-          clearMethods(module);
+          clearMethods( module );
           try {
             MethodList[] methods = new MethodList[IRelativeTypeInfo.Accessibility_Size];
             {
@@ -287,7 +288,7 @@ public class FeatureManager<T extends CharSequence> {
                 throw new IllegalStateException( "null interfaces for " + _typeInfo.getOwnersType().getName() );
               }
               for (IType type : _typeInfo.getOwnersType().getInterfaces()) {
-                mergeMethods(privateMethods, convertType(type), false);
+                mergeMethods( privateMethods, convertType( type ), false );
               }
               if ( getSuperType() != null) {
                 mergeMethods(privateMethods, convertType( getSuperType() ), true);
@@ -301,15 +302,15 @@ public class FeatureManager<T extends CharSequence> {
 //              privateMethods = Collections.unmodifiableList(privateMethods);
               // The size checking madness is to save memory.  If the lists/maps are the same then reuse.
               methods[IRelativeTypeInfo.Accessibility.PRIVATE.ordinal()] = privateMethods;
-              methods[IRelativeTypeInfo.Accessibility.PROTECTED.ordinal()] = privateMethods.filterMethods(IRelativeTypeInfo.Accessibility.PROTECTED);
+              methods[IRelativeTypeInfo.Accessibility.PROTECTED.ordinal()] = privateMethods.filterMethods( IRelativeTypeInfo.Accessibility.PROTECTED );
               if (methods[IRelativeTypeInfo.Accessibility.PROTECTED.ordinal()].size() == privateMethods.size()) {
                 methods[IRelativeTypeInfo.Accessibility.PROTECTED.ordinal()] = privateMethods;
               }
-              methods[IRelativeTypeInfo.Accessibility.INTERNAL.ordinal()] = privateMethods.filterMethods(IRelativeTypeInfo.Accessibility.INTERNAL);
+              methods[IRelativeTypeInfo.Accessibility.INTERNAL.ordinal()] = privateMethods.filterMethods( IRelativeTypeInfo.Accessibility.INTERNAL );
               if (methods[IRelativeTypeInfo.Accessibility.INTERNAL.ordinal()].size() == methods[IRelativeTypeInfo.Accessibility.PROTECTED.ordinal()].size()) {
                 methods[IRelativeTypeInfo.Accessibility.INTERNAL.ordinal()] = methods[IRelativeTypeInfo.Accessibility.PROTECTED.ordinal()];
               }
-              methods[IRelativeTypeInfo.Accessibility.PUBLIC.ordinal()] = privateMethods.filterMethods(IRelativeTypeInfo.Accessibility.PUBLIC);
+              methods[IRelativeTypeInfo.Accessibility.PUBLIC.ordinal()] = privateMethods.filterMethods( IRelativeTypeInfo.Accessibility.PUBLIC );
               if (methods[IRelativeTypeInfo.Accessibility.PUBLIC.ordinal()].size() == methods[IRelativeTypeInfo.Accessibility.INTERNAL.ordinal()].size()) {
                 methods[IRelativeTypeInfo.Accessibility.PUBLIC.ordinal()] = methods[IRelativeTypeInfo.Accessibility.INTERNAL.ordinal()];
               }
@@ -477,7 +478,7 @@ public class FeatureManager<T extends CharSequence> {
   }
 
   protected void addEnhancementMethods(List<IMethodInfo> privateMethods) {
-    CommonServices.getEntityAccess().addEnhancementMethods(_typeInfo.getOwnersType(), privateMethods );
+    CommonServices.getEntityAccess().addEnhancementMethods( _typeInfo.getOwnersType(), privateMethods );
   }
 
   protected void addEnhancementProperties(PropertyNameMap<T> privateProps, boolean caseSensitive) {
@@ -534,7 +535,7 @@ public class FeatureManager<T extends CharSequence> {
   protected void mergeProperty(PropertyNameMap<T> props, IPropertyInfo propertyInfo, boolean replace) {
     boolean prependPrefix = _superPropertyPrefix != null && ! propertyInfo.getOwnersType().equals( _typeInfo.getOwnersType() );
     T cs = convertCharSequenceToCorrectSensitivity( prependPrefix ? ( _superPropertyPrefix + propertyInfo.getName() ) : propertyInfo.getName() );
-    if (replace || !props.containsKey(cs)) {
+    if (replace || !props.containsKey( cs )) {
       if ( prependPrefix ) {
         props.put( cs, new PropertyInfoDelegate( propertyInfo.getContainer(), propertyInfo, cs.toString() ) );
       }
@@ -544,7 +545,7 @@ public class FeatureManager<T extends CharSequence> {
     }
   }
 
-  protected void mergeMethods(List<IMethodInfo> methods, IType type, boolean replace) {
+  protected void mergeMethods(MethodList methods, IType type, boolean replace) {
     List<? extends IMethodInfo> methodInfos;
     if (type != null && !TypeSystem.isDeleted(type)) {
       if (type.getTypeInfo() instanceof IRelativeTypeInfo) {
@@ -561,32 +562,27 @@ public class FeatureManager<T extends CharSequence> {
     }
   }
 
-  protected void mergeMethod(List<IMethodInfo> methods, IMethodInfo thisMethodInfo, boolean replace) {
+  protected void mergeMethod(MethodList methods, IMethodInfo thisMethodInfo, boolean replace) {
     IType[] paramTypes = null;
-    int replacementIndex = -1;
-    for (int i = 0; i < methods.size(); i++) {
-      IMethodInfo superMethodInfo = methods.get(i);
-      replacementIndex++;
-      if (isOverride(thisMethodInfo, superMethodInfo)) {
-        IType[] superParamTypes;
-        if( thisMethodInfo.getParameters().length == superMethodInfo.getParameters().length ) {
-          paramTypes = paramTypes == null ? removeGenericMethodParameters(thisMethodInfo) : paramTypes;
-          superParamTypes = removeGenericMethodParameters(superMethodInfo);
-          if (argsEqual(superParamTypes, paramTypes)) {
-            if (replace) {
-              methods.set(replacementIndex, thisMethodInfo);
-            }
-            return;
+    DynamicArray<? extends IMethodInfo> matches = methods.getMethods( thisMethodInfo.getDisplayName() );
+    for( int i = 0; i < matches.size(); i++ )
+    {
+      IMethodInfo superMethodInfo = matches.get( i );
+      if( superMethodInfo.getParameters().length == thisMethodInfo.getParameters().length )
+      {
+        paramTypes = paramTypes == null ? removeGenericMethodParameters( thisMethodInfo ) : paramTypes;
+        IType[] superParamTypes = removeGenericMethodParameters( superMethodInfo );
+        if( argsEqual( superParamTypes, paramTypes ) )
+        {
+          if( replace )
+          {
+            methods.set( methods.indexOf( superMethodInfo ), thisMethodInfo );
           }
+          return;
         }
       }
     }
-
     methods.add(thisMethodInfo);
-  }
-
-  private boolean isOverride(IMethodInfo thisMethodInfo, IMethodInfo superMethodInfo) {
-    return superMethodInfo.getDisplayName().equals(thisMethodInfo.getDisplayName());
   }
 
   private IType[] removeGenericMethodParameters(IMethodInfo thisMethodInfo) {
