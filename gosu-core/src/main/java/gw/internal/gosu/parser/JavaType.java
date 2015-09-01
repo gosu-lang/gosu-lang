@@ -97,6 +97,7 @@ class JavaType extends InnerClassCapableType implements IJavaTypeInternal
   transient private boolean _bDiscarded;
   private IJavaTypeInternal _typeRef;
   transient private int _tiChecksum;
+  transient volatile private List<IJavaType> _innerClasses;
 
   public static IJavaTypeInternal get( Class cls, DefaultTypeLoader loader )
   {
@@ -733,10 +734,14 @@ class JavaType extends InnerClassCapableType implements IJavaTypeInternal
 
   public List<IJavaType> getInnerClasses()
   {
+    if( _innerClasses != null ) {
+      return _innerClasses;
+    }
+
     IJavaClassInfo[] innerClasses = getBackingClassInfo().getDeclaredClasses();
     if( innerClasses.length == 0 )
     {
-      return Collections.emptyList();
+      return _innerClasses = Collections.emptyList();
     }
 
     List<IJavaType> inners = new ArrayList<IJavaType>( 2 );
@@ -749,7 +754,7 @@ class JavaType extends InnerClassCapableType implements IJavaTypeInternal
       }
       inners.add(inner);
     }
-    return inners;
+    return _innerClasses = inners;
   }
 
   @Override
@@ -777,7 +782,7 @@ class JavaType extends InnerClassCapableType implements IJavaTypeInternal
     return innerClass;
   }
 
-  public IJavaTypeInternal getInnerClassSimple( String simpleName )
+  private IJavaTypeInternal getInnerClassSimple( String simpleName )
   {
     IJavaTypeInternal enclosingType = this;
     for( IJavaType javaType : enclosingType.getInnerClasses() )
