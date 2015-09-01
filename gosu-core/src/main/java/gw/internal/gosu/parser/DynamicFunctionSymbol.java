@@ -21,6 +21,7 @@ import java.util.List;
 public class DynamicFunctionSymbol extends AbstractDynamicSymbol implements IDynamicFunctionSymbol
 {
   private static final Object DEFINITION_CLEARED = new Object() {public String toString() {return "<cleared>";}};
+  private static final Object NULL_MI = new Object() { public String toString() {return "null_mi";}};
 
   private String _strDisplayName;
   private List<ISymbol> _args;
@@ -29,6 +30,7 @@ public class DynamicFunctionSymbol extends AbstractDynamicSymbol implements IDyn
   private DynamicFunctionSymbol _superDfs;
   private boolean _bLoopImplicitReturn;
   private IExpression _annotationDefault;
+  private volatile Object _mi;
 
   /**
    * Constructs a DynamicFunctionSymbol for use with an IGosuParser's ISymbolTable.
@@ -347,51 +349,76 @@ public class DynamicFunctionSymbol extends AbstractDynamicSymbol implements IDyn
 
   public IAttributedFeatureInfo getMethodOrConstructorInfo()
   {
-    IScriptPartId scriptPart = getScriptPart();
-    IType declaringType = scriptPart == null ? null : scriptPart.getContainingType();
-    if( declaringType == null )
+    if( _mi != null )
     {
-      return null;
+      return _mi == NULL_MI ? null : (IAttributedFeatureInfo)_mi;
     }
 
-    ITypeInfo typeInfo = declaringType.getTypeInfo();
+    IAttributedFeatureInfo cachedMi = null;
 
-    List<? extends IMethodInfo> methods;
-    if (typeInfo instanceof IRelativeTypeInfo) {
-      methods = ((IRelativeTypeInfo) typeInfo).getMethods( declaringType );
-    } else {
-      methods = typeInfo.getMethods();
-    }
-    IReducedDynamicFunctionSymbol thisRS = createReducedSymbol();
-    for( IMethodInfo mi : methods ) {
-      if (mi instanceof IDFSBackedFeatureInfo) {
-        IReducedDynamicFunctionSymbol dfs = ((IDFSBackedFeatureInfo) mi).getDfs();
-        if (thisRS.equals(dfs) || thisRS.getBackingDfs().equals(dfs)) {
-          return mi;
+    try
+    {
+      IScriptPartId scriptPart = getScriptPart();
+      IType declaringType = scriptPart == null ? null : scriptPart.getContainingType();
+      if( declaringType != null )
+      {
+        ITypeInfo typeInfo = declaringType.getTypeInfo();
+
+        List<? extends IMethodInfo> methods;
+        if( typeInfo instanceof IRelativeTypeInfo )
+        {
+          methods = ((IRelativeTypeInfo)typeInfo).getMethods( declaringType );
+        }
+        else
+        {
+          methods = typeInfo.getMethods();
+        }
+        IReducedDynamicFunctionSymbol thisRS = createReducedSymbol();
+        for( IMethodInfo mi : methods )
+        {
+          if( mi instanceof IDFSBackedFeatureInfo )
+          {
+            IReducedDynamicFunctionSymbol dfs = ((IDFSBackedFeatureInfo)mi).getDfs();
+            if( thisRS.equals( dfs ) || thisRS.getBackingDfs().equals( dfs ) )
+            {
+              return cachedMi = mi;
+            }
+          }
+        }
+
+        List<? extends IConstructorInfo> ctors;
+        if( typeInfo instanceof IRelativeTypeInfo )
+        {
+          ctors = ((IRelativeTypeInfo)typeInfo).getConstructors( declaringType );
+        }
+        else
+        {
+          ctors = typeInfo.getConstructors();
+        }
+        for( IConstructorInfo ci : ctors )
+        {
+          if( ci instanceof IDFSBackedFeatureInfo )
+          {
+            IReducedDynamicFunctionSymbol dfs = ((IDFSBackedFeatureInfo)ci).getDfs();
+            if( thisRS.equals( dfs ) || thisRS.getBackingDfs().equals( dfs ) )
+            {
+              return cachedMi = ci;
+            }
+            else if( ((this instanceof SuperConstructorFunctionSymbol) ||
+                      (this instanceof ThisConstructorFunctionSymbol)) &&
+                     (dfs.getArgs().equals( getArgs() )) )
+            {
+              return cachedMi = ci;
+            }
+          }
         }
       }
     }
-
-    List<? extends IConstructorInfo> ctors;
-    if (typeInfo instanceof IRelativeTypeInfo) {
-      ctors = ((IRelativeTypeInfo)typeInfo).getConstructors( declaringType );
-    } else {
-      ctors = typeInfo.getConstructors();
+    finally
+    {
+      _mi = cachedMi == null ? NULL_MI : cachedMi;
     }
-    for( IConstructorInfo ci : ctors ) {
-      if (ci instanceof IDFSBackedFeatureInfo) {
-        IReducedDynamicFunctionSymbol dfs = ((IDFSBackedFeatureInfo) ci).getDfs();
-        if (thisRS.equals(dfs) || thisRS.getBackingDfs().equals(dfs)) {
-          return ci;
-        } else if (((this instanceof SuperConstructorFunctionSymbol) ||
-                (this instanceof ThisConstructorFunctionSymbol)) &&
-                (dfs.getArgs().equals(getArgs()))) {
-          return ci;
-        }
-      }
-    }
-
-    return null;
+    return cachedMi;
   }
 
   public ITypeInfo getDeclaringTypeInfo()
