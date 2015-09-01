@@ -173,7 +173,9 @@ public final class ArrayAccess extends Expression implements IArrayAccessExpress
   @Override
   public String toString()
   {
-    return getRootExpression().toString() + "[" + getMemberExpression().toString() + "]";
+    return getRootExpression().toString() + "[" +
+           (getMemberExpression() == null ? "" : getMemberExpression().toString()) +
+           "]";
   }
 
   @SuppressWarnings({"UnusedDeclaration"})
