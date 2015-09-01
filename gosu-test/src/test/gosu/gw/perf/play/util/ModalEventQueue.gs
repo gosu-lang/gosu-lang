@@ -1,4 +1,4 @@
-package play.util
+package gw.perf.play.util
 
 uses java.awt.*
 uses java.lang.Throwable

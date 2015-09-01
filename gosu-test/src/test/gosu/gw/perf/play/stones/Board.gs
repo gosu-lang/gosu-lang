@@ -1,4 +1,4 @@
-package play.stones
+package gw.perf.play.stones
 
 uses javax.swing.JPanel
 uses javax.swing.BorderFactory
@@ -10,7 +10,7 @@ uses java.awt.event.ActionEvent
 uses java.awt.EventQueue
 uses java.awt.image.BufferedImage
 uses java.util.Set
-uses play.util.ModalEventQueue
+uses gw.perf.play.util.ModalEventQueue
 uses java.util.HashSet
 uses javax.swing.JLabel
 uses java.awt.BorderLayout

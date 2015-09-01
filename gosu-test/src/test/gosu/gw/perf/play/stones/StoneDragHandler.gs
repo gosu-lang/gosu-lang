@@ -1,4 +1,4 @@
-package play.stones
+package gw.perf.play.stones
 
 uses java.awt.event.MouseAdapter
 uses java.awt.event.MouseEvent

@@ -1,4 +1,4 @@
-package play.stones
+package gw.perf.play.stones
 
 uses javax.swing.JPanel
 uses java.awt.Graphics
