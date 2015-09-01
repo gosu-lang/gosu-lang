@@ -396,8 +396,8 @@ The ``using`` Statement
 
 .. index:: using statement
 
-The purpose of the ``using`` statement is to release a resource *res*, such as a 
-file handle, lock or database connection, after its use. It may have one of 
+The purpose of the ``using`` statement is to release a resource *res*, such as
+a file handle, lock or database connection, after its use. It may have one of
 the forms:
 
     ``using`` ``(`` ``var`` *res* [``:`` *type*] ``=`` *initializer*  ... ``)`` ``{`` *body* ``}`` [ ``finally`` ``{`` *finally-body* ``}`` ]
@@ -419,12 +419,17 @@ resources.
 - Any type with method ``close()``
 - Any type with method ``lock()`` and ``unlock()``
 
-The *initializer* is evaluated and its result assigned to *res* (if ``res``'s *type* has a 
-``lock`` or ``enter`` method, it will be called on *res*), then the *body* is executed, and finally the "clean-up" method ``dispose`` or ``close`` or ``unlock`` or ``exit`` (depending on ``res``'s *type*)  is called on *res* regardless of whether *body*
-terminates normally, throws an exception, or exits by ``return`` or ``break`` or ``continue``. If ``finally`` is present, *finally-body* will be executed after the call to the "clean-up" method. 
-Resource variables like *res* are implicitly *final* and they are local to the ``using`` statement.
-The second form of the ``using`` statement has an *expression* in place of the variable list and the "clean-up" method is called on the value of the *expression*. It behaves as the first form otherwise.
-
+The *initializer* is evaluated and its result assigned to *res* (if ``res``'s 
+*type* has a ``lock`` or ``enter`` method, it will be called on *res*), then 
+the *body* is executed, and finally the "clean-up" method ``dispose`` or 
+``close`` or ``unlock`` or ``exit`` (depending on ``res``'s *type*) is called 
+on *res* regardless of whether *body* terminates normally, throws an exception, 
+or exits by ``return`` or ``break`` or ``continue``. If ``finally`` is present, 
+*finally-body* will be executed after the call to the "clean-up" method. 
+Resource variables like *res* are implicitly *final* and they are local to the 
+``using`` statement. The second form of the ``using`` statement has an 
+*expression* in place of the variable list and the "clean-up" method is called 
+on the value of the *expression*. It behaves as the first form otherwise. 
 
 The ``assert`` Statement
 ========================
@@ -489,5 +494,27 @@ and return the result of the evaluation. The statements or expressions in
 
 The ``uses`` statement
 ======================
+
+.. index:: uses statement
+
+Gosu source files may be organized in *packages*. Every source file in package 
+``p`` must begin with the declaration ``package p`` and must be stored in a 
+subdirectory called ``p``. A class declared in a source file with no 
+``package`` declaration belongs to the anonymous *default package*. A source 
+file not belonging to package ``p`` may refer to class ``C`` from package ``p`` 
+by using the qualified name ``p.C``, in which the class name ``C`` is prefixed 
+by the package name. To avoid using the package name prefix, the source file 
+may begin with an ``import`` declaration (possibly following a ``package`` 
+declaration) of one of these two forms: 
+
+  ``import p.C`` 
+  
+  ``import p.*`` 
+
+The first form allows ``C`` to be used unqualified, without the package name, 
+and the second one allows all accessible types (classes, interfaces ...) in
+package ``p`` to be used unqualified. The Java class library packages
+``java.lang`` and ``java.util`` are implicitly imported into all source
+files, as if by ``uses java.lang.*`` and ``uses java.util.*``
 
 
