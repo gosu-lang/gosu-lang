@@ -489,7 +489,7 @@ public class GosuClassProxyFactory
     for( Object o : ti.getProperties() )
     {
       IPropertyInfo pi = (IPropertyInfo)o;
-      genInterfacePropertyDecl( sb, pi );
+      genInterfacePropertyDecl( sb, pi, type );
     }
 
     // Interface methods
@@ -798,7 +798,7 @@ public class GosuClassProxyFactory
     return false;
   }
 
-  private void genInterfacePropertyDecl( StringBuilder sb, IPropertyInfo pi )
+  private void genInterfacePropertyDecl( StringBuilder sb, IPropertyInfo pi, IJavaType javaType )
   {
     if( pi.isStatic() )
     {
@@ -821,9 +821,19 @@ public class GosuClassProxyFactory
       sb.append( "\n/** " ).append( pi.getDescription() ).append( " */\n" );
     }
     sb.append( " property get " ).append( pi.getName() ).append( "() : " ).append( type.getName() ).append( "\n" );
+    IMethodInfo mi = getPropertyGetMethod( pi, javaType );
+    if( mi != null && !mi.isAbstract() )
+    {
+      generateStub( sb, mi.getReturnType() );
+    }
     if( pi.isWritable( pi.getOwnersType() ) )
     {
       sb.append( " property set " ).append( pi.getName() ).append( "( _proxy_arg_value : " ).append( type.getName() ).append( " )\n" );
+      mi = getPropertySetMethod( pi, javaType );
+      if( mi != null && !mi.isAbstract() )
+      {
+        generateStub( sb, mi.getReturnType() );
+      }
     }
   }
 
@@ -1004,12 +1014,12 @@ public class GosuClassProxyFactory
 
     String strAccessor = "get" + pi.getDisplayName();
     IMethodInfo mi = ti.getMethod( ownerType, strAccessor );
-    if( mi == null || mi.getReturnType() != propType )
+    if( mi == null )
     {
       strAccessor = "is" + pi.getDisplayName();
       mi = ti.getMethod( ownerType, strAccessor );
     }
-    if( mi != null && mi.getReturnType() == propType )
+    if( mi != null && mi.getReturnType().equals( propType ) )
     {
       return mi;
     }
