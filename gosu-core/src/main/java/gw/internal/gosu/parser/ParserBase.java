@@ -196,7 +196,7 @@ public abstract class ParserBase implements IParserPart
   private ParseTree addLocation( ParseTree location, boolean bForceRedundancy )
   {
     List<ParseTree> locationsList = getLocationsList();
-    int iLast = location.getChildren().size();
+    int iLast = location.getChildCount();
     for( int i = locationsList.size() - 1; i >= 0; i-- )
     {
       ParseTree l = locationsList.get( i );
@@ -381,7 +381,6 @@ public abstract class ParserBase implements IParserPart
   public static Token eatBlock( char cBegin, char cEnd, boolean bOperator, boolean bStopAtDeclarationKeyword, SourceCodeTokenizer tokenizer )
   {
     int iBraceDepth = 1;
-    Token endToken = new Token();
     boolean bNewMatched = false;
     do
     {
@@ -402,12 +401,13 @@ public abstract class ParserBase implements IParserPart
         return null;
       }
 
-      if( (bOperator && match( endToken, String.valueOf( cEnd ), SourceCodeTokenizer.TT_OPERATOR, false, tokenizer )) ||
-          match( endToken, null, (int)cEnd, false, tokenizer ) )
+      int mark = tokenizer.mark();
+      if( (bOperator && match( null, String.valueOf( cEnd ), SourceCodeTokenizer.TT_OPERATOR, false, tokenizer )) ||
+          match( null, null, (int)cEnd, false, tokenizer ) )
       {
         if( --iBraceDepth == 0 )
         {
-          return endToken;
+          return (Token)tokenizer.getTokenAt( mark ).copy();
         }
         continue;
       }
@@ -457,28 +457,30 @@ public abstract class ParserBase implements IParserPart
   /**
    * Parse a dot separated path as a single logical token
    */
-  public void parseDotPathWord( Token t )
+  public String parseDotPathWord( String t )
   {
-    StringBuilder sb = t == null ? null : new StringBuilder( t._strValue == null ? "" : t._strValue );
+    StringBuilder sb = t == null ? null : new StringBuilder( t == null ? "" : t );
+    SourceCodeTokenizer tokenizer = getTokenizer();
     while( match( null, '.' ) )
     {
       if( sb != null )
       {
         sb.append( '.' );
       }
-      Token T = new Token();
-      if( match( T, null, SourceCodeTokenizer.TT_WORD ) || match( T, null, SourceCodeTokenizer.TT_KEYWORD ) )
+      int mark = tokenizer.mark();
+      if( match( null, null, SourceCodeTokenizer.TT_WORD ) || match( null, null, SourceCodeTokenizer.TT_KEYWORD ) )
       {
         if( sb != null )
         {
-          sb.append( T._strValue );
+          sb.append( tokenizer.getTokenAt( mark ).getStringValue() );
         }
       }
     }
     if( sb != null )
     {
-      t._strValue = sb.toString();
+      t = sb.toString();
     }
+    return t;
   }
 
   /**
@@ -593,9 +595,10 @@ public abstract class ParserBase implements IParserPart
     }
 
     SourceCodeTokenizer tokenizer = getTokenizer();
-    if( SourceCodeTokenizer.TT_KEYWORD == tokenizer.getType() )
+    IToken t = tokenizer.getCurrentToken();
+    if( SourceCodeTokenizer.TT_KEYWORD == t.getType() )
     {
-      bMatch = token.toString().equals( tokenizer.getStringValue() );
+      bMatch = token.equals( t.getStringValue() );
     }
 
     if( bMatch && !bPeek )
@@ -1685,10 +1688,16 @@ public abstract class ParserBase implements IParserPart
     DocCommentBlock block = null;
     boolean matchedStatic = false;
     boolean matchedAbstract = false;
+    IToken token;
+    String value;
     while( true )
     {
-      if( match( null, SourceCodeTokenizer.TT_EOF ) )
+      token = getTokenizer().getCurrentToken();
+      value = token.getStringValue();
+
+      if( token.getType() == SourceCodeTokenizer.TT_EOF )
       {
+        getTokenizer().nextToken();
         modifiers.setModifiers( -1 );
         return modifiers;
       }
@@ -1701,13 +1710,13 @@ public abstract class ParserBase implements IParserPart
           modifiers.setDescription( block.getDescription() );
           if( annotations.isEmpty() )
           {
-            annotations = new ArrayList<IGosuAnnotation>( 2 );
+            annotations = new ArrayList<>( 2 );
           }
           annotations.addAll( block.getAnnotations() );
         }
       }
 
-      if( match( null, null, '@', true ) )
+      if( token.getType() == '@' )
       {
         if( getOwner() == null )
         {
@@ -1716,69 +1725,96 @@ public abstract class ParserBase implements IParserPart
         }
         if( annotations.isEmpty() )
         {
-          annotations = new ArrayList<IGosuAnnotation>( 2 );
+          annotations = new ArrayList<>( 2 );
         }
         parseAnnotation( annotations );
       }
-      else if( match( null, Keyword.KW_private ) )
+      else if( token.getType() == SourceCodeTokenizer.TT_KEYWORD )
       {
-        verify( elem, bIgnoreErrors || bNotInterface || gsClass.getEnclosingType() != null && !gsClass.getEnclosingType().isInterface(), Res.MSG_NOT_ALLOWED_IN_INTERFACE );
-        verifyNoAccessibilityModifierDefined( elem, bIgnoreErrors, iModifiers, Keyword.KW_private );
-        verifyNoHideOverrideModifierDefined( elem, bIgnoreErrors, iModifiers, Keyword.KW_private );
-        iModifiers = Modifier.setPrivate( iModifiers, true );
-      }
-      else if( match( null, Keyword.KW_internal ) )
-      {
-        verify( elem, bIgnoreErrors || bNotInterface || gsClass.getEnclosingType() != null && !gsClass.getEnclosingType().isInterface(), Res.MSG_NOT_ALLOWED_IN_INTERFACE );
-        verifyNoAccessibilityModifierDefined( elem, bIgnoreErrors, iModifiers, Keyword.KW_internal );
-        iModifiers = Modifier.setInternal( iModifiers, true );
-      }
-      else if( match( null, Keyword.KW_protected ) )
-      {
-        verify( elem, bIgnoreErrors || bNotInterface || gsClass.getEnclosingType() != null && !gsClass.getEnclosingType().isInterface(), Res.MSG_NOT_ALLOWED_IN_INTERFACE );
-        verifyNoAccessibilityModifierDefined( elem, bIgnoreErrors, iModifiers, Keyword.KW_protected );
-        iModifiers = Modifier.setProtected( iModifiers, true );
-      }
-      else if( match( null, Keyword.KW_public ) )
-      {
-        verifyNoAccessibilityModifierDefined( elem, bIgnoreErrors, iModifiers, Keyword.KW_public );
-        iModifiers = Modifier.setPublic( iModifiers, true );
-      }
-      else if( match( null, Keyword.KW_static ) )
-      {
-        verifyNoAbstractHideOverrideStaticModifierDefined( elem, bIgnoreErrors, iModifiers, Keyword.KW_static, matchedStatic );
-        iModifiers = Modifier.setStatic( iModifiers, true );
-        matchedStatic = true;
-      }
-      else if( match( null, Keyword.KW_abstract ) )
-      {
-        verify( elem, bIgnoreErrors || !Modifier.isFinal( iModifiers ), Res.MSG_ILLEGAL_USE_OF_MODIFIER, Keyword.KW_final, Keyword.KW_abstract );
-        verifyNoAbstractHideStaticModifierDefined( elem, bIgnoreErrors, iModifiers, Keyword.KW_abstract, matchedAbstract );
-        iModifiers = Modifier.setAbstract( iModifiers, true );
-        matchedAbstract = true;
-      }
-      else if( match( null, Keyword.KW_override ) )
-      {
-        verifyNoHideOverrideStaticModifierDefined( elem, bIgnoreErrors, iModifiers, Keyword.KW_override );
-        verify( elem, bIgnoreErrors || !Modifier.isPrivate( iModifiers ), Res.MSG_ILLEGAL_USE_OF_MODIFIER, Keyword.KW_private, Keyword.KW_override );
-        iModifiers = Modifier.setOverride( iModifiers, true );
-      }
-      else if( match( null, Keyword.KW_hide ) )
-      {
-        verifyNoAbstractHideOverrideStaticModifierDefined( elem, bIgnoreErrors, iModifiers, Keyword.KW_hide );
-        verify( elem, bIgnoreErrors || !Modifier.isPrivate( iModifiers ), Res.MSG_ILLEGAL_USE_OF_MODIFIER, Keyword.KW_private, Keyword.KW_hide );
-        iModifiers = Modifier.setHide( iModifiers, true );
-      }
-      else if( match( null, Keyword.KW_final ) )
-      {
-        verify( elem, bIgnoreErrors || !Modifier.isAbstract( iModifiers ), Res.MSG_ILLEGAL_USE_OF_MODIFIER, Keyword.KW_abstract, Keyword.KW_final );
-        verify( elem, bIgnoreErrors || !Modifier.isFinal( iModifiers ), Res.MSG_ILLEGAL_USE_OF_MODIFIER, Keyword.KW_final, Keyword.KW_final );
-        iModifiers = Modifier.setFinal( iModifiers, true );
-      }
-      else if( match( null, Keyword.KW_transient ) )
-      {
-        verify( elem, bIgnoreErrors || !Modifier.isTransient( iModifiers ), Res.MSG_ILLEGAL_USE_OF_MODIFIER, Keyword.KW_transient, Keyword.KW_transient );
-        iModifiers = Modifier.setTransient( iModifiers, true );
+        if( Keyword.KW_private.equals( value ) )
+        {
+          getTokenizer().nextToken();
+
+          verify( elem, bIgnoreErrors || bNotInterface || gsClass.getEnclosingType() != null && !gsClass.getEnclosingType().isInterface(), Res.MSG_NOT_ALLOWED_IN_INTERFACE );
+          verifyNoAccessibilityModifierDefined( elem, bIgnoreErrors, iModifiers, Keyword.KW_private );
+          verifyNoHideOverrideModifierDefined( elem, bIgnoreErrors, iModifiers, Keyword.KW_private );
+          iModifiers = Modifier.setPrivate( iModifiers, true );
+        }
+        else if( Keyword.KW_internal.equals( value ) )
+        {
+          getTokenizer().nextToken();
+
+          verify( elem, bIgnoreErrors || bNotInterface || gsClass.getEnclosingType() != null && !gsClass.getEnclosingType().isInterface(), Res.MSG_NOT_ALLOWED_IN_INTERFACE );
+          verifyNoAccessibilityModifierDefined( elem, bIgnoreErrors, iModifiers, Keyword.KW_internal );
+          iModifiers = Modifier.setInternal( iModifiers, true );
+        }
+        else if( Keyword.KW_protected.equals( value ) )
+        {
+          getTokenizer().nextToken();
+
+          verify( elem, bIgnoreErrors || bNotInterface || gsClass.getEnclosingType() != null && !gsClass.getEnclosingType().isInterface(), Res.MSG_NOT_ALLOWED_IN_INTERFACE );
+          verifyNoAccessibilityModifierDefined( elem, bIgnoreErrors, iModifiers, Keyword.KW_protected );
+          iModifiers = Modifier.setProtected( iModifiers, true );
+        }
+        else if( Keyword.KW_public.equals( value ) )
+        {
+          getTokenizer().nextToken();
+
+          verifyNoAccessibilityModifierDefined( elem, bIgnoreErrors, iModifiers, Keyword.KW_public );
+          iModifiers = Modifier.setPublic( iModifiers, true );
+        }
+        else if( Keyword.KW_static.equals( value ) )
+        {
+          getTokenizer().nextToken();
+
+          verifyNoAbstractHideOverrideStaticModifierDefined( elem, bIgnoreErrors, iModifiers, Keyword.KW_static, matchedStatic );
+          iModifiers = Modifier.setStatic( iModifiers, true );
+          matchedStatic = true;
+        }
+        else if( Keyword.KW_abstract.equals( value ) )
+        {
+          getTokenizer().nextToken();
+
+          verify( elem, bIgnoreErrors || !Modifier.isFinal( iModifiers ), Res.MSG_ILLEGAL_USE_OF_MODIFIER, Keyword.KW_final, Keyword.KW_abstract );
+          verifyNoAbstractHideStaticModifierDefined( elem, bIgnoreErrors, iModifiers, Keyword.KW_abstract, matchedAbstract );
+          iModifiers = Modifier.setAbstract( iModifiers, true );
+          matchedAbstract = true;
+        }
+        else if( Keyword.KW_override.equals( value ) )
+        {
+          getTokenizer().nextToken();
+
+          verifyNoHideOverrideStaticModifierDefined( elem, bIgnoreErrors, iModifiers, Keyword.KW_override );
+          verify( elem, bIgnoreErrors || !Modifier.isPrivate( iModifiers ), Res.MSG_ILLEGAL_USE_OF_MODIFIER, Keyword.KW_private, Keyword.KW_override );
+          iModifiers = Modifier.setOverride( iModifiers, true );
+        }
+        else if( Keyword.KW_hide.equals( value ) )
+        {
+          getTokenizer().nextToken();
+
+          verifyNoAbstractHideOverrideStaticModifierDefined( elem, bIgnoreErrors, iModifiers, Keyword.KW_hide );
+          verify( elem, bIgnoreErrors || !Modifier.isPrivate( iModifiers ), Res.MSG_ILLEGAL_USE_OF_MODIFIER, Keyword.KW_private, Keyword.KW_hide );
+          iModifiers = Modifier.setHide( iModifiers, true );
+        }
+        else if( Keyword.KW_final.equals( value ) )
+        {
+          getTokenizer().nextToken();
+
+          verify( elem, bIgnoreErrors || !Modifier.isAbstract( iModifiers ), Res.MSG_ILLEGAL_USE_OF_MODIFIER, Keyword.KW_abstract, Keyword.KW_final );
+          verify( elem, bIgnoreErrors || !Modifier.isFinal( iModifiers ), Res.MSG_ILLEGAL_USE_OF_MODIFIER, Keyword.KW_final, Keyword.KW_final );
+          iModifiers = Modifier.setFinal( iModifiers, true );
+        }
+        else if( Keyword.KW_transient.equals( value ) )
+        {
+          getTokenizer().nextToken();
+
+          verify( elem, bIgnoreErrors || !Modifier.isTransient( iModifiers ), Res.MSG_ILLEGAL_USE_OF_MODIFIER, Keyword.KW_transient, Keyword.KW_transient );
+          iModifiers = Modifier.setTransient( iModifiers, true );
+        }
+        else
+        {
+          break;
+        }
       }
       else
       {
@@ -1786,10 +1822,10 @@ public abstract class ParserBase implements IParserPart
       }
     }
 
-    if( match( null, Keyword.KW_function, true ) ||
-        match( null, Keyword.KW_property, true ) ||
-        match( null, Keyword.KW_var, true ) ||
-        match( null, Keyword.KW_delegate, true ) )
+    if( Keyword.KW_function.equals( value ) ||
+        Keyword.KW_property.equals( value ) ||
+        Keyword.KW_var.equals( value ) ||
+        Keyword.KW_delegate.equals( value ) )
     {
       verifyNoCombinedPrivateAbstract( elem, bIgnoreErrors, iModifiers );
     }
@@ -2391,30 +2427,39 @@ public abstract class ParserBase implements IParserPart
     return types;
   }
 
-  public static boolean matchDeclarationKeyword( Token T, boolean bPeek, SourceCodeTokenizer tokenizer )
+  public static boolean matchDeclarationKeyword( String[] ret, boolean bPeek, SourceCodeTokenizer tokenizer )
   {
-    boolean bMatch =
-    (match( T, Keyword.KW_construct.toString(), SourceCodeTokenizer.TT_KEYWORD, bPeek, tokenizer ) ||
-     match( T, Keyword.KW_function.toString(), SourceCodeTokenizer.TT_KEYWORD, bPeek, tokenizer ) ||
-     match( T, Keyword.KW_property.toString(), SourceCodeTokenizer.TT_KEYWORD, bPeek, tokenizer ) ||
-     match( T, Keyword.KW_var.toString(), SourceCodeTokenizer.TT_KEYWORD, bPeek, tokenizer ) ||
-     match( T, Keyword.KW_delegate.toString(), SourceCodeTokenizer.TT_KEYWORD, bPeek, tokenizer ) ||
-     match( T, Keyword.KW_class.toString(), SourceCodeTokenizer.TT_KEYWORD, bPeek, tokenizer ) ||
-     match( T, Keyword.KW_interface.toString(), SourceCodeTokenizer.TT_KEYWORD, bPeek, tokenizer ) ||
-     match( T, Keyword.KW_annotation.toString(), SourceCodeTokenizer.TT_KEYWORD, bPeek, tokenizer ) ||
-     match( T, Keyword.KW_structure.toString(), SourceCodeTokenizer.TT_KEYWORD, bPeek, tokenizer ) ||
-     match( T, Keyword.KW_enum.toString(), SourceCodeTokenizer.TT_KEYWORD, bPeek, tokenizer ));
-    if( bMatch )
+    boolean bMatch = false;
+    IToken token = tokenizer.getCurrentToken();
+    if( token.getType() == SourceCodeTokenizer.TT_KEYWORD )
     {
-      // We must allow an existing java package to have the same name as a gosu declaration keyword.
-      // We check for that by looking for a following '.' after the package reference...
-
-      int iTokenIndex = tokenizer.getState();
-      IToken followingToken = tokenizer.getTokenAt( iTokenIndex + (bPeek ? 1 : 0) );
-      IToken priorToken = iTokenIndex <= 1 ? null : tokenizer.getTokenAt( iTokenIndex + (bPeek ? -1 : -2) );
-
-      bMatch = (followingToken == null || followingToken.getType() != '.') &&
-               (priorToken == null || !(priorToken.getType() == '.' || "#".equals( priorToken.getStringValue() )));
+      String value = token.getStringValue();
+      if( Keyword.KW_construct.equals( value ) ||
+          Keyword.KW_function.equals( value ) ||
+          Keyword.KW_property.equals( value ) ||
+          Keyword.KW_var.equals( value ) ||
+          Keyword.KW_delegate.equals( value ) ||
+          Keyword.KW_class.equals( value ) ||
+          Keyword.KW_interface.equals( value ) ||
+          Keyword.KW_annotation.equals( value ) ||
+          Keyword.KW_structure.equals( value ) ||
+          Keyword.KW_enum.equals( value ) )
+      {
+        if( ret != null )
+        {
+          ret[0] = value;
+        }
+        // We must allow an existing java package to have the same name as a gosu declaration keyword.
+        // We check for that by looking for a following '.' after the package reference...
+        int mark = tokenizer.mark();
+        IToken nextToken = tokenizer.getTokenAt( mark + 1 );
+        IToken priorToken = mark == 0 ? null : tokenizer.getTokenAt( mark - 1 );
+        bMatch = (nextToken == null || nextToken.getType() != '.') && (priorToken == null || (priorToken.getType() != '.' && !"#".equals( priorToken.getStringValue() )));
+        if( !bPeek )
+        {
+          tokenizer.nextToken();
+        }
+      }
     }
     return bMatch;
   }

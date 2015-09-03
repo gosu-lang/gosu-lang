@@ -193,10 +193,6 @@ final public class SourceCodeTokenizer implements ISourceCodeTokenizer
     {
       return null;
     }
-    if( isEOF() )
-    {
-      return null;
-    }
     if( _state == -1 )
     {
       return null;
