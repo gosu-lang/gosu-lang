@@ -7,15 +7,17 @@ package gw.internal.gosu.parser;
 import gw.lang.parser.IParseTree;
 import gw.lang.parser.ISourceCodeTokenizer;
 import gw.lang.parser.IToken;
+import gw.lang.parser.Keyword;
 import gw.lang.parser.SourceCodeReader;
 import gw.util.GosuEscapeUtil;
 
 /**
 */
-public class Token implements IToken
+public class Token extends IToken
 {
   int _iType;
   String _strValue;
+  Keyword _keyword;
   int _iInvalidCharPos;
   int _iDocPosition;
   int _iDocLength;
@@ -44,6 +46,7 @@ public class Token implements IToken
               int iLineOffset,
               boolean bUnterminatedString,
               String strValue,
+              Keyword keyword,
               boolean bAnalyzingSeparately,
               boolean bAnalyzingDirective,
               SourceCodeReader document,
@@ -59,6 +62,7 @@ public class Token implements IToken
     _bAnalyzingDirective = bAnalyzingDirective;
     _iLine = iLine;
     _iLineOffset = iLineOffset;
+    _keyword = keyword;
     _turd = turd;
     assignContent( strValue, document );
     return this;
@@ -139,6 +143,18 @@ public class Token implements IToken
   public String getStringValue()
   {
     return _strValue;
+  }
+
+  @Override
+  public boolean isValueKeyword()
+  {
+    return _keyword != null && _keyword.isValue();
+  }
+
+  @Override
+  final public Keyword getKeyword()
+  {
+    return _keyword;
   }
 
   public int getInvalidCharPos()

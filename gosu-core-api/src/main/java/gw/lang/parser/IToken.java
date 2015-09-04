@@ -6,28 +6,30 @@ package gw.lang.parser;
 
 /**
  */
-public interface IToken
+public abstract class IToken
 {
-  int getType();
-  int getTokenStart();
-  int getTokenEnd();
-  int getTokenColumn();
-  String getStringValue();
-  int getInvalidCharPos();
-  String getText();
+  public abstract int getType();
+  public abstract int getTokenStart();
+  public abstract int getTokenEnd();
+  public abstract int getTokenColumn();
+  public abstract String getStringValue();
+  public abstract boolean isValueKeyword();
+  public abstract Keyword getKeyword();
+  public abstract int getInvalidCharPos();
+  public abstract String getText();
 
-  int getLine();
-  int getLineOffset();
+  public abstract int getLine();
+  public abstract int getLineOffset();
 
-  boolean isAnalyzingSeparately();
-  boolean isAnalyzingDirective();
+  public abstract boolean isAnalyzingSeparately();
+  public abstract boolean isAnalyzingDirective();
 
-  void setAfter( IParseTree after );
+  public abstract void setAfter( IParseTree after );
 
-  IParseTree getAfter();
+  public abstract IParseTree getAfter();
 
-  IToken copy();
-  <E extends IToken> E copyInto( E t );
+  public abstract IToken copy();
+  public abstract <E extends IToken> E copyInto( E t );
 
-  void collapse();
+  public abstract void collapse();
 }

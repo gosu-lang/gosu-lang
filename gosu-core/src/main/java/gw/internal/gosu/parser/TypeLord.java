@@ -651,7 +651,7 @@ public class TypeLord
     parser.pushIgnoreTypeDeprecation();
     try
     {
-      return parser.parseTypeLiteral( null );
+      return parser.parseTypeLiteral( (IScriptPartId)null );
     }
     finally
     {

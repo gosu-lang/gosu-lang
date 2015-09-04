@@ -5,7 +5,6 @@ package gw.internal.gosu.parser;
 
 import gw.internal.gosu.template.TemplateGenerator;
 import gw.lang.parser.ISourceCodeTokenizer;
-import gw.lang.parser.IToken;
 import gw.lang.parser.ITokenizerInstructor;
 import gw.lang.parser.Keyword;
 import gw.lang.parser.SourceCodeReader;
@@ -38,9 +37,9 @@ final public class SourceCodeTokenizerInternal
   protected static final int CT_CHARQUOTE = 128;
 
   private static final Set<String> DEFAULT_OPERATORS =
-    Collections.unmodifiableSet( new HashSet<String>( Arrays.asList( getDefaultOperators() ) ) );
+    Collections.unmodifiableSet( new HashSet<>( Arrays.asList( getDefaultOperators() ) ) );
   private static final Set<String> BITSHIFT_OPERATORS =
-          Collections.unmodifiableSet( new HashSet<String>( Arrays.asList( getBitshiftOperators() ) ) );
+          Collections.unmodifiableSet( new HashSet<>( Arrays.asList( getBitshiftOperators() ) ) );
 
   private SourceCodeReader _reader;
 
@@ -63,6 +62,7 @@ final public class SourceCodeTokenizerInternal
   private boolean _bCommentsSignificant;
 
   public int _iType;
+  public Keyword _keyword;
   public String _strValue;
   public int _iInvalidCharPos;
   public boolean _bUnterminatedString;
@@ -73,8 +73,8 @@ final public class SourceCodeTokenizerInternal
   private boolean _bParseDotsAsOperators;
   private int _iLineOffset;
 
-  private Stack<IToken> _tokens;
-  private IToken _eof;
+  private Stack<Token> _tokens;
+  private Token _eof;
   private boolean _supportsKeywords = true;
 
   SourceCodeTokenizerInternal( boolean initForCopy )
@@ -87,7 +87,7 @@ final public class SourceCodeTokenizerInternal
       _ctype = new int[256];
       _iType = ISourceCodeTokenizer.TT_NOTHING;
       _bParseDotsAsOperators = true;
-      _tokens = new Stack<IToken>(); // assigned as needed
+      _tokens = new Stack<>(); // assigned as needed
 
       wordChars( 'a', 'z' );
       wordChars( 'A', 'Z' );
@@ -128,7 +128,7 @@ final public class SourceCodeTokenizerInternal
     _instructor = instructor;
   }
 
-  public IToken copy()
+  public Token copy()
   {
     throw new IllegalStateException( "should not call this from internal" );
   }
@@ -178,7 +178,7 @@ final public class SourceCodeTokenizerInternal
     _bUnterminatedString = false;
     _bUnterminatedComment = false;
     _lastComment = null;
-    _tokens = new Stack<IToken>();
+    _tokens = new Stack<>();
     if( _instructor != null )
     {
       _instructor.reset();
@@ -384,7 +384,7 @@ final public class SourceCodeTokenizerInternal
       // Now append the operator to the list...
       if( _operators == null || _operators == DEFAULT_OPERATORS )
       {
-        _operators = new HashSet<String>();
+        _operators = new HashSet<>();
       }
 
       _operators.add( astrOperator );
@@ -610,6 +610,7 @@ final public class SourceCodeTokenizerInternal
                        getLineOffset(),
                        isUnterminatedString(),
                        _strValue,
+                       _keyword,
                        isAnalyzingSeparately(),
                        isAnalyzingDirective(),
                        getReader(),
@@ -639,7 +640,7 @@ final public class SourceCodeTokenizerInternal
     return _instructor != null && _instructor.isAnalyzingDirective();
   }
 
-  public Stack<IToken> getTokens()
+  final public Stack<Token> getTokens()
   {
     return _tokens;
   }
@@ -691,6 +692,7 @@ final public class SourceCodeTokenizerInternal
     int ct[] = _ctype;
     int c;
     _strValue = null;
+    _keyword = null;
     _iInvalidCharPos = -1;
 
     if( _iType == ISourceCodeTokenizer.TT_NOTHING )
@@ -865,6 +867,7 @@ final public class SourceCodeTokenizerInternal
       {
         _strValue = _strValue.toLowerCase();
       }
+      _keyword = isSupportsKeywords() ? Keyword.get( _strValue ) : null;
       return _iType = isReserved() ? ISourceCodeTokenizer.TT_KEYWORD : ISourceCodeTokenizer.TT_WORD;
     }
 
@@ -1371,12 +1374,12 @@ final public class SourceCodeTokenizerInternal
     }
   }
 
-  void setTokens( Stack<IToken> tokens )
+  void setTokens( Stack<Token> tokens )
   {
     _tokens = tokens;
   }
 
-  public IToken getEofToken()
+  public Token getEofToken()
   {
     return _eof;
   }

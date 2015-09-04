@@ -90,7 +90,6 @@ import gw.lang.parser.ISource;
 import gw.lang.parser.ISourceCodeTokenizer;
 import gw.lang.parser.ISymbol;
 import gw.lang.parser.ISymbolTable;
-import gw.lang.parser.IToken;
 import gw.lang.parser.ITokenizerInstructor;
 import gw.lang.parser.ITypeUsesMap;
 import gw.lang.parser.Keyword;
@@ -249,7 +248,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
 
   private int _iStmtDepth;
   private List<ParseTree> _savedLocations;
-
+  private Boolean _bAreUsingStatementsAllowedInStatementLists;
 
   GosuParser( ISymbolTable symTable, IScriptabilityModifier scriptabilityConstraint )
   {
@@ -1950,7 +1949,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
     do
     {
       boolean bEq;
-      IToken token = getTokenizer().getCurrentToken();
+      Token token = getTokenizer().getCurrentToken();
       String value = token.getStringValue();
       if( token.getType() == SourceCodeTokenizer.TT_OPERATOR && value != null &&
           ((bEq = value.equals( "===" )) ||
@@ -2238,7 +2237,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
     // <relational-expression2>
     do
     {
-      IToken token = getTokenizer().getCurrentToken();
+      Token token = getTokenizer().getCurrentToken();
       String value = token.getStringValue();
       if( token.getType() == SourceCodeTokenizer.TT_OPERATOR && value != null &&
           (value.equals( "<" ) ||
@@ -2333,7 +2332,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
     parseBitshiftExpression();
 
     // <additive-expression2>
-    IToken token = getTokenizer().getCurrentToken();
+    Token token = getTokenizer().getCurrentToken();
     int mark = getTokenizer().mark();
     String value = token.getStringValue();
     boolean bOperator = token.getType() == SourceCodeTokenizer.TT_OPERATOR;
@@ -2342,7 +2341,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
     boolean bNextTokenIsDotNoWhitespace = false;
     if( bClosed || bLeftOpen ) {
       getTokenizer().nextToken();
-      IToken dotToken = getTokenizer().getTokenAt( mark + 1 );
+      Token dotToken = getTokenizer().getTokenAt( mark + 1 );
       if( bNextTokenIsDotNoWhitespace = dotToken != null && dotToken.getType() == '.' )
       {
         getTokenizer().nextToken();
@@ -2416,9 +2415,10 @@ public final class GosuParser extends ParserBase implements IGosuParser
   //
   void parseBitshiftExpression()
   {
-    int iOffset = _tokenizer.getTokenStart();
-    int iLineNum = _tokenizer.getLineNumber();
-    int iColumn = getTokenizer().getTokenColumn();
+    Token token = _tokenizer.getCurrentToken();
+    int iOffset = token.getTokenStart();
+    int iLineNum = token.getLine();
+    int iColumn = token.getTokenColumn();
 
     // <additive-expression>
     parseAdditiveExpression();
@@ -2426,8 +2426,9 @@ public final class GosuParser extends ParserBase implements IGosuParser
     // <bitshift-expression2>
     do
     {
+      token = _tokenizer.getCurrentToken();
       boolean bLeftShift;
-      if( (bLeftShift = match( null, "<<", SourceCodeTokenizer.TT_OPERATOR, true )) || matchRightShift() )
+      if( (bLeftShift = (SourceCodeTokenizer.TT_OPERATOR == token.getType() && "<<".equals( token.getStringValue() ))) || matchRightShift() )
       {
         Token T = new Token();
         if( bLeftShift )
@@ -2482,7 +2483,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
   {
     SourceCodeTokenizer tokenizer = getTokenizer();
     int mark = tokenizer.mark();
-    IToken t = tokenizer.getTokenAt( mark );
+    Token t = tokenizer.getTokenAt( mark );
     if( t != null && t.getType() == SourceCodeTokenizer.TT_OPERATOR && ">".equals( t.getStringValue() ) )
     {
       t = tokenizer.getTokenAt( mark + 1 );
@@ -2524,7 +2525,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
     // <additive-expression2>
     do
     {
-      IToken token = getTokenizer().getCurrentToken();
+      Token token = getTokenizer().getCurrentToken();
       String value = token.getStringValue();
       boolean bOperator = token.getType() == SourceCodeTokenizer.TT_OPERATOR && value != null;
       boolean bPlus = bOperator &&
@@ -2581,7 +2582,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
 
     do
     {
-      IToken token = getTokenizer().getCurrentToken();
+      Token token = getTokenizer().getCurrentToken();
       String value = token.getStringValue();
       if( token.getType() == SourceCodeTokenizer.TT_OPERATOR && value != null &&
           (value.equals( "*" ) ||
@@ -2703,7 +2704,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
 
   void _parseUnaryExpression()
   {
-    IToken token = getTokenizer().getCurrentToken();
+    Token token = getTokenizer().getCurrentToken();
     String value = token.getStringValue();
     if( token.getType() == SourceCodeTokenizer.TT_OPERATOR && value != null &&
         (value.equals( "+" ) ||
@@ -2714,9 +2715,10 @@ public final class GosuParser extends ParserBase implements IGosuParser
       
       boolean unchecked = "!-".equals( value );
       boolean negation = value.charAt( 0 ) == '-' || unchecked;
+      token = getTokenizer().getCurrentToken();
       if( negation && atNumberLiteralStart() )
       {
-        parseNumberLiteral( true );
+        parseNumberLiteral( token, true );
       }
       else
       {
@@ -2918,9 +2920,10 @@ public final class GosuParser extends ParserBase implements IGosuParser
   //
   void parsePrimaryExpression()
   {
-    int iOffset = _tokenizer.getTokenStart();
-    int iLineNum = _tokenizer.getLineNumber();
-    int iColumn = getTokenizer().getTokenColumn();
+    final Token token = _tokenizer.getCurrentToken();
+    int iOffset = token.getTokenStart();
+    int iLineNum = token.getLine();
+    int iColumn = token.getTokenColumn();
     boolean bForceRedundancy = _parsePrimaryExpression();
     setLocation( iOffset, iLineNum, iColumn, bForceRedundancy );
     Expression eas = peekExpression();
@@ -2940,19 +2943,24 @@ public final class GosuParser extends ParserBase implements IGosuParser
   {
     boolean bRet = false;
 
-    if( match( null, Keyword.KW_block ) )
+    Token token = getTokenizer().getCurrentToken();
+    if( Keyword.KW_block == token.getKeyword() )
     {
+      getTokenizer().nextToken();
       _parseBlockLiteral();
     }
-    else if( match( null, Keyword.KW_new ) )
+    else if( Keyword.KW_new == token.getKeyword() )
     {
+      getTokenizer().nextToken();
       parseNewExpression();
     }
-    else if( parseNameOrMethodCall() )
+    else if( parseNameOrMethodCall( token ) )
     {
     }
-    else if( match( null, '(' ) )
+    else if( '(' == token.getType() )
     {
+      getTokenizer().nextToken();
+      
       parseExpressionNoVerify( isParenthesisTerminalExpression() ? getContextType() : ContextType.EMPTY );
       _ctxInferenceMgr.restoreLastCtx();
       Expression e = popExpression();
@@ -2961,29 +2969,33 @@ public final class GosuParser extends ParserBase implements IGosuParser
 
       verify( e, match( null, ')' ), Res.MSG_EXPECTING_EXPRESSION_CLOSE );
     }
-    else if( parseStandAloneDataStructureInitialization() )
+    else if( parseStandAloneDataStructureInitialization( token ) )
     {
       bRet = true;
     }
     else
     {
-      parseLiteral();
+      parseLiteral( token );
     }
 
     return bRet;
   }
 
-  private boolean parseBooleanLiteral()
+  private boolean parseBooleanLiteral( Token token )
   {
-    if( match( null, Keyword.KW_true ) )
+    if( Keyword.KW_true == token.getKeyword() )
     {
+      getTokenizer().nextToken();
+
       BooleanLiteral e = new BooleanLiteral( true );
       pushExpression( e );
       return true;
     }
 
-    if( match( null, Keyword.KW_false ) )
+    if( Keyword.KW_false == token.getKeyword() )
     {
+      getTokenizer().nextToken();
+
       BooleanLiteral e = new BooleanLiteral( false );
       pushExpression( e );
       return true;
@@ -2992,34 +3004,39 @@ public final class GosuParser extends ParserBase implements IGosuParser
     return false;
   }
 
-  private boolean parseNullLiteral()
+  private boolean parseNullLiteral( Token token )
   {
-    if( match( null, Keyword.KW_null ) )
+    if( Keyword.KW_null == token.getKeyword() )
     {
+      getTokenizer().nextToken();
+
       pushExpression( new NullExpression() );
       return true;
     }
     return false;
   }
 
-  private boolean parseStandAloneDataStructureInitialization()
+  private boolean parseStandAloneDataStructureInitialization( Token token )
   {
-    return parseStandAloneDataStructureInitialization( false, false );
+    return parseStandAloneDataStructureInitialization( token, false, false );
   }
-  private boolean parseStandAloneDataStructureInitialization( boolean bAvoidContextType, boolean bBacktracking )
+  private boolean parseStandAloneDataStructureInitialization( Token token, boolean bAvoidContextType, boolean bBacktracking )
   {
     int mark = getTokenizer().mark();
     int iLocationsCount = _locations.size();
 
-    IToken startToken = getTokenizer().getCurrentToken();
+    Token startToken = token;
 
     // infered data constructors
-    if( !match( null, '{' ) )
+    if( '{' != token.getType() )
     {
       return false;
     }
     else
     {
+      getTokenizer().nextToken();
+      token = getTokenizer().getCurrentToken();
+
       bAvoidContextType = bAvoidContextType || shouldThisExpressionAvoidTheContextType();
 
       IType ctxType = bAvoidContextType ? null : getInitializableType().getType();
@@ -3030,7 +3047,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
       {
         IInitializerExpression initializer;
         IType type;
-        if( match( null, null, '}', true ) )
+        if( '}' == token.getType() )
         {
           initializer = new CollectionInitializerExpression();
           type = JavaTypes.ARRAY_LIST().getParameterizedType( bPlaceholder ? ctxType : JavaTypes.OBJECT() );
@@ -3229,11 +3246,12 @@ public final class GosuParser extends ParserBase implements IGosuParser
   private boolean maybeReparseWithoutContextType( int mark, int iLocationsCount, Expression initializerExpression )
   {
     backtrack( mark, iLocationsCount, initializerExpression );
-    boolean bRes = parseStandAloneDataStructureInitialization( true, true );
+    Token token = getTokenizer().getCurrentToken();
+    boolean bRes = parseStandAloneDataStructureInitialization( token, true, true );
     if( peekExpression().hasParseExceptions() )
     {
       backtrack( mark, iLocationsCount, initializerExpression );
-      return parseStandAloneDataStructureInitialization( false, true );
+      return parseStandAloneDataStructureInitialization( token, false, true );
     }
     else
     {
@@ -3244,17 +3262,21 @@ public final class GosuParser extends ParserBase implements IGosuParser
   private boolean shouldThisExpressionAvoidTheContextType() {
     int mark = getTokenizer().mark();
     eatBlock( '{', '}', false );
-    boolean bAvoidContextType = match( null, null, '.', true ) ||
-      match( null, "?.", SourceCodeTokenizer.TT_OPERATOR, true ) ||
-      match( null, "*.", SourceCodeTokenizer.TT_OPERATOR, true ) ||
-      match( null, "==", SourceCodeTokenizer.TT_OPERATOR, true ) ||
-      match( null, "!=", SourceCodeTokenizer.TT_OPERATOR, true ) ||
-      match( null, "===", SourceCodeTokenizer.TT_OPERATOR, true ) ||
-      match( null, "!==", SourceCodeTokenizer.TT_OPERATOR, true ) ||
-      match( null, "#", SourceCodeTokenizer.TT_OPERATOR, true ) ||
-      match( null, "?", SourceCodeTokenizer.TT_OPERATOR, true ) ||
-      match( null, "?[", SourceCodeTokenizer.TT_OPERATOR, true ) ||
-      match( null, null, '[', true );
+    Token token = getTokenizer().getCurrentToken();
+    String value = token.getStringValue();
+    boolean bAvoidContextType =
+      '.' == token.getType() ||
+      '[' == token.getType() ||
+     (token.getType() == SourceCodeTokenizer.TT_OPERATOR &&
+      ("?.".equals( value ) ||
+       "*.".equals( value ) ||
+       "==".equals( value ) ||
+       "!=".equals( value ) ||
+       "===".equals( value ) ||
+       "!==".equals( value ) ||
+       "#".equals( value ) ||
+       "?".equals( value ) ||
+       "?[".equals( value )));
     getTokenizer().restoreToMark( mark );
     return bAvoidContextType;
   }
@@ -3824,7 +3846,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
       {
         if( isInitializableType( e.getType() ) )
         {
-          IToken startToken = getTokenizer().getCurrentToken();
+          Token startToken = getTokenizer().getCurrentToken();
           match( null, '{' );
           if( !match( null, '}' ) )
           {
@@ -4792,8 +4814,8 @@ public final class GosuParser extends ParserBase implements IGosuParser
   {
     Expression peekRootExpression = peekExpression();
 
-    int operatorLineNumber = getTokenizer().getLineNumber();
-    IToken token = getTokenizer().getCurrentToken();
+    Token token = getTokenizer().getCurrentToken();
+    int operatorLineNumber = token.getLine();
     String value = token.getStringValue();
     if( '.' == token.getType() ||
         (token.getType() == SourceCodeTokenizer.TT_OPERATOR && value != null &&
@@ -4812,7 +4834,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
                          makeLazyLightweightParserState(), bParseTypeLiteralOnly );
       verifyNonVoidExpression( peekExpression() );
     }
-    else if( parseFeatureLiteral( peekRootExpression ) )
+    else if( parseFeatureLiteral( token, peekRootExpression ) )
     {
       // good
     }
@@ -4973,11 +4995,13 @@ public final class GosuParser extends ParserBase implements IGosuParser
            ((Identifier)rootExpression).getSymbol().getName().equals( Keyword.KW_super.getName() );
   }
 
-  private boolean parseFeatureLiteral( Expression root )
+  private boolean parseFeatureLiteral( Token token, Expression root )
   {
     Token T = new Token();
-    if( match( null, "#", SourceCodeTokenizer.TT_OPERATOR ) )
+    if( SourceCodeTokenizer.TT_OPERATOR == token.getType() && "#".equals( token.getStringValue() ) )
     {
+      getTokenizer().nextToken();
+      
       if( root != popExpression() )
       {
         throw new IllegalStateException();
@@ -5125,21 +5149,22 @@ public final class GosuParser extends ParserBase implements IGosuParser
     }
   }
 
-  boolean parseNameOrMethodCall()
+  boolean parseNameOrMethodCall( Token token )
   {
-    if( match( null, Keyword.KW_true, true )       |
-            match( null, Keyword.KW_false, true )      |
-            match( null, Keyword.KW_NaN, true )        |
-            match( null, Keyword.KW_Infinity, true )   |
-            match( null, Keyword.KW_null, true ) )
+    if( token.getType() == SourceCodeTokenizer.TT_KEYWORD &&
+        (Keyword.KW_true == token.getKeyword() ||
+         Keyword.KW_false == token.getKeyword() ||
+         Keyword.KW_NaN == token.getKeyword() ||
+         Keyword.KW_Infinity == token.getKeyword() ||
+         Keyword.KW_null == token.getKeyword()) )
     {
       return false;
     }
 
-    int iOffset = _tokenizer.getTokenStart();
-    int iLineNum = _tokenizer.getLineNumber();
-    int iColumn = getTokenizer().getTokenColumn();
-    boolean bRet = _parseNameOrMethodCall();
+    int iOffset = token.getTokenStart();
+    int iLineNum = token.getLine();
+    int iColumn = token.getTokenColumn();
+    boolean bRet = _parseNameOrMethodCall( token );
     if( bRet )
     {
       verifyNonVoidExpression(peekExpression());
@@ -5162,15 +5187,17 @@ public final class GosuParser extends ParserBase implements IGosuParser
     return bRet;
   }
 
-  boolean _parseNameOrMethodCall()
+  boolean _parseNameOrMethodCall( Token token )
   {
-    int iOffset = _tokenizer.getTokenStart();
-    int iLineNum = _tokenizer.getLineNumber();
-    int iColumn = getTokenizer().getTokenColumn();
+    int iOffset = token.getTokenStart();
+    int iLineNum = token.getLine();
+    int iColumn = token.getTokenColumn();
     IParserState state = makeLazyLightweightParserState(); //capture position of word for error reporting
     int markBefore = getTokenizer().mark();
-    if( match( null, SourceCodeTokenizer.TT_WORD ) || matchPrimitiveType( true ) )
+    if( isWordOrValueKeyword( token ) || matchPrimitiveType( true ) )
     {
+      getTokenizer().nextToken();
+      
       String[] strToken = new String[] {getTokenizer().getTokenAt( markBefore ).getStringValue()};
       MethodCallExpression e = new MethodCallExpression();
       IType[] typeParameters = parsePossibleFunctionParameterization( strToken[0], e );
@@ -5188,7 +5215,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
       }
       else
       {
-        IToken token = getTokenizer().getCurrentToken();
+        token = getTokenizer().getCurrentToken();
         if( !Keyword.KW_super.equals( strToken[0] ) ||
             token.getType() == '.' ||
             "#".equals( token.getStringValue() ) ||
@@ -5490,7 +5517,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
     // We can determine if we've crossed an expression boundary by examining the prior token and
     // checking for the '}' terminal in the whitespace (non-source code content is considered
     // whitespace while parsing a template).
-    IToken priorToken = getTokenizer().getTokenAt( getTokenizer().getState() - 1 );
+    Token priorToken = getTokenizer().getTokenAt( getTokenizer().getState() - 1 );
     return priorToken != null &&
             priorToken.getType() == ISourceCodeTokenizer.TT_WHITESPACE &&
             (priorToken.getStringValue().indexOf( '}' ) >= 0 ||
@@ -6050,7 +6077,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
     {
       return false;
     }
-    IToken priorMarkToken = _tokenizer.getTokenAt( mark - 1 );
+    Token priorMarkToken = _tokenizer.getTokenAt( mark - 1 );
     return priorMarkToken != null && priorMarkToken.getType() == ISourceCodeTokenizer.TT_WHITESPACE && priorMarkToken.getText().indexOf( '\n' ) >= 0;
   }
 
@@ -7494,43 +7521,43 @@ public final class GosuParser extends ParserBase implements IGosuParser
   //   string
   //   <type-literal>
   //
-  void parseLiteral()
+  void parseLiteral( Token token )
   {
-    int iOffset = _tokenizer.getTokenStart();
-    int iLineNum = _tokenizer.getLineNumber();
-    int iColumn = getTokenizer().getTokenColumn();
-    _parseLiteral();
+    int iOffset = token.getTokenStart();
+    int iLineNum = token.getLine();
+    int iColumn = token.getTokenColumn();
+    _parseLiteral( token );
     setLocation( iOffset, iLineNum, iColumn );
   }
 
-  void _parseLiteral()
+  void _parseLiteral( Token token )
   {
-    if( !parseNumberLiteral() &&
-        !parseRelativeFeatureLiteral() &&
-        !parseStringLiteral() &&
-        !parseCharLiteral() &&
-        !parseBooleanLiteral() &&
-        !parseNullLiteral() &&
-        !parseTypeLiteral() )
+    if( !parseNumberLiteral( token ) &&
+        !parseRelativeFeatureLiteral( token ) &&
+        !parseStringLiteral( token ) &&
+        !parseCharLiteral( token ) &&
+        !parseBooleanLiteral( token ) &&
+        !parseNullLiteral( token ) &&
+        !parseTypeLiteral( token ) )
     {
       Expression expr = popExpression();
       getLocationsList().remove( expr.getLocation() );
       NotAWordExpression notAWord = new NotAWordExpression();
       pushExpression( notAWord );
       verify( notAWord, false, Res.MSG_SYNTAX_ERROR );
-      IToken T = getTokenizer().getPriorToken();
+      Token T = getTokenizer().getPriorToken();
       setLocation( T.getTokenEnd(), T.getLine(), T.getTokenColumn(), true );
     }
   }
 
-  private boolean parseRelativeFeatureLiteral()
+  private boolean parseRelativeFeatureLiteral( Token token )
   {
     if( getGosuClass() != null &&
-            match( null, "#", SourceCodeTokenizer.TT_OPERATOR, true ) )
+        SourceCodeTokenizer.TT_OPERATOR == token.getType() && "#".equals( token.getStringValue() ) )
     {
       Expression root = new TypeLiteral( getGosuClass() );
       pushExpression( root );
-      if( parseFeatureLiteral( root ) )
+      if( parseFeatureLiteral( token, root ) )
       {
         return true;
       }
@@ -7539,9 +7566,9 @@ public final class GosuParser extends ParserBase implements IGosuParser
     return false;
   }
 
-  private boolean parseNumberLiteral()
+  private boolean parseNumberLiteral( Token token )
   {
-    return parseNumberLiteral( false );
+    return parseNumberLiteral( token, false );
   }
 
   private boolean atNumberLiteralStart()
@@ -7549,15 +7576,17 @@ public final class GosuParser extends ParserBase implements IGosuParser
     return match( null, null, SourceCodeTokenizer.TT_INTEGER, true ) || match( null, null, '.', true );
   }
 
-  private boolean parseNumberLiteral(boolean negated)
+  private boolean parseNumberLiteral( Token token, boolean negated )
   {
-    if( match( null, Keyword.KW_NaN ) )
+    if( Keyword.KW_NaN == token.getKeyword() )
     {
+      getTokenizer().nextToken();
       pushExpression( NumericLiteral.NaN.get().copy() );
       return true;
     }
-    else if( match( null, Keyword.KW_Infinity ) )
+    else if( Keyword.KW_Infinity == token.getKeyword() )
     {
+      getTokenizer().nextToken();
       pushExpression( NumericLiteral.INFINITY.get().copy() );
       return true;
     }
@@ -7649,8 +7678,10 @@ public final class GosuParser extends ParserBase implements IGosuParser
       parseNumericValue( strValue );
       return true;
     }
-    else if( match( null, null, '.' ) )
+    else if( '.' == token.getType() )
     {
+      getTokenizer().nextToken();
+
       String strValue = (negated ? "-" : "") + ".";
       if( match( T, SourceCodeTokenizer.TT_INTEGER ) )
       {
@@ -8010,32 +8041,33 @@ public final class GosuParser extends ParserBase implements IGosuParser
     }
   }
 
-  private boolean parseCharLiteral()
+  private boolean parseCharLiteral( Token token )
   {
-    Token T = new Token();
-    if( match( T, (int)'\'' ) )
+    if( '\'' == token.getType() )
     {
-      if( T._strValue.length() != 1 )
+      getTokenizer().nextToken();
+
+      if( token._strValue.length() != 1 )
       {
-        _parseStringLiteral( T._bUnterminated, T );
+        _parseStringLiteral( token._bUnterminated, token );
       }
       else
       {
-        char c = T._strValue.charAt( 0 );
+        char c = token._strValue.charAt( 0 );
         IType ctxType = getContextType().getType();
         Expression e;
         if( !getContextType().isMethodScoring() &&
             c >= 0 && c <= Byte.MAX_VALUE &&
             (ctxType == JavaTypes.pBYTE() || ctxType == JavaTypes.BYTE()) )
         {
-          e = new NumericLiteral( T._strValue, (byte)c, ctxType );
+          e = new NumericLiteral( token._strValue, (byte)c, ctxType );
         }
         else
         {
           e = new CharLiteral( c );
         }
-        verify( e, T.getInvalidCharPos() < 0, Res.MSG_INVALID_CHAR_AT, T.getInvalidCharPos() );
-        verify( e, !T._bUnterminated, Res.MSG_UNTERMINATED_STRING_LITERAL );
+        verify( e, token.getInvalidCharPos() < 0, Res.MSG_INVALID_CHAR_AT, token.getInvalidCharPos() );
+        verify( e, !token._bUnterminated, Res.MSG_UNTERMINATED_STRING_LITERAL );
         pushExpression( e );
       }
       return true;
@@ -8045,10 +8077,11 @@ public final class GosuParser extends ParserBase implements IGosuParser
 
   private boolean parseStringLiteralSeparately()
   {
-    int iOffset = _tokenizer.getTokenStart();
-    int iLineNum = _tokenizer.getLineNumber();
-    int iColumn = getTokenizer().getTokenColumn();
-    if( parseStringLiteral() )
+    final Token token = getTokenizer().getCurrentToken();
+    int iOffset = token.getTokenStart();
+    int iLineNum = token.getLine();
+    int iColumn = token.getTokenColumn();
+    if( parseStringLiteral( token ) )
     {
       setLocation( iOffset, iLineNum, iColumn );
       return true;
@@ -8056,12 +8089,13 @@ public final class GosuParser extends ParserBase implements IGosuParser
     return false;
   }
 
-  private boolean parseStringLiteral()
+  private boolean parseStringLiteral( Token token )
   {
-    Token T = new Token();
-    if( match( T, (int)'"' ) )
+    if( '"' == token.getType() )
     {
-      _parseStringLiteral( T._bUnterminated, T );
+      getTokenizer().nextToken();
+
+      _parseStringLiteral( token._bUnterminated, token );
       return true;
     }
     return false;
@@ -8159,10 +8193,17 @@ public final class GosuParser extends ParserBase implements IGosuParser
   //
   public boolean parseTypeLiteral()
   {
-    return parseTypeLiteral(false);
+    return parseTypeLiteral( getTokenizer().getCurrentToken(), false );
   }
-
+  public boolean parseTypeLiteral( Token token )
+  {
+    return parseTypeLiteral( token, false );
+  }
   boolean parseTypeLiteral( boolean bInterface )
+  {
+    return parseTypeLiteral( getTokenizer().getCurrentToken(), bInterface );
+  }
+  boolean parseTypeLiteral( Token token, boolean bInterface )
   {
     boolean bNoContextType = getContextType().getType() == null;
     if( bNoContextType )
@@ -8172,10 +8213,10 @@ public final class GosuParser extends ParserBase implements IGosuParser
     }
     try
     {
-      int iOffset = _tokenizer.getTokenStart();
-      int iLineNum = _tokenizer.getLineNumber();
-      int iColumn = getTokenizer().getTokenColumn();
-      boolean bSuccess = _parseTypeLiteralWithAggregateSyntax( false, bInterface );
+      int iOffset = token.getTokenStart();
+      int iLineNum = token.getLine();
+      int iColumn = token.getTokenColumn();
+      boolean bSuccess = _parseTypeLiteralWithAggregateSyntax( token, false, bInterface );
       if( bSuccess )
       {
         Expression e = peekExpression();
@@ -8202,78 +8243,81 @@ public final class GosuParser extends ParserBase implements IGosuParser
 
   void parseTypeLiteralIgnoreArrayBrackets()
   {
-    int iOffset = _tokenizer.getTokenStart();
-    int iLineNum = _tokenizer.getLineNumber();
-    int iColumn = getTokenizer().getTokenColumn();
-    if( _parseTypeLiteralWithAggregateSyntax(true, false) )
+    Token token = getTokenizer().getCurrentToken();
+    int iOffset = token.getTokenStart();
+    int iLineNum = token.getLine();
+    int iColumn = token.getTokenColumn();
+    if( _parseTypeLiteralWithAggregateSyntax( token, true, false ) )
     {
       setLocation( iOffset, iLineNum, iColumn );
     }
   }
 
-  boolean _parseTypeLiteralWithAggregateSyntax( boolean bIgnoreArrayBrackets, boolean bInterface )
+  boolean _parseTypeLiteralWithAggregateSyntax( Token token, boolean bIgnoreArrayBrackets, boolean bInterface )
   {
-    boolean bRet = _parseTypeLiteral( bIgnoreArrayBrackets, bInterface );
+    boolean bRet = _parseTypeLiteral( token, bIgnoreArrayBrackets, bInterface );
 
-    if( match( null, "&", SourceCodeTokenizer.TT_OPERATOR, true ) )
+    token = getTokenizer().getCurrentToken();
+    if( SourceCodeTokenizer.TT_OPERATOR == token.getType() && "&".equals( token.getStringValue() ) )
     {
       parseAggregateTypeLiteral( bInterface );
     }
     return bRet;
   }
 
-  boolean _parseTypeLiteral( boolean bIgnoreArrayBrackets, boolean bInterface )
+  boolean _parseTypeLiteral( Token token, boolean bIgnoreArrayBrackets, boolean bInterface )
   {
-    int iOffset = _tokenizer.getTokenStart();
-    int iLineNum = _tokenizer.getLineNumber();
-    int iColumn = getTokenizer().getTokenColumn();
+    int iOffset = token.getTokenStart();
+    int iLineNum = token.getLine();
+    int iColumn = token.getTokenColumn();
 
-    if( match( null, Keyword.KW_block ) )
+    if( SourceCodeTokenizer.TT_KEYWORD == token.getType() && Keyword.KW_block == token.getKeyword() )
     {
+      getTokenizer().nextToken();
+      
       _parseBlockLiteral();
       setLocation( iOffset, iLineNum, iColumn, true );
     }
     else
     {
-      int mark = getTokenizer().mark();
-      boolean bNotAWord = !match( null, SourceCodeTokenizer.TT_WORD ) && !matchPrimitiveType( false );
-      if( bNotAWord )
+      if( isWordOrValueKeyword( token ) || matchPrimitiveType( false ) )
+      {
+        getTokenizer().nextToken();
+      }
+      else
       {
         TypeLiteral typeLiteral = bInterface ? new InterfaceTypeLiteral( ErrorType.getInstance() ) : new TypeLiteral( ErrorType.getInstance() );
         verify( typeLiteral, false, Res.MSG_EXPECTING_TYPE_NAME );
         pushExpression( typeLiteral );
-        IToken priorT = getTokenizer().getPriorToken();
+        Token priorT = getTokenizer().getPriorToken();
         setLocation( priorT.getTokenEnd(), priorT.getLine(), priorT.getTokenColumn(), true, true );
         return false;
       }
-      String strToken = getTokenizer().getTokenAt( mark ).getStringValue();
-      parseTypeLiteral( new String[]{strToken}, bIgnoreArrayBrackets, bInterface, iOffset, iLineNum, iColumn );
+      parseTypeLiteral( new String[]{token.getStringValue()}, bIgnoreArrayBrackets, bInterface, iOffset, iLineNum, iColumn );
     }
 
     return true;
   }
 
   private boolean matchPrimitiveType( boolean bSuperThis ) {
-    IToken token = getTokenizer().getCurrentToken();
+    Token token = getTokenizer().getCurrentToken();
     if( token.getType() == SourceCodeTokenizer.TT_KEYWORD )
     {
-      String strToken = token.getStringValue();
       boolean bMatch =
-             Keyword.KW_void.getName().equals( strToken ) ||
-             Keyword.KW_boolean.getName().equals( strToken ) ||
-             Keyword.KW_char.getName().equals( strToken ) ||
-             Keyword.KW_byte.getName().equals( strToken ) ||
-             Keyword.KW_short.getName().equals( strToken ) ||
-             Keyword.KW_int.getName().equals( strToken ) ||
-             Keyword.KW_long.getName().equals( strToken ) ||
-             Keyword.KW_float.getName().equals( strToken ) ||
-             Keyword.KW_double.getName().equals( strToken ) ||
+             Keyword.KW_void == token.getKeyword() ||
+             Keyword.KW_boolean == token.getKeyword() ||
+             Keyword.KW_char == token.getKeyword() ||
+             Keyword.KW_byte == token.getKeyword() ||
+             Keyword.KW_short == token.getKeyword() ||
+             Keyword.KW_int == token.getKeyword() ||
+             Keyword.KW_long == token.getKeyword() ||
+             Keyword.KW_float == token.getKeyword() ||
+             Keyword.KW_double == token.getKeyword() ||
              (bSuperThis &&
-              (Keyword.KW_this.getName().equals( strToken ) ||
-               Keyword.KW_super.getName().equals( strToken )));
+              (Keyword.KW_this == token.getKeyword() ||
+               Keyword.KW_super == token.getKeyword()));
       if( bMatch )
       {
-        getTokenizer().nextToken();
         return true;
       }
     }
@@ -8281,10 +8325,10 @@ public final class GosuParser extends ParserBase implements IGosuParser
   }
 
 
-  private void parseAggregateTypeLiteral(boolean bInterface)
+  private void parseAggregateTypeLiteral( boolean bInterface )
   {
     CompoundTypeLiteral typeLiteral = new CompoundTypeLiteral();
-    List<IType> types = new ArrayList<IType>();
+    List<IType> types = new ArrayList<>();
 
     while( true )
     {
@@ -8293,7 +8337,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
       {
         break;
       }
-      _parseTypeLiteral( false, bInterface );
+      _parseTypeLiteral( getTokenizer().getCurrentToken(), false, bInterface );
     }
     verify( typeLiteral, types.size() > 1, Res.MSG_AGGREGATES_MUST_CONTAIN_MORE );
 
@@ -8710,7 +8754,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
       boolean bZeroLength = _tokenizer.getTokenStart() == iOffset;
       if( bZeroLength )
       {
-        IToken priorToken = getTokenizer().getPriorToken();
+        Token priorToken = getTokenizer().getPriorToken();
         iOffset = priorToken.getTokenEnd();
         iLineNum = priorToken.getLine();
         iColumn = priorToken.getTokenColumn();
@@ -9004,76 +9048,93 @@ public final class GosuParser extends ParserBase implements IGosuParser
 
   boolean _parseStatement()
   {
-    if( areUsingStatementsAllowedInStatementLists() && match( null, Keyword.KW_uses ) )
+    Token token = getTokenizer().getCurrentToken();
+    final Keyword keyword = token.getKeyword();
+    if( areUsingStatementsAllowedInStatementLists() && Keyword.KW_uses == keyword )
     {
+      _tokenizer.nextToken();
       parseUsesStatement();
     }
-    else if( match( null, Keyword.KW_if ) )
+    else if( Keyword.KW_if == keyword )
     {
+      _tokenizer.nextToken();
       parseIfStatement();
     }
-    else if( match( null, Keyword.KW_try ) )
+    else if( Keyword.KW_try == keyword )
     {
+      _tokenizer.nextToken();
       parseTryCatchFinallyStatement();
     }
-    else if( match( null, Keyword.KW_throw ) )
+    else if( Keyword.KW_throw == keyword )
     {
+      _tokenizer.nextToken();
       parseThrowStatement();
     }
-    else if( match( null, Keyword.KW_continue ) )
+    else if( Keyword.KW_continue == keyword )
     {
+      _tokenizer.nextToken();
       ContinueStatement stmt = new ContinueStatement();
       verify( stmt, _iContinueOk > 0, Res.MSG_CONTINUE_OUTSIDE_LOOP );
       pushStatement( stmt );
     }
-    else if( match( null, Keyword.KW_break ) )
+    else if( Keyword.KW_break == keyword )
     {
+      _tokenizer.nextToken();
       BreakStatement stmt = new BreakStatement();
       verify( stmt, _iBreakOk > 0, Res.MSG_BREAK_OUTSIDE_SWITCH_OR_LOOP );
       pushStatement( stmt );
     }
-    else if( match( null, Keyword.KW_return ) )
+    else if( Keyword.KW_return == keyword )
     {
+      _tokenizer.nextToken();
       parseReturnStatement();
     }
-    else if( match( null, Keyword.KW_foreach ) || match( null, Keyword.KW_for ) )
+    else if( Keyword.KW_foreach == keyword || Keyword.KW_for == keyword )
     {
+      _tokenizer.nextToken();
       parseForEachStatement();
     }
-    else if( match( null, Keyword.KW_while ) )
+    else if( Keyword.KW_while == keyword )
     {
+      _tokenizer.nextToken();
       parseWhileStatement();
     }
-    else if( match( null, Keyword.KW_do ) )
+    else if( Keyword.KW_do == keyword )
     {
+      _tokenizer.nextToken();
       parseDoWhileStatement();
     }
-    else if( match( null, Keyword.KW_switch ) )
+    else if( Keyword.KW_switch == keyword )
     {
+      _tokenizer.nextToken();
       parseSwitchStatement();
     }
-    else if( match( null, Keyword.KW_using ) )
+    else if( Keyword.KW_using == keyword )
     {
+      _tokenizer.nextToken();
       parseUsingStatement();
     }
-    else if( match( null, Keyword.KW_assert ) )
+    else if( Keyword.KW_assert == keyword )
     {
+      _tokenizer.nextToken();
       parseAssertStatement();
     }
-    else if( match( null, Keyword.KW_final ) )
+    else if( Keyword.KW_final == keyword )
     {
+      _tokenizer.nextToken();
       VarStatement varStmt = new VarStatement();
       varStmt.setModifierInfo( new ModifierInfo(0) );
       varStmt.setFinal( true );
       parseLocalVarStatement( varStmt );
     }
-    else if( match( null, Keyword.KW_var, true ) )
+    else if( Keyword.KW_var == keyword )
     {
       VarStatement varStmt = new VarStatement();
       parseLocalVarStatement( varStmt );
     }
-    else if( match( null, ';' ) )
+    else if( ';' == token.getType() )
     {
+      _tokenizer.nextToken();
       pushStatement( new NoOpStatement() );
     }
     else if( getGosuClass() instanceof IGosuProgram &&
@@ -9092,41 +9153,42 @@ public final class GosuParser extends ParserBase implements IGosuParser
     {
       return true;
     }
-    else if( match( null, Keyword.KW_eval, true ) )
+    else if( Keyword.KW_eval == keyword )
     {
-      int iOffset = _tokenizer.getTokenStart();
-      int iLineNum = _tokenizer.getLineNumber();
-      int iColumn = getTokenizer().getTokenColumn();
-      match( null, Keyword.KW_eval );
+      int iOffset = token.getTokenStart();
+      int iLineNum = token.getLine();
+      int iColumn = token.getTokenColumn();
+      _tokenizer.nextToken();
       parseEvalExpression();
       setLocation( iOffset, iLineNum, iColumn, true );
       pushStatement( new EvalStatement( (EvalExpression)popExpression() ) );
     }
     else if( !parseAssignmentOrMethodCall() )
     {
-      if( !match( null, null, SourceCodeTokenizer.TT_EOF, true ) )
+      if( SourceCodeTokenizer.TT_EOF != token.getType() )
       {
-        int iOffset = _tokenizer.getTokenStart();
-        int iLineNum = _tokenizer.getLineNumber();
-        int iColumn = getTokenizer().getTokenColumn();
+        int iOffset = token.getTokenStart();
+        int iLineNum = token.getLine();
+        int iColumn = token.getTokenColumn();
 
-        if( !match( null, null, '}', true ) &&
-                !match( null, null, ';', true ) )
+        if( '}' != token.getType() &&
+            ';' != token.getType() )
         {
           if( isParsingFunction() )
           {
-            Statement noop = new NoOpStatement();
             if( maybeAdvanceTokenizerToEndOfSavedLocation() )
             {
-              pushStatement( noop );
+              pushStatement( new NoOpStatement() );
               setLocation( iOffset, iLineNum, iColumn, true, true );
               popStatement();
               return false;
             }
-            else if( match( null, Keyword.KW_construct ) ||
-                    match( null, Keyword.KW_function ) ||
-                    match( null, Keyword.KW_property ) )
+            else if( Keyword.KW_construct == token.getKeyword() ||
+                     Keyword.KW_function == token.getKeyword() ||
+                     Keyword.KW_property == token.getKeyword() )
             {
+              Statement noop = new NoOpStatement();
+              getTokenizer().nextToken();
               eatStatementBlock( noop, Res.MSG_SYNTAX_ERROR );
               pushStatement( noop );
               setLocation( iOffset, iLineNum, iColumn, true, true );
@@ -9224,9 +9286,14 @@ public final class GosuParser extends ParserBase implements IGosuParser
 
   private boolean areUsingStatementsAllowedInStatementLists()
   {
-    return getGosuClass() == null ||
-            (getGosuClass() instanceof IGosuProgramInternal  && ((IGosuProgramInternal) getGosuClass()).allowsUses()) ||
-            CommonServices.getEntityAccess().areUsesStatementsAllowedInStatementLists(getGosuClass());
+    if( _bAreUsingStatementsAllowedInStatementLists == null )
+    {
+      _bAreUsingStatementsAllowedInStatementLists=
+        getGosuClass() == null ||
+        (getGosuClass() instanceof IGosuProgramInternal && ((IGosuProgramInternal)getGosuClass()).allowsUses()) ||
+        CommonServices.getEntityAccess().areUsesStatementsAllowedInStatementLists( getGosuClass() );
+    }
+    return _bAreUsingStatementsAllowedInStatementLists;
   }
 
   private int getStatementDepth()
@@ -9263,7 +9330,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
   {
     String strIdentifier = idToken._strValue == null ? "" : idToken._strValue;
     warn( varStmt, !Keyword.isKeyword( strIdentifier ), Res.MSG_IMPROPER_USE_OF_KEYWORD, strIdentifier );
-    IToken priorToken = getTokenizer().getPriorToken();
+    Token priorToken = getTokenizer().getPriorToken();
     boolean bZeroLength = strIdentifier.length() <= 0;
     addNameInDeclaration( strIdentifier,
             bZeroLength ? priorToken.getTokenEnd() : idToken._iDocPosition,
@@ -9530,7 +9597,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
     }
 
     String strIdentifier = strPropertyName == null ? "" : strPropertyName;
-    IToken restoreState = getTokenizer().getPriorToken();
+    Token restoreState = getTokenizer().getPriorToken();
     addNameInDeclaration( strIdentifier,
             T._iDocPosition,
             restoreState.getLine(), restoreState.getTokenColumn(), strIdentifier.length() > 0 );
@@ -11066,49 +11133,67 @@ public final class GosuParser extends ParserBase implements IGosuParser
     getLocationsList().remove( location );
   }
 
-  private void parseDirective( boolean processDirectives ) {
-    int iOffset = _tokenizer.getTokenStart();
-    int iLineNum = _tokenizer.getLineNumber();
-    int iColumn = _tokenizer.getTokenColumn();
+  private void parseDirective( boolean processDirectives )
+  {
+    final Token token = _tokenizer.getCurrentToken();
+    int iOffset = token.getTokenStart();
+    int iLineNum = token.getLine();
+    int iColumn = token.getTokenColumn();
     DirectiveExpression e = new DirectiveExpression();
-    if( match( null, Keyword.KW_extends ) ) {
+    if( Keyword.KW_extends == token.getKeyword() )
+    {
+      _tokenizer.nextToken();
+
       parseTypeLiteral();
       Expression typeLiteral = peekExpression();
-      if( typeLiteral instanceof TypeLiteral ) {
+      if( typeLiteral instanceof TypeLiteral )
+      {
         IType extendsType = ((TypeLiteral)typeLiteral).getType().getType();
-        if( extendsType instanceof IGosuClassInternal ) {
+        if( extendsType instanceof IGosuClassInternal )
+        {
           IGosuClassInternal supertype = (IGosuClassInternal)extendsType;
           supertype.putClassMembers( this, _symTable, supertype, true );
           List<? extends GosuClassTypeLoader> typeLoaders = TypeSystem.getCurrentModule().getTypeLoaders( GosuClassTypeLoader.class );
-          for( GosuClassTypeLoader typeLoader : typeLoaders ) {
+          for( GosuClassTypeLoader typeLoader : typeLoaders )
+          {
             List<? extends IGosuEnhancement> enhancementsForType = typeLoader.getEnhancementIndex().getEnhancementsForType( supertype );
-            for( IGosuEnhancement enhancement : enhancementsForType ) {
-              if( enhancement instanceof IGosuEnhancementInternal ) {
+            for( IGosuEnhancement enhancement : enhancementsForType )
+            {
+              if( enhancement instanceof IGosuEnhancementInternal )
+              {
                 ((IGosuEnhancementInternal)enhancement).putClassMembers( this, _symTable, supertype, true );
               }
             }
           }
-          for( Object entryObj : _symTable.getSymbols().entrySet() ) {
+          for( Object entryObj : _symTable.getSymbols().entrySet() )
+          {
             //noinspection unchecked
             Map.Entry<CharSequence, ISymbol> entry = (Map.Entry<CharSequence, ISymbol>)entryObj;
-            if( entry.getValue().isPrivate() ) {
+            if( entry.getValue().isPrivate() )
+            {
               _symTable.removeSymbol( entry.getKey() );
             }
           }
         }
       }
     }
-    else if( match( null, "params" ) ) {
-      verify(e, match(null, '('), Res.MSG_EXPECTING_LEFTPAREN_FUNCTION_DEF);
+    else if( "params".equals( token.getStringValue() ) )
+    {
+      _tokenizer.nextToken();
+
+      verify( e, match( null, '(' ), Res.MSG_EXPECTING_LEFTPAREN_FUNCTION_DEF );
       ArrayList<ISymbol> params = parseParameterDeclarationList( e, false, null );
-      if( processDirectives ) {
-        for( ISymbol param : params ) {
+      if( processDirectives )
+      {
+        for( ISymbol param : params )
+        {
           getSymbolTable().putSymbol( param );
         }
       }
       verify( e, match( null, ')' ), Res.MSG_EXPECTING_RIGHTPAREN_FUNCTION_DEF );
     }
-    else {
+    else
+    {
       advanceToNextTokenSilently();
       e.addParseException( new ParseException( makeFullParserState(), Res.MSG_BAD_TEMPLATE_DIRECTIVE ) );
     }
@@ -11121,12 +11206,17 @@ public final class GosuParser extends ParserBase implements IGosuParser
   {
     boolean bRet = true;
 
-    if( !match( null, null, SourceCodeTokenizer.TT_KEYWORD, true ) &&
-            !match( null, null, SourceCodeTokenizer.TT_WORD, true ) &&
-            !match( null, null, '(', true ) &&
-            !match( null, null, '"', true ) )
+    Token token = getTokenizer().getCurrentToken();
+    switch( token.getType() )
     {
-      return false;
+      case SourceCodeTokenizer.TT_KEYWORD:
+      case SourceCodeTokenizer.TT_WORD:
+      case '(':
+      case '"':
+        break;
+
+      default:
+        return false;
     }
 
     int initialMark = _tokenizer.mark();
@@ -11420,14 +11510,17 @@ public final class GosuParser extends ParserBase implements IGosuParser
       }
       pushStatement( statement );
     }
-    else if (e instanceof FeatureLiteral) {
+    else if( e instanceof FeatureLiteral )
+    {
       NotAStatement nas = new NotAStatement();
-      nas.setExpression(e);
-      verify(nas, false, Res.MSG_NOT_A_STATEMENT);
+      nas.setExpression( e );
+      verify( nas, false, Res.MSG_NOT_A_STATEMENT );
       pushStatement( nas );
-    } else {
-      _tokenizer.restoreToMark(initialMark);
-      _locations.remove(e.getLocation());
+    }
+    else
+    {
+      _tokenizer.restoreToMark( initialMark );
+      _locations.remove( e.getLocation() );
       bRet = false;
     }
 
@@ -11598,26 +11691,26 @@ public final class GosuParser extends ParserBase implements IGosuParser
 
   private String matchAssignmentOperator()
   {
-    IToken token = getTokenizer().getCurrentToken();
+    Token token = getTokenizer().getCurrentToken();
     if( token.getType() == SourceCodeTokenizer.TT_OPERATOR )
     {
       String value = token.getStringValue();
       switch( value )
       {
-        case"=":
-        case"+=":
-        case"-=":
-        case"++":
-        case"--":
-        case"*=":
-        case"%=":
-        case"/=":
-        case"&=":
-        case"&&=":
-        case"^=":
-        case"|=":
-        case"||=":
-        case"<<=":
+        case "=":
+        case "+=":
+        case "-=":
+        case "++":
+        case "--":
+        case "*=":
+        case "%=":
+        case "/=":
+        case "&=":
+        case "&&=":
+        case "^=":
+        case "|=":
+        case "||=":
+        case "<<=":
           getTokenizer().nextToken();
           return value;
         default:
@@ -11725,14 +11818,18 @@ public final class GosuParser extends ParserBase implements IGosuParser
       return false;
     }
     ModifierInfo modifiers = parseModifiers();
-    if( match( null, Keyword.KW_property ) )
+    Token token = getTokenizer().getCurrentToken();
+    if( Keyword.KW_property == token.getKeyword() )
     {
+      getTokenizer().nextToken();
+
       boolean bGetter = match( null, Keyword.KW_get );
       boolean bSetter = !bGetter && match( null, Keyword.KW_set );
 
-      int iOffset = getTokenizer().getTokenStart();
-      int iLineNum = getTokenizer().getLineNumber();
-      int iColumn = getTokenizer().getTokenColumn();
+      token = getTokenizer().getCurrentToken();
+      int iOffset = token.getTokenStart();
+      int iLineNum = token.getLine();
+      int iColumn = token.getTokenColumn();
       FunctionStatement functionStmt = parseBaseFunctionDefinition( null, true, bGetter, modifiers );
       verify( functionStmt, bGetter || bSetter, Res.MSG_EXPECTING_PROPERTY_GET_OR_SET_MODIFIER );
       setLocation( iOffset, iLineNum, iColumn );
@@ -11769,8 +11866,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
     return false;
   }
 
-  DynamicPropertySymbol getOrCreateDynamicPropertySymbol(
-          ParsedElement parsedElement, IGosuClassInternal gsClass, DynamicFunctionSymbol dfs, boolean bGetter )
+  DynamicPropertySymbol getOrCreateDynamicPropertySymbol( ParsedElement parsedElement, IGosuClassInternal gsClass, DynamicFunctionSymbol dfs, boolean bGetter )
   {
     String strPropertyName = dfs.getDisplayName().substring( 1 );
     ISymbol symbol = getSymbolTable().getSymbol( strPropertyName );
@@ -11843,19 +11939,17 @@ public final class GosuParser extends ParserBase implements IGosuParser
     boolean bNullFunctionStmt = functionStmt == null;
     functionStmt = bNullFunctionStmt ? new FunctionStatement() : functionStmt;
 
-    int iNamedOffset = getTokenizer().getTokenStart();
-
-    int iOffsetName = getTokenizer().getTokenStart();
-    int iLineNumName = getTokenizer().getLineNumber();
-    int iColumnName = getTokenizer().getTokenColumn();
-
+    final Token token = getTokenizer().getCurrentToken();
+    int iOffsetName = token.getTokenStart();
+    int iLineNumName = token.getLine();
+    int iColumnName = token.getTokenColumn();
+    String strFunctionName = token.getStringValue();
     boolean bHasName;
-    Token T = new Token();
-    if( bHasName = verify( functionStmt, match( T, SourceCodeTokenizer.TT_WORD ), Res.MSG_EXPECTING_NAME_FUNCTION_DEF ) )
+    if( bHasName = verify( functionStmt, isWordOrValueKeyword( token ), Res.MSG_EXPECTING_NAME_FUNCTION_DEF ) )
     {
-      functionStmt.setNameOffset( iNamedOffset, T._strValue );
+      getTokenizer().nextToken();
+      functionStmt.setNameOffset( iOffsetName, strFunctionName );
     }
-    String strFunctionName = T._strValue;
 
     addNameInDeclaration( strFunctionName, iOffsetName, iLineNumName, iColumnName, bHasName );
 
@@ -12097,6 +12191,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
       for( ITypeVariableDefinitionExpression typeVarDef : typeVarDefs )
       {
         Map<String, ITypeVariableDefinition> typeVarMap = getTypeVariables();
+        //noinspection SuspiciousMethodCalls
         if( typeVarMap.containsValue( typeVarDef ) )
         {
           typeVarMap.remove( ((ITypeVariableDefinition)typeVarDef).getName() );
@@ -12206,16 +12301,16 @@ public final class GosuParser extends ParserBase implements IGosuParser
   boolean isDeclarationKeyword( String strKeyword )
   {
     return strKeyword != null &&
-            (Keyword.KW_function.equals( strKeyword ) ||
-                    Keyword.KW_construct.equals( strKeyword ) ||
-                    Keyword.KW_property.equals( strKeyword ) ||
-                    //Keyword.KW_var.equals( strFunctionName ) ||
-                    Keyword.KW_delegate.equals( strKeyword ) ||
-                    Keyword.KW_class.equals( strKeyword ) ||
-                    Keyword.KW_interface.equals( strKeyword ) ||
-                    Keyword.KW_annotation.equals( strKeyword ) ||
-                    Keyword.KW_structure.equals( strKeyword ) ||
-                    Keyword.KW_enum.equals( strKeyword ));
+           (Keyword.KW_function.equals( strKeyword ) ||
+            Keyword.KW_construct.equals( strKeyword ) ||
+            Keyword.KW_property.equals( strKeyword ) ||
+            //Keyword.KW_var.equals( strFunctionName ) ||
+            Keyword.KW_delegate.equals( strKeyword ) ||
+            Keyword.KW_class.equals( strKeyword ) ||
+            Keyword.KW_interface.equals( strKeyword ) ||
+            Keyword.KW_annotation.equals( strKeyword ) ||
+            Keyword.KW_structure.equals( strKeyword ) ||
+            Keyword.KW_enum.equals( strKeyword ));
   }
 
   static DynamicFunctionSymbol assignPossibleDuplicateDfs( DynamicFunctionSymbol dfsDecl, Iterable symbols )
@@ -12535,7 +12630,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
       if( (!(getGosuClass() instanceof IGosuProgram) || !((IGosuProgramInternal)getGosuClass()).isParsingExecutableProgramStatements()) &&
               !match( null, null, '{', true ) )
       {
-        IToken T = getTokenizer().getCurrentToken();
+        Token T = getTokenizer().getCurrentToken();
         eatStatementBlock( functionStmt, Res.MSG_EXPECTING_OPEN_BRACE_FOR_FUNCTION_DEF );
         NotAStatement nas = new NotAStatement();
         pushStatement( nas );
@@ -12580,7 +12675,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
       {
         int mark = getTokenizer().mark();
         bHasName = verify( element, match( null, SourceCodeTokenizer.TT_WORD ), Res.MSG_EXPECTING_NAME_FUNCTION_DEF );
-        IToken token = getTokenizer().getTokenAt( mark );
+        Token token = getTokenizer().getTokenAt( mark );
         iTokenStart = token.getTokenStart();
         if( bHasName )
         {
@@ -13167,7 +13262,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
       int iColumnArgIdentifier = getTokenizer().getTokenColumn();
       int iLineArgIdentifier = getTokenizer().getLineNumber();
 
-      IToken tokenBeforeParam = getTokenizer().getCurrentToken();
+      Token tokenBeforeParam = getTokenizer().getCurrentToken();
       boolean bMatchColonWithoutName = false;
       if( bEmpty || !verify( (ParsedElement)element, match( T, SourceCodeTokenizer.TT_WORD ), Res.MSG_EXPECTING_ARGS, "" ) )
       {
@@ -13477,7 +13572,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
       }
       pushExpression( typeVarDef );
       // Set the location to zero length at the end of the last token
-      IToken priorT = getTokenizer().getPriorToken();
+      Token priorT = getTokenizer().getPriorToken();
       setLocation( priorT.getTokenEnd(), priorT.getLine(), priorT.getTokenColumn() );
       return false;
     }
@@ -14418,7 +14513,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
     }
     for( ParseTree pt : _savedLocations )
     {
-      IToken T = getTokenizer().getCurrentToken();
+      Token T = getTokenizer().getCurrentToken();
       if( T.getTokenStart() >= pt.getOffset() && T.getTokenEnd() <= pt.getExtent() )
       {
         try

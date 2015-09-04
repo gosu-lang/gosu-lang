@@ -7,6 +7,7 @@ package gw.internal.gosu.parser.statements;
 import gw.internal.gosu.parser.PositionToken;
 import gw.internal.gosu.parser.Statement;
 import gw.internal.gosu.parser.IGosuClassInternal;
+import gw.internal.gosu.parser.Token;
 import gw.lang.parser.IParseTree;
 import gw.lang.parser.ISourceCodeTokenizer;
 import gw.lang.parser.IToken;
@@ -68,7 +69,7 @@ public class ClassFileStatement extends Statement implements IClassFileStatement
   }
 
   @Override
-  public void assignTokens( List<IToken> tokens )
+  public void assignTokens( List<Token> tokens )
   {
     super.assignTokens( tokens );
 

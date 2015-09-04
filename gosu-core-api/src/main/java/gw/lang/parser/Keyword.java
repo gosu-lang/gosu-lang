@@ -4,6 +4,8 @@
 
 package gw.lang.parser;
 
+import gw.util.StringPool;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -13,7 +15,7 @@ public class Keyword implements CharSequence
   //
   // Key/Reserved Words
   //
-  static final Map<String, Keyword> RESERVED_WORDS = new HashMap<String, Keyword>( 64 );
+  static final Map<String, Keyword> RESERVED_WORDS = new HashMap<>( 90 );
 
   public static final Keyword KW_true = addReservedWord( "true", true );
   public static final Keyword KW_false = addReservedWord( "false", true );
@@ -106,12 +108,12 @@ public class Keyword implements CharSequence
   public static final Keyword KW_using = addReservedWord( "using" );
   //public static final Keyword KW_type = addReservedWord( "Type", true );
 
-  private String _strName;
-  private boolean _bValue;
+  private final String _strName;
+  private final boolean _bValue;
 
   private Keyword( String strWord, boolean bValue )
   {
-    _strName = strWord;
+    _strName = StringPool.get( strWord );
     _bValue = bValue;
   }
 
@@ -121,8 +123,7 @@ public class Keyword implements CharSequence
   }
   private static Keyword addReservedWord( String strWord, boolean bValue )
   {
-    String strLower = strWord.toLowerCase();
-    if( RESERVED_WORDS.containsKey( strLower ) )
+    if( RESERVED_WORDS.containsKey( strWord ) )
     {
       throw new RuntimeException( strWord + " is already defined as a reserved word." );
     }
@@ -148,6 +149,11 @@ public class Keyword implements CharSequence
     return keyword != null && !keyword.isValue();
   }
 
+  public static Keyword get( String strWord )
+  {
+    return RESERVED_WORDS.get( strWord );
+  }
+  
   public static Set<String> getAll()
   {
     return RESERVED_WORDS.keySet();
@@ -202,12 +208,6 @@ public class Keyword implements CharSequence
   public boolean equals( String str )
   {
     return _strName.equals( str );
-  }
-
-  public static boolean isExactKeywordMatch( String strValue )
-  {
-    Keyword keyword = RESERVED_WORDS.get( strValue );
-    return keyword.getName().equals( strValue );
   }
 
   public String getName()

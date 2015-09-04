@@ -5,6 +5,7 @@
 package gw.internal.gosu.template;
 
 import gw.internal.gosu.parser.SourceCodeTokenizer;
+import gw.internal.gosu.parser.Token;
 import gw.lang.parser.ISourceCodeTokenizer;
 import gw.lang.parser.IToken;
 import gw.lang.parser.ITokenizerInstructor;
@@ -82,8 +83,7 @@ public class TemplateTokenizerInstructor implements ITokenizerInstructor
   }
 
   public ITokenizerInstructor createNewInstance(ISourceCodeTokenizer tokenizer) {
-    TemplateTokenizerInstructor copy = new TemplateTokenizerInstructor( tokenizer );
-    return copy;
+    return new TemplateTokenizerInstructor( tokenizer );
   }
 
   @Override
@@ -393,8 +393,8 @@ public class TemplateTokenizerInstructor implements ITokenizerInstructor
 
   private boolean isAnalyzingSeparatelyWaitingForCloseBrace()
   {
-//    return true;
-    Stack<IToken> tokens = _tokenizer.getTokens();
+    //noinspection unchecked
+    Stack<Token> tokens = (Stack<Token>)_tokenizer.getTokens();
     if( tokens.isEmpty() )
     {
       return true;

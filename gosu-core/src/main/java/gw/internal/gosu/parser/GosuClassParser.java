@@ -569,7 +569,7 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
       return;
     }
 
-    List<IToken> tokens = getOwner().getTokenizer().getTokens().toList();
+    List<Token> tokens = getOwner().getTokenizer().getTokens().toList();
     classStmt.getClassFileStatement().assignTokens( tokens );
 
 //## todo: handle programs (see GosuAstTransformer)
