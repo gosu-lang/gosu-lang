@@ -987,16 +987,16 @@ public class TypeLord
 
     return null;
   }
-             // ArrayList<Foo>                      List<Foo>         ArrayList<Z>
-  public static IType findParameterizedType_Reverse( IType sourceType, IType rawGenericType )
+             // ArrayList<Foo>                       List<Foo>         ArrayList<Z>
+  public static IType findParameterizedType_Reverse( IType sourceType, IType targetType )
   {
-    if( sourceType == null || rawGenericType == null )
+    if( sourceType == null || targetType == null )
     {
       return null;
     }
 
     // List<Z>
-    IType sourceTypeInHier = findParameterizedType( rawGenericType, getPureGenericType( sourceType ) );
+    IType sourceTypeInHier = findParameterizedType( targetType, getPureGenericType( sourceType ) );
 
     if( sourceTypeInHier == null || !sourceTypeInHier.isParameterizedType() )
     {
@@ -1013,7 +1013,7 @@ public class TypeLord
       }
     }
     // ArrayList<Foo>
-    return getActualType( rawGenericType, map, true );
+    return getActualType( targetType, map, true );
   }
 
   // Todo: the above method is nearly identical to this one. lets see about combining them
@@ -1128,6 +1128,38 @@ public class TypeLord
       type = (E)type.getGenericType();
     }
     return type;
+  }
+
+  public static IType deriveParameterizedTypeFromContext( IType type, IType contextType )
+  {
+    if( !type.isGenericType() || type.isParameterizedType() )
+    {
+      return type;
+    }
+
+    if( type instanceof MetaType )
+    {
+      return MetaType.DEFAULT_TYPE_TYPE.get();
+    }
+
+    if( contextType == null || !contextType.isParameterizedType() )
+    {
+      return makeDefaultParameterizedType( type );
+    }
+
+    IType genType = TypeLord.getPureGenericType( contextType );
+    if( !genType.isGenericType() || !genType.isAssignableFrom( type ) )
+    {
+      return makeDefaultParameterizedType( type );
+    }
+
+    IType parameterizedWithTypeVars = type.getParameterizedType( Arrays.stream( type.getGenericTypeVariables() ).map( gtv -> gtv.getTypeVariableDefinition().getType() ).toArray( IType[]::new ) );
+    IType result = findParameterizedType_Reverse( contextType, parameterizedWithTypeVars );
+    if( result == null )
+    {
+      result = makeDefaultParameterizedType( type );
+    }
+    return result;
   }
 
   public static IType makeDefaultParameterizedType( IType type )

@@ -20,7 +20,7 @@ class Errant_CollectionMethodScoring {
   function fun4(i: long, l: ArrayList<Long>): Type2 { return null }
 
   function caller() {
-    var r8: Type2 = fun3(1, new ArrayList())
+    var r8: Type2 = fun3(1, new ArrayList<Object>())
     var r9: Type1 = fun3(1, {1, 2, 3})
     var r10: Type2 = fun4(1, new ArrayList<Long>())
     var r11 = fun2(1.5, new ArrayList<Integer>())        //## issuekeys: 'FUNC(DOUBLE, JAVA.UTIL.ARRAYLIST<JAVA.LANG.DOUBLE>)' IN 'GW.SPECCONTRIB.INTDOUBLEARRAYLIST' CANNOT BE APPLIED TO '(DOUBLE, JAVA.UTIL.ARRAYLIST<JAVA.LANG.INTEGER>)'

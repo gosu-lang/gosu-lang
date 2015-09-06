@@ -33,7 +33,7 @@ class Errant_HashMapFL {
   var hmapfun12 = HashMap<String, String>#put()
 
   function invokeFun12() {
-    hmapfun12.invoke(new HashMap(), "mystring1", "mystring2")      //## issuekeys: 'INVOKE(JAVA.UTIL.HASHMAP<JAVA.LANG.STRING,JAVA.LANG.STRING>, JAVA.LANG.STRING, JAVA.LANG.STRING)' IN '' CANNOT BE APPLIED TO '(JAVA.UTIL.HASHMAP, JAVA.LANG.STRING, JAVA.LANG.STRING)'
+    hmapfun12.invoke(new HashMap<Object,Object>(), "mystring1", "mystring2")      //## issuekeys: 'INVOKE(JAVA.UTIL.HASHMAP<JAVA.LANG.STRING,JAVA.LANG.STRING>, JAVA.LANG.STRING, JAVA.LANG.STRING)' IN '' CANNOT BE APPLIED TO '(JAVA.UTIL.HASHMAP, JAVA.LANG.STRING, JAVA.LANG.STRING)'
     hmapfun12.invoke(new HashMap<String, String>(), "mystring1", "mystring2")
     hmapfun12.invoke(new HashMap<String, String>(), 42, 42)      //## issuekeys: 'INVOKE(JAVA.UTIL.HASHMAP<JAVA.LANG.STRING,JAVA.LANG.STRING>, JAVA.LANG.STRING, JAVA.LANG.STRING)' IN '' CANNOT BE APPLIED TO '(JAVA.UTIL.HASHMAP<JAVA.LANG.STRING,JAVA.LANG.STRING>, INT, INT)'
     hmapfun12.invoke(new HashMap<String, Integer>(), "mystring1", 42)      //## issuekeys: 'INVOKE(JAVA.UTIL.HASHMAP<JAVA.LANG.STRING,JAVA.LANG.STRING>, JAVA.LANG.STRING, JAVA.LANG.STRING)' IN '' CANNOT BE APPLIED TO '(JAVA.UTIL.HASHMAP<JAVA.LANG.STRING,JAVA.LANG.INTEGER>, JAVA.LANG.STRING, INT)'
@@ -50,7 +50,7 @@ class Errant_HashMapFL {
   var hmapfun13 = HashMap<String, String>#put(String, String)
 
   function invokeFun13() {
-    hmapfun13.invoke(new HashMap(), "mystring1", "mystring2")      //## issuekeys: 'INVOKE(JAVA.UTIL.HASHMAP<JAVA.LANG.STRING,JAVA.LANG.STRING>, JAVA.LANG.STRING, JAVA.LANG.STRING)' IN '' CANNOT BE APPLIED TO '(JAVA.UTIL.HASHMAP, JAVA.LANG.STRING, JAVA.LANG.STRING)'
+    hmapfun13.invoke(new HashMap<Object,Object>(), "mystring1", "mystring2")      //## issuekeys: 'INVOKE(JAVA.UTIL.HASHMAP<JAVA.LANG.STRING,JAVA.LANG.STRING>, JAVA.LANG.STRING, JAVA.LANG.STRING)' IN '' CANNOT BE APPLIED TO '(JAVA.UTIL.HASHMAP, JAVA.LANG.STRING, JAVA.LANG.STRING)'
     hmapfun13.invoke(new HashMap<String, String>(), "mystring1", "mystring2")
     hmapfun13.invoke(new HashMap<String, String>(), 42, 42)      //## issuekeys: 'INVOKE(JAVA.UTIL.HASHMAP<JAVA.LANG.STRING,JAVA.LANG.STRING>, JAVA.LANG.STRING, JAVA.LANG.STRING)' IN '' CANNOT BE APPLIED TO '(JAVA.UTIL.HASHMAP<JAVA.LANG.STRING,JAVA.LANG.STRING>, INT, INT)'
     hmapfun13.invoke(new HashMap<String, Integer>(), "mystring1", 42)      //## issuekeys: 'INVOKE(JAVA.UTIL.HASHMAP<JAVA.LANG.STRING,JAVA.LANG.STRING>, JAVA.LANG.STRING, JAVA.LANG.STRING)' IN '' CANNOT BE APPLIED TO '(JAVA.UTIL.HASHMAP<JAVA.LANG.STRING,JAVA.LANG.INTEGER>, JAVA.LANG.STRING, INT)'
@@ -67,7 +67,7 @@ class Errant_HashMapFL {
   var hmapfun15 = HashMap<String, String>#put("mystring", "mystring")
   function invokeFun15() {
     hmapfun15.invoke(new HashMap<String, String>())
-    hmapfun15.invoke(new HashMap(), "mystring1", "mystring2")      //## issuekeys: 'INVOKE(JAVA.UTIL.HASHMAP<JAVA.LANG.STRING,JAVA.LANG.STRING>)' IN '' CANNOT BE APPLIED TO '(JAVA.UTIL.HASHMAP, JAVA.LANG.STRING, JAVA.LANG.STRING)'
+    hmapfun15.invoke(new HashMap<Object,Object>(), "mystring1", "mystring2")      //## issuekeys: 'INVOKE(JAVA.UTIL.HASHMAP<JAVA.LANG.STRING,JAVA.LANG.STRING>)' IN '' CANNOT BE APPLIED TO '(JAVA.UTIL.HASHMAP, JAVA.LANG.STRING, JAVA.LANG.STRING)'
     hmapfun15.invoke(new HashMap<String, String>(), "mystring1", "mystring2")      //## issuekeys: 'INVOKE(JAVA.UTIL.HASHMAP<JAVA.LANG.STRING,JAVA.LANG.STRING>)' IN '' CANNOT BE APPLIED TO '(JAVA.UTIL.HASHMAP<JAVA.LANG.STRING,JAVA.LANG.STRING>, JAVA.LANG.STRING, JAVA.LANG.STRING)'
     hmapfun15.invoke(new HashMap<String, String>(), 42, 42)      //## issuekeys: 'INVOKE(JAVA.UTIL.HASHMAP<JAVA.LANG.STRING,JAVA.LANG.STRING>)' IN '' CANNOT BE APPLIED TO '(JAVA.UTIL.HASHMAP<JAVA.LANG.STRING,JAVA.LANG.STRING>, INT, INT)'
     hmapfun15.invoke(new HashMap<String, Integer>(), "mystring1", 42)      //## issuekeys: 'INVOKE(JAVA.UTIL.HASHMAP<JAVA.LANG.STRING,JAVA.LANG.STRING>)' IN '' CANNOT BE APPLIED TO '(JAVA.UTIL.HASHMAP<JAVA.LANG.STRING,JAVA.LANG.INTEGER>, JAVA.LANG.STRING, INT)'
@@ -85,7 +85,7 @@ class Errant_HashMapFL {
   var hmapfun16 = HashMap#put("mystring", "mystring")
   function invokeFun16() {
     hmapfun16.invoke(new HashMap<String, String>())
-    hmapfun16.invoke(new HashMap(), "mystring1", "mystring2")      //## issuekeys: 'INVOKE(JAVA.UTIL.HASHMAP<JAVA.LANG.OBJECT,JAVA.LANG.OBJECT>)' IN '' CANNOT BE APPLIED TO '(JAVA.UTIL.HASHMAP, JAVA.LANG.STRING, JAVA.LANG.STRING)'
+    hmapfun16.invoke(new HashMap<Object,Object>(), "mystring1", "mystring2")      //## issuekeys: 'INVOKE(JAVA.UTIL.HASHMAP<JAVA.LANG.OBJECT,JAVA.LANG.OBJECT>)' IN '' CANNOT BE APPLIED TO '(JAVA.UTIL.HASHMAP, JAVA.LANG.STRING, JAVA.LANG.STRING)'
     hmapfun16.invoke(new HashMap<String, String>(), "mystring1", "mystring2")      //## issuekeys: 'INVOKE(JAVA.UTIL.HASHMAP<JAVA.LANG.OBJECT,JAVA.LANG.OBJECT>)' IN '' CANNOT BE APPLIED TO '(JAVA.UTIL.HASHMAP<JAVA.LANG.STRING,JAVA.LANG.STRING>, JAVA.LANG.STRING, JAVA.LANG.STRING)'
     hmapfun16.invoke(new HashMap<String, String>(), 42, 42)      //## issuekeys: 'INVOKE(JAVA.UTIL.HASHMAP<JAVA.LANG.OBJECT,JAVA.LANG.OBJECT>)' IN '' CANNOT BE APPLIED TO '(JAVA.UTIL.HASHMAP<JAVA.LANG.STRING,JAVA.LANG.STRING>, INT, INT)'
     hmapfun16.invoke(new HashMap<String, String>())
@@ -106,7 +106,7 @@ class Errant_HashMapFL {
   var hmapfun14 = HashMap<String, Integer>#put(String, Integer)
 
   function invokeFun14() {
-    hmapfun14.invoke(new HashMap(), "mystring1", "mystring2")      //## issuekeys: 'INVOKE(JAVA.UTIL.HASHMAP<JAVA.LANG.STRING,JAVA.LANG.INTEGER>, JAVA.LANG.STRING, JAVA.LANG.INTEGER)' IN '' CANNOT BE APPLIED TO '(JAVA.UTIL.HASHMAP, JAVA.LANG.STRING, JAVA.LANG.STRING)'
+    hmapfun14.invoke(new HashMap<Object,Object>(), "mystring1", "mystring2")      //## issuekeys: 'INVOKE(JAVA.UTIL.HASHMAP<JAVA.LANG.STRING,JAVA.LANG.INTEGER>, JAVA.LANG.STRING, JAVA.LANG.INTEGER)' IN '' CANNOT BE APPLIED TO '(JAVA.UTIL.HASHMAP, JAVA.LANG.STRING, JAVA.LANG.STRING)'
     hmapfun14.invoke(new HashMap<String, String>(), "mystring1", "mystring2")      //## issuekeys: 'INVOKE(JAVA.UTIL.HASHMAP<JAVA.LANG.STRING,JAVA.LANG.INTEGER>, JAVA.LANG.STRING, JAVA.LANG.INTEGER)' IN '' CANNOT BE APPLIED TO '(JAVA.UTIL.HASHMAP<JAVA.LANG.STRING,JAVA.LANG.STRING>, JAVA.LANG.STRING, JAVA.LANG.STRING)'
     hmapfun14.invoke(new HashMap<String, String>(), 42, 42)      //## issuekeys: 'INVOKE(JAVA.UTIL.HASHMAP<JAVA.LANG.STRING,JAVA.LANG.INTEGER>, JAVA.LANG.STRING, JAVA.LANG.INTEGER)' IN '' CANNOT BE APPLIED TO '(JAVA.UTIL.HASHMAP<JAVA.LANG.STRING,JAVA.LANG.STRING>, INT, INT)'
     hmapfun14.invoke(new HashMap<String, Integer>(), "mystring1", 42)

@@ -55,7 +55,7 @@ class Errant_BlocksGenericsWithoutParams {
     })
 
 
-    var x1311: ArrayList<Integer> = hello1(\-> new ArrayList())  //Error Expected      //## issuekeys: 'HELLO1(GW.LANG.__PSI__.IBLOCK0<T>)' IN 'TEST.GOSU.GW.SPECCONTRIB.AAA.PARSERVSOPENSOURCE.BLOCKS.BLOCKSMAIN.ERRANT_BLOCKSGENERICSWITHOUTPARAMS' CANNOT BE APPLIED TO '(BLOCK():ARRAYLIST)'
+    var x1311: ArrayList<Integer> = hello1(\-> new ArrayList())
     var x1312: ArrayList<Integer> = hello1(\-> new ArrayList<Integer>())
     var x1313: ArrayList<Integer> = hello1(\-> {
       return new ArrayList<Integer>()
