@@ -354,7 +354,6 @@ abstract class ArithmeticExpressionTransformer<T extends ArithmeticExpression> e
       Class[] paramTypes = type == JavaTypes.pINT() ? new Class[]{int.class, int.class} : new Class[]{long.class, long.class};
       switch( op )
       {
-         //todo: switch to  Math.xxExact instead when we move to Java 8
         case Addition:
           return callStaticMethod( Math.class, "addExact", paramTypes, Arrays.asList( lhs, rhs ) );
         case Subtraction:
