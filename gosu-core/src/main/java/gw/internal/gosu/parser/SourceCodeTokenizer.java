@@ -169,10 +169,6 @@ final public class SourceCodeTokenizer implements ISourceCodeTokenizer
   {
     Stack<Token> tokens = _internal.getTokens();
     int count = tokens.size();
-    if( count == 0 )
-    {
-      return new Token();
-    }
     if( _state == count )
     {
       return _internal.getEofToken();

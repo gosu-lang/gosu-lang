@@ -582,6 +582,7 @@ final public class SourceCodeTokenizerInternal
   {
     if( _iType == ISourceCodeTokenizer.TT_EOF )
     {
+      initEofToken();
       return;
     }
 
@@ -597,6 +598,11 @@ final public class SourceCodeTokenizerInternal
         token = new Token();
     }
     pushToken( initToken( token ) );
+  }
+
+  private void initEofToken()
+  {
+    _eof = _eof == null ? initToken( new Token() ) : _eof;
   }
 
   Token initToken( Token token )
@@ -649,7 +655,7 @@ final public class SourceCodeTokenizerInternal
   {
     if( _iType == ISourceCodeTokenizer.TT_EOF )
     {
-      _eof = _eof == null ? initToken( new Token() ) : _eof;
+      initEofToken();
       return;
     }
 
