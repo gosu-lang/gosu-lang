@@ -382,40 +382,40 @@ final public class SourceCodeTokenizer implements ISourceCodeTokenizer
     return _state;
   }
 
-  public Stack<Token> getTokens()
+  final public Stack<Token> getTokens()
   {
     return _internal.getTokens();
   }
 
-  public void nextToken() {
-    int iType = nextTokenImpl();
-    while( (!isCommentsSignificant() && iType == TT_COMMENT) ||
-           (!isWhitespaceSignificant() && iType == TT_WHITESPACE) )
-    {
-      iType = nextTokenImpl();
-    }
-  }
-
-  private int nextTokenImpl()
+  public void nextToken()
   {
     if( _state < 0 )
     {
       _internal.rip();
     }
 
-    if( _state == getTokens().size() )
+    Stack<Token> tokens = _internal.getTokens();
+    int count = tokens.size();
+    if( _state == count )
     {
-      return TT_EOF;
+      return;
     }
 
-    _state++;
-
-    if( _state == getTokens().size() )
+    boolean bCommentsNotSignificant = !isCommentsSignificant();
+    boolean bWhitespaceNotSignificant = !isWhitespaceSignificant();
+    int iType;
+    do
     {
-      return TT_EOF;
-    }
+      _state++;
 
-    return getTokens().get( _state ).getType();
+      if( _state == count )
+      {
+        return;
+      }
+
+      iType = tokens.get( _state ).getType();
+    } while( (bCommentsNotSignificant && iType == TT_COMMENT) ||
+             (bWhitespaceNotSignificant && iType == TT_WHITESPACE) );
   }
 
   public String getStringValue()
