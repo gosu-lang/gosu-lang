@@ -34,6 +34,7 @@ import gw.lang.parser.ITypeUsesMap;
 import gw.lang.parser.PostCompilationAnalysis;
 import gw.lang.parser.ScriptPartId;
 import gw.lang.parser.ScriptabilityModifiers;
+import gw.lang.parser.StandardCoercionManager;
 import gw.lang.parser.TypeVarToTypeMap;
 import gw.lang.parser.exceptions.ErrantGosuClassException;
 import gw.lang.parser.exceptions.ParseResultsException;
@@ -863,8 +864,17 @@ public class GosuClass extends InnerClassCapableType implements IGosuClassIntern
     else
     {
       //noinspection SuspiciousMethodCalls
-      return type.getAllTypesInHierarchy().contains( pThis ) ||
-             TypeLord.areGenericOrParameterizedTypesAssignable( pThis, type );
+      return (type.getAllTypesInHierarchy().contains( pThis ) ||
+              TypeLord.areGenericOrParameterizedTypesAssignable( pThis, type )) &&
+             // We check structural assignability for the case where this is a generic structure and
+             // covariant assignability cannot hold because the type variable[s] are in parameter positions
+             // and, therefore, impose a contravariannt relationship, thus requires a deeper structural assignability check.
+             // Note this check should really be done on ALL generic interfaces, not just generic structures...
+             // Also it's probably worth noting this makes up for not having declaration-site contravariance,
+             // since we allow contravariant assignments to structures (the nominal, covariant check fails, then
+             // we check for a structural match, which wins in the contravariant case.  Makes it much easier on
+             // the user, they don't have to think about variance, shit just works with structures even when used nominally.
+             (!isParameterizedType() || !isStructure() || StandardCoercionManager.isStructurallyAssignable_Laxed( pThis, type ));
     }
   }
 
