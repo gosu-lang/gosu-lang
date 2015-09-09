@@ -64,6 +64,20 @@ class Errant_ScopeTest {
     }
   }
 
+  function switchScope_PL33314() : void {
+    var item2 = Math.round(Math.floor(Math.random()*10))
+    var invalidVar2 =""
+    switch (item2){
+      case 9 :
+          break
+        default :
+        invalidVar2 = "this should compile and cause no error"
+        var invalidVar = "this should not compile and causes VerifyError as a result"
+    }
+    print(invalidVar2)
+    print(invalidVar)  //## issuekeys: MSG_BAD_IDENTIFIER_NAME
+  }
+
   function tryCatchScope() {
     try {
       var f = 1/0
