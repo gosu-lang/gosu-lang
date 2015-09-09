@@ -759,7 +759,7 @@ public class FileSystemGosuClassRepository implements IFileSystemGosuClassReposi
       if( content == null ) {
         Stream<String> lines = null;
         try {
-          if( _file.isJavaFile() ) {
+          if( _file.isJavaFile() && _classType != ClassType.JavaClass ) {
             lines = Files.lines( _file.toJavaFile().toPath() );
           }
           else {
@@ -779,7 +779,7 @@ public class FileSystemGosuClassRepository implements IFileSystemGosuClassReposi
         finally {
           lines.close();
         }
-        _content = new SoftReference<>( content );
+        _content = _classType == ClassType.JavaClass ? new SoftReference<>( null ) : new SoftReference<>(content);
       }
       return content;
     }
