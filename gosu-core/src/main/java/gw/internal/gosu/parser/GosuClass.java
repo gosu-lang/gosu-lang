@@ -1442,7 +1442,7 @@ public class GosuClass extends InnerClassCapableType implements IGosuClassIntern
 
   public boolean isAnonymous()
   {
-    return getRelativeName().startsWith( ANONYMOUS_PREFIX );
+    return getRelativeName().startsWith( ANONYMOUS_PREFIX ) && getEnclosingTypeReference() != null;
   }
 
   public int getDepth()

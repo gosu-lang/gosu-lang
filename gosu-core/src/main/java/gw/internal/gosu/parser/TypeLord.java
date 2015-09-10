@@ -7,6 +7,7 @@ package gw.internal.gosu.parser;
 import gw.internal.gosu.parser.expressions.BlockType;
 import gw.internal.gosu.parser.expressions.TypeVariableDefinition;
 import gw.internal.gosu.parser.expressions.TypeVariableDefinitionImpl;
+import gw.lang.Gosu;
 import gw.lang.parser.AsmTypeVarMatcher;
 import gw.lang.parser.GosuParserFactory;
 import gw.lang.parser.GosuParserTypes;
@@ -1737,6 +1738,7 @@ public class TypeLord
       }
       addNamespace( namespaces, strName );
     }
+    namespaces.add( Gosu.NOPACKAGE );
     return namespaces;
   }
 

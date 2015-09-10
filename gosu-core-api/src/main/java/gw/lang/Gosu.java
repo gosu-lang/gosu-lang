@@ -40,6 +40,9 @@ import java.util.StringTokenizer;
 
 public class Gosu
 {
+  /** used as a virtual package e.g., for scratchpad */
+  public static final String NOPACKAGE = "_nopackage_";
+
   private static List<File> _classpath;
 
   public static void main( String[] args )
@@ -181,7 +184,7 @@ public class Gosu
       return fqn.substring(0, fqn.lastIndexOf('.'));
     } else { // the Gosu Scratchpad case
       String fqn = file.getName();
-      fqn = "nopackage." + fqn.substring(0, fqn.lastIndexOf('.')).replace(" ", "");
+      fqn = NOPACKAGE + '.' + fqn.substring( 0, fqn.lastIndexOf( '.' ) ).replace( " ", "" );
       return fqn;
     }
   }
