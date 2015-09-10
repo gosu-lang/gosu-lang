@@ -15,7 +15,8 @@ class TheWhileStatementTest extends BaseVerifyErrantTest {
     while(i < 10) i++
     assertEquals(10, i)
     i = 0
-    while(false) { i++ }
+    var notTrue = false
+    while(notTrue) { i++ }
     while(new Boolean(false)) { i++ }
     assertEquals(0, i)
   }

@@ -174,7 +174,6 @@ public class GosuElementTypes extends GosuTokenTypes {
   public static final GosuElementType ELEM_TYPE_NullExpression = new GosuElementType(INullExpression.class);
   public static final GosuElementType ELEM_TYPE_BlockExpression = new GosuElementType(IBlockExpression.class);
   public static final GosuElementType ELEM_TYPE_TemplateStringLiteral = new GosuElementType(ITemplateStringLiteral.class);
-  public static final GosuElementType ELEM_TYPE_ExistsExpression = new GosuElementType(IExistsExpression.class);
   public static final GosuElementType ELEM_TYPE_BlockInvocation = new GosuElementType(IBlockInvocation.class);
   public static final GosuElementType ELEM_TYPE_FeatureLiteral = new GosuElementType(IFeatureLiteralExpression.class);
   public static final GosuElementType ELEM_TYPE_ParameterDeclaration = new GosuElementType(IParameterDeclaration.class);

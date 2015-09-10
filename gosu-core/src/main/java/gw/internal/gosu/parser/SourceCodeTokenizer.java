@@ -25,7 +25,7 @@ final public class SourceCodeTokenizer implements ISourceCodeTokenizer
   private SourceCodeTokenizer()
   {
     _state = -1;
-    _offsetMarkers = new Stack<ITokenizerOffsetMarker>();
+    _offsetMarkers = new Stack<>();
   }
 
   private SourceCodeTokenizer( boolean initForCopy )
@@ -165,13 +165,11 @@ final public class SourceCodeTokenizer implements ISourceCodeTokenizer
     _internal.setCommentsSignificant( bCommentsSignificant );
   }
 
-  public IToken getCurrentToken()
+  final public Token getCurrentToken()
   {
-    if( getTokens().size() == 0 )
-    {
-      return new Token();
-    }
-    if( isEOF() )
+    Stack<Token> tokens = _internal.getTokens();
+    int count = tokens.size();
+    if( _state == count )
     {
       return _internal.getEofToken();
     }
@@ -179,10 +177,10 @@ final public class SourceCodeTokenizer implements ISourceCodeTokenizer
     {
       return new Token();
     }
-    return _internal.getTokens().get( _state );
+    return tokens.get( _state );
   }
 
-  public IToken getTokenAt( int iTokenIndex )
+  public Token getTokenAt( int iTokenIndex )
   {
     int iTokenCount = getTokens().size();
     if( iTokenCount == 0 )
@@ -190,10 +188,6 @@ final public class SourceCodeTokenizer implements ISourceCodeTokenizer
       return null;
     }
     if( iTokenIndex >= iTokenCount )
-    {
-      return null;
-    }
-    if( isEOF() )
     {
       return null;
     }
@@ -264,11 +258,6 @@ final public class SourceCodeTokenizer implements ISourceCodeTokenizer
     _internal.quoteChar( ch );
   }
 
-  public void charQuoteChar( int ch )
-  {
-    _internal.charQuoteChar( ch );
-  }
-
   public void parseNumbers()
   {
     _internal.parseNumbers();
@@ -305,10 +294,10 @@ final public class SourceCodeTokenizer implements ISourceCodeTokenizer
 
   public DocCommentBlock popLastComment()
   {
-    Stack<IToken> tokens = _internal.getTokens();
+    Stack<Token> tokens = _internal.getTokens();
     for( int i = _state, j = 0; i >= 0 && j < 5; i--, j++ )
     {
-      Token token = (Token)tokens.get( i );
+      Token token = tokens.get( i );
       DocCommentBlock turd = token.getTurd();
       if( turd != null )
       {
@@ -331,7 +320,7 @@ final public class SourceCodeTokenizer implements ISourceCodeTokenizer
   public String getTokenAsString()
   {
     String ret;
-    IToken token = getCurrentToken();
+    Token token = getCurrentToken();
     switch( token.getType() )
     {
       case TT_WORD:
@@ -389,42 +378,40 @@ final public class SourceCodeTokenizer implements ISourceCodeTokenizer
     return _state;
   }
 
-  public Stack<IToken> getTokens()
+  final public Stack<Token> getTokens()
   {
     return _internal.getTokens();
   }
 
-  public int nextToken() {
-    int iType = nextTokenImpl();
-    while( (!isCommentsSignificant() && iType == TT_COMMENT) ||
-           (!isWhitespaceSignificant() && iType == TT_WHITESPACE) )
-    {
-      iType = nextTokenImpl();
-    }
-
-    return iType;
-  }
-
-  private int nextTokenImpl()
+  public void nextToken()
   {
     if( _state < 0 )
     {
       _internal.rip();
     }
 
-    if( _state == getTokens().size() )
+    Stack<Token> tokens = _internal.getTokens();
+    int count = tokens.size();
+    if( _state == count )
     {
-      return TT_EOF;
+      return;
     }
 
-    _state++;
-
-    if( _state == getTokens().size() )
+    boolean bCommentsNotSignificant = !isCommentsSignificant();
+    boolean bWhitespaceNotSignificant = !isWhitespaceSignificant();
+    int iType;
+    do
     {
-      return TT_EOF;
-    }
+      _state++;
 
-    return getTokens().get( _state ).getType();
+      if( _state == count )
+      {
+        return;
+      }
+
+      iType = tokens.get( _state ).getType();
+    } while( (bCommentsNotSignificant && iType == TT_COMMENT) ||
+             (bWhitespaceNotSignificant && iType == TT_WHITESPACE) );
   }
 
   public String getStringValue()
@@ -466,9 +453,9 @@ final public class SourceCodeTokenizer implements ISourceCodeTokenizer
   public int countMatches( String s )
   {
     int matches = 0;
-    int i = nextToken();
-    IToken token = getCurrentToken();
-    while( i != SourceCodeTokenizer.TT_EOF )
+    nextToken();
+    Token token = getCurrentToken();
+    while( token.getType() != SourceCodeTokenizer.TT_EOF )
     {
       switch( token.getType() )
       {
@@ -507,7 +494,7 @@ final public class SourceCodeTokenizer implements ISourceCodeTokenizer
           break;
         }
       }
-      i = nextToken();
+      nextToken();
       token = getCurrentToken();
     }
     reset();
@@ -517,15 +504,15 @@ final public class SourceCodeTokenizer implements ISourceCodeTokenizer
   public int countMatches( String s, int tokenType )
   {
     int matches = 0;
-    int i = nextToken();
-    IToken token = getCurrentToken();
-    while( i != SourceCodeTokenizer.TT_EOF )
+    nextToken();
+    Token token = getCurrentToken();
+    while( token.getType() != SourceCodeTokenizer.TT_EOF )
     {
-      if( i == tokenType )
+      if( token.getType() == tokenType )
       {
         matches += s.equals( token.getStringValue() ) ? 1 : 0;
       }
-      i = nextToken();
+      nextToken();
       token = getCurrentToken();
     }
     reset();
@@ -607,15 +594,15 @@ final public class SourceCodeTokenizer implements ISourceCodeTokenizer
     _internal.setSupportsKeywords( supportsKeywords );
   }
 
-  public IToken getPriorToken()
+  public Token getPriorToken()
   {
     return getPriorToken( true );
   }
-  public IToken getPriorToken( boolean bSkipWhitespace )
+  public Token getPriorToken( boolean bSkipWhitespace )
   {
     return getPriorToken( bSkipWhitespace, bSkipWhitespace );
   }
-  public IToken getPriorToken( boolean bSkipWhitespace, boolean bSkipComments )
+  public Token getPriorToken( boolean bSkipWhitespace, boolean bSkipComments )
   {
     if( getTokens().size() == 0 )
     {
@@ -623,7 +610,7 @@ final public class SourceCodeTokenizer implements ISourceCodeTokenizer
     }
     for( int i = _state-1; i >= 0; i-- )
     {
-      IToken t = getTokens().get( i );
+      Token t = getTokens().get( i );
       if( (!bSkipWhitespace || t.getType() != TT_WHITESPACE) &&
           (!bSkipComments || t.getType() != TT_COMMENT))
       {

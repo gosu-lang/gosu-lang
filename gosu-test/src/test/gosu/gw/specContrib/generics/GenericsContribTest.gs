@@ -18,8 +18,12 @@ class GenericsContribTest extends TestClass {
                   "java.util.List<T>" )
   }
 
-  function testContravariantWildcardTypeUsesBoundingTypeOfItsTypeVarBound() {
-    assertEquals( BeanPopulator<Bean>, (Bean.Type.TypeInfo as IRelativeTypeInfo).getMethod( Bean, "addPopulator", {BeanPopulator<Bean>} ).Parameters[0].FeatureType )
+  function testContravariantWildcardTypeUsesBoundingTypeOfItsTypeVarBoundIfOnNonFunctionalInterface() {
+    assertEquals( BeanPopulatorNonFunctional<Bean>, (Bean.Type.TypeInfo as IRelativeTypeInfo).getMethod( Bean, "addPopulatorNonFunctional", {BeanPopulatorNonFunctional<Bean>} ).Parameters[0].FeatureType )
+  }
+
+  function testContravariantWildcardTypeRetainsTypeVarAsUPPERBoundIfOnFunctionalInterface() {
+    assertEquals( "gw.specContrib.generics.BeanPopulator<T>", (Bean.Type.TypeInfo as IRelativeTypeInfo).getMethod( Bean, "addPopulator", {BeanPopulator<Bean>} ).Parameters[0].FeatureType.Name )
   }
 
   function testMohrRecursives() {
@@ -34,5 +38,15 @@ class GenericsContribTest extends TestClass {
   function testGosuReferencesRecursiveJavaTypeVar() {
     var t = new GosuReferencesRecursiveJavaTypeVar()
     assertEquals( MuhEnum.HI, t.getMeBack( MuhEnum.HI ) )
+  }
+
+  function testInferTypeParamsInCtor() {
+    var x : List<String> = new ArrayList()
+
+    var y: Map<String, Integer> = new StringMap()
+    assertEquals( StringMap<Integer>, typeof y )
+  }
+
+  static class StringMap<V> extends HashMap<String, V> {
   }
 }

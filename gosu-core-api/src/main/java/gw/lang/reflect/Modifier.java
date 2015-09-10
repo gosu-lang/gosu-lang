@@ -14,7 +14,7 @@ public class Modifier extends java.lang.reflect.Modifier
   /**
    * The <code>int</code> value representing the <code>hide</code> modifier.
    */
-  public static final int HIDE = 0x00020000;
+  public static final int HIDE = 0x02000000;
 
   /**
    * The code indicating something is a class member
@@ -32,6 +32,8 @@ public class Modifier extends java.lang.reflect.Modifier
    * may mean different things in different contexts.
    */
   public static final int ENUM = 0x00004000; // Match the Java value for the enum modifier
+
+  public static final int DEPRECATED = 0x000020000; // Java's undocumented modifier for Javadoc @deprecated
 
   public static final int ANNOTATION  = 0x00002000; // Match the Java value for the annotation modifier
 
@@ -116,6 +118,11 @@ public class Modifier extends java.lang.reflect.Modifier
     return (mod & ENUM) != 0;
   }
 
+  public static boolean isDeprecated( int mod )
+  {
+    return (mod & DEPRECATED) != 0;
+  }
+
   public static boolean isAnnotation( int mod )
   {
     return (mod & ANNOTATION) != 0;
@@ -179,6 +186,11 @@ public class Modifier extends java.lang.reflect.Modifier
   public static int setEnum( int mod, boolean bValue )
   {
     return setBit(mod, bValue, ENUM);
+  }
+
+  public static int setDeprecated( int mod, boolean bValue )
+  {
+    return setBit(mod, bValue, DEPRECATED);
   }
 
   private static int setBit( int mod, boolean bValue, int bit )

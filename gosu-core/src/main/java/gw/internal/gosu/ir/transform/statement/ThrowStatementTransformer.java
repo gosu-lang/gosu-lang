@@ -42,7 +42,7 @@ public class ThrowStatementTransformer extends AbstractStatementTransformer<Thro
     // in an EvaluationException
 
     IRExpression exceptionValue = ExpressionTransformer.compile( _stmt().getExpression(), _cc() );
-    if (TypeLord.isSubtype( _stmt().getExpression().getType(), JavaTypes.THROWABLE() ) ) {
+    if (JavaTypes.THROWABLE().isAssignableFrom( _stmt().getExpression().getType() ) ) {
       // It's definitely a Throwable:  if it's a synthetic type like a SOAP exception type, the verifier
       // might not actually know it's a throwable, though
       if ( !getDescriptor(Throwable.class).isAssignableFrom(exceptionValue.getType())) {

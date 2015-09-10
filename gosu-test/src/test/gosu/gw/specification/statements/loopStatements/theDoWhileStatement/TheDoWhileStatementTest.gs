@@ -15,7 +15,8 @@ class TheDoWhileStatementTest extends BaseVerifyErrantTest {
     do i++ while(i < 10)
     assertEquals(10, i)
     i = 0
-    do  { i++ } while(false)
+    var notTrue = false
+    do  { i++ } while(notTrue)
     do { i++ } while(new Boolean(false))
     assertEquals(2, i)
   }

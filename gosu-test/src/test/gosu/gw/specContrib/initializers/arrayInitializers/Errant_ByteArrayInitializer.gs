@@ -6,7 +6,8 @@ uses java.math.BigInteger
 uses java.util.Date
 
 class Errant_ByteArrayInitializer {
-  var byteArray111 : byte[] = {'c', 'd', 'e'}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.CHARACTER>', REQUIRED: 'BYTE[]'
+  var byteArray110 : byte[] = {'c', 'd', 'e'}
+  var byteArray111 : byte[] = {'ü', 'é', 'â'}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.CHARACTER>', REQUIRED: 'BYTE[]'
   var byteArray112 : byte[] = {1b, 2b, 3b}
   var byteArray113 : byte[] = {1s,2s,3s}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.SHORT>', REQUIRED: 'BYTE[]'
   //IDE-1284
@@ -16,7 +17,8 @@ class Errant_ByteArrayInitializer {
   var byteArray117 : byte[] = {42.5,2.5,3.6}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.DOUBLE>', REQUIRED: 'BYTE[]'
   var byteArray118 : byte[] = {BigDecimal.ONE, BigDecimal.TEN}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.MATH.BIGDECIMAL>', REQUIRED: 'BYTE[]'
   var byteArray119 : byte[] = {BigInteger.ONE}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.MATH.BIGINTEGER>', REQUIRED: 'BYTE[]'
-  var byteArray120 : byte[] = {1b, 'c'}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.INTEGER>', REQUIRED: 'BYTE[]'
+  var byteArray120 : byte[] = {1b, 'c'}
+  var byteArray120_1 : byte[] = {1b, 'â'}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.INTEGER>', REQUIRED: 'BYTE[]'
   var byteArray121 : byte[] = {1b, 1s}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.INTEGER>', REQUIRED: 'BYTE[]'
   //IDE-1284
   var byteArray122 : byte[] = {1b, 42}
@@ -28,7 +30,8 @@ class Errant_ByteArrayInitializer {
   var byteArray128 : byte[] = {'c', 1b, 1s, 42, 42.5f, 42L, 42.5}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.DOUBLE>', REQUIRED: 'BYTE[]'
 
 
-  var byteArray211 : Byte[] = {'c', 'd', 'e'}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.CHARACTER>', REQUIRED: 'BYTE[]'
+  var byteArray210 : Byte[] = {'c', 'd', 'e'}
+  var byteArray211 : Byte[] = {'ü', 'é', 'â'}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.CHARACTER>', REQUIRED: 'BYTE[]'
   var byteArray212 : Byte[] = {1b, 2b, 3b}
   var byteArray213 : Byte[] = {1s,2s,3s}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.SHORT>', REQUIRED: 'BYTE[]'
   //IDE-1284
@@ -38,7 +41,8 @@ class Errant_ByteArrayInitializer {
   var byteArray217 : Byte[] = {42.5,2.5,3.6}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.DOUBLE>', REQUIRED: 'BYTE[]'
   var byteArray218 : Byte[] = {BigDecimal.ONE, BigDecimal.TEN}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.MATH.BIGDECIMAL>', REQUIRED: 'BYTE[]'
   var byteArray219 : Byte[] = {BigInteger.ONE}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.MATH.BIGINTEGER>', REQUIRED: 'BYTE[]'
-  var byteArray220 : Byte[] = {1b, 'c'}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.INTEGER>', REQUIRED: 'BYTE[]'
+  var byteArray220 : Byte[] = {1b, 'c'}
+  var byteArray220_1 : Byte[] = {1b, 'â'}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.INTEGER>', REQUIRED: 'BYTE[]'
   var byteArray221 : Byte[] = {1b, 1s}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.INTEGER>', REQUIRED: 'BYTE[]'
   //IDE-1284
   var byteArray222 : Byte[] = {1b, 42}

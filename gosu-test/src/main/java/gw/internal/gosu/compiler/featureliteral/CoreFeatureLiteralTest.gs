@@ -339,4 +339,59 @@ class CoreFeatureLiteralTest extends TestClass {
     assertEquals( "val1", bpr.get() )
   }
 
+    function testSuperSymbolReferences() {
+      var s = new Sub()
+
+      // fields
+      assertEquals( "privateVar", s.getSuperPrivateVar() )
+      assertEquals( "protectedVar", s.getSuperProtectedVar() )
+      assertEquals( "publicVar", s.getSuperPublicVar() )
+
+      // props
+      assertEquals( "privateProp", s.getSuperPrivateProp() )
+      assertEquals( "protectedProp", s.getSuperProtectedProp() )
+      assertEquals( "publicProp", s.getSuperPublicProp() )
+
+      // functions
+      assertEquals( "privateFunction", s.getSuperPrivateFunction() )
+      assertEquals( "protectedFunction", s.getSuperProtectedFunction() )
+      assertEquals( "publicFunction", s.getSuperPublicFunction() )
+    }
+
+    class Super {
+
+      private construct(){}
+      protected construct(i : int){}
+      public construct(i : int, s : String){}
+
+      var _privateVar : String = "privateVar"
+      protected var _protectedVar : String = "protectedVar"
+      public var _publicVar : String = "publicVar"
+
+      private property get PrivateProp() : String { return "privateProp" }
+      protected property get ProtectedProp() : String { return "protectedProp" }
+      property get PublicProp() : String { return "publicProp" }
+
+      private function privateFunction() : String { return "privateFunction" }
+      protected function protectedFunction() : String { return "protectedFunction" }
+      function publicFunction() : String { return "publicFunction" }
+
+    }
+
+    class Sub extends Super {
+
+      function getSuperPrivateVar() : String { return super#_privateVar.get() }
+      function getSuperProtectedVar() : String { return super#_protectedVar.get() }
+      function getSuperPublicVar() : String { return super#_publicVar.get() }
+
+      function getSuperPrivateProp() : String { return super#PrivateProp.get() }
+      function getSuperProtectedProp() : String { return super#ProtectedProp.get() }
+      function getSuperPublicProp() : String { return super#PublicProp.get() }
+
+      function getSuperPrivateFunction() : String { return super#privateFunction().invoke() }
+      function getSuperProtectedFunction() : String { return super#protectedFunction().invoke() }
+      function getSuperPublicFunction() : String { return super#publicFunction().invoke() }
+
+    }
+
 }

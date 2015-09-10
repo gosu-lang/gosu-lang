@@ -35,4 +35,6 @@ public interface IParserState
     * @return the starting line of this parser state
     */
   int getLineOffset();
+
+  IParserState cloneWithNewTokenStartAndTokenEnd(int newTokenStart, int newLength);
 }

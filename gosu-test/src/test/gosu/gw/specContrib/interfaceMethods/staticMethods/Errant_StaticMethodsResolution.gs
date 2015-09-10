@@ -16,9 +16,7 @@ class Errant_StaticMethodsResolution {
       instance1.foo()      //## issuekeys: STATIC METHOD MAY BE INVOKED ON CONTAINING INTERFACE CLASS ONLY
 
       IA.foo()
-      //IDE-2618 - OS Gosu issue, does not show error.
-      super[IA].foo()      //## issuekeys: STATIC METHOD MAY BE INVOKED ON CONTAINING INTERFACE CLASS ONLY
-
+      super[IA].foo()
     }
   }
 }

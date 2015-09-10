@@ -13,17 +13,21 @@ import gw.lang.reflect.IParameterInfo;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.ITypeInfo;
 import gw.lang.reflect.ITypeVariableType;
+import gw.lang.reflect.Modifier;
 import gw.lang.reflect.TypeSystem;
-import gw.lang.reflect.gs.IGenericTypeVariable;
+import gw.lang.reflect.features.IMethodReference;
 import gw.lang.reflect.gs.IGosuClass;
 import gw.lang.reflect.gs.IGosuEnhancement;
 import gw.lang.reflect.gs.IGosuMethodInfo;
 import gw.lang.reflect.gs.IGosuObject;
+import gw.lang.reflect.java.IJavaClassInfo;
+import gw.lang.reflect.java.IJavaClassMethod;
 import gw.lang.reflect.java.IJavaMethodInfo;
 import gw.lang.reflect.java.IJavaType;
 import gw.lang.reflect.java.JavaTypes;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
@@ -42,7 +46,11 @@ public class FunctionToInterfaceCoercer extends BaseCoercer implements IResolvin
 
   public Object coerceValue( IType typeToCoerceTo, Object value )
   {
-    if( value instanceof IBlock )
+    if( value instanceof IMethodReference )
+    {
+      return coerceValue( typeToCoerceTo, ((IMethodReference)value).toBlock() );
+    }
+    else if( value instanceof IBlock )
     {
       IGosuClass proxyClass = GosuShop.getBlockToInterfaceConversionClass( typeToCoerceTo, TypeSystem.get( value.getClass().getEnclosingClass() ) );
       IBlock blk = (IBlock)value;
@@ -117,6 +125,63 @@ public class FunctionToInterfaceCoercer extends BaseCoercer implements IResolvin
     return null;
   }
 
+  public static IJavaClassMethod getSingleMethodFromJavaInterface( IJavaType interfaceType )
+  {
+    if( !interfaceType.isInterface() )
+    {
+      return null;
+    }
+
+    List<IJavaClassMethod> list = new ArrayList<>( Arrays.asList( interfaceType.getBackingClassInfo().getDeclaredMethods() ) );
+
+    // extract all "default" and Object methods
+    IJavaClassInfo objTypeInfo = JavaTypes.OBJECT().getBackingClassInfo();
+    for( Iterator<? extends IJavaClassMethod> it = list.iterator(); it.hasNext(); )
+    {
+      IJavaClassMethod method = it.next();
+      IJavaClassInfo[] paramTypes = method.getParameterTypes();
+      if( hasMethod( objTypeInfo, method.getName(), paramTypes ) )
+      {
+        it.remove();
+      }
+      else if( !Modifier.isAbstract( method.getModifiers() ) )
+      {
+        it.remove();
+      }
+    }
+
+    if( list.size() == 1 )
+    {
+      return list.get( 0 );
+    }
+    return null;
+  }
+
+  private static boolean hasMethod( IJavaClassInfo jci, String name, IJavaClassInfo[] params )
+  {
+    outer: for( IJavaClassMethod method : jci.getDeclaredMethods() )
+    {
+      if( !method.getName().equals( name ) )
+      {
+        continue;
+      }
+      IJavaClassInfo[] methodParamTypes = method.getParameterTypes();
+      if( params.length != methodParamTypes.length )
+      {
+        continue;
+      }
+      for( int i = 0; i < params.length; i++ )
+      {
+        if( !params[i].equals( methodParamTypes[i] ) )
+        {
+          continue outer;
+        }
+      }
+      return true;
+    }
+    return false;
+  }
+
   public boolean isExplicitCoercion()
   {
     return false;
@@ -134,17 +199,22 @@ public class FunctionToInterfaceCoercer extends BaseCoercer implements IResolvin
 
   public IType resolveType( IType target, IType source )
   {
+    if( TypeSystem.get( IMethodReference.class ).isAssignableFrom( source ) )
+    {
+      return resolveType( target, source.getTypeParameters()[1] );
+    }
+
     IFunctionType sourceFun = (IFunctionType)source;
     IType returnType = sourceFun.getReturnType();
     IType methodReturnType = extractReturnTypeFromInterface( target );
     if( methodReturnType instanceof ITypeVariableType )
     {
-      IGenericTypeVariable[] typeVariables = target.getGenericTypeVariables();
-      IType[] parameterizationTypes = new IType[typeVariables.length];
-      for( int i = 0; i < typeVariables.length; i++ )
+      IType[] paramTypes = target.getTypeParameters();
+      IType[] parameterizationTypes = new IType[paramTypes.length];
+      for( int i = 0; i < paramTypes.length; i++ )
       {
-        IGenericTypeVariable typeVariable = typeVariables[i];
-        if( typeVariable.getName().equals( methodReturnType.getName() ) )
+        IType param = paramTypes[i];
+        if( param instanceof ITypeVariableType && param.getName().equals( methodReturnType.getName() ) )
         {
           parameterizationTypes[i] = returnType;
         }
@@ -163,14 +233,8 @@ public class FunctionToInterfaceCoercer extends BaseCoercer implements IResolvin
 
   private IType extractReturnTypeFromInterface( IType target )
   {
-    for( IMethodInfo methodInfo : target.getTypeInfo().getMethods() )
-    {
-      if( methodInfo.getOwnersType().equals( target ) )
-      {
-        return methodInfo.getReturnType();
-      }
-    }
-    return null;
+    IFunctionType funcType = getRepresentativeFunctionType( target );
+    return funcType == null ? null : funcType.getReturnType();
   }
 
 }

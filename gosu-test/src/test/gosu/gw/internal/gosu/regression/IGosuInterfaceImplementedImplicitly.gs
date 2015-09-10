@@ -9,6 +9,4 @@ interface IGosuInterfaceImplementedImplicitly
 
   function aProtectedMethodOnTheBaseClass() : String
 
-  function aStaticMethodOnTheBaseClass() : String
-
 }

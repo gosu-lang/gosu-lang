@@ -108,6 +108,8 @@ public interface IFileSystemGosuClassRepository extends IGosuClassRepository
     ClassPathEntry getEntry();
 
     String getContent();
+
+    void stopCachingContent();
   }
 
   class Util

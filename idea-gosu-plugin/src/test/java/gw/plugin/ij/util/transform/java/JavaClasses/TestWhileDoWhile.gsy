@@ -18,9 +18,7 @@ public class TestWhileDoWhile  {
             continue
         }
 
-        /*
-            label: 
-        */
+        /* FIX ME: labeled statements not allowed in Gosu */label:
         while (flag) {
             a = 1
             b = 1

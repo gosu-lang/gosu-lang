@@ -16,9 +16,7 @@ class Example79  {
     static function substring2(query : String, target : String) : boolean {
         var j = 0
         while (j <= target.length() - query.length()) {
-            /*
-                thisposition: 
-            */
+            /* FIX ME: labeled statements not allowed in Gosu */thisposition:
              {
                 for (k in 0..|query.length()) {
                     if (target.charAt(j + k) != query.charAt(k)) {

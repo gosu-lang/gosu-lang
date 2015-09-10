@@ -142,4 +142,56 @@ class Errant_TheIfElseStatementTest {
       y = 2
     }
   }
+
+  function testUnlessExceptClauseInIfElseStatement(){
+    var x = 3
+    if (x > 5){
+      ;
+    }unless(x < 2){  //## issuekeys: MSG_NO_SUCH_FUNCTION
+      ;
+    }
+
+    if (x > 5){
+      ;
+    }except(x < 1){  //## issuekeys: MSG_NO_SUCH_FUNCTION
+      ;
+    }
+
+    if (x > 5){
+      ;
+    }else{
+      ;
+    }unless(x < 1){  //## issuekeys: MSG_NO_SUCH_FUNCTION
+      ;
+    }
+
+    if (x > 5){
+      ;
+    }else{
+      ;
+    }except(x<1){  //## issuekeys: MSG_NO_SUCH_FUNCTION
+      ;
+    }
+
+    if (x > 5){
+      ;
+    }else{
+      ;
+    }except(x<1){  //## issuekeys: MSG_NO_SUCH_FUNCTION
+      ;
+    }unless(x>1){  //## issuekeys: MSG_NO_SUCH_FUNCTION
+      ;
+    }
+
+    if (x > 5){
+      ;
+    }else{
+      ;
+    }unless(x<1){  //## issuekeys: MSG_NO_SUCH_FUNCTION
+      ;
+    }except(x>1){  //## issuekeys: MSG_NO_SUCH_FUNCTION
+      ;
+    }
+
+  }
 }

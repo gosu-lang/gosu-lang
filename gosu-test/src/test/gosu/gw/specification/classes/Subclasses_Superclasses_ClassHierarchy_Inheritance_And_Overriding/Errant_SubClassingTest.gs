@@ -33,11 +33,11 @@ class Errant_SubClassingTest {
   }
 
   class Z extends W {
-    override function foo() : int { return 5}  //## issuekeys: MSG_FUNCTION_NOT_OVERRIDE
+    override function foo() : int { return 5}  //## issuekeys: MSG_FUNCTION_ALREADY_DEFINED
   }
 
   class Q extends W {
-    function foo() : int { return 6}
+    function foo() : int { return 6}  //## issuekeys: MSG_FUNCTION_ALREADY_DEFINED
   }
 
   class J {

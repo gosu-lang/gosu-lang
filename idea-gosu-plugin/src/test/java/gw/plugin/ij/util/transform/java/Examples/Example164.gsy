@@ -6,30 +6,21 @@ uses java.lang.annotation.ElementType.*
 uses java.lang.annotation.RetentionPolicy.*
 uses java.lang.reflect.*
 
-/*
-    
-    @Target({TYPE, METHOD})
-    @Retention(RUNTIME)
-    @interface Author {
-        public final int oneHour = 60 * 60 * 1000;
-        
-        public String name();
-        
-        public Month month();
-        
-        public String[] diet() default {"Coffee", "Cola", "Mars bars"};
-        
-        public int weeklyWork() default 56 * oneHour;
-    }
-*/
-/*
-    
-    @Retention(RUNTIME)
-    @interface Authors {
-        
-        public Author[] value();
-    }
-*/
+@Target({TYPE, METHOD})
+@Retention(RUNTIME)
+annotation Author  {
+
+    public final var oneHour : int = 60 * 60 * 1000
+    public function name() : String
+    public function month() : Month
+    public function diet() : String[] = {"Coffee", "Cola", "Mars bars"}
+    public function weeklyWork() : int = 56 * oneHour
+}
+@Retention(RUNTIME)
+annotation Authors  {
+
+    public function value() : Author[]
+}
 class Example164  {
 
     @Author(:name = "Peter", :month = Month.Nov, :diet = {"Dr. Pepper"})

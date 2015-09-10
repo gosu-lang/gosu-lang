@@ -4,20 +4,19 @@
 
 package gw.config;
 
-import gw.lang.reflect.TypeSystem;
-import gw.lang.reflect.module.IExecutionEnvironment;
+
+import gw.util.Stack;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Stack;
 
 public abstract class ServiceKernel
 {
 
   private Map<Class<? extends IService>, IService> _services;
-  private Stack<IService> _initingServices = new Stack<IService>();
+  private Stack<IService> _initingServices = new Stack<>();
   private boolean _definingServices = false;
 
   protected ServiceKernel()

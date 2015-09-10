@@ -25,12 +25,14 @@ public class AsmClassTest extends TestClass {
   public void beforeTestMethod() {
     super.beforeTestMethod();
     DefaultPlatformHelper.EXECUTION_MODE = ExecutionMode.COMPILER;
+    ExecutionMode.clear();
   }
 
   @Override
   public void afterTestMethod( Throwable possibleException ) {
     super.afterTestMethod( possibleException );
     DefaultPlatformHelper.EXECUTION_MODE = ExecutionMode.RUNTIME;
+    ExecutionMode.clear();
   }
 
   public void testClassDeclaration() {

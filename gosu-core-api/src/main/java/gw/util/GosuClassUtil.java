@@ -22,8 +22,9 @@ public class GosuClassUtil
     }
     int packageIndex = className.lastIndexOf( '.' ) + 1;
     int innerClassIndex = className.lastIndexOf( '$' ) + 1;
-    int index = packageIndex >= innerClassIndex ?
-                packageIndex : innerClassIndex;
+    int index = packageIndex >= innerClassIndex
+                ? packageIndex
+                : innerClassIndex;
     return className.substring( index );
   }
 

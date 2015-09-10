@@ -53,7 +53,14 @@ public class GosuFoldingBuilder extends GosuElementTypes implements FoldingBuild
   @Override
   public FoldingDescriptor[] buildFoldRegions(@NotNull ASTNode node, @NotNull Document document) {
     final List<FoldingDescriptor> descriptors = new ArrayList<>();
-    appendDescriptors(node.getPsi(), descriptors);
+    try
+    {
+      appendDescriptors( node.getPsi(), descriptors );
+    }
+    catch( RuntimeException t )
+    {
+      // exceptions here happen a lot and we don't care if folding works or not, g'way 'batin
+    }
     return descriptors.toArray(new FoldingDescriptor[descriptors.size()]);
   }
 

@@ -9,11 +9,11 @@ import gw.config.ExecutionMode;
 import gw.fs.IFile;
 import gw.internal.gosu.annotations.AnnotationMap;
 import gw.lang.parser.TypeVarToTypeMap;
-import gw.lang.reflect.AbstractType;
 import gw.lang.reflect.IErrorType;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.ITypeInfo;
 import gw.lang.reflect.ITypeRef;
+import gw.lang.reflect.InnerClassCapableType;
 import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.gs.ClassType;
 import gw.lang.reflect.gs.IGosuClass;
@@ -52,7 +52,7 @@ import java.util.concurrent.ConcurrentMap;
 
 /**
  */
-class JavaType extends AbstractType implements IJavaTypeInternal
+class JavaType extends InnerClassCapableType implements IJavaTypeInternal
 {
   //
   // Persistent fields. See readResolve()
@@ -72,13 +72,9 @@ class JavaType extends AbstractType implements IJavaTypeInternal
   transient private LockingLazyVar<Boolean> _bHasSuperType = new LockingLazyVar<Boolean>() {
     @Override
     protected Boolean init() {
-      if(_classInfo != null) {
-          return _classInfo.getSuperclass() != null &&
-              //## hack: avoid cyclic refs from creating AnnotationClass
-              !_classInfo.getName().equals( AnnotationMap.class.getName() );
-      } else {
-        return _classInfo.getSuperclass() != null;
-      }
+      return _classInfo.getSuperclass() != null &&
+          //## hack: avoid cyclic refs from creating AnnotationClass
+          !_classInfo.getName().equals( AnnotationMap.class.getName() );
     }
   };
   transient volatile private IType _superType;  //!! Do NOT make this a lazy var, it's init needs to be re-entrant
@@ -101,6 +97,7 @@ class JavaType extends AbstractType implements IJavaTypeInternal
   transient private boolean _bDiscarded;
   private IJavaTypeInternal _typeRef;
   transient private int _tiChecksum;
+  transient volatile private List<IJavaType> _innerClasses;
 
   public static IJavaTypeInternal get( Class cls, DefaultTypeLoader loader )
   {
@@ -186,7 +183,7 @@ class JavaType extends AbstractType implements IJavaTypeInternal
       try
       {
         assignGenericTypeVarPlaceholders();
-        return GenericTypeVariable.convertTypeVars( thisRef(), _classInfo.getTypeParameters() );
+        return GenericTypeVariable.convertTypeVars( thisRef(), null, _classInfo.getTypeParameters() );
       }
       finally
       {
@@ -643,7 +640,7 @@ class JavaType extends AbstractType implements IJavaTypeInternal
       }
       if( bReentered )
       {
-        return _tempInterfaces.toArray(new IType[_tempInterfaces.size()]);
+        return _tempInterfaces.toArray( new IType[_tempInterfaces.size()] );
       }
       _tempInterfaces = null;
       interfaces.trimToSize();
@@ -737,10 +734,14 @@ class JavaType extends AbstractType implements IJavaTypeInternal
 
   public List<IJavaType> getInnerClasses()
   {
+    if( _innerClasses != null ) {
+      return _innerClasses;
+    }
+
     IJavaClassInfo[] innerClasses = getBackingClassInfo().getDeclaredClasses();
     if( innerClasses.length == 0 )
     {
-      return Collections.emptyList();
+      return _innerClasses = Collections.emptyList();
     }
 
     List<IJavaType> inners = new ArrayList<IJavaType>( 2 );
@@ -753,34 +754,47 @@ class JavaType extends AbstractType implements IJavaTypeInternal
       }
       inners.add(inner);
     }
-    return inners;
+    return _innerClasses = inners;
   }
 
-  public IJavaType getInnerClass( CharSequence strTypeName )
+  @Override
+  public IType getInnerClass( CharSequence name )
   {
-    List<String> innerClassNames = Arrays.asList( strTypeName.toString().split( "\\." ) );
-    IJavaType enclosingType = this;
-    for( Iterator<String> it = innerClassNames.iterator(); it.hasNext(); )
+    if( name == null )
     {
-      String name = it.next();
-      for( IJavaType javaType : enclosingType.getInnerClasses() )
+      return null;
+    }
+    String strRelativeName = name.toString();
+    int dotIndex = strRelativeName.indexOf( '.' );
+    IJavaTypeInternal innerClass;
+    if( dotIndex == -1 )
+    {
+      innerClass = getInnerClassSimple( strRelativeName );
+    }
+    else
+    {
+      innerClass = getInnerClassSimple( strRelativeName.substring( 0, dotIndex ) );
+      if( innerClass != null )
       {
-        if( GosuClassUtil.getNameNoPackage( javaType.getRelativeName() ).equals( name ) )
-        {
-          if( it.hasNext() )
-          {
-            enclosingType = javaType;
-          }
-          else
-          {
-            return javaType;
-          }
-        }
+        innerClass = (IJavaTypeInternal)innerClass.getInnerClass( strRelativeName.substring( dotIndex + 1, strRelativeName.length() ) );
+      }
+    }
+    return innerClass;
+  }
+
+  private IJavaTypeInternal getInnerClassSimple( String simpleName )
+  {
+    IJavaTypeInternal enclosingType = this;
+    for( IJavaType javaType : enclosingType.getInnerClasses() )
+    {
+      if( GosuClassUtil.getNameNoPackage( javaType.getRelativeName() ).equals( simpleName ) )
+      {
+        return (IJavaTypeInternal)javaType;
       }
     }
     return null;
   }
-
+  
   @Override
   public ISourceFileHandle getSourceFileHandle() {
     return _classInfo.getSourceFileHandle();
@@ -1109,10 +1123,16 @@ class JavaType extends AbstractType implements IJavaTypeInternal
 
   @Override
   public boolean hasAncestorBeenUpdated() {
+    if( !ExecutionMode.get().isRefreshSupportEnabled() ) {
+      return false;
+    }
     return haveAncestorsBeenUpdated(this, _tiChecksum, new HashSet<IType>());
   }
 
   private static boolean haveAncestorsBeenUpdated(IJavaTypeInternal type, int tiChecksum, Set<IType> visited) {
+    if( !ExecutionMode.get().isRefreshSupportEnabled() ) {
+      return false;
+    }
     final IType supertype = type.getSupertype();
     if (supertype instanceof IJavaTypeInternal && !visited.contains(supertype) && hasBeenUpdated((IJavaTypeInternal) supertype, tiChecksum, visited)) {
       return true;
@@ -1131,6 +1151,9 @@ class JavaType extends AbstractType implements IJavaTypeInternal
   }
 
   public static boolean hasBeenUpdated(IJavaTypeInternal type, int tiChecksum, Set<IType> visited) {
+    if( !ExecutionMode.get().isRefreshSupportEnabled() ) {
+      return false;
+    }
     visited.add(type);
     if (TypeSystem.isDeleted(type)) {
       return true;

@@ -497,8 +497,6 @@ public class GosuAstTransformer {
       node = new GosuCompositeElement(GosuElementTypes.ELEM_TYPE_BlockExpression);
     } else if (pe instanceof ITemplateStringLiteral) {
       node = new GosuCompositeElement(GosuElementTypes.ELEM_TYPE_TemplateStringLiteral);
-    } else if (pe instanceof IExistsExpression) {
-      node = new GosuCompositeElement(GosuElementTypes.ELEM_TYPE_ExistsExpression);
     } else if (pe instanceof IBlockInvocation) {
       node = new GosuCompositeElement(GosuElementTypes.ELEM_TYPE_BlockInvocation);
     } else if (pe instanceof IFeatureLiteralExpression) {

@@ -4,20 +4,20 @@
 
 package gw.lang.reflect;
 
-public interface ITypeRef extends IType
+public abstract class ITypeRef implements IType
 {
-  boolean isDeleted();
+  public abstract boolean isDeleted();
 
-  boolean _shouldReload();
+  public abstract boolean _shouldReload();
 
-  void _setStale(RefreshKind refreshKind);
+  public abstract void _setStale(RefreshKind refreshKind);
 
-  Class<? extends IType> _getClassOfRef();
+  public abstract Class<? extends IType> _getClassOfRef();
 
-  void setReloadable(boolean bReloadable);
-  boolean isReloadable();
+  public abstract void setReloadable(boolean bReloadable);
+  public abstract boolean isReloadable();
 
-  boolean isTypeRefreshedOutsideOfLock(IType type);
+  public abstract boolean isTypeRefreshedOutsideOfLock(IType type);
 
-  ITypeLoader getTypeLoaderDirectly();
+  public abstract ITypeLoader getTypeLoaderDirectly();
 }

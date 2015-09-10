@@ -15,11 +15,9 @@ public class TestScope  {
         TODO
         internal var ex : int
         internal var tmp : int
-        /*
-            {
-                int i = 1;
-            }
-        */
+        /* FIX ME: initializer blocks not allowed in Gosu */ {
+            var i_0 = 1
+        }
 
         function todo(ex_0 : int) : void {
             ex_0 = ex_0
@@ -381,10 +379,8 @@ public class TestScope  {
     }
 
     internal var x : int
-    /*
-        {
-            x = 7;
-        }
-    */
+    /* FIX ME: initializer blocks not allowed in Gosu */ {
+        x = 7
+    }
 
 }

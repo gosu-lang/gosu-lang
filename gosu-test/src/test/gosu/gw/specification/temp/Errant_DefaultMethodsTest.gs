@@ -33,6 +33,21 @@ class Errant_DefaultMethodsTest extends FooBase implements IFoo, IFu {
     super[IFoo].noDefault()  //## issuekeys: MSG_ABSTRACT_METHOD_CANNOT_BE_ACCESSED_DIRECTLY
   }
 
+  interface IOverridesObjectMethods {
+
+    function  equals(obj : Object ) : boolean {  //## issuekeys: MSG_OVERRIDES_OBJECT_METHOD
+      return false;
+    }
+    function hashCode() :int {  //## issuekeys: MSG_OVERRIDES_OBJECT_METHOD
+      return 0;
+    }
+    function toString() : String {  //## issuekeys: MSG_OVERRIDES_OBJECT_METHOD
+      return null;
+    }
+
+    function finalize() {} // ok for some reason (java lets this go too)
+  }
+
   override function abstFromBase() {
   }
 }

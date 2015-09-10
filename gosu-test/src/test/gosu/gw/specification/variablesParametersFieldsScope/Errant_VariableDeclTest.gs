@@ -5,7 +5,7 @@ class Errant_VariableDeclTest {
     var x0 : int = 1
     var x1 = 1
     var x2 = null  //## issuekeys: MSG_VARIABLE_MUST_HAVE_NON_NULL_TYPE
-    var x3 = x3+1  //## issuekeys: MSG_TYPE_MISMATCH, MSG_BAD_IDENTIFIER_NAME
+    var x3 = x3+1  //## issuekeys: MSG_ARITHMETIC_OPERATOR_CANNOT_BE_APPLIED_TO_TYPES, MSG_BAD_IDENTIFIER_NAME
     var x4(x : int):int = \y  -> 123
     var x5  = \y : int  -> 123
     var x6  = \y  -> 123  //## issuekeys: MSG_EXPECTING_TYPE_FUNCTION_DEF, MSG_EXPECTING_TYPE_NAME

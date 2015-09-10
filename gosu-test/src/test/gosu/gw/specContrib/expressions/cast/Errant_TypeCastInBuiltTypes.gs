@@ -5,6 +5,7 @@ uses java.math.BigDecimal
 uses java.math.BigInteger
 uses java.util.ArrayList
 uses java.util.HashMap
+uses java.util.Date
 
 class Errant_TypeCastInBuiltTypes {
    function testString (s : String ) {
@@ -27,7 +28,7 @@ class Errant_TypeCastInBuiltTypes {
      var b218 = s as Boolean      //## issuekeys: MSG_TYPE_MISMATCH
 
      var b311 = s as String  //## issuekeys: MSG_UNNECESSARY_COERCION
-     var b312 = s as DateTime      //## issuekeys: MSG_TYPE_MISMATCH
+     var b312 = s as Date      //## issuekeys: MSG_TYPE_MISMATCH
      var b313 = s as Object  //## issuekeys: MSG_UNNECESSARY_COERCION
      var b314 = s as BigInteger      //## issuekeys: MSG_TYPE_MISMATCH
      var b315 = s as BigDecimal      //## issuekeys: MSG_TYPE_MISMATCH
@@ -52,7 +53,7 @@ class Errant_TypeCastInBuiltTypes {
      var b218 = s as Boolean      //## issuekeys: MSG_TYPE_MISMATCH
 
      var b311 = s as String
-     var b312 = s as DateTime      //## issuekeys: MSG_TYPE_MISMATCH
+     var b312 = s as Date      //## issuekeys: MSG_TYPE_MISMATCH
      var b313 = s as Object  //## issuekeys: MSG_UNNECESSARY_COERCION
      var b314 = s as BigInteger      //## issuekeys: MSG_TYPE_MISMATCH
      var b315 = s as BigDecimal      //## issuekeys: MSG_TYPE_MISMATCH
@@ -82,7 +83,7 @@ class Errant_TypeCastInBuiltTypes {
      var b218 = s as Boolean      //## issuekeys: MSG_TYPE_MISMATCH
 
      var b311 = s as String
-     var b312 = s as DateTime      //## issuekeys: MSG_TYPE_MISMATCH
+     var b312 = s as Date      //## issuekeys: MSG_TYPE_MISMATCH
      var b313 = s as Object  //## issuekeys: MSG_UNNECESSARY_COERCION
      var b314 = s as BigInteger      //## issuekeys: MSG_TYPE_MISMATCH
      var b315 = s as BigDecimal      //## issuekeys: MSG_TYPE_MISMATCH
@@ -112,7 +113,7 @@ class Errant_TypeCastInBuiltTypes {
      var b218 = s as Boolean      //## issuekeys: MSG_TYPE_MISMATCH
 
      var b311 = s as String
-     var b312 = s as DateTime      //## issuekeys: MSG_TYPE_MISMATCH
+     var b312 = s as Date      //## issuekeys: MSG_TYPE_MISMATCH
      var b313 = s as Object  //## issuekeys: MSG_UNNECESSARY_COERCION
      var b314 = s as BigInteger      //## issuekeys: MSG_TYPE_MISMATCH
      var b315 = s as BigDecimal      //## issuekeys: MSG_TYPE_MISMATCH
@@ -122,7 +123,7 @@ class Errant_TypeCastInBuiltTypes {
      var b412 = s as ArrayList      //## issuekeys: MSG_TYPE_MISMATCH
      var b413 = s as HashMap  //## issuekeys: MSG_UNNECESSARY_COERCION
    }
-   function testDateTime (s : DateTime ) {
+   function testDateTime (s : Date ) {
      var b111 = s as char      //## issuekeys: MSG_TYPE_MISMATCH
      var b112 = s as byte      //## issuekeys: MSG_TYPE_MISMATCH
      var b113 = s as short      //## issuekeys: MSG_TYPE_MISMATCH
@@ -142,7 +143,7 @@ class Errant_TypeCastInBuiltTypes {
      var b218 = s as Boolean      //## issuekeys: MSG_TYPE_MISMATCH
 
      var b311 = s as String
-     var b312 = s as DateTime  //## issuekeys: MSG_UNNECESSARY_COERCION
+     var b312 = s as Date  //## issuekeys: MSG_UNNECESSARY_COERCION
      var b313 = s as Object  //## issuekeys: MSG_UNNECESSARY_COERCION
      var b314 = s as BigInteger      //## issuekeys: MSG_TYPE_MISMATCH
      var b315 = s as BigDecimal      //## issuekeys: MSG_TYPE_MISMATCH
@@ -172,7 +173,7 @@ class Errant_TypeCastInBuiltTypes {
      var b218 = s as Boolean      //## issuekeys: MSG_TYPE_MISMATCH
 
      var b311 = s as String
-     var b312 = s as DateTime      //## issuekeys: MSG_TYPE_MISMATCH
+     var b312 = s as Date      //## issuekeys: MSG_TYPE_MISMATCH
      var b313 = s as Object  //## issuekeys: MSG_UNNECESSARY_COERCION
      var b314 = s as BigInteger  //## issuekeys: MSG_UNNECESSARY_COERCION
      var b315 = s as BigDecimal
@@ -202,7 +203,7 @@ class Errant_TypeCastInBuiltTypes {
      var b218 = s as Boolean      //## issuekeys: MSG_TYPE_MISMATCH
 
      var b311 = s as String
-     var b312 = s as DateTime      //## issuekeys: MSG_TYPE_MISMATCH
+     var b312 = s as Date      //## issuekeys: MSG_TYPE_MISMATCH
      var b313 = s as Object  //## issuekeys: MSG_UNNECESSARY_COERCION
      var b314 = s as BigInteger
      var b315 = s as BigDecimal  //## issuekeys: MSG_UNNECESSARY_COERCION
@@ -233,7 +234,7 @@ class Errant_TypeCastInBuiltTypes {
     var b218 = s as Boolean
 
     var b311 = s as String
-    var b312 = s as DateTime
+    var b312 = s as Date
     var b313 = s as Object  //## issuekeys: MSG_UNNECESSARY_COERCION
     var b314 = s as BigInteger
     var b315 = s as BigDecimal

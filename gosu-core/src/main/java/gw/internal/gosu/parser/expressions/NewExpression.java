@@ -20,6 +20,8 @@ import gw.lang.reflect.java.IJavaType;
 import gw.lang.reflect.java.JavaTypes;
 
 import java.lang.reflect.Array;
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -219,7 +221,12 @@ public class NewExpression extends Expression implements INewExpression
       for( int i = 0; i < values.size(); i++ )
       {
         IExpression expr = values.get( i );
-        Array.set( instance, i, expr.evaluate() );
+        Object value = expr.evaluate();
+        if( value instanceof BigDecimal || value instanceof BigInteger )
+        {
+          value = value.toString();
+        }
+        Array.set( instance, i, value );
       }
       return instance;
     }
@@ -240,7 +247,10 @@ public class NewExpression extends Expression implements INewExpression
       Class<?> arrayClass = getArrayClass(getType().getComponentType());
       return Array.newInstance(arrayClass.getComponentType(), 0);
     }
-
+    if( this instanceof InferredNewExpression )
+    {
+      return new Object[] {};
+    }
     throw new UnsupportedOperationException( "Cannot evaluate new-expression as compile-time constant value." );
   }
 
@@ -265,6 +275,10 @@ public class NewExpression extends Expression implements INewExpression
     else if( JavaTypes.CLASS().isAssignableFrom( type  ) )
     {
       type = JavaTypes.ITYPE();
+    }
+    else if( type == JavaTypes.BIG_DECIMAL() || type == JavaTypes.BIG_INTEGER() )
+    {
+      type = JavaTypes.STRING();
     }
     else if( !type.isPrimitive() &&
              type != JavaTypes.STRING() &&

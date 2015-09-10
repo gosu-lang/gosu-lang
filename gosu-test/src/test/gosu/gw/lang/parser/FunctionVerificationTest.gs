@@ -1,8 +1,17 @@
 package gw.lang.parser
-uses gw.test.TestClass
+
 uses gw.lang.parser.resources.Res
+uses gw.test.TestClass
 
 class FunctionVerificationTest extends TestClass {
+
+  /**
+   * Adding setup to prevent non-deterministic test fails based on test method execution
+   */
+  override function beforeTestClass() {
+    super.beforeTestClass()
+    assertFalse( gw.lang.parser.Errant_FunctionProblems.Type.Valid )
+  }
 
   function testThatThereAreNoErrorsInClassThatShouldBeOK() {
     assertFalse( gw.lang.parser.Errant_FunctionProblems.Type.Valid )

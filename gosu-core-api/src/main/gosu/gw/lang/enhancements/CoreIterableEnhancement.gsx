@@ -13,6 +13,7 @@ uses java.lang.Comparable
 uses java.util.Map
 uses java.util.HashMap
 uses java.util.Collections
+uses java.util.List
  
 /*
  *  Copyright 2014 Guidewire Software, Inc.
@@ -548,7 +549,7 @@ enhancement CoreIterableEnhancement<T> : java.lang.Iterable<T> {
   function whereTypeIs<R>( type : Type<R> ) : List<R>{
     var retList = new ArrayList<R>()
     for( elt in this ) {
-      if( type.isAssignableFrom( typeof elt ) ) {
+      if( type.Type.isAssignableFrom( typeof elt ) ) {
         retList.add( elt as R )
       }
     }

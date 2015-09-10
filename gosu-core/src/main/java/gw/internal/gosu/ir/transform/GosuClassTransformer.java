@@ -515,6 +515,12 @@ public class GosuClassTransformer extends AbstractElementTransformer<ClassStatem
         FunctionStatementTransformer funcStmtCompiler = new FunctionStatementTransformer( dfs, _context );
         methodBody = funcStmtCompiler.compile();
       }
+      IExpression annotationDefault = dfs.getAnnotationDefault();
+      Object[] annotationDefaultValue = null;
+      if( annotationDefault != null )
+      {
+        annotationDefaultValue = new Object[] {CompileTimeExpressionParser.convertValueToInfoFriendlyValue( annotationDefault.evaluate(), getGosuClass().getTypeInfo() )};
+      }
 
       IRMethodStatement methodStatement = new IRMethodStatement(
         methodBody,
@@ -525,8 +531,9 @@ public class GosuClassTransformer extends AbstractElementTransformer<ClassStatem
         dfs.getReturnType(),
         parameters,
         dfs.getArgTypes(),
-        dfs.getType(), null);
+        dfs.getType(), annotationDefaultValue);
 
+      methodStatement.setAnnotations( getIRAnnotations( makeAnnotationInfos( dfs.getModifierInfo().getAnnotations(), getGosuClass().getTypeInfo() ) ) );
       _irClass.addMethod( methodStatement );
     }
   }

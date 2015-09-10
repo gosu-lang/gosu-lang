@@ -12,6 +12,7 @@ import org.junit.Ignore;
  * runs as expected.  Run it in a Suite with the other referenced tests to
  * see if it passes.
  */
+@Ignore("kmoore: this is unlikely to pass as it depends on deterministic test ordering")
 public class ZZLastTest extends TestClass {
   private static int _order = 1;
   private static boolean _testClassGosuTestWasRun = false;

@@ -21,10 +21,6 @@ class InheritanceTest  extends BaseVerifyErrantTest {
     static function foo() : int { return 3}
   }
 
-  class Q extends W {
-    function foo() : int { return 6}
-  }
-
   class J {
     function foo() : int { return 7}
     function foo(x1 : int) : int {return 17}
@@ -117,12 +113,6 @@ class InheritanceTest  extends BaseVerifyErrantTest {
     var r2 : W = r
     assertEquals(r2.foo(), 2)
     assertEquals(R.foo(), 3)
-    assertEquals(W.foo(), 2)
-
-    var q = new Q()
-    assertEquals(q.foo(), 6)
-    var w : W = q
-    assertEquals(w.foo(), 2)
     assertEquals(W.foo(), 2)
 
     var i = new I()

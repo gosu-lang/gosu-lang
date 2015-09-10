@@ -35,10 +35,8 @@ class Scope  {
     }
 
     internal var x : int
-    /*
-        {
-            x = 7;
-        }
-    */
+    /* FIX ME: initializer blocks not allowed in Gosu */ {
+        x = 7
+    }
 
 }

@@ -16,7 +16,7 @@ import gw.lang.reflect.java.asm.AsmWildcardType;
 import gw.lang.reflect.java.asm.IAsmType;
 import gw.lang.reflect.module.IModule;
 
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 
 public abstract class AsmTypeJavaClassType implements IJavaClassType {
   private IAsmType _type;
@@ -38,10 +38,13 @@ public abstract class AsmTypeJavaClassType implements IJavaClassType {
 
   @Override
   public IType getActualType( TypeVarToTypeMap typeMap, boolean bKeepTypeVars ) {
-    return TypeLord.getActualType( _type, typeMap, bKeepTypeVars, new HashSet<IAsmType>() );
+    return TypeLord.getActualType( _type, typeMap, bKeepTypeVars, new LinkedHashSet<IAsmType>() );
   }
 
   public static IJavaClassType createType( IAsmType rawType, IModule module ) {
+    return createType( null, rawType, module );
+  }
+  public static IJavaClassType createType( IAsmType genType, IAsmType rawType, IModule module ) {
     IJavaClassType type = null;
     if( rawType.isArray() && (rawType.isTypeVariable() || rawType.isParameterized()) ) {
       type = new AsmGenericArrayTypeJavaClassGenericArrayType( rawType, module );
@@ -53,7 +56,7 @@ public abstract class AsmTypeJavaClassType implements IJavaClassType {
       type = new AsmParameterizedTypeJavaClassParameterizedType( rawType, module );
     }
     else if( rawType instanceof AsmWildcardType ) {
-      type = new AsmWildcardTypeJavaClassWildcardType( (AsmWildcardType)rawType, module );
+      type = new AsmWildcardTypeJavaClassWildcardType( genType, (AsmWildcardType)rawType, module );
     }
     else if( rawType instanceof AsmClass ) {
       type = JavaSourceUtil.getClassInfo( (AsmClass)rawType, module );

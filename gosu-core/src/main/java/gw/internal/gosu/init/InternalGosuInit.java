@@ -46,7 +46,7 @@ public class InternalGosuInit {
 
   public static void uninitializeMultipleModules( IExecutionEnvironment execEnv ) {
     if (ExecutionMode.isRuntime()) {
-      throw new IllegalStateException( "The typestem is not in multi-module mode." );
+      throw new IllegalStateException( "The typesystem is not in multi-module mode." );
     }
     ((ExecutionEnvironment)execEnv).uninitializeMultipleModules();
   }

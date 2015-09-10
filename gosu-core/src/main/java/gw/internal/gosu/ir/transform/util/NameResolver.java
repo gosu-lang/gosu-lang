@@ -177,7 +177,8 @@ public class NameResolver {
             if (readMethod.getName().startsWith("is")) {
               return "is";
             } else {
-              assert(readMethod.getName().startsWith("get"));
+              boolean b = readMethod.getName().startsWith("get");
+              assert b;
               return "get";
             }
           }
@@ -216,7 +217,8 @@ public class NameResolver {
             if (readMethod.getName().startsWith("is")) {
               return "is";
             } else {
-              assert(readMethod.getName().startsWith("get"));
+              boolean b = readMethod.getName().startsWith("get");
+              assert b;
               return "get";
             }
           }

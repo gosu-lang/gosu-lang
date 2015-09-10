@@ -22,6 +22,7 @@ import gw.lang.parser.TypeVarToTypeMap;
 import gw.lang.parser.exceptions.ParseResultsException;
 import gw.lang.parser.expressions.ITypeLiteralExpression;
 import gw.lang.reflect.FunctionType;
+import gw.lang.reflect.ICompoundType;
 import gw.lang.reflect.IDefaultTypeLoader;
 import gw.lang.reflect.IErrorType;
 import gw.lang.reflect.IFunctionType;
@@ -782,16 +783,7 @@ public class TypeLoaderAccess extends BaseService implements ITypeSystem
     typeMap.put( "void",    new TypeGetter() { public IType get() { return JavaType.get(Void.TYPE, _getDefaultLoader()); }} );
 
     // build-in types
-    typeMap.put( "Number",  new TypeGetter() { public IType get() { return JavaTypes.DOUBLE(); }} );
-    typeMap.put( "String",  new TypeGetter() { public IType get() { return JavaTypes.STRING(); }} );
-    typeMap.put( "Boolean", new TypeGetter() { public IType get() { return JavaTypes.BOOLEAN(); }} );
-    typeMap.put( "DateTime",new TypeGetter() { public IType get() { return JavaTypes.DATE(); }} );
-    typeMap.put( "List",    new TypeGetter() { public IType get() { return JavaTypes.LIST(); }} );
-    typeMap.put( "Object",  new TypeGetter() { public IType get() { return JavaTypes.OBJECT(); }} );
-    typeMap.put( "Array",   new TypeGetter() { public IType get() { return JavaTypes.OBJECT().getArrayType(); }} );
-    typeMap.put( "Bean",    new TypeGetter() { public IType get() { return JavaTypes.OBJECT(); }} );
     typeMap.put( "Type",    new TypeGetter() { public IType get() { return MetaType.ROOT_TYPE_TYPE.get(); }} );
-    typeMap.put( "Key",     new TypeGetter() { public IType get() { return TypeSystem.getKeyType(); }} );
   }
 
   private static DefaultTypeLoader _getDefaultLoader() {
@@ -1297,6 +1289,9 @@ public class TypeLoaderAccess extends BaseService implements ITypeSystem
   }
 
   public boolean canCast( IType lhsType, IType rhsType ) {
+    if( lhsType instanceof ICompoundType ) {
+      return canCastCompountType( (ICompoundType)lhsType, rhsType );
+    }
     while( lhsType instanceof TypeVariableType && !TypeLord.isRecursiveType( (TypeVariableType)lhsType, ((TypeVariableType)lhsType).getBoundingType() ) ) {
       lhsType = ((TypeVariableType)lhsType).getBoundingType();
     }
@@ -1358,6 +1353,16 @@ public class TypeLoaderAccess extends BaseService implements ITypeSystem
       }
     }
     return false;
+  }
+
+  private boolean canCastCompountType( ICompoundType lhsType, IType rhsType )
+  {
+    for( IType type: lhsType.getTypes() ) {
+      if( !canCast( type, rhsType ) ) {
+        return false;
+      }
+    }
+    return true;
   }
 
   private boolean genericInterfacesClash( IType rhsType, IType lhsType ) {

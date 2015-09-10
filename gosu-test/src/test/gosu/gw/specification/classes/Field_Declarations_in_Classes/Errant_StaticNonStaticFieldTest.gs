@@ -4,7 +4,7 @@ class Errant_StaticNonStaticFieldTest {
   static public var f : int = 3
   static public var d : int = f*3
   public var g : int = 4
-  static public var h : int = g*3  //## issuekeys: MSG_TYPE_MISMATCH, MSG_BAD_IDENTIFIER_NAME
+  static public var h : int = g*3  //## issuekeys: MSG_ARITHMETIC_OPERATOR_CANNOT_BE_APPLIED_TO_TYPES, MSG_BAD_IDENTIFIER_NAME
 
   function m0() {
     Errant_StaticNonStaticFieldTest.f = 1

@@ -34,6 +34,7 @@ import gw.lang.parser.ITypeUsesMap;
 import gw.lang.parser.PostCompilationAnalysis;
 import gw.lang.parser.ScriptPartId;
 import gw.lang.parser.ScriptabilityModifiers;
+import gw.lang.parser.StandardCoercionManager;
 import gw.lang.parser.TypeVarToTypeMap;
 import gw.lang.parser.exceptions.ErrantGosuClassException;
 import gw.lang.parser.exceptions.ParseResultsException;
@@ -42,7 +43,6 @@ import gw.lang.parser.expressions.IVarStatement;
 import gw.lang.parser.resources.Res;
 import gw.lang.parser.statements.IFunctionStatement;
 import gw.lang.parser.statements.IUsesStatement;
-import gw.lang.reflect.AbstractType;
 import gw.lang.reflect.FunctionType;
 import gw.lang.reflect.IAttributedFeatureInfo;
 import gw.lang.reflect.IEnumValue;
@@ -53,6 +53,7 @@ import gw.lang.reflect.IPropertyInfo;
 import gw.lang.reflect.IRelativeTypeInfo;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.ITypeRef;
+import gw.lang.reflect.InnerClassCapableType;
 import gw.lang.reflect.Modifier;
 import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.gs.ClassType;
@@ -68,6 +69,7 @@ import gw.lang.reflect.module.IModule;
 import gw.util.GosuExceptionUtil;
 import gw.util.GosuObjectUtil;
 import gw.util.GosuStringUtil;
+import gw.util.StringPool;
 import gw.util.concurrent.LockingLazyVar;
 
 import java.io.File;
@@ -88,7 +90,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  */
-public class GosuClass extends AbstractType implements IGosuClassInternal
+public class GosuClass extends InnerClassCapableType implements IGosuClassInternal
 {
   private static final long serialVersionUID = 5L;
 
@@ -157,7 +159,7 @@ public class GosuClass extends AbstractType implements IGosuClassInternal
       _compilationState = new CompilationState();
       _iMdChecksum = TypeSystem.getRefreshChecksum();
       _iTiChecksum = TypeSystem.getSingleRefreshChecksum();
-      _strNamespace = strNamespace.intern();
+      _strNamespace = StringPool.get( strNamespace );
       _strRelativeName = strRelativeName;
       _typeLoader = classTypeLoader;
       _sourceFileHandle = sourceFile;
@@ -415,7 +417,7 @@ public class GosuClass extends AbstractType implements IGosuClassInternal
 
   public void setNamespace( String namespace )
   {
-    _strNamespace = namespace == null ? null : namespace.intern();
+    _strNamespace = namespace == null ? null : StringPool.get( namespace );
   }
 
   public GosuClassTypeLoader getTypeLoader()
@@ -862,8 +864,17 @@ public class GosuClass extends AbstractType implements IGosuClassInternal
     else
     {
       //noinspection SuspiciousMethodCalls
-      return type.getAllTypesInHierarchy().contains( pThis ) ||
-             TypeLord.areGenericOrParameterizedTypesAssignable( pThis, type );
+      return (type.getAllTypesInHierarchy().contains( pThis ) ||
+              TypeLord.areGenericOrParameterizedTypesAssignable( pThis, type )) &&
+             // We check structural assignability for the case where this is a generic structure and
+             // covariant assignability cannot hold because the type variable[s] are in parameter positions
+             // and, therefore, impose a contravariannt relationship, thus requires a deeper structural assignability check.
+             // Note this check should really be done on ALL generic interfaces, not just generic structures...
+             // Also it's probably worth noting this makes up for not having declaration-site contravariance,
+             // since we allow contravariant assignments to structures (the nominal, covariant check fails, then
+             // we check for a structural match, which wins in the contravariant case.  Makes it much easier on
+             // the user, they don't have to think about variance, shit just works with structures even when used nominally.
+             (!isParameterizedType() || !isStructure() || StandardCoercionManager.isStructurallyAssignable_Laxed( pThis, type ));
     }
   }
 
@@ -993,6 +1004,9 @@ public class GosuClass extends AbstractType implements IGosuClassInternal
    }
 
   private boolean hasBeenUpdated(IGosuClassInternal type, int tiChecksum) {
+    if( !ExecutionMode.get().isRefreshSupportEnabled() ) {
+      return false;
+    }
     IGosuClassInternal genType = TypeLord.getPureGenericType( type );
     if (genType.isProxy()) {
       IJavaTypeInternal javaType = (IJavaTypeInternal)genType.getJavaType();
@@ -1188,7 +1202,7 @@ public class GosuClass extends AbstractType implements IGosuClassInternal
       _mapInnerClasses = new LinkedHashMap<CharSequence, IGosuClassInternal>( 2 );
     }
     // We put in types relative to ours.  I.e. if we are foo.SomeClass and we have an inner class named Bar, we put in Bar.
-    _mapInnerClasses.put( innerGsClass.getName().substring( getName().length() + 1 ).intern(), innerGsClass );
+    _mapInnerClasses.put( StringPool.get( innerGsClass.getName().substring( getName().length() + 1 ) ), innerGsClass );
   }
   public void removeInnerClass( IGosuClassInternal innerGsClass )
   {
@@ -1209,34 +1223,7 @@ public class GosuClass extends AbstractType implements IGosuClassInternal
     }
 
     // Now try to resolve the inner class name relative to this class and its enclosing class[s] and its hierarchy
-    for( ICompilableTypeInternal outerClass = (ICompilableTypeInternal) getOrCreateTypeReference();
-         outerClass != null;
-         outerClass = outerClass.getEnclosingType() )
-    {
-      String strContainingType = outerClass.getName();
-      if( !strRelativeInnerClassName.startsWith( strContainingType ) )
-      {
-        IType innerClass = outerClass.getInnerClass( strRelativeInnerClassName );
-        if( innerClass != null )
-        {
-          return innerClass;
-        }
-        else
-        {
-          IType superType = outerClass.getSupertype();
-          while( superType instanceof IGosuClass )
-          {
-            innerClass = ((IGosuClass)superType).resolveRelativeInnerClass( strRelativeInnerClassName, bForce );
-            if( innerClass != null )
-            {
-              return innerClass;
-            }
-            superType = superType.getSupertype();
-          }
-        }
-      }
-    }
-    return null;
+    return super.resolveRelativeInnerClass( strRelativeInnerClassName, bForce );
   }
 
   @SuppressWarnings({"unchecked"})
@@ -1455,7 +1442,7 @@ public class GosuClass extends AbstractType implements IGosuClassInternal
 
   public boolean isAnonymous()
   {
-    return getRelativeName().startsWith( ANONYMOUS_PREFIX );
+    return getRelativeName().startsWith( ANONYMOUS_PREFIX ) && getEnclosingTypeReference() != null;
   }
 
   public int getDepth()
@@ -1539,6 +1526,7 @@ public class GosuClass extends AbstractType implements IGosuClassInternal
           finally
           {
             setCompilingDefinitions( false );
+            _sourceFileHandle.getSource().stopCachingSource();
           }
         }
       }
@@ -1546,7 +1534,8 @@ public class GosuClass extends AbstractType implements IGosuClassInternal
       {
         try
         {
-          if( !isTypeRefreshedOutsideOfLock()) {
+          if( !isTypeRefreshedOutsideOfLock() )
+          {
             ((GosuClass)getPureGenericClass().dontEverCallThis())._hasError = null;
             bHasError = hasError();
 
@@ -2010,7 +1999,8 @@ public class GosuClass extends AbstractType implements IGosuClassInternal
       innerClass = maybeLoadBlockToInterfaceProxy( strRelativeName );
       if( innerClass != null )
       {
-        assert getInnerClassesMap().get( strRelativeName ) == innerClass;
+        boolean b = getInnerClassesMap().get(strRelativeName) == innerClass;
+        assert b;
       }
     }
     return innerClass;
@@ -2513,11 +2503,11 @@ public class GosuClass extends AbstractType implements IGosuClassInternal
   {
     createNewParseInfo();
     CompiledGosuClassSymbolTable symbolTable = CompiledGosuClassSymbolTable.instance();
-    GosuParser parser = getOrCreateParser(symbolTable);
+    GosuParser parser = getOrCreateParser( symbolTable );
     ISource source = _sourceFileHandle.getSource();
-    parser.setScript(source);
-    _parseInfo.updateSource(source.getSource());
-    if (ExecutionMode.isIDE()) {
+    parser.setScript( source );
+    _parseInfo.updateSource( source.getSource() );
+    if( ExecutionMode.isIDE() ) {
       parser.setThrowParseExceptionForWarnings(true);
       parser.setDontOptimizeStatementLists(true);
       parser.setWarnOnCaseIssue(true);
@@ -2785,7 +2775,7 @@ public class GosuClass extends AbstractType implements IGosuClassInternal
   {
     if( gsIface.isGenericType() && !gsIface.isParameterizedType() )
     {
-      throw new IllegalStateException( "Expecting a regular or parameterized interface." );
+      return Collections.emptyList();
     }
 
     for( IMethodInfo mi : gsIface.getTypeInfo().getMethods( gsIface ) )

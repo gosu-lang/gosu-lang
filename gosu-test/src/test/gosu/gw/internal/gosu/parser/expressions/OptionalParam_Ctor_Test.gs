@@ -1,9 +1,14 @@
 package gw.internal.gosu.parser.expressions
+
 uses gw.lang.parser.resources.Res
-uses java.lang.StringBuilder
 
 class OptionalParam_Ctor_Test extends gw.test.TestClass 
 {
+  override function beforeTestMethod() {
+    super.beforeTestMethod()
+    OptionalParamClass._SB = new StringBuilder()
+  }
+
   function testOptionalParamsInCtor_AllExplicitParams()
   {
     var x = new OptionalParamClass( "r1_exp", 3, "o1_exp", 33 )

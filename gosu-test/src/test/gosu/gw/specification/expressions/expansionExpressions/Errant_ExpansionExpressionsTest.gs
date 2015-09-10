@@ -68,7 +68,7 @@ class Errant_ExpansionExpressionsTest {
 
   function testExpansionInterval() {
     var f1 = 1..3
-    var ret = f1*.toString()  //## issuekeys: MSG_EXPECTING_BEANTYPE, MSG_NO_METHOD_DESCRIPTOR_FOUND_FOR_METHOD, MSG_NO_METHOD_DESCRIPTOR_FOUND_FOR_METHOD
+    var ret = f1*.toString()   //## issuekeys: MSG_EXPECTING_BEANTYPE
   }
 
   function testExpansionNullSafety() {
@@ -133,9 +133,9 @@ class Errant_ExpansionExpressionsTest {
 
   function testNoImplicitExpansion() {
     var arr: String[]
-    var expArr = arr.toUpperCase()  //## issuekeys: CANNOT RESOLVE METHOD
+    var expArr = arr.toUpperCase()  //## issuekeys: MSG_NO_METHOD_DESCRIPTOR_FOUND_FOR_METHOD, MSG_NO_METHOD_DESCRIPTOR_FOUND_FOR_METHOD
 
     var l: List<String>
-    var expL = l.toUpperCase()      //## issuekeys: CANNOT RESOLVE METHOD
+    var expL = l.toUpperCase()      //## issuekeys: MSG_NO_METHOD_DESCRIPTOR_FOUND_FOR_METHOD, MSG_NO_METHOD_DESCRIPTOR_FOUND_FOR_METHOD
   }
 }

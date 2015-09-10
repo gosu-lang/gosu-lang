@@ -6,6 +6,7 @@ uses java.io.StringReader
 uses java.io.BufferedReader
 uses gw.lang.parser.resources.Res
 uses java.util.ArrayList
+uses java.util.List
 uses gw.lang.parser.IParseIssue
 uses gw.lang.parser.resources.ResourceKey
 uses java.util.Collections
@@ -13,7 +14,7 @@ uses java.lang.Integer
 uses java.lang.System
 uses java.util.regex.Pattern
 
-class BaseVerifyErrantTest extends TestClass {
+abstract class BaseVerifyErrantTest extends TestClass {
   var _skipKnownBreak : boolean as readonly skipKnownBreak
 
   construct()  {

@@ -14,7 +14,7 @@ class Errant_GosuTestClass1 {
   }
 
   class ClassA2 implements JavaInterface1 {
-    function foo() : List { return null}
+    override function foo() : List { return null}
     function test() {
       var x1 : List = foo()
       var x2 : List = super[JavaInterface1].foo()  //IDE-2594 - OS Gosu
@@ -51,7 +51,7 @@ class Errant_GosuTestClass1 {
 
 
   interface GosuInterface1b extends JavaInterface1 {
-    function foo() : List { return null}
+    override function foo() : List { return null}
     function bar(){}
   }
   class TestClassA2 implements GosuInterface1b {
@@ -61,6 +61,9 @@ class Errant_GosuTestClass1 {
       bar()
       super[GosuInterface1b].bar()
 
+      hashCode()
+      super[Object].hashCode()
+      super.hashCode()
     }
   }
   interface GosuInterface1c extends JavaInterface1 {

@@ -11,11 +11,8 @@ import gw.lang.parser.StandardSymbolTable;
 import gw.lang.parser.exceptions.ParseResultsException;
 import gw.lang.parser.expressions.IProgram;
 import gw.lang.parser.resources.Res;
-import gw.lang.reflect.java.IJavaType;
-import gw.lang.reflect.java.JavaTypes;
 import gw.lang.reflect.java.JavaTypes;
 import gw.test.TestClass;
-import gw.testharness.KnownBreak;
 import gw.util.GosuTestUtil;
 import junit.framework.Assert;
 
@@ -38,7 +35,7 @@ public class BlockExpressionTest extends TestClass
 
   public void testBasicBlockArgPassing() throws ParseResultsException
   {
-    Number val = (Number)exec( "var x = \\y : Number -> y + 10; " +
+    Number val = (Number)exec( "var x = \\y : java.lang.Double -> y + 10; " +
                                "return x(10)" );
     Assert.assertEquals( new Double( "20" ), val);
   }
@@ -46,7 +43,7 @@ public class BlockExpressionTest extends TestClass
   public void testInScopeClosureCapture() throws ParseResultsException
   {
     Number val = (Number)exec( "var z = 10; " +
-                               "var x = \\y : Number -> y + z; " +
+                               "var x = \\y : java.lang.Double -> y + z; " +
                                "return x(10)" );
     Assert.assertEquals( new Double( "20" ), val);
   }
@@ -67,10 +64,10 @@ public class BlockExpressionTest extends TestClass
 
   public void testUpwardClosureCapture() throws ParseResultsException
   {
-    Number val = (Number)exec( "function makeBlock() : block(Number):Number " +
+    Number val = (Number)exec( "function makeBlock() : block(java.lang.Double):java.lang.Double " +
                                "{" +
                                "  var z = 10; " +
-                               "  return \\y : Number -> y + z; " +
+                               "  return \\y : java.lang.Double -> y + z; " +
                                "} " +
                                "var x = makeBlock()" +
                                "return x(10)" );
@@ -116,7 +113,7 @@ public class BlockExpressionTest extends TestClass
 
   public void testLocalVariablesPreserveCorrectly1() throws ParseResultsException
   {
-    Number val = (Number)exec( "function run( name : String ) : Number\n" +
+    Number val = (Number)exec( "function run( name : String ) : java.lang.Double\n" +
                                "{ \n" +
                                "  var id = getId( name );\n" +
                                "  waitFor(\"foo\", \\ -> {\n" +
@@ -149,7 +146,7 @@ public class BlockExpressionTest extends TestClass
 
   public void testLocalVariablesPreserveCorrectly2() throws ParseResultsException
   {
-    Number val = (Number)exec( "function run( name : String ) : Number\n" +
+    Number val = (Number)exec( "function run( name : String ) : java.lang.Double\n" +
                                "{ \n" +
                                "  waitFor(\"foo\", \\ -> {\n" +
                                "    var status = getStatus( \"id\" )\n" +
@@ -176,7 +173,7 @@ public class BlockExpressionTest extends TestClass
 
   public void testLocalVariablesPreserveCorrectly3() throws ParseResultsException
   {
-    Number val = (Number)exec( "function run( name : String ) : Number\n" +
+    Number val = (Number)exec( "function run( name : String ) : java.lang.Double\n" +
                                "{ \n" +
                                "  waitFor(\"foo\", \\ -> {\n" +
                                "    var status = new gw.internal.gosu.parser.BlockExpressionTest.FakeProcessInfo()\n" +
@@ -198,11 +195,11 @@ public class BlockExpressionTest extends TestClass
 
   public void testLocalVariablesPreserveCorrectly4() throws ParseResultsException
   {
-    Number val = (Number)exec( "function test() : Number\n" +
+    Number val = (Number)exec( "function test() : java.lang.Double\n" +
                                "{ \n" +
                                "  var x = 10;\n" +
                                "  var y = \\-> {\n" +
-                               "    var z : Number\n" +
+                               "    var z : java.lang.Double\n" +
                                "    return z\n" +
                                "  }\n" +
                                "  return y();\n" +
@@ -281,7 +278,7 @@ public class BlockExpressionTest extends TestClass
 
   public void testClosureStateIsPreservedBetweenInvocations() throws ParseResultsException
   {
-    Double[] val = (Double[])exec( "function seq(start : Number) : block():Number" +
+    Double[] val = (Double[])exec( "function seq(start : java.lang.Double) : block():java.lang.Double" +
                                    "{ " +
                                    "  var num = start - 1" +
                                    "  return \\-> " +
@@ -291,7 +288,7 @@ public class BlockExpressionTest extends TestClass
                                    "  }" +
                                    "} " +
                                    "var mySeq = seq(10)" +
-                                   "return new Number[]{mySeq(), mySeq(), mySeq(), mySeq(), mySeq(), mySeq()}" );
+                                   "return new java.lang.Double[]{mySeq(), mySeq(), mySeq(), mySeq(), mySeq(), mySeq()}" );
     assertArrayEquals( new Double[]{new Double( "10" ), new Double( "11" ), new Double( "12" ),
       new Double( "13" ), new Double( "14" ), new Double( "15" )},
                        val);

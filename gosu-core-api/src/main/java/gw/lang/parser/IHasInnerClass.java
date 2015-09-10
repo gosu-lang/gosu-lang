@@ -20,4 +20,6 @@ public interface IHasInnerClass
   List<? extends IType> getInnerClasses();
 
   List<? extends IType> getLoadedInnerClasses();
+
+  IType resolveRelativeInnerClass( String strTypeName, boolean bForce );
 }

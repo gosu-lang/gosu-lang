@@ -8,6 +8,8 @@ import gw.internal.gosu.parser.expressions.TypeVariableDefinition;
 import gw.internal.gosu.parser.expressions.TypeVariableDefinitionImpl;
 import gw.lang.reflect.AbstractType;
 import gw.lang.reflect.FunctionType;
+import gw.lang.reflect.ICompoundType;
+import gw.lang.reflect.IFunctionType;
 import gw.lang.reflect.gs.IGenericTypeVariable;
 import gw.lang.reflect.ITypeVariableType;
 import gw.lang.parser.expressions.ITypeVariableDefinition;
@@ -242,6 +244,18 @@ public class TypeVariableType extends AbstractType implements ITypeVariableType
       return true;
     }
 
+    if( type instanceof ICompoundType )
+    {
+      for( IType t: ((ICompoundType)type).getTypes() )
+      {
+        if( isAssignableFrom( t ) )
+        {
+          return true;
+        }
+      }
+      return false;
+    }
+
     if( !(type instanceof TypeVariableType) )
     {
       return false;
@@ -255,9 +269,21 @@ public class TypeVariableType extends AbstractType implements ITypeVariableType
     IType thatEncType = type.getEnclosingType();
     IType thisEncType = getEnclosingType();
     return thatEncType == thisEncType ||
+           functionTypesEqual( thisEncType, thatEncType ) ||
            thatEncType instanceof IGosuClassInternal &&
            ((IGosuClassInternal)thatEncType).isProxy() &&
            thisEncType == ((IGosuClassInternal)thatEncType).getJavaType();
+  }
+
+  private boolean functionTypesEqual( IType thisEncType, IType thatEncType )
+  {
+    if( !(thisEncType instanceof IFunctionType) || !(thatEncType instanceof IFunctionType) )
+    {
+      return false;
+    }
+
+    return thisEncType.getName().equals( thatEncType.getName() ) &&
+           ((IFunctionType)thisEncType).getParamSignature().equals( ((IFunctionType)thatEncType).getParamSignature() );
   }
 
   /**

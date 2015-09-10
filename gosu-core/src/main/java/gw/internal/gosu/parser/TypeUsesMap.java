@@ -11,6 +11,7 @@ import gw.lang.reflect.INamespaceType;
 import gw.lang.reflect.TypeSystem;
 import gw.util.DynamicArray;
 import gw.util.GosuClassUtil;
+import gw.util.StringPool;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -50,16 +51,9 @@ public class TypeUsesMap implements ITypeUsesMap
     _defaultNamespaces = new DynamicArray<String>();
     _specialNamespaces = new DynamicArray<String>();
     _defaultNamespaces.add( "gw.lang." );
+    _defaultNamespaces.add( "java.lang." );
+    _defaultNamespaces.add( "java.util." );
     _defaultNamespaces.add( "" );
-  }
-
-  /**
-   * @noinspection CloneDoesntCallSuperClone
-   */
-  @SuppressWarnings({"CloneDoesntDeclareCloneNotSupportedException"})
-  public Object clone()
-  {
-    return copy();
   }
 
   @SuppressWarnings({"unchecked"})
@@ -67,11 +61,11 @@ public class TypeUsesMap implements ITypeUsesMap
   {
     TypeUsesMap copy = new TypeUsesMap();
     copy._bSupportRelativePackageResolution = _bSupportRelativePackageResolution;
-    copy._specialTypeUsesByRelativeName = (HashMap<String, String>) _specialTypeUsesByRelativeName.clone();
-    copy._defaultNamespaces = (DynamicArray<String>)_defaultNamespaces.clone();
-    copy._specialNamespaces = (DynamicArray<String>)_specialNamespaces.clone();
-    copy._typeUsesByRelativeName = (HashMap<String, String>)_typeUsesByRelativeName.clone();
-    copy._namespaces = (DynamicArray<String>)_namespaces.clone();
+    copy._specialTypeUsesByRelativeName = new HashMap<>( _specialTypeUsesByRelativeName );
+    copy._defaultNamespaces = _defaultNamespaces.copy();
+    copy._specialNamespaces = _specialNamespaces.copy();
+    copy._typeUsesByRelativeName = new HashMap<>( _typeUsesByRelativeName );
+    copy._namespaces = _namespaces.copy();
     return copy;
   }
 
@@ -81,11 +75,11 @@ public class TypeUsesMap implements ITypeUsesMap
     TypeUsesMap copy = new TypeUsesMap();
     copy._bSupportRelativePackageResolution = _bSupportRelativePackageResolution;
     copy._specialTypeUsesByRelativeName = _specialTypeUsesByRelativeName;
-    copy._defaultNamespaces = (DynamicArray<String>)_defaultNamespaces.clone();
-    copy._specialNamespaces = (DynamicArray<String>)_specialNamespaces.clone();
-    copy._typeUsesByRelativeName = (HashMap<String, String>)_typeUsesByRelativeName.clone();
-    copy._usesStmts = (HashMap<String, IUsesStatement>)_usesStmts.clone();
-    copy._namespaces = (DynamicArray<String>)_namespaces.clone();
+    copy._defaultNamespaces = _defaultNamespaces.copy();
+    copy._specialNamespaces = _specialNamespaces.copy();
+    copy._typeUsesByRelativeName = new HashMap<>( _typeUsesByRelativeName );
+    copy._usesStmts = new HashMap<>( _usesStmts );
+    copy._namespaces = _namespaces.copy();
     return copy;
   }
 
@@ -148,7 +142,7 @@ public class TypeUsesMap implements ITypeUsesMap
   {
     String strType = usesSmt.getTypeName();
     addToTypeUses( strType );
-    _usesStmts.put( strType.intern(), usesSmt );
+    _usesStmts.put( StringPool.get( strType ), usesSmt );
   }
 
   public Set<IUsesStatement> getUsesStatements()
@@ -162,9 +156,9 @@ public class TypeUsesMap implements ITypeUsesMap
     if( strType.endsWith( ".*" ) )
     {
       // Store them so that they end with a dot
-      _defaultNamespaces.add( strType.substring( 0, strType.length() - 1 ).intern() );
+      _defaultNamespaces.add( StringPool.get( strType.substring( 0, strType.length() - 1 ) ) );
     } else {
-      _defaultNamespaces.add( strType.intern() );
+      _defaultNamespaces.add( StringPool.get( strType ) );
     }
   }
 
@@ -361,7 +355,7 @@ public class TypeUsesMap implements ITypeUsesMap
     if( strQualifiedType.endsWith( ".*" ) )
     {
       // Store them so that they end with a dot
-      String ns = strQualifiedType.substring( 0, strQualifiedType.length() - 1 ).intern();
+      String ns = StringPool.get( strQualifiedType.substring( 0, strQualifiedType.length() - 1 ) );
       if( !namespacesSet.contains( ns ) )
       {
         namespacesSet.add( ns );
@@ -371,7 +365,7 @@ public class TypeUsesMap implements ITypeUsesMap
     {
       String strRelativeName = GosuClassUtil.getNameNoPackage( strQualifiedType );
       strRelativeName = strRelativeName.replace( '$', '.' );
-      mapQualifiedNameByRelativeName.put( strRelativeName.intern(), strQualifiedType );
+      mapQualifiedNameByRelativeName.put( StringPool.get( strRelativeName ), strQualifiedType );
     }
   }
 

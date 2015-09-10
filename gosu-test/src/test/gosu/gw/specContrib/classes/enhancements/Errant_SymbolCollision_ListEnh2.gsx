@@ -1,5 +1,7 @@
 package gw.specContrib.classes.enhancements
 
+uses java.util.List
+
 enhancement Errant_SymbolCollision_ListEnh2<B>: List<B> {
 
   property get someField(): int {return 1}      //## issuekeys: THE FUNCTION 'GETSOMEFIELD()' IS ALREADY DEFINED IN THE TYPE 'GW.SPECCONTRIB.CLASSES.ENHANCEMENTS.A.ERRANT_ENHANCEMENTSYMBOLNAMECOLLISION1'. ENHANCEMENTS CANNOT OVERRIDE FUNCTIONS.

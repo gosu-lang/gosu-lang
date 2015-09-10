@@ -17,6 +17,7 @@ import gw.lang.reflect.SimpleTypeLoader;
 import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.java.IJavaType;
 import gw.lang.reflect.module.IModule;
+import gw.util.concurrent.LockingLazyVar;
 
 import java.net.URL;
 import java.util.Arrays;
@@ -45,7 +46,7 @@ public class GosuClassTypeLoader extends SimpleTypeLoader
   public static final String BLOCK_POSTFIX = "_";
 
   private IGosuClassRepository _repository;
-  private IEnhancementIndex _enhancementIndex;
+  private LockingLazyVar<IEnhancementIndex> _enhancementIndex;
   protected Set<String> _namespaces;
 
   public static GosuClassTypeLoader getDefaultClassLoader()
@@ -60,16 +61,31 @@ public class GosuClassTypeLoader extends SimpleTypeLoader
 
   public GosuClassTypeLoader( IGosuClassRepository repository )
   {
-    super( repository.getModule() );
-    _repository = repository;
-    _enhancementIndex = GosuShop.createEnhancementIndex( this );
+    this( repository.getModule(), repository );
   }
 
   public GosuClassTypeLoader( IModule module, IGosuClassRepository repository )
   {
     super( module );
     _repository = repository;
-    _enhancementIndex = GosuShop.createEnhancementIndex( this );
+    makeEnhancementIndex();
+  }
+
+  private void makeEnhancementIndex()
+  {
+    _enhancementIndex = new LockingLazyVar<IEnhancementIndex>() {
+      private boolean _initializing;
+      protected IEnhancementIndex init()
+      {
+        if( _initializing ) {
+          return null;
+        }
+        _initializing = true;
+        IEnhancementIndex index = GosuShop.createEnhancementIndex( GosuClassTypeLoader.this );
+        index.maybeLoadEnhancementIndex();
+        return index;
+      }
+    };
   }
 
   public IGosuClassRepository getRepository()
@@ -79,7 +95,7 @@ public class GosuClassTypeLoader extends SimpleTypeLoader
 
   public IEnhancementIndex getEnhancementIndex()
   {
-    return _enhancementIndex;
+    return _enhancementIndex.get();
   }
 
   @Override
@@ -91,6 +107,8 @@ public class GosuClassTypeLoader extends SimpleTypeLoader
   @Override
   public ICompilableType getType( String strFullyQualifiedName )
   {
+    _enhancementIndex.get(); // enusre enhancement index loads before any types
+
     int iDollar = strFullyQualifiedName.indexOf( '$' );
     if( iDollar > 0 )
     {
@@ -124,8 +142,6 @@ public class GosuClassTypeLoader extends SimpleTypeLoader
         return fragment;
       }
     }
-
-    _enhancementIndex.maybeLoadEnhancementIndex();
 
     IType type = TypeSystem.getCompilingType( strFullyQualifiedName );
     ITypeLoader typeLoader = type != null ? type.getTypeLoader() : null;
@@ -356,7 +372,7 @@ public class GosuClassTypeLoader extends SimpleTypeLoader
   @Override
   public void refreshedTypesImpl(RefreshRequest request) {
     _repository.typesRefreshed(request);
-    _enhancementIndex.refreshedTypes(request);
+    _enhancementIndex.get().refreshedTypes(request);
   }
 
   public boolean shouldKeepDebugInfo( IGosuClass gsClass )

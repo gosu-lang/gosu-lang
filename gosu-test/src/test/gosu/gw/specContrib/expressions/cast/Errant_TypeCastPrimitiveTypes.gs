@@ -26,7 +26,7 @@ class Errant_TypeCastPrimitiveTypes {
     var b218 = b as Boolean
 
     var b311 = b as String
-    var b312 = b as DateTime      //## issuekeys: MSG_TYPE_MISMATCH
+    var b312 = b as java.util.Date      //## issuekeys: MSG_TYPE_MISMATCH
     var b313 = b as Object
     var b314 = b as BigInteger      //## issuekeys: MSG_TYPE_MISMATCH
     var b315 = b as BigDecimal      //## issuekeys: MSG_TYPE_MISMATCH
@@ -51,7 +51,7 @@ class Errant_TypeCastPrimitiveTypes {
     var b218 = b as Boolean
 
     var b311 = b as String
-    var b312 = b as DateTime      //## issuekeys: MSG_TYPE_MISMATCH
+    var b312 = b as java.util.Date      //## issuekeys: MSG_TYPE_MISMATCH
     var b313 = b as Object
     var b314 = b as BigInteger
     var b315 = b as BigDecimal
@@ -77,7 +77,7 @@ class Errant_TypeCastPrimitiveTypes {
     var b218 = b as Boolean
 
     var b311 = b as String
-    var b312 = b as DateTime      //## issuekeys: MSG_TYPE_MISMATCH
+    var b312 = b as java.util.Date      //## issuekeys: MSG_TYPE_MISMATCH
     var b313 = b as Object
     var b314 = b as BigInteger
     var b315 = b as BigDecimal
@@ -102,7 +102,7 @@ class Errant_TypeCastPrimitiveTypes {
     var b218 = b as Boolean
 
     var b311 = b as String
-    var b312 = b as DateTime      //## issuekeys: MSG_TYPE_MISMATCH
+    var b312 = b as java.util.Date      //## issuekeys: MSG_TYPE_MISMATCH
     var b313 = b as Object
     var b314 = b as BigInteger
     var b315 = b as BigDecimal
@@ -127,7 +127,7 @@ class Errant_TypeCastPrimitiveTypes {
     var b218 = b as Boolean
 
     var b311 = b as String
-    var b312 = b as DateTime      //## issuekeys: MSG_TYPE_MISMATCH
+    var b312 = b as java.util.Date      //## issuekeys: MSG_TYPE_MISMATCH
     var b313 = b as Object
     var b314 = b as BigInteger
     var b315 = b as BigDecimal
@@ -152,7 +152,7 @@ class Errant_TypeCastPrimitiveTypes {
     var b218 = b as Boolean
 
     var b311 = b as String
-    var b312 = b as DateTime      //## issuekeys: MSG_TYPE_MISMATCH
+    var b312 = b as java.util.Date      //## issuekeys: MSG_TYPE_MISMATCH
     var b313 = b as Object
     var b314 = b as BigInteger
     var b315 = b as BigDecimal
@@ -177,7 +177,7 @@ class Errant_TypeCastPrimitiveTypes {
     var b218 = b as Boolean
 
     var b311 = b as String
-    var b312 = b as DateTime      //## issuekeys: MSG_TYPE_MISMATCH
+    var b312 = b as java.util.Date      //## issuekeys: MSG_TYPE_MISMATCH
     var b313 = b as Object
     var b314 = b as BigInteger
     var b315 = b as BigDecimal
@@ -202,7 +202,7 @@ class Errant_TypeCastPrimitiveTypes {
     var b218 = b as Boolean
 
     var b311 = b as String
-    var b312 = b as DateTime      //## issuekeys: MSG_TYPE_MISMATCH
+    var b312 = b as java.util.Date      //## issuekeys: MSG_TYPE_MISMATCH
     var b313 = b as Object
     var b314 = b as BigInteger
     var b315 = b as BigDecimal

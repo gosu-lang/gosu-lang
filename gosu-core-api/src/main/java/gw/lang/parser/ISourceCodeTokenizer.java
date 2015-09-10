@@ -102,7 +102,7 @@ public interface ISourceCodeTokenizer
 
   int getRestoreState();
 
-  int nextToken();
+  void nextToken();
 
   void pushOffsetMarker( ITokenizerOffsetMarker offsetMarker );
   void popOffsetMarker( ITokenizerOffsetMarker offsetMarker );
@@ -119,7 +119,7 @@ public interface ISourceCodeTokenizer
 
   boolean isEOF();
 
-  Stack<IToken> getTokens();
+  Stack<? extends IToken> getTokens();
 
   boolean isAnalyzingSeparately();
   boolean isAnalyzingDirective();

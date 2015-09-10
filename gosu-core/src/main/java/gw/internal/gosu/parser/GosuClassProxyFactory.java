@@ -28,6 +28,7 @@ import gw.lang.reflect.gs.IGosuClass;
 import gw.lang.reflect.gs.IGosuObject;
 import gw.lang.reflect.gs.StringSourceFileHandle;
 import gw.lang.reflect.java.IJavaMethodInfo;
+import gw.lang.reflect.java.IJavaPropertyInfo;
 import gw.lang.reflect.java.IJavaType;
 import gw.lang.reflect.java.JavaTypes;
 import gw.lang.reflect.module.IModule;
@@ -393,8 +394,9 @@ public class GosuClassProxyFactory
     if( value instanceof IAnnotationInfo ) {
       return makeAnnotationSource( (IAnnotationInfo)value );
     }
+    boolean isArray = returnType.isArray();
     if( value.getClass().isArray() ) {
-      assert returnType.isArray();
+      assert isArray;
       StringBuilder arrayValue = new StringBuilder( "{" );
       for( int i = 0; i < Array.getLength( value ); i++ ) {
         if( i > 0 ) {
@@ -406,7 +408,7 @@ public class GosuClassProxyFactory
       return arrayValue.toString();
     }
     if( List.class.isAssignableFrom( value.getClass() ) ) {
-      assert returnType.isArray();
+      assert isArray;
       List list = (List)value;
       StringBuilder arrayValue = new StringBuilder( "{" );
       for( int i = 0; i < list.size(); i++ ) {
@@ -418,7 +420,7 @@ public class GosuClassProxyFactory
       arrayValue.append( "}" );
       return arrayValue.toString();
     }
-    if( returnType.isArray() ) {
+    if(isArray) {
       StringBuilder arrayValue = new StringBuilder( "{" );
       arrayValue.append( makeValueString( value, returnType.getComponentType() ) );
       arrayValue.append( "}" );
@@ -438,6 +440,13 @@ public class GosuClassProxyFactory
     IRelativeTypeInfo ti = (IRelativeTypeInfo)JavaTypes.OBJECT().getTypeInfo();
     IMethodInfo objMethod = ti.getMethod( JavaTypes.OBJECT(), mi.getDisplayName(), paramTypes );
     return objMethod != null;
+  }
+
+  public static boolean isObjectProperty( IPropertyInfo pi )
+  {
+    IRelativeTypeInfo ti = (IRelativeTypeInfo)JavaTypes.OBJECT().getTypeInfo();
+    IPropertyInfo objProp = ti.getProperty( JavaTypes.OBJECT(), pi.getDisplayName() );
+    return objProp != null;
   }
 
   private String getRelativeName( IJavaType type )
@@ -480,7 +489,7 @@ public class GosuClassProxyFactory
     for( Object o : ti.getProperties() )
     {
       IPropertyInfo pi = (IPropertyInfo)o;
-      genInterfacePropertyDecl( sb, pi );
+      genInterfacePropertyDecl( sb, pi, type );
     }
 
     // Interface methods
@@ -648,6 +657,12 @@ public class GosuClassProxyFactory
       return false;
     }
 
+    //## todo: maybe support implementing/overriding Java methods having a keyword as a name by escaping the keyword (using @ maybe?) so the parser can throw it away and not stop on the token as a reserved keyword 77
+    if( Keyword.isReservedKeyword( mi.getDisplayName() ) )
+    {
+      return false;
+    }
+
     int iMethodModifiers = ((IJavaMethodInfo)mi).getModifiers();
     return //!java.lang.reflect.Modifier.isFinal( iMethodModifiers ) &&
       !java.lang.reflect.Modifier.isNative( iMethodModifiers ) &&
@@ -775,14 +790,15 @@ public class GosuClassProxyFactory
                            : ti.getProperty( strProp );
         if( pi != null && pi.getFeatureType().getName().equals( mi.getReturnType().getName() ) )
         {
-          return !Keyword.isKeyword( pi.getName() ) || Keyword.isValueKeyword( pi.getName() );
+          return (!(pi instanceof IJavaPropertyInfo) || ((IJavaPropertyInfo)pi).getPropertyDescriptor().getReadMethod().getName().equals( mi.getDisplayName() )) &&
+                 (!Keyword.isKeyword( pi.getName() ) || Keyword.isValueKeyword( pi.getName() ));
         }
       }
     }
     return false;
   }
 
-  private void genInterfacePropertyDecl( StringBuilder sb, IPropertyInfo pi )
+  private void genInterfacePropertyDecl( StringBuilder sb, IPropertyInfo pi, IJavaType javaType )
   {
     if( pi.isStatic() )
     {
@@ -805,9 +821,19 @@ public class GosuClassProxyFactory
       sb.append( "\n/** " ).append( pi.getDescription() ).append( " */\n" );
     }
     sb.append( " property get " ).append( pi.getName() ).append( "() : " ).append( type.getName() ).append( "\n" );
+    IMethodInfo mi = getPropertyGetMethod( pi, javaType );
+    if( mi != null && !mi.isAbstract() )
+    {
+      generateStub( sb, mi.getReturnType() );
+    }
     if( pi.isWritable( pi.getOwnersType() ) )
     {
       sb.append( " property set " ).append( pi.getName() ).append( "( _proxy_arg_value : " ).append( type.getName() ).append( " )\n" );
+      mi = getPropertySetMethod( pi, javaType );
+      if( mi != null && !mi.isAbstract() )
+      {
+        generateStub( sb, mi.getReturnType() );
+      }
     }
   }
 
@@ -988,12 +1014,12 @@ public class GosuClassProxyFactory
 
     String strAccessor = "get" + pi.getDisplayName();
     IMethodInfo mi = ti.getMethod( ownerType, strAccessor );
-    if( mi == null || mi.getReturnType() != propType )
+    if( mi == null )
     {
       strAccessor = "is" + pi.getDisplayName();
       mi = ti.getMethod( ownerType, strAccessor );
     }
-    if( mi != null && mi.getReturnType() == propType )
+    if( mi != null && mi.getReturnType().equals( propType ) )
     {
       return mi;
     }

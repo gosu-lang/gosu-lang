@@ -7,11 +7,12 @@ package gw.plugin.ij.util.transform.java.Visitor;
 import com.sun.source.tree.*;
 import com.sun.tools.javac.code.Flags;
 import com.sun.tools.javac.tree.JCTree;
-import com.sun.tools.javac.util.Convert;
+import com.sun.tools.javac.util.*;
 
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.Name;
 import java.util.*;
+import java.util.List;
 import java.util.regex.Pattern;
 
 
@@ -29,7 +30,7 @@ public class GosuVisitor implements TreeVisitor<String, Void> {
   boolean skipBlockScope;
   private boolean skipSymConversion;
 
-  private enum Mode {NORMAL, USING_NO_MODIFIERS, CATCH_PARAM, USING_CAST, METHOD_PARAM, ADD_RESOURCES_FINALLY_BLOCK, CLASS_VAR}
+  private enum Mode {NORMAL, USING_NO_MODIFIERS, CATCH_PARAM, USING_CAST, METHOD_PARAM, ADD_RESOURCES_FINALLY_BLOCK, LAMBDA_PARAM, CLASS_VAR}
 
   public StringBuilder getOutput() {
     return output;
@@ -113,10 +114,8 @@ public class GosuVisitor implements TreeVisitor<String, Void> {
         isInterface = true;
         break;
       case ANNOTATION_TYPE:
-        appendAsComment(out, node.toString());
-        //throw new AssertionError("Annotation declaration not supported in the conversion");
-        return out.toString();
-        //break;
+        declType = "annotation";
+        break;
       default:
         declType = "???";
         break;
@@ -191,9 +190,10 @@ public class GosuVisitor implements TreeVisitor<String, Void> {
           out.append(member.accept(this, v));
           mode = old;
           isLastVar = true;
-        } else if (member instanceof BlockTree){
-          appendAsComment(out, member.toString());
         } else {
+          if (member instanceof BlockTree && !((BlockTree) member).isStatic()) {
+            appendAsInlineComment(out, "FIX ME: initializer blocks not allowed in Gosu");
+          }
           out.append(member.accept(this, v));
         }
       }
@@ -246,7 +246,7 @@ public class GosuVisitor implements TreeVisitor<String, Void> {
     BlockTree block = node.getBlock();
     List<? extends CatchTree> catches = node.getCatches();
     BlockTree finallyBlock = node.getFinallyBlock();
-    List<String> resIdents = new ArrayList<>();
+    List<String> resIdents = new ArrayList<String>();
 
     if(catches.isEmpty() && !resources.isEmpty()) {
       out.append("using (");
@@ -344,8 +344,9 @@ public class GosuVisitor implements TreeVisitor<String, Void> {
   public String visitLabeledStatement(LabeledStatementTree node, Void v) {
     StringBuilder out = new StringBuilder();
     StatementTree stmt = node.getStatement();
-    String label = node.getLabel().toString() + ": ";
-    appendAsComment(out, label);
+    String label = node.getLabel().toString() + ":\n";
+    appendAsInlineComment(out, "FIX ME: labeled statements not allowed in Gosu");
+    out.append(label);
     appendIndent(out);
     out.append(stmt.accept(this, v));
     return out.toString();
@@ -356,9 +357,7 @@ public class GosuVisitor implements TreeVisitor<String, Void> {
     StringBuilder out = new StringBuilder();
     // todo handle static blocks
     if (node.isStatic()) {
-      //throw new AssertionError("Static blocks not supported in Gosu");
-      appendAsComment(out, node.toString());
-      return out.toString();
+      appendAsInlineComment(out, "FIX ME: initializer blocks not allowed in Gosu");
     }
     out.append(" {\n");
     pushIndent();
@@ -526,13 +525,13 @@ public class GosuVisitor implements TreeVisitor<String, Void> {
       out.append(modifiers.accept(this, v));
     }
     Tree type = node.getType();
-    boolean appedVar = !(mode == Mode.METHOD_PARAM || mode == Mode.CATCH_PARAM);
+    boolean appedVar = !(mode == Mode.METHOD_PARAM || mode == Mode.CATCH_PARAM || mode == Mode.LAMBDA_PARAM);
     if (appedVar) {
       out.append("var ");
     }
     out.append(name);
     skipSymConversion = true;
-    String varType = type.accept(this, v);
+    String varType =  type == null ? "" : type.accept(this, v);
     skipSymConversion = false;
     String iniz = null;
     String genType = null;
@@ -550,8 +549,10 @@ public class GosuVisitor implements TreeVisitor<String, Void> {
         return out.toString();
       }
     }
-    out.append(" : ");
-    out.append(varType);
+    if(type != null) {
+      out.append(" : ");
+      out.append(varType);
+    }
     if (iniz != null) {
       out.append(iniz);
     }
@@ -665,9 +666,29 @@ public class GosuVisitor implements TreeVisitor<String, Void> {
   }
 
   @Override
-  public String visitMemberReference( MemberReferenceTree node, Void aVoid ) {
-    //## todo: implement
-    return "";
+  public String visitMemberReference(MemberReferenceTree node, Void v) {
+    StringBuilder out = new StringBuilder();
+    out.append(node.getQualifierExpression().accept(this, v));
+    out.append("#");
+    if(node.getMode() == MemberReferenceTree.ReferenceMode.NEW) {
+      out.append("construct");
+    } else {
+      out.append(node.getName());
+    }
+    out.append("(");
+    List<? extends ExpressionTree> typeArguments = node.getTypeArguments();
+    if(typeArguments != null) {
+      boolean first = true;
+      for(ExpressionTree e : typeArguments) {
+        if(!first) {
+          out.append(", ");
+        }
+        first = false;
+        out.append(e.accept(this, v));
+      }
+    }
+    out.append(").toBlock()");
+    return out.toString();
   }
 
 
@@ -1028,7 +1049,7 @@ public class GosuVisitor implements TreeVisitor<String, Void> {
               if (val >= 0) {
                 validLimit = true;
               }
-            } catch (NumberFormatException ex) { /* gulp */ }
+            } catch (NumberFormatException ex) { /* Java src is correct */ }
           } else if (condR.endsWith(".size()") || condR.endsWith(".length()") || condR.endsWith(".length")) {
             validLimit = true;
           }
@@ -1087,7 +1108,14 @@ public class GosuVisitor implements TreeVisitor<String, Void> {
       out.append(methodSelect.accept(this, v));
       skipSymConversion = false;
     } else {
-      out.append(methodSelect.accept(this, v));
+      String ms = methodSelect.accept(this, v);
+      int i = ms.indexOf(".super.");
+      if(methodSelect instanceof JCTree.JCFieldAccess && i > 0) {
+        String beforeSuper = ms.substring(0, i);
+        String afterSuper = ms.substring(i+6);
+        ms = "super[" + beforeSuper + "]" + afterSuper;
+      }
+      out.append(ms);
     }
     List<? extends Tree> typeArguments = node.getTypeArguments();
     if (!typeArguments.isEmpty()) {
@@ -1174,8 +1202,6 @@ public class GosuVisitor implements TreeVisitor<String, Void> {
           mode = Mode.CLASS_VAR;
           out.append(member.accept(this, v));
           mode = old;
-        } else if (member instanceof BlockTree){
-          appendAsComment(out, member.toString());
         } else {
           out.append(member.accept(this, v));
         }
@@ -1190,9 +1216,33 @@ public class GosuVisitor implements TreeVisitor<String, Void> {
   }
 
   @Override
-  public String visitLambdaExpression( LambdaExpressionTree node, Void aVoid ) {
-    //## todo: implement
-    return "";
+  public String visitLambdaExpression( LambdaExpressionTree node, Void v ) {
+    StringBuilder out = new StringBuilder();
+    out.append("\\ ");
+    List<? extends VariableTree> param = node.getParameters();
+    Mode oldMode = mode;
+    mode = Mode.LAMBDA_PARAM;
+    if (!param.isEmpty()) {
+      boolean first = true;
+      for(VariableTree p : param) {
+        if(!first) {
+          out.append(", ");
+        }
+        first = false;
+        out.append(p.accept(this, v));
+      }
+    }
+    mode = oldMode;
+    out.append(" -> ");
+    boolean isBlock = node.getBodyKind() == LambdaExpressionTree.BodyKind.STATEMENT;
+    if(isBlock) {
+      out.append("{ ");
+    }
+    out.append(node.getBody().accept(this, v));
+    if(isBlock) {
+      out.append(" }");
+    }
+    return out.toString();
   }
 
 
@@ -1204,10 +1254,6 @@ public class GosuVisitor implements TreeVisitor<String, Void> {
   public String visitMethod(MethodTree node, Void v) {
     StringBuilder out = new StringBuilder();
     BlockTree body = node.getBody();
-    Tree defaultValue = node.getDefaultValue();
-    if (defaultValue != null) {
-      throw new AssertionError("default values for annotations not supported");
-    }
     ModifiersTree modifiers = node.getModifiers();
     String name = node.getName().toString();
     List<? extends VariableTree> parameters = node.getParameters();
@@ -1271,13 +1317,18 @@ public class GosuVisitor implements TreeVisitor<String, Void> {
       skipBlockScope = true;
       out.append(body.accept(this, v));
     }
+    Tree defaultValue = node.getDefaultValue();
+    if (defaultValue != null) {
+      out.append(" = ");
+      out.append(defaultValue.accept(this, v));
+    }
     symTable.popLocalScope();
     return out.toString();
   }
 
 
   private HashMap<String, String> computeConstructorTypes(List<? extends TypeParameterTree> typeParameters) {
-    HashMap<String, String> constructorTypes = new HashMap<>();
+    HashMap<String, String> constructorTypes = new HashMap<String, String>();
     for(TypeParameterTree t : typeParameters) {
       String key = t.getName().toString();
       String value;
@@ -1327,8 +1378,11 @@ public class GosuVisitor implements TreeVisitor<String, Void> {
       out.append("override ");
     }
     for (Modifier modifier : node.getFlags()) {
-        out.append(modifier);
+      String mod = modifier.toString();
+      if(!"default".equals(mod)) {
+        out.append(mod);
         out.append(" ");
+      }
     }
     String modifiers = out.toString();
     if(mode == Mode.CLASS_VAR &&
@@ -1436,11 +1490,12 @@ public class GosuVisitor implements TreeVisitor<String, Void> {
     return out.toString();
   }
 
-
   @Override
-  public String visitAnnotatedType( AnnotatedTypeTree node, Void aVoid ) {
-    //## todo: implement
-    return "";
+  public String visitAnnotatedType( AnnotatedTypeTree node, Void v ) {
+    StringBuilder out = new StringBuilder();
+    appendAsInlineComment(out, node.getAnnotations().toString());
+    out.append(node.getUnderlyingType().accept(this, v));
+    return out.toString();
   }
 
   public String visitAnnotation(AnnotationTree node, Void v) {
@@ -1478,11 +1533,11 @@ public class GosuVisitor implements TreeVisitor<String, Void> {
   }
 
   @Override
-  public String visitIntersectionType( IntersectionTypeTree node, Void aVoid ) {
-    //## todo: implement
-    return "";  //To change body of implemented methods use File | Settings | File Templates.
+  public String visitIntersectionType(IntersectionTypeTree node, Void v) {
+    StringBuilder out = new StringBuilder();
+    out.append(node.toString());
+    return out.toString();
   }
-
 
   private void pushIndent() {
     ident += TAB_SIZE;
@@ -1512,6 +1567,12 @@ public class GosuVisitor implements TreeVisitor<String, Void> {
     popIndent();
     appendIndent(out);
     out.append("*/\n");
+  }
+
+  private void appendAsInlineComment(StringBuilder out, String code) {
+    out.append("/* ");
+    out.append(code);
+    out.append(" */");
   }
 
 

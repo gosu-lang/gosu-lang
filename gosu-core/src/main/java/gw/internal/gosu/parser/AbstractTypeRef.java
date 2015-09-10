@@ -30,10 +30,10 @@ import java.io.Serializable;
  *}
  *</b></pre>
  */
-public abstract class AbstractTypeRef implements Serializable, ITypeRef
+public abstract class AbstractTypeRef extends ITypeRef implements Serializable
 {
   transient private String _typeName;
-  transient volatile private IType _type;
+  transient volatile protected IType _type;
   transient private IModule _module;
   transient private ITypeLoader _loader;
   transient private String _pureGenericTypeName;
@@ -234,8 +234,8 @@ public abstract class AbstractTypeRef implements Serializable, ITypeRef
       return this == obj ||
              // handle odd case where two separate type refs have the same type
              (!ref2.isDeleted() && _getType() == ref2._getType()) ||
-             // Shadowing support. Allow types with same name override each other.
-             (!ref2.isDeleted() && _getTypeNameLong().equals( ref2._getTypeNameLong()));
+             // Shadowing support. Allow types with same name override each other. Note we call _getTypeName() first to make this bail out faster because _getTypeNameLong() is slow and this is a hotspot
+             (!ref2.isDeleted() && _getTypeName().equals( ref2._getTypeName() ) && _getTypeNameLong().equals( ref2._getTypeNameLong()));
     }
 
     IType type = _getType();

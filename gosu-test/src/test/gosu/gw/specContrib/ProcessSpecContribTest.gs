@@ -30,7 +30,7 @@ class ProcessSpecContribTest extends BaseVerifyErrantTest {
   }
 
   private function compareErrantTypeWithCompilerBehaviour( gsClass: IGosuClass ) {
-    print("Processing ${gsClass.Name}")
+    print("Processing " + gsClass.Name)
     var bValid = gsClass.Valid
     var knowBreakLines : ArrayList<Integer> = {}
 
@@ -67,7 +67,7 @@ class ProcessSpecContribTest extends BaseVerifyErrantTest {
     if(!issuesByLine.Empty) {
       err.append("\nFound Unannotated Errors:");
       for(l in issuesByLine.Keys.toList().sort()) {
-        err.append("\n    Line ${l}: ").append(issuesByLine[l].map( \ el -> el.MessageKey.Key).join(","))
+        err.append("\n    Line " + l + ": ").append(issuesByLine[l].map( \ el -> el.MessageKey.Key).join(","))
       }
     }
     assertTrue(err.toString(), issuesByLine.Empty )
@@ -82,10 +82,22 @@ class ProcessSpecContribTest extends BaseVerifyErrantTest {
 
   function testAnalyzeSpecContrib() {
     var excluded : Set<String> = {
-                                   "gw.specContrib.typeinference.Errant_SwitchTypeNarrowing",  // IDE-426
                                    "gw.specContrib.classes.Errant_ConstructorOverrideInAnonymousClass",  // IDE-1821
                                    "gw.specContrib.classes.enhancements.Errant_SymbolCollision_ListEnh2", // IDE-1824
                                    "gw.specContrib.typeinference.Errant_GenericMethodAndBlockArgument", // IDE-1943
+
+                                   "gw.specContrib.generics.Errant_RecursiveTypeParameter", //IDE-2203
+                                   "gw.specContrib.featureLiterals.gosuMembersBinding.Errant_BindOverloadedGosuMethods", //IDE-1466
+                                   "gw.specContrib.featureLiterals.gosuMembersBinding.Errant_BindOverloadedGosuMethodsToInstance", //IDE-1466
+                                   "gw.specContrib.types.Errant_MetaType", // IDE-2283
+                                   "gw.specContrib.interfaceMethods.defaultMethods.Errant_DefaultMethodsGenerics", //IDE-2581
+                                   "gw.specContrib.interfaceMethods.defaultMethods.Errant_DefaultMethodsAccessModifier", //IDE-2576
+                                   "gw.specContrib.interfaceMethods.defaultMethods.Errant_DefaultAndAbstractConflict_1",  //IDE-2607
+                                   "gw.specContrib.interfaceMethods.defaultMethods.Errant_DefaultAndAbstractConflict_2", //IDE-2614
+                                   "gw.specContrib.interfaceMethods.staticMethods.javaInteraction.Errant_GosuTestClass1", //IDE-2594
+                                   "gw.specContrib.interfaceMethods.staticMethods.Errant_StaticDefaultMethodsResolution_1", //IDE-2618
+                                   "gw.specContrib.types.Errant_CompoundType", // fix me :(
+
                                    /* to skip as we don't support this check in our testing framework */
                                    "gw.specContrib.classes.Errant_ClassDeclaredInEnhancement",
                                    "gw.specContrib.classes.Errant_ClassNotNamedAfterFile",

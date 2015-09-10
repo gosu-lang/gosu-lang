@@ -53,12 +53,12 @@ public final class NumericLiteral extends Literal implements INumericLiteralExpr
   @Override
   public Object clone()
   {
-    return new NumericLiteral( _strValue, _value, getType() );
+    return copy();
   }
 
   public NumericLiteral copy()
   {
-    return (NumericLiteral)clone();
+    return new NumericLiteral( _strValue, _value, getType() );
   }
 
   public Number getValue()
@@ -68,7 +68,7 @@ public final class NumericLiteral extends Literal implements INumericLiteralExpr
 
   public boolean isCompileTimeConstant()
   {
-    return getType().isPrimitive();
+    return true;
   }
 
   public Object evaluate()

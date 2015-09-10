@@ -22,7 +22,6 @@ import gw.internal.gosu.ir.transform.expression.ConditionalTernaryExpressionTran
 import gw.internal.gosu.ir.transform.expression.DefaultArgLiteralTransformer;
 import gw.internal.gosu.ir.transform.expression.EqualityExpressionTransformer;
 import gw.internal.gosu.ir.transform.expression.EvalExpressionTransformer;
-import gw.internal.gosu.ir.transform.expression.ExistsExpressionTransformer;
 import gw.internal.gosu.ir.transform.expression.FeatureLiteralTransformer;
 import gw.internal.gosu.ir.transform.expression.IdentifierTransformer;
 import gw.internal.gosu.ir.transform.expression.IdentityExpressionTransformer;
@@ -67,7 +66,6 @@ import gw.internal.gosu.parser.expressions.ConditionalTernaryExpression;
 import gw.internal.gosu.parser.expressions.DefaultArgLiteral;
 import gw.internal.gosu.parser.expressions.EqualityExpression;
 import gw.internal.gosu.parser.expressions.EvalExpression;
-import gw.internal.gosu.parser.expressions.ExistsExpression;
 import gw.internal.gosu.parser.expressions.FeatureLiteral;
 import gw.internal.gosu.parser.expressions.IdentityExpression;
 import gw.internal.gosu.parser.expressions.IntervalExpression;
@@ -140,8 +138,8 @@ public class ExpressionTransformer
   }
 
   private IRExpression compile()
-  {
-    IRSymbol symbol = _tempSymbolsForCompoundAssignment.get( _expr );
+  {                    // size check for perf, this is called a lot and this is mostly 0 length, mostly
+    IRSymbol symbol = _tempSymbolsForCompoundAssignment.size() > 0 ? _tempSymbolsForCompoundAssignment.get( _expr ) : null;
     if(  symbol != null ) {
       return new IRIdentifier( symbol );
     }
@@ -304,10 +302,6 @@ public class ExpressionTransformer
     else if( _expr instanceof TemplateStringLiteral )
     {
       return TemplateStringLiteralTransformer.compile( _cc, (TemplateStringLiteral)_expr );
-    }
-    else if( _expr instanceof ExistsExpression )
-    {
-      return ExistsExpressionTransformer.compile( _cc, (ExistsExpression)_expr );
     }
     else if( _expr instanceof BlockInvocation )
     {

@@ -1,0 +1,102 @@
+import java.io.Serializable;
+import java.lang.annotation.*;
+import java.util.*;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
+
+public class TestJava8 {
+  int x;
+  interface IA { int doIt(int x, int y); }
+  interface IB { void doIt(); }
+
+  void callA(IA a) {}
+  void callB(IB b) {}
+
+  void testLambda() {
+    callA((int x, int y) -> x+y );
+    callA((x, y) -> x+y );
+    callA((a, b) -> { return a+b;} );
+    callB(() -> System.out.print("yay") );
+    callB(() -> { System.out.print("yay"); });
+  }
+
+  void testIntersectionTypeCast() {
+    Serializable s = (Runnable & Serializable)() -> System.out.println("intersection");
+  }
+  @Target({ ElementType.TYPE_USE})
+  public @interface MyAnno {  }
+  abstract class foo<T> implements @MyAnno List<@MyAnno T> { }
+  void testTypeAnnotation() throws @MyAnno Exception {
+    new @MyAnno Object();
+    String a = (@MyAnno String) "";
+  }
+
+  static class MyInteger {
+    public static int compare(Integer x, Integer y) {
+      return (x < y) ? -1 : ((x == y) ? 0 : 1);
+    }
+  }
+  <T> void sort(T[] a, Comparator<T> c) {}
+  <T> void forEach(List<T> l, Consumer<T> action) {}
+  <T> void m(Supplier<T>  s) {}
+
+
+  void testMethoReferences() {
+    String[] stringArray = { "Niklaus", "Rob", "James" };
+    Integer[] intArray = { 5, 2, 1 };
+    sort(stringArray, String::compareToIgnoreCase);
+    sort(intArray, Integer::compare);
+    sort(intArray, Integer::<Integer, Integer>compare);
+    sort(intArray, MyInteger::compare);
+
+    List<String>  l = Arrays.asList(new String[] {"A", "B"});
+    forEach(l, System.out::print);
+    forEach(l, System.out::<String>print);
+    forEach(l, System.out::<Object>print);
+    m(HashMap<String, Integer>::new);
+  }
+
+  interface IDog {
+    default void bark() {
+      System.out.println( "ruff" );
+    }
+
+    static void run() { System.out.println( "running" );}
+  }
+
+  static public abstract class Tree {
+    public abstract void bark();
+  }
+
+  //test super syntax with interfaces
+  static class DogWood extends Tree implements IDog {
+    @Override
+    public void bark() {
+      IDog.super.bark();
+      IDog.run();
+      TestJava8.IDog.super.bark();
+    }
+  }
+
+  @interface MyAnnotation {
+    String[] str() default {"Hello", "World"};
+    int integer();
+    double doubleN() default 1.0;
+    boolean bol();
+    char character();
+    IntAnnotation[] arr();
+    static public class FooBar<T> {
+      public static final int val = 3;
+
+    }
+    Class<? extends String> value();
+    @interface MyAnnotation2 {
+      short shortInt();
+    };
+    MyAnnotation2 ann();
+  }
+
+  @interface IntAnnotation {
+    int num();
+  }
+}

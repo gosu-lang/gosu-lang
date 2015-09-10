@@ -52,11 +52,12 @@ public class PasteAsGosuAction extends AnAction implements DumbAware {
     String text = null;
     try {
       text = (String) content.getTransferData(DataFlavor.stringFlavor);
-    } catch (Exception ex) {
-      // ignore;
-    }
+    } catch (Exception ex) { /* ignore*/  }
     if (text != null) {
-      String GosuSource = JavaToGosu.ConvertString(text);
+      String GosuSource = "";
+      try {
+        GosuSource = JavaToGosu.ConvertString(text);
+      } catch(Exception ex) { /*ignore */  }
       if("".equals(GosuSource)) {
         Messages.showMessageDialog( e.getProject(), GosuBundle.message("paste.java.as.gosu.action.error"),
                                     GosuBundle.message("paste.java.as.gosu.action.text"), Messages.getErrorIcon() );

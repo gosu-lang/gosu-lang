@@ -83,22 +83,22 @@ public class StandardSymbolTable implements ISymbolTable
    */
   private StandardSymbolTable( StandardSymbolTable source )
   {
-    _stackScopes = (ArrayList)source._stackScopes.clone();
+    _stackScopes = new ArrayList( source._stackScopes );
     for( int i = 0; i < _stackScopes.size(); i++ )
     {
       Object obj = _stackScopes.get( i );
       IScope scope = (IScope)obj;
       //noinspection unchecked
-      _stackScopes.set( i, scope.clone() );
+      _stackScopes.set( i, scope.copy() );
     }
 
-    _stackPrivateGlobalScopes = (LinkedList)source._stackPrivateGlobalScopes.clone();
+    _stackPrivateGlobalScopes = new LinkedList( source._stackPrivateGlobalScopes );
     for( int i = 0; i < _stackPrivateGlobalScopes.size(); i++ )
     {
       Object obj = _stackPrivateGlobalScopes.get( i );
       IScope scope = (IScope)obj;
       //noinspection unchecked
-      _stackPrivateGlobalScopes.set( i, scope.clone() );
+      _stackPrivateGlobalScopes.set( i, scope.copy() );
     }
 
     _scopeSizes = new int[source._scopeSizes.length];

@@ -22,8 +22,8 @@ import gw.lang.reflect.gs.IGosuFragment;
 
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class GosuFragmentParser implements IGosuFragmentParser {
@@ -122,7 +122,7 @@ public class GosuFragmentParser implements IGosuFragmentParser {
       //noinspection unchecked
       for (ISymbol sym : (Collection<ISymbol>) symbols.values()) {
         if (!(sym instanceof CommonSymbolsScope.LockedDownSymbol) && sym != null) {
-          symbolNames.put( (String)sym.getName(), sym);
+          symbolNames.put( sym.getName(), sym);
         }
       }
     }
@@ -132,17 +132,17 @@ public class GosuFragmentParser implements IGosuFragmentParser {
       //noinspection unchecked
       for (ISymbol sym : (Collection<ISymbol>) decls.getSymbols().values()) {
         if (!(sym instanceof CommonSymbolsScope.LockedDownSymbol) && sym != null) {
-          symbolNames.put( (String)sym.getName(), sym);
+          symbolNames.put( sym.getName(), sym);
         }
       }
     }
 
-    Map<String, Set<IFunctionSymbol>> declSymbolMap = options.getDeclSymbols();
+    Map<String, List<IFunctionSymbol>> declSymbolMap = options.getDeclSymbols();
     if (declSymbolMap != null) {
-      for (Set<IFunctionSymbol> symbolSet : declSymbolMap.values()) {
+      for (List<IFunctionSymbol> symbolSet : declSymbolMap.values()) {
         for (IFunctionSymbol sym : symbolSet) {
           if (!(sym instanceof CommonSymbolsScope.LockedDownSymbol) && sym != null) {
-            symbolNames.put( (String)sym.getName(), sym);
+            symbolNames.put( sym.getName(), sym);
           }
         }
       }

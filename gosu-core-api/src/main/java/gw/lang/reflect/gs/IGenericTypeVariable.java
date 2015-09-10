@@ -18,7 +18,7 @@ public interface IGenericTypeVariable
 
   IType getBoundingType();
 
-  IGenericTypeVariable clone();
+  IGenericTypeVariable copy();
 
   void createTypeVariableDefinition(IType enclosingType);
 
