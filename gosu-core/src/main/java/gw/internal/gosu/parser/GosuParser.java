@@ -3281,16 +3281,20 @@ public final class GosuParser extends ParserBase implements IGosuParser
     return bAvoidContextType;
   }
 
-  private List<IType> getTypes( List<? extends IHasType> list )
+  private List<IType> getTypes( List<? extends IExpression> list )
   {
     if( list == null )
     {
       return Collections.emptyList();
     }
-    ArrayList<IType> returnList = new ArrayList<IType>( list.size() );
-    for( IHasType expression : list )
+    ArrayList<IType> returnList = new ArrayList<>( list.size() );
+    for( int i = 0; i < list.size(); i++ )
     {
-      returnList.add( expression.getType() );
+      IExpression expression = list.get( i );
+      if( !(expression instanceof NullExpression) || (i == list.size()-1 && returnList.isEmpty()) ) // don't include NullExpression's Object type in the presence of non-'null' expressions, 'null' assumes the type of the LUB of the other types
+      {
+        returnList.add( expression.getType() );
+      }
     }
     return returnList;
   }
