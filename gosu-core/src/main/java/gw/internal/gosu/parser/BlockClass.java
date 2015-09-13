@@ -79,7 +79,7 @@ public class BlockClass extends SyntheticClass implements IBlockClassInternal
   public void update()
   {
     createNewParseInfo();
-    getParseInfo().addDefaultConstructor(new StandardSymbolTable());
+    getParseInfo().addDefaultConstructor( new StandardSymbolTable(), null );
 
     // implement the one method that blocks implement
     implementInvoke();

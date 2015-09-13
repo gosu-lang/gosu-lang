@@ -1396,9 +1396,9 @@ public class GosuClass extends InnerClassCapableType implements IGosuClassIntern
     getParseInfo().addCapturedSymbolSilent(sym);
   }
 
-  public boolean ensureDefaultConstructor( ISymbolTable symbolTable )
+  public boolean ensureDefaultConstructor( ISymbolTable symbolTable, GosuParser parser )
   {
-    return !getConstructorFunctions().isEmpty() || getParseInfo().addDefaultConstructor(symbolTable);
+    return !getConstructorFunctions().isEmpty() || getParseInfo().addDefaultConstructor( symbolTable, parser );
   }
 
   /**

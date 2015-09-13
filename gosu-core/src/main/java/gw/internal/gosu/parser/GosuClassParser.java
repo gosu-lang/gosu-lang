@@ -890,7 +890,7 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
     }
     if( !gsClass.isInterface() )
     {
-      if( !gsClass.ensureDefaultConstructor( getSymbolTable() ) )
+      if( !gsClass.ensureDefaultConstructor( getSymbolTable(), getOwner() ) )
       {
         getClassStatement().addParseException( new ParseException( makeFullParserState(),
                                                                    Res.MSG_NO_DEFAULT_CTOR_IN,
