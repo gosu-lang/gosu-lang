@@ -75,7 +75,6 @@ import gw.lang.parser.IFunctionSymbol;
 import gw.lang.parser.IGosuParser;
 import gw.lang.parser.IGosuValidator;
 import gw.lang.parser.IHasInnerClass;
-import gw.lang.parser.IHasType;
 import gw.lang.parser.IInjectedSymbol;
 import gw.lang.parser.ILanguageLevel;
 import gw.lang.parser.IParseIssue;
@@ -7141,14 +7140,16 @@ public final class GosuParser extends ParserBase implements IGosuParser
     return namedArgOrder;
   }
 
-  private void addMisingArgsWithDefaultValues( ParsedElement element, IInvocableType funcType,
-                                               List<Expression> argExpressions, List<LightweightParserState> parserStates, boolean bShouldScoreMethods )
+  void addMisingArgsWithDefaultValues( ParsedElement element, IInvocableType funcType, List<Expression> argExpressions, List<LightweightParserState> parserStates, boolean bShouldScoreMethods )
   {
     if( funcType != null && funcType.hasOptionalParams() )
     {
       for( int i = argExpressions.size(); i < funcType.getParameterTypes().length; i++ )
       {
-        parserStates.add( makeLightweightParserState() );
+        if( parserStates != null )
+        {
+          parserStates.add( makeLightweightParserState() );
+        }
         argExpressions.add( i, getDefaultValueOrPlaceHolderForParam( i, funcType ) );
       }
 

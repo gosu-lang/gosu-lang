@@ -1056,9 +1056,9 @@ public class FunctionType extends AbstractType implements IFunctionType, IGeneri
   @Override
   public IExpression[] getDefaultValueExpressions()
   {
-    if( getMethodInfo() instanceof IOptionalParamCapable )
+    if( getMethodOrConstructorInfo() instanceof IOptionalParamCapable )
     {
-      return ((IOptionalParamCapable)getMethodInfo()).getDefaultValueExpressions();
+      return ((IOptionalParamCapable)getMethodOrConstructorInfo()).getDefaultValueExpressions();
     }
     return IExpression.EMPTY_ARRAY;
   }
