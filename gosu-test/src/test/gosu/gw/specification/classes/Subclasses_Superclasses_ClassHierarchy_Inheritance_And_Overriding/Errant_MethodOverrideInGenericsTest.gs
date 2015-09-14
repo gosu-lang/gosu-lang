@@ -27,4 +27,10 @@ class Errant_MethodOverrideInGenericsTest {
       return x
     }
   }
+
+  interface Fred<T> { function foo( t: T ) }
+  interface Barney<T> { function foo( t: T ) }
+  abstract class TestMe implements Fred<Integer>, Barney<String>  //## issuekeys: MSG_FUNCTION_CLASH_PARAMS
+  {
+  }
 }
