@@ -122,6 +122,7 @@ public class Strings extends ListResourceBundle
        {Res.MSG_UNTERMINATED_COMMENT.getKey(), "Unterminated comment. Expecting \"*/\"."},
        {Res.MSG_FUNCTION_ALREADY_DEFINED.getKey(), "{0}, is already defined in {1}"},
        {Res.MSG_FUNCTION_CLASH.getKey(), "\"{0}\" in \"{1}\" clashes with \"{2}\" in \"{3}\"; return types not compatible."},
+       {Res.MSG_FUNCTION_CLASH_PARAMS.getKey(), "\"{0}\" in \"{1}\" clashes with \"{2}\" in \"{3}\"; both functions have same erasure, yet neither overrides the other"},
        {Res.MSG_ATTEMPTING_TO_ASSIGN_WEAKER_ACCESS_PRIVILEGES.getKey(), "\"{0}\" in \"{1}\" clashes with \"{2}\" in \"{3}\"; attempting to assign weaker access privileges." },
        {Res.MSG_CANNOT_OVERRIDE_FINAL.getKey(), "Cannot override final member \"{0}\" from \"{1}\""},
        {Res.MSG_CANNOT_ASSIGN_VALUE_TO_FINAL_VAR.getKey(), "Cannot assign a value to final var \"{0}\""},

@@ -41,6 +41,7 @@ import gw.lang.parser.IParseTree;
 import gw.lang.parser.IParsedElement;
 import gw.lang.parser.IParsedElementWithAtLeastOneDeclaration;
 import gw.lang.parser.IParserState;
+import gw.lang.parser.IReducedDynamicFunctionSymbol;
 import gw.lang.parser.IScope;
 import gw.lang.parser.ISymbol;
 import gw.lang.parser.ISymbolTable;
@@ -79,18 +80,22 @@ import gw.lang.reflect.IRelativeTypeInfo;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.ITypeInfo;
 import gw.lang.reflect.ITypeVariableType;
+import gw.lang.reflect.MethodList;
 import gw.lang.reflect.Modifier;
 import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.gs.ClassType;
 import gw.lang.reflect.gs.IGenericTypeVariable;
 import gw.lang.reflect.gs.IGosuClass;
 import gw.lang.reflect.gs.IGosuClassParser;
+import gw.lang.reflect.gs.IGosuEnhancement;
+import gw.lang.reflect.gs.IGosuMethodInfo;
 import gw.lang.reflect.gs.IGosuProgram;
 import gw.lang.reflect.gs.ISourceFileHandle;
 import gw.lang.reflect.gs.StringSourceFileHandle;
 import gw.lang.reflect.java.GosuTypes;
 import gw.lang.reflect.java.IJavaType;
 import gw.lang.reflect.java.JavaTypes;
+import gw.util.DynamicArray;
 import gw.util.GosuExceptionUtil;
 import gw.util.GosuObjectUtil;
 import gw.util.GosuStringUtil;
@@ -3277,6 +3282,7 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
   {
     IGosuClassInternal gsClass = getGosuClass();
     ensureAbstractMethodsImpledAndNoDiamonds( gsClass );
+    ensureInheritedMethodsDoNotClash( gsClass );
 
     //## todo: remove this scope?
     getSymbolTable().pushScope();
@@ -3312,6 +3318,68 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
     }
 
     return true;
+  }
+
+  private void ensureInheritedMethodsDoNotClash( IGosuClassInternal gsClass )
+  {
+    if( !inheritsFromTwoOrMoreTypes( gsClass ) )
+    {
+      return;
+    }
+    MethodList methods = gsClass.getTypeInfo().getMethods( gsClass );
+    for( DynamicArray<IMethodInfo> bucket: methods.getMethodBuckets() )
+    {
+      if( bucket.size() > 1 )
+      {
+        Map<String, IReducedDynamicFunctionSymbol> functionTypes = new HashMap<>();
+        for( IMethodInfo mi : bucket )
+        {
+          if( mi instanceof IGosuMethodInfo )
+          {
+            IReducedDynamicFunctionSymbol dfs = ((IGosuMethodInfo)mi).getDfs();
+            IReducedDynamicFunctionSymbol originalDfs = dfs;
+            while( true )
+            {
+              IReducedDynamicFunctionSymbol superDfs = dfs.getSuperDfs();
+              if( superDfs != null && superDfs != dfs )
+              {
+                dfs = superDfs;
+              }
+              else
+              {
+                IReducedDynamicFunctionSymbol backingDfs = dfs.getBackingDfs();
+                if( backingDfs != null && backingDfs != dfs )
+                {
+                  dfs = backingDfs;
+                }
+                else
+                {
+                  break;
+                }
+              }
+            }
+            if( dfs != originalDfs && !(dfs.getGosuClass() instanceof IGosuEnhancement) )
+            {
+              FunctionType ft = ((FunctionType)dfs.getType()).getRuntimeType();
+              String paramSignature = ft.getParamSignature();
+              IReducedDynamicFunctionSymbol existingDfs = functionTypes.get( paramSignature );
+              if( existingDfs != null && existingDfs.getGosuClass() != dfs.getGosuClass() )
+              {
+                addError( getClassStatement(), Res.MSG_FUNCTION_CLASH_PARAMS, dfs.getName(), dfs.getGosuClass().getName(), existingDfs.getName(), existingDfs.getGosuClass().getName() );
+              }
+              functionTypes.put( paramSignature, dfs );
+            }
+          }
+        }
+      }
+    }
+  }
+
+  private boolean inheritsFromTwoOrMoreTypes( IGosuClassInternal gsClass )
+  {
+    int iCount = gsClass.getSuperClass() == null ? 0 : 1;
+    iCount += (gsClass.getInterfaces().length - 1); // subtract IGosuObject proxy
+    return iCount > 1;
   }
 
   private void ensureAbstractMethodsImpledAndNoDiamonds( IGosuClassInternal gsClass )

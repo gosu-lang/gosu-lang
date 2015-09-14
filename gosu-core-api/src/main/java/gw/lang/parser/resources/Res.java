@@ -122,6 +122,7 @@ public class Res
   public static final ResourceKey MSG_FUNCTION_ALREADY_DEFINED = new ResourceKey("MSG_FUNCTION_ALREADY_DEFINED");
   public static final ResourceKey MSG_FUNCTION_ALREADY_DEFINED_IN_EXTENDED_CLASS = new ResourceKey("MSG_FUNCTION_ALREADY_DEFINED_IN_EXTENDED_CLASS");
   public static final ResourceKey MSG_FUNCTION_CLASH = new ResourceKey("MSG_FUNCTION_CLASH");
+  public static final ResourceKey MSG_FUNCTION_CLASH_PARAMS = new ResourceKey("MSG_FUNCTION_CLASH_PARAMS");
   public static final ResourceKey MSG_CANNOT_OVERRIDE_FINAL = new ResourceKey("MSG_CANNOT_OVERRIDE_FINAL");
   public static final ResourceKey MSG_CANNOT_ASSIGN_VALUE_TO_FINAL_VAR = new ResourceKey("MSG_CANNOT_ASSIGN_VALUE_TO_FINAL_VAR");
   public static final ResourceKey MSG_VAR_MIGHT_NOT_HAVE_BEEN_INIT = new ResourceKey("MSG_VAR_MIGHT_NOT_HAVE_BEEN_INIT");
