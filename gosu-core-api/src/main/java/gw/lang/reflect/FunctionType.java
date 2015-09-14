@@ -988,7 +988,7 @@ public class FunctionType extends AbstractType implements IFunctionType, IGeneri
     return paramTypes;
   }
 
-  public IType getRuntimeType()
+  public FunctionType getRuntimeType()
   {
     TypeVarToTypeMap actualParamByVarName = new TypeVarToTypeMap();
 

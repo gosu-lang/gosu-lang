@@ -13,7 +13,7 @@ class Errant_MethodOverrideInGenericsTest {
     }
   }
 
-  static class D10 extends C10<String> implements I10<Integer> {
+  static class D10 extends C10<String> implements I10<Integer> {  //## issuekeys: MSG_FUNCTION_CLASH_PARAMS
     override function id(x: Integer) : Integer {
       return x
     }
@@ -22,20 +22,9 @@ class Errant_MethodOverrideInGenericsTest {
     }
   }
 
-  static class D20 extends C10<String> implements I10<Integer> {
+  static class D20 extends C10<String> implements I10<Integer> {  //## issuekeys: MSG_FUNCTION_CLASH_PARAMS
     override function id(x: Integer) : Integer {
       return x
     }
   }
-
-  function testMethodOverrideInGenerics(){
-    var obj1 = new D10()
-    obj1.id(new Integer(1))
-    obj1.id("first")
-
-    var obj2 = new D20()
-    obj2.id(new Integer(2))
-    obj2.id("second")
-  }
-
 }
