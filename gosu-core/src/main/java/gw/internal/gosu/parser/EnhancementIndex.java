@@ -505,13 +505,10 @@ public class EnhancementIndex implements IEnhancementIndex
         }
       }
 
-      if( enhancements.size() == 0 )
+      IType[] interfaces = typeToGetEnhancementsFor.getInterfaces();
+      for( IType interfaceType : interfaces )
       {
-        IType[] interfaces = typeToGetEnhancementsFor.getInterfaces();
-        for( IType interfaceType : interfaces )
-        {
-          addAllEnhancementMethodsForType( interfaceType );
-        }
+        addAllEnhancementMethodsForType( interfaceType );
       }
     }
 
@@ -544,13 +541,10 @@ public class EnhancementIndex implements IEnhancementIndex
         }
       }
 
-      if( enhancements.size() == 0 )
+      IType[] interfaces = typeToGetEnhancementsFor.getInterfaces();
+      for( IType interfaceType : interfaces )
       {
-        IType[] interfaces = typeToGetEnhancementsFor.getInterfaces();
-        for( IType interfaceType : interfaces )
-        {
-          addAllEnhancementPropsForType( interfaceType, caseSensitive );
-        }
+        addAllEnhancementPropsForType( interfaceType, caseSensitive );
       }
     }
 
