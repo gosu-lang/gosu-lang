@@ -5999,6 +5999,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
                       rootType == GosuParserTypes.BOOLEAN_TYPE() ||
                       rootType == GosuParserTypes.STRING_TYPE() ||
                       rootType == GosuParserTypes.NUMBER_TYPE() ||
+                      rootType instanceof IBlockType ||
                       rootType instanceof MetaType;
       verify( e, bAcceptableType, Res.MSG_EXPECTING_BEANTYPE, rootType.getName() );
     }

@@ -4,6 +4,8 @@
 
 package gw.lang.reflect;
 
+import gw.lang.reflect.java.JavaTypes;
+
 import java.util.Collections;
 import java.util.List;
 
@@ -16,22 +18,22 @@ public class FunctionTypeInfo extends BaseFeatureInfo implements ITypeInfo
 
   public List<? extends IPropertyInfo> getProperties()
   {
-    return Collections.emptyList();
+    return JavaTypes.OBJECT().getTypeInfo().getProperties();
   }
 
   public IPropertyInfo getProperty( CharSequence property )
   {
-    return null;
+    return JavaTypes.OBJECT().getTypeInfo().getProperty( property );
   }
 
   public MethodList getMethods()
   {
-    return MethodList.EMPTY;
+    return JavaTypes.OBJECT().getTypeInfo().getMethods();
   }
 
   public IMethodInfo getMethod( CharSequence methodName, IType... params )
   {
-    return FIND.method( getMethods(), methodName, params );
+    return JavaTypes.OBJECT().getTypeInfo().getMethod( methodName, params );
   }
 
   public String getName()
