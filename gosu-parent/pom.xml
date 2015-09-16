@@ -3,7 +3,7 @@
 
   <groupId>org.gosu-lang.gosu</groupId>
   <artifactId>gosu-parent</artifactId>
-  <version>1-spec-SNAPSHOT</version>
+  <version>1-X-SNAPSHOT</version>
   <packaging>pom</packaging>
 
   <name>Gosu :: Parent POM</name>
@@ -133,7 +133,7 @@
     <plugin>
       <groupId>org.codehaus.mojo</groupId>
       <artifactId>build-helper-maven-plugin</artifactId>
-      <version>1.7</version>
+      <version>1.9.1</version>
       <executions>
         <execution>
           <phase>generate-sources</phase>
