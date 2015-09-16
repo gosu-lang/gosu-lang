@@ -5520,11 +5520,15 @@ public final class GosuParser extends ParserBase implements IGosuParser
     // We can determine if we've crossed an expression boundary by examining the prior token and
     // checking for the '}' terminal in the whitespace (non-source code content is considered
     // whitespace while parsing a template).
-    Token priorToken = getTokenizer().getTokenAt( getTokenizer().getState() - 1 );
-    return priorToken != null &&
-            priorToken.getType() == ISourceCodeTokenizer.TT_WHITESPACE &&
-            (priorToken.getStringValue().indexOf( '}' ) >= 0 ||
-                    priorToken.getStringValue().indexOf( '>' ) >= 0);
+    if( getTokenizerInstructor() != null )
+    {
+      Token priorToken = getTokenizer().getTokenAt( getTokenizer().getState() - 1 );
+      return priorToken != null &&
+             priorToken.getType() == ISourceCodeTokenizer.TT_WHITESPACE &&
+             (priorToken.getStringValue().indexOf( '}' ) >= 0 ||
+              priorToken.getStringValue().indexOf( '>' ) >= 0);
+    }
+    return false;
   }
 
   private ISymbol possiblyResolveFunctionSymbol( MethodCallExpression e, String strFunction )
@@ -6024,7 +6028,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
 
     int iParenStart = _tokenizer.getTokenStart();
     int mark = _tokenizer.mark();
-    if( !bParseTypeLiteralOnly && match( null, null, '(', true ) && !isBlockInvoke( rootExpression, strMemberName, rootType ) )
+    if( !bParseTypeLiteralOnly && !isInSeparateStringTemplateExpression() && match( null, null, '(', true ) && !isBlockInvoke( rootExpression, strMemberName, rootType ) )
     {
       // Method call
 
