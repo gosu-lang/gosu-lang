@@ -39,4 +39,14 @@ class GenericsContribTest extends TestClass {
     var t = new GosuReferencesRecursiveJavaTypeVar()
     assertEquals( MuhEnum.HI, t.getMeBack( MuhEnum.HI ) )
   }
+
+  function testInferTypeParamsInCtor() {
+    var x : List<String> = new ArrayList()
+
+    var y: Map<String, Integer> = new StringMap()
+    assertEquals( StringMap<Integer>, typeof y )
+  }
+
+  static class StringMap<V> extends HashMap<String, V> {
+  }
 }

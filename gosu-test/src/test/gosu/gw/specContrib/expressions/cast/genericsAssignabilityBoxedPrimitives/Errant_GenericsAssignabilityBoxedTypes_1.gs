@@ -24,7 +24,7 @@ class Errant_GenericsAssignabilityBoxedTypes_1 {
   var objectList : List<Object>
   var stringList : List<String>
   var booleanList : List<Boolean>
-  var dateList : List<DateTime>
+  var dateList : List<java.util.Date>
 
   var numberList : List<java.lang.Number>
 

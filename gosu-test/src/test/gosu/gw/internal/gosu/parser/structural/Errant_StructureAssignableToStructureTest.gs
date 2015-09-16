@@ -74,8 +74,8 @@ class Errant_StructureAssignableToStructureTest {
     var genStruct : IGenericStructure<Object>
     var genStruct2 : IGenericStructure<String>
 
-    // Ok, as interfaces they are assignable via covariant type vars, no structural check necessary in parser
-    genStruct = genStruct2
+    // Error, as interfaces they are assignable via covariant type vars, but a structural check reveals they aren't compatible -- params s/b contravariant, not covariant
+    genStruct = genStruct2   //## issuekeys: MSG_TYPE_MISMATCH
     // Ok, genStruct2 is structurally assignable to genStruct (callMe() params are contravariant)
     genStruct2 = genStruct
   }
@@ -121,5 +121,45 @@ class Errant_StructureAssignableToStructureTest {
     genStruct2 = genStruct  //## issuekeys: MSG_TYPE_MISMATCH
   }
 
+  static class TestCheckStructuralAssignabilityEvenIfInterfacesAreAssignable {
+    structure Comparable<T> {
+      function compareTo( t: T ) : int
+    }
 
+    structure Blah extends Comparable<CharSequence> {}
+
+    class Some implements Comparable<CharSequence> {
+      override function compareTo( c: CharSequence ) : int { return -8 }
+    }
+
+    class Stuff implements Comparable<String> {
+      override function compareTo( c: String ) : int { return -9 }
+    }
+
+    class Thing implements Comparable<Object> {
+      override function compareTo( c: Object ) : int { return -10 }
+    }
+
+    static class Foo {
+      function foo( c: Blah ) : int {
+        return c.compareTo(  new StringBuilder( "hi" ) )
+      }
+    }
+
+    function testMe() {
+      var f = new Foo()
+
+      f.foo( new Comparable<CharSequence> () {
+        override function compareTo( c: CharSequence ): int { return 0 }
+      } )
+
+      f.foo( new Comparable<String> () {  //## issuekeys: MSG_TYPE_MISMATCH
+        override function compareTo( c: String ): int { return 0 }
+      } )
+
+      print( f.foo( new Some() ) )
+      print( f.foo( new Stuff() ) )  //## issuekeys: MSG_TYPE_MISMATCH
+      print( f.foo( new Thing() ) )
+    }
+  }
 }

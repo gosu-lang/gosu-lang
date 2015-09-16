@@ -82,8 +82,8 @@ public class GosuClassLightParser {
     return lexer.getTokenAsString();
   }
 
-  private int advance() {
-    return lexer.nextToken();
+  private void advance() {
+    lexer.nextToken();
   }
 
   public GosuClassLightParser(String text) {

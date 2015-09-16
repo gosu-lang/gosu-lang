@@ -10,6 +10,7 @@ uses java.nio.BufferOverflowException
 uses java.lang.NullPointerException
 uses java.io.FileNotFoundException
 uses java.util.Arrays
+uses java.util.List
 uses java.lang.Math
 
 /**

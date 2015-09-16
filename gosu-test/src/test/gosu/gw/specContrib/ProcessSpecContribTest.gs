@@ -30,7 +30,7 @@ class ProcessSpecContribTest extends BaseVerifyErrantTest {
   }
 
   private function compareErrantTypeWithCompilerBehaviour( gsClass: IGosuClass ) {
-    print("Processing ${gsClass.Name}")
+    print("Processing " + gsClass.Name)
     var bValid = gsClass.Valid
     var knowBreakLines : ArrayList<Integer> = {}
 
@@ -67,7 +67,7 @@ class ProcessSpecContribTest extends BaseVerifyErrantTest {
     if(!issuesByLine.Empty) {
       err.append("\nFound Unannotated Errors:");
       for(l in issuesByLine.Keys.toList().sort()) {
-        err.append("\n    Line ${l}: ").append(issuesByLine[l].map( \ el -> el.MessageKey.Key).join(","))
+        err.append("\n    Line " + l + ": ").append(issuesByLine[l].map( \ el -> el.MessageKey.Key).join(","))
       }
     }
     assertTrue(err.toString(), issuesByLine.Empty )

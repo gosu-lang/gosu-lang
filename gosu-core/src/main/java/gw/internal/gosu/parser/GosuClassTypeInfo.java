@@ -596,17 +596,6 @@ public class GosuClassTypeInfo extends BaseTypeInfo implements IGosuClassTypeInf
       for( IType parentType : parentTypes )
       {
         CommonServices.getEntityAccess().addEnhancementMethods(parentType, privateMethods );
-        IType[] list = parentType.getInterfaces();
-        for( IType ifaceType : list )
-        {
-          if (!TypeSystem.isDeleted(ifaceType)) {
-            CommonServices.getEntityAccess().addEnhancementMethods(ifaceType, privateMethods );
-          }
-        }
-      }
-
-      if (!(_gsClass instanceof IGosuEnhancement)) {
-        CommonServices.getEntityAccess().addEnhancementMethods(JavaTypes.OBJECT(), privateMethods);
       }
     }
 

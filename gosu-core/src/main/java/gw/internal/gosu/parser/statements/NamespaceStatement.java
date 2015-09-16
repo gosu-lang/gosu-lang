@@ -9,6 +9,7 @@ import gw.lang.parser.statements.IClassFileStatement;
 import gw.lang.parser.statements.INamespaceStatement;
 import gw.lang.parser.statements.ITerminalStatement;
 import gw.lang.reflect.module.IModule;
+import gw.util.StringPool;
 
 /**
  */
@@ -27,7 +28,7 @@ public class NamespaceStatement extends Statement implements INamespaceStatement
 
   public void setNamespace( String strNamespace )
   {
-    _strNamespace = strNamespace == null ? null : strNamespace.intern();
+    _strNamespace = strNamespace == null ? null : StringPool.get( strNamespace );
   }
 
   public Object execute()

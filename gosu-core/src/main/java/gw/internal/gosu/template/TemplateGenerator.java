@@ -272,7 +272,7 @@ public class TemplateGenerator implements ITemplateGenerator
             if (!exceptions.isEmpty()) {
               throw exceptions.get(0);
             }
-            _program = compile( new java.util.Stack<IScriptPartId>(), strCompiledSource, symTable, new HashMap<String, Set<IFunctionSymbol>>(), null, null, null );
+            _program = compile( new Stack<>(), strCompiledSource, symTable, new HashMap<>(), null, null, null );
             _compileTimeSymbolTable = symTable.copy();
           }
           if( _fqn == null )
@@ -303,10 +303,10 @@ public class TemplateGenerator implements ITemplateGenerator
 
   public void compile(ISymbolTable symTable) throws TemplateParseException
   {
-    compile(new java.util.Stack<IScriptPartId>(), symTable, new HashMap<String, Set<IFunctionSymbol>>(), null, null, _ctxInferenceMgr);
+    compile(new Stack<>(), symTable, new HashMap<>(), null, null, _ctxInferenceMgr);
   }
 
-  public void compile( java.util.Stack<IScriptPartId> scriptPartIdStack, ISymbolTable symTable, Map<String, Set<IFunctionSymbol>> dfsDeclByName, ITypeUsesMap typeUsesMap, Stack<BlockExpression> blocks, ContextInferenceManager ctxInferenceMgr) throws TemplateParseException {
+  public void compile( Stack<IScriptPartId> scriptPartIdStack, ISymbolTable symTable, Map<String, List<IFunctionSymbol>> dfsDeclByName, ITypeUsesMap typeUsesMap, Stack<BlockExpression> blocks, ContextInferenceManager ctxInferenceMgr) throws TemplateParseException {
     symTable.pushScope();
     if (ctxInferenceMgr != null) {
       ctxInferenceMgr.suspendRefCollection();
@@ -357,7 +357,7 @@ public class TemplateGenerator implements ITemplateGenerator
    * @throws gw.lang.parser.exceptions.ParseException
    *
    */
-  private Program compile( java.util.Stack<IScriptPartId> scriptPartIdStack, String strCompiledSource, ISymbolTable symbolTable, Map<String, Set<IFunctionSymbol>> dfsDeclByName, ITypeUsesMap typeUsesMap, Stack<BlockExpression> blocks, ContextInferenceManager ctxInferenceMgr) throws ParseResultsException
+  private Program compile( Stack<IScriptPartId> scriptPartIdStack, String strCompiledSource, ISymbolTable symbolTable, Map<String, List<IFunctionSymbol>> dfsDeclByName, ITypeUsesMap typeUsesMap, Stack<BlockExpression> blocks, ContextInferenceManager ctxInferenceMgr) throws ParseResultsException
   {
     IGosuParser parser = GosuParserFactory.createParser(symbolTable, ScriptabilityModifiers.SCRIPTABLE);
     for( IScriptPartId id: scriptPartIdStack ) {
@@ -397,7 +397,7 @@ public class TemplateGenerator implements ITemplateGenerator
       }
 
       // clear out private DFS that may have made their way into the dfsDecldsByName (jove this is ugly)
-      for (Entry<String, Set<IFunctionSymbol>> dfsDecls : parser.getDfsDecls().entrySet()) {
+      for (Entry<String, List<IFunctionSymbol>> dfsDecls : parser.getDfsDecls().entrySet()) {
         for (Iterator<IFunctionSymbol> it = dfsDecls.getValue().iterator(); it.hasNext(); ) {
           IFunctionSymbol fs = it.next();
           if (fs instanceof Symbol && fs.isPrivate()) {
@@ -432,11 +432,11 @@ public class TemplateGenerator implements ITemplateGenerator
     }
   }
 
-  public void verify( IGosuParser parser, Map<String, Set<IFunctionSymbol>> dfsDeclByName, ITypeUsesMap typeUsesMap) throws ParseResultsException
+  public void verify( IGosuParser parser, Map<String, List<IFunctionSymbol>> dfsDeclByName, ITypeUsesMap typeUsesMap) throws ParseResultsException
   {
     verify( parser, dfsDeclByName, typeUsesMap, false );
   }
-  private IProgram verify( IGosuParser parser, Map<String, Set<IFunctionSymbol>> dfsDeclByName, ITypeUsesMap typeUsesMap, boolean bDoNotThrowParseResultsException ) throws ParseResultsException
+  private IProgram verify( IGosuParser parser, Map<String, List<IFunctionSymbol>> dfsDeclByName, ITypeUsesMap typeUsesMap, boolean bDoNotThrowParseResultsException ) throws ParseResultsException
   {
     assert _scriptStr != null : "Cannot verify a template after it has been compiled";
     ISymbolTable symTable = parser.getSymbolTable();
@@ -478,13 +478,13 @@ public class TemplateGenerator implements ITemplateGenerator
 
   private IProgram verify( IGosuParser parser, boolean bDoNotThrowParseResultException ) throws ParseResultsException
   {
-    HashMap<String, Set<IFunctionSymbol>> dfsMap = new HashMap<String, Set<IFunctionSymbol>>();
-    dfsMap.put( PRINT_METHOD, Collections.<IFunctionSymbol>singleton(new DynamicFunctionSymbol(parser.getSymbolTable(),
+    HashMap<String, List<IFunctionSymbol>> dfsMap = new HashMap<>();
+    dfsMap.put( PRINT_METHOD, Collections.<IFunctionSymbol>singletonList(new DynamicFunctionSymbol(parser.getSymbolTable(),
             PRINT_METHOD,
             new FunctionType(PRINT_METHOD, GosuParserTypes.NULL_TYPE(), new IType[]{GosuParserTypes.STRING_TYPE(), GosuParserTypes.BOOLEAN_TYPE()}),
             Arrays.<ISymbol>asList(new Symbol("content", GosuParserTypes.STRING_TYPE(), null), new Symbol("escape", GosuParserTypes.BOOLEAN_TYPE(), null)),
             (IExpression)null)));
-    dfsMap.put(PRINT_RANGE_METHOD, Collections.<IFunctionSymbol>singleton(new DynamicFunctionSymbol(parser.getSymbolTable(),
+    dfsMap.put(PRINT_RANGE_METHOD, Collections.<IFunctionSymbol>singletonList(new DynamicFunctionSymbol(parser.getSymbolTable(),
         PRINT_RANGE_METHOD,
         new FunctionType(PRINT_RANGE_METHOD, GosuParserTypes.NULL_TYPE(), new IType[]{GosuParserTypes.STRING_TYPE(), JavaTypes.pINT(), JavaTypes.pINT()}),
         Arrays.<ISymbol>asList(new Symbol("start", JavaTypes.pINT(), null), new Symbol("end", JavaTypes.pINT(), null)),

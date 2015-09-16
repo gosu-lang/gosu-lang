@@ -6,6 +6,7 @@ uses java.io.StringReader
 uses java.io.BufferedReader
 uses gw.lang.parser.resources.Res
 uses java.util.ArrayList
+uses java.util.List
 uses gw.lang.parser.IParseIssue
 uses gw.lang.parser.resources.ResourceKey
 uses java.util.Collections

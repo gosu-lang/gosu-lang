@@ -2,7 +2,7 @@
   <parent>
     <groupId>org.gosu-lang.gosu</groupId>
     <artifactId>gosu-parent</artifactId>
-    <version>1.X-SNAPSHOT</version>
+    <version>1-X-SNAPSHOT</version>
     <relativePath>../gosu-parent/pom.xml</relativePath>
   </parent>
   <modelVersion>4.0.0</modelVersion>
@@ -15,12 +15,12 @@
     <dependency>
       <groupId>org.gosu-lang.gosu</groupId>
       <artifactId>gosu-test-api</artifactId>
-      <version>1.X-SNAPSHOT</version>
+      <version>1-X-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.gosu-lang.gosu</groupId>
       <artifactId>gosu-core</artifactId>
-      <version>1.X-SNAPSHOT</version>
+      <version>1-X-SNAPSHOT</version>
     </dependency>
   </dependencies>
 
@@ -85,7 +85,7 @@
               <dependency>
                 <groupId>org.gosu-lang.gosu</groupId>
                 <artifactId>plexus-compiler-gosu</artifactId>
-                <version>1.X-SNAPSHOT</version>
+                <version>1-X-SNAPSHOT</version>
               </dependency>
             </dependencies>
           </plugin>
@@ -94,7 +94,7 @@
             <artifactId>maven-surefire-plugin</artifactId>
             <version>2.18.1</version>
             <configuration>
-              <argLine>-Dgw.tests.skip.knownbreak=true -DcheckedArithmetic=true</argLine>
+              <argLine>-Dgw.tests.skip.knownbreak=true -DcheckedArithmetic=true -Xmx1g</argLine>
               <includes>
                 <include>gw/config*/**/*Test.class</include>
                 <include>gw/internal*/**/*Test.class</include>
@@ -108,6 +108,7 @@
                 <exclude>gw/internal/gosu/parser/java/*</exclude>
                 <exclude>gw/test/SuiteTest*</exclude>
                 <exclude>**/*BenchmarkTest*</exclude>
+                <exclude>**/junit/framework/TestSuite*BenchmarkTest*</exclude>
               </excludes>
             </configuration>
           </plugin>

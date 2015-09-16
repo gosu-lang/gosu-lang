@@ -6,7 +6,9 @@ package gw.internal.gosu.parser.expressions;
 import gw.internal.gosu.parser.Expression;
 import gw.lang.parser.IExpression;
 import gw.lang.parser.expressions.ILiteralExpression;
+import gw.lang.parser.expressions.ITypeAsExpression;
 import gw.lang.reflect.IType;
+import gw.lang.reflect.java.JavaTypes;
 
 /**
  * The root (marker) class for all Literal expressions.
@@ -23,7 +25,14 @@ public class DefaultArgLiteral extends Expression implements ILiteralExpression
 
   public Object getValue()
   {
-    return _expr.evaluate();
+    if( !(_expr instanceof NullExpression) && getType() == JavaTypes.BIG_DECIMAL() || getType() == JavaTypes.BIG_INTEGER() )
+    {
+      return _expr.evaluate().toString();
+    }
+    else
+    {
+      return _expr.evaluate();
+    }
   }
 
   public IExpression getExpression()

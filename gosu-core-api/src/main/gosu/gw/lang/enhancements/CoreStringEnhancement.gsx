@@ -10,6 +10,7 @@ uses java.lang.Double
 uses java.math.BigInteger
 uses java.math.BigDecimal
 uses java.util.Date
+uses java.util.List
 uses java.text.MessageFormat
 
 /*

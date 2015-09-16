@@ -6,13 +6,12 @@ package gw.lang.parser;
 
 import java.util.Map;
 
-public interface IScope<K, V extends ISymbol> extends Map<K, V>, Cloneable
+public interface IScope<K, V extends ISymbol> extends Map<K, V>
 {
   /**
-   * Enforce a cloneable contract.
+   * Shallow copy this scope
    */
-  @SuppressWarnings({"CloneDoesntDeclareCloneNotSupportedException"})
-  public Object clone();
+  public IScope<K,V> copy();
 
   /**
    * Get the activation record context. This can be any object representing the

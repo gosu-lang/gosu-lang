@@ -91,7 +91,7 @@ public class UsingStatementTransformer extends AbstractStatementTransformer<Usin
       IRStatementList stmtList = new IRStatementList( false );
 
       IRSymbol symbol = initVar( pe, stmtList );
-      stmtList.addStatement( aquire( symbol, type ) );
+      stmtList.addStatement( acquire( symbol, type ) );
       stmtList.addStatement( new IRTryCatchFinallyStatement( compileUsingVars( usingVars ),
                                                              Collections.EMPTY_LIST,
                                                              release( symbol, type ) ) );
@@ -148,7 +148,7 @@ public class UsingStatementTransformer extends AbstractStatementTransformer<Usin
     }
   }
 
-  private IRStatement aquire( IRSymbol symbol, IType type )
+  private IRStatement acquire( IRSymbol symbol, IType type )
   {
     IRAssignmentStatement tempVar = null;
     if( symbol.getType().isArray() )

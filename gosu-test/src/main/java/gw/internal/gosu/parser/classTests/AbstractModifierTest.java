@@ -87,14 +87,14 @@ public class AbstractModifierTest extends TestClass
     assertTrue( gsClass.isValid() );
     assertEquals( 4, gsClass.getTypeInfo().getDeclaredMethods().size() );
     for( IMethodInfo mi : gsClass.getTypeInfo().getMethods() ) {
-      if (!(mi.getOwnersType() instanceof IGosuEnhancement)) {
+      if ( mi.getOwnersType() == gsClass ) {
         assertTrue(mi.getName() + " should be abstract", mi.isAbstract());
       }
     }
     assertEquals( 1, gsClass.getTypeInfo().getDeclaredProperties().size() );
     for( IPropertyInfo pi : gsClass.getTypeInfo().getProperties() )
     {
-      if( !pi.getDisplayName().equals( "IntrinsicType" ) && !(pi.getOwnersType() instanceof IGosuEnhancement) )
+      if( !pi.getDisplayName().equals( "IntrinsicType" ) && pi.getOwnersType() == gsClass )
       {
         assertTrue( pi.getName() + " should be abstract", pi.isAbstract() );
       }
@@ -108,14 +108,14 @@ public class AbstractModifierTest extends TestClass
     assertEquals( 4, gsClass.getTypeInfo().getDeclaredMethods().size() );
     for( IMethodInfo mi : gsClass.getTypeInfo().getMethods() )
     {
-      if (!(mi.getOwnersType() instanceof IGosuEnhancement)) {
+      if (mi.getOwnersType() == gsClass) {
         assertTrue( mi.getName() + " should be abstract", mi.isAbstract() );
       }
     }
     assertEquals( 1, gsClass.getTypeInfo().getDeclaredProperties().size() );
     for( IPropertyInfo pi : gsClass.getTypeInfo().getProperties() )
     {
-      if( !pi.getDisplayName().equals( "IntrinsicType" ) && !(pi.getOwnersType() instanceof IGosuEnhancement) )
+      if( !pi.getDisplayName().equals( "IntrinsicType" ) && pi.getOwnersType() == gsClass )
       {
         assertTrue( pi.getName() + " should be abstract", pi.isAbstract() );
       }

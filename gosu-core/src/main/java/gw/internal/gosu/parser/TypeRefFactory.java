@@ -35,7 +35,6 @@ import java.lang.ref.WeakReference;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.lang.reflect.Proxy;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -304,22 +303,51 @@ public class TypeRefFactory implements ITypeRefFactory
                            getMethodExceptions(proxyMethod));
     mv.visitCode();
 
-
     // If the method is getName(), insert the short-circuit code
     if(ifaceMethod.getName().equals("getName")) {
       insertGetNameStart(mv);
     }
 
-//  The code we're building up looks essentially like the following:
-//    _reload();
-//      gw.internal.gosu.parser.IGosuClassInternal   type;
-//      try
-//      {
-//        type = (gw.internal.gosu.parser.IGosuClassInternal)_getType();
-//      } catch (ClassCastException ex) {
-//        throw new RuntimeException("Type interface changed.  Expected gw.internal.gosu.parser.IGosuClassInternal for " + _getType().getName(), ex);
-//      }
-//      return (java.util.List)type.getStaticFunctions( $$ );
+    //## the profiler broiled up a tasty red herring for us here, but i'm leaving the code here at least to document this history and make it easy for the next guy to realize tuning this doesn't matter
+    if( true ) { //if( ExecutionMode.get().isRefreshSupportEnabled() ) {
+      genBody_SupportRefresh( ifaceMethod, proxyMethod, mv );
+    }
+    else {
+      genBody_NoRefreshSupport( ifaceMethod, proxyMethod, mv );
+    }
+
+    if( ifaceMethod.getReturnType().getName().equals( void.class.getSimpleName() ) ) {
+      mv.visitInsn( Opcodes.RETURN );
+    }
+    else {
+      mv.visitInsn( getIns( Opcodes.IRETURN, ifaceMethod.getReturnType().getName() ) );
+    }
+    mv.visitMaxs( 0, 0 );
+  }
+
+  private void genBody_NoRefreshSupport( Method ifaceMethod, Method proxyMethod, MethodVisitor mv )
+  {
+    //  The code we're building up looks essentially like the following:
+    //      return (com.whatever.Foo)_type.foo( x, y );
+
+    int iLastParamIndex = ifaceMethod.getParameterTypes().length + 1; // Use the first index after the this pointer and the arguments
+    int typeIndex = iLastParamIndex + 1;
+
+    assignType_FromField( ifaceMethod, mv, typeIndex );
+    delegateMethodCall( ifaceMethod, proxyMethod, mv, typeIndex );
+  }
+
+  private void genBody_SupportRefresh( Method ifaceMethod, Method proxyMethod, MethodVisitor mv ) {
+    //  The code we're building up looks essentially like the following:
+    //    _reload();
+    //      gw.internal.gosu.parser.IGosuClassInternal   type;
+    //      try
+    //      {
+    //        type = (gw.internal.gosu.parser.IGosuClassInternal)_getType();
+    //      } catch (ClassCastException ex) {
+    //        throw new RuntimeException("Type interface changed.  Expected gw.internal.gosu.parser.IGosuClassInternal for " + _getType().getName(), ex);
+    //      }
+    //      return (com.whatever.Foo)type.foo( x, y );
 
     int iLastParamIndex = ifaceMethod.getParameterTypes().length + 1; // Use the first index after the this pointer and the arguments
     int typeIndex = iLastParamIndex + 1;
@@ -334,11 +362,11 @@ public class TypeRefFactory implements ITypeRefFactory
     //## hack: Before call_reload
     visitDebugLineNumber( 1, mv );
 
-    call_reload(mv);
+    //  call_reload(mv);
 
     // outer try
     mv.visitLabel( tryLabel );
-    assignType(ifaceMethod, mv, typeIndex);
+    assignType( ifaceMethod, mv, typeIndex );
     mv.visitLabel( tryEndLabel );
     mv.visitJumpInsn( Opcodes.GOTO, endLabel );
 
@@ -357,13 +385,6 @@ public class TypeRefFactory implements ITypeRefFactory
 
     //## hack: Before return
     visitDebugLineNumber( 3, mv );
-
-    if (ifaceMethod.getReturnType().getName().equals(void.class.getSimpleName())) {
-      mv.visitInsn( Opcodes.RETURN );
-    } else {
-      mv.visitInsn( getIns(Opcodes.IRETURN, ifaceMethod.getReturnType().getName()) );
-    }
-    mv.visitMaxs(0, 0);
   }
 
   private void visitDebugLineNumber( int iLine, MethodVisitor mv )
@@ -393,15 +414,15 @@ public class TypeRefFactory implements ITypeRefFactory
             "()Ljava/lang/String;" );
     mv.visitInsn( getIns( Opcodes.IRETURN, String.class) );
 
-    mv.visitLabel(afterIf);
+    mv.visitLabel( afterIf );
   }
 
   private void call_reload(MethodVisitor mv) {
     mv.visitVarInsn(Opcodes.ALOAD, 0);
-    mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL,
-        getSlashName(AbstractTypeRef.class),
-        "_reload",
-        "()V");
+    mv.visitMethodInsn( Opcodes.INVOKEVIRTUAL,
+                        getSlashName( AbstractTypeRef.class ),
+                        "_reload",
+                        "()V" );
   }
 
   private void assignType(Method ifaceMethod, MethodVisitor mv, int typeIndex) {
@@ -410,6 +431,16 @@ public class TypeRefFactory implements ITypeRefFactory
         getSlashName(AbstractTypeRef.class),
         "_getType",
         "()Lgw/lang/reflect/IType;");
+    mv.visitTypeInsn( Opcodes.CHECKCAST, getSlashName( ifaceMethod.getDeclaringClass() ) );
+    mv.visitVarInsn( Opcodes.ASTORE, typeIndex );
+  }
+
+  private void assignType_FromField(Method ifaceMethod, MethodVisitor mv, int typeIndex) {
+    mv.visitVarInsn( Opcodes.ALOAD, 0 );
+    mv.visitFieldInsn( Opcodes.GETFIELD,
+                       getSlashName( AbstractTypeRef.class ),
+                       "_type",
+                       "Lgw/lang/reflect/IType;" );
     mv.visitTypeInsn(Opcodes.CHECKCAST, getSlashName(ifaceMethod.getDeclaringClass()));
     mv.visitVarInsn(Opcodes.ASTORE, typeIndex);
   }

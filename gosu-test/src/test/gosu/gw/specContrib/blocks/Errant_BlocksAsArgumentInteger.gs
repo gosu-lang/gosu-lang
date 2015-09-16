@@ -8,7 +8,7 @@ uses java.math.BigDecimal
 class Errant_BlocksAsArgumentInteger {
 
   //Integer as block argument and return type
-  function blockIntegerFun111(block()) {
+  function blockIntegerFun111(blk()) {
   }
 
   function blockIntegerFun112(block1: block()) {
@@ -64,7 +64,7 @@ class Errant_BlocksAsArgumentInteger {
   class CoContraVarianceTest {
     var num1: java.lang.Number
 
-    function myFun111(block(n: java.lang.Number): Integer) {
+    function myFun111(blk(n: java.lang.Number): Integer) {
     }
 
     function caller111() {
@@ -81,7 +81,7 @@ class Errant_BlocksAsArgumentInteger {
       myFun111(\c: Short -> 1s)      //## issuekeys: MSG_TYPE_MISMATCH
     }
 
-    function myFun222(block(i: Integer): java.lang.Number) {
+    function myFun222(blk(i: Integer): java.lang.Number) {
     }
 
     function caller222() {

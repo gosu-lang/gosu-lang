@@ -4,9 +4,8 @@
 
 package gw.internal.gosu.parser;
 
-import gw.lang.GosuShop;
 import gw.lang.parser.CICS;
-import gw.lang.parser.ISourceCodeTokenizer;
+import gw.lang.parser.ISource;
 import gw.lang.parser.TypeVarToTypeMap;
 import gw.lang.reflect.IErrorType;
 import gw.lang.reflect.IMethodInfo;
@@ -18,20 +17,13 @@ import gw.lang.reflect.ITypeVariableType;
 import gw.lang.reflect.RefreshKind;
 import gw.lang.reflect.RefreshRequest;
 import gw.lang.reflect.TypeSystem;
-import gw.lang.reflect.gs.ClassType;
 import gw.lang.reflect.gs.GosuClassTypeLoader;
 import gw.lang.reflect.gs.IEnhancementIndex;
 import gw.lang.reflect.gs.IGenericTypeVariable;
-import gw.lang.reflect.gs.IGosuClassRepository;
 import gw.lang.reflect.gs.IGosuEnhancement;
 import gw.lang.reflect.gs.ISourceFileHandle;
 import gw.util.GosuObjectUtil;
-import gw.util.StreamUtil;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -45,9 +37,6 @@ import java.util.TreeSet;
  */
 public class EnhancementIndex implements IEnhancementIndex
 {
-  // Controls some local debugging messages that can be used to troubleshoot this here index
-  private static final boolean LOCAL_DEBUG = false;
-
   private GosuClassTypeLoader _loader;
   private Map<String, ArrayList<String>> _typeToEnhancementsMap;
   private ArrayList<String> _arrayEnhancements;
@@ -58,7 +47,7 @@ public class EnhancementIndex implements IEnhancementIndex
 
   EnhancementIndex( GosuClassTypeLoader loader )
   {
-    _currentlyEnhancing = new HashSet<IType>();
+    _currentlyEnhancing = new HashSet<>();
     _loader = loader;
   }
 
@@ -76,13 +65,7 @@ public class EnhancementIndex implements IEnhancementIndex
         try
         {
           EnhancementManager enhancementManager = new EnhancementManager(methodsToAddTo );
-          enhancementManager.addAllEnhancementMethodsForType(typeToEnhance);
-
-          IType[] interfaces = typeToEnhance.getInterfaces();
-          for( IType interfaceType : interfaces )
-          {
-            enhancementManager.addAllEnhancementMethodsForType(interfaceType);
-          }
+          enhancementManager.addAllEnhancementMethodsForType( typeToEnhance );
         }
         finally
         {
@@ -110,12 +93,6 @@ public class EnhancementIndex implements IEnhancementIndex
         try {
           EnhancementManager enhancementManager = new EnhancementManager(propertyInfosToAddTo );
           enhancementManager.addAllEnhancementPropsForType(typeToEnhance, caseSensitive);
-
-          IType[] interfaces = typeToEnhance.getInterfaces();
-          for( IType interfaceType : interfaces )
-          {
-            enhancementManager.addAllEnhancementPropsForType(interfaceType, caseSensitive);
-          }
         } finally {
           popEnhancing( typeToEnhance );
         }
@@ -167,10 +144,10 @@ public class EnhancementIndex implements IEnhancementIndex
     try
     {
       _loadingIndex = true;
-      _typeToEnhancementsMap = new HashMap<String, ArrayList<String>>();
-      _arrayEnhancements = new ArrayList<String>();
+      _typeToEnhancementsMap = new HashMap<>();
+      _arrayEnhancements = new ArrayList<>();
 
-      Set<String> allEnhancements = _loader.getRepository().getAllTypeNames(new String[]{GosuClassTypeLoader.GOSU_ENHANCEMENT_FILE_EXT});
+      Set<String> allEnhancements = _loader.getRepository().getAllTypeNames( GosuClassTypeLoader.GOSU_ENHANCEMENT_FILE_EXT );
 
       indexEnhancements(allEnhancements.toArray(new String[allEnhancements.size()]));
     }
@@ -181,45 +158,52 @@ public class EnhancementIndex implements IEnhancementIndex
     }
   }
 
-  private Set<String> indexEnhancements(String[] enhancementNames) {
-    IGosuClassRepository repository = _loader.getRepository();
-    Set<String> enhancedTypes = new HashSet<String>();
+  private Set<String> indexEnhancements( String[] enhancementNames )
+  {
+    Set<String> enhancedTypes = new HashSet<>();
     for( String enhancementName : enhancementNames )
     {
       _currentEnhName = enhancementName;
-      ISourceFileHandle sfh = repository.findClass(enhancementName, GosuClassTypeLoader.ALL_EXTS);
-      if (sfh != null && sfh.getClassType() == ClassType.Enhancement && sfh.getParentType() == null) {
-        String enhancedTypeName = parseEnhancedTypeName(sfh);
+      IType enh = TypeSystem.getByFullNameIfValidNoJava( enhancementName );
+      if( enh instanceof IGosuEnhancement )
+      {
+        String enhancedTypeName = parseEnhancedTypeName( ((IGosuEnhancement)enh).getSourceFileHandle() );
         if( enhancedTypeName != null && !IErrorType.NAME.equals( enhancedTypeName ) )
         {
           ArrayList<String> enhancements = getEnhancementIndexForType( enhancedTypeName );
-          if (!enhancements.contains(enhancementName)) {
-            enhancements.add(enhancementName);
-            enhancedTypes.add(enhancedTypeName);
+          if( !enhancements.contains( enhancementName ) )
+          {
+            enhancements.add( enhancementName );
+            enhancedTypes.add( enhancedTypeName );
           }
         }
-      } else {
-        // remove the enhancement
       }
     }
     return enhancedTypes;
   }
 
-  private Set<String> indexEnhancements(RefreshRequest request) {
-    Set<String> enhancedTypes = new HashSet<String>();
-    if (request.file != null &&
-        request.file.getExtension().equals("gsx") &&
+  private Set<String> indexEnhancements( RefreshRequest request )
+  {
+    Set<String> enhancedTypes = new HashSet<>();
+    if( request.file != null &&
+        request.file.getExtension().equals( "gsx" ) &&
         // request type can be an inner class or block, avoid processing those as enhancements
         request.file.getBaseName().equals( getSimpleName( request.types[0] ) ) )
     {
       String enhancementName = request.types[0];
       _currentEnhName = enhancementName;
-      String enhancedTypeName = parseEnhancedTypeName(request);
-      if (enhancedTypeName != null && !IErrorType.NAME.equals(enhancedTypeName)) {
-        ArrayList<String> enhancements = getEnhancementIndexForType(enhancedTypeName);
-        if (!enhancements.contains(enhancementName)) {
-          enhancements.add(enhancementName);
-          enhancedTypes.add(enhancedTypeName);
+      IType enh = TypeSystem.getByFullNameIfValidNoJava( enhancementName );
+      if( enh instanceof IGosuEnhancement )
+      {
+        String enhancedTypeName = parseEnhancedTypeName( ((IGosuEnhancement)enh).getSourceFileHandle() );
+        if( enhancedTypeName != null && !IErrorType.NAME.equals( enhancedTypeName ) )
+        {
+          ArrayList<String> enhancements = getEnhancementIndexForType( enhancedTypeName );
+          if( !enhancements.contains( enhancementName ) )
+          {
+            enhancements.add( enhancementName );
+            enhancedTypes.add( enhancedTypeName );
+          }
         }
       }
     }
@@ -234,46 +218,55 @@ public class EnhancementIndex implements IEnhancementIndex
     return type;
   }
 
-  private String parseEnhancedTypeName(RefreshRequest request) {
-    try {
-      return parseEnhancedTypeName(request.file.openInputStream());
-    } catch (IOException e) {
-      return IErrorType.NAME;
-    }
-  }
+  public static String parseEnhancedTypeName( ISourceFileHandle sfh )
+  {
+    SourceCodeTokenizer tokenizer = initializeTokenizer( sfh );
 
-  public static String parseEnhancedTypeName(ISourceFileHandle sfh) {
-    return parseEnhancedTypeName(new ByteArrayInputStream(StreamUtil.toBytes(sfh.getSource().getSource())));
-  }
-
-  public static String parseEnhancedTypeName(InputStream stream) {
-    ISourceCodeTokenizer tokenizer = GosuShop.createSourceCodeTokenizer(new InputStreamReader(stream));
     StringBuilder name = new StringBuilder();
     boolean mark = false;
     boolean enhancementFound = false;
     tokenizer.nextToken();
     String currentToken = tokenizer.getCurrentToken().getText();
-    while (!tokenizer.isEOF() && !currentToken.equals("{")) {
-      if(mark) {
-        if(currentToken.equals("<")) {
+    while( !tokenizer.isEOF() && !currentToken.equals( "{" ) )
+    {
+      if( mark )
+      {
+        if( currentToken.equals( "<" ) )
+        {
           break;
+        }
+        name.append( currentToken );
       }
-        name.append(currentToken);
-      }
-      if (currentToken.equals("enhancement")) {
+      if( currentToken.equals( "enhancement" ) )
+      {
         enhancementFound = true;
       }
-      if (currentToken.equals(":") && enhancementFound) {
+      if( currentToken.equals( ":" ) && enhancementFound )
+      {
         mark = true;
       }
       tokenizer.nextToken();
       currentToken = tokenizer.getCurrentToken().getText();
     }
     String ret = name.toString();
-    if(ret.isEmpty() || !mark ) {
+    if( ret.isEmpty() || !mark )
+    {
       ret = IErrorType.NAME;
     }
     return ret;
+  }
+
+  private static SourceCodeTokenizer initializeTokenizer( ISourceFileHandle sfh )
+  {
+    ISource source = sfh.getSource();
+    SourceCodeTokenizer tokenizer = (SourceCodeTokenizer)source.getTokenizer();
+    if( tokenizer == null )
+    {
+      tokenizer = new SourceCodeTokenizer( source.getSource() );
+      tokenizer.wordChars( '_', '_' );
+      source.setTokenizer( tokenizer );
+    }
+    return tokenizer;
   }
 
   private ArrayList<String> getEnhancementIndexForType( String strEnhancedTypeName )
@@ -289,7 +282,7 @@ public class EnhancementIndex implements IEnhancementIndex
       ArrayList<String> enhancements = _typeToEnhancementsMap.get( strEnhancedTypeName );
       if( enhancements == null )
       {
-        enhancements = new ArrayList<String>();
+        enhancements = new ArrayList<>();
         _typeToEnhancementsMap.put( strEnhancedTypeName, enhancements );
       }
       return enhancements;
@@ -299,7 +292,7 @@ public class EnhancementIndex implements IEnhancementIndex
   public List<IGosuEnhancementInternal> getEnhancementsForType( IType typeToEnhance ) {
     maybeLoadEnhancementIndex();
 
-    ArrayList<IGosuEnhancementInternal> enhancements = new ArrayList<IGosuEnhancementInternal>();
+    ArrayList<IGosuEnhancementInternal> enhancements = new ArrayList<>();
     IType genericEnhancedType = TypeLord.getPureGenericType(typeToEnhance);
     if (genericEnhancedType == null) {
       return enhancements;
@@ -357,7 +350,8 @@ public class EnhancementIndex implements IEnhancementIndex
   public String getOrphanedEnhancement(String typeName) {
     String name = typeName.substring(typeName.lastIndexOf('.') + 1);
     ArrayList<String> enhancementNames = getEnhancementIndexForType(name);
-    for (String enhancement : enhancementNames) {
+    //noinspection LoopStatementThatDoesntLoop
+    for( String enhancement : enhancementNames ) {
       return enhancement;
     }
     return null;
@@ -420,7 +414,7 @@ public class EnhancementIndex implements IEnhancementIndex
   {
     String typeToEnhanceName = typeToGetEnhancementsFor.getName();
     StringBuilder possibleName = new StringBuilder();
-    Set<String> enhancements = new TreeSet<String>();
+    Set<String> enhancements = new TreeSet<>();
     int currPos = typeToEnhanceName.length();
     do {
       int nextDot = typeToEnhanceName.lastIndexOf('.', currPos-1);
@@ -479,7 +473,6 @@ public class EnhancementIndex implements IEnhancementIndex
    */
   private class EnhancementManager
   {
-
     private Collection<IMethodInfo> _methodsToAddTo;
     private Map<CharSequence, IPropertyInfo> _propertyInfosToAddTo;
     private Map<String, List<IMethodInfo>> _methodNamesToMethods;
@@ -511,6 +504,12 @@ public class EnhancementIndex implements IEnhancementIndex
           }
         }
       }
+
+      IType[] interfaces = typeToGetEnhancementsFor.getInterfaces();
+      for( IType interfaceType : interfaces )
+      {
+        addAllEnhancementMethodsForType( interfaceType );
+      }
     }
 
     public void addAllEnhancementPropsForType(IType typeToGetEnhancementsFor, boolean caseSensitive)
@@ -522,6 +521,7 @@ public class EnhancementIndex implements IEnhancementIndex
 
         GosuClassTypeInfo typeInfo = getTypeInfoForType( typeToGetEnhancementsFor, type );
         List<? extends IPropertyInfo> props = typeInfo.getDeclaredProperties();
+        //noinspection Convert2streamapi
         for( IPropertyInfo enhancementPropertyInfo : props )
         {
           if( typeToGetEnhancementsFor.isArray() ||
@@ -531,18 +531,20 @@ public class EnhancementIndex implements IEnhancementIndex
             IPropertyInfo existingPropInfo = _propertyInfosToAddTo.get(convertCharSequenceToCorrectSensitivity(enhancementPropertyInfo.getName(), caseSensitive) );
 
             //if a property exists that is not associated with this
-            if( existingPropInfo != null &&
-                !GosuObjectUtil.equals( existingPropInfo.getContainer(), enhancementPropertyInfo.getContainer() ) &&
-                notAnInternalOrPrivateField( existingPropInfo ) )
-            {
-
-            }
-            else
+            if( !(existingPropInfo != null &&
+                  !GosuObjectUtil.equals( existingPropInfo.getContainer(), enhancementPropertyInfo.getContainer() ) &&
+                  notAnInternalOrPrivateField( existingPropInfo )) )
             {
               _propertyInfosToAddTo.put( convertCharSequenceToCorrectSensitivity(enhancementPropertyInfo.getName(), caseSensitive), enhancementPropertyInfo );
             }
           }
         }
+      }
+
+      IType[] interfaces = typeToGetEnhancementsFor.getInterfaces();
+      for( IType interfaceType : interfaces )
+      {
+        addAllEnhancementPropsForType( interfaceType, caseSensitive );
       }
     }
 
@@ -607,7 +609,7 @@ public class EnhancementIndex implements IEnhancementIndex
           }
         }
         // Bound any types that cannot be inferred via the relationship with the enhanced type
-        for( ITypeVariableType key : new ArrayList<ITypeVariableType>( map.keySet() ) )
+        for( ITypeVariableType key : new ArrayList<>( map.keySet() ) )
         {
           if( map.get( key ) == null )
           {
@@ -634,7 +636,7 @@ public class EnhancementIndex implements IEnhancementIndex
 
     private List<IType> makeOrderedTypeParams( TypeVarToTypeMap map, IGosuEnhancementInternal enhancementType )
     {
-      List<IType> typeParams = new ArrayList<IType>();
+      List<IType> typeParams = new ArrayList<>();
       for( IGenericTypeVariable gtv : enhancementType.getGenericTypeVariables() )
       {
         typeParams.add( map.get( gtv.getTypeVariableDefinition().getType() ) );
@@ -645,13 +647,13 @@ public class EnhancementIndex implements IEnhancementIndex
     //builds up a map of method names to method info collections
     private Map<String, List<IMethodInfo>> createMethodMap( Collection<IMethodInfo> methodsToAddTo )
     {
-      Map<String, List<IMethodInfo>> returnMap = new HashMap<String, List<IMethodInfo>>();
+      Map<String, List<IMethodInfo>> returnMap = new HashMap<>();
       for( IMethodInfo methodInfo : methodsToAddTo )
       {
         List<IMethodInfo> list = returnMap.get( methodInfo.getDisplayName() );
         if( list == null )
         {
-          list = new ArrayList<IMethodInfo>();
+          list = new ArrayList<>();
           returnMap.put( methodInfo.getDisplayName(), list );
         }
         list.add( methodInfo );

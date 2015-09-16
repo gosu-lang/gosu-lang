@@ -25,6 +25,11 @@ abstract class PrecedenceTestBase extends TestClass {
       var x = eval(evalString)
       fail("Expected a parse exception")
     } catch (e : Exception) {
+      if(expectedError != null && e.Message.contains("cannot be applied to") &&
+         expectedError.contains("cannot be converted to"))
+      {
+        expectedError = null
+      }
       assertTrue("Error message was ${e}", expectedError == null || e.Message.contains(expectedError))
     }
   }
@@ -35,6 +40,11 @@ abstract class PrecedenceTestBase extends TestClass {
       evalBlock()
       fail("Expected a parse exception")
     } catch (e : Exception) {
+      if(expectedError != null && e.Message.contains("cannot be applied to") &&
+         expectedError.contains("cannot be converted to"))
+      {
+        expectedError = null
+      }
       assertTrue("Error message was ${e}", expectedError == null || e.Message.contains(expectedError))
     }
   }

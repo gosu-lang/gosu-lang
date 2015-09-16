@@ -178,4 +178,10 @@ public class PropertiesType extends TypeBase implements IPropertiesType {
   {
     return _innerClasses.get();
   }
+
+  @Override
+  public IType resolveRelativeInnerClass( String strTypeName, boolean bForce )
+  {
+    return null;
+  }
 }

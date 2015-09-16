@@ -57,7 +57,7 @@ class Errant_PostfixStatementsTest {
     x5++;
     x6++;
     x7++;
-    x8++;  //## issuekeys: MSG_TYPE_MISMATCH
+    x8++;  //## issuekeys: MSG_ARITHMETIC_OPERATOR_CANNOT_BE_APPLIED_TO_TYPES
 
     x1--;
     x2--;
@@ -66,7 +66,7 @@ class Errant_PostfixStatementsTest {
     x5--;
     x6--;
     x7--;
-    x8++;  //## issuekeys: MSG_TYPE_MISMATCH
+    x8++;  //## issuekeys: MSG_ARITHMETIC_OPERATOR_CANNOT_BE_APPLIED_TO_TYPES
   }
 
   function testWrapperTypesInPostfix(){
@@ -86,7 +86,7 @@ class Errant_PostfixStatementsTest {
     x5++;
     x6++;
     x7++;
-    x8++;  //## issuekeys: MSG_TYPE_MISMATCH
+    x8++;  //## issuekeys: MSG_ARITHMETIC_OPERATOR_CANNOT_BE_APPLIED_TO_TYPES
 
     x1--;
     x2--;
@@ -95,7 +95,7 @@ class Errant_PostfixStatementsTest {
     x5--;
     x6--;
     x7--;
-    x8++;  //## issuekeys: MSG_TYPE_MISMATCH
+    x8++;  //## issuekeys: MSG_ARITHMETIC_OPERATOR_CANNOT_BE_APPLIED_TO_TYPES
   }
 
   function testOtherTypesInPostfix(){
@@ -126,12 +126,12 @@ class Errant_PostfixStatementsTest {
     x6--;
 
     // IDE-2537
-    x7++;  //## issuekeys: MSG_TYPE_MISMATCH
-    x7--;  //## issuekeys: MSG_TYPE_MISMATCH
-    x8++;  //## issuekeys: MSG_TYPE_MISMATCH
-    x8--;  //## issuekeys: MSG_TYPE_MISMATCH
-    x9++;  //## issuekeys: MSG_TYPE_MISMATCH
-    x9--;  //## issuekeys: MSG_TYPE_MISMATCH
+    x7++;  //## issuekeys: MSG_ARITHMETIC_OPERATOR_CANNOT_BE_APPLIED_TO_TYPES
+    x7--;  //## issuekeys: MSG_ARITHMETIC_OPERATOR_CANNOT_BE_APPLIED_TO_TYPES
+    x8++;  //## issuekeys: MSG_ARITHMETIC_OPERATOR_CANNOT_BE_APPLIED_TO_TYPES
+    x8--;  //## issuekeys: MSG_ARITHMETIC_OPERATOR_CANNOT_BE_APPLIED_TO_TYPES
+    x9++;  //## issuekeys: MSG_ARITHMETIC_OPERATOR_CANNOT_BE_APPLIED_TO_TYPES
+    x9--;  //## issuekeys: MSG_ARITHMETIC_OPERATOR_CANNOT_BE_APPLIED_TO_TYPES
   }
 
   function test1DArrayElementInPostfix(){

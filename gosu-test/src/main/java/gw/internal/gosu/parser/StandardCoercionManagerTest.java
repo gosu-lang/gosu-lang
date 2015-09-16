@@ -215,8 +215,8 @@ public class StandardCoercionManagerTest extends TestClass
   @SuppressWarnings({"UnnecessaryBoxing"})
   public void testNumericToVariousImpls()
   {
-    Assert.assertEquals( new Double(2), eval( "var x : Number = 2;\nvar y : double = x as double;\nreturn y;" ) );
-    Assert.assertEquals( new Integer(2), eval( "var x : Number = 2;\nvar y : int = x as int;\nreturn y;" ) );
+    Assert.assertEquals( new Double(2), eval( "var x : java.lang.Double = 2;\nvar y : double = x as double;\nreturn y;" ) );
+    Assert.assertEquals( new Integer(2), eval( "var x : java.lang.Double = 2;\nvar y : int = x as int;\nreturn y;" ) );
   }
 
   public void testCoerceArrayToIncompatiblyTypedCollectionsFails()

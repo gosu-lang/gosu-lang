@@ -216,6 +216,9 @@ public class StructuralTypeProxyGenerator {
     if( pi.getOwnersType() instanceof IGosuEnhancement ) {
       return;
     }
+    if( GosuClassProxyFactory.isObjectProperty( pi ) ) {
+      return;
+    }
     if( pi.getOwnersType() == JavaTypes.IGOSU_OBJECT().getAdapterClass() ) {
       return;
     }

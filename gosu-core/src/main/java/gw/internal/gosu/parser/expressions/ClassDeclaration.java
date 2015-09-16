@@ -9,6 +9,7 @@ import gw.internal.gosu.parser.IGosuClassInternal;
 import gw.internal.gosu.parser.statements.ClassStatement;
 
 import gw.lang.parser.statements.IClassDeclaration;
+import gw.util.StringPool;
 
 public class ClassDeclaration extends Expression implements IClassDeclaration
 {
@@ -17,7 +18,7 @@ public class ClassDeclaration extends Expression implements IClassDeclaration
 
   public ClassDeclaration( CharSequence className )
   {
-    _className = className instanceof String ? ((String)className).intern() : className;
+    _className = className instanceof String ? StringPool.get( (String)className ) : className;
   }
 
   public CharSequence getClassName()

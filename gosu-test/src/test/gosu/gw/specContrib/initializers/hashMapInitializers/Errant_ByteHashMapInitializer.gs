@@ -9,15 +9,16 @@ uses java.util.HashMap
 class Errant_ByteHashMapInitializer {
   class A{}
   class B{}
-  var d1 : DateTime
-  var d2 : DateTime
+  var d1 : java.util.Date
+  var d2 : java.util.Date
   var o : Object
   var aaa : A
   var bbb : B
   var arrayList : ArrayList
   var hashMap : HashMap
 
-  var byteHashMap1111 : HashMap<Byte, Byte> = {1b->'c'}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'CHAR', REQUIRED: 'JAVA.LANG.BYTE'
+  var byteHashMap1111 : HashMap<Byte, Byte> = {1b->'c'}
+  var byteHashMap1111_1 : HashMap<Byte, Byte> = {1b->'ü'}  //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'CHAR', REQUIRED: 'JAVA.LANG.BYTE'
   var byteHashMap1110 : HashMap<Byte, Byte> = {1b->1b}
   var byteHashMap1112 : HashMap<Byte, Byte> = {1b->1s}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'SHORT', REQUIRED: 'JAVA.LANG.BYTE'
   var byteHashMap1113 : HashMap<Byte, Byte> = {1b->42}
@@ -32,7 +33,8 @@ class Errant_ByteHashMapInitializer {
   var byteHashMap1122 : HashMap<Byte, Byte> = {1b->arrayList}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.OBJECT>', REQUIRED: 'JAVA.LANG.BYTE'
   var byteHashMap1123 : HashMap<Byte, Byte> = {1b->hashMap}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.HASHMAP<JAVA.LANG.OBJECT,JAVA.LANG.OBJECT>', REQUIRED: 'JAVA.LANG.BYTE'
 
-  var byteHashMap1211 : HashMap<Byte, Byte> = {'c'-> 2b}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'CHAR', REQUIRED: 'JAVA.LANG.BYTE'
+  var byteHashMap1211 : HashMap<Byte, Byte> = {'c'-> 2b}
+  var byteHashMap1211_1 : HashMap<Byte, Byte> = {'ü'-> 2b} //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'CHAR', REQUIRED: 'JAVA.LANG.BYTE'
   var byteHashMap1210 : HashMap<Byte, Byte> = {1b-> 2b}
   var byteHashMap1212 : HashMap<Byte, Byte> = {1s-> 2b}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'SHORT', REQUIRED: 'JAVA.LANG.BYTE'
   var byteHashMap1213 : HashMap<Byte, Byte> = {42-> 2b}
@@ -47,7 +49,8 @@ class Errant_ByteHashMapInitializer {
   var byteHashMap1222 : HashMap<Byte, Byte> = {arrayList-> 2b}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.OBJECT>', REQUIRED: 'JAVA.LANG.BYTE'
   var byteHashMap1223 : HashMap<Byte, Byte> = {hashMap-> 2b}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.HASHMAP<JAVA.LANG.OBJECT,JAVA.LANG.OBJECT>', REQUIRED: 'JAVA.LANG.BYTE'
 
-  var byteHashMap1311 : HashMap<Byte, Byte> = {1b->2b, 1b->'c'}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'CHAR', REQUIRED: 'JAVA.LANG.BYTE'
+  var byteHashMap1311 : HashMap<Byte, Byte> = {1b->2b, 1b->'c'}
+  var byteHashMap1311_1 : HashMap<Byte, Byte> = {1b->2b, 1b->'ü'}  //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'CHAR', REQUIRED: 'JAVA.LANG.BYTE'
   var byteHashMap1310 : HashMap<Byte, Byte> = {1b->2b, 1b->1b}
   var byteHashMap1312 : HashMap<Byte, Byte> = {1b->2b, 1b->1s}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'SHORT', REQUIRED: 'JAVA.LANG.BYTE'
   var byteHashMap1313 : HashMap<Byte, Byte> = {1b->2b, 1b->42}
@@ -63,7 +66,8 @@ class Errant_ByteHashMapInitializer {
   var byteHashMap1323 : HashMap<Byte, Byte> = {1b->2b, 1b->hashMap}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.HASHMAP<JAVA.LANG.OBJECT,JAVA.LANG.OBJECT>', REQUIRED: 'JAVA.LANG.BYTE'
   var byteHashMap1324 : HashMap<Byte, Byte> = {1b->2b, 1b->300}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'INT', REQUIRED: 'JAVA.LANG.BYTE'
 
-  var byteHashMap1411 : HashMap<Byte, Byte> = {1b->2b, 'c'-> 2b}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'CHAR', REQUIRED: 'JAVA.LANG.BYTE'
+  var byteHashMap1411 : HashMap<Byte, Byte> = {1b->2b, 'c'-> 2b}
+  var byteHashMap1411_1 : HashMap<Byte, Byte> = {1b->2b, 'ü'-> 2b}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'CHAR', REQUIRED: 'JAVA.LANG.BYTE'
   var byteHashMap1410 : HashMap<Byte, Byte> = {1b->2b, 1b-> 2b}
   var byteHashMap1412 : HashMap<Byte, Byte> = {1b->2b, 1s-> 2b}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'SHORT', REQUIRED: 'JAVA.LANG.BYTE'
   var byteHashMap1413 : HashMap<Byte, Byte> = {1b->2b, 42-> 2b}

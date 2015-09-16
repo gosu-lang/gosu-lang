@@ -2,6 +2,7 @@ package gw.lang.enhancements
 uses java.lang.Comparable
 uses java.util.Collections
 uses java.util.Comparator
+uses java.util.List
 
 /*
  *  Copyright 2014 Guidewire Software, Inc.

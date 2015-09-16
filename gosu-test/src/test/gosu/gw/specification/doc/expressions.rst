@@ -480,9 +480,50 @@ The type of ``o`` can be:
   (``ReflectUtil.getProperty``)
 
 
+Interval expressions
+====================
+
+.. index:: interval expression
+
+An interval expression has one of the following forms:
+
+- ``l..r``
+- ``l|..r``
+- ``l..|r``
+- ``l|..|r``
+
+where ``l`` and ``r`` are respectively the left and right endpoints of the 
+interval. An endpoint is an expression of primitive type (except ``boolean``)
+or one of the following reference types:
+
+- ``IDimension``
+- ``Date``
+- ``CharSequence``
+- ``Comparable`` (except ``Boolean``)
+
+A closed interval (ex. ``0..2``) includes the endpoints in the interval's range
+(ex. ``0 1 2``). Vice versa an open interval (ex. ``0|..|2``) will not include 
+them (ex. ``1``).  A left open (ex. ``0|..2``) or right open (ex. ``0..|2``) 
+interval will exclude the left or right endpoint respectively.
+
+The type of an interval expression can be one of the following:
+
+- ``IntegerInterval`` when ``l`` and ``r`` have integer types.
+- ``LongInterval`` when ``l`` and ``r`` have ``long`` or ``Long`` type.
+- ``BigIntegerInterval`` when ``l`` and ``r`` have ``BigInteger`` type.
+- ``BigDecimalInterval`` when ``l`` and ``r`` have a decimal type or 
+  ``BigDecimal``.
+- ``DateInterval`` when ``l`` and ``r`` have ``Date`` type.
+- ``SequenceableInterval`` when ``l`` and ``r`` have
+  ``ISequenceable`` type.
+- ``ComparableInterval`` when none of the above apply.
+
+All the interval types (but ``ComparableInterval``) implement  
+``Iterable`` and so can be used with the ``for`` statement (see XXX).
+
+
 TODO
 ----
-interval expressions
 named/default param in call site
 dimension chapter
 

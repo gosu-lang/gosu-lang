@@ -9,7 +9,9 @@ class Errant_InitializerAsParameterDefaultValue {
 
   function foo2(i: int[] = {1, 2}) {}
 
-  function foo3(i: List<Integer> = {1, 2}) {}  //## issuekeys: NOT CONSTANT EXPRESSION
+  function foo3(i: Integer[] = {1, 2}) {}
 
-  function foo4(i: Map<String, String> = { "a" -> "b" }) {} //## issuekeys: NOT CONSTANT EXPRESSION
+  function foo4(i: List<Integer> = {1, 2}) {}
+
+  function foo5(i: Map<String, String> = { "a" -> "b" }) {} //## issuekeys: NOT CONSTANT EXPRESSION
 }

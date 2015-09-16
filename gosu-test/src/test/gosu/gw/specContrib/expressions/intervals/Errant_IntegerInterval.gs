@@ -18,8 +18,8 @@ class Errant_IntegerInterval {
 
   var aaa: A
   var bbb: B
-  var d1: DateTime
-  var d2: DateTime
+  var d1: java.util.Date
+  var d2: java.util.Date
   var o: Object
 
   //Positive cases

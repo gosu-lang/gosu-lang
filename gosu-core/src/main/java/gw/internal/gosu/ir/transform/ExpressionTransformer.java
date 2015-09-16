@@ -138,8 +138,8 @@ public class ExpressionTransformer
   }
 
   private IRExpression compile()
-  {
-    IRSymbol symbol = _tempSymbolsForCompoundAssignment.get( _expr );
+  {                    // size check for perf, this is called a lot and this is mostly 0 length, mostly
+    IRSymbol symbol = _tempSymbolsForCompoundAssignment.size() > 0 ? _tempSymbolsForCompoundAssignment.get( _expr ) : null;
     if(  symbol != null ) {
       return new IRIdentifier( symbol );
     }

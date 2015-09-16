@@ -145,7 +145,7 @@ public interface IGosuClassInternal extends IGosuClass, ICompilableTypeInternal
 
   void addCapturedSymbol( ICapturedSymbol sym );
 
-  boolean ensureDefaultConstructor( ISymbolTable symbolTable );
+  boolean ensureDefaultConstructor( ISymbolTable symbolTable, GosuParser parser);
 
   void setSuperType( IType superType );
 

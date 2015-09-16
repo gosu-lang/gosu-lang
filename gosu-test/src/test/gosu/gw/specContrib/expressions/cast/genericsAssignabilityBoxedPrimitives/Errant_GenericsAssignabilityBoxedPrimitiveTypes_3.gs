@@ -3,6 +3,7 @@ package gw.specContrib.expressions.cast.genericsAssignabilityBoxedPrimitives
 uses java.lang.*
 uses java.math.BigDecimal
 uses java.math.BigInteger
+uses java.util.Date
 
 /**
  * Boxed types & Primitive types
@@ -34,7 +35,7 @@ class Errant_GenericsAssignabilityBoxedPrimitiveTypes_3 {
   var objectList : List<Object>
   var stringList : List<String>
   var booleanList : List<Boolean>
-  var dateList : List<DateTime>
+  var dateList : List<Date>
 
   var numberList : List<java.lang.Number>
 

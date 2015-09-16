@@ -16,7 +16,7 @@ class Errant_ArithmeticOperatorsTest {
     c = a-b
     c = a*b
     c = a/b
-    c = a + null  //## issuekeys: MSG_TYPE_MISMATCH
+    c = a + null  //## issuekeys: MSG_ARITHMETIC_OPERATOR_CANNOT_BE_APPLIED_TO_TYPES
   }
 
   function testBasicDouble() {
@@ -43,8 +43,8 @@ class Errant_ArithmeticOperatorsTest {
     c = a%d
     c = a^d  //## issuekeys: MSG_BITWISE_OPERAND_MUST_BE_INT_OR_LONG, MSG_BITWISE_OPERAND_MUST_BE_INT_OR_LONG
 
-    c = a+1  //## issuekeys: MSG_DIMENSION_ADDITION_MUST_BE_SAME_TYPE, MSG_TYPE_MISMATCH
-    c = a-1  //## issuekeys: MSG_DIMENSION_ADDITION_MUST_BE_SAME_TYPE, MSG_TYPE_MISMATCH
+    c = a+1  //## issuekeys: MSG_DIMENSION_ADDITION_MUST_BE_SAME_TYPE, MSG_ARITHMETIC_OPERATOR_CANNOT_BE_APPLIED_TO_TYPES
+    c = a-1  //## issuekeys: MSG_DIMENSION_ADDITION_MUST_BE_SAME_TYPE, MSG_ARITHMETIC_OPERATOR_CANNOT_BE_APPLIED_TO_TYPES
     c = a*2
     c = a*3.5
     c = a/2

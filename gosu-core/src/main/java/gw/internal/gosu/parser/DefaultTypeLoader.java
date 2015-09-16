@@ -142,6 +142,7 @@ public class DefaultTypeLoader extends SimpleTypeLoader implements IExtendedType
 
   public IJavaClassInfo resolveJavaClassInfo(String fullyQualifiedName) {
     if (!ExecutionMode.isIDE()) {
+      // get class either by the .class file (java.lang.Class or by ASM, not by source, which is only done in the IDE)
       return getByClass(fullyQualifiedName, _module, _module);
     }
 

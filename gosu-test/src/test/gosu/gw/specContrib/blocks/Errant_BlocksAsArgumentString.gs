@@ -5,7 +5,7 @@ uses java.lang.Integer
 
 class Errant_BlocksAsArgumentString {
   //String as block argument and return type
-  function blockStringFun111(block()) {
+  function blockStringFun111(blk()) {
   }
 
   function blockStringFun112(block1: block()) {
@@ -76,7 +76,7 @@ class Errant_BlocksAsArgumentString {
   class CoContraVarianceTest {
     var cseq2: CharSequence
 
-    function myFun111(block(cs : CharSequence): String) {
+    function myFun111(blk(cs : CharSequence): String) {
     }
 
     function caller111() {
@@ -90,7 +90,7 @@ class Errant_BlocksAsArgumentString {
       myFun111(\c: CharSequence -> 'c')
     }
 
-    function myFun222(block(s : String): CharSequence) {
+    function myFun222(blk(s : String): CharSequence) {
     }
 
     function caller222() {

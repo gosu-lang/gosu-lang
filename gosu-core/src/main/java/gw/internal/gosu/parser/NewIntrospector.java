@@ -57,24 +57,24 @@ public class NewIntrospector
   private static LockingLazyVar<DeclaredMethodsAccessor> _declaredMethodsAccessor = new LockingLazyVar<DeclaredMethodsAccessor>() {
     @Override
     protected DeclaredMethodsAccessor init() {
-      Boolean result = (Boolean)AccessController.doPrivileged( new PrivilegedAction()
+      Method result = (Method)AccessController.doPrivileged( new PrivilegedAction()
       {
         public Object run()
         {
           try
           {
-            Method m = Class.class.getDeclaredMethod( "privateGetDeclaredMethods", boolean.class );
-            return true;
+            return Class.class.getDeclaredMethod( "privateGetDeclaredMethods", boolean.class );
           }
           catch( Exception e )
           {
-            return false;
+            return null;
           }
         }
       });
-      if (Boolean.TRUE.equals(result)) {
-        return new PrivateGetDeclaredMethodsAccessor();
-      } else {
+      if( result != null ) {
+        return new PrivateGetDeclaredMethodsAccessor( result );
+      }
+      else {
         return new PublicGetDeclaredMethodsAccessor();
       }
     }
@@ -637,32 +637,27 @@ public class NewIntrospector
   }
 
   private static class PrivateGetDeclaredMethodsAccessor implements DeclaredMethodsAccessor {
+    private final Method _method;
+
+    public PrivateGetDeclaredMethodsAccessor( Method method ) {
+      _method = method;
+      _method.setAccessible( true );
+    }
+
     @Override
     public Method[] getDeclaredMethods(final Class clz) {
-      Method[] result = (Method[])AccessController.doPrivileged( new PrivilegedAction()
+      try
       {
-        public Object run()
-        {
-          try
-          {
-            Method m = Class.class.getDeclaredMethod( "privateGetDeclaredMethods", boolean.class );
-            m.setAccessible( true );
-            return m.invoke( clz, false );
-          }
-          catch( Exception e )
-          {
-            System.err.println("WARNING Cannot load methods of " + clz.getName() + ": " + getRootCause(e).toString());
-            return new Method[0];
-//            throw new RuntimeException( e );
-          }
-          // return fclz.getDeclaredMethods();
-        }
-      } );
-
-      Method[] copy = new Method[result.length]; // copy so as not to mess up the Class' method offsets
-      System.arraycopy( result, 0, copy, 0, copy.length );
-      result = copy;
-      return result;
+        Method[] result = (Method[])_method.invoke( clz, false );
+        Method[] copy = new Method[result.length]; // copy so as not to mess up the Class' method offsets
+        System.arraycopy( result, 0, copy, 0, copy.length );
+        return copy;
+      }
+      catch( Exception e )
+      {
+        System.err.println("WARNING Cannot load methods of " + clz.getName() + ": " + getRootCause(e).toString());
+        return new Method[0];
+      }
     }
   }
 

@@ -31,20 +31,20 @@ class Errant_FLCollectionParameters {
   var funhm112 = #takeHashMap()
   var funhm113 = #takeHashMap(ArrayList)      //## issuekeys: CANNOT RESOLVE METHOD 'TAKEHASHMAP(JAVA.UTIL.ARRAYLIST<JAVA.LANG.OBJECT>)'
   var funhm114 = #takeHashMap(HashMap<String, Integer>)      //## issuekeys: CANNOT RESOLVE METHOD 'TAKEHASHMAP(JAVA.UTIL.HASHMAP<JAVA.LANG.STRING,JAVA.LANG.INTEGER>)'
-  var funhm115 = #takeHashMap(HashMap)      //## issuekeys: CANNOT RESOLVE METHOD 'TAKEHASHMAP(JAVA.UTIL.HASHMAP<JAVA.LANG.OBJECT,JAVA.LANG.OBJECT>)'
+  var funhm115 = #takeHashMap(HashMap<Object,Object>)      //## issuekeys: CANNOT RESOLVE METHOD 'TAKEHASHMAP(JAVA.UTIL.HASHMAP<JAVA.LANG.OBJECT,JAVA.LANG.OBJECT>)'
 
   var funhm211 = Errant_FLCollectionParameters#takeHashMap(HashMap<String, String>)
   var funhm212 = Errant_FLCollectionParameters#takeHashMap()
   var funhm213 = Errant_FLCollectionParameters#takeHashMap(ArrayList)      //## issuekeys: CANNOT RESOLVE METHOD 'TAKEHASHMAP(JAVA.UTIL.ARRAYLIST<JAVA.LANG.OBJECT>)'
   var funhm214 = Errant_FLCollectionParameters#takeHashMap(HashMap<String, Integer>)      //## issuekeys: CANNOT RESOLVE METHOD 'TAKEHASHMAP(JAVA.UTIL.HASHMAP<JAVA.LANG.STRING,JAVA.LANG.INTEGER>)'
-  var funhm215 = Errant_FLCollectionParameters#takeHashMap(HashMap)      //## issuekeys: CANNOT RESOLVE METHOD 'TAKEHASHMAP(JAVA.UTIL.HASHMAP<JAVA.LANG.OBJECT,JAVA.LANG.OBJECT>)'
+  var funhm215 = Errant_FLCollectionParameters#takeHashMap(HashMap<Object,Object>)      //## issuekeys: CANNOT RESOLVE METHOD 'TAKEHASHMAP(JAVA.UTIL.HASHMAP<JAVA.LANG.OBJECT,JAVA.LANG.OBJECT>)'
 
 
   var funhm311 = gInstance#takeHashMap(HashMap<String, String>)
   var funhm312 = gInstance#takeHashMap()
   var funhm313 = gInstance#takeHashMap(ArrayList)      //## issuekeys: CANNOT RESOLVE METHOD 'TAKEHASHMAP(JAVA.UTIL.ARRAYLIST<JAVA.LANG.OBJECT>)'
   var funhm314 = gInstance#takeHashMap(HashMap<String, Integer>)      //## issuekeys: CANNOT RESOLVE METHOD 'TAKEHASHMAP(JAVA.UTIL.HASHMAP<JAVA.LANG.STRING,JAVA.LANG.INTEGER>)'
-  var funhm315 = gInstance#takeHashMap(HashMap)      //## issuekeys: CANNOT RESOLVE METHOD 'TAKEHASHMAP(JAVA.UTIL.HASHMAP<JAVA.LANG.OBJECT,JAVA.LANG.OBJECT>)'
+  var funhm315 = gInstance#takeHashMap(HashMap<Object,Object>)      //## issuekeys: CANNOT RESOLVE METHOD 'TAKEHASHMAP(JAVA.UTIL.HASHMAP<JAVA.LANG.OBJECT,JAVA.LANG.OBJECT>)'
 
   function invoke() {
 

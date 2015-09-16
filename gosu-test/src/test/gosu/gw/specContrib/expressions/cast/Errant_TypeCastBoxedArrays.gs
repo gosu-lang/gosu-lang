@@ -27,7 +27,7 @@ class Errant_TypeCastBoxedArrays {
 
     var x311 = b as Object[]  //## issuekeys: MSG_UNNECESSARY_COERCION
     var x312 = b as String[]      //## issuekeys: MSG_TYPE_MISMATCH
-    var x313 = b as DateTime[]      //## issuekeys: MSG_TYPE_MISMATCH
+    var x313 = b as java.util.Date[]      //## issuekeys: MSG_TYPE_MISMATCH
     var x314 = b as BigDecimal[]      //## issuekeys: MSG_TYPE_MISMATCH
     var x315 = b as BigInteger[]      //## issuekeys: MSG_TYPE_MISMATCH
     var x316 = b as Object  //## issuekeys: MSG_UNNECESSARY_COERCION
@@ -54,7 +54,7 @@ class Errant_TypeCastBoxedArrays {
 
     var x311 = b as Object[]  //## issuekeys: MSG_UNNECESSARY_COERCION
     var x312 = b as String[]        //## issuekeys: MSG_TYPE_MISMATCH
-    var x313 = b as DateTime[]      //## issuekeys: MSG_TYPE_MISMATCH
+    var x313 = b as java.util.Date[]      //## issuekeys: MSG_TYPE_MISMATCH
     var x314 = b as BigDecimal[]    //## issuekeys: MSG_TYPE_MISMATCH
     var x315 = b as BigInteger[]    //## issuekeys: MSG_TYPE_MISMATCH
     var x316 = b as Object  //## issuekeys: MSG_UNNECESSARY_COERCION
@@ -82,7 +82,7 @@ class Errant_TypeCastBoxedArrays {
 
     var x311 = b as Object[]  //## issuekeys: MSG_UNNECESSARY_COERCION
     var x312 = b as String[]      //## issuekeys: MSG_TYPE_MISMATCH
-    var x313 = b as DateTime[]      //## issuekeys: MSG_TYPE_MISMATCH
+    var x313 = b as java.util.Date[]      //## issuekeys: MSG_TYPE_MISMATCH
     var x314 = b as BigDecimal[]     //## issuekeys: MSG_TYPE_MISMATCH
     var x315 = b as BigInteger[]     //## issuekeys: MSG_TYPE_MISMATCH
     var x316 = b as Object  //## issuekeys: MSG_UNNECESSARY_COERCION
@@ -109,7 +109,7 @@ class Errant_TypeCastBoxedArrays {
 
     var x311 = b as Object[]  //## issuekeys: MSG_UNNECESSARY_COERCION
     var x312 = b as String[]      //## issuekeys: MSG_TYPE_MISMATCH
-    var x313 = b as DateTime[]      //## issuekeys: MSG_TYPE_MISMATCH
+    var x313 = b as java.util.Date[]      //## issuekeys: MSG_TYPE_MISMATCH
     var x314 = b as BigDecimal[]     //## issuekeys: MSG_TYPE_MISMATCH
     var x315 = b as BigInteger[]     //## issuekeys: MSG_TYPE_MISMATCH
     var x316 = b as Object  //## issuekeys: MSG_UNNECESSARY_COERCION
@@ -136,7 +136,7 @@ class Errant_TypeCastBoxedArrays {
 
     var x311 = b as Object[]  //## issuekeys: MSG_UNNECESSARY_COERCION
     var x312 = b as String[]      //## issuekeys: MSG_TYPE_MISMATCH
-    var x313 = b as DateTime[]      //## issuekeys: MSG_TYPE_MISMATCH
+    var x313 = b as java.util.Date[]      //## issuekeys: MSG_TYPE_MISMATCH
     var x314 = b as BigDecimal[]    //## issuekeys: MSG_TYPE_MISMATCH
     var x315 = b as BigInteger[]    //## issuekeys: MSG_TYPE_MISMATCH
     var x316 = b as Object  //## issuekeys: MSG_UNNECESSARY_COERCION
@@ -163,7 +163,7 @@ class Errant_TypeCastBoxedArrays {
 
     var x311 = b as Object[]  //## issuekeys: MSG_UNNECESSARY_COERCION
     var x312 = b as String[]      //## issuekeys: MSG_TYPE_MISMATCH
-    var x313 = b as DateTime[]      //## issuekeys: MSG_TYPE_MISMATCH
+    var x313 = b as java.util.Date[]      //## issuekeys: MSG_TYPE_MISMATCH
     var x314 = b as BigDecimal[]     //## issuekeys: MSG_TYPE_MISMATCH
     var x315 = b as BigInteger[]      //## issuekeys: MSG_TYPE_MISMATCH
     var x316 = b as Object  //## issuekeys: MSG_UNNECESSARY_COERCION
@@ -190,7 +190,7 @@ class Errant_TypeCastBoxedArrays {
 
     var x311 = b as Object[]  //## issuekeys: MSG_UNNECESSARY_COERCION
     var x312 = b as String[]      //## issuekeys: MSG_TYPE_MISMATCH
-    var x313 = b as DateTime[]      //## issuekeys: MSG_TYPE_MISMATCH
+    var x313 = b as java.util.Date[]      //## issuekeys: MSG_TYPE_MISMATCH
     var x314 = b as BigDecimal[]     //## issuekeys: MSG_TYPE_MISMATCH
     var x315 = b as BigInteger[]    //## issuekeys: MSG_TYPE_MISMATCH
     var x316 = b as Object  //## issuekeys: MSG_UNNECESSARY_COERCION
@@ -217,7 +217,7 @@ class Errant_TypeCastBoxedArrays {
 
     var x311 = b as Object[]  //## issuekeys: MSG_UNNECESSARY_COERCION
     var x312 = b as String[]      //## issuekeys: MSG_TYPE_MISMATCH
-    var x313 = b as DateTime[]      //## issuekeys: MSG_TYPE_MISMATCH
+    var x313 = b as java.util.Date[]      //## issuekeys: MSG_TYPE_MISMATCH
     var x314 = b as BigDecimal[]     //## issuekeys: MSG_TYPE_MISMATCH
     var x315 = b as BigInteger[]      //## issuekeys: MSG_TYPE_MISMATCH
     var x316 = b as Object  //## issuekeys: MSG_UNNECESSARY_COERCION

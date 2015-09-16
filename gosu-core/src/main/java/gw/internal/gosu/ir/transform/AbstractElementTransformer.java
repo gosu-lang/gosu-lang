@@ -149,6 +149,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  */
@@ -156,7 +157,7 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
 {
   public static final String CTX_SYMBOL_SUFFIX = "_instr_ctx";
   public static final String CTX_SYMBOL = FunctionBodyTransformationContext.TEMP_VAR_PREFIX + CTX_SYMBOL_SUFFIX;
-  public static final Map<String, ICustomExpressionRuntime> CUSTOM_RUNTIMES = Collections.synchronizedMap( new HashMap<String, ICustomExpressionRuntime>() );
+  public static final Map<String, ICustomExpressionRuntime> CUSTOM_RUNTIMES = new ConcurrentHashMap<String, ICustomExpressionRuntime>();
 
   public static final Class[] EMPTY_CLASS_ARRAY = new Class[0];
   public static final String OUTER_ACCESS = "access$0";
@@ -1019,14 +1020,14 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
     }
   }
 
-  public int getModifiers( Symbol dfs )
+  public int getModifiers( Symbol symbol )
   {
     int iAccModifiers;
-    int iDfsModifiers = dfs.getModifiers();
+    int iSymModifiers = symbol.getModifiers();
 
     if( BytecodeOptions.isSingleServingLoader() )
     {
-      if ( Modifier.isPrivate( iDfsModifiers ) && isReadObjectOrWriteObjectMethod( dfs ))
+      if ( Modifier.isPrivate( iSymModifiers ) && isReadObjectOrWriteObjectMethod( symbol ))
       {
         // Serialization demands that readObject and writeObject be private methods,
         // so if we're compiling one of them we've got to actually make the thing private
@@ -1039,23 +1040,23 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
         iAccModifiers = Opcodes.ACC_PUBLIC;
       }
     }
-    else if( Modifier.isPublic( iDfsModifiers ) || ( Modifier.isProtected( iDfsModifiers ) && isCompilingEnhancement() ) )
+    else if( Modifier.isPublic( iSymModifiers ) || ( Modifier.isProtected( iSymModifiers ) && isCompilingEnhancement() ) )
     {
       // We compile protected enhancement methods as public so they'll be visible to subclasses without needing
       // reflective hacks.  Protected methods on enhancements should be discouraged:  see PL-10398  
       iAccModifiers = Opcodes.ACC_PUBLIC;
     }
-    else if( Modifier.isProtected( iDfsModifiers ) )
+    else if( Modifier.isProtected( iSymModifiers ) )
     {
       iAccModifiers = Opcodes.ACC_PROTECTED;
     }
-    else if( Modifier.isInternal( iDfsModifiers ) )
+    else if( Modifier.isInternal( iSymModifiers ) )
     {
       iAccModifiers = 0;
     }
-    else if( Modifier.isPrivate( iDfsModifiers ) )
+    else if( Modifier.isPrivate( iSymModifiers ) )
     {
-      if ( isReadObjectOrWriteObjectMethod( dfs ))
+      if ( isReadObjectOrWriteObjectMethod( symbol ))
       {
         // Serialization demands that readObject and writeObject be private methods,
         // so if we're compiling one of them we've got to actually make the thing private
@@ -1074,29 +1075,34 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
       iAccModifiers = Opcodes.ACC_PUBLIC;
     }
 
-    if( Modifier.isFinal( iDfsModifiers ) )
+    if( Modifier.isFinal( iSymModifiers ) )
     {
       iAccModifiers |= Opcodes.ACC_FINAL;
     }
 
-    if( Modifier.isStatic( iDfsModifiers ) )
+    if( Modifier.isStatic( iSymModifiers ) )
     {
       iAccModifiers |= Opcodes.ACC_STATIC;
     }
 
-    if( Modifier.isAbstract( iDfsModifiers ) )
+    if( Modifier.isAbstract( iSymModifiers ) )
     {
       iAccModifiers |= Opcodes.ACC_ABSTRACT;
     }
 
-    if ( Modifier.isEnum( iDfsModifiers ) )
+    if( Modifier.isEnum( iSymModifiers ) )
     {
       iAccModifiers |= Opcodes.ACC_ENUM;
     }
 
-    if ( Modifier.isTransient( iDfsModifiers ) )
+    if( Modifier.isTransient( iSymModifiers ) )
     {
       iAccModifiers |= Opcodes.ACC_TRANSIENT;
+    }
+
+    if( Modifier.isDeprecated( iSymModifiers ) )
+    {
+      iAccModifiers |= Opcodes.ACC_DEPRECATED;
     }
 
     if( isCompilingEnhancement() ) // enhancement methods are always static
@@ -3033,13 +3039,10 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
 
   protected IRExpression handleCustomExpressionRuntime( ICustomExpressionRuntime customRuntime, IType expectedType ) {
     String customRuntimeId;
-    synchronized( CUSTOM_RUNTIMES )
-    {
-      int iLine = getParsedElement().getLineNum();
-      int iColumnNum = getParsedElement().getColumn();
-      customRuntimeId = makeCustomRuntimeKey( getGosuClass(), iLine, iColumnNum );
-      CUSTOM_RUNTIMES.put( customRuntimeId, customRuntime );
-    }
+    int iLine = getParsedElement().getLineNum();
+    int iColumnNum = getParsedElement().getColumn();
+    customRuntimeId = makeCustomRuntimeKey( getGosuClass(), iLine, iColumnNum );
+    CUSTOM_RUNTIMES.put( customRuntimeId, customRuntime );
 
     IRExpression getCustomExpression = callMethod( AbstractElementTransformer.class, "getCustomRuntime", new Class[]{String.class, IType.class}, null, exprList( pushConstant( customRuntimeId ), pushType( getGosuClass() ) ) );
     IRExpression result = callMethod( ICustomExpressionRuntime.class, "evaluate", new Class[0], getCustomExpression, exprList() );

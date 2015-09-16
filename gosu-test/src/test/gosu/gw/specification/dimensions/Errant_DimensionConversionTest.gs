@@ -12,7 +12,7 @@ class Errant_DimensionConversionTest {
   var dim = new TestDim( 7 )
 
   var x1: Double = dim
-  var x2: Number = dim
+  var x2: Double = dim
   var x21: java.lang.Number = dim  //## issuekeys: MSG_TYPE_MISMATCH
   var x3: BigDecimal = dim
   var x4: Integer =  dim      //## issuekeys: MSG_IMPLICIT_COERCION_ERROR

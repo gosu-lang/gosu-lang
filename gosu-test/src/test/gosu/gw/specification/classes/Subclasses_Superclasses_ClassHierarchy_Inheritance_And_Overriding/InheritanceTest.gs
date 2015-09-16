@@ -206,47 +206,8 @@ class InheritanceTest  extends BaseVerifyErrantTest {
     assertEquals(obj2.test1(), 2)
     assertEquals(obj2.test2(), 2)
   }
-  ////////////////////////////////////////////////
-
-
-  //// test method override in generics. Subclass implements a method from interface and inherit a method from superclass, but these two methods have the same method signature
-  static interface I10<T>{
-    function id(x : T) : T
-  }
-
-  static class C10<T>{
-    function id(x : T) : T {
-      return x
-    }
-  }
-
-  static class D10 extends C10<String> implements I10<Integer> {
-    override function id(x: Integer) : Integer {
-      return x
-    }
-    override function id(x: String) : String {
-      return x
-    }
-  }
-
-  static class D20 extends C10<String> implements I10<Integer> {
-    override function id(x: Integer) : Integer {
-      return x
-    }
-  }
-
-  function testMethodOverrideInGenerics(){
-    var obj1 = new D10()
-    assertEquals(obj1.id(new Integer(1)), new Integer(1))
-    assertEquals(obj1.id("first"), "first")
-
-    var obj2 = new D20()
-    assertEquals(obj2.id(new Integer(2)), new Integer(2))
-//    assertEquals(obj2.id("second"), "second")                    //##KB(IDE-2239)
-  }
 
   function testErrant_MethodOverrideInGenericsTest() {
     processErrantType(Errant_MethodOverrideInGenericsTest)
   }
-  ////////////////////////////////////////////////
 }

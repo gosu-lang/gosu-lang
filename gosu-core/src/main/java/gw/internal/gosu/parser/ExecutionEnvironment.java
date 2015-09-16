@@ -81,14 +81,20 @@ public class ExecutionEnvironment implements IExecutionEnvironment
 
   public static ExecutionEnvironment instance()
   {
-    if( INSTANCES.size() == 1 )
+    if( THE_ONE != null && !ExecutionMode.get().isRefreshSupportEnabled() ) {
+      // perf improvement, avoid calling INSTANCES.size() (WeakHashMap#size() is slow)
+      return THE_ONE;
+    }
+
+    final int count = INSTANCES.size();
+    if( count == 1 )
     {
       return THE_ONE == null
              ? THE_ONE = INSTANCES.values().iterator().next()
              : THE_ONE;
     }
 
-    IModule mod = INSTANCES.size() > 0 ? TypeSystem.getCurrentModule() : null;
+    IModule mod = count > 0 ? TypeSystem.getCurrentModule() : null;
     if( mod != null )
     {
       ExecutionEnvironment execEnv = (ExecutionEnvironment)mod.getExecutionEnvironment();
@@ -99,7 +105,7 @@ public class ExecutionEnvironment implements IExecutionEnvironment
       return execEnv;
     }
 
-    if( INSTANCES.size() > 0 )
+    if( count > 0 )
     {
       // Return first non-default project
       // Yes, this is a guess, but we need to guess for the case where we're running tests

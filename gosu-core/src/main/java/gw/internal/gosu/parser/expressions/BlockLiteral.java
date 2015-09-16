@@ -64,7 +64,7 @@ public class BlockLiteral extends TypeLiteral implements IBlockLiteralExpression
   public Object clone()
   {
     BlockLiteral clone = new BlockLiteral();
-    clone._argTypes = (ArrayList<IType>)_argTypes.clone();
+    clone._argTypes = new ArrayList<>( _argTypes );
     clone._returnType = _returnType;
     clone.setLocation( getLocation() );
     return clone;

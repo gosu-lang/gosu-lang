@@ -92,12 +92,6 @@ public class ObjectSizeUtil {
   }
 
   private static boolean skipObject(Object obj, Map<Object, Object> visited,IObjectSizeFilter filter) {
-    if (obj instanceof String) {
-      // skip interned string
-      if (obj == ((String) obj).intern()) {
-        return true;
-      }
-    }
     return obj == null || visited.containsKey(obj) || filter.skipObject(obj);
   }
 

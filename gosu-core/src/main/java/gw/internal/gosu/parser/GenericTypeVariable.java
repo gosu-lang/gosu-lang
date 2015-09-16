@@ -185,12 +185,12 @@ public class GenericTypeVariable implements IGenericTypeVariable
     return toVars.length == 0 ? EMPTY_TYPEVARS : toVars;
   }
 
-  public IGenericTypeVariable clone()
+  public IGenericTypeVariable copy()
   {
     return new GenericTypeVariable( _strName, _typeVariableDefinition.clone(), _boundingType );
   }
 
-  public IGenericTypeVariable clone( IType boundingType )
+  public IGenericTypeVariable copy( IType boundingType )
   {
     TypeVariableDefinitionImpl tvd = _typeVariableDefinition.cloneShallow( boundingType );
     return new GenericTypeVariable( _strName, tvd, boundingType );
@@ -204,7 +204,7 @@ public class GenericTypeVariable implements IGenericTypeVariable
     {
       return this;
     }
-    return clone( boundingType );
+    return copy( boundingType );
   }
 
   public void createTypeVariableDefinition( IType enclosingType )

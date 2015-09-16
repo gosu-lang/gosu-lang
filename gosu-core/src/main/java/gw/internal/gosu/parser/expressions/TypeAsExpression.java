@@ -9,6 +9,7 @@ import gw.internal.gosu.parser.TypeLord;
 import gw.lang.parser.GosuParserTypes;
 import gw.lang.parser.ICoercer;
 import gw.lang.parser.Keyword;
+import gw.lang.parser.StandardCoercionManager;
 import gw.lang.parser.coercers.MetaTypeToClassCoercer;
 import gw.lang.parser.expressions.ITypeAsExpression;
 import gw.lang.reflect.IType;
@@ -59,8 +60,9 @@ public class TypeAsExpression extends Expression implements ITypeAsExpression
   public boolean isCompileTimeConstant()
   {
     // Coercions tend not to be compile-time constants, only support them on primitive types, which involve only casting not object construction
+    // Now also support Boxed and Big types when the underlying expression is a literal number
     return (_coercer == null || getLHS() != null &&
-                                ((getLHS().getType().isPrimitive() && getType().isPrimitive()) ||
+                                ((getLHS().getType().isPrimitive() && (getType().isPrimitive() || StandardCoercionManager.isBoxed( getType() ) || getType() == JavaTypes.BIG_DECIMAL() || getType() == JavaTypes.BIG_INTEGER())) ||
                                  _coercer instanceof MetaTypeToClassCoercer)) &&
            getLHS().isCompileTimeConstant();
   }

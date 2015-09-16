@@ -1,4 +1,7 @@
 package gw.specContrib.shadowing
+
+uses java.lang.Double
+
 /**
  Test Shadowing
  field, property, if, for, while, switch, blocks, method params, methods with default params
@@ -72,11 +75,11 @@ class Errant_Shadowing_BaseClass {
         }
   }
 
-  var blockInt1 : Number
-  var blockInt2 : Number
+  var blockInt1 : Double
+  var blockInt2 : Double
   //BLOCKS
   function testBlocks() {
-    var block32: block(blockInt1 : Number, blockInt2 : Number) = \blockInt1: Number, blockInt2: Number -> blockInt1 + blockInt2            //## issuekeys: VARIABLE 'BLOCKINT1' IS ALREADY DEFINED IN THE SCOPE
+    var block32: block(blockInt1 : Double, blockInt2 : Double) = \blockInt1: Double, blockInt2: Double -> blockInt1 + blockInt2            //## issuekeys: VARIABLE 'BLOCKINT1' IS ALREADY DEFINED IN THE SCOPE
   }
 
   //Method params with same name with default values

@@ -22,10 +22,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-/**
- * @plexus.component role="org.codehaus.plexus.compiler.Compiler"
- *                   role-hint="gosuc"
- */
 public class GosuCompiler extends AbstractCompiler {
 
   public GosuCompiler() {

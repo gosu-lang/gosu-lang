@@ -6,8 +6,8 @@ uses java.util.Date
 
 class Errant_ExpressionsPrimitiveTypes {
 
-  var date1 = new DateTime()
-  var date2 = new DateTime()
+  var date1 = new java.util.Date()
+  var date2 = new java.util.Date()
 
   //char
   var char1: char = 3b      //## issuekeys: MSG_IMPLICIT_COERCION_ERROR
@@ -59,7 +59,8 @@ class Errant_ExpressionsPrimitiveTypes {
   var byte5: byte = 1.1f      //## issuekeys: MSG_IMPLICIT_COERCION_ERROR
   var byte6: byte = 1.1      //## issuekeys: MSG_IMPLICIT_COERCION_ERROR
   var byte7: byte = true      //## issuekeys: MSG_IMPLICIT_COERCION_ERROR
-  var byte8: byte = 'c'      //## issuekeys: MSG_IMPLICIT_COERCION_ERROR
+  var byte8: byte = 'c'
+  var byte8_1: byte = 'ü'      //## issuekeys: MSG_IMPLICIT_COERCION_ERROR
   var byte9: byte = "string"      //## issuekeys: MSG_TYPE_MISMATCH
   var byte10: byte = new Date()      //## issuekeys: MSG_TYPE_MISMATCH
   var byte11: byte = date1      //## issuekeys: MSG_TYPE_MISMATCH

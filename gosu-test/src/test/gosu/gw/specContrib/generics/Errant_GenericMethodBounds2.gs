@@ -3,6 +3,7 @@ package gw.specContrib.generics
 uses java.io.Serializable
 uses java.lang.Float
 uses java.lang.Integer
+uses java.lang.Double
 uses java.lang.Short
 uses java.util.ArrayList
 uses java.util.HashMap
@@ -13,7 +14,7 @@ class Errant_GenericMethodBounds2 {
     //IDE-572 - Parser fine. Problem in Compiler
     function upperBoundJavaLangNumber<T extends java.lang.Number>(t: T, t2: T) : T { return null }
 
-    function callerUpperBoundJavaaLangNumber() {
+    function callerUpperBoundJavaLangNumber() {
       var ubjln111 = upperBoundJavaLangNumber(42.5, 1000)
       var ubjln112 = upperBoundJavaLangNumber(4000, 5000)
       var ubjln113 = upperBoundJavaLangNumber(4000.5, 5000)
@@ -21,13 +22,13 @@ class Errant_GenericMethodBounds2 {
       var ubjln115 = upperBoundJavaLangNumber(1 as Short, 1 as Float)
     }
 
-    function upperBoundNumber<T extends Number>(t: T, t2: T) : T { return null }
+    function upperBoundDouble<T extends Double>(t: T, t2: T) : T { return null }
 
-    function callerUpperBoundNumber() {
-      var ubn111 = upperBoundNumber(42.5, 1000)
-      var ubn112 = upperBoundNumber(42, 1000)
-      var ubn114 = upperBoundNumber(1000, 42.5)
-      var ubn115 = upperBoundNumber(1 as Short, 1 as Float)
+    function callerUpperBoundDouble() {
+      var ubn111 = upperBoundDouble(42.5, 1000)
+      var ubn112 = upperBoundDouble(42, 1000)
+      var ubn114 = upperBoundDouble(1000, 42.5)
+      var ubn115 = upperBoundDouble(1 as Short, 1 as Float)
     }
 
     //IDE-572 - Parser fine. Problem in Compiler

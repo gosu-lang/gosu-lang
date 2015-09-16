@@ -5,11 +5,10 @@
 package gw.lang.reflect;
 
 import gw.lang.GosuShop;
-import gw.lang.reflect.java.IJavaMethodInfo;
+import gw.util.DynamicArray;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -124,9 +123,11 @@ public interface ITypeInfo extends IAnnotatedFeatureInfo
   {
     private static final IType[] EMPTY_TYPES = IType.EMPTY_ARRAY;
 
-    public static IMethodInfo method( MethodList methods, CharSequence method, IType... params )
+    //static int ii = 0;
+    public static IMethodInfo method( MethodList methodList, CharSequence method, IType... params )
     {
       params = params == null ? EMPTY_TYPES : params;
+      DynamicArray<? extends IMethodInfo> methods = methodList.getMethods( method.toString() );
       for( int i = 0; i < methods.size; i++ )
       {
         IMethodInfo methodInfo = (IMethodInfo) methods.data[i];
@@ -137,6 +138,7 @@ public interface ITypeInfo extends IAnnotatedFeatureInfo
           }
         }
       }
+      //System.out.println( "#Missed: " + ii++ );
       return null;
     }
 
@@ -176,10 +178,14 @@ public interface ITypeInfo extends IAnnotatedFeatureInfo
     /**
      * If there is a tie this method will throw an IllegalArgumentException.
      */
-    private static IMethodInfo callableMethodImpl( MethodList methods, CharSequence method, boolean strict, IType... params )
+    private static IMethodInfo callableMethodImpl( MethodList methodList, CharSequence method, boolean strict, IType... params )
     {
-      Map<IFunctionType, IMethodInfo> mis = new HashMap<IFunctionType, IMethodInfo>();
       params = params == null ? EMPTY_TYPES : params;
+      DynamicArray<? extends IMethodInfo> methods = methodList.getMethods( method.toString() );
+      if( methods.isEmpty() ) {
+        return null;
+      }
+      Map<IFunctionType, IMethodInfo> mis = new HashMap<>();
       for( int i = 0; i < methods.size; i++ )
       {
         IMethodInfo methodInfo = (IMethodInfo) methods.data[i];

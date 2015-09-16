@@ -2,6 +2,7 @@ package gw.internal.gosu.parser.generics.gwtest
 
 uses java.lang.Iterable
 uses java.util.Iterator
+uses java.util.Date
 uses java.lang.UnsupportedOperationException
 
 class IterableImpl implements Iterable
@@ -18,7 +19,7 @@ class IterableImpl implements Iterable
 
         function next() : Object
         {
-          return new DateTime()
+          return new Date()
         }
 
         function remove()

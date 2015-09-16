@@ -10,7 +10,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.RandomAccess;
 
-public class DynamicArray<E> extends AbstractList<E> implements List<E>, RandomAccess, Cloneable {
+public class DynamicArray<E> extends AbstractList<E> implements List<E>, RandomAccess {
   public static final DynamicArray EMPTY = new DynamicArray(0);
 
   /**
@@ -61,7 +61,27 @@ public class DynamicArray<E> extends AbstractList<E> implements List<E>, RandomA
     size = data.length;
     // c.toArray might (incorrectly) not return Object[] (see 6260652)
     if (data.getClass() != Object[].class)
-      data = Arrays.copyOf(data, size, Object[].class);
+    {
+      Object[] copy = new Object[size];
+      System.arraycopy( data, 0, copy, 0, size );
+      data = copy;
+    }
+  }
+
+  protected DynamicArray( DynamicArray<E> source ) {
+    size = source.size;
+    data = Arrays.copyOf( source.data, size );
+    modCount = 0;
+  }
+
+  /**
+   * Returns a shallow copy of this <tt>ArrayList</tt> instance.  (The
+   * elements themselves are not copied.)
+   *
+   * @return a copy of this <tt>DynamicArray</tt> instance
+   */
+  public DynamicArray<E> copy() {
+    return new DynamicArray<>( this );
   }
 
   /**
@@ -166,24 +186,6 @@ public class DynamicArray<E> extends AbstractList<E> implements List<E>, RandomA
           return i;
     }
     return -1;
-  }
-
-  /**
-   * Returns a shallow copy of this <tt>ArrayList</tt> instance.  (The
-   * elements themselves are not copied.)
-   *
-   * @return a clone of this <tt>ArrayList</tt> instance
-   */
-  public Object clone() {
-    try {
-      DynamicArray<E> v = (DynamicArray<E>) super.clone();
-      v.data = Arrays.copyOf(data, size);
-      v.modCount = 0;
-      return v;
-    } catch (CloneNotSupportedException e) {
-      // this shouldn't happen, since we are Cloneable
-      throw new InternalError();
-    }
   }
 
   /**

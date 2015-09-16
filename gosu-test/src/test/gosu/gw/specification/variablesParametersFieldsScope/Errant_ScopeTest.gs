@@ -12,10 +12,10 @@ class Errant_ScopeTest {
     for(var j in 0..10 index k) {
       j = k+1
     }
-    j = k+1  //## issuekeys: MSG_BAD_IDENTIFIER_NAME, MSG_TYPE_MISMATCH, MSG_BAD_IDENTIFIER_NAME
+    j = k+1  //## issuekeys: MSG_BAD_IDENTIFIER_NAME, MSG_ARITHMETIC_OPERATOR_CANNOT_BE_APPLIED_TO_TYPES, MSG_BAD_IDENTIFIER_NAME
 
-    for(var j in 0..j+1) {  //## issuekeys: MSG_EXPECTING_ARRAYTYPE_FOREACH, MSG_TYPE_MISMATCH, MSG_BAD_IDENTIFIER_NAME
-      j++  //## issuekeys: MSG_TYPE_MISMATCH
+    for(var j in 0..j+1) {  //## issuekeys: MSG_EXPECTING_ARRAYTYPE_FOREACH, MSG_ARITHMETIC_OPERATOR_CANNOT_BE_APPLIED_TO_TYPES, MSG_BAD_IDENTIFIER_NAME
+      j++  //## issuekeys: MSG_ARITHMETIC_OPERATOR_CANNOT_BE_APPLIED_TO_TYPES
     }
 
   }
@@ -37,7 +37,7 @@ class Errant_ScopeTest {
   function stringTemplateScope() {
     var c = 1
     var str = "${c + 1}"
-    str = "${foo + 1}"  //## issuekeys: MSG_TYPE_MISMATCH, MSG_BAD_IDENTIFIER_NAME
+    str = "${foo + 1}"  //## issuekeys: MSG_ARITHMETIC_OPERATOR_CANNOT_BE_APPLIED_TO_TYPES, MSG_BAD_IDENTIFIER_NAME
   }
 
   function switchScope() : void {
@@ -64,6 +64,42 @@ class Errant_ScopeTest {
     }
   }
 
+  function switchScope_PL33314() : void {
+    var item2 = Math.round(Math.floor(Math.random()*10))
+    var invalidVar2 =""
+    switch (item2){
+      case 9 :
+          break
+        default :
+        invalidVar2 = "this should compile and cause no error"
+        var invalidVar = "this should not compile and causes VerifyError as a result"
+    }
+    print(invalidVar2)
+    print(invalidVar)  //## issuekeys: MSG_BAD_IDENTIFIER_NAME
+  }
+
+  function tryCatchScope() {
+    try {
+      var f = 1/0
+    } catch(e : ArithmeticException) { }
+    f = 1  //## issuekeys: MSG_BAD_IDENTIFIER_NAME
+
+    try {
+      var f = 1/0
+    } catch(e : ArithmeticException) {
+      var e1 = e
+      var g = f  //## issuekeys: MSG_VARIABLE_ALREADY_DEFINED, MSG_BAD_IDENTIFIER_NAME
+    }
+    var e1 = e  //## issuekeys: MSG_BAD_IDENTIFIER_NAME
+
+    try {
+      var f = 1/0
+      try {
+        var f = 1/0  //## issuekeys: MSG_VARIABLE_ALREADY_DEFINED
+      } catch( e : Throwable) {}
+
+    } catch(e : ArithmeticException) { }
+  }
 
   var h = 1 + x  //## issuekeys: MSG_ILLEGAL_FORWARD_REFERENCE
   function m1(x : int): void {  //## issuekeys: MSG_VARIABLE_ALREADY_DEFINED

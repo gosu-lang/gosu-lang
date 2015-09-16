@@ -4,17 +4,20 @@
 
 package gw.internal.gosu.parser;
 
+import gw.config.CommonServices;
 import gw.config.ExecutionMode;
 import gw.internal.gosu.parser.expressions.BlockExpression;
 import gw.internal.gosu.parser.expressions.Identifier;
 import gw.internal.gosu.parser.expressions.MethodCallExpression;
 import gw.internal.gosu.parser.statements.ClassFileStatement;
 import gw.internal.gosu.parser.statements.ClassStatement;
+import gw.internal.gosu.parser.statements.FunctionStatement;
 import gw.internal.gosu.parser.statements.MethodCallStatement;
 import gw.internal.gosu.parser.statements.NoOpStatement;
 import gw.internal.gosu.parser.statements.VarStatement;
 import gw.lang.parser.GosuParserTypes;
 import gw.lang.parser.ICapturedSymbol;
+import gw.lang.parser.IReducedDynamicFunctionSymbol;
 import gw.lang.parser.IReducedSymbol;
 import gw.lang.parser.ISymbol;
 import gw.lang.parser.ISymbolTable;
@@ -23,6 +26,8 @@ import gw.lang.parser.ScriptPartId;
 import gw.lang.parser.exceptions.ParseResultsException;
 import gw.lang.parser.statements.IUsesStatement;
 import gw.lang.reflect.FunctionType;
+import gw.lang.reflect.IConstructorInfo;
+import gw.lang.reflect.IInvocableType;
 import gw.lang.reflect.IParameterInfo;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.TypeSystem;
@@ -184,7 +189,7 @@ public class GosuClassParseInfo {
     _mapConstructorFunctions.put( function.getName(), function);
   }
 
-  protected boolean addDefaultConstructor( ISymbolTable symbolTable )
+  protected boolean addDefaultConstructor( ISymbolTable symbolTable, GosuParser parser )
   {
     NoOpStatement value = new NoOpStatement();
     value.initEmptyParseTree();
@@ -205,17 +210,38 @@ public class GosuClassParseInfo {
         defCtorFromSuper = _gosuClass.getSuperClass().getDefaultConstructor();
       }
 
-      if( defCtorFromSuper == null || !_gosuClass.getSuperClass().isAccessible( _gosuClass, defCtorFromSuper ) )
-      {
-        return false;
-      }
       MethodCallExpression e = new MethodCallExpression();
-      e.setFunctionSymbol( new SuperConstructorFunctionSymbol( defCtorFromSuper ) );
-      e.setArgs( null );
-      e.setType( GosuParserTypes.NULL_TYPE() );
-      MethodCallStatement initializer = new MethodCallStatement();
-      initializer.setMethodCall( e );
-      dfsCtor.setInitializer( initializer );
+      if( parser != null && defCtorFromSuper == null || !_gosuClass.getSuperClass().isAccessible( _gosuClass, defCtorFromSuper ) )
+      {
+        defCtorFromSuper = findConstructorThatHasAllDefaultParameters( _gosuClass.getSuperClass() );
+        if( defCtorFromSuper != null )
+        {
+          List<Expression> argExpressions = new ArrayList<>();
+          parser.addMisingArgsWithDefaultValues( e, (IInvocableType)defCtorFromSuper.getType(), argExpressions, null, true );
+          e.setFunctionSymbol( new SuperConstructorFunctionSymbol( defCtorFromSuper ) );
+          e.setArgs( argExpressions.toArray( new Expression[argExpressions.size()] ) );
+          e.setType( GosuParserTypes.NULL_TYPE() );
+          MethodCallStatement initializer = new MethodCallStatement();
+          initializer.setMethodCall( e );
+          dfsCtor.setInitializer( initializer );
+          FunctionStatement fs = new FunctionStatement();
+          fs.setDynamicFunctionSymbol( dfsCtor );
+          dfsCtor.setDeclFunctionStmt( fs );
+        }
+        else
+        {
+          return false;
+        }
+      }
+      else
+      {
+        e.setFunctionSymbol( new SuperConstructorFunctionSymbol( defCtorFromSuper ) );
+        e.setArgs( null );
+        e.setType( GosuParserTypes.NULL_TYPE() );
+        MethodCallStatement initializer = new MethodCallStatement();
+        initializer.setMethodCall( e );
+        dfsCtor.setInitializer( initializer );
+      }
     }
     else
     {
@@ -238,6 +264,24 @@ public class GosuClassParseInfo {
     }
     _mapConstructorFunctions.put( dfsCtor.getName(), dfsCtor );
     return true;
+  }
+
+  private DynamicFunctionSymbol findConstructorThatHasAllDefaultParameters( IGosuClassInternal superClass )
+  {
+    List<? extends IConstructorInfo> constructorFunctions = superClass.getTypeInfo().getConstructors( _gosuClass );
+    if( constructorFunctions.size() == 1 )
+    {
+      IConstructorInfo ci = constructorFunctions.get( 0 );
+      if( ci instanceof IGosuConstructorInfo )
+      {
+        IReducedDynamicFunctionSymbol dfs = ((IGosuConstructorInfo)ci).getDfs();
+        if( ((FunctionType)dfs.getType()).getDefaultValueExpressions().length == dfs.getArgs().size() )
+        {
+          return superClass.getConstructorFunctions().get( 0 );
+        }
+      }
+    }
+    return null;
   }
 
   boolean addAnonymousConstructor( ISymbolTable symTable, GosuConstructorInfo superCtor )
@@ -527,8 +571,10 @@ public class GosuClassParseInfo {
     }
   }
 
-  public void updateSource(String source) {
-    _sourceFingerprint = new FP64(source).getRawFingerprint();
+  public void updateSource( String source ) {
+    _sourceFingerprint = CommonServices.getPlatformHelper().getExecutionMode() == ExecutionMode.IDE
+                         ? new FP64(source).getRawFingerprint() // only really matters inside an IDE
+                         : source.length();
   }
 
   public long getSourceFingerprint() {

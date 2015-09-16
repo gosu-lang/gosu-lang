@@ -66,7 +66,7 @@ public class JavaSourceUtil {
       IModule module = classInfo.getModule();
       return loader.getJavaClassInfo(aClass, module);
     } else {
-      if( !ExecutionMode.isIDE() ) {
+      if( ExecutionMode.isRuntime() ) {
         // Don't try to load from source unless we have to, this saves a load of time esp. for case
         // where we're loading an inner java class where replacing the '$' below with '.' we bascially
         // put the type system through a load of unnecessary work.

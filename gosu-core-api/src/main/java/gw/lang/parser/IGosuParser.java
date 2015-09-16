@@ -225,7 +225,7 @@ public interface IGosuParser extends IParserPart
 
   ITypeLiteralExpression resolveTypeLiteral( String strName );
 
-  Map<String, Set<IFunctionSymbol>> getDfsDecls();
+  Map<String, List<IFunctionSymbol>> getDfsDecls();
 
   public IParserState getState();
 
@@ -233,7 +233,7 @@ public interface IGosuParser extends IParserPart
 
   void setCaptureSymbolsForEval( boolean bCaputreSymbolsForEval );
 
-  void setDfsDeclInSetByName( Map<String, Set<IFunctionSymbol>> dfsDecl );
+  void setDfsDeclInSetByName( Map<String, List<IFunctionSymbol>> dfsDecl );
 
   boolean isParsingFunction();
 

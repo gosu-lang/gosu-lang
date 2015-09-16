@@ -1,6 +1,7 @@
 package gw.lang.enhancements
 uses java.util.Iterator
 uses java.util.LinkedList
+uses java.util.List
 
 /**
  * Defines the core enhancements to the standard java.util.Iterator interface that

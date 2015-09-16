@@ -20,12 +20,12 @@ class Errant_StringTest {
     var x11 = "\388"
     var x12 = "\888"  //## issuekeys: MSG_INVALID_CHAR_AT
     var x13 = x0+x2
-    var x14 = 10 + new Date() + "A"  //## issuekeys: MSG_TYPE_MISMATCH, MSG_TYPE_MISMATCH
+    var x14 = 10 + new Date() + "A"  //## issuekeys: MSG_ARITHMETIC_OPERATOR_CANNOT_BE_APPLIED_TO_TYPES, MSG_ARITHMETIC_OPERATOR_CANNOT_BE_APPLIED_TO_TYPES
     var i = 0
-    var x15 = "hello" + i - 1 + "!"  //## issuekeys: MSG_TYPE_MISMATCH, MSG_TYPE_MISMATCH
+    var x15 = "hello" + i - 1 + "!"  //## issuekeys: MSG_ARITHMETIC_OPERATOR_CANNOT_BE_APPLIED_TO_TYPES, MSG_ARITHMETIC_OPERATOR_CANNOT_BE_APPLIED_TO_TYPES
     var x16 = "A\101\u0041"
     var x17 = "A" + null
-    var x18 = "A" % null  //## issuekeys: MSG_TYPE_MISMATCH
+    var x18 = "A" % null  //## issuekeys: MSG_ARITHMETIC_OPERATOR_CANNOT_BE_APPLIED_TO_TYPES
     var x19 = "A" + b
     var x20 = 8 + "A"
     var x21 = "A" + 8

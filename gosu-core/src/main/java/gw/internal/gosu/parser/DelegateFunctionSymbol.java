@@ -29,10 +29,11 @@ public class DelegateFunctionSymbol extends DynamicFunctionSymbol implements IDe
     SyntheticFunctionStatement stmt = (SyntheticFunctionStatement)getValueDirectly();
     stmt.setDfsOwner( this );
     setClassMember( true );
-    setName( (String)dfs.getName() );
+    setName( dfs.getName() );
     _scriptPartId = new ScriptPartId( gsClass, null );
     _delegateStmt = delegateStmt;
     _mi = mi;
+    setOverride( true );
   }
 
   public DynamicFunctionSymbol getParameterizedVersion( IGosuClass gsClass )

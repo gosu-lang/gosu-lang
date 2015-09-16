@@ -11,7 +11,7 @@ import gw.lang.reflect.IType;
 import java.io.Serializable;
 import java.util.Set;
 
-public interface ITypeUsesMap extends Cloneable, Serializable
+public interface ITypeUsesMap extends Serializable
 {
   /**
    * Returns the set of strings representing the types that are currently

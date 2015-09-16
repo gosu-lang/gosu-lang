@@ -28,6 +28,7 @@ import gw.lang.reflect.gs.IGosuClass;
 import gw.lang.reflect.gs.IGosuObject;
 import gw.lang.reflect.gs.StringSourceFileHandle;
 import gw.lang.reflect.java.IJavaMethodInfo;
+import gw.lang.reflect.java.IJavaPropertyInfo;
 import gw.lang.reflect.java.IJavaType;
 import gw.lang.reflect.java.JavaTypes;
 import gw.lang.reflect.module.IModule;
@@ -441,6 +442,13 @@ public class GosuClassProxyFactory
     return objMethod != null;
   }
 
+  public static boolean isObjectProperty( IPropertyInfo pi )
+  {
+    IRelativeTypeInfo ti = (IRelativeTypeInfo)JavaTypes.OBJECT().getTypeInfo();
+    IPropertyInfo objProp = ti.getProperty( JavaTypes.OBJECT(), pi.getDisplayName() );
+    return objProp != null;
+  }
+
   private String getRelativeName( IJavaType type )
   {
     String strName = TypeSystem.getGenericRelativeName( type, false );
@@ -481,7 +489,7 @@ public class GosuClassProxyFactory
     for( Object o : ti.getProperties() )
     {
       IPropertyInfo pi = (IPropertyInfo)o;
-      genInterfacePropertyDecl( sb, pi );
+      genInterfacePropertyDecl( sb, pi, type );
     }
 
     // Interface methods
@@ -649,6 +657,12 @@ public class GosuClassProxyFactory
       return false;
     }
 
+    //## todo: maybe support implementing/overriding Java methods having a keyword as a name by escaping the keyword (using @ maybe?) so the parser can throw it away and not stop on the token as a reserved keyword 77
+    if( Keyword.isReservedKeyword( mi.getDisplayName() ) )
+    {
+      return false;
+    }
+
     int iMethodModifiers = ((IJavaMethodInfo)mi).getModifiers();
     return //!java.lang.reflect.Modifier.isFinal( iMethodModifiers ) &&
       !java.lang.reflect.Modifier.isNative( iMethodModifiers ) &&
@@ -776,14 +790,15 @@ public class GosuClassProxyFactory
                            : ti.getProperty( strProp );
         if( pi != null && pi.getFeatureType().getName().equals( mi.getReturnType().getName() ) )
         {
-          return !Keyword.isKeyword( pi.getName() ) || Keyword.isValueKeyword( pi.getName() );
+          return (!(pi instanceof IJavaPropertyInfo) || ((IJavaPropertyInfo)pi).getPropertyDescriptor().getReadMethod().getName().equals( mi.getDisplayName() )) &&
+                 (!Keyword.isKeyword( pi.getName() ) || Keyword.isValueKeyword( pi.getName() ));
         }
       }
     }
     return false;
   }
 
-  private void genInterfacePropertyDecl( StringBuilder sb, IPropertyInfo pi )
+  private void genInterfacePropertyDecl( StringBuilder sb, IPropertyInfo pi, IJavaType javaType )
   {
     if( pi.isStatic() )
     {
@@ -806,9 +821,19 @@ public class GosuClassProxyFactory
       sb.append( "\n/** " ).append( pi.getDescription() ).append( " */\n" );
     }
     sb.append( " property get " ).append( pi.getName() ).append( "() : " ).append( type.getName() ).append( "\n" );
+    IMethodInfo mi = getPropertyGetMethod( pi, javaType );
+    if( mi != null && !mi.isAbstract() )
+    {
+      generateStub( sb, mi.getReturnType() );
+    }
     if( pi.isWritable( pi.getOwnersType() ) )
     {
       sb.append( " property set " ).append( pi.getName() ).append( "( _proxy_arg_value : " ).append( type.getName() ).append( " )\n" );
+      mi = getPropertySetMethod( pi, javaType );
+      if( mi != null && !mi.isAbstract() )
+      {
+        generateStub( sb, mi.getReturnType() );
+      }
     }
   }
 
@@ -989,12 +1014,12 @@ public class GosuClassProxyFactory
 
     String strAccessor = "get" + pi.getDisplayName();
     IMethodInfo mi = ti.getMethod( ownerType, strAccessor );
-    if( mi == null || mi.getReturnType() != propType )
+    if( mi == null )
     {
       strAccessor = "is" + pi.getDisplayName();
       mi = ti.getMethod( ownerType, strAccessor );
     }
-    if( mi != null && mi.getReturnType() == propType )
+    if( mi != null && mi.getReturnType().equals( propType ) )
     {
       return mi;
     }

@@ -71,4 +71,53 @@ class StructuralTypeTest extends BaseVerifyErrantTest {
   private function toArray(x: StructureExtendsIterable): StructureExtendsIterable[] {
     return {x}
   }
+
+  static class TestContravarianceWorksWithNominalUsageOfStructure {
+    structure Comparable<T> {
+      function compareTo( t: T ) : int
+    }
+
+    structure Blah extends Comparable<String> {}
+
+    static class Some implements Comparable<CharSequence> {
+      override function compareTo( c: CharSequence ) : int { return 1 }
+    }
+
+    static class Thing implements Comparable<Object> {
+      override function compareTo( c: Object ) : int { return 2 }
+    }
+
+    static class Foo {
+      function foo( c: Blah ) : int {
+        return c.compareTo(  "hi" )
+      }
+    }
+  }
+
+  function testContravarianceWorksWithNominalUsageOfStructure() {
+    var f = new TestContravarianceWorksWithNominalUsageOfStructure.Foo()
+
+    assertEquals( 1, f.foo( new TestContravarianceWorksWithNominalUsageOfStructure.Some() ) )
+    assertEquals( 2, f.foo( new TestContravarianceWorksWithNominalUsageOfStructure.Thing() ) )
+    assertEquals( 3, f.foo( new TestContravarianceWorksWithNominalUsageOfStructure.Comparable<CharSequence>() {
+      override function compareTo( c: CharSequence ): int {
+        return 3
+      }
+    }) )
+    assertEquals( 4, f.foo( new TestContravarianceWorksWithNominalUsageOfStructure.Comparable<Object>() {
+      override function compareTo( c: Object ): int {
+        return 4
+      }
+    }) )
+    assertEquals( 5, f.foo( new Comparable<CharSequence>() {
+      override function compareTo( c: CharSequence ): int {
+        return 5
+      }
+    }) )
+    assertEquals( 6, f.foo( new Comparable<Object>() {
+      override function compareTo( c: Object ): int {
+        return 6
+      }
+    }) )
+  }
 }

@@ -1,5 +1,7 @@
 package gw.specContrib.classes.enhancements
 
+uses java.util.List
+
 enhancement Errant_SymbolCollision_ListEnh1<B>: List<B> {
 
   property get someField(): int {return 1}

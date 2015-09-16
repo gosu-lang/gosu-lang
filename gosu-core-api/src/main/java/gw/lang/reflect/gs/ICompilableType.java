@@ -28,8 +28,6 @@ public interface ICompilableType extends IType, ICompilable, IHasInnerClass, IFi
 
   ITypeUsesMap getTypeUsesMap();
 
-  IType resolveRelativeInnerClass( String strTypeName, boolean bForce );
-
   boolean isStatic();
 
   IGosuParser getParser();

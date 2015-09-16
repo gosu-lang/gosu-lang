@@ -1143,7 +1143,7 @@ public abstract class ParsedElement implements IParsedElement
     return true;
   }
 
-  public void assignTokens( List<IToken> tokens )
+  public void assignTokens( List<Token> tokens )
   {
     // Note we don't sort the children because we need to let inner classes of
     // programs get first crack at consuming tokens so NoOpStatements inside
@@ -1170,7 +1170,7 @@ public abstract class ParsedElement implements IParsedElement
     return _tokens;
   }
 
-  private void assignTokensToJustMe( List<IToken> tokens )
+  private void assignTokensToJustMe( List<Token> tokens )
   {
     IParseTree parseTree = getLocation();
     int iStartOffset = -1;
@@ -1230,7 +1230,7 @@ public abstract class ParsedElement implements IParsedElement
     //System.out.println( "#" + (i-iStartIndex) + ", " + a );
   }
 
-  private int binarySearchForFirstToken( List<IToken> tokens, int iTreeOffset, int iTreeEnd, boolean bZeroLengthTree ) {
+  private int binarySearchForFirstToken( List<Token> tokens, int iTreeOffset, int iTreeEnd, boolean bZeroLengthTree ) {
     int iStart = 0;
     int iEnd = tokens.size() - 1;
     int iIndex;

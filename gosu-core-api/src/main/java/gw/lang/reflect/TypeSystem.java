@@ -920,8 +920,8 @@ public class TypeSystem
   }
 
   public static boolean isDeleted(IType type) {
-    // a type that's not proxied is never deleted
-    return type instanceof ITypeRef && ((ITypeRef)type).isDeleted();
+    return type instanceof ITypeRef && // a type that's not proxied is never deleted
+           ((ITypeRef)type).isDeleted();
   }
 
   public static IType replaceTypeVariableTypeParametersWithBoundingTypes( IType type, IType enclosingType ) {

@@ -13,6 +13,7 @@ uses java.lang.Comparable
 uses java.util.Map
 uses java.util.HashMap
 uses java.util.Collections
+uses java.util.List
  
 /*
  *  Copyright 2014 Guidewire Software, Inc.

@@ -18,7 +18,7 @@ class Errant_TypeCastArrayList {
 
     var x211 = b as ArrayList  //## issuekeys: MSG_UNNECESSARY_COERCION
     var x212 = b as ArrayList<String>
-    var x213 = b as ArrayList<Array>
+    var x213 = b as ArrayList<Object[]>
     var x214 = b as ArrayList<ArrayList>
     var x215 = b as ArrayList<ArrayList<Integer>>
     var x216 = b as ArrayList<HashMap>
@@ -35,7 +35,7 @@ class Errant_TypeCastArrayList {
 
     var x211 = b as ArrayList  //## issuekeys: MSG_UNNECESSARY_COERCION
     var x212 = b as ArrayList<String>      //## issuekeys: MSG_TYPE_MISMATCH
-    var x213 = b as ArrayList<Array>      //## issuekeys: MSG_TYPE_MISMATCH
+    var x213 = b as ArrayList<Object[]>      //## issuekeys: MSG_TYPE_MISMATCH
     var x214 = b as ArrayList<ArrayList>      //## issuekeys: MSG_TYPE_MISMATCH
     var x215 = b as ArrayList<ArrayList<Integer>>      //## issuekeys: MSG_TYPE_MISMATCH
     var x216 = b as ArrayList<HashMap>      //## issuekeys: MSG_TYPE_MISMATCH
@@ -52,7 +52,7 @@ class Errant_TypeCastArrayList {
 
     var x211 = b as ArrayList  //## issuekeys: MSG_UNNECESSARY_COERCION
     var x212 = b as ArrayList<String>      //## issuekeys: MSG_TYPE_MISMATCH
-    var x213 = b as ArrayList<Array>      //## issuekeys: MSG_TYPE_MISMATCH
+    var x213 = b as ArrayList<Object[]>      //## issuekeys: MSG_TYPE_MISMATCH
     var x214 = b as ArrayList<ArrayList>      //## issuekeys: MSG_TYPE_MISMATCH
     var x215 = b as ArrayList<ArrayList<Integer>>      //## issuekeys: MSG_TYPE_MISMATCH
     var x216 = b as ArrayList<HashMap>      //## issuekeys: MSG_TYPE_MISMATCH
