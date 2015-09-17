@@ -6903,7 +6903,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
           if( bestScore.isValid() )
           {
             // if the bestScore is valid, bound infered variables to avoid them getting out as raw type variables
-            inferredFunctionType = maybeBoundFunctionTypeVars( inferredFunctionType );
+            inferredFunctionType = maybeBoundFunctionTypeVars( inferredFunctionType, inferenceMap );
 
             // Some args may need implicit coercions applied
             handleImplicitCoercionsInArgs( inferredFunctionType.getParameterTypes(),
@@ -7107,15 +7107,18 @@ public final class GosuParser extends ParserBase implements IGosuParser
     }
   }
 
-  private IInvocableType maybeBoundFunctionTypeVars( IInvocableType inferredFunctionType )
+  private IInvocableType maybeBoundFunctionTypeVars( IInvocableType inferredFunctionType, TypeVarToTypeMap inferenceMap )
   {
     List<IType> types = new ArrayList<IType>();
     for( IType typeVarType : getCurrentlyInferringFunctionTypeVars() )
     {
-      IType encType = TypeLord.getPureGenericType( typeVarType.getEnclosingType() );
-      if( encType != null && TypeLord.getPureGenericType( inferredFunctionType ).isAssignableFrom( typeVarType.getEnclosingType() ) )
+      if( inferenceMap.get( (ITypeVariableType)typeVarType ) == null )
       {
-        types.add( typeVarType );
+        IType encType = TypeLord.getPureGenericType( typeVarType.getEnclosingType() );
+        if( encType != null && TypeLord.getPureGenericType( inferredFunctionType ).isAssignableFrom( typeVarType.getEnclosingType() ) )
+        {
+          types.add( typeVarType );
+        }
       }
     }
     return (IInvocableType) TypeLord.boundTypes( inferredFunctionType, types );
@@ -14548,7 +14551,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
     if( functionType != null )
     {
       List<IType> typeVariableTypes = new ArrayList<IType>();
-      if( functionType.isGenericType() && (getEnclosingType() == null || !getEnclosingType().equals( functionType )) )
+      if( functionType.isGenericType() )
       {
         IGenericTypeVariable[] typeVariables = functionType.getGenericTypeVariables();
         for( IGenericTypeVariable typeVariable : typeVariables )
