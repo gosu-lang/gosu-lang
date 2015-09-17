@@ -288,7 +288,7 @@ public class NewExpressionTransformer extends AbstractExpressionTransformer<NewE
     newExprElements = handleNamedArgs( explicitArgs, _expr().getNamedArgOrder() );
 
     List<IRExpression> args = new ArrayList<IRExpression>();
-    pushCapturedSymbols( type, args, false );
+    //pushCapturedSymbols( type, args, false );
     pushTypeParametersForConstructor( _expr(), type, args, false );
     _cc().pushEnumNameAndOrdinal( type, args );
     args.addAll( explicitArgs );
