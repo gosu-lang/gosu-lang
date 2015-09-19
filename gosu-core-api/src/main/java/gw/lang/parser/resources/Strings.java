@@ -400,6 +400,7 @@ public class Strings extends ListResourceBundle
        {Res.MSG_DIMENSION_ADDITION_MUST_BE_SAME_TYPE.getKey(), "Operands must both be dimensions of the same final type" },
        {Res.MSG_DIMENSION_DIVIDE_SCALAR_BY_DIMENSION.getKey(), "Can't divide scalar by dimension" },
        {Res.MSG_DIMENSION_MUST_BE_FINAL.getKey(), "Dimension arithmetic must involve final types. {0} is not final." },
+       {Res.MSG_DIMENSION_NONSTANDARD_NUMBER_NO_OVERRIDE.getKey(), "Missing arithmetic method[s] on Dimension, {0}, with non-standard Number type, {1}" },
        {Res.MSG_RELATIONAL_OPERATOR_CANNOT_BE_APPLIED_TO_TYPE.getKey(), "Relational operator {0} cannot be applied to type {1}" },
        {Res.MSG_ARITHMETIC_OPERATOR_CANNOT_BE_APPLIED_TO_TYPES.getKey(), "Operator \"{0}\" cannot be applied to \"{1}\", \"{2}\""},
        {Res.MSG_ASSIGNMENTS_MUST_BE_ENCLOSED_IN_CURLIES_IN_BLOCKS.getKey(), "Assignments in a block body must be enclosed in curly brackets" },
