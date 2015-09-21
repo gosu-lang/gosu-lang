@@ -51,9 +51,9 @@
       <systemPath>${env.IDEA_HOME}/lib/extensions.jar</systemPath>
     </dependency>
     <dependency>
-      <groupId>com.guidewire.studio</groupId>
+      <groupId>org.gosu-lang.gosu</groupId>
       <artifactId>idea-gosu-plugin</artifactId>
-      <version>3-X-SNAPSHOT</version>
+      <version>1-X-SNAPSHOT</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
