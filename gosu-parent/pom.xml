@@ -34,28 +34,12 @@
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <dist.man.snapshotrepo.url>http://gosu-lang.org/nexus/content/repositories/snapshots</dist.man.snapshotrepo.url>
   </properties>
-
-  <repositories>
-    <repository>
-      <id>gosu-lang.org-snapshots</id>
-      <name>Official Gosu website (snapshots)</name>
-      <url>${dist.man.snapshotrepo.url}</url>
-      <releases>
-        <enabled>false</enabled>
-      </releases>
-      <snapshots>
-        <enabled>true</enabled>
-      </snapshots>
-    </repository>
-  </repositories>
 
   <distributionManagement>
     <snapshotRepository>
-      <id>gosu-lang.org-snapshots</id>
-      <url>${dist.man.snapshotrepo.url}</url>
-      <uniqueVersion>false</uniqueVersion>
+      <id>ossrh</id>
+      <url>https://oss.sonatype.org/content/repositories/snapshots</url>
     </snapshotRepository>
     <repository>
       <id>ossrh</id>
