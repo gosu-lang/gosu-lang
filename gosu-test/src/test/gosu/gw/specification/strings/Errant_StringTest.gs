@@ -30,6 +30,11 @@ class Errant_StringTest {
     var x20 = 8 + "A"
     var x21 = "A" + 8
     var x22 = "A" + true
+    var x23 = "A"/"B"  //## issuekeys: MSG_ARITHMETIC_OPERATOR_CANNOT_BE_APPLIED_TO_TYPES
+    var x24 = "A"*"B"  //## issuekeys: MSG_ARITHMETIC_OPERATOR_CANNOT_BE_APPLIED_TO_TYPES
+    var x25 = "A"%"B"  //## issuekeys: MSG_ARITHMETIC_OPERATOR_CANNOT_BE_APPLIED_TO_TYPES
+    var x26 = "A"+"B"
+    var x27 = "A"-"B"  //## issuekeys: MSG_ARITHMETIC_OPERATOR_CANNOT_BE_APPLIED_TO_TYPES
   }
 
 }
