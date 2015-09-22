@@ -989,6 +989,52 @@ public class TypeLord
     return sb;
   }
 
+  private static StringBuilder appendTypeName( boolean bWithEnclosingType, boolean bIncludeModule, StringBuilder sb, IType paramType )
+  {
+    if( paramType.isArray() )
+    {
+      appendTypeName( bWithEnclosingType, bIncludeModule, sb, paramType.getComponentType() ).append( "[]" );
+    }
+    else if( bWithEnclosingType && paramType instanceof TypeVariableType )
+    {
+      TypeVariableType type = (TypeVariableType)paramType;
+      if( type.getEnclosingType() != null )
+      {
+        if( bIncludeModule && !(type.getEnclosingType() instanceof INonLoadableType) )
+        {
+          sb.append( type.getEnclosingType().getTypeLoader().getModule().getName() ).append( "." );
+        }
+        sb.append( type.getNameWithEnclosingType() );
+      }
+      else
+      {
+        sb.append( type.getName() );
+      }
+    }
+    else if( bWithEnclosingType && paramType.isParameterizedType() )
+    {
+      sb.append( paramType.getGenericType().getName() );
+      sb.append( getNameOfParams( paramType.getTypeParameters(), false, bWithEnclosingType, bIncludeModule ) );
+    }
+    else
+    {
+      if( bIncludeModule && !(paramType instanceof INonLoadableType) )
+      {
+        ITypeLoader typeLoader = paramType.getTypeLoader();
+        if( typeLoader != null )
+        {
+          IModule oldModule = typeLoader.getModule();
+          if( oldModule != null )
+          {
+            sb.append( oldModule.getName() ).append( "." );
+          }
+        }
+      }
+      sb.append( paramType.getName() );
+    }
+    return sb;
+  }
+
   public static boolean isDelegatableInterface( IType declaringType, IType iface ) {
     if( iface.isAssignableFrom( declaringType ) ) {
       return true;
