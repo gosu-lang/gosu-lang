@@ -11,7 +11,7 @@ uses java.util.Map
 class Errant_GenericMethodAndBlockArgument {
   // IDE-1882
   static class GosuClass<T> {
-    function foo<R>(block(p: T): List<R>): List<R> {
+    function foo<R>(a: block(p: T): List<R>): List<R> {
       return null
     }
 
