@@ -30,7 +30,7 @@ uses gw.specification.dimensions.p1.SampleDimWithoutArith_SpecialNumWithArith
 /**
 * Created by sliu on 2/18/2015.
 */
-class Errant_DimensionTest {
+class Errant_DimensionTest1 {
 
   function testDifferentNumberUnitInDimensionWithoutArith(){
     var d1 : SampleDimension_Integer = new SampleDimension_Integer (new Integer(7))
