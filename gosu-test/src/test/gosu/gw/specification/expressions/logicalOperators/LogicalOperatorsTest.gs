@@ -51,11 +51,11 @@ class LogicalOperatorsTest extends BaseVerifyErrantTest {
 
     var a3 = new TestDim(2)
     var b3 : double = 2.0
-    r = a3 == b3
+    r = a3 == b3                    //## issuekeys: OPERATOR '==' CANNOT BE APPLIED TO 'GW.SPECIFICATION.DIMENSIONS.P0.TESTDIM', 'DOUBLE'
     assertTrue(r)
     var a31 = new TestDim(2)
     var b31 : double = 1.0
-    r = a31 == b31
+    r = a31 == b31                  //## issuekeys: OPERATOR '==' CANNOT BE APPLIED TO 'GW.SPECIFICATION.DIMENSIONS.P0.TESTDIM', 'DOUBLE'
     assertFalse(r)
     var a32 = new TestDim(2)
     var b32 = new TestDim(2)
