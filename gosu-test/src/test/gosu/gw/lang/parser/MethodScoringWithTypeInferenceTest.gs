@@ -4,17 +4,14 @@ uses gw.test.TestClass
 
 class MethodScoringWithTypeInferenceTest extends TestClass {
 
-  private var _fooObjObjCtr : int as FooObjectObjectCounter = 0
-  private var _fooStrStrCtr : int as FooStringStringCounter = 0
-
-  private function foo(o1 : Object, o2 : Object) {
+  private function foo(o1 : Object, o2 : Object) : boolean {
     print( "MethodScoringWithTypeInferenceTest#foo(Object, Object)" )
-    FooObjectObjectCounter++
+    return true
   }
 
-  private function foo(s1 : String, s2 : String) {
+  private function foo(s1 : String, s2 : String) : boolean {
     print( "MethodScoringWithTypeInferenceTest#foo(String, String)" )
-    FooStringStringCounter++
+    return false
   }
 
   private function inferReturnType<U>() : U {
@@ -24,13 +21,10 @@ class MethodScoringWithTypeInferenceTest extends TestClass {
   function testParserMethodScoringInfersReturnTypeCorrectly() {
 
     //try once; should execute foo( Object, Object )
-    foo("", new Object())
+    assertTrue(foo("", new Object()))
 
     //try again; should execute foo(String, String)
-    foo("", inferReturnType())
-
-    assertEquals(1, FooObjectObjectCounter)
-    assertEquals(1, FooStringStringCounter)
+    assertFalse(foo("", inferReturnType()))
 
   }
 
