@@ -12,6 +12,11 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Typical JVM args:
+ *   -Dgw.tests.skip.knownbreak=true
+ *   -DcheckedArithmetic=true
+ */
 public class GosuScratchSuite extends Suite
 {
   public static Test suite()
