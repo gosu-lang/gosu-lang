@@ -7003,10 +7003,21 @@ public final class GosuParser extends ParserBase implements IGosuParser
     {
       if( e instanceof IInferredNewExpression ||
           e instanceof UnqualifiedEnumMemberAccess ||
+          isGenericMethodCall( e ) ||
           e instanceof Identifier && e.hasParseExceptions() )
       {
         return true;
       }
+    }
+    return false;
+  }
+
+  private boolean isGenericMethodCall( Expression e )
+  {
+    if( e instanceof MethodCallExpression )
+    {
+      IFunctionType functionType = ((MethodCallExpression) e).getFunctionType();
+      return functionType != null && (functionType.isGenericType() || functionType.isParameterizedType());
     }
     return false;
   }
