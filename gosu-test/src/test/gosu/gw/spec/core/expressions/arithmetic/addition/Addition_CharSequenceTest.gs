@@ -1,13 +1,26 @@
 package gw.spec.core.expressions.arithmetic.addition
-uses gw.test.TestClass
-uses java.lang.Character
-uses java.lang.CharSequence
-uses java.util.Date
-uses java.lang.RuntimeException
+
 uses gw.spec.core.expressions.arithmetic.ArithmeticTestBase
 
+uses java.lang.CharSequence
+uses java.lang.RuntimeException
+uses java.util.Date
+
 class Addition_CharSequenceTest extends ArithmeticTestBase {
-  
+
+  private var _originalTZ : TimeZone
+
+  override function beforeTestClass() {
+    super.beforeTestClass()
+    _originalTZ = TimeZone.getDefault()
+    TimeZone.setDefault(TimeZone.getTimeZone("PST"))
+  }
+
+  override function afterTestClass() {
+    super.afterTestClass()
+    TimeZone.setDefault(_originalTZ)
+  }
+
   private static class MyCharSequence implements CharSequence {
     private var _value : String
     
