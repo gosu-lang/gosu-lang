@@ -19,7 +19,9 @@ class Errant_DimensionTest2 {
     var i2 = new SampleDimension_Integer(new Integer(5))
     var bi = new SampleDimension_BigInteger(7)
 
-    var a10 = i1 == 2      //## issuekeys: OPERATOR '==' CANNOT BE APPLIED TO 'A.GOSU.SAMPLEDIMENSION_INTEGER', 'INT'
+    var two = 2
+
+    var a10 = i1 == two
     var q = i1 + bi        //## issuekeys: OPERATOR '+' CANNOT BE APPLIED TO 'A.GOSU.SAMPLEDIMENSION_INTEGER', 'A.GOSU.SAMPLEDIMENSION_BIGINTEGER'
     var a1 = i1 *  2.2
     var a2 = i1 /  2.2
