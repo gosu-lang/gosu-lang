@@ -124,7 +124,11 @@ public class StandardCoercionManager extends BaseService implements ICoercionMan
     {
       return rhsType != JavaTypes.BIG_INTEGER() && hasPotentialLossOfPrecisionOrScale( JavaTypes.LONG(), rhsType );
     }
-    return false;
+    else if( JavaTypes.BIG_DECIMAL().isAssignableFrom( lhsType ) )
+    {
+      return false;
+    }
+    return true;
   }
 
   public final ICoercer findCoercer( IType lhsType, IType rhsType, boolean runtime )
