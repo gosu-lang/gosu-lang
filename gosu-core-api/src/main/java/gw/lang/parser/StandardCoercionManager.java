@@ -93,12 +93,12 @@ public class StandardCoercionManager extends BaseService implements ICoercionMan
     else if( lhsType == JavaTypes.pDOUBLE() || lhsType == JavaTypes.DOUBLE() )
     {
       return rhsType != JavaTypes.DOUBLE() && !rhsType.isPrimitive() &&
-             (JavaTypes.BIG_DECIMAL().isAssignableFrom( rhsType ) || JavaTypes.BIG_INTEGER().isAssignableFrom( rhsType ));
+             (JavaTypes.BIG_DECIMAL().isAssignableFrom( rhsType ) || JavaTypes.BIG_INTEGER().isAssignableFrom( rhsType ) || JavaTypes.IDIMENSION().isAssignableFrom( rhsType ));
     }
     else if( lhsType == JavaTypes.pFLOAT() || lhsType == JavaTypes.FLOAT() )
     {
       return rhsType == JavaTypes.pDOUBLE() || rhsType == JavaTypes.DOUBLE() ||
-             JavaTypes.BIG_DECIMAL().isAssignableFrom( rhsType ) || JavaTypes.BIG_INTEGER().isAssignableFrom( rhsType );
+             JavaTypes.BIG_DECIMAL().isAssignableFrom( rhsType ) || JavaTypes.BIG_INTEGER().isAssignableFrom( rhsType ) || JavaTypes.IDIMENSION().isAssignableFrom( rhsType );
     }
     else if( lhsType == JavaTypes.pINT() || lhsType == JavaTypes.INTEGER() )
     {
@@ -126,7 +126,7 @@ public class StandardCoercionManager extends BaseService implements ICoercionMan
     }
     else if( JavaTypes.BIG_DECIMAL().isAssignableFrom( lhsType ) )
     {
-      return false;
+      return JavaTypes.IDIMENSION().isAssignableFrom( rhsType );
     }
     return true;
   }

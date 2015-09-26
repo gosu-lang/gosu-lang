@@ -72,8 +72,6 @@ class ConversionInvolvingReferenceTypesTest extends BaseVerifyErrantTest {
     assertTrue(tt.equals(6.0bd))
     tt = ts8
     assertTrue(tt.equals(7bd))
-    tt = ts9
-    assertTrue(tt.equals(123bd))
     tt = ts10
     assertTrue(tt.equals(99bd))
     tt = ts11

@@ -70,10 +70,12 @@ public class NumericCoercionTest extends TestClass
       {
         IType fromType = types[j];
         IExpression e = null;
+        String script = null;
         try
         {
-          e = GosuTestUtil.compileExpression( "var x : " + fromType.getName() + "\n" +
-                       "var v : " + toType.getName() + " = x" );
+          script = "var x : " + fromType.getName() + "\n" +
+                   "var v : " + toType.getName() + " = x";
+          e = GosuTestUtil.compileExpression( script );
         }
         catch( ParseResultsException e1 )
         {
@@ -94,7 +96,7 @@ public class NumericCoercionTest extends TestClass
           System.out.println(" Was " + bHasCoercionWarning);
           System.out.println(" Should be " + bShouldHaveCoercionWarning);
         }
-        assertEquals( bShouldHaveCoercionWarning, bHasCoercionWarning );
+        assertEquals( script, bShouldHaveCoercionWarning, bHasCoercionWarning );
       }
     }
   }
