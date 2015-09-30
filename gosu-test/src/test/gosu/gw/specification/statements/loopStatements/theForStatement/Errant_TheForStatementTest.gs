@@ -41,7 +41,7 @@ class Errant_TheForStatementTest  {
     for(x in "012") {
       j++
     }
-//    for("012") {}  //## issuekeys: MSG_EXPECTING_IDENTIFIER_FOREACH, MSG_EXPECTING_IN_FOREACH
+    for("012") {}  //## issuekeys: MSG_EXPECTING_IDENTIFIER_FOREACH, MSG_EXPECTING_IN_FOREACH
     for(3) {}  //## issuekeys: MSG_EXPECTING_IDENTIFIER_FOREACH, MSG_EXPECTING_IN_FOREACH, MSG_EXPECTING_ARRAYTYPE_FOREACH
   }
 
