@@ -8353,7 +8353,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
   {
     CompoundTypeLiteral typeLiteral = new CompoundTypeLiteral();
     List<IType> types = new ArrayList<>();
-
+    TypeLiteral typeLiteralComponent = (TypeLiteral) peekExpression();
     while( true )
     {
       addToCompoundType( types );
@@ -8364,6 +8364,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
       _parseTypeLiteral( getTokenizer().getCurrentToken(), false, bInterface );
     }
     verify( typeLiteral, types.size() > 1, Res.MSG_AGGREGATES_MUST_CONTAIN_MORE );
+    verify( typeLiteral, !(typeLiteralComponent.getType().getType() instanceof TypeVariableType), Res.MSG_ONLY_ONE_TYPE_VARIABLE );
 
     typeLiteral.setType( CompoundType.get( new HashSet<IType>( types ) ) );
     pushExpression(typeLiteral);

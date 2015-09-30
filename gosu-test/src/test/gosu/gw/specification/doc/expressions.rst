@@ -126,14 +126,12 @@ Two values ``v0`` and ``v1`` are equal (by ``==``) if
   ``v0.compareTo(v1) == 0``.
 * ``v0`` and ``v1`` have the same reference type ``t`` and 
   ``v0.equals(v1) == true``
-  
 * ``v0`` has a String type and ``v0.equals(v1.toString()) == true``.
-* ``v0`` has array type ``t0``, ``v1`` has array type ``t1`` *and* 
-
-  * ``t0`` and ``t1`` are the same primitive type or have a subtype 
-    relationship *and*
-  * ``v0[i].equals(v1[i]) == true`` holds for every *i* in 0 |lessthanorequal| 
-    *i* < *L* . 
+* ``v0`` has array type ``t0``, ``v1`` has array type ``t1`` *and*
+* ``t0`` and ``t1`` are the same primitive type or have a subtype
+  relationship *and*
+* ``v0[i].equals(v1[i]) == true`` holds for every *i* in 0 |lessthanorequal|
+  *i* < *L* .
 
 Two values of reference type are identical (by ``===``) if both are ``null``, or 
 both are references to the same object or array, created by the same boxing 
