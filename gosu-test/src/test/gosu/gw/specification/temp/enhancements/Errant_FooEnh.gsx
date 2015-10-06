@@ -10,4 +10,7 @@ enhancement Errant_FooEnh : Foo {
 
   static function doit( f: Foo ) : String { return null }
   function doit() : String { return null }  //## issuekeys: MSG_CANNOT_OVERRIDE_FUNCTION_FROM_ENHANCEMENT
+
+  function doit2() : String { return null }
+  static function doit2( f: Foo ) : String { return null } //## issuekeys: MSG_CANNOT_OVERRIDE_FUNCTION_FROM_ENHANCEMENT
 }
