@@ -3,7 +3,7 @@
   <parent>
     <groupId>org.gosu-lang.gosu</groupId>
     <artifactId>gosu-parent</artifactId>
-    <version>1.8.1-SNAPSHOT</version>
+    <version>1.8.1</version>
     <relativePath>../gosu-parent/pom.xml</relativePath>
   </parent>
   <modelVersion>4.0.0</modelVersion>
@@ -16,12 +16,12 @@
     <dependency>
       <groupId>org.gosu-lang.gosu</groupId>
       <artifactId>gosu-core-api</artifactId>
-      <version>1.8.1-SNAPSHOT</version>
+      <version>1.8.1</version>
     </dependency>
     <dependency>
       <groupId>org.gosu-lang.gosu</groupId>
       <artifactId>gosu-core</artifactId>
-      <version>1.8.1-SNAPSHOT</version>
+      <version>1.8.1</version>
     </dependency>
   </dependencies>
 
@@ -64,7 +64,7 @@
           <dependency>
             <groupId>org.gosu-lang.gosu</groupId>
             <artifactId>plexus-compiler-gosu</artifactId>
-            <version>1.8.1-SNAPSHOT</version>
+            <version>1.8.1</version>
           </dependency>
         </dependencies>
       </plugin>
