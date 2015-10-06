@@ -39,4 +39,19 @@ class Errant_CompoundType {
     var q1 = param < 11000      //## issuekeys: This is error now. Because of dimensions change. Dimensions cannot be compared to dimensionless types
   }
 
+  class SuperClass {
+    function foo(): Integer & Comparable {return null}
+  }
+
+  class SubClass extends SuperClass {
+    function foo(): Comparable & Integer {return null}
+  }
+
+  function foo() {
+    var v1: Integer & Comparable
+    var v2: Integer & Comparable
+    v1 = v2
+    v2 = v1
+  }
+
 }
