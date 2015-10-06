@@ -12881,7 +12881,8 @@ public final class GosuParser extends ParserBase implements IGosuParser
         {
           // if the parameters match exactly,
           if( areParametersEquivalent( dfs, dfsExisting ) ||
-              !dfs.isStatic() && dfsExisting.isStatic() && dfs.getDeclaringTypeInfo().getOwnersType() instanceof IGosuEnhancement && areParametersEquivalent( dfs, dfsExisting, ((IGosuEnhancement)dfs.getDeclaringTypeInfo().getOwnersType()).getEnhancedType() ) )
+              !dfs.isStatic() && dfsExisting.isStatic() && dfs.getDeclaringTypeInfo().getOwnersType() instanceof IGosuEnhancement && areParametersEquivalent( dfs, dfsExisting, ((IGosuEnhancement)dfs.getDeclaringTypeInfo().getOwnersType()).getEnhancedType() ) ||
+              !dfsExisting.isStatic() && dfs.isStatic() && dfsExisting.getDeclaringTypeInfo().getOwnersType() instanceof IGosuEnhancement && areParametersEquivalent( dfsExisting, dfs, ((IGosuEnhancement)dfsExisting.getDeclaringTypeInfo().getOwnersType()).getEnhancedType() ) )
           {
             IGosuClass owningTypeForDfs = getOwningTypeForDfs( dfsExisting );
             ICompilableTypeInternal gsClass = getGosuClass();
