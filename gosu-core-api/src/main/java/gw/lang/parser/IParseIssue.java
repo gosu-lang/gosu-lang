@@ -25,7 +25,7 @@ public interface IParseIssue
   String getPlainMessage();
 
   /**
-   * @return the message fomatted for use by an IDE
+   * @return the message formatted for use by an IDE
    */
   String getUIMessage();
 
