@@ -124,4 +124,14 @@ class Errant_MetaType {
       p = x       //## issuekeys: NOT ASSIGNABLE
     }
   }
+
+  function testTypeOf() {
+    var s: String
+    var i: Integer
+    var b = typeof s == typeof i
+    var a1: Type<String> = typeof s
+    var a2: Type<Object> = typeof s
+    var b1: Type<Integer> = typeof i
+    var b2: Type<Object> = typeof i
+  }
 }
