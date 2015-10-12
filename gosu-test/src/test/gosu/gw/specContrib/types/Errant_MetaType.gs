@@ -134,4 +134,37 @@ class Errant_MetaType {
     var b1: Type<Integer> = typeof i
     var b2: Type<Object> = typeof i
   }
+
+  // IDE-2238
+  function testA(o: Object) {
+    if (typeof o == int) {
+    }
+
+    switch (typeof o) {
+      case int:
+        break
+    }
+  }
+
+  function testB(){
+    var y : Object = "neat"
+    print(y as int)
+    switch(typeof(y)){
+      case int:
+        break
+      case String:
+        break
+    }
+  }
+
+  function testC(){
+    var x = 1
+    switch(typeof(x)){
+      case int:
+        break;
+      case Integer:
+        break;
+    }
+  }
+
 }
