@@ -96,7 +96,6 @@ class ProcessSpecContribTest extends BaseVerifyErrantTest {
                                    "gw.specContrib.interfaceMethods.defaultMethods.Errant_DefaultAndAbstractConflict_2", //IDE-2614
                                    "gw.specContrib.interfaceMethods.staticMethods.javaInteraction.Errant_GosuTestClass1", //IDE-2594
                                    "gw.specContrib.interfaceMethods.staticMethods.Errant_StaticDefaultMethodsResolution_1", //IDE-2618
-                                   "gw.specContrib.types.Errant_CompoundType", // fix me :(
 
                                    /* to skip as we don't support this check in our testing framework */
                                    "gw.specContrib.classes.Errant_ClassDeclaredInEnhancement",

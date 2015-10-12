@@ -104,23 +104,5 @@ public abstract class ExternalSymbolMapBase implements IExternalSymbolMap {
     }
   }
 
-  protected String handleCrappyPcfCapitalization( CharSequence name ) {
-    //## todo: Stop doing this and fix all the claim/Claim, policy/Policy etc. parent-child inconsistencies in PCFs
-    //## todo: See also CompiledPcfSymbolTable.handleCrappyPcfCapitalization
-
-    if( name.length() > 1 ) {
-      String strName = null;
-      char c = name.charAt( 0 );
-      if( Character.isUpperCase( c ) ) {
-        strName = Character.toLowerCase( c ) + name.subSequence( 1, name.length() ).toString();
-      }
-      else if( Character.isLowerCase( c ) ) {
-        strName = Character.toUpperCase( c ) + name.subSequence( 1, name.length() ).toString();
-      }
-      return strName;
-    }
-    return null;
-  }
-
   protected abstract ISymbol getSymbol(String name);
 }

@@ -1568,40 +1568,6 @@ public abstract class ParserBase implements IParserPart
           }
         }
       }
-      else if( BeanAccess.isBeanType( lhsType ) &&
-               rhs instanceof Literal && !(rhs instanceof DefaultParamValueLiteral) && !(rhs instanceof TypeLiteral) && !(rhs instanceof NullExpression) && !rhs.hasParseExceptions() )
-      {
-        try
-        {
-          Object valueLiteral = rhs.evaluate();
-          List<IType> inferringTypes = getCurrentlyInferringFunctionTypeVars();
-          IType verifyType;
-          if( !inferringTypes.isEmpty() )
-          {
-            verifyType = TypeLord.boundTypes( lhsType, inferringTypes );
-          }
-          else
-          {
-            verifyType = lhsType;
-          }
-          if( !CommonServices.getEntityAccess().verifyValueForType( verifyType, valueLiteral ) )
-          {
-            rhs.addParseException( new ParseException(
-              state, lhsType, Res.MSG_VALUE_MISMATCH, valueLiteral, TypeSystem.getUnqualifiedClassName( lhsType ) ) );
-          }
-        }
-        catch( IncompatibleTypeException ite )
-        {
-          Object valueLiteral = rhs.evaluate();
-          rhs.addParseException( new ParseException(
-            state, lhsType, Res.MSG_VALUE_MISMATCH, valueLiteral, TypeSystem.getUnqualifiedClassName( lhsType ) ) );
-        }
-        catch( RuntimeException re )
-        {
-          //noinspection ThrowableResultOfMethodCallIgnored
-          rhs.addParseException( ParseException.wrap( re, state ) );
-        }
-      }
     }
   }
 

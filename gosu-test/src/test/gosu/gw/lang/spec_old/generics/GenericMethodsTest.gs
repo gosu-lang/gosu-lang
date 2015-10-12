@@ -114,7 +114,7 @@ class GenericMethodsTest extends TestClass
   }
 
   function testInferAndAlsoHandleNewTypeVar() {
-    assertEquals( "", inferAndAlsoHandleNewTypeVar<String>( "hi" ) )
+    assertEquals( "", inferAndAlsoHandleNewTypeVar( "hi" ) )
   }
 
   //----------------------------------------------------------

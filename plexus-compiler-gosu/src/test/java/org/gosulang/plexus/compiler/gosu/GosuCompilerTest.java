@@ -23,6 +23,11 @@ public class GosuCompilerTest extends AbstractCompilerTest {
   }
 
   @Override
+  protected int expectedWarnings() {
+    return 1; // Person.gs has one intentional warning
+  }
+
+  @Override
   protected int expectedErrors() {
     return 1; // Bad.gs has one intentional error
   }
@@ -41,8 +46,8 @@ public class GosuCompilerTest extends AbstractCompilerTest {
   @Override
   public void testCompilingSources() throws Exception
   {
-    List<CompilerMessage> messages = new ArrayList<CompilerMessage>();
-    Collection<String> files = new TreeSet<String>();
+    List<CompilerMessage> messages = new ArrayList<>();
+    Collection<String> files = new TreeSet<>();
 
     for ( CompilerConfiguration compilerConfig : getCompilerConfigurations() )
     {
@@ -84,16 +89,16 @@ public class GosuCompilerTest extends AbstractCompilerTest {
     if ( expectedWarnings() != numCompilerWarnings )
     {
       System.out.println( numCompilerWarnings + " warning(s) found:" );
-      for ( CompilerMessage error : messages )
+      for ( CompilerMessage warning : messages )
       {
-        if ( error.isError() )
+        if ( warning.isError() )
         {
           continue;
         }
 
         System.out.println( "----" );
-        System.out.println( error.getFile() );
-        System.out.println( error.getMessage() );
+        System.out.println( warning.getFile() );
+        System.out.println( warning.getMessage() );
         System.out.println( "----" );
       }
 
@@ -110,7 +115,7 @@ public class GosuCompilerTest extends AbstractCompilerTest {
         FileUtils.getFileNames(new File(sourceDir), "**/*.gs,**/*.gsx,**/*.gst", null, false, true);
     Collections.sort(filenames);
 
-    List<CompilerConfiguration> compilerConfigurations = new ArrayList<CompilerConfiguration>();
+    List<CompilerConfiguration> compilerConfigurations = new ArrayList<>();
 
     int index = 0;
     for (Iterator<String> it = filenames.iterator(); it.hasNext(); index++) {
@@ -141,11 +146,9 @@ public class GosuCompilerTest extends AbstractCompilerTest {
     return compilerConfigurations;
   }
 
-  private List<String> normalizePaths( Collection<String> relativePaths )
-  {
-    List<String> normalizedPaths = new ArrayList<String>();
-    for ( String relativePath : relativePaths )
-    {
+  private List<String> normalizePaths( Collection<String> relativePaths ) {
+    List<String> normalizedPaths = new ArrayList<>();
+    for ( String relativePath : relativePaths ) {
       normalizedPaths.add( relativePath.replace( File.separatorChar, '/' ) );
     }
     return normalizedPaths;

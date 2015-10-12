@@ -12,8 +12,10 @@ import gw.lang.gosuc.GosucModule;
 import gw.lang.init.GosuInitialization;
 import gw.lang.parser.ICoercionManager;
 import gw.lang.parser.IParseIssue;
-import gw.lang.parser.exceptions.ParseResultsException;
+import gw.lang.parser.IParsedElement;
 import gw.lang.parser.exceptions.ParseWarning;
+import gw.lang.parser.statements.IClassFileStatement;
+import gw.lang.parser.statements.IClassStatement;
 import gw.lang.reflect.IEntityAccess;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.TypeSystem;
@@ -55,14 +57,14 @@ public class GosuCompiler implements IGosuCompiler {
     if (isCompilable(type)) {
       if (type.isValid()) {
         createOutputFiles((IGosuClass) type, driver);
-      } else {
-        ParseResultsException parseException = ((IGosuClass) type).getParseResultsException();
-        if (parseException != null) {
-          for (IParseIssue issue : parseException.getParseIssues()) {
-            int category = issue instanceof ParseWarning ? WARNING : ERROR;
-            driver.sendCompileIssue(_compilingSourceFile, category, issue.getTokenStart(), issue.getLine(), issue.getColumn(), issue.getUIMessage());
-          }
-        }
+      }
+      // output warnings and errors - whether the type was valid or not
+      IParsedElement classElement = ((IGosuClass) type).getClassStatement();
+      IClassFileStatement classFileStatement = ((IClassStatement) classElement).getClassFileStatement();
+      classElement = classFileStatement == null ? classElement : classFileStatement;
+      for (IParseIssue issue : classElement.getParseIssues()) {
+        int category = issue instanceof ParseWarning ? WARNING : ERROR;
+        driver.sendCompileIssue(_compilingSourceFile, category, issue.getTokenStart(), issue.getLine(), issue.getColumn(), issue.getUIMessage());
       }
     }
 

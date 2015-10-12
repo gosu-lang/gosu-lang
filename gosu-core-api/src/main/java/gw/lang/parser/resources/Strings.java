@@ -324,6 +324,7 @@ public class Strings extends ListResourceBundle
        {Res.MSG_NO_ARRAY_IN_COMPONENT_TYPE.getKey(), "Arrays are not allowed in a component type"},
        {Res.MSG_NO_PRIMITIVE_IN_COMPONENT_TYPE.getKey(), "Primitives are not allowed in a component type"},
        {Res.MSG_ONLY_ONE_CLASS_IN_COMPONENT_TYPE.getKey(), "Only one non-interface is allowed in a component type"},
+       {Res.MSG_ONLY_ONE_TYPE_VARIABLE.getKey(), "A type variable may not be followed by other bounds"},
        {Res.MSG_COMPOUND_TYPE_NOT_ALLOWED_HERE.getKey(), "Compound type is not allowed here"},
        {Res.MSG_PARAMETERIZED_TYPE_NOT_ALLOWED_HERE.getKey(), "Parameterized type is not allowed here"},
        {Res.MSG_DYNAMIC_TYPE_NOT_ALLOWED_HERE.getKey(), "Dynamic type is not allowed here"},

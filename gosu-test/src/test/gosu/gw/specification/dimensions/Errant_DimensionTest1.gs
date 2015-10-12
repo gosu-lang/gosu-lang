@@ -235,5 +235,17 @@ class Errant_DimensionTest1 {
     var lenPower1 = len3 ^ len4  //## issuekeys: MSG_BITWISE_OPERAND_MUST_BE_INT_OR_LONG, MSG_BITWISE_OPERAND_MUST_BE_INT_OR_LONG
   }
 
+  function testImplicitCoercionToNumber() {
+    var d = new SampleDimension_Integer( new Integer( 7 ) )
 
+    var test1 = d == 7  //## issuekeys: MSG_IMPLICIT_COERCION_ERROR
+    test1 = 7 == d      //## issuekeys: MSG_IMPLICIT_COERCION_ERROR
+
+    var seven = 7
+    test1 = d == seven  //## issuekeys: MSG_IMPLICIT_COERCION_ERROR
+    test1 = seven == d  //## issuekeys: MSG_IMPLICIT_COERCION_ERROR
+
+    var dim: SampleDimension_Integer = 7  //## issuekeys: MSG_TYPE_MISMATCH
+    var num: int = d  //## issuekeys: MSG_IMPLICIT_COERCION_ERROR
+  }
 }

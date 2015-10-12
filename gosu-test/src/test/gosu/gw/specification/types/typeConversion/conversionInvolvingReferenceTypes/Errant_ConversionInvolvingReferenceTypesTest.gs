@@ -63,7 +63,7 @@ class Errant_ConversionInvolvingReferenceTypesTest {
     tt = ts6
     tt = ts7
     tt = ts8
-    tt = ts9
+    tt = ts9   //## issuekeys: MSG_IMPLICIT_COERCION_ERROR
     tt = ts10
     tt = ts11
     tt = ts12
