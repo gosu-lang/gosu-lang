@@ -21,7 +21,7 @@ class Errant_DimensionTest2 {
 
     var two = 2
 
-    var a10 = i1 == two
+    var a10 = i1 == two    //## issuekeys: OPERATOR '==' CANNOT BE APPLIED TO 'GW.SPECIFICATION.DIMENSIONS.P0.SAMPLEDIMENSION_INTEGER', 'INT'
     var q = i1 + bi        //## issuekeys: OPERATOR '+' CANNOT BE APPLIED TO 'A.GOSU.SAMPLEDIMENSION_INTEGER', 'A.GOSU.SAMPLEDIMENSION_BIGINTEGER'
     var a1 = i1 *  2.2
     var a2 = i1 /  2.2
@@ -201,5 +201,19 @@ class Errant_DimensionTest2 {
     var lenSubtract1 = len3 - len4
   }
 
+  //IDE-2996
+  function test1() {
+    var d = new SampleDimension_Integer(new Integer(7))
+    var two = 2
+    var b = d == 2            //## issuekeys: OPERATOR '==' CANNOT BE APPLIED TO 'GW.SPECIFICATION.DIMENSIONS.P0.SAMPLEDIMENSION_INTEGER', 'INT'
+    var a = d == two          //## issuekeys: OPERATOR '==' CANNOT BE APPLIED TO 'GW.SPECIFICATION.DIMENSIONS.P0.SAMPLEDIMENSION_INTEGER', 'INT'
+  }
 
+  //IDE-2986
+  function test2() {
+    var a3 = new TestDim(2)
+    var b3 : double = 2.0
+    var r = a3 == b3       //## issuekeys: OPERATOR '==' CANNOT BE APPLIED TO 'GW.SPECIFICATION.DIMENSIONS.P0.TESTDIM', 'DOUBLE'
+    r = a3 == 2.0          //## issuekeys: OPERATOR '==' CANNOT BE APPLIED TO 'GW.SPECIFICATION.DIMENSIONS.P0.TESTDIM', 'DOUBLE'
+  }
 }
