@@ -5,18 +5,19 @@
 package gw.util.cache;
 
 import gw.internal.gosu.parser.StringCache;
+import gw.lang.parser.TypeSystemAwareCache;
 import gw.util.DynamicArray;
 import gw.util.Predicate;
 
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 
 public class FqnCache<T> implements IFqnCache<T> {
-  private static Map<String, String[]> PARTS_CACHE = new ConcurrentHashMap<String, String[]>();
+  private static final TypeSystemAwareCache<String, String[]> PARTS_CACHE =
+     TypeSystemAwareCache.make( "Fqn Parts Cache", 10000, FqnCache::split );
+
   private FqnCacheNode<T> _root = new FqnCacheNode<T>("root", null);
 
   public FqnCacheNode<T> getRoot() {
@@ -165,13 +166,8 @@ public class FqnCache<T> implements IFqnCache<T> {
     return parts.toArray(new String[parts.size()]);
   }
 
-  public static String[] getParts(String fqn) {
-    String[] strings = PARTS_CACHE.get(fqn);
-    if (strings == null) {
-      strings = split(fqn);
-      PARTS_CACHE.put(fqn, strings);
-    }
-    return strings;
+  public static String[] getParts( String fqn ) {
+    return PARTS_CACHE.get( fqn );
   }
 
 }
