@@ -8,6 +8,7 @@ import gw.internal.gosu.parser.GenericTypeVariable;
 import gw.internal.gosu.parser.TypeVariableType;
 import gw.lang.parser.Keyword;
 import gw.lang.parser.expressions.ITypeVariableDefinition;
+import gw.lang.parser.expressions.Variance;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.gs.IGenericTypeVariable;
 import gw.lang.reflect.java.JavaTypes;
@@ -22,15 +23,20 @@ public class TypeVariableDefinitionImpl implements ITypeVariableDefinition
   IType _enclosingType;
   IType _boundingType;
   GenericTypeVariable _typeVar;
+  Variance _variance;
 
-  public TypeVariableDefinitionImpl() { }
+  public TypeVariableDefinitionImpl()
+  {
+    _variance = Variance.DEFAULT;
+  }
 
-  public TypeVariableDefinitionImpl(TypeVariableType type, String strName, IType enclosingType, IType boundingType, GenericTypeVariable typeVar) {
+  public TypeVariableDefinitionImpl(TypeVariableType type, String strName, IType enclosingType, IType boundingType, GenericTypeVariable typeVar, Variance variance) {
     _type = type;
     _strName = strName;
     _enclosingType = enclosingType;
     _boundingType = boundingType;
     _typeVar = typeVar;
+    _variance = variance;
   }
 
   public TypeVariableType getType()
@@ -78,6 +84,17 @@ public class TypeVariableDefinitionImpl implements ITypeVariableDefinition
   public IType getBoundingType()
   {
     return _boundingType;
+  }
+
+  @Override
+  public Variance getVariance()
+  {
+    return _variance;
+  }
+  @Override
+  public void setVariance( Variance variance )
+  {
+    _variance = variance;
   }
 
   @Override
@@ -130,11 +147,11 @@ public class TypeVariableDefinitionImpl implements ITypeVariableDefinition
 
   @Override
   public TypeVariableDefinitionImpl clone() {
-    return new TypeVariableDefinitionImpl( _type, _strName, _enclosingType, _boundingType, _typeVar );
+    return new TypeVariableDefinitionImpl( _type, _strName, _enclosingType, _boundingType, _typeVar, _variance );
   }
 
   public TypeVariableDefinitionImpl cloneShallow( IType boundingType ) {
-    return new TypeVariableDefinitionImpl( _type, _strName, _enclosingType, boundingType, _typeVar );
+    return new TypeVariableDefinitionImpl( _type, _strName, _enclosingType, boundingType, _typeVar, _variance );
   }
 
   public TypeVariableDefinitionImpl clone( IType boundingType ) {

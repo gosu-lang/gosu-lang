@@ -77,13 +77,14 @@ public abstract class IRElement {
 
   protected List<IRType> maybeEraseStructuralTypes( IRType ownersType, List<IRType> types ) {
     List<IRType> altTypes = null;
-    for( IRType csr: types ) {
+    for( int i = 0; i < types.size(); i++ ) {
+      IRType csr = types.get( i );
       IRType type = maybeEraseStructuralType( ownersType, csr );
       if( type != csr ) {
         if( altTypes == null ) {
           altTypes = new ArrayList<IRType>( types );
         }
-        altTypes.set( types.indexOf( csr ), type );
+        altTypes.set( i, type );
       }
     }
     return altTypes == null ? types : altTypes;

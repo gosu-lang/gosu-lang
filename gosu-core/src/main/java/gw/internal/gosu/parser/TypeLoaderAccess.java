@@ -195,6 +195,22 @@ public class TypeLoaderAccess extends BaseService implements ITypeSystem
     return getter != null ? getter.get() : null;
   }
 
+  public boolean isParameterizedWith( IType type, ITypeVariableType... typeVars )
+  {
+    if( typeVars == null )
+    {
+      return false;
+    }
+    for( ITypeVariableType tv: typeVars )
+    {
+      if( type.equals( tv ) || TypeLord.isParameterizedWith( type, (TypeVariableType)tv) )
+      {
+        return true;
+      }
+    }
+    return false;
+  }
+
   Map<CharSequence, TypeGetter> getDefaultTypes()
   {
     if (_defaultTypesIniting) {
@@ -1186,6 +1202,9 @@ public class TypeLoaderAccess extends BaseService implements ITypeSystem
 
   public void inferTypeVariableTypesFromGenParamTypeAndConcreteType(IType genParamType, IType argType, TypeVarToTypeMap map) {
     TypeLord.inferTypeVariableTypesFromGenParamTypeAndConcreteType(genParamType, argType, map);
+  }
+  public void inferTypeVariableTypesFromGenParamTypeAndConcreteType_Reverse(IType genParamType, IType argType, TypeVarToTypeMap map) {
+    TypeLord.inferTypeVariableTypesFromGenParamTypeAndConcreteType_Reverse(genParamType, argType, map);
   }
 
   public IErrorType getErrorType() {

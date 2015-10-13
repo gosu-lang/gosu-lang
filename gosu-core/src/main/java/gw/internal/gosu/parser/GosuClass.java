@@ -135,6 +135,7 @@ public class GosuClass extends InnerClassCapableType implements IGosuClassIntern
   transient private GenericTypeVariable[] _genTypeVar;
   transient private GosuParser _parser;
   transient private ITypeUsesMap _typeUsesMap;
+  transient private Boolean _bStrictGenerics;
   transient private ModifierInfo _modifierInfo;
   transient private boolean _bHasAssertions;
 
@@ -863,19 +864,29 @@ public class GosuClass extends InnerClassCapableType implements IGosuClassIntern
     }
     else
     {
-      //noinspection SuspiciousMethodCalls
-      return (type.getAllTypesInHierarchy().contains( pThis ) ||
-              TypeLord.areGenericOrParameterizedTypesAssignable( pThis, type )) &&
-             // We check structural assignability for the case where this is a generic structure and
-             // covariant assignability cannot hold because the type variable[s] are in parameter positions
-             // and, therefore, impose a contravariannt relationship, thus requires a deeper structural assignability check.
-             // Note this check should really be done on ALL generic interfaces, not just generic structures...
-             // Also it's probably worth noting this makes up for not having declaration-site contravariance,
-             // since we allow contravariant assignments to structures (the nominal, covariant check fails, then
-             // we check for a structural match, which wins in the contravariant case.  Makes it much easier on
-             // the user, they don't have to think about variance, shit just works with structures even when used nominally.
-             (!isParameterizedType() || !isStructure() || StandardCoercionManager.isStructurallyAssignable_Laxed( pThis, type ));
+      if( type.getAllTypesInHierarchy().contains( pThis ) ||
+          TypeLord.areGenericOrParameterizedTypesAssignable( pThis, type ) )
+      {
+        // We check structural assignability for the case where this is a *proper* Generic structure/interface and
+        // covariant assignability may be inappropriate.  In other words structural assignability verifies contravariance
+        // if necessary.
+        return (isGenericType() && !isParameterizedType()) || // a pure generic class has no type parameters, therefore no contravariance to check
+               !isStrictGenerics() && !isStructure() || // only a proper generic type or structure can have contravariance
+               StandardCoercionManager.isStructurallyAssignable( pThis, type );
+      }
     }
+    return false;
+  }
+
+  public boolean isStrictGenerics()
+  {
+    if( _bStrictGenerics != null )
+    {
+      return _bStrictGenerics;
+    }
+
+    return _bStrictGenerics = getGosuAnnotations().stream()
+      .anyMatch( anno -> anno.getType() == JavaTypes.STRICT_GENERICS() );
   }
 
   public boolean isMutable()

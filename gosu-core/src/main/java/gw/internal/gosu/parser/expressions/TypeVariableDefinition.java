@@ -9,6 +9,7 @@ import gw.internal.gosu.parser.GenericTypeVariable;
 import gw.internal.gosu.parser.TypeVariableType;
 import gw.lang.parser.expressions.ITypeVariableDefinition;
 import gw.lang.parser.expressions.ITypeVariableDefinitionExpression;
+import gw.lang.parser.expressions.Variance;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.gs.IGenericTypeVariable;
 import gw.lang.reflect.java.JavaTypes;
@@ -194,6 +195,17 @@ public class TypeVariableDefinition extends Expression implements ITypeVariableD
                                                       ? JavaTypes.OBJECT()
                                                       : type );
     }
+  }
+
+  @Override
+  public Variance getVariance()
+  {
+    return _typeVarDef.getVariance();
+  }
+  @Override
+  public void setVariance( Variance variance )
+  {
+    _typeVarDef.setVariance( variance );
   }
 
   public ITypeVariableDefinition getTypeVarDef() {

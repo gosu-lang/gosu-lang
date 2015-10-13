@@ -185,6 +185,7 @@ public class SymbolCompletionHandler extends AbstractCompletionHandler {
         !(inProgram() && parents(Object.class, GosuForEachStatementImpl.class))) {
       // remove 'in' if we aren't directly in a for loop
       maybeRemoveKeyword(keywords, Keyword.KW_in);
+      maybeRemoveKeyword(keywords, Keyword.KW_out);
     }
 
     return makeKeywordProposals(keywords);
@@ -264,6 +265,7 @@ public class SymbolCompletionHandler extends AbstractCompletionHandler {
         Keyword.KW_for,
         Keyword.KW_if,
         Keyword.KW_in,
+        Keyword.KW_out,
         Keyword.KW_index,
         Keyword.KW_iterator,
         Keyword.KW_new,

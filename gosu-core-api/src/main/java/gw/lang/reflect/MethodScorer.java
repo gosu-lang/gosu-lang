@@ -214,6 +214,10 @@ public class MethodScorer {
             iScore = Byte.MAX_VALUE - 2;
           }
         }
+        else if( StandardCoercionManager.isStructurallyAssignable( paramType, argType ) ) {
+          // Structurally assignable types  +Max - 2
+          iScore = Byte.MAX_VALUE - 2;
+        }
         else {
           ICoercer iCoercer = CommonServices.getCoercionManager().findCoercer( paramType, argType, false );
           if( iCoercer != null ) {

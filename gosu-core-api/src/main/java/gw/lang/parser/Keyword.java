@@ -27,6 +27,7 @@ public class Keyword implements CharSequence
   public static final Keyword KW_null = addReservedWord( "null", true );
   public static final Keyword KW_length = addReservedWord( "length", true );
   public static final Keyword KW_in = addReservedWord( "in" );
+  public static final Keyword KW_out = addReservedWord( "out", true );
   public static final Keyword KW_startswith = addReservedWord( "startswith", true );
   public static final Keyword KW_contains = addReservedWord( "contains", true );
   public static final Keyword KW_where = addReservedWord( "where", true );

@@ -415,6 +415,7 @@ public class Strings extends ListResourceBundle
        {Res.MSG_CANNOT_REFERENCE_NON_STATIC_PROPERTY_FROM_STATIC_CONTEXT.getKey(), "You cannot reference non-static properties in a static context." },
        {Res.MSG_CANNOT_READ_A_WRITE_ONLY_PROPERTY.getKey(), "Write-only properties may only be written" },
        {Res.MSG_CANNOT_EXTEND_RAW_GENERIC_TYPE.getKey(), "The generic type {0} requires type argument[s]" },
+       {Res.MSG_TYPE_VAR_VARIANCE_ERROR.getKey(), "The type variable {0} is declared \"{1}\" but is used in a \"{2}\" position with type {3}'" },
        {Res.MSG_NOT_A_SUPERTYPE.getKey(), "{0} is not a direct super type" },
        {Res.USING_INTERNAL_CLASS.getKey(), "This is an internal class that will change in the future.  It is dangerous and unsupported to use this class."},
        {Res.MSG_APPLICATION_MODIFIER_HAS_BEEN_DEPRECATED.getKey(), "The \"application\" modifier has been deprecated.  Use the gw.api.web.Scopes.Application map instead." },

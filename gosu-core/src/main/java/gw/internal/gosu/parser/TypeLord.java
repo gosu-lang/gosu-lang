@@ -550,7 +550,7 @@ public class TypeLord
     return type;
   }
 
-  private static boolean isParameterizedWith( IType type, TypeVariableType typeVar )
+  public static boolean isParameterizedWith( IType type, TypeVariableType typeVar )
   {
     type = getCoreType( type );
 
@@ -1688,10 +1688,10 @@ public class TypeLord
         return true;
       }
 
-      IType[] paramTypesFrom = relatedParameterizedType.getTypeParameters();
       IType[] typeParams = to.getTypeParameters();
       if( typeParams != null )
       {
+        IType[] paramTypesFrom = relatedParameterizedType.getTypeParameters();
         for( int i = 0; i < typeParams.length; i++ )
         {
           IType paramType = typeParams[i];
@@ -1701,6 +1701,12 @@ public class TypeLord
 //        {
 //          paramType = ((TypeVariableType)paramType).getTypeVarDef().getTypeVar().getBoundingTypes()[0];
 //        }
+
+          Boolean bStrictResult = compareWithStrictVariance( to, relatedParameterizedType, i );
+          if( bStrictResult != null )
+          {
+            return bStrictResult;
+          }
 
           if( paramType != JavaTypes.OBJECT() &&
               (paramTypesFrom == null ||
@@ -1717,6 +1723,63 @@ public class TypeLord
       return true;
     }
     return false;
+  }
+
+  private static Boolean compareWithStrictVariance( IType to, IType from, int iIndex )
+  {
+    IType toGenType = getPureGenericType( to );
+    IType fromGenType = getPureGenericType( from );
+
+    if( toGenType != fromGenType )
+    {
+      return null;
+    }
+
+    IGenericTypeVariable[] toGtvs = toGenType.getGenericTypeVariables();
+    if( toGtvs == null || iIndex >= toGtvs.length )
+    {
+      return null;
+    }
+    IGenericTypeVariable[] fromGtvs = fromGenType.getGenericTypeVariables();
+    if( fromGtvs == null || iIndex >= fromGtvs.length )
+    {
+      return null;
+    }
+    if( toGtvs.length != fromGtvs.length )
+    {
+      return null;
+    }
+
+    IType[] toTypeParams = to.getTypeParameters();
+    if( toTypeParams == null || iIndex >= toTypeParams.length )
+    {
+      return null;
+    }
+    IType[] fromTypeParams = from.getTypeParameters();
+    if( fromTypeParams == null || iIndex >= fromTypeParams.length )
+    {
+      return null;
+    }
+
+    ITypeVariableDefinition typeVarDef = toGtvs[iIndex].getTypeVariableDefinition();
+    if( typeVarDef == null )
+    {
+      return null;
+    }
+
+    IType toTypeParam = toTypeParams[iIndex];
+    IType fromTypeParam = fromTypeParams[iIndex];
+
+    switch( typeVarDef.getVariance() )
+    {
+      case COVARIANT:
+        return toTypeParam.isAssignableFrom( fromTypeParam );
+      case CONTRAVARIANT:
+        return fromTypeParam.isAssignableFrom( toTypeParam );
+      case INVARIANT:
+        return toTypeParam.equals( fromTypeParam );
+    }
+    return null;
   }
 
   private static boolean sameAsDefaultProxiedType( IType to, IType from )
@@ -1776,6 +1839,23 @@ public class TypeLord
       result = result.getSupertype();
     }
     return result;
+  }
+
+  public static IType findGreatestLowerBound( IType t1, IType t2 )
+  {
+    if( t1.equals( t2 ) )
+    {
+      return t1;
+    }
+    if( t1.isAssignableFrom( t2 ) )
+    {
+      return t2;
+    }
+    if( t2.isAssignableFrom( t1 ) )
+    {
+      return t1;
+    }
+    return t1; //## todo: return JavaTypes.VOID() or return null or Object?
   }
 
   public static IType findLeastUpperBound( List<? extends IType> types )
@@ -2385,6 +2465,13 @@ public class TypeLord
           return;
         }
       }
+      else if( genParamType instanceof IGosuClass && ((IGosuClass)genParamType).isStructure() )
+      {
+        if( StandardCoercionManager.isStructurallyAssignable_Laxed( genParamType, argType, inferenceMap ) )
+        {
+          return;
+        }
+      }
 
       IType argTypeInTermsOfParamType = bReverse ? findParameterizedType_Reverse( argType, genParamType ) : findParameterizedType( argType, genParamType.getGenericType() );
       if( argTypeInTermsOfParamType == null )
@@ -2418,15 +2505,8 @@ public class TypeLord
       }
       else if( type != null )
       {
-        // Infer the type as the intersection of the existing inferred type and this one.  This is most relevant for
-        // case where we infer a given type var from more than one type context e.g., a method call:
-        // var l : String
-        // var s : StringBuilder
-        // var r = foo( l, s ) // here we must use the LUB of String and StringBuilder, which is CharSequence & Serializable
-        // function foo<T>( t1: T, t2: T ) {}
-
-        IType lubType = argType.equals( genParamType ) ? type : TypeLord.findLeastUpperBound( Arrays.asList( type, argType ) );
-        inferenceMap.put( tvType, lubType );
+        IType combinedType = sovleType( genParamType, argType, inferenceMap, bReverse, tvType, type );
+        inferenceMap.put( tvType, combinedType );
       }
       IType boundingType = ((ITypeVariableType)genParamType).getBoundingType();
       if( !isRecursiveType( (ITypeVariableType)genParamType, boundingType ) )
@@ -2468,6 +2548,51 @@ public class TypeLord
         }
       }
     }
+  }
+
+  private static IType sovleType( IType genParamType, IType argType, TypeVarToTypeMap inferenceMap, boolean bReverse, ITypeVariableType tvType, IType type )
+  {
+    // Solve the type.  Either LUB or GLB.
+    //
+    // Infer the type as the intersection of the existing inferred type and this one.  This is most relevant for
+    // case where we infer a given type var from more than one type context e.g., a method call:
+    // var l : String
+    // var s : StringBuilder
+    // var r = foo( l, s ) // here we must use the LUB of String and StringBuilder, which is CharSequence & Serializable
+    // function foo<T>( t1: T, t2: T ) {}
+    //
+    // Also handle inferring a type from a structure type's methods:
+    //
+
+    IType lubType;
+    if( bReverse )
+    {
+      // Contravariant
+      lubType = TypeLord.findGreatestLowerBound( type, argType );
+    }
+    else
+    {
+      if( inferenceMap.isInferredForCovariance( tvType ) )
+      {
+        // Covariant
+        lubType = argType.equals( genParamType ) ? type : TypeLord.findLeastUpperBound( Arrays.asList( type, argType ) );
+      }
+      else
+      {
+        // Contravariant
+
+        // This is the first type encountered in a return/covariant position, the prior type[s] are in contravariant positions,
+        // therefore we can apply contravariance to maintain the return type's more specific type i.e., since the other type[s]
+        // are all param types and are contravariant with tvType, we should keep the more specific type between them.  Note if
+        // the param type is more specific, tvType's variance is broken either way (both lub and glb produce a type that is not
+        // call-compatible).
+        lubType = TypeLord.findGreatestLowerBound( type, argType );
+      }
+
+      // We have inferred tvType from a covariant position, so we infer using covariance in subsequent positions
+      inferenceMap.setInferredForCovariance( tvType );
+    }
+    return lubType;
   }
 
   public static IType getConcreteType( IType type )

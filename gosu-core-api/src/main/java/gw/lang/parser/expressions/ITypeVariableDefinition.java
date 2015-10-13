@@ -22,4 +22,7 @@ public interface ITypeVariableDefinition
   IType getBoundingType();
 
   ITypeVariableDefinition clone();
+
+  Variance getVariance();
+  void setVariance( Variance variance );
 }

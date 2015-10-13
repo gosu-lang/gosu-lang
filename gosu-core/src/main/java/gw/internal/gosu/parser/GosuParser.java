@@ -127,6 +127,7 @@ import gw.lang.parser.expressions.ITypeParameterListClause;
 import gw.lang.parser.expressions.ITypeVariableDefinition;
 import gw.lang.parser.expressions.ITypeVariableDefinitionExpression;
 import gw.lang.parser.expressions.IVarStatement;
+import gw.lang.parser.expressions.Variance;
 import gw.lang.parser.resources.Res;
 import gw.lang.parser.resources.ResourceKey;
 import gw.lang.parser.statements.IClasspathStatement;
@@ -6696,7 +6697,9 @@ public final class GosuParser extends ParserBase implements IGosuParser
                         isTypeParamHeaderCompiling( typeParam[i] ) ||
                                 isErrorType( typeParam[i] ) ||
                                 (typeVars[i].getTypeVariableDefinition() != null && typeVars[i].getTypeVariableDefinition().getType().isAssignableFrom( typeParam[i] )) ||
-                                boundingType.isAssignableFrom( typeParam[i] ),
+                                boundingType.isAssignableFrom( typeParam[i] ) ||
+                                boundingType instanceof IGosuClass && ((IGosuClass)boundingType).isStructure() && StandardCoercionManager.isStructurallyAssignable( boundingType.getGenericType(), typeParam[i] )
+                        ,
                         Res.MSG_TYPE_PARAM_NOT_ASSIGNABLE_TO,
                         typeParam[i], boundingType );
       }
@@ -13554,6 +13557,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
   boolean _parseTypeVariableDefinition( ParsedElement parsedElem, TypeVariableDefinition typeVarDef )
   {
     Token T = new Token();
+    parseVariance( parsedElem, typeVarDef );
     if( verify( parsedElem, match( T, SourceCodeTokenizer.TT_WORD ), Res.MSG_EXPECTING_IDENTIFIER_EXISTS ) )
     {
       typeVarDef.setName( T._strValue );
@@ -13606,6 +13610,66 @@ public final class GosuParser extends ParserBase implements IGosuParser
     }
     pushExpression( typeVarDef );
     return true;
+  }
+
+  private void parseVariance( ParsedElement parsedElem, TypeVariableDefinition typeVarDef )
+  {
+    int iOffsetList = getTokenizer().getTokenStart();
+    int iLineNumList = getTokenizer().getLineNumber();
+    int iColumnList = getTokenizer().getTokenColumn();
+
+    boolean bCovariant = false;
+    boolean bContravariant = false;
+    while( true )
+    {
+      Token token = getTokenizer().getCurrentToken();
+      if( Keyword.KW_in == token.getKeyword() )
+      {
+        getTokenizer().nextToken();
+
+        if( verify( parsedElem, !typeVarDef.getType().isFunctionStatement(), Res.MSG_UNEXPECTED_TOKEN, Keyword.KW_in ) )
+        {
+          if( verify( parsedElem, !bContravariant, Res.MSG_ILLEGAL_USE_OF_MODIFIER, Keyword.KW_in, Keyword.KW_in ) )
+          {
+            bContravariant = true;
+            if( typeVarDef.getVariance() == Variance.COVARIANT )
+            {
+              typeVarDef.setVariance( Variance.INVARIANT );
+            }
+            else
+            {
+              typeVarDef.setVariance( Variance.CONTRAVARIANT );
+            }
+          }
+        }
+      }
+      else if( Keyword.KW_out == token.getKeyword() )
+      {
+        getTokenizer().nextToken();
+
+        if( verify( parsedElem, !typeVarDef.getType().isFunctionStatement(), Res.MSG_UNEXPECTED_TOKEN, Keyword.KW_out ) )
+        {
+          if( verify( parsedElem, !bCovariant, Res.MSG_ILLEGAL_USE_OF_MODIFIER, Keyword.KW_out, Keyword.KW_out ) )
+          {
+            bCovariant = true;
+            if( typeVarDef.getVariance() == Variance.CONTRAVARIANT )
+            {
+              typeVarDef.setVariance( Variance.INVARIANT );
+            }
+            else
+            {
+              typeVarDef.setVariance( Variance.COVARIANT );
+            }
+          }
+        }
+      }
+      else
+      {
+        break;
+      }
+    }
+
+    pushModifierList( iOffsetList, iLineNumList, iColumnList );
   }
 
   private IType getEnclosingType()
