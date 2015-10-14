@@ -82,4 +82,16 @@ class Errant_ConstraintsOnTypeParametersTest {
     new C19<A2>()  //## issuekeys: MSG_TYPE_PARAM_NOT_ASSIGNABLE_TO
     new C19<F>()
   }
+
+  // IDE-1194
+  static class Foo {
+    interface AnInterface {}
+    interface BInterface {}
+    class A {}
+    class B {}
+
+    var a: AnInterface & BInterface & A & B      //## issuekeys: ONLY ONE NON-INTERFACE IS ALLOWED IN A COMPONENT TYPE
+    function foo<T extends AnInterface & BInterface & A & B> (t1 : T, t2 : T) {}      //## issuekeys: ONLY ONE NON-INTERFACE IS ALLOWED IN A COMPONENT TYPE
+    class Test<T extends AnInterface & BInterface & A & B> {}      //## issuekeys: ONLY ONE NON-INTERFACE IS ALLOWED IN A COMPONENT TYPE
+  }
 }
