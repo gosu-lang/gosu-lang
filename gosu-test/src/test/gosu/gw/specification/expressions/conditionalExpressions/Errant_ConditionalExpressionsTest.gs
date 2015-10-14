@@ -259,4 +259,26 @@ class Errant_ConditionalExpressionsTest {
     var r1 = 123 ?: 1  //## issuekeys: MSG_EXPECTING_REFERENCE_TYPE
     r1 = i ?: 1  //## issuekeys: MSG_EXPECTING_REFERENCE_TYPE
   }
+
+  // IDE-327
+  abstract class IDE_327 {
+
+    function a() {
+      var x = 5
+      var y = 6
+      var xxx = x > y ? 42 : "hello world!"
+      var yyy = x > y ? false : "hello world!"
+      var zzz = x > y ? false : 42      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'INT', REQUIRED: 'BOOLEAN'
+    }
+
+    abstract function foo<T>(p1: T, p2: T): T
+
+    function test(x: int, y: int) {
+      var a: int
+      var b: String
+      var c1: Serializable = foo(a, b)
+      var c2: Serializable = x > y ? a : b
+    }
+  }
+
 }
