@@ -3,7 +3,7 @@ package gw.specification.temp.dynamic
 uses gw.BaseVerifyErrantTest
 
 class DynamicTypeTest extends BaseVerifyErrantTest {
-  function testPL_32416() {
-    assertTrue( PL_32416.Type.Valid )
+  function testIDE_2013() {
+    assertTrue( IDE_2013.Type.Valid )
   }
 }
