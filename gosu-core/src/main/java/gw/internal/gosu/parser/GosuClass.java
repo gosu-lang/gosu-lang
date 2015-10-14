@@ -867,11 +867,11 @@ public class GosuClass extends InnerClassCapableType implements IGosuClassIntern
       if( type.getAllTypesInHierarchy().contains( pThis ) ||
           TypeLord.areGenericOrParameterizedTypesAssignable( pThis, type ) )
       {
-        // We check structural assignability for the case where this is a *proper* Generic structure/interface and
+        // We check *structural* assignability for the case where this is a structure or @StrictGenerics class/interface and
         // covariant assignability may be inappropriate.  In other words structural assignability verifies contravariance
         // if necessary.
         return (isGenericType() && !isParameterizedType()) || // a pure generic class has no type parameters, therefore no contravariance to check
-               !isStrictGenerics() && !isStructure() || // only a proper generic type or structure can have contravariance
+               !isStrictGenerics() && !isStructure() || // only structures or @StrictGenerics marked interfaces need to be checked further for contravariance
                StandardCoercionManager.isStructurallyAssignable( pThis, type );
       }
     }

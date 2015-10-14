@@ -2,6 +2,173 @@ package gw.specContrib.generics
 
 class Errant_DeclarationSiteVariance {
 
+  interface InIn<in T, in U> {
+    function add( x: T ): boolean
+    function helo( u: U )
+  }
+
+  interface InOut<in T, out U> {
+    function add( x: T ): boolean
+    function guhbye(): U
+  }
+
+  interface OutOut<out T, out U> {
+    function iterator(): Iterator<T>
+    function guhbye(): U
+  }
+
+  interface OutIn<out T, in U> {
+    function iterator(): Iterator<T>
+    function helo( u: U )
+  }
+
+  interface OutInDefault<out T, in U, V> {
+    function iterator(): Iterator<T>
+    function helo( u: U )
+    function foo( v: V ) : V
+  }
+
+
+  function test_in_in() {
+    var St_St: InIn<String, String> = null
+    var Cs_Cs: InIn<CharSequence, CharSequence> = null
+
+    var St_Cs: InIn<String, CharSequence> = null
+    var Cs_St: InIn<CharSequence, String> = null
+
+    St_St = Cs_Cs
+    St_St = Cs_St
+    St_St = St_Cs
+    St_St = St_St  //## issuekeys: MSG_SILLY_ASSIGNMENT
+
+    St_Cs = Cs_Cs
+    St_Cs = Cs_St  //## issuekeys: MSG_TYPE_MISMATCH
+    St_Cs = St_Cs  //## issuekeys: MSG_SILLY_ASSIGNMENT
+    St_Cs = St_St  //## issuekeys: MSG_TYPE_MISMATCH
+
+    Cs_St = Cs_Cs
+    Cs_St = Cs_St  //## issuekeys: MSG_SILLY_ASSIGNMENT
+    Cs_St = St_Cs  //## issuekeys: MSG_TYPE_MISMATCH
+    Cs_St = St_St  //## issuekeys: MSG_TYPE_MISMATCH
+
+    Cs_Cs = Cs_Cs  //## issuekeys: MSG_SILLY_ASSIGNMENT
+    Cs_Cs = Cs_St  //## issuekeys: MSG_TYPE_MISMATCH
+    Cs_Cs = St_Cs  //## issuekeys: MSG_TYPE_MISMATCH
+    Cs_Cs = St_St  //## issuekeys: MSG_TYPE_MISMATCH
+  }
+
+  function test_in_out() {
+    var St_St: InOut<String, String> = null
+    var Cs_Cs: InOut<CharSequence, CharSequence> = null
+
+    var St_Cs: InOut<String, CharSequence> = null
+    var Cs_St: InOut<CharSequence, String> = null
+
+    St_St = Cs_Cs  //## issuekeys: MSG_TYPE_MISMATCH
+    St_St = Cs_St
+    St_St = St_Cs  //## issuekeys: MSG_TYPE_MISMATCH
+    St_St = St_St  //## issuekeys: MSG_SILLY_ASSIGNMENT
+
+    St_Cs = Cs_Cs
+    St_Cs = Cs_St
+    St_Cs = St_Cs  //## issuekeys: MSG_SILLY_ASSIGNMENT
+    St_Cs = St_St
+
+    Cs_St = Cs_Cs  //## issuekeys: MSG_TYPE_MISMATCH
+    Cs_St = Cs_St  //## issuekeys: MSG_SILLY_ASSIGNMENT
+    Cs_St = St_Cs  //## issuekeys: MSG_TYPE_MISMATCH
+    Cs_St = St_St  //## issuekeys: MSG_TYPE_MISMATCH
+
+    Cs_Cs = Cs_Cs  //## issuekeys: MSG_SILLY_ASSIGNMENT
+    Cs_Cs = Cs_St
+    Cs_Cs = St_Cs  //## issuekeys: MSG_TYPE_MISMATCH
+    Cs_Cs = St_St  //## issuekeys: MSG_TYPE_MISMATCH
+  }
+
+  function test_out_out() {
+    var St_St: OutOut<String, String> = null
+    var Cs_Cs: OutOut<CharSequence, CharSequence> = null
+
+    var St_Cs: OutOut<String, CharSequence> = null
+    var Cs_St: OutOut<CharSequence, String> = null
+
+    St_St = Cs_Cs  //## issuekeys: MSG_TYPE_MISMATCH
+    St_St = Cs_St  //## issuekeys: MSG_TYPE_MISMATCH
+    St_St = St_Cs  //## issuekeys: MSG_TYPE_MISMATCH
+    St_St = St_St  //## issuekeys: MSG_SILLY_ASSIGNMENT
+
+    St_Cs = Cs_Cs  //## issuekeys: MSG_TYPE_MISMATCH
+    St_Cs = Cs_St  //## issuekeys: MSG_TYPE_MISMATCH
+    St_Cs = St_Cs  //## issuekeys: MSG_SILLY_ASSIGNMENT
+    St_Cs = St_St
+
+    Cs_St = Cs_Cs  //## issuekeys: MSG_TYPE_MISMATCH
+    Cs_St = Cs_St  //## issuekeys: MSG_SILLY_ASSIGNMENT
+    Cs_St = St_Cs  //## issuekeys: MSG_TYPE_MISMATCH
+    Cs_St = St_St
+
+    Cs_Cs = Cs_Cs  //## issuekeys: MSG_SILLY_ASSIGNMENT
+    Cs_Cs = Cs_St
+    Cs_Cs = St_Cs
+    Cs_Cs = St_St
+  }
+
+  function test_out_in() {
+    var St_St: OutIn<String, String> = null
+    var Cs_Cs: OutIn<CharSequence, CharSequence> = null
+
+    var St_Cs: OutIn<String, CharSequence> = null
+    var Cs_St: OutIn<CharSequence, String> = null
+
+    St_St = Cs_Cs  //## issuekeys: MSG_TYPE_MISMATCH
+    St_St = Cs_St  //## issuekeys: MSG_TYPE_MISMATCH
+    St_St = St_Cs
+    St_St = St_St  //## issuekeys: MSG_SILLY_ASSIGNMENT
+
+    St_Cs = Cs_Cs  //## issuekeys: MSG_TYPE_MISMATCH
+    St_Cs = Cs_St  //## issuekeys: MSG_TYPE_MISMATCH
+    St_Cs = St_Cs  //## issuekeys: MSG_SILLY_ASSIGNMENT
+    St_Cs = St_St  //## issuekeys: MSG_TYPE_MISMATCH
+
+    Cs_St = Cs_Cs
+    Cs_St = Cs_St  //## issuekeys: MSG_SILLY_ASSIGNMENT
+    Cs_St = St_Cs
+    Cs_St = St_St
+
+    Cs_Cs = Cs_Cs  //## issuekeys: MSG_SILLY_ASSIGNMENT
+    Cs_Cs = Cs_St  //## issuekeys: MSG_TYPE_MISMATCH
+    Cs_Cs = St_Cs
+    Cs_Cs = St_St  //## issuekeys: MSG_TYPE_MISMATCH
+  }
+
+  function test_out_in_default() {
+    var St_St_St: OutInDefault<String, String, String> = null
+    var Cs_Cs_Cs: OutInDefault<CharSequence, CharSequence, CharSequence> = null
+
+    var St_Cs_St: OutInDefault<String, CharSequence, String> = null
+    var Cs_St_Cs: OutInDefault<CharSequence, String, CharSequence> = null
+
+    St_St_St = Cs_Cs_Cs  //## issuekeys: MSG_TYPE_MISMATCH
+    St_St_St = Cs_St_Cs  //## issuekeys: MSG_TYPE_MISMATCH
+    St_St_St = St_Cs_St
+    St_St_St = St_St_St  //## issuekeys: MSG_SILLY_ASSIGNMENT
+
+    St_Cs_St = Cs_Cs_Cs  //## issuekeys: MSG_TYPE_MISMATCH
+    St_Cs_St = Cs_St_Cs  //## issuekeys: MSG_TYPE_MISMATCH
+    St_Cs_St = St_Cs_St  //## issuekeys: MSG_SILLY_ASSIGNMENT
+    St_Cs_St = St_St_St  //## issuekeys: MSG_TYPE_MISMATCH
+
+    Cs_St_Cs = Cs_Cs_Cs
+    Cs_St_Cs = Cs_St_Cs  //## issuekeys: MSG_SILLY_ASSIGNMENT
+    Cs_St_Cs = St_Cs_St
+    Cs_St_Cs = St_St_St
+
+    Cs_Cs_Cs = Cs_Cs_Cs  //## issuekeys: MSG_SILLY_ASSIGNMENT
+    Cs_Cs_Cs = Cs_St_Cs  //## issuekeys: MSG_TYPE_MISMATCH
+    Cs_Cs_Cs = St_Cs_St
+    Cs_Cs_Cs = St_St_St  //## issuekeys: MSG_TYPE_MISMATCH
+  }
+
   interface Setter<in T> {
     function add( x: T ): boolean
   }
@@ -113,25 +280,4 @@ class Errant_DeclarationSiteVariance {
   class Foo<out R> {}
   class Bar<in R> {}
   class Baz<in out R> {}
-
-//
-//  class PString implements Prod<String> {
-//    override function foo( cb(t:String) ) {
-//      cb( "" )
-//    }
-//    override function foo2( h: Hi<String> ) {}
-//  }
-//  class PChar implements Prod<CharSequence> {
-//    override function foo( cb(t:CharSequence) ) {
-//      cb( new StringBuilder() )
-//    }
-//    override function foo2( h: Hi<CharSequence> ) {}
-//  }
-//
-//  var x: Prod<CharSequence>
-//  var y: Prod<String>
-//  function asdf() {
-//    x = y
-////   x.foo( \ t:Object -> null )
-//  }
 }

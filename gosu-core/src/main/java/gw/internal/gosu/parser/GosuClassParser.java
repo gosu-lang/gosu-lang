@@ -2876,7 +2876,7 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
 
     if( variance == Variance.DEFAULT )
     {
-      //## todo: see comment below, remove this if-stmt after work complete
+      //## todo: see comment below, remove this if-stmt after work complete... for now default variance is compatible with all
       return;
     }
 

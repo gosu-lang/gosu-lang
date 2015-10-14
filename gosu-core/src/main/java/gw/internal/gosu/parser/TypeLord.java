@@ -1702,10 +1702,14 @@ public class TypeLord
 //          paramType = ((TypeVariableType)paramType).getTypeVarDef().getTypeVar().getBoundingTypes()[0];
 //        }
 
-          Boolean bStrictResult = compareWithStrictVariance( to, relatedParameterizedType, i );
-          if( bStrictResult != null )
+          Boolean bDeclarationSiteResult = compareWithDeclarationSiteVariance( to, relatedParameterizedType, i );
+          if( bDeclarationSiteResult != null )
           {
-            return bStrictResult;
+            if( !bDeclarationSiteResult )
+            {
+              return false;
+            }
+            continue;
           }
 
           if( paramType != JavaTypes.OBJECT() &&
@@ -1725,7 +1729,7 @@ public class TypeLord
     return false;
   }
 
-  private static Boolean compareWithStrictVariance( IType to, IType from, int iIndex )
+  private static Boolean compareWithDeclarationSiteVariance( IType to, IType from, int iIndex )
   {
     IType toGenType = getPureGenericType( to );
     IType fromGenType = getPureGenericType( from );
