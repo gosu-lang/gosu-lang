@@ -281,4 +281,15 @@ class Errant_ConditionalExpressionsTest {
     }
   }
 
+  // IDE-451
+  class IDE_451 {
+    class A {}
+    class B extends A {}
+    class C extends A {}
+
+    var mytype = false ? new C() : new B()
+    var someonestype = false ? new Float(42.5) : new ArrayList()
+    var yourtype = true ? new Float(42.5) : new Integer(42)       //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.LANG.INTEGER', REQUIRED: 'JAVA.LANG.FLOAT'
+  }
+
 }
