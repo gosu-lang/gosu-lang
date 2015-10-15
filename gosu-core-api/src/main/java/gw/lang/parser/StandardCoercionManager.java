@@ -83,6 +83,16 @@ public class StandardCoercionManager extends BaseService implements ICoercionMan
 
   private boolean hasPotentialLossOfPrecisionOrScale( IType lhsType, IType rhsType )
   {
+    if( (lhsType.isPrimitive() || JavaTypes.NUMBER().isAssignableFrom( lhsType )) && JavaTypes.IDIMENSION().isAssignableFrom( rhsType ) )
+    {
+      IType rhsDimension = TypeSystem.findParameterizedType( rhsType, JavaTypes.IDIMENSION() );
+      IType[] typeParameters = rhsDimension.getTypeParameters();
+      if( typeParameters == null) {
+        return true;
+      }
+      rhsType = typeParameters[1];
+    }
+
     if( lhsType == JavaTypes.pBYTE() || lhsType == JavaTypes.BYTE() )
     {
       return rhsType != JavaTypes.pBYTE() && rhsType != JavaTypes.BYTE();
@@ -94,12 +104,12 @@ public class StandardCoercionManager extends BaseService implements ICoercionMan
     else if( lhsType == JavaTypes.pDOUBLE() || lhsType == JavaTypes.DOUBLE() )
     {
       return rhsType != JavaTypes.DOUBLE() && !rhsType.isPrimitive() &&
-             (JavaTypes.BIG_DECIMAL().isAssignableFrom( rhsType ) || JavaTypes.BIG_INTEGER().isAssignableFrom( rhsType ) || JavaTypes.IDIMENSION().isAssignableFrom( rhsType ));
+             (JavaTypes.BIG_DECIMAL().isAssignableFrom( rhsType ) || JavaTypes.BIG_INTEGER().isAssignableFrom( rhsType ));
     }
     else if( lhsType == JavaTypes.pFLOAT() || lhsType == JavaTypes.FLOAT() )
     {
       return rhsType == JavaTypes.pDOUBLE() || rhsType == JavaTypes.DOUBLE() ||
-             JavaTypes.BIG_DECIMAL().isAssignableFrom( rhsType ) || JavaTypes.BIG_INTEGER().isAssignableFrom( rhsType ) || JavaTypes.IDIMENSION().isAssignableFrom( rhsType );
+             JavaTypes.BIG_DECIMAL().isAssignableFrom( rhsType ) || JavaTypes.BIG_INTEGER().isAssignableFrom( rhsType );
     }
     else if( lhsType == JavaTypes.pINT() || lhsType == JavaTypes.INTEGER() )
     {
@@ -125,11 +135,7 @@ public class StandardCoercionManager extends BaseService implements ICoercionMan
     {
       return rhsType != JavaTypes.BIG_INTEGER() && hasPotentialLossOfPrecisionOrScale( JavaTypes.LONG(), rhsType );
     }
-    else if( JavaTypes.BIG_DECIMAL().isAssignableFrom( lhsType ) )
-    {
-      return JavaTypes.IDIMENSION().isAssignableFrom( rhsType );
-    }
-    return true;
+    return false;
   }
 
   public final ICoercer findCoercer( IType lhsType, IType rhsType, boolean runtime )
