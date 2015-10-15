@@ -1405,8 +1405,10 @@ class JavaType extends InnerClassCapableType implements IJavaTypeInternal
       return _bStrictGenerics;
     }
 
-    return _bStrictGenerics = Arrays.stream( getBackingClass().getAnnotations() )
-      .anyMatch( anno -> anno.getClass() == StrictGenerics.class );
+    Class backingClass = getBackingClass();
+    return _bStrictGenerics = backingClass != null &&
+      Arrays.stream( backingClass.getAnnotations() )
+        .anyMatch( anno -> anno.getClass() == StrictGenerics.class );
   }
 
   @Override
