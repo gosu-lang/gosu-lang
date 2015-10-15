@@ -20,7 +20,7 @@
     <module>gosu-parent</module>
     <module>gosu-test</module>
     <module>gosu-test-api</module>
-    <module>plexus-compiler-gosu</module>
+    <module>gosu-maven-compiler</module>
   </modules>
   <profiles>
     <profile>

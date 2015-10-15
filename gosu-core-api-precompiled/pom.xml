@@ -63,7 +63,7 @@
         <dependencies>
           <dependency>
             <groupId>org.gosu-lang.gosu</groupId>
-            <artifactId>plexus-compiler-gosu</artifactId>
+            <artifactId>gosu-maven-compiler</artifactId>
             <version>1-X-SNAPSHOT</version>
           </dependency>
         </dependencies>
