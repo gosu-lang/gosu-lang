@@ -11,6 +11,12 @@ machine:
     JAVA_OPTS: "-Xmx1g"
     MAVEN_OPTS: "-Xmx1g -DcheckedArithmetic=true"
 
+dependencies:
+  override:
+    # :go-offline will download as much as possible, saving time later.
+    # '|| true' ensures that a missing dependency will not fail the build here - this failure happens when compiling a new version of Gosu for the first time  
+    - mvn --fail-never dependency:go-offline || true 
+
 general:
   branches:
     only:
