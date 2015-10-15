@@ -6840,6 +6840,15 @@ public final class GosuParser extends ParserBase implements IGosuParser
       if( score.getScore() == 0 && !hasContextSensitiveExpression( argExpressions ) )
       {
         // perfect score, no need to continue
+
+        //## todo: this should not happen, we need to change the key for the scored method cache to be type *hierarchy* sensitive
+        // e.g., overloaded methods can have different enclosing types, but basically in the same hierarchy; for enhancements we should use the enhanced type, for example.
+        if( scoredMethods.size() > 1 )
+        {
+          scoredMethods.clear();
+          scoredMethods.add( score );
+        }
+
         break;
       }
     }
