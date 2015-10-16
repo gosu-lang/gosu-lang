@@ -34,12 +34,27 @@
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <dist.man.snapshotrepo.url>https://oss.sonatype.org/content/repositories/snapshots</dist.man.snapshotrepo.url>
   </properties>
+
+  <repositories>
+    <repository>
+      <id>ossrh</id>
+      <name>Central Repository (snapshots)</name>
+      <url>${dist.man.snapshotrepo.url}</url>
+      <releases>
+        <enabled>false</enabled>
+      </releases>
+      <snapshots>
+        <enabled>true</enabled>
+      </snapshots>
+    </repository>
+  </repositories>
 
   <distributionManagement>
     <snapshotRepository>
       <id>ossrh</id>
-      <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+      <url>${dist.man.snapshotrepo.url}</url>
     </snapshotRepository>
     <repository>
       <id>ossrh</id>

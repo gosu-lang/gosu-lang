@@ -14,8 +14,7 @@ machine:
 dependencies:
   override:
     # :go-offline will download as much as possible, saving time later.
-    # '|| true' ensures that a missing dependency will not fail the build here - this failure happens when compiling a new version of Gosu for the first time  
-    - mvn --fail-never dependency:go-offline || true 
+    - mvn dependency:go-offline
 
 general:
   branches:
