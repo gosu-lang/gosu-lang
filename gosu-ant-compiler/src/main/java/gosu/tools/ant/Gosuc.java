@@ -103,16 +103,16 @@ public class Gosuc extends GosuMatchingTask {
    *
    * @param fail if true halt the build on failure
    */
-  public void setFailonerror(boolean fail) {
+  public void setFailOnError(boolean fail) {
     _failOnError = fail;
   }
 
   /**
-   * Gets the failonerror flag.
+   * Gets the FailOnError flag.
    *
-   * @return the failonerror flag
+   * @return the FailOnError flag
    */
-  public boolean getFailonerror() {
+  public boolean getFailOnError() {
     return _failOnError;
   }
   
@@ -164,6 +164,7 @@ public class Gosuc extends GosuMatchingTask {
     log("gosu.tools.ant.Gosuc#execute!!!", Project.MSG_INFO);
     log("srcdir=" + getSrcdir(), Project.MSG_INFO);
     log("destdir=" + getDestdir(), Project.MSG_INFO);
+    log("failOnError=" + getFailOnError(), Project.MSG_INFO);
     log("_compileClasspath=" + _compileClasspath, Project.MSG_INFO);
 
     ICompilerDriver driver = new SoutCompilerDriver();
@@ -171,11 +172,9 @@ public class Gosuc extends GosuMatchingTask {
 
     List<String> classpath = new ArrayList<>();
     classpath.addAll(Arrays.asList(_compileClasspath.list()));
-//    classpath.addAll(config.getClasspathEntries());
     classpath.addAll(getJreJars());
-//    classpath.addAll(getGosuJars());
-    
-    log("Initializing Gosu type system:", Project.MSG_INFO);
+
+    log("Initializing Gosu compiler...", Project.MSG_INFO);
     log("\tsourceFolders:" + Arrays.asList(getSrcdir().list()), Project.MSG_INFO);
     log("\tclasspath:" + classpath, Project.MSG_INFO);
     log("\toutputPath:" + getDestdir().getAbsolutePath(), Project.MSG_INFO);
@@ -246,15 +245,15 @@ public class Gosuc extends GosuMatchingTask {
     }
 
     sb.append(hasWarningsOrErrors ? ':' : "");
-    log(sb.toString());
+    log(sb.toString(), hasWarningsOrErrors ? Project.MSG_WARN : Project.MSG_INFO);
     warningMessages.forEach(this::log);
     errorMessages.forEach(this::log);
 
     if(errorsInCompilation) {
-      if(getFailonerror()) {
-        buildError("Gosuc failed with errors; see compiler output for details.");
+      if(getFailOnError()) {
+        buildError("Gosu compilation failed with errors; see compiler output for details.");
       } else {
-        log("Gosu Compiler: Ignoring compilation failure(s) as 'failOnError' was set to false");
+        log("Gosu Compiler: Ignoring compilation failure(s) as 'failOnError' was set to false", Project.MSG_WARN);
       }
     }
     
