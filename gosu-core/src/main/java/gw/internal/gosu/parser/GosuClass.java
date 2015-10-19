@@ -809,7 +809,7 @@ public class GosuClass extends InnerClassCapableType implements IGosuClassIntern
 
   public Object makeArrayInstance( int iLength )
   {
-    return Array.newInstance(getBackingClass(), iLength);
+    return Array.newInstance( getBackingClass(), iLength );
   }
 
   public Object getArrayComponent( Object array, int iIndex ) throws IllegalArgumentException, ArrayIndexOutOfBoundsException
@@ -862,18 +862,17 @@ public class GosuClass extends InnerClassCapableType implements IGosuClassIntern
       // (force an explicit cast if the runtime type is expected to directly implement the interface)
       return false;
     }
-    else
+    else if( type.getAllTypesInHierarchy().contains( pThis ) )
     {
-      if( type.getAllTypesInHierarchy().contains( pThis ) ||
-          TypeLord.areGenericOrParameterizedTypesAssignable( pThis, type ) )
-      {
+      return true;
+    }
+    else if( TypeLord.areGenericOrParameterizedTypesAssignable( pThis, type ) )
+    {
         // We check *structural* assignability for the case where this is a structure or @StrictGenerics class/interface and
         // covariant assignability may be inappropriate.  In other words structural assignability verifies contravariance
         // if necessary.
         return (isGenericType() && !isParameterizedType()) || // a pure generic class has no type parameters, therefore no contravariance to check
-               !isStrictGenerics() && !isStructure() || // only structures or @StrictGenerics marked interfaces need to be checked further for contravariance
-               StandardCoercionManager.isStructurallyAssignable( pThis, type );
-      }
+               !isStrictGenerics() && !isStructure(); // structures and @StrictGenerics marked interfaces need to be checked further for contravariance
     }
     return false;
   }
