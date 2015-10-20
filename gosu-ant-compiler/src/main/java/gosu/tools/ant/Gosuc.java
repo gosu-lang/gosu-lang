@@ -18,7 +18,9 @@ import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 public class Gosuc extends GosuMatchingTask {
@@ -27,6 +29,8 @@ public class Gosuc extends GosuMatchingTask {
   private File _destDir;
   private Path _compileClasspath;
   private boolean _failOnError = true;
+  private boolean _checkedArithmetic = false;
+  private Set<String> _scriptExtensions = new HashSet<>(Arrays.asList("gs", "gsx", "gst"));
 
   protected File[] compileList = new File[0];
   
@@ -93,9 +97,9 @@ public class Gosuc extends GosuMatchingTask {
     createClasspath().setRefid(ref);
   }
 
-//  private List<String> getScriptExtensions() {
-//    return scriptExtensions; //TODO implement me ?
-//  }
+  private Set<String> getScriptExtensions() {
+    return _scriptExtensions;
+  }
 
   /**
    * Indicates whether the build will continue
@@ -115,6 +119,14 @@ public class Gosuc extends GosuMatchingTask {
   public boolean getFailOnError() {
     return _failOnError;
   }
+
+  public boolean isCheckedArithmetic() {
+    return _checkedArithmetic;
+  }
+
+  public void setCheckedArithmetic( boolean checkedArithmetic ) {
+    _checkedArithmetic = checkedArithmetic;
+  }
   
   /**
    * Scans the directory looking for source files to be compiled.
@@ -128,7 +140,7 @@ public class Gosuc extends GosuMatchingTask {
     GlobPatternMapper m = new GlobPatternMapper();
     SourceFileScanner sfs = new SourceFileScanner(this);
     File[] newFiles;
-    for (String extension : Arrays.asList("gs", "gsx", "gst") /*getScriptExtensions()*/ ) { //FIXME parameterize?
+    for (String extension : getScriptExtensions()) {
       m.setFrom("*." + extension);
       m.setTo("*.class");
       newFiles = sfs.restrictAsFiles(files, srcDir, destDir, m);
@@ -165,8 +177,13 @@ public class Gosuc extends GosuMatchingTask {
     log("srcdir=" + getSrcdir(), Project.MSG_INFO);
     log("destdir=" + getDestdir(), Project.MSG_INFO);
     log("failOnError=" + getFailOnError(), Project.MSG_INFO);
+    log("checkedArithmetic=" + isCheckedArithmetic(), Project.MSG_INFO);
     log("_compileClasspath=" + _compileClasspath, Project.MSG_INFO);
 
+    if(isCheckedArithmetic()) {
+      System.setProperty("checkedArithmetic", "true");
+    }
+    
     ICompilerDriver driver = new SoutCompilerDriver();
     IGosuCompiler gosuc = new gw.lang.gosuc.simple.GosuCompiler();
 
@@ -277,5 +294,4 @@ public class Gosuc extends GosuMatchingTask {
       throw new RuntimeException(e);
     }
   }
-  
 }
