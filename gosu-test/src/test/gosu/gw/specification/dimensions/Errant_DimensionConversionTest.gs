@@ -7,7 +7,7 @@ uses java.lang.Integer
 uses java.math.BigDecimal
 uses java.math.BigInteger
 
-class AErrant_DimensionConversionTest {
+class Errant_DimensionConversionTest {
 
   var dim = new TestDim( 7 )
 
