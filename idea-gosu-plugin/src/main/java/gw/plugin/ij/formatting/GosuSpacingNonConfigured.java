@@ -54,6 +54,12 @@ public class GosuSpacingNonConfigured extends GosuElementTypes {
       return Spacing.createSafeSpacing(false, 0);
     }
 
+    // smth [SPACE] out [SPACE] smth
+    if (psiElement(TT_out).accepts(psi2) ||
+        psiElement(TT_out).accepts(psi1)) {
+      return Spacing.createSafeSpacing(false, 0);
+    }
+
     // smth [SPACE] typeis [SPACE] smth
     if (psiElement(TT_typeis).accepts(psi2) ||
         psiElement(TT_typeis).accepts(psi1)) {

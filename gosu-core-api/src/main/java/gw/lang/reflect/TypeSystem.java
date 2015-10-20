@@ -412,9 +412,16 @@ public class TypeSystem
     return CommonServices.getTypeSystem().getActualType(type, actualParamByVarName, bKeepTypeVars);
   }
 
-  public static void inferTypeVariableTypesFromGenParamTypeAndConcreteType( IType genParamType, IType argType, TypeVarToTypeMap map )
+  public static void inferTypeVariableTypesFromGenParamTypeAndConcreteType( IType genParamType, IType argType, TypeVarToTypeMap map, boolean bReverse )
   {
-    CommonServices.getTypeSystem().inferTypeVariableTypesFromGenParamTypeAndConcreteType( genParamType, argType, map );
+    if( bReverse )
+    {
+      CommonServices.getTypeSystem().inferTypeVariableTypesFromGenParamTypeAndConcreteType_Reverse( genParamType, argType, map );
+    }
+    else
+    {
+      CommonServices.getTypeSystem().inferTypeVariableTypesFromGenParamTypeAndConcreteType( genParamType, argType, map );
+    }
   }
 
   public static IErrorType getErrorType()
@@ -926,6 +933,10 @@ public class TypeSystem
 
   public static IType replaceTypeVariableTypeParametersWithBoundingTypes( IType type, IType enclosingType ) {
     return CommonServices.getTypeSystem().replaceTypeVariableTypeParametersWithBoundingTypes( type, enclosingType );
+  }
+
+  public static boolean isParameterizedWith( IType type, ITypeVariableType... typeVar ) {
+    return CommonServices.getTypeSystem().isParameterizedWith( type, typeVar );
   }
 
   public static IModule getJreModule() {

@@ -60,6 +60,7 @@ import gw.lang.parser.expressions.IModifierListClause;
 import gw.lang.parser.expressions.IParameterDeclaration;
 import gw.lang.parser.expressions.ITypeVariableDefinition;
 import gw.lang.parser.expressions.ITypeVariableDefinitionExpression;
+import gw.lang.parser.expressions.Variance;
 import gw.lang.parser.resources.Res;
 import gw.lang.parser.resources.ResourceKey;
 import gw.lang.parser.statements.IClassStatement;
@@ -73,6 +74,7 @@ import gw.lang.reflect.IErrorType;
 import gw.lang.reflect.IFeatureInfo;
 import gw.lang.reflect.IFunctionType;
 import gw.lang.reflect.IInvocableType;
+import gw.lang.reflect.IMetaType;
 import gw.lang.reflect.IMethodInfo;
 import gw.lang.reflect.IParameterInfo;
 import gw.lang.reflect.IPropertyInfo;
@@ -1257,6 +1259,10 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
           eatStatementBlock( fs, Res.MSG_EXPECTING_OPEN_BRACE_FOR_FUNCTION_DEF );
         }
       }
+
+      verifyTypeVarVariance( Variance.CONTRAVARIANT, fs, dfs.getArgTypes() );
+      verifyTypeVarVariance( Variance.COVARIANT, fs, dfs.getReturnType() );
+
       return dfs;
     }
     else if( strMemberKeyword[0] != null && strMemberKeyword[0].equals( Keyword.KW_property.toString() ) )
@@ -1285,6 +1291,9 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
       PropertyStatement statement = new PropertyStatement( fs, dps );
       verifyPropertiesAreSymmetric( bGetter, dfs, dps, statement );
       pushStatement( statement );
+
+      verifyTypeVarVariance( bGetter ? Variance.COVARIANT : Variance.CONTRAVARIANT, fs, bGetter ? new IType[] {dps.getGetterDfs().getReturnType()} : dps.getSetterDfs().getArgTypes() );
+
       return dps;
     }
     else if( strMemberKeyword[0] != null && strMemberKeyword[0].equals( Keyword.KW_var.toString() ) )
@@ -2058,6 +2067,10 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
 
         SuperTypeClause extendsClause = new SuperTypeClause( superType );
         pushExpression( extendsClause );
+        if( gsClass.isHeaderCompiled() )
+        {
+          verifyTypeVarVariance( Variance.COVARIANT, getClassStatement(), superType );
+        }
         setLocation( iOffset, iLineNum, iColumn );
         popExpression();
 
@@ -2080,6 +2093,10 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
         {
           IType type = parseEnhancedOrImplementedType( gsClass, bInterface, interfaces );
           gsClass.addInterface( type );
+          if( gsClass.isHeaderCompiled() )
+          {
+            verifyTypeVarVariance( Variance.COVARIANT, getClassStatement(), type );
+          }
           interfaces.add( type );
         } while( match( null, ',' ) );
 
@@ -2756,6 +2773,8 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
       {
         eatStatementBlock( fs, Res.MSG_EXPECTING_OPEN_BRACE_FOR_FUNCTION_DEF );
       }
+      verifyTypeVarVariance( Variance.CONTRAVARIANT, fs, dfs.getArgTypes() );
+      verifyTypeVarVariance( Variance.COVARIANT, fs, dfs.getReturnType() );
       return dfs;
     }
     else if( T[0] != null && T[0].equals( Keyword.KW_property.toString() ) )
@@ -2811,6 +2830,8 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
       verifyPropertiesAreSymmetric( bGetter, dfs, dps, statement );
       pushStatement( statement );
 
+      verifyTypeVarVariance( bGetter ? Variance.COVARIANT : Variance.CONTRAVARIANT, fs, bGetter ? new IType[] {dps.getGetterDfs().getReturnType()} : dps.getSetterDfs().getArgTypes() );
+
       return dps;
     }
     else if( T[0] != null && T[0].equals( Keyword.KW_var.toString() ) )
@@ -2820,7 +2841,9 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
         modifiers.setModifiers( Modifier.setStatic( modifiers.getModifiers(), true ) );
         modifiers.setModifiers( Modifier.setFinal( modifiers.getModifiers(), true ) );
       }
-      return parseFieldDecl( modifiers );
+      VarStatement varStatement = parseFieldDecl( modifiers );
+      verifyTypeVarVariance( Variance.INVARIANT, varStatement, varStatement.getType() );
+      return varStatement;
     }
     else if( T[0] != null && T[0].equals( Keyword.KW_delegate.toString() ) )
     {
@@ -2831,6 +2854,88 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
       getClassStatement().addParseException( new ParseException( makeFullParserState(), Res.MSG_EXPECTING_DECL ) );
       return null;
     }
+  }
+
+  private void verifyTypeVarVariance( Variance variance, ParsedElement fs, IType... types )
+  {
+    for( IType type : types )
+    {
+      _verifyTypeVarVariance( variance, fs, type );
+    }
+  }
+  private void _verifyTypeVarVariance( Variance variance, ParsedElement fs, IType type )
+  {
+    _verifyTypeVarVariance( variance, fs, type, type );
+  }
+  private void _verifyTypeVarVariance( Variance variance, ParsedElement fs, IType type, IType original )
+  {
+    if( type instanceof ErrorType )
+    {
+      return;
+    }
+
+    if( variance == Variance.DEFAULT )
+    {
+      //## todo: see comment below, remove this if-stmt after work complete... for now default variance is compatible with all
+      return;
+    }
+
+    if( type instanceof ITypeVariableType )
+    {
+      Variance typeVarVariance = ((ITypeVariableType)type).getTypeVarDef().getVariance();
+      verify( fs, typeVarVariance == variance || typeVarVariance == Variance.DEFAULT || typeVarVariance == Variance.INVARIANT, Res.MSG_TYPE_VAR_VARIANCE_ERROR, type.getRelativeName(), typeVarVariance == null ? "null" : typeVarVariance.getDesc(), variance.getDesc(), original.getRelativeName() );
+    }
+    else if( type.isArray() )
+    {
+      _verifyTypeVarVariance( variance, fs, type.getComponentType(), original );
+    }
+    else if( type.isParameterizedType() && !(type instanceof IMetaType) )
+    {
+      IType[] typeParameters = type.getTypeParameters();
+      for( int i = 0; i < typeParameters.length; i++ )
+      {
+        IType typeParam = typeParameters[i];
+        IGenericTypeVariable[] gtvs = type.getGenericType().getGenericTypeVariables();
+        if( i < gtvs.length )
+        {
+          Variance typeParamVariance = gtvs[i].getTypeVariableDefinition().getVariance();
+          variance = variance == Variance.CONTRAVARIANT
+                     ? invertVariance( typeParamVariance )
+                     : variance == Variance.COVARIANT
+                       ? typeParamVariance
+                       : variance;
+//## todo: for DEFAULT variance we want to check the type if COVARIANT or CONTRAVARIANT *could* work
+//          if( variance == Variance.DEFAULT && typeParam instanceof ITypeVariableType )
+//          {
+//            Variance typeVarVariance = ((ITypeVariableType)typeParam).getTypeVarDef().getVariance();
+//            if( okForVariance( type, typeVarVariance )
+//            {
+//              variance = typeVarVariance;
+//            }
+//          }
+          _verifyTypeVarVariance( variance, fs, typeParam, original );
+        }
+      }
+    }
+    else if( type instanceof IFunctionType )
+    {
+      IFunctionType funcType = (IFunctionType)type;
+      Variance invertedVariance = invertVariance( variance );
+      for( IType paramType : funcType.getParameterTypes() )
+      {
+        _verifyTypeVarVariance( invertedVariance, fs, paramType, original );
+      }
+      _verifyTypeVarVariance( variance, fs, funcType.getReturnType(), original );
+    }
+  }
+
+  private Variance invertVariance( Variance variance )
+  {
+    return variance == Variance.COVARIANT
+           ? Variance.CONTRAVARIANT
+           : variance == Variance.CONTRAVARIANT
+             ? Variance.COVARIANT
+             : variance;
   }
 
   private void verifyPropertiesAreSymmetric( boolean bGetter,

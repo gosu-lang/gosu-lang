@@ -238,14 +238,14 @@ class Errant_DimensionTest1 {
   function testImplicitCoercionToNumber() {
     var d = new SampleDimension_Integer( new Integer( 7 ) )
 
-    var test1 = d == 7  //## issuekeys: MSG_IMPLICIT_COERCION_ERROR
-    test1 = 7 == d      //## issuekeys: MSG_IMPLICIT_COERCION_ERROR
+    var test1 = d == 7
+    test1 = 7 == d
 
     var seven = 7
-    test1 = d == seven  //## issuekeys: MSG_IMPLICIT_COERCION_ERROR
-    test1 = seven == d  //## issuekeys: MSG_IMPLICIT_COERCION_ERROR
+    test1 = d == seven
+    test1 = seven == d
 
     var dim: SampleDimension_Integer = 7  //## issuekeys: MSG_TYPE_MISMATCH
-    var num: int = d  //## issuekeys: MSG_IMPLICIT_COERCION_ERROR
+    var num: int = d
   }
 }

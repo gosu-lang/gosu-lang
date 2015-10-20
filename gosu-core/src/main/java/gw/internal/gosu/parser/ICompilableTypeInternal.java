@@ -4,7 +4,6 @@
 
 package gw.internal.gosu.parser;
 
-import gw.internal.gosu.parser.statements.StatementList;
 import gw.lang.parser.IBlockClass;
 import gw.lang.parser.ICapturedSymbol;
 import gw.lang.parser.IDynamicFunctionSymbol;

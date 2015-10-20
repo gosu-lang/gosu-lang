@@ -391,6 +391,7 @@ public class Res
   public static final ResourceKey MSG_PARAM_NOT_FOUND = new ResourceKey( "MSG_PARAM_NOT_FOUND" );
   public static final ResourceKey MSG_PARAMETERIZED_ARRAY_COMPONENT = new ResourceKey( "MSG_PARAMETERIZED_ARRAY_COMPONENT" );
   public static final ResourceKey MSG_CANNOT_EXTEND_RAW_GENERIC_TYPE = new ResourceKey( "MSG_CANNOT_EXTEND_RAW_GENERIC_TYPE" );
+  public static final ResourceKey MSG_TYPE_VAR_VARIANCE_ERROR = new ResourceKey( "MSG_TYPE_VAR_VARIANCE_ERROR" );
   public static final ResourceKey MSG_NOT_A_SUPERTYPE = new ResourceKey( "MSG_NOT_A_SUPERTYPE" );
   public static final ResourceKey MSG_EXPECTING_TYPE_TO_FOLLOW_PACKAGE_NAME = new ResourceKey( "MSG_EXPECTING_TYPE_TO_FOLLOW_PACKAGE_NAME" );
   public static final ResourceKey MSG_CANNOT_REFERENCE_OUTER_SYMBOL_WITHIN_ENHANCEMENTS = new ResourceKey( "MSG_CANNOT_REFERENCE_OUTER_SYMBOL_WITHIN_ENHANCEMENTS" );

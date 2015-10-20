@@ -68,12 +68,13 @@ public class TypeVariableType extends AbstractType implements ITypeVariableType
   public String getNameWithEnclosingType()
   {
     String strEnclosingType = getEnclosingType().getName();
-    if( getEnclosingType() instanceof FunctionType )
+    if( getEnclosingType() instanceof FunctionType || isFunctionStatement() )
     {
       // Add id to distinguish between overloaded methods. We can't use the signature
       // because we parse the type vars before the signature.
       strEnclosingType += "." + System.identityHashCode( this );
     }
+
     return strEnclosingType + '.' + getRelativeName();
   }
 

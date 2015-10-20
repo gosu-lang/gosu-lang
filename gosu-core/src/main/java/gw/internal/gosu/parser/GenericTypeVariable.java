@@ -9,6 +9,7 @@ import gw.internal.gosu.parser.expressions.TypeVariableDefinitionImpl;
 import gw.lang.parser.Keyword;
 import gw.lang.parser.TypeVarToTypeMap;
 import gw.lang.parser.expressions.ITypeVariableDefinition;
+import gw.lang.parser.expressions.Variance;
 import gw.lang.reflect.IFunctionType;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.TypeSystem;
@@ -57,7 +58,7 @@ public class GenericTypeVariable implements IGenericTypeVariable
     IJavaClassType[] fromBounds = typeVar.getBounds();
     IType[] boundingTypes = new IType[fromBounds.length];
 
-    TypeVariableDefinitionImpl typeVarDef = new TypeVariableDefinitionImpl( null, _strName, enclosingType, null, this );
+    TypeVariableDefinitionImpl typeVarDef = new TypeVariableDefinitionImpl( null, _strName, enclosingType, null, this, Variance.DEFAULT );
     TypeVariableType typeVarType = new TypeVariableType( typeVarDef, enclosingType instanceof IFunctionType );
 
     actualParamByVarName.put( typeVarType, typeVarType );

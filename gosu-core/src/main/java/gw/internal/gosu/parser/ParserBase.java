@@ -1836,7 +1836,7 @@ public abstract class ParserBase implements IParserPart
     return iModifiers;
   }
 
-  private void pushModifierList( int iOffsetList, int iLineNumList, int iColumnList )
+  void pushModifierList( int iOffsetList, int iLineNumList, int iColumnList )
   {
     ModifierListClause e = new ModifierListClause();
     pushExpression( e );

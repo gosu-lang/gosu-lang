@@ -6,6 +6,7 @@ package gw.lang.reflect.java;
 
 import gw.config.ExecutionMode;
 import gw.lang.Autoinsert;
+import gw.lang.StrictGenerics;
 import gw.lang.IAnnotation;
 import gw.lang.IDimension;
 import gw.lang.InternalAPI;
@@ -470,6 +471,14 @@ public class JavaTypes {
       return THIS.REPEATABLE == null ? THIS.REPEATABLE = getJreType( Repeatable.class ) : THIS.REPEATABLE;
     }  
     return getJreType(Repeatable.class);
+  }
+
+  private IJavaType STRICT_GENERICS = null;
+  public static IJavaType STRICT_GENERICS() {
+    if( !ExecutionMode.get().isRefreshSupportEnabled() ) {
+      return THIS.STRICT_GENERICS == null ? THIS.STRICT_GENERICS = getJreType( StrictGenerics.class ) : THIS.STRICT_GENERICS;
+    }  
+    return getJreType(StrictGenerics.class);
   }
 
   private IJavaType JAVA_LANG_DEPRECATED = null;
