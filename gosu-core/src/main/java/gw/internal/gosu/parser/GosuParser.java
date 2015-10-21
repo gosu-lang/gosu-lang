@@ -2548,7 +2548,9 @@ public final class GosuParser extends ParserBase implements IGosuParser
         e.setLHS( lhs );
         e.setRHS( rhs );
         e.setOperator( value );
-        e.setType( resolveTypeForArithmeticExpression( e, lhs.getType(), bPlus ? "+" : "-", rhs.getType() ) );
+        IType type = resolveTypeForArithmeticExpression( e, lhs.getType(), bPlus ? "+" : "-", rhs.getType() );
+        e.setType( type );
+        verify( e, TypeSystem.isNumericType( type ) || value.charAt(0) != '!', Res.MSG_ARITHMETIC_OPERATOR_CANNOT_BE_APPLIED_TO_TYPES, value, lhs.getType().getDisplayName(), rhs.getType().getDisplayName() );
         verify( e, !(e.isNullSafe() && e.getType().isPrimitive()), Res.MSG_EXPECTING_REFERENCE_TYPE );
         pushExpression( e );
       }
@@ -2603,7 +2605,9 @@ public final class GosuParser extends ParserBase implements IGosuParser
         e.setLHS( lhs );
         e.setRHS( rhs );
         e.setOperator( value );
-        e.setType( resolveTypeForArithmeticExpression( e, lhs.getType(), value, rhs.getType() ) );
+        IType type = resolveTypeForArithmeticExpression( e, lhs.getType(), value, rhs.getType() );
+        e.setType( type );
+        verify( e, TypeSystem.isNumericType( type ) || value.charAt(0) != '!', Res.MSG_ARITHMETIC_OPERATOR_CANNOT_BE_APPLIED_TO_TYPES, "!*", lhs.getType().getDisplayName(), rhs.getType().getDisplayName() );
         verify( e, !(e.isNullSafe() && e.getType().isPrimitive()), Res.MSG_EXPECTING_REFERENCE_TYPE );
         pushExpression( e );
       }
