@@ -7,17 +7,12 @@
   </parent>
   <modelVersion>4.0.0</modelVersion>
 
-  <artifactId>plexus-compiler-gosu</artifactId>
+  <artifactId>gosu-maven-compiler</artifactId>
 
-  <name>Gosu :: Plexus Gosu Component</name>
-  <description>Gosu Compiler support for Plexus Compiler component.</description>
+  <name>Gosu :: Compiler for Maven</name>
+  <description>Gosu Compiler support for the Maven compiler plugin, as a Plexus Compiler component.</description>
 
   <dependencies>
-    <dependency>
-      <groupId>org.codehaus.plexus</groupId>
-      <artifactId>plexus-utils</artifactId>
-      <version>3.0.10</version>
-    </dependency>
     <dependency>
       <groupId>org.gosu-lang.gosu</groupId>
       <artifactId>gosu-core-api</artifactId>
