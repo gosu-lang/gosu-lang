@@ -2874,7 +2874,7 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
     IType[] typeParameters = type.getTypeParameters();
     for( int i = 0; i < typeParameters.length; i++ )
     {
-      if( gtvs[i] != null )
+      if( gtvs[i] != null && gtvs[i].getTypeVariableDefinition() != null )
       {
         Variance variance = Variance.maybeInferVariance( type, gtvs[i] );
         verifyTypeVarVariance( variance, classStatement, typeParameters[i] );
