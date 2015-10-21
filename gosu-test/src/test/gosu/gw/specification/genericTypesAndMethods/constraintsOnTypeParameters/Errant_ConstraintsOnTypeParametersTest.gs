@@ -92,6 +92,9 @@ class Errant_ConstraintsOnTypeParametersTest {
 
     var a: AnInterface & BInterface & A & B      //## issuekeys: ONLY ONE NON-INTERFACE IS ALLOWED IN A COMPONENT TYPE
     function foo<T extends AnInterface & BInterface & A & B> (t1 : T, t2 : T) {}      //## issuekeys: ONLY ONE NON-INTERFACE IS ALLOWED IN A COMPONENT TYPE
+    function foo1<T extends AnInterface & BInterface & A> (t1 : T, t2 : T) {}
+    function foo2<T extends AnInterface & A & BInterface> (t1 : T, t2 : T) {}
+    function foo3<T extends A & AnInterface & BInterface> (t1 : T, t2 : T) {}
     class Test<T extends AnInterface & BInterface & A & B> {}      //## issuekeys: ONLY ONE NON-INTERFACE IS ALLOWED IN A COMPONENT TYPE
   }
 }
