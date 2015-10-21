@@ -5,6 +5,7 @@
 package gw.internal.gosu.parser.java.classinfo;
 
 import gw.lang.parser.TypeVarToTypeMap;
+import gw.lang.parser.expressions.Variance;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.java.IJavaClassMethod;
 import gw.lang.reflect.java.IJavaClassType;
@@ -63,5 +64,15 @@ public class UnparseableSourceTypeVariable implements IJavaClassTypeVariable {
   @Override
   public boolean isFunctionTypeVar() {
     return _owner instanceof IJavaClassMethod;
+  }
+
+  @Override
+  public Variance getVariance()
+  {
+    return Variance.DEFAULT;
+  }
+  @Override
+  public void setVariance( Variance variance )
+  {
   }
 }

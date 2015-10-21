@@ -27,7 +27,6 @@ import gw.lang.GosuShop;
 import gw.lang.SimplePropertyProcessing;
 import gw.lang.javadoc.IClassDocNode;
 import gw.lang.parser.TypeVarToTypeMap;
-import gw.lang.parser.coercers.FunctionToInterfaceCoercer;
 import gw.lang.reflect.EnumValuePlaceholder;
 import gw.lang.reflect.IAnnotationInfo;
 import gw.lang.reflect.IDefaultTypeLoader;
@@ -253,18 +252,9 @@ public abstract class JavaSourceType extends AbstractJavaClassInfo implements IJ
       if( kind == Tree.Kind.UNBOUNDED_WILDCARD )
       {
         // NULL_TYPE is just a placeholder so the call can use the context type to which this wildcard is an argument to make the actual wildcard type
-        return new JavaWildcardType( NULL_TYPE );
+        return new JavaWildcardType( NULL_TYPE, false );
       }
-      else if( kind == Tree.Kind.EXTENDS_WILDCARD )
-      {
-        return new JavaWildcardType( createType( typeResolver, wildcardTree.getBound() ) );
-      }
-      else if( kind == Tree.Kind.SUPER_WILDCARD )
-      {
-        // NULL_TYPE is just a placeholder so that the caller can know this is a 'super' (contravariant) wildcard
-        // We would prefer to determine the final wildcard type here, but we need the context type to which this wildcard is an argument for the sake of functional interfaces vs. other types
-        return new JavaWildcardType( NULL_TYPE );
-      }
+      return new JavaWildcardType( createType( typeResolver, wildcardTree.getBound() ), kind == Tree.Kind.SUPER_WILDCARD );
     }
     else if(tree instanceof IdentifierTree ||
             tree instanceof PrimitiveTypeTree ||
@@ -290,19 +280,6 @@ public abstract class JavaSourceType extends AbstractJavaClassInfo implements IJ
     for (int i = 0; i < typeParameters.length; i++) {
       Tree tree = typeArguments.get( i );
       typeParameters[i] = createType( typeResolver, tree );
-      if (typeParameters[i] instanceof JavaWildcardType && ((JavaWildcardType)typeParameters[i]).getUpperBound() == NULL_TYPE) {
-        Tree wildcardBound = ((WildcardTree)tree).getBound();
-        if( FunctionToInterfaceCoercer.getRepresentativeFunctionType( ((IJavaClassInfo)concreteType).getJavaType() ) != null ) {
-          // Functional interfaces parameterized eg., IFoo<? super T>,  wildcard type keep T so contravariance works with blocks
-          ((JavaWildcardType)typeParameters[i]).setBound( wildcardBound == null
-                                                          ? parameters[i].getBounds()[0] // handle naked wildcard IFoo<?>, use IFoo's type var's bounds
-                                                          : createType( typeResolver, wildcardBound ) );
-        }
-        else {
-          // handle naked wildcard IFoo<?>, use IFoo's type var's bounds
-          ((JavaWildcardType)typeParameters[i]).setBound( parameters[i].getBounds()[0] );
-        }
-      }
     }
     return new JavaParameterizedType(typeParameters, concreteType);
   }
@@ -926,6 +903,9 @@ public abstract class JavaSourceType extends AbstractJavaClassInfo implements IJ
       // type variable
       for (IJavaClassTypeVariable typeParameter : getTypeParameters()) {
         if (relativeName.equals(typeParameter.getName())) {
+          if( typeParameter instanceof JavaSourceTypeVariable ) {
+            typeParameter = ((JavaSourceTypeVariable)typeParameter).copy();
+          }
           return type = typeParameter;
         }
       }
