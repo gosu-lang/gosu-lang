@@ -11,6 +11,11 @@ machine:
     JAVA_OPTS: "-Xmx1g"
     MAVEN_OPTS: "-Xmx1g -DcheckedArithmetic=true"
 
+dependencies:
+  override:
+    # :go-offline will download as much as possible, saving time later.
+    - mvn dependency:go-offline
+
 general:
   branches:
     only:
