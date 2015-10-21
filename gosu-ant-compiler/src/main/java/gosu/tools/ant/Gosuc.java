@@ -8,7 +8,6 @@ import org.apache.tools.ant.DirectoryScanner;
 import org.apache.tools.ant.Project;
 import org.apache.tools.ant.types.Path;
 import org.apache.tools.ant.types.Reference;
-import org.apache.tools.ant.util.FileUtils;
 import org.apache.tools.ant.util.GlobPatternMapper;
 import org.apache.tools.ant.util.SourceFileScanner;
 
@@ -173,12 +172,11 @@ public class Gosuc extends GosuMatchingTask {
    * @throws BuildException if an error occurs
    */
   public void execute() throws BuildException {
-    log("gosu.tools.ant.Gosuc#execute!!!", Project.MSG_INFO);
-    log("srcdir=" + getSrcdir(), Project.MSG_INFO);
-    log("destdir=" + getDestdir(), Project.MSG_INFO);
-    log("failOnError=" + getFailOnError(), Project.MSG_INFO);
-    log("checkedArithmetic=" + isCheckedArithmetic(), Project.MSG_INFO);
-    log("_compileClasspath=" + _compileClasspath, Project.MSG_INFO);
+    log("srcdir=" + getSrcdir(), Project.MSG_DEBUG);
+    log("destdir=" + getDestdir(), Project.MSG_DEBUG);
+    log("failOnError=" + getFailOnError(), Project.MSG_DEBUG);
+    log("checkedArithmetic=" + isCheckedArithmetic(), Project.MSG_DEBUG);
+    log("_compileClasspath=" + _compileClasspath, Project.MSG_DEBUG);
 
     if(isCheckedArithmetic()) {
       System.setProperty("checkedArithmetic", "true");
@@ -192,16 +190,13 @@ public class Gosuc extends GosuMatchingTask {
     classpath.addAll(getJreJars());
 
     log("Initializing Gosu compiler...", Project.MSG_INFO);
-    log("\tsourceFolders:" + Arrays.asList(getSrcdir().list()), Project.MSG_INFO);
-    log("\tclasspath:" + classpath, Project.MSG_INFO);
-    log("\toutputPath:" + getDestdir().getAbsolutePath(), Project.MSG_INFO);
+    log("\tsourceFolders:" + Arrays.asList(getSrcdir().list()), Project.MSG_DEBUG);
+    log("\tclasspath:" + classpath, Project.MSG_DEBUG);
+    log("\toutputPath:" + getDestdir().getAbsolutePath(), Project.MSG_DEBUG);
 
     String[] list = getSrcdir().list();
     for (String filename : list) {
-      log(filename + " is absolute? " + FileUtils.isAbsolutePath(filename));
-      log("Trying to resolve: " + filename, Project.MSG_INFO);
       File file = getProject().resolveFile(filename);
-      log("Resolved to : " + file, Project.MSG_INFO);
       if (!file.exists()) {
         throw new BuildException("srcdir \"" + file.getPath() + "\" does not exist!", getLocation());
       }
@@ -212,9 +207,9 @@ public class Gosuc extends GosuMatchingTask {
     
     gosuc.initializeGosu(Arrays.asList(getSrcdir().list()), classpath, getDestdir().getAbsolutePath());
 
-    log("About to compile these files:", Project.MSG_INFO);
+    log("About to compile these files:", Project.MSG_DEBUG);
     for(File file : compileList) {
-      log("\t" + file.getAbsolutePath() , Project.MSG_INFO);
+      log("\t" + file.getAbsolutePath() , Project.MSG_DEBUG);
     }
     
     for(File file : compileList) {
