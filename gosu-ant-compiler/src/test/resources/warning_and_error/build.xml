@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project name="warning-and-error">
+
+  <property name="base.dir" value="src/test/resources/warning_and_error"/>
+  <property name="dest.dir" value="${base.dir}/dest"/>
+
+  <target name="setUp">
+    <mkdir dir="${dest.dir}"/>
+  </target>
+
+  <target name="compile">
+
+    <path id="gosu.classpath">
+      <pathelement location="../gosu-core/target/classes"/>
+      <pathelement location="../gosu-core-api/target/classes"/>
+    </path>
+
+    <taskdef resource="gosu/tools/ant/antlib.xml">
+      <classpath refid="gosu.classpath"/>
+    </taskdef>
+
+    <pathconvert property="classpathProp" refid="gosu.classpath"/>
+    <echo>Classpath is: ${classpathProp}</echo>
+
+    <gosuc srcdir="${base.dir}/src"
+           destdir="${dest.dir}"
+           classpathref="gosu.classpath"/>
+  </target>
+
+  <target name="tearDown">
+    <delete includeemptydirs="true">
+      <fileset dir="${dest.dir}" includes="**/*"/>
+    </delete>
+  </target>
+</project>
