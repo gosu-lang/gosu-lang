@@ -24,6 +24,14 @@ class Errant_DimensionArithmetic {
     override function fromNumber(p0: BigDecimal): SampleDim { return null }
     override function numberType(): Class<BigDecimal> { return null }
     override function compareTo(o: SampleDim): int { return 0 }
+
+    function divide(v: BigDecimal): SampleDim {
+      return null
+    }
+
+    function divide(v: SampleDim): BigDecimal {
+      return null
+    }
   }
 
   function testArithmetic(a: SampleDim, b: SampleDim) {
@@ -42,5 +50,4 @@ class Errant_DimensionArithmetic {
     var works = finalDim as BigDecimal
     var fails = nonFinalDim as BigDecimal //## issuekeys: MSG_TYPE_MISMATCH
   }
-
 }
