@@ -2865,7 +2865,7 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
 
   private void verifySuperTypeVarVariance( ClassStatement classStatement, IType type )
   {
-    if( !type.isParameterizedType() )
+    if( !type.isParameterizedType() || !getGosuClass().isGenericType() )
     {
       return;
     }
@@ -2884,6 +2884,11 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
 
   private void verifyTypeVarVariance( Variance ctxVariance, ParsedElement elem, IType type )
   {
+    if( !getGosuClass().isGenericType() )
+    {
+      return;
+    }
+
     Variance.verifyTypeVarVariance( ctxVariance,
       getGosuClass(),
       ( Variance ctxV, Variance typeVarV ) -> {
