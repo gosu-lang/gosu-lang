@@ -3,7 +3,7 @@ uses java.lang.Integer
 uses java.lang.Class
 uses gw.lang.IDimension
 
-class SampleDim implements IDimension<SampleDim, Integer> {
+final class SampleDim implements IDimension<SampleDim, Integer> {
   var _value: Integer;
 
   construct( value: Integer ) {
