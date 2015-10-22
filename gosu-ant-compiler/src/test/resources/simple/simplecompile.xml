@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project name="simple-compile">
+
+  <property name="base.dir" value="src/test/resources/simple"/>
+  <property name="dest.dir" value="${base.dir}/dest"/>
+  
+  <target name="setUp">
+    <mkdir dir="${dest.dir}"/>
+  </target>
+  
+  <target name="compile">
+
+    <path id="gosu.classpath">
+      <!--<fileset file="../gosu-core/target/classes"/>-->
+      <!--<fileset file="../gosu-core-api/target/classes"/>-->
+      <pathelement location="../gosu-core/target/classes"/>
+      <pathelement location="../gosu-core-api/target/classes"/>
+      <!--<fileset dir="../gosu-core/target/classes">-->
+        <!--<include name="**/*.class"/>-->
+        <!--<exclude name="placeholder.txt"/>-->
+      <!--</fileset>-->
+      <!--<fileset dir="../gosu-core-api/target/classes">-->
+        <!--<include name="**/*.class"/>-->
+        <!--<exclude name="placeholder.txt"/>-->
+      <!--</fileset>-->
+      <!--<fileset dir="target/classes">-->
+        <!--<include name="*.class"/>-->
+      <!--</fileset>      -->
+    </path>
+
+    <taskdef resource="gosu/tools/ant/antlib.xml">
+      <classpath refid="gosu.classpath"/>
+    </taskdef>
+
+    <pathconvert property="classpathProp" refid="gosu.classpath"/>
+    <echo>Classpath is: ${classpathProp}</echo>
+    
+    <gosuc srcdir="${base.dir}/src"
+           destdir="${dest.dir}"
+           classpathref="gosu.classpath"/>
+  </target>
+  
+  <target name="tearDown">
+    <delete includeemptydirs="true">
+      <fileset dir="${dest.dir}" includes="**/*"/>
+    </delete>
+  </target>
+</project>

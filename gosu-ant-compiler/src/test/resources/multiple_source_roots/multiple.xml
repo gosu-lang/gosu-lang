@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project name="multiple-source-roots">
+
+  <property name="base.dir" value="src/test/resources/multiple_source_roots"/>
+  <property name="dest.dir" value="${base.dir}/dest"/>
+
+  <target name="setUp">
+    <mkdir dir="${dest.dir}"/>
+  </target>
+  
+  <target name="compile">
+
+    <path id="gosu.classpath">
+      <pathelement location="../gosu-core/target/classes"/>
+      <pathelement location="../gosu-core-api/target/classes"/>
+    </path>
+    
+    <path id="sources">
+      <pathelement location="${base.dir}/src1"/>
+      <pathelement location="${base.dir}/src2"/>
+    </path>
+
+    <taskdef resource="gosu/tools/ant/antlib.xml">
+      <classpath refid="gosu.classpath"/>
+    </taskdef>
+
+    <pathconvert property="classpathProp" refid="gosu.classpath"/>
+    <echo>Classpath is: ${classpathProp}</echo>
+
+    <pathconvert property="sourcesProp" refid="sources"/>
+
+    <gosuc srcdir="${sourcesProp}"
+           destdir="${dest.dir}"
+           classpathref="gosu.classpath"/>
+  </target>
+
+  <target name="tearDown">
+    <delete includeemptydirs="true">
+      <fileset dir="${dest.dir}" includes="**/*"/>
+    </delete>
+  </target>
+  
+</project>
