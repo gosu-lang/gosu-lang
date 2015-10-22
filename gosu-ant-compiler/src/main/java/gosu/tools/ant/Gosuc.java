@@ -22,6 +22,16 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+/**
+ * Ant task for compiling Gosu files to disk.
+ * <p>The following parameters are available:
+ *   <ul>
+ *     <li>"srcdir" : A Path containing one or more source directories</li>
+ *     <li>"destdir" : A File representing the output destination of the compilation</li>
+ *     <li>"checkedarithmetic" : Compile with checked arithmetic if true.  Defaults to {@code false}.</li>
+ *     <li>"failonerror" : Ignore compile errors and continue if true.  Defaults to {@code true}.</li>
+ *   </ul>
+ */
 public class Gosuc extends GosuMatchingTask {
 
   private Path _src;
