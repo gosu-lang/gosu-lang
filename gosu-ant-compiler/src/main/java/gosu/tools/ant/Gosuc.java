@@ -39,7 +39,7 @@ public class Gosuc extends GosuMatchingTask {
   private Path _compileClasspath;
   private boolean _failOnError = true;
   private boolean _checkedArithmetic = false;
-  private Set<String> _scriptExtensions = new HashSet<>(Arrays.asList("gs", "gsx", "gst"));
+  private Set<String> _scriptExtensions = new HashSet<>(Arrays.asList("gs", "gsx", "gst", "gsp"));
 
   protected File[] compileList = new File[0];
   
