@@ -12,6 +12,7 @@ import gw.internal.gosu.parser.TypeVariableType;
 import gw.internal.gosu.parser.expressions.TypeVariableDefinitionImpl;
 import gw.lang.parser.JavaClassTypeVarMatcher;
 import gw.lang.parser.TypeVarToTypeMap;
+import gw.lang.parser.expressions.Variance;
 import gw.lang.reflect.IFunctionType;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.ITypeVariableType;
@@ -31,13 +32,20 @@ public class JavaSourceTypeVariable implements IJavaClassTypeVariable {
   private String _name;
   private IJavaClassType[] _bounds;
   private ITypeInfoResolver _owner;
+  private Variance _variance;
 
   private JavaSourceTypeVariable(ITypeInfoResolver owner, TypeParameterTree typeParameter) {
     _owner = owner;
     _name = typeParameter.getName().toString();
     _typeParameter = typeParameter;
+    _variance = Variance.DEFAULT;
   }
 
+  public JavaSourceTypeVariable copy() {
+    JavaSourceTypeVariable copy = new JavaSourceTypeVariable( _owner, _typeParameter );
+    copy._variance = _variance;
+    return copy;
+  }
 
   public static IJavaClassTypeVariable create(ITypeInfoResolver owner, TypeParameterTree node) {
     return new JavaSourceTypeVariable(owner, node);
@@ -100,6 +108,7 @@ public class JavaSourceTypeVariable implements IJavaClassTypeVariable {
         {
           TypeVariableDefinitionImpl tvd = ((TypeVariableDefinitionImpl)((ITypeVariableType)typeFromMap).getTypeVarDef()).clone( boundingTypeFromMap );
           typeFromMap = new TypeVariableType( tvd, ((ITypeVariableType)typeFromMap).getTypeVarDef().getEnclosingType() instanceof IFunctionType);
+          ((ITypeVariableType)typeFromMap).getTypeVarDef().setVariance( getVariance() );
         }
       }
       return typeFromMap;
@@ -112,6 +121,17 @@ public class JavaSourceTypeVariable implements IJavaClassTypeVariable {
   @Override
   public boolean isFunctionTypeVar() {
     return _owner instanceof IJavaClassMethod;
+  }
+
+  @Override
+  public Variance getVariance()
+  {
+    return _variance;
+  }
+  @Override
+  public void setVariance( Variance variance )
+  {
+    _variance = variance;
   }
 
   public String toString() {

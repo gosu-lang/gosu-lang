@@ -11,30 +11,22 @@ class Errant_DimensionArithmetic {
     override function compareTo(o: SampleDim): int { return 0 }
 
     function divide(v: BigDecimal): SampleDim {
-    return null
-  }
+      return null
+    }
 
     function divide(v: SampleDim): BigDecimal {
       return null
     }
   }
 
-  class NonFinalDim implements IDimension<SampleDim, BigDecimal> {
+  class SampleDimNonFinal implements IDimension<SampleDim, BigDecimal> {
     override function toNumber(): BigDecimal { return null }
     override function fromNumber(p0: BigDecimal): SampleDim { return null }
     override function numberType(): Class<BigDecimal> { return null }
     override function compareTo(o: SampleDim): int { return 0 }
-
-    function divide(v: BigDecimal): SampleDim {
-    return null
   }
 
-    function divide(v: SampleDim): BigDecimal {
-      return null
-    }
-  }
-
-  function test(a: SampleDim, b: SampleDim) {
+  function testArithmetic(a: SampleDim, b: SampleDim) {
     var bd: BigDecimal
 
     // IDE-2227
@@ -43,8 +35,12 @@ class Errant_DimensionArithmetic {
     var c3: BigDecimal = a / b
   }
 
-  function test1() {
-    var d: NonFinalDim
-    var a = d as BigDecimal      //## issuekeys: INCONVERTIBLE TYPES; CANNOT CAST 'GW.SPECCONTRIB.DIMENSIONS.ERRANT_DIMENSIONARITHMETIC.NONFINALDIM' TO 'JAVA.MATH.BIGDECIMAL'
+  function testFinalCoercion() {
+    var finalDim: SampleDim
+    var nonFinalDim: SampleDimNonFinal
+
+    var works = finalDim as BigDecimal
+    var fails = nonFinalDim as BigDecimal //## issuekeys: MSG_TYPE_MISMATCH
   }
+
 }

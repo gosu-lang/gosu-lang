@@ -1,0 +1,45 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <parent>
+    <groupId>org.gosu-lang.gosu</groupId>
+    <artifactId>gosu-parent</artifactId>
+    <version>1-spec-SNAPSHOT</version>
+    <relativePath>../gosu-parent/pom.xml</relativePath>
+  </parent>
+  <modelVersion>4.0.0</modelVersion>
+
+  <artifactId>gosu-ant-compiler</artifactId>
+
+  <name>Gosu :: Compiler for Ant</name>
+  <description>Gosu Compiler support for Ant</description>
+
+  <properties>
+    <ant.version>1.9.3</ant.version>
+  </properties>
+  
+  <dependencies>
+    <dependency>
+      <groupId>org.gosu-lang.gosu</groupId>
+      <artifactId>gosu-core-api</artifactId>
+      <version>1-spec-SNAPSHOT</version>
+    </dependency>
+    <dependency>
+      <groupId>org.gosu-lang.gosu</groupId>
+      <artifactId>gosu-core</artifactId>
+      <version>1-spec-SNAPSHOT</version>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.ant</groupId>
+      <artifactId>ant-testutil</artifactId>
+      <version>${ant.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.ant</groupId>
+      <artifactId>ant</artifactId>
+      <version>${ant.version}</version>
+      <scope>provided</scope>
+    </dependency>
+  </dependencies>
+
+</project>

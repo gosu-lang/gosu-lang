@@ -41,7 +41,7 @@ class Errant_ConversionInvolvingReferenceTypesTest {
     tt = ts6  //## issuekeys: MSG_IMPLICIT_COERCION_ERROR
     tt = ts7  //## issuekeys: MSG_IMPLICIT_COERCION_ERROR
     tt = ts8  //## issuekeys: MSG_IMPLICIT_COERCION_ERROR
-    tt = ts9  //## issuekeys: MSG_IMPLICIT_COERCION_ERROR
+    tt = ts9  //## issuekeys: MSG_TYPE_MISMATCH
     tt = ts10
     tt = ts11
     tt = ts12  //## issuekeys: MSG_IMPLICIT_COERCION_ERROR
@@ -63,7 +63,7 @@ class Errant_ConversionInvolvingReferenceTypesTest {
     tt = ts6
     tt = ts7
     tt = ts8
-    tt = ts9   //## issuekeys: MSG_IMPLICIT_COERCION_ERROR
+    tt = ts9   //## issuekeys: MSG_TYPE_MISMATCH
     tt = ts10
     tt = ts11
     tt = ts12

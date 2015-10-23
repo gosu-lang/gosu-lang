@@ -24,6 +24,7 @@ import gw.lang.parser.coercers.FunctionToInterfaceCoercer;
 import gw.lang.parser.exceptions.ParseResultsException;
 import gw.lang.parser.expressions.ITypeLiteralExpression;
 import gw.lang.parser.expressions.ITypeVariableDefinition;
+import gw.lang.parser.expressions.Variance;
 import gw.lang.reflect.FunctionType;
 import gw.lang.reflect.IBlockType;
 import gw.lang.reflect.IErrorType;
@@ -183,6 +184,12 @@ public class TypeLord
         bound = lowerBound;
       }
       retType = getActualType( bound, actualParamByVarName, bKeepTypeVars, recursiveTypes );
+      if( retType instanceof TypeVariableType )
+      {
+        ITypeVariableDefinition tvd = ((ITypeVariableType)retType).getTypeVarDef().clone();
+        retType = new TypeVariableType( tvd, ((ITypeVariableType)retType).isFunctionStatement() );
+        ((TypeVariableType)retType).getTypeVarDef().setVariance( ((WildcardType)type).getLowerBounds().length == 0 ? Variance.WILD_COVARIANT : Variance.WILD_CONTRAVARIANT );
+      }
     }
     else if( type instanceof ParameterizedType )
     {
@@ -339,12 +346,11 @@ public class TypeLord
           IType genType = TypeSystem.getByFullNameIfValid( enclType.getRawType().getName() );
           if( genType instanceof IJavaType )
           {
-            if( FunctionToInterfaceCoercer.getSingleMethodFromJavaInterface( (IJavaType)genType ) != null )
+            // For functional interfaces we keep the lower bound as an upper bound so that blocks maintain contravariance wrt the single method's parameters
+            if( FunctionToInterfaceCoercer.getSingleMethodFromJavaInterface( (IJavaType)genType ) == null )
             {
-              // For functional interfaces we keep the lower bound as an upper bound so that blocks maintain contravariance wrt the single method's parameters
-              return getActualType( bound, actualParamByVarName, bKeepTypeVars, recursiveTypes );
+              bound = null;
             }
-            bound = null;
           }
         }
       }
@@ -352,7 +358,14 @@ public class TypeLord
       {
         return JavaTypes.OBJECT();
       }
-      return getActualType( bound, actualParamByVarName, bKeepTypeVars, recursiveTypes );
+      IType actualType = getActualType( bound, actualParamByVarName, bKeepTypeVars, recursiveTypes );
+      if( actualType instanceof TypeVariableType )
+      {
+        ITypeVariableDefinition tvd = ((ITypeVariableType)actualType).getTypeVarDef().clone();
+        actualType = new TypeVariableType( tvd, bound.isFunctionTypeVariable() );
+        ((TypeVariableType)actualType).getTypeVarDef().setVariance( ((AsmWildcardType)type).isCovariant() ? Variance.WILD_COVARIANT : Variance.WILD_CONTRAVARIANT );
+      }
+      return actualType;
     }
     else if( type instanceof AsmType )
     {
@@ -900,6 +913,11 @@ public class TypeLord
           sb.append( type.getEnclosingType().getTypeLoader().getModule().getName() ).append( "." );
         }
         sb.append( type.getNameWithEnclosingType() );
+        ITypeVariableDefinition typeVarDef = type.getTypeVarDef();
+        if( typeVarDef != null )
+        {
+          sb.append( typeVarDef.getVariance().getSymbol() );
+        }
       }
       else
       {

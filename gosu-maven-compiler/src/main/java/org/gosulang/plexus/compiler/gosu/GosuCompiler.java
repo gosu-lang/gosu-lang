@@ -9,18 +9,21 @@ import org.codehaus.plexus.compiler.CompilerException;
 import org.codehaus.plexus.compiler.CompilerMessage;
 import org.codehaus.plexus.compiler.CompilerOutputStyle;
 import org.codehaus.plexus.compiler.CompilerResult;
-import org.codehaus.plexus.util.FileUtils;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.net.URLDecoder;
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.security.CodeSource;
 import java.security.ProtectionDomain;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class GosuCompiler extends AbstractCompiler {
 
@@ -112,15 +115,18 @@ public class GosuCompiler extends AbstractCompiler {
    * @return List of absolute paths to all JRE libraries
    */
   private List<String> getJreJars() {
-    File javaHome = new File(System.getProperty("java.home"));
-    File libsDir = new File(javaHome + "/lib");
-    List<String> classes = new ArrayList<>();
+    String javaHome = System.getProperty("java.home");
+    Path libsDir = FileSystems.getDefault().getPath(javaHome, "/lib");
     try {
-      classes = FileUtils.getFileNames(libsDir, "**/*.jar", null, true);
-    } catch (IOException e) {
+      return Files.walk(libsDir)
+          .filter( path -> path.toFile().isFile())
+          .filter( path -> path.toString().endsWith(".jar"))
+          .map( Path::toString )
+          .collect(Collectors.toList());
+    } catch (SecurityException | IOException e) {
       e.printStackTrace();
+      throw new RuntimeException(e);
     }
-    return classes;
   }
 
   /**

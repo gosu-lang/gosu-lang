@@ -1,5 +1,9 @@
 package gw.specContrib.generics
 
+uses java.util.function.Consumer
+uses java.util.function.Predicate
+uses java.util.function.Function
+
 class Errant_DeclarationSiteVariance {
 
   interface InIn<in T, in U> {
@@ -28,6 +32,44 @@ class Errant_DeclarationSiteVariance {
     function foo( v: V ) : V
   }
 
+  interface IFoo<out T> extends Iterator<T> {
+  }
+
+  interface In_Out<in T, out U> {}
+  interface JustOut<out T> {}
+  interface JustIn<in U> {}
+
+  interface InOutExtends<in T, out U> extends InOut<T, U>, JustOut<U>, JustIn<T> {}
+  interface InOutExtends1<in T, out U> extends InOut<T, U>, JustOut<U>,
+      JustIn<U> {}  //## issuekeys: MSG_TYPE_VAR_VARIANCE_ERROR
+  interface InOutExtends2<in T, out U> extends InOut<T, U>,
+      JustOut<T>,   //## issuekeys: MSG_TYPE_VAR_VARIANCE_ERROR
+      JustIn<T> {}
+  interface InOutExtends3<in T, out U> extends
+      InOut<T, T>,   //## issuekeys: MSG_TYPE_VAR_VARIANCE_ERROR
+      JustOut<U>, JustIn<T> {}
+  interface InOutExtends4<in T, out U> extends
+      InOut<U, T>,   //## issuekeys: MSG_TYPE_VAR_VARIANCE_ERROR, MSG_TYPE_VAR_VARIANCE_ERROR
+      JustOut<U>, JustIn<T> {}
+  interface InOutExtends5<in T, out U> extends
+      InOut<U, U>,   //## issuekeys: MSG_TYPE_VAR_VARIANCE_ERROR
+      JustOut<U>, JustIn<T> {}
+
+  static class InOutClass<in T, out U> implements In_Out<T, U>, JustOut<U>, JustIn<T> {}
+  static class InOutClass1<in T, out U> implements In_Out<T, U>, JustOut<U>,
+      JustIn<U> {}  //## issuekeys: MSG_TYPE_VAR_VARIANCE_ERROR
+  static class InOutClass2<in T, out U> implements In_Out<T, U>,
+      JustOut<T>,  //## issuekeys: MSG_TYPE_VAR_VARIANCE_ERROR
+      JustIn<T> {}
+  static class InOutClass3<in T, out U> implements
+      In_Out<T, T>,  //## issuekeys: MSG_TYPE_VAR_VARIANCE_ERROR
+      JustOut<U>, JustIn<T> {}
+  static class InOutClass4<in T, out U> implements
+      In_Out<U, T>,  //## issuekeys: MSG_TYPE_VAR_VARIANCE_ERROR, MSG_TYPE_VAR_VARIANCE_ERROR
+      JustOut<U>, JustIn<T> {}
+  static class InOutClass5<in T, out U> implements
+      In_Out<U, U>,  //## issuekeys: MSG_TYPE_VAR_VARIANCE_ERROR
+      JustOut<U>, JustIn<T> {}
 
   function test_in_in() {
     var St_St: InIn<String, String> = null

@@ -83,7 +83,8 @@ public class StandardCoercionManager extends BaseService implements ICoercionMan
 
   private boolean hasPotentialLossOfPrecisionOrScale( IType lhsType, IType rhsType )
   {
-    if( (lhsType.isPrimitive() || JavaTypes.NUMBER().isAssignableFrom( lhsType )) && JavaTypes.IDIMENSION().isAssignableFrom( rhsType ) )
+    if( (lhsType.isPrimitive() || JavaTypes.NUMBER().isAssignableFrom( lhsType )) &&
+        rhsType.isFinal() && JavaTypes.IDIMENSION().isAssignableFrom( rhsType ) )
     {
       IType rhsDimension = TypeSystem.findParameterizedType( rhsType, JavaTypes.IDIMENSION() );
       IType[] typeParameters = rhsDimension.getTypeParameters();

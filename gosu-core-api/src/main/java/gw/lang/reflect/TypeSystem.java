@@ -353,7 +353,7 @@ public class TypeSystem
             intrType != JavaTypes.pBOOLEAN() &&
             intrType != JavaTypes.pVOID()) ||
             JavaTypes.NUMBER().isAssignableFrom(intrType) ||
-            JavaTypes.IDIMENSION().isAssignableFrom(intrType) ||
+            (JavaTypes.IDIMENSION().isAssignableFrom(intrType) && intrType.isFinal()) ||
             JavaTypes.CHARACTER().isAssignableFrom(intrType));
 
   }

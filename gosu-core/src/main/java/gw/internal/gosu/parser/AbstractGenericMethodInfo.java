@@ -229,20 +229,20 @@ public class AbstractGenericMethodInfo extends GosuBaseAttributedFeatureInfo imp
   {
     if( boundingType.isAssignableFrom( inferredType ) )
     {
-      if( TypeLord.isRecursiveType( tv ) )
-      {
-        IType actualBoundingType = TypeLord.getActualType( tv.getBoundingType(), map );
-        if( !actualBoundingType.isAssignableFrom( inferredType ) )
-        {
-          // If we are dealing with a structure, the types may still be structurally assignable...
-          if( !(boundingType instanceof IGosuClass) || !((IGosuClass)boundingType).isStructure() ||
-              !StandardCoercionManager.isStructurallyAssignable( actualBoundingType, inferredType ) )
-          {
-            // Bounding type not assignable from inferred type derived from its methods' signatures,
-            map.put( tv, null );
-          }
-        }
-      }
+//      if( TypeLord.isRecursiveType( tv ) )
+//      {
+//        IType actualBoundingType = TypeLord.getActualType( tv.getBoundingType(), map );
+//        if( !actualBoundingType.isAssignableFrom( inferredType ) )
+//        {
+//          // If we are dealing with a structure, the types may still be structurally assignable...
+//          if( !(boundingType instanceof IGosuClass) || !((IGosuClass)boundingType).isStructure() ||
+//              !StandardCoercionManager.isStructurallyAssignable( actualBoundingType, inferredType ) )
+//          {
+//            // Bounding type not assignable from inferred type derived from its methods' signatures,
+//            map.put( tv, null );
+//          }
+//        }
+//      }
       return true;
     }
 
