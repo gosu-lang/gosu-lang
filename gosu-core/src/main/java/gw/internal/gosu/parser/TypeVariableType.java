@@ -9,7 +9,10 @@ import gw.internal.gosu.parser.expressions.TypeVariableDefinitionImpl;
 import gw.lang.reflect.AbstractType;
 import gw.lang.reflect.FunctionType;
 import gw.lang.reflect.ICompoundType;
+import gw.lang.reflect.IFeatureInfo;
 import gw.lang.reflect.IFunctionType;
+import gw.lang.reflect.IRelativeTypeInfo;
+import gw.lang.reflect.MethodList;
 import gw.lang.reflect.gs.IGenericTypeVariable;
 import gw.lang.reflect.ITypeVariableType;
 import gw.lang.parser.expressions.ITypeVariableDefinition;
@@ -17,6 +20,7 @@ import gw.lang.reflect.IType;
 import gw.lang.reflect.ITypeInfo;
 import gw.lang.reflect.ITypeLoader;
 import gw.lang.reflect.Modifier;
+import gw.lang.reflect.gs.IGosuClass;
 
 import java.io.ObjectStreamException;
 import java.util.Collections;
@@ -72,10 +76,35 @@ public class TypeVariableType extends AbstractType implements ITypeVariableType
     {
       // Add id to distinguish between overloaded methods. We can't use the signature
       // because we parse the type vars before the signature.
-      strEnclosingType += "." + System.identityHashCode( this );
+      strEnclosingType += "." + makeMethodNameId();
     }
 
     return strEnclosingType + '.' + getRelativeName();
+  }
+
+  private int makeMethodNameId()
+  {
+    if( getEnclosingType() instanceof FunctionType )
+    {
+      IFeatureInfo mi = ((FunctionType)getEnclosingType()).getMethodOrConstructorInfo();
+      if( mi != null )
+      {
+        IType cls = getEnclosingType().getEnclosingType();
+        if( cls instanceof IGosuClass && ((IGosuClass)cls).isDeclarationsCompiled() )
+        {
+          MethodList methods = ((IRelativeTypeInfo)cls.getTypeInfo()).getMethods( cls );
+          int miIndex = methods.indexOf( mi );
+          if( miIndex >= 0 )
+          {
+            return miIndex;
+          }
+        }
+      }
+    }
+
+    // Declaring class not yet finished decl compiling, use identity hash for the interim...
+    // or not a gosu class and don't jave function context...
+    return System.identityHashCode( this );
   }
 
   public String getNameWithBoundingType()
