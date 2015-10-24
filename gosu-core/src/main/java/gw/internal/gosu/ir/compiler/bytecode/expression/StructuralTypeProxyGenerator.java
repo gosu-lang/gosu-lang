@@ -19,7 +19,6 @@ import gw.lang.reflect.TypeInfoUtil;
 import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.gs.ClassType;
 import gw.lang.reflect.gs.GosuClassTypeLoader;
-import gw.lang.reflect.gs.IGenericTypeVariable;
 import gw.lang.reflect.gs.IGosuClass;
 import gw.lang.reflect.gs.IGosuEnhancement;
 import gw.lang.reflect.gs.StringSourceFileHandle;
@@ -97,7 +96,7 @@ public class StructuralTypeProxyGenerator {
       {
         throw new IllegalStateException( "Unexpected structural type incompatibility: " + ifaceType.getName() + " from " + type.getName() );
       }
-      ifaceType = makeParameteredType( ifaceType, inferenceMap );
+      ifaceType = TypeLord.makeParameteredType( ifaceType, inferenceMap );
       ifaceType = TypeLord.replaceTypeVariableTypeParametersWithBoundingTypes( ifaceType );
     }
     return new StringBuilder()
@@ -112,18 +111,6 @@ public class StructuralTypeProxyGenerator {
       .append( "  \n" )
       .append( implementIface( ifaceType, type ) )
       .append( "}" );
-  }
-
-  private static IType makeParameteredType( IType genType, TypeVarToTypeMap inferenceMap )
-  {
-    IGenericTypeVariable[] gtvs = genType.getGenericTypeVariables();
-    IType[] typeParams = new IType[gtvs.length];
-    int i = 0;
-    for( IGenericTypeVariable gtv: gtvs )
-    {
-      typeParams[i++] = inferenceMap.get( gtv.getTypeVariableDefinition().getType() );
-    }
-    return genType.getParameterizedType( typeParams );
   }
 
   private String getNamespace( IType ifaceType ) {

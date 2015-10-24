@@ -728,6 +728,23 @@ public class TypeLord
     return actualParamByVarName;
   }
 
+  public static IType makeParameteredType( IType genType, TypeVarToTypeMap inferenceMap )
+  {
+    IGenericTypeVariable[] gtvs = genType.getGenericTypeVariables();
+    IType[] typeParams = new IType[gtvs.length];
+    int i = 0;
+    for( IGenericTypeVariable gtv: gtvs )
+    {
+      typeParams[i] = inferenceMap.get( gtv.getTypeVariableDefinition().getType() );
+      if( typeParams[i] == null )
+      {
+        return null;
+      }
+      i++;
+    }
+    return genType.getParameterizedType( typeParams );
+  }
+
   // If the declaring type is generic and the owning type is parameterized, we need to
   // find the corresponding parameterized type of the declaring type e.g.
   //
@@ -2800,6 +2817,10 @@ public class TypeLord
         {
           match = true;
         }
+      }
+      else if( !(enclosingType1 instanceof IFunctionType) && !(enclosingType2 instanceof IFunctionType) )
+      {
+        match = enclosingType1 == enclosingType2;
       }
     }
     return match;

@@ -17,4 +17,9 @@ public interface IConstructorInfo extends IAttributedFeatureInfo, IHasParameterI
   public List<IExceptionInfo> getExceptions();
 
   boolean isDefault();
+
+  default boolean hasRawConstructor( IConstructorInfo rawCtor )
+  {
+    return rawCtor == this;
+  }
 }

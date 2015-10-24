@@ -3690,11 +3690,16 @@ public final class GosuParser extends ParserBase implements IGosuParser
 
   void parseNewExpressionOrAnnotation( boolean bAnnotation )
   {
+    _parseNewExpressionOrAnnotation( bAnnotation, false );
+  }
+  void _parseNewExpressionOrAnnotation( boolean bAnnotation, boolean bBacktracking )
+  {
     boolean original = isParsingAnnotation();
     setParsingAnnotation( bAnnotation );
     try
     {
       int mark = getTokenizer().mark();
+      int iLocationsCount = _locations.size();
       TypeLiteral typeLiteral = null;
       if( match( null, null, '(', true ) && isParenthesisTerminalExpression( true ) )
       {
@@ -3705,6 +3710,20 @@ public final class GosuParser extends ParserBase implements IGosuParser
       {
         parseTypeLiteralIgnoreArrayBrackets();
         typeLiteral = (TypeLiteral)popExpression();
+        IType type = typeLiteral.getType().getType();
+        if( !bBacktracking )
+        {
+          if( type.isParameterizedType() && TypeLord.deriveParameterizedTypeFromContext( type.getGenericType(), null ) == type )
+          {
+            // Try to infer the constructed type from args rather than assume the default type
+            typeLiteral.setType( MetaType.getLiteral( type.getGenericType() ) );
+          }
+        }
+        else if( type == TypeLord.getPureGenericType( type ) )
+        {
+          // Ensure we never construct a raw generic type
+          typeLiteral.setType( MetaType.getLiteral( TypeLord.deriveParameterizedTypeFromContext( type, null ) ) );
+        }
       }
       verify( typeLiteral, !(typeLiteral instanceof BlockLiteral), Res.MSG_BLOCKS_LITERAL_NOT_ALLOWED_IN_NEW_EXPR );
       IType declaringClass = typeLiteral.getType().getType();
@@ -3726,6 +3745,12 @@ public final class GosuParser extends ParserBase implements IGosuParser
       }
       verify( typeLiteral, !declaringClass.isEnum() || getTokenizer().getCurrentToken().getType() == '[', Res.MSG_ENUM_CONSTRUCTOR_NOT_ACCESSIBLE );
       parseNewExpressionOrAnnotation( declaringClass, bAnnotation, false, typeLiteral, mark );
+      if( !bBacktracking && typeLiteral.getType().getType().isGenericType() && !typeLiteral.getType().getType().isParameterizedType() )
+      {
+        // We didn't infer type parameters from the ctor's parameter types using the raw generic type, backtrack and just use the default generic type
+        backtrack( mark, iLocationsCount );
+        _parseNewExpressionOrAnnotation( bAnnotation, true );
+      }
     }
     finally
     {
@@ -3796,7 +3821,8 @@ public final class GosuParser extends ParserBase implements IGosuParser
         IConstructorType constructorType = null;
         if( bestConst.isValid() )
         {
-          constructorType = (IConstructorType)bestConst.getRawFunctionType();
+          declaringClass = maybeChangeToInferredType( declaringClass, typeLiteral, bestConst );
+          constructorType = (IConstructorType)(bestConst.getInferredFunctionType() == null ? bestConst.getRawFunctionType() : bestConst.getInferredFunctionType());
           List<IExpression> args = bestConst.getArguments();
           verifyArgCount( e, args.size(), constructorType );
           //noinspection SuspiciousToArrayCall
@@ -4069,6 +4095,19 @@ public final class GosuParser extends ParserBase implements IGosuParser
               TypeInfoUtil.getConstructorSignature( constructor ),
               constructor.getContainer().getName() ) );
     }
+  }
+
+  private IType maybeChangeToInferredType( IType declaringClass, TypeLiteral typeLiteral, MethodScore bestConst )
+  {
+    ConstructorType inferredFunctionType = (ConstructorType)bestConst.getInferredFunctionType();
+    if( inferredFunctionType != null &&
+        !(declaringClass instanceof ITypeVariableType) &&
+        declaringClass != inferredFunctionType.getDeclaringType() )
+    {
+      declaringClass = inferredFunctionType.getDeclaringType();
+      typeLiteral.setType( declaringClass );
+    }
+    return declaringClass;
   }
 
   //## todo: remove this after removal of old-style Gosu "annotations" when there will only be a single ctor
@@ -5595,14 +5634,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
     {
       IGenericTypeVariable[] typeVariables = funcType.getGenericTypeVariables();
       List<IType> functionTypeVars = new ArrayList<IType>();
-      for( IGenericTypeVariable typeVariable : typeVariables )
-      {
-        ITypeVariableDefinition typeVariableDefinition = typeVariable.getTypeVariableDefinition();
-        if( typeVariableDefinition != null && typeVariableDefinition.getType() != null )
-        {
-          functionTypeVars.add( typeVariableDefinition.getType() );
-        }
-      }
+      addTypeVarsToList( functionTypeVars, typeVariables );
       return (IFunctionType)TypeLord.boundTypes( funcType, functionTypeVars );
     }
     else
@@ -6782,7 +6814,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
 
       IInvocableType funcType = listFunctionTypes.isEmpty() ? null : listFunctionTypes.get( i );
       maybeInferFunctionTypeVarsFromReturnType( funcType, inferenceMap );
-      pushInferredFunctionTypeVariableTypes( funcType );
+      pushTypeVariableTypesToInfer( funcType );
       try
       {
         if( !bNoArgsProvided )
@@ -6891,7 +6923,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
       }
 
       IInvocableType rawFunctionType = bestScore.getRawFunctionType();
-      pushInferredFunctionTypeVariableTypes( rawFunctionType );
+      pushTypeVariableTypesToInfer( rawFunctionType );
       try
       {
         if( bShouldScoreMethods )
@@ -6905,7 +6937,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
         maybeReassignOffsetForArgumentListClause( argExpressions.size(), argExpressions, iOffset, iLineNum, iColumn );
 
         // Infer the function type
-        IInvocableType inferredFunctionType = inferFunctionType( rawFunctionType, bestScore.getArguments(), isEndOfArgExpression() );
+        IInvocableType inferredFunctionType = inferFunctionType( rawFunctionType, bestScore.getArguments(), isEndOfArgExpression(), inferenceMap );
 
         if( !getContextType().isMethodScoring() )
         {
@@ -7209,7 +7241,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
                                   Set<String> namedArgs,
                                   boolean bMethodScoring )
   {
-    pushInferredFunctionTypeVariableTypes( funcType );
+    pushTypeVariableTypesToInfer( funcType );
     try
     {
       IType rawCtxType;
@@ -8705,7 +8737,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
         IType type = typeLiteral.getType().getType();
         try
         {
-          if( type.isGenericType() && !isParsingCompileTimeConstantExpression() )
+          if( type.isGenericType() && !type.isParameterizedType() && !isParsingCompileTimeConstantExpression() )
           {
             // If a generic type, assume the default parameterized version e.g., List => List<Object>.
             // But if the type is assignable to the context type and the context type is parameterized,
@@ -13192,11 +13224,26 @@ public final class GosuParser extends ParserBase implements IGosuParser
     if (TypeSystem.isDeleted(type)) {
       return TypeSystem.getErrorType();
     }
-    FunctionType iType = (FunctionType)dfs.getType();
+    FunctionType funcType = (FunctionType)dfs.getType();
     ArrayList<IType> functionTypeVars = new ArrayList<IType>();
-    for( IGenericTypeVariable typeVariable : iType.getTypeVariables() )
+    IType declaringType = dfs.getScriptPart().getContainingType();
+    boolean bConstructor = declaringType != null && dfs.getDisplayName().equals( declaringType.getRelativeName() );
+    if( bConstructor )
     {
-      functionTypeVars.add( typeVariable.getTypeVariableDefinition().getType() );
+      if( declaringType.isGenericType() && !declaringType.isParameterizedType() )
+      {
+        for( IGenericTypeVariable tv: declaringType.getGenericTypeVariables() )
+        {
+          functionTypeVars.add( tv.getTypeVariableDefinition().getType() );
+        }
+      }
+    }
+    else
+    {
+      for( IGenericTypeVariable tv : funcType.getTypeVariables() )
+      {
+        functionTypeVars.add( tv.getTypeVariableDefinition().getType() );
+      }
     }
     return TypeLord.boundTypes( type, functionTypeVars );
   }
@@ -14305,35 +14352,74 @@ public final class GosuParser extends ParserBase implements IGosuParser
     }
   }
 
-  private IInvocableType inferFunctionType( IInvocableType funcType, List<? extends IExpression> eArgs, boolean bUseCtx )
+  private IInvocableType inferFunctionType( IInvocableType funcType, List<? extends IExpression> eArgs, boolean bUseCtx, TypeVarToTypeMap inferenceMap )
   {
     if( funcType instanceof IFunctionType && funcType.isGenericType() )
     {
-      IType[] argTypes = new IType[eArgs.size()];
-      for( int i = 0; i < eArgs.size(); i++ )
-      {
-        argTypes[i] = eArgs.get( i ).getType();
-      }
-      for( int i = 0; i < funcType.getParameterTypes().length; i++ )
-      {
-        IType paramType = funcType.getParameterTypes()[i];
-        if( i < argTypes.length )
-        {
-          IType argType = argTypes[i];
-          IType boundArgType = TypeLord.boundTypes( paramType, getCurrentlyInferringFunctionTypeVars() );
-          ICoercer coercer = CommonServices.getCoercionManager().resolveCoercerStatically( boundArgType, argType );
-          if( coercer instanceof IResolvingCoercer )
-          {
-            argTypes[i] = ((IResolvingCoercer)coercer).resolveType( paramType, argType );
-          }
-        }
-      }
-      return ((IFunctionType) funcType).inferParameterizedTypeFromArgTypesAndContextType( argTypes, bUseCtx ? getContextType().getType() : null );
+      return inferFunction( funcType, eArgs, bUseCtx );
+    }
+    else if( funcType instanceof ConstructorType )
+    {
+      return inferConstructor( funcType, inferenceMap );
     }
     else
     {
       return funcType;
     }
+  }
+
+  private IInvocableType inferConstructor( IInvocableType funcType, TypeVarToTypeMap inferenceMap )
+  {
+    IType declaringType = ((ConstructorType)funcType).getDeclaringType();
+    if( declaringType.isGenericType() && !declaringType.isParameterizedType() )
+    {
+      IType actualDeclaringType = TypeLord.makeParameteredType( declaringType, inferenceMap );
+      if( actualDeclaringType != null )
+      {
+        List<? extends IConstructorInfo> genDeclaredConstructors = ((IRelativeTypeInfo)declaringType.getTypeInfo()).getDeclaredConstructors();
+        for( int i = 0; i < genDeclaredConstructors.size(); i++ )
+        {
+          IConstructorInfo rawCtor = genDeclaredConstructors.get( i );
+          if( new ConstructorType( rawCtor ).equals( funcType ) )
+          {
+            List<? extends IConstructorInfo> paramDeclaredConstructors = ((IRelativeTypeInfo)actualDeclaringType.getTypeInfo()).getDeclaredConstructors();
+            for( IConstructorInfo csr: paramDeclaredConstructors )
+            {
+              if( csr.hasRawConstructor( rawCtor ) )
+              {
+                return new ConstructorType( csr );
+              }
+            }
+            break;
+          }
+        }
+      }
+    }
+    return funcType;
+  }
+
+  private IInvocableType inferFunction( IInvocableType funcType, List<? extends IExpression> eArgs, boolean bUseCtx )
+  {
+    IType[] argTypes = new IType[eArgs.size()];
+    for( int i = 0; i < eArgs.size(); i++ )
+    {
+      argTypes[i] = eArgs.get( i ).getType();
+    }
+    for( int i = 0; i < funcType.getParameterTypes().length; i++ )
+    {
+      IType paramType = funcType.getParameterTypes()[i];
+      if( i < argTypes.length )
+      {
+        IType argType = argTypes[i];
+        IType boundArgType = TypeLord.boundTypes( paramType, getCurrentlyInferringFunctionTypeVars() );
+        ICoercer coercer = CommonServices.getCoercionManager().resolveCoercerStatically( boundArgType, argType );
+        if( coercer instanceof IResolvingCoercer )
+        {
+          argTypes[i] = ((IResolvingCoercer)coercer).resolveType( paramType, argType );
+        }
+      }
+    }
+    return ((IFunctionType) funcType).inferParameterizedTypeFromArgTypesAndContextType( argTypes, bUseCtx ? getContextType().getType() : null );
   }
 
   /**
@@ -14636,24 +14722,38 @@ public final class GosuParser extends ParserBase implements IGosuParser
     return false;
   }
 
-  protected void pushInferredFunctionTypeVariableTypes( IInvocableType functionType )
+  protected void pushTypeVariableTypesToInfer( IInvocableType functionType )
   {
     if( functionType != null )
     {
-      List<IType> typeVariableTypes = new ArrayList<IType>();
+      List<IType> typeVariableTypes = new ArrayList<>();
       if( functionType.isGenericType() )
       {
         IGenericTypeVariable[] typeVariables = functionType.getGenericTypeVariables();
-        for( IGenericTypeVariable typeVariable : typeVariables )
+        addTypeVarsToList( typeVariableTypes, typeVariables );
+      }
+      else if( functionType instanceof ConstructorType )
+      {
+        IType declaringType = ((ConstructorType)functionType).getDeclaringType();
+        if( declaringType.isGenericType() && !declaringType.isParameterizedType() )
         {
-          ITypeVariableDefinition typeVariableDefinition = typeVariable.getTypeVariableDefinition();
-          if( typeVariableDefinition != null && typeVariableDefinition.getType() != null )
-          {
-            typeVariableTypes.add( typeVariableDefinition.getType() );
-          }
+          IGenericTypeVariable[] typeVariables = declaringType.getGenericTypeVariables();
+          addTypeVarsToList( typeVariableTypes, typeVariables );
         }
       }
       pushInferringFunctionTypeVars( typeVariableTypes );
+    }
+  }
+
+  private void addTypeVarsToList( List<IType> typeVariableTypes, IGenericTypeVariable[] typeVariables )
+  {
+    for( IGenericTypeVariable typeVariable : typeVariables )
+    {
+      ITypeVariableDefinition typeVariableDefinition = typeVariable.getTypeVariableDefinition();
+      if( typeVariableDefinition != null && typeVariableDefinition.getType() != null )
+      {
+        typeVariableTypes.add( typeVariableDefinition.getType() );
+      }
     }
   }
 

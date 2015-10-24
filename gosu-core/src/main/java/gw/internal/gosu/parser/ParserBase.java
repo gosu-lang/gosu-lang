@@ -2395,11 +2395,14 @@ public abstract class ParserBase implements IParserPart
       {
         for( IType type : inferringFunctionType )
         {
-          if( types == Collections.EMPTY_LIST )
+          if( types.isEmpty() )
           {
             types = new ArrayList<IType>();
           }
-          types.add( type );
+          if( !types.contains( type ) )
+          {
+            types.add( type );
+          }
         }
       }
     }
