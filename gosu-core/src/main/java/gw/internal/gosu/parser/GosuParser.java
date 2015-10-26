@@ -13216,7 +13216,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
     }
     FunctionType funcType = (FunctionType)dfs.getType();
     ArrayList<IType> functionTypeVars = new ArrayList<IType>();
-    IType declaringType = dfs.getScriptPart().getContainingType();
+    IType declaringType = dfs.getScriptPart() == null ? null : dfs.getScriptPart().getContainingType();
     boolean bConstructor = declaringType != null && dfs.getDisplayName().equals( declaringType.getRelativeName() );
     if( bConstructor )
     {
