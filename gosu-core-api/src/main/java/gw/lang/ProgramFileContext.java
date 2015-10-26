@@ -34,7 +34,7 @@ public class ProgramFileContext implements IFileContext
   @Override
   public String getFilePath()
   {
-    return _file.getName();
+    return _file != null ? _file.getName() : null;
   }
 
   private static String makeJavaName( String name )
