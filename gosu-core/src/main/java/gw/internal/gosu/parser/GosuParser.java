@@ -6708,6 +6708,11 @@ public final class GosuParser extends ParserBase implements IGosuParser
       return false;
     }
 
+    if( getGosuClass() != null && !((IGosuClass)getGosuClass()).isHeaderCompiled() )
+    {
+      return true;
+    }
+
     IGenericTypeVariable[] typeVars = type.getGenericTypeVariables();
     if( verify(elem, typeParam != null && typeParam.length == typeVars.length, Res.MSG_WRONG_NUM_OF_ARGS, "") )
     {
@@ -6716,15 +6721,13 @@ public final class GosuParser extends ParserBase implements IGosuParser
       TypeVarToTypeMap typeVarToTypeMap = new TypeVarToTypeMap();
       for( int i = 0; i < typeVars.length; i++ )
       {
-        IType boundingType = typeVars[i].getBoundingType();
-        boundingType = TypeLord.isRecursiveTypeFromBase( type ) || TypeLord.isParameterizedType( boundingType ) && TypeLord.isRecursiveType( boundingType )
-                ? TypeLord.getDefaultParameterizedTypeWithTypeVars( boundingType, typeVarToTypeMap )
-                : TypeLord.getActualType( boundingType, typeVarToTypeMap, true );
-
         if( typeVars[i].getTypeVariableDefinition() != null )
         {
           typeVarToTypeMap.put( typeVars[i].getTypeVariableDefinition().getType(), typeParam[i] );
         }
+
+        IType boundingType = typeVars[i].getBoundingType();
+        boundingType = TypeLord.getActualType( boundingType, typeVarToTypeMap, true );
 
         bRet = bRet &&
                 verify( elem,
@@ -8686,20 +8689,10 @@ public final class GosuParser extends ParserBase implements IGosuParser
       {
         TypeLiteral typeLiteral = (TypeLiteral)peekExpression();
         IType type = typeLiteral.getType().getType();
-        List<TypeLiteral> paramTypes = Collections.emptyList();
-        boolean bRecursiveGosuClass = type instanceof IGosuClassInternal && ((IGosuClassInternal)type).isCompilingHeader();
-        if( (type instanceof IJavaTypeInternal && ((IJavaTypeInternal)type).isDefiningGenericTypes()) || bRecursiveGosuClass )
-        {
-          // If defining generic types, we assume a recursive type and, for now, use the raw generic type
-          eatPossibleParametarization( false );
-        }
-        else
-        {
-          verify( e, type.isGenericType(), Res.MSG_PARAMETERIZATION_NOT_SUPPORTED_FOR_TYPE, type.getName() );
-          paramTypes = parseTypeParameters( type );
-          verify( e, match( null, ">", SourceCodeTokenizer.TT_OPERATOR ), Res.MSG_EXPECTING_CLOSING_ANGLE_BRACKET_FOR_TYPE );
-          makeTypeParameterListClause( iOffset, iLineNum, iColumn, paramTypes );
-        }
+        verify( e, type.isGenericType(), Res.MSG_PARAMETERIZATION_NOT_SUPPORTED_FOR_TYPE, type.getName() );
+        List<TypeLiteral> paramTypes = parseTypeParameters( type );
+        verify( e, match( null, ">", SourceCodeTokenizer.TT_OPERATOR ), Res.MSG_EXPECTING_CLOSING_ANGLE_BRACKET_FOR_TYPE );
+        makeTypeParameterListClause( iOffset, iLineNum, iColumn, paramTypes );
         int numArrays = 0;
         while( !bIgnoreArrayBrackets && match( null, '[' ) )
         {
@@ -8714,12 +8707,9 @@ public final class GosuParser extends ParserBase implements IGosuParser
             TypeLiteral tl = paramTypes.get( i );
             types[i] = (tl.getType()).getType();
           }
-          if( !bRecursiveGosuClass )
-          {
-            verifyCanParameterizeType( e, type, types );
-            typeLiteral.setParameterTypes( types );
-            type = typeLiteral.getType().getType();
-          }
+          verifyCanParameterizeType( e, type, types );
+          typeLiteral.setParameterTypes( types );
+          type = typeLiteral.getType().getType();
           if( numArrays > 0 )
           {
             for( int i = 0; i < numArrays; i++ )

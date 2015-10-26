@@ -511,7 +511,7 @@ public class TypeLord
             type = new TypeVariableType( tvd, ((ITypeVariableType)type).getTypeVarDef().getEnclosingType() instanceof IFunctionType );
           }
         }
-        else if( !isParameterizedWith( type, saveType ) )
+        else if( !bKeepTypeVars && !isParameterizedWith( type, saveType ) )
         {
           type = getActualType( type, actualParamByVarName, bKeepTypeVars, visited );
           visited.remove( type );
@@ -1156,7 +1156,7 @@ public class TypeLord
 
     if( type.isParameterizedType() )
     {
-      addAllClassesInClassHierarchy( type.getGenericType(), set );
+      set.add( type.getGenericType() );
     }
   }
 

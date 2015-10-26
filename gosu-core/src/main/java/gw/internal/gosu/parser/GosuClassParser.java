@@ -860,6 +860,8 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
       // ignore
     }
 
+    maybeForceRecursiveTypeToAssignSuperTypes( gsClass );
+
     verify( getClassStatement(), gsClass instanceof IGosuProgram || match( null, '{' ), Res.MSG_EXPECTING_OPEN_BRACE_FOR_CLASS_DEF );
 
     if( !putClassMembersOfSuperAndInterfaces( gsClass ) )
@@ -924,6 +926,16 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
     if( parseDeclarationsOfLeftOverInnerClasses( gsClass ) )
     {
       gsClass.setInnerDeclarationsCompiled();
+    }
+  }
+
+  private void maybeForceRecursiveTypeToAssignSuperTypes( IGosuClassInternal gsClass )
+  {
+    if( gsClass.isParameterizedType() )
+    {
+      // If this is a recursive type, force super/interface assignment
+      gsClass.getSupertype();
+      gsClass.getInterfaces();
     }
   }
 

@@ -34,7 +34,6 @@ import gw.lang.parser.ITypeUsesMap;
 import gw.lang.parser.PostCompilationAnalysis;
 import gw.lang.parser.ScriptPartId;
 import gw.lang.parser.ScriptabilityModifiers;
-import gw.lang.parser.StandardCoercionManager;
 import gw.lang.parser.TypeVarToTypeMap;
 import gw.lang.parser.exceptions.ErrantGosuClassException;
 import gw.lang.parser.exceptions.ParseResultsException;
@@ -174,10 +173,6 @@ public class GosuClass extends InnerClassCapableType implements IGosuClassIntern
     }
     finally
     {
-      // Ok, this is really, really weird.
-      //   Notice the code in the method isDiscarded below.  We do this so that we don't use this new type until after
-      //   it has been fully initialized.
-      //   The last call to getOrCreateTypeRef simply makes sure we replace the handle with this type
       _bInitializing = false;
     }
     getOrCreateTypeReference();
@@ -203,10 +198,6 @@ public class GosuClass extends InnerClassCapableType implements IGosuClassIntern
     }
     finally
     {
-      // Ok, this is really, really weird.
-      //   Notice the code in the method isDiscarded below.  We do this so that we don't use this new type until after
-      //   it has been fully initialized.
-      //   The last call to getOrCreateTypeRef simply makes sure we replace the handle with this type
       _bInitializing = false;
     }
     getOrCreateTypeReference();
@@ -342,11 +333,7 @@ public class GosuClass extends InnerClassCapableType implements IGosuClassIntern
       return;
     }
 
-    if( !genSuperType.isGenericType() )
-    {
-      setSuperType( genSuperType );
-    }
-    else if( genSuperType instanceof IJavaType )
+    if( genSuperType instanceof IJavaType )
     {
       IJavaTypeInternal javaGenSuperType = (IJavaTypeInternal)genSuperType;
       TypeVarToTypeMap actualParamByVarName = TypeLord.mapTypeByVarName( getOrCreateTypeReference(), getOrCreateTypeReference() );
@@ -357,7 +344,7 @@ public class GosuClass extends InnerClassCapableType implements IGosuClassIntern
     {
       IGosuClassInternal gsGenSuperType = (IGosuClassInternal)genSuperType;
       TypeVarToTypeMap actualParamByVarName = TypeLord.mapTypeByVarName( getOrCreateTypeReference(), getOrCreateTypeReference() );
-      setSuperType(TypeLord.getActualType( gsGenSuperType, actualParamByVarName, true ));
+      setSuperType( TypeLord.getActualType( gsGenSuperType, actualParamByVarName, true ) );
     }
   }
 
@@ -429,9 +416,16 @@ public class GosuClass extends InnerClassCapableType implements IGosuClassIntern
   public IType getSupertype()
   {
     compileHeaderIfNeeded();
-    if (TypeSystem.isDeleted(_superType)) {
+    if( TypeSystem.isDeleted(_superType) )
+    {
       return TypeSystem.getErrorType(_superType.getName());
-    } else {
+    }
+    else
+    {
+      if( _superType == null && isParameterizedType() && _genericClass.getSupertype() != null )
+      {
+        assignParameterizedSuperType();
+      }
       return _superType;
     }
   }
@@ -520,7 +514,25 @@ public class GosuClass extends InnerClassCapableType implements IGosuClassIntern
   {
     compileHeaderIfNeeded();
 
+    maybeAssignInterfacesForParameterizedClass();
+
     return _interfaces;
+  }
+
+  private void maybeAssignInterfacesForParameterizedClass()
+  {
+    IType[] interfaces = _interfaces;
+    if( (interfaces == null || interfaces.length == 0) && isParameterizedType() )
+    {
+      IType[] genInterfaces = _genericClass.getInterfaces();
+      if( genInterfaces != null && genInterfaces.length > 0 )
+      {
+        if( interfaces == null || interfaces.length != genInterfaces.length )
+        {
+          assignParameterizedInterfaces();
+        }
+      }
+    }
   }
 
   public void addInterface( IType type )
@@ -722,6 +734,11 @@ public class GosuClass extends InnerClassCapableType implements IGosuClassIntern
 
   public Set<IType> getAllTypesInHierarchy()
   {
+    if( isCompilingHeader() )
+    {
+      return Collections.emptySet();
+    }
+
     compileHeaderIfNeeded();
 
     if( !isHeaderCompiled() )
