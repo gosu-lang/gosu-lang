@@ -10,4 +10,21 @@ class TagsDocClass {
    */
   function hasTypeLink() {}
 
+  /*
+ * {@code var x = 10}
+ */
+  function hasCodeTag() {}
+
+  /*
+   * test
+   * {@code}
+   */
+  function emptyCodeTag() {}
+
+  /*
+   * test
+   * {@docRoot}
+   */
+  function docRootTag() {}
+
 }

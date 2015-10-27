@@ -120,7 +120,7 @@ abstract class GSExecutableMemberDocImpl extends GSMemberDocImpl implements Exec
 
   function initialize( parameters: Parameter[], comments: String, paramTags: ParamTag[] ){
     _parameters = parameters
-    addTextComments( new TagsTokenizer(comments, _featureInfo).processTags() )
+    addTextComments( new TagsTokenizer(comments, _featureInfo, getRootDoc()).processTags() )
     for( tag in paramTags ){
       addTag( tag )
     }

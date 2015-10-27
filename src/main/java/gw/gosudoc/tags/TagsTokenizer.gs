@@ -1,5 +1,6 @@
 package gw.gosudoc.tags
 
+uses gw.gosudoc.doc.GSRootDocImpl
 uses gw.lang.reflect.IAttributedFeatureInfo
 uses gw.lang.reflect.gs.IGosuMethodInfo
 uses gw.lang.reflect.gs.IGosuPropertyInfo
@@ -22,12 +23,14 @@ class TagsTokenizer {
   static final var INLINE_TAG_REGEXP = "\\{@[^}]+\\}"
   static final var INLINE_TAG_PATTERN = Pattern.compile(INLINE_TAG_REGEXP);
 
+  var _rootDoc: GSRootDocImpl
   var _fi: IAttributedFeatureInfo
   var _src : String
 
-  construct(src : String, featureInfo: IAttributedFeatureInfo) {
+  construct(src : String, featureInfo: IAttributedFeatureInfo, rootDoc: GSRootDocImpl) {
     _src = src ?: ""
     _fi = featureInfo
+    _rootDoc = rootDoc
   }
 
   function processTags() : String {
@@ -75,6 +78,8 @@ class TagsTokenizer {
     if(inlineTag.startsWith("{@code")) {
       var content = inlineTag.substring(Math.min(7, inlineTag.length() - 1), inlineTag.length() - 1)
       return "<code>${content}</code>"
+    } else if(inlineTag.equals("{@docRoot}")) {
+      return inlineTag // replacement is handled by the HTML generator
     } else if(inlineTag.equals("{@inheritDoc}")) {
       return handleDescriptionInheritance(_fi, inlineTag)
     } else {
