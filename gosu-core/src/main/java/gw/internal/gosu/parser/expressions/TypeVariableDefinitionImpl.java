@@ -30,13 +30,24 @@ public class TypeVariableDefinitionImpl implements ITypeVariableDefinition
     _variance = Variance.DEFAULT;
   }
 
-  public TypeVariableDefinitionImpl(TypeVariableType type, String strName, IType enclosingType, IType boundingType, GenericTypeVariable typeVar, Variance variance) {
+  public TypeVariableDefinitionImpl( TypeVariableType type, String strName, IType enclosingType, IType boundingType, GenericTypeVariable typeVar, Variance variance )
+  {
     _type = type;
     _strName = strName;
     _enclosingType = enclosingType;
     _boundingType = boundingType;
     _typeVar = typeVar;
     _variance = variance;
+  }
+
+  private TypeVariableDefinitionImpl( TypeVariableDefinitionImpl tvd, IType boundingType )
+  {
+    _type = tvd._type;
+    _strName = tvd._strName;
+    _enclosingType = tvd._enclosingType;
+    _boundingType = boundingType;
+    _typeVar = tvd._typeVar == null ? null : new GenericTypeVariable( tvd._typeVar );
+    _variance = tvd._variance;
   }
 
   public TypeVariableType getType()
@@ -147,7 +158,7 @@ public class TypeVariableDefinitionImpl implements ITypeVariableDefinition
 
   @Override
   public TypeVariableDefinitionImpl clone() {
-    return new TypeVariableDefinitionImpl( _type, _strName, _enclosingType, _boundingType, _typeVar, _variance );
+    return new TypeVariableDefinitionImpl( this, _boundingType );
   }
 
   public TypeVariableDefinitionImpl cloneShallow( IType boundingType ) {

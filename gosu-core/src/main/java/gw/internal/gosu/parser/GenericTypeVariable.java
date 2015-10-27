@@ -9,7 +9,6 @@ import gw.internal.gosu.parser.expressions.TypeVariableDefinitionImpl;
 import gw.lang.parser.Keyword;
 import gw.lang.parser.TypeVarToTypeMap;
 import gw.lang.parser.expressions.ITypeVariableDefinition;
-import gw.lang.parser.expressions.Variance;
 import gw.lang.reflect.IFunctionType;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.TypeSystem;
@@ -107,6 +106,13 @@ public class GenericTypeVariable implements IGenericTypeVariable
     _typeVariableDefinition = typeVariableDefinition;
     _typeVariableDefinition.setTypeVar( this );
     _boundingType = boundingType;
+  }
+
+  public GenericTypeVariable( GenericTypeVariable source )
+  {
+    _strName = source._strName;
+    _boundingType = source._boundingType;
+    _typeVariableDefinition = source._typeVariableDefinition;
   }
 
   public String getName()
