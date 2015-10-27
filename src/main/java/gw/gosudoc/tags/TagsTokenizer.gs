@@ -75,9 +75,15 @@ class TagsTokenizer {
   }
 
   private function processInlineTag(inlineTag: String): String {
-    if(inlineTag.startsWith("{@code")) {
+    if(inlineTag.startsWith("{@code ")) {
       var content = inlineTag.substring(Math.min(7, inlineTag.length() - 1), inlineTag.length() - 1)
       return "<code>${content}</code>"
+    } else if(inlineTag.startsWith("{@link ")) {
+      var content = inlineTag.substring(Math.min(7, inlineTag.length() - 1), inlineTag.length() - 1)
+      var pieces = content.split(" ")
+      var feature = pieces.first()
+      var description = pieces.length > 1 ? pieces[1] : pieces.first()
+      return linkToFeature(feature, description)
     } else if(inlineTag.equals("{@docRoot}")) {
       return inlineTag // replacement is handled by the HTML generator
     } else if(inlineTag.equals("{@inheritDoc}")) {
@@ -85,6 +91,35 @@ class TagsTokenizer {
     } else {
       return inlineTag
     }
+  }
+
+  private function linkToFeature(feature: String, description: String): String {
+    return "<a href='${parseLink(feature)}'>${description}</a>"
+  }
+
+  private function parseLink(feature: String) : String {
+    var typeAndFeature = feature.split('#')
+    var linkToType = linkToType(typeAndFeature.first())
+    if(typeAndFeature.length > 1) {
+      return "${linkToType}#${typeAndFeature[1]}"
+    } else {
+      return "${linkToType}"
+    }
+  }
+
+  private function linkToType(typeName: String) : String {
+    if(typeName.length() == 0) {
+      return ""
+    } else if (typeName.indexOf('.') > 0) {
+      return  "{@docRoot}/${packagePath(typeName)}/${typeName}.html"
+    } else {
+      return  "${_fi.OwnersType.Namespace}.${typeName}.html"
+    }
+  }
+
+  private function packagePath(typeName: String) : String {
+    var components = typeName.split('\\.').toList()
+    return components.subList(0, components.size() - 1).join("/")
   }
 
   function processBlockTags(str : String) : String {

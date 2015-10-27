@@ -17,7 +17,7 @@ class TagsDocClass {
 
   /*
    * test
-   * {@code}
+   * {@code }
    */
   function emptyCodeTag() {}
 
@@ -26,5 +26,23 @@ class TagsDocClass {
    * {@docRoot}
    */
   function docRootTag() {}
+
+  /*
+   * test
+   * {@link #docRootTag()}
+   */
+  function localFeatureLinkTag() {}
+
+  /*
+   * test
+   * {@link Super#methodToOverrideDocs()}
+   */
+  function packageRelativeLink() {}
+
+  /*
+   * test
+   * {@link com.example.bootstrap.test.AnotherTestClass#foo()}
+   */
+  function fullyQualifiedLink() {}
 
 }
