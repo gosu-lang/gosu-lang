@@ -21,7 +21,9 @@ uses java.lang.Math
 class TagsTokenizer {
 
   static final var INLINE_TAG_REGEXP = "\\{@[^}]+\\}"
+  static final var BLOCK_TAG_REGEXP = "^[ ]*@([a-zA-Z]*).*"
   static final var INLINE_TAG_PATTERN = Pattern.compile(INLINE_TAG_REGEXP);
+  static final var BLOCK_TAG_PATTERN = Pattern.compile(BLOCK_TAG_REGEXP);
 
   var _rootDoc: GSRootDocImpl
   var _fi: IAttributedFeatureInfo
@@ -80,10 +82,7 @@ class TagsTokenizer {
       return "<code>${content}</code>"
     } else if(inlineTag.startsWith("{@link ")) {
       var content = inlineTag.substring(Math.min(7, inlineTag.length() - 1), inlineTag.length() - 1)
-      var pieces = content.split(" ")
-      var feature = pieces.first()
-      var description = pieces.length > 1 ? pieces[1] : pieces.first()
-      return linkToFeature(feature, description)
+      return linkToFeature(content)
     } else if(inlineTag.equals("{@docRoot}")) {
       return inlineTag // replacement is handled by the HTML generator
     } else if(inlineTag.equals("{@inheritDoc}")) {
@@ -93,7 +92,11 @@ class TagsTokenizer {
     }
   }
 
-  private function linkToFeature(feature: String, description: String): String {
+  private function linkToFeature(content: String): String {
+    var stripped = content.trim()
+    var pieces = stripped.split(" ")
+    var feature = pieces.first()
+    var description = pieces.length > 1 ? pieces[1] : pieces.first()
     return "<a href='${parseLink(feature)}'>${description}</a>"
   }
 
@@ -123,7 +126,60 @@ class TagsTokenizer {
   }
 
   function processBlockTags(str : String) : String {
-    return str
+
+    var sb = new StringBuilder()
+
+    var lines = str.split("\n")
+
+    var currentTag : String
+    var tagBuffer : List<String>
+
+    for (line in lines) {
+      var matcher = BLOCK_TAG_PATTERN.matcher(line)
+      if (matcher.matches() && validTagName(matcher.group(1))) {
+        sb.append(handleBlockCurrentTag(currentTag, tagBuffer)).append("\n")
+        currentTag = matcher.group(1)
+        tagBuffer = {line}
+      } else {
+        if (currentTag == null) {
+          sb.append(line).append("\n")
+        } else {
+          tagBuffer.add(line)
+        }
+      }
+    }
+    sb.append(handleBlockCurrentTag(currentTag, tagBuffer)).append("\n")
+
+    return sb.toString()
+  }
+
+  private function handleBlockCurrentTag(currentTag: String, tagBuffer: List<String>) : String {
+    if(currentTag == null) {
+      return ""
+    } else {
+      if(currentTag == "see") {
+        var value = blockTagValue(currentTag, tagBuffer);
+        return "<dl><dt><b>See Also:</b></dt><dd>" + linkToFeature(value) + "<dd></dl>"
+      } else {
+        return tagBuffer.join("\n")
+      }
+    }
+  }
+
+  private function blockTagValue(currentTag: String, tagBuffer: List<String>) : String {
+    var sb = new StringBuilder()
+    var firstLine = tagBuffer.first()
+    sb.append(firstLine.substring(firstLine.indexOf('@' + currentTag) + 1 + currentTag.length())).append("\n")
+    var rest = tagBuffer.iterator()
+    rest.next()
+    while(rest.hasNext()){
+      sb.append(rest.next()).append("\n")
+    }
+    return sb.toString()
+  }
+
+  private function validTagName(tagName: String): boolean {
+    return tagName == "see"
   }
 
   private function handleDescriptionInheritance(fi: IAttributedFeatureInfo, description : String): String {

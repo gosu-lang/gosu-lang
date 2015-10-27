@@ -45,4 +45,23 @@ class TagsDocClass {
    */
   function fullyQualifiedLink() {}
 
+
+  /*
+   * test
+   * @see #docRootTag()
+   */
+  function localFeatureSeeTag() {}
+
+  /*
+   * test
+   * @see Super#methodToOverrideDocs()
+   */
+  function packageRelativeSeeLink() {}
+
+  /*
+   * test
+   * @see com.example.bootstrap.test.AnotherTestClass#foo()
+   */
+  function fullyQualifiedSeeLink() {}
+
 }

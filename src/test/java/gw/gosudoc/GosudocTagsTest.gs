@@ -57,4 +57,29 @@ class GosudocTagsTest extends BaseGosuDocTest {
     Assert.assertTrue(methodDocs.html(), methodDocs.html().contains(link))
   }
 
+  @Test
+  function relativeSeeTag() {
+    var docs = gosuDocForType(TagsDocClass)
+    var doc = Jsoup.parse(docs.read())
+    var methodDocs = doc.findMethodList( TagsDocClass#localFeatureSeeTag() )
+    Assert.assertTrue(methodDocs.html(), methodDocs.html().contains('<a href="#docRootTag()">#docRootTag()</a>'))
+  }
+
+  @Test
+  function packageRelativeSeeTag() {
+    var docs = gosuDocForType(TagsDocClass)
+    var doc = Jsoup.parse(docs.read())
+    var methodDocs = doc.findMethodList( TagsDocClass#packageRelativeSeeLink() )
+    Assert.assertTrue(methodDocs.html(), methodDocs.html().contains('<a href="com.example.bootstrap.Super.html#methodToOverrideDocs()">Super#methodToOverrideDocs()</a>'))
+  }
+
+  @Test
+  function absoluteSeeTag() {
+    var docs = gosuDocForType(TagsDocClass)
+    var doc = Jsoup.parse(docs.read())
+    var methodDocs = doc.findMethodList( TagsDocClass#fullyQualifiedSeeLink() )
+    var see = '<a href="../../../com/example/bootstrap/test/com.example.bootstrap.test.AnotherTestClass.html#foo()">com.example.bootstrap.test.AnotherTestClass#foo()</a>'
+    Assert.assertTrue(methodDocs.html(), methodDocs.html().contains(see))
+  }
+
 }
