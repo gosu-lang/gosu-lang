@@ -13,6 +13,7 @@ import gw.lang.reflect.IRelativeTypeInfo;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.ITypeVariableType;
 import gw.lang.reflect.gs.IGenericTypeVariable;
+import gw.lang.reflect.gs.IGosuClass;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -154,7 +155,7 @@ public enum Variance
     if( typeVarVariance == DEFAULT )
     {
       IType typeVarOwner = type.getEnclosingType();
-      if( !(typeVarOwner instanceof IFunctionType) )
+      if( !(typeVarOwner instanceof IFunctionType) && (!(typeVarOwner instanceof IGosuClass) || !((IGosuClass)typeVarOwner).isCompilingDefinitions()) )
       {
         Map<String, Variance> map = DEFAULT_VARIANCE_MAP.get( typeVarOwner );
         typeVarVariance = map.get( type.getName() );
