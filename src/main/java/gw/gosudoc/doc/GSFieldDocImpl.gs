@@ -3,12 +3,10 @@ package gw.gosudoc.doc
 uses com.sun.javadoc.AnnotationDesc
 uses com.sun.javadoc.FieldDoc
 uses com.sun.javadoc.SerialFieldTag
-uses gw.lang.reflect.IAttributedFeatureInfo
+uses gw.gosudoc.tags.TagsTokenizer
 uses gw.lang.reflect.IPropertyInfo
 uses gw.lang.reflect.IPropertyInfoDelegate
 uses gw.lang.reflect.IType
-uses gw.lang.reflect.gs.IGosuMethodInfo
-uses gw.lang.reflect.gs.IGosuPropertyInfo
 
 class GSFieldDocImpl extends GSMemberDocImpl implements FieldDoc{
 
@@ -100,24 +98,8 @@ class GSFieldDocImpl extends GSMemberDocImpl implements FieldDoc{
 
   //==========PROTECTED METHODS==========//
   function initialize(){
-    addTextComments( handleDescriptionInheritance( _propertyInfo) )
+    addTextComments( new TagsTokenizer(_propertyInfo.Description, _propertyInfo).processTags() )
     var gosuType = _propertyInfo.getFeatureType()
     _type = getRootDoc().getType( gosuType, this )
   }
-
-  private function handleDescriptionInheritance(fi: IAttributedFeatureInfo): String {
-    var description = fi.Description
-    if (fi typeis IGosuPropertyInfo and description?.contains("{@inheritDoc}")) {
-      var superCI = fi.Dps?.GetterDfs?.SuperDfs?.MethodOrConstructorInfo
-      if (superCI != null) {
-        var superDesc = handleDescriptionInheritance(superCI);
-        if (superDesc != null) {
-          return description.replace("{@inheritDoc}", superDesc)
-        }
-      }
-      return ""
-    }
-    return fi.Description
-  }
-
 }

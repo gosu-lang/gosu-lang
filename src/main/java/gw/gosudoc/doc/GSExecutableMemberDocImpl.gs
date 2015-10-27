@@ -9,8 +9,8 @@ uses com.sun.javadoc.ThrowsTag
 uses com.sun.javadoc.TypeVariable
 uses gw.gosudoc.misc.GSParamTagImpl
 uses gw.gosudoc.misc.GSParameterImpl
+uses gw.gosudoc.tags.TagsTokenizer
 uses gw.lang.reflect.IAttributedFeatureInfo
-uses gw.lang.reflect.IFeatureInfo
 uses gw.lang.reflect.IParameterInfo
 uses gw.lang.reflect.IType
 
@@ -120,7 +120,7 @@ abstract class GSExecutableMemberDocImpl extends GSMemberDocImpl implements Exec
 
   function initialize( parameters: Parameter[], comments: String, paramTags: ParamTag[] ){
     _parameters = parameters
-    addTextComments( comments )
+    addTextComments( new TagsTokenizer(comments, _featureInfo).processTags() )
     for( tag in paramTags ){
       addTag( tag )
     }

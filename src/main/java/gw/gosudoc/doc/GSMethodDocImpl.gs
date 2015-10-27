@@ -105,9 +105,8 @@ class GSMethodDocImpl extends GSExecutableMemberDocImpl implements MethodDoc {
   function initialize() {
     var parameterInfos = _iMethodInfo.getParameters()
     var parameters = processParameterInfos(parameterInfos)
-    var desc = handleDescriptionInheritance(_iMethodInfo)
     var comments = createParamTags(parameterInfos)
-    initialize(parameters, desc, comments)
+    initialize(parameters, _iMethodInfo.Description, comments)
     var returnType = _iMethodInfo.getReturnType()
     _returnType = getRootDoc().getType(returnType, this)
     if (!isVoid(returnType)) {
@@ -115,22 +114,6 @@ class GSMethodDocImpl extends GSExecutableMemberDocImpl implements MethodDoc {
     }
     verify()
   }
-
-  private function handleDescriptionInheritance(fi: IAttributedFeatureInfo): String {
-    var description = fi.Description
-    if (fi typeis IGosuMethodInfo and description?.contains("{@inheritDoc}")) {
-      var superCI = fi.Dfs?.SuperDfs?.MethodOrConstructorInfo
-      if (superCI != null) {
-        var superDesc = handleDescriptionInheritance(superCI);
-        if (superDesc != null) {
-          return description.replace("{@inheritDoc}", superDesc)
-        }
-      }
-      return ""
-    }
-    return fi.Description
-  }
-
 
   function verify() {
     if (_returnType == null) {
