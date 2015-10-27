@@ -1865,7 +1865,7 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
 
   private ClassType parseClassType( IGosuClassInternal gsClass, boolean bSetModifiers )
   {
-    ModifierInfo modifiers = parseModifiers( !bSetModifiers );
+    ModifierInfo modifiers = parseModifiersForClass( gsClass, bSetModifiers );
 
     if( !Modifier.isInternal( modifiers.getModifiers() )
         && !Modifier.isProtected( modifiers.getModifiers() )
@@ -1975,6 +1975,30 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
     }
 
     return classType;
+  }
+
+  private ModifierInfo parseModifiersForClass( IGosuClassInternal gsClass, boolean bSetModifiers )
+  {
+    ModifierInfo modifiers;ICompilableTypeInternal enclosingType = gsClass.getEnclosingType();
+    if( enclosingType instanceof IGosuClassInternal && ((IGosuClassInternal)enclosingType).isDeclarationsCompiled() )
+    {
+      // push static class symbols for annotations (they are part of modifier parsing)
+      ClassScopeCache scopeCache = makeClassScopeCache( (IGosuClassInternal)enclosingType );
+      pushClassSymbols( true, scopeCache );
+      try
+      {
+        modifiers = parseModifiers( !bSetModifiers );
+      }
+      finally
+      {
+        popClassSymbols();
+      }
+    }
+    else
+    {
+      modifiers = parseModifiers( !bSetModifiers );
+    }
+    return modifiers;
   }
 
   private String parseClassOrInterfaceHeaderSuffix( IGosuClassInternal gsClass, ClassType classType, boolean bResolveTypes )
