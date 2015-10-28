@@ -903,7 +903,7 @@ public class TypeLord
       }
       else
       {
-        appendTypeName( bWithEnclosingType, bIncludeModule, sb, paramType );
+        appendTypeName( bWithEnclosingType, bIncludeModule, sb, paramType, new HashSet<>() );
       }
       if( i < paramTypes.length - 1 )
       {
@@ -914,11 +914,11 @@ public class TypeLord
     return sb.toString();
   }
 
-  private static StringBuilder appendTypeName( boolean bWithEnclosingType, boolean bIncludeModule, StringBuilder sb, IType paramType )
+  private static StringBuilder appendTypeName( boolean bWithEnclosingType, boolean bIncludeModule, StringBuilder sb, IType paramType, Set<IType> visited )
   {
     if( paramType.isArray() )
     {
-      appendTypeName( bWithEnclosingType, bIncludeModule, sb, paramType.getComponentType() ).append( "[]" );
+      appendTypeName( bWithEnclosingType, bIncludeModule, sb, paramType.getComponentType(), visited ).append( "[]" );
     }
     else if( bWithEnclosingType && paramType instanceof TypeVariableType )
     {
@@ -934,6 +934,20 @@ public class TypeLord
         if( typeVarDef != null )
         {
           sb.append( typeVarDef.getVariance().getSymbol() );
+          IType boundingType = typeVarDef.getBoundingType();
+          if( type.isFunctionStatement() && boundingType != null && boundingType != JavaTypes.OBJECT() && !visited.contains( boundingType ) )
+          {
+            visited.add( boundingType );
+            try
+            {
+              sb.append( '-' );
+              appendTypeName( bWithEnclosingType, bIncludeModule, sb, boundingType, visited );
+            }
+            finally
+            {
+              visited.remove( boundingType );
+            }
+          }
         }
       }
       else
