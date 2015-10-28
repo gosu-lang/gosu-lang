@@ -889,9 +889,13 @@ public class TypeLord
 
   public static String getNameOfParams( IType[] paramTypes, boolean bRelative, boolean bWithEnclosingType )
   {
-    return getNameOfParams(paramTypes, bRelative, bWithEnclosingType, false);
+    return getNameOfParams( paramTypes, bRelative, bWithEnclosingType, false );
   }
   public static String getNameOfParams( IType[] paramTypes, boolean bRelative, boolean bWithEnclosingType, boolean bIncludeModule )
+  {
+    return _getNameOfParams( paramTypes, bRelative, bWithEnclosingType, bIncludeModule, new HashSet<>() );
+  }
+  private static String _getNameOfParams( IType[] paramTypes, boolean bRelative, boolean bWithEnclosingType, boolean bIncludeModule, Set<IType> visited )
   {
     StringBuilder sb = new StringBuilder( "<" );
     for( int i = 0; i < paramTypes.length; i++ )
@@ -903,7 +907,7 @@ public class TypeLord
       }
       else
       {
-        appendTypeName( bWithEnclosingType, bIncludeModule, sb, paramType, new HashSet<>() );
+        appendTypeName( bWithEnclosingType, bIncludeModule, sb, paramType, visited );
       }
       if( i < paramTypes.length - 1 )
       {
@@ -920,45 +924,45 @@ public class TypeLord
     {
       appendTypeName( bWithEnclosingType, bIncludeModule, sb, paramType.getComponentType(), visited ).append( "[]" );
     }
-    else if( bWithEnclosingType && paramType instanceof TypeVariableType )
+    else if( bWithEnclosingType && paramType instanceof TypeVariableType && !visited.contains( paramType ) )
     {
-      TypeVariableType type = (TypeVariableType)paramType;
-      if( type.getEnclosingType() != null )
+      visited.add( paramType );
+      try
       {
-        if( bIncludeModule && !(type.getEnclosingType() instanceof INonLoadableType) )
+        TypeVariableType type = (TypeVariableType)paramType;
+        if( type.getEnclosingType() != null )
         {
-          sb.append( type.getEnclosingType().getTypeLoader().getModule().getName() ).append( "." );
-        }
-        sb.append( type.getNameWithEnclosingType() );
-        ITypeVariableDefinition typeVarDef = type.getTypeVarDef();
-        if( typeVarDef != null )
-        {
-          sb.append( typeVarDef.getVariance().getSymbol() );
-          IType boundingType = typeVarDef.getBoundingType();
-          if( type.isFunctionStatement() && boundingType != null && boundingType != JavaTypes.OBJECT() && !visited.contains( boundingType ) )
+          if( bIncludeModule && !(type.getEnclosingType() instanceof INonLoadableType) )
           {
-            visited.add( boundingType );
-            try
+            sb.append( type.getEnclosingType().getTypeLoader().getModule().getName() ).append( "." );
+          }
+          sb.append( type.getNameWithEnclosingType() );
+          ITypeVariableDefinition typeVarDef = type.getTypeVarDef();
+          if( typeVarDef != null )
+          {
+            sb.append( typeVarDef.getVariance().getSymbol() );
+            IType boundingType = typeVarDef.getBoundingType();
+            if( type.isFunctionStatement() && boundingType != null && boundingType != JavaTypes.OBJECT() )
             {
               sb.append( '-' );
               appendTypeName( bWithEnclosingType, bIncludeModule, sb, boundingType, visited );
             }
-            finally
-            {
-              visited.remove( boundingType );
-            }
           }
         }
+        else
+        {
+          sb.append( type.getName() );
+        }
       }
-      else
+      finally
       {
-        sb.append( type.getName() );
+        visited.remove( paramType );
       }
     }
     else if( bWithEnclosingType && paramType.isParameterizedType() )
     {
       sb.append( paramType.getGenericType().getName() );
-      sb.append( getNameOfParams( paramType.getTypeParameters(), false, bWithEnclosingType, bIncludeModule ) );
+      sb.append( _getNameOfParams( paramType.getTypeParameters(), false, bWithEnclosingType, bIncludeModule, visited ) );
     }
     else
     {
