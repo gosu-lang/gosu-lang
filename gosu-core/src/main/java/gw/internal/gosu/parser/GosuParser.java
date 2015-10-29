@@ -12785,6 +12785,8 @@ public final class GosuParser extends ParserBase implements IGosuParser
               : ('@' + strFunctionName);
 
       FunctionType type = new FunctionType( strFunctionName, JavaTypes.pVOID(), null, typeVars );
+      type.setEnclosingType( getGosuClass() );
+
       if( bProperty && !typeVarDefs.isEmpty() )
       {
         verify( element, false, Res.MSG_GENERIC_PROPERTIES_NOT_SUPPORTED );

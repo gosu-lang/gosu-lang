@@ -38,6 +38,7 @@ public class FunctionType extends AbstractType implements IFunctionType, IGeneri
   private IType _owningParameterizedType;
   private volatile IGenericTypeVariable[] _typeVars;
   private int _iModifiers;
+  private IType _enclosingType;
   transient private FunctionTypeInfo _typeInfo;
   transient protected Set<IType> _allTypesInHierarchy;
   transient private String _signature;
@@ -211,6 +212,7 @@ public class FunctionType extends AbstractType implements IFunctionType, IGeneri
     _allTypesInHierarchy = source._allTypesInHierarchy;
     _signature = source._signature;
     _parameterizationByParamsName = source._parameterizationByParamsName;
+    _enclosingType = source._enclosingType;
   }
 
   /**
@@ -470,7 +472,7 @@ public class FunctionType extends AbstractType implements IFunctionType, IGeneri
     {
       return methodInfo.getOwnersType();
     }
-    return null;
+    return _enclosingType;
   }
 
   public IType getGenericType()
@@ -1091,5 +1093,9 @@ public class FunctionType extends AbstractType implements IFunctionType, IGeneri
   public IType getOwningParameterizedType()
   {
     return _owningParameterizedType;
+  }
+  public void setEnclosingType( IType gosuClass )
+  {
+    _enclosingType = gosuClass;
   }
 }

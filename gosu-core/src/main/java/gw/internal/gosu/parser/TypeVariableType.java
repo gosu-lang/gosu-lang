@@ -76,10 +76,20 @@ public class TypeVariableType extends AbstractType implements ITypeVariableType
     {
       // Add id to distinguish between overloaded methods. We can't use the signature
       // because we parse the type vars before the signature.
-      strEnclosingType += "." + makeMethodNameId();
+      strEnclosingType = makeEnclosingName( strEnclosingType ) + "." + makeMethodNameId();
     }
 
     return strEnclosingType + '.' + getRelativeName();
+  }
+
+  private String makeEnclosingName( String strEnclosingType )
+  {
+    if( getEnclosingType().getEnclosingType() != null )
+    {
+      // ClassName#funcName
+      return getEnclosingType().getEnclosingType().getName() + '#' + strEnclosingType;
+    }
+    return strEnclosingType;
   }
 
   private int makeMethodNameId()
@@ -103,7 +113,7 @@ public class TypeVariableType extends AbstractType implements ITypeVariableType
     }
 
     // Declaring class not yet finished decl compiling, use identity hash for the interim...
-    // or not a gosu class and don't jave function context...
+    // or not a gosu class and don't java function context...
     return System.identityHashCode( this );
   }
 
