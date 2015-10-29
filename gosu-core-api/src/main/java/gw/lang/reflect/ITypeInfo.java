@@ -366,7 +366,16 @@ public interface ITypeInfo extends IAnnotatedFeatureInfo
     {
       if( type instanceof ITypeVariableType )
       {
-        return getConcreteBoundingType( ((ITypeVariableType)type).getBoundingType() );
+        IType boundingType = ((ITypeVariableType)type).getBoundingType();
+        if( boundingType == null )
+        {
+          // ## todo: boundingType should really not be null, but it can be when it comes from java e.g.,
+          // B extends Comparable<? super B>, where <? super B> is WILD_CONTRAVARIANT and caught in a
+          // chick-n-egg where the first B's bounding type is not yet assigned because <? super B> is
+          // its bounding type.  So we just return B here, which is for all-ish intents and purposes ok.
+          return type;
+        }
+        return getConcreteBoundingType( boundingType );
       }
       else if( type instanceof ITypeVariableArrayType )
       {
