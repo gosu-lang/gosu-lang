@@ -17,6 +17,7 @@ import java.nio.file.WatchEvent;
 import java.nio.file.WatchKey;
 import java.nio.file.WatchService;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -32,13 +33,34 @@ public class DirectoryWatcher {
   public DirectoryWatcher() {
     try {
       _watchService = FileSystems.getDefault().newWatchService();
-      _watchedDirectories = new HashMap<WatchKey, Path>();
+      _watchedDirectories = new HashMap<>();
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
   }
 
+  /**
+   * Close the watch service. Releases resources. After calling, this instance becomes invalid and can't be used any more.
+   */
+  public void stopWatching() {
+    try {
+      _watchService.close();
+      _watchService = null;
+      _watchedDirectories = null;
+    } catch (IOException e) {
+      throw new RuntimeException("Could not stop watching directories!", e);
+    }
+  }
+
+  /**
+   * Walk the directories under given path, and register a watcher for every directory.
+   *
+   * @param dir the starting point under which to listen for changes, if it doesn't exist, do nothing.
+   */
   public void watchDirectoryTree(Path dir) {
+    if (_watchedDirectories == null) {
+      throw new IllegalStateException("DirectoryWatcher.close() was called. Please make a new instance.");
+    }
     try {
       if (Files.exists(dir)) {
         Files.walkFileTree(dir, new SimpleFileVisitor<Path>() {
@@ -63,10 +85,24 @@ public class DirectoryWatcher {
     }
   }
 
-  public static enum FileEvent { CREATE, MODIFY, DELETE }
+  public enum FileEvent {CREATE, MODIFY, DELETE}
 
+  /**
+   * Checks all the watched directories (that are being kept in a map) for changes since the last call to this method.
+   * </li>If a file is already marked as CREATE, leave it as CREATE; if it's marked as DELETE, that's totally
+   * invalid, so just ignore that.  If it's marked as MODIFY, no need to change it.  So only put something
+   * in the map if it's not already in there.
+   * <li/> If a create follows a delete, it means the editor deleted and re-created the file, and
+   * who knows what the contents are now, so it should be treated as a modification.
+   * <li/>If the file was created, then deleted, then just ignore it entirely and remove the event.
+   *
+   * @return FileEvent enum for each watched Path found, indicating the type of modification that happened.
+   */
   public Map<Path, FileEvent> getChangesSinceLastTime() {
-    Map<Path, FileEvent> events = new HashMap<Path, FileEvent>();
+    if (_watchedDirectories == null) {
+      throw new IllegalStateException("DirectoryWatcher.close() was called. Please make a new instance.");
+    }
+    Map<Path, FileEvent> events = new HashMap<>();
     while (true) {
       WatchKey key = _watchService.poll();
       if (key == null) {
