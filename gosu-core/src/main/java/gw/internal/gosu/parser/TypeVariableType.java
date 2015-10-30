@@ -322,7 +322,8 @@ public class TypeVariableType extends AbstractType implements ITypeVariableType
       return false;
     }
 
-    return thisEncType.getName().equals( thatEncType.getName() ) &&
+    return thisEncType.getEnclosingType() == thatEncType.getEnclosingType() &&
+           thisEncType.getName().equals( thatEncType.getName() ) &&
            ((IFunctionType)thisEncType).getParamSignature().equals( ((IFunctionType)thatEncType).getParamSignature() );
   }
 
