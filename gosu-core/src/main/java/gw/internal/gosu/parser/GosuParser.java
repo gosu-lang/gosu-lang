@@ -6708,13 +6708,14 @@ public final class GosuParser extends ParserBase implements IGosuParser
       return false;
     }
 
-    if( getGosuClass() != null && !((IGosuClass)getGosuClass()).isHeaderCompiled() )
+    ICompilableTypeInternal gsClass = getGosuClass();
+    if( gsClass instanceof IGosuClass && !((IGosuClass)gsClass).isHeaderCompiled() )
     {
       return true;
     }
 
     IGenericTypeVariable[] typeVars = type.getGenericTypeVariables();
-    if( verify(elem, typeParam != null && typeParam.length == typeVars.length, Res.MSG_WRONG_NUM_OF_ARGS, "") )
+    if( verify( elem, typeParam != null && typeParam.length == typeVars.length, Res.MSG_WRONG_NUM_OF_ARGS, "" ) )
     {
       assert typeParam != null;
       boolean bRet = true;
