@@ -327,6 +327,7 @@ public class Res
   public static final ResourceKey MSG_EXPECTING_RIGHTPAREN_AGGREGATE = new ResourceKey( "MSG_EXPECTING_RIGHTPAREN_AGGREGATE" );
   public static final ResourceKey MSG_ONLY_INTERFACES_ALLOWED_HERE = new ResourceKey( "MSG_ONLY_INTERFACES_ALLOWED_HERE" );
   public static final ResourceKey MSG_ONLY_ONE_CLASS_IN_COMPONENT_TYPE = new ResourceKey( "MSG_ONLY_ONE_CLASS_IN_COMPONENT_TYPE" );
+  public static final ResourceKey MSG_ONLY_ONE_TYPE_VARIABLE = new ResourceKey( "MSG_ONLY_ONE_TYPE_VARIABLE" );
   public static final ResourceKey MSG_NO_ARRAY_IN_COMPONENT_TYPE = new ResourceKey( "MSG_NO_ARRAY_IN_COMPONENT_TYPE" );
   public static final ResourceKey MSG_NO_PRIMITIVE_IN_COMPONENT_TYPE = new ResourceKey( "MSG_NO_PRIMITIVE_IN_COMPONENT_TYPE" );
   public static final ResourceKey MSG_DYNAMIC_TYPE_NOT_ALLOWED_HERE = new ResourceKey( "MSG_DYNAMIC_TYPE_NOT_ALLOWED_HERE" );
@@ -361,6 +362,7 @@ public class Res
   public static final ResourceKey MSG_DIMENSION_ADDITION_MUST_BE_SAME_TYPE = new ResourceKey( "MSG_DIMENSION_ADDITION_MUST_BE_SAME_TYPE" );
   public static final ResourceKey MSG_DIMENSION_DIVIDE_SCALAR_BY_DIMENSION = new ResourceKey( "MSG_DIMENSION_DIVIDE_SCALAR_BY_DIMENSION" );
   public static final ResourceKey MSG_DIMENSION_MUST_BE_FINAL = new ResourceKey( "MSG_DIMENSION_MUST_BE_FINAL" );
+  public static final ResourceKey MSG_DIMENSION_NONSTANDARD_NUMBER_NO_OVERRIDE = new ResourceKey( "MSG_DIMENSION_NONSTANDARD_NUMBER_NO_OVERRIDE" );
   public static final ResourceKey MSG_RELATIONAL_OPERATOR_CANNOT_BE_APPLIED_TO_TYPE = new ResourceKey( "MSG_RELATIONAL_OPERATOR_CANNOT_BE_APPLIED_TO_TYPE" );
   public static final ResourceKey MSG_ARITHMETIC_OPERATOR_CANNOT_BE_APPLIED_TO_TYPES = new ResourceKey( "MSG_ARITHMETIC_OPERATOR_CANNOT_BE_APPLIED_TO_TYPES" );
   public static final ResourceKey MSG_ASSIGNMENTS_MUST_BE_ENCLOSED_IN_CURLIES_IN_BLOCKS = new ResourceKey( "MSG_ASSIGNMENTS_MUST_BE_ENCLOSED_IN_CURLIES_IN_BLOCKS" );
@@ -389,6 +391,7 @@ public class Res
   public static final ResourceKey MSG_PARAM_NOT_FOUND = new ResourceKey( "MSG_PARAM_NOT_FOUND" );
   public static final ResourceKey MSG_PARAMETERIZED_ARRAY_COMPONENT = new ResourceKey( "MSG_PARAMETERIZED_ARRAY_COMPONENT" );
   public static final ResourceKey MSG_CANNOT_EXTEND_RAW_GENERIC_TYPE = new ResourceKey( "MSG_CANNOT_EXTEND_RAW_GENERIC_TYPE" );
+  public static final ResourceKey MSG_TYPE_VAR_VARIANCE_ERROR = new ResourceKey( "MSG_TYPE_VAR_VARIANCE_ERROR" );
   public static final ResourceKey MSG_NOT_A_SUPERTYPE = new ResourceKey( "MSG_NOT_A_SUPERTYPE" );
   public static final ResourceKey MSG_EXPECTING_TYPE_TO_FOLLOW_PACKAGE_NAME = new ResourceKey( "MSG_EXPECTING_TYPE_TO_FOLLOW_PACKAGE_NAME" );
   public static final ResourceKey MSG_CANNOT_REFERENCE_OUTER_SYMBOL_WITHIN_ENHANCEMENTS = new ResourceKey( "MSG_CANNOT_REFERENCE_OUTER_SYMBOL_WITHIN_ENHANCEMENTS" );

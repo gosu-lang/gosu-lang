@@ -8,6 +8,8 @@ import gw.fs.IFile;
 import gw.lang.parser.IFileRepositoryBasedType;
 import gw.lang.parser.IHasInnerClass;
 import gw.lang.parser.ISource;
+import gw.lang.reflect.IType;
+import gw.lang.reflect.gs.IGosuClass;
 import gw.lang.reflect.gs.ISourceFileHandle;
 import gw.lang.reflect.gs.ClassType;
 import gw.lang.reflect.TypeSystem;
@@ -52,8 +54,16 @@ public class InnerClassFileSystemSourceFileHandle implements ISourceFileHandle
   @Override
   public ISource getSource()
   {
-    IFileRepositoryBasedType enclosingType = (IFileRepositoryBasedType) TypeSystem.getByFullNameIfValid(_strEnclosingType);
-    return enclosingType.getSourceFileHandle().getSource();
+    IFileRepositoryBasedType enclosingType = (IFileRepositoryBasedType)TypeSystem.getByFullNameIfValid(_strEnclosingType);
+    if( enclosingType == null )
+    {
+      IType myType = TypeSystem.getByFullNameIfValid( _strEnclosingType + '.' + _strInnerClass );
+      if( myType instanceof IGosuClass )
+      {
+        enclosingType = (IFileRepositoryBasedType)myType.getEnclosingType();
+      }
+    }
+    return enclosingType == null ? null : enclosingType.getSourceFileHandle().getSource();
   }
 
   public String getParentType()

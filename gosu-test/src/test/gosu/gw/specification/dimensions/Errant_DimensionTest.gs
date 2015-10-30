@@ -37,36 +37,36 @@ class Errant_DimensionTest {
     var e1 : SampleDimension_Integer = new SampleDimension_Integer (new Integer(5))
     var f1 = d1 + e1
     var f2 = d1 - e1
-    var f3 = d1 * e1     //## KB(IDE-1840)  //## issuekeys: MSG_DIMENSION_MULTIPLICATION_UNDEFINED, MSG_ARITHMETIC_OPERATOR_CANNOT_BE_APPLIED_TO_TYPES
-    var f4 = d1 / e1     //## KB(IDE-1840)  //## issuekeys: MSG_DIMENSION_MULTIPLICATION_UNDEFINED, MSG_ARITHMETIC_OPERATOR_CANNOT_BE_APPLIED_TO_TYPES
-    var f5 = d1 % e1     //## KB(IDE-1840)  //## issuekeys: MSG_DIMENSION_MULTIPLICATION_UNDEFINED, MSG_ARITHMETIC_OPERATOR_CANNOT_BE_APPLIED_TO_TYPES
+    var f3 = d1 * e1   //## issuekeys: MSG_DIMENSION_MULTIPLICATION_UNDEFINED, MSG_ARITHMETIC_OPERATOR_CANNOT_BE_APPLIED_TO_TYPES
+    var f4 = d1 / e1   //## issuekeys: MSG_DIMENSION_MULTIPLICATION_UNDEFINED, MSG_ARITHMETIC_OPERATOR_CANNOT_BE_APPLIED_TO_TYPES
+    var f5 = d1 % e1   //## issuekeys: MSG_DIMENSION_MULTIPLICATION_UNDEFINED, MSG_ARITHMETIC_OPERATOR_CANNOT_BE_APPLIED_TO_TYPES
     var f6 = d1 ^ e1  //## issuekeys: MSG_BITWISE_OPERAND_MUST_BE_INT_OR_LONG, MSG_BITWISE_OPERAND_MUST_BE_INT_OR_LONG
 
     var g1 : SampleDimension_BigInteger = new SampleDimension_BigInteger (new BigInteger("3"))
     var h1 : SampleDimension_BigInteger = new SampleDimension_BigInteger (new BigInteger("1"))
     var i1 = g1 + h1
     var i2 = g1 - h1
-    var i3 = g1 * h1     //## KB(IDE-1840)  //## issuekeys: MSG_DIMENSION_MULTIPLICATION_UNDEFINED, MSG_ARITHMETIC_OPERATOR_CANNOT_BE_APPLIED_TO_TYPES
-    var i4 = g1 / h1     //## KB(IDE-1840)  //## issuekeys: MSG_DIMENSION_MULTIPLICATION_UNDEFINED, MSG_ARITHMETIC_OPERATOR_CANNOT_BE_APPLIED_TO_TYPES
-    var i5 = g1 % h1     //## KB(IDE-1840)  //## issuekeys: MSG_DIMENSION_MULTIPLICATION_UNDEFINED, MSG_ARITHMETIC_OPERATOR_CANNOT_BE_APPLIED_TO_TYPES
+    var i3 = g1 * h1  //## issuekeys: MSG_DIMENSION_MULTIPLICATION_UNDEFINED, MSG_ARITHMETIC_OPERATOR_CANNOT_BE_APPLIED_TO_TYPES
+    var i4 = g1 / h1  //## issuekeys: MSG_DIMENSION_MULTIPLICATION_UNDEFINED, MSG_ARITHMETIC_OPERATOR_CANNOT_BE_APPLIED_TO_TYPES
+    var i5 = g1 % h1  //## issuekeys: MSG_DIMENSION_MULTIPLICATION_UNDEFINED, MSG_ARITHMETIC_OPERATOR_CANNOT_BE_APPLIED_TO_TYPES
     var i6 = g1 ^ h1  //## issuekeys: MSG_BITWISE_OPERAND_MUST_BE_INT_OR_LONG, MSG_BITWISE_OPERAND_MUST_BE_INT_OR_LONG
 
     var a : SampleDimension_SpecialNumber = new SampleDimension_SpecialNumber(new SpecialNumber(5))
     var b : SampleDimension_SpecialNumber = new SampleDimension_SpecialNumber(new SpecialNumber(2))
-    var c10 = a + b     //## KB(IDE-1840), KB(IDE-1847)
-    var c11 = a - b     //## KB(IDE-1840), KB(IDE-1847)
-    var c12 = a * b     //## KB(IDE-1840)  //## issuekeys: MSG_DIMENSION_MULTIPLICATION_UNDEFINED, MSG_ARITHMETIC_OPERATOR_CANNOT_BE_APPLIED_TO_TYPES
-    var c13 = a / b     //## KB(IDE-1840)  //## issuekeys: MSG_DIMENSION_MULTIPLICATION_UNDEFINED, MSG_ARITHMETIC_OPERATOR_CANNOT_BE_APPLIED_TO_TYPES
-    var c14 = a % b     //## KB(IDE-1840)  //## issuekeys: MSG_DIMENSION_MULTIPLICATION_UNDEFINED, MSG_ARITHMETIC_OPERATOR_CANNOT_BE_APPLIED_TO_TYPES
+    var c10 = a + b  //## issuekeys: MSG_DIMENSION_NONSTANDARD_NUMBER_NO_OVERRIDE, MSG_ARITHMETIC_OPERATOR_CANNOT_BE_APPLIED_TO_TYPES
+    var c11 = a - b  //## issuekeys: MSG_DIMENSION_NONSTANDARD_NUMBER_NO_OVERRIDE, MSG_ARITHMETIC_OPERATOR_CANNOT_BE_APPLIED_TO_TYPES
+    var c12 = a * b  //## issuekeys: MSG_DIMENSION_NONSTANDARD_NUMBER_NO_OVERRIDE, MSG_ARITHMETIC_OPERATOR_CANNOT_BE_APPLIED_TO_TYPES
+    var c13 = a / b  //## issuekeys: MSG_DIMENSION_NONSTANDARD_NUMBER_NO_OVERRIDE, MSG_ARITHMETIC_OPERATOR_CANNOT_BE_APPLIED_TO_TYPES
+    var c14 = a % b  //## issuekeys: MSG_DIMENSION_NONSTANDARD_NUMBER_NO_OVERRIDE, MSG_ARITHMETIC_OPERATOR_CANNOT_BE_APPLIED_TO_TYPES
     var c15 = a ^ b  //## issuekeys: MSG_BITWISE_OPERAND_MUST_BE_INT_OR_LONG, MSG_BITWISE_OPERAND_MUST_BE_INT_OR_LONG
 
     var a1 : SampleDimension_SpecialNumberWithArith = new SampleDimension_SpecialNumberWithArith (new SpecialNumberWithArith(1))
     var b1 : SampleDimension_SpecialNumberWithArith = new SampleDimension_SpecialNumberWithArith (new SpecialNumberWithArith(2))
-    var c20 = a1 + b1    //## KB(IDE-1840), KB(IDE-1847)
-    var c21 = a1 - b1    //## KB(IDE-1840), KB(IDE-1847)
-    var c22 = a1 * b1    //## KB(IDE-1840)  //## issuekeys: MSG_DIMENSION_MULTIPLICATION_UNDEFINED, MSG_ARITHMETIC_OPERATOR_CANNOT_BE_APPLIED_TO_TYPES
-    var c23 = a1 / b1    //## KB(IDE-1840)  //## issuekeys: MSG_DIMENSION_MULTIPLICATION_UNDEFINED, MSG_ARITHMETIC_OPERATOR_CANNOT_BE_APPLIED_TO_TYPES
-    var c24 = a1 % b1    //## KB(IDE-1840)  //## issuekeys: MSG_DIMENSION_MULTIPLICATION_UNDEFINED, MSG_ARITHMETIC_OPERATOR_CANNOT_BE_APPLIED_TO_TYPES
+    var c20 = a1 + b1  //## issuekeys: MSG_DIMENSION_NONSTANDARD_NUMBER_NO_OVERRIDE, MSG_ARITHMETIC_OPERATOR_CANNOT_BE_APPLIED_TO_TYPES
+    var c21 = a1 - b1  //## issuekeys: MSG_DIMENSION_NONSTANDARD_NUMBER_NO_OVERRIDE, MSG_ARITHMETIC_OPERATOR_CANNOT_BE_APPLIED_TO_TYPES
+    var c22 = a1 * b1  //## issuekeys: MSG_DIMENSION_NONSTANDARD_NUMBER_NO_OVERRIDE, MSG_ARITHMETIC_OPERATOR_CANNOT_BE_APPLIED_TO_TYPES
+    var c23 = a1 / b1  //## issuekeys: MSG_DIMENSION_NONSTANDARD_NUMBER_NO_OVERRIDE, MSG_ARITHMETIC_OPERATOR_CANNOT_BE_APPLIED_TO_TYPES
+    var c24 = a1 % b1  //## issuekeys: MSG_DIMENSION_NONSTANDARD_NUMBER_NO_OVERRIDE, MSG_ARITHMETIC_OPERATOR_CANNOT_BE_APPLIED_TO_TYPES
     var c25 = a1 ^ b1  //## issuekeys: MSG_BITWISE_OPERAND_MUST_BE_INT_OR_LONG, MSG_BITWISE_OPERAND_MUST_BE_INT_OR_LONG
   }
 
@@ -76,36 +76,36 @@ class Errant_DimensionTest {
     var e1 : SampleDimWithoutArith_Integer = new SampleDimWithoutArith_Integer (new Integer(5))
     var f1 = d1 + e1
     var f2 = d1 - e1
-    var f3 = d1 * e1     //## KB(IDE-1840)  //## issuekeys: MSG_DIMENSION_MULTIPLICATION_UNDEFINED, MSG_ARITHMETIC_OPERATOR_CANNOT_BE_APPLIED_TO_TYPES
-    var f4 = d1 / e1     //## KB(IDE-1840)  //## issuekeys: MSG_DIMENSION_MULTIPLICATION_UNDEFINED, MSG_ARITHMETIC_OPERATOR_CANNOT_BE_APPLIED_TO_TYPES
-    var f5 = d1 % e1     //## KB(IDE-1840)  //## issuekeys: MSG_DIMENSION_MULTIPLICATION_UNDEFINED, MSG_ARITHMETIC_OPERATOR_CANNOT_BE_APPLIED_TO_TYPES
+    var f3 = d1 * e1  //## issuekeys: MSG_DIMENSION_MULTIPLICATION_UNDEFINED, MSG_ARITHMETIC_OPERATOR_CANNOT_BE_APPLIED_TO_TYPES
+    var f4 = d1 / e1  //## issuekeys: MSG_DIMENSION_MULTIPLICATION_UNDEFINED, MSG_ARITHMETIC_OPERATOR_CANNOT_BE_APPLIED_TO_TYPES
+    var f5 = d1 % e1  //## issuekeys: MSG_DIMENSION_MULTIPLICATION_UNDEFINED, MSG_ARITHMETIC_OPERATOR_CANNOT_BE_APPLIED_TO_TYPES
     var f6 = d1 ^ e1  //## issuekeys: MSG_BITWISE_OPERAND_MUST_BE_INT_OR_LONG, MSG_BITWISE_OPERAND_MUST_BE_INT_OR_LONG
 
     var g1 : SampleDimWithoutArith_BigInteger = new SampleDimWithoutArith_BigInteger (new BigInteger("3"))
     var h1 : SampleDimWithoutArith_BigInteger = new SampleDimWithoutArith_BigInteger (new BigInteger("1"))
     var i1 = g1 + h1
     var i2 = g1 - h1
-    var i3 = g1 * h1     //## KB(IDE-1840)  //## issuekeys: MSG_DIMENSION_MULTIPLICATION_UNDEFINED, MSG_ARITHMETIC_OPERATOR_CANNOT_BE_APPLIED_TO_TYPES
-    var i4 = g1 / h1     //## KB(IDE-1840)  //## issuekeys: MSG_DIMENSION_MULTIPLICATION_UNDEFINED, MSG_ARITHMETIC_OPERATOR_CANNOT_BE_APPLIED_TO_TYPES
-    var i5 = g1 % h1     //## KB(IDE-1840)  //## issuekeys: MSG_DIMENSION_MULTIPLICATION_UNDEFINED, MSG_ARITHMETIC_OPERATOR_CANNOT_BE_APPLIED_TO_TYPES
+    var i3 = g1 * h1  //## issuekeys: MSG_DIMENSION_MULTIPLICATION_UNDEFINED, MSG_ARITHMETIC_OPERATOR_CANNOT_BE_APPLIED_TO_TYPES
+    var i4 = g1 / h1  //## issuekeys: MSG_DIMENSION_MULTIPLICATION_UNDEFINED, MSG_ARITHMETIC_OPERATOR_CANNOT_BE_APPLIED_TO_TYPES
+    var i5 = g1 % h1  //## issuekeys: MSG_DIMENSION_MULTIPLICATION_UNDEFINED, MSG_ARITHMETIC_OPERATOR_CANNOT_BE_APPLIED_TO_TYPES
     var i6 = g1 ^ h1  //## issuekeys: MSG_BITWISE_OPERAND_MUST_BE_INT_OR_LONG, MSG_BITWISE_OPERAND_MUST_BE_INT_OR_LONG
 
     var a : SampleDimWithoutArith_SpecialNum = new SampleDimWithoutArith_SpecialNum(new SpecialNum(5))
     var b : SampleDimWithoutArith_SpecialNum = new SampleDimWithoutArith_SpecialNum(new SpecialNum(2))
-    var c10 = a + b     //## KB(IDE-1840), KB(IDE-1847)
-    var c11 = a - b     //## KB(IDE-1840), KB(IDE-1847)
-    var c12 = a * b     //## KB(IDE-1847)  //## issuekeys: MSG_DIMENSION_MULTIPLICATION_UNDEFINED, MSG_ARITHMETIC_OPERATOR_CANNOT_BE_APPLIED_TO_TYPES
-    var c13 = a / b     //## KB(IDE-1847)  //## issuekeys: MSG_DIMENSION_MULTIPLICATION_UNDEFINED, MSG_ARITHMETIC_OPERATOR_CANNOT_BE_APPLIED_TO_TYPES
-    var c14 = a % b     //## KB(IDE-1847)  //## issuekeys: MSG_DIMENSION_MULTIPLICATION_UNDEFINED, MSG_ARITHMETIC_OPERATOR_CANNOT_BE_APPLIED_TO_TYPES
+    var c10 = a + b  //## issuekeys: MSG_DIMENSION_NONSTANDARD_NUMBER_NO_OVERRIDE, MSG_ARITHMETIC_OPERATOR_CANNOT_BE_APPLIED_TO_TYPES
+    var c11 = a - b  //## issuekeys: MSG_DIMENSION_NONSTANDARD_NUMBER_NO_OVERRIDE, MSG_ARITHMETIC_OPERATOR_CANNOT_BE_APPLIED_TO_TYPES
+    var c12 = a * b     //## issuekeys: MSG_DIMENSION_NONSTANDARD_NUMBER_NO_OVERRIDE, MSG_ARITHMETIC_OPERATOR_CANNOT_BE_APPLIED_TO_TYPES
+    var c13 = a / b     //## issuekeys: MSG_DIMENSION_NONSTANDARD_NUMBER_NO_OVERRIDE, MSG_ARITHMETIC_OPERATOR_CANNOT_BE_APPLIED_TO_TYPES
+    var c14 = a % b     //## issuekeys: MSG_DIMENSION_NONSTANDARD_NUMBER_NO_OVERRIDE, MSG_ARITHMETIC_OPERATOR_CANNOT_BE_APPLIED_TO_TYPES
     var c15 = a ^ b  //## issuekeys: MSG_BITWISE_OPERAND_MUST_BE_INT_OR_LONG, MSG_BITWISE_OPERAND_MUST_BE_INT_OR_LONG
 
     var a1 : SampleDimWithoutArith_SpecialNumWithArith = new SampleDimWithoutArith_SpecialNumWithArith (new SpecialNumWithArith(1))
     var b1 : SampleDimWithoutArith_SpecialNumWithArith = new SampleDimWithoutArith_SpecialNumWithArith (new SpecialNumWithArith(2))
-    var c20 = a1 + b1    //## KB(IDE-1840), KB(IDE-1847)
-    var c21 = a1 - b1    //## KB(IDE-1840), KB(IDE-1847)
-    var c22 = a1 * b1    //## KB(IDE-1847)  //## issuekeys: MSG_DIMENSION_MULTIPLICATION_UNDEFINED, MSG_ARITHMETIC_OPERATOR_CANNOT_BE_APPLIED_TO_TYPES
-    var c23 = a1 / b1    //## KB(IDE-1847)  //## issuekeys: MSG_DIMENSION_MULTIPLICATION_UNDEFINED, MSG_ARITHMETIC_OPERATOR_CANNOT_BE_APPLIED_TO_TYPES
-    var c24 = a1 % b1    //## KB(IDE-1847)  //## issuekeys: MSG_DIMENSION_MULTIPLICATION_UNDEFINED, MSG_ARITHMETIC_OPERATOR_CANNOT_BE_APPLIED_TO_TYPES
+    var c20 = a1 + b1   //## issuekeys: MSG_DIMENSION_NONSTANDARD_NUMBER_NO_OVERRIDE, MSG_ARITHMETIC_OPERATOR_CANNOT_BE_APPLIED_TO_TYPES
+    var c21 = a1 - b1   //## issuekeys: MSG_DIMENSION_NONSTANDARD_NUMBER_NO_OVERRIDE, MSG_ARITHMETIC_OPERATOR_CANNOT_BE_APPLIED_TO_TYPES
+    var c22 = a1 * b1    //## issuekeys: MSG_DIMENSION_NONSTANDARD_NUMBER_NO_OVERRIDE, MSG_ARITHMETIC_OPERATOR_CANNOT_BE_APPLIED_TO_TYPES
+    var c23 = a1 / b1    //## issuekeys: MSG_DIMENSION_NONSTANDARD_NUMBER_NO_OVERRIDE, MSG_ARITHMETIC_OPERATOR_CANNOT_BE_APPLIED_TO_TYPES
+    var c24 = a1 % b1    //## issuekeys: MSG_DIMENSION_NONSTANDARD_NUMBER_NO_OVERRIDE, MSG_ARITHMETIC_OPERATOR_CANNOT_BE_APPLIED_TO_TYPES
     var c25 = a1 ^ b1  //## issuekeys: MSG_BITWISE_OPERAND_MUST_BE_INT_OR_LONG, MSG_BITWISE_OPERAND_MUST_BE_INT_OR_LONG
   }
 
@@ -211,29 +211,41 @@ class Errant_DimensionTest {
     var rate4 : SampleDimensionRate = new SampleDimensionRate(new SpecialNumberType(30.0))
     var rateAdd1 = rate3 + rate4
     var rateSubtract1 = rate3 - rate4
-    var rateMultiply1 = rate3 * rate4  //## issuekeys: MSG_DIMENSION_MULTIPLICATION_UNDEFINED, MSG_ARITHMETIC_OPERATOR_CANNOT_BE_APPLIED_TO_TYPES
-    var rateDivide1 = rate3 / rate4  //## issuekeys: MSG_DIMENSION_MULTIPLICATION_UNDEFINED, MSG_ARITHMETIC_OPERATOR_CANNOT_BE_APPLIED_TO_TYPES
-    var rateModulo1 = rate3 % rate4  //## issuekeys: MSG_DIMENSION_MULTIPLICATION_UNDEFINED, MSG_ARITHMETIC_OPERATOR_CANNOT_BE_APPLIED_TO_TYPES
+    var rateMultiply1 = rate3 * rate4  //## issuekeys: MSG_DIMENSION_NONSTANDARD_NUMBER_NO_OVERRIDE, MSG_ARITHMETIC_OPERATOR_CANNOT_BE_APPLIED_TO_TYPES
+    var rateDivide1 = rate3 / rate4  //## issuekeys: MSG_DIMENSION_NONSTANDARD_NUMBER_NO_OVERRIDE, MSG_ARITHMETIC_OPERATOR_CANNOT_BE_APPLIED_TO_TYPES
+    var rateModulo1 = rate3 % rate4  //## issuekeys: MSG_DIMENSION_NONSTANDARD_NUMBER_NO_OVERRIDE, MSG_ARITHMETIC_OPERATOR_CANNOT_BE_APPLIED_TO_TYPES
     var ratePower1 = rate3 ^ rate4  //## issuekeys: MSG_BITWISE_OPERAND_MUST_BE_INT_OR_LONG, MSG_BITWISE_OPERAND_MUST_BE_INT_OR_LONG
 
     var time3 : SampleDimensionTime = new SampleDimensionTime(new SpecialNumberType(10.0))
     var time4 : SampleDimensionTime = new SampleDimensionTime(new SpecialNumberType(30.0))
     var timeAdd1 = time3 + time4
     var timeSubtract1 = time3 - time4
-    var timeMultiply1 = time3 * time4  //## issuekeys: MSG_DIMENSION_MULTIPLICATION_UNDEFINED, MSG_ARITHMETIC_OPERATOR_CANNOT_BE_APPLIED_TO_TYPES
-    var timeDivide1 = time3 / time4  //## issuekeys: MSG_DIMENSION_MULTIPLICATION_UNDEFINED, MSG_ARITHMETIC_OPERATOR_CANNOT_BE_APPLIED_TO_TYPES
-    var timeModulo1 = time3 % time4  //## issuekeys: MSG_DIMENSION_MULTIPLICATION_UNDEFINED, MSG_ARITHMETIC_OPERATOR_CANNOT_BE_APPLIED_TO_TYPES
+    var timeMultiply1 = time3 * time4  //## issuekeys: MSG_DIMENSION_NONSTANDARD_NUMBER_NO_OVERRIDE, MSG_ARITHMETIC_OPERATOR_CANNOT_BE_APPLIED_TO_TYPES
+    var timeDivide1 = time3 / time4  //## issuekeys: MSG_DIMENSION_NONSTANDARD_NUMBER_NO_OVERRIDE, MSG_ARITHMETIC_OPERATOR_CANNOT_BE_APPLIED_TO_TYPES
+    var timeModulo1 = time3 % time4  //## issuekeys: MSG_DIMENSION_NONSTANDARD_NUMBER_NO_OVERRIDE, MSG_ARITHMETIC_OPERATOR_CANNOT_BE_APPLIED_TO_TYPES
     var timePower1 = time3 ^ time4  //## issuekeys: MSG_BITWISE_OPERAND_MUST_BE_INT_OR_LONG, MSG_BITWISE_OPERAND_MUST_BE_INT_OR_LONG
 
     var len3 : SampleDimensionLength = new SampleDimensionLength(new SpecialNumberType(10.0))
     var len4 : SampleDimensionLength = new SampleDimensionLength(new SpecialNumberType(30.0))
     var lenAdd1 = len3 + len4
     var lenSubtract1 = len3 - len4
-    var lenMultiply1 = len3 * len4  //## issuekeys: MSG_DIMENSION_MULTIPLICATION_UNDEFINED, MSG_ARITHMETIC_OPERATOR_CANNOT_BE_APPLIED_TO_TYPES
-    var lenDivide1 = len3 / len4  //## issuekeys: MSG_DIMENSION_MULTIPLICATION_UNDEFINED, MSG_ARITHMETIC_OPERATOR_CANNOT_BE_APPLIED_TO_TYPES
-    var lenModulo1 = len3 % len4  //## issuekeys: MSG_DIMENSION_MULTIPLICATION_UNDEFINED, MSG_ARITHMETIC_OPERATOR_CANNOT_BE_APPLIED_TO_TYPES
+    var lenMultiply1 = len3 * len4  //## issuekeys: MSG_DIMENSION_NONSTANDARD_NUMBER_NO_OVERRIDE, MSG_ARITHMETIC_OPERATOR_CANNOT_BE_APPLIED_TO_TYPES
+    var lenDivide1 = len3 / len4  //## issuekeys: MSG_DIMENSION_NONSTANDARD_NUMBER_NO_OVERRIDE, MSG_ARITHMETIC_OPERATOR_CANNOT_BE_APPLIED_TO_TYPES
+    var lenModulo1 = len3 % len4  //## issuekeys: MSG_DIMENSION_NONSTANDARD_NUMBER_NO_OVERRIDE, MSG_ARITHMETIC_OPERATOR_CANNOT_BE_APPLIED_TO_TYPES
     var lenPower1 = len3 ^ len4  //## issuekeys: MSG_BITWISE_OPERAND_MUST_BE_INT_OR_LONG, MSG_BITWISE_OPERAND_MUST_BE_INT_OR_LONG
   }
 
+  function testImplicitCoercionToNumber() {
+    var d = new SampleDimension_Integer( new Integer( 7 ) )
 
+    var test1 = d == 7
+    test1 = 7 == d
+
+    var seven = 7
+    test1 = d == seven
+    test1 = seven == d
+
+    var dim: SampleDimension_Integer = 7  //## issuekeys: MSG_TYPE_MISMATCH
+    var num: int = d
+  }
 }

@@ -65,11 +65,11 @@ enhancement CoreMapEnhancement<K, V> : java.util.Map<K, V>
    */
   function retainWhereKeys( keyFilter(k : K) : boolean ) : boolean {
     var modified = false
-    var iterator = this.entrySet().iterator()
-    while( iterator.hasNext() ) {
-      var entry = iterator.next()
+    var it = this.entrySet().iterator()
+    while( it.hasNext() ) {
+      var entry = it.next()
       if(not keyFilter( entry.Key ) ) {
-        iterator.remove()
+        it.remove()
         modified = true
       }
     }
@@ -82,11 +82,11 @@ enhancement CoreMapEnhancement<K, V> : java.util.Map<K, V>
    */
   function retainWhereValues( valueFilter(v : V) : boolean ) : boolean {
     var modified = false
-    var iterator = this.entrySet().iterator()
-    while( iterator.hasNext() ) {
-      var entry = iterator.next()
+    var it = this.entrySet().iterator()
+    while( it.hasNext() ) {
+      var entry = it.next()
       if(not valueFilter( entry.Value ) ) {
-        iterator.remove()
+        it.remove()
         modified = true
       }
     }

@@ -5,8 +5,10 @@
 package gw.internal.gosu.parser;
 
 import gw.lang.parser.coercers.FunctionToInterfaceCoercer;
+import gw.lang.parser.expressions.Variance;
 import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.java.IJavaClassType;
+import gw.lang.reflect.java.IJavaClassTypeVariable;
 import gw.lang.reflect.java.IJavaClassWildcardType;
 import gw.lang.reflect.java.IJavaType;
 import gw.lang.reflect.module.IModule;
@@ -30,11 +32,21 @@ public class WildcardTypeJavaClassWildcardType extends TypeJavaClassType impleme
 
     if( maybeUseLowerBoundForFunctionalInterface() )
     {
-      return TypeJavaClassType.createType( _wildcardType.getLowerBounds()[0], _module );
+      IJavaClassType bound = TypeJavaClassType.createType( _wildcardType.getLowerBounds()[0], _module );
+      if( bound instanceof IJavaClassTypeVariable )
+      {
+        ((IJavaClassTypeVariable)bound).setVariance( Variance.WILD_CONTRAVARIANT );
+      }
+      return bound;
     }
 
     Type rawType = _wildcardType.getUpperBounds()[0];
-    return TypeJavaClassType.createType(rawType, _module);
+    IJavaClassType bound = TypeJavaClassType.createType( rawType, _module );
+    if( bound instanceof IJavaClassTypeVariable )
+    {
+      ((IJavaClassTypeVariable)bound).setVariance( Variance.WILD_COVARIANT );
+    }
+    return bound;
   }
 
   private boolean maybeUseLowerBoundForFunctionalInterface()

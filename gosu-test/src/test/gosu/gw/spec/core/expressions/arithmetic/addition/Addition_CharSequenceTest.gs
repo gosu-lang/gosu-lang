@@ -1,13 +1,26 @@
 package gw.spec.core.expressions.arithmetic.addition
-uses gw.test.TestClass
-uses java.lang.Character
-uses java.lang.CharSequence
-uses java.util.Date
-uses java.lang.RuntimeException
+
 uses gw.spec.core.expressions.arithmetic.ArithmeticTestBase
 
+uses java.lang.CharSequence
+uses java.lang.RuntimeException
+uses java.util.Date
+
 class Addition_CharSequenceTest extends ArithmeticTestBase {
-  
+
+  private var _originalTZ : TimeZone
+
+  override function beforeTestClass() {
+    super.beforeTestClass()
+    _originalTZ = TimeZone.getDefault()
+    TimeZone.setDefault(TimeZone.getTimeZone("PST"))
+  }
+
+  override function afterTestClass() {
+    super.afterTestClass()
+    TimeZone.setDefault(_originalTZ)
+  }
+
   private static class MyCharSequence implements CharSequence {
     private var _value : String
     
@@ -166,7 +179,7 @@ class Addition_CharSequenceTest extends ArithmeticTestBase {
   
   function testStringDateAddition() {
     assertEquals("fooThu Jan 01 00:00:00 PST 2009", "foo" + new Date("1/1/2009"))
-    assertEquals(String, statictypeof("foo" + new Date("1/1/2009")))  
+    assertEquals(String, statictypeof("foo" + new Date("1/1/2009")))
   }
   
   function testStringEnumAddition() {
@@ -181,7 +194,7 @@ class Addition_CharSequenceTest extends ArithmeticTestBase {
   
   function testStringDateCastAsObjectAddition() {
     assertEquals("fooThu Jan 01 00:00:00 PST 2009", "foo" + (new Date("1/1/2009") as Object))
-    assertEquals(String, statictypeof("foo" + (new Date("1/1/2009") as Object)))  
+    assertEquals(String, statictypeof("foo" + (new Date("1/1/2009") as Object)))
   }
 
   // String on RHS
@@ -313,7 +326,7 @@ class Addition_CharSequenceTest extends ArithmeticTestBase {
 
   function testDateCastAsObjectStringAddition() {
     assertEquals("Thu Jan 01 00:00:00 PST 2009foo", (new Date("1/1/2009") as Object) + "foo")
-    assertEquals(String, statictypeof((new Date("1/1/2009") as Object) + "foo"))  
+    assertEquals(String, statictypeof((new Date("1/1/2009") as Object) + "foo"))
   }
   
   // CharSequence on the LHS
@@ -444,7 +457,7 @@ class Addition_CharSequenceTest extends ArithmeticTestBase {
   
   function testCharSequenceDateAddition() {
     assertEquals("foobonusThu Jan 01 00:00:00 PST 2009", cs("foo") + new Date("1/1/2009"))
-    assertEquals(String, statictypeof(cs("foo") + new Date("1/1/2009")))  
+    assertEquals(String, statictypeof(cs("foo") + new Date("1/1/2009")))
   }
   
   function testCharSequenceEnumAddition() {
@@ -459,7 +472,7 @@ class Addition_CharSequenceTest extends ArithmeticTestBase {
   
   function testCharSequenceDateCastAsObjectAddition() {
     assertEquals("foobonusThu Jan 01 00:00:00 PST 2009", cs("foo") + (new Date("1/1/2009") as Object))
-    assertEquals(String, statictypeof(cs("foo") + (new Date("1/1/2009") as Object)))  
+    assertEquals(String, statictypeof(cs("foo") + (new Date("1/1/2009") as Object)))
   }
   
   // String on RHS
@@ -591,7 +604,7 @@ class Addition_CharSequenceTest extends ArithmeticTestBase {
 
   function testDateCastAsObjectCharSequenceAddition() {
     assertEquals("Thu Jan 01 00:00:00 PST 2009foobonus", (new Date("1/1/2009") as Object) + cs("foo"))
-    assertEquals(String, statictypeof((new Date("1/1/2009") as Object) + cs("foo")))  
+    assertEquals(String, statictypeof((new Date("1/1/2009") as Object) + cs("foo")))
   }
 
   function testChainedStringConcatenation() {

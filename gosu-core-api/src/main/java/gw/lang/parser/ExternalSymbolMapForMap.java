@@ -20,26 +20,11 @@ public class ExternalSymbolMapForMap extends ExternalSymbolMapBase {
   }
 
   public ISymbol getSymbol(String name) {
-    ISymbol symbol = _externalSymbols.get( name );
-    if( symbol == null ) {
-      symbol = getAltSymbol( name );
-    }
-    return symbol;
-  }
-
-  private ISymbol getAltSymbol( String name ) {
-    String altName = handleCrappyPcfCapitalization( name );
-    if( altName != null ) {
-      return _externalSymbols.get( altName );
-    }
-    return null;
+    return _externalSymbols.get( name );
   }
 
   public boolean isExternalSymbol(String name) {
-    if( !_externalSymbols.containsKey( name ) ) {
-      return getAltSymbol( name ) != null;
-    }
-    return true;
+    return _externalSymbols.containsKey( name );
   }
 
   public HashMap<String, ISymbol> getMap() {

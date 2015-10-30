@@ -57,7 +57,7 @@ public class GenericTypeVariable implements IGenericTypeVariable
     IJavaClassType[] fromBounds = typeVar.getBounds();
     IType[] boundingTypes = new IType[fromBounds.length];
 
-    TypeVariableDefinitionImpl typeVarDef = new TypeVariableDefinitionImpl( null, _strName, enclosingType, null, this );
+    TypeVariableDefinitionImpl typeVarDef = new TypeVariableDefinitionImpl( null, _strName, enclosingType, null, this, typeVar.getVariance() );
     TypeVariableType typeVarType = new TypeVariableType( typeVarDef, enclosingType instanceof IFunctionType );
 
     actualParamByVarName.put( typeVarType, typeVarType );
@@ -106,6 +106,13 @@ public class GenericTypeVariable implements IGenericTypeVariable
     _typeVariableDefinition = typeVariableDefinition;
     _typeVariableDefinition.setTypeVar( this );
     _boundingType = boundingType;
+  }
+
+  public GenericTypeVariable( GenericTypeVariable source )
+  {
+    _strName = source._strName;
+    _boundingType = source._boundingType;
+    _typeVariableDefinition = source._typeVariableDefinition;
   }
 
   public String getName()

@@ -8,6 +8,7 @@ import gw.config.CommonServices;
 import gw.config.ExecutionMode;
 import gw.fs.IFile;
 import gw.internal.gosu.annotations.AnnotationMap;
+import gw.lang.StrictGenerics;
 import gw.lang.parser.TypeVarToTypeMap;
 import gw.lang.reflect.IErrorType;
 import gw.lang.reflect.IType;
@@ -44,7 +45,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -98,6 +98,7 @@ class JavaType extends InnerClassCapableType implements IJavaTypeInternal
   private IJavaTypeInternal _typeRef;
   transient private int _tiChecksum;
   transient volatile private List<IJavaType> _innerClasses;
+  transient private Boolean _bStrictGenerics;
 
   public static IJavaTypeInternal get( Class cls, DefaultTypeLoader loader )
   {
@@ -1395,6 +1396,17 @@ class JavaType extends InnerClassCapableType implements IJavaTypeInternal
     } else {
       return IType.EMPTY_ARRAY;
     }
+  }
+
+  public boolean isStrictGenerics()
+  {
+    if( _bStrictGenerics != null )
+    {
+      return _bStrictGenerics;
+    }
+
+    return _bStrictGenerics = getBackingClass() != null && Arrays.stream( getBackingClass().getAnnotations() )
+      .anyMatch( anno -> anno.getClass() == StrictGenerics.class );
   }
 
   @Override

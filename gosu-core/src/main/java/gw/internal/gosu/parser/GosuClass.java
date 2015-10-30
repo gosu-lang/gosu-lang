@@ -34,7 +34,6 @@ import gw.lang.parser.ITypeUsesMap;
 import gw.lang.parser.PostCompilationAnalysis;
 import gw.lang.parser.ScriptPartId;
 import gw.lang.parser.ScriptabilityModifiers;
-import gw.lang.parser.StandardCoercionManager;
 import gw.lang.parser.TypeVarToTypeMap;
 import gw.lang.parser.exceptions.ErrantGosuClassException;
 import gw.lang.parser.exceptions.ParseResultsException;
@@ -135,6 +134,7 @@ public class GosuClass extends InnerClassCapableType implements IGosuClassIntern
   transient private GenericTypeVariable[] _genTypeVar;
   transient private GosuParser _parser;
   transient private ITypeUsesMap _typeUsesMap;
+  transient private Boolean _bStrictGenerics;
   transient private ModifierInfo _modifierInfo;
   transient private boolean _bHasAssertions;
 
@@ -173,10 +173,6 @@ public class GosuClass extends InnerClassCapableType implements IGosuClassIntern
     }
     finally
     {
-      // Ok, this is really, really weird.
-      //   Notice the code in the method isDiscarded below.  We do this so that we don't use this new type until after
-      //   it has been fully initialized.
-      //   The last call to getOrCreateTypeRef simply makes sure we replace the handle with this type
       _bInitializing = false;
     }
     getOrCreateTypeReference();
@@ -202,10 +198,6 @@ public class GosuClass extends InnerClassCapableType implements IGosuClassIntern
     }
     finally
     {
-      // Ok, this is really, really weird.
-      //   Notice the code in the method isDiscarded below.  We do this so that we don't use this new type until after
-      //   it has been fully initialized.
-      //   The last call to getOrCreateTypeRef simply makes sure we replace the handle with this type
       _bInitializing = false;
     }
     getOrCreateTypeReference();
@@ -341,11 +333,7 @@ public class GosuClass extends InnerClassCapableType implements IGosuClassIntern
       return;
     }
 
-    if( !genSuperType.isGenericType() )
-    {
-      setSuperType( genSuperType );
-    }
-    else if( genSuperType instanceof IJavaType )
+    if( genSuperType instanceof IJavaType )
     {
       IJavaTypeInternal javaGenSuperType = (IJavaTypeInternal)genSuperType;
       TypeVarToTypeMap actualParamByVarName = TypeLord.mapTypeByVarName( getOrCreateTypeReference(), getOrCreateTypeReference() );
@@ -356,7 +344,7 @@ public class GosuClass extends InnerClassCapableType implements IGosuClassIntern
     {
       IGosuClassInternal gsGenSuperType = (IGosuClassInternal)genSuperType;
       TypeVarToTypeMap actualParamByVarName = TypeLord.mapTypeByVarName( getOrCreateTypeReference(), getOrCreateTypeReference() );
-      setSuperType(TypeLord.getActualType( gsGenSuperType, actualParamByVarName, true ));
+      setSuperType( TypeLord.getActualType( gsGenSuperType, actualParamByVarName, true ) );
     }
   }
 
@@ -428,9 +416,16 @@ public class GosuClass extends InnerClassCapableType implements IGosuClassIntern
   public IType getSupertype()
   {
     compileHeaderIfNeeded();
-    if (TypeSystem.isDeleted(_superType)) {
+    if( TypeSystem.isDeleted(_superType) )
+    {
       return TypeSystem.getErrorType(_superType.getName());
-    } else {
+    }
+    else
+    {
+      if( _superType == null && isParameterizedType() && _genericClass.getSupertype() != null )
+      {
+        assignParameterizedSuperType();
+      }
       return _superType;
     }
   }
@@ -519,7 +514,25 @@ public class GosuClass extends InnerClassCapableType implements IGosuClassIntern
   {
     compileHeaderIfNeeded();
 
+    maybeAssignInterfacesForParameterizedClass();
+
     return _interfaces;
+  }
+
+  private void maybeAssignInterfacesForParameterizedClass()
+  {
+    IType[] interfaces = _interfaces;
+    if( (interfaces == null || interfaces.length == 0) && isParameterizedType() )
+    {
+      IType[] genInterfaces = _genericClass.getInterfaces();
+      if( genInterfaces != null && genInterfaces.length > 0 )
+      {
+        if( interfaces == null || interfaces.length != genInterfaces.length )
+        {
+          assignParameterizedInterfaces();
+        }
+      }
+    }
   }
 
   public void addInterface( IType type )
@@ -721,6 +734,11 @@ public class GosuClass extends InnerClassCapableType implements IGosuClassIntern
 
   public Set<IType> getAllTypesInHierarchy()
   {
+    if( isCompilingHeader() )
+    {
+      return Collections.emptySet();
+    }
+
     compileHeaderIfNeeded();
 
     if( !isHeaderCompiled() )
@@ -808,7 +826,7 @@ public class GosuClass extends InnerClassCapableType implements IGosuClassIntern
 
   public Object makeArrayInstance( int iLength )
   {
-    return Array.newInstance(getBackingClass(), iLength);
+    return Array.newInstance( getBackingClass(), iLength );
   }
 
   public Object getArrayComponent( Object array, int iIndex ) throws IllegalArgumentException, ArrayIndexOutOfBoundsException
@@ -861,21 +879,30 @@ public class GosuClass extends InnerClassCapableType implements IGosuClassIntern
       // (force an explicit cast if the runtime type is expected to directly implement the interface)
       return false;
     }
-    else
+    else if( type.getAllTypesInHierarchy().contains( pThis ) )
     {
-      //noinspection SuspiciousMethodCalls
-      return (type.getAllTypesInHierarchy().contains( pThis ) ||
-              TypeLord.areGenericOrParameterizedTypesAssignable( pThis, type )) &&
-             // We check structural assignability for the case where this is a generic structure and
-             // covariant assignability cannot hold because the type variable[s] are in parameter positions
-             // and, therefore, impose a contravariannt relationship, thus requires a deeper structural assignability check.
-             // Note this check should really be done on ALL generic interfaces, not just generic structures...
-             // Also it's probably worth noting this makes up for not having declaration-site contravariance,
-             // since we allow contravariant assignments to structures (the nominal, covariant check fails, then
-             // we check for a structural match, which wins in the contravariant case.  Makes it much easier on
-             // the user, they don't have to think about variance, shit just works with structures even when used nominally.
-             (!isParameterizedType() || !isStructure() || StandardCoercionManager.isStructurallyAssignable_Laxed( pThis, type ));
+      return true;
     }
+    else if( TypeLord.areGenericOrParameterizedTypesAssignable( pThis, type ) )
+    {
+        // We check *structural* assignability for the case where this is a structure or @StrictGenerics class/interface and
+        // covariant assignability may be inappropriate.  In other words structural assignability verifies contravariance
+        // if necessary.
+        return (isGenericType() && !isParameterizedType()) || // a pure generic class has no type parameters, therefore no contravariance to check
+               !isStrictGenerics() && !isStructure(); // structures and @StrictGenerics marked interfaces need to be checked further for contravariance
+    }
+    return false;
+  }
+
+  public boolean isStrictGenerics()
+  {
+    if( _bStrictGenerics != null )
+    {
+      return _bStrictGenerics;
+    }
+
+    return _bStrictGenerics = getGosuAnnotations().stream()
+      .anyMatch( anno -> anno.getType() == JavaTypes.STRICT_GENERICS() );
   }
 
   public boolean isMutable()

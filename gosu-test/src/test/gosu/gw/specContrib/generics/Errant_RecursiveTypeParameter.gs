@@ -37,4 +37,46 @@ class Errant_RecursiveTypeParameter {
 
   class A51<T extends A51> {}
   var a5: A51<A51> = new A51()
+
+  static class Errant_InheritRecursiveTypeNotRecursivelyError {
+    static class RecursiveComparable<T extends Comparable<T>> {
+    }
+
+    static abstract class InterfaceError implements Comparable<String> {}
+    var fail = new RecursiveComparable<InterfaceError>()  //## issuekeys: MSG_TYPE_PARAM_NOT_ASSIGNABLE_TO
+
+    static abstract class InterfaceWorks extends ComparableClass<InterfaceWorks> {}
+    var works = new RecursiveComparable<InterfaceWorks>()
+
+
+    static abstract class ComparableClass<T> implements Comparable<T> {
+    }
+    static class RecursiveComparableClass<T extends ComparableClass<T>> {
+    }
+    static abstract class SuperError extends ComparableClass<String> {}
+    var fail2 = new RecursiveComparableClass<SuperError>()    //## issuekeys: MSG_TYPE_PARAM_NOT_ASSIGNABLE_TO
+
+    static abstract class SuperWorks extends ComparableClass<SuperWorks> {}
+    var works2 = new RecursiveComparableClass<SuperWorks>()
+
+
+    static class Base<U extends Base<U>> {}
+    static class Derived<R, T> extends Base<Derived<R, T>> {}
+    static class Derived2<R, T> extends Base<Derived2<R, R>> {}
+    static class Derived3<R, T> extends Base<Derived3<T, T>> {}
+    static class Derived4<R, T> extends Base<Derived4<T, R>> {}  //## issuekeys: MSG_TYPE_PARAM_NOT_ASSIGNABLE_TO
+
+
+    abstract class BaseSampleDim<T extends Number> implements IDimension<BaseSampleDim<T>, T>{
+    }
+
+    abstract class BaseSampleDim2<T extends Number, U extends Number> implements IDimension<BaseSampleDim2<T, U>, T> {
+    }
+    abstract class BaseSampleDim3<T extends Number, U extends Number> implements IDimension<BaseSampleDim3<T, T>, T> {
+    }
+    abstract class BaseSampleDim4<T extends Number, U extends Number> implements IDimension<BaseSampleDim4<U, U>, T> {
+    }
+    abstract class BaseSampleDim5<T extends Number, U extends Number> implements IDimension<BaseSampleDim5<U, T>, T> {  //## issuekeys: MSG_TYPE_PARAM_NOT_ASSIGNABLE_TO
+    }
+  }
 }

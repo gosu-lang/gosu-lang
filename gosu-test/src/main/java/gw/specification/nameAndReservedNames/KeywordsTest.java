@@ -45,6 +45,7 @@ public class KeywordsTest extends TestClass {
     kw.put("if", false);
     kw.put("implements", false);
     kw.put("in", false);
+    kw.put("out", true);
     kw.put("index", true);
     kw.put("Infinity", true);
     kw.put("interface", false);

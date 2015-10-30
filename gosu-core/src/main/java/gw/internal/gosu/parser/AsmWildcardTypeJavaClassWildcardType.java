@@ -5,8 +5,10 @@
 package gw.internal.gosu.parser;
 
 import gw.lang.parser.coercers.FunctionToInterfaceCoercer;
+import gw.lang.parser.expressions.Variance;
 import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.java.IJavaClassType;
+import gw.lang.reflect.java.IJavaClassTypeVariable;
 import gw.lang.reflect.java.IJavaClassWildcardType;
 import gw.lang.reflect.java.IJavaType;
 import gw.lang.reflect.java.JavaTypes;
@@ -28,14 +30,22 @@ public class AsmWildcardTypeJavaClassWildcardType extends AsmTypeJavaClassType i
     // we only support one bound in Gosu
 
     if( maybeUseLowerBoundForFunctionalInterface() ) {
-      return AsmTypeJavaClassType.createType( ((AsmWildcardType)getType()).getBound(), getModule() );
+      IJavaClassType bound = AsmTypeJavaClassType.createType( ((AsmWildcardType)getType()).getBound(), getModule() );
+      if( bound instanceof IJavaClassTypeVariable ) {
+        ((IJavaClassTypeVariable)bound).setVariance( Variance.WILD_CONTRAVARIANT );
+      }
+      return bound;
     }
 
-    AsmType bound = ((AsmWildcardType)getType()).getBound();
-    if( bound == null ) {
+    AsmType asmBound = ((AsmWildcardType)getType()).getBound();
+    if( asmBound == null ) {
       return JavaTypes.OBJECT().getBackingClassInfo();
     }
-    return AsmTypeJavaClassType.createType( bound, _module );
+    IJavaClassType bound = AsmTypeJavaClassType.createType( asmBound, _module );
+    if( bound instanceof IJavaClassTypeVariable ) {
+      ((IJavaClassTypeVariable)bound).setVariance( Variance.WILD_COVARIANT );
+    }
+    return bound;
   }
 
   private boolean maybeUseLowerBoundForFunctionalInterface()

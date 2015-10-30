@@ -362,6 +362,11 @@ public class DynamicFunctionSymbol extends AbstractDynamicSymbol implements IDyn
       IType declaringType = scriptPart == null ? null : scriptPart.getContainingType();
       if( declaringType != null )
       {
+        if( declaringType instanceof IGosuClass && ((IGosuClass)declaringType).isCompilingDeclarations() )
+        {
+          System.out.println( "!!! Attempted to acquire declarations while compiling declarations" );
+        }
+
         ITypeInfo typeInfo = declaringType.getTypeInfo();
 
         List<? extends IMethodInfo> methods;

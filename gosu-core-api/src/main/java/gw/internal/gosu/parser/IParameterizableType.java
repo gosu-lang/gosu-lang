@@ -10,4 +10,5 @@ public interface IParameterizableType {
 
   IType[] getLoaderParameterizedTypes();
 
+  boolean isStrictGenerics();
 }

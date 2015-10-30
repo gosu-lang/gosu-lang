@@ -38,7 +38,8 @@ public class JavaSourceModifierList implements IModifierList {
     _modifiers = (int)((JCTree.JCModifiers)_modifiersTree).flags;
     IJavaClassInfo declaringOwner = owner instanceof JavaSourceType ? (IJavaClassInfo) owner : owner.getEnclosingClass();
     if( declaringOwner.isInterface() || declaringOwner.isAnnotation() ) {
-      if( !modifiersTree.getFlags().contains( javax.lang.model.element.Modifier.DEFAULT ) ) {
+      if( !modifiersTree.getFlags().contains( javax.lang.model.element.Modifier.DEFAULT ) &&
+          !modifiersTree.getFlags().contains( javax.lang.model.element.Modifier.STATIC ) ) {
         _modifiers |= Modifier.ABSTRACT;
       }
       if (owner instanceof JavaSourceField) {

@@ -6,8 +6,8 @@ class GenericClassUsingThisConstructorTest extends TestClass {
   function testChainedConstructors() {
     assertValues(new GenericClassUsingThisConstructor(), null, java.lang.Number)
     assertValues(new GenericClassUsingThisConstructor<java.lang.Integer>(), null, java.lang.Integer)
-    assertValues(new GenericClassUsingThisConstructor(5), 5, java.lang.Number)
-    assertValues(new GenericClassUsingThisConstructor(5), 5, java.lang.Number)
+    assertValues(new GenericClassUsingThisConstructor(5), 5, java.lang.Integer)
+    assertValues(new GenericClassUsingThisConstructor(5), 5, java.lang.Integer)
     assertValues(new GenericClassUsingThisConstructor<java.lang.Double>(5, 10), 5.0, java.lang.Double)
     assertValues(new GenericClassUsingThisConstructor<java.lang.Double>(5, 10), 5.0, java.lang.Double)
     assertValues(new GenericClassUsingThisConstructor("foo"), null, java.lang.Number)

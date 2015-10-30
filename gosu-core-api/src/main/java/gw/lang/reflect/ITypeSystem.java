@@ -160,6 +160,7 @@ public interface ITypeSystem extends IService
   IType getActualType( IType type, TypeVarToTypeMap actualParamByVarName, boolean bKeepTypeVars );
 
   void inferTypeVariableTypesFromGenParamTypeAndConcreteType( IType genParamType, IType argType, TypeVarToTypeMap map );
+  void inferTypeVariableTypesFromGenParamTypeAndConcreteType_Reverse( IType genParamType, IType argType, TypeVarToTypeMap map );
 
   IErrorType getErrorType();
   IErrorType getErrorType( String strErrantName );
@@ -247,4 +248,6 @@ public interface ITypeSystem extends IService
   IType replaceTypeVariableTypeParametersWithBoundingTypes( IType iType, IType type );
 
   IGosuc makeGosucCompiler( String gosucProjectFile, ICustomParser custParser );
+
+  boolean isParameterizedWith( IType type, ITypeVariableType... typeVar );
 }

@@ -4,7 +4,7 @@
     <groupId>org.gosu-lang.gosu</groupId>
     <artifactId>gosu-parent</artifactId>
     <relativePath>../gosu-parent/pom.xml</relativePath>
-    <version>1-ant-SNAPSHOT</version>
+    <version>1-spec-SNAPSHOT</version>
   </parent>
 
   <artifactId>idea-gosu-plugin</artifactId>
@@ -151,18 +151,18 @@
     <dependency>
       <groupId>org.gosu-lang.gosu</groupId>
       <artifactId>gosu-core</artifactId>
-      <version>1-ant-SNAPSHOT</version>
+      <version>1-spec-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.gosu-lang.gosu</groupId>
       <artifactId>gosu-test-api</artifactId>
-      <version>1-ant-SNAPSHOT</version>
+      <version>1-spec-SNAPSHOT</version>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.gosu-lang.gosu</groupId>
       <artifactId>ij-compiler-api</artifactId>
-      <version>1-ant-SNAPSHOT</version>
+      <version>1-spec-SNAPSHOT</version>
     </dependency>
   </dependencies>
 

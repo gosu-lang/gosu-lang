@@ -42,6 +42,7 @@ public class Gosu
 {
   /** used as a virtual package e.g., for scratchpad */
   public static final String NOPACKAGE = "_nopackage_";
+  public static final String GOSU_SCRATCHPAD_FQN = NOPACKAGE + ".GosuScratchpad";
 
   private static List<File> _classpath;
 

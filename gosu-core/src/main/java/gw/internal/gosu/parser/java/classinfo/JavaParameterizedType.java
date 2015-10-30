@@ -25,8 +25,15 @@ public class JavaParameterizedType implements IJavaClassParameterizedType {
         throw new RuntimeException("Arg type of a parameterized type cannot be null");
       }
     }
-    this._args = args;
-    this._rawType = rawType;
+    _args = args;
+    _rawType = rawType;
+    for( IJavaClassType arg: args )
+    {
+      if( arg instanceof JavaWildcardType )
+      {
+        ((JavaWildcardType)arg).setOwnerType( this );
+      }
+    }
   }
 
   @Override

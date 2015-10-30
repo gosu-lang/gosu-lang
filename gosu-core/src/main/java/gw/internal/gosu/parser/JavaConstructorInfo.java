@@ -13,6 +13,7 @@ import gw.lang.javadoc.IParamNode;
 import gw.lang.parser.TypeVarToTypeMap;
 import gw.lang.reflect.IAnnotationInfo;
 import gw.lang.reflect.IConstructorHandler;
+import gw.lang.reflect.IConstructorInfo;
 import gw.lang.reflect.IExceptionInfo;
 import gw.lang.reflect.IFeatureInfo;
 import gw.lang.reflect.IParameterInfo;
@@ -65,6 +66,12 @@ public class JavaConstructorInfo extends JavaBaseFeatureInfo implements IJavaCon
   public Constructor getRawConstructor()
   {
     return ((ConstructorJavaClassConstructor)_ctor).getJavaConstructor();
+  }
+
+  @Override
+  public boolean hasRawConstructor( IConstructorInfo rawCtor )
+  {
+    return rawCtor instanceof JavaConstructorInfo && ((JavaConstructorInfo)rawCtor).getJavaConstructor() == getJavaConstructor();
   }
 
   @Override

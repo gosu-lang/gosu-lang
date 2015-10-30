@@ -187,7 +187,7 @@ enhancement CoreArrayEnhancement<T> : T[] {
   function sort( isBefore(elt1 : T, elte2 : T):Boolean ) : T[]
   {
     var comparator = new BlockSortComparator(isBefore)
-    Arrays.sort( this as Object[], comparator )
+    Arrays.sort( this, comparator )
     return this
   }
 
@@ -197,7 +197,7 @@ enhancement CoreArrayEnhancement<T> : T[] {
   function sortBy( value( elt : T ):Comparable, comparator : Comparator = null ) : T[]
   {
     var blockComparator = new BlockSortByComparator( value, true, comparator )
-    Arrays.sort( this as Object[], blockComparator )
+    Arrays.sort( this, blockComparator )
     return this
   }
 
@@ -207,7 +207,7 @@ enhancement CoreArrayEnhancement<T> : T[] {
   function sortByDescending( value( elt : T ):Comparable, comparator : Comparator = null ) : T[]
   {
     var blockComparator = new BlockSortByComparator( value, false, comparator )
-    Arrays.sort( this as Object[], blockComparator )
+    Arrays.sort( this, blockComparator )
     return this
   }
 

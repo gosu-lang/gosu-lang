@@ -4,6 +4,7 @@
 
 package gw.internal.gosu.parser;
 
+import gw.lang.reflect.IConstructorInfo;
 import gw.lang.reflect.IFeatureInfo;
 import gw.lang.reflect.gs.IGosuConstructorInfo;
 
@@ -20,5 +21,15 @@ public class ParameterizedGosuConstructorInfo extends GosuConstructorInfo {
 
   public IGosuConstructorInfo getBackingConstructorInfo() {
     return _delegate;
+  }
+
+  @Override
+  public boolean hasRawConstructor( IConstructorInfo rawCtor )
+  {
+    if( _delegate != null )
+    {
+      return _delegate.hasRawConstructor( rawCtor );
+    }
+    return false;
   }
 }

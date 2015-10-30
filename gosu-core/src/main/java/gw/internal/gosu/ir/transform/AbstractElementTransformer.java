@@ -1850,7 +1850,7 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
     return type.isPrimitive() && BeanAccess.isNumericType( type );
   }
 
-  protected boolean isBigType( IType type )
+  public static boolean isBigType( IType type )
   {
     return type == JavaTypes.BIG_DECIMAL() || type == JavaTypes.BIG_INTEGER();
   }
@@ -3434,7 +3434,7 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
       CommonServices.getEntityAccess().isEntityClass( operandType );
   }
 
-  final protected IType findDimensionType( IType type ) {
+  public static IType findDimensionType( IType type ) {
     if( !JavaTypes.IDIMENSION().isAssignableFrom( type ) ) {
       return null;
     }

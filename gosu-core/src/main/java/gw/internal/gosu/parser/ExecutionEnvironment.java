@@ -14,6 +14,8 @@ import gw.internal.gosu.module.GlobalModule;
 import gw.internal.gosu.module.JreModule;
 import gw.internal.gosu.module.Module;
 import gw.fs.AdditionalDirectory;
+import gw.lang.Gosu;
+import gw.lang.ProgramFileContext;
 import gw.lang.cli.SystemExitIgnoredException;
 import gw.lang.gosuc.GosucModule;
 import gw.lang.gosuc.GosucProject;
@@ -593,8 +595,10 @@ public class ExecutionEnvironment implements IExecutionEnvironment
                 try
                 {
                   IGosuProgramParser programParser = GosuParserFactory.createProgramParser();
-                  ParserOptions options = new ParserOptions().withParser( scriptParser );
-                  IParseResult parseResult = programParser.parseExpressionOrProgram( strScript, scriptParser.getSymbolTable(), options );
+                  ParserOptions options = new ParserOptions()
+                          .withParser(scriptParser)
+                          .withFileContext(new ProgramFileContext(null, Gosu.GOSU_SCRATCHPAD_FQN));
+                  IParseResult parseResult = programParser.parseExpressionOrProgram(strScript, scriptParser.getSymbolTable(), options);
                   Object result = parseResult.getProgram().evaluate( null );
                   if( result != null )
                   {

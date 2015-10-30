@@ -46,6 +46,7 @@ public class GosuTokenTypes {
   public static final GosuElementType TT_length = addKeyword("length");
   public static final GosuElementType TT_exists = addKeyword("exists");
   public static final GosuElementType TT_in = addKeyword("in");
+  public static final GosuElementType TT_out = addKeyword("out");
   public static final GosuElementType TT_startswith = addKeyword("startswith");
   public static final GosuElementType TT_contains = addKeyword("contains");
   public static final GosuElementType TT_where = addKeyword("where");

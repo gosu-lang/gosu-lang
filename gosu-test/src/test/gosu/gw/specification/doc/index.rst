@@ -26,4 +26,5 @@ implementers.
    blocks
    featureLiterals
    statements
+   generics
    
