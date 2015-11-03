@@ -5,6 +5,7 @@
 package gw.lang.parser.exceptions;
 
 import gw.lang.parser.IExpression;
+import gw.lang.parser.ISource;
 import gw.lang.parser.expressions.IProgram;
 import gw.lang.reflect.gs.IGosuClass;
 import gw.lang.parser.resources.ResourceKey;
@@ -196,9 +197,10 @@ public abstract class ParseIssue extends Exception implements IParseIssue
 
   public String getStateSource()
   {
-    if( _stateSource == null )
+    if( _stateSource == null && _parentClass != null )
     {
-      return _parentClass != null ? _parentClass.getSourceFileHandle().getSource().getSource() : null;
+      ISource source = _parentClass.getSourceFileHandle().getSource();
+      return source == null ? null : source.getSource();
     }
     return _stateSource;
   }

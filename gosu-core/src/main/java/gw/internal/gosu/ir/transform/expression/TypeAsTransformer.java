@@ -542,25 +542,29 @@ public class TypeAsTransformer extends AbstractExpressionTransformer<ITypeAsExpr
 
   public static Object coerceValue( Object value, IType type, ICoercer coercer )
   {
+    Object retValue = value;
     if( type == GosuParserTypes.NUMBER_TYPE() )
     {
-      return CommonServices.getCoercionManager().makeDoubleFrom( value );
+      retValue = CommonServices.getCoercionManager().makeDoubleFrom( value );
     }
     else if( type == GosuParserTypes.STRING_TYPE() )
     {
-      return CommonServices.getCoercionManager().makeStringFrom( value );
+      retValue = CommonServices.getCoercionManager().makeStringFrom( value );
     }
     else if( type == GosuParserTypes.DATETIME_TYPE() )
     {
-      return CommonServices.getCoercionManager().makeDateFrom( value );
+      retValue = CommonServices.getCoercionManager().makeDateFrom( value );
     }
-
-    if( coercer != null && (value != null || coercer.handlesNull()) )
+    else if( coercer != null && (value != null || coercer.handlesNull()) )
     {
-      return coercer.coerceValue( type, value );
+      retValue = coercer.coerceValue( type, value );
     }
 
-    return value;
+    if( retValue == StandardCoercionManager.NO_DICE )
+    {
+      throw new ClassCastException( value + " cannot be cast to " + type.getDisplayName() );
+    }
+    return retValue;
   }
 
   private IRExpression convertBoxedToPrimitive(IType lhsType, Class cls, String methodName, IRExpression lhsExpression) {

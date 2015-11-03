@@ -4,12 +4,10 @@
 
 package gw.internal.gosu.parser;
 
-import gw.lang.reflect.DefaultArrayType;
 import gw.lang.reflect.ITypeVariableArrayType;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.ITypeLoader;
 import gw.lang.reflect.TypeSystem;
-import gw.lang.reflect.IDefaultArrayType;
 import gw.lang.reflect.IEnhanceableType;
 import gw.lang.reflect.ITypeVariableType;
 import gw.lang.reflect.DefaultNonLoadableArrayType;
@@ -52,12 +50,21 @@ public class TypeVariableArrayType extends DefaultNonLoadableArrayType implement
   }
 
   @Override
+  public int hashCode()
+  {
+    int result = getName().hashCode();
+    result = 31 * result + getComponentType().hashCode();
+    return result;
+  }
+
+  @Override
   public boolean equals(Object obj) {
     if ( !(obj instanceof TypeVariableArrayType) ) {
       return false;
     }
     return getComponentType().equals( ((TypeVariableArrayType)obj).getComponentType() );
   }
+
 
   @Override
   public boolean isAssignableFrom( IType type )

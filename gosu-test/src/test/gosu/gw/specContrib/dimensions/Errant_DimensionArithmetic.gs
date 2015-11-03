@@ -11,15 +11,22 @@ class Errant_DimensionArithmetic {
     override function compareTo(o: SampleDim): int { return 0 }
 
     function divide(v: BigDecimal): SampleDim {
-    return null
-  }
+      return null
+    }
 
     function divide(v: SampleDim): BigDecimal {
       return null
     }
   }
 
-  function test(a: SampleDim, b: SampleDim) {
+  class SampleDimNonFinal implements IDimension<SampleDim, BigDecimal> {
+    override function toNumber(): BigDecimal { return null }
+    override function fromNumber(p0: BigDecimal): SampleDim { return null }
+    override function numberType(): Class<BigDecimal> { return null }
+    override function compareTo(o: SampleDim): int { return 0 }
+  }
+
+  function testArithmetic(a: SampleDim, b: SampleDim) {
     var bd: BigDecimal
 
     // IDE-2227
@@ -27,4 +34,13 @@ class Errant_DimensionArithmetic {
     var c2: SampleDim = a / b    //## issuekeys: MSG_TYPE_MISMATCH
     var c3: BigDecimal = a / b
   }
+
+  function testFinalCoercion() {
+    var finalDim: SampleDim
+    var nonFinalDim: SampleDimNonFinal
+
+    var works = finalDim as BigDecimal
+    var fails = nonFinalDim as BigDecimal //## issuekeys: MSG_TYPE_MISMATCH
+  }
+
 }

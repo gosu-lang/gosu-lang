@@ -8,6 +8,7 @@ import org.apache.tools.ant.DirectoryScanner;
 import org.apache.tools.ant.Project;
 import org.apache.tools.ant.types.Path;
 import org.apache.tools.ant.types.Reference;
+import org.apache.tools.ant.util.FileNameMapper;
 import org.apache.tools.ant.util.GlobPatternMapper;
 import org.apache.tools.ant.util.SourceFileScanner;
 
@@ -39,9 +40,10 @@ public class Gosuc extends GosuMatchingTask {
   private Path _compileClasspath;
   private boolean _failOnError = true;
   private boolean _checkedArithmetic = false;
-  private Set<String> _scriptExtensions = new HashSet<>(Arrays.asList("gs", "gsx", "gst"));
+  private boolean _force = true;
+  private Set<String> _scriptExtensions = new HashSet<>(Arrays.asList("gs", "gsx", "gst", "gsp"));
 
-  protected File[] compileList = new File[0];
+  protected List<File> compileList = new ArrayList<>();
   
   /**
    * Set the source directories to find the source Gosu files.
@@ -136,7 +138,23 @@ public class Gosuc extends GosuMatchingTask {
   public void setCheckedArithmetic( boolean checkedArithmetic ) {
     _checkedArithmetic = checkedArithmetic;
   }
-  
+
+  /**
+   * Gets the Force flag.<br>
+   * ant's directory scanner is timestamp based.  Without proper <depend> tasks, this could result in successful, but incomplete compilation.<br>
+   * Therefore we default 'force' to true, which causes compilation of all matching source files, regardless of the timestamp comparison between source and target.
+   * 
+   * @return
+   */
+  public boolean isForce() {
+    return _force;
+  }
+
+  public void setForce( boolean force ) {
+    _force = force;
+  }
+
+
   /**
    * Scans the directory looking for source files to be compiled.
    * The results are returned in the class variable compileList
@@ -148,31 +166,51 @@ public class Gosuc extends GosuMatchingTask {
   protected void scanDir(File srcDir, File destDir, String[] files) {
     GlobPatternMapper m = new GlobPatternMapper();
     SourceFileScanner sfs = new SourceFileScanner(this);
-    File[] newFiles;
+    List<File> newFiles;
+    if(!isForce()) {
+      log("Relying on ant's SourceFileScanner, which only looks at timestamps.  If broken references result, try setting option 'force' to true.", Project.MSG_WARN);
+    }
     for (String extension : getScriptExtensions()) {
       m.setFrom("*." + extension);
       m.setTo("*.class");
-      newFiles = sfs.restrictAsFiles(files, srcDir, destDir, m);
-      addToCompileList(newFiles);
+      log("Scanning for *." + extension + " files...", Project.MSG_DEBUG);
+      if(isForce()) {
+        newFiles = asFiles(srcDir, files, m);
+      } else {
+        newFiles = Arrays.asList(sfs.restrictAsFiles(files, srcDir, destDir, m));
+      }
+      log("Found these files:", Project.MSG_DEBUG);
+      for(File newFile : newFiles) {
+        log('\t' + newFile.getAbsolutePath(), Project.MSG_DEBUG);
+      }
+      compileList.addAll(newFiles);
     }
 
   }
 
-  protected void addToCompileList(File[] newFiles) {
-    if (newFiles.length > 0) {
-      File[] newCompileList = new File[compileList.length + newFiles.length];
-      System.arraycopy(compileList, 0, newCompileList, 0, compileList.length);
-      System.arraycopy(newFiles, 0, newCompileList, compileList.length, newFiles.length);
-      compileList = newCompileList;
+  /**
+   * Converts an array of relative String filenames to a {@code List<File>} 
+   * @param srcDir The root directory of all files
+   * @param files All files are relative to srcDir
+   * @return a List of Files by joining srcDir to each file
+   */
+  private List<File> asFiles(File srcDir, String[] files, FileNameMapper m) {
+    List<File> newFiles = new ArrayList<>();
+    for(String file : files) {
+      boolean hasMatchingExtension = m.mapFileName(file) != null; //use mapFileName as a check to validate if the source file extension is recognized by the mapper or not
+      if(hasMatchingExtension) {
+        newFiles.add(new File(srcDir, file));
+      }
     }
+    return newFiles;
   }
 
   /**
    * Gets the list of files to be compiled.
    *
-   * @return the list of files as an array
+   * @return the list of files
    */
-  public File[] getFileList() {
+  public List<File> getFileList() {
     return compileList;
   }
   

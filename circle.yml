@@ -23,6 +23,11 @@ general:
   artifacts:
     - "gosu-test/target/site" # preserve the generated HTML test reports
 
+dependencies:
+  override:
+    - mvn dependency:resolve
+    - mvn dependency:resolve-plugins
+
 test:
   # Adds profile to pick up Gosu tests
   override:

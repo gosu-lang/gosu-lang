@@ -271,10 +271,10 @@ enhancement CoreIterableEnhancement<T> : java.lang.Iterable<T> {
   /**
    * Return the set intersection of these two collections. 
    */
-  function intersect( that : Collection<T> ) : Set<T>{
-    var set = this typeis Set ? new HashSet<T>(toList()) : new LinkedHashSet<T>( toList() )
-    set.retainAll( that )
-    return set
+  function intersect( that : Collection<T> ) : Set<T> {
+    var retVal = this typeis Set ? new HashSet<T>(toList()) : new LinkedHashSet<T>( toList() )
+    retVal.retainAll( that )
+    return retVal
   }
 
   /**

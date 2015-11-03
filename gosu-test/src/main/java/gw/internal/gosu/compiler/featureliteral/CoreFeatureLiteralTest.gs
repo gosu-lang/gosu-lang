@@ -153,10 +153,10 @@ class CoreFeatureLiteralTest extends TestClass {
     var flc = new FeatureLiteralClass("doh")
     var f = flc#Tee
     assertNotNull( f )
-    assertEquals( FeatureLiteralClass, f.RootType )
+    assertEquals( FeatureLiteralClass<String>, f.RootType )
     assertEquals( "doh", f.get() )    
-    f.set(true)
-    assertEquals( true, f.get() )    
+    f.set("foo")
+    assertEquals( "foo", f.get() )
 
     var flc2 = new FeatureLiteralClass<String>("doh")
     var f2 = flc2#Tee
@@ -196,13 +196,13 @@ class CoreFeatureLiteralTest extends TestClass {
   }
   
   function testPrivateBasicBoundInstancePropertyWorks() {
-    var flc = new FeatureLiteralClass("doh")
+    var flc = new FeatureLiteralClass<String>("doh")
     var f = flc#PrivateTee
     assertNotNull( f )
-    assertEquals( FeatureLiteralClass, f.RootType )
+    assertEquals( FeatureLiteralClass<String>, f.RootType )
     assertEquals( "doh", f.get() )    
-    f.set(true)
-    assertEquals( true, f.get() )    
+    f.set("foo")
+    assertEquals( "foo", f.get() )
 
     var flc2 = new FeatureLiteralClass<String>("doh")
     var f2 = flc2#PrivateTee

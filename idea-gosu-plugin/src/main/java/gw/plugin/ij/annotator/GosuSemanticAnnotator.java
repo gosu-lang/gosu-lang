@@ -250,6 +250,7 @@ public class GosuSemanticAnnotator implements Annotator {
     COLOR_MAP.put(GosuElementTypes.TT_length, GosuHighlighterColors.KEYWORD);
     COLOR_MAP.put(GosuElementTypes.TT_exists, GosuHighlighterColors.KEYWORD);
     COLOR_MAP.put(GosuElementTypes.TT_in, GosuHighlighterColors.KEYWORD);
+    COLOR_MAP.put(GosuElementTypes.TT_out, GosuHighlighterColors.KEYWORD);
     COLOR_MAP.put(GosuElementTypes.TT_startswith, GosuHighlighterColors.KEYWORD);
     COLOR_MAP.put(GosuElementTypes.TT_contains, GosuHighlighterColors.KEYWORD);
     COLOR_MAP.put(GosuElementTypes.TT_where, GosuHighlighterColors.KEYWORD);
@@ -475,7 +476,7 @@ public class GosuSemanticAnnotator implements Annotator {
       "break", "case", "catch", "class", "classpath", "construct", "contains", "continue",
       "default", "delegate", "do", "else", "enhancement", "enum", "eval", "except", "execution",
       "exists", "extends", "false", "final", "finally", "find", "for", "foreach", "function",
-      "get", "hide", "if", "implements", "in", "index", "interface", "internal", "length", "new",
+      "get", "hide", "if", "implements", "in", "out", "index", "interface", "internal", "length", "new",
       "not", "null", "or", "outer", "override", "package", "private", "property", "protected",
       "public", "readonly", "represents", "request",
       "return",

@@ -5,6 +5,7 @@
 package gw.lang.reflect;
 
 import gw.lang.parser.StandardCoercionManager;
+import gw.lang.parser.TypeVarToTypeMap;
 import gw.util.DynamicArray;
 
 import java.util.Collection;
@@ -182,12 +183,7 @@ public class MethodList extends DynamicArray<IMethodInfo>
     throw new RuntimeException( "Not supported" );
   }
 
-  public Collection<DynamicArray<IMethodInfo>> getMethodBuckets()
-  {
-    return _map.values();
-  }
-
-  public IMethodInfo findAssignableMethod( IMethodInfo miTo, boolean bStatic )
+  public IMethodInfo findAssignableMethod( IMethodInfo miTo, boolean bStatic, TypeVarToTypeMap inferenceMap )
   {
     String mname = miTo.getDisplayName();
     DynamicArray<? extends IMethodInfo> methods = getMethods( mname );
@@ -195,7 +191,9 @@ public class MethodList extends DynamicArray<IMethodInfo>
     {
       return null;
     }
+    IType ownersType = miTo.getOwnersType();
     IMethodInfo foundMethod = null;
+    TypeVarToTypeMap foundInferenceMap = null;
     IParameterInfo[] toParams = miTo.getParameters();
     int iTopScore = 0;
     outer:
@@ -203,12 +201,13 @@ public class MethodList extends DynamicArray<IMethodInfo>
     {
       if( miFrom.isStatic() == bStatic && miFrom.getDisplayName().equals( mname ) )
       {
-        IType fromReturnType = miFrom.getReturnType();
-        IType toReturnType = miTo.getReturnType();
-        fromReturnType = TypeSystem.replaceTypeVariableTypeParametersWithBoundingTypes( fromReturnType, miFrom.getOwnersType() );
-        toReturnType = TypeSystem.replaceTypeVariableTypeParametersWithBoundingTypes( toReturnType, miTo.getOwnersType() );
+        TypeVarToTypeMap copyInferenceMap = new TypeVarToTypeMap( inferenceMap );
+
+        IType toReturnType = maybeInferReturnType( copyInferenceMap, ownersType, miFrom.getReturnType(), miTo.getReturnType() );
+        IType fromReturnType = TypeSystem.replaceTypeVariableTypeParametersWithBoundingTypes( miFrom.getReturnType(), miFrom.getOwnersType() );
         if( !toReturnType.equals( fromReturnType ) &&
             !toReturnType.isAssignableFrom( fromReturnType ) &&
+            !StandardCoercionManager.isStructurallyAssignable( toReturnType, fromReturnType ) &&
             !StandardCoercionManager.arePrimitiveTypesAssignable( toReturnType, fromReturnType ) &&
             !TypeSystem.isBoxedTypeFor( toReturnType, fromReturnType ) &&
             !TypeSystem.isBoxedTypeFor( fromReturnType, toReturnType ) )
@@ -221,20 +220,22 @@ public class MethodList extends DynamicArray<IMethodInfo>
           if( fromParams.length == 0 )
           {
             foundMethod = miFrom;
+            foundInferenceMap = copyInferenceMap;
           }
           int iScore = 0;
           for( int ip = 0; ip < fromParams.length; ip++ )
           {
             IParameterInfo fromParam = fromParams[ip];
             IParameterInfo toParam = toParams[ip];
+            IType toParamType = maybeInferParamType( copyInferenceMap, ownersType, fromParam.getFeatureType(), toParam.getFeatureType() );
             IType fromParamType = TypeSystem.replaceTypeVariableTypeParametersWithBoundingTypes( fromParam.getFeatureType(), miFrom.getOwnersType() );
-            IType toParamType = TypeSystem.replaceTypeVariableTypeParametersWithBoundingTypes( toParam.getFeatureType(), miTo.getOwnersType() );
             if( fromParamType.equals( toParamType ) )
             {
               // types are the same
               iScore += 2;
             }
             else if( fromParamType.isAssignableFrom( toParamType ) ||
+                     StandardCoercionManager.isStructurallyAssignable( fromParamType, toParamType ) ||
                      StandardCoercionManager.arePrimitiveTypesAssignable( fromParamType, toParamType ) ||
                      TypeSystem.isBoxedTypeFor( toParamType, fromParamType ) ||
                      TypeSystem.isBoxedTypeFor( fromParamType, toParamType ) )
@@ -250,11 +251,54 @@ public class MethodList extends DynamicArray<IMethodInfo>
           if( iTopScore < iScore )
           {
             foundMethod = miFrom;
+            foundInferenceMap = copyInferenceMap;
             iTopScore = iScore;
           }
         }
       }
     }
+    if( foundMethod != null )
+    {
+      inferenceMap.putAllAndInferred( foundInferenceMap );
+    }
     return foundMethod;
+  }
+
+  public Collection<DynamicArray<IMethodInfo>> getMethodBuckets()
+  {
+    return _map.values();
+  }
+
+  public static IType maybeInferParamType( TypeVarToTypeMap inferenceMap, IType ownersType, IType fromParamType, IType toParamType )
+  {
+    int iCount = inferenceMap.size();
+
+    if( toParamType instanceof ITypeVariableType || toParamType.isParameterizedType() )
+    {
+      TypeSystem.inferTypeVariableTypesFromGenParamTypeAndConcreteType( toParamType, fromParamType, inferenceMap, true );
+      if( inferenceMap.size() > iCount )
+      {
+        IType actualType = TypeSystem.getActualType( toParamType, inferenceMap, false );
+        toParamType = actualType == null ? toParamType : actualType;
+      }
+    }
+    return TypeSystem.replaceTypeVariableTypeParametersWithBoundingTypes( toParamType, ownersType );
+  }
+
+  public static IType maybeInferReturnType( TypeVarToTypeMap inferenceMap, IType ownersType, IType fromReturnType, IType toReturnType )
+  {
+    int iCount = inferenceMap.size();
+
+    boolean bTypeVar = toReturnType instanceof ITypeVariableType;
+    if( bTypeVar || toReturnType.isParameterizedType() )
+    {
+      TypeSystem.inferTypeVariableTypesFromGenParamTypeAndConcreteType( toReturnType, fromReturnType, inferenceMap, false );
+      if( bTypeVar && inferenceMap.get( (ITypeVariableType)toReturnType ) != null || inferenceMap.size() > iCount )
+      {
+        IType actualType = TypeSystem.getActualType( toReturnType, inferenceMap, false );
+        toReturnType = actualType == null ? toReturnType : actualType;
+      }
+    }
+    return TypeSystem.replaceTypeVariableTypeParametersWithBoundingTypes( toReturnType, ownersType );
   }
 }

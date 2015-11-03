@@ -36,7 +36,7 @@ class Errant_CompoundType {
   interface foo {}
   function testCompoundTypes() {
     var param: java.lang.Comparable<java.lang.Integer> & foo
-    var q1 = param < 11000
+    var q1 = param < 11000  //## issuekeys: MSG_
   }
 
 }

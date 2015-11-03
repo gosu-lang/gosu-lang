@@ -8,6 +8,7 @@ import gw.config.ExecutionMode;
 import gw.fs.IDirectory;
 import gw.internal.gosu.compiler.GosuClassLoader;
 import gw.internal.gosu.parser.java.classinfo.JavaSourceClass;
+import gw.lang.parser.IBlockClass;
 import gw.lang.reflect.IDefaultTypeLoader;
 import gw.lang.reflect.IErrorType;
 import gw.lang.reflect.IExtendedTypeLoader;
@@ -213,7 +214,11 @@ public class DefaultTypeLoader extends SimpleTypeLoader implements IExtendedType
       if (object instanceof AbstractTypeRef) {
         object = ((AbstractTypeRef) object)._getType();
       }
-      return ((IGosuObject) object).getIntrinsicType();
+      IType type = ((IGosuObject) object).getIntrinsicType();
+      if( type instanceof IBlockClass ) {
+        return ((IBlockClass)type).getBlockType();
+      }
+      return type;
     }
 
     if (object instanceof IType) {

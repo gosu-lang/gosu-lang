@@ -7,6 +7,8 @@ package gw.internal.gosu.ir.compiler.bytecode.expression;
 import gw.internal.gosu.parser.GosuClassProxyFactory;
 import gw.internal.gosu.parser.TypeLord;
 import gw.lang.parser.ISource;
+import gw.lang.parser.StandardCoercionManager;
+import gw.lang.parser.TypeVarToTypeMap;
 import gw.lang.reflect.IMethodInfo;
 import gw.lang.reflect.IParameterInfo;
 import gw.lang.reflect.IPropertyInfo;
@@ -87,6 +89,16 @@ public class StructuralTypeProxyGenerator {
 
   private StringBuilder generateProxy( IType ifaceType, IType type, String name ) {
     _type = type.getName();
+    if( ifaceType.isGenericType() && !ifaceType.isParameterizedType() )
+    {
+      TypeVarToTypeMap inferenceMap = new TypeVarToTypeMap();
+      if( !StandardCoercionManager.isStructurallyAssignable_Laxed( ifaceType, type, inferenceMap ) )
+      {
+        throw new IllegalStateException( "Unexpected structural type incompatibility: " + ifaceType.getName() + " from " + type.getName() );
+      }
+      ifaceType = TypeLord.makeParameteredType( ifaceType, inferenceMap );
+      ifaceType = TypeLord.replaceTypeVariableTypeParametersWithBoundingTypes( ifaceType );
+    }
     return new StringBuilder()
       .append( "package " ).append( getNamespace( ifaceType ) ).append( "\n" )
       .append( "\n" )
@@ -223,7 +235,7 @@ public class StructuralTypeProxyGenerator {
       return;
     }
 
-    IType ifacePropertyType = TypeLord.getPureGenericType( TypeLord.getDefaultParameterizedType( pi.getFeatureType() ) );
+    IType ifacePropertyType = TypeLord.getPureGenericType( TypeLord.replaceTypeVariableTypeParametersWithBoundingTypes( pi.getFeatureType() ) );
     if( pi.getDescription() != null ) {
       sb.append( "\n/** " ).append( pi.getDescription() ).append( " */\n" );
     }

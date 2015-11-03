@@ -38,6 +38,7 @@ public class FunctionType extends AbstractType implements IFunctionType, IGeneri
   private IType _owningParameterizedType;
   private volatile IGenericTypeVariable[] _typeVars;
   private int _iModifiers;
+  private IType _enclosingType;
   transient private FunctionTypeInfo _typeInfo;
   transient protected Set<IType> _allTypesInHierarchy;
   transient private String _signature;
@@ -211,6 +212,7 @@ public class FunctionType extends AbstractType implements IFunctionType, IGeneri
     _allTypesInHierarchy = source._allTypesInHierarchy;
     _signature = source._signature;
     _parameterizationByParamsName = source._parameterizationByParamsName;
+    _enclosingType = source._enclosingType;
   }
 
   /**
@@ -470,7 +472,7 @@ public class FunctionType extends AbstractType implements IFunctionType, IGeneri
     {
       return methodInfo.getOwnersType();
     }
-    return null;
+    return _enclosingType;
   }
 
   public IType getGenericType()
@@ -563,7 +565,7 @@ public class FunctionType extends AbstractType implements IFunctionType, IGeneri
       {
         //try to infer type from context type
         TypeVarToTypeMap returnTypeVars = new TypeVarToTypeMap();
-        TypeSystem.inferTypeVariableTypesFromGenParamTypeAndConcreteType( getReturnType(), ctxType, returnTypeVars );
+        TypeSystem.inferTypeVariableTypesFromGenParamTypeAndConcreteType( getReturnType(), ctxType, returnTypeVars, false );
         ITypeVariableType typeVarType = typeVars[i].getTypeVariableDefinition().getType();
         inferredType = returnTypeVars.get( typeVarType );
         inferredType = (inferredType != null && typeVarType.getBoundingType().isAssignableFrom( inferredType )) ? inferredType : typeVarType.getBoundingType();
@@ -660,57 +662,59 @@ public class FunctionType extends AbstractType implements IFunctionType, IGeneri
     return false;
   }
 
-  protected boolean areReturnTypesAssignable( FunctionType that ) {
-    IType thisType = getReturnType();
-    IType thatType = that.getReturnType();
-    if( isThisReturnTypeNotVoidThatReturnTypeVoid( thisType, thatType ) ) {
+  protected boolean areReturnTypesAssignable( FunctionType from ) {
+    IType toType = getReturnType();
+    IType fromType = from.getReturnType();
+    if( isThisReturnTypeNotVoidThatReturnTypeVoid( toType, fromType ) ) {
       return false;
     }
-    return thisType == thatType ||
-           thisType.isAssignableFrom( thatType ) ||
-            StandardCoercionManager.arePrimitiveTypesAssignable( thisType, thatType ) ||
-           thisType == GosuParserTypes.NULL_TYPE();
+    return toType == fromType ||
+           toType.isAssignableFrom( fromType ) ||
+           StandardCoercionManager.isStructurallyAssignable( toType, fromType ) ||
+           StandardCoercionManager.arePrimitiveTypesAssignable( toType, fromType ) ||
+           toType == GosuParserTypes.NULL_TYPE();
   }
 
-  private boolean isThisReturnTypeNotVoidThatReturnTypeVoid(IType thisType, IType thatType) {
-    return thisType != JavaTypes.pVOID() && thisType != JavaTypes.VOID() && (thatType == JavaTypes.pVOID() || thatType == JavaTypes.VOID());
+  private boolean isThisReturnTypeNotVoidThatReturnTypeVoid( IType toType, IType fromType ) {
+    return toType != JavaTypes.pVOID() && toType != JavaTypes.VOID() && (fromType == JavaTypes.pVOID() || fromType == JavaTypes.VOID());
   }
 
-  public boolean areParamsCompatible(IFunctionType rhsFunctionType) {
-    return areParamsCompatible(this, rhsFunctionType);
+  public boolean areParamsCompatible( IFunctionType fromType ) {
+    return areParamsCompatible( this, fromType );
   }
 
-  public static boolean areParamsCompatible( IFunctionType lhsType, IFunctionType rhsType )
+  public static boolean areParamsCompatible( IFunctionType toType, IFunctionType fromType )
   {
-    return areParamsCompatible( lhsType, rhsType, true );
+    return areParamsCompatible( toType, fromType, true );
   }
-  private static boolean areParamsCompatible( IFunctionType lhsType, IFunctionType rhsType, boolean bContravariant )
+  private static boolean areParamsCompatible( IFunctionType toType, IFunctionType fromType, boolean bContravariant )
   {
-    IType[] lhsParams = lhsType.getParameterTypes();
-    IType[] rhsParams = rhsType.getParameterTypes();
+    IType[] toParams = toType.getParameterTypes();
+    IType[] fromParams = fromType.getParameterTypes();
 
-    if( lhsParams.length != rhsParams.length )
+    if( toParams.length != fromParams.length )
     {
       return false;
     }
 
-    for( int i = 0; i < rhsParams.length; i++ )
+    for( int i = 0; i < fromParams.length; i++ )
     {
-      IType myParamType = lhsParams[i];
-      IType otherParamType = rhsParams[i];
+      IType toParamType = toParams[i];
+      IType fromParamType = fromParams[i];
       if( bContravariant )
       {
-        if( !StandardCoercionManager.arePrimitiveTypesAssignable( otherParamType, myParamType ) ) {
+        if( !StandardCoercionManager.arePrimitiveTypesAssignable( fromParamType, toParamType ) ) {
               //## todo: this condition re type vars is a hack; we need to tighten this up
-          if( !(myParamType instanceof ITypeVariableType) &&
-              !otherParamType.isAssignableFrom( myParamType ) &&
-              !isDynamic( otherParamType ) && !isDynamic( myParamType ) )
+          if( !(toParamType instanceof ITypeVariableType) &&
+              !fromParamType.isAssignableFrom( toParamType ) &&
+              !StandardCoercionManager.isStructurallyAssignable( fromParamType, toParamType ) &&
+              !isDynamic( fromParamType ) && !isDynamic( toParamType ) )
           {
             return false;
           }
         }
       }
-      else if( !otherParamType.equals( myParamType ) && !(myParamType instanceof ITypeVariableType) )
+      else if( !fromParamType.equals( toParamType ) && !(toParamType instanceof ITypeVariableType) )
       {
         return false;
       }
@@ -944,7 +948,7 @@ public class FunctionType extends AbstractType implements IFunctionType, IGeneri
     {
       if( genParamTypes.length > i )
       {
-        TypeSystem.inferTypeVariableTypesFromGenParamTypeAndConcreteType( genParamTypes[i], argTypes[i], map );
+        TypeSystem.inferTypeVariableTypesFromGenParamTypeAndConcreteType( genParamTypes[i], argTypes[i], map, false );
       }
     }
     return map;
@@ -1089,5 +1093,9 @@ public class FunctionType extends AbstractType implements IFunctionType, IGeneri
   public IType getOwningParameterizedType()
   {
     return _owningParameterizedType;
+  }
+  public void setEnclosingType( IType gosuClass )
+  {
+    _enclosingType = gosuClass;
   }
 }

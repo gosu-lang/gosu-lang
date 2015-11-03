@@ -11,6 +11,7 @@ import gw.lang.parser.IExpression;
 import gw.lang.parser.IReducedSymbol;
 import gw.lang.parser.exceptions.ErrantGosuClassException;
 import gw.lang.reflect.IConstructorHandler;
+import gw.lang.reflect.IConstructorInfo;
 import gw.lang.reflect.IFeatureInfo;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.NotLazyTypeResolver;
@@ -57,6 +58,12 @@ public class GosuConstructorInfo extends AbstractGenericMethodInfo implements IG
     }
 
     return _ctorHandler;
+  }
+
+  @Override
+  public boolean hasRawConstructor( IConstructorInfo rawCtor )
+  {
+    return rawCtor instanceof GosuConstructorInfo && ((GosuConstructorInfo)rawCtor).getDfs().getType().equals( getDfs().getType() );
   }
 
   @Override

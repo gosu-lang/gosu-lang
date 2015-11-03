@@ -132,7 +132,17 @@ public class FunctionToInterfaceCoercer extends BaseCoercer implements IResolvin
       return null;
     }
 
-    List<IJavaClassMethod> list = new ArrayList<>( Arrays.asList( interfaceType.getBackingClassInfo().getDeclaredMethods() ) );
+    return getSingleMethodFromJavaInterface( interfaceType.getBackingClassInfo() );
+  }
+
+  public static IJavaClassMethod getSingleMethodFromJavaInterface( IJavaClassInfo interfaceType )
+  {
+    if( !interfaceType.isInterface() )
+    {
+      return null;
+    }
+
+    List<IJavaClassMethod> list = new ArrayList<>( Arrays.asList( interfaceType.getDeclaredMethods() ) );
 
     // extract all "default" and Object methods
     IJavaClassInfo objTypeInfo = JavaTypes.OBJECT().getBackingClassInfo();

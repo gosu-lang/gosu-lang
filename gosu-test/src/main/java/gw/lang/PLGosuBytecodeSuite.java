@@ -12,6 +12,11 @@ import gw.util.Predicate;
 import junit.framework.Test;
 import junit.framework.TestResult;
 
+/**
+ * Typical JVM args:
+ *   -Dgw.tests.skip.knownbreak=true
+ *   -DcheckedArithmetic=true
+ */
 public class PLGosuBytecodeSuite extends Suite
 {
   public PLGosuBytecodeSuite() {

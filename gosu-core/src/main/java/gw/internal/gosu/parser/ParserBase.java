@@ -5,6 +5,7 @@
 package gw.internal.gosu.parser;
 
 import gw.config.CommonServices;
+import gw.internal.gosu.ir.transform.AbstractElementTransformer;
 import gw.internal.gosu.parser.expressions.AnnotationExpression;
 import gw.internal.gosu.parser.expressions.ArithmeticExpression;
 import gw.internal.gosu.parser.expressions.BlockExpression;
@@ -961,6 +962,11 @@ public abstract class ParserBase implements IParserPart
         return retType;
       }
 
+      if( !assertBoxedOrBigNumber( parser, parsedElement, lhsType, op ) )
+      {
+        return ErrorType.getInstance();
+      }
+
       if( isFinalDimension( parser, rhsType, parsedElement ) )
       {
         if( op == '*' || op == '/' || op == '%' )
@@ -1015,6 +1021,11 @@ public abstract class ParserBase implements IParserPart
         }
       }
 
+      if( !assertBoxedOrBigNumber( parser, parsedElement, rhsType, op ) )
+      {
+        return ErrorType.getInstance();
+      }
+
       if( op == '+' || op == '-' )
       {
         // Operands must both be Dimensions for addition or subtraction
@@ -1040,6 +1051,32 @@ public abstract class ParserBase implements IParserPart
       return rhsType;
     }
     return null;
+  }
+
+  private static boolean assertBoxedOrBigNumber( ParserBase parser, ParsedElement parsedElement, IType rhsType, int op )
+  {
+    switch( op )
+    {
+      case '+':
+      case '-':
+      case '*':
+      case '/':
+      case '%':
+        break;
+      default:
+        // only consider case for dimension-overridable arithmetic, let other errors get caught downstream
+        return true;
+    }
+    IType numberType = AbstractElementTransformer.findDimensionType( rhsType );
+    if( !StandardCoercionManager.isBoxed( numberType ) && !AbstractElementTransformer.isBigType( numberType ) )
+    {
+      if( parser != null )
+      {
+        parser.addError( parsedElement, Res.MSG_DIMENSION_NONSTANDARD_NUMBER_NO_OVERRIDE, rhsType, numberType );
+      }
+      return false;
+    }
+    return true;
   }
 
   static boolean isFinalDimension(ParserBase parser, IType lhsType, ParsedElement pe)
@@ -1531,40 +1568,6 @@ public abstract class ParserBase implements IParserPart
           }
         }
       }
-      else if( BeanAccess.isBeanType( lhsType ) &&
-               rhs instanceof Literal && !(rhs instanceof DefaultParamValueLiteral) && !(rhs instanceof TypeLiteral) && !(rhs instanceof NullExpression) && !rhs.hasParseExceptions() )
-      {
-        try
-        {
-          Object valueLiteral = rhs.evaluate();
-          List<IType> inferringTypes = getCurrentlyInferringFunctionTypeVars();
-          IType verifyType;
-          if( !inferringTypes.isEmpty() )
-          {
-            verifyType = TypeLord.boundTypes( lhsType, inferringTypes );
-          }
-          else
-          {
-            verifyType = lhsType;
-          }
-          if( !CommonServices.getEntityAccess().verifyValueForType( verifyType, valueLiteral ) )
-          {
-            rhs.addParseException( new ParseException(
-              state, lhsType, Res.MSG_VALUE_MISMATCH, valueLiteral, TypeSystem.getUnqualifiedClassName( lhsType ) ) );
-          }
-        }
-        catch( IncompatibleTypeException ite )
-        {
-          Object valueLiteral = rhs.evaluate();
-          rhs.addParseException( new ParseException(
-            state, lhsType, Res.MSG_VALUE_MISMATCH, valueLiteral, TypeSystem.getUnqualifiedClassName( lhsType ) ) );
-        }
-        catch( RuntimeException re )
-        {
-          //noinspection ThrowableResultOfMethodCallIgnored
-          rhs.addParseException( ParseException.wrap( re, state ) );
-        }
-      }
     }
   }
 
@@ -1833,7 +1836,7 @@ public abstract class ParserBase implements IParserPart
     return iModifiers;
   }
 
-  private void pushModifierList( int iOffsetList, int iLineNumList, int iColumnList )
+  void pushModifierList( int iOffsetList, int iLineNumList, int iColumnList )
   {
     ModifierListClause e = new ModifierListClause();
     pushExpression( e );
@@ -2392,11 +2395,14 @@ public abstract class ParserBase implements IParserPart
       {
         for( IType type : inferringFunctionType )
         {
-          if( types == Collections.EMPTY_LIST )
+          if( types.isEmpty() )
           {
             types = new ArrayList<IType>();
           }
-          types.add( type );
+          if( !types.contains( type ) )
+          {
+            types.add( type );
+          }
         }
       }
     }

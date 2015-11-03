@@ -6,6 +6,7 @@ package gw.internal.gosu.parser;
 
 import gw.lang.Throws;
 import gw.lang.parser.IReducedSymbol;
+import gw.lang.parser.StandardCoercionManager;
 import gw.lang.parser.TypeVarToTypeMap;
 import gw.lang.reflect.FunctionType;
 import gw.lang.reflect.IAnnotationInfo;
@@ -19,9 +20,11 @@ import gw.lang.reflect.IType;
 import gw.lang.reflect.ITypeVariableType;
 import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.gs.IGenericTypeVariable;
+import gw.lang.reflect.gs.IGosuClass;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 
 /**
@@ -203,7 +206,7 @@ public class AbstractGenericMethodInfo extends GosuBaseAttributedFeatureInfo imp
 
   public static void ensureInferredTypeAssignableToBoundingType( TypeVarToTypeMap actualParamByVarName, TypeVarToTypeMap map )
   {
-    for( ITypeVariableType s : map.keySet() )
+    for( ITypeVariableType s : new HashSet<>( map.keySet() ) )
     {
       IType inferredType = map.get( s );
       IType boundingType = actualParamByVarName.get( s );
@@ -214,12 +217,56 @@ public class AbstractGenericMethodInfo extends GosuBaseAttributedFeatureInfo imp
         {
           boundingType = TypeLord.getPureGenericType( boundingType );
         }
-        if( !boundingType.isAssignableFrom( inferredType ) )
+        if( !isBoundingTypeAssignableFromInferredType( inferredType, boundingType, s, map ) )
         {
           map.put( s, boundingType );
         }
       }
     }
+  }
+
+  private static boolean isBoundingTypeAssignableFromInferredType( IType inferredType, IType boundingType, ITypeVariableType tv, TypeVarToTypeMap map )
+  {
+    if( boundingType.isAssignableFrom( inferredType ) )
+    {
+//      if( TypeLord.isRecursiveType( tv ) )
+//      {
+//        IType actualBoundingType = TypeLord.getActualType( tv.getBoundingType(), map );
+//        if( !actualBoundingType.isAssignableFrom( inferredType ) )
+//        {
+//          // If we are dealing with a structure, the types may still be structurally assignable...
+//          if( !(boundingType instanceof IGosuClass) || !((IGosuClass)boundingType).isStructure() ||
+//              !StandardCoercionManager.isStructurallyAssignable( actualBoundingType, inferredType ) )
+//          {
+//            // Bounding type not assignable from inferred type derived from its methods' signatures,
+//            map.put( tv, null );
+//          }
+//        }
+//      }
+      return true;
+    }
+
+    if( boundingType instanceof IGosuClass && ((IGosuClass)boundingType).isStructure() )
+    {
+      if( StandardCoercionManager.isStructurallyAssignable( boundingType, inferredType ) )
+      {
+        if( TypeLord.isRecursiveType( tv ) )
+        {
+          // A recursive type var e.g., T extends Comparable<T> (if Comparable were implemented as a structure)
+          // Ensure inferred type of T is assignable to Comparable<T> e.g., if T is inferred as Foo, ensure Foo is structurally assignable to concretet type, Comparable<Foo>
+          // Essentially this means Foo must implement Comparable<T> contravariant with compareTo( f: Foo ), e.g., not compareTo( f: String )
+
+          IType actualBoundingType = TypeLord.getActualType( tv.getBoundingType(), map );
+          if( !StandardCoercionManager.isStructurallyAssignable( actualBoundingType, inferredType ) )
+          {
+            // Structural type is not assignable from inferred type derived from its methods' signatures,
+            map.put( tv, null );
+          }
+        }
+        return true;
+      }
+    }
+    return false;
   }
 
   public List<IExceptionInfo> getExceptions() {

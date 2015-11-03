@@ -113,9 +113,19 @@ class GenericMethodsTest extends TestClass
     assertEquals( Pair<Integer, String>, statictypeof p4 )
   }
 
+  function testInferAndAlsoHandleNewTypeVar() {
+    assertEquals( "", inferAndAlsoHandleNewTypeVar( "hi" ) )
+  }
+
   //----------------------------------------------------------
   // Sample generic methods
   //----------------------------------------------------------
+
+  function inferAndAlsoHandleNewTypeVar<U>(o: Object): U {
+    var r: U = o != null ? inferAndAlsoHandleNewTypeVar(null) : new U()
+    return r
+  }
+
   function identity<A>( arg : A ) : A {
     return arg
   }

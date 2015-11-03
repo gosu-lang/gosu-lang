@@ -6,6 +6,7 @@ package gw.lang.parser;
 
 import gw.config.BaseService;
 import gw.config.CommonServices;
+import gw.internal.gosu.parser.IParameterizableType;
 import gw.lang.GosuShop;
 import gw.lang.IDimension;
 import gw.lang.parser.coercers.*;
@@ -82,6 +83,17 @@ public class StandardCoercionManager extends BaseService implements ICoercionMan
 
   private boolean hasPotentialLossOfPrecisionOrScale( IType lhsType, IType rhsType )
   {
+    if( (lhsType.isPrimitive() || JavaTypes.NUMBER().isAssignableFrom( lhsType )) &&
+        rhsType.isFinal() && JavaTypes.IDIMENSION().isAssignableFrom( rhsType ) )
+    {
+      IType rhsDimension = TypeSystem.findParameterizedType( rhsType, JavaTypes.IDIMENSION() );
+      IType[] typeParameters = rhsDimension.getTypeParameters();
+      if( typeParameters == null) {
+        return true;
+      }
+      rhsType = typeParameters[1];
+    }
+
     if( lhsType == JavaTypes.pBYTE() || lhsType == JavaTypes.BYTE() )
     {
       return rhsType != JavaTypes.pBYTE() && rhsType != JavaTypes.BYTE();
@@ -299,14 +311,7 @@ public class StandardCoercionManager extends BaseService implements ICoercionMan
       //=============================================================================
       if( lhsType.equals( JavaTypes.BIG_INTEGER() ))
       {
-        if( hasPotentialLossOfPrecisionOrScale( lhsType, rhsType ) )
-        {
-          return BigIntegerCoercer.instance();
-        }
-        else
-        {
-          return BigIntegerCoercer.instance();
-        }
+        return BigIntegerCoercer.instance();
       }
     }
 
@@ -770,9 +775,15 @@ public class StandardCoercionManager extends BaseService implements ICoercionMan
     return null;
   }
 
+  private static boolean isStrictGenerics( IType type )
+  {
+    return type instanceof IParameterizableType && ((IParameterizableType)type).isStrictGenerics();
+  }
+
   public static boolean isStructurallyAssignable( IType toType, IType fromType )
   {
-    if( !(toType instanceof IGosuClass && ((IGosuClass)toType).isStructure()) )
+    if( !(toType instanceof IGosuClass && ((IGosuClass)toType).isStructure()) &&
+        !(isStrictGenerics( toType ) && toType.getGenericType().isAssignableFrom( TypeSystem.getPureGenericType( fromType ) )) )
     {
       return false;
     }
@@ -780,29 +791,11 @@ public class StandardCoercionManager extends BaseService implements ICoercionMan
   }
   public static boolean isStructurallyAssignable_Laxed( IType toType, IType fromType )
   {
-//    if( fromType instanceof IMetaType && ((IMetaType)fromType).getType() instanceof IGosuClass && ((IGosuClass)((IMetaType)fromType).getType()).isStructure() )
-//    {
-//      // So that:
-//      // foo( MyStaticCharAtType )
-//      // function foo( t: Type<CharAt> ) {
-//      //   var c = (t as CharAt).charAt( 0 )
-//      //   ...
-//      // }
-//      //
-//      fromType = ((IMetaType)fromType).getType();
-//    }
-//    else if( JavaTypes.CLASS().isAssignableFrom( fromType ) && fromType.getTypeParameters()[0] instanceof IGosuClass && ((IGosuClass)((IMetaType)fromType).getType()).isStructure() )
-//    {
-//      // So that:
-//      // foo( MyStaticCharAtType )
-//      // function foo( t: Class<CharAt> ) {
-//      //   var c = (t as CharAt).charAt( 0 )
-//      //   ...
-//      // }
-//      //
-//      fromType = fromType.getTypeParameters()[0];
-//    }
-
+    TypeVarToTypeMap inferenceMap = new TypeVarToTypeMap();
+    return isStructurallyAssignable_Laxed( toType, fromType, inferenceMap );
+  }
+  public static boolean isStructurallyAssignable_Laxed( IType toType, IType fromType, TypeVarToTypeMap inferenceMap )
+  {
     ITypeInfo fromTypeInfo = fromType.getTypeInfo();
     MethodList fromMethods = fromTypeInfo instanceof IRelativeTypeInfo
                              ? ((IRelativeTypeInfo)fromTypeInfo).getMethods( toType )
@@ -811,6 +804,10 @@ public class StandardCoercionManager extends BaseService implements ICoercionMan
     MethodList toMethods = toTypeInfo instanceof IRelativeTypeInfo
                            ? ((IRelativeTypeInfo)toTypeInfo).getMethods( fromType )
                            : toTypeInfo.getMethods();
+    IType ownersType = toTypeInfo.getOwnersType();
+
+    inferenceMap.setStructural( true );
+
     for( IMethodInfo toMi : toMethods )
     {
       if( isObjectMethod( toMi ) ) {
@@ -822,23 +819,32 @@ public class StandardCoercionManager extends BaseService implements ICoercionMan
       if( toMi instanceof IAttributedFeatureInfo && toMi.isDefaultImpl() || toMi.isStatic() ) {
         continue;
       }
-      IMethodInfo fromMi = fromMethods.findAssignableMethod( toMi, fromType instanceof IMetaType && (!(((IMetaType)fromType).getType() instanceof IGosuClass) || !((IGosuClass)((IMetaType)fromType).getType()).isStructure()) );
+      IMethodInfo fromMi = fromMethods.findAssignableMethod( toMi, fromType instanceof IMetaType && (!(((IMetaType)fromType).getType() instanceof IGosuClass) || !((IGosuClass)((IMetaType)fromType).getType()).isStructure()), inferenceMap );
       if( fromMi == null ) {
         if( toMi.getDisplayName().startsWith( "@" ) ) {
           // Find matching property/field
           IPropertyInfo fromPi = fromTypeInfo.getProperty( toMi.getDisplayName().substring( 1 ) );
           if( fromPi != null ) {
+            IType fromPropertyType = fromPi.getFeatureType();
             if( toMi.getParameters().length == 0 ) {
-              boolean bAssignable = toMi.getReturnType().equals( fromPi.getFeatureType() ) ||
-                                    arePrimitiveTypesAssignable( toMi.getReturnType(), fromPi.getFeatureType() );
+              // Getter Property
+              IType toReturnType = MethodList.maybeInferReturnType( inferenceMap, ownersType, fromPropertyType, toMi.getReturnType() );
+              boolean bAssignable = toReturnType.equals( fromPropertyType ) ||
+                                    arePrimitiveTypesAssignable( toReturnType, fromPropertyType ) ||
+                                    TypeSystem.isBoxedTypeFor( toReturnType, fromPropertyType ) ||
+                                    TypeSystem.isBoxedTypeFor( fromPropertyType, toReturnType );
               if( bAssignable ) {
                 continue;
               }
             }
             else {
+              // Setter Property ...
+              IType toParamType = MethodList.maybeInferParamType( inferenceMap, ownersType, fromPropertyType, toMi.getParameters()[0].getFeatureType() );
               boolean bAssignable = fromPi.isWritable( toType ) &&
-                                    (fromPi.getFeatureType().equals( toMi.getParameters()[0].getFeatureType() ) ||
-                                    arePrimitiveTypesAssignable( fromPi.getFeatureType(), toMi.getParameters()[0].getFeatureType() ));
+                                    (fromPi.getFeatureType().equals( toParamType ) ||
+                                    arePrimitiveTypesAssignable( fromPropertyType, toParamType ) ||
+                                    TypeSystem.isBoxedTypeFor( toParamType, fromPropertyType ) ||
+                                    TypeSystem.isBoxedTypeFor( fromPropertyType, toParamType ));
               if( bAssignable ) {
                 continue;
               }
