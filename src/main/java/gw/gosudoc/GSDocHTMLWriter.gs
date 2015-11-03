@@ -5,6 +5,7 @@ uses gw.gosudoc.cli.GosuDocArgs
 uses gw.gosudoc.doc.GSRootDocImpl
 
 uses java.io.File
+uses java.nio.charset.StandardCharsets
 
 class GSDocHTMLWriter {
 
@@ -33,7 +34,7 @@ class GSDocHTMLWriter {
 
     // Generate HTML
     var doclet = new HtmlDoclet()
-    doclet.configuration.charset = "utf-8"
+    doclet.configuration.charset = StandardCharsets.UTF_8.toString()
     doclet.start( doclet, rootDoc )
   }
 
