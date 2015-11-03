@@ -31,8 +31,8 @@
 
   <repositories>
     <repository>
-      <id>gosu-lang.org-snapshots</id>
-      <name>Official Gosu website (snapshots)</name>
+      <id>ossrh</id>
+      <name>Central Repository (snapshots)</name>
       <url>${dist.man.snapshotrepo.url}</url>
       <releases>
         <enabled>false</enabled>
@@ -49,17 +49,16 @@
     <version>7</version>
   </parent>
 
-
   <properties>
+    <gosu.version>1.8.1</gosu.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <dist.man.snapshotrepo.url>http://gosu-lang.org/nexus/content/repositories/snapshots</dist.man.snapshotrepo.url>
+    <dist.man.snapshotrepo.url>https://oss.sonatype.org/content/repositories/snapshots</dist.man.snapshotrepo.url>
   </properties>
 
   <distributionManagement>
     <snapshotRepository>
-      <id>gosu-lang.org-snapshots</id>
+      <id>ossrh</id>
       <url>${dist.man.snapshotrepo.url}</url>
-      <uniqueVersion>false</uniqueVersion>
     </snapshotRepository>
     <repository>
       <id>ossrh</id>
@@ -71,12 +70,12 @@
     <dependency>
       <groupId>org.gosu-lang.gosu</groupId>
       <artifactId>gosu-core-api</artifactId>
-      <version>1.6.1</version>
+      <version>${gosu.version}</version>
     </dependency>
     <dependency>
       <groupId>org.gosu-lang.gosu</groupId>
       <artifactId>gosu-core</artifactId>
-      <version>1.6.1</version>
+      <version>${gosu.version}</version>
       <scope>runtime</scope>
     </dependency>
     <dependency>
