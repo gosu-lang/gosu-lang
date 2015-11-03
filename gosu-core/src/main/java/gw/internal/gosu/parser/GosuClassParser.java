@@ -4077,7 +4077,7 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
     {
       varStmt = findStaticMemberField( gsClass, strIdentifier );
     }
-    verifyOrWarn( varStmt, !bOuterLocalDefined, false, Res.MSG_VARIABLE_ALREADY_DEFINED, strIdentifier );
+    verifyOrWarn( varStmt, varStmt == null || !bOuterLocalDefined, false, Res.MSG_VARIABLE_ALREADY_DEFINED, strIdentifier );
 
     if( !bStatic && varStmt != null && varStmt.isStatic() )
     {
