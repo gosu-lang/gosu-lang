@@ -99,7 +99,7 @@ class GSFieldDocImpl extends GSMemberDocImpl implements FieldDoc{
   }
 
   //==========PROTECTED METHODS==========//
-  function initialize(){
+  override function initialize(){
     addTextComments( handleDescriptionInheritance( _propertyInfo) )
     var gosuType = _propertyInfo.getFeatureType()
     _type = getRootDoc().getType( gosuType, this )

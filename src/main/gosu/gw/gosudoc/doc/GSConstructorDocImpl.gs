@@ -23,12 +23,12 @@ class GSConstructorDocImpl extends GSExecutableMemberDocImpl implements Construc
     return _iConstructorInfo.getExceptions().map( \elt -> getRootDoc().getType( elt.getExceptionType(), this ) ).toTypedArray()
   }
 
-  /*override*/ function receiverType(): com.sun.javadoc.Type{
+  override function receiverType(): com.sun.javadoc.Type{
     return null  //To change body of implemented methods use File | Settings | File Templates.
   }
 
   //==========PACKAGE-PRIVATE METHODS==========//
-  function initialize(){
+  override function initialize(){
     var parameterInfos = _iConstructorInfo.getParameters()
     var parameters = processParameterInfos( parameterInfos )
     var desc = _iConstructorInfo.getDescription()

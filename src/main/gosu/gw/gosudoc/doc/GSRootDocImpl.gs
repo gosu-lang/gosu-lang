@@ -219,8 +219,7 @@ class GSRootDocImpl extends GSDocImpl implements RootDoc{
       } else if( type typeis IFunctionType ){ // handle blocks, etc.
         typeImpl = new GSFunctionalTypeImpl( type, this, owner )
       } else if( type typeis ITypeVariableType ){
-        var vt = type as ITypeVariableType
-        typeImpl = new GSTypeVariableImpl( vt.Name, vt.BoundingType, this, owner )
+        typeImpl = new GSTypeVariableImpl( type.Name, type.BoundingType, this, owner )
       } else if( type.isParameterizedType() ){
         typeImpl = new GSParameterizedTypeImpl( type, this, owner )
       } else{

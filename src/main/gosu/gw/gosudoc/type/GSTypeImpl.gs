@@ -22,25 +22,24 @@ abstract class GSTypeImpl implements com.sun.javadoc.Type {
   }
 
   //==========PUBLIC METHODS IMPLEMENTING INTERFACES==========//
-  function typeName(): String{
+  override function typeName(): String{
     return _shortName
   }
 
-  /*override*/ property get ElementType(): com.sun.javadoc.Type{
+  override property get ElementType(): com.sun.javadoc.Type{
     return null
   }
 
-
-  function qualifiedTypeName(): String{
+  override function qualifiedTypeName(): String{
     return _qualifiedName
   }
 
-  function simpleTypeName(): String{
+  override function simpleTypeName(): String{
     return typeName()
   }
 
 
-  function dimension(): String{
+  override function dimension(): String{
     return _dimension
   }
 
@@ -48,25 +47,25 @@ abstract class GSTypeImpl implements com.sun.javadoc.Type {
     return false
   }
 
-  function asClassDoc(): ClassDoc{
+  override function asClassDoc(): ClassDoc{
     return null
   }
 
-  function asParameterizedType(): ParameterizedType{
+  override function asParameterizedType(): ParameterizedType{
     return null
   }
 
-  function asTypeVariable(): TypeVariable{
+  override function asTypeVariable(): TypeVariable{
     return null
   }
 
-  function asWildcardType(): WildcardType{
+  override function asWildcardType(): WildcardType{
     return null
   }
 
   override function asAnnotatedType(): AnnotatedType{ return null }
 
-  function asAnnotationTypeDoc(): AnnotationTypeDoc{
+  override function asAnnotationTypeDoc(): AnnotationTypeDoc{
     return null
   }
 

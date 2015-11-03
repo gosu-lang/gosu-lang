@@ -29,7 +29,7 @@ class GSMethodDocImpl extends GSExecutableMemberDocImpl implements MethodDoc {
     return false  //To change body of implemented methods use File | Settings | File Templates.
   }
 
-  /*override*/ property get Default(): boolean {
+  override property get Default(): boolean {
     return false  //To change body of implemented methods use File | Settings | File Templates.
   }
 
@@ -57,7 +57,7 @@ class GSMethodDocImpl extends GSExecutableMemberDocImpl implements MethodDoc {
     return _iMethodInfo.getExceptions().map(\elt -> getRootDoc().getType(elt.getExceptionType(), this)).toTypedArray()
   }
 
-  /*override*/ function receiverType(): com.sun.javadoc.Type {
+  override function receiverType(): com.sun.javadoc.Type {
     return null  //To change body of implemented methods use File | Settings | File Templates.
   }
 
@@ -102,7 +102,7 @@ class GSMethodDocImpl extends GSExecutableMemberDocImpl implements MethodDoc {
   }
 
   //==========PROTECTED METHODS==========//
-  function initialize() {
+  override function initialize() {
     var parameterInfos = _iMethodInfo.getParameters()
     var parameters = processParameterInfos(parameterInfos)
     var desc = handleDescriptionInheritance(_iMethodInfo)
