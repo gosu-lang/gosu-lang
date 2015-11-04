@@ -44,7 +44,7 @@ class GosuDocArgs {
   }
 
   private function parseFilters() : List {
-    if(_filters == null) {
+    if(_filters == null or _filters.isEmpty()) {
       return {}
     } else {
       return _filters.split( "," ).map( \ elt -> ReflectUtil.construct( elt, {} ) ).toList()
