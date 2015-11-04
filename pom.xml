@@ -36,7 +36,7 @@
   </parent>
 
   <properties>
-    <gosu.version>1.9</gosu.version>
+    <gosu.version>1-fixCmd-SNAPSHOT</gosu.version>
   </properties>
 
   <dependencies>

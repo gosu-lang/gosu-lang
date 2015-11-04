@@ -14,12 +14,10 @@ class GSDocHTMLWriter {
   var _filters: List as Filters = {}
   var _externalDocs : List<String> as ExternalDocs = {}
 
-  construct(cliArgs : GosuDocArgs = null){
-    if(cliArgs != null) {
-      cliArgs.init(this)
-    }
+  construct() {
+    GosuDocArgs.init(this)
   }
-
+  
   function write(){
     // Init output directory
     Output.mkdirs()
