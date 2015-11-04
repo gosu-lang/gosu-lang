@@ -17,7 +17,7 @@ class GosuDocArgs {
   @LongName( "filters" ) @ShortName( "f" ) @ArgOptional
   var _filters : String as FiltersString
 
-  @LongName( "externalDocs" ) @ShortName( "f" ) @ArgOptional
+  @LongName( "externalDocs" ) @ShortName( "e" ) @ArgOptional
   var _externalDocs : String as ExternalDocs
 
   function init( writer : GSDocHTMLWriter ){
