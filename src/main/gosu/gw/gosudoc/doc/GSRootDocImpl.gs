@@ -5,7 +5,6 @@ uses com.sun.javadoc.RootDoc
 uses com.sun.javadoc.ClassDoc
 uses com.sun.javadoc.PackageDoc
 uses com.sun.javadoc.SourcePosition
-uses gw.config.CommonServices
 uses gw.gosudoc.filter.*
 uses gw.gosudoc.type.GSArrayTypeImpl
 uses gw.gosudoc.type.GSClassTypeImpl
@@ -50,9 +49,12 @@ class GSRootDocImpl extends GSDocImpl implements RootDoc{
   var _constructorFilters : List<ConstructorFilter> as readonly ConstructorFilters = {}
   var _featureFilters : List<FeatureFilter> as readonly FeatureFilters = {}
   var _pathFilters : List<PathFilter> as readonly PathFilters = {}
+  var _verbose: boolean
 
-  construct( inputDirs : List<File>, outputDir: File, filters : List = null, externalDocs : List<String> = null ){
+  construct( inputDirs : List<File>, outputDir: File, filters : List = null, 
+             externalDocs : List<String> = null, verbose = false ){
     super( "Root", null )
+    _verbose = verbose
     _outputDirectory = outputDir
     _externalDocs = externalDocs
     if(filters != null) {
@@ -62,24 +64,37 @@ class GSRootDocImpl extends GSDocImpl implements RootDoc{
   }
 
   private function typesToDoc(inputDirs: List<File>): Set<String> {
+    debug(\-> "Beginning souce file scan")
     var types = new HashSet<String>()
     for(file in inputDirs) {
       addTypesToDoc(file, file, types);
     }
+    debug(\-> "Finished souce file scan")
     return types
   }
 
   private function addTypesToDoc(root : File, file: File, types: HashSet<String>) {
     if(shouldIncludeFile(file.AbsolutePath)) {
       if(file.Directory) {
+        debug(\-> "  Scanning " + file.AbsolutePath)
         for(child in file.Children) {
           addTypesToDoc(root, child, types)
         }
       } else {
         if(GOSU_SOURCE_EXTENSIONS.contains(file.Extension)) {
-          types.add(computeTypeName(root, file))
+          var typeName = computeTypeName(root, file)
+          debug(\-> "  Adding " + file.AbsolutePath + " as " + typeName)
+          types.add(typeName)
         }
       }
+    } else {
+      debug(\-> "  Ignoring " + file.AbsolutePath)
+    }
+  }
+
+  private function debug(s: block():String) {
+    if(_verbose) {
+      print(s())
     }
   }
 
@@ -106,6 +121,12 @@ class GSRootDocImpl extends GSDocImpl implements RootDoc{
   }
 
   function shouldDocumentType( iType : Type ): boolean{
+    var shouldDoc = shouldDocumentTypeImpl(iType);
+    debug(\ -> iType.getName() + " - document : " + shouldDoc)
+    return shouldDoc;
+  }
+
+  private function shouldDocumentTypeImpl(iType: Type): boolean{
 
     if(isExcluded( iType.getName() )) {
       return false

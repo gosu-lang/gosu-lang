@@ -12,6 +12,7 @@ class GSDocHTMLWriter {
   var _output: File as Output
   var _filters: List as Filters = {}
   var _externalDocs : List<String> as ExternalDocs = {}
+  var _verbose : Boolean as Verbose
 
   function write(){
     // Init output directory
@@ -20,7 +21,7 @@ class GSDocHTMLWriter {
       throw "Destination directory must be a valid directory path"
     }
     // Create Javadoc Data Structure
-    var rootDoc = new GSRootDocImpl(InputDirs, Output, Filters, ExternalDocs)
+    var rootDoc = new GSRootDocImpl(InputDirs, Output, Filters, ExternalDocs, Verbose)
     rootDoc.printNotice( "Generating Documentation" )
     rootDoc.genDocs()
     rootDoc.printNotice( "Finished loading types:  now generating GosuDoc HTML to: ${Output.AbsolutePath}" )
