@@ -1,7 +1,6 @@
 package gw.gosudoc
 
 uses com.sun.tools.doclets.formats.html.HtmlDoclet
-uses gw.gosudoc.cli.GosuDocArgs
 uses gw.gosudoc.doc.GSRootDocImpl
 
 uses java.io.File
@@ -14,10 +13,6 @@ class GSDocHTMLWriter {
   var _filters: List as Filters = {}
   var _externalDocs : List<String> as ExternalDocs = {}
 
-  construct() {
-    GosuDocArgs.init(this)
-  }
-  
   function write(){
     // Init output directory
     Output.mkdirs()

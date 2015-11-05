@@ -31,8 +31,9 @@ class BaseGosuDocTest {
 
     var htmlGenerator = new GSDocHTMLWriter() {
       :Output = out,
-      :InputDirs = {new File('target/test-classes/com/example')}
+      :InputDirs = {new File('src/test/gosu')}
     }
+
 
     htmlGenerator.write()
 

@@ -6,11 +6,7 @@ uses com.sun.javadoc.ClassDoc
 uses com.sun.javadoc.PackageDoc
 uses com.sun.javadoc.SourcePosition
 uses gw.config.CommonServices
-uses gw.gosudoc.filter.ConstructorFilter
-uses gw.gosudoc.filter.FeatureFilter
-uses gw.gosudoc.filter.MethodFilter
-uses gw.gosudoc.filter.PropertyFilter
-uses gw.gosudoc.filter.TypeFilter
+uses gw.gosudoc.filter.*
 uses gw.gosudoc.type.GSArrayTypeImpl
 uses gw.gosudoc.type.GSClassTypeImpl
 uses gw.gosudoc.type.GSFunctionalTypeImpl
@@ -29,15 +25,15 @@ uses gw.lang.reflect.TypeSystem
 uses gw.lang.reflect.gs.IGosuClass
 
 uses java.io.File
-uses java.lang.IllegalArgumentException
 uses java.lang.System
 uses java.util.ArrayList
 uses java.util.HashMap
 uses java.util.IdentityHashMap
-uses java.util.Map
 uses java.util.regex.Pattern
 
 class GSRootDocImpl extends GSDocImpl implements RootDoc{
+
+  static var GOSU_SOURCE_EXTENSIONS : Set<String> = {"gs", "gsx"}
 
   var _voidType = new GSVoidTypeImpl( this )
   var _typesByType = new IdentityHashMap<IType, GSTypeImpl>()
@@ -45,7 +41,7 @@ class GSRootDocImpl extends GSDocImpl implements RootDoc{
 
   // Config info
   var _externalDocs : List<String> as ExternalDocs = {}
-  var _inputDirs : List<File> as InputDirs = {}
+  private final var _filesToDoc: Set<String>
   var _exclusions : List<Pattern> as Exclusions = {}
   var _outputDirectory : File as OutputDirectory
   var _typeFilters : List<TypeFilter> as readonly TypeFilters = {}
@@ -53,15 +49,50 @@ class GSRootDocImpl extends GSDocImpl implements RootDoc{
   var _propertyFilters : List<PropertyFilter> as readonly PropertyFilters  = {}
   var _constructorFilters : List<ConstructorFilter> as readonly ConstructorFilters = {}
   var _featureFilters : List<FeatureFilter> as readonly FeatureFilters = {}
+  var _pathFilters : List<PathFilter> as readonly PathFilters = {}
 
   construct( inputDirs : List<File>, outputDir: File, filters : List = null, externalDocs : List<String> = null ){
     super( "Root", null )
-    _inputDirs = inputDirs
     _outputDirectory = outputDir
     _externalDocs = externalDocs
     if(filters != null) {
       initFilters(filters)
     }
+    _filesToDoc = typesToDoc(inputDirs)
+  }
+
+  private function typesToDoc(inputDirs: List<File>): Set<String> {
+    var types = new HashSet<String>()
+    for(file in inputDirs) {
+      addTypesToDoc(file, file, types);
+    }
+    return types
+  }
+
+  private function addTypesToDoc(root : File, file: File, types: HashSet<String>) {
+    if(shouldIncludeFile(file.AbsolutePath)) {
+      if(file.Directory) {
+        for(child in file.Children) {
+          addTypesToDoc(root, child, types)
+        }
+      } else {
+        if(GOSU_SOURCE_EXTENSIONS.contains(file.Extension)) {
+          types.add(computeTypeName(root, file))
+        }
+      }
+    }
+  }
+
+  private function computeTypeName(root: File, file: File): String {
+    var absolutePath = file.AbsolutePath
+    var relativePath = absolutePath.substring(root.AbsolutePath.length )
+    var withoutExtension = relativePath.substring(1, relativePath.length - file.Extension.length - 1 )
+    var asTypeName = withoutExtension.replace(File.separatorChar, '.')
+    return asTypeName
+  }
+
+  private function shouldIncludeFile(absolutePath: String): boolean {
+    return not _pathFilters.hasMatch(\ f -> not f.shouldIncludePath( absolutePath ) )
   }
 
   private function initFilters( filters: List<Object> ){
@@ -87,14 +118,14 @@ class GSRootDocImpl extends GSDocImpl implements RootDoc{
     }
 
     if(iType typeis IGosuClass ) {
-      var file = iType.SourceFileHandle.File
-      for(f in _inputDirs) {
-        var dir = CommonServices.FileSystem.getIDirectory( f )
-        if(file.isDescendantOf( dir )) {
-          return true
-        }
+      if(_filesToDoc.contains(iType.getName())) {
+        return true;
+      }
+      if(iType.EnclosingType typeis Type) {
+        return shouldDocumentType(iType.EnclosingType)
       }
     }
+
     return false
   }
 
