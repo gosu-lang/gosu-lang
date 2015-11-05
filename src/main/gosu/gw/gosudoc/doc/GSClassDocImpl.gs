@@ -38,7 +38,7 @@ class GSClassDocImpl extends GSProgramElementDocImpl implements ClassDoc{
   }
 
   //==========PUBLIC METHODS IMPLEMENTING INTERFACES==========//
-  function containingPackage(): PackageDoc{
+  override function containingPackage(): PackageDoc{
     var nameSpace = getRootDoc().getPackageNameFromTypeName( _iType.getName() )
     if( nameSpace == null ){
       nameSpace = ""
@@ -321,7 +321,7 @@ class GSClassDocImpl extends GSProgramElementDocImpl implements ClassDoc{
     }
   }
 
-  property get ElementType(): com.sun.javadoc.Type{
+  override property get ElementType(): com.sun.javadoc.Type{
     return null
   }
 

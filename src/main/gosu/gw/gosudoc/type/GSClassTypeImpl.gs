@@ -14,11 +14,11 @@ class GSClassTypeImpl extends GSTypeImpl implements com.sun.javadoc.Type, ClassD
     super(type, rootDoc, owner)
   }
 
-  function asClassDoc() : ClassDoc{
+  override function asClassDoc() : ClassDoc{
     return RootDoc.getOrCreateClass(GosuIType)
   }
 
-  function asParameterizedType() : ParameterizedType{
+  override function asParameterizedType() : ParameterizedType{
     return null
   }
 

@@ -97,7 +97,7 @@ class GSFieldDocImpl extends GSMemberDocImpl implements FieldDoc{
   }
 
   //==========PROTECTED METHODS==========//
-  function initialize(){
+  override function initialize(){
     addTextComments( new TagsTokenizer(_propertyInfo.Description, _propertyInfo, getRootDoc()).processTags() )
     var gosuType = _propertyInfo.getFeatureType()
     _type = getRootDoc().getType( gosuType, this )

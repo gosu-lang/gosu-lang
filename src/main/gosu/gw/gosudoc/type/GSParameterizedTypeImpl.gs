@@ -20,7 +20,7 @@ class GSParameterizedTypeImpl extends GSClassTypeImpl implements ParameterizedTy
     return this
   }
 
-  function typeArguments() : com.sun.javadoc.Type[] {
+  override function typeArguments() : com.sun.javadoc.Type[] {
     return _typeArguments
   }
 

@@ -32,7 +32,7 @@ class GSTypeVariableImpl extends GSTypeImpl implements TypeVariable{
     return Owner
   }
 
-  /*override*/ function annotations(): AnnotationDesc[]{
+  override function annotations(): AnnotationDesc[]{
     return {}
   }
 

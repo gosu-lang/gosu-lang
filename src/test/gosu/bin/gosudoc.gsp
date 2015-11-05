@@ -7,8 +7,7 @@ uses gw.gosudoc.cli.GosuDocArgs
 print("Starting GosuDoc...")
 print("Args: ${CommandLineAccess.RawArgs.join( " " )}")
 
-var args = new GosuDocArgs()
-CommandLineAccess.initialize( args, true )
+CommandLineAccess.initialize( GosuDocArgs, true )
 
-var writer = new GSDocHTMLWriter() {:Output = new File(args.Out) }
+var writer = new GSDocHTMLWriter() {:Output = new File(GosuDocArgs.Out) }
 writer.write()
