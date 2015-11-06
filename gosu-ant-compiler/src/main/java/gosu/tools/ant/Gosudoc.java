@@ -1,6 +1,7 @@
 package gosu.tools.ant;
 
 import gw.lang.Gosu;
+import gw.lang.init.GosuInitialization;
 import gw.lang.reflect.ReflectUtil;
 import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.gs.IGosuObject;
@@ -108,6 +109,9 @@ public class Gosudoc extends Task {
       System.out.println(" *** Found some error *** ");
       log(e.getMessage(), Project.MSG_ERR);
       throw new BuildException(e);
+    } finally {
+      //uninit Gosu
+      GosuInitialization.instance(TypeSystem.getExecutionEnvironment()).uninitializeRuntime();
     }
 
   }
