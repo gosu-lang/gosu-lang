@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project name="gosudoc-demo">
+
+  <property name="base.dir" value="src/test/resources"/>
+  <property name="output.dir" value="${base.dir}/gosudoc/docs"/>
+
+  <target name="setUp">
+    <mkdir dir="${output.dir}"/>
+    <echo>Deleting ${output.dir} recursively...</echo>
+    <delete includeemptydirs="true">
+      <fileset dir="${output.dir}" includes="**/*"/>
+    </delete>
+  </target>
+
+  <target name="gen-doc">
+
+    <path id="gosu.classpath">
+      <pathelement location="../gosu-core/target/classes"/>
+      <pathelement location="../gosu-core-api/target/classes"/>
+      <!--<pathelement location="../gosu-core-api/target/classes"/> TODO add ref for gosu-doc? --> 
+    </path>
+
+    <taskdef resource="gosu/tools/ant/antlib.xml">
+      <classpath refid="gosu.classpath"/>
+    </taskdef>
+
+    <pathconvert property="classpathProp" refid="gosu.classpath"/>
+    <echo>Classpath is: ${classpathProp}</echo>
+
+    <echo>inputdirs ${base.dir}/src</echo>
+    
+    <gosudoc inputdirs="${base.dir}"
+             outputdir="${output.dir}"
+             verbose="true"
+             classpathref="gosu.classpath"/>
+    
+  </target>
+
+  <!--<target name="tearDown">-->
+    <!--<delete includeemptydirs="true">-->
+      <!--<fileset dir="${output.dir}" includes="**/*"/>-->
+    <!--</delete>-->
+  <!--</target>-->
+
+</project>

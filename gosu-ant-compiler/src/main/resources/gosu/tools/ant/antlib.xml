@@ -1,4 +1,6 @@
 <antlib>
   <taskdef name="gosuc"
            classname="gosu.tools.ant.Gosuc"/>
+  <taskdef name="gosudoc"
+           classname="gosu.tools.ant.Gosudoc"/>
 </antlib>
