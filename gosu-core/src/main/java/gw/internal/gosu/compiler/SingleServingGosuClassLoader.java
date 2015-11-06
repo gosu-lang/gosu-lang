@@ -5,6 +5,7 @@
 package gw.internal.gosu.compiler;
 
 import gw.internal.gosu.ir.TransformingCompiler;
+import gw.lang.reflect.IType;
 import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.gs.ICompilableType;
 import gw.lang.reflect.gs.IGosuClassLoader;
@@ -17,6 +18,7 @@ import java.util.Map;
 public class SingleServingGosuClassLoader extends ClassLoader implements IGosuClassLoader
 {
   private static final Map<String, Class> CACHE = new ConcurrentWeakValueHashMap<String, Class>();
+  static final SingleServingGosuClassLoader NULL_SENTINAL = new SingleServingGosuClassLoader();
 
   private GosuClassLoader _parent;
 
@@ -26,6 +28,11 @@ public class SingleServingGosuClassLoader extends ClassLoader implements IGosuCl
 
   public static void clearCache() {
     CACHE.clear();
+  }
+
+  // for null sentinal only
+  private SingleServingGosuClassLoader()
+  {
   }
 
   SingleServingGosuClassLoader( GosuClassLoader parent )
@@ -51,6 +58,17 @@ public class SingleServingGosuClassLoader extends ClassLoader implements IGosuCl
 
     TypeSystemLockHelper.getTypeSystemLockWithMonitor( this );
     try {
+      int iDot = name.lastIndexOf( '.' );
+      String ns;
+      if( iDot > 0 && _parent.hasDiscreteNamespace( ns = name.substring( 0, iDot ) ) )
+      {
+        SingleServingGosuClassLoader loader = _parent.getDiscreteNamespaceLoader( ns );
+        IType type = TypeSystem.getByFullNameIfValidNoJava( name );
+        if( type instanceof ICompilableType )
+        {
+          return loader._defineClass( (ICompilableType)type );
+        }
+      }
       return super.loadClass( name, resolve );
     }
     finally {
