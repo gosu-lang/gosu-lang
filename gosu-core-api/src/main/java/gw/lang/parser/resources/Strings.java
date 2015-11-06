@@ -120,6 +120,7 @@ public class Strings extends ListResourceBundle
        {Res.MSG_UNTERMINATED_STRING_LITERAL.getKey(), "Unterminated string literal. Expecting \"."},
        {Res.MSG_INVALID_CHAR_AT.getKey(), "Illegal escape character at position {0}"},
        {Res.MSG_UNTERMINATED_COMMENT.getKey(), "Unterminated comment. Expecting \"*/\"."},
+       {Res.MSG_UNEXPECTED_EOF.getKey(), "Unexpected end of file"},
        {Res.MSG_FUNCTION_ALREADY_DEFINED.getKey(), "{0}, is already defined in {1}"},
        {Res.MSG_FUNCTION_CLASH.getKey(), "\"{0}\" in \"{1}\" clashes with \"{2}\" in \"{3}\"; return types not compatible."},
        {Res.MSG_FUNCTION_CLASH_PARAMS.getKey(), "\"{0}\" in \"{1}\" clashes with \"{2}\" in \"{3}\"; both functions have same erasure, yet neither overrides the other"},

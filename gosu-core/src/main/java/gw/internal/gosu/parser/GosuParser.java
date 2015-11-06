@@ -11113,6 +11113,8 @@ public final class GosuParser extends ParserBase implements IGosuParser
     // of the source; the object code is of no interest e.g., a template
     // verifier may use an instructor.
 
+    checkUnexpectedEof();
+
     while( !_tokenizer.isEOF() && (_tokenizer.isAnalyzingSeparately() || _tokenizer.isAnalyzingDirective()) )
     {
       if( _tokenizer.isAnalyzingDirective() )
@@ -11140,6 +11142,17 @@ public final class GosuParser extends ParserBase implements IGosuParser
       else
       {
         break;
+      }
+    }
+  }
+
+  private void checkUnexpectedEof()
+  {
+    if( _tokenizer.isEOF() && _tokenizer.isAnalyzingSeparately() )
+    {
+      if( getGosuClass() != null )
+      {
+        ((ParsedElement)getGosuClass().getClassStatement()).addParseException( makeFullParserState(), Res.MSG_UNEXPECTED_EOF );
       }
     }
   }

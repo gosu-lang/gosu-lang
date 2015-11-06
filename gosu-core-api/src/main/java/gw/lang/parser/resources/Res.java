@@ -119,6 +119,7 @@ public class Res
   public static final ResourceKey MSG_UNTERMINATED_STRING_LITERAL = new ResourceKey("MSG_UNTERMINATED_STRING_LITERAL");
   public static final ResourceKey MSG_INVALID_CHAR_AT = new ResourceKey("MSG_INVALID_CHAR_AT");
   public static final ResourceKey MSG_UNTERMINATED_COMMENT = new ResourceKey("MSG_UNTERMINATED_COMMENT");
+  public static final ResourceKey MSG_UNEXPECTED_EOF = new ResourceKey("MSG_UNEXPECTED_EOF");
   public static final ResourceKey MSG_FUNCTION_ALREADY_DEFINED = new ResourceKey("MSG_FUNCTION_ALREADY_DEFINED");
   public static final ResourceKey MSG_FUNCTION_ALREADY_DEFINED_IN_EXTENDED_CLASS = new ResourceKey("MSG_FUNCTION_ALREADY_DEFINED_IN_EXTENDED_CLASS");
   public static final ResourceKey MSG_FUNCTION_CLASH = new ResourceKey("MSG_FUNCTION_CLASH");
