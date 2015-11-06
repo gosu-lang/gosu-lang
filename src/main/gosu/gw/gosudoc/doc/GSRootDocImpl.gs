@@ -231,11 +231,11 @@ class GSRootDocImpl extends GSDocImpl implements RootDoc{
   }
 
   override function printNotice( msg: String ){
-    System.err.println( msg )
+    System.out.println( msg )
   }
 
   override function printNotice( pos: SourcePosition, msg: String ){
-    System.err.println( "${msg} ${pos}" )
+    System.out.println( "${msg} ${pos}" )
   }
 
   function getOrCreateClass( iType: IType ): GSClassDocImpl {
