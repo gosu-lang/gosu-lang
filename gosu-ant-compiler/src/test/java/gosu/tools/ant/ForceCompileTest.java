@@ -33,6 +33,17 @@ public class ForceCompileTest extends BuildFileTest {
     try {
       executeTarget("compile");
     } catch(BuildException e) {
+      System.out.println("--- FAILED: Dumping full log ---");
+      System.out.println(getFullLog());
+      System.out.println("--- Done dumping full log ---");
+      System.out.println();
+      System.out.println("--- FAILED: Dumping output ---");
+      System.out.println(getOutput());
+      System.out.println("--- Done dumping output ---");
+      System.out.println();
+      System.out.println("--- FAILED: Dumping error ---");
+      System.out.println(getError());
+      System.out.println("--- Done dumping error ---");
       fail(e.getMessage());
     }
 
