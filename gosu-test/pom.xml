@@ -92,7 +92,6 @@
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-surefire-plugin</artifactId>
             <configuration>
-              <reuseForks>true</reuseForks>
               <argLine>-Dgw.tests.skip.knownbreak=true -DcheckedArithmetic=true -Xmx1g</argLine>
               <includes>
                 <include>gw/config*/**/*Test.class</include>
@@ -119,7 +118,7 @@
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-surefire-report-plugin</artifactId>
-            <version>2.18.1</version>
+            <version>2.19</version>
           </plugin>
         </plugins>
       </reporting>
