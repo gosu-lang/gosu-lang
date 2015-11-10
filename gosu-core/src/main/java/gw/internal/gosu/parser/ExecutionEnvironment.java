@@ -16,7 +16,6 @@ import gw.internal.gosu.module.Module;
 import gw.fs.AdditionalDirectory;
 import gw.lang.Gosu;
 import gw.lang.ProgramFileContext;
-import gw.lang.cli.SystemExitIgnoredException;
 import gw.lang.gosuc.GosucModule;
 import gw.lang.gosuc.GosucProject;
 import gw.lang.gosuc.GosucUtil;
@@ -607,21 +606,13 @@ public class ExecutionEnvironment implements IExecutionEnvironment
                 }
                 catch( Exception e )
                 {
-                  boolean print = true;
                   Throwable t = e;
                   while( t != null )
                   {
-                    if( t instanceof SystemExitIgnoredException)
-                    {
-                      print = false;
-                    }
                     t = t.getCause();
                   }
-                  if( print )
-                  {
-                    assert e != null;
-                    e.printStackTrace();
-                  }
+                  assert e != null;
+                  e.printStackTrace();
                 }
                 return new String[]{null, null};
               }
