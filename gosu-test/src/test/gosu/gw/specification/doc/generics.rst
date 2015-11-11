@@ -156,6 +156,81 @@ parameter ``Ti`` may be used almost as if it were a public type:
   or otherwise refer to the static members of a type parameter
 
 
+Generic Interfaces
+==================
+
+.. index:: generic interface
+
+A declaration of a *generic interface* ``I<T1, ..., Tn>`` has this form:
+
+    *interface-modifiers* ``interface`` ``I<T1, ..., Tn>`` *extends-clause*  *interface-body*
+
+The ``T1, ..., Tn`` are type parameters as for generic classes (section XXX), 
+and *interface-modifiers*, *extends-clause* and *interface-body* are as for 
+non-generic interfaces (section XXX). Each type parameter ``Ti`` may have type 
+parameter constraints just as for a generic class. 
+
+A type instance of the generic interface has form ``I<T1, ..., Tn>`` where the 
+``t1, ..., tn`` are types. The types ``t1, ..., tn`` must satisfy the parameter 
+constraints, if any, on the generic interface ``I<T1, ..., Tn>`` as described in 
+section XXX. 
+
+A generic interface is a subinterface of the interfaces mentioned in its 
+*extends-clause*. Like a generic class, a generic interface is covariant in its 
+type parameters. That is, ``I<String>`` is a subtype of ``I<Object>`` as 
+``String`` is a subtype of ``Object``. 
+
+
+Generic Methods
+================
+
+.. index:: generic method
+
+A generic method is a method that takes one or more type parameters. A generic 
+method may be declared inside a generic or non-generic class or interface or 
+structure or enhancement.
+
+A declaration of a generic method ``m<T1, ..., Tn>`` has this form:
+
+    *method-modifiers* ``function`` ``m`` ``<T1, ..., Tn>`` ``(`` *formal-list* ``)``  ``:`` *returntype*  *method-body*
+    
+The *method-modifiers*, *formal-list*, *returntype* and *method-body* are as for 
+non-generic methods (section XXX). Each type parameter ``Ti`` may have type 
+parameter constraints just as for a generic class. 
+
+The type parameters ``T1, ..., Tn`` may be used as types in the *returntype*, 
+*formal-list* and *method-body*; as may the type parameters of any enclosing 
+generic class if the method is non-static.
+
+Generic methods of the same name ``m`` are not distinguished by their number of 
+generic type parameters, and a generic method is not distinguished from a 
+non-generic method of the same name. 
+
+If a generic method overrides a generic method declared in a superclass or 
+implements a generic method described in an interface, then it must have the 
+same parameter constraints as those methods. The names of the type parameters 
+are not significant, only their ordinal positions in the type parameter list 
+``T1, ..., Tn``. 
+
+A call of a generic method can be written without type arguments as in 
+``o.m(...)``, or with explicit generic type arguments as in ``o.m<t1, ..., 
+tn>()``. In the former case, the compiler will attempt to infer the appropriate 
+type arguments ``t1, ..., tn`` automatically. 
+
+Explicit generic type arguments can be given in the following syntactic forms of
+a method call:
+
+    ``o.m<t1, ..., tn>(`` *actual-list* ``)``
+    
+    ``super.m<t1, ..., tn>(`` *actual-list* ``)``
+    
+    ``C.m<t1, ..., tn>(`` *actual-list* ``)``
+
+Note that to give a type arguments to a static method ``m`` in class ``C``, one 
+must explicitly prefix the method call with the class name. Similarly, to give 
+type arguments to an instance method in the current object, one mist explicitly 
+prefix the method call with the current object reference. In any case, either 
+none or all type arguments must be given. 
 
 
 
