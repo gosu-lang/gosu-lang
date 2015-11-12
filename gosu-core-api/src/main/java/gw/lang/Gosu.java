@@ -5,7 +5,6 @@
 package gw.lang;
 
 import gw.config.CommonServices;
-import gw.lang.cli.CommandLineAccess;
 import gw.lang.init.ClasspathToGosuPathEntryUtil;
 import gw.lang.init.GosuInitialization;
 import gw.lang.parser.GosuParserFactory;
@@ -45,6 +44,8 @@ public class Gosu
   public static final String GOSU_SCRATCHPAD_FQN = NOPACKAGE + ".GosuScratchpad";
 
   private static List<File> _classpath;
+  private static File _script;
+  private static List<String> _rawArgs;
 
   public static void main( String[] args )
   {
@@ -285,9 +286,9 @@ public class Gosu
   static void showHelpAndQuit()
   {
     System.out.println("Gosu version: " + getVersion() +
-                       "\nUsage:\n" +
-                       "    gosu [-checkedArithmetic] [-classpath 'entry1,entry2...'] program.gsp [args...]\n" +
-                       "    gosu [-checkedArithmetic] [-classpath 'entry1,entry2...'] -e 'inline script' [args...]\n");
+      "\nUsage:\n" +
+      "    gosu [-checkedArithmetic] [-classpath 'entry1,entry2...'] program.gsp [args...]\n" +
+      "    gosu [-checkedArithmetic] [-classpath 'entry1,entry2...'] -e 'inline script' [args...]\n");
     System.exit(1);
   }
 
@@ -327,11 +328,21 @@ public class Gosu
     return GosuVersion.parse(reader);
   }
 
+  public static File getCurrentProgram()
+  {
+    return _script;
+  }
+
+  public static List<String> getRawArgs()
+  {
+    return _rawArgs;
+  }
+
   private int runWithFile(File script, List<String> args) throws IOException, ParseResultsException
   {
-    CommandLineAccess.setCurrentProgram(script);
+    _script = script;
     // set remaining arguments as arguments to the Gosu program
-    CommandLineAccess.setRawArgs( args );
+    _rawArgs  = args;
     byte[] bytes = StreamUtil.getContent( new BufferedInputStream(new FileInputStream(script)));
     String content = StreamUtil.toString( bytes );
     IFileContext ctx = null;
@@ -351,9 +362,9 @@ public class Gosu
 
   private int runWithInlineScript(String script, List<String> args) throws IOException, ParseResultsException
   {
-    CommandLineAccess.setCurrentProgram(null);
+    _script = null;
     // set remaining arguments as arguments to the Gosu program
-    CommandLineAccess.setRawArgs( args );
+    _rawArgs  = args;
     IGosuProgramParser programParser = GosuParserFactory.createProgramParser();
     IParseResult result = programParser.parseExpressionOrProgram( script, new StandardSymbolTable( true ), new ParserOptions() );
     IGosuProgram program = result.getProgram();
