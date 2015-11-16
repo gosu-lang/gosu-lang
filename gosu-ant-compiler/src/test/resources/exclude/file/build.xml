@@ -23,10 +23,17 @@
     <pathconvert property="classpathProp" refid="gosu.classpath"/>
     <echo>Classpath is: ${classpathProp}</echo>
 
-    <gosuc srcdir="${base.dir}/src"
-           destdir="${dest.dir}"
+    <!-- this strange structure simulates how Gradle will pass a fileset to ant which excludes "**/Errant_*" -->
+    <!-- To exclude files, Gradle omits the srcdir attribute in favor of the nested <src> element --> 
+    <gosuc destdir="${dest.dir}"
            classpathref="gosu.classpath">
-      <exclude name="**/Errant_*"/>
+      <src location="${base.dir}/src"/>
+      <or>
+        <and>
+          <!--<gradleBaseDirSelector baseDir="${base.dir}/src"/>-->
+          <filename casesensitive="true" name="GoodPogo.gs"/>
+        </and>
+      </or>
     </gosuc>
   </target>
 

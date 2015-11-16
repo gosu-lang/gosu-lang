@@ -1,11 +1,11 @@
 package gosu.tools.ant;
 
+import gosu.tools.ant.util.AntLoggingHelper;
 import gw.lang.gosuc.simple.ICompilerDriver;
 import gw.lang.gosuc.simple.IGosuCompiler;
 import gw.lang.gosuc.simple.SoutCompilerDriver;
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.DirectoryScanner;
-import org.apache.tools.ant.Project;
 import org.apache.tools.ant.types.Path;
 import org.apache.tools.ant.types.Reference;
 import org.apache.tools.ant.util.FileNameMapper;
@@ -34,7 +34,8 @@ import java.util.stream.Collectors;
  *   </ul>
  */
 public class Gosuc extends GosuMatchingTask {
-
+  private final AntLoggingHelper log = new AntLoggingHelper(this);
+  
   private Path _src;
   private File _destDir;
   private Path _compileClasspath;
@@ -190,20 +191,20 @@ public class Gosuc extends GosuMatchingTask {
     SourceFileScanner sfs = new SourceFileScanner(this);
     List<File> newFiles;
     if(!isForce()) {
-      log("Relying on ant's SourceFileScanner, which only looks at timestamps.  If broken references result, try setting option 'force' to true.", Project.MSG_WARN);
+      log.warn("Relying on ant's SourceFileScanner, which only looks at timestamps.  If broken references result, try setting option 'force' to true.");
     }
     for (String extension : getScriptExtensions()) {
       m.setFrom("*." + extension);
       m.setTo("*.class");
-      log("Scanning for *." + extension + " files...", Project.MSG_DEBUG);
+      log.debug("Scanning for *." + extension + " files...");
       if(isForce()) {
         newFiles = asFiles(srcDir, files, m);
       } else {
         newFiles = Arrays.asList(sfs.restrictAsFiles(files, srcDir, destDir, m));
       }
-      log("Found these files:", Project.MSG_DEBUG);
+      log.debug("Found these files:");
       for(File newFile : newFiles) {
-        log('\t' + newFile.getAbsolutePath(), Project.MSG_DEBUG);
+        log.debug('\t' + newFile.getAbsolutePath());
       }
       compileList.addAll(newFiles);
     }
@@ -242,11 +243,11 @@ public class Gosuc extends GosuMatchingTask {
    * @throws BuildException if an error occurs
    */
   public void execute() throws BuildException {
-    log("srcdir=" + getSrcdir(), Project.MSG_DEBUG);
-    log("destdir=" + getDestdir(), Project.MSG_DEBUG);
-    log("failOnError=" + getFailOnError(), Project.MSG_DEBUG);
-    log("checkedArithmetic=" + isCheckedArithmetic(), Project.MSG_DEBUG);
-    log("_compileClasspath=" + _compileClasspath, Project.MSG_DEBUG);
+    log.debug("src/srcdir=" + getSrcdir());
+    log.debug("destdir=" + getDestdir());
+    log.debug("failOnError=" + getFailOnError());
+    log.debug("checkedArithmetic=" + isCheckedArithmetic());
+    log.debug("_compileClasspath=" + _compileClasspath);
 
     if(isCheckedArithmetic()) {
       System.setProperty("checkedArithmetic", "true");
@@ -259,10 +260,10 @@ public class Gosuc extends GosuMatchingTask {
     classpath.addAll(Arrays.asList(_compileClasspath.list()));
     classpath.addAll(getJreJars());
 
-    log("Initializing Gosu compiler...", Project.MSG_INFO);
-    log("\tsourceFolders:" + Arrays.asList(getSrcdir().list()), Project.MSG_DEBUG);
-    log("\tclasspath:" + classpath, Project.MSG_DEBUG);
-    log("\toutputPath:" + getDestdir().getAbsolutePath(), Project.MSG_DEBUG);
+    log.info("Initializing Gosu compiler...");
+    log.debug("\tsourceFolders:" + Arrays.asList(getSrcdir().list()));
+    log.debug("\tclasspath:" + classpath);
+    log.debug("\toutputPath:" + getDestdir().getAbsolutePath());
 
     String[] list = getSrcdir().list();
     for (String filename : list) {
@@ -277,16 +278,16 @@ public class Gosuc extends GosuMatchingTask {
     
     gosuc.initializeGosu(Arrays.asList(getSrcdir().list()), classpath, getDestdir().getAbsolutePath());
 
-    log("About to compile these files:", Project.MSG_DEBUG);
+    log.debug("About to compile these files:");
     for(File file : compileList) {
-      log("\t" + file.getAbsolutePath() , Project.MSG_DEBUG);
+      log.debug("\t" + file.getAbsolutePath());
     }
     
     for(File file : compileList) {
       try {
         gosuc.compile(file, driver);
       } catch (Exception e) {
-        log(e.getMessage(), Project.MSG_ERR);
+        log.error(e.getMessage());
         throw new BuildException(e);
       }
     }
@@ -327,15 +328,19 @@ public class Gosuc extends GosuMatchingTask {
     }
 
     sb.append(hasWarningsOrErrors ? ':' : "");
-    log(sb.toString(), hasWarningsOrErrors ? Project.MSG_WARN : Project.MSG_INFO);
-    warningMessages.forEach(this::log);
-    errorMessages.forEach(this::log);
+    if(hasWarningsOrErrors) {
+      log.warn(sb.toString());
+    } else {
+      log.info(sb.toString());
+    }
+    warningMessages.forEach(log::info);
+    errorMessages.forEach(log::info);
 
     if(errorsInCompilation) {
       if(getFailOnError()) {
         buildError("Gosu compilation failed with errors; see compiler output for details.");
       } else {
-        log("Gosu Compiler: Ignoring compilation failure(s) as 'failOnError' was set to false", Project.MSG_WARN);
+        log.warn("Gosu Compiler: Ignoring compilation failure(s) as 'failOnError' was set to false");
       }
     }
     
