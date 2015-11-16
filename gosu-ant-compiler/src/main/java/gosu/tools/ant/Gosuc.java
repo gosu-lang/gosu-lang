@@ -44,7 +44,29 @@ public class Gosuc extends GosuMatchingTask {
   private Set<String> _scriptExtensions = new HashSet<>(Arrays.asList("gs", "gsx", "gst", "gsp"));
 
   protected List<File> compileList = new ArrayList<>();
-  
+
+  /**
+   * Adds a path for source compilation.
+   *
+   * @return a nested src element.
+   */
+  public Path createSrc() {
+    if (_src == null) {
+      _src = new Path(getProject());
+    }
+    return _src.createPath();
+  }
+
+  /**
+   * Recreate src.
+   *
+   * @return a nested src element.
+   */
+  protected Path recreateSrc() {
+    _src = null;
+    return createSrc();
+  }
+
   /**
    * Set the source directories to find the source Gosu files.
    *
