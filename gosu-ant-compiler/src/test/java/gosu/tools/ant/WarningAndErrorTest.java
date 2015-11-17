@@ -40,7 +40,7 @@ public class WarningAndErrorTest extends BuildFileTest {
       System.out.println(getLog());
       System.out.println("--- Done dumping log ---");
 
-      assertLogContaining("Gosu compilation completed with 1 warning and 1 error:");
+      assertLogContaining("Gosu compilation completed with 1 warning and 1 error");
       assertTrue(new File(BASEDIR + "dest/IntentionalWarning.class").exists());
       assertFalse(new File(BASEDIR + "dest/IntentionalError.class").exists());
     }

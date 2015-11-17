@@ -327,14 +327,14 @@ public class Gosuc extends GosuMatchingTask {
       sb.append(" successfully.");
     }
 
-    sb.append(hasWarningsOrErrors ? ':' : "");
     if(hasWarningsOrErrors) {
       log.warn(sb.toString());
     } else {
       log.info(sb.toString());
     }
+
     warningMessages.forEach(log::info);
-    errorMessages.forEach(log::info);
+    errorMessages.forEach(log::error);
 
     if(errorsInCompilation) {
       if(getFailOnError()) {

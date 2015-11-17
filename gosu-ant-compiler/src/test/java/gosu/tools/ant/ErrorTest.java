@@ -40,7 +40,7 @@ public class ErrorTest extends BuildFileTest {
       System.out.println(getLog());
       System.out.println("--- Done dumping log ---");
 
-      assertLogContaining("Gosu compilation completed with 1 error:");
+      assertLogContaining("Gosu compilation completed with 1 error");
       assertFalse(new File(BASEDIR + "dest/IntentionalError.class").exists());
     }
   }
