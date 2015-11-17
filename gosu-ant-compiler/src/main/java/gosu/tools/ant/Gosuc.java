@@ -333,8 +333,9 @@ public class Gosuc extends GosuMatchingTask {
       log.info(sb.toString());
     }
 
-    warningMessages.subList(0, 100).forEach(log::info);
-    errorMessages.subList(0, 100).forEach(log::error);
+    //log at most 100 warnings or errors
+    warningMessages.subList(0, Math.min(warningMessages.size(), 100)).forEach(log::info);
+    errorMessages.subList(0, Math.min(errorMessages.size(), 100)).forEach(log::error);
 
     if(errorsInCompilation) {
       if(getFailOnError()) {
