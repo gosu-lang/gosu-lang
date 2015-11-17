@@ -10804,6 +10804,12 @@ public final class GosuParser extends ParserBase implements IGosuParser
           else
           {
             getTypeUsesMap().addToTypeUses( usesStmt );
+            ICompilableTypeInternal gsClass = getGosuClass();
+            if( gsClass != null )
+            {
+              verify( typeLiteral, !typeLiteral.getType().getType().getRelativeName().equals( gsClass.getRelativeName() ),
+                      Res.MSG_SAME_NAME_AS_CLASS, gsClass.getRelativeName() );
+            }
           }
         }
         else
@@ -10873,6 +10879,12 @@ public final class GosuParser extends ParserBase implements IGosuParser
           else
           {
             getTypeUsesMap().addToTypeUses( usesStmt );
+            ICompilableTypeInternal gsClass = getGosuClass();
+            if( gsClass != null )
+            {
+              verify( typeLiteral, !typeLiteral.getType().getType().getRelativeName().equals( gsClass.getRelativeName() ),
+                      Res.MSG_SAME_NAME_AS_CLASS, gsClass.getRelativeName() );
+            }
           }
         }
         else

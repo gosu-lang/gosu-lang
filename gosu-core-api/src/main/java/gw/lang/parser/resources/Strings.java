@@ -151,6 +151,7 @@ public class Strings extends ListResourceBundle
        {Res.MSG_NO_DEFAULT_CTOR_IN.getKey(), "No default constructor in {0}."},
        {Res.MSG_WRONG_NAMESPACE.getKey(), "The package name \"{0}\" does not correspond with the directory \"{1}\"."},
        {Res.MSG_WRONG_CLASSNAME.getKey(), "The class name {0} does not correspond with the file {1}."},
+       {Res.MSG_SAME_NAME_AS_CLASS.getKey(), "\"{0}\" is already defined as the class name for this file"},
        {Res.MSG_EXPECTING_PROPERTY_GET_OR_SET_MODIFIER.getKey(), "Expecting 'get' or 'set' modifier for property."},
        {Res.MSG_EXPECTING_NAME_PROPERTY.getKey(), "Expecting a property name for the variable."},
        {Res.MSG_PROPERTY_ALREADY_DEFINED.getKey(), "Property \"{0}\" is already defined."},
