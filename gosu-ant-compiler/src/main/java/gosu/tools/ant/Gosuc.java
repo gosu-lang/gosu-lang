@@ -333,8 +333,24 @@ public class Gosuc extends GosuMatchingTask {
       log.info(sb.toString());
     }
 
-    warningMessages.forEach(log::info);
-    errorMessages.forEach(log::error);
+    int ct = 0;
+    for(String msg : warningMessages) {
+      log.info(msg);
+      ct++;
+      if(ct > 100) {
+        log.info("Total warnings exceeds 100; truncating output");
+        break;
+      }
+    }
+    ct = 0;
+    for(String msg : errorMessages) {
+      log.error(msg);
+      ct++;
+      if(ct > 100) {
+        log.error("Total errors exceeds 100; truncating output");
+        break;
+      }
+    }
 
     if(errorsInCompilation) {
       if(getFailOnError()) {
