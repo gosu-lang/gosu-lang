@@ -7,10 +7,10 @@
   </parent>
   <modelVersion>4.0.0</modelVersion>
 
-  <artifactId>gosu-ant-compiler</artifactId>
+  <artifactId>gosu-ant-tools</artifactId>
 
-  <name>Gosu :: Compiler for Ant</name>
-  <description>Gosu Compiler support for Ant</description>
+  <name>Gosu :: Tools for Ant</name>
+  <description>Gosu tasks for use with Ant</description>
 
   <properties>
     <ant.version>1.9.3</ant.version>
@@ -32,7 +32,6 @@
       <groupId>org.gosu-lang</groupId>
       <artifactId>gosu-doc</artifactId>
       <version>0.3-linksee-SNAPSHOT</version>
-      <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>org.apache.ant</groupId>
