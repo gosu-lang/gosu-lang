@@ -18,7 +18,6 @@ class Errant_InitializerAfterNewExpression {
     var map5: A = new() { o1 -> o2 }           //## issuekeys: UNEXPECTED MAP INIITIALIZER
     var arr0 = new Object[] { o1, o2 }
     var arr1 = new int[] { o1, o2 }            //## issuekeys: INCOMPATIBLE TYPES
-    var list0 = new List() { o1, o2 }  //## issuekeys: MSG_LIST_TO_ARRAYLIST_WARNING
     var list2 = new ArrayList() { o1, o2 }
     var list3 = new ArrayList<String>() { o1 }  //## issuekeys: INCOMPATIBLE TYPES
     var list4: List = new() { o1, o2 }  //## issuekeys: MSG_LIST_TO_ARRAYLIST_WARNING

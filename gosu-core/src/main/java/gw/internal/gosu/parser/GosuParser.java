@@ -3727,7 +3727,6 @@ public final class GosuParser extends ParserBase implements IGosuParser
       }
       verify( typeLiteral, !(typeLiteral instanceof BlockLiteral), Res.MSG_BLOCKS_LITERAL_NOT_ALLOWED_IN_NEW_EXPR );
       IType declaringClass = typeLiteral.getType().getType();
-      declaringClass = handleListType( typeLiteral, declaringClass );
       if( isParsingStaticFeature() )
       {
         IType type = typeLiteral.getType().getType();
@@ -3773,24 +3772,6 @@ public final class GosuParser extends ParserBase implements IGosuParser
       popExpression();
     }
     return typeLiteral;
-  }
-
-  private IType handleListType( TypeLiteral typeLiteral, IType declaringClass )
-  {
-    if( !warn( typeLiteral, TypeLord.getPureGenericType( declaringClass ) != GosuParserTypes.LIST_TYPE(), Res.MSG_LIST_TO_ARRAYLIST_WARNING ) )
-    {
-      // Implicitly coerce our List type to ArrayList
-
-      if( declaringClass.isParameterizedType() )
-      {
-        declaringClass = JavaTypes.ARRAY_LIST().getParameterizedType( declaringClass.getTypeParameters() );
-      }
-      else
-      {
-        declaringClass = JavaTypes.ARRAY_LIST();
-      }
-    }
-    return declaringClass;
   }
 
   void parseNewExpressionOrAnnotation( IType declaringClass, boolean bAnnotation, boolean bNoArgNoParenthesis, final TypeLiteral typeLiteral, int mark )

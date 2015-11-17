@@ -70,12 +70,6 @@ class ObjectCreationExpressionsTest extends BaseVerifyErrantTest {
     assertEquals( ArrayList, typeof x )
   }
 
-  function testParameterizedList() {
-    var x : List<Date>
-    x = new()
-    assertEquals( ArrayList, typeof x )
-  }
-
   function testOverloadedConstructor()  {
     var pogo : Pogo2 = new( "value" )
     assertEquals( "value", pogo.StringProperty )
