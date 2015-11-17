@@ -367,8 +367,12 @@ public class AsmClassJavaClassInfo extends AsmTypeJavaClassType implements IAsmJ
     for( Map.Entry<String, List<IJavaClassMethod>> entry : setters.entrySet() ) {
       String propName = entry.getKey();
       IJavaClassMethod setter = entry.getValue().get( 0 );
-      IJavaClassType setterType = setter.getGenericReturnType();
-      propertyDescriptors.add( new JavaSourcePropertyDescriptor( propName, (IJavaClassInfo)setterType.getConcreteType(), null, setter ) );
+      IJavaClassType propType = setter.getGenericReturnType();
+      IJavaClassMethod getter = maybeFindGetterInSuper( setter, getSuperclass() );
+      if( getter != null ) {
+        propType = getter.getGenericReturnType();
+      }
+      propertyDescriptors.add( new JavaSourcePropertyDescriptor( propName, (IJavaClassInfo)propType.getConcreteType(), getter, setter ) );
     }
     return propertyDescriptors.toArray( new IJavaPropertyDescriptor[propertyDescriptors.size()] );
   }
@@ -402,13 +406,28 @@ public class AsmClassJavaClassInfo extends AsmTypeJavaClassType implements IAsmJ
     return false;
   }
 
+  private static boolean doesGetterDescMatchSetterMethod( IJavaClassMethod setter, IJavaPropertyDescriptor pd ) {
+    final IJavaClassType setterType = setter.getParameterTypes().length == 1 ? setter.getParameterTypes()[0] : null;
+    if( setterType != null ) {
+      final IJavaClassMethod getter = pd.getReadMethod();
+      if( getter != null &&
+          (getter.getGenericReturnType().equals( setterType ) ||
+           GosuObjectUtil.equals( getter.getGenericReturnType().getConcreteType(), setterType )) ) {
+        if( ("set" + pd.getName()).equals( setter.getName() ) ) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
   public static IJavaClassMethod maybeFindGetterInSuper(IJavaClassMethod setter, IJavaClassInfo superClass ) {
     if( superClass == null ) {
       return null;
     }
     for( ; superClass != null; superClass = superClass.getSuperclass() ) {
       for( IJavaPropertyDescriptor pd: superClass.getPropertyDescriptors() ) {
-        if( doesSetterDescMatchGetterMethod(setter, pd) ) {
+        if( doesGetterDescMatchSetterMethod( setter, pd ) ) {
           return pd.getReadMethod();
         }
       }
