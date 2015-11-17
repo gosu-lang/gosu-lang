@@ -2157,6 +2157,12 @@ public final class GosuParser extends ParserBase implements IGosuParser
       return rhs;
     }
 
+    if( areMetaTypes( lhsType ,rhsType ) )
+    {
+      verify( rhs, TypeSystem.canCast( lhsType, rhsType ), Res.MSG_TYPE_MISMATCH, lhsType.getName(), rhsType.getName() );
+      return rhs;
+    }
+
     IType numberType = ParserBase.resolveType(lhsType, '>', rhsType);
     if( numberType instanceof ErrorType ||
         JavaTypes.IDIMENSION().isAssignableFrom( lhsType ) ||
@@ -2177,6 +2183,12 @@ public final class GosuParser extends ParserBase implements IGosuParser
       verifyComparable( numberType, lhs, false, true );
     }
     return rhs;
+  }
+
+  private boolean areMetaTypes( IType lhsType, IType rhsType )
+  {
+    return (lhsType instanceof IMetaType || lhsType instanceof ITypeVariableType) &&
+           (rhsType instanceof IMetaType || rhsType instanceof ITypeVariableType);
   }
 
   private Expression verifyWithComparableDimension( Expression rhs, IType lhsType )
