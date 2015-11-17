@@ -434,6 +434,28 @@ public class GosuClassLoader implements IGosuClassLoader
     return null;
   }
 
+  public boolean waitForLoaderToUnload( String packageName, long millisToWait )
+  {
+    long lStart = System.currentTimeMillis();
+    while( !_discreteLoaders.isLoaderUnloaded( packageName ) )
+    {
+      if( System.currentTimeMillis() - lStart > millisToWait )
+      {
+        return false;
+      }
+      System.gc();
+      try
+      {
+        Thread.sleep( 100 );
+      }
+      catch( InterruptedException e )
+      {
+        throw new RuntimeException( e );
+      }
+    }
+    return true;
+  }
+
   private class DiscreteLoaderCache
   {
     // Wrap a delegate to hide the TypeSystemAwareCache#get() method

@@ -24,4 +24,6 @@ public interface IGosuClassLoader
   byte[] getBytes( ICompilableType gsClass );
 
   void assignParent( ClassLoader classLoader );
+
+  boolean waitForLoaderToUnload( String packageName, long millisToWait );
 }
