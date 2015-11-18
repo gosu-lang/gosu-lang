@@ -23,6 +23,7 @@ import gw.lang.reflect.IFunctionType;
 import gw.lang.reflect.IPropertyInfo;
 import gw.lang.reflect.IPropertyInfoDelegate;
 import gw.lang.reflect.IType;
+import gw.lang.reflect.Modifier;
 import gw.lang.reflect.java.ICompileTimeConstantValue;
 
 import java.lang.reflect.Method;
@@ -83,7 +84,7 @@ public class Identifier extends Expression implements IIdentifierExpression
       VarStatement varStmt = gsClass.getStaticField( symbol.getName() );
       if( varStmt != null &&  varStmt.getAsExpression() != null )
       {
-        return varStmt.getAsExpression().isCompileTimeConstant();
+        return varStmt.getAsExpression().isCompileTimeConstant() || Modifier.isEnum( varStmt.getModifiers() );
       }
     }
     return false;
@@ -100,6 +101,10 @@ public class Identifier extends Expression implements IIdentifierExpression
       VarStatement varStmt = gsClass.getStaticField( symbol.getName() );
       if( varStmt != null )
       {
+        if( Modifier.isEnum( varStmt.getModifiers() ) )
+        {
+          return varStmt.getIdentifierName();
+        }
         return varStmt.getAsExpression().evaluate();
       }
       throw new IllegalStateException( "Should have found field for: " + symbol.getName() );
