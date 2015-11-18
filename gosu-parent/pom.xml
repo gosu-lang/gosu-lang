@@ -140,9 +140,9 @@
       <version>1.9.1</version>
       <executions>
         <execution>
-          <phase>generate-sources</phase>
+          <phase>generate-test-sources</phase>
           <goals>
-            <goal>add-source</goal>
+            <goal>add-test-source</goal>
           </goals>
           <configuration>
             <sources>

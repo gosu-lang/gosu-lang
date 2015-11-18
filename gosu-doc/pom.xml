@@ -1,20 +1,26 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
+  <parent>
+    <groupId>org.gosu-lang.gosu</groupId>
+    <artifactId>gosu-parent</artifactId>
+    <version>1-ant-gosudoc-SNAPSHOT</version>
+    <relativePath>../gosu-parent/pom.xml</relativePath>
+  </parent>
   <modelVersion>4.0.0</modelVersion>
-  <groupId>org.gosu-lang</groupId>
+  
   <artifactId>gosu-doc</artifactId>
-  <packaging>jar</packaging>
-  <version>0.3-linksee-SNAPSHOT</version>
-  <name>gosu-doc</name>
-  <description>Generates Java-doc compatible documentation for Gosu projects</description>
-  <url>https://github.com/gosu-lang/gosu-doc</url>
+  
+  <name>Gosu :: Gosudoc</name>
+  <description>Generates Javadoc-compatible documentation for Gosu projects</description>
+
   <licenses>
     <license>
       <name>The MIT License (MIT)</name>
       <url>http://opensource.org/licenses/MIT</url>
     </license>
   </licenses>
+  
   <developers>
     <developer>
       <name>Carson Gross</name>
@@ -23,38 +29,22 @@
       <organizationUrl>http://newhelvetic.com</organizationUrl>
     </developer>
   </developers>
-  <scm>
-    <connection>scm:git:git@github.com:gosu-lang/gosu-doc.git</connection>
-    <developerConnection>scm:git:git@github.com:gosu-lang/gosu-doc.git</developerConnection>
-    <url>git@github.com:gosu-lang/gosu-doc.git</url>
-  </scm>
-
-  <parent>
-    <groupId>org.sonatype.oss</groupId>
-    <artifactId>oss-parent</artifactId>
-    <version>9</version>
-  </parent>
-
-  <properties>
-    <gosu.version>1-fixCmd-SNAPSHOT</gosu.version>
-  </properties>
 
   <dependencies>
     <dependency>
       <groupId>org.gosu-lang.gosu</groupId>
       <artifactId>gosu-core-api</artifactId>
-      <version>${gosu.version}</version>
+      <version>1-ant-gosudoc-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.gosu-lang.gosu</groupId>
       <artifactId>gosu-core</artifactId>
-      <version>${gosu.version}</version>
+      <version>1-ant-gosudoc-SNAPSHOT</version>
       <scope>runtime</scope>
     </dependency>
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
-      <version>4.11</version>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -62,12 +52,6 @@
       <artifactId>jsoup</artifactId>
       <version>1.8.2</version>
       <scope>test</scope>
-    </dependency>
-    <!-- Preemptively get gosu-maven-compiler since the maven-compiler-plugin hard-codes its own obscure snapshot repo (plexus-snapshots) -->
-    <dependency>
-      <groupId>org.gosu-lang.gosu</groupId>
-      <artifactId>gosu-maven-compiler</artifactId>
-      <version>${gosu.version}</version>
     </dependency>
   </dependencies>
 
@@ -138,7 +122,7 @@
           <dependency>
             <groupId>org.gosu-lang.gosu</groupId>
             <artifactId>gosu-maven-compiler</artifactId>
-            <version>${gosu.version}</version>
+            <version>1-ant-gosudoc-SNAPSHOT</version>
           </dependency>
         </dependencies>
       </plugin>
@@ -179,45 +163,5 @@
       </plugin>
     </plugins>
   </build>
-
-  <profiles>
-    <profile>
-      <id>release</id>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-javadoc-plugin</artifactId>
-            <version>2.9.1</version>
-            <configuration>
-              <additionalparam>-Xdoclint:none</additionalparam>
-            </configuration>
-            <executions>
-              <execution>
-                <id>attach-javadocs</id>
-                <goals>
-                  <goal>jar</goal>
-                </goals>
-              </execution>
-            </executions>
-          </plugin>
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-gpg-plugin</artifactId>
-            <version>1.5</version>
-            <executions>
-              <execution>
-                <id>sign-artifacts</id>
-                <phase>verify</phase>
-                <goals>
-                  <goal>sign</goal>
-                </goals>
-              </execution>
-            </executions>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-  </profiles>
 
 </project>
