@@ -1,12 +1,12 @@
 package gosu.tools.ant;
 
+import gosu.tools.ant.util.AntLoggingHelper;
 import gw.lang.Gosu;
 import gw.lang.init.GosuInitialization;
 import gw.lang.reflect.ReflectUtil;
 import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.gs.IGosuObject;
 import org.apache.tools.ant.BuildException;
-import org.apache.tools.ant.Project;
 import org.apache.tools.ant.Task;
 import org.apache.tools.ant.types.Path;
 import org.apache.tools.ant.types.Reference;
@@ -20,6 +20,7 @@ import java.util.List;
  * Access to the GosuDoc tool from Ant.
  */
 public class Gosudoc extends Task {
+  private final AntLoggingHelper log = new AntLoggingHelper(this);
 
   private Path _inputDirs;
   private File _outputDir;
@@ -106,8 +107,7 @@ public class Gosudoc extends Task {
     try {
       ReflectUtil.invokeMethod(gsDocHTMLWriter, "write");
     } catch (Exception e) {
-      System.out.println(" *** Found some error *** ");
-      log(e.getMessage(), Project.MSG_ERR);
+      log.error(e.getMessage());
       throw new BuildException(e);
     } finally {
       //uninit Gosu
