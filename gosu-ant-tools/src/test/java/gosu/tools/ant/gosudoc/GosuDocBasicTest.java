@@ -1,5 +1,6 @@
 package gosu.tools.ant.gosudoc;
 
+import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.BuildFileTest;
 
 /**
@@ -26,8 +27,12 @@ public class GosuDocBasicTest extends BuildFileTest {
     super.tearDown(); //implicitly calls executeTarget("tearDown"), if it exists
   }
 
-  public void testMySanity() {
-    executeTarget("gen-doc");
+  public void testSimpleGosudocGeneration() {
+    try {
+      executeTarget("gen-doc");
+    } catch(BuildException e) {
+      fail(e.getMessage());
+    }
 
     System.out.println("--- Dumping full log ---");
     System.out.println(getFullLog());
