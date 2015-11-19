@@ -4,17 +4,20 @@
 
 package gw.internal.gosu.ir.transform.util;
 
+import gw.internal.gosu.parser.AsmClassJavaClassInfo;
 import gw.internal.gosu.parser.ICompilableTypeInternal;
 import gw.internal.gosu.parser.IGosuClassInternal;
 import gw.internal.gosu.parser.IGosuEnhancementInternal;
 import gw.internal.gosu.parser.IGosuProgramInternal;
 import gw.internal.gosu.parser.TypeLord;
+import gw.internal.gosu.parser.java.classinfo.JavaSourceType;
 import gw.lang.reflect.IRelativeTypeInfo;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.gs.BytecodeOptions;
 import gw.lang.reflect.gs.GosuClassPathThing;
 import gw.lang.reflect.gs.IGosuProgram;
+import gw.lang.reflect.java.IJavaClassInfo;
 import gw.lang.reflect.java.IJavaType;
 
 public class RequiresReflectionDeterminer
@@ -138,12 +141,40 @@ public class RequiresReflectionDeterminer
     return (accessibility == IRelativeTypeInfo.Accessibility.PROTECTED ||
             accessibility == IRelativeTypeInfo.Accessibility.INTERNAL ||
             AccessibilityUtil.forType( declaringClass ) == IRelativeTypeInfo.Accessibility.INTERNAL)
-           && (javaClassLoadsInSeparateLoader( declaringClass ) || isInSeparateClassLoader( callingClass, declaringClass ))
+           && (javaClassLoadsInSeparateLoader( callingClass, declaringClass ) || isInSeparateClassLoader( callingClass, declaringClass ))
            && getTopLevelNamespace( callingClass ).equals( getTopLevelNamespace( declaringClass ) );
   }
 
-  private static boolean javaClassLoadsInSeparateLoader( IType declaringClass ) {
-    return (!GosuClassPathThing.canWrapChain() && declaringClass instanceof IJavaType);
+  private static boolean javaClassLoadsInSeparateLoader( ICompilableTypeInternal callingClass, IType declaringClass )
+  {
+    if( GosuClassPathThing.canWrapChain() || !(declaringClass instanceof IJavaType) )
+    {
+      return false;
+    }
+
+    IJavaType javaClass = (IJavaType)declaringClass;
+    IJavaClassInfo classInfo = javaClass.getBackingClassInfo();
+    if( classInfo instanceof AsmClassJavaClassInfo )
+    {
+      // The Asm-based class is indicative of compiling Gosu statically, which
+      // means the Gosu class will be dropped in the same package/directory as
+      // Java classes it may be using, therefore at runtime they are guaranteed
+      // to use the same classloader, therefore internal/package usage does not
+      // need to be compiled reflectively.  If they are not in the same loader,
+      // it is the responsibility of the user to find a remedy as is the case
+      // with normal Java development.
+      return false;
+    }
+    if( classInfo instanceof JavaSourceType )
+    {
+      // The Source-based class indicates we are compiling Gosu statically from
+      // a "special" place, like inside an IDE's process where, for example, a
+      // Gosu class can be compiled before the Java class it references, in which
+      // case Gosu parsed Java directly from Source.  In this case we can
+      // determine if the Java source file and Gosu file are in the same module.
+      return callingClass.getTypeLoader().getModule() != declaringClass.getTypeLoader().getModule();
+    }
+    return true;
   }
 
   private static boolean isGosuClassAccessingProtectedMemberOfClassNotInHierarchy( ICompilableTypeInternal callingClass, IType declaringClass, IRelativeTypeInfo.Accessibility accessibility )
