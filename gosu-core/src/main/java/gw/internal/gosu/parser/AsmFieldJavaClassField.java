@@ -6,6 +6,7 @@ package gw.internal.gosu.parser;
 
 import gw.internal.gosu.parser.java.classinfo.AsmClassAnnotationInfo;
 import gw.internal.gosu.parser.java.classinfo.JavaSourceUtil;
+import gw.lang.gosuc.simple.CompilerDriverException;
 import gw.lang.reflect.IAnnotationInfo;
 import gw.lang.reflect.java.IJavaClassField;
 import gw.lang.reflect.java.IJavaClassInfo;
@@ -50,8 +51,8 @@ public class AsmFieldJavaClassField implements IJavaClassField {
   public IJavaClassType getGenericType() {
     IJavaClassType type = AsmTypeJavaClassType.createType( _field.getType(), _module );
     if( type == null ) {
-      throw new IllegalStateException( "Unable to create a generic type for the field " + _field.getName() + " on " + _field.getDeclaringClass().getName() + " in module " + _module.getName() + "\n" +
-                                       "Type : " + _field.getType() + ", Type.class " + _field.getType().getClass().getName() + " GenericType : " + _field.getType() + ", GenericType.class : " + _field.getType().getClass().getName() );
+      throw new CompilerDriverException( "Unable to create a generic type for the field " + _field.getName() + " on " + _field.getDeclaringClass().getName() + " in module " + _module.getName() + ". Please make sure all the external dependencies are present on the classpath.\n" +
+                                         "Type : " + _field.getType() + ", Type.class " + _field.getType().getClass().getName() + " GenericType : " + _field.getType() + ", GenericType.class : " + _field.getType().getClass().getName() );
     }
     return type;
   }
