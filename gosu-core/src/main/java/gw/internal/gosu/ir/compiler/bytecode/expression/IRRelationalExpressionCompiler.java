@@ -32,11 +32,23 @@ public class IRRelationalExpressionCompiler extends AbstractBytecodeCompiler {
     IRRelationalExpression.Operation op = expression.getOp();
     if( type.isLong() || type.isDouble() || type.isFloat() )
     {
-      mv.visitInsn( type.isDouble()
-                    ? Opcodes.DCMPL
-                    : type.isFloat()
-                      ? Opcodes.FCMPL
-                      : Opcodes.LCMP );
+      if(op == IRRelationalExpression.Operation.LTE || op == IRRelationalExpression.Operation.LT)
+      {
+        mv.visitInsn( type.isDouble()
+                                      ? Opcodes.DCMPG
+                                      : type.isFloat()
+                                      ? Opcodes.FCMPG
+                                      : Opcodes.LCMP );
+      }
+      else
+      {
+        mv.visitInsn( type.isDouble()
+                                      ? Opcodes.DCMPL
+                                      : type.isFloat()
+                                      ? Opcodes.FCMPL
+                                      : Opcodes.LCMP );
+
+      }
 
       if( op == IRRelationalExpression.Operation.LTE )
       {
