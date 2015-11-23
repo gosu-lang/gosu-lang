@@ -55,8 +55,13 @@ public class GosuCompiler implements IGosuCompiler {
     }
 
     if (isCompilable(type)) {
-      if (type.isValid()) {
-        createOutputFiles((IGosuClass) type, driver);
+      try {
+        if(type.isValid()) {
+          createOutputFiles((IGosuClass) type, driver);
+        }
+      } catch(CompilerDriverException ex) {
+        driver.sendCompileIssue(_compilingSourceFile, ERROR, 0, 0, 0, ex.getMessage());
+        return false;
       }
       // output warnings and errors - whether the type was valid or not
       IParsedElement classElement = ((IGosuClass) type).getClassStatement();
