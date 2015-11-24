@@ -28,6 +28,7 @@ import gw.lang.reflect.java.IJavaType;
 import gw.lang.reflect.java.JavaTypes;
 import gw.lang.reflect.module.TypeSystemLockHelper;
 import gw.util.GosuExceptionUtil;
+import gw.util.concurrent.LocklessLazyVar;
 
 import java.io.IOException;
 import java.lang.ref.WeakReference;
@@ -39,28 +40,32 @@ import java.util.Optional;
 
 public class GosuClassLoader implements IGosuClassLoader
 {
-  private static final List<String> DISCRETE_NAMESPACES = initDiscreteNamespaces();
-  private static List<String> initDiscreteNamespaces()
-  {
-    String discreteNs = System.getProperty( "unloadable.packages" );
-    if( discreteNs == null )
+  public static final LocklessLazyVar<List<String>> DISCRETE_NAMESPACES =
+    new LocklessLazyVar<List<String>>()
     {
-      return Collections.emptyList();
-    }
-    List<String> namespaces = Arrays.asList( discreteNs.split( "," ) );
-    for( int i = 0; i < namespaces.size(); i++ )
-    {
-      for( int j = i+1; j < namespaces.size(); i++ )
+      @Override
+      protected List<String> init()
       {
-        if( namespaces.get( i ).startsWith( namespaces.get( j ) ) ||
-            namespaces.get( j ).startsWith( namespaces.get( i ) ) )
+        String discreteNs = System.getProperty( "unloadable.packages" );
+        if( discreteNs == null )
         {
-          throw new IllegalStateException( "Unloadable packages overlap: " + namespaces.get( i ) + ", " + namespaces.get( j ) );
+          return Collections.emptyList();
         }
+        List<String> namespaces = Arrays.asList( discreteNs.split( "," ) );
+        for( int i = 0; i < namespaces.size(); i++ )
+        {
+          for( int j = i+1; j < namespaces.size(); i++ )
+          {
+            if( namespaces.get( i ).startsWith( namespaces.get( j ) ) ||
+                namespaces.get( j ).startsWith( namespaces.get( i ) ) )
+            {
+              throw new IllegalStateException( "Unloadable packages overlap: " + namespaces.get( i ) + ", " + namespaces.get( j ) );
+            }
+          }
+        }
+        return namespaces;
       }
-    }
-    return namespaces;
-  }
+    };
 
   private DiscreteLoaderCache _discreteLoaders = new DiscreteLoaderCache();
   private ClassLoader _loader;
@@ -463,7 +468,7 @@ public class GosuClassLoader implements IGosuClassLoader
 
     public SingleServingGosuClassLoader getLoader( String key )
     {
-      if( DISCRETE_NAMESPACES.isEmpty() )
+      if( DISCRETE_NAMESPACES.get().isEmpty() )
       {
         return null;
       }
@@ -472,7 +477,7 @@ public class GosuClassLoader implements IGosuClassLoader
 
     public boolean isLoaderUnloaded( String key )
     {
-      if( DISCRETE_NAMESPACES.isEmpty() )
+      if( DISCRETE_NAMESPACES.get().isEmpty() )
       {
         return true;
       }
@@ -488,7 +493,7 @@ public class GosuClassLoader implements IGosuClassLoader
           @Override
           public WeakReference<SingleServingGosuClassLoader> load( String key )
           {
-            Optional<String> match = GosuClassLoader.DISCRETE_NAMESPACES.stream().filter( key::startsWith ).findFirst();
+            Optional<String> match = GosuClassLoader.DISCRETE_NAMESPACES.get().stream().filter( key::startsWith ).findFirst();
             if( !match.isPresent() )
             {
               return new WeakReference<>( SingleServingGosuClassLoader.NULL_SENTINAL );
@@ -515,7 +520,7 @@ public class GosuClassLoader implements IGosuClassLoader
 
           if( ref.get() == null )
           {
-            String unloadableNamespace = DISCRETE_NAMESPACES.stream().filter( key::startsWith ).findFirst().get();
+            String unloadableNamespace = DISCRETE_NAMESPACES.get().stream().filter( key::startsWith ).findFirst().get();
             put( unloadableNamespace, ref = new WeakReference<>( loader[0] = new SingleServingGosuClassLoader( GosuClassLoader.this ) ) );
           }
           return ref.get();
