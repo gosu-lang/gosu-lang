@@ -4,8 +4,8 @@
 
 package gw.internal.gosu.parser;
 
+import gw.internal.gosu.compiler.SingleServingGosuClassLoader;
 import gw.internal.gosu.parser.expressions.Identifier;
-import gw.lang.Gosu;
 import gw.lang.parser.ExternalSymbolMapForMap;
 import gw.lang.parser.IExpression;
 import gw.lang.parser.IParsedElement;
@@ -400,7 +400,7 @@ public class GosuProgram extends GosuClass implements IGosuProgramInternal
 
   private boolean canShareProgramInstances()
   {
-    if( isThrowaway() && BytecodeOptions.JDWP_ENABLED.get() )
+    if( getBackingClass().getClassLoader() instanceof SingleServingGosuClassLoader )
     {
       return false;
     }
