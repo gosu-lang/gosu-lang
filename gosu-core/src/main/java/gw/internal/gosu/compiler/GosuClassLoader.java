@@ -47,7 +47,7 @@ public class GosuClassLoader implements IGosuClassLoader
       protected List<String> init()
       {
         String discreteNs = System.getProperty( "unloadable.packages" );
-        if( discreteNs == null )
+        if( discreteNs == null || discreteNs.isEmpty() )
         {
           return Collections.emptyList();
         }
