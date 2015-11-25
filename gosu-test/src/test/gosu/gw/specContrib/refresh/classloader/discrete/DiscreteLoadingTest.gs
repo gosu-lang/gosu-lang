@@ -12,7 +12,7 @@ public class DiscreteLoadingTest extends BaseVerifyErrantTest {
     assertNotNull( idGarbage1Class )
     TypeSystem.refresh( true )
     System.gc()
-    Thread.sleep( 5000 )
+    Thread.sleep( 1000 )
 
     // Should be SAME classes
     assertTrue( idGarbage1Class == loadAndRunPerm() )
@@ -27,7 +27,7 @@ public class DiscreteLoadingTest extends BaseVerifyErrantTest {
       assertNotNull( idGarbage1Class )
       TypeSystem.refresh( true )
       System.gc()
-      Thread.sleep( 5000 )
+      Thread.sleep( 1000 )
 
       // Should be DIFFERENT classes
       assertTrue( idGarbage1Class != loadAndRunTemp() )
