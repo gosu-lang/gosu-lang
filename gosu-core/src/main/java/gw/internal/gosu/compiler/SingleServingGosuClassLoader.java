@@ -6,6 +6,7 @@ package gw.internal.gosu.compiler;
 
 import gw.internal.gosu.ir.TransformingCompiler;
 import gw.lang.Gosu;
+import gw.lang.reflect.IType;
 import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.gs.ICompilableType;
 import gw.lang.reflect.gs.IGosuClassLoader;
