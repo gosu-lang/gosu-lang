@@ -5,6 +5,7 @@
 package gw.internal.gosu.compiler;
 
 import gw.internal.gosu.ir.TransformingCompiler;
+import gw.lang.Gosu;
 import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.gs.ICompilableType;
 import gw.lang.reflect.gs.IGosuClassLoader;
@@ -85,8 +86,15 @@ public class SingleServingGosuClassLoader extends ClassLoader implements IGosuCl
     }
 
     cls = defineClass( GosuClassLoader.getJavaName( gsClass ), classBytes, 0, classBytes.length );
-    CACHE.put( gsClass.getName(), cls );
+    if( shouldCache(gsClass) )
+    {
+      CACHE.put( gsClass.getName(), cls );
+    }
     return cls;
+  }
+
+  private boolean shouldCache(ICompilableType gsClass) {
+    return !Gosu.GOSU_SCRATCHPAD_FQN.equals(gsClass.getName());
   }
 
   private byte[] compileClass( ICompilableType type, boolean debug )

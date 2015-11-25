@@ -5,6 +5,7 @@
 package gw.internal.gosu.parser;
 
 import gw.internal.gosu.parser.expressions.Identifier;
+import gw.lang.Gosu;
 import gw.lang.parser.ExternalSymbolMapForMap;
 import gw.lang.parser.IExpression;
 import gw.lang.parser.IParsedElement;
@@ -89,7 +90,7 @@ public class GosuProgram extends GosuClass implements IGosuProgramInternal
     IJavaType programInstance = JavaTypes.IPROGRAM_INSTANCE();
     IType symbolMap = JavaTypes.IEXTERNAL_SYMBOL_MAP();
     addProgramInstanceMethod( symTable, parser, programInstance, "evaluate", symbolMap);
-    addProgramInstanceMethod( symTable, parser, programInstance, "evaluateRootExpr", symbolMap);
+    addProgramInstanceMethod(symTable, parser, programInstance, "evaluateRootExpr", symbolMap);
   }
 
   private void addProgramInstanceMethod( ISymbolTable symTable, GosuClassParser parser, IJavaType cls, String strMethod, IType params )
@@ -399,6 +400,11 @@ public class GosuProgram extends GosuClass implements IGosuProgramInternal
 
   private boolean canShareProgramInstances()
   {
+    if( isThrowaway() && BytecodeOptions.JDWP_ENABLED.get() )
+    {
+      return false;
+    }
+
     // Note we check for existence of member fields from the Class and not the GosuClass
     // to avoid parsing the GosuClass at runtime.  This method is only called at runtime.
     for( Field f : getBackingClass().getDeclaredFields() )

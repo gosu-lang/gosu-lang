@@ -596,6 +596,7 @@ public class ExecutionEnvironment implements IExecutionEnvironment
                   IGosuProgramParser programParser = GosuParserFactory.createProgramParser();
                   ParserOptions options = new ParserOptions()
                           .withParser(scriptParser)
+                          .asThrowawayProgram()
                           .withFileContext(new ProgramFileContext(null, Gosu.GOSU_SCRATCHPAD_FQN));
                   IParseResult parseResult = programParser.parseExpressionOrProgram(strScript, scriptParser.getSymbolTable(), options);
                   Object result = parseResult.getProgram().evaluate( null );
