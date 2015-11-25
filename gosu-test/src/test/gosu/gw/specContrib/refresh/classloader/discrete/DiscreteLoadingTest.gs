@@ -47,6 +47,7 @@ public class DiscreteLoadingTest extends BaseVerifyErrantTest {
     var fqn = "scott.McKinney"
     var idGarbage1Class = loadProgram( fqn, "'hello'" )
     assertNotNull( idGarbage1Class )
+    TypeSystem.refresh( TypeSystem.getByFullName( fqn ) as ITypeRef )
     System.gc()
     Thread.sleep( 1000 )
 
@@ -57,6 +58,7 @@ public class DiscreteLoadingTest extends BaseVerifyErrantTest {
   function testScratchpad() {
     var idGarbage1Class = loadProgram( Gosu.GOSU_SCRATCHPAD_FQN, "'hello'" )
     assertNotNull( idGarbage1Class )
+    TypeSystem.refresh( TypeSystem.getByFullName( Gosu.GOSU_SCRATCHPAD_FQN ) as ITypeRef )
     System.gc()
     Thread.sleep( 1000 )
 

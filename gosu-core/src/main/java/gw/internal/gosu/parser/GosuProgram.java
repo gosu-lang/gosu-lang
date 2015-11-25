@@ -4,7 +4,6 @@
 
 package gw.internal.gosu.parser;
 
-import gw.internal.gosu.compiler.SingleServingGosuClassLoader;
 import gw.internal.gosu.parser.expressions.Identifier;
 import gw.lang.parser.ExternalSymbolMapForMap;
 import gw.lang.parser.IExpression;
@@ -353,23 +352,30 @@ public class GosuProgram extends GosuClass implements IGosuProgramInternal
   }
 
   @Override
-  public IProgramInstance getProgramInstance() {
-    if (_sharedInstance != null) {
+  public IProgramInstance getProgramInstance()
+  {
+    if( _sharedInstance != null )
+    {
       return _sharedInstance;
-    } else {
-      if (canShareProgramInstances()) {
-        if (_sharedInstance == null) {
-          synchronized (this) {
-            if (_sharedInstance == null) {
-              _sharedInstance = createNewInstance();
-            }
-          }
-        }
-        return _sharedInstance;
-      } else {
+    }
+    else
+    {
+      if( canShareProgramInstances() )
+      {
+         return _sharedInstance = createNewInstance();
+      }
+      else
+      {
         return createNewInstance();
       }
     }
+  }
+
+  @Override
+  public void unloadBackingClass()
+  {
+    super.unloadBackingClass();
+    _sharedInstance = null;
   }
 
   @Override
@@ -388,23 +394,20 @@ public class GosuProgram extends GosuClass implements IGosuProgramInternal
     return _bStatementsOnly;
   }
 
-  private IProgramInstance createNewInstance() {
-    try {
-      return (IProgramInstance) getBackingClass().newInstance();
-    } catch (InstantiationException e) {
-      throw new RuntimeException(e);
-    } catch (IllegalAccessException e) {
-      throw new RuntimeException(e);
+  private IProgramInstance createNewInstance()
+  {
+    try
+    {
+      return (IProgramInstance)getBackingClass().newInstance();
+    }
+    catch( Exception e )
+    {
+      throw new RuntimeException( e );
     }
   }
 
   private boolean canShareProgramInstances()
   {
-    if( getBackingClass().getClassLoader() instanceof SingleServingGosuClassLoader )
-    {
-      return false;
-    }
-
     // Note we check for existence of member fields from the Class and not the GosuClass
     // to avoid parsing the GosuClass at runtime.  This method is only called at runtime.
     for( Field f : getBackingClass().getDeclaredFields() )
