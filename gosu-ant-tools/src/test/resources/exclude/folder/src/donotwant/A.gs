@@ -1,0 +1,3 @@
+package donotwant
+
+class A {}

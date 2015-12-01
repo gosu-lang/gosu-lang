@@ -1,6 +1,7 @@
 package gw.lang.gosuc.simple;
 
 import gw.config.CommonServices;
+import gw.config.ExecutionMode;
 import gw.config.IMemoryMonitor;
 import gw.config.IPlatformHelper;
 import gw.config.Registry;
@@ -67,9 +68,11 @@ public class GosuCompiler implements IGosuCompiler {
       IParsedElement classElement = ((IGosuClass) type).getClassStatement();
       IClassFileStatement classFileStatement = ((IClassStatement) classElement).getClassFileStatement();
       classElement = classFileStatement == null ? classElement : classFileStatement;
+      ExecutionMode mode = CommonServices.getPlatformHelper().getExecutionMode();
       for (IParseIssue issue : classElement.getParseIssues()) {
         int category = issue instanceof ParseWarning ? WARNING : ERROR;
-        driver.sendCompileIssue(_compilingSourceFile, category, issue.getTokenStart(), issue.getLine(), issue.getColumn(), issue.getUIMessage());
+        String message = mode == ExecutionMode.IDE ? issue.getUIMessage() : issue.getConsoleMessage();
+        driver.sendCompileIssue(_compilingSourceFile, category, issue.getTokenStart(), issue.getLine(), issue.getColumn(), message);
       }
     }
 

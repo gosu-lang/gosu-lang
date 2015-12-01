@@ -24,6 +24,28 @@
     </dependency>
   </dependencies>
 
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>build-helper-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <phase>generate-sources</phase>
+            <goals>
+              <goal>add-source</goal>
+            </goals>
+            <configuration>
+              <sources>
+                <source>src/test/gosu</source>
+              </sources>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+  
   <profiles>
     <profile>
       <id>runGosuTests</id>
@@ -51,7 +73,6 @@
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-compiler-plugin</artifactId>
-            <version>3.3</version>
             <executions>
               <execution>
                 <id>Compile Gosu test sources</id>
@@ -91,7 +112,6 @@
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-surefire-plugin</artifactId>
-            <version>2.18.1</version>
             <configuration>
               <argLine>-Dgw.tests.skip.knownbreak=true -DcheckedArithmetic=true -Xmx1g</argLine>
               <includes>
@@ -119,7 +139,7 @@
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-surefire-report-plugin</artifactId>
-            <version>2.18.1</version>
+            <version>2.19</version>
           </plugin>
         </plugins>
       </reporting>

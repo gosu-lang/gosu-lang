@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project name="exclude-file">
+
+  <property name="base.dir" value="src/test/resources/exclude/file"/>
+  <property name="dest.dir" value="${base.dir}/dest"/>
+
+  <target name="setUp">
+    <mkdir dir="${dest.dir}"/>
+  </target>
+
+  <target name="compile">
+
+    <path id="gosu.classpath">
+      <pathelement location="../gosu-core/target/classes"/>
+      <pathelement location="../gosu-core-api/target/classes"/>
+    </path>
+
+    <taskdef resource="gosu/tools/ant/antlib.xml">
+      <classpath refid="gosu.classpath"/>
+    </taskdef>
+
+    <pathconvert property="classpathProp" refid="gosu.classpath"/>
+    <echo>Classpath is: ${classpathProp}</echo>
+
+    <!-- this strange structure simulates how Gradle will pass a fileset to ant which excludes "**/Errant_*" -->
+    <!-- To exclude files, Gradle omits the srcdir attribute in favor of the nested <src> element --> 
+    <gosuc destdir="${dest.dir}"
+           classpathref="gosu.classpath">
+      <src location="${base.dir}/src"/>
+      <or>
+        <and>
+          <!--<gradleBaseDirSelector baseDir="${base.dir}/src"/>-->
+          <filename casesensitive="true" name="GoodPogo.gs"/>
+        </and>
+      </or>
+    </gosuc>
+  </target>
+
+  <target name="tearDown">
+    <delete includeemptydirs="true">
+      <fileset dir="${dest.dir}" includes="**/*"/>
+    </delete>
+  </target>
+</project>
