@@ -1713,7 +1713,6 @@ public abstract class ParserBase implements IParserPart
         {
           getTokenizer().nextToken();
 
-          verify( elem, bIgnoreErrors || bNotInterface || gsClass.getEnclosingType() != null && !gsClass.getEnclosingType().isInterface(), Res.MSG_NOT_ALLOWED_IN_INTERFACE );
           verifyNoAccessibilityModifierDefined( elem, bIgnoreErrors, iModifiers, Keyword.KW_private );
           verifyNoHideOverrideModifierDefined( elem, bIgnoreErrors, iModifiers, Keyword.KW_private );
           iModifiers = Modifier.setPrivate( iModifiers, true );
