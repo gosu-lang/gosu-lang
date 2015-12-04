@@ -5,7 +5,6 @@
 package gw.internal.gosu.parser;
 
 import gw.internal.gosu.parser.statements.VarStatement;
-import gw.lang.parser.GlobalScope;
 import gw.lang.parser.TypeVarToTypeMap;
 import gw.lang.parser.expressions.INewExpression;
 import gw.lang.parser.expressions.IVarStatement;
@@ -52,13 +51,7 @@ public class GosuVarPropertyInfo extends GosuBaseAttributedFeatureInfo implement
     _bPrivate = varStmt.isPrivate();
     _fullDescription = varStmt.getFullDescription();
     _hasProperty = varStmt.hasProperty();
-    _isScopedField = varStmt.getScope() == GlobalScope.REQUEST || varStmt.getScope() == GlobalScope.SESSION;
     _symbolType = varStmt.getSymbol().getType();
-    if (_isScopedField) {
-      ScopedDynamicSymbol symbol = (ScopedDynamicSymbol) varStmt.getSymbol();
-      _symbolScopeString = symbol.getScope().toString();
-      _symbolAttributeName = symbol.getAttributeName();
-    }
     _gosuClass = varStmt.getParent() != null ? varStmt.getParent().getGosuClass() : null;
     _isFinal = varStmt.isFinal();
     ModifierInfo modifierInfo = ((VarStatement) varStmt).getModifierInfo();

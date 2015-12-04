@@ -8,7 +8,6 @@ import gw.config.IService;
 import gw.fs.IDirectory;
 import gw.internal.gosu.parser.ExtendedTypeDataFactory;
 import gw.lang.UnstableAPI;
-import gw.lang.parser.GlobalScope;
 import gw.lang.parser.IAttributeSource;
 import gw.lang.parser.IParseIssue;
 import gw.lang.parser.ITypeUsesMap;
@@ -64,8 +63,6 @@ public interface IEntityAccess extends IService
   void addEnhancementProperties(IType typeToEnhance, Map propertyInfosToAddTo, boolean caseSensitive);
 
   ClassLoader getPluginClassLoader();
-
-  IAttributeSource getAttributeSource( GlobalScope scope );
 
   StringBuilder getPluginRepositories();
 

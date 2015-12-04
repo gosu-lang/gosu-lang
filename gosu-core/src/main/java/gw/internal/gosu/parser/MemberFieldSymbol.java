@@ -122,11 +122,6 @@ public class MemberFieldSymbol implements ISymbol
     return null;  //To change body of implemented methods use File | Settings | File Templates.
   }
 
-  @Override
-  public GlobalScope getScope() {
-    return null;  //To change body of implemented methods use File | Settings | File Templates.
-  }
-
   public IType getType()
   {
     throw new UnsupportedOperationException();

@@ -28,7 +28,6 @@ public interface IReducedSymbol {
   IGosuClass getGosuClass();
   boolean hasTypeVariables();
   Class<?> getSymbolClass();
-  GlobalScope getScope();
   boolean isValueBoxed();
   int getIndex();
   IExpression getDefaultValueExpression();

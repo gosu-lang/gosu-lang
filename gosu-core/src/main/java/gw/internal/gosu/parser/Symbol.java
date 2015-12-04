@@ -4,7 +4,6 @@
 package gw.internal.gosu.parser;
 
 import gw.lang.function.IBlock;
-import gw.lang.parser.GlobalScope;
 import gw.lang.parser.ICapturedSymbol;
 import gw.lang.parser.IExpression;
 import gw.lang.parser.IFunctionSymbol;
@@ -472,11 +471,6 @@ public class Symbol implements IFunctionSymbol
   @Override
   public boolean hasTypeVariables() {
     return false;
-  }
-
-  @Override
-  public GlobalScope getScope() {
-    return null;
   }
 
   public void setModifiers( int modifiers )

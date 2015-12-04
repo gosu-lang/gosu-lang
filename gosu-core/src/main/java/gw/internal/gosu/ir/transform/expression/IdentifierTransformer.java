@@ -96,10 +96,6 @@ public class IdentifierTransformer extends AbstractExpressionTransformer<IIdenti
               pushExternalSymbolsMap(),
               Arrays.asList( pushConstant( reducedSym.getName() ), pushConstant( getArrayDims( reducedSym ) ))));
     }
-    else if( ScopedDynamicSymbol.class.isAssignableFrom( symClass ) )
-    {
-      return getScopedSymbolValue( reducedSym );
-    }
     else if( DynamicSymbol.class.isAssignableFrom( symClass ) )
     {
       // Instance or Static field
