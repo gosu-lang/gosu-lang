@@ -17,19 +17,7 @@ class Errant_BasicErrorsClass {
     }
   }
 
-  var appVar application = 10 
-  var sessionVar session = 10 
-  var requestVar request = 10 
-  var executionVar execution = 10
-  
-  function eliminateSomeWarnings() {
-    print( appVar ) 
-    print( sessionVar ) 
-    print( requestVar ) 
-    print( executionVar ) 
-  }
-
-  function foo( d : String ) { 
+  function foo( d : String ) {
     foo( CONST_STR ) // illegal forward reference of inferred variable
   }
   static var CONST_STR = "6/30/2007"

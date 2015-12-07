@@ -79,29 +79,12 @@ class BadClassesTest extends TestClass
                    errs.singleWhere( \ err -> err.Line == 16 and err.Column == 18 and
                                        err.MessageKey == Res.MSG_NOT_A_VALID_EXCEPTION_TYPE ) )
   }
-  
-  function testStorageModifiersHaveBeenDeprecated() {
-    assertFalse( Errant_BasicErrorsClass.Type.Valid )
-    var errs = Errant_BasicErrorsClass.Type.ParseResultsException.ParseWarnings
-    assertNotNull( "There should be a warning on the application storage modifier", 
-                   errs.singleWhere( \ err -> err.Line == 20 and err.Column == 14 and 
-                                              err.MessageKey == Res.MSG_APPLICATION_MODIFIER_HAS_BEEN_DEPRECATED ) )
-    assertNotNull( "There should be a warning on the session storage modifier", 
-                   errs.singleWhere( \ err -> err.Line == 21 and err.Column == 18 and 
-                                              err.MessageKey == Res.MSG_SESSION_MODIFIER_HAS_BEEN_DEPRECATED ) )
-    assertNotNull( "There should be a warning on the request storage modifier", 
-                   errs.singleWhere( \ err -> err.Line == 22 and err.Column == 18 and 
-                                              err.MessageKey == Res.MSG_REQUEST_MODIFIER_HAS_BEEN_DEPRECATED ) )
-    assertNotNull( "There should be a warning on the execution storage modifier", 
-                   errs.singleWhere( \ err -> err.Line == 23 and err.Column == 20 and 
-                                              err.MessageKey == Res.MSG_EXECUTION_MODIFIER_HAS_BEEN_DEPRECATED ) )
-  }
 
   function testBadForwardReferenceOfInferredVariableCausesCorrectError() {
     assertFalse( Errant_BasicErrorsClass.Type.Valid )
     var errs = Errant_BasicErrorsClass.Type.ParseResultsException.ParseExceptions
     assertNotNull( "Should be a parse exception in use of infered variable before definition", 
-                   errs.singleWhere( \ err -> err.Line == 33 and err.Column == 10 and
+                   errs.singleWhere( \ err -> err.Line == 21 and
                                        err.MessageKey == Res.MSG_FIELD_TYPE_HAS_NOT_BEEN_INFERRED ) )
   }
 

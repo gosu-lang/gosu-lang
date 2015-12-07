@@ -15,7 +15,6 @@ import gw.internal.gosu.ir.transform.TopLevelTransformationContext;
 import gw.internal.gosu.parser.CapturedSymbol;
 import gw.internal.gosu.parser.DynamicPropertySymbol;
 import gw.internal.gosu.parser.DynamicSymbol;
-import gw.internal.gosu.parser.ScopedDynamicSymbol;
 import gw.internal.gosu.parser.AbstractDynamicSymbol;
 import gw.lang.parser.ISymbol;
 import gw.lang.parser.statements.IAssignmentStatement;
@@ -52,10 +51,6 @@ public class AssignmentStatementTransformer extends AbstractStatementTransformer
                       Arrays.asList( pushConstant( symbol.getName() ),
                                      boxValue( _stmt().getExpression().getType(), ExpressionTransformer.compile( _stmt().getExpression(), _cc() ) ) ) );
       return buildMethodCall( setterCall );
-    }
-    else if( symbol instanceof ScopedDynamicSymbol )
-    {
-      return setScopedSymbolValue( symbol, _stmt().getExpression() );
     }
     else if( symbol instanceof DynamicPropertySymbol )
     {

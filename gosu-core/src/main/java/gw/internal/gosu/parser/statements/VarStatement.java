@@ -12,7 +12,6 @@ import gw.internal.gosu.parser.ModifierInfo;
 import gw.internal.gosu.parser.Statement;
 import gw.internal.gosu.parser.expressions.BlockExpression;
 import gw.internal.gosu.parser.expressions.TypeLiteral;
-import gw.lang.parser.GlobalScope;
 import gw.lang.parser.IParsedElement;
 import gw.lang.parser.IScriptPartId;
 import gw.lang.parser.ISymbol;
@@ -44,7 +43,6 @@ public class VarStatement extends Statement implements IVarStatement
   protected Expression _expression;
   protected TypeLiteral _typeLiteral;
   protected boolean _hasProperty = false;
-  protected GlobalScope _scope;
   protected ModifierInfo _modifiers;
   private ISymbol _symbol;
   private IScriptPartId _scriptPartId;
@@ -79,15 +77,6 @@ public class VarStatement extends Statement implements IVarStatement
   public void setPropertyName( String strPropertyName )
   {
     _strPropertyName = strPropertyName;
-  }
-
-  public GlobalScope getScope()
-  {
-    return _scope;
-  }
-  public void setScope( GlobalScope scope )
-  {
-    _scope = scope;
   }
 
   public TypeLiteral getTypeLiteral()

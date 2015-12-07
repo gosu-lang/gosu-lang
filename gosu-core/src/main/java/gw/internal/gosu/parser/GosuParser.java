@@ -59,7 +59,6 @@ import gw.lang.function.IBlock;
 import gw.lang.ir.IRElement;
 import gw.lang.ir.IRType;
 import gw.lang.parser.ExternalSymbolMapForMap;
-import gw.lang.parser.GlobalScope;
 import gw.lang.parser.GosuParserFactory;
 import gw.lang.parser.GosuParserTypes;
 import gw.lang.parser.IBlockClass;
@@ -9413,24 +9412,12 @@ public final class GosuParser extends ParserBase implements IGosuParser
       bFieldSymbolFromProgram = getGosuClass() instanceof IGosuProgram &&
               (bClassMember || isLocalVarTopLevelFunctionBodyStmt()) &&
               ((IGosuProgramInternal)getGosuClass()).isParsingExecutableProgramStatements() &&
-              (existingSymbol instanceof DynamicSymbol || existingSymbol instanceof ScopedDynamicSymbol);
+              (existingSymbol instanceof DynamicSymbol );
       if( verify( varStmt, bFieldSymbolFromProgram, Res.MSG_VARIABLE_ALREADY_DEFINED, strIdentifier ) )
       {
         // Overwrite program var's symbol with class field symbol
         varStmt.setSymbol( existingSymbol );
       }
-    }
-
-    // NOTE:  For class member parsing we don't care about these results.  We just want to eat the keywords.
-    //        The scope is setup when we decl parse in GosuClassParser
-    boolean bRequest = false;
-    boolean bSession = false;
-    boolean bApplication = false;
-    if( (match( null, Keyword.KW_execution )) ||
-            (bRequest = match( null, Keyword.KW_request )) ||
-            (bSession = match( null, Keyword.KW_session )) ||
-            (bApplication = match( null, Keyword.KW_application )) )
-    {
     }
 
     if( varStmt.getModifierInfo() == null )
@@ -9540,27 +9527,10 @@ public final class GosuParser extends ParserBase implements IGosuParser
     }
     else
     {
-      GlobalScope scope = bApplication
-              ? GlobalScope.APPLICATION
-              : bSession
-              ? GlobalScope.SESSION
-              : bRequest
-              ? GlobalScope.REQUEST
-              : GlobalScope.EXECUTION;
-
-      Symbol newSym;
-      if( scope == GlobalScope.EXECUTION )
-      {
-        newSym = new Symbol( strIdentifier, type, _symTable, null );
-      }
-      else
-      {
-        newSym = new ScopedDynamicSymbol( _symTable, strIdentifier, "", type, scope );
-      }
+      Symbol newSym = new Symbol( strIdentifier, type, _symTable, null );
       newSym.setModifierInfo( varStmt.getModifierInfo() );
       symbol = newSym;
       varStmt.setSymbol( newSym );
-      varStmt.setScope( scope );
     }
 
     if( existingSymbol == null )

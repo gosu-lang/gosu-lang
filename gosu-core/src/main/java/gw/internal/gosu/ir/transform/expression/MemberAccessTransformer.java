@@ -197,12 +197,7 @@ public class MemberAccessTransformer extends AbstractExpressionTransformer<Membe
                                exprList( root, pushString( _expr().getMemberExpression() ) ) );
     }
 
-    if( isScopedField( pi ) )
-    {
-      IGosuVarPropertyInfo varPropInfo = (IGosuVarPropertyInfo)pi;
-      return getScopedSymbolValue( varPropInfo );
-    }
-    else if( irProperty.isField() )
+    if( irProperty.isField() )
     {
       IRExpression fieldGetter = getField( irProperty, root );
       return castIfTypeDerivedFromTypeVariable( irProperty, fieldGetter );
@@ -343,11 +338,6 @@ public class MemberAccessTransformer extends AbstractExpressionTransformer<Membe
       {
         return pushRootExpression( rootType, rootExpr, irProperty );
       }
-    }
-    else if( isScopedField( pi ) )
-    {
-      IGosuVarPropertyInfo scopedSymbol = getActualPropertyInfo(pi);
-      return maybeEvalRoot( rootExpr, getScopedSymbolValue( scopedSymbol ) );
     }
     else if( pi != null && irProperty.isBytecodeProperty() )
     {

@@ -4,7 +4,6 @@
 
 package gw.internal.gosu.parser;
 
-import gw.lang.parser.GlobalScope;
 import gw.lang.parser.IExpression;
 import gw.lang.parser.IReducedSymbol;
 import gw.lang.parser.IScriptPartId;
@@ -30,7 +29,6 @@ public class ReducedSymbol implements IReducedSymbol {
   private List<IGosuAnnotation> _annotations;
   private Class<?> _symClass;
   private IExpression _defValue;
-  private GlobalScope _globalScope;
   private boolean _bValueBoxed;
   private int _iIndex;
   
@@ -49,10 +47,6 @@ public class ReducedSymbol implements IReducedSymbol {
     {
       _defValue = ((DynamicFunctionSymbol)sym).getAnnotationDefault();
     }
-    if( sym instanceof ScopedDynamicSymbol )
-    {
-      _globalScope = sym.getScope();
-    }
   }
 
   public ReducedSymbol( ISymbol arg ) {
@@ -64,7 +58,6 @@ public class ReducedSymbol implements IReducedSymbol {
     _modifiers = arg.getModifiers();
     _annotations = arg.getAnnotations();
     _symClass = arg.getClass();
-    _globalScope = arg.getScope();
     _bValueBoxed = arg.isValueBoxed();
     _iIndex = arg.getIndex();
   }
@@ -72,11 +65,6 @@ public class ReducedSymbol implements IReducedSymbol {
   public Class<?> getSymbolClass()
   {
     return _symClass;
-  }
-
-  @Override
-  public GlobalScope getScope() {
-    return _globalScope;
   }
 
   @Override
@@ -178,7 +166,6 @@ public class ReducedSymbol implements IReducedSymbol {
     if (_modifiers != that._modifiers) return false;
     if (_displayName != null ? !_displayName.equals(that._displayName) : that._displayName != null) return false;
     if (_fullDescription != null ? !_fullDescription.equals(that._fullDescription) : that._fullDescription != null) return false;
-    if (_globalScope != that._globalScope) return false;
     if (_name != null ? !_name.equals(that._name) : that._name != null) return false;
     if (_scriptPartId != null ? !_scriptPartId.equals(that._scriptPartId) : that._scriptPartId != null) return false;
     if (_symClass != null ? !_symClass.equals(that._symClass) : that._symClass != null) return false;

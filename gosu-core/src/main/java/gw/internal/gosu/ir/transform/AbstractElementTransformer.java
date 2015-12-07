@@ -31,7 +31,6 @@ import gw.internal.gosu.parser.IGosuTemplateInternal;
 import gw.internal.gosu.parser.MetaType;
 import gw.internal.gosu.parser.NewIntrospector;
 import gw.internal.gosu.parser.ReducedDynamicFunctionSymbol;
-import gw.internal.gosu.parser.ScopedDynamicSymbol;
 import gw.internal.gosu.parser.Symbol;
 import gw.internal.gosu.parser.TypeLord;
 import gw.internal.gosu.parser.TypeVariableArrayType;
@@ -79,7 +78,6 @@ import gw.lang.ir.statement.IRNewStatement;
 import gw.lang.ir.statement.IRReturnStatement;
 import gw.lang.ir.statement.IRStatementList;
 import gw.lang.ir.statement.IRThrowStatement;
-import gw.lang.parser.GlobalScope;
 import gw.lang.parser.IAttributeSource;
 import gw.lang.parser.IBlockClass;
 import gw.lang.parser.ICapturedSymbol;
@@ -2884,70 +2882,6 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
       }
     }
     return buildInitializedArray(IRTypeConstants.OBJECT(), values);
-  }
-
-  protected IRExpression getScopedSymbolValue( IReducedSymbol symbol )
-  {
-    return unboxValueToType(symbol.getType(),
-        callMethod(IAttributeSource.class, "getAttribute", new Class[]{String.class},
-            pushAttributeSource( symbol),
-            Collections.singletonList(pushConstant(((ScopedDynamicSymbol) symbol).getAttributeName()))));
-  }
-
-  protected IRExpression getScopedSymbolValue( IGosuVarPropertyInfo pi )
-  {
-    return unboxValueToType(pi.getScopedSymbolType(),
-        callMethod(IAttributeSource.class, "getAttribute", new Class[]{String.class},
-            pushAttributeSource(pi),
-            Collections.singletonList(pushConstant(pi.getSymbolAttributeName()))));
-  }
-
-  protected IRStatement setScopedSymbolValue( ISymbol symbol, IExpression rhsValue )
-  {
-    IRExpression methodCall = callMethod( IAttributeSource.class, "setAttribute", new Class[]{String.class, Object.class},
-            pushAttributeSource( (ScopedDynamicSymbol)symbol ),
-            exprList(
-                    pushConstant( ((ScopedDynamicSymbol)symbol).getAttributeName() ),
-                    boxValue( rhsValue.getType(), ExpressionTransformer.compile( rhsValue, _cc() ) ) ) );
-    return new IRMethodCallStatement( methodCall );
-  }
-
-  protected IRStatement setScopedSymbolValue( IGosuVarPropertyInfo pi, IExpression rhsValue )
-  {
-    IRExpression methodCall = callMethod( IAttributeSource.class, "setAttribute", new Class[]{String.class, Object.class},
-            pushAttributeSource( pi ),
-            exprList(
-                    pushConstant( pi.getSymbolAttributeName() ),
-                    boxValue( rhsValue.getType(), ExpressionTransformer.compile( rhsValue, _cc() ) ) ) );
-    return new IRMethodCallStatement( methodCall );
-  }
-
-  private IRExpression pushAttributeSource(IGosuVarPropertyInfo pi) {
-    String globalScope = pi.getSymbolScopeString();
-    return callMethod( IEntityAccess.class, "getAttributeSource", new Class[]{GlobalScope.class},
-            callStaticMethod( CommonServices.class, "getEntityAccess", new Class[0],
-                    Collections.<IRExpression>emptyList() ),
-            Collections.singletonList( callStaticMethod( GlobalScope.class, "getScope", new Class[]{String.class},
-                    Collections.singletonList( pushConstant( globalScope ) ) ) ) );
-  }
-
-  protected IRExpression pushAttributeSource( IReducedSymbol scopedSymbol )
-  {
-    GlobalScope globalScope = scopedSymbol.getScope();
-    return callMethod( IEntityAccess.class, "getAttributeSource", new Class[]{GlobalScope.class},
-            callStaticMethod( CommonServices.class, "getEntityAccess", new Class[0],
-                    Collections.<IRExpression>emptyList() ),
-            Collections.singletonList( callStaticMethod( GlobalScope.class, "getScope", new Class[]{String.class},
-                    Collections.singletonList( pushConstant( globalScope.toString() ) ) ) ) );
-  }
-
-  protected boolean isScopedField( IPropertyInfo pi )
-  {
-    if( pi instanceof PropertyInfoDelegate )
-    {
-      pi = ((PropertyInfoDelegate) pi).getDelegatePI();
-    }
-    return pi instanceof IGosuVarPropertyInfo && ((IGosuVarPropertyInfo)pi).isScopedField();
   }
 
   protected IGosuVarPropertyInfo getActualPropertyInfo(IPropertyInfo pi)

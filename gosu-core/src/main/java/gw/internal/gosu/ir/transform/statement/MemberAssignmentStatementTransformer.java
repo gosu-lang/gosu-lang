@@ -102,11 +102,7 @@ public class MemberAssignmentStatementTransformer extends AbstractStatementTrans
       tempRootAssn = null;
     }
 
-    if( isScopedField( pi ) ) {
-      IGosuVarPropertyInfo propertyInfo = getActualPropertyInfo( pi );
-      ret =  setScopedSymbolValue( propertyInfo, _stmt().getExpression() );
-    }
-    else if( irProperty.isBytecodeProperty() ) {
+    if( irProperty.isBytecodeProperty() ) {
       IRExpression rhs = compileRhs( irProperty);
       if( irProperty.isField() ) {
         ret = setField( irProperty, root, rhs );
@@ -223,23 +219,18 @@ public class MemberAssignmentStatementTransformer extends AbstractStatementTrans
     }
     IType rootType = pi.getOwnersType();
 
-    if( isScopedField( pi ) ) {
-      IGosuVarPropertyInfo propertyInfo = getActualPropertyInfo( pi );
-      return setScopedSymbolValue( propertyInfo, _stmt().getExpression() );
-    }
-    else {
-      if( irProperty.isBytecodeProperty() ) {
-        IRExpression rhs = compileRhs( irProperty );
-        if( irProperty.isField() ) {
-          return setStaticField( rootType, getField( pi ), propertyType, AccessibilityUtil.forFeatureInfo( pi ), rhs );
-        }
-        else {
-          return buildMethodCall( callMethod( irProperty.getSetterMethod(), null, exprList( rhs ) ) );
-        }
+
+    if( irProperty.isBytecodeProperty() ) {
+      IRExpression rhs = compileRhs( irProperty );
+      if( irProperty.isField() ) {
+        return setStaticField( rootType, getField( pi ), propertyType, AccessibilityUtil.forFeatureInfo( pi ), rhs );
       }
       else {
-        return reflectivelySetProperty( pi.getOwnersType(), pushConstant( pi.getDisplayName() ), nullLiteral(), false );
+        return buildMethodCall( callMethod( irProperty.getSetterMethod(), null, exprList( rhs ) ) );
       }
+    }
+    else {
+      return reflectivelySetProperty( pi.getOwnersType(), pushConstant( pi.getDisplayName() ), nullLiteral(), false );
     }
   }
 
