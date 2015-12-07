@@ -7,7 +7,9 @@ package gw.internal.gosu.compiler.protocols.gosuclass;
 import gw.fs.IFile;
 import gw.internal.gosu.compiler.GosuClassLoader;
 import gw.internal.gosu.compiler.SingleServingGosuClassLoader;
+import gw.internal.gosu.parser.TypeLord;
 import gw.lang.reflect.IHasJavaClass;
+import gw.lang.reflect.IInjectableClassLoader;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.gs.GosuClassPathThing;
@@ -118,8 +120,10 @@ public class GosuClassesUrlConnection extends URLConnection {
       if( type instanceof ICompilableType ) {
         if( !isInSingleServingLoader( type.getEnclosingType() ) ) {
           if( !GosuClassPathThing.canWrapChain() ) {
-            _type = (ICompilableType)type;
-            _loader = loader;
+            if( !hasClassFileOnDiskInParentLoaderPath( loader, type ) ) {
+              _type = (ICompilableType)type;
+              _loader = loader;
+            }
           }
           else {
             handleChainedLoading( loader, (ICompilableType)type );
@@ -129,6 +133,24 @@ public class GosuClassesUrlConnection extends URLConnection {
     }
     finally {
       TypeSystem.unlock();
+    }
+  }
+
+  private boolean hasClassFileOnDiskInParentLoaderPath( ClassLoader loader, IType type ) {
+    if( !(loader instanceof IInjectableClassLoader) ) {
+      return false;
+    }
+    ClassLoader parent = loader.getParent();
+    while( parent instanceof IInjectableClassLoader ) {
+      parent = parent.getParent();
+    }
+    IType outer = TypeLord.getOuterMostEnclosingClass( type );
+    try {
+      parent.loadClass( outer.getName() );
+      return true;
+    }
+    catch( ClassNotFoundException e ) {
+      return false;
     }
   }
 
