@@ -21,6 +21,7 @@ general:
     only:
       - ant
       - spec
+      - tooling-fixes
   artifacts:
     - "gosu-test/target/site" # preserve the generated HTML test reports
 
