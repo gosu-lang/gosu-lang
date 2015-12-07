@@ -5,7 +5,6 @@
 package gw.plugin.ij.lang.psi.impl;
 
 import gw.internal.gosu.parser.IGosuAnnotation;
-import gw.lang.parser.GlobalScope;
 import gw.lang.parser.ICapturedSymbol;
 import gw.lang.parser.IExpression;
 import gw.lang.parser.IInjectedSymbol;
@@ -202,10 +201,5 @@ public class InjectedSymbol implements ISymbol, IInjectedSymbol {
   @Override
   public Class<?> getSymbolClass() {
     return symbol.getSymbolClass();
-  }
-
-  @Override
-  public GlobalScope getScope() {
-    return symbol.getScope();
   }
 }
