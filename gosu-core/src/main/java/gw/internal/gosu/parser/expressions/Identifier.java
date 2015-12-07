@@ -10,7 +10,6 @@ import gw.internal.gosu.parser.DynamicSymbol;
 import gw.internal.gosu.parser.Expression;
 import gw.internal.gosu.parser.IGosuClassInternal;
 import gw.internal.gosu.parser.Symbol;
-import gw.internal.gosu.parser.ScopedDynamicSymbol;
 import gw.internal.gosu.parser.java.classinfo.CompileTimeExpressionParser;
 import gw.internal.gosu.parser.statements.VarStatement;
 
@@ -157,8 +156,7 @@ public class Identifier extends Expression implements IIdentifierExpression
     while (symbol instanceof CapturedSymbol) {
       symbol =  ((CapturedSymbol)symbol).getReferredSymbol();
     }
-    return !(symbol instanceof ScopedDynamicSymbol) &&
-           !(symbol instanceof DynamicSymbol) &&
+    return !(symbol instanceof DynamicSymbol) &&
            !(symbol instanceof CapturedSymbol) &&
            symbol.getIndex() >= 0;
   }

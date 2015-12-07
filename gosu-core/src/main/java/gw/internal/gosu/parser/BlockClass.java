@@ -13,7 +13,6 @@ import gw.internal.gosu.parser.statements.ReturnStatement;
 import gw.lang.reflect.java.JavaTypes;
 import gw.internal.gosu.parser.statements.VarStatement;
 import gw.lang.function.IBlock;
-import gw.lang.parser.GlobalScope;
 import gw.lang.parser.ICapturedSymbol;
 import gw.lang.parser.IParsedElement;
 import gw.lang.parser.IStatement;

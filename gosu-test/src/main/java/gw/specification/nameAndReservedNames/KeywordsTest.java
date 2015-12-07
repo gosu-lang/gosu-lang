@@ -13,7 +13,6 @@ public class KeywordsTest extends TestClass {
     HashMap<String, Boolean> kw = new HashMap<String, Boolean>();
     kw.put("abstract", true);
     kw.put("and", false);
-    kw.put("application", true);
     kw.put("as", true);
     kw.put("assert", false);
     kw.put("block", true);
@@ -32,7 +31,6 @@ public class KeywordsTest extends TestClass {
     kw.put("enhancement", true);
     kw.put("enum", false);
     kw.put("eval", false);
-    kw.put("execution", true);
     kw.put("extends", false);
     kw.put("false", true);
     kw.put("final", true);
@@ -68,9 +66,7 @@ public class KeywordsTest extends TestClass {
     kw.put("public", true);
     kw.put("readonly", true);
     kw.put("represents", false);
-    kw.put("request", true);
     kw.put("return", false);
-    kw.put("session", true);
     kw.put("set", true);
     kw.put("startswith", true);
     kw.put("static", true);

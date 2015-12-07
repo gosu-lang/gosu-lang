@@ -1,0 +1,1 @@
+This is an errant pogo; the compiler should totally ignore this invalid file.

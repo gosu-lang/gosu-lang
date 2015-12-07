@@ -4,7 +4,6 @@
 
 package gw.internal.gosu.ir.transform.statement;
 
-import gw.internal.gosu.parser.ScopedDynamicSymbol;
 import gw.internal.gosu.ir.transform.ExpressionTransformer;
 import gw.internal.gosu.ir.transform.TopLevelTransformationContext;
 import gw.internal.gosu.ir.transform.util.AccessibilityUtil;
@@ -40,33 +39,17 @@ public class FieldInitializerTransformer extends AbstractStatementTransformer<IV
     ISymbol symbol = _stmt().getSymbol();
     if( asExp != null )
     {
-      if( symbol instanceof ScopedDynamicSymbol )
+
+      if( _stmt().isStatic() )
       {
-        ScopedDynamicSymbol dynamicSymbol = (ScopedDynamicSymbol)symbol;
-        IRExpression hasAttribute = callMethod( IAttributeSource.class, "hasAttribute", new Class[]{String.class},
-                pushAttributeSource( dynamicSymbol ),
-                exprList( pushConstant( dynamicSymbol.getAttributeName() ) ) );
-
-        IRExpression value = boxValue( asExp.getType(), ExpressionTransformer.compile( asExp, _cc() ) );
-        IRExpression setAttribute = callMethod( IAttributeSource.class, "setAttribute", new Class[]{String.class, Object.class},
-                pushAttributeSource( dynamicSymbol ),
-                exprList( pushConstant( dynamicSymbol.getAttributeName() ), value) );
-
-        return new IRIfStatement( new IRNotExpression( hasAttribute ), buildMethodCall( setAttribute ), null);
+        return setStaticField( getGosuClass(), symbol.getName(), getDescriptor( symbol.getType() ), AccessibilityUtil.forSymbol( symbol ),
+                ExpressionTransformer.compile( asExp, _cc() ) );
       }
       else
       {
-        if( _stmt().isStatic() )
-        {
-          return setStaticField( getGosuClass(), symbol.getName(), getDescriptor( symbol.getType() ), AccessibilityUtil.forSymbol( symbol ),
-                  ExpressionTransformer.compile( asExp, _cc() ) );
-        }
-        else
-        {
-          return setInstanceField( getGosuClass(), symbol.getName(), getDescriptor( symbol.getType() ), AccessibilityUtil.forSymbol( symbol ),
-                  pushThis(),
-                  ExpressionTransformer.compile( asExp, _cc() ) );
-        }
+        return setInstanceField( getGosuClass(), symbol.getName(), getDescriptor( symbol.getType() ), AccessibilityUtil.forSymbol( symbol ),
+                pushThis(),
+                ExpressionTransformer.compile( asExp, _cc() ) );
       }
     }
 

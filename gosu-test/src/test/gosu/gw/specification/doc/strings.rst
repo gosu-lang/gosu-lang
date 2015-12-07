@@ -9,7 +9,7 @@ Strings
 A ``string`` is an object of the predefined class String. It is immutable: once 
 created it cannot be changed. A string literal is a sequence of characters 
 within double quotes or single quotes: ``"Don't worry"``, ``'Torino'``, ``""``, 
-and so on. Internally, a character is stored as a number using the Unicode 
+and so on. Internally, a character is stored as a number using the Unicode
 character encoding, whose character codes 0–127 coincide with the old ASCII 
 character encoding. String literals and character literals may use character 
 *escape sequences*: 
@@ -36,6 +36,7 @@ Escape Code    Meaning
 A character escape sequence represents a single character. Since the letter A 
 has code 65 (decimal), which is written 101 in octal and 0041 in hexadecimal, 
 the string literal ``"A\101\u0041"`` is the same as ``"AAA"``.
+A string can be split into multiple lines using ``\`` at the end of each line.
 
 .. productionlist:: string
     StringLiteral : """ {`EscapeSequence` | any_character} """ | "'" {`EscapeSequence` | any_character} "'" .

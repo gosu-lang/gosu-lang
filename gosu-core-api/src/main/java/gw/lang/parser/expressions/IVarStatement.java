@@ -4,7 +4,6 @@
 
 package gw.lang.parser.expressions;
 
-import gw.lang.parser.GlobalScope;
 import gw.lang.parser.IExpression;
 import gw.lang.parser.IHasType;
 import gw.lang.parser.IParsedElementWithAtLeastOneDeclaration;
@@ -21,8 +20,6 @@ public interface IVarStatement extends IStatement, IParsedElementWithAtLeastOneD
   ISymbol getSymbol();
 
   String getPropertyName();
-
-  GlobalScope getScope();
 
   ITypeLiteralExpression getTypeLiteral();
 

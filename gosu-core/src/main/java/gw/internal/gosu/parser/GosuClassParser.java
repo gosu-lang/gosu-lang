@@ -31,7 +31,6 @@ import gw.internal.gosu.parser.statements.VarInitializationVerifier;
 import gw.internal.gosu.parser.statements.VarStatement;
 import gw.lang.annotation.UsageTarget;
 import gw.lang.ir.IRType;
-import gw.lang.parser.GlobalScope;
 import gw.lang.parser.GosuParserTypes;
 import gw.lang.parser.IBlockClass;
 import gw.lang.parser.IDynamicFunctionSymbol;
@@ -1105,8 +1104,6 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
     }
 
     IType type = getGosuClass();
-
-    varStmt.setScope( GlobalScope.EXECUTION );
 
     AbstractDynamicSymbol symbol = new DynamicSymbol( getGosuClass(), getSymbolTable(), strIdentifier, type, null );
     modifiers.addAll( symbol.getModifierInfo() );
@@ -3163,33 +3160,6 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
     checkForEnumConflict( varStmt, strIdentifier );
 
     boolean bStatic = Modifier.isStatic( modifiers.getModifiers() );
-    GlobalScope scope;
-    if( match( null, Keyword.KW_application ) )
-    {
-      // NOTE:  For class parsing APPLICATION == static
-      bStatic = true;
-      scope = GlobalScope.EXECUTION;
-      verifyOrWarn( varStmt, false, true, Res.MSG_APPLICATION_MODIFIER_HAS_BEEN_DEPRECATED );
-    }
-    else if( match( null, Keyword.KW_session ) )
-    {
-      bStatic = true;
-      scope = GlobalScope.SESSION;
-      verifyOrWarn( varStmt, false, true, Res.MSG_SESSION_MODIFIER_HAS_BEEN_DEPRECATED );
-    }
-    else if( match( null, Keyword.KW_request ) )
-    {
-      bStatic = true;
-      scope = GlobalScope.REQUEST;
-      verifyOrWarn( varStmt, false, true, Res.MSG_REQUEST_MODIFIER_HAS_BEEN_DEPRECATED );
-    }
-    else
-    {
-      // execution keyword may be there
-      boolean hasExecutionKeyword = match( null, Keyword.KW_execution );
-      scope = GlobalScope.EXECUTION;
-      verifyOrWarn( varStmt, !hasExecutionKeyword, true, Res.MSG_EXECUTION_MODIFIER_HAS_BEEN_DEPRECATED );
-    }
 
     TypeLiteral typeLiteral = null;
     if( match( null, ":", SourceCodeTokenizer.TT_OPERATOR ) )
@@ -3217,8 +3187,6 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
     {
       type = GosuParserTypes.NULL_TYPE();
     }
-
-    varStmt.setScope( scope );
 
     if( bStatic )
     {
@@ -3248,15 +3216,7 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
       dpsVarProperty.addMemberSymbols( getGosuClass() );
     }
 
-    AbstractDynamicSymbol symbol;
-    if( varStmt.getScope() == GlobalScope.EXECUTION )
-    {
-      symbol = new DynamicSymbol( getGosuClass(), getSymbolTable(), strIdentifier, type, null );
-    }
-    else
-    {
-      symbol = new ScopedDynamicSymbol( getSymbolTable(), strIdentifier, getGosuClass().getName(), type, varStmt.getScope() );
-    }
+    AbstractDynamicSymbol symbol = new DynamicSymbol( getGosuClass(), getSymbolTable(), strIdentifier, type, null );
     modifiers.addAll( symbol.getModifierInfo() );
     if( varStmt.isPrivate() )
     {
@@ -3310,8 +3270,6 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
     String strIdentifier = T._strValue == null ? "" : T._strValue;
     verify( delegateStmt, getSymbolTable().getSymbol( strIdentifier ) == null, Res.MSG_VARIABLE_ALREADY_DEFINED, strIdentifier );
 
-    GlobalScope scope = GlobalScope.EXECUTION;
-
     TypeLiteral typeLiteral = null;
     if( match( null, ":", SourceCodeTokenizer.TT_OPERATOR ) )
     {
@@ -3347,8 +3305,6 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
     {
       type = GosuParserTypes.NULL_TYPE();
     }
-
-    delegateStmt.setScope( scope );
 
     delegateStmt.setModifierInfo( modifiers );
 
@@ -4005,7 +3961,6 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
       dup.setSymbol( varStmt.getSymbol() );
       dup.setModifierInfo( varStmt.getModifierInfo() );
       dup.setParent( varStmt.getParent() );
-      dup.setScope( varStmt.getScope() );
       varStmt = dup;
     }
 

@@ -483,14 +483,12 @@ The ``eval`` Statement
 
 An ``eval`` statement has the form:
 
-    ``eval`` ``(`` *gosu-source* ``)``
+    ``eval`` ``(`` *expression* ``)``
     
-Where *gosu-source* is any expression of type Object.
+Where *expression* is any expression of type Object.
 
-After converting *gosu-source* to String, ``eval`` will execute it at runtime 
-and return the result of the evaluation. The statements or expressions in 
-*gosu-source* can access all the variables available in the ``eval``'s context.
-
+The ``eval`` statement converts the result of *expression* to a String,
+and dynamically evaluates it.
 
 The ``uses`` statement
 ======================

@@ -43,6 +43,11 @@ class StringTest extends BaseVerifyErrantTest {
 
   }
 
+  function testMultilineString() {
+    var a = "A \
+             B"
+  }
+
   function testEscapes() {
     var escapes = "\b\t\n\f\r\v\a\$\<\"\'\\".toCharArray()
     var hex : int[] = {0x08, 0x09, 0x0A, 0x0C, 0x0D, 0x0B, 0x07, '$', '<', '"', 0x27, 0x5C }

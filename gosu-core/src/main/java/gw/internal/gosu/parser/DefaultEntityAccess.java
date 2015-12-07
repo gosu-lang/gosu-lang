@@ -7,7 +7,6 @@ package gw.internal.gosu.parser;
 import gw.config.BaseService;
 import gw.config.CommonServices;
 import gw.fs.IDirectory;
-import gw.lang.parser.GlobalScope;
 import gw.lang.parser.IAttributeSource;
 import gw.lang.parser.IParseIssue;
 import gw.lang.parser.ITypeUsesMap;
@@ -233,105 +232,6 @@ public class DefaultEntityAccess extends BaseService implements IEntityAccess
   public ClassLoader getPluginClassLoader()
   {
     return DefaultEntityAccess.class.getClassLoader();
-  }
-
-  @Override
-  public IAttributeSource getAttributeSource( GlobalScope scope )
-  {
-    IAttributeSource source = (IAttributeSource)_scopes.get( scope );
-    if( source == null )
-    {
-      source = new ThreadLocalAttributeSource( scope );
-      _scopes.put( scope, source );
-    }
-
-    return source;
-  }
-
-  public void clearAttributeScopes()
-  {
-    _scopes.clear();
-  }
-
-  private static class ThreadLocalAttributeSource extends AbstractTypeSystemListener implements IAttributeSource
-  {
-    private GlobalScope _scope;
-
-    private ThreadLocal _values = new ThreadLocal();
-
-    public ThreadLocalAttributeSource( GlobalScope scope )
-    {
-      _scope = scope;
-      TypeLoaderAccess.instance().addTypeLoaderListenerAsWeakRef( this );
-    }
-
-    public GlobalScope getScope()
-    {
-      return _scope;
-    }
-
-    @Override
-    public boolean hasAttribute( String strAttr )
-    {
-      Map map = getMap();
-      return map.containsKey( strAttr );
-    }
-
-    @Override
-    public Object getAttribute( String strAttr )
-    {
-      Map map = getMap();
-      return map.get(strAttr);
-    }
-
-    @Override
-    public void setAttribute( String strAttr, Object value )
-    {
-      Map map = getMap();
-      map.put( strAttr, value );
-    }
-
-    @Override
-    public boolean equals( Object o )
-    {
-      if( this == o )
-      {
-        return true;
-      }
-      if( o == null || getClass() != o.getClass() )
-      {
-        return false;
-      }
-
-      final ThreadLocalAttributeSource that = (ThreadLocalAttributeSource)o;
-
-      return _scope.equals( that._scope );
-    }
-
-    @Override
-    public int hashCode()
-    {
-      return _scope.hashCode();
-    }
-
-    private Map getMap()
-    {
-      if( _values.get() == null )
-      {
-        _values.set( new HashMap() );
-      }
-      return (Map)_values.get();
-    }
-
-    @Override
-    public void refreshedTypes(RefreshRequest request)
-    {
-    }
-
-    @Override
-    public void refreshed()
-    {
-    }
   }
 
   @Override
