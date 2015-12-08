@@ -7,6 +7,7 @@ package gw.internal.gosu.compiler;
 import gw.config.CommonServices;
 import gw.internal.gosu.ir.TransformingCompiler;
 import gw.internal.gosu.ir.transform.AbstractElementTransformer;
+import gw.internal.gosu.parser.ExecutionEnvironment;
 import gw.internal.gosu.parser.ICompilableTypeInternal;
 import gw.internal.gosu.parser.IGosuClassInternal;
 import gw.internal.gosu.parser.IGosuProgramInternal;
@@ -28,45 +29,16 @@ import gw.lang.reflect.java.IJavaType;
 import gw.lang.reflect.java.JavaTypes;
 import gw.lang.reflect.module.TypeSystemLockHelper;
 import gw.util.GosuExceptionUtil;
-import gw.util.concurrent.LocklessLazyVar;
 
 import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.lang.reflect.Method;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
 public class GosuClassLoader implements IGosuClassLoader
 {
-  public static final LocklessLazyVar<List<String>> DISCRETE_NAMESPACES =
-    new LocklessLazyVar<List<String>>()
-    {
-      @Override
-      protected List<String> init()
-      {
-        String discreteNs = System.getProperty( "unloadable.packages" );
-        if( discreteNs == null || discreteNs.isEmpty() )
-        {
-          return Collections.emptyList();
-        }
-        List<String> namespaces = Arrays.asList( discreteNs.split( "," ) );
-        for( int i = 0; i < namespaces.size(); i++ )
-        {
-          for( int j = i+1; j < namespaces.size(); i++ )
-          {
-            if( namespaces.get( i ).startsWith( namespaces.get( j ) ) ||
-                namespaces.get( j ).startsWith( namespaces.get( i ) ) )
-            {
-              throw new IllegalStateException( "Unloadable packages overlap: " + namespaces.get( i ) + ", " + namespaces.get( j ) );
-            }
-          }
-        }
-        return namespaces;
-      }
-    };
-
   private DiscreteLoaderCache _discreteLoaders = new DiscreteLoaderCache();
   private ClassLoader _loader;
 
@@ -214,6 +186,7 @@ public class GosuClassLoader implements IGosuClassLoader
   {
     return _discreteLoaders.getLoader( namespace );
   }
+  @SuppressWarnings("UnusedDeclaration")
   public boolean isLoaderUnloaded( String namespace )
   {
     return _discreteLoaders.isLoaderUnloaded( namespace );
@@ -468,7 +441,7 @@ public class GosuClassLoader implements IGosuClassLoader
 
     public SingleServingGosuClassLoader getLoader( String key )
     {
-      if( DISCRETE_NAMESPACES.get().isEmpty() )
+      if( getDiscretePackages().isEmpty() )
       {
         return null;
       }
@@ -477,36 +450,43 @@ public class GosuClassLoader implements IGosuClassLoader
 
     public boolean isLoaderUnloaded( String key )
     {
-      if( DISCRETE_NAMESPACES.get().isEmpty() )
+      if( getDiscretePackages().isEmpty() )
       {
         return true;
       }
       return _delegate.get( key ).get() == null;
     }
 
+    private List<String> getDiscretePackages()
+    {
+      return Arrays.asList( ExecutionEnvironment.instance().getDiscretePackages() );
+    }
+
     private class DelegateCache extends TypeSystemAwareCache<String, WeakReference<SingleServingGosuClassLoader>>
     {
       public DelegateCache()
       {
-        super( "Discrete Loaders", 100, new MissHandler<String, WeakReference<SingleServingGosuClassLoader>>()
-        {
-          @Override
-          public WeakReference<SingleServingGosuClassLoader> load( String key )
-          {
-            Optional<String> match = GosuClassLoader.DISCRETE_NAMESPACES.get().stream().filter( key::startsWith ).findFirst();
-            if( !match.isPresent() )
-            {
-              return new WeakReference<>( SingleServingGosuClassLoader.NULL_SENTINAL );
-            }
+        //noinspection Convert2Lambda
+        super( "Discrete Loaders", 100,
+               new MissHandler<String, WeakReference<SingleServingGosuClassLoader>>()
+               {
+                  @Override
+                  public WeakReference<SingleServingGosuClassLoader> load( String key )
+                  {
+                    Optional<String> match = getDiscretePackages().stream().filter( key::startsWith ).findFirst();
+                    if( !match.isPresent() )
+                    {
+                      return new WeakReference<>( SingleServingGosuClassLoader.NULL_SENTINAL );
+                    }
 
-            String unloadableNamespace = match.get();
-            if( key.equals( unloadableNamespace ) )
-            {
-              return new WeakReference<>( null );
-            }
-            return _delegate.get( unloadableNamespace );
-          }
-        } );
+                    String unloadableNamespace = match.get();
+                    if( key.equals( unloadableNamespace ) )
+                    {
+                      return new WeakReference<>( null );
+                    }
+                    return _delegate.get( unloadableNamespace );
+                  }
+                } );
       }
 
       private SingleServingGosuClassLoader getLoader( String key )
@@ -520,7 +500,7 @@ public class GosuClassLoader implements IGosuClassLoader
 
           if( ref.get() == null )
           {
-            String unloadableNamespace = DISCRETE_NAMESPACES.get().stream().filter( key::startsWith ).findFirst().get();
+            String unloadableNamespace = getDiscretePackages().stream().filter( key::startsWith ).findFirst().get();
             put( unloadableNamespace, ref = new WeakReference<>( loader[0] = new SingleServingGosuClassLoader( GosuClassLoader.this ) ) );
           }
           return ref.get();

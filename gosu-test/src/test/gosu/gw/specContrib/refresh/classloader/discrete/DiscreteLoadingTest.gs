@@ -24,9 +24,8 @@ public class DiscreteLoadingTest extends BaseVerifyErrantTest {
   }
 
   function testDiscrete() : void {
-    var oldValue = System.getProperty( "unloadable.packages", "" )
-    System.setProperty( "unloadable.packages", "gw.specContrib.refresh.classloader.discrete.temp" )
-    GosuClassLoader.DISCRETE_NAMESPACES.clear();
+    var oldValue = gw.internal.gosu.parser.ExecutionEnvironment.instance().getDiscretePackages()
+    gw.internal.gosu.parser.ExecutionEnvironment.instance().setDiscretePackages( {"gw.specContrib.refresh.classloader.discrete.temp"} )
     try {
       var idGarbage1Class = loadAndRunTemp()
       assertNotNull( idGarbage1Class )
@@ -38,8 +37,7 @@ public class DiscreteLoadingTest extends BaseVerifyErrantTest {
       assertTrue( idGarbage1Class != loadAndRunTemp() )
     }
     finally {
-      System.setProperty( "unloadable.packages", oldValue )
-      GosuClassLoader.DISCRETE_NAMESPACES.clear();
+      gw.internal.gosu.parser.ExecutionEnvironment.instance().setDiscretePackages( oldValue )
     }
   }
 

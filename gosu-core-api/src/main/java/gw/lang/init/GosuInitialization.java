@@ -18,7 +18,7 @@ import java.util.WeakHashMap;
 @UnstableAPI
 public class GosuInitialization
 {
-  private static final Map<IExecutionEnvironment, GosuInitialization> INSTANCES = new WeakHashMap<IExecutionEnvironment, GosuInitialization>();
+  private static final Map<IExecutionEnvironment, GosuInitialization> INSTANCES = new WeakHashMap<>();
 
   private IExecutionEnvironment _execEnv;
   private boolean _initialized;
@@ -51,20 +51,14 @@ public class GosuInitialization
       return;
     }
     _initialized = false;
-    try {
-      Class cls = Class.forName("gw.internal.gosu.init.InternalGosuInit");
-      Method m = cls.getMethod("uninitializeRuntime", IExecutionEnvironment.class );
-      m.invoke( null, _execEnv );
-    } catch (Exception e) {
-      throw new RuntimeException(e);
-    }
+    getGosuInitialization().uninitializeRuntime( _execEnv );
   }
 
-  public void initializeRuntime( List<GosuPathEntry> pathEntries ) {
+  public void initializeRuntime( List<GosuPathEntry> pathEntries, String... discretePackages ) {
     if (_initialized) {
       throw new IllegalStateException("Illegal attempt to re-initialize Gosu");
     }
-    callMethod("initializeRuntime", pathEntries);
+    getGosuInitialization().initializeRuntime( _execEnv, pathEntries, discretePackages );
     _initialized = true;
   }
 
@@ -72,13 +66,7 @@ public class GosuInitialization
     if (_initialized) {
       throw new IllegalStateException("Illegal attempt to re-initialize Gosu");
     }
-    try {
-      Class cls = Class.forName("gw.internal.gosu.init.InternalGosuInit");
-      Method m = cls.getMethod("initializeCompiler", IExecutionEnvironment.class, GosucModule.class);
-      m.invoke(null, _execEnv, module);
-    } catch (Exception e) {
-      throw GosuExceptionUtil.forceThrow( e );
-    }
+    getGosuInitialization().initializeCompiler( _execEnv, module );
     _initialized = true;
   }
 
@@ -86,22 +74,16 @@ public class GosuInitialization
     if (!_initialized) {
       throw new IllegalStateException("Illegal attempt to uninitialize Gosu");
     }
-    try {
-      Class cls = Class.forName("gw.internal.gosu.init.InternalGosuInit");
-      Method m = cls.getMethod("uninitializeCompiler", IExecutionEnvironment.class );
-      m.invoke(null, _execEnv );
-    } catch (Exception e) {
-      throw new RuntimeException(e);
-    }
+    getGosuInitialization().uninitializeCompiler( _execEnv );
     _initialized = false;
   }
 
-  public void reinitializeRuntime( List<GosuPathEntry> pathEntries ) {
+  public void reinitializeRuntime( List<GosuPathEntry> pathEntries, String... discretePackages ) {
     if (_initialized) {
       uninitializeRuntime();
-      callMethod("reinitializeRuntime", pathEntries);
+      getGosuInitialization().reinitializeRuntime( _execEnv, pathEntries, discretePackages );
     } else {
-      callMethod("initializeRuntime", pathEntries);
+      getGosuInitialization().initializeRuntime( _execEnv, pathEntries, discretePackages );
     }
     _initialized = true;
   }
@@ -112,13 +94,7 @@ public class GosuInitialization
     if (_initialized) {
       throw new IllegalStateException("Illegal attempt to initialize Gosu");
     }
-    try {
-      Class cls = Class.forName("gw.internal.gosu.init.InternalGosuInit");
-      Method m = cls.getMethod("initializeMultipleModules", IExecutionEnvironment.class, List.class);
-      m.invoke(null, _execEnv, modules);
-    } catch (Exception e) {
-      throw new RuntimeException(e);
-    }
+    getGosuInitialization().initializeMultipleModules( _execEnv, modules );
     _initialized = true;
   }
 
@@ -126,24 +102,19 @@ public class GosuInitialization
     if (!_initialized) {
       throw new IllegalStateException("Illegal attempt to uninitialize Gosu");
     }
-    try {
-      Class cls = Class.forName("gw.internal.gosu.init.InternalGosuInit");
-      Method m = cls.getMethod("uninitializeMultipleModules", IExecutionEnvironment.class );
-      m.invoke(null, _execEnv );
-    } catch (Exception e) {
-      throw new RuntimeException(e);
-    }
+    getGosuInitialization().uninitializeMultipleModules( _execEnv );
     _initialized = true;
   }
 
   // utilities
 
-  private void callMethod( String methodName, List<GosuPathEntry> pathEntries ) {
+  private IGosuInitialization getGosuInitialization() {
     try {
-      Class cls = Class.forName("gw.internal.gosu.init.InternalGosuInit");
-      Method m = cls.getMethod(methodName, IExecutionEnvironment.class, List.class);
-      m.invoke(null, _execEnv, pathEntries);
-    } catch (Exception e) {
+      Class<?> cls = Class.forName( "gw.internal.gosu.init.InternalGosuInit" );
+      Method m = cls.getMethod( "instance" );
+      return (IGosuInitialization)m.invoke( null );
+    }
+    catch( Exception e ) {
       throw GosuExceptionUtil.forceThrow( e );
     }
   }
