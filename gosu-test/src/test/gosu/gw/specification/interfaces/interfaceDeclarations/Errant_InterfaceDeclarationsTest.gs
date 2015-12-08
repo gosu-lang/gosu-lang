@@ -46,10 +46,6 @@ class Errant_InterfaceDeclarationsTest {
     var i : int = 8
   }
 
-  public interface I5 {
-    static private var i : int = 8
-  }
-
   protected interface I6 {
     var i : int = 8
     var j : int = (\ -> 3)()

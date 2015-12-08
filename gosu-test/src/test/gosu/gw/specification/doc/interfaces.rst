@@ -42,9 +42,9 @@ the form
 
     *field-desc-modifiers* ``var`` ``f`` `:` *type* ``=`` *initializer*
 
-where *field-desc-modifiers* is a list of ``static``, ``final``, ``private`` and 
-``public``. All the modifiers but ``private`` need not to be given explicitly, 
-as they are implicitly understood. 
+where *field-desc-modifiers* is a list of ``static``, ``final``, and
+``public``, none of which needs to be given explicitly, as all are implicitly
+understood.
 
 A *method-description* for method ``m`` must have the form
 
