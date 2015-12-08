@@ -94,7 +94,7 @@ public class SingleServingGosuClassLoader extends ClassLoader implements IGosuCl
   }
 
   private boolean shouldCache(ICompilableType gsClass) {
-    return !Gosu.GOSU_SCRATCHPAD_FQN.equals(gsClass.getName());
+    return gsClass != null && !gsClass.getName().startsWith(Gosu.GOSU_SCRATCHPAD_FQN);
   }
 
   private byte[] compileClass( ICompilableType type, boolean debug )
