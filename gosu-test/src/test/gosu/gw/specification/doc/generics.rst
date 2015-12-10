@@ -232,6 +232,65 @@ type arguments to an instance method in the current object, one mist explicitly
 prefix the method call with the current object reference. In any case, either 
 none or all type arguments must be given. 
 
+Variance of Type Parameters
+===========================
+
+A type parameter ``T`` of a generic class, or interface, or structure, or
+enhancement type may be declared covariant (``out``), or contravariant (``in``)
+or invariant (``in`` ``out``):
+
+    *interface-modifiers* ``interface`` ``I`` ``<`` *variance-modifier* ``T1``, ... ``>`` ...
+
+    *class-modifiers* ``class`` ``A`` ``<`` *variance-modifier* ``T1``, ... ``>`` ...
+
+    *structure-modifiers* ``structure`` ``S`` ``<`` *variance-modifier* ``T1``, ... ``>`` ...
+
+    *enhancement-modifiers* ``enhancement`` ``E`` ``<`` *variance-modifier* ``T1``, ... ``>`` ...
+
+Here a *variance-modifier* is ``out``, meaning *covariant*; or ``in``, meaning
+*contravariant*; or ``in`` ``out``, meaning *invariant*; or absent, meaning
+*contravariant*. To understand the effect of such declaration, assume that
+reference type ``C`` is a subtype of reference type ``B``.
+
+If ``I`` has a covariant type parameter ``out T``, then ``I<C>`` is a subtype of
+``I<B>``; intuitively, if an ``I<T>`` can be seen to produce or output ``T``
+objects, then a producer ``I<C>`` of ``C`` objects can be used wherever a
+producer ``I<B>`` of ``B`` objects is expected, because ``C`` is a subtype of
+``B``.
+
+Conversely, if ``I`` has a contravariant type parameter ``in T``, then ``I<B>``
+is a subtype of ``I<C>``; intuitively, if an ``I<T>`` can be seen to consume or
+input ``T`` objects, then a consumer ``I<B>`` of ``B`` objects can be used
+wherever a consumer ``I<C>`` of ``C`` objects is expected, because ``C`` is a
+subtype of ``B``.
+
+If ``I`` has an invariant type parameter in ``T`` then none of the above apply.
+
+There are restrictions on variance declarations: A type parameter ``T`` declared
+covariant ``I<out T>`` must not appear as an input type, and a type parameter
+declared contravariant ``I<in T>`` must not appear as an output type. These
+restrictions preserve soundness of subtyping ("a value of a subtype can always
+be used where a value of a supertype is expected") without having to introduce
+further run-time checks.
+
+Roughly speaking, the return type of a method is an output type, and its
+argument types are input types. A type parameter may be an input type and an
+output type at the same time; in that case the type parameter must be invariant
+(``in`` ``out``) in the declaration.
+
+* A type ``t`` is an *output type* in a method signature if it appears as the
+  return type ``t`` of the method signature, or as an input type in another type
+  expression that itself appears as an input type, or as an output type in
+  another type expression that itself appears as an output type in the
+  signature, or invariant in another type expression in the signature.
 
 
+* Similarly, a type ``t`` is an *input type* in a method signature if it appears
+  as a parameter type ``t`` of the method signature, or as an input type in a
+  another type expression that itself appears as an output type, or as an output
+  type in another type expression that itself appears as an input type; or
+  invariant in another type expression in the signature.
 
+A type is an input type (output type) in an interface (or class, or structure,
+or enhancement) if it is an input type (output type) of some method on the
+interface.
