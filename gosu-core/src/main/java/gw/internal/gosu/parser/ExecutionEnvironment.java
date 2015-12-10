@@ -549,6 +549,12 @@ public class ExecutionEnvironment implements IExecutionEnvironment
    * source of the classes.  This would enable the debuger to modify in memory the classes
    * during a remote debugging session.
    */
+
+  private int counter;
+  private synchronized int getCounter() {
+    return counter++;
+  }
+
   private void startSneakyDebugThread() {
     if( !BytecodeOptions.JDWP_ENABLED.get() ) {
       return;
@@ -619,10 +625,14 @@ public class ExecutionEnvironment implements IExecutionEnvironment
                 try
                 {
                   IGosuProgramParser programParser = GosuParserFactory.createProgramParser();
+                  String qualifiedName = ReloadClassesIndicator.getQualifiedName();
+                  if (qualifiedName == null) {
+                    qualifiedName = Gosu.GOSU_SCRATCHPAD_FQN + getCounter();
+                  }
                   ParserOptions options = new ParserOptions()
                           .withParser(scriptParser)
                           .asThrowawayProgram()
-                          .withFileContext(new ProgramFileContext(null, Gosu.GOSU_SCRATCHPAD_FQN));
+                          .withFileContext(new ProgramFileContext(null, qualifiedName));
                   IParseResult parseResult = programParser.parseExpressionOrProgram(strScript, scriptParser.getSymbolTable(), options);
                   Object result = parseResult.getProgram().evaluate( null );
                   if( result != null )

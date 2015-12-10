@@ -18,6 +18,7 @@
     <module>gosu-core</module>
     <module>gosu-core-api</module>
     <module>gosu-core-api-precompiled</module>
+    <module>gosu-process</module>
     <module>gosu-doc</module>
     <module>gosu-maven-compiler</module>
     <module>gosu-parent</module>
