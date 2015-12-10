@@ -122,6 +122,10 @@ public interface IGosuClass extends IFileBasedType, ICompilableType, IEnumType, 
   
   String getSource();
 
+  //## todo: REMOVE ME!!!
+  void setUsesQueryUsageSiteValidation( boolean b );
+  boolean getUsesQueryUsageSiteValidation();
+  
   /**
    * @return The 64 bit fingerprint of the text of the class as of the time of parsing.
    * If the class is not parsed yet this returns 0.

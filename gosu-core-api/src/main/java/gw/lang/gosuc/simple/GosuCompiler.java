@@ -58,7 +58,7 @@ public class GosuCompiler implements IGosuCompiler {
     if (isCompilable(type)) {
       try {
         if(type.isValid()) {
-          createOutputFiles((IGosuClass) type, driver);
+          createOutputFiles((IGosuClass) type, driver, skipGosuClass( type ));
         }
       } catch(CompilerDriverException ex) {
         driver.sendCompileIssue(_compilingSourceFile, ERROR, 0, 0, 0, ex.getMessage());
@@ -79,6 +79,10 @@ public class GosuCompiler implements IGosuCompiler {
     return false;
   }
 
+  private boolean skipGosuClass( IType type ) {
+    return type instanceof IGosuClass && ((IGosuClass) type).getUsesQueryUsageSiteValidation();
+  }
+
   private IType getType(File file) {
     IFile ifile = FileFactory.instance().getIFile(file);
     IModule module = TypeSystem.getGlobalModule();
@@ -94,7 +98,7 @@ public class GosuCompiler implements IGosuCompiler {
     return type instanceof IGosuClass && !type.getTypeInfo().hasAnnotation(doNotVerifyAnnotation);
   }
 
-  private void createOutputFiles(IGosuClass gsClass, ICompilerDriver driver) {
+  private void createOutputFiles(IGosuClass gsClass, ICompilerDriver driver, boolean skipClassFile ) {
     IDirectory moduleOutputDirectory = TypeSystem.getGlobalModule().getOutputPath();
     if (moduleOutputDirectory == null) {
       throw new RuntimeException("Can't make class file, no output path defined.");
@@ -109,13 +113,17 @@ public class GosuCompiler implements IGosuCompiler {
         child = new File(child, token);
         if (!child.exists()) {
           if (token.endsWith(".class")) {
-            createNewFile(child);
+            if( !skipClassFile ) {
+              createNewFile(child);
+            }
           } else {
             mkDir(child);
           }
         }
       }
-      populateClassFile(child, gsClass, driver);
+      if( !skipClassFile ) {
+        populateClassFile(child, gsClass, driver);
+      }
       maybeCopySourceFile(child.getParentFile(), gsClass, _compilingSourceFile, driver);
     } catch (Throwable e) {
       driver.sendCompileIssue(_compilingSourceFile, ERROR, 0, 0, 0, combine("Cannot create .class files.", getStackTrace(e)));
