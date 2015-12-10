@@ -228,7 +228,7 @@ public class CompileTimeAnnotationHandler
 
   private static Object evalAndHandleError( IAnnotationInfo ai, IParsedElement elt )
   {
-    if (!ExecutionMode.isRuntime()) {
+    if( ExecutionMode.isIDE() ) {
       return null;
     }
 
@@ -244,7 +244,7 @@ public class CompileTimeAnnotationHandler
     }
     catch( Exception e )
     {
-      elt.addParseException( Res.MSG_COMPILE_TIME_ANNOTATION_FAILED_TO_EXECUTE, e.getMessage() );
+      elt.addParseWarning( Res.MSG_COMPILE_TIME_ANNOTATION_FAILED_TO_EXECUTE, e.getMessage() );
       return null;
     }
   }
