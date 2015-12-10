@@ -115,7 +115,7 @@ public class GosuCompiler implements IGosuCompiler {
           }
         }
       }
-      createClassFile(child, gsClass, driver);
+      populateClassFile(child, gsClass, driver);
       maybeCopySourceFile(child.getParentFile(), gsClass, _compilingSourceFile, driver);
     } catch (Throwable e) {
       driver.sendCompileIssue(_compilingSourceFile, ERROR, 0, 0, 0, combine("Cannot create .class files.", getStackTrace(e)));
@@ -196,7 +196,7 @@ public class GosuCompiler implements IGosuCompiler {
     }
   }
 
-  private void createClassFile(File outputFile, IGosuClass gosuClass, ICompilerDriver driver) throws IOException {
+  private void populateClassFile( File outputFile, IGosuClass gosuClass, ICompilerDriver driver ) throws IOException {
     final byte[] bytes = TypeSystem.getGosuClassLoader().getBytes(gosuClass);
     try (OutputStream out = new FileOutputStream(outputFile)) {
       out.write(bytes);
@@ -208,7 +208,7 @@ public class GosuCompiler implements IGosuCompiler {
       if (innerClassFile.isFile()) {
         createNewFile(innerClassFile);
       }
-      createClassFile(innerClassFile, innerClass, driver);
+      populateClassFile(innerClassFile, innerClass, driver);
     }
   }
 
