@@ -281,7 +281,6 @@ public class Gosuc extends GosuMatchingTask {
     if(!getProjectName().isEmpty()) {
       startupMsg += " for " + getProjectName();
     }
-    startupMsg += "...";
     log.info(startupMsg);
     log.debug("\tsourceFolders:" + Arrays.asList(getSrcdir().list()));
     log.debug("\tclasspath:" + classpath);
