@@ -31,6 +31,7 @@ import java.util.stream.Collectors;
  *     <li>"destdir" : A File representing the output destination of the compilation</li>
  *     <li>"checkedarithmetic" : Compile with checked arithmetic if true.  Defaults to {@code false}.</li>
  *     <li>"failonerror" : Ignore compile errors and continue if true.  Defaults to {@code true}.</li>
+ *     <li>"projectname" : Outputs this value in the compilation complete message.  Defaults to the empty string.</li>
  *   </ul>
  */
 public class Gosuc extends GosuMatchingTask {
@@ -334,10 +335,8 @@ public class Gosuc extends GosuMatchingTask {
     boolean hasWarningsOrErrors = numWarnings > 0 || errorsInCompilation;
     StringBuilder sb;
     sb = new StringBuilder();
-    sb.append("Gosu compilation completed");
-    if(!getProjectName().isEmpty()) {
-      sb.append(" for ").append(getProjectName());
-    }
+    sb.append(getProjectName().isEmpty() ? "Gosu compilation" : getProjectName());
+    sb.append(" completed");
     if(hasWarningsOrErrors) {
       sb.append(" with ");
       if(numWarnings > 0) {
