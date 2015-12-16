@@ -13144,7 +13144,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
   {
     IType existingReturnType = maybeResolveFunctionTypeVars( dfsExisting, dfsExisting.getReturnType() );
     IType overrideReturnType = maybeResolveFunctionTypeVars( dfs, dfs.getReturnType() );
-    if( existingReturnType.isAssignableFrom( overrideReturnType ) )
+    if( existingReturnType.isAssignableFrom( overrideReturnType ) || StandardCoercionManager.isStructurallyAssignable( existingReturnType, overrideReturnType ) )
     {
       return true;
     }

@@ -120,4 +120,26 @@ class StructuralTypeTest extends BaseVerifyErrantTest {
       }
     }) )
   }
+
+  structure TestStructure {
+    function foo(): int
+  }
+  class SatisfiesTestStructure {
+    function foo(): int {
+      return 8
+    }
+  }
+  interface ITestCovariantReturnWithStructure {
+    property get X() : TestStructure
+    function doY() : TestStructure
+  }
+  class TestCovariantReturnWithStructure implements ITestCovariantReturnWithStructure {
+    override property get X() : SatisfiesTestStructure { return new SatisfiesTestStructure () }
+    override function doY() : SatisfiesTestStructure { return new SatisfiesTestStructure () }
+  }
+  function testCovariantReturns() {
+    var testMe: ITestCovariantReturnWithStructure = new TestCovariantReturnWithStructure ()
+    assertEquals( 8, testMe.doY().foo() )
+    assertEquals( 8, testMe.X.foo() )
+  }
 }
