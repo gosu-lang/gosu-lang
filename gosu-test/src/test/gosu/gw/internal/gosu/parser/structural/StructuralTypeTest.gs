@@ -142,4 +142,16 @@ class StructuralTypeTest extends BaseVerifyErrantTest {
     assertEquals( 8, testMe.doY().foo() )
     assertEquals( 8, testMe.X.foo() )
   }
+
+  interface ITestStructureGenericBound<T extends TestStructure> {
+    function foo(t: T) : int {
+      return t.foo()
+    }
+  }
+  class TestStructureGenericBound implements ITestStructureGenericBound<SatisfiesTestStructure> {
+  }
+  function testStructureGenericBound() {
+    var testMe = new TestStructureGenericBound()
+    assertEquals( 8, testMe.foo( new SatisfiesTestStructure() ) )
+  }
 }

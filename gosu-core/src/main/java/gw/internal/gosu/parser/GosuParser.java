@@ -6730,7 +6730,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
                                 isErrorType( typeParam[i] ) ||
                                 (typeVars[i].getTypeVariableDefinition() != null && typeVars[i].getTypeVariableDefinition().getType().isAssignableFrom( typeParam[i] )) ||
                                 boundingType.isAssignableFrom( typeParam[i] ) ||
-                                boundingType instanceof IGosuClass && ((IGosuClass)boundingType).isStructure() && StandardCoercionManager.isStructurallyAssignable( boundingType.getGenericType(), typeParam[i] )
+                                boundingType instanceof IGosuClass && ((IGosuClass)boundingType).isStructure() && StandardCoercionManager.isStructurallyAssignable( TypeLord.getPureGenericType( boundingType ), typeParam[i] )
                         ,
                         Res.MSG_TYPE_PARAM_NOT_ASSIGNABLE_TO,
                         typeParam[i], boundingType );
