@@ -112,18 +112,10 @@ public class Module implements IModule
   @Override
   public void setSourcePath( List<IDirectory> sourcePaths )
   {
-    List<IDirectory> sources = new ArrayList<>();
+    List<IDirectory> sources = new ArrayList<IDirectory>(sourcePaths);
 
     //## todo: Kill this so the classpath from the ClassLoaders is 1:1 with Modules i.e., why are we not copying these into the target classpath??!!
-    // TODO KM +1
-    // KM 2015-12-17 this logic places <module>/config roots at the _bottom_ of the sourcepath, potentially creating 
-    // precedence issues with statically-compiled Gosu.
-    // In Guidewire parlance, the @IncludeModules annotation calls getAdditionalSourceRoots() - placing the config roots 
-    // for each module after the collections of gsrc/gtest - followed by JARs and build/idea/classes folders.
-    // Hacking the return value of getAdditionalSourceRoots() to the top of the list, rather than the bottom, should
-    // correct any shadowing issues.
     sources.addAll(getAdditionalSourceRoots());
-    sources.addAll(sourcePaths);
 
     _fileRepository.setSourcePath(sources.toArray(new IDirectory[sourcePaths.size()]));
   }
