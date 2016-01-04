@@ -10,6 +10,7 @@ machine:
   environment:
     JAVA_OPTS: "-Xmx1g"
     MAVEN_OPTS: "-Xmx1g -DcheckedArithmetic=true"
+    TERM: dumb
 
 dependencies:
   override:
