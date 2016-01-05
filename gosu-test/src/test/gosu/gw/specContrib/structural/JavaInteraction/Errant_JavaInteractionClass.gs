@@ -1,7 +1,5 @@
 package gw.specContrib.structural.JavaInteraction
 
-uses gw.specContrib.aaa.ParserVsOpenSource.StructuralTyping.JavaInteraction.MyStructure
-
 /**
  * Created by vdahuja on 10/9/2014.
  */
