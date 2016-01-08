@@ -1,4 +1,4 @@
-package gw.specContrib.generics
+package gw.specification.genericTypesAndMethods.varianceOfTypeParametersTest
 
 uses java.util.function.Predicate
 uses java.util.function.Function
@@ -62,9 +62,9 @@ class Errant_DeclarationSiteVariance_InferVariance {
   interface Param_Out_Out__Super_Extends<out A, out B> extends WildcardsInFunctionParam_Super_Extends<A, B> {  //## issuekeys: MSG_TYPE_VAR_VARIANCE_ERROR
   }
 
-  interface Param_In_Out__Super_Super<in A, out B> extends WildcardsInFunctionParam_Super_Super<A, B> {  //## issuekeys: MSG_TYPE_VAR_VARIANCE_ERROR
+  interface Param_In_Out__Super_Super<in A, out B> extends WildcardsInFunctionParam_Super_Super<A, B> {  //## issuekeys: MSG_TYPE_VAR_VARIANCE_ERROR, MSG_TYPE_VAR_VARIANCE_ERROR
   }
-  interface Param_In_In__Super_Super<in A, in B> extends WildcardsInFunctionParam_Super_Super<A, B> {  //## issuekeys: MSG_TYPE_VAR_VARIANCE_ERROR
+  interface Param_In_In__Super_Super<in A, in B> extends WildcardsInFunctionParam_Super_Super<A, B> {  //## issuekeys: MSG_TYPE_VAR_VARIANCE_ERROR, MSG_TYPE_VAR_VARIANCE_ERROR
   }
   interface Param_Out_In__Super_Super<out A, in B> extends WildcardsInFunctionParam_Super_Super<A, B> {  //## issuekeys: MSG_TYPE_VAR_VARIANCE_ERROR, MSG_TYPE_VAR_VARIANCE_ERROR
   }

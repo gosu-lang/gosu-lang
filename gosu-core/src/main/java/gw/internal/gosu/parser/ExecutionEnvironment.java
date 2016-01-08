@@ -78,6 +78,7 @@ public class ExecutionEnvironment implements IExecutionEnvironment
   private IModule _defaultModule;
   private IModule _jreModule;
   private IModule _rootModule;
+  private String[] _discretePackages;
   private TypeSystemState _state = TypeSystemState.STOPPED;
 
   public static ExecutionEnvironment instance()
@@ -164,7 +165,7 @@ public class ExecutionEnvironment implements IExecutionEnvironment
     return _modules;
   }
 
-  public void initializeDefaultSingleModule( List<? extends GosuPathEntry> pathEntries ) {
+  public void initializeDefaultSingleModule( List<? extends GosuPathEntry> pathEntries, String... discretePackages ) {
     _state = TypeSystemState.STARTING;
     try {
       DefaultSingleModule singleModule = _defaultModule == null ? new DefaultSingleModule( this ) : (DefaultSingleModule)_defaultModule;
@@ -190,7 +191,7 @@ public class ExecutionEnvironment implements IExecutionEnvironment
       singleModule.configurePaths(createDefaultClassPath(), allSources);
       _defaultModule = singleModule;
       _modules = new ArrayList<IModule>(Collections.singletonList(singleModule));
-
+      setDiscretePackages( discretePackages );
 //      pushModule(singleModule); // Push and leave pushed (in this thread)
       singleModule.initializeTypeLoaders();
       CommonServices.getCoercionManager().init();
@@ -315,6 +316,30 @@ public class ExecutionEnvironment implements IExecutionEnvironment
     for (IModule m : getModules()) {
       if (m.getName().equals(moduleName)) {
         throw new RuntimeException("Module " + moduleName + " allready exists.");
+      }
+    }
+  }
+
+  public String[] getDiscretePackages() {
+    return _discretePackages;
+  }
+  public void setDiscretePackages( String[] discretePackages ) {
+    List<String> packages = new ArrayList<>();
+    String fromCmdLine = System.getProperty( "unloadable.packages" );
+    if( fromCmdLine != null && !fromCmdLine.isEmpty() ) {
+      packages.addAll( Arrays.asList( fromCmdLine.split( "," ) ) );
+    }
+    if( discretePackages != null ) {
+      Arrays.stream( discretePackages ).forEach( packages::add );
+    }
+    _discretePackages = packages.toArray( new String[packages.size()] );
+
+    for( int i = 0; i < _discretePackages.length; i++ ) {
+      for( int j = i+1; j < _discretePackages.length; i++ ) {
+        if( _discretePackages[i].startsWith( _discretePackages[j] ) ||
+            _discretePackages[j].startsWith( _discretePackages[i] ) ) {
+          throw new IllegalStateException( "Unloadable packages overlap: " + _discretePackages[i] + ", " + _discretePackages[j] );
+        }
       }
     }
   }
@@ -524,6 +549,12 @@ public class ExecutionEnvironment implements IExecutionEnvironment
    * source of the classes.  This would enable the debuger to modify in memory the classes
    * during a remote debugging session.
    */
+
+  private int counter;
+  private synchronized int getCounter() {
+    return counter++;
+  }
+
   private void startSneakyDebugThread() {
     if( !BytecodeOptions.JDWP_ENABLED.get() ) {
       return;
@@ -594,10 +625,14 @@ public class ExecutionEnvironment implements IExecutionEnvironment
                 try
                 {
                   IGosuProgramParser programParser = GosuParserFactory.createProgramParser();
+                  String qualifiedName = ReloadClassesIndicator.getQualifiedName();
+                  if (qualifiedName == null) {
+                    qualifiedName = Gosu.GOSU_SCRATCHPAD_FQN + getCounter();
+                  }
                   ParserOptions options = new ParserOptions()
                           .withParser(scriptParser)
                           .asThrowawayProgram()
-                          .withFileContext(new ProgramFileContext(null, Gosu.GOSU_SCRATCHPAD_FQN));
+                          .withFileContext(new ProgramFileContext(null, qualifiedName));
                   IParseResult parseResult = programParser.parseExpressionOrProgram(strScript, scriptParser.getSymbolTable(), options);
                   Object result = parseResult.getProgram().evaluate( null );
                   if( result != null )

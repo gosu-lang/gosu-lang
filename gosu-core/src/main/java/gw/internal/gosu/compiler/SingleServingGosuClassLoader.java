@@ -6,6 +6,7 @@ package gw.internal.gosu.compiler;
 
 import gw.internal.gosu.ir.TransformingCompiler;
 import gw.lang.Gosu;
+import gw.lang.reflect.IType;
 import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.gs.ICompilableType;
 import gw.lang.reflect.gs.IGosuClassLoader;
@@ -18,6 +19,7 @@ import java.util.Map;
 public class SingleServingGosuClassLoader extends ClassLoader implements IGosuClassLoader
 {
   private static final Map<String, Class> CACHE = new ConcurrentWeakValueHashMap<String, Class>();
+  static final SingleServingGosuClassLoader NULL_SENTINAL = new SingleServingGosuClassLoader();
 
   private GosuClassLoader _parent;
 
@@ -27,6 +29,11 @@ public class SingleServingGosuClassLoader extends ClassLoader implements IGosuCl
 
   public static void clearCache() {
     CACHE.clear();
+  }
+
+  // for null sentinal only
+  private SingleServingGosuClassLoader()
+  {
   }
 
   SingleServingGosuClassLoader( GosuClassLoader parent )
@@ -52,6 +59,17 @@ public class SingleServingGosuClassLoader extends ClassLoader implements IGosuCl
 
     TypeSystemLockHelper.getTypeSystemLockWithMonitor( this );
     try {
+      int iDot = name.lastIndexOf( '.' );
+      String ns;
+      if( iDot > 0 && _parent.hasDiscreteNamespace( ns = name.substring( 0, iDot ) ) )
+      {
+        SingleServingGosuClassLoader loader = _parent.getDiscreteNamespaceLoader( ns );
+        IType type = TypeSystem.getByFullNameIfValidNoJava( name );
+        if( type instanceof ICompilableType )
+        {
+          return loader._defineClass( (ICompilableType)type );
+        }
+      }
       return super.loadClass( name, resolve );
     }
     finally {
@@ -62,6 +80,12 @@ public class SingleServingGosuClassLoader extends ClassLoader implements IGosuCl
   @Override
   public void dumpAllClasses() {
     // Do nothing here:  it should be taken care of by the main classloader  
+  }
+
+  @Override
+  public boolean waitForLoaderToUnload( String packageName, long millisToWait )
+  {
+    return _parent.waitForLoaderToUnload( packageName, millisToWait );
   }
 
   Class _defineClass( ICompilableType gsClass )
@@ -94,7 +118,7 @@ public class SingleServingGosuClassLoader extends ClassLoader implements IGosuCl
   }
 
   private boolean shouldCache(ICompilableType gsClass) {
-    return !Gosu.GOSU_SCRATCHPAD_FQN.equals(gsClass.getName());
+    return gsClass != null && !gsClass.getName().startsWith(Gosu.GOSU_SCRATCHPAD_FQN);
   }
 
   private byte[] compileClass( ICompilableType type, boolean debug )

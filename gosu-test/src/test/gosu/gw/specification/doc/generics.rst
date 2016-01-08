@@ -156,7 +156,141 @@ parameter ``Ti`` may be used almost as if it were a public type:
   or otherwise refer to the static members of a type parameter
 
 
+Generic Interfaces
+==================
+
+.. index:: generic interface
+
+A declaration of a *generic interface* ``I<T1, ..., Tn>`` has this form:
+
+    *interface-modifiers* ``interface`` ``I<T1, ..., Tn>`` *extends-clause*  *interface-body*
+
+The ``T1, ..., Tn`` are type parameters as for generic classes (section XXX), 
+and *interface-modifiers*, *extends-clause* and *interface-body* are as for 
+non-generic interfaces (section XXX). Each type parameter ``Ti`` may have type 
+parameter constraints just as for a generic class. 
+
+A type instance of the generic interface has form ``I<T1, ..., Tn>`` where the 
+``t1, ..., tn`` are types. The types ``t1, ..., tn`` must satisfy the parameter 
+constraints, if any, on the generic interface ``I<T1, ..., Tn>`` as described in 
+section XXX. 
+
+A generic interface is a subinterface of the interfaces mentioned in its 
+*extends-clause*. Like a generic class, a generic interface is covariant in its 
+type parameters. That is, ``I<String>`` is a subtype of ``I<Object>`` as 
+``String`` is a subtype of ``Object``. 
 
 
+Generic Methods
+================
+
+.. index:: generic method
+
+A generic method is a method that takes one or more type parameters. A generic 
+method may be declared inside a generic or non-generic class or interface or 
+structure or enhancement.
+
+A declaration of a generic method ``m<T1, ..., Tn>`` has this form:
+
+    *method-modifiers* ``function`` ``m`` ``<T1, ..., Tn>`` ``(`` *formal-list* ``)``  ``:`` *returntype*  *method-body*
+    
+The *method-modifiers*, *formal-list*, *returntype* and *method-body* are as for 
+non-generic methods (section XXX). Each type parameter ``Ti`` may have type 
+parameter constraints just as for a generic class. 
+
+The type parameters ``T1, ..., Tn`` may be used as types in the *returntype*, 
+*formal-list* and *method-body*; as may the type parameters of any enclosing 
+generic class if the method is non-static.
+
+Generic methods of the same name ``m`` are not distinguished by their number of 
+generic type parameters, and a generic method is not distinguished from a 
+non-generic method of the same name. 
+
+If a generic method overrides a generic method declared in a superclass or 
+implements a generic method described in an interface, then it must have the 
+same parameter constraints as those methods. The names of the type parameters 
+are not significant, only their ordinal positions in the type parameter list 
+``T1, ..., Tn``. 
+
+A call of a generic method can be written without type arguments as in 
+``o.m(...)``, or with explicit generic type arguments as in ``o.m<t1, ..., 
+tn>()``. In the former case, the compiler will attempt to infer the appropriate 
+type arguments ``t1, ..., tn`` automatically. 
+
+Explicit generic type arguments can be given in the following syntactic forms of
+a method call:
+
+    ``o.m<t1, ..., tn>(`` *actual-list* ``)``
+    
+    ``super.m<t1, ..., tn>(`` *actual-list* ``)``
+    
+    ``C.m<t1, ..., tn>(`` *actual-list* ``)``
+
+Note that to give a type arguments to a static method ``m`` in class ``C``, one 
+must explicitly prefix the method call with the class name. Similarly, to give 
+type arguments to an instance method in the current object, one mist explicitly 
+prefix the method call with the current object reference. In any case, either 
+none or all type arguments must be given. 
+
+Variance of Type Parameters
+===========================
+
+A type parameter ``T`` of a generic class, or interface, or structure, or
+enhancement type may be declared covariant (``out``), or contravariant (``in``)
+or invariant (``in`` ``out``):
+
+    *interface-modifiers* ``interface`` ``I`` ``<`` *variance-modifier* ``T1``, ... ``>`` ...
+
+    *class-modifiers* ``class`` ``A`` ``<`` *variance-modifier* ``T1``, ... ``>`` ...
+
+    *structure-modifiers* ``structure`` ``S`` ``<`` *variance-modifier* ``T1``, ... ``>`` ...
+
+    *enhancement-modifiers* ``enhancement`` ``E`` ``<`` *variance-modifier* ``T1``, ... ``>`` ...
+
+Here a *variance-modifier* is ``out``, meaning *covariant*; or ``in``, meaning
+*contravariant*; or ``in`` ``out``, meaning *invariant*; or absent, meaning
+*contravariant*. To understand the effect of such declaration, assume that
+reference type ``C`` is a subtype of reference type ``B``.
+
+If ``I`` has a covariant type parameter ``out T``, then ``I<C>`` is a subtype of
+``I<B>``; intuitively, if an ``I<T>`` can be seen to produce or output ``T``
+objects, then a producer ``I<C>`` of ``C`` objects can be used wherever a
+producer ``I<B>`` of ``B`` objects is expected, because ``C`` is a subtype of
+``B``.
+
+Conversely, if ``I`` has a contravariant type parameter ``in T``, then ``I<B>``
+is a subtype of ``I<C>``; intuitively, if an ``I<T>`` can be seen to consume or
+input ``T`` objects, then a consumer ``I<B>`` of ``B`` objects can be used
+wherever a consumer ``I<C>`` of ``C`` objects is expected, because ``C`` is a
+subtype of ``B``.
+
+If ``I`` has an invariant type parameter in ``T`` then none of the above apply.
+
+There are restrictions on variance declarations: A type parameter ``T`` declared
+covariant ``I<out T>`` must not appear as an input type, and a type parameter
+declared contravariant ``I<in T>`` must not appear as an output type. These
+restrictions preserve soundness of subtyping ("a value of a subtype can always
+be used where a value of a supertype is expected") without having to introduce
+further run-time checks.
+
+Roughly speaking, the return type of a method is an output type, and its
+argument types are input types. A type parameter may be an input type and an
+output type at the same time; in that case the type parameter must be invariant
+(``in`` ``out``) in the declaration.
+
+* A type ``t`` is an *output type* in a method signature if it appears as the
+  return type ``t`` of the method signature, or as an input type in another type
+  expression that itself appears as an input type, or as an output type in
+  another type expression that itself appears as an output type in the
+  signature, or invariant in another type expression in the signature.
 
 
+* Similarly, a type ``t`` is an *input type* in a method signature if it appears
+  as a parameter type ``t`` of the method signature, or as an input type in a
+  another type expression that itself appears as an output type, or as an output
+  type in another type expression that itself appears as an input type; or
+  invariant in another type expression in the signature.
+
+A type is an input type (output type) in an interface (or class, or structure,
+or enhancement) if it is an input type (output type) of some method on the
+interface.

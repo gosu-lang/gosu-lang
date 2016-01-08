@@ -18,4 +18,8 @@ public class ReloadClassesIndicator {
   public static String getScript() {
     return null;
   }
+
+  public static String getQualifiedName() {
+    return null;
+  }
 }

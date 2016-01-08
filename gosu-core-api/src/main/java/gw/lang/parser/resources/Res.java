@@ -119,6 +119,7 @@ public class Res
   public static final ResourceKey MSG_UNTERMINATED_STRING_LITERAL = new ResourceKey("MSG_UNTERMINATED_STRING_LITERAL");
   public static final ResourceKey MSG_INVALID_CHAR_AT = new ResourceKey("MSG_INVALID_CHAR_AT");
   public static final ResourceKey MSG_UNTERMINATED_COMMENT = new ResourceKey("MSG_UNTERMINATED_COMMENT");
+  public static final ResourceKey MSG_UNEXPECTED_EOF = new ResourceKey("MSG_UNEXPECTED_EOF");
   public static final ResourceKey MSG_FUNCTION_ALREADY_DEFINED = new ResourceKey("MSG_FUNCTION_ALREADY_DEFINED");
   public static final ResourceKey MSG_FUNCTION_ALREADY_DEFINED_IN_EXTENDED_CLASS = new ResourceKey("MSG_FUNCTION_ALREADY_DEFINED_IN_EXTENDED_CLASS");
   public static final ResourceKey MSG_FUNCTION_CLASH = new ResourceKey("MSG_FUNCTION_CLASH");
@@ -148,6 +149,7 @@ public class Res
   public static final ResourceKey MSG_NO_DEFAULT_CTOR_IN = new ResourceKey("MSG_NO_DEFAULT_CTOR_IN");
   public static final ResourceKey MSG_WRONG_NAMESPACE = new ResourceKey("MSG_WRONG_NAMESPACE");
   public static final ResourceKey MSG_WRONG_CLASSNAME = new ResourceKey("MSG_WRONG_CLASSNAME");
+  public static final ResourceKey MSG_SAME_NAME_AS_CLASS = new ResourceKey("MSG_SAME_NAME_AS_CLASS");
   public static final ResourceKey MSG_EXPECTING_PROPERTY_GET_OR_SET_MODIFIER = new ResourceKey("MSG_EXPECTING_PROPERTY_GET_OR_SET_MODIFIER");
   public static final ResourceKey MSG_EXPECTING_NAME_PROPERTY = new ResourceKey("MSG_EXPECTING_NAME_PROPERTY");
   public static final ResourceKey MSG_PROPERTY_ALREADY_DEFINED = new ResourceKey("MSG_PROPERTY_ALREADY_DEFINED");

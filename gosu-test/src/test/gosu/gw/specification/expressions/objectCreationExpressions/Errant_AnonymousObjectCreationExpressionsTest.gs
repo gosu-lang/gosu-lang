@@ -36,11 +36,6 @@ class Errant_AnonymousObjectCreationExpressionsTest {
     x = new()
   }
 
-  function testParameterizedList() {
-    var x : List<Date>
-    x = new()  //## issuekeys: MSG_LIST_TO_ARRAYLIST_WARNING
-  }
-
   function testContextOverloadedMethodParameter() {
     method( new() )  //## issuekeys: MSG_AMBIGUOUS_METHOD_INVOCATION, MSG_EXPECTING_TYPE_NAME
   }

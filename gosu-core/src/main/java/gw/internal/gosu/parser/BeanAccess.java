@@ -244,6 +244,11 @@ public class BeanAccess
 
   private static boolean areObjectsLogicallyEqual( IType lhsType, IType rhsType, Object lhsValue, Object rhsValue )
   {
+    if( lhsValue instanceof IType && rhsValue instanceof IType )
+    {
+      return lhsValue.equals( rhsValue );
+    }
+
     boolean bValue;
     IType type;
     try

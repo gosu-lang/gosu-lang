@@ -1,4 +1,4 @@
-package gw.specContrib.generics
+package gw.specification.genericTypesAndMethods.varianceOfTypeParametersTest
 
 uses java.util.function.Consumer
 uses java.util.function.Predicate

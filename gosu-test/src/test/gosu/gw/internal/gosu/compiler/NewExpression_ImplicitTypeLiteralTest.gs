@@ -67,14 +67,7 @@ class NewExpression_ImplicitTypeLiteralTest extends TestClass {
     assertEquals( ArrayList, typeof x )
   }
   
-  function testParameterizedList() 
-  {
-    var x : List<Date>
-    x = new() // Do not fix parse warning
-    assertEquals( ArrayList, typeof x )
-  }
-  
-  function testContextOverloadedMethodParameter() 
+  function testContextOverloadedMethodParameter()
   {
     try 
     {

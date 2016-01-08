@@ -644,8 +644,12 @@ public abstract class JavaSourceType extends AbstractJavaClassInfo implements IJ
     for (Map.Entry<String, IJavaClassMethod> entry : setters.entrySet()) {
       String propName = entry.getKey();
       IJavaClassMethod setter = entry.getValue();
-      IJavaClassType setterType = setter.getGenericReturnType();
-      propertyDescriptors.add(new JavaSourcePropertyDescriptor(propName, (IJavaClassInfo) setterType.getConcreteType(), null, setter));
+      IJavaClassType propType = setter.getGenericReturnType();
+      IJavaClassMethod getter = AsmClassJavaClassInfo.maybeFindGetterInSuper( setter, getSuperclass() );
+      if( getter != null ) {
+        propType = getter.getGenericReturnType();
+      }
+      propertyDescriptors.add(new JavaSourcePropertyDescriptor(propName, (IJavaClassInfo) propType.getConcreteType(), getter, setter));
     }
     return propertyDescriptors.toArray(new IJavaPropertyDescriptor[propertyDescriptors.size()]);
   }

@@ -257,7 +257,7 @@ public class StandardCoercionManagerTest extends TestClass
   {
     try
     {
-      eval( "new List(){true}.toArray() as gw.internal.gosu.parser.gosuclasses.SampleGosuClass[]" );
+      eval( "new ArrayList(){true}.toArray() as gw.internal.gosu.parser.gosuclasses.SampleGosuClass[]" );
       Assert.fail("Should have been a runtime exception as we attempted to create a " +
            "Gosu array from a java object, the true value in the list.");
     }
@@ -417,7 +417,7 @@ public class StandardCoercionManagerTest extends TestClass
   public void testComparatorCanProperlyBeInferred() throws ParseResultsException
   {
     @SuppressWarnings({"unchecked"})
-    List<Integer> results = (List<Integer>)GosuTestUtil.eval( "var lst = new List<int>(){5, 4, 3, 2, 1}\n" +
+    List<Integer> results = (List<Integer>)GosuTestUtil.eval( "var lst = new ArrayList<int>(){5, 4, 3, 2, 1}\n" +
                                                "java.util.Collections.sort(lst, \\ i1, i2 -> (i1 as java.lang.Integer) - (i2 as java.lang.Integer) )\n" +
                                                "return lst" );
     Assert.assertEquals( Arrays.asList( 1, 2, 3, 4, 5 ), results );
