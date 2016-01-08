@@ -21,6 +21,7 @@ implementers.
    strings
    arrays
    classes
+   interfaces
    enhancements
    expressions
    blocks

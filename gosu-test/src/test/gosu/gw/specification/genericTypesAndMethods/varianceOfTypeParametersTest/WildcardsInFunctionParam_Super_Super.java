@@ -1,6 +1,4 @@
-package gw.specContrib.generics;
-
-import java.util.Objects;
+package gw.specification.genericTypesAndMethods.varianceOfTypeParametersTest;
 
 /**
  */

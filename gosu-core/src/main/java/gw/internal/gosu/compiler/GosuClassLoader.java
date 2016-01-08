@@ -7,12 +7,14 @@ package gw.internal.gosu.compiler;
 import gw.config.CommonServices;
 import gw.internal.gosu.ir.TransformingCompiler;
 import gw.internal.gosu.ir.transform.AbstractElementTransformer;
+import gw.internal.gosu.parser.ExecutionEnvironment;
 import gw.internal.gosu.parser.ICompilableTypeInternal;
 import gw.internal.gosu.parser.IGosuClassInternal;
 import gw.internal.gosu.parser.IGosuProgramInternal;
 import gw.internal.gosu.parser.ModuleClassLoader;
 import gw.internal.gosu.parser.NewIntrospector;
 import gw.internal.gosu.parser.TypeLord;
+import gw.lang.parser.TypeSystemAwareCache;
 import gw.lang.reflect.IGosuClassLoadingObserver;
 import gw.lang.reflect.IHasJavaClass;
 import gw.lang.reflect.IType;
@@ -29,13 +31,17 @@ import gw.lang.reflect.module.TypeSystemLockHelper;
 import gw.util.GosuExceptionUtil;
 
 import java.io.IOException;
+import java.lang.ref.WeakReference;
 import java.lang.reflect.Method;
-import java.net.URLClassLoader;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 public class GosuClassLoader implements IGosuClassLoader
 {
+  private DiscreteLoaderCache _discreteLoaders = new DiscreteLoaderCache();
   private ClassLoader _loader;
+
 
   //## For tests only
   public static GosuClassLoader instance()
@@ -156,7 +162,7 @@ public class GosuClassLoader implements IGosuClassLoader
       }
 
       // there is no point in defining eval classes in a single serving class loader (it wastes memory)
-      if( useSingleServingLoader || TypeLord.isEvalProgram( gsClass ) || isThrowawayProgram( gsClass ) || isEnclosingTypeInSingleServingLoader( gsClass ) )
+      if( useSingleServingLoader || TypeLord.isEvalProgram( gsClass ) || isThrowawayProgram( gsClass ) || isEnclosingTypeInSingleServingLoader( gsClass ) || hasDiscreteNamespace( gsClass.getNamespace() ) )
       {
         // These classes are "fire and forget"; they need to be disposable after they run,
         // so we load them in a separate class loader so we can unload them -- it's the only
@@ -170,6 +176,20 @@ public class GosuClassLoader implements IGosuClassLoader
     {
       throw GosuExceptionUtil.forceThrow( e, gsClass.getName() );
     }
+  }
+
+  boolean hasDiscreteNamespace( String namespace )
+  {
+    return _discreteLoaders.getLoader( namespace ) != null;
+  }
+  SingleServingGosuClassLoader getDiscreteNamespaceLoader( String namespace )
+  {
+    return _discreteLoaders.getLoader( namespace );
+  }
+  @SuppressWarnings("UnusedDeclaration")
+  public boolean isLoaderUnloaded( String namespace )
+  {
+    return _discreteLoaders.isLoaderUnloaded( namespace );
   }
 
   private boolean isEnclosingTypeInSingleServingLoader( ICompilableTypeInternal gsClass )
@@ -214,17 +234,25 @@ public class GosuClassLoader implements IGosuClassLoader
   {
     if( forceSingleServingLoader || shouldUseSingleServingLoader( gsClass ) || BytecodeOptions.isSingleServingLoader() )
     {
-      ICompilableTypeInternal enclosingType = gsClass.getEnclosingType();
-      ClassLoader enclosingLoader = isOldStyleGosuAnnotationExpression(gsClass) ? null : getClassLoader( enclosingType );
-      SingleServingGosuClassLoader loader = enclosingLoader instanceof SingleServingGosuClassLoader
-                                            ? (SingleServingGosuClassLoader)enclosingLoader
-                                            : new SingleServingGosuClassLoader( this );
+      SingleServingGosuClassLoader loader = getOrCreateSingleServingLoader( gsClass );
       return defineClassInSingleServingLoader( gsClass, loader );
     }
     else
     {
       return defineAndMaybeVerify( gsClass );
     }
+  }
+
+  private SingleServingGosuClassLoader getOrCreateSingleServingLoader( ICompilableTypeInternal gsClass )
+  {
+    ICompilableTypeInternal enclosingType = gsClass.getEnclosingType();
+    ClassLoader enclosingLoader = isOldStyleGosuAnnotationExpression(gsClass) ? null : getClassLoader( enclosingType );
+    if( enclosingLoader instanceof SingleServingGosuClassLoader )
+    {
+      return (SingleServingGosuClassLoader)enclosingLoader;
+    }
+    SingleServingGosuClassLoader namespaceLoader = getDiscreteNamespaceLoader( gsClass.getNamespace() );
+    return namespaceLoader == null ? new SingleServingGosuClassLoader( this ) : namespaceLoader;
   }
 
   private boolean isOldStyleGosuAnnotationExpression(ICompilableTypeInternal gsClass)
@@ -281,7 +309,7 @@ public class GosuClassLoader implements IGosuClassLoader
         }
       }
     }
-    return false;
+    return hasDiscreteNamespace( gsClass.getNamespace() );
   }
 
   boolean shouldDebugClass( ICompilableType gsClass )
@@ -306,15 +334,7 @@ public class GosuClassLoader implements IGosuClassLoader
 
       return cls;
     }
-    catch( ClassFormatError ve )
-    {
-      if( BytecodeOptions.aggressivelyVerify() )
-      {
-        compileClass( gsClass, true ); // print the bytecode
-      }
-      throw ve;
-    }
-    catch( VerifyError ve )
+    catch( ClassFormatError | VerifyError ve )
     {
       if( BytecodeOptions.aggressivelyVerify() )
       {
@@ -349,7 +369,7 @@ public class GosuClassLoader implements IGosuClassLoader
   }
 
   private boolean isThrowawayProgram( ICompilableType gsClass ) {
-    return gsClass instanceof IGosuProgramInternal && ((IGosuProgramInternal) gsClass).isThrowaway(); 
+    return gsClass instanceof IGosuProgramInternal && ((IGosuProgramInternal) gsClass).isThrowaway();
   }
 
   @Override
@@ -390,6 +410,104 @@ public class GosuClassLoader implements IGosuClassLoader
       return type.getName();
     }
     return null;
+  }
+
+  public boolean waitForLoaderToUnload( String packageName, long millisToWait )
+  {
+    long lStart = System.currentTimeMillis();
+    while( !_discreteLoaders.isLoaderUnloaded( packageName ) )
+    {
+      if( System.currentTimeMillis() - lStart > millisToWait )
+      {
+        return false;
+      }
+      System.gc();
+      try
+      {
+        Thread.sleep( 100 );
+      }
+      catch( InterruptedException e )
+      {
+        throw new RuntimeException( e );
+      }
+    }
+    return true;
+  }
+
+  private class DiscreteLoaderCache
+  {
+    // Wrap a delegate to hide the TypeSystemAwareCache#get() method
+    private DelegateCache _delegate = new DelegateCache();
+
+    public SingleServingGosuClassLoader getLoader( String key )
+    {
+      if( getDiscretePackages().isEmpty() )
+      {
+        return null;
+      }
+      return _delegate.getLoader( key );
+    }
+
+    public boolean isLoaderUnloaded( String key )
+    {
+      if( getDiscretePackages().isEmpty() )
+      {
+        return true;
+      }
+      return _delegate.get( key ).get() == null;
+    }
+
+    private List<String> getDiscretePackages()
+    {
+      return Arrays.asList( ExecutionEnvironment.instance().getDiscretePackages() );
+    }
+
+    private class DelegateCache extends TypeSystemAwareCache<String, WeakReference<SingleServingGosuClassLoader>>
+    {
+      public DelegateCache()
+      {
+        //noinspection Convert2Lambda
+        super( "Discrete Loaders", 100,
+               new MissHandler<String, WeakReference<SingleServingGosuClassLoader>>()
+               {
+                  @Override
+                  public WeakReference<SingleServingGosuClassLoader> load( String key )
+                  {
+                    Optional<String> match = getDiscretePackages().stream().filter( key::startsWith ).findFirst();
+                    if( !match.isPresent() )
+                    {
+                      return new WeakReference<>( SingleServingGosuClassLoader.NULL_SENTINAL );
+                    }
+
+                    String unloadableNamespace = match.get();
+                    if( key.equals( unloadableNamespace ) )
+                    {
+                      return new WeakReference<>( null );
+                    }
+                    return _delegate.get( unloadableNamespace );
+                  }
+                } );
+      }
+
+      private SingleServingGosuClassLoader getLoader( String key )
+      {
+        WeakReference<SingleServingGosuClassLoader> ref = super.get( key );
+        if( ref.get() != SingleServingGosuClassLoader.NULL_SENTINAL )
+        {
+          // Must maintain a ref to the loader, otherwise it can get collected in between assigning it to the weak ref and returning from this method, in theory anyway
+          //noinspection MismatchedReadAndWriteOfArray
+          SingleServingGosuClassLoader[] loader = new SingleServingGosuClassLoader[1];
+
+          if( ref.get() == null )
+          {
+            String unloadableNamespace = getDiscretePackages().stream().filter( key::startsWith ).findFirst().get();
+            put( unloadableNamespace, ref = new WeakReference<>( loader[0] = new SingleServingGosuClassLoader( GosuClassLoader.this ) ) );
+          }
+          return ref.get();
+        }
+        return null;
+      }
+    }
   }
 
 }

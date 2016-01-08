@@ -805,7 +805,7 @@ public class BlockExpressionTest extends TestClass
     Object val = exec(
             "function foo() : String { var result = \"\"\n" +
                     "var strs = new String[] {\"a\", \"b\", \"c\"}\n" +
-                    "var blocks = new List<block():String>()\n" +
+                    "var blocks = new ArrayList<block():String>()\n" +
                     "for(str in strs) {\n" +
                     "  blocks.add(\\ -> str)\n" +
                     "}\n" +

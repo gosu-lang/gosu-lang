@@ -1,29 +1,28 @@
-package gw.specContrib.generics
+package gw.specification.genericTypesAndMethods.varianceOfTypeParametersTest
 
-class Errant_StrictGenericInterfaces {
+class Errant_GenericStructures {
 
-  @StrictGenerics
-  interface Setter<T> {
+  structure Setter<T> {
     function add( x: T ): boolean
   }
 
-  @StrictGenerics
-  interface Getter<T> {
+
+  structure Getter<T> {
     function iterator(): Iterator<T>
   }
 
-  @StrictGenerics
-  interface Collection<T> extends Setter<T>, Getter<T> {
+
+  structure Collection<T> extends Setter<T>, Getter<T> {
   }
 
-  class Sack<T> implements Collection<T> {
+  class Sack<T> {
     var _sack = new ArrayList<T>()
 
-    override function iterator(): Iterator<T> {
+    function iterator(): Iterator<T> {
       return _sack.iterator()
     }
 
-    override function add(x: T): boolean {
+    function add(x: T): boolean {
       return _sack.add( x )
     }
   }

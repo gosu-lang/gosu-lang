@@ -2746,6 +2746,7 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
       }
     }
 
+    int mod = modifiers.getModifiers();
     if( bInterface )
     {
       modifiers.addModifiers( Modifier.PUBLIC );

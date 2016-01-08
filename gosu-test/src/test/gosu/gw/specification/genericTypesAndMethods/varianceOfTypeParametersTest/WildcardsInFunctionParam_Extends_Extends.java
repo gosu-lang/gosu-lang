@@ -1,4 +1,4 @@
-package gw.specContrib.generics;
+package gw.specification.genericTypesAndMethods.varianceOfTypeParametersTest;
 
 /**
  */

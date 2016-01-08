@@ -6,7 +6,21 @@ uses gw.BaseVerifyErrantTest
 
 class SwitchStatementUnhandledEnumCoverageTest extends BaseVerifyErrantTest {
 
-  enum EFoo {ONE, TWO}
+  enum EFoo {
+    ONE,
+    TWO
+
+    function foo( s: EFoo ): int {
+      switch( s ) {
+        case ONE:
+            return +1
+        case TWO:
+            return -1
+      }
+      // no missing return stmt here because full coverage
+    }
+
+  }
 
   function testEnumCoveredPlusNullCase_DoesNotThrowIfNull() {
     final var y: String
