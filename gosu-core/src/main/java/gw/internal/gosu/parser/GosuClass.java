@@ -223,7 +223,11 @@ public class GosuClass extends InnerClassCapableType implements IGosuClassIntern
   @Override
   public void setUsesQueryUsageSiteValidation( boolean b ) {
     _bUsesQueryUsageSiteValidation = b;
+    if( getEnclosingType() instanceof IGosuClass ) {
+      ((IGosuClass) getEnclosingType()).setUsesQueryUsageSiteValidation( b );
+    }
   }
+  
   @Override
   public boolean getUsesQueryUsageSiteValidation() {
     return _bUsesQueryUsageSiteValidation;
