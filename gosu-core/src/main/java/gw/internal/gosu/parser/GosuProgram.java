@@ -362,7 +362,17 @@ public class GosuProgram extends GosuClass implements IGosuProgramInternal
     {
       if( canShareProgramInstances() )
       {
-         return _sharedInstance = createNewInstance();
+        if( _sharedInstance == null )
+        {
+          synchronized( this )
+          {
+            if( _sharedInstance == null )
+            {
+              _sharedInstance = createNewInstance();
+            }
+          }
+        }
+        return _sharedInstance;
       }
       else
       {
