@@ -5,19 +5,15 @@
 package gw.internal.gosu.compiler.protocols.gosuclass;
 
 import gw.fs.IFile;
-import gw.fs.IncludeModuleDirectory;
 import gw.internal.gosu.compiler.GosuClassLoader;
 import gw.internal.gosu.compiler.SingleServingGosuClassLoader;
 import gw.internal.gosu.parser.TypeLord;
-import gw.lang.parser.ISource;
 import gw.lang.reflect.IHasJavaClass;
 import gw.lang.reflect.IInjectableClassLoader;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.gs.GosuClassPathThing;
 import gw.lang.reflect.gs.ICompilableType;
-import gw.lang.reflect.gs.IFileSystemGosuClassRepository;
-import gw.lang.reflect.gs.IGosuClass;
 import gw.lang.reflect.gs.IGosuProgram;
 import gw.lang.reflect.gs.ISourceFileHandle;
 import gw.lang.reflect.java.IJavaBackedType;
@@ -152,15 +148,6 @@ public class GosuClassesUrlConnection extends URLConnection {
     }
     IType outer = TypeLord.getOuterMostEnclosingClass( type );
     try {
-      if( outer instanceof IGosuClass ) {
-        ISource source = ((IGosuClass)outer).getSourceFileHandle().getSource();
-        if( source instanceof IFileSystemGosuClassRepository.IClassFileInfo ) {
-          if( ((IFileSystemGosuClassRepository.IClassFileInfo)source).getEntry().getPath() instanceof IncludeModuleDirectory ) {
-            // Don't let a parent class shadow a class from an unholy "include module" from the pit of gw platform hell
-            return false;
-          }
-        }
-      }
       parent.loadClass( outer.getName() );
       return true;
     }
