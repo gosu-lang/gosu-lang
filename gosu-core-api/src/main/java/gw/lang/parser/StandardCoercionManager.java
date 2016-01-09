@@ -257,7 +257,7 @@ public class StandardCoercionManager extends BaseService implements ICoercionMan
     //=============================================================================
     // Class<T> <- Meta<T' instanceof JavaType>
     //=============================================================================
-    if( (JavaTypes.CLASS().equals( lhsType.getGenericType() ) &&
+    if( (JavaTypes.CLASS().equals( TypeSystem.getPureGenericType( lhsType ) ) &&
          (rhsType instanceof IMetaType &&
           (((IMetaType)rhsType).getType() instanceof IHasJavaClass ||
            ((IMetaType)rhsType).getType() instanceof ITypeVariableType ||
@@ -277,7 +277,7 @@ public class StandardCoercionManager extends BaseService implements ICoercionMan
     // Meta<T> <- Class<T' instanceof JavaType>
     //=============================================================================
     if( lhsType instanceof IMetaType &&
-        rhsType instanceof IJavaType && JavaTypes.CLASS().equals( rhsType.getGenericType() ) ) {
+        rhsType instanceof IJavaType && JavaTypes.CLASS().equals( TypeSystem.getPureGenericType( rhsType ) ) ) {
       if( !rhsType.isParameterizedType() ||
           TypeSystem.canCast( ((IMetaType)lhsType).getType(), rhsType.getTypeParameters()[0] ) ||
           isStructurallyAssignable( ((IMetaType)lhsType).getType(), rhsType.getTypeParameters()[0] ) ) {
