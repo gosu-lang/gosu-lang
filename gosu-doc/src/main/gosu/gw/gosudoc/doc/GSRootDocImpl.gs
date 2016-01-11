@@ -183,7 +183,6 @@ class GSRootDocImpl extends GSDocImpl implements RootDoc{
             }
           }
         } catch( e ){
-          e.printStackTrace()
           printWarning( "Could not load type ${typeName}: ${e.Message}" )
         }
     }

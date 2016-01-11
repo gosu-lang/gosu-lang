@@ -31,6 +31,7 @@ import java.util.stream.Collectors;
  *     <li>"destdir" : A File representing the output destination of the compilation</li>
  *     <li>"checkedarithmetic" : Compile with checked arithmetic if true.  Defaults to {@code false}.</li>
  *     <li>"failonerror" : Ignore compile errors and continue if true.  Defaults to {@code true}.</li>
+ *     <li>"projectname" : Outputs this value in the compilation complete message.  Defaults to the empty string.</li>
  *   </ul>
  */
 public class Gosuc extends GosuMatchingTask {
@@ -42,6 +43,7 @@ public class Gosuc extends GosuMatchingTask {
   private boolean _failOnError = true;
   private boolean _checkedArithmetic = false;
   private boolean _force = true;
+  private String _projectName = "";
   private Set<String> _scriptExtensions = new HashSet<>(Arrays.asList("gs", "gsx", "gst", "gsp"));
 
   protected List<File> compileList = new ArrayList<>();
@@ -177,6 +179,20 @@ public class Gosuc extends GosuMatchingTask {
     _force = force;
   }
 
+  /**
+   * Gets the optional Project Name.<br>
+   * This has no impact on the compilation; simply outputs this value in the compilation complete message.
+   * Useful in large, multimodule builds with parallelization.
+   *
+   * @return ProjectName property; defaults to empty string.
+   */
+  public String getProjectName() {
+    return _projectName;
+  }
+
+  public void setProjectName( String projectName ) {
+    _projectName = projectName;
+  }
 
   /**
    * Scans the directory looking for source files to be compiled.
@@ -243,6 +259,7 @@ public class Gosuc extends GosuMatchingTask {
    * @throws BuildException if an error occurs
    */
   public void execute() throws BuildException {
+    log.debug("projectname=" + getProjectName());
     log.debug("src/srcdir=" + getSrcdir());
     log.debug("destdir=" + getDestdir());
     log.debug("failOnError=" + getFailOnError());
@@ -260,7 +277,11 @@ public class Gosuc extends GosuMatchingTask {
     classpath.addAll(Arrays.asList(_compileClasspath.list()));
     classpath.addAll(getJreJars());
 
-    log.info("Initializing Gosu compiler...");
+    String startupMsg = "Initializing Gosu compiler";
+    if(!getProjectName().isEmpty()) {
+      startupMsg += " for " + getProjectName();
+    }
+    log.info(startupMsg);
     log.debug("\tsourceFolders:" + Arrays.asList(getSrcdir().list()));
     log.debug("\tclasspath:" + classpath);
     log.debug("\toutputPath:" + getDestdir().getAbsolutePath());
@@ -313,7 +334,8 @@ public class Gosuc extends GosuMatchingTask {
     boolean hasWarningsOrErrors = numWarnings > 0 || errorsInCompilation;
     StringBuilder sb;
     sb = new StringBuilder();
-    sb.append("Gosu compilation completed");
+    sb.append(getProjectName().isEmpty() ? "Gosu compilation" : getProjectName());
+    sb.append(" completed");
     if(hasWarningsOrErrors) {
       sb.append(" with ");
       if(numWarnings > 0) {

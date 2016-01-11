@@ -10,24 +10,26 @@ machine:
   environment:
     JAVA_OPTS: "-Xmx1g"
     MAVEN_OPTS: "-Xmx1g -DcheckedArithmetic=true"
+    TERM: dumb
 
 dependencies:
   override:
     # :go-offline will download as much as possible, saving time later.
-    - mvn dependency:go-offline
+    - mvn -B dependency:go-offline
 
 general:
   branches:
     only:
       - ant
       - spec
+      - tooling-fixes
   artifacts:
     - "gosu-test/target/site" # preserve the generated HTML test reports
 
 test:
   # Adds profile to pick up Gosu tests
   override:
-    - mvn integration-test -P runGosuTests deploy -s settings.xml
+    - mvn -B integration-test -P runGosuTests deploy -s settings.xml
   post:
     - mkdir -p $CIRCLE_TEST_REPORTS/junit/
     - find . -type f -regex ".*/target/surefire-reports/.*xml" -exec cp {} $CIRCLE_TEST_REPORTS/junit/ \;

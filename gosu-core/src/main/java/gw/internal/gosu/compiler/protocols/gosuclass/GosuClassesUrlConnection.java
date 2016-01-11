@@ -136,6 +136,8 @@ public class GosuClassesUrlConnection extends URLConnection {
     }
   }
 
+  //## hack: total hack to handle misconfigured classloaders where parent loader and child loader have overlapping paths
+  //## perf: this is probably not an insignificant perf issue while class loading i.e., the onslaught of ClassNotFoundExceptions handled here is puke worthy
   private boolean hasClassFileOnDiskInParentLoaderPath( ClassLoader loader, IType type ) {
     if( !(loader instanceof IInjectableClassLoader) ) {
       return false;

@@ -33,6 +33,7 @@ import gw.util.GosuExceptionUtil;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.lang.reflect.Method;
+import java.net.URLClassLoader;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -96,6 +97,14 @@ public class GosuClassLoader implements IGosuClassLoader
       // being in the classpath of the app class loader, resolves the name and compile the class and produce the
       // resource/stream associated with the compiled bytes.
       _loader = parent.getParent();
+      while( _loader instanceof URLClassLoader)
+      {
+        if( ((URLClassLoader) _loader).getURLs().length != 0 )
+        {
+          break;
+        }
+        _loader = _loader.getParent();
+      }
     }
     else
     {
