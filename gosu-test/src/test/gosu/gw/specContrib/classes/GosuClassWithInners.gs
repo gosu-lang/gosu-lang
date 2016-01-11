@@ -1,9 +1,6 @@
-package gw.specContrib.classes;
+package gw.specContrib.classes
 
-/**
- */
-public class JavaClassWithInners
-{
+class GosuClassWithInners {
   public interface PublicInnerInterface {}
   private interface PrivateInnerInterface {}
   public class PublicInnerClass {}
