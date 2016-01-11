@@ -191,6 +191,12 @@ public class CompileTimeAnnotationHandler
         IUsageSiteValidatorReference ref = (IUsageSiteValidatorReference)evalAndHandleError( ai, expr );
         if(ref != null) {
           Class<? extends IUsageSiteValidator> validator = ref.value();
+          if( isQueryUsageSiteValidator(validator) ) 
+          {
+            //## todo: remove this check after we remove support for static query validation via IUsageSiteValidator etc.
+            expr.getGosuClass().setUsesQueryUsageSiteValidation( true );
+            return;
+          }
           try {
             Constructor<? extends IUsageSiteValidator> ctor = validator.getDeclaredConstructor();
             ctor.setAccessible( true );
@@ -206,6 +212,10 @@ public class CompileTimeAnnotationHandler
         mcv.validate( expr );
       }
     }
+  }
+
+  private static boolean isQueryUsageSiteValidator( Class<? extends IUsageSiteValidator> validator ) {
+    return validator != null && ExecutionMode.isCompiler() && (validator.getSimpleName().equals("QueryOrderByParser") || validator.getSimpleName().equals("QueryColumnParser"));
   }
 
   private static void verifyDeclarationSite( IParsedElement feature, List<IAnnotationInfo> annotations )
@@ -228,7 +238,7 @@ public class CompileTimeAnnotationHandler
 
   private static Object evalAndHandleError( IAnnotationInfo ai, IParsedElement elt )
   {
-    if (!ExecutionMode.isRuntime()) {
+    if( ExecutionMode.isIDE() ) {
       return null;
     }
 
@@ -244,7 +254,7 @@ public class CompileTimeAnnotationHandler
     }
     catch( Exception e )
     {
-      elt.addParseException( Res.MSG_COMPILE_TIME_ANNOTATION_FAILED_TO_EXECUTE, e.getMessage() );
+      elt.addParseWarning( Res.MSG_COMPILE_TIME_ANNOTATION_FAILED_TO_EXECUTE, e.getMessage() );
       return null;
     }
   }

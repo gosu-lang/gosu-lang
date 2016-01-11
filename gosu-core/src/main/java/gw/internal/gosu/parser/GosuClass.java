@@ -137,6 +137,7 @@ public class GosuClass extends InnerClassCapableType implements IGosuClassIntern
   transient private Boolean _bStrictGenerics;
   transient private ModifierInfo _modifierInfo;
   transient private boolean _bHasAssertions;
+  transient private boolean _bUsesQueryUsageSiteValidation; //## UNACCEPTABLE!!!
 
   public GosuClass( String strNamespace, String strRelativeName, GosuClassTypeLoader classTypeLoader,
                     ISourceFileHandle sourceFile, ITypeUsesMap typeUsesMap )
@@ -217,6 +218,19 @@ public class GosuClass extends InnerClassCapableType implements IGosuClassIntern
   public void setHasAssertions( boolean bHasAssertions )
   {
     _bHasAssertions = bHasAssertions;
+  }
+
+  @Override
+  public void setUsesQueryUsageSiteValidation( boolean b ) {
+    _bUsesQueryUsageSiteValidation = b;
+    if( getEnclosingType() instanceof IGosuClass ) {
+      ((IGosuClass) getEnclosingType()).setUsesQueryUsageSiteValidation( b );
+    }
+  }
+  
+  @Override
+  public boolean getUsesQueryUsageSiteValidation() {
+    return _bUsesQueryUsageSiteValidation;
   }
 
   public Object dontEverCallThis()

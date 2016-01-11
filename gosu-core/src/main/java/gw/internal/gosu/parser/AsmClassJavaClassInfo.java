@@ -638,14 +638,9 @@ public class AsmClassJavaClassInfo extends AsmTypeJavaClassType implements IAsmJ
 
   @Override
   public Class getBackingClass() {
-    try {
-      // This should never get called in AsmClassJavaClassInfo but it does for now eg. see DataTypeImpl, JavaTypeInfo.makeLegacyAnnotationConstructor()
-      //System.out.println( "!!!! DANGER !!!!!" + "  Class.forName( \"" + getName() + "\" )" );
-      return Class.forName( getName(), false, getClass().getClassLoader() );
-    }
-    catch( ClassNotFoundException e ) {
-      return null;
-    }
+    // This should never get called in AsmClassJavaClassInfo but it does for now eg. see DataTypeImpl, JavaTypeInfo.makeLegacyAnnotationConstructor()
+    //System.out.println( "!!!! DANGER !!!!!" + "  Class.forName( \"" + getName() + "\" )" );
+    return TypeSystem.getDefaultTypeLoader().loadClass( getName() );
   }
 
   @Override
