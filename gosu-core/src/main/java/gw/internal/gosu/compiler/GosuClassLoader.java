@@ -24,6 +24,7 @@ import gw.lang.reflect.gs.GosuClassPathThing;
 import gw.lang.reflect.gs.ICompilableType;
 import gw.lang.reflect.gs.IGosuClassLoader;
 import gw.lang.reflect.gs.IGosuProgram;
+import gw.lang.reflect.gs.UrlClassLoaderWrapper;
 import gw.lang.reflect.java.IJavaBackedType;
 import gw.lang.reflect.java.IJavaType;
 import gw.lang.reflect.java.JavaTypes;
@@ -103,7 +104,8 @@ public class GosuClassLoader implements IGosuClassLoader
         {
           break;
         }
-        if( !(_loader.getParent() instanceof URLClassLoader) )
+        if( !(_loader.getParent() instanceof URLClassLoader) &&
+            !UrlClassLoaderWrapper.canWrap( _loader.getParent() ) )
         {
           break;
         }
