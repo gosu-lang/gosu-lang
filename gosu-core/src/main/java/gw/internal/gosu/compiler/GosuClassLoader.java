@@ -97,9 +97,13 @@ public class GosuClassLoader implements IGosuClassLoader
       // being in the classpath of the app class loader, resolves the name and compile the class and produce the
       // resource/stream associated with the compiled bytes.
       _loader = parent.getParent();
-      while( _loader instanceof URLClassLoader)
+      while( _loader instanceof URLClassLoader )
       {
         if( ((URLClassLoader) _loader).getURLs().length != 0 )
+        {
+          break;
+        }
+        if( !(_loader.getParent() instanceof URLClassLoader) )
         {
           break;
         }
