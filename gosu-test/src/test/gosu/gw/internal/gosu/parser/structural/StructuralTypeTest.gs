@@ -154,4 +154,27 @@ class StructuralTypeTest extends BaseVerifyErrantTest {
     var testMe = new TestStructureGenericBound()
     assertEquals( 8, testMe.foo( new SatisfiesTestStructure() ) )
   }
+
+  function testReflection() {
+    var test = new TestReflection()
+    var param = new ReflectionStructureImpl()
+    var res = TestReflection.Type.TypeInfo
+    .getMethod( "callMe", {ReflectionStructure} )
+    .CallHandler.handleCall( test, {param} ) as ReflectionStructure
+    assertEquals( param, res )
+  }
+
+  structure ReflectionStructure {
+    function foo() : ReflectionStructure
+  }
+  static class ReflectionStructureImpl {
+    function foo() : ReflectionStructure {
+      return this
+    }
+  }
+  static class TestReflection {
+    function callMe( t: ReflectionStructure ): ReflectionStructure {
+      return t.foo()
+    }
+  }
 }

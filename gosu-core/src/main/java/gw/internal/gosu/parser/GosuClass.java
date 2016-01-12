@@ -9,7 +9,6 @@ import gw.config.ExecutionMode;
 import gw.fs.IFile;
 import gw.internal.gosu.coercer.FunctionToInterfaceClassGenerator;
 import gw.internal.gosu.compiler.GosuClassLoader;
-import gw.internal.gosu.compiler.SingleServingGosuClassLoader;
 import gw.internal.gosu.ir.TransformingCompiler;
 import gw.internal.gosu.parser.expressions.TypeVariableDefinition;
 import gw.internal.gosu.parser.expressions.TypeVariableDefinitionImpl;
@@ -74,6 +73,7 @@ import gw.util.concurrent.LockingLazyVar;
 import java.io.File;
 import java.io.InvalidClassException;
 import java.io.ObjectStreamException;
+import java.lang.ref.SoftReference;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -109,7 +109,7 @@ public class GosuClass extends InnerClassCapableType implements IGosuClassIntern
   transient private IType _superType;
   transient private IType _enclosingType;
   transient private IJavaType _proxiedJavaClassInGosuProxy; // only relevant when this GosuClass is a _proxy_
-  transient private volatile Class<?> _javaClass;
+  transient private volatile SoftReference<Class<?>> _javaClass;
   transient private IGosuClassInternal _genericClass;
   transient private Map<String, IGosuClassInternal> _parameterizationByParamsName;
   transient private volatile GosuClassTypeInfo _typeInfo;
@@ -2093,12 +2093,23 @@ public class GosuClass extends InnerClassCapableType implements IGosuClassIntern
   @Override
   public boolean hasBackingClass()
   {
-    return _javaClass != null || (_proxiedJavaClassInGosuProxy != null && !_proxiedJavaClassInGosuProxy.getBackingClassInfo().isAnnotation());
+    return (_javaClass != null && _javaClass.get() != null) || (_proxiedJavaClassInGosuProxy != null && !_proxiedJavaClassInGosuProxy.getBackingClassInfo().isAnnotation());
   }
   @Override
   public void unloadBackingClass()
   {
-    _javaClass = null;
+    if( _javaClass != null )
+    {
+      TypeSystem.lock();
+      try
+      {
+        _javaClass = null;
+      }
+      finally
+      {
+        TypeSystem.unlock();
+      }
+    }
   }
   @Override
   public Class<?> getBackingClass()
@@ -2115,21 +2126,19 @@ public class GosuClass extends InnerClassCapableType implements IGosuClassIntern
       return _proxiedJavaClassInGosuProxy.getIntrinsicClass();
     }
 
-    Class clazz = _javaClass;
+    Class clazz = _javaClass == null ? null : _javaClass.get();
     if( clazz == null )
     {
       TypeSystem.lock();
       try
       {
-        clazz = _javaClass;
+        clazz = _javaClass == null ? null : _javaClass.get();
         if( clazz == null )
         {
           clazz = GosuClassLoader.instance().defineClass( (IGosuClassInternal)getOrCreateTypeReference(), false );
-          // Only retain the class if this Gosu class is NOT some kind of transient type e.g., corresponds with an eval expresion or is a PCF fragment.
-          if( !(clazz.getClassLoader() instanceof SingleServingGosuClassLoader) )
-          {
-            _javaClass = clazz;
-          }
+          // Keeping in soft reference, otherwise in the case of single serving loaded class,
+          // it forever pins the loader in memory preventing the class (and loader) from getting GCed.
+          _javaClass = new SoftReference<>( clazz );
         }
       }
       catch( ClassNotFoundException e )

@@ -4,6 +4,7 @@
 
 package gw.internal.gosu.parser;
 
+import gw.lang.ir.IRElement;
 import gw.lang.parser.TypeVarToTypeMap;
 import gw.lang.parser.exceptions.ErrantGosuClassException;
 import gw.lang.parser.EvaluationException;
@@ -284,7 +285,7 @@ public class GosuPropertyInfo extends GosuBaseAttributedFeatureInfo implements I
         List<IRType> allParameterTypes = getterMethod.getAllParameterTypes();
         Class[] paramClasses = new Class[allParameterTypes.size()];
         for (int i = 0; i < allParameterTypes.size(); i++) {
-          paramClasses[i] = allParameterTypes.get(i).getJavaClass();
+          paramClasses[i] = IRElement.maybeEraseStructuralType( allParameterTypes.get( i ) ).getJavaClass();
         }
         Method method = GosuMethodInfo.getMethod( getOwnersType().getBackingClass(), methodName, paramClasses );
         return method.invoke( ctx, args );
@@ -346,7 +347,7 @@ public class GosuPropertyInfo extends GosuBaseAttributedFeatureInfo implements I
         List<IRType> allParameterTypes = setterMethod.getAllParameterTypes();
         Class[] paramClasses = new Class[allParameterTypes.size()];
         for (int i = 0; i < allParameterTypes.size(); i++) {
-          paramClasses[i] = allParameterTypes.get(i).getJavaClass();
+          paramClasses[i] = IRElement.maybeEraseStructuralType( allParameterTypes.get( i ) ).getJavaClass();
         }
         Method method = GosuMethodInfo.getMethod( getOwnersType().getBackingClass(), methodName, paramClasses );
         method.invoke( ctx, args );
