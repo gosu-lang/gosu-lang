@@ -5,6 +5,7 @@
 package gw.internal.gosu.parser;
 
 import gw.internal.gosu.ir.nodes.IRMethodFactory;
+import gw.lang.ir.IRElement;
 import gw.lang.ir.IRType;
 import gw.lang.parser.EvaluationException;
 import gw.lang.parser.IExpression;
@@ -142,7 +143,7 @@ public class GosuConstructorInfo extends AbstractGenericMethodInfo implements IG
         Class[] paramClasses = new Class[explicitParameterTypes.size()];
         for( int i = 0; i < explicitParameterTypes.size(); i++ )
         {
-          paramClasses[i] = explicitParameterTypes.get( i ).getJavaClass();
+          paramClasses[i] = IRElement.maybeEraseStructuralType( explicitParameterTypes.get( i ) ).getJavaClass();
         }
         Constructor<?> constructor = aClass.getDeclaredConstructor( paramClasses );
         if( !constructor.isAccessible() )

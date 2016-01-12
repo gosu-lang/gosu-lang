@@ -418,12 +418,13 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
     // Our three arguments to getDeclaredMethods are the owners Class, the name of the method, and
     // a Class[] containing the types of the parameters
     List<IRExpression> argExprs = new ArrayList<IRExpression>();
-    argExprs.add( classLiteral( getDescriptor(owner ) ) );
+    IRType irOwnerType = getDescriptor( owner );
+    argExprs.add( classLiteral( irOwnerType ) );
     argExprs.add( stringLiteral( strMethod ) );
 
     List<IRExpression> paramClasses = new ArrayList<IRExpression>();
     for (IRType paramType : paramTypes) {
-      paramClasses.add( classLiteral( paramType ) );
+      paramClasses.add( classLiteral( IRElement.maybeEraseStructuralType( irOwnerType, paramType ) ) );
     }
     argExprs.add( buildInitializedArray( getDescriptor( Class.class ), paramClasses ) );
 
