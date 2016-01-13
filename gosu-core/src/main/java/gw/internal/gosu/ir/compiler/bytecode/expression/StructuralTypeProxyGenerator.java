@@ -235,7 +235,7 @@ public class StructuralTypeProxyGenerator {
       return;
     }
 
-    IType ifacePropertyType = TypeLord.getPureGenericType( TypeLord.replaceTypeVariableTypeParametersWithBoundingTypes( pi.getFeatureType() ) );
+    IType ifacePropertyType = TypeLord.replaceTypeVariableTypeParametersWithBoundingTypes( pi.getFeatureType() );
     if( pi.getDescription() != null ) {
       sb.append( "\n/** " ).append( pi.getDescription() ).append( " */\n" );
     }
