@@ -16,7 +16,6 @@ import gw.lang.parser.statements.IFunctionStatement;
 import gw.lang.reflect.ICanBeAnnotation;
 import gw.lang.reflect.IEnhanceableType;
 import gw.lang.reflect.IEnumType;
-import gw.lang.reflect.IFileBasedType;
 import gw.lang.reflect.IHasJavaClass;
 import gw.lang.reflect.IMethodInfo;
 import gw.lang.reflect.IModifierInfo;
@@ -27,7 +26,7 @@ import gw.lang.reflect.java.IJavaType;
 import java.util.List;
 import java.util.Map;
 
-public interface IGosuClass extends IFileBasedType, ICompilableType, IEnumType, IEnhanceableType, Comparable, IHasInnerClass, IHasJavaClass, IParameterizableType, ICanBeAnnotation
+public interface IGosuClass extends ICompilableType, IEnumType, IEnhanceableType, Comparable, IHasInnerClass, IHasJavaClass, IParameterizableType, ICanBeAnnotation
 {
   String PROXY_PREFIX = "_proxy_";
   String SUPER_PROXY_CLASS_PREFIX = "_java_";
@@ -118,19 +117,7 @@ public interface IGosuClass extends IFileBasedType, ICompilableType, IEnumType, 
 
   public List<IGosuClass> getBlocks();
 
-  void validateAncestry(List<IType> visited);
-  
   String getSource();
-
-  //## todo: REMOVE ME!!!
-  void setUsesQueryUsageSiteValidation( boolean b );
-  boolean getUsesQueryUsageSiteValidation();
-  
-  /**
-   * @return The 64 bit fingerprint of the text of the class as of the time of parsing.
-   * If the class is not parsed yet this returns 0.
-   */
-  long getSourceFingerprint();
 
   static class ProxyUtil
   {

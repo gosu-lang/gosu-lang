@@ -100,7 +100,7 @@ public class PsiFeatureResolver {
         return false;
       }
 
-      if (!(ownersType instanceof IFileBasedType)) {
+      if (!(ownersType.getSourceFiles().length > 0)) {
 //        LOG.warn("Reference resolution is only supported for file-based types: " + ownersType.getClass().getName());
         return false;
       }

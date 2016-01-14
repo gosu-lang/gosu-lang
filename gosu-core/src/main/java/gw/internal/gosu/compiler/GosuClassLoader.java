@@ -24,6 +24,7 @@ import gw.lang.reflect.gs.GosuClassPathThing;
 import gw.lang.reflect.gs.ICompilableType;
 import gw.lang.reflect.gs.IGosuClassLoader;
 import gw.lang.reflect.gs.IGosuProgram;
+import gw.lang.reflect.gs.UrlClassLoaderWrapper;
 import gw.lang.reflect.java.IJavaBackedType;
 import gw.lang.reflect.java.IJavaType;
 import gw.lang.reflect.java.JavaTypes;
@@ -97,9 +98,14 @@ public class GosuClassLoader implements IGosuClassLoader
       // being in the classpath of the app class loader, resolves the name and compile the class and produce the
       // resource/stream associated with the compiled bytes.
       _loader = parent.getParent();
-      while( _loader instanceof URLClassLoader)
+      while( _loader instanceof URLClassLoader )
       {
         if( ((URLClassLoader) _loader).getURLs().length != 0 )
+        {
+          break;
+        }
+        if( !(_loader.getParent() instanceof URLClassLoader) &&
+            !UrlClassLoaderWrapper.canWrap( _loader.getParent() ) )
         {
           break;
         }

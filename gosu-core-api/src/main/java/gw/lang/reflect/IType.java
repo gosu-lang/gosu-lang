@@ -4,6 +4,7 @@
 
 package gw.lang.reflect;
 
+import gw.fs.IFile;
 import gw.lang.reflect.gs.IGenericTypeVariable;
 
 import java.io.ObjectStreamException;
@@ -14,71 +15,71 @@ import java.util.Set;
 
 public interface IType extends Serializable
 {
-  public static final ArrayList<IType> EMPTY_TYPE_LIST = new ArrayList<>(0);
-  public static final IType[] EMPTY_TYPE_ARRAY = new IType[0];
-  public static final IType[] EMPTY_ARRAY = new IType[0];
+  ArrayList<IType> EMPTY_TYPE_LIST = new ArrayList<>(0);
+  IType[] EMPTY_TYPE_ARRAY = new IType[0];
+  IType[] EMPTY_ARRAY = new IType[0];
 
   /**
    * The fully qualified name of this intrinsic type.
    */
-  public String getName();
+  String getName();
 
   /**
    * The display name of this intrinsic type.  Often this is simply the same as
    * {@link #getName()}, but in some cases a type may want to modify it's name
    * for presentation to the user.
    */
-  public String getDisplayName();
+  String getDisplayName();
 
   /**
    * The relative or unqualified name. For a class this should be just the class
    * name without the package name.
    */
-  public String getRelativeName();
+  String getRelativeName();
 
   /**
    * The namespace for this class.  For a java class this will be the package, while
    * for other types of intrinsic types it could be another logical name.
    */
-  public String getNamespace();
+  String getNamespace();
 
   /**
    * Returns the type loader responsible for loading this intrinsic type.
    */
-  public ITypeLoader getTypeLoader();
+  ITypeLoader getTypeLoader();
 
   /**
    * Returns the type representing the supertype of this type. Returns null if
    * this type has no supertype.
    */
-  public IType getSupertype();
+  IType getSupertype();
 
   /**
    * Returns the type immediately enclosing this type. If this type is not
    * enclosed, returns null.
    */
-  public IType getEnclosingType();
+  IType getEnclosingType();
 
   /**
    * If this is a parameterized type, returns the generic type this type
    * parameterizes. Otherwise, returns null.
    */
-  public IType getGenericType();
+  IType getGenericType();
 
   /**
    * True if this type cannot be extended.
    */
-  public boolean isFinal();
+  boolean isFinal();
 
   /**
    * Returns true if this type is an interface.
    */
-  public boolean isInterface();
+  boolean isInterface();
 
   /**
    * Returns true if this type is an enumeration.
    */
-  public boolean isEnum();
+  boolean isEnum();
 
   /**
    * @return If this is a class, returns a list of all the interfaces this type
@@ -86,7 +87,7 @@ public interface IType extends Serializable
    *         all the interfaces this type <i>extends</i>. In any case, returns an
    *         empty list if this type neither implements nor extends interfaces.
    */
-  public IType[] getInterfaces();
+  IType[] getInterfaces();
 
   /**
    * Returns true if this ia a Parameterized Type.
@@ -96,20 +97,20 @@ public interface IType extends Serializable
    * instance, the class ArrayList<T> is a Generic Type, while the class
    * ArrayList<String> is a Parameterized Type of the the Generic Type ArrayList<T>.
    */
-  public boolean isParameterizedType();
+  boolean isParameterizedType();
 
   /**
    * Returns true if this ia a Generic Type.
    *
    * @see #isParameterizedType()
    */
-  public boolean isGenericType();
+  boolean isGenericType();
 
   /**
    * Returns an array of GenericTypeVariables declared with this Generic Type.
    * Otherwise, returns null if this is not a Generic Type.
    */
-  public IGenericTypeVariable[] getGenericTypeVariables();
+  IGenericTypeVariable[] getGenericTypeVariables();
 
   /**
    * Assuming this intrinsic type is a Generic type, return the parameterized
@@ -122,13 +123,13 @@ public interface IType extends Serializable
    *
    * @return The concrete type associated with the type parameters.
    */
-  public IType getParameterizedType( IType... ofType );
+  IType getParameterizedType( IType... ofType );
 
   /**
    * If this is a parameterized type, returns the specific types used to create
    * this type, null otherwies.
    */
-  public IType[] getTypeParameters();
+  IType[] getTypeParameters();
 
   /**
    * Returns a Set of all IIntrinsicTypes that this class is assignable from,
@@ -136,27 +137,27 @@ public interface IType extends Serializable
    * superclasses, recursively up the hieararchy. For array types, this will be
    * a Set of all types that its component type is assignable from.
    */
-  public Set<? extends IType> getAllTypesInHierarchy();
+  Set<? extends IType> getAllTypesInHierarchy();
 
   /**
    * True if this is an array.
    */
-  public boolean isArray();
+  boolean isArray();
 
   /**
    * True if this type represents a primitive type e.g., Java int, char, etc.
    */
-  public boolean isPrimitive();
+  boolean isPrimitive();
 
   /**
    * Make an array type from this type. E.g., String -> String[]
    */
-  public IType getArrayType();
+  IType getArrayType();
 
   /**
    * Construct an array instance of specified length.
    */
-  public Object makeArrayInstance( int iLength );
+  Object makeArrayInstance( int iLength );
 
   /**
    * Returns the value of the indexed component in the specified
@@ -173,7 +174,7 @@ public interface IType extends Serializable
    *                                        is negative, or if it is greater than or equal to the length of the
    *                                        specified array
    */
-  public Object getArrayComponent( Object array, int iIndex ) throws IllegalArgumentException, ArrayIndexOutOfBoundsException;
+  Object getArrayComponent( Object array, int iIndex ) throws IllegalArgumentException, ArrayIndexOutOfBoundsException;
 
   /**
    * Sets the value of the indexed component in the specified array object.
@@ -188,7 +189,7 @@ public interface IType extends Serializable
    *                                        is negative, or if it is greater than or equal to the length of the
    *                                        specified array
    */
-  public void setArrayComponent( Object array, int iIndex, Object value ) throws IllegalArgumentException, ArrayIndexOutOfBoundsException;
+  void setArrayComponent( Object array, int iIndex, Object value ) throws IllegalArgumentException, ArrayIndexOutOfBoundsException;
 
   /**
    * Returns the length of the specified array object.
@@ -199,21 +200,21 @@ public interface IType extends Serializable
    *
    * @throws IllegalArgumentException If the object argument is not an array.
    */
-  public int getArrayLength( Object array ) throws IllegalArgumentException;
+  int getArrayLength( Object array ) throws IllegalArgumentException;
 
 
   /**
    * If this is an array type, a type representing the component type of the
    * array. Otherwise null.
    */
-  public IType getComponentType();
+  IType getComponentType();
 
   /**
    * Determines if the type represented by this intrinsic type is either the
    * same as, or is a super-type of the type represented by the specified type
    * parameter.
    */
-  public boolean isAssignableFrom( IType type );
+  boolean isAssignableFrom( IType type );
 
   /**
    * Are intances of this type mutable? Note sometimes it's difficult to
@@ -224,25 +225,25 @@ public interface IType extends Serializable
    *
    * @return True if this type is mutable.
    */
-  public boolean isMutable();
+  boolean isMutable();
 
   /**
    * Get the type information for this intrinsic type.
    *
    * @see ITypeInfo
    */
-  public ITypeInfo getTypeInfo();
+  ITypeInfo getTypeInfo();
 
   /**
    * Unload or nullify any references to this IType's ITypeInfo.
    */
-  public void unloadTypeInfo();
+  void unloadTypeInfo();
 
   /**
    * IType requires this method be implemented to ensure IType
    * instances can be centrally defined and cached.
    */
-  public Object readResolve() throws ObjectStreamException;
+  Object readResolve() throws ObjectStreamException;
 
   /**
    * Defines this type if it is not yet fully defined. For instance, if this
@@ -251,7 +252,7 @@ public interface IType extends Serializable
    *
    * @return true if this type is valid.
    */
-  public boolean isValid();
+  boolean isValid();
 
   /**
    * Returns the modifiers for this type, encoded in an integer.
@@ -262,22 +263,26 @@ public interface IType extends Serializable
    *
    * @see gw.lang.reflect.Modifier
    */
-  public int getModifiers();
+  int getModifiers();
 
-  public boolean isAbstract();
+  boolean isAbstract();
 
   /**
    * True if this type has been replaced with a newer version of the same name in the type system.
    */
-  public boolean isDiscarded();
-  public void setDiscarded( boolean bDiscarded );
+  boolean isDiscarded();
+  void setDiscarded( boolean bDiscarded );
 
-  public boolean isCompoundType();
+  boolean isCompoundType();
 
-  public Set<IType> getCompoundTypeComponents();
+  Set<IType> getCompoundTypeComponents();
 
   IMetaType getMetaType();
 
   IMetaType getLiteralMetaType();
+  
+  default IFile[] getSourceFiles() {
+    return IFile.EMPTY_ARRAY;
+  }
 }
 
