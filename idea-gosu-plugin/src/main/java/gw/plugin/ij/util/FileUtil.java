@@ -36,7 +36,6 @@ import gw.config.CommonServices;
 import gw.fs.IDirectory;
 import gw.fs.IFile;
 import gw.fs.IResource;
-import gw.lang.reflect.IFileBasedType;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.module.IModule;
 import gw.plugin.ij.filesystem.IDEADirectory;
@@ -247,10 +246,8 @@ public class FileUtil {
   @NotNull
   public static List<VirtualFile> getTypeResourceFiles(@NotNull IType type) {
     final List<VirtualFile> result = Lists.newArrayList();
-    if (type instanceof IFileBasedType) {
-      for (IFile file : ((IFileBasedType) type).getSourceFiles()) {
-        result.add(((IDEAFile) file).getVirtualFile());
-      }
+    for (IFile file : type.getSourceFiles()) {
+      result.add(((IDEAFile) file).getVirtualFile());
     }
     return result;
   }

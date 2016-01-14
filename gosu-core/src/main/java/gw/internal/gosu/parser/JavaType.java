@@ -1412,7 +1412,7 @@ class JavaType extends InnerClassCapableType implements IJavaTypeInternal
   @Override
   public IFile[] getSourceFiles() {
     if (getSourceFileHandle() == null) {
-      return NO_FILES;
+      return IFile.EMPTY_ARRAY;
     } else {
       File file = new File(getSourceFileHandle().getFilePath());
       return new IFile[]{CommonServices.getFileSystem().getIFile(file)};

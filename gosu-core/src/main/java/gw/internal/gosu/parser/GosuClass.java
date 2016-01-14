@@ -220,19 +220,6 @@ public class GosuClass extends InnerClassCapableType implements IGosuClassIntern
     _bHasAssertions = bHasAssertions;
   }
 
-  @Override
-  public void setUsesQueryUsageSiteValidation( boolean b ) {
-    _bUsesQueryUsageSiteValidation = b;
-    if( getEnclosingType() instanceof IGosuClass ) {
-      ((IGosuClass) getEnclosingType()).setUsesQueryUsageSiteValidation( b );
-    }
-  }
-  
-  @Override
-  public boolean getUsesQueryUsageSiteValidation() {
-    return _bUsesQueryUsageSiteValidation;
-  }
-
   public Object dontEverCallThis()
   {
     return this;
@@ -1117,12 +1104,6 @@ public class GosuClass extends InnerClassCapableType implements IGosuClassIntern
     } else {
       return _sourceFileHandle.getSource().getSource();
     }
-  }
-
-  @Override
-  public long getSourceFingerprint() {
-    GosuClassParseInfo parseInfo = getParseInfo();
-    return parseInfo != null ? parseInfo.getSourceFingerprint() : 0;
   }
 
   public boolean isStale()
@@ -3082,41 +3063,6 @@ public class GosuClass extends InnerClassCapableType implements IGosuClassIntern
       };
   }
 
-  public void validateAncestry(List<IType> visited) {
-    if (visited.contains(getOrCreateTypeReference())) {
-      return;
-    }
-    visited.add(getOrCreateTypeReference());
-
-    isValid();
-
-    Collection<IGosuClassInternal> innerClasses = getInnerClasses();
-    for (IGosuClassInternal gosuClass : innerClasses) {
-      gosuClass.validateAncestry(visited);
-    }
-
-    // validate supertype
-    IType supertype = getSupertype();
-    if (supertype instanceof IGosuClass) {
-      ((IGosuClass)supertype).validateAncestry(visited);
-    }
-
-    // validate interfaces
-    IType[] interfaces = getInterfaces();
-    for (IType iface : interfaces) {
-      if (iface instanceof IGosuClass) {
-        ((IGosuClass)iface).validateAncestry(visited);
-      }
-    }
-
-    // validate enhancements
-    IEnhancementIndex enhancementIndex = getTypeLoader().getEnhancementIndex();
-    List<? extends IGosuEnhancement> enhancements = enhancementIndex.getEnhancementsForType(getOrCreateTypeReference());
-    for (IGosuEnhancement enhancement : enhancements) {
-      enhancement.isValid();
-    }
-  }
-
   /**
    * Note a gosu class can be BOTH parameterzied AND generic. For example,
    * <p/>
@@ -3226,7 +3172,7 @@ public class GosuClass extends InnerClassCapableType implements IGosuClassIntern
     if (filePath != null) {
       return new IFile[] {CommonServices.getFileSystem().getIFile(new File(filePath))};
     } else {
-      return NO_FILES;
+      return IFile.EMPTY_ARRAY;
     }
   }
 
