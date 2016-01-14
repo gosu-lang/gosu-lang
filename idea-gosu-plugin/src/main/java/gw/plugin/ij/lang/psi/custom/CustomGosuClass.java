@@ -47,7 +47,6 @@ import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.IncorrectOperationException;
 import gw.fs.IFile;
-import gw.lang.reflect.IFileBasedType;
 import gw.lang.reflect.IMethodInfo;
 import gw.lang.reflect.IParameterInfo;
 import gw.lang.reflect.IType;
@@ -89,7 +88,7 @@ public class CustomGosuClass extends UserDataHolderBase implements PsiClass {
     this.valid = isClassValid();
   }
 
-  public CustomGosuClass(@NotNull IFileBasedType type) {
+  public CustomGosuClass(@NotNull IType type) {
     final VirtualFile virtualFile = FileUtil.getTypeResourceFiles(type).get(0);
     final PsiManager manager = PsiManagerImpl.getInstance((Project) type.getTypeLoader().getModule().getExecutionEnvironment().getProject().getNativeProject());
 

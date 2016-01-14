@@ -227,7 +227,7 @@ public class DefaultTypeResolver implements ITypeResolver {
         !(type instanceof IGosuClass) &&
         !(type instanceof IJavaType) &&
         !(type instanceof IBlockType) &&
-        type instanceof IFileBasedType) {
+        type.getSourceFiles().length > 0) {
       aClass = CustomPsiClassCache.instance().getPsiClass(type);
     }
 

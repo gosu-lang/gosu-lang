@@ -43,6 +43,20 @@ public class UrlClassLoaderWrapper {
     return null;
   }
 
+  public static boolean canWrap( ClassLoader loader ) {
+    if( loader == null ) {
+      return false;
+    }
+    Method getURLs = findMethod( loader.getClass(), "getURLs", new Class[0], List.class, URL[].class );
+    if( getURLs != null ) {
+      Method addUrl = findMethod( loader.getClass(), "addUrl", new Class[] {URL.class}, void.class );
+      if( addUrl != null ) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   private static Method findMethod( Class cls, String methodName, Class[] paramTypes, Class... returnType ) {
     outer: for( Method m: cls.getDeclaredMethods() ) {
       if( m.getName().equalsIgnoreCase( methodName ) ) {

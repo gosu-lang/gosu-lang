@@ -127,14 +127,12 @@ public class DependencySink {
     }
 
     List<IFile> result = Collections.EMPTY_LIST;
-    if (type instanceof IFileBasedType) {
-      result = new ArrayList<>();
-      for (IFile file : ((IFileBasedType) type).getSourceFiles()) {
-        if (!file.isInJar()) {
-          result.add(file);
-        }
+    result = new ArrayList<>();
+    for (IFile file : type.getSourceFiles()) {
+      if (!file.isInJar()) {
+        result.add(file);
       }
-      }
+    }
     return result;
   }
 

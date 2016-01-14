@@ -177,4 +177,18 @@ class StructuralTypeTest extends BaseVerifyErrantTest {
       return t.foo()
     }
   }
+
+  structure ReturnParameterizedType_Property { property get X() : List<String> }
+  class ImplReturnParameterizedType_Property { property get X() : List<String> { return {"hi"} } }
+  function testReturnParameterizedType_Property() {
+    var obj: ReturnParameterizedType_Property = new ImplReturnParameterizedType_Property()
+    assertEquals( {"hi"}, obj.X )
+  }
+
+  structure ReturnParameterizedType_Function { function getX() : List<String> }
+  class ImplReturnParameterizedType_Function { function getX() : List<String> { return {"hi"} } }
+  function testReturnParameterizedType_Function() {
+    var obj: ReturnParameterizedType_Function = new ImplReturnParameterizedType_Function()
+    assertEquals( {"hi"}, obj.getX() )
+  }
 }

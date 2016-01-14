@@ -71,20 +71,6 @@ public class GosuEnhancement extends GosuClass implements IGosuEnhancementIntern
     boolean bEnhancement = true;
   }
 
-  public void validateAncestry(List<IType> visited) {
-    if (visited.contains(getOrCreateTypeReference())) {
-      return;
-    }
-    visited.add(getOrCreateTypeReference());
-    
-    isValid();
-    
-    IType enhancedType = getEnhancedType();
-    if (enhancedType instanceof IGosuClass) {
-      ((IGosuClass)enhancedType).validateAncestry(visited);
-    }
-  }
-
   @Override
   public ClassType getClassType() {
     return ClassType.Enhancement;

@@ -201,8 +201,8 @@ public class TypeSystemExplorerForm {
       public void actionPerformed(AnActionEvent e) {
         final String typeName = (String) list.getSelectedValue();
         final IType type = TypeSystem.getByFullName(typeName, TypeSystem.getGlobalModule());
-        if (type instanceof IFileBasedType) {
-          final IFile[] sourceFiles = ((IFileBasedType) type).getSourceFiles();
+        final IFile[] sourceFiles = type.getSourceFiles();
+        if( sourceFiles.length > 0 ) {
           for (IFile sourceFile : sourceFiles) {
             TypeSystem.refreshed(sourceFile);
           }

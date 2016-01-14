@@ -9,15 +9,13 @@ import gw.lang.parser.IFileRepositoryBasedType;
 import gw.lang.parser.IHasInnerClass;
 import gw.lang.reflect.ICanBeAnnotation;
 import gw.lang.reflect.IEnhanceableType;
-import gw.lang.reflect.IFileBasedType;
 import gw.lang.reflect.gs.IGosuClass;
 import gw.util.perf.objectsize.ObjectSize;
 
 import java.util.List;
 
-public interface IJavaType extends IJavaBackedType, IEnhanceableType, IHasInnerClass, IFileRepositoryBasedType, IFileBasedType, IParameterizableType, ICanBeAnnotation
+public interface IJavaType extends IJavaBackedType, IEnhanceableType, IHasInnerClass, IFileRepositoryBasedType, IParameterizableType, ICanBeAnnotation
 {
-
   /**
    * Returns the java class for this java type
    * @return the java class for this java type

@@ -10,7 +10,6 @@ import com.intellij.psi.PsiFile;
 import gw.lang.reflect.AbstractTypeSystemListener;
 import gw.lang.reflect.IBlockType;
 import gw.lang.reflect.IDefaultTypeLoader;
-import gw.lang.reflect.IFileBasedType;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.ITypeLoader;
 import gw.lang.reflect.RefreshRequest;
@@ -46,9 +45,6 @@ public class CustomPsiClassCache extends AbstractTypeSystemListener {
   }
 
   public CustomGosuClass getPsiClass(@NotNull IType type) {
-    if (!(type instanceof IFileBasedType)) {
-      return null;
-    }
     List<VirtualFile> typeResourceFiles = FileUtil.getTypeResourceFiles(type);
     if (typeResourceFiles.isEmpty()) {
       return null;
@@ -83,12 +79,8 @@ public class CustomPsiClassCache extends AbstractTypeSystemListener {
 
   @NotNull
   private CustomGosuClass createPsiClass(@NotNull IType type) {
-    if (!(type instanceof IFileBasedType)) {
-      throw new RuntimeException("Only file-based types can have custom PsiClasses: " + type.getClass().getName());
-    }
-
     verifyArgs(type);
-    return new CustomGosuClass((IFileBasedType) type);
+    return new CustomGosuClass(type);
   }
 
   private void verifyArgs(@NotNull IType type) {
@@ -137,11 +129,9 @@ public class CustomPsiClassCache extends AbstractTypeSystemListener {
             String typeName = cs.toString();
             if (typeName.endsWith(prefix)) {
               IType type = TypeSystem.getByFullNameIfValid(typeName, module);
-              if (type instanceof IFileBasedType) {
-                CustomGosuClass psiClass = getPsiClass(type);
-                if (psiClass != null) {
-                  classes.add(psiClass);
-                }
+              CustomGosuClass psiClass = getPsiClass(type);
+              if (psiClass != null) {
+                classes.add(psiClass);
               }
             }
           }
