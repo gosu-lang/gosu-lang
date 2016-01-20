@@ -26,4 +26,5 @@ public interface IGosuClassLoader
   void assignParent( ClassLoader classLoader );
 
   boolean waitForLoaderToUnload( String packageName, long millisToWait );
+  void evictLoader( String packageName );
 }

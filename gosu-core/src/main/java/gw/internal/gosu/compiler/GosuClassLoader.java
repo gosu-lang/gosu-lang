@@ -449,6 +449,11 @@ public class GosuClassLoader implements IGosuClassLoader
     return true;
   }
 
+  public void evictLoader( String packageName )
+  {
+    _discreteLoaders.evictLoader( packageName );
+  }
+
   private class DiscreteLoaderCache
   {
     // Wrap a delegate to hide the TypeSystemAwareCache#get() method
@@ -470,6 +475,11 @@ public class GosuClassLoader implements IGosuClassLoader
         return true;
       }
       return _delegate.get( key ).get() == null;
+    }
+
+    public void evictLoader( String key )
+    {
+      _delegate.evict( key );
     }
 
     private List<String> getDiscretePackages()

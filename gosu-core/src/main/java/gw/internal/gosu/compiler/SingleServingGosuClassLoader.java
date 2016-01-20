@@ -88,6 +88,12 @@ public class SingleServingGosuClassLoader extends ClassLoader implements IGosuCl
     return _parent.waitForLoaderToUnload( packageName, millisToWait );
   }
 
+  @Override
+  public void evictLoader( String packageName )
+  {
+    _parent.evictLoader( packageName );
+  }
+
   Class _defineClass( ICompilableType gsClass )
   {
     Class cls = getCached( gsClass );
