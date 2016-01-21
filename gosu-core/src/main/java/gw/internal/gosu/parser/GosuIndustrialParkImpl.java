@@ -319,6 +319,11 @@ public class GosuIndustrialParkImpl extends BaseService implements IGosuShop
     return new SourceCodeTokenizer( reader );
   }
 
+  public ITokenizerInstructor createTemplateInstructor( ISourceCodeTokenizer tokenizer )
+  {
+    return new TemplateTokenizerInstructor( tokenizer );
+  }
+
   public IScope createCommnoSymbolScope()
   {
     return CommonSymbolsScope.make();

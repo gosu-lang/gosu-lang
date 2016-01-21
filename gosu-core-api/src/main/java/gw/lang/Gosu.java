@@ -113,7 +113,7 @@ public class Gosu
   }
 
   private List<String> collectArgs(int i, String[] args) {
-    List<String> scriptArgs = new ArrayList<String>();
+    List<String> scriptArgs = new ArrayList<>();
 
     while( i < args.length )
     {
@@ -131,7 +131,8 @@ public class Gosu
     try
     {
       br = new BufferedReader( new FileReader(file) );
-      while ( (line = br.readLine()).trim().isEmpty() ); //ignore
+      //noinspection StatementWithEmptyBody
+      while( (line = br.readLine()).trim().isEmpty() ); //ignore
       if (line.startsWith("classpath"))
       {
         int b = line.indexOf('"');
@@ -194,6 +195,7 @@ public class Gosu
 
   public static void setClasspath( List<File> classpath )
   {
+    classpath = new ArrayList<>( classpath );
     removeDups( classpath );
 
     if( classpath.equals( _classpath ) )
@@ -212,6 +214,9 @@ public class Gosu
       {
         try
         {
+          //## todo:
+          //## Call URL.set( xxx ) so we can set the overwrite the previous ../src path, otherwise these just accumulate with every call to setClasspath() (this method)
+
           Method addURL = URLClassLoader.class.getDeclaredMethod( "addURL", URL.class );
           addURL.setAccessible( true );
           addURL.invoke( loader, entry.toURI().toURL() );
@@ -225,6 +230,11 @@ public class Gosu
 
     reinitGosu( classpath );
     TypeSystem.refresh( true );
+  }
+
+  public static List<File> getClasspath()
+  {
+    return _classpath;
   }
 
   private static void reinitGosu( List<File> classpath )
@@ -262,14 +272,13 @@ public class Gosu
 
   public static void init( List<File> classpath )
   {
-
-    List<File> combined = new ArrayList<File>();
+    List<File> combined = new ArrayList<>();
     combined.addAll( deriveClasspathFrom( Gosu.class ) );
     if( classpath != null )
     {
       combined.addAll( classpath );
     }
-    setClasspath(combined);
+    setClasspath( combined );
   }
 
   public static boolean bootstrapGosuWhenInitiatedViaClassfile()
@@ -294,7 +303,7 @@ public class Gosu
 
   public static List<File> deriveClasspathFrom( Class clazz )
   {
-    List<File> ll = new LinkedList<File>();
+    List<File> ll = new LinkedList<>();
     ClassLoader loader = clazz.getClassLoader();
     while( loader != null )
     {
@@ -345,8 +354,7 @@ public class Gosu
     _rawArgs  = args;
     byte[] bytes = StreamUtil.getContent( new BufferedInputStream(new FileInputStream(script)));
     String content = StreamUtil.toString( bytes );
-    IFileContext ctx = null;
-    ctx = new ProgramFileContext( script,  makeFqn( script ) );
+    IFileContext ctx = new ProgramFileContext( script, makeFqn( script ) );
     IGosuProgramParser programParser = GosuParserFactory.createProgramParser();
     ParserOptions options = new ParserOptions().withFileContext( ctx );
     IParseResult result = programParser.parseExpressionOrProgram( content, new StandardSymbolTable( true ), options );

@@ -154,6 +154,10 @@ public class GosuShop
   {
     return CommonServices.getGosuIndustrialPark().createSourceCodeTokenizer( reader );
   }
+  public static ITokenizerInstructor createTemplateInstructor( ISourceCodeTokenizer tokenizer )
+  {
+    return CommonServices.getGosuIndustrialPark().createTemplateInstructor( tokenizer );
+  }
 
   public static IScope createCommonSymbolScope()
   {

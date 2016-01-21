@@ -91,6 +91,7 @@ public interface IGosuShop extends IService
   ISourceCodeTokenizer createSourceCodeTokenizer( CharSequence code );
   ISourceCodeTokenizer createSourceCodeTokenizer( CharSequence code, boolean bTemplate );  
   ISourceCodeTokenizer createSourceCodeTokenizer( Reader reader );
+  ITokenizerInstructor createTemplateInstructor( ISourceCodeTokenizer tokenizer );
 
   IScope createCommnoSymbolScope();
 

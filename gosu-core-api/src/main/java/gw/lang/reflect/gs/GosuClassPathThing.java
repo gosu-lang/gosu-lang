@@ -115,7 +115,7 @@ public class GosuClassPathThing {
     return url;
   }
 
-  private static void addOurProtocolHandler() {
+  public static void addOurProtocolHandler() {
     try {
       Field field = URL.class.getDeclaredField( "handlers" );
       field.setAccessible( true );

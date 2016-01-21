@@ -1420,6 +1420,10 @@ public class TypeLoaderAccess extends BaseService implements ITypeSystem
     return _primitiveToBoxMap.get(primitiveType);
   }
 
+  public IType getExpandableComponentType( IType type ) {
+    return TypeLord.getExpandableComponentType( type );
+  }
+
   private void initBoxMapsIfNeeded() {
     if (_boxToPrimitiveMap == null) {
       TypeSystem.lock();
