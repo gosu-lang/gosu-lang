@@ -1508,7 +1508,6 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
         {
           // The context here is expected to be a fully qualified class/program/enhancement/template
 
-          System.out.println( "hi" );
           _parsedGosuClass = _parser.parseClass( getScriptPart().getContainingTypeName(), new StringSourceFileHandle( getScriptPart().getContainingTypeName(), strText, _bTestResource, classType ), true, true );
         }
         else
