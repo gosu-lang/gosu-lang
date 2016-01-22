@@ -11,7 +11,6 @@ import editor.util.PlatformUtil;
 import editor.util.SettleModalEventQueue;
 import editor.util.TaskQueue;
 import editor.util.TypeNameUtil;
-import editor.util.filewatcher.FileWatcher;
 import gw.config.CommonServices;
 import gw.lang.Gosu;
 import gw.lang.parser.IScriptPartId;
@@ -329,8 +328,6 @@ public class GosuPanel extends JPanel
 
   private GosuEditor createEditor()
   {
-    FileWatcher.instance().scanForChangesAndNotify();
-
     final GosuEditor editor = new GosuEditor( null,
                                               new AtomicUndoManager( 10000 ),
                                               ScriptabilityModifiers.SCRIPTABLE,

@@ -124,7 +124,6 @@ public class BasicGosuEditor extends JFrame implements IGosuEditor
   public static IGosuEditor create()
   {
     GosuWindowsLAF.setLookAndFeel();
-    editor.util.FixupLookAndFeel.fixupAll();
     CommonServices.getFileSystem().setCachingMode( IFileSystem.CachingMode.NO_CACHING );
     return new BasicGosuEditor();
   }

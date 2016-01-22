@@ -8,7 +8,6 @@ import editor.util.PlatformUtil;
 import editor.util.TaskQueue;
 import editor.util.TextComponentUtil;
 import editor.util.XPToolbarButton;
-import editor.util.filewatcher.FileWatcher;
 import gw.lang.GosuShop;
 import gw.lang.parser.GosuParserFactory;
 import gw.lang.parser.IDynamicFunctionSymbol;
@@ -297,7 +296,6 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
       public void focusGained( FocusEvent e )
       {
         _smartFixManager.updateState();
-        FileWatcher.instance().scanForChangesAndNotify();
       }
     } );
     TypeSystem.addTypeLoaderListenerAsWeakRef( this );
