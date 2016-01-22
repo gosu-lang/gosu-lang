@@ -1588,7 +1588,6 @@ public class GosuPanel extends JPanel
     try
     {
       StreamUtil.copy( new StringReader( editor.getText() ), new FileOutputStream( file ) );
-      debug( "Saved: " + file.getName() );
       setDirty( editor, false );
       reload( editor.getScriptPart().getContainingType() );
     }
