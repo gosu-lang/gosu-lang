@@ -661,9 +661,10 @@ public class EditorUtilities
   public static File getUserFile()
   {
     File file = new File( getUserGosuEditorDir(), "layout.properties" );
-    if( !file.isFile() ) {
+    if( !file.isFile() )
+    {
       Properties props = new Properties();
-      props.put( "project", "scratch" );
+      props.put( "project", makeScratchProject().getProjectDir().getAbsolutePath() );
 
       try( FileWriter writer = new FileWriter( file ) )
       {
@@ -677,13 +678,14 @@ public class EditorUtilities
     return file;
   }
 
-  public static String getRecentProject() {
+  public static Project getRecentProject()
+  {
     File userFile = getUserFile();
     Properties props = new Properties();
     try( FileReader reader = new FileReader( userFile ) )
     {
       props.load( reader );
-      return props.getProperty( "project" );
+      return new Project( new File( props.getProperty( "project" ) ) );
     }
     catch( Exception e )
     {
@@ -691,12 +693,12 @@ public class EditorUtilities
     }
   }
 
-  public static void saveLayoutState( String project ) {
+  public static void saveLayoutState( Project project ) {
     File userFile = getUserFile();
     try( FileWriter writer = new FileWriter( userFile ) )
     {
       Properties props = new Properties();
-      props.put( "project", project );
+      props.put( "project", project.getProjectDir().getAbsolutePath() );
       props.store( writer, "Gosu Editor" );
     }
     catch( Exception e )
@@ -713,7 +715,7 @@ public class EditorUtilities
     return gosuDir;
   }
 
-  public static File getProjectsDir()
+  public static File getStockProjectsDir()
   {
     File gosuDir = new File( System.getProperty( "user.home" ) + File.separator + ".GosuEditor" + File.separator + "projects" );
     //noinspection ResultOfMethodCallIgnored
@@ -721,76 +723,27 @@ public class EditorUtilities
     return gosuDir;
   }
 
-  public static List<String> getProjects()
+  public static List<File> getStockProjects()
   {
-    List<String> projects = new ArrayList<>();
-    File projectsDir = getProjectsDir();
-    for( File file: projectsDir.listFiles() )
+    List<File> projects = new ArrayList<>();
+    File projectsDir = getStockProjectsDir();
+    for( File dir : projectsDir.listFiles() )
     {
-      if( file.isDirectory() )
+      if( dir.isDirectory() )
       {
-        projects.add( file.getName() );
+        File projectFile = new File( dir, dir.getName() + ".prj" );
+        if( projectFile.exists() )
+        {
+          projects.add( dir );
+        }
       }
     }
     return projects;
   }
 
-  public static File getProjectDir( String name )
+  private static Project makeScratchProject()
   {
-    File projectsDir = getProjectsDir();
-    for( File file: projectsDir.listFiles() )
-    {
-      if( file.isDirectory() && file.getName().equals( name ) )
-      {
-        return file;
-      }
-    }
-    return null;
-  }
-
-  public static File getOrMakeProjectFile( String name )
-  {
-    File projectDir = new File( getProjectsDir(), name );
-    //noinspection ResultOfMethodCallIgnored
-    projectDir.mkdirs();
-    File project = new File( projectDir, "project.properties" );
-    if( project.isFile() ) {
-      return project;
-    }
-    //noinspection ResultOfMethodCallIgnored
-    try( FileWriter writer = new FileWriter( project ) ) {
-      Properties props = new Properties();
-      File projectSrc = getProjectSrc( name );
-      projectSrc.mkdirs();
-      props.put( "Classpath.Entry" + 0, projectSrc.getAbsolutePath() );
-      props.store( writer, "Gosu Project: " + name );
-    }
-    catch( Exception e ) {
-      throw new RuntimeException( e );
-    }
-    return project;
-  }
-
-  public static File getProjectSrc( String projectName )
-  {
-    return new File( EditorUtilities.getUserGosuEditorDir(), "projects" + File.separator + projectName + File.separator + "src" );
-  }
-
-  public static File getOrMakeUntitledProgram( String projectName )
-  {
-    File srcDir = getProjectSrc( projectName );
-    //noinspection ResultOfMethodCallIgnored
-    srcDir.mkdirs();
-    File file = new File( srcDir, "Untitled.gsp" );
-    try
-    {
-      //noinspection ResultOfMethodCallIgnored
-      file.createNewFile();
-      return file;
-    }
-    catch( IOException e )
-    {
-      throw new RuntimeException( e );
-    }
+    File projectDir = new File( getStockProjectsDir(), "scratch" );
+    return new Project( projectDir );
   }
 }

@@ -1,5 +1,6 @@
 package editor;
 
+import editor.util.Project;
 import gw.lang.parser.IScriptPartId;
 
 import java.io.File;
@@ -15,7 +16,7 @@ public interface IGosuEditor
 
   void openFile( File sourceFile );
 
-  void restoreState( String project );
+  void restoreState( Project project );
 
   void reset();
 }

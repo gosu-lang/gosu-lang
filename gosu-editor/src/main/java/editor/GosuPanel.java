@@ -5,9 +5,9 @@ import editor.search.StandardLocalSearch;
 import editor.undo.AtomicUndoManager;
 import editor.util.BrowserUtil;
 import editor.util.EditorUtilities;
-import editor.util.ILabel;
 import editor.util.LabelListPopup;
 import editor.util.PlatformUtil;
+import editor.util.Project;
 import editor.util.SettleModalEventQueue;
 import editor.util.TaskQueue;
 import editor.util.TypeNameUtil;
@@ -35,26 +35,20 @@ import javax.swing.text.AbstractDocument;
 import java.awt.*;
 import java.awt.datatransfer.Clipboard;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.InputEvent;
-import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.StringReader;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.util.Properties;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -72,14 +66,13 @@ public class GosuPanel extends JPanel
   private JPanel _projectView;
   private JFrame _parentFrame;
   private boolean _bRunning;
-  private String _commandLine = "";
   private JTabbedPane _tabPane;
   private AtomicUndoManager _defaultUndoMgr;
   private TabSelectionHistory _history;
   private JLabel _status;
   private JPanel _statPanel;
   private boolean _initialFile;
-  private String _project;
+  private Project _project;
 
 
   public GosuPanel( JFrame basicGosuEditor )
@@ -176,35 +169,11 @@ public class GosuPanel extends JPanel
     {
       return;
     }
-    Properties props = new Properties();
-    props.put( "Tab.Active", ((File)((JComponent)_tabPane.getSelectedComponent()).getClientProperty( "_file" )).getAbsolutePath() );
-    for( int i = 0; i < _tabPane.getTabCount(); i++ )
-    {
-      File file = (File)((JComponent)_tabPane.getComponentAt( i )).getClientProperty( "_file" );
-      props.put( "Tab.Open." + ((char)(i + 'A')), file.getAbsolutePath() );
-    }
-
-    List<String> localClasspath = getLocalClasspath();
-    for( int i = 0; i < localClasspath.size(); i++ )
-    {
-      props.put( "Classpath.Entry" + i, localClasspath.get( i ) );
-    }
-
-    File userFile = EditorUtilities.getOrMakeProjectFile( getProject() );
-    try
-    {
-      FileWriter fw = new FileWriter( userFile );
-      props.store( fw, "Gosu Project" );
-    }
-    catch( IOException e )
-    {
-      throw new RuntimeException( e );
-    }
-
+    getProject().save( _tabPane );
     EditorUtilities.saveLayoutState( _project );
   }
 
-  private String getProject()
+  private Project getProject()
   {
     return _project;
   }
@@ -233,67 +202,33 @@ public class GosuPanel extends JPanel
            filePath.endsWith( File.separator + "idea_rt.jar" );
   }
 
-  public void restoreProjectState( String project )
+  public void restoreProjectState( Project project )
   {
     _project = project;
 
-    File userFile = EditorUtilities.getOrMakeProjectFile( project );
-    if( !userFile.isFile() )
+    if( project.getSourcePath().size() > 0 )
     {
-      throw new IllegalStateException();
+      Gosu.setClasspath( project.getSourcePath().stream().map( File::new ).collect( Collectors.toList() ) );
     }
 
-    Properties props = new Properties();
-    try
+    TypeSystem.refresh( TypeSystem.getGlobalModule() );
+
+    for( String openFile : project.getOpenFiles() )
     {
-      props.load( new FileReader( userFile ) );
-      Set<String> keys = props.stringPropertyNames();
-      //noinspection SuspiciousToArrayCall
-      String[] sortedKeys = keys.toArray( new String[keys.size()] );
-      Arrays.sort( sortedKeys );
-      ArrayList<File> classpath = new ArrayList<>();
-      for( String cpEntry : sortedKeys )
+      File file = new File( openFile );
+      if( file.isFile() )
       {
-        if( cpEntry.startsWith( "Classpath.Entry" ) )
-        {
-          File file = new File( props.getProperty( cpEntry ) );
-          if( file.exists() )
-          {
-            classpath.add( file );
-          }
-        }
-      }
-      if( classpath.size() > 0 )
-      {
-        Gosu.setClasspath( classpath );
-      }
-
-      TypeSystem.refresh( TypeSystem.getGlobalModule() );
-
-      for( String strTab : sortedKeys )
-      {
-        if( strTab.startsWith( "Tab.Open" ) )
-        {
-          File file = new File( props.getProperty( strTab ) );
-          if( file.isFile() )
-          {
-            openFile( file );
-          }
-        }
-      }
-      String strActiveFile = props.getProperty( "Tab.Active" );
-      if( strActiveFile == null )
-      {
-        openFile( EditorUtilities.getOrMakeUntitledProgram( project ) );
-      }
-      else
-      {
-        openTab( new File( strActiveFile ) );
+        openFile( file );
       }
     }
-    catch( IOException e )
+    String activeFile = project.getActiveFile();
+    if( activeFile == null )
     {
-      throw new RuntimeException( e );
+      openFile( project.getOrMakeUntitledProgram() );
+    }
+    else
+    {
+      openTab( new File( activeFile ) );
     }
   }
 
@@ -1668,42 +1603,67 @@ public class GosuPanel extends JPanel
 
   public void newProject()
   {
-    String project = JOptionPane.showInputDialog( "Project Name" );
-    if( project == null )
+    JFileChooser fc = new JFileChooser( getProject().getProjectDir() );
+    fc.setDialogTitle( "New Project" );
+    fc.setDialogType( JFileChooser.OPEN_DIALOG );
+    fc.setFileSelectionMode( JFileChooser.DIRECTORIES_ONLY );
+    fc.setMultiSelectionEnabled( false );
+    fc.setFileFilter(
+      new FileFilter()
+      {
+        public boolean accept( File f )
+        {
+          return !new File( f, f.getName() + ".prj" ).exists();
+        }
+
+        public String getDescription()
+        {
+          return "Gosu Project Directory (directory name is your project name)";
+        }
+      } );
+    int returnVal = fc.showOpenDialog( editor.util.EditorUtilities.frameForComponent( this ) );
+    if( returnVal != JFileChooser.APPROVE_OPTION )
     {
       return;
     }
-    File projectsDir = EditorUtilities.getProjectsDir();
-    File dir = new File( projectsDir, project );
-    if( dir.mkdirs() ) {
-      clearTabs();
-      EventQueue.invokeLater( () -> restoreProjectState( project ) );
-    }
+    File selectedFile = fc.getSelectedFile();
+    Project project = new Project( selectedFile.getName(), selectedFile );
+    clearTabs();
+    EventQueue.invokeLater( () -> restoreProjectState( project ) );
   }
 
   public void openProject()
   {
-    LabelListPopup popup = new LabelListPopup( "Projects", EditorUtilities.getProjects().stream().map( s -> new ILabel() {
-      public String getDisplayName()
+    JFileChooser fc = new JFileChooser( getProject().getProjectDir() );
+    fc.setDialogTitle( "Open Project" );
+    fc.setDialogType( JFileChooser.OPEN_DIALOG );
+    fc.setFileSelectionMode( JFileChooser.FILES_AND_DIRECTORIES );
+    fc.setMultiSelectionEnabled( false );
+    fc.setFileFilter(
+      new FileFilter()
       {
-        return s;
-      }
-      public Icon getIcon( int iTypeFlags )
-      {
-        return null;
-      }
-    } ).collect( Collectors.toList() ), "No projects" );
-    popup.addNodeChangeListener(
-      e -> {
-        clearTabs();
-        String project = ((ILabel)e.getSource()).getDisplayName();
-        File projectDir = EditorUtilities.getProjectDir( project );
-        if( projectDir != null )
+        public boolean accept( File f )
         {
-          EventQueue.invokeLater( () -> restoreProjectState( project ) );
+          return f.isDirectory() ||
+                 (f.isFile() && f.getName().equals( f.getParentFile().getName() + ".prj" ));
+        }
+
+        public String getDescription()
+        {
+          return "Gosu Project (.prj)";
         }
       } );
-    popup.show( this, getWidth() / 2 - 100, getHeight() / 2 - 200 );
+    int returnVal = fc.showOpenDialog( editor.util.EditorUtilities.frameForComponent( this ) );
+    if( returnVal != JFileChooser.APPROVE_OPTION )
+    {
+      return;
+    }
+    clearTabs();
+    File selectedFile = fc.getSelectedFile();
+    if( selectedFile.isFile() )
+    {
+      EventQueue.invokeLater( () -> restoreProjectState( new Project( selectedFile.getParentFile() ) ) );
+    }
   }
 
   private boolean isValidGosuSourceFile( File file )
@@ -2047,66 +2007,6 @@ public class GosuPanel extends JPanel
   void clearOutput()
   {
     _resultPanel.clear();
-  }
-
-  private void showOptions()
-  {
-    final JDialog dialog = new JDialog( editor.util.EditorUtilities.frameForComponent( this ), "Options", true );
-
-    JPanel centerPanel = new JPanel();
-    JLabel commandLineLabel = new JLabel( "Program Arguments:" );
-    final JTextField commandLineField = new JTextField( _commandLine, 30 );
-
-    centerPanel.add( commandLineLabel );
-    centerPanel.add( commandLineField );
-
-    dialog.add( centerPanel, BorderLayout.CENTER );
-
-    JPanel buttonPanel = new JPanel();
-    JButton okButton = new JButton( "Ok" );
-    JButton cancelButton = new JButton( "Cancel" );
-    buttonPanel.add( okButton );
-    buttonPanel.add( cancelButton );
-    dialog.add( buttonPanel, BorderLayout.SOUTH );
-    dialog.pack();
-
-    ActionListener okAction = new ActionListener()
-    {
-      public void actionPerformed( ActionEvent e )
-      {
-        _commandLine = commandLineField.getText();
-        dialog.dispose();
-      }
-    };
-
-    final ActionListener cancelAction = new ActionListener()
-    {
-      public void actionPerformed( ActionEvent e )
-      {
-        dialog.dispose();
-      }
-    };
-
-    commandLineField.addActionListener( okAction );
-    okButton.addActionListener( okAction );
-    cancelButton.addActionListener( cancelAction );
-
-    commandLineField.addKeyListener( new KeyAdapter()
-    {
-      @Override
-      public void keyPressed( KeyEvent e )
-      {
-        super.keyPressed( e );
-        if( e.getKeyCode() == KeyEvent.VK_ESCAPE )
-        {
-          cancelAction.actionPerformed( null );
-        }
-      }
-    } );
-
-    editor.util.EditorUtilities.centerWindowInFrame( dialog, editor.util.EditorUtilities.frameForComponent( this ) );
-
-    dialog.setVisible( true );
   }
 
   public AtomicUndoManager getUndoManager()

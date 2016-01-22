@@ -2,6 +2,7 @@ package editor;
 
 
 import editor.util.EditorUtilities;
+import editor.util.Project;
 import gw.lang.Gosu;
 
 import java.awt.*;

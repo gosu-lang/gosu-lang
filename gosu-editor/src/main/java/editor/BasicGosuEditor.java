@@ -1,5 +1,6 @@
 package editor;
 
+import editor.util.Project;
 import gw.config.CommonServices;
 import gw.lang.parser.IScriptPartId;
 import gw.lang.reflect.module.IFileSystem;
@@ -106,7 +107,7 @@ public class BasicGosuEditor extends JFrame implements IGosuEditor
     GosuEventQueue.instance().run();
   }
 
-  public void restoreState( String project )
+  public void restoreState( Project project )
   {
     _panel.restoreProjectState( project );
   }
