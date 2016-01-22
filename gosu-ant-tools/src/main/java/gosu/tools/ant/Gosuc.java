@@ -32,6 +32,7 @@ import java.util.stream.Collectors;
  *     <li>"checkedarithmetic" : Compile with checked arithmetic if true.  Defaults to {@code false}.</li>
  *     <li>"failonerror" : Ignore compile errors and continue if true.  Defaults to {@code true}.</li>
  *     <li>"projectname" : Outputs this value in the compilation complete message.  Defaults to the empty string.</li>
+ *     <li>"additionalscriptextensions" : Comma-separated list of additional file extensions to compile.  Normally not required.</li>
  *   </ul>
  */
 public class Gosuc extends GosuMatchingTask {
@@ -135,6 +136,14 @@ public class Gosuc extends GosuMatchingTask {
 
   private Set<String> getScriptExtensions() {
     return _scriptExtensions;
+  }
+
+  /**
+   * 
+   * @param extensions Additional extensions to compile; for example "grs, gr"
+   */
+  public void setAdditionalScriptExtensions(String extensions) {
+    _scriptExtensions.addAll( Arrays.asList( extensions.split( ",\\s*" ) ) );
   }
 
   /**
@@ -264,6 +273,7 @@ public class Gosuc extends GosuMatchingTask {
     log.debug("destdir=" + getDestdir());
     log.debug("failOnError=" + getFailOnError());
     log.debug("checkedArithmetic=" + isCheckedArithmetic());
+    log.debug("scriptExtensions=" + getScriptExtensions());
     log.debug("_compileClasspath=" + _compileClasspath);
 
     if(isCheckedArithmetic()) {
@@ -286,18 +296,28 @@ public class Gosuc extends GosuMatchingTask {
     log.debug("\tclasspath:" + classpath);
     log.debug("\toutputPath:" + getDestdir().getAbsolutePath());
 
-    String[] list = getSrcdir().list();
-    for (String filename : list) {
-      File file = getProject().resolveFile(filename);
-      if (!file.exists()) {
-        throw new BuildException("srcdir \"" + file.getPath() + "\" does not exist!", getLocation());
+    List<String> sourceRoots = Arrays.asList(getSrcdir().list());
+    for (String sourceRootName : sourceRoots) {
+      File sourceRoot = getProject().resolveFile(sourceRootName);
+      if (!sourceRoot.exists()) {
+        throw new BuildException("srcdir \"" + sourceRoot.getPath() + "\" does not exist!", getLocation());
       }
-      DirectoryScanner ds = this.getDirectoryScanner(file);
+      DirectoryScanner ds = this.getDirectoryScanner(sourceRoot);
       String[] files = ds.getIncludedFiles();
-      scanDir(file, _destDir != null ? _destDir : file, files);
+      if( hasSelectors() ) { 
+        // we have explicit includes/excludes criteria nested in a <src> element; no need to call scanDir
+        // this is the typical use case when ant is invoked dynamically by gradle
+        for( String relativeFilename : files ) {
+          compileList.add( new File( sourceRoot, relativeFilename ) );
+        }
+      } else {
+        // <src> element was not used - instead we have an explicit list of srcDir elements 
+        // and optionally additionalscriptextensions specified in addition to the defaults
+        scanDir(sourceRoot, _destDir != null ? _destDir : sourceRoot, files);
+      }
     }
     
-    gosuc.initializeGosu(Arrays.asList(getSrcdir().list()), classpath, getDestdir().getAbsolutePath());
+    gosuc.initializeGosu(sourceRoots, classpath, getDestdir().getAbsolutePath());
 
     log.debug("About to compile these files:");
     for(File file : compileList) {
