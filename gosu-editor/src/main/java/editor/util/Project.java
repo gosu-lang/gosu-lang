@@ -1,5 +1,7 @@
 package editor.util;
 
+import editor.FileWatcher;
+import editor.GosuPanel;
 import gw.lang.reflect.TypeSystem;
 
 import javax.swing.*;
@@ -23,10 +25,12 @@ public class Project
   private File _projectDir;
   private List<String> _openFiles;
   private String _activeFile;
+  private GosuPanel _gosuPanel;
 
-  public Project( String name, File dir )
+  public Project( String name, File dir, GosuPanel gosuPanel )
   {
     _name = name;
+    _gosuPanel = gosuPanel;
     _sourcePath = Arrays.asList( new File( dir, getRelativeGosuSourcePath() ).getAbsolutePath() );
     _projectDir = dir;
     //noinspection ResultOfMethodCallIgnored
@@ -34,10 +38,12 @@ public class Project
     _openFiles = Collections.emptyList();
   }
 
-  public Project( File dir )
+  public Project( File dir, GosuPanel gosuPanel )
   {
     _projectDir = dir;
+    _gosuPanel = gosuPanel;
     load();
+    FileWatcher.instance( this );
   }
 
   public String getName()
@@ -75,6 +81,11 @@ public class Project
   public String getActiveFile()
   {
     return _activeFile;
+  }
+
+  public GosuPanel getGosuPanel()
+  {
+    return _gosuPanel;
   }
 
   public File getOrMakeProjectFile()

@@ -9,7 +9,7 @@ import java.awt.*;
 
 public class RunMe
 {
-  private static IGosuEditor _gosuEditor;
+  private static BasicGosuEditor _gosuEditor;
 
   public static void main( String[] args ) throws Exception
   {
@@ -27,7 +27,7 @@ public class RunMe
       () -> {
         Gosu.init();
         _gosuEditor = BasicGosuEditor.create();
-        _gosuEditor.restoreState( EditorUtilities.getRecentProject() );
+        _gosuEditor.restoreState( EditorUtilities.getRecentProject( _gosuEditor.getGosuPanel() ) );
         _gosuEditor.showMe();
       } );
   }

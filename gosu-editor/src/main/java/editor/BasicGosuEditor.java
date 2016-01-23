@@ -107,6 +107,11 @@ public class BasicGosuEditor extends JFrame implements IGosuEditor
     GosuEventQueue.instance().run();
   }
 
+  public GosuPanel getGosuPanel()
+  {
+    return _panel;
+  }
+
   public void restoreState( Project project )
   {
     _panel.restoreProjectState( project );
@@ -122,7 +127,7 @@ public class BasicGosuEditor extends JFrame implements IGosuEditor
     _panel.closeTab( (File)contentId );
   }
 
-  public static IGosuEditor create()
+  public static BasicGosuEditor create()
   {
     GosuWindowsLAF.setLookAndFeel();
     CommonServices.getFileSystem().setCachingMode( IFileSystem.CachingMode.NO_CACHING );

@@ -63,7 +63,7 @@ public class GosuPanel extends JPanel
   private SystemPanel _resultPanel;
   private SplitPane _outerSplitPane;
   private SplitPane _splitPane;
-  private JPanel _projectView;
+  private ProjectView _projectView;
   private JFrame _parentFrame;
   private boolean _bRunning;
   private JTabbedPane _tabPane;
@@ -130,7 +130,7 @@ public class GosuPanel extends JPanel
     _splitPane = new SplitPane( SwingConstants.VERTICAL, _tabPane, _resultPanel );
     _splitPane.setBorder( BorderFactory.createEmptyBorder( 0, 3, 3, 3 ) );
 
-    _projectView = new JPanel();
+    _projectView = new ProjectView();
     _projectView.setBackground( Color.white );
     _outerSplitPane = new SplitPane( SwingConstants.HORIZONTAL, _projectView, _splitPane );
     add( _outerSplitPane, BorderLayout.CENTER );
@@ -145,6 +145,11 @@ public class GosuPanel extends JPanel
     setSplitPosition( 10 );
 
     EventQueue.invokeLater( this::mapKeystrokes );
+  }
+
+  public ProjectView getProjectView()
+  {
+    return _projectView;
   }
 
   private void handleMacStuff()
@@ -230,6 +235,8 @@ public class GosuPanel extends JPanel
     {
       openTab( new File( activeFile ) );
     }
+    SettleModalEventQueue.instance().run();
+    _projectView.load( _project );
   }
 
   private JPanel makeStatusBar()
@@ -1627,7 +1634,7 @@ public class GosuPanel extends JPanel
       return;
     }
     File selectedFile = fc.getSelectedFile();
-    Project project = new Project( selectedFile.getName(), selectedFile );
+    Project project = new Project( selectedFile.getName(), selectedFile, this );
     clearTabs();
     EventQueue.invokeLater( () -> restoreProjectState( project ) );
   }
@@ -1662,7 +1669,7 @@ public class GosuPanel extends JPanel
     File selectedFile = fc.getSelectedFile();
     if( selectedFile.isFile() )
     {
-      EventQueue.invokeLater( () -> restoreProjectState( new Project( selectedFile.getParentFile() ) ) );
+      EventQueue.invokeLater( () -> restoreProjectState( new Project( selectedFile.getParentFile(), this ) ) );
     }
   }
 

@@ -1,5 +1,6 @@
 package editor.util;
 
+import editor.GosuPanel;
 import gw.lang.reflect.IFunctionType;
 import gw.lang.reflect.IParameterInfo;
 import gw.lang.reflect.IType;
@@ -658,13 +659,13 @@ public class EditorUtilities
     return null;
   }
 
-  public static File getUserFile()
+  public static File getUserFile( GosuPanel gosuPanel )
   {
     File file = new File( getUserGosuEditorDir(), "layout.properties" );
     if( !file.isFile() )
     {
       Properties props = new Properties();
-      props.put( "project", makeScratchProject().getProjectDir().getAbsolutePath() );
+      props.put( "project", makeScratchProject( gosuPanel ).getProjectDir().getAbsolutePath() );
 
       try( FileWriter writer = new FileWriter( file ) )
       {
@@ -678,14 +679,14 @@ public class EditorUtilities
     return file;
   }
 
-  public static Project getRecentProject()
+  public static Project getRecentProject( GosuPanel gosuPanel )
   {
-    File userFile = getUserFile();
+    File userFile = getUserFile( gosuPanel );
     Properties props = new Properties();
     try( FileReader reader = new FileReader( userFile ) )
     {
       props.load( reader );
-      return new Project( new File( props.getProperty( "project" ) ) );
+      return new Project( new File( props.getProperty( "project" ) ), gosuPanel );
     }
     catch( Exception e )
     {
@@ -694,7 +695,7 @@ public class EditorUtilities
   }
 
   public static void saveLayoutState( Project project ) {
-    File userFile = getUserFile();
+    File userFile = getUserFile( project.getGosuPanel() );
     try( FileWriter writer = new FileWriter( userFile ) )
     {
       Properties props = new Properties();
@@ -741,9 +742,9 @@ public class EditorUtilities
     return projects;
   }
 
-  private static Project makeScratchProject()
+  private static Project makeScratchProject( GosuPanel gosuPanel )
   {
     File projectDir = new File( getStockProjectsDir(), "scratch" );
-    return new Project( projectDir );
+    return new Project( projectDir, gosuPanel );
   }
 }
