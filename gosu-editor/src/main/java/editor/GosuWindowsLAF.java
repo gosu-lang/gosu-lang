@@ -11,41 +11,13 @@ public class GosuWindowsLAF extends WindowsLookAndFeel
 {
   public static void setLookAndFeel()
   {
-    if( !PlatformUtil.isWindows() )
+    try
     {
-      String strOldOsVersion = System.getProperty( "os.version" );
-      try
-      {
-        System.setProperty( "os.version", "7.0" );
-        UIManager.setLookAndFeel( new GosuWindowsLAF() );
-      }
-      catch( Throwable t )
-      {
-        System.setProperty( "os.version", strOldOsVersion );
-        try
-        {
-          UIManager.setLookAndFeel( UIManager.getSystemLookAndFeelClassName() );
-        }
-        catch( Throwable t2 )
-        {
-          throw new RuntimeException( t2 );
-        }
-      }
-      finally
-      {
-        System.setProperty( "os.version", strOldOsVersion );
-      }
+      UIManager.setLookAndFeel( UIManager.getSystemLookAndFeelClassName() );
     }
-    else
+    catch( Exception e )
     {
-      try
-      {
-        UIManager.setLookAndFeel( UIManager.getSystemLookAndFeelClassName() );
-      }
-      catch( Exception e )
-      {
-        throw new RuntimeException( e );
-      }
+      throw new RuntimeException( e );
     }
   }
 

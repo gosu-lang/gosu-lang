@@ -17,10 +17,13 @@ import editor.util.TaskQueue;
 import editor.util.TypeNameUtil;
 import gw.config.CommonServices;
 import gw.lang.Gosu;
+import gw.lang.parser.IParseIssue;
 import gw.lang.parser.IScriptPartId;
 import gw.lang.parser.ScriptPartId;
 import gw.lang.parser.ScriptabilityModifiers;
 import gw.lang.parser.TypelessScriptPartId;
+import gw.lang.parser.exceptions.ParseResultsException;
+import gw.lang.parser.resources.ResourceKey;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.ITypeRef;
 import gw.lang.reflect.TypeSystem;
@@ -36,6 +39,8 @@ import javax.swing.event.MenuEvent;
 import javax.swing.event.MenuListener;
 import javax.swing.filechooser.FileFilter;
 import javax.swing.text.AbstractDocument;
+import javax.swing.text.BadLocationException;
+import javax.swing.undo.CompoundEdit;
 import java.awt.*;
 import java.awt.datatransfer.Clipboard;
 import java.awt.event.ActionEvent;
@@ -50,7 +55,10 @@ import java.io.StringReader;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -653,6 +661,25 @@ public class GosuPanel extends JPanel
     openTypeItem.setMnemonic( 'O' );
     openTypeItem.setAccelerator( KeyStroke.getKeyStroke( "control N" ) );
     codeMenu.add( openTypeItem );
+
+    if( "true".equals( System.getProperty( "spec" ) ) )
+    {
+      codeMenu.addSeparator();
+
+
+      JMenuItem markItem = new JMenuItem(
+        new AbstractAction( "Mark Errors For Gosu Language Test" )
+        {
+          @Override
+          public void actionPerformed( ActionEvent e )
+          {
+            markErrorsForGosuLanguageTest();
+          }
+        } );
+      markItem.setMnemonic( 'M' );
+      markItem.setAccelerator( KeyStroke.getKeyStroke( "control M" ) );
+      codeMenu.add( markItem );
+    }
   }
 
   public GosuEditor getCurrentEditor()
@@ -2262,5 +2289,85 @@ public class GosuPanel extends JPanel
     public void menuCanceled( MenuEvent e )
     {
     }
+  }
+
+  private void markErrorsForGosuLanguageTest()
+  {
+    GosuDocument document = getCurrentEditor().getGosuDocument();
+    ParseResultsException pre = document.getParseResultsException();
+    if( pre == null || (!pre.hasParseExceptions() && !pre.hasParseWarnings()) )
+    {
+      return;
+    }
+    final Map<Integer, List<String>> map = new HashMap<Integer, List<String>>();
+    for( IParseIssue pi: pre.getParseIssues() ) {
+      ResourceKey messageKey = pi.getMessageKey();
+      if( messageKey != null )
+      {
+        String issue = messageKey.getKey();
+        int iLine = pi.getLine();
+        List<String> issues = map.get( iLine );
+        if( issues == null ) {
+          map.put( iLine, issues = new ArrayList<String>() );
+        }
+        issues.add( issue );
+      }
+    }
+    final List<Integer> lines = new ArrayList<Integer>( map.keySet() );
+    Collections.sort( lines );
+
+    String text = null;
+    try
+    {
+      text = document.getText( 0, document.getLength() );
+      String[] strLines = text.split( "\n" );
+      removeOldIssueKeyMarkers( strLines );
+      addIssueKeyMarkers( strLines, lines, map );
+      CompoundEdit atom = getUndoManager().beginUndoAtom( "Mark Pahse" );
+      document.replace( 0, text.length(), joinLines( strLines ), null );
+      getUndoManager().endUndoAtom(atom);
+    }
+    catch( BadLocationException e )
+    {
+      e.printStackTrace();
+    }
+  }
+
+  private String joinLines( String[] strLines )
+  {
+    StringBuilder sb = new StringBuilder(  );
+    for(String line : strLines)
+    {
+      sb.append( line ).append( '\n' );
+    }
+    return sb.toString();
+  }
+
+  private void removeOldIssueKeyMarkers( String[] lines )
+  {
+    for(int i = 0;  i < lines.length; i++)
+    {
+      int issueIndex = lines[i].indexOf( "  //## issuekeys:" );
+      if(issueIndex != -1)
+      {
+        lines[i] = lines[i].substring( 0, issueIndex );
+      }
+    }
+  }
+
+  private void addIssueKeyMarkers( String[] strLines, List<Integer> lines, Map<Integer, List<String>> map ) {
+    for( int iLine : lines ) {
+      String issues = makeIssueString( map.get( iLine ) );
+      strLines[iLine-1] = strLines[iLine-1].concat( issues );
+    }
+  }
+
+  private String makeIssueString( List<String> issues ) {
+    StringBuilder sb = new StringBuilder();
+    for( String issue: issues ) {
+      sb.append( sb.length() != 0 ? ", " : "" ).append( issue );
+    }
+    sb.insert( 0, "  //## issuekeys: " );
+    return sb.toString();
   }
 }
