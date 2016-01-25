@@ -1,6 +1,8 @@
 package editor;
 
 import editor.util.Project;
+import gw.lang.reflect.IType;
+import gw.lang.reflect.TypeSystem;
 
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.MutableTreeNode;
@@ -48,6 +50,10 @@ public class FileTree implements MutableTreeNode, IFileWatcherListener
     }
   }
 
+  public String getName()
+  {
+    return _name;
+  }
   private void setName( String name )
   {
     _name = name;
@@ -74,9 +80,13 @@ public class FileTree implements MutableTreeNode, IFileWatcherListener
   private void makeSourcePathChildren( File fileOrDir )
   {
     List<FileTree> children = new ArrayList<>();
-    for( File path: fileOrDir.listFiles() )
+    File[] files = fileOrDir.listFiles();
+    if( files != null )
     {
-      children.add( new FileTree( path, this, _project ) );
+      for( File path : files )
+      {
+        children.add( new FileTree( path, this, _project ) );
+      }
     }
     _children = children;
   }
@@ -149,6 +159,7 @@ public class FileTree implements MutableTreeNode, IFileWatcherListener
   @Override
   public void remove( MutableTreeNode node )
   {
+    //noinspection SuspiciousMethodCalls
     getChildren().remove( node );
     if( ((FileTree)node).isDirectory() )
     {
@@ -254,5 +265,37 @@ public class FileTree implements MutableTreeNode, IFileWatcherListener
   private ProjectView getProjectView()
   {
     return _project.getGosuPanel().getProjectView();
+  }
+
+  public Project getProject()
+  {
+    return _project;
+  }
+
+  public boolean isSourcePathRoot()
+  {
+    return isDirectory() && getProject().getSourcePath().contains( getFileOrDir().getAbsolutePath() );
+  }
+
+  public FileTree getSourcePathRoot()
+  {
+    FileTree srcPathRoot = this;
+    while( srcPathRoot != null && !srcPathRoot.isSourcePathRoot() )
+    {
+      srcPathRoot = (FileTree)srcPathRoot.getParent();
+    }
+    return srcPathRoot;
+  }
+
+  public IType getType()
+  {
+    FileTree sourcePathRoot = getSourcePathRoot();
+    if( isSourcePathRoot() || sourcePathRoot == null )
+    {
+      return null;
+    }
+    String fqn = getFileOrDir().getAbsolutePath().substring( sourcePathRoot.getFileOrDir().getAbsolutePath().length() + 1 );
+    fqn = fqn.substring( 0, fqn.lastIndexOf( '.' ) ).replace( File.separatorChar, '.' );
+    return TypeSystem.getByFullNameIfValidNoJava( fqn );
   }
 }

@@ -2,6 +2,10 @@ package editor;
 
 import editor.search.MessageDisplay;
 import editor.search.StandardLocalSearch;
+import editor.splitpane.CollapsibleSplitPane;
+import editor.tabpane.ITab;
+import editor.tabpane.TabPane;
+import editor.tabpane.TabPosition;
 import editor.undo.AtomicUndoManager;
 import editor.util.BrowserUtil;
 import editor.util.EditorUtilities;
@@ -37,8 +41,6 @@ import java.awt.datatransfer.Clipboard;
 import java.awt.event.ActionEvent;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -60,13 +62,15 @@ public class GosuPanel extends JPanel
   private static final int MAX_TABS = 12;
 
 
+  private TabPane _resultTabPane;
   private SystemPanel _resultPanel;
-  private SplitPane _outerSplitPane;
-  private SplitPane _splitPane;
+  private CollapsibleSplitPane _outerSplitPane;
+  private CollapsibleSplitPane _splitPane;
   private ProjectView _projectView;
+  private TabPane _projectViewTabPane;
   private JFrame _parentFrame;
   private boolean _bRunning;
-  private JTabbedPane _tabPane;
+  private TabPane _editorTabPane;
   private AtomicUndoManager _defaultUndoMgr;
   private TabSelectionHistory _history;
   private JLabel _status;
@@ -92,14 +96,21 @@ public class GosuPanel extends JPanel
     setLayout( new BorderLayout() );
 
     _resultPanel = new SystemPanel();
+    _resultTabPane = new TabPane( TabPane.MINIMIZABLE );
+    _resultTabPane.addTab( "Runtime Output", null, _resultPanel );
 
-    _tabPane = new JTabbedPane( JTabbedPane.TOP, JTabbedPane.SCROLL_TAB_LAYOUT );
+    _editorTabPane = new TabPane( TabPosition.TOP, TabPane.DYNAMIC | TabPane.MIN_MAX_REST );
 
-    _history = new TabSelectionHistory( _tabPane );
+    _history = new TabSelectionHistory( _editorTabPane );
     getTabSelectionHistory().setTabHistoryHandler( new EditorTabHistoryHandler() );
 
-    _tabPane.addChangeListener(
+    _editorTabPane.addSelectionListener(
       e -> {
+        if( !_editorTabPane.isVisible() )
+        {
+          // clearing tabs, don't save etc.
+          return;
+        }
         savePreviousTab();
         if( getCurrentEditor() == null )
         {
@@ -111,28 +122,15 @@ public class GosuPanel extends JPanel
         storeProjectState();
       } );
 
-    _tabPane.addMouseListener(
-      new MouseAdapter()
-      {
-        @Override
-        public void mouseReleased( MouseEvent e )
-        {
-          int iTab = _tabPane.getUI().tabForCoordinate( _tabPane, e.getX(), e.getY() );
-          if( iTab >= 0 && _tabPane.getTabCount() > 1 )
-          {
-            if( SwingUtilities.isMiddleMouseButton( e ) )
-            {
-              _tabPane.removeTabAt( iTab );
-            }
-          }
-        }
-      } );
-    _splitPane = new SplitPane( SwingConstants.VERTICAL, _tabPane, _resultPanel );
-    _splitPane.setBorder( BorderFactory.createEmptyBorder( 0, 3, 3, 3 ) );
-
     _projectView = new ProjectView();
     _projectView.setBackground( Color.white );
-    _outerSplitPane = new SplitPane( SwingConstants.HORIZONTAL, _projectView, _splitPane );
+    _projectViewTabPane = new TabPane( TabPosition.TOP, TabPane.MIN_MAX_REST );
+    _projectViewTabPane.addTab( "Project", null, _projectView );
+
+
+    _splitPane = new CollapsibleSplitPane( SwingConstants.HORIZONTAL, _projectViewTabPane, _editorTabPane );
+    _outerSplitPane = new CollapsibleSplitPane( SwingConstants.VERTICAL,  _splitPane, _resultTabPane );
+
     add( _outerSplitPane, BorderLayout.CENTER );
 
     JPanel statPanel = makeStatusBar();
@@ -142,7 +140,10 @@ public class GosuPanel extends JPanel
     _parentFrame.setJMenuBar( menuBar );
     handleMacStuff();
 
-    setSplitPosition( 10 );
+    EventQueue.invokeLater( () -> {
+      setProjectSplitPosition( 70 );
+      setEditorSplitPosition( 20 );
+     } );
 
     EventQueue.invokeLater( this::mapKeystrokes );
   }
@@ -163,7 +164,15 @@ public class GosuPanel extends JPanel
 
   public void clearTabs()
   {
-    _tabPane.removeAll();
+    _editorTabPane.setVisible( false );
+    try
+    {
+      _editorTabPane.removeAllTabs();
+    }
+    finally
+    {
+      _editorTabPane.setVisible( true );
+    }
     SettleModalEventQueue.instance().run();
     getTabSelectionHistory().dispose();
   }
@@ -174,7 +183,7 @@ public class GosuPanel extends JPanel
     {
       return;
     }
-    getProject().save( _tabPane );
+    getProject().save( _editorTabPane );
     EditorUtilities.saveLayoutState( _project );
   }
 
@@ -253,7 +262,7 @@ public class GosuPanel extends JPanel
 
   private void parse()
   {
-    EventQueue.invokeLater( () -> getCurrentEditor().parse() );
+    EventQueue.invokeLater( () -> {if( getCurrentEditor() != null ) getCurrentEditor().parse();} );
   }
 
   private void savePreviousTab()
@@ -648,7 +657,8 @@ public class GosuPanel extends JPanel
 
   public GosuEditor getCurrentEditor()
   {
-    return (GosuEditor)_tabPane.getSelectedComponent();
+    ITab selectedTab = _editorTabPane.getSelectedTab();
+    return selectedTab == null ? null : (GosuEditor)selectedTab.getContentPane();
   }
 
   private void makeRunMenu( JMenuBar menuBar )
@@ -1116,9 +1126,9 @@ public class GosuPanel extends JPanel
 
   private void closeActiveEditor()
   {
-    if( _tabPane.getTabCount() > 1 )
+    if( _editorTabPane.getTabCount() > 1 )
     {
-      _tabPane.removeTabAt( _tabPane.getSelectedIndex() );
+      _editorTabPane.removeTab( _editorTabPane.getSelectedTab() );
     }
     else
     {
@@ -1128,20 +1138,20 @@ public class GosuPanel extends JPanel
 
   private void closeOthers()
   {
-    _tabPane.setVisible( false );
+    _editorTabPane.setVisible( false );
     try
     {
-      for( int i = 0; i < _tabPane.getTabCount(); i++ )
+      for( int i = 0; i < _editorTabPane.getTabCount(); i++ )
       {
-        if( _tabPane.getSelectedIndex() != i )
+        if( _editorTabPane.getSelectedTabIndex() != i )
         {
-          _tabPane.removeTabAt( i );
+          _editorTabPane.removeTab( _editorTabPane.getTabAt( i ) );
         }
       }
     }
     finally
     {
-      _tabPane.setVisible( true );
+      _editorTabPane.setVisible( true );
     }
   }
 
@@ -1159,11 +1169,19 @@ public class GosuPanel extends JPanel
     }
   }
 
-  public void setSplitPosition( int iPos )
+  public void setEditorSplitPosition( int iPos )
   {
     if( _splitPane != null )
     {
       _splitPane.setPosition( iPos );
+    }
+  }
+
+  public void setProjectSplitPosition( int iPos )
+  {
+    if( _outerSplitPane != null )
+    {
+      _outerSplitPane.setPosition( iPos );
     }
   }
 
@@ -1293,7 +1311,7 @@ public class GosuPanel extends JPanel
     _initialFile = true;
     try
     {
-      if( file != null || _tabPane.getTabCount() == 0 )
+      if( file != null || _editorTabPane.getTabCount() == 0 )
       {
         openFile( partId, file );
       }
@@ -1323,9 +1341,14 @@ public class GosuPanel extends JPanel
     file = file == null ? new File( "Untitled.gsp" ) : file;
     editor.putClientProperty( "_file", file );
     removeLruTab();
-    _tabPane.addTab( file.getName(), editor );
-    _tabPane.setSelectedComponent( editor );
-    editor.getEditor().requestFocus();
+    String classNameForFile = TypeNameUtil.getClassNameForFile( file );
+    IType type = TypeSystem.getByFullNameIfValidNoJava( classNameForFile );
+    if( type == null )
+    {
+      return;
+    }
+    _editorTabPane.addTab( type.getRelativeName(), EditorUtilities.findIcon( type ), editor );
+    _editorTabPane.selectTab( _editorTabPane.findTabWithContent( editor ), true );
 
     String strSource;
     if( !file.exists() )
@@ -1366,7 +1389,7 @@ public class GosuPanel extends JPanel
 
   private void removeLruTab()
   {
-    if( _tabPane.getTabCount() < MAX_TABS )
+    if( _editorTabPane.getTabCount() < MAX_TABS )
     {
       return;
     }
@@ -1396,8 +1419,7 @@ public class GosuPanel extends JPanel
     GosuEditor editor = findTab( file );
     if( editor != null )
     {
-      _tabPane.setSelectedComponent( editor );
-      editor.getEditor().requestFocus();
+      _editorTabPane.selectTab( _editorTabPane.findTabWithContent( editor ), true );
       return true;
     }
     return false;
@@ -1409,9 +1431,9 @@ public class GosuPanel extends JPanel
     {
       return null;
     }
-    for( int i = 0; i < _tabPane.getTabCount(); i++ )
+    for( int i = 0; i < _editorTabPane.getTabCount(); i++ )
     {
-      GosuEditor editor = (GosuEditor)_tabPane.getComponentAt( i );
+      GosuEditor editor = (GosuEditor)_editorTabPane.getTabAt( i ).getContentPane();
       if( editor != null && file.equals( editor.getClientProperty( "_file" ) ) )
       {
         return editor;
@@ -1423,7 +1445,7 @@ public class GosuPanel extends JPanel
   private void setCurrentFile( File file )
   {
     getCurrentEditor().putClientProperty( "_file", file );
-    _tabPane.setTitleAt( _tabPane.getSelectedIndex(), file.getName() );
+    openFile( file );
   }
 
   private File getCurrentFile()
@@ -2025,14 +2047,14 @@ public class GosuPanel extends JPanel
 
   public void selectTab( File file )
   {
-    for( int i = 0; i < _tabPane.getTabCount(); i++ )
+    for( int i = 0; i < _editorTabPane.getTabCount(); i++ )
     {
-      GosuEditor editor = (GosuEditor)_tabPane.getComponentAt( i );
+      GosuEditor editor = (GosuEditor)_editorTabPane.getTabAt( i ).getContentPane();
       if( editor != null )
       {
         if( editor.getClientProperty( "_file" ).equals( file ) )
         {
-          _tabPane.setSelectedIndex( i );
+          _editorTabPane.selectTab( _editorTabPane.getTabAt( i ), true );
           return;
         }
       }
@@ -2042,14 +2064,14 @@ public class GosuPanel extends JPanel
 
   public void closeTab( File file )
   {
-    for( int i = 0; i < _tabPane.getTabCount(); i++ )
+    for( int i = 0; i < _editorTabPane.getTabCount(); i++ )
     {
-      GosuEditor editor = (GosuEditor)_tabPane.getComponentAt( i );
+      GosuEditor editor = (GosuEditor)_editorTabPane.getTabAt( i ).getContentPane();
       if( editor != null )
       {
         if( editor.getClientProperty( "_file" ).equals( file ) )
         {
-          _tabPane.removeTabAt( i );
+          _editorTabPane.removeTab( _editorTabPane.getTabAt( i ) );
           return;
         }
       }

@@ -4,6 +4,7 @@ import editor.util.Project;
 import gw.util.concurrent.ConcurrentWeakValueHashMap;
 
 import java.io.File;
+import java.nio.file.ClosedWatchServiceException;
 import java.nio.file.Path;
 import java.nio.file.StandardWatchEventKinds;
 import java.nio.file.WatchEvent;
@@ -23,6 +24,7 @@ public class FileWatcher implements Runnable
   private Project _project;
   private ConcurrentWeakValueHashMap<String, IFileWatcherListener> _listeners;
   private Map<WatchKey,String> _keyToPath;
+  private boolean _disposed;
 
   public static FileWatcher instance( Project project )
   {
@@ -99,6 +101,7 @@ public class FileWatcher implements Runnable
   {
     try
     {
+      _disposed = true;
       _watcher.close();
       FILE_WATCHER = null;
     }
@@ -112,7 +115,7 @@ public class FileWatcher implements Runnable
   {
     try
     {
-      for( WatchKey key = _watcher.take(); key != null; key = _watcher.take() )
+      for( WatchKey key = _watcher.take(); !_disposed && key != null; key = _watcher.take() )
       {
         for( WatchEvent event: key.pollEvents() )
         {
@@ -127,6 +130,13 @@ public class FileWatcher implements Runnable
           }
         }
         key.reset();
+      }
+    }
+    catch( ClosedWatchServiceException cw )
+    {
+      if( !_disposed )
+      {
+        throw new IllegalStateException( "Unexpected close file watcher, not disposed" );
       }
     }
     catch( Exception e )
@@ -150,7 +160,7 @@ public class FileWatcher implements Runnable
     IFileWatcherListener listener = _listeners.get( dir );
     listener.fireDelete( dir, fileName.toString() );
 
-    System.out.println( "Delete: " + dirPath + " : " + fileName );
+    //System.out.println( "Delete: " + dirPath + " : " + fileName );
   }
 
   private void fireCreate( String dirPath, Path fileName )
@@ -159,6 +169,6 @@ public class FileWatcher implements Runnable
     IFileWatcherListener listener = _listeners.get( dir );
     listener.fireCreate( dir, fileName.toString() );
 
-    System.out.println( "Create: " + dirPath + " : " + fileName );
+    //System.out.println( "Create: " + dirPath + " : " + fileName );
   }
 }

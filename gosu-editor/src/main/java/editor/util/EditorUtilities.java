@@ -4,6 +4,10 @@ import editor.GosuPanel;
 import gw.lang.reflect.IFunctionType;
 import gw.lang.reflect.IParameterInfo;
 import gw.lang.reflect.IType;
+import gw.lang.reflect.gs.IGosuClass;
+import gw.lang.reflect.gs.IGosuEnhancement;
+import gw.lang.reflect.gs.IGosuProgram;
+import gw.lang.reflect.gs.ITemplateType;
 import gw.util.GosuStringUtil;
 
 import javax.swing.*;
@@ -213,6 +217,46 @@ public class EditorUtilities
 
     return icon;
 
+  }
+
+  public static Icon findIcon( IType type )
+  {
+    if( type instanceof IGosuClass )
+    {
+      if( type.isInterface() )
+      {
+        if( ((IGosuClass)type).isStructure() )
+        {
+          return EditorUtilities.loadIcon( "images/structure.png" );
+        }
+        else if( ((IGosuClass)type).isAnnotation() )
+        {
+          return EditorUtilities.loadIcon( "images/annotation.png" );
+        }
+        return EditorUtilities.loadIcon( "images/interface.png" );
+      }
+      else if( type instanceof ITemplateType )
+      {
+        return EditorUtilities.loadIcon( "images/template.png" );
+      }
+      else if( type instanceof IGosuEnhancement )
+      {
+        return EditorUtilities.loadIcon( "images/enhancement.png" );
+      }
+      else if( type instanceof IGosuProgram )
+      {
+        return EditorUtilities.loadIcon( "images/program.png" );
+      }
+      else if( type.isEnum() )
+      {
+        return EditorUtilities.loadIcon( "images/enum.png" );
+      }
+      else
+      {
+        return EditorUtilities.loadIcon( "images/class.png" );
+      }
+    }
+    return EditorUtilities.loadIcon( "images/empty16x16.gif" );
   }
 
   public static void handleUncaughtException( Throwable e )

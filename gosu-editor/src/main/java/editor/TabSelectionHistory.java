@@ -1,8 +1,9 @@
 package editor;
 
+import editor.tabpane.ITab;
+import editor.tabpane.TabPane;
 import editor.undo.AtomicUndoManager;
 
-import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.undo.StateEdit;
@@ -17,19 +18,19 @@ public class TabSelectionHistory
   public static final int MAX_MRU_HISTORY = 30;
   public static final int MAX_NAVIGATION_HISTORY = 100;
 
-  private JTabbedPane _tabPane;
+  private TabPane _tabPane;
   private AtomicUndoManager _undoMgr;
   private GosuEditor _prevTab;
   private boolean _bLocked;
   private ITabHistoryHandler _tabHistoryHandler;
   private List<ITabHistoryContext> _mruList;
 
-  public TabSelectionHistory( JTabbedPane tabPane )
+  public TabSelectionHistory( TabPane tabPane )
   {
     _tabPane = tabPane;
     _undoMgr = new AtomicUndoManager( MAX_NAVIGATION_HISTORY );
     _mruList = new ArrayList<>();
-    _tabPane.addChangeListener( new TabSelectionHandler() );
+    _tabPane.addSelectionListener( new TabSelectionHandler() );
   }
 
   public void goBackward()
@@ -58,7 +59,7 @@ public class TabSelectionHistory
     return _undoMgr.canRedo();
   }
 
-  public JTabbedPane getTabPane()
+  public TabPane getTabPane()
   {
     return _tabPane;
   }
@@ -106,7 +107,8 @@ public class TabSelectionHistory
   {
     public void stateChanged( ChangeEvent e )
     {
-      GosuEditor editor = (GosuEditor)_tabPane.getSelectedComponent();
+      ITab selectedTab = _tabPane.getSelectedTab();
+      GosuEditor editor = selectedTab == null ? null : (GosuEditor)selectedTab.getContentPane();
       if( editor != null )
       {
         addToMruList( _tabHistoryHandler.makeTabContext( editor ) );

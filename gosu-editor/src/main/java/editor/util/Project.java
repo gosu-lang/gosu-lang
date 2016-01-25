@@ -2,9 +2,9 @@ package editor.util;
 
 import editor.FileWatcher;
 import editor.GosuPanel;
+import editor.tabpane.TabPane;
 import gw.lang.reflect.TypeSystem;
 
-import javax.swing.*;
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
@@ -40,6 +40,7 @@ public class Project
 
   public Project( File dir, GosuPanel gosuPanel )
   {
+    _name = dir.getName();
     _projectDir = dir;
     _gosuPanel = gosuPanel;
     load();
@@ -99,32 +100,37 @@ public class Project
       return project;
     }
     //noinspection ResultOfMethodCallIgnored
-    try( FileWriter writer = new FileWriter( project ) ) {
+    try( FileWriter writer = new FileWriter( project ) )
+    {
       Properties props = new Properties();
       props.put( "Name", getName() );
-      for( int i = 0; i < getSourcePath().size(); i++ )
+      if( getSourcePath() != null )
       {
-        String sourcePath = getSourcePath().get( i );
-        props.put( "Classpath.Entry" + i, sourcePath );
-        File sourceDir = new File( sourcePath );
-        sourceDir.mkdirs();
+        for( int i = 0; i < getSourcePath().size(); i++ )
+        {
+          String sourcePath = getSourcePath().get( i );
+          props.put( "Classpath.Entry" + i, sourcePath );
+          File sourceDir = new File( sourcePath );
+          sourceDir.mkdirs();
+        }
       }
       props.store( writer, "Gosu Project: " + getName() );
     }
-    catch( Exception e ) {
+    catch( Exception e )
+    {
       throw new RuntimeException( e );
     }
     return project;
   }
 
-  public void save( JTabbedPane tabPane )
+  public void save( TabPane tabPane )
   {
     Properties props = new Properties();
     props.put( "Name", getName() );
-    props.put( "Tab.Active", ((File)((JComponent)tabPane.getSelectedComponent()).getClientProperty( "_file" )).getAbsolutePath() );
+    props.put( "Tab.Active", ((File)tabPane.getSelectedTab().getContentPane().getClientProperty( "_file" )).getAbsolutePath() );
     for( int i = 0; i < tabPane.getTabCount(); i++ )
     {
-      File file = (File)((JComponent)tabPane.getComponentAt( i )).getClientProperty( "_file" );
+      File file = (File)tabPane.getTabAt( i ).getContentPane().getClientProperty( "_file" );
       props.put( "Tab.Open." + ((char)(i + 'A')), file.getAbsolutePath() );
     }
 

@@ -41,7 +41,7 @@ public class BasicGosuEditor extends JFrame implements IGosuEditor
   private void configUI()
   {
     setDefaultCloseOperation( DO_NOTHING_ON_CLOSE );
-    setIconImage( editor.util.EditorUtilities.loadIcon( "images/Guidewire_icon_16.gif" ).getImage() );
+    setIconImage( editor.util.EditorUtilities.loadIcon( "images/g_16.png" ).getImage() );
     _panel = new GosuPanel( this );
     Container contentPane = getContentPane();
     contentPane.setLayout( new BorderLayout() );
@@ -56,7 +56,8 @@ public class BasicGosuEditor extends JFrame implements IGosuEditor
     int height = Math.max( 700, (int)((double)bounds.height * .7) );
     setSize( width, height );
     setLocationRelativeTo( null );
-    _panel.setSplitPosition( 60 );
+    _panel.setEditorSplitPosition( 60 );
+    _panel.setProjectSplitPosition( 30 );
   }
 
   public void reset()
