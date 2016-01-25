@@ -4,9 +4,11 @@ import editor.util.Project;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.TypeSystem;
 
+import javax.swing.*;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.MutableTreeNode;
 import javax.swing.tree.TreeNode;
+import javax.swing.tree.TreePath;
 import java.awt.*;
 import java.io.File;
 import java.util.ArrayList;
@@ -198,7 +200,7 @@ public class FileTree implements MutableTreeNode, IFileWatcherListener
   }
 
   @Override
-  public TreeNode getParent()
+  public FileTree getParent()
   {
     return _parent;
   }
@@ -251,7 +253,29 @@ public class FileTree implements MutableTreeNode, IFileWatcherListener
   public void fireCreate( String dir, String file )
   {
     File newFileOrDir = new File( dir, file );
-    EventQueue.invokeLater( () -> ((DefaultTreeModel)getProjectView().getTree().getModel()).insertNodeInto( new FileTree( newFileOrDir, this, _project ), this, getChildCount() ) );
+    EventQueue.invokeLater( () -> {
+      FileTree fileTree = new FileTree( newFileOrDir, this, _project );
+      ((DefaultTreeModel)getProjectView().getTree().getModel()).insertNodeInto( fileTree, this, getChildCount() );
+
+      if( fileTree.getType() != null )
+      {
+        EventQueue.invokeLater( () -> {
+          if( getProject().getGosuPanel().getCurrentFile().equals( newFileOrDir ) )
+          {
+            fileTree.select();
+          }
+        } );
+      }
+    } );
+  }
+
+  public void select()
+  {
+    JTree tree = getProjectView().getTree();
+    TreePath path = getPath();
+    tree.expandPath( path );
+    tree.setSelectionPath( path );
+    tree.scrollPathToVisible( path );
   }
 
   @Override
@@ -260,6 +284,21 @@ public class FileTree implements MutableTreeNode, IFileWatcherListener
     File newFileOrDir = new File( dir, file );
     FileTree fileTree = find( newFileOrDir );
     EventQueue.invokeLater( () -> ((DefaultTreeModel)getProjectView().getTree().getModel()).removeNodeFromParent( fileTree ) );
+  }
+
+  public TreePath getPath()
+  {
+    List<FileTree> path = makePath( new ArrayList<>() );
+    return new TreePath( path.toArray( new FileTree[path.size()] ) );
+  }
+  private List<FileTree> makePath( List<FileTree> path )
+  {
+    if( getParent() != null )
+    {
+      getParent().makePath( path );
+    }
+    path.add( this );
+    return path;
   }
 
   private ProjectView getProjectView()
@@ -282,7 +321,7 @@ public class FileTree implements MutableTreeNode, IFileWatcherListener
     FileTree srcPathRoot = this;
     while( srcPathRoot != null && !srcPathRoot.isSourcePathRoot() )
     {
-      srcPathRoot = (FileTree)srcPathRoot.getParent();
+      srcPathRoot = srcPathRoot.getParent();
     }
     return srcPathRoot;
   }
@@ -290,7 +329,7 @@ public class FileTree implements MutableTreeNode, IFileWatcherListener
   public IType getType()
   {
     FileTree sourcePathRoot = getSourcePathRoot();
-    if( isSourcePathRoot() || sourcePathRoot == null )
+    if( isDirectory() || isSourcePathRoot() || sourcePathRoot == null )
     {
       return null;
     }

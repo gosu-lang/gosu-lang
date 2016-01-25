@@ -1448,7 +1448,7 @@ public class GosuPanel extends JPanel
     openFile( file );
   }
 
-  private File getCurrentFile()
+  public File getCurrentFile()
   {
     return (File)getCurrentEditor().getClientProperty( "_file" );
   }
