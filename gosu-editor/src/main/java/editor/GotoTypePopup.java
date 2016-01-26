@@ -13,6 +13,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.io.File;
 import java.net.URL;
+import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -65,9 +66,13 @@ public class GotoTypePopup extends AbstractGotoPopup<CharSequence>
         return;
       }
       //noinspection ConstantConditions
-      sourceFile = new File( resource.getFile() ).getAbsoluteFile();
+      sourceFile = new File( URLDecoder.decode( resource.getFile(), "UTF-8" ) ).getAbsoluteFile();
 
       RunMe.getEditorFrame().openFile( sourceFile );
+    }
+    catch( Exception e )
+    {
+      throw new RuntimeException( e );
     }
     finally
     {
