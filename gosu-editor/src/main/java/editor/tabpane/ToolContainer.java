@@ -1,10 +1,10 @@
 package editor.tabpane;
 
 
-import editor.XPToolBarButton;
 import editor.actions.GenericAction;
 import editor.splitpane.ICaptionActionListener;
 import editor.util.ToolBar;
+import editor.util.XPToolbarButton;
 
 import javax.swing.*;
 import javax.swing.border.Border;
@@ -18,11 +18,11 @@ import java.awt.event.ActionEvent;
 public class ToolContainer extends JPanel
 {
   private ToolBar _toolbar;
-  private XPToolBarButton _btnDisplayTabs;
+  private XPToolbarButton _btnDisplayTabs;
   private TabPane _tabPane;
-  private XPToolBarButton _btnMinimize;
-  private XPToolBarButton _btnRestore;
-  private XPToolBarButton _btnMaximize;
+  private XPToolbarButton _btnMinimize;
+  private XPToolbarButton _btnRestore;
+  private XPToolbarButton _btnMaximize;
 
 
   public ToolContainer( TabPane tabPane )
@@ -94,7 +94,7 @@ public class ToolContainer extends JPanel
 
   private void addDynamicTools()
   {
-    _btnDisplayTabs = new XPToolBarButton( new DisplayTabsAction() );
+    _btnDisplayTabs = new XPToolbarButton( new DisplayTabsAction() );
     _btnDisplayTabs.setToolTipText( "Open views" );
     _toolbar.add( _btnDisplayTabs );
     if( _tabPane.hasAtLeastOneOfMinMaxRestore() )
@@ -105,20 +105,20 @@ public class ToolContainer extends JPanel
 
   private void addCaptionTools()
   {
-    _btnMinimize = new XPToolBarButton( new MinimizeAction() );
+    _btnMinimize = new XPToolbarButton( new MinimizeAction() );
     _btnMinimize.setToolTipText( "Minimize" );
     if( _tabPane.isMinimizable() )
     {
       _toolbar.add( _btnMinimize );
     }
-    _btnRestore = new XPToolBarButton( new RestoreAction() );
+    _btnRestore = new XPToolbarButton( new RestoreAction() );
     _btnRestore.setToolTipText( "Restore" );
     if( _tabPane.isRestorable() )
     {
       _toolbar.add( _btnRestore );
     }
     _btnRestore.setVisible( false );
-    _btnMaximize = new XPToolBarButton( new MaximizeAction() );
+    _btnMaximize = new XPToolbarButton( new MaximizeAction() );
     _btnMaximize.setToolTipText( "Maximize" );
     if( _tabPane.isMaximizable() )
     {
@@ -130,7 +130,7 @@ public class ToolContainer extends JPanel
       {
         _toolbar.addSeparator();
       }
-      XPToolBarButton btnCloseTab = new XPToolBarButton( new CloseTabAction() );
+      XPToolbarButton btnCloseTab = new XPToolbarButton( new CloseTabAction() );
       btnCloseTab.setToolTipText( "Close tab" );
       _toolbar.add( btnCloseTab );
     }

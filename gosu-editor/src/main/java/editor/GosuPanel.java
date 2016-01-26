@@ -15,6 +15,7 @@ import editor.util.Project;
 import editor.util.SettleModalEventQueue;
 import editor.util.TaskQueue;
 import editor.util.TypeNameUtil;
+import editor.util.XPToolbarButton;
 import gw.config.CommonServices;
 import gw.lang.Gosu;
 import gw.lang.parser.IParseIssue;
@@ -104,7 +105,7 @@ public class GosuPanel extends JPanel
     setLayout( new BorderLayout() );
 
     _resultPanel = new SystemPanel();
-    _resultTabPane = new TabPane( TabPane.MINIMIZABLE );
+    _resultTabPane = new TabPane( TabPane.MINIMIZABLE | TabPane.RESTORABLE );
     _resultTabPane.addTab( "Runtime Output", null, _resultPanel );
 
     _editorTabPane = new TabPane( TabPosition.TOP, TabPane.DYNAMIC | TabPane.MIN_MAX_REST );
@@ -260,7 +261,7 @@ public class GosuPanel extends JPanel
   {
     _statPanel = new JPanel( new BorderLayout() );
     _status = new JLabel();
-    XPToolBarButton btnStop = new XPToolBarButton( "Stop" );
+    XPToolbarButton btnStop = new XPToolbarButton( "Stop" );
     btnStop.addActionListener( new StopActionHandler() );
     _statPanel.add( btnStop, BorderLayout.WEST );
     _statPanel.add( _status, BorderLayout.CENTER );
@@ -1714,12 +1715,18 @@ public class GosuPanel extends JPanel
     {
       return;
     }
-    clearTabs();
     File selectedFile = fc.getSelectedFile();
     if( selectedFile.isFile() )
     {
-      EventQueue.invokeLater( () -> restoreProjectState( new Project( selectedFile.getParentFile(), this ) ) );
+      File projectDir = selectedFile.getParentFile();
+      openProject( projectDir );
     }
+  }
+
+  public void openProject( File projectDir )
+  {
+    clearTabs();
+    EventQueue.invokeLater( () -> restoreProjectState( new Project( projectDir, this ) ) );
   }
 
   private boolean isValidGosuSourceFile( File file )
@@ -1946,8 +1953,6 @@ public class GosuPanel extends JPanel
       {
         return;
       }
-
-      //## todo: Run in separate process (or classloader) so that changes can take effect
 
       saveAndReloadType( getCurrentFile(), getCurrentEditor() );
 

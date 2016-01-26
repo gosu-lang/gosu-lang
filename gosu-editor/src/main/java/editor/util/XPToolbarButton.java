@@ -1,5 +1,7 @@
 package editor.util;
 
+import gw.util.GosuObjectUtil;
+
 import javax.swing.*;
 import javax.swing.border.Border;
 import java.awt.*;
@@ -146,6 +148,24 @@ public class XPToolbarButton extends JButton
       setText(null);
     }
 */
+  }
+
+  @Override
+  public String getToolTipText()
+  {
+    String superText = super.getToolTipText();
+    if( superText == null || superText.length() == 0 )
+    {
+      return null;  // Swing will not register us with the tooltip manager unless it detects a change
+    }
+    if( getAction() != null )
+    {
+      return GosuObjectUtil.toString( getAction().getValue( Action.SHORT_DESCRIPTION ) );
+    }
+    else
+    {
+      return superText;
+    }
   }
 
   /**

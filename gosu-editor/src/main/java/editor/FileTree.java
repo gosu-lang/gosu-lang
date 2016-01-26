@@ -87,10 +87,27 @@ public class FileTree implements MutableTreeNode, IFileWatcherListener
     {
       for( File path : files )
       {
-        children.add( new FileTree( path, this, _project ) );
+        FileTree insert = new FileTree( path, this, _project );
+        children.add( getSortedIndex( children, insert ), insert );
       }
     }
     _children = children;
+  }
+
+  private int getSortedIndex( List<FileTree> children, FileTree insert )
+  {
+    int count = children.size();
+    for( int i = 0; i < count; i++ )
+    {
+      FileTree tree = children.get( i );
+      if( (tree.isDirectory() == insert.isDirectory() &&
+           insert.getName().toLowerCase().compareTo( tree.getName().toLowerCase() ) <= 0) ||
+          tree.isFile() && insert.isDirectory() )
+      {
+        return i;
+      }
+    }
+    return count;
   }
 
   private boolean isInSourcePath( File path )
@@ -255,7 +272,7 @@ public class FileTree implements MutableTreeNode, IFileWatcherListener
     File newFileOrDir = new File( dir, file );
     EventQueue.invokeLater( () -> {
       FileTree fileTree = new FileTree( newFileOrDir, this, _project );
-      ((DefaultTreeModel)getProjectView().getTree().getModel()).insertNodeInto( fileTree, this, getChildCount() );
+      ((DefaultTreeModel)getProjectView().getTree().getModel()).insertNodeInto( fileTree, this, getSortedIndex( getChildren(), fileTree ) );
 
       if( fileTree.getType() != null )
       {

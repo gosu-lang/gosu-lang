@@ -786,6 +786,32 @@ public class EditorUtilities
     return projects;
   }
 
+  public static File getStockExamplesDir()
+  {
+    File gosuDir = new File( System.getProperty( "user.home" ) + File.separator + ".GosuEditor" + File.separator + "examples" );
+    //noinspection ResultOfMethodCallIgnored
+    gosuDir.mkdirs();
+    return gosuDir;
+  }
+
+  public static List<File> getStockExampleProjects()
+  {
+    List<File> projects = new ArrayList<>();
+    File projectsDir = getStockExamplesDir();
+    for( File dir : projectsDir.listFiles() )
+    {
+      if( dir.isDirectory() )
+      {
+        File projectFile = new File( dir, dir.getName() + ".prj" );
+        if( projectFile.exists() )
+        {
+          projects.add( dir );
+        }
+      }
+    }
+    return projects;
+  }
+
   private static Project makeScratchProject( GosuPanel gosuPanel )
   {
     File projectDir = new File( getStockProjectsDir(), "scratch" );

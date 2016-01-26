@@ -1,8 +1,8 @@
 package editor.tabpane;
 
-import editor.XPToolBarButton;
 import editor.search.StudioUtilities;
 import editor.util.SettleModalEventQueue;
+import editor.util.XPToolbarButton;
 
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
@@ -18,7 +18,7 @@ import java.awt.image.BufferedImage;
 
 /**
  */
-public class MoreTab extends XPToolBarButton
+public class MoreTab extends XPToolbarButton
 {
   private TabContainer _tabContainer;
 
