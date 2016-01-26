@@ -52,7 +52,6 @@ public class ProjectView extends JPanel
 
     TabPane tabPane = new TabPane( TabPosition.TOP, TabPane.MINIMIZABLE | TabPane.RESTORABLE );
     tabPane.addTab( "Examples", null, scrollPane );
-    tabPane.setBorder( new MatteBorder( 1, 0, 0, 0, SystemColor.controlShadow ) );
     return tabPane;
   }
 
@@ -70,7 +69,7 @@ public class ProjectView extends JPanel
     _tree.setCellRenderer( new FileTreeCellRenderer( _tree ) );
     _tree.addMouseListener( new TreeMouseHandler() );
     _scroller = new JScrollPane( _tree );
-    _scroller.setBorder( new MatteBorder( 0, 0, 1, 0, SystemColor.controlShadow ) );
+    _scroller.setBorder( new MatteBorder( 0, 0, 1, 1, SystemColor.controlShadow ) );
     expandAllNodes( 0, _tree.getRowCount() );
 
     _splitPane.setTop( _scroller );

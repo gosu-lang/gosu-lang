@@ -133,7 +133,7 @@ public class GosuPanel extends JPanel
 
     _projectView = new ProjectView();
     _projectView.setBackground( Color.white );
-    _projectViewTabPane = new TabPane( TabPosition.TOP, TabPane.MIN_MAX_REST );
+    _projectViewTabPane = new TabPane( TabPosition.TOP, TabPane.MINIMIZABLE | TabPane.RESTORABLE | TabPane.TOP_BORDER_ONLY );
     _projectViewTabPane.addTab( "Project", null, _projectView );
 
 
@@ -1963,6 +1963,7 @@ public class GosuPanel extends JPanel
       addBusySignal();
       queue.postTask(
         () -> {
+          GosuEditor.getParserTaskQueue().waitUntilAllCurrentTasksFinish();
           IGosuProgram program = (IGosuProgram)getCurrentEditor().getParsedClass();
 
           try
