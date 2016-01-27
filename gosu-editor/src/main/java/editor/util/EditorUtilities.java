@@ -1,9 +1,12 @@
 package editor.util;
 
 import editor.GosuPanel;
+import editor.RunMe;
 import gw.lang.reflect.IFunctionType;
 import gw.lang.reflect.IParameterInfo;
 import gw.lang.reflect.IType;
+import gw.lang.reflect.TypeSystem;
+import gw.lang.reflect.gs.ClassType;
 import gw.lang.reflect.gs.IGosuClass;
 import gw.lang.reflect.gs.IGosuEnhancement;
 import gw.lang.reflect.gs.IGosuProgram;
@@ -11,6 +14,7 @@ import gw.lang.reflect.gs.ITemplateType;
 import gw.util.GosuStringUtil;
 
 import javax.swing.*;
+import javax.swing.filechooser.FileSystemView;
 import javax.swing.plaf.basic.BasicArrowButton;
 import java.awt.*;
 import java.awt.datatransfer.Clipboard;
@@ -219,6 +223,29 @@ public class EditorUtilities
 
   }
 
+  public static Icon findIcon( File fileOrDir )
+  {
+    if( fileOrDir.isDirectory() )
+    {
+      if( RunMe.getEditorFrame().getGosuPanel().getProjectView().getProject().getSourcePath().contains( fileOrDir.getAbsolutePath() ) )
+      {
+        return loadIcon( "images/srcfolder.png" );
+      }
+      return loadIcon( "images/folder.png" );
+    }
+
+    String classNameForFile = TypeNameUtil.getClassNameForFile( fileOrDir );
+    if( classNameForFile != null )
+    {
+      IType type = TypeSystem.getByFullNameIfValidNoJava( classNameForFile );
+      if( type != null )
+      {
+        return findIcon( type );
+      }
+    }
+    return FileSystemView.getFileSystemView().getSystemIcon( fileOrDir );
+  }
+
   public static Icon findIcon( IType type )
   {
     if( type instanceof IGosuClass )
@@ -227,36 +254,60 @@ public class EditorUtilities
       {
         if( ((IGosuClass)type).isStructure() )
         {
-          return EditorUtilities.loadIcon( "images/structure.png" );
+          return findIcon( ClassType.Structure );
         }
         else if( ((IGosuClass)type).isAnnotation() )
         {
-          return EditorUtilities.loadIcon( "images/annotation.png" );
+          return findIcon( ClassType.Annotation );
         }
-        return EditorUtilities.loadIcon( "images/interface.png" );
+        return findIcon( ClassType.Interface );
       }
       else if( type instanceof ITemplateType )
       {
-        return EditorUtilities.loadIcon( "images/template.png" );
+        return findIcon( ClassType.Template );
       }
       else if( type instanceof IGosuEnhancement )
       {
-        return EditorUtilities.loadIcon( "images/enhancement.png" );
+        return findIcon( ClassType.Enhancement );
       }
       else if( type instanceof IGosuProgram )
       {
-        return EditorUtilities.loadIcon( "images/program.png" );
+        return findIcon( ClassType.Program );
       }
       else if( type.isEnum() )
       {
-        return EditorUtilities.loadIcon( "images/enum.png" );
+        return findIcon( ClassType.Enum );
       }
       else
       {
-        return EditorUtilities.loadIcon( "images/class.png" );
+        return findIcon( ClassType.Class );
       }
     }
     return EditorUtilities.loadIcon( "images/empty16x16.gif" );
+  }
+
+  public static Icon findIcon( ClassType classType )
+  {
+    switch( classType )
+    {
+      case Class:
+        return EditorUtilities.loadIcon( "images/class.png" );
+      case Enum:
+        return EditorUtilities.loadIcon( "images/enum.png" );
+      case Interface:
+        return EditorUtilities.loadIcon( "images/interface.png" );
+      case Structure:
+        return EditorUtilities.loadIcon( "images/structure.png" );
+      case Annotation:
+        return EditorUtilities.loadIcon( "images/annotation.png" );
+      case Enhancement:
+        return EditorUtilities.loadIcon( "images/Enhancement.png" );
+      case Program:
+        return EditorUtilities.loadIcon( "images/program.png" );
+      case Template:
+        return EditorUtilities.loadIcon( "images/template.png" );
+    }
+    return null;
   }
 
   public static void handleUncaughtException( Throwable e )

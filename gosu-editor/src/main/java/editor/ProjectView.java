@@ -112,6 +112,11 @@ public class ProjectView extends JPanel
     }
   }
 
+  public FileTree getSelectedTree()
+  {
+    return (FileTree)_tree.getLastSelectedPathComponent();
+  }
+
   private class TreeMouseHandler implements MouseListener
   {
     @Override
@@ -149,7 +154,7 @@ public class ProjectView extends JPanel
         {
           _tree.setSelectionRow( row );
           EventQueue.invokeLater( () ->
-            new ProjectTreeContextMenu( getProject() ).displayContextMenu( _tree, e.getX(), e.getY(), _tree ) );
+                                    new ProjectTreeContextMenu( getProject() ).displayContextMenu( _tree, e.getX(), e.getY(), _tree ) );
         }
       }
     }

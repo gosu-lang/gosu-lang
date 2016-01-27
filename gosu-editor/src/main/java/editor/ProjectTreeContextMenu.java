@@ -1,6 +1,5 @@
 package editor;
 
-import editor.search.MessageDisplay;
 import editor.util.Project;
 
 import javax.swing.*;
@@ -32,7 +31,9 @@ public class ProjectTreeContextMenu implements IContextMenuHandler<JTree>
   public JPopupMenu getContextMenu( JTree tree )
   {
     JPopupMenu menu = new JPopupMenu();
-    menu.add( new JMenuItem( new NewAction( tree ) ) );
+    JMenu newMenu = new JMenu( "New" );
+    NewFilePopup.addMenuItems( newMenu );
+    menu.add( newMenu );
     menu.add( new JSeparator() );
     menu.add( new JMenuItem( new OpenAction( tree ) ) );
     menu.add( new JSeparator() );
@@ -78,7 +79,8 @@ public class ProjectTreeContextMenu implements IContextMenuHandler<JTree>
       FileTree item = (FileTree)_tree.getLastSelectedPathComponent();
       if( item != null )
       {
-        MessageDisplay.displayInformation( "TBD" );
+        NewFilePopup popup = new NewFilePopup();
+        popup.show( RunMe.getEditorFrame().getGosuPanel(), 200, 200 );
       }
     }
   }

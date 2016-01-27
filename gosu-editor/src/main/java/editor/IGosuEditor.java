@@ -19,4 +19,6 @@ public interface IGosuEditor
   void restoreState( Project project );
 
   void reset();
+
+  GosuPanel getGosuPanel();
 }

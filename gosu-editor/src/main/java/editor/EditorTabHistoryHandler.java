@@ -1,5 +1,9 @@
 package editor;
 
+import editor.util.EditorUtilities;
+import editor.util.TypeNameUtil;
+import gw.lang.reflect.TypeSystem;
+
 import javax.swing.*;
 import java.io.File;
 
@@ -54,7 +58,7 @@ public class EditorTabHistoryHandler implements ITabHistoryHandler
     @Override
     public Icon getIcon( int iTypeFlags )
     {
-      return null;  //To change body of implemented methods use File | Settings | File Templates.
+      return EditorUtilities.findIcon( _contentId );
     }
 
     public boolean represents( GosuEditor editor )

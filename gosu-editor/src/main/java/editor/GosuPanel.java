@@ -1,6 +1,5 @@
 package editor;
 
-import editor.search.MessageDisplay;
 import editor.search.StandardLocalSearch;
 import editor.splitpane.CollapsibleSplitPane;
 import editor.tabpane.ITab;
@@ -1067,16 +1066,8 @@ public class GosuPanel extends JPanel
     fileMenu.addSeparator();
 
 
-    JMenuItem newItem = new JMenuItem(
-      new AbstractAction( "New..." )
-      {
-        @Override
-        public void actionPerformed( ActionEvent e )
-        {
-          newSourceFile();
-        }
-      } );
-    newItem.setMnemonic( 'N' );
+    JMenu newItem = new JMenu( "New" );
+    NewFilePopup.addMenuItems( newItem );
     fileMenu.add( newItem );
 
     JMenuItem openItem = new JMenuItem(
@@ -1597,14 +1588,6 @@ public class GosuPanel extends JPanel
     }
 
     TypeSystem.refresh( (ITypeRef)type );
-//    EventQueue.invokeLater(
-//      new Runnable()
-//      {
-//        public void run()
-//        {
-//          TypeSystem.getGosuClassLoader().reloadDisposedClasses();
-//        }
-//      } );
   }
 
   public boolean saveIfDirty()
@@ -1614,48 +1597,6 @@ public class GosuPanel extends JPanel
       return save();
     }
     return true;
-  }
-
-  public void newSourceFile()
-  {
-    JFileChooser fc = new JFileChooser( getCurrentFile() );
-    fc.setDialogTitle( "New Gosu File" );
-    fc.setDialogType( JFileChooser.SAVE_DIALOG );
-    fc.setCurrentDirectory( getCurrentFile() != null ? getCurrentFile().getParentFile() : new File( "." ) );
-    fc.setFileFilter(
-      new FileFilter()
-      {
-        public boolean accept( File f )
-        {
-          return f.isDirectory() || isValidGosuSourceFile( f );
-        }
-
-        public String getDescription()
-        {
-          return "Gosu source file (*.gsp; *.gs; *.gsx; *.gst)";
-        }
-      } );
-    int returnVal = fc.showOpenDialog( editor.util.EditorUtilities.frameForComponent( this ) );
-    if( returnVal == JFileChooser.APPROVE_OPTION )
-    {
-      File selectedFile = fc.getSelectedFile();
-      if( isValidGosuSourceFile( selectedFile ) )
-      {
-        if( selectedFile.exists() )
-        {
-          MessageDisplay.displayError( "File: " + selectedFile.getName() + " already exists.  Please select a unique name." );
-        }
-        else
-        {
-          saveIfDirty();
-          createSourceFile( selectedFile );
-        }
-      }
-      else
-      {
-        MessageDisplay.displayError( "File: " + selectedFile.getName() + " is not a valid Gosu source file name." );
-      }
-    }
   }
 
   public void newProject()
@@ -1740,182 +1681,6 @@ public class GosuPanel extends JPanel
            strName.endsWith( ".gsx" ) ||
            strName.endsWith( ".gst" ) ||
            strName.endsWith( ".gsp" );
-  }
-
-  private void createSourceFile( File selectedFile )
-  {
-    try
-    {
-      if( selectedFile.createNewFile() )
-      {
-        if( !writeStub( selectedFile ) )
-        {
-          //noinspection ResultOfMethodCallIgnored
-          selectedFile.delete();
-          return;
-        }
-      }
-    }
-    catch( IOException e )
-    {
-      throw new RuntimeException( e );
-    }
-
-    TypeSystem.created( CommonServices.getFileSystem().getIFile( selectedFile ) );
-    TypeSystem.refresh( TypeSystem.getGlobalModule() );
-
-    openFile( selectedFile );
-  }
-
-  private boolean writeStub( File file )
-  {
-    String strFile = file.getName().toLowerCase();
-    if( strFile.endsWith( ".gs" ) )
-    {
-      return writeClassStub( file );
-    }
-    if( strFile.endsWith( ".gsx" ) )
-    {
-      return writeEnhancementStub( file );
-    }
-    else if( strFile.endsWith( ".gst" ) )
-    {
-      return writeTempateStub( file );
-    }
-    return true;
-  }
-
-  private boolean writeClassStub( File file )
-  {
-    String strName = TypeNameUtil.getClassNameForFile( file );
-    if( strName == null )
-    {
-      int iOption = displayTypeWarning( file );
-      if( iOption != JOptionPane.YES_OPTION )
-      {
-        return false;
-      }
-      if( file.getParentFile() == null )
-      {
-        MessageDisplay.displayError( "A class must have a parent directory" );
-        return false;
-      }
-      strName = file.getParentFile().getName() + '.' + file.getName().substring( 0, file.getName().lastIndexOf( '.' ) );
-    }
-    int iLastDot = strName.lastIndexOf( '.' );
-    String strRelativeName = strName.substring( iLastDot + 1 );
-    String strPackage = iLastDot > 0 ? strName.substring( 0, iLastDot ) : "";
-
-    try
-    {
-      FileWriter writer = new FileWriter( file );
-      String eol = System.getProperty( "line.separator" );
-      writer.write( "package " + strPackage + eol +
-                    eol +
-                    "class " + strRelativeName + " {" + eol +
-                    eol +
-                    "}" );
-      writer.flush();
-      writer.close();
-    }
-    catch( IOException e )
-    {
-      throw new RuntimeException( e );
-    }
-    return true;
-  }
-
-  private boolean writeTempateStub( File file )
-  {
-    String strName = TypeNameUtil.getClassNameForFile( file );
-    if( strName == null )
-    {
-      int iOption = displayTypeWarning( file );
-      if( iOption != JOptionPane.YES_OPTION )
-      {
-        return false;
-      }
-      if( file.getParentFile() == null )
-      {
-        MessageDisplay.displayError( "A template must have a parent directory" );
-        return false;
-      }
-      strName = file.getParentFile().getName() + '.' + file.getName().substring( 0, file.getName().lastIndexOf( '.' ) );
-    }
-    int iLastDot = strName.lastIndexOf( '.' );
-    String strRelativeName = strName.substring( iLastDot + 1 );
-
-    try
-    {
-      FileWriter writer = new FileWriter( file );
-      String eol = System.getProperty( "line.separator" );
-      writer.write( "<%@ params( myParam: String ) %>" + eol +
-                    eol +
-                    "The content of my param is: ${myParam}" + eol +
-                    eol +
-                    "Note you can render this template from a class or program" + eol +
-                    "simply by calling one of its render methods:" + eol +
-                    eol +
-                    "  " + strRelativeName + ".renderToString( \"wow\" )" );
-      writer.flush();
-      writer.close();
-    }
-    catch( IOException e )
-    {
-      throw new RuntimeException( e );
-    }
-    return true;
-  }
-
-  private int displayTypeWarning( File file )
-  {
-    return MessageDisplay.displayConfirmation( "<html>The class " + file.getName() + " is not on the current classpath.  " +
-                                               "Create the class anyway and put it's parent directory in the classpath?  " +
-                                               "<br><br>" +
-                                               "WARNING!!!  Ensure that the parent directory does not cover other files and directories you don't want in your class path." +
-                                               "<br><br>" +
-                                               "Consider creating a \"src\" directory and create package folders in there.", JOptionPane.YES_NO_OPTION );
-  }
-
-  private boolean writeEnhancementStub( File file )
-  {
-    String strName = TypeNameUtil.getClassNameForFile( file );
-    if( strName == null )
-    {
-      int iOption = displayTypeWarning( file );
-      if( iOption != JOptionPane.YES_OPTION )
-      {
-        return false;
-      }
-      if( file.getParentFile() == null )
-      {
-        MessageDisplay.displayError( "A class must have a parent directory" );
-        return false;
-      }
-      strName = file.getParentFile().getName() + '.' + file.getName().substring( 0, file.getName().lastIndexOf( '.' ) );
-    }
-    int iLastDot = strName.lastIndexOf( '.' );
-    String strRelativeName = strName.substring( iLastDot + 1 );
-    String strPackage = iLastDot > 0 ? strName.substring( 0, iLastDot ) : "";
-
-    try
-    {
-      FileWriter writer = new FileWriter( file );
-      String eol = System.getProperty( "line.separator" );
-      writer.write( "package " + strPackage + eol +
-                    eol +
-                    "enhancement " + strRelativeName + " : Object //## todo: change me " + eol +
-                    "{" + eol +
-                    eol +
-                    "}" );
-      writer.flush();
-      writer.close();
-    }
-    catch( IOException e )
-    {
-      throw new RuntimeException( e );
-    }
-    return true;
   }
 
   public void saveAs()
