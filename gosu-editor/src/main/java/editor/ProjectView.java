@@ -63,7 +63,7 @@ public class ProjectView extends JPanel
     DefaultTreeModel model = new DefaultTreeModel( new FileTree( getProject() ) );
     _tree = new JTree( model );
     _tree.setShowsRootHandles( true );
-    _tree.setRowHeight( 20 );
+    _tree.setRowHeight( 22 );
     _tree.getSelectionModel().setSelectionMode( TreeSelectionModel.SINGLE_TREE_SELECTION );
     _tree.setVisibleRowCount( 20 );
     _tree.setCellRenderer( new FileTreeCellRenderer( _tree ) );
@@ -140,7 +140,18 @@ public class ProjectView extends JPanel
     @Override
     public void mouseReleased( MouseEvent e )
     {
-
+      if( e.isPopupTrigger() )
+      {
+        int row = _tree.getRowForLocation( e.getX(), e.getY() );
+        TreePath path = _tree.getPathForLocation( e.getX(), e.getY() );
+        _tree.setSelectionPath( path );
+        if( row > -1 )
+        {
+          _tree.setSelectionRow( row );
+          EventQueue.invokeLater( () ->
+            new ProjectTreeContextMenu( getProject() ).displayContextMenu( _tree, e.getX(), e.getY(), _tree ) );
+        }
+      }
     }
 
     @Override
@@ -155,4 +166,6 @@ public class ProjectView extends JPanel
 
     }
   }
+
+
 }

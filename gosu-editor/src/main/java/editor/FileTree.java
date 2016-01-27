@@ -1,10 +1,12 @@
 package editor;
 
+import editor.util.EditorUtilities;
 import editor.util.Project;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.TypeSystem;
 
 import javax.swing.*;
+import javax.swing.filechooser.FileSystemView;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.MutableTreeNode;
 import javax.swing.tree.TreeNode;
@@ -26,6 +28,7 @@ public class FileTree implements MutableTreeNode, IFileWatcherListener
   private FileTree _parent;
   private List<FileTree> _children;
   private Project _project;
+  private Icon _icon;
 
   public FileTree( Project project )
   {
@@ -277,13 +280,23 @@ public class FileTree implements MutableTreeNode, IFileWatcherListener
       if( fileTree.getType() != null )
       {
         EventQueue.invokeLater( () -> {
-          if( getProject().getGosuPanel().getCurrentFile().equals( newFileOrDir ) )
+          File currentFile = getProject().getGosuPanel().getCurrentFile();
+          if( currentFile != null && currentFile.equals( newFileOrDir ) )
           {
             fileTree.select();
           }
         } );
       }
     } );
+  }
+
+  @Override
+  public void fireDelete( String dir, String file )
+  {
+    File newFileOrDir = new File( dir, file );
+    FileTree fileTree = find( newFileOrDir );
+    EventQueue.invokeLater( () -> ((DefaultTreeModel)getProjectView().getTree().getModel()).removeNodeFromParent( fileTree ) );
+    getProject().getGosuPanel().closeTab( newFileOrDir );
   }
 
   public void select()
@@ -293,14 +306,6 @@ public class FileTree implements MutableTreeNode, IFileWatcherListener
     tree.expandPath( path );
     tree.setSelectionPath( path );
     tree.scrollPathToVisible( path );
-  }
-
-  @Override
-  public void fireDelete( String dir, String file )
-  {
-    File newFileOrDir = new File( dir, file );
-    FileTree fileTree = find( newFileOrDir );
-    EventQueue.invokeLater( () -> ((DefaultTreeModel)getProjectView().getTree().getModel()).removeNodeFromParent( fileTree ) );
   }
 
   public TreePath getPath()
@@ -346,12 +351,42 @@ public class FileTree implements MutableTreeNode, IFileWatcherListener
   public IType getType()
   {
     FileTree sourcePathRoot = getSourcePathRoot();
-    if( isDirectory() || isSourcePathRoot() || sourcePathRoot == null )
+    if( isDirectory() || isSourcePathRoot() || sourcePathRoot == null || getFileOrDir().getName().indexOf( '.' ) < 0 )
     {
       return null;
     }
     String fqn = getFileOrDir().getAbsolutePath().substring( sourcePathRoot.getFileOrDir().getAbsolutePath().length() + 1 );
     fqn = fqn.substring( 0, fqn.lastIndexOf( '.' ) ).replace( File.separatorChar, '.' );
     return TypeSystem.getByFullNameIfValidNoJava( fqn );
+  }
+  
+  public Icon getIcon()
+  {
+    if( _icon == null )
+    {
+      _icon = findIcon();
+    }
+    return _icon;
+  }
+
+  private Icon findIcon()
+  {
+    if( getParent() == null )
+    {
+      return EditorUtilities.loadIcon( "images/g_16.png" );
+    }
+    if( isDirectory() )
+    {
+      if( getSourcePathRoot() != null && !isSourcePathRoot() )
+      {
+        return EditorUtilities.loadIcon( "images/folder.png" );
+      }
+      return EditorUtilities.loadIcon( "images/srcfolder.png" );
+    }
+    if( getType() != null )
+    {
+      return EditorUtilities.findIcon( getType() );
+    }
+    return FileSystemView.getFileSystemView().getSystemIcon( getFileOrDir() );
   }
 }

@@ -3,6 +3,7 @@ package editor;
 import editor.util.Project;
 import gw.util.concurrent.ConcurrentWeakValueHashMap;
 
+import java.awt.*;
 import java.io.File;
 import java.nio.file.ClosedWatchServiceException;
 import java.nio.file.Path;
@@ -122,11 +123,13 @@ public class FileWatcher implements Runnable
           String dirPath = _keyToPath.get( key );
           if( event.kind() == StandardWatchEventKinds.ENTRY_CREATE )
           {
-            fireCreate( dirPath, ((Path)event.context()).getFileName() );
+            EventQueue.invokeLater( () ->
+             fireCreate( dirPath, ((Path)event.context()).getFileName() ) );
           }
           else if( event.kind() == StandardWatchEventKinds.ENTRY_DELETE )
           {
-            fireDelete( dirPath, ((Path)event.context()).getFileName() );
+            EventQueue.invokeLater( () ->
+              fireDelete( dirPath, ((Path)event.context()).getFileName() ) );
           }
         }
         key.reset();

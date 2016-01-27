@@ -54,7 +54,7 @@ public class FileTreeCellRenderer extends JLabel implements TreeCellRenderer
     TypeSystem.lock();
     try
     {
-      if( _node.isDirectory() )
+      if( _node.isDirectory() || !_node.isFile() && _node.getFileOrDir().getName().indexOf( '.' ) < 0 )
       {
         setText( _node.getName() );
       }
@@ -63,7 +63,7 @@ public class FileTreeCellRenderer extends JLabel implements TreeCellRenderer
         IType type = _node.getType();
         setText( type == null ? _node.getName() : type.getRelativeName() );
       }
-      setIcon( findIcon() );
+      setIcon( _node.getIcon() );
     }
     catch( Throwable t )
     {
@@ -73,17 +73,6 @@ public class FileTreeCellRenderer extends JLabel implements TreeCellRenderer
     {
       TypeSystem.unlock();
     }
-  }
-
-  private Icon findIcon()
-  {
-    return _node.getParent() == null
-           ? EditorUtilities.loadIcon( "images/g_16.png" )
-           : _node.isDirectory()
-             ? _node.getSourcePathRoot() != null && !_node.isSourcePathRoot()
-               ? EditorUtilities.loadIcon( "images/folder.png" )
-               : EditorUtilities.loadIcon( "images/folder.png" )
-             : EditorUtilities.findIcon( _node.getType() );
   }
 
   /** */
