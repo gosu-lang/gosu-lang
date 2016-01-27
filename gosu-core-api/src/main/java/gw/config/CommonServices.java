@@ -9,6 +9,7 @@ import gw.lang.parser.ICoercionManager;
 import gw.lang.parser.IGosuParserFactory;
 import gw.lang.reflect.IEntityAccess;
 import gw.lang.reflect.ITypeSystem;
+import gw.lang.reflect.gs.BytecodeOptions;
 import gw.lang.reflect.module.IFileSystem;
 
 import javax.swing.event.ChangeEvent;
@@ -68,6 +69,10 @@ public class CommonServices extends ServiceKernel
     try {
       Class cls = Class.forName("gw.internal.gosu.module.fs.FileSystemImpl");
       Constructor m = cls.getConstructor(IFileSystem.CachingMode.class);
+      if( BytecodeOptions.JDWP_ENABLED.get() )
+      {
+        return (IFileSystem) m.newInstance(IFileSystem.CachingMode.NO_CACHING);
+      }
       return (IFileSystem) m.newInstance(IFileSystem.CachingMode.FULL_CACHING);
     } catch ( Exception e ) {
       throw new RuntimeException( e );
