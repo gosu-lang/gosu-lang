@@ -853,13 +853,14 @@ public class EditorUtilities
 
   private static void copy( IResource from, File to )
   {
-    if( to.exists() )
-    {
-      return;
-    }
-
     if( from instanceof IDirectory )
     {
+      if( !to.getName().equals( "projects" ) && to.exists() )
+      {
+        // already have this project
+        return;
+      }
+
       if( !to.mkdir() )
       {
         System.out.println( "Failed to create project directory: " + to.getAbsolutePath() );
