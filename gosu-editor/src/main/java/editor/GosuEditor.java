@@ -280,8 +280,8 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
     _editor.setMargin( new Insets( 3, 3, 3, 3 ) ); // set margin directly, otherwise some other platforms (cough, mac, cough) don't have a margin at all
     _editor.setFont( new Font( GosuEditorKit.getStylePreferences().getFontFamily(), Font.PLAIN,
                                GosuEditorKit.getStylePreferences().getFontSize() ) );
-    _editor.setBackground( SystemColor.window );
-    _editor.setForeground( SystemColor.windowText );
+    _editor.setBackground( EditorUtilities.GRAY_252 );
+    _editor.setForeground( Color.black );
     _editor.putClientProperty( "caretWidth", 2 );
     _editor.setCaretColor( StyleConstants.getForeground( kit.getViewFactory().getStyle( GosuStyleContext.STYLE_Caret ) ) );
     _editor.setEditable( true );

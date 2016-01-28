@@ -5,7 +5,7 @@ import gw.lang.reflect.IType;
 import gw.lang.reflect.TypeSystem;
 
 import javax.swing.*;
-import javax.swing.plaf.basic.BasicGraphicsUtils;
+import javax.swing.border.EmptyBorder;
 import javax.swing.tree.TreeCellRenderer;
 import java.awt.*;
 
@@ -15,7 +15,6 @@ public class FileTreeCellRenderer extends JLabel implements TreeCellRenderer
 {
   private boolean _bSelected;
   private FileTree _node;
-  private Color _color;
   private JTree _tree;
 
   public FileTreeCellRenderer( JTree tree )
@@ -44,12 +43,12 @@ public class FileTreeCellRenderer extends JLabel implements TreeCellRenderer
 
   public void configure()
   {
-    _color = UIManager.getColor( "textText" );
-
     if( _node == null )
     {
       return;
     }
+
+    setBorder( new EmptyBorder( 0, 3, 0, 3 ) );
 
     TypeSystem.lock();
     try
@@ -88,7 +87,7 @@ public class FileTreeCellRenderer extends JLabel implements TreeCellRenderer
     if( _bSelected )
     {
       bkColor = _tree.isEnabled() && bFocus
-                ? UIManager.getColor( "textHighlight" )
+                ? EditorUtilities.ACTIVE_CAPTION
                 : SystemColor.control;
     }
     else
@@ -100,49 +99,21 @@ public class FileTreeCellRenderer extends JLabel implements TreeCellRenderer
       }
     }
 
-    int textXOffset;
-    Icon currentIcon = getIcon();
-    if( currentIcon != null && getText() != null )
-    {
-      textXOffset = (currentIcon.getIconWidth() + getIconTextGap() - 1);
-    }
-    else
-    {
-      textXOffset = 0;
-    }
-
     if( bkColor != null )
     {
       g.setColor( bkColor );
-      if( currentIcon != null && getText() != null )
+      g.fillRect( 0, 0, getWidth() - 1, getHeight() - 1 );
+
+      if( _bSelected )
       {
-        g.fillRect( textXOffset, 0, getWidth() - 1 - textXOffset, getHeight() - 1 );
-
-        if( _bSelected && _tree.hasFocus() )
-        {
-          g.setColor( _tree.isEnabled() && bFocus ? UIManager.getColor( "textHighlightText" ) : SystemColor.controlLtHighlight );
-          BasicGraphicsUtils.drawDashedRect( g, textXOffset, 0, getWidth() - 1 - textXOffset, getHeight() - 1 );
-        }
-
-      }
-      else
-      {
-        g.fillRect( textXOffset, 0, getWidth() - 1, getHeight() - 1 );
-
-        if( _bSelected && _tree.hasFocus() )
-        {
-          g.setColor( _tree.isEnabled() && bFocus ? UIManager.getColor( "textHighlightText" ) : SystemColor.controlLtHighlight );
-          BasicGraphicsUtils.drawDashedRect( g, textXOffset, 0, getWidth() - 1, getHeight() - 1 );
-        }
+        g.setColor( _tree.isEnabled() && bFocus ? EditorUtilities.XP_BORDER_COLOR : SystemColor.controlShadow );
+        g.drawRect( 0, 0, getWidth() - 1, getHeight() - 1 );
       }
       g.setColor( bkColor );
     }
 
-    setForeground( _bSelected
-                   ? _tree.isEnabled() && bFocus
-                     ? UIManager.getColor( "textHighlightText" )
-                     : _color
-                   : _color );
+    setForeground( SystemColor.controlText );
+
     super.paint( g );
   }
 

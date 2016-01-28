@@ -6,6 +6,7 @@
 package editor;
 
 
+import editor.util.EditorUtilities;
 import editor.util.XPToolbarButton;
 import gw.util.GosuObjectUtil;
 
@@ -29,9 +30,9 @@ public class ToggleToolBarButton extends JToggleButton
   private boolean _bRollover;
   private boolean _bMenu;
 
-  public static final Color XP_BORDER_COLOR = XPToolbarButton.XP_BORDER_COLOR;
-  private static final Color XP_TOGGLE_ROLLOVER_COLOR = XPToolbarButton.XP_HIGHLIGHT_COLOR;
-  private static final Color XP_TOGGLE_SELECTED_COLOR = XPToolbarButton.XP_HIGHLIGHT_SELECTED_COLOR;
+  public static final Color XP_BORDER_COLOR = EditorUtilities.XP_BORDER_COLOR;
+  private static final Color XP_TOGGLE_ROLLOVER_COLOR = EditorUtilities.XP_HIGHLIGHT_COLOR;
+  private static final Color XP_TOGGLE_SELECTED_COLOR = EditorUtilities.XP_HIGHLIGHT_SELECTED_COLOR;
 
   /**
    * Creates a button with an icon.

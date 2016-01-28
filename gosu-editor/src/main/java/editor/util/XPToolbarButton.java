@@ -4,6 +4,7 @@ import gw.util.GosuObjectUtil;
 
 import javax.swing.*;
 import javax.swing.border.Border;
+import javax.swing.plaf.basic.BasicButtonUI;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -14,10 +15,6 @@ import java.awt.event.MouseListener;
 public class XPToolbarButton extends JButton
 {
   private static final int DEFAULT_MARGIN = 2;
-  public static final Color XP_BORDER_COLOR = new Color( 49, 106, 197 );
-  public static final Color XP_HIGHLIGHT_TOGGLE_COLOR = new Color( 225, 230, 232 );
-  public static final Color XP_HIGHLIGHT_COLOR = new Color( 190, 205, 224 );
-  public static final Color XP_HIGHLIGHT_SELECTED_COLOR = new Color( 152, 179, 219 );
 
   private boolean _bConstantBorder;
 
@@ -30,7 +27,8 @@ public class XPToolbarButton extends JButton
   {
     super( text, icon );
 
-    final Border border = BorderFactory.createCompoundBorder( BorderFactory.createLineBorder( XP_BORDER_COLOR ), BorderFactory.createEmptyBorder( iMargin, iMargin, iMargin, iMargin ) );
+    final Border border = BorderFactory.createCompoundBorder( BorderFactory.createLineBorder( EditorUtilities.XP_BORDER_COLOR ), BorderFactory.createEmptyBorder( iMargin, iMargin, iMargin, iMargin ) );
+    setUI( BasicButtonUI.createUI( this ) );
     setBorderPainted( false );
     setMargin( new Insets( 1, 1, 1, 1 ) );
     setContentAreaFilled( false );
@@ -63,11 +61,11 @@ public class XPToolbarButton extends JButton
             setBorderPainted( true );
             if( getModel().isArmed() )
             {
-              setBackground( XP_HIGHLIGHT_SELECTED_COLOR );
+              setBackground( EditorUtilities.XP_HIGHLIGHT_SELECTED_COLOR );
             }
             else
             {
-              setBackground( XP_HIGHLIGHT_COLOR );
+              setBackground( EditorUtilities.XP_HIGHLIGHT_COLOR );
             }
           }
         }
@@ -80,7 +78,7 @@ public class XPToolbarButton extends JButton
 
         public void mousePressed( MouseEvent e )
         {
-          setBackground( XP_HIGHLIGHT_SELECTED_COLOR );
+          setBackground( EditorUtilities.XP_HIGHLIGHT_SELECTED_COLOR );
         }
       };
   }

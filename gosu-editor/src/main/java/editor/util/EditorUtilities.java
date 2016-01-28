@@ -49,6 +49,13 @@ public class EditorUtilities
   public static final Color CONTROL_TEXT = UIManager.getColor( "controlText" );
   public static final Color TOOLTIP_BACKGROUND = UIManager.getColor( "info" );
   public static final Color WINDOW = UIManager.getColor( "window" );
+  public static final Color GRAY_252 = new Color( 252, 252, 252 );
+
+  public static final Color XP_BORDER_COLOR = new Color( 49, 106, 197 );
+  public static final Color XP_HIGHLIGHT_TOGGLE_COLOR = new Color( 225, 230, 232 );
+  public static final Color XP_HIGHLIGHT_COLOR = ACTIVE_CAPTION;//new Color( 190, 205, 224 );
+  public static final Color XP_HIGHLIGHT_SELECTED_COLOR = new Color( 152, 179, 219 );
+
   private static final String BACKGROUND_QUEUE_NAME = "backgroundTasks";
 
 

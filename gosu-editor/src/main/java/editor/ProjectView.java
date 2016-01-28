@@ -62,6 +62,7 @@ public class ProjectView extends JPanel
     _project = project;
     DefaultTreeModel model = new DefaultTreeModel( new FileTree( getProject() ) );
     _tree = new JTree( model );
+    _tree.setBackground( EditorUtilities.GRAY_252 );
     _tree.setShowsRootHandles( true );
     _tree.setRowHeight( 22 );
     _tree.getSelectionModel().setSelectionMode( TreeSelectionModel.SINGLE_TREE_SELECTION );
