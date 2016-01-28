@@ -393,106 +393,7 @@ public class GosuPanel extends JPanel
     gosuItem.setMnemonic( 'G' );
     helpMenu.add( gosuItem );
 
-
     helpMenu.addSeparator();
-
-
-    JMenuItem contextItem = new JMenuItem(
-      new AbstractAction( "Doc Lookup at Caret" )
-      {
-        @Override
-        public void actionPerformed( ActionEvent e )
-        {
-          getCurrentEditor().displayJavadocHelp( getCurrentEditor().getDeepestLocationAtCaret() );
-        }
-      } );
-    contextItem.setMnemonic( 'D' );
-    contextItem.setAccelerator( KeyStroke.getKeyStroke( "F1" ) );
-    helpMenu.add( contextItem );
-
-
-    helpMenu.addSeparator();
-
-
-    JMenuItem introItem = new JMenuItem(
-      new AbstractAction( "Introduction" )
-      {
-        @Override
-        public void actionPerformed( ActionEvent e )
-        {
-          BrowserUtil.openURL( "http://gosu-lang.org/intro.shtml" );
-        }
-      } );
-    introItem.setMnemonic( 'I' );
-    helpMenu.add( introItem );
-
-    JMenuItem docsItem = new JMenuItem(
-      new AbstractAction( "Documentation" )
-      {
-        @Override
-        public void actionPerformed( ActionEvent e )
-        {
-          BrowserUtil.openURL( "http://gosu-lang.org/doc/index.html" );
-        }
-      } );
-    docsItem.setMnemonic( 'D' );
-    helpMenu.add( docsItem );
-
-    JMenuItem historyItem = new JMenuItem(
-      new AbstractAction( "History" )
-      {
-        @Override
-        public void actionPerformed( ActionEvent e )
-        {
-          BrowserUtil.openURL( "http://gosu-lang.org/history.shtml" );
-        }
-      } );
-    historyItem.setMnemonic( 'H' );
-    helpMenu.add( historyItem );
-
-
-    helpMenu.addSeparator();
-
-
-    JMenuItem eclipseItem = new JMenuItem(
-      new AbstractAction( "Eclipse" )
-      {
-        @Override
-        public void actionPerformed( ActionEvent e )
-        {
-          BrowserUtil.openURL( "http://gosu-lang.org/eclipse.shtml" );
-        }
-      } );
-    eclipseItem.setMnemonic( 'E' );
-    helpMenu.add( eclipseItem );
-
-    JMenuItem intellijItem = new JMenuItem(
-      new AbstractAction( "IntelliJ" )
-      {
-        @Override
-        public void actionPerformed( ActionEvent e )
-        {
-          BrowserUtil.openURL( "http://gosu-lang.org/editors.shtml" );
-        }
-      } );
-    intellijItem.setMnemonic( 'I' );
-    helpMenu.add( intellijItem );
-
-
-    helpMenu.addSeparator();
-
-
-    JMenuItem bugItem = new JMenuItem(
-      new AbstractAction( "Report Bugs" )
-      {
-        @Override
-        public void actionPerformed( ActionEvent e )
-        {
-          BrowserUtil.openURL( "http://code.google.com/p/gosu-lang/issues/entry" );
-        }
-      } );
-    bugItem.setMnemonic( 'B' );
-    helpMenu.add( bugItem );
 
     JMenuItem discussItem = new JMenuItem(
       new AbstractAction( "Discuss" )
@@ -506,17 +407,19 @@ public class GosuPanel extends JPanel
     discussItem.setMnemonic( 'D' );
     helpMenu.add( discussItem );
 
-    JMenuItem otherItem = new JMenuItem(
-      new AbstractAction( "Other Links" )
+    helpMenu.addSeparator();
+
+    JMenuItem plugin = new JMenuItem(
+      new AbstractAction( "IntelliJ Plugin" )
       {
         @Override
         public void actionPerformed( ActionEvent e )
         {
-          BrowserUtil.openURL( "http://gosu-lang.org/links.shtml" );
+          BrowserUtil.openURL( "http://gosu-lang.github.io/downloads.html" );
         }
       } );
-    otherItem.setMnemonic( 'L' );
-    helpMenu.add( otherItem );
+    plugin.setMnemonic( 'I' );
+    helpMenu.add( plugin );
   }
 
   private void makeWindowMenu( JMenuBar menuBar )
