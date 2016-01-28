@@ -448,7 +448,6 @@ class Board extends JPanel {
       for( c in _comps ) {
         c.setBounds( c.X+1, c.Y+1, c.Width-2, c.Height-2 )
       }
-      print( _comps.size() )
       repaintViaBuffer()
     }
   }

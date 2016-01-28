@@ -2,6 +2,10 @@ package editor.util;
 
 import editor.GosuPanel;
 import editor.RunMe;
+import gw.config.CommonServices;
+import gw.fs.IDirectory;
+import gw.fs.IFile;
+import gw.fs.IResource;
 import gw.lang.reflect.IFunctionType;
 import gw.lang.reflect.IParameterInfo;
 import gw.lang.reflect.IType;
@@ -21,9 +25,12 @@ import java.awt.datatransfer.Clipboard;
 import java.awt.image.FilteredImageSource;
 import java.awt.image.ImageProducer;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.util.ArrayList;
@@ -819,8 +826,74 @@ public class EditorUtilities
   {
     File gosuDir = new File( System.getProperty( "user.home" ) + File.separator + ".GosuEditor" + File.separator + "projects" );
     //noinspection ResultOfMethodCallIgnored
-    gosuDir.mkdirs();
+    copySampleProjects( gosuDir );
     return gosuDir;
+  }
+
+  private static void copySampleProjects( File gosuDir )
+  {
+    URL marker = EditorUtilities.class.getClassLoader().getResource( "marker.txt" );
+    try
+    {
+      IFile ifile = CommonServices.getFileSystem().getIFile( new File( marker.toURI() ) );
+      for( IResource child: ifile.getParent().listDirs() )
+      {
+        if( child.getName().equals( "projects" ) )
+        {
+          copy( child, gosuDir );
+          break;
+        }
+      }
+    }
+    catch( Exception e )
+    {
+      throw new RuntimeException( e );
+    }
+  }
+
+  private static void copy( IResource from, File to )
+  {
+    if( to.exists() )
+    {
+      return;
+    }
+
+    if( from instanceof IDirectory )
+    {
+      if( !to.mkdir() )
+      {
+        System.out.println( "Failed to create project directory: " + to.getAbsolutePath() );
+      }
+
+      for( IDirectory child : ((IDirectory)from).listDirs() )
+      {
+        copy( child, new File( to, child.getName() ) );
+      }
+      for( IFile child : ((IDirectory)from).listFiles() )
+      {
+        copy( child, new File( to, child.getName() ) );
+      }
+    }
+    else
+    {
+      try
+      {
+        InputStream in = ((IFile)from).openInputStream();
+        OutputStream out = new FileOutputStream( to );
+        byte[] buf = new byte[1024];
+        int len;
+        while( (len = in.read( buf )) > 0 )
+        {
+          out.write( buf, 0, len );
+        }
+        in.close();
+        out.close();
+      }
+      catch( Exception e )
+      {
+        throw new RuntimeException( e );
+      }
+    }
   }
 
   public static List<File> getStockProjects()
@@ -852,7 +925,7 @@ public class EditorUtilities
   public static List<File> getStockExampleProjects()
   {
     List<File> projects = new ArrayList<>();
-    File projectsDir = getStockExamplesDir();
+    File projectsDir = getStockProjectsDir();
     for( File dir : projectsDir.listFiles() )
     {
       if( dir.isDirectory() )
