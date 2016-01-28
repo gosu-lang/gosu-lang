@@ -285,6 +285,7 @@ public class FileTree implements MutableTreeNode, IFileWatcherListener
           {
             fileTree.select();
           }
+          //## todo: update file if opened in editor
         } );
       }
     } );
@@ -295,8 +296,11 @@ public class FileTree implements MutableTreeNode, IFileWatcherListener
   {
     File newFileOrDir = new File( dir, file );
     FileTree fileTree = find( newFileOrDir );
-    EventQueue.invokeLater( () -> ((DefaultTreeModel)getProjectView().getTree().getModel()).removeNodeFromParent( fileTree ) );
-    getProject().getGosuPanel().closeTab( newFileOrDir );
+    if( fileTree != null )
+    {
+      EventQueue.invokeLater( () -> ((DefaultTreeModel)getProjectView().getTree().getModel()).removeNodeFromParent( fileTree ) );
+      getProject().getGosuPanel().closeTab( newFileOrDir );
+    }
   }
 
   public void select()

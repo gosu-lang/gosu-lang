@@ -218,6 +218,12 @@ public class GosuPanel extends JPanel
 
   private static boolean isUpperLevelClasspath( String javaHome, String filePath )
   {
+    if( filePath.replace( '\\', '/' ).contains( "gosu-editor/src/main/resources" ) )
+    {
+      // sample project resource
+      return false;
+    }
+
     return filePath.startsWith( javaHome ) ||
            filePath.contains( File.separator + "gosu-lang" + File.separator ) ||
            filePath.endsWith( File.separator + "tools.jar" ) ||

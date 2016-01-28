@@ -125,21 +125,24 @@ public class Project
 
   public void save( TabPane tabPane )
   {
+    File userFile = getOrMakeProjectFile();
+
     Properties props = new Properties();
     props.put( "Name", getName() );
-    props.put( "Tab.Active", ((File)tabPane.getSelectedTab().getContentPane().getClientProperty( "_file" )).getAbsolutePath() );
+    props.put( "Tab.Active", makeProjectRelativePath( (File)tabPane.getSelectedTab().getContentPane().getClientProperty( "_file" ) ) );
     for( int i = 0; i < tabPane.getTabCount(); i++ )
     {
       File file = (File)tabPane.getTabAt( i ).getContentPane().getClientProperty( "_file" );
-      props.put( "Tab.Open." + ((char)(i + 'A')), file.getAbsolutePath() );
+      props.put( "Tab.Open." + ((char)(i + 'A')), makeProjectRelativePath( file ) );
     }
 
     for( int i = 0; i < getSourcePath().size(); i++ )
     {
-      props.put( "Classpath.Entry" + i, getSourcePath().get( i ) );
+      String path = getSourcePath().get( i );
+      String relativePath = makeProjectRelativePath( new File( path ) );
+      props.put( "Classpath.Entry" + i, relativePath == null ? path : relativePath );
     }
 
-    File userFile = getOrMakeProjectFile();
     try
     {
       FileWriter fw = new FileWriter( userFile );
@@ -151,11 +154,23 @@ public class Project
     }
   }
 
+  private String makeProjectRelativePath( File file )
+  {
+    String absProjectDir = getProjectDir().getAbsolutePath();
+    String absFile = file.getAbsolutePath();
+    if( !absFile.startsWith( absProjectDir ) )
+    {
+      return null;
+    }
+    return absFile.substring( absProjectDir.length() + 1 );
+  }
+
   private void load()
   {
     Properties props = new Properties();
     try
     {
+      System.setProperty( "user.dir", getProjectDir().getAbsolutePath() );
       props.load( new FileReader( getOrMakeProjectFile() ) );
 
       setName( props.getProperty( "Name", getProjectDir().getName() ) );
@@ -169,7 +184,7 @@ public class Project
       {
         if( cpEntry.startsWith( "Classpath.Entry" ) )
         {
-          File file = new File( props.getProperty( cpEntry ) );
+          File file = new File( props.getProperty( cpEntry ) ).getAbsoluteFile();
           if( file.exists() )
           {
             sourcePath.add( file.getAbsolutePath() );
@@ -190,7 +205,7 @@ public class Project
       {
         if( strTab.startsWith( "Tab.Open" ) )
         {
-          File file = new File( props.getProperty( strTab ) );
+          File file = new File( props.getProperty( strTab ) ).getAbsoluteFile();
           if( file.isFile() )
           {
             openFiles.add( file.getAbsolutePath() );
@@ -199,6 +214,10 @@ public class Project
       }
       _openFiles = openFiles;
       _activeFile = props.getProperty( "Tab.Active" );
+      if( _activeFile != null && !_activeFile.isEmpty() )
+      {
+        _activeFile = new File( _activeFile ).getAbsolutePath();
+      }
     }
     catch( IOException e )
     {
