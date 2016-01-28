@@ -1,0 +1,6 @@
+#Gosu Project
+#Thu Jan 28 10:16:02 PST 2016
+Name=match3
+Tab.Active=src\\main\\gosu\\match3\\RunGame.gsp
+Classpath.Entry0=src\\main\\gosu
+Tab.Open.A=src\\main\\gosu\\match3\\RunGame.gsp
