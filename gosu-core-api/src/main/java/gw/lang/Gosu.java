@@ -49,45 +49,50 @@ public class Gosu
 
   public static void main( String[] args )
   {
-    new Gosu().start( args );
+    start( args );
   }
 
-  private void checkArgsLength(int i, int length) {
-    if(i >= length)
+  private static void checkArgsLength( int i, int length )
+  {
+    if( i >= length )
     {
       showHelpAndQuit();
     }
   }
 
-  private int start( String[] args )
+  private static void start( String[] args )
   {
     try
     {
-      int ret;
-
+      if( args.length == 0 )
+      {
+        launchEditor();
+        return;
+      }
       int i = 0;
       checkArgsLength(i, args.length);
       String cpValue = null;
       boolean cmdLineCP = false;
-      if(args[i].equals( "-checkedArithmetic" ))
+      if( args[i].equals( "-checkedArithmetic" ) )
       {
         i++;
-        checkArgsLength(i, args.length);
-        System.setProperty("checkedArithmetic", "true");
+        checkArgsLength( i, args.length );
+        System.setProperty( "checkedArithmetic", "true" );
       }
 
-      if(args[i].equals( "-classpath" ))
+      if( args[i].equals( "-classpath" ) )
       {
         cmdLineCP = true;
-        i+=2;
-        checkArgsLength(i, args.length);
-        cpValue = args[i-1];
+        i += 2;
+        checkArgsLength( i, args.length );
+        cpValue = args[i - 1];
       }
 
-      if(args[i].equals( "-e" )) {
+      if( args[i].equals( "-e" ) )
+      {
         List<File> classpath = makeClasspath( cpValue, "", cmdLineCP );
-        init(classpath);
-        ret = runWithInlineScript(args[i+1], collectArgs(i+2, args));
+        init( classpath );
+        runWithInlineScript( args[i + 1], collectArgs( i + 2, args ) );
       }
       else
       {
@@ -96,23 +101,30 @@ public class Gosu
         {
           showHelpAndQuit();
         }
-        if ( cpValue == null ) {
+        if( cpValue == null )
+        {
           cpValue = extractClassPathFromSrc( script.getAbsolutePath() );
         }
         List<File> classpath = makeClasspath( cpValue, script.getAbsoluteFile().getParent(), cmdLineCP );
-        init(classpath);
-        ret = runWithFile(script, collectArgs(i+1, args));
+        init( classpath );
+        runWithFile( script, collectArgs( i + 1, args ) );
       }
-      return ret;
     }
     catch( Throwable t )
     {
       t.printStackTrace( System.err );
-      return 2;
     }
   }
 
-  private List<String> collectArgs(int i, String[] args) {
+  private static void launchEditor() throws Exception
+  {
+    Class<?> cls = Class.forName( "editor.RunMe" );
+    Method m = cls.getMethod( "launchEditor" );
+    m.invoke( null );
+  }
+
+  private static List<String> collectArgs( int i, String[] args )
+  {
     List<String> scriptArgs = new ArrayList<>();
 
     while( i < args.length )
@@ -123,25 +135,26 @@ public class Gosu
     return scriptArgs;
   }
 
-  private String extractClassPathFromSrc(String file) {
+  private static String extractClassPathFromSrc( String file )
+  {
     BufferedReader br = null;
     String line;
     String ret = null;
 
     try
     {
-      br = new BufferedReader( new FileReader(file) );
+      br = new BufferedReader( new FileReader( file ) );
       //noinspection StatementWithEmptyBody
       while( (line = br.readLine()).trim().isEmpty() ); //ignore
-      if (line.startsWith("classpath"))
+      if( line.startsWith( "classpath" ) )
       {
-        int b = line.indexOf('"');
-        if (b != -1)
+        int b = line.indexOf( '"' );
+        if( b != -1 )
         {
-          int e = line.indexOf('"', b+1);
-          if (e != -1)
+          int e = line.indexOf( '"', b + 1 );
+          if( e != -1 )
           {
-            ret = line.substring(b + 1, e);
+            ret = line.substring( b + 1, e );
           }
         }
       }
@@ -150,28 +163,29 @@ public class Gosu
     {
       try
       {
-        if (br != null)
+        if( br != null )
           br.close();
       } catch (IOException ex) {} //ignore
     }
     return ret;
   }
 
-  private static List<File> makeClasspath(String cpValue, String scriptRoot, boolean cmdLineCP)
+  private static List<File> makeClasspath( String cpValue, String scriptRoot, boolean cmdLineCP )
   {
     ArrayList<File> cp = new ArrayList<File>();
-    if ( cpValue != null ) {
+    if( cpValue != null )
+    {
       StringTokenizer st = new StringTokenizer( cpValue, ",", false );
       while( st.hasMoreTokens() )
       {
         String s = st.nextToken();
-        if( ( s.contains( ":" ) && !OSPlatform.isWindows()) || s.contains( ";" ) )
+        if( (s.contains( ":" ) && !OSPlatform.isWindows()) || s.contains( ";" ) )
         {
           System.err.println( "WARNING: The Gosu classpath argument should be comma separated to avoid system dependencies.\n" +
-            "It appears you are passing in a system-dependent path delimiter" );
+                              "It appears you are passing in a system-dependent path delimiter" );
         }
-        String pathname = cmdLineCP ?  s : scriptRoot + File.separatorChar + s;
-        cp.add(new File(pathname));
+        String pathname = cmdLineCP ? s : scriptRoot + File.separatorChar + s;
+        cp.add( new File( pathname ) );
       }
     }
     return cp;
@@ -182,10 +196,13 @@ public class Gosu
   {
     String path = file.getAbsolutePath();
     int srcIndex = path.indexOf( "src" + File.separatorChar );
-    if (srcIndex >= 0) {
-      String fqn = path.substring(srcIndex + 4).replace(File.separatorChar, '.');
-      return fqn.substring(0, fqn.lastIndexOf('.'));
-    } else { // the Gosu Scratchpad case
+    if( srcIndex >= 0 )
+    {
+      String fqn = path.substring( srcIndex + 4 ).replace( File.separatorChar, '.' );
+      return fqn.substring( 0, fqn.lastIndexOf( '.' ) );
+    }
+    else
+    { // the Gosu Scratchpad case
       String fqn = file.getName();
       fqn = NOPACKAGE + '.' + fqn.substring( 0, fqn.lastIndexOf( '.' ) ).replace( " ", "" );
       return fqn;
@@ -251,7 +268,7 @@ public class Gosu
 
   private static void removeDups( List<File> classpath )
   {
-    for( int i = classpath.size()-1; i >= 0; i-- )
+    for( int i = classpath.size() - 1; i >= 0; i-- )
     {
       File f = classpath.get( i );
       classpath.remove( i );
@@ -294,11 +311,11 @@ public class Gosu
 
   static void showHelpAndQuit()
   {
-    System.out.println("Gosu version: " + getVersion() +
-      "\nUsage:\n" +
-      "    gosu [-checkedArithmetic] [-classpath 'entry1,entry2...'] program.gsp [args...]\n" +
-      "    gosu [-checkedArithmetic] [-classpath 'entry1,entry2...'] -e 'inline script' [args...]\n");
-    System.exit(1);
+    System.out.println( "Gosu version: " + getVersion() +
+                        "\nUsage:\n" +
+                        "    gosu [-checkedArithmetic] [-classpath 'entry1,entry2...'] program.gsp [args...]\n" +
+                        "    gosu [-checkedArithmetic] [-classpath 'entry1,entry2...'] -e 'inline script' [args...]\n" );
+    System.exit( 1 );
   }
 
   public static List<File> deriveClasspathFrom( Class clazz )
@@ -332,9 +349,9 @@ public class Gosu
 
   public static GosuVersion getVersion()
   {
-    InputStream in = Gosu.class.getClassLoader().getResourceAsStream(GosuVersion.RESOURCE_PATH);
-    Reader reader = StreamUtil.getInputStreamReader(in);
-    return GosuVersion.parse(reader);
+    InputStream in = Gosu.class.getClassLoader().getResourceAsStream( GosuVersion.RESOURCE_PATH );
+    Reader reader = StreamUtil.getInputStreamReader( in );
+    return GosuVersion.parse( reader );
   }
 
   public static File getCurrentProgram()
@@ -347,41 +364,39 @@ public class Gosu
     return _rawArgs;
   }
 
-  private int runWithFile(File script, List<String> args) throws IOException, ParseResultsException
+  private static void runWithFile( File script, List<String> args ) throws IOException, ParseResultsException
   {
     _script = script;
     // set remaining arguments as arguments to the Gosu program
-    _rawArgs  = args;
-    byte[] bytes = StreamUtil.getContent( new BufferedInputStream(new FileInputStream(script)));
+    _rawArgs = args;
+    byte[] bytes = StreamUtil.getContent( new BufferedInputStream( new FileInputStream( script ) ) );
     String content = StreamUtil.toString( bytes );
     IFileContext ctx = new ProgramFileContext( script, makeFqn( script ) );
     IGosuProgramParser programParser = GosuParserFactory.createProgramParser();
     ParserOptions options = new ParserOptions().withFileContext( ctx );
     IParseResult result = programParser.parseExpressionOrProgram( content, new StandardSymbolTable( true ), options );
     IGosuProgram program = result.getProgram();
-    Object ret = program.getProgramInstance().evaluate(null); // evaluate it
+    Object ret = program.getProgramInstance().evaluate( null ); // evaluate it
     IType expressionType = result.getType();
-    if( expressionType != null && !JavaTypes.pVOID().equals(expressionType) )
+    if( expressionType != null && !JavaTypes.pVOID().equals( expressionType ) )
     {
       GosuShop.print( ret );
     }
-    return 0;
   }
 
-  private int runWithInlineScript(String script, List<String> args) throws IOException, ParseResultsException
+  private static void runWithInlineScript( String script, List<String> args ) throws IOException, ParseResultsException
   {
     _script = null;
     // set remaining arguments as arguments to the Gosu program
-    _rawArgs  = args;
+    _rawArgs = args;
     IGosuProgramParser programParser = GosuParserFactory.createProgramParser();
     IParseResult result = programParser.parseExpressionOrProgram( script, new StandardSymbolTable( true ), new ParserOptions() );
     IGosuProgram program = result.getProgram();
-    Object ret = program.getProgramInstance().evaluate(null); // evaluate it
+    Object ret = program.getProgramInstance().evaluate( null ); // evaluate it
     IType expressionType = result.getType();
-    if( expressionType != null && !JavaTypes.pVOID().equals(expressionType) )
+    if( expressionType != null && !JavaTypes.pVOID().equals( expressionType ) )
     {
       GosuShop.print( ret );
     }
-    return 0;
   }
 }

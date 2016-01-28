@@ -20,7 +20,7 @@ public class RunMe
     return _gosuEditor;
   }
 
-  private static void launchEditor() throws Exception
+  public static void launchEditor() throws Exception
   {
     EventQueue.invokeLater(
       () -> {
