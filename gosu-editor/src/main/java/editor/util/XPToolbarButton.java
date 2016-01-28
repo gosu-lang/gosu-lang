@@ -27,18 +27,17 @@ public class XPToolbarButton extends JButton
   {
     super( text, icon );
 
-    final Border border = BorderFactory.createCompoundBorder( BorderFactory.createLineBorder( EditorUtilities.XP_BORDER_COLOR ), BorderFactory.createEmptyBorder( iMargin, iMargin, iMargin, iMargin ) );
     setUI( BasicButtonUI.createUI( this ) );
     setBorderPainted( false );
     setMargin( new Insets( 1, 1, 1, 1 ) );
     setContentAreaFilled( false );
     setOpaque( true );
-    setBackground( SystemColor.control );
     EventQueue.invokeLater( new Runnable()
     {
       public void run()
       {
-        setBorder( border );
+        setBorder( BorderFactory.createCompoundBorder( BorderFactory.createLineBorder( EditorUtilities.XP_BORDER_COLOR ), BorderFactory.createEmptyBorder( iMargin, iMargin, iMargin, iMargin ) ) );
+        setBackground( SystemColor.control );
       }
     } );
 
