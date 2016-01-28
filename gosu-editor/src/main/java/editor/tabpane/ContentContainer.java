@@ -1,6 +1,7 @@
 package editor.tabpane;
 
 import editor.search.StudioUtilities;
+import editor.util.EditorUtilities;
 
 import javax.swing.*;
 import javax.swing.border.Border;
@@ -65,7 +66,7 @@ public class ContentContainer extends JPanel
 
     public Color getColor() {
       if( StudioUtilities.containsFocus( ContentContainer.this )) {
-        return SystemColor.activeCaption;
+        return EditorUtilities.ACTIVE_CAPTION;
       }
       return SystemColor.control;
     }

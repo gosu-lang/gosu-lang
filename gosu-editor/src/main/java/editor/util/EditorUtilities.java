@@ -40,10 +40,7 @@ public class EditorUtilities
   static final HashMap<String, ImageIcon> ICON_TABLE = new HashMap<String, ImageIcon>();
 
   /* colors */
-  public static final Color ACTIVE_CAPTION = UIManager.getColor( "activeCaption" );
-  public static final Color ACTIVE_GRADIENT = UIManager.getColor( "activeCaption" );
-  public static final Color INACTIVE_CAPTION = UIManager.getColor( "inactiveCaption" );
-  public static final Color INACTIVE_GRADIENT = UIManager.getColor( "inactiveCaption" );
+  public static final Color ACTIVE_CAPTION = new Color( 210, 235, 251 );
   public static final Color CONTROL_BACKGROUND = UIManager.getColor( "control" );
   public static final Color CONTROL_DARKSHADOW = UIManager.getColor( "controlDkShadow" );
   public static final Color CONTROL_HIGHLIGHT = UIManager.getColor( "controlHighlight" );

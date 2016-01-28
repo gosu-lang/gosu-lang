@@ -277,10 +277,11 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
     GosuEditorKit kit = new GosuEditorKit();
     _editor.setEditorKitForContentType( "text/gosu", kit );
     _editor.setContentType( "text/gosu" );
+    _editor.setMargin( new Insets( 3, 3, 3, 3 ) ); // set margin directly, otherwise some other platforms (cough, mac, cough) don't have a margin at all
     _editor.setFont( new Font( GosuEditorKit.getStylePreferences().getFontFamily(), Font.PLAIN,
                                GosuEditorKit.getStylePreferences().getFontSize() ) );
-    _editor.setBackground( kit.getViewFactory().getBackground( GosuStyleContext.DEFAULT ) );
-    _editor.setForeground( kit.getViewFactory().getForeground( GosuStyleContext.DEFAULT ) );
+    _editor.setBackground( SystemColor.window );
+    _editor.setForeground( SystemColor.windowText );
     _editor.putClientProperty( "caretWidth", 2 );
     _editor.setCaretColor( StyleConstants.getForeground( kit.getViewFactory().getStyle( GosuStyleContext.STYLE_Caret ) ) );
     _editor.setEditable( true );
@@ -291,37 +292,37 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
     _editor.addCaretListener( _ctxHighlighter );
     _editor.addFocusListener( _ctxHighlighter );
     _editor.addFocusListener( new FocusAdapter()
-    {
-      @Override
-      public void focusGained( FocusEvent e )
       {
-        _smartFixManager.updateState();
-      }
-    } );
+        @Override
+        public void focusGained( FocusEvent e )
+        {
+          _smartFixManager.updateState();
+        }
+      } );
     TypeSystem.addTypeLoaderListenerAsWeakRef( this );
     MouseInEditorHandler mouseInEditorHandler = new MouseInEditorHandler( this );
     _editor.addMouseListener( mouseInEditorHandler );
     _editor.addMouseMotionListener( mouseInEditorHandler );
     _editor.addMouseListener( new MouseAdapter()
-    {
-      @Override
-      public void mouseClicked( MouseEvent e )
       {
-        setCompleteCode( false );
-      }
+        @Override
+        public void mouseClicked( MouseEvent e )
+        {
+          setCompleteCode( false );
+        }
 
-      @Override
-      public void mousePressed( MouseEvent e )
-      {
-        setCompleteCode( false );
-      }
+        @Override
+        public void mousePressed( MouseEvent e )
+        {
+          setCompleteCode( false );
+        }
 
-      @Override
-      public void mouseReleased( MouseEvent e )
-      {
-        setCompleteCode( false );
-      }
-    } );
+        @Override
+        public void mouseReleased( MouseEvent e )
+        {
+          setCompleteCode( false );
+        }
+      } );
 
     addDocumentListener();
 

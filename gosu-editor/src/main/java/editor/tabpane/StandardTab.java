@@ -3,6 +3,7 @@ package editor.tabpane;
 import editor.search.StudioUtilities;
 import editor.splitpane.ICaptionActionListener;
 import editor.splitpane.ICaptionBar;
+import editor.util.EditorUtilities;
 import editor.util.IEditableLabel;
 import editor.util.ILabel;
 
@@ -129,7 +130,7 @@ public class StandardTab extends JPanel implements ITab
     return
       isSelected()
       ? getTabPane().isShowing() && getTabPane().isActive()
-        ? SystemColor.activeCaption
+        ? EditorUtilities.ACTIVE_CAPTION
         : super.getBackground()
       : SystemColor.control;
   }
@@ -160,7 +161,7 @@ public class StandardTab extends JPanel implements ITab
     return
       isSelected()
       ? getTabPane().isShowing() && getTabPane().isActive()
-        ? SystemColor.activeCaption
+        ? EditorUtilities.ACTIVE_CAPTION
         : SystemColor.control //(Color)Utilities.getDesktopProperty( DesktopProperties.INACTIVE_GRADIENT )
       : isHover()
        ? SystemColor.control
