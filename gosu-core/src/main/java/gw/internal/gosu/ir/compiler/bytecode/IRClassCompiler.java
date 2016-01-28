@@ -4,6 +4,7 @@
 
 package gw.internal.gosu.ir.compiler.bytecode;
 
+import gw.internal.ext.org.objectweb.asm.Attribute;
 import gw.internal.ext.org.objectweb.asm.ClassReader;
 import gw.internal.ext.org.objectweb.asm.ClassVisitor;
 import gw.internal.ext.org.objectweb.asm.Opcodes;
@@ -18,6 +19,8 @@ import gw.internal.gosu.compiler.DebugFlag;
 import gw.internal.gosu.ir.nodes.IRTypeFactory;
 import gw.internal.gosu.ir.nodes.JavaClassIRType;
 import gw.internal.gosu.ir.transform.util.IRTypeResolver;
+import gw.lang.Gosu;
+import gw.lang.GosuVersion;
 import gw.lang.ir.IRClass;
 import gw.lang.ir.IRType;
 import gw.lang.ir.IRSymbol;
@@ -36,6 +39,8 @@ import java.io.StringWriter;
 import java.io.PrintWriter;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Array;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
 import java.util.List;
 
 public class IRClassCompiler extends AbstractBytecodeCompiler
@@ -47,6 +52,7 @@ public class IRClassCompiler extends AbstractBytecodeCompiler
 
   private ClassVisitor _cv;
   private IRClass _irClass;
+  private static GosuVersion _gosuVersion = Gosu.getVersion();
 
 
   public static byte[] compileClass( IRClass irClass, boolean debug )
@@ -92,6 +98,8 @@ public class IRClassCompiler extends AbstractBytecodeCompiler
 
       addAnnotations();
 
+      addGosuVersion();
+
       _cv.visitEnd();
     }
     finally
@@ -107,6 +115,28 @@ public class IRClassCompiler extends AbstractBytecodeCompiler
     byte[] bytes = writer.toByteArray();
 //    verify( bytes );
     return bytes;
+  }
+
+  private void addGosuVersion()
+  {
+    try
+    {
+      Class<Attribute> aClass = Attribute.class;
+      Constructor[] constr = aClass.getDeclaredConstructors();
+      constr[0].setAccessible( true );
+      Object instance = constr[0].newInstance( "GosuVersion" );
+      Field[] fields = aClass.getDeclaredFields();
+      fields[1].setAccessible( true );
+      byte[] version = {(byte)_gosuVersion.getMajor(),
+                        (byte)_gosuVersion.getMinor(),
+                        (byte)_gosuVersion.getIncremental()};
+      fields[1].set( instance, version );
+      _cv.visitAttribute( (Attribute) instance );
+    }
+    catch( Exception e )
+    {
+      throw new RuntimeException( e );
+    }
   }
 
   public void addAnnotations() {
