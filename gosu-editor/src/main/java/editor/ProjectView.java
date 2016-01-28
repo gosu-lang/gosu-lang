@@ -71,7 +71,7 @@ public class ProjectView extends JPanel
     _tree.addMouseListener( new TreeMouseHandler() );
     _scroller = new JScrollPane( _tree );
     _scroller.setBorder( new MatteBorder( 0, 0, 1, 1, SystemColor.controlShadow ) );
-    expandAllNodes( 0, _tree.getRowCount() );
+    expandToFirstSourcePath( 0, _tree.getRowCount() );
 
     _splitPane.setTop( _scroller );
 
@@ -100,7 +100,28 @@ public class ProjectView extends JPanel
     return _project;
   }
 
-  private void expandAllNodes( int startingIndex, int rowCount )
+  private void expandToFirstSourcePath( int startingIndex, int rowCount )
+  {
+    FileTree fileTree = (FileTree)_tree.getPathForRow( startingIndex ).getLastPathComponent();
+    if( fileTree.getParent() != null && fileTree.getParent().isSourcePathRoot() )
+    {
+      // Stop after expanding first source path
+      _tree.expandRow( startingIndex );
+      return;
+    }
+
+    for( int i = startingIndex; i < rowCount; ++i )
+    {
+      _tree.expandRow( i );
+    }
+
+    if( _tree.getRowCount() != rowCount )
+    {
+      expandToFirstSourcePath( rowCount, _tree.getRowCount() );
+    }
+  }
+
+  private void expandAll( int startingIndex, int rowCount )
   {
     for( int i = startingIndex; i < rowCount; ++i )
     {
@@ -109,7 +130,7 @@ public class ProjectView extends JPanel
 
     if( _tree.getRowCount() != rowCount )
     {
-      expandAllNodes( rowCount, _tree.getRowCount() );
+      expandAll( rowCount, _tree.getRowCount() );
     }
   }
 
