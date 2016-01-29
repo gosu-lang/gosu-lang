@@ -1,0 +1,7 @@
+#Gosu Project
+#Thu Jan 28 17:18:05 PST 2016
+Name=Examples
+Tab.Active=src\\main\\gosu\\examples\\SimpleLoops.gsp
+Classpath.Entry0=src\\main\\gosu
+Tab.Open.B=src\\main\\gosu\\examples\\Intervals.gsp
+Tab.Open.A=src\\main\\gosu\\examples\\SimpleLoops.gsp

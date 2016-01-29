@@ -29,6 +29,8 @@ public class NewFilePopup extends JPopupMenu
     addNewItem( popup, "Template", "images/template.png", () -> SourceFileCreator.instance().create( ClassType.Template ) );
     popup.add( new JPopupMenu.Separator() );
     addNewItem( popup, "Enhancement", "images/Enhancement.png", () -> SourceFileCreator.instance().create( ClassType.Enhancement ) );
+    popup.add( new JPopupMenu.Separator() );
+    addNewItem( popup, "Namespace", "images/folder.png", () -> SourceFileCreator.instance().createNamespace() );
     addCustomTypes();
   }
 

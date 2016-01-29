@@ -1,5 +1,6 @@
 package editor;
 
+import editor.search.MessageDisplay;
 import editor.splitpane.CollapsibleSplitPane;
 import editor.tabpane.TabPane;
 import editor.tabpane.TabPosition;
@@ -13,6 +14,8 @@ import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
 import java.awt.*;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.io.File;
@@ -69,6 +72,7 @@ public class ProjectView extends JPanel
     _tree.setVisibleRowCount( 20 );
     _tree.setCellRenderer( new FileTreeCellRenderer( _tree ) );
     _tree.addMouseListener( new TreeMouseHandler() );
+    _tree.addKeyListener( new TreeKeyHankder() );
     _scroller = new JScrollPane( _tree );
     _scroller.setBorder( new MatteBorder( 0, 0, 1, 1, SystemColor.controlShadow ) );
     expandToFirstSourcePath( 0, _tree.getRowCount() );
@@ -195,4 +199,31 @@ public class ProjectView extends JPanel
   }
 
 
+  private class TreeKeyHankder implements KeyListener
+  {
+    @Override
+    public void keyTyped( KeyEvent e )
+    {
+
+    }
+
+    @Override
+    public void keyPressed( KeyEvent e )
+    {
+      if( e.getKeyCode() == KeyEvent.VK_DELETE )
+      {
+        FileTree selection = getSelectedTree();
+        if( selection != null && selection.canDelete() )
+        {
+          selection.delete();
+        }
+      }
+    }
+
+    @Override
+    public void keyReleased( KeyEvent e )
+    {
+
+    }
+  }
 }

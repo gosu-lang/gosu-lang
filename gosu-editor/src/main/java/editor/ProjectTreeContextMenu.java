@@ -277,7 +277,7 @@ public class ProjectTreeContextMenu implements IContextMenuHandler<JTree>
     public boolean isEnabled()
     {
       FileTree item = (FileTree)_tree.getLastSelectedPathComponent();
-      return item != null && !item.isSourcePathRoot() && item.getParent() != null;
+      return item != null && item.canDelete();
     }
 
     @Override
@@ -286,29 +286,8 @@ public class ProjectTreeContextMenu implements IContextMenuHandler<JTree>
       FileTree item = (FileTree)_tree.getLastSelectedPathComponent();
       if( item != null )
       {
-        delete( item.getFileOrDir() );
+        item.delete();
       }
-    }
-
-    private void delete( File fileOrDir )
-    {
-      if( fileOrDir.isDirectory() )
-      {
-        for( File f : fileOrDir.listFiles() )
-        {
-          if( f.isDirectory() )
-          {
-            delete( f );
-          }
-          else
-          {
-            //noinspection ResultOfMethodCallIgnored
-            f.delete();
-          }
-        }
-      }
-      //noinspection ResultOfMethodCallIgnored
-      fileOrDir.delete();
     }
   }
 

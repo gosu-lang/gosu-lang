@@ -1834,6 +1834,10 @@ public class GosuPanel extends JPanel
 
   public boolean isDirty( GosuEditor editor )
   {
+    if( editor == null )
+    {
+      return false;
+    }
     Boolean bDirty = (Boolean)editor.getClientProperty( "_bDirty" );
     return bDirty == null ? false : bDirty;
   }

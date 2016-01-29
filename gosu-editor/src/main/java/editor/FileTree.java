@@ -1,5 +1,6 @@
 package editor;
 
+import editor.search.MessageDisplay;
 import editor.util.EditorUtilities;
 import editor.util.Project;
 import gw.lang.reflect.IType;
@@ -363,7 +364,58 @@ public class FileTree implements MutableTreeNode, IFileWatcherListener
     fqn = fqn.substring( 0, fqn.lastIndexOf( '.' ) ).replace( File.separatorChar, '.' );
     return TypeSystem.getByFullNameIfValidNoJava( fqn );
   }
-  
+
+  public boolean canDelete()
+  {
+    return !isSourcePathRoot() && getParent() != null;
+  }
+
+  public void delete()
+  {
+    if( canDelete() )
+    {
+      if( isFile() )
+      {
+        if( MessageDisplay.displayConfirmation(
+          "Delete file \"" + getName() + "\"?",
+          JOptionPane.OK_CANCEL_OPTION ) != JOptionPane.OK_OPTION )
+        {
+          return;
+        }
+      }
+      else if( MessageDisplay.displayConfirmation(
+        "<html>Delete directory \"" + getName() + "\"?<br>" +
+        "All files and subdirectories in \"" + getName() + "\" will be deleted!",
+        JOptionPane.OK_CANCEL_OPTION ) != JOptionPane.OK_OPTION )
+      {
+        return;
+      }
+
+      delete( getFileOrDir() );
+    }
+  }
+
+  private void delete( File fileOrDir )
+  {
+    if( fileOrDir.isDirectory() )
+    {
+      for( File f : fileOrDir.listFiles() )
+      {
+        if( f.isDirectory() )
+        {
+          delete( f );
+        }
+        else
+        {
+          //noinspection ResultOfMethodCallIgnored
+          f.delete();
+        }
+      }
+    }
+    //noinspection ResultOfMethodCallIgnored
+    fileOrDir.delete();
+  }
+
   public Icon getIcon()
   {
     if( _icon == null )

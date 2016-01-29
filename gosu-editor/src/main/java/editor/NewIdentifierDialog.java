@@ -11,15 +11,29 @@ import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 
-public class NewClassNameDialog extends JDialog
+public class NewIdentifierDialog extends JDialog
 {
-  private JTextField _nameField;
+  private IdentifierTextField _nameField;
   private String _name;
 
-  public NewClassNameDialog( ClassType classType )
+  public NewIdentifierDialog( ClassType classType )
   {
     super( (JFrame)KeyboardFocusManager.getCurrentKeyboardFocusManager().getActiveWindow(), "New " + classType.keyword() + " Name", true );
     setIconImage( ((ImageIcon)EditorUtilities.findIcon( classType )).getImage() );
+    configUI();
+    addWindowListener( new WindowAdapter()
+    {
+      public void windowClosing( WindowEvent e )
+      {
+        dispose();
+      }
+    } );
+  }
+
+  public NewIdentifierDialog()
+  {
+    super( (JFrame)KeyboardFocusManager.getCurrentKeyboardFocusManager().getActiveWindow(), "New Namespace Name", true );
+    setIconImage( EditorUtilities.loadIcon( "images/folder.png" ).getImage() );
     configUI();
     addWindowListener( new WindowAdapter()
     {
@@ -37,7 +51,8 @@ public class NewClassNameDialog extends JDialog
     contentPane.setLayout( new BorderLayout() );
 
     JPanel mainPanel = new JPanel( new BorderLayout() );
-    _nameField = new JTextField( 30 );
+    _nameField = new IdentifierTextField( false, true );
+    _nameField.setColumns( 30 );
     mainPanel.add( _nameField, BorderLayout.NORTH );
     mainPanel.add( new JPanel(), BorderLayout.CENTER );
 

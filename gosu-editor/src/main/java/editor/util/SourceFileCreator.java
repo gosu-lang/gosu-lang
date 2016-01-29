@@ -2,7 +2,7 @@ package editor.util;
 
 import editor.FileTree;
 import editor.GosuPanel;
-import editor.NewClassNameDialog;
+import editor.NewIdentifierDialog;
 import editor.RunMe;
 import editor.search.MessageDisplay;
 import gw.config.CommonServices;
@@ -30,11 +30,22 @@ public class SourceFileCreator
 
   public void create( ClassType classType )
   {
-    NewClassNameDialog dlg = new NewClassNameDialog( classType );
+    NewIdentifierDialog dlg = new NewIdentifierDialog( classType );
     dlg.setVisible( true );
     if( dlg.getClassName() != null )
     {
       create( new File( getParentContext(), dlg.getClassName() + classType.getExt() ), classType );
+    }
+  }
+
+  public void createNamespace()
+  {
+    NewIdentifierDialog dlg = new NewIdentifierDialog();
+    dlg.setVisible( true );
+    if( dlg.getClassName() != null )
+    {
+      File dir = new File( getParentContext(), dlg.getClassName() );
+      dir.mkdirs();
     }
   }
 
@@ -101,6 +112,10 @@ public class SourceFileCreator
     else if( strFile.endsWith( ".gst" ) )
     {
       return writeTempateStub( file );
+    }
+    else if( classType == null )
+    {
+      return file.mkdirs();
     }
     return true;
   }
