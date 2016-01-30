@@ -861,7 +861,7 @@ public class EditorUtilities
         return;
       }
 
-      if( !to.mkdir() )
+      if( !to.mkdirs() )
       {
         System.out.println( "Failed to create project directory: " + to.getAbsolutePath() );
       }
@@ -945,5 +945,59 @@ public class EditorUtilities
   {
     File projectDir = new File( getStockProjectsDir(), "scratch" );
     return new Project( projectDir, gosuPanel );
+  }
+
+  public static void openFileOrDir( File file )
+  {
+    try
+    {
+      try
+      {
+        Desktop.getDesktop().edit( file );
+      }
+      catch( Exception e )
+      {
+        if( PlatformUtil.isWindows() )
+        {
+          Runtime.getRuntime().exec( new String[]{"rundll32", "url.dll,FileProtocolHandler", file.getAbsolutePath()} );
+        }
+        else if( PlatformUtil.isLinux() || PlatformUtil.isMac() )
+        {
+          Runtime.getRuntime().exec( new String[]{"/usr/bin/open", file.getAbsolutePath()} );
+        }
+        else
+        {
+          if( Desktop.isDesktopSupported() )
+          {
+            Desktop.getDesktop().open( file );
+          }
+        }
+      }
+    }
+    catch( Exception e )
+    {
+      throw new RuntimeException( e );
+    }
+  }
+
+  public static void delete( File fileOrDir )
+  {
+    if( fileOrDir.isDirectory() )
+    {
+      for( File f : fileOrDir.listFiles() )
+      {
+        if( f.isDirectory() )
+        {
+          delete( f );
+        }
+        else
+        {
+          //noinspection ResultOfMethodCallIgnored
+          f.delete();
+        }
+      }
+    }
+    //noinspection ResultOfMethodCallIgnored
+    fileOrDir.delete();
   }
 }

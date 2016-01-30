@@ -1,6 +1,6 @@
 #Gosu Project
-#Wed Jan 27 23:17:19 PST 2016
+#Fri Jan 29 21:32:43 PST 2016
 Name=life
-Tab.Active=src\\main\\gosu\\life\\GameOfLife.gsp
+Tab.Active=src\\main\\gosu\\life\\Cell.gs
 Classpath.Entry0=src\\main\\gosu
-Tab.Open.A=src\\main\\gosu\\life\\GameOfLife.gsp
+Tab.Open.A=src\\main\\gosu\\life\\Cell.gs

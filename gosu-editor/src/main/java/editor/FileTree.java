@@ -391,29 +391,8 @@ public class FileTree implements MutableTreeNode, IFileWatcherListener
         return;
       }
 
-      delete( getFileOrDir() );
+      EditorUtilities.delete( getFileOrDir() );
     }
-  }
-
-  private void delete( File fileOrDir )
-  {
-    if( fileOrDir.isDirectory() )
-    {
-      for( File f : fileOrDir.listFiles() )
-      {
-        if( f.isDirectory() )
-        {
-          delete( f );
-        }
-        else
-        {
-          //noinspection ResultOfMethodCallIgnored
-          f.delete();
-        }
-      }
-    }
-    //noinspection ResultOfMethodCallIgnored
-    fileOrDir.delete();
   }
 
   public Icon getIcon()

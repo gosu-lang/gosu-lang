@@ -25,4 +25,6 @@ public interface IGosuVarPropertyInfo extends IAttributedFeatureInfo, IPropertyI
   String getSymbolScopeString();
 
   String getSymbolAttributeName();
+
+  int getOffset();
 }

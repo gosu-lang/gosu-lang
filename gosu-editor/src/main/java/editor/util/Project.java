@@ -3,7 +3,7 @@ package editor.util;
 import editor.FileWatcher;
 import editor.GosuPanel;
 import editor.tabpane.TabPane;
-import gw.lang.reflect.TypeSystem;
+import gw.lang.reflect.module.IProject;
 
 import java.io.File;
 import java.io.FileReader;
@@ -18,7 +18,7 @@ import java.util.Set;
 
 /**
  */
-public class Project
+public class Project implements IProject
 {
   private String _name;
   private List<String> _sourcePath;
@@ -51,6 +51,31 @@ public class Project
   {
     return _name;
   }
+
+  @Override
+  public Object getNativeProject()
+  {
+    return this;
+  }
+
+  @Override
+  public boolean isDisposed()
+  {
+    return false;
+  }
+
+  @Override
+  public boolean isHeadless()
+  {
+    return false;
+  }
+
+  @Override
+  public boolean isShadowMode()
+  {
+    return false;
+  }
+
   public void setName( String name )
   {
     _name = name;
@@ -147,6 +172,7 @@ public class Project
     {
       FileWriter fw = new FileWriter( userFile );
       props.store( fw, "Gosu Project" );
+      fw.close();
     }
     catch( IOException e )
     {
@@ -160,7 +186,7 @@ public class Project
     String absFile = file.getAbsolutePath();
     if( !absFile.startsWith( absProjectDir ) )
     {
-      return null;
+      return absFile;
     }
     return absFile.substring( absProjectDir.length() + 1 );
   }
@@ -171,7 +197,9 @@ public class Project
     try
     {
       System.setProperty( "user.dir", getProjectDir().getAbsolutePath() );
-      props.load( new FileReader( getOrMakeProjectFile() ) );
+      FileReader reader = new FileReader( getOrMakeProjectFile() );
+      props.load( reader );
+      reader.close();
 
       setName( props.getProperty( "Name", getProjectDir().getName() ) );
 
@@ -197,8 +225,6 @@ public class Project
         File srcPath = new File( getProjectDir(), getRelativeGosuSourcePath() );
         _sourcePath.add( srcPath.getAbsolutePath() );
       }
-
-      TypeSystem.refresh( TypeSystem.getGlobalModule() );
 
       List<String> openFiles = new ArrayList<>();
       for( String strTab : sortedKeys )

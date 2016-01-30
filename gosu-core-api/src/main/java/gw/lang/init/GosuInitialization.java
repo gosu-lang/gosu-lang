@@ -54,6 +54,14 @@ public class GosuInitialization
     getGosuInitialization().uninitializeRuntime( _execEnv );
   }
 
+  public void uninitializeSimpleIde() {
+    if (!_initialized) {
+      return;
+    }
+    _initialized = false;
+    getGosuInitialization().uninitializeSimpleIde( _execEnv );
+  }
+
   public void initializeRuntime( List<GosuPathEntry> pathEntries, String... discretePackages ) {
     if (_initialized) {
       throw new IllegalStateException("Illegal attempt to re-initialize Gosu");
@@ -84,6 +92,16 @@ public class GosuInitialization
       getGosuInitialization().reinitializeRuntime( _execEnv, pathEntries, discretePackages );
     } else {
       getGosuInitialization().initializeRuntime( _execEnv, pathEntries, discretePackages );
+    }
+    _initialized = true;
+  }
+
+  public void reinitializeSimpleIde( GosucModule module ) {
+    if (_initialized) {
+      uninitializeSimpleIde();
+      getGosuInitialization().reinitializeSimpleIde( _execEnv, module );
+    } else {
+      getGosuInitialization().initializeSimpleIde( _execEnv, module );
     }
     _initialized = true;
   }

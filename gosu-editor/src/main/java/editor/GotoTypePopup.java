@@ -1,26 +1,22 @@
 package editor;
 
 import editor.search.StudioUtilities;
+import editor.util.Project;
+import gw.fs.IFile;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.gs.GosuClassTypeLoader;
-import gw.lang.reflect.gs.IGosuClass;
-import gw.lang.reflect.gs.IGosuEnhancement;
-import gw.lang.reflect.gs.IGosuProgram;
-import gw.lang.reflect.gs.ITemplateType;
 
 import javax.swing.*;
 import java.awt.*;
 import java.io.File;
-import java.net.URL;
-import java.net.URLDecoder;
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.List;
 
 
-public class GotoTypePopup extends AbstractGotoPopup<CharSequence>
+public class GotoTypePopup extends AbstractGotoPopup<String>
 {
   private static final int DEFAULT_WAIT_TIME = 0;
   private static final int ROW_COUNT = 10;
@@ -42,33 +38,20 @@ public class GotoTypePopup extends AbstractGotoPopup<CharSequence>
     StudioUtilities.showWaitCursor( true );
     try
     {
-      File sourceFile;
       IType type = TypeSystem.getByFullNameIfValid( strQualifedType );
-      URL resource;
-      if( type instanceof IGosuEnhancement )
-      {
-        resource = TypeSystem.getGosuClassLoader().getActualLoader().getResource( strQualifedType.replace( '.', '/' ) + GosuClassTypeLoader.GOSU_ENHANCEMENT_FILE_EXT );
-      }
-      else if( type instanceof ITemplateType )
-      {
-        resource = TypeSystem.getGosuClassLoader().getActualLoader().getResource( strQualifedType.replace( '.', '/' ) + GosuClassTypeLoader.GOSU_TEMPLATE_FILE_EXT );
-      }
-      else if( type instanceof IGosuProgram )
-      {
-        resource = TypeSystem.getGosuClassLoader().getActualLoader().getResource( strQualifedType.replace( '.', '/' ) + GosuClassTypeLoader.GOSU_PROGRAM_FILE_EXT );
-      }
-      else if( type instanceof IGosuClass )
-      {
-        resource = TypeSystem.getGosuClassLoader().getActualLoader().getResource( strQualifedType.replace( '.', '/' ) + GosuClassTypeLoader.GOSU_CLASS_FILE_EXT );
-      }
-      else
+      if( type == null )
       {
         return;
       }
-      //noinspection ConstantConditions
-      sourceFile = new File( URLDecoder.decode( resource.getFile(), "UTF-8" ) ).getAbsoluteFile();
-
-      RunMe.getEditorFrame().openFile( sourceFile );
+      IFile[] sourceFiles = type.getSourceFiles();
+      if( sourceFiles != null && sourceFiles.length > 0 )
+      {
+        IFile sourceFile = sourceFiles[0];
+        if( sourceFile.isJavaFile() )
+        {
+          RunMe.getEditorFrame().openFile( sourceFile.toJavaFile() );
+        }
+      }
     }
     catch( Exception e )
     {
@@ -85,21 +68,26 @@ public class GotoTypePopup extends AbstractGotoPopup<CharSequence>
     super( DEFAULT_WAIT_TIME, ROW_COUNT, "Enter type name", strPrefix, true, true );
   }
 
-  protected ArrayList<CharSequence> initializeData()
+  protected List<String> initializeData()
   {
-    Set<String> allStudioLoadableTypes = TypeSystem.getTypeLoader( GosuClassTypeLoader.class ).getAllTypeNames();
-    ArrayList<CharSequence> allTypes = new ArrayList<CharSequence>( allStudioLoadableTypes );
-    Collections.sort( allTypes, new Comparator<CharSequence>()
-    {
-      public int compare( CharSequence o1, CharSequence o2 )
-      {
-        return getRelativeTypeName( (String)o1 ).compareToIgnoreCase( getRelativeTypeName( (String)o2 ) );
-      }
-    } );
+    Set<String> allGosuTypes = TypeSystem.getTypeLoader( GosuClassTypeLoader.class ).getAllTypeNames();
+    Project project = RunMe.getEditorFrame().getGosuPanel().getProjectView().getProject();
+    List<String> allTypes = filterGosuClassFromProjectsInResources( allGosuTypes, project );
+    Collections.sort( allTypes, ( o1, o2 ) -> getRelativeTypeName( o1 ).compareToIgnoreCase( getRelativeTypeName( o2 ) ) );
     return allTypes;
   }
 
-  protected TypeModel reconstructModel( String strPrefix )
+  private List<String> filterGosuClassFromProjectsInResources( Set<String> allGosuTypes, Project project )
+  {
+    String projectPath = project.getProjectDir().getAbsolutePath();
+    List<String> relativeSrcPaths = project.getSourcePath().stream().map( srcPath ->
+      (srcPath.startsWith( projectPath )
+       ? srcPath.substring( projectPath.length() + 1 )
+       : srcPath).replace( File.separatorChar, '.' ) ).collect( Collectors.toList() );
+    return allGosuTypes.stream().filter( s -> !relativeSrcPaths.stream().anyMatch( s::contains ) ).collect( Collectors.toList() );
+  }
+
+  protected AbstractPopupListModel<String> reconstructModel( String strPrefix )
   {
     return new TypeModel( StudioUtilities.filterStrings( getInitializedAllData(), strPrefix ) );
   }
@@ -130,11 +118,11 @@ public class GotoTypePopup extends AbstractGotoPopup<CharSequence>
     return text;
   }
 
-  private static class TypeModel extends AbstractPopupListModel<CharSequence>
+  private static class TypeModel extends AbstractPopupListModel<String>
   {
-    private java.util.List<String> _allTypes;
+    private List<String> _allTypes;
 
-    public TypeModel( java.util.List<String> allTypes )
+    public TypeModel( List<String> allTypes )
     {
       _allTypes = allTypes;
     }

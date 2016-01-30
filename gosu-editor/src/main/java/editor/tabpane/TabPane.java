@@ -260,12 +260,12 @@ public class TabPane extends JPanel implements ICaptionedPanel
     _tabContainer.setContextMenuHandler( handler );
   }
 
-  protected TabContainer getTabContainer()
+  public TabContainer getTabContainer()
   {
     return _tabContainer;
   }
 
-  ToolContainer getToolContainer()
+  public ToolContainer getToolContainer()
   {
     return _toolContainer;
   }

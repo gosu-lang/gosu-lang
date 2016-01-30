@@ -1,3 +1,8 @@
+//
+// Interval expressions using the '..' operator express an interval or range of values
+// between two endpoints.
+//
+
 // Interval from 0 through 5
 for( i in 0..5 ) {
   print( i ) // Prints 0-5

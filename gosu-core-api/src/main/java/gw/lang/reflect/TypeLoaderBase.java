@@ -237,9 +237,7 @@ public abstract class TypeLoaderBase extends BaseService implements ITypeLoader 
       if (names != null) {
         _typeNames = names;
       } else {
-        _typeNames = ExecutionMode.isIDE()
-                     ? new HashSet<String>( computeTypeNames() )
-                     : new HashSet<String>( computeTypeNames() );
+        _typeNames = new HashSet<>( computeTypeNames() );
       }
     }
     return _typeNames;

@@ -312,6 +312,42 @@ public class ExecutionEnvironment implements IExecutionEnvironment
     }
   }
 
+  public void initializeSimpleIde( GosucModule gosucModule ) {
+    _state = TypeSystemState.STARTING;
+    try {
+      DefaultSingleModule module = _defaultModule == null ? new DefaultSingleModule( this ) : (DefaultSingleModule)_defaultModule;
+      module.setNativeModule( gosucModule );
+      module.configurePaths( GosucUtil.toDirectories( gosucModule.getClasspath() ), GosucUtil.toDirectories( gosucModule.getAllSourceRoots() ) );
+      _defaultModule = module;
+      _jreModule = module;
+      _rootModule = module;
+      _modules = new ArrayList<>( Collections.singletonList( module ) );
+
+      module.initializeTypeLoaders();
+
+      CommonServices.getCoercionManager().init();
+    }
+    finally {
+      _state = TypeSystemState.STARTED;
+    }
+  }
+
+  public void uninitializeSimpleIde() {
+    _state = TypeSystemState.STOPPING;
+    try {
+      if( _defaultModule != null )  {
+        DefaultSingleModule m = (DefaultSingleModule)_defaultModule;
+        m.getModuleTypeLoader().uninitializeTypeLoaders();
+        m.getModuleTypeLoader().reset();
+        m.configurePaths( Collections.<IDirectory>emptyList(), Collections.<IDirectory>emptyList() );
+      }
+      _modules.clear();
+    }
+    finally {
+      _state = TypeSystemState.STOPPED;
+    }
+  }
+
   void checkForDuplicates(String moduleName) {
     for (IModule m : getModules()) {
       if (m.getName().equals(moduleName)) {
@@ -354,7 +390,8 @@ public class ExecutionEnvironment implements IExecutionEnvironment
         return m;
       }
     }
-    if( !ExecutionMode.isIDE() && GLOBAL_MODULE_NAME.equals( strModuleName ) ) {
+    if( !ExecutionMode.isIDE() && GLOBAL_MODULE_NAME.equals( strModuleName ) ||
+        TypeSystem.getJreModule() == TypeSystem.getGlobalModule() ) {
       return getGlobalModule();
     }
     return null;
@@ -409,7 +446,7 @@ public class ExecutionEnvironment implements IExecutionEnvironment
    */
   public IModule getJreModule() {
     if (_jreModule == null) {
-      if (!ExecutionMode.isIDE()) {
+      if (!ExecutionMode.isIDE() || TypeSystem.getJreModule() == TypeSystem.getGlobalModule()) {
         _jreModule = getGlobalModule();
       } else {
         throw new RuntimeException("The JRE module was not created. Please create it before trying to get it.");

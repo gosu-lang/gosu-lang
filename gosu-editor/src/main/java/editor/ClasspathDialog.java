@@ -1,8 +1,7 @@
 package editor;
 
 import editor.search.StudioUtilities;
-import gw.config.Registry;
-import gw.lang.Gosu;
+import editor.util.Project;
 import gw.lang.reflect.TypeSystem;
 
 import javax.swing.*;
@@ -17,6 +16,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.StringTokenizer;
+import java.util.stream.Collectors;
 
 public class ClasspathDialog extends JDialog
 {
@@ -107,7 +107,7 @@ public class ClasspathDialog extends JDialog
 
     mapCancelKeystroke();
 
-    setSize( 400, 300 );
+    setSize( 600, 400 );
 
     StudioUtilities.centerWindowInFrame( this, getOwner() );
   }
@@ -139,8 +139,16 @@ public class ClasspathDialog extends JDialog
     {
       pathFiles.add( new File( strPath ).getAbsoluteFile() );
     }
-    Gosu.setClasspath( pathFiles );
-    TypeSystem.refresh( true );
+    savePathsAndReopenProject( pathFiles );
+  }
+
+  private void savePathsAndReopenProject( List<File> pathFiles )
+  {
+    GosuPanel gosuPanel = RunMe.getEditorFrame().getGosuPanel();
+    Project project = gosuPanel.getProjectView().getProject();
+    List<String> srcPaths = pathFiles.stream().map( File::getAbsolutePath ).collect( Collectors.toList() );
+    project.setSourcePath( srcPaths );
+    gosuPanel.openProject( project.getProjectDir() );
   }
 
   private void updatePaths()

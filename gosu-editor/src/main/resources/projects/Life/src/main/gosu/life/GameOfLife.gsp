@@ -1,4 +1,7 @@
-uses life.BoardFrame
+uses javax.swing.UIManager
 uses java.awt.EventQueue
 
-EventQueue.invokeLater( \ -> {new BoardFrame().Visible = true} )
+EventQueue.invokeLater( \-> {
+  UIManager.setLookAndFeel( UIManager.getSystemLookAndFeelClassName() )
+  new BoardFrame().Visible = true
+} )

@@ -5,12 +5,16 @@ import editor.util.EditorUtilities;
 import editor.util.HTMLEscapeUtil;
 import editor.util.IReplaceWordCallback;
 import editor.util.PlatformUtil;
+import editor.util.SettleModalEventQueue;
 import editor.util.TaskQueue;
 import editor.util.TextComponentUtil;
 import editor.util.XPToolbarButton;
+import gw.fs.IFile;
 import gw.lang.GosuShop;
 import gw.lang.parser.GosuParserFactory;
 import gw.lang.parser.IDynamicFunctionSymbol;
+import gw.lang.parser.IDynamicPropertySymbol;
+import gw.lang.parser.IDynamicSymbol;
 import gw.lang.parser.IExpression;
 import gw.lang.parser.IFunctionSymbol;
 import gw.lang.parser.IGosuParser;
@@ -20,7 +24,9 @@ import gw.lang.parser.IParseIssue;
 import gw.lang.parser.IParseResult;
 import gw.lang.parser.IParseTree;
 import gw.lang.parser.IParsedElement;
+import gw.lang.parser.IParsedElementWithAtLeastOneDeclaration;
 import gw.lang.parser.IScriptPartId;
+import gw.lang.parser.ISymbol;
 import gw.lang.parser.ISymbolTable;
 import gw.lang.parser.ITokenizerInstructor;
 import gw.lang.parser.ITypeUsesMap;
@@ -32,10 +38,14 @@ import gw.lang.parser.exceptions.ParseException;
 import gw.lang.parser.exceptions.ParseResultsException;
 import gw.lang.parser.exceptions.ParseWarning;
 import gw.lang.parser.expressions.IBeanMethodCallExpression;
+import gw.lang.parser.expressions.IIdentifierExpression;
 import gw.lang.parser.expressions.IImplicitTypeAsExpression;
 import gw.lang.parser.expressions.IInferredNewExpression;
+import gw.lang.parser.expressions.ILocalVarDeclaration;
+import gw.lang.parser.expressions.IMemberAccessExpression;
 import gw.lang.parser.expressions.IMethodCallExpression;
 import gw.lang.parser.expressions.INewExpression;
+import gw.lang.parser.expressions.ITypeLiteralExpression;
 import gw.lang.parser.expressions.IVarStatement;
 import gw.lang.parser.statements.IClassDeclaration;
 import gw.lang.parser.statements.IClassFileStatement;
@@ -43,19 +53,26 @@ import gw.lang.parser.statements.IClassStatement;
 import gw.lang.parser.statements.IForEachStatement;
 import gw.lang.parser.statements.IFunctionStatement;
 import gw.lang.parser.statements.IMethodCallStatement;
+import gw.lang.parser.statements.IPropertyStatement;
 import gw.lang.parser.statements.IStatementList;
 import gw.lang.parser.template.ITemplateGenerator;
 import gw.lang.reflect.FunctionType;
+import gw.lang.reflect.IFeatureInfo;
 import gw.lang.reflect.IMetaType;
 import gw.lang.reflect.IScriptabilityModifier;
 import gw.lang.reflect.IType;
+import gw.lang.reflect.ITypeInfo;
 import gw.lang.reflect.ITypeLoaderListener;
 import gw.lang.reflect.ITypeRef;
 import gw.lang.reflect.RefreshRequest;
 import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.gs.ClassType;
 import gw.lang.reflect.gs.IGosuClass;
+import gw.lang.reflect.gs.IGosuClassTypeInfo;
 import gw.lang.reflect.gs.IGosuEnhancement;
+import gw.lang.reflect.gs.IGosuMethodInfo;
+import gw.lang.reflect.gs.IGosuPropertyInfo;
+import gw.lang.reflect.gs.IGosuVarPropertyInfo;
 import gw.lang.reflect.gs.StringSourceFileHandle;
 import gw.lang.reflect.java.JavaTypes;
 import gw.util.GosuStringUtil;
@@ -531,6 +548,17 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
                                     {
                                       displayParameterInfoPopup( _editor.getCaretPosition() );
                                     }
+                                  }
+                                } );
+
+    _editor.getInputMap().put( KeyStroke.getKeyStroke( CONTROL_KEY_NAME + " B" ), "_declaration" );
+    _editor.getActionMap().put( "_declaratino",
+                                new AbstractAction()
+                                {
+                                  @Override
+                                  public void actionPerformed( ActionEvent e )
+                                  {
+                                    gotoDeclaration();
                                   }
                                 } );
 
@@ -3254,37 +3282,6 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
   @Override
   public void gotoDeclarationAtCursor()
   {
-//    gotoRecordAtCursor(IParsedElement.class, new CallFinderMethod() {
-//      @Override
-//      public IFeatureInfoRecord callFinderMethod( FeatureInfoRecordFinder finder, IParsedElement element) {
-//        return finder.findDeclaration(element);
-//      }
-//    });
-  }
-
-  public void gotoSuperMethodAtCursor()
-  {
-//    gotoRecordAtCursor(IFunctionStatement.class, new CallFinderMethod() {
-//      @Override
-//      public IFeatureInfoRecord callFinderMethod(FeatureInfoRecordFinder finder, IParsedElement element) {
-//        return finder.findMethodThatIsOverriddenByThis((IFunctionStatement) element);
-//      }
-//    });
-  }
-
-  public void gotoSuperMethod( IParsedElement parsedElement )
-  {
-//    goToRecord(IFunctionStatement.class, new CallFinderMethod() {
-//      @Override
-//      public IFeatureInfoRecord callFinderMethod(FeatureInfoRecordFinder finder, IParsedElement element) {
-//        return finder.findMethodThatIsOverriddenByThis((IFunctionStatement) element);
-//      }
-//    }, parsedElement);
-  }
-
-  private void gotoRecordAtCursor( Class<? extends IParsedElement> acceptParsedElementType, CallFinderMethod method )
-  {
-    // Get the deepestParseTree location at the caret.
     IParseTree deepestParseTree = getDeepestLocationAtCaret();
     if( deepestParseTree == null )
     {
@@ -3292,61 +3289,54 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
     }
 
     IParsedElement deepestParsedElementAtCaret = deepestParseTree.getParsedElement();
-    goToRecord( acceptParsedElementType, method, deepestParsedElementAtCaret );
+    gotoReference( deepestParsedElementAtCaret );
   }
 
-  private static interface CallFinderMethod
+  private void gotoReference( IParsedElement pe )
   {
-//    public IFeatureInfoRecord callFinderMethod(FeatureInfoRecordFinder finder, IParsedElement element);
-  }
+    if( pe instanceof IMethodCallExpression )
+    {
+      IFunctionSymbol fs = ((IMethodCallExpression)pe).getFunctionSymbol();
+      if( fs instanceof IDynamicFunctionSymbol )
+      {
+        handleGotoFeature( ((IDynamicFunctionSymbol)fs).getMethodOrConstructorInfo() );
+      }
+    }
+    else if( pe instanceof IBeanMethodCallExpression )
+    {
+      handleGotoFeature( ((IBeanMethodCallExpression)pe).getMethodDescriptor() );
+    }
+    else if( pe instanceof IMemberAccessExpression )
+    {
+      handleGotoFeature( ((IMemberAccessExpression)pe).getPropertyInfo() );
+    }
+    else if( pe instanceof IIdentifierExpression )
+    {
+      ISymbol symbol = ((IIdentifierExpression)pe).getSymbol();
+      if( symbol instanceof IDynamicPropertySymbol )
+      {
+        handleGotoFeature( ((IDynamicPropertySymbol)symbol).getPropertyInfo() );
+      }
+      else if( symbol instanceof IDynamicSymbol )
+      {
+        handleGotoFeature( symbol.getGosuClass().getTypeInfo().getProperty( symbol.getGosuClass(), symbol.getName() ) );
+      }
+      else if( symbol.isLocal() )
+      {
+        handleGotoLocal( symbol, pe );
+      }
+    }
+    else if( pe instanceof ITypeLiteralExpression )
+    {
+      //## todo: handle when type literal is a constructor call
 
-  private void goToRecord( Class<? extends IParsedElement> acceptParsedElementType, CallFinderMethod method, IParsedElement deepestParsedElementAtCaret )
-  {
-//    if (deepestParsedElementAtCaret instanceof IMethodCallExpression) {
-//      IFunctionSymbol dfs = ((IMethodCallExpression) deepestParsedElementAtCaret).getFunctionSymbol();
-//      Runnable handler = _specialFunctionGotoDeclHandlers.get(dfs);
-//      if (handler != null) {
-//        handler.run();
-//        return;
-//      }
-//    }
-//    if (deepestParsedElementAtCaret instanceof ITypeLiteralExpression) {
-//      if (deepestParsedElementAtCaret.getParent() instanceof INewExpression) {
-//        deepestParsedElementAtCaret = deepestParsedElementAtCaret.getParent();
-//      }
-//    }
-//    if(acceptParsedElementType.isAssignableFrom(deepestParsedElementAtCaret.getClass()))
-//    {
-//      if( TypeInfoDatabaseStudioUtil.isErrant( deepestParsedElementAtCaret ) )
-//      {
-//        editor.util.EditorUtilities.displayInformation( "Cannot find declaration for errant type" );
-//      }
-//      else
-//      {
-//        FeatureInfoRecordFinder finder;
-//        if ((getScriptPart() == null) || (getScriptPart().getContainingType() == null)) {
-//          finder = TypeInfoDatabaseInit.getFeatureInfoRecordFinder();
-//        } else {
-//          finder = TypeInfoDatabaseInit.getFeatureInfoRecordFinderForLocalAndPersistedSources(getScriptPart().getContainingTypeName());
-//        }
-//        IFeatureInfoRecord declaration = method.callFinderMethod(finder, deepestParsedElementAtCaret);
-//        if( declaration == null )
-//        {
-//          // If not found, the best thing we can do is display some info on the element
-//          displayJavadocHelp(deepestParsedElementAtCaret.getLocation());
-//        }
-//        else
-//        {
-//          //TODO cgross - implement
-////          TypeInfoDatabaseStudioUtil.openInEditorAndGoto( declaration, false );
-//        }
-//      }
-//    }
-//    else
-//    {
-//      // If not found, the best thing we can do is display some info on the element
-//      displayJavadocHelp(deepestParsedElementAtCaret.getLocation());
-//    }
+      handleGotoFeature( ((ITypeLiteralExpression)pe).getType().getType().getTypeInfo() );
+    }
+    else
+    {
+      // If not found, the best thing we can do is display some info on the element
+      displayJavadocHelp( pe.getLocation() );
+    }
   }
 
   @Override
@@ -3355,76 +3345,103 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
     return _editor.getSelectedText();
   }
 
-//  public void selectFeature( IFeatureInfoRecord feature, boolean select, int offset) {
-//    JTextComponent editor = getEditor();
-//    int offsetOfSelection = TypeInfoDatabaseStudioUtil.calculateOffsetOfSelection(editor, feature);
-//    int length = TypeInfoDatabaseStudioUtil.calculateLengthOfHighlight(editor, feature);
-//    if (length == feature.getLengthOfRecord()) {
-//      length -= (offsetOfSelection - feature.getOffsetOfRecord());
-//    }
-//    editor.setCaretPosition(offsetOfSelection - offset);
-//    if (select) {
-//      int endPosition = offsetOfSelection + length - offset;
-//      if (endPosition < editor.getDocument().getLength()) {
-//        editor.moveCaretPosition(endPosition);
-//      }
-//    }
-//    editor.requestFocus();
-//  }
-
-  public boolean gotoIdentifier( String strIdentifier )
+  public void handleGotoFeature( IFeatureInfo feature )
   {
-    List<IVarStatement> elemList = new ArrayList<IVarStatement>();
-    if( _parser == null )
+    if( feature == null )
     {
-      parse();
+      return;
     }
-    IParseTree.Search.getContainedParsedElementsByType( _parser.getLocations(), IVarStatement.class, elemList );
-    for( int i = elemList.size() - 1; i >= 0; i-- )
+
+    IType ownersType = feature.getOwnersType();
+    if( !(ownersType instanceof IGosuClass) )
     {
-      IVarStatement elem = elemList.get( i );
-      if( elem.getIdentifierName().toString().equalsIgnoreCase( strIdentifier ) )
+      return;
+    }
+    IGosuClass gsClass = (IGosuClass)ownersType;
+    IFile sourceFile = gsClass.getSourceFileHandle().getFile();
+    if( sourceFile == null || !sourceFile.isJavaFile() )
+    {
+      return;
+    }
+
+    int offset = 0;
+
+    if( feature instanceof IGosuMethodInfo )
+    {
+      List<IParsedElementWithAtLeastOneDeclaration> res = new ArrayList<>();
+      gsClass.getClassStatement().getContainedParsedElementsByType( IParsedElementWithAtLeastOneDeclaration.class, res );
+      for( IParsedElementWithAtLeastOneDeclaration fs: res )
       {
-        _editor.setCaretPosition( elem.getLocation().getOffset() );
-        return true;
+        if( ((IGosuMethodInfo)feature).isMethodForProperty() &&
+            fs instanceof IVarStatement && ((IVarStatement)fs).hasProperty() &&
+            ((IVarStatement)fs).hasProperty() &&
+            ((IVarStatement)fs).getPropertyName().equals( feature.getDisplayName().substring( 1 ) ) )
+        {
+          offset = fs.getNameOffset( ((IVarStatement)fs).getPropertyName() );
+          break;
+        }
+
+        if( fs instanceof IFunctionStatement && feature.equals( ((IFunctionStatement)fs).getDynamicFunctionSymbol().getMethodOrConstructorInfo() )||
+            fs instanceof IPropertyStatement && feature.equals( ((IPropertyStatement)fs).getPropertyGetterOrSetter().getDynamicFunctionSymbol().getMethodOrConstructorInfo() ) )
+        {
+          offset = fs.getNameOffset( feature.getName() );
+          break;
+        }
       }
     }
-    return false;
+    else if( feature instanceof IGosuPropertyInfo )
+    {
+      handleGotoFeature( ((IGosuPropertyInfo)feature).getReadMethodInfo() );
+      return;
+    }
+    else if( feature instanceof IGosuVarPropertyInfo )
+    {
+      IGosuVarPropertyInfo varProp = (IGosuVarPropertyInfo)feature;
+      offset = varProp.getOffset();
+    }
+    else if( feature instanceof ITypeInfo )
+    {
+      offset = ((IGosuClassTypeInfo)feature).getGosuClass().getClassStatement().getClassDeclaration().getNameOffset( null );
+    }
+
+    RunMe.getEditorFrame().getGosuPanel().openFile( sourceFile.toJavaFile() );
+    SettleModalEventQueue.instance().run();
+    RunMe.getEditorFrame().getGosuPanel().getCurrentEditor().getEditor().setCaretPosition( offset );
   }
 
-  public void handleGotoMemberParams( Object[] params )
+  public void handleGotoLocal( ISymbol symbol, IParsedElement pe )
   {
-//    if( params == null || params.length == 0 )
-//    {
-//      return;
-//    }
-//
-//    if( params[0] instanceof IGosuMethodInfo )
-//    {
-//      IGosuMethodInfo mi = (IGosuMethodInfo)params[0];
-//      IParsedElement funcBody = (IParsedElement)mi.getDfs().getValue();
-//      getEditor().setCaretPosition( funcBody.getLocation().getOffset() );
-//    }
-//    else if( params[0] instanceof IGosuPropertyInfo )
-//    {
-//      IGosuPropertyInfo pi = (IGosuPropertyInfo)params[0];
-//      IReducedDynamicPropertySymbol dps = pi.getDps().getParent() == null ? pi.getDps() : pi.getDps().getParent();
-//      if( dps.getVarIdentifier() != null )
-//      {
-//        gotoIdentifier( dps.getVarIdentifier().toString() );
-//      }
-//      else if( dps.getGetterDfs() != null )
-//      {
-//        IReducedDynamicFunctionSymbol dfs = dps.getGetterDfs();
-//        IParsedElement funcBody = (IParsedElement)dfs.getValueDirectly();
-//        getEditor().setCaretPosition( funcBody.getLocation().getOffset() );
-//      }
-//    }
-//    else if( params[0] instanceof IGosuVarPropertyInfo )
-//    {
-//      IGosuVarPropertyInfo pi = (IGosuVarPropertyInfo)params[0];
-//      gotoIdentifier( pi.getName() );
-//    }
+    IParsedElement functionAtCaret = getFunctionCallAtCaret();
+    if( functionAtCaret == null )
+    {
+      return;
+    }
+
+    int offset;
+
+    List<ILocalVarDeclaration> res = new ArrayList<>();
+    IParsedElement root = getRootParsedElement();
+    root.getContainedParsedElementsByType( ILocalVarDeclaration.class, res );
+    for( ILocalVarDeclaration fs: res )
+    {
+      if( symbol == fs.getSymbol() )
+      {
+        offset = fs.getNameOffset( (String)fs.getLocalVarName() );
+        getEditor().setCaretPosition( offset );
+        return;
+      }
+    }
+    List<IVarStatement> v = new ArrayList<>();
+    root.getContainedParsedElementsByType( IVarStatement.class, v );
+    for( IVarStatement fs: v )
+    {
+      if( symbol.equals( fs.getSymbol() ) )
+      {
+        offset = fs.getNameOffset( fs.getIdentifierName() );
+        getEditor().setCaretPosition( offset );
+        return;
+      }
+    }
   }
 
   void displayJavadocHelp( IParseTree parseTree )
@@ -3756,7 +3773,7 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
     return null;
   }
 
-  public IParsedElement getFunctionAtCaret()
+  public IParsedElement getFunctionCallAtCaret()
   {
     IParseTree location = getDeepestLocationAtCaret();
     if( location == null )
@@ -3783,6 +3800,21 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
       {
         return null;
       }
+      parsedElement = parsedElement.getParent();
+    }
+    return parsedElement;
+  }
+
+  public IParsedElement getRootParsedElement()
+  {
+    IParseTree location = getDeepestLocationAtCaret();
+    if( location == null )
+    {
+      return null;
+    }
+    IParsedElement parsedElement = location.getParsedElement();
+    while( parsedElement.getParent() != null )
+    {
       parsedElement = parsedElement.getParent();
     }
     return parsedElement;

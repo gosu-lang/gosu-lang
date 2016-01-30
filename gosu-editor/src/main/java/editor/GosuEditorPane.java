@@ -117,7 +117,7 @@ public class GosuEditorPane extends JEditorPane
       if( newCaretRect != null )
       {
         newCaretRect.grow( 0, 100 );
-//        scrollRectToVisible( newCaretRect );
+        scrollRectToVisible( newCaretRect );
       }
       super.setCaretPosition( position );
     }

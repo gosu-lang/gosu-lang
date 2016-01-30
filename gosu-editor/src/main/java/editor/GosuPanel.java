@@ -1,5 +1,6 @@
 package editor;
 
+import editor.search.MessageDisplay;
 import editor.search.StandardLocalSearch;
 import editor.splitpane.CollapsibleSplitPane;
 import editor.tabpane.ITab;
@@ -16,6 +17,8 @@ import editor.util.TaskQueue;
 import editor.util.TypeNameUtil;
 import editor.util.XPToolbarButton;
 import gw.config.CommonServices;
+import gw.fs.IDirectory;
+import gw.fs.IResource;
 import gw.lang.Gosu;
 import gw.lang.parser.IParseIssue;
 import gw.lang.parser.IScriptPartId;
@@ -49,7 +52,6 @@ import java.awt.event.KeyEvent;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.StringReader;
 import java.net.URL;
@@ -201,14 +203,13 @@ public class GosuPanel extends JPanel
   }
 
   static List<String> getLocalClasspath() {
-    String javaHome = System.getProperty( "java.home" ).toLowerCase();
     List<String> localPath = new ArrayList<>();
-    List<File> classpath = Gosu.getClasspath();
+    List<IDirectory> classpath = TypeSystem.getGlobalModule().getSourcePath();
     for( int i = 0; i < classpath.size(); i++ )
     {
-      File file = classpath.get( i );
+      File file = classpath.get( i ).toJavaFile();
       String filePath = file.getAbsolutePath().toLowerCase();
-      if( !isUpperLevelClasspath( javaHome, filePath ) )
+      if( !isUpperLevelClasspath( filePath ) )
       {
         localPath.add( file.getAbsolutePath() );
       }
@@ -216,8 +217,9 @@ public class GosuPanel extends JPanel
     return localPath;
   }
 
-  private static boolean isUpperLevelClasspath( String javaHome, String filePath )
+  public static boolean isUpperLevelClasspath( String filePath )
   {
+    String javaHome = System.getProperty( "java.home" ).toLowerCase();
     if( filePath.replace( '\\', '/' ).contains( "gosu-editor/src/main/resources" ) )
     {
       // sample project resource
@@ -232,34 +234,51 @@ public class GosuPanel extends JPanel
 
   public void restoreProjectState( Project project )
   {
-    _project = project;
-
-    if( project.getSourcePath().size() > 0 )
+    setVisible( false );
+    try
     {
-      Gosu.setClasspath( project.getSourcePath().stream().map( File::new ).collect( Collectors.toList() ) );
-    }
+      _project = project;
 
-    TypeSystem.refresh( TypeSystem.getGlobalModule() );
-
-    for( String openFile : project.getOpenFiles() )
-    {
-      File file = new File( openFile );
-      if( file.isFile() )
+      if( project.getSourcePath().size() > 0 )
       {
-        openFile( file );
+        //Gosu.setClasspath( project.getSourcePath().stream().map( File::new ).collect( Collectors.toList() ) );
+        RunMe.reinitializeGosu( project );
       }
+
+      TypeSystem.refresh( TypeSystem.getGlobalModule() );
+
+      for( String openFile : project.getOpenFiles() )
+      {
+        File file = new File( openFile );
+        if( file.isFile() )
+        {
+          openFile( file );
+        }
+      }
+      String activeFile = project.getActiveFile();
+      if( activeFile == null )
+      {
+        openFile( project.getOrMakeUntitledProgram() );
+      }
+      else
+      {
+        openTab( new File( activeFile ) );
+      }
+      SettleModalEventQueue.instance().run();
+      _projectView.load( _project );
+      EventQueue.invokeLater( () -> {
+        parse();
+        GosuEditor currentEditor = getCurrentEditor();
+        if( currentEditor != null )
+        {
+          currentEditor.getEditor().requestFocus();
+        }
+      } );
     }
-    String activeFile = project.getActiveFile();
-    if( activeFile == null )
+    finally
     {
-      openFile( project.getOrMakeUntitledProgram() );
+      setVisible( true );
     }
-    else
-    {
-      openTab( new File( activeFile ) );
-    }
-    SettleModalEventQueue.instance().run();
-    _projectView.load( _project );
   }
 
   private JPanel makeStatusBar()
@@ -554,6 +573,19 @@ public class GosuPanel extends JPanel
     typeItem.setAccelerator( KeyStroke.getKeyStroke( "control T" ) );
     codeMenu.add( typeItem );
 
+    JMenuItem navigate = new JMenuItem(
+      new AbstractAction( "Goto Declaration" )
+      {
+        @Override
+        public void actionPerformed( ActionEvent e )
+        {
+          getCurrentEditor().gotoDeclaration();
+        }
+      } );
+    navigate.setMnemonic( 'D' );
+    navigate.setAccelerator( KeyStroke.getKeyStroke( "control B" ) );
+    codeMenu.add( navigate );
+
 
     codeMenu.addSeparator();
 
@@ -603,7 +635,7 @@ public class GosuPanel extends JPanel
     runMenu.setMnemonic( 'R' );
     menuBar.add( runMenu );
 
-    JMenuItem runItem = new JMenuItem( new RunActionHandler() );
+    JMenuItem runItem = new JMenuItem( new ClearAndRunActionHandler() );
     runItem.setMnemonic( 'R' );
     runItem.setAccelerator( KeyStroke.getKeyStroke( "F5" ) );
     runMenu.add( runItem );
@@ -1140,17 +1172,10 @@ public class GosuPanel extends JPanel
 
     // Run
     mapKeystroke( KeyStroke.getKeyStroke( KeyEvent.VK_F5, 0 ),
-                  "Run", new RunActionHandler() );
+                  "Run", new ClearAndRunActionHandler() );
 
     mapKeystroke( KeyStroke.getKeyStroke( KeyEvent.VK_ENTER, InputEvent.CTRL_MASK ),
-                  "Run", new RunActionHandler() );
-
-    // Clear and Run
-    mapKeystroke( KeyStroke.getKeyStroke( KeyEvent.VK_X, InputEvent.ALT_MASK ),
-                  "ClearAndRun", new ClearAndRunActionHandler() );
-    mapKeystroke( KeyStroke.getKeyStroke( KeyEvent.VK_F2, 0 ),
-                  "ClearAndRun", new ClearAndRunActionHandler() ); // dlank prefers a single keystroke for this action, please leave this unless you need F2 for something else
-
+                  "Run", new ClearAndRunActionHandler() );
   }
 
   private void mapKeystroke( KeyStroke ks, String strCmd, Action action )
@@ -1303,11 +1328,7 @@ public class GosuPanel extends JPanel
     {
       editor.read( partId, strSource, "" );
       resetChangeHandler();
-      EventQueue.invokeLater(
-        () -> {
-          editor.parse();
-          editor.getEditor().requestFocus();
-        } );
+      EventQueue.invokeLater( () -> editor.getEditor().requestFocus() );
     }
     catch( Throwable t )
     {
@@ -1575,6 +1596,7 @@ public class GosuPanel extends JPanel
 
   public void openProject( File projectDir )
   {
+    storeProjectState();
     clearTabs();
     EventQueue.invokeLater( () -> restoreProjectState( new Project( projectDir, this ) ) );
   }
@@ -1645,7 +1667,7 @@ public class GosuPanel extends JPanel
             Class<?> runnerClass = Class.forName( "editor.GosuPanel$Runner", true, runLoader );
             try
             {
-              String result = (String)runnerClass.getMethod( "run", String.class, List.class ).invoke( null, program.getName(), Gosu.getClasspath() );
+              String result = (String)runnerClass.getMethod( "run", String.class, List.class ).invoke( null, program.getName(), TypeSystem.getGlobalModule().getSourcePath().stream().map( IResource::toJavaFile ).collect( Collectors.toList() ) );
               EventQueue.invokeLater(
                 () -> {
                   removeBusySignal();
@@ -1881,6 +1903,11 @@ public class GosuPanel extends JPanel
 
   class ClearAndRunActionHandler extends AbstractAction
   {
+    ClearAndRunActionHandler()
+    {
+      super( "Run" );
+    }
+
     public void actionPerformed( ActionEvent e )
     {
       clearOutput();

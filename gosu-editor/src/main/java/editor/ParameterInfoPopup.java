@@ -62,7 +62,7 @@ public class ParameterInfoPopup extends JPopupMenu
     _pane.setLayout( gridBag );
     GridBagConstraints c = new GridBagConstraints();
 
-    IParameterInfo[][] paramInfoLists = getParamInfoLists( _editor.getFunctionAtCaret() );
+    IParameterInfo[][] paramInfoLists = getParamInfoLists( _editor.getFunctionCallAtCaret() );
     if( paramInfoLists == null || paramInfoLists.length == 0 )
     {
       EventQueue.invokeLater(
@@ -119,7 +119,7 @@ public class ParameterInfoPopup extends JPopupMenu
 
   private int getArgIndex()
   {
-    IParsedElement function = _editor.getFunctionAtCaret();
+    IParsedElement function = _editor.getFunctionCallAtCaret();
     if( function == null )
     {
       return -1;

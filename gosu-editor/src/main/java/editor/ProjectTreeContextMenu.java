@@ -1,5 +1,6 @@
 package editor;
 
+import editor.util.EditorUtilities;
 import editor.util.Project;
 
 import javax.swing.*;
@@ -36,6 +37,8 @@ public class ProjectTreeContextMenu implements IContextMenuHandler<JTree>
     menu.add( newMenu );
     menu.add( new JSeparator() );
     menu.add( new JMenuItem( new OpenAction( tree ) ) );
+    menu.add( new JSeparator() );
+    menu.add( new JMenuItem( new OpenOnDesktopAction( tree ) ) );
     menu.add( new JSeparator() );
     menu.add( new JMenuItem( new ClipCutAction( tree ) ) );
     menu.add( new JMenuItem( new ClipCopyAction( tree ) ) );
@@ -114,6 +117,39 @@ public class ProjectTreeContextMenu implements IContextMenuHandler<JTree>
       if( item != null )
       {
         _project.getGosuPanel().openFile( item.getFileOrDir() );
+      }
+    }
+  }
+
+  class OpenOnDesktopAction extends AbstractAction implements ClipboardOwner
+  {
+    JTree _tree;
+
+    public OpenOnDesktopAction( JTree tree )
+    {
+      super( "Open on Desktop" );
+      putValue( Action.MNEMONIC_KEY, new Integer( 'P' ) );
+      _tree = tree;
+    }
+
+
+    public void lostOwnership( Clipboard clipboard, Transferable contents )
+    {
+    }
+
+    @Override
+    public boolean isEnabled()
+    {
+      FileTree item = (FileTree)_tree.getLastSelectedPathComponent();
+      return item != null;
+    }
+
+    public void actionPerformed( ActionEvent e )
+    {
+      FileTree item = (FileTree)_tree.getLastSelectedPathComponent();
+      if( item != null )
+      {
+        EditorUtilities.openFileOrDir( item.getFileOrDir() );
       }
     }
   }

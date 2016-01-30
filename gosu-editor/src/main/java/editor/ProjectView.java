@@ -156,7 +156,13 @@ public class ProjectView extends JPanel
           FileTree fileTree = (FileTree)selectionPath.getLastPathComponent();
           if( fileTree.isFile() && fileTree.getType() != null )
           {
+            // Open Gosu type in our editor
             _project.getGosuPanel().openFile( fileTree.getFileOrDir() );
+          }
+          else
+          {
+            // Open files/directories on desktop in native app
+            EditorUtilities.openFileOrDir( fileTree.getFileOrDir() );
           }
         }
       }
