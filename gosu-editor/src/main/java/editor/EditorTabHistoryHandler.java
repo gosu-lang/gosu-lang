@@ -1,8 +1,6 @@
 package editor;
 
 import editor.util.EditorUtilities;
-import editor.util.TypeNameUtil;
-import gw.lang.reflect.TypeSystem;
 
 import javax.swing.*;
 import java.io.File;

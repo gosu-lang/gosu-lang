@@ -733,7 +733,7 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
     TextComponentUtil.fixTextComponentKeyMap( _editor );
   }
 
-  private void centerView()
+  public void centerView()
   {
     try
     {
@@ -3411,7 +3411,7 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
 
   public void handleGotoLocal( ISymbol symbol, IParsedElement pe )
   {
-    IParsedElement functionAtCaret = getFunctionCallAtCaret();
+    IParsedElement functionAtCaret = getRootParsedElement();
     if( functionAtCaret == null )
     {
       return;
