@@ -924,14 +924,25 @@ public class EditorUtilities
     {
       if( dir.isDirectory() )
       {
-        File projectFile = new File( dir, dir.getName() + ".prj" );
-        if( projectFile.exists() )
+        File projectFile = findProjectFile(dir);
+        if( projectFile != null )
         {
           projects.add( dir );
         }
       }
     }
     return projects;
+  }
+
+  private static File findProjectFile(File dir) {
+    for( File f : dir.listFiles() )
+    {
+      if(f.getName().equalsIgnoreCase(dir.getName() + ".prj"))
+      {
+        return f;
+      }
+    }
+    return null;
   }
 
   private static Project makeScratchProject( GosuPanel gosuPanel )
