@@ -1,6 +1,6 @@
 #Gosu Project
 #Sun Jan 31 14:13:53 PST 2016
-Name=match3
+Name=Match3
 Tab.Active=src/main/gosu/match3/RunGame.gsp
 Classpath.Entry0=src/main/gosu
 Tab.Open.B=src/main/gosu/match3/ColorStoneRenderer.gs
