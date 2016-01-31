@@ -517,69 +517,12 @@ public class GosuPanel extends JPanel
     JMenu codeMenu = new SmartMenu( "Code" );
     codeMenu.setMnemonic( 'd' );
     menuBar.add( codeMenu );
-
-    JMenuItem completeItem = new JMenuItem(
-      new AbstractAction( "Complete Code" )
-      {
-        @Override
-        public void actionPerformed( ActionEvent e )
-        {
-          getCurrentEditor().handleCompleteCode();
-        }
-      } );
-    completeItem.setMnemonic( 'C' );
-    completeItem.setAccelerator( KeyStroke.getKeyStroke( "control SPACE" ) );
-    codeMenu.add( completeItem );
-
-
+    codeMenu.add( CommonMenus.makeCodeComplete( this::getCurrentEditor ) );
     codeMenu.addSeparator();
-
-
-    JMenuItem paraminfoItem = new JMenuItem(
-      new AbstractAction( "Parameter Info" )
-      {
-        @Override
-        public void actionPerformed( ActionEvent e )
-        {
-          if( !getCurrentEditor().isIntellisensePopupShowing() )
-          {
-            getCurrentEditor().displayParameterInfoPopup( getCurrentEditor().getEditor().getCaretPosition() );
-          }
-        }
-      } );
-    paraminfoItem.setMnemonic( 'P' );
-    paraminfoItem.setAccelerator( KeyStroke.getKeyStroke( "control P" ) );
-    codeMenu.add( paraminfoItem );
-
-    JMenuItem typeItem = new JMenuItem(
-      new AbstractAction( "Expression Type" )
-      {
-        @Override
-        public void actionPerformed( ActionEvent e )
-        {
-          getCurrentEditor().displayTypeInfoAtCurrentLocation();
-        }
-      } );
-    typeItem.setMnemonic( 'T' );
-    typeItem.setAccelerator( KeyStroke.getKeyStroke( "control T" ) );
-    codeMenu.add( typeItem );
-
-    JMenuItem navigate = new JMenuItem(
-      new AbstractAction( "Goto Declaration" )
-      {
-        @Override
-        public void actionPerformed( ActionEvent e )
-        {
-          getCurrentEditor().gotoDeclaration();
-        }
-      } );
-    navigate.setMnemonic( 'D' );
-    navigate.setAccelerator( KeyStroke.getKeyStroke( "control B" ) );
-    codeMenu.add( navigate );
-
-
+    codeMenu.add( CommonMenus.makeParameterInfo( this::getCurrentEditor ) );
+    codeMenu.add( CommonMenus.makeExpressionType( this::getCurrentEditor ) );
+    codeMenu.add( CommonMenus.makeGotoDeclaration( this::getCurrentEditor ) );
     codeMenu.addSeparator();
-
 
     JMenuItem openTypeItem = new JMenuItem(
       new AbstractAction( "Open Type..." )
@@ -791,44 +734,11 @@ public class GosuPanel extends JPanel
     editMenu.addSeparator();
 
 
-    JMenuItem cutItem = new JMenuItem(
-      new AbstractAction( "Cut" )
-      {
-        @Override
-        public void actionPerformed( ActionEvent e )
-        {
-          getCurrentEditor().clipCut( getClipboard() );
-        }
-      } );
-    cutItem.setMnemonic( 't' );
-    cutItem.setAccelerator( KeyStroke.getKeyStroke( "control X" ) );
-    editMenu.add( cutItem );
+    editMenu.add( CommonMenus.makeCut( this::getCurrentEditor ) );
 
-    JMenuItem copyItem = new JMenuItem(
-      new AbstractAction( "Copy" )
-      {
-        @Override
-        public void actionPerformed( ActionEvent e )
-        {
-          getCurrentEditor().clipCopy( getClipboard() );
-        }
-      } );
-    copyItem.setMnemonic( 'C' );
-    copyItem.setAccelerator( KeyStroke.getKeyStroke( "control C" ) );
-    editMenu.add( copyItem );
+    editMenu.add( CommonMenus.makeCopy( this::getCurrentEditor ) );
 
-    JMenuItem pasteItem = new JMenuItem(
-      new AbstractAction( "Paste" )
-      {
-        @Override
-        public void actionPerformed( ActionEvent e )
-        {
-          getCurrentEditor().clipPaste( getClipboard() );
-        }
-      } );
-    pasteItem.setMnemonic( 'P' );
-    pasteItem.setAccelerator( KeyStroke.getKeyStroke( "control V" ) );
-    editMenu.add( pasteItem );
+    editMenu.add( CommonMenus.makePaste( this::getCurrentEditor ) );
 
 
     editMenu.addSeparator();
