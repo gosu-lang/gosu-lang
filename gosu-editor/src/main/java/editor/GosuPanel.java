@@ -233,51 +233,43 @@ public class GosuPanel extends JPanel
 
   public void restoreProjectState( Project project )
   {
-    setVisible( false );
-    try
+    _project = project;
+
+    if( project.getSourcePath().size() > 0 )
     {
-      _project = project;
-
-      if( project.getSourcePath().size() > 0 )
-      {
-        //Gosu.setClasspath( project.getSourcePath().stream().map( File::new ).collect( Collectors.toList() ) );
-        RunMe.reinitializeGosu( project );
-      }
-
-      //TypeSystem.refresh( TypeSystem.getGlobalModule() );
-
-      for( String openFile : project.getOpenFiles() )
-      {
-        File file = new File( openFile );
-        if( file.isFile() )
-        {
-          openFile( file );
-        }
-      }
-      String activeFile = project.getActiveFile();
-      if( activeFile == null )
-      {
-        openFile( project.getOrMakeUntitledProgram() );
-      }
-      else
-      {
-        openTab( new File( activeFile ) );
-      }
-      SettleModalEventQueue.instance().run();
-      _projectView.load( _project );
-      EventQueue.invokeLater( () -> {
-        parse();
-        GosuEditor currentEditor = getCurrentEditor();
-        if( currentEditor != null )
-        {
-          currentEditor.getEditor().requestFocus();
-        }
-      } );
+      //Gosu.setClasspath( project.getSourcePath().stream().map( File::new ).collect( Collectors.toList() ) );
+      RunMe.reinitializeGosu( project );
     }
-    finally
+
+    //TypeSystem.refresh( TypeSystem.getGlobalModule() );
+
+    for( String openFile : project.getOpenFiles() )
     {
-      setVisible( true );
+      File file = new File( openFile );
+      if( file.isFile() )
+      {
+        openFile( file );
+      }
     }
+    String activeFile = project.getActiveFile();
+    if( activeFile == null )
+    {
+      openFile( project.getOrMakeUntitledProgram() );
+    }
+    else
+    {
+      openTab( new File( activeFile ) );
+    }
+    SettleModalEventQueue.instance().run();
+    _projectView.load( _project );
+    EventQueue.invokeLater( () -> {
+      parse();
+      GosuEditor currentEditor = getCurrentEditor();
+      if( currentEditor != null )
+      {
+        currentEditor.getEditor().requestFocus();
+      }
+    } );
   }
 
   private JPanel makeStatusBar()
