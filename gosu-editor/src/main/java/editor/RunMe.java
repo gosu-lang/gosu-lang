@@ -27,7 +27,7 @@ public class RunMe
     launchEditor();
   }
 
-  public static IGosuEditor getEditorFrame()
+  public static BasicGosuEditor getEditorFrame()
   {
     return _gosuEditor;
   }

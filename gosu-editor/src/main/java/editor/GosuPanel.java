@@ -1,6 +1,5 @@
 package editor;
 
-import editor.search.MessageDisplay;
 import editor.search.StandardLocalSearch;
 import editor.splitpane.CollapsibleSplitPane;
 import editor.tabpane.ITab;
@@ -1562,35 +1561,20 @@ public class GosuPanel extends JPanel
 
   public void openProject()
   {
-    JFileChooser fc = new JFileChooser( getProject().getProjectDir() );
-    fc.setDialogTitle( "Open Project" );
-    fc.setDialogType( JFileChooser.OPEN_DIALOG );
-    fc.setFileSelectionMode( JFileChooser.FILES_AND_DIRECTORIES );
-    fc.setMultiSelectionEnabled( false );
-    fc.setFileFilter(
-      new FileFilter()
+    FileDialog fc = new FileDialog( EditorUtilities.frameForComponent( this ), "Open Project", FileDialog.LOAD );
+    fc.setDirectory( getProject().getProjectDir().getAbsolutePath() );
+    fc.setMultipleMode( false );
+    fc.setFile( "*.prj" );
+    fc.setVisible( true );
+    String selectedFile = fc.getFile();
+    if( selectedFile != null )
+    {
+      File prjFile = new File( fc.getDirectory(), selectedFile );
+      if( prjFile.isFile() )
       {
-        public boolean accept( File f )
-        {
-          return f.isDirectory() ||
-                 (f.isFile() && f.getName().equals( f.getParentFile().getName() + ".prj" ));
-        }
-
-        public String getDescription()
-        {
-          return "Gosu Project (.prj)";
-        }
-      } );
-    int returnVal = fc.showOpenDialog( editor.util.EditorUtilities.frameForComponent( this ) );
-    if( returnVal != JFileChooser.APPROVE_OPTION )
-    {
-      return;
-    }
-    File selectedFile = fc.getSelectedFile();
-    if( selectedFile.isFile() )
-    {
-      File projectDir = selectedFile.getParentFile();
-      openProject( projectDir );
+        File projectDir = prjFile.getParentFile();
+        openProject( projectDir );
+      }
     }
   }
 
