@@ -832,18 +832,11 @@ public class EditorUtilities
 
   private static void copySampleProjects( File gosuDir )
   {
-    URL marker = EditorUtilities.class.getClassLoader().getResource( "marker.txt" );
+    URL marker = EditorUtilities.class.getClassLoader().getResource( "projects/marker.txt" );
     try
     {
-      IFile ifile = CommonServices.getFileSystem().getIFile( new File( marker.toURI() ) );
-      for( IResource child: ifile.getParent().listDirs() )
-      {
-        if( child.getName().equals( "projects" ) )
-        {
-          copy( child, gosuDir );
-          break;
-        }
-      }
+      IDirectory projectsDir = CommonServices.getFileSystem().getIFile( marker ).getParent();
+      copy( projectsDir, gosuDir );
     }
     catch( Exception e )
     {
@@ -861,7 +854,7 @@ public class EditorUtilities
         return;
       }
 
-      if( !to.mkdirs() )
+      if( !to.exists() && !to.mkdirs() )
       {
         System.out.println( "Failed to create project directory: " + to.getAbsolutePath() );
       }

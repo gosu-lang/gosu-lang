@@ -2,6 +2,7 @@ package editor.util;
 
 import editor.FileWatcher;
 import editor.GosuPanel;
+import editor.tabpane.ITab;
 import editor.tabpane.TabPane;
 import gw.lang.reflect.module.IProject;
 
@@ -154,11 +155,15 @@ public class Project implements IProject
 
     Properties props = new Properties();
     props.put( "Name", getName() );
-    props.put( "Tab.Active", makeProjectRelativePath( (File)tabPane.getSelectedTab().getContentPane().getClientProperty( "_file" ) ) );
-    for( int i = 0; i < tabPane.getTabCount(); i++ )
+    ITab selectedTab = tabPane.getSelectedTab();
+    if( selectedTab != null )
     {
-      File file = (File)tabPane.getTabAt( i ).getContentPane().getClientProperty( "_file" );
-      props.put( "Tab.Open." + ((char)(i + 'A')), makeProjectRelativePath( file ) );
+      props.put( "Tab.Active", makeProjectRelativePath( (File)tabPane.getSelectedTab().getContentPane().getClientProperty( "_file" ) ) );
+      for( int i = 0; i < tabPane.getTabCount(); i++ )
+      {
+        File file = (File)tabPane.getTabAt( i ).getContentPane().getClientProperty( "_file" );
+        props.put( "Tab.Open." + ((char)(i + 'A')), makeProjectRelativePath( file ) );
+      }
     }
 
     for( int i = 0; i < getSourcePath().size(); i++ )

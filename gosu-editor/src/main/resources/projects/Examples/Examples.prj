@@ -1,10 +1,12 @@
 #Gosu Project
-#Fri Jan 29 22:38:30 PST 2016
-Name=Examples
-Tab.Open.E=src\\main\\gosu\\examples\\Etc.gsp
-Tab.Open.D=src\\main\\gosu\\examples\\NullSafety.gsp
-Tab.Active=src\\main\\gosu\\examples\\Etc.gsp
-Classpath.Entry0=src\\main\\gosu
-Tab.Open.C=src\\main\\gosu\\examples\\Properties.gsp
+#Sat Jan 30 21:37:06 PST 2016
 Tab.Open.B=src\\main\\gosu\\examples\\Intervals.gsp
 Tab.Open.A=src\\main\\gosu\\examples\\SimpleLoops.gsp
+Tab.Active=src\\main\\gosu\\examples\\Etc.gsp
+Name=Examples
+Classpath.Entry0=src\\main\\gosu
+Tab.Open.G=src\\main\\gosu\\examples\\Programs.gsp
+Tab.Open.F=src\\main\\gosu\\examples\\Hello.gsp
+Tab.Open.E=src\\main\\gosu\\examples\\Etc.gsp
+Tab.Open.D=src\\main\\gosu\\examples\\NullSafety.gsp
+Tab.Open.C=src\\main\\gosu\\examples\\Properties.gsp

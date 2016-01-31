@@ -20,6 +20,7 @@ import gw.lang.reflect.gs.IGosuProgram;
 import gw.lang.reflect.java.JavaTypes;
 import gw.util.OSPlatform;
 import gw.util.StreamUtil;
+import sun.misc.URLClassPath;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
@@ -344,7 +345,37 @@ public class Gosu
       }
       loader = loader.getParent();
     }
+    addBootstrapClasses( ll );
     return ll;
+  }
+
+  private static void addBootstrapClasses( List<File> ll )
+  {
+    try
+    {
+      Method m = ClassLoader.class.getDeclaredMethod( "getBootstrapClassPath" );
+      m.setAccessible( true );
+      URLClassPath bootstrapClassPath = (URLClassPath)m.invoke( null );
+      for( URL url: bootstrapClassPath.getURLs() )
+      {
+        try
+        {
+          File file = new File( url.toURI() );
+          if( file.exists() && !ll.contains( file ) )
+          {
+            ll.add( file );
+          }
+        }
+        catch( Exception e )
+        {
+          //ignore
+        }
+      }
+    }
+    catch( Exception e )
+    {
+      throw new RuntimeException( e );
+    }
   }
 
   public static GosuVersion getVersion()

@@ -14,8 +14,7 @@ import gw.lang.reflect.module.IExecutionEnvironment;
 
 import java.awt.*;
 import java.io.File;
-import java.util.Arrays;
-import java.util.Collections;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class RunMe
@@ -50,7 +49,7 @@ public class RunMe
     IExecutionEnvironment execEnv = TypeSystem.getExecutionEnvironment();
     _gosuInitialization = GosuInitialization.instance( execEnv );
     GosucModule gosucModule = new GosucModule(
-      IExecutionEnvironment.DEFAULT_SINGLE_MODULE_NAME, project.getSourcePath(), Arrays.stream( System.getProperty( "java.class.path" ).split( File.pathSeparator ) ).collect( Collectors.toList() ),
+      IExecutionEnvironment.DEFAULT_SINGLE_MODULE_NAME, project.getSourcePath(), Gosu.deriveClasspathFrom( RunMe.class ).stream().map( File::getAbsolutePath ).collect( Collectors.toList() ),
       "", Collections.<GosucDependency>emptyList(), Collections.<String>emptyList() );
     _gosuInitialization.reinitializeSimpleIde( gosucModule );
   }

@@ -245,7 +245,7 @@ public class GosuPanel extends JPanel
         RunMe.reinitializeGosu( project );
       }
 
-      TypeSystem.refresh( TypeSystem.getGlobalModule() );
+      //TypeSystem.refresh( TypeSystem.getGlobalModule() );
 
       for( String openFile : project.getOpenFiles() )
       {
