@@ -30,6 +30,7 @@ public class XPToolbarButton extends JButton
     setUI( BasicButtonUI.createUI( this ) );
     setBorderPainted( false );
     setMargin( new Insets( 1, 1, 1, 1 ) );
+    setBackground( SystemColor.control );
     setContentAreaFilled( false );
     setOpaque( true );
     EventQueue.invokeLater( new Runnable()
