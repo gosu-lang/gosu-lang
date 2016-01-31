@@ -158,18 +158,18 @@ public class Project implements IProject
     ITab selectedTab = tabPane.getSelectedTab();
     if( selectedTab != null )
     {
-      props.put( "Tab.Active", makeProjectRelativePath( (File)tabPane.getSelectedTab().getContentPane().getClientProperty( "_file" ) ) );
+      props.put( "Tab.Active", makeProjectRelativePathWithSlashes( (File)tabPane.getSelectedTab().getContentPane().getClientProperty( "_file" ) ) );
       for( int i = 0; i < tabPane.getTabCount(); i++ )
       {
         File file = (File)tabPane.getTabAt( i ).getContentPane().getClientProperty( "_file" );
-        props.put( "Tab.Open." + ((char)(i + 'A')), makeProjectRelativePath( file ) );
+        props.put( "Tab.Open." + ((char)(i + 'A')), makeProjectRelativePathWithSlashes( file ) );
       }
     }
 
     for( int i = 0; i < getSourcePath().size(); i++ )
     {
       String path = getSourcePath().get( i );
-      String relativePath = makeProjectRelativePath( new File( path ) );
+      String relativePath = makeProjectRelativePathWithSlashes( new File( path ) );
       props.put( "Classpath.Entry" + i, relativePath == null ? path : relativePath );
     }
 
@@ -185,7 +185,7 @@ public class Project implements IProject
     }
   }
 
-  private String makeProjectRelativePath( File file )
+  private String makeProjectRelativePathWithSlashes( File file )
   {
     String absProjectDir = getProjectDir().getAbsolutePath();
     String absFile = file.getAbsolutePath();
@@ -193,7 +193,7 @@ public class Project implements IProject
     {
       return absFile;
     }
-    return absFile.substring( absProjectDir.length() + 1 );
+    return absFile.substring( absProjectDir.length() + 1 ).replace( '\\', '/' );
   }
 
   private void load()

@@ -1,6 +1,6 @@
 #Gosu Project
-#Sun Jan 31 13:45:24 PST 2016
+#Sun Jan 31 14:11:13 PST 2016
 Name=Examples
-Tab.Active=src\\main\\gosu\\examples\\Hello.gsp
-Classpath.Entry0=src\\main\\gosu
-Tab.Open.A=src\\main\\gosu\\examples\\Hello.gsp
+Tab.Active=src/main/gosu/examples/Hello.gsp
+Classpath.Entry0=src/main/gosu
+Tab.Open.A=src/main/gosu/examples/Hello.gsp
