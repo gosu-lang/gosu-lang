@@ -72,9 +72,9 @@ public class SystemColorFilter extends RGBImageFilter
         (g >= _clrFace.getGreen() - _fFudgeFactor * _clrFace.getGreen() && g <= _clrFace.getGreen() + _fFudgeFactor * _clrFace.getGreen()) &&
         (b >= _clrFace.getBlue() - _fFudgeFactor * _clrFace.getBlue() && b <= _clrFace.getBlue() + _fFudgeFactor * _clrFace.getBlue()) )
     {
-      r = editor.util.EditorUtilities.CONTROL_BACKGROUND.getRed();
-      g = editor.util.EditorUtilities.CONTROL_BACKGROUND.getGreen();
-      b = editor.util.EditorUtilities.CONTROL_BACKGROUND.getBlue();
+      r = editor.util.EditorUtilities.CONTROL.getRed();
+      g = editor.util.EditorUtilities.CONTROL.getGreen();
+      b = editor.util.EditorUtilities.CONTROL.getBlue();
     }
     else if( (r >= _clrHighlight.getRed() - _fFudgeFactor * _clrHighlight.getRed() && r <= _clrHighlight.getRed() + _fFudgeFactor * _clrHighlight.getRed()) &&
              (g >= _clrHighlight.getGreen() - _fFudgeFactor * _clrHighlight.getGreen() && g <= _clrHighlight.getGreen() + _fFudgeFactor * _clrHighlight.getGreen()) &&

@@ -5,6 +5,8 @@
  */
 package editor;
 
+import editor.util.EditorUtilities;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -163,7 +165,7 @@ public class SplitPane extends JComponent implements SwingConstants
   {
     Splitter()
     {
-      setBackground( SystemColor.control );
+      setBackground( EditorUtilities.CONTROL );
       int iOrientation = getOrientation();
 
       setCursor( iOrientation == HORIZONTAL ? Cursor.getPredefinedCursor( Cursor.E_RESIZE_CURSOR )
@@ -185,10 +187,10 @@ public class SplitPane extends JComponent implements SwingConstants
       {
         int iWidth = getSize().width;
 
-        g.setColor( SystemColor.controlShadow );
+        g.setColor( EditorUtilities.CONTROL_SHADOW );
         g.drawLine( 0, 1, iWidth, 1 );
         g.drawLine( 0, 4, iWidth, 4 );
-        g.setColor( SystemColor.controlLtHighlight );
+        g.setColor( EditorUtilities.CONTROL_LIGHT );
         g.drawLine( 0, 2, iWidth, 2 );
         g.drawLine( 0, 5, iWidth, 5 );
       }
@@ -196,10 +198,10 @@ public class SplitPane extends JComponent implements SwingConstants
       {
         int iHeight = getSize().height;
 
-        g.setColor( SystemColor.controlShadow );
+        g.setColor( EditorUtilities.CONTROL_SHADOW );
         g.drawLine( 1, iYPos, 1, iHeight );
         g.drawLine( 4, iYPos, 4, iHeight );
-        g.setColor( SystemColor.controlHighlight );
+        g.setColor( EditorUtilities.CONTROL_HIGHLIGHT );
         g.drawLine( 2, iYPos, 2, iHeight );
         g.drawLine( 5, iYPos, 5, iHeight );
       }
@@ -328,7 +330,7 @@ public class SplitPane extends JComponent implements SwingConstants
       }
 
       g.setXORMode( new Color( UIManager.getColor( "desktop" ).getRGB() ) );  // This color is replaced with...
-      g.setColor( SystemColor.window );     // ...this color when under the pen.
+      g.setColor( EditorUtilities.WINDOW );     // ...this color when under the pen.
 
       if( _rcLast != null )
       {

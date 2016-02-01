@@ -1,5 +1,6 @@
 package editor.tabpane;
 
+import editor.util.EditorUtilities;
 import editor.util.VerticalLabelUI;
 
 import javax.swing.*;
@@ -42,7 +43,7 @@ class InnerLabel extends JLabel
         return
                 _tab.isSelected()
                         ? _tab.getTabPane().isShowing() && _tab.getTabPane().isActive()
-                        ? UIManager.getColor( "activeCaptionText" )
+                        ? EditorUtilities.ACTIVE_CAPTION_TEXT
                         : super.getForeground()
                         : super.getForeground();
       }

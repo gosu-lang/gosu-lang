@@ -5,6 +5,7 @@
  */
 package editor;
 
+import editor.util.EditorUtilities;
 import editor.util.TextComponentUtil;
 import gw.config.CommonServices;
 import gw.lang.reflect.IMethodInfo;
@@ -486,7 +487,7 @@ public class FlatBeanInfoPopup extends JPopupMenu
 
       if( _bSelected )
       {
-        bkColor = _tree.isEnabled() ? UIManager.getColor( "textHighlight" ) : editor.util.EditorUtilities.CONTROL_SHADOW;
+        bkColor = _tree.isEnabled() ? EditorUtilities.TEXT_HIGHLIGHT : editor.util.EditorUtilities.CONTROL_SHADOW;
       }
       else
       {
@@ -510,7 +511,7 @@ public class FlatBeanInfoPopup extends JPopupMenu
 
           if( _bSelected && _tree.hasFocus() )
           {
-            g.setColor( _tree.isEnabled() ? UIManager.getColor( "textHighlightText" ) : editor.util.EditorUtilities.CONTROL_LIGHT );
+            g.setColor( _tree.isEnabled() ? EditorUtilities.TEXT_HIGHLIGHT_TEXT : editor.util.EditorUtilities.CONTROL_LIGHT );
             BasicGraphicsUtils.drawDashedRect( g, offset, 0, getWidth() - 1 - offset, getHeight() - 1 );
           }
 
@@ -521,16 +522,16 @@ public class FlatBeanInfoPopup extends JPopupMenu
 
           if( _bSelected && _tree.hasFocus() )
           {
-            g.setColor( _tree.isEnabled() ? UIManager.getColor( "textHighlightText" ) : editor.util.EditorUtilities.CONTROL_LIGHT );
+            g.setColor( _tree.isEnabled() ? EditorUtilities.TEXT_HIGHLIGHT_TEXT : editor.util.EditorUtilities.CONTROL_LIGHT );
             BasicGraphicsUtils.drawDashedRect( g, 0, 0, getWidth() - 1, getHeight() - 1 );
           }
         }
         g.setColor( bkColor );
       }
 
-      setForeground( _bSelected ? _tree.isEnabled() ? UIManager.getColor( "textHighlightText" )
+      setForeground( _bSelected ? _tree.isEnabled() ? EditorUtilities.TEXT_HIGHLIGHT_TEXT
                                                     : editor.util.EditorUtilities.CONTROL_LIGHT
-                                : _tree.isEnabled() ? UIManager.getColor( "textText" )
+                                : _tree.isEnabled() ? EditorUtilities.TEXT_TEXT
                                                     : editor.util.EditorUtilities.CONTROL_SHADOW );
       super.paint( g );
     }

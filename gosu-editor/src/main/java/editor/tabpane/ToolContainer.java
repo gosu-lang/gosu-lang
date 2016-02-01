@@ -3,6 +3,7 @@ package editor.tabpane;
 
 import editor.actions.GenericAction;
 import editor.splitpane.ICaptionActionListener;
+import editor.util.EditorUtilities;
 import editor.util.ToolBar;
 import editor.util.XPToolbarButton;
 
@@ -76,19 +77,19 @@ public class ToolContainer extends JPanel
     TabPosition tp = _tabPane.getTabContainer().getTabPosition();
     if( tp == TabPosition.TOP )
     {
-      return BorderFactory.createMatteBorder( 0, 0, 1, 0, SystemColor.controlShadow );
+      return BorderFactory.createMatteBorder( 0, 0, 1, 0, EditorUtilities.CONTROL_SHADOW );
     }
     else if( tp == TabPosition.BOTTOM )
     {
-      return BorderFactory.createMatteBorder( 1, 0, 0, 0, SystemColor.controlShadow );
+      return BorderFactory.createMatteBorder( 1, 0, 0, 0, EditorUtilities.CONTROL_SHADOW );
     }
     else if( tp == TabPosition.LEFT )
     {
-      return BorderFactory.createMatteBorder( 0, 0, 0, 1, SystemColor.controlShadow );
+      return BorderFactory.createMatteBorder( 0, 0, 0, 1, EditorUtilities.CONTROL_SHADOW );
     }
     else
     {
-      return BorderFactory.createMatteBorder( 0, 1, 0, 0, SystemColor.controlShadow );
+      return BorderFactory.createMatteBorder( 0, 1, 0, 0, EditorUtilities.CONTROL_SHADOW );
     }
   }
 

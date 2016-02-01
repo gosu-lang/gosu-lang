@@ -76,7 +76,7 @@ public class SelectClassToImportPopup extends JPopupMenu
     int iY = 0;
     _labelTypeName = new JLabel( "Select Class To Import" );
     _labelTypeName.setOpaque( true );
-    _labelTypeName.setBackground( editor.util.EditorUtilities.CONTROL_BACKGROUND );
+    _labelTypeName.setBackground( editor.util.EditorUtilities.CONTROL );
     _labelTypeName.setFont( _labelTypeName.getFont().deriveFont( Font.BOLD ) );
     _labelTypeName.setBorder( BorderFactory.createEmptyBorder( 3, 3, 3, 3 ) );
     c.anchor = GridBagConstraints.WEST;

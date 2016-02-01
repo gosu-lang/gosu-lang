@@ -45,7 +45,7 @@ public class StandardTab extends JPanel implements ITab
     _bCanClose = bCanClose;
     setLayout( new BorderLayout() );
     setOpaque( false );
-    setBackground( SystemColor.window );
+    setBackground( EditorUtilities.WINDOW );
     _tabContainer = tabContainer;
     _innerLabel = createInnerLabel( labelAttr );
     add( _innerLabel, BorderLayout.CENTER );
@@ -132,7 +132,7 @@ public class StandardTab extends JPanel implements ITab
       ? getTabPane().isShowing() && getTabPane().isActive()
         ? EditorUtilities.ACTIVE_CAPTION
         : super.getBackground()
-      : SystemColor.control;
+      :EditorUtilities.CONTROL;
   }
 
   protected void paintBorder( Graphics g )
@@ -162,10 +162,10 @@ public class StandardTab extends JPanel implements ITab
       isSelected()
       ? getTabPane().isShowing() && getTabPane().isActive()
         ? EditorUtilities.ACTIVE_CAPTION
-        : SystemColor.control //(Color)Utilities.getDesktopProperty( DesktopProperties.INACTIVE_GRADIENT )
+        :EditorUtilities.CONTROL //(Color)Utilities.getDesktopProperty( DesktopProperties.INACTIVE_GRADIENT )
       : isHover()
-       ? SystemColor.control
-       : SystemColor.controlShadow;
+       ?EditorUtilities.CONTROL
+       : EditorUtilities.CONTROL_SHADOW;
   }
 
   private Graphics2D getTransformedGraphics( Graphics2D g2, BufferedImage bi )

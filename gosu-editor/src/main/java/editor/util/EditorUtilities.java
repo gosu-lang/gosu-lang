@@ -48,15 +48,21 @@ public class EditorUtilities
 
   /* colors */
   public static final Color ACTIVE_CAPTION = new Color( 210, 235, 251 );
-  public static final Color CONTROL_BACKGROUND = UIManager.getColor( "control" );
-  public static final Color CONTROL_DARKSHADOW = UIManager.getColor( "controlDkShadow" );
-  public static final Color CONTROL_HIGHLIGHT = UIManager.getColor( "controlHighlight" );
-  public static final Color CONTROL_LIGHT = UIManager.getColor( "controlLtHighlight" );
-  public static final Color CONTROL_SHADOW = UIManager.getColor( "controlShadow" );
-  public static final Color CONTROL_TEXT = UIManager.getColor( "controlText" );
-  public static final Color TOOLTIP_BACKGROUND = UIManager.getColor( "info" );
-  public static final Color WINDOW = UIManager.getColor( "window" );
-  public static final Color GRAY_252 = new Color( 252, 252, 252 );
+  public static final Color ACTIVE_CAPTION_TEXT = Color.black;
+  public static final Color CONTROL = new Color( 240, 240, 240 ); //UIManager.getColor( "control" );
+  public static final Color CONTROL_DARKSHADOW = new Color( 105, 105, 105 ); // UIManager.getColor( "controlDkShadow" );
+  public static final Color CONTROL_HIGHLIGHT = new Color( 227, 227, 227 ); //UIManager.getColor( "controlHighlight" );
+  public static final Color CONTROL_LIGHT = Color.white; //UIManager.getColor( "controlLtHighlight" );
+  public static final Color CONTROL_SHADOW = new Color( 160, 160, 160 ); //EditorUtilities.CONTROL_SHADOW;
+  public static final Color CONTROL_TEXT = Color.black; //UIManager.getColor( "controlText" );
+  public static final Color TOOLTIP_BACKGROUND = new Color( 255, 255, 225 ); //  UIManager.getColor( "info" );
+  public static final Color TOOLTIP_TEXT = Color.black; //  UIManager.getColor( "infoText" );
+  public static final Color WINDOW = new Color( 252, 252, 252 );
+  public static final Color WINDOW_TEXT = Color.black;
+  public static final Color WINDOW_BORDER = new Color( 100, 100, 100 );
+  public static final Color TEXT_HIGHLIGHT = new Color( 51, 153, 255 );
+  public static final Color TEXT_HIGHLIGHT_TEXT = Color.white;
+  public static final Color TEXT_TEXT = Color.black;
 
   public static final Color XP_BORDER_COLOR = new Color( 49, 106, 197 );
   public static final Color XP_HIGHLIGHT_TOGGLE_COLOR = new Color( 225, 230, 232 );
@@ -937,7 +943,7 @@ public class EditorUtilities
   private static File findProjectFile(File dir) {
     for( File f : dir.listFiles() )
     {
-      if(f.getName().equalsIgnoreCase(dir.getName() + ".prj"))
+      if(f.getName().equalsIgnoreCase( dir.getName() + ".prj" ))
       {
         return f;
       }

@@ -1,6 +1,7 @@
 package editor.tabpane;
 
 import editor.search.StudioUtilities;
+import editor.util.EditorUtilities;
 import editor.util.SettleModalEventQueue;
 import editor.util.XPToolbarButton;
 
@@ -129,22 +130,22 @@ public class MoreTab extends XPToolbarButton
   private void paintTopOrientation( Graphics g )
   {
     int iYStart = 1;
-    g.setColor( SystemColor.controlShadow );
+    g.setColor( EditorUtilities.CONTROL_SHADOW );
     g.drawLine( 0, iYStart, 1, iYStart );
     boolean bLeft = true;
     for( int i = iYStart, x = 1; i <= 32; i+=3, x+=(bLeft ? -1 : 1) )
     {
-      g.setColor( SystemColor.controlShadow );
+      g.setColor( EditorUtilities.CONTROL_SHADOW );
       g.drawLine( x,  i,  x,  i+2 );
-      g.setColor( SystemColor.controlDkShadow );
+      g.setColor( EditorUtilities.CONTROL_DARKSHADOW );
       g.drawLine( x+1,  i,  x+1,  i+2 );
-      g.setColor( SystemColor.control );
+      g.setColor( EditorUtilities.CONTROL );
       g.fillRect( x+2, i, getWidth(), i+2 );
       bLeft = x != 0 && (x == 2 || bLeft);
     }
 
     g.setFont( getFont() );
-    g.setColor( SystemColor.controlText );
+    g.setColor( EditorUtilities.CONTROL_TEXT );
     g.drawString( "...", 5, 8 );
   }
 
@@ -218,7 +219,7 @@ public class MoreTab extends XPToolbarButton
         JPopupMenu popup = new TabPopup();
         _selectionListener = new TabPaneSelectionHandler( popup );
         popup.setLayout( new BorderLayout() );
-        popup.setBackground( SystemColor.control );
+        popup.setBackground(EditorUtilities.CONTROL );
         Point pt = _tabContainer.getLocation();
         pt = fitToScreen( pt, parent, _tabContainer );
         _tabContainer.addSelectionListener( _selectionListener );

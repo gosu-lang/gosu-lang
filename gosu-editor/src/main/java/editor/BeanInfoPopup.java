@@ -7,6 +7,7 @@ package editor;
 
 import editor.util.ContainerMoverSizer;
 import editor.util.ContainerSizer;
+import editor.util.EditorUtilities;
 import editor.util.TextComponentUtil;
 import gw.lang.parser.IScriptPartId;
 import gw.lang.parser.ISymbol;
@@ -198,7 +199,7 @@ public class BeanInfoPopup extends EditorBasedPopup implements ISelectionPopup
     {
       JLabel labelTypeName = new JLabel( TypeSystem.getGenericRelativeName( _classes[0], true ) );
       labelTypeName.setOpaque( true );
-      labelTypeName.setBackground( editor.util.EditorUtilities.CONTROL_BACKGROUND );
+      labelTypeName.setBackground( EditorUtilities.CONTROL );
       labelTypeName.setFont( labelTypeName.getFont().deriveFont( Font.BOLD ) );
       labelTypeName.setBorder( BorderFactory.createEmptyBorder( 0, 3, 3, 3 ) );
       c.anchor = GridBagConstraints.WEST;
@@ -351,7 +352,7 @@ public class BeanInfoPopup extends EditorBasedPopup implements ISelectionPopup
     if( bVisible )
     {
       registerListeners();
-      editor.util.EditorUtilities.removePopupBorder( this );
+      EditorUtilities.removePopupBorder( this );
     }
     else
     {
@@ -848,19 +849,19 @@ public class BeanInfoPopup extends EditorBasedPopup implements ISelectionPopup
         IMethodInfo mi = ((MethodNode)node).getMethodDescriptor();
         if( mi.isPrivate() )
         {
-          icon = editor.util.EditorUtilities.loadIcon( "images/Method_Private.png" );
+          icon = EditorUtilities.loadIcon( "images/Method_Private.png" );
         }
         else if( mi.isInternal() )
         {
-          icon = editor.util.EditorUtilities.loadIcon( "images/Method_Sealed.png" );
+          icon = EditorUtilities.loadIcon( "images/Method_Sealed.png" );
         }
         else if( mi.isProtected() )
         {
-          icon = editor.util.EditorUtilities.loadIcon( "images/Method_Protected.png" );
+          icon = EditorUtilities.loadIcon( "images/Method_Protected.png" );
         }
         else
         {
-          icon = editor.util.EditorUtilities.loadIcon( "images/Method.png" );
+          icon = EditorUtilities.loadIcon( "images/Method.png" );
         }
 
         if( mi.isDeprecated() )
@@ -873,19 +874,19 @@ public class BeanInfoPopup extends EditorBasedPopup implements ISelectionPopup
         IPropertyInfo pi = ((PropertyNode)node).getPropertyDescriptor();
         if( pi.isPrivate() )
         {
-          icon = editor.util.EditorUtilities.loadIcon( "images/Field_Private.png" );
+          icon = EditorUtilities.loadIcon( "images/Field_Private.png" );
         }
         else if( pi.isInternal() )
         {
-          icon = editor.util.EditorUtilities.loadIcon( "images/Field_Sealed.png" );
+          icon = EditorUtilities.loadIcon( "images/Field_Sealed.png" );
         }
         else if( pi.isProtected() )
         {
-          icon = editor.util.EditorUtilities.loadIcon( "images/Field_Protected.png" );
+          icon = EditorUtilities.loadIcon( "images/Field_Protected.png" );
         }
         else
         {
-          icon = editor.util.EditorUtilities.loadIcon( "images/Field.png" );
+          icon = EditorUtilities.loadIcon( "images/Field.png" );
         }
 
         if( pi.isDeprecated() )
@@ -904,7 +905,7 @@ public class BeanInfoPopup extends EditorBasedPopup implements ISelectionPopup
 
       if( _bSelected )
       {
-        bkColor = _tree.isEnabled() ? UIManager.getColor( "textHighlight" ) : editor.util.EditorUtilities.CONTROL_SHADOW;
+        bkColor = _tree.isEnabled() ? EditorUtilities.TEXT_HIGHLIGHT : EditorUtilities.CONTROL_SHADOW;
       }
       else
       {
@@ -928,7 +929,7 @@ public class BeanInfoPopup extends EditorBasedPopup implements ISelectionPopup
 
           if( _bSelected && _tree.hasFocus() )
           {
-            g.setColor( _tree.isEnabled() ? UIManager.getColor( "textHighlightText" ) : editor.util.EditorUtilities.CONTROL_LIGHT );
+            g.setColor( _tree.isEnabled() ? EditorUtilities.TEXT_HIGHLIGHT_TEXT : EditorUtilities.CONTROL_LIGHT );
             BasicGraphicsUtils.drawDashedRect( g, offset, 0, getWidth() - 1 - offset, getHeight() - 1 );
           }
 
@@ -939,17 +940,17 @@ public class BeanInfoPopup extends EditorBasedPopup implements ISelectionPopup
 
           if( _bSelected && _tree.hasFocus() )
           {
-            g.setColor( _tree.isEnabled() ? UIManager.getColor( "textHighlightText" ) : editor.util.EditorUtilities.CONTROL_LIGHT );
+            g.setColor( _tree.isEnabled() ? EditorUtilities.TEXT_HIGHLIGHT_TEXT : EditorUtilities.CONTROL_LIGHT );
             BasicGraphicsUtils.drawDashedRect( g, 0, 0, getWidth() - 1, getHeight() - 1 );
           }
         }
         g.setColor( bkColor );
       }
 
-      setForeground( _bSelected ? _tree.isEnabled() ? UIManager.getColor( "textHighlightText" )
-                                                    : editor.util.EditorUtilities.CONTROL_LIGHT
-                                : _tree.isEnabled() ? UIManager.getColor( "textText" )
-                                                    : editor.util.EditorUtilities.CONTROL_SHADOW );
+      setForeground( _bSelected ? _tree.isEnabled() ? EditorUtilities.TEXT_HIGHLIGHT_TEXT
+                                                    : EditorUtilities.CONTROL_LIGHT
+                                : _tree.isEnabled() ? EditorUtilities.TEXT_TEXT
+                                                    : EditorUtilities.CONTROL_SHADOW );
       super.paint( g );
     }
 

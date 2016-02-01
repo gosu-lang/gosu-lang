@@ -88,7 +88,7 @@ public class FileTreeCellRenderer extends JLabel implements TreeCellRenderer
     {
       bkColor = _tree.isEnabled() && bFocus
                 ? EditorUtilities.ACTIVE_CAPTION
-                : SystemColor.control;
+                : EditorUtilities.CONTROL;
     }
     else
     {
@@ -106,13 +106,13 @@ public class FileTreeCellRenderer extends JLabel implements TreeCellRenderer
 
       if( _bSelected )
       {
-        g.setColor( _tree.isEnabled() && bFocus ? EditorUtilities.XP_BORDER_COLOR : SystemColor.controlShadow );
+        g.setColor( _tree.isEnabled() && bFocus ? EditorUtilities.XP_BORDER_COLOR : EditorUtilities.CONTROL_SHADOW );
         g.drawRect( 0, 0, getWidth() - 1, getHeight() - 1 );
       }
       g.setColor( bkColor );
     }
 
-    setForeground( SystemColor.controlText );
+    setForeground( EditorUtilities.CONTROL_TEXT );
 
     super.paint( g );
   }

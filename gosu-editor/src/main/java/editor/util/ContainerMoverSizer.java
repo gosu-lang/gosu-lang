@@ -70,7 +70,7 @@ public class ContainerMoverSizer extends JComponent
   private void configUi()
   {
     setOpaque( true );
-    setBackground( editor.util.EditorUtilities.CONTROL_BACKGROUND );
+    setBackground( editor.util.EditorUtilities.CONTROL );
     DragController controller = new DragController();
     addMouseListener( controller );
     addMouseMotionListener( controller );

@@ -5,6 +5,8 @@
  */
 package editor.splitpane;
 
+import editor.util.EditorUtilities;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -164,7 +166,7 @@ public class SplitPane extends JComponent implements SwingConstants
   {
     Splitter()
     {
-      setBackground( SystemColor.control );
+      setBackground( EditorUtilities.CONTROL );
       int iOrientation = getOrientation();
 
       setCursor( iOrientation == HORIZONTAL ? Cursor.getPredefinedCursor( Cursor.E_RESIZE_CURSOR )
@@ -293,7 +295,7 @@ public class SplitPane extends JComponent implements SwingConstants
       }
 
       g.setXORMode( new Color( UIManager.getColor( "desktop" ).getRGB() ) );  // This color is replaced with...
-      g.setColor( SystemColor.window );     // ...this color when under the pen.
+      g.setColor( EditorUtilities.WINDOW );     // ...this color when under the pen.
 
       if( _rcLast != null )
       {

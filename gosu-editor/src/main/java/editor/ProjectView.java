@@ -65,7 +65,7 @@ public class ProjectView extends JPanel
     _project = project;
     DefaultTreeModel model = new DefaultTreeModel( new FileTree( getProject() ) );
     _tree = new JTree( model );
-    _tree.setBackground( EditorUtilities.GRAY_252 );
+    _tree.setBackground( EditorUtilities.WINDOW );
     _tree.setShowsRootHandles( true );
     _tree.setRowHeight( 22 );
     _tree.getSelectionModel().setSelectionMode( TreeSelectionModel.SINGLE_TREE_SELECTION );
@@ -74,7 +74,7 @@ public class ProjectView extends JPanel
     _tree.addMouseListener( new TreeMouseHandler() );
     _tree.addKeyListener( new TreeKeyHankder() );
     _scroller = new JScrollPane( _tree );
-    _scroller.setBorder( new MatteBorder( 0, 0, 1, 1, SystemColor.controlShadow ) );
+    _scroller.setBorder( new MatteBorder( 0, 0, 1, 1, EditorUtilities.CONTROL_SHADOW ) );
     expandToFirstSourcePath( 0, _tree.getRowCount() );
 
     _splitPane.setTop( _scroller );

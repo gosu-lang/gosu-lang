@@ -68,7 +68,7 @@ public class ContentContainer extends JPanel
       if( StudioUtilities.containsFocus( ContentContainer.this )) {
         return EditorUtilities.ACTIVE_CAPTION;
       }
-      return SystemColor.control;
+      return EditorUtilities.CONTROL;
     }
 
     public boolean isBorderOpaque() {
@@ -86,7 +86,7 @@ public class ContentContainer extends JPanel
         g.fillRect(insets.left, height - insets.bottom, width - insets.left, insets.bottom);
         g.fillRect(width - insets.right, 0, insets.right, height - insets.bottom);
         if (_tabPane.isTopBorderOnly()) {
-          g.setColor( SystemColor.controlShadow );
+          g.setColor( EditorUtilities.CONTROL_SHADOW );
           TabPosition tp = _tabPane.getTabContainer().getTabPosition();
           if (tp == TabPosition.TOP ||
                   tp == TabPosition.BOTTOM) {

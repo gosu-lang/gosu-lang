@@ -1,5 +1,7 @@
 package editor.tabpane;
 
+import editor.util.EditorUtilities;
+
 import javax.swing.border.Border;
 import java.awt.*;
 
@@ -47,7 +49,7 @@ public class StandardTabBorder implements Border
   public void paintBorder( Component c, Graphics g, int x, int y, int width, int height )
   {
     Polygon poly = getBorderPoly( c );
-    g.setColor( SystemColor.controlShadow );
+    g.setColor( EditorUtilities.CONTROL_SHADOW );
     g.drawPolygon( poly );
     ITab tab = getTabFromComponent( c );
     if( tab.isSelected() )

@@ -7,7 +7,6 @@ package editor;
 
 
 import editor.util.EditorUtilities;
-import editor.util.XPToolbarButton;
 import gw.util.GosuObjectUtil;
 
 import javax.swing.*;
@@ -47,7 +46,7 @@ public class ToggleToolBarButton extends JToggleButton
     setContentAreaFilled( false );
     setOpaque( true );
 
-    _clrBkgnd = editor.util.EditorUtilities.CONTROL_BACKGROUND;
+    _clrBkgnd = editor.util.EditorUtilities.CONTROL;
 
     _activeBorder = new CompoundBorder( new LineBorder( XP_BORDER_COLOR, 1 ),
                                         BorderFactory.createEmptyBorder( 2, 2, 2, 2 ) );

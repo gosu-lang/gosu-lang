@@ -297,7 +297,7 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
     _editor.setMargin( new Insets( 3, 3, 3, 3 ) ); // set margin directly, otherwise some other platforms (cough, mac, cough) don't have a margin at all
     _editor.setFont( new Font( GosuEditorKit.getStylePreferences().getFontFamily(), Font.PLAIN,
                                GosuEditorKit.getStylePreferences().getFontSize() ) );
-    _editor.setBackground( EditorUtilities.GRAY_252 );
+    _editor.setBackground( EditorUtilities.WINDOW );
     _editor.setForeground( Color.black );
     _editor.putClientProperty( "caretWidth", 2 );
     _editor.setCaretColor( StyleConstants.getForeground( kit.getViewFactory().getStyle( GosuStyleContext.STYLE_Caret ) ) );
@@ -380,7 +380,7 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
     add( BorderLayout.CENTER, _scroller );
 
     _labelCaption = new JLabel( "<Script Part>" );
-    _labelCaption.setBackground( editor.util.EditorUtilities.CONTROL_BACKGROUND );
+    _labelCaption.setBackground( editor.util.EditorUtilities.CONTROL );
     _labelCaption.setOpaque( true );
     _labelCaption.setFont( getFont().deriveFont( Font.BOLD ) );
     _labelCaption.setBorder( new EmptyBorder( 0, 4 + MIN_LINENUMBER_WIDTH * (lineInfoRenderer != null ? 2 : 1), 0, 0 ) );
@@ -2877,7 +2877,7 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
     final JLabel label = new JLabel( displayHTML );
     label.setFocusable( true );
     JPanel panel = new JPanel( true );
-    panel.setBackground( UIManager.getColor( "ToolTip.background" ) );
+    panel.setBackground( EditorUtilities.TOOLTIP_BACKGROUND );
     panel.setLayout( new BoxLayout( panel, BoxLayout.X_AXIS ) );
     panel.setBorder( BorderFactory.createEmptyBorder( 1, 3, 1, 3 ) );
     panel.add( label );

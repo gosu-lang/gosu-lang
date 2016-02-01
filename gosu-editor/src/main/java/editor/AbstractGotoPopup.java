@@ -93,7 +93,7 @@ public abstract class AbstractGotoPopup<T> extends JPopupMenu
     int iY = 0;
     JLabel labelName = new JLabel( _title );
     labelName.setOpaque( true );
-    labelName.setBackground( EditorUtilities.CONTROL_BACKGROUND );
+    labelName.setBackground( EditorUtilities.CONTROL );
     labelName.setFont( labelName.getFont().deriveFont( Font.BOLD ) );
     labelName.setBorder( BorderFactory.createEmptyBorder( 3, 3, 3, 3 ) );
     c.anchor = GridBagConstraints.WEST;

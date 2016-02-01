@@ -26,7 +26,7 @@ public class EditorScrollPane extends JScrollPane
     _editor = editor;
     _adviceColumn = new AdviceColumn();
     setRowHeaderView( _adviceColumn );
-    setBackground( EditorUtilities.CONTROL_BACKGROUND );
+    setBackground( EditorUtilities.CONTROL );
   }
 
   public EditorScrollPane( ILineInfoManager lineInfoRenderer, JTextComponent editor, JComponent view )
@@ -71,7 +71,7 @@ public class EditorScrollPane extends JScrollPane
     {
       setLayout( null );
       setBorder( new EmptyBorder( new Insets( 0, 0, 0, 1 ) ) );
-      setBackground( editor.util.EditorUtilities.CONTROL_BACKGROUND );
+      setBackground( editor.util.EditorUtilities.CONTROL );
       addMouseListener( new MouseAdapter()
       {
         @Override

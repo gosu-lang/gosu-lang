@@ -30,7 +30,7 @@ public class XPToolbarButton extends JButton
     setUI( BasicButtonUI.createUI( this ) );
     setBorderPainted( false );
     setMargin( new Insets( 1, 1, 1, 1 ) );
-    setBackground( SystemColor.control );
+    setBackground(EditorUtilities.CONTROL );
     setContentAreaFilled( false );
     setOpaque( true );
     EventQueue.invokeLater( new Runnable()
@@ -38,7 +38,7 @@ public class XPToolbarButton extends JButton
       public void run()
       {
         setBorder( BorderFactory.createCompoundBorder( BorderFactory.createLineBorder( EditorUtilities.XP_BORDER_COLOR ), BorderFactory.createEmptyBorder( iMargin, iMargin, iMargin, iMargin ) ) );
-        setBackground( SystemColor.control );
+        setBackground(EditorUtilities.CONTROL );
       }
     } );
 
@@ -73,7 +73,7 @@ public class XPToolbarButton extends JButton
         public void mouseExited( MouseEvent e )
         {
           setBorderPainted( isBorderConstant() );
-          setBackground( _bkColor != null ? _bkColor : SystemColor.control );
+          setBackground( _bkColor != null ? _bkColor :EditorUtilities.CONTROL );
         }
 
         public void mousePressed( MouseEvent e )
