@@ -333,7 +333,7 @@ class Board extends JPanel {
       _orientation = orientation
       _comp1 = comp1
       _comp2 = comp2
-      _timer = new Timer( 5, this )
+      _timer = new Timer( 3, this )
       _iComp1Pos = orientation == HORZ ? _comp1.X : _comp1.Y
     }
     
@@ -432,7 +432,7 @@ class Board extends JPanel {
 
     construct( stones: Set<Stone> ) {
       _comps = stones.map( \ stone -> findComp( stone ) )
-      _timer = new Timer( 15, this )
+      _timer = new Timer( 10, this )
       _timer.Repeats = true
     }
 
@@ -458,7 +458,7 @@ class Board extends JPanel {
 
     construct( stones: Set<Stone> ) {
       _comps = stones.map( \ stone -> findComp( stone ) )
-      _timer = new Timer( 15, this )
+      _timer = new Timer( 10, this )
       _timer.Repeats = true
     }
 

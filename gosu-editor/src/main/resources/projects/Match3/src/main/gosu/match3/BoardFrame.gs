@@ -16,8 +16,15 @@ final class BoardFrame extends JFrame {
     var board = new Board()
     ContentPane.add( board, BorderLayout.CENTER )
     ContentPane.add( new ScoreBoard( board.Model ), BorderLayout.NORTH )
-    ContentPane.add( new TimeBoard( board.Model ), BorderLayout.SOUTH )
+    var timeBoard = new TimeBoard( board.Model )
+    ContentPane.add( timeBoard, BorderLayout.SOUTH )
     pack()
     setLocation( 300, 300 )
+
+    addWindowListener( new WindowAdapter() {
+      function windowClosed( e: WindowEvent ) {
+        timeBoard.dispose()
+      }
+    } )
   }
 }

@@ -61,4 +61,8 @@ class TimeBoard extends JPanel {
   private function levelChanged() {
     _boardModel.addToLevelTime( -BoardModel.MAX_TIME/2 )
   }
+
+  function dispose() {
+    _timer.stop()
+  }
 }
