@@ -121,11 +121,11 @@ public class GosuPanel extends JPanel
           return;
         }
         savePreviousTab();
+        updateTitle();
         if( getCurrentEditor() == null )
         {
           return;
         }
-        updateTitle();
         getCurrentEditor().getEditor().requestFocus();
         parse();
         storeProjectState();
@@ -1288,8 +1288,10 @@ public class GosuPanel extends JPanel
   private void updateTitle()
   {
     File file = getCurrentFile();
-    _parentFrame.setTitle( "[" + (file == null ? "Untitled" : file.getAbsolutePath()) + "] - " +
-                           "Gosu Editor" );
+    Project project = getProject();
+    String currentFilePath = file == null ? "  " :  " - ..." + File.separator + project.makeProjectRelativePath( file ) + " - ";
+    String title = project.getName() + " - [" + project.getProjectDir().getAbsolutePath() + "]" + currentFilePath + "Gosu " + Gosu.getVersion();
+    _parentFrame.setTitle( title );
   }
 
   private boolean openTab( File file )
@@ -1328,7 +1330,8 @@ public class GosuPanel extends JPanel
 
   public File getCurrentFile()
   {
-    return (File)getCurrentEditor().getClientProperty( "_file" );
+    GosuEditor currentEditor = getCurrentEditor();
+    return currentEditor == null ? null : (File)currentEditor.getClientProperty( "_file" );
   }
 
   public boolean save()

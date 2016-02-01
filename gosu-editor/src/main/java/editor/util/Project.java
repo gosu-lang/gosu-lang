@@ -185,7 +185,7 @@ public class Project implements IProject
     }
   }
 
-  private String makeProjectRelativePathWithSlashes( File file )
+  public String makeProjectRelativePath( File file )
   {
     String absProjectDir = getProjectDir().getAbsolutePath();
     String absFile = file.getAbsolutePath();
@@ -193,7 +193,11 @@ public class Project implements IProject
     {
       return absFile;
     }
-    return absFile.substring( absProjectDir.length() + 1 ).replace( '\\', '/' );
+    return absFile.substring( absProjectDir.length() + 1 );
+  }
+  public String makeProjectRelativePathWithSlashes( File file )
+  {
+    return makeProjectRelativePath( file ).replace( '\\', '/' );
   }
 
   private void load()
