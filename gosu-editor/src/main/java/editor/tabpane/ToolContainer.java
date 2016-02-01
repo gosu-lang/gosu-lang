@@ -221,7 +221,7 @@ public class ToolContainer extends JPanel
     {
       super( "_closeTab",
               null, //"Close Tab",
-              "images/caption_close.gif",
+              "images/caption_close.png",
               ' ',
               null,
               "Close Tab",
