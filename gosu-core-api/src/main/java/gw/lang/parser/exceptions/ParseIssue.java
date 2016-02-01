@@ -84,7 +84,6 @@ public abstract class ParseIssue extends Exception implements IParseIssue
    * <p/>
    * Note this method is otherwise very costly from a performance standpoint.
    * <p/>
-   * todo: consider extracting the bulk of this class into a separate non-exception class and reference that class here for when we need to use it as a real exception
    */
   public Throwable fillInStackTrace()
   {

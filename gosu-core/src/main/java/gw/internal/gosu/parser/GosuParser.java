@@ -12731,7 +12731,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
         int mark = getTokenizer().mark();
         bHasName = verify( element, match( null, SourceCodeTokenizer.TT_WORD ), Res.MSG_EXPECTING_NAME_FUNCTION_DEF );
         Token token = getTokenizer().getTokenAt( mark );
-        iTokenStart = token.getTokenStart();
+        iTokenStart = token == null ? 0 : token.getTokenStart();
         if( bHasName )
         {
           T = token.getStringValue();

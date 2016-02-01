@@ -6,7 +6,6 @@ package gw.lang.reflect;
 
 import gw.config.BaseService;
 import gw.config.CommonServices;
-import gw.config.ExecutionMode;
 import gw.fs.IDirectory;
 import gw.fs.IFile;
 import gw.lang.reflect.gs.TypeName;
@@ -33,7 +32,6 @@ public abstract class TypeLoaderBase extends BaseService implements ITypeLoader 
    */
   protected TypeLoaderBase() {
     this(TypeSystem.getCurrentModule());
-    System.out.println("WARNING: " + getClass().getName() + " was constructed without specifying a module!");
   }
 
   protected TypeLoaderBase(IModule module) {

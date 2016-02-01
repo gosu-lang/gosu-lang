@@ -9,9 +9,11 @@ import editor.util.ContainerMoverSizer;
 import editor.util.ContainerSizer;
 import editor.util.EditorUtilities;
 import editor.util.TextComponentUtil;
+import gw.lang.parser.IDynamicFunctionSymbol;
 import gw.lang.parser.IScriptPartId;
 import gw.lang.parser.ISymbol;
 import gw.lang.parser.exceptions.ParseException;
+import gw.lang.reflect.IFunctionType;
 import gw.lang.reflect.IMethodInfo;
 import gw.lang.reflect.IPropertyInfo;
 import gw.lang.reflect.IType;
@@ -253,6 +255,7 @@ public class BeanInfoPopup extends EditorBasedPopup implements ISelectionPopup
     _tree.setCellRenderer( new BeanTreeCellRenderer( _tree ) );
     _tree.getSelectionModel().setSelectionMode( TreeSelectionModel.SINGLE_TREE_SELECTION );
     _tree.setSelectionRow( 0 );
+    _tree.setRowHeight( 20 );
     _tree.setVisibleRowCount( 10 );
     _tree.getActionMap().put( "scrollUpChangeSelection", new AbstractAction()
     {
@@ -849,15 +852,15 @@ public class BeanInfoPopup extends EditorBasedPopup implements ISelectionPopup
         IMethodInfo mi = ((MethodNode)node).getMethodDescriptor();
         if( mi.isPrivate() )
         {
-          icon = EditorUtilities.loadIcon( "images/Method_Private.png" );
+          icon = EditorUtilities.loadIcon( "images/Method.png" );
         }
         else if( mi.isInternal() )
         {
-          icon = EditorUtilities.loadIcon( "images/Method_Sealed.png" );
+          icon = EditorUtilities.loadIcon( "images/Method.png" );
         }
         else if( mi.isProtected() )
         {
-          icon = EditorUtilities.loadIcon( "images/Method_Protected.png" );
+          icon = EditorUtilities.loadIcon( "images/Method.png" );
         }
         else
         {
@@ -874,19 +877,20 @@ public class BeanInfoPopup extends EditorBasedPopup implements ISelectionPopup
         IPropertyInfo pi = ((PropertyNode)node).getPropertyDescriptor();
         if( pi.isPrivate() )
         {
-          icon = EditorUtilities.loadIcon( "images/Field_Private.png" );
+          icon = EditorUtilities.loadIcon( "images/property.png" );
         }
         else if( pi.isInternal() )
         {
-          icon = EditorUtilities.loadIcon( "images/Field_Sealed.png" );
+          icon = EditorUtilities.loadIcon( "images/property.png" );
         }
         else if( pi.isProtected() )
         {
-          icon = EditorUtilities.loadIcon( "images/Field_Protected.png" );
+          icon = EditorUtilities.loadIcon( "images/property.png" );
+
         }
         else
         {
-          icon = EditorUtilities.loadIcon( "images/Field.png" );
+          icon = EditorUtilities.loadIcon( "images/property.png" );
         }
 
         if( pi.isDeprecated() )
@@ -894,7 +898,14 @@ public class BeanInfoPopup extends EditorBasedPopup implements ISelectionPopup
           setText( "<html><strike>" + getText() + "</strike></html>" );
         }
       }
-
+      else if( node.getType() instanceof IFunctionType )
+      {
+        icon = EditorUtilities.loadIcon( "images/Method.png" );
+      }
+      else
+      {
+        icon = EditorUtilities.loadIcon( "images/variable.png" );
+      }
       setIcon( icon );
     }
 
