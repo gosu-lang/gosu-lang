@@ -120,11 +120,12 @@ public class Project implements IProject
     File projectDir = getProjectDir();
     //noinspection ResultOfMethodCallIgnored
     projectDir.mkdirs();
-    File project = new File( projectDir, projectDir.getName() + ".prj" );
-    if( project.isFile() )
+    File project = EditorUtilities.findProjectFile(projectDir);
+    if( project != null )
     {
       return project;
     }
+    project = new File( projectDir.getName() + ".prj" );
     //noinspection ResultOfMethodCallIgnored
     try( FileWriter writer = new FileWriter( project ) )
     {

@@ -135,21 +135,17 @@ public class EditorUtilities
   public static void removePopupBorder( final Container c )
   {
     EventQueue.invokeLater(
-      new Runnable()
-      {
-        public void run()
-        {
+      new Runnable() {
+        public void run() {
           Container p = c;
-          while( p != null )
-          {
-            if( p instanceof JComponent )
-            {
-              ((JComponent)p).setBorder( null );
+          while(p != null) {
+            if(p instanceof JComponent) {
+              ((JComponent) p).setBorder(null);
             }
             p = p.getParent();
           }
         }
-      } );
+      });
   }
 
   public static void centerWindowInFrame( Component window, Window frame )
@@ -215,7 +211,7 @@ public class EditorUtilities
       return null;
     }
 
-    ImageIcon icon = ICON_TABLE.get( strRes );
+    ImageIcon icon = ICON_TABLE.get(strRes);
     if( icon == null && !strRes.contains( " | " ) )
     {
       try
@@ -260,7 +256,7 @@ public class EditorUtilities
         return findIcon( type );
       }
     }
-    return FileSystemView.getFileSystemView().getSystemIcon( fileOrDir );
+    return FileSystemView.getFileSystemView().getSystemIcon(fileOrDir);
   }
 
   public static Icon findIcon( IType type )
@@ -329,7 +325,7 @@ public class EditorUtilities
 
   public static void handleUncaughtException( Throwable e )
   {
-    handleUncaughtException( "", e );
+    handleUncaughtException("", e);
   }
 
   public static void handleUncaughtException( String s, Throwable e )
@@ -542,7 +538,7 @@ public class EditorUtilities
 
   public static String wrapText( String strText )
   {
-    return wrapText( strText, 60 );
+    return wrapText(strText, 60);
   }
 
   public static String wrapText( String strText, int iLineLen )
@@ -736,7 +732,7 @@ public class EditorUtilities
       //## todo: barf
       strCmd = "firefox " + strURL;
     }
-    return Runtime.getRuntime().exec( strCmd );
+    return Runtime.getRuntime().exec(strCmd);
   }
 
   /**
@@ -797,7 +793,7 @@ public class EditorUtilities
     Properties props = new Properties();
     try( FileReader reader = new FileReader( userFile ) )
     {
-      props.load( reader );
+      props.load(reader);
       return new Project( new File( props.getProperty( "project" ) ), gosuPanel );
     }
     catch( Exception e )
@@ -904,8 +900,8 @@ public class EditorUtilities
     {
       if( dir.isDirectory() )
       {
-        File projectFile = new File( dir, dir.getName() + ".prj" );
-        if( projectFile.exists() )
+        File projectFile = findProjectFile(dir);
+        if( projectFile != null )
         {
           projects.add( dir );
         }
@@ -940,7 +936,7 @@ public class EditorUtilities
     return projects;
   }
 
-  private static File findProjectFile(File dir) {
+  public static File findProjectFile(File dir) {
     for( File f : dir.listFiles() )
     {
       if(f.getName().equalsIgnoreCase( dir.getName() + ".prj" ))
