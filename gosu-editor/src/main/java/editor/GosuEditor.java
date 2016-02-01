@@ -1512,7 +1512,14 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
         ITypeRef containingType = (ITypeRef)getScriptPart().getContainingType();
         if( containingType != null )
         {
-          TypeSystem.refresh( containingType );
+          try
+          {
+            TypeSystem.refresh( containingType );
+          }
+          catch( RuntimeException e )
+          {
+            // eat potential TypeMayHaveBeenDeletedException
+          }
         }
       }
 
