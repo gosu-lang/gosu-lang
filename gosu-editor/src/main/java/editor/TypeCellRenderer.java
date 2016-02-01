@@ -1,6 +1,9 @@
 package editor;
 
 
+import editor.util.EditorUtilities;
+import gw.lang.reflect.TypeSystem;
+
 import javax.swing.*;
 import java.awt.*;
 
@@ -16,7 +19,7 @@ public class TypeCellRenderer extends DefaultListCellRenderer
                                                  boolean isSelected,
                                                  boolean cellHasFocus )
   {
-    Icon icon = editor.util.EditorUtilities.loadIcon( "images/FileClass.png" );
+    Icon icon = EditorUtilities.findIcon( TypeSystem.getByFullNameIfValidNoJava( (String)value ) );
 
     String text = getDisplayText( value );
     Component renderer = super.getListCellRendererComponent( list, text, modelIndex, isSelected, cellHasFocus );
