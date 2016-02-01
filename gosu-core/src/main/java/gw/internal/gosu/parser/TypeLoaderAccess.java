@@ -126,7 +126,7 @@ public class TypeLoaderAccess extends BaseService implements ITypeSystem
 
   public Module getCurrentModule()
   {
-    if( !ExecutionMode.isIDE() )
+    if( !ExecutionMode.isIDE() || TypeSystem.getJreModule() == TypeSystem.getGlobalModule() )
     {
       return (Module)TypeSystem.getGlobalModule();
     }
@@ -1418,6 +1418,10 @@ public class TypeLoaderAccess extends BaseService implements ITypeSystem
   public IType getBoxType(IType primitiveType) {
     initBoxMapsIfNeeded();
     return _primitiveToBoxMap.get(primitiveType);
+  }
+
+  public IType getExpandableComponentType( IType type ) {
+    return TypeLord.getExpandableComponentType( type );
   }
 
   private void initBoxMapsIfNeeded() {

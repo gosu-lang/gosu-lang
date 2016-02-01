@@ -84,7 +84,7 @@ public class DefaultTypeLoader extends SimpleTypeLoader implements IExtendedType
     if (fullyQualifiedName.startsWith("[")) {
       throw new IllegalArgumentException("Cannot call getJavaClassInfo with a raw array descriptor");
     }
-    if (ExecutionMode.isIDE() && _module.equals(TypeSystem.getGlobalModule())) {
+    if (ExecutionMode.isIDE() && _module != TypeSystem.getJreModule() && _module.equals(TypeSystem.getGlobalModule())) {
       return null;
     }
 
@@ -115,7 +115,7 @@ public class DefaultTypeLoader extends SimpleTypeLoader implements IExtendedType
   }
 
   public IJavaClassInfo getJavaClassInfo( Class aClass, IModule gosuModule ) {
-    if( ExecutionMode.isIDE() && _module.equals( TypeSystem.getGlobalModule() ) ) {
+    if( ExecutionMode.isIDE() && _module != TypeSystem.getJreModule() && _module.equals( TypeSystem.getGlobalModule() ) ) {
       return null;
     }
     String fullyQualifiedName = aClass.getName().replace('$', '.');
@@ -128,7 +128,7 @@ public class DefaultTypeLoader extends SimpleTypeLoader implements IExtendedType
   }
 
   public IJavaClassInfo getJavaClassInfo( AsmClass aClass, IModule gosuModule ) {
-    if (ExecutionMode.isIDE() && _module.equals( TypeSystem.getGlobalModule() )) {
+    if (ExecutionMode.isIDE() && _module != TypeSystem.getJreModule() && _module.equals( TypeSystem.getGlobalModule() )) {
       return null;
     } else {
     String fullyQualifiedName = aClass.getName().replace('$', '.');

@@ -26,6 +26,7 @@ import com.intellij.testFramework.LightVirtualFile;
 import com.intellij.util.IncorrectOperationException;
 import gw.fs.IFile;
 import gw.internal.gosu.parser.ErrorType;
+import gw.internal.gosu.parser.GosuClassParseInfo;
 import gw.internal.gosu.parser.IGosuClassInternal;
 import gw.internal.gosu.parser.TypeLoaderAccess;
 import gw.internal.gosu.parser.TypeLord;
@@ -245,7 +246,8 @@ public abstract class AbstractGosuClassFileImpl extends PsiFileBase implements I
             // if the class is not compiled yet gsClass.getSourceFingerprint() will return 0 and we will NOT refresh the type
             // if the class is already compiled but it is old, we will refresh the type first
             final long contentsFingerPrint = new FP64(contents).getRawFingerprint();
-            if (forceRefresh || (contentsFingerPrint != ((IGosuClassInternal)gsClass).getParseInfo().getSourceFingerprint())) {
+            GosuClassParseInfo parseInfo = ((IGosuClassInternal)gsClass).getParseInfo();
+            if (forceRefresh || (parseInfo != null && contentsFingerPrint != parseInfo.getSourceFingerprint())) {
               refreshFile(gsClass);
             }
             gsClass.setCreateEditorParser(true);
@@ -254,7 +256,7 @@ public abstract class AbstractGosuClassFileImpl extends PsiFileBase implements I
             } finally {
               gsClass.setCreateEditorParser(false);
             }
-            if (contentsFingerPrint == ((IGosuClassInternal)gsClass).getParseInfo().getSourceFingerprint()) {
+            if (parseInfo != null && contentsFingerPrint == parseInfo.getSourceFingerprint()) {
               saveParseData(contents, gsClass);
 //            System.out.println("Class source: " + gsClass.getSource());
               return gsClass;

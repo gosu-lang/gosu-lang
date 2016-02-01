@@ -36,6 +36,21 @@ public class InternalGosuInit implements IGosuInitialization
     TypeLoaderAccess.instance().incrementChecksums();
   }
 
+  public void reinitializeSimpleIde( IExecutionEnvironment execEnv, GosucModule module ) {
+    ((ExecutionEnvironment)execEnv).initializeSimpleIde( module );
+    TypeLoaderAccess.instance().incrementChecksums();
+  }
+
+  @Override
+  public void uninitializeSimpleIde( IExecutionEnvironment execEnv )
+  {
+    ((ExecutionEnvironment)execEnv).uninitializeSimpleIde();
+  }
+
+  public void initializeSimpleIde( IExecutionEnvironment execEnv, GosucModule module ) {
+    ((ExecutionEnvironment)execEnv).initializeSimpleIde( module );
+  }
+
   public void uninitializeRuntime( IExecutionEnvironment execEnv ) {
     ((ExecutionEnvironment)execEnv).uninitializeDefaultSingleModule();
   }

@@ -28,6 +28,7 @@ public class GosuVarPropertyInfo extends GosuBaseAttributedFeatureInfo implement
   private boolean _bProtected;
   private boolean _bInternal;
   private boolean _bPrivate;
+  private int _iOffset;
   private IPropertyAccessor _accessor;
   private String _fullDescription;
   private boolean _hasProperty;
@@ -55,6 +56,7 @@ public class GosuVarPropertyInfo extends GosuBaseAttributedFeatureInfo implement
     _gosuClass = varStmt.getParent() != null ? varStmt.getParent().getGosuClass() : null;
     _isFinal = varStmt.isFinal();
     ModifierInfo modifierInfo = ((VarStatement) varStmt).getModifierInfo();
+    _iOffset = varStmt.getNameOffset( varStmt.getIdentifierName() );
     _modifiers = modifierInfo.getModifiers();
     ((GosuClassTypeInfo)getOwnersType().getTypeInfo()).setModifierInfo( this, modifierInfo );
   }
@@ -77,6 +79,7 @@ public class GosuVarPropertyInfo extends GosuBaseAttributedFeatureInfo implement
     _gosuClass = pi._gosuClass;
     _isFinal = pi._isFinal;
     _modifiers = pi._modifiers;
+    _iOffset = pi._iOffset;
     GosuClassTypeInfo ti = (GosuClassTypeInfo)getOwnersType().getTypeInfo();
     ti.setModifierInfo( this, ti.getModifierInfo( pi ) );
   }
@@ -147,6 +150,12 @@ public class GosuVarPropertyInfo extends GosuBaseAttributedFeatureInfo implement
   public boolean isWritable()
   {
     return isWritable( null ) && !isFinal();
+  }
+
+  @Override
+  public int getOffset()
+  {
+    return _iOffset;
   }
 
   public IPropertyAccessor getAccessor()

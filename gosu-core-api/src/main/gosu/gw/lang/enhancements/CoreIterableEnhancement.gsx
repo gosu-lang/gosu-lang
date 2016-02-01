@@ -13,8 +13,7 @@ uses java.lang.Comparable
 uses java.util.Map
 uses java.util.HashMap
 uses java.util.Collections
-uses java.util.List
- 
+
 /*
  *  Copyright 2014 Guidewire Software, Inc.
  */
@@ -111,7 +110,7 @@ enhancement CoreIterableEnhancement<T> : java.lang.Iterable<T> {
   function toTypedArray() : T[]
   {
     var asCollection = this.toCollection()
-    var arr = T.Type.makeArrayInstance( asCollection.Count ) as T[]
+    var arr = T.Type.makeArrayInstance( asCollection.size() ) as T[]
     for( elt in asCollection index i ) {
       arr[i] = elt
     }
@@ -142,10 +141,10 @@ enhancement CoreIterableEnhancement<T> : java.lang.Iterable<T> {
   }
   
   /**
-   * Return a new list that is the concatenation of the two lists
+   * Return a new list that is the concatenation of this Iterable and the specified Collection
    */
   function concat( that : Collection<T> ) : Collection<T> {
-    var returnList = new ArrayList<T>( this.Count + that.Count )
+    var returnList = new ArrayList<T>( that.size() + 8 )
     returnList.addAll( toList() )
     returnList.addAll( that )
     return returnList
@@ -222,7 +221,7 @@ enhancement CoreIterableEnhancement<T> : java.lang.Iterable<T> {
    * empty, null is returned.
    */
   function first() : T {
-    if( this.Count == 0 ) {
+    if( !HasElements ) {
       return null
     } else {
       if( this typeis List ) {
@@ -251,9 +250,13 @@ enhancement CoreIterableEnhancement<T> : java.lang.Iterable<T> {
    * returns true if the collection is empty, but null (interpreted
    * as false in if statements by Gosu) if the collection is null.
    */
-   //## workaround: improve for perf
   property get HasElements() : Boolean {
-   return Count != 0
+    if( this typeis Collection ) {
+      return this.size() > 0
+    }
+    else {
+      return this.iterator().hasNext()
+    }
   }
 
   /**
@@ -271,10 +274,10 @@ enhancement CoreIterableEnhancement<T> : java.lang.Iterable<T> {
   /**
    * Return the set intersection of these two collections. 
    */
-  function intersect( that : Collection<T> ) : Set<T> {
-    var retVal = this typeis Set ? new HashSet<T>(toList()) : new LinkedHashSet<T>( toList() )
-    retVal.retainAll( that )
-    return retVal
+  function intersect( that : Collection<T> ) : Set<T>{
+    var set = this typeis Set ? new HashSet<T>(toList()) : new LinkedHashSet<T>( toList() )
+    set.retainAll( that )
+    return set
   }
 
   /**
@@ -287,7 +290,7 @@ enhancement CoreIterableEnhancement<T> : java.lang.Iterable<T> {
       if( i > 0 ) {
         retVal.append( delimiter )
       }
-      retVal.append( gw.config.CommonServices.getCoercionManager().makeStringFrom( elt ) )
+      retVal.append( elt as String )
     }
     return retVal.toString()
   }
@@ -297,12 +300,11 @@ enhancement CoreIterableEnhancement<T> : java.lang.Iterable<T> {
    * empty, null is returned.
    */
   function last() : T {
-    var i = this.Count
-    if( i == 0 ) {
+    if( !HasElements ) {
       return null
     } else {
       if( this typeis List ) {
-        return this[i - 1] as T
+        return this[this.size() - 1] as T
       } else {
         var ret : T = null
         for( elt in this ) {
@@ -345,7 +347,7 @@ enhancement CoreIterableEnhancement<T> : java.lang.Iterable<T> {
    * Returns the maximum value of the transformed elements.
    */
   function max<R extends Comparable>( transform(elt:T):R ) : R {
-    if( Count == 0 ) {
+    if( !HasElements ) {
       throw new IllegalStateException( "${this} is empty" )
     }
     var returnVal : R = null
@@ -385,7 +387,7 @@ enhancement CoreIterableEnhancement<T> : java.lang.Iterable<T> {
    * Returns the minimum value of the transformed elements.
    */
   function min<R extends Comparable>( transform(elt:T):R ) : R {
-    if( Count == 0 ) {
+    if( !HasElements ) {
       throw new IllegalStateException( "${this} is empty" )
     }
     var returnVal : R = null
@@ -549,7 +551,7 @@ enhancement CoreIterableEnhancement<T> : java.lang.Iterable<T> {
   function whereTypeIs<R>( type : Type<R> ) : List<R>{
     var retList = new ArrayList<R>()
     for( elt in this ) {
-      if( type.Type.isAssignableFrom( typeof elt ) ) {
+      if( type.isAssignableFrom( typeof elt ) ) {
         retList.add( elt as R )
       }
     }

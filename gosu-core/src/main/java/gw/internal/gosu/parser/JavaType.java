@@ -448,7 +448,7 @@ class JavaType extends InnerClassCapableType implements IJavaTypeInternal
 
   public ITypeInfo getTypeInfo()
   {
-    if( ExecutionMode.isIDE() ) {
+    if( ExecutionMode.isIDE() && TypeSystem.getJreModule() != TypeSystem.getGlobalModule() ) {
       // Enforce Guidwewire's legacy type shadowing rules where, for example, a
       // type in an App module such as PX shadows a type in PL having the same name.
       // This isn't kosher in general because the type in PL is the one that is

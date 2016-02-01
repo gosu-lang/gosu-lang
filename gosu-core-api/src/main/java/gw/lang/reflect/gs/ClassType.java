@@ -63,6 +63,10 @@ public enum ClassType
     switch( this )
     {
       case Class:
+      case Enum:
+      case Interface:
+      case Structure:
+      case Annotation:
         return GosuClassTypeLoader.GOSU_CLASS_FILE_EXT;
       case Program:
         return GosuClassTypeLoader.GOSU_PROGRAM_FILE_EXT;
@@ -86,7 +90,7 @@ public enum ClassType
       case Annotation:
         return Keyword.KW_annotation.getName();
       case Enum:
-        return Keyword.KW_annotation.getName();
+        return Keyword.KW_enum.getName();
       case Class:
       case Program:
       case Template:

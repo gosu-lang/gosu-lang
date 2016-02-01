@@ -216,6 +216,8 @@ public interface ITypeSystem extends IService
 
   IType getBoxType(IType primitiveType);
 
+  IType getExpandableComponentType( IType type );
+
   IExecutionEnvironment getExecutionEnvironment();
   IExecutionEnvironment getExecutionEnvironment( IProject project );
 

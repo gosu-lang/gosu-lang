@@ -700,6 +700,10 @@ public abstract class ParserBase implements IParserPart
    */
   final IFullParserState makeFullParserState()
   {
+    if( getOwner().isEditorParser() )
+    {
+      return makeFullParserStateWithSymbols();
+    }
     return new StandardParserState(null, getTokenizer(), getOffsetShift(), getLineNumShift(), getOwner().isEditorParser() );
   }
 
@@ -708,7 +712,7 @@ public abstract class ParserBase implements IParserPart
    */
   final IFullParserState makeFullParserStateWithSymbols()
   {
-    ISymbolTable symTable = getOwner().isEditorParser() && getOwner().shouldSnapshotSymbols() ? getSymbolTable().copy() : null;
+    ISymbolTable symTable = getOwner().isEditorParser() ? getSymbolTable().copy() : null;
     return new StandardParserState(symTable, getTokenizer(), getOffsetShift(), getLineNumShift(), getOwner().isEditorParser() );
   }
 

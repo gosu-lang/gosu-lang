@@ -272,31 +272,34 @@ public abstract class AbstractTypeRef extends ITypeRef implements Serializable
   {
     checkNotDeleted();
     IType type = _type;
-    if( type == null && !_bReloading )
+    while( type == null )
     {
-      TypeSystem.lock();
-      try
+      type = _type;
+      if( type == null && !_bReloading )
       {
-        if( _type == null && !_bReloading )
+        TypeSystem.lock();
+        try
         {
-          _bReloading = true;
-          try
+          if( _type == null && !_bReloading )
           {
-            _resolveType();
+            _bReloading = true;
+            try
+            {
+              _resolveType();
+            }
+            finally
+            {
+              _bReloading = false;
+            }
           }
-          finally
-          {
-            _bReloading = false;
-          }
+          type = _type;
         }
-        type = _type;
-      }
-      finally
-      {
-        TypeSystem.unlock();
+        finally
+        {
+          TypeSystem.unlock();
+        }
       }
     }
-
     return type;
   }
 
