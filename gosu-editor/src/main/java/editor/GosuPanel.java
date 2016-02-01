@@ -405,6 +405,34 @@ public class GosuPanel extends JPanel
 
     helpMenu.addSeparator();
 
+    JMenuItem helpItem = new JMenuItem(
+      new AbstractAction( "The Basics" )
+      {
+        @Override
+        public void actionPerformed( ActionEvent e )
+        {
+          BrowserUtil.openURL( "http://gosu-lang.github.io/docs.html" );
+        }
+      } );
+    helpItem.setMnemonic( 'B' );
+    helpMenu.add( helpItem );
+
+    helpMenu.addSeparator();
+
+    JMenuItem playItem = new JMenuItem(
+      new AbstractAction( "Web Editor" )
+      {
+        @Override
+        public void actionPerformed( ActionEvent e )
+        {
+          BrowserUtil.openURL( "http://gosu-lang.github.io/play.html" );
+        }
+      } );
+    playItem.setMnemonic( 'W' );
+    helpMenu.add( playItem );
+
+    helpMenu.addSeparator();
+
     JMenuItem discussItem = new JMenuItem(
       new AbstractAction( "Discuss" )
       {
