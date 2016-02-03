@@ -129,4 +129,20 @@ public class CommonMenus
         navigate.setAccelerator( KeyStroke.getKeyStroke( "control B" ) );
     return navigate;
   }
+
+  public static JMenuItem makeQuickDocumentation( Supplier<GosuEditor> editor )
+  {
+    JMenuItem quickDoc = new JMenuItem(
+          new AbstractAction( "Quick Documentation" )
+          {
+            @Override
+            public void actionPerformed( ActionEvent e )
+            {
+              editor.get().displayJavadocHelp( editor.get().getDeepestLocationAtCaret() );
+            }
+          } );
+        quickDoc.setMnemonic( 'Q' );
+        quickDoc.setAccelerator( KeyStroke.getKeyStroke( "control Q" ) );
+    return quickDoc;
+  }
 }

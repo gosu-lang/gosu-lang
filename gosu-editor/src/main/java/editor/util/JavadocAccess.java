@@ -22,7 +22,7 @@ public class JavadocAccess
   private static final String[] J2SE_PACKAGE_PREFIXES = {"java.", "javax."};
   private static final String J2SE_URL_PREFIX = "http://java.sun.com/j2se/1.5.0/docs/api/";
 
-  private static final Map<String, String> JAVADOC_URL_BY_PREFIXES = new HashMap<String, String>();
+  private static final Map<String, String> JAVADOC_URL_BY_PREFIXES = new HashMap<>();
 
   static
   {
@@ -72,7 +72,7 @@ public class JavadocAccess
   {
     if( isTypeHandled( type ) )
     {
-      return buildHtmlForClass( ((IJavaType)type).getIntrinsicClass() );
+      return buildHtmlForClass( type.getName() );
     }
     else if( type instanceof IJavaType )
     {
@@ -143,26 +143,22 @@ public class JavadocAccess
     return "No javadoc found for " + featureInfo.getDisplayName();
   }
 
-  private String buildHtmlForClass( Class classBean )
+  private String buildHtmlForClass( String fqn )
   {
-    String strClassName = TypeSystem.get( classBean ).getName();
-    return buildHtml( J2SE_URL_PREFIX + "index.html?" + strClassName.replace( '.', '/' ) + ".html", strClassName );
+    return buildHtml( J2SE_URL_PREFIX + "index.html?" + fqn.replace( '.', '/' ) + ".html", fqn );
   }
 
   private String buildHtmlForProperty( IJavaType type, IPropertyInfo propertyInfo )
   {
     String propertyName = propertyInfo.getName();
-    String strClassName = type.getIntrinsicClass().getName();
+    String strClassName = type.getName();
     strClassName = GosuStringUtil.replaceChars( strClassName, '.', '/' );
-    StringBuilder strUrl = new StringBuilder( getJavadocURLPrefix( type ) );
-    strUrl.append( strClassName ).append( ".html#" ).append( propertyName );
-    return buildHtml( strUrl.toString(), propertyName );
+    return buildHtml( getJavadocURLPrefix( type ) + strClassName + ".html#" + propertyName, propertyName );
   }
 
   private String buildHtmlForMethod( IJavaType type, IMethodInfo methodInfo )
   {
-    String methodName = methodInfo.getName();
-    String strClassName = type.getIntrinsicClass().getName();
+    String strClassName = type.getName();
     strClassName = GosuStringUtil.replaceChars( strClassName, '.', '/' );
     StringBuilder strUrl = new StringBuilder( getJavadocURLPrefix( type ) );
     strUrl.append( strClassName ).append( ".html#" );

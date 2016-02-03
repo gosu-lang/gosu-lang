@@ -19,6 +19,7 @@ import gw.lang.reflect.IParameterInfo;
 import gw.lang.reflect.IPropertyInfo;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.TypeSystem;
+import gw.lang.reflect.gs.IGosuClass;
 import gw.lang.reflect.java.IJavaBasePropertyInfo;
 import gw.util.GosuStringUtil;
 
@@ -27,7 +28,7 @@ public class ContextHelpUtil
   public static final String ERROR_IN_EXPR = "Error in curent expression";
   public static final String NO_DOCUMENTATION = "No documentation available";
 
-  public static String getContextHelp( GosuEditor editor, IParseTree deepestParseTree )
+  public static String getContextHelp( IParseTree deepestParseTree )
   {
     if( deepestParseTree == null )
     {
@@ -40,21 +41,25 @@ public class ContextHelpUtil
     }
 
     IFeatureInfo featureInfo;
-    String description;
+    String description = null;
     IParsedElement deepestParsedElement = deepestParseTree.getParsedElement();
     if( deepestParsedElement.hasParseExceptions() )
     {
-      featureInfo = null;
       description = ERROR_IN_EXPR;
     }
     else
     {
       featureInfo = getCorrespondingFeatureInfo( deepestParsedElement );
-      description = getContextHelp( featureInfo, deepestParsedElement );
-
-      if( description.endsWith( NO_DOCUMENTATION ) && (featureInfo != null) )
+      if( featureInfo != null )
       {
-        description = JavadocAccess.instance().getJavadocHelp( featureInfo );
+        if( featureInfo.getOwnersType() instanceof IGosuClass )
+        {
+          description = getContextHelp( featureInfo, deepestParsedElement );
+        }
+        else
+        {
+          description = JavadocAccess.instance().getJavadocHelp( featureInfo );
+        }
       }
     }
 

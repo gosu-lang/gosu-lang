@@ -417,18 +417,6 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
 
   private void addKeyHandlers()
   {
-    // Add Accelerator for Smart Help (Ctrl+/)
-    _editor.getInputMap().put( KeyStroke.getKeyStroke( CONTROL_KEY_NAME + " SLASH" ), "_smartHelp" );
-    _editor.getActionMap().put( "_smartHelp",
-                                new AbstractAction()
-                                {
-                                  @Override
-                                  public void actionPerformed( ActionEvent e )
-                                  {
-                                    doSmartHelp();
-                                  }
-                                } );
-
     _editor.getInputMap().put( KeyStroke.getKeyStroke( CONTROL_KEY_NAME + " T" ), "_typeInfo" );
     _editor.getActionMap().put( "_typeInfo",
                                 new AbstractAction()
@@ -451,7 +439,7 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
                                   }
                                 } );
 
-    _editor.getInputMap().put( KeyStroke.getKeyStroke( CONTROL_KEY_NAME + " shift SLASH" ), "_bulkComment" );
+    _editor.getInputMap().put( KeyStroke.getKeyStroke( CONTROL_KEY_NAME + " SLASH" ), "_bulkComment" );
     _editor.getActionMap().put( "_bulkComment",
                                 new AbstractAction()
                                 {
@@ -1431,27 +1419,12 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
         }
         finally
         {
+          //!! NOTE: do not refresh the type we just parsed in the editor, it will otherwise
+          //!!       reparse the type from DISK, which will be stale compared with changes in the editor.
           TypeSystem.unlock();
           if( _forceCodeCompletion )
           {
             setCompleteCode( false );
-          }
-        }
-        if( _partId != null && isNotifyOfTypeRefreshOnParse() )
-        {
-          String typeName = _partId.getContainingTypeName();
-          if( typeName != null )
-          {
-            IType type;
-            try
-            {
-              type = TypeSystem.getByFullName( typeName );
-              TypeSystem.refresh( (ITypeRef)type );
-            }
-            catch( Exception e )
-            {
-              //ignore
-            }
           }
         }
         for( ParseListener parseListener : _parseListeners )
@@ -1880,7 +1853,7 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
 
   protected void handleParseException( final ParseResultsException e, final boolean bForceCodeCompletion )
   {
-    handleCodeCompletion( true, bForceCodeCompletion );
+    handleCodeCompletion( bForceCodeCompletion );
     getGosuDocument().setParseResultsException( e );
     if( e != null )
     {
@@ -1917,7 +1890,7 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
     }
   }
 
-  private void handleCodeCompletion( boolean bHandleDot, boolean bForceCodeCompletion )
+  private void handleCodeCompletion( boolean bForceCodeCompletion )
   {
     if( _parser == null )
     {
@@ -1930,9 +1903,18 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
     if( bForceCodeCompletion )
     {
       handleCompleteCode();
-      return;
     }
+    else
+    {
+      //## todo:
+      //## value completion should be integrated as part of code completion e.g., Enum constants should be in the same popup as members etc.
 
+      //handleCompleteValue();
+    }
+  }
+
+  private void handleCompleteValue()
+  {
     List<IParseIssue> errors = getIssuesNearPos( _editor.getCaretPosition() );
     if( errors == null || errors.isEmpty() )
     {
@@ -3490,7 +3472,7 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
 
   String getContextHelp( IParseTree parseTree )
   {
-    return ContextHelpUtil.getContextHelp( this, parseTree );
+    return ContextHelpUtil.getContextHelp( parseTree );
   }
 
   String getTooltipMessage( MouseEvent event )
@@ -4001,7 +3983,7 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
     {
       if( TaskQueue.getInstance( INTELLISENSE_TASK_QUEUE ).size() == 0 )
       {
-        handleCodeCompletion( false, false );
+        handleCodeCompletion( false );
       }
     }
   }
