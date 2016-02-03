@@ -187,7 +187,7 @@ public class TypeRefFactory implements ITypeRefFactory
     cv.visitSource( strProxyClassName, null );
     addDefaultConstructor(cv);
     compileInterfaceMembers(cv, typeClass);
-    addToString(cv);
+    //addToString(cv);
 
     cv.visitEnd();
 
@@ -250,26 +250,26 @@ public class TypeRefFactory implements ITypeRefFactory
     mv.visitMaxs(0, 0);
   }
 
-  private void addToString(ClassVisitor cv) {
-    MethodVisitor mv = cv.visitMethod( Opcodes.ACC_PUBLIC,
-                           "toString",
-                           "()Ljava/lang/String;",
-                           null, null );
-    mv.visitCode();
-    mv.visitVarInsn( Opcodes.ALOAD, 0 ); // Load the "this" pointer
-    // callMethod(mv, getMethod(AbstractTypeRef.class, "_getType"));
-    mv.visitMethodInsn( Opcodes.INVOKEVIRTUAL,
-                        getSlashName( AbstractTypeRef.class ),
-                        "_getType",
-                        "()Lgw/lang/reflect/IType;" );
-    // callMethod(mv, getMethod(Object.class, "toString"));
-    mv.visitMethodInsn( Opcodes.INVOKEVIRTUAL,
-                        getSlashName( Object.class ),
-                        "toString",
-                        "()Ljava/lang/String;" );
-    mv.visitInsn( Opcodes.ARETURN );
-    mv.visitMaxs(0, 0);
-  }
+//  private void addToString(ClassVisitor cv) {
+//    MethodVisitor mv = cv.visitMethod( Opcodes.ACC_PUBLIC,
+//                           "toString",
+//                           "()Ljava/lang/String;",
+//                           null, null );
+//    mv.visitCode();
+//    mv.visitVarInsn( Opcodes.ALOAD, 0 ); // Load the "this" pointer
+//    // callMethod(mv, getMethod(AbstractTypeRef.class, "_getType"));
+//    mv.visitMethodInsn( Opcodes.INVOKEVIRTUAL,
+//                        getSlashName( AbstractTypeRef.class ),
+//                        "_getType",
+//                        "()Lgw/lang/reflect/IType;" );
+//    // callMethod(mv, getMethod(Object.class, "toString"));
+//    mv.visitMethodInsn( Opcodes.INVOKEVIRTUAL,
+//                        getSlashName( Object.class ),
+//                        "toString",
+//                        "()Ljava/lang/String;" );
+//    mv.visitInsn( Opcodes.ARETURN );
+//    mv.visitMaxs(0, 0);
+//  }
 
   private void compileInterfaceMembers(ClassVisitor cv, Class typeClass) {
     for( Method rawMethod : typeClass.getMethods() ) {

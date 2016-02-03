@@ -478,4 +478,13 @@ public abstract class AbstractTypeRef extends ITypeRef implements Serializable
     return !isStale() && _type != null && _type != type;
   }
 
+  //!! this method must NOT grab the Type System lock, Ever!
+  //!! The debugger will otherwise cause a deadlock with Swing/AWT code when it call toString() on typerefs
+  //!! i.e., deadlock involving the AWTTreeLock and TypeSys lock
+  // Note as a general rule NEVER rely on toString() to do anything but provide debug info.
+  public String toString()
+  {
+    return _getTypeName();
+  }
+
 }
