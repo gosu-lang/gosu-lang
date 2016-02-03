@@ -64,11 +64,6 @@
                 <keyboard-shortcut first-keystroke="control shift G" keymap="$default"/>
             </action>
         </group>
-      <group id="Gosu.Paste">
-        <action id="Gosu.PastAsGosu" class="gw.plugin.ij.actions.PasteAsGosuAction">
-          <add-to-group group-id="EditorPopupMenu" relative-to-action="$Paste" anchor="after"/>
-        </action>
-      </group>
         <group id="Gosu.Scratchpad.Group">
             <separator/>
             <action id="Gosu.Scratchpad" class="gw.plugin.ij.typeinfo.GosuScratchpadAction" icon="/gw/plugin/ij/icons/Scratchpad.png">

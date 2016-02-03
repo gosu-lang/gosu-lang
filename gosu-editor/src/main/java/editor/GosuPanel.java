@@ -761,6 +761,7 @@ public class GosuPanel extends JPanel
 
     editMenu.add( CommonMenus.makePaste( this::getCurrentEditor ) );
 
+    editMenu.add( CommonMenus.makePasteJavaAsGosu( this::getCurrentEditor ) );
 
     editMenu.addSeparator();
 

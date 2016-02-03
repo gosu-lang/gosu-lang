@@ -9,6 +9,7 @@ import editor.util.SettleModalEventQueue;
 import editor.util.TaskQueue;
 import editor.util.TextComponentUtil;
 import editor.util.XPToolbarButton;
+import editor.util.transform.java.JavaToGosu;
 import gw.fs.IFile;
 import gw.lang.GosuShop;
 import gw.lang.parser.GosuParserFactory;
@@ -4201,7 +4202,7 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
     }
   }
 
-  public void clipPaste( Clipboard clipboard )
+  public void clipPaste( Clipboard clipboard, boolean asGosu )
   {
     Transferable t = clipboard.getContents( this );
     if( t == null )
@@ -4214,6 +4215,14 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
       try
       {
         String strContents = (String)t.getTransferData( DataFlavor.stringFlavor );
+        if ( asGosu )
+        {
+          strContents = JavaToGosu.convertString( strContents );
+          if ("".equals(strContents)) {
+            JOptionPane.showMessageDialog( getEditor() , "The copied Java code has errors, only valid Java 8 code can be transformed", "Paste Java as Gosu", JOptionPane.ERROR_MESSAGE);
+            return;
+          }
+        }
         getEditor().replaceSelection( strContents );
       }
       catch( Exception e )

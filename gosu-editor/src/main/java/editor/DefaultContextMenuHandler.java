@@ -19,6 +19,7 @@ public class DefaultContextMenuHandler implements IContextMenuHandler<IScriptEdi
     menu.add( CommonMenus.makeCut( contextEditor ) );
     menu.add( CommonMenus.makeCopy( contextEditor ) );
     menu.add( CommonMenus.makePaste( contextEditor ) );
+    menu.add( CommonMenus.makePasteJavaAsGosu( contextEditor ) );
     menu.add( new JSeparator() );
     menu.add( CommonMenus.makeCodeComplete( contextEditor ) );
     menu.add( new JSeparator() );

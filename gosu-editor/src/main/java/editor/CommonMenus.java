@@ -55,12 +55,26 @@ public class CommonMenus
         @Override
         public void actionPerformed( ActionEvent e )
         {
-          editor.get().clipPaste( Toolkit.getDefaultToolkit().getSystemClipboard() );
+          editor.get().clipPaste( Toolkit.getDefaultToolkit().getSystemClipboard(), false );
         }
       } );
     pasteItem.setMnemonic( 'P' );
     pasteItem.setAccelerator( KeyStroke.getKeyStroke( "control V" ) );
 
+    return pasteItem;
+  }
+
+  public static JMenuItem makePasteJavaAsGosu( Supplier<GosuEditor> editor )
+  {
+    JMenuItem pasteItem = new JMenuItem(
+      new AbstractAction( "Paste Java as Gosu" )
+      {
+        @Override
+        public void actionPerformed( ActionEvent e )
+        {
+          editor.get().clipPaste( Toolkit.getDefaultToolkit().getSystemClipboard(), true );
+        }
+      } );
     return pasteItem;
   }
 

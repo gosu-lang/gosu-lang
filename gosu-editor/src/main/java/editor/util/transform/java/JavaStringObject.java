@@ -2,12 +2,18 @@
  * Copyright 2014 Guidewire Software, Inc.
  */
 
-package gw.plugin.ij.util.transform.java;
+package editor.util.transform.java;
 
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.NestingKind;
 import javax.tools.JavaFileObject;
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.Reader;
+import java.io.StringReader;
+import java.io.Writer;
 import java.net.URI;
 import java.nio.charset.Charset;
 
