@@ -126,7 +126,7 @@ public class TypeLoaderAccess extends BaseService implements ITypeSystem
 
   public Module getCurrentModule()
   {
-    if( !ExecutionMode.isIDE() || TypeSystem.getJreModule() == TypeSystem.getGlobalModule() )
+    if( !ExecutionMode.isIDE() )
     {
       return (Module)TypeSystem.getGlobalModule();
     }
@@ -135,6 +135,12 @@ public class TypeLoaderAccess extends BaseService implements ITypeSystem
     if( list != null && !list.isEmpty() )
     {
       return (Module)list.get(list.size() - 1);
+    }
+
+    if( ExecutionMode.isIDE() && TypeSystem.getJreModule() == TypeSystem.getGlobalModule() )
+    {
+      // For single module IDE
+      return (Module)TypeSystem.getGlobalModule();
     }
 
     return null;
