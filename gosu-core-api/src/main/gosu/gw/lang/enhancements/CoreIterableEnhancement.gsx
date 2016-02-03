@@ -274,10 +274,10 @@ enhancement CoreIterableEnhancement<T> : java.lang.Iterable<T> {
   /**
    * Return the set intersection of these two collections. 
    */
-  function intersect( that : Collection<T> ) : Set<T>{
-    var set = this typeis Set ? new HashSet<T>(toList()) : new LinkedHashSet<T>( toList() )
-    set.retainAll( that )
-    return set
+  function intersect( that : Collection<T> ) : Set<T> {
+    var retVal = this typeis Set ? new HashSet<T>(toList()) : new LinkedHashSet<T>( toList() )
+    retVal.retainAll( that )
+    return retVal
   }
 
   /**
@@ -290,7 +290,7 @@ enhancement CoreIterableEnhancement<T> : java.lang.Iterable<T> {
       if( i > 0 ) {
         retVal.append( delimiter )
       }
-      retVal.append( elt as String )
+      retVal.append( gw.config.CommonServices.getCoercionManager().makeStringFrom( elt ) )
     }
     return retVal.toString()
   }
@@ -551,7 +551,7 @@ enhancement CoreIterableEnhancement<T> : java.lang.Iterable<T> {
   function whereTypeIs<R>( type : Type<R> ) : List<R>{
     var retList = new ArrayList<R>()
     for( elt in this ) {
-      if( type.isAssignableFrom( typeof elt ) ) {
+      if( type.Type.isAssignableFrom( typeof elt ) ) {
         retList.add( elt as R )
       }
     }
