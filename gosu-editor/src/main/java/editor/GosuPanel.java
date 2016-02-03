@@ -601,10 +601,11 @@ public class GosuPanel extends JPanel
     runMenu.setMnemonic( 'R' );
     menuBar.add( runMenu );
 
-    JMenuItem runItem = new JMenuItem( new ClearAndRunActionHandler() );
-    runItem.setMnemonic( 'R' );
-    runItem.setAccelerator( KeyStroke.getKeyStroke( "F5" ) );
-    runMenu.add( runItem );
+    runMenu.add( CommonMenus.makeRun( () -> getCurrentEditor() == null
+                                            ? null
+                                            : getCurrentEditor().getScriptPart() == null
+                                              ? null
+                                              : getCurrentEditor().getScriptPart().getContainingType() ) );
 
     JMenuItem stopItem = new JMenuItem( new StopActionHandler() );
     stopItem.setMnemonic( 'S' );
@@ -613,19 +614,7 @@ public class GosuPanel extends JPanel
 
     runMenu.addSeparator();
 
-
-    JMenuItem clearItem = new JMenuItem(
-      new AbstractAction( "Clear" )
-      {
-        @Override
-        public void actionPerformed( ActionEvent e )
-        {
-          clearOutput();
-        }
-      } );
-    clearItem.setMnemonic( 'C' );
-    clearItem.setAccelerator( KeyStroke.getKeyStroke( "alt C" ) );
-    runMenu.add( clearItem );
+    runMenu.add( CommonMenus.makeClear( this::getCurrentEditor ) );
   }
 
   private void makeSearchMenu( JMenuBar menuBar )
@@ -1105,10 +1094,10 @@ public class GosuPanel extends JPanel
 
     // Run
     mapKeystroke( KeyStroke.getKeyStroke( KeyEvent.VK_F5, 0 ),
-                  "Run", new ClearAndRunActionHandler() );
+                  "Run", new CommonMenus.ClearAndRunActionHandler( () -> getCurrentEditor().getScriptPart().getContainingType() ) );
 
     mapKeystroke( KeyStroke.getKeyStroke( KeyEvent.VK_ENTER, InputEvent.CTRL_MASK ),
-                  "Run", new ClearAndRunActionHandler() );
+                  "Run", new CommonMenus.ClearAndRunActionHandler( () -> getCurrentEditor().getScriptPart().getContainingType() ) );
   }
 
   private void mapKeystroke( KeyStroke ks, String strCmd, Action action )
@@ -1562,7 +1551,7 @@ public class GosuPanel extends JPanel
     }
   }
 
-  void execute()
+  public void execute( String programName )
   {
     try
     {
@@ -1581,7 +1570,7 @@ public class GosuPanel extends JPanel
       queue.postTask(
         () -> {
           GosuEditor.getParserTaskQueue().waitUntilAllCurrentTasksFinish();
-          IGosuProgram program = (IGosuProgram)getCurrentEditor().getParsedClass();
+          IGosuProgram program = (IGosuProgram)TypeSystem.getByFullName( programName );
 
           try
           {
@@ -1627,6 +1616,11 @@ public class GosuPanel extends JPanel
       }
     }
     return urls.toArray( new URL[urls.size()] );
+  }
+
+  public boolean isRunning()
+  {
+    return _bRunning;
   }
 
   public static class Runner
@@ -1683,7 +1677,7 @@ public class GosuPanel extends JPanel
     }
   }
 
-  void clearOutput()
+  public void clearOutput()
   {
     _resultPanel.clear();
   }
@@ -1819,50 +1813,6 @@ public class GosuPanel extends JPanel
     public boolean isEnabled()
     {
       return getUndoManager().canRedo();
-    }
-  }
-
-  class ClearAndRunActionHandler extends AbstractAction
-  {
-    ClearAndRunActionHandler()
-    {
-      super( "Run" );
-    }
-
-    public void actionPerformed( ActionEvent e )
-    {
-      clearOutput();
-      new RunActionHandler().actionPerformed( e );
-    }
-  }
-
-  class RunActionHandler extends AbstractAction
-  {
-    public RunActionHandler()
-    {
-      super( "Run" );
-    }
-
-    public void actionPerformed( ActionEvent e )
-    {
-      if( isEnabled() )
-      {
-//        CommandLineAccess.setRawArgs( Arrays.asList( _commandLine.split( " +" ) ) );
-//        CommandLineAccess.setExitEnabled( false );
-        if( getCurrentEditor().isTemplate() )
-        {
-          executeTemplate();
-        }
-        else
-        {
-          execute();
-        }
-      }
-    }
-
-    public boolean isEnabled()
-    {
-      return getCurrentEditor() != null && !getCurrentEditor().isClass() && !getCurrentEditor().isEnhancement() && !_bRunning;
     }
   }
 

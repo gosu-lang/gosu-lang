@@ -1,5 +1,9 @@
 package editor;
 
+import gw.lang.reflect.IType;
+import gw.lang.reflect.gs.IGosuProgram;
+import gw.lang.reflect.gs.ITemplateType;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -145,4 +149,59 @@ public class CommonMenus
         quickDoc.setAccelerator( KeyStroke.getKeyStroke( "control Q" ) );
     return quickDoc;
   }
+
+  public static JMenuItem makeRun( Supplier<IType> program )
+  {
+    JMenuItem runItem = new JMenuItem( new ClearAndRunActionHandler( program ) );
+    runItem.setMnemonic( 'R' );
+    runItem.setAccelerator( KeyStroke.getKeyStroke( "F5" ) );
+    return runItem;
+  }
+
+  public static JMenuItem makeClear( Supplier<GosuEditor> editor )
+  {
+    JMenuItem clearItem = new JMenuItem(
+      new AbstractAction( "Clear" )
+      {
+        @Override
+        public void actionPerformed( ActionEvent e )
+        {
+          RunMe.getEditorFrame().getGosuPanel().clearOutput();
+        }
+      } );
+    clearItem.setMnemonic( 'C' );
+    clearItem.setAccelerator( KeyStroke.getKeyStroke( "alt C" ) );
+    return clearItem;
+  }
+
+  static class ClearAndRunActionHandler extends AbstractAction
+  {
+    private final Supplier<IType> _program;
+
+    ClearAndRunActionHandler( Supplier<IType> program )
+    {
+      super( "Run" );
+      _program = program;
+    }
+
+    public void actionPerformed( ActionEvent e )
+    {
+      RunMe.getEditorFrame().getGosuPanel().clearOutput();
+      if( _program.get() instanceof ITemplateType )
+      {
+        RunMe.getEditorFrame().getGosuPanel().executeTemplate();
+      }
+      else
+      {
+        RunMe.getEditorFrame().getGosuPanel().execute( _program.get().getName() );
+      }
+    }
+
+    public boolean isEnabled()
+    {
+      return _program.get() != null && _program.get() instanceof IGosuProgram &&
+             !RunMe.getEditorFrame().getGosuPanel().isRunning();
+    }
+  }
+
 }

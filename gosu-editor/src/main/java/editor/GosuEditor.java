@@ -1435,21 +1435,6 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
     }
   }
 
-  protected boolean isNotifyOfTypeRefreshOnParse()
-  {
-    return getClass() == GosuEditor.class;
-  }
-
-  public void setParseType( IGosuParser.ParseType parseType )
-  {
-    _parseType = parseType;
-  }
-
-  public void setTokenizerInstructor( ITokenizerInstructor tokenizerInstructor )
-  {
-    _tokenizerInstructor = tokenizerInstructor;
-  }
-
   private void _parseNow( String strText, boolean forceCodeCompletion, boolean changed )
   {
     if( isParserSuspended() )
@@ -1680,14 +1665,6 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
 //    }
 //    return null;
 //  }
-
-  protected void postParseAsClass()
-  {
-  }
-
-  protected void preParseAsClass()
-  {
-  }
 
   /**
    * @return A copy of the type-uses map from the most recent parse. A copy for thread-safety.
@@ -3347,11 +3324,6 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
       return;
     }
     IGosuClass gsClass = (IGosuClass)ownersType;
-    IFile sourceFile = gsClass.getSourceFileHandle().getFile();
-    if( sourceFile == null || !sourceFile.isJavaFile() )
-    {
-      return;
-    }
 
     int offset = 0;
 
@@ -3393,8 +3365,12 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
       offset = ((IGosuClassTypeInfo)feature).getGosuClass().getClassStatement().getClassDeclaration().getNameOffset( null );
     }
 
-    RunMe.getEditorFrame().getGosuPanel().openFile( sourceFile.toJavaFile() );
-    SettleModalEventQueue.instance().run();
+    IFile sourceFile = gsClass.getSourceFileHandle().getFile();
+    if( sourceFile != null && sourceFile.isJavaFile() )
+    {
+      RunMe.getEditorFrame().getGosuPanel().openFile( sourceFile.toJavaFile() );
+      SettleModalEventQueue.instance().run();
+    }
     RunMe.getEditorFrame().getGosuPanel().getCurrentEditor().getEditor().setCaretPosition( offset );
   }
 

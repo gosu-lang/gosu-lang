@@ -2,6 +2,8 @@ package editor;
 
 import editor.util.EditorUtilities;
 import editor.util.Project;
+import gw.lang.reflect.IType;
+import gw.lang.reflect.gs.IGosuProgram;
 
 import javax.swing.*;
 import java.awt.*;
@@ -45,6 +47,17 @@ public class ProjectTreeContextMenu implements IContextMenuHandler<JTree>
     menu.add( new JMenuItem( new ClipPasteAction( tree ) ) );
     menu.add( new JSeparator() );
     menu.add( new JMenuItem( new DeleteAction( tree ) ) );
+
+    FileTree item = (FileTree)tree.getLastSelectedPathComponent();
+    if( item != null )
+    {
+      IType type = item.getType();
+      if( type instanceof IGosuProgram )
+      {
+        menu.add( new JSeparator() );
+        menu.add( CommonMenus.makeRun( () -> type ) );
+      }
+    }
     return menu;
   }
 

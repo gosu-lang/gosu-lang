@@ -1,5 +1,7 @@
 package editor;
 
+import gw.lang.reflect.gs.IGosuProgram;
+
 import javax.swing.*;
 import javax.swing.text.BadLocationException;
 import java.awt.*;
@@ -26,7 +28,12 @@ public class DefaultContextMenuHandler implements IContextMenuHandler<IScriptEdi
     menu.add( CommonMenus.makeGotoDeclaration( contextEditor ) );
     menu.add( new JSeparator() );
     menu.add( CommonMenus.makeQuickDocumentation( contextEditor ) );
-
+    if( editor.getScriptPart() != null &&
+        editor.getScriptPart().getContainingType() instanceof IGosuProgram )
+    {
+      menu.add( new JSeparator() );
+      menu.add( CommonMenus.makeRun( () -> editor.getScriptPart().getContainingType() ) );
+    }
     return menu;
   }
 
