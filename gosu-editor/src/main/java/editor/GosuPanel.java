@@ -481,10 +481,10 @@ public class GosuPanel extends JPanel
           goBackward();
         }
 
-        public boolean isEnabled()
-        {
-          return canGoBackward();
-        }
+//        public boolean isEnabled()
+//        {
+//          return canGoBackward();
+//        }
       } );
     previousItem.setMnemonic( 'P' );
     previousItem.setAccelerator( KeyStroke.getKeyStroke( "alt LEFT" ) );
@@ -499,10 +499,10 @@ public class GosuPanel extends JPanel
           goForward();
         }
 
-        public boolean isEnabled()
-        {
-          return canGoForward();
-        }
+//        public boolean isEnabled()
+//        {
+//          return canGoForward();
+//        }
       } );
     nextItem.setMnemonic( 'N' );
     nextItem.setAccelerator( KeyStroke.getKeyStroke( "alt RIGHT" ) );
