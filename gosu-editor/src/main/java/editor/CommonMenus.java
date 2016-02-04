@@ -21,7 +21,7 @@ public class CommonMenus
         @Override
         public void actionPerformed( ActionEvent e )
         {
-          editor.get().clipCut( Toolkit.getDefaultToolkit().getSystemClipboard() );
+          editor.get().clipCut( RunMe.getEditorFrame().getGosuPanel().getClipboard() );
         }
       } );
     cutItem.setMnemonic( 't' );
@@ -38,7 +38,7 @@ public class CommonMenus
         @Override
         public void actionPerformed( ActionEvent e )
         {
-          editor.get().clipCopy( Toolkit.getDefaultToolkit().getSystemClipboard() );
+          editor.get().clipCopy( RunMe.getEditorFrame().getGosuPanel().getClipboard() );
         }
       } );
     copyItem.setMnemonic( 'C' );
@@ -55,7 +55,7 @@ public class CommonMenus
         @Override
         public void actionPerformed( ActionEvent e )
         {
-          editor.get().clipPaste( Toolkit.getDefaultToolkit().getSystemClipboard(), false );
+          editor.get().clipPaste( RunMe.getEditorFrame().getGosuPanel().getClipboard(), false );
         }
       } );
     pasteItem.setMnemonic( 'P' );
@@ -72,7 +72,7 @@ public class CommonMenus
         @Override
         public void actionPerformed( ActionEvent e )
         {
-          editor.get().clipPaste( Toolkit.getDefaultToolkit().getSystemClipboard(), true );
+          editor.get().clipPaste( RunMe.getEditorFrame().getGosuPanel().getClipboard(), true );
         }
       } );
     return pasteItem;
@@ -166,7 +166,7 @@ public class CommonMenus
 
   public static JMenuItem makeRun( Supplier<IType> program )
   {
-    JMenuItem runItem = new JMenuItem( new ClearAndRunActionHandler( program ) );
+    JMenuItem runItem = new JMenuItem( new ClearAndRunActionHandler( "Run", program ) );
     runItem.setMnemonic( 'R' );
     runItem.setAccelerator( KeyStroke.getKeyStroke( "F5" ) );
     return runItem;
@@ -188,13 +188,13 @@ public class CommonMenus
     return clearItem;
   }
 
-  static class ClearAndRunActionHandler extends AbstractAction
+  public static class ClearAndRunActionHandler extends AbstractAction
   {
     private final Supplier<IType> _program;
 
-    ClearAndRunActionHandler( Supplier<IType> program )
+    ClearAndRunActionHandler( String title, Supplier<IType> program )
     {
-      super( "Run" );
+      super( title );
       _program = program;
     }
 

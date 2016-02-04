@@ -366,7 +366,7 @@ public class EditorUtilities
 
   public static Clipboard getClipboard()
   {
-    return Toolkit.getDefaultToolkit().getSystemClipboard();
+    return RunMe.getEditorFrame().getGosuPanel().getClipboard();
   }
 
   public static Frame frameForComponent( Component comp )

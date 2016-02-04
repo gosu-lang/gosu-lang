@@ -2,6 +2,7 @@ package editor;
 
 import editor.util.EditorUtilities;
 import editor.util.Project;
+import editor.util.SmartMenu;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.gs.IGosuProgram;
 
@@ -34,7 +35,7 @@ public class ProjectTreeContextMenu implements IContextMenuHandler<JTree>
   public JPopupMenu getContextMenu( JTree tree )
   {
     JPopupMenu menu = new JPopupMenu();
-    JMenu newMenu = new JMenu( "New" );
+    JMenu newMenu = new SmartMenu( "New" );
     NewFilePopup.addMenuItems( newMenu );
     menu.add( newMenu );
     menu.add( new JSeparator() );
@@ -195,7 +196,7 @@ public class ProjectTreeContextMenu implements IContextMenuHandler<JTree>
       FileTree item = (FileTree)_tree.getLastSelectedPathComponent();
       if( item != null )
       {
-        Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+        Clipboard clipboard = _project.getGosuPanel().getClipboard();
         clipboard.setContents( new StringSelection( item.getFileOrDir().getAbsolutePath() ), this );
       }
     }
@@ -225,7 +226,7 @@ public class ProjectTreeContextMenu implements IContextMenuHandler<JTree>
         return false;
       }
 
-      Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+      Clipboard clipboard = _project.getGosuPanel().getClipboard();
       Transferable t = clipboard.getContents( this );
       try
       {
@@ -248,7 +249,7 @@ public class ProjectTreeContextMenu implements IContextMenuHandler<JTree>
 
     public void actionPerformed( ActionEvent e )
     {
-      Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+      Clipboard clipboard = _project.getGosuPanel().getClipboard();
       Transferable t = clipboard.getContents( this );
       if( t != null && t.isDataFlavorSupported( DataFlavor.stringFlavor ) )
       {
@@ -307,7 +308,7 @@ public class ProjectTreeContextMenu implements IContextMenuHandler<JTree>
       FileTree item = (FileTree)_tree.getLastSelectedPathComponent();
       if( item != null )
       {
-        Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+        Clipboard clipboard = _project.getGosuPanel().getClipboard();
         clipboard.setContents( new StringSelection( CUT_PREFIX + item.getFileOrDir().getAbsolutePath() ), this );
       }
     }

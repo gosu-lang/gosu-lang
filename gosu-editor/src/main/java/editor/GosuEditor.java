@@ -2804,7 +2804,7 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
     {
       return;
     }
-    Toolkit.getDefaultToolkit().getSystemClipboard().setContents( new StringSelection( type.getName() ), null );
+    RunMe.getEditorFrame().getGosuPanel().getClipboard().setContents( new StringSelection( type.getName() ), null );
   }
 
   public void displayTypeInfoAtCurrentLocation()
@@ -3261,6 +3261,8 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
 
   private void gotoReference( IParsedElement pe )
   {
+    int prevCaretPos = getEditor().getCaretPosition();
+
     if( pe instanceof IMethodCallExpression )
     {
       IFunctionSymbol fs = ((IMethodCallExpression)pe).getFunctionSymbol();
@@ -3303,6 +3305,17 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
     {
       // If not found, the best thing we can do is display some info on the element
       displayJavadocHelp( pe.getLocation() );
+    }
+
+    GosuPanel gosuPanel = RunMe.getEditorFrame().getGosuPanel();
+    GosuEditor currentEditor = gosuPanel.getCurrentEditor();
+    int currentCaretPos = currentEditor.getEditor().getCaretPosition();
+    if( currentEditor == this && currentCaretPos != prevCaretPos )
+    {
+      // Only need to handle navigation within current file,
+      // jumps to other files will be caught as tab selection change events
+
+      gosuPanel.getTabSelectionHistory().addNavigationHistory( this, prevCaretPos, currentCaretPos );
     }
   }
 
@@ -3366,11 +3379,14 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
       offset = ((IGosuClassTypeInfo)feature).getGosuClass().getClassStatement().getClassDeclaration().getNameOffset( null );
     }
 
-    IFile sourceFile = gsClass.getSourceFileHandle().getFile();
-    if( sourceFile != null && sourceFile.isJavaFile() )
+    if( gsClass != getParsedClass() )
     {
-      RunMe.getEditorFrame().getGosuPanel().openFile( sourceFile.toJavaFile() );
-      SettleModalEventQueue.instance().run();
+      IFile sourceFile = gsClass.getSourceFileHandle().getFile();
+      if( sourceFile != null && sourceFile.isJavaFile() )
+      {
+        RunMe.getEditorFrame().getGosuPanel().openFile( sourceFile.toJavaFile() );
+        SettleModalEventQueue.instance().run();
+      }
     }
     RunMe.getEditorFrame().getGosuPanel().getCurrentEditor().getEditor().setCaretPosition( offset );
   }

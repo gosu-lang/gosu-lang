@@ -1,5 +1,7 @@
 package editor.util;
 
+import editor.actions.UpdateNotifier;
+
 import java.awt.*;
 
 /**
@@ -35,6 +37,7 @@ public class ModalEventQueue implements Runnable
   {
     while( isModal() )
     {
+      // handleIdleTime();
       try
       {
         AWTEvent event = Toolkit.getDefaultToolkit().getSystemEventQueue().getNextEvent();
@@ -55,6 +58,14 @@ public class ModalEventQueue implements Runnable
   protected boolean isModal()
   {
     return _modalHandler.isModal();
+  }
+
+  private void handleIdleTime()
+  {
+    if( Toolkit.getDefaultToolkit().getSystemEventQueue().peekEvent() == null )
+    {
+      UpdateNotifier.instance().notifyActionComponentsNow();
+    }
   }
 
   public void dispatchEvent( AWTEvent event )
