@@ -16,7 +16,7 @@ _G_ROOT_DIR=`dirname "$file"`/..
 # canonicalize
 _G_ROOT_DIR=`cd "$_G_ROOT_DIR" > /dev/null && pwd`
 
-AllJars="$_G_ROOT_DIR/src:$_G_ROOT_DIR/lib/*"
+AllJars="$_G_ROOT_DIR/src:$_G_ROOT_DIR/lib/*:$JAVA_HOME/lib/tools.jar"
 
 if [ "$1" = "debug" ]; then
   _DEBUG="-Xdebug -Xrunjdwp:transport=dt_socket,address=5005,server=y,suspend=y"
