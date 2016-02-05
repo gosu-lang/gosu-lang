@@ -12178,10 +12178,6 @@ public final class GosuParser extends ParserBase implements IGosuParser
       }
 
       ISymbol functionSymbol = _symTable.getSymbol( strFunctionName );
-      if( functionSymbol instanceof CommonSymbolsScope.LockedDownSymbol )
-      {
-        functionSymbol = null;
-      }
       if( bProperty )
       {
         if( functionSymbol instanceof DynamicPropertySymbol )

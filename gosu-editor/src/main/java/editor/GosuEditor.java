@@ -2695,7 +2695,7 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
   {
     if( _bTemplate )
     {
-      transientSymTable.putSymbol( GosuShop.createSymbol( ITemplateGenerator.PRINT_METHOD, new FunctionType( ITemplateGenerator.PRINT_METHOD, JavaTypes.pVOID(), new IType[]{JavaTypes.STRING(), JavaTypes.BOOLEAN()} ), null ) );
+      transientSymTable.putSymbol( GosuShop.createSymbol( ITemplateGenerator.PRINT_METHOD, new FunctionType( ITemplateGenerator.PRINT_METHOD, JavaTypes.pVOID(), new IType[]{JavaTypes.STRING(), JavaTypes.pBOOLEAN()} ), null ) );
     }
     PathCompletionIntellisense.instance().complete( this, transientSymTable );
   }
