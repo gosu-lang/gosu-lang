@@ -24,7 +24,7 @@ public class EditorTabHistoryHandler implements ITabHistoryHandler
     {
       return;
     }
-    ((BasicGosuEditor)RunMe.getEditorFrame()).selectTab( tabContext.getContentId() );
+    RunMe.getEditorFrame().selectTab( tabContext.getContentId() );
   }
 
   @Override
@@ -34,7 +34,7 @@ public class EditorTabHistoryHandler implements ITabHistoryHandler
     {
       return;
     }
-    ((BasicGosuEditor)RunMe.getEditorFrame()).closeTab( tabContext.getContentId() );
+    RunMe.getEditorFrame().closeTab( tabContext.getContentId() );
   }
 
   static class EditorTabContext implements ITabHistoryContext
@@ -96,7 +96,7 @@ public class EditorTabHistoryHandler implements ITabHistoryHandler
     }
 
     @Override
-    public Object getContentId()
+    public File getContentId()
     {
       return _contentId;
     }

@@ -9,6 +9,7 @@ import editor.util.SettleModalEventQueue;
 import editor.util.TaskQueue;
 import editor.util.TextComponentUtil;
 import editor.util.XPToolbarButton;
+import editor.util.transform.java.JavaToGosu;
 import gw.fs.IFile;
 import gw.lang.GosuShop;
 import gw.lang.parser.GosuParserFactory;
@@ -417,18 +418,6 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
 
   private void addKeyHandlers()
   {
-    // Add Accelerator for Smart Help (Ctrl+/)
-    _editor.getInputMap().put( KeyStroke.getKeyStroke( CONTROL_KEY_NAME + " SLASH" ), "_smartHelp" );
-    _editor.getActionMap().put( "_smartHelp",
-                                new AbstractAction()
-                                {
-                                  @Override
-                                  public void actionPerformed( ActionEvent e )
-                                  {
-                                    doSmartHelp();
-                                  }
-                                } );
-
     _editor.getInputMap().put( KeyStroke.getKeyStroke( CONTROL_KEY_NAME + " T" ), "_typeInfo" );
     _editor.getActionMap().put( "_typeInfo",
                                 new AbstractAction()
@@ -451,7 +440,7 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
                                   }
                                 } );
 
-    _editor.getInputMap().put( KeyStroke.getKeyStroke( CONTROL_KEY_NAME + " shift SLASH" ), "_bulkComment" );
+    _editor.getInputMap().put( KeyStroke.getKeyStroke( CONTROL_KEY_NAME + " SLASH" ), "_bulkComment" );
     _editor.getActionMap().put( "_bulkComment",
                                 new AbstractAction()
                                 {
@@ -1431,27 +1420,12 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
         }
         finally
         {
+          //!! NOTE: do not refresh the type we just parsed in the editor, it will otherwise
+          //!!       reparse the type from DISK, which will be stale compared with changes in the editor.
           TypeSystem.unlock();
           if( _forceCodeCompletion )
           {
             setCompleteCode( false );
-          }
-        }
-        if( _partId != null && isNotifyOfTypeRefreshOnParse() )
-        {
-          String typeName = _partId.getContainingTypeName();
-          if( typeName != null )
-          {
-            IType type;
-            try
-            {
-              type = TypeSystem.getByFullName( typeName );
-              TypeSystem.refresh( (ITypeRef)type );
-            }
-            catch( Exception e )
-            {
-              //ignore
-            }
           }
         }
         for( ParseListener parseListener : _parseListeners )
@@ -1460,21 +1434,6 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
         }
       }
     }
-  }
-
-  protected boolean isNotifyOfTypeRefreshOnParse()
-  {
-    return getClass() == GosuEditor.class;
-  }
-
-  public void setParseType( IGosuParser.ParseType parseType )
-  {
-    _parseType = parseType;
-  }
-
-  public void setTokenizerInstructor( ITokenizerInstructor tokenizerInstructor )
-  {
-    _tokenizerInstructor = tokenizerInstructor;
   }
 
   private void _parseNow( String strText, boolean forceCodeCompletion, boolean changed )
@@ -1708,14 +1667,6 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
 //    return null;
 //  }
 
-  protected void postParseAsClass()
-  {
-  }
-
-  protected void preParseAsClass()
-  {
-  }
-
   /**
    * @return A copy of the type-uses map from the most recent parse. A copy for thread-safety.
    */
@@ -1880,7 +1831,7 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
 
   protected void handleParseException( final ParseResultsException e, final boolean bForceCodeCompletion )
   {
-    handleCodeCompletion( true, bForceCodeCompletion );
+    handleCodeCompletion( bForceCodeCompletion );
     getGosuDocument().setParseResultsException( e );
     if( e != null )
     {
@@ -1917,7 +1868,7 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
     }
   }
 
-  private void handleCodeCompletion( boolean bHandleDot, boolean bForceCodeCompletion )
+  private void handleCodeCompletion( boolean bForceCodeCompletion )
   {
     if( _parser == null )
     {
@@ -1930,9 +1881,18 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
     if( bForceCodeCompletion )
     {
       handleCompleteCode();
-      return;
     }
+    else
+    {
+      //## todo:
+      //## value completion should be integrated as part of code completion e.g., Enum constants should be in the same popup as members etc.
 
+      //handleCompleteValue();
+    }
+  }
+
+  private void handleCompleteValue()
+  {
     List<IParseIssue> errors = getIssuesNearPos( _editor.getCaretPosition() );
     if( errors == null || errors.isEmpty() )
     {
@@ -2844,7 +2804,7 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
     {
       return;
     }
-    Toolkit.getDefaultToolkit().getSystemClipboard().setContents( new StringSelection( type.getName() ), null );
+    RunMe.getEditorFrame().getGosuPanel().getClipboard().setContents( new StringSelection( type.getName() ), null );
   }
 
   public void displayTypeInfoAtCurrentLocation()
@@ -3301,6 +3261,8 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
 
   private void gotoReference( IParsedElement pe )
   {
+    int prevCaretPos = getEditor().getCaretPosition();
+
     if( pe instanceof IMethodCallExpression )
     {
       IFunctionSymbol fs = ((IMethodCallExpression)pe).getFunctionSymbol();
@@ -3344,6 +3306,17 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
       // If not found, the best thing we can do is display some info on the element
       displayJavadocHelp( pe.getLocation() );
     }
+
+    GosuPanel gosuPanel = RunMe.getEditorFrame().getGosuPanel();
+    GosuEditor currentEditor = gosuPanel.getCurrentEditor();
+    int currentCaretPos = currentEditor.getEditor().getCaretPosition();
+    if( currentEditor == this && currentCaretPos != prevCaretPos )
+    {
+      // Only need to handle navigation within current file,
+      // jumps to other files will be caught as tab selection change events
+
+      gosuPanel.getTabSelectionHistory().addNavigationHistory( this, prevCaretPos, currentCaretPos );
+    }
   }
 
   @Override
@@ -3365,11 +3338,6 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
       return;
     }
     IGosuClass gsClass = (IGosuClass)ownersType;
-    IFile sourceFile = gsClass.getSourceFileHandle().getFile();
-    if( sourceFile == null || !sourceFile.isJavaFile() )
-    {
-      return;
-    }
 
     int offset = 0;
 
@@ -3411,8 +3379,15 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
       offset = ((IGosuClassTypeInfo)feature).getGosuClass().getClassStatement().getClassDeclaration().getNameOffset( null );
     }
 
-    RunMe.getEditorFrame().getGosuPanel().openFile( sourceFile.toJavaFile() );
-    SettleModalEventQueue.instance().run();
+    if( gsClass != getParsedClass() )
+    {
+      IFile sourceFile = gsClass.getSourceFileHandle().getFile();
+      if( sourceFile != null && sourceFile.isJavaFile() )
+      {
+        RunMe.getEditorFrame().getGosuPanel().openFile( sourceFile.toJavaFile() );
+        SettleModalEventQueue.instance().run();
+      }
+    }
     RunMe.getEditorFrame().getGosuPanel().getCurrentEditor().getEditor().setCaretPosition( offset );
   }
 
@@ -3490,7 +3465,7 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
 
   String getContextHelp( IParseTree parseTree )
   {
-    return ContextHelpUtil.getContextHelp( this, parseTree );
+    return ContextHelpUtil.getContextHelp( parseTree );
   }
 
   String getTooltipMessage( MouseEvent event )
@@ -4001,7 +3976,7 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
     {
       if( TaskQueue.getInstance( INTELLISENSE_TASK_QUEUE ).size() == 0 )
       {
-        handleCodeCompletion( false, false );
+        handleCodeCompletion( false );
       }
     }
   }
@@ -4243,7 +4218,7 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
     }
   }
 
-  public void clipPaste( Clipboard clipboard )
+  public void clipPaste( Clipboard clipboard, boolean asGosu )
   {
     Transferable t = clipboard.getContents( this );
     if( t == null )
@@ -4256,6 +4231,14 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
       try
       {
         String strContents = (String)t.getTransferData( DataFlavor.stringFlavor );
+        if ( asGosu )
+        {
+          strContents = JavaToGosu.convertString( strContents );
+          if ("".equals(strContents)) {
+            JOptionPane.showMessageDialog( getEditor() , "The copied Java code has errors, only valid Java 8 code can be transformed", "Paste Java as Gosu", JOptionPane.ERROR_MESSAGE);
+            return;
+          }
+        }
         getEditor().replaceSelection( strContents );
       }
       catch( Exception e )

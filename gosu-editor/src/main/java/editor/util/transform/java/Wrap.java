@@ -2,7 +2,7 @@
  * Copyright 2014 Guidewire Software, Inc.
  */
 
-package gw.plugin.ij.util.transform.java;
+package editor.util.transform.java;
 
 class Wrap {
   String JAVA_WRAP_START;

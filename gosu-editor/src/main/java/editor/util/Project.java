@@ -26,6 +26,7 @@ public class Project implements IProject
   private File _projectDir;
   private List<String> _openFiles;
   private String _activeFile;
+  private String _recentProgram;
   private GosuPanel _gosuPanel;
 
   public Project( String name, File dir, GosuPanel gosuPanel )
@@ -174,6 +175,11 @@ public class Project implements IProject
       props.put( "Classpath.Entry" + i, relativePath == null ? path : relativePath );
     }
 
+    if( getRecentProgram() != null )
+    {
+      props.put( "Recent.Program", getRecentProgram() );
+    }
+
     try
     {
       FileWriter fw = new FileWriter( userFile );
@@ -254,6 +260,8 @@ public class Project implements IProject
       {
         _activeFile = new File( _activeFile ).getAbsolutePath();
       }
+
+      _recentProgram = props.getProperty( "Recent.Program" );
     }
     catch( IOException e )
     {
@@ -282,5 +290,14 @@ public class Project implements IProject
   public static String getRelativeGosuSourcePath()
   {
     return "src" + File.separator + "main" + File.separator + "gosu";
+  }
+
+  public String getRecentProgram()
+  {
+    return _recentProgram;
+  }
+  public void setRecentProgram( String name )
+  {
+    _recentProgram = name;
   }
 }

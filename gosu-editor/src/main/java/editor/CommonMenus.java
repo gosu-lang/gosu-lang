@@ -1,5 +1,9 @@
 package editor;
 
+import gw.lang.reflect.IType;
+import gw.lang.reflect.gs.IGosuProgram;
+import gw.lang.reflect.gs.ITemplateType;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -17,7 +21,7 @@ public class CommonMenus
         @Override
         public void actionPerformed( ActionEvent e )
         {
-          editor.get().clipCut( Toolkit.getDefaultToolkit().getSystemClipboard() );
+          editor.get().clipCut( RunMe.getEditorFrame().getGosuPanel().getClipboard() );
         }
       } );
     cutItem.setMnemonic( 't' );
@@ -34,7 +38,7 @@ public class CommonMenus
         @Override
         public void actionPerformed( ActionEvent e )
         {
-          editor.get().clipCopy( Toolkit.getDefaultToolkit().getSystemClipboard() );
+          editor.get().clipCopy( RunMe.getEditorFrame().getGosuPanel().getClipboard() );
         }
       } );
     copyItem.setMnemonic( 'C' );
@@ -51,12 +55,26 @@ public class CommonMenus
         @Override
         public void actionPerformed( ActionEvent e )
         {
-          editor.get().clipPaste( Toolkit.getDefaultToolkit().getSystemClipboard() );
+          editor.get().clipPaste( RunMe.getEditorFrame().getGosuPanel().getClipboard(), false );
         }
       } );
     pasteItem.setMnemonic( 'P' );
     pasteItem.setAccelerator( KeyStroke.getKeyStroke( "control V" ) );
 
+    return pasteItem;
+  }
+
+  public static JMenuItem makePasteJavaAsGosu( Supplier<GosuEditor> editor )
+  {
+    JMenuItem pasteItem = new JMenuItem(
+      new AbstractAction( "Paste Java as Gosu" )
+      {
+        @Override
+        public void actionPerformed( ActionEvent e )
+        {
+          editor.get().clipPaste( RunMe.getEditorFrame().getGosuPanel().getClipboard(), true );
+        }
+      } );
     return pasteItem;
   }
 
@@ -129,4 +147,89 @@ public class CommonMenus
         navigate.setAccelerator( KeyStroke.getKeyStroke( "control B" ) );
     return navigate;
   }
+
+  public static JMenuItem makeQuickDocumentation( Supplier<GosuEditor> editor )
+  {
+    JMenuItem quickDoc = new JMenuItem(
+          new AbstractAction( "Quick Documentation" )
+          {
+            @Override
+            public void actionPerformed( ActionEvent e )
+            {
+              editor.get().displayJavadocHelp( editor.get().getDeepestLocationAtCaret() );
+            }
+          } );
+        quickDoc.setMnemonic( 'Q' );
+        quickDoc.setAccelerator( KeyStroke.getKeyStroke( "control Q" ) );
+    return quickDoc;
+  }
+
+  public static JMenuItem makeViewBytecode()
+  {
+    JMenuItem viewBytecode = new JMenuItem(
+      new AbstractAction( "View Bytecode" )
+      {
+        @Override
+        public void actionPerformed( ActionEvent e )
+        {
+          RunMe.getEditorFrame().getGosuPanel().dumpBytecode();
+        }
+      } );
+    return viewBytecode;
+  }
+
+  public static JMenuItem makeRun( Supplier<IType> program )
+  {
+    JMenuItem runItem = new JMenuItem( new ClearAndRunActionHandler( "Run", program ) );
+    runItem.setMnemonic( 'R' );
+    runItem.setAccelerator( KeyStroke.getKeyStroke( "F5" ) );
+    return runItem;
+  }
+
+  public static JMenuItem makeClear( Supplier<GosuEditor> editor )
+  {
+    JMenuItem clearItem = new JMenuItem(
+      new AbstractAction( "Clear" )
+      {
+        @Override
+        public void actionPerformed( ActionEvent e )
+        {
+          RunMe.getEditorFrame().getGosuPanel().clearOutput();
+        }
+      } );
+    clearItem.setMnemonic( 'C' );
+    clearItem.setAccelerator( KeyStroke.getKeyStroke( "alt C" ) );
+    return clearItem;
+  }
+
+  public static class ClearAndRunActionHandler extends AbstractAction
+  {
+    private final Supplier<IType> _program;
+
+    ClearAndRunActionHandler( String title, Supplier<IType> program )
+    {
+      super( title );
+      _program = program;
+    }
+
+    public void actionPerformed( ActionEvent e )
+    {
+      RunMe.getEditorFrame().getGosuPanel().clearOutput();
+      if( _program.get() instanceof ITemplateType )
+      {
+        RunMe.getEditorFrame().getGosuPanel().executeTemplate();
+      }
+      else
+      {
+        RunMe.getEditorFrame().getGosuPanel().execute( _program.get().getName() );
+      }
+    }
+
+    public boolean isEnabled()
+    {
+      return _program.get() != null && _program.get() instanceof IGosuProgram &&
+             !RunMe.getEditorFrame().getGosuPanel().isRunning();
+    }
+  }
+
 }

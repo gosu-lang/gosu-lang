@@ -2,13 +2,14 @@
  * Copyright 2014 Guidewire Software, Inc.
  */
 
-package gw.plugin.ij.util.transform.java;
+package editor.util.transform.java;
 
 
-import gw.plugin.ij.util.transform.java.Visitor.GosuVisitor;
-import com.sun.source.tree.*;
+import com.sun.source.tree.CompilationUnitTree;
 import com.sun.tools.javac.api.JavacTaskImpl;
 import com.sun.tools.javac.api.JavacTool;
+import editor.util.transform.java.visitor.GosuVisitor;
+
 
 import javax.tools.JavaCompiler;
 import javax.tools.StandardJavaFileManager;
@@ -19,7 +20,7 @@ import java.util.List;
 
 public class JavaToGosu {
 
-  public static String ConvertString(String JavaSource) {
+  public static String convertString(String javaSource) {
     Wrap[] wraps = new Wrap[]{
             new Wrap("", "", "", ""),
             new Wrap("class _JAVA_TO_GOSU_INTERNAL_ {",
@@ -39,22 +40,22 @@ public class JavaToGosu {
                     "class _JAVA_TO_GOSU_INTERNAL_  {\n\n  function _JAVA_TO_GOSU_INTERNAL_METHOD_() : void {\n    if (",
                     ") {\n      \n    }\n  }\n\n}\n")
     };
-    String JAVA_WRAP_START = "";
-    String JAVA_WRAP_END = "";
-    String GOSU_WRAP_START = "";
-    String GOSU_WRAP_END = "";
+    String javaWrapStart = "";
+    String javaWrapEnd = "";
+    String gosuWrapStart = "";
+    String gosuWrapEnd = "";
     List<CompilationUnitTree> trees = null;
     boolean parsed = false;
     String output = null;
     int i = wraps.length - 1;
 
     while (i >= 0 && !parsed) {
-      JAVA_WRAP_START = wraps[i].JAVA_WRAP_START;
-      JAVA_WRAP_END = wraps[i].JAVA_WRAP_END;
-      GOSU_WRAP_START = wraps[i].GOSU_WRAP_START;
-      GOSU_WRAP_END = wraps[i].GOSU_WRAP_END;
+      javaWrapStart = wraps[i].JAVA_WRAP_START;
+      javaWrapEnd = wraps[i].JAVA_WRAP_END;
+      gosuWrapStart = wraps[i].GOSU_WRAP_START;
+      gosuWrapEnd = wraps[i].GOSU_WRAP_END;
       trees = new ArrayList<CompilationUnitTree>();
-      String src = JAVA_WRAP_START + JavaSource + JAVA_WRAP_END;
+      String src = javaWrapStart + javaSource + javaWrapEnd;
       parsed = parseJava(trees, src);
       i--;
     }
@@ -67,9 +68,9 @@ public class JavaToGosu {
     }
     output = visitor.getOutput().toString();
 
-    if (!JAVA_WRAP_START.isEmpty()) {
-      int b = output.indexOf(GOSU_WRAP_START) + GOSU_WRAP_START.length();
-      int e = output.lastIndexOf(GOSU_WRAP_END);
+    if (!javaWrapStart.isEmpty()) {
+      int b = output.indexOf(gosuWrapStart) + gosuWrapStart.length();
+      int e = output.lastIndexOf(gosuWrapEnd);
       output = unIndent(output.substring(b, e));
     }
     return output;
@@ -80,15 +81,15 @@ public class JavaToGosu {
     String[] lines = output.split("\n");
     int tab = 0;
     char[] chars = lines[0].toCharArray();
-    while(tab < chars.length && chars[tab] == ' ') {
+    while (tab < chars.length && chars[tab] == ' ') {
       tab++;
     }
     for (String line : lines) {
-      if(!line.trim().isEmpty()) {
-        if(line.length() > tab && line.substring(0, tab).trim().isEmpty()) {
-         src.append(line.substring(tab));
+      if (!line.trim().isEmpty()) {
+        if (line.length() > tab && line.substring(0, tab).trim().isEmpty()) {
+          src.append(line.substring(tab));
         } else {
-         src.append(line);
+          src.append(line);
         }
         src.append("\n");
       }
@@ -104,7 +105,7 @@ public class JavaToGosu {
     ArrayList<JavaStringObject> javaStringObjects = new ArrayList<JavaStringObject>();
     javaStringObjects.add(new JavaStringObject(src));
     StringWriter errors = new StringWriter();
-    JavaCompiler.CompilationTask task = compiler.getTask(errors, fileManager, null, null, null, javaStringObjects );
+    JavaCompiler.CompilationTask task = compiler.getTask(errors, fileManager, null, null, null, javaStringObjects);
     JavacTaskImpl javacTask = (JavacTaskImpl) task;
     try {
       Iterable<? extends CompilationUnitTree> iterable = javacTask.parse();

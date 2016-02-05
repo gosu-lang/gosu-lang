@@ -2,9 +2,14 @@
  * Copyright 2014 Guidewire Software, Inc.
  */
 
-package gw.plugin.ij.util.transform.java.Visitor;
+package editor.util.transform.java.visitor;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.Map;
+import java.util.NoSuchElementException;
+import java.util.Set;
 
 public class SymbolTable {
   private LinkedList<Scope> globals;
@@ -12,15 +17,15 @@ public class SymbolTable {
   private HashSet<String> reservedWords;
   int counter;
   private String[] reserved = {"true", "false", "NaN", "Infinity", "and", "or", "not", "null", "length", "exists",
-                              "in", "startswith", "contains", "where", "find", "var", "delegate", "represents",
-                              "as", "typeof", "statictypeof", "typeis", "typeas", "package", "uses", "if", "else",
-                              "except", "unless", "foreach", "for", "index", "iterator", "while", "do",
-                              "continue", "break", "return", "construct", "function", "property", "get", "set",
-                              "try", "catch", "finally", "this", "throw", "new", "switch", "case", "default",
-                              "eval", "private", "internal", "protected", "public", "abstract", "override",
-                              "hide", "final", "static", "extends", "transient", "implements", "readonly",
-                              "class", "interface", "structure", "enum", "super", "outer", "execution", "request", "session",
-                              "application", "void", "block", "enhancement", "classpath", "typeloader", "using", "now"};
+          "in", "startswith", "contains", "where", "find", "var", "delegate", "represents",
+          "as", "typeof", "statictypeof", "typeis", "typeas", "package", "uses", "if", "else",
+          "except", "unless", "foreach", "for", "index", "iterator", "while", "do",
+          "continue", "break", "return", "construct", "function", "property", "get", "set",
+          "try", "catch", "finally", "this", "throw", "new", "switch", "case", "default",
+          "eval", "private", "internal", "protected", "public", "abstract", "override",
+          "hide", "final", "static", "extends", "transient", "implements", "readonly",
+          "class", "interface", "structure", "enum", "super", "outer", "execution", "request", "session",
+          "application", "void", "block", "enhancement", "classpath", "typeloader", "using", "now"};
 
   private class Scope {
     String clazz;
@@ -45,7 +50,7 @@ public class SymbolTable {
     globals = new LinkedList<Scope>();
     locals = new LinkedList<Scope>();
     reservedWords = new HashSet<String>();
-    for(String word : reserved) {
+    for (String word : reserved) {
       reservedWords.add(word);
     }
   }

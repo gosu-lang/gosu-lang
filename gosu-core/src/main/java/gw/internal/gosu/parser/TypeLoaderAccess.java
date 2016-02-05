@@ -10,6 +10,7 @@ import gw.config.ExecutionMode;
 import gw.fs.IFile;
 import gw.fs.IResource;
 import gw.internal.gosu.compiler.SingleServingGosuClassLoader;
+import gw.internal.gosu.module.DefaultSingleModule;
 import gw.internal.gosu.module.Module;
 import gw.lang.GosuShop;
 import gw.lang.gosuc.Gosuc;
@@ -126,7 +127,7 @@ public class TypeLoaderAccess extends BaseService implements ITypeSystem
 
   public Module getCurrentModule()
   {
-    if( !ExecutionMode.isIDE() || TypeSystem.getJreModule() == TypeSystem.getGlobalModule() )
+    if( !ExecutionMode.isIDE() )
     {
       return (Module)TypeSystem.getGlobalModule();
     }
@@ -135,6 +136,15 @@ public class TypeLoaderAccess extends BaseService implements ITypeSystem
     if( list != null && !list.isEmpty() )
     {
       return (Module)list.get(list.size() - 1);
+    }
+
+    if( ExecutionEnvironment.getAll().size() == 1 )
+    {
+      if( TypeSystem.getGlobalModule() instanceof DefaultSingleModule )
+      {
+        // For single module IDE
+        return (Module)TypeSystem.getGlobalModule();
+      }
     }
 
     return null;

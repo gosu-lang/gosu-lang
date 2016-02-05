@@ -23,7 +23,6 @@ public class JavadocPopup extends JPopupMenu implements MouseMotionListener, Mou
 {
   private static final int MAX_WIDTH = 520;
 
-  private JPanel _pane;
   private HtmlViewer _viewer;
   private String _strHelpText;
   private GosuEditor _editor;
@@ -52,10 +51,10 @@ public class JavadocPopup extends JPopupMenu implements MouseMotionListener, Mou
     setBorder( BorderFactory.createLineBorder( EditorUtilities.WINDOW_BORDER ) );
 
     GridBagLayout gridBag = new GridBagLayout();
-    _pane = new JPanel();
-    _pane.addMouseListener( this );
-    _pane.addMouseMotionListener( this );
-    _pane.setLayout( gridBag );
+    JPanel pane = new JPanel();
+    pane.addMouseListener( this );
+    pane.addMouseMotionListener( this );
+    pane.setLayout( gridBag );
     GridBagConstraints c = new GridBagConstraints();
 
     _viewer = new HtmlViewer();
@@ -76,11 +75,11 @@ public class JavadocPopup extends JPopupMenu implements MouseMotionListener, Mou
     c.gridheight = GridBagConstraints.REMAINDER;
     c.weightx = 1;
     c.weighty = 1;
-    _pane.add( _scroller, c );
+    pane.add( _scroller, c );
 
     _editorKeyListener = new EditorKeyListener();
 
-    add( _pane );
+    add( pane );
 
     addSeparator();
 
@@ -95,29 +94,24 @@ public class JavadocPopup extends JPopupMenu implements MouseMotionListener, Mou
     super.show( c, iX, iY );
 
     EventQueue.invokeLater(
-      new Runnable()
-      {
-        @Override
-        public void run()
+      () -> {
+        if( !_bResizedWidth && _viewer.getWidth() > MAX_WIDTH )
         {
-          if( !_bResizedWidth && _viewer.getWidth() > MAX_WIDTH )
-          {
-            _scroller.setPreferredSize( new Dimension( MAX_WIDTH, MAX_WIDTH ) );
-            _bResizedWidth = true;
-            pack();
-            setVisible( false );
-            show( c, iX, iY );
-            return;
-          }
-          if( !_bResizedHeight && isViewerLessThanHalfFull() )
-          {
-            _scroller.setPreferredSize( new Dimension( MAX_WIDTH, _scroller.getHeight() / 2 ) );
-            _bResizedHeight = true;
-            pack();
-            setVisible( false );
-            show( c, iX, iY );
-            return;
-          }
+          //noinspection SuspiciousNameCombination
+          _scroller.setPreferredSize( new Dimension( MAX_WIDTH, MAX_WIDTH ) );
+          _bResizedWidth = true;
+          pack();
+          setVisible( false );
+          show( c, iX, iY );
+          return;
+        }
+        if( !_bResizedHeight && isViewerLessThanHalfFull() )
+        {
+          _scroller.setPreferredSize( new Dimension( MAX_WIDTH, _scroller.getHeight() / 2 ) );
+          _bResizedHeight = true;
+          pack();
+          setVisible( false );
+          show( c, iX, iY );
         }
       } );
   }

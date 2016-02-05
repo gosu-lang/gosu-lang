@@ -2,16 +2,16 @@
  * Copyright 2014 Guidewire Software, Inc.
  */
 
-package gw.plugin.ij.util.transform.java;
+package editor.util.transform.java;
 
 
-import gw.test.TestClass;
+import junit.framework.TestCase;
 
 import java.io.IOException;
 
 
-public class GosuVisitorTest extends TestClass {
-  private String folder = "./idea-gosu-plugin/src/test/java/gw/plugin/ij/util/transform/java/JavaClasses/";
+public class GosuVisitorTest extends TestCase {
+  private String folder = "util/transform/java/javaClasses/";
   private GosuVisitorTestUtil helper = new GosuVisitorTestUtil();
 
   public void testBasic() {

@@ -2,30 +2,30 @@
  * Copyright 2014 Guidewire Software, Inc.
  */
 
-package gw.plugin.ij.util.transform.java;
+package editor.util.transform.java;
 
-import gw.test.TestClass;
+import junit.framework.TestCase;
 
-public class javaToGosuFragmentTest extends TestClass {
+public class JavaToGosuFragmentTest extends TestCase {
 
   public void testExpressionFragment() {
     String src = "2";
     String reference = "2\n";
-    String out = JavaToGosu.ConvertString(src);
+    String out = JavaToGosu.convertString(src);
     assertEquals(out, reference);
   }
 
   public void testStatementFragment() {
     String src = "int x = 2;";
     String reference = "var x = 2\n";
-    String out = JavaToGosu.ConvertString(src);
+    String out = JavaToGosu.convertString(src);
     assertEquals(out, reference);
   }
 
   public void testStatementWithLineCommentFragment() {
     String src = "int x = 2; // hello";
     String reference = "var x = 2\n";
-    String out = JavaToGosu.ConvertString(src);
+    String out = JavaToGosu.convertString(src);
     assertEquals(out, reference);
   }
 
@@ -38,14 +38,14 @@ public class javaToGosuFragmentTest extends TestClass {
             "  var x = 2\n" +
             "  var l = new LinkedList<Integer>()\n" +
             "}\n";
-    String out = JavaToGosu.ConvertString(src);
+    String out = JavaToGosu.convertString(src);
     assertEquals(out, reference);
   }
 
   public void testMethodDeclarationFragment() {
     String src = "void add(int index, E element);";
     String reference = "function add(index_0 : int, element : E) : void\n";
-    String out = JavaToGosu.ConvertString(src);
+    String out = JavaToGosu.convertString(src);
     assertEquals(out, reference);
   }
 
@@ -62,14 +62,14 @@ public class javaToGosuFragmentTest extends TestClass {
             "    var l = new LinkedList<Integer>()\n" +
             "  }\n" +
             "}\n";
-    String out = JavaToGosu.ConvertString(src);
+    String out = JavaToGosu.convertString(src);
     assertEquals(out, reference);
   }
 
   public void testClassWithInstanceVariableFragment() {
     String src = "private int x;";
     String reference = "private var x : int\n";
-    String out = JavaToGosu.ConvertString(src);
+    String out = JavaToGosu.convertString(src);
     assertEquals(out, reference);
   }
 
@@ -93,7 +93,7 @@ public class javaToGosuFragmentTest extends TestClass {
             "  }\n" +
             "\n" +
             "}\n";
-    String out = JavaToGosu.ConvertString(src);
+    String out = JavaToGosu.convertString(src);
     assertEquals(out, reference);
   }
 }

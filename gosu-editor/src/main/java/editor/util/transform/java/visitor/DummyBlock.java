@@ -2,7 +2,7 @@
  * Copyright 2014 Guidewire Software, Inc.
  */
 
-package gw.plugin.ij.util.transform.java.Visitor;
+package editor.util.transform.java.visitor;
 
 import com.sun.source.tree.BlockTree;
 import com.sun.source.tree.StatementTree;
