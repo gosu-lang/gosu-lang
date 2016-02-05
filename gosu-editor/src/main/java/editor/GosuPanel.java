@@ -19,18 +19,26 @@ import editor.util.XPToolbarButton;
 import gw.config.CommonServices;
 import gw.fs.IDirectory;
 import gw.fs.IResource;
+import gw.internal.ext.org.objectweb.asm.ClassReader;
+import gw.internal.ext.org.objectweb.asm.util.TraceClassVisitor;
+import editor.util.GosuTextifier;
 import gw.lang.Gosu;
 import gw.lang.parser.IParseIssue;
+import gw.lang.parser.IParseTree;
+import gw.lang.parser.IParsedElement;
 import gw.lang.parser.IScriptPartId;
 import gw.lang.parser.ScriptPartId;
 import gw.lang.parser.ScriptabilityModifiers;
 import gw.lang.parser.TypelessScriptPartId;
 import gw.lang.parser.exceptions.ParseResultsException;
+import gw.lang.parser.expressions.IBlockExpression;
 import gw.lang.parser.resources.ResourceKey;
+import gw.lang.parser.statements.IClassStatement;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.ITypeRef;
 import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.gs.GosuClassPathThing;
+import gw.lang.reflect.gs.IGosuClass;
 import gw.lang.reflect.gs.IGosuProgram;
 import gw.lang.reflect.java.JavaTypes;
 import gw.util.StreamUtil;
@@ -51,7 +59,9 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.io.StringReader;
+import java.io.StringWriter;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
@@ -588,8 +598,6 @@ public class GosuPanel extends JPanel
     if( "true".equals( System.getProperty( "spec" ) ) )
     {
       codeMenu.addSeparator();
-
-
       JMenuItem markItem = new JMenuItem(
         new AbstractAction( "Mark Errors For Gosu Language Test" )
         {
@@ -603,6 +611,25 @@ public class GosuPanel extends JPanel
       markItem.setAccelerator( KeyStroke.getKeyStroke( "control M" ) );
       codeMenu.add( markItem );
     }
+
+    codeMenu.addSeparator();
+    JMenuItem viewBytecodeItem = new JMenuItem(
+      new AbstractAction( "View Bytecode" )
+      {
+        @Override
+        public void actionPerformed( ActionEvent e )
+        {
+          dumpBytecode();
+        }
+
+        @Override
+        public boolean isEnabled()
+        {
+          return getCurrentEditor() != null && getCurrentEditor().getScriptPart() != null &&
+                 getCurrentEditor().getScriptPart().getContainingType() != null;
+        }
+      } );
+    codeMenu.add( viewBytecodeItem );
   }
 
   public GosuEditor getCurrentEditor()
@@ -1565,6 +1592,48 @@ public class GosuPanel extends JPanel
       setCurrentFile( fc.getSelectedFile() );
       save();
     }
+  }
+
+  public void dumpBytecode()
+  {
+    saveAndReloadType( getCurrentFile(), getCurrentEditor() );
+    clearOutput();
+    byte[] bytes = TypeSystem.getGosuClassLoader().getBytes( getClassAtCaret() );
+    ClassReader cr = new ClassReader(bytes);
+    //int flags = ClassReader.SKIP_FRAMES;
+    int flags = 0;
+    StringWriter out = new StringWriter();
+    cr.accept( new TraceClassVisitor( null, new GosuTextifier(),  new PrintWriter( out ) ), flags );
+    _resultPanel.setText( out.toString() );
+  }
+
+  private IGosuClass getClassAtCaret()
+  {
+    IParseTree locAtCaret = getCurrentEditor().getDeepestLocationAtCaret();
+    if( locAtCaret == null )
+    {
+      return getCurrentEditor().getParsedClass();
+    }
+    IParsedElement elemAtCaret = locAtCaret.getParsedElement();
+    while( elemAtCaret != null &&
+           !(elemAtCaret instanceof IClassStatement) &&
+           !(elemAtCaret instanceof IBlockExpression))
+    {
+      elemAtCaret = elemAtCaret.getParent();
+    }
+    if( elemAtCaret == null )
+    {
+      return getCurrentEditor().getParsedClass();
+    }
+    if( elemAtCaret instanceof IClassStatement )
+    {
+      return elemAtCaret.getGosuClass();
+    }
+    if( elemAtCaret instanceof IBlockExpression )
+    {
+      return ((IBlockExpression)elemAtCaret).getBlockGosuClass();
+    }
+    throw new IllegalStateException( "Unexpected parse element: " + elemAtCaret.getClass().getName() );
   }
 
   public void execute( String programName )

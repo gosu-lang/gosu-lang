@@ -164,6 +164,20 @@ public class CommonMenus
     return quickDoc;
   }
 
+  public static JMenuItem makeViewBytecode()
+  {
+    JMenuItem viewBytecode = new JMenuItem(
+      new AbstractAction( "View Bytecode" )
+      {
+        @Override
+        public void actionPerformed( ActionEvent e )
+        {
+          RunMe.getEditorFrame().getGosuPanel().dumpBytecode();
+        }
+      } );
+    return viewBytecode;
+  }
+
   public static JMenuItem makeRun( Supplier<IType> program )
   {
     JMenuItem runItem = new JMenuItem( new ClearAndRunActionHandler( "Run", program ) );
