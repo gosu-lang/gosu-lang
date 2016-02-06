@@ -27,21 +27,16 @@
   <build>
     <plugins>
       <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>build-helper-maven-plugin</artifactId>
-        <executions>
-          <execution>
-            <phase>generate-sources</phase>
-            <goals>
-              <goal>add-source</goal>
-            </goals>
-            <configuration>
-              <sources>
-                <source>src/test/gosu</source>
-              </sources>
-            </configuration>
-          </execution>
-        </executions>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <configuration>
+          <argLine>-Dgw.tests.skip.knownbreak=true -Xmx1g</argLine>
+          <excludes>
+            <exclude>gw/internal/gosu/parser/java/*</exclude>
+            <exclude>gw/test/SuiteTest*</exclude>
+            <exclude>**/*BenchmarkTest*</exclude>
+          </excludes>
+        </configuration>
       </plugin>
     </plugins>
   </build>
@@ -63,7 +58,6 @@
                 </goals>
                 <configuration>
                   <sources>
-                    <source>src/main/java</source>
                     <source>src/test/gosu</source>
                   </sources>
                 </configuration>
@@ -92,11 +86,13 @@
                     <include>**/*.gs</include>
                     <include>**/*.gsx</include>
                     <include>**/*.gst</include>
+                    <include>**/*.gsp</include>
                   </testIncludes>
                   <testExcludes>
                     <exclude>**/Errant_*.gs</exclude>
                     <exclude>**/Errant_*.gsx</exclude>
                     <exclude>**/Errant_*.gst</exclude>
+                    <exclude>**/Errant_*.gsp</exclude>
                   </testExcludes>
                 </configuration>
               </execution>
