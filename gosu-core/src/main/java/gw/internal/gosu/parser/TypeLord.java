@@ -441,7 +441,12 @@ public class TypeLord
             }
             types.add( typeParam );
           }
-          IType genType = TypeSystem.getByFullNameIfValid( type.getRawType().getName() );//getActualType( type.getRawType(), actualParamByVarName, bKeepTypeVars, recursiveTypes );
+          String rawTypeName = type.getRawType().getName();
+          IType genType = TypeSystem.getByFullNameIfValid( rawTypeName );//getActualType( type.getRawType(), actualParamByVarName, bKeepTypeVars, recursiveTypes );
+          if( genType == null )
+          {
+            throw new TypeNotPresentException( rawTypeName, null );
+          }
           return genType.getParameterizedType( types.toArray( new IType[types.size()] ) );
         }
         finally
