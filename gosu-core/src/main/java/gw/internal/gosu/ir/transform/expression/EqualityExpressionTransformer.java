@@ -24,7 +24,6 @@ import gw.lang.ir.expression.IREqualityExpression;
 import gw.lang.ir.expression.IRMethodCallExpression;
 import gw.lang.ir.expression.IRNotExpression;
 import gw.lang.ir.statement.IRAssignmentStatement;
-import gw.lang.reflect.IPlaceholder;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.java.JavaTypes;
@@ -67,7 +66,7 @@ public class EqualityExpressionTransformer extends AbstractExpressionTransformer
     else
     {
       if( lhsType.isAssignableFrom( rhsType ) &&
-          !isDynamic( lhsType ) && !isDynamic( rhsType ) )
+          !lhsType.isDynamic() && !rhsType.isDynamic() )
       {
         if( lhsType.isArray() )
         {
@@ -92,10 +91,6 @@ public class EqualityExpressionTransformer extends AbstractExpressionTransformer
         return compareDynamically();
       }
     }
-  }
-
-  private boolean isDynamic( IType type ) {
-    return type instanceof IPlaceholder && ((IPlaceholder)type).isPlaceholder();
   }
 
   private IRExpression compareNumbers( IType type ) {

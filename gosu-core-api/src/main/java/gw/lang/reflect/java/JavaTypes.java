@@ -20,6 +20,7 @@ import java.lang.annotation.Repeatable;
 import gw.lang.function.IBlock;
 import gw.lang.parser.expressions.IBlockExpression;
 import gw.lang.reflect.FunctionType;
+import gw.lang.reflect.IExpando;
 import gw.lang.reflect.IQueryResultSet;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.TypeSystem;
@@ -744,6 +745,14 @@ public class JavaTypes {
       return THIS.IPROGRAM_INSTANCE == null ? THIS.IPROGRAM_INSTANCE = getGosuType( IProgramInstance.class ) : THIS.IPROGRAM_INSTANCE;
     }  
     return getGosuType(IProgramInstance.class);
+  }
+
+  private IJavaType IEXPANDO = null;
+  public static IJavaType IEXPANDO() {
+    if( !ExecutionMode.get().isRefreshSupportEnabled() ) {
+      return THIS.IEXPANDO == null ? THIS.IEXPANDO = getGosuType( IExpando.class ) : THIS.IEXPANDO;
+    }  
+    return getGosuType(IExpando.class);
   }
 
   // utilities

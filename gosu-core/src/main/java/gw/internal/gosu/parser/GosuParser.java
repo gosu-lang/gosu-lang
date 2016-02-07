@@ -9,6 +9,7 @@ import gw.config.ExecutionMode;
 import gw.fs.IFile;
 import gw.internal.gosu.dynamic.DynamicConstructorInfo;
 import gw.internal.gosu.dynamic.DynamicMethodInfo;
+import gw.lang.reflect.IDynamicType;
 import gw.internal.gosu.ir.transform.util.IRTypeResolver;
 import gw.internal.gosu.ir.transform.util.NameResolver;
 import gw.internal.gosu.parser.expressions.*;
@@ -2138,7 +2139,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
       }
       if( !bComparable )
       {
-        bComparable = isDynamic( lhsType ) || isDynamic( rhsType );
+        bComparable = lhsType.isDynamic() || rhsType.isDynamic();
       }
     }
     verify( expr, bComparable, Res.MSG_RELATIONAL_OPERATOR_CANNOT_BE_APPLIED_TO_TYPE, expr.getOperator(), lhsType );
@@ -2663,7 +2664,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
           warn( lhs, lhs.getType() instanceof IErrorType ||
                   rhs.getType() instanceof IErrorType ||
                   !rhsType.isAssignableFrom( lhs.getType() ) ||
-                  isDynamic( rhsType ),
+                  rhsType.isDynamic(),
                   Res.MSG_UNNECESSARY_COERCION, lhs.getType().getRelativeName(), rhsType.getRelativeName() );
         }
 
@@ -2827,7 +2828,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
       UnaryNotPlusMinusExpression ue = new UnaryNotPlusMinusExpression();
       Expression e = popExpression();
       IType type = e.getType();
-      verify( e, type == JavaTypes.pBOOLEAN() || type == JavaTypes.BOOLEAN() || isDynamic( type ), Res.MSG_TYPE_MISMATCH, "boolean", type.getDisplayName() );
+      verify( e, type == JavaTypes.pBOOLEAN() || type == JavaTypes.BOOLEAN() || type.isDynamic(), Res.MSG_TYPE_MISMATCH, "boolean", type.getDisplayName() );
       e = possiblyWrapWithImplicitCoercion( e, JavaTypes.pBOOLEAN() );
       ue.setExpression( e );
       ue.setNot( true );
@@ -2848,7 +2849,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
       }
       else
       {
-        if( verify( e, !isDynamic( type ), Res.MSG_DYNAMIC_TYPE_NOT_ALLOWED_HERE ) )
+        if( verify( e, !type.isDynamic(), Res.MSG_DYNAMIC_TYPE_NOT_ALLOWED_HERE ) )
         {
           e = ensureOperandIntOrLong( e );
         }
@@ -3057,7 +3058,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
       IType ctxType = bAvoidContextType ? null : getInitializableType().getType();
       NewExpression e = new InferredNewExpression();
 
-      boolean bPlaceholder = isDynamic( ctxType );
+      boolean bPlaceholder = ctxType != null && ctxType.isDynamic();
       if( ctxType == null || bPlaceholder )
       {
         IInitializerExpression initializer;
@@ -3399,7 +3400,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
             JavaTypes.LIST().isAssignableFrom( type ) ||
             JavaTypes.COLLECTION().equals( type.getGenericType() ) ||
             JavaTypes.ITERABLE().equals( type.getGenericType() ) ||
-            isDynamic( type );
+            type.isDynamic();
   }
 
   private void parseBlockExpression()
@@ -3433,10 +3434,9 @@ public final class GosuParser extends ParserBase implements IGosuParser
           //Infer the parameter types of the block
           List<IType> inferredContextTypes = getContextTypesForBlockArgument( contextType );
 
-          ArrayList<ISymbol> args = parseParameterDeclarationList( block, false, inferredContextTypes, false, false, false, isDynamic( contextType.getType() ) );
-          for (ISymbol arg : args) {
-            _symTable.putSymbol(arg);
-          }
+          IType type = contextType.getType();
+          ArrayList<ISymbol> args = parseParameterDeclarationList( block, false, inferredContextTypes, false, false, false, type != null && type.isDynamic() );
+          args.forEach( _symTable::putSymbol );
           foundArrow = verify( block, match( null, "->", SourceCodeTokenizer.TT_OPERATOR ), Res.MSG_EXPECTING_ARROW_AFTER_BLOCK_ARGS );
           block.setArgs( args );
         }
@@ -4647,7 +4647,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
     {
       parseMapInitializerList( type );
     }
-    else if( isDynamic( type.getType() ) )
+    else if( type.getType().isDynamic() )
     {
       parseCollectionInitializerList( type.getType() );
     }
@@ -4684,7 +4684,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
     CollectionInitializerExpression lie = new CollectionInitializerExpression();
 
     IType componentType;
-    if( isDynamic( type ) )
+    if( type.isDynamic() )
     {
       componentType = type.getComponentType();
     }
@@ -4892,7 +4892,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
                         : MapAccess.supportsMapAccess( rootType )
                           ? MapAccess.getKeyType( rootType )
                           : null;
-      boolean bDynamicRoot = isDynamic( rootType );
+      boolean bDynamicRoot = rootType.isDynamic();
       if( bDynamicRoot )
       {
         parseExpression();
@@ -5345,7 +5345,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
           return;
         }
       }
-      if( isDynamic( symbolType ) )
+      if( symbolType.isDynamic() )
       {
         parseDynamicFunction( (Symbol)functionSymbol );
         verifyCase( peekExpression(), strFunction, functionSymbol.getName(), state, Res.MSG_FUNCTION_CASE_MISMATCH, false );
@@ -7345,7 +7345,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
     if( funcType instanceof FunctionType && ((FunctionType)funcType).getMethodInfo() != null )
     {
       IMethodInfo mi = ((FunctionType)funcType).getMethodInfo();
-      if( isDynamic( mi.getOwnersType() ) )
+      if( mi.getOwnersType().isDynamic() )
       {
         ctxType = ((FunctionType)funcType).getReturnType();
       }
@@ -13400,7 +13400,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
         }
         else if( bVarDynamicArg )
         {
-          argType = TypeSystem.getByFullName( "dynamic.Dynamic" );
+          argType = IDynamicType.instance();
         }
         else
         {
@@ -14271,7 +14271,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
     {
       checkForStaticMethod( classBean, eArgs, functionName, parser );
 
-      if( isDynamic( classBean ) )
+      if( classBean.isDynamic() )
       {
         IType[] params = null;
         if( eArgs != null )

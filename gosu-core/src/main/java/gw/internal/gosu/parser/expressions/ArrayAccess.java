@@ -4,7 +4,7 @@
 
 package gw.internal.gosu.parser.expressions;
 
-import gw.internal.gosu.dynamic.IDynamicType;
+import gw.lang.reflect.IDynamicType;
 import gw.internal.gosu.parser.Expression;
 import gw.internal.gosu.parser.TypeLoaderAccess;
 import gw.internal.gosu.parser.TypeLord;
@@ -13,7 +13,6 @@ import gw.internal.gosu.parser.statements.MemberAssignmentStatement;
 import gw.internal.gosu.parser.statements.ArrayAssignmentStatement;
 import gw.internal.gosu.parser.GosuParser;
 import gw.internal.gosu.parser.CannotExecuteGosuException;
-import gw.lang.parser.GosuParserTypes;
 import gw.lang.parser.IParsedElement;
 import gw.lang.parser.IExpression;
 import gw.lang.parser.expressions.IArrayAccessExpression;

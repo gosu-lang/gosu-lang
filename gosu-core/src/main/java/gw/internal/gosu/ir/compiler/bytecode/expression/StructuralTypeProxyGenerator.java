@@ -9,6 +9,7 @@ import gw.internal.gosu.parser.TypeLord;
 import gw.lang.parser.ISource;
 import gw.lang.parser.StandardCoercionManager;
 import gw.lang.parser.TypeVarToTypeMap;
+import gw.lang.reflect.IDynamicType;
 import gw.lang.reflect.IMethodInfo;
 import gw.lang.reflect.IParameterInfo;
 import gw.lang.reflect.IPropertyInfo;
@@ -38,22 +39,27 @@ public class StructuralTypeProxyGenerator {
   }
 
   public static Class makeProxy( Class<?> iface, Class<?> rootClass, final String name, final boolean bStaticImpl ) {
-
-    final IType type = TypeLord.getPureGenericType( TypeSystem.get( rootClass ) );
+    IType pureGenericType = TypeLord.getPureGenericType( TypeSystem.get( rootClass ) );
+    IType type;
+    if( JavaTypes.IEXPANDO().isAssignableFrom( pureGenericType ) ) {
+      // handle a structure mapped to a dynamic expando type
+      type = IDynamicType.instance();
+    }
+    else {
+      type = pureGenericType;
+    }
     final IType ifaceType = TypeLord.getPureGenericType( TypeSystem.get( iface ) );
     final IModule module = ifaceType.getTypeLoader().getModule();
     GosuClassTypeLoader loader = GosuClassTypeLoader.getDefaultClassLoader( module );
     final StructuralTypeProxyGenerator gen = new StructuralTypeProxyGenerator( bStaticImpl );
     IGosuClass gsProxy = loader.makeNewClass(
-      new LazyStringSourceFileHandle( gen.getNamespace( ifaceType ), name, new Callable<StringBuilder>() {
-        public StringBuilder call() {
-          TypeSystem.pushModule( module );
-          try {
-            return gen.generateProxy( ifaceType, type, name );
-          }
-          finally {
-            TypeSystem.popModule( module );
-          }
+      new LazyStringSourceFileHandle( gen.getNamespace( ifaceType ), name, () -> {
+        TypeSystem.pushModule( module );
+        try {
+          return gen.generateProxy( ifaceType, type, name );
+        }
+        finally {
+          TypeSystem.popModule( module );
         }
       } ) );
     return gsProxy.getBackingClass();
@@ -241,7 +247,7 @@ public class StructuralTypeProxyGenerator {
     }
     ITypeInfo rootTypeInfo = rootType.getTypeInfo();
     // Have to handle private for inner class case e.g., a private field on the inner class implements a property on a structure
-    boolean bPrivate = rootTypeInfo instanceof IRelativeTypeInfo && ((IRelativeTypeInfo) rootTypeInfo).getProperty( rootType, pi.getName() ).isPrivate();
+    boolean bPrivate = !isExpando( rootType ) && rootTypeInfo instanceof IRelativeTypeInfo && ((IRelativeTypeInfo)rootTypeInfo).getProperty( rootType, pi.getName() ).isPrivate();
     sb.append( "  property get " ).append( pi.getName() ).append( "() : " ).append( ifacePropertyType.getName() ).append( " {\n" );
     if( bPrivate ) {
       sb.append( "    return _root[\"" ).append( pi.getName() ).append( "\"] as " ).append( ifacePropertyType.getName() ).append( "\n" );
@@ -260,5 +266,10 @@ public class StructuralTypeProxyGenerator {
       }
       sb.append( "  }\n" );
     }
+  }
+
+  private boolean isExpando( IType rootType )
+  {
+    return JavaTypes.IEXPANDO().isAssignableFrom( rootType );
   }
 }

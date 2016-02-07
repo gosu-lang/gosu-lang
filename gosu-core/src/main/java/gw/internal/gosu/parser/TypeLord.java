@@ -4,6 +4,7 @@
 
 package gw.internal.gosu.parser;
 
+import gw.lang.reflect.IDynamicType;
 import gw.internal.gosu.parser.expressions.BlockType;
 import gw.internal.gosu.parser.expressions.TypeVariableDefinition;
 import gw.internal.gosu.parser.expressions.TypeVariableDefinitionImpl;
@@ -1943,8 +1944,7 @@ public class TypeLord
       if( type instanceof IPlaceholder && ((IPlaceholder)type).isPlaceholder() )
       {
         // Dynamic type trumps all
-        //## todo: cache this type already!
-        return type.getName().equals( "dynamic.Dynamic" ) ? type : TypeSystem.getByFullName( "dynamic.Dynamic" );
+        return type.getName().equals( IDynamicType.QNAME ) ? type : IDynamicType.instance();
       }
     }
 
