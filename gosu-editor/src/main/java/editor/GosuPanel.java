@@ -1656,26 +1656,30 @@ public class GosuPanel extends JPanel
         () -> {
           GosuEditor.getParserTaskQueue().waitUntilAllCurrentTasksFinish();
           IGosuProgram program = (IGosuProgram)TypeSystem.getByFullName( programName );
-
           try
           {
             Class<?> runnerClass = Class.forName( "editor.GosuPanel$Runner", true, runLoader );
+            String programFqn = program.getName();
+            System.out.println( "Running: " + programFqn + "\n" );
+            getProject().setRecentProgram( programFqn );
+            String result = null;
             try
             {
-              String programFqn = program.getName();
-              System.out.println( "Running: " + programFqn + "\n" );
-              getProject().setRecentProgram( programFqn );
-              String result = (String)runnerClass.getMethod( "run", String.class, List.class ).invoke( null, programFqn, TypeSystem.getGlobalModule().getSourcePath().stream().map( IResource::toJavaFile ).collect( Collectors.toList() ) );
+              result = (String)runnerClass.getMethod( "run", String.class, List.class ).
+                invoke( null, programFqn, TypeSystem.getGlobalModule().getSourcePath().stream().map( IResource::toJavaFile ).collect( Collectors.toList() ) );
+            }
+            finally
+            {
+              String programResults = result;
               EventQueue.invokeLater(
                 () -> {
                   removeBusySignal();
-                  if( result != null )
+                  if( programResults != null )
                   {
-                    System.out.print( result );
+                    System.out.print( programResults );
                   }
                 } );
-            }
-            finally {
+
               GosuClassPathThing.addOurProtocolHandler();
             }
           }
