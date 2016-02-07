@@ -177,6 +177,9 @@ public class Expando implements IExpando {
     return sb;
   }
 
+  public String toXml() {
+    return toXml( "object" );
+  }
   public String toXml( String name ) {
     StringBuilder sb = new StringBuilder();
     toXml( name, sb, 0 );
