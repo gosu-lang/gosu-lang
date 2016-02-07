@@ -250,7 +250,11 @@ public class GosuRuntimeMethods {
   {
     if( root instanceof IExpando )
     {
-      return ((IExpando)root).invoke( methodName, args );
+      Object ret = ((IExpando)root).invoke( methodName, args );
+      if( ret != IPlaceholder.UNHANDLED )
+      {
+        return ret;
+      }
     }
 
     boolean bDynamicType = isDynamic( type );
