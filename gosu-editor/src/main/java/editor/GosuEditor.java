@@ -626,6 +626,17 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
                                   }
                                 } );
 
+    _editor.getInputMap().put( KeyStroke.getKeyStroke( KeyEvent.VK_Y, CONTROL_KEY_MASK ), "_deleteLine" );
+    _editor.getActionMap().put( "_deleteLine",
+                                new AbstractAction()
+                                {
+                                  @Override
+                                  public void actionPerformed( ActionEvent e )
+                                  {
+                                    deleteLine();
+                                  }
+                                } );
+
     _editor.getInputMap().put( KeyStroke.getKeyStroke( KeyEvent.VK_TAB, KeyEvent.SHIFT_DOWN_MASK ), "_unindent" );
     _editor.getActionMap().put( "_unindent",
                                 new AbstractAction()
@@ -1290,8 +1301,7 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
     }
   }
 
-  private void recordCaretPositionForUndo()
-    throws BadLocationException
+  private void recordCaretPositionForUndo() throws BadLocationException
   {
     _editor.getDocument().insertString( _editor.getCaretPosition(), "8", null );
     _editor.getDocument().remove( _editor.getCaretPosition() - 1, 1 );
@@ -1359,6 +1369,25 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
         getEditor().select( start, end );
         getEditor().replaceSelection( "" );
       }
+    }
+    finally
+    {
+      getUndoManager().endUndoAtom( atom );
+    }
+  }
+
+  void deleteLine()
+  {
+    CompoundEdit atom = getUndoManager().beginUndoAtom( "Delete Line" );
+    try
+    {
+      recordCaretPositionForUndo();
+      TextComponentUtil.selectLineAtCaret( _editor );
+      getEditor().replaceSelection( "" );
+    }
+    catch( Exception e )
+    {
+      throw new RuntimeException( e );
     }
     finally
     {

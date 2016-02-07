@@ -855,6 +855,19 @@ public class GosuPanel extends JPanel
     deleteWordForwardItem.setAccelerator( KeyStroke.getKeyStroke( "control DELETE" ) );
     editMenu.add( deleteWordForwardItem );
 
+    JMenuItem deleteLine = new JMenuItem(
+      new AbstractAction( "Delete Line" )
+      {
+        @Override
+        public void actionPerformed( ActionEvent e )
+        {
+          getCurrentEditor().deleteLine();
+        }
+      } );
+    deleteLine.setMnemonic( 'L' );
+    deleteLine.setAccelerator( KeyStroke.getKeyStroke( "control Y" ) );
+    editMenu.add( deleteLine );
+
 
     editMenu.addSeparator();
 
