@@ -5,6 +5,7 @@
 package gw.lang.reflect;
 
 import gw.lang.function.IBlock;
+import gw.lang.reflect.json.Json;
 import gw.util.GosuEscapeUtil;
 
 import java.util.LinkedHashMap;
@@ -41,7 +42,7 @@ public class Expando implements IExpando {
   }
 
   @Override
-  public Map getMap() {
+  public Map<String, Object> getMap() {
     return _map;
   }
 
@@ -63,27 +64,8 @@ public class Expando implements IExpando {
         if( value instanceof Expando ) {
           ((Expando)value).toGosu( false, sb, indent+2 );
         }
-        else if( value instanceof List )
-        {
-          int length = ((List)value).size();
-          sb.append( '{' );
-          if( length > 0 ) {
-            sb.append( "\n" );
-            int iSize = ((List)value).size();
-            for( int i = 0; i < iSize; i++ ) {
-              Object comp = ((List)value).get( i );
-              if( comp instanceof Expando ) {
-                ((Expando)comp).toGosu( false, sb, indent+4 );
-              }
-              else {
-                indent( sb, indent+4 );
-                appendGosuValue( sb, comp );
-              }
-              appendCommaNewLine( sb, i < iSize - 1 );
-            }
-          }
-          indent( sb, indent + 2 );
-          sb.append( "}" );
+        else if( value instanceof List ) {
+          handleGosuList( sb, indent, (List)value );
         }
         else {
           appendGosuValue( sb, value );
@@ -92,8 +74,33 @@ public class Expando implements IExpando {
       }
     }
     indent( sb, indent );
-    sb.append( "}" );
+    sb.append( "}\n" );
+  }
 
+  private void handleGosuList( StringBuilder sb, int indent, List list )
+  {
+    int length = list.size();
+    sb.append( '{' );
+    if( length > 0 ) {
+      sb.append( "\n" );
+      int iSize = list.size();
+      for( int i = 0; i < iSize; i++ ) {
+        Object comp = list.get( i );
+        if( comp instanceof Expando ) {
+          ((Expando)comp).toGosu( false, sb, indent + 4 );
+        }
+        else if( comp instanceof List ) {
+          handleGosuList( sb, indent + 4, (List)comp );
+        }
+        else {
+          indent( sb, indent+4 );
+          appendGosuValue( sb, comp );
+        }
+        appendCommaNewLine( sb, i < iSize - 1 );
+      }
+    }
+    indent( sb, indent + 2 );
+    sb.append( "}" );
   }
 
   public String toJson() {
@@ -113,27 +120,8 @@ public class Expando implements IExpando {
         if( value instanceof Expando ) {
           ((Expando)value).toJson( sb, indent + 2 );
         }
-        else if( value instanceof List )
-        {
-          int length = ((List)value).size();
-          sb.append( '[' );
-          if( length > 0 ) {
-            sb.append( "\n" );
-            int iSize = ((List)value).size();
-            for( int i = 0; i < iSize; i++ ) {
-              Object comp = ((List)value).get( i );
-              if( comp instanceof Expando ) {
-                ((Expando)comp).toJson( sb, indent + 4 );
-              }
-              else {
-                indent( sb, indent+4 );
-                appendGosuValue( sb, comp );
-              }
-              appendCommaNewLine( sb, i < iSize - 1 );
-            }
-          }
-          indent( sb, indent + 2 );
-          sb.append( "]" );
+        else if( value instanceof List ) {
+          handleJsonList( sb, indent, (List)value );
         }
         else {
           appendGosuValue( sb, value );
@@ -142,8 +130,39 @@ public class Expando implements IExpando {
       }
     }
     indent( sb, indent );
-    sb.append( "}" );
+    sb.append( "}\n" );
+  }
 
+  private void handleJsonList( StringBuilder sb, int indent, List value )
+  {
+    int length = value.size();
+    sb.append( '[' );
+    if( length > 0 ) {
+      sb.append( "\n" );
+      int iSize = value.size();
+      for( int i = 0; i < iSize; i++ ) {
+        Object comp = value.get( i );
+        if( comp instanceof Expando ) {
+          ((Expando)comp).toJson( sb, indent + 4 );
+        }
+        else if( comp instanceof List ) {
+          handleJsonList( sb, indent + 4, value );
+        }
+        else {
+          indent( sb, indent+4 );
+          appendGosuValue( sb, comp );
+        }
+        appendCommaNewLine( sb, i < iSize - 1 );
+      }
+    }
+    indent( sb, indent + 2 );
+    sb.append( "]" );
+  }
+
+  public String toStructure( String name ) {
+    StringBuilder sb = new StringBuilder();
+    Json.instance().renderStructureTypes( name, this, sb );
+    return sb.toString();
   }
 
   private void appendCommaNewLine( StringBuilder sb, boolean bComma ) {
@@ -175,6 +194,29 @@ public class Expando implements IExpando {
       throw new IllegalStateException( "Unsupported expando type: " + comp.getClass() );
     }
     return sb;
+  }
+
+  private String getTypeFrom( Object comp ) {
+    String typeName;
+    if( comp instanceof String ) {
+      typeName = "String";
+    }
+    else if( comp instanceof Integer ||
+             comp instanceof Long ||
+             comp instanceof Double ||
+             comp instanceof Float ||
+             comp instanceof Short ||
+             comp instanceof Character ||
+             comp instanceof Byte ) {
+      typeName = comp.getClass().getSimpleName();
+    }
+    else if( comp == null ) {
+      typeName = null;
+    }
+    else {
+      throw new IllegalStateException( "Unsupported expando type: " + comp.getClass() );
+    }
+    return typeName;
   }
 
   public String toXml() {

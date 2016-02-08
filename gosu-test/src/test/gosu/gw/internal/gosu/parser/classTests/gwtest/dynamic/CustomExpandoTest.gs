@@ -48,7 +48,7 @@ class CustomExpandoTest extends gw.BaseVerifyErrantTest {
       return gw.lang.reflect.ReflectUtil.invokeMethod( _map, methodName, args )
     }
 
-    override property get Map() : java.util.Map {
+    override property get Map() : java.util.Map<String, Object> {
       return _map
     }
   }

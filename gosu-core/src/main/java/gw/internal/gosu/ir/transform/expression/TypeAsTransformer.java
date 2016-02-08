@@ -305,6 +305,10 @@ public class TypeAsTransformer extends AbstractExpressionTransformer<ITypeAsExpr
       return callStaticMethod( TypeSystem.class, "get", new Class[] {Class.class}, Collections.singletonList( root ) );
     }
 
+    if( lhsType.isDynamic() && !asType.isPrimitive() ) {
+      return root;
+    }
+
     IRExpression result = callCoercer( root, lhsType );
 
     if( asType.isPrimitive() )
