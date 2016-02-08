@@ -433,7 +433,201 @@ class JsonTest extends gw.BaseVerifyErrantTest {
           "    }\n" +
           "  }\n" +
           "}\n"
-          
+
+  var _amazon_ecs_json: String =
+       "{\n" +
+      " 'query': {\n" +
+      "  'count': 1,\n" +
+      "  'created': '2016-02-08T20:19:10Z',\n" +
+      "  'lang': 'en-US',\n" +
+      "  'results': {\n" +
+      "   'table': {\n" +
+      "    'hash': '750e8c9e5eebaeb61e4af3b71ee2922e',\n" +
+      "    'name': 'amazon.ecs',\n" +
+      "    'security': 'ANY',\n" +
+      "    'src': 'http://www.datatables.org/amazon/amazon.ecs.xml',\n" +
+      "    'meta': {\n" +
+      "     'author': 'Nagesh Susarla',\n" +
+      "     'documentationURL': 'http://docs.amazonwebservices.com/AWSECommerceService/2009-01-06/GSG/\\n        '\n" +
+      "    },\n" +
+      "    'request': {\n" +
+      "     'select': [\n" +
+      "      {\n" +
+      "       'usesRemoteLimit': 'true',\n" +
+      "       'key': [\n" +
+      "        {\n" +
+      "         'default': 'ItemSearch',\n" +
+      "         'name': 'Operation',\n" +
+      "         'type': 'xs:string'\n" +
+      "        },\n" +
+      "        {\n" +
+      "         'name': 'Title',\n" +
+      "         'required': 'true',\n" +
+      "         'type': 'xs:string'\n" +
+      "        },\n" +
+      "        {\n" +
+      "         'name': 'AWSAccessKeyId',\n" +
+      "         'required': 'true',\n" +
+      "         'type': 'xs:string'\n" +
+      "        },\n" +
+      "        {\n" +
+      "         'name': 'secret',\n" +
+      "         'required': 'true',\n" +
+      "         'type': 'xs:string'\n" +
+      "        },\n" +
+      "        {\n" +
+      "         'default': 'Books',\n" +
+      "         'name': 'SearchIndex',\n" +
+      "         'type': 'xs:string'\n" +
+      "        },\n" +
+      "        {\n" +
+      "         'name': 'ResponseGroup',\n" +
+      "         'type': 'xs:string'\n" +
+      "        },\n" +
+      "        {\n" +
+      "         'name': 'AssociateTag',\n" +
+      "         'type': 'xs:string'\n" +
+      "        },\n" +
+      "        {\n" +
+      "         'name': 'Sort',\n" +
+      "         'type': 'xs:string'\n" +
+      "        }\n" +
+      "       ]\n" +
+      "      },\n" +
+      "      {\n" +
+      "       'usesRemoteLimit': 'true',\n" +
+      "       'key': [\n" +
+      "        {\n" +
+      "         'default': 'ItemSearch',\n" +
+      "         'name': 'Operation',\n" +
+      "         'type': 'xs:string'\n" +
+      "        },\n" +
+      "        {\n" +
+      "         'name': 'Keywords',\n" +
+      "         'required': 'true',\n" +
+      "         'type': 'xs:string'\n" +
+      "        },\n" +
+      "        {\n" +
+      "         'name': 'AWSAccessKeyId',\n" +
+      "         'required': 'true',\n" +
+      "         'type': 'xs:string'\n" +
+      "        },\n" +
+      "        {\n" +
+      "         'name': 'secret',\n" +
+      "         'required': 'true',\n" +
+      "         'type': 'xs:string'\n" +
+      "        },\n" +
+      "        {\n" +
+      "         'default': 'Books',\n" +
+      "         'name': 'SearchIndex',\n" +
+      "         'type': 'xs:string'\n" +
+      "        },\n" +
+      "        {\n" +
+      "         'name': 'ResponseGroup',\n" +
+      "         'type': 'xs:string'\n" +
+      "        },\n" +
+      "        {\n" +
+      "         'name': 'AssociateTag',\n" +
+      "         'type': 'xs:string'\n" +
+      "        },\n" +
+      "        {\n" +
+      "         'name': 'Sort',\n" +
+      "         'type': 'xs:string'\n" +
+      "        }\n" +
+      "       ]\n" +
+      "      },\n" +
+      "      {\n" +
+      "       'usesRemoteLimit': 'true',\n" +
+      "       'key': [\n" +
+      "        {\n" +
+      "         'default': 'ItemLookup',\n" +
+      "         'name': 'Operation',\n" +
+      "         'type': 'xs:string'\n" +
+      "        },\n" +
+      "        {\n" +
+      "         'name': 'ItemId',\n" +
+      "         'required': 'true',\n" +
+      "         'type': 'xs:string'\n" +
+      "        },\n" +
+      "        {\n" +
+      "         'name': 'MerchantId',\n" +
+      "         'type': 'xs:string'\n" +
+      "        },\n" +
+      "        {\n" +
+      "         'name': 'AWSAccessKeyId',\n" +
+      "         'required': 'true',\n" +
+      "         'type': 'xs:string'\n" +
+      "        },\n" +
+      "        {\n" +
+      "         'name': 'secret',\n" +
+      "         'required': 'true',\n" +
+      "         'type': 'xs:string'\n" +
+      "        },\n" +
+      "        {\n" +
+      "         'name': 'ResponseGroup',\n" +
+      "         'type': 'xs:string'\n" +
+      "        },\n" +
+      "        {\n" +
+      "         'name': 'AssociateTag',\n" +
+      "         'type': 'xs:string'\n" +
+      "        },\n" +
+      "        {\n" +
+      "         'name': 'Sort',\n" +
+      "         'type': 'xs:string'\n" +
+      "        },\n" +
+      "        {\n" +
+      "         'default': '2009-03-31',\n" +
+      "         'name': 'Version',\n" +
+      "         'type': 'xs:string'\n" +
+      "        }\n" +
+      "       ]\n" +
+      "      }\n" +
+      "     ]\n" +
+      "    }\n" +
+      "   }\n" +
+      "  }\n" +
+      " }\n" +
+      "}"
+
+  var _amazon_ecs_structure: String =
+       "structure Amazon {\n" +
+       "  property get query(): query\n" +
+       "  structure query {\n" +
+       "    property get created(): String\n" +
+       "    property get count(): Integer\n" +
+       "    property get lang(): String\n" +
+       "    property get results(): results\n" +
+       "    structure results {\n" +
+       "      property get table(): table\n" +
+       "      structure table {\n" +
+       "        property get request(): request\n" +
+       "        property get security(): String\n" +
+       "        property get src(): String\n" +
+       "        property get meta(): meta\n" +
+       "        property get name(): String\n" +
+       "        property get hash(): String\n" +
+       "        structure request {\n" +
+       "          property get select(): List<select>\n" +
+       "          structure select {\n" +
+       "            property get usesRemoteLimit(): String\n" +
+       "            property get key(): List<key>\n" +
+       "            structure key {\n" +
+       "              property get name(): String\n" +
+       "              property get type(): String\n" +
+       "              property get Default(): String\n" +
+       "              property get required(): String\n" +
+       "            }\n" +
+       "          }\n" +
+       "        }\n" +
+       "        structure meta {\n" +
+       "          property get documentationURL(): String\n" +
+       "          property get author(): String\n" +
+       "        }\n" +
+       "      }\n" +
+       "    }\n" +
+       "  }\n" +
+       "}\n"
+
   function testStructureFromJson() {
     var results: Dynamic = Json.instance().fromJsonString( _yahoo_finance_quotes_json )
     var structr = results.toStructure( "Results" )
@@ -446,6 +640,22 @@ class JsonTest extends gw.BaseVerifyErrantTest {
       var change = stock.Change
       var volume = stock.Volume
       print( "${symbol} ${close} ${change} ${volume}" )
+    }
+  }
+
+  function testStructureFromJson_AmazonEcs() {
+    var results: Dynamic = Json.instance().fromJsonString( _amazon_ecs_json )
+    var structr = results.toStructure( "Amazon" )
+    assertEquals( _amazon_ecs_structure, structr )
+
+    var am = results as Amazon
+    for( sel in am.query.results.table.request.select )
+    {
+      print( sel.usesRemoteLimit )
+      for( k in sel.key )
+      {
+        print( k.name )
+      }
     }
   }
 
@@ -517,4 +727,43 @@ class JsonTest extends gw.BaseVerifyErrantTest {
       }
     }
   }
+
+  structure Amazon {
+    property get query(): query
+    structure query {
+      property get created(): String
+      property get count(): Integer
+      property get lang(): String
+      property get results(): results
+      structure results {
+        property get table(): table
+        structure table {
+          property get request(): request
+          property get security(): String
+          property get src(): String
+          property get meta(): meta
+          property get name(): String
+          property get hash(): String
+          structure request {
+            property get select(): List<select>
+            structure select {
+              property get usesRemoteLimit(): String
+              property get key(): List<key>
+              structure key {
+                property get name(): String
+                property get type(): String
+                property get Default(): String
+                property get required(): String
+              }
+            }
+          }
+          structure meta {
+            property get documentationURL(): String
+            property get author(): String
+          }
+        }
+      }
+    }
+  }
+
 }

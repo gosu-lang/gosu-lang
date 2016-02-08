@@ -77,6 +77,7 @@ public class Json
       }
       for( String key: ((Expando)jsonObj).getMap().keySet() )
       {
+        key = Expando.getAltKey( key );
         Object value = ((Expando)jsonObj).getFieldValue( key );
         IJsonType memberType = transformJsonObject( key, (IJsonParentType)type, value );
         if( memberType != null )
