@@ -19,10 +19,8 @@ dependencies:
 
 general:
   branches:
-    only:
-      - ant
-      - spec
-      - tooling-fixes
+    ignore:
+      - /rel\/.*/
   artifacts:
     - "gosu-test/target/site" # preserve the generated HTML test reports
     - mvn_output.log
