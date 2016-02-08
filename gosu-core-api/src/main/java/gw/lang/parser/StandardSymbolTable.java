@@ -419,6 +419,7 @@ public class StandardSymbolTable implements ISymbolTable
       _iScopeCsr++;
       scope.setCSR( _iScopeCsr );
     }
+    ensureIsolatedScopeSizesCapacity();
     return scope;
   }
 
