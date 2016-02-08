@@ -91,7 +91,10 @@ public class Json
     }
     else if( jsonObj instanceof List )
     {
-      type = new JsonListType( parent );
+      if( type == null )
+      {
+        type = new JsonListType( parent );
+      }
       IJsonType compType = null;
       for( Object elem: (List)jsonObj )
       {
