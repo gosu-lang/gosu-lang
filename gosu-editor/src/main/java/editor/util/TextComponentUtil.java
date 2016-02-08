@@ -970,15 +970,20 @@ public class TextComponentUtil
   {
     if( GosuStringUtil.isEmpty( editor.getSelectedText() ) )
     {
-      int lineStart = getLineStart( editor.getText(), editor.getCaretPosition() );
-      int lineEnd = getLineEnd( editor.getText(), editor.getCaretPosition() );
-      if( lineEnd < editor.getText().length() )
-      {
-        lineEnd++;
-      }
-      editor.getCaret().setDot( lineEnd );
-      editor.getCaret().moveDot( lineStart );
+      selectLineAtCaret( editor );
     }
+  }
+
+  public static void selectLineAtCaret( JTextComponent editor )
+  {
+    int lineStart = getLineStart( editor.getText(), editor.getCaretPosition() );
+    int lineEnd = getLineEnd( editor.getText(), editor.getCaretPosition() );
+    if( lineEnd < editor.getText().length() )
+    {
+      lineEnd++;
+    }
+    editor.getCaret().setDot( lineEnd );
+    editor.getCaret().moveDot( lineStart );
   }
 
   public static void selectRight( JTextComponent editor )

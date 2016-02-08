@@ -96,6 +96,56 @@ public class Expando implements IExpando {
 
   }
 
+  public String toJson() {
+    StringBuilder sb = new StringBuilder();
+    toJson( sb, 0 );
+    return sb.toString();
+  }
+  public void toJson( StringBuilder sb, int indent ) {
+    int iKey = 0;
+    indent( sb, indent );
+    if( _map.size() > 0 ) {
+      sb.append( " {\n" );
+      for( String key : _map.keySet() ) {
+        indent( sb, indent + 2 );
+        sb.append( '"').append( key ).append( '"' ).append( ": " );
+        Object value = _map.get( key );
+        if( value instanceof Expando ) {
+          ((Expando)value).toJson( sb, indent + 2 );
+        }
+        else if( value instanceof List )
+        {
+          int length = ((List)value).size();
+          sb.append( '[' );
+          if( length > 0 ) {
+            sb.append( "\n" );
+            int iSize = ((List)value).size();
+            for( int i = 0; i < iSize; i++ ) {
+              Object comp = ((List)value).get( i );
+              if( comp instanceof Expando ) {
+                ((Expando)comp).toJson( sb, indent + 4 );
+              }
+              else {
+                indent( sb, indent+4 );
+                appendGosuValue( sb, comp );
+              }
+              appendCommaNewLine( sb, i < iSize - 1 );
+            }
+          }
+          indent( sb, indent + 2 );
+          sb.append( "]" );
+        }
+        else {
+          appendGosuValue( sb, value );
+        }
+        appendCommaNewLine( sb, iKey++ < _map.size() - 1 );
+      }
+    }
+    indent( sb, indent );
+    sb.append( "}" );
+
+  }
+
   private void appendCommaNewLine( StringBuilder sb, boolean bComma ) {
     if( bComma ) {
       sb.append( ',' );
@@ -127,6 +177,9 @@ public class Expando implements IExpando {
     return sb;
   }
 
+  public String toXml() {
+    return toXml( "object" );
+  }
   public String toXml( String name ) {
     StringBuilder sb = new StringBuilder();
     toXml( name, sb, 0 );

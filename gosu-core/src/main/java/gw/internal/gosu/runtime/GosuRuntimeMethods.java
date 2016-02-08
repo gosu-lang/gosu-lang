@@ -63,8 +63,7 @@ public class GosuRuntimeMethods {
 
   private static boolean isDynamic( IType type )
   {
-    return (type instanceof IPlaceholder && ((IPlaceholder)type).isPlaceholder()) ||
-           (type instanceof IGosuClass && ((IGosuClass)type).isStructure());
+    return type != null && (type.isDynamic() || (type instanceof IGosuClass && ((IGosuClass)type).isStructure()));
   }
 
   private static Object invokePropertyGetter( String dispatchName, Object root, IType type, String propertyName )
@@ -250,7 +249,11 @@ public class GosuRuntimeMethods {
   {
     if( root instanceof IExpando )
     {
-      return ((IExpando)root).invoke( methodName, args );
+      Object ret = ((IExpando)root).invoke( methodName, args );
+      if( ret != IPlaceholder.UNHANDLED )
+      {
+        return ret;
+      }
     }
 
     boolean bDynamicType = isDynamic( type );

@@ -22,6 +22,7 @@ import gw.lang.parser.GosuParserTypes;
 import gw.lang.parser.IExpression;
 import gw.lang.parser.IFunctionSymbol;
 import gw.lang.parser.IGosuParser;
+import gw.lang.parser.ILockedDownSymbol;
 import gw.lang.parser.IParseTree;
 import gw.lang.parser.IScriptPartId;
 import gw.lang.parser.ISymbol;
@@ -57,6 +58,7 @@ import gw.util.concurrent.LockingLazyVar;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.Writer;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -66,7 +68,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
 
 /**
  * A template generator employing Gosu.
@@ -104,9 +105,9 @@ public class TemplateGenerator implements ITemplateGenerator
   public static final LockingLazyVar<ISymbol> PRINT_CONTENT_SYMBOL = new LockingLazyVar<ISymbol>() {
     protected ISymbol init() {
       try {
-        return new Symbol( PRINT_METHOD,
-                           new FunctionType( PRINT_METHOD, GosuParserTypes.NULL_TYPE(), new IType[]{GosuParserTypes.STRING_TYPE(), GosuParserTypes.BOOLEAN_TYPE()} ),
-                           TemplateGenerator.class.getMethod( PRINT_METHOD, String.class, Boolean.TYPE ) );
+        return new LockedDownSymbol( PRINT_METHOD,
+                           new FunctionType( PRINT_METHOD, GosuParserTypes.NULL_TYPE(), new IType[]{GosuParserTypes.STRING_TYPE(), JavaTypes.pBOOLEAN()} ),
+                           TemplateGenerator.class.getMethod( PRINT_METHOD, String.class, boolean.class ) );
       } catch (NoSuchMethodException e) {
         throw new RuntimeException( e );
       }
@@ -115,7 +116,7 @@ public class TemplateGenerator implements ITemplateGenerator
   public static final LockingLazyVar<ISymbol> PRINT_RANGE_SYMBOL = new LockingLazyVar<ISymbol>() {
     protected ISymbol init() {
       try {
-        return new Symbol( PRINT_RANGE_METHOD,
+        return new LockedDownSymbol( PRINT_RANGE_METHOD,
                            new FunctionType( PRINT_RANGE_METHOD, GosuParserTypes.NULL_TYPE(), new IType[]{JavaTypes.pINT(), JavaTypes.pINT()} ),
                            TemplateGenerator.class.getMethod( PRINT_RANGE_METHOD, int.class, int.class ) );
       } catch (NoSuchMethodException e) {
@@ -481,8 +482,8 @@ public class TemplateGenerator implements ITemplateGenerator
     HashMap<String, List<IFunctionSymbol>> dfsMap = new HashMap<>();
     dfsMap.put( PRINT_METHOD, Collections.<IFunctionSymbol>singletonList(new DynamicFunctionSymbol(parser.getSymbolTable(),
             PRINT_METHOD,
-            new FunctionType(PRINT_METHOD, GosuParserTypes.NULL_TYPE(), new IType[]{GosuParserTypes.STRING_TYPE(), GosuParserTypes.BOOLEAN_TYPE()}),
-            Arrays.<ISymbol>asList(new Symbol("content", GosuParserTypes.STRING_TYPE(), null), new Symbol("escape", GosuParserTypes.BOOLEAN_TYPE(), null)),
+            new FunctionType(PRINT_METHOD, GosuParserTypes.NULL_TYPE(), new IType[]{GosuParserTypes.STRING_TYPE(), JavaTypes.pBOOLEAN()}),
+            Arrays.<ISymbol>asList(new Symbol("content", GosuParserTypes.STRING_TYPE(), null), new Symbol("escape", JavaTypes.pBOOLEAN(), null)),
             (IExpression)null)));
     dfsMap.put(PRINT_RANGE_METHOD, Collections.<IFunctionSymbol>singletonList(new DynamicFunctionSymbol(parser.getSymbolTable(),
         PRINT_RANGE_METHOD,
@@ -751,6 +752,7 @@ public class TemplateGenerator implements ITemplateGenerator
   /**
    * For internal use only!!
    */
+  @SuppressWarnings("UnusedDeclaration")
   public static void printContent( String strContent , boolean escape )
   {
     try
@@ -895,4 +897,19 @@ public class TemplateGenerator implements ITemplateGenerator
       }
     }
   }
+
+  public static class LockedDownSymbol extends Symbol implements ILockedDownSymbol
+  {
+    public LockedDownSymbol( CharSequence strName, IType type, Method value )
+    {
+      super( strName.toString(), type, value );
+    }
+
+    @Override
+    public Object getValue()
+    {
+      return getValueDirectly();
+    }
+  }
+
 }

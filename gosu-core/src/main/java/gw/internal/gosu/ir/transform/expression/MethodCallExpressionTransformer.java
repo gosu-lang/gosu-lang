@@ -10,7 +10,6 @@ import gw.internal.gosu.ir.nodes.JavaClassIRType;
 import gw.internal.gosu.ir.transform.ExpressionTransformer;
 import gw.internal.gosu.ir.transform.GosuFragmentTransformer;
 import gw.internal.gosu.ir.transform.TopLevelTransformationContext;
-import gw.internal.gosu.parser.CommonSymbolsScope;
 import gw.internal.gosu.parser.DynamicFunctionSymbol;
 import gw.internal.gosu.parser.Expression;
 import gw.internal.gosu.parser.InitConstructorFunctionSymbol;
@@ -19,7 +18,6 @@ import gw.internal.gosu.parser.ThisConstructorFunctionSymbol;
 import gw.internal.gosu.parser.expressions.Identifier;
 import gw.internal.gosu.parser.expressions.MethodCallExpression;
 import gw.internal.gosu.parser.statements.BeanMethodCallStatement;
-import gw.internal.gosu.runtime.GosuRuntimeMethods;
 import gw.internal.gosu.template.TemplateGenerator;
 import gw.lang.function.IBlock;
 import gw.lang.ir.IRExpression;
@@ -29,7 +27,7 @@ import gw.lang.ir.IRType;
 import gw.lang.ir.IRTypeConstants;
 import gw.lang.parser.IExpression;
 import gw.lang.parser.IFunctionSymbol;
-import gw.lang.parser.StandardSymbolTable;
+import gw.lang.parser.ILockedDownSymbol;
 import gw.lang.reflect.IAttributedFeatureInfo;
 import gw.lang.reflect.IFunctionType;
 import gw.lang.reflect.IMethodInfo;
@@ -63,22 +61,18 @@ public class MethodCallExpressionTransformer extends AbstractExpressionTransform
   {
     IFunctionSymbol symbol = _expr().getFunctionSymbol();
 
-    if( _cc().isExternalSymbol( symbol.getName() ) )
+    if( symbol instanceof ILockedDownSymbol )
+    {
+      // 'Global' static function call e.g., print()
+      return callGlobalStaticFunction( symbol );
+    }
+    else if( _cc().isExternalSymbol( symbol.getName() ) )
     {
       return callExternalProgramSymbol(symbol);
     }
     else if( symbol instanceof DynamicFunctionSymbol )
     {
       return callDynamicFunctionSymbol(symbol);
-    }
-    else if( symbol instanceof CommonSymbolsScope.LockedDownSymbol )
-    {
-      // 'Global' static function call e.g., print()
-      return callGlobalStaticFunction(symbol);
-    }
-    else if( symbol == TemplateGenerator.PRINT_CONTENT_SYMBOL.get() )
-    {
-      return callPrintContent();
     }
     else if( symbol.getType() instanceof IPlaceholder && ((IPlaceholder)symbol.getType()).isPlaceholder() )
     {
@@ -242,23 +236,22 @@ public class MethodCallExpressionTransformer extends AbstractExpressionTransform
     return result;
   }
 
-  private IRExpression callGlobalStaticFunction(IFunctionSymbol symbol) {
-    if( symbol.getDisplayName().equals( StandardSymbolTable.PRINT.getName() ) )
+  private IRExpression callGlobalStaticFunction( IFunctionSymbol symbol ) {
+    IRSymbol currentTemplate = TemplateStringLiteralTransformer.getCurrentTemplateSymbol();
+    if( currentTemplate != null && symbol == TemplateGenerator.PRINT_CONTENT_SYMBOL.get() )
     {
-      IRMethod method = IRMethodFactory.createIRMethod( GosuRuntimeMethods.class, "print", Object.class );
-      return callMethod( method, null, pushArguments( method ) );
+      // Special case printContent() implementation for StringLiteral template
+      // where we optimize by appending to the StringBuilder for the string.
+      return callMethod( StringBuilder.class, "append", new Class[]{Object.class},
+        identifier( currentTemplate ),
+        exprList( ExpressionTransformer.compile( _expr().getArgs()[0], _cc() ) ) );
     }
     else
     {
-      throw new UnsupportedOperationException(symbol.getDisplayName());
+      // Call the Method value of the Symbol directly
+      IRMethod method = IRMethodFactory.createIRMethod( (java.lang.reflect.Method)symbol.getValue() );
+      return callMethod( method, null, pushArguments( method ) );
     }
-  }
-
-  private IRExpression callPrintContent() {
-    IRSymbol currentTemplate = TemplateStringLiteralTransformer.getCurrentTemplateSymbol();
-    return callMethod( StringBuilder.class, "append", new Class[]{Object.class},
-            identifier( currentTemplate ),
-            exprList( ExpressionTransformer.compile( _expr().getArgs()[0], _cc() ) ) );
   }
 
   private IRExpression castIfReturnTypeDerivedFromTypeVariable( DynamicFunctionSymbol dfs, IRExpression root )

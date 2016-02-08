@@ -12,7 +12,6 @@ import gw.internal.gosu.parser.expressions.BlockExpression;
 import gw.internal.gosu.parser.expressions.DefaultArgLiteral;
 import gw.internal.gosu.parser.expressions.Identifier;
 import gw.internal.gosu.parser.expressions.ImplicitTypeAsExpression;
-import gw.internal.gosu.parser.expressions.Literal;
 import gw.internal.gosu.parser.expressions.ModifierListClause;
 import gw.internal.gosu.parser.expressions.NotAWordExpression;
 import gw.internal.gosu.parser.expressions.NullExpression;
@@ -48,7 +47,6 @@ import gw.lang.parser.ScriptPartId;
 import gw.lang.parser.StandardCoercionManager;
 import gw.lang.parser.StandardScope;
 import gw.lang.parser.exceptions.ImplicitCoercionError;
-import gw.lang.parser.exceptions.IncompatibleTypeException;
 import gw.lang.parser.exceptions.ParseException;
 import gw.lang.parser.exceptions.ParseIssue;
 import gw.lang.parser.exceptions.ParseResultsException;
@@ -61,7 +59,6 @@ import gw.lang.parser.resources.ResourceKey;
 import gw.lang.reflect.IErrorType;
 import gw.lang.reflect.IMethodInfo;
 import gw.lang.reflect.INamespaceType;
-import gw.lang.reflect.IPlaceholder;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.Modifier;
 import gw.lang.reflect.TypeSystem;
@@ -742,11 +739,11 @@ public abstract class ParserBase implements IParserPart
 
   protected IType resolveType( ParsedElement parsedElement, IType lhsType, int op, IType rhsType )
   {
-    if( isDynamic( lhsType ) )
+    if( lhsType.isDynamic() )
     {
       return lhsType;
     }
-    if( isDynamic( rhsType ) )
+    if( rhsType.isDynamic() )
     {
       return rhsType;
     }
@@ -818,11 +815,11 @@ public abstract class ParserBase implements IParserPart
 
   public static IType resolveType( IType lhsType, int op, IType rhsType )
   {
-    if( isDynamic( lhsType ) )
+    if( lhsType.isDynamic() )
     {
       return lhsType;
     }
-    if( isDynamic( rhsType ) )
+    if( rhsType.isDynamic() )
     {
       return rhsType;
     }
@@ -1857,11 +1854,6 @@ public abstract class ParserBase implements IParserPart
     }
   }
 
-  protected static boolean isDynamic( IType type )
-  {
-    return type instanceof IPlaceholder && ((IPlaceholder)type).isPlaceholder();
-  }
-  
   protected void parseAnnotation( List<IGosuAnnotation> annotations )
   {
     int iOffset = getTokenizer().getTokenStart();

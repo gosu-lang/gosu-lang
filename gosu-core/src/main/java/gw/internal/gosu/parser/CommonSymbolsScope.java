@@ -5,6 +5,7 @@
 package gw.internal.gosu.parser;
 
 import gw.lang.parser.GosuParserTypes;
+import gw.lang.parser.ILockedDownSymbol;
 import gw.lang.parser.ISymbol;
 import gw.lang.parser.ISymbolTable;
 import gw.lang.parser.StandardScope;
@@ -14,6 +15,7 @@ import gw.lang.reflect.IType;
 import gw.lang.reflect.java.JavaTypes;
 import gw.util.GosuExceptionUtil;
 
+import java.lang.reflect.Method;
 import java.util.Map;
 
 /**
@@ -60,9 +62,9 @@ public class CommonSymbolsScope<K extends CharSequence, V extends ISymbol> exten
     throw new UnsupportedOperationException( "Cannot add symbols to the CommonSymbolsScope" );
   }
 
-  public static class LockedDownSymbol extends Symbol
+  public static class LockedDownSymbol extends Symbol implements ILockedDownSymbol
   {
-    public LockedDownSymbol( CharSequence strName, IType type, Object value )
+    public LockedDownSymbol( CharSequence strName, IType type, Method value )
     {
       super( strName.toString(), type, value );
     }
