@@ -14,8 +14,8 @@ machine:
 
 dependencies:
   override:
-    # :go-offline will download as much as possible, saving time later.
-    - mvn -B dependency:go-offline
+    # :go-offline will download too much; :resolve-plugins is as good as we can do up-front.
+    - mvn -B dependency:resolve-plugins
 
 general:
   branches:
