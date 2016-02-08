@@ -158,7 +158,7 @@ public class GosuPropertyInfo extends GosuBaseAttributedFeatureInfo implements I
       {
         throw new ErrantGosuClassException( gsClass );
       }
-      _accessor = new GosuPropertyAccessor();
+      _accessor = getOwnersType().isStructure() ? new ReflectivePropertyAccessor() : new GosuPropertyAccessor();
     }
     return _accessor;
   }
@@ -362,6 +362,21 @@ public class GosuPropertyInfo extends GosuBaseAttributedFeatureInfo implements I
       }
     }
   }
+
+  private class ReflectivePropertyAccessor implements IPropertyAccessor {
+    @Override
+    public Object getValue( Object ctx )
+    {
+      return ReflectUtil.getProperty( ctx, getName() );
+    }
+
+    @Override
+    public void setValue( Object ctx, Object value )
+    {
+      ReflectUtil.setProperty( ctx, getName(), value );
+    }
+  }
+
   @Override
   public IMethodInfo getReadMethodInfo() {
     ReducedDynamicFunctionSymbol getterDfs = _dps.getGetterDfs();
@@ -384,7 +399,8 @@ public class GosuPropertyInfo extends GosuBaseAttributedFeatureInfo implements I
 //    }
     return null;
   }
-  
+
+
   public String toString() {
     return getName();
   }
