@@ -126,7 +126,7 @@ public class Project implements IProject
     {
       return project;
     }
-    project = new File( projectDir.getName() + ".prj" );
+    project = new File( projectDir.getAbsolutePath() + File.separator + projectDir.getName() + ".prj" );
     //noinspection ResultOfMethodCallIgnored
     try( FileWriter writer = new FileWriter( project ) )
     {
