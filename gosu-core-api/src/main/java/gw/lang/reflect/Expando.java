@@ -187,7 +187,7 @@ public class Expando implements IExpando {
 
   public String toStructure( String name ) {
     StringBuilder sb = new StringBuilder();
-    Json.instance().renderStructureTypes( name, this, sb );
+    Json.renderStructureTypes( name, this, sb );
     return sb.toString();
   }
 

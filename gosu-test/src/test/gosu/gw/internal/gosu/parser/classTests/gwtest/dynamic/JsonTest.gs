@@ -629,11 +629,11 @@ class JsonTest extends gw.BaseVerifyErrantTest {
        "}\n"
 
   function testStructureFromJson() {
-    var results: Dynamic = Json.instance().fromJsonString( _yahoo_finance_quotes_json )
+    var results: Dynamic = Json.fromJsonString( _yahoo_finance_quotes_json )
     var structr = results.toStructure( "Results" )
     assertEquals( _structure, structr )
 
-    var structureResults = Json.instance().fromJsonString( _yahoo_finance_quotes_json ) as Results
+    var structureResults = Json.fromJsonString( _yahoo_finance_quotes_json ) as Results
     for( stock in structureResults.query.results.quote ) {
       var symbol = stock.Symbol
       var close = stock.Ask
@@ -644,7 +644,7 @@ class JsonTest extends gw.BaseVerifyErrantTest {
   }
 
   function testStructureFromJson_AmazonEcs() {
-    var results: Dynamic = Json.instance().fromJsonString( _amazon_ecs_json )
+    var results: Dynamic = Json.fromJsonString( _amazon_ecs_json )
     var structr = results.toStructure( "Amazon" )
     assertEquals( _amazon_ecs_structure, structr )
 
