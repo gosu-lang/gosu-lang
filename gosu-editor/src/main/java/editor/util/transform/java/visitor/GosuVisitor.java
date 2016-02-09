@@ -69,7 +69,6 @@ import javax.lang.model.element.Name;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.regex.Pattern;
 
 
 public class GosuVisitor implements TreeVisitor<String, Void> {
@@ -628,8 +627,8 @@ public class GosuVisitor implements TreeVisitor<String, Void> {
       Tree arrayType = ((NewArrayTree) initializer).getType();
       if (arrayType != null) {
         initType = arrayType.accept(this, null);
-        initType = initType.replaceAll(Pattern.quote("[]"), "");
-        varType = varType.replaceAll(Pattern.quote("[]"), "");
+        initType = initType.replaceAll("\\[\\]", "");
+        varType = varType.replaceAll("\\[\\]", "");
       }
     } else if (initializer instanceof NewClassTree) {
       initType = ((NewClassTree) initializer).getIdentifier().accept(this, null);
@@ -1351,11 +1350,7 @@ public class GosuVisitor implements TreeVisitor<String, Void> {
     }
     out.append(")");
     if (constructorTypes != null) {
-      String newOut = out.toString();
-      for (String key : constructorTypes.keySet()) {
-        newOut = newOut.replace(": " + key, ": " + constructorTypes.get(key));
-      }
-      out = new StringBuilder(newOut);
+      replaceTypes(out, constructorTypes);
     }
     mode = oldMode;
     if (returnType != null) {
@@ -1373,6 +1368,25 @@ public class GosuVisitor implements TreeVisitor<String, Void> {
     }
     symTable.popLocalScope();
     return out.toString();
+  }
+
+  private void replaceTypes(StringBuilder out, HashMap<String, String> types) {
+    int i = 0;
+    while(i < out.length()) {
+      if(out.charAt(i) == ':') {
+        i++;
+        while(out.charAt(i) == ' ') i++;
+        int j = i;
+        while(out.charAt(i) != ',' && out.charAt(i) != ')' && out.charAt(i) != ' ') i++;
+        String type = out.subSequence(j, i).toString();
+        String sub = types.get(type);
+        if(sub != null) {
+          out.replace(j, i, sub);
+          i = j + sub.length();
+        }
+      }
+      i++;
+    }
   }
 
 
