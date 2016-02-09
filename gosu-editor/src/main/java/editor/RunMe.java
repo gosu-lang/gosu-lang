@@ -15,6 +15,7 @@ import gw.lang.reflect.module.IExecutionEnvironment;
 import java.awt.*;
 import java.io.File;
 import java.util.*;
+import java.util.List;
 import java.util.stream.Collectors;
 
 public class RunMe
@@ -49,8 +50,24 @@ public class RunMe
     IExecutionEnvironment execEnv = TypeSystem.getExecutionEnvironment();
     _gosuInitialization = GosuInitialization.instance( execEnv );
     GosucModule gosucModule = new GosucModule(
-      IExecutionEnvironment.DEFAULT_SINGLE_MODULE_NAME, project.getSourcePath(), Gosu.deriveClasspathFrom( RunMe.class ).stream().map( File::getAbsolutePath ).collect( Collectors.toList() ),
+      IExecutionEnvironment.DEFAULT_SINGLE_MODULE_NAME, project.getSourcePath(), deriveClasspath( project ),
       "", Collections.<GosucDependency>emptyList(), Collections.<String>emptyList() );
     _gosuInitialization.reinitializeSimpleIde( gosucModule );
+  }
+
+  private static List<String> deriveClasspath( Project project )
+  {
+    List<String> classpath = new ArrayList<>();
+    List<String> sourcePath = project.getSourcePath();
+    for( String path: sourcePath )
+    {
+      if( !path.toLowerCase().startsWith( project.getProjectDir().getAbsolutePath().toLowerCase() ) )
+      {
+        classpath.add( path );
+      }
+    }
+    List<String> collect = Gosu.deriveClasspathFrom( RunMe.class ).stream().map( File::getAbsolutePath ).collect( Collectors.toList() );
+    classpath.addAll( collect );
+    return classpath;
   }
 }
