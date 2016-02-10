@@ -1,6 +1,7 @@
 package editor;
 
 import editor.util.EditorUtilities;
+import editor.util.PlatformUtil;
 import editor.util.Project;
 import editor.util.SmartMenu;
 import gw.lang.reflect.IType;
@@ -135,13 +136,26 @@ public class ProjectTreeContextMenu implements IContextMenuHandler<JTree>
     }
   }
 
-  class OpenOnDesktopAction extends AbstractAction implements ClipboardOwner
+  static class OpenOnDesktopAction extends AbstractAction implements ClipboardOwner
   {
     JTree _tree;
 
+    private static String getFileManagerString()
+    {
+      if( PlatformUtil.isMac() )
+      {
+        return "Open in Finder";
+      }
+      if( PlatformUtil.isWindows() )
+      {
+        return "Open in Explorer";
+      }
+      return "Open in File Manager";
+    }
+
     public OpenOnDesktopAction( JTree tree )
     {
-      super( "Open on Desktop" );
+      super( getFileManagerString() );
       putValue( Action.MNEMONIC_KEY, new Integer( 'P' ) );
       _tree = tree;
     }
