@@ -636,9 +636,10 @@ class JsonTest extends gw.BaseVerifyErrantTest {
       "            property get usesRemoteLimit(): String\n" +
       "            property get key(): List<key>\n" +
       "            structure key {\n" +
+      "              @gw.lang.reflect.ActualName( \"default\" )\n" +
+      "              property get Default(): String\n" +
       "              property get name(): String\n" +
       "              property get type(): String\n" +
-      "              property get Default(): String\n" +
       "              property get required(): String\n" +
       "            }\n" +
       "          }\n" +
@@ -672,15 +673,43 @@ class JsonTest extends gw.BaseVerifyErrantTest {
     var structr = results.toStructure( "Amazon" )
     assertEquals( _amazon_ecs_structure, structr )
 
-    var am = Amazon.fromJson( _amazon_ecs_json )
-    for( sel in am.query.results.table.request.select )
+    var amazon = Amazon.fromJson( _amazon_ecs_json )
+    var output: String = ""
+    for( sel in amazon.query.results.table.request.select )
     {
-      print( sel.usesRemoteLimit )
       for( k in sel.key )
       {
-        print( k.name )
+        output += k.Default + "\n"
       }
     }
+    var expectedOutput =
+      "ItemSearch\n" +
+      "null\n" +
+      "null\n" +
+      "null\n" +
+      "Books\n" +
+      "null\n" +
+      "null\n" +
+      "null\n" +
+      "ItemSearch\n" +
+      "null\n" +
+      "null\n" +
+      "null\n" +
+      "Books\n" +
+      "null\n" +
+      "null\n" +
+      "null\n" +
+      "ItemLookup\n" +
+      "null\n" +
+      "null\n" +
+      "null\n" +
+      "null\n" +
+      "null\n" +
+      "null\n" +
+      "null\n" +
+      "2009-03-31\n"
+
+    assertEquals( expectedOutput, output )
   }
 
   // Generated
@@ -800,9 +829,10 @@ class JsonTest extends gw.BaseVerifyErrantTest {
               property get usesRemoteLimit(): String
               property get key(): List<key>
               structure key {
+                @gw.lang.reflect.ActualName( "default" )
+                property get Default(): String
                 property get name(): String
                 property get type(): String
-                property get Default(): String
                 property get required(): String
               }
             }

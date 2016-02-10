@@ -1,5 +1,7 @@
 package gw.lang.reflect.json;
 
+import gw.lang.reflect.ActualName;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -58,12 +60,17 @@ class JsonStructureType implements IJsonParentType
   public void render( StringBuilder sb, int indent )
   {
     indent( sb, indent );
-    sb.append( "structure " ).append( getName() ).append( " {\n" );
+
+    String name = getName();
+    String identifier = addActualNameAnnotation( sb, indent, name );
+
+    sb.append( "structure " ).append( identifier ).append( " {\n" );
     renderTopLevelFactoryMethods( sb, indent + 2 );
     for( String key : _members.keySet() )
     {
+      identifier = addActualNameAnnotation( sb, indent + 2, key );
       indent( sb, indent + 2 );
-      sb.append( "property get " ).append( key ).append( "(): " ).append( _members.get( key ).getName() ).append( "\n" );
+      sb.append( "property get " ).append( identifier ).append( "(): " ).append( _members.get( key ).getName() ).append( "\n" );
     }
     for( IJsonParentType child : _innerTypes.values() )
     {
@@ -71,6 +78,17 @@ class JsonStructureType implements IJsonParentType
     }
     indent( sb, indent );
     sb.append( "}\n" );
+  }
+
+  private String addActualNameAnnotation( StringBuilder sb, int indent, String name )
+  {
+    String identifier = ReservedWordMapping.getIdentifierForName( name );
+    if( !identifier.equals( name ) )
+    {
+      indent( sb, indent );
+      sb.append( "@" ).append( ActualName.class.getName() ).append( "( \"" ).append( name ).append( "\" )\n" );
+    }
+    return identifier;
   }
 
   private void renderTopLevelFactoryMethods( StringBuilder sb, int indent )

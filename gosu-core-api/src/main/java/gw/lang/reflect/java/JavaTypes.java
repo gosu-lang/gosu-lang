@@ -19,6 +19,7 @@ import gw.lang.annotation.IInherited;
 import java.lang.annotation.Repeatable;
 import gw.lang.function.IBlock;
 import gw.lang.parser.expressions.IBlockExpression;
+import gw.lang.reflect.ActualName;
 import gw.lang.reflect.FunctionType;
 import gw.lang.reflect.IExpando;
 import gw.lang.reflect.IQueryResultSet;
@@ -764,6 +765,15 @@ public class JavaTypes {
     }  
     return getGosuType(IExpando.class);
   }
+
+  private IJavaType ACTUAL_NAME = null;
+  public static IJavaType ACTUAL_NAME() {
+    if( !ExecutionMode.get().isRefreshSupportEnabled() ) {
+      return THIS.ACTUAL_NAME == null ? THIS.ACTUAL_NAME = getGosuType( ActualName.class ) : THIS.ACTUAL_NAME;
+    }  
+    return getGosuType(ActualName.class);
+  }
+
 
   // utilities
 
