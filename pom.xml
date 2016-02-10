@@ -26,16 +26,6 @@
     <module>gosu-test</module>
     <module>gosu-test-api</module>
   </modules>
-  <profiles>
-    <profile>
-      <id>ij</id>
-      <modules>
-        <module>idea-gosu-plugin</module>
-        <module>ij-compiler-api</module>
-        <module>ij-editor-devtools</module>
-      </modules>
-    </profile>
-  </profiles>
   <build>
     <plugins>
       <plugin>

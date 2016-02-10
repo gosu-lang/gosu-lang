@@ -5,9 +5,11 @@
 package gw.lang.reflect;
 
 import gw.lang.function.IBlock;
+import gw.lang.parser.Keyword;
 import gw.lang.reflect.json.Json;
 import gw.util.GosuEscapeUtil;
 
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -15,15 +17,39 @@ import java.util.Map;
 /**
  */
 public class Expando implements IExpando {
+  private static final Map<String, String> ALT_MAP = new HashMap<>();
+  private static final Map<String, String> ALT_MAP_REV = new HashMap<>();
+  static {
+    for( String kw : Keyword.getAll() ) {
+      if( Keyword.isReservedKeyword( kw ) ) {
+        String altKw;
+        char c = kw.charAt( 0 );
+        if( Character.isLowerCase( c ) ) {
+          altKw = Character.toUpperCase( c ) + kw.substring( 1 );
+        }
+        else {
+          altKw = Character.toLowerCase( c ) + kw.substring( 1 );
+        }
+        ALT_MAP.put( altKw, kw );
+        ALT_MAP_REV.put( kw, altKw );
+      }
+    }
+  }
+  public static String getAltKey( String key ) {
+    return ALT_MAP_REV.getOrDefault( key, key );
+  }
+
   private Map<String, Object> _map = new LinkedHashMap<String, Object>();
 
   @Override
   public Object getFieldValue( String field ) {
+    field = ALT_MAP.getOrDefault( field, field );
     return _map.get( field );
   }
 
   @Override
   public void setFieldValue( String field, Object value ) {
+    field = ALT_MAP.getOrDefault( field, field );
     _map.put( field, value );
   }
 
@@ -161,7 +187,7 @@ public class Expando implements IExpando {
 
   public String toStructure( String name ) {
     StringBuilder sb = new StringBuilder();
-    Json.instance().renderStructureTypes( name, this, sb );
+    Json.renderStructureTypes( name, this, sb );
     return sb.toString();
   }
 

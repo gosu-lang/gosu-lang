@@ -14,18 +14,8 @@ import java.util.stream.Collectors;
  */
 public class Json
 {
-  private static final Json INSTANCE = new Json();
-
-  private Json()
-  {}
-
-  public static Json instance()
-  {
-    return INSTANCE;
-  }
-
   @SuppressWarnings({"UnusedDeclaration", "unchecked"})
-  public Object fromJsonObject( Object o )
+  public static Object fromJsonObject( Object o )
   {
     if( o instanceof Map ) {
       Expando ret = new Expando();
@@ -33,13 +23,13 @@ public class Json
       o = ret;
     }
     else if( o instanceof List ) {
-      o = ((List)o).stream().map( this::fromJsonObject ).collect( Collectors.toList() );
+      o = ((List)o).stream().map( Json::fromJsonObject ).collect( Collectors.toList() );
     }
     return o;
   }
 
   @SuppressWarnings("UnusedDeclaration")
-  public Object fromJsonString( String json ) {
+  public static Object fromJsonString( String json ) {
     //## todo: use our Json parser instead of nashorn...
     ScriptEngine engine = new ScriptEngineManager().getEngineByName( "javascript" );
     String script = "Java.asJSONCompatible(" + json + ")";
@@ -54,13 +44,13 @@ public class Json
     }
   }
 
-  public void renderStructureTypes( String name, Expando expando, StringBuilder sb )
+  public static void renderStructureTypes( String name, Expando expando, StringBuilder sb )
   {
     JsonStructureType type = (JsonStructureType)transformJsonObject( name, null, expando );
     type.render( sb, 0 );
   }
 
-  private IJsonType transformJsonObject( String name, IJsonParentType parent, Object jsonObj )
+  private static IJsonType transformJsonObject( String name, IJsonParentType parent, Object jsonObj )
   {
     IJsonType type = null;
 
@@ -77,6 +67,7 @@ public class Json
       }
       for( String key: ((Expando)jsonObj).getMap().keySet() )
       {
+        key = Expando.getAltKey( key );
         Object value = ((Expando)jsonObj).getFieldValue( key );
         IJsonType memberType = transformJsonObject( key, (IJsonParentType)type, value );
         if( memberType != null )
@@ -91,7 +82,10 @@ public class Json
     }
     else if( jsonObj instanceof List )
     {
-      type = new JsonListType( parent );
+      if( type == null )
+      {
+        type = new JsonListType( parent );
+      }
       IJsonType compType = null;
       for( Object elem: (List)jsonObj )
       {

@@ -4152,7 +4152,8 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
         }
       }
     }
-    parse();
+    //!! this causes perpetual parsing since the parse() command refreshes the type...
+    // parse();
   }
 
   private static class TimerPool
