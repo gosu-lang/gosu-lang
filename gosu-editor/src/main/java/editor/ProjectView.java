@@ -1,6 +1,5 @@
 package editor;
 
-import editor.search.MessageDisplay;
 import editor.splitpane.CollapsibleSplitPane;
 import editor.tabpane.TabPane;
 import editor.tabpane.TabPosition;
@@ -154,15 +153,18 @@ public class ProjectView extends JPanel
         if( selectionPath != null )
         {
           FileTree fileTree = (FileTree)selectionPath.getLastPathComponent();
-          if( fileTree.isFile() && fileTree.getType() != null )
+          if( fileTree.isFile() )
           {
-            // Open Gosu type in our editor
-            _project.getGosuPanel().openFile( fileTree.getFileOrDir() );
-          }
-          else
-          {
-            // Open files/directories on desktop in native app
-            EditorUtilities.openFileOrDir( fileTree.getFileOrDir() );
+            if( fileTree.getType() != null )
+            {
+              // Open Gosu type in our editor
+              _project.getGosuPanel().openFile( fileTree.getFileOrDir() );
+            }
+            else
+            {
+              // Open files on desktop in native app
+              EditorUtilities.openFileOrDir( fileTree.getFileOrDir() );
+            }
           }
         }
       }
@@ -171,11 +173,16 @@ public class ProjectView extends JPanel
     @Override
     public void mousePressed( MouseEvent e )
     {
-
+      handleContextMenu( e );
     }
 
     @Override
     public void mouseReleased( MouseEvent e )
+    {
+      handleContextMenu( e );
+    }
+
+    private void handleContextMenu( MouseEvent e )
     {
       if( e.isPopupTrigger() )
       {

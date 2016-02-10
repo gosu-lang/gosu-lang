@@ -1,6 +1,7 @@
 package editor.util;
 
 import java.awt.event.KeyEvent;
+import java.io.File;
 
 /**
  */
@@ -118,5 +119,10 @@ public class PlatformUtil
   public static boolean isLinux()
   {
     return getPlatform() == PLAT_LINUX;
+  }
+
+  public static boolean hasXdgOpen()
+  {
+    return new File( "/usr/bin/xdg-mime" ).canExecute();
   }
 }
