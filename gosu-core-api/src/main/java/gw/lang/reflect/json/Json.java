@@ -3,40 +3,31 @@ package gw.lang.reflect.json;
 
 import gw.lang.reflect.Expando;
 
+import javax.script.Bindings;
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  */
 public class Json
 {
-  @SuppressWarnings({"UnusedDeclaration", "unchecked"})
-  public static Object fromJsonObject( Object o )
-  {
-    if( o instanceof Map ) {
-      Expando ret = new Expando();
-      ((Map)o).forEach( (k, v) -> ret.setFieldValue( (String)k, fromJsonObject( v ) ) );
-      o = ret;
-    }
-    else if( o instanceof List ) {
-      o = ((List)o).stream().map( Json::fromJsonObject ).collect( Collectors.toList() );
-    }
-    return o;
-  }
-
+  /**
+   * Reconstruct the JSON string as one of: Dynamic javax.script.Bindings object, List, or primary object (String, Integer, or Double)
+   *
+   * @param json A Standard JSON formatted string
+   * @return One of: Dynamic javax.script.Bindings object, List, or primary object (String, Integer, or Double)
+   */
   @SuppressWarnings("UnusedDeclaration")
-  public static Object fromJsonString( String json ) {
+  public static Object fromJson( String json )
+  {
     //## todo: use our Json parser instead of nashorn...
     ScriptEngine engine = new ScriptEngineManager().getEngineByName( "javascript" );
     String script = "Java.asJSONCompatible(" + json + ")";
     try
     {
-      Object jsonObj = engine.eval( script );
-      return fromJsonObject( jsonObj );
+      return engine.eval( script );
     }
     catch( ScriptException e )
     {
@@ -44,10 +35,22 @@ public class Json
     }
   }
 
-  public static void renderStructureTypes( String name, Expando expando, StringBuilder sb )
+  /**
+   * Makes a tree of structure types reflecting the Bindings.
+   *<p>
+   * A structure type contains a property member for each name/value pair in the Bindings.  A property has the same name as the key and follows these rules:
+   * <ul>
+   *   <li> If the type of the value is a "simple" type, such as a String or Integer, the type of the property matches the simple type exactly
+   *   <li> Otherwise, if the value is a Bindings type, the property type is that of a child structure with the same name as the property and recursively follows these rules
+   *   <li> Otherwise, if the value is a List, the property is a List parameterized with the component type, and the component type recursively follows these rules
+   * </ul>
+   */
+  public static String makeStructureTypes( String nameForStructure, Bindings bindings )
   {
-    JsonStructureType type = (JsonStructureType)transformJsonObject( name, null, expando );
+    JsonStructureType type = (JsonStructureType)transformJsonObject( nameForStructure, null, bindings );
+    StringBuilder sb = new StringBuilder();
     type.render( sb, 0 );
+    return sb.toString();
   }
 
   private static IJsonType transformJsonObject( String name, IJsonParentType parent, Object jsonObj )
@@ -59,16 +62,17 @@ public class Json
       type = parent.findChild( name );
     }
 
-    if( jsonObj instanceof Expando )
+    if( jsonObj instanceof Bindings )
     {
       if( type == null )
       {
         type = new JsonStructureType( parent, name );
       }
-      for( String key: ((Expando)jsonObj).getMap().keySet() )
+      for( Object k: ((Bindings)jsonObj).keySet() )
       {
+        String key = (String)k;
         key = Expando.getAltKey( key );
-        Object value = ((Expando)jsonObj).getFieldValue( key );
+        Object value = ((Bindings)jsonObj).get( key );
         IJsonType memberType = transformJsonObject( key, (IJsonParentType)type, value );
         if( memberType != null )
         {

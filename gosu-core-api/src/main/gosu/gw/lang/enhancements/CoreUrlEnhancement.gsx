@@ -14,6 +14,6 @@ enhancement CoreUrlEnhancement : URL {
   }
 
   property get JsonContent(): Dynamic {
-    return Json.fromJsonString( TextContent )
+    return Json.fromJson( TextContent )
   }
 }

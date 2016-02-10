@@ -41,7 +41,7 @@ public class StructuralTypeProxyGenerator {
   public static Class makeProxy( Class<?> iface, Class<?> rootClass, final String name, final boolean bStaticImpl ) {
     IType pureGenericType = TypeLord.getPureGenericType( TypeSystem.get( rootClass ) );
     IType type;
-    if( JavaTypes.IEXPANDO().isAssignableFrom( pureGenericType ) ) {
+    if( isExpando( pureGenericType ) ) {
       // handle a structure mapped to a dynamic expando type
       type = IDynamicType.instance();
     }
@@ -268,8 +268,8 @@ public class StructuralTypeProxyGenerator {
     }
   }
 
-  private boolean isExpando( IType rootType )
+  private static boolean isExpando( IType rootType )
   {
-    return JavaTypes.IEXPANDO().isAssignableFrom( rootType );
+    return JavaTypes.BINDINGS().isAssignableFrom( rootType );
   }
 }

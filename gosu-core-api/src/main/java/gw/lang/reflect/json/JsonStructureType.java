@@ -59,6 +59,7 @@ class JsonStructureType implements IJsonParentType
   {
     indent( sb, indent );
     sb.append( "structure " ).append( getName() ).append( " {\n" );
+    renderTopLevelFactoryMethods( sb, indent + 2 );
     for( String key : _members.keySet() )
     {
       indent( sb, indent + 2 );
@@ -68,6 +69,40 @@ class JsonStructureType implements IJsonParentType
     {
       child.render( sb, indent + 2 );
     }
+    indent( sb, indent );
+    sb.append( "}\n" );
+  }
+
+  private void renderTopLevelFactoryMethods( StringBuilder sb, int indent )
+  {
+    if( _parent != null )
+    {
+      // Only add factory methods to top-level json structure
+      return;
+    }
+
+    indent( sb, indent );
+    sb.append( "static function fromJson( jsonText: String ): " ).append( getName() ).append( " {\n" );
+    indent( sb, indent );
+    sb.append( "  return gw.lang.reflect.json.Json.fromJson( jsonText ) as " ).append( getName() ).append( "\n" );
+    indent( sb, indent );
+    sb.append( "}\n" );
+    indent( sb, indent );
+    sb.append( "static function fromJsonUrl( url: String ): " ).append( getName() ).append( " {\n" );
+    indent( sb, indent );
+    sb.append( "  return new java.net.URL( url ).JsonContent\n" );
+    indent( sb, indent );
+    sb.append( "}\n" );
+    indent( sb, indent );
+    sb.append( "static function fromJsonUrl( url: java.net.URL ): " ).append( getName() ).append( " {\n" );
+    indent( sb, indent );
+    sb.append( "  return url.JsonContent\n" );
+    indent( sb, indent );
+    sb.append( "}\n" );
+    indent( sb, indent );
+    sb.append( "static function fromJsonFile( file: java.io.File ) : " ).append( getName() ).append( " {\n" );
+    indent( sb, indent );
+    sb.append( "  return fromJsonUrl( file.toURI().toURL() )\n" );
     indent( sb, indent );
     sb.append( "}\n" );
   }

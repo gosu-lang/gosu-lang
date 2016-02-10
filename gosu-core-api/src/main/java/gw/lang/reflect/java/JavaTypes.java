@@ -41,6 +41,7 @@ import gw.lang.reflect.interval.SequenceableInterval;
 import gw.lang.reflect.module.IExecutionEnvironment;
 import gw.lang.reflect.module.IProject;
 
+import javax.script.Bindings;
 import javax.xml.namespace.QName;
 import java.lang.annotation.Annotation;
 import java.lang.annotation.Inherited;
@@ -505,6 +506,15 @@ public class JavaTypes {
     }  
     return getJreType(Lock.class);
   }
+
+  private IJavaType BINDINGS = null;
+  public static IJavaType BINDINGS() {
+    if( !ExecutionMode.get().isRefreshSupportEnabled() ) {
+      return THIS.BINDINGS == null ? THIS.BINDINGS = getGosuType( Bindings.class ) : THIS.BINDINGS;
+    }
+    return getJreType(Bindings.class);
+  }
+
 
   // gosu types
 
