@@ -638,6 +638,7 @@ class JsonTest extends gw.BaseVerifyErrantTest {
       "            structure key {\n" +
       "              property get name(): String\n" +
       "              property get type(): String\n" +
+      "              property get Default(): String\n" +
       "              property get required(): String\n" +
       "            }\n" +
       "          }\n" +
@@ -801,6 +802,7 @@ class JsonTest extends gw.BaseVerifyErrantTest {
               structure key {
                 property get name(): String
                 property get type(): String
+                property get Default(): String
                 property get required(): String
               }
             }

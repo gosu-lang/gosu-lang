@@ -9,11 +9,14 @@ import gw.lang.parser.Keyword;
 import gw.util.GosuEscapeUtil;
 
 import javax.script.SimpleBindings;
+import java.util.AbstractMap;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  */
@@ -24,6 +27,10 @@ public class Expando extends SimpleBindings implements IExpando
 
   static
   {
+    // Capitalize/Uncapitalize reserved keywords to avoid parse errors.
+    // Internally we perserve the case of the keys, but in structure types
+    // we expose them as alternate versions of the reserved words.
+
     for( String kw : Keyword.getAll() )
     {
       if( Keyword.isReservedKeyword( kw ) )
@@ -44,6 +51,7 @@ public class Expando extends SimpleBindings implements IExpando
     }
   }
 
+
   public static String getAltKey( String key )
   {
     return ALT_MAP_REV.getOrDefault( key, key );
@@ -62,15 +70,25 @@ public class Expando extends SimpleBindings implements IExpando
   @Override
   public Object getFieldValue( String field )
   {
-    field = ALT_MAP.getOrDefault( field, field );
     return get( field );
+  }
+  @Override
+  public Object get( Object field )
+  {
+    field = ALT_MAP.getOrDefault( field, (String)field );
+    return super.get( field );
   }
 
   @Override
   public void setFieldValue( String field, Object value )
   {
-    field = ALT_MAP.getOrDefault( field, field );
     put( field, value );
+  }
+  @Override
+  public Object put( String field, Object value )
+  {
+    field = ALT_MAP.getOrDefault( field, field );
+    return super.put( field, value );
   }
 
   @Override
@@ -88,6 +106,35 @@ public class Expando extends SimpleBindings implements IExpando
   public void setDefaultFieldValue( String name )
   {
     setFieldValue( name, new Expando() );
+  }
+
+  @Override
+  public boolean containsKey( Object field )
+  {
+    field = ALT_MAP.getOrDefault( field, (String)field );
+    return super.containsKey( field );
+  }
+
+  @Override
+  public Object remove( Object field )
+  {
+    field = ALT_MAP.getOrDefault( field, (String)field );
+    return super.remove( field );
+  }
+
+  @Override
+  public Set<String> keySet()
+  {
+    return super.keySet().stream().map( (k) -> ALT_MAP_REV.getOrDefault( k, k ) ).collect( Collectors.toSet() );
+  }
+
+  @Override
+  public Set<Entry<String, Object>> entrySet()
+  {
+    return super.entrySet().stream().map(
+      e -> e.getKey().equals( ALT_MAP_REV.getOrDefault( e.getKey(), e.getKey() ) )
+           ? e
+           : new AbstractMap.SimpleEntry<>( ALT_MAP_REV.get( e.getKey() ), e.getValue() ) ).collect( Collectors.toSet() );
   }
 
   public String toGosu()

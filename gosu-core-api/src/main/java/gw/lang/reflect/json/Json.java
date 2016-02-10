@@ -8,11 +8,27 @@ import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  */
 public class Json
 {
+  @SuppressWarnings({"UnusedDeclaration", "unchecked"})
+  public static Object fromJsonObject( Object o )
+  {
+    if( o instanceof Map ) {
+      Expando ret = new Expando();
+      ((Map)o).forEach( (k, v) -> ret.setFieldValue( (String)k, fromJsonObject( v ) ) );
+      o = ret;
+    }
+    else if( o instanceof List ) {
+      o = ((List)o).stream().map( Json::fromJsonObject ).collect( Collectors.toList() );
+    }
+    return o;
+  }
+
   /**
    * Reconstruct the JSON string as one of: Dynamic javax.script.Bindings object, List, or primary object (String, Integer, or Double)
    *
@@ -27,7 +43,8 @@ public class Json
     String script = "Java.asJSONCompatible(" + json + ")";
     try
     {
-      return engine.eval( script );
+      Object jsonObj = engine.eval( script );
+      return fromJsonObject( jsonObj );
     }
     catch( ScriptException e )
     {
