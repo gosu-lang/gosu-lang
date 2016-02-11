@@ -5,7 +5,7 @@ Thanks for downloading Gosu.  You are using version ${project.version}.
 
 QUICK INSTALL
 
-1. Set the JAVA_HOME environment variable to JDK 1.8's home, if needed.
+1. Set the JAVA_HOME environment variable to JDK 1.8's home, if needed
 
 2. Go to the bin folder and double click on gosu.cmd (or gosu if you are using Linux/Mac)
 

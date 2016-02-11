@@ -60,7 +60,7 @@ Quick Install
 
 * Download the latest Gosu distribution [here](http://gosu-lang.github.io/downloads.html).
 * Set the JAVA_HOME environment variable to JDK 1.8's home, if needed.
-* Unzip/extract the distribution and run gosu-1.X/bin/gosu from the command line.
+* Unzip the distribution zip, go to the bin folder and double click on gosu.cmd (or gosu if you are using Linux/Mac).
 
 Support
 -------
