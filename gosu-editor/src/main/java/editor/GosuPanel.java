@@ -470,7 +470,7 @@ public class GosuPanel extends JPanel
         @Override
         public void actionPerformed( ActionEvent e )
         {
-          BrowserUtil.openURL( "http://gosu-lang.github.io/downloads.html" );
+          BrowserUtil.openURL( "http://gosu-lang.github.io/intellij.html" );
         }
       } );
     plugin.setMnemonic( 'I' );
