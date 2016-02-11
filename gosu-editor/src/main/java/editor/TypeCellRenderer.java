@@ -19,7 +19,7 @@ public class TypeCellRenderer extends DefaultListCellRenderer
                                                  boolean isSelected,
                                                  boolean cellHasFocus )
   {
-    Icon icon = EditorUtilities.findIcon( TypeSystem.getByFullNameIfValidNoJava( (String)value ) );
+    Icon icon = EditorUtilities.findIcon( TypeSystem.getByFullNameIfValid( (String)value ) );
 
     String text = getDisplayText( value );
     Component renderer = super.getListCellRendererComponent( list, text, modelIndex, isSelected, cellHasFocus );

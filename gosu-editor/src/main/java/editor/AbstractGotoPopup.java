@@ -144,6 +144,7 @@ public abstract class AbstractGotoPopup<T> extends JPopupMenu
     _scrollPane.setVisible( false );
     _list.addMouseListener( new PopupMouseListener() );
     _list.setCellRenderer( constructCellRenderer() );
+    _list.setFixedCellHeight( 22 );
     _list.getSelectionModel().setSelectionMode( ListSelectionModel.SINGLE_SELECTION );
     _list.setVisibleRowCount( _rowCount );
     _scrollPane.setBorder( UIManager.getBorder( "TextField.border" ) );
@@ -244,31 +245,19 @@ public abstract class AbstractGotoPopup<T> extends JPopupMenu
   private void initializeDataInWaitMode()
   {
     editor.util.EditorUtilities.doBackgroundOp(
-      new Runnable()
-      {
-        @Override
-        public void run()
+      () -> {
+        try
         {
-          try
+          _allData = initializeData();
+        }
+        finally
+        {
+          _dataInitialized = true;
+          synchronized( _dataLock )
           {
-            _allData = initializeData();
+            _dataLock.notifyAll();
           }
-          finally
-          {
-            _dataInitialized = true;
-            synchronized( _dataLock )
-            {
-              _dataLock.notifyAll();
-            }
-            SwingUtilities.invokeLater( new Runnable()
-            {
-              @Override
-              public void run()
-              {
-                _spinner.setVisible( false );
-              }
-            } );
-          }
+          SwingUtilities.invokeLater( () -> _spinner.setVisible( false ) );
         }
       } );
   }

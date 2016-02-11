@@ -5,13 +5,11 @@ import editor.util.Project;
 import gw.fs.IFile;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.TypeSystem;
-import gw.lang.reflect.gs.GosuClassTypeLoader;
 
-import javax.swing.*;
 import java.awt.*;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.List;
 
@@ -29,7 +27,7 @@ public class GotoTypePopup extends AbstractGotoPopup<String>
         String strQualifedType = (String)e.getSource();
         doGoTo( strQualifedType );
       } );
-    Component host = ((JFrame)RunMe.getEditorFrame()).getRootPane();
+    Component host = RunMe.getEditorFrame().getRootPane();
     valuePopup.show( host, 0, 0 );
   }
 
@@ -70,21 +68,24 @@ public class GotoTypePopup extends AbstractGotoPopup<String>
 
   protected List<String> initializeData()
   {
-    Set<String> allGosuTypes = TypeSystem.getTypeLoader( GosuClassTypeLoader.class ).getAllTypeNames();
+    List<String> allTypes = new ArrayList<>( RunMe.getEditorFrame().getGosuPanel().getTypeNamesCache().getAllTypeNames( null ) );
     Project project = RunMe.getEditorFrame().getGosuPanel().getProjectView().getProject();
-    List<String> allTypes = filterGosuClassFromProjectsInResources( allGosuTypes, project );
+    allTypes = filterGosuClassFromProjectsInResources( allTypes, project );
     Collections.sort( allTypes, ( o1, o2 ) -> getRelativeTypeName( o1 ).compareToIgnoreCase( getRelativeTypeName( o2 ) ) );
     return allTypes;
   }
 
-  private List<String> filterGosuClassFromProjectsInResources( Set<String> allGosuTypes, Project project )
+  private List<String> filterGosuClassFromProjectsInResources( List<String> allGosuTypes, Project project )
   {
     String projectPath = project.getProjectDir().getAbsolutePath();
     List<String> relativeSrcPaths = project.getSourcePath().stream().map( srcPath ->
       (srcPath.startsWith( projectPath )
        ? srcPath.substring( projectPath.length() + 1 )
        : srcPath).replace( File.separatorChar, '.' ) ).collect( Collectors.toList() );
-    return allGosuTypes.stream().filter( s -> !relativeSrcPaths.stream().anyMatch( s::contains ) ).collect( Collectors.toList() );
+    return allGosuTypes.stream()
+           .filter( s -> !relativeSrcPaths.stream().anyMatch( s::contains ) )
+           .filter( s -> !s.startsWith( "gw.internal" ) )
+           .collect( Collectors.toList() );
   }
 
   protected AbstractPopupListModel<String> reconstructModel( String strPrefix )

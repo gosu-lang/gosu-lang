@@ -362,7 +362,7 @@ public class FileTree implements MutableTreeNode, IFileWatcherListener
     }
     String fqn = getFileOrDir().getAbsolutePath().substring( sourcePathRoot.getFileOrDir().getAbsolutePath().length() + 1 );
     fqn = fqn.substring( 0, fqn.lastIndexOf( '.' ) ).replace( File.separatorChar, '.' );
-    return TypeSystem.getByFullNameIfValidNoJava( fqn );
+    return TypeSystem.getByFullNameIfValid( fqn );
   }
 
   public boolean canDelete()

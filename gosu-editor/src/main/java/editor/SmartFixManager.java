@@ -1160,15 +1160,17 @@ public class SmartFixManager implements MouseMotionListener, KeyListener
             }
           }
 
-          TreeSet<String> possibleTypesToImport = new TreeSet<String>( new TypeNameComparator() );
+          TreeSet<String> possibleTypesToImport = new TreeSet<>( new TypeNameComparator() );
           if( type == null )
           {
-//            List<CharSequence> fullyQualifiedNames = TypeSystem.getFullyQualifiedClassNameFromRelativeName( relativeTypeName );
-//            if (fullyQualifiedNames != null) {
-//              for (CharSequence fullyQualifiedName : fullyQualifiedNames) {
-//                possibleTypesToImport.add(fullyQualifiedName.toString());
-//              }
-//            }
+            List<String> fullyQualifiedNames = RunMe.getEditorFrame().getGosuPanel().getTypeNamesCache().getFullyQualifiedClassNameFromRelativeName( relativeTypeName );
+            if( fullyQualifiedNames != null )
+            {
+              for( CharSequence fullyQualifiedName : fullyQualifiedNames )
+              {
+                possibleTypesToImport.add( fullyQualifiedName.toString() );
+              }
+            }
           }
 
           if( possibleTypesToImport.size() > 0 )
@@ -1208,26 +1210,21 @@ public class SmartFixManager implements MouseMotionListener, KeyListener
 
   public void showSmartFix( final int offset, final int length, final String displayText )
   {
-    Runnable runnable = new Runnable()
-    {
-      @Override
-      public void run()
+    Runnable runnable = () -> {
+      try
       {
-        try
+        _offset = offset;
+        _length = length;
+        Rectangle rectangle = getLocationFromOffset( _offset );
+        if( rectangle != TEST_RECTANGLE && _editor.isShowing() )
         {
-          _offset = offset;
-          _length = length;
-          Rectangle rectangle = getLocationFromOffset( _offset );
-          if( rectangle != TEST_RECTANGLE && _editor.isShowing() )
-          {
-            _managerPopup = new SmartFixPopup( displayText );
-          }
-          _editor.getHighlighter().addHighlight( _offset, _offset + _length, new SmartFixHighlightPainter( SMARTFIX_HIGHLIGHT_COLOR ) );
+          _managerPopup = new SmartFixPopup( displayText );
         }
-        catch( BadLocationException e )
-        {
-          resetSmartHelpState();  //The user must have cleared out the given smart fix.
-        }
+        _editor.getHighlighter().addHighlight( _offset, _offset + _length, new SmartFixHighlightPainter( SMARTFIX_HIGHLIGHT_COLOR ) );
+      }
+      catch( BadLocationException e )
+      {
+        resetSmartHelpState();  //The user must have cleared out the given smart fix.
       }
     };
     SwingUtilities.invokeLater( runnable );
@@ -1254,25 +1251,20 @@ public class SmartFixManager implements MouseMotionListener, KeyListener
       }
     }
 
-    Collections.sort( issues, new Comparator<IParseIssue>()
-    {
-      @Override
-      public int compare( IParseIssue o1, IParseIssue o2 )
+    Collections.sort( issues, ( o1, o2 ) -> {
+      double d1 = getDistanceFromPosition( o1, line, col );
+      double d2 = getDistanceFromPosition( o2, line, col );
+      if( d1 > d2 )
       {
-        double d1 = getDistanceFromPosition( o1, line, col );
-        double d2 = getDistanceFromPosition( o2, line, col );
-        if( d1 > d2 )
-        {
-          return 1;
-        }
-        else if( d1 < d2 )
-        {
-          return -1;
-        }
-        else
-        {
-          return 0;
-        }
+        return 1;
+      }
+      else if( d1 < d2 )
+      {
+        return -1;
+      }
+      else
+      {
+        return 0;
       }
     } );
 
@@ -1367,21 +1359,7 @@ public class SmartFixManager implements MouseMotionListener, KeyListener
   {
     if( _timer == null )
     {
-      _timer = new Timer( 500, new ActionListener()
-      {
-        @Override
-        public void actionPerformed( ActionEvent e )
-        {
-          SwingUtilities.invokeLater( new Runnable()
-          {
-            @Override
-            public void run()
-            {
-              showPopup();
-            }
-          } );
-        }
-      } );
+      _timer = new Timer( 500, e -> SwingUtilities.invokeLater( this::showPopup ) );
       _timer.setRepeats( false );
       _timer.start();
     }

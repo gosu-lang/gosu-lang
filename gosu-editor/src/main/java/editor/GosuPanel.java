@@ -91,13 +91,14 @@ public class GosuPanel extends JPanel
   private JLabel _status;
   private JPanel _statPanel;
   private boolean _initialFile;
+  private TypeNameCache _typeNamesCache;
   private Project _project;
-
 
   public GosuPanel( JFrame basicGosuEditor )
   {
     _parentFrame = basicGosuEditor;
     _defaultUndoMgr = new AtomicUndoManager( 10 );
+    _typeNamesCache = new TypeNameCache();
     configUI();
   }
 
@@ -1281,7 +1282,7 @@ public class GosuPanel extends JPanel
     editor.putClientProperty( "_file", file );
     removeLruTab();
     String classNameForFile = TypeNameUtil.getClassNameForFile( file );
-    IType type = TypeSystem.getByFullNameIfValidNoJava( classNameForFile );
+    IType type = TypeSystem.getByFullNameIfValid( classNameForFile );
     if( type == null )
     {
       return;
@@ -1728,6 +1729,11 @@ public class GosuPanel extends JPanel
     return _bRunning;
   }
 
+  public TypeNameCache getTypeNamesCache()
+  {
+    return _typeNamesCache;
+  }
+
   public static class Runner
   {
     public static String run( String programName, List<File> classpath )
@@ -1929,7 +1935,7 @@ public class GosuPanel extends JPanel
                  String recentProgram = getProject() == null ? null : getProject().getRecentProgram();
                  if( recentProgram != null )
                  {
-                   return TypeSystem.getByFullNameIfValidNoJava( recentProgram );
+                   return TypeSystem.getByFullNameIfValid( recentProgram );
                  }
                  return null;
                }

@@ -15,6 +15,7 @@ import gw.lang.reflect.gs.IGosuClass;
 import gw.lang.reflect.gs.IGosuEnhancement;
 import gw.lang.reflect.gs.IGosuProgram;
 import gw.lang.reflect.gs.ITemplateType;
+import gw.lang.reflect.java.IJavaType;
 import gw.util.GosuStringUtil;
 
 import javax.swing.*;
@@ -254,7 +255,7 @@ public class EditorUtilities
     String classNameForFile = TypeNameUtil.getClassNameForFile( fileOrDir );
     if( classNameForFile != null )
     {
-      IType type = TypeSystem.getByFullNameIfValidNoJava( classNameForFile );
+      IType type = TypeSystem.getByFullNameIfValid( classNameForFile );
       if( type != null )
       {
         return findIcon( type );
@@ -299,6 +300,10 @@ public class EditorUtilities
       {
         return findIcon( ClassType.Class );
       }
+    }
+    else if( type instanceof IJavaType )
+    {
+      return EditorUtilities.loadIcon( "images/javaclass.png" );
     }
     return EditorUtilities.loadIcon( "images/empty16x16.gif" );
   }
