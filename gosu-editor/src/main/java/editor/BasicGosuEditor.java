@@ -1,5 +1,6 @@
 package editor;
 
+import editor.util.EditorUtilities;
 import editor.util.Project;
 import gw.config.CommonServices;
 import gw.lang.parser.IScriptPartId;
@@ -7,6 +8,8 @@ import gw.lang.reflect.module.IFileSystem;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
@@ -14,6 +17,7 @@ import java.io.File;
 public class BasicGosuEditor extends JFrame implements IGosuEditor
 {
   private GosuPanel _panel;
+  private Rectangle _restoreBounds;
 
   public BasicGosuEditor() throws HeadlessException
   {
@@ -28,10 +32,32 @@ public class BasicGosuEditor extends JFrame implements IGosuEditor
           exit();
         }
       } );
+    addComponentListener(
+      new ComponentAdapter()
+      {
+        @Override
+        public void componentResized( ComponentEvent e )
+        {
+          if( (getExtendedState() & Frame.MAXIMIZED_BOTH) != MAXIMIZED_BOTH )
+          {
+            _restoreBounds = getBounds();
+          }
+        }
+
+        @Override
+        public void componentMoved( ComponentEvent e )
+        {
+          if( (getExtendedState() & Frame.MAXIMIZED_BOTH) != MAXIMIZED_BOTH )
+          {
+            _restoreBounds = getBounds();
+          }
+        }
+      });
   }
 
   public void exit()
   {
+    EditorUtilities.saveLayoutState( _panel.getProjectView().getProject() );
     if( _panel.saveIfDirty() )
     {
       System.exit( 0 );
@@ -50,12 +76,6 @@ public class BasicGosuEditor extends JFrame implements IGosuEditor
 
   private void setInitialSize()
   {
-    GraphicsConfiguration configuration = getRootPane().getGraphicsConfiguration();
-    Rectangle bounds = configuration.getBounds();
-    int width = Math.max( 700, (int)((double)bounds.width * .7) );
-    int height = Math.max( 700, (int)((double)bounds.height * .7) );
-    setSize( width, height );
-    setLocationRelativeTo( null );
     _panel.setEditorSplitPosition( 60 );
     _panel.setProjectSplitPosition( 30 );
   }
@@ -70,14 +90,7 @@ public class BasicGosuEditor extends JFrame implements IGosuEditor
 
     try
     {
-      EventQueue.invokeAndWait(
-        new Runnable()
-        {
-          public void run()
-          {
-            resetNow();
-          }
-        } );
+      EventQueue.invokeAndWait( this::resetNow );
     }
     catch( Exception e )
     {
@@ -126,6 +139,11 @@ public class BasicGosuEditor extends JFrame implements IGosuEditor
   public void closeTab( Object contentId )
   {
     _panel.closeTab( (File)contentId );
+  }
+
+  public Rectangle getRestoreBounds()
+  {
+    return _restoreBounds;
   }
 
   public static BasicGosuEditor create()

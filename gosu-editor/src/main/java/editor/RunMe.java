@@ -38,7 +38,7 @@ public class RunMe
     EventQueue.invokeLater(
       () -> {
         _gosuEditor = BasicGosuEditor.create();
-        _gosuEditor.restoreState( EditorUtilities.getRecentProject( _gosuEditor.getGosuPanel() ) );
+        _gosuEditor.restoreState( EditorUtilities.loadRecentProject( _gosuEditor.getGosuPanel() ) );
         _gosuEditor.showMe();
       } );
   }

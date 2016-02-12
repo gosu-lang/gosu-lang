@@ -1,5 +1,6 @@
 package editor.util;
 
+import editor.BasicGosuEditor;
 import editor.GosuPanel;
 import editor.RunMe;
 import gw.config.CommonServices;
@@ -38,6 +39,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Properties;
 import java.util.regex.Pattern;
 import java.util.List;
@@ -796,13 +798,15 @@ public class EditorUtilities
     return file;
   }
 
-  public static Project getRecentProject( GosuPanel gosuPanel )
+  public static Project loadRecentProject( GosuPanel gosuPanel )
   {
     File userFile = getUserFile( gosuPanel );
     Properties props = new Properties();
     try( FileReader reader = new FileReader( userFile ) )
     {
       props.load( reader );
+      //noinspection unchecked
+      restoreScreenProps( (Map)props );
       return new Project( new File( props.getProperty( "project" ) ), gosuPanel );
     }
     catch( Exception e )
@@ -816,13 +820,88 @@ public class EditorUtilities
     try( FileWriter writer = new FileWriter( userFile ) )
     {
       Properties props = new Properties();
+
       props.put( "project", project.getProjectDir().getAbsolutePath() );
+
+      //noinspection unchecked
+      saveScreenProps( (Map)props );
+
       props.store( writer, "Gosu Editor" );
     }
     catch( Exception e )
     {
       throw new RuntimeException( e );
     }
+  }
+
+  private static void saveScreenProps( Map<String, String> props )
+  {
+    BasicGosuEditor frame = RunMe.getEditorFrame();
+    boolean maximized = (frame.getExtendedState() & Frame.MAXIMIZED_BOTH) == Frame.MAXIMIZED_BOTH;
+    props.put( "Frame.Maximized", String.valueOf( maximized ) );
+    Rectangle bounds = frame.getRestoreBounds();
+    if( bounds != null )
+    {
+      ScreenUtil.convertToPercentageOfScreenWidth( bounds );
+      props.put( "Frame.Bounds.X", String.valueOf( bounds.x ) );
+      props.put( "Frame.Bounds.Y", String.valueOf( bounds.y ) );
+      props.put( "Frame.Bounds.Width", String.valueOf( bounds.width ) );
+      props.put( "Frame.Bounds.Height", String.valueOf( bounds.height ) );
+    }
+  }
+  private static void restoreScreenProps( Map<String, String> props )
+  {
+    JFrame frame = RunMe.getEditorFrame();
+
+    boolean bSet = false;
+    Integer x = readInteger( props, "Frame.Bounds.X" );
+    if( x != null )
+    {
+      Integer y = readInteger( props, "Frame.Bounds.Y" );
+      if( y != null )
+      {
+        Integer width = readInteger( props, "Frame.Bounds.Width" );
+        if( width != null )
+        {
+          Integer height = readInteger( props, "Frame.Bounds.Height" );
+          if( height != null )
+          {
+            Rectangle bounds = new Rectangle( x, y, width, height );
+            ScreenUtil.convertFromPercentageOfScreenWidth( bounds );
+            frame.setBounds( bounds );
+            bSet = true;
+          }
+        }
+      }
+    }
+
+    if( !bSet )
+    {
+      setInitialFrameBounds( RunMe.getEditorFrame() );
+    }
+
+    if( Boolean.valueOf( props.get( "Frame.Maximized" ) ) == Boolean.TRUE )
+    {
+      frame.setExtendedState( Frame.MAXIMIZED_BOTH );
+    }
+  }
+  private static Integer readInteger( Map<String, String> props, String prop )
+  {
+    String value = props.get( prop );
+    if( value == null )
+    {
+      return null;
+    }
+    return Integer.valueOf( value );
+  }
+
+  private static void setInitialFrameBounds( Frame frame )
+  {
+    Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+    int width = screenSize.width*2/3;
+    int height = width*2/3;
+    frame.setSize( width, height );
+    EditorUtilities.centerWindowInFrame( frame, frame );
   }
 
   public static File getUserGosuEditorDir()
