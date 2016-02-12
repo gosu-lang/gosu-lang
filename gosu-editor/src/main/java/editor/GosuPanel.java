@@ -1028,20 +1028,6 @@ public class GosuPanel extends JPanel
     fileMenu.addSeparator();
 
 
-    JMenuItem saveAsItem = new JMenuItem(
-      new AbstractAction( "Save As..." )
-      {
-        @Override
-        public void actionPerformed( ActionEvent e )
-        {
-          saveAs();
-        }
-      } );
-    saveAsItem.setMnemonic( 'A' );
-    fileMenu.add( saveAsItem );
-
-    fileMenu.addSeparator();
-
     JMenuItem classpathItem = new JMenuItem(
       new AbstractAction( "Classpath..." )
       {
