@@ -197,7 +197,7 @@ public class GosuClassLoader implements IGosuClassLoader
   {
     return _discreteLoaders.getLoader( namespace ) != null;
   }
-  SingleServingGosuClassLoader getDiscreteNamespaceLoader( String namespace )
+  DiscreteClassLoader getDiscreteNamespaceLoader( String namespace )
   {
     return _discreteLoaders.getLoader( namespace );
   }
@@ -262,11 +262,11 @@ public class GosuClassLoader implements IGosuClassLoader
   {
     ICompilableTypeInternal enclosingType = gsClass.getEnclosingType();
     ClassLoader enclosingLoader = isOldStyleGosuAnnotationExpression(gsClass) ? null : getClassLoader( enclosingType );
-    if( enclosingLoader instanceof SingleServingGosuClassLoader )
+    if( enclosingLoader instanceof SingleServingGosuClassLoader && !(enclosingLoader instanceof DiscreteClassLoader) )
     {
       return (SingleServingGosuClassLoader)enclosingLoader;
     }
-    SingleServingGosuClassLoader namespaceLoader = getDiscreteNamespaceLoader( gsClass.getNamespace() );
+    DiscreteClassLoader namespaceLoader = getDiscreteNamespaceLoader( gsClass.getNamespace() );
     return namespaceLoader == null ? new SingleServingGosuClassLoader( this ) : namespaceLoader;
   }
 
@@ -459,7 +459,7 @@ public class GosuClassLoader implements IGosuClassLoader
     // Wrap a delegate to hide the TypeSystemAwareCache#get() method
     private DelegateCache _delegate = new DelegateCache();
 
-    public SingleServingGosuClassLoader getLoader( String key )
+    public DiscreteClassLoader getLoader( String key )
     {
       if( getDiscretePackages().isEmpty() )
       {
@@ -487,21 +487,21 @@ public class GosuClassLoader implements IGosuClassLoader
       return Arrays.asList( ExecutionEnvironment.instance().getDiscretePackages() );
     }
 
-    private class DelegateCache extends TypeSystemAwareCache<String, WeakReference<SingleServingGosuClassLoader>>
+    private class DelegateCache extends TypeSystemAwareCache<String, WeakReference<DiscreteClassLoader>>
     {
       public DelegateCache()
       {
         //noinspection Convert2Lambda
         super( "Discrete Loaders", 100,
-               new MissHandler<String, WeakReference<SingleServingGosuClassLoader>>()
+               new MissHandler<String, WeakReference<DiscreteClassLoader>>()
                {
                   @Override
-                  public WeakReference<SingleServingGosuClassLoader> load( String key )
+                  public WeakReference<DiscreteClassLoader> load( String key )
                   {
                     Optional<String> match = getDiscretePackages().stream().filter( key::startsWith ).findFirst();
                     if( !match.isPresent() )
                     {
-                      return new WeakReference<>( SingleServingGosuClassLoader.NULL_SENTINAL );
+                      return new WeakReference<>( DiscreteClassLoader.NULL_SENTINAL );
                     }
 
                     String unloadableNamespace = match.get();
@@ -514,19 +514,30 @@ public class GosuClassLoader implements IGosuClassLoader
                 } );
       }
 
-      private SingleServingGosuClassLoader getLoader( String key )
+      private DiscreteClassLoader getLoader( String key )
       {
-        WeakReference<SingleServingGosuClassLoader> ref = super.get( key );
-        if( ref.get() != SingleServingGosuClassLoader.NULL_SENTINAL )
+        WeakReference<DiscreteClassLoader> ref = super.get( key );
+        if( ref.get() != DiscreteClassLoader.NULL_SENTINAL )
         {
           // Must maintain a ref to the loader, otherwise it can get collected in between assigning it to the weak ref and returning from this method, in theory anyway
           //noinspection MismatchedReadAndWriteOfArray
-          SingleServingGosuClassLoader[] loader = new SingleServingGosuClassLoader[1];
+          DiscreteClassLoader[] loader = new DiscreteClassLoader[1];
 
           if( ref.get() == null )
           {
-            String unloadableNamespace = getDiscretePackages().stream().filter( key::startsWith ).findFirst().get();
-            put( unloadableNamespace, ref = new WeakReference<>( loader[0] = new SingleServingGosuClassLoader( GosuClassLoader.this ) ) );
+            String unloadableNamespace = getDiscretePackages().stream()
+              .filter( ( t ) -> {
+                if( key.equals( t ) )
+                {
+                  return true;
+                }
+                if( !t.endsWith( "." ) )
+                {
+                  t = t + '.';
+                }
+                return key.startsWith( t );
+              } ).findFirst().get();
+            put( unloadableNamespace, ref = new WeakReference<>( loader[0] = new DiscreteClassLoader( unloadableNamespace, GosuClassLoader.this ) ) );
           }
           return ref.get();
         }
