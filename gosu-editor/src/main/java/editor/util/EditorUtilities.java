@@ -247,7 +247,7 @@ public class EditorUtilities
   {
     if( fileOrDir.isDirectory() )
     {
-      if( RunMe.getEditorFrame().getGosuPanel().getProjectView().getProject().getSourcePath().contains( fileOrDir.getAbsolutePath() ) )
+      if( RunMe.getEditorFrame().getGosuPanel().getExperimentView().getExperiment().getSourcePath().contains( fileOrDir.getAbsolutePath() ) )
       {
         return loadIcon( "images/srcfolder.png" );
       }
@@ -784,7 +784,7 @@ public class EditorUtilities
     if( !file.isFile() )
     {
       Properties props = new Properties();
-      props.put( "project", makeScratchProject( gosuPanel ).getProjectDir().getAbsolutePath() );
+      props.put( "experiment", makeScratchExperiment( gosuPanel ).getExperimentDir().getAbsolutePath() );
 
       try( FileWriter writer = new FileWriter( file ) )
       {
@@ -798,7 +798,7 @@ public class EditorUtilities
     return file;
   }
 
-  public static Project loadRecentProject( GosuPanel gosuPanel )
+  public static Experiment loadRecentExperiment( GosuPanel gosuPanel )
   {
     File userFile = getUserFile( gosuPanel );
     Properties props = new Properties();
@@ -807,7 +807,7 @@ public class EditorUtilities
       props.load( reader );
       //noinspection unchecked
       restoreScreenProps( (Map)props );
-      return new Project( new File( props.getProperty( "project" ) ), gosuPanel );
+      return new Experiment( new File( props.getProperty( "experiment" ) ), gosuPanel );
     }
     catch( Exception e )
     {
@@ -815,18 +815,18 @@ public class EditorUtilities
     }
   }
 
-  public static void saveLayoutState( Project project ) {
+  public static void saveLayoutState( Experiment experiment ) {
     if( !RunMe.getEditorFrame().isVisible() )
     {
       return;
     }
 
-    File userFile = getUserFile( project.getGosuPanel() );
+    File userFile = getUserFile( experiment.getGosuPanel() );
     try( FileWriter writer = new FileWriter( userFile ) )
     {
       Properties props = new Properties();
 
-      props.put( "project", project.getProjectDir().getAbsolutePath() );
+      props.put( "experiment", experiment.getExperimentDir().getAbsolutePath() );
 
       //noinspection unchecked
       saveScreenProps( (Map)props );
@@ -918,15 +918,15 @@ public class EditorUtilities
     return gosuDir;
   }
 
-  public static File getStockProjectsDir()
+  public static File getStockExperimentsDir()
   {
-    File gosuDir = new File( System.getProperty( "user.home" ) + File.separator + ".GosuEditor" + File.separator + "projects" );
+    File gosuDir = new File( System.getProperty( "user.home" ) + File.separator + ".GosuEditor" + File.separator + "experiments" );
     //noinspection ResultOfMethodCallIgnored
-    copyExampleProjects( getStockExamplesDir() );
+    copyExampleExperiments( getStockExamplesDir() );
     return gosuDir;
   }
 
-  private static void copyExampleProjects( File gosuDir )
+  private static void copyExampleExperiments( File gosuDir )
   {
     URL marker = EditorUtilities.class.getClassLoader().getResource( "examples/marker.txt" );
     try
@@ -946,13 +946,13 @@ public class EditorUtilities
     {
       if( !to.getName().equals( "examples" ) && to.exists() )
       {
-        // already have this project
+        // already have this experiment
         return;
       }
 
       if( !to.exists() && !to.mkdirs() )
       {
-        System.out.println( "Failed to create project directory: " + to.getAbsolutePath() );
+        System.out.println( "Failed to create experiment directory: " + to.getAbsolutePath() );
       }
 
       for( IDirectory child : ((IDirectory)from).listDirs() )
@@ -994,25 +994,25 @@ public class EditorUtilities
     return gosuDir;
   }
 
-  public static List<File> getStockExampleProjects()
+  public static List<File> getStockExampleExperiments()
   {
-    List<File> projects = new ArrayList<>();
-    File projectsDir = getStockExamplesDir();
-    for( File dir : projectsDir.listFiles() )
+    List<File> experiments = new ArrayList<>();
+    File experimentsDir = getStockExamplesDir();
+    for( File dir : experimentsDir.listFiles() )
     {
       if( dir.isDirectory() )
       {
-        File projectFile = findProjectFile(dir);
-        if( projectFile != null )
+        File experimentFile = findExperimentFile(dir);
+        if( experimentFile != null )
         {
-          projects.add( dir );
+          experiments.add( dir );
         }
       }
     }
-    return projects;
+    return experiments;
   }
 
-  public static File findProjectFile(File dir) {
+  public static File findExperimentFile(File dir) {
     for( File f : dir.listFiles() )
     {
       if(f.getName().equalsIgnoreCase( dir.getName() + ".prj" ))
@@ -1023,10 +1023,10 @@ public class EditorUtilities
     return null;
   }
 
-  private static Project makeScratchProject( GosuPanel gosuPanel )
+  private static Experiment makeScratchExperiment( GosuPanel gosuPanel )
   {
-    File projectDir = new File( getStockProjectsDir(), "scratch" );
-    return new Project( projectDir, gosuPanel );
+    File experimentDir = new File( getStockExperimentsDir(), "scratch" );
+    return new Experiment( experimentDir, gosuPanel );
   }
 
   public static void openFileOrDir( File file )

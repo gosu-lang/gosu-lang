@@ -52,7 +52,7 @@ public class SourceFileCreator
   private File getParentContext()
   {
     GosuPanel gosuPanel = RunMe.getEditorFrame().getGosuPanel();
-    FileTree selection = gosuPanel.getProjectView().getSelectedTree();
+    FileTree selection = gosuPanel.getExperimentView().getSelectedTree();
     File parent = null;
     if( selection != null && selection.getParent() != null )
     {

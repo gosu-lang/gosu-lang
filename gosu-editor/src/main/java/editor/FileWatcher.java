@@ -1,6 +1,6 @@
 package editor;
 
-import editor.util.Project;
+import editor.util.Experiment;
 import gw.util.concurrent.ConcurrentWeakValueHashMap;
 
 import java.awt.*;
@@ -22,31 +22,31 @@ public class FileWatcher implements Runnable
   private static FileWatcher FILE_WATCHER = null;
 
   private WatchService _watcher;
-  private Project _project;
+  private Experiment _experiment;
   private ConcurrentWeakValueHashMap<String, IFileWatcherListener> _listeners;
   private Map<WatchKey,String> _keyToPath;
   private boolean _disposed;
 
-  public static FileWatcher instance( Project project )
+  public static FileWatcher instance( Experiment experiment )
   {
-    if( FILE_WATCHER != null && FILE_WATCHER._project != project )
+    if( FILE_WATCHER != null && FILE_WATCHER._experiment != experiment )
     {
       FILE_WATCHER.dispose();
     }
     if( FILE_WATCHER == null )
     {
-      FILE_WATCHER = new FileWatcher( project );
+      FILE_WATCHER = new FileWatcher( experiment );
     }
 
     return FILE_WATCHER;
   }
 
-  private FileWatcher( Project project )
+  private FileWatcher( Experiment experiment )
   {
-    _project = project;
+    _experiment = experiment;
     _listeners = new ConcurrentWeakValueHashMap<>();
     _keyToPath = new ConcurrentHashMap<>();
-    Path path = new File( project.getSourcePath().get( 0 ) ).toPath();
+    Path path = new File( experiment.getSourcePath().get( 0 ) ).toPath();
     try
     {
       _watcher = path.getFileSystem().newWatchService();

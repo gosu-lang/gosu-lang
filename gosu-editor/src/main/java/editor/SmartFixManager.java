@@ -923,8 +923,8 @@ public class SmartFixManager implements MouseMotionListener, KeyListener
     {
       return true;
     }
-//    if(ProjectProperties.getInstance() != null) {
-//      Set<SmartFixMode> disallowed = ProjectProperties.getInstance().getCodeCompletionOptions().getDisallowedSmartFixModes();
+//    if(ExperimentProperties.getInstance() != null) {
+//      Set<SmartFixMode> disallowed = ExperimentProperties.getInstance().getCodeCompletionOptions().getDisallowedSmartFixModes();
 //      if(disallowed.contains(mode)) {
 //        return false;
 //      }

@@ -8,9 +8,9 @@ import java.io.File;
 
 /**
  */
-public class ProjectListCellRenderer extends DefaultListCellRenderer
+public class ExperimentListCellRenderer extends DefaultListCellRenderer
 {
-  public ProjectListCellRenderer()
+  public ExperimentListCellRenderer()
   {
   }
 
@@ -20,12 +20,12 @@ public class ProjectListCellRenderer extends DefaultListCellRenderer
                                                  boolean isSelected,
                                                  boolean cellHasFocus )
   {
-    File projectDir = (File)value;
-    String text = projectDir == null ? "" : projectDir.getName();
+    File experimentDir = (File)value;
+    String text = experimentDir == null ? "" : experimentDir.getName();
 
     Component renderer = super.getListCellRendererComponent( list, text, modelIndex, isSelected, cellHasFocus );
 
-    if( projectDir != null )
+    if( experimentDir != null )
     {
       setIcon( EditorUtilities.loadIcon( "images/g_16.png"  ) );
     }

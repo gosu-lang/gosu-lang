@@ -2,7 +2,7 @@ package editor;
 
 
 import editor.util.EditorUtilities;
-import editor.util.Project;
+import editor.util.Experiment;
 import gw.config.CommonServices;
 import gw.config.IPlatformHelper;
 import gw.lang.Gosu;
@@ -38,30 +38,30 @@ public class RunMe
     EventQueue.invokeLater(
       () -> {
         _gosuEditor = BasicGosuEditor.create();
-        _gosuEditor.restoreState( EditorUtilities.loadRecentProject( _gosuEditor.getGosuPanel() ) );
+        _gosuEditor.restoreState( EditorUtilities.loadRecentExperiment( _gosuEditor.getGosuPanel() ) );
         _gosuEditor.showMe();
       } );
   }
 
-  public static void reinitializeGosu( Project project )
+  public static void reinitializeGosu( Experiment experiment )
   {
     CommonServices.getKernel().redefineService_Privileged( IPlatformHelper.class, new GosuEditorPlatformHelper() );
 
     IExecutionEnvironment execEnv = TypeSystem.getExecutionEnvironment();
     _gosuInitialization = GosuInitialization.instance( execEnv );
     GosucModule gosucModule = new GosucModule(
-      IExecutionEnvironment.DEFAULT_SINGLE_MODULE_NAME, project.getSourcePath(), deriveClasspath( project ),
+      IExecutionEnvironment.DEFAULT_SINGLE_MODULE_NAME, experiment.getSourcePath(), deriveClasspath( experiment ),
       "", Collections.<GosucDependency>emptyList(), Collections.<String>emptyList() );
     _gosuInitialization.reinitializeSimpleIde( gosucModule );
   }
 
-  private static List<String> deriveClasspath( Project project )
+  private static List<String> deriveClasspath( Experiment experiment )
   {
     List<String> classpath = new ArrayList<>();
-    List<String> sourcePath = project.getSourcePath();
+    List<String> sourcePath = experiment.getSourcePath();
     for( String path: sourcePath )
     {
-      if( !path.toLowerCase().startsWith( project.getProjectDir().getAbsolutePath().toLowerCase() ) )
+      if( !path.toLowerCase().startsWith( experiment.getExperimentDir().getAbsolutePath().toLowerCase() ) )
       {
         classpath.add( path );
       }

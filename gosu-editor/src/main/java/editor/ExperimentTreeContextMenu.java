@@ -2,7 +2,7 @@ package editor;
 
 import editor.util.EditorUtilities;
 import editor.util.PlatformUtil;
-import editor.util.Project;
+import editor.util.Experiment;
 import editor.util.SmartMenu;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.gs.IGosuProgram;
@@ -23,14 +23,14 @@ import java.io.OutputStream;
 
 /**
  */
-public class ProjectTreeContextMenu implements IContextMenuHandler<JTree>
+public class ExperimentTreeContextMenu implements IContextMenuHandler<JTree>
 {
   private static final String CUT_PREFIX = "-CUT-";
-  private final Project _project;
+  private final Experiment _experiment;
 
-  public ProjectTreeContextMenu( Project project )
+  public ExperimentTreeContextMenu( Experiment experiment )
   {
-    _project = project;
+    _experiment = experiment;
   }
 
   public JPopupMenu getContextMenu( JTree tree )
@@ -131,7 +131,7 @@ public class ProjectTreeContextMenu implements IContextMenuHandler<JTree>
       FileTree item = (FileTree)_tree.getLastSelectedPathComponent();
       if( item != null )
       {
-        _project.getGosuPanel().openFile( item.getFileOrDir() );
+        _experiment.getGosuPanel().openFile( item.getFileOrDir() );
       }
     }
   }
@@ -210,7 +210,7 @@ public class ProjectTreeContextMenu implements IContextMenuHandler<JTree>
       FileTree item = (FileTree)_tree.getLastSelectedPathComponent();
       if( item != null )
       {
-        Clipboard clipboard = _project.getGosuPanel().getClipboard();
+        Clipboard clipboard = _experiment.getGosuPanel().getClipboard();
         clipboard.setContents( new StringSelection( item.getFileOrDir().getAbsolutePath() ), this );
       }
     }
@@ -240,7 +240,7 @@ public class ProjectTreeContextMenu implements IContextMenuHandler<JTree>
         return false;
       }
 
-      Clipboard clipboard = _project.getGosuPanel().getClipboard();
+      Clipboard clipboard = _experiment.getGosuPanel().getClipboard();
       Transferable t = clipboard.getContents( this );
       try
       {
@@ -263,7 +263,7 @@ public class ProjectTreeContextMenu implements IContextMenuHandler<JTree>
 
     public void actionPerformed( ActionEvent e )
     {
-      Clipboard clipboard = _project.getGosuPanel().getClipboard();
+      Clipboard clipboard = _experiment.getGosuPanel().getClipboard();
       Transferable t = clipboard.getContents( this );
       if( t != null && t.isDataFlavorSupported( DataFlavor.stringFlavor ) )
       {
@@ -322,7 +322,7 @@ public class ProjectTreeContextMenu implements IContextMenuHandler<JTree>
       FileTree item = (FileTree)_tree.getLastSelectedPathComponent();
       if( item != null )
       {
-        Clipboard clipboard = _project.getGosuPanel().getClipboard();
+        Clipboard clipboard = _experiment.getGosuPanel().getClipboard();
         clipboard.setContents( new StringSelection( CUT_PREFIX + item.getFileOrDir().getAbsolutePath() ), this );
       }
     }

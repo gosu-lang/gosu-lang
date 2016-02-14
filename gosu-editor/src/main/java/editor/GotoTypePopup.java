@@ -1,7 +1,7 @@
 package editor;
 
 import editor.search.StudioUtilities;
-import editor.util.Project;
+import editor.util.Experiment;
 import gw.fs.IFile;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.TypeSystem;
@@ -69,18 +69,18 @@ public class GotoTypePopup extends AbstractGotoPopup<String>
   protected List<String> initializeData()
   {
     List<String> allTypes = new ArrayList<>( RunMe.getEditorFrame().getGosuPanel().getTypeNamesCache().getAllTypeNames( null ) );
-    Project project = RunMe.getEditorFrame().getGosuPanel().getProjectView().getProject();
-    allTypes = filterGosuClassFromProjectsInResources( allTypes, project );
+    Experiment experiment = RunMe.getEditorFrame().getGosuPanel().getExperimentView().getExperiment();
+    allTypes = filterGosuClassFromExperimentsInResources( allTypes, experiment );
     Collections.sort( allTypes, ( o1, o2 ) -> getRelativeTypeName( o1 ).compareToIgnoreCase( getRelativeTypeName( o2 ) ) );
     return allTypes;
   }
 
-  private List<String> filterGosuClassFromProjectsInResources( List<String> allGosuTypes, Project project )
+  private List<String> filterGosuClassFromExperimentsInResources( List<String> allGosuTypes, Experiment experiment )
   {
-    String projectPath = project.getProjectDir().getAbsolutePath();
-    List<String> relativeSrcPaths = project.getSourcePath().stream().map( srcPath ->
-      (srcPath.startsWith( projectPath )
-       ? srcPath.substring( projectPath.length() + 1 )
+    String experimentPath = experiment.getExperimentDir().getAbsolutePath();
+    List<String> relativeSrcPaths = experiment.getSourcePath().stream().map( srcPath ->
+      (srcPath.startsWith( experimentPath )
+       ? srcPath.substring( experimentPath.length() + 1 )
        : srcPath).replace( File.separatorChar, '.' ) ).collect( Collectors.toList() );
     return allGosuTypes.stream()
            .filter( s -> !relativeSrcPaths.stream().anyMatch( s::contains ) )

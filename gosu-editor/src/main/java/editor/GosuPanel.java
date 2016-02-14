@@ -10,7 +10,7 @@ import editor.util.BrowserUtil;
 import editor.util.EditorUtilities;
 import editor.util.LabelListPopup;
 import editor.util.PlatformUtil;
-import editor.util.Project;
+import editor.util.Experiment;
 import editor.util.SettleModalEventQueue;
 import editor.util.SmartMenu;
 import editor.util.TaskQueue;
@@ -82,7 +82,7 @@ public class GosuPanel extends JPanel
   private SystemPanel _resultPanel;
   private CollapsibleSplitPane _outerSplitPane;
   private CollapsibleSplitPane _splitPane;
-  private ProjectView _projectView;
+  private ExperimentView _experimentView;
   private JFrame _parentFrame;
   private boolean _bRunning;
   private TabPane _editorTabPane;
@@ -92,7 +92,7 @@ public class GosuPanel extends JPanel
   private JPanel _statPanel;
   private boolean _initialFile;
   private TypeNameCache _typeNamesCache;
-  private Project _project;
+  private Experiment _experiment;
 
   public GosuPanel( JFrame basicGosuEditor )
   {
@@ -135,16 +135,16 @@ public class GosuPanel extends JPanel
         }
         getCurrentEditor().getEditor().requestFocus();
         parse();
-        storeProjectState();
+        storeExperimentState();
       } );
 
-    _projectView = new ProjectView();
-    _projectView.setBackground( Color.white );
-    TabPane projectViewTabPane = new TabPane( TabPosition.TOP, TabPane.MINIMIZABLE | TabPane.RESTORABLE | TabPane.TOP_BORDER_ONLY );
-    projectViewTabPane.addTab( "Project", null, _projectView );
+    _experimentView = new ExperimentView();
+    _experimentView.setBackground( Color.white );
+    TabPane experimentViewTabPane = new TabPane( TabPosition.TOP, TabPane.MINIMIZABLE | TabPane.RESTORABLE | TabPane.TOP_BORDER_ONLY );
+    experimentViewTabPane.addTab( "Experiment", null, _experimentView );
 
 
-    _splitPane = new CollapsibleSplitPane( SwingConstants.HORIZONTAL, projectViewTabPane, _editorTabPane );
+    _splitPane = new CollapsibleSplitPane( SwingConstants.HORIZONTAL, experimentViewTabPane, _editorTabPane );
     _outerSplitPane = new CollapsibleSplitPane( SwingConstants.VERTICAL,  _splitPane, resultTabPane );
 
     add( _outerSplitPane, BorderLayout.CENTER );
@@ -157,16 +157,16 @@ public class GosuPanel extends JPanel
     handleMacStuff();
 
     EventQueue.invokeLater( () -> {
-      setProjectSplitPosition( 70 );
+      setExperimentSplitPosition( 70 );
       setEditorSplitPosition( 20 );
      } );
 
     EventQueue.invokeLater( this::mapKeystrokes );
   }
 
-  public ProjectView getProjectView()
+  public ExperimentView getExperimentView()
   {
-    return _projectView;
+    return _experimentView;
   }
 
   private void handleMacStuff()
@@ -193,19 +193,19 @@ public class GosuPanel extends JPanel
     getTabSelectionHistory().dispose();
   }
 
-  private void storeProjectState()
+  private void storeExperimentState()
   {
     if( _initialFile )
     {
       return;
     }
-    getProject().save( _editorTabPane );
-    EditorUtilities.saveLayoutState( _project );
+    getExperiment().save( _editorTabPane );
+    EditorUtilities.saveLayoutState( _experiment );
   }
 
-  private Project getProject()
+  private Experiment getExperiment()
   {
-    return _project;
+    return _experiment;
   }
 
   static List<String> getLocalClasspath() {
@@ -228,7 +228,7 @@ public class GosuPanel extends JPanel
     String javaHome = System.getProperty( "java.home" ).toLowerCase();
     if( filePath.replace( '\\', '/' ).contains( "gosu-editor/src/main/resources" ) )
     {
-      // sample project resource
+      // sample experiment resource
       return false;
     }
 
@@ -238,19 +238,19 @@ public class GosuPanel extends JPanel
            filePath.endsWith( File.separator + "idea_rt.jar" );
   }
 
-  public void restoreProjectState( Project project )
+  public void restoreExperimentState( Experiment experiment )
   {
-    _project = project;
+    _experiment = experiment;
 
-    if( project.getSourcePath().size() > 0 )
+    if( experiment.getSourcePath().size() > 0 )
     {
-      //Gosu.setClasspath( project.getSourcePath().stream().map( File::new ).collect( Collectors.toList() ) );
-      RunMe.reinitializeGosu( project );
+      //Gosu.setClasspath( experiment.getSourcePath().stream().map( File::new ).collect( Collectors.toList() ) );
+      RunMe.reinitializeGosu( experiment );
     }
 
     //TypeSystem.refresh( TypeSystem.getGlobalModule() );
 
-    for( String openFile : project.getOpenFiles() )
+    for( String openFile : experiment.getOpenFiles() )
     {
       File file = new File( openFile );
       if( file.isFile() )
@@ -258,17 +258,17 @@ public class GosuPanel extends JPanel
         openFile( file );
       }
     }
-    String activeFile = project.getActiveFile();
+    String activeFile = experiment.getActiveFile();
     if( activeFile == null )
     {
-      openFile( project.getOrMakeUntitledProgram() );
+      openFile( experiment.getOrMakeUntitledProgram() );
     }
     else
     {
       openTab( new File( activeFile ) );
     }
     SettleModalEventQueue.instance().run();
-    _projectView.load( _project );
+    _experimentView.load( _experiment );
     EventQueue.invokeLater( () -> {
       parse();
       GosuEditor currentEditor = getCurrentEditor();
@@ -966,29 +966,29 @@ public class GosuPanel extends JPanel
     fileMenu.setMnemonic( 'F' );
     menuBar.add( fileMenu );
 
-    JMenuItem newProjectItem = new JMenuItem(
-      new AbstractAction( "New Project..." )
+    JMenuItem newExperimentItem = new JMenuItem(
+      new AbstractAction( "New Experiment..." )
       {
         @Override
         public void actionPerformed( ActionEvent e )
         {
-          newProject();
+          newExperiment();
         }
       } );
-    newProjectItem.setMnemonic( 'P' );
-    fileMenu.add( newProjectItem );
+    newExperimentItem.setMnemonic( 'P' );
+    fileMenu.add( newExperimentItem );
 
-    JMenuItem openProjectItem = new JMenuItem(
-      new AbstractAction( "Open Project..." )
+    JMenuItem openExperimentItem = new JMenuItem(
+      new AbstractAction( "Open Experiment..." )
       {
         @Override
         public void actionPerformed( ActionEvent e )
         {
-          openProject();
+          openExperiment();
         }
       } );
-    openProjectItem.setMnemonic( 'J' );
-    fileMenu.add( openProjectItem );
+    openExperimentItem.setMnemonic( 'J' );
+    fileMenu.add( openExperimentItem );
 
 
     fileMenu.addSeparator();
@@ -1110,7 +1110,7 @@ public class GosuPanel extends JPanel
     }
   }
 
-  public void setProjectSplitPosition( int iPos )
+  public void setExperimentSplitPosition( int iPos )
   {
     if( _outerSplitPane != null )
     {
@@ -1264,7 +1264,7 @@ public class GosuPanel extends JPanel
 
     initEditorMode( file, editor );
 
-    file = file == null ? getProject().getOrMakeUntitledProgram() : file;
+    file = file == null ? getExperiment().getOrMakeUntitledProgram() : file;
     editor.putClientProperty( "_file", file );
     removeLruTab();
     String classNameForFile = TypeNameUtil.getClassNameForFile( file );
@@ -1332,9 +1332,9 @@ public class GosuPanel extends JPanel
   private void updateTitle()
   {
     File file = getCurrentFile();
-    Project project = getProject();
-    String currentFilePath = file == null ? "  " :  " - ..." + File.separator + project.makeProjectRelativePath( file ) + " - ";
-    String title = project.getName() + " - [" + project.getProjectDir().getAbsolutePath() + "]" + currentFilePath + "Gosu " + Gosu.getVersion();
+    Experiment experiment = getExperiment();
+    String currentFilePath = file == null ? "  " :  " - ..." + File.separator + experiment.makeExperimentRelativePath( file ) + " - ";
+    String title = experiment.getName() + " - [" + experiment.getExperimentDir().getAbsolutePath() + "]" + currentFilePath + "Gosu Lab " + Gosu.getVersion();
     _parentFrame.setTitle( title );
   }
 
@@ -1497,10 +1497,12 @@ public class GosuPanel extends JPanel
     return true;
   }
 
-  public void newProject()
+  public void newExperiment()
   {
-    JFileChooser fc = new JFileChooser( getProject().getProjectDir() );
-    fc.setDialogTitle( "New Project" );
+    File untitled = new File( getExperiment().getExperimentDir().getParentFile(), "Untitled" );
+    untitled.mkdirs();
+    JFileChooser fc = new JFileChooser( untitled );
+    fc.setDialogTitle( "New Experiment" );
     fc.setDialogType( JFileChooser.OPEN_DIALOG );
     fc.setFileSelectionMode( JFileChooser.DIRECTORIES_ONLY );
     fc.setMultiSelectionEnabled( false );
@@ -1514,7 +1516,7 @@ public class GosuPanel extends JPanel
 
         public String getDescription()
         {
-          return "Gosu Project Directory (directory name is your project name)";
+          return "Gosu Experiment Directory (directory name is your experiment name)";
         }
       } );
     int returnVal = fc.showOpenDialog( editor.util.EditorUtilities.frameForComponent( this ) );
@@ -1523,15 +1525,15 @@ public class GosuPanel extends JPanel
       return;
     }
     File selectedFile = fc.getSelectedFile();
-    Project project = new Project( selectedFile.getName(), selectedFile, this );
+    Experiment experiment = new Experiment( selectedFile.getName(), selectedFile, this );
     clearTabs();
-    EventQueue.invokeLater( () -> restoreProjectState( project ) );
+    EventQueue.invokeLater( () -> restoreExperimentState( experiment ) );
   }
 
-  public void openProject()
+  public void openExperiment()
   {
-    FileDialog fc = new FileDialog( EditorUtilities.frameForComponent( this ), "Open Project", FileDialog.LOAD );
-    fc.setDirectory( getProject().getProjectDir().getAbsolutePath() );
+    FileDialog fc = new FileDialog( EditorUtilities.frameForComponent( this ), "Open Experiment", FileDialog.LOAD );
+    fc.setDirectory( getExperiment().getExperimentDir().getAbsolutePath() );
     fc.setMultipleMode( false );
     fc.setFile( "*.prj" );
     fc.setVisible( true );
@@ -1541,17 +1543,17 @@ public class GosuPanel extends JPanel
       File prjFile = new File( fc.getDirectory(), selectedFile );
       if( prjFile.isFile() )
       {
-        File projectDir = prjFile.getParentFile();
-        openProject( projectDir );
+        File experimentDir = prjFile.getParentFile();
+        openExperiment( experimentDir );
       }
     }
   }
 
-  public void openProject( File projectDir )
+  public void openExperiment( File experimentDir )
   {
-    storeProjectState();
+    storeExperimentState();
     clearTabs();
-    EventQueue.invokeLater( () -> restoreProjectState( new Project( projectDir, this ) ) );
+    EventQueue.invokeLater( () -> restoreExperimentState( new Experiment( experimentDir, this ) ) );
   }
 
   private boolean isValidGosuSourceFile( File file )
@@ -1661,7 +1663,7 @@ public class GosuPanel extends JPanel
             Class<?> runnerClass = Class.forName( "editor.GosuPanel$Runner", true, runLoader );
             String programFqn = program.getName();
             System.out.println( "Running: " + programFqn + "\n" );
-            getProject().setRecentProgram( programFqn );
+            getExperiment().setRecentProgram( programFqn );
             String result = null;
             try
             {
@@ -1918,7 +1920,7 @@ public class GosuPanel extends JPanel
                @Override
                public IType get()
                {
-                 String recentProgram = getProject() == null ? null : getProject().getRecentProgram();
+                 String recentProgram = getExperiment() == null ? null : getExperiment().getRecentProgram();
                  if( recentProgram != null )
                  {
                    return TypeSystem.getByFullNameIfValid( recentProgram );

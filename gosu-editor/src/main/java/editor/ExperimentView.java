@@ -4,7 +4,7 @@ import editor.splitpane.CollapsibleSplitPane;
 import editor.tabpane.TabPane;
 import editor.tabpane.TabPosition;
 import editor.util.EditorUtilities;
-import editor.util.Project;
+import editor.util.Experiment;
 import editor.util.XPToolbarButton;
 
 import javax.swing.*;
@@ -21,16 +21,16 @@ import java.io.File;
 
 /**
  */
-public class ProjectView extends JPanel
+public class ExperimentView extends JPanel
 {
-  private Project _project;
+  private Experiment _experiment;
   private JTree _tree;
   private JPanel _examplesList;
   private JPanel _examplesListNorth;
   private CollapsibleSplitPane _splitPane;
   private JScrollPane _scroller;
 
-  public ProjectView()
+  public ExperimentView()
   {
     setBorder( null );
     setLayout( new BorderLayout() );
@@ -57,12 +57,12 @@ public class ProjectView extends JPanel
     return tabPane;
   }
 
-  public void load( Project project )
+  public void load( Experiment experiment )
   {
     _splitPane.clearTop();
 
-    _project = project;
-    DefaultTreeModel model = new DefaultTreeModel( new FileTree( getProject() ) );
+    _experiment = experiment;
+    DefaultTreeModel model = new DefaultTreeModel( new FileTree( getExperiment() ) );
     _tree = new JTree( model );
     _tree.setBackground( EditorUtilities.WINDOW );
     _tree.setShowsRootHandles( true );
@@ -83,12 +83,12 @@ public class ProjectView extends JPanel
 
   private void addExamples()
   {
-    java.util.List<File> examples = EditorUtilities.getStockExampleProjects();
+    java.util.List<File> examples = EditorUtilities.getStockExampleExperiments();
     for( File dir: examples )
     {
       XPToolbarButton item = new XPToolbarButton( dir.getName(), EditorUtilities.loadIcon( "images/g_16.png" ) );
       item.setHorizontalAlignment( SwingConstants.LEFT );
-      item.addActionListener( e -> getProject().getGosuPanel().openProject( dir ) );
+      item.addActionListener( e -> getExperiment().getGosuPanel().openExperiment( dir ) );
       _examplesListNorth.add( item );
     }
   }
@@ -98,9 +98,9 @@ public class ProjectView extends JPanel
     return _tree;
   }
 
-  public Project getProject()
+  public Experiment getExperiment()
   {
-    return _project;
+    return _experiment;
   }
 
   private void expandToFirstSourcePath( int startingIndex, int rowCount )
@@ -158,7 +158,7 @@ public class ProjectView extends JPanel
             if( fileTree.getType() != null )
             {
               // Open Gosu type in our editor
-              _project.getGosuPanel().openFile( fileTree.getFileOrDir() );
+              _experiment.getGosuPanel().openFile( fileTree.getFileOrDir() );
             }
             else
             {
@@ -193,7 +193,7 @@ public class ProjectView extends JPanel
         {
           _tree.setSelectionRow( row );
           EventQueue.invokeLater( () ->
-                                    new ProjectTreeContextMenu( getProject() ).displayContextMenu( _tree, e.getX(), e.getY(), _tree ) );
+                                    new ExperimentTreeContextMenu( getExperiment() ).displayContextMenu( _tree, e.getX(), e.getY(), _tree ) );
         }
       }
     }

@@ -1,7 +1,7 @@
 package editor;
 
 import editor.util.EditorUtilities;
-import editor.util.Project;
+import editor.util.Experiment;
 import gw.config.CommonServices;
 import gw.lang.parser.IScriptPartId;
 import gw.lang.reflect.module.IFileSystem;
@@ -57,7 +57,7 @@ public class BasicGosuEditor extends JFrame implements IGosuEditor
 
   public void exit()
   {
-    EditorUtilities.saveLayoutState( _panel.getProjectView().getProject() );
+    EditorUtilities.saveLayoutState( _panel.getExperimentView().getExperiment() );
     if( _panel.saveIfDirty() )
     {
       System.exit( 0 );
@@ -77,7 +77,7 @@ public class BasicGosuEditor extends JFrame implements IGosuEditor
   private void setInitialSize()
   {
     _panel.setEditorSplitPosition( 60 );
-    _panel.setProjectSplitPosition( 30 );
+    _panel.setExperimentSplitPosition( 30 );
   }
 
   public void reset()
@@ -126,9 +126,9 @@ public class BasicGosuEditor extends JFrame implements IGosuEditor
     return _panel;
   }
 
-  public void restoreState( Project project )
+  public void restoreState( Experiment experiment )
   {
-    _panel.restoreProjectState( project );
+    _panel.restoreExperimentState( experiment );
   }
 
   public void selectTab( Object contentId )

@@ -1,7 +1,7 @@
 package editor;
 
 import editor.search.StudioUtilities;
-import editor.util.Project;
+import editor.util.Experiment;
 import gw.lang.reflect.TypeSystem;
 
 import javax.swing.*;
@@ -139,16 +139,16 @@ public class ClasspathDialog extends JDialog
     {
       pathFiles.add( new File( strPath ).getAbsoluteFile() );
     }
-    savePathsAndReopenProject( pathFiles );
+    savePathsAndReopenExperiment( pathFiles );
   }
 
-  private void savePathsAndReopenProject( List<File> pathFiles )
+  private void savePathsAndReopenExperiment( List<File> pathFiles )
   {
     GosuPanel gosuPanel = RunMe.getEditorFrame().getGosuPanel();
-    Project project = gosuPanel.getProjectView().getProject();
+    Experiment experiment = gosuPanel.getExperimentView().getExperiment();
     List<String> srcPaths = pathFiles.stream().map( File::getAbsolutePath ).collect( Collectors.toList() );
-    project.setSourcePath( srcPaths );
-    gosuPanel.openProject( project.getProjectDir() );
+    experiment.setSourcePath( srcPaths );
+    gosuPanel.openExperiment( experiment.getExperimentDir() );
   }
 
   private void updatePaths()

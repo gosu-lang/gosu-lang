@@ -19,31 +19,31 @@ import java.util.Set;
 
 /**
  */
-public class Project implements IProject
+public class Experiment implements IProject
 {
   private String _name;
   private List<String> _sourcePath;
-  private File _projectDir;
+  private File _experimentDir;
   private List<String> _openFiles;
   private String _activeFile;
   private String _recentProgram;
   private GosuPanel _gosuPanel;
 
-  public Project( String name, File dir, GosuPanel gosuPanel )
+  public Experiment( String name, File dir, GosuPanel gosuPanel )
   {
     _name = name;
     _gosuPanel = gosuPanel;
     _sourcePath = Arrays.asList( new File( dir, getRelativeGosuSourcePath() ).getAbsolutePath() );
-    _projectDir = dir;
+    _experimentDir = dir;
     //noinspection ResultOfMethodCallIgnored
-    _projectDir.mkdirs();
+    _experimentDir.mkdirs();
     _openFiles = Collections.emptyList();
   }
 
-  public Project( File dir, GosuPanel gosuPanel )
+  public Experiment( File dir, GosuPanel gosuPanel )
   {
     _name = dir.getName();
-    _projectDir = dir;
+    _experimentDir = dir;
     _gosuPanel = gosuPanel;
     load();
     FileWatcher.instance( this );
@@ -92,13 +92,13 @@ public class Project implements IProject
     _sourcePath = classpath;
   }
 
-  public File getProjectDir()
+  public File getExperimentDir()
   {
-    return _projectDir;
+    return _experimentDir;
   }
-  public void setProjectDir( File projectDir )
+  public void setExperimentDir( File experimentDir )
   {
-    _projectDir = projectDir;
+    _experimentDir = experimentDir;
   }
 
   public List<String> getOpenFiles()
@@ -116,19 +116,19 @@ public class Project implements IProject
     return _gosuPanel;
   }
 
-  public File getOrMakeProjectFile()
+  public File getOrMakeExperimentFile()
   {
-    File projectDir = getProjectDir();
+    File experimentDir = getExperimentDir();
     //noinspection ResultOfMethodCallIgnored
-    projectDir.mkdirs();
-    File project = EditorUtilities.findProjectFile(projectDir);
-    if( project != null )
+    experimentDir.mkdirs();
+    File experiment = EditorUtilities.findExperimentFile(experimentDir);
+    if( experiment != null )
     {
-      return project;
+      return experiment;
     }
-    project = new File( projectDir.getAbsolutePath() + File.separator + projectDir.getName() + ".prj" );
+    experiment = new File( experimentDir.getAbsolutePath() + File.separator + experimentDir.getName() + ".prj" );
     //noinspection ResultOfMethodCallIgnored
-    try( FileWriter writer = new FileWriter( project ) )
+    try( FileWriter writer = new FileWriter( experiment ) )
     {
       Properties props = new Properties();
       props.put( "Name", getName() );
@@ -142,36 +142,36 @@ public class Project implements IProject
           sourceDir.mkdirs();
         }
       }
-      props.store( writer, "Gosu Project: " + getName() );
+      props.store( writer, "Gosu Experiment: " + getName() );
     }
     catch( Exception e )
     {
       throw new RuntimeException( e );
     }
-    return project;
+    return experiment;
   }
 
   public void save( TabPane tabPane )
   {
-    File userFile = getOrMakeProjectFile();
+    File userFile = getOrMakeExperimentFile();
 
     Properties props = new Properties();
     props.put( "Name", getName() );
     ITab selectedTab = tabPane.getSelectedTab();
     if( selectedTab != null )
     {
-      props.put( "Tab.Active", makeProjectRelativePathWithSlashes( (File)tabPane.getSelectedTab().getContentPane().getClientProperty( "_file" ) ) );
+      props.put( "Tab.Active", makeExperimentRelativePathWithSlashes( (File)tabPane.getSelectedTab().getContentPane().getClientProperty( "_file" ) ) );
       for( int i = 0; i < tabPane.getTabCount(); i++ )
       {
         File file = (File)tabPane.getTabAt( i ).getContentPane().getClientProperty( "_file" );
-        props.put( "Tab.Open." + ((char)(i + 'A')), makeProjectRelativePathWithSlashes( file ) );
+        props.put( "Tab.Open." + ((char)(i + 'A')), makeExperimentRelativePathWithSlashes( file ) );
       }
     }
 
     for( int i = 0; i < getSourcePath().size(); i++ )
     {
       String path = getSourcePath().get( i );
-      String relativePath = makeProjectRelativePathWithSlashes( new File( path ) );
+      String relativePath = makeExperimentRelativePathWithSlashes( new File( path ) );
       props.put( "Classpath.Entry" + i, relativePath == null ? path : relativePath );
     }
 
@@ -183,7 +183,7 @@ public class Project implements IProject
     try
     {
       FileWriter fw = new FileWriter( userFile );
-      props.store( fw, "Gosu Project" );
+      props.store( fw, "Gosu Experiment" );
       fw.close();
     }
     catch( IOException e )
@@ -192,19 +192,19 @@ public class Project implements IProject
     }
   }
 
-  public String makeProjectRelativePath( File file )
+  public String makeExperimentRelativePath( File file )
   {
-    String absProjectDir = getProjectDir().getAbsolutePath();
+    String absExperimentDir = getExperimentDir().getAbsolutePath();
     String absFile = file.getAbsolutePath();
-    if( !absFile.startsWith( absProjectDir ) )
+    if( !absFile.startsWith( absExperimentDir ) )
     {
       return absFile;
     }
-    return absFile.substring( absProjectDir.length() + 1 );
+    return absFile.substring( absExperimentDir.length() + 1 );
   }
-  public String makeProjectRelativePathWithSlashes( File file )
+  public String makeExperimentRelativePathWithSlashes( File file )
   {
-    return makeProjectRelativePath( file ).replace( '\\', '/' );
+    return makeExperimentRelativePath( file ).replace( '\\', '/' );
   }
 
   private void load()
@@ -212,12 +212,12 @@ public class Project implements IProject
     Properties props = new Properties();
     try
     {
-      System.setProperty( "user.dir", getProjectDir().getAbsolutePath() );
-      FileReader reader = new FileReader( getOrMakeProjectFile() );
+      System.setProperty( "user.dir", getExperimentDir().getAbsolutePath() );
+      FileReader reader = new FileReader( getOrMakeExperimentFile() );
       props.load( reader );
       reader.close();
 
-      setName( props.getProperty( "Name", getProjectDir().getName() ) );
+      setName( props.getProperty( "Name", getExperimentDir().getName() ) );
 
       Set<String> keys = props.stringPropertyNames();
       //noinspection SuspiciousToArrayCall
@@ -238,7 +238,7 @@ public class Project implements IProject
       _sourcePath = sourcePath;
       if( _sourcePath.isEmpty() )
       {
-        File srcPath = new File( getProjectDir(), getRelativeGosuSourcePath() );
+        File srcPath = new File( getExperimentDir(), getRelativeGosuSourcePath() );
         _sourcePath.add( srcPath.getAbsolutePath() );
       }
 
