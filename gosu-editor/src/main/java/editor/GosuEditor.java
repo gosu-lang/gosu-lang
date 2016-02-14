@@ -3405,7 +3405,9 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
     }
     else if( feature instanceof ITypeInfo )
     {
-      offset = ((IGosuClassTypeInfo)feature).getGosuClass().getClassStatement().getClassDeclaration().getNameOffset( null );
+      IGosuClass targetClass = ((IGosuClassTypeInfo)feature).getGosuClass();
+      IClassDeclaration classDeclaration = targetClass.getClassStatement().getClassDeclaration();
+      offset = classDeclaration == null ? 0 : classDeclaration.getNameOffset( null );
     }
 
     if( gsClass != getParsedClass() )
