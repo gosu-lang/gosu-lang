@@ -1,0 +1,1 @@
+this is a marker resource to locate example projects in gosu-editor resources

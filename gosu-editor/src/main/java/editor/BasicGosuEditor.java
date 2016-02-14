@@ -143,7 +143,11 @@ public class BasicGosuEditor extends JFrame implements IGosuEditor
 
   public Rectangle getRestoreBounds()
   {
-    return _restoreBounds;
+    return new Rectangle( _restoreBounds );
+  }
+  public void setRestoreBounds( Rectangle restoreBounds )
+  {
+    _restoreBounds = restoreBounds;
   }
 
   public static BasicGosuEditor create()

@@ -46,7 +46,7 @@ public class ProjectView extends JPanel
     _examplesList.setLayout( new BorderLayout() );
     _examplesList.add( new JPanel(), BorderLayout.CENTER );
     _examplesList.add( _examplesListNorth = new JPanel( new GridLayout( 0, 1 ) ), BorderLayout.NORTH );
-    addExamples();
+    EventQueue.invokeLater( this::addExamples );
     _examplesList.setBorder( null );
     JScrollPane scrollPane = new JScrollPane( _examplesList );
     scrollPane.getVerticalScrollBar().setUnitIncrement( 22 );

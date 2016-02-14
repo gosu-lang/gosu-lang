@@ -274,7 +274,7 @@ public class Project implements IProject
     File srcDir = new File( getSourcePath().get( 0 ) );
     //noinspection ResultOfMethodCallIgnored
     srcDir.mkdirs();
-    File file = new File( srcDir, "Untitled.gsp" );
+    File file = new File( srcDir, "RunMe.gsp" );
     try
     {
       //noinspection ResultOfMethodCallIgnored

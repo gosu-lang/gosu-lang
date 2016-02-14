@@ -816,6 +816,11 @@ public class EditorUtilities
   }
 
   public static void saveLayoutState( Project project ) {
+    if( !RunMe.getEditorFrame().isVisible() )
+    {
+      return;
+    }
+
     File userFile = getUserFile( project.getGosuPanel() );
     try( FileWriter writer = new FileWriter( userFile ) )
     {
@@ -851,7 +856,7 @@ public class EditorUtilities
   }
   private static void restoreScreenProps( Map<String, String> props )
   {
-    JFrame frame = RunMe.getEditorFrame();
+    BasicGosuEditor frame = RunMe.getEditorFrame();
 
     boolean bSet = false;
     Integer x = readInteger( props, "Frame.Bounds.X" );
@@ -869,6 +874,7 @@ public class EditorUtilities
             Rectangle bounds = new Rectangle( x, y, width, height );
             ScreenUtil.convertFromPercentageOfScreenWidth( bounds );
             frame.setBounds( bounds );
+            frame.setRestoreBounds( bounds );
             bSet = true;
           }
         }
@@ -916,17 +922,17 @@ public class EditorUtilities
   {
     File gosuDir = new File( System.getProperty( "user.home" ) + File.separator + ".GosuEditor" + File.separator + "projects" );
     //noinspection ResultOfMethodCallIgnored
-    copySampleProjects( gosuDir );
+    copyExampleProjects( getStockExamplesDir() );
     return gosuDir;
   }
 
-  private static void copySampleProjects( File gosuDir )
+  private static void copyExampleProjects( File gosuDir )
   {
-    URL marker = EditorUtilities.class.getClassLoader().getResource( "projects/marker.txt" );
+    URL marker = EditorUtilities.class.getClassLoader().getResource( "examples/marker.txt" );
     try
     {
-      IDirectory projectsDir = CommonServices.getFileSystem().getIFile( marker ).getParent();
-      copy( projectsDir, gosuDir );
+      IDirectory examplesDir = CommonServices.getFileSystem().getIFile( marker ).getParent();
+      copyExamples( examplesDir, gosuDir );
     }
     catch( Exception e )
     {
@@ -934,11 +940,11 @@ public class EditorUtilities
     }
   }
 
-  private static void copy( IResource from, File to )
+  private static void copyExamples( IResource from, File to )
   {
     if( from instanceof IDirectory )
     {
-      if( !to.getName().equals( "projects" ) && to.exists() )
+      if( !to.getName().equals( "examples" ) && to.exists() )
       {
         // already have this project
         return;
@@ -951,11 +957,11 @@ public class EditorUtilities
 
       for( IDirectory child : ((IDirectory)from).listDirs() )
       {
-        copy( child, new File( to, child.getName() ) );
+        copyExamples( child, new File( to, child.getName() ) );
       }
       for( IFile child : ((IDirectory)from).listFiles() )
       {
-        copy( child, new File( to, child.getName() ) );
+        copyExamples( child, new File( to, child.getName() ) );
       }
     }
     else
@@ -980,24 +986,6 @@ public class EditorUtilities
     }
   }
 
-  public static List<File> getStockProjects()
-  {
-    List<File> projects = new ArrayList<>();
-    File projectsDir = getStockProjectsDir();
-    for( File dir : projectsDir.listFiles() )
-    {
-      if( dir.isDirectory() )
-      {
-        File projectFile = findProjectFile(dir);
-        if( projectFile != null )
-        {
-          projects.add( dir );
-        }
-      }
-    }
-    return projects;
-  }
-
   public static File getStockExamplesDir()
   {
     File gosuDir = new File( System.getProperty( "user.home" ) + File.separator + ".GosuEditor" + File.separator + "examples" );
@@ -1009,7 +997,7 @@ public class EditorUtilities
   public static List<File> getStockExampleProjects()
   {
     List<File> projects = new ArrayList<>();
-    File projectsDir = getStockProjectsDir();
+    File projectsDir = getStockExamplesDir();
     for( File dir : projectsDir.listFiles() )
     {
       if( dir.isDirectory() )

@@ -1259,12 +1259,12 @@ public class GosuPanel extends JPanel
 
     if( partId == null )
     {
-      partId = new TypelessScriptPartId( "Untitled.gsp" );
+      partId = new TypelessScriptPartId( "RunMe.gsp" );
     }
 
     initEditorMode( file, editor );
 
-    file = file == null ? new File( "Untitled.gsp" ) : file;
+    file = file == null ? getProject().getOrMakeUntitledProgram() : file;
     editor.putClientProperty( "_file", file );
     removeLruTab();
     String classNameForFile = TypeNameUtil.getClassNameForFile( file );
