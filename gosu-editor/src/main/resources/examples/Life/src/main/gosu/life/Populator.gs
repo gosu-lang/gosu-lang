@@ -12,6 +12,7 @@ enum Populator {
   Acorn( "Acorn", new HashSet<java.awt.Point>() {new(178, 172),new(179, 170),new(179, 172),new(181, 171),new(182, 172),new(183, 172),new(184, 172)}, 2 ),
   GliderGun( "Glider Gun", new HashSet<java.awt.Point>() {new(6, 10),new(6, 11),new(7, 10),new(7, 11),new(16, 10),new(16, 11),new(16, 12),new(17, 9),new(17, 13),new(18, 8),new(18, 14),new(19, 8),new(19, 14),new(20, 11),new(21, 9),new(21, 13),new(22, 10),new(22, 11),new(22, 12),new(23, 11),new(26, 8),new(26, 9),new(26, 10),new(27, 8),new(27, 9),new(27, 10),new(28, 7),new(28, 11),new(30, 6),new(30, 7),new(30, 11),new(30, 12),new(40, 8),new(40, 9),new(41, 8),new(41, 9)} ),
   SwitchEngine( "Switch Engine", new HashSet<java.awt.Point>() {new(129, 135),new(129, 136),new(129, 139),new(130, 135),new(130, 138),new(131, 135),new(131, 138),new(131, 139),new(132, 137),new(133, 135),new(133, 137),new(133, 138),new(133, 139)}, 1 ),
+  Invader( "Invader", new HashSet<java.awt.Point>() {new(21, 70),new(21, 71),new(22, 68),new(22, 73),new(23, 67),new(24, 67),new(24, 73),new(25, 67),new(25, 68),new(25, 69),new(25, 70),new(25, 71),new(25, 72)}),
 
   var _name: String as Label
   var _liveCells: Collection<Point> as LiveCells
