@@ -1002,7 +1002,7 @@ public class EditorUtilities
     {
       if( dir.isDirectory() )
       {
-        File experimentFile = findExperimentFile(dir);
+        File experimentFile = findExperimentFile( dir );
         if( experimentFile != null )
         {
           experiments.add( dir );
@@ -1132,5 +1132,10 @@ public class EditorUtilities
     }
     //noinspection ResultOfMethodCallIgnored
     fileOrDir.delete();
+  }
+
+  public static ImageIcon loadLabIcon()
+  {
+    return loadIcon( "images/beaker5.png" );
   }
 }

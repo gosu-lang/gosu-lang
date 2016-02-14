@@ -67,7 +67,7 @@ public class BasicGosuEditor extends JFrame implements IGosuEditor
   private void configUI()
   {
     setDefaultCloseOperation( DO_NOTHING_ON_CLOSE );
-    setIconImage( editor.util.EditorUtilities.loadIcon( "images/g_16.png" ).getImage() );
+    setIconImage( EditorUtilities.loadLabIcon().getImage() );
     _panel = new GosuPanel( this );
     Container contentPane = getContentPane();
     contentPane.setLayout( new BorderLayout() );

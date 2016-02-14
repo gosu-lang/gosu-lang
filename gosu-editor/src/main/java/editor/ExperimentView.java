@@ -86,7 +86,7 @@ public class ExperimentView extends JPanel
     java.util.List<File> examples = EditorUtilities.getStockExampleExperiments();
     for( File dir: examples )
     {
-      XPToolbarButton item = new XPToolbarButton( dir.getName(), EditorUtilities.loadIcon( "images/g_16.png" ) );
+      XPToolbarButton item = new XPToolbarButton( dir.getName(), EditorUtilities.loadLabIcon() );
       item.setHorizontalAlignment( SwingConstants.LEFT );
       item.addActionListener( e -> getExperiment().getGosuPanel().openExperiment( dir ) );
       _examplesListNorth.add( item );

@@ -27,7 +27,7 @@ public class ExperimentListCellRenderer extends DefaultListCellRenderer
 
     if( experimentDir != null )
     {
-      setIcon( EditorUtilities.loadIcon( "images/g_16.png"  ) );
+      setIcon( EditorUtilities.loadLabIcon() );
     }
 
     return renderer;

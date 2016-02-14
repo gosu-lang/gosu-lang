@@ -408,7 +408,7 @@ public class FileTree implements MutableTreeNode, IFileWatcherListener
   {
     if( getParent() == null )
     {
-      return EditorUtilities.loadIcon( "images/g_16.png" );
+      return EditorUtilities.loadLabIcon();
     }
     if( isDirectory() )
     {
