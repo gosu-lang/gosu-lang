@@ -9,6 +9,7 @@ import gw.config.ExecutionMode;
 import gw.fs.IFile;
 import gw.internal.gosu.coercer.FunctionToInterfaceClassGenerator;
 import gw.internal.gosu.compiler.GosuClassLoader;
+import gw.internal.gosu.compiler.SingleServingGosuClassLoader;
 import gw.internal.gosu.ir.TransformingCompiler;
 import gw.internal.gosu.parser.expressions.TypeVariableDefinition;
 import gw.internal.gosu.parser.expressions.TypeVariableDefinitionImpl;
@@ -2079,6 +2080,7 @@ public class GosuClass extends InnerClassCapableType implements IGosuClassIntern
   @Override
   public void unloadBackingClass()
   {
+    SingleServingGosuClassLoader.clearCache( getName() );
     if( _javaClass != null )
     {
       TypeSystem.lock();

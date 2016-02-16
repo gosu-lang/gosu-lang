@@ -23,6 +23,7 @@ import gw.lang.reflect.IMethodCallHandler;
 import gw.lang.reflect.IMethodInfo;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.NotLazyTypeResolver;
+import gw.lang.reflect.ReflectUtil;
 import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.gs.IGenericTypeVariable;
 import gw.lang.reflect.gs.IGosuMethodInfo;
@@ -94,7 +95,7 @@ public class GosuMethodInfo extends AbstractGenericMethodInfo implements IGosuMe
       {
         throw new ErrantGosuClassException( gsClass );
       }
-      _callHandler = new GosuMethodCallHandler();
+      _callHandler = gsClass.isStructure() ? new ReflectiveMethodCallHandler(): new GosuMethodCallHandler();
     }
 
     return _callHandler;
@@ -306,6 +307,14 @@ public class GosuMethodInfo extends AbstractGenericMethodInfo implements IGosuMe
       {
         throw GosuExceptionUtil.forceThrow( e.getTargetException() );
       }
+    }
+  }
+
+  private class ReflectiveMethodCallHandler implements IMethodCallHandler {
+    @Override
+    public Object handleCall( Object ctx, Object... args )
+    {
+      return ReflectUtil.invokeMethod( ctx, getDisplayName(), args );
     }
   }
 }

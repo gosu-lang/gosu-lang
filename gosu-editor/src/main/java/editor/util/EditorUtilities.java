@@ -135,17 +135,21 @@ public class EditorUtilities
   public static void removePopupBorder( final Container c )
   {
     EventQueue.invokeLater(
-      new Runnable() {
-        public void run() {
+      new Runnable()
+      {
+        public void run()
+        {
           Container p = c;
-          while(p != null) {
-            if(p instanceof JComponent) {
-              ((JComponent) p).setBorder(null);
+          while( p != null )
+          {
+            if( p instanceof JComponent )
+            {
+              ((JComponent)p).setBorder( null );
             }
             p = p.getParent();
           }
         }
-      });
+      } );
   }
 
   public static void centerWindowInFrame( Component window, Window frame )
@@ -211,7 +215,7 @@ public class EditorUtilities
       return null;
     }
 
-    ImageIcon icon = ICON_TABLE.get(strRes);
+    ImageIcon icon = ICON_TABLE.get( strRes );
     if( icon == null && !strRes.contains( " | " ) )
     {
       try
@@ -256,7 +260,7 @@ public class EditorUtilities
         return findIcon( type );
       }
     }
-    return FileSystemView.getFileSystemView().getSystemIcon(fileOrDir);
+    return FileSystemView.getFileSystemView().getSystemIcon( fileOrDir );
   }
 
   public static Icon findIcon( IType type )
@@ -325,7 +329,7 @@ public class EditorUtilities
 
   public static void handleUncaughtException( Throwable e )
   {
-    handleUncaughtException("", e);
+    handleUncaughtException( "", e );
   }
 
   public static void handleUncaughtException( String s, Throwable e )
@@ -538,7 +542,7 @@ public class EditorUtilities
 
   public static String wrapText( String strText )
   {
-    return wrapText(strText, 60);
+    return wrapText( strText, 60 );
   }
 
   public static String wrapText( String strText, int iLineLen )
@@ -732,7 +736,7 @@ public class EditorUtilities
       //## todo: barf
       strCmd = "firefox " + strURL;
     }
-    return Runtime.getRuntime().exec(strCmd);
+    return Runtime.getRuntime().exec( strCmd );
   }
 
   /**
@@ -793,7 +797,7 @@ public class EditorUtilities
     Properties props = new Properties();
     try( FileReader reader = new FileReader( userFile ) )
     {
-      props.load(reader);
+      props.load( reader );
       return new Project( new File( props.getProperty( "project" ) ), gosuPanel );
     }
     catch( Exception e )
@@ -957,32 +961,83 @@ public class EditorUtilities
   {
     try
     {
-      try
+      File parent;
+      if( file.isDirectory() )
       {
-        Desktop.getDesktop().edit( file );
+        parent = file;
+        file = null;
       }
-      catch( Exception e )
+      else
       {
-        if( PlatformUtil.isWindows() )
+        if( !file.exists() )
         {
-          Runtime.getRuntime().exec( new String[]{"rundll32", "url.dll,FileProtocolHandler", file.getAbsolutePath()} );
+          return;
         }
-        else if( PlatformUtil.isLinux() || PlatformUtil.isMac() )
+        file = file.getAbsoluteFile();
+        parent = file.getParentFile();
+        if( parent == null )
         {
-          Runtime.getRuntime().exec( new String[]{"/usr/bin/open", file.getAbsolutePath()} );
-        }
-        else
-        {
-          if( Desktop.isDesktopSupported() )
-          {
-            Desktop.getDesktop().open( file );
-          }
+          return;
         }
       }
+      doOpen( parent, file );
     }
     catch( Exception e )
     {
       throw new RuntimeException( e );
+    }
+  }
+
+  private static void doOpen( File dir, File toSelect ) throws IOException
+  {
+    if( PlatformUtil.isWindows() )
+    {
+      String cmd;
+      if( toSelect != null )
+      {
+        cmd = "explorer /select," + toSelect.getAbsolutePath();
+      }
+      else
+      {
+        cmd = "explorer /root," + dir.getAbsolutePath();
+      }
+      // no quoting/escaping is needed
+      Runtime.getRuntime().exec( cmd );
+      return;
+    }
+
+    if( PlatformUtil.isMac() )
+    {
+      if( toSelect != null )
+      {
+        final String script = String.format(
+          "tell application \"Finder\"\n" +
+          "\treveal {\"%s\"} as POSIX file\n" +
+          "\tactivate\n" +
+          "end tell", toSelect.getAbsolutePath() );
+        Runtime.getRuntime().exec( new String[]{"/usr/bin/osascript", "-e", script} );
+      }
+      else
+      {
+        Runtime.getRuntime().exec( new String[]{"open", dir.getAbsolutePath()} );
+      }
+      return;
+    }
+    String path = dir.getAbsolutePath();
+    if( PlatformUtil.hasXdgOpen() )
+    {
+      Runtime.getRuntime().exec( new String[]{"/usr/bin/xdg-open", path} );
+    }
+    else if( Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported( Desktop.Action.OPEN ) )
+    {
+      Desktop.getDesktop().open( new File( path ) );
+    }
+    else
+    {
+      JOptionPane.showMessageDialog( RunMe.getEditorFrame(),
+                                     "This action isn't supported on the current platform",
+                                     "Cannot Open File",
+                                     JOptionPane.ERROR_MESSAGE );
     }
   }
 
