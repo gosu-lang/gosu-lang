@@ -1099,6 +1099,12 @@ public class StandardCoercionManager extends BaseService implements ICoercionMan
       return value;
     }
 
+    // casts to structs are dynamic, pass value through unchanged
+    if( intrType instanceof IGosuClass && ((IGosuClass)intrType).isStructure() )
+    {
+      return value;
+    }
+
     //==================================================================================
     // Coercion
     //==================================================================================
