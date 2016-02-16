@@ -12,16 +12,18 @@ import gw.lang.reflect.gs.ICompilableType;
 import gw.lang.reflect.gs.IGosuClassLoader;
 import gw.lang.reflect.java.IJavaType;
 import gw.lang.reflect.module.TypeSystemLockHelper;
+import gw.util.concurrent.ConcurrentHashSet;
 import gw.util.concurrent.ConcurrentWeakValueHashMap;
 
 import java.util.Map;
+import java.util.Set;
 
 public class SingleServingGosuClassLoader extends ClassLoader implements IGosuClassLoader
 {
-  private static final Map<String, Class> CACHE = new ConcurrentWeakValueHashMap<String, Class>();
-  static final SingleServingGosuClassLoader NULL_SENTINAL = new SingleServingGosuClassLoader();
+  static final Map<String, Class> CACHE = new ConcurrentWeakValueHashMap<String, Class>();
 
   private GosuClassLoader _parent;
+  private Set<String> _classes; // reflects Gosu classes loaded in this loader
 
   public static Class getCached( ICompilableType gsClass ) {
     return CACHE.get( gsClass.getName() );
@@ -30,9 +32,20 @@ public class SingleServingGosuClassLoader extends ClassLoader implements IGosuCl
   public static void clearCache() {
     CACHE.clear();
   }
+  public static void clearCache( String gosuClassName ) {
+    Class cls = CACHE.remove( gosuClassName );
+    if( cls != null )
+    {
+      ClassLoader loader = cls.getClassLoader();
+      if( loader instanceof SingleServingGosuClassLoader )
+      {
+        ((SingleServingGosuClassLoader)loader).unload( gosuClassName );
+      }
+    }
+  }
 
   // for null sentinal only
-  private SingleServingGosuClassLoader()
+  SingleServingGosuClassLoader()
   {
   }
 
@@ -40,6 +53,7 @@ public class SingleServingGosuClassLoader extends ClassLoader implements IGosuCl
   {
     super( parent.getActualLoader() );
     _parent = parent;
+    _classes = new ConcurrentHashSet<>();
   }
 
   public Class<?> findClass( String strName ) throws ClassNotFoundException
@@ -49,6 +63,12 @@ public class SingleServingGosuClassLoader extends ClassLoader implements IGosuCl
       return cls;
     }
     return _parent.findClass( strName );
+  }
+
+  protected void unload( String gosuClassName )
+  {
+    // Remove all classes in this single-serving loader from the global cache
+    _classes.forEach( CACHE::remove );
   }
 
   @Override
@@ -105,9 +125,10 @@ public class SingleServingGosuClassLoader extends ClassLoader implements IGosuCl
     byte[] classBytes = compileClass( gsClass, _parent.shouldDebugClass( gsClass ) );
     CompilationStatistics.instance().collectStats( gsClass, classBytes, true );
 
+    String gosuClassName = gsClass.getName();
     if( classBytes == null )
     {
-      throw new IllegalStateException( "Could not generate class for " + gsClass.getName() );
+      throw new IllegalStateException( "Could not generate class for " + gosuClassName );
     }
     String strPackage = gsClass.getNamespace();
     if( getPackage( strPackage ) == null )
@@ -118,7 +139,8 @@ public class SingleServingGosuClassLoader extends ClassLoader implements IGosuCl
     cls = defineClass( GosuClassLoader.getJavaName( gsClass ), classBytes, 0, classBytes.length );
     if( shouldCache(gsClass) )
     {
-      CACHE.put( gsClass.getName(), cls );
+      CACHE.put( gosuClassName, cls );
+      _classes.add( gosuClassName );
     }
     return cls;
   }

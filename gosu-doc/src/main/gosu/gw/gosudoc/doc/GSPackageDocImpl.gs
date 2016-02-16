@@ -107,6 +107,13 @@ class GSPackageDocImpl extends GSDocImpl implements PackageDoc{
           throw new IllegalArgumentException( "Duplicate classes " + clazz.qualifiedName() )
         }
       }
+
+      // if the super type is null and this is a plain class, we need to set the
+      // super type to Object for the doclet generator
+      if( !iType.isEnum() && !iType.isInterface()  && supertypeClass == null ) {
+        supertypeClass = new GSClassDocImpl( Object, getRootDoc() )
+      }
+
       clazz.setSuperClass( supertypeClass )
       clazz.initialize()
     }
