@@ -29,7 +29,6 @@ import gw.lang.parser.IParsedElement;
 import gw.lang.parser.IScriptPartId;
 import gw.lang.parser.ScriptPartId;
 import gw.lang.parser.ScriptabilityModifiers;
-import gw.lang.parser.TypelessScriptPartId;
 import gw.lang.parser.exceptions.ParseResultsException;
 import gw.lang.parser.expressions.IBlockExpression;
 import gw.lang.parser.resources.ResourceKey;
@@ -1259,7 +1258,7 @@ public class GosuPanel extends JPanel
 
     if( partId == null )
     {
-      partId = new TypelessScriptPartId( "RunMe.gsp" );
+      throw new IllegalArgumentException( "partId should be non-null" );
     }
 
     initEditorMode( file, editor );
@@ -1500,6 +1499,7 @@ public class GosuPanel extends JPanel
   public void newExperiment()
   {
     File untitled = new File( getExperiment().getExperimentDir().getParentFile(), "Untitled" );
+    //noinspection ResultOfMethodCallIgnored
     untitled.mkdirs();
     JFileChooser fc = new JFileChooser( untitled );
     fc.setDialogTitle( "New Experiment" );
@@ -1662,7 +1662,7 @@ public class GosuPanel extends JPanel
           {
             Class<?> runnerClass = Class.forName( "editor.GosuPanel$Runner", true, runLoader );
             String programFqn = program.getName();
-            System.out.println( "Running: " + programFqn + "\n" );
+            System.out.println( "Running: " + programFqn + "...\n" );
             getExperiment().setRecentProgram( programFqn );
             String result = null;
             try

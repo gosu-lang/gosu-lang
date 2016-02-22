@@ -417,6 +417,7 @@ public class BeanTree implements MutableTreeNode, Comparable<BeanTree>
            !feature.isScriptable() ||
            hideDeprecated( feature ) ||
            isInternal( feature ) ||
+           feature.getName().equals( "IntrinsicType" ) ||
            (getFeatureFilter() != null && !getFeatureFilter().acceptFeature( beanInfo.getOwnersType(), feature ));
   }
 

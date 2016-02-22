@@ -1,5 +1,6 @@
 package editor.search;
 
+import editor.BasicGosuEditor;
 import editor.RunMe;
 
 import javax.swing.*;
@@ -1168,15 +1169,19 @@ public class StudioUtilities implements SwingConstants
   {
     GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
     GraphicsDevice[] gds = ge.getScreenDevices();
-    Rectangle windowBounds = ((JFrame)RunMe.getEditorFrame()).getBounds();
+    BasicGosuEditor frame = RunMe.getEditorFrame();
     Rectangle foundBounds = null;
-    for( GraphicsDevice gd : gds )
+    if( frame != null )
     {
-      Rectangle bounds = gd.getDefaultConfiguration().getBounds();
-      if( bounds.contains( windowBounds.getX(), windowBounds.getY() ) )
+      Rectangle windowBounds = frame.getBounds();
+      for( GraphicsDevice gd : gds )
       {
-        foundBounds = bounds;
-        break;
+        Rectangle bounds = gd.getDefaultConfiguration().getBounds();
+        if( bounds.contains( windowBounds.getX(), windowBounds.getY() ) )
+        {
+          foundBounds = bounds;
+          break;
+        }
       }
     }
     if( foundBounds == null )

@@ -3,6 +3,7 @@ package editor;
 
 import editor.util.EditorUtilities;
 import editor.util.Experiment;
+import editor.util.SettleModalEventQueue;
 import gw.config.CommonServices;
 import gw.config.IPlatformHelper;
 import gw.lang.Gosu;
@@ -37,8 +38,11 @@ public class RunMe
   {
     EventQueue.invokeLater(
       () -> {
+        SplashScreen.instance().setFeedbackText( "Initializing..." );
         _gosuEditor = BasicGosuEditor.create();
         _gosuEditor.restoreState( EditorUtilities.loadRecentExperiment( _gosuEditor.getGosuPanel() ) );
+        SettleModalEventQueue.instance().run();
+        SplashScreen.instance().dispose();
         _gosuEditor.showMe();
       } );
   }

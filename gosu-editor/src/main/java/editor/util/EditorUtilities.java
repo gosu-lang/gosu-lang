@@ -1025,7 +1025,7 @@ public class EditorUtilities
 
   private static Experiment makeScratchExperiment( GosuPanel gosuPanel )
   {
-    File experimentDir = new File( getStockExperimentsDir(), "scratch" );
+    File experimentDir = new File( getStockExperimentsDir(), "Scratch" );
     return new Experiment( experimentDir, gosuPanel );
   }
 
@@ -1136,6 +1136,6 @@ public class EditorUtilities
 
   public static ImageIcon loadLabIcon()
   {
-    return loadIcon( "images/beaker5.png" );
+    return loadIcon( "images/project4.png" );
   }
 }

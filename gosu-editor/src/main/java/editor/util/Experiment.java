@@ -121,7 +121,7 @@ public class Experiment implements IProject
     File experimentDir = getExperimentDir();
     //noinspection ResultOfMethodCallIgnored
     experimentDir.mkdirs();
-    File experiment = EditorUtilities.findExperimentFile(experimentDir);
+    File experiment = EditorUtilities.findExperimentFile( experimentDir );
     if( experiment != null )
     {
       return experiment;
@@ -274,11 +274,19 @@ public class Experiment implements IProject
     File srcDir = new File( getSourcePath().get( 0 ) );
     //noinspection ResultOfMethodCallIgnored
     srcDir.mkdirs();
-    File file = new File( srcDir, "RunMe.gsp" );
+    File scratchPackage = new File( srcDir, "scratch" );
+    //noinspection ResultOfMethodCallIgnored
+    scratchPackage.mkdirs();
+    File file = new File( scratchPackage, "RunMe.gsp" );
     try
     {
-      //noinspection ResultOfMethodCallIgnored
-      file.createNewFile();
+      if( file.createNewFile() )
+      {
+        try( FileWriter writer = new FileWriter( file ) )
+        {
+          writer.write( "//\n// Run this from the Run menu or press F5\n//\nprint(\"Hello, World!\")\n" );
+        }
+      }
       return file;
     }
     catch( IOException e )
