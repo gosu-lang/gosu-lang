@@ -394,4 +394,28 @@ class CoreFeatureLiteralTest extends TestClass {
 
     }
 
+  structure StructForFLTests { property get X() : int }
+  class ClassForStructFLTests { property get X() : int { return 0 } }
+
+  function testPropertyFeatureLiteralGetsWorkWithStructBasedTypes() {
+    var f : StructForFLTests = new ClassForStructFLTests()
+    assertEquals(0, f.X)
+    assertEquals(0, StructForFLTests#X.get(f))
+  }
+
+  structure StructForFL2Tests { property get X() : int property set X(i: int) }
+  class ClassForStructFL2Tests { var _x : int as X }
+  function testPropertyFeatureLiteralSetsWorkWithStructBasedTypes() {
+    var f : StructForFL2Tests = new ClassForStructFL2Tests()
+    f.X = 42
+    assertEquals(42, StructForFL2Tests#X.get(f))
+  }
+
+  structure StructForFL3Tests { function foo(i : int):Integer}
+  class ClassForStructFL3Tests { function foo(i : int) : int { return i + 1 }  }
+  function testMethodFeatureLiteralInvokeWorkWithStructBasedTypes() {
+    var f : StructForFL3Tests = new ClassForStructFL3Tests()
+    assertEquals(43, StructForFL3Tests#foo().invoke(f, 42))
+  }
+
 }
