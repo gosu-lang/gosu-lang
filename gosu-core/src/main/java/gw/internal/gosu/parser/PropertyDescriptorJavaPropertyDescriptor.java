@@ -5,6 +5,7 @@
 package gw.internal.gosu.parser;
 
 import gw.internal.gosu.parser.java.classinfo.JavaSourceUtil;
+import gw.lang.reflect.ReflectUtil;
 import gw.lang.reflect.java.IJavaPropertyDescriptor;
 import gw.lang.reflect.java.IJavaClassMethod;
 import gw.lang.reflect.java.IJavaClassInfo;
@@ -15,6 +16,7 @@ import gw.lang.reflect.IScriptabilityModifier;
 import gw.lang.reflect.module.IModule;
 
 import java.beans.PropertyDescriptor;
+import java.lang.reflect.Method;
 
 public class PropertyDescriptorJavaPropertyDescriptor implements IJavaPropertyDescriptor {
   private PropertyDescriptor _pd;
@@ -32,12 +34,78 @@ public class PropertyDescriptorJavaPropertyDescriptor implements IJavaPropertyDe
 
   @Override
   public IJavaClassMethod getReadMethod() {
-    return _pd.getReadMethod() == null ? null : new MethodJavaClassMethod(_pd.getReadMethod(), _module);
+    Method method = getReadMethodSafe();
+    return method == null ? null : new MethodJavaClassMethod(method, _module);
+  }
+
+  private Method getReadMethodSafe() {
+    try {
+      return _pd.getReadMethod();
+    } catch (NullPointerException originalException) {
+      if (shouldFixJREMethodRefIssue()) {
+        try {
+          // Due to a bug in PropertyDescriptor in later versions of java 1.7, it is possible to get an NPE when
+          // retrieving a private write method for a property.  This addresses that situation
+          reestablishMethodRef("read");
+          return _pd.getReadMethod();
+        } catch (Exception e) {
+          e.printStackTrace();  // print stack trace, let original exception get thrown
+        }
+      }
+      throw originalException;
+    }
   }
 
   @Override
   public IJavaClassMethod getWriteMethod() {
-    return _pd.getWriteMethod() == null ? null : new MethodJavaClassMethod(_pd.getWriteMethod(), _module);
+    Method method = getWriteMethodSafe();
+    return method == null ? null : new MethodJavaClassMethod(method, _module);
+  }
+
+  private Method getWriteMethodSafe() {
+    try {
+      return _pd.getWriteMethod();
+    } catch (NullPointerException originalException) {
+      if (shouldFixJREMethodRefIssue()) {
+        try {
+          // Due to a bug in PropertyDescriptor in later versions of java 1.7, it is possible to get an NPE when
+          // retrieving a private write method for a property.  This addresses that situation
+          reestablishMethodRef("write");
+          return _pd.getWriteMethod();
+        } catch (Exception e) {
+          e.printStackTrace();  // print stack trace, let original exception get thrown
+        }
+      }
+      throw originalException;
+    }
+  }
+
+  private void reestablishMethodRef(String slot) {
+    Class clazz = (Class) ReflectUtil.invokeMethod(_pd, "getClass0");
+    String signature = slot.equals("write") ? getSetterMethod(clazz, _pd) : getGetterMethod(clazz);
+    Method resolvedMethod = findMethod0(clazz, signature);
+    Object methodRef = ReflectUtil.getProperty(_pd, slot + "MethodRef");
+    ReflectUtil.invokeMethod(methodRef, "set", resolvedMethod);
+  }
+
+  private String getGetterMethod(Class rootClass) {
+    return rootClass.getName() + ".get" + _pd.getName() + "()";
+  }
+
+  private String getSetterMethod(Class rootClass, PropertyDescriptor propertyDescriptor) {
+    return rootClass.getName() + ".set" + _pd.getName() + "(" + propertyDescriptor.getPropertyType().getName() + ")";
+  }
+
+  static Method findMethod0(Class<?> type, String signature) {
+    if (type != null) {
+      for (Method method : type.getDeclaredMethods()) {
+        if (method.toGenericString().endsWith( " " + signature )) {
+          return method;
+        }
+      }
+      return findMethod0(type.getSuperclass(), signature);
+    }
+    return null;
   }
 
   @Override
@@ -80,5 +148,14 @@ public class PropertyDescriptorJavaPropertyDescriptor implements IJavaPropertyDe
   @Override
   public String getShortDescription() {
     return _pd.getShortDescription();
+  }
+
+  static boolean shouldFixJREMethodRefIssue() {
+    String vendor = System.getProperty("java.vendor");
+    if(vendor != null) {
+      return vendor.toLowerCase().contains("sun") || vendor.toLowerCase().contains("oracle");
+    } else {
+      return false;
+    }
   }
 }
