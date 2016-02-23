@@ -16,14 +16,14 @@ enhancement CoreBindingsEnhancement : Bindings {
    *   <li> Otherwise, if the value is a List, the property is a List parameterized with the component type where the component type is the structural union inferred from the values of the List recursively following these rules for each value
    * </ul>
    */
-  function toStructure( nameForStructure: String ) : String {
-    return Json.makeStructureTypes( nameForStructure, this )
+  function toStructure( nameForStructure: String, mutable: boolean = false ) : String {
+    return Json.makeStructureTypes( nameForStructure, this, mutable )
   }
 
   /**
    * Serializes this Bindings instance to a JSON formatted String
    */
-  public function toJson() : String {
+  function toJson() : String {
     var sb = new StringBuilder()
     toJson( sb, 0 )
     return sb.toString()
@@ -32,7 +32,7 @@ enhancement CoreBindingsEnhancement : Bindings {
   /**
    * Serializes this Bindings instance into a JSON formatted StringBuilder with the specified indent of spaces
    */
-  public function toJson( sb: StringBuilder, indent: int ) : void {
+  function toJson( sb: StringBuilder, indent: int ) : void {
     var iKey = 0
     if( isNewLine( sb ) ) {
       indent( sb, indent )
@@ -94,7 +94,7 @@ enhancement CoreBindingsEnhancement : Bindings {
   /**
    * Serializes this Bindings instance to a JSON-like Gosu expression
    */
-  public function toGosu() : String {
+  function toGosu() : String {
     var sb = new StringBuilder()
     toGosu( sb, 0 )
     return sb.toString()
@@ -102,7 +102,7 @@ enhancement CoreBindingsEnhancement : Bindings {
   /**
    * Serializes this Bindings instance to a JSON-like Gosu expression
    */
-  public function toGosu( sb: StringBuilder, indent: int ) {
+  function toGosu( sb: StringBuilder, indent: int ) {
     toGosu( true, sb, indent )
   }
   function toGosu( bWithDynamic: boolean, sb : StringBuilder, indent: int ) {

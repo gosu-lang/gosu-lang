@@ -39,11 +39,11 @@ public class Json
    *   <li> Otherwise, if the value is a List, the property is a List parameterized with the component type, and the component type recursively follows these rules
    * </ul>
    */
-  public static String makeStructureTypes( String nameForStructure, Bindings bindings )
+  public static String makeStructureTypes( String nameForStructure, Bindings bindings, boolean mutable )
   {
     JsonStructureType type = (JsonStructureType)transformJsonObject( nameForStructure, null, bindings );
     StringBuilder sb = new StringBuilder();
-    type.render( sb, 0 );
+    type.render( sb, 0, mutable );
     return sb.toString();
   }
 

@@ -57,7 +57,7 @@ class JsonStructureType implements IJsonParentType
     return _members.get( name );
   }
 
-  public void render( StringBuilder sb, int indent )
+  public void render( StringBuilder sb, int indent, boolean mutable )
   {
     indent( sb, indent );
 
@@ -71,10 +71,15 @@ class JsonStructureType implements IJsonParentType
       identifier = addActualNameAnnotation( sb, indent + 2, key );
       indent( sb, indent + 2 );
       sb.append( "property get " ).append( identifier ).append( "(): " ).append( _members.get( key ).getName() ).append( "\n" );
+      if( mutable )
+      {
+        indent( sb, indent + 2 );
+        sb.append( "property set " ).append( identifier ).append( "( " ).append( "$value: " ).append( _members.get( key ).getName() ).append( " )\n" );
+      }
     }
     for( IJsonParentType child : _innerTypes.values() )
     {
-      child.render( sb, indent + 2 );
+      child.render( sb, indent + 2, mutable );
     }
     indent( sb, indent );
     sb.append( "}\n" );
