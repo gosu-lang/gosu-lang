@@ -772,6 +772,59 @@ class JsonTest extends gw.BaseVerifyErrantTest {
     assertEquals( expectedOutput, output )
   }
 
+  function testTopLevelList() {
+    var x: Dynamic = Json.fromJson( "[{'a': 1}, {'b': 2}]" )
+    var list: TopLevelList = x
+
+    // Note the coelescing of the list's component type "value", it is the union of both value, hence both members 'a' and 'b'
+    assertEquals( 1, list.value[0].a )
+    assertEquals( null, list.value[0].b )
+    assertEquals( null, list.value[1].a )
+    assertEquals( 2, list.value[1].b )
+  }
+
+  structure TopLevelList {
+    static function fromJson( jsonText: String ): TopLevelList {
+      return gw.lang.reflect.json.Json.fromJson( jsonText ) as TopLevelList
+    }
+    static function fromJsonUrl( url: String ): TopLevelList {
+      return new java.net.URL( url ).JsonContent
+    }
+    static function fromJsonUrl( url: java.net.URL ): TopLevelList {
+      return url.JsonContent
+    }
+    static function fromJsonFile( file: java.io.File ) : TopLevelList {
+      return fromJsonUrl( file.toURI().toURL() )
+    }
+    property get value(): List<value>
+    structure value {
+      property get a(): Integer
+      property get b(): Integer
+    }
+  }
+
+  function testTopLevelValue() {
+    var x: Dynamic = Json.fromJson( "72" )
+    var topvalue: TopLevelValue = x
+    assertEquals( 72, topvalue.value )
+  }
+
+  structure TopLevelValue {
+    static function fromJson( jsonText: String ): TopLevelValue {
+      return gw.lang.reflect.json.Json.fromJson( jsonText ) as TopLevelValue
+    }
+    static function fromJsonUrl( url: String ): TopLevelValue {
+      return new java.net.URL( url ).JsonContent
+    }
+    static function fromJsonUrl( url: java.net.URL ): TopLevelValue {
+      return url.JsonContent
+    }
+    static function fromJsonFile( file: java.io.File ) : TopLevelValue {
+      return fromJsonUrl( file.toURI().toURL() )
+    }
+    property get value(): Integer
+  }
+
   // Generated
   structure YahooQuotes {
     static function fromJson( jsonText: String ): YahooQuotes {

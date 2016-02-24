@@ -4,6 +4,8 @@ import javax.script.Bindings;
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
+import javax.script.SimpleBindings;
+import java.util.List;
 
 /**
  */
@@ -23,6 +25,26 @@ public class NashornJsonParser implements IJsonParser
   {
     ScriptEngine engine = new ScriptEngineManager().getEngineByName( "javascript" );
     String script = "Java.asJSONCompatible(" + jsonText + ")";
-    return (Bindings)engine.eval( script );
+    Object result = engine.eval( script );
+    if( result instanceof Bindings )
+    {
+      return (Bindings)result;
+    }
+    return wrapValueInBindings( result );
+  }
+
+  private Bindings wrapValueInBindings( Object result ) throws ScriptException
+  {
+    if( result == null ||
+        result instanceof List ||
+        result instanceof String ||
+        result instanceof Number ||
+        result instanceof Boolean )
+    {
+      Bindings wrapper = new SimpleBindings();
+      wrapper.put( "value", result );
+      return wrapper;
+    }
+    throw new ScriptException( "Unexpected JSON result type: " + result.getClass().getName() );
   }
 }
