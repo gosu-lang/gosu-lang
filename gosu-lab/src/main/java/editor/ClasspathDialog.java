@@ -2,13 +2,11 @@ package editor;
 
 import editor.search.StudioUtilities;
 import editor.util.Experiment;
-import gw.lang.reflect.TypeSystem;
 
 import javax.swing.*;
 import javax.swing.filechooser.FileFilter;
 import java.awt.*;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
@@ -53,14 +51,7 @@ public class ClasspathDialog extends JDialog
     setPathsList();
     _pathsList.setBorder( BorderFactory.createEmptyBorder() );
     JButton btnPaths = new JButton( "..." );
-    btnPaths.addActionListener(
-      new ActionListener()
-      {
-        public void actionPerformed( ActionEvent e )
-        {
-          updatePaths();
-        }
-      } );
+    btnPaths.addActionListener( e -> updatePaths() );
     panel.add( btnPaths, BorderLayout.NORTH );
     JPanel filler = new JPanel();
     filler.setBorder( BorderFactory.createEmptyBorder( 0, 4, 0, 0 ) );
@@ -81,25 +72,15 @@ public class ClasspathDialog extends JDialog
     JButton btnFind = new JButton( "OK" );
     btnFind.setMnemonic( 'O' );
     btnFind.addActionListener(
-      new ActionListener()
-      {
-        public void actionPerformed( ActionEvent e )
-        {
-          saveClassPath();
-          close();
-        }
+      e -> {
+        saveClassPath();
+        close();
       } );
     buttonPanel.add( btnFind );
     getRootPane().setDefaultButton( btnFind );
 
     JButton btnCancel = new JButton( "Cancel" );
-    btnCancel.addActionListener( new ActionListener()
-    {
-      public void actionPerformed( ActionEvent e )
-      {
-        close();
-      }
-    } );
+    btnCancel.addActionListener( e -> close() );
     buttonPanel.add( btnCancel );
 
     south.add( buttonPanel, BorderLayout.EAST );
@@ -115,11 +96,11 @@ public class ClasspathDialog extends JDialog
   private void setPathsList()
   {
     String strPaths = "";
-    List<String> paths = GosuPanel.getLocalClasspath();
+    List<String> paths =  RunMe.getEditorFrame().getGosuPanel().getExperimentView().getExperiment().getSourcePath();
     for( int i = 0; i < paths.size(); i++ )
     {
       String strPath = paths.get( i );
-      strPaths += strPath + (i == paths.size() - 1 ? "" : File.pathSeparator);
+      strPaths += strPath + (i == paths.size() - 1 ? "" : File.pathSeparator + "\n");
     }
     _pathsList.setText( strPaths );
   }
@@ -128,13 +109,13 @@ public class ClasspathDialog extends JDialog
   {
     String strPaths = _pathsList.getText();
     StringTokenizer tokenizer = new StringTokenizer( strPaths, File.pathSeparator + "\n\r\t" );
-    List<String> paths = new ArrayList<String>();
+    List<String> paths = new ArrayList<>();
     for(; tokenizer.hasMoreTokens(); )
     {
       String strPath = tokenizer.nextToken();
       paths.add( strPath );
     }
-    List<File> pathFiles = new ArrayList<File>();
+    List<File> pathFiles = new ArrayList<>();
     for( String strPath : paths )
     {
       pathFiles.add( new File( strPath ).getAbsoluteFile() );
@@ -174,10 +155,14 @@ public class ClasspathDialog extends JDialog
     int returnVal = fc.showOpenDialog( editor.util.EditorUtilities.frameForComponent( this ) );
     if( returnVal == JFileChooser.APPROVE_OPTION )
     {
-      String strExisting = _pathsList.getText();
+      String strExisting = _pathsList.getText().trim();
+      if( strExisting.endsWith( File.pathSeparator ) )
+      {
+        strExisting = strExisting.substring( 0, strExisting.length()-1 );
+      }
       for( File f : fc.getSelectedFiles() )
       {
-        strExisting += File.pathSeparatorChar + f.getAbsolutePath();
+        strExisting += File.pathSeparatorChar + "\n" + f.getAbsolutePath();
       }
       _dir = fc.getCurrentDirectory();
       _pathsList.setText( strExisting );

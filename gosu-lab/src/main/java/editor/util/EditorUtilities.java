@@ -1025,7 +1025,7 @@ public class EditorUtilities
 
   private static Experiment makeScratchExperiment( GosuPanel gosuPanel )
   {
-    File experimentDir = new File( getStockExperimentsDir(), "Scratch" );
+    File experimentDir = new File( getStockExamplesDir(), "Scratch" );
     return new Experiment( experimentDir, gosuPanel );
   }
 

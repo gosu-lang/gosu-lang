@@ -7,9 +7,9 @@
   </parent>
   <modelVersion>4.0.0</modelVersion>
 
-  <artifactId>gosu-editor</artifactId>
+  <artifactId>gosu-lab</artifactId>
 
-  <name>Gosu :: Editor</name>
+  <name>Gosu :: Lab</name>
 
   <dependencies>
     <dependency>

@@ -1,1 +1,0 @@
-this is a marker resource to locate example experiments in gosu-editor resources

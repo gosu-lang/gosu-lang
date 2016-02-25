@@ -225,7 +225,7 @@ public class GosuPanel extends JPanel
   public static boolean isUpperLevelClasspath( String filePath )
   {
     String javaHome = System.getProperty( "java.home" ).toLowerCase();
-    if( filePath.replace( '\\', '/' ).contains( "gosu-editor/src/main/resources" ) )
+    if( filePath.replace( '\\', '/' ).contains( "gosu-lab/src/main/resources" ) )
     {
       // sample experiment resource
       return false;
@@ -1668,7 +1668,7 @@ public class GosuPanel extends JPanel
             try
             {
               result = (String)runnerClass.getMethod( "run", String.class, List.class ).
-                invoke( null, programFqn, TypeSystem.getGlobalModule().getSourcePath().stream().map( IResource::toJavaFile ).collect( Collectors.toList() ) );
+                invoke( null, programFqn, getExperiment().getSourcePath().stream().map( File::new ).collect( Collectors.toList() ) );
             }
             finally
             {

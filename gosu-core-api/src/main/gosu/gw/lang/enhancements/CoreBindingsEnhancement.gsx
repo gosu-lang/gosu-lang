@@ -3,6 +3,7 @@ package gw.lang.enhancements
 uses javax.script.Bindings
 uses dynamic.Dynamic
 uses gw.lang.reflect.json.Json
+uses gw.lang.reflect.EmptyBindings
 
 enhancement CoreBindingsEnhancement : Bindings {
   /**
@@ -47,7 +48,7 @@ enhancement CoreBindingsEnhancement : Bindings {
           value.toJson( sb, indent + 2 )
         }
         else if( value typeis List ) {
-          handleJsonList( sb, indent, value )
+          listToJson( sb, indent, value )
         }
         else {
           appendGosuValue( sb, value )
@@ -64,20 +65,19 @@ enhancement CoreBindingsEnhancement : Bindings {
     return sb.length() > 0 && sb.charAt( sb.length() -1 ) == '\n'
   }
 
-  private function handleJsonList( sb: StringBuilder, indent: int, value: List ) {
-    var length_0 : int = value.size()
+  function listToJson( sb: StringBuilder, indent: int, value: List ) {
     sb.append( '[' )
-    if( length_0 > 0 ) {
+    if( value.size() > 0 ) {
       sb.append( "\n" )
-      var iSize : int = value.size()
+      var iSize = value.size()
       var i = 0
       while( i < iSize ) {
-        var comp : Object = value.get(i)
+        var comp = value.get( i )
         if( comp typeis Bindings ) {
           comp.toJson( sb, indent + 4 )
         }
         else if( comp typeis List ) {
-          handleJsonList( sb, indent + 4, value )
+          listToJson( sb, indent + 4, comp )
         }
         else {
           indent( sb, indent + 4 )
@@ -89,6 +89,15 @@ enhancement CoreBindingsEnhancement : Bindings {
     }
     indent( sb, indent + 2 )
     sb.append( "]" )
+  }
+
+  /**
+   * Serializes a JSON-compatible List into a JSON formatted StringBuilder with the specified indent of spaces
+   */
+  static function listToJson( list: List ) : String {
+    var sb = new StringBuilder()
+    EmptyBindings.instance().listToJson( sb, 0, list )
+    return sb.toString()
   }
 
   /**
@@ -132,14 +141,13 @@ enhancement CoreBindingsEnhancement : Bindings {
     sb.append( "}" )
   }
   private function handleGosuList( sb: StringBuilder, indent: int, list: List ) {
-    var length_0 : int = list.size()
     sb.append( '{' )
-    if( length_0 > 0 ) {
+    var iSize = list.size()
+    if( iSize > 0 ) {
       sb.append( "\n" )
-      var iSize : int = list.size()
       var i = 0
       while( i < iSize ) {
-        var comp : Object = list.get( i )
+        var comp = list.get( i )
         if( comp typeis Bindings ) {
           comp.toGosu( false, sb, indent + 4 )
         }
@@ -183,10 +191,10 @@ enhancement CoreBindingsEnhancement : Bindings {
           value.toXml( key, sb, indent + 2 )
         }
         else if( value typeis List ) {
-          var length_0 : int = value.size()
+          var len : int = value.size()
           indent( sb, indent + 2 )
           sb.append( "<" ).append( key )
-          if( length_0 > 0 ) {
+          if( len > 0 ) {
             sb.append( ">\n" )
             for( comp in value ) {
               if( comp typeis Bindings ) {
