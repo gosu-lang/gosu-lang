@@ -381,6 +381,9 @@ public class Gosu
   public static GosuVersion getVersion()
   {
     InputStream in = Gosu.class.getClassLoader().getResourceAsStream( GosuVersion.RESOURCE_PATH );
+    if(in == null) {
+      return new GosuVersion(0, 0);
+    }
     Reader reader = StreamUtil.getInputStreamReader( in );
     return GosuVersion.parse( reader );
   }

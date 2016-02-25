@@ -912,7 +912,7 @@ public class EditorUtilities
 
   public static File getUserGosuEditorDir()
   {
-    File gosuDir = new File( System.getProperty( "user.home" ), ".GosuEditor" );
+    File gosuDir = new File( System.getProperty( "user.home" ), ".GosuLab" );
     //noinspection ResultOfMethodCallIgnored
     gosuDir.mkdirs();
     return gosuDir;
@@ -920,7 +920,7 @@ public class EditorUtilities
 
   public static File getStockExperimentsDir()
   {
-    File gosuDir = new File( System.getProperty( "user.home" ) + File.separator + ".GosuEditor" + File.separator + "experiments" );
+    File gosuDir = new File( System.getProperty( "user.home" ) + File.separator + ".GosuLab" + File.separator + "experiments" );
     //noinspection ResultOfMethodCallIgnored
     copyExampleExperiments( getStockExamplesDir() );
     return gosuDir;
@@ -988,7 +988,7 @@ public class EditorUtilities
 
   public static File getStockExamplesDir()
   {
-    File gosuDir = new File( System.getProperty( "user.home" ) + File.separator + ".GosuEditor" + File.separator + "examples" );
+    File gosuDir = new File( System.getProperty( "user.home" ) + File.separator + ".GosuLab" + File.separator + "examples" );
     //noinspection ResultOfMethodCallIgnored
     gosuDir.mkdirs();
     return gosuDir;
@@ -1025,7 +1025,7 @@ public class EditorUtilities
 
   private static Experiment makeScratchExperiment( GosuPanel gosuPanel )
   {
-    File experimentDir = new File( getStockExamplesDir(), "Scratch" );
+    File experimentDir = new File( getStockExperimentsDir(), "Scratch" );
     return new Experiment( experimentDir, gosuPanel );
   }
 
