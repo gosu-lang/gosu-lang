@@ -6,6 +6,13 @@ import java.io.StringReader;
 import java.util.List;
 
 public class DefaultParser implements IJsonParser {
+  private static final DefaultParser INSTANCE = new DefaultParser();
+
+  public static IJsonParser instance()
+  {
+    return INSTANCE;
+  }
+
   @Override
   public Bindings parseJson( String jsonText ) throws ScriptException
   {

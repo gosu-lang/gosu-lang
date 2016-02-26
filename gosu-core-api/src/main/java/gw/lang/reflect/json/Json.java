@@ -1,6 +1,8 @@
 package gw.lang.reflect.json;
 
 
+import gw.util.concurrent.LocklessLazyVar;
+
 import javax.script.Bindings;
 import javax.script.ScriptException;
 import java.util.List;
@@ -9,6 +11,41 @@ import java.util.List;
  */
 public class Json
 {
+  private static String _defaultParser = System.getProperty( "gosu.json.parser" );
+  public static String getDefaultParserName()
+  {
+    return _defaultParser;
+  }
+  @SuppressWarnings("UnusedDeclaration")
+  public static void setDefaultParserName( String fqn )
+  {
+    _defaultParser = fqn;
+    PARSER.clear();
+  }
+
+  private static final LocklessLazyVar<IJsonParser> PARSER =
+    new LocklessLazyVar<IJsonParser>() {
+
+      @Override
+      protected IJsonParser init()
+      {
+        String fqn = getDefaultParserName();
+        return fqn == null ? IJsonParser.getDefaultParser() : makeParser( fqn );
+      }
+
+      private IJsonParser makeParser( String fqn )
+      {
+        try
+        {
+          return (IJsonParser)Class.forName( fqn ).newInstance();
+        }
+        catch( Exception e )
+        {
+          throw new RuntimeException( e );
+        }
+      }
+    };
+
   /**
    * Parse the JSON string as one of a javax.script.Bindings instance.
    *
@@ -18,10 +55,9 @@ public class Json
   @SuppressWarnings("UnusedDeclaration")
   public static Bindings fromJson( String json )
   {
-    //## todo: use our Json parser instead of nashorn...
     try
     {
-      return IJsonParser.getDefaultParser().parseJson( json );
+      return PARSER.get().parseJson( json );
     }
     catch( ScriptException e )
     {
