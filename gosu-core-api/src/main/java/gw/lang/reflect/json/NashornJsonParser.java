@@ -39,7 +39,7 @@ public class NashornJsonParser implements IJsonParser
     return wrapValueInBindings( result );
   }
 
-  private Bindings wrapValueInBindings( Object result ) throws ScriptException
+  static Bindings wrapValueInBindings( Object result ) throws ScriptException
   {
     if( result == null ||
         result instanceof List ||
