@@ -12,7 +12,9 @@ enum JsonSimpleType implements IJsonType
   Integer,
   Long,
   Float,
-  Double;
+  Double,
+  BigDecimal,
+  BigInteger;
 
   @Override
   public String getName()
