@@ -16,7 +16,11 @@ public class DefaultParser implements IJsonParser {
   @Override
   public Bindings parseJson( String jsonText ) throws ScriptException
   {
-    SimpleParserImpl parser = new SimpleParserImpl( new Tokenizer(new StringReader(jsonText)), false);
+    return parseJson( jsonText, false );
+  }
+  public Bindings parseJson( String jsonText, boolean big ) throws ScriptException
+  {
+    SimpleParserImpl parser = new SimpleParserImpl( new Tokenizer(new StringReader(jsonText)), big );
     Object result = parser.parse();
     List<String> errors = parser.getErrors();
     if(errors.size() != 0) {
