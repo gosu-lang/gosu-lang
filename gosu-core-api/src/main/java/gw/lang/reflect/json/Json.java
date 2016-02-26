@@ -11,15 +11,15 @@ import java.util.List;
  */
 public class Json
 {
-  private static String _defaultParser = System.getProperty( "gosu.json.parser" );
-  public static String getDefaultParserName()
+  private static String _parser = System.getProperty( "gosu.json.parser" );
+  public static String getParserName()
   {
-    return _defaultParser;
+    return _parser;
   }
   @SuppressWarnings("UnusedDeclaration")
-  public static void setDefaultParserName( String fqn )
+  public static void setParserName( String fqn )
   {
-    _defaultParser = fqn;
+    _parser = fqn;
     PARSER.clear();
   }
 
@@ -29,7 +29,7 @@ public class Json
       @Override
       protected IJsonParser init()
       {
-        String fqn = getDefaultParserName();
+        String fqn = getParserName();
         return fqn == null ? IJsonParser.getDefaultParser() : makeParser( fqn );
       }
 
