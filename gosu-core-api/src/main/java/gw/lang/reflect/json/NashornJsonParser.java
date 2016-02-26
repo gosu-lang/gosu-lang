@@ -18,14 +18,20 @@ public class NashornJsonParser implements IJsonParser
     return INSTANCE;
   }
 
+  private ScriptEngine _engine;
+
   private NashornJsonParser()
   {}
 
   public Bindings parseJson( String jsonText ) throws ScriptException
   {
-    ScriptEngine engine = new ScriptEngineManager().getEngineByName( "javascript" );
+    if( _engine == null )
+    {
+      _engine = new ScriptEngineManager().getEngineByName( "javascript" );
+    }
+
     String script = "Java.asJSONCompatible(" + jsonText + ")";
-    Object result = engine.eval( script );
+    Object result = _engine.eval( script );
     if( result instanceof Bindings )
     {
       return (Bindings)result;

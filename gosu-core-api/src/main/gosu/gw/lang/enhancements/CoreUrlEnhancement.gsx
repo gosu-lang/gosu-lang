@@ -40,7 +40,7 @@ enhancement CoreUrlEnhancement : URL {
    * @return The full content of this URL's stream coerced to a String.
    */
   property get TextContent(): String {
-    using( var reader = new InputStreamReader( this.openStream() ) ) {
+    using( var reader = StreamUtil.getInputStreamReader( this.openStream() ) ) {
       return StreamUtil.getContent( reader )
     }
   }
