@@ -825,6 +825,24 @@ class JsonTest extends gw.BaseVerifyErrantTest {
     property get value(): Integer
   }
 
+  function testNestedList() {
+    var json: Dynamic = Json.fromJson( "{'hi': [[1,2],[4,5]]}" )
+    assertEquals( 1, json.hi[0][0] )
+    assertEquals( 2, json.hi[0][1] )
+    assertEquals( 4, json.hi[1][0] )
+    assertEquals( 5, json.hi[1][1] )
+
+    json = Json.fromJson( "{'hi': [{'hi': [[1,2],[4,5]]}, {'bye': [[11,21],[41,51]]}]}" )
+    assertEquals( 1, json.hi[0].hi[0][0] )
+    assertEquals( 2, json.hi[0].hi[0][1] )
+    assertEquals( 4, json.hi[0].hi[1][0] )
+    assertEquals( 5, json.hi[0].hi[1][1] )
+    assertEquals( 11, json.hi[1].bye[0][0] )
+    assertEquals( 21, json.hi[1].bye[0][1] )
+    assertEquals( 41, json.hi[1].bye[1][0] )
+    assertEquals( 51, json.hi[1].bye[1][1] )
+  }
+
   // Generated
   structure YahooQuotes {
     static function fromJson( jsonText: String ): YahooQuotes {
