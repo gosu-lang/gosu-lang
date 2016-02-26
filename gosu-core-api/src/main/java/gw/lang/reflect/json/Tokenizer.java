@@ -90,14 +90,14 @@ final class Tokenizer {
     StringBuilder sb = new StringBuilder();
     Token T;
     nextChar();
-    while(moreChars() && this.ch != quote) {
-      if(this.ch == '\\') {
+    while(moreChars() && ch != quote) {
+      if(ch == '\\') {
         nextChar();
-        switch(this.ch) {
+        switch(ch) {
           case '"':
           case '\\':
           case '/':
-            sb.append(this.ch);
+            sb.append(ch);
             nextChar();
             break;
           case 'b':
@@ -124,9 +124,9 @@ final class Tokenizer {
             nextChar();
             int u = 0;
             for(int i = 0; i < 4; i++) {
-              if(isHexDigit(this.ch)) {
-                u = u * 16 + this.ch - '0';
-                if(this.ch >= 'A') { // handle hex numbers: 'A' = 65, '0' = 48. 'A'-'0' = 17, 17 - 7 = 10
+              if(isHexDigit(ch)) {
+                u = u * 16 + ch - '0';
+                if(ch >= 'A') { // handle hex numbers: 'A' = 65, '0' = 48. 'A'-'0' = 17, 17 - 7 = 10
                   u = u - 7;
                 }
               } else {
@@ -141,11 +141,11 @@ final class Tokenizer {
             return newToken(TokenType.ERROR, sb.toString());
         }
       } else {
-        sb.append(this.ch);
+        sb.append(ch);
         nextChar();
       }
     }
-    if(this.ch == quote) {
+    if(ch == quote) {
       T = newToken(TokenType.STRING, sb.toString());
     } else {
       T = newToken(TokenType.ERROR, sb.toString());
