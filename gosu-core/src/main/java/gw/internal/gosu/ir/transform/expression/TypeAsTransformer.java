@@ -306,7 +306,7 @@ public class TypeAsTransformer extends AbstractExpressionTransformer<ITypeAsExpr
     }
 
     if( lhsType.isDynamic() && !asType.isPrimitive() ) {
-      return root;
+      return checkCast( asType, root );
     }
 
     IRExpression result = callCoercer( root, lhsType );
