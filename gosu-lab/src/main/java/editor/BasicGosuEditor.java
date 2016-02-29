@@ -36,12 +36,13 @@ public class BasicGosuEditor extends JFrame implements IGosuEditor
         @Override
         public void windowActivated( WindowEvent e )
         {
-          SettleModalEventQueue.instance().run();
-          GosuEditor currentEditor = _panel.getCurrentEditor();
-          if( currentEditor != null )
-          {
-            currentEditor.parse();
-          }
+          EventQueue.invokeLater( ()-> {
+            GosuEditor currentEditor = _panel.getCurrentEditor();
+            if( currentEditor != null )
+            {
+              currentEditor.parse();
+            }
+          } );
         }
       } );
     addComponentListener(
