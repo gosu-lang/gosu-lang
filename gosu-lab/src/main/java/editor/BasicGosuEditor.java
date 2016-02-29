@@ -2,6 +2,7 @@ package editor;
 
 import editor.util.EditorUtilities;
 import editor.util.Experiment;
+import editor.util.SettleModalEventQueue;
 import gw.config.CommonServices;
 import gw.lang.parser.IScriptPartId;
 import gw.lang.reflect.module.IFileSystem;
@@ -30,6 +31,17 @@ public class BasicGosuEditor extends JFrame implements IGosuEditor
         public void windowClosing( WindowEvent e )
         {
           exit();
+        }
+
+        @Override
+        public void windowActivated( WindowEvent e )
+        {
+          SettleModalEventQueue.instance().run();
+          GosuEditor currentEditor = _panel.getCurrentEditor();
+          if( currentEditor != null )
+          {
+            currentEditor.parse();
+          }
         }
       } );
     addComponentListener(

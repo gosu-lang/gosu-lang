@@ -18,7 +18,6 @@ import editor.util.TypeNameUtil;
 import editor.util.XPToolbarButton;
 import gw.config.CommonServices;
 import gw.fs.IDirectory;
-import gw.fs.IResource;
 import gw.internal.ext.org.objectweb.asm.ClassReader;
 import gw.internal.ext.org.objectweb.asm.util.TraceClassVisitor;
 import editor.util.GosuTextifier;
