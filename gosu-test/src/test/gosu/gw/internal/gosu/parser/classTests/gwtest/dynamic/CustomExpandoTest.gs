@@ -25,15 +25,13 @@ class CustomExpandoTest extends gw.BaseVerifyErrantTest {
     assertEquals( "special", res )
   }
 
-  static class CustomExpando implements IExpando {
-    var _map = new HashMap<String, Object>()
-
+  static class CustomExpando extends javax.script.SimpleBindings implements IExpando {
     override function getFieldValue( field: String ) : Object {
-      return _map.get( field )
+      return get( field )
     }
 
     override function setFieldValue( field: String, value: Object ) {
-      _map.put( field, value )
+      put( field, value )
     }
 
     override function setDefaultFieldValue( name: String ) {
@@ -45,11 +43,7 @@ class CustomExpandoTest extends gw.BaseVerifyErrantTest {
         return "special"
       }
       // Delegate to default behavior
-      return gw.lang.reflect.ReflectUtil.invokeMethod( _map, methodName, args )
-    }
-
-    override property get Map() : java.util.Map {
-      return _map
+      return gw.lang.reflect.ReflectUtil.invokeMethod( this, methodName, args )
     }
   }
 }

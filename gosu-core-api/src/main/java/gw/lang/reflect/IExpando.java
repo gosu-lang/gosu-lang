@@ -4,14 +4,14 @@
 
 package gw.lang.reflect;
 
-import java.util.Map;
+import javax.script.Bindings;
 
 /**
  */
-public interface IExpando {
+public interface IExpando extends Bindings
+{
   Object getFieldValue( String field );
   void setFieldValue( String field, Object value );
   void setDefaultFieldValue( String field );
   Object invoke( String methodName, Object... args );
-  Map getMap();
 }

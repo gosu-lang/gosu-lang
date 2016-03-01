@@ -412,4 +412,12 @@ class DynamicTypeTest extends gw.BaseVerifyErrantTest {
       return IPlaceholder.UNHANDLED
     }
   }
+
+  function testDynamicCastToArrayInLoopCompiles() {
+    functionWithArrayCastInLoop( new String[] {"hi"} )
+  }
+  static function functionWithArrayCastInLoop( foo: Dynamic ) {
+    for( x in foo as Object[] ) {
+    }
+  }
 }

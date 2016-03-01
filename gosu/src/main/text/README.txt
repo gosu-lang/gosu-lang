@@ -5,14 +5,11 @@ Thanks for downloading Gosu.  You are using version ${project.version}.
 
 QUICK INSTALL
 
-1. Confirm that you have Java version 1.8 (Sun/Oracle J2SE release 8 or
-later on your computer. Gosu works with both the JRE version and the 
-SDK version of Java. For Java downloads, visit http://java.com 
+1. Set the JAVA_HOME environment variable to JDK 1.8's home, if needed
 
-2. Expand the gosu.zip download file into its own directory.
+2. Go to the bin folder and double click on gosu.cmd (or gosu if you are using Linux/Mac)
 
-3. Run the interactive shell by executing the platform-specific launch scripts in the /bin directory of the 
-Gosu directory. For example, gosu.cmd for Windows users.
+You can try the bundled example projects like the Match 3 game. Just select Match3 from the Examples pane and run the game by pressing F5.
 
 The Gosu Plugin for IntelliJ is the recommended way to use Gosu.
 The plugin is hosted on the IntelliJ IDEA Plugin Repository and you can download it directly from within IntelliJ IDEA.
@@ -24,7 +21,5 @@ DOCUMENTATION AND EXAMPLES
 
 The latest Gosu language documentation is at:
   http://www.gosu-lang.org/
-
-You can browse the latest documentation or download a pdf copy of it on the web site.
 
 Enjoy!

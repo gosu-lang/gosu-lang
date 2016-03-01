@@ -45,62 +45,22 @@ You can read more about the Open Type System in these articles:
 * [Why Gosu?](http://devblog.guidewire.com/2010/11/11/why-gosu/ "Link")
 
 
-IntelliJ IDEA plugin
---------------------
-
-The IntelliJ plugin for Gosu has been in development for a while now.
-It has a rich number of features and it is pretty stable now.
-The plugin enables you to:
-
-* Create Gosu classes, programs, etc.
-* Syntax highlighting and error highlighting
-* Converting Java code to Gosu code ("Paste Java as Gosu" action)
-* Go to Declaration (including Quick Definition lookup);
-* Code completion
-* Parameter information
-* Find Usages
-* Rename and Move refactoring
-* Code formatter
-* Code inspections and intentions
-* Structure View (including the File Structure Popup)
-* Hierarchy view
-* Go to Class, Go to Symbol
-* Brace matching
-* Code folding
-* Javadoc
-* Launch Gosu programs directly via IJ run configurations
-* Debug Gosu
-* Gosu scratchpad
-* Incremental Gosu compiler
-* Custom typeloader support
-* Hyperlink to Gosu from stack traces
-
 Build instructions
 ------------------
-You need Java JDK 1.8 and Maven 3.0 to build Gosu.
+You need Java JDK 1.8 and Maven 3.x to build Gosu.
 Set the JAVA_HOME environment variable to JDK 1.8's home.
 
 Clone the project from GitHub and run:
 
     mvn compile
 
-If you also want to build the IntelliJ IDEA plugin, set the IDEA_HOME
-environment variable to the root of your IntelliJ 12.1.X 's
-installation folder.
-
-You can now build Gosu and the IntelliJ IDEA plugin with:
-
-    mvn compile -P ij
-
 
 Quick Install
 -------------
 
-The Gosu Plugin for IntelliJ is the recommended way to use Gosu.
-The plugin is hosted on the IntelliJ IDEA Plugin Repository and you can download it directly from within IntelliJ IDEA.
-For complete installation instructions and important information about the IntelliJ IDEA plugins, refer to the [downloads page](http://gosu-lang.github.io/downloads.html "Downloads").
-
-
+* Download the latest Gosu distribution [here](http://gosu-lang.github.io/downloads.html).
+* Set the JAVA_HOME environment variable to JDK 1.8's home, if needed.
+* Unzip the distribution zip, go to the bin folder and double click on gosu.cmd (or gosu if you are using Linux/Mac).
 
 Support
 -------
@@ -113,6 +73,6 @@ Need help getting your project off the ground? Want to discuss features in the n
 License
 -------
 
-The Gosu and the IntelliJ IDEA plugin are released under version 2.0 of the [Apache License](http://www.apache.org/licenses/LICENSE-2.0.txt "License").
+Gosu is released under version 2.0 of the [Apache License](http://www.apache.org/licenses/LICENSE-2.0.txt "License").
 
 Enjoy!

@@ -187,11 +187,15 @@ public class AsmClassJavaClassInfo extends AsmTypeJavaClassType implements IAsmJ
   public IJavaClassInfo[] getInterfaces() {
     if( _interfaces == null ) {
       List<AsmType> rawInterfaces = _class.getInterfaces();
-      IJavaClassInfo[] interfaces = new IJavaClassInfo[rawInterfaces.size()];
+      List<IJavaClassInfo> interfaces = new ArrayList<>( rawInterfaces.size() );
       for( int i = 0; i < rawInterfaces.size(); i++ ) {
-        interfaces[i] = JavaSourceUtil.getClassInfo( rawInterfaces.get( i ).getName(), _module );
+        IJavaClassInfo classInfo = JavaSourceUtil.getClassInfo( rawInterfaces.get( i ).getName(), _module );
+        if( classInfo != null ) {
+          // only add if non-null, classInfo may be null if not enough info is around to build the type
+          interfaces.add( classInfo );
+        }
       }
-      _interfaces = interfaces;
+      _interfaces = interfaces.toArray( new IJavaClassInfo[interfaces.size()] );
     }
     return _interfaces;
   }
@@ -563,11 +567,14 @@ public class AsmClassJavaClassInfo extends AsmTypeJavaClassType implements IAsmJ
   public IJavaClassType[] getGenericInterfaces() {
     if( _genericInterfaces == null ) {
       List<AsmType> asmIfaces = _class.getInterfaces();
-      IJavaClassType[] ifaces = new IJavaClassType[asmIfaces.size()];
+      List<IJavaClassType> ifaces = new ArrayList<>( asmIfaces.size() );
       for( int i = 0; i < asmIfaces.size(); i++ ) {
-        ifaces[i] = AsmTypeJavaClassType.createType( asmIfaces.get( i ), _module );
+        IJavaClassType type = AsmTypeJavaClassType.createType( asmIfaces.get( i ), _module );
+        if( type != null ) {
+          ifaces.add( type );
+        }
       }
-      _genericInterfaces = ifaces;
+      _genericInterfaces = ifaces.toArray( new IJavaClassType[ifaces.size()] );
     }
     return _genericInterfaces;
   }

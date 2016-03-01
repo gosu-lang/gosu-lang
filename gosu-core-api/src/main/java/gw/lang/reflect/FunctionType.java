@@ -708,7 +708,7 @@ public class FunctionType extends AbstractType implements IFunctionType, IGeneri
           if( !(toParamType instanceof ITypeVariableType) &&
               !fromParamType.isAssignableFrom( toParamType ) &&
               !StandardCoercionManager.isStructurallyAssignable( fromParamType, toParamType ) &&
-              !isDynamic( fromParamType ) && !isDynamic( toParamType ) )
+              !fromParamType.isDynamic() && !toParamType.isDynamic() )
           {
             return false;
           }
@@ -750,9 +750,9 @@ public class FunctionType extends AbstractType implements IFunctionType, IGeneri
       {
         types[i] = otherParamType;
       }
-      else if( isDynamic( otherParamType ) || isDynamic( myParamType ) )
+      else if( otherParamType.isDynamic() || myParamType.isDynamic() )
       {
-        types[i] = TypeSystem.getByFullName( "dynamic.Dynamic" );
+        types[i] = IDynamicType.instance();
       }
       else
       {
@@ -760,11 +760,6 @@ public class FunctionType extends AbstractType implements IFunctionType, IGeneri
       }
     }
     return types;
-  }
-
-  private static boolean isDynamic( IType otherParamType )
-  {
-    return otherParamType instanceof IPlaceholder && ((IPlaceholder)otherParamType).isPlaceholder();
   }
 
   public boolean isMutable()

@@ -613,6 +613,11 @@ class JavaType extends InnerClassCapableType implements IJavaTypeInternal
         for( int i = _tempInterfaces.size(); i < genericInterfaces.length; i++ )
         {
           IJavaClassType interfaceType = genericInterfaces[i];
+          if( interfaceType == null || notParameterizedInterfaces[i] == null )
+          {
+            continue;
+          }
+
           IType notParameterizedInterface = notParameterizedInterfaces[i].getJavaType();
           if (notParameterizedInterface == null) {
             throw new NullPointerException("notParameterizedInterface java type is null for " + notParameterizedInterfaces[i]);

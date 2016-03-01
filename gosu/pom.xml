@@ -31,7 +31,7 @@
     </dependency>
     <dependency>
       <groupId>org.gosu-lang.gosu</groupId>
-      <artifactId>gosu-editor</artifactId>
+      <artifactId>gosu-lab</artifactId>
       <version>${project.parent.version}</version>
       <scope>runtime</scope>
     </dependency>

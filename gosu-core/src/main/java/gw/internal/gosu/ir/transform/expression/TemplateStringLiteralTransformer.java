@@ -24,7 +24,7 @@ import java.util.Collections;
  */
 public class TemplateStringLiteralTransformer extends AbstractExpressionTransformer<TemplateStringLiteral>
 {
-  private static final ThreadLocal<Stack<IRSymbol>> SYMBOL_STACK = new ThreadLocal<Stack<IRSymbol>>();
+  private static final ThreadLocal<Stack<IRSymbol>> SYMBOL_STACK = new ThreadLocal<>();
 
   public static IRExpression compile( TopLevelTransformationContext cc, TemplateStringLiteral expr )
   {
@@ -52,7 +52,7 @@ public class TemplateStringLiteralTransformer extends AbstractExpressionTransfor
         getThreadLocalStack().push( symbol );
 
         // instantiate and store a string builder
-        IRAssignmentStatement sbAssignment = buildAssignment( symbol, buildNewExpression( sbType, Collections.<IRType>emptyList(), Collections.EMPTY_LIST ) );
+        IRAssignmentStatement sbAssignment = buildAssignment( symbol, buildNewExpression( sbType, Collections.<IRType>emptyList(), Collections.emptyList() ) );
         template.addElement( sbAssignment );
         sbAssignment.setImplicit( true );
 
@@ -62,7 +62,7 @@ public class TemplateStringLiteralTransformer extends AbstractExpressionTransfor
         templateBody.setImplicit( true );
 
         // invoke toString on the string builder
-        IRMethodCallExpression toString = buildMethodCall( sbType, "toString", false, IRTypeConstants.STRING(), Collections.EMPTY_LIST, identifier( symbol ), Collections.EMPTY_LIST );
+        IRMethodCallExpression toString = buildMethodCall( sbType, "toString", false, IRTypeConstants.STRING(), Collections.emptyList(), identifier( symbol ), Collections.emptyList() );
         template.addElement( toString );
         template.setImplicit( true );
 
@@ -84,7 +84,7 @@ public class TemplateStringLiteralTransformer extends AbstractExpressionTransfor
     Stack<IRSymbol> symbolStack = SYMBOL_STACK.get();
     if( symbolStack == null )
     {
-      symbolStack = new Stack<IRSymbol>();
+      symbolStack = new Stack<>();
       SYMBOL_STACK.set( symbolStack );
     }
     return symbolStack;
@@ -92,6 +92,7 @@ public class TemplateStringLiteralTransformer extends AbstractExpressionTransfor
 
   public static IRSymbol getCurrentTemplateSymbol()
   {
-    return getThreadLocalStack().peek();
+    Stack<IRSymbol> threadLocalStack = getThreadLocalStack();
+    return threadLocalStack.isEmpty() ? null : threadLocalStack.peek();
   }
 }

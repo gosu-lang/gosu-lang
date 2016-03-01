@@ -19,23 +19,13 @@
     <module>gosu-core-api</module>
     <module>gosu-core-api-precompiled</module>
     <module>gosu-process</module>
-    <module>gosu-editor</module>
+    <module>gosu-lab</module>
     <module>gosu-doc</module>
     <module>gosu-maven-compiler</module>
     <module>gosu-parent</module>
     <module>gosu-test</module>
     <module>gosu-test-api</module>
   </modules>
-  <profiles>
-    <profile>
-      <id>ij</id>
-      <modules>
-        <module>idea-gosu-plugin</module>
-        <module>ij-compiler-api</module>
-        <module>ij-editor-devtools</module>
-      </modules>
-    </profile>
-  </profiles>
   <build>
     <plugins>
       <plugin>

@@ -284,5 +284,9 @@ public interface IType extends Serializable
   default IFile[] getSourceFiles() {
     return IFile.EMPTY_ARRAY;
   }
+
+  default boolean isDynamic() {
+    return this instanceof IPlaceholder && ((IPlaceholder)this).isPlaceholder();
+  }
 }
 

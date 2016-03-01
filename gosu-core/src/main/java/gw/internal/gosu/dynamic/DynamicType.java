@@ -4,6 +4,7 @@
 
 package gw.internal.gosu.dynamic;
 
+import gw.lang.reflect.IDynamicType;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.ITypeInfo;
 import gw.lang.reflect.ITypeLoader;
@@ -15,14 +16,9 @@ import gw.util.concurrent.LockingLazyVar;
  */
 public class DynamicType extends TypeBase implements IDynamicType
 {
-  public static final String PKG = "dynamic";
-  public static final String RNAME = "Dynamic";
-  public static final String QNAME = PKG +'.'+ RNAME;
-
   private DynamicTypeLoader _typeLoader;
   private LockingLazyVar<DynamicTypeInfo> _typeInfo;
   private ITypeRef _typeRef;
-
 
   public DynamicType( DynamicTypeLoader typeLoader )
   {

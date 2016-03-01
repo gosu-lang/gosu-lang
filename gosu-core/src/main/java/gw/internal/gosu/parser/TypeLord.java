@@ -4,6 +4,7 @@
 
 package gw.internal.gosu.parser;
 
+import gw.lang.reflect.IDynamicType;
 import gw.internal.gosu.parser.expressions.BlockType;
 import gw.internal.gosu.parser.expressions.TypeVariableDefinition;
 import gw.internal.gosu.parser.expressions.TypeVariableDefinitionImpl;
@@ -441,7 +442,12 @@ public class TypeLord
             }
             types.add( typeParam );
           }
-          IType genType = TypeSystem.getByFullNameIfValid( type.getRawType().getName() );//getActualType( type.getRawType(), actualParamByVarName, bKeepTypeVars, recursiveTypes );
+          String rawTypeName = type.getRawType().getName();
+          IType genType = TypeSystem.getByFullNameIfValid( rawTypeName );//getActualType( type.getRawType(), actualParamByVarName, bKeepTypeVars, recursiveTypes );
+          if( genType == null )
+          {
+            throw new TypeNotPresentException( rawTypeName, null );
+          }
           return genType.getParameterizedType( types.toArray( new IType[types.size()] ) );
         }
         finally
@@ -1938,8 +1944,7 @@ public class TypeLord
       if( type instanceof IPlaceholder && ((IPlaceholder)type).isPlaceholder() )
       {
         // Dynamic type trumps all
-        //## todo: cache this type already!
-        return type.getName().equals( "dynamic.Dynamic" ) ? type : TypeSystem.getByFullName( "dynamic.Dynamic" );
+        return type.getName().equals( IDynamicType.QNAME ) ? type : IDynamicType.instance();
       }
     }
 
