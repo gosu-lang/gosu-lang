@@ -48,7 +48,7 @@ public class GosuDocBasicTest extends BuildFileTest {
 
     assertOutputContaining("Generating Documentation");
     assertOutputContaining("gosudoc.src.hi.MyPogo - document : true"); //only works when verbose="true"
-    assertOutputContaining("src/hi/gosudoc.src.hi.MyPogo.html...");
+    assertOutputContaining("gosudoc.src.hi.MyPogo.html...");
     assertEquals("System.err should be empty", "", getError());
   }
 
