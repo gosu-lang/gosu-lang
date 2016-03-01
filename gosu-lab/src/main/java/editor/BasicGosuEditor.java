@@ -44,6 +44,11 @@ public class BasicGosuEditor extends JFrame implements IGosuEditor
             }
           } );
         }
+        @Override
+        public void windowDeactivated( WindowEvent e )
+        {
+          EventQueue.invokeLater( _panel::saveIfDirty );
+        }
       } );
     addComponentListener(
       new ComponentAdapter()
