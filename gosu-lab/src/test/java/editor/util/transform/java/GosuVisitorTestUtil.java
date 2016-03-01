@@ -14,6 +14,9 @@ import javax.tools.JavaCompiler;
 import javax.tools.JavaFileObject;
 import javax.tools.StandardJavaFileManager;
 import java.io.*;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -21,7 +24,8 @@ import java.util.ArrayList;
 
 public class GosuVisitorTestUtil {
 
-  public String transform(String jsrc) throws IOException {
+  public String transform(String jsrc) throws IOException
+  {
     String src = readFile(jsrc);
     if (src == null) {
       return null;
@@ -48,12 +52,20 @@ public class GosuVisitorTestUtil {
     return output;
   }
 
-  public String readFile(String path) throws IOException {
+  public String readFile(String path) throws IOException
+  {
     StringBuilder src = new StringBuilder();
-    path = Thread.currentThread().getContextClassLoader().getResource(path).getPath();
-    Charset charset = Charset.forName("UTF8");
-    try(BufferedReader reader = Files.newBufferedReader(Paths.get(path), charset)) {
-      String line = null;
+    URL url = null;
+    try
+    {
+      url = Thread.currentThread().getContextClassLoader().getResource( path ).toURI().toURL();
+    }
+    catch( URISyntaxException e )
+    {
+      throw new RuntimeException( e );
+    }
+    try(BufferedReader reader = new BufferedReader(new InputStreamReader(url.openStream()))) {
+      String line;
       while ((line = reader.readLine()) != null) {
         src.append(line).append("\n");
       }
