@@ -3,13 +3,13 @@ WELCOME
 Thanks for downloading Gosu.  You are using version ${project.version}.
 
 
-QUICK INSTALL
+QUICKSTART
 
 1. Set the JAVA_HOME environment variable to JDK 1.8's home, if needed
 
 2. Go to the bin folder and double click on gosu.cmd (or gosu if you are using Linux/Mac)
 
-You can try the bundled example projects like the Match 3 game. Just select Match3 from the Examples pane and run the game by pressing F5.
+You can try the bundled example projects like the Life game. Just select Life from the Examples pane and run the game by pressing F5.
 
 The Gosu Plugin for IntelliJ is the recommended way to use Gosu.
 The plugin is hosted on the IntelliJ IDEA Plugin Repository and you can download it directly from within IntelliJ IDEA.

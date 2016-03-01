@@ -55,8 +55,8 @@ Clone the project from GitHub and run:
     mvn compile
 
 
-Quick Install
--------------
+Quickstart
+----------
 
 * Download the latest Gosu distribution [here](http://gosu-lang.github.io/downloads.html).
 * Set the JAVA_HOME environment variable to JDK 1.8's home, if needed.
