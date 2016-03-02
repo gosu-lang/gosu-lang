@@ -318,4 +318,16 @@ class GenericStructuresTest extends TestCase {
   }
 
 
+  structure FooArrayComponent {
+    function foo()
+  }
+  class BarArrayComponent { // implements FooArrayComponent structurally
+    function foo() {}
+  }
+  function testDynamicArrayCreationErasesStructureType() {
+    var list : List<FooArrayComponent> = {}
+    var bar = new BarArrayComponent()
+    list.add( bar )
+    assertEquals( new Object[]{bar}, list.toTypedArray() )
+  }
 }

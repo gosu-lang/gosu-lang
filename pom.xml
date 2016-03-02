@@ -4,7 +4,7 @@
   <parent>
     <groupId>org.gosu-lang.gosu</groupId>
     <artifactId>gosu-parent</artifactId>
-    <version>1-X-SNAPSHOT</version>
+    <version>1-spec-SNAPSHOT</version>
     <relativePath>gosu-parent</relativePath>
   </parent>
   <artifactId>gosu-proj</artifactId>
@@ -19,7 +19,7 @@
     <module>gosu-core-api</module>
     <module>gosu-core-api-precompiled</module>
     <module>gosu-process</module>
-    <module>gosu-editor</module>
+    <module>gosu-lab</module>
     <module>gosu-doc</module>
     <module>gosu-maven-compiler</module>
     <module>gosu-parent</module>

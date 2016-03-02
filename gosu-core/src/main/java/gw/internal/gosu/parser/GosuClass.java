@@ -828,7 +828,7 @@ public class GosuClass extends InnerClassCapableType implements IGosuClassIntern
 
   public Object makeArrayInstance( int iLength )
   {
-    return Array.newInstance( getBackingClass(), iLength );
+    return Array.newInstance( isStructure() ? JavaTypes.OBJECT().getBackingClass() : getBackingClass(), iLength );
   }
 
   public Object getArrayComponent( Object array, int iIndex ) throws IllegalArgumentException, ArrayIndexOutOfBoundsException

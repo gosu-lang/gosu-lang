@@ -365,74 +365,146 @@ class JsonTest extends gw.BaseVerifyErrantTest {
       "}"
         
   var _structure: String =
-          "structure Results {\n" +
-          "  property get query(): query\n" +
-          "  structure query {\n" +
-          "    property get created(): String\n" +
-          "    property get count(): Integer\n" +
-          "    property get lang(): String\n" +
-          "    property get results(): results\n" +
-          "    structure results {\n" +
-          "      property get quote(): List<quote>\n" +
-          "      structure quote {\n" +
-          "        property get symbol(): String\n" +
-          "        property get PriceEPSEstimateNextYear(): String\n" +
-          "        property get ChangeinPercent(): String\n" +
-          "        property get EPSEstimateNextQuarter(): String\n" +
-          "        property get EBITDA(): String\n" +
-          "        property get PriceBook(): String\n" +
-          "        property get PriceSales(): String\n" +
-          "        property get DividendShare(): String\n" +
-          "        property get PercebtChangeFromYearHigh(): String\n" +
-          "        property get ExDividendDate(): String\n" +
-          "        property get PreviousClose(): String\n" +
-          "        property get Name(): String\n" +
-          "        property get YearHigh(): String\n" +
-          "        property get Currency(): String\n" +
-          "        property get DividendPayDate(): String\n" +
-          "        property get LastTradeDate(): String\n" +
-          "        property get PriceEPSEstimateCurrentYear(): String\n" +
-          "        property get StockExchange(): String\n" +
-          "        property get AverageDailyVolume(): String\n" +
-          "        property get PercentChange(): String\n" +
-          "        property get ChangeFromYearHigh(): String\n" +
-          "        property get FiftydayMovingAverage(): String\n" +
-          "        property get TwoHundreddayMovingAverage(): String\n" +
-          "        property get PercentChangeFromTwoHundreddayMovingAverage(): String\n" +
-          "        property get LastTradeTime(): String\n" +
-          "        property get Volume(): String\n" +
-          "        property get MarketCapitalization(): String\n" +
-          "        property get PercentChangeFromYearLow(): String\n" +
-          "        property get DaysHigh(): String\n" +
-          "        property get DaysRange(): String\n" +
-          "        property get Symbol(): String\n" +
-          "        property get EPSEstimateNextYear(): String\n" +
-          "        property get PercentChangeFromFiftydayMovingAverage(): String\n" +
-          "        property get Open(): String\n" +
-          "        property get DaysLow(): String\n" +
-          "        property get DividendYield(): String\n" +
-          "        property get Ask(): String\n" +
-          "        property get EPSEstimateCurrentYear(): String\n" +
-          "        property get YearLow(): String\n" +
-          "        property get ChangeFromFiftydayMovingAverage(): String\n" +
-          "        property get Bid(): String\n" +
-          "        property get LastTradeWithTime(): String\n" +
-          "        property get ShortRatio(): String\n" +
-          "        property get Change(): String\n" +
-          "        property get ChangeFromTwoHundreddayMovingAverage(): String\n" +
-          "        property get EarningsShare(): String\n" +
-          "        property get BookValue(): String\n" +
-          "        property get ChangeFromYearLow(): String\n" +
-          "        property get OneyrTargetPrice(): String\n" +
-          "        property get PERatio(): String\n" +
-          "        property get YearRange(): String\n" +
-          "        property get Change_PercentChange(): String\n" +
-          "        property get PEGRatio(): String\n" +
-          "        property get LastTradePriceOnly(): String\n" +
-          "      }\n" +
-          "    }\n" +
-          "  }\n" +
-          "}\n"
+    "structure YahooQuotes {\n" +
+    "  static function fromJson( jsonText: String ): YahooQuotes {\n" +
+    "    return gw.lang.reflect.json.Json.fromJson( jsonText ) as YahooQuotes\n" +
+    "  }\n" +
+    "  static function fromJsonUrl( url: String ): YahooQuotes {\n" +
+    "    return new java.net.URL( url ).JsonContent\n" +
+    "  }\n" +
+    "  static function fromJsonUrl( url: java.net.URL ): YahooQuotes {\n" +
+    "    return url.JsonContent\n" +
+    "  }\n" +
+    "  static function fromJsonFile( file: java.io.File ) : YahooQuotes {\n" +
+    "    return fromJsonUrl( file.toURI().toURL() )\n" +
+    "  }\n" +
+    "  property get query(): query\n" +
+    "  property set query( $value: query )\n" +
+    "  structure query {\n" +
+    "    property get created(): String\n" +
+    "    property set created( $value: String )\n" +
+    "    property get count(): Integer\n" +
+    "    property set count( $value: Integer )\n" +
+    "    property get lang(): String\n" +
+    "    property set lang( $value: String )\n" +
+    "    property get results(): results\n" +
+    "    property set results( $value: results )\n" +
+    "    structure results {\n" +
+    "      property get quote(): List<quote>\n" +
+    "      property set quote( $value: List<quote> )\n" +
+    "      structure quote {\n" +
+    "        property get symbol(): String\n" +
+    "        property set symbol( $value: String )\n" +
+    "        property get PriceEPSEstimateNextYear(): String\n" +
+    "        property set PriceEPSEstimateNextYear( $value: String )\n" +
+    "        property get ChangeinPercent(): String\n" +
+    "        property set ChangeinPercent( $value: String )\n" +
+    "        property get EPSEstimateNextQuarter(): String\n" +
+    "        property set EPSEstimateNextQuarter( $value: String )\n" +
+    "        property get EBITDA(): String\n" +
+    "        property set EBITDA( $value: String )\n" +
+    "        property get PriceBook(): String\n" +
+    "        property set PriceBook( $value: String )\n" +
+    "        property get PriceSales(): String\n" +
+    "        property set PriceSales( $value: String )\n" +
+    "        property get DividendShare(): String\n" +
+    "        property set DividendShare( $value: String )\n" +
+    "        property get PercebtChangeFromYearHigh(): String\n" +
+    "        property set PercebtChangeFromYearHigh( $value: String )\n" +
+    "        property get ExDividendDate(): String\n" +
+    "        property set ExDividendDate( $value: String )\n" +
+    "        property get PreviousClose(): String\n" +
+    "        property set PreviousClose( $value: String )\n" +
+    "        property get Name(): String\n" +
+    "        property set Name( $value: String )\n" +
+    "        property get YearHigh(): String\n" +
+    "        property set YearHigh( $value: String )\n" +
+    "        property get Currency(): String\n" +
+    "        property set Currency( $value: String )\n" +
+    "        property get DividendPayDate(): String\n" +
+    "        property set DividendPayDate( $value: String )\n" +
+    "        property get LastTradeDate(): String\n" +
+    "        property set LastTradeDate( $value: String )\n" +
+    "        property get PriceEPSEstimateCurrentYear(): String\n" +
+    "        property set PriceEPSEstimateCurrentYear( $value: String )\n" +
+    "        property get StockExchange(): String\n" +
+    "        property set StockExchange( $value: String )\n" +
+    "        property get AverageDailyVolume(): String\n" +
+    "        property set AverageDailyVolume( $value: String )\n" +
+    "        property get PercentChange(): String\n" +
+    "        property set PercentChange( $value: String )\n" +
+    "        property get ChangeFromYearHigh(): String\n" +
+    "        property set ChangeFromYearHigh( $value: String )\n" +
+    "        property get FiftydayMovingAverage(): String\n" +
+    "        property set FiftydayMovingAverage( $value: String )\n" +
+    "        property get TwoHundreddayMovingAverage(): String\n" +
+    "        property set TwoHundreddayMovingAverage( $value: String )\n" +
+    "        property get PercentChangeFromTwoHundreddayMovingAverage(): String\n" +
+    "        property set PercentChangeFromTwoHundreddayMovingAverage( $value: String )\n" +
+    "        property get LastTradeTime(): String\n" +
+    "        property set LastTradeTime( $value: String )\n" +
+    "        property get Volume(): String\n" +
+    "        property set Volume( $value: String )\n" +
+    "        property get MarketCapitalization(): String\n" +
+    "        property set MarketCapitalization( $value: String )\n" +
+    "        property get PercentChangeFromYearLow(): String\n" +
+    "        property set PercentChangeFromYearLow( $value: String )\n" +
+    "        property get DaysHigh(): String\n" +
+    "        property set DaysHigh( $value: String )\n" +
+    "        property get DaysRange(): String\n" +
+    "        property set DaysRange( $value: String )\n" +
+    "        property get Symbol(): String\n" +
+    "        property set Symbol( $value: String )\n" +
+    "        property get EPSEstimateNextYear(): String\n" +
+    "        property set EPSEstimateNextYear( $value: String )\n" +
+    "        property get PercentChangeFromFiftydayMovingAverage(): String\n" +
+    "        property set PercentChangeFromFiftydayMovingAverage( $value: String )\n" +
+    "        property get Open(): String\n" +
+    "        property set Open( $value: String )\n" +
+    "        property get DaysLow(): String\n" +
+    "        property set DaysLow( $value: String )\n" +
+    "        property get DividendYield(): String\n" +
+    "        property set DividendYield( $value: String )\n" +
+    "        property get Ask(): String\n" +
+    "        property set Ask( $value: String )\n" +
+    "        property get EPSEstimateCurrentYear(): String\n" +
+    "        property set EPSEstimateCurrentYear( $value: String )\n" +
+    "        property get YearLow(): String\n" +
+    "        property set YearLow( $value: String )\n" +
+    "        property get ChangeFromFiftydayMovingAverage(): String\n" +
+    "        property set ChangeFromFiftydayMovingAverage( $value: String )\n" +
+    "        property get Bid(): String\n" +
+    "        property set Bid( $value: String )\n" +
+    "        property get LastTradeWithTime(): String\n" +
+    "        property set LastTradeWithTime( $value: String )\n" +
+    "        property get ShortRatio(): String\n" +
+    "        property set ShortRatio( $value: String )\n" +
+    "        property get Change(): String\n" +
+    "        property set Change( $value: String )\n" +
+    "        property get ChangeFromTwoHundreddayMovingAverage(): String\n" +
+    "        property set ChangeFromTwoHundreddayMovingAverage( $value: String )\n" +
+    "        property get EarningsShare(): String\n" +
+    "        property set EarningsShare( $value: String )\n" +
+    "        property get BookValue(): String\n" +
+    "        property set BookValue( $value: String )\n" +
+    "        property get ChangeFromYearLow(): String\n" +
+    "        property set ChangeFromYearLow( $value: String )\n" +
+    "        property get OneyrTargetPrice(): String\n" +
+    "        property set OneyrTargetPrice( $value: String )\n" +
+    "        property get PERatio(): String\n" +
+    "        property set PERatio( $value: String )\n" +
+    "        property get YearRange(): String\n" +
+    "        property set YearRange( $value: String )\n" +
+    "        property get Change_PercentChange(): String\n" +
+    "        property set Change_PercentChange( $value: String )\n" +
+    "        property get PEGRatio(): String\n" +
+    "        property set PEGRatio( $value: String )\n" +
+    "        property get LastTradePriceOnly(): String\n" +
+    "        property set LastTradePriceOnly( $value: String )\n" +
+    "      }\n" +
+    "    }\n" +
+    "  }\n" +
+    "}\n"
 
   var _amazon_ecs_json: String =
        "{\n" +
@@ -590,50 +662,63 @@ class JsonTest extends gw.BaseVerifyErrantTest {
       "}"
 
   var _amazon_ecs_structure: String =
-       "structure Amazon {\n" +
-       "  property get query(): query\n" +
-       "  structure query {\n" +
-       "    property get created(): String\n" +
-       "    property get count(): Integer\n" +
-       "    property get lang(): String\n" +
-       "    property get results(): results\n" +
-       "    structure results {\n" +
-       "      property get table(): table\n" +
-       "      structure table {\n" +
-       "        property get request(): request\n" +
-       "        property get security(): String\n" +
-       "        property get src(): String\n" +
-       "        property get meta(): meta\n" +
-       "        property get name(): String\n" +
-       "        property get hash(): String\n" +
-       "        structure request {\n" +
-       "          property get select(): List<select>\n" +
-       "          structure select {\n" +
-       "            property get usesRemoteLimit(): String\n" +
-       "            property get key(): List<key>\n" +
-       "            structure key {\n" +
-       "              property get name(): String\n" +
-       "              property get type(): String\n" +
-       "              property get Default(): String\n" +
-       "              property get required(): String\n" +
-       "            }\n" +
-       "          }\n" +
-       "        }\n" +
-       "        structure meta {\n" +
-       "          property get documentationURL(): String\n" +
-       "          property get author(): String\n" +
-       "        }\n" +
-       "      }\n" +
-       "    }\n" +
-       "  }\n" +
-       "}\n"
+      "structure Amazon {\n" +
+      "  static function fromJson( jsonText: String ): Amazon {\n" +
+      "    return gw.lang.reflect.json.Json.fromJson( jsonText ) as Amazon\n" +
+      "  }\n" +
+      "  static function fromJsonUrl( url: String ): Amazon {\n" +
+      "    return new java.net.URL( url ).JsonContent\n" +
+      "  }\n" +
+      "  static function fromJsonUrl( url: java.net.URL ): Amazon {\n" +
+      "    return url.JsonContent\n" +
+      "  }\n" +
+      "  static function fromJsonFile( file: java.io.File ) : Amazon {\n" +
+      "    return fromJsonUrl( file.toURI().toURL() )\n" +
+      "  }\n" +
+      "  property get query(): query\n" +
+      "  structure query {\n" +
+      "    property get created(): String\n" +
+      "    property get count(): Integer\n" +
+      "    property get lang(): String\n" +
+      "    property get results(): results\n" +
+      "    structure results {\n" +
+      "      property get table(): table\n" +
+      "      structure table {\n" +
+      "        property get request(): request\n" +
+      "        property get security(): String\n" +
+      "        property get src(): String\n" +
+      "        property get meta(): meta\n" +
+      "        property get name(): String\n" +
+      "        property get hash(): String\n" +
+      "        structure request {\n" +
+      "          property get select(): List<select>\n" +
+      "          structure select {\n" +
+      "            property get usesRemoteLimit(): String\n" +
+      "            property get key(): List<key>\n" +
+      "            structure key {\n" +
+      "              @gw.lang.reflect.ActualName( \"default\" )\n" +
+      "              property get Default(): String\n" +
+      "              property get name(): String\n" +
+      "              property get type(): String\n" +
+      "              property get required(): String\n" +
+      "            }\n" +
+      "          }\n" +
+      "        }\n" +
+      "        structure meta {\n" +
+      "          property get documentationURL(): String\n" +
+      "          property get author(): String\n" +
+      "        }\n" +
+      "      }\n" +
+      "    }\n" +
+      "  }\n" +
+      "}\n"
 
   function testStructureFromJson() {
-    var results: Dynamic = Json.fromJsonString( _yahoo_finance_quotes_json )
-    var structr = results.toStructure( "Results" )
+    var results: Dynamic = Json.fromJson( _yahoo_finance_quotes_json )
+    var structr = results.toStructure( "YahooQuotes", true )
     assertEquals( _structure, structr )
 
-    var structureResults = Json.fromJsonString( _yahoo_finance_quotes_json ) as Results
+    var structureResults = YahooQuotes.fromJson( _yahoo_finance_quotes_json )
     for( stock in structureResults.query.results.quote ) {
       var symbol = stock.Symbol
       var close = stock.Ask
@@ -644,22 +729,134 @@ class JsonTest extends gw.BaseVerifyErrantTest {
   }
 
   function testStructureFromJson_AmazonEcs() {
-    var results: Dynamic = Json.fromJsonString( _amazon_ecs_json )
-    var structr = results.toStructure( "Amazon" )
+    var results: Dynamic = Json.fromJson( _amazon_ecs_json )
+    var structr = results.toStructure( "Amazon", false )
     assertEquals( _amazon_ecs_structure, structr )
 
-    var am = results as Amazon
-    for( sel in am.query.results.table.request.select )
+    var amazon = Amazon.fromJson( _amazon_ecs_json )
+    var output: String = ""
+    for( sel in amazon.query.results.table.request.select )
     {
-      print( sel.usesRemoteLimit )
       for( k in sel.key )
       {
-        print( k.name )
+        output += k.Default + "\n"
       }
+    }
+    var expectedOutput =
+      "ItemSearch\n" +
+      "null\n" +
+      "null\n" +
+      "null\n" +
+      "Books\n" +
+      "null\n" +
+      "null\n" +
+      "null\n" +
+      "ItemSearch\n" +
+      "null\n" +
+      "null\n" +
+      "null\n" +
+      "Books\n" +
+      "null\n" +
+      "null\n" +
+      "null\n" +
+      "ItemLookup\n" +
+      "null\n" +
+      "null\n" +
+      "null\n" +
+      "null\n" +
+      "null\n" +
+      "null\n" +
+      "null\n" +
+      "2009-03-31\n"
+
+    assertEquals( expectedOutput, output )
+  }
+
+  function testTopLevelList() {
+    var x: Dynamic = Json.fromJson( "[{'a': 1}, {'b': 2}]" )
+    var list: TopLevelList = x
+
+    // Note the coelescing of the list's component type "value", it is the union of both value, hence both members 'a' and 'b'
+    assertEquals( 1, list.value[0].a )
+    assertEquals( null, list.value[0].b )
+    assertEquals( null, list.value[1].a )
+    assertEquals( 2, list.value[1].b )
+  }
+
+  structure TopLevelList {
+    static function fromJson( jsonText: String ): TopLevelList {
+      return gw.lang.reflect.json.Json.fromJson( jsonText ) as TopLevelList
+    }
+    static function fromJsonUrl( url: String ): TopLevelList {
+      return new java.net.URL( url ).JsonContent
+    }
+    static function fromJsonUrl( url: java.net.URL ): TopLevelList {
+      return url.JsonContent
+    }
+    static function fromJsonFile( file: java.io.File ) : TopLevelList {
+      return fromJsonUrl( file.toURI().toURL() )
+    }
+    property get value(): List<value>
+    structure value {
+      property get a(): Integer
+      property get b(): Integer
     }
   }
 
-  structure Results {
+  function testTopLevelValue() {
+    var x: Dynamic = Json.fromJson( "72" )
+    var topvalue: TopLevelValue = x
+    assertEquals( 72, topvalue.value )
+  }
+
+  structure TopLevelValue {
+    static function fromJson( jsonText: String ): TopLevelValue {
+      return gw.lang.reflect.json.Json.fromJson( jsonText ) as TopLevelValue
+    }
+    static function fromJsonUrl( url: String ): TopLevelValue {
+      return new java.net.URL( url ).JsonContent
+    }
+    static function fromJsonUrl( url: java.net.URL ): TopLevelValue {
+      return url.JsonContent
+    }
+    static function fromJsonFile( file: java.io.File ) : TopLevelValue {
+      return fromJsonUrl( file.toURI().toURL() )
+    }
+    property get value(): Integer
+  }
+
+  function testNestedList() {
+    var json: Dynamic = Json.fromJson( "{'hi': [[1,2],[4,5]]}" )
+    assertEquals( 1, json.hi[0][0] )
+    assertEquals( 2, json.hi[0][1] )
+    assertEquals( 4, json.hi[1][0] )
+    assertEquals( 5, json.hi[1][1] )
+
+    json = Json.fromJson( "{'hi': [{'hi': [[1,2],[4,5]]}, {'bye': [[11,21],[41,51]]}]}" )
+    assertEquals( 1, json.hi[0].hi[0][0] )
+    assertEquals( 2, json.hi[0].hi[0][1] )
+    assertEquals( 4, json.hi[0].hi[1][0] )
+    assertEquals( 5, json.hi[0].hi[1][1] )
+    assertEquals( 11, json.hi[1].bye[0][0] )
+    assertEquals( 21, json.hi[1].bye[0][1] )
+    assertEquals( 41, json.hi[1].bye[1][0] )
+    assertEquals( 51, json.hi[1].bye[1][1] )
+  }
+
+  // Generated
+  structure YahooQuotes {
+    static function fromJson( jsonText: String ): YahooQuotes {
+      return gw.lang.reflect.json.Json.fromJson( jsonText ) as YahooQuotes
+    }
+    static function fromJsonUrl( url: String ): YahooQuotes {
+      return new java.net.URL( url ).JsonContent
+    }
+    static function fromJsonUrl( url: java.net.URL ): YahooQuotes {
+      return url.JsonContent
+    }
+    static function fromJsonFile( file: java.io.File ) : YahooQuotes {
+      return fromJsonUrl( file.toURI().toURL() )
+    }
     property get query(): query
     structure query {
       property get created(): String
@@ -728,7 +925,20 @@ class JsonTest extends gw.BaseVerifyErrantTest {
     }
   }
 
+  // Generated
   structure Amazon {
+    static function fromJson( jsonText: String ): Amazon {
+      return gw.lang.reflect.json.Json.fromJson( jsonText ) as Amazon
+    }
+    static function fromJsonUrl( url: String ): Amazon {
+      return new java.net.URL( url ).JsonContent
+    }
+    static function fromJsonUrl( url: java.net.URL ): Amazon {
+      return url.JsonContent
+    }
+    static function fromJsonFile( file: java.io.File ) : Amazon {
+      return fromJsonUrl( file.toURI().toURL() )
+    }
     property get query(): query
     structure query {
       property get created(): String
@@ -750,9 +960,10 @@ class JsonTest extends gw.BaseVerifyErrantTest {
               property get usesRemoteLimit(): String
               property get key(): List<key>
               structure key {
+                @gw.lang.reflect.ActualName( "default" )
+                property get Default(): String
                 property get name(): String
                 property get type(): String
-                property get Default(): String
                 property get required(): String
               }
             }

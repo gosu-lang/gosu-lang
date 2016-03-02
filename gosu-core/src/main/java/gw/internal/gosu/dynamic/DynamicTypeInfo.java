@@ -27,7 +27,7 @@ public class DynamicTypeInfo extends BaseTypeInfo
   public DynamicTypeInfo( IType type )
   {
     super( type );
-    _piCache = new HashMap<CharSequence, IPropertyInfo>();
+    _piCache = new HashMap<>();
     _dci = Arrays.asList(
       new DynamicConstructorInfo( this ),
       new DynamicConstructorInfo( this, TypeSystem.get( IExpando.class ) ) );

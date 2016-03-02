@@ -7,7 +7,11 @@ package gw.lang.reflect.module;
 import gw.lang.UnstableAPI;
 import gw.lang.reflect.TypeSystem;
 
+import java.lang.management.ManagementFactory;
+import java.lang.management.ThreadInfo;
+import java.lang.reflect.Method;
 import java.util.Map;
+import java.util.concurrent.locks.ReentrantLock;
 
 @UnstableAPI
 public class TypeSystemLockHelper {
@@ -54,16 +58,7 @@ public class TypeSystemLockHelper {
         }
         if( !isStudioRunning() && System.currentTimeMillis() - lStart > 1000000 )  // wait pretty long (1000 secs as opposed to 10 secs) to avoid a false positive deadlock detection
         {
-          StringBuilder b = new StringBuilder();
-          for (Map.Entry<Thread, StackTraceElement[]> entry : Thread.getAllStackTraces().entrySet()) {
-            b.append(entry.getKey().getName()).append('\n');
-            for (StackTraceElement stackTraceElement : entry.getValue()) {
-              b.append(stackTraceElement).append('\n');
-            }
-            b.append('\n');
-          }
-          System.err.print(b.toString());
-          throw new RuntimeException( "Deadlock detected while loading classes" );
+          dumpAllStackTraces( objectToLock );
         }
       }
       catch( InterruptedException e )
@@ -71,6 +66,53 @@ public class TypeSystemLockHelper {
         throw new RuntimeException( e );
       }
     }
+  }
+
+  private static void dumpAllStackTraces( Object objectToLock )
+  {
+    StringBuilder b = new StringBuilder();
+    for( Map.Entry<Thread, StackTraceElement[]> entry : Thread.getAllStackTraces().entrySet() ) {
+      Thread thread = entry.getKey();
+      b.append( thread.getName() ).append( '\n' );
+      if( isTypeSystemLockOwner( thread ) ) {
+        b.append( "!!! OWNS TYPE SYSTEM LOCK !!!\n" );
+      }
+      if( objectToLock != null && isMonitorOwner( thread, objectToLock ) ) {
+        b.append( "!!! OWNS MONITOR: " ).append( objectToLock ).append( "!!!\n" );
+      }
+      for( StackTraceElement stackTraceElement : entry.getValue() ) {
+        b.append( stackTraceElement ).append( '\n' );
+      }
+      b.append( '\n' );
+    }
+    System.err.print( b );
+    throw new RuntimeException( "Deadlock detected while loading classes" );
+  }
+
+  private static boolean isTypeSystemLockOwner( Thread thread )
+  {
+    ReentrantLock lock = (ReentrantLock)TypeSystem.getGlobalLock();
+    try {
+      Method getOwner = ReentrantLock.class.getDeclaredMethod( "getOwner" );
+      getOwner.setAccessible( true );
+      return getOwner.invoke( lock ) == thread;
+    }
+    catch( Exception e ) {
+      throw new RuntimeException( e );
+    }
+  }
+
+  public static boolean isMonitorOwner( Thread thread, Object monitor ) {
+    if( thread == Thread.currentThread() && Thread.holdsLock( monitor ) ) {
+      return true;
+    }
+    ThreadInfo ti = ManagementFactory.getThreadMXBean().getThreadInfo( new long[]{thread.getId()}, true, false )[0];
+    for( java.lang.management.MonitorInfo mi : ti.getLockedMonitors() ) {
+      if( mi.getIdentityHashCode() == System.identityHashCode( monitor ) ) {
+        return true;
+      }
+    }
+    return false;
   }
 
   private static void maybeWaitOnContextLoader(Object objectToLock) throws InterruptedException {

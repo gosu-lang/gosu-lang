@@ -117,6 +117,19 @@ class CoreCollectionEnhancementTest extends TestClass {
     assertEquals( null, new HashSet(){}.first() )
   }
 
+  structure SampleStruct {
+    function foo() : int
+  }
+
+  class SampleClassForStruct {
+    function foo() : int { return 42 }
+  }
+
+  function testFirstWithStructures() {
+    var lst : List<SampleStruct> = { new SampleClassForStruct() }
+    assertEquals( 42, lst.first().foo() )
+  }
+
   function testFirstWhere() {
     assertEquals( 1, {1, 2, 3}.firstWhere( \ i -> i == 1 ) )
     assertEquals( 2, {1, 2, 3}.firstWhere( \ i -> i == 2 ) )

@@ -19,6 +19,7 @@ import gw.lang.annotation.IInherited;
 import java.lang.annotation.Repeatable;
 import gw.lang.function.IBlock;
 import gw.lang.parser.expressions.IBlockExpression;
+import gw.lang.reflect.ActualName;
 import gw.lang.reflect.FunctionType;
 import gw.lang.reflect.IExpando;
 import gw.lang.reflect.IQueryResultSet;
@@ -41,6 +42,7 @@ import gw.lang.reflect.interval.SequenceableInterval;
 import gw.lang.reflect.module.IExecutionEnvironment;
 import gw.lang.reflect.module.IProject;
 
+import javax.script.Bindings;
 import javax.xml.namespace.QName;
 import java.lang.annotation.Annotation;
 import java.lang.annotation.Inherited;
@@ -506,6 +508,15 @@ public class JavaTypes {
     return getJreType(Lock.class);
   }
 
+  private IJavaType BINDINGS = null;
+  public static IJavaType BINDINGS() {
+    if( !ExecutionMode.get().isRefreshSupportEnabled() ) {
+      return THIS.BINDINGS == null ? THIS.BINDINGS = getGosuType( Bindings.class ) : THIS.BINDINGS;
+    }
+    return getJreType(Bindings.class);
+  }
+
+
   // gosu types
 
   private IJavaType ANNOTATION_USAGE = null;
@@ -754,6 +765,15 @@ public class JavaTypes {
     }  
     return getGosuType(IExpando.class);
   }
+
+  private IJavaType ACTUAL_NAME = null;
+  public static IJavaType ACTUAL_NAME() {
+    if( !ExecutionMode.get().isRefreshSupportEnabled() ) {
+      return THIS.ACTUAL_NAME == null ? THIS.ACTUAL_NAME = getGosuType( ActualName.class ) : THIS.ACTUAL_NAME;
+    }  
+    return getGosuType(ActualName.class);
+  }
+
 
   // utilities
 

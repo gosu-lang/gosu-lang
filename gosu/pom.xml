@@ -2,7 +2,7 @@
   <parent>
     <groupId>org.gosu-lang.gosu</groupId>
     <artifactId>gosu-parent</artifactId>
-    <version>1-X-SNAPSHOT</version>
+    <version>1-spec-SNAPSHOT</version>
     <relativePath>../gosu-parent/pom.xml</relativePath>
   </parent>
   <modelVersion>4.0.0</modelVersion>
@@ -31,7 +31,7 @@
     </dependency>
     <dependency>
       <groupId>org.gosu-lang.gosu</groupId>
-      <artifactId>gosu-editor</artifactId>
+      <artifactId>gosu-lab</artifactId>
       <version>${project.parent.version}</version>
       <scope>runtime</scope>
     </dependency>

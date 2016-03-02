@@ -131,6 +131,9 @@ public class GosuClassesUrlConnection extends URLConnection {
         }
       }
     }
+    catch( Exception e ) {
+      throw GosuExceptionUtil.forceThrow( e, "Type: " + strType );
+    }
     finally {
       TypeSystem.unlock();
     }

@@ -5,13 +5,13 @@
 package gw.internal.gosu.dynamic;
 
 import gw.lang.reflect.IAnnotationInfo;
-import gw.lang.reflect.IExpando;
 import gw.lang.reflect.IPropertyAccessor;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.ITypeInfo;
 import gw.lang.reflect.PropertyInfoBase;
 import gw.lang.reflect.ReflectUtil;
 
+import javax.script.Bindings;
 import java.util.Collections;
 import java.util.List;
 
@@ -73,8 +73,8 @@ public class DynamicPropertyInfo extends PropertyInfoBase implements IPropertyAc
   @Override
   public Object getValue( Object ctx )
   {
-    if( ctx instanceof IExpando ) {
-      return ((IExpando)ctx).getFieldValue( getName() );
+    if( ctx instanceof Bindings ) {
+      return ((Bindings)ctx).get( getName() );
     }
     return ReflectUtil.getProperty( ctx, getName() );
   }
@@ -82,8 +82,8 @@ public class DynamicPropertyInfo extends PropertyInfoBase implements IPropertyAc
   @Override
   public void setValue( Object ctx, Object value )
   {
-    if( ctx instanceof IExpando ) {
-      ((IExpando)ctx).setFieldValue( getName(), value );
+    if( ctx instanceof Bindings ) {
+      ((Bindings)ctx).put( getName(), value );
     }
     else {
       ReflectUtil.setProperty( ctx, getName(), value );

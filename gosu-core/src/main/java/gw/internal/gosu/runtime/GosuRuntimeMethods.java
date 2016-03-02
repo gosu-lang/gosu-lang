@@ -8,6 +8,7 @@ import gw.config.CommonServices;
 import gw.internal.gosu.ir.transform.AbstractElementTransformer;
 import gw.internal.gosu.parser.IGosuClassInternal;
 import gw.internal.gosu.parser.TypeLord;
+import gw.lang.function.IBlock;
 import gw.lang.parser.StandardCoercionManager;
 import gw.lang.reflect.IConstructorInfo;
 import gw.lang.reflect.IExpando;
@@ -24,6 +25,7 @@ import gw.lang.reflect.java.IJavaType;
 import gw.lang.reflect.java.JavaTypes;
 import gw.util.GosuExceptionUtil;
 
+import javax.script.Bindings;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -32,9 +34,9 @@ public class GosuRuntimeMethods {
 
   public static Object getProperty( Object root, IType type, String propertyName )
   {
-    if( root != null && IExpando.class.isAssignableFrom( root.getClass() ) )
+    if( root instanceof Bindings )
     {
-      return ((IExpando)root).getFieldValue( propertyName );
+      return ((Bindings)root).get( propertyName );
     }
 
     if( isDynamic( type ) )
@@ -92,9 +94,9 @@ public class GosuRuntimeMethods {
 
   public static void setProperty( Object root, IType type, String propertyName, Object value )
   {
-    if( root != null && IExpando.class.isAssignableFrom( root.getClass() ) )
+    if( root instanceof Bindings )
     {
-      ((IExpando)root).setFieldValue( propertyName, value );
+      ((Bindings)root).put( propertyName, value );
       return;
     }
 
@@ -256,6 +258,15 @@ public class GosuRuntimeMethods {
       }
     }
 
+    if( root instanceof Bindings )
+    {
+      Object ret = invoke( ((Bindings)root).get( methodName ), args );
+      if( ret != IPlaceholder.UNHANDLED )
+      {
+        return ret;
+      }
+    }
+
     boolean bDynamicType = isDynamic( type );
     if( bDynamicType )
     {
@@ -302,6 +313,15 @@ public class GosuRuntimeMethods {
       args = ReflectUtil.coerceArgsIfNecessary( method.getParameters(), args );
     }
     return method.getCallHandler().handleCall( root, args );
+  }
+
+  private static Object invoke( Object o, Object[] args )
+  {
+    if( o instanceof IBlock )
+    {
+      return ((IBlock)o).invokeWithArgs( args );
+    }
+    return IPlaceholder.UNHANDLED;
   }
 
   private static IType[] replaceDynamicTypesWithRuntimeTypes( IType[] parameterTypes, Object[] args ) {

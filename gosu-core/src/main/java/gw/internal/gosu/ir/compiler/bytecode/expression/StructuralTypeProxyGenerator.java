@@ -9,6 +9,8 @@ import gw.internal.gosu.parser.TypeLord;
 import gw.lang.parser.ISource;
 import gw.lang.parser.StandardCoercionManager;
 import gw.lang.parser.TypeVarToTypeMap;
+import gw.lang.reflect.IAnnotationInfo;
+import gw.lang.reflect.IAttributedFeatureInfo;
 import gw.lang.reflect.IDynamicType;
 import gw.lang.reflect.IMethodInfo;
 import gw.lang.reflect.IParameterInfo;
@@ -41,7 +43,7 @@ public class StructuralTypeProxyGenerator {
   public static Class makeProxy( Class<?> iface, Class<?> rootClass, final String name, final boolean bStaticImpl ) {
     IType pureGenericType = TypeLord.getPureGenericType( TypeSystem.get( rootClass ) );
     IType type;
-    if( JavaTypes.IEXPANDO().isAssignableFrom( pureGenericType ) ) {
+    if( isExpando( pureGenericType ) ) {
       // handle a structure mapped to a dynamic expando type
       type = IDynamicType.instance();
     }
@@ -247,10 +249,10 @@ public class StructuralTypeProxyGenerator {
     }
     ITypeInfo rootTypeInfo = rootType.getTypeInfo();
     // Have to handle private for inner class case e.g., a private field on the inner class implements a property on a structure
-    boolean bPrivate = !isExpando( rootType ) && rootTypeInfo instanceof IRelativeTypeInfo && ((IRelativeTypeInfo)rootTypeInfo).getProperty( rootType, pi.getName() ).isPrivate();
+    String reflectiveName = getReflectiveName( pi, rootType, rootTypeInfo );
     sb.append( "  property get " ).append( pi.getName() ).append( "() : " ).append( ifacePropertyType.getName() ).append( " {\n" );
-    if( bPrivate ) {
-      sb.append( "    return _root[\"" ).append( pi.getName() ).append( "\"] as " ).append( ifacePropertyType.getName() ).append( "\n" );
+    if( reflectiveName != null ) {
+      sb.append( "    return _root[\"" ).append( reflectiveName ).append( "\"] as " ).append( ifacePropertyType.getName() ).append( "\n" );
     }
     else {
       sb.append( "    return " ).append( _bStatic ? _type : "_root" ).append( "." ).append( pi.getName() ).append( " as " ).append( ifacePropertyType.getName() ).append( "\n" );
@@ -258,8 +260,8 @@ public class StructuralTypeProxyGenerator {
     sb.append( "  }\n" );
     if( pi.isWritable( pi.getOwnersType() ) ) {
       sb.append( "  property set " ).append( pi.getName() ).append( "( value: " ).append( ifacePropertyType.getName() ).append( " ) {\n" );
-      if( bPrivate ) {
-        sb.append( "    _root[\"" ).append( pi.getName() ).append( "\"] = value" ).append( maybeCastPropertyAssignment( pi, rootType ) );
+      if( reflectiveName != null ) {
+        sb.append( "    _root[\"" ).append( reflectiveName ).append( "\"] = value" ).append( maybeCastPropertyAssignment( pi, rootType ) );
       }
       else {
         sb.append( "    " ).append( _bStatic ? _type : "_root" ).append( "." ).append( pi.getName() ).append( " = value" ).append( maybeCastPropertyAssignment( pi, rootType ) );
@@ -268,8 +270,28 @@ public class StructuralTypeProxyGenerator {
     }
   }
 
-  private boolean isExpando( IType rootType )
+  private String getReflectiveName( IAttributedFeatureInfo pi, IType rootType, ITypeInfo rootTypeInfo )
   {
-    return JavaTypes.IEXPANDO().isAssignableFrom( rootType );
+    if( rootType.isDynamic() || isExpando( rootType ) )
+    {
+      IAnnotationInfo actualNameAnno = pi.getAnnotation( JavaTypes.ACTUAL_NAME() );
+      if( actualNameAnno != null )
+      {
+        // Must use actual name reflectively in case name is not a legal identifier
+        return (String)actualNameAnno.getFieldValue( "value" );
+      }
+    }
+    else if( rootTypeInfo instanceof IRelativeTypeInfo &&
+             ((IRelativeTypeInfo)rootTypeInfo).getProperty( rootType, pi.getName() ).isPrivate() )
+    {
+      // Private members must be accessed reflectively
+      return pi.getName();
+    }
+    return null;
+  }
+
+  private static boolean isExpando( IType rootType )
+  {
+    return JavaTypes.BINDINGS().isAssignableFrom( rootType );
   }
 }

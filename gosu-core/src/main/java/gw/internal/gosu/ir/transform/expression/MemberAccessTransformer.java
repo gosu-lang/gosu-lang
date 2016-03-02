@@ -54,10 +54,11 @@ import gw.lang.reflect.IUncacheableFeature;
 import gw.lang.reflect.ReflectUtil;
 import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.gs.IGosuClass;
-import gw.lang.reflect.gs.IGosuVarPropertyInfo;
 import gw.lang.reflect.java.GosuTypes;
 import gw.lang.reflect.java.JavaTypes;
 
+import javax.script.Bindings;
+import javax.script.SimpleBindings;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
@@ -462,24 +463,12 @@ public class MemberAccessTransformer extends AbstractExpressionTransformer<Membe
     {
       // For the time being, for debugging purposes we want standard property info accesses to go through
       // a helper method
-      if( rootType instanceof IPlaceholder )
+      if( rootType instanceof IPlaceholder && rootSymbol == null )
       {
-        // Placeholder types, such as snapshot types, have to get properties dynamically.  They can't have static properties, though.
-        if( rootSymbol == null )
-        {
-          throw new IllegalArgumentException( "Cannot invoke a static property reflectively on a placeholder type" );
-        }
-        result = callStaticMethod( GosuRuntimeMethods.class, "getPropertyDynamically", new Class[]{Object.class, String.class},
-                                   exprList( root, pushPropertyName( pi ) ) );
+        throw new IllegalArgumentException( "Cannot invoke a static property reflectively on a placeholder type" );
       }
-      else
-      {
-        // Everything else should get the property from the statically-determined type.  Not all type systems will want
-        // to do full dynamic dispatch, so we can't just grab the property off of the runtime object type, since that might
-        // result in a different property being invoked than the one expected at compile time
-        result = callStaticMethod( GosuRuntimeMethods.class, "getProperty", new Class[]{Object.class, IType.class, String.class},
-                                   exprList( root, pushType( rootType ), pushPropertyName( pi ) ) );
-      }
+      result = callStaticMethod( GosuRuntimeMethods.class, "getProperty", new Class[]{Object.class, IType.class, String.class},
+                                 exprList( root, pushType( rootType ), pushPropertyName( pi ) ) );
     }
     else
     {
@@ -600,6 +589,13 @@ public class MemberAccessTransformer extends AbstractExpressionTransformer<Membe
     if( rootValue instanceof IExpando ) {
       ((IExpando)rootValue).setDefaultFieldValue( propertyName );
       return ((IExpando)rootValue).getFieldValue( propertyName );
+    }
+
+    if( rootValue instanceof Bindings ) {
+      Bindings value = new SimpleBindings();
+      //noinspection unchecked
+      ((Bindings)rootValue).put( propertyName, value );
+      return value;
     }
 
     IType entityType = TypeSystem.getByFullName(typeName);

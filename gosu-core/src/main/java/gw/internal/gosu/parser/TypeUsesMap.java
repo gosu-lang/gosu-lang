@@ -44,15 +44,16 @@ public class TypeUsesMap implements ITypeUsesMap
 
   public TypeUsesMap()
   {
-    _specialTypeUsesByRelativeName = new HashMap<String, String>();
-    _typeUsesByRelativeName = new HashMap<String, String>();
-    _namespaces = new DynamicArray<String>();
-    _usesStmts = new HashMap<String, IUsesStatement>();
-    _defaultNamespaces = new DynamicArray<String>();
-    _specialNamespaces = new DynamicArray<String>();
+    _specialTypeUsesByRelativeName = new HashMap<>();
+    _typeUsesByRelativeName = new HashMap<>();
+    _namespaces = new DynamicArray<>();
+    _usesStmts = new HashMap<>();
+    _defaultNamespaces = new DynamicArray<>();
+    _specialNamespaces = new DynamicArray<>();
     _defaultNamespaces.add( "gw.lang." );
     _defaultNamespaces.add( "java.lang." );
     _defaultNamespaces.add( "java.util." );
+    _defaultNamespaces.add( "dynamic." );
     _defaultNamespaces.add( "" );
   }
 

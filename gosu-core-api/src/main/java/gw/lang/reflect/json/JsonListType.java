@@ -50,11 +50,11 @@ class JsonListType implements IJsonParentType
     _componentType = compType;
   }
 
-  public void render( StringBuilder sb, int indent )
+  public void render( StringBuilder sb, int indent, boolean mutable )
   {
     for( IJsonParentType child: _innerTypes.values() )
     {
-      child.render( sb, indent );
+      child.render( sb, indent, mutable );
     }
   }
 }
