@@ -1,43 +1,44 @@
 package gw.lang.enhancements
 
 uses java.net.URL
-uses java.io.InputStreamReader
 uses java.net.URLEncoder
+uses java.net.HttpURLConnection
+uses java.io.InputStreamReader
+uses java.io.BufferedReader
 uses javax.script.Bindings
 uses gw.util.StreamUtil
 uses gw.lang.reflect.json.Json
 
 enhancement CoreUrlEnhancement : URL {
   /**
-   * Make a JSON-compatible URL with the arguments from the Bindings. URL encodes
-   * the arguments in UTF-8 and appends them to the list using standard URL query
-   * delimiters.
+   * Make a JSON-friendly URL with the arguments from the Bindings.
    * <p>
    * If an argument is a Gosu Dynamic Expando or a javax.script.Bindings or a List,
-   * it is transformed to JSON.  Otherwise, the argument is coerced to a String and
-   * URL encoded.
+   * it is transformed to JSON.  Otherwise, the argument is coerced to a String.  All
+   * arguments are URL encoded.
+   * <p>
+   * Note the resulting URL is intended to be used for an http GET invocation via the
+   * TextContent and JsonContent properties. Do not use the resulting URL for a POST
+   * invocation, instead separately construct a URL and call postForTextContent() or
+   * postForJsonContent().
+   * <p>
+   * @see #TextContent
+   * @see #JsonContent
+   * @see #postForTextContent(javax.script.Bindings)
+   * @see #postForJsonContent(javax.script.Bindings)
    */
   static function makeUrl( url: String, arguments: Bindings ) : URL {
-    var sb = new StringBuilder()
-    for( entry in arguments.entrySet() ) {
-      sb.append( sb.length() == 0 ? '?' : '&' )
-      .append( entry.Key )
-      .append( '=' )
-      var value = entry.Value
-      if( value typeis Bindings ) {
-        value = value.toJson()
-      }
-      else if( value typeis List ) {
-        value = Bindings.listToJson( value )
-      }
-      value = URLEncoder.encode( value as String, "UTF-8" )
-      sb.append( value )
+    if( arguments.size() > 0 ) {
+      url += '?'
     }
-    return new URL( url + sb )
+    return new URL( url + makeArguments( arguments ) )
   }
 
   /**
-   * @return The full content of this URL's stream coerced to a String.
+   * Fetch the content of this URL as a String.  If this is an http URL,
+   * fetches the content using the GET method.
+   *
+   * @return The full content of this URL coerced to a String.
    */
   property get TextContent(): String {
     using( var reader = StreamUtil.getInputStreamReader( this.openStream() ) ) {
@@ -46,11 +47,83 @@ enhancement CoreUrlEnhancement : URL {
   }
 
   /**
+   * Fetch the content of this URL as a JSON object.  If this is an http URL,
+   * fetches the content using the GET method.
+   *
    * @return If the content of this URL is a JSON document, a JSON object reflecting the document.
    *
-   * @see gw.lang.reflect.json.Json#fromJson(String)
+   * @see #TextContent
+   * @see #postForJsonContent(javax.script.Bindings)
    */
   property get JsonContent(): Dynamic {
     return Json.fromJson( TextContent )
+  }
+
+  /**
+   * Use http POST to pass arguments and get the full content of this URL as a String.
+   * <p>
+   * If an argument is a Gosu Dynamic Expando or a javax.script.Bindings or a List,
+   * it is transformed to JSON.  Otherwise, the argument is coerced to a String.  All
+   * arguments are URL encoded.
+   *
+   * @return The full content of this URL coerced to a String.
+   *
+   * @see #postForJsonContent(javax.script.Bindings)
+   * @see #TextContent
+   * @see #JsonContent
+   */
+  function postForTextContent( arguments : Bindings ) : String {
+    var bytes = makeArguments( arguments ).getBytes( "UTF-8" )
+    var conn = this.openConnection() as HttpURLConnection
+    conn.RequestMethod = "POST"
+    conn.setRequestProperty( "Content-Type", "application/x-www-form-urlencoded" )
+    conn.setRequestProperty( "Content-Length", String.valueOf( bytes.length ) )
+    conn.DoOutput = true
+    using( var writer = conn.OutputStream ) {
+      writer.write( bytes )
+    }
+    using( var reader = StreamUtil.getInputStreamReader( conn.getInputStream() ) ) {
+      return StreamUtil.getContent( reader )
+    }
+  }
+
+  /**
+   * Use http POST to pass arguments and get the full content of this URL as a JSON object.
+   * <p>
+   * If an argument is a Gosu Dynamic Expando or a javax.script.Bindings or a List,
+   * it is transformed to JSON.  Otherwise, the argument is coerced to a String.  All
+   * arguments are URL encoded.
+   *
+   * @return The full content of this URL's stream as a JSON object.
+   *
+   * @see #postForTextContent(javax.script.Bindings)
+   * @see #TextContent
+   * @see #JsonContent
+   */
+  function postForJsonContent( arguments: Bindings ) : Dynamic {
+    return Json.fromJson( postForTextContent( arguments ) )
+  }
+
+  private static function makeArguments( arguments: Bindings ) : String {
+    var sb = new StringBuilder()
+    for( entry in arguments.entrySet() ) {
+      if( sb.length() != 0 ) {
+        sb.append( '&' )
+      }
+      sb.append( URLEncoder.encode( entry.Key, "UTF-8" ) )
+      .append( '=' )
+      .append( makeValue( entry.Value ) )
+    }
+    return sb.toString()
+  }
+
+  private static function makeValue( value: Object ) : String {
+    if( value typeis Bindings ) {
+      value = value.toJson()
+    }
+    else if( value typeis List ) {
+      value = Bindings.listToJson( value )
+    }
+    return URLEncoder.encode( value as String, "UTF-8" )
   }
 }
