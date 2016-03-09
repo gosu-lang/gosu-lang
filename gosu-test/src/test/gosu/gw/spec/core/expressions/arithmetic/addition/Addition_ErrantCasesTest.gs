@@ -48,26 +48,6 @@ class Addition_ErrantCasesTest extends ArithmeticTestBase {
     testErrantType( Addition_ErrantCases.DifferentDimensions, Res.MSG_ARITHMETIC_OPERATOR_CANNOT_BE_APPLIED_TO_TYPES, 2, 1)
   }
   
-  function testOverrideOnDimensionWithDoubleDoesntApplyToPDouble() {
-    testErrantType( Addition_ErrantCases.OverrideOnDimensionWithDoubleDoesntApplyToPDouble, Res.MSG_DIMENSION_ADDITION_MUST_BE_SAME_TYPE, 2, 0)
-    testErrantType( Addition_ErrantCases.OverrideOnDimensionWithDoubleDoesntApplyToPDouble, Res.MSG_ARITHMETIC_OPERATOR_CANNOT_BE_APPLIED_TO_TYPES, 2, 1)
-  }
-  
-  function testOverrideOnDimensionWithDoubleDoesntApplyToPFloat() {
-    testErrantType( Addition_ErrantCases.OverrideOnDimensionWithDoubleDoesntApplyToPFloat, Res.MSG_DIMENSION_ADDITION_MUST_BE_SAME_TYPE, 2, 0)
-    testErrantType( Addition_ErrantCases.OverrideOnDimensionWithDoubleDoesntApplyToPFloat, Res.MSG_ARITHMETIC_OPERATOR_CANNOT_BE_APPLIED_TO_TYPES, 2, 1)
-  }
-  
-  function testOverrideOnDimensionWithPIntDoesntApplyToInteger() {
-    testErrantType( Addition_ErrantCases.OverrideOnDimensionWithPIntDoesntApplyToInteger, Res.MSG_DIMENSION_ADDITION_MUST_BE_SAME_TYPE, 2, 0)
-    testErrantType( Addition_ErrantCases.OverrideOnDimensionWithPIntDoesntApplyToInteger, Res.MSG_ARITHMETIC_OPERATOR_CANNOT_BE_APPLIED_TO_TYPES, 2, 1)
-  }
-  
-  function testOverrideOnDimensionWithPIntDoesntApplyToPShort() {
-    testErrantType( Addition_ErrantCases.OverrideOnDimensionWithPIntDoesntApplyToPShort, Res.MSG_DIMENSION_ADDITION_MUST_BE_SAME_TYPE, 2, 0)
-    testErrantType( Addition_ErrantCases.OverrideOnDimensionWithPIntDoesntApplyToPShort, Res.MSG_ARITHMETIC_OPERATOR_CANNOT_BE_APPLIED_TO_TYPES, 2, 1)
-  } 
-
   private function testErrantType( t : Type, errorMsgKey : ResourceKey ) {
     testErrantType( t, errorMsgKey, 1, 0 )
   }

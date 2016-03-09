@@ -47,7 +47,12 @@ abstract class ArithmeticExpressionTransformer<T extends ArithmeticExpression> e
       // The operator is overloaded, call into it...
       IRExpression lhs = ExpressionTransformer.compile( _expr().getLHS(), _cc() );
       IRExpression rhs = ExpressionTransformer.compile( _expr().getRHS(), _cc() );
-      return callMethod( IRMethodFactory.createIRMethod( operatorOverload, null ), lhs, exprList( rhs ) );
+      IRExpression callOverload = callMethod( IRMethodFactory.createIRMethod( operatorOverload, null ), lhs, exprList( rhs ) );
+      if( type.isPrimitive() )
+      {
+        return callOverload;
+      }
+      return buildCast( getDescriptor( type ), callOverload );
     }
     else
     {

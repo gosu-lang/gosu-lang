@@ -158,12 +158,12 @@ class DimensionTest extends gw.test.TestClass
   {
     testErrantType( Errant_CastFromNumber, Res.MSG_TYPE_MISMATCH )
   }
-    
+
   private function testErrantType( type: Type, errorMsgKey: ResourceKey )
   {
     testErrantType( type, errorMsgKey, 1, 0 )
   }
-  
+
   private function testErrantType( type: Type, errorMsgKey: ResourceKey, iErrCount: int, iErrIndex: int )
   {
     assertFalse( type.Valid )

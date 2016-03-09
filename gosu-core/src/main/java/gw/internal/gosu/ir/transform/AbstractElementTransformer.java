@@ -88,7 +88,6 @@ import gw.lang.parser.IExpression;
 import gw.lang.parser.ILanguageLevel;
 import gw.lang.parser.IParsedElement;
 import gw.lang.parser.IReducedSymbol;
-import gw.lang.parser.ISymbol;
 import gw.lang.parser.Keyword;
 import gw.lang.parser.StandardCoercionManager;
 import gw.lang.parser.statements.IFunctionStatement;
@@ -96,7 +95,6 @@ import gw.lang.reflect.ClassLazyTypeResolver;
 import gw.lang.reflect.FunctionType;
 import gw.lang.reflect.IBlockType;
 import gw.lang.reflect.IConstructorInfo;
-import gw.lang.reflect.IEntityAccess;
 import gw.lang.reflect.IEnumConstant;
 import gw.lang.reflect.IFeatureInfo;
 import gw.lang.reflect.IFunctionType;
@@ -110,6 +108,7 @@ import gw.lang.reflect.ITypeInfo;
 import gw.lang.reflect.ITypeVariableType;
 import gw.lang.reflect.LazyTypeResolver;
 import gw.lang.reflect.Modifier;
+import gw.lang.reflect.NotLazyTypeResolver;
 import gw.lang.reflect.ParameterizedFunctionType;
 import gw.lang.reflect.PropertyInfoDelegate;
 import gw.lang.reflect.SimpleTypeLazyTypeResolver;
@@ -142,7 +141,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -2491,13 +2489,21 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
     //
     // Case #1
     //
+    int i = 0;
     String strTypeVarField = TYPE_PARAM_PREFIX + type.getRelativeName();
     for( IGenericTypeVariable gv : getGosuClass().getGenericTypeVariables() )
     {
       if( gv.getName().equals( type.getName() ) )
       {
+        if( getGosuClass().isInterface() )
+        {
+          // Type var can be referenced inside default interface method
+          IRExpression typeExpr = callMethod( GosuRuntimeMethods.class, "getTypeForTypeVar", new Class[]{Object.class, IType.class, int.class}, null, exprList( pushThis(), pushType( getGosuClass() ), pushConstant( i ) ) );
+          return buildNewExpression( NotLazyTypeResolver.class, new Class[]{IType.class}, Collections.singletonList( typeExpr ) );
+        }
         return getInstanceField( getGosuClass(), strTypeVarField, getDescriptor( LazyTypeResolver.class ), AccessibilityUtil.forTypeParameter(), pushThis() );
       }
+      i++;
     }
 
     //
@@ -2519,12 +2525,20 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
       //
       // Case #1
       //
+      i = 0;
       for( IGenericTypeVariable gv : gsClass.getGenericTypeVariables() )
       {
         if( gv.getName().equals( type.getName() ) )
         {
+          if( gsClass.isInterface() )
+          {
+            // Type var can be referenced inside default interface method
+            IRExpression typeExpr = callMethod( GosuRuntimeMethods.class, "getTypeForTypeVar", new Class[]{Object.class, IType.class, int.class}, null, exprList( pushThis(), pushType( gsClass ), pushConstant( i ) ) );
+            return buildNewExpression( NotLazyTypeResolver.class, new Class[]{IType.class}, Collections.singletonList( typeExpr ) );
+          }
           return getInstanceField( gsClass, strTypeVarField, getDescriptor( LazyTypeResolver.class ), AccessibilityUtil.forTypeParameter(), pushOuter( gsClass ) );
         }
+        i++;
       }
 
       //

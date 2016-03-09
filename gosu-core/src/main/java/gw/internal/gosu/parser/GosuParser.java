@@ -3797,7 +3797,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
       boolean bAssumeClosingParenMatch = true;
       e.setArgPosition( iParenStart + 1 );
 
-      List<IConstructorType> listConstructorTypes = (!declaringClass.isInterface() || isAnnotation( declaringClass ))
+      List<IConstructorType> listConstructorTypes = ((declaringClass instanceof ITypeVariableType || !declaringClass.isInterface()) || isAnnotation( declaringClass ))
               ? getPreliminaryConstructorTypes( declaringClass, e )
               : Collections.<IConstructorType>emptyList();
 
@@ -3909,7 +3909,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
         // Prevent abstract types from being constructed (annotation interfaces are ok though)
         IType ownersType = e.getConstructor().getOwnersType();
         boolean bAnnotationType = ownersType instanceof ICanBeAnnotation && ((ICanBeAnnotation)ownersType).isAnnotation() && JavaTypes.ANNOTATION().isAssignableFrom( ownersType );
-        verify( e, bAnnotationType || !ownersType.isAbstract(), Res.MSG_CANNOT_CONSTRUCT_ABSTRACT_CLASS, declaringClass.getName() );
+        verify( e, bAnnotationType || !ownersType.isAbstract() || declaringClass instanceof ITypeVariableType, Res.MSG_CANNOT_CONSTRUCT_ABSTRACT_CLASS, declaringClass.getName() );
         // Prevent recursive types from being constructed directly
         warn( e, declaringClass instanceof ITypeVariableType || !TypeLord.isRecursiveType( declaringClass ), Res.MSG_CANNOT_CONSTRUCT_RECURSIVE_CLASS, declaringClass.getName() );
       }
