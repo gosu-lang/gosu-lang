@@ -39,7 +39,7 @@ class Errant_DimensionArithmetic {
 
     // IDE-2227
     var c1: SampleDim = a / bd
-    var c2: SampleDim = a / b    //## issuekeys: MSG_TYPE_MISMATCH
+    var c2: SampleDim = a / b    //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.MATH.BIGDECIMAL', REQUIRED: 'GW.SPECCONTRIB.DIMENSIONS.ERRANT_DIMENSIONARITHMETIC.SAMPLEDIM'
     var c3: BigDecimal = a / b
   }
 
@@ -48,6 +48,15 @@ class Errant_DimensionArithmetic {
     var nonFinalDim: SampleDimNonFinal
 
     var works = finalDim as BigDecimal
-    var fails = nonFinalDim as BigDecimal //## issuekeys: MSG_TYPE_MISMATCH
+    var fails = nonFinalDim as BigDecimal //## issuekeys: INCONVERTIBLE TYPES; CANNOT CAST 'GW.SPECCONTRIB.DIMENSIONS.ERRANT_DIMENSIONARITHMETIC.SAMPLEDIMNONFINAL' TO 'JAVA.MATH.BIGDECIMAL'
+  }
+
+  function testFinalVsNonFinalMath() {
+    var fa : SampleDim
+    var fb : SampleDim
+    var nf : SampleDimNonFinal
+
+    var sum1 = fa + fb
+    var sum2 = fa + nf      //## issuekeys: OPERATOR '+' CANNOT BE APPLIED TO 'GW.SPECCONTRIB.DIMENSIONS.ERRANT_DIMENSIONARITHMETIC.SAMPLEDIM', 'GW.SPECCONTRIB.DIMENSIONS.ERRANT_DIMENSIONARITHMETIC.SAMPLEDIMNONFINAL'
   }
 }
