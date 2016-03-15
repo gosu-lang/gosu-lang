@@ -12,6 +12,7 @@ import gw.internal.ext.org.objectweb.asm.FieldVisitor;
 import gw.internal.ext.org.objectweb.asm.MethodVisitor;
 import gw.internal.ext.org.objectweb.asm.Opcodes;
 import gw.internal.ext.org.objectweb.asm.TypePath;
+import gw.internal.gosu.ir.transform.util.IRTypeResolver;
 import gw.internal.gosu.parser.TypeLord;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.TypeSystem;
@@ -117,12 +118,12 @@ public class GosuClassWriter extends ClassVisitor
       String superTypeName;
       if( commonSuper instanceof IJavaBackedTypeData ) {
         // Ensure we use the backing Java class's name e.g., entity types use a different name
-        superTypeName = ((IJavaBackedTypeData)commonSuper).getBackingClassInfo().getName();
+        superTypeName = IRTypeResolver.getDescriptor( ((IJavaBackedTypeData)commonSuper).getBackingClassInfo() ).getSlashName();
       }
       else {
-        superTypeName = commonSuper.getName();
+        superTypeName = IRTypeResolver.getDescriptor( commonSuper ).getSlashName();
       }
-      return superTypeName.replace( '.', '/' );
+      return superTypeName;
     }
 
     private IType findCommonClass( IType t1, IType t2 )
