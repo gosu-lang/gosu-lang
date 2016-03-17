@@ -103,6 +103,7 @@ final public class SourceCodeTokenizer implements ISourceCodeTokenizer
       if( iOffsetMark >= 0 )
       {
         restoreToMark( iOffsetMark );
+        _state = maybeSkipWhitespaceAndComments( _state, _internal.getTokens(), _internal.getTokens().size() );
       }
     }
   }
@@ -397,21 +398,31 @@ final public class SourceCodeTokenizer implements ISourceCodeTokenizer
       return;
     }
 
-    boolean bCommentsNotSignificant = !isCommentsSignificant();
-    boolean bWhitespaceNotSignificant = !isWhitespaceSignificant();
-    int iType;
-    do
-    {
-      _state++;
+    _state = maybeSkipWhitespaceAndComments( _state + 1, tokens, count );
+  }
 
-      if( _state == count )
+  private int maybeSkipWhitespaceAndComments( int state, Stack<Token> tokens, int count )
+  {
+    boolean bKeepComments = isCommentsSignificant();
+    boolean bKeepWhitespace = isWhitespaceSignificant();
+    while( true )
+    {
+      if( state == count )
       {
-        return;
+        return state;
       }
 
-      iType = tokens.get( _state ).getType();
-    } while( (bCommentsNotSignificant && iType == TT_COMMENT) ||
-             (bWhitespaceNotSignificant && iType == TT_WHITESPACE) );
+      int tokType = tokens.get( state ).getType();
+      if( (!bKeepWhitespace && tokType == TT_WHITESPACE) ||
+          (!bKeepComments && tokType == TT_COMMENT) )
+      {
+        state++;
+      }
+      else
+      {
+        return state;
+      }
+    }
   }
 
   public String getStringValue()

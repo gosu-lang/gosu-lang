@@ -17,6 +17,7 @@ class GSDocImpl extends GSDocImplShim implements Doc{
 
   var _rootDoc: GSRootDocImpl
   var _commentText = ""
+  var _rawText = ""
   var _name: String
 
   var _inlineTags = new ArrayList<Tag>()
@@ -52,11 +53,11 @@ class GSDocImpl extends GSDocImplShim implements Doc{
   }
 
   override property get RawCommentText(): String{
-    return "rawCommentText"
+    return _rawText
   }
 
   override property set RawCommentText( rawDocumentation: String ){
-    throw new RuntimeException( "Operation not supported" )
+    _rawText = rawDocumentation
   }
 
   override function name(): String{

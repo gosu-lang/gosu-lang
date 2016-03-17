@@ -234,6 +234,12 @@ public class EvalExpressionTest extends ByteCodeTestBase
     assertEquals( "0123456789", ret );
   }
 
+  public void testEvalWithLeadingComment() throws Exception
+  {
+    String ret = (String)IGosuProgram.Runner.runProgram( "eval( \"// leading comment\\n return 'hi'\" )" );
+    assertEquals( "hi", ret );
+  }
+
   private Object newEvalClass() throws ClassNotFoundException, InstantiationException, IllegalAccessException
   {
     final String cls = "gw.internal.gosu.compiler.sample.expression.HasEvalExpression";

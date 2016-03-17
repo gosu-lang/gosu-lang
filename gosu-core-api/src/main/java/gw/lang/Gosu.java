@@ -398,6 +398,11 @@ public class Gosu
     return _rawArgs;
   }
 
+  public static void setRawArgs(String[] args)
+  {
+    _rawArgs = collectArgs(1, args);
+  }
+
   private static void runWithFile( File script, List<String> args ) throws IOException, ParseResultsException
   {
     _script = script;
