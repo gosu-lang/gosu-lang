@@ -1,6 +1,5 @@
 package gw.specContrib.dimensions.physics
 uses java.math.BigDecimal
-uses scratch.WeightUnit.*
 
 final class ForceUnit implements IUnit<BigDecimal, Force, ForceUnit>, UnitConstants {
   public static var BASE: ForceUnit = new ( Micros, AccelerationUnit.BASE )
