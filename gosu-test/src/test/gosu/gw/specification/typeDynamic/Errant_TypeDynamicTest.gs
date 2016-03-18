@@ -73,4 +73,17 @@ class Errant_TypeDynamicTest {
     function m(o : Dynamic) {}  //## issuekeys: MSG_METHOD_REIFIES_TO_SAME_SIGNATURE_AS_ANOTHER_METHOD
   }
 
+  function ternaryLub() {
+    var a = false
+    var b = 3
+    var c : dynamic.Dynamic = "bye"
+    var x = a ? b : c
+    x.blah( 0 ) // x has to be dynamic for this to compile
+  }
+
+  function listLub() {
+    var a : dynamic.Dynamic
+    var x = { a, 4}
+    x[1].blah() // x's component type has to be dynamic for this to compile
+  }
 }

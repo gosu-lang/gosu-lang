@@ -1,4 +1,4 @@
-package gw.internal.gosu.parser.classTests.gwtest.dynamic
+package gw.specification.typeDynamic
 
 class TestCls {
   static function passInt( i: int ) : int {

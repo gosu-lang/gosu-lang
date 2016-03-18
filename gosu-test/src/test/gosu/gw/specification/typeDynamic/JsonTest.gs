@@ -1,4 +1,4 @@
-package gw.internal.gosu.parser.classTests.gwtest.dynamic
+package gw.specification.typeDynamic
 
 uses dynamic.Dynamic
 uses java.lang.*
