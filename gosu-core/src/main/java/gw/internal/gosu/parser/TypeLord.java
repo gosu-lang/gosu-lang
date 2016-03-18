@@ -736,7 +736,7 @@ public class TypeLord
 
   public static IType makeParameteredType( IType genType, TypeVarToTypeMap inferenceMap )
   {
-    IGenericTypeVariable[] gtvs = genType.getGenericTypeVariables();
+    IGenericTypeVariable[] gtvs = getPureGenericType( genType ).getGenericTypeVariables();
     IType[] typeParams = new IType[gtvs.length];
     int i = 0;
     for( IGenericTypeVariable gtv: gtvs )
@@ -744,7 +744,14 @@ public class TypeLord
       typeParams[i] = inferenceMap.get( gtv.getTypeVariableDefinition().getType() );
       if( typeParams[i] == null )
       {
-        return null;
+        if( genType.isParameterizedType() )
+        {
+          typeParams[i] = genType.getTypeParameters()[i];
+        }
+        else
+        {
+          return null;
+        }
       }
       i++;
     }
@@ -1006,6 +1013,16 @@ public class TypeLord
       }
     }
     return false;
+  }
+
+  public static IType findParameterizedStructureType( IType structureType, IType from )
+  {
+    TypeVarToTypeMap inferenceMap = new TypeVarToTypeMap();
+    if( !StandardCoercionManager.isStructurallyAssignable_Laxed( structureType, from, inferenceMap ) )
+    {
+      return null;
+    }
+    return TypeLord.makeParameteredType( structureType, inferenceMap );
   }
 
   /**

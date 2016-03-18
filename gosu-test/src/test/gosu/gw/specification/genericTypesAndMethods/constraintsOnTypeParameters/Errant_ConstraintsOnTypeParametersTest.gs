@@ -19,7 +19,7 @@ class Errant_ConstraintsOnTypeParametersTest {
   static class C5<T1 extends T1> {}  //## issuekeys: MSG_CYCLIC_INHERITANCE
   static class C6<T1, T2 extends  T1> {}
   static class C62<T1, T2 extends  T2> {}  //## issuekeys: MSG_CYCLIC_INHERITANCE
-  static class C7<T1, T2 extends  T3, T3> {}  //## issuekeys: MSG_INVALID_TYPE
+  static class C7<T1, T2 extends  T3, T3> {}
 
   static class B<U> {}
   static class Z extends B<Z> {}
@@ -27,7 +27,7 @@ class Errant_ConstraintsOnTypeParametersTest {
   static class C8<T1 extends B<T1>> {}
   static class C9<T1, T2 extends B<T1>> {}
   static class C10<T1, T2 extends B<T2>> {}
-  static class C11<T1, T2 extends B<T3>, T3> {}  //## issuekeys: MSG_INVALID_TYPE
+  static class C11<T1, T2 extends B<T3>, T3> {}
 
   static class Z3 extends C12<Z3> {}
   static class Z4 extends C13<String, Z4> {}
@@ -37,7 +37,7 @@ class Errant_ConstraintsOnTypeParametersTest {
   static class C13<T1, T2 extends C13<T1, T2>> {}
   static class C131<T1, T2 extends C13<Object, Object>> {}  //## issuekeys: MSG_TYPE_PARAM_NOT_ASSIGNABLE_TO
   static class C14<T1, T2 extends C14<T2, T2>> {}
-  static class C15<T1, T2 extends C15<T3, T2, T3>, T3> {}  //## issuekeys: MSG_INVALID_TYPE, MSG_INVALID_TYPE
+  static class C15<T1, T2 extends C15<T3, T2, T3>, T3> {}
 
   static class M extends Integer[] {}  //## issuekeys: MSG_CANNOT_EXTEND_ARRAY, MSG_CANNOT_EXTEND_FINAL_TYPE
   static class C16<T1 extends Number> {}

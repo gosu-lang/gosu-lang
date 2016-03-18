@@ -1634,7 +1634,7 @@ public class StringUtil
    * Pretty print function for formatting a duration.  E.g. 1010 milliseconds
    * is printed as "1sec 10ms"
    *
-   * @param millis Millis to format
+   * @param millis Milli to format
    *
    * @return A nicely formatted description of the duration
    */

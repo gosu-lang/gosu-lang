@@ -291,11 +291,11 @@ public class Gosu
   public static void init( List<File> classpath )
   {
     List<File> combined = new ArrayList<>();
-    combined.addAll( deriveClasspathFrom( Gosu.class ) );
     if( classpath != null )
     {
       combined.addAll( classpath );
     }
+    combined.addAll( deriveClasspathFrom( Gosu.class ) );
     setClasspath( combined );
   }
 

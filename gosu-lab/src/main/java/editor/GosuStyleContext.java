@@ -759,6 +759,10 @@ public class GosuStyleContext extends StyleContext implements ViewFactory
           {
             strText = (char)8594 + " ";
           }
+          else if( strText.length() == 1 && strText.equals( "*" ) )
+          {
+            strText = "\u22C5";
+          }
         }
         else if( _bStylizedQuotes && style.getName().equals( "StringLiteral" ) )
         {

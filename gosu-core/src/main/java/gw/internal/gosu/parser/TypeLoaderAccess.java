@@ -221,6 +221,12 @@ public class TypeLoaderAccess extends BaseService implements ITypeSystem
     return false;
   }
 
+  @Override
+  public IType getCompoundType( Set<IType> types )
+  {
+    return CompoundType.get( types );
+  }
+
   Map<CharSequence, TypeGetter> getDefaultTypes()
   {
     if (_defaultTypesIniting) {

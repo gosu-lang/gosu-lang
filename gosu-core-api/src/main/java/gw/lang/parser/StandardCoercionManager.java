@@ -797,13 +797,23 @@ public class StandardCoercionManager extends BaseService implements ICoercionMan
   public static boolean isStructurallyAssignable_Laxed( IType toType, IType fromType, TypeVarToTypeMap inferenceMap )
   {
     ITypeInfo fromTypeInfo = fromType.getTypeInfo();
+    if( fromTypeInfo == null )
+    {
+      return false;
+    }
     MethodList fromMethods = fromTypeInfo instanceof IRelativeTypeInfo
                              ? ((IRelativeTypeInfo)fromTypeInfo).getMethods( toType )
                              : fromTypeInfo.getMethods();
+
     ITypeInfo toTypeInfo = toType.getTypeInfo();
+    if( toTypeInfo == null )
+    {
+      return false;
+    }
     MethodList toMethods = toTypeInfo instanceof IRelativeTypeInfo
                            ? ((IRelativeTypeInfo)toTypeInfo).getMethods( fromType )
                            : toTypeInfo.getMethods();
+
     IType ownersType = toTypeInfo.getOwnersType();
 
     inferenceMap.setStructural( true );

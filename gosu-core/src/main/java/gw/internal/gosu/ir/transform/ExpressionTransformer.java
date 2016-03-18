@@ -7,6 +7,7 @@ package gw.internal.gosu.ir.transform;
 import gw.internal.gosu.ir.transform.expression.AdditiveExpressionTransformer;
 import gw.internal.gosu.ir.transform.expression.ArrayAccessTransformer;
 import gw.internal.gosu.ir.transform.expression.BeanMethodCallExpressionTransformer;
+import gw.internal.gosu.ir.transform.expression.BindingExpressionTransformer;
 import gw.internal.gosu.ir.transform.expression.BitshiftExpressionTransformer;
 import gw.internal.gosu.ir.transform.expression.BitwiseAndExpressionTransformer;
 import gw.internal.gosu.ir.transform.expression.BitwiseOrExpressionTransformer;
@@ -51,6 +52,7 @@ import gw.internal.gosu.parser.ParenthesizedExpression;
 import gw.internal.gosu.parser.expressions.AdditiveExpression;
 import gw.internal.gosu.parser.expressions.ArrayAccess;
 import gw.internal.gosu.parser.expressions.BeanMethodCallExpression;
+import gw.internal.gosu.parser.expressions.BindingExpression;
 import gw.internal.gosu.parser.expressions.BitshiftExpression;
 import gw.internal.gosu.parser.expressions.BitwiseAndExpression;
 import gw.internal.gosu.parser.expressions.BitwiseOrExpression;
@@ -258,6 +260,10 @@ public class ExpressionTransformer
     else if( _expr instanceof NewExpression )
     {
       return NewExpressionTransformer.compile( _cc, (NewExpression)_expr );
+    }
+    else if( _expr instanceof BindingExpression )
+    {
+      return BindingExpressionTransformer.compile( _cc, (BindingExpression)_expr );
     }
     else if( _expr instanceof EvalExpression)
     {
