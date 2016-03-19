@@ -14,4 +14,8 @@ enhancement CoreMonthEnhancement : Month
   function prefixBind( year: Integer ) : YearMonth {
     return YearMonth.of( year, this )
   }
+  
+  function postfixBind( jer: JapaneseEraYear ) : JapaneseEraYearMonth {
+    return new JapaneseEraYearMonth( jer, this )
+  }
 }

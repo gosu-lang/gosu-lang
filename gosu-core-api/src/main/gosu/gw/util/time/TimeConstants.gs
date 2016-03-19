@@ -1,5 +1,6 @@
 package gw.util.time
 uses java.time.Month
+uses java.time.chrono.JapaneseEra
 
 interface TimeConstants {
   var Jan: Month = JANUARY
@@ -14,4 +15,12 @@ interface TimeConstants {
   var Oct: Month = OCTOBER
   var Nov: Month = NOVEMBER
   var Dec: Month = DECEMBER
+  
+  var AM: AmPm = AM
+  var PM: AmPm = PM
+  
+  var Meiji: JapaneseEra = JapaneseEra.MEIJI
+  var Taisho: JapaneseEra = JapaneseEra.TAISHO
+  var Showa: JapaneseEra = JapaneseEra.SHOWA
+  var Heisei: JapaneseEra = JapaneseEra.HEISEI
 }

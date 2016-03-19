@@ -18,15 +18,17 @@ public final class BindingExpression extends Expression implements IBindingExpre
   private final Expression _rhsExpr;
   private final IType _bindForType;
   private final boolean _bPrefix;
+  private final int _mark;
 
 
-  public BindingExpression( Expression lhsExpr, Expression rhsExpr, IType bindForType, IType type, boolean bPrefix )
+  public BindingExpression( Expression lhsExpr, Expression rhsExpr, IType bindForType, IType type, int mark, boolean bPrefix )
   {
     _lhsExpr = lhsExpr;
     _rhsExpr = rhsExpr;
     _type = type;
     _bindForType = bindForType;
     _bPrefix = bPrefix;
+    _mark = mark;
   }
 
   public Expression getLhsExpr()
@@ -47,6 +49,11 @@ public final class BindingExpression extends Expression implements IBindingExpre
   public boolean isPrefix()
   {
     return _bPrefix;
+  }
+
+  public int getMark()
+  {
+    return _mark;
   }
 
   public Object evaluate()
