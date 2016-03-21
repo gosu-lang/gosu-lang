@@ -28,9 +28,50 @@
     <plugins>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>Compile Gosu test sources</id>
+            <phase>test-compile</phase>
+            <goals>
+              <goal>testCompile</goal>
+            </goals>
+            <configuration>
+              <compilerArgs>
+                <arg>-DcheckedArithmetic=true</arg>
+              </compilerArgs>
+              <compilerId>gosuc</compilerId>
+              <fork>false</fork>
+              <useIncrementalCompilation>true</useIncrementalCompilation> <!-- this must be true or else we cannot pick up files with multiple extensions -->
+              <verbose>true</verbose>
+              <testIncludes>
+                <include>**/*.gs</include>
+                <include>**/*.gsx</include>
+                <include>**/*.gst</include>
+                <include>**/*.gsp</include>
+              </testIncludes>
+              <testExcludes>
+                <exclude>**/Errant_*.gs</exclude>
+                <exclude>**/Errant_*.gsx</exclude>
+                <exclude>**/Errant_*.gst</exclude>
+                <exclude>**/Errant_*.gsp</exclude>
+              </testExcludes>
+            </configuration>
+          </execution>
+        </executions>
+        <dependencies>
+          <dependency>
+            <groupId>org.gosu-lang.gosu</groupId>
+            <artifactId>gosu-maven-compiler</artifactId>
+            <version>1-X-SNAPSHOT</version>
+          </dependency>
+        </dependencies>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
         <configuration>
-          <argLine>-Dgw.tests.skip.knownbreak=true -DcheckedArithmetic=true -Xmx1g</argLine>
+          <argLine>-Dgw.tests.skip.knownbreak=true -DcheckedArithmetic=true -Xmx4g</argLine>
           <includes>
             <include>gw/config*/**/*Test.class</include>
             <include>gw/internal*/**/*Test.class</include>
@@ -79,57 +120,4 @@
     </plugins>
   </reporting>
   
-  <profiles>
-    <profile>
-      <!-- compiles src/test/gosu only if this profile is enabled -->
-      <id>runGosuTests</id>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-compiler-plugin</artifactId>
-            <executions>
-              <execution>
-                <id>Compile Gosu test sources</id>
-                <phase>test-compile</phase>
-                <goals>
-                  <goal>testCompile</goal>
-                </goals>
-                <configuration>
-                  <compilerArgs>
-                    <arg>-DcheckedArithmetic=true</arg>
-                  </compilerArgs>
-                  <compilerId>gosuc</compilerId>
-                  <fork>false</fork>
-                  <useIncrementalCompilation>true</useIncrementalCompilation> <!-- this must be true or else we cannot pick up files with multiple extensions -->
-                  <verbose>true</verbose>
-                  <testIncludes>
-                    <include>**/*.gs</include>
-                    <include>**/*.gsx</include>
-                    <include>**/*.gst</include>
-                    <include>**/*.gsp</include>
-                  </testIncludes>
-                  <testExcludes>
-                    <exclude>**/Errant_*.gs</exclude>
-                    <exclude>**/Errant_*.gsx</exclude>
-                    <exclude>**/Errant_*.gst</exclude>
-                    <exclude>**/Errant_*.gsp</exclude>
-                  </testExcludes>
-                </configuration>
-              </execution>
-            </executions>
-            <dependencies>
-              <dependency>
-                <groupId>org.gosu-lang.gosu</groupId>
-                <artifactId>gosu-maven-compiler</artifactId>
-                <version>1-X-SNAPSHOT</version>
-              </dependency>
-            </dependencies>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-  </profiles>
-
-
 </project>
