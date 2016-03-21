@@ -5,7 +5,7 @@ uses java.math.BigDecimal
 extends UnitConstantsImpl
 
 var y = 6 kg m/s
-print( y )
+print( y ) 
 var z = 9 kg m/s/s
 print( z )
 print( 9 mi/hr ) 

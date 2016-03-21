@@ -3348,13 +3348,12 @@ public final class GosuParser extends ParserBase implements IGosuParser
 
   private boolean parseUnitExpressionFactor( Token token )
   {
+    int iOffset = _tokenizer.getTokenStart();
+    int iLineNum = _tokenizer.getLineNumber();
+    int iColumn = getTokenizer().getTokenColumn();
     boolean bRes;
     if( '(' == token.getType() )
     {
-      int iOffset = _tokenizer.getTokenStart();
-      int iLineNum = _tokenizer.getLineNumber();
-      int iColumn = getTokenizer().getTokenColumn();
-
       int mark = getTokenizer().mark();
 
       getTokenizer().nextToken();
@@ -3365,7 +3364,6 @@ public final class GosuParser extends ParserBase implements IGosuParser
         ParenthesizedExpression expr = new ParenthesizedExpression( e );
         pushExpression( expr );
         verify( e, match( null, ')' ), Res.MSG_EXPECTING_EXPRESSION_CLOSE );
-        setLocation( iOffset, iLineNum, iColumn );
         bRes = true;
       }
       else
@@ -3381,6 +3379,8 @@ public final class GosuParser extends ParserBase implements IGosuParser
 
     if( bRes )
     {
+      setLocation( iOffset, iLineNum, iColumn );
+
       parseBindingExpression( token );
     }
     return bRes;
