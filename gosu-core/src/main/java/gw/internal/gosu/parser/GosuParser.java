@@ -2921,20 +2921,12 @@ public final class GosuParser extends ParserBase implements IGosuParser
 
   //------------------------------------------------------------------------------
   // primary-expression
-  //   null
-  //   true
-  //   false
-  //   NaN
-  //   Infinity
   //   <new-expression>
-  //   <exists-expression>
+  //   <block-expression>
   //   <member-access>
   //   <array-access>
-  //   <name>
-  //   <literal>
-  //   <object-literal>
-  //   ( <expression) )
-  //   <method-call-expression>
+  //   ( <expression> )
+  //   <bindable-expression>
   //
   void parsePrimaryExpression()
   {
@@ -2956,27 +2948,6 @@ public final class GosuParser extends ParserBase implements IGosuParser
     }
     parseIndirectMemberAccess( iOffset, iLineNum, iColumn );
   }
-
-  void parsePrimaryExpressionNoIndirectMemberAccess()
-  {
-    final Token token = _tokenizer.getCurrentToken();
-    int iOffset = token.getTokenStart();
-    int iLineNum = token.getLine();
-    int iColumn = token.getTokenColumn();
-    boolean bForceRedundancy = _parsePrimaryExpression( token );
-    setLocation( iOffset, iLineNum, iColumn, bForceRedundancy );
-    Expression eas = peekExpression();
-    if( recoverFromJavaStyleCast( eas ) )
-    {
-      setLocation( iOffset, iLineNum, iColumn, bForceRedundancy );
-      // re-root the parenthesized expression under the implicit typeas we created
-      Expression implicitTypeAsFromRecovery = peekExpression();
-      getLocationsList().remove(eas.getLocation());
-      implicitTypeAsFromRecovery.getLocation().addChild(eas.getLocation());
-      eas.setParent( implicitTypeAsFromRecovery );
-    }
-  }
-
   boolean _parsePrimaryExpression( Token token )
   {
     boolean bRet = false;
@@ -2991,10 +2962,69 @@ public final class GosuParser extends ParserBase implements IGosuParser
       getTokenizer().nextToken();
       parseNewExpression();
     }
-    else if( parseNameOrMethodCall( token ) )
+    else if( parseStandAloneDataStructureInitialization( token ) )
     {
+      bRet = true;
     }
-    else if( '(' == token.getType() )
+    else
+    {
+      parseBindableExpression( token );
+    }
+
+    return bRet;
+  }
+
+  //------------------------------------------------------------------------------
+  // bindable-expression
+  //   <simple-expression> [<binder-expression>]
+  //
+  // simple-expression
+  //   ( <expression> )
+  //   <name>
+  //   <method-call>
+  //   <literal>
+  //
+  // binder-expression
+  //   <postfix-binder-expression> [<binder-expression>]
+  //   <prefix-binder-expression> [<binder-expression>]
+  //   <null>
+  //
+  // prefix-binder-expression
+  //   <bindable-expression>
+  //   <null>
+  //
+  // postfix-binder-expression
+  //   <unit-expression>
+  //   <bindable-expression>
+  //   <null>
+  //
+  // unit-expression
+  //   <unit-expression-factor>
+  //   <unit-expression> * <unit-expression-factor>
+  //   <unit-expression> / <unit-expression-factor>
+  //   <null>
+  //
+  // unit-expression-factor
+  //   ( <unit-expression> ) [<binder-expression>]
+  //   <name> [<binder-expression>]
+  //   <null>
+  //
+  void parseBindableExpression()
+  {
+    final Token token = _tokenizer.getCurrentToken();
+    int iOffset = token.getTokenStart();
+    int iLineNum = token.getLine();
+    int iColumn = token.getTokenColumn();
+    parseBindableExpression( token );
+    setLocation( iOffset, iLineNum, iColumn, false );
+  }
+  private void parseBindableExpression( Token token )
+  {
+    int iOffset = token.getTokenStart();
+    int iLineNum = token.getLine();
+    int iColumn = token.getTokenColumn();
+
+    if( '(' == token.getType() )
     {
       getTokenizer().nextToken();
 
@@ -3003,21 +3033,26 @@ public final class GosuParser extends ParserBase implements IGosuParser
       Expression e = popExpression();
       ParenthesizedExpression expr = new ParenthesizedExpression( e );
       pushExpression( expr );
-
+      setLocation( iOffset, iLineNum, iColumn, false );
       verify( e, match( null, ')' ), Res.MSG_EXPECTING_EXPRESSION_CLOSE );
     }
-    else if( parseStandAloneDataStructureInitialization( token ) )
+    else if( parseNameOrMethodCall( token ) )
     {
-      bRet = true;
+      setLocation( iOffset, iLineNum, iColumn, false );
     }
     else
     {
       parseLiteral( token );
     }
 
+    //
+    // The Name or MethodCall or Literal expression just parsed may be followed by another
+    // expression to form a BindingExpression.  A BindingExpression consists of two adjacent
+    // expressions where either the Lhs expression implements IPrefixBinder#prefixBind( t )
+    // and t is assignable from the Rhs expression type, Or the Rhs expression implements
+    // IPostfixBinder#postfixBind( t ) and t is assignable from the Lhs expression type.
+    //
     parseBindingExpression( token );
-
-    return bRet;
   }
 
   private void parseBindingExpression( Token token )
@@ -3028,6 +3063,30 @@ public final class GosuParser extends ParserBase implements IGosuParser
      {
      }
   }
+
+//  private void parseBindingExpression( Token token )
+//  {
+//    int mark = getTokenizer().mark();
+//
+//    Token connector = getTokenizer().getCurrentToken();
+//    if( connector.getType() == ISourceCodeTokenizer.TT_OPERATOR &&
+//        SourceCodeTokenizerInternal.getDefaultBindingOperators().contains( connector.getStringValue() ) )
+//    {
+//      getTokenizer().nextToken();
+//    }
+//
+//    //noinspection StatementWithEmptyBody
+//    int i = 0;
+//    while( parsePostfixUnitBindingExpression( token ) ||
+//           parsePrefixUnitBindingExpression( token ) )
+//    {
+//      i++;
+//    }
+//    if( i == 0 )
+//    {
+//      _tokenizer.restoreToMark( mark );
+//    }
+//  }
 
   private static final Cache<Pair<String, String>, Boolean> BINDER_ASSIGNABILITY_CACHE =
     TypeSystemAwareCache.make( "Binder Assignability Cache", 1000, key -> hasMethod( TypeSystem.getByFullName( key.getFirst() ), key.getSecond() ) );
@@ -3068,7 +3127,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
     int mark = getTokenizer().mark();
     int locationsCount = _locations.size();
 
-    parsePrimaryExpressionNoIndirectMemberAccess();
+    parseBindableExpression();
 
     Expression primExpr = popExpression();
     IType unitBinderType;
@@ -3153,7 +3212,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
         return true;
       }
 
-      parsePrimaryExpressionNoIndirectMemberAccess();
+      parseBindableExpression();
       return tryPostfixUnitExpr( mark, locationsCount, lhsExpr, priorToken );
     }
     return false;
@@ -3289,6 +3348,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
 
   private boolean parseUnitExpressionFactor( Token token )
   {
+    boolean bRes;
     if( '(' == token.getType() )
     {
       int iOffset = _tokenizer.getTokenStart();
@@ -3306,15 +3366,19 @@ public final class GosuParser extends ParserBase implements IGosuParser
         pushExpression( expr );
         verify( e, match( null, ')' ), Res.MSG_EXPECTING_EXPRESSION_CLOSE );
         setLocation( iOffset, iLineNum, iColumn );
-        return true;
+        bRes = true;
       }
       else
       {
         getTokenizer().restoreToMark( mark );
-        return false;
+        bRes = false;
       }
     }
-    boolean bRes = parseNameOrMethodCall( token );
+    else
+    {
+      bRes = parseNameOrMethodCall( token );
+    }
+
     if( bRes )
     {
       parseBindingExpression( token );

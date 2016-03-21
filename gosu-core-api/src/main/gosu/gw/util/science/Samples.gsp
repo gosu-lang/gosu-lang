@@ -111,14 +111,24 @@ var amps = 5 coulomb/s
 print( amps )
 print( 5amp == 5coulomb/s )    
    
-var date2 = 19 Apr 1966 12hr
-var date3 = 19 Apr 1966 12
-var date = 19 Apr 1966 12AM
+var date1 = 1966 Apr 19 12
+var theTime = 1 day - 1 s
+var date2 = 1966 Apr 19 theTime
+print( date2 )
+var date = 1966 Apr 19 0235 PM
 print( date )
-var dt = 19 Apr 1966 (12hr+3min)
+var date3 = 1966 Apr 19 0235
+print( date3 )
+var date4 = 1966 Apr 19 133508.012
+print( date4 )     
+var dt = 1966 Apr 19 (12hr+3min) AM
+print( dt )
+dt = 1966 Apr 19 (12hr+3min) PM
+print( dt )
+dt = 1966 Apr 19 (1hr+3min) PM
 print( dt )
 
-var jdate = 19 Apr 27 Heisei
+var jdate = 27 Apr 19 Heisei
 print( jdate )
 var jdate2 = Heisei 27 Apr 19
 print( jdate2 )
@@ -126,4 +136,3 @@ print( jdate2 )
 var ww = 3 day + 1 wk
 print( ww )
    
-//print( 1 2 3 "hi" 4 5 6 )

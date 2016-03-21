@@ -5,7 +5,7 @@ uses java.time.LocalDate
 
 enhancement CoreMonthDayEnhancement : MonthDay
 {
-  function prefixBind( year: Integer ) : LocalDate {
+  function postfixBind( year: Integer ) : LocalDate {
     return LocalDate.of( year, this.Month, this.DayOfMonth )
   }
 }

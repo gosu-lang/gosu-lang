@@ -7,11 +7,11 @@ uses java.time.YearMonth
 
 enhancement CoreMonthEnhancement : Month
 {
-  function postfixBind( day: Integer ) : MonthDay {
+  function prefixBind( day: Integer ) : MonthDay {
     return MonthDay.of( this, day )
   }   
   
-  function prefixBind( year: Integer ) : YearMonth {
+  function postfixBind( year: Integer ) : YearMonth {
     return YearMonth.of( year, this )
   }
   
