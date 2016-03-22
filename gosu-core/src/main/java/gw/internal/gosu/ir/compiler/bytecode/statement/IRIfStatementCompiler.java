@@ -15,37 +15,6 @@ import gw.internal.ext.org.objectweb.asm.Label;
 import gw.internal.ext.org.objectweb.asm.Opcodes;
 
 public class IRIfStatementCompiler extends AbstractBytecodeCompiler {
- /* public static void compile(IRIfStatement statement, IRBytecodeContext context) {
-    MethodVisitor mv = context.getMv();
-
-    IRBytecodeCompiler.compileIRExpression( statement.getExpression(), context );
-
-    Label afterIf = new Label();
-    mv.visitJumpInsn( Opcodes.IFEQ, afterIf );
-    IRBytecodeCompiler.compileIRStatement( statement.getIfStatement(), context );
-    if( statement.getElseStatement() != null )
-    {
-      Label afterElse = new Label();
-      boolean bTerminal = statement.getLeastSignificantTerminalStatement() != null;
-      if( !bTerminal )
-      {
-        mv.visitJumpInsn( Opcodes.GOTO, afterElse );
-      }
-      mv.visitLabel( afterIf );
-
-      IRBytecodeCompiler.compileIRStatement( statement.getElseStatement(), context );
-
-      if( !bTerminal )
-      {
-        mv.visitLabel( afterElse );
-      }
-    }
-    else
-    {
-      mv.visitLabel( afterIf );
-    }
-  }*/
-
   public static void compile(IRIfStatement statement, IRBytecodeContext context) {
     MethodVisitor mv = context.getMv();
 
@@ -59,6 +28,11 @@ public class IRIfStatementCompiler extends AbstractBytecodeCompiler {
     if( statement.getElseStatement() != null )
     {
       mv.visitJumpInsn( Opcodes.GOTO, afterIf );
+      boolean bTerminal = statement.getLeastSignificantTerminalStatement() != null;
+      if( !bTerminal )
+      {
+        mv.visitJumpInsn( Opcodes.GOTO, afterIf );
+      }
       conditionContext.fixLabels( false, mv );
       IRBytecodeCompiler.compileIRStatement( statement.getElseStatement(), context );
     }

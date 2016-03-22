@@ -57,7 +57,7 @@ public class ConditionContext
 
   public void mergeLabels( boolean kind, ConditionContext context )
   {
-    List<Label> labels = getLabels(kind);
+    List<Label> labels = getLabels( kind );
     labels.addAll( context.getLabels( kind ) );
   }
 

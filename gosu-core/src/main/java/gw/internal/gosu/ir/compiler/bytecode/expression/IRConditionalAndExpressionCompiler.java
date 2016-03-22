@@ -18,11 +18,11 @@ public class IRConditionalAndExpressionCompiler extends AbstractBytecodeCompiler
 
     // Push LHS
     IRBytecodeCompiler.compileIRExpression( expression.getLhs(), context );
-    IRExpression rhs = expression.getRhs();
     ConditionContext lhsCondCxt = expression.getLhs().getConditionContext();
     mv.visitJumpInsn( negateOpcode( lhsCondCxt.getOperator() ), lhsCondCxt.generateFalseLabel() );
     lhsCondCxt.fixLabels( true, mv );
     // Push RHS
+    IRExpression rhs = expression.getRhs();
     IRBytecodeCompiler.compileIRExpression( rhs, context );
     ConditionContext rhsCondCxt = rhs.getConditionContext();
     lhsCondCxt.mergeLabels( false, rhsCondCxt );
