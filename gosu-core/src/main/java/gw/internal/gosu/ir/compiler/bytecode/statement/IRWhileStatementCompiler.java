@@ -44,25 +44,23 @@ public class IRWhileStatementCompiler extends AbstractBytecodeCompiler
     }
     else
     {
-      ConditionContext conditionContext = whileLoopStatement.getLoopTest().getConditionContext();
-      Label breakLabel = conditionContext.generateFalseLabel();
       Label conditionLabel = new Label();
 
-      context.pushBreakLabel( breakLabel );
       context.pushContinueLabel( conditionLabel );
       context.pushScope();
       try
       {
-        //todo: why do we visit from context and not from mv?
         context.visitLabel( conditionLabel );
         context.setLineNumber( whileLoopStatement.getLineNumber() ); // ensure loop test has line number matching start of while loop stmt
         IRBytecodeCompiler.compileIRExpression( whileLoopStatement.getLoopTest(), context );
+        ConditionContext conditionContext = whileLoopStatement.getLoopTest().getConditionContext();
+        Label breakLabel = conditionContext.generateFalseLabel();
         context.getMv().visitJumpInsn( negateOpcode( conditionContext.getOperator() ), breakLabel );
+        context.pushBreakLabel( breakLabel );
         conditionContext.fixLabels( true, context.getMv() );
         IRBytecodeCompiler.compileIRStatement( whileLoopStatement.getBody(), context );
         context.getMv().visitJumpInsn( Opcodes.GOTO, conditionLabel ); // jump to condition
         conditionContext.fixLabels( false, context.getMv() );
-        context.getMv().visitLabel( breakLabel );
       }
       finally
       {
