@@ -866,6 +866,28 @@ public class FunctionType extends AbstractType implements IFunctionType, IGeneri
       return false;
     }
 
+    // Function Type Variables
+    if( isGenericType() != funcType.isGenericType() )
+    {
+      return false;
+    }
+    if( isGenericType() )
+    {
+      IGenericTypeVariable[] gtvs = getGenericTypeVariables();
+      IGenericTypeVariable[] thatGtvs = funcType.getGenericTypeVariables();
+      if( gtvs.length != thatGtvs.length )
+      {
+        return false;
+      }
+      for( int i = 0; i < gtvs.length; i++ )
+      {
+        if( !gtvs[i].equals( thatGtvs[i]) )
+        {
+          return false;
+        }
+      }
+    }
+
     // Parameter Types
     if( funcType.getParameterTypes().length != getParameterTypes().length )
     {
