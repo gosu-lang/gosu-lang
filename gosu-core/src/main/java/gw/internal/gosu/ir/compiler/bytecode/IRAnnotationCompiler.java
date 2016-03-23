@@ -66,7 +66,7 @@ public class IRAnnotationCompiler
   {
     if( value == null )
     {
-      visitor.visit( fieldName, null );
+      //visitor.visit( fieldName, null );
       return;
     }
     try
