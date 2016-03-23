@@ -67,8 +67,7 @@ class OptionalParam_Ctor_Test extends gw.test.TestClass
   {
     assertFalse( Errant_MisingRequiredParamsInCtor.Type.Valid )
     var pes = Errant_MisingRequiredParamsInCtor.Type.ParseResultsException.ParseExceptions
-    assertEquals( 1, pes.Count )
-    assertEquals( Res.MSG_MISSING_REQUIRED_ARGUMENTS, pes[0].MessageKey )
+    assertTrue( pes.hasMatch( \ p -> Res.MSG_MISSING_REQUIRED_ARGUMENTS == p.MessageKey ) )
   }
   
   function testOptionParamsCtor_MissingDefaultValue()

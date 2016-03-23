@@ -114,8 +114,7 @@ class OptionalParam_Method_Test extends gw.test.TestClass
   {
     assertFalse( Errant_MissingRequiredParam.Type.Valid )
     var pe = Errant_MissingRequiredParam.Type.ParseResultsException.ParseExceptions
-    assertEquals( 1, pe.size() )
-    assertEquals( Res.MSG_MISSING_REQUIRED_ARGUMENTS, pe[0].MessageKey )
+    assertTrue( pe.hasMatch( \ p -> Res.MSG_MISSING_REQUIRED_ARGUMENTS == p.MessageKey ) )
   }
   
   function testErrant_ParamNotFound()

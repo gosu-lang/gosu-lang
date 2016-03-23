@@ -3816,7 +3816,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
           declaringClass = maybeChangeToInferredType( declaringClass, typeLiteral, bestConst );
           constructorType = (IConstructorType)(bestConst.getInferredFunctionType() == null ? bestConst.getRawFunctionType() : bestConst.getInferredFunctionType());
           List<IExpression> args = bestConst.getArguments();
-          verifyArgCount( e, args.size(), constructorType );
+          verifyArgCount( e, getExplicitArgsCount( args ), constructorType );
           //noinspection SuspiciousToArrayCall
           e.setArgs( args.toArray( new Expression[args.size()] ) );
           e.setType( declaringClass );
@@ -5406,7 +5406,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
       {
         // Did not parse as object literal
         IFunctionType rawFunctionType = (IFunctionType)bestMethod.getRawFunctionType();
-        verifyArgCount( e, bestMethod.getArguments().size(), rawFunctionType );
+        verifyArgCount( e, getExplicitArgsCount( bestMethod.getArguments() ), rawFunctionType );
 
         if( !(bThis || GosuObjectUtil.equals( strFunction, Keyword.KW_super.getName() )) )
         {
@@ -5970,7 +5970,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
       if( score.isValid() )
       {
         List<IExpression> scoreArgs = score.getArguments();
-        verifyArgCount( e, scoreArgs.size(), funcType );
+        verifyArgCount( e, getExplicitArgsCount( scoreArgs ), funcType );
         //noinspection SuspiciousToArrayCall
         e.setArgs( scoreArgs.toArray( new Expression[scoreArgs.size()] ) );
         e.setNamedArgOrder( score.getNamedArgOrder() );
@@ -6138,7 +6138,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
       if( methodScore.isValid() )
       {
         IFunctionType funcType = (IFunctionType)methodScore.getInferredFunctionType();
-        verifyArgCount( e, eArgs.length, funcType );
+        verifyArgCount( e, getExplicitArgsCount( eArgs ), funcType );
 
         assert funcType != null;
         e.setType( (!bExpansion || funcType.getReturnType().isArray() || funcType.getReturnType() == JavaTypes.pVOID())
@@ -6291,6 +6291,34 @@ public final class GosuParser extends ParserBase implements IGosuParser
     verifyNotCallingOverridableFunctionFromCtor( e );
 
     pushExpression( e );
+  }
+
+  private int getExplicitArgsCount( Expression[] eArgs )
+  {
+    int count = 0;
+    for( Expression eArg : eArgs )
+    {
+      if( (eArg instanceof DefaultParamValueLiteral) )
+      {
+        continue;
+      }
+      count++;
+    }
+    return count;
+  }
+
+  private int getExplicitArgsCount( List<IExpression> eArgs )
+  {
+    int count = 0;
+    for( IExpression eArg : eArgs )
+    {
+      if( (eArg instanceof DefaultParamValueLiteral) )
+      {
+        continue;
+      }
+      count++;
+    }
+    return count;
   }
 
   private void parsePropertyMember( Expression rootExpression, MemberAccessKind kind, int iTokenStart, String strMemberName, LazyLightweightParserState state, boolean bParseTypeLiteralOnly, boolean createSynthesizedProperty, IType rootType, boolean bExpansion )
