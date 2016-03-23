@@ -2,7 +2,6 @@ package gw.util.time
 uses java.time.chrono.Era
 uses java.time.chrono.JapaneseEra
 uses java.time.chrono.JapaneseDate
-uses java.time.chrono.IsoEra
 uses java.time.LocalDateTime
 uses java.time.LocalTime
 uses gw.util.science.Time

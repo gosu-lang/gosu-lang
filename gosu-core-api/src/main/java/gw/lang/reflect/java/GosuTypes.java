@@ -52,6 +52,10 @@ public class GosuTypes {
     return getType( "gw.lang.IPostfixBinder" );
   }
 
+  public static IType BINDER_SEPARATORS() {
+    return getType( "gw.lang.BinderSeparators" );
+  }
+
   public static IFunctionType DEF_CTOR_TYPE() {
     return DEF_CTOR_TYPE.get();
   }

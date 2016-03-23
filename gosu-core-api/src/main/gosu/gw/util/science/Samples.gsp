@@ -112,12 +112,13 @@ print( amps )
 print( 5amp == 5coulomb/s )    
    
 var date1 = 1966 Apr 19 12
+print( date1 )
 var theTime = 1 day - 1 s
 var date2 = 1966 Apr 19 theTime
 print( date2 )
 var date = 1966 Apr 19 0235 PM
 print( date )
-var date3 = 1966 Apr 19 0235
+var date3 = 1966-Apr-19 0235
 print( date3 )
 var date4 = 1966 Apr 19 133508.012
 print( date4 )     

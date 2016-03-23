@@ -38,15 +38,25 @@ public class BindingExpressionTransformer extends AbstractExpressionTransformer<
     Expression rhsExpr = _expr().isPrefix() ? _expr().getLhsExpr() : _expr().getRhsExpr();
     Expression lhsExpr = _expr().isPrefix() ? _expr().getRhsExpr() : _expr().getLhsExpr();
 
-    IGosuMethodInfo bindMethod = (IGosuMethodInfo)rhsExpr.getType().getTypeInfo().getCallableMethod( bindMethodName, lhsExpr.getType() );
+    IType lhsExprType = lhsExpr.getType();
+    if( lhsExprType.isPrimitive() )
+    {
+      lhsExprType = TypeLord.getBoxedTypeFromPrimitiveType( lhsExprType );
+    }
+    IType rhsExprType = rhsExpr.getType();
+    if( rhsExprType.isPrimitive() )
+    {
+      rhsExprType = TypeLord.getBoxedTypeFromPrimitiveType( rhsExprType );
+    }
+    IGosuMethodInfo bindMethod = (IGosuMethodInfo)rhsExprType.getTypeInfo().getCallableMethod( bindMethodName, lhsExprType );
     IType owner = TypeLord.getPureGenericType( bindMethod.getContainer().getOwnersType() );
-    bindMethod = (IGosuMethodInfo)owner.getTypeInfo().getCallableMethod( bindMethodName, lhsExpr.getType() );
+    bindMethod = (IGosuMethodInfo)owner.getTypeInfo().getCallableMethod( bindMethodName, lhsExprType );
     FunctionType funcType = new FunctionType( bindMethod );
     funcType = funcType.getRuntimeType();
     IRExpression irLhs = ExpressionTransformer.compile( lhsExpr, _cc() );
     IRExpression irRhs = ExpressionTransformer.compile( rhsExpr, _cc() );
     IRMethodFromMethodInfo irMethod = IRMethodFactory.createIRMethod( bindMethod, funcType );
-    IRExpression bindCall = callMethod( irMethod, irRhs, Collections.singletonList( irLhs ) );
+    IRExpression bindCall = callMethod( irMethod, boxValue( irRhs.getType(), irRhs ), Collections.singletonList( boxValue( irLhs.getType(), irLhs ) ) );
     return buildCast( getDescriptor( _expr().getType() ), bindCall );
   }
 }

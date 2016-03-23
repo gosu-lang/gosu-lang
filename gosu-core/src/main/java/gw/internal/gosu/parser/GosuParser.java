@@ -10,6 +10,7 @@ import gw.fs.IFile;
 import gw.internal.gosu.dynamic.DynamicConstructorInfo;
 import gw.internal.gosu.dynamic.DynamicMethodInfo;
 import gw.lang.parser.TypeSystemAwareCache;
+import gw.lang.reflect.IAnnotationInfo;
 import gw.lang.reflect.IDynamicType;
 import gw.internal.gosu.ir.transform.util.IRTypeResolver;
 import gw.internal.gosu.ir.transform.util.NameResolver;
@@ -3055,38 +3056,49 @@ public final class GosuParser extends ParserBase implements IGosuParser
     parseBindingExpression( token );
   }
 
-  private void parseBindingExpression( Token token )
-  {
-    //noinspection StatementWithEmptyBody
-     while( parsePostfixUnitBindingExpression( token ) ||
-            parsePrefixUnitBindingExpression( token ) )
-     {
-     }
-  }
-
 //  private void parseBindingExpression( Token token )
 //  {
-//    int mark = getTokenizer().mark();
-//
-//    Token connector = getTokenizer().getCurrentToken();
-//    if( connector.getType() == ISourceCodeTokenizer.TT_OPERATOR &&
-//        SourceCodeTokenizerInternal.getDefaultBindingOperators().contains( connector.getStringValue() ) )
-//    {
-//      getTokenizer().nextToken();
-//    }
-//
 //    //noinspection StatementWithEmptyBody
-//    int i = 0;
-//    while( parsePostfixUnitBindingExpression( token ) ||
-//           parsePrefixUnitBindingExpression( token ) )
-//    {
-//      i++;
-//    }
-//    if( i == 0 )
-//    {
-//      _tokenizer.restoreToMark( mark );
-//    }
+//     while( parsePostfixUnitBindingExpression( token ) ||
+//            parsePrefixUnitBindingExpression( token ) )
+//     {
+//     }
 //  }
+
+  private void parseBindingExpression( Token token )
+  {
+    int mark = getTokenizer().mark();
+
+    Token connector = getTokenizer().getCurrentToken();
+    String connectorString = null;
+    if( connector.getType() == ISourceCodeTokenizer.TT_OPERATOR &&
+        SourceCodeTokenizerInternal.getDefaultBindingOperators().contains( connector.getStringValue() ) )
+    {
+      connectorString = connector.getStringValue();
+      getTokenizer().nextToken();
+    }
+
+    //noinspection StatementWithEmptyBody
+    while( parsePostfixUnitBindingExpression( token, connectorString ) ||
+           parsePrefixUnitBindingExpression( token, connectorString ) )
+    {
+      mark = getTokenizer().mark();
+
+      connector = getTokenizer().getCurrentToken();
+      connectorString = null;
+      if( connector.getType() == ISourceCodeTokenizer.TT_OPERATOR &&
+          SourceCodeTokenizerInternal.getDefaultBindingOperators().contains( connector.getStringValue() ) )
+      {
+        connectorString = connector.getStringValue();
+        getTokenizer().nextToken();
+      }
+    }
+
+    if( connectorString != null )
+    {
+      _tokenizer.restoreToMark( mark );
+    }
+  }
 
   private static final Cache<Pair<String, String>, Boolean> BINDER_ASSIGNABILITY_CACHE =
     TypeSystemAwareCache.make( "Binder Assignability Cache", 1000, key -> hasMethod( TypeSystem.getByFullName( key.getFirst() ), key.getSecond() ) );
@@ -3100,20 +3112,20 @@ public final class GosuParser extends ParserBase implements IGosuParser
     return false;
   }
 
-  private boolean parsePrefixUnitBindingExpression( Token priorToken )
+  private boolean parsePrefixUnitBindingExpression( Token priorToken, String connectorString )
   {
     Expression unitExpr = peekExpression();
     if( unitExpr.hasParseExceptions() )
     {
       return false;
     }
-    if( unitExpr.getType() instanceof IBlockType )
+    if( unitExprType( unitExpr ) instanceof IBlockType )
     {
       return false;
     }
 
     IType unitBinderGenType = GosuTypes.IPREFIX_BINDER();
-    if( !hasMethod_Cached( unitExpr.getType(), "prefixBind" ) )
+    if( !hasMethod_Cached( unitExprType( unitExpr ), "prefixBind" ) )
     {
       return false;
     }
@@ -3134,7 +3146,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
     do
     {
       IType unitBinderParamType = unitBinderGenType.getParameterizedType( primExpr.getType(), unitBinderGenType.getGenericTypeVariables()[1].getTypeVariableDefinition().getType() );
-      unitBinderType = TypeLord.findParameterizedStructureType( unitBinderParamType, unitExpr.getType() );
+      unitBinderType = TypeLord.findParameterizedStructureType( unitBinderParamType, unitExprType( unitExpr ) );
       if( unitBinderType == null && primExpr instanceof BindingExpression )
       {
         primExpr = backtrackBinderExpr( locationsCount, primExpr );
@@ -3147,7 +3159,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
 
     if( unitBinderType != null )
     {
-      if( !primExpr.hasParseExceptions() )
+      if( !primExpr.hasParseExceptions() && isConnectorStringValid( false, connectorString, unitExpr, unitBinderType ) )
       {
         popExpression();
         IType bindForType = unitBinderType.getTypeParameters()[0];
@@ -3165,6 +3177,16 @@ public final class GosuParser extends ParserBase implements IGosuParser
     return false;
   }
 
+  private IType unitExprType( Expression unitExpr )
+  {
+    IType type = unitExpr.getType();
+    if( type.isPrimitive() )
+    {
+      type = TypeLord.getBoxedTypeFromPrimitiveType( type );
+    }
+    return type;
+  }
+
   private Expression backtrackBinderExpr( int locationsCount, Expression primExpr )
   {
     int primMark = ((BindingExpression)primExpr).getMark();
@@ -3176,7 +3198,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
     return primExpr;
   }
 
-  private boolean parsePostfixUnitBindingExpression( Token priorToken )
+  private boolean parsePostfixUnitBindingExpression( Token priorToken, String connectorString )
   {
     Token token = getTokenizer().getCurrentToken();
     if( priorToken.getLine() != token.getLine() )
@@ -3205,7 +3227,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
       int locationsCount = _locations.size();
 
       if( parseUnitExpression() &&
-          tryPostfixUnitExpr( mark, locationsCount, lhsExpr, priorToken ) )
+          tryPostfixUnitExpr( mark, locationsCount, lhsExpr, priorToken, connectorString, true ) )
       {
         // Try with unit expression first because they have precedence
         // e.g., 9 mi/hr should parse as (90(mi/hr)), not ((90 mi)/hr)
@@ -3213,28 +3235,32 @@ public final class GosuParser extends ParserBase implements IGosuParser
       }
 
       parseBindableExpression();
-      return tryPostfixUnitExpr( mark, locationsCount, lhsExpr, priorToken );
+      return tryPostfixUnitExpr( mark, locationsCount, lhsExpr, priorToken, connectorString, true );
     }
     return false;
   }
 
-  private boolean tryPostfixUnitExpr( int mark, int locationsCount, Expression lhsExpr, Token priorToken )
+  private boolean tryPostfixUnitExpr( int mark, int locationsCount, Expression lhsExpr, Token priorToken, String connectorString, boolean testConnector )
   {
     Expression unitExpr = popExpression();
     IType unitBinderGenType = GosuTypes.IPOSTFIX_BINDER();
-    if( hasMethod_Cached( unitExpr.getType(), "postfixBind" ) )
+    if( hasMethod_Cached( unitExprType( unitExpr ), "postfixBind" ) )
     {
       IType unitBinderType;
       do
       {
         IType unitBinderParamType = unitBinderGenType.getParameterizedType( lhsExpr.getType(), unitBinderGenType.getGenericTypeVariables()[1].getTypeVariableDefinition().getType() );
-        unitBinderType = TypeLord.findParameterizedStructureType( unitBinderParamType, unitExpr.getType() );
+        unitBinderType = TypeLord.findParameterizedStructureType( unitBinderParamType, unitExprType( unitExpr ) );
         if( unitBinderType == null && unitExpr instanceof BindingExpression )
         {
           unitExpr = backtrackBinderExpr( locationsCount, unitExpr );
         }
         else
         {
+          if( unitBinderType != null && testConnector && !isConnectorStringValid( true, connectorString, unitExpr, unitBinderType ) )
+          {
+            unitBinderType = null;
+          }
           break;
         }
       } while( true );
@@ -3263,6 +3289,42 @@ public final class GosuParser extends ParserBase implements IGosuParser
     return false;
   }
 
+  private boolean isConnectorStringValid( boolean bPostfix, String connectorString, Expression unitExpr, IType unitBinderType )
+  {
+    boolean bValid = connectorString == null || connectorString.isEmpty();
+    IMethodInfo bindMethod = unitExprType( unitExpr ).getTypeInfo().getMethod( bPostfix ? "postfixBind" : "prefixBind", unitBinderType.getTypeParameters()[0] );
+    if( bindMethod != null )
+    {
+      IAnnotationInfo anno = bindMethod.getAnnotation( GosuTypes.BINDER_SEPARATORS() );
+      if( anno != null )
+      {
+        String[] required = (String[])anno.getFieldValue( "required" );
+        if( connectorString == null || connectorString.isEmpty() )
+        {
+          // No connector string provided, valid if one isn't required
+          bValid = required == null || required.length == 0;
+        }
+        else
+        {
+          // A connector string is provided
+
+          if( required != null && required.length > 0 && Arrays.asList( required ).contains( connectorString ) )
+          {
+            // Valid only if a required connector string
+            bValid = true;
+          }
+          else
+          {
+            // Valid only if an accepted connector string
+            String[] accepted = (String[])anno.getFieldValue( "accepted" );
+            bValid = accepted != null && accepted.length > 0 && Arrays.asList( accepted ).contains( connectorString );
+          }
+        }
+      }
+    }
+    return bValid;
+  }
+
   private boolean parseUnitExpression()
   {
     int iOffset = _tokenizer.getTokenStart();
@@ -3279,8 +3341,8 @@ public final class GosuParser extends ParserBase implements IGosuParser
     }
 
     Expression unitExpr = peekExpression();
-    IType unitBinderGenType = TypeSystem.getByFullName( "gw.lang.IPostfixBinder" );
-    if( !StandardCoercionManager.isStructurallyAssignable( unitBinderGenType, unitExpr.getType() ) )
+    IType unitBinderGenType = GosuTypes.IPOSTFIX_BINDER();
+    if( !StandardCoercionManager.isStructurallyAssignable( unitBinderGenType, unitExprType( unitExpr ) ) )
     {
       backtrack( mark, locationsCount );
       return false;
@@ -3301,9 +3363,9 @@ public final class GosuParser extends ParserBase implements IGosuParser
         token = getTokenizer().getCurrentToken();
 
         IType multiplyType = TypeSystem.getByFullName( "gw.lang.IMultiply" );
-        boolean bMultiply = StandardCoercionManager.isStructurallyAssignable( multiplyType, unitExpr.getType() );
+        boolean bMultiply = StandardCoercionManager.isStructurallyAssignable( multiplyType, unitExprType( unitExpr ) );
         IType divideType = TypeSystem.getByFullName( "gw.lang.IDivide" );
-        boolean bDivide = StandardCoercionManager.isStructurallyAssignable( divideType, unitExpr.getType() );
+        boolean bDivide = StandardCoercionManager.isStructurallyAssignable( divideType, unitExprType( unitExpr ) );
         if( !(value.equals( "*" ) && bMultiply) &&
             !(value.equals( "/" ) && bDivide) )
         {
