@@ -44,15 +44,14 @@ public class ConditionContext
     return label;
   }
 
-
   public void setFalseLabels( List<Label> labels )
   {
-    _falseList = labels;
+    _falseList = new ArrayList<>( labels );
   }
 
   public void setTrueLabels( List<Label> labels )
   {
-    _trueList = labels;
+    _trueList = new ArrayList<>( labels );
   }
 
   public void mergeLabels( boolean kind, ConditionContext context )
@@ -85,8 +84,8 @@ public class ConditionContext
 
   public void update( ConditionContext context)
   {
-    _falseList = context.getLabels( false );
-    _trueList = context.getLabels( true );
+    setFalseLabels( context.getLabels( false ) );
+    setTrueLabels(  context.getLabels( true ) );
     _opcode = context.getOperator();
   }
 
@@ -99,5 +98,11 @@ public class ConditionContext
   public int getOperator()
   {
     return _opcode;
+  }
+
+  public void clearLabels()
+  {
+    _falseList.clear();
+    _trueList.clear();
   }
 }

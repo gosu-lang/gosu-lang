@@ -29,6 +29,7 @@ public class IRNotExpressionCompiler extends AbstractBytecodeCompiler {
       condCxt.setTrueLabels( fLabels );
       condCxt.setFalseLabels( tLabels );
       expression.getConditionContext().update( condCxt );
+      condCxt.clearLabels();
       if( isNotPartOfBooleanExpr( expression ) )
       {
         compileConditionAssignment( expression, mv );
