@@ -7,6 +7,7 @@ uses java.time.chrono.IsoEra
 uses java.time.LocalDateTime
 uses java.time.LocalTime
 uses gw.util.science.Time
+uses java.time.ZonedDateTime
 
 enhancement CoreLocalDateEnhancement : LocalDate
 {
@@ -50,5 +51,44 @@ enhancement CoreLocalDateEnhancement : LocalDate
     var second = timeComp%100
     var millis = (Math.rint( (time - timeComp) * 1000 ) as int) * 1000000
     return LocalDateTime.of( this, LocalTime.of( hour, minute, second, millis ) )  
+  }
+
+  function prefixBind( time: HourZone ) : ZonedDateTime {
+    return ZonedDateTime.of( this, LocalTime.of( time.Hour, 0 ), time.ZoneId )
+  }
+  function prefixBind( time: HourMinuteZone ) : ZonedDateTime {
+    return ZonedDateTime.of( this, LocalTime.of( time.Hour, time.Min ), time.ZoneId )
+  }
+  function prefixBind( time: HourMinuteSecondZone ) : ZonedDateTime {
+    return ZonedDateTime.of( this, LocalTime.of( time.Hour, time.Min, time.Sec ), time.ZoneId )
+  }
+  function prefixBind( time: HourMinuteSecondMilliZone ) : ZonedDateTime {
+    return ZonedDateTime.of( this, LocalTime.of( time.Hour, time.Min, time.Sec, time.Milli * 1000000 ), time.ZoneId )
+  }
+
+  function prefixBind( time: HourAmPm ) : LocalDateTime {
+    return LocalDateTime.of( this, LocalTime.of( getHour( time ), 0 ) )
+  }
+  function prefixBind( time: HourMinuteAmPm ) : LocalDateTime {
+    return LocalDateTime.of( this, LocalTime.of( getHour( time ), time.Min ) )
+  }
+  function prefixBind( time: HourMinuteSecondAmPm ) : LocalDateTime {
+    return LocalDateTime.of( this, LocalTime.of( getHour( time ), time.Min, time.Sec ) )
+  }
+  function prefixBind( time: HourMinuteSecondMilliAmPm ) : LocalDateTime {
+    return LocalDateTime.of( this, LocalTime.of( getHour( time ), time.Min, time.Sec, time.Milli * 1000000 ) )
+  }
+  
+  private function getHour( time: ITimeOfDay ) : int {
+    var hour = time.Hour
+    if( time.AmPm === PM ) {
+      if( time.Hour != 12 ) {
+        hour += 12
+      }
+    }
+    else if( time.AmPm === AM && time.Hour == 12 ) {
+      hour -= 12
+    }
+    return hour
   }
 }

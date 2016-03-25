@@ -1,6 +1,7 @@
 uses gw.util.science.*
 uses gw.util.time.*
 uses java.math.BigDecimal
+uses java.time.ZoneId
 
 extends UnitConstantsImpl
 
@@ -116,8 +117,16 @@ print( date1 )
 var theTime = 1 day - 1 s
 var date2 = 1966 Apr 19 theTime
 print( date2 )
-var date = 1966 Apr 19 0235 PM
+
+var tim = 2:35:53:555 PM
+print( tim )
+
+var date = 1966-Apr-19 2:35:53:909 PM Z
 print( date )
+var date5 = 1966-Apr-19 2:35:53:909 PM PST
+print( date5 )
+var date6 = 1966-Apr-19 12:35:03:789 Z
+print( date6 )
 var date3 = 1966-Apr-19 0235
 print( date3 )
 var date4 = 1966 Apr 19 133508.012
@@ -136,4 +145,5 @@ print( jdate2 )
 
 var ww = 3 day + 1 wk
 print( ww )
-   
+
+print( ZoneId.systemDefault() )   

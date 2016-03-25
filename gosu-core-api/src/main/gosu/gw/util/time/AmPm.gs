@@ -19,33 +19,37 @@ enum AmPm implements UnitConstants {
     return LocalTime.ofNanoOfDay( time.toNumber( Nanos ).longValue() )
   }
   
-  function postfixBind( timeComp: Integer ) : LocalTime {
-    var hour: int
-    var minute = 0
-    var second = 0
-    if( timeComp < 100 ) {
-      // Assume only hour is given e.g., 9 PM
-      hour = timeComp
-    }
-    else if( timeComp < 10000 ) {
-      // Assume hour + min, no seconds e.g., 0930 PM (9:30 PM)
-      hour = timeComp/100
-      minute = timeComp%100
-    }
-    else if( timeComp < 1000000 ) {
-      // Assume hour + min + sec, no millis e.g., 093045 PM (9:30:45 PM)
-      hour = timeComp/10000
-      minute = (timeComp%10000)/100
-      second = timeComp%100
-    }
-    
-    if( this === AM ) { 
-      hour = hour == 12 ? 0 : hour
-    }
-    else {
-      hour += 12 
-    }
-    
-    return LocalTime.of( hour, minute, second )
-  }  
+  function postfixBind( hour: Integer ) : HourAmPm {
+    return new( this, hour )
+  }
+  
+//  function postfixBind( timeComp: Integer ) : LocalTime {
+//    var hour: int
+//    var minute = 0
+//    var second = 0
+//    if( timeComp < 100 ) {
+//      // Assume only hour is given e.g., 9 PM
+//      hour = timeComp
+//    }
+//    else if( timeComp < 10000 ) {
+//      // Assume hour + min, no seconds e.g., 0930 PM (9:30 PM)
+//      hour = timeComp/100
+//      minute = timeComp%100
+//    }
+//    else if( timeComp < 1000000 ) {
+//      // Assume hour + min + sec, no millis e.g., 093045 PM (9:30:45 PM)
+//      hour = timeComp/10000
+//      minute = (timeComp%10000)/100
+//      second = timeComp%100
+//    }
+//    
+//    if( this === AM ) { 
+//      hour = hour == 12 ? 0 : hour
+//    }
+//    else {
+//      hour += 12 
+//    }
+//    
+//    return LocalTime.of( hour, minute, second )
+//  }  
 }
