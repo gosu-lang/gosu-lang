@@ -100,9 +100,10 @@ public class ConditionContext
     return _opcode;
   }
 
-  public void clearLabels()
+  public void clear()
   {
     _falseList.clear();
     _trueList.clear();
+    _opcode = Opcodes.IFNE;
   }
 }

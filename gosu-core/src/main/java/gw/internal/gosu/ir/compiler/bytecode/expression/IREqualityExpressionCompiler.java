@@ -46,7 +46,7 @@ public class IREqualityExpressionCompiler extends AbstractBytecodeCompiler {
 
     IRBytecodeCompiler.compileIRExpression( expr, context );
 
-    compare( mv, equals ? Opcodes.IFNULL : Opcodes.IFNONNULL, context, root );
+    compare( mv, equals ? Opcodes.IFNULL : Opcodes.IFNONNULL, root );
   }
 
   private static void compareInts( boolean equals, IRExpression lhs, IRExpression rhs, IRBytecodeContext context, IRExpression root ) {
@@ -55,7 +55,7 @@ public class IREqualityExpressionCompiler extends AbstractBytecodeCompiler {
     IRBytecodeCompiler.compileIRExpression( lhs, context );
     IRBytecodeCompiler.compileIRExpression( rhs, context );
 
-    compare( mv, equals ?  Opcodes.IF_ICMPEQ : Opcodes.IF_ICMPNE, context, root );
+    compare( mv, equals ?  Opcodes.IF_ICMPEQ : Opcodes.IF_ICMPNE, root );
   }
 
   private static void compareLongs( boolean equals, IRExpression lhs, IRExpression rhs, IRBytecodeContext context, IRExpression root ) {
@@ -77,7 +77,7 @@ public class IREqualityExpressionCompiler extends AbstractBytecodeCompiler {
     IRBytecodeCompiler.compileIRExpression( rhs, context );
     mv.visitInsn( compareOp );
 
-    compare( mv, equals ? Opcodes.IFEQ : Opcodes.IFNE, context, root );
+    compare( mv, equals ? Opcodes.IFEQ : Opcodes.IFNE, root );
   }
 
   private static void compareObjects( boolean equals, IRExpression lhs, IRExpression rhs, IRBytecodeContext context, IRExpression root ) {
@@ -86,10 +86,10 @@ public class IREqualityExpressionCompiler extends AbstractBytecodeCompiler {
     IRBytecodeCompiler.compileIRExpression( lhs, context );
     IRBytecodeCompiler.compileIRExpression( rhs, context );
 
-    compare( mv, equals ?  Opcodes.IF_ACMPEQ : Opcodes.IF_ACMPNE, context, root );
+    compare( mv, equals ?  Opcodes.IF_ACMPEQ : Opcodes.IF_ACMPNE, root );
   }
 
-  private static void compare( MethodVisitor mv, int opcode, IRBytecodeContext context, IRExpression root ) {
+  private static void compare( MethodVisitor mv, int opcode, IRExpression root ) {
     root.getConditionContext().setOperator( opcode );
     if( isNotPartOfBooleanExpr( root ) )
     {

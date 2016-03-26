@@ -61,6 +61,7 @@ public class IRWhileStatementCompiler extends AbstractBytecodeCompiler
         IRBytecodeCompiler.compileIRStatement( whileLoopStatement.getBody(), context );
         context.getMv().visitJumpInsn( Opcodes.GOTO, conditionLabel ); // jump to condition
         conditionContext.fixLabels( false, context.getMv() );
+        conditionContext.clear();
       }
       finally
       {

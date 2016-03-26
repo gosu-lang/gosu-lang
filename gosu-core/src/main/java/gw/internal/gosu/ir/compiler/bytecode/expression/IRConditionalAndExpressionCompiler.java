@@ -29,8 +29,8 @@ public class IRConditionalAndExpressionCompiler extends AbstractBytecodeCompiler
     lhsCondCxt.setTrueLabels( rhsCondCxt.getLabels( true ) );
     lhsCondCxt.setOperator( rhsCondCxt.getOperator() );
     expression.getConditionContext().update( lhsCondCxt );
-    lhsCondCxt.clearLabels();
-    rhsCondCxt.clearLabels();
+    lhsCondCxt.clear();
+    rhsCondCxt.clear();
     if( isNotPartOfBooleanExpr( expression ) )
     {
       compileConditionAssignment( expression, mv );

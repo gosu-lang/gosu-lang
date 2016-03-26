@@ -41,5 +41,6 @@ public class IRIfStatementCompiler extends AbstractBytecodeCompiler {
       conditionContext.fixLabels( false, mv );
     }
     mv.visitLabel( afterIf );
+    conditionContext.clear();
   }
 }

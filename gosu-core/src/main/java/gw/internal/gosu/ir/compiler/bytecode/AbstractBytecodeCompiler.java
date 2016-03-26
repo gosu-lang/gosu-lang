@@ -111,6 +111,7 @@ public class AbstractBytecodeCompiler {
     conditionContext.fixLabels( false, mv );
     mv.visitInsn(Opcodes.ICONST_0);
     mv.visitLabel( end );
+    conditionContext.clear();
   }
 
   public static boolean isNotPartOfBooleanExpr( IRExpression expression )
