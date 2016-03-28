@@ -27,7 +27,7 @@ class Errant_Generics_MethodScoring_1 {
     //IDE-1509
     var a1111 : A =  foo('c')  //## issuekeys: MSG_TYPE_MISMATCH
     var a1112 : A =  foo(1b)  //## issuekeys: MSG_TYPE_MISMATCH
-    var a1113 : A =  foo(1s)  //## issuekeys: MSG_TYPE_MISMATCH
+    var a1113 : A =  foo(1 as short)  //## issuekeys: MSG_TYPE_MISMATCH
     var a1114 : A =  foo(42)  //## issuekeys: MSG_TYPE_MISMATCH
     var a1115 : A =  foo(42.5f)  //## issuekeys: MSG_TYPE_MISMATCH
     var a1116 : A =  foo(100L)  //## issuekeys: MSG_TYPE_MISMATCH
@@ -44,7 +44,7 @@ class Errant_Generics_MethodScoring_1 {
     //IDE-1509
     var b1111 : B =  foo('c')
     var b1112 : B =  foo(1b)
-    var b1113 : B =  foo(1s)
+    var b1113 : B =  foo(1 as short)
     var b1114 : B =  foo(42)
     var b1115 : B =  foo(42.5f)
     var b1116 : B =  foo(100L)
@@ -61,7 +61,7 @@ class Errant_Generics_MethodScoring_1 {
     //IDE-1509
     var c1111 =  foo('c')
     var c1112 =  foo(1b)
-    var c1113 =  foo(1s)
+    var c1113 =  foo(1 as short)
     var c1114 =  foo(42)
     var c1115 =  foo(42.5f)
     var c1116 =  foo(100L)

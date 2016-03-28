@@ -80,7 +80,6 @@ class Errant_OverloadedCallsTest {
     l.m(1 as byte)
     l.m(1b)
     l.m(1 as short)
-    l.m(1s)
     l.m(1 as int)  //## issuekeys: MSG_UNNECESSARY_COERCION
     l.m(1)
     l.m(1 as long)
@@ -210,9 +209,9 @@ class Errant_OverloadedCallsTest {
 
   function caller3() {
     var s : short
-    var r0 : A = fun3(42s, 33333)  //## issuekeys: MSG_TYPE_MISMATCH
-    var r1 : B = fun3(42s, 33333)
-    var r2 : A = fun3(42s, s)
+    var r0 : A = fun3(42 as short, 33333)  //## issuekeys: MSG_TYPE_MISMATCH
+    var r1 : B = fun3(42 as short, 33333)
+    var r2 : A = fun3(42 as short, s)
   }
 
   function fun4(i: long, j: long): A {return null }
@@ -285,7 +284,7 @@ class Errant_OverloadedCallsTest {
       var res1 : BB
       res1 = funIntLongFloat('c', 42.5)
       res1 = funIntLongFloat(1b, 42.5)
-      res1 = funIntLongFloat(1s, 42.5)
+      res1 = funIntLongFloat(1 as short, 42.5)
       res1 = funIntLongFloat(42, 42.5)
       res1 = funIntLongFloat(100L, 42.5)
       res1 = funIntLongFloat(42.5f, 42.5)

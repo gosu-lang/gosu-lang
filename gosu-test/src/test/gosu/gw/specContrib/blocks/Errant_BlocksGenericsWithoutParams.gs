@@ -45,7 +45,7 @@ class Errant_BlocksGenericsWithoutParams {
       return {42, 1b}
     })
     var x1217: ArrayList = hello1(\-> {
-      return {42, 1s}
+      return {42, 1 as short}
     })
     var x1218: ArrayList = hello1(\-> {
       return {42, 'c', 42.5f}
@@ -71,7 +71,7 @@ class Errant_BlocksGenericsWithoutParams {
       return {42, 1b}
     })
     var x1317: ArrayList<Integer> = hello1(\-> {
-      return {42, 1s}
+      return {42, 1 as short}
     })
 
     var x1318: ArrayList<Integer> = hello1(\-> { return {42, 'c', 42.5f} })    //## issuekeys: MSG_TYPE_MISMATCH

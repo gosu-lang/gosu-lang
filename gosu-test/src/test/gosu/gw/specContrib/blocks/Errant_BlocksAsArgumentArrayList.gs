@@ -144,9 +144,9 @@ class Errant_BlocksAsArgumentArrayList {
       myFun111(\c: ArrayList<Integer> -> alist1)      //## issuekeys: 'MYFUN111(GW.LANG.__PSI__.IBLOCK1<JAVA.UTIL.ARRAYLIST<JAVA.LANG.INTEGER>,JAVA.UTIL.ARRAYLIST>)' IN 'TEST.GOSU.GW.SPECCONTRIB.AAA.PARSERVSOPENSOURCE.BLOCKS.BLOCKSMAIN.ERRANT_BLOCKSASARGUMENTARRAYLIST.COCONTRAVARIANCETEST' CANNOT BE APPLIED TO '(BLOCK(ARRAYLIST<INTEGER>):ARRAYLIST<OBJECT>)'
 
       myFun111(\c: ArrayList -> {
-        return {1s, 2s, 3s}
+        return {1 as short, 2 as short, 3 as short}
       })
-      myFun111(\c: ArrayList<Double> -> {  return {1s, 2s, 3s}  })     //## issuekeys: MSG_TYPE_MISMATCH
+      myFun111(\c: ArrayList<Double> -> {  return {1 as short, 2 as short, 3 as short}  })     //## issuekeys: MSG_TYPE_MISMATCH
 
       myFun111(\c: ArrayList -> { return new ArrayList<Short>()   })     //## issuekeys: MSG_TYPE_MISMATCH
 

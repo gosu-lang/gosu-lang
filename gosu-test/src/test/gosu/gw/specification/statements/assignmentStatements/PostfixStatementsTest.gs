@@ -41,7 +41,7 @@ class PostfixStatementsTest extends BaseVerifyErrantTest {
     x5++;
     assertEquals(x5, 1l)
     x6++;
-    assertEquals(x6, 1s)
+    assertEquals(x6, 1 as short)
     x7++;
     assertEquals(x7, '1')
 
@@ -56,7 +56,7 @@ class PostfixStatementsTest extends BaseVerifyErrantTest {
     x5--;
     assertEquals(x5, 0l)
     x6--;
-    assertEquals(x6, 0s)
+    assertEquals(x6, 0 as short)
     x7--;
     assertEquals(x7, '0')
   }
@@ -82,7 +82,7 @@ class PostfixStatementsTest extends BaseVerifyErrantTest {
     x5++;
     assertEquals(x5, 1L)
     x6++;
-    assertEquals(x6, 1S)
+    assertEquals(x6, 1 as short)
     x7++;
     assertEquals(x7, '1')
 
@@ -97,7 +97,7 @@ class PostfixStatementsTest extends BaseVerifyErrantTest {
     x5--;
     assertEquals(x5, 0L)
     x6--;
-    assertEquals(x6, 0S)
+    assertEquals(x6, 0 as short)
     x7--;
     assertEquals(x7, '0')
   }

@@ -17,15 +17,15 @@ class Errant_DoubleArrayListInitializer {
   var arrayList : ArrayList
   var hashMap : HashMap
 
-  var doubleArrayList0111 : ArrayList<Double> = {'c', 1b, 1s, 42, 42.5f, 42L, 42.5}
-  var doubleArrayList0112 : ArrayList<Double> = {'c', 1b, 1s, 42, 42.5f, 42L, 42.5, BigInteger.ONE}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.IO.SERIALIZABLE & JAVA.LANG.COMPARABLE<JAVA.IO.SERIALIZABLE & JAVA.LANG.COMPARABLE<? EXTENDS JAVA.LANG.COMPARABLE<?>>>>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.DOUBLE>'
-  var doubleArrayList0113 : ArrayList<Double> = {'c', 1b, 1s, 42, 42.5f, 42L, 42.5, BigDecimal.TEN}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.IO.SERIALIZABLE & JAVA.LANG.COMPARABLE<JAVA.IO.SERIALIZABLE & JAVA.LANG.COMPARABLE<? EXTENDS JAVA.LANG.COMPARABLE<?>>>>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.DOUBLE>'
-  var doubleArrayList0114 : ArrayList<Double> = {'c', 1b, 1s, 42, 42.5f, 42L, 42.5, BigInteger.ONE, BigDecimal.TEN}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.IO.SERIALIZABLE & JAVA.LANG.COMPARABLE<JAVA.IO.SERIALIZABLE & JAVA.LANG.COMPARABLE<? EXTENDS JAVA.LANG.COMPARABLE<?>>>>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.DOUBLE>'
+  var doubleArrayList0111 : ArrayList<Double> = {'c', 1b, 1 as short, 42, 42.5f, 42L, 42.5}
+  var doubleArrayList0112 : ArrayList<Double> = {'c', 1b, 1 as short, 42, 42.5f, 42L, 42.5, BigInteger.ONE}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.IO.SERIALIZABLE & JAVA.LANG.COMPARABLE<JAVA.IO.SERIALIZABLE & JAVA.LANG.COMPARABLE<? EXTENDS JAVA.LANG.COMPARABLE<?>>>>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.DOUBLE>'
+  var doubleArrayList0113 : ArrayList<Double> = {'c', 1b, 1 as short, 42, 42.5f, 42L, 42.5, BigDecimal.TEN}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.IO.SERIALIZABLE & JAVA.LANG.COMPARABLE<JAVA.IO.SERIALIZABLE & JAVA.LANG.COMPARABLE<? EXTENDS JAVA.LANG.COMPARABLE<?>>>>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.DOUBLE>'
+  var doubleArrayList0114 : ArrayList<Double> = {'c', 1b, 1 as short, 42, 42.5f, 42L, 42.5, BigInteger.ONE, BigDecimal.TEN}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.IO.SERIALIZABLE & JAVA.LANG.COMPARABLE<JAVA.IO.SERIALIZABLE & JAVA.LANG.COMPARABLE<? EXTENDS JAVA.LANG.COMPARABLE<?>>>>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.DOUBLE>'
 
 
   var doubleArrayList1111 : ArrayList<Double> = {'c', 'c'}
   var doubleArrayList1110 : ArrayList<Double> = {'c', 1b}
-  var doubleArrayList1112 : ArrayList<Double> = {'c', 1s}
+  var doubleArrayList1112 : ArrayList<Double> = {'c', 1 as short}
   var doubleArrayList1113 : ArrayList<Double> = {'c', 42}
   var doubleArrayList1114 : ArrayList<Double> = {'c', 42.5f}
   var doubleArrayList1115 : ArrayList<Double> = {'c', 42.5}
@@ -40,7 +40,7 @@ class Errant_DoubleArrayListInitializer {
 
   var doubleArrayList1211 : ArrayList<Double> = {1b, 'c'}
   var doubleArrayList1210 : ArrayList<Double> = {1b, 1b}
-  var doubleArrayList1212 : ArrayList<Double> = {1b, 1s}
+  var doubleArrayList1212 : ArrayList<Double> = {1b, 1 as short}
   var doubleArrayList1213 : ArrayList<Double> = {1b, 42}
   var doubleArrayList1214 : ArrayList<Double> = {1b, 42.5f}
   var doubleArrayList1215 : ArrayList<Double> = {1b, 42.5}
@@ -53,25 +53,25 @@ class Errant_DoubleArrayListInitializer {
   var doubleArrayList1222 : ArrayList<Double> = {1b, arrayList}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.IO.SERIALIZABLE>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.DOUBLE>'
   var doubleArrayList1223 : ArrayList<Double> = {1b, hashMap}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.IO.SERIALIZABLE>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.DOUBLE>'
 
-  var doubleArrayList1311 : ArrayList<Double> = {1s, 'c'}
-  var doubleArrayList1310 : ArrayList<Double> = {1s, 1b}
-  var doubleArrayList1312 : ArrayList<Double> = {1s, 1s}
-  var doubleArrayList1313 : ArrayList<Double> = {1s, 42}
-  var doubleArrayList1314 : ArrayList<Double> = {1s, 42.5f}
-  var doubleArrayList1315 : ArrayList<Double> = {1s, 42.5}
-  var doubleArrayList1316 : ArrayList<Double> = {1s, BigInteger.ONE}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.MATH.BIGINTEGER', REQUIRED: 'JAVA.LANG.DOUBLE'
-  var doubleArrayList1317 : ArrayList<Double> = {1s, BigDecimal.TEN}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.MATH.BIGDECIMAL', REQUIRED: 'JAVA.LANG.DOUBLE'
-  var doubleArrayList1318 : ArrayList<Double> = {1s, d1}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.IO.SERIALIZABLE & JAVA.LANG.COMPARABLE<JAVA.IO.SERIALIZABLE & JAVA.LANG.COMPARABLE<? EXTENDS JAVA.LANG.COMPARABLE<?>>>>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.DOUBLE>'
-  var doubleArrayList1319 : ArrayList<Double> = {1s, o}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.OBJECT>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.DOUBLE>'
-  var doubleArrayList1320 : ArrayList<Double> = {1s, aaa}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.OBJECT>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.DOUBLE>'
-  var doubleArrayList1321 : ArrayList<Double> = {1s, "mystring"}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.IO.SERIALIZABLE & JAVA.LANG.COMPARABLE<JAVA.IO.SERIALIZABLE & JAVA.LANG.COMPARABLE<? EXTENDS JAVA.LANG.COMPARABLE<?>>>>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.DOUBLE>'
-  var doubleArrayList1322 : ArrayList<Double> = {1s, arrayList}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.IO.SERIALIZABLE>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.DOUBLE>'
-  var doubleArrayList1323 : ArrayList<Double> = {1s, hashMap}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.IO.SERIALIZABLE>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.DOUBLE>'
+  var doubleArrayList1311 : ArrayList<Double> = {1 as short, 'c'}
+  var doubleArrayList1310 : ArrayList<Double> = {1 as short, 1b}
+  var doubleArrayList1312 : ArrayList<Double> = {1 as short, 1 as short}
+  var doubleArrayList1313 : ArrayList<Double> = {1 as short, 42}
+  var doubleArrayList1314 : ArrayList<Double> = {1 as short, 42.5f}
+  var doubleArrayList1315 : ArrayList<Double> = {1 as short, 42.5}
+  var doubleArrayList1316 : ArrayList<Double> = {1 as short, BigInteger.ONE}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.MATH.BIGINTEGER', REQUIRED: 'JAVA.LANG.DOUBLE'
+  var doubleArrayList1317 : ArrayList<Double> = {1 as short, BigDecimal.TEN}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.MATH.BIGDECIMAL', REQUIRED: 'JAVA.LANG.DOUBLE'
+  var doubleArrayList1318 : ArrayList<Double> = {1 as short, d1}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.IO.SERIALIZABLE & JAVA.LANG.COMPARABLE<JAVA.IO.SERIALIZABLE & JAVA.LANG.COMPARABLE<? EXTENDS JAVA.LANG.COMPARABLE<?>>>>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.DOUBLE>'
+  var doubleArrayList1319 : ArrayList<Double> = {1 as short, o}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.OBJECT>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.DOUBLE>'
+  var doubleArrayList1320 : ArrayList<Double> = {1 as short, aaa}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.OBJECT>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.DOUBLE>'
+  var doubleArrayList1321 : ArrayList<Double> = {1 as short, "mystring"}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.IO.SERIALIZABLE & JAVA.LANG.COMPARABLE<JAVA.IO.SERIALIZABLE & JAVA.LANG.COMPARABLE<? EXTENDS JAVA.LANG.COMPARABLE<?>>>>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.DOUBLE>'
+  var doubleArrayList1322 : ArrayList<Double> = {1 as short, arrayList}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.IO.SERIALIZABLE>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.DOUBLE>'
+  var doubleArrayList1323 : ArrayList<Double> = {1 as short, hashMap}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.IO.SERIALIZABLE>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.DOUBLE>'
 
 
   var doubleArrayList1411 : ArrayList<Double> = {42, 'c'}
   var doubleArrayList1410 : ArrayList<Double> = {42, 1b}
-  var doubleArrayList1412 : ArrayList<Double> = {42, 1s}
+  var doubleArrayList1412 : ArrayList<Double> = {42, 1 as short}
   var doubleArrayList1413 : ArrayList<Double> = {42, 42}
   var doubleArrayList1414 : ArrayList<Double> = {42, 42.5f}
   var doubleArrayList1415 : ArrayList<Double> = {42, 42.5}
@@ -86,7 +86,7 @@ class Errant_DoubleArrayListInitializer {
 
   var doubleArrayList1511 : ArrayList<Double> = {42.5f, 'c'}
   var doubleArrayList1510 : ArrayList<Double> = {42.5f, 1b}
-  var doubleArrayList1512 : ArrayList<Double> = {42.5f, 1s}
+  var doubleArrayList1512 : ArrayList<Double> = {42.5f, 1 as short}
   var doubleArrayList1513 : ArrayList<Double> = {42.5f, 42}
   var doubleArrayList1514 : ArrayList<Double> = {42.5f, 42.5f}
   var doubleArrayList1515 : ArrayList<Double> = {42.5f, 42.5}
@@ -101,7 +101,7 @@ class Errant_DoubleArrayListInitializer {
 
   var doubleArrayList1611 : ArrayList<Double> = {42.5, 'c'}
   var doubleArrayList1610 : ArrayList<Double> = {42.5, 1b}
-  var doubleArrayList1612 : ArrayList<Double> = {42.5, 1s}
+  var doubleArrayList1612 : ArrayList<Double> = {42.5, 1 as short}
   var doubleArrayList1613 : ArrayList<Double> = {42.5, 42}
   var doubleArrayList1614 : ArrayList<Double> = {42.5, 42.5f}
   var doubleArrayList1615 : ArrayList<Double> = {42.5, 42.5}
@@ -116,7 +116,7 @@ class Errant_DoubleArrayListInitializer {
 
   var doubleArrayList1711 : ArrayList<Double> = {BigInteger.ONE, 'c'}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.IO.SERIALIZABLE & JAVA.LANG.COMPARABLE<JAVA.IO.SERIALIZABLE & JAVA.LANG.COMPARABLE<? EXTENDS JAVA.LANG.COMPARABLE<?>>>>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.DOUBLE>'
   var doubleArrayList1710 : ArrayList<Double> = {BigInteger.ONE, 1b}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.MATH.BIGINTEGER', REQUIRED: 'JAVA.LANG.DOUBLE'
-  var doubleArrayList1712 : ArrayList<Double> = {BigInteger.ONE, 1s}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.MATH.BIGINTEGER', REQUIRED: 'JAVA.LANG.DOUBLE'
+  var doubleArrayList1712 : ArrayList<Double> = {BigInteger.ONE, 1 as short}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.MATH.BIGINTEGER', REQUIRED: 'JAVA.LANG.DOUBLE'
   var doubleArrayList1713 : ArrayList<Double> = {BigInteger.ONE, 42}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.MATH.BIGINTEGER', REQUIRED: 'JAVA.LANG.DOUBLE'
   var doubleArrayList1714 : ArrayList<Double> = {BigInteger.ONE, 42.5f}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.MATH.BIGINTEGER', REQUIRED: 'JAVA.LANG.DOUBLE'
   var doubleArrayList1715 : ArrayList<Double> = {BigInteger.ONE, 42.5}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.MATH.BIGINTEGER', REQUIRED: 'JAVA.LANG.DOUBLE'
@@ -131,7 +131,7 @@ class Errant_DoubleArrayListInitializer {
 
   var doubleArrayList1811 : ArrayList<Double> = {BigDecimal.TEN, 'c'}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.IO.SERIALIZABLE & JAVA.LANG.COMPARABLE<JAVA.IO.SERIALIZABLE & JAVA.LANG.COMPARABLE<? EXTENDS JAVA.LANG.COMPARABLE<?>>>>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.DOUBLE>'
   var doubleArrayList1810 : ArrayList<Double> = {BigDecimal.TEN, 1b}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.MATH.BIGDECIMAL', REQUIRED: 'JAVA.LANG.DOUBLE'
-  var doubleArrayList1812 : ArrayList<Double> = {BigDecimal.TEN, 1s}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.MATH.BIGDECIMAL', REQUIRED: 'JAVA.LANG.DOUBLE'
+  var doubleArrayList1812 : ArrayList<Double> = {BigDecimal.TEN, 1 as short}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.MATH.BIGDECIMAL', REQUIRED: 'JAVA.LANG.DOUBLE'
   var doubleArrayList1813 : ArrayList<Double> = {BigDecimal.TEN, 42}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.MATH.BIGDECIMAL', REQUIRED: 'JAVA.LANG.DOUBLE'
   var doubleArrayList1814 : ArrayList<Double> = {BigDecimal.TEN, 42.5f}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.MATH.BIGDECIMAL', REQUIRED: 'JAVA.LANG.DOUBLE'
   var doubleArrayList1815 : ArrayList<Double> = {BigDecimal.TEN, 42.5}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.MATH.BIGDECIMAL', REQUIRED: 'JAVA.LANG.DOUBLE'
@@ -146,7 +146,7 @@ class Errant_DoubleArrayListInitializer {
 
   var doubleArrayList1911 : ArrayList<Double> = {d1, 'c'}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.IO.SERIALIZABLE & JAVA.LANG.COMPARABLE<JAVA.IO.SERIALIZABLE & JAVA.LANG.COMPARABLE<? EXTENDS JAVA.LANG.COMPARABLE<?>>>>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.DOUBLE>'
   var doubleArrayList1910 : ArrayList<Double> = {d1, 1b}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.IO.SERIALIZABLE & JAVA.LANG.COMPARABLE<JAVA.IO.SERIALIZABLE & JAVA.LANG.COMPARABLE<? EXTENDS JAVA.LANG.COMPARABLE<?>>>>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.DOUBLE>'
-  var doubleArrayList1912 : ArrayList<Double> = {d1, 1s}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.IO.SERIALIZABLE & JAVA.LANG.COMPARABLE<JAVA.IO.SERIALIZABLE & JAVA.LANG.COMPARABLE<? EXTENDS JAVA.LANG.COMPARABLE<?>>>>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.DOUBLE>'
+  var doubleArrayList1912 : ArrayList<Double> = {d1, 1 as short}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.IO.SERIALIZABLE & JAVA.LANG.COMPARABLE<JAVA.IO.SERIALIZABLE & JAVA.LANG.COMPARABLE<? EXTENDS JAVA.LANG.COMPARABLE<?>>>>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.DOUBLE>'
   var doubleArrayList1913 : ArrayList<Double> = {d1, 42}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.IO.SERIALIZABLE & JAVA.LANG.COMPARABLE<JAVA.IO.SERIALIZABLE & JAVA.LANG.COMPARABLE<? EXTENDS JAVA.LANG.COMPARABLE<?>>>>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.DOUBLE>'
   var doubleArrayList1914 : ArrayList<Double> = {d1, 42.5f}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.IO.SERIALIZABLE & JAVA.LANG.COMPARABLE<JAVA.IO.SERIALIZABLE & JAVA.LANG.COMPARABLE<? EXTENDS JAVA.LANG.COMPARABLE<?>>>>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.DOUBLE>'
   var doubleArrayList1915 : ArrayList<Double> = {d1, 42.5}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.IO.SERIALIZABLE & JAVA.LANG.COMPARABLE<JAVA.IO.SERIALIZABLE & JAVA.LANG.COMPARABLE<? EXTENDS JAVA.LANG.COMPARABLE<?>>>>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.DOUBLE>'
@@ -161,7 +161,7 @@ class Errant_DoubleArrayListInitializer {
 
   var doubleArrayList2011 : ArrayList<Double> = {o, 'c'}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.OBJECT>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.DOUBLE>'
   var doubleArrayList2010 : ArrayList<Double> = {o, 1b}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.OBJECT>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.DOUBLE>'
-  var doubleArrayList2012 : ArrayList<Double> = {o, 1s}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.OBJECT>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.DOUBLE>'
+  var doubleArrayList2012 : ArrayList<Double> = {o, 1 as short}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.OBJECT>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.DOUBLE>'
   var doubleArrayList2013 : ArrayList<Double> = {o, 42}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.OBJECT>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.DOUBLE>'
   var doubleArrayList2014 : ArrayList<Double> = {o, 42.5f}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.OBJECT>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.DOUBLE>'
   var doubleArrayList2015 : ArrayList<Double> = {o, 42.5}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.OBJECT>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.DOUBLE>'
@@ -176,7 +176,7 @@ class Errant_DoubleArrayListInitializer {
 
   var doubleArrayList2111 : ArrayList<Double> = {aaa, 'c'}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.OBJECT>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.DOUBLE>'
   var doubleArrayList2110 : ArrayList<Double> = {aaa, 1b}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.OBJECT>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.DOUBLE>'
-  var doubleArrayList2112 : ArrayList<Double> = {aaa, 1s}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.OBJECT>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.DOUBLE>'
+  var doubleArrayList2112 : ArrayList<Double> = {aaa, 1 as short}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.OBJECT>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.DOUBLE>'
   var doubleArrayList2113 : ArrayList<Double> = {aaa, 42}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.OBJECT>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.DOUBLE>'
   var doubleArrayList2114 : ArrayList<Double> = {aaa, 42.5f}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.OBJECT>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.DOUBLE>'
   var doubleArrayList2115 : ArrayList<Double> = {aaa, 42.5}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.OBJECT>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.DOUBLE>'
@@ -191,7 +191,7 @@ class Errant_DoubleArrayListInitializer {
 
   var doubleArrayList2211 : ArrayList<Double> = {"mystring", 'c'}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.IO.SERIALIZABLE & JAVA.LANG.COMPARABLE<JAVA.IO.SERIALIZABLE & JAVA.LANG.COMPARABLE<? EXTENDS JAVA.LANG.COMPARABLE<?>>>>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.DOUBLE>'
   var doubleArrayList2210 : ArrayList<Double> = {"mystring", 1b}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.IO.SERIALIZABLE & JAVA.LANG.COMPARABLE<JAVA.IO.SERIALIZABLE & JAVA.LANG.COMPARABLE<? EXTENDS JAVA.LANG.COMPARABLE<?>>>>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.DOUBLE>'
-  var doubleArrayList2212 : ArrayList<Double> = {"mystring", 1s}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.IO.SERIALIZABLE & JAVA.LANG.COMPARABLE<JAVA.IO.SERIALIZABLE & JAVA.LANG.COMPARABLE<? EXTENDS JAVA.LANG.COMPARABLE<?>>>>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.DOUBLE>'
+  var doubleArrayList2212 : ArrayList<Double> = {"mystring", 1 as short}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.IO.SERIALIZABLE & JAVA.LANG.COMPARABLE<JAVA.IO.SERIALIZABLE & JAVA.LANG.COMPARABLE<? EXTENDS JAVA.LANG.COMPARABLE<?>>>>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.DOUBLE>'
   var doubleArrayList2213 : ArrayList<Double> = {"mystring", 42}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.IO.SERIALIZABLE & JAVA.LANG.COMPARABLE<JAVA.IO.SERIALIZABLE & JAVA.LANG.COMPARABLE<? EXTENDS JAVA.LANG.COMPARABLE<?>>>>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.DOUBLE>'
   var doubleArrayList2214 : ArrayList<Double> = {"mystring", 42.5f}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.IO.SERIALIZABLE & JAVA.LANG.COMPARABLE<JAVA.IO.SERIALIZABLE & JAVA.LANG.COMPARABLE<? EXTENDS JAVA.LANG.COMPARABLE<?>>>>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.DOUBLE>'
   var doubleArrayList2215 : ArrayList<Double> = {"mystring", 42.5}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.IO.SERIALIZABLE & JAVA.LANG.COMPARABLE<JAVA.IO.SERIALIZABLE & JAVA.LANG.COMPARABLE<? EXTENDS JAVA.LANG.COMPARABLE<?>>>>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.DOUBLE>'
@@ -207,7 +207,7 @@ class Errant_DoubleArrayListInitializer {
 
   var doubleArrayList2311 : ArrayList<Double> = {arrayList, 'c'}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.IO.SERIALIZABLE>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.DOUBLE>'
   var doubleArrayList2310 : ArrayList<Double> = {arrayList, 1b}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.IO.SERIALIZABLE>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.DOUBLE>'
-  var doubleArrayList2312 : ArrayList<Double> = {arrayList, 1s}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.IO.SERIALIZABLE>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.DOUBLE>'
+  var doubleArrayList2312 : ArrayList<Double> = {arrayList, 1 as short}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.IO.SERIALIZABLE>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.DOUBLE>'
   var doubleArrayList2313 : ArrayList<Double> = {arrayList, 42}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.IO.SERIALIZABLE>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.DOUBLE>'
   var doubleArrayList2314 : ArrayList<Double> = {arrayList, 42.5f}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.IO.SERIALIZABLE>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.DOUBLE>'
   var doubleArrayList2315 : ArrayList<Double> = {arrayList, 42.5}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.IO.SERIALIZABLE>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.DOUBLE>'
@@ -222,7 +222,7 @@ class Errant_DoubleArrayListInitializer {
 
   var doubleArrayList2411 : ArrayList<Double> = {hashMap, 'c'}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.IO.SERIALIZABLE>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.DOUBLE>'
   var doubleArrayList2410 : ArrayList<Double> = {hashMap, 1b}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.IO.SERIALIZABLE>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.DOUBLE>'
-  var doubleArrayList2412 : ArrayList<Double> = {hashMap, 1s}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.IO.SERIALIZABLE>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.DOUBLE>'
+  var doubleArrayList2412 : ArrayList<Double> = {hashMap, 1 as short}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.IO.SERIALIZABLE>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.DOUBLE>'
   var doubleArrayList2413 : ArrayList<Double> = {hashMap, 42}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.IO.SERIALIZABLE>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.DOUBLE>'
   var doubleArrayList2414 : ArrayList<Double> = {hashMap, 42.5f}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.IO.SERIALIZABLE>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.DOUBLE>'
   var doubleArrayList2415 : ArrayList<Double> = {hashMap, 42.5}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.IO.SERIALIZABLE>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.DOUBLE>'

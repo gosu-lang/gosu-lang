@@ -39,25 +39,25 @@ class NumericConversionTest extends TestClass {
     // edge cases
     var n : short 
     n = 1
-    assertEquals( 1s, n )
+    assertEquals( 1 as short, n )
     n = 32767
-    assertEquals( 32767s, n )
+    assertEquals( 32767 as short, n )
     n = 0x1
-    assertEquals( 1s, n )
+    assertEquals( 1 as short, n )
     n = 0x7FFF
-    assertEquals( 32767s, n )
+    assertEquals( 32767 as short, n )
 
     // all
     n = 0b
-    assertEquals( 0s, n )
+    assertEquals( 0 as short, n )
     n = 0x1
-    assertEquals( 1s, n )
+    assertEquals( 1 as short, n )
     n = 0b1
-    assertEquals( 1s, n )
+    assertEquals( 1 as short, n )
     n = 1b
-    assertEquals( 1s, n )
-    n = 1s
-    assertEquals( 1s, n )
+    assertEquals( 1 as short, n )
+    n = 1 as short
+    assertEquals( 1 as short, n )
 
     // errors
     assertHasCompilationError( "var n : short = 32768" )
@@ -68,7 +68,7 @@ class NumericConversionTest extends TestClass {
     // edge cases
     var n : int = 1b
     assertEquals( 1, n )
-    n = 1s
+    n = 1 as short
     assertEquals( 1, n )
 
     // all
@@ -80,7 +80,7 @@ class NumericConversionTest extends TestClass {
     assertEquals( 1, n )
     n = 1b
     assertEquals( 1, n )
-    n = 1s
+    n = 1 as short
     assertEquals( 1, n )
     n = 1
     assertEquals( 1, n )
@@ -92,7 +92,7 @@ class NumericConversionTest extends TestClass {
     // edge cases
     var n : long = 1b
     assertEquals( 1L, n )
-    n = 1s
+    n = 1 as short
     assertEquals( 1L, n )
     n = 1000000000000000000
     assertEquals( 1000000000000000000L, n )
@@ -106,7 +106,7 @@ class NumericConversionTest extends TestClass {
     assertEquals( 1L, n )
     n = 1b
     assertEquals( 1L, n )
-    n = 1s
+    n = 1 as short
     assertEquals( 1L, n )
     n = 1
     assertEquals( 1L, n )
@@ -120,7 +120,7 @@ class NumericConversionTest extends TestClass {
     // edge cases
     var n : float = 1b
     assertEquals( 1f, n, 0 )
-    n = 1s
+    n = 1 as short
     assertEquals( 1f, n, 0)
     n = 1.001010101
     assertEquals( 1.001010101f, n, 0)
@@ -134,7 +134,7 @@ class NumericConversionTest extends TestClass {
     assertEquals( 1f, n, 0 )
     n = 1b
     assertEquals( 1f, n, 0 )
-    n = 1s
+    n = 1 as short
     assertEquals( 1f, n, 0 )
     n = 1
     assertEquals( 1f, n, 0 )
@@ -151,7 +151,7 @@ class NumericConversionTest extends TestClass {
     // edge cases
     var n : double = 1b
     assertEquals( 1d, n, 0 )
-    n = 1s
+    n = 1 as short
     assertEquals( 1d, n, 0)
     n = 1.001010101
     assertEquals( 1.001010101d, n, 0)
@@ -165,7 +165,7 @@ class NumericConversionTest extends TestClass {
     assertEquals( 1d, n, 0 )
     n = 1b
     assertEquals( 1d, n, 0 )
-    n = 1s
+    n = 1 as short
     assertEquals( 1d, n, 0 )
     n = 1
     assertEquals( 1d, n, 0 )
@@ -184,7 +184,7 @@ class NumericConversionTest extends TestClass {
     // edge cases
     var n : BigInteger = 1b
     assertEquals( 1bi, n)
-    n = 1s
+    n = 1 as short
     assertEquals( 1bi, n )
 
     // all
@@ -196,7 +196,7 @@ class NumericConversionTest extends TestClass {
     assertEquals( 1bi, n )
     n = 1b
     assertEquals( 1bi, n )
-    n = 1s
+    n = 1 as short
     assertEquals( 1bi, n )
     n = 1
     assertEquals( 1bi, n )
@@ -222,7 +222,7 @@ class NumericConversionTest extends TestClass {
     // edge cases
     var n : BigDecimal = 1b
     assertEquals( 1bd, n)
-    n = 1s
+    n = 1 as short
     assertEquals( 1bd, n )
     n = 1.00
     assertEquals( 1.00bd, n )

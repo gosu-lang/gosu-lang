@@ -21,14 +21,9 @@ public class ScientificNotationAndPrefixNumberLiteralTest extends TestClass {
     int num = ((Integer) a).intValue();
     assertEquals(num, 10);
 
-    a = GosuTestUtil.eval("var a = 0b1010s \n return a");
+    a = GosuTestUtil.eval("var a = 0b1010 as short \n return a");
     assertTrue( a instanceof Short);
     short sNum = ((Short) a).shortValue();
-    assertEquals(sNum, 10);
-
-    a = GosuTestUtil.eval("var a = 0b1010S \n return a");
-    assertTrue( a instanceof Short);
-    sNum = ((Short) a).shortValue();
     assertEquals(sNum, 10);
 
     a = GosuTestUtil.eval("var a = 0b1010l \n return a");
@@ -110,7 +105,7 @@ public class ScientificNotationAndPrefixNumberLiteralTest extends TestClass {
     sNum = ((Short) a).shortValue();
     assertEquals(sNum, 10);
 
-    a = GosuTestUtil.eval("var a : short = 0b1010S \n return a");
+    a = GosuTestUtil.eval("var a : short = 0b1010 \n return a");
     assertTrue( a instanceof Short);
     sNum = ((Short) a).shortValue();
     assertEquals(sNum, 10);
@@ -192,7 +187,7 @@ public class ScientificNotationAndPrefixNumberLiteralTest extends TestClass {
     lNum = ((Long) a).longValue();
     assertEquals(lNum, 0xCAFEBABECAFEL);
 
-    a = GosuTestUtil.eval("var a = 0x0CAFs \n return a");
+    a = GosuTestUtil.eval("var a = 0x0CAF as short \n return a");
     assertTrue( a instanceof Short);
     short sNum = ((Short) a).shortValue();
     assertEquals(sNum, 0x0CAF);
@@ -202,7 +197,7 @@ public class ScientificNotationAndPrefixNumberLiteralTest extends TestClass {
     sNum = ((Short) a).shortValue();
     assertEquals(sNum, 0x0CAF);
 
-    a = GosuTestUtil.eval("var a : short = 0x0CAFS \n return a");
+    a = GosuTestUtil.eval("var a : short = 0x0CAF \n return a");
     assertTrue( a instanceof Short);
     sNum = ((Short) a).shortValue();
     assertEquals(sNum, 0x0CAF);

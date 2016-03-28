@@ -11,7 +11,7 @@ class Errant_BitwiseAND {
   //IDE-334, IDE-1196
   var bitwiseAnd011 = 'c' & 'c'
   var bitwiseAnd012 = 'c' & 3b
-  var bitwiseAnd013 = 'c' & 3s
+  var bitwiseAnd013 = 'c' & 3 as short
   var bitwiseAnd014 = 'c' & 3
   var bitwiseAnd015 = 'c' & 3L
   var bitwiseAnd016 = 'c' & 3.5f      //## issuekeys: OPERATOR '&' CANNOT BE APPLIED TO 'CHAR', 'FLOAT'
@@ -27,7 +27,7 @@ class Errant_BitwiseAND {
   var bitwiseAnd110 = 10b & false      //## issuekeys: OPERATOR '&' CANNOT BE APPLIED TO 'BYTE', 'BOOLEAN'
   var bitwiseAnd111 = 10b&'c'
   var bitwiseAnd112 = 10b & 3b
-  var bitwiseAnd113 = 10b & 3s
+  var bitwiseAnd113 = 10b & 3 as short
   var bitwiseAnd114 = 10b & 3
   var bitwiseAnd115 = 10b & 3L
   var bitwiseAnd116 = 10b & 3.5f      //## issuekeys: OPERATOR '&' CANNOT BE APPLIED TO 'BYTE', 'FLOAT'
@@ -40,26 +40,26 @@ class Errant_BitwiseAND {
   var bitwiseAnd123 = 10b & BigInteger.ONE      //## issuekeys: OPERATOR '&' CANNOT BE APPLIED TO 'BYTE', 'JAVA.MATH.BIGINTEGER'
   var bitwiseAnd124 = 10b & BigDecimal.ONE      //## issuekeys: OPERATOR '&' CANNOT BE APPLIED TO 'BYTE', 'JAVA.MATH.BIGDECIMAL'
 
-  var bitwiseAnd210 = 10s&false      //## issuekeys: OPERATOR '&' CANNOT BE APPLIED TO 'SHORT', 'BOOLEAN'
-  var bitwiseAnd211 = 10s & 'c'
-  var bitwiseAnd212 = 10s & 3b
-  var bitwiseAnd213 = 10s & 3s
-  var bitwiseAnd214 = 10s & 3
-  var bitwiseAnd215 = 10s & 3L
-  var bitwiseAnd216 = 10s & 3.5f      //## issuekeys: OPERATOR '&' CANNOT BE APPLIED TO 'SHORT', 'FLOAT'
-  var bitwiseAnd217 = 10s & 3.5      //## issuekeys: OPERATOR '&' CANNOT BE APPLIED TO 'SHORT', 'DOUBLE'
-  var bitwiseAnd219 = 10s & "string"      //## issuekeys: OPERATOR '&' CANNOT BE APPLIED TO 'SHORT', 'JAVA.LANG.STRING'
-  var bitwiseAnd2191 = 10s & new Object()      //## issuekeys: OPERATOR '&' CANNOT BE APPLIED TO 'SHORT', 'JAVA.LANG.OBJECT'
-  var bitwiseAnd220 = 10s & date1      //## issuekeys: OPERATOR '&' CANNOT BE APPLIED TO 'SHORT', 'JAVA.UTIL.DATE'
-  var bitwiseAnd221 = 10s & null      //## issuekeys: OPERATOR '&' CANNOT BE APPLIED TO 'SHORT', 'NULL'
-  var bitwiseAnd222 = 10s & {1, 2, 3}      //## issuekeys: OPERATOR '&' CANNOT BE APPLIED TO 'SHORT', 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.INTEGER>'
-  var bitwiseAnd223 = 10s & BigInteger.ONE      //## issuekeys: OPERATOR '&' CANNOT BE APPLIED TO 'SHORT', 'JAVA.MATH.BIGINTEGER'
-  var bitwiseAnd224 = 10s & BigDecimal.ONE      //## issuekeys: OPERATOR '&' CANNOT BE APPLIED TO 'SHORT', 'JAVA.MATH.BIGDECIMAL'
+  var bitwiseAnd210 = (10 as short)&false      //## issuekeys: OPERATOR '&' CANNOT BE APPLIED TO 'SHORT', 'BOOLEAN'
+  var bitwiseAnd211 = (10 as short) & 'c'
+  var bitwiseAnd212 = (10 as short) & 3b
+  var bitwiseAnd213 = (10 as short) & 3 as short
+  var bitwiseAnd214 = (10 as short) & 3
+  var bitwiseAnd215 = (10 as short) & 3L
+  var bitwiseAnd216 = (10 as short) & 3.5f      //## issuekeys: OPERATOR '&' CANNOT BE APPLIED TO 'SHORT', 'FLOAT'
+  var bitwiseAnd217 = (10 as short) & 3.5      //## issuekeys: OPERATOR '&' CANNOT BE APPLIED TO 'SHORT', 'DOUBLE'
+  var bitwiseAnd219 = (10 as short) & "string"      //## issuekeys: OPERATOR '&' CANNOT BE APPLIED TO 'SHORT', 'JAVA.LANG.STRING'
+  var bitwiseAnd2191 = (10 as short) & new Object()      //## issuekeys: OPERATOR '&' CANNOT BE APPLIED TO 'SHORT', 'JAVA.LANG.OBJECT'
+  var bitwiseAnd220 = (10 as short) & date1      //## issuekeys: OPERATOR '&' CANNOT BE APPLIED TO 'SHORT', 'JAVA.UTIL.DATE'
+  var bitwiseAnd221 = (10 as short) & null      //## issuekeys: OPERATOR '&' CANNOT BE APPLIED TO 'SHORT', 'NULL'
+  var bitwiseAnd222 = (10 as short) & {1, 2, 3}      //## issuekeys: OPERATOR '&' CANNOT BE APPLIED TO 'SHORT', 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.INTEGER>'
+  var bitwiseAnd223 = (10 as short) & BigInteger.ONE      //## issuekeys: OPERATOR '&' CANNOT BE APPLIED TO 'SHORT', 'JAVA.MATH.BIGINTEGER'
+  var bitwiseAnd224 = (10 as short) & BigDecimal.ONE      //## issuekeys: OPERATOR '&' CANNOT BE APPLIED TO 'SHORT', 'JAVA.MATH.BIGDECIMAL'
 
   var bitwiseAnd310 = 10 & false      //## issuekeys: OPERATOR '&' CANNOT BE APPLIED TO 'INT', 'BOOLEAN'
   var bitwiseAnd311 = 10 & 'c'
   var bitwiseAnd312 = 10 & 3b
-  var bitwiseAnd313 = 10 & 3s
+  var bitwiseAnd313 = 10 & 3 as short
   var bitwiseAnd314 = 10 & 3
   var bitwiseAnd315 = 10 & 3L
   var bitwiseAnd316 = 10 & 3.5f      //## issuekeys: OPERATOR '&' CANNOT BE APPLIED TO 'INT', 'FLOAT'
@@ -75,7 +75,7 @@ class Errant_BitwiseAND {
   var bitwiseAnd410 = 10L & false      //## issuekeys: OPERATOR '&' CANNOT BE APPLIED TO 'LONG', 'BOOLEAN'
   var bitwiseAnd411 = 10L & 'c'
   var bitwiseAnd412 = 10L & 3b
-  var bitwiseAnd413 = 10L & 3s
+  var bitwiseAnd413 = 10L & 3 as short
   var bitwiseAnd414 = 10L & 3
   var bitwiseAnd415 = 10L & 3L
   var bitwiseAnd416 = 10L & 3.5f      //## issuekeys: OPERATOR '&' CANNOT BE APPLIED TO 'LONG', 'FLOAT'
@@ -92,7 +92,7 @@ class Errant_BitwiseAND {
   var bitwiseAnd510 = 42.5f & false      //## issuekeys: OPERATOR '&' CANNOT BE APPLIED TO 'FLOAT', 'BOOLEAN'
   var bitwiseAnd511 = 42.5f & 'c'      //## issuekeys: OPERATOR '&' CANNOT BE APPLIED TO 'FLOAT', 'CHAR'
   var bitwiseAnd512 = 42.5f & 3b      //## issuekeys: OPERATOR '&' CANNOT BE APPLIED TO 'FLOAT', 'BYTE'
-  var bitwiseAnd513 = 42.5f & 3s      //## issuekeys: OPERATOR '&' CANNOT BE APPLIED TO 'FLOAT', 'SHORT'
+  var bitwiseAnd513 = 42.5f & 3 as short      //## issuekeys: OPERATOR '&' CANNOT BE APPLIED TO 'FLOAT', 'SHORT'
   var bitwiseAnd514 = 42.5f & 3      //## issuekeys: OPERATOR '&' CANNOT BE APPLIED TO 'FLOAT', 'INT'
   var bitwiseAnd515 = 42.5f & 3L      //## issuekeys: OPERATOR '&' CANNOT BE APPLIED TO 'FLOAT', 'LONG'
   var bitwiseAnd516 = 42.5f & 3.5f      //## issuekeys: OPERATOR '&' CANNOT BE APPLIED TO 'FLOAT', 'FLOAT'
@@ -108,7 +108,7 @@ class Errant_BitwiseAND {
   var bitwiseAnd610 = 42.55 & false      //## issuekeys: OPERATOR '&' CANNOT BE APPLIED TO 'DOUBLE', 'BOOLEAN'
   var bitwiseAnd611 = 42.55 & 'c'      //## issuekeys: OPERATOR '&' CANNOT BE APPLIED TO 'DOUBLE', 'CHAR'
   var bitwiseAnd612 = 42.55 & 3b      //## issuekeys: OPERATOR '&' CANNOT BE APPLIED TO 'DOUBLE', 'BYTE'
-  var bitwiseAnd613 = 42.55 & 3s      //## issuekeys: OPERATOR '&' CANNOT BE APPLIED TO 'DOUBLE', 'SHORT'
+  var bitwiseAnd613 = 42.55 & 3 as short      //## issuekeys: OPERATOR '&' CANNOT BE APPLIED TO 'DOUBLE', 'SHORT'
   var bitwiseAnd614 = 42.55 & 3      //## issuekeys: OPERATOR '&' CANNOT BE APPLIED TO 'DOUBLE', 'INT'
   var bitwiseAnd615 = 42.55 & 3L      //## issuekeys: OPERATOR '&' CANNOT BE APPLIED TO 'DOUBLE', 'LONG'
   var bitwiseAnd616 = 42.55 & 3.5f      //## issuekeys: OPERATOR '&' CANNOT BE APPLIED TO 'DOUBLE', 'FLOAT'
@@ -128,7 +128,7 @@ class Errant_BitwiseAND {
 
   var bitwiseAnd711 = true & 'c'      //## issuekeys: OPERATOR '&' CANNOT BE APPLIED TO 'BOOLEAN', 'CHAR'
   var bitwiseAnd712 = true & 3b      //## issuekeys: OPERATOR '&' CANNOT BE APPLIED TO 'BOOLEAN', 'BYTE'
-  var bitwiseAnd713 = true & 3s      //## issuekeys: OPERATOR '&' CANNOT BE APPLIED TO 'BOOLEAN', 'SHORT'
+  var bitwiseAnd713 = true & 3 as short      //## issuekeys: OPERATOR '&' CANNOT BE APPLIED TO 'BOOLEAN', 'SHORT'
   var bitwiseAnd714 = true & 3      //## issuekeys: OPERATOR '&' CANNOT BE APPLIED TO 'BOOLEAN', 'INT'
   var bitwiseAnd715 = true & 3L      //## issuekeys: OPERATOR '&' CANNOT BE APPLIED TO 'BOOLEAN', 'LONG'
   var bitwiseAnd717 = true & 3.5f      //## issuekeys: OPERATOR '&' CANNOT BE APPLIED TO 'BOOLEAN', 'FLOAT'
@@ -144,7 +144,7 @@ class Errant_BitwiseAND {
   var bitwiseAnd810 = "string" & true      //## issuekeys: OPERATOR '&' CANNOT BE APPLIED TO 'JAVA.LANG.STRING', 'BOOLEAN'
   var bitwiseAnd811 = "string" & 'c'      //## issuekeys: OPERATOR '&' CANNOT BE APPLIED TO 'JAVA.LANG.STRING', 'CHAR'
   var bitwiseAnd812 = "string" & 3b      //## issuekeys: OPERATOR '&' CANNOT BE APPLIED TO 'JAVA.LANG.STRING', 'BYTE'
-  var bitwiseAnd813 = "string" & 3s      //## issuekeys: OPERATOR '&' CANNOT BE APPLIED TO 'JAVA.LANG.STRING', 'SHORT'
+  var bitwiseAnd813 = "string" & 3 as short      //## issuekeys: OPERATOR '&' CANNOT BE APPLIED TO 'JAVA.LANG.STRING', 'SHORT'
   var bitwiseAnd814 = "string" & 3      //## issuekeys: OPERATOR '&' CANNOT BE APPLIED TO 'JAVA.LANG.STRING', 'INT'
   var bitwiseAnd815 = "string" & 3L      //## issuekeys: OPERATOR '&' CANNOT BE APPLIED TO 'JAVA.LANG.STRING', 'LONG'
   var bitwiseAnd817 = "string" & 3.5f      //## issuekeys: OPERATOR '&' CANNOT BE APPLIED TO 'JAVA.LANG.STRING', 'FLOAT'
@@ -160,7 +160,7 @@ class Errant_BitwiseAND {
   var bitwiseAnd910 = BigInteger.ONE & true      //## issuekeys: OPERATOR '&' CANNOT BE APPLIED TO 'JAVA.MATH.BIGINTEGER', 'BOOLEAN'
   var bitwiseAnd911 = BigInteger.ONE & 'c'      //## issuekeys: OPERATOR '&' CANNOT BE APPLIED TO 'JAVA.MATH.BIGINTEGER', 'CHAR'
   var bitwiseAnd912 = BigInteger.ONE & 3b      //## issuekeys: OPERATOR '&' CANNOT BE APPLIED TO 'JAVA.MATH.BIGINTEGER', 'BYTE'
-  var bitwiseAnd913 = BigInteger.ONE & 3s      //## issuekeys: OPERATOR '&' CANNOT BE APPLIED TO 'JAVA.MATH.BIGINTEGER', 'SHORT'
+  var bitwiseAnd913 = BigInteger.ONE & 3 as short      //## issuekeys: OPERATOR '&' CANNOT BE APPLIED TO 'JAVA.MATH.BIGINTEGER', 'SHORT'
   var bitwiseAnd914 = BigInteger.ONE & 3      //## issuekeys: OPERATOR '&' CANNOT BE APPLIED TO 'JAVA.MATH.BIGINTEGER', 'INT'
   var bitwiseAnd915 = BigInteger.ONE & 3L      //## issuekeys: OPERATOR '&' CANNOT BE APPLIED TO 'JAVA.MATH.BIGINTEGER', 'LONG'
   var bitwiseAnd917 = BigInteger.ONE & 3.5f      //## issuekeys: OPERATOR '&' CANNOT BE APPLIED TO 'JAVA.MATH.BIGINTEGER', 'FLOAT'
@@ -177,7 +177,7 @@ class Errant_BitwiseAND {
   var bitwiseAnd1010 = BigDecimal.ONE & true      //## issuekeys: OPERATOR '&' CANNOT BE APPLIED TO 'JAVA.MATH.BIGDECIMAL', 'BOOLEAN'
   var bitwiseAnd1011 = BigDecimal.ONE & 'c'      //## issuekeys: OPERATOR '&' CANNOT BE APPLIED TO 'JAVA.MATH.BIGDECIMAL', 'CHAR'
   var bitwiseAnd1012 = BigDecimal.ONE & 3b      //## issuekeys: OPERATOR '&' CANNOT BE APPLIED TO 'JAVA.MATH.BIGDECIMAL', 'BYTE'
-  var bitwiseAnd1013 = BigDecimal.ONE & 3s      //## issuekeys: OPERATOR '&' CANNOT BE APPLIED TO 'JAVA.MATH.BIGDECIMAL', 'SHORT'
+  var bitwiseAnd1013 = BigDecimal.ONE & 3 as short      //## issuekeys: OPERATOR '&' CANNOT BE APPLIED TO 'JAVA.MATH.BIGDECIMAL', 'SHORT'
   var bitwiseAnd1014 = BigDecimal.ONE & 3      //## issuekeys: OPERATOR '&' CANNOT BE APPLIED TO 'JAVA.MATH.BIGDECIMAL', 'INT'
   var bitwiseAnd1015 = BigDecimal.ONE & 3L      //## issuekeys: OPERATOR '&' CANNOT BE APPLIED TO 'JAVA.MATH.BIGDECIMAL', 'LONG'
   var bitwiseAnd1017 = BigDecimal.ONE & 3.5f      //## issuekeys: OPERATOR '&' CANNOT BE APPLIED TO 'JAVA.MATH.BIGDECIMAL', 'FLOAT'
@@ -194,7 +194,7 @@ class Errant_BitwiseAND {
   var bitwiseAnd1110 = 1b & !2      //## issuekeys: OPERATOR '!' CANNOT BE APPLIED TO 'INT'
   var bitwiseAnd1111 = 42 & ~32
   var bitwiseAnd1112 = 42 & 3b & 42
-  var bitwiseAnd1113 = 42.5f & 3s & 3s      //## issuekeys: OPERATOR '&' CANNOT BE APPLIED TO 'FLOAT', 'SHORT'
+  var bitwiseAnd1113 = 42.5f & 3 as short & 3 as short      //## issuekeys: OPERATOR '&' CANNOT BE APPLIED TO 'FLOAT', 'SHORT'
   var bitwiseAnd1114 = 42.5 && true & 3      //## issuekeys: OPERATOR '&' CANNOT BE APPLIED TO 'BOOLEAN', 'INT'
   var bitwiseAnd1115 = 42 & -3L
   var bitwiseAnd1117 = -42s & 3.5f      //## issuekeys: OPERATOR '&' CANNOT BE APPLIED TO 'SHORT', 'FLOAT'

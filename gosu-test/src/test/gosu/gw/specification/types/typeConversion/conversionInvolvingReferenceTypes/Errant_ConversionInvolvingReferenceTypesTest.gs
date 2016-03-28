@@ -14,7 +14,7 @@ class Errant_ConversionInvolvingReferenceTypesTest {
   var ts0 : boolean =  false
   var ts1 : char = 'a'
   var ts2 : byte = 1b
-  var ts3 : short = 2s
+  var ts3 : short = 2 as short
   var ts4 : int = 3
   var ts5 : long = 4L
   var ts6 : float = 5.0f

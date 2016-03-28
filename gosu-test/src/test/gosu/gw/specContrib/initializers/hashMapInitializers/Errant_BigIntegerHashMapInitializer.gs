@@ -18,7 +18,7 @@ class Errant_BigIntegerHashMapInitializer {
 
   var bigIntegerHashMap1111 : HashMap<BigInteger, BigInteger> = {BigInteger.TEN->'c'}
   var bigIntegerHashMap1110 : HashMap<BigInteger, BigInteger> = {BigInteger.TEN->1b}
-  var bigIntegerHashMap1112 : HashMap<BigInteger, BigInteger> = {BigInteger.TEN->1s}
+  var bigIntegerHashMap1112 : HashMap<BigInteger, BigInteger> = {BigInteger.TEN->1 as short}
   var bigIntegerHashMap1113 : HashMap<BigInteger, BigInteger> = {BigInteger.TEN->42}
   var bigIntegerHashMap1114 : HashMap<BigInteger, BigInteger> = {BigInteger.TEN->42.5f}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'FLOAT', REQUIRED: 'JAVA.MATH.BIGINTEGER'
   var bigIntegerHashMap1115 : HashMap<BigInteger, BigInteger> = {BigInteger.TEN->42.5}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'DOUBLE', REQUIRED: 'JAVA.MATH.BIGINTEGER'
@@ -33,7 +33,7 @@ class Errant_BigIntegerHashMapInitializer {
 
   var bigIntegerHashMap1211 : HashMap<BigInteger, BigInteger> = {'c'-> BigInteger.TEN}
   var bigIntegerHashMap1210 : HashMap<BigInteger, BigInteger> = {1b-> BigInteger.TEN}
-  var bigIntegerHashMap1212 : HashMap<BigInteger, BigInteger> = {1s-> BigInteger.TEN}
+  var bigIntegerHashMap1212 : HashMap<BigInteger, BigInteger> = {1 as short-> BigInteger.TEN}
   var bigIntegerHashMap1213 : HashMap<BigInteger, BigInteger> = {42-> BigInteger.TEN}
   var bigIntegerHashMap1214 : HashMap<BigInteger, BigInteger> = {42.5f-> BigInteger.TEN}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'FLOAT', REQUIRED: 'JAVA.MATH.BIGINTEGER'
   var bigIntegerHashMap1215 : HashMap<BigInteger, BigInteger> = {42.5-> BigInteger.TEN}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'DOUBLE', REQUIRED: 'JAVA.MATH.BIGINTEGER'
@@ -48,7 +48,7 @@ class Errant_BigIntegerHashMapInitializer {
 
   var bigIntegerHashMap1311 : HashMap<BigInteger, BigInteger> = {BigInteger.ONE->BigInteger.TEN, BigInteger.ONE->'c'}
   var bigIntegerHashMap1310 : HashMap<BigInteger, BigInteger> = {BigInteger.ONE->BigInteger.TEN, BigInteger.ONE->1b}
-  var bigIntegerHashMap1312 : HashMap<BigInteger, BigInteger> = {BigInteger.ONE->BigInteger.TEN, BigInteger.ONE->1s}
+  var bigIntegerHashMap1312 : HashMap<BigInteger, BigInteger> = {BigInteger.ONE->BigInteger.TEN, BigInteger.ONE->1 as short}
   var bigIntegerHashMap1313 : HashMap<BigInteger, BigInteger> = {BigInteger.ONE->BigInteger.TEN, BigInteger.ONE->42}
   var bigIntegerHashMap1314 : HashMap<BigInteger, BigInteger> = {BigInteger.ONE->BigInteger.TEN, BigInteger.ONE->42.5f}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'FLOAT', REQUIRED: 'JAVA.MATH.BIGINTEGER'
   var bigIntegerHashMap1315 : HashMap<BigInteger, BigInteger> = {BigInteger.ONE->BigInteger.TEN, BigInteger.ONE->42.5}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'DOUBLE', REQUIRED: 'JAVA.MATH.BIGINTEGER'
@@ -63,7 +63,7 @@ class Errant_BigIntegerHashMapInitializer {
 
   var bigIntegerHashMap1411 : HashMap<BigInteger, BigInteger> = {BigInteger.ONE->BigInteger.TEN, 'c'-> BigInteger.TEN}
   var bigIntegerHashMap1410 : HashMap<BigInteger, BigInteger> = {BigInteger.ONE->BigInteger.TEN, 1b-> BigInteger.TEN}
-  var bigIntegerHashMap1412 : HashMap<BigInteger, BigInteger> = {BigInteger.ONE->BigInteger.TEN, 1s-> BigInteger.TEN}
+  var bigIntegerHashMap1412 : HashMap<BigInteger, BigInteger> = {BigInteger.ONE->BigInteger.TEN, 1 as short-> BigInteger.TEN}
   var bigIntegerHashMap1413 : HashMap<BigInteger, BigInteger> = {BigInteger.ONE->BigInteger.TEN, 42-> BigInteger.TEN}
   var bigIntegerHashMap1414 : HashMap<BigInteger, BigInteger> = {BigInteger.ONE->BigInteger.TEN, 42.5f-> BigInteger.TEN}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'FLOAT', REQUIRED: 'JAVA.MATH.BIGINTEGER'
   var bigIntegerHashMap1415 : HashMap<BigInteger, BigInteger> = {BigInteger.ONE->BigInteger.TEN, 42.5-> BigInteger.TEN}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'DOUBLE', REQUIRED: 'JAVA.MATH.BIGINTEGER'

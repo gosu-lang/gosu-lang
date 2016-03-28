@@ -19,7 +19,7 @@ class Errant_DoubleHashMapInitializer {
 
   var doubleHashMap1111 : HashMap<Double, Double> = {42.5->'c'}
   var doubleHashMap1110 : HashMap<Double, Double> = {42.5->1b}
-  var doubleHashMap1112 : HashMap<Double, Double> = {42.5->1s}
+  var doubleHashMap1112 : HashMap<Double, Double> = {42.5->1 as short}
   var doubleHashMap1113 : HashMap<Double, Double> = {42.5->42}
   var doubleHashMap1114 : HashMap<Double, Double> = {42.5->42.5f}
   var doubleHashMap1115 : HashMap<Double, Double> = {42.5->42.5}
@@ -34,7 +34,7 @@ class Errant_DoubleHashMapInitializer {
 
   var doubleHashMap1211 : HashMap<Double, Double> = {'c'-> 42.5}
   var doubleHashMap1210 : HashMap<Double, Double> = {1b-> 42.5}
-  var doubleHashMap1212 : HashMap<Double, Double> = {1s-> 42.5}
+  var doubleHashMap1212 : HashMap<Double, Double> = {1 as short-> 42.5}
   var doubleHashMap1213 : HashMap<Double, Double> = {42-> 42.5}
   var doubleHashMap1214 : HashMap<Double, Double> = {42.5f-> 42.5}
   var doubleHashMap1215 : HashMap<Double, Double> = {42.5-> 42.5}
@@ -49,7 +49,7 @@ class Errant_DoubleHashMapInitializer {
 
   var doubleHashMap1311 : HashMap<Double, Double> = {42.5->43.5, 42.5->'c'}
   var doubleHashMap1310 : HashMap<Double, Double> = {42.5->43.5, 42.5->1b}
-  var doubleHashMap1312 : HashMap<Double, Double> = {42.5->43.5, 42.5->1s}
+  var doubleHashMap1312 : HashMap<Double, Double> = {42.5->43.5, 42.5->1 as short}
   var doubleHashMap1313 : HashMap<Double, Double> = {42.5->43.5, 42.5->42}
   var doubleHashMap1314 : HashMap<Double, Double> = {42.5->43.5, 42.5->42.5f}
   var doubleHashMap1315 : HashMap<Double, Double> = {42.5->43.5, 42.5->42.5}
@@ -64,7 +64,7 @@ class Errant_DoubleHashMapInitializer {
 
   var doubleHashMap1411 : HashMap<Double, Double> = {42.5->43.5, 'c'->43.5}
   var doubleHashMap1410 : HashMap<Double, Double> = {42.5->43.5, 1b->43.5}
-  var doubleHashMap1412 : HashMap<Double, Double> = {42.5->43.5, 1s->43.5}
+  var doubleHashMap1412 : HashMap<Double, Double> = {42.5->43.5, 1 as short->43.5}
   var doubleHashMap1413 : HashMap<Double, Double> = {42.5->43.5, 42->43.5}
   var doubleHashMap1414 : HashMap<Double, Double> = {42.5->43.5, 42.5f->43.5}
   var doubleHashMap1415 : HashMap<Double, Double> = {42.5->43.5, 42.5->43.5}

@@ -25,13 +25,13 @@ public class TestExpressions  {
         var rr2 = '\''
         var n0 = 10.0
         var e = 100.0
-        var n1 = 1s
+        var n1 = 1 as short
         var n2 = 1b
         var n3 = 1L
         var n4 = 1f
         var n5 = 10.0
         var e2 = 100.0
-        var n6 = 1s
+        var n6 = 1 as short
         var n7 = 1b
         var n8 = 1L
         var n9 = 1.0f

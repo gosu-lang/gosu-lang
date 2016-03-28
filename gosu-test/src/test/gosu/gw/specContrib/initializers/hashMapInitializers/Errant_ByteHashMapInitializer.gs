@@ -20,7 +20,7 @@ class Errant_ByteHashMapInitializer {
   var byteHashMap1111 : HashMap<Byte, Byte> = {1b->'c'}
   var byteHashMap1111_1 : HashMap<Byte, Byte> = {1b->'ü'}  //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'CHAR', REQUIRED: 'JAVA.LANG.BYTE'
   var byteHashMap1110 : HashMap<Byte, Byte> = {1b->1b}
-  var byteHashMap1112 : HashMap<Byte, Byte> = {1b->1s}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'SHORT', REQUIRED: 'JAVA.LANG.BYTE'
+  var byteHashMap1112 : HashMap<Byte, Byte> = {1b->1 as short}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'SHORT', REQUIRED: 'JAVA.LANG.BYTE'
   var byteHashMap1113 : HashMap<Byte, Byte> = {1b->42}
   var byteHashMap1114 : HashMap<Byte, Byte> = {1b->42.5f}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'FLOAT', REQUIRED: 'JAVA.LANG.BYTE'
   var byteHashMap1115 : HashMap<Byte, Byte> = {1b->42.5}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'DOUBLE', REQUIRED: 'JAVA.LANG.BYTE'
@@ -36,7 +36,7 @@ class Errant_ByteHashMapInitializer {
   var byteHashMap1211 : HashMap<Byte, Byte> = {'c'-> 2b}
   var byteHashMap1211_1 : HashMap<Byte, Byte> = {'ü'-> 2b} //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'CHAR', REQUIRED: 'JAVA.LANG.BYTE'
   var byteHashMap1210 : HashMap<Byte, Byte> = {1b-> 2b}
-  var byteHashMap1212 : HashMap<Byte, Byte> = {1s-> 2b}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'SHORT', REQUIRED: 'JAVA.LANG.BYTE'
+  var byteHashMap1212 : HashMap<Byte, Byte> = {1 as short-> 2b}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'SHORT', REQUIRED: 'JAVA.LANG.BYTE'
   var byteHashMap1213 : HashMap<Byte, Byte> = {42-> 2b}
   var byteHashMap1214 : HashMap<Byte, Byte> = {42.5f-> 2b}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'FLOAT', REQUIRED: 'JAVA.LANG.BYTE'
   var byteHashMap1215 : HashMap<Byte, Byte> = {42.5-> 2b}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'DOUBLE', REQUIRED: 'JAVA.LANG.BYTE'
@@ -52,7 +52,7 @@ class Errant_ByteHashMapInitializer {
   var byteHashMap1311 : HashMap<Byte, Byte> = {1b->2b, 1b->'c'}
   var byteHashMap1311_1 : HashMap<Byte, Byte> = {1b->2b, 1b->'ü'}  //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'CHAR', REQUIRED: 'JAVA.LANG.BYTE'
   var byteHashMap1310 : HashMap<Byte, Byte> = {1b->2b, 1b->1b}
-  var byteHashMap1312 : HashMap<Byte, Byte> = {1b->2b, 1b->1s}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'SHORT', REQUIRED: 'JAVA.LANG.BYTE'
+  var byteHashMap1312 : HashMap<Byte, Byte> = {1b->2b, 1b->1 as short}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'SHORT', REQUIRED: 'JAVA.LANG.BYTE'
   var byteHashMap1313 : HashMap<Byte, Byte> = {1b->2b, 1b->42}
   var byteHashMap1314 : HashMap<Byte, Byte> = {1b->2b, 1b->42.5f}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'FLOAT', REQUIRED: 'JAVA.LANG.BYTE'
   var byteHashMap1315 : HashMap<Byte, Byte> = {1b->2b, 1b->42.5}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'DOUBLE', REQUIRED: 'JAVA.LANG.BYTE'
@@ -69,7 +69,7 @@ class Errant_ByteHashMapInitializer {
   var byteHashMap1411 : HashMap<Byte, Byte> = {1b->2b, 'c'-> 2b}
   var byteHashMap1411_1 : HashMap<Byte, Byte> = {1b->2b, 'ü'-> 2b}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'CHAR', REQUIRED: 'JAVA.LANG.BYTE'
   var byteHashMap1410 : HashMap<Byte, Byte> = {1b->2b, 1b-> 2b}
-  var byteHashMap1412 : HashMap<Byte, Byte> = {1b->2b, 1s-> 2b}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'SHORT', REQUIRED: 'JAVA.LANG.BYTE'
+  var byteHashMap1412 : HashMap<Byte, Byte> = {1b->2b, 1 as short-> 2b}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'SHORT', REQUIRED: 'JAVA.LANG.BYTE'
   var byteHashMap1413 : HashMap<Byte, Byte> = {1b->2b, 42-> 2b}
   var byteHashMap1414 : HashMap<Byte, Byte> = {1b->2b, 42.5f-> 2b}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'FLOAT', REQUIRED: 'JAVA.LANG.BYTE'
   var byteHashMap1415 : HashMap<Byte, Byte> = {1b->2b, 42.5-> 2b}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'DOUBLE', REQUIRED: 'JAVA.LANG.BYTE'

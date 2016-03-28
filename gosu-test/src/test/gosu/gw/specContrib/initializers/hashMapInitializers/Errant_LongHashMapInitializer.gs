@@ -19,7 +19,7 @@ class Errant_LongHashMapInitializer {
 
   var longHashMap1111 : HashMap<Long, Long> = {42L->'c'}
   var longHashMap1110 : HashMap<Long, Long> = {42L->1b}
-  var longHashMap1112 : HashMap<Long, Long> = {42L->1s}
+  var longHashMap1112 : HashMap<Long, Long> = {42L->1 as short}
   var longHashMap1113 : HashMap<Long, Long> = {42L->42}
   var longHashMap1114 : HashMap<Long, Long> = {42L->42.5f}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'FLOAT', REQUIRED: 'JAVA.LANG.LONG'
   var longHashMap1115 : HashMap<Long, Long> = {42L->42.5}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'DOUBLE', REQUIRED: 'JAVA.LANG.LONG'
@@ -34,7 +34,7 @@ class Errant_LongHashMapInitializer {
 
   var longHashMap1211 : HashMap<Long, Long> = {'c'-> 42L}
   var longHashMap1210 : HashMap<Long, Long> = {1b-> 42L}
-  var longHashMap1212 : HashMap<Long, Long> = {1s-> 42L}
+  var longHashMap1212 : HashMap<Long, Long> = {1 as short-> 42L}
   var longHashMap1213 : HashMap<Long, Long> = {42-> 42L}
   var longHashMap1214 : HashMap<Long, Long> = {42.5f-> 42L}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'FLOAT', REQUIRED: 'JAVA.LANG.LONG'
   var longHashMap1215 : HashMap<Long, Long> = {42.5-> 42L}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'DOUBLE', REQUIRED: 'JAVA.LANG.LONG'
@@ -49,7 +49,7 @@ class Errant_LongHashMapInitializer {
 
   var longHashMap1311 : HashMap<Long, Long> = {42L->43L, 42L->'c'}
   var longHashMap1310 : HashMap<Long, Long> = {42L->43L, 42L->1b}
-  var longHashMap1312 : HashMap<Long, Long> = {42L->43L, 42L->1s}
+  var longHashMap1312 : HashMap<Long, Long> = {42L->43L, 42L->1 as short}
   var longHashMap1313 : HashMap<Long, Long> = {42L->43L, 42L->42}
   var longHashMap1314 : HashMap<Long, Long> = {42L->43L, 42L->42.5f}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'FLOAT', REQUIRED: 'JAVA.LANG.LONG'
   var longHashMap1315 : HashMap<Long, Long> = {42L->43L, 42L->42.5}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'DOUBLE', REQUIRED: 'JAVA.LANG.LONG'
@@ -64,7 +64,7 @@ class Errant_LongHashMapInitializer {
 
   var longHashMap1411 : HashMap<Long, Long> = {42L->43L, 'c'->43L}
   var longHashMap1410 : HashMap<Long, Long> = {42L->43L, 1b->43L}
-  var longHashMap1412 : HashMap<Long, Long> = {42L->43L, 1s->43L}
+  var longHashMap1412 : HashMap<Long, Long> = {42L->43L, 1 as short->43L}
   var longHashMap1413 : HashMap<Long, Long> = {42L->43L, 42->43L}
   var longHashMap1414 : HashMap<Long, Long> = {42L->43L, 42.5f->43L}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'FLOAT', REQUIRED: 'JAVA.LANG.LONG'
   var longHashMap1415 : HashMap<Long, Long> = {42L->43L, 42.5->43L}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'DOUBLE', REQUIRED: 'JAVA.LANG.LONG'

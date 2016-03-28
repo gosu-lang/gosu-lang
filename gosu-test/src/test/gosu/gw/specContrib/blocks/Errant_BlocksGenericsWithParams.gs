@@ -110,7 +110,7 @@ class Errant_BlocksGenericsWithParams {
       return {1, 2, 3b}
     })
     var x13239: ArrayList<Integer> = hello1(\x: ArrayList<Integer> -> {
-      return {1, 2, 3s}
+      return {1, 2, 3 as short}
     })
 
     var x13240: ArrayList<Integer> = hello1(\x: ArrayList<Integer> -> { return {1, 2, 'c', "string"} })  //## issuekeys: MSG_TYPE_MISMATCH

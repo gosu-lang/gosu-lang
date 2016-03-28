@@ -10,14 +10,10 @@ class NumericLiteralPrefixTest extends BaseVerifyErrantTest {
     assertTrue(typeof x0 == int)
     assertEquals(x0, 10)
 
-    var x1 = 0b1010s
+    var x1 = 0b1010 as short
     assertTrue(typeof x1 == short)
-    assertEquals(x1, 10 as short)
+    assertEquals(x1, (10 as short))
 
-    var x2 = 0b1010S
-    assertTrue(typeof x2 == short)
-    assertEquals(x2, 10 as short)
-    
     var x3 = 0b1010l
     assertTrue(typeof x3 == long)
     assertEquals(x3, 10 as long)
@@ -53,11 +49,11 @@ class NumericLiteralPrefixTest extends BaseVerifyErrantTest {
 
     var x11 : short = 0b1010
     assertTrue(typeof x11 == short)
-    assertEquals(x11, 10 as short)
+    assertEquals(x11, (10 as short))
 
-    var x12 : short = 0b1010S
+    var x12 : short = 0b1010 as short
     assertTrue(typeof x12 == short)
-    assertEquals(x12, 10 as short)
+    assertEquals(x12, (10 as short))
 
     var x13 : long = 0b1010
     assertTrue(typeof x13 == long)
@@ -98,17 +94,13 @@ class NumericLiteralPrefixTest extends BaseVerifyErrantTest {
     assertTrue(typeof x4 == long)
     assertEquals(x4, 223195403569918L)
 
-    var x5 = 0x0CAFs
+    var x5 = 0x0CAF as short
     assertTrue(typeof x5 == short)
     assertEquals(x5, 3247 as short)
 
     var x6 : short = 0x0CAF
     assertTrue(typeof x6 == short)
     assertEquals(x6, 3247 as short)
-
-    var x7 : short = 0x0CAFS
-    assertTrue(typeof x7 == short)
-    assertEquals(x7, 3247 as short)
 
     var x8 = -0xCAFE
     assertTrue(typeof x8 == int)

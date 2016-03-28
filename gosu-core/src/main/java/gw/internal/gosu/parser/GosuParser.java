@@ -2718,12 +2718,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
     int iOffset = _tokenizer.getTokenStart();
     int iLineNum = _tokenizer.getLineNumber();
     int iColumn = getTokenizer().getTokenColumn();
-    _parseUnaryExpression();
-    setLocation( iOffset, iLineNum, iColumn );
-  }
 
-  void _parseUnaryExpression()
-  {
     Token token = getTokenizer().getCurrentToken();
     String value = token.getStringValue();
     if( token.getType() == SourceCodeTokenizer.TT_OPERATOR && value != null &&
@@ -2739,6 +2734,9 @@ public final class GosuParser extends ParserBase implements IGosuParser
       if( negation && atNumberLiteralStart() )
       {
         parseNumberLiteral( token, true );
+        setLocation( iOffset, iLineNum, iColumn );
+
+        parseBindingExpression( token );
       }
       else
       {
@@ -2770,6 +2768,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
     {
       parseUnaryExpressionNotPlusMinus();
     }
+    setLocation( iOffset, iLineNum, iColumn );
   }
 
   //------------------------------------------------------------------------------

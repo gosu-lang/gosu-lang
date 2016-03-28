@@ -31,7 +31,7 @@ class Errant_DateInterval {
   //Lower end point is date. upper limit various types
   var date1111 = (d1..'c')      //## issuekeys: OPERATOR '..' CANNOT BE APPLIED TO 'JAVA.UTIL.DATE', 'CHAR'
   var date1112 = (d1..1b)      //## issuekeys: OPERATOR '..' CANNOT BE APPLIED TO 'JAVA.UTIL.DATE', 'BYTE'
-  var date1113 = (d1..1s)      //## issuekeys: OPERATOR '..' CANNOT BE APPLIED TO 'JAVA.UTIL.DATE', 'SHORT'
+  var date1113 = (d1..1 as short)      //## issuekeys: OPERATOR '..' CANNOT BE APPLIED TO 'JAVA.UTIL.DATE', 'SHORT'
   var date1114 = (d1..10)      //## issuekeys: OPERATOR '..' CANNOT BE APPLIED TO 'JAVA.UTIL.DATE', 'INT'
   var date1115 = (d1..10L)      //## issuekeys: OPERATOR '..' CANNOT BE APPLIED TO 'JAVA.UTIL.DATE', 'LONG'
   var date1116 = (d1..10.5f)      //## issuekeys: OPERATOR '..' CANNOT BE APPLIED TO 'JAVA.UTIL.DATE', 'FLOAT'
@@ -45,7 +45,7 @@ class Errant_DateInterval {
   //Lower end point is datetime with step function
   var date1211 = (d1..'c').step(1)      //## issuekeys: OPERATOR '..' CANNOT BE APPLIED TO 'JAVA.UTIL.DATE', 'CHAR'
   var date1212 = (d1..1b).step(1)      //## issuekeys: OPERATOR '..' CANNOT BE APPLIED TO 'JAVA.UTIL.DATE', 'BYTE'
-  var date1213 = (d1..1s).step(1)   //IDE-1282      //## issuekeys: OPERATOR '..' CANNOT BE APPLIED TO 'JAVA.UTIL.DATE', 'SHORT'
+  var date1213 = (d1..1 as short).step(1)   //IDE-1282      //## issuekeys: OPERATOR '..' CANNOT BE APPLIED TO 'JAVA.UTIL.DATE', 'SHORT'
   var date1214 = (d1..10).step(1)      //## issuekeys: OPERATOR '..' CANNOT BE APPLIED TO 'JAVA.UTIL.DATE', 'INT'
   var date1215 = (d1..10L).step(1)      //## issuekeys: OPERATOR '..' CANNOT BE APPLIED TO 'JAVA.UTIL.DATE', 'LONG'
   var date1216 = (d1..10.5f).step(1)      //## issuekeys: OPERATOR '..' CANNOT BE APPLIED TO 'JAVA.UTIL.DATE', 'FLOAT'
@@ -60,7 +60,7 @@ class Errant_DateInterval {
   //Both end points are 'char' but step function has parameter of different type
   var date1311 = (d1..d2).step('c')
   var date1312 = (d1..d2).step(1b)
-  var date1313 = (d1..d2).step(1s)
+  var date1313 = (d1..d2).step(1 as short)
   var date1314 = (d1..d2).step(42)
   var date1315 = (d1..d2).step(42.5f)      //## issuekeys: OPERATOR '..' CANNOT BE APPLIED TO 'JAVA.UTIL.DATE', 'JAVA.UTIL.DATE'
   var date1316 = (d1..d2).step(42L)      //## issuekeys: OPERATOR '..' CANNOT BE APPLIED TO 'JAVA.UTIL.DATE', 'JAVA.UTIL.DATE'
@@ -81,7 +81,7 @@ class Errant_DateInterval {
     }
     for (i in (d1..1b)) {      //## issuekeys: OPERATOR '..' CANNOT BE APPLIED TO 'JAVA.UTIL.DATE', 'BYTE'
     }
-    for (i in (d1..1s)) {      //## issuekeys: OPERATOR '..' CANNOT BE APPLIED TO 'JAVA.UTIL.DATE', 'SHORT'
+    for (i in (d1..1 as short)) {      //## issuekeys: OPERATOR '..' CANNOT BE APPLIED TO 'JAVA.UTIL.DATE', 'SHORT'
     }
     for (i in (d1..10)) {      //## issuekeys: OPERATOR '..' CANNOT BE APPLIED TO 'JAVA.UTIL.DATE', 'INT'
     }

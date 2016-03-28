@@ -4,6 +4,8 @@
 
 package gw.internal.gosu.ir.transform.expression;
 
+import gw.internal.gosu.ir.nodes.IRMethod;
+import gw.internal.gosu.ir.nodes.IRMethodFactory;
 import gw.internal.gosu.ir.transform.ExpressionTransformer;
 import gw.internal.gosu.ir.transform.TopLevelTransformationContext;
 import gw.internal.gosu.parser.BeanAccess;
@@ -11,15 +13,18 @@ import gw.internal.gosu.parser.expressions.AdditiveExpression;
 import gw.internal.gosu.parser.expressions.NumericLiteral;
 import gw.internal.gosu.parser.expressions.UnaryExpression;
 import gw.internal.gosu.parser.expressions.UnsupportedNumberTypeException;
-import gw.internal.gosu.runtime.GosuRuntimeMethods;
 import gw.lang.IDimension;
 import gw.lang.ir.IRExpression;
+import gw.lang.ir.IRTypeConstants;
+import gw.lang.reflect.IMethodInfo;
+import gw.lang.reflect.IRelativeTypeInfo;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.java.JavaTypes;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.Arrays;
+import java.util.Collections;
 
 /**
  */
@@ -86,7 +91,15 @@ public class UnaryExpressionTransformer extends AbstractExpressionTransformer<Un
   private IRExpression negateComplex( IRExpression root )
   {
     IType type = _expr().getType();
-    if( isNumberType( type ) || JavaTypes.BIG_DECIMAL().equals( type ) || JavaTypes.BIG_INTEGER().equals( type ))
+    if( JavaTypes.IDIMENSION().isAssignableFrom( type ) )
+    {
+      IMethodInfo mi = type.getTypeInfo().getMethod( "negate" );
+      if( mi != null && type.isAssignableFrom( mi.getReturnType() ) )
+      {
+        return buildMethodCall( getDescriptor( type ), "negate", false, getDescriptor( mi.getReturnType() ), Collections.emptyList(), root, Collections.emptyList() );
+      }
+    }
+    else if( isNumberType( type ) || JavaTypes.BIG_DECIMAL().equals( type ) || JavaTypes.BIG_INTEGER().equals( type ))
     {
       AdditiveExpression expr = new AdditiveExpression();
       expr.setLHS(  new NumericLiteral( "0", 0, JavaTypes.pINT() ) );

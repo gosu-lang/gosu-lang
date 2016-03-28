@@ -75,10 +75,10 @@ class Errant_BlocksAsArgumentInteger {
       myFun111(\c: Integer -> num1)      //## issuekeys: MSG_TYPE_MISMATCH, MSG_IMPLICIT_COERCION_ERROR
 
       myFun111(\c: java.lang.Number -> 1b)
-      myFun111(\c: java.lang.Number -> 1s)
+      myFun111(\c: java.lang.Number -> 1 as short)
       myFun111(\c: java.lang.Number -> 42.5f)      //## issuekeys: MSG_IMPLICIT_COERCION_ERROR
       myFun111(\c: java.lang.Number -> 42.5)      //## issuekeys: MSG_IMPLICIT_COERCION_ERROR
-      myFun111(\c: Short -> 1s)      //## issuekeys: MSG_TYPE_MISMATCH
+      myFun111(\c: Short -> 1 as short)      //## issuekeys: MSG_TYPE_MISMATCH
     }
 
     function myFun222(blk(i: Integer): java.lang.Number) {
@@ -91,7 +91,7 @@ class Errant_BlocksAsArgumentInteger {
       myFun222(\c: Integer -> num1)
 
       myFun222(\c: Short -> num1)      //## issuekeys: MSG_TYPE_MISMATCH
-      myFun222(\c: Integer -> 42s)
+      myFun222(\c: Integer -> 42 as short)
       myFun222(\c: Integer -> 42b)
       myFun222(\c: Integer -> 42.5f)
       myFun222(\c: Integer -> 42.5)

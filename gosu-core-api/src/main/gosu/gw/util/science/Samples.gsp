@@ -2,6 +2,7 @@ uses gw.util.science.*
 uses gw.util.time.*
 uses java.math.BigDecimal
 uses java.time.ZoneId
+uses java.net.URL
 
 extends UnitConstantsImpl
 
@@ -135,7 +136,7 @@ var dt = 1966 Apr 19 (12hr+3min) AM
 print( dt )
 dt = 1966 Apr 19 (12hr+3min) PM
 print( dt )
-dt = 1966 Apr 19 (1hr+3min) PM
+dt = 1966 Apr 19 (1hr+3min) PM 
 print( dt )
 
 var jdate = 27 Apr 19 Heisei
@@ -145,5 +146,30 @@ print( jdate2 )
 
 var ww = 3 day + 1 wk
 print( ww )
+ 
+var bucks = 5005 USD                  
+print( bucks )
+print( "---" )
+var ers = 5.32 EUR
+print( ers )
+print( "---" )
+var sum = bucks + ers
+print( sum )
+print( "---" )
+var wsum = bucks.weightedExchange( sum )
+print( wsum )
+print( "---" )
+print( wsum.exchange( USD ) )
+print( "---" )
 
-print( ZoneId.systemDefault() )   
+var n1 = -10 USD
+var n2 = 15 EUR
+var n3 = -10 USD + 15 EUR
+print( n2.weightedExchange( n3 ).exchange( EUR ) )
+print( "---" )
+print( -n3 )
+print( "---" )
+
+var fiveSecs : Time = 5s
+print( fiveSecs )
+print( "---" )

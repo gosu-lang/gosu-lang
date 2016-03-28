@@ -4,8 +4,8 @@ class Errant_NumericLiteralPrefixTest {
 
   function binaryLiteral() {
     var x0 = 0b1010
-    var x1 = 0b1010s
-    var x2 = 0b1010S
+    var x1 = 0b1010 as short
+    var x2 = 0b1010 as short
     var x3 = 0b1010l
     var x4 = 0b1010L
     var x5 = 0b1010b
@@ -15,7 +15,7 @@ class Errant_NumericLiteralPrefixTest {
     var x9 : float = 0b1010
     var x10 : int = 0b1010
     var x11 : short = 0b1010
-    var x12 : short = 0b1010S
+    var x12 : short = 0b1010 as short
     var x13 : long = 0b1010
     var x14 : long = 0b1010L
     var x15 : byte = 0b1010
@@ -28,9 +28,9 @@ class Errant_NumericLiteralPrefixTest {
     var x2 : long = 0xCAFEBABEl
     var x3 : long = 0xCAFEBABECAFEL
     var x4 = 0xCAFEBABECAFEL
-    var x5 = 0x0CAFs
+    var x5 = 0x0CAF as short
     var x6 : short = 0x0CAF
-    var x7 : short = 0x0CAFS
+    var x7 : short = 0x0CAF as short
     var x8 = -0xCAFE
     var x9 = -0xCAFEBABEl
     var x10 : long = +0xCAFEBABEl

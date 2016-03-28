@@ -10,7 +10,7 @@ class Errant_BitwiseXOR {
   var bitwiseXOR010 = 'c' ^ false      //## issuekeys: OPERATOR '^' CANNOT BE APPLIED TO 'CHAR', 'BOOLEAN'
   var bitwiseXOR011 = 'c' ^ 'c'
   var bitwiseXOR012 = 'c' ^ 3b
-  var bitwiseXOR013 = 'c' ^ 3s
+  var bitwiseXOR013 = 'c' ^ 3 as short
   var bitwiseXOR014 = 'c' ^ 3
   var bitwiseXOR015 = 'c' ^ 3L
   var bitwiseXOR016 = 'c' ^ 3.5f      //## issuekeys: OPERATOR '^' CANNOT BE APPLIED TO 'CHAR', 'FLOAT'
@@ -27,7 +27,7 @@ class Errant_BitwiseXOR {
   var bitwiseXOR110 = 10b ^ false      //## issuekeys: OPERATOR '^' CANNOT BE APPLIED TO 'BYTE', 'BOOLEAN'
   var bitwiseXOR111 = 10b ^ 'c'
   var bitwiseXOR112 = 10b ^ 3b
-  var bitwiseXOR113 = 10b ^ 3s
+  var bitwiseXOR113 = 10b ^ 3 as short
   var bitwiseXOR114 = 10b ^ 3
   var bitwiseXOR115 = 10b ^ 3L
   var bitwiseXOR116 = 10b ^ 3.5f      //## issuekeys: OPERATOR '^' CANNOT BE APPLIED TO 'BYTE', 'FLOAT'
@@ -40,26 +40,26 @@ class Errant_BitwiseXOR {
   var bitwiseXOR123 = 10b ^ BigInteger.ONE      //## issuekeys: OPERATOR '^' CANNOT BE APPLIED TO 'BYTE', 'JAVA.MATH.BIGINTEGER'
   var bitwiseXOR124 = 10b ^ BigDecimal.ONE      //## issuekeys: OPERATOR '^' CANNOT BE APPLIED TO 'BYTE', 'JAVA.MATH.BIGDECIMAL'
 
-  var bitwiseXOR210 = 10s ^ false      //## issuekeys: OPERATOR '^' CANNOT BE APPLIED TO 'SHORT', 'BOOLEAN'
-  var bitwiseXOR211 = 10s ^ 'c'
-  var bitwiseXOR212 = 10s ^ 3b
-  var bitwiseXOR213 = 10s ^ 3s
-  var bitwiseXOR214 = 10s ^ 3
-  var bitwiseXOR215 = 10s ^ 3L
-  var bitwiseXOR216 = 10s ^ 3.5f      //## issuekeys: OPERATOR '^' CANNOT BE APPLIED TO 'SHORT', 'FLOAT'
-  var bitwiseXOR217 = 10s ^ 3.5      //## issuekeys: OPERATOR '^' CANNOT BE APPLIED TO 'SHORT', 'DOUBLE'
-  var bitwiseXOR219 = 10s ^ "string"      //## issuekeys: OPERATOR '^' CANNOT BE APPLIED TO 'SHORT', 'JAVA.LANG.STRING'
-  var bitwiseXOR2191 = 10s ^ new Object()      //## issuekeys: OPERATOR '^' CANNOT BE APPLIED TO 'SHORT', 'JAVA.LANG.OBJECT'
-  var bitwiseXOR220 = 10s ^ date1      //## issuekeys: OPERATOR '^' CANNOT BE APPLIED TO 'SHORT', 'JAVA.UTIL.DATE'
-  var bitwiseXOR221 = 10s ^ null      //## issuekeys: OPERATOR '^' CANNOT BE APPLIED TO 'SHORT', 'NULL'
-  var bitwiseXOR222 = 10s ^ BigInteger.ONE      //## issuekeys: OPERATOR '^' CANNOT BE APPLIED TO 'SHORT', 'JAVA.MATH.BIGINTEGER'
-  var bitwiseXOR223 = 10s ^ {1, 2, 3}      //## issuekeys: OPERATOR '^' CANNOT BE APPLIED TO 'SHORT', 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.INTEGER>'
-  var bitwiseXOR224 = 10s ^ BigDecimal.ONE      //## issuekeys: OPERATOR '^' CANNOT BE APPLIED TO 'SHORT', 'JAVA.MATH.BIGDECIMAL'
+  var bitwiseXOR210 = (10 as short) ^ false      //## issuekeys: OPERATOR '^' CANNOT BE APPLIED TO 'SHORT', 'BOOLEAN'
+  var bitwiseXOR211 = (10 as short) ^ 'c'
+  var bitwiseXOR212 = (10 as short) ^ 3b
+  var bitwiseXOR213 = (10 as short) ^ 3 as short
+  var bitwiseXOR214 = (10 as short) ^ 3
+  var bitwiseXOR215 = (10 as short) ^ 3L
+  var bitwiseXOR216 = (10 as short) ^ 3.5f      //## issuekeys: OPERATOR '^' CANNOT BE APPLIED TO 'SHORT', 'FLOAT'
+  var bitwiseXOR217 = (10 as short) ^ 3.5      //## issuekeys: OPERATOR '^' CANNOT BE APPLIED TO 'SHORT', 'DOUBLE'
+  var bitwiseXOR219 = (10 as short) ^ "string"      //## issuekeys: OPERATOR '^' CANNOT BE APPLIED TO 'SHORT', 'JAVA.LANG.STRING'
+  var bitwiseXOR2191 = (10 as short) ^ new Object()      //## issuekeys: OPERATOR '^' CANNOT BE APPLIED TO 'SHORT', 'JAVA.LANG.OBJECT'
+  var bitwiseXOR220 = (10 as short) ^ date1      //## issuekeys: OPERATOR '^' CANNOT BE APPLIED TO 'SHORT', 'JAVA.UTIL.DATE'
+  var bitwiseXOR221 = (10 as short) ^ null      //## issuekeys: OPERATOR '^' CANNOT BE APPLIED TO 'SHORT', 'NULL'
+  var bitwiseXOR222 = (10 as short) ^ BigInteger.ONE      //## issuekeys: OPERATOR '^' CANNOT BE APPLIED TO 'SHORT', 'JAVA.MATH.BIGINTEGER'
+  var bitwiseXOR223 = (10 as short) ^ {1, 2, 3}      //## issuekeys: OPERATOR '^' CANNOT BE APPLIED TO 'SHORT', 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.INTEGER>'
+  var bitwiseXOR224 = (10 as short) ^ BigDecimal.ONE      //## issuekeys: OPERATOR '^' CANNOT BE APPLIED TO 'SHORT', 'JAVA.MATH.BIGDECIMAL'
 
   var bitwiseXOR310 = 10 ^ false      //## issuekeys: OPERATOR '^' CANNOT BE APPLIED TO 'INT', 'BOOLEAN'
   var bitwiseXOR311 = 10 ^ 'c'
   var bitwiseXOR312 = 10 ^ 3b
-  var bitwiseXOR313 = 10 ^ 3s
+  var bitwiseXOR313 = 10 ^ 3 as short
   var bitwiseXOR314 = 10 ^ 3
   var bitwiseXOR315 = 10 ^ 3L
   var bitwiseXOR316 = 10 ^ 3.5f      //## issuekeys: OPERATOR '^' CANNOT BE APPLIED TO 'INT', 'FLOAT'
@@ -75,7 +75,7 @@ class Errant_BitwiseXOR {
   var bitwiseXOR410 = 10L ^ false      //## issuekeys: OPERATOR '^' CANNOT BE APPLIED TO 'LONG', 'BOOLEAN'
   var bitwiseXOR411 = 10L ^ 'c'
   var bitwiseXOR412 = 10L ^ 3b
-  var bitwiseXOR413 = 10L ^ 3s
+  var bitwiseXOR413 = 10L ^ 3 as short
   var bitwiseXOR414 = 10L ^ 3
   var bitwiseXOR415 = 10L ^ 3L
   var bitwiseXOR416 = 10L ^ 3.5f      //## issuekeys: OPERATOR '^' CANNOT BE APPLIED TO 'LONG', 'FLOAT'
@@ -92,7 +92,7 @@ class Errant_BitwiseXOR {
   var bitwiseXOR510 = 42.5f ^ false      //## issuekeys: OPERATOR '^' CANNOT BE APPLIED TO 'FLOAT', 'BOOLEAN'
   var bitwiseXOR511 = 42.5f ^ 'c'      //## issuekeys: OPERATOR '^' CANNOT BE APPLIED TO 'FLOAT', 'CHAR'
   var bitwiseXOR512 = 42.5f ^ 3b      //## issuekeys: OPERATOR '^' CANNOT BE APPLIED TO 'FLOAT', 'BYTE'
-  var bitwiseXOR513 = 42.5f ^ 3s      //## issuekeys: OPERATOR '^' CANNOT BE APPLIED TO 'FLOAT', 'SHORT'
+  var bitwiseXOR513 = 42.5f ^ 3 as short      //## issuekeys: OPERATOR '^' CANNOT BE APPLIED TO 'FLOAT', 'SHORT'
   var bitwiseXOR514 = 42.5f ^ 3      //## issuekeys: OPERATOR '^' CANNOT BE APPLIED TO 'FLOAT', 'INT'
   var bitwiseXOR515 = 42.5f ^ 3L      //## issuekeys: OPERATOR '^' CANNOT BE APPLIED TO 'FLOAT', 'LONG'
   var bitwiseXOR516 = 42.5f ^ 3.5f      //## issuekeys: OPERATOR '^' CANNOT BE APPLIED TO 'FLOAT', 'FLOAT'
@@ -108,7 +108,7 @@ class Errant_BitwiseXOR {
   var bitwiseXOR610 = 42.55 ^ false      //## issuekeys: OPERATOR '^' CANNOT BE APPLIED TO 'DOUBLE', 'BOOLEAN'
   var bitwiseXOR611 = 42.55 ^ 'c'      //## issuekeys: OPERATOR '^' CANNOT BE APPLIED TO 'DOUBLE', 'CHAR'
   var bitwiseXOR612 = 42.55 ^ 3b      //## issuekeys: OPERATOR '^' CANNOT BE APPLIED TO 'DOUBLE', 'BYTE'
-  var bitwiseXOR613 = 42.55 ^ 3s      //## issuekeys: OPERATOR '^' CANNOT BE APPLIED TO 'DOUBLE', 'SHORT'
+  var bitwiseXOR613 = 42.55 ^ 3 as short      //## issuekeys: OPERATOR '^' CANNOT BE APPLIED TO 'DOUBLE', 'SHORT'
   var bitwiseXOR614 = 42.55 ^ 3      //## issuekeys: OPERATOR '^' CANNOT BE APPLIED TO 'DOUBLE', 'INT'
   var bitwiseXOR615 = 42.55 ^ 3L      //## issuekeys: OPERATOR '^' CANNOT BE APPLIED TO 'DOUBLE', 'LONG'
   var bitwiseXOR616 = 42.55 ^ 3.5f      //## issuekeys: OPERATOR '^' CANNOT BE APPLIED TO 'DOUBLE', 'FLOAT'
@@ -125,7 +125,7 @@ class Errant_BitwiseXOR {
   var bitwiseXOR710 = true ^ true
   var bitwiseXOR711 = true ^ 'c'      //## issuekeys: OPERATOR '^' CANNOT BE APPLIED TO 'BOOLEAN', 'CHAR'
   var bitwiseXOR712 = true ^ 3b      //## issuekeys: OPERATOR '^' CANNOT BE APPLIED TO 'BOOLEAN', 'BYTE'
-  var bitwiseXOR713 = true ^ 3s      //## issuekeys: OPERATOR '^' CANNOT BE APPLIED TO 'BOOLEAN', 'SHORT'
+  var bitwiseXOR713 = true ^ 3 as short      //## issuekeys: OPERATOR '^' CANNOT BE APPLIED TO 'BOOLEAN', 'SHORT'
   var bitwiseXOR714 = true ^ 3      //## issuekeys: OPERATOR '^' CANNOT BE APPLIED TO 'BOOLEAN', 'INT'
   var bitwiseXOR715 = true ^ 3L      //## issuekeys: OPERATOR '^' CANNOT BE APPLIED TO 'BOOLEAN', 'LONG'
   var bitwiseXOR717 = true ^ 3.5f      //## issuekeys: OPERATOR '^' CANNOT BE APPLIED TO 'BOOLEAN', 'FLOAT'
@@ -141,7 +141,7 @@ class Errant_BitwiseXOR {
   var bitwiseXOR810 = "string" ^ true      //## issuekeys: OPERATOR '^' CANNOT BE APPLIED TO 'JAVA.LANG.STRING', 'BOOLEAN'
   var bitwiseXOR811 = "string" ^ 'c'      //## issuekeys: OPERATOR '^' CANNOT BE APPLIED TO 'JAVA.LANG.STRING', 'CHAR'
   var bitwiseXOR812 = "string" ^ 3b      //## issuekeys: OPERATOR '^' CANNOT BE APPLIED TO 'JAVA.LANG.STRING', 'BYTE'
-  var bitwiseXOR813 = "string" ^ 3s      //## issuekeys: OPERATOR '^' CANNOT BE APPLIED TO 'JAVA.LANG.STRING', 'SHORT'
+  var bitwiseXOR813 = "string" ^ 3 as short      //## issuekeys: OPERATOR '^' CANNOT BE APPLIED TO 'JAVA.LANG.STRING', 'SHORT'
   var bitwiseXOR814 = "string" ^ 3      //## issuekeys: OPERATOR '^' CANNOT BE APPLIED TO 'JAVA.LANG.STRING', 'INT'
   var bitwiseXOR815 = "string" ^ 3L      //## issuekeys: OPERATOR '^' CANNOT BE APPLIED TO 'JAVA.LANG.STRING', 'LONG'
   var bitwiseXOR817 = "string" ^ 3.5f      //## issuekeys: OPERATOR '^' CANNOT BE APPLIED TO 'JAVA.LANG.STRING', 'FLOAT'
@@ -158,7 +158,7 @@ class Errant_BitwiseXOR {
   var bitwiseXOR910 = BigInteger.ONE ^ true      //## issuekeys: OPERATOR '^' CANNOT BE APPLIED TO 'JAVA.MATH.BIGINTEGER', 'BOOLEAN'
   var bitwiseXOR911 = BigInteger.ONE ^ 'c'      //## issuekeys: OPERATOR '^' CANNOT BE APPLIED TO 'JAVA.MATH.BIGINTEGER', 'CHAR'
   var bitwiseXOR912 = BigInteger.ONE ^ 3b      //## issuekeys: OPERATOR '^' CANNOT BE APPLIED TO 'JAVA.MATH.BIGINTEGER', 'BYTE'
-  var bitwiseXOR913 = BigInteger.ONE ^ 3s      //## issuekeys: OPERATOR '^' CANNOT BE APPLIED TO 'JAVA.MATH.BIGINTEGER', 'SHORT'
+  var bitwiseXOR913 = BigInteger.ONE ^ 3 as short      //## issuekeys: OPERATOR '^' CANNOT BE APPLIED TO 'JAVA.MATH.BIGINTEGER', 'SHORT'
   var bitwiseXOR914 = BigInteger.ONE ^ 3      //## issuekeys: OPERATOR '^' CANNOT BE APPLIED TO 'JAVA.MATH.BIGINTEGER', 'INT'
   var bitwiseXOR915 = BigInteger.ONE ^ 3L      //## issuekeys: OPERATOR '^' CANNOT BE APPLIED TO 'JAVA.MATH.BIGINTEGER', 'LONG'
   var bitwiseXOR917 = BigInteger.ONE ^ 3.5f      //## issuekeys: OPERATOR '^' CANNOT BE APPLIED TO 'JAVA.MATH.BIGINTEGER', 'FLOAT'
@@ -175,7 +175,7 @@ class Errant_BitwiseXOR {
   var bitwiseXOR1010 = BigDecimal.ONE ^ true      //## issuekeys: OPERATOR '^' CANNOT BE APPLIED TO 'JAVA.MATH.BIGDECIMAL', 'BOOLEAN'
   var bitwiseXOR1011 = BigDecimal.ONE ^ 'c'      //## issuekeys: OPERATOR '^' CANNOT BE APPLIED TO 'JAVA.MATH.BIGDECIMAL', 'CHAR'
   var bitwiseXOR1012 = BigDecimal.ONE ^ 3b      //## issuekeys: OPERATOR '^' CANNOT BE APPLIED TO 'JAVA.MATH.BIGDECIMAL', 'BYTE'
-  var bitwiseXOR1013 = BigDecimal.ONE ^ 3s      //## issuekeys: OPERATOR '^' CANNOT BE APPLIED TO 'JAVA.MATH.BIGDECIMAL', 'SHORT'
+  var bitwiseXOR1013 = BigDecimal.ONE ^ 3 as short      //## issuekeys: OPERATOR '^' CANNOT BE APPLIED TO 'JAVA.MATH.BIGDECIMAL', 'SHORT'
   var bitwiseXOR1014 = BigDecimal.ONE ^ 3      //## issuekeys: OPERATOR '^' CANNOT BE APPLIED TO 'JAVA.MATH.BIGDECIMAL', 'INT'
   var bitwiseXOR1015 = BigDecimal.ONE ^ 3L      //## issuekeys: OPERATOR '^' CANNOT BE APPLIED TO 'JAVA.MATH.BIGDECIMAL', 'LONG'
   var bitwiseXOR1017 = BigDecimal.ONE ^ 3.5f      //## issuekeys: OPERATOR '^' CANNOT BE APPLIED TO 'JAVA.MATH.BIGDECIMAL', 'FLOAT'
@@ -192,7 +192,7 @@ class Errant_BitwiseXOR {
   var bitwiseXOR1210 = 1b ^ !2      //## issuekeys: OPERATOR '!' CANNOT BE APPLIED TO 'INT'
   var bitwiseXOR1211 = 42 ^ ~32
   var bitwiseXOR1212 = 42 ^ 3b ^ 42
-  var bitwiseXOR1213 = 42.5f ^ 3s ^ 3s      //## issuekeys: OPERATOR '^' CANNOT BE APPLIED TO 'FLOAT', 'SHORT'
+  var bitwiseXOR1213 = 42.5f ^ 3 as short ^ 3 as short      //## issuekeys: OPERATOR '^' CANNOT BE APPLIED TO 'FLOAT', 'SHORT'
   var bitwiseXOR1214 = 42.5 ^^ true ^ 3      //## issuekeys: UNEXPECTED TOKEN: ^
   var bitwiseXOR1215 = 42 ^ -3L
   var bitwiseXOR1217 = -42s ^ 3.5f      //## issuekeys: OPERATOR '^' CANNOT BE APPLIED TO 'SHORT', 'FLOAT'

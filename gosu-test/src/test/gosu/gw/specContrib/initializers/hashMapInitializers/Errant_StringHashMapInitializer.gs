@@ -18,7 +18,7 @@ class Errant_StringHashMapInitializer {
 
   var stringHashMap1111 : HashMap<String, String> = {"mystring"->'c'}
   var stringHashMap1110 : HashMap<String, String> = {"mystring"->1b}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'BYTE', REQUIRED: 'JAVA.LANG.STRING'
-  var stringHashMap1112 : HashMap<String, String> = {"mystring"->1s}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'SHORT', REQUIRED: 'JAVA.LANG.STRING'
+  var stringHashMap1112 : HashMap<String, String> = {"mystring"->1 as short}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'SHORT', REQUIRED: 'JAVA.LANG.STRING'
   var stringHashMap1113 : HashMap<String, String> = {"mystring"->42}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'INT', REQUIRED: 'JAVA.LANG.STRING'
   var stringHashMap1114 : HashMap<String, String> = {"mystring"->42.5f}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'FLOAT', REQUIRED: 'JAVA.LANG.STRING'
   var stringHashMap1115 : HashMap<String, String> = {"mystring"->42.5}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'DOUBLE', REQUIRED: 'JAVA.LANG.STRING'
@@ -34,7 +34,7 @@ class Errant_StringHashMapInitializer {
 
   var stringHashMap1211 : HashMap<String, String> = {'c'-> "mystring"}
   var stringHashMap1210 : HashMap<String, String> = {1b-> "mystring"}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'BYTE', REQUIRED: 'JAVA.LANG.STRING'
-  var stringHashMap1212 : HashMap<String, String> = {1s-> "mystring"}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'SHORT', REQUIRED: 'JAVA.LANG.STRING'
+  var stringHashMap1212 : HashMap<String, String> = {1 as short-> "mystring"}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'SHORT', REQUIRED: 'JAVA.LANG.STRING'
   var stringHashMap1213 : HashMap<String, String> = {42-> "mystring"}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'INT', REQUIRED: 'JAVA.LANG.STRING'
   var stringHashMap1214 : HashMap<String, String> = {42.5f-> "mystring"}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'FLOAT', REQUIRED: 'JAVA.LANG.STRING'
   var stringHashMap1215 : HashMap<String, String> = {42.5-> "mystring"}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'DOUBLE', REQUIRED: 'JAVA.LANG.STRING'
@@ -50,7 +50,7 @@ class Errant_StringHashMapInitializer {
 
   var stringHashMap1311 : HashMap<String, String> = {"mystring1"->"mystring2", "mystring1"->'c'}
   var stringHashMap1310 : HashMap<String, String> = {"mystring1"->"mystring2", "mystring1"->1b}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'BYTE', REQUIRED: 'JAVA.LANG.STRING'
-  var stringHashMap1312 : HashMap<String, String> = {"mystring1"->"mystring2", "mystring1"->1s}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'SHORT', REQUIRED: 'JAVA.LANG.STRING'
+  var stringHashMap1312 : HashMap<String, String> = {"mystring1"->"mystring2", "mystring1"->1 as short}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'SHORT', REQUIRED: 'JAVA.LANG.STRING'
   var stringHashMap1313 : HashMap<String, String> = {"mystring1"->"mystring2", "mystring1"->42}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'INT', REQUIRED: 'JAVA.LANG.STRING'
   var stringHashMap1314 : HashMap<String, String> = {"mystring1"->"mystring2", "mystring1"->42.5f}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'FLOAT', REQUIRED: 'JAVA.LANG.STRING'
   var stringHashMap1315 : HashMap<String, String> = {"mystring1"->"mystring2", "mystring1"->42.5}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'DOUBLE', REQUIRED: 'JAVA.LANG.STRING'
@@ -66,7 +66,7 @@ class Errant_StringHashMapInitializer {
 
   var stringHashMap1411 : HashMap<String, String> = {"mystring1"->"mystring2", 'c'->"mystring2"}
   var stringHashMap1410 : HashMap<String, String> = {"mystring1"->"mystring2", 1b->"mystring2"}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'BYTE', REQUIRED: 'JAVA.LANG.STRING'
-  var stringHashMap1412 : HashMap<String, String> = {"mystring1"->"mystring2", 1s->"mystring2"}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'SHORT', REQUIRED: 'JAVA.LANG.STRING'
+  var stringHashMap1412 : HashMap<String, String> = {"mystring1"->"mystring2", 1 as short->"mystring2"}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'SHORT', REQUIRED: 'JAVA.LANG.STRING'
   var stringHashMap1413 : HashMap<String, String> = {"mystring1"->"mystring2", 42->"mystring2"}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'INT', REQUIRED: 'JAVA.LANG.STRING'
   var stringHashMap1414 : HashMap<String, String> = {"mystring1"->"mystring2", 42.5f->"mystring2"}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'FLOAT', REQUIRED: 'JAVA.LANG.STRING'
   var stringHashMap1415 : HashMap<String, String> = {"mystring1"->"mystring2", 42.5->"mystring2"}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'DOUBLE', REQUIRED: 'JAVA.LANG.STRING'

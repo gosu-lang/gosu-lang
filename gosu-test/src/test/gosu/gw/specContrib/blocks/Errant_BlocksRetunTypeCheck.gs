@@ -11,7 +11,7 @@ class Errant_BlocksRetunTypeCheck {
 
     var block5112: block(): int = \-> 'c'
     var block5113: block(): int = \-> 1b
-    var block5114: block(): int = \-> 1s
+    var block5114: block(): int = \-> 1 as short
     var block5115: block(): int = \-> 42
     var block5116: block(): int = \-> 42L      //## issuekeys: MSG_IMPLICIT_COERCION_ERROR
     var block5117: block(): int = \-> 42.5f      //## issuekeys: MSG_IMPLICIT_COERCION_ERROR

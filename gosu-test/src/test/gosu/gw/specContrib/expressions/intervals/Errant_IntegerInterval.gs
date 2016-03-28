@@ -36,7 +36,7 @@ class Errant_IntegerInterval {
   //Lower end point is int. upper limit various types
   var int1111 = (42..'c')
   var int1112 = (42..1b)
-  var int1113 = (42..1s)
+  var int1113 = (42..1 as short)
   var int1114 = (42..10)
   var int1115 = (42..10L)
   var int1116 = (42..10.5f)
@@ -51,7 +51,7 @@ class Errant_IntegerInterval {
   var int1211 = (42..'c').step(42)
   var int1212 = (42..1b).step(42)
   //IDE-1282
-  var int1213 = (42..1s).step(42)
+  var int1213 = (42..1 as short).step(42)
   var int1214 = (42..10).step(42)
   var int1215 = (42..10L).step(42)
   var int1216 = (42..10.5f).step(42)
@@ -66,7 +66,7 @@ class Errant_IntegerInterval {
   //Both end points are 'int' but step function has parameter of different type
   var int1311 = (42..43).step('c')
   var int1312 = (42..43).step(1b)
-  var int1313 = (42..43).step(1s)
+  var int1313 = (42..43).step(1 as short)
   var int1314 = (42..43).step(42)
   var int1315 = (42..43).step(42.5f)      //## issuekeys: 'STEP(JAVA.LANG.INTEGER)' IN 'GW.LANG.REFLECT.INTERVAL.ITERABLEINTERVAL' CANNOT BE APPLIED TO '(FLOAT)'
   var int1316 = (42..43).step(42L)      //## issuekeys: 'STEP(JAVA.LANG.INTEGER)' IN 'GW.LANG.REFLECT.INTERVAL.ITERABLEINTERVAL' CANNOT BE APPLIED TO '(LONG)'
@@ -81,7 +81,7 @@ class Errant_IntegerInterval {
   function testForLoop() {
     for (i in (42..'c')) {}
     for (i in (42..1b)) {}
-    for (i in (42..1s)) {}
+    for (i in (42..1 as short)) {}
     for (i in (42..10)) {}
     for (i in (42..10L)) {}
     for (i in (42..10.5f)) {}

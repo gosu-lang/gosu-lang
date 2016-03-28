@@ -31,7 +31,7 @@ class Errant_BigIntegerInterval {
   //Lower end point is BigInteger. upper limit various types
   var bigInteger1111 = (BigInteger.TEN..'c')
   var bigInteger1112 = (BigInteger.TEN..1b)
-  var bigInteger1113 = (BigInteger.TEN..1s)
+  var bigInteger1113 = (BigInteger.TEN..1 as short)
   var bigInteger1114 = (BigInteger.TEN..10)
   var bigInteger1115 = (BigInteger.TEN..10L)
   //IDE-1296
@@ -47,7 +47,7 @@ class Errant_BigIntegerInterval {
   var bigInteger1211 = (BigInteger.ONE..'c').step(42)
   var bigInteger1212 = (BigInteger.ONE..1b).step(42)
   //IDE-1282
-  var bigInteger1213 = (BigInteger.ONE..1s).step(42)
+  var bigInteger1213 = (BigInteger.ONE..1 as short).step(42)
   var bigInteger1214 = (BigInteger.ONE..10).step(42)
   var bigInteger1215 = (BigInteger.ONE..10L).step(42)
   var bigInteger1216 = (BigInteger.ONE..10.5f).step(42)    //## issuekeys: OPERATOR '..' CANNOT BE APPLIED TO 'JAVA.MATH.BIGINTEGER', 'JAVA.LANG.FLOAT'
@@ -62,7 +62,7 @@ class Errant_BigIntegerInterval {
   //Both end points are 'BigInteger' but step function has parameter of different type
   var bigInteger1311 = (BigInteger.ONE..BigInteger.TEN).step('c')
   var bigInteger1312 = (BigInteger.ONE..BigInteger.TEN).step(1b)
-  var bigInteger1313 = (BigInteger.ONE..BigInteger.TEN).step(1s)
+  var bigInteger1313 = (BigInteger.ONE..BigInteger.TEN).step(1 as short)
   var bigInteger1314 = (BigInteger.ONE..BigInteger.TEN).step(42)
   var bigInteger1315 = (BigInteger.ONE..BigInteger.TEN).step(42.5f)      //## issuekeys: 'STEP(JAVA.MATH.BIGINTEGER)' IN 'GW.LANG.REFLECT.INTERVAL.ITERABLEINTERVAL' CANNOT BE APPLIED TO '(FLOAT)'
   var bigInteger1316 = (BigInteger.ONE..BigInteger.TEN).step(42L)
@@ -79,7 +79,7 @@ class Errant_BigIntegerInterval {
     }
     for (i in (BigInteger.ONE..1b)) {
     }
-    for (i in (BigInteger.ONE..1s)) {
+    for (i in (BigInteger.ONE..1 as short)) {
     }
     for (i in (BigInteger.ONE..10)) {
     }

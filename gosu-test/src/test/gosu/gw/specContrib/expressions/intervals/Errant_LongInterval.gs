@@ -31,7 +31,7 @@ class Errant_LongInterval {
   //Lower end point is long. upper limit various types
   var long1111 = (42L..'c')
   var long1112 = (42L..1b)
-  var long1113 = (42L..1s)
+  var long1113 = (42L..1 as short)
   var long1114 = (42L..10)
   var long1115 = (42L..10L)
   var long1116 = (42L..10.5f)
@@ -45,7 +45,7 @@ class Errant_LongInterval {
   //Lower end point is long with step function
   var long1211 = (42L..'c').step(42)
   var long1212 = (42L..1b).step(42)
-  var long1213 = (42L..1s).step(42)   //IDE-1282
+  var long1213 = (42L..1 as short).step(42)   //IDE-1282
   var long1214 = (42L..10).step(42)
   var long1215 = (42L..10L).step(42)
   var long1216 = (42L..10.5f).step(42)
@@ -60,7 +60,7 @@ class Errant_LongInterval {
   //Both end points are 'long' but step function has parameter of different type
   var long1311 = (42L..43L).step('c')
   var long1312 = (42L..43L).step(1b)
-  var long1313 = (42L..43L).step(1s)
+  var long1313 = (42L..43L).step(1 as short)
   var long1314 = (42L..43L).step(42)
   var long1315 = (42L..43L).step(42.5f)      //## issuekeys: 'STEP(JAVA.LANG.LONG)' IN 'GW.LANG.REFLECT.INTERVAL.ITERABLEINTERVAL' CANNOT BE APPLIED TO '(FLOAT)'
   var long1316 = (42L..43L).step(42L)
@@ -75,7 +75,7 @@ class Errant_LongInterval {
   function testForLoop() {
     for (i in (42L..'c')) {}
     for (i in (42L..1b)) {}
-    for (i in (42L..1s)) {}
+    for (i in (42L..1 as short)) {}
     for (i in (42L..10)) {}
     for (i in (42L..10L)) {}
     for (i in (42L..10.5f)) {}

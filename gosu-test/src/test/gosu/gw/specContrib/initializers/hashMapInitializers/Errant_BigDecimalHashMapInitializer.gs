@@ -18,7 +18,7 @@ class Errant_BigDecimalHashMapInitializer {
 
   var bigDecimalHashMap1111 : HashMap<BigDecimal, BigDecimal> = {BigDecimal.TEN->'c'}
   var bigDecimalHashMap1110 : HashMap<BigDecimal, BigDecimal> = {BigDecimal.TEN->1b}
-  var bigDecimalHashMap1112 : HashMap<BigDecimal, BigDecimal> = {BigDecimal.TEN->1s}
+  var bigDecimalHashMap1112 : HashMap<BigDecimal, BigDecimal> = {BigDecimal.TEN->1 as short}
   var bigDecimalHashMap1113 : HashMap<BigDecimal, BigDecimal> = {BigDecimal.TEN->42}
   var bigDecimalHashMap1114 : HashMap<BigDecimal, BigDecimal> = {BigDecimal.TEN->42.5f}
   var bigDecimalHashMap1115 : HashMap<BigDecimal, BigDecimal> = {BigDecimal.TEN->42.5}
@@ -33,7 +33,7 @@ class Errant_BigDecimalHashMapInitializer {
 
   var bigDecimalHashMap1211 : HashMap<BigDecimal, BigDecimal> = {'c'-> BigDecimal.TEN}
   var bigDecimalHashMap1210 : HashMap<BigDecimal, BigDecimal> = {1b-> BigDecimal.TEN}
-  var bigDecimalHashMap1212 : HashMap<BigDecimal, BigDecimal> = {1s-> BigDecimal.TEN}
+  var bigDecimalHashMap1212 : HashMap<BigDecimal, BigDecimal> = {1 as short-> BigDecimal.TEN}
   var bigDecimalHashMap1213 : HashMap<BigDecimal, BigDecimal> = {42-> BigDecimal.TEN}
   var bigDecimalHashMap1214 : HashMap<BigDecimal, BigDecimal> = {42.5f-> BigDecimal.TEN}
   var bigDecimalHashMap1215 : HashMap<BigDecimal, BigDecimal> = {42.5-> BigDecimal.TEN}
@@ -48,7 +48,7 @@ class Errant_BigDecimalHashMapInitializer {
 
   var bigDecimalHashMap1311 : HashMap<BigDecimal, BigDecimal> = {BigDecimal.ONE->BigDecimal.TEN, BigDecimal.ONE->'c'}
   var bigDecimalHashMap1310 : HashMap<BigDecimal, BigDecimal> = {BigDecimal.ONE->BigDecimal.TEN, BigDecimal.ONE->1b}
-  var bigDecimalHashMap1312 : HashMap<BigDecimal, BigDecimal> = {BigDecimal.ONE->BigDecimal.TEN, BigDecimal.ONE->1s}
+  var bigDecimalHashMap1312 : HashMap<BigDecimal, BigDecimal> = {BigDecimal.ONE->BigDecimal.TEN, BigDecimal.ONE->1 as short}
   var bigDecimalHashMap1313 : HashMap<BigDecimal, BigDecimal> = {BigDecimal.ONE->BigDecimal.TEN, BigDecimal.ONE->42}
   var bigDecimalHashMap1314 : HashMap<BigDecimal, BigDecimal> = {BigDecimal.ONE->BigDecimal.TEN, BigDecimal.ONE->42.5f}
   var bigDecimalHashMap1315 : HashMap<BigDecimal, BigDecimal> = {BigDecimal.ONE->BigDecimal.TEN, BigDecimal.ONE->42.5}
@@ -63,7 +63,7 @@ class Errant_BigDecimalHashMapInitializer {
 
   var bigDecimalHashMap1411 : HashMap<BigDecimal, BigDecimal> = {BigDecimal.ONE->BigDecimal.TEN, 'c'-> BigDecimal.TEN}
   var bigDecimalHashMap1410 : HashMap<BigDecimal, BigDecimal> = {BigDecimal.ONE->BigDecimal.TEN, 1b-> BigDecimal.TEN}
-  var bigDecimalHashMap1412 : HashMap<BigDecimal, BigDecimal> = {BigDecimal.ONE->BigDecimal.TEN, 1s-> BigDecimal.TEN}
+  var bigDecimalHashMap1412 : HashMap<BigDecimal, BigDecimal> = {BigDecimal.ONE->BigDecimal.TEN, 1 as short-> BigDecimal.TEN}
   var bigDecimalHashMap1413 : HashMap<BigDecimal, BigDecimal> = {BigDecimal.ONE->BigDecimal.TEN, 42-> BigDecimal.TEN}
   var bigDecimalHashMap1414 : HashMap<BigDecimal, BigDecimal> = {BigDecimal.ONE->BigDecimal.TEN, 42.5f-> BigDecimal.TEN}
   var bigDecimalHashMap1415 : HashMap<BigDecimal, BigDecimal> = {BigDecimal.ONE->BigDecimal.TEN, 42.5-> BigDecimal.TEN}

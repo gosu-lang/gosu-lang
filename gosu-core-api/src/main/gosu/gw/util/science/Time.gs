@@ -15,6 +15,10 @@ final class Time extends AbstractMeasure<TimeUnit, Time> {
     this( value, unit, unit )
   }
 
+  static property get Now() : Time {
+    return new( System.nanoTime(), Nanos )
+  }
+  
   override function fromNumber( p0: BigDecimal ) : Time {
     return new Time( p0, Second, Unit )
   }

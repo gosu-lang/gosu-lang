@@ -32,7 +32,7 @@ class Errant_FloatInterval {
   //Lower end point is float. upper limit various types
   var float1111 = (42.5f..'c')
   var float1112 = (42.5f..1b)
-  var float1113 = (42.5f..1s)
+  var float1113 = (42.5f..1 as short)
   var float1114 = (42.5f..10)
   var float1115 = (42.5f..10L)
   var float1116 = (42.5f..10.5f)
@@ -47,7 +47,7 @@ class Errant_FloatInterval {
   var float1211 = (42.5f..'c').step(1)
   var float1212 = (42.5f..1b).step(1)
   //IDE-1282
-  var float1213 = (42.5f..1s).step(1)
+  var float1213 = (42.5f..1 as short).step(1)
   var float1214 = (42.5f..10).step(1)
   var float1215 = (42.5f..10L).step(1)
   var float1216 = (42.5f..10.5f).step(1)
@@ -62,7 +62,7 @@ class Errant_FloatInterval {
   //Both end points are 'float' but step function has parameter of different type
   var float1311 = (42.5f..43.5f).step('c')
   var float1312 = (42.5f..43.5f).step(1b)
-  var float1313 = (42.5f..43.5f).step(1s)
+  var float1313 = (42.5f..43.5f).step(1 as short)
   var float1314 = (42.5f..43.5f).step(42)
   var float1315 = (42.5f..43.5f).step(42.5f)
   var float1316 = (42.5f..43.5f).step(42L)
@@ -77,7 +77,7 @@ class Errant_FloatInterval {
   function testForLoop() {
     for (i in (42.5f..'c')) {}
     for (i in (42.5f..1b)) {}
-    for (i in (42.5f..1s)) {}
+    for (i in (42.5f..1 as short)) {}
     for (i in (42.5f..10)) {}
     for (i in (42.5f..10L)) {}
     for (i in (42.5f..10.5f)) {}

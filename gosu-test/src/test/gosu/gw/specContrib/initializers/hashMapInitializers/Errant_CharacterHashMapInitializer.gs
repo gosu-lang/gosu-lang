@@ -19,7 +19,7 @@ class Errant_CharacterHashMapInitializer {
 
   var charHashMap1111 : HashMap<Character, Character> = {'c'->'c'}
   var charHashMap1110 : HashMap<Character, Character> = {'c'->1b}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'BYTE', REQUIRED: 'JAVA.LANG.CHARACTER'
-  var charHashMap1112 : HashMap<Character, Character> = {'c'->1s}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'SHORT', REQUIRED: 'JAVA.LANG.CHARACTER'
+  var charHashMap1112 : HashMap<Character, Character> = {'c'->1 as short}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'SHORT', REQUIRED: 'JAVA.LANG.CHARACTER'
   var charHashMap1113 : HashMap<Character, Character> = {'c'->42}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'INT', REQUIRED: 'JAVA.LANG.CHARACTER'
   var charHashMap1114 : HashMap<Character, Character> = {'c'->42.5f}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'FLOAT', REQUIRED: 'JAVA.LANG.CHARACTER'
   var charHashMap1115 : HashMap<Character, Character> = {'c'->42.5}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'DOUBLE', REQUIRED: 'JAVA.LANG.CHARACTER'
@@ -34,7 +34,7 @@ class Errant_CharacterHashMapInitializer {
 
   var charHashMap1211 : HashMap<Character, Character> = {'c'-> 'c'}
   var charHashMap1210 : HashMap<Character, Character> = {1b-> 'c'}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'BYTE', REQUIRED: 'JAVA.LANG.CHARACTER'
-  var charHashMap1212 : HashMap<Character, Character> = {1s-> 'c'}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'SHORT', REQUIRED: 'JAVA.LANG.CHARACTER'
+  var charHashMap1212 : HashMap<Character, Character> = {1 as short-> 'c'}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'SHORT', REQUIRED: 'JAVA.LANG.CHARACTER'
   var charHashMap1213 : HashMap<Character, Character> = {42-> 'c'}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'INT', REQUIRED: 'JAVA.LANG.CHARACTER'
   var charHashMap1214 : HashMap<Character, Character> = {42.5f-> 'c'}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'FLOAT', REQUIRED: 'JAVA.LANG.CHARACTER'
   var charHashMap1215 : HashMap<Character, Character> = {42.5-> 'c'}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'DOUBLE', REQUIRED: 'JAVA.LANG.CHARACTER'
@@ -49,7 +49,7 @@ class Errant_CharacterHashMapInitializer {
 
   var charHashMap1311 : HashMap<Character, Character> = {'c'->'k', 'c'->'c'}
   var charHashMap1310 : HashMap<Character, Character> = {'c'->'k', 'c'->1b}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'BYTE', REQUIRED: 'JAVA.LANG.CHARACTER'
-  var charHashMap1312 : HashMap<Character, Character> = {'c'->'k', 'c'->1s}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'SHORT', REQUIRED: 'JAVA.LANG.CHARACTER'
+  var charHashMap1312 : HashMap<Character, Character> = {'c'->'k', 'c'->1 as short}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'SHORT', REQUIRED: 'JAVA.LANG.CHARACTER'
   var charHashMap1313 : HashMap<Character, Character> = {'c'->'k', 'c'->42}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'INT', REQUIRED: 'JAVA.LANG.CHARACTER'
   var charHashMap1314 : HashMap<Character, Character> = {'c'->'k', 'c'->42.5f}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'FLOAT', REQUIRED: 'JAVA.LANG.CHARACTER'
   var charHashMap1315 : HashMap<Character, Character> = {'c'->'k', 'c'->42.5}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'DOUBLE', REQUIRED: 'JAVA.LANG.CHARACTER'
@@ -64,7 +64,7 @@ class Errant_CharacterHashMapInitializer {
 
   var charHashMap1411 : HashMap<Character, Character> = {'c'->'k', 'c'-> 'c'}
   var charHashMap1410 : HashMap<Character, Character> = {'c'->'k', 1b-> 'c'}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'BYTE', REQUIRED: 'JAVA.LANG.CHARACTER'
-  var charHashMap1412 : HashMap<Character, Character> = {'c'->'k', 1s-> 'c'}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'SHORT', REQUIRED: 'JAVA.LANG.CHARACTER'
+  var charHashMap1412 : HashMap<Character, Character> = {'c'->'k', 1 as short-> 'c'}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'SHORT', REQUIRED: 'JAVA.LANG.CHARACTER'
   var charHashMap1413 : HashMap<Character, Character> = {'c'->'k', 42-> 'c'}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'INT', REQUIRED: 'JAVA.LANG.CHARACTER'
   var charHashMap1414 : HashMap<Character, Character> = {'c'->'k', 42.5f-> 'c'}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'FLOAT', REQUIRED: 'JAVA.LANG.CHARACTER'
   var charHashMap1415 : HashMap<Character, Character> = {'c'->'k', 42.5-> 'c'}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'DOUBLE', REQUIRED: 'JAVA.LANG.CHARACTER'

@@ -33,7 +33,7 @@ class Errant_CharInterval {
   //Lower end point is char. upper limit various types
   var char1111 = ('c'..'c')
   var char1112 = ('c'..1b)          //## issuekeys: OPERATOR '..' CANNOT BE APPLIED TO 'CHAR', 'BYTE'
-  var char1113 = ('c'..1s)          //## issuekeys: OPERATOR '..' CANNOT BE APPLIED TO 'CHAR', 'SHORT'
+  var char1113 = ('c'..1 as short)          //## issuekeys: OPERATOR '..' CANNOT BE APPLIED TO 'CHAR', 'SHORT'
   var char1114 = ('c'..10)
   var char1115 = ('c'..10L)
   var char1116 = ('c'..10.5f)
@@ -48,7 +48,7 @@ class Errant_CharInterval {
   var char1211 = ('c'..'c').step(1)
   var char1212 = ('c'..1b).step(1)         //## issuekeys: OPERATOR '..' CANNOT BE APPLIED TO 'CHAR', 'BYTE'
   //IDE-1282. Also IDE-1296. Should show error for IDE-1296 and not for IDE-1282
-  var char1213 = ('c'..1s).step(1)      //## issuekeys: OPERATOR '..' CANNOT BE APPLIED TO 'CHAR', 'SHORT'
+  var char1213 = ('c'..1 as short).step(1)      //## issuekeys: OPERATOR '..' CANNOT BE APPLIED TO 'CHAR', 'SHORT'
   var char1214 = ('c'..10).step(1)
   var char1215 = ('c'..10L).step(1)
   var char1216 = ('c'..10.5f).step(1)
@@ -63,7 +63,7 @@ class Errant_CharInterval {
   //Both end points are 'char' but step function has parameter of different type
   var char1311 = ('a'..'c').step('c')
   var char1312 = ('a'..'c').step(1b)
-  var char1313 = ('a'..'c').step(1s)
+  var char1313 = ('a'..'c').step(1 as short)
   var char1314 = ('a'..'c').step(42)
   var char1315 = ('a'..'c').step(42.5f)      //## issuekeys: 'STEP(JAVA.LANG.INTEGER)' IN 'GW.LANG.REFLECT.INTERVAL.ITERABLEINTERVAL' CANNOT BE APPLIED TO '(FLOAT)'
   var char1316 = ('a'..'c').step(42L)      //## issuekeys: 'STEP(JAVA.LANG.INTEGER)' IN 'GW.LANG.REFLECT.INTERVAL.ITERABLEINTERVAL' CANNOT BE APPLIED TO '(LONG)'
@@ -80,7 +80,7 @@ class Errant_CharInterval {
     }
     for (i in ('c'..1b)) {         //## issuekeys: OPERATOR '..' CANNOT BE APPLIED TO 'CHAR', 'BYTE'
     }
-    for (i in ('c'..1s)) {      //## issuekeys: OPERATOR '..' CANNOT BE APPLIED TO 'CHAR', 'SHORT'
+    for (i in ('c'..1 as short)) {      //## issuekeys: OPERATOR '..' CANNOT BE APPLIED TO 'CHAR', 'SHORT'
     }
     for (i in ('c'..10)) {
     }

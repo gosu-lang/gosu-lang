@@ -18,7 +18,7 @@ class Errant_GenericMethodBounds {
     upperBoundInteger('c', 'c')      //## issuekeys: MSG_WRONG_NUMBER_OF_ARGS_TO_FUNCTION
     upperBoundInteger('c', 'c', 'c')
     upperBoundInteger(1b)            //## issuekeys: MSG_WRONG_NUMBER_OF_ARGS_TO_FUNCTION
-    upperBoundInteger(1 as short, 1s, 1s, 1s, 1s)  //## issuekeys: MSG_WRONG_NUMBER_OF_ARGS_TO_FUNCTION
+    upperBoundInteger(1 as short, 1 as short, 1 as short, 1 as short, 1 as short)  //## issuekeys: MSG_WRONG_NUMBER_OF_ARGS_TO_FUNCTION
   }
 
   function upperBoundDouble<T extends Double>(t1 : T, t2 : T) {}

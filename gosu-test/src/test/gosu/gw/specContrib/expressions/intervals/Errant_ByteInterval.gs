@@ -33,7 +33,7 @@ class Errant_ByteInterval {
   //IDE-1296
   var byte1111 = (1b..'c')        //## issuekeys: OPERATOR '..' CANNOT BE APPLIED TO 'BYTE', 'CHAR'
   var byte1112 = (1b..1b)
-  var byte1113 = (1b..1s)
+  var byte1113 = (1b..1 as short)
   var byte1114 = (1b..10)
   var byte1115 = (1b..10L)
   var byte1116 = (1b..10.5f)
@@ -48,7 +48,7 @@ class Errant_ByteInterval {
   var byte1211 = (1b..'c').step(1b)   //## issuekeys: OPERATOR '..' CANNOT BE APPLIED TO 'BYTE', 'CHAR'
   var byte1212 = (1b..1b).step(1b)
   //IDE-1282
-  var byte1213 = (1b..1s).step(1b)
+  var byte1213 = (1b..1 as short).step(1b)
   var byte1214 = (1b..10).step(1b)
   var byte1215 = (1b..10L).step(1b)
   var byte1216 = (1b..10.5f).step(1b)
@@ -63,7 +63,7 @@ class Errant_ByteInterval {
   //Both end points are 'byte' but step function has parameter of different type
   var byte1311 = (1b..2b).step('c')
   var byte1312 = (1b..2b).step(1b)
-  var byte1313 = (1b..2b).step(1s)
+  var byte1313 = (1b..2b).step(1 as short)
   var byte1314 = (1b..2b).step(42)
   var byte1315 = (1b..2b).step(42.5f)      //## issuekeys: 'STEP(JAVA.LANG.INTEGER)' IN 'GW.LANG.REFLECT.INTERVAL.ITERABLEINTERVAL' CANNOT BE APPLIED TO '(FLOAT)'
   var byte1316 = (1b..2b).step(42L)      //## issuekeys: 'STEP(JAVA.LANG.INTEGER)' IN 'GW.LANG.REFLECT.INTERVAL.ITERABLEINTERVAL' CANNOT BE APPLIED TO '(LONG)'
@@ -80,7 +80,7 @@ class Errant_ByteInterval {
     }
     for (i in (1b..1b)) {
     }
-    for (i in (1b..1s)) {
+    for (i in (1b..1 as short)) {
     }
     for (i in (1b..10)) {
     }
