@@ -13,6 +13,7 @@ import gw.lang.ir.IRType;
 import gw.lang.ir.IRExpression;
 import gw.internal.ext.org.objectweb.asm.Opcodes;
 import gw.internal.ext.org.objectweb.asm.MethodVisitor;
+import gw.lang.ir.expression.IRNumericLiteral;
 
 public class IREqualityExpressionCompiler extends AbstractBytecodeCompiler {
   public static void compile( IREqualityExpression expression, IRBytecodeContext context ) {
@@ -53,9 +54,25 @@ public class IREqualityExpressionCompiler extends AbstractBytecodeCompiler {
     MethodVisitor mv = context.getMv();
 
     IRBytecodeCompiler.compileIRExpression( lhs, context );
-    IRBytecodeCompiler.compileIRExpression( rhs, context );
+    IRType rhsType = rhs.getType();
+    int opcode;
+    if( !isInteger0( rhs, rhsType ) )
+    {
+      IRBytecodeCompiler.compileIRExpression( rhs, context );
+      opcode = equals ?  Opcodes.IF_ICMPEQ : Opcodes.IF_ICMPNE;
+    }
+    else
+    {
+      opcode = equals ?  Opcodes.IFEQ : Opcodes.IFNE;
+    }
+    compare( mv, opcode, root );
+  }
 
-    compare( mv, equals ?  Opcodes.IF_ICMPEQ : Opcodes.IF_ICMPNE, root );
+  private static boolean isInteger0( IRExpression expr, IRType lhsType )
+  {
+    return expr instanceof IRNumericLiteral && lhsType.isPrimitive() &&
+           !(lhsType.isDouble() || lhsType.isFloat()) &&
+           ((IRNumericLiteral) expr).getValue().intValue() == 0;
   }
 
   private static void compareLongs( boolean equals, IRExpression lhs, IRExpression rhs, IRBytecodeContext context, IRExpression root ) {
