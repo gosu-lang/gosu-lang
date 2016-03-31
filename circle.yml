@@ -23,12 +23,11 @@ general:
       - /rel\/.*/
   artifacts:
     - "gosu-test/target/site" # preserve the generated HTML test reports
-    - mvn_output.log
 
 test:
   # Adds profile to pick up Gosu tests
   override:
-    - mvn -B integration-test deploy -s settings.xml | tee mvn_output.log
+    - mvn -B integration-test deploy -s settings.xml
   post:
     - mkdir -p $CIRCLE_TEST_REPORTS/junit/
     - find . -type f -regex ".*/target/surefire-reports/.*xml" -exec cp {} $CIRCLE_TEST_REPORTS/junit/ \;
