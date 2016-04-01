@@ -1,8 +1,6 @@
 package gw.util.money
 
 uses java.math.BigDecimal 
-uses gw.util.concurrent.LocklessLazyVar
-uses java.math.BigInteger
 uses java.text.NumberFormat
 
 /**
