@@ -4,54 +4,104 @@ uses java.math.BigDecimal
 uses gw.util.science.Time
 uses gw.util.science.UnitConstants
 uses gw.lang.reflect.json.DefaultParser_Big
+uses java.net.URLEncoder
+uses gw.util.LRUCache
+uses gw.util.concurrent.Cache
+uses java.util.concurrent.ConcurrentHashMap
 
 /**
- * This default implementation uses the Yahoo Finance API the get the table of exchange rates via:
- * https://finance.yahoo.com/webservice/v1/symbols/allcurrencies/quote
+ * This default implementation uses the Yahoo Finance API the get the table of exchange rates.
+ * Yahoo updates the rates continuously.  This service refreshes by the minute on demand i.e., lazily; 
+ * no rate is ever more than one minute old.
  */
 class DefaultExchangeRatesService implements IExchangeRatesService, UnitConstants  
 {  
-  var _frequency: Time as Frequency = 1 hr
-  var _timestamp: Time
-  var _rateTables: Map<String, Map<String, BigDecimal>>
+  final var _rateTables: Map<Currency, ExpiringRateTable>
+  var _frequency: Time as Frequency = 1 min
   var _exchangeRatesService: IExchangeRatesService
   
-  override property get ExchangeRatesTables() : Map<String, Map<String, BigDecimal>> {
-    if( _timestamp != null && (Time.Now - _timestamp) < Frequency ) {
-      return _rateTables
+  construct() {
+    _rateTables = new ConcurrentHashMap<Currency, ExpiringRateTable>()
+  }
+  
+  override function getExchangeRatesTable( currency: Currency ) : Map<Currency, ExchangeRate> {
+    var rateTable = _rateTables.get( currency )
+    if( rateTable != null && (Time.Now - rateTable.Timestamp) < Frequency ) {
+      return rateTable 
     }
-    _timestamp = Time.Now
-    var rateTables = new HashMap<String, Map<String, BigDecimal>>()
-    var exch = getUsdMap()
-    rateTables.put( "USD", exch )
-    exch.eachKeyAndValue( \ code, rate -> {
-      rateTables.put( code, makeMap( "USD", code, rate, exch ) )
-    } )
-    _rateTables = rateTables
-    return _rateTables
+    rateTable = getRateTableFromTheInterwebz( currency )
+    _rateTables.put( currency, rateTable )
+    return rateTable
   }
-
-  private function makeMap( base: String, code: String, rate: BigDecimal, exch: Map<String, BigDecimal> ) : Map<String, BigDecimal> {
-    var map = new  HashMap<String, BigDecimal>()
-    exch.eachKeyAndValue( \ k, v -> {
-      if( k != code ) {
-        map[k] = v/rate
+  
+  private function getRateTableFromTheInterwebz( currency: Currency ) : ExpiringRateTable {
+    var fail: Throwable = null
+    for( 0..4 ) {
+      try {
+        return getRateTable( currency )
       }
-    } )
-    map[base] = 1/rate
-    return map
+      catch( e ) {
+        // try to recover from interwebz
+        Thread.sleep( 5000 )
+        fail = e
+        continue
+      }
+    }    
+    throw fail
   }
 
-  private function getUsdMap() : Map<String, BigDecimal> {
+  private function getRateTable( currency: Currency ) : ExpiringRateTable {
+    var args = new Dynamic()
+    args.q = "select * from yahoo.finance.xchange where pair in ( ${getCurrencies( currency )} )"
+    args.format = "json"
+    args.diagnostics = "true"
+    args.env = "store://datatables.org/alltableswithkeys"
+    args.callback = ""
+    var ratesUrl = URL.makeUrl( "https://query.yahooapis.com/v1/public/yql", args )
+    var json = ratesUrl.JsonContent
+    var rateTable = new ExpiringRateTable()
+    for( r in json.query.results.rate ) {
+      var id =  r.id
+      var name = id.substring( 3 )
+      var currencyOfName : Currency = null
+      try {
+        currencyOfName = Currency.getInstance( name )
+      }
+      catch( e: Exception ) {
+        // So far Java doesn't support currencies for: ECS, XCP, CNH
+        //print( "Failed to get currency for: " + name )
+      }
+      if( currencyOfName != null ) {
+        var mid = new BigDecimal( r.Rate )
+        var ask = bigDecimalDefault( name, Ask, r.Ask, mid )
+        var bid = bigDecimalDefault( name, Bid, r.Bid, mid )
+        rateTable.put( Currency.getInstance( name ), new ExchangeRate( mid, ask, bid ) ) 
+      }
+    }    
+    return rateTable
+  }
+  
+  private function bigDecimalDefault( name: String, rateType: RateType, value: String, def: BigDecimal ) : BigDecimal {
+    var result : BigDecimal
+    if( value != "N/A" ) {
+      result = new BigDecimal( value )
+    }
+    else {
+      // for N/A rates use the mid rate, common for precious metals other than gold
+      result = def 
+    }
+    return result
+  }
+  
+  private function getCurrencies( currency: Currency ) : String {
     var ratesUrl = new URL( "https://finance.yahoo.com/webservice/v1/symbols/allcurrencies/quote?format=json" )
     var json = ratesUrl.JsonContent
-    var usdMap = new HashMap<String, BigDecimal>()
+    var currencies = new StringBuilder()
     for( x in json.list.resources ) {
       var symbol_x =  x.resource.fields.symbol
       var name = symbol_x.substring( 0, 3 )
-      var price = new BigDecimal( x.resource.fields.price )
-      usdMap.put( name, price )
-    }    
-    return usdMap
-  } 
+      currencies.append( currencies.length() > 0 ? ", '" : "'" ).append( currency ).append( name ).append( "'" )
+    }
+    return currencies.toString()
+  }
 }

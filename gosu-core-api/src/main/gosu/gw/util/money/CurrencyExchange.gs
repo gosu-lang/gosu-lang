@@ -4,6 +4,9 @@ uses java.math.BigDecimal
 uses gw.util.science.Time
 uses gw.util.science.UnitConstants
 
+/**
+ * Override and access the currency rate service via the ExchangeRatesService property
+ */
 class CurrencyExchange {
   static final var INSTANCE: CurrencyExchange = new CurrencyExchange()
   

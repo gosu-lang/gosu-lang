@@ -89,17 +89,17 @@ final class Money implements IDimension<Money, BigDecimal> {
   }
 
   /**
-   * Exchange this Money for another with the specified single currency
+   * Exchange this Money for another with the specified single currency and rate type
    */
-  function exchange( currency: Currency, rateTables: Map<String, Map<String, BigDecimal>> = null ) : Money {
-    rateTables = rateTables?:CurrencyExchange.instance().ExchangeRatesService.ExchangeRatesTables
+  function exchange( currency: Currency, rateType: RateType = Mid ) : Money {
+    var rateTable = CurrencyExchange.instance().ExchangeRatesService.getExchangeRatesTable( currency )
     var total = 0bd
     Amount.eachKeyAndValue( \ k, v -> {
       if( k == currency ) {
         total += v
       }
       else {
-        total += v / rateTables[currency.CurrencyCode][k.CurrencyCode]
+        total += v / rateTable[k].get( rateType )
       }
     } )
     return new Money( total, currency )
@@ -107,19 +107,20 @@ final class Money implements IDimension<Money, BigDecimal> {
  
   /**
    * Exchange this Money for a target Money with multiple currencies maintaining the value of this Money 
-   * as a proportional distribution of multiple currencies of the target Money
+   * as a proportional distribution of multiple currencies of the target Money, using the given rate type
    */
-  function weightedExchange( to: Money, rateTables: Map<String, Map<String, BigDecimal>> = null ) : Money {
-    rateTables = rateTables?:CurrencyExchange.instance().ExchangeRatesService.ExchangeRatesTables
-    var totalTo = to.exchange( Currency.BASE, rateTables )
-    var totalFrom = exchange( Currency.BASE, rateTables )
+  function weightedExchange( to: Money, rateType: RateType = Mid ) : Money {
+    var baseTable = CurrencyExchange.instance().ExchangeRatesService.getExchangeRatesTable( Currency.BASE )
+    var totalTo = to.exchange( Currency.BASE )
+    var totalFrom = exchange( Currency.BASE )
     var result = new HashMap<Currency, BigDecimal>()
     to.Amount.eachKeyAndValue( \ k, v -> {
       if( k == Currency.BASE ) {
         result.put( k, v/totalTo.SingleValue * totalFrom.SingleValue )
       }
       else {
-        result.put( k, v/rateTables[Currency.BASE.CurrencyCode][k.CurrencyCode]/totalTo.SingleValue * totalFrom.SingleValue / rateTables[k.CurrencyCode][Currency.BASE.CurrencyCode]  )
+        var rateTable = CurrencyExchange.instance().ExchangeRatesService.getExchangeRatesTable( k )
+        result.put( k, v/baseTable[k].get( rateType )/totalTo.SingleValue * totalFrom.SingleValue / rateTable[Currency.BASE].get( rateType )  )
       }
     } )
     return new Money( result )
