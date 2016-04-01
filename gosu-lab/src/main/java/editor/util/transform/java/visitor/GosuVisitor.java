@@ -642,7 +642,7 @@ public class GosuVisitor implements TreeVisitor<String, Void> {
       if (varType.equals("byte")) {
         iniz = iniz + "b";
       } else if (varType.equals("short")) {
-        iniz = iniz + "s";
+        iniz = iniz + " as short";
       } else if (varType.equals("float") && initializer.getKind() == Tree.Kind.INT_LITERAL) {
         iniz = iniz + "f";
       } else if (varType.equals("double") && initializer.getKind() == Tree.Kind.INT_LITERAL) {
