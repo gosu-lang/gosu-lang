@@ -78,7 +78,7 @@ final class Money implements IDimension<Money, BigDecimal> {
     return _amount.hashCode()
   }
   override function equals( o: Object ) : boolean {
-    return _amount == o  
+    return o typeis Money && _amount == o._amount  
   }
   
   override function compareTo( o: Money ) : int {
