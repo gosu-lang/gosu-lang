@@ -783,6 +783,7 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
     {
       getOwner().newDfsDeclInSetByName();
       gsClass.putClassMembers( getOwner(), getSymbolTable(), getGosuClass(), false );
+      putTypeUsesMapFeatures( getOwner(), getSymbolTable(), getGosuClass() );
       nonstaticDfsMap = getOwner().getDfsDecls();
       getOwner().newDfsDeclInSetByName();
     }
@@ -3808,6 +3809,7 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
       //getOwner().clearDfsDeclInSetByName();
       getOwner().newDfsDeclInSetByName();
       gsClass.putClassMembers( getOwner(), getSymbolTable(), getGosuClass(), true );
+      putTypeUsesMapFeatures( getOwner(), getSymbolTable(), getGosuClass() );
       staticDfsMap = getOwner().getDfsDecls();
     }
     finally
@@ -3824,6 +3826,7 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
     {
       getOwner().newDfsDeclInSetByName();
       gsClass.putClassMembers( getOwner(), getSymbolTable(), getGosuClass(), false );
+      putTypeUsesMapFeatures( getOwner(), getSymbolTable(), getGosuClass() );
       nonstaticDfsMap = getOwner().getDfsDecls();
       getOwner().newDfsDeclInSetByName();
     }
@@ -3832,6 +3835,65 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
       nonstaticScope = getSymbolTable().popScope();
     }
     return new ClassScopeCache( staticScope, staticDfsMap, nonstaticScope, nonstaticDfsMap );
+  }
+
+  static void putTypeUsesMapFeatures( GosuParser owner, ISymbolTable table, IGosuClassInternal gsContextClass )
+  {
+    ITypeUsesMap typeUsesMap = owner.getTypeUsesMap();
+    for( String name: typeUsesMap.getFeatureSpaces() )
+    {
+      IType type = TypeSystem.getByFullNameIfValid( name );
+      if( type == null )
+      {
+        continue;
+      }
+      IGosuClassInternal gsClass = IGosuClassInternal.Util.getGosuClassFrom( type );
+      if( gsClass != null )
+      {
+        gsClass.putClassMembers( gsClass.getTypeLoader(), owner, table, gsContextClass, true, true );
+      }
+    }
+
+    for( IFeatureInfo fi: typeUsesMap.getFeatureLiterals() )
+    {
+      IGosuClassInternal gsClass = (IGosuClassInternal)fi.getOwnersType();
+      if( gsClass == null )
+      {
+        continue;
+      }
+      if( fi instanceof IMethodInfo )
+      {
+        IFunctionStatement stmt = gsClass.getFunctionStatement( (IMethodInfo)fi );
+        DynamicFunctionSymbol dfs = (DynamicFunctionSymbol)stmt.getDynamicFunctionSymbol();
+        if( gsClass.isParameterizedType() )
+        {
+          dfs = dfs.getParameterizedVersion( gsClass );
+        }
+        table.putSymbol( dfs );
+        if( owner != null )
+        {
+          List<IFunctionSymbol> existing = owner.getDfsDeclsForFunction( dfs.getDisplayName() );
+          if( existing == null || !existing.contains( dfs ) )
+          {
+            owner.putDfsDeclInSetByName( dfs );
+          }
+        }
+      }
+      else if( fi instanceof IPropertyInfo )
+      {
+        ISymbol dps = fi instanceof GosuVarPropertyInfo
+                      ? gsClass.getStaticField( fi.getName() ).getSymbol()
+                      : gsClass.getStaticProperty( fi.getName() );
+        if( dps instanceof DynamicPropertySymbol && gsClass.isParameterizedType() )
+        {
+          dps = ((DynamicPropertySymbol)dps).getParameterizedVersion( gsClass );
+        }
+        if( table.getSymbol( dps.getName() ) == null )
+        {
+          table.putSymbol( dps );
+        }
+      }
+    }
   }
 
   private void popClassSymbols()

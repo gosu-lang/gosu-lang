@@ -8,6 +8,7 @@ import gw.internal.gosu.parser.Statement;
 import gw.lang.parser.Keyword;
 import gw.lang.parser.statements.ITerminalStatement;
 import gw.lang.parser.statements.IUsesStatement;
+import gw.lang.reflect.IFeatureInfo;
 import gw.lang.reflect.module.IModule;
 import gw.util.StringPool;
 
@@ -16,24 +17,38 @@ import gw.util.StringPool;
 public class UsesStatement extends Statement implements IUsesStatement
 {
   private String _strTypeName;
+  private boolean _bFeatureSpace;
+  private IFeatureInfo _fi;
 
   public UsesStatement()
   {
-  }
-
-  public UsesStatement(String typeName)
-  {
-    _strTypeName = typeName;
   }
 
   public String getTypeName()
   {
     return _strTypeName;
   }
-
   public void setTypeName( String strTypeName )
   {
     _strTypeName = StringPool.get( strTypeName );
+  }
+
+  public boolean isFeatureSpace()
+  {
+    return _bFeatureSpace;
+  }
+  public void setFeatureSpace( boolean bFeatureSpace )
+  {
+    _bFeatureSpace = bFeatureSpace;
+  }
+
+  public IFeatureInfo getFeatureInfo()
+  {
+    return _fi;
+  }
+  public void setFeatureInfo( IFeatureInfo fi )
+  {
+    _fi = fi;
   }
 
   public Object execute()
@@ -58,7 +73,7 @@ public class UsesStatement extends Statement implements IUsesStatement
   @Override
   public String toString()
   {
-    return Keyword.KW_uses + " " + getTypeName();
+    return Keyword.KW_uses + " " + getTypeName() + (_bFeatureSpace ? "#" : "");
   }
 
   public IModule getModule() {

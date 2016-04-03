@@ -415,6 +415,8 @@ public class Strings extends ListResourceBundle
        {Res.MSG_CANNOT_REFERENCE_THIS_IN_STATIC_CONTEXT.getKey(), "You cannot reference 'this' in a static context." },
        {Res.MSG_CANNOT_CALL_NON_STATIC_METHOD_FROM_STATIC_CONTEXT.getKey(), "You cannot reference non-static methods in a static context." },
        {Res.MSG_CANNOT_REFERENCE_NON_STATIC_PROPERTY_FROM_STATIC_CONTEXT.getKey(), "You cannot reference non-static properties in a static context." },
+       {Res.MSG_CANNOT_REFERENCE_NON_STATIC_FEATURE_HERE.getKey(), "You cannot reference a non-static feature here" },
+       {Res.MSG_ONLY_GOSU_JAVA_TYPES.getKey(), "Only Gosu and Java types allowed here" },
        {Res.MSG_CANNOT_READ_A_WRITE_ONLY_PROPERTY.getKey(), "Write-only properties may only be written" },
        {Res.MSG_CANNOT_EXTEND_RAW_GENERIC_TYPE.getKey(), "The generic type {0} requires type argument[s]" },
        {Res.MSG_TYPE_VAR_VARIANCE_ERROR.getKey(), "The type variable {0} is declared \"{1}\" but is used in a \"{2}\" position with type {3}'" },

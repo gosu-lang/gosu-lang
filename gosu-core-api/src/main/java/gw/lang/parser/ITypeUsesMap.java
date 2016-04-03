@@ -4,6 +4,7 @@
 
 package gw.lang.parser;
 
+import gw.lang.reflect.IFeatureInfo;
 import gw.lang.reflect.INamespaceType;
 import gw.lang.parser.statements.IUsesStatement;
 import gw.lang.reflect.IType;
@@ -26,11 +27,17 @@ public interface ITypeUsesMap extends Serializable
    */
   Set<String> getNamespaces();
 
+  Set<String> getFeatureSpaces();
+  Set<IFeatureInfo> getFeatureLiterals();
+
   /**
    * Adds a type to the current set of types. Can be a complete type or a
    * wildcard namespace e.g., java.util.HashMap and java.util.* are both legal.
    */
   void addToTypeUses( String strType );
+
+  void addToFeatureSpaces( String strType );
+  void addToFeatureLiterals( IFeatureInfo fi );
 
   /**
    * Adds a type to the current set of types. Can be a complete type or a

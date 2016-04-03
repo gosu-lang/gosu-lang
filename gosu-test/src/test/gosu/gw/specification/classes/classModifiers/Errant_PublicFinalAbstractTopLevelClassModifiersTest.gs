@@ -2,7 +2,7 @@ package gw.specification.classes.classModifiers
 
 uses gw.specification.classes.classModifiers.p0.C0
 uses gw.specification.classes.classModifiers.p0.C1
-uses gw.specification.classes.classModifiers.p0.C2
+uses gw.specification.classes.classModifiers.p0.C2  //## issuekeys: MSG_TYPE_HAS_XXX_ACCESS
 uses gw.specification.classes.classModifiers.p0.C3
 uses gw.specification.classes.classModifiers.p0.C4
 

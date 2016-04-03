@@ -56,6 +56,9 @@ public class UsesStatementList extends Statement implements IUsesStatementList
     String relativeName = getRelativeName( fqn );
     boolean bPackage = relativeName.equals( "*" );
     for( IUsesStatement csrStmt : _stmts ) {
+      if( csrStmt.isFeatureSpace() || csrStmt.getFeatureInfo() != null ) {
+        continue;
+      }
       String csrFqn = csrStmt.getTypeName();
       if( csrFqn == null ) {
         continue;

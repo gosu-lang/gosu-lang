@@ -706,6 +706,8 @@ public final class GosuParser extends ParserBase implements IGosuParser
           superTypeGosuClass.putClassMembers(this, getSymbolTable(), null, false );
         }
 
+        GosuClassParser.putTypeUsesMapFeatures( this, getSymbolTable(), null );
+
         if ( isolatedScope )
         {
           if ( reallyIsolatedScope ) {
@@ -5336,7 +5338,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
                          makeLazyLightweightParserState(), bParseTypeLiteralOnly );
       verifyNonVoidExpression( peekExpression() );
     }
-    else if( parseFeatureLiteral( token, peekRootExpression ) )
+    else if( !bParseTypeLiteralOnly && parseFeatureLiteral( token, peekRootExpression ) )
     {
       // good
     }
@@ -11196,20 +11198,119 @@ public final class GosuParser extends ParserBase implements IGosuParser
 
   void parseUsesStatement( boolean bResolveTypes )
   {
-    if( isEditorParser() )
+    UsesStatement usesStmt = new UsesStatement();
+    parseTypeLiteral();
+    TypeLiteral typeLiteral = (TypeLiteral)peekExpression();
+    Token token = _tokenizer.getCurrentToken();
+    if( SourceCodeTokenizer.TT_OPERATOR == token.getType() && "#".equals( token.getStringValue() ) )
     {
-      parseUsesStatement_editor( bResolveTypes );
+      int mark = _tokenizer.mark();
+      _tokenizer.nextToken();
+      Token nextToken = _tokenizer.getCurrentToken();
+      if( SourceCodeTokenizer.TT_OPERATOR == nextToken.getType() && "*".equals( nextToken.getStringValue() ) )
+      {
+        _tokenizer.nextToken();
+        processUsesStatementFeatureLiteral( bResolveTypes, usesStmt, typeLiteral, null );
+      }
+      else
+      {
+        IType type = typeLiteral.getType().getType();
+        if( type != null && !(type instanceof IGosuClass) )
+        {
+          IGosuClassInternal gsClass = IGosuClassInternal.Util.getGosuClassFrom( type );
+          if( gsClass != null )
+          {
+            typeLiteral.setType( gsClass );
+          }
+        }
+        _tokenizer.restoreToMark( mark );
+        parseFeatureLiteral( token, typeLiteral );
+        FeatureLiteral fl = (FeatureLiteral)popExpression();
+        processUsesStatementFeatureLiteral( bResolveTypes, usesStmt, typeLiteral, fl );
+      }
     }
     else
     {
-      parseUsesStatement_normal( bResolveTypes );
+      popExpression();
+      processUsesStatementTypeLiteral( bResolveTypes, usesStmt, typeLiteral );
     }
   }
-  void parseUsesStatement_editor( boolean bResolveTypes )
+  private void processUsesStatementFeatureLiteral( boolean bResolveTypes, UsesStatement usesStmt, TypeLiteral typeLiteral, FeatureLiteral fl )
   {
-    UsesStatement usesStmt = new UsesStatement();
-    parseTypeLiteral();
-    TypeLiteral typeLiteral = (TypeLiteral)popExpression();
+    String t = typeLiteral.getType().getType() instanceof ErrorType && typeLiteral.getPackageExpression() != null
+              ? typeLiteral.getPackageExpression().toString()
+              : TypeLord.getPureGenericType( typeLiteral.getType().getType() ).getName();
+    boolean bForwardRefToInnerClass = getGosuClass() instanceof IGosuClassInternal && t != null && t.startsWith( getGosuClass().getName() );
+    verify( usesStmt, t == null || !t.endsWith( "]" ), Res.MSG_BAD_NAMESPACE, t );
+    if( !bForwardRefToInnerClass || ((IGosuClassInternal)getGosuClass()).isHeaderCompiled() )
+    {
+      IType type = typeLiteral.getType().getType();
+      IGosuClass gsType = IGosuClassInternal.Util.getGosuClassFrom( type );
+      verify( usesStmt, gsType != null, Res.MSG_ONLY_GOSU_JAVA_TYPES );
+      if( fl == null )
+      {
+        usesStmt.setTypeName( typeLiteral.getType().getType().getName() );
+        usesStmt.setFeatureSpace( true );
+        if( gsType != null )
+        {
+          getTypeUsesMap().addToTypeUses( usesStmt );
+        }
+      }
+      else
+      {
+        if( bResolveTypes )
+        {
+          String strTypeName = TypeLord.getPureGenericType( typeLiteral.getType().getType() ).getName();
+          usesStmt.setTypeName( strTypeName );
+
+          if( typeLiteral.hasParseExceptions() )
+          {
+            IParseIssue first = typeLiteral.getParseExceptions().get( 0 );
+            usesStmt.addParseException( first );
+            //noinspection ThrowableResultOfMethodCallIgnored
+            typeLiteral.removeParseException( first.getMessageKey() );
+          }
+          else if( fl.hasParseExceptions() )
+          {
+            IParseIssue first = fl.getParseExceptions().get( 0 );
+            usesStmt.addParseException( first );
+            //noinspection ThrowableResultOfMethodCallIgnored
+            fl.removeParseException( first.getMessageKey() );
+          }
+          else if( verify( usesStmt, fl.isStaticish() && !fl.isConstructorLiteral(), Res.MSG_CANNOT_REFERENCE_NON_STATIC_FEATURE_HERE ) )
+          {
+            usesStmt.setFeatureInfo( fl.getFeature() );
+            if( gsType != null )
+            {
+              getTypeUsesMap().addToTypeUses( usesStmt );
+            }
+            ICompilableTypeInternal gsClass = getGosuClass();
+            if( gsClass != null )
+            {
+              verify( typeLiteral, !typeLiteral.getType().getType().getRelativeName().equals( gsClass.getRelativeName() ),
+                      Res.MSG_SAME_NAME_AS_CLASS, gsClass.getRelativeName() );
+            }
+          }
+        }
+        else
+        {
+          usesStmt.setTypeName( t );
+          usesStmt.setFeatureInfo( fl.getFeature() );
+          if( gsType != null )
+          {
+            getTypeUsesMap().addToTypeUses( usesStmt );
+          }
+        }
+      }
+    }
+    pushStatement( usesStmt );
+    while( match( null, ';' ) )
+    {
+      //pushStatement( new NoOpStatement() );
+    }
+  }
+  private void processUsesStatementTypeLiteral( boolean bResolveTypes, UsesStatement usesStmt, TypeLiteral typeLiteral )
+  {
     String t = typeLiteral.getType().getType() instanceof ErrorType && typeLiteral.getPackageExpression() != null
               ? typeLiteral.getPackageExpression().toString()
               : TypeLord.getPureGenericType( typeLiteral.getType().getType() ).getName();
@@ -11246,81 +11347,6 @@ public final class GosuParser extends ParserBase implements IGosuParser
             usesStmt.addParseException( first );
             //noinspection ThrowableResultOfMethodCallIgnored
             typeLiteral.removeParseException( first.getMessageKey() );
-          }
-          else
-          {
-            getTypeUsesMap().addToTypeUses( usesStmt );
-            ICompilableTypeInternal gsClass = getGosuClass();
-            if( gsClass != null )
-            {
-              verify( typeLiteral, !typeLiteral.getType().getType().getRelativeName().equals( gsClass.getRelativeName() ),
-                      Res.MSG_SAME_NAME_AS_CLASS, gsClass.getRelativeName() );
-            }
-          }
-        }
-        else
-        {
-          usesStmt.setTypeName( t );
-          getTypeUsesMap().addToTypeUses( usesStmt );
-        }
-      }
-    }
-    pushStatement( usesStmt );
-    while( match( null, ';' ) )
-    {
-      //pushStatement( new NoOpStatement() );
-    }
-  }
-  void parseUsesStatement_normal( boolean bResolveTypes )
-  {
-    UsesStatement usesStmt = new UsesStatement();
-    int iOffset = _tokenizer.getTokenStart();
-    int iLineNum = _tokenizer.getLineNumber();
-    int iColumn = getTokenizer().getTokenColumn();
-    int mark = getTokenizer().mark();
-    String t = "";
-    if( verify( usesStmt, match( null, SourceCodeTokenizer.TT_WORD ), Res.MSG_EXPECTING_TYPELITERAL_OR_NAMESPACE ) )
-    {
-      t = getTokenizer().getTokenAt( mark ).getStringValue();
-    }
-    t = parseDotPathWord( t );
-    boolean bForwardRefToInnerClass = getGosuClass() instanceof IGosuClassInternal && t != null && t.startsWith( getGosuClass().getName() );
-    if( !bForwardRefToInnerClass || ((IGosuClassInternal)getGosuClass()).isHeaderCompiled() )
-    {
-      if( match( null, "*", SourceCodeTokenizer.TT_OPERATOR ) )
-      {
-        usesStmt.setTypeName( t + "*" );
-        if( verify( usesStmt, t.endsWith( "." ), Res.MSG_BAD_NAMESPACE, t ) )
-        {
-          String namespace = t.substring( 0, t.length() - 1 );
-          IType type = TypeSystem.getNamespace( namespace );
-          if( type == null )
-          {
-            type = TypeSystem.getByFullNameIfValid( namespace );
-          }
-          verify( usesStmt, type != null, Res.MSG_BAD_NAMESPACE, namespace );
-        }
-        getTypeUsesMap().addToTypeUses( usesStmt );
-      }
-      else
-      {
-        if( bResolveTypes )
-        {
-          TypeLiteral typeLiteral = resolveTypeLiteral( t, false, false );
-          pushExpression( typeLiteral );
-          setLocation( iOffset, iLineNum, iColumn );
-          popExpression();
-
-          IType type = TypeLord.getPureGenericType( (typeLiteral.getType()).getType() );
-          String strTypeName = type.getName();
-          usesStmt.setTypeName( strTypeName );
-
-          if( typeLiteral.hasParseExceptions() )
-          {
-            IParseIssue first = typeLiteral.getParseExceptions().get( 0 );
-            usesStmt.addParseException( first );
-            //noinspection ThrowableResultOfMethodCallIgnored
-            typeLiteral.removeParseException(first.getMessageKey());
           }
           else
           {
