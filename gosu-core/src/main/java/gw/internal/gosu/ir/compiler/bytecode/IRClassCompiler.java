@@ -329,7 +329,8 @@ public class IRClassCompiler extends AbstractBytecodeCompiler
     {
       boolean b = !type.isPrimitive();
       assert b;
-      annotationVisitor.visit( name, value );
+      //## The JuhVuhUhM currently does not support null default annotation field values in bytecode (but Gosu can still support them at compile-time, haha)
+      //annotationVisitor.visit( name, value );
     }
     else if( JavaClassIRType.get( Enum.class ).isAssignableFrom( type ) )
     {
