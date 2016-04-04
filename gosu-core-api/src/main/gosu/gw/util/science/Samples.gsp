@@ -3,9 +3,11 @@ uses gw.util.time.*
 uses java.math.BigDecimal
 uses java.time.ZoneId
 uses java.net.URL
+uses gw.lang.parser.IParseIssue
 uses UnitConstants#*
 uses TimeConstants#*
 uses gw.util.money.IMoneyConstants#*
+uses gw.lang.parser.exceptions.ParseException
 
 
 var y = 6 kg m/s
@@ -175,3 +177,9 @@ print( "---" )
 var fiveSecs : Time = 5s
 print( fiveSecs )
 print( "---" )
+
+//var issues: List<String> = {"abc", "def"}
+//var typeName = "SDF"
+//foo( typeName + " : Different number of errors found for line " + typeName + " found: ${issues.map( \ gg -> gg.substring( 1 ) )}", issues.Count, issues.Count )
+//var i : int
+//function foo( ss: String, sss: int, ssss: int ) {}
