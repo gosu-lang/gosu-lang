@@ -3,7 +3,7 @@ uses java.math.BigDecimal
 
 interface IUnit<B extends Number & Comparable, 
                 D extends IDimension<D, B>, 
-                U extends IUnit<B, D, U>> extends IDimension<U, B>, UnitConstants {  
+                U extends IUnit<B, D, U>> extends IDimension<U, B> {  
   property get UnitName() : String
   property get UnitSymbol() : String
   function toBaseUnits( theseUnits: B ) : B

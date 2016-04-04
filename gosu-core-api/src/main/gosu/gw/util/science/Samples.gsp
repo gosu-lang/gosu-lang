@@ -3,8 +3,10 @@ uses gw.util.time.*
 uses java.math.BigDecimal
 uses java.time.ZoneId
 uses java.net.URL
+uses UnitConstants#*
+uses TimeConstants#*
+uses gw.util.money.IMoneyConstants#*
 
-extends UnitConstantsImpl
 
 var y = 6 kg m/s
 print( y ) 

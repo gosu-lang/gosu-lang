@@ -1,5 +1,6 @@
 package gw.util.science
 uses java.math.BigDecimal
+uses UnitConstants#PI
 
 enum AngleUnit implements IUnit<BigDecimal, Angle, AngleUnit> {
   Nano( .000000001bd, "Nanoradian", "nrad" ),
