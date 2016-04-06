@@ -3174,7 +3174,8 @@ public final class GosuParser extends ParserBase implements IGosuParser
       }
       backtrack( mark, locationsCount, primExpr );
     }
-    backtrack( mark, locationsCount, unitExpr );
+    _tokenizer.restoreToMark( mark );
+    removeLocationsFrom( locationsCount );
     return false;
   }
 
@@ -11659,6 +11660,9 @@ public final class GosuParser extends ParserBase implements IGosuParser
       if( anon != null ) {
         ((IGosuClassInternal)anon.getEnclosingType()).removeInnerClass( anon );
       }
+    }
+    else if( e instanceof TemplateStringLiteral ) {
+      System.out.println( "delete me");
     }
     IParseTree location = e.getLocation();
     if( location != null ) {
