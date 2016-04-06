@@ -78,7 +78,6 @@ import gw.lang.ir.statement.IRNewStatement;
 import gw.lang.ir.statement.IRReturnStatement;
 import gw.lang.ir.statement.IRStatementList;
 import gw.lang.ir.statement.IRThrowStatement;
-import gw.lang.parser.IAttributeSource;
 import gw.lang.parser.IBlockClass;
 import gw.lang.parser.ICapturedSymbol;
 import gw.lang.parser.ICoercionManager;
@@ -298,7 +297,7 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
       actualArgs.add( 0, identifier( tempRoot ) );
 
       // Now call the method as if it were a static method
-      compositeElements.add( callMethod( rootType, method, null, special, owner, actualArgs ) );
+      compositeElements.add( callMethod( method, null, special, owner, actualArgs ) );
       return new IRCompositeExpression( compositeElements );
     }
     else
@@ -318,12 +317,12 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
 
         // Add the temp named arg assignments (if any)
         compositeElements.addAll( namedArgElements );
-        compositeElements.add( callMethod( rootType, method, root, special, owner, actualArgs ) );
+        compositeElements.add( callMethod( method, root, special, owner, actualArgs ) );
         return new IRCompositeExpression( compositeElements );
       }
       else
       {
-        return callMethod( rootType, method, root, special, owner, actualArgs );
+        return callMethod( method, root, special, owner, actualArgs );
       }
     }
   }
@@ -377,21 +376,89 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
            !(method instanceof SyntheticIRMethod);
   }
 
-  private IRExpression callMethod(IRType rootType, IRMethod method, IRExpression root, boolean special, IType owner, List<IRExpression> actualArgs) {
-    if ( !special && _cc().shouldUseReflection( owner, method.getAccessibility() ) ) {
-      return callMethodReflectively( owner, method.getName(), method.getReturnType(), method.getAllParameterTypes(), root, actualArgs );
-    } else {
-      List<IRExpression> convertedArgs = new ArrayList<IRExpression>();
-      List<IRType> paramTypes = method.getAllParameterTypes();
-      for (int i = 0; i < actualArgs.size(); i++) {
-        convertedArgs.add( IRArgConverter.castOrConvertIfNecessary( paramTypes.get(i), actualArgs.get(i) ) );
+  private IRExpression callMethod( IRMethod method, IRExpression root, boolean special, IType owner, List<IRExpression> actualArgs ) {
+    IType actualMethodOwner = findActualMethodOwner( owner, root );
+    if( !special && _cc().shouldUseReflection( actualMethodOwner, method.getAccessibility() ) )
+    {
+      IRType returnType = method.getReturnType();
+      if( returnType == IRTypeConstants.pVOID() )
+      {
+        return buildComposite(
+          new IRIfStatement( pushConstant( false ),
+                             new IRMethodCallStatement( callMethodDirectly( method, root, special, actualMethodOwner, actualArgs ) ),
+                             new IRMethodCallStatement( callMethodReflectively( actualMethodOwner, method.getName(), method.getReturnType(), method.getAllParameterTypes(), root, actualArgs ) ) ) );
       }
-      IRMethodCallExpression result = buildMethodCall(method.getOwningIRType(), method.getName(), owner.isInterface(), method.getReturnType(), paramTypes, root, convertedArgs);
-      if ( special ) {
-        result.setSpecial( true );
+      else
+      {
+        _cc().pushScope( false );
+        try
+        {
+          IRSymbol result = _cc().makeAndIndexTempSymbol( returnType );
+          return buildComposite(
+            new IRIfStatement( pushConstant( false ),
+                               new IRAssignmentStatement( result, callMethodDirectly( method, root, special, actualMethodOwner, actualArgs ) ),
+                               new IRAssignmentStatement( result, callMethodReflectively( actualMethodOwner, method.getName(), method.getReturnType(), method.getAllParameterTypes(), root, actualArgs ) ) ),
+            identifier( result ) );
+        }
+        finally
+        {
+          _cc().popScope();
+        }
       }
-      return result;
     }
+    else
+    {
+      return callMethodDirectly( method, root, special, actualMethodOwner, actualArgs );
+    }
+  }
+
+  private IType findActualMethodOwner( IType owner, IRExpression root )
+  {
+    if( root == null )
+    {
+      return owner;
+    }
+
+    IRType rootType = root.getType();
+    if( rootType == null )
+    {
+      return owner;
+    }
+    IRType irOwner = getDescriptor( owner );
+    if( !irOwner.isAssignableFrom( rootType ) )
+    {
+      return owner;
+    }
+    int iDims = 0;
+    while( rootType.isArray() )
+    {
+      iDims++;
+      rootType = rootType.getComponentType();
+    }
+    IType type = TypeSystem.getByFullNameIfValid( rootType.getName() );
+    if( type != null )
+    {
+      for( int i = 0; i < iDims; i++ )
+      {
+        type = type.getArrayType();
+      }
+      return type;
+    }
+    return owner;
+  }
+
+  private IRMethodCallExpression callMethodDirectly( IRMethod method, IRExpression root, boolean special, IType owner, List<IRExpression> actualArgs )
+  {
+    List<IRExpression> convertedArgs = new ArrayList<IRExpression>();
+    List<IRType> paramTypes = method.getAllParameterTypes();
+    for (int i = 0; i < actualArgs.size(); i++) {
+      convertedArgs.add( IRArgConverter.castOrConvertIfNecessary( paramTypes.get( i ), actualArgs.get( i ) ) );
+    }
+    IRMethodCallExpression result = buildMethodCall(method.getOwningIRType(), method.getName(), owner.isInterface(), method.getReturnType(), paramTypes, root, convertedArgs);
+    if ( special ) {
+      result.setSpecial( true );
+    }
+    return result;
   }
 
   private void pushEnhancementTypeParams( IType enhancementType, List<IRExpression> args )
@@ -2078,10 +2145,23 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
   {
     if( _cc().shouldUseReflection( owner, accessibility ) )
     {
-      return getFieldReflectively( owner, strField, fieldType, root );
+      _cc().pushScope( false );
+      try
+      {
+        IRSymbol result = _cc().makeAndIndexTempSymbol( fieldType );
+        return buildComposite(
+          new IRIfStatement( pushConstant( false ),
+                             new IRAssignmentStatement( result, buildFieldGet( getDescriptor( owner ), strField, fieldType, root ) ),
+                             new IRAssignmentStatement( result, getFieldReflectively( owner, strField, fieldType, root ) ) ),
+          identifier( result ) );
+      }
+      finally
+      {
+        _cc().popScope();
+      }
     }
 
-    return buildFieldGet(getDescriptor( owner ), strField, fieldType, root);
+    return buildFieldGet( getDescriptor( owner ), strField, fieldType, root );
 
   }
 
@@ -2105,14 +2185,13 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
   {
     if( _cc().shouldUseReflection( owner, accessibility ) )
     {
-      return setFieldReflectively( owner, strField, root, value );
+      return
+        new IRIfStatement( pushConstant( false ),
+                           buildFieldSet( getDescriptor( owner ), strField, fieldType, root, value ),
+                           setFieldReflectively( owner, strField, root, value ) );
     }
 
-    return buildFieldSet(getDescriptor( owner ),
-            strField,
-            fieldType,
-            root,
-            value);
+    return buildFieldSet( getDescriptor( owner ), strField, fieldType, root, value );
   }
 
   private IRStatement setFieldReflectively( IType owner, String strField,
@@ -3282,10 +3361,26 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
 
   private IRExpression getFieldImpl_new( IRProperty irProp, IRExpression root )
   {
-    if ( _cc().shouldUseReflection( irProp.getOwningIType(), irProp.getAccessibility() ) ) {
-      return getFieldReflectively_new( irProp, root );
-    } else {
-      return buildFieldGet(irProp.getOwningIRType(), irProp.getName(), irProp.getType(), root);
+    if( _cc().shouldUseReflection( irProp.getOwningIType(), irProp.getAccessibility() ) )
+    {
+      _cc().pushScope( false );
+      try
+      {
+        IRSymbol result = _cc().makeAndIndexTempSymbol( irProp.getType() );
+        return buildComposite(
+          new IRIfStatement( pushConstant( false ),
+                             new IRAssignmentStatement( result, buildFieldGet( irProp.getOwningIRType(), irProp.getName(), irProp.getType(), root ) ),
+                             new IRAssignmentStatement( result, getFieldReflectively_new( irProp, root ) ) ),
+          identifier( result ) );
+      }
+      finally
+      {
+        _cc().popScope();
+      }
+    }
+    else
+    {
+      return buildFieldGet( irProp.getOwningIRType(), irProp.getName(), irProp.getType(), root );
     }
   }
 

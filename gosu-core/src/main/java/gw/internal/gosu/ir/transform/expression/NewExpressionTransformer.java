@@ -18,6 +18,8 @@ import gw.lang.ir.IRExpression;
 import gw.lang.ir.IRSymbol;
 import gw.lang.ir.expression.IRCompositeExpression;
 import gw.lang.ir.expression.IRNewMultiDimensionalArrayExpression;
+import gw.lang.ir.statement.IRAssignmentStatement;
+import gw.lang.ir.statement.IRIfStatement;
 import gw.lang.parser.IExpression;
 import gw.lang.parser.IParsedElement;
 import gw.lang.parser.expressions.IBlockExpression;
@@ -153,44 +155,58 @@ public class NewExpressionTransformer extends AbstractExpressionTransformer<NewE
     IType type = _expr().getType();
     IRMethod irConstructor = IRMethodFactory.createIRMethod( ci );
 
+    if( irConstructor.isBytecodeMethod() &&
+        isBytecodeType( type ) &&
+        !hasExpansionExpressionInArguments() )
+    {
+      if( _cc().shouldUseReflection( irConstructor.getOwningIType(), irConstructor.getAccessibility() ) )
+      {
+        // if( false ) callDirectly() else callReflectively()
+        _cc().pushScope( false );
+        try
+        {
+          IRSymbol result = _cc().makeAndIndexTempSymbol( getDescriptor( type ) );
+          return buildComposite(
+            new IRIfStatement( pushConstant( false ),
+                               new IRAssignmentStatement( result, makeConstructorCallDirectly( ci ) ),
+                               new IRAssignmentStatement( result, makeConstructorCallReflectively( ci ) ) ),
+            identifier( result ) );
+        }
+        finally
+        {
+          _cc().popScope();
+        }
+      }
+      else
+      {
+        return makeConstructorCallDirectly( ci );
+      }
+    }
+    else
+    {
+      return makeConstructorCallReflectively( ci );
+    }
+  }
+
+  private IRExpression makeConstructorCallReflectively( IConstructorInfo ci )
+  {
+    IType type = _expr().getType();
+    IRMethod irConstructor = IRMethodFactory.createIRMethod( ci );
+
     IRExpression constructorCall;
 
     List<IRElement> newExprElements;
 
-    if( irConstructor.isBytecodeMethod() &&
-        isBytecodeType( type ) &&
-        !hasExpansionExpressionInArguments() &&
-        !_cc().shouldUseReflection( irConstructor.getOwningIType(), irConstructor.getAccessibility() ) )
+    List<IRExpression> explicitArgs = new ArrayList<>();
+    if( isNonStaticInnerClass( type ) )
     {
-      List<IRExpression> explicitArgs = new ArrayList<IRExpression>();
-      pushArgumentsWithCasting( irConstructor, _expr().getArgs(), explicitArgs );
-      newExprElements = handleNamedArgs( explicitArgs, _expr().getNamedArgOrder() );
-
-      // Invoke the constructor
-      List<IRExpression> args = new ArrayList<IRExpression>();
-      if( isNonStaticInnerClass( type ) )
-      {
-        args.add( pushThisOrOuter( type.getEnclosingType() ) );
-      }
-      pushCapturedSymbols( type, args, false );
-      pushTypeParametersForConstructor( _expr(), type, args, false );
-      _cc().pushEnumNameAndOrdinal( type, args );
-      args.addAll( explicitArgs );
-      constructorCall = buildNewExpression( getDescriptor( type ), irConstructor.getAllParameterTypes(), args );
+      explicitArgs.add( pushThisOrOuter( type.getEnclosingType() ) );
     }
-    else
-    {
-      List<IRExpression> explicitArgs = new ArrayList<IRExpression>();
-      if( isNonStaticInnerClass( type ) )
-      {
-        explicitArgs.add( pushThisOrOuter( type.getEnclosingType() ) );
-      }
-      pushArgumentsNoCasting( irConstructor, _expr().getArgs(), explicitArgs );
-      newExprElements = handleNamedArgs( explicitArgs, _expr().getNamedArgOrder() );
+    pushArgumentsNoCasting( irConstructor, _expr().getArgs(), explicitArgs );
+    newExprElements = handleNamedArgs( explicitArgs, _expr().getNamedArgOrder() );
 
-      // Call the IConstructorInfo dynamically
-      constructorCall = callConstructorInfo( type, ci, explicitArgs );
-    }
+    // Call the IConstructorInfo dynamically
+    constructorCall = callConstructorInfo( type, ci, explicitArgs );
 
     if( newExprElements.size() > 0 )
     {
@@ -205,7 +221,53 @@ public class NewExpressionTransformer extends AbstractExpressionTransformer<NewE
       // If there's an initializer, save the result of the constructor to a temp symbol, execute the initializer
       // statements, and then load the temp symbol back so it's the result of the expression
       IRSymbol tempSymbol = _cc().makeAndIndexTempSymbol( constructorCall.getType() );
-      List<IRElement> constructorElements = new ArrayList<IRElement>();
+      List<IRElement> constructorElements = new ArrayList<>();
+      constructorElements.add( buildAssignment( tempSymbol, constructorCall ) );
+      constructorElements.addAll( ExpressionTransformer.compileInitializer( initializer, _cc(), identifier( tempSymbol ) ) );
+      constructorElements.add( identifier( tempSymbol ) );
+      constructorCall = new IRCompositeExpression( constructorElements );
+    }
+
+    return constructorCall;
+  }
+
+  private IRExpression makeConstructorCallDirectly( IConstructorInfo ci )
+  {
+    IType type = _expr().getType();
+    IRMethod irConstructor = IRMethodFactory.createIRMethod( ci );
+
+    IRExpression constructorCall;
+
+    List<IRExpression> explicitArgs = new ArrayList<>();
+    pushArgumentsWithCasting( irConstructor, _expr().getArgs(), explicitArgs );
+    List<IRElement> newExprElements = handleNamedArgs( explicitArgs, _expr().getNamedArgOrder() );
+
+    // Invoke the constructor
+    List<IRExpression> args = new ArrayList<>();
+    if( isNonStaticInnerClass( type ) )
+    {
+      args.add( pushThisOrOuter( type.getEnclosingType() ) );
+    }
+    pushCapturedSymbols( type, args, false );
+    pushTypeParametersForConstructor( _expr(), type, args, false );
+    _cc().pushEnumNameAndOrdinal( type, args );
+    args.addAll( explicitArgs );
+    constructorCall = buildNewExpression( getDescriptor( type ), irConstructor.getAllParameterTypes(), args );
+
+    if( newExprElements.size() > 0 )
+    {
+      // Include temp var assignments so named args are evaluated in lexical order before the ctor call
+      newExprElements.add( constructorCall );
+      constructorCall = new IRCompositeExpression( newExprElements );
+    }
+
+    IInitializerExpression initializer = _expr().getInitializer();
+    if( initializer != null )
+    {
+      // If there's an initializer, save the result of the constructor to a temp symbol, execute the initializer
+      // statements, and then load the temp symbol back so it's the result of the expression
+      IRSymbol tempSymbol = _cc().makeAndIndexTempSymbol( constructorCall.getType() );
+      List<IRElement> constructorElements = new ArrayList<>();
       constructorElements.add( buildAssignment( tempSymbol, constructorCall ) );
       constructorElements.addAll( ExpressionTransformer.compileInitializer( initializer, _cc(), identifier( tempSymbol ) ) );
       constructorElements.add( identifier( tempSymbol ) );
