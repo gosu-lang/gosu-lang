@@ -377,13 +377,12 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
   }
 
   private IRExpression callMethod( IRMethod method, IRExpression root, boolean special, IType owner, List<IRExpression> actualArgs ) {
-    IType actualMethodOwner = findActualMethodOwner( owner, root );
-    if( !special && _cc().shouldUseReflection( actualMethodOwner, method.getAccessibility() ) )
+    if( !special && _cc().shouldUseReflection( owner, method.getAccessibility() ) )
     {
-      if( _cc().isIllegalProtectedCall( actualMethodOwner, method.getAccessibility() ) )
+      if( _cc().isIllegalProtectedCall( owner, method.getAccessibility() ) )
       {
         // Can't gen bytecode for static call otherwise verify error
-        return callMethodReflectively( actualMethodOwner, method.getName(), method.getReturnType(), method.getAllParameterTypes(), root, actualArgs );
+        return callMethodReflectively( owner, method.getName(), method.getReturnType(), method.getAllParameterTypes(), root, actualArgs );
       }
       else
       {
@@ -392,8 +391,8 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
         {
           return buildComposite(
             new IRIfStatement( pushConstant( false ),
-                               new IRMethodCallStatement( callMethodDirectly( method, root, special, actualMethodOwner, actualArgs ) ),
-                               new IRMethodCallStatement( callMethodReflectively( actualMethodOwner, method.getName(), method.getReturnType(), method.getAllParameterTypes(), root, actualArgs ) ) ) );
+                               new IRMethodCallStatement( callMethodDirectly( method, root, special, owner, actualArgs ) ),
+                               new IRMethodCallStatement( callMethodReflectively( owner, method.getName(), method.getReturnType(), method.getAllParameterTypes(), root, actualArgs ) ) ) );
         }
         else
         {
@@ -403,8 +402,8 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
             IRSymbol result = _cc().makeAndIndexTempSymbol( returnType );
             return buildComposite(
               new IRIfStatement( pushConstant( false ),
-                                 new IRAssignmentStatement( result, callMethodDirectly( method, root, special, actualMethodOwner, actualArgs ) ),
-                                 new IRAssignmentStatement( result, callMethodReflectively( actualMethodOwner, method.getName(), method.getReturnType(), method.getAllParameterTypes(), root, actualArgs ) ) ),
+                                 new IRAssignmentStatement( result, callMethodDirectly( method, root, special, owner, actualArgs ) ),
+                                 new IRAssignmentStatement( result, callMethodReflectively( owner, method.getName(), method.getReturnType(), method.getAllParameterTypes(), root, actualArgs ) ) ),
               identifier( result ) );
           }
           finally
@@ -416,7 +415,7 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
     }
     else
     {
-      return callMethodDirectly( method, root, special, actualMethodOwner, actualArgs );
+      return callMethodDirectly( method, root, special, owner, actualArgs );
     }
   }
 
