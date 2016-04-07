@@ -12,14 +12,16 @@ import java.util.List;
 @UnstableAPI
 public class IRSwitchStatement extends IRStatement {
 
+  private final boolean _areLabelsConstant;
   private IRStatement _init;
   private List<IRCaseClause> _cases;
   private List<IRStatement> _defaultStatements;
 
-  public IRSwitchStatement(IRStatement init, List<IRCaseClause> cases, List<IRStatement> defaultStatements) {
+  public IRSwitchStatement(IRStatement init, List<IRCaseClause> cases, List<IRStatement> defaultStatements, boolean areLabelsConstant) {
     _init = init;
     _cases = cases;
     _defaultStatements = defaultStatements;
+    _areLabelsConstant = areLabelsConstant;
 
     setParentToThis( init );
     for (IRCaseClause caseClause : cases) {
@@ -35,6 +37,10 @@ public class IRSwitchStatement extends IRStatement {
 
   public IRStatement getInit() {
     return _init;
+  }
+
+  public boolean areLabelsConstant() {
+    return _areLabelsConstant;
   }
 
   public List<IRCaseClause> getCases() {
