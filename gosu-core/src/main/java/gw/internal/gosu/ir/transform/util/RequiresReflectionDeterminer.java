@@ -133,7 +133,7 @@ public class RequiresReflectionDeterminer
     }
   }
 
-  private static boolean isCallingClassEnclosedInDifferentPackageFromDeclaringSuperclass( ICompilableTypeInternal callingClass, IType declaringClass, IRelativeTypeInfo.Accessibility accessibility )
+  public static boolean isCallingClassEnclosedInDifferentPackageFromDeclaringSuperclass( ICompilableTypeInternal callingClass, IType declaringClass, IRelativeTypeInfo.Accessibility accessibility )
   {
     return accessibility == IRelativeTypeInfo.Accessibility.PROTECTED &&
            isEnclosedInSubtypeOfClass( callingClass, declaringClass ) &&

@@ -380,29 +380,37 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
     IType actualMethodOwner = findActualMethodOwner( owner, root );
     if( !special && _cc().shouldUseReflection( actualMethodOwner, method.getAccessibility() ) )
     {
-      IRType returnType = method.getReturnType();
-      if( returnType == IRTypeConstants.pVOID() )
+      if( _cc().isIllegalProtectedCall( actualMethodOwner, method.getAccessibility() ) )
       {
-        return buildComposite(
-          new IRIfStatement( pushConstant( false ),
-                             new IRMethodCallStatement( callMethodDirectly( method, root, special, actualMethodOwner, actualArgs ) ),
-                             new IRMethodCallStatement( callMethodReflectively( actualMethodOwner, method.getName(), method.getReturnType(), method.getAllParameterTypes(), root, actualArgs ) ) ) );
+        // Can't gen bytecode for static call otherwise verify error
+        return callMethodReflectively( actualMethodOwner, method.getName(), method.getReturnType(), method.getAllParameterTypes(), root, actualArgs );
       }
       else
       {
-        _cc().pushScope( false );
-        try
+        IRType returnType = method.getReturnType();
+        if( returnType == IRTypeConstants.pVOID() )
         {
-          IRSymbol result = _cc().makeAndIndexTempSymbol( returnType );
           return buildComposite(
             new IRIfStatement( pushConstant( false ),
-                               new IRAssignmentStatement( result, callMethodDirectly( method, root, special, actualMethodOwner, actualArgs ) ),
-                               new IRAssignmentStatement( result, callMethodReflectively( actualMethodOwner, method.getName(), method.getReturnType(), method.getAllParameterTypes(), root, actualArgs ) ) ),
-            identifier( result ) );
+                               new IRMethodCallStatement( callMethodDirectly( method, root, special, actualMethodOwner, actualArgs ) ),
+                               new IRMethodCallStatement( callMethodReflectively( actualMethodOwner, method.getName(), method.getReturnType(), method.getAllParameterTypes(), root, actualArgs ) ) ) );
         }
-        finally
+        else
         {
-          _cc().popScope();
+          _cc().pushScope( false );
+          try
+          {
+            IRSymbol result = _cc().makeAndIndexTempSymbol( returnType );
+            return buildComposite(
+              new IRIfStatement( pushConstant( false ),
+                                 new IRAssignmentStatement( result, callMethodDirectly( method, root, special, actualMethodOwner, actualArgs ) ),
+                                 new IRAssignmentStatement( result, callMethodReflectively( actualMethodOwner, method.getName(), method.getReturnType(), method.getAllParameterTypes(), root, actualArgs ) ) ),
+              identifier( result ) );
+          }
+          finally
+          {
+            _cc().popScope();
+          }
         }
       }
     }
@@ -2145,19 +2153,27 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
   {
     if( _cc().shouldUseReflection( owner, accessibility ) )
     {
-      _cc().pushScope( false );
-      try
+      if( _cc().isIllegalProtectedCall( owner, accessibility ) )
       {
-        IRSymbol result = _cc().makeAndIndexTempSymbol( fieldType );
-        return buildComposite(
-          new IRIfStatement( pushConstant( false ),
-                             new IRAssignmentStatement( result, buildFieldGet( getDescriptor( owner ), strField, fieldType, root ) ),
-                             new IRAssignmentStatement( result, getFieldReflectively( owner, strField, fieldType, root ) ) ),
-          identifier( result ) );
+        // Can't gen bytecode for static call otherwise verify error
+        return getFieldReflectively( owner, strField, fieldType, root );
       }
-      finally
+      else
       {
-        _cc().popScope();
+        _cc().pushScope( false );
+        try
+        {
+          IRSymbol result = _cc().makeAndIndexTempSymbol( fieldType );
+          return buildComposite(
+            new IRIfStatement( pushConstant( false ),
+                               new IRAssignmentStatement( result, buildFieldGet( getDescriptor( owner ), strField, fieldType, root ) ),
+                               new IRAssignmentStatement( result, getFieldReflectively( owner, strField, fieldType, root ) ) ),
+            identifier( result ) );
+        }
+        finally
+        {
+          _cc().popScope();
+        }
       }
     }
 
@@ -2185,10 +2201,18 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
   {
     if( _cc().shouldUseReflection( owner, accessibility ) )
     {
-      return
-        new IRIfStatement( pushConstant( false ),
-                           buildFieldSet( getDescriptor( owner ), strField, fieldType, root, value ),
-                           setFieldReflectively( owner, strField, root, value ) );
+      if( _cc().isIllegalProtectedCall( owner, accessibility ) )
+      {
+        // Can't gen bytecode for static call otherwise verify error
+        return setFieldReflectively( owner, strField, root, value );
+      }
+      else
+      {
+        return
+          new IRIfStatement( pushConstant( false ),
+                             buildFieldSet( getDescriptor( owner ), strField, fieldType, root, value ),
+                             setFieldReflectively( owner, strField, root, value ) );
+      }
     }
 
     return buildFieldSet( getDescriptor( owner ), strField, fieldType, root, value );
@@ -3363,19 +3387,27 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
   {
     if( _cc().shouldUseReflection( irProp.getOwningIType(), irProp.getAccessibility() ) )
     {
-      _cc().pushScope( false );
-      try
+      if( _cc().isIllegalProtectedCall( irProp.getOwningIType(), irProp.getAccessibility() ) )
       {
-        IRSymbol result = _cc().makeAndIndexTempSymbol( irProp.getType() );
-        return buildComposite(
-          new IRIfStatement( pushConstant( false ),
-                             new IRAssignmentStatement( result, buildFieldGet( irProp.getOwningIRType(), irProp.getName(), irProp.getType(), root ) ),
-                             new IRAssignmentStatement( result, getFieldReflectively_new( irProp, root ) ) ),
-          identifier( result ) );
+        // Can't gen bytecode for static call otherwise verify error
+        return getFieldReflectively_new( irProp, root );
       }
-      finally
+      else
       {
-        _cc().popScope();
+        _cc().pushScope( false );
+        try
+        {
+          IRSymbol result = _cc().makeAndIndexTempSymbol( irProp.getType() );
+          return buildComposite(
+            new IRIfStatement( pushConstant( false ),
+                               new IRAssignmentStatement( result, buildFieldGet( irProp.getOwningIRType(), irProp.getName(), irProp.getType(), root ) ),
+                               new IRAssignmentStatement( result, getFieldReflectively_new( irProp, root ) ) ),
+            identifier( result ) );
+        }
+        finally
+        {
+          _cc().popScope();
+        }
       }
     }
     else

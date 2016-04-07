@@ -161,20 +161,28 @@ public class NewExpressionTransformer extends AbstractExpressionTransformer<NewE
     {
       if( _cc().shouldUseReflection( irConstructor.getOwningIType(), irConstructor.getAccessibility() ) )
       {
-        // if( false ) callDirectly() else callReflectively()
-        _cc().pushScope( false );
-        try
+        if( _cc().isIllegalProtectedCall( irConstructor.getOwningIType(), irConstructor.getAccessibility() ) )
         {
-          IRSymbol result = _cc().makeAndIndexTempSymbol( getDescriptor( type ) );
-          return buildComposite(
-            new IRIfStatement( pushConstant( false ),
-                               new IRAssignmentStatement( result, makeConstructorCallDirectly( ci ) ),
-                               new IRAssignmentStatement( result, makeConstructorCallReflectively( ci ) ) ),
-            identifier( result ) );
+          // Can't gen bytecode for static call otherwise verify error
+          return makeConstructorCallReflectively( ci );
         }
-        finally
+        else
         {
-          _cc().popScope();
+          // if( false ) callDirectly() else callReflectively()
+          _cc().pushScope( false );
+          try
+          {
+            IRSymbol result = _cc().makeAndIndexTempSymbol( getDescriptor( type ) );
+            return buildComposite(
+              new IRIfStatement( pushConstant( false ),
+                                 new IRAssignmentStatement( result, makeConstructorCallDirectly( ci ) ),
+                                 new IRAssignmentStatement( result, makeConstructorCallReflectively( ci ) ) ),
+              identifier( result ) );
+          }
+          finally
+          {
+            _cc().popScope();
+          }
         }
       }
       else
