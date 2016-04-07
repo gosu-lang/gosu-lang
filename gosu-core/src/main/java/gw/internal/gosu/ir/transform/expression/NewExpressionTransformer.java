@@ -161,7 +161,7 @@ public class NewExpressionTransformer extends AbstractExpressionTransformer<NewE
     {
       if( _cc().shouldUseReflection( irConstructor.getOwningIType(), irConstructor.getAccessibility() ) )
       {
-        if( _cc().isIllegalProtectedCall( irConstructor.getOwningIType(), irConstructor.getAccessibility() ) )
+        if( avoidVerifyError( irConstructor.getOwningIType(), irConstructor.getAccessibility() ) )
         {
           // Can't gen bytecode for static call otherwise verify error
           return makeConstructorCallReflectively( ci );
@@ -175,7 +175,7 @@ public class NewExpressionTransformer extends AbstractExpressionTransformer<NewE
             IRSymbol result = _cc().makeAndIndexTempSymbol( getDescriptor( type ) );
             return buildComposite(
               new IRIfStatement( pushConstant( false ),
-                                 new IRAssignmentStatement( result, makeConstructorCallDirectly( ci ) ),
+                                 makeStatementToReferenceTypeForStudioIncrementalCompiler( irConstructor.getOwningIType() ), //NOOP: new IRAssignmentStatement( result, makeConstructorCallDirectly( ci ) ),
                                  new IRAssignmentStatement( result, makeConstructorCallReflectively( ci ) ) ),
               identifier( result ) );
           }

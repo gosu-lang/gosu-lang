@@ -87,7 +87,6 @@ import gw.lang.parser.IExpression;
 import gw.lang.parser.ILanguageLevel;
 import gw.lang.parser.IParsedElement;
 import gw.lang.parser.IReducedSymbol;
-import gw.lang.parser.ISymbol;
 import gw.lang.parser.Keyword;
 import gw.lang.parser.StandardCoercionManager;
 import gw.lang.parser.statements.IFunctionStatement;
@@ -95,7 +94,6 @@ import gw.lang.reflect.ClassLazyTypeResolver;
 import gw.lang.reflect.FunctionType;
 import gw.lang.reflect.IBlockType;
 import gw.lang.reflect.IConstructorInfo;
-import gw.lang.reflect.IEntityAccess;
 import gw.lang.reflect.IEnumConstant;
 import gw.lang.reflect.IFeatureInfo;
 import gw.lang.reflect.IFunctionType;
@@ -141,7 +139,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -379,9 +376,9 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
   private IRExpression callMethod( IRMethod method, IRExpression root, boolean special, IType owner, List<IRExpression> actualArgs ) {
     if( !special && _cc().shouldUseReflection( owner, method.getAccessibility() ) )
     {
-      if( _cc().isIllegalProtectedCall( owner, method.getAccessibility() ) )
+      if( avoidVerifyError( owner, method.getAccessibility() ) )
       {
-        // Can't gen bytecode for static call otherwise verify error
+        // Can't gen bytecode for protected call or ref internal class from another loader otherwise verify error
         return callMethodReflectively( owner, method.getName(), method.getReturnType(), method.getAllParameterTypes(), root, actualArgs );
       }
       else
@@ -391,7 +388,7 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
         {
           return buildComposite(
             new IRIfStatement( pushConstant( false ),
-                               new IRMethodCallStatement( callMethodDirectly( method, root, special, owner, actualArgs ) ),
+                               makeStatementToReferenceTypeForStudioIncrementalCompiler( owner ), //NOOP: new IRMethodCallStatement( callMethodDirectly( method, root, special, owner, actualArgs ) ),
                                new IRMethodCallStatement( callMethodReflectively( owner, method.getName(), method.getReturnType(), method.getAllParameterTypes(), root, actualArgs ) ) ) );
         }
         else
@@ -402,7 +399,7 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
             IRSymbol result = _cc().makeAndIndexTempSymbol( returnType );
             return buildComposite(
               new IRIfStatement( pushConstant( false ),
-                                 new IRAssignmentStatement( result, callMethodDirectly( method, root, special, owner, actualArgs ) ),
+                                 makeStatementToReferenceTypeForStudioIncrementalCompiler( owner ), //NOOP: new IRAssignmentStatement( result, callMethodDirectly( method, root, special, owner, actualArgs ) ),
                                  new IRAssignmentStatement( result, callMethodReflectively( owner, method.getName(), method.getReturnType(), method.getAllParameterTypes(), root, actualArgs ) ) ),
               identifier( result ) );
           }
@@ -419,39 +416,15 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
     }
   }
 
-  private IType findActualMethodOwner( IType owner, IRExpression root )
+  protected IRStatementList makeStatementToReferenceTypeForStudioIncrementalCompiler( IType owner )
   {
-    if( root == null )
-    {
-      return owner;
-    }
-
-    IRType rootType = root.getType();
-    if( rootType == null )
-    {
-      return owner;
-    }
-    IRType irOwner = getDescriptor( owner );
-    if( !irOwner.isAssignableFrom( rootType ) )
-    {
-      return owner;
-    }
-    int iDims = 0;
-    while( rootType.isArray() )
-    {
-      iDims++;
-      rootType = rootType.getComponentType();
-    }
-    IType type = TypeSystem.getByFullNameIfValid( rootType.getName() );
-    if( type != null )
-    {
-      for( int i = 0; i < iDims; i++ )
-      {
-        type = type.getArrayType();
-      }
-      return type;
-    }
-    return owner;
+    return new IRStatementList( false,
+       // Making call like this:
+       //   String.valueOf( ownerClass )
+       // just to have a reference to the class so Studio's incremental compiler will know the class is referenced in the compiling class.
+       // Of course, this statement is never executed, it's only there as a ref.
+       new IRMethodCallStatement( callMethod( String.class, "valueOf", new Class[]{Object.class}, null, Collections.singletonList( new IRClassLiteral( getDescriptor( owner ) ) ) ) ),
+       new IRThrowStatement( new IRNewExpression( getDescriptor( Error.class ), Collections.emptyList(), Collections.emptyList() ) ) );
   }
 
   private IRMethodCallExpression callMethodDirectly( IRMethod method, IRExpression root, boolean special, IType owner, List<IRExpression> actualArgs )
@@ -2152,9 +2125,9 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
   {
     if( _cc().shouldUseReflection( owner, accessibility ) )
     {
-      if( _cc().isIllegalProtectedCall( owner, accessibility ) )
+      if( avoidVerifyError( owner, accessibility ) )
       {
-        // Can't gen bytecode for static call otherwise verify error
+        // Can't gen bytecode for protected call otherwise verify error
         return getFieldReflectively( owner, strField, fieldType, root );
       }
       else
@@ -2165,7 +2138,7 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
           IRSymbol result = _cc().makeAndIndexTempSymbol( fieldType );
           return buildComposite(
             new IRIfStatement( pushConstant( false ),
-                               new IRAssignmentStatement( result, buildFieldGet( getDescriptor( owner ), strField, fieldType, root ) ),
+                               makeStatementToReferenceTypeForStudioIncrementalCompiler( owner ), //NOOP:new IRAssignmentStatement( result, buildFieldGet( getDescriptor( owner ), strField, fieldType, root ) ),
                                new IRAssignmentStatement( result, getFieldReflectively( owner, strField, fieldType, root ) ) ),
             identifier( result ) );
         }
@@ -2178,6 +2151,12 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
 
     return buildFieldGet( getDescriptor( owner ), strField, fieldType, root );
 
+  }
+
+  protected boolean avoidVerifyError( IType owner, IRelativeTypeInfo.Accessibility accessibility )
+  {
+    return _cc().isIllegalProtectedCall( owner, accessibility ) ||
+        AccessibilityUtil.forType( owner ) == IRelativeTypeInfo.Accessibility.INTERNAL;
   }
 
   private IRExpression getFieldReflectively( IType owner, String strField, IRType fieldType, IRExpression root )
@@ -2200,7 +2179,7 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
   {
     if( _cc().shouldUseReflection( owner, accessibility ) )
     {
-      if( _cc().isIllegalProtectedCall( owner, accessibility ) )
+      if( avoidVerifyError( owner, accessibility ) )
       {
         // Can't gen bytecode for static call otherwise verify error
         return setFieldReflectively( owner, strField, root, value );
@@ -2209,7 +2188,7 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
       {
         return
           new IRIfStatement( pushConstant( false ),
-                             buildFieldSet( getDescriptor( owner ), strField, fieldType, root, value ),
+                             makeStatementToReferenceTypeForStudioIncrementalCompiler( owner ), //NOOP:buildFieldSet( getDescriptor( owner ), strField, fieldType, root, value ),
                              setFieldReflectively( owner, strField, root, value ) );
       }
     }
@@ -3386,7 +3365,7 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
   {
     if( _cc().shouldUseReflection( irProp.getOwningIType(), irProp.getAccessibility() ) )
     {
-      if( _cc().isIllegalProtectedCall( irProp.getOwningIType(), irProp.getAccessibility() ) )
+      if( avoidVerifyError( irProp.getOwningIType(), irProp.getAccessibility() ) )
       {
         // Can't gen bytecode for static call otherwise verify error
         return getFieldReflectively_new( irProp, root );
@@ -3399,7 +3378,7 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
           IRSymbol result = _cc().makeAndIndexTempSymbol( irProp.getType() );
           return buildComposite(
             new IRIfStatement( pushConstant( false ),
-                               new IRAssignmentStatement( result, buildFieldGet( irProp.getOwningIRType(), irProp.getName(), irProp.getType(), root ) ),
+                               makeStatementToReferenceTypeForStudioIncrementalCompiler( irProp.getOwningIType() ), //NOOP:new IRAssignmentStatement( result, buildFieldGet( irProp.getOwningIRType(), irProp.getName(), irProp.getType(), root ) ),
                                new IRAssignmentStatement( result, getFieldReflectively_new( irProp, root ) ) ),
             identifier( result ) );
         }
