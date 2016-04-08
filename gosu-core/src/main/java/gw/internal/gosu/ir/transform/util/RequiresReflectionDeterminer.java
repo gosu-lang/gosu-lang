@@ -4,6 +4,9 @@
 
 package gw.internal.gosu.ir.transform.util;
 
+import gw.fs.IDirectory;
+import gw.fs.IFile;
+import gw.internal.gosu.ir.compiler.bytecode.expression.IRMethodCallExpressionCompiler;
 import gw.internal.gosu.parser.AsmClassJavaClassInfo;
 import gw.internal.gosu.parser.ICompilableTypeInternal;
 import gw.internal.gosu.parser.IGosuClassInternal;
@@ -11,14 +14,18 @@ import gw.internal.gosu.parser.IGosuEnhancementInternal;
 import gw.internal.gosu.parser.IGosuProgramInternal;
 import gw.internal.gosu.parser.TypeLord;
 import gw.internal.gosu.parser.java.classinfo.JavaSourceType;
+import gw.lang.parser.IFileRepositoryBasedType;
+import gw.lang.parser.ILanguageLevel;
 import gw.lang.reflect.IRelativeTypeInfo;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.gs.BytecodeOptions;
-import gw.lang.reflect.gs.GosuClassPathThing;
+import gw.lang.reflect.gs.IGosuClass;
 import gw.lang.reflect.gs.IGosuProgram;
+import gw.lang.reflect.gs.ISourceFileHandle;
 import gw.lang.reflect.java.IJavaClassInfo;
 import gw.lang.reflect.java.IJavaType;
+import gw.util.GosuObjectUtil;
 
 public class RequiresReflectionDeterminer
 {
@@ -126,7 +133,7 @@ public class RequiresReflectionDeterminer
     }
   }
 
-  private static boolean isCallingClassEnclosedInDifferentPackageFromDeclaringSuperclass( ICompilableTypeInternal callingClass, IType declaringClass, IRelativeTypeInfo.Accessibility accessibility )
+  public static boolean isCallingClassEnclosedInDifferentPackageFromDeclaringSuperclass( ICompilableTypeInternal callingClass, IType declaringClass, IRelativeTypeInfo.Accessibility accessibility )
   {
     return accessibility == IRelativeTypeInfo.Accessibility.PROTECTED &&
            isEnclosedInSubtypeOfClass( callingClass, declaringClass ) &&
@@ -141,40 +148,102 @@ public class RequiresReflectionDeterminer
     return (accessibility == IRelativeTypeInfo.Accessibility.PROTECTED ||
             accessibility == IRelativeTypeInfo.Accessibility.INTERNAL ||
             AccessibilityUtil.forType( declaringClass ) == IRelativeTypeInfo.Accessibility.INTERNAL)
-           && (javaClassLoadsInSeparateLoader( callingClass, declaringClass ) || isInSeparateClassLoader( callingClass, declaringClass ))
-           && getTopLevelNamespace( callingClass ).equals( getTopLevelNamespace( declaringClass ) );
+           && getTopLevelNamespace( callingClass ).equals( getTopLevelNamespace( declaringClass ) )
+           && (isInSeparateClassLoader( callingClass, declaringClass ) ||
+               classesLoadInSeparateLoader( callingClass, declaringClass ));
+
   }
 
-  private static boolean javaClassLoadsInSeparateLoader( ICompilableTypeInternal callingClass, IType declaringClass )
+  private static boolean classesLoadInSeparateLoader( ICompilableTypeInternal callingClass, IType declaringClass )
   {
-    if( GosuClassPathThing.canWrapChain() || !(declaringClass instanceof IJavaType) )
+    if( ILanguageLevel.Util.STANDARD_GOSU() )
     {
-      return false;
+      return classesLoadInSeparateLoader_Standard( callingClass, declaringClass );
     }
 
-    IJavaType javaClass = (IJavaType)declaringClass;
-    IJavaClassInfo classInfo = javaClass.getBackingClassInfo();
-    if( classInfo instanceof AsmClassJavaClassInfo )
+    // To support Guidewire's plugin classloader API calls, we always generate
+    // reflective call sites for internal/protected access calls within the same package
+    return classesLoadInSeparateLoader_Legacy( callingClass, declaringClass );
+  }
+
+  private static boolean classesLoadInSeparateLoader_Legacy( ICompilableTypeInternal callingClass, IType declaringClass )
+  {
+    if( declaringClass instanceof IFileRepositoryBasedType )
     {
-      // The Asm-based class is indicative of compiling Gosu statically, which
-      // means the Gosu class will be dropped in the same package/directory as
-      // Java classes it may be using, therefore at runtime they are guaranteed
-      // to use the same classloader, therefore internal/package usage does not
-      // need to be compiled reflectively.  If they are not in the same loader,
-      // it is the responsibility of the user to find a remedy as is the case
-      // with normal Java development.
+      if( TypeLord.getOuterMostEnclosingClass( declaringClass ) == TypeLord.getOuterMostEnclosingClass( callingClass ) )
+      {
+        // Classes are in the same file
+        return false;
+      }
+      if( IGosuClass.ProxyUtil.isProxy( callingClass ) || callingClass.getName().contains( IRMethodCallExpressionCompiler.STRUCTURAL_PROXY ) )
+      {
+        // Proxy classes generated in same class loader
+        return false;
+      }
+      IDirectory callingSourcePath = getSourcePathFor( callingClass );
+      IDirectory declaringSourcePath = getSourcePathFor( (IFileRepositoryBasedType)declaringClass );
+      return !GosuObjectUtil.equals( callingSourcePath, declaringSourcePath );
+    }
+    else
+    {
       return false;
     }
-    if( classInfo instanceof JavaSourceType )
+  }
+
+  private static boolean classesLoadInSeparateLoader_Standard( ICompilableTypeInternal callingClass, IType declaringClass )
+  {
+    if( declaringClass instanceof IJavaType )
     {
-      // The Source-based class indicates we are compiling Gosu statically from
-      // a "special" place, like inside an IDE's process where, for example, a
-      // Gosu class can be compiled before the Java class it references, in which
-      // case Gosu parsed Java directly from Source.  In this case we can
-      // determine if the Java source file and Gosu file are in the same module.
-      return callingClass.getTypeLoader().getModule() != declaringClass.getTypeLoader().getModule();
+      IJavaType javaClass = (IJavaType)declaringClass;
+      IJavaClassInfo classInfo = javaClass.getBackingClassInfo();
+      if( classInfo instanceof AsmClassJavaClassInfo )
+      {
+        // The Asm-based class is indicative of compiling Gosu statically, which
+        // means the Gosu class will be dropped in the same package/directory as
+        // Java classes it may be using, therefore at runtime they are guaranteed
+        // to use the same classloader, therefore internal/package usage does not
+        // need to be compiled reflectively.  If they are not in the same loader,
+        // it is the responsibility of the user to find a remedy as is the case
+        // with normal Java development.
+        return false;
+      }
+      if( classInfo instanceof JavaSourceType )
+      {
+        // The Source-based class indicates we are compiling Gosu statically from
+        // a "special" place, like inside an IDE's process where, for example, a
+        // Gosu class can be compiled before the Java class it references, in which
+        // case Gosu parsed Java directly from Source.  In this case we can
+        // determine if the Java source file and Gosu file are in the same module.
+        return callingClass.getTypeLoader().getModule() != declaringClass.getTypeLoader().getModule();
+      }
+      return true;
     }
-    return true;
+    else
+    {
+      return false;
+    }
+  }
+
+  private static IDirectory getSourcePathFor( IFileRepositoryBasedType gsClass )
+  {
+    ISourceFileHandle sourceFileHandle = gsClass.getSourceFileHandle();
+    if( sourceFileHandle == null )
+    {
+      return null;
+    }
+    IFile filePath = sourceFileHandle.getFile();
+    if( filePath == null )
+    {
+      return null;
+    }
+    for( IDirectory dir: gsClass.getTypeLoader().getModule().getSourcePath() )
+    {
+      if( filePath.isDescendantOf( dir ) )
+      {
+        return dir;
+      }
+    }
+    return null;
   }
 
   private static boolean isGosuClassAccessingProtectedMemberOfClassNotInHierarchy( ICompilableTypeInternal callingClass, IType declaringClass, IRelativeTypeInfo.Accessibility accessibility )

@@ -143,6 +143,11 @@ public class GosuClassTransformationContext extends TransformationContextBase {
     return RequiresReflectionDeterminer.shouldUseReflection( declaringClass, _gsClass, accessibility );
   }
 
+  public boolean isIllegalProtectedCall( IType declaringClass, IRelativeTypeInfo.Accessibility accessibility )
+  {
+    return RequiresReflectionDeterminer.isCallingClassEnclosedInDifferentPackageFromDeclaringSuperclass( _gsClass, declaringClass, accessibility );
+  }
+
   @Override
   public boolean currentlyCompilingBlock()
   {
