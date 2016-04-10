@@ -3254,7 +3254,7 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
     Token T = new Token();
 
     DelegateStatement delegateStmt = new DelegateStatement();
-    verify( delegateStmt, gsClass == null || (!gsClass.isInterface() && !gsClass.isEnum()), Res.MSG_DELEGATION_NOT_ALLOWED_HERE );
+    verify( delegateStmt, gsClass == null || !gsClass.isInterface(), Res.MSG_DELEGATION_NOT_ALLOWED_HERE );
     verify( delegateStmt, !Modifier.isStatic( modifiers.getModifiers() ), Res.MSG_DELEGATES_CANNOT_BE_STATIC );
     verify( delegateStmt, !Modifier.isAbstract( modifiers.getModifiers() ), Res.MSG_MODIFIER_ABSTRACT_NOT_ALLOWED_HERE );
     verify( delegateStmt, !Modifier.isOverride( modifiers.getModifiers() ), Res.MSG_ILLEGAL_USE_OF_MODIFIER, Keyword.KW_override, Keyword.KW_var );

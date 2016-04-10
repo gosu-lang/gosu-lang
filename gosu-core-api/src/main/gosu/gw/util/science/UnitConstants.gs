@@ -10,10 +10,10 @@ interface UnitConstants {
   var km: LengthUnit = Kilometer
   var inch: LengthUnit = Inch
   var ft: LengthUnit = Foot
-  var yds: LengthUnit = Yard
+  var yd: LengthUnit = Yard
   var mi: LengthUnit = Mile
   
-  var ns: TimeUnit = Nanos
+  var ns: TimeUnit = Nano
   var mus: TimeUnit = Micro
   var ms: TimeUnit = Milli
   var s: TimeUnit = Second
@@ -21,7 +21,10 @@ interface UnitConstants {
   var hr: TimeUnit = Hour
   var day: TimeUnit = Day
   var wk: TimeUnit =  Week
+  var mo: TimeUnit =  Month
   var yr: TimeUnit = Year
+  var tmo: TimeUnit =  TrMonth
+  var tyr: TimeUnit = TrYear
   
   var amu: MassUnit = AtomicMass
   var mug: MassUnit = Micro

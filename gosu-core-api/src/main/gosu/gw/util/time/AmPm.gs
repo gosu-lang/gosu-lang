@@ -16,7 +16,7 @@ enum AmPm implements UnitConstants {
     else if( is12 ) {
       time -= 12hr
     }
-    return LocalTime.ofNanoOfDay( time.toNumber( Nanos ).longValue() )
+    return LocalTime.ofNanoOfDay( time.toNumber( Nano ).longValue() )
   }
   
   function postfixBind( hour: Integer ) : HourAmPm {

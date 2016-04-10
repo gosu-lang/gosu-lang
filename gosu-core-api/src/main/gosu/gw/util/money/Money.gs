@@ -161,6 +161,12 @@ final class Money implements IDimension<Money, BigDecimal> {
      }
      return new Money( quotient )
   }
+  function divide( money: Money ) : BigDecimal {
+    if( _amount.size() == 1 && money._amount.size() == 1 && SingleUnit == money.SingleUnit ) {
+      return SingleValue / money.SingleValue
+    }
+    return exchange( Currency.BASE ) / money.exchange( Currency.BASE )
+  }
 
   function modulo( value: BigDecimal ) : Money {
     var mod = new HashMap<Currency, BigDecimal>()
@@ -170,6 +176,13 @@ final class Money implements IDimension<Money, BigDecimal> {
      }
      return new Money( mod )
   }
+  function modulo( money: Money ) : BigDecimal {
+    if( _amount.size() == 1 && money._amount.size() == 1 && SingleUnit == money.SingleUnit ) {
+      return SingleValue % money.SingleValue
+    }
+    return exchange( Currency.BASE ) % money.exchange( Currency.BASE )
+  }
+
   
   function negate() : Money {
     var negation = new HashMap<Currency, BigDecimal>()

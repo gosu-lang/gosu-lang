@@ -14,7 +14,7 @@ enum TemperatureUnit implements IUnit<BigDecimal, Temperature, TemperatureUnit> 
   var _name: String
   var _symbol: String
   
-  private construct( toK(deg:BigDecimal):BigDecimal, fromK(deg:BigDecimal):BigDecimal, name: String, symbol: String ) {
+  private construct( toK(deg:BigDecimal): BigDecimal, fromK(deg:BigDecimal): BigDecimal, name: String, symbol: String ) {
     _toK = toK
     _fromK = fromK
     _name = name

@@ -769,8 +769,8 @@ public abstract class ParserBase implements IParserPart
               Res.MSG_TYPE_MISMATCH,
               rhsType.getDisplayName(),
               lhsType.getDisplayName(),
-              rhsType.getTypeLoader().getModule().getName(),
-              lhsType.getTypeLoader().getModule().getName());
+              rhsType.getTypeLoader() == null ? null : rhsType.getTypeLoader().getModule().getName(),
+              lhsType.getTypeLoader() == null ? null : lhsType.getTypeLoader().getModule().getName());
       return retType;
     }
 
@@ -973,7 +973,7 @@ public abstract class ParserBase implements IParserPart
 
       if( isFinalDimension( parser, rhsType, parsedElement ) )
       {
-        if( op == '*' || op == '/' || op == '%' )
+        if( op == '*' )
         {
           // Unless the lhs overrides default behavior (via method impl e.g., divide(... )),
           // multiplication is undefined between to dimensions.
@@ -994,6 +994,12 @@ public abstract class ParserBase implements IParserPart
             parser.addError( parsedElement, Res.MSG_DIMENSION_ADDITION_MUST_BE_SAME_TYPE );
           }
           return ErrorType.getInstance();
+        }
+
+        if( op == '/' || op == '%' )
+        {
+          IType dimType = TypeLord.findParameterizedType( lhsType, JavaTypes.IDIMENSION() );
+          return dimType.getTypeParameters()[1];
         }
       }
       else if( op == '+' || op == '-' )

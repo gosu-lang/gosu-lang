@@ -1,8 +1,8 @@
 package gw.util.science
 uses java.math.BigDecimal
 
-final class CurrentUnit extends AbstractProductUnit<ChargeUnit, TimeUnit, Current, CurrentUnit> {
-  public static var BASE: CurrentUnit = new( Coulomb, Second )
+final class CurrentUnit extends AbstractQuotientUnit<ChargeUnit, TimeUnit, Current, CurrentUnit> {
+  public static var BASE: CurrentUnit = new( Coulomb, Second ) // Amperes
   
   construct( chargeUnit: ChargeUnit, timeUnit: TimeUnit ) {
     super( chargeUnit, timeUnit )

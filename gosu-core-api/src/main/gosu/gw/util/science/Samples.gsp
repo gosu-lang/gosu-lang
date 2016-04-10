@@ -43,6 +43,7 @@ print( 9 mi/hr )
 // can be written like this:print( o )
 // 
     distance = 50 mi/hr * 3 hr
+   
     print( 50mi.to( km ) )
     var acc = 9.8 m/s/s  
     var kdl = 0.44704 kg m/s 
@@ -178,8 +179,24 @@ var fiveSecs : Time = 5s
 print( fiveSecs )
 print( "---" )
 
-//var issues: List<String> = {"abc", "def"}
-//var typeName = "SDF"
-//foo( typeName + " : Different number of errors found for line " + typeName + " found: ${issues.map( \ gg -> gg.substring( 1 ) )}", issues.Count, issues.Count )
-//var i : int
-//function foo( ss: String, sss: int, ssss: int ) {}
+for( l in (1m..(1m + 6inch)).step( 2 ).unit( inch ) ) {
+  print( l )
+}
+
+for( temp in (1dC..100dC).step( 2 ).unit( dF ) ) {
+  print( temp )
+}
+
+for( temp in (1m/s/s..100m/s/s).step( 2 ).unit( yd/s/s ) ) {
+  print( temp )
+}
+
+var t2 = 1mo
+print( t2.to( s ) )
+var t3 = 1tmo
+print( t3.to( s ) )
+
+print( 2ft * 6inch )
+print( 2ft / 6inch )
+
+print( 1 USD / 1 EUR )

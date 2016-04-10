@@ -2,8 +2,9 @@ package gw.util.science
 
 uses java.lang.Class
 uses java.math.BigDecimal
+uses gw.lang.reflect.interval.ISequenceable
 
-abstract class AbstractMeasure<U extends IUnit<BigDecimal, IDimension, U>, T extends AbstractMeasure<U, T>> implements IDimension<T, BigDecimal> {
+abstract class AbstractMeasure<U extends IUnit<BigDecimal, IDimension, U>, T extends AbstractMeasure<U, T>> implements IDimension<T, BigDecimal>, ISequenceable<T, BigDecimal, U> {
   final var _value: BigDecimal
   final var _dipslayUnit: U as Unit
   final var _baseUnit: U as BaseUnit
@@ -58,4 +59,28 @@ abstract class AbstractMeasure<U extends IUnit<BigDecimal, IDimension, U>, T ext
     var n = o.toNumber()
     return _value > n ? 1 : _value < n ? -1 : 0
   }
+  
+  /**
+   *  Implementation of ISequenceable
+   */  
+  override public function nextInSequence( step: BigDecimal, unit: U ) : T {
+    step = step ?: BigDecimal.ONE
+    unit = unit ?: Unit
+    return fromNumber( toNumber() + (unit.toBaseUnits( step ) - unit.toBaseUnits( 0 )) )
+  }
+  override public function nextNthInSequence( step: BigDecimal, unit: U, iIndex: int ) : T {
+    step = step ?: BigDecimal.ONE
+    unit = unit ?: Unit
+    return fromNumber( toNumber() + (unit.toBaseUnits( step ) - unit.toBaseUnits( 0 ))*iIndex )
+  }
+  override public function previousInSequence( step: BigDecimal, unit: U ) : T {
+    step = step ?: BigDecimal.ONE
+    unit = unit ?: Unit
+    return fromNumber( toNumber() - (unit.toBaseUnits( step ) - unit.toBaseUnits( 0 )) )
+  }
+  override public function previousNthInSequence( step: BigDecimal, unit: U, iIndex : int ) : T {
+    step = step ?: BigDecimal.ONE
+    unit = unit ?: Unit
+    return fromNumber( toNumber() - (unit.toBaseUnits( step ) - unit.toBaseUnits( 0 ))*iIndex )
+  }  
 }

@@ -11661,9 +11661,6 @@ public final class GosuParser extends ParserBase implements IGosuParser
         ((IGosuClassInternal)anon.getEnclosingType()).removeInnerClass( anon );
       }
     }
-    else if( e instanceof TemplateStringLiteral ) {
-      System.out.println( "delete me");
-    }
     IParseTree location = e.getLocation();
     if( location != null ) {
       for( IParseTree pt: location.getChildren() ) {

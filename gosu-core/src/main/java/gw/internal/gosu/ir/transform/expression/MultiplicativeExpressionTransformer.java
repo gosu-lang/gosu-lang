@@ -59,30 +59,56 @@ public class MultiplicativeExpressionTransformer extends ArithmeticExpressionTra
     IRSymbol tempRhsInit = _cc().makeAndIndexTempSymbol( getDescriptor( _expr().getRHS().getType() ) );
     IRAssignmentStatement tempRhsInitAssn = buildAssignment( tempRhsInit, rhs );
     boolean bLhsDim = JavaTypes.IDIMENSION().isAssignableFrom( _expr().getLHS().getType() );
+    boolean bRhsDim = JavaTypes.IDIMENSION().isAssignableFrom( _expr().getRHS().getType() );
     if( _expr().isNullSafe() ) {
       return buildComposite( tempLhsInitAssn, tempRhsInitAssn,
         buildCast( getDescriptor( _expr().getType() ),
                    buildTernary( buildEquals( identifier( tempLhsInit ), nullLiteral() ),
-                      nullLiteral(),
-                      buildTernary( buildEquals( identifier( tempRhsInit ), nullLiteral() ),
-                                    nullLiteral(),
-                                    (type == JavaTypes.BIG_DECIMAL() || type == JavaTypes.BIG_INTEGER())
-                                    ? callMethod( IDimension.class, "fromNumber", new Class[]{Number.class}, identifier( bLhsDim ? tempLhsInit : tempRhsInit ),
-                                                  Collections.singletonList( multiplyBigDimension( type, tempLhsInit, tempRhsInit ) ) )
-                                    : callMethod( IDimension.class, "fromNumber", new Class[]{Number.class}, identifier( bLhsDim ? tempLhsInit : tempRhsInit ),
-                                                  Collections.singletonList( boxValueToType( type, multiplyBoxedDimension( type, tempLhsInit, tempRhsInit ) ) ) ),
-                                    getDescriptor( _expr().getType() ) ),
-                      getDescriptor( _expr().getType() ) ) ) );
+                                 nullLiteral(),
+                                 buildTernary( buildEquals( identifier( tempRhsInit ), nullLiteral() ),
+                                               nullLiteral(),
+                                               doMultiplicationOrDivision( type, tempLhsInit, tempRhsInit, bLhsDim, bRhsDim ),
+                                               getDescriptor( _expr().getType() ) ),
+                                 getDescriptor( _expr().getType() ) ) ) );
     }
     else {
       return buildComposite( tempLhsInitAssn, tempRhsInitAssn,
                              buildCast( getDescriptor( _expr().getType() ),
-                                        (type == JavaTypes.BIG_DECIMAL() || type == JavaTypes.BIG_INTEGER())
-                                        ? callMethod( IDimension.class, "fromNumber", new Class[]{Number.class}, identifier( bLhsDim ? tempLhsInit : tempRhsInit ),
-                                                      Collections.singletonList( multiplyBigDimension( type, tempLhsInit, tempRhsInit ) ) )
-                                        : callMethod( IDimension.class, "fromNumber", new Class[]{Number.class}, identifier( bLhsDim ? tempLhsInit : tempRhsInit ),
-                                                      Collections.singletonList( boxValueToType( type, multiplyBoxedDimension( type, tempLhsInit, tempRhsInit ) ) ) ) ) );
+                                        doMultiplicationOrDivision( type, tempLhsInit, tempRhsInit, bLhsDim, bRhsDim ) ) );
     }
+  }
+
+  private IRExpression doMultiplicationOrDivision( IType type, IRSymbol tempLhsInit, IRSymbol tempRhsInit, boolean bLhsDim, boolean bRhsDim )
+  {
+    return bLhsDim && bRhsDim && verifyDivision() // only division supported dim/dim, not dim*dim
+    ? doDimByDimDivision( type, tempLhsInit, tempRhsInit )
+    : doDimByNumberMultiplyOrDivide( type, tempLhsInit, tempRhsInit, bLhsDim );
+  }
+
+  private boolean verifyDivision()
+  {
+    String operator = _expr().getOperator();
+    if( !operator.contains( "/" ) && !operator.contains( "%" ) )
+    {
+      throw new IllegalStateException( "Unexpected operator: " + operator );
+    }
+    return true;
+  }
+
+  private IRExpression doDimByDimDivision( IType type, IRSymbol tempLhsInit, IRSymbol tempRhsInit )
+  {
+    return (type == JavaTypes.BIG_DECIMAL() || type == JavaTypes.BIG_INTEGER())
+      ? multiplyBigDimension( type, tempLhsInit, tempRhsInit )
+      : boxValueToType( type, multiplyBoxedDimension( type, tempLhsInit, tempRhsInit ) );
+  }
+
+  private IRExpression doDimByNumberMultiplyOrDivide( IType type, IRSymbol tempLhsInit, IRSymbol tempRhsInit, boolean bLhsDim )
+  {
+    return (type == JavaTypes.BIG_DECIMAL() || type == JavaTypes.BIG_INTEGER())
+      ? callMethod( IDimension.class, "fromNumber", new Class[]{Number.class}, identifier( bLhsDim ? tempLhsInit : tempRhsInit ),
+                    Collections.singletonList( multiplyBigDimension( type, tempLhsInit, tempRhsInit ) ) )
+      : callMethod( IDimension.class, "fromNumber", new Class[]{Number.class}, identifier( bLhsDim ? tempLhsInit : tempRhsInit ),
+                    Collections.singletonList( boxValueToType( type, multiplyBoxedDimension( type, tempLhsInit, tempRhsInit ) ) ) );
   }
 
   private IRArithmeticExpression multiplyBoxedDimension( IType type, IRSymbol tempLhsInit, IRSymbol tempRhsInit ) {
