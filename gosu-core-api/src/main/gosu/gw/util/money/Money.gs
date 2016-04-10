@@ -4,11 +4,12 @@ uses java.math.BigDecimal
 uses java.text.NumberFormat
 
 /**
- * Money represents an immutable amount of one or more currencies.  An instance of Money 
- * can be an operand in any Gosu arithmetic expression.  You can add or subtract Money of
- * different currencies and exchange Money for another currency or basket of currencies.
- * Money also works with Gosu Binding Expressions where currency codes can be used as direct
- * labels on number literals and simple expressions e.g., 35 USD is the same as new Money( 35, USD )
+ * Money represents an immutable amount of one or more currencies.  An instance of Money may be 
+ * an operand in any Gosu arithmetic expression.  You can add, subtract, and divide Money of
+ * different currencies.  You can exchange Money involving any number of currencies for another Money 
+ * involving any number of currencies. Money also works with Gosu Binding Expressions where currency 
+ * codes can be used as direct labels on number literals and simple expressions e.g., 35 USD is the 
+ * same as new Money( 35, USD )
  */
 final class Money implements IDimension<Money, BigDecimal> {
   final var _amount: Map<Currency, BigDecimal> as Amount

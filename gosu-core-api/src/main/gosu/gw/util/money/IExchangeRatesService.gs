@@ -10,7 +10,6 @@ uses gw.util.science.Time
 interface IExchangeRatesService {
   /**
    * @param The currency for the resulting exchange rate table
-   * @param The currency rate type.  One of: Middle/avg rate, Ask, or Bid.
    * @return The currency exchange rates table for the specified currency
    */
   function getExchangeRatesTable( currency: Currency ) : Map<Currency, IExchangeRate>

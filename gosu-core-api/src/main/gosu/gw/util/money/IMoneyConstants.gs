@@ -180,7 +180,7 @@ interface IMoneyConstants {
     try {
       currency = Currency.getInstance( code )
     }
-    catch( e: Exception ) {
+    catch( e: IllegalArgumentException ) {
       currency = null
     }
     return currency

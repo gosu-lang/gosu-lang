@@ -1,9 +1,9 @@
 package gw.util.time
 uses java.time.LocalTime
 uses gw.util.science.Time
-uses gw.util.science.UnitConstants
+uses gw.util.science.UnitConstants#hr
 
-enum AmPm implements UnitConstants {
+enum AmPm {
   AM, PM
   
   function postfixBind( time: Time ) : LocalTime {

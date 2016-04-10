@@ -2,19 +2,19 @@ package gw.util.money
 uses java.net.URL
 uses java.math.BigDecimal
 uses gw.util.science.Time
-uses gw.util.science.UnitConstants
 uses gw.lang.reflect.json.DefaultParser_Big
 uses java.net.URLEncoder
 uses gw.util.LRUCache
 uses gw.util.concurrent.Cache
 uses java.util.concurrent.ConcurrentHashMap
+uses gw.util.science.UnitConstants#min
 
 /**
- * This default implementation uses the Yahoo Finance API the get the table of exchange rates.
- * Yahoo updates the rates continuously.  This service refreshes by the minute on demand i.e., lazily; 
+ * This default implementation uses the Yahoo Finance API to get the table of exchange rates.
+ * Yahoo updates the rates continuously.  This service refreshes by the minute on demand; 
  * no rate is ever more than one minute old.
  */
-class DefaultExchangeRatesService implements IExchangeRatesService, UnitConstants  
+class DefaultExchangeRatesService implements IExchangeRatesService  
 {  
   final var _rateTables: Map<Currency, ExpiringRateTable>
   var _frequency: Time as Frequency = 1 min
@@ -67,7 +67,7 @@ class DefaultExchangeRatesService implements IExchangeRatesService, UnitConstant
       try {
         currencyOfName = Currency.getInstance( name )
       }
-      catch( e: Exception ) {
+      catch( e: IllegalArgumentException ) {
         // So far Java doesn't support currencies for: ECS, XCP, CNH
         //print( "Failed to get currency for: " + name )
       }
