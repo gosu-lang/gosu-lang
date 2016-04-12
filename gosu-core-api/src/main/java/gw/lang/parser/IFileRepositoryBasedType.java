@@ -4,10 +4,11 @@
 
 package gw.lang.parser;
 
+import gw.lang.reflect.IType;
 import gw.lang.reflect.gs.ClassType;
 import gw.lang.reflect.gs.ISourceFileHandle;
 
-public interface IFileRepositoryBasedType
+public interface IFileRepositoryBasedType extends IType
 {
   ISourceFileHandle getSourceFileHandle();
   ClassType getClassType();

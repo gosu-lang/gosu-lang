@@ -89,6 +89,12 @@ public class GosuFragmentTransformationContext extends TransformationContextBase
   }
 
   @Override
+  public boolean isIllegalProtectedCall( IType declaringClass, IRelativeTypeInfo.Accessibility accessibility )
+  {
+    return accessibility != IRelativeTypeInfo.Accessibility.PUBLIC;
+  }
+
+  @Override
   public boolean isExternalSymbol(String name) {
     return _fragment.isExternalSymbol(name);
   }
