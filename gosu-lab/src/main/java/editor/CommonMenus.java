@@ -1,11 +1,13 @@
 package editor;
 
 import gw.lang.reflect.IType;
+import gw.lang.reflect.TypeSystem;
+import gw.lang.reflect.gs.IGosuClass;
+import gw.lang.reflect.gs.IGosuClassTypeInfo;
 import gw.lang.reflect.gs.IGosuProgram;
 import gw.lang.reflect.gs.ITemplateType;
 
 import javax.swing.*;
-import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.util.function.Supplier;
 
@@ -215,20 +217,42 @@ public class CommonMenus
     public void actionPerformed( ActionEvent e )
     {
       RunMe.getEditorFrame().getGosuPanel().clearOutput();
-      if( _program.get() instanceof ITemplateType )
+      IType type = _program.get();
+      if( type instanceof ITemplateType )
       {
         RunMe.getEditorFrame().getGosuPanel().executeTemplate();
       }
       else
       {
-        RunMe.getEditorFrame().getGosuPanel().execute( _program.get().getName() );
+        RunMe.getEditorFrame().getGosuPanel().execute( type.getName() );
       }
     }
 
     public boolean isEnabled()
     {
-      return _program.get() != null && _program.get() instanceof IGosuProgram &&
-             !RunMe.getEditorFrame().getGosuPanel().isRunning();
+      IType type = _program.get();
+      if( type == null )
+      {
+        return false;
+      }
+      if( RunMe.getEditorFrame().getGosuPanel().isRunning() )
+      {
+        return false;
+      }
+
+      if( type instanceof IGosuProgram )
+      {
+        return true;
+      }
+
+      if( type instanceof IGosuClass && !type.isAbstract() &&
+          ((IGosuClassTypeInfo)type.getTypeInfo()).isPublic() &&
+          type.getTypeInfo().getConstructor() != null )
+      {
+        IType baseTest = TypeSystem.getByFullNameIfValid( "junit.framework.Assert" );
+        return baseTest.isAssignableFrom( type );
+      }
+      return false;
     }
   }
 

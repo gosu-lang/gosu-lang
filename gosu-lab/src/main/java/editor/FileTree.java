@@ -74,7 +74,7 @@ public class FileTree implements MutableTreeNode, IFileWatcherListener
       File srcPath = new File( path );
       String srcPathAbsolute = srcPath.getAbsolutePath();
       String experimentDir = experiment.getExperimentDir().getAbsolutePath();
-      if( srcPathAbsolute.startsWith( experimentDir ) )
+      if( srcPathAbsolute.startsWith( experimentDir + File.separator ) )
       {
         // Only include *source* path in the tree; classpath is mixed in source path :|
         String srcPathName = srcPathAbsolute.substring( experimentDir.length() );

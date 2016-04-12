@@ -32,14 +32,19 @@ import gw.lang.parser.exceptions.ParseResultsException;
 import gw.lang.parser.expressions.IBlockExpression;
 import gw.lang.parser.resources.ResourceKey;
 import gw.lang.parser.statements.IClassStatement;
+import gw.lang.reflect.IMethodInfo;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.ITypeRef;
+import gw.lang.reflect.Modifier;
+import gw.lang.reflect.ReflectUtil;
 import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.gs.GosuClassPathThing;
 import gw.lang.reflect.gs.IGosuClass;
 import gw.lang.reflect.gs.IGosuProgram;
 import gw.lang.reflect.java.JavaTypes;
+import gw.util.GosuExceptionUtil;
 import gw.util.StreamUtil;
+import sun.rmi.runtime.RuntimeUtil;
 
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
@@ -60,6 +65,8 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringReader;
 import java.io.StringWriter;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
@@ -821,7 +828,10 @@ public class GosuPanel extends JPanel
         @Override
         public void actionPerformed( ActionEvent e )
         {
-          getCurrentEditor().delete();
+          if( getCurrentEditor() != null )
+          {
+            getCurrentEditor().delete();
+          }
         }
       } );
     deleteItem.setMnemonic( 'D' );
@@ -1637,7 +1647,7 @@ public class GosuPanel extends JPanel
     throw new IllegalStateException( "Unexpected parse element: " + elemAtCaret.getClass().getName() );
   }
 
-  public void execute( String programName )
+  public void execute( String typeName )
   {
     try
     {
@@ -1656,18 +1666,18 @@ public class GosuPanel extends JPanel
       queue.postTask(
         () -> {
           GosuEditor.getParserTaskQueue().waitUntilAllCurrentTasksFinish();
-          IGosuProgram program = (IGosuProgram)TypeSystem.getByFullName( programName );
+          IGosuClass program = (IGosuClass)TypeSystem.getByFullName( typeName );
           try
           {
             Class<?> runnerClass = Class.forName( "editor.GosuPanel$Runner", true, runLoader );
-            String programFqn = program.getName();
-            System.out.println( "Running: " + programFqn + "...\n" );
-            getExperiment().setRecentProgram( programFqn );
+            String fqn = program.getName();
+            System.out.println( "Running: " + fqn + "...\n" );
+            getExperiment().setRecentProgram( fqn );
             String result = null;
             try
             {
               result = (String)runnerClass.getMethod( "run", String.class, List.class ).
-                invoke( null, programFqn, getExperiment().getSourcePath().stream().map( File::new ).collect( Collectors.toList() ) );
+                invoke( null, fqn, getExperiment().getSourcePath().stream().map( File::new ).collect( Collectors.toList() ) );
             }
             finally
             {
@@ -1723,14 +1733,71 @@ public class GosuPanel extends JPanel
 
   public static class Runner
   {
-    public static String run( String programName, List<File> classpath )
+    public static String run( String typeName, List<File> classpath ) throws Exception
     {
       Gosu.init( classpath );
       GosuClassPathThing.addOurProtocolHandler();
       GosuClassPathThing.init();
-      IGosuProgram program = (IGosuProgram)TypeSystem.getByFullNameIfValid( programName );
-      Object result = program.evaluate( null );
-      return (String)CommonServices.getCoercionManager().convertValue( result, JavaTypes.STRING() );
+      IGosuClass gsType = (IGosuClass)TypeSystem.getByFullNameIfValid( typeName );
+      if( gsType instanceof IGosuProgram )
+      {
+        Object result = ((IGosuProgram)gsType).evaluate( null );
+        return (String)CommonServices.getCoercionManager().convertValue( result, JavaTypes.STRING() );
+      }
+      else
+      {
+        IMethodInfo mainMethod = hasStaticMain( gsType );
+        if( mainMethod != null )
+        {
+          ReflectUtil.invokeStaticMethod( gsType.getName(), "main", new Object[]{ new String[]{} } );
+          return null;
+        }
+        runTest( gsType );
+        return null;
+      }
+    }
+
+    private static void runTest( IGosuClass gsType ) throws Exception
+    {
+      Class cls = gsType.getBackingClass();
+      Object instance = cls.newInstance();
+      for( Method m: cls.getMethods() )
+      {
+        int modifiers = m.getModifiers();
+        if( Modifier.isPublic( modifiers ) && m.getName().startsWith( "test" ) && m.getParameters().length == 0 )
+        {
+          try
+          {
+            System.out.println( " - " + m.getName() );
+            m.invoke( instance );
+            System.out.println( "   SUCCESS" );
+          }
+          catch( InvocationTargetException e )
+          {
+            //noinspection ThrowableResultOfMethodCallIgnored
+            Throwable cause = GosuExceptionUtil.findExceptionCause( e );
+            if( cause instanceof AssertionError )
+            {
+              System.out.println( "   FAILED: " + cause.getClass().getSimpleName() + " : " + cause.getMessage() );
+            }
+            else
+            {
+              throw GosuExceptionUtil.forceThrow( cause );
+            }
+          }
+        }
+      }
+
+    }
+
+    private static IMethodInfo hasStaticMain( IGosuClass gsType )
+    {
+      IMethodInfo main = gsType.getTypeInfo().getMethod( "main", JavaTypes.STRING().getArrayType() );
+      if( main != null && main.isStatic() && main.getReturnType() == JavaTypes.pVOID() )
+      {
+        return main;
+      }
+      return null;
     }
   }
 

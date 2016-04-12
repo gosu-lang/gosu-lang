@@ -113,7 +113,7 @@ public class ClasspathDialog extends JDialog
     for(; tokenizer.hasMoreTokens(); )
     {
       String strPath = tokenizer.nextToken();
-      paths.add( strPath );
+      paths.add( strPath.trim() );
     }
     List<File> pathFiles = new ArrayList<>();
     for( String strPath : paths )

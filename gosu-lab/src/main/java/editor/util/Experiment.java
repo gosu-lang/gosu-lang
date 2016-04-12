@@ -196,7 +196,7 @@ public class Experiment implements IProject
   {
     String absExperimentDir = getExperimentDir().getAbsolutePath();
     String absFile = file.getAbsolutePath();
-    if( !absFile.startsWith( absExperimentDir ) )
+    if( !absFile.startsWith( absExperimentDir + File.separator ) )
     {
       return absFile;
     }

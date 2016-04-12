@@ -65,7 +65,7 @@ public class RunMe
     List<String> sourcePath = experiment.getSourcePath();
     for( String path: sourcePath )
     {
-      if( !path.toLowerCase().startsWith( experiment.getExperimentDir().getAbsolutePath().toLowerCase() ) )
+      if( !path.toLowerCase().startsWith( experiment.getExperimentDir().getAbsolutePath().toLowerCase() + File.separator ) )
       {
         classpath.add( path );
       }
