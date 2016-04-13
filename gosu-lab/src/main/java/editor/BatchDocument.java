@@ -4,6 +4,10 @@ import javax.swing.text.AttributeSet;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.DefaultStyledDocument;
 import javax.swing.text.Element;
+import javax.swing.text.SimpleAttributeSet;
+import javax.swing.text.StyleConstants;
+import javax.swing.text.html.HTML;
+import java.awt.*;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -66,8 +70,47 @@ public class BatchDocument extends DefaultStyledDocument
     a = a.copyAttributes();
     char[] chars = str.toCharArray();
     List<ElementSpec> ret = new ArrayList<ElementSpec>();
-    ret.add( new ElementSpec( a, ElementSpec.ContentType, chars, 0, str.length() ) );
+    if( !handleStackTraceLink( str, ret, a ) )
+    {
+      ret.add( new ElementSpec( a, ElementSpec.ContentType, chars, 0, str.length() ) );
+    }
     return ret;
+  }
+
+  private boolean handleStackTraceLink( String str, List<ElementSpec> ret, AttributeSet a )
+  {
+    if( str.trim().startsWith( "at " ) && str.contains( "(" ) && str.contains( ".gs" ) && str.contains( ":" ) )
+    {
+      int iParen = str.indexOf( "(" );
+      int iDot = str.indexOf( '.', iParen );
+      String name = str.substring( iParen+1, iDot );
+      int iAt = str.indexOf( "at" );
+      int iName = str.indexOf( "." + name );
+      String fqn = str.substring( iAt+3, iName + name.length()+1 );
+
+      int iLine = str.indexOf( ':' );
+      String strLine = "";
+      for( int iDigit = iLine+1; Character.isDigit( str.charAt( iDigit ) ); iDigit++ )
+      {
+        char c = str.charAt( iDigit );
+        strLine += c;
+      }
+      int line = strLine.length() > 0 ? Integer.parseInt( strLine ) : -1;
+
+      String firstPart = str.substring( 0, iParen+1 );
+      ret.add( new ElementSpec( a, ElementSpec.ContentType, firstPart.toCharArray(), 0, firstPart.length() ) );
+
+      SimpleAttributeSet newAttr = new SimpleAttributeSet();
+      newAttr.addAttribute( HTML.Tag.A, new SourceFileAttribute( line, fqn ) );
+      newAttr.addAttribute( StyleConstants.Foreground, new Color( 128, 128, 255 ) );
+      String link = str.substring( iParen+1, str.length()-1 );
+      ret.add( new ElementSpec( newAttr, ElementSpec.ContentType, link.toCharArray(), 0, link.length() ) );
+
+      String lastPart = ")";
+      ret.add( new ElementSpec( a, ElementSpec.ContentType, lastPart.toCharArray(), 0, 1 ) );
+      return true;
+    }
+    return false;
   }
 
   public List<ElementSpec> getElementsForLineFeed( AttributeSet a )
