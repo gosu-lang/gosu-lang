@@ -1,11 +1,13 @@
 package editor;
 
+import gw.lang.reflect.IMethodInfo;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.gs.IGosuClass;
 import gw.lang.reflect.gs.IGosuClassTypeInfo;
 import gw.lang.reflect.gs.IGosuProgram;
 import gw.lang.reflect.gs.ITemplateType;
+import gw.lang.reflect.java.JavaTypes;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
@@ -240,17 +242,31 @@ public class CommonMenus
         return false;
       }
 
+      // Is Program?
       if( type instanceof IGosuProgram )
       {
         return true;
       }
 
       if( type instanceof IGosuClass && !type.isAbstract() &&
-          ((IGosuClassTypeInfo)type.getTypeInfo()).isPublic() &&
-          type.getTypeInfo().getConstructor() != null )
+          ((IGosuClassTypeInfo)type.getTypeInfo()).isPublic() )
       {
-        IType baseTest = TypeSystem.getByFullNameIfValid( "junit.framework.Assert" );
-        return baseTest.isAssignableFrom( type );
+        // Is Main class?
+        IMethodInfo main = type.getTypeInfo().getMethod( "main", JavaTypes.STRING().getArrayType() );
+        if( main != null && main.isStatic() && main.getReturnType() == JavaTypes.pVOID() )
+        {
+          return true;
+        }
+
+        // Is Test class?
+        if( type.getTypeInfo().getConstructor() != null )
+        {
+          IType baseTest = TypeSystem.getByFullNameIfValid( "junit.framework.Assert" );
+          if( baseTest != null )
+          {
+            return baseTest.isAssignableFrom( type );
+          }
+        }
       }
       return false;
     }

@@ -44,7 +44,6 @@ import gw.lang.reflect.gs.IGosuProgram;
 import gw.lang.reflect.java.JavaTypes;
 import gw.util.GosuExceptionUtil;
 import gw.util.StreamUtil;
-import sun.rmi.runtime.RuntimeUtil;
 
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
@@ -65,6 +64,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringReader;
 import java.io.StringWriter;
+import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URL;
@@ -1761,11 +1761,12 @@ public class GosuPanel extends JPanel
     {
       Class cls = gsType.getBackingClass();
       Object instance = cls.newInstance();
+      runNamedOrAnnotatedMethod( instance, "beforeClass", "org.junit.BeforeClass" );
       for( Method m: cls.getMethods() )
       {
-        int modifiers = m.getModifiers();
-        if( Modifier.isPublic( modifiers ) && m.getName().startsWith( "test" ) && m.getParameters().length == 0 )
+        if( isTestMethod( m ) )
         {
+          runNamedOrAnnotatedMethod( instance, "beforeMethod", "org.junit.Before" );
           try
           {
             System.out.println( " - " + m.getName() );
@@ -1785,9 +1786,53 @@ public class GosuPanel extends JPanel
               throw GosuExceptionUtil.forceThrow( cause );
             }
           }
+          finally
+          {
+            runNamedOrAnnotatedMethod( instance, "afterMethod", "org.junit.After" );
+          }
         }
       }
+      runNamedOrAnnotatedMethod( instance, "afterClass", "org.junit.AfterClass" );
+    }
 
+    private static boolean isTestMethod( Method m ) throws Exception
+    {
+      int modifiers = m.getModifiers();
+      return Modifier.isPublic( modifiers ) &&
+          (m.getName().startsWith( "test" ) || hasAnnotation( m, "org.junit.Test" )) &&
+          m.getParameters().length == 0;
+    }
+
+    private static void runNamedOrAnnotatedMethod( Object instance, String methodName, String annoName ) throws Exception
+    {
+      for( Method m: instance.getClass().getMethods() )
+      {
+        if( m.getName().equals( methodName ) )
+        {
+          m.invoke( instance );
+          return;
+        }
+        for( Annotation anno : m.getAnnotations() )
+        {
+          if( anno.annotationType().getName().equals( annoName ) )
+          {
+            m.invoke( instance );
+            return;
+          }
+        }
+      }
+    }
+
+    private static boolean hasAnnotation( Method m, String name ) throws Exception
+    {
+      for( Annotation anno : m.getAnnotations() )
+      {
+        if( anno.annotationType().getName().equals( name ) )
+        {
+          return true;
+        }
+      }
+      return false;
     }
 
     private static IMethodInfo hasStaticMain( IGosuClass gsType )
