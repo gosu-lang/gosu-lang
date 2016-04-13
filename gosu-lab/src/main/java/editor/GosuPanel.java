@@ -1696,7 +1696,8 @@ public class GosuPanel extends JPanel
           }
           catch( Exception e )
           {
-            throw new RuntimeException( e );
+            Throwable cause = GosuExceptionUtil.findExceptionCause( e );
+            throw GosuExceptionUtil.forceThrow( cause );
           }
         } );
     }
