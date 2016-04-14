@@ -157,6 +157,7 @@ class GSRootDocImpl extends GSDocImpl implements RootDoc{
   function isSynthetic( name: String ): boolean{
     return name.endsWith( ".PLACEHOLDER" ) ||
         name.startsWith( "_proxy_" ) ||
+        name.startsWith( "OSGI-OPT" ) ||
         name.contains( ".block_" ) ||
         name.contains( ".AnonymouS__" ) ||
         name.contains( ".ProxyFor_" ) ||

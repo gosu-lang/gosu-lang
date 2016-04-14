@@ -5,6 +5,7 @@ import gw.internal.ext.org.objectweb.asm.Opcodes;
 import gw.internal.ext.org.objectweb.asm.util.Textifiable;
 import gw.internal.ext.org.objectweb.asm.util.Textifier;
 
+import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Field;
 
 public class GosuTextifier extends Textifier
@@ -43,9 +44,13 @@ public class GosuTextifier extends Textifier
       if( data.length > 0 )
       {
         buf.append( " : " );
-        for( int i = 0; i < data.length; i++ )
+        try
         {
-          buf.append( String.format( "%5d", data[i] ) );
+          buf.append( new String( data, "US-ASCII" ) );
+        }
+        catch( UnsupportedEncodingException e )
+        {
+          buf.append( "unknown" );
         }
       }
       buf.append( '\n' );
