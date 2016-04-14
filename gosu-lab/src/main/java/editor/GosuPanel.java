@@ -1291,9 +1291,9 @@ public class GosuPanel extends JPanel
     }
     else
     {
-      try
+      try( FileInputStream in = new FileInputStream( file ) )
       {
-        strSource = StreamUtil.getContent( StreamUtil.getInputStreamReader( new FileInputStream( file ) ) );
+        strSource = StreamUtil.getContent( StreamUtil.getInputStreamReader( in ) );
       }
       catch( IOException e )
       {
