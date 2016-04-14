@@ -119,4 +119,39 @@ class Errant_IfTypeNarrowing {
       Prop.foo()
     }
   }
+  // PL-35195
+  class CA7HiredAutoScheduledItemExpression extends DataBuilderExpression<CA7LineSchedCovItemBuilder> {
+
+    construct() {
+      super(new CA7LineSchedCovItemBuilder())
+    }
+
+    function with(clauseExpression : DataBuilderExpression) {
+      if (clauseExpression typeis DataBuilderExpression<CoverageBuilder>) {
+        var foo: CoverageBuilder = clauseExpression.DataBuilder
+
+      }
+    }
+
+  }
+
+  static  abstract class DataBuilderExpression<T extends DataBuilder> {
+
+    protected var _builder : T
+
+    construct(builder : T) {
+      _builder = builder
+    }
+
+    property get DataBuilder() : T {
+      return _builder
+    }
+  }
+
+
+  static public abstract class DataBuilder<B extends DataBuilder<B>> {}
+
+  static  public class CA7LineSchedCovItemBuilder extends DataBuilder<CA7LineSchedCovItemBuilder> {}
+  static  public class CoverageBuilder extends DataBuilder<CoverageBuilder>  {}
+
 }
