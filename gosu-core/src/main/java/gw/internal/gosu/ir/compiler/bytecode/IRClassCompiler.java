@@ -41,6 +41,7 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
+import java.nio.charset.Charset;
 import java.util.List;
 
 public class IRClassCompiler extends AbstractBytecodeCompiler
@@ -52,7 +53,7 @@ public class IRClassCompiler extends AbstractBytecodeCompiler
 
   private ClassVisitor _cv;
   private IRClass _irClass;
-  private static GosuVersion _gosuVersion = Gosu.getVersion();
+  private static byte[] _gosuVersion = Gosu.getVersion().toString().getBytes( Charset.forName( "US-ASCII" ) );
 
 
   public static byte[] compileClass( IRClass irClass, boolean debug )
@@ -127,10 +128,7 @@ public class IRClassCompiler extends AbstractBytecodeCompiler
       Object instance = constr[0].newInstance( "GosuVersion" );
       Field[] fields = aClass.getDeclaredFields();
       fields[1].setAccessible( true );
-      byte[] version = {(byte)_gosuVersion.getMajor(),
-                        (byte)_gosuVersion.getMinor(),
-                        (byte)_gosuVersion.getIncremental()};
-      fields[1].set( instance, version );
+      fields[1].set( instance, _gosuVersion );
       _cv.visitAttribute( (Attribute) instance );
     }
     catch( Exception e )

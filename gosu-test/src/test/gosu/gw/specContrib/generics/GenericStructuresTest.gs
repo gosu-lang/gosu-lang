@@ -1,11 +1,11 @@
 package gw.specContrib.generics
 
-uses junit.framework.TestCase
+uses gw.test.TestClass
 uses java.awt.Point
 uses javax.swing.JButton
 uses java.math.BigDecimal
 
-class GenericStructuresTest extends TestCase {
+class GenericStructuresTest extends TestClass {
 
   function testMe() {
     var value = max( 1, 2 )
@@ -328,6 +328,6 @@ class GenericStructuresTest extends TestCase {
     var list : List<FooArrayComponent> = {}
     var bar = new BarArrayComponent()
     list.add( bar )
-    assertEquals( new Object[]{bar}, list.toTypedArray() )
+    assertArrayEquals( new Object[]{bar}, list.toTypedArray() )
   }
 }

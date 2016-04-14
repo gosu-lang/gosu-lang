@@ -1239,7 +1239,7 @@ public class StandardCoercionManager extends BaseService implements ICoercionMan
     {
       return TypeVariableCoercer.instance();
     }
-    else if( typeToCoerceTo.isAssignableFrom( typeToCoerceFrom ) )
+    else if( typeToCoerceTo.isAssignableFrom( typeToCoerceFrom ) && (!typeToCoerceFrom.isGenericType() || typeToCoerceFrom.isParameterizedType()) )
     {
       return null;
     }

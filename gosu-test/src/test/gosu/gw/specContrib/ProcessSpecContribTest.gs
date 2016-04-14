@@ -105,7 +105,7 @@ class ProcessSpecContribTest extends BaseVerifyErrantTest {
                                    "gw.specContrib.classes.Errant_EnhancementNotNamedAfterFile"
                                  }
     var errantClasses = new ArrayList<String>()
-    findAllErrantFiles(new File("gosu-test/src/test/gosu/gw/specContrib"), errantClasses)
+    findAllErrantFiles(new File("src/test/gosu/gw/specContrib"), errantClasses)
     var j = errantClasses.size()-1
 
     for(c in errantClasses index i) {
