@@ -27,7 +27,6 @@ public class IRIfStatementCompiler extends AbstractBytecodeCompiler {
     Label afterIf = new Label();
     if( statement.getElseStatement() != null )
     {
-      mv.visitJumpInsn( Opcodes.GOTO, afterIf );
       boolean bTerminal = statement.getLeastSignificantTerminalStatement() != null;
       if( !bTerminal )
       {
