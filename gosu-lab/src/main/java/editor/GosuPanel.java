@@ -1,6 +1,7 @@
 package editor;
 
 import editor.search.StandardLocalSearch;
+import editor.search.StudioUtilities;
 import editor.splitpane.CollapsibleSplitPane;
 import editor.tabpane.ITab;
 import editor.tabpane.TabPane;
@@ -828,7 +829,7 @@ public class GosuPanel extends JPanel
         @Override
         public void actionPerformed( ActionEvent e )
         {
-          if( getCurrentEditor() != null )
+          if( getCurrentEditor() != null && StudioUtilities.containsFocus( getCurrentEditor() ) )
           {
             getCurrentEditor().delete();
           }
@@ -1141,8 +1142,9 @@ public class GosuPanel extends JPanel
                   "Undo", new UndoActionHandler() );
     mapKeystroke( KeyStroke.getKeyStroke( KeyEvent.VK_Z, InputEvent.CTRL_MASK | InputEvent.SHIFT_MASK ),
                   "Redo", new RedoActionHandler() );
-    mapKeystroke( KeyStroke.getKeyStroke( KeyEvent.VK_Y, InputEvent.CTRL_MASK ),
-                  "Redo2", new RedoActionHandler() );
+//## conflicts with Delete Line, which is also ctrl+y (same as IJ)
+//    mapKeystroke( KeyStroke.getKeyStroke( KeyEvent.VK_Y, InputEvent.CTRL_MASK ),
+//                  "Redo2", new RedoActionHandler() );
 
 
     // Old-style undo/redo
@@ -1474,9 +1476,9 @@ public class GosuPanel extends JPanel
 
   private void saveAndReloadType( File file, GosuEditor editor )
   {
-    try
+    try( FileOutputStream out = new FileOutputStream( file ) )
     {
-      StreamUtil.copy( new StringReader( editor.getText() ), new FileOutputStream( file ) );
+      StreamUtil.copy( new StringReader( editor.getText() ), out );
       setDirty( editor, false );
       reload( editor.getScriptPart().getContainingType() );
     }
