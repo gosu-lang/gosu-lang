@@ -18,8 +18,6 @@ import gw.lang.ir.IRExpression;
 import gw.lang.ir.IRSymbol;
 import gw.lang.ir.expression.IRCompositeExpression;
 import gw.lang.ir.expression.IRNewMultiDimensionalArrayExpression;
-import gw.lang.ir.statement.IRAssignmentStatement;
-import gw.lang.ir.statement.IRIfStatement;
 import gw.lang.parser.IExpression;
 import gw.lang.parser.IParsedElement;
 import gw.lang.parser.expressions.IBlockExpression;
@@ -157,38 +155,10 @@ public class NewExpressionTransformer extends AbstractExpressionTransformer<NewE
 
     if( irConstructor.isBytecodeMethod() &&
         isBytecodeType( type ) &&
-        !hasExpansionExpressionInArguments() )
+        !hasExpansionExpressionInArguments() &&
+        !_cc().shouldUseReflection( irConstructor.getOwningIType(), irConstructor.getAccessibility() ) )
     {
-      if( _cc().shouldUseReflection( irConstructor.getOwningIType(), irConstructor.getAccessibility() ) )
-      {
-        if( avoidVerifyError( irConstructor.getOwningIType(), irConstructor.getAccessibility() ) )
-        {
-          // Can't gen bytecode for static call otherwise verify error
-          return makeConstructorCallReflectively( ci );
-        }
-        else
-        {
-          // if( false ) callDirectly() else callReflectively()
-          _cc().pushScope( false );
-          try
-          {
-            IRSymbol result = _cc().makeAndIndexTempSymbol( getDescriptor( type ) );
-            return buildComposite(
-              new IRIfStatement( pushConstant( false ),
-                                 makeStatementToReferenceTypeForStudioIncrementalCompiler( irConstructor.getOwningIType() ), //NOOP: new IRAssignmentStatement( result, makeConstructorCallDirectly( ci ) ),
-                                 new IRAssignmentStatement( result, makeConstructorCallReflectively( ci ) ) ),
-              identifier( result ) );
-          }
-          finally
-          {
-            _cc().popScope();
-          }
-        }
-      }
-      else
-      {
-        return makeConstructorCallDirectly( ci );
-      }
+      return makeConstructorCallDirectly( ci );
     }
     else
     {
