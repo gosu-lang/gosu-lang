@@ -11,15 +11,4 @@ import gw.lang.ir.statement.IRReturnStatement;
 @UnstableAPI
 public abstract class IRAbstractLoopStatement extends IRStatement implements IRLoopStatement
 {
-  private IRReturnStatement _returnStmt;
-
-  public void setImplicitReturnStatement( IRReturnStatement returnStmt )
-  {
-    _returnStmt = returnStmt;
-  }
-
-  public IRReturnStatement getImplicitReturnStatement()
-  {
-    return _returnStmt;
-  }
 }

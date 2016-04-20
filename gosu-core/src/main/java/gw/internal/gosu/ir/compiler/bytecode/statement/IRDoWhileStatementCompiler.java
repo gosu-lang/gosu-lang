@@ -42,12 +42,6 @@ public class IRDoWhileStatementCompiler extends AbstractBytecodeCompiler
         context.getMv().visitJumpInsn( Opcodes.IFNE, loopBodyStart );
 
         context.getMv().visitLabel( breakLabel );
-
-        IRReturnStatement implicitReturn = doWhileStatement.getImplicitReturnStatement();
-        if( implicitReturn != null )
-        {
-          IRBytecodeCompiler.compileIRStatement( implicitReturn, context );
-        }
       }
     }
     finally

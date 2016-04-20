@@ -18,11 +18,8 @@ import gw.lang.ir.IRExpression;
 import gw.lang.ir.statement.IRBreakStatement;
 import gw.lang.ir.statement.IRCaseClause;
 import gw.lang.ir.statement.IRSwitchStatement;
-import gw.lang.parser.IExpression;
 import gw.lang.parser.IStatement;
 import gw.lang.parser.statements.ICaseClause;
-import gw.lang.parser.statements.ISwitchStatement;
-import gw.lang.reflect.IEnumType;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.java.JavaTypes;
 
@@ -34,6 +31,8 @@ import java.util.ArrayList;
  */
 public class SwitchStatementTransformer extends AbstractStatementTransformer<SwitchStatement>
 {
+  private static final int MAX_LABELS = 500;
+
   public static IRStatement compile( TopLevelTransformationContext cc, SwitchStatement stmt )
   {
     SwitchStatementTransformer compiler = new SwitchStatementTransformer( cc, stmt );
@@ -58,16 +57,35 @@ public class SwitchStatementTransformer extends AbstractStatementTransformer<Swi
     List<IRCaseClause> irCases = new ArrayList<IRCaseClause>();
 
     CaseClause[] cases = _stmt().getCases();
+    int numConstCases = 0;
+    int minConst = Integer.MAX_VALUE;
+    int maxConst = Integer.MIN_VALUE;
     if( cases != null && cases.length > 0 )
     {
       for( int i = 0; i < cases.length; i++ )
       {
         Expression caseExpression = cases[i].getExpression();
         IRExpression caseTest;
+        int constValue = 0;
         if( (isIntType( switchType ) || switchType == JavaTypes.pBOOLEAN()) &&
             (isIntType( caseExpression.getType() ) || caseExpression.getType() == JavaTypes.pBOOLEAN()) )
         {
           caseTest = compileCaseExpr_int( tempRoot, caseExpression );
+          if( caseExpression.isCompileTimeConstant() &&
+              switchType != JavaTypes.pBOOLEAN() &&
+              caseExpression.getType() != JavaTypes.pBOOLEAN() )
+          {
+            numConstCases++;
+            constValue = getConstValue( caseExpression.evaluate() );
+            if( maxConst < constValue )
+            {
+              maxConst = constValue;
+            }
+            if( minConst > constValue )
+            {
+              minConst = constValue;
+            }
+          }
         }
         else
         {
@@ -92,7 +110,7 @@ public class SwitchStatementTransformer extends AbstractStatementTransformer<Swi
           }
         }
 
-        irCases.add( new IRCaseClause( caseTest, irCaseStatements ) );
+        irCases.add( new IRCaseClause( caseTest, irCaseStatements, constValue ) );
       }
     }
 
@@ -124,7 +142,34 @@ public class SwitchStatementTransformer extends AbstractStatementTransformer<Swi
                                             buildThrow( buildNewExpression( IllegalStateException.class, new Class[] {String.class}, Collections.singletonList( pushConstant( "Enum constant unhandled, recompile with new version of enum class" ) ) ) ) ) );
     }
 
-    return new IRSwitchStatement( init, irCases, irDefaultStatements );
+    return new IRSwitchStatement( init, irCases, irDefaultStatements, areLabelsConstant( cases, numConstCases, minConst, maxConst ) );
+  }
+
+  private boolean areLabelsConstant( CaseClause[] cases, int numConstCases, int minConst, int maxConst )
+  {
+    return numConstCases > 0 && numConstCases == cases.length && (maxConst - minConst <= MAX_LABELS);
+  }
+
+  private int getConstValue( Object o )
+  {
+    int res = 0;
+    if( o instanceof Byte )
+    {
+      res = (Byte)o;
+    }
+    else if( o instanceof Character )
+    {
+      res = (Character)o;
+    }
+    else if( o instanceof Short )
+    {
+      res = (Short)o;
+    }
+    else if( o instanceof Integer )
+    {
+      res = (Integer)o;
+    }
+    return res;
   }
 
   private IRExpression compileCaseExpr_int( IRSymbol tempRoot, Expression caseExpression )
