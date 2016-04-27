@@ -353,7 +353,3 @@ itself, every signature subsumes itself. In a collection of signatures there may
 be one that is subsumed by all others; such a signature is called the 
 *most specific* signature.
 
-EBNF
-====
-
-TODO

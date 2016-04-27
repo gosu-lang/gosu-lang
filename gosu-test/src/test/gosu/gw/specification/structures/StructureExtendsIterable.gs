@@ -1,4 +1,4 @@
-package gw.internal.gosu.parser.structural
+package gw.specification.structures
 
 structure StructureExtendsIterable extends Iterable {
 }

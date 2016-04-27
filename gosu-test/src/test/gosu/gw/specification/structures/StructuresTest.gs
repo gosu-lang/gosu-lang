@@ -1,8 +1,8 @@
-package gw.internal.gosu.parser.structural
+package gw.specification.structures
 uses gw.BaseVerifyErrantTest
 uses java.lang.StringBuilder
 
-class StructuralTypeTest extends BaseVerifyErrantTest {
+class StructuresTest extends BaseVerifyErrantTest {
 
   function testErrant_StructureAssignableToStructureTest() {
     processErrantType( Errant_StructureAssignableToStructureTest )

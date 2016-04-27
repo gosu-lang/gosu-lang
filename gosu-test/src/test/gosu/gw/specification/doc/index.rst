@@ -3,7 +3,7 @@
 ###################################
 
 This reference manual describes the syntax and semantics of the Gosu programming
-language. It is intentionally kept concise and it is not intended as a 
+language. It is intentionally kept concise and it is not intended as a
 programmer's tutorial. Its function is to serve as a reference for programmers
 and implementers.
 
@@ -23,6 +23,7 @@ and implementers.
    classes
    enums
    interfaces
+   structures
    enhancements
    expressions
    blocks
@@ -30,4 +31,4 @@ and implementers.
    featureLiterals
    statements
    generics
-   
+
