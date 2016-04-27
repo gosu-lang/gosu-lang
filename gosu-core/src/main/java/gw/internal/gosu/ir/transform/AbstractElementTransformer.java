@@ -130,6 +130,7 @@ import gw.lang.reflect.java.IJavaConstructorInfo;
 import gw.lang.reflect.java.IJavaType;
 import gw.lang.reflect.java.JavaTypes;
 import gw.lang.reflect.module.IModule;
+import gw.util.Rational;
 import gw.util.concurrent.LocklessLazyVar;
 
 import java.lang.reflect.Field;
@@ -1747,6 +1748,17 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
     IRAssignmentStatement tempOperandAssn;
     if( operandType == bigType ) {
       tempOperandAssn = buildAssignment( tempRet, operand );
+    }
+    else if( operandType == JavaTypes.RATIONAL() )
+    {
+      if( bigType == JavaTypes.BIG_DECIMAL() )
+      {
+        tempOperandAssn = buildAssignment( tempRet, buildMethodCall( Rational.class, "toBigDecimal", BigInteger.class, new Class[]{}, operand, Collections.<IRExpression>emptyList() ) );
+      }
+      else
+      {
+        tempOperandAssn = buildAssignment( tempRet, buildMethodCall( Rational.class, "toBigInteger", BigInteger.class, new Class[]{}, operand, Collections.<IRExpression>emptyList() ) );
+      }
     }
     else {
       IType dimensionType = findDimensionType( operandType );

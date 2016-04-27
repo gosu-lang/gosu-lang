@@ -26,6 +26,7 @@ import gw.lang.reflect.java.IJavaType;
 import gw.lang.reflect.java.JavaTypes;
 import gw.util.GosuExceptionUtil;
 import gw.util.Pair;
+import gw.util.Rational;
 import gw.util.concurrent.Cache;
 
 import java.math.BigDecimal;
@@ -304,6 +305,14 @@ public class StandardCoercionManager extends BaseService implements ICoercionMan
       if( lhsType.equals( JavaTypes.BIG_DECIMAL() ))
       {
         return BigDecimalCoercer.instance();
+      }
+
+      //=============================================================================
+      // All numeric values can be coerced to Rational
+      //=============================================================================
+      if( lhsType.equals( JavaTypes.RATIONAL() ))
+      {
+        return RationalCoercer.instance();
       }
 
       //=============================================================================
@@ -1571,6 +1580,67 @@ public class StandardCoercionManager extends BaseService implements ICoercionMan
       Double d = makeDoubleFrom( obj );
       return new BigDecimal( d.toString() );
     }
+  }
+
+  public Rational makeRationalFrom( Object obj )
+  {
+    if( obj instanceof IDimension )
+    {
+      obj = ((IDimension)obj).toNumber();
+    }
+
+    if( obj == null || obj instanceof Rational )
+    {
+      return (Rational)obj;
+    }
+
+    if( obj instanceof String )
+    {
+      return Rational.get( (String)obj );
+    }
+
+    if( obj instanceof Integer )
+    {
+      return Rational.get( (Integer)obj );
+    }
+    else if( obj instanceof BigInteger )
+    {
+      return Rational.get( (BigInteger)obj );
+    }
+    else if( obj instanceof BigDecimal )
+    {
+      return Rational.get( (BigDecimal)obj );
+    }
+    else if( obj instanceof Long )
+    {
+      return Rational.get( (Long)obj );
+    }
+    else if( obj instanceof Short )
+    {
+      return Rational.get( (Short)obj );
+    }
+    else if( obj instanceof Byte )
+    {
+      return Rational.get( (Byte)obj );
+    }
+    else if( obj instanceof Character )
+    {
+      return Rational.get( (Character)obj );
+    }
+    else if (obj instanceof Float)
+    {
+      return Rational.get( obj.toString() );
+    }
+    else if( obj instanceof Number )
+    {
+      Double d = makeDoubleFrom( obj );
+      return Rational.get( d.toString() );
+    }
+    else if( obj instanceof Boolean )
+    {
+      return (Boolean) obj ? Rational.ONE : Rational.ZERO;
+    }
+    throw new UnsupportedOperationException( "Cannot coerce " + obj + " to Rational" );
   }
 
   public BigInteger makeBigIntegerFrom( Object obj )

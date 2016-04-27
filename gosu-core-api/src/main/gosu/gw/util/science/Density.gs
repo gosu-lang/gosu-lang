@@ -1,6 +1,6 @@
 package gw.util.science
 
-uses java.math.BigDecimal
+uses gw.util.Rational
 uses java.math.RoundingMode
 uses java.math.MathContext
 
@@ -10,10 +10,10 @@ final class Density extends AbstractMeasure<DensityUnit, Density> {
    * @param unit Density unit, default is mg / cubic micros
    * @param displayUnit Unit in which to display this velocity
    */
-  construct( value : BigDecimal, unit: DensityUnit, displayUnit: DensityUnit ) {
+  construct( value : Rational, unit: DensityUnit, displayUnit: DensityUnit ) {
     super( value, unit, displayUnit, DensityUnit.BASE )
   }
-  construct( value : BigDecimal, unit: DensityUnit ) {
+  construct( value : Rational, unit: DensityUnit ) {
     this( value, unit, unit )
   }
  

@@ -1,6 +1,6 @@
 package gw.util.money
-uses java.math.BigDecimal
+uses gw.util.Rational
 
 interface IExchangeRate {
-  function get( rateType: RateType ) : BigDecimal
+  function get( rateType: RateType ) : Rational
 }

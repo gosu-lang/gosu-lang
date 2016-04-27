@@ -189,6 +189,7 @@ import gw.util.DynamicArray;
 import gw.util.GosuExceptionUtil;
 import gw.util.GosuObjectUtil;
 import gw.util.Pair;
+import gw.util.Rational;
 import gw.util.SpaceEfficientHashMap;
 
 import java.io.Closeable;
@@ -1355,6 +1356,10 @@ public final class GosuParser extends ParserBase implements IGosuParser
             else if( JavaTypes.BIG_DECIMAL().equals( ctxNumberType ) )
             {
               literal.setValue( new BigDecimal( strValue ) );
+            }
+            else if( JavaTypes.RATIONAL().equals( ctxNumberType ) )
+            {
+              literal.setValue( Rational.get( strValue ) );
             }
             else if( literal.getType().isPrimitive() &&
                     (JavaTypes.OBJECT().equals( ctxNumberType ) ||
@@ -3013,14 +3018,22 @@ public final class GosuParser extends ParserBase implements IGosuParser
   //
   void parseBindableExpression()
   {
+    parseBindableExpression( true );
+  }
+  void parseBindableExpression( boolean bPostfix )
+  {
     final Token token = _tokenizer.getCurrentToken();
     int iOffset = token.getTokenStart();
     int iLineNum = token.getLine();
     int iColumn = token.getTokenColumn();
-    parseBindableExpression( token );
+    parseBindableExpression( token, bPostfix );
     setLocation( iOffset, iLineNum, iColumn, false );
   }
   private void parseBindableExpression( Token token )
+  {
+    parseBindableExpression( token, true );
+  }
+  private void parseBindableExpression( Token token, boolean bPostfix )
   {
     int iOffset = token.getTokenStart();
     int iLineNum = token.getLine();
@@ -3054,19 +3067,14 @@ public final class GosuParser extends ParserBase implements IGosuParser
     // and t is assignable from the Rhs expression type, Or the Rhs expression implements
     // IPostfixBinder#postfixBind( t ) and t is assignable from the Lhs expression type.
     //
-    parseBindingExpression( token );
+    parseBindingExpression( token, bPostfix );
   }
 
-//  private void parseBindingExpression( Token token )
-//  {
-//    //noinspection StatementWithEmptyBody
-//     while( parsePostfixUnitBindingExpression( token ) ||
-//            parsePrefixUnitBindingExpression( token ) )
-//     {
-//     }
-//  }
-
   private void parseBindingExpression( Token token )
+  {
+    parseBindingExpression( token, true );
+  }
+  private void parseBindingExpression( Token token, boolean bPostfix )
   {
     int mark = getTokenizer().mark();
 
@@ -3080,8 +3088,11 @@ public final class GosuParser extends ParserBase implements IGosuParser
     }
 
     //noinspection StatementWithEmptyBody
-    while( parsePostfixUnitBindingExpression( token, connectorString ) ||
-           parsePrefixUnitBindingExpression( token, connectorString ) )
+    while( bPostfix
+           ? parsePostfixUnitBindingExpression( token, connectorString ) ||
+             parsePrefixUnitBindingExpression( token, connectorString )
+           : parsePrefixUnitBindingExpression( token, connectorString ) ||
+             parsePostfixUnitBindingExpression( token, connectorString ) )
     {
       mark = getTokenizer().mark();
 
@@ -3140,7 +3151,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
     int mark = getTokenizer().mark();
     int locationsCount = _locations.size();
 
-    parseBindableExpression();
+    parseBindableExpression( false );
 
     Expression primExpr = popExpression();
     IType unitBinderType;
@@ -3300,7 +3311,15 @@ public final class GosuParser extends ParserBase implements IGosuParser
       IAnnotationInfo anno = bindMethod.getAnnotation( GosuTypes.BINDER_SEPARATORS() );
       if( anno != null )
       {
-        String[] required = (String[])anno.getFieldValue( "required" );
+        String[] required;
+        try
+        {
+          required = (String[])anno.getFieldValue( "required" );
+        }
+        catch( Exception parseException )
+        {
+          required = null;
+        }
         if( connectorString == null || connectorString.isEmpty() )
         {
           // No connector string provided, valid if one isn't required
@@ -3318,7 +3337,15 @@ public final class GosuParser extends ParserBase implements IGosuParser
           else
           {
             // Valid only if an accepted connector string
-            String[] accepted = (String[])anno.getFieldValue( "accepted" );
+            String[] accepted;
+            try
+            {
+              accepted = (String[])anno.getFieldValue( "accepted" );
+            }
+            catch( Exception parseException )
+            {
+              accepted = null;
+            }
             bValid = accepted != null && accepted.length > 0 && Arrays.asList( accepted ).contains( connectorString );
           }
         }
@@ -8252,7 +8279,11 @@ public final class GosuParser extends ParserBase implements IGosuParser
         {
           if( ctxType == JavaTypes.BIG_DECIMAL() )
           {
-            e = new NumericLiteral( strValue,  new BigDecimal( strValue ), JavaTypes.BIG_DECIMAL());
+            e = new NumericLiteral( strValue, new BigDecimal( strValue ), JavaTypes.BIG_DECIMAL() );
+          }
+          else if( ctxType == JavaTypes.RATIONAL() )
+          {
+            e = new NumericLiteral( strValue, Rational.get( strValue ), JavaTypes.RATIONAL() );
           }
           else
           {
@@ -8279,6 +8310,10 @@ public final class GosuParser extends ParserBase implements IGosuParser
               strValue = stripPrefix( strValue );
             }
             e = new NumericLiteral( strValue,  new BigInteger( strValue ), JavaTypes.BIG_INTEGER());
+          }
+          else if( ctxType == JavaTypes.RATIONAL() )
+          {
+            e = new NumericLiteral( strValue, Rational.get( new BigDecimal( strValue ) ), JavaTypes.RATIONAL() );
           }
           else
           {
@@ -8488,6 +8523,10 @@ public final class GosuParser extends ParserBase implements IGosuParser
       {
         e = new NumericLiteral( strValue, new BigDecimal( strValue ), JavaTypes.BIG_DECIMAL() );
       }
+      else if( JavaTypes.RATIONAL().equals( numericTypeFrom ) )
+      {
+        e = new NumericLiteral( strValue, Rational.get( strValue ), JavaTypes.RATIONAL() );
+      }
       else
       {
         throw new IllegalStateException( "Do not know how to parse a numeric type of value " + numericTypeFrom );
@@ -8568,6 +8607,10 @@ public final class GosuParser extends ParserBase implements IGosuParser
     else if( !hex && !bin && (strValue.endsWith( "d" ) || strValue.endsWith( "D" )) )
     {
       return JavaTypes.pDOUBLE();
+    }
+    else if( !hex && !bin && (strValue.endsWith( "r" ) || strValue.endsWith( "R" )) )
+    {
+      return JavaTypes.RATIONAL();
     }
     else
     {
@@ -10880,7 +10923,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
     {
       parseExpression();
       popExpression();
-      verify( ifStmt, false, Res.MSG_ASSIGNMENT_IN_IF_STATEMENT);
+      verify( ifStmt, false, Res.MSG_ASSIGNMENT_IN_IF_STATEMENT );
     }
 
     verify( ifStmt, match( null, ')' ), Res.MSG_EXPECTING_RIGHTPAREN_IF );
@@ -12128,7 +12171,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
       add.setLHS( lhs );
       add.setRHS( rhs );
       add.setOperator( assignOp.charAt( 0 ) == '+' ? "+" : "-" );
-      add.setType( resolveTypeForArithmeticExpression( lhs, lhs.getType(), assignOp, rhs.getType() ) );
+      add.setType( resolveTypeForArithmeticExpression( add, lhs.getType(), assignOp, rhs.getType() ) );
       synthetic = add;
     }
     else if( "*=".equals( assignOp ) || "/=".equals( assignOp ) || "%=".equals( assignOp ) )
@@ -12137,7 +12180,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
       mult.setLHS( lhs );
       mult.setRHS( rhs );
       mult.setOperator( String.valueOf( assignOp.charAt( 0 ) ) );
-      mult.setType( resolveTypeForArithmeticExpression( lhs, lhs.getType(), assignOp, rhs.getType() ) );
+      mult.setType( resolveTypeForArithmeticExpression( mult, lhs.getType(), assignOp, rhs.getType() ) );
       synthetic = mult;
     }
     else if( "&=".equals( assignOp ) )
@@ -12148,7 +12191,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
       rhs = possiblyWrapWithImplicitCoercion( rhs, lhs.getType() );
       and.setLHS( lhs );
       and.setRHS( rhs );
-      and.setType( resolveTypeForArithmeticExpression( lhs, lhs.getType(), assignOp, rhs.getType() ) );
+      and.setType( resolveTypeForArithmeticExpression( and, lhs.getType(), assignOp, rhs.getType() ) );
       synthetic = and;
     }
     else if( "&&=".equals( assignOp ) )
@@ -12170,7 +12213,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
       rhs = possiblyWrapWithImplicitCoercion( rhs, lhs.getType() );
       xor.setLHS( lhs );
       xor.setRHS( rhs );
-      xor.setType( resolveTypeForArithmeticExpression( lhs, lhs.getType(), assignOp, rhs.getType() ) );
+      xor.setType( resolveTypeForArithmeticExpression( xor, lhs.getType(), assignOp, rhs.getType() ) );
       synthetic = xor;
     }
     else if( "|=".equals( assignOp ) )
@@ -12181,7 +12224,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
       rhs = possiblyWrapWithImplicitCoercion( rhs, lhs.getType() );
       or.setLHS( lhs );
       or.setRHS( rhs );
-      or.setType( resolveTypeForArithmeticExpression( lhs, lhs.getType(), assignOp, rhs.getType() ) );
+      or.setType( resolveTypeForArithmeticExpression( or, lhs.getType(), assignOp, rhs.getType() ) );
       synthetic = or;
     }
     else if( "||=".equals( assignOp ) )
@@ -12218,7 +12261,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
       shift.setLHS( lhs );
       shift.setRHS( rhs );
       shift.setOperator( assignOp );
-      shift.setType( resolveTypeForArithmeticExpression( lhs, lhs.getType(), assignOp, rhs.getType() ) );
+      shift.setType( resolveTypeForArithmeticExpression( shift, lhs.getType(), assignOp, rhs.getType() ) );
       synthetic = shift;
     }
 
@@ -12706,8 +12749,17 @@ public final class GosuParser extends ParserBase implements IGosuParser
         if( args != null )
         {
           //replace the decl time arg symbols with the impl time arg symbols
-          dfsDecl.getArgs().clear();
-          dfsDecl.getArgs().addAll( args );
+          List<ISymbol> argList = dfsDecl.getArgs();
+          if( argList.isEmpty() )
+          {
+            argList = new ArrayList<>();
+            dfsDecl.setArgs( argList );
+          }
+          else
+          {
+            argList.clear();
+          }
+          argList.addAll( args );
         }
         // Overwrite annotations to use the new-expressions created in
         dfsDecl.getModifierInfo().setAnnotations( modifiers.getAnnotations() );
@@ -14251,7 +14303,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
 
   private void maybeVerifyDoubleLiteral( IExpression oneSide, IExpression otherSide )
   {
-    if( (JavaTypes.BIG_DECIMAL().equals( oneSide.getType() ) || JavaTypes.BIG_INTEGER().equals( oneSide.getType() )) && JavaTypes.pDOUBLE().equals( otherSide.getType() ))
+    if( (JavaTypes.BIG_DECIMAL().equals( oneSide.getType() ) || JavaTypes.RATIONAL().equals( oneSide.getType() ) || JavaTypes.BIG_INTEGER().equals( oneSide.getType() )) && JavaTypes.pDOUBLE().equals( otherSide.getType() ))
     {
       if( otherSide instanceof UnaryExpression )
       {

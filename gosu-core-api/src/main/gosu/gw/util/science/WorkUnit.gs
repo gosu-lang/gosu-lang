@@ -1,5 +1,5 @@
 package gw.util.science
-uses java.math.BigDecimal
+uses gw.util.Rational
 
 final class WorkUnit extends AbstractProductUnit<ForceUnit, LengthUnit, Work, WorkUnit> {
   public static var BASE: WorkUnit = new( ForceUnit.BASE, Meter )
@@ -25,5 +25,9 @@ final class WorkUnit extends AbstractProductUnit<ForceUnit, LengthUnit, Work, Wo
   
   function divide( time: TimeUnit ) : PowerUnit {
     return new( this, time )
+  }
+
+  function divide( power: PowerUnit ) : TimeUnit {
+    return power.TimeUnit
   }
 }

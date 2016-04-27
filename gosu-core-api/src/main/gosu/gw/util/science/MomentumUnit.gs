@@ -1,6 +1,6 @@
 package gw.util.science
 
-uses java.math.BigDecimal
+uses gw.util.Rational
 
 final class MomentumUnit extends AbstractProductUnit<MassUnit, VelocityUnit, Momentum, MomentumUnit> {
   public static var BASE: MomentumUnit = new( Kilogram, VelocityUnit.BASE )

@@ -1,9 +1,9 @@
 package gw.util.science
-uses java.math.BigDecimal
+uses gw.util.Rational
 
-abstract class AbstractQuotientUnit<A extends IUnit<BigDecimal, IDimension, A>, 
-                                    B extends IUnit<BigDecimal, IDimension, B>, 
-                                    D extends IDimension<D, BigDecimal>, 
+abstract class AbstractQuotientUnit<A extends IUnit<Rational, IDimension, A>,
+                                    B extends IUnit<Rational, IDimension, B>,
+                                    D extends IDimension<D, Rational>,
                                     U extends AbstractQuotientUnit<A, B, D, U>> extends AbstractBinaryUnit<A, B, D, U> {
   construct( leftUnit: A, rightUnit: B ) {
     super( leftUnit, rightUnit )
@@ -17,11 +17,11 @@ abstract class AbstractQuotientUnit<A extends IUnit<BigDecimal, IDimension, A>,
     return LeftUnit.UnitSymbol + "/" + RightUnit.UnitSymbol
   }
  
-  override function toBaseUnits( myUnits: BigDecimal ) : BigDecimal {
+  override function toBaseUnits( myUnits: Rational ) : Rational {
     return (LeftUnit.toBaseUnits( 1 ) / RightUnit.toBaseUnits( 1 )) * myUnits
   }  
 
-  override function toNumber() : BigDecimal {
+  override function toNumber() : Rational {
     return LeftUnit.toNumber() / RightUnit.toNumber()
   }
 }

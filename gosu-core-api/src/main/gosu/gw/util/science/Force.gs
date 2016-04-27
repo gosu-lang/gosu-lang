@@ -1,19 +1,14 @@
 package gw.util.science
 
-uses java.math.BigDecimal
+uses gw.util.Rational
 uses java.math.RoundingMode
 uses java.math.MathContext
 
 final class Force extends AbstractMeasure<ForceUnit, Force> {
-  /** 
-   * @param value Force in specified units
-   * @param unit Force unit, default is millis / second
-   * @param displayUnit Unit in which to display this velocity
-   */
-  construct( value : BigDecimal, unit: ForceUnit, displayUnit: ForceUnit ) {
+  construct( value: Rational, unit: ForceUnit, displayUnit: ForceUnit ) {
     super( value, unit, displayUnit, ForceUnit.BASE )
   }
-  construct( value : BigDecimal, unit: ForceUnit ) {
+  construct( value: Rational, unit: ForceUnit ) {
     this( value, unit, unit )
   }
  
@@ -21,7 +16,11 @@ final class Force extends AbstractMeasure<ForceUnit, Force> {
     return new Acceleration( toNumber() / w.toNumber(), AccelerationUnit.BASE, Unit.AccUnit )
   }
   
+  function multiply( v: Velocity ) : Power {
+    return new Power( toNumber() * v.toNumber(), PowerUnit.BASE, Unit * v.Unit.LengthUnit / v.Unit.TimeUnit )
+  }
+  
   function multiply( len: Length ) : Work {
-    return new Work( toNumber() * len.toNumber(), WorkUnit.BASE, new( Unit, len.Unit ) ) 
+    return new Work( toNumber() * len.toNumber(), WorkUnit.BASE, Unit * len.Unit ) 
   }
 }

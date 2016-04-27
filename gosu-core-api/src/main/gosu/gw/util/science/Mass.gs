@@ -1,16 +1,11 @@
 package gw.util.science
-uses java.math.BigDecimal
+uses gw.util.Rational
 
 final class Mass extends AbstractMeasure<MassUnit, Mass> {
-  /**
-   * @param value Length in specified units
-   * @param unit Length unit for value, default is Micromillimetres
-   * @param displayUnit Unit in which to display this Length
-   */
-  construct( value: BigDecimal, unit: MassUnit, displayUnit: MassUnit ) {
+  construct( value: Rational, unit: MassUnit, displayUnit: MassUnit ) {
     super( value, unit, displayUnit, Kilogram )
   }
-  construct( value : BigDecimal, unit: MassUnit ) {
+  construct( value : Rational, unit: MassUnit ) {
     this( value, unit, unit )
   }
   
@@ -18,8 +13,8 @@ final class Mass extends AbstractMeasure<MassUnit, Mass> {
     return new Force( toNumber() * a.toNumber(), ForceUnit.BASE, new( Unit, a.Unit ) )
   } 
   
-  function multiply( r: Velocity ) : Momentum {
-    return new Momentum( toNumber() * r.toNumber(), MomentumUnit.BASE, new( Unit, r.Unit ) )
+  function multiply( v: Velocity ) : Momentum {
+    return new Momentum( toNumber() * v.toNumber(), MomentumUnit.BASE, new( Unit, v.Unit ) )
   } 
   
   function divide( area: Area ) : Pressure {

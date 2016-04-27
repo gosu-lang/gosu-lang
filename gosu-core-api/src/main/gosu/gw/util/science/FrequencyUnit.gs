@@ -1,6 +1,6 @@
 package gw.util.science
 
-uses java.math.BigDecimal
+uses gw.util.Rational
 
 final class FrequencyUnit extends AbstractQuotientUnit<AngleUnit, TimeUnit, Frequency, FrequencyUnit> {
   public static var BASE: FrequencyUnit = new( Radian, Second )

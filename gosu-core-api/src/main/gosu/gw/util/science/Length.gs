@@ -1,17 +1,12 @@
 package gw.util.science
 
-uses java.math.BigDecimal 
+uses gw.util.Rational
 
 final class Length extends AbstractMeasure<LengthUnit, Length> {
-  /**
-   * @param value Length in specified units
-   * @param unit Length unit for value, default is Micromillimetres
-   * @param displayUnit Unit in which to display this Length
-   */
-  construct( value: BigDecimal, unit: LengthUnit, displayUnit: LengthUnit ) {
+  construct( value: Rational, unit: LengthUnit, displayUnit: LengthUnit ) {
     super( value, unit, displayUnit, Meter )
   }
-  construct( value: BigDecimal, unit: LengthUnit ) {
+  construct( value: Rational, unit: LengthUnit ) {
     this( value, unit, unit )
   }
 

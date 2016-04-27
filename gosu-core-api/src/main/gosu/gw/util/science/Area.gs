@@ -1,6 +1,6 @@
 package gw.util.science
 
-uses java.math.BigDecimal
+uses gw.util.Rational
 uses java.math.RoundingMode
 uses java.math.MathContext
 
@@ -10,10 +10,10 @@ final class Area extends AbstractMeasure<AreaUnit, Area> {
    * @param unit Area unit, default is Sq Micro
    * @param displayUnit Unit in which to display this area
    */
-  construct( value : BigDecimal, unit: AreaUnit, displayUnit: AreaUnit ) {
+  construct( value : Rational, unit: AreaUnit, displayUnit: AreaUnit ) {
     super( value, unit, displayUnit, AreaUnit.BASE )
   }
-  construct( value : BigDecimal, unit: AreaUnit ) {
+  construct( value : Rational, unit: AreaUnit ) {
     this( value, unit, unit )
   }
 

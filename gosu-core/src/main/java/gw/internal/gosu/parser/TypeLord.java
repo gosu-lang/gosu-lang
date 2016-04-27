@@ -1210,6 +1210,16 @@ public class TypeLord
     if( type.isArray() ) {
       return (E)getPureGenericType( type.getComponentType() ).getArrayType();
     }
+//## todo: write a test to verify whether or not this is correct
+//    if( type instanceof CompoundType ) {
+//      Set<IType> types = ((CompoundType)type).getTypes();
+//      IType[] genTypes = new IType[types.size()];
+//      int i = 0;
+//      for( IType comp: types ) {
+//        genTypes[i++] = getPureGenericType( comp );
+//      }
+//      return (E)CompoundType.get( genTypes );
+//    }
 
     while( type.isParameterizedType() )
     {
@@ -1294,7 +1304,7 @@ public class TypeLord
       if( isRecursiveType( (ITypeVariableType)type, ((ITypeVariableType)type).getBoundingType() ) )
       {
         // short-circuit recursive typevar
-        return ((ITypeVariableType)type).getBoundingType().getGenericType();
+        return TypeLord.getPureGenericType( ((ITypeVariableType)type).getBoundingType() );
       }
 
       if( enclType != null && enclType.isParameterizedType() )
@@ -1493,7 +1503,7 @@ public class TypeLord
             if( isRecursiveType( typeVarType, typeVarType.getBoundingType() ) )
             {
               // short-circuit recursive typevar
-              typeParams[i++] = typeVarType.getBoundingType().getGenericType();
+              typeParams[i++] = TypeLord.getPureGenericType( typeVarType.getBoundingType() );
             }
             else
             {
@@ -2771,14 +2781,13 @@ public class TypeLord
                !(((ITypeVariableType)type).getBoundingType() instanceof ITypeVariableType) )
       {
         // short-circuit recursive typevar
-        boundType = ((ITypeVariableType)type).getBoundingType().getGenericType();
+        boundType = TypeLord.getPureGenericType( ((ITypeVariableType)type).getBoundingType() );
       }
       else
       {
         boundType = boundTypes( ((ITypeVariableType)type).getBoundingType(), typesToBound, bKeepTypeVars );
       }
       typesToBound.add(inferringType); // add it back
-      // FIXME-idubrov: Should we replace all type variables equal to type inside boundType with boundType?
       return boundType;
     }
     else if( type instanceof ITypeVariableArrayType )

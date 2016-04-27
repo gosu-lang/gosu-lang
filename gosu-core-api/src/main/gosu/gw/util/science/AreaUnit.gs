@@ -1,6 +1,6 @@
 package gw.util.science
 
-uses java.math.BigDecimal
+uses gw.util.Rational
 
 final class AreaUnit extends AbstractProductUnit<LengthUnit, LengthUnit, Area, AreaUnit> {
   public static var BASE: AreaUnit = new( Meter, Meter )

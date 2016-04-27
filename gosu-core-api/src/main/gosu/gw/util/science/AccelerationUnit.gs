@@ -1,6 +1,6 @@
 package gw.util.science
 
-uses java.math.BigDecimal
+uses gw.util.Rational
 
 final class AccelerationUnit extends AbstractQuotientUnit<VelocityUnit, TimeUnit, Acceleration, AccelerationUnit> {
   public static var BASE: AccelerationUnit = new( VelocityUnit.BASE, VelocityUnit.BASE.TimeUnit )

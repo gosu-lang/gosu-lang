@@ -1,24 +1,28 @@
 package gw.util.science
-uses java.math.BigDecimal
-uses UnitConstants#PI
+uses gw.util.Rational
+uses DimensionlessConstants#pi
 
-enum AngleUnit implements IUnit<BigDecimal, Angle, AngleUnit> {
-  Nano( .000000001bd, "Nanoradian", "nrad" ),
-  Milli( .001bd, "Milliradian", "mrad" ),
-  Radian( 1bd, "Radian", "rad" ),
-  Degree( PI/180bd, "Degree", "deg" ),
-  MOA( PI/10800bd, "MinuteOfArc", "moa" ),
-  ArcSecond( PI/648000bd, "ArcSecond", "arcsec" ),
-  MilliArcSecond( PI/648000000bd, "MilliArcSecond", "mas" ),
-  Turn( 2bd*PI, "Turn", "cyc" ),
-  Gradian( PI/200bd, "Gradian", "grad" ),
-  Quadrant( PI/2bd, "Quadrant", "quad" )
+enum AngleUnit implements IUnit<Rational, Angle, AngleUnit> {
+  Nano( .000000001, "Nanoradian", "nrad" ),
+  Milli( .001, "Milliradian", "mrad" ),
+  Radian( 1, "Radian", "rad" ),
+  Degree( pi/180, "Degree", "deg" ),
+  MOA( pi/10800, "MinuteOfArc", "moa" ),
+  ArcSecond( pi/648000, "ArcSecond", "arcsec" ),
+  MilliArcSecond( pi/648000000, "MilliArcSecond", "mas" ),
+  Turn( 2*pi, "Turn", "cyc" ),
+  Gradian( pi/200, "Gradian", "grad" ),
+  Quadrant( pi/2, "Quadrant", "quad" )
 
-  var _rads: BigDecimal as Rads
+  var _rads: Rational as Rads
   var _name: String
   var _symbol: String
-  
-  private construct( rads: BigDecimal, name: String, symbol: String ) {
+
+  static property get BaseUnit() : AngleUnit {
+    return Radian
+  }
+
+  private construct( rads: Rational, name: String, symbol: String ) {
     _rads = rads
     _name = name
     _symbol = symbol
@@ -32,15 +36,15 @@ enum AngleUnit implements IUnit<BigDecimal, Angle, AngleUnit> {
     return _symbol
   }
  
-  override function toBaseUnits( myUnits: BigDecimal ) : BigDecimal {
+  override function toBaseUnits( myUnits: Rational ) : Rational {
     return Rads * myUnits
   }
   
-  override function toNumber() : BigDecimal {
+  override function toNumber() : Rational {
     return Rads
   }
   
-  override function from( len: Angle ) : BigDecimal {
+  override function from( len: Angle ) : Rational {
     return len.toNumber() / Rads
   }
   

@@ -1,6 +1,6 @@
 package gw.util.science
 
-uses java.math.BigDecimal
+uses gw.util.Rational
 
 final class VolumeUnit extends AbstractProductUnit<AreaUnit, LengthUnit, Volume, VolumeUnit> {
   public static var BASE: VolumeUnit = new( new( Meter ), Meter )
@@ -33,5 +33,17 @@ final class VolumeUnit extends AbstractProductUnit<AreaUnit, LengthUnit, Volume,
     return IsCubic
            ? (AreaUnit.WidthUnit.UnitSymbol + "\u00B3")
            : (AreaUnit.UnitSymbol + "\u00D7" + LengthUnit.UnitSymbol)
-  }   
+  }
+
+  function divide( len: LengthUnit ) : AreaUnit {
+    return AreaUnit
+  }
+
+  function divide( area: AreaUnit ) : LengthUnit {
+    return LengthUnit
+  }
+
+  function multiply( density: DensityUnit ) : MassUnit {
+    return density.MassUnit
+  }
 }

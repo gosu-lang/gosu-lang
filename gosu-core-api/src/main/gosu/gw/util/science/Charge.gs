@@ -1,5 +1,5 @@
 package gw.util.science
-uses java.math.BigDecimal
+uses gw.util.Rational
 
 final class Charge extends AbstractMeasure<ChargeUnit, Charge> {
   /**
@@ -7,10 +7,10 @@ final class Charge extends AbstractMeasure<ChargeUnit, Charge> {
    * @param unit Length unit for value, default is Coulomb
    * @param displayUnit Unit in which to display this Charge
    */
-  construct( value: BigDecimal, unit: ChargeUnit, displayUnit: ChargeUnit ) {
+  construct( value: Rational, unit: ChargeUnit, displayUnit: ChargeUnit ) {
     super( value, unit, displayUnit, ChargeUnit.Coulomb )
   }
-  construct( value : BigDecimal, unit: ChargeUnit ) {
+  construct( value : Rational, unit: ChargeUnit ) {
     this( value, unit, unit )
   }
   

@@ -1,5 +1,5 @@
 package gw.util.science
-uses java.math.BigDecimal
+uses gw.util.Rational
 
 final class DensityUnit extends AbstractQuotientUnit<MassUnit, VolumeUnit, Density, DensityUnit> {
   public static var BASE: DensityUnit = new( Kilogram, VolumeUnit.BASE )
@@ -15,7 +15,7 @@ final class DensityUnit extends AbstractQuotientUnit<MassUnit, VolumeUnit, Densi
     return RightUnit 
   }
 
-  function multipy( t: VolumeUnit ) : MassUnit {
+  function multiply( t: VolumeUnit ) : MassUnit {
     return  MassUnit
   }
 }

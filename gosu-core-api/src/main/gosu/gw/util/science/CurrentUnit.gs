@@ -1,5 +1,5 @@
 package gw.util.science
-uses java.math.BigDecimal
+uses gw.util.Rational
 
 final class CurrentUnit extends AbstractQuotientUnit<ChargeUnit, TimeUnit, Current, CurrentUnit> {
   public static var BASE: CurrentUnit = new( Coulomb, Second ) // Amperes

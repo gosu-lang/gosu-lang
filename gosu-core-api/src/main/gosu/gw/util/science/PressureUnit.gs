@@ -1,5 +1,5 @@
 package gw.util.science
-uses java.math.BigDecimal
+uses gw.util.Rational
 
 final class PressureUnit extends AbstractQuotientUnit<MassUnit, AreaUnit, Pressure, PressureUnit> {
   public static var BASE: PressureUnit = new( Kilogram, AreaUnit.BASE )

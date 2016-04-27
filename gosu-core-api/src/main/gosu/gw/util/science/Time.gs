@@ -1,29 +1,40 @@
 package gw.util.science
 
-uses java.math.BigDecimal
+uses gw.util.Rational
 
 final class Time extends AbstractMeasure<TimeUnit, Time> {
-  /**
-   * @param value Time period in specified units
-   * @param unit Unit of time vor value
-   * @param displayUnit Unit of time in which to display this Time
-   */
-  construct( value : BigDecimal, unit: TimeUnit, displayUnit: TimeUnit ) {
+  construct( value : Rational, unit: TimeUnit, displayUnit: TimeUnit ) {
     super( value, unit, displayUnit, TimeUnit.Second )
   }
-  construct( value : BigDecimal, unit: TimeUnit ) {
+  construct( value : Rational, unit: TimeUnit ) {
     this( value, unit, unit )
   }
 
   static property get Now() : Time {
-    return new( System.nanoTime(), Nano )
+    return new( Rational.get( System.nanoTime() ), Nano )
   }
 
-  override function fromNumber( p0: BigDecimal ) : Time {
+  override function fromNumber( p0: Rational ) : Time {
     return new Time( p0, Second, Unit )
   }
     
   function multiply( r: Velocity ) : Length {
-    return new Length( toNumber() * r.toNumber(), Meter, r.Unit.LengthUnit )
+    return new Length( toNumber() * r.toNumber(), LengthUnit.BaseUnit, r.Unit.LengthUnit )
+  }
+
+  function multiply( acc: Acceleration ) : Velocity {
+    return new Velocity( toNumber() * acc.toNumber(), VelocityUnit.BASE, acc.Unit.VelocityUnit )
+  }
+
+  function multiply( current: Current ) : Charge {
+    return new Charge( toNumber() * current.toNumber(), ChargeUnit.Coulomb )
+  }
+
+  function multiply( frequency: Frequency ) : Angle {
+    return new Angle( toNumber() * frequency.toNumber(), AngleUnit.BaseUnit, frequency.Unit.AngleUnit )
+  }
+
+  function multiply( power: Power ) : Work {
+    return new Work( toNumber() * power.toNumber(), WorkUnit.BASE, power.Unit.WorkUnit )
   }
 }

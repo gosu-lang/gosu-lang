@@ -1,6 +1,6 @@
 package gw.util.science
 
-uses java.math.BigDecimal
+uses gw.util.Rational
 uses java.math.RoundingMode
 uses java.math.MathContext
 
@@ -10,10 +10,10 @@ final class Momentum extends AbstractMeasure<MomentumUnit, Momentum> {
    * @param unit Momentum unit, default is millis / second
    * @param displayUnit Unit in which to display this velocity
    */
-  construct( value : BigDecimal, unit: MomentumUnit, displayUnit: MomentumUnit ) {
+  construct( value : Rational, unit: MomentumUnit, displayUnit: MomentumUnit ) {
     super( value, unit, displayUnit, MomentumUnit.BASE )
   }
-  construct( value : BigDecimal, unit: MomentumUnit ) {
+  construct( value : Rational, unit: MomentumUnit ) {
     this( value, unit, unit )
   }
  

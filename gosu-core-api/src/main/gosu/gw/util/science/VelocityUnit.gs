@@ -1,5 +1,5 @@
 package gw.util.science
-uses java.math.BigDecimal
+uses gw.util.Rational
 
 final class VelocityUnit extends AbstractQuotientUnit<LengthUnit, TimeUnit, Velocity, VelocityUnit> {
   public static var BASE: VelocityUnit = new( Meter, Second )
@@ -18,7 +18,7 @@ final class VelocityUnit extends AbstractQuotientUnit<LengthUnit, TimeUnit, Velo
   function postfixBind( mass: MassUnit ) : MomentumUnit {
     return multiply( mass )
   }
-    
+        
   function multiply( t: TimeUnit ) : LengthUnit {
     return LengthUnit
   }
@@ -26,7 +26,11 @@ final class VelocityUnit extends AbstractQuotientUnit<LengthUnit, TimeUnit, Velo
   function multiply( t: MassUnit ) : MomentumUnit {
     return new MomentumUnit( t, this )
   }
-    
+
+  function multiply( force: ForceUnit ) : PowerUnit {
+    return force * LengthUnit / TimeUnit
+  }
+      
   function divide( t: TimeUnit ) : AccelerationUnit {
     return new AccelerationUnit( this, t )
   }

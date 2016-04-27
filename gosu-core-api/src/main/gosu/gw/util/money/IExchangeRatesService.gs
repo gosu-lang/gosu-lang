@@ -1,5 +1,5 @@
 package gw.util.money
-uses java.math.BigDecimal
+uses gw.util.Rational
 uses java.net.URL
 uses gw.util.science.Time
 

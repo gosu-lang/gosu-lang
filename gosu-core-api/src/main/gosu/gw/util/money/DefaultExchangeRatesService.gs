@@ -1,6 +1,6 @@
 package gw.util.money
 uses java.net.URL
-uses java.math.BigDecimal
+uses gw.util.Rational
 uses gw.util.science.Time
 uses gw.lang.reflect.json.DefaultParser_Big
 uses java.net.URLEncoder
@@ -72,7 +72,7 @@ class DefaultExchangeRatesService implements IExchangeRatesService
         //print( "Failed to get currency for: " + name )
       }
       if( currencyOfName != null ) {
-        var mid = new BigDecimal( r.Rate )
+        var mid = Rational.get( r.Rate )
         var ask = bigDecimalDefault( name, Ask, r.Ask, mid )
         var bid = bigDecimalDefault( name, Bid, r.Bid, mid )
         rateTable.put( Currency.getInstance( name ), new ExchangeRate( mid, ask, bid ) ) 
@@ -81,10 +81,10 @@ class DefaultExchangeRatesService implements IExchangeRatesService
     return rateTable
   }
   
-  private function bigDecimalDefault( name: String, rateType: RateType, value: String, def: BigDecimal ) : BigDecimal {
-    var result : BigDecimal
+  private function bigDecimalDefault( name: String, rateType: RateType, value: String, def: Rational ) : Rational {
+    var result : Rational
     if( value != "N/A" ) {
-      result = new BigDecimal( value )
+      result = Rational.get( value )
     }
     else {
       // for N/A rates use the mid rate, common for precious metals other than gold

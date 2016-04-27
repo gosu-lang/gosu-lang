@@ -1,5 +1,5 @@
 package gw.util.science
-uses java.math.BigDecimal
+uses gw.util.Rational
 
 interface IUnit<B extends Number & Comparable, 
                 D extends IDimension<D, B>, 

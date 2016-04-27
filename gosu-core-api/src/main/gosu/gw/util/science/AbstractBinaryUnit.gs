@@ -1,11 +1,11 @@
 package gw.util.science
 
-uses java.math.BigDecimal
+uses gw.util.Rational
 
-abstract class AbstractBinaryUnit<A extends IUnit<BigDecimal, IDimension, A>,
-                                    B extends IUnit<BigDecimal, IDimension, B>, 
-                                    D extends IDimension<D, BigDecimal>, 
-                                    U extends AbstractBinaryUnit<A, B, D, U> > implements IUnit<BigDecimal, D, U> {
+abstract class AbstractBinaryUnit<A extends IUnit<Rational, IDimension, A>,
+                                    B extends IUnit<Rational, IDimension, B>,
+                                    D extends IDimension<D, Rational>,
+                                    U extends AbstractBinaryUnit<A, B, D, U> > implements IUnit<Rational, D, U> {
   var _leftUnit: A
   var _rightUnit: B
   
@@ -21,7 +21,7 @@ abstract class AbstractBinaryUnit<A extends IUnit<BigDecimal, IDimension, A>,
     return _rightUnit  
   }
   
-  override function from( r: D ) : BigDecimal {
+  override function from( r: D ) : Rational {
     return r.toNumber() / toBaseUnits( 1 )
   }   
   

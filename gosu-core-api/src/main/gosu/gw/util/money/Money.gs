@@ -1,6 +1,6 @@
 package gw.util.money
 
-uses java.math.BigDecimal 
+uses gw.util.Rational
 uses java.text.NumberFormat
 
 /**
@@ -11,18 +11,18 @@ uses java.text.NumberFormat
  * codes can be used as direct labels on number literals and simple expressions e.g., 35 USD is the 
  * same as new Money( 35, USD )
  */
-final class Money implements IDimension<Money, BigDecimal> {
-  final var _amount: Map<Currency, BigDecimal> as Amount
+final class Money implements IDimension<Money, Rational> {
+  final var _amount: Map<Currency, Rational> as Amount
 
-  construct( value : BigDecimal, currency: Currency ) {
+  construct( value : Rational, currency: Currency ) {
     _amount = {currency -> value}
   }
   
-  internal construct( amount: Map<Currency, BigDecimal> ) {
+  internal construct( amount: Map<Currency, Rational> ) {
     _amount = amount
   }
 
-  property get SingleValue() : BigDecimal {
+  property get SingleValue() : Rational {
     if( Amount.size() == 1 ) {
       return Amount.Values.first()
     }  
@@ -35,7 +35,7 @@ final class Money implements IDimension<Money, BigDecimal> {
     throw new RuntimeException( "Multiple currency amount" )
   }
   
-  override function fromNumber( value: BigDecimal ) : Money {
+  override function fromNumber( value: Rational ) : Money {
     if( Amount.size() == 1 ) {
       return new Money( value, SingleUnit )
     }    
@@ -43,14 +43,14 @@ final class Money implements IDimension<Money, BigDecimal> {
   }
 
   
-  override function numberType() : java.lang.Class<BigDecimal> {
-    return BigDecimal
+  override function numberType() : java.lang.Class<Rational> {
+    return Rational
   }
 
   /**
    * Always stored in Base units
    */
-  override function toNumber() : BigDecimal {
+  override function toNumber() : Rational {
     return SingleValue
   }
 
@@ -92,7 +92,7 @@ final class Money implements IDimension<Money, BigDecimal> {
    */
   function exchange( currency: Currency, rateType: RateType = Mid ) : Money {
     var rateTable = CurrencyExchange.instance().ExchangeRatesService.getExchangeRatesTable( currency )
-    var total = 0bd
+    var total = 0r
     Amount.eachKeyAndValue( \ k, v -> {
       if( k == currency ) {
         total += v
@@ -112,7 +112,7 @@ final class Money implements IDimension<Money, BigDecimal> {
     var baseTable = CurrencyExchange.instance().ExchangeRatesService.getExchangeRatesTable( Currency.BASE )
     var totalTo = to.exchange( Currency.BASE )
     var totalFrom = exchange( Currency.BASE )
-    var result = new HashMap<Currency, BigDecimal>()
+    var result = new HashMap<Currency, Rational>()
     to.Amount.eachKeyAndValue( \ k, v -> {
       if( k == Currency.BASE ) {
         result.put( k, v/totalTo.SingleValue * totalFrom.SingleValue )
@@ -126,7 +126,7 @@ final class Money implements IDimension<Money, BigDecimal> {
   }
   
   function add( money: Money ) : Money {
-    var sum = new HashMap<Currency, BigDecimal>( _amount )
+    var sum = new HashMap<Currency, Rational>( _amount )
     for( entrySet in money._amount.entrySet() ) {
        var value = sum[entrySet.Key]
        value = value == null ? entrySet.Value : value + entrySet.Value
@@ -136,7 +136,7 @@ final class Money implements IDimension<Money, BigDecimal> {
   }
   
   function subtract( money: Money ) : Money {
-    var sum = new HashMap<Currency, BigDecimal>( _amount )
+    var sum = new HashMap<Currency, Rational>( _amount )
     for( entrySet in money._amount.entrySet() ) {
        var value = sum[entrySet.Key]
        value = value == null ? entrySet.Value : value - entrySet.Value
@@ -145,8 +145,8 @@ final class Money implements IDimension<Money, BigDecimal> {
      return new Money( sum )
   }  
   
-  function multiply( value: BigDecimal ) : Money {
-    var product = new HashMap<Currency, BigDecimal>()
+  function multiply( value: Rational ) : Money {
+    var product = new HashMap<Currency, Rational>()
     for( entrySet in _amount.entrySet() ) {
        var result = entrySet.Value * value
        product[entrySet.Key] = result
@@ -154,30 +154,30 @@ final class Money implements IDimension<Money, BigDecimal> {
      return new Money( product )
   }
   
-  function divide( value: BigDecimal ) : Money {
-    var quotient = new HashMap<Currency, BigDecimal>()
+  function divide( value: Rational ) : Money {
+    var quotient = new HashMap<Currency, Rational>()
     for( entrySet in _amount.entrySet() ) {
        var result = entrySet.Value / value
        quotient[entrySet.Key] = result
      }
      return new Money( quotient )
   }
-  function divide( money: Money ) : BigDecimal {
+  function divide( money: Money ) : Rational {
     if( _amount.size() == 1 && money._amount.size() == 1 && SingleUnit == money.SingleUnit ) {
       return SingleValue / money.SingleValue
     }
     return exchange( Currency.BASE ) / money.exchange( Currency.BASE )
   }
 
-  function modulo( value: BigDecimal ) : Money {
-    var mod = new HashMap<Currency, BigDecimal>()
+  function modulo( value: Rational ) : Money {
+    var mod = new HashMap<Currency, Rational>()
     for( entrySet in _amount.entrySet() ) {
        var result = entrySet.Value % value
        mod[entrySet.Key] = result
      }
      return new Money( mod )
   }
-  function modulo( money: Money ) : BigDecimal {
+  function modulo( money: Money ) : Rational {
     if( _amount.size() == 1 && money._amount.size() == 1 && SingleUnit == money.SingleUnit ) {
       return SingleValue % money.SingleValue
     }
@@ -186,7 +186,7 @@ final class Money implements IDimension<Money, BigDecimal> {
 
   
   function negate() : Money {
-    var negation = new HashMap<Currency, BigDecimal>()
+    var negation = new HashMap<Currency, Rational>()
     for( entrySet in _amount.entrySet() ) {
        negation[entrySet.Key] = -entrySet.Value
      }

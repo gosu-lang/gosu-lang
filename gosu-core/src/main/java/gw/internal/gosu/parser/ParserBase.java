@@ -856,6 +856,11 @@ public abstract class ParserBase implements IParserPart
       }
     }
 
+    if( JavaTypes.RATIONAL() == lhsType || JavaTypes.RATIONAL() == rhsType )
+    {
+      return JavaTypes.RATIONAL();
+    }
+
     if( JavaTypes.BIG_DECIMAL() == lhsType || JavaTypes.BIG_DECIMAL() == rhsType )
     {
       return JavaTypes.BIG_DECIMAL();

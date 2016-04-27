@@ -41,6 +41,7 @@ import gw.lang.reflect.interval.NumberInterval;
 import gw.lang.reflect.interval.SequenceableInterval;
 import gw.lang.reflect.module.IExecutionEnvironment;
 import gw.lang.reflect.module.IProject;
+import gw.util.Rational;
 
 import javax.script.Bindings;
 import javax.xml.namespace.QName;
@@ -152,7 +153,7 @@ public class JavaTypes {
     if( !ExecutionMode.get().isRefreshSupportEnabled() ) {
       return THIS.RUNNABLE == null ? THIS.RUNNABLE = getJreType( Runnable.class ) : THIS.RUNNABLE;
     }
-    return getJreType(Runnable.class);
+    return getJreType( Runnable.class );
   }
 
   private IType THROWS = null;
@@ -160,7 +161,7 @@ public class JavaTypes {
     if( !ExecutionMode.get().isRefreshSupportEnabled() ) {
       return THIS.THROWS == null ? THIS.THROWS = getSystemType( Throws.class ) : THIS.THROWS;
     }  
-    return getSystemType(Throws.class);
+    return getSystemType( Throws.class );
   }
 
   private IType VOID = null;
@@ -772,6 +773,14 @@ public class JavaTypes {
       return THIS.ACTUAL_NAME == null ? THIS.ACTUAL_NAME = getGosuType( ActualName.class ) : THIS.ACTUAL_NAME;
     }  
     return getGosuType(ActualName.class);
+  }
+
+  private IJavaType RATIONAL = null;
+  public static IJavaType RATIONAL() {
+    if( !ExecutionMode.get().isRefreshSupportEnabled() ) {
+      return THIS.RATIONAL == null ? THIS.RATIONAL = getGosuType( Rational.class ) : THIS.RATIONAL;
+    }
+    return getGosuType(Rational.class);
   }
 
 

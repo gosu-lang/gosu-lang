@@ -1,11 +1,10 @@
 package gw.util.science
-uses java.math.BigDecimal
+uses gw.util.Rational
 
 interface UnitConstants {
-  var PI: BigDecimal = 3.14159265358979323846264338327950288419716939937510bd
-   
   var mum: LengthUnit = Micro
   var mm: LengthUnit = Milli
+  var cm: LengthUnit = Centi
   var m: LengthUnit = Meter
   var km: LengthUnit = Kilometer
   var inch: LengthUnit = Inch

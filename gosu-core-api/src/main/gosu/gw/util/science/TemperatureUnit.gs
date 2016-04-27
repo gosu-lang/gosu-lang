@@ -1,20 +1,24 @@
 package gw.util.science
-uses java.math.BigDecimal
+uses gw.util.Rational
 
-enum TemperatureUnit implements IUnit<BigDecimal, Temperature, TemperatureUnit> {
+enum TemperatureUnit implements IUnit<Rational, Temperature, TemperatureUnit> {
   Kelvin( \degK -> degK, \degK -> degK, "Kelvin", "K" ),
-  Celcius( \degC -> degC + 273.15bd, \degK -> degK - 273.15bd, "Celcius", "°C" ),
-  Fahrenheit( \degF -> (degF + 459.67bd) * 5bd/9bd, \degK -> degK * 9bd/5bd - 459.67bd, "Fahrenheit", "°F" ),
-  Rankine( \degR -> degR * (5bd/9bd), \degK -> degK * 9bd/5bd, "Rankine", "°R" ),
-  Delisle( \De -> 373.15bd - De * (2bd/3bd), \degK -> (373.15bd - degK) * 3bd/2bd, "Delisle", "°De" ),
-  Newton( \degN -> degN * (100bd/33bd) + 273.15, \degK -> (degK - 273.15bd) * 33bd/100bd, "Newton", "°N" )
+  Celcius( \degC -> degC + 273.15, \degK -> degK - 273.15, "Celcius", "°C" ),
+  Fahrenheit( \degF -> (degF + 459.67) * 5/9, \degK -> degK * 9/5 - 459.67, "Fahrenheit", "°F" ),
+  Rankine( \degR -> degR * (5/9), \degK -> degK * 9/5, "Rankine", "°R" ),
+  Delisle( \De -> 373.15 - De * (2/3), \degK -> (373.15 - degK) * 3/2, "Delisle", "°De" ),
+  Newton( \degN -> degN * (100/33) + 273.15, \degK -> (degK - 273.15) * 33/100, "Newton", "°N" )
 
-  var _toK(deg:BigDecimal): BigDecimal as ToKelvin
-  var _fromK(deg:BigDecimal): BigDecimal as FromKelvin
+  var _toK(deg:Rational): Rational as ToKelvin
+  var _fromK(deg:Rational): Rational as FromKelvin
   var _name: String
   var _symbol: String
-  
-  private construct( toK(deg:BigDecimal): BigDecimal, fromK(deg:BigDecimal): BigDecimal, name: String, symbol: String ) {
+
+  static property get BaseUnit() : TemperatureUnit {
+    return Kelvin
+  }
+
+  private construct( toK(deg:Rational): Rational, fromK(deg:Rational): Rational, name: String, symbol: String ) {
     _toK = toK
     _fromK = fromK
     _name = name
@@ -29,15 +33,15 @@ enum TemperatureUnit implements IUnit<BigDecimal, Temperature, TemperatureUnit> 
     return _symbol
   }
 
-  override function toBaseUnits( myUnits: BigDecimal ) : BigDecimal {
+  override function toBaseUnits( myUnits: Rational ) : Rational {
     return ToKelvin( myUnits )
   }
   
-  override function toNumber() : BigDecimal {
+  override function toNumber() : Rational {
     return ToKelvin( 1 )
   }
     
-  override function from( t: Temperature ) : BigDecimal {
+  override function from( t: Temperature ) : Rational {
     return FromKelvin( t.toNumber() )
   }   
 }

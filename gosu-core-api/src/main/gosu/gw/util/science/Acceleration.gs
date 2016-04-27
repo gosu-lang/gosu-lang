@@ -1,6 +1,6 @@
 package gw.util.science
 
-uses java.math.BigDecimal
+uses gw.util.Rational
 uses java.math.RoundingMode
 uses java.math.MathContext
 
@@ -10,10 +10,10 @@ final class Acceleration extends AbstractMeasure<AccelerationUnit, Acceleration>
    * @param unit Acceleration unit, default is millis / second
    * @param displayUnit Unit in which to display this acceleration
    */
-  construct( value : BigDecimal, unit: AccelerationUnit, displayUnit: AccelerationUnit ) {
+  construct( value : Rational, unit: AccelerationUnit, displayUnit: AccelerationUnit ) {
     super( value, unit, displayUnit, AccelerationUnit.BASE )
   }
-  construct( value: BigDecimal, unit: AccelerationUnit ) {
+  construct( value: Rational, unit: AccelerationUnit ) {
     this( value, unit, unit )
   }
      

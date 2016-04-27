@@ -857,7 +857,8 @@ final public class SourceCodeTokenizerInternal
         }
         else if( c == 'l' || c == 'L' ||
                  c == 'f' || c == 'F' ||
-                 c == 'd' || c == 'D' )
+                 c == 'd' || c == 'D'||
+                 c == 'r' || c == 'R' )
         {
           if( !Character.isJavaIdentifierPart( _reader.peek() ) )
           {

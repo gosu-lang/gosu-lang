@@ -1,19 +1,14 @@
 package gw.util.science
 
-uses java.math.BigDecimal
+uses gw.util.Rational
 uses java.math.RoundingMode
 uses java.math.MathContext
 
 final class Work extends AbstractMeasure<WorkUnit, Work> {
-  /** 
-   * @param value Work in specified units
-   * @param unit Work unit, default is default Force units * default Length units
-   * @param displayUnit Unit in which to display this work
-   */
-  construct( value : BigDecimal, unit: WorkUnit, displayUnit: WorkUnit ) {
+  construct( value : Rational, unit: WorkUnit, displayUnit: WorkUnit ) {
     super( value, unit, displayUnit, WorkUnit.BASE )
   }
-  construct( value : BigDecimal, unit: WorkUnit ) {
+  construct( value : Rational, unit: WorkUnit ) {
     this( value, unit, unit )
   }
  
@@ -21,11 +16,15 @@ final class Work extends AbstractMeasure<WorkUnit, Work> {
     return new Length( toNumber() / f.toNumber(), Meter, Unit.LengthUnit )
   }
   
-  function divide( f: Length ) : Force {
-    return new Force( toNumber() / f.toNumber(), ForceUnit.BASE, Unit.ForceUnit )
+  function divide( len: Length ) : Force {
+    return new Force( toNumber() / len.toNumber(), ForceUnit.BASE, Unit.ForceUnit )
   }
   
   function divide( t: Time ) : Power {
     return new Power( toNumber() / t.toNumber(), PowerUnit.BASE, new( Unit, t.Unit ) )
+  }
+
+  function divide( power: Power ) : Time {
+    return new Time( toNumber() / power.toNumber(), TimeUnit.BaseUnit, power.Unit.TimeUnit )
   }
 }

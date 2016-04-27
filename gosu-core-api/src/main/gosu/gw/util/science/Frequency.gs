@@ -1,5 +1,5 @@
 package gw.util.science
-uses java.math.BigDecimal
+uses gw.util.Rational
 
 final class Frequency extends AbstractMeasure<FrequencyUnit, Frequency> {
   /**
@@ -7,10 +7,10 @@ final class Frequency extends AbstractMeasure<FrequencyUnit, Frequency> {
    * @param unit Length unit for value, default is Hz (cycles/sec)
    * @param displayUnit Unit in which to display this Frequency
    */
-  construct( value: BigDecimal, unit: FrequencyUnit, displayUnit: FrequencyUnit ) {
+  construct( value: Rational, unit: FrequencyUnit, displayUnit: FrequencyUnit ) {
     super( value, unit, displayUnit, FrequencyUnit.BASE )
   }
-  construct( value : BigDecimal, unit: FrequencyUnit ) {
+  construct( value : Rational, unit: FrequencyUnit ) {
     this( value, unit, unit )
   }
 }

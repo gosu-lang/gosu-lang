@@ -1,6 +1,6 @@
 package gw.util.science
 
-uses java.math.BigDecimal 
+uses gw.util.Rational
 
 final class Angle extends AbstractMeasure<AngleUnit, Angle> {
   /**
@@ -8,10 +8,10 @@ final class Angle extends AbstractMeasure<AngleUnit, Angle> {
    * @param unit Angle unit for value, default is Radian
    * @param displayUnit Unit in which to display this Angle
    */
-  construct( value: BigDecimal, unit: AngleUnit, displayUnit: AngleUnit ) {
+  construct( value: Rational, unit: AngleUnit, displayUnit: AngleUnit ) {
     super( value, unit, displayUnit, AngleUnit.Radian )
   }
-  construct( value: BigDecimal, unit: AngleUnit ) {
+  construct( value: Rational, unit: AngleUnit ) {
     this( value, unit, unit )
   }
   

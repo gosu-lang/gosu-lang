@@ -167,15 +167,17 @@ public class TypeAsTransformer extends AbstractExpressionTransformer<ITypeAsExpr
     }
 
     IRType asTypeDesc = getDescriptor( asType );
-    if( isBigType( asType ) && (isNumberType( lhsType ) || isBigType( lhsType )) ) {
-      // Any Big/Boxed/Primitive -> Any Big (bypass coercion manager)
+    if( isBigType( asType ) ) {
+      if( isNumberType( lhsType ) || isBigType( lhsType ) || lhsType == JavaTypes.RATIONAL() ) {
+        // Any Big/Boxed/Rational/Primitive -> Any Big (bypass coercion manager)
 
-      IRSymbol tempLhs = _cc().makeAndIndexTempSymbol( getDescriptor( lhsType ) );
-      IRAssignmentStatement tempLhsAssn = buildAssignment( tempLhs, root );
-      IRSymbol tempRet = _cc().makeAndIndexTempSymbol( asTypeDesc );
-      return buildComposite( tempLhsAssn, lhsType.isPrimitive()
-                                          ? buildComposite( convertOperandToBig( asType, asType == JavaTypes.BIG_DECIMAL() ? BigDecimal.class : BigInteger.class, lhsType, identifier( tempLhs ), tempRet ), identifier( tempRet ) )
-                                          : checkCast( asType, buildTernary( buildEquals( identifier( tempLhs ), nullLiteral() ), nullLiteral(), buildComposite( convertOperandToBig( asType, asType == JavaTypes.BIG_DECIMAL() ? BigDecimal.class : BigInteger.class, lhsType, identifier( tempLhs ), tempRet ), identifier( tempRet ) ), asTypeDesc ) ) );
+        IRSymbol tempLhs = _cc().makeAndIndexTempSymbol( getDescriptor( lhsType ) );
+        IRAssignmentStatement tempLhsAssn = buildAssignment( tempLhs, root );
+        IRSymbol tempRet = _cc().makeAndIndexTempSymbol( asTypeDesc );
+        return buildComposite( tempLhsAssn, lhsType.isPrimitive()
+                                            ? buildComposite( convertOperandToBig( asType, asType == JavaTypes.BIG_DECIMAL() ? BigDecimal.class : BigInteger.class, lhsType, identifier( tempLhs ), tempRet ), identifier( tempRet ) )
+                                            : checkCast( asType, buildTernary( buildEquals( identifier( tempLhs ), nullLiteral() ), nullLiteral(), buildComposite( convertOperandToBig( asType, asType == JavaTypes.BIG_DECIMAL() ? BigDecimal.class : BigInteger.class, lhsType, identifier( tempLhs ), tempRet ), identifier( tempRet ) ), asTypeDesc ) ) );
+      }
     }
 
     if( isNumberType( asType ) ) {
@@ -211,7 +213,10 @@ public class TypeAsTransformer extends AbstractExpressionTransformer<ITypeAsExpr
         }
       }
       else if( isBigType( lhsType ) ) {
-        return convertBigToPrimitiveOrBoxed( root, asType, lhsType, asTypeDesc );
+        return convertBigToPrimitiveOrBoxed( root, asType, lhsType, asTypeDesc, lhsType == JavaTypes.BIG_DECIMAL() );
+      }
+      else if( lhsType == JavaTypes.RATIONAL() ) {
+        return convertBigToPrimitiveOrBoxed( root, asType, lhsType, asTypeDesc, true );
       }
     }
 
@@ -259,7 +264,10 @@ public class TypeAsTransformer extends AbstractExpressionTransformer<ITypeAsExpr
       if( isNumberType( asType ) ) {
         // Any Dimension -> Any Boxed/Primitive (bypass coercion manager)
         if( isBigType( lhsType ) ) {
-          root = convertBigToPrimitiveOrBoxed( identifier( tempNumber ), asType, lhsType, getDescriptor( lhsType ) );
+          root = convertBigToPrimitiveOrBoxed( identifier( tempNumber ), asType, lhsType, getDescriptor( lhsType ), lhsType == JavaTypes.BIG_DECIMAL() );
+        }
+        else if( lhsType == JavaTypes.RATIONAL() ) {
+          root = convertBigToPrimitiveOrBoxed( identifier( tempNumber ), asType, lhsType, getDescriptor( lhsType ), true );
         }
         else {
           root = unboxValueFromType( lhsType, identifier( tempNumber ) );
@@ -318,10 +326,9 @@ public class TypeAsTransformer extends AbstractExpressionTransformer<ITypeAsExpr
     return result;
   }
 
-  private IRExpression convertBigToPrimitiveOrBoxed( IRExpression root, IType asType, IType lhsType, IRType asTypeDesc ) {
+  private IRExpression convertBigToPrimitiveOrBoxed( IRExpression root, IType asType, IType lhsType, IRType asTypeDesc, boolean bDecimal ) {
     IRSymbol tempLhs = _cc().makeAndIndexTempSymbol( getDescriptor( lhsType ) );
     IRAssignmentStatement tempLhsAssn = buildAssignment( tempLhs, root );
-    boolean bDecimal = lhsType == JavaTypes.BIG_DECIMAL();
     root = callMethod( Number.class, bDecimal ? "doubleValue" : "longValue", new Class[0], identifier( tempLhs ), Collections.<IRExpression>emptyList() );
     IType primitiveTypeAsType = asType.isPrimitive() ? asType : TypeSystem.getPrimitiveType( asType );
     root = numberConvert( bDecimal ? JavaTypes.pDOUBLE() : JavaTypes.pLONG(), primitiveTypeAsType, root );

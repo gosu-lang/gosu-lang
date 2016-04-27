@@ -1,7 +1,7 @@
 package gw.util.science
-uses java.math.BigDecimal
+uses gw.util.Rational
 
-final class PowerUnit extends AbstractProductUnit<WorkUnit, TimeUnit, Power, PowerUnit> {
+final class PowerUnit extends AbstractQuotientUnit<WorkUnit, TimeUnit, Power, PowerUnit> {
   public static var BASE: PowerUnit = new( WorkUnit.BASE, Second )
     
   construct( workUnit: WorkUnit, timeUnit: TimeUnit ) {
@@ -15,11 +15,15 @@ final class PowerUnit extends AbstractProductUnit<WorkUnit, TimeUnit, Power, Pow
     return RightUnit 
   }
   
-  function divide( w: WorkUnit ) : TimeUnit {
-    return TimeUnit
+  function multiply( w: TimeUnit ) : WorkUnit {
+    return WorkUnit
+  }
+  
+  function divide( v: VelocityUnit ) : ForceUnit {
+    return WorkUnit.ForceUnit
   }
 
-  function divide( w: TimeUnit ) : WorkUnit {
-    return WorkUnit
+  function divide( force: Force ) : VelocityUnit {
+    return WorkUnit.ForceUnit.AccUnit.VelocityUnit
   }
 }
