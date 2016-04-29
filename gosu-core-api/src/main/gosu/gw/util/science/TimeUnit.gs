@@ -80,4 +80,8 @@ enum TimeUnit implements IUnit<Rational, Time, TimeUnit> {
   function multiply( power: PowerUnit ) : WorkUnit {
     return power.WorkUnit
   }
+
+  function multiply( force: ForceUnit ) : MomentumUnit {
+    return force.MassUnit * (force.AccUnit.VelocityUnit.LengthUnit/this)
+  }
 }

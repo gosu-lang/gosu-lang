@@ -37,4 +37,8 @@ final class Time extends AbstractMeasure<TimeUnit, Time> {
   function multiply( power: Power ) : Work {
     return new Work( toNumber() * power.toNumber(), WorkUnit.BASE, power.Unit.WorkUnit )
   }
+
+  function multiply( force: Force ) : Momentum {
+    return new Momentum( toNumber() * force.toNumber(), MomentumUnit.BASE, Unit * force.Unit )
+  }
 }

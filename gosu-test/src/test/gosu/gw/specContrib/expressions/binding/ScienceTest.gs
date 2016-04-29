@@ -80,6 +80,11 @@ class ScienceTest extends TestClass {
       var power = 2 watt
       var work = new Work( a.toNumber() * power.toNumber(), WorkUnit.BASE, unit * power.Unit )
       assertEquals( work, a * power )
+      
+      // Time * Force = Momentum
+      var force = 2 N
+      var momentum = new Momentum( a.toNumber() * force.toNumber(), MomentumUnit.BASE, unit * force.Unit )
+      assertEquals( momentum, a * force )
     }
   }
   

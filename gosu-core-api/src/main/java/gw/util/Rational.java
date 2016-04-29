@@ -585,6 +585,18 @@ final public class Rational extends Number implements IDimension<Rational, Ratio
     return result;
   }
 
+  public String toFractionString() {
+    return _numerator + " / " + _denominator;
+  }
+
+  public String toDecimalString() {
+    return toBigDecimal().toString();
+  }
+
+  public String toPlainDecimalString() {
+    return toBigDecimal().toPlainString();
+  }
+
   @Override
   public String toString()
   {

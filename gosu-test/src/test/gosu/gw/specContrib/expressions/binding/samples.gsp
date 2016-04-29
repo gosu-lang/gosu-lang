@@ -7,6 +7,8 @@ uses gw.lang.parser.IParseIssue
 uses UnitConstants#*
 uses TimeConstants#*
 uses gw.util.money.IMoneyConstants#*
+uses gw.util.science.InformationCapacityUnit#*
+uses gw.util.science.MetricScaleUnit#*
 uses gw.lang.parser.exceptions.ParseException
 
 
@@ -204,3 +206,12 @@ print( 2ft * 6inch )
 print( 2ft / 6inch )
 
 print( 1 USD / 1 EUR )
+
+var cals = 5 kcal
+print( cals.to( J ).to( kcal ) )
+
+var bytes = 50 GiB
+print( bytes + 1024 MiB )
+
+var amt = 50M USD
+print( amt )

@@ -5,7 +5,9 @@ uses gw.util.Rational
 final class ForceUnit extends AbstractProductUnit<MassUnit, AccelerationUnit, Force, ForceUnit> {
   final static var CACHE: UnitCache<ForceUnit> = new UnitCache()
 
-  public static var BASE: ForceUnit = get( Kilogram, AccelerationUnit.BASE, 1, "Newton", "N" )
+  public static var N: ForceUnit = get( Kilogram, AccelerationUnit.BASE, 1, "Newton", "N" )
+
+  public static var BASE: ForceUnit = N
 
   static function get( massUnit: MassUnit, accUnit: AccelerationUnit, factor: Rational = null, name: String = null, symbol: String = null ) : ForceUnit {
     var unit = new ForceUnit( massUnit, accUnit, factor, name, symbol )
