@@ -25,7 +25,7 @@ final class Length extends AbstractMeasure<LengthUnit, Length> {
     return new Volume( toNumber() * area.toNumber(), VolumeUnit.BASE, VolumeUnit.get( Unit, area.Unit ) )
   }
   
-  function multiply( force: Force ) : Work {
-    return new Work( toNumber() * force.toNumber(), WorkUnit.BASE, WorkUnit.get( force.Unit, Unit ) )
+  function multiply( force: Force ) : Energy {
+    return new Energy( toNumber() * force.toNumber(), EnergyUnit.BASE, EnergyUnit.get( force.Unit, Unit ) )
   }
 }

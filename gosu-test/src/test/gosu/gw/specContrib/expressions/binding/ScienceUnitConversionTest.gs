@@ -144,13 +144,13 @@ class ScienceUnitConversionTest extends TestClass {
       }
     }
   }
-  function testWorkUnitConversions() {
+  function testEnergyUnitConversions() {
     for( unit in MassUnit.AllValues ) {
       var theUnit = unit*(m/s/s) * m
-      var work = 1 theUnit
+      var energy = 1 theUnit
       for( u in MassUnit.AllValues ) {
         var toUnit = u*(m/s/s) * m
-        assertEquals( work, work.to( toUnit ).to( theUnit ) ) 
+        assertEquals( energy, energy.to( toUnit ).to( theUnit ) )
       }
     }
   }

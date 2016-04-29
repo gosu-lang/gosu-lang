@@ -37,7 +37,7 @@ enum LengthUnit implements IUnit<Rational, Length, LengthUnit> {
   NauticalMile( 1852, "NauticalMile", "n.m." ), 
    
   // Very large units
-  IAU( 149597870700, "IAU-length", "au" ),  
+  IAU( 1.49597870e11, "IAU-length", "au" ),
   LightYear( 9.460730473e+15, "LightYear", "ly" ),  
   
   
@@ -75,7 +75,7 @@ enum LengthUnit implements IUnit<Rational, Length, LengthUnit> {
     return len.toNumber() / Meters
   }
  
-  function postfixBind( f: ForceUnit ) : WorkUnit {
+  function postfixBind( f: ForceUnit ) : EnergyUnit {
     return multiply( f )
   }
 
@@ -95,7 +95,7 @@ enum LengthUnit implements IUnit<Rational, Length, LengthUnit> {
     return VolumeUnit.get( this, area )
   }  
   
-  function multiply( f: ForceUnit ) : WorkUnit {
-    return WorkUnit.get( f, this )
+  function multiply( f: ForceUnit ) : EnergyUnit {
+    return EnergyUnit.get( f, this )
   }  
 }

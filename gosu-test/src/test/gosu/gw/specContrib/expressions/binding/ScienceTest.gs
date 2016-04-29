@@ -39,9 +39,9 @@ class ScienceTest extends TestClass {
       var area = a * a
       assertEquals( new Volume( a.toNumber() * area.toNumber(), VolumeUnit.BASE, unit * area.Unit ), a * area )
       
-      // Length * Force = Work
-      var force = 2 kg m/s/s
-      assertEquals( new Work( a.toNumber() * force.toNumber(), WorkUnit.BASE, unit * force.Unit ), a * force )
+      // Length * Force = Energy
+      var force = 2 N
+      assertEquals( new Energy( a.toNumber() * force.toNumber(), EnergyUnit.BASE, unit * force.Unit ), a * force )
     }
   }
   
@@ -76,10 +76,10 @@ class ScienceTest extends TestClass {
       var angle = new Angle( a.toNumber() * frequency.toNumber(), AngleUnit.BaseUnit, unit * frequency.Unit )
       assertEquals( angle, a * frequency )
       
-      // Time * Power = Work
+      // Time * Power = Energy
       var power = 2 watt
-      var work = new Work( a.toNumber() * power.toNumber(), WorkUnit.BASE, unit * power.Unit )
-      assertEquals( work, a * power )
+      var energy = new Energy( a.toNumber() * power.toNumber(), EnergyUnit.BASE, unit * power.Unit )
+      assertEquals( energy, a * power )
       
       // Time * Force = Momentum
       var force = 2 N

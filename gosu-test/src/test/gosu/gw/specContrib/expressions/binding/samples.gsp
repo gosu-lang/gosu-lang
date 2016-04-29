@@ -25,7 +25,7 @@ print( 9 mi/hr )
 // Money. Basically, a dimension is a quantifiable measure of something in specific 
 // units.  For example, 9 feet, 150 mph, 400 grams, 9.8 m/s/s, 49.99 USD, etc. 
 //
-// Arithmetic operations work directly and type-safely with dimensions as operand.  For instance,
+// Arithmetic operations energy directly and type-safely with dimensions as operand.  For instance,
 // you can implement a Velocity, Time, Length dimensions and define a multiply method on Time like this:
 //
 //   function multiply( velocity: Velocity ) : Length...
@@ -96,17 +96,17 @@ var density = 63 kg / 9mm*mm*mm
 print( density )
 
 var f = 5kg * 5 m/s/s
-var work = f * 6m
-print( work )
+var energy = f * 6m
+print( energy )
 
-var power = work / 6 s
-print( work.toNumber() )
+var power = energy / 6 s
+print( energy.toNumber() )
 print( 6 s.toNumber() )
 print( power )
  
-var f1: WorkUnit = (kg*(m/s/s))*m
-var f2: WorkUnit = kg*(m/s/s)*m
-var f3: WorkUnit = kg m/s/s m
+var f1: EnergyUnit = (kg*(m/s/s))*m
+var f2: EnergyUnit = kg*(m/s/s)*m
+var f3: EnergyUnit = kg m/s/s m
 print( f1.UnitName )
 print( f2.UnitName )
 print( f3.UnitName )

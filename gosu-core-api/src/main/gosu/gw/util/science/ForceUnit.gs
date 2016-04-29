@@ -29,8 +29,8 @@ final class ForceUnit extends AbstractProductUnit<MassUnit, AccelerationUnit, Fo
     return PowerUnit.get( this * v.LengthUnit, v.TimeUnit )
   }
     
-  function multiply( len: LengthUnit ) : WorkUnit {
-    return WorkUnit.get( this, len )
+  function multiply( len: LengthUnit ) : EnergyUnit {
+    return EnergyUnit.get( this, len )
   }
   
   function multiply( t: TimeUnit ) : MomentumUnit {

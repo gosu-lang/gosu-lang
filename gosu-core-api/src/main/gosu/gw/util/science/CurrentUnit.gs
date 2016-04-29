@@ -4,7 +4,9 @@ uses gw.util.Rational
 final class CurrentUnit extends AbstractQuotientUnit<ChargeUnit, TimeUnit, Current, CurrentUnit> {
   final static var CACHE: UnitCache<CurrentUnit> = new UnitCache()
 
-  public static var BASE: CurrentUnit = get( Coulomb, Second, 1, "Amperes", "A" )
+  public static var A: CurrentUnit = get( Coulomb, Second, 1, "Amperes", "A" )
+
+  public static var BASE: CurrentUnit = A
 
   static function get( chargeUnit: ChargeUnit, timeUnit: TimeUnit, factor: Rational = null, name: String = null, symbol: String = null ) : CurrentUnit {
     var unit = new CurrentUnit( chargeUnit, timeUnit, factor, name, symbol )

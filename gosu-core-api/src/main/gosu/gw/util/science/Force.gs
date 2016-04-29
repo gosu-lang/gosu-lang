@@ -20,8 +20,8 @@ final class Force extends AbstractMeasure<ForceUnit, Force> {
     return new Power( toNumber() * v.toNumber(), PowerUnit.BASE, Unit * v.Unit.LengthUnit / v.Unit.TimeUnit )
   }
   
-  function multiply( len: Length ) : Work {
-    return new Work( toNumber() * len.toNumber(), WorkUnit.BASE, Unit * len.Unit ) 
+  function multiply( len: Length ) : Energy {
+    return new Energy( toNumber() * len.toNumber(), EnergyUnit.BASE, Unit * len.Unit )
   }
 
   function multiply( t: Time ) : Momentum {

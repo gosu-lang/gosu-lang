@@ -4,11 +4,11 @@ uses gw.util.Rational
 uses java.math.RoundingMode
 uses java.math.MathContext
 
-final class Work extends AbstractMeasure<WorkUnit, Work> {
-  construct( value : Rational, unit: WorkUnit, displayUnit: WorkUnit ) {
-    super( value, unit, displayUnit, WorkUnit.BASE )
+final class Energy extends AbstractMeasure<EnergyUnit, Energy> {
+  construct( value : Rational, unit: EnergyUnit, displayUnit: EnergyUnit ) {
+    super( value, unit, displayUnit, EnergyUnit.BASE )
   }
-  construct( value : Rational, unit: WorkUnit ) {
+  construct( value : Rational, unit: EnergyUnit ) {
     this( value, unit, unit )
   }
  

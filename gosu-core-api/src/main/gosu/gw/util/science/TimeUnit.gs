@@ -77,8 +77,8 @@ enum TimeUnit implements IUnit<Rational, Time, TimeUnit> {
     return frequency.AngleUnit
   }
 
-  function multiply( power: PowerUnit ) : WorkUnit {
-    return power.WorkUnit
+  function multiply( power: PowerUnit ) : EnergyUnit {
+    return power.EnergyUnit
   }
 
   function multiply( force: ForceUnit ) : MomentumUnit {

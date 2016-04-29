@@ -65,10 +65,10 @@ interface UnitConstants {
   var N: ForceUnit = kg m/s/s
   var dyn: ForceUnit = g cm/s/s
   
-  var joule: WorkUnit = N m
-  var J: WorkUnit = joule
-  var erg: WorkUnit = dyn cm
-  var kcal: WorkUnit = WorkUnit.KCAL
+  var joule: EnergyUnit = N m
+  var J: EnergyUnit = joule
+  var erg: EnergyUnit = dyn cm
+  var kcal: EnergyUnit = EnergyUnit.kcal
   
   var watt: PowerUnit = J/s
   var W: PowerUnit = watt

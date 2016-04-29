@@ -12,15 +12,23 @@ final class Power extends AbstractMeasure<PowerUnit, Power> {
     this( value, unit, unit )
   }
  
-  function multiply( time: Time ) : Work {
-    return new Work( toNumber() * time.toNumber(), WorkUnit.BASE, Unit.WorkUnit )
+  function multiply( time: Time ) : Energy {
+    return new Energy( toNumber() * time.toNumber(), EnergyUnit.BASE, Unit.EnergyUnit )
   }
 
   function divide( v: Velocity ) : Force {
-    return new Force( toNumber() / v.toNumber(), ForceUnit.BASE, Unit.WorkUnit.ForceUnit )
+    return new Force( toNumber() / v.toNumber(), ForceUnit.BASE, Unit.EnergyUnit.ForceUnit )
   }
 
   function divide( force: Force ) : Velocity {
-    return new Velocity( toNumber() / force.toNumber(), VelocityUnit.BASE, Unit.WorkUnit.ForceUnit.AccUnit.VelocityUnit )
+    return new Velocity( toNumber() / force.toNumber(), VelocityUnit.BASE, Unit.EnergyUnit.ForceUnit.AccUnit.VelocityUnit )
+  }
+
+  function divide( potential: Potential ) : Current {
+    return new Current( toNumber() / potential.toNumber(), CurrentUnit.BASE, potential.Unit.CurrentUnit )
+  }
+
+  function divide( current: Current ) : Potential {
+    return new Potential( toNumber() / current.toNumber(), PotentialUnit.BASE, PotentialUnit.get( Unit, current.Unit ) )
   }
 }

@@ -23,8 +23,8 @@ final class MomentumUnit extends AbstractProductUnit<MassUnit, VelocityUnit, Mom
     return RightUnit 
   }
   
-  function multiply( v: VelocityUnit ) : WorkUnit {
-    return WorkUnit.get( MassUnit * (VelocityUnit / v.TimeUnit), v.LengthUnit ) 
+  function multiply( v: VelocityUnit ) : EnergyUnit {
+    return EnergyUnit.get( MassUnit * (VelocityUnit / v.TimeUnit), v.LengthUnit )
   }
     
   function divide( w: MassUnit ) : VelocityUnit {
