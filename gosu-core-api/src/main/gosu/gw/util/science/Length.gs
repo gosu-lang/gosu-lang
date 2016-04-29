@@ -11,21 +11,21 @@ final class Length extends AbstractMeasure<LengthUnit, Length> {
   }
 
   function divide( t: Time ) : Velocity {
-    return new Velocity( toNumber() / t.toNumber(), VelocityUnit.BASE, new( Unit, t.Unit ) )
+    return new Velocity( toNumber() / t.toNumber(), VelocityUnit.BASE, VelocityUnit.get( Unit, t.Unit ) )
   } 
   function divide( v: Velocity ) : Time {
     return new Time( toNumber() / v.toNumber(), Second, v.Unit.TimeUnit )
   }
   
   function multiply( len: Length ) : Area {
-    return new Area( toNumber() * len.toNumber(), AreaUnit.BASE, new( Unit, len.Unit ) )
+    return new Area( toNumber() * len.toNumber(), AreaUnit.BASE, AreaUnit.get( Unit, len.Unit ) )
   }
   
   function multiply( area: Area ) : Volume {
-    return new Volume( toNumber() * area.toNumber(), VolumeUnit.BASE, new( area.Unit, Unit ) )
+    return new Volume( toNumber() * area.toNumber(), VolumeUnit.BASE, VolumeUnit.get( Unit, area.Unit ) )
   }
   
   function multiply( force: Force ) : Work {
-    return new Work( toNumber() * force.toNumber(), WorkUnit.BASE, new( force.Unit, Unit ) ) 
+    return new Work( toNumber() * force.toNumber(), WorkUnit.BASE, WorkUnit.get( force.Unit, Unit ) )
   }
 }

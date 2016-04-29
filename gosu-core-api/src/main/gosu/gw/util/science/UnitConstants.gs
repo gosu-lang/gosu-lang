@@ -54,28 +54,33 @@ interface UnitConstants {
   var moa: AngleUnit = MOA
   var deg: AngleUnit = Degree
   
+  var dK: TemperatureUnit = Kelvin
+  var dC: TemperatureUnit = Celcius
+  var dF: TemperatureUnit = Fahrenheit   
+  
   var mph: VelocityUnit = mi/hr
   
   var Ns: MomentumUnit = kg m/s
   
   var N: ForceUnit = kg m/s/s
+  var dyn: ForceUnit = g cm/s/s
   
   var joule: WorkUnit = N m
   var J: WorkUnit = joule
+  var erg: WorkUnit = dyn cm
+  var kcal: WorkUnit = WorkUnit.KCAL
   
   var watt: PowerUnit = J/s
   var W: PowerUnit = watt
+  
+  var C: HeatCapacityUnit = J/dK
   
   var Hz: FrequencyUnit = cyc/s
   var kHz: FrequencyUnit = cyc/ms
   var MHz: FrequencyUnit = cyc/mus
   var GHz: FrequencyUnit = cyc/ns
   var rpm: FrequencyUnit = cyc/min
-  
-  var dK: TemperatureUnit = Kelvin
-  var dC: TemperatureUnit = Celcius
-  var dF: TemperatureUnit = Fahrenheit   
-  
+    
   var coulomb: ChargeUnit = Coulomb
   var amp: CurrentUnit = coulomb/s
 }

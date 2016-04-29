@@ -3,10 +3,27 @@ package gw.util.science
 uses gw.util.Rational
 
 final class AccelerationUnit extends AbstractQuotientUnit<VelocityUnit, TimeUnit, Acceleration, AccelerationUnit> {
-  public static var BASE: AccelerationUnit = new( VelocityUnit.BASE, VelocityUnit.BASE.TimeUnit )
-  
-  construct( velocityUnit: VelocityUnit, timeUnit: TimeUnit ) {
-    super( velocityUnit, timeUnit )
+  final static var CACHE: UnitCache<AccelerationUnit> = new UnitCache()
+
+  public static var BASE: AccelerationUnit = get( VelocityUnit.BASE, VelocityUnit.BASE.TimeUnit )
+
+  static function get( velocityUnit: VelocityUnit, timeUnit: TimeUnit, factor: Rational = null, name: String = null, symbol: String = null ) : AccelerationUnit {
+    var unit = new AccelerationUnit( velocityUnit, timeUnit, factor, name, symbol )
+    return CACHE.get( unit )
+  }
+ 
+  private construct( velocityUnit: VelocityUnit, timeUnit: TimeUnit, factor: Rational = null, name: String = null, symbol: String = null ) {
+    super( velocityUnit, timeUnit, factor,
+           name != null
+           ? name
+           : velocityUnit.TimeUnit === timeUnit
+             ? velocityUnit.LengthUnit.UnitName + "/" + timeUnit.UnitName + "\u00B2"
+             : velocityUnit.UnitName + "/" + timeUnit.UnitName,
+           symbol != null
+           ? symbol
+           : velocityUnit.TimeUnit === timeUnit
+             ? velocityUnit.LengthUnit.UnitSymbol + "/" + timeUnit.UnitSymbol + "\u00B2"
+             : velocityUnit.UnitSymbol + "/" + timeUnit.UnitSymbol )
   }
   
   property get VelocityUnit() : VelocityUnit {
@@ -16,23 +33,11 @@ final class AccelerationUnit extends AbstractQuotientUnit<VelocityUnit, TimeUnit
     return RightUnit
   }  
   
-  override property get UnitName() : String {
-    return VelocityUnit.TimeUnit === TimeUnit 
-           ? VelocityUnit.LengthUnit.UnitName + "/" + TimeUnit.UnitName + "\u00B2"
-           : VelocityUnit.UnitName + "/" + TimeUnit.UnitName
-  }
-  
-  override property get UnitSymbol() : String {
-    return VelocityUnit.TimeUnit === TimeUnit 
-           ? VelocityUnit.LengthUnit.UnitSymbol + "/" + TimeUnit.UnitSymbol + "\u00B2"
-           : VelocityUnit.UnitSymbol + "/" + TimeUnit.UnitSymbol
-  }
-    
   function postfixBind( mass: MassUnit ) : ForceUnit {
     return multiply( mass )
   }
   
   function multiply( t: MassUnit ) : ForceUnit {
-    return new ForceUnit( t, this )
+    return ForceUnit.get( t, this )
   }  
 }

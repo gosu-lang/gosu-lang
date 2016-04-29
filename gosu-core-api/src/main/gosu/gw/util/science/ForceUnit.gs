@@ -3,10 +3,17 @@ package gw.util.science
 uses gw.util.Rational
 
 final class ForceUnit extends AbstractProductUnit<MassUnit, AccelerationUnit, Force, ForceUnit> {
-  public static var BASE: ForceUnit = new ( Kilogram, AccelerationUnit.BASE )
+  final static var CACHE: UnitCache<ForceUnit> = new UnitCache()
+
+  public static var BASE: ForceUnit = get( Kilogram, AccelerationUnit.BASE, 1, "Newton", "N" )
+
+  static function get( massUnit: MassUnit, accUnit: AccelerationUnit, factor: Rational = null, name: String = null, symbol: String = null ) : ForceUnit {
+    var unit = new ForceUnit( massUnit, accUnit, factor, name, symbol )
+    return CACHE.get( unit )
+  }
     
-  construct( massUnit: MassUnit, accUnit: AccelerationUnit ) {
-    super( massUnit, accUnit )
+  private construct( massUnit: MassUnit, accUnit: AccelerationUnit, factor: Rational = null, name: String = null, symbol: String = null ) {
+    super( massUnit, accUnit, factor, name, symbol )
   }
 
   property get MassUnit() : MassUnit {
@@ -17,13 +24,17 @@ final class ForceUnit extends AbstractProductUnit<MassUnit, AccelerationUnit, Fo
   }
         
   function multiply( v: VelocityUnit ) : PowerUnit {
-    return new( this * v.LengthUnit, v.TimeUnit )
+    return PowerUnit.get( this * v.LengthUnit, v.TimeUnit )
   }
     
   function multiply( len: LengthUnit ) : WorkUnit {
-    return new( this, len )
+    return WorkUnit.get( this, len )
   }
   
+  function multiply( t: TimeUnit ) : MomentumUnit {
+    return MomentumUnit.get( MassUnit, VelocityUnit.get( AccUnit.VelocityUnit.LengthUnit, t ) )
+  }
+
   function divide( w: MassUnit ) : AccelerationUnit {
     return AccUnit
   }  

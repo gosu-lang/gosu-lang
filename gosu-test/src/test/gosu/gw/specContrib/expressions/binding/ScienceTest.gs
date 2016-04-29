@@ -93,7 +93,27 @@ class ScienceTest extends TestClass {
         // multiplication undefined
         assertEquals( a.toNumber() / b.toNumber(), a / b )
         assertEquals( a.toNumber() % b.toNumber(), a % b )
-      }      
+      } 
+      
+      // Mass * Acceleration = Force
+      var acc = new Acceleration( 2, AccelerationUnit.BASE )
+      var force = new Force( a.toNumber() * acc.toNumber(), ForceUnit.BASE, unit * acc.Unit )     
+      assertEquals( force, a * acc )
+      
+      // Mass * Velocity = Momentum
+      var v = new Velocity( 2, VelocityUnit.BASE )
+      var momentum = new Momentum( a.toNumber() *  v.toNumber(), MomentumUnit.BASE, unit * v.Unit )     
+      assertEquals( momentum, a * v )
+      
+      // Mass * Area = Pressure
+      var area = new Area( 2, AreaUnit.BASE )
+      var pressure = new Pressure( a.toNumber() /  area.toNumber(), PressureUnit.BASE, unit / area.Unit )     
+      assertEquals( pressure, a / area )
+      
+      // Mass * Volume = Density
+      var volume = new Volume( 2, VolumeUnit.BASE )
+      var density = new Density( a.toNumber() /  volume.toNumber(), DensityUnit.BASE, unit / volume.Unit )     
+      assertEquals( density, a / volume )
     }
   }
   

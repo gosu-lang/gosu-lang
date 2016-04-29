@@ -80,7 +80,7 @@ enum LengthUnit implements IUnit<Rational, Length, LengthUnit> {
   }
 
   function divide( t: TimeUnit ) : VelocityUnit {
-    return new VelocityUnit( this, t )
+    return VelocityUnit.get( this, t )
   }
    
   function divide( v: VelocityUnit ) : TimeUnit {
@@ -88,14 +88,14 @@ enum LengthUnit implements IUnit<Rational, Length, LengthUnit> {
   }
   
   function multiply( len: LengthUnit ) : AreaUnit {
-    return new AreaUnit( this, len )
+    return AreaUnit.get( this, len )
   }
   
   function multiply( area: AreaUnit ) : VolumeUnit {
-    return new VolumeUnit( area, this )
+    return VolumeUnit.get( this, area )
   }  
   
   function multiply( f: ForceUnit ) : WorkUnit {
-    return new( f, this )
+    return WorkUnit.get( f, this )
   }  
 }

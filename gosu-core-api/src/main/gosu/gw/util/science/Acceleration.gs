@@ -17,7 +17,7 @@ final class Acceleration extends AbstractMeasure<AccelerationUnit, Acceleration>
     this( value, unit, unit )
   }
      
-  function multiply( t: Mass ) : Force {
-    return new Force( toNumber() * t.toNumber(), ForceUnit.BASE, new( t.Unit, Unit ) )
+  function multiply( mass: Mass ) : Force {
+    return new Force( toNumber() * mass.toNumber(), ForceUnit.BASE, ForceUnit.get( mass.Unit, Unit ) )
   }
 }

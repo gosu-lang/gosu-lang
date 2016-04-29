@@ -13,7 +13,7 @@ final class Volume extends AbstractMeasure<VolumeUnit, Volume> {
   }
 
   function divide( t: Length ) : Area {
-    return new Area( toNumber() / t.toNumber(), new( Meter ), new( t.Unit ) )
+    return new Area( toNumber() / t.toNumber(), AreaUnit.BASE, AreaUnit.get( t.Unit ) )
   }
   
   function divide( area: Area ) : Length {

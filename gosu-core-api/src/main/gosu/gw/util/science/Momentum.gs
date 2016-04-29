@@ -5,11 +5,6 @@ uses java.math.RoundingMode
 uses java.math.MathContext
 
 final class Momentum extends AbstractMeasure<MomentumUnit, Momentum> {
-  /** 
-   * @param value Momentum in specified units
-   * @param unit Momentum unit, default is millis / second
-   * @param displayUnit Unit in which to display this velocity
-   */
   construct( value : Rational, unit: MomentumUnit, displayUnit: MomentumUnit ) {
     super( value, unit, displayUnit, MomentumUnit.BASE )
   }
@@ -17,6 +12,10 @@ final class Momentum extends AbstractMeasure<MomentumUnit, Momentum> {
     this( value, unit, unit )
   }
  
+  function multiply( v: Velocity ) : Work {
+    return new Work( toNumber() * v.toNumber(), WorkUnit.BASE, Unit * v.Unit )  
+  }
+  
   function divide( w: Mass ) : Velocity {
     return new Velocity( toNumber() / w.toNumber(), VelocityUnit.BASE, Unit.VelocityUnit )
   }

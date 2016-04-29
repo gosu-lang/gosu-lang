@@ -20,8 +20,8 @@ print( 9 mi/hr )
 //   
 // Gosu supports math operations naturally on "Dimensions".  A dimension can be a physical 
 // dimension like Length, Time, Weight, etc. it can also be abstract, for example, like   
-// a Monetary Amount. Basically a dimension is a quantifiable measure of something in specific 
-// units.  For example, 9 feet, 150 mph, 400 grams, 9.8 m/s/s, 49.99 usd, etc. 
+// Money. Basically, a dimension is a quantifiable measure of something in specific 
+// units.  For example, 9 feet, 150 mph, 400 grams, 9.8 m/s/s, 49.99 USD, etc. 
 //
 // Arithmetic operations work directly and type-safely with dimensions as operand.  For instance,
 // you can implement a Velocity, Time, Length dimensions and define a multiply method on Time like this:
@@ -31,23 +31,27 @@ print( 9 mi/hr )
 // Gosu uses structural typing to determine that Time implements the multiplication operator on Velocity 
 // resulting in Time.  Effectively Gosu infers all the types for you:
 //
-   var velocity = new Velocity( 50, new VelocityUnit( Mile, Hour ) )
+   var velocity = new Velocity( 50, VelocityUnit.get( Mile, Hour ) )
    var time = new Time( 3, Hour )
    var distance = velocity * time // result is a Length of 150 miles  
 // 
 // As you can see you can clearly specify units with dimensions and perform arithmetic 
 // directly.
 //
-// You can more naturally express units with dimensions, however, via "Unit Binders".  Basically
+// You can more naturally express units with dimensions, however, via "Unit Binder Expressions".
 // Gosu's grammar supports the direct association of a unit with a measure.  So the previous example
-// can be written like this:print( o )
+// can be written like this:
 // 
     distance = 50 mi/hr * 3 hr
-   
+//  Or like this:
+    distance = 50mph * 3hr
+    print( distance )
+    
+       
     print( 50mi.to( km ) )
     var acc = 9.8 m/s/s  
     var kdl = 0.44704 kg m/s 
-    
+    print( kdl )
     var mmm : Momentum = 4g * 5m/s
     print( mmm )
 

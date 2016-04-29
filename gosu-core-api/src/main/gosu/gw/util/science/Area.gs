@@ -18,7 +18,7 @@ final class Area extends AbstractMeasure<AreaUnit, Area> {
   }
 
   function multiply( t: Length ) : Volume {
-    return new Volume( toNumber() * t.toNumber(), new( Unit, t.Unit ) )
+    return new Volume( toNumber() * t.toNumber(), VolumeUnit.get( t.Unit, Unit ) )
   }
   
   function divide( t: Length ) : Length {

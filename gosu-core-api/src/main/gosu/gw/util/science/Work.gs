@@ -21,10 +21,18 @@ final class Work extends AbstractMeasure<WorkUnit, Work> {
   }
   
   function divide( t: Time ) : Power {
-    return new Power( toNumber() / t.toNumber(), PowerUnit.BASE, new( Unit, t.Unit ) )
+    return new Power( toNumber() / t.toNumber(), PowerUnit.BASE, PowerUnit.get( Unit, t.Unit ) )
   }
 
   function divide( power: Power ) : Time {
     return new Time( toNumber() / power.toNumber(), TimeUnit.BaseUnit, power.Unit.TimeUnit )
+  }
+  
+  function divide( temperature: Temperature ) : HeatCapacity {
+    return new HeatCapacity( toNumber() / temperature.toNumber(), HeatCapacityUnit.BASE, Unit / temperature.Unit ) 
+  }
+  
+  function divide( c: HeatCapacity ) : Temperature {
+    return new Temperature( toNumber() / c.toNumber(), TemperatureUnit.BaseUnit, c.Unit.TemperatureUnit ) 
   }
 }

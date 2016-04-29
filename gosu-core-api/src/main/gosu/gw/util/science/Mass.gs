@@ -10,18 +10,18 @@ final class Mass extends AbstractMeasure<MassUnit, Mass> {
   }
   
   function multiply( a: Acceleration ) : Force {
-    return new Force( toNumber() * a.toNumber(), ForceUnit.BASE, new( Unit, a.Unit ) )
+    return new Force( toNumber() * a.toNumber(), ForceUnit.BASE, ForceUnit.get( Unit, a.Unit ) )
   } 
   
   function multiply( v: Velocity ) : Momentum {
-    return new Momentum( toNumber() * v.toNumber(), MomentumUnit.BASE, new( Unit, v.Unit ) )
+    return new Momentum( toNumber() * v.toNumber(), MomentumUnit.BASE, MomentumUnit.get( Unit, v.Unit ) )
   } 
   
   function divide( area: Area ) : Pressure {
-    return new Pressure( toNumber() / area.toNumber(), PressureUnit.BASE, new( Unit, area.Unit ) )
+    return new Pressure( toNumber() / area.toNumber(), PressureUnit.BASE, PressureUnit.get( Unit, area.Unit ) )
   } 
 
   function divide( volume: Volume ) : Density {
-    return new Density( toNumber() / volume.toNumber(), DensityUnit.BASE, new( Unit, volume.Unit ) )
+    return new Density( toNumber() / volume.toNumber(), DensityUnit.BASE, DensityUnit.get( Unit, volume.Unit ) )
   } 
 }

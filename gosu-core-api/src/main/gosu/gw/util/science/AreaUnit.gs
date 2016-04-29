@@ -3,13 +3,27 @@ package gw.util.science
 uses gw.util.Rational
 
 final class AreaUnit extends AbstractProductUnit<LengthUnit, LengthUnit, Area, AreaUnit> {
-  public static var BASE: AreaUnit = new( Meter, Meter )
-  
-  construct( widthUnit: LengthUnit, lengthUnit: LengthUnit ) {
-    super( widthUnit, lengthUnit )
+  final static var CACHE: UnitCache<AreaUnit> = new UnitCache()
+
+  public static var BASE: AreaUnit = get( Meter, Meter )
+
+  static function get( widthUnit: LengthUnit, lengthUnit: LengthUnit = null, factor: Rational = null, name: String = null, symbol: String = null ) : AreaUnit {
+    var unit = new AreaUnit( widthUnit, lengthUnit, factor, name, symbol )
+    return CACHE.get( unit )
   }
-  construct( unit: LengthUnit ) {
-    this( unit, unit )
+   
+  private construct( widthUnit: LengthUnit, lengthUnit: LengthUnit = null, factor: Rational = null, name: String = null, symbol: String = null ) {
+    super( widthUnit, lengthUnit ?: widthUnit, factor,
+           name != null
+           ? name
+           : lengthUnit == null
+             ? ("Square " + lengthUnit)
+             : (widthUnit.UnitName + "\u00D7" + lengthUnit.UnitName),
+           symbol != null
+           ? symbol
+           : lengthUnit == null
+             ? (lengthUnit + "\u00B2")
+             : (widthUnit.UnitSymbol + "\u00D7" + lengthUnit.UnitSymbol) )
   }
 
   property get WidthUnit() : LengthUnit {
@@ -23,20 +37,8 @@ final class AreaUnit extends AbstractProductUnit<LengthUnit, LengthUnit, Area, A
     return WidthUnit === LengthUnit
   }
 
-  override property get UnitName() : String {
-    return IsSquare
-           ? ("Square " + WidthUnit.UnitName)
-           : (WidthUnit.UnitName + "\u00D7" + LengthUnit.UnitName)
-  }
-
-  override property get UnitSymbol() : String {
-    return IsSquare
-           ? (WidthUnit.UnitSymbol + "\u00B2")
-           : (WidthUnit.UnitSymbol + "\u00D7" + LengthUnit.UnitSymbol)
-  }
- 
   function multiply( lu: LengthUnit ) : VolumeUnit {
-    return new( this, lu )
+    return VolumeUnit.get( lu, this )
   }  
   
   function divide( lu: LengthUnit ) : LengthUnit {

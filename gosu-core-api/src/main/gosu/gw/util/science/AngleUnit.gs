@@ -49,6 +49,6 @@ enum AngleUnit implements IUnit<Rational, Angle, AngleUnit> {
   }
   
   function divide( time: TimeUnit ) : FrequencyUnit {
-    return new( this, time )
+    return FrequencyUnit.get( this, time )
   }
 }

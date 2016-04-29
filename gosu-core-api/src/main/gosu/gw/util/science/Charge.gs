@@ -15,6 +15,6 @@ final class Charge extends AbstractMeasure<ChargeUnit, Charge> {
   }
   
   function divide( time: Time ) : Current {
-    return new Current( toNumber() / time.toNumber(), CurrentUnit.BASE, new( Unit, time.Unit ) )
+    return new Current( toNumber() / time.toNumber(), CurrentUnit.BASE, CurrentUnit.get( Unit, time.Unit ) )
   } 
 }

@@ -44,4 +44,8 @@ enum TemperatureUnit implements IUnit<Rational, Temperature, TemperatureUnit> {
   override function from( t: Temperature ) : Rational {
     return FromKelvin( t.toNumber() )
   }   
+  
+  function multiply( c: HeatCapacityUnit ) : WorkUnit {
+    return c.WorkUnit 
+  }
 }

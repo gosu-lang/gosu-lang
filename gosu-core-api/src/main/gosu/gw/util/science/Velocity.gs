@@ -17,7 +17,7 @@ final class Velocity extends AbstractMeasure<VelocityUnit, Velocity> {
   }
 
   function multiply( mass: Mass ) : Momentum {
-    return new Momentum( toNumber() * mass.toNumber(), MomentumUnit.BASE, new( mass.Unit, Unit ) )
+    return new Momentum( toNumber() * mass.toNumber(), MomentumUnit.BASE, MomentumUnit.get( mass.Unit, Unit ) )
   }
 
   function multiply( force: Force ) : Power {
@@ -25,6 +25,6 @@ final class Velocity extends AbstractMeasure<VelocityUnit, Velocity> {
   }
   
   function divide( t: Time ) : Acceleration {
-    return new Acceleration( toNumber() / t.toNumber(), AccelerationUnit.BASE, new( Unit, t.Unit ) )
+    return new Acceleration( toNumber() / t.toNumber(), AccelerationUnit.BASE, AccelerationUnit.get( Unit, t.Unit ) )
   }  
 }

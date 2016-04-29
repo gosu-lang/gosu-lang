@@ -2,37 +2,39 @@ package gw.util.science
 
 uses gw.util.Rational
 
-final class VolumeUnit extends AbstractProductUnit<AreaUnit, LengthUnit, Volume, VolumeUnit> {
-  public static var BASE: VolumeUnit = new( new( Meter ), Meter )
-  
-  construct( areaUnit: AreaUnit, lengthUnit: LengthUnit ) {
-    super( areaUnit, lengthUnit )
+final class VolumeUnit extends AbstractProductUnit<LengthUnit, AreaUnit, Volume, VolumeUnit> {
+  final static var CACHE: UnitCache<VolumeUnit> = new UnitCache()
+
+  public static var BASE: VolumeUnit = get( Meter, AreaUnit.get( Meter ) )
+
+  static function get( lengthUnit: LengthUnit, areaUnit: AreaUnit = null, factor: Rational = null, name: String = null, symbol: String = null ) : VolumeUnit {
+    var unit = new VolumeUnit( lengthUnit, areaUnit, factor, name, symbol )
+    return CACHE.get( unit )
   }
-  construct( unit: LengthUnit ) {
-    this( new( unit ), unit )
+  
+  private construct( lengthUnit: LengthUnit, areaUnit: AreaUnit = null, factor: Rational = null, name: String = null, symbol: String = null ) {
+    super( lengthUnit, areaUnit ?: AreaUnit.get( lengthUnit ), factor,
+           name != null
+           ? name
+           : areaUnit == null || areaUnit.IsSquare && areaUnit.WidthUnit === lengthUnit
+             ? ("Cubic " + lengthUnit.UnitName)
+             : (areaUnit.UnitName + "\u00D7" + lengthUnit.UnitName),
+           symbol != null
+           ? symbol
+           : areaUnit == null || areaUnit.IsSquare && areaUnit.WidthUnit === lengthUnit
+             ? (lengthUnit.UnitSymbol + "\u00B3")
+             : (areaUnit.UnitSymbol + "\u00D7" + lengthUnit.UnitSymbol) )
   }
 
   property get AreaUnit() : AreaUnit {
-    return LeftUnit 
+    return RightUnit
   }
   property get LengthUnit() : LengthUnit {
-    return RightUnit 
+    return LeftUnit
   }
 
   property get IsCubic() : boolean {
     return AreaUnit.IsSquare && AreaUnit.WidthUnit === LengthUnit
-  }
-
-  override property get UnitName() : String {
-    return IsCubic
-           ? ("Cubic " + AreaUnit.WidthUnit.UnitName)
-           : (AreaUnit.UnitName + "\u00D7" + LengthUnit.UnitName)
-  }
-
-  override property get UnitSymbol() : String {
-    return IsCubic
-           ? (AreaUnit.WidthUnit.UnitSymbol + "\u00B3")
-           : (AreaUnit.UnitSymbol + "\u00D7" + LengthUnit.UnitSymbol)
   }
 
   function divide( len: LengthUnit ) : AreaUnit {

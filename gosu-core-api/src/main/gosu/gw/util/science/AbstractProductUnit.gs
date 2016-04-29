@@ -5,20 +5,14 @@ abstract class AbstractProductUnit<A extends IUnit<Rational, IDimension, A>,
                                    B extends IUnit<Rational, IDimension, B>,
                                    D extends IDimension<D, Rational>,
                                    U extends AbstractProductUnit<A, B, D, U>> extends AbstractBinaryUnit<A, B, D, U> {
-  construct( leftUnit: A, rightUnit: B ) {
-    super( leftUnit, rightUnit )
+  protected construct( leftUnit: A, rightUnit: B, factor: Rational = null, name: String = null, symbol: String = null ) {
+    super( leftUnit, rightUnit, factor,
+           name != null ? name: leftUnit.UnitName + " " + rightUnit.UnitName,
+           symbol != null ? symbol : leftUnit.UnitSymbol + "\u22C5" + rightUnit.UnitSymbol )
   }
   
-  override property get UnitName() : String {
-    return LeftUnit.UnitName + " " + RightUnit.UnitName
-  }
-
-  override property get UnitSymbol() : String {
-    return LeftUnit.UnitSymbol + "\u22C5" + RightUnit.UnitSymbol
-  }
- 
   override function toBaseUnits( myUnits: Rational ) : Rational {
-    return (LeftUnit.toBaseUnits( 1 ) * RightUnit.toBaseUnits( 1 )) * myUnits
+    return (LeftUnit.toBaseUnits( 1 ) * RightUnit.toBaseUnits( 1 )) * myUnits * Factor
   } 
   
   override function toNumber() : Rational {

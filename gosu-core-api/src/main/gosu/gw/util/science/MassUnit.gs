@@ -56,18 +56,18 @@ enum MassUnit implements IUnit<Rational, Mass, MassUnit> {
   }   
       
   function multiply( velocity: VelocityUnit ) : MomentumUnit {
-    return new( this, velocity )
+    return MomentumUnit.get( this, velocity )
   }
   
   function multiply( acc: AccelerationUnit ) : ForceUnit {
-    return new( this, acc )
+    return ForceUnit.get( this, acc )
   }
   
   function divide( area: AreaUnit ) : PressureUnit {
-    return new PressureUnit( this, area )
+    return PressureUnit.get( this, area )
   } 
 
   function divide( volume: VolumeUnit ) : DensityUnit {
-    return new DensityUnit( this, volume )
+    return DensityUnit.get( this, volume )
   }   
 }
