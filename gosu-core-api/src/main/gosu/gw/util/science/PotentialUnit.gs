@@ -23,8 +23,8 @@ final class PotentialUnit extends AbstractQuotientUnit<PowerUnit, CurrentUnit, P
   property get CurrentUnit() : CurrentUnit {
     return RightUnit 
   }
-  
-  function multiply( w: CurrentUnit ) : PowerUnit {
-    return PowerUnit
+
+  function divide( current: CurrentUnit ) : ResistanceUnit {
+    return ResistanceUnit.get( this, current )
   }
 }

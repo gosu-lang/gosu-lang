@@ -1,13 +1,16 @@
 package gw.util.science
 
 uses gw.util.Rational
+uses MetricScaleUnit#*
 
 enum MassUnit implements IUnit<Rational, Mass, MassUnit> {
   AtomicMass( 1.6605402e-27, "AMU", "amu" ),
-  Micro( .000000001, "Microgram", "µg" ),
-  Milli( .000001, "Milligram", "mg" ),
-  Gram( .001, "Gram", "g" ),
+  Nano( 1p, "Nanogram", "µg" ),
+  Micro( 1n, "Microgram", "µg" ),
+  Milli( 1u, "Milligram", "mg" ),
+  Gram( 1m, "Gram", "g" ),
   Kilogram( 1, "Kilogram", "kg" ),
+  Tonne( 1k, "Metric Ton", "tonne" ),
   Carat( .0002, "Carat", "ct" ),
   Dram( .001771845195312, "Dram", "dr" ),
   Grain( 6.47989e-5, "Grain", "gr" ),
@@ -18,7 +21,6 @@ enum MassUnit implements IUnit<Rational, Mass, MassUnit> {
   Stone( 6.35029, "Stone", "st" ),
   Ton( 907.185, "Ton (US, short)", "sht" ),
   TonUK( 1016.05, "Ton (UK, long)", "lt" ),
-  Tonne( 1000, "Tonne", "tonne" ),
   Solar( 1.9889200011445836e30, "Solar Masses", "M☉" )
   
   var _kilograms: Rational as Kilograms

@@ -27,7 +27,4 @@ final class InductanceUnit extends AbstractProductUnit<ResistanceUnit, TimeUnit,
   function divide( w: TimeUnit ) : ResistanceUnit {
     return ResistanceUnit
   }
-  function divide( w: ResistanceUnit ) : TimeUnit {
-    return TimeUnit
-  }
 }

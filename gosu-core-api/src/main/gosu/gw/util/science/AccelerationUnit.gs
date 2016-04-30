@@ -13,19 +13,21 @@ final class AccelerationUnit extends AbstractQuotientUnit<VelocityUnit, TimeUnit
   }
  
   private construct( velocityUnit: VelocityUnit, timeUnit: TimeUnit, factor: Rational = null, name: String = null, symbol: String = null ) {
-    super( velocityUnit, timeUnit, factor,
-           name != null
-           ? name
-           : velocityUnit.TimeUnit === timeUnit
-             ? velocityUnit.LengthUnit.UnitName + "/" + timeUnit.UnitName + "\u00B2"
-             : velocityUnit.UnitName + "/" + timeUnit.UnitName,
-           symbol != null
-           ? symbol
-           : velocityUnit.TimeUnit === timeUnit
-             ? velocityUnit.LengthUnit.UnitSymbol + "/" + timeUnit.UnitSymbol + "\u00B2"
-             : velocityUnit.UnitSymbol + "/" + timeUnit.UnitSymbol )
+    super( velocityUnit, timeUnit, factor, name, symbol )
   }
-  
+
+  override property get FullName() : String {
+    return VelocityUnit.TimeUnit === TimeUnit
+           ? VelocityUnit.LengthUnit.FullName + "/" + TimeUnit.FullName + "\u00B2"
+           : VelocityUnit.FullName + "/" + TimeUnit.FullName
+  }
+
+  override property get FullSymbol() : String {
+    return VelocityUnit.TimeUnit === TimeUnit
+           ? VelocityUnit.LengthUnit.FullSymbol + "/" + TimeUnit.FullSymbol + "\u00B2"
+           : VelocityUnit.FullSymbol + "/" + TimeUnit.FullSymbol
+  }
+
   property get VelocityUnit() : VelocityUnit {
     return LeftUnit
   }

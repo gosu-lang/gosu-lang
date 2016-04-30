@@ -4,174 +4,75 @@ uses gw.test.TestClass
 uses gw.util.science.*
 uses gw.util.science.UnitConstants#*
 uses java.math.BigDecimal
+uses gw.lang.reflect.TypeSystem
+uses gw.lang.reflect.INamespaceType
+uses gw.lang.reflect.gs.IGosuClass
 
-class ScienceUnitConversionTest extends TestClass {
-  function testLengthUnitConversions() {
-    for( unit in LengthUnit.AllValues ) {
-      var len = 1 unit
-      for( unit2 in LengthUnit.AllValues ) {
-        assertEquals( len, len.to( unit2 ).to( unit ) ) 
+class ScienceUnitConversionTest extends TestClass { 
+  static final var SAMPLE_DENSITY: int = 10
+  
+  function testUnitConversions() {
+    var namespace = TypeSystem.getNamespace( "gw.util.science" )
+    var typeNames = namespace.getChildren( namespace )
+    typeNames.where( \ tn -> tn.kind == TYPE )
+             .map( \ tn -> TypeSystem.getByFullName( tn.name ) )
+             .where( \ type -> type.Final && IUnit.Type.isAssignableFrom( type ) )
+             .each( \ unitType -> _testUnitConversions( unitType as Type<IUnit> ) )
+  }
+  
+  private function _testUnitConversions( type: Type<IUnit> ) {
+    print( type.Type )
+    var allUnits = getAllUnitsOfType( type.Type )
+    for( unit in allUnits ) {
+      var measure = unit.postfixBind( 1 ) as AbstractMeasure<IUnit, AbstractMeasure<IUnit, AbstractMeasure>>
+      for( unit2 in allUnits ) {
+        print( unit.UnitName + " to " + unit2.UnitName )
+        assertEquals( measure, measure.to( unit2 ).to( unit ) ) 
       }
+    }      
+  }
+ 
+  @SuppressWarnings( "all" ) 
+  private function getAllUnitsOfType( unitType: Type<IUnit> ) : Collection<IUnit> {
+    if( unitType.Type.Enum ) {
+      var enumUnitType: Dynamic = unitType.Type
+      return enumUnitType.AllValues
+    }
+    else if( AbstractBinaryUnit.Type.isAssignableFrom( unitType.Type ) ) {
+      var leftUnitType = unitType.Type.Supertype.TypeParameters[0] as Type<IUnit>
+      var rightUnitType = unitType.Type.Supertype.TypeParameters[1] as Type<IUnit>
+      var prod = AbstractProductUnit.Type.isAssignableFrom( unitType )
+      var allUnits = new ArrayList<IUnit>()
+      for( lut in getAllUnitsOfType( leftUnitType ) ) {
+        for( rut in getAllUnitsOfType( rightUnitType ) ) {
+          try {
+            if( prod ) {
+              var prodUnit = (lut as Dynamic).multiply( rut )
+              allUnits.add( prodUnit )
+            }
+            else {
+              var quotUnit = (lut as Dynamic).divide( rut )
+              allUnits.add( quotUnit )
+            }
+          }
+          catch( e: Exception ) {
+            throw new RuntimeException( "Error calling: " + (typeof lut).RelativeName + "#" + (prod ? "multiply( " : "divide( ") + (typeof rut).RelativeName + " )", e )
+          }
+        }
+      }
+      makeSample( allUnits )
+      return allUnits
+    }
+    else {
+      throw new IllegalStateException( "Unexpected Unit Type: " + unitType.Type.Name )
     }
   }
-  function testTimeUnitConversions() {
-    for( unit in TimeUnit.AllValues ) {
-      var time = 1 unit
-      for( unit2 in TimeUnit.AllValues ) {
-        assertEquals( time, time.to( unit2 ).to( unit ) ) 
-      }
-    }
-  }
-  function testMassUnitConversions() {
-    for( unit in MassUnit.AllValues ) {
-      var mass = 1 unit
-      for( unit2 in MassUnit.AllValues ) {
-        assertEquals( mass, mass.to( unit2 ).to( unit ) ) 
-      }
-    }
-  }
-  function testTemperatureUnitConversions() {
-    for( unit in TemperatureUnit.AllValues ) {
-      var temperature = 1 unit
-      for( unit2 in TemperatureUnit.AllValues ) {
-        assertEquals( temperature, temperature.to( unit2 ).to( unit ) ) 
-      }
-    }
-  }
-  function testAngleUnitConversions() {
-    for( unit in AngleUnit.AllValues ) {
-      var angle = 1 unit
-      for( unit2 in AngleUnit.AllValues ) {
-        assertEquals( angle, angle.to( unit2 ).to( unit ) ) 
-      }
-    }
-  }
-  function testChargeUnitConversions() {
-    for( unit in ChargeUnit.AllValues ) {
-      var charge = 1 unit
-      for( unit2 in ChargeUnit.AllValues ) {
-        assertEquals( charge, charge.to( unit2 ).to( unit ) ) 
-      }
-    }
-  }
-  function testAreaUnitConversions() {
-    for( unit in LengthUnit.AllValues ) {
-      var theUnit = unit * unit
-      var area = 1 theUnit
-      for( u in LengthUnit.AllValues ) {
-        var toUnit = u * u
-        assertEquals( area, area.to( toUnit ).to( theUnit ) ) 
-      }
-    }
-  }
-  function testVolumeUnitConversions() {
-    for( unit in LengthUnit.AllValues ) {
-      var theUnit = unit * unit * unit
-      var volume = 1 theUnit
-      for( u in LengthUnit.AllValues ) {
-        var toUnit = u * u * u
-        assertEquals( volume, volume.to( toUnit ).to( theUnit ) ) 
-      }
-    }
-  }
-  function testVelocityUnitConversions() {
-    for( unit in LengthUnit.AllValues ) {
-      var theUnit = unit / s
-      var velocity = 1 theUnit
-      for( u in LengthUnit.AllValues ) {
-        var toUnit = u / s
-        assertEquals( velocity, velocity.to( toUnit ).to( theUnit ) ) 
-      }
-    }
-  }
-  function testAccelerationUnitConversions() {
-    for( unit in LengthUnit.AllValues ) {
-      var theUnit = unit / s / s
-      var acceleration = 1 theUnit
-      for( u in LengthUnit.AllValues ) {
-        var toUnit = u / s / s
-        assertEquals( acceleration, acceleration.to( toUnit ).to( theUnit ) ) 
-      }
-    }
-  }
-  function testCurrentUnitConversions() {
-    for( unit in ChargeUnit.AllValues ) {
-      var theUnit = unit / s
-      var current = 1 theUnit
-      for( u in ChargeUnit.AllValues ) {
-        var toUnit = u / s
-        assertEquals( current, current.to( toUnit ).to( theUnit ) ) 
-      }
-    }
-  }
-  function testDensityUnitConversions() {
-    for( unit in MassUnit.AllValues ) {
-      var theUnit = unit / (m*m*m)
-      var density = 1 theUnit
-      for( u in MassUnit.AllValues ) {
-        var toUnit = u / (m*m*m)
-        assertEquals( density, density.to( toUnit ).to( theUnit ) ) 
-      }
-    }
-  }
-  function testForceUnitConversions() {
-    for( unit in MassUnit.AllValues ) {
-      var theUnit = unit * (m/s/s)
-      var force = 1 theUnit
-      for( u in MassUnit.AllValues ) {
-        var toUnit = u * (m/s/s)
-        assertEquals( force, force.to( toUnit ).to( theUnit ) ) 
-      }
-    }
-  }
-  function testFrequencyUnitConversions() {
-    for( unit in AngleUnit.AllValues ) {
-      var theUnit = unit / s
-      var frequency = 1 theUnit
-      for( u in AngleUnit.AllValues ) {
-        var toUnit = u / s
-        assertEquals( frequency, frequency.to( toUnit ).to( theUnit ) ) 
-      }
-    }
-  }
-  function testMomentumUnitConversions() {
-    for( unit in MassUnit.AllValues ) {
-      var theUnit = unit * (m/s)
-      var momentum = 1 theUnit
-      for( u in MassUnit.AllValues ) {
-        var toUnit = u * (m/s)
-        assertEquals( momentum, momentum.to( toUnit ).to( theUnit ) ) 
-      }
-    }
-  }
-  function testEnergyUnitConversions() {
-    for( unit in MassUnit.AllValues ) {
-      var theUnit = unit*(m/s/s) * m
-      var energy = 1 theUnit
-      for( u in MassUnit.AllValues ) {
-        var toUnit = u*(m/s/s) * m
-        assertEquals( energy, energy.to( toUnit ).to( theUnit ) )
-      }
-    }
-  }
-  function testPowerUnitConversions() {
-    for( unit in MassUnit.AllValues ) {
-      var theUnit = unit*(m/s/s)*m / s
-      var power = 1 theUnit
-      for( u in MassUnit.AllValues ) {
-        var toUnit = u*(m/s/s)*m / s
-        assertEquals( power, power.to( toUnit ).to( theUnit ) ) 
-      }
-    }
-  }
-  function testPressureUnitConversions() {
-    for( unit in MassUnit.AllValues ) {
-      var theUnit = unit/(m*m)
-      var pressure = 1 theUnit
-      for( u in MassUnit.AllValues ) {
-        var toUnit = u/(m*m)
-        assertEquals( pressure, pressure.to( toUnit ).to( theUnit ) ) 
-      }
+  
+  private function makeSample( allUnits: List<IUnit> ) {
+    var rand = new Random()
+    while( allUnits.size() > SAMPLE_DENSITY ) {
+      var i = rand.nextInt( allUnits.size() )
+      allUnits.remove( i )
     }
   }
 }

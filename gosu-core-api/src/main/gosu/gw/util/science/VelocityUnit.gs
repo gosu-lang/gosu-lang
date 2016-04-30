@@ -26,10 +26,6 @@ final class VelocityUnit extends AbstractQuotientUnit<LengthUnit, TimeUnit, Velo
   function postfixBind( mass: MassUnit ) : MomentumUnit {
     return multiply( mass )
   }
-        
-  function multiply( t: TimeUnit ) : LengthUnit {
-    return LengthUnit
-  }
   
   function multiply( t: MassUnit ) : MomentumUnit {
     return MomentumUnit.get( t, this )

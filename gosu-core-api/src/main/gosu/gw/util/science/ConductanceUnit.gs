@@ -23,8 +23,4 @@ final class ConductanceUnit extends AbstractQuotientUnit<CurrentUnit, PotentialU
   property get PotentialUnit() : PotentialUnit {
     return RightUnit 
   }
-  
-  function multiply( w: PotentialUnit ) : CurrentUnit {
-    return CurrentUnit
-  }
 }

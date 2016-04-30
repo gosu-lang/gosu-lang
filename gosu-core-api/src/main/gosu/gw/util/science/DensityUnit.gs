@@ -21,8 +21,4 @@ final class DensityUnit extends AbstractQuotientUnit<MassUnit, VolumeUnit, Densi
   property get VolumeUnit() : VolumeUnit {
     return RightUnit 
   }
-
-  function multiply( t: VolumeUnit ) : MassUnit {
-    return  MassUnit
-  }
 }

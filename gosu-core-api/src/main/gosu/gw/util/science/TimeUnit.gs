@@ -1,14 +1,15 @@
 package gw.util.science
 uses gw.util.Rational
+uses MetricScaleUnit#*
 
 enum TimeUnit implements IUnit<Rational, Time, TimeUnit> {
   // Ephemeris (SI) units
   Planck( 5.39056e-44, "Planck-time", "tP" ),
-  Femto( .000000000000001, "Femtosecond", "fs" ),
-  Pico( .000000000001, "Picosecond", "ps" ),
-  Nano( .000000001, "Nanosecond", "ns" ),
-  Micro( .000001, "Microsecond", "µs" ),
-  Milli( .001, "Millisecond", "ms" ),
+  Femto( 1fe, "Femtosecond", "fs" ),
+  Pico( 1p, "Picosecond", "ps" ),
+  Nano( 1n, "Nanosecond", "ns" ),
+  Micro( 1u, "Microsecond", "µs" ),
+  Milli( 1m, "Millisecond", "ms" ),
   Second( 1, "Second", "s" ),
   Minute( 60, "Minute", "min"  ),
   Hour( 60*60, "Hour", "hr" ),
@@ -20,8 +21,8 @@ enum TimeUnit implements IUnit<Rational, Time, TimeUnit> {
   Year( 31556952, "Year", "yr" ),
   Decade( 31556952 * 10, "Decade", "decade" ),
   Century( 31556952 * 100, "Century", "century" ),
-  Millennium( 31556952 * 1000, "Millennium", "millennium" ),
-  Era( 31556952 * 1000000000, "Era", "era" ),
+  Millennium( 31556952 k, "Millennium", "millennium" ),
+  Era( 31556952 G, "Era", "era" ),
   
   // Mean Tropical (Solar) units
   TrMonth( 31556925.445/12, "Tropical Month", "tmo" ),

@@ -23,8 +23,4 @@ final class CapacitanceUnit extends AbstractQuotientUnit<ChargeUnit, PotentialUn
   property get PotentialUnit() : PotentialUnit {
     return RightUnit 
   }
-  
-  function multiply( w: PotentialUnit ) : ChargeUnit {
-    return ChargeUnit
-  }
 }

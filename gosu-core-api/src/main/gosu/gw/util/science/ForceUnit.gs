@@ -36,8 +36,8 @@ final class ForceUnit extends AbstractProductUnit<MassUnit, AccelerationUnit, Fo
   function multiply( t: TimeUnit ) : MomentumUnit {
     return MomentumUnit.get( MassUnit, VelocityUnit.get( AccUnit.VelocityUnit.LengthUnit, t ) )
   }
-
-  function divide( w: MassUnit ) : AccelerationUnit {
-    return AccUnit
-  }  
+  
+  function divide( acc: AccelerationUnit ) : MassUnit {
+    return MassUnit 
+  }
 }

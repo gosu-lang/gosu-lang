@@ -31,7 +31,11 @@ abstract class AbstractBinaryUnit<A extends IUnit<Rational, IDimension, A>,
   override function from( r: D ) : Rational {
     return r.toNumber() / toBaseUnits( 1 )
   }   
-  
+
+  override function toString() : String {
+    return UnitName
+  }
+
   override function hashCode() : int {
     return 31*(31*_leftUnit.hashCode() + _rightUnit.hashCode()) + _factor.hashCode()
   }

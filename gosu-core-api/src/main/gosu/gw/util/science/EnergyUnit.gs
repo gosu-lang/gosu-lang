@@ -1,12 +1,13 @@
 package gw.util.science
 uses gw.util.Rational
 uses gw.util.concurrent.Cache
+uses MetricScaleUnit#k
 
 final class EnergyUnit extends AbstractProductUnit<ForceUnit, LengthUnit, Energy, EnergyUnit> {
   final static var CACHE: UnitCache<EnergyUnit> = new UnitCache()
 
   public static var J: EnergyUnit = get( ForceUnit.BASE, LengthUnit.BaseUnit, null, "Joule", "J" )
-  public static var kJ: EnergyUnit = get( ForceUnit.BASE, LengthUnit.BaseUnit, 1000, "Kilojoule", "kJ" )
+  public static var kJ: EnergyUnit = get( ForceUnit.BASE, LengthUnit.BaseUnit, 1k, "Kilojoule", "kJ" )
   public static var cal: EnergyUnit = get( ForceUnit.BASE, LengthUnit.BaseUnit, 4.184, "Calorie", "cal" )
   public static var kcal: EnergyUnit = get( ForceUnit.BASE, LengthUnit.BaseUnit, 4184, "Kilocalorie", "kcal" )
   public static var eV: EnergyUnit = get( ForceUnit.BASE, LengthUnit.BaseUnit, 1.60217733e-19, "Electronvolt", "eV" )
@@ -20,7 +21,6 @@ final class EnergyUnit extends AbstractProductUnit<ForceUnit, LengthUnit, Energy
   
   private construct( forceUnit: ForceUnit, lengthUnit: LengthUnit, factor: Rational = null, name: String = null, symbol: String = null ) {
     super( forceUnit, lengthUnit, factor, name, symbol )
-    var factory : IBinaryUnitFactory = EnergyUnit
   }
 
   property get ForceUnit() : ForceUnit {
@@ -28,10 +28,6 @@ final class EnergyUnit extends AbstractProductUnit<ForceUnit, LengthUnit, Energy
   }
   property get LengthUnit() : LengthUnit {
     return RightUnit 
-  }
-  
-  function divide( w: ForceUnit ) : LengthUnit {
-    return LengthUnit
   }
 
   function divide( w: LengthUnit ) : ForceUnit {
@@ -52,5 +48,9 @@ final class EnergyUnit extends AbstractProductUnit<ForceUnit, LengthUnit, Energy
   
   function divide( c: HeatCapacityUnit ) : TemperatureUnit {
     return c.TemperatureUnit
+  }
+
+  function divide( i: CurrentUnit ) : MagneticFluxUnit {
+    return MagneticFluxUnit.get( this, i )
   }
 }

@@ -22,8 +22,4 @@ final class HeatCapacityUnit extends AbstractQuotientUnit<EnergyUnit, Temperatur
   property get TemperatureUnit() : TemperatureUnit {
     return RightUnit 
   }
-  
-  function multiply( v: TemperatureUnit ) : EnergyUnit {
-    return EnergyUnit
-  }
 }

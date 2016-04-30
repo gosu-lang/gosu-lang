@@ -23,8 +23,8 @@ final class MagneticFluxUnit extends AbstractQuotientUnit<EnergyUnit, CurrentUni
   property get CurrentUnit() : CurrentUnit {
     return RightUnit 
   }
-  
-  function multiply( w: CurrentUnit ) : EnergyUnit {
-    return EnergyUnit
+
+  function divide( area: AreaUnit ) : MagneticFluxDensityUnit {
+    return MagneticFluxDensityUnit.get( this, area )
   }
 }

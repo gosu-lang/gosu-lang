@@ -8,13 +8,13 @@ enum MetricScaleUnit {
   y( 1/1000000000000000000000000, "yocto", "y" ),
   z( 1/1000000000000000000000, "zepto", "z" ),
   a( 1/1000000000000000000, "atto", "a" ),
-  f( 1/1000000000000000, "femto", "f" ),
+  fe( 1/1000000000000000, "femto", "f" ), // 'fe', not 'f' because conflicts with number literal float suffix
   p( 1/1000000000000, "pico", "p" ),
   n( 1/1000000000, "nano", "n" ),
   u( 1/1000000, "micro", "u" ),
   m( 1/1000, "milli", "m" ),
   c( 1/100, "centi", "c" ),
-  d( 1/10, "deci", "d" ),
+  de( 1/10, "deci", "d" ), // 'de', not 'd' because conflicts with number literal float suffix
   da( 10, "Deca", "da" ),
   h( 100, "Hecto", "h" ),
   k( 1000, "Kilo", "k" ),

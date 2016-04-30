@@ -1,15 +1,16 @@
 package gw.util.science
 uses gw.util.Rational
 uses DimensionlessConstants#pi
+uses MetricScaleUnit#*
 
 enum AngleUnit implements IUnit<Rational, Angle, AngleUnit> {
-  Nano( .000000001, "Nanoradian", "nrad" ),
-  Milli( .001, "Milliradian", "mrad" ),
+  Nano( 1n, "Nanoradian", "nrad" ),
+  Milli( 1m, "Milliradian", "mrad" ),
   Radian( 1, "Radian", "rad" ),
   Degree( pi/180, "Degree", "deg" ),
   MOA( pi/10800, "MinuteOfArc", "moa" ),
-  ArcSecond( pi/648000, "ArcSecond", "arcsec" ),
-  MilliArcSecond( pi/648000000, "MilliArcSecond", "mas" ),
+  ArcSecond( pi/648k, "ArcSecond", "arcsec" ),
+  MilliArcSecond( pi/648M, "MilliArcSecond", "mas" ),
   Turn( 2*pi, "Turn", "cyc" ),
   Gradian( pi/200, "Gradian", "grad" ),
   Quadrant( pi/2, "Quadrant", "quad" )

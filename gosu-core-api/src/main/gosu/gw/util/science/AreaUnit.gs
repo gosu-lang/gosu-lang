@@ -13,19 +13,21 @@ final class AreaUnit extends AbstractProductUnit<LengthUnit, LengthUnit, Area, A
   }
    
   private construct( widthUnit: LengthUnit, lengthUnit: LengthUnit = null, factor: Rational = null, name: String = null, symbol: String = null ) {
-    super( widthUnit, lengthUnit ?: widthUnit, factor,
-           name != null
-           ? name
-           : lengthUnit == null
-             ? ("Square " + lengthUnit)
-             : (widthUnit.UnitName + "\u00D7" + lengthUnit.UnitName),
-           symbol != null
-           ? symbol
-           : lengthUnit == null
-             ? (lengthUnit + "\u00B2")
-             : (widthUnit.UnitSymbol + "\u00D7" + lengthUnit.UnitSymbol) )
+    super( widthUnit, lengthUnit ?: widthUnit, factor, name, symbol )
   }
 
+  override property get FullName() : String {
+    return LengthUnit == null
+           ? LengthUnit + "\u00B2"
+           : WidthUnit.FullName + "\u00D7" + LengthUnit.FullName  
+  }
+  
+  override property get FullSymbol() : String {
+    return LengthUnit == null
+           ? LengthUnit + "\u00B2"
+           : WidthUnit.FullSymbol + "\u00D7" + LengthUnit.FullSymbol  
+  }
+  
   property get WidthUnit() : LengthUnit {
     return LeftUnit
   }
@@ -39,9 +41,5 @@ final class AreaUnit extends AbstractProductUnit<LengthUnit, LengthUnit, Area, A
 
   function multiply( lu: LengthUnit ) : VolumeUnit {
     return VolumeUnit.get( lu, this )
-  }  
-  
-  function divide( lu: LengthUnit ) : LengthUnit {
-    return lu
-  }   
+  }
 }

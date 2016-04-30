@@ -23,8 +23,8 @@ final class ResistanceUnit extends AbstractQuotientUnit<PotentialUnit, CurrentUn
   property get CurrentUnit() : CurrentUnit {
     return RightUnit 
   }
-  
-  function multiply( w: CurrentUnit ) : PotentialUnit {
-    return PotentialUnit
+
+  function multiply( t: TimeUnit ) : InductanceUnit {
+    return InductanceUnit.get( this, t )
   }
 }

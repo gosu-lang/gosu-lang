@@ -1,24 +1,25 @@
 package gw.util.science
 uses gw.util.Rational
+uses MetricScaleUnit#*
 
 enum LengthUnit implements IUnit<Rational, Length, LengthUnit> {
   // Planck length
   Planck( 1.61605e-35, "Planck-length", "ℓP" ),
   
   // Metric
-  Femto( .000000000000001, "Femtometer", "fm" ),
-  Pico( .000000000001, "Picometer", "pm" ),
+  Femto( 1fe, "Femtometer", "fm" ),
+  Pico( 1p, "Picometer", "pm" ),
   Angstrom( 1e-10, "Angstrom", "Å" ),
-  Nano( .000000001, "Nanometer", "nm" ),
-  Micro( .000001, "Micrometre", "µm" ),
-  Milli( .001, "Millimeter", "mm" ),
-  Centi( .01, "Centimeter", "cm" ),
-  Deci( .1, "Decimeter", "dm" ),
+  Nano( 1n, "Nanometer", "nm" ),
+  Micro( 1u, "Micrometre", "µm" ),
+  Milli( 1m, "Millimeter", "mm" ),
+  Centi( 1c, "Centimeter", "cm" ),
+  Deci( 1de, "Decimeter", "dm" ),
   Meter( 1, "Meter", "m" ),
-  Kilometer( 1000, "Kilometer", "km" ),
-  Megameter( 1000000, "Megameter", "Mm" ),
-  Gigameter( 1000000000, "Gigameter", "Gm" ),
-  Terameter( 1000000000000, "Terameter", "Tm" ),
+  Kilometer( 1k, "Kilometer", "km" ),
+  Megameter( 1M, "Megameter", "Mm" ),
+  Gigameter( 1G, "Gigameter", "Gm" ),
+  Terameter( 1T, "Terameter", "Tm" ),
   
   // UK
   Cubit( 0.4572, "Cubit", "cbt" ),

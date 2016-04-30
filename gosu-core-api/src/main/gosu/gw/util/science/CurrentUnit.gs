@@ -23,8 +23,8 @@ final class CurrentUnit extends AbstractQuotientUnit<ChargeUnit, TimeUnit, Curre
   property get TimeUnit() : TimeUnit {
     return RightUnit 
   }
-  
-  function multiply( w: TimeUnit ) : ChargeUnit {
-    return ChargeUnit
+
+  function divide( p: PotentialUnit ) : ConductanceUnit {
+    return ConductanceUnit.get( this, p )
   }
 }

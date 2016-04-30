@@ -28,8 +28,4 @@ final class PressureUnit extends AbstractQuotientUnit<MassUnit, AreaUnit, Pressu
   property get AreaUnit() : AreaUnit {
     return RightUnit 
   }
-
-  function multiply( t: AreaUnit ) : MassUnit {
-    return  MassUnit
-  }
 }

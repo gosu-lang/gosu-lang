@@ -13,19 +13,9 @@ final class VolumeUnit extends AbstractProductUnit<LengthUnit, AreaUnit, Volume,
   }
   
   private construct( lengthUnit: LengthUnit, areaUnit: AreaUnit = null, factor: Rational = null, name: String = null, symbol: String = null ) {
-    super( lengthUnit, areaUnit ?: AreaUnit.get( lengthUnit ), factor,
-           name != null
-           ? name
-           : areaUnit == null || areaUnit.IsSquare && areaUnit.WidthUnit === lengthUnit
-             ? ("Cubic " + lengthUnit.UnitName)
-             : (areaUnit.UnitName + "\u00D7" + lengthUnit.UnitName),
-           symbol != null
-           ? symbol
-           : areaUnit == null || areaUnit.IsSquare && areaUnit.WidthUnit === lengthUnit
-             ? (lengthUnit.UnitSymbol + "\u00B3")
-             : (areaUnit.UnitSymbol + "\u00D7" + lengthUnit.UnitSymbol) )
+    super( lengthUnit, areaUnit ?: AreaUnit.get( lengthUnit ), factor, name, symbol )
   }
-
+  
   property get AreaUnit() : AreaUnit {
     return RightUnit
   }
@@ -33,15 +23,23 @@ final class VolumeUnit extends AbstractProductUnit<LengthUnit, AreaUnit, Volume,
     return LeftUnit
   }
 
+  override property get FullName() : String {
+    return AreaUnit.IsSquare && AreaUnit.WidthUnit === LengthUnit
+             ? LengthUnit.FullName + "\u00B3"
+             : AreaUnit.FullName + "\u00D7" + LengthUnit.FullName  
+  }
+  
+  override property get FullSymbol() : String {
+    return AreaUnit.IsSquare && AreaUnit.WidthUnit === LengthUnit
+             ? LengthUnit.FullSymbol + "\u00B3"
+             : AreaUnit.FullSymbol + "\u00D7" + LengthUnit.FullSymbol 
+  }
+
   property get IsCubic() : boolean {
     return AreaUnit.IsSquare && AreaUnit.WidthUnit === LengthUnit
   }
 
-  function divide( len: LengthUnit ) : AreaUnit {
-    return AreaUnit
-  }
-
-  function divide( area: AreaUnit ) : LengthUnit {
+  function divide( len: AreaUnit ) : LengthUnit {
     return LengthUnit
   }
 

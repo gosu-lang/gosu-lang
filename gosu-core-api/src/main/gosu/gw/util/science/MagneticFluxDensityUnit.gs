@@ -1,7 +1,7 @@
 package gw.util.science
 uses gw.util.Rational
 
-final class MagneticFluxDensityUnit extends AbstractQuotientUnit<MagneticFluxUnit, AreaUnit, MagneticFlux, MagneticFluxDensityUnit> {
+final class MagneticFluxDensityUnit extends AbstractQuotientUnit<MagneticFluxUnit, AreaUnit, MagneticFluxDensity, MagneticFluxDensityUnit> {
   final static var CACHE: UnitCache<MagneticFluxDensityUnit> = new UnitCache()
 
   public static var T: MagneticFluxDensityUnit = get( MagneticFluxUnit.BASE, AreaUnit.BASE, 1, "Tesla", "T" )
@@ -24,7 +24,7 @@ final class MagneticFluxDensityUnit extends AbstractQuotientUnit<MagneticFluxUni
     return RightUnit 
   }
   
-  function multiply( w: AreaUnit ) : MagneticFluxUnit {
+  override function multiply( w: AreaUnit ) : MagneticFluxUnit {
     return MagneticFluxUnit
   }
 }

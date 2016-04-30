@@ -27,7 +27,7 @@ final class MomentumUnit extends AbstractProductUnit<MassUnit, VelocityUnit, Mom
     return EnergyUnit.get( MassUnit * (VelocityUnit / v.TimeUnit), v.LengthUnit )
   }
     
-  function divide( w: MassUnit ) : VelocityUnit {
-    return VelocityUnit
+  function divide( w: VelocityUnit ) : MassUnit {
+    return MassUnit
   }  
 }
