@@ -54,13 +54,39 @@ final public class Rational extends Number implements IDimension<Rational, Ratio
     {
       String numerator = decimal.substring( 0, iDiv ).trim();
       String denominator = decimal.substring( iDiv+1 ).trim();
+      boolean numeratorIsDecimal = isDecimalString( numerator );
+      boolean denominatorIsDecimal = isDecimalString( denominator );
+      if( numeratorIsDecimal )
+      {
+        if( denominatorIsDecimal )
+        {
+          return get( new BigDecimal( numerator ) ).divide( get( new BigDecimal( denominator ) ) );
+        }
+        return get( new BigDecimal( numerator ) ).divide( new BigInteger( denominator ) );
+      }
+      else if( denominatorIsDecimal )
+      {
+        return get( new BigInteger( numerator ) ).divide( get( new BigDecimal( denominator ) ) );
+      }
       return get( new BigInteger( numerator ), new BigInteger( denominator ) );
     }
     else
     {
-      return get( new BigDecimal( decimal ) );
+      if( isDecimalString( decimal ) )
+      {
+        return get( new BigDecimal( decimal ) );
+      }
+      return get( new BigInteger( decimal ) );
     }
   }
+
+  private static boolean isDecimalString( String decimal )
+  {
+    return decimal.indexOf( '.' ) >= 0 ||
+           decimal.indexOf( 'e' ) > 0 ||
+           decimal.indexOf( 'E' ) > 0;
+  }
+
   public static Rational get( BigDecimal bd )
   {
     int scale = bd.scale();
@@ -509,6 +535,11 @@ final public class Rational extends Number implements IDimension<Rational, Ratio
   public Rational invert()
   {
     return get( _denominator, _numerator );
+  }
+
+  public Rational abs()
+  {
+    return _numerator.signum() >= 0 ? this : negate();
   }
 
   @Override
