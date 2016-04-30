@@ -4,17 +4,7 @@ uses gw.test.TestClass
 uses gw.util.science.*
 uses gw.util.science.UnitConstants#*
 
-class ScienceTest extends TestClass {
-  function testLengthUnits() {
-    for( unit in LengthUnit.AllValues ) {
-      var one = 1 unit 
-      assertEquals( LengthUnit.BaseUnit, one.BaseUnit )
-      assertEquals( unit, one.Unit )
-      assertEquals( one.to( LengthUnit.BaseUnit ).toNumber(), one.toNumber() )
-      assertEquals( 1 unit, one )
-    }
-  }
-  
+class ScienceUnitMathTest extends TestClass {
   function testLengthMath() {
     for( unit in LengthUnit.AllValues ) {
       var a = 1 unit 

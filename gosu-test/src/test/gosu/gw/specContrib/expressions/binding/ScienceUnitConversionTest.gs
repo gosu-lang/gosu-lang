@@ -26,7 +26,7 @@ class ScienceUnitConversionTest extends TestClass {
     for( unit in allUnits ) {
       var measure = unit.postfixBind( 1 ) as AbstractMeasure<IUnit, AbstractMeasure<IUnit, AbstractMeasure>>
       for( unit2 in allUnits ) {
-        print( unit.UnitName + " to " + unit2.UnitName )
+        //print( unit.UnitName + " to " + unit2.UnitName )
         assertEquals( measure, measure.to( unit2 ).to( unit ) ) 
       }
     }      
