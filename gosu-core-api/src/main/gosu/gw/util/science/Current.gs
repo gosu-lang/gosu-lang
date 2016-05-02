@@ -15,4 +15,8 @@ final class Current extends AbstractMeasure<CurrentUnit, Current> {
   function multiply( time: Time ) : Charge {
     return new Charge( toNumber() * time.toNumber(), ChargeUnit.Coulomb )
   }
+
+  function divide( p: Potential ) : Conductance {
+    return new Conductance( toNumber() / p.toNumber(), ConductanceUnit.BASE, ConductanceUnit.get( Unit, p.Unit ) )
+  }
 }

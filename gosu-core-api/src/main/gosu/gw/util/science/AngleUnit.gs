@@ -19,7 +19,7 @@ enum AngleUnit implements IUnit<Rational, Angle, AngleUnit> {
   var _name: String
   var _symbol: String
 
-  static property get BaseUnit() : AngleUnit {
+  static property get BASE() : AngleUnit {
     return Radian
   }
 

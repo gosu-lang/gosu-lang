@@ -19,7 +19,7 @@ final class Time extends AbstractMeasure<TimeUnit, Time> {
   }
     
   function multiply( r: Velocity ) : Length {
-    return new Length( toNumber() * r.toNumber(), LengthUnit.BaseUnit, r.Unit.LengthUnit )
+    return new Length( toNumber() * r.toNumber(), LengthUnit.BASE, r.Unit.LengthUnit )
   }
 
   function multiply( acc: Acceleration ) : Velocity {
@@ -31,7 +31,7 @@ final class Time extends AbstractMeasure<TimeUnit, Time> {
   }
 
   function multiply( frequency: Frequency ) : Angle {
-    return new Angle( toNumber() * frequency.toNumber(), AngleUnit.BaseUnit, frequency.Unit.AngleUnit )
+    return new Angle( toNumber() * frequency.toNumber(), AngleUnit.BASE, frequency.Unit.AngleUnit )
   }
 
   function multiply( power: Power ) : Energy {

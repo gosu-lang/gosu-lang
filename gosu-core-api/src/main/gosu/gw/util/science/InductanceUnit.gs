@@ -4,7 +4,7 @@ uses gw.util.Rational
 final class InductanceUnit extends AbstractProductUnit<ResistanceUnit, TimeUnit, Inductance, InductanceUnit> {
   final static var CACHE: UnitCache<InductanceUnit> = new UnitCache()
 
-  public static var H: InductanceUnit = get( ResistanceUnit.BASE, TimeUnit.BaseUnit, 1, "Henry", "H" )
+  public static var H: InductanceUnit = get( ResistanceUnit.BASE, TimeUnit.BASE, 1, "Henry", "H" )
 
   public static var BASE: InductanceUnit = H
 

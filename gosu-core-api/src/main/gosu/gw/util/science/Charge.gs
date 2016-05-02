@@ -2,11 +2,6 @@ package gw.util.science
 uses gw.util.Rational
 
 final class Charge extends AbstractMeasure<ChargeUnit, Charge> {
-  /**
-   * @param value Length in specified units
-   * @param unit Length unit for value, default is Coulomb
-   * @param displayUnit Unit in which to display this Charge
-   */
   construct( value: Rational, unit: ChargeUnit, displayUnit: ChargeUnit ) {
     super( value, unit, displayUnit, ChargeUnit.Coulomb )
   }
@@ -17,4 +12,8 @@ final class Charge extends AbstractMeasure<ChargeUnit, Charge> {
   function divide( time: Time ) : Current {
     return new Current( toNumber() / time.toNumber(), CurrentUnit.BASE, CurrentUnit.get( Unit, time.Unit ) )
   } 
+   
+  function divide( p: Potential ) : Capacitance {
+    return new Capacitance( toNumber() / p.toNumber(), CapacitanceUnit.BASE, CapacitanceUnit.get( Unit, p.Unit ) )
+  }
 }

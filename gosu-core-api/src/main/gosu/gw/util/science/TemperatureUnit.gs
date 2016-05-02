@@ -14,7 +14,7 @@ enum TemperatureUnit implements IUnit<Rational, Temperature, TemperatureUnit> {
   var _name: String
   var _symbol: String
 
-  static property get BaseUnit() : TemperatureUnit {
+  static property get BASE() : TemperatureUnit {
     return Kelvin
   }
 

@@ -8,9 +8,9 @@ class ScienceMiscTest extends TestClass {
   function testLengthUnits() {
     for( unit in LengthUnit.AllValues ) {
       var one = 1 unit 
-      assertEquals( LengthUnit.BaseUnit, one.BaseUnit )
+      assertEquals( LengthUnit.BASE, one.BaseUnit )
       assertEquals( unit, one.Unit )
-      assertEquals( one.to( LengthUnit.BaseUnit ).toNumber(), one.toNumber() )
+      assertEquals( one.to( LengthUnit.BASE ).toNumber(), one.toNumber() )
       assertEquals( 1 unit, one )
     }
   }

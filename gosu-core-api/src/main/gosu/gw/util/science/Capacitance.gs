@@ -13,6 +13,6 @@ final class Capacitance extends AbstractMeasure<CapacitanceUnit, Capacitance> {
   }
 
   function multiply( potential: Potential ) : Charge {
-    return new Charge( toNumber() * potential.toNumber(), ChargeUnit.BaseUnit, Unit.ChargeUnit )
+    return new Charge( toNumber() * potential.toNumber(), ChargeUnit.BASE, Unit.ChargeUnit )
   }
 }

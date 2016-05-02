@@ -32,7 +32,7 @@ enum TimeUnit implements IUnit<Rational, Time, TimeUnit> {
   final var _name: String
   final var _symbol: String
 
-  static property get BaseUnit() : TimeUnit {
+  static property get BASE() : TimeUnit {
     return Second
   }
 

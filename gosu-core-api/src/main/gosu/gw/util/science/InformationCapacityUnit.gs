@@ -28,7 +28,7 @@ enum InformationCapacityUnit implements IUnit<Rational, InformationCapacity, Inf
   var _name: String
   var _symbol: String
 
-  static property get BaseUnit() : InformationCapacityUnit {
+  static property get BASE() : InformationCapacityUnit {
     return Byte
   }
 

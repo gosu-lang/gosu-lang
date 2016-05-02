@@ -9,7 +9,7 @@ enum ChargeUnit implements IUnit<Rational, Charge, ChargeUnit> {
   var _name: String
   var _symbol: String
 
-  static property get BaseUnit() : ChargeUnit {
+  static property get BASE() : ChargeUnit {
     return Coulomb
   }
 

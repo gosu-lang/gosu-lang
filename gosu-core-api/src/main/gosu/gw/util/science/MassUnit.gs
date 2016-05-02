@@ -27,7 +27,7 @@ enum MassUnit implements IUnit<Rational, Mass, MassUnit> {
   var _name: String
   var _symbol: String
 
-  static property get BaseUnit() : MassUnit {
+  static property get BASE() : MassUnit {
     return Kilogram
   }
 

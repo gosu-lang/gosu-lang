@@ -15,4 +15,8 @@ final class MagneticFlux extends AbstractMeasure<MagneticFluxUnit, MagneticFlux>
   function multipy( current: Current ) : Energy {
     return new Energy( toNumber() * current.toNumber(), EnergyUnit.BASE, Unit.EnergyUnit )
   }
+
+  function divide( area: Area ) : MagneticFluxDensity {
+    return new MagneticFluxDensity( toNumber() / area.toNumber(), MagneticFluxDensityUnit.BASE, MagneticFluxDensityUnit.get( Unit, area.Unit ) )
+  }
 }

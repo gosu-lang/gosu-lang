@@ -4,7 +4,7 @@ uses gw.util.Rational
 final class CapacitanceUnit extends AbstractQuotientUnit<ChargeUnit, PotentialUnit, Capacitance, CapacitanceUnit> {
   final static var CACHE: UnitCache<CapacitanceUnit> = new UnitCache()
 
-  public static var F: CapacitanceUnit = get( ChargeUnit.BaseUnit, PotentialUnit.BASE, 1, "Farad", "F" )
+  public static var F: CapacitanceUnit = get( ChargeUnit.BASE, PotentialUnit.BASE, 1, "Farad", "F" )
 
   public static var BASE: CapacitanceUnit = F
 

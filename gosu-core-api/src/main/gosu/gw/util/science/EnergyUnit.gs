@@ -6,11 +6,11 @@ uses MetricScaleUnit#k
 final class EnergyUnit extends AbstractProductUnit<ForceUnit, LengthUnit, Energy, EnergyUnit> {
   final static var CACHE: UnitCache<EnergyUnit> = new UnitCache()
 
-  public static var J: EnergyUnit = get( ForceUnit.BASE, LengthUnit.BaseUnit, null, "Joule", "J" )
-  public static var kJ: EnergyUnit = get( ForceUnit.BASE, LengthUnit.BaseUnit, 1k, "Kilojoule", "kJ" )
-  public static var cal: EnergyUnit = get( ForceUnit.BASE, LengthUnit.BaseUnit, 4.184, "Calorie", "cal" )
-  public static var kcal: EnergyUnit = get( ForceUnit.BASE, LengthUnit.BaseUnit, 4184, "Kilocalorie", "kcal" )
-  public static var eV: EnergyUnit = get( ForceUnit.BASE, LengthUnit.BaseUnit, 1.60217733e-19, "Electronvolt", "eV" )
+  public static var J: EnergyUnit = get( ForceUnit.BASE, LengthUnit.BASE, null, "Joule", "J" )
+  public static var kJ: EnergyUnit = get( ForceUnit.BASE, LengthUnit.BASE, 1k, "Kilojoule", "kJ" )
+  public static var cal: EnergyUnit = get( ForceUnit.BASE, LengthUnit.BASE, 4.184, "Calorie", "cal" )
+  public static var kcal: EnergyUnit = get( ForceUnit.BASE, LengthUnit.BASE, 4184, "Kilocalorie", "kcal" )
+  public static var eV: EnergyUnit = get( ForceUnit.BASE, LengthUnit.BASE, 1.60217733e-19, "Electronvolt", "eV" )
 
   public static var BASE: EnergyUnit = J
 

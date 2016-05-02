@@ -25,7 +25,7 @@ final class Energy extends AbstractMeasure<EnergyUnit, Energy> {
   }
 
   function divide( power: Power ) : Time {
-    return new Time( toNumber() / power.toNumber(), TimeUnit.BaseUnit, power.Unit.TimeUnit )
+    return new Time( toNumber() / power.toNumber(), TimeUnit.BASE, power.Unit.TimeUnit )
   }
   
   function divide( temperature: Temperature ) : HeatCapacity {
@@ -33,6 +33,10 @@ final class Energy extends AbstractMeasure<EnergyUnit, Energy> {
   }
   
   function divide( c: HeatCapacity ) : Temperature {
-    return new Temperature( toNumber() / c.toNumber(), TemperatureUnit.BaseUnit, c.Unit.TemperatureUnit ) 
+    return new Temperature( toNumber() / c.toNumber(), TemperatureUnit.BASE, c.Unit.TemperatureUnit )
+  }
+
+  function divide( i: Current ) : MagneticFlux {
+    return new MagneticFlux( toNumber() / i.toNumber(), MagneticFluxUnit.BASE, MagneticFluxUnit.get( Unit, i.Unit ) )
   }
 }

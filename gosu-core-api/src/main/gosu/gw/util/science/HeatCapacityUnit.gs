@@ -5,7 +5,7 @@ uses gw.util.Rational
 final class HeatCapacityUnit extends AbstractQuotientUnit<EnergyUnit, TemperatureUnit, HeatCapacity, HeatCapacityUnit> {
   final static var CACHE: UnitCache<HeatCapacityUnit> = new UnitCache()
 
-  public static var BASE: HeatCapacityUnit = get( EnergyUnit.BASE, TemperatureUnit.BaseUnit )
+  public static var BASE: HeatCapacityUnit = get( EnergyUnit.BASE, TemperatureUnit.BASE )
 
   static function get( energyUnit: EnergyUnit, temperatureUnit: TemperatureUnit, factor: Rational = null, name: String = null, symbol: String = null ) : HeatCapacityUnit {
     var unit = new HeatCapacityUnit( energyUnit, temperatureUnit, factor, name, symbol )

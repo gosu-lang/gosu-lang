@@ -16,6 +16,6 @@ final class Inductance extends AbstractMeasure<InductanceUnit, Inductance> {
     return new Resistance( toNumber() / time.toNumber(), ResistanceUnit.BASE, Unit.ResistanceUnit )
   }
   function divide( resistance: Resistance ) : Time {
-    return new Time( toNumber() / resistance.toNumber(), TimeUnit.BaseUnit, Unit.TimeUnit )
+    return new Time( toNumber() / resistance.toNumber(), TimeUnit.BASE, Unit.TimeUnit )
   }
 }

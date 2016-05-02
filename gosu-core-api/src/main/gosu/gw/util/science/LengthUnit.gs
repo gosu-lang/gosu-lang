@@ -46,7 +46,7 @@ enum LengthUnit implements IUnit<Rational, Length, LengthUnit> {
   final var _name: String
   final var _symbol: String
   
-  static property get BaseUnit() : LengthUnit {
+  static property get BASE() : LengthUnit {
     return Meter
   }
   
