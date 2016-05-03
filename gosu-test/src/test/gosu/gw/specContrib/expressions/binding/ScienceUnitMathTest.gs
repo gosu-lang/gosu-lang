@@ -24,29 +24,41 @@ class ScienceUnitMathTest extends TestClass {
     var rightUnitType = superType.TypeParameters[1] as Type<IUnit>
     var measureType = superType.TypeParameters[2] as Type<AbstractMeasure>
     if( AbstractProductUnit.Type.isAssignableFrom( type.Type ) ) {
-      _testProduct( type.Type as Type<AbstractProductUnit>, leftUnitType, rightUnitType, measureType )
+      _testProduct( type, leftUnitType, rightUnitType, measureType )
+      _testQuotient( rightUnitType, type, leftUnitType, asIUnit( rightUnitType ).TypeParameters[1] as Type<AbstractMeasure> )
+      _testQuotient( leftUnitType, type, rightUnitType, asIUnit( leftUnitType ).TypeParameters[1] as Type<AbstractMeasure> )
     }
     else {
-      _testQuotient( type.Type as Type<AbstractProductUnit>, leftUnitType, rightUnitType, measureType )
+      _testQuotient( type, leftUnitType, rightUnitType, measureType )
+      _testProduct( leftUnitType, type, rightUnitType, asIUnit( leftUnitType ).TypeParameters[1] as Type<AbstractMeasure> )
+      _testQuotient( rightUnitType, leftUnitType, type, asIUnit( rightUnitType ).TypeParameters[1] as Type<AbstractMeasure> )
     }
   }
   
-  private function _testProduct( type: Type<AbstractProductUnit>, leftType: Type<IUnit>, rightType: Type<IUnit>, measureType: Type<AbstractMeasure> ) {
+  private function asIUnit( type: Type<IUnit> ) : Type<IUnit> {
+    return TypeSystem.findParameterizedType( type, IUnit ) as Type<IUnit>
+  }
+  
+  private function _testProduct( type: Type<IUnit>, leftType: Type<IUnit>, rightType: Type<IUnit>, measureType: Type<AbstractMeasure> ) {
     var leftMeasure = getMeasure( leftType, 4 )
     var rightMeasure = getMeasure( rightType, 2 )
     print( (typeof leftMeasure).RelativeName + " * " + (typeof rightMeasure).RelativeName )
-    var product = (leftMeasure as Dynamic).multiply( rightMeasure )
+    var product = eval( "var x = leftMeasure as ${typeof leftMeasure} \
+                         var y = rightMeasure as ${typeof rightMeasure} \
+                         return x * y" )
     assertSame( measureType, typeof product )
     assertEquals( 8r, (product as IDimension).toNumber() )
     print( "Product: " + product )
     print( "" )
   }
  
-  private function _testQuotient( type: Type<AbstractProductUnit>, leftType: Type<IUnit>, rightType: Type<IUnit>, measureType: Type<AbstractMeasure> ) {
+  private function _testQuotient( type: Type<IUnit>, leftType: Type<IUnit>, rightType: Type<IUnit>, measureType: Type<AbstractMeasure> ) {
     var leftMeasure = getMeasure( leftType, 4 )
     var rightMeasure = getMeasure( rightType, 2 )
     print( (typeof leftMeasure).RelativeName + " / " + (typeof rightMeasure).RelativeName )
-    var quotient = (leftMeasure as Dynamic).divide( rightMeasure )
+    var quotient = eval( "var x = leftMeasure as ${typeof leftMeasure} \
+                          var y = rightMeasure as ${typeof rightMeasure} \
+                          return x / y" )
     assertSame( measureType, typeof quotient )
     assertEquals( 2r, (quotient as IDimension).toNumber() )
     print( "Quotient: " + quotient )

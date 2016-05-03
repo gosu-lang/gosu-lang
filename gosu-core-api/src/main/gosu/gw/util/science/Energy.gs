@@ -39,4 +39,8 @@ final class Energy extends AbstractMeasure<EnergyUnit, Energy> {
   function divide( i: Current ) : MagneticFlux {
     return new MagneticFlux( toNumber() / i.toNumber(), MagneticFluxUnit.BASE, MagneticFluxUnit.get( Unit, i.Unit ) )
   }
+
+  function divide( mf: MagneticFlux ) : Current {
+    return new Current( toNumber() / mf.toNumber(), CurrentUnit.BASE, mf.Unit.CurrentUnit )
+  }
 }

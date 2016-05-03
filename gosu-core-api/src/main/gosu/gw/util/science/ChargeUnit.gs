@@ -43,7 +43,14 @@ enum ChargeUnit implements IUnit<Rational, Charge, ChargeUnit> {
     return CurrentUnit.get( this, time )
   }
 
+  function divide( i: CurrentUnit ) : TimeUnit {
+    return i.TimeUnit
+  }
+
   function divide( p: PotentialUnit ) : CapacitanceUnit {
     return CapacitanceUnit.get( this, p )
+  }
+  function divide( cu: CapacitanceUnit ) : PotentialUnit {
+    return cu.PotentialUnit
   }
 }

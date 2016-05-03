@@ -11,11 +11,7 @@ final class Force extends AbstractMeasure<ForceUnit, Force> {
   construct( value: Rational, unit: ForceUnit ) {
     this( value, unit, unit )
   }
- 
-  function divide( w: Mass ) : Acceleration {
-    return new Acceleration( toNumber() / w.toNumber(), AccelerationUnit.BASE, Unit.AccUnit )
-  }
-  
+
   function multiply( v: Velocity ) : Power {
     return new Power( toNumber() * v.toNumber(), PowerUnit.BASE, Unit * v.Unit.LengthUnit / v.Unit.TimeUnit )
   }
@@ -26,5 +22,12 @@ final class Force extends AbstractMeasure<ForceUnit, Force> {
 
   function multiply( t: Time ) : Momentum {
     return new Momentum( toNumber() * t.toNumber(), MomentumUnit.BASE, Unit * t.Unit )
+  }
+
+  function divide( w: Mass ) : Acceleration {
+    return new Acceleration( toNumber() / w.toNumber(), AccelerationUnit.BASE, Unit.AccUnit )
+  }
+  function divide( acc: Acceleration ) : Mass {
+    return new Mass( toNumber() / acc.toNumber(), MassUnit.BASE, Unit.MassUnit )
   }
 }

@@ -27,4 +27,7 @@ final class Velocity extends AbstractMeasure<VelocityUnit, Velocity> {
   function divide( t: Time ) : Acceleration {
     return new Acceleration( toNumber() / t.toNumber(), AccelerationUnit.BASE, AccelerationUnit.get( Unit, t.Unit ) )
   }  
+  function divide( acc: Acceleration ) : Time {
+    return new Time( toNumber() / acc.toNumber(), TimeUnit.BASE, acc.Unit.TimeUnit )
+  }
 }

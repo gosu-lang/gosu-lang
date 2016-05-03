@@ -53,4 +53,8 @@ final class EnergyUnit extends AbstractProductUnit<ForceUnit, LengthUnit, Energy
   function divide( i: CurrentUnit ) : MagneticFluxUnit {
     return MagneticFluxUnit.get( this, i )
   }
+
+  function divide( mf: MagneticFluxUnit ) : CurrentUnit {
+    return mf.CurrentUnit
+  }
 }

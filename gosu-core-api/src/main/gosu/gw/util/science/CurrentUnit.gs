@@ -27,4 +27,7 @@ final class CurrentUnit extends AbstractQuotientUnit<ChargeUnit, TimeUnit, Curre
   function divide( p: PotentialUnit ) : ConductanceUnit {
     return ConductanceUnit.get( this, p )
   }
+  function divide( cu: ConductanceUnit ) : PotentialUnit {
+    return cu.PotentialUnit
+  }
 }

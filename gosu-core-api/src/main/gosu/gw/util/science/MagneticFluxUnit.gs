@@ -27,4 +27,8 @@ final class MagneticFluxUnit extends AbstractQuotientUnit<EnergyUnit, CurrentUni
   function divide( area: AreaUnit ) : MagneticFluxDensityUnit {
     return MagneticFluxDensityUnit.get( this, area )
   }
+
+  function divide( mf: MagneticFluxDensityUnit ) : AreaUnit {
+    return mf.AreaUnit
+  }
 }

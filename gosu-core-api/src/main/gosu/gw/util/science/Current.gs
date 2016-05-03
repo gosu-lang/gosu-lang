@@ -19,4 +19,7 @@ final class Current extends AbstractMeasure<CurrentUnit, Current> {
   function divide( p: Potential ) : Conductance {
     return new Conductance( toNumber() / p.toNumber(), ConductanceUnit.BASE, ConductanceUnit.get( Unit, p.Unit ) )
   }
+  function divide( c: Conductance ) : Potential {
+    return new Potential( toNumber() / c.toNumber(), PotentialUnit.BASE, c.Unit.PotentialUnit )
+  }
 }

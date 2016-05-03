@@ -13,4 +13,8 @@ final class Angle extends AbstractMeasure<AngleUnit, Angle> {
   function divide( time: Time ) : Frequency {
     return new Frequency( toNumber() / time.toNumber(), FrequencyUnit.BASE, FrequencyUnit.get( Unit, time.Unit ) )
   }
+
+  function divide( freq: Frequency ) : Time {
+    return new Time( toNumber() / freq.toNumber(), TimeUnit.BASE, freq.Unit.TimeUnit )
+  }
 }

@@ -37,7 +37,7 @@ abstract class AbstractQuotientUnit<A extends IUnit<Rational, IDimension, A>,
     return LeftUnit.toNumber() / RightUnit.toNumber()
   }
     
-  function multiply( b: B ) : A {
+  function multiply( a: B ) : A {
     return LeftUnit  
   }
 }

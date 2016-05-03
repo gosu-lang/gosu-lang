@@ -23,8 +23,4 @@ final class MagneticFluxDensityUnit extends AbstractQuotientUnit<MagneticFluxUni
   property get AreaUnit() : AreaUnit {
     return RightUnit 
   }
-  
-  override function multiply( w: AreaUnit ) : MagneticFluxUnit {
-    return MagneticFluxUnit
-  }
 }

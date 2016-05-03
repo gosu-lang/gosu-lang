@@ -67,9 +67,15 @@ enum MassUnit implements IUnit<Rational, Mass, MassUnit> {
   
   function divide( area: AreaUnit ) : PressureUnit {
     return PressureUnit.get( this, area )
-  } 
+  }
+  function divide( pressure: PressureUnit ) : AreaUnit {
+    return pressure.AreaUnit
+  }
 
   function divide( volume: VolumeUnit ) : DensityUnit {
     return DensityUnit.get( this, volume )
   }   
+  function divide( d: DensityUnit ) : VolumeUnit {
+    return d.VolumeUnit
+  }
 }
