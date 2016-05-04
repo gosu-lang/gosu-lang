@@ -1,4 +1,4 @@
-package gw.internal.gosu.parser.classTests.gwtest.dynamic
+package gw.specification.typeDynamic
 
 uses dynamic.Dynamic
 uses java.lang.*
@@ -48,7 +48,7 @@ class ExpandoTest extends gw.BaseVerifyErrantTest {
       },
       :Hobbies = {
         "miniature golf",
-        "sperm doning",
+        "soccer",
         "cage fighting"
       },
       :Cars = {
@@ -70,7 +70,7 @@ class ExpandoTest extends gw.BaseVerifyErrantTest {
     assertEquals( "Cupertino", address.City )
     assertEquals( "CA", address.State )
     var hobbies = person.Hobbies
-    assertEquals( {"miniature golf", "sperm doning", "cage fighting"}, hobbies )
+    assertEquals( {"miniature golf", "soccer", "cage fighting"}, hobbies )
     var cars = person.Cars
     var car = cars[0]
     assertEquals( "Acura", car.Make )

@@ -336,24 +336,5 @@ requested type.
 |``double``  | C          | C          | C          | C          | C          | C          | C          | W          |
 +------------+------------+------------+------------+------------+------------+------------+------------+------------+
 
-Signatures and Subsumption
-==========================
 
-.. index:: signature, subsumption
 
-A *signature* has form m(t\ :sub:`1`, ..., t\ :sub:`n`), where *m* is a method 
-or constructor or function name, and (t\ :sub:`1`, ..., t\ :sub:`n`) is a list 
-of non-generic types; (See exampleXXX). We say that a signature sig\ :sub:`1` = 
-m(t\ :sub:`1`, ..., t\ :sub:`n`) *subsumes* signature sig\ :sub:`2` =
-m(u\ :sub:`1`, ..., u\ :sub:`n`) if each u\ :sub:`i` is a subtype of 
-t\ :sub:`i` . We also say that sig\ :sub:`2` is *more specific* than 
-sig\ :sub:`1`. Note that the method name *m* and the number *n* of types must be
-the same in the two signatures. Since every type t\ :sub:`i` is a subtype of 
-itself, every signature subsumes itself. In a collection of signatures there may
-be one that is subsumed by all others; such a signature is called the 
-*most specific* signature.
-
-EBNF
-====
-
-TODO

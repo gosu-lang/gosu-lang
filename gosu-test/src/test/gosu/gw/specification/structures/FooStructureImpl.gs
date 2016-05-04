@@ -1,4 +1,4 @@
-package gw.internal.gosu.parser.structural
+package gw.specification.structures
 
 class FooStructureImpl {
   var _foo : String as Foo = "blah"
