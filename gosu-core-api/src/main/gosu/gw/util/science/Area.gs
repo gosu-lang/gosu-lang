@@ -5,11 +5,6 @@ uses java.math.RoundingMode
 uses java.math.MathContext
 
 final class Area extends AbstractMeasure<AreaUnit, Area> {
-  /** 
-   * @param value Area in specified units
-   * @param unit Area unit, default is Sq Micro
-   * @param displayUnit Unit in which to display this area
-   */
   construct( value : Rational, unit: AreaUnit, displayUnit: AreaUnit ) {
     super( value, unit, displayUnit, AreaUnit.BASE )
   }
