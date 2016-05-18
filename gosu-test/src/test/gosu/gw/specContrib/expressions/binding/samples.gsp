@@ -18,10 +18,6 @@ var z = 9 kg m/s/s
 print( z )
 print( 9 mi/hr ) 
    
-annotation MyAnno_12 {
-  function stuff_e5() : String = null //## issuekeys: MSG_COMPILE_TIME_CONSTANT_REQUIRED
-}
- 
 //   
 // Gosu supports math operations naturally on "Dimensions".  A dimension can be a physical 
 // dimension like Length, Time, Weight, etc. it can also be abstract, for example, like   
