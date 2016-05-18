@@ -12641,7 +12641,9 @@ public final class GosuParser extends ParserBase implements IGosuParser
           }
           if( !annotationDefault.hasParseExceptions() )
           {
-            verify( annotationDefault, annotationDefault.isCompileTimeConstant(), Res.MSG_COMPILE_TIME_CONSTANT_REQUIRED );
+            verify( annotationDefault,
+                    annotationDefault.isCompileTimeConstant() && !(annotationDefault instanceof NullExpression), // for some unknown reason the JVM does not allow null default values
+                    Res.MSG_COMPILE_TIME_CONSTANT_REQUIRED );
           }
         }
 
@@ -13382,7 +13384,9 @@ public final class GosuParser extends ParserBase implements IGosuParser
           }
           if( !annotationDefault.hasParseExceptions() )
           {
-            verify( annotationDefault, annotationDefault.isCompileTimeConstant(), Res.MSG_COMPILE_TIME_CONSTANT_REQUIRED );
+            verify( annotationDefault,
+                    annotationDefault.isCompileTimeConstant() && !(annotationDefault instanceof NullExpression), // for some unknown reason the JVM does not allow null default values
+                    Res.MSG_COMPILE_TIME_CONSTANT_REQUIRED );
           }
         }
 

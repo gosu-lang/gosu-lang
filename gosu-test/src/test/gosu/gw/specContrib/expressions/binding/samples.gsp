@@ -18,6 +18,9 @@ var z = 9 kg m/s/s
 print( z )
 print( 9 mi/hr ) 
    
+annotation MyAnno_12 {
+  function stuff_e5() : String = null //## issuekeys: MSG_COMPILE_TIME_CONSTANT_REQUIRED
+}
  
 //   
 // Gosu supports math operations naturally on "Dimensions".  A dimension can be a physical 
@@ -64,14 +67,14 @@ distance = velocity * time
 assertTrue( 4.02336 km == distance.to( km ) )
 time = distance / velocity
 assertTrue( 3 min == distance / velocity )
-
 var mass = 20 g.to( lb )
 acc = 9.8 (m/s/s)
 var force = mass * acc
 assertTrue( 196 g*(m/s/s) == force )
 assertTrue( 0.196bd kg*(m/s/s) == force.to( kg*(m/s/s) ) )
-assertTrue( "1.417671871246786051071646520912871 lb⋅ft/s²" == force.to( lb*(ft/s/s) ).toString() )
-assertTrue( "1.417671871246786051071646520912871 lb⋅ft/s²" == force.to( lb ft/s/s ).toString() )
+
+assertTrue( "1.417671871246786051071646520912871 lb⋅ft/s/s" == force.to( lb*(ft/s/s) ).toString() )
+assertTrue( "1.417671871246786051071646520912871 lb⋅ft/s/s" == force.to( lb ft/s/s ).toString() )
 
 var momentum = mass * velocity
 assertTrue( 1000 g*(mi/hr) == mass * velocity )
