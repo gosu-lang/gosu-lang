@@ -3076,6 +3076,11 @@ public final class GosuParser extends ParserBase implements IGosuParser
   }
   private void parseBindingExpression( Token token, boolean bPostfix )
   {
+    if( isInSeparateStringTemplateExpression() )
+    {
+      return;
+    }
+
     int mark = getTokenizer().mark();
 
     Token connector = getTokenizer().getCurrentToken();
