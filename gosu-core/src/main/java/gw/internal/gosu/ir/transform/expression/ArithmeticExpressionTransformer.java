@@ -24,6 +24,7 @@ import gw.lang.reflect.IRelativeTypeInfo;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.java.JavaTypes;
+import gw.util.Rational;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -77,6 +78,10 @@ abstract class ArithmeticExpressionTransformer<T extends ArithmeticExpression> e
         {
           return mixedBigArithmetic( type, _expr().getLHS(), _expr().getRHS(), _expr().isNullSafe(), _expr().getOperator() );
         }
+        else if( isMixedRationalArithmetic( type ) )
+        {
+          return mixedRationalArithmetic( _expr().getLHS(), _expr().getRHS(), _expr().isNullSafe(), _expr().getOperator() );
+        }
       }
     }
     return null;
@@ -117,6 +122,10 @@ abstract class ArithmeticExpressionTransformer<T extends ArithmeticExpression> e
     return JavaTypes.BIG_INTEGER().equals( type ) &&
            (isNumberType( lhsType ) || JavaTypes.BIG_INTEGER().equals( lhsType )) &&
            (isNumberType( rhsType ) || JavaTypes.BIG_INTEGER().equals( rhsType ));
+  }
+  final boolean isMixedRationalArithmetic( IType type )
+  {
+    return JavaTypes.RATIONAL().equals( type );
   }
 
   final IRExpression mixedPrimitiveAndBoxedArithmetic( IType exprType, Expression lhsExpr, Expression rhsExpr, boolean bNullSafe, String strOp ) {
@@ -232,11 +241,47 @@ abstract class ArithmeticExpressionTransformer<T extends ArithmeticExpression> e
     }
   }
 
+  final IRExpression mixedRationalArithmetic( Expression lhsExpr, Expression rhsExpr, boolean bNullSafe, String strOp )
+  {
+    IRExpression lhs = ExpressionTransformer.compile( lhsExpr, _cc() );
+    IRExpression rhs = ExpressionTransformer.compile( rhsExpr, _cc() );
+
+    IRSymbol tempLhsInit = _cc().makeAndIndexTempSymbol( getDescriptor( lhsExpr.getType() ) );
+    IRAssignmentStatement tempLhsInitAssn = buildAssignment( tempLhsInit, lhs );
+    IRSymbol tempRhsInit = _cc().makeAndIndexTempSymbol( getDescriptor( rhsExpr.getType() ) );
+    IRAssignmentStatement tempRhsInitAssn = buildAssignment( tempRhsInit, rhs );
+
+    IRType rationalDesc = getDescriptor( Rational.class );
+    IRSymbol tempLhsRet = _cc().makeAndIndexTempSymbol( rationalDesc );
+    IRStatement tempLhsRetAssn = convertOperandToRational( lhsExpr.getType(), identifier( tempLhsInit ), tempLhsRet );
+    IRSymbol tempRhsRet = _cc().makeAndIndexTempSymbol( rationalDesc );
+    IRStatement tempRhsRetAssn = convertOperandToRational( rhsExpr.getType(), identifier( tempRhsInit ), tempRhsRet );
+
+    if( bNullSafe ) {
+      return buildComposite( tempLhsInitAssn, tempRhsInitAssn,
+        buildCast( rationalDesc,
+                   buildTernary( lhs.getType().isPrimitive() ? booleanLiteral( false ) : buildEquals( identifier( tempLhsInit ), nullLiteral() ),
+                      nullLiteral(),
+                      buildTernary( rhs.getType().isPrimitive() ? booleanLiteral( false ) : buildEquals( identifier( tempRhsInit ), nullLiteral() ),
+                                    nullLiteral(),
+                                    buildComposite( tempLhsRetAssn, tempRhsRetAssn,
+                                                    rationalArithmetic( identifier( tempLhsRet ), identifier( tempRhsRet ), strOp ) ), rationalDesc ),
+                      rationalDesc ) ) );
+    }
+    else {
+      return buildComposite( tempLhsInitAssn, tempRhsInitAssn, tempLhsRetAssn, tempRhsRetAssn,
+                             rationalArithmetic( identifier( tempLhsRet ), identifier( tempRhsRet ), strOp ) );
+    }
+  }
+
   final IRExpression bigArithmetic()
   {
     IType bigType = _expr().getType();
+    if( bigType != JavaTypes.BIG_INTEGER() && bigType != JavaTypes.BIG_DECIMAL() )
+    {
+      throw new AssertionError();
+    }
     Class bigClass = bigType == JavaTypes.BIG_INTEGER() ? BigInteger.class : BigDecimal.class;
-    assert bigType == JavaTypes.BIG_INTEGER() || bigType == JavaTypes.BIG_DECIMAL();
     IRExpression lhs = ExpressionTransformer.compile( _expr().getLHS(), _cc() );
     IRExpression rhs = ExpressionTransformer.compile( _expr().getRHS(), _cc() );
     if( _expr().isNullSafe() ) {
@@ -333,6 +378,37 @@ abstract class ArithmeticExpressionTransformer<T extends ArithmeticExpression> e
              strOp.equals( "?%" ) )
     {
       return callMethod( BigInteger.class, "mod", new Class[]{BigInteger.class}, lhs, Collections.singletonList( rhs ) );
+    }
+    throw new IllegalStateException();
+  }
+
+  final IRExpression rationalArithmetic( IRExpression lhs, IRExpression rhs, String strOp )
+  {
+    if( strOp.equals( "+" ) ||
+        strOp.equals( "?+" ) ||
+        strOp.equals( "!+" ) ) {
+      return callMethod( Rational.class, "add", new Class[] {Rational.class}, lhs, Collections.singletonList( rhs ) );
+    }
+    else if( strOp.equals( "-" ) ||
+             strOp.equals( "?-" ) ||
+             strOp.equals( "!-" ) ) {
+      return callMethod( Rational.class, "subtract", new Class[] {Rational.class}, lhs, Collections.singletonList( rhs ) );
+    }
+    else if( strOp.equals( "*" ) ||
+             strOp.equals( "?*" ) ||
+             strOp.equals( "!*" ) )
+    {
+      return callMethod( Rational.class, "multiply", new Class[] {Rational.class}, lhs, Collections.singletonList( rhs ) );
+    }
+    else if( strOp.equals( "/" ) ||
+             strOp.equals( "?/" ) )
+    {
+      return callMethod( Rational.class, "divide", new Class[] {Rational.class}, lhs, Collections.singletonList( rhs ) );
+    }
+    else if( strOp.equals( "%" ) ||
+             strOp.equals( "?%" ) )
+    {
+      return callMethod( Rational.class, "modulo", new Class[] {Rational.class}, lhs, Collections.singletonList( rhs ) );
     }
     throw new IllegalStateException();
   }

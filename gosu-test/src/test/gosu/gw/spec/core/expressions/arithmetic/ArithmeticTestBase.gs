@@ -9,6 +9,7 @@ uses java.lang.Double
 uses java.math.BigInteger
 uses java.math.BigDecimal
 uses java.lang.Character
+uses gw.util.Rational
 uses java.lang.ArithmeticException
 
 abstract class ArithmeticTestBase extends TestClass {
@@ -89,6 +90,10 @@ abstract class ArithmeticTestBase extends TestClass {
   
   protected function big_decimal(value : String) : BigDecimal {
     return new BigDecimal(value)  
+  }
+
+  protected function rational(value : String) : Rational {
+    return Rational.get(value)
   }
 
   protected function assertThrowsArithmeticException(message : String, op : block()) {

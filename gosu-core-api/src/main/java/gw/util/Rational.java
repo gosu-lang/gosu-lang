@@ -1,7 +1,5 @@
 package gw.util;
 
-
-import gw.lang.IDimension;
 import gw.lang.reflect.interval.ISequenceable;
 
 import java.math.BigDecimal;
@@ -11,7 +9,7 @@ import java.math.MathContext;
 
 /**
  */
-final public class Rational extends Number implements IDimension<Rational, Rational>, ISequenceable<Rational, Rational, Void>
+final public class Rational extends Number implements ISequenceable<Rational, Rational, Void>
 {
   public static final Rational ZERO = new Rational( BigInteger.ZERO, BigInteger.ONE );
   public static final Rational ONE = new Rational( BigInteger.ONE, BigInteger.ONE );
@@ -37,11 +35,11 @@ final public class Rational extends Number implements IDimension<Rational, Ratio
   }
   public static Rational get( float f )
   {
-    return get( BigDecimal.valueOf( f ) );
+    return get( Float.toString( f ) );
   }
   public static Rational get( double d )
   {
-    return get( BigDecimal.valueOf( d ) );
+    return get( Double.toString( d ) );
   }
   public static Rational get( BigInteger numerator )
   {
@@ -157,24 +155,6 @@ final public class Rational extends Number implements IDimension<Rational, Ratio
   public BigInteger getDenominator()
   {
     return _denominator;
-  }
-
-  @Override
-  public Rational toNumber()
-  {
-    return this;
-  }
-
-  @Override
-  public Rational fromNumber( Rational units )
-  {
-    return units;
-  }
-
-  @Override
-  public Class<Rational> numberType()
-  {
-    return Rational.class;
   }
 
   @Override
@@ -524,7 +504,7 @@ final public class Rational extends Number implements IDimension<Rational, Ratio
   public Rational modulo( Rational rational )
   {
     Rational quotient = divide( rational );
-    return get( quotient._numerator.remainder( quotient._denominator ) );
+    return subtract( rational.multiply( quotient.toBigInteger() ) ).abs();
   }
 
   public Rational negate()

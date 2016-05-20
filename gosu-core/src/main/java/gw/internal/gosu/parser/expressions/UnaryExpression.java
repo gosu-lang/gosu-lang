@@ -136,6 +136,7 @@ public final class UnaryExpression extends Expression implements IUnaryExpressio
     return
       type == JavaTypes.BIG_DECIMAL() ||
       type == JavaTypes.BIG_INTEGER() ||
+      type == JavaTypes.RATIONAL() ||
       type == JavaTypes.INTEGER() || type == JavaTypes.pINT() ||
       type == JavaTypes.LONG() || type == JavaTypes.pLONG() ||
       type == JavaTypes.DOUBLE() || type == JavaTypes.pDOUBLE() ||

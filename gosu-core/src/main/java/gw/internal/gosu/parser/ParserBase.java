@@ -1083,7 +1083,7 @@ public abstract class ParserBase implements IParserPart
         return true;
     }
     IType numberType = AbstractElementTransformer.findDimensionType( rhsType );
-    if( !StandardCoercionManager.isBoxed( numberType ) && !AbstractElementTransformer.isBigType( numberType ) )
+    if( !StandardCoercionManager.isBoxed( numberType ) && !AbstractElementTransformer.isBigType( numberType ) && numberType != JavaTypes.RATIONAL() )
     {
       if( parser != null )
       {

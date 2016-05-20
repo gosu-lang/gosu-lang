@@ -42,7 +42,17 @@ interface UnitConstants {
   var lt: MassUnit = TonUK
   var tonne: MassUnit = Tonne
   var Mo: MassUnit = Solar
-  
+
+  var L: VolumeUnit = VolumeUnit.LITER
+  var mL: VolumeUnit = VolumeUnit.MILLI_LITER
+  var fl_oz: VolumeUnit = VolumeUnit.FLUID_OZ
+  var gal: VolumeUnit = VolumeUnit.GALLON
+  var qt: VolumeUnit = VolumeUnit.QUART
+  var pt: VolumeUnit = VolumeUnit.PINT
+  var cup: VolumeUnit = VolumeUnit.CUP
+  var tsp: VolumeUnit = VolumeUnit.TABLE_SPOON
+  var tbsp: VolumeUnit = VolumeUnit.TEA_SPOON
+
   var cyc: AngleUnit = Turn
   var rad: AngleUnit = Radian
   var mrad: AngleUnit = Milli

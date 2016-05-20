@@ -1828,6 +1828,81 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
     return tempOperandAssn;
   }
 
+  protected IRAssignmentStatement convertOperandToRational( IType operandType, IRExpression operand, IRSymbol tempRet ) {
+    IRAssignmentStatement tempOperandAssn;
+    if( operandType == JavaTypes.RATIONAL() ) {
+      tempOperandAssn = buildAssignment( tempRet, operand );
+    }
+    else if( operandType == JavaTypes.BIG_DECIMAL() )
+    {
+      tempOperandAssn = buildAssignment( tempRet, buildMethodCall( Rational.class, "get", Rational.class, new Class[]{BigDecimal.class}, null, Collections.singletonList( operand ) ) );
+    }
+    else if( operandType == JavaTypes.BIG_INTEGER() )
+    {
+      tempOperandAssn = buildAssignment( tempRet, buildMethodCall( Rational.class, "get", Rational.class, new Class[]{BigInteger.class}, null, Collections.singletonList( operand ) ) );
+    }
+    else {
+      IType dimensionType = findDimensionType( operandType );
+      if( dimensionType != null ) {
+        return convertOperandToRational( dimensionType, callMethod( IDimension.class, "toNumber", new Class[]{}, operand, Collections.<IRExpression>emptyList() ), tempRet );
+      }
+
+      if( StandardCoercionManager.isBoxed( operandType ) ) {
+        if( isBoxedIntType( operandType ) || operandType == JavaTypes.LONG() ) {
+          if( operandType == JavaTypes.CHARACTER() ) {
+            tempOperandAssn = buildAssignment( tempRet, callStaticMethod( Rational.class, "get", new Class[] {long.class},
+                                                                      Collections.<IRExpression>singletonList( numberConvert( getDescriptor( char.class ), getDescriptor( long.class ),
+                                                                                                                              buildMethodCall( getDescriptor( operandType ), "charValue", false,
+                                                                                                                                               getDescriptor( char.class ), Collections.<IRType>emptyList(), operand,
+                                                                                                                                               Collections.<IRExpression>emptyList() ) ) ) ) );
+          }
+          else {
+            tempOperandAssn = buildAssignment( tempRet, callStaticMethod( Rational.class, "get", new Class[] {long.class},
+                                                                      Collections.<IRExpression>singletonList( buildMethodCall( getDescriptor( operandType ), "longValue", false,
+                                                                                                                  getDescriptor( long.class ), Collections.<IRType>emptyList(), operand,
+                                                                                                                  Collections.<IRExpression>emptyList() ) ) ) );
+          }
+        }
+        else {
+          if( operandType == JavaTypes.CHARACTER() ) {
+            tempOperandAssn = buildAssignment( tempRet, callStaticMethod( Rational.class, "valueOf", new Class[] {double.class},
+                                                                      Collections.<IRExpression>singletonList( numberConvert( getDescriptor( char.class ), getDescriptor( double.class ),
+                                                                                                                 buildMethodCall( getDescriptor( operandType ), "charValue", false,
+                                                                                                                                  getDescriptor( char.class ), Collections.<IRType>emptyList(), operand,
+                                                                                                                                  Collections.<IRExpression>emptyList() ) ) ) ) );
+          }
+          else if( operandType == JavaTypes.FLOAT() ) {
+            tempOperandAssn = buildAssignment( tempRet, callStaticMethod( Rational.class, "get", new Class[] {String.class},
+                                                Collections.<IRExpression>singletonList( buildMethodCall( getDescriptor( Float.class ), "toString", false,
+                                                                                                          getDescriptor( String.class ), Collections.<IRType>emptyList(), operand,
+                                                                                                          Collections.<IRExpression>emptyList() ) ) ) );
+          }
+          else {
+            tempOperandAssn = buildAssignment( tempRet, callStaticMethod( Rational.class, "get", new Class[] {double.class},
+                                                                      Collections.<IRExpression>singletonList( buildMethodCall( getDescriptor( operandType ), "doubleValue", false,
+                                                                                                                  getDescriptor( double.class ), Collections.<IRType>emptyList(), operand,
+                                                                                                                  Collections.<IRExpression>emptyList() ) ) ) );
+          }
+        }
+      }
+      else if( operandType.isPrimitive() ) {
+        if( operandType == JavaTypes.pFLOAT() ) {
+          tempOperandAssn = buildAssignment( tempRet,  callStaticMethod( Rational.class, "get", new Class[]{String.class}, Collections.singletonList( callStaticMethod( String.class, "valueOf", new Class[]{float.class}, Collections.<IRExpression>singletonList( operand ) ) ) ) );
+        }
+        else if( isIntType( operandType ) || operandType == JavaTypes.pLONG() ) {
+          tempOperandAssn = buildAssignment( tempRet, callStaticMethod( Rational.class, "get", new Class[] {long.class}, Collections.singletonList( numberConvert( operandType, JavaTypes.pLONG(), operand ) ) ) );
+        }
+        else {
+          tempOperandAssn = buildAssignment( tempRet, callStaticMethod( Rational.class, "get", new Class[] {double.class}, Collections.singletonList( numberConvert( operandType, JavaTypes.pDOUBLE(), operand ) ) ) );
+        }
+      }
+      else {
+        throw new IllegalStateException( "Unhandled type: " + operandType.getName() );
+      }
+    }
+    return tempOperandAssn;
+  }
+
   protected IRAssignmentStatement convertOperandToPrimitive( IType primitiveType, IType operandType, IRExpression operand, IRSymbol tempRet ) {
     IRAssignmentStatement tempOperandAssn;
     if( operandType == primitiveType ) {

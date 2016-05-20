@@ -15,6 +15,7 @@ import gw.lang.ir.statement.IRAssignmentStatement;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.java.JavaTypes;
+import gw.util.Rational;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -107,8 +108,11 @@ public class MultiplicativeExpressionTransformer extends ArithmeticExpressionTra
     return (type == JavaTypes.BIG_DECIMAL() || type == JavaTypes.BIG_INTEGER())
       ? callMethod( IDimension.class, "fromNumber", new Class[]{Number.class}, identifier( bLhsDim ? tempLhsInit : tempRhsInit ),
                     Collections.singletonList( multiplyBigDimension( type, tempLhsInit, tempRhsInit ) ) )
-      : callMethod( IDimension.class, "fromNumber", new Class[]{Number.class}, identifier( bLhsDim ? tempLhsInit : tempRhsInit ),
-                    Collections.singletonList( boxValueToType( type, multiplyBoxedDimension( type, tempLhsInit, tempRhsInit ) ) ) );
+      : type == JavaTypes.RATIONAL()
+        ? callMethod( IDimension.class, "fromNumber", new Class[]{Number.class}, identifier( bLhsDim ? tempLhsInit : tempRhsInit ),
+                      Collections.singletonList( multiplyRationalDimension( type, tempLhsInit, tempRhsInit ) ) )
+        : callMethod( IDimension.class, "fromNumber", new Class[]{Number.class}, identifier( bLhsDim ? tempLhsInit : tempRhsInit ),
+                      Collections.singletonList( boxValueToType( type, multiplyBoxedDimension( type, tempLhsInit, tempRhsInit ) ) ) );
   }
 
   private IRArithmeticExpression multiplyBoxedDimension( IType type, IRSymbol tempLhsInit, IRSymbol tempRhsInit ) {
@@ -161,6 +165,23 @@ public class MultiplicativeExpressionTransformer extends ArithmeticExpressionTra
     else {
       return bigIntegerArithmetic( checkCast( BigInteger.class, lhsExpr ), rhsExpr, _expr().getOperator() );
     }
+  }
+
+  private IRExpression multiplyRationalDimension( IType type, IRSymbol tempLhsInit, IRSymbol tempRhsInit ) {
+    IRExpression lhsExpr;
+    IRExpression rhsExpr;
+    if( getDescriptor( IDimension.class ).isAssignableFrom( tempLhsInit.getType() ) ) {
+      lhsExpr = callMethod( IDimension.class, "toNumber", new Class[]{}, identifier( tempLhsInit ), Collections.<IRExpression>emptyList() );
+      IRSymbol tempRhsConv = _cc().makeAndIndexTempSymbol( getDescriptor( type ) );
+      rhsExpr = buildComposite( convertOperandToRational( _expr().getRHS().getType(), identifier( tempRhsInit ), tempRhsConv ), identifier( tempRhsConv ) );
+    }
+    else {
+      rhsExpr = callMethod( IDimension.class, "toNumber", new Class[]{}, identifier( tempRhsInit ), Collections.<IRExpression>emptyList() );
+      IRSymbol tempLhsConv = _cc().makeAndIndexTempSymbol( getDescriptor( type ) );
+      lhsExpr = buildComposite( convertOperandToRational( _expr().getLHS().getType(), identifier( tempLhsInit ), tempLhsConv ), identifier( tempLhsConv ) );
+    }
+
+    return rationalArithmetic( checkCast( Rational.class, lhsExpr ), rhsExpr, _expr().getOperator() );
   }
 
   private IRExpression dynamicMultiplication()

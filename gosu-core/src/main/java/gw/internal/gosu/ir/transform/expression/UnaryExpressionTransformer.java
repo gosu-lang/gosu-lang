@@ -4,8 +4,6 @@
 
 package gw.internal.gosu.ir.transform.expression;
 
-import gw.internal.gosu.ir.nodes.IRMethod;
-import gw.internal.gosu.ir.nodes.IRMethodFactory;
 import gw.internal.gosu.ir.transform.ExpressionTransformer;
 import gw.internal.gosu.ir.transform.TopLevelTransformationContext;
 import gw.internal.gosu.parser.BeanAccess;
@@ -15,9 +13,7 @@ import gw.internal.gosu.parser.expressions.UnaryExpression;
 import gw.internal.gosu.parser.expressions.UnsupportedNumberTypeException;
 import gw.lang.IDimension;
 import gw.lang.ir.IRExpression;
-import gw.lang.ir.IRTypeConstants;
 import gw.lang.reflect.IMethodInfo;
-import gw.lang.reflect.IRelativeTypeInfo;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.java.JavaTypes;
 
@@ -91,7 +87,7 @@ public class UnaryExpressionTransformer extends AbstractExpressionTransformer<Un
   private IRExpression negateComplex( IRExpression root )
   {
     IType type = _expr().getType();
-    if( JavaTypes.IDIMENSION().isAssignableFrom( type ) )
+    if( JavaTypes.IDIMENSION().isAssignableFrom( type ) || JavaTypes.NUMBER().isAssignableFrom( type ) )
     {
       IMethodInfo mi = type.getTypeInfo().getMethod( "negate" );
       if( mi != null && type.isAssignableFrom( mi.getReturnType() ) )
