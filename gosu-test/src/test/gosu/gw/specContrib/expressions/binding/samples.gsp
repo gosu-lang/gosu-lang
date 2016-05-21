@@ -11,7 +11,6 @@ uses gw.util.science.InformationCapacityUnit#*
 uses gw.util.science.MetricScaleUnit#*
 uses gw.lang.parser.exceptions.ParseException
 
-
 var y = 6 kg m/s
 print( y ) 
 var z = 9 kg m/s/s

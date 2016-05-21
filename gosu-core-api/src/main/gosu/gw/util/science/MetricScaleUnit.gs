@@ -52,23 +52,23 @@ enum MetricScaleUnit {
     return _symbol
   }
 
-  function postfixBind( value: Integer ) : Integer {
-    return (_amount * value).intValue()
+  function postfixBind( value: Integer ) : Rational {
+    return _amount * value
   }
-  function postfixBind( value: Long ) : Long {
-    return (_amount * value).longValue()
+  function postfixBind( value: Long ) : Rational {
+    return _amount * value
   }
-  function postfixBind( value: Float ) : Float {
-    return (_amount * value).floatValue()
+  function postfixBind( value: Float ) : Rational {
+    return _amount * value
   }
-  function postfixBind( value: Double ) : Double {
-    return (_amount * value).doubleValue()
+  function postfixBind( value: Double ) : Rational {
+    return _amount * value
   }
-  function postfixBind( value: BigInteger ) : BigInteger {
-    return (_amount * value).toBigInteger()
+  function postfixBind( value: BigInteger ) : Rational {
+    return _amount * value
   }
-  function postfixBind( value: BigDecimal ) : BigDecimal {
-    return (_amount * value).toBigDecimal()
+  function postfixBind( value: BigDecimal ) : Rational {
+    return _amount * value
   }
   function postfixBind( value: Rational ) : Rational {
     return _amount * value
