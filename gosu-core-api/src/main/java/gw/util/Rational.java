@@ -157,6 +157,18 @@ final public class Rational extends Number implements ISequenceable<Rational, Ra
     return _denominator;
   }
 
+  public BigInteger wholePart() {
+    return _numerator.divide( _denominator );
+  }
+
+  public Rational fractionPart() {
+    BigInteger remainder = _numerator.remainder( _denominator );
+    if( remainder.signum() == 0 ) {
+      return ZERO;
+    }
+    return Rational.get( remainder, _denominator );
+  }
+
   @Override
   public int intValue()
   {
@@ -564,6 +576,11 @@ final public class Rational extends Number implements ISequenceable<Rational, Ra
     return crossNum.compareTo( crossDen );
   }
 
+  public int signum()
+  {
+    return _numerator.signum();
+  }
+
   /**
    * Note equals() is NOT arithmetic equals, this method strictly compares the fields of this class e.g., 1/2 != 3/6.
    * If you want arithmetic equality, use compareTo().
@@ -596,8 +613,23 @@ final public class Rational extends Number implements ISequenceable<Rational, Ra
     return result;
   }
 
-  public String toFractionString() {
-    return _numerator + " / " + _denominator;
+  public String toFractionString()
+  {
+    return _numerator + "/" + _denominator;
+  }
+
+  public String toMixedString()
+  {
+    if( _denominator.equals( BigInteger.ONE ) )
+    {
+      return _numerator.toString();
+    }
+    BigInteger whole = wholePart();
+    if( whole.signum() == 0  )
+    {
+      return fractionPart().toFractionString();
+    }
+    return whole + " " + fractionPart().abs().toFractionString();
   }
 
   public String toDecimalString() {
