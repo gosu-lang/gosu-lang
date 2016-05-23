@@ -50,8 +50,8 @@ interface UnitConstants {
   var qt: VolumeUnit = VolumeUnit.QUART
   var pt: VolumeUnit = VolumeUnit.PINT
   var cup: VolumeUnit = VolumeUnit.CUP
-  var tsp: VolumeUnit = VolumeUnit.TABLE_SPOON
-  var tbsp: VolumeUnit = VolumeUnit.TEA_SPOON
+  var tbsp: VolumeUnit = VolumeUnit.TABLE_SPOON
+  var tsp: VolumeUnit = VolumeUnit.TEA_SPOON
 
   var cyc: AngleUnit = Turn
   var rad: AngleUnit = Radian

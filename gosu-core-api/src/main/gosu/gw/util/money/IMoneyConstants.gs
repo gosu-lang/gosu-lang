@@ -1,5 +1,7 @@
 package gw.util.money
 
+uses java.util.Currency
+
 interface IMoneyConstants {
   var AED: Currency = getCurrency( "AED" )
   var AFN: Currency = getCurrency( "AFN" )

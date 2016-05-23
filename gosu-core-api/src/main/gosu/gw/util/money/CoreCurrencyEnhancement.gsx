@@ -1,5 +1,7 @@
 package gw.util.money
 
+uses java.util.Currency
+
 enhancement CoreCurrencyEnhancement : Currency
 {
   static property get BASE() : Currency {

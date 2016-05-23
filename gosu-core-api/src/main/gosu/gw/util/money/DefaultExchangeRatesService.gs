@@ -8,6 +8,7 @@ uses gw.util.LRUCache
 uses gw.util.concurrent.Cache
 uses java.util.concurrent.ConcurrentHashMap
 uses gw.util.science.UnitConstants#min
+uses java.util.Currency
 
 /**
  * This default implementation uses the Yahoo Finance API to get the table of exchange rates.

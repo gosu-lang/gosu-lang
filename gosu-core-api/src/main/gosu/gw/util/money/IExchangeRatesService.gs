@@ -1,7 +1,9 @@
 package gw.util.money
+
 uses gw.util.Rational
 uses java.net.URL
 uses gw.util.science.Time
+uses java.util.Currency
 
 /**
  * A user-definable service for foreign currency exchange rates
