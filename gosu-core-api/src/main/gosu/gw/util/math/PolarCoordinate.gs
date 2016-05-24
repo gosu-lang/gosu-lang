@@ -34,8 +34,9 @@ public class PolarCoordinate {
     }
 
     private function updateValues() {
-        var r = mag.multiply(BigDecimal.valueOf(Math.cos(toRadians(ang).doubleValue())))
-        var i = mag.multiply(BigDecimal.valueOf(Math.sin(toRadians(ang).doubleValue())))
+        var angRadians = Math.toRadians(ang.doubleValue())
+        var r = mag.multiply(BigDecimal.valueOf(Math.cos(angRadians)))
+        var i = mag.multiply(BigDecimal.valueOf(Math.sin(angRadians)))
         rect.Real = r
         rect.Imaginary = i
     }
@@ -45,7 +46,8 @@ public class PolarCoordinate {
     }
 
     public static function toRadians( d:BigDecimal) : BigDecimal {
-        var rVal = d.multiply(PI).divide(_180);
+        var mc = java.math.MathContext.DECIMAL128
+        var rVal = d.multiply(PI).divide(_180, mc);
         return rVal
     }
 
