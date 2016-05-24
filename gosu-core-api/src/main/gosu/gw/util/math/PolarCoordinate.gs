@@ -45,12 +45,6 @@ public class PolarCoordinate {
         return Magnitude.setScale(5, BigDecimal.ROUND_HALF_UP) + "@" + ang.setScale(4, BigDecimal.ROUND_HALF_UP)
     }
 
-    public static function toRadians( d:BigDecimal) : BigDecimal {
-        var mc = java.math.MathContext.DECIMAL128
-        var rVal = d.multiply(PI).divide(_180, mc);
-        return rVal
-    }
-
     public function add( o:PolarCoordinate) :PolarCoordinate{
         this.updateValues()
         o.updateValues()
