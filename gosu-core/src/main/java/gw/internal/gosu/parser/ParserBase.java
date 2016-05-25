@@ -56,13 +56,10 @@ import gw.lang.parser.expressions.IBlockExpression;
 import gw.lang.parser.expressions.IOverridableOperation;
 import gw.lang.parser.resources.Res;
 import gw.lang.parser.resources.ResourceKey;
-import gw.lang.reflect.FunctionType;
 import gw.lang.reflect.IErrorType;
 import gw.lang.reflect.IMethodInfo;
 import gw.lang.reflect.INamespaceType;
 import gw.lang.reflect.IType;
-import gw.lang.reflect.ITypeInfo;
-import gw.lang.reflect.MethodList;
 import gw.lang.reflect.Modifier;
 import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.gs.ICompilableType;
@@ -1148,34 +1145,7 @@ public abstract class ParserBase implements IParserPart
       default:
         return null;
     }
-    IMethodInfo method = lhsType.getTypeInfo().getMethod( strMethod, rhsType );
-    if( method == null )
-    {
-      try
-      {
-        MethodList methods = lhsType.getTypeInfo().getMethods();
-        method = ITypeInfo.FIND.callableMethodStrict( methods, strMethod, rhsType );
-        if( method == null )
-        {
-          method = ITypeInfo.FIND.callableMethod( methods, strMethod, rhsType );
-          if( method != null )
-          {
-            IType param = method.getParameters()[0].getFeatureType();
-            if( !param.isAssignableFrom( rhsType ) &&
-                !(AbstractElementTransformer.isNumberType( param ) || JavaTypes.NUMBER().isAssignableFrom( param )) ||
-                !(AbstractElementTransformer.isNumberType( rhsType ) || JavaTypes.NUMBER().isAssignableFrom( rhsType )) )
-            {
-              method = null;
-            }
-          }
-        }
-      }
-      catch( Exception e )
-      {
-        method = null;
-      }
-    }
-    return method;
+    return lhsType.getTypeInfo().getMethod( strMethod, rhsType );
   }
 
   protected ISymbol resolveSymbol( ParsedElement e, String strName, boolean ignoreFunctionSymbols )

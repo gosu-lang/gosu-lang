@@ -237,7 +237,7 @@ final public class Rational extends Number implements ISequenceable<Rational, Ra
 
   public Rational add( BigInteger bg )
   {
-    if( _numerator.signum() == 0 )
+    if( signum() == 0 )
     {
       return get( bg );
     }
@@ -258,11 +258,11 @@ final public class Rational extends Number implements ISequenceable<Rational, Ra
 
   public Rational add( Rational rational )
   {
-    if( rational._numerator.signum() == 0 )
+    if( rational.signum() == 0 )
     {
       return this;
     }
-    if( _numerator.signum() == 0 )
+    if( signum() == 0 )
     {
       return rational;
     }
@@ -312,7 +312,7 @@ final public class Rational extends Number implements ISequenceable<Rational, Ra
     {
       return this;
     }
-    if( _numerator.signum() == 0 )
+    if( signum() == 0 )
     {
       return get( bi.negate() );
     }
@@ -326,11 +326,11 @@ final public class Rational extends Number implements ISequenceable<Rational, Ra
 
   public Rational subtract( Rational rational )
   {
-    if( rational._numerator.signum() == 0 )
+    if( rational.signum() == 0 )
     {
       return this;
     }
-    if( _numerator.signum() == 0 )
+    if( signum() == 0 )
     {
       return rational.negate();
     }
@@ -354,7 +354,7 @@ final public class Rational extends Number implements ISequenceable<Rational, Ra
 
   public Rational multiply( int i )
   {
-    if( i == 0 || _numerator.signum() == 0 )
+    if( i == 0 || signum() == 0 )
     {
       return ZERO;
     }
@@ -363,7 +363,7 @@ final public class Rational extends Number implements ISequenceable<Rational, Ra
 
   public Rational multiply( long l )
   {
-    if( l == 0 || _numerator.signum() == 0 )
+    if( l == 0 || signum() == 0 )
     {
       return ZERO;
     }
@@ -372,7 +372,7 @@ final public class Rational extends Number implements ISequenceable<Rational, Ra
 
   public Rational multiply( float f )
   {
-    if( f == 0 || _numerator.signum() == 0 )
+    if( f == 0 || signum() == 0 )
     {
       return ZERO;
     }
@@ -381,7 +381,7 @@ final public class Rational extends Number implements ISequenceable<Rational, Ra
 
   public Rational multiply( double d )
   {
-    if( d == 0 || _numerator.signum() == 0 )
+    if( d == 0 || signum() == 0 )
     {
       return ZERO;
     }
@@ -390,7 +390,7 @@ final public class Rational extends Number implements ISequenceable<Rational, Ra
 
   public Rational multiply( BigInteger bi )
   {
-    if( _numerator.signum() == 0 || bi.signum() == 0 )
+    if( signum() == 0 || bi.signum() == 0 )
     {
       return ZERO;
     }
@@ -399,7 +399,7 @@ final public class Rational extends Number implements ISequenceable<Rational, Ra
 
   public Rational multiply( BigDecimal bd )
   {
-    if( _numerator.signum() == 0 || bd.signum() == 0 )
+    if( signum() == 0 || bd.signum() == 0 )
     {
       return ZERO;
     }
@@ -408,7 +408,7 @@ final public class Rational extends Number implements ISequenceable<Rational, Ra
 
   public Rational multiply( Rational rational )
   {
-    if( _numerator.signum() == 0 || rational._numerator.signum() == 0 )
+    if( signum() == 0 || rational.signum() == 0 )
     {
       return ZERO;
     }
@@ -442,7 +442,7 @@ final public class Rational extends Number implements ISequenceable<Rational, Ra
     {
       throw new ArithmeticException( "Divide by zero" );
     }
-    if( _numerator.signum() == 0 )
+    if( signum() == 0 )
     {
       return ZERO;
     }
@@ -455,7 +455,7 @@ final public class Rational extends Number implements ISequenceable<Rational, Ra
     {
       throw new ArithmeticException( "Divide by zero" );
     }
-    if( _numerator.signum() == 0 )
+    if( signum() == 0 )
     {
       return ZERO;
     }
@@ -468,7 +468,7 @@ final public class Rational extends Number implements ISequenceable<Rational, Ra
     {
       throw new ArithmeticException( "Divide by zero" );
     }
-    if( _numerator.signum() == 0 )
+    if( signum() == 0 )
     {
       return ZERO;
     }
@@ -531,7 +531,7 @@ final public class Rational extends Number implements ISequenceable<Rational, Ra
 
   public Rational abs()
   {
-    return _numerator.signum() >= 0 ? this : negate();
+    return signum() >= 0 ? this : negate();
   }
 
   @Override
@@ -565,8 +565,8 @@ final public class Rational extends Number implements ISequenceable<Rational, Ra
   @Override
   public int compareTo( Rational that )
   {
-    int thisSign = _numerator.signum();
-    int thatSign = that._numerator.signum();
+    int thisSign = signum();
+    int thatSign = that.signum();
     if( thisSign != thatSign || thisSign == 0 )
     {
       return thisSign - thatSign;
@@ -581,10 +581,6 @@ final public class Rational extends Number implements ISequenceable<Rational, Ra
     return _numerator.signum();
   }
 
-  /**
-   * Note equals() is NOT arithmetic equals, this method strictly compares the fields of this class e.g., 1/2 != 3/6.
-   * If you want arithmetic equality, use compareTo().
-   */
   @Override
   public boolean equals( Object that )
   {
