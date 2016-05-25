@@ -13,13 +13,13 @@ final class Momentum extends AbstractMeasure<MomentumUnit, Momentum> {
   }
  
   function multiply( v: Velocity ) : Energy {
-    return new Energy( toNumber() * v.toNumber(), EnergyUnit.BASE, Unit * v.Unit )
+    return new Energy( toBaseNumber() * v.toBaseNumber(), EnergyUnit.BASE, Unit * v.Unit )
   }
   
   function divide( mass: Mass ) : Velocity {
-    return new Velocity( toNumber() / mass.toNumber(), VelocityUnit.BASE, Unit.VelocityUnit )
+    return new Velocity( toBaseNumber() / mass.toBaseNumber(), VelocityUnit.BASE, Unit.VelocityUnit )
   }
   function divide( v: Velocity ) : Mass {
-    return new Mass( toNumber() / v.toNumber(), MassUnit.BASE, Unit.MassUnit )
+    return new Mass( toBaseNumber() / v.toBaseNumber(), MassUnit.BASE, Unit.MassUnit )
   }
 }

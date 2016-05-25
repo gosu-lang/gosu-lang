@@ -10,7 +10,7 @@ class ScienceMiscTest extends TestClass {
       var one = 1 unit 
       assertEquals( LengthUnit.BASE, one.BaseUnit )
       assertEquals( unit, one.Unit )
-      assertEquals( one.to( LengthUnit.BASE ).toNumber(), one.toNumber() )
+      assertEquals( one.to( LengthUnit.BASE ).toNumber(), one.toBaseNumber() )
       assertEquals( 1 unit, one )
     }
   }

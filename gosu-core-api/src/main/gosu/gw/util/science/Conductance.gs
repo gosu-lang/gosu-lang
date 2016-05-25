@@ -13,6 +13,6 @@ final class Conductance extends AbstractMeasure<ConductanceUnit, Conductance> {
   }
 
   function multiply( potential: Potential ) : Current {
-    return new Current( toNumber() * potential.toNumber(), CurrentUnit.BASE, Unit.CurrentUnit )
+    return new Current( toBaseNumber() * potential.toBaseNumber(), CurrentUnit.BASE, Unit.CurrentUnit )
   }
 }

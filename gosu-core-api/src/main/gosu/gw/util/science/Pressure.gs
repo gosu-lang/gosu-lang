@@ -13,6 +13,6 @@ final class Pressure extends AbstractMeasure<PressureUnit, Pressure> {
   }
  
   function multiply( w: Area ) : Mass {
-    return new Mass( toNumber() * w.toNumber(), Kilogram, Unit.MassUnit )
+    return new Mass( toBaseNumber() * w.toBaseNumber(), MassUnit.BASE, Unit.MassUnit )
   }
 }

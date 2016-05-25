@@ -36,7 +36,7 @@ enum ChargeUnit implements IUnit<Rational, Charge, ChargeUnit> {
   }
     
   override function from( len: Charge ) : Rational {
-    return len.toNumber() / Coulombs
+    return len.toBaseNumber() / Coulombs
   }
   
   function divide( time: TimeUnit ) : CurrentUnit {

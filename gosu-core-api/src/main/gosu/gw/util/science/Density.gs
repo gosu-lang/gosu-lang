@@ -13,6 +13,6 @@ final class Density extends AbstractMeasure<DensityUnit, Density> {
   }
  
   function multiply( w: Volume ) : Mass {
-    return new Mass( toNumber() * w.toNumber(), Kilogram, Unit.MassUnit )
+    return new Mass( toBaseNumber() * w.toBaseNumber(), Kilogram, Unit.MassUnit )
   }
 }

@@ -37,7 +37,7 @@ enum SolidAngleUnit implements IUnit<Rational, SolidAngle, SolidAngleUnit> {
   }
 
   override function from( len: SolidAngle ) : Rational {
-    return len.toNumber() / Sterads
+    return len.toBaseNumber() / Sterads
   }
 
 }

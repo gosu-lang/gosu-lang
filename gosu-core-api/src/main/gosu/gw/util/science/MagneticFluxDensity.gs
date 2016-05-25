@@ -13,6 +13,6 @@ final class MagneticFluxDensity extends AbstractMeasure<MagneticFluxDensityUnit,
   }
 
   function multiply( area: Area ) : MagneticFlux {
-    return new MagneticFlux( toNumber() * area.toNumber(), MagneticFluxUnit.BASE, Unit.MagneticFluxUnit )
+    return new MagneticFlux( toBaseNumber() * area.toBaseNumber(), MagneticFluxUnit.BASE, Unit.MagneticFluxUnit )
   }
 }

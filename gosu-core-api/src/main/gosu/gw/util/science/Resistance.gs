@@ -13,10 +13,10 @@ final class Resistance extends AbstractMeasure<ResistanceUnit, Resistance> {
   }
 
   function multiply( current: Current ) : Potential {
-    return new Potential( toNumber() * current.toNumber(), PotentialUnit.BASE, Unit.PotentialUnit )
+    return new Potential( toBaseNumber() * current.toBaseNumber(), PotentialUnit.BASE, Unit.PotentialUnit )
   }
   
   function multiply( time: Time ) : Inductance {
-    return new Inductance( toNumber() * time.toNumber(), InductanceUnit.BASE, Unit * time.Unit )
+    return new Inductance( toBaseNumber() * time.toBaseNumber(), InductanceUnit.BASE, Unit * time.Unit )
   }
 }

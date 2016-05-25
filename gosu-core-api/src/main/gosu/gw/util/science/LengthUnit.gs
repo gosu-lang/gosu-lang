@@ -73,7 +73,7 @@ enum LengthUnit implements IUnit<Rational, Length, LengthUnit> {
   }
     
   override function from( len: Length ) : Rational {
-    return len.toNumber() / Meters
+    return len.toBaseNumber() / Meters
   }
  
   function postfixBind( f: ForceUnit ) : EnergyUnit {

@@ -16,21 +16,26 @@ abstract class AbstractMeasure<U extends IUnit<Rational, IDimension, U>, T exten
   }
 
   function copy( unit: U ) : T {
-    return new T( toNumber(), BaseUnit, unit ) 
+    return new T( _value, BaseUnit, unit )
   }
 
   override function fromNumber( p0: Rational ) : T {
+    return new T( p0, Unit )
+  }
+
+  function fromBaseNumber( p0: Rational ) : T {
     return new T( p0, BaseUnit, Unit )
   }
-  
+
   override function numberType() : java.lang.Class<Rational> {
     return Rational
   }
 
-  /**
-   * Always stored in Base units
-   */
   override function toNumber() : Rational {
+    return toNumber( Unit )
+  }
+
+  function toBaseNumber() : Rational {
     return _value
   }
 
@@ -59,8 +64,7 @@ abstract class AbstractMeasure<U extends IUnit<Rational, IDimension, U>, T exten
   }
   
   override function compareTo( o: T ) : int {
-    var n = o.toNumber()
-    return _value.compareTo( n )
+    return _value.compareTo( o._value )
   }
   
   function add( r: T ) : T {
@@ -82,21 +86,21 @@ abstract class AbstractMeasure<U extends IUnit<Rational, IDimension, U>, T exten
   override function nextInSequence( step: Rational, unit: U ) : T {
     step = step ?: Rational.ONE
     unit = unit ?: Unit
-    return fromNumber( toNumber() + (unit.toBaseUnits( step ) - unit.toBaseUnits( 0 )) )
+    return fromBaseNumber( toBaseNumber() + (unit.toBaseUnits( step ) - unit.toBaseUnits( 0 )) )
   }
   override function nextNthInSequence( step: Rational, unit: U, iIndex: int ) : T {
     step = step ?: Rational.ONE
     unit = unit ?: Unit
-    return fromNumber( toNumber() + (unit.toBaseUnits( step ) - unit.toBaseUnits( 0 ))*iIndex )
+    return fromBaseNumber( toNumber() + (unit.toBaseUnits( step ) - unit.toBaseUnits( 0 ))*iIndex )
   }
   override function previousInSequence( step: Rational, unit: U ) : T {
     step = step ?: Rational.ONE
     unit = unit ?: Unit
-    return fromNumber( toNumber() - (unit.toBaseUnits( step ) - unit.toBaseUnits( 0 )) )
+    return fromBaseNumber( toNumber() - (unit.toBaseUnits( step ) - unit.toBaseUnits( 0 )) )
   }
   override function previousNthInSequence( step: Rational, unit: U, iIndex : int ) : T {
     step = step ?: Rational.ONE
     unit = unit ?: Unit
-    return fromNumber( toNumber() - (unit.toBaseUnits( step ) - unit.toBaseUnits( 0 ))*iIndex )
+    return fromBaseNumber( toNumber() - (unit.toBaseUnits( step ) - unit.toBaseUnits( 0 ))*iIndex )
   }  
 }

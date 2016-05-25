@@ -55,6 +55,6 @@ enum InformationCapacityUnit implements IUnit<Rational, InformationCapacity, Inf
   }
 
   override function from( bytes: InformationCapacity ) : Rational {
-    return bytes.toNumber() / Bytes
+    return bytes.toBaseNumber() / Bytes
   }
 }

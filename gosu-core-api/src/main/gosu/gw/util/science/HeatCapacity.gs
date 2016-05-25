@@ -10,6 +10,6 @@ final class HeatCapacity extends AbstractMeasure<HeatCapacityUnit, HeatCapacity>
   }
  
   function multiply( temperature: Temperature ) : Energy {
-    return new Energy( toNumber() * temperature.toNumber(), EnergyUnit.BASE, Unit * temperature.Unit )
+    return new Energy( toBaseNumber() * temperature.toBaseNumber(), EnergyUnit.BASE, Unit * temperature.Unit )
   }
 }

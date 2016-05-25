@@ -13,14 +13,14 @@ final class Volume extends AbstractMeasure<VolumeUnit, Volume> {
   }
 
   function divide( t: Length ) : Area {
-    return new Area( toNumber() / t.toNumber(), AreaUnit.BASE, AreaUnit.get( t.Unit ) )
+    return new Area( toBaseNumber() / t.toBaseNumber(), AreaUnit.BASE, AreaUnit.get( t.Unit ) )
   }
   
   function divide( area: Area ) : Length {
-    return new Length( toNumber() / area.toNumber(), Meter, area.Unit.WidthUnit )
+    return new Length( toBaseNumber() / area.toBaseNumber(), LengthUnit.BASE, area.Unit.WidthUnit )
   }
   
   function multiply( density: Density ) : Mass {
-    return new Mass( toNumber() * density.toNumber(), Kilogram, density.Unit.MassUnit )
+    return new Mass( toBaseNumber() * density.toBaseNumber(), MassUnit.BASE, density.Unit.MassUnit )
   }
 }

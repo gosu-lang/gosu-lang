@@ -10,6 +10,6 @@ final class Frequency extends AbstractMeasure<FrequencyUnit, Frequency> {
   }
 
   function multiply( time: Time ) : Angle {
-    return new Angle( toNumber() * time.toNumber(), AngleUnit.BASE, Unit.AngleUnit )
+    return new Angle( toBaseNumber() * time.toBaseNumber(), AngleUnit.BASE, Unit.AngleUnit )
   }
 }

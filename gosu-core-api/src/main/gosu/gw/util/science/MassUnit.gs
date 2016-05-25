@@ -54,7 +54,7 @@ enum MassUnit implements IUnit<Rational, Mass, MassUnit> {
   }
   
   override function from( w: Mass ) : Rational {
-    return w.toNumber() / Kilograms
+    return w.toBaseNumber() / Kilograms
   }   
       
   function multiply( velocity: VelocityUnit ) : MomentumUnit {

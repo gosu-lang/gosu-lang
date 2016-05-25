@@ -13,21 +13,21 @@ final class Force extends AbstractMeasure<ForceUnit, Force> {
   }
 
   function multiply( v: Velocity ) : Power {
-    return new Power( toNumber() * v.toNumber(), PowerUnit.BASE, Unit * v.Unit.LengthUnit / v.Unit.TimeUnit )
+    return new Power( toBaseNumber() * v.toBaseNumber(), PowerUnit.BASE, Unit * v.Unit.LengthUnit / v.Unit.TimeUnit )
   }
   
   function multiply( len: Length ) : Energy {
-    return new Energy( toNumber() * len.toNumber(), EnergyUnit.BASE, Unit * len.Unit )
+    return new Energy( toBaseNumber() * len.toBaseNumber(), EnergyUnit.BASE, Unit * len.Unit )
   }
 
   function multiply( t: Time ) : Momentum {
-    return new Momentum( toNumber() * t.toNumber(), MomentumUnit.BASE, Unit * t.Unit )
+    return new Momentum( toBaseNumber() * t.toBaseNumber(), MomentumUnit.BASE, Unit * t.Unit )
   }
 
   function divide( w: Mass ) : Acceleration {
-    return new Acceleration( toNumber() / w.toNumber(), AccelerationUnit.BASE, Unit.AccUnit )
+    return new Acceleration( toBaseNumber() / w.toBaseNumber(), AccelerationUnit.BASE, Unit.AccUnit )
   }
   function divide( acc: Acceleration ) : Mass {
-    return new Mass( toNumber() / acc.toNumber(), MassUnit.BASE, Unit.MassUnit )
+    return new Mass( toBaseNumber() / acc.toBaseNumber(), MassUnit.BASE, Unit.MassUnit )
   }
 }

@@ -16,7 +16,7 @@ enhancement CoreLocalDateEnhancement : LocalDate
   }
   
   function prefixBind( time: Time ) : LocalDateTime {
-    return LocalDateTime.of( this, LocalTime.ofSecondOfDay( time.toNumber().intValue() ) )
+    return LocalDateTime.of( this, LocalTime.ofSecondOfDay( time.toBaseNumber().intValue() ) )
   }
 
   // 24 hour time

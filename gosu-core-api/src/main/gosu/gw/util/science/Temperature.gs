@@ -11,6 +11,6 @@ final class Temperature extends AbstractMeasure<TemperatureUnit, Temperature> {
   }
   
   function multiply( c: HeatCapacity ) : Energy {
-    return new Energy( toNumber() * c.toNumber(), EnergyUnit.BASE, c.Unit.EnergyUnit )
+    return new Energy( toBaseNumber() * c.toBaseNumber(), EnergyUnit.BASE, c.Unit.EnergyUnit )
   }  
 }

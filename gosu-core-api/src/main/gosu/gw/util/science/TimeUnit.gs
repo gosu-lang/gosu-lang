@@ -59,7 +59,7 @@ enum TimeUnit implements IUnit<Rational, Time, TimeUnit> {
   }
     
   override function from( t: Time ) : Rational {
-    return t.toNumber() / Seconds
+    return t.toBaseNumber() / Seconds
   }
 
   function multiply( v: VelocityUnit ) : LengthUnit {

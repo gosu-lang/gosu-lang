@@ -190,6 +190,7 @@ for( l in (1m..(1m + 6inch)).step( 2 ).unit( inch ) ) {
 for( temp in (1dC..100dC).step( 2 ).unit( dF ) ) {
   print( temp )
 }
+print( 6inch.to( m ) )
 
 for( temp in (1m/s/s..100m/s/s).step( 2 ).unit( yd/s/s ) ) {
   print( temp )

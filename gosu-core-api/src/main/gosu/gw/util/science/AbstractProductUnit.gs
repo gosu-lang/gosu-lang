@@ -3,7 +3,7 @@ uses gw.util.Rational
 
 abstract class AbstractProductUnit<A extends IUnit<Rational, IDimension, A>,
                                    B extends IUnit<Rational, IDimension, B>,
-                                   D extends IDimension<D, Rational>,
+                                   D extends AbstractMeasure<AbstractProductUnit, D>,
                                    U extends AbstractProductUnit<A, B, D, U>> extends AbstractBinaryUnit<A, B, D, U> {
   protected construct( leftUnit: A, rightUnit: B, factor: Rational = null, name: String = null, symbol: String = null ) {
     super( leftUnit, rightUnit, factor, name, symbol )

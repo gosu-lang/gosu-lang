@@ -45,8 +45,8 @@ enum AngleUnit implements IUnit<Rational, Angle, AngleUnit> {
     return Rads
   }
   
-  override function from( len: Angle ) : Rational {
-    return len.toNumber() / Rads
+  override function from( angle: Angle ) : Rational {
+    return angle.toBaseNumber() / Rads
   }
   
   function divide( time: TimeUnit ) : FrequencyUnit {

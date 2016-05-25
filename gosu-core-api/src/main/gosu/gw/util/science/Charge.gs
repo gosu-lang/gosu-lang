@@ -10,17 +10,17 @@ final class Charge extends AbstractMeasure<ChargeUnit, Charge> {
   }
   
   function divide( time: Time ) : Current {
-    return new Current( toNumber() / time.toNumber(), CurrentUnit.BASE, CurrentUnit.get( Unit, time.Unit ) )
+    return new Current( toBaseNumber() / time.toBaseNumber(), CurrentUnit.BASE, CurrentUnit.get( Unit, time.Unit ) )
   } 
 
   function divide( i: Current ) : Time {
-    return new Time( toNumber() / i.toNumber(), TimeUnit.BASE, i.Unit.TimeUnit )
+    return new Time( toBaseNumber() / i.toBaseNumber(), TimeUnit.BASE, i.Unit.TimeUnit )
   }
 
   function divide( p: Potential ) : Capacitance {
-    return new Capacitance( toNumber() / p.toNumber(), CapacitanceUnit.BASE, CapacitanceUnit.get( Unit, p.Unit ) )
+    return new Capacitance( toBaseNumber() / p.toBaseNumber(), CapacitanceUnit.BASE, CapacitanceUnit.get( Unit, p.Unit ) )
   }
   function divide( cap: Capacitance ) : Potential {
-    return new Potential( toNumber() / cap.toNumber(), PotentialUnit.BASE, cap.Unit.PotentialUnit )
+    return new Potential( toBaseNumber() / cap.toBaseNumber(), PotentialUnit.BASE, cap.Unit.PotentialUnit )
   }
 }

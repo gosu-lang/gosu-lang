@@ -14,31 +14,27 @@ final class Time extends AbstractMeasure<TimeUnit, Time> {
     return new( Rational.get( System.nanoTime() ), Nano )
   }
 
-  override function fromNumber( p0: Rational ) : Time {
-    return new Time( p0, Second, Unit )
-  }
-    
   function multiply( r: Velocity ) : Length {
-    return new Length( toNumber() * r.toNumber(), LengthUnit.BASE, r.Unit.LengthUnit )
+    return new Length( toBaseNumber() * r.toBaseNumber(), LengthUnit.BASE, r.Unit.LengthUnit )
   }
 
   function multiply( acc: Acceleration ) : Velocity {
-    return new Velocity( toNumber() * acc.toNumber(), VelocityUnit.BASE, acc.Unit.VelocityUnit )
+    return new Velocity( toBaseNumber() * acc.toBaseNumber(), VelocityUnit.BASE, acc.Unit.VelocityUnit )
   }
 
   function multiply( current: Current ) : Charge {
-    return new Charge( toNumber() * current.toNumber(), ChargeUnit.Coulomb )
+    return new Charge( toBaseNumber() * current.toBaseNumber(), ChargeUnit.BASE, current.Unit.ChargeUnit )
   }
 
   function multiply( frequency: Frequency ) : Angle {
-    return new Angle( toNumber() * frequency.toNumber(), AngleUnit.BASE, frequency.Unit.AngleUnit )
+    return new Angle( toBaseNumber() * frequency.toBaseNumber(), AngleUnit.BASE, frequency.Unit.AngleUnit )
   }
 
   function multiply( power: Power ) : Energy {
-    return new Energy( toNumber() * power.toNumber(), EnergyUnit.BASE, power.Unit.EnergyUnit )
+    return new Energy( toBaseNumber() * power.toBaseNumber(), EnergyUnit.BASE, power.Unit.EnergyUnit )
   }
 
   function multiply( force: Force ) : Momentum {
-    return new Momentum( toNumber() * force.toNumber(), MomentumUnit.BASE, Unit * force.Unit )
+    return new Momentum( toBaseNumber() * force.toBaseNumber(), MomentumUnit.BASE, Unit * force.Unit )
   }
 }
