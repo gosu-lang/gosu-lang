@@ -495,24 +495,34 @@ The ``uses`` statement
 
 .. index:: uses statement
 
-Gosu source files may be organized in *packages*. Every source file in package 
-``p`` must begin with the declaration ``package p`` and must be stored in a 
-subdirectory called ``p``. A class declared in a source file with no 
-``package`` declaration belongs to the anonymous *default package*. A source 
-file not belonging to package ``p`` may refer to class ``C`` from package ``p`` 
-by using the qualified name ``p.C``, in which the class name ``C`` is prefixed 
-by the package name. To avoid using the package name prefix, the source file 
-may begin with an ``import`` declaration (possibly following a ``package`` 
-declaration) of one of these two forms: 
+Gosu source files may be organized in *packages*. Every source file in package
+``p`` must begin with the declaration ``package p`` and must be stored in a
+subdirectory called ``p``. A class declared in a source file with no
+``package`` declaration belongs to the anonymous *default package*. A source
+file not belonging to package ``p`` may refer to class ``C`` from package ``p``
+by using the qualified name ``p.C``, in which the class name ``C`` is prefixed
+by the package name. To avoid using the package name prefix, the source file
+may begin with an ``uses`` declaration (possibly following a ``package``
+declaration) of one of these forms:
 
-  ``import p.C`` 
-  
-  ``import p.*`` 
+  ``uses p.C``
 
-The first form allows ``C`` to be used unqualified, without the package name, 
+  ``uses p.*``
+
+  ``uses p.C#*``
+
+  ``uses p.C.#f
+
+  ``uses p.C.#f(`` ... `` )``
+
+The first form allows ``C`` to be used unqualified, without the package name,
 and the second one allows all accessible types (classes, interfaces ...) in
-package ``p`` to be used unqualified. The Java class library packages
-``java.lang`` and ``java.util`` are implicitly imported into all source
-files, as if by ``uses java.lang.*`` and ``uses java.util.*``
-
+package ``p`` to be used unqualified. The third form allows all static members
+of class C to be used unqualified.  The fourth form allows the static member
+``f`` of class C to be used unqualified (including overloaded methods and
+properties). The fifth form allows the static member ``f`` with signature
+ ``(`` ... `` )``of class C to be used unqualified.
+The Java class library packages ``java.lang`` and ``java.util`` are implicitly
+imported into all source files, as if by ``uses java.lang.*`` and
+``uses java.util.*``
 

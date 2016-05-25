@@ -148,6 +148,7 @@ import gw.lang.reflect.IConstructorInfo;
 import gw.lang.reflect.IConstructorType;
 import gw.lang.reflect.IEnumValue;
 import gw.lang.reflect.IErrorType;
+import gw.lang.reflect.IFeatureInfo;
 import gw.lang.reflect.IFunctionType;
 import gw.lang.reflect.IInvocableType;
 import gw.lang.reflect.IMetaType;
@@ -174,6 +175,7 @@ import gw.lang.reflect.gs.ICompilableType;
 import gw.lang.reflect.gs.IGenericTypeVariable;
 import gw.lang.reflect.gs.IGosuArrayClass;
 import gw.lang.reflect.gs.IGosuClass;
+import gw.lang.reflect.gs.IGosuClassTypeInfo;
 import gw.lang.reflect.gs.IGosuEnhancement;
 import gw.lang.reflect.gs.IGosuFragment;
 import gw.lang.reflect.gs.IGosuProgram;
@@ -11321,31 +11323,41 @@ public final class GosuParser extends ParserBase implements IGosuParser
           }
           else if( fl.hasParseExceptions() )
           {
-            IParseIssue first = fl.getParseExceptions().get( 0 );
-            usesStmt.addParseException( first );
-            //noinspection ThrowableResultOfMethodCallIgnored
-            fl.removeParseException( first.getMessageKey() );
+            IFeatureInfo feature = fl.getFeature();
+            List<IAttributedFeatureInfo> features = Collections.emptyList();
+            if( feature != null )
+            {
+              features = getAllStaticFeatures( gsType, feature.getName() );
+            }
+            if( !features.isEmpty() )
+            {
+              usesStmt.setFeatureSpace( true );
+              for( IAttributedFeatureInfo f : features )
+              {
+                UsesStatement stmt = new UsesStatement();
+                stmt.setTypeName( strTypeName );
+                processUsesStatement( stmt, typeLiteral, f, gsType );
+              }
+            }
+            else
+            {
+              IParseIssue first = fl.getParseExceptions().get( 0 );
+              usesStmt.addParseException( first );
+              //noinspection ThrowableResultOfMethodCallIgnored
+              fl.removeParseException( first.getMessageKey() );
+            }
           }
           else if( verify( usesStmt, fl.isStaticish() && !fl.isConstructorLiteral(), Res.MSG_CANNOT_REFERENCE_NON_STATIC_FEATURE_HERE ) )
           {
-            usesStmt.setFeatureInfo( fl.getFeature() );
-            if( gsType != null )
-            {
-              getTypeUsesMap().addToTypeUses( usesStmt );
-            }
-            ICompilableTypeInternal gsClass = getGosuClass();
-            if( gsClass != null )
-            {
-              verify( typeLiteral, !typeLiteral.getType().getType().getRelativeName().equals( gsClass.getRelativeName() ),
-                      Res.MSG_SAME_NAME_AS_CLASS, gsClass.getRelativeName() );
-            }
+            processUsesStatement(usesStmt, typeLiteral, fl.getFeature(), gsType);
           }
         }
         else
         {
+          IFeatureInfo feature = fl.getFeature();
           usesStmt.setTypeName( t );
-          usesStmt.setFeatureInfo( fl.getFeature() );
-          if( gsType != null )
+          usesStmt.setFeatureInfo( feature );
+          if( gsType != null && !(feature.getOwnersType() instanceof ErrorType))
           {
             getTypeUsesMap().addToTypeUses( usesStmt );
           }
@@ -11358,6 +11370,50 @@ public final class GosuParser extends ParserBase implements IGosuParser
       //pushStatement( new NoOpStatement() );
     }
   }
+
+  private void processUsesStatement( UsesStatement usesStmt, TypeLiteral typeLiteral, IFeatureInfo fi, IGosuClass gsType )
+  {
+    usesStmt.setFeatureInfo( fi );
+    if( gsType != null )
+    {
+      getTypeUsesMap().addToTypeUses( usesStmt );
+    }
+    ICompilableTypeInternal gsClass = getGosuClass();
+    if( gsClass != null )
+    {
+      verify( typeLiteral, !typeLiteral.getType().getType().getRelativeName().equals( gsClass.getRelativeName() ),
+              Res.MSG_SAME_NAME_AS_CLASS, gsClass.getRelativeName() );
+    }
+  }
+
+  private List<IAttributedFeatureInfo> getAllStaticFeatures( IGosuClass gsType, String name )
+  {
+    List<IAttributedFeatureInfo> res = new ArrayList<>();
+    if( name == null || gsType == null )
+    {
+      return res;
+    }
+    IGosuClassTypeInfo typeInfo = gsType.getTypeInfo();
+
+    DynamicArray<? extends IMethodInfo> methods = typeInfo.getMethods( getGosuClass() ).getMethods( name );
+    for( IMethodInfo m : methods )
+    {
+      if( m.isStatic() )
+      {
+        res.add( m );
+      }
+    }
+    List<? extends IPropertyInfo> properties = typeInfo.getProperties( getGosuClass() );
+    for( IPropertyInfo p : properties )
+    {
+      if( name.equals( p.getName() ) && p.isStatic() )
+      {
+        res.add( p );
+      }
+    }
+    return res;
+  }
+
   private void processUsesStatementTypeLiteral( boolean bResolveTypes, UsesStatement usesStmt, TypeLiteral typeLiteral )
   {
     String t = typeLiteral.getType().getType() instanceof ErrorType && typeLiteral.getPackageExpression() != null
