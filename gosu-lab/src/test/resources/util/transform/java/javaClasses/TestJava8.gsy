@@ -1,4 +1,3 @@
-uses java.lang.*
 uses java.io.Serializable
 uses java.lang.annotation.*
 uses java.util.*

@@ -1,8 +1,7 @@
 package gw.util.transform.java.Examples
 
-uses java.lang.*
-uses java.lang.System.*
-uses java.lang.Math.*
+uses java.lang.System#*
+uses java.lang.Math#*
 uses java.util.*
 
 class Example165  {

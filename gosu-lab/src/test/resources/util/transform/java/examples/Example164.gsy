@@ -1,9 +1,8 @@
 package gw.util.transform.java.Examples
 
-uses java.lang.*
 uses java.lang.annotation.*
-uses java.lang.annotation.ElementType.*
-uses java.lang.annotation.RetentionPolicy.*
+uses java.lang.annotation.ElementType#*
+uses java.lang.annotation.RetentionPolicy#*
 uses java.lang.reflect.*
 
 @Target({TYPE, METHOD})

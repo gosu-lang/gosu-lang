@@ -82,7 +82,7 @@ public class JavaToGosuFragmentTest extends TestCase {
             "    LinkedList<Integer> l = new LinkedList<Integer>();\n" +
             "  }\n" +
             "}";
-    String reference = "uses java.lang.*\n" +
+    String reference =
             "uses java.util.LinkedList\n" +
             "\n" +
             "public class A  {\n" +
