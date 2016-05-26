@@ -7,6 +7,7 @@ uses java.net.URLEncoder
 uses gw.util.LRUCache
 uses gw.util.concurrent.Cache
 uses java.util.concurrent.ConcurrentHashMap
+uses gw.util.money.ExchangeRate
 uses gw.util.science.UnitConstants#min
 uses java.util.Currency
 
