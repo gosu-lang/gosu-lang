@@ -5,6 +5,8 @@ uses gw.util.science.Time
 uses java.util.concurrent.ConcurrentHashMap
 uses gw.util.science.UnitConstants#min
 uses java.util.Currency
+uses gw.util.money.ExchangeRate
+uses gw.util.money.RateType
 
 /**
  * This default implementation uses the Yahoo Finance API to get the table of exchange rates.

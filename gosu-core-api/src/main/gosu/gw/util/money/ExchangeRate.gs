@@ -1,6 +1,7 @@
 package gw.util.money
 uses gw.util.Rational
 uses gw.util.science.Time
+uses gw.util.money.RateType
 
 class ExchangeRate implements IExchangeRate {
   final var _mid: Rational

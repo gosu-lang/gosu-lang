@@ -3,6 +3,8 @@ package gw.util.money
 uses gw.util.Rational
 uses java.text.NumberFormat
 uses java.util.Currency
+uses gw.util.money.RateType
+uses gw.util.money.CurrencyExchange
 
 /**
  * Money represents an immutable amount of one or more currencies.  An instance of Money may be 
