@@ -2,12 +2,7 @@ package gw.util.money
 uses java.net.URL
 uses gw.util.Rational
 uses gw.util.science.Time
-uses gw.lang.reflect.json.DefaultParser_Big
-uses java.net.URLEncoder
-uses gw.util.LRUCache
-uses gw.util.concurrent.Cache
 uses java.util.concurrent.ConcurrentHashMap
-uses gw.util.money.ExchangeRate
 uses gw.util.science.UnitConstants#min
 uses java.util.Currency
 

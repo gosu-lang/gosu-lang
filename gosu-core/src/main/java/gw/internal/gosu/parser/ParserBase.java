@@ -794,7 +794,7 @@ public abstract class ParserBase implements IParserPart
     return JavaTypes.IDIMENSION().isAssignableFrom( type ) && !type.isFinal();
   }
 
-  public static IType resolveRuntimeType( IType lhsType, int op, IType rhsType )
+  public static IType resolveRuntimeType( ArithmeticExpression expr, IType lhsType, int op, IType rhsType )
   {
     if( op == '+' &&
         (JavaTypes.CHAR_SEQUENCE().isAssignableFrom( lhsType ) ||
@@ -803,12 +803,11 @@ public abstract class ParserBase implements IParserPart
       return GosuParserTypes.STRING_TYPE();
     }
 
-//## todo: support dimensional arithmetic with Dynamic types
-//    IType retType = resolveIfDimensionOperand( null, null, lhsType, op, rhsType );
-//    if( retType != null )
-//    {
-//      return retType;
-//    }
+    IType retType = resolveIfDimensionOperand( null, expr, lhsType, op, rhsType );
+    if( retType != null )
+    {
+      return retType;
+    }
 
     return resolveType( lhsType, op, rhsType );
   }
@@ -1027,8 +1026,11 @@ public abstract class ParserBase implements IParserPart
         if( retType != null )
         {
           Expression temp = ((ArithmeticExpression)parsedElement).getLHS();
-          ((ArithmeticExpression)parsedElement).setLHS( ((ArithmeticExpression)parsedElement).getRHS() );
-          ((ArithmeticExpression)parsedElement).setRHS( temp );
+          if( parsedElement != null )
+          {
+            ((ArithmeticExpression)parsedElement).setLHS( ((ArithmeticExpression)parsedElement).getRHS() );
+            ((ArithmeticExpression)parsedElement).setRHS( temp );
+          }
           return retType;
         }
       }

@@ -214,3 +214,4 @@ print( bytes + 1024 MiB )
 
 var amt = 50M USD
 print( amt )
+print( 2MB.toNumber() )

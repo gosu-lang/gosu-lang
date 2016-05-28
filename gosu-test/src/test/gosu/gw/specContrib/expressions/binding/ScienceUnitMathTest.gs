@@ -43,26 +43,35 @@ class ScienceUnitMathTest extends TestClass {
     var leftMeasure = getMeasure( leftType, 4 )
     var rightMeasure = getMeasure( rightType, 2 )
     print( (typeof leftMeasure).RelativeName + " * " + (typeof rightMeasure).RelativeName )
-    var product = eval( "var x = leftMeasure as ${typeof leftMeasure} \
-                         var y = rightMeasure as ${typeof rightMeasure} \
-                         return x * y" )
+    var expr = "var x = leftMeasure as ${typeof leftMeasure} \
+                var y = rightMeasure as ${typeof rightMeasure} \
+                var result: ${measureType.Name} = x * y \
+                return result"
+    var product = eval( expr )
     assertSame( measureType, typeof product )
     assertEquals( 8r, (product as AbstractMeasure).toBaseNumber() )
     print( "Product: " + product )
     print( "" )
+    assertEquals( product, leftMeasure as Dynamic * rightMeasure as Dynamic )
   }
  
   private function _testQuotient( type: Type<IUnit>, leftType: Type<IUnit>, rightType: Type<IUnit>, measureType: Type<AbstractMeasure> ) {
     var leftMeasure = getMeasure( leftType, 4 )
     var rightMeasure = getMeasure( rightType, 2 )
     print( (typeof leftMeasure).RelativeName + " / " + (typeof rightMeasure).RelativeName )
-    var quotient = eval( "var x = leftMeasure as ${typeof leftMeasure} \
-                          var y = rightMeasure as ${typeof rightMeasure} \
-                          return x / y" )
+    var expr = "var x = leftMeasure as ${typeof leftMeasure} \
+                var y = rightMeasure as ${typeof rightMeasure} \
+                var result: ${measureType.Name} = x / y \
+                return result"
+    print( "H" )
+    print( expr )
+    print( "Y" )
+    var quotient = eval( expr )
     assertSame( measureType, typeof quotient )
     assertEquals( 2r, (quotient as AbstractMeasure).toBaseNumber() )
     print( "Quotient: " + quotient )
     print( "" )
+    assertEquals( quotient, leftMeasure as Dynamic / rightMeasure as Dynamic )
   }
  
   private function getMeasure( unitType: Type<IUnit>, amount: Rational ) : AbstractMeasure {
