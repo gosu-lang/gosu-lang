@@ -309,19 +309,19 @@ public class TypeUsesMap implements ITypeUsesMap
 
   private IType resolveTypesInAllNamespaces( String strRelativeName )
   {
+    for (int i = 0; i < _namespaces.size; i++) {
+      IType type = resolveType( strRelativeName, (String) _namespaces.data[i] );
+      if( type != null ) {
+        return type;
+      }
+    }
+
     if (strRelativeName.indexOf('.') < 0) {
       for (int i = 0; i < _specialNamespaces.size; i++) {
         IType type = resolveType( strRelativeName, (String) _specialNamespaces.data[i]);
         if( type != null ) {
           return type;
         }
-      }
-    }
-
-    for (int i = 0; i < _namespaces.size; i++) {
-      IType type = resolveType( strRelativeName, (String) _namespaces.data[i] );
-      if( type != null ) {
-        return type;
       }
     }
 

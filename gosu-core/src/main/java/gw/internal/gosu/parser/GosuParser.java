@@ -251,7 +251,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
   private int _ignoreTypeDeprecation;
   private boolean _bGenRootExprAccess;
   private boolean _bProgramCallFunction;
-  private Map<IScriptPartId, Map<String, IType>> _typeCache;
+  private Map<String, IType> _typeCache;
 
   private int _iStmtDepth;
   private List<ParseTree> _savedLocations;
@@ -282,7 +282,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
     _typeVarsByName = new HashMap<String, ITypeVariableDefinition>( 2 );
     _parsingStaticFeature = new Stack<Boolean>();
     _parsingAbstractConstructor = new Stack<Boolean>();
-    _typeCache = new HashMap<IScriptPartId, Map<String, IType>>();
+    _typeCache = new HashMap<>();
     _bParsed = false;
     _iReturnOk = 1;
     _allowWildcards = false;
@@ -14681,48 +14681,20 @@ public final class GosuParser extends ParserBase implements IGosuParser
 
   private IType resolveTypeName( String strTypeName, boolean bRelative )
   {
-    return resolveTypeName_Cache( strTypeName, bRelative );
-//    return resolveTypeName_NoCache( strTypeName, bRelative );
-  }
-  private IType resolveTypeName_NoCache( String strTypeName, boolean bRelative )
-  {
-    IType type;
-    if( bRelative )
-    {
-      type = TypeLoaderAccess.instance().getTypeByRelativeNameIfValid_NoGenerics( strTypeName, getTypeUsesMap() );
-    }
-    else
-    {
-      type = TypeLoaderAccess.instance().getByFullNameIfValid( strTypeName );
-    }
-    return type;
-  }
-  private IType resolveTypeName_Cache( String strTypeName, boolean bRelative )
-  {
-    IType type;
-    Map<String, IType> cache = _typeCache.get( null );
-    if( cache == null )
-    {
-      cache = new HashMap<String, IType>();
-      _typeCache.put( getScriptPart(), cache );
-      type = null;
-    }
-    else
-    {
-      type = cache.get( strTypeName );
-    }
+    IType type = _typeCache.get( strTypeName );
     if( type == null )
     {
-      type = resolveTypeName_NoCache( strTypeName, bRelative );
-      if( type == null )
+      if( bRelative )
       {
-        type = notfound;
+        type = TypeLoaderAccess.instance().getTypeByRelativeNameIfValid_NoGenerics( strTypeName, getTypeUsesMap() );
       }
-      cache.put( strTypeName, type );
+      else
+      {
+        type = TypeLoaderAccess.instance().getByFullNameIfValid( strTypeName );
+      }
+      _typeCache.put( strTypeName, type == null ? notfound : type );
     }
-    return type == null || type == notfound
-            ? null
-            : type;
+    return type == notfound ? null : type;
   }
 
   private ITypeVariableDefinition getTypeVarDef( String strTypeName )
