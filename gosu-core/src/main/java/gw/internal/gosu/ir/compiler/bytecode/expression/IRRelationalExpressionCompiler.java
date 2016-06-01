@@ -7,6 +7,7 @@ package gw.internal.gosu.ir.compiler.bytecode.expression;
 import gw.internal.gosu.ir.compiler.bytecode.AbstractBytecodeCompiler;
 import gw.internal.gosu.ir.compiler.bytecode.IRBytecodeContext;
 import gw.internal.gosu.ir.compiler.bytecode.IRBytecodeCompiler;
+import gw.lang.ir.IRExpression;
 import gw.lang.ir.expression.IRRelationalExpression;
 import gw.lang.ir.IRType;
 import gw.internal.ext.org.objectweb.asm.Opcodes;
@@ -15,13 +16,19 @@ import gw.internal.ext.org.objectweb.asm.MethodVisitor;
 public class IRRelationalExpressionCompiler extends AbstractBytecodeCompiler {
 
   public static void compile( IRRelationalExpression expression, IRBytecodeContext context ) {
-    if (!expression.getLhs().getType().equals(expression.getRhs().getType())) {
+    IRExpression rhs = expression.getRhs();
+    IRType rhsType = rhs.getType();
+    if (!expression.getLhs().getType().equals(rhsType)) {
       throw new IllegalStateException("Relational expression had one side as a " + expression.getLhs().getType().getName() + " and the other as a " +
-      expression.getRhs().getType().getName());
+      rhsType.getName());
     }
 
     IRBytecodeCompiler.compileIRExpression( expression.getLhs(), context );
-    IRBytecodeCompiler.compileIRExpression( expression.getRhs(), context );
+
+    boolean isInteger0 = IREqualityExpressionCompiler.isInteger0(rhs, rhsType);
+    if(!isInteger0) {
+      IRBytecodeCompiler.compileIRExpression(rhs, context);
+    }
 
     MethodVisitor mv = context.getMv();
 
@@ -47,23 +54,10 @@ public class IRRelationalExpressionCompiler extends AbstractBytecodeCompiler {
                                       : Opcodes.LCMP );
 
       }
-
-      if( op == IRRelationalExpression.Operation.LTE )
-      {
-        asmOpcode = Opcodes.IFLE;
-      }
-      else if( op == IRRelationalExpression.Operation.LT )
-      {
-        asmOpcode = Opcodes.IFLT;
-      }
-      else if( op == IRRelationalExpression.Operation.GTE )
-      {
-        asmOpcode = Opcodes.IFGE;
-      }
-      else
-      {
-        asmOpcode = Opcodes.IFGT;
-      }
+      asmOpcode = getOpcodeFor0(op);
+    }
+    else if(isInteger0) {
+      asmOpcode = getOpcodeFor0(op);
     }
     else
     {
@@ -89,5 +83,26 @@ public class IRRelationalExpressionCompiler extends AbstractBytecodeCompiler {
     {
       compileConditionAssignment( expression, mv );
     }
+  }
+
+  private static int getOpcodeFor0(IRRelationalExpression.Operation op) {
+    int asmOpcode;
+    if( op == IRRelationalExpression.Operation.LTE )
+    {
+      asmOpcode = Opcodes.IFLE;
+    }
+    else if( op == IRRelationalExpression.Operation.LT )
+    {
+      asmOpcode = Opcodes.IFLT;
+    }
+    else if( op == IRRelationalExpression.Operation.GTE )
+    {
+      asmOpcode = Opcodes.IFGE;
+    }
+    else
+    {
+      asmOpcode = Opcodes.IFGT;
+    }
+    return asmOpcode;
   }
 }

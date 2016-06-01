@@ -68,10 +68,10 @@ public class IREqualityExpressionCompiler extends AbstractBytecodeCompiler {
     compare( mv, opcode, root );
   }
 
-  private static boolean isInteger0( IRExpression expr, IRType lhsType )
+  public static boolean isInteger0( IRExpression expr, IRType lhsType )
   {
     return expr instanceof IRNumericLiteral && lhsType.isPrimitive() &&
-           !(lhsType.isDouble() || lhsType.isFloat()) &&
+           !(lhsType.isDouble() || lhsType.isFloat() || lhsType.isLong()) &&
            ((IRNumericLiteral) expr).getValue().intValue() == 0;
   }
 
