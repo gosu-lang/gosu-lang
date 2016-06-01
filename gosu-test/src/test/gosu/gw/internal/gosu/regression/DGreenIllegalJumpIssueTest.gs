@@ -19,6 +19,17 @@ class DGreenIllegalJumpIssueTest extends TestClass {
     assertEquals( 42, breakInDoWhile() )
   }
 
+  function testStatementList() {
+    assertEquals( 42, statementList() )
+  }
+
+  function statementList() : int {
+    if (false) return 0
+    while (true) {
+      if (true) return 42
+    }
+  }
+
   function continueInWhile() : int {
     var i = 10
     while( true ) {

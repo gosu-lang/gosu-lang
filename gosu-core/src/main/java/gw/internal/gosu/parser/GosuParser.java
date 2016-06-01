@@ -12830,9 +12830,13 @@ public final class GosuParser extends ParserBase implements IGosuParser
         dfsDecl.setValueDirectly( statement );
         pushDynamicFunctionSymbol( dfsDecl );
         functionStmt.setDynamicFunctionSymbol( dfsDecl );
-        verifyOrWarn( functionStmt, isTerminal( statement, dfsDecl.getReturnType() ),
-                !CommonServices.getEntityAccess().isUnreachableCodeDetectionOn(),
-                Res.MSG_MISSING_RETURN );
+        Statement lastStatement = getLastStatement( statement );
+        if( lastStatement != null && !lastStatement.hasParseExceptions() )
+        {
+          verifyOrWarn( functionStmt, isTerminal( lastStatement, dfsDecl.getReturnType() ),
+                        !CommonServices.getEntityAccess().isUnreachableCodeDetectionOn(),
+                        Res.MSG_MISSING_RETURN );
+        }
       }
       pushStatement( functionStmt );
       DynamicFunctionSymbol dynamicFunctionSymbol = functionStmt.getDynamicFunctionSymbol();
@@ -12854,6 +12858,19 @@ public final class GosuParser extends ParserBase implements IGosuParser
         }
       }
     }
+  }
+
+  private Statement getLastStatement( Statement statement )
+  {
+    if( statement instanceof StatementList )
+    {
+      Statement[] statements = ((StatementList)statement).getStatements();
+      if( statements != null && statements.length > 0 )
+      {
+        return statements[statements.length-1];
+      }
+    }
+    return statement;
   }
 
   private boolean isValidAnnotationMethodReturnType( IType returnType )
