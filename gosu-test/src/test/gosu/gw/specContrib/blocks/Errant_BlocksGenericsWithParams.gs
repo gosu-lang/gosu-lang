@@ -119,8 +119,10 @@ class Errant_BlocksGenericsWithParams {
     var x13241: ArrayList<Integer> = hello1(\x: ArrayList -> {
       return new ArrayList<Integer>()
     })
-
-    var x13242: ArrayList<Integer> = hello1(\x: ArrayList<Integer> -> { return new ArrayList() })
+    //Error Expected. Both show
+    var x13242: ArrayList<Integer> = hello1(\x: ArrayList<Integer> -> { return new ArrayList() })  //## issuekeys: MSG_TYPE_MISMATCH
+    //IDE-1344
+    var x: Integer = hello1(\a: java.lang.Number -> 0)  //## issuekeys: MSG_TYPE_MISMATCH
 
   }
 

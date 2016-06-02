@@ -13,5 +13,5 @@ class Errant_InitializerAsParameterDefaultValue {
 
   function foo4(i: List<Integer> = {1, 2}) {}
 
-  function foo5(i: Map<String, String> = { "a" -> "b" }) {} //## issuekeys: NOT CONSTANT EXPRESSION
+  function foo5(i: Map<String, String> = { "a" -> "b" }) {} //IDE-2968
 }
