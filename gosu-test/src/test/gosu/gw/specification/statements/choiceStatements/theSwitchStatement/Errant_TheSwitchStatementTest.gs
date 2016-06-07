@@ -98,6 +98,19 @@ class Errant_TheSwitchStatementTest {
     }
   }
 
+  function testCaseExpressionCompatibility021(j: int) {
+    var r: Runnable
+    r =  \-> {return null}           //## issuekeys: CANNOT RETURN A VALUE FROM A METHOD WITH VOID RESULT TYPE
+    switch (r) {
+      case \-> {return null}:        //## issuekeys: CANNOT RETURN A VALUE FROM A METHOD WITH VOID RESULT TYPE
+        break
+      case new Runnable() { function run() {return null} }:        //## issuekeys: CANNOT RETURN A VALUE FROM A METHOD WITH VOID RESULT TYPE
+        break
+      case \-> {}:
+        break
+    }
+  }
+
   function testCaseExpressionCompatibility03(){
     var x: Object
 
