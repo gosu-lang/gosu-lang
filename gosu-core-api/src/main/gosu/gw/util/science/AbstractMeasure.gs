@@ -36,7 +36,7 @@ abstract class AbstractMeasure<U extends IUnit<Rational, IDimension<T, Rational>
     return toNumber( Unit )
   }
 
-  function toBaseNumber() : Rational {
+  override function toBaseNumber() : Rational {
     return _value
   }
 

@@ -14271,7 +14271,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
       {
         if( bFirstPass )
         {
-          boundingType = JavaTypes.OBJECT();
+          boundingType = typeVarDef.getType();
           typeVarDef.setBoundingType( boundingType );
           eatTypeLiteral();
         }
