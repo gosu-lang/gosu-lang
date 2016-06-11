@@ -458,7 +458,10 @@ public abstract class ParserBase implements IParserPart
         parseDotPathWord( null );
       }
       eatPossibleParametarization();
-      eatPossibleArrayBrackets();
+      while( match( null, '[' ) )
+      {
+        eatPossibleArrayBrackets( false );
+      }
     } while( match( null, "&", SourceCodeTokenizer.TT_OPERATOR ) );
   }
 
