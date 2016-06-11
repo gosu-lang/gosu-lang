@@ -24,7 +24,7 @@ public class GosuScratchSuite extends Suite
     BytecodeOptions.enableAggressiveVerification();
     return new GosuScratchSuite()
             .withTestEnvironment( new ScratchTestEnvironment() )
-      .withTest( "gw.specContrib.expressions.binding.ScienceUnitMathTest" )
+      .withTest( "gw.specContrib.ProcessSpecContribTest" )
             ;
   }
 
@@ -43,6 +43,38 @@ public class GosuScratchSuite extends Suite
       }
       GosuInitialization.instance( TypeSystem.getExecutionEnvironment() )
         .initializeRuntime( ClasspathToGosuPathEntryUtil.convertClasspathToGosuPathEntries( classpath ) );
+    }
+  }
+
+  static class Test1
+  {
+    static class TestClass<T extends TestClass<T, U, V>, U extends OtherClass<U, V, T>, V extends ThirdClass<V, T, U>> extends OtherClass<U, V, T>
+    {
+      V v;
+
+      <TT extends TestClass<TT, UU, VV>, UU extends OtherClass<UU, VV, TT>, VV extends ThirdClass<VV, TT, UU>> VV testMe(TT tt)
+      {
+        return tt.v;
+      }
+    }
+
+    static class OtherClass<T extends OtherClass<T, U, V>, U extends ThirdClass<U, V, T>, V extends TestClass<V, T, U>> extends ThirdClass<U, V, T>
+    {
+    }
+
+    static class ThirdClass<T extends ThirdClass<T, U, V>, U extends TestClass<U, V, T>, V extends OtherClass<V, T, U>>
+    {
+    }
+  }
+
+  static class Test2 {
+    static class TestClass<T extends TestClass<T, U, V>, U extends OtherClass<U, V, T>, V extends ThirdClass<V, T, U>> extends OtherClass<U, V, T> {
+    }
+
+    static class OtherClass<T extends OtherClass<T, U, V>, U extends ThirdClass<U, V, T>, V extends TestClass<V, T, U>> extends ThirdClass<U, V, T> {
+    }
+
+    static class ThirdClass<T extends ThirdClass<T, U, V>, U extends TestClass<U, V, T>, V extends OtherClass<V, T, U>> {  //## issuekeys: MSG_CYCLIC_INHERITANCE
     }
   }
 }

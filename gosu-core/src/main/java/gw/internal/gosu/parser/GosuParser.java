@@ -7245,6 +7245,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
   private boolean isTypeParamHeaderCompiling( IType typeParam )
   {
     return (typeParam instanceof IGosuClass && ((IGosuClass)typeParam).isCompilingHeader()) ||
+            (typeParam instanceof TypeVariableType && ((TypeVariableType)typeParam).getBoundingType() == typeParam) ||
             (typeParam instanceof TypeVariableType && isTypeParamHeaderCompiling( ((TypeVariableType)typeParam).getBoundingType() )) ||
             (typeParam instanceof TypeVariableType && ((TypeVariableType)typeParam).getBoundingType() == PENDING_BOUNDING_TYPE);
   }
