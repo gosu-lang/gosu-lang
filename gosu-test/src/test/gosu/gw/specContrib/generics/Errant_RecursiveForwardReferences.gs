@@ -1,9 +1,5 @@
 package gw.specContrib.generics
 
-uses gw.specContrib.generics.Errant_BlockAndFunctionalInterface_Java.I
-uses gw.specContrib.generics.Errant_BlockAndFunctionalInterface_Java.Fun1
-uses gw.specContrib.generics.Errant_BlockAndFunctionalInterface_Java.Fun2
-
 class Errant_RecursiveForwardReferences {
   static class Test1 {
     static class TestClass<T extends TestClass<T, U, V>, U extends OtherClass<U, V, T>, V extends ThirdClass<V, T, U>> extends OtherClass<U, V, T> {
