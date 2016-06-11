@@ -215,3 +215,20 @@ print( bytes + 1024 MiB )
 var amt = 50M USD
 print( amt )
 print( 2MB.toNumber() )
+
+
+var vector = 5m: (-30deg)
+print( vector )
+
+var vector1 = 5s:30deg
+print( vector1 )
+
+var vector2 = 5mph:30deg
+print( vector2 )
+
+
+var vectora = 5m:(230deg) + 11m:(40deg)
+print( vectora )
+
+var dotp = 5m:(230deg) * 11m:(40deg)
+print( dotp.toBigDecimal() )

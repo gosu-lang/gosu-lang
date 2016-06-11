@@ -2074,89 +2074,7 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
         getClassStatement().setClassDeclaration( classDeclaration );
       }
 
-      List<ITypeVariableDefinitionExpression> typeVarLiteralList = getOwner().parseTypeVariableDefs( getClassStatement(), false, getDeclTypeVars() );
-      gsClass.setGenericTypeVariables((List)typeVarLiteralList);
-
-      if( gsClass.isEnum() )
-      {
-        verify( getClassStatement(), typeVarLiteralList.isEmpty(), Res.MSG_ENUM_MAY_NOT_HAVE_TYPEPARAM );
-      }
-      iOffset = getTokenizer().getTokenStart();
-      iLineNum = getTokenizer().getLineNumber();
-      iColumn = getTokenizer().getTokenColumn();
-
-      if( !bInterface && (match( null, Keyword.KW_extends ) || gsClass.isEnum()) )
-      {
-        IType superType = parseEnhancedOrImplementedType( gsClass, true, Collections.<IType>emptyList() );
-
-        if( superType instanceof IGosuClassInternal )
-        {
-          if( bResolveTypes )
-          {
-            ((IGosuClassInternal)superType).compileDeclarationsIfNeeded();
-          }
-        }
-        gsClass.setSuperType( superType );
-
-        if( gsClass.getCompilationState().isCompilingDeclarations() &&
-            gsClass.isGenericType() )
-        {
-          verify( getClassStatement(), !JavaTypes.THROWABLE().isAssignableFrom( superType ) , Res.MSG_INVALID_GENERIC_EXCEPTION );
-        }
-
-        SuperTypeClause extendsClause = new SuperTypeClause( superType );
-        pushExpression( extendsClause );
-        if( gsClass.isDeclarationsCompiled() )
-        {
-          verifySuperTypeVarVariance( getClassStatement(), superType );
-        }
-        setLocation( iOffset, iLineNum, iColumn );
-        popExpression();
-
-        iOffset = getTokenizer().getTokenStart();
-        iLineNum = getTokenizer().getLineNumber();
-        iColumn = getTokenizer().getTokenColumn();
-      }
-
-      boolean hasImplements = false;
-      if( (bInterface && match( null, Keyword.KW_extends )) ||
-          (hasImplements = match( null, Keyword.KW_implements )) )
-      {
-        if( verify( getClassStatement(), !bInterface || !hasImplements, Res.MSG_NO_IMPLEMENTS_ALLOWED ) )
-        {
-          verify( getClassStatement(), !bAnnotation, Res.MSG_NO_EXTENDS_ALLOWED );
-        }
-
-        List<IType> interfaces = new ArrayList<IType>();
-        do
-        {
-          IType type = parseEnhancedOrImplementedType( gsClass, bInterface, interfaces );
-          gsClass.addInterface( type );
-          if( gsClass.isDeclarationsCompiled() )
-          {
-            verifySuperTypeVarVariance( getClassStatement(), type );
-          }
-          interfaces.add( type );
-        } while( match( null, ',' ) );
-
-        InterfacesClause interfacesClause = new InterfacesClause( gsClass, interfaces.toArray( new IType[interfaces.size()] ) );
-        pushExpression( interfacesClause );
-        setLocation( iOffset, iLineNum, iColumn );
-        popExpression();
-      }
-
-      if( classType == ClassType.Class || classType == ClassType.Interface || classType == ClassType.Structure )
-      {
-        IGosuClassInternal gsObjectInterace = gosuObjectInterface;
-        if( (!gsClass.isInterface() || !interfaceExtendsGosuObject( gsClass, gsObjectInterace )) && !gsClass.getName().startsWith( IGosuClass.PROXY_PREFIX ) )
-        {
-          gsClass.addInterface( gsObjectInterace );
-        }
-      }
-      else if( classType == ClassType.Enum )
-      {
-        gsClass.addInterface(gosuObjectInterface);
-      }
+      parseTypeVarsAndExtends( gsClass, classType, bResolveTypes, gosuObjectInterface, bAnnotation, bInterface );
     }
 
     if( (isTopLevelClass( gsClass ) ||
@@ -2173,6 +2091,133 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
     }
 
     return strClassName;
+  }
+
+  private void parseTypeVarsAndExtends( IGosuClassInternal gsClass, ClassType classType, boolean bResolveTypes,
+                                        IGosuClassInternal gosuObjectInterface, boolean bAnnotation, boolean bInterface )
+  {
+    List<TypeVariableDefinitionImpl> declTypeVars;
+    if( !gsClass.isHeaderCompiled() )
+    {
+      int mark = getOwner().getTokenizer().mark();
+      int iLocationsCount = getOwner().getLocationsList().size();
+
+      // First, parse all type vars ignoring the bounds (this is to support forward references, especially dealing with recursive types)
+      _parseTypeVarsAndExtends( gsClass, classType, bResolveTypes, gosuObjectInterface, bAnnotation, bInterface, Collections.emptyList() );
+
+      declTypeVars = getDeclTypeVars();
+      if( !declTypeVars.isEmpty() )
+      {
+        // Backtrack
+        getOwner().getTokenizer().restoreToMark( mark );
+        getOwner().removeLocationsFrom( iLocationsCount );
+      }
+      else
+      {
+        // Not a generic class, No need to reparse
+        return;
+      }
+
+      // Now parse again, this time with the bounds of the type vars...
+    }
+    else
+    {
+      declTypeVars = getDeclTypeVars();
+    }
+    _parseTypeVarsAndExtends( gsClass, classType, bResolveTypes, gosuObjectInterface, bAnnotation, bInterface, declTypeVars );
+  }
+
+  private void _parseTypeVarsAndExtends( IGosuClassInternal gsClass, ClassType classType, boolean bResolveTypes, IGosuClassInternal gosuObjectInterface, boolean bAnnotation, boolean bInterface, List<TypeVariableDefinitionImpl> declTypeVars )
+  {
+    List<ITypeVariableDefinitionExpression> typeVarLiteralList = parseTypeVariableDefinitionExpressions( gsClass, declTypeVars );
+
+    if( gsClass.isEnum() )
+    {
+      verify( getClassStatement(), typeVarLiteralList.isEmpty(), Res.MSG_ENUM_MAY_NOT_HAVE_TYPEPARAM );
+    }
+    int iOffset = getTokenizer().getTokenStart();
+    int iLineNum = getTokenizer().getLineNumber();
+    int iColumn = getTokenizer().getTokenColumn();
+
+    if( !bInterface && (match( null, Keyword.KW_extends ) || gsClass.isEnum()) )
+    {
+      IType superType = parseEnhancedOrImplementedType( gsClass, true, Collections.<IType>emptyList() );
+
+      if( superType instanceof IGosuClassInternal )
+      {
+        if( bResolveTypes )
+        {
+          ((IGosuClassInternal)superType).compileDeclarationsIfNeeded();
+        }
+      }
+      gsClass.setSuperType( superType );
+
+      if( gsClass.getCompilationState().isCompilingDeclarations() &&
+          gsClass.isGenericType() )
+      {
+        verify( getClassStatement(), !JavaTypes.THROWABLE().isAssignableFrom( superType ), Res.MSG_INVALID_GENERIC_EXCEPTION );
+      }
+
+      SuperTypeClause extendsClause = new SuperTypeClause( superType );
+      pushExpression( extendsClause );
+      if( gsClass.isDeclarationsCompiled() )
+      {
+        verifySuperTypeVarVariance( getClassStatement(), superType );
+      }
+      setLocation( iOffset, iLineNum, iColumn );
+      popExpression();
+
+      iOffset = getTokenizer().getTokenStart();
+      iLineNum = getTokenizer().getLineNumber();
+      iColumn = getTokenizer().getTokenColumn();
+    }
+
+    boolean hasImplements = false;
+    if( (bInterface && match( null, Keyword.KW_extends )) ||
+        (hasImplements = match( null, Keyword.KW_implements )) )
+    {
+      if( verify( getClassStatement(), !bInterface || !hasImplements, Res.MSG_NO_IMPLEMENTS_ALLOWED ) )
+      {
+        verify( getClassStatement(), !bAnnotation, Res.MSG_NO_EXTENDS_ALLOWED );
+      }
+
+      List<IType> interfaces = new ArrayList<IType>();
+      do
+      {
+        IType type = parseEnhancedOrImplementedType( gsClass, bInterface, interfaces );
+        gsClass.addInterface( type );
+        if( gsClass.isDeclarationsCompiled() )
+        {
+          verifySuperTypeVarVariance( getClassStatement(), type );
+        }
+        interfaces.add( type );
+      } while( match( null, ',' ) );
+
+      InterfacesClause interfacesClause = new InterfacesClause( gsClass, interfaces.toArray( new IType[interfaces.size()] ) );
+      pushExpression( interfacesClause );
+      setLocation( iOffset, iLineNum, iColumn );
+      popExpression();
+    }
+
+    if( classType == ClassType.Class || classType == ClassType.Interface || classType == ClassType.Structure )
+    {
+      IGosuClassInternal gsObjectInterace = gosuObjectInterface;
+      if( (!gsClass.isInterface() || !interfaceExtendsGosuObject( gsClass, gsObjectInterace )) && !gsClass.getName().startsWith( IGosuClass.PROXY_PREFIX ) )
+      {
+        gsClass.addInterface( gsObjectInterace );
+      }
+    }
+    else if( classType == ClassType.Enum )
+    {
+      gsClass.addInterface( gosuObjectInterface );
+    }
+  }
+
+  private List<ITypeVariableDefinitionExpression> parseTypeVariableDefinitionExpressions( IGosuClassInternal gsClass, List<TypeVariableDefinitionImpl> declTypeVars )
+  {
+    List<ITypeVariableDefinitionExpression> typeVarLiteralList = getOwner().parseTypeVariableDefs( getClassStatement(), false, declTypeVars );
+    gsClass.setGenericTypeVariables( (List)typeVarLiteralList );
+    return typeVarLiteralList;
   }
 
   private boolean interfaceExtendsGosuObject( IGosuClassInternal gsClass, IGosuClassInternal gsObjectInterace )
@@ -2194,11 +2239,6 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
   private List<TypeVariableDefinitionImpl> getDeclTypeVars()
   {
     IGosuClass gsClass = getGosuClass();
-    if( !gsClass.isDeclarationsCompiled() )
-    {
-      return Collections.emptyList();
-    }
-
     IGenericTypeVariable[] typeVars = gsClass.getGenericTypeVariables();
     if( typeVars == null )
     {
@@ -2430,8 +2470,46 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
       verify( getClassStatement(), false, Res.MSG_WRONG_CLASSNAME, strClassName, gsClass.getName() );
     }
 
-    List<ITypeVariableDefinitionExpression> typeVarLiteralList = getOwner().parseTypeVariableDefs( getClassStatement(), false, getDeclTypeVars() );
-    gsClass.setGenericTypeVariables((List)typeVarLiteralList);
+    parseEnhancementTypeVarsAndExtends( gsClass );
+
+    return strClassName;
+  }
+
+  private void parseEnhancementTypeVarsAndExtends( IGosuEnhancementInternal gsClass )
+  {
+    List<TypeVariableDefinitionImpl> declTypeVars;
+    if( !gsClass.isHeaderCompiled() )
+    {
+      int mark = getOwner().getTokenizer().mark();
+      int iLocationsCount = getOwner().getLocationsList().size();
+
+      // First, parse all type vars ignoring the bounds (this is to support forward references, especially dealing with recursive types)
+      _parseEnhancementTypeVarsAndExtends( gsClass, Collections.emptyList() );
+
+      declTypeVars = getDeclTypeVars();
+      if( !declTypeVars.isEmpty() )
+      {
+        // Backtrack
+        getOwner().getTokenizer().restoreToMark( mark );
+        getOwner().removeLocationsFrom( iLocationsCount );
+      }
+      else
+      {
+        // Not a generic class, No need to reparse
+        return;
+      }
+
+      // Now parse again, this time with the bounds of the type vars...
+    }
+    else
+    {
+      declTypeVars = getDeclTypeVars();
+    }
+    _parseEnhancementTypeVarsAndExtends( gsClass, declTypeVars );
+  }
+  private void _parseEnhancementTypeVarsAndExtends( IGosuEnhancementInternal gsClass, List<TypeVariableDefinitionImpl> declTypeVars )
+  {
+    List<ITypeVariableDefinitionExpression> typeVarLiteralList = parseTypeVariableDefinitionExpressions( gsClass, declTypeVars );
 
     verify( getClassStatement(), match( null, ":", SourceCodeTokenizer.TT_OPERATOR ), Res.MSG_EXPECTING_COLON_ENHANCEMENT );
     IType enhancedType = parseEnhancedOrImplementedType( gsClass, true, Collections.<IType>emptyList() );
@@ -2443,8 +2521,6 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
     gsClass.setEnhancedType( enhancedType );
 
     ensureEnhancedTypeUsesTypeVarsOfEnhancement( typeVarLiteralList, enhancedType );
-
-    return strClassName;
   }
 
   private void ensureEnhancedTypeUsesTypeVarsOfEnhancement( List<ITypeVariableDefinitionExpression> typeVarLiteralList, IType enhancedType )
@@ -2469,7 +2545,7 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
           }
         }
       }
-      verify( getClassStatement(), bReferencedByOtherTypeVar || hasTypeVar( enhancedType, expr.getTypeVarDef().getType() ), Res.MSG_ENHANCED_TYPE_MUST_USE_ENHANCEMENT_TYPEVARS );
+      verify( getClassStatement(), !getGosuClass().isHeaderCompiled() || bReferencedByOtherTypeVar || hasTypeVar( enhancedType, expr.getTypeVarDef().getType() ), Res.MSG_ENHANCED_TYPE_MUST_USE_ENHANCEMENT_TYPEVARS );
     }
   }
 

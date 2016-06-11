@@ -5,7 +5,7 @@ uses gw.util.concurrent.Cache
 
 abstract class AbstractBinaryUnit<A extends IUnit<Rational, IDimension, A>,
                                   B extends IUnit<Rational, IDimension, B>,
-                                  D extends AbstractMeasure<AbstractBinaryUnit, D>,
+                                  D extends IDimension<D, Rational>,
                                   U extends AbstractBinaryUnit<A, B, D, U>> implements IUnit<Rational, D, U> {
   final var _leftUnit: A
   final var _rightUnit: B

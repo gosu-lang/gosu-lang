@@ -4,7 +4,8 @@ uses java.lang.Class
 uses gw.util.Rational
 uses gw.lang.reflect.interval.ISequenceable
 
-abstract class AbstractMeasure<U extends IUnit<Rational, IDimension, U>, T extends AbstractMeasure<U, T>> implements IDimension<T, Rational>, ISequenceable<T, Rational, U> {
+abstract class AbstractMeasure<U extends IUnit<Rational, IDimension<T, Rational>, U>, 
+                               T extends AbstractMeasure<U, T>> implements IDimension<T, Rational>, ISequenceable<T, Rational, U> {
   final var _value: Rational
   final var _dipslayUnit: U as Unit
   final var _baseUnit: U as BaseUnit

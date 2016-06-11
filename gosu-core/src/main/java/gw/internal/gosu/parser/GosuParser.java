@@ -413,6 +413,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
     _parsingFunctions.clear();
     _parsingFieldInitializer.clear();
     _typeVarsByName.clear();
+    _typeCache.clear();
 
     setParsed( false );
   }
@@ -3312,7 +3313,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
   private boolean isConnectorStringValid( boolean bPostfix, String connectorString, Expression unitExpr, IType unitBinderType )
   {
     boolean bValid = connectorString == null || connectorString.isEmpty();
-    IMethodInfo bindMethod = unitExprType( unitExpr ).getTypeInfo().getMethod( bPostfix ? "postfixBind" : "prefixBind", unitBinderType.getTypeParameters()[0] );
+    IMethodInfo bindMethod = unitExprType( unitExpr ).getTypeInfo().getCallableMethod( bPostfix ? "postfixBind" : "prefixBind", unitBinderType.getTypeParameters()[0] );
     if( bindMethod != null )
     {
       IAnnotationInfo anno = bindMethod.getAnnotation( GosuTypes.BINDER_SEPARATORS() );
@@ -7218,7 +7219,9 @@ public final class GosuParser extends ParserBase implements IGosuParser
         {
           typeVarToTypeMap.put( typeVars[i].getTypeVariableDefinition().getType(), typeParam[i] );
         }
-
+      }
+      for( int i = 0; i < typeVars.length; i++ )
+      {
         IType boundingType = typeVars[i].getBoundingType();
         boundingType = TypeLord.getActualType( boundingType, typeVarToTypeMap, true );
 
@@ -7227,11 +7230,10 @@ public final class GosuParser extends ParserBase implements IGosuParser
 
                         // Hack to support recursive types
                         isTypeParamHeaderCompiling( typeParam[i] ) ||
-                                isErrorType( typeParam[i] ) ||
-                                (typeVars[i].getTypeVariableDefinition() != null && typeVars[i].getTypeVariableDefinition().getType().isAssignableFrom( typeParam[i] )) ||
-                                boundingType.isAssignableFrom( typeParam[i] ) ||
-                                boundingType instanceof IGosuClass && ((IGosuClass)boundingType).isStructure() && StandardCoercionManager.isStructurallyAssignable( TypeLord.getPureGenericType( boundingType ), typeParam[i] )
-                        ,
+                        isErrorType( typeParam[i] ) ||
+                        (typeVars[i].getTypeVariableDefinition() != null && typeVars[i].getTypeVariableDefinition().getType().isAssignableFrom( typeParam[i] )) ||
+                        boundingType.isAssignableFrom( typeParam[i] ) ||
+                        boundingType instanceof IGosuClass && ((IGosuClass)boundingType).isStructure() && StandardCoercionManager.isStructurallyAssignable( TypeLord.getPureGenericType( boundingType ), typeParam[i] ),
                         Res.MSG_TYPE_PARAM_NOT_ASSIGNABLE_TO,
                         typeParam[i], boundingType );
       }
@@ -8883,7 +8885,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
     return true;
   }
 
-  private boolean matchPrimitiveType( boolean bSuperThis ) {
+  boolean matchPrimitiveType( boolean bSuperThis ) {
     Token token = getTokenizer().getCurrentToken();
     if( token.getType() == SourceCodeTokenizer.TT_KEYWORD )
     {
@@ -12611,7 +12613,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
                         : strFunctionName;
 
     DynamicFunctionSymbol dfsDecl = findCorrespondingDeclDfs( iOffsetName, modifiers.getModifiers() );
-    List<TypeVariableDefinitionImpl> defsFromDecl = getTypeVarDefsFromDecl( dfsDecl );
+    List<TypeVariableDefinitionImpl> defsFromDecl = dfsDecl == null ? Collections.emptyList() : getTypeVarDefsFromDecl( dfsDecl.getType().getGenericTypeVariables() );
     List<ITypeVariableDefinitionExpression> typeVarDefs = parseTypeVariableDefs( functionStmt, true, defsFromDecl );
     // Must create function type and assign it as the type var's enclosing
     // type *before* we parse the return type (in case it refs function's type vars)
@@ -12911,20 +12913,19 @@ public final class GosuParser extends ParserBase implements IGosuParser
     return null;
   }
 
-  private List<TypeVariableDefinitionImpl> getTypeVarDefsFromDecl( DynamicFunctionSymbol dfsDecl )
+  private List<TypeVariableDefinitionImpl> getTypeVarDefsFromDecl( IGenericTypeVariable[] typeVars )
   {
-    if( dfsDecl == null )
+    if( typeVars == null || typeVars.length == 0 )
     {
       return Collections.emptyList();
     }
 
-    IGenericTypeVariable[] typeVars = dfsDecl.getType().getGenericTypeVariables();
     if( typeVars == null )
     {
       return Collections.emptyList();
     }
 
-    List<TypeVariableDefinitionImpl> result = new ArrayList<TypeVariableDefinitionImpl>( typeVars.length );
+    List<TypeVariableDefinitionImpl> result = new ArrayList<>( typeVars.length );
     for( IGenericTypeVariable typeVar : typeVars )
     {
       result.add( (TypeVariableDefinitionImpl)typeVar.getTypeVariableDefinition() );
@@ -13262,7 +13263,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
     }
   }
 
-  private void removeLocationsFrom( int iLocationsCount )
+  void removeLocationsFrom( int iLocationsCount )
   {
     for( int i = _locations.size(); i > iLocationsCount; i-- )
     {
@@ -13366,10 +13367,20 @@ public final class GosuParser extends ParserBase implements IGosuParser
         verify( element, Modifier.isPrivate( modifiers.getModifiers() ), Res.MSG_ENUM_CONSTRUCTOR_MUST_BE_PRIVATE );
       }
 
-      List<ITypeVariableDefinitionExpression> typeVarDefs = parseTypeVariableDefs( element, true, null );
+      // Parse generic type vars
+      int mark = _tokenizer.mark();
+      int iLocationsCount = _locations.size();
+      // first pass, just collect the vars, skipping bounds (this is to support forward reference of type vars within recursive type vars)
+      List<ITypeVariableDefinitionExpression> typeVarDefs = parseTypeVariableDefs( element, true, Collections.emptyList() );
+      IGenericTypeVariable[] typeVars = TypeVariableDefinition.getTypeVars( typeVarDefs );
+      // backtrack
+      _tokenizer.restoreToMark( mark );
+      removeLocationsFrom( iLocationsCount );
+      // second pass, including bounds
+      typeVarDefs = parseTypeVariableDefs( element, true, getTypeVarDefsFromDecl( typeVars ) );
       // Must create function type and assign it as the type var's enclosing
       // type *before* we parse the return type (in case it refs function's type vars)
-      IGenericTypeVariable[] typeVars = TypeVariableDefinition.getTypeVars( typeVarDefs );
+      typeVars = TypeVariableDefinition.getTypeVars( typeVarDefs );
 
       strFunctionName = !bProperty
               ? strFunctionName
@@ -14188,7 +14199,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
       TypeVariableDefinition typeVarDef = defs.isEmpty()
                                           ? new TypeVariableDefinition( getEnclosingType(), bForFunction )
                                           : defs.get( i++ );
-      parseTypeVariableDefinition( parsedElem, typeVarDef );
+      parseTypeVariableDefinition( parsedElem, typeVarDef, defs.isEmpty() );
       typeVarDef = (TypeVariableDefinition)popExpression();
       for( ITypeVariableDefinition csr : _typeVarsByName.values() )
       {
@@ -14209,18 +14220,18 @@ public final class GosuParser extends ParserBase implements IGosuParser
   // type-variable
   //   <identifier> [extends <type-literal>]
   //
-  void parseTypeVariableDefinition( ParsedElement parsedElem, TypeVariableDefinition typeVarDef )
+  void parseTypeVariableDefinition( ParsedElement parsedElem, TypeVariableDefinition typeVarDef, boolean bFirstPass )
   {
     int iOffset = getTokenizer().getTokenStart();
     int iLineNum = getTokenizer().getLineNumber();
     int iColumn = getTokenizer().getTokenColumn();
-    if( _parseTypeVariableDefinition( parsedElem, typeVarDef ) )
+    if( _parseTypeVariableDefinition( parsedElem, typeVarDef, bFirstPass ) )
     {
       setLocation( iOffset, iLineNum, iColumn );
     }
   }
 
-  boolean _parseTypeVariableDefinition( ParsedElement parsedElem, TypeVariableDefinition typeVarDef )
+  boolean _parseTypeVariableDefinition( ParsedElement parsedElem, TypeVariableDefinition typeVarDef, boolean bFirstPass )
   {
     Token T = new Token();
     parseVariance( parsedElem, typeVarDef );
@@ -14241,14 +14252,23 @@ public final class GosuParser extends ParserBase implements IGosuParser
       boolean bExtends;
       if( bExtends = match( null, Keyword.KW_extends ) )
       {
-        typeVarDef.setBoundingType( PENDING_BOUNDING_TYPE );
-        parseTypeLiteral();
-        boxTypeLiteralsType( (TypeLiteral)peekExpression() );
-        TypeLiteral typeLiteral = (TypeLiteral)popExpression();
-        boundingType = typeLiteral.getType().getType();
-        if( verify( typeLiteral, boundingType != typeVarDef.getType(), Res.MSG_CYCLIC_INHERITANCE, boundingType.getRelativeName() ) )
+        if( bFirstPass )
         {
+          boundingType = JavaTypes.OBJECT();
           typeVarDef.setBoundingType( boundingType );
+          eatTypeLiteral();
+        }
+        else
+        {
+          typeVarDef.setBoundingType( PENDING_BOUNDING_TYPE );
+          parseTypeLiteral();
+          boxTypeLiteralsType( (TypeLiteral)peekExpression() );
+          TypeLiteral typeLiteral = (TypeLiteral)popExpression();
+          boundingType = typeLiteral.getType().getType();
+          if( verify( typeLiteral, boundingType != typeVarDef.getType(), Res.MSG_CYCLIC_INHERITANCE, boundingType.getRelativeName() ) )
+          {
+            typeVarDef.setBoundingType( boundingType );
+          }
         }
       }
 

@@ -361,6 +361,19 @@ public abstract class ParserBase implements IParserPart
     }
   }
 
+  void eatPossibleArrayBrackets()
+  {
+    eatPossibleArrayBrackets( true );
+  }
+
+  void eatPossibleArrayBrackets( boolean bMatchStart )
+  {
+    if( !bMatchStart || match( null, '[' ) )
+    {
+      eatBlock( '[', ']', false );
+    }
+  }
+
   final public Token eatBlock( char cBegin, char cEnd, boolean bOperator )
   {
     return eatBlock( cBegin, cEnd, bOperator, getTokenizer() );
@@ -429,6 +442,24 @@ public abstract class ParserBase implements IParserPart
 
       tokenizer.nextToken();
     } while( true );
+  }
+
+  public void eatTypeLiteral()
+  {
+    do
+    {
+      if( getOwner().matchPrimitiveType( false ) )
+      {
+        getTokenizer().nextToken();
+      }
+      else
+      {
+        match( null, SourceCodeTokenizer.TT_WORD );
+        parseDotPathWord( null );
+      }
+      eatPossibleParametarization();
+      eatPossibleArrayBrackets();
+    } while( match( null, "&", SourceCodeTokenizer.TT_OPERATOR ) );
   }
 
   /**
