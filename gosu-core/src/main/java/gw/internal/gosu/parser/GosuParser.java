@@ -11361,7 +11361,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
           IFeatureInfo feature = fl.getFeature();
           usesStmt.setTypeName( t );
           usesStmt.setFeatureInfo( feature );
-          if( gsType != null && !(feature.getOwnersType() instanceof ErrorType))
+          if( gsType != null && feature != null && !(feature.getOwnersType() instanceof ErrorType))
           {
             getTypeUsesMap().addToTypeUses( usesStmt );
           }
