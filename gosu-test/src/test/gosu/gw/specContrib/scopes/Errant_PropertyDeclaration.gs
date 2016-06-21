@@ -79,4 +79,12 @@ class Errant_PropertyDeclaration {
       }
     }
   }
+
+  class PropertyShadowingFromInner {
+    var y: int as X
+
+    class Inner {
+      var z: int as X
+    }
+  }
 }

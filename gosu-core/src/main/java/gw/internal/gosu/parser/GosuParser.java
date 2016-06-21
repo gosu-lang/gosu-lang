@@ -10168,7 +10168,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
 
     ICompilableType gsClass = getGosuClass();
     DynamicPropertySymbol dps;
-    if( symbol instanceof DynamicPropertySymbol )
+    if( symbol instanceof DynamicPropertySymbol && symbol.getGosuClass() != null && symbol.getGosuClass().isAssignableFrom( gsClass ) )
     {
       dps = new DynamicPropertySymbol( (DynamicPropertySymbol)symbol );
       if( dps.getGetterDfs() == null || dps.getGetterDfs().getScriptPart().getContainingType() != gsClass )
@@ -10196,6 +10196,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
       verifyFunction( getFunctionSymbol, varStmt );
       dps = new DynamicPropertySymbol( getFunctionSymbol, true );
     }
+
     if( !bReadonly && (dps.getSetterDfs() == null || dps.getSetterDfs().getScriptPart().getContainingType() != gsClass) )
     {
       VarPropertySetFunctionSymbol setFunctionSymbol = new VarPropertySetFunctionSymbol( gsClass, getSymbolTable(), strPropertyName, strVarIdentifier, varType );
