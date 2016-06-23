@@ -15,18 +15,18 @@ abstract class Vector<T extends AbstractMeasure<U, T>,
   } 
   
   property get X() : T {
-     return Magnitude.fromBaseNumber( Magnitude.toBaseNumber() * Math.cos( Angle.to( Radian ) ) )
+     return Magnitude.fromBaseNumber( Magnitude.toBaseNumber() * RationalTrig.instance().cos( Angle.to( Radian ) ) )
   }
   
   property get Y() : T {
-    return Magnitude.fromBaseNumber( Magnitude.toBaseNumber() * Math.sin( Angle.to( Radian ) ) ) 
+    return Magnitude.fromBaseNumber( Magnitude.toBaseNumber() * RationalTrig.instance().sin( Angle.to( Radian ) ) ) 
   }
   
   function add( v: V ) : V {
     var x = X.toBaseNumber() + v.X.toBaseNumber()
     var y = Y.toBaseNumber() + v.Y.toBaseNumber()
-    var angle = Math.atan( y/x ) 
-    var mag = Math.sqrt( x*x + y*y )
+    var angle = RationalTrig.instance().atan( y/x )
+    var mag = (x*x + y*y).sqrt()
     if( x < 0 ) {
       if( y < 0 ) {
         angle -= pi

@@ -9,6 +9,7 @@ uses TimeConstants#*
 uses gw.util.money.IMoneyConstants#*
 uses gw.util.science.InformationCapacityUnit#*
 uses gw.util.science.MetricScaleUnit#*
+uses gw.util.science.AngleConstants#*
 uses gw.lang.parser.exceptions.ParseException
 
 var y = 6 kg m/s
@@ -232,3 +233,5 @@ print( vectora )
 
 var dotp = 5m:(230deg) * 11m:(40deg)
 print( dotp.toBigDecimal() )
+
+var directions = 5ft NE + 5ft SE + 5ft SW + 6ft NW

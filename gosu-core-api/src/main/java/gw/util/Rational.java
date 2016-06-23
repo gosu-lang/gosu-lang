@@ -534,6 +534,53 @@ final public class Rational extends Number implements ISequenceable<Rational, Ra
     return signum() >= 0 ? this : negate();
   }
 
+  public Rational pow( int exponent )
+  {
+    if( signum() == 0 )
+    {
+      return exponent == 0 ? ONE : this;
+    }
+    return Rational.get( _numerator.pow( exponent ), _denominator.pow( exponent ) );
+  }
+
+  public Rational root( int iRoot )
+  {
+    return root( iRoot, 10 );
+  }
+  public Rational root( int n, int scale )
+  {
+    if( signum() < 0 )
+    {
+      throw new IllegalArgumentException( "nth root can only be calculated for positive numbers" );
+    }
+    if( signum() == 0 )
+    {
+      return ZERO;
+    }
+
+    BigInteger biScale = BigDecimal.ONE.movePointRight( scale ).toBigInteger();
+    Rational small = Rational.get( BigInteger.ONE, biScale );
+    Rational rRoot = Rational.get( n );
+
+    Rational prev = this;
+    Rational x = divide( rRoot );
+    while( x.subtract( prev ).abs().compareTo( small ) > 0 )
+    {
+      prev = x;
+      x = Rational.get( n - 1 )
+      .multiply( x )
+      .add( divide( x.pow( n - 1 ) ) )
+      .divide( rRoot );
+    }
+    return x;
+  }
+
+  public Rational sqrt()
+  {
+    return Rational.get( Math.sqrt( doubleValue() ) );
+    //return root( 2 );
+  }
+
   @Override
   public Rational nextInSequence( Rational step, Void unit )
   {
