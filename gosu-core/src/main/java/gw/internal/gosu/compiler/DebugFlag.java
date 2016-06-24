@@ -24,7 +24,7 @@ public enum DebugFlag
   }
   public static void setDebugFlagsOn()
   {
-    g_setting = EnumSet.allOf( DebugFlag.class );
+    g_setting = EnumSet.of( TRACE );
   }
   public static void setDebugFlagsOff()
   {

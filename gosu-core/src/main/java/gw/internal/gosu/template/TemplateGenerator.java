@@ -133,7 +133,9 @@ public class TemplateGenerator implements ITemplateGenerator
       }
     });
   }
-    
+
+  public static final String TEMPLATE_LINE_NUMBER = "//#LN#";
+
   private static ThreadLocal<Stack<RuntimeData>> g_runtimeData = new ThreadLocal<Stack<RuntimeData>>();
   public static final int SUBSTR_CHUNKSIZE = 2048;
 
@@ -547,12 +549,12 @@ public class TemplateGenerator implements ITemplateGenerator
               }
 
               String strScript = strSource.substring( iIndex, iIndex2 );
+              int iLineNumber = GosuStringUtil.getLineNumberForIndex( strSource, iIndex );
               if( bExpression ) {
-                addExpression( sbTarget, strScript );
+                addExpression( sbTarget, strScript, iLineNumber );
               }
               else if( bDirective ) {
                 try {
-                  int iLineNumber = GosuStringUtil.getLineNumberForIndex( strSource, iIndex );
                   int iColumn = getColumnForIndex( strSource, iIndex );
                   processDirective( strScript, iLineNumber, iColumn, iIndex );
                 }
@@ -561,7 +563,7 @@ public class TemplateGenerator implements ITemplateGenerator
                 }
               }
               else {
-                addScriptlet( sbTarget, strScript );
+                addScriptlet( sbTarget, strScript, iLineNumber );
               }
             }
 
@@ -609,7 +611,7 @@ public class TemplateGenerator implements ITemplateGenerator
             }
 
             String strScript = strSource.substring( iIndex, altIndex2 );
-            addExpression( sbTarget, strScript );
+            addExpression( sbTarget, strScript, GosuStringUtil.getLineNumberForIndex( strSource, iIndex ) );
 
             iIndex = altIndex2 + ALTERNATE_EXPRESSION_END_LEN;
           }
@@ -706,21 +708,47 @@ public class TemplateGenerator implements ITemplateGenerator
         .append( "(" )
         .append( iStart ).append( "," )
         .append( iEnd )
-        .append( ")" );
+        .append( ")\r\n" );
     }
   }
 
-  private void addExpression( StringBuilder strTarget, String strExpression )
+  private void addExpression( StringBuilder strTarget, String strExpression, int iLineNumber )
   {
     if( strExpression.trim().length() != 0 )
     {
-      strTarget.append( PRINT_METHOD ).append( "((" ).append( strExpression ).append( ") as String, true)\r\n" );
+      strTarget.append( PRINT_METHOD ).append( "((" ).append( strExpression ).append( ") as String, true)" )
+        // map to line number of template file for debugging
+        .append( " " + TEMPLATE_LINE_NUMBER + " " ).append( iLineNumber ).append( "\r\n" );
     }
   }
 
-  private void addScriptlet( StringBuilder strTarget, String strScript )
+  private void addScriptlet( StringBuilder strTarget, String strScript, int iLineNumber )
   {
-    strTarget.append( strScript ).append( "\r\n" );
+    for( int i = 0; i < strScript.length(); )
+    {
+      int iIndex = strScript.indexOf( "\r\n", i );
+      int iLen = 2;
+      if( iIndex < 0 )
+      {
+        iIndex = strScript.indexOf( "\n", i );
+        iLen = 1;
+      }
+      if( iIndex >= 0 )
+      {
+        strTarget.append( strScript.substring( i, iIndex ) )
+          // map to line number of template file for debugging
+          .append( " " + TEMPLATE_LINE_NUMBER + " " ).append( iLineNumber ).append( "\r\n" );
+        i = iIndex + iLen;
+        iLineNumber++;
+      }
+      else
+      {
+        strTarget.append( strScript.substring( i ) )
+          // map to line number of template file for debugging
+          .append( " " + TEMPLATE_LINE_NUMBER + " " ).append( iLineNumber ).append( "\r\n" );
+        break;
+      }
+    }
   }
 
   private String escapeForGosuStringLiteral( String strText )

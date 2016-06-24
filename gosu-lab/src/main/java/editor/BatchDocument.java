@@ -1,5 +1,9 @@
 package editor;
 
+import gw.lang.reflect.IType;
+import gw.lang.reflect.TypeSystem;
+import gw.lang.reflect.gs.IGosuProgram;
+
 import javax.swing.text.AttributeSet;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.DefaultStyledDocument;
@@ -85,9 +89,30 @@ public class BatchDocument extends DefaultStyledDocument
       int iDot = str.indexOf( '.', iParen );
       String name = str.substring( iParen+1, iDot );
       int iAt = str.indexOf( "at" );
-      int iName = str.indexOf( "." + name );
-      String fqn = str.substring( iAt+3, iName + name.length()+1 );
-
+      int iName = str.lastIndexOf( "." + name );
+      String fqn = null;
+      if( iName >= 0 )
+      {
+        fqn = str.substring( iAt+3, iName + name.length()+1 );
+      }
+      else
+      {
+        String rawFqnPlusMethodName = str.substring( iAt+3, str.indexOf( '(' ) );
+        String rawFqn = rawFqnPlusMethodName.substring( 0, rawFqnPlusMethodName.lastIndexOf( '.' ) );
+        IType rawType = TypeSystem.getByFullNameIfValid( rawFqn );
+        if( rawType instanceof IGosuProgram )
+        {
+          IType contextType = ((IGosuProgram)rawType).getContextType();
+          if( contextType != null )
+          {
+            fqn = contextType.getName();
+          }
+        }
+        if( fqn == null )
+        {
+          return false;
+        }
+      }
       int iLine = str.indexOf( ':' );
       String strLine = "";
       for( int iDigit = iLine+1; Character.isDigit( str.charAt( iDigit ) ); iDigit++ )

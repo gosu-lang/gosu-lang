@@ -57,6 +57,7 @@ import gw.lang.parser.exceptions.ParseResultsException;
 import gw.lang.parser.expressions.IMemberAccessExpression;
 import gw.lang.parser.expressions.IModifierListClause;
 import gw.lang.parser.expressions.IParameterDeclaration;
+import gw.lang.parser.expressions.IProgram;
 import gw.lang.parser.expressions.ITypeVariableDefinition;
 import gw.lang.parser.expressions.ITypeVariableDefinitionExpression;
 import gw.lang.parser.expressions.Variance;
@@ -916,7 +917,13 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
     }
     if( gsClass instanceof IGosuTemplateInternal )
     {
-      ((IGosuTemplateInternal)gsClass).addTemplateEntryPoints( getSymbolTable(), this );
+      IGosuTemplateInternal gsTemplate = (IGosuTemplateInternal)gsClass;
+      gsTemplate.addTemplateEntryPoints( getSymbolTable(), this );
+      IProgram program = gsTemplate.getTemplateGenerator().getProgram();
+      if( program != null )
+      {
+        ((IGosuProgramInternal)program.getGosuProgram()).setContextType( gsTemplate );
+      }
     }
 
     gsClass.syncGenericAndParameterizedClasses();
