@@ -287,6 +287,14 @@ public class TemplateGenerator implements ITemplateGenerator
             TypeSystem.unlock();
           }
         }
+        if( _fqn != null )
+        {
+          IType contextType = _program.getGosuProgram().getContextType();
+          if( contextType == null )
+          {
+            _program.getGosuProgram().setContextType( TypeSystem.getByFullName( _fqn ) );
+          }
+        }
         _program.evaluate(extractExternalSymbols( _compileTimeSymbolTable, symTable ));
       }
       finally
@@ -542,14 +550,14 @@ public class TemplateGenerator implements ITemplateGenerator
 
               iIndex2 = strSource.indexOf( SCRIPTLET_END, iIndex );
               if( iIndex2 < 0 ) {
-                int iLineNumber = GosuStringUtil.getLineNumberForIndex( strSource, iIndex );
+                int iLineNumber = GosuStringUtil.getLineNumberForIndex( strSource, iIndex-1 );
                 int iColumn = getColumnForIndex( strSource, iIndex );
                 exceptions.add( new TemplateParseException( bExpression ? Res.MSG_TEMPLATE_MISSING_END_TAG_EXPRESSION : Res.MSG_TEMPLATE_MISSING_END_TAG_SCRIPTLET, iLineNumber, iColumn, iIndex ) );
                 return sbTarget.toString();
               }
 
               String strScript = strSource.substring( iIndex, iIndex2 );
-              int iLineNumber = GosuStringUtil.getLineNumberForIndex( strSource, iIndex );
+              int iLineNumber = GosuStringUtil.getLineNumberForIndex( strSource, iIndex-1 );
               if( bExpression ) {
                 addExpression( sbTarget, strScript, iLineNumber );
               }
@@ -604,7 +612,7 @@ public class TemplateGenerator implements ITemplateGenerator
               }
             }
             if( altIndex2 < 0 ) {
-              int iLineNumber = GosuStringUtil.getLineNumberForIndex( strSource, iIndex );
+              int iLineNumber = GosuStringUtil.getLineNumberForIndex( strSource, iIndex-1 );
               int iColumn = getColumnForIndex( strSource, iIndex );
               exceptions.add( new TemplateParseException( Res.MSG_TEMPLATE_MISSING_END_TAG_EXPRESSION_ALT, iLineNumber, iColumn, iIndex ) );
               return sbTarget.toString();
