@@ -361,7 +361,11 @@ final public class SourceCodeTokenizerInternal
     return Arrays.asList(
         ":",
 
-        "+", "-", "*", "/", "|",
+        "-",
+
+        "/",
+
+        "|",
 
         "\\",
 
