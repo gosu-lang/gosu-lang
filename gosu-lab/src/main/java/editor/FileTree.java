@@ -134,7 +134,7 @@ public class FileTree implements MutableTreeNode, IFileWatcherListener
     return false;
   }
 
-  private FileTree find( File file )
+  public FileTree find( File file )
   {
     if( getFileOrDir().equals( file ) )
     {
@@ -146,7 +146,7 @@ public class FileTree implements MutableTreeNode, IFileWatcherListener
       FileTree found = tree.find( file );
       if( found != null )
       {
-        return tree;
+        return found;
       }
     }
     return null;

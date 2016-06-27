@@ -585,6 +585,8 @@ public class GosuPanel extends JPanel
     codeMenu.addSeparator();
     codeMenu.add( CommonMenus.makeGotoDeclaration( this::getCurrentEditor ) );
     codeMenu.addSeparator();
+    codeMenu.add( CommonMenus.makeShowFileInTree( this::getCurrentEditor ) );
+    codeMenu.addSeparator();
     codeMenu.add( CommonMenus.makeQuickDocumentation( this::getCurrentEditor ) );
 
     codeMenu.addSeparator();

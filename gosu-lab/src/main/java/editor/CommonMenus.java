@@ -152,6 +152,22 @@ public class CommonMenus
     return navigate;
   }
 
+  public static JMenuItem makeShowFileInTree( Supplier<GosuEditor> editor )
+  {
+    JMenuItem navigate = new JMenuItem(
+          new AbstractAction( "Select File in Tree" )
+          {
+            @Override
+            public void actionPerformed( ActionEvent e )
+            {
+              editor.get().showFileInTree();
+            }
+          } );
+        navigate.setMnemonic( 'F' );
+        navigate.setAccelerator( KeyStroke.getKeyStroke( "alt F" ) );
+    return navigate;
+  }
+
   public static JMenuItem makeQuickDocumentation( Supplier<GosuEditor> editor )
   {
     JMenuItem quickDoc = new JMenuItem(

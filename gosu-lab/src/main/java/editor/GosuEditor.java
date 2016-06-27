@@ -95,6 +95,7 @@ import javax.swing.text.Element;
 import javax.swing.text.Highlighter;
 import javax.swing.text.JTextComponent;
 import javax.swing.text.StyleConstants;
+import javax.swing.tree.TreeModel;
 import javax.swing.undo.CompoundEdit;
 import java.awt.*;
 import java.awt.datatransfer.Clipboard;
@@ -111,6 +112,7 @@ import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.io.File;
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.ArrayList;
@@ -564,6 +566,17 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
                                   }
                                 } );
 
+    _editor.getInputMap().put( KeyStroke.getKeyStroke( "alt F1" ), "_selectFileInTree" );
+    _editor.getActionMap().put( "_selectFileInTree",
+                                new AbstractAction()
+                                {
+                                  @Override
+                                  public void actionPerformed( ActionEvent e )
+                                  {
+                                    showFileInTree();
+                                  }
+                                } );
+
 //    _editor.getInputMap().put( KeyStroke.getKeyStroke( CONTROL_KEY_NAME + " shift F7" ), "_highlightUsagesInView" );
 //    _editor.getActionMap().put( "_highlightUsagesInView",
 //                                new AbstractAction()
@@ -731,6 +744,20 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
                                 } );
 
     TextComponentUtil.fixTextComponentKeyMap( _editor );
+  }
+
+  public void showFileInTree()
+  {
+    GosuPanel gosuPanel = RunMe.getEditorFrame().getGosuPanel();
+    File file = gosuPanel.getCurrentFile();
+
+    TreeModel model = RunMe.getEditorFrame().getGosuPanel().getExperimentView().getTree().getModel();
+    FileTree root = (FileTree)model.getRoot();
+    FileTree fileTree = root.find( file );
+    if( fileTree != null )
+    {
+      fileTree.select();
+    }
   }
 
   public void centerView()

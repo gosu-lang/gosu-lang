@@ -28,6 +28,8 @@ public class DefaultContextMenuHandler implements IContextMenuHandler<IScriptEdi
     menu.add( new JSeparator() );
     menu.add( CommonMenus.makeGotoDeclaration( contextEditor ) );
     menu.add( new JSeparator() );
+    menu.add( CommonMenus.makeShowFileInTree( contextEditor ) );
+    menu.add( new JSeparator() );
     menu.add( CommonMenus.makeQuickDocumentation( contextEditor ) );
     if( editor.getScriptPart() != null &&
         editor.getScriptPart().getContainingType() != null )
