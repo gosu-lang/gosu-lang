@@ -1,5 +1,6 @@
 package org.gosulang.plexus.compiler.gosu;
 
+import gw.lang.gosuc.GosucUtil;
 import gw.lang.gosuc.simple.ICompilerDriver;
 import gw.lang.gosuc.simple.IGosuCompiler;
 import gw.lang.gosuc.simple.SoutCompilerDriver;
@@ -11,19 +12,14 @@ import org.codehaus.plexus.compiler.CompilerOutputStyle;
 import org.codehaus.plexus.compiler.CompilerResult;
 
 import java.io.File;
-import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.net.URLDecoder;
-import java.nio.file.FileSystems;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.security.CodeSource;
 import java.security.ProtectionDomain;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class GosuCompiler extends AbstractCompiler {
 
@@ -78,7 +74,7 @@ public class GosuCompiler extends AbstractCompiler {
 
     List<String> classpath = new ArrayList<>();
     classpath.addAll(config.getClasspathEntries());
-    classpath.addAll(getJreJars());
+    classpath.addAll( GosucUtil.getJreJars());
     classpath.addAll(getGosuJars());
 
     gosuc.initializeGosu(config.getSourceLocations(), classpath, config.getOutputLocation());
@@ -109,26 +105,7 @@ public class GosuCompiler extends AbstractCompiler {
 
     return new CompilerResult(success, errorMessages);
   }
-
-  /**
-   * Get all JARs from the lib directory of the System's java.home property
-   * @return List of absolute paths to all JRE libraries
-   */
-  private List<String> getJreJars() {
-    String javaHome = System.getProperty("java.home");
-    Path libsDir = FileSystems.getDefault().getPath(javaHome, "/lib");
-    try {
-      return Files.walk(libsDir)
-          .filter( path -> path.toFile().isFile())
-          .filter( path -> path.toString().endsWith(".jar"))
-          .map( Path::toString )
-          .collect(Collectors.toList());
-    } catch (SecurityException | IOException e) {
-      e.printStackTrace();
-      throw new RuntimeException(e);
-    }
-  }
-
+  
   /**
    * Get all the Gosu JARs, to be shared with the compiler for its initialization
    * @return List of absolute paths to gosu-core-api and gosu-core libraries
