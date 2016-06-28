@@ -15,4 +15,6 @@ public interface IGosuPropertyInfo extends IAttributedFeatureInfo, IPropertyInfo
 
   IType getContainingType();
 
+  boolean isGetterDefault();
+  boolean isSetterDefault();
 }

@@ -35,6 +35,7 @@ import java.text.DateFormat;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 
@@ -805,6 +806,10 @@ public class StandardCoercionManager extends BaseService implements ICoercionMan
   }
   public static boolean isStructurallyAssignable_Laxed( IType toType, IType fromType, TypeVarToTypeMap inferenceMap )
   {
+    return isStructurallyAssignable_Laxed( toType, fromType, null, inferenceMap );
+  }
+  public static boolean isStructurallyAssignable_Laxed( IType toType, IType fromType, IMethodInfo specificMethod, TypeVarToTypeMap inferenceMap )
+  {
     ITypeInfo fromTypeInfo = fromType.getTypeInfo();
     if( fromTypeInfo == null )
     {
@@ -819,9 +824,11 @@ public class StandardCoercionManager extends BaseService implements ICoercionMan
     {
       return false;
     }
-    MethodList toMethods = toTypeInfo instanceof IRelativeTypeInfo
-                           ? ((IRelativeTypeInfo)toTypeInfo).getMethods( fromType )
-                           : toTypeInfo.getMethods();
+    MethodList toMethods = specificMethod == null
+                           ? toTypeInfo instanceof IRelativeTypeInfo
+                             ? ((IRelativeTypeInfo)toTypeInfo).getMethods( fromType )
+                             : toTypeInfo.getMethods()
+                           : new MethodList( Arrays.asList( specificMethod ) );
 
     IType ownersType = toTypeInfo.getOwnersType();
 
@@ -835,7 +842,7 @@ public class StandardCoercionManager extends BaseService implements ICoercionMan
       if( toMi.getOwnersType() instanceof IGosuEnhancement ) {
         continue;
       }
-      if( toMi instanceof IAttributedFeatureInfo && toMi.isDefaultImpl() || toMi.isStatic() ) {
+      if( (specificMethod == null && toMi instanceof IAttributedFeatureInfo && toMi.isDefaultImpl()) || toMi.isStatic() ) {
         continue;
       }
       IMethodInfo fromMi = fromMethods.findAssignableMethod( toMi, fromType instanceof IMetaType && (!(((IMetaType)fromType).getType() instanceof IGosuClass) || !((IGosuClass)((IMetaType)fromType).getType()).isStructure()), inferenceMap );
@@ -845,7 +852,8 @@ public class StandardCoercionManager extends BaseService implements ICoercionMan
           IPropertyInfo fromPi = fromTypeInfo.getProperty( toMi.getDisplayName().substring( 1 ) );
           if( fromPi != null ) {
             IType fromPropertyType = fromPi.getFeatureType();
-            if( toMi.getParameters().length == 0 ) {
+            IParameterInfo[] parameters = toMi.getParameters();
+            if( parameters.length == 0 && fromPi.isReadable() ) {
               // Getter Property
               IType toReturnType = MethodList.maybeInferReturnType( inferenceMap, ownersType, fromPropertyType, toMi.getReturnType() );
               boolean bAssignable = toReturnType.equals( fromPropertyType ) ||
@@ -856,9 +864,9 @@ public class StandardCoercionManager extends BaseService implements ICoercionMan
                 continue;
               }
             }
-            else {
+            else if( parameters.length == 1 && fromPi.isWritable() ) {
               // Setter Property ...
-              IType toParamType = MethodList.maybeInferParamType( inferenceMap, ownersType, fromPropertyType, toMi.getParameters()[0].getFeatureType() );
+              IType toParamType = MethodList.maybeInferParamType( inferenceMap, ownersType, fromPropertyType, parameters[0].getFeatureType() );
               boolean bAssignable = fromPi.isWritable( toType ) &&
                                     (fromPi.getFeatureType().equals( toParamType ) ||
                                     arePrimitiveTypesAssignable( fromPropertyType, toParamType ) ||

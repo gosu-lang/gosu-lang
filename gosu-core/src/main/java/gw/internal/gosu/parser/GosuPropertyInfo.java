@@ -100,6 +100,25 @@ public class GosuPropertyInfo extends GosuBaseAttributedFeatureInfo implements I
     return _dps.isFinal();
   }
 
+  public boolean isGetterDefault()
+  {
+    return isDefault( _dps.getGetterDfs() );
+  }
+  public boolean isSetterDefault()
+  {
+    return isDefault( _dps.getSetterDfs() );
+  }
+  private boolean isDefault( ReducedDynamicFunctionSymbol dfs )
+  {
+    if( dfs == null )
+    {
+      return false;
+    }
+
+    // Default methods are public non-abstract instance methods declared in an interface.
+    return ((dfs.getModifiers() & (java.lang.reflect.Modifier.ABSTRACT | java.lang.reflect.Modifier.PUBLIC | java.lang.reflect.Modifier.STATIC)) ==
+            java.lang.reflect.Modifier.PUBLIC) && getOwnersType().isInterface();
+  }
   @Override
   protected List<IGosuAnnotation> getGosuAnnotations()
   {

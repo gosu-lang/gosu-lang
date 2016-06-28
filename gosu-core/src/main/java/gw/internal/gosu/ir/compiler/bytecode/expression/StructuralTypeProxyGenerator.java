@@ -24,6 +24,7 @@ import gw.lang.reflect.gs.ClassType;
 import gw.lang.reflect.gs.GosuClassTypeLoader;
 import gw.lang.reflect.gs.IGosuClass;
 import gw.lang.reflect.gs.IGosuEnhancement;
+import gw.lang.reflect.gs.IGosuPropertyInfo;
 import gw.lang.reflect.gs.StringSourceFileHandle;
 import gw.lang.reflect.java.JavaTypes;
 import gw.lang.reflect.module.IModule;
@@ -168,7 +169,7 @@ public class StructuralTypeProxyGenerator {
   //   }
   // }
   private void genInterfaceMethodDecl( StringBuilder sb, IMethodInfo mi, IType rootType ) {
-    if( mi.isDefaultImpl() || mi.isStatic() ) {
+    if( (mi.isDefaultImpl() && !implementsMethod( rootType, mi )) || mi.isStatic() ) {
       return;
     }
     if( mi.getOwnersType() instanceof IGosuEnhancement ) {
@@ -206,6 +207,11 @@ public class StructuralTypeProxyGenerator {
       .append( "  }\n" );
   }
 
+  private boolean implementsMethod( IType type, IMethodInfo mi )
+  {
+    return StandardCoercionManager.isStructurallyAssignable_Laxed( mi.getOwnersType(), type, mi, new TypeVarToTypeMap() );
+  }
+
   private String maybeCastReturnType( IMethodInfo mi, IType returnType, IType rootType ) {
     //## todo:
     return returnType != JavaTypes.pVOID()
@@ -224,9 +230,6 @@ public class StructuralTypeProxyGenerator {
   }
 
   private void genInterfacePropertyDecl( StringBuilder sb, IPropertyInfo pi, IType rootType ) {
-    if( pi.isDefaultImpl() || pi.isStatic() ) {
-      return;
-    }
     if( pi.isStatic() ) {
       return;
     }
@@ -244,29 +247,42 @@ public class StructuralTypeProxyGenerator {
     }
 
     IType ifacePropertyType = TypeLord.replaceTypeVariableTypeParametersWithBoundingTypes( pi.getFeatureType() );
-    if( pi.getDescription() != null ) {
-      sb.append( "\n/** " ).append( pi.getDescription() ).append( " */\n" );
-    }
     ITypeInfo rootTypeInfo = rootType.getTypeInfo();
     // Have to handle private for inner class case e.g., a private field on the inner class implements a property on a structure
-    String reflectiveName = getReflectiveName( pi, rootType, rootTypeInfo );
-    sb.append( "  property get " ).append( pi.getName() ).append( "() : " ).append( ifacePropertyType.getName() ).append( " {\n" );
-    if( reflectiveName != null ) {
-      sb.append( "    return _root[\"" ).append( reflectiveName ).append( "\"] as " ).append( ifacePropertyType.getName() ).append( "\n" );
-    }
-    else {
-      sb.append( "    return " ).append( _bStatic ? _type : "_root" ).append( "." ).append( pi.getName() ).append( " as " ).append( ifacePropertyType.getName() ).append( "\n" );
-    }
-    sb.append( "  }\n" );
-    if( pi.isWritable( pi.getOwnersType() ) ) {
-      sb.append( "  property set " ).append( pi.getName() ).append( "( value: " ).append( ifacePropertyType.getName() ).append( " ) {\n" );
-      if( reflectiveName != null ) {
-        sb.append( "    _root[\"" ).append( reflectiveName ).append( "\"] = value" ).append( maybeCastPropertyAssignment( pi, rootType ) );
+    if( !(pi instanceof IGosuPropertyInfo && ((IGosuPropertyInfo)pi).isGetterDefault() && !implementsMethod( rootType, (IMethodInfo)((IGosuPropertyInfo)pi).getDps().getGetterDfs().getMethodOrConstructorInfo() )) )
+    {
+      String reflectiveName = getReflectiveName( pi, rootType, rootTypeInfo );
+      if( pi.getDescription() != null )
+      {
+        sb.append( "\n/** " ).append( pi.getDescription() ).append( " */\n" );
       }
-      else {
-        sb.append( "    " ).append( _bStatic ? _type : "_root" ).append( "." ).append( pi.getName() ).append( " = value" ).append( maybeCastPropertyAssignment( pi, rootType ) );
+      sb.append( "  property get " ).append( pi.getName() ).append( "() : " ).append( ifacePropertyType.getName() ).append( " {\n" );
+      if( reflectiveName != null )
+      {
+        sb.append( "    return _root[\"" ).append( reflectiveName ).append( "\"] as " ).append( ifacePropertyType.getName() ).append( "\n" );
+      }
+      else
+      {
+        sb.append( "    return " ).append( _bStatic ? _type : "_root" ).append( "." ).append( pi.getName() ).append( " as " ).append( ifacePropertyType.getName() ).append( "\n" );
       }
       sb.append( "  }\n" );
+    }
+    if( !(pi instanceof IGosuPropertyInfo && ((IGosuPropertyInfo)pi).isSetterDefault() && !implementsMethod( rootType, (IMethodInfo)((IGosuPropertyInfo)pi).getDps().getSetterDfs().getMethodOrConstructorInfo() )) )
+    {
+      if( pi.isWritable( pi.getOwnersType() ) )
+      {
+        String reflectiveName = getReflectiveName( pi, rootType, rootTypeInfo );
+        sb.append( "  property set " ).append( pi.getName() ).append( "( value: " ).append( ifacePropertyType.getName() ).append( " ) {\n" );
+        if( reflectiveName != null )
+        {
+          sb.append( "    _root[\"" ).append( reflectiveName ).append( "\"] = value" ).append( maybeCastPropertyAssignment( pi, rootType ) );
+        }
+        else
+        {
+          sb.append( "    " ).append( _bStatic ? _type : "_root" ).append( "." ).append( pi.getName() ).append( " = value" ).append( maybeCastPropertyAssignment( pi, rootType ) );
+        }
+        sb.append( "  }\n" );
+      }
     }
   }
 
