@@ -697,7 +697,7 @@ public class GosuClassTransformer extends AbstractElementTransformer<ClassStatem
     IType superType = _gsClass.getSupertype();
     if( isNonStaticInnerClass( superType ) )
     {
-      IGosuClass typeToPass = (IGosuClass)superType.getEnclosingType();
+      IType typeToPass = superType.getEnclosingType();
       ICompilableTypeInternal outerType = _gsClass.getEnclosingType();
       if( outerType == typeToPass || (typeToPass != null && outerType != null && typeToPass.isAssignableFrom( outerType )) )
       {

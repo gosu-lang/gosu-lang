@@ -3443,7 +3443,7 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
 
   public static boolean isNonStaticInnerClass( IType type )
   {
-    return (type instanceof IGosuClass) && type.getEnclosingType() != null && !((IGosuClass)type).isStatic();
+    return type != null && type.getEnclosingType() != null && !Modifier.isStatic( type.getModifiers() );
   }
 
   protected IRExpression getField_new( IRProperty irProp, IRExpression root, IRType expectedType )
