@@ -136,7 +136,7 @@ public class RequiresReflectionDeterminer
   public static boolean isCallingClassEnclosedInDifferentPackageFromDeclaringSuperclass( ICompilableTypeInternal callingClass, IType declaringClass, IRelativeTypeInfo.Accessibility accessibility )
   {
     return accessibility == IRelativeTypeInfo.Accessibility.PROTECTED &&
-           isEnclosedInSubtypeOfClass( callingClass, declaringClass ) &&
+           !isEnclosedInSubtypeOfClass( callingClass, declaringClass ) &&
            !getTopLevelNamespace( callingClass ).equals( getTopLevelNamespace( declaringClass ) );
   }
 
@@ -249,6 +249,10 @@ public class RequiresReflectionDeterminer
   private static boolean isGosuClassAccessingProtectedMemberOfClassNotInHierarchy( ICompilableTypeInternal callingClass, IType declaringClass, IRelativeTypeInfo.Accessibility accessibility )
   {
     // This is legal in Gosu if the member is accessed indirectly through a subclass that lives in same package as calling class
+    if( IGosuClass.ProxyUtil.isProxy( declaringClass ) )
+    {
+      declaringClass = IGosuClass.ProxyUtil.getProxiedType( declaringClass );
+    }
     return accessibility == IRelativeTypeInfo.Accessibility.PROTECTED && !declaringClass.isAssignableFrom( callingClass );
   }
 
