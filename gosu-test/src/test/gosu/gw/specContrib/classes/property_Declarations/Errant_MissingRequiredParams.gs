@@ -1,7 +1,7 @@
 package gw.specContrib.classes.property_Declarations
 
 @Arguments(:methodName = "wQuote")  //## issuekeys: MSG_MISSING_REQUIRED_ARGUMENTS
-static class Errant_MissingRequiredParams {
+class Errant_MissingRequiredParams {
   function asdf() {
     foo( :s2 = "" )  //## issuekeys: MSG_MISSING_REQUIRED_ARGUMENTS
     foo( :s1 = "" )  //## issuekeys: MSG_WRONG_NUMBER_OF_ARGS_TO_FUNCTION
