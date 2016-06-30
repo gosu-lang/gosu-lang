@@ -24,7 +24,7 @@ public class GosuScratchSuite extends Suite
     BytecodeOptions.enableAggressiveVerification();
     return new GosuScratchSuite()
             .withTestEnvironment( new ScratchTestEnvironment() )
-      .withTest( "gw.internal.gosu.parser.classTests.gwtest.dynamic.JsonTest" )
+      .withTest( "gw.spec.core.expressions.beanmethodcall.generated.BeanMethodCall_GosuClassFromSubclassInOtherPackageTest" )
             ;
   }
 

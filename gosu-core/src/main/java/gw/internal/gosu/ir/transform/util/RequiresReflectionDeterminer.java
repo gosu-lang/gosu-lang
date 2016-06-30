@@ -14,6 +14,7 @@ import gw.internal.gosu.parser.IGosuEnhancementInternal;
 import gw.internal.gosu.parser.IGosuProgramInternal;
 import gw.internal.gosu.parser.TypeLord;
 import gw.internal.gosu.parser.java.classinfo.JavaSourceType;
+import gw.lang.ir.IRType;
 import gw.lang.parser.IFileRepositoryBasedType;
 import gw.lang.parser.ILanguageLevel;
 import gw.lang.reflect.IRelativeTypeInfo;
@@ -32,13 +33,16 @@ public class RequiresReflectionDeterminer
 
   public static boolean shouldUseReflection( IType declaringClass, ICompilableTypeInternal compilingClass, IRelativeTypeInfo.Accessibility accessibility )
   {
+    return shouldUseReflection( declaringClass, compilingClass, null, accessibility );
+  }
+  public static boolean shouldUseReflection( IType declaringClass, ICompilableTypeInternal compilingClass, IRType root, IRelativeTypeInfo.Accessibility accessibility )
+  {
     boolean bRet =
       isEnhancementAccessRequiringReflection( declaringClass, compilingClass, accessibility ) ||
       isEvalProgramBetweenCallingClassAndDeclaringClass( compilingClass, declaringClass, accessibility ) ||
       isDeclaringClassInAncestryOfEnclosingClassesOfEvalProgram( compilingClass, declaringClass, accessibility ) ||
-      isCallingClassEnclosedInDifferentPackageFromDeclaringSuperclass( compilingClass, declaringClass, accessibility ) ||
+      isCallingClassEnclosedInDifferentPackageFromDeclaringSuperclass( compilingClass, declaringClass, root, accessibility ) ||
       isGosuClassAccessingProtectedOrInternalMethodOfClassInDifferentClassloader( compilingClass, declaringClass, accessibility ) ||
-      isGosuClassAccessingProtectedMemberOfClassNotInHierarchy( compilingClass, declaringClass, accessibility ) ||
       isProgramCompilingDuringDebuggerSuspension( compilingClass, accessibility ) ||
       (isProgramNotEval( compilingClass, declaringClass ) && accessibility != IRelativeTypeInfo.Accessibility.PUBLIC); // for studio debugger expressions
     return bRet;
@@ -133,11 +137,21 @@ public class RequiresReflectionDeterminer
     }
   }
 
-  public static boolean isCallingClassEnclosedInDifferentPackageFromDeclaringSuperclass( ICompilableTypeInternal callingClass, IType declaringClass, IRelativeTypeInfo.Accessibility accessibility )
+  public static boolean isCallingClassEnclosedInDifferentPackageFromDeclaringSuperclass( ICompilableTypeInternal callingClass, IType declaringClass, IRType root, IRelativeTypeInfo.Accessibility accessibility )
   {
     return accessibility == IRelativeTypeInfo.Accessibility.PROTECTED &&
-           !isEnclosedInSubtypeOfClass( callingClass, declaringClass ) &&
-           !getTopLevelNamespace( callingClass ).equals( getTopLevelNamespace( declaringClass ) );
+           !getTopLevelNamespace( callingClass ).equals( getTopLevelNamespace( declaringClass ) ) &&
+           !(isEnclosedInSubtypeOfClass( callingClass, declaringClass ) && isRootSame( root, callingClass ));
+  }
+
+  private static boolean isRootSame( IRType root, ICompilableTypeInternal callingClass )
+  {
+    IType rootType = root == null ? null : root.getType();
+    return rootType == null ||
+           rootType == callingClass
+           // We can't do this because the verifier prohibits an inner class from accessing an *inherited* protected method (crazy pills).
+           // Note Java's compiler works around the genius of this limitation by generating an accessor delegator method on the outer class; while we generate a reflective call.  Someday we will do something similar to Java, someday.
+           /*|| TypeLord.encloses( rootType, callingClass )*/;
   }
 
   // If we're calling a protected or internal method on a class in a different classloader

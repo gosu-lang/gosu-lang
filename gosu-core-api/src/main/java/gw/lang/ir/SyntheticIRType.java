@@ -5,6 +5,7 @@
 package gw.lang.ir;
 
 import gw.lang.UnstableAPI;
+import gw.lang.reflect.IType;
 
 @UnstableAPI
 public class SyntheticIRType implements IRType {     
@@ -46,6 +47,12 @@ public class SyntheticIRType implements IRType {
   @Override
   public String getSlashName() {
     return _name.replace( '.', '/' );
+  }
+
+  @Override
+  public IType getType()
+  {
+    return null;
   }
 
   @Override

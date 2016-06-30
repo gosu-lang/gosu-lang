@@ -374,7 +374,12 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
   }
 
   private IRExpression callMethod( IRMethod method, IRExpression root, boolean special, IType owner, List<IRExpression> actualArgs ) {
-    if( !special && _cc().shouldUseReflection( owner, method.getAccessibility() ) )
+    IRType rootType = root == null ? null : root.getType();
+    if( rootType == null && method.isStatic() )
+    {
+      rootType = method.getOwningIRType();
+    }
+    if( !special && _cc().shouldUseReflection( owner, rootType, method.getAccessibility() ) )
     {
       return callMethodReflectively( owner, method.getName(), method.getReturnType(), method.getAllParameterTypes(), root, actualArgs );
     }
@@ -2080,7 +2085,12 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
 
   private IRExpression getField( IType owner, String strField, IRType fieldType, IRelativeTypeInfo.Accessibility accessibility, IRExpression root )
   {
-    if( _cc().shouldUseReflection( owner, accessibility ) )
+    IRType rootType = root == null ? null : root.getType();
+    if( rootType == null )
+    {
+      rootType = getDescriptor( owner );
+    }
+    if( _cc().shouldUseReflection( owner, rootType, accessibility ) )
     {
       // Can't gen bytecode for protected call otherwise verify error
       return getFieldReflectively( owner, strField, fieldType, root );
@@ -2089,9 +2099,9 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
     return buildFieldGet( getDescriptor( owner ), strField, fieldType, root );
   }
 
-  protected boolean avoidVerifyError( IType owner, IRelativeTypeInfo.Accessibility accessibility )
+  protected boolean avoidVerifyError( IType owner, IRType rootType, IRelativeTypeInfo.Accessibility accessibility )
   {
-    return _cc().isIllegalProtectedCall( owner, accessibility ) ||
+    return _cc().isIllegalProtectedCall( owner, rootType, accessibility ) ||
         AccessibilityUtil.forType( owner ) == IRelativeTypeInfo.Accessibility.INTERNAL;
   }
 
@@ -2113,7 +2123,12 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
   protected IRStatement setField( IType owner, String strField, IRType fieldType, IRelativeTypeInfo.Accessibility accessibility,
                                 IRExpression root, IRExpression value )
   {
-    if( _cc().shouldUseReflection( owner, accessibility ) )
+    IRType rootType = root == null ? null : root.getType();
+    if( rootType == null )
+    {
+      rootType = getDescriptor( owner );
+    }
+    if( _cc().shouldUseReflection( owner, rootType, accessibility ) )
     {
       return setFieldReflectively( owner, strField, root, value );
     }
@@ -2961,7 +2976,7 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
     // Unfortunately, it's possible for a class literal to be illegal in a given context:  if that literal refers to an
     // internal or private type, for example, and classloader issues result in the caller being in a different package/classloader
     // at runtime, the type needs to be looked up reflectively instead.  For purposes of this method call, the feature itself is public
-    if( type != null && RequiresReflectionDeterminer.shouldUseReflection( type, _cc.getGosuClass(), IRelativeTypeInfo.Accessibility.PUBLIC ) ) {
+    if( type != null && RequiresReflectionDeterminer.shouldUseReflection( type, _cc.getGosuClass(), null, IRelativeTypeInfo.Accessibility.PUBLIC ) ) {
       return callMethod( GosuRuntimeMethods.class, "lookUpClass", new Class[]{String.class}, null, exprList( stringLiteral( value.getDescriptor() ) ) );
     } else {
       return new IRClassLiteral( value );
@@ -3264,7 +3279,7 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
 
   public static boolean isNonStaticInnerClass( IType type )
   {
-    return (type instanceof IGosuClass) && type.getEnclosingType() != null && !((IGosuClass)type).isStatic();
+    return type != null && type.getEnclosingType() != null && !Modifier.isStatic( type.getModifiers() );
   }
 
   protected IRExpression getField_new( IRProperty irProp, IRExpression root, IRType expectedType )
@@ -3288,7 +3303,12 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
 
   private IRExpression getFieldImpl_new( IRProperty irProp, IRExpression root )
   {
-    if( _cc().shouldUseReflection( irProp.getOwningIType(), irProp.getAccessibility() ) )
+    IRType rootType = root == null ? null : root.getType();
+    if( rootType == null )
+    {
+      rootType = irProp.getOwningIRType();
+    }
+    if( _cc().shouldUseReflection( irProp.getOwningIType(), rootType, irProp.getAccessibility() ) )
     {
       return getFieldReflectively_new( irProp, root );
     }
