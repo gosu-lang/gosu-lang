@@ -7453,7 +7453,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
             inferredFunctionType = maybeBoundFunctionTypeVars( inferredFunctionType, inferenceMap );
 
             // Some args may need implicit coercions applied
-            handleImplicitCoercionsInArgs( inferredFunctionType.getParameterTypes(),
+            handleImplicitCoercionsInArgs( element, inferredFunctionType.getParameterTypes(),
                     rawFunctionType.getParameterTypes(),
                     (List)bestScore.getArguments() );
           }
@@ -7996,7 +7996,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
     return TypeLord.getActualType( contextType, inferenceMap, true );
   }
 
-  private void handleImplicitCoercionsInArgs( IType[] argTypes, IType[] rawArgTypes, List<Expression> args )
+  private void handleImplicitCoercionsInArgs( ParsedElement element, IType[] argTypes, IType[] rawArgTypes, List<Expression> args )
   {
     for( int i = 0; i < argTypes.length && i < args.size(); i++ )
     {
@@ -8010,7 +8010,15 @@ public final class GosuParser extends ParserBase implements IGosuParser
         // e.g., component types are assignable, but different array types on a component type may not be.
         argType = rawArgTypes[i];
       }
-      if( !(expr instanceof DefaultParamValueLiteral) )
+
+      if( expr instanceof DefaultParamValueLiteral )
+      {
+        if( !element.hasParseException( Res.MSG_MISSING_REQUIRED_ARGUMENTS ) )
+        {
+          addError( element, Res.MSG_MISSING_REQUIRED_ARGUMENTS );
+        }
+      }
+      else
       {
         args.set( i, possiblyWrapWithImplicitCoercion( expr, argType ) );
       }
