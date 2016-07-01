@@ -54,6 +54,15 @@ Clone the project from GitHub and run:
 
     mvn compile
 
+To execute tests:
+
+    mvn test
+
+Note that a handful of tests require the JVM argument `-DcheckedArithmetic=true`.  An easy way to set this is via the `MAVEN_OPTS` environment variable.
+
+To change the version number:
+
+    mvn -B release:update-versions -DdevelopmentVersion=1-someValue-SNAPSHOT
 
 Quickstart
 ----------
