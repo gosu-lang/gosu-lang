@@ -1,15 +1,16 @@
 package gw.specContrib.classes
 
-uses gw.specContrib.classes.abc.FUToo
-
-class FUAlso extends FUToo<ArrayList> {
+class FUAlso extends FUMaybe<ArrayList> {
   construct() {
     super( {"S", "E"} )
   }
-  function foo() : ArrayList {
+  function prop() : ArrayList {
     return Owner
   }
-  function bar() : ArrayList {
+  function field() : ArrayList {
     return _t
+  }
+  function fieldPropn() : ArrayList {
+    return this._t
   }
 }

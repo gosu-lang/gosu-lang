@@ -21,7 +21,7 @@ import gw.lang.ir.IRType;
 import gw.internal.gosu.ir.transform.util.IRTypeResolver;
 import gw.internal.gosu.ir.transform.util.AccessibilityUtil;
 
-public class IRPropertyFromPropertyInfo implements IRProperty {
+public class IRPropertyFromPropertyInfo extends IRFeatureBase implements IRProperty {
 
   private IPropertyInfo _terminalProperty;
 
@@ -173,7 +173,7 @@ public class IRPropertyFromPropertyInfo implements IRProperty {
 
   public IRType getPropertyIRType( IPropertyInfo pi )
   {
-    if( pi instanceof IJavaPropertyInfo)
+    if( pi instanceof IJavaPropertyInfo )
     {
       // We have to get the owner type from the method because it may be different from the owning type e.g., entity aspects see ContactGosuAspect.AllAdresses
       IJavaPropertyDescriptor descriptor = ((IJavaPropertyInfo)pi).getPropertyDescriptor();
@@ -190,14 +190,19 @@ public class IRPropertyFromPropertyInfo implements IRProperty {
           return IRTypeResolver.getDescriptor( m.getParameterTypes()[0] );
         }
       }
-    } else if ( pi instanceof IJavaFieldPropertyInfo) {
-      return IRTypeResolver.getDescriptor( ((IJavaFieldPropertyInfo) pi).getField().getType());
-    } else if (pi instanceof IGosuPropertyInfo) {
+    }
+    else if( pi instanceof IJavaFieldPropertyInfo )
+    {
+      return IRTypeResolver.getDescriptor( ((IJavaFieldPropertyInfo)pi).getField().getType() );
+    }
+    else if( pi instanceof IGosuPropertyInfo )
+    {
       IReducedDynamicPropertySymbol dps = ((IGosuPropertyInfo)pi).getDps();
       return getBoundedPropertyType( dps );
-    } else if (pi instanceof IGosuVarPropertyInfo) {
-      IType declaredVarType = ((IGosuVarPropertyInfo)pi).getScopedSymbolType();
-      return IRTypeResolver.getDescriptor( TypeLord.getDefaultParameterizedTypeWithTypeVars( declaredVarType ) );
+    }
+    else if( pi instanceof IGosuVarPropertyInfo )
+    {
+      return maybeReifyFieldType( pi.getOwnersType(), pi.getDisplayName(), pi.getFeatureType() );
     }
 
     return IRTypeResolver.getDescriptor( pi.getFeatureType() );
