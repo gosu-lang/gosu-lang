@@ -191,16 +191,12 @@ public class IRPropertyFromPropertyInfo extends IRFeatureBase implements IRPrope
         }
       }
     }
-    else if( pi instanceof IJavaFieldPropertyInfo )
-    {
-      return IRTypeResolver.getDescriptor( ((IJavaFieldPropertyInfo)pi).getField().getType() );
-    }
     else if( pi instanceof IGosuPropertyInfo )
     {
       IReducedDynamicPropertySymbol dps = ((IGosuPropertyInfo)pi).getDps();
       return getBoundedPropertyType( dps );
     }
-    else if( pi instanceof IGosuVarPropertyInfo )
+    else if( pi instanceof IGosuVarPropertyInfo || pi instanceof IJavaFieldPropertyInfo )
     {
       return maybeReifyFieldType( pi.getOwnersType(), pi.getDisplayName(), pi.getFeatureType() );
     }
