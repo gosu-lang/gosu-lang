@@ -42,6 +42,10 @@ public class IRFeatureBase {
           return getBoundedFieldTypeFromProxiedClass( (IGosuClass)reifiedOwner, name );
         }
         VarStatement field = ((IGosuClassInternal) reifiedOwner).getMemberField( name );
+        if( field == null )
+        {
+          field = ((IGosuClassInternal) reifiedOwner).getStaticField( name );
+        }
         symType = IRTypeResolver.getDescriptor( field.getType() );
       }
       else if( owner instanceof IJavaType)
