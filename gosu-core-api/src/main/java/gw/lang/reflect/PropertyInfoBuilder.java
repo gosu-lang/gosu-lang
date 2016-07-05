@@ -157,18 +157,16 @@ public class PropertyInfoBuilder {
     {
       if( _accessor == null && (_type == null || _type instanceof IJavaType) )
       {
-        IType ownerType = getOwnersType();
+        final IType ownerType = getOwnersType();
         if( ownerType instanceof IJavaType )
         {
           IJavaType propertyType = (IJavaType)_type;
-          Method runtimeGetter;
-          IJavaClassMethod compiletimeGetter;
+          IJavaClassMethod getter;
           if( _javaGetterMethodName != null )
           {
             try
             {
-              runtimeGetter = ((IJavaType)ownerType).getBackingClass().getMethod( _javaGetterMethodName );
-              compiletimeGetter = ((IJavaType)ownerType).getBackingClassInfo().getMethod( _javaGetterMethodName );
+              getter = ((IJavaType)ownerType).getBackingClassInfo().getMethod( _javaGetterMethodName );
             }
             catch( NoSuchMethodException e )
             {
@@ -179,15 +177,13 @@ public class PropertyInfoBuilder {
           {
             try
             {
-              runtimeGetter = ((IJavaType)ownerType).getBackingClass().getMethod( "get" + _name );
-              compiletimeGetter = ((IJavaType)ownerType).getBackingClassInfo().getMethod( "get" + _name );
+              getter = ((IJavaType)ownerType).getBackingClassInfo().getMethod( "get" + _name );
             }
             catch( NoSuchMethodException e )
             {
               try
               {
-                runtimeGetter = ((IJavaType)ownerType).getBackingClass().getMethod( "is" + _name );
-                compiletimeGetter = ((IJavaType)ownerType).getBackingClassInfo().getMethod( "is" + _name );
+                getter = ((IJavaType)ownerType).getBackingClassInfo().getMethod( "is" + _name );
               }
               catch( NoSuchMethodException e1 )
               {
@@ -198,37 +194,40 @@ public class PropertyInfoBuilder {
 
           if( propertyType == null )
           {
-            _type = propertyType = (IJavaType) compiletimeGetter.getReturnType();
+            _type = propertyType = (IJavaType) getter.getReturnType();
           }
 
-          Method setter = null;
+          IJavaClassMethod setter = null;
           if( _writable )
           {
             try
             {
-              setter = ((IJavaType)ownerType).getBackingClass().getMethod( "set" + _name, propertyType.getIntrinsicClass() );
+              setter = ((IJavaType)ownerType).getBackingClassInfo().getMethod( "set" + _name, propertyType.getBackingClassInfo() );
             }
             catch( NoSuchMethodException e )
             {
               throw new RuntimeException( e );
             }
           }
-          final Method getter1 = runtimeGetter;
-          final Method setter1 = setter;
+          final String getterName = getter.getName();
+          final String setterName = setter.getName();
           _accessor =
             new IPropertyAccessor()
             {
+              Method _getMethod = null;
+              Method _setMethod = null;
+
               public Object getValue( Object ctx )
               {
                 try
                 {
-                  return getter1.invoke( ctx );
+                  if( _getMethod == null )
+                  {
+                    _getMethod = ((IJavaType)ownerType).getBackingClass().getMethod( getterName );
+                  }
+                  return _getMethod.invoke( ctx );
                 }
-                catch( IllegalAccessException e )
-                {
-                  throw new RuntimeException( e );
-                }
-                catch( InvocationTargetException e )
+                catch( Exception e )
                 {
                   throw new RuntimeException( e );
                 }
@@ -238,13 +237,13 @@ public class PropertyInfoBuilder {
               {
                 try
                 {
-                  setter1.invoke( ctx, value );
+                  if( _setMethod == null )
+                  {
+                    _setMethod = ((IJavaType)ownerType).getBackingClass().getMethod( setterName, ((IJavaType)_type).getBackingClass() );
+                  }
+                  _setMethod.invoke( ctx, value );
                 }
-                catch( IllegalAccessException e )
-                {
-                  throw new RuntimeException( e );
-                }
-                catch( InvocationTargetException e )
+                catch( Exception e )
                 {
                   throw new RuntimeException( e );
                 }
