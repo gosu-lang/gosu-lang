@@ -10,7 +10,7 @@ class FUAlso extends FUMaybe<ArrayList> {
   function field() : ArrayList {
     return _t
   }
-  function fieldPropn() : ArrayList {
+  function fieldProp() : ArrayList {
     return this._t
   }
 }
