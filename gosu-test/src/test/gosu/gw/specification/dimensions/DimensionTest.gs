@@ -33,7 +33,7 @@ uses gw.specification.dimensions.p1.SampleDimWithoutArith_SpecialNumWithArith
  */
 class DimensionTest extends BaseVerifyErrantTest {
   function testErrant_DimensionTest(){
-    processErrantType(Errant_DimensionTest1)
+    processErrantType(Errant_DimensionTest)
   }
 
 
