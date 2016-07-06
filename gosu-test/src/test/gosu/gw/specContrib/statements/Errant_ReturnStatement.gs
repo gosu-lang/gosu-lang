@@ -54,8 +54,8 @@ class Errant_ReturnStatement {
     if (val)
       val = !val
     else {
-      return      //## issuekeys: CANNOT RETURN A VALUE FROM A METHOD WITH VOID RESULT TYPE
-          doSomething()   // this should be an unreachable statement, but is an invalid return
+      return
+          doSomething()   //## issuekeys: MSG_UNREACHABLE_STMT
     }
   }
 
@@ -63,7 +63,7 @@ class Errant_ReturnStatement {
   function nestedTricky(val: boolean): int {
     if (true) {
       if (true)
-        return // BAD: Missing return value
+        return // Studio BAD: Missing return value
       doSomething()
       return
           doSomething()

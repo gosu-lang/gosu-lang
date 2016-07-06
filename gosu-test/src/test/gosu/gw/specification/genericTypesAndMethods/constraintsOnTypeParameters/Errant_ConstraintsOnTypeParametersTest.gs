@@ -40,7 +40,7 @@ class Errant_ConstraintsOnTypeParametersTest {
   static class C15<T1, T2 extends C15<T3, T2, T3>, T3> {}  //## issuekeys: MSG_INVALID_TYPE, MSG_INVALID_TYPE
 
   static class M extends Integer[] {}  //## issuekeys: MSG_CANNOT_EXTEND_ARRAY, MSG_CANNOT_EXTEND_FINAL_TYPE
-  static class M2 implements Integer[] {}  //## issuekeys: MSG_CANNOT_EXTEND_ARRAY, MSG_CANNOT_EXTEND_FINAL_TYPE
+  static class M2 implements Integer[] {}  //## issuekeys: MSG_CLASS_CANNOT_IMPLEMENT_CLASS, MSG_CANNOT_EXTEND_FINAL_TYPE
   static class C16<T1 extends Number> {}
   static class C17<T1 extends Object[]> {}
   static class C171<T1 extends int[]> {}
@@ -90,11 +90,11 @@ class Errant_ConstraintsOnTypeParametersTest {
     class A {}
     class B {}
 
-    var a: AnInterface & BInterface & A & B      //## issuekeys: ONLY ONE NON-INTERFACE IS ALLOWED IN A COMPONENT TYPE
-    function foo<T extends AnInterface & BInterface & A & B> (t1 : T, t2 : T) {}      //## issuekeys: ONLY ONE NON-INTERFACE IS ALLOWED IN A COMPONENT TYPE
+    var a: AnInterface & BInterface & A & B      //## issuekeys: MSG_ONLY_ONE_CLASS_IN_COMPONENT_TYPE
+    function foo<T extends AnInterface & BInterface & A & B> (t1 : T, t2 : T) {}      //## issuekeys: MSG_ONLY_ONE_CLASS_IN_COMPONENT_TYPE
     function foo1<T extends AnInterface & BInterface & A> (t1 : T, t2 : T) {}
     function foo2<T extends AnInterface & A & BInterface> (t1 : T, t2 : T) {}
     function foo3<T extends A & AnInterface & BInterface> (t1 : T, t2 : T) {}
-    class Test<T extends AnInterface & BInterface & A & B> {}      //## issuekeys: ONLY ONE NON-INTERFACE IS ALLOWED IN A COMPONENT TYPE
+    class Test<T extends AnInterface & BInterface & A & B> {}      //## issuekeys: MSG_ONLY_ONE_CLASS_IN_COMPONENT_TYPE
   }
 }

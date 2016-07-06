@@ -8,12 +8,12 @@ class Errant_RawTypeReturn {
     }
   }
   class B extends A<B>  {
-    function foo() : A {
+    override function foo() : A {
       return null
     }
   }
   class C extends A<C>  {
-    function foo() : C {
+    override function foo() : C {
       return null
     }
   }

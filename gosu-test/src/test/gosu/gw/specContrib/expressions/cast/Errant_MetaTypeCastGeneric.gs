@@ -8,7 +8,7 @@ class Errant_MetaTypeCastGeneric {
 
   function test() {
     var b = B
-    var c = b as Type<Cloneable>
+    var c = b as Type<Cloneable> //## issuekeys: MSG_UNNECESSARY_COERCION
 
     foo(b)
   }
