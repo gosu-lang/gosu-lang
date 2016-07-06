@@ -5,6 +5,7 @@
 package gw.lang.ir;
 
 import gw.lang.UnstableAPI;
+import gw.lang.reflect.IType;
 
 import java.lang.reflect.Array;
 
@@ -40,6 +41,12 @@ public class SyntheticIRArrayType implements IRType {
   @Override
   public String getSlashName() {
     return getComponentType().getSlashName() + "[]";
+  }
+
+  @Override
+  public IType getType()
+  {
+    return null;
   }
 
   @Override

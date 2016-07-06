@@ -5,6 +5,7 @@
 package gw.lang.ir;
 
 import gw.lang.UnstableAPI;
+import gw.lang.reflect.IType;
 
 @UnstableAPI
 public interface IRType {
@@ -23,6 +24,8 @@ public interface IRType {
   IRType getArrayType();
 
   IRType getComponentType();
+
+  IType getType();
 
   boolean isArray();
 

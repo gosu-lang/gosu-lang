@@ -5,6 +5,7 @@
 package gw.lang;
 
 import gw.config.CommonServices;
+import gw.lang.gosuc.GosucUtil;
 import gw.lang.init.ClasspathToGosuPathEntryUtil;
 import gw.lang.init.GosuInitialization;
 import gw.lang.parser.GosuParserFactory;
@@ -353,7 +354,15 @@ public class Gosu
   {
     try
     {
-      Method m = ClassLoader.class.getDeclaredMethod( "getBootstrapClassPath" );
+      Method m;
+      try {
+        m = ClassLoader.class.getDeclaredMethod("getBootstrapClassPath");
+      }
+      catch( NoSuchMethodException nsme ) {
+        // The VM that does not define getBootstrapClassPath() seems to be the IBM VM (v. 8).
+        getBootstrapForIbm(ll);
+        return;
+      }
       m.setAccessible( true );
       URLClassPath bootstrapClassPath = (URLClassPath)m.invoke( null );
       for( URL url: bootstrapClassPath.getURLs() )
@@ -376,6 +385,11 @@ public class Gosu
     {
       throw new RuntimeException( e );
     }
+  }
+
+  private static void getBootstrapForIbm(List<File> ll) {
+    List<String> ibmClasspath = GosucUtil.getJreJars();
+    ibmClasspath.stream().forEach( e -> ll.add( new File( e ) ) );
   }
 
   public static GosuVersion getVersion()

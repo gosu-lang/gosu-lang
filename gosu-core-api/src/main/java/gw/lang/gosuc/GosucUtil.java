@@ -8,10 +8,15 @@ import gw.config.CommonServices;
 import gw.fs.IDirectory;
 
 import java.io.File;
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  */
@@ -57,4 +62,46 @@ public class GosucUtil {
     }
     return dirs;
   }
+
+  /**
+   * Get all JARs from the lib directory of the System's java.home property
+   * @return List of absolute paths to all JRE libraries
+   */
+  public static List<String> getJreJars() {
+    String javaHome = System.getProperty("java.home");
+    Path libsDir = FileSystems.getDefault().getPath(javaHome, "/lib");
+    List<String> retval = GosucUtil.getIbmClasspath();
+    try {
+      retval.addAll(Files.walk(libsDir)
+              .filter( path -> path.toFile().isFile())
+              .filter( path -> path.toString().endsWith(".jar"))
+              .map( Path::toString )
+              .collect(Collectors.toList()));
+    } catch (SecurityException | IOException e) {
+      e.printStackTrace();
+      throw new RuntimeException(e);
+    }
+    return retval;
+  }
+
+  /**
+   * Special handling for the unusual structure of the IBM JDK.
+   * @return A list containing the special 'vm.jar' absolute path if we are using an IBM JDK; otherwise an empty list is returned.
+   */
+  protected static List<String> getIbmClasspath() {
+    List<String> retval = new ArrayList<>();
+    if(System.getProperty("java.vendor").equals("IBM Corporation")) {
+      String fileSeparator = System.getProperty("file.separator");
+      String classpathSeparator = System.getProperty("path.separator");
+      String[] bootClasspath = System.getProperty("sun.boot.class.path").split(classpathSeparator);
+      for(String entry : bootClasspath) {
+        if(entry.endsWith(fileSeparator + "vm.jar")) {
+          retval.add(entry);
+          break;
+        }
+      }
+    }
+    return retval;
+  }
+
 }

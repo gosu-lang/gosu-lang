@@ -138,14 +138,14 @@ public class GosuClassTransformationContext extends TransformationContextBase {
     return results;
   }
 
-  public boolean shouldUseReflection( IType declaringClass, IRelativeTypeInfo.Accessibility accessibility )
+  public boolean shouldUseReflection( IType declaringClass, IRType root, IRelativeTypeInfo.Accessibility accessibility )
   {
-    return RequiresReflectionDeterminer.shouldUseReflection( declaringClass, _gsClass, accessibility );
+    return RequiresReflectionDeterminer.shouldUseReflection( declaringClass, _gsClass, root, accessibility );
   }
 
-  public boolean isIllegalProtectedCall( IType declaringClass, IRelativeTypeInfo.Accessibility accessibility )
+  public boolean isIllegalProtectedCall( IType declaringClass, IRType root, IRelativeTypeInfo.Accessibility accessibility )
   {
-    return RequiresReflectionDeterminer.isCallingClassEnclosedInDifferentPackageFromDeclaringSuperclass( _gsClass, declaringClass, accessibility );
+    return RequiresReflectionDeterminer.isCallingClassEnclosedInDifferentPackageFromDeclaringSuperclass( _gsClass, declaringClass, root, accessibility );
   }
 
   @Override
