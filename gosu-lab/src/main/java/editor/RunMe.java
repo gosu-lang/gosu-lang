@@ -18,7 +18,10 @@ import java.io.File;
 import java.util.*;
 import java.util.List;
 import java.util.stream.Collectors;
-
+/*
+  To enable "Mark Errors For Gosu Language Test"
+  -Dspec=true
+ */
 public class RunMe
 {
   private static BasicGosuEditor _gosuEditor;

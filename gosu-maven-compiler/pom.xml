@@ -16,12 +16,12 @@
     <dependency>
       <groupId>org.gosu-lang.gosu</groupId>
       <artifactId>gosu-core-api</artifactId>
-      <version>1-lab-SNAPSHOT</version>
+      <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>org.gosu-lang.gosu</groupId>
       <artifactId>gosu-core</artifactId>
-      <version>1-lab-SNAPSHOT</version>
+      <version>${project.version}</version>
       <scope>runtime</scope>
     </dependency>
     <dependency>

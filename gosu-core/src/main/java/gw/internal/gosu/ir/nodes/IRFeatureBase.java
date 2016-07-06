@@ -4,9 +4,9 @@
 
 package gw.internal.gosu.ir.nodes;
 
-import gw.config.CommonServices;
 import gw.internal.gosu.parser.IGosuTemplateInternal;
-import gw.lang.reflect.IFeatureInfo;
+import gw.internal.gosu.parser.JavaFieldPropertyInfo;
+import gw.lang.reflect.IRelativeTypeInfo;
 import gw.lang.reflect.LazyTypeResolver;
 import gw.lang.reflect.gs.IGosuEnhancement;
 import gw.lang.reflect.gs.IGosuClass;
@@ -19,7 +19,6 @@ import gw.lang.reflect.IPropertyInfo;
 import gw.lang.reflect.java.IJavaType;
 import gw.lang.reflect.java.IJavaFieldPropertyInfo;
 import gw.lang.ir.IRType;
-import gw.lang.ir.IRTypeConstants;
 import gw.internal.gosu.ir.transform.util.IRTypeResolver;
 import gw.internal.gosu.parser.IGosuClassInternal;
 import gw.internal.gosu.parser.TypeLord;
@@ -27,7 +26,6 @@ import gw.internal.gosu.parser.statements.VarStatement;
 
 import java.util.List;
 import java.util.ArrayList;
-import java.lang.reflect.Field;
 
 public class IRFeatureBase {
 
@@ -39,21 +37,21 @@ public class IRFeatureBase {
       if( owner instanceof IGosuClassInternal)
       {
         IType reifiedOwner = TypeLord.getDefaultParameterizedType( owner.getGenericType() );
+        if( IGosuClass.ProxyUtil.isProxy( reifiedOwner ) )
+        {
+          return getBoundedFieldTypeFromProxiedClass( (IGosuClass)reifiedOwner, name );
+        }
         VarStatement field = ((IGosuClassInternal) reifiedOwner).getMemberField( name );
+        if( field == null )
+        {
+          field = ((IGosuClassInternal) reifiedOwner).getStaticField( name );
+        }
         symType = IRTypeResolver.getDescriptor( field.getType() );
       }
       else if( owner instanceof IJavaType)
       {
         IJavaType javaType = (IJavaType)owner;
-        try
-        {
-          Field field = javaType.getIntrinsicClass().getField( name );
-          symType = IRTypeResolver.getDescriptor( field.getType() );
-        }
-        catch( NoSuchFieldException e )
-        {
-          throw new RuntimeException( e );
-        }
+        return getFieldType( name, javaType );
       }
       else
       {
@@ -65,6 +63,23 @@ public class IRFeatureBase {
       symType = IRTypeResolver.getDescriptor( originalType );
     }
     return symType;
+  }
+
+  private IRType getBoundedFieldTypeFromProxiedClass( IGosuClass gsClass, String name )
+  {
+    IJavaType javaType = (IJavaType) IGosuClass.ProxyUtil.getProxiedType( gsClass );
+    return getFieldType( name, javaType );
+  }
+
+  private IRType getFieldType( String name, IJavaType javaType )
+  {
+    javaType = (IJavaType)TypeLord.getDefaultParameterizedType( javaType );
+    JavaFieldPropertyInfo jpi = (JavaFieldPropertyInfo)((IRelativeTypeInfo)javaType.getTypeInfo()).getProperty( javaType, name );
+    if( javaType != jpi.getOwnersType() )
+    {
+      return getFieldType( name, (IJavaType)jpi.getOwnersType() );
+    }
+    return IRTypeResolver.getDescriptor( jpi.getFeatureType() );
   }
 
   protected String resolveFieldName( IType owner, String name )

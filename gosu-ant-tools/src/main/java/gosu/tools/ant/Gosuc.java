@@ -1,6 +1,7 @@
 package gosu.tools.ant;
 
 import gosu.tools.ant.util.AntLoggingHelper;
+import gw.lang.gosuc.GosucUtil;
 import gw.lang.gosuc.simple.ICompilerDriver;
 import gw.lang.gosuc.simple.IGosuCompiler;
 import gw.lang.gosuc.simple.SoutCompilerDriver;
@@ -13,15 +14,11 @@ import org.apache.tools.ant.util.GlobPatternMapper;
 import org.apache.tools.ant.util.SourceFileScanner;
 
 import java.io.File;
-import java.io.IOException;
-import java.nio.file.FileSystems;
-import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * Ant task for compiling Gosu files to disk.
@@ -285,7 +282,7 @@ public class Gosuc extends GosuMatchingTask {
 
     List<String> classpath = new ArrayList<>();
     classpath.addAll(Arrays.asList(_compileClasspath.list()));
-    classpath.addAll(getJreJars());
+    classpath.addAll( GosucUtil.getJreJars());
 
     String startupMsg = "Initializing Gosu compiler";
     if(!getProjectName().isEmpty()) {
@@ -387,24 +384,5 @@ public class Gosuc extends GosuMatchingTask {
       }
     }
     
-  }
-
-  /**
-   * Get all JARs from the lib directory of the System's java.home property
-   * @return List of absolute paths to all JRE libraries
-   */
-  private List<String> getJreJars() {
-    String javaHome = System.getProperty("java.home");
-    java.nio.file.Path libsDir = FileSystems.getDefault().getPath(javaHome, "/lib");
-    try {
-      return Files.walk(libsDir)
-          .filter( path -> path.toFile().isFile())
-          .filter( path -> path.toString().endsWith(".jar"))
-          .map( java.nio.file.Path::toString )
-          .collect(Collectors.toList());
-    } catch (SecurityException | IOException e) {
-      e.printStackTrace();
-      throw new RuntimeException(e);
-    }
   }
 }

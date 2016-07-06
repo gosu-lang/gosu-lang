@@ -16,8 +16,6 @@ import java.beans.PropertyVetoException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.security.AccessController;
-import java.security.PrivilegedAction;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -26,7 +24,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
-import java.util.WeakHashMap;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -36,9 +33,8 @@ import java.util.concurrent.ConcurrentHashMap;
 public class NewIntrospector
 {
   // Static Caches to speed up introspection.
-  private static final Map DECLARED_METHOD_CACHE = new WeakHashMap( 100 );
-  private static final Object DECLARED_METHODS_LOCK = new Object();
-  private static final ConcurrentHashMap<Class, GenericBeanInfo> BEAN_INFO_CACHE = new ConcurrentHashMap<Class, GenericBeanInfo>();
+  private static final Map<Class, Method[]> DECLARED_METHOD_CACHE = new ConcurrentHashMap<>();
+  private static final Map<Class, GenericBeanInfo> BEAN_INFO_CACHE = new ConcurrentHashMap<>();
 
   private static final String GET_PREFIX = "get";
   private static final String SET_PREFIX = "set";
@@ -47,38 +43,27 @@ public class NewIntrospector
   private Class beanClass;
 
   // Methods maps from Method objects to MethodDescriptors
-  private Map<String, GWMethodDescriptor> methods = new LinkedHashMap<String, GWMethodDescriptor>();
+  private Map<String, GWMethodDescriptor> methods = new LinkedHashMap<>();
 
   // properties maps from String names to PropertyDescriptors
-  private Map<String, PropertyDescriptor> properties = new TreeMap<String, PropertyDescriptor>();
+  private Map<String, PropertyDescriptor> properties = new TreeMap<>();
 
   private HashMap<String, List<PropertyDescriptor>> pdStore;
 
-  private static LockingLazyVar<DeclaredMethodsAccessor> _declaredMethodsAccessor = new LockingLazyVar<DeclaredMethodsAccessor>() {
-    @Override
-    protected DeclaredMethodsAccessor init() {
-      Method result = (Method)AccessController.doPrivileged( new PrivilegedAction()
-      {
-        public Object run()
+  private static LockingLazyVar<DeclaredMethodsAccessor> _declaredMethodsAccessor =
+    new LockingLazyVar<DeclaredMethodsAccessor>() {
+      protected DeclaredMethodsAccessor init() {
+        try
         {
-          try
-          {
-            return Class.class.getDeclaredMethod( "privateGetDeclaredMethods", boolean.class );
-          }
-          catch( Exception e )
-          {
-            return null;
-          }
+          Method method = Class.class.getDeclaredMethod( "privateGetDeclaredMethods", boolean.class );
+          return new PrivateGetDeclaredMethodsAccessor( method );
         }
-      });
-      if( result != null ) {
-        return new PrivateGetDeclaredMethodsAccessor( result );
+        catch( Exception e )
+        {
+          return new PublicGetDeclaredMethodsAccessor();
+        }
       }
-      else {
-        return new PublicGetDeclaredMethodsAccessor();
-      }
-    }
-  };
+    };
 
   /**
    * Introspect on a Java bean and learn all about its properties, exposed
@@ -596,16 +581,11 @@ public class NewIntrospector
       return clz.getDeclaredMethods();
     }
 
-    // Looking up Class.getDeclaredMethods is relatively expensive,
-    // so we cache the results.
-    Method[] result;
-    final Class fclz = clz;
-    synchronized (DECLARED_METHODS_LOCK) {     
-      result = (Method[])DECLARED_METHOD_CACHE.get( fclz );
-      if( result != null )
-      {
-        return result;
-      }
+    // Looking up Class.getDeclaredMethods is relatively expensive, so we cache the results.
+    Method[] result = DECLARED_METHOD_CACHE.get( clz );
+    if( result != null )
+    {
+      return result;
     }
 
     result = _declaredMethodsAccessor.get().getDeclaredMethods(clz);
@@ -626,9 +606,7 @@ public class NewIntrospector
     });
 
     // Add it to the cache.
-    synchronized (DECLARED_METHODS_LOCK) {
-      DECLARED_METHOD_CACHE.put( fclz, result );
-    }
+    DECLARED_METHOD_CACHE.put( clz, result );
     return result;
   }
 

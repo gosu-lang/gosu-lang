@@ -15,12 +15,12 @@
     <dependency>
       <groupId>org.gosu-lang.gosu</groupId>
       <artifactId>gosu-test-api</artifactId>
-      <version>1-lab-SNAPSHOT</version>
+      <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>org.gosu-lang.gosu</groupId>
       <artifactId>gosu-core</artifactId>
-      <version>1-lab-SNAPSHOT</version>
+      <version>${project.version}</version>
     </dependency>
   </dependencies>
 
@@ -63,7 +63,7 @@
           <dependency>
             <groupId>org.gosu-lang.gosu</groupId>
             <artifactId>gosu-maven-compiler</artifactId>
-            <version>1-lab-SNAPSHOT</version>
+            <version>${project.version}</version>
           </dependency>
         </dependencies>
       </plugin>

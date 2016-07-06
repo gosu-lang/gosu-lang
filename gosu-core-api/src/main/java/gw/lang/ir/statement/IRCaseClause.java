@@ -14,10 +14,12 @@ import java.util.List;
 public class IRCaseClause {
   private IRExpression _condition;
   private List<IRStatement> _statements;
+  private int _constValue;
 
-  public IRCaseClause(IRExpression condition, List<IRStatement> statements) {
+  public IRCaseClause(IRExpression condition, List<IRStatement> statements, int constValue) {
     _condition = condition;
     _statements = statements;
+    _constValue = constValue;
   }
 
   public IRExpression getCondition() {
@@ -26,5 +28,9 @@ public class IRCaseClause {
 
   public List<IRStatement> getStatements() {
     return _statements;
+  }
+
+  public int getConstValue() {
+    return _constValue;
   }
 }

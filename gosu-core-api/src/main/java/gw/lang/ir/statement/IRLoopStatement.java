@@ -9,6 +9,4 @@ import gw.lang.UnstableAPI;
 @UnstableAPI
 public interface IRLoopStatement
 {
-  public void setImplicitReturnStatement( IRReturnStatement returnStmt );
-  public IRReturnStatement getImplicitReturnStatement();
 }

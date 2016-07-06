@@ -25,7 +25,6 @@ general:
     - "gosu-test/target/site" # preserve the generated HTML test reports
 
 test:
-  # Adds profile to pick up Gosu tests
   override:
     - mvn -B integration-test deploy -s settings.xml
   post:
