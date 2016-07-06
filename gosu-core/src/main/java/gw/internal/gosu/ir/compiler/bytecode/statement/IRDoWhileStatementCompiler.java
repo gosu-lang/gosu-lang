@@ -10,7 +10,6 @@ import gw.internal.gosu.ir.compiler.bytecode.IRBytecodeCompiler;
 import gw.lang.ir.statement.IRDoWhileStatement;
 import gw.internal.ext.org.objectweb.asm.Opcodes;
 import gw.internal.ext.org.objectweb.asm.Label;
-import gw.lang.ir.statement.IRReturnStatement;
 
 public class IRDoWhileStatementCompiler extends AbstractBytecodeCompiler
 {
@@ -25,24 +24,15 @@ public class IRDoWhileStatementCompiler extends AbstractBytecodeCompiler
     context.pushScope();
     try
     {
-      if( doWhileStatement.getLeastSignificantTerminalStatement() != null )
-      {
-        context.visitLabel( conditionLabel );
-        IRBytecodeCompiler.compileIRStatement( doWhileStatement.getBody(), context );
-        context.visitLabel( breakLabel );
-      }
-      else
-      {
-        context.visitLabel( loopBodyStart ); // body start
-        IRBytecodeCompiler.compileIRStatement( doWhileStatement.getBody(), context );
+      context.visitLabel( loopBodyStart ); // body start
+      IRBytecodeCompiler.compileIRStatement( doWhileStatement.getBody(), context );
 
-        context.visitLabel( conditionLabel );
-        context.setLineNumber( doWhileStatement.getLoopTest().getLineNumber() );
-        IRBytecodeCompiler.compileIRExpression( doWhileStatement.getLoopTest(), context );
-        context.getMv().visitJumpInsn( Opcodes.IFNE, loopBodyStart );
+      context.visitLabel( conditionLabel );
+      context.setLineNumber( doWhileStatement.getLoopTest().getLineNumber() );
+      IRBytecodeCompiler.compileIRExpression( doWhileStatement.getLoopTest(), context );
+      context.getMv().visitJumpInsn( Opcodes.IFNE, loopBodyStart );
 
-        context.getMv().visitLabel( breakLabel );
-      }
+      context.getMv().visitLabel( breakLabel );
     }
     finally
     {
