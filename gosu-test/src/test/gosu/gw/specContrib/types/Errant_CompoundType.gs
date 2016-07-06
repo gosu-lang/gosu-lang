@@ -40,16 +40,16 @@ class Errant_CompoundType {
   }
 
   class SuperClass {
-    function foo(): Integer & Comparable {return null}
+    function foo(): Integer & Comparable {return null} //## issuekeys: MSG_INTERFACE_REDUNDANT
   }
 
   class SubClass extends SuperClass {
-    function foo(): Comparable & Integer {return null}
+    override function foo(): Comparable & Integer {return null} //## issuekeys: MSG_INTERFACE_REDUNDANT
   }
 
   function foo() {
-    var v1: Integer & Comparable
-    var v2: Integer & Comparable
+    var v1: Integer & Comparable //## issuekeys: MSG_INTERFACE_REDUNDANT
+    var v2: Integer & Comparable //## issuekeys: MSG_INTERFACE_REDUNDANT
     v1 = v2
     v2 = v1
   }

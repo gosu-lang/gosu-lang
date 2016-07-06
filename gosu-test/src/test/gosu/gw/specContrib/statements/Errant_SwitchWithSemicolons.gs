@@ -6,8 +6,8 @@ class Errant_SwitchWithSemicolons {
     switch(x){
       case(1):
         print(x);
-        ;
-      case(2):
+        ;      // this falls through, so there should be a warning
+      case(2): //## issuekeys: MSG_NONTERMINAL_CASE_CLAUSE
           ;
         break
       default:

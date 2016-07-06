@@ -7,7 +7,7 @@ class Errant_DefaultConstantValue {
   function f2(o : Object[] = {null}) {}
   function f3(o: Object = 1 > 2 ? "t" : "f") {}
   function f4(o: Object = 1 > 2 ? null : null) {}
-  function f5(o: Object =  1 > 2 ? null as Object : null) {}
+  function f5(o: Object =  1 > 2 ? null as Object : null) {} //## issuekeys: MSG_UNNECESSARY_COERCION
 
   //ide-2975
   final var int1: Integer = 43

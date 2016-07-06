@@ -9,13 +9,13 @@ class Errant_ComponentTypeInBound<F extends int & Comparable> {      //## issuek
   class A<T extends int & MyInterface> {}        //## issuekeys: PRIMITIVES ARE NOT ALLOWED IN A COMPONENT TYPE
   class B<T extends Object[] & MyInterface> {}      //## issuekeys: ARRAYS ARE NOT ALLOWED IN A COMPONENT TYPE
   class C<T extends MyInterface & Object[]> {}       //## issuekeys: ARRAYS ARE NOT ALLOWED IN A COMPONENT TYPE
-  class D<T extends int> {
+  class D<T extends int> { //## issuekeys: PRIMITIVES ARE NOT ALLOWED IN A COMPONENT TYPE
     function do1(): T {
       return null
     }
   }
 
-  function test<T extends int & MyInterface>() {      //## issuekeys: PRIMITIVES ARE NOT ALLOWED IN A COMPONENT TYPE
+  function test<T extends int & MyInterface>() { //## issuekeys: PRIMITIVES ARE NOT ALLOWED IN A COMPONENT TYPE
     var i = new D().do1().intValue()
   }
 }

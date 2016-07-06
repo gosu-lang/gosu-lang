@@ -61,10 +61,10 @@ class Errant_LogicalOperatorsTest {
 
     var a5 = "123.0"
     var b5 = new BigDecimal("123.0")
-    r = a5 == b5  //## issuekeys: OPERATOR '==' CANNOT BE APPLIED TO 'JAVA.LANG.STRING', 'JAVA.MATH.BIGDECIMAL'
+    r = a5 == b5  //## issuekeys: MSG_IMPLICIT_COERCION_ERROR
     var a51 = "x"
     var b51 = new BigDecimal("123.0")
-    r = a51 == b51  //## issuekeys: OPERATOR '==' CANNOT BE APPLIED TO 'JAVA.LANG.STRING', 'JAVA.MATH.BIGDECIMAL'
+    r = a51 == b51  //## issuekeys: MSG_IMPLICIT_COERCION_ERROR
     var a52 = new BigDecimal("123.0")
     var b52 = new BigDecimal("123.0")
     r = a52 == b52
@@ -80,7 +80,7 @@ class Errant_LogicalOperatorsTest {
     r = a62 == b62
     var a63 = new int[] {1,3}
     var b63 = new short[] {1,3}
-    r = a63 == b63  //## issuekeys: OPERATOR '==' CANNOT BE APPLIED TO 'INT[]', 'SHORT[]'
+    r = a63 == b63  //## issuekeys: MSG_TYPE_MISMATCH
 
     var a7 : ArrayList<Integer> = {1,2,3}
     var b7 : ArrayList<Integer> = {1,2,3}
@@ -98,23 +98,23 @@ class Errant_LogicalOperatorsTest {
     var b74 : List<java.lang.Number> = new LinkedList<java.lang.Number>() {1,2}
     r = a74 == b74
     var b75 = new int[] {1,2,3}
-    r = a7 == b75  //## issuekeys: OPERATOR '==' CANNOT BE APPLIED TO 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.INTEGER>', 'INT[]'
+    r = a7 == b75  //## issuekeys: MSG_TYPE_MISMATCH
     var a76 : int = 8
     var b76 : boolean = true
-    r = a76 == b76  //## issuekeys: OPERATOR '==' CANNOT BE APPLIED TO 'INT', 'BOOLEAN'
+    r = a76 == b76  //## issuekeys: MSG_IMPLICIT_COERCION_ERROR
     var a77 : int = 8
     var b77 : Object
     r = a77 == b77  //## issuekeys: MSG_ASYMMETRICAL_COMPARISON
     var a78 : int = 8
     var b78 : String = "hello"
-    r = a78 == b78  //## issuekeys: OPERATOR '==' CANNOT BE APPLIED TO 'INT', 'JAVA.LANG.STRING'
+    r = a78 == b78  //## issuekeys: MSG_IMPLICIT_COERCION_ERROR
     var a79 : int = 8
     var b79 : K
-    r = a79 == b79  //## issuekeys: OPERATOR '==' CANNOT BE APPLIED TO 'INT', 'GW.SPECIFICATION.EXPRESSIONS.LOGICALOPERATORS.AERRANT_LOGICALOPERATORSTEST.K'
+    r = a79 == b79  //## issuekeys: MSG_TYPE_MISMATCH
     var a80 : K
     var b80 : Object
     r = a80 == b80
-    r =  {1->4, 5->6} != {1, 2, 3}  //## issuekeys: EXPECTED '->' AFTER MAP KEY
+    r =  {1->4, 5->6} != {1, 2, 3}  //## issuekeys: MSG_TYPE_MISMATCH
   }
 
   function testIdentityOperator() {
@@ -141,8 +141,8 @@ class Errant_LogicalOperatorsTest {
     var b2 : Integer = 1
     r = a2 === b2
 
-    r = a2 === 1  //## issuekeys: OPERATOR '===' CANNOT BE APPLIED TO 'JAVA.LANG.INTEGER', 'INT'
-    r = 1 ===1  //## issuekeys: OPERATOR '===' CANNOT BE APPLIED TO 'INT', 'INT'
+    r = a2 === 1  //## issuekeys: MSG_PRIMITIVES_NOT_ALLOWED_HERE
+    r = 1 ===1  //## issuekeys: MSG_PRIMITIVES_NOT_ALLOWED_HERE
   }
 
   function testLogicalAndOrNot() {
@@ -166,10 +166,10 @@ class Errant_LogicalOperatorsTest {
     r = !setX(1, true)
     r = !setX(1, false)
     var y0 = (4 > 3) && ("string" == "hello")
-    var y1 = 8 || "hello"      //## issuekeys: OPERATOR '||' CANNOT BE APPLIED TO 'INT', 'JAVA.LANG.STRING'
-    var y2 = !false || !2       //## issuekeys: OPERATOR '!' CANNOT BE APPLIED TO 'INT'
+    var y1 = 8 || "hello"      //## issuekeys: MSG_IMPLICIT_COERCION_ERROR,MSG_IMPLICIT_COERCION_ERROR
+    var y2 = !false || !2       //## issuekeys: MSG_TYPE_MISMATCH
     var y3 = true or false
-    var y4 = true and 5  //## issuekeys: OPERATOR 'AND' CANNOT BE APPLIED TO 'BOOLEAN', 'INT'
+    var y4 = true and 5  //## issuekeys: MSG_IMPLICIT_COERCION_ERROR
     var y5 = !not true
   }
 }
