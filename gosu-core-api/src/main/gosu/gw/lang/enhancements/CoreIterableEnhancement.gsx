@@ -563,7 +563,7 @@ enhancement CoreIterableEnhancement<T> : java.lang.Iterable<T> {
    * takes two lists and returns a list of corresponding <code>gw.util.Pair</code>s.
    * If one input list is short, excess elements of the longer list are discarded.
    */
-  function zip<R>( other : Iterable<R>) : Iterable<Pair<T,R>> {
+  function zip<R>( other : Iterable<R>) : List<Pair<T,R>> {
     if (other == null) {
       throw new NullPointerException("other should be non-null")
     }

@@ -94,7 +94,7 @@ class CoreIterableEnhancementTest extends TestClass {
     var thatIterable : Iterable<String> = new ArrayList<String>()
 
     // when
-    var result : Iterable<Pair<Integer, String>> = thisIterable.zip(thatIterable);
+    var result : List<Pair<Integer, String>> = thisIterable.zip(thatIterable);
 
     // then
     assertNotNull(result)
@@ -107,7 +107,7 @@ class CoreIterableEnhancementTest extends TestClass {
     var thatIterable : Iterable<String> = new ArrayList<String>(){"a", "b", "c"}
 
     // when
-    var result : Iterable<Pair<Integer, String>> = thisIterable.zip(thatIterable);
+    var result : List<Pair<Integer, String>> = thisIterable.zip(thatIterable);
 
     // then
     assertNotNull(result)
@@ -122,7 +122,7 @@ class CoreIterableEnhancementTest extends TestClass {
     // when
     var hasThrown = false
     try {
-      var result : Iterable<Pair<Integer, String>> = thisIterable.zip(thatIterable);
+     thisIterable.zip(thatIterable);
     } catch (e : NullPointerException) {
       hasThrown = true
     }
@@ -138,10 +138,9 @@ class CoreIterableEnhancementTest extends TestClass {
     var thatIterable : Iterable<Integer> = 1..thisIterable.Count
 
     // when
-    var zipped = thisIterable.zip(thatIterable)
+    var zippedList = thisIterable.zip(thatIterable)
 
     // then
-    var zippedList = zipped.toList()
     assertEquals(thisIterable.Count, zippedList.Count)
 
     assertEquals("foo", zippedList.get(0).First)
@@ -168,10 +167,9 @@ class CoreIterableEnhancementTest extends TestClass {
     var thatIterable : Iterable<Integer> = 1..100
 
     // when
-    var zipped = thisIterable.zip(thatIterable)
+    var zippedList = thisIterable.zip(thatIterable)
 
     // then
-    var zippedList = zipped.toList()
     assertEquals(thisIterable.Count, zippedList.Count)
 
     assertEquals("foo", zippedList.get(0).First)
@@ -190,10 +188,9 @@ class CoreIterableEnhancementTest extends TestClass {
     var thatIterable : Iterable<Integer> = 1..3
 
     // when
-    var zipped = thisIterable.zip(thatIterable)
+    var zippedList = thisIterable.zip(thatIterable)
 
     // then
-    var zippedList = zipped.toList()
     assertEquals(thatIterable.Count, zippedList.Count)
 
     assertEquals("foo", zippedList.get(0).First)
