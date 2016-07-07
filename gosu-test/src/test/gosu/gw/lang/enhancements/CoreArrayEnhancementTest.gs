@@ -1,6 +1,7 @@
 package gw.lang.enhancements
 
 uses gw.test.TestClass
+uses gw.util.Pair
 uses java.lang.Integer
 uses java.math.BigDecimal
 uses java.lang.Short
@@ -229,8 +230,118 @@ class CoreArrayEnhancementTest extends TestClass {
       // Expected
     }  
   }
-  
-  static class TestClass {
+
+  function testZipShouldReturnEmptyArrayWhenThatArrayEmpty() {
+    // given
+    var thisArray : Integer[] = {1,2,3,4,5}
+    var thatArray : String[] = {}
+
+    // when
+    var result : Pair<Integer, String>[] = thisArray.zip(thatArray)
+
+    // then
+    assertTrue(result.IsEmpty)
+  }
+
+  function testZipShouldReturnEmptyArrayWhenThisArrayEmpty() {
+    // given
+    var thisArray : Integer[] = {}
+    var thatArray : String[] = {"foo", "bar", "baz"}
+
+    // when
+    var result : Pair<Integer, String>[] = thisArray.zip(thatArray)
+
+    // then
+    assertTrue(result.IsEmpty)
+  }
+
+  function testZipShouldReturnNullPointerWhenThatArrayIsNull() {
+    // given
+    var thisArray : Integer[] = {1, 2, 3}
+    var thatArray : String[] = null
+
+    // when
+    var hasThrown = false
+    try {
+      var result : Pair<Integer, String>[] = thisArray.zip(thatArray);
+    } catch (e : NullPointerException) {
+      hasThrown = true
+    }
+
+    // then
+    assertTrue(hasThrown)
+  }
+
+  function testZipShouldCreateArrayOfPairsWithAllElementsWhenBothArraysOfEqualLength() {
+    // given
+    var thisArray : String[] = {"foo", "bar", "baz", "foobar", "barfoo", "barbaz", "bazbar"}
+    var thatArray : Integer[] = {1,2,3,4,5,6,7}
+
+    // when
+    var zipped = thisArray.zip(thatArray)
+
+    // then
+    assertEquals(thisArray.length, zipped.length)
+
+    assertEquals("foo", zipped[0].First)
+    assertEquals("bar", zipped[1].First)
+    assertEquals("baz", zipped[2].First)
+    assertEquals("foobar", zipped[3].First)
+    assertEquals("barfoo", zipped[4].First)
+    assertEquals("barbaz", zipped[5].First)
+    assertEquals("bazbar", zipped[6].First)
+
+    assertEquals(1, zipped[0].Second)
+    assertEquals(2, zipped[1].Second)
+    assertEquals(3, zipped[2].Second)
+    assertEquals(4, zipped[3].Second)
+    assertEquals(5, zipped[4].Second)
+    assertEquals(6, zipped[5].Second)
+    assertEquals(7, zipped[6].Second)
+  }
+
+  function testZipShouldCreateArrayOfPairsTheLengthOfThisArrayWhereIsShorter() {
+    // given
+    var thisArray : String[] = {"foo", "bar", "baz", "foobar", "barfoo", "barbaz", "bazbar"}
+    var thatArray : Integer[] = {1,2,3}
+
+    // when
+    var zipped = thisArray.zip(thatArray)
+
+    // then
+    assertEquals(thatArray.length, zipped.length)
+
+    assertEquals("foo", zipped[0].First)
+    assertEquals("bar", zipped[1].First)
+    assertEquals("baz", zipped[2].First)
+
+    assertEquals(1, zipped[0].Second)
+    assertEquals(2, zipped[1].Second)
+    assertEquals(3, zipped[2].Second)
+  }
+
+  function testZipShouldCreateArrayOfPairsTheLengthOfThatArrayWhereIsShorter() {
+    // given
+    var thisArray : String[] = {"foo", "bar", "baz"}
+    var thatArray : Integer[] = {1,2,3,4,5,6,7}
+
+    // when
+    var zipped = thisArray.zip(thatArray)
+
+    // then
+    assertEquals(thisArray.length, zipped.length)
+
+    assertEquals("foo", zipped[0].First)
+    assertEquals("bar", zipped[1].First)
+    assertEquals("baz", zipped[2].First)
+
+    assertEquals(1, zipped[0].Second)
+    assertEquals(2, zipped[1].Second)
+    assertEquals(3, zipped[2].Second)
+  }
+
+
+    static class TestClass {
     var _value : String as Value
     
     construct(valueArg : String) {
