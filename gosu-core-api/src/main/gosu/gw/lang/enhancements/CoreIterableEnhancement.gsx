@@ -568,8 +568,7 @@ enhancement CoreIterableEnhancement<T> : java.lang.Iterable<T> {
       throw new NullPointerException("other should be non-null")
     }
 
-    var zippedLength = this.Count < other.Count ? this.Count : other.Count
-    var zipped = new ArrayList<Pair<T,R>>(zippedLength)
+    var zipped = new LinkedList<Pair<T,R>>()
 
     var thisIterator = this.iterator()
     var otherIterator = other.iterator()
