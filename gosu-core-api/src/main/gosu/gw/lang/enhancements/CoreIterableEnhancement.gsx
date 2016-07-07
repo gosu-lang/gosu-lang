@@ -15,7 +15,6 @@ uses java.util.Map
 uses java.util.HashMap
 uses java.util.Collections
 
-
 /*
  *  Copyright 2014 Guidewire Software, Inc.
  */

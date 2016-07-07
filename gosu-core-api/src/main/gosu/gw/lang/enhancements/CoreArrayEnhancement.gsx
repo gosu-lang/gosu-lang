@@ -6,7 +6,6 @@ uses gw.util.IOrderedList
 uses java.math.BigDecimal
 uses gw.util.GosuObjectUtil
 uses gw.util.Pair
-
 uses java.lang.System
 uses java.lang.ArrayStoreException
 
