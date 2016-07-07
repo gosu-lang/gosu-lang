@@ -1,6 +1,7 @@
 package gw.lang.enhancements
 
 uses gw.test.TestClass
+uses gw.util.Pair
 uses java.lang.Iterable
 uses java.lang.Integer
 uses java.lang.IllegalStateException
@@ -86,5 +87,122 @@ class CoreIterableEnhancementTest extends TestClass {
     assertTrue( hasThrown )
 
   }
-  
+
+  function testZipShouldReturnEmptyListWhenThatIterableEmpty() {
+    // given
+    var thisIterable : Iterable<Integer> = new ArrayList<Integer>(){1, 2, 3}
+    var thatIterable : Iterable<String> = new ArrayList<String>()
+
+    // when
+    var result : Iterable<Pair<Integer, String>> = thisIterable.zip(thatIterable);
+
+    // then
+    assertNotNull(result)
+    assertEquals(0, result.Count)
+  }
+
+  function testZipShouldReturnEmptyListWhenThisIterableEmpty() {
+    // given
+    var thisIterable : Iterable<Integer> = new ArrayList<Integer>()
+    var thatIterable : Iterable<String> = new ArrayList<String>(){"a", "b", "c"}
+
+    // when
+    var result : Iterable<Pair<Integer, String>> = thisIterable.zip(thatIterable);
+
+    // then
+    assertNotNull(result)
+    assertEquals(0, result.Count)
+  }
+
+  function testZipShouldReturnNullPointerWhenThatIterableIsNull() {
+    // given
+    var thisIterable : Iterable<Integer> = new ArrayList<Integer>(){1, 2, 3}
+    var thatIterable : Iterable<String> = null
+
+    // when
+    var hasThrown = false
+    try {
+      var result : Iterable<Pair<Integer, String>> = thisIterable.zip(thatIterable);
+    } catch (e : NullPointerException) {
+      hasThrown = true
+    }
+
+    // then
+    assertTrue(hasThrown)
+  }
+
+  function testZipShouldCreateIterableOfPairsWithAllElementsWhenBothIterablesOfEqualLength() {
+    // given
+    var thisIterable : Iterable<String> =
+        new ArrayList<String>(){"foo", "bar", "baz", "foobar", "barfoo", "barbaz", "bazbar"}
+    var thatIterable : Iterable<Integer> = 1..thisIterable.Count
+
+    // when
+    var zipped = thisIterable.zip(thatIterable)
+
+    // then
+    var zippedList = zipped.toList()
+    assertEquals(thisIterable.Count, zippedList.Count)
+
+    assertEquals("foo", zippedList.get(0).First)
+    assertEquals("bar", zippedList.get(1).First)
+    assertEquals("baz", zippedList.get(2).First)
+    assertEquals("foobar", zippedList.get(3).First)
+    assertEquals("barfoo", zippedList.get(4).First)
+    assertEquals("barbaz", zippedList.get(5).First)
+    assertEquals("bazbar", zippedList.get(6).First)
+
+    assertEquals(1, zippedList.get(0).Second)
+    assertEquals(2, zippedList.get(1).Second)
+    assertEquals(3, zippedList.get(2).Second)
+    assertEquals(4, zippedList.get(3).Second)
+    assertEquals(5, zippedList.get(4).Second)
+    assertEquals(6, zippedList.get(5).Second)
+    assertEquals(7, zippedList.get(6).Second)
+  }
+
+  function testZipShouldCreateIterableOfPairsTheLengthOfThisIterableWhereIsShorter() {
+    // given
+    var thisIterable : Iterable<String> =
+        new ArrayList<String>(){"foo", "bar", "baz"}
+    var thatIterable : Iterable<Integer> = 1..100
+
+    // when
+    var zipped = thisIterable.zip(thatIterable)
+
+    // then
+    var zippedList = zipped.toList()
+    assertEquals(thisIterable.Count, zippedList.Count)
+
+    assertEquals("foo", zippedList.get(0).First)
+    assertEquals("bar", zippedList.get(1).First)
+    assertEquals("baz", zippedList.get(2).First)
+
+    assertEquals(1, zippedList.get(0).Second)
+    assertEquals(2, zippedList.get(1).Second)
+    assertEquals(3, zippedList.get(2).Second)
+  }
+
+  function testZipShouldCreateIterableOfPairsTheLengthOfThatIterableWhereIsShorter() {
+    // given
+    var thisIterable : Iterable<String> =
+        new ArrayList<String>(){"foo", "bar", "baz", "foobar", "barfoo", "barbaz", "bazbar"}
+    var thatIterable : Iterable<Integer> = 1..3
+
+    // when
+    var zipped = thisIterable.zip(thatIterable)
+
+    // then
+    var zippedList = zipped.toList()
+    assertEquals(thatIterable.Count, zippedList.Count)
+
+    assertEquals("foo", zippedList.get(0).First)
+    assertEquals("bar", zippedList.get(1).First)
+    assertEquals("baz", zippedList.get(2).First)
+
+    assertEquals(1, zippedList.get(0).Second)
+    assertEquals(2, zippedList.get(1).Second)
+    assertEquals(3, zippedList.get(2).Second)
+  }
+
 }

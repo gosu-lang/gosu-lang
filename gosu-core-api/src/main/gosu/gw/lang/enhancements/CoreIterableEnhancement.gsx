@@ -1,5 +1,6 @@
 package gw.lang.enhancements
 
+uses gw.util.Pair
 uses java.util.Collection
 uses java.lang.Iterable
 uses java.util.ArrayList
@@ -13,6 +14,7 @@ uses java.lang.Comparable
 uses java.util.Map
 uses java.util.HashMap
 uses java.util.Collections
+
 
 /*
  *  Copyright 2014 Guidewire Software, Inc.
@@ -556,5 +558,26 @@ enhancement CoreIterableEnhancement<T> : java.lang.Iterable<T> {
       }
     }
     return retList
+  }
+
+  /**
+   * takes two lists and returns a list of corresponding <code>gw.util.Pair</code>s.
+   * If one input list is short, excess elements of the longer list are discarded.
+   */
+  function zip<R>( other : Iterable<R>) : Iterable<Pair<T,R>> {
+    if (other == null) {
+      throw new NullPointerException("other should be non-null")
+    }
+
+    var zippedLength = this.Count < other.Count ? this.Count : other.Count
+    var zipped = new ArrayList<Pair<T,R>>(zippedLength)
+
+    var thisIterator = this.iterator()
+    var otherIterator = other.iterator()
+    while (thisIterator.hasNext() and otherIterator.hasNext()) {
+      zipped.add(Pair.make(thisIterator.next(), otherIterator.next()))
+    }
+
+    return zipped
   }
 }
