@@ -7,6 +7,7 @@ package gw.internal.gosu.parser;
 import gw.lang.SimplePropertyProcessing;
 import gw.lang.reflect.ImplicitPropertyUtil;
 import gw.lang.reflect.gs.IGosuObject;
+import gw.util.concurrent.ConcurrentWeakHashMap;
 import gw.util.concurrent.LockingLazyVar;
 
 import java.beans.BeanDescriptor;
@@ -33,7 +34,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class NewIntrospector
 {
   // Static Caches to speed up introspection.
-  private static final Map<Class, Method[]> DECLARED_METHOD_CACHE = new ConcurrentHashMap<>();
+  private static final Map<Class, Method[]> DECLARED_METHOD_CACHE = new ConcurrentWeakHashMap<>( 100 );
   private static final Map<Class, GenericBeanInfo> BEAN_INFO_CACHE = new ConcurrentHashMap<>();
 
   private static final String GET_PREFIX = "get";
