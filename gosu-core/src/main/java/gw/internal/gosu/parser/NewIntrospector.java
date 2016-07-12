@@ -6,7 +6,6 @@ package gw.internal.gosu.parser;
 
 import gw.lang.SimplePropertyProcessing;
 import gw.lang.reflect.ImplicitPropertyUtil;
-import gw.lang.reflect.gs.IGosuObject;
 import gw.util.concurrent.ConcurrentWeakHashMap;
 import gw.util.concurrent.LockingLazyVar;
 
@@ -577,11 +576,6 @@ public class NewIntrospector
 
   public static Method[] getDeclaredMethods( Class clz )
   {
-    // For anything within the GosuClassLoader, we want to make sure to 
-    if ( IGosuObject.class.isAssignableFrom( clz ) ) {
-      return clz.getDeclaredMethods();
-    }
-
     // Looking up Class.getDeclaredMethods is relatively expensive, so we cache the results.
     Method[] result = DECLARED_METHOD_CACHE.get( clz );
     if( result != null )
