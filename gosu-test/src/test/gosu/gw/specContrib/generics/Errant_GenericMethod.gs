@@ -18,4 +18,11 @@ class Errant_GenericMethod {
     // IDE-1838
     foo(a, d)
   }
+
+  // IDE-2285
+  function foo<U>(o: Object): U {
+    var r = o != null ? foo(null) : null
+    return r      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.LANG.OBJECT', REQUIRED: 'U'
+  }
+
 }

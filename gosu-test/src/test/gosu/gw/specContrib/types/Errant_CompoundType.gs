@@ -36,7 +36,22 @@ class Errant_CompoundType {
   interface foo {}
   function testCompoundTypes() {
     var param: java.lang.Comparable<java.lang.Integer> & foo
-    var q1 = param < 11000  //## issuekeys: MSG_
+    var q1 = param < 11000      //## issuekeys: This is error now. Because of dimensions change. Dimensions cannot be compared to dimensionless types
+  }
+
+  class SuperClass {
+    function foo(): Integer & Comparable {return null} //## issuekeys: MSG_INTERFACE_REDUNDANT
+  }
+
+  class SubClass extends SuperClass {
+    override function foo(): Comparable & Integer {return null} //## issuekeys: MSG_INTERFACE_REDUNDANT
+  }
+
+  function foo() {
+    var v1: Integer & Comparable //## issuekeys: MSG_INTERFACE_REDUNDANT
+    var v2: Integer & Comparable //## issuekeys: MSG_INTERFACE_REDUNDANT
+    v1 = v2
+    v2 = v1
   }
 
 }

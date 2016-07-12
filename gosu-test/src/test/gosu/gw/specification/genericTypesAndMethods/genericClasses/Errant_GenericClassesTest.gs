@@ -44,11 +44,16 @@ class Errant_GenericClassesTest {
   static class sV<T, U> {}
   static class sV<U> {}  //## issuekeys: MSG_DUPLICATE_CLASS_FOUND, MSG_DUPLICATE_CLASS_FOUND
 
-  static class SameSignature<U, V> {
+  static class SameSignature1<U, V> {
     function m(a : U) {}
-    function m(a : V) {}  //## issuekeys: MSG_METHOD_REIFIES_TO_SAME_SIGNATURE_AS_ANOTHER_METHOD
     function m(a : U) {}  //## issuekeys: MSG_FUNCTION_ALREADY_DEFINED
   }
+
+  static class SameSignature2<U, V> {
+    function m(a : U) {}
+    function m(a : V) {}  //## issuekeys: MSG_METHOD_REIFIES_TO_SAME_SIGNATURE_AS_ANOTHER_METHOD
+  }
+
   function testAccessibility() {
     new X<String>()  //## issuekeys: MSG_CTOR_HAS_XXX_ACCESS, MSG_TYPE_HAS_XXX_ACCESS
     new X<X>()  //## issuekeys: MSG_CTOR_HAS_XXX_ACCESS, MSG_TYPE_HAS_XXX_ACCESS, MSG_TYPE_HAS_XXX_ACCESS
