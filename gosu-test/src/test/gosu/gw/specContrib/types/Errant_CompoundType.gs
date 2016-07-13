@@ -7,6 +7,9 @@ class Errant_CompoundType {
 
   var bad1 : int & java.lang.Runnable //## issuekeys: MSG_NO_PRIMITIVE_IN_COMPONENT_TYPE
   var bad2 : String[] & java.lang.Runnable //## issuekeys: MSG_NO_ARRAY_IN_COMPONENT_TYPE
+  var good1: CharSequence & Runnable[] // this is an array of CharSequence & Runnable
+  var good2: Runnable & String[] // this is an array of Runnable & String
+  var good3: Runnable & String[][] // this is an 2D array of Runnable & String
 
   class Type1 {}
   class Type2 {}
@@ -31,6 +34,19 @@ class Errant_CompoundType {
   function testCompoundAndDynamic() {
     var v1: java.io.Serializable & dynamic.Dynamic  //## issuekeys: MSG_INTERFACE_REDUNDANT
     var v2: java.io.Serializable = v1
+  }
+
+  function testArrays() {
+    var empty = good1.IsEmpty
+    var array1: Object[] = good1
+    var array2: Object[][] = good1  //## issuekeys: MSG_TYPE_MISMATCH
+    var array3: Object[][] = good3
+
+    var test1: Runnable & CharSequence[] = good1
+    var test2: CharSequence & Runnable[] = good1
+    var test3: Runnable & CharSequence[] = good2
+    var test33: Runnable & CharSequence[] = good3  //## issuekeys: MSG_TYPE_MISMATCH
+    var test4: Runnable & CharSequence[] = good4  //## issuekeys: MSG_TYPE_MISMATCH
   }
 
   interface foo {}

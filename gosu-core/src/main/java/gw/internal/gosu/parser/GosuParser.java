@@ -8932,12 +8932,12 @@ public final class GosuParser extends ParserBase implements IGosuParser
       {
         break;
       }
-      _parseTypeLiteral( getTokenizer().getCurrentToken(), false, bInterface );
+      _parseTypeLiteral( getTokenizer().getCurrentToken(), true, bInterface );
     }
     verify( typeLiteral, types.size() > 1, Res.MSG_AGGREGATES_MUST_CONTAIN_MORE );
     verify( typeLiteral, !(typeLiteralComponent.getType().getType() instanceof TypeVariableType), Res.MSG_ONLY_ONE_TYPE_VARIABLE );
-
     typeLiteral.setType( CompoundType.get( new HashSet<IType>( types ) ) );
+    parseArrayType( typeLiteral );
     pushExpression( typeLiteral );
   }
 
