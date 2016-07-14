@@ -6,7 +6,6 @@ package gw.internal.gosu.parser;
 
 import gw.fs.IDirectory;
 import gw.fs.IFile;
-import gw.fs.IFileUtil;
 import gw.internal.gosu.parser.FileSystemGosuClassRepository.ClassFileInfo;
 import gw.lang.parser.IFileRepositoryBasedType;
 import gw.lang.reflect.IType;
@@ -198,14 +197,27 @@ class PackageToClassPathEntryTreeMap
   private IFile getFileMatchCase( IDirectory dir, String strFileName ) {
     if (dir.hasChildFile(strFileName)) {
       IFile file = dir.file( strFileName );
-      if (IFileUtil.getBaseName( strFileName ).equals( file.getBaseName() )) {
-        return file;
-      } else {
-        return null;
+      try
+      {
+        if( doesFileMatchCase( strFileName, file ) ) {
+          return file;
+        } else {
+          return null;
+        }
+      }
+      catch( IOException e )
+      {
+        throw new RuntimeException( e );
       }
     } else {
       return null;
     }
+  }
+
+  private boolean doesFileMatchCase( String strFileName, IFile file ) throws IOException
+  {
+    // This is primarily for Windows where the file system is case-insensitive
+    return !file.isJavaFile() || file.toJavaFile().getCanonicalPath().endsWith( strFileName );
   }
 
   private IDirectory getDir(IFileSystemGosuClassRepository.ClassPathEntry root) {
