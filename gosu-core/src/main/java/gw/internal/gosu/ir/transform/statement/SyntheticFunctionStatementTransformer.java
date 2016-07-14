@@ -36,8 +36,11 @@ import gw.lang.ir.statement.IRReturnStatement;
 import gw.lang.parser.ISymbol;
 import gw.lang.parser.StandardSymbolTable;
 import gw.lang.reflect.FunctionType;
+import gw.lang.reflect.IFunctionType;
 import gw.lang.reflect.IParameterInfo;
+import gw.lang.reflect.IType;
 import gw.lang.reflect.TypeSystem;
+import gw.lang.reflect.gs.IGenericTypeVariable;
 import gw.lang.reflect.java.JavaTypes;
 
 import java.util.ArrayList;
@@ -256,8 +259,7 @@ public class SyntheticFunctionStatementTransformer extends AbstractStatementTran
       methodCall.setRootExpression( id );
       methodCall.setMethodDescriptor( delegateSymbol.getMi() );
       methodCall.setType( delegateSymbol.getReturnType() );
-      // PL-21982
-      methodCall.setFunctionType( new FunctionType(delegateSymbol.getMi()));
+      methodCall.setFunctionType( getDelegateFunctionType( delegateSymbol ) );
 
       Expression[] args = new Expression[delegateSymbol.getArgs().size()];
       for( int i = 0; i < delegateSymbol.getArgs().size(); i++ )
@@ -282,5 +284,25 @@ public class SyntheticFunctionStatementTransformer extends AbstractStatementTran
         return BeanMethodCallStatementTransformer.compile( _cc(), methodCallStatement );
       }
     }
+  }
+
+  private IFunctionType getDelegateFunctionType( DelegateFunctionSymbol delegateSymbol )
+  {
+    IFunctionType functionType = new FunctionType( delegateSymbol.getMi() );
+    if( !functionType.isGenericType() )
+    {
+      return functionType;
+    }
+
+    // If the method is generic, we must parameterize the method call in order to forward the method's type params
+
+    IGenericTypeVariable[] typeVariables = functionType.getGenericTypeVariables();
+    IType[] typeParams = new IType[typeVariables.length];
+    for( int i = 0; i < typeVariables.length; i++ )
+    {
+      IGenericTypeVariable gtv = typeVariables[i];
+      typeParams[i] = gtv.getTypeVariableDefinition().getType();
+    }
+    return (IFunctionType)functionType.getParameterizedType( typeParams );
   }
 }
