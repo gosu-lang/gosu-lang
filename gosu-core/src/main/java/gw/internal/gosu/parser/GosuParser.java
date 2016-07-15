@@ -4312,7 +4312,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
               (!(bNoArgsProvided = match( null, null, ')', true )) ||
                       listConstructorTypes.size() > 0 && listConstructorTypes.get( 0 ).hasOptionalParams()) )
       {
-        MethodScore bestConst = parseArgumentList2( e, listConstructorTypes, null, !(declaringClass instanceof ErrorType), bNoArgsProvided );
+        MethodScore bestConst = parseArgumentList( e, listConstructorTypes, null, !(declaringClass instanceof ErrorType), bNoArgsProvided );
 
         IConstructorType constructorType = null;
         if( bestConst.isValid() )
@@ -5471,7 +5471,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
       boolean bNoArgsProvided;
       if( !(bNoArgsProvided = match( null, ')' )) || iBlockType.hasOptionalParams() )
       {
-        MethodScore score = parseArgumentList2( bi, Collections.singletonList( iBlockType ), IType.EMPTY_ARRAY, true, bNoArgsProvided );
+        MethodScore score = parseArgumentList( bi, Collections.singletonList( iBlockType ), IType.EMPTY_ARRAY, true, bNoArgsProvided );
         bi.setNamedArgOrder( score.getNamedArgOrder() );
         bi.setArgs( score.getArguments() );
         verify( bi, bNoArgsProvided || match( null, ')' ), Res.MSG_EXPECTING_FUNCTION_CLOSE );
@@ -5561,7 +5561,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
         {
           if( !match( null, ')' ) )
           {
-            MethodScore score = parseArgumentList2( fle, fle.getFunctionTypes( T._strValue ), IType.EMPTY_ARRAY, true, false );
+            MethodScore score = parseArgumentList( fle, fle.getFunctionTypes( T._strValue ), IType.EMPTY_ARRAY, true, false );
             if( allTypeLiterals( score.getArguments() ) )
             {
               //noinspection ThrowableResultOfMethodCallIgnored
@@ -5874,7 +5874,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
         listFunctionTypes = parameterizeFunctionTypes( e, typeParameters, listFunctionTypes );
       }
 
-      MethodScore bestMethod = parseArgumentList2( e, listFunctionTypes, typeParameters, true, bNoArgsProvided );
+      MethodScore bestMethod = parseArgumentList( e, listFunctionTypes, typeParameters, true, bNoArgsProvided );
 
       //noinspection SuspiciousToArrayCall
       Expression[] eArgs = bestMethod.getArguments().toArray( new Expression[bestMethod.getArguments().size()] );
@@ -6469,7 +6469,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
     {
       verify( e, argTypes != null && argTypes.length > 0, Res.MSG_NO_ARGUMENTS, functionSymbol.getName() );
 
-      MethodScore score = parseArgumentList2( e, Collections.singletonList( funcType ), null, true, bNoArgsProvided );
+      MethodScore score = parseArgumentList( e, Collections.singletonList( funcType ), null, true, bNoArgsProvided );
       if( score.isValid() )
       {
         List<IExpression> scoreArgs = score.getArguments();
@@ -6497,8 +6497,8 @@ public final class GosuParser extends ParserBase implements IGosuParser
 
     if( !match( null, ')' ) )
     {
-      MethodScore score = parseArgumentList2( e, Collections.singletonList(
-              new FunctionType( dynamcSymbol.getName(), dynamcSymbol.getType(), IType.EMPTY_ARRAY ) ), null, true, false );
+      MethodScore score = parseArgumentList( e, Collections.singletonList(
+        new FunctionType( dynamcSymbol.getName(), dynamcSymbol.getType(), IType.EMPTY_ARRAY ) ), null, true, false );
       List<IExpression> scoreArgs = score.getArguments();
       //noinspection SuspiciousToArrayCall
       e.setArgs( scoreArgs.toArray( new Expression[scoreArgs.size()] ) );
@@ -6632,7 +6632,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
     if( !(bNoArgsProvided = match( null, ')' )) ||
             (listFunctionTypes.size() == 1 && listFunctionTypes.get( 0 ).hasOptionalParams()) )
     {
-      MethodScore methodScore = parseArgumentList2( e, listFunctionTypes, typeParameters, !(rootType instanceof ErrorType), bNoArgsProvided );
+      MethodScore methodScore = parseArgumentList( e, listFunctionTypes, typeParameters, !(rootType instanceof ErrorType), bNoArgsProvided );
 
       //noinspection SuspiciousToArrayCall
       Expression[] eArgs = methodScore.getArguments().toArray( new Expression[methodScore.getArguments().size()] );
@@ -7278,8 +7278,8 @@ public final class GosuParser extends ParserBase implements IGosuParser
     return null;
   }
 
-  private MethodScore parseArgumentList2( ParsedElement element, List<? extends IInvocableType> listFunctionTypes,
-                                          IType[] typeParams, boolean bVerifyArgs, boolean bNoArgsProvided )
+  private MethodScore parseArgumentList( ParsedElement element, List<? extends IInvocableType> listFunctionTypes,
+                                         IType[] typeParams, boolean bVerifyArgs, boolean bNoArgsProvided )
   {
     // Avoid *nested* method call scoring -- it incurs exponential complexity.
     //
@@ -7432,7 +7432,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
           // Reparse with correct funcType context and get out of dodge
           backtrackArgParsing( mark, iLocationsCount, argExpressions );
           MethodScorer.instance().putCachedMethodScore( bestScore );
-          return parseArgumentList2( element, Arrays.asList( bestScore.getRawFunctionType() ), typeParams, bVerifyArgs, bNoArgsProvided );
+          return parseArgumentList( element, Arrays.asList( bestScore.getRawFunctionType() ), typeParams, bVerifyArgs, bNoArgsProvided );
         }
 
         maybeReassignOffsetForArgumentListClause( argExpressions.size(), argExpressions, iOffset, iLineNum, iColumn );
