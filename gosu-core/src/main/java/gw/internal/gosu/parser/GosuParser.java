@@ -7300,7 +7300,6 @@ public final class GosuParser extends ParserBase implements IGosuParser
 
     TypeVarToTypeMap inferenceMap = new TypeVarToTypeMap();
     List<Integer> namedArgOrder = null;
-    Set<String> namedArgs = new HashSet<>();
 
     int mark = getTokenizer().mark();
     int iLocationsCount = _locations.size();
@@ -7311,6 +7310,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
     {
       int iArgs = 0;
       argExpressions = new ArrayList<>( 4 );
+      Set<String> namedArgs = new HashSet<>();
       List<LightweightParserState> parserStates = new ArrayList<>( 4 );
 
       IInvocableType funcType = listFunctionTypes.isEmpty() ? null : listFunctionTypes.get( i );

@@ -18,4 +18,27 @@ class Errant_NamedArgs {
     var s = foo( :p2=\s : StringBuilder-> s.length(), :p1=null )
     s.append( "" ) // assert infers StringBuilder
   }
+
+  static class TestNamedParameters_Function_NullNamedArg {
+    function foo( ctx: String ) {
+    }
+
+    function foo( ctx: String, hi: String ) {
+    }
+
+    function hey() {
+     foo( "a", :hi = null )
+     foo( "b" )
+    }
+  }
+
+  static class TestNamedParameters_Ctor_NullNamedArg {
+    construct( ctx: String ) {
+      this( ctx, :hi = null )
+    }
+
+    construct( context : String, hi: Integer ) {
+    }
+  }
+
 }
