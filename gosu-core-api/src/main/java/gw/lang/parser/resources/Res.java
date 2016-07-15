@@ -284,6 +284,7 @@ public class Res
   public static final ResourceKey MSG_ENUM_CONSTRUCTOR_NOT_ACCESSIBLE = new ResourceKey("MSG_ENUM_CONSTRUCTOR_NOT_ACCESSIBLE");
   public static final ResourceKey MSG_ENUM_MAY_NOT_HAVE_TYPEPARAM = new ResourceKey("MSG_ENUM_MAY_NOT_HAVE_TYPEPARAM");
   public static final ResourceKey MSG_MISSING_OVERRIDE_MODIFIER = new ResourceKey("MSG_MISSING_OVERRIDE_MODIFIER");
+  public static final ResourceKey MSG_RENAME_METHOD = new ResourceKey("MSG_RENAME_METHOD");
   public static final ResourceKey MSG_STATIC_METHOD_CANNOT_OVERRIDE = new ResourceKey("MSG_STATIC_METHOD_CANNOT_OVERRIDE");
   public static final ResourceKey MSG_OVERRIDES_OBJECT_METHOD = new ResourceKey("MSG_OVERRIDES_OBJECT_METHOD");
   public static final ResourceKey MSG_INHEREITED_WITH_DIFF_ARG_TYPES = new ResourceKey("MSG_INHEREITED_WITH_DIFF_ARG_TYPES");

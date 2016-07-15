@@ -209,6 +209,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
+
 import gw.util.Stack;
 import gw.util.concurrent.Cache;
 
@@ -12568,10 +12570,10 @@ public final class GosuParser extends ParserBase implements IGosuParser
     {
       verify( parsedElement,
               dps.getImmediateSetterDfs() == null ||
-                      dps.getImmediateSetterDfs() instanceof VarPropertySetFunctionSymbol ||
-                      dps.getImmediateSetterDfs().getValueDirectly() != null ||
-                      dps.getImmediateSetterDfs().isAbstract() ||
-                      (gsClass != null && gsClass.isInterface()),
+              dps.getImmediateSetterDfs() instanceof VarPropertySetFunctionSymbol ||
+              dps.getImmediateSetterDfs().getValueDirectly() != null ||
+              dps.getImmediateSetterDfs().isAbstract() ||
+              (gsClass != null && gsClass.isInterface()),
               Res.MSG_SETTER_FOR_PROPERTY_ALREADY_DEFINED,
               strPropertyName );
       dps.setSetterDfs( dfs );
@@ -13540,7 +13542,9 @@ public final class GosuParser extends ParserBase implements IGosuParser
   private void verifyFunction( DynamicFunctionSymbol dfs, ParsedElement element )
   {
     boolean bValidOverrideFound = false;
-    for( IFunctionSymbol existing : getDfsDeclsForFunction( dfs.getDisplayName() ) )
+    List<IFunctionSymbol> functions = getDfsDeclsForFunction( dfs.getDisplayName() );
+    functions = maybeAddPrivateFunctionsIfSuperInSamePackage( functions );
+    for( IFunctionSymbol existing : functions )
     {
       if( existing instanceof DynamicFunctionSymbol )
       {
@@ -13582,7 +13586,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
               }
               boolean bClassAndReturnTypesCompatible = !GosuObjectUtil.equals( dfsExisting.getScriptPart(), dfs.getScriptPart() ) &&
                       returnTypesCompatible( dfsExisting, dfs );
-              if( verify( element, bClassAndReturnTypesCompatible, Res.MSG_FUNCTION_CLASH,
+              if( verify( element, bClassAndReturnTypesCompatible, dfsExisting.isPrivate() ? Res.MSG_RENAME_METHOD : Res.MSG_FUNCTION_CLASH,
                       dfs.getName(), dfs.getScriptPart(), dfsExisting.getName(), dfsExisting.getScriptPart() ) )
               {
                 boolean b = !dfsExisting.isFinal() && (gsClass == null || gsClass.getSupertype() == null || !gsClass.getSupertype().isFinal());
@@ -13598,7 +13602,10 @@ public final class GosuParser extends ParserBase implements IGosuParser
                       if( !dfs.isOverride() )
                       {
                         boolean bIsConstructorName = gsClass != null && gsClass.getRelativeName().equals( dfs.getDisplayName() );
-                        warn( element, bIsConstructorName || element instanceof VarStatement, Res.MSG_MISSING_OVERRIDE_MODIFIER, dfsExisting.getName(), dfsExisting.getScriptPart().getContainingTypeName() );
+                        if( !dfsExisting.isPrivate() )
+                        {
+                          warn( element, bIsConstructorName || element instanceof VarStatement, Res.MSG_MISSING_OVERRIDE_MODIFIER, dfsExisting.getName(), dfsExisting.getScriptPart().getContainingTypeName() );
+                        }
                         if( !bIsConstructorName )
                         {
                           // Set the override modifier when the modifier is missing
@@ -13631,6 +13638,44 @@ public final class GosuParser extends ParserBase implements IGosuParser
       verifyOverrideNotOnMethodThatDoesNotExtend( element, dfs );
     }
     verifyNoImplicitPropertyMethodConflicts( element, dfs );
+  }
+
+  // Since we compile private methods as internal (so inner classes have easier access) we must
+  // prevent subclasses from implicitly overriding "private" methods.  Note this is only when
+  // the super class is in the same package as the subclass.
+  private List<IFunctionSymbol> maybeAddPrivateFunctionsIfSuperInSamePackage( List<IFunctionSymbol> functions )
+  {
+    ICompilableTypeInternal gsClass = getGosuClass();
+    if( gsClass == null )
+    {
+      return functions;
+    }
+
+    IType supertype = gsClass.getSupertype();
+    if( gsClass instanceof IGosuClass && supertype != null )
+    {
+      if( TypeLord.getOuterMostEnclosingClass( supertype ).getNamespace().equals(
+        TypeLord.getOuterMostEnclosingClass( gsClass ).getNamespace() ) )
+      {
+        functions = new ArrayList<>( functions );
+        addAllNonstaticPrivateMethods( ((IGosuClassInternal)gsClass).getSuperClass(), functions );
+      }
+    }
+    return functions;
+  }
+
+  private void addAllNonstaticPrivateMethods( IGosuClassInternal superClass, List<IFunctionSymbol> functions )
+  {
+    if( superClass == null )
+    {
+      return;
+    }
+    functions.addAll( superClass.getParseInfo().getMemberFunctions()
+                        .values()
+                        .stream()
+                        .filter( Symbol::isPrivate )
+                        .collect( Collectors.toList() ) );
+    addAllNonstaticPrivateMethods( superClass.getSuperClass(), functions );
   }
 
   private boolean propertyTypeDiffers( DynamicFunctionSymbol dfs, DynamicFunctionSymbol dfsExisting )
