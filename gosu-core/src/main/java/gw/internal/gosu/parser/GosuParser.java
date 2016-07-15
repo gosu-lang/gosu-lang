@@ -239,13 +239,13 @@ public final class GosuParser extends ParserBase implements IGosuParser
   int _iReturnOk;
   private Stack<IScriptPartId> _scriptPartIdStack;
   private Map<String, ITypeVariableDefinition> _typeVarsByName;
-  private Stack<ContextType> _inferredContextStack = new Stack<ContextType>();
+  private Stack<ContextType> _inferredContextStack = new Stack<>();
   private boolean _bThrowForWarnings;
   private boolean _bStudioEditorParser;
   private boolean _bWarnOnCaseIssue;
   private Stack<Boolean> _parsingAbstractConstructor;
   private ContextInferenceManager _ctxInferenceMgr = new ContextInferenceManager();
-  private Stack<IType> _blockReturnTypeStack = new Stack<IType>();
+  private Stack<IType> _blockReturnTypeStack = new Stack<>();
   private Stack<Boolean> _parsingStaticFeature;
   private boolean _bCaptureSymbolsForEval;
   private boolean _parsingAnnotation;
@@ -274,16 +274,16 @@ public final class GosuParser extends ParserBase implements IGosuParser
     //noinspection unchecked
     _typeUsesMap = tuMap.copy();
     _scriptabilityConstraint = scriptabilityConstraint;
-    _dfsDeclByName = new HashMap<String, List<IFunctionSymbol>>();
+    _dfsDeclByName = new HashMap<>();
 
-    _stack = new Stack<ParsedElement>();
-    _stackDFS = new Stack<DynamicFunctionSymbol>();
-    _locations = new ArrayList<ParseTree>();
-    _parsingFunctions = new ArrayList<FunctionType>();
-    _parsingFieldInitializer = new ArrayList<VarStatement>();
-    _typeVarsByName = new HashMap<String, ITypeVariableDefinition>( 2 );
-    _parsingStaticFeature = new Stack<Boolean>();
-    _parsingAbstractConstructor = new Stack<Boolean>();
+    _stack = new Stack<>();
+    _stackDFS = new Stack<>();
+    _locations = new ArrayList<>();
+    _parsingFunctions = new ArrayList<>();
+    _parsingFieldInitializer = new ArrayList<>();
+    _typeVarsByName = new HashMap<>( 2 );
+    _parsingStaticFeature = new Stack<>();
+    _parsingAbstractConstructor = new Stack<>();
     _typeCache = new HashMap<>();
     _bParsed = false;
     _iReturnOk = 1;
@@ -315,7 +315,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
   {
     if( _scriptPartIdStack == null )
     {
-      _scriptPartIdStack = new Stack<IScriptPartId>();
+      _scriptPartIdStack = new Stack<>();
     }
     _scriptPartIdStack.push( partId );
   }
@@ -748,7 +748,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
           Statement mainStatement = parseStatements( getScriptPart(), false, false );
 
           // Map the parsed function definitions by name
-          Map<String, DynamicFunctionSymbol> functionMap = new SpaceEfficientHashMap<String, DynamicFunctionSymbol>();
+          Map<String, DynamicFunctionSymbol> functionMap = new SpaceEfficientHashMap<>();
           while( peekDynamicFunctionSymbol() != null )
           {
             DynamicFunctionSymbol function = popDynamicFunctionSymbol();
@@ -883,7 +883,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
     int iOffset = getTokenizer().getTokenStart();
     int iLineNum = getTokenizer().getLineNumber();
     int iColumn = getTokenizer().getLineOffset();
-    List<IClasspathStatement> returnList = new ArrayList<IClasspathStatement>();
+    List<IClasspathStatement> returnList = new ArrayList<>();
     while( match( null, Keyword.KW_classpath ) )
     {
       ClasspathStatement cpStatement = new ClasspathStatement();
@@ -930,7 +930,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
     int iOffset = getTokenizer().getTokenStart();
     int iLineNum = getTokenizer().getLineNumber();
     int iColumn = getTokenizer().getLineOffset();
-    List<ITypeLoaderStatement> returnList = new ArrayList<ITypeLoaderStatement>();
+    List<ITypeLoaderStatement> returnList = new ArrayList<>();
     while( match( null, Keyword.KW_typeloader ) )
     {
       TypeLoaderStatement stmt = new TypeLoaderStatement();
@@ -967,7 +967,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
     List<ISymbol> listFunctions;
     try
     {
-      listFunctions = new ArrayList<ISymbol>();
+      listFunctions = new ArrayList<>();
       //
       // Just find and parse the function Declarations
       //
@@ -1166,7 +1166,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
 
   public List<IParseTree> getLocations()
   {
-    return new ArrayList<IParseTree>( _locations );
+    return new ArrayList<>( _locations );
   }
 
   public ParseTree peekLocation()
@@ -1552,7 +1552,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
         secondType = TypeLord.getBoxedTypeFromPrimitiveType( secondType );
       }
 
-      List<IType> list = new ArrayList<IType>();
+      List<IType> list = new ArrayList<>();
 
       if( !GosuParserTypes.NULL_TYPE().equals( firstType ) )
       {
@@ -2909,10 +2909,10 @@ public final class GosuParser extends ParserBase implements IGosuParser
   private void parseEvalExpression()
   {
     EvalExpression evalExpr = new EvalExpression( getTypeUsesMap().copy() );
-    List<ICapturedSymbol> captured = new ArrayList<ICapturedSymbol>();
+    List<ICapturedSymbol> captured = new ArrayList<>();
     captureAllSymbols( null, getCurrentEnclosingGosuClass(), captured );
     evalExpr.setCapturedSymbolsForBytecode( captured );
-    evalExpr.setCapturedTypeVars( new HashMap<String, ITypeVariableDefinition>( getTypeVariables() ) );
+    evalExpr.setCapturedTypeVars( new HashMap<>( getTypeVariables() ) );
 
     verify( evalExpr, match( null, '(' ), Res.MSG_EXPECTING_LEFTPAREN_EVAL );
     parseExpression();
@@ -3647,7 +3647,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
             e.setValueExpressions( valueExpressions );
             if( !typeToInit.isMethodScoring() )
             {
-              ArrayList<IType> types = new ArrayList<IType>();
+              ArrayList<IType> types = new ArrayList<>();
               for (Object valueExpression : valueExpressions) {
                 types.add(((Expression) valueExpression).getType());
               }
@@ -4084,8 +4084,8 @@ public final class GosuParser extends ParserBase implements IGosuParser
     else
     {
       Statement stmt = (Statement) blockBody;
-      ArrayList<ReturnStatement> returnStatements = new ArrayList<ReturnStatement>();
-      ArrayList<IType> returnTypes = new ArrayList<IType>();
+      ArrayList<ReturnStatement> returnStatements = new ArrayList<>();
+      ArrayList<IType> returnTypes = new ArrayList<>();
       //noinspection unchecked
       stmt.getContainedParsedElementsByTypesWithIgnoreSet( (List) returnStatements,
               new HashSet( Arrays.asList( BlockExpression.class ) ),
@@ -4135,7 +4135,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
       IFunctionType functionType = FunctionToInterfaceCoercer.getRepresentativeFunctionType( type );
       if( functionType != null )
       {
-        ArrayList<IType> paramTypes = new ArrayList<IType>();
+        ArrayList<IType> paramTypes = new ArrayList<>();
         for( IType parameterType : functionType.getParameterTypes() )
         {
           paramTypes.add( TypeLord.getDefaultParameterizedType( parameterType ) );
@@ -4655,7 +4655,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
   private ArrayList<IConstructorType> getPreliminaryConstructorTypes( IType declaringClass, NewExpression e )
   {
     // Get a preliminary constructorTypes to check arguments. Note we do this to aid in error feedback and value popup completion.
-    ArrayList<IConstructorType> listConstructorTypes = new ArrayList<IConstructorType>( 2 );
+    ArrayList<IConstructorType> listConstructorTypes = new ArrayList<>( 2 );
     try
     {
       getConstructorType( declaringClass, null, listConstructorTypes, this );
@@ -5056,7 +5056,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
       return (GosuConstructorInfo)ci;
     }
 
-    List<IType> argTypes = new ArrayList<IType>( 2 );
+    List<IType> argTypes = new ArrayList<>( 2 );
     if (ci != null) {
       for( IParameterInfo pi : ci.getParameters() )
       {
@@ -5269,7 +5269,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
     {
       componentType = ((TypeVariableType)componentType).getBoundingType();
     }
-    List<Expression> valueExpressions = new ArrayList<Expression>();
+    List<Expression> valueExpressions = new ArrayList<>();
     do
     {
       parseExpression( new ContextType( componentType ) );
@@ -5657,7 +5657,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
   }
 
   private List<IType> evalTypes(List<IExpression> arguments) {
-    List<IType> types = new ArrayList<IType>();
+    List<IType> types = new ArrayList<>();
     for( IExpression expression : arguments)
     {
       expression.clearParseExceptions();
@@ -6128,7 +6128,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
     if( funcType.isGenericType() )
     {
       IGenericTypeVariable[] typeVariables = funcType.getGenericTypeVariables();
-      List<IType> functionTypeVars = new ArrayList<IType>();
+      List<IType> functionTypeVars = new ArrayList<>();
       addTypeVarsToList( functionTypeVars, typeVariables );
       return (IFunctionType)TypeLord.boundTypes( funcType, functionTypeVars );
     }
@@ -6541,7 +6541,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
     {
       if( !bParseTypeLiteralOnly && !(rootType instanceof ErrorType) && match( null, "<", SourceCodeTokenizer.TT_OPERATOR, true ) )
       {
-        List<IFunctionType> list = new ArrayList<IFunctionType>();
+        List<IFunctionType> list = new ArrayList<>();
         // if any function with the specified name is generic, parse parameterization
         getFunctionType( rootType, strMemberName, null, list, this, true );
         for( IFunctionType ftype : list )
@@ -7081,7 +7081,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
   private List<IFunctionType> getPreliminaryFunctionTypes( String strMemberName, BeanMethodCallExpression e, IType rootType, IType[] typeParameters )
   {
     // Get a preliminary funcTypes to check arguments. Note we do this to aid in in error feedback and value popup completion.
-    List<IFunctionType> listFunctionTypes = new ArrayList<IFunctionType>( 8 );
+    List<IFunctionType> listFunctionTypes = new ArrayList<>( 8 );
     try
     {
       if( !(rootType instanceof ErrorType) )
@@ -7136,7 +7136,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
 
   private ArrayList<IFunctionType> parameterizeFunctionTypes( Expression expression, IType[] typeParameters, List<IFunctionType> listFunctionTypes )
   {
-    ArrayList<IFunctionType> parameterizedFunctionTypes = new ArrayList<IFunctionType>( 8 );
+    ArrayList<IFunctionType> parameterizedFunctionTypes = new ArrayList<>( 8 );
     for( IFunctionType funcType : listFunctionTypes )
     {
       if( funcType.isGenericType() && verifyCanParameterizeType( expression, funcType, typeParameters ) )
@@ -7290,7 +7290,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
     listFunctionTypes = maybeAvoidNestedMethodScoring( listFunctionTypes );
 
     boolean bShouldScoreMethods = listFunctionTypes.size() > 1;
-    List<MethodScore> scoredMethods = new ArrayList<MethodScore>();
+    List<MethodScore> scoredMethods = new ArrayList<>();
 
     int iOffset = _tokenizer.getTokenStart();
     int iLineNum = _tokenizer.getLineNumber();
@@ -7300,7 +7300,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
 
     TypeVarToTypeMap inferenceMap = new TypeVarToTypeMap();
     List<Integer> namedArgOrder = null;
-    Set<String> namedArgs = new HashSet<String>();
+    Set<String> namedArgs = new HashSet<>();
 
     int mark = getTokenizer().mark();
     int iLocationsCount = _locations.size();
@@ -7310,8 +7310,8 @@ public final class GosuParser extends ParserBase implements IGosuParser
     for( int i = 0; i < listFunctionTypes.size() || (i == 0 && listFunctionTypes.isEmpty()); i++ )
     {
       int iArgs = 0;
-      argExpressions = new ArrayList<Expression>( 4 );
-      List<LightweightParserState> parserStates = new ArrayList<LightweightParserState>( 4 );
+      argExpressions = new ArrayList<>( 4 );
+      List<LightweightParserState> parserStates = new ArrayList<>( 4 );
 
       IInvocableType funcType = listFunctionTypes.isEmpty() ? null : listFunctionTypes.get( i );
       maybeInferFunctionTypeVarsFromReturnType( funcType, inferenceMap );
@@ -7509,8 +7509,8 @@ public final class GosuParser extends ParserBase implements IGosuParser
 
   private List<MethodScore> factorInParseErrors( List<MethodScore> scoredMethods )
   {
-    List<MethodScore> factored = new ArrayList<MethodScore>( scoredMethods.size() );
-    List<MethodScore> noErrors = new ArrayList<MethodScore>( scoredMethods.size() );
+    List<MethodScore> factored = new ArrayList<>( scoredMethods.size() );
+    List<MethodScore> noErrors = new ArrayList<>( scoredMethods.size() );
     long bestScore = -1;
     for( MethodScore score : scoredMethods )
     {
@@ -7618,7 +7618,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
     // if there were type parameters, remove any non-generic functions
     if( typeParams != null && typeParams.length > 0 )
     {
-      ArrayList<IInvocableType> genericFunctions = new ArrayList<IInvocableType>();
+      ArrayList<IInvocableType> genericFunctions = new ArrayList<>();
       for( IInvocableType type : listFunctionTypes )
       {
         if( type.isGenericType() )
@@ -7669,7 +7669,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
 
   private IInvocableType maybeBoundFunctionTypeVars( IInvocableType inferredFunctionType, TypeVarToTypeMap inferenceMap )
   {
-    List<IType> types = new ArrayList<IType>();
+    List<IType> types = new ArrayList<>();
     for( IType typeVarType : getCurrentlyInferringFunctionTypeVars() )
     {
       if( inferenceMap.get( (ITypeVariableType)typeVarType ) == null )
@@ -7691,7 +7691,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
       if( namedArgOrder == null )
       {
         int iSize = listFunctionTypes.get( 0 ).getParameterTypes().length;
-        namedArgOrder = new ArrayList<Integer>( iSize );
+        namedArgOrder = new ArrayList<>( iSize );
         for( int i = 0; i < iSize; i++ )
         {
           namedArgOrder.add( i );
@@ -7958,7 +7958,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
   }
 
   private MethodScore scoreMethod(IInvocableType funcType, List<? extends IInvocableType> listFunctionTypes, List<Expression> argExpressions, boolean bSimple, boolean bLookInCache) {
-    List<IType> argTypes = new ArrayList<IType>( argExpressions.size() );
+    List<IType> argTypes = new ArrayList<>( argExpressions.size() );
     for( Expression argExpression : argExpressions ) {
       argTypes.add( argExpression.getType() );
     }
@@ -8032,7 +8032,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
   {
     if( funcTypes != null )
     {
-      ArrayList<List<IType>> returnList = new ArrayList<List<IType>>();
+      ArrayList<List<IType>> returnList = new ArrayList<>();
       for( IInvocableType funcType : funcTypes )
       {
         for( int i = 0; i < funcType.getParameterTypes().length; i++ )
@@ -8040,7 +8040,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
           IType paramType = funcType.getParameterTypes()[i];
           if( i >= returnList.size() )
           {
-            returnList.add( new ArrayList<IType>() );
+            returnList.add( new ArrayList<>() );
           }
           List<IType> paramTypeList = returnList.get( i );
           if( !paramTypeList.contains( paramType ) )
@@ -8938,7 +8938,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
     }
     verify( typeLiteral, types.size() > 1, Res.MSG_AGGREGATES_MUST_CONTAIN_MORE );
     verify( typeLiteral, !(typeLiteralComponent.getType().getType() instanceof TypeVariableType), Res.MSG_ONLY_ONE_TYPE_VARIABLE );
-    typeLiteral.setType( CompoundType.get( new HashSet<IType>( types ) ) );
+    typeLiteral.setType( CompoundType.get( new HashSet<>( types ) ) );
     parseArrayType( typeLiteral );
     pushExpression( typeLiteral );
   }
@@ -8987,9 +8987,9 @@ public final class GosuParser extends ParserBase implements IGosuParser
     BlockLiteral literal = new BlockLiteral();
     verify( literal, match( null, '(' ), Res.MSG_EXPECTING_LEFTPAREN_BLOCK );
 
-    ArrayList<IType> argTypes = new ArrayList<IType>();
-    ArrayList<String> argNames = new ArrayList<String>();
-    ArrayList<IExpression> defValues = new ArrayList<IExpression>();
+    ArrayList<IType> argTypes = new ArrayList<>();
+    ArrayList<String> argNames = new ArrayList<>();
+    ArrayList<IExpression> defValues = new ArrayList<>();
 
     if( !match( null, ')' ) )
     {
@@ -9311,7 +9311,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
   //
   List<TypeLiteral> parseTypeParameters( IType enclosingType )
   {
-    List<TypeLiteral> paramTypes = new ArrayList<TypeLiteral>();
+    List<TypeLiteral> paramTypes = new ArrayList<>();
     int i = 0;
     do
     {
@@ -10261,7 +10261,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
             Res.MSG_DELEGATES_SHOULD_NOT_SELF_DELEGATE );
     }
     ICompilableType gsClass = getGosuClass();
-    List<IType> constituents = new ArrayList<IType>();
+    List<IType> constituents = new ArrayList<>();
     if( verify( delegateStmt, match( null, Keyword.KW_represents ), Res.MSG_EXPECTING_REPRESENTS ) )
     {
       do
@@ -10344,7 +10344,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
       }
       else
       {
-        type = CompoundType.get( new HashSet<IType>( constituents ) );
+        type = CompoundType.get( new HashSet<>( constituents ) );
       }
     }
 
@@ -11045,7 +11045,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
   private void parseVarStatementsInUsingStatement( UsingStatement usingStmt )
   {
     Token T = new Token();
-    List<IVarStatement> varStmts = new ArrayList<IVarStatement>();
+    List<IVarStatement> varStmts = new ArrayList<>();
     int iOffset;
     int iLineNum;
     int iColumn;
@@ -11145,7 +11145,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
     }
     try
     {
-      ArrayList<Statement> statements = new ArrayList<Statement>();
+      ArrayList<Statement> statements = new ArrayList<>();
       parseStatementsAndDetectUnreachable( statements );
 
       StatementList stmtList = new StatementList( _symTable );
@@ -11225,7 +11225,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
     int iUsesListLineNum = iLineNum;
     if( match( null, Keyword.KW_uses, true ) )
     {
-      List<IUsesStatement> usesList = new ArrayList<IUsesStatement>();
+      List<IUsesStatement> usesList = new ArrayList<>();
       UsesStatementList stmtList = new UsesStatementList();
       stmtList.setUsesStatements( usesList );
       while( match( null, Keyword.KW_uses ) )
@@ -11494,7 +11494,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
 
   void parseCaseClauses( SwitchStatement switchStmt )
   {
-    List<CaseClause> cases = new ArrayList<CaseClause>();
+    List<CaseClause> cases = new ArrayList<>();
     while( parseCaseClause( switchStmt, cases ) )
     { /* do nothing */ }
     switchStmt.setCases( cases.toArray( new CaseClause[cases.size()] ) );
@@ -11522,7 +11522,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
     Expression e = popExpression();
     verifyCaseIsUnique( e, cases );
     boolean typeInferred = switchExpr instanceof TypeOfExpression && e instanceof TypeLiteral && isIsolatedCase( cases );
-    List<Statement> statements = new ArrayList<Statement>();
+    List<Statement> statements = new ArrayList<>();
     CaseClause caseClause = new CaseClause( e, statements );
     cases.add( caseClause );
     if( typeInferred )
@@ -11676,7 +11676,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
     _symTable.pushScope();
     try
     {
-      List<Statement> defaultStatements = new ArrayList<Statement>();
+      List<Statement> defaultStatements = new ArrayList<>();
       parseStatementsAndDetectUnreachable( defaultStatements );
       switchStmt.setDefaultStatements( defaultStatements );
     }
@@ -12705,7 +12705,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
           IType ctxType = typeLiteral.getType().getType();
           if( JavaTypes.ANNOTATION().isAssignableFrom( ctxType ) )
           {
-            List<IGosuAnnotation> anno = new ArrayList<IGosuAnnotation>( 1 );
+            List<IGosuAnnotation> anno = new ArrayList<>( 1 );
             getOwner().parseAnnotation( anno );
             annotationDefault = (Expression)anno.get( 0 ).getExpression();
           }
@@ -13176,11 +13176,11 @@ public final class GosuParser extends ParserBase implements IGosuParser
       if( stmtList.getStatements() == null )
       {
         //## todo: Probably short-circuit the condition when a program is an empty expression i.e., don't generate a class for it
-        stmts = new ArrayList<Statement>( 2 );
+        stmts = new ArrayList<>( 2 );
       }
       else
       {
-        stmts = new ArrayList<Statement>( Arrays.asList( stmtList.getStatements() ) );
+        stmts = new ArrayList<>( Arrays.asList( stmtList.getStatements() ) );
       }
       stmts.add( defaultReturnStmt );
       stmtList.setStatements( stmts );
@@ -13279,7 +13279,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
         if( extSyms != null )
         {
           // If extSyms is non-null, it usually means this program is for context-sensitive evaluation e.g., in a debugger
-          HashMap<String, ISymbol> map = new HashMap<String, ISymbol>();
+          HashMap<String, ISymbol> map = new HashMap<>();
           //noinspection unchecked
           for( Symbol s: (Collection<Symbol>)extSyms.getSymbols().values() )
           {
@@ -13474,7 +13474,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
           IType ctxType = typeLiteral.getType().getType();
           if( JavaTypes.ANNOTATION().isAssignableFrom( ctxType ) )
           {
-            List<IGosuAnnotation> anno = new ArrayList<IGosuAnnotation>( 1 );
+            List<IGosuAnnotation> anno = new ArrayList<>( 1 );
             getOwner().parseAnnotation( anno );
             annotationDefault = (Expression)anno.get( 0 ).getExpression();
           }
@@ -13893,7 +13893,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
       return TypeSystem.getErrorType();
     }
     FunctionType funcType = (FunctionType)dfs.getType();
-    ArrayList<IType> functionTypeVars = new ArrayList<IType>();
+    ArrayList<IType> functionTypeVars = new ArrayList<>();
     IType declaringType = dfs.getScriptPart() == null ? null : dfs.getScriptPart().getContainingType();
     boolean bConstructor = declaringType != null && dfs.getDisplayName().equals( declaringType.getRelativeName() );
     if( bConstructor )
@@ -13998,7 +13998,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
 
   public ArrayList<ISymbol> parseParameterDeclarationList( IParsedElement element, boolean bStatic, List<IType> inferredArgumentTypes, boolean bProperty, boolean bGetter, boolean bEmpty, boolean bVarDynamicArg )
   {
-    ArrayList<ISymbol> params = new ArrayList<ISymbol>();
+    ArrayList<ISymbol> params = new ArrayList<>();
     Token T = new Token();
     int iParamPos = -1;
     boolean bOptionalParamsStarted = false;
@@ -14197,7 +14197,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
       }
       if( annotations.isEmpty() )
       {
-        annotations = new ArrayList<IGosuAnnotation>( 2 );
+        annotations = new ArrayList<>( 2 );
       }
       parseAnnotation( annotations );
     }
@@ -14657,7 +14657,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
 
   protected void newDfsDeclInSetByName()
   {
-    _dfsDeclByName = new HashMap<String, List<IFunctionSymbol>>();
+    _dfsDeclByName = new HashMap<>();
   }
 
   public Map<String, List<IFunctionSymbol>> getDfsDecls()
@@ -14668,7 +14668,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
   protected List<IFunctionType> getFunctionTypesForName( String strFunctionName )
   {
     List<IFunctionSymbol> list = getDfsDeclsForFunction( strFunctionName );
-    List<IFunctionType> listOfTypes = new ArrayList<IFunctionType>( list.size() );
+    List<IFunctionType> listOfTypes = new ArrayList<>( list.size() );
     for (IFunctionSymbol dfs : list)
     {
       listOfTypes.add((FunctionType) dfs.getType());
@@ -14812,7 +14812,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
     {
       return Collections.emptyMap();
     }
-    Map<String, TypeVariableDefinition> mapTypeVarDefByName = new HashMap<String, TypeVariableDefinition>( 2 );
+    Map<String, TypeVariableDefinition> mapTypeVarDefByName = new HashMap<>( 2 );
     while( !gsClass.isStatic() && gsClass.getEnclosingType() != null )
     {
       // Note we don't resolve type vars defined in outer for static inner classes.
