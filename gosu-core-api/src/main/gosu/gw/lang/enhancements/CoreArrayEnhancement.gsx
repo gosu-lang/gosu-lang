@@ -5,6 +5,7 @@ uses java.util.*
 uses gw.util.IOrderedList
 uses java.math.BigDecimal
 uses gw.util.GosuObjectUtil
+uses gw.util.Pair
 uses java.lang.System
 uses java.lang.ArrayStoreException
 
@@ -280,5 +281,23 @@ enhancement CoreArrayEnhancement<T> : T[] {
    */
   function reverse() : T[] {
     return this.toList().reverse().toTypedArray()
+  }
+
+  /**
+   * takes two arrays and returns an array of corresponding <code>gw.util.Pair</code>s.
+   * If one input array is short, excess elements of the longer array are discarded.
+   */
+  function zip<R>( other : R[]) : Pair<T,R>[] {
+    if (other == null) {
+      throw new NullPointerException("other should be non-null")
+    }
+
+    var zippedLength = this.Count < other.Count ? this.Count : other.Count
+    var zipped = new Pair<T,R>[zippedLength]
+    for (i in 0..|zippedLength) {
+      zipped[i] = Pair.make(this[i], other[i])
+    }
+
+    return zipped
   }
 }
