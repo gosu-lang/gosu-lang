@@ -27,14 +27,15 @@
   </developers>
 
   <scm>
-    <connection>scm:git:git@github.com:gosu-lang/gosu-lang.git</connection>
-    <developerConnection>scm:git:git@github.com:gosu-lang/gosu-lang.git</developerConnection>
-    <url>git@github.com:gosu-lang/gosu-lang.git</url>
+    <connection>${scm.root}/gosu-lang.git</connection>
+    <developerConnection>${scm.root}/gosu-lang.git</developerConnection>
+    <url>https://github.com/gosu-lang/gosu-lang</url>
   </scm>
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <dist.man.snapshotrepo.url>https://oss.sonatype.org/content/repositories/snapshots</dist.man.snapshotrepo.url>
+    <scm.root>scm:git:git@github.com:gosu-lang</scm.root>
   </properties>
 
   <repositories>
@@ -83,6 +84,7 @@
         <directory>${generated.version.dir}</directory>
       </resource>
     </resources>
+    
     <pluginManagement>
       <plugins>
         <plugin>
@@ -138,6 +140,10 @@
           <artifactId>build-helper-maven-plugin</artifactId>
           <version>1.9.1</version>
         </plugin>
+        <plugin>
+          <artifactId>maven-release-plugin</artifactId>
+          <version>2.5.3</version>
+        </plugin>
       </plugins>
     </pluginManagement>
     
@@ -166,6 +172,17 @@
             </goals>
           </execution>
         </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-release-plugin</artifactId>
+        <configuration>
+          <autoVersionSubmodules>true</autoVersionSubmodules>
+          <releaseProfiles>release</releaseProfiles>
+          <tagNameFormat>v@{project.version}</tagNameFormat>
+          <updateBranchVersions>false</updateBranchVersions>
+          <updateWorkingCopyVersions>false</updateWorkingCopyVersions>
+        </configuration>
       </plugin>
     </plugins>
   </build>
