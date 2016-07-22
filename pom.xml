@@ -12,6 +12,10 @@
 
   <name>Gosu :: Project Aggregator</name>
 
+  <scm>
+    <developerConnection>${scm.root}/gosu-lang.git</developerConnection>
+  </scm>
+  
   <modules>
     <module>gosu</module>
     <module>gosu-ant-tools</module>
@@ -26,6 +30,7 @@
     <module>gosu-test</module>
     <module>gosu-test-api</module>
   </modules>
+  
   <build>
     <plugins>
       <plugin>

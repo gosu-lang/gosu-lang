@@ -41,6 +41,12 @@ public class UnaryExpressionTransformer extends AbstractExpressionTransformer<Un
   {
     IRExpression root = ExpressionTransformer.compile( _expr().getExpression(), _cc() );
 
+    if( !_expr().isNegated() )
+    {
+      // Nothing to do if it's not a negation
+      return root;
+    }
+
     if( _expr().getType().isPrimitive() && BeanAccess.isNumericType( _expr().getType() ) )
     {
       return negateSimple( root );
@@ -53,34 +59,26 @@ public class UnaryExpressionTransformer extends AbstractExpressionTransformer<Un
 
   private IRExpression negateSimple( IRExpression root )
   {
-    if( _expr().isNegated() )
+    IType type = _expr().getType();
+    if( isCheckedArithmeticEnabled() && ( type == JavaTypes.pINT() || type == JavaTypes.pLONG() ) && !_expr().isUnchecked() )
     {
-      IType type = _expr().getType();
-      if( isCheckedArithmeticEnabled() && ( type == JavaTypes.pINT() || type == JavaTypes.pLONG() ) && !_expr().isUnchecked() )
+      Class[] paramTypes;
+      IRExpression zero;
+      if( type == JavaTypes.pINT() )
       {
-        Class[] paramTypes;
-        IRExpression zero;
-        if( type == JavaTypes.pINT() )
-        {
-          paramTypes = new Class[]{int.class, int.class};
-          zero = pushConstant( 0 );
-        }
-        else
-        {
-          paramTypes = new Class[]{long.class, long.class};
-          zero = pushConstant( 0L );
-        }
-        return callStaticMethod( Math.class, "subtractExact", paramTypes, Arrays.asList( zero, root ) );
+        paramTypes = new Class[]{int.class, int.class};
+        zero = pushConstant( 0 );
       }
       else
       {
-        return buildNegation( root );
+        paramTypes = new Class[]{long.class, long.class};
+        zero = pushConstant( 0L );
       }
+      return callStaticMethod( Math.class, "subtractExact", paramTypes, Arrays.asList( zero, root ) );
     }
     else
     {
-      // Nothing to do if it's not a negation
-      return root;
+      return buildNegation( root );
     }
   }
 
