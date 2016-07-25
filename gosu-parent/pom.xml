@@ -84,7 +84,7 @@
         <directory>${generated.version.dir}</directory>
       </resource>
     </resources>
-    
+
     <pluginManagement>
       <plugins>
         <plugin>

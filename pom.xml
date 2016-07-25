@@ -30,7 +30,7 @@
     <module>gosu-test</module>
     <module>gosu-test-api</module>
   </modules>
-  
+
   <build>
     <plugins>
       <plugin>

@@ -6,7 +6,7 @@ package gw.internal.gosu.parser;
 
 import gw.lang.SimplePropertyProcessing;
 import gw.lang.reflect.ImplicitPropertyUtil;
-import gw.lang.reflect.gs.IGosuObject;
+import gw.util.concurrent.ConcurrentWeakHashMap;
 import gw.util.concurrent.LockingLazyVar;
 
 import java.beans.BeanDescriptor;
@@ -33,7 +33,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class NewIntrospector
 {
   // Static Caches to speed up introspection.
-  private static final Map<Class, Method[]> DECLARED_METHOD_CACHE = new ConcurrentHashMap<>();
+  private static final Map<Class, Method[]> DECLARED_METHOD_CACHE = new ConcurrentWeakHashMap<>( 100 );
   private static final Map<Class, GenericBeanInfo> BEAN_INFO_CACHE = new ConcurrentHashMap<>();
 
   private static final String GET_PREFIX = "get";
@@ -576,11 +576,6 @@ public class NewIntrospector
 
   public static Method[] getDeclaredMethods( Class clz )
   {
-    // For anything within the GosuClassLoader, we want to make sure to 
-    if ( IGosuObject.class.isAssignableFrom( clz ) ) {
-      return clz.getDeclaredMethods();
-    }
-
     // Looking up Class.getDeclaredMethods is relatively expensive, so we cache the results.
     Method[] result = DECLARED_METHOD_CACHE.get( clz );
     if( result != null )
