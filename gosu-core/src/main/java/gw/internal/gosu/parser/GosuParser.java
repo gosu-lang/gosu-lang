@@ -238,7 +238,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
   private int _iContinueOk;
   int _iReturnOk;
   private Stack<IScriptPartId> _scriptPartIdStack;
-  private Map<String, ITypeVariableDefinition> _typeVarsByName;
+  private HashMap<String, ITypeVariableDefinition> _typeVarsByName;
   private Stack<ContextType> _inferredContextStack = new Stack<>();
   private boolean _bThrowForWarnings;
   private boolean _bStudioEditorParser;
@@ -11314,7 +11314,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
       verify( usesStmt, gsType != null, Res.MSG_ONLY_GOSU_JAVA_TYPES );
       if( fl == null )
       {
-        usesStmt.setTypeName( typeLiteral.getType().getType().getName() );
+        usesStmt.setTypeName( TypeLord.getPureGenericType( typeLiteral.getType().getType() ).getName() );
         usesStmt.setFeatureSpace( true );
         if( gsType != null )
         {
@@ -12624,6 +12624,8 @@ public final class GosuParser extends ParserBase implements IGosuParser
                         ? "@" + strFunctionName
                         : strFunctionName;
 
+    HashMap<String, ITypeVariableDefinition> origTypeVarMap = new HashMap<>( getTypeVariables() );
+
     DynamicFunctionSymbol dfsDecl = findCorrespondingDeclDfs( iOffsetName, modifiers.getModifiers() );
     List<TypeVariableDefinitionImpl> defsFromDecl = dfsDecl == null ? Collections.emptyList() : getTypeVarDefsFromDecl( dfsDecl.getType().getGenericTypeVariables() );
     List<ITypeVariableDefinitionExpression> typeVarDefs = parseTypeVariableDefs( functionStmt, true, defsFromDecl );
@@ -12862,15 +12864,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
     }
     finally
     {
-      for( ITypeVariableDefinitionExpression typeVarDef : typeVarDefs )
-      {
-        Map<String, ITypeVariableDefinition> typeVarMap = getTypeVariables();
-        //noinspection SuspiciousMethodCalls
-        if( typeVarMap.containsValue( typeVarDef ) )
-        {
-          typeVarMap.remove( ((ITypeVariableDefinition)typeVarDef).getName() );
-        }
-      }
+      setTypeVariables( origTypeVarMap );
     }
   }
 
@@ -13396,6 +13390,8 @@ public final class GosuParser extends ParserBase implements IGosuParser
         verify( element, Modifier.isPrivate( modifiers.getModifiers() ), Res.MSG_ENUM_CONSTRUCTOR_MUST_BE_PRIVATE );
       }
 
+      HashMap<String, ITypeVariableDefinition> origTypeVarMap = new HashMap<>( getTypeVariables() );
+
       // Parse generic type vars
       int mark = _tokenizer.mark();
       int iLocationsCount = _locations.size();
@@ -13516,14 +13512,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
       }
       finally
       {
-        for( ITypeVariableDefinitionExpression typeVarDef : typeVarDefs )
-        {
-          Map<String, ITypeVariableDefinition> typeVarMap = getTypeVariables();
-          if( typeVarMap.containsValue( typeVarDef ) )
-          {
-            typeVarMap.remove( ((ITypeVariableDefinition)typeVarDef).getName() );
-          }
-        }
+        setTypeVariables( origTypeVarMap );
       }
     }
     finally
@@ -14257,7 +14246,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
         {
           typeVarDef.setTypeVarDef( tvd );
         }
-        if( !typeVarMap.containsKey( tvd.getName() ) )
+        if( !typeVarExists( typeVarMap, typeVarDef ) )
         {
           // Add all type vars ahead of declaration parsing to enable forward referencing of typevars
           getTypeVariables().put( tvd.getName(), typeVarDef );
@@ -14288,6 +14277,24 @@ public final class GosuParser extends ParserBase implements IGosuParser
     return typeVarDefList;
   }
 
+  private boolean typeVarExists( Map<String, ITypeVariableDefinition> typeVarMap, TypeVariableDefinition typeVarDef )
+  {
+    if( !typeVarMap.containsKey( typeVarDef.getName() ) )
+    {
+      return false;
+    }
+
+    if( isParsingStaticFeature() )
+    {
+      ITypeVariableDefinition v = typeVarMap.get( typeVarDef.getName() );
+      if( v == null || !v.getEnclosingType().equals( typeVarDef.getEnclosingType() ) )
+      {
+        return false;
+      }
+    }
+    return true;
+  }
+
   //------------------------------------------------------------------------------
   // type-variable
   //   <identifier> [extends <type-literal>]
@@ -14311,7 +14318,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
     {
       typeVarDef.setName( T._strValue );
       Map<String, ITypeVariableDefinition> typeVarMap = getTypeVariables();
-      if( !typeVarMap.containsKey( typeVarDef.getName() ) )
+      if( !typeVarExists( typeVarMap, typeVarDef ) )
       {
         getTypeVariables().put( typeVarDef.getName(), typeVarDef );
       }
@@ -14435,6 +14442,10 @@ public final class GosuParser extends ParserBase implements IGosuParser
     if( isParsingFunction() )
     {
       return peekParsingFunction();
+    }
+    else if( isParsingStaticFeature() )
+    {
+      return ErrorType.getInstance( "decl_Static_Function" );
     }
     return getScriptPart() == null ? null : getScriptPart().getContainingType();
   }
@@ -14844,9 +14855,13 @@ public final class GosuParser extends ParserBase implements IGosuParser
     return gsClass.resolveRelativeInnerClass( strTypeName, false );
   }
 
-  public Map<String, ITypeVariableDefinition> getTypeVariables()
+  public HashMap<String, ITypeVariableDefinition> getTypeVariables()
   {
     return _typeVarsByName;
+  }
+  protected void setTypeVariables( HashMap<String, ITypeVariableDefinition> map )
+  {
+    _typeVarsByName = map;
   }
 
   public IGosuClassInternal parseClass( String strQualifiedClassName, ISourceFileHandle sourceFile, boolean bThrowOnWarnings, boolean bFullyCompile ) throws ParseResultsException

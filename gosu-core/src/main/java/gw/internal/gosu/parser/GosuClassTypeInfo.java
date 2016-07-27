@@ -427,13 +427,15 @@ public class GosuClassTypeInfo extends BaseTypeInfo implements IGosuClassTypeInf
   private List<IGosuMethodInfo> createMethodInfos( List mapFunctions )
   {
     List functionInfos = new ArrayList();
-    for (Object mapFunction : mapFunctions) {
-      DynamicFunctionSymbol dfs = (DynamicFunctionSymbol) mapFunction;
-      if ( getOwnersType().isParameterizedType()) {
-        dfs = dfs.getParameterizedVersion((IGosuClassInternal) getOwnersType());
+    for( Object mapFunction : mapFunctions )
+    {
+      DynamicFunctionSymbol dfs = (DynamicFunctionSymbol)mapFunction;
+      if( !dfs.isStatic() && getOwnersType().isParameterizedType() )
+      {
+        dfs = dfs.getParameterizedVersion( (IGosuClassInternal)getOwnersType() );
       }
-      GosuMethodInfo methodInfo = new GosuMethodInfo(this, dfs);
-      functionInfos.add(methodInfo);
+      GosuMethodInfo methodInfo = new GosuMethodInfo( this, dfs );
+      functionInfos.add( methodInfo );
     }
     return functionInfos;
   }

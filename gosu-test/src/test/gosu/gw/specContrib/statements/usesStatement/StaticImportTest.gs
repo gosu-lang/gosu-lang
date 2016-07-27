@@ -12,4 +12,11 @@ class StaticImportTest extends BaseVerifyErrantTest {
     StaticImportOnDemandTest.testMe_Static()
     StaticImportExplicitTest.testMe_Static()
   }
+
+  function testMisc() {
+     assertEquals( "hi", StaticImportMiscTest.testMe() )
+     assertEquals( String, StaticImportMiscTest2.testMe() )
+     assertEquals( "hi", StaticImportMiscTest2.testMe2() )
+     assertEquals( "hi", StaticImportMiscTest3.testMe() )
+  }
 }
