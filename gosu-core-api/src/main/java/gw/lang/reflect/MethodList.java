@@ -273,7 +273,12 @@ public class MethodList extends DynamicArray<IMethodInfo>
   {
     int iCount = inferenceMap.size();
 
-    if( toParamType instanceof ITypeVariableType || toParamType.isParameterizedType() )
+    IType toCompType = toParamType;
+    while( toCompType.isArray() )
+    {
+      toCompType = toCompType.getComponentType();
+    }
+    if( toCompType instanceof ITypeVariableType || toCompType.isParameterizedType() )
     {
       TypeSystem.inferTypeVariableTypesFromGenParamTypeAndConcreteType( toParamType, fromParamType, inferenceMap, true );
       if( inferenceMap.size() > iCount )
@@ -289,11 +294,16 @@ public class MethodList extends DynamicArray<IMethodInfo>
   {
     int iCount = inferenceMap.size();
 
-    boolean bTypeVar = toReturnType instanceof ITypeVariableType;
-    if( bTypeVar || toReturnType.isParameterizedType() )
+    IType toCompType = toReturnType;
+    while( toCompType.isArray() )
+    {
+      toCompType = toCompType.getComponentType();
+    }
+    boolean bTypeVar = toCompType instanceof ITypeVariableType;
+    if( bTypeVar || toCompType.isParameterizedType() )
     {
       TypeSystem.inferTypeVariableTypesFromGenParamTypeAndConcreteType( toReturnType, fromReturnType, inferenceMap, false );
-      if( bTypeVar && inferenceMap.get( (ITypeVariableType)toReturnType ) != null || inferenceMap.size() > iCount )
+      if( bTypeVar && inferenceMap.get( (ITypeVariableType)toCompType ) != null || inferenceMap.size() > iCount )
       {
         IType actualType = TypeSystem.getActualType( toReturnType, inferenceMap, false );
         toReturnType = actualType == null ? toReturnType : actualType;

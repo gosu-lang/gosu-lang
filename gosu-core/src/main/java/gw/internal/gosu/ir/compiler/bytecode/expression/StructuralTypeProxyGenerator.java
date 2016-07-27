@@ -5,6 +5,7 @@
 package gw.internal.gosu.ir.compiler.bytecode.expression;
 
 import gw.internal.gosu.parser.GosuClassProxyFactory;
+import gw.internal.gosu.parser.MetaType;
 import gw.internal.gosu.parser.TypeLord;
 import gw.lang.parser.ISource;
 import gw.lang.parser.StandardCoercionManager;
@@ -101,7 +102,7 @@ public class StructuralTypeProxyGenerator {
     if( ifaceType.isGenericType() && !ifaceType.isParameterizedType() )
     {
       TypeVarToTypeMap inferenceMap = new TypeVarToTypeMap();
-      if( !StandardCoercionManager.isStructurallyAssignable_Laxed( ifaceType, type, inferenceMap ) )
+      if( !StandardCoercionManager.isStructurallyAssignable_Laxed( ifaceType, _bStatic ? MetaType.getLiteral( type ) : type, inferenceMap ) )
       {
         throw new IllegalStateException( "Unexpected structural type incompatibility: " + ifaceType.getName() + " from " + type.getName() );
       }
