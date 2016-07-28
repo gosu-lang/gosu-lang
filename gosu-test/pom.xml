@@ -37,9 +37,6 @@
               <goal>testCompile</goal>
             </goals>
             <configuration>
-              <compilerArgs>
-                <arg>-DcheckedArithmetic=true</arg>
-              </compilerArgs>
               <compilerId>gosuc</compilerId>
               <fork>false</fork>
               <useIncrementalCompilation>true</useIncrementalCompilation> <!-- this must be true or else we cannot pick up files with multiple extensions -->
