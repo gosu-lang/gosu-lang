@@ -166,13 +166,14 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
 
   private TopLevelTransformationContext _cc;
   private T _parsedElement;
-  private static LocklessLazyVar<Boolean> _checkedArithmetic = new LocklessLazyVar<Boolean>() {
-                                                                                                @Override
-                                                                                                protected Boolean init()
-                                                                                                {
-                                                                                                  return Boolean.valueOf( System.getProperty("checkedArithmetic") );
-                                                                                                }
-                                                                                              };
+  private static LocklessLazyVar<Boolean> _checkedArithmetic =
+    new LocklessLazyVar<Boolean>()
+    {
+      protected Boolean init()
+      {
+        return Boolean.valueOf( System.getProperty("checkedArithmetic") );
+      }
+    };
 
   public AbstractElementTransformer( TopLevelTransformationContext cc, T parsedElem )
   {
