@@ -1,4 +1,4 @@
-class GosuOne {
+class Errant_DuplicateClass {
 
   class A<T extends A<T>> {
     function foo(): A {
