@@ -373,7 +373,14 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
            !method.getName().equals("access$0") &&
            !method.isGeneratedEnumMethod() &&
            !(method.getOwningIType() instanceof IGosuTemplateInternal) &&
-           !(method instanceof SyntheticIRMethod);
+           !(method instanceof SyntheticIRMethod) &&
+           !isExecuteMethod( method.getName() );
+  }
+
+  public static boolean isExecuteMethod( String name)
+  {
+    return name.equals( "execute" ) ||
+           name.equals( "executeWithArgs" );
   }
 
   private IRExpression callMethod( IRMethod method, IRExpression root, boolean special, IType owner, List<IRExpression> actualArgs ) {
@@ -3133,7 +3140,15 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
     else
     {
       // Otherwise, the symbol should be in scope in the current function
-      return identifier( _cc().getSymbol( GosuFragmentTransformer.SYMBOLS_PARAM_NAME ) );
+      if( _cc().hasSymbol( GosuFragmentTransformer.SYMBOLS_PARAM_NAME ) )
+      {
+        return identifier( _cc().getSymbol( GosuFragmentTransformer.SYMBOLS_PARAM_NAME ) );
+      }
+      else
+      {
+        // Fuck it, external symbols are not available outside a program, but we call sites exist outside program context
+        return pushNull();
+      }
     }
   }
 

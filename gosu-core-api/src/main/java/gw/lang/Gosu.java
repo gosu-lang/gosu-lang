@@ -128,11 +128,13 @@ public class Gosu
   private static List<String> collectArgs( int i, String[] args )
   {
     List<String> scriptArgs = new ArrayList<>();
-
-    while( i < args.length )
+    if( args != null )
     {
-      scriptArgs.add( args[i] );
-      i++;
+      while( i < args.length )
+      {
+        scriptArgs.add( args[i] );
+        i++;
+      }
     }
     return scriptArgs;
   }

@@ -30,6 +30,7 @@ import gw.internal.gosu.parser.IGosuTemplateInternal;
 import gw.internal.gosu.parser.IJavaTypeInternal;
 import gw.internal.gosu.parser.MemberFieldSymbol;
 import gw.internal.gosu.parser.ParameterizedDynamicFunctionSymbol;
+import gw.internal.gosu.parser.ProgramExecuteFunctionSymbol;
 import gw.internal.gosu.parser.RepeatableContainerAnnotationInfo;
 import gw.internal.gosu.parser.Symbol;
 import gw.internal.gosu.parser.TemplateRenderFunctionSymbol;
@@ -582,6 +583,7 @@ public class GosuClassTransformer extends AbstractElementTransformer<ClassStatem
          (dfs.isStatic() && isProgramOrEnclosedInProgram( _cc().getGosuClass() ))) &&
         !(dfs instanceof IProgramClassFunctionSymbol) &&
         !(dfs instanceof TemplateRenderFunctionSymbol) &&
+        !(dfs instanceof ProgramExecuteFunctionSymbol) &&
         !isOverrideForSuperClass( dfs ) )
     {
       parameters.add( new IRSymbol( GosuFragmentTransformer.SYMBOLS_PARAM_NAME, getDescriptor( IExternalSymbolMap.class ), false ) );

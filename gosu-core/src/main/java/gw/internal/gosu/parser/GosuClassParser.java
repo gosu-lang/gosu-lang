@@ -914,15 +914,19 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
     if( gsClass instanceof IGosuProgramInternal )
     {
       ((IGosuProgramInternal)gsClass).addProgramEntryPoint( getSymbolTable(), this );
-    }
-    if( gsClass instanceof IGosuTemplateInternal )
-    {
-      IGosuTemplateInternal gsTemplate = (IGosuTemplateInternal)gsClass;
-      gsTemplate.addTemplateEntryPoints( getSymbolTable(), this );
-      IProgram program = gsTemplate.getTemplateGenerator().getProgram();
-      if( program != null )
+      if( gsClass instanceof IGosuTemplateInternal )
       {
-        ((IGosuProgramInternal)program.getGosuProgram()).setContextType( gsTemplate );
+        IGosuTemplateInternal gsTemplate = (IGosuTemplateInternal)gsClass;
+        gsTemplate.addTemplateEntryPoints( getSymbolTable(), this );
+        IProgram program = gsTemplate.getTemplateGenerator().getProgram();
+        if( program != null )
+        {
+          ((IGosuProgramInternal)program.getGosuProgram()).setContextType( gsTemplate );
+        }
+      }
+      else
+      {
+        ((IGosuProgramInternal)gsClass).addExecuteEntryPoint( getSymbolTable(), this );
       }
     }
 

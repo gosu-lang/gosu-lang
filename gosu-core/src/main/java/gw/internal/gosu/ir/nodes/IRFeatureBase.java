@@ -4,6 +4,7 @@
 
 package gw.internal.gosu.ir.nodes;
 
+import gw.internal.gosu.ir.transform.AbstractElementTransformer;
 import gw.internal.gosu.parser.IGosuTemplateInternal;
 import gw.internal.gosu.parser.JavaFieldPropertyInfo;
 import gw.lang.reflect.IRelativeTypeInfo;
@@ -104,7 +105,7 @@ public class IRFeatureBase {
   protected void addImplicitParameters( IType owner, IFunctionType functionType, boolean bStatic, List<IRType> params ) {
     addImplicitEnhancementParams( owner, bStatic, params );
     addFunctionTypeParams( functionType, params );
-    addImplicitExternalSymbolMapParam( owner, bStatic, params );
+    addImplicitExternalSymbolMapParam( functionType, owner, bStatic, params );
   }
 
   private void addImplicitEnhancementParams( IType owner, boolean bStatic, List<IRType> params )
@@ -122,17 +123,17 @@ public class IRFeatureBase {
     }
   }
 
-  private void addImplicitExternalSymbolMapParam( IType owner, boolean bStatic, List<IRType> params )
+  private void addImplicitExternalSymbolMapParam( IFunctionType functionType, IType owner, boolean bStatic, List<IRType> params )
   {
     if( !isImplicitMethod() )
     {
-      if( owner instanceof IGosuProgram && !(owner instanceof IGosuTemplateInternal) )
+      if( owner instanceof IGosuProgram && !(owner instanceof IGosuTemplateInternal) && !AbstractElementTransformer.isExecuteMethod( functionType.getDisplayName() ) )
       {
         params.add( IRTypeResolver.getDescriptor( IExternalSymbolMap.class ) );
       }
       else if( owner != null && bStatic )
       {
-        addImplicitExternalSymbolMapParam( owner.getEnclosingType(), bStatic, params );
+        addImplicitExternalSymbolMapParam( functionType, owner.getEnclosingType(), bStatic, params );
       }
     }
   }
