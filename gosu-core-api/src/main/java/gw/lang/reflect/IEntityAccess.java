@@ -20,6 +20,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.TimeZone;
 
 
 @UnstableAPI
@@ -57,6 +58,8 @@ public interface IEntityAccess extends IService
   Locale getLocale();
 
   Date getCurrentTime();
+
+  TimeZone getTimeZone();
 
   void addEnhancementMethods(IType typeToEnhance, Collection methodsToAddTo);
 
