@@ -58,7 +58,7 @@ class Errant_ConstraintsOnTypeParametersTest {
     new C1<A1, Integer>()
     new C1<A0, Integer>()  //## issuekeys: MSG_TYPE_PARAM_NOT_ASSIGNABLE_TO
     new C3<A3, Integer>()
-    new C3<A0, Integer>()   //## KB(PL-34008)
+    new C3<A0, Integer>()
     new C6<A0, B0>()
     new C8<Z>()
     new C9<Z, Z>()
