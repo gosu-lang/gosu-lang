@@ -8,6 +8,7 @@ import gw.internal.gosu.parser.DynamicFunctionSymbol;
 import gw.internal.gosu.parser.GosuClassParseInfo;
 import gw.internal.gosu.parser.IGosuClassInternal;
 import gw.internal.gosu.parser.IGosuProgramInternal;
+import gw.internal.gosu.parser.ParseTree;
 import gw.internal.gosu.parser.Symbol;
 import gw.internal.gosu.parser.ThisConstructorFunctionSymbol;
 import gw.lang.parser.IExpression;
@@ -201,7 +202,11 @@ public class VarInitializationVerifier {
       verifyInstanceFieldInOtherInstanceFields( gsClass, varStmt );
     }
     if( !bAssigned && overall != AssignedState.Fully ) {
-      ParseException parseException = new ParseException( varStmt.getLineNum(), 1, varStmt.getLocation().getColumn(), varStmt.getLocation().getOffset(), varStmt.getLocation().getExtent(),
+      ParseTree loc = varStmt.getLocation();
+      ParseException parseException = new ParseException( varStmt.getLineNum(), 1,
+                                                          loc == null ? varStmt.getColumn() : loc.getColumn(),
+                                                          loc == null ? varStmt.getNameOffset( varStmt.getIdentifierName() ) : loc.getOffset(),
+                                                          loc == null ? 1 : loc.getExtent(),
                                                           new StandardSymbolTable(), Res.MSG_VAR_MIGHT_NOT_HAVE_BEEN_INIT, varStmt.getSymbol().getName() );
       varStmt.addParseException( parseException );
     }
