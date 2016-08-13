@@ -6,6 +6,7 @@ package gw.internal.gosu.module;
 
 import gw.config.CommonServices;
 import gw.fs.IDirectory;
+import gw.fs.jar.JarFileDirectoryImpl;
 import gw.internal.gosu.dynamic.DynamicTypeLoader;
 import gw.internal.gosu.parser.DefaultTypeLoader;
 import gw.internal.gosu.parser.FileSystemGosuClassRepository;
@@ -28,6 +29,7 @@ import gw.util.Extensions;
 import gw.util.GosuExceptionUtil;
 import gw.util.concurrent.LocklessLazyVar;
 
+import java.io.File;
 import java.lang.reflect.Constructor;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -38,6 +40,9 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.jar.Attributes;
+import java.util.jar.JarFile;
+import java.util.jar.Manifest;
 
 public class Module implements IModule
 {
@@ -182,6 +187,10 @@ public class Module implements IModule
   @Override
   public void configurePaths(List<IDirectory> classpath, List<IDirectory> sourcePaths)
   {
+    // Maybe expand paths to include Class-Path attribute from Manifest...
+    classpath = addFromManifestClassPath( classpath );
+    sourcePaths = addFromManifestClassPath( sourcePaths );
+
     // Scan....
     List<IDirectory> sourceRoots = new ArrayList<IDirectory>(sourcePaths);
     Set<String> extensions = new HashSet<String>();
@@ -190,6 +199,55 @@ public class Module implements IModule
     // FIXME: extensions...
     setSourcePath(sourceRoots);
     setJavaClassPath(classpath);
+  }
+
+  private List<IDirectory> addFromManifestClassPath( List<IDirectory> classpath )
+  {
+    if( classpath == null )
+    {
+      return classpath;
+    }
+
+    ArrayList<IDirectory> newClasspath = new ArrayList<>();
+    for( IDirectory root : classpath )
+    {
+      if( root instanceof JarFileDirectoryImpl )
+      {
+        JarFile jarFile = ((JarFileDirectoryImpl)root).getJarFile();
+        try
+        {
+          Manifest manifest = jarFile.getManifest();
+          if( manifest != null )
+          {
+            Attributes man = manifest.getMainAttributes();
+            String paths = man.getValue( Attributes.Name.CLASS_PATH );
+            if( paths != null && !paths.isEmpty() )
+            {
+              // We found a Jar with a Class-Path listing.
+              // Note sometimes happens when running from IntelliJ where the
+              // classpath would otherwise make the command line to java.exe
+              // too long.
+              for( String j : paths.split( " " ) )
+              {
+                // Add each of the paths to our classpath
+                URL url = new URL( j );
+                File dirOrJar = new File( url.toURI() );
+                IDirectory idir = CommonServices.getFileSystem().getIDirectory( dirOrJar );
+                newClasspath.add( idir );
+              }
+              continue;
+            }
+          }
+        }
+        catch( Exception e )
+        {
+          throw GosuExceptionUtil.forceThrow( e );
+        }
+      }
+      newClasspath.add( root );
+    }
+
+    return newClasspath;
   }
 
   @Override
@@ -276,7 +334,7 @@ public class Module implements IModule
   protected void maybeCreateModuleTypeLoader() {
     if (getModuleTypeLoader() == null) {
       ModuleTypeLoader tla = new ModuleTypeLoader( this, new DefaultTypeLoader(this) );
-      setModuleTypeLoader(tla);
+      setModuleTypeLoader( tla );
     }
   }
 
@@ -297,7 +355,7 @@ public class Module implements IModule
     if (this != globalModule) {
       traversalList.add(0, globalModule);
     }
-    return traversalList.toArray(new IModule[traversalList.size()]);
+    return traversalList.toArray( new IModule[traversalList.size()] );
   }
 
 
