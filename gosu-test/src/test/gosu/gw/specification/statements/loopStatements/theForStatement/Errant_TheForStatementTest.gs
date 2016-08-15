@@ -42,7 +42,13 @@ class Errant_TheForStatementTest  {
       j++
     }
     for("012") {}  //## issuekeys: MSG_EXPECTING_IDENTIFIER_FOREACH, MSG_EXPECTING_IN_FOREACH
+    for(c in "abc") {}
     for(3) {}  //## issuekeys: MSG_EXPECTING_IDENTIFIER_FOREACH, MSG_EXPECTING_IN_FOREACH, MSG_EXPECTING_ARRAYTYPE_FOREACH
+
+    var list1 = {1, 2, 3}
+    for(list1) {}  //## issuekeys: MSG_EXPECTING_IDENTIFIER_FOREACH, MSG_EXPECTING_IN_FOREACH
+    for(i in list1) {}
+    for({4, 5, 6}) {}  //## issuekeys: MSG_EXPECTING_IDENTIFIER_FOREACH, MSG_EXPECTING_IN_FOREACH
   }
 
   function testLoopVariable() {
