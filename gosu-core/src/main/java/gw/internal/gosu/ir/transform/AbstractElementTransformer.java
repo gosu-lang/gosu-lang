@@ -95,6 +95,7 @@ import gw.lang.reflect.FunctionType;
 import gw.lang.reflect.IBlockType;
 import gw.lang.reflect.IConstructorInfo;
 import gw.lang.reflect.IEnumConstant;
+import gw.lang.reflect.IErrorType;
 import gw.lang.reflect.IFeatureInfo;
 import gw.lang.reflect.IFunctionType;
 import gw.lang.reflect.IMetaType;
@@ -862,6 +863,15 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
       IRExpression setCreation = new IRCompositeExpression(elements);
       return callStaticMethod( CompoundType.class, "get", new Class[]{Set.class},
               Collections.singletonList(setCreation));
+    }
+    else if( type instanceof IErrorType )
+    {
+      String errorMsg = "Unexpected Error Type: " + type.getName() + ", while compiling " + _cc().getGosuClass().getName() + "\n" +
+                        "  Enclosing class:  " + (_cc().getEnclosingType() == null ? "" : _cc().getEnclosingType().getName()) + "\n" +
+                        "  Current function: " + _cc().getCurrentFunctionName() + "\n" +
+                        "  Parsed element: " + (_parsedElement == null ? "" : _parsedElement.toString()) + "\n" +
+                        "  Class source: " + _cc().getGosuClass().getSource() + "\n";
+      throw new IllegalStateException( errorMsg );
     }
     else
     {
