@@ -201,6 +201,30 @@ public class Module implements IModule
     setJavaClassPath(classpath);
   }
 
+  /**
+   * <p>This will add items to the Gosu classpath, but only under very specific circumstances.
+   * <p>If both of the following conditions are met:
+   * <ul>
+   *   <li>The JAR's manifest contains a Class-Path entry</li>
+   *   <li>The Class-Path entry contains a space-delimited list of URIs</li>
+   * </ul>
+   * <p>Then the entries will be parsed and added to the Gosu classpath.
+   * 
+   * <p>This logic also handles strange libraries packaged pre-Maven such as xalan:xalan:2.4.1
+   * 
+   * <p>The xalan JAR above has a Class-Path attribute referencing the following:
+   * <pre>
+   *   Class-Path: xercesImpl.jar xml-apis.jar
+   * </pre>
+   * 
+   * These unqualified references should have been resolved by the build tooling, and if we try to interfere and resolve
+   * the references, we may cause classpath confusion. Therefore any Class-Path entry not resolvable to an absolute
+   * path on disk (and, therefore, can be listed as a URL) will be skipped.
+   * 
+   * @see java.util.jar.Attributes.Name#CLASS_PATH
+   * @param classpath The module's Java classpath
+   * @return The original classpath, possibly with dependencies listed in JAR manifests Class-Path extracted and explicitly listed
+   */
   private List<IDirectory> addFromManifestClassPath( List<IDirectory> classpath )
   {
     if( classpath == null )
@@ -211,6 +235,8 @@ public class Module implements IModule
     ArrayList<IDirectory> newClasspath = new ArrayList<>();
     for( IDirectory root : classpath )
     {
+      //add the root JAR itself first, preserving ordering
+      newClasspath.add( root );
       if( root instanceof JarFileDirectoryImpl )
       {
         JarFile jarFile = ((JarFileDirectoryImpl)root).getJarFile();
@@ -230,7 +256,13 @@ public class Module implements IModule
               for( String j : paths.split( " " ) )
               {
                 // Add each of the paths to our classpath
-                URL url = new URL( j );
+                URL url;
+                try {
+                  url = new URL( j );
+                } catch (MalformedURLException e) {
+                  //Class-Path contained an invalid URL, skip it
+                  continue;
+                }
                 File dirOrJar = new File( url.toURI() );
                 IDirectory idir = CommonServices.getFileSystem().getIDirectory( dirOrJar );
                 newClasspath.add( idir );
@@ -244,7 +276,6 @@ public class Module implements IModule
           throw GosuExceptionUtil.forceThrow( e );
         }
       }
-      newClasspath.add( root );
     }
 
     return newClasspath;
