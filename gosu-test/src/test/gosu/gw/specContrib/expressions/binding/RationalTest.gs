@@ -1,6 +1,11 @@
 package gw.specContrib.expressions.binding
+
 uses gw.test.TestClass
 uses gw.util.Rational
+uses java.io.ObjectOutputStream
+uses java.io.ObjectInputStream
+uses java.io.ByteArrayOutputStream
+uses java.io.ByteArrayInputStream
 
 class RationalTest extends TestClass {
   function testSimple() {
@@ -11,16 +16,16 @@ class RationalTest extends TestClass {
     assertEquals( "123456789012345678901234567890 / 1", 123456789012345678901234567890r.toString() )
     assertEquals( "-123456789012345678901234567890 / 1", (-123456789012345678901234567890r).toString() )
     
-    assertEquals( "1 / 1", Rational.get( "1.3 / 1.3" ).toString() )
-    assertEquals( "1 / 3", Rational.get( ".1 / .3" ).toString() )
-    assertEquals( "1 / 20", Rational.get( ".1 / 2" ). toString() )
-    assertEquals( "-1 / 20", Rational.get( "-.1 / 2" ). toString() )
-    assertEquals( "20 / 1", Rational.get( "2 / .1" ). toString() )
-    assertEquals( "-20 / 1", Rational.get( "-2 / .1" ). toString() )
-    assertEquals( "1 / 1", Rational.get( ".1 / .1" ). toString() )
-    assertEquals( "1 / 1", Rational.get( ".1 / .1" ). toString() )
-    assertEquals( "1 / 20", Rational.get( "5 / 100" ). toString() )
-    assertEquals( "-1 / 20", Rational.get( "-5 / 100" ). toString() )
+    assertEquals( "1/1", Rational.get( "1.3/1.3" ).toFractionString() )
+    assertEquals( "1/3", Rational.get( ".1/.3" ).toFractionString() )
+    assertEquals( "1/20", Rational.get( ".1/2" ). toFractionString() )
+    assertEquals( "-1/20", Rational.get( "-.1/2" ). toFractionString() )
+    assertEquals( "20/1", Rational.get( "2/.1" ). toFractionString() )
+    assertEquals( "-20/1", Rational.get( "-2/.1" ). toFractionString() )
+    assertEquals( "1/1", Rational.get( ".1/.1" ). toFractionString() )
+    assertEquals( "1/1", Rational.get( ".1/.1" ). toFractionString() )
+    assertEquals( "1/20", Rational.get( "5/100" ). toFractionString() )
+    assertEquals( "-1/20", Rational.get( "-5/100" ). toFractionString() )
     try {
       Rational.get( "1/0" ) 
       fail()
@@ -45,5 +50,18 @@ class RationalTest extends TestClass {
       sb.append( rat.toMixedString() ).append( ", " )
     }
     assertEquals( "-2, -1 2/3, -1 1/3, -1, -2/3, -1/3, 0, 1/3, 2/3, 1, 1 1/3, 1 2/3, 2, ", sb.toString() )
+  }
+
+  function testSerialization() {
+    var r = 2r/3r
+    var ba = new ByteArrayOutputStream()
+    using( var out = new ObjectOutputStream( ba ) ) {
+      out.writeObject( r )
+    }
+    using( var inp = new ObjectInputStream( new ByteArrayInputStream( ba.toByteArray() ) ) ) {
+      var r2 = inp.readObject() as Rational
+      assertTrue( r == r2 )
+      assertFalse( r === r2 )
+    }
   }
 }

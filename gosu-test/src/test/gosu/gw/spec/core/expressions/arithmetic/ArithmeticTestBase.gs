@@ -24,6 +24,10 @@ abstract class ArithmeticTestBase extends TestClass {
     assertEquals(p1, p2, 0.0)  
   }
 
+  protected function assertEquals( r1: Rational, r2: Rational ) {
+    assertTrue( r1 == r2 )
+  }
+
   protected function p_byte(c : int) : byte{
     return c as byte  
   }

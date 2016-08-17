@@ -2,6 +2,11 @@ package gw.util;
 
 import gw.lang.reflect.interval.ISequenceable;
 
+import java.io.Externalizable;
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
+import java.io.Serializable;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.math.MathContext;
@@ -9,13 +14,16 @@ import java.math.MathContext;
 
 /**
  */
-final public class Rational extends Number implements ISequenceable<Rational, Rational, Void>
+final public class Rational extends Number implements ISequenceable<Rational, Rational, Void>, Serializable
 {
-  public static final Rational ZERO = new Rational( BigInteger.ZERO, BigInteger.ONE );
-  public static final Rational ONE = new Rational( BigInteger.ONE, BigInteger.ONE );
+  public static final Rational ZERO = new Rational( BigInteger.ZERO, BigInteger.ONE, true );
+  public static final Rational ONE = new Rational( BigInteger.ONE, BigInteger.ONE, true );
+
+  private static final int VERSION_1 = 1;
 
   private final BigInteger _numerator;
   private final BigInteger _denominator;
+  private boolean _reduced;
 
   public static Rational get( int numerator )
   {
@@ -105,6 +113,10 @@ final public class Rational extends Number implements ISequenceable<Rational, Ra
   }
   public static Rational get( BigInteger numerator, BigInteger denominator )
   {
+    return get( numerator, denominator, false );
+  }
+  private static Rational get( BigInteger numerator, BigInteger denominator, boolean reduced )
+  {
     if( numerator.equals( BigInteger.ZERO ) )
     {
       return ZERO;
@@ -113,10 +125,10 @@ final public class Rational extends Number implements ISequenceable<Rational, Ra
     {
       return ONE;
     }
-    return new Rational( numerator, denominator );
+    return new Rational( numerator, denominator, reduced );
   }
 
-  private Rational( BigInteger numerator, BigInteger denominator )
+  private Rational( BigInteger numerator, BigInteger denominator, boolean reduced )
   {
     if( denominator.signum() == 0 )
     {
@@ -129,13 +141,6 @@ final public class Rational extends Number implements ISequenceable<Rational, Ra
     }
     else
     {
-      BigInteger gcd = numerator.gcd( denominator );
-      if( gcd.compareTo( BigInteger.ONE ) > 0 )
-      {
-        numerator = numerator.divide( gcd );
-        denominator = denominator.divide( gcd );
-      }
-
       if( denominator.signum() == -1 )
       {
         numerator = numerator.negate();
@@ -145,6 +150,21 @@ final public class Rational extends Number implements ISequenceable<Rational, Ra
       _numerator = numerator;
       _denominator = denominator;
     }
+    _reduced = reduced;
+  }
+
+  public Rational reduce()
+  {
+    if( !_reduced )
+    {
+      BigInteger gcd = _numerator.gcd( _denominator );
+      if( gcd.compareTo( BigInteger.ONE ) > 0 )
+      {
+        return get( _numerator.divide( gcd ), _denominator.divide( gcd ), true );
+      }
+      _reduced = true;
+    }
+    return this;
   }
 
   public BigInteger getNumerator()
@@ -161,9 +181,11 @@ final public class Rational extends Number implements ISequenceable<Rational, Ra
     return _numerator.divide( _denominator );
   }
 
-  public Rational fractionPart() {
+  public Rational fractionPart()
+  {
     BigInteger remainder = _numerator.remainder( _denominator );
-    if( remainder.signum() == 0 ) {
+    if( remainder.signum() == 0 )
+    {
       return ZERO;
     }
     return Rational.get( remainder, _denominator );
@@ -658,11 +680,20 @@ final public class Rational extends Number implements ISequenceable<Rational, Ra
 
   public String toFractionString()
   {
+    if( !_reduced )
+    {
+      return reduce().toFractionString();
+    }
     return _numerator + "/" + _denominator;
   }
 
   public String toMixedString()
   {
+    if( !_reduced )
+    {
+      return reduce().toMixedString();
+    }
+
     if( _denominator.equals( BigInteger.ONE ) )
     {
       return _numerator.toString();
@@ -687,5 +718,56 @@ final public class Rational extends Number implements ISequenceable<Rational, Ra
   public String toString()
   {
     return _numerator + " / " + _denominator;
+  }
+
+  private Object writeReplace()
+  {
+    return new Serializer( this );
+  }
+
+  private static class Serializer implements Externalizable
+  {
+    private Rational _rational;
+
+    public Serializer()
+    {
+    }
+
+    public Serializer( Rational rational )
+    {
+      _rational = rational;
+    }
+
+    @Override
+    public void writeExternal( ObjectOutput out ) throws IOException
+    {
+      out.writeInt( VERSION_1 );
+      out.writeObject( _rational._numerator );
+      out.writeObject( _rational._denominator );
+      out.writeBoolean( _rational._reduced );
+    }
+
+    @Override
+    public void readExternal( ObjectInput in ) throws IOException, ClassNotFoundException
+    {
+      int version = in.readInt();
+      switch( version )
+      {
+        case VERSION_1:
+          BigInteger numerator = (BigInteger)in.readObject();
+          BigInteger denominator = (BigInteger)in.readObject();
+          boolean reduced = in.readBoolean();
+          _rational = get( numerator, denominator, reduced );
+          break;
+
+        default:
+          throw new IllegalStateException( "Unsupported version: " + version );
+      }
+    }
+
+    Object readResolve()
+    {
+      return _rational;
+    }
   }
 }

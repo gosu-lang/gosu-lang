@@ -4,9 +4,10 @@ uses gw.test.TestClass
 uses gw.util.science.*
 uses gw.util.science.UnitConstants#*
 uses gw.lang.reflect.TypeSystem
+uses gw.spec.core.expressions.arithmetic.ArithmeticTestBase
 uses gw.util.Rational
 
-class ScienceUnitMathTest extends TestClass {
+class ScienceUnitMathTest extends ArithmeticTestBase {
   
   function testMath() {
     var namespace = TypeSystem.getNamespace( "gw.util.science" )
@@ -68,7 +69,7 @@ class ScienceUnitMathTest extends TestClass {
     print( "Y" )
     var quotient = eval( expr )
     assertSame( measureType, typeof quotient )
-    assertEquals( 2r, (quotient as AbstractMeasure).toBaseNumber() )
+    assertTrue( 2r == (quotient as AbstractMeasure).toBaseNumber() )
     print( "Quotient: " + quotient )
     print( "" )
     assertEquals( quotient, leftMeasure as Dynamic / rightMeasure as Dynamic )
