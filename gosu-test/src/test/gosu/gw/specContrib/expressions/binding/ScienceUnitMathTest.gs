@@ -64,12 +64,9 @@ class ScienceUnitMathTest extends ArithmeticTestBase {
                 var y = rightMeasure as ${typeof rightMeasure} \
                 var result: ${measureType.Name} = x / y \
                 return result"
-    print( "H" )
-    print( expr )
-    print( "Y" )
     var quotient = eval( expr )
     assertSame( measureType, typeof quotient )
-    assertTrue( 2r == (quotient as AbstractMeasure).toBaseNumber() )
+    assertEquals( 2r, (quotient as AbstractMeasure).toBaseNumber() as Rational )
     print( "Quotient: " + quotient )
     print( "" )
     assertEquals( quotient, leftMeasure as Dynamic / rightMeasure as Dynamic )

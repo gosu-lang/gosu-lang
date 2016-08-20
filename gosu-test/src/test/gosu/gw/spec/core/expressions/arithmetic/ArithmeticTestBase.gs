@@ -15,7 +15,7 @@ uses java.lang.ArithmeticException
 abstract class ArithmeticTestBase extends TestClass {
   
   // Helper functions
-  
+
   protected function assertEquals(p1 : float, p2 : float) {
     assertEquals(p1, p2, 0.0 as float)  
   }
