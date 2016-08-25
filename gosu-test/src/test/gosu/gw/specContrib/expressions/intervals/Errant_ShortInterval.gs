@@ -41,6 +41,7 @@ class Errant_ShortInterval {
   var short1120 = (1s.."mystring")      //## issuekeys: OPERATOR '..' CANNOT BE APPLIED TO 'SHORT', 'JAVA.LANG.STRING'
   var short1121 = (1s..(new Date()))      //## issuekeys: OPERATOR '..' CANNOT BE APPLIED TO 'SHORT', 'JAVA.UTIL.DATE'
   var short1122 = (1s..aaa)      //## issuekeys: OPERATOR '..' CANNOT BE APPLIED TO 'SHORT', 'GW.SPECCONTRIB.AAA.PARSERVSOPENSOURCE.INTERVALSANDDIMENSIONS.INTERVALSBASIC.INTERVAL_SHORT.A'
+  var short1123 = (1s..false)      //## issuekeys: OPERATOR '..' CANNOT BE APPLIED TO 'SHORT', 'BOOLEAN'
 
   //Lower end point is short with step function
   var short1211 = (1s..'c').step(1s)    //## issuekeys: OPERATOR '..' CANNOT BE APPLIED TO 'SHORT', 'CHAR'

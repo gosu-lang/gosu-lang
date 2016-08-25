@@ -43,6 +43,7 @@ class Errant_ByteInterval {
   var byte1120 = (1b.."mystring")      //## issuekeys: OPERATOR '..' CANNOT BE APPLIED TO 'BYTE', 'JAVA.LANG.STRING'
   var byte1121 = (1b..(new Date()))      //## issuekeys: OPERATOR '..' CANNOT BE APPLIED TO 'BYTE', 'JAVA.UTIL.DATE'
   var byte1122 = (1b..aaa)      //## issuekeys: OPERATOR '..' CANNOT BE APPLIED TO 'BYTE', 'GW.SPECCONTRIB.AAA.PARSERVSOPENSOURCE.INTERVALSANDDIMENSIONS.INTERVALSBASIC.INTERVAL_BYTE.A'
+  var byte1123 = (1b..false)            //## issuekeys: OPERATOR '..' CANNOT BE APPLIED TO 'BYTE', 'BOOLEAN'
 
   //Lower end point is byte with step function
   var byte1211 = (1b..'c').step(1b)   //## issuekeys: OPERATOR '..' CANNOT BE APPLIED TO 'BYTE', 'CHAR'

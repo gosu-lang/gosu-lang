@@ -46,6 +46,7 @@ class Errant_IntegerInterval {
   var int1120 = (42.."mystring")      //## issuekeys: OPERATOR '..' CANNOT BE APPLIED TO 'INT', 'JAVA.LANG.STRING'
   var int1121 = (42..(new Date()))      //## issuekeys: OPERATOR '..' CANNOT BE APPLIED TO 'INT', 'JAVA.UTIL.DATE'
   var int1122 = (42..aaa)      //## issuekeys: OPERATOR '..' CANNOT BE APPLIED TO 'INT', 'GW.SPECCONTRIB.AAA.PARSERVSOPENSOURCE.INTERVALSANDDIMENSIONS.INTERVALSBASIC.INTERVAL_INTEGER.A'
+  var int1123 = (42..false)      //## issuekeys: OPERATOR '..' CANNOT BE APPLIED TO 'INT', 'BOOLEAN'
 
   //Lower end point is int with step function
   var int1211 = (42..'c').step(42)
