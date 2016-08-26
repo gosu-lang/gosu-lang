@@ -27,7 +27,13 @@
       <artifactId>gw-asm-all</artifactId>
       <version>5.0.4</version>
     </dependency>
+    <dependency>
+      <groupId>com.beust</groupId>
+      <artifactId>jcommander</artifactId>
+      <version>1.48</version>
+    </dependency>
   </dependencies>
+  
   <profiles>
     <profile>
         <id>internal.tools-jar</id>
@@ -47,6 +53,7 @@
         </dependencies>
     </profile>
   </profiles>
+  
   <build>
     <plugins>
       <plugin>

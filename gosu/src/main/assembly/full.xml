@@ -29,6 +29,19 @@
       <filtered>true</filtered>
       <lineEnding>dos</lineEnding>
     </file>
+    <file>
+      <source>${project.build.scriptSourceDirectory}/gosuc</source>
+      <outputDirectory>bin</outputDirectory>
+      <fileMode>0775</fileMode>
+      <filtered>true</filtered>
+      <lineEnding>unix</lineEnding>
+    </file>
+    <file>
+      <source>${project.build.scriptSourceDirectory}/gosuc.cmd</source>
+      <outputDirectory>bin</outputDirectory>
+      <filtered>true</filtered>
+      <lineEnding>dos</lineEnding>
+    </file>    
   </files>
   <fileSets>
     <fileSet>
