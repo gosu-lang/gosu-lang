@@ -315,6 +315,12 @@ public class GosuClassTransformer extends AbstractElementTransformer<ClassStatem
   {
     for( IVarStatement field : getOrderedFields() )
     {
+      if( field.isAbstract() )
+      {
+        // the field exists merely as parse tree info for the corresponding property compiled elsewhere
+        continue;
+      }
+
       IRFieldDecl fieldDecl = new IRFieldDecl( getModifiers( (AbstractDynamicSymbol)field.getSymbol() ),
                                                field.isInternal(),
                                                field.getIdentifierName(),

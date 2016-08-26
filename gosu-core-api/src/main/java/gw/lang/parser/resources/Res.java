@@ -356,6 +356,7 @@ public class Res
   public static final ResourceKey MSG_TEMPLATE_MULTIPLE_PARAMS = new ResourceKey("MSG_TEMPLATE_MULTIPLE_PARAMS");
   public static final ResourceKey MSG_TEMPLATE_UNKNOWN_DIRECTIVE = new ResourceKey("MSG_TEMPLATE_UNKNOWN_DIRECTIVE");
   public static final ResourceKey MSG_EQUALS_FOR_INITIALIZER_EXPR = new ResourceKey( "MSG_EQUALS_FOR_INITIALIZER_EXPR" );
+  public static final ResourceKey MSG_INITIALIZER_NOT_ALLOWED_ABSTRACT_PROPERTY = new ResourceKey( "MSG_INITIALIZER_NOT_ALLOWED_ABSTRACT_PROPERTY" );
   public static final ResourceKey MSG_EXPECTING_NAME_VALUE_PAIR = new ResourceKey( "MSG_EXPECTING_NAME_VALUE_PAIR" );
   public static final ResourceKey MSG_REDUNTANT_INITIALIZERS = new ResourceKey( "MSG_REDUNTANT_INITIALIZERS" );
   public static final ResourceKey MSG_ONLY_ONE_COLON_IN_INITIALIZERS = new ResourceKey( "MSG_ONLY_ONE_COLON_IN_INITIALIZERS" );

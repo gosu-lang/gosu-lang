@@ -346,6 +346,11 @@ public class GosuClassTypeInfo extends BaseTypeInfo implements IGosuClassTypeInf
     {
       for( IVarStatement varStmt : fields )
       {
+        if( varStmt.isAbstract() )
+        {
+          continue;
+        }
+
         GosuVarPropertyInfo fieldProp = new GosuVarPropertyInfo( this, varStmt );
         declaredPropertiesMap.add( fieldProp );
       }

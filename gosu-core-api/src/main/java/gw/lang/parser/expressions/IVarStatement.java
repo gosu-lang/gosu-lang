@@ -43,6 +43,8 @@ public interface IVarStatement extends IStatement, IParsedElementWithAtLeastOneD
 
   boolean isFinal();
 
+  boolean isAbstract();
+
   boolean isEnumConstant();
 
   IType getType();
@@ -54,7 +56,7 @@ public interface IVarStatement extends IStatement, IParsedElementWithAtLeastOneD
   String getFullDescription();
 
   void setSymbol( ISymbol symbol );
-  
+
   public int getPropertyNameOffset();
 
   boolean isFieldDeclaration();

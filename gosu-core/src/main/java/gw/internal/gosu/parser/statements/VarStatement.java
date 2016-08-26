@@ -195,11 +195,18 @@ public class VarStatement extends Statement implements IVarStatement
     _modifiers.setModifiers( Modifier.setFinal( _modifiers.getModifiers(), bFinal ) );
   }
 
-  public boolean isEnumConstant() {
-    return Modifier.isEnum( getModifiers() );
+  @Override
+  public boolean isAbstract()
+  {
+    return Modifier.isAbstract( getModifiers() );
   }
 
-  public void setEnumConstant( boolean bEnumConstant ) {
+  public boolean isEnumConstant()
+  {
+    return Modifier.isEnum( getModifiers() );
+  }
+  public void setEnumConstant( boolean bEnumConstant )
+  {
     _modifiers.setModifiers( Modifier.setEnum( _modifiers.getModifiers(), bEnumConstant ) );
   }
 

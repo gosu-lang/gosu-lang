@@ -394,6 +394,7 @@ public class Strings extends ListResourceBundle
                                             "{0} conflicts with {1}."},
        {Res.MSG_PRIMITIVE_TYPE_PARAM.getKey(), "Primitive type {0} is not allowed here. Type {0} is implicitly transformed to {1} as a type parameter, please use {1} directly."},
        {Res.MSG_EQUALS_FOR_INITIALIZER_EXPR.getKey(), "Expecting an '=' in this object initializer."},
+       {Res.MSG_INITIALIZER_NOT_ALLOWED_ABSTRACT_PROPERTY.getKey(), "Initializer not allowed on abstract property."},
        {Res.MSG_EXPECTING_NAME_VALUE_PAIR.getKey(), "Expecting a property name followed by an '=' and expression value."},
        {Res.MSG_REDUNTANT_INITIALIZERS.getKey(), "The property {0} already has an initializer value."},
        {Res.MSG_ONLY_ONE_COLON_IN_INITIALIZERS.getKey(), "Only one colon can come before a property name in initializers."},

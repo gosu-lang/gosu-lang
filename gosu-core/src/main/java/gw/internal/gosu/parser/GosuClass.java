@@ -2428,6 +2428,10 @@ public class GosuClass extends InnerClassCapableType implements IGosuClassIntern
   {
     for( IVarStatement varStmt : getStaticFields() )
     {
+      if( varStmt.isAbstract() )
+      {
+        continue;
+      }
       if( !bSuperClass || (isAccessible( gsContextClass, varStmt ) && !isHidden( varStmt )) )
       {
         ISymbol existingSymbol = table.getSymbol( varStmt.getSymbol().getName() );
@@ -2466,6 +2470,11 @@ public class GosuClass extends InnerClassCapableType implements IGosuClassIntern
   {
     for( IVarStatement varStmt : getMemberFields() )
     {
+      if( varStmt.isAbstract() )
+      {
+        continue;
+      }
+
       if( !bSuperClass || (isAccessible( gsContextClass, varStmt ) && !isHidden( varStmt )) )
       {
         ISymbol symbol = varStmt.getSymbol();

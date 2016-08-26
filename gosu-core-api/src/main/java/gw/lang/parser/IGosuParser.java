@@ -109,12 +109,6 @@ public interface IGosuParser extends IParserPart
   public IGosuClass parseClass( String strQualifiedClassName, ISourceFileHandle sourceFile, boolean bThrowOnWarnings, boolean bFullyCompile ) throws ParseResultsException;
 
   /**
-   * @return
-   * @throws ParseResultsException
-   */
-  public ISymbol[] parseProgramFunctionsOrPropertyDecls(IScriptPartId partId, boolean bParseProperties, boolean bParseVars) throws ParseResultsException;
-
-  /**
    * Parses a Gosu expression. To evaluate the Expression simply call Expression.evaluate().
    *
    * @return The parsed Expression.

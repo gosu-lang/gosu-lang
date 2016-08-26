@@ -7,6 +7,7 @@ package gw.internal.gosu.ir.transform.statement;
 import gw.config.CommonServices;
 import gw.internal.gosu.ir.nodes.IRMethod;
 import gw.internal.gosu.ir.nodes.IRMethodFactory;
+import gw.internal.gosu.ir.transform.ExpressionTransformer;
 import gw.internal.gosu.ir.transform.TopLevelTransformationContext;
 import gw.internal.gosu.ir.transform.util.IRTypeResolver;
 import gw.internal.gosu.parser.DelegateFunctionSymbol;
@@ -224,10 +225,19 @@ public class SyntheticFunctionStatementTransformer extends AbstractStatementTran
   {
     VarPropertyGetFunctionSymbol getter = (VarPropertyGetFunctionSymbol)_dfs;
 
-    IRExpression returnValue = buildFieldGet( getDescriptor( getGosuClass() ),
-                                              getter.getVarIdentifier().toString(),
-                                              getDescriptor( getter.getReturnType() ),
-                                              (getter.isStatic() ? null : pushThis()) );
+    IRExpression returnValue;
+    if( getGosuClass().isInterface() )
+    {
+      VarStatement varStmt = getGosuClass().getParseInfo().getMemberFields().get( getter.getVarIdentifier() );
+      returnValue = ExpressionTransformer.compile( varStmt.getAsExpression(), _cc() );
+    }
+    else
+    {
+      returnValue = buildFieldGet( getDescriptor( getGosuClass() ),
+                                   getter.getVarIdentifier(),
+                                   getDescriptor( getter.getReturnType() ),
+                                   (getter.isStatic() ? null : pushThis()) );
+    }
     return new IRReturnStatement( null, returnValue );
   }
 

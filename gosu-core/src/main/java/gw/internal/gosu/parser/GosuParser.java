@@ -727,8 +727,8 @@ public final class GosuParser extends ParserBase implements IGosuParser
           //
           // First just find and parse the function Declarations
           //
-          for( ISymbol function = parseFunctionOrPropertyDeclaration( program, true, false );
-               function != null; function = parseFunctionOrPropertyDeclaration( program, true, false ) )
+          for( ISymbol function = parseFunctionOrPropertyDeclaration( program );
+               function != null; function = parseFunctionOrPropertyDeclaration( program ) )
           {
             _symTable.putSymbol( function );
           }
@@ -953,53 +953,6 @@ public final class GosuParser extends ParserBase implements IGosuParser
       iColumn = getTokenizer().getLineOffset();
     }
     return returnList;
-  }
-
-  @Override
-  public ISymbol[] parseProgramFunctionsOrPropertyDecls(IScriptPartId partId, boolean bParseProperties, boolean bParseVars) throws ParseResultsException
-  {
-    Program program = new Program();
-
-    pushScriptPart( partId );
-    _tokenizer.nextToken();
-
-    _symTable.pushScope();
-    List<ISymbol> listFunctions;
-    try
-    {
-      listFunctions = new ArrayList<>();
-      //
-      // Just find and parse the function Declarations
-      //
-      for( ISymbol function = parseFunctionOrPropertyDeclaration( program, bParseProperties, bParseVars);
-           function != null; function = parseFunctionOrPropertyDeclaration( program, bParseProperties, bParseVars) )
-      {
-        if (function instanceof IDynamicPropertySymbol) {
-          IDynamicPropertySymbol property1 = (IDynamicPropertySymbol)function;
-          String propertyName = property1.getName();
-          IDynamicPropertySymbol property2 = null;
-          for (ISymbol s : listFunctions) {
-            if (s instanceof IDynamicPropertySymbol && propertyName != null && propertyName.equals(s.getName())) {
-              property2 = (IDynamicPropertySymbol)s;
-            }
-          }
-          if (property2 == null) {
-            listFunctions.add( property1 );
-          } else {
-            property2.setGetterDfs(property1.getGetterDfs() != null ? property1.getGetterDfs() : property2.getGetterDfs());
-            property2.setSetterDfs(property1.getSetterDfs() != null ? property1.getSetterDfs() : property2.getSetterDfs());
-          }
-        } else {
-          listFunctions.add( function );
-        }
-      }
-    }
-    finally
-    {
-      _symTable.popScope();
-      popScriptPart( partId );
-    }
-    return listFunctions.toArray( new ISymbol[listFunctions.size()] );
   }
 
   public Expression parseExp( IScriptPartId partId ) throws ParseResultsException
@@ -10177,49 +10130,13 @@ public final class GosuParser extends ParserBase implements IGosuParser
     }
 
     ICompilableType gsClass = getGosuClass();
-    DynamicPropertySymbol dps;
-    if( symbol instanceof DynamicPropertySymbol && symbol.getGosuClass() != null && symbol.getGosuClass().isAssignableFrom( gsClass ) )
+    ModifierInfo propModifiers = new ModifierInfo( Modifier.PUBLIC | (varStmt.isStatic() ? Modifier.STATIC : 0) );
+    propModifiers.setAnnotations( varStmt.getModifierInfo().getAnnotations() );
+    propModifiers.setDescription( varStmt.getModifierInfo().getDescription() );
+    DynamicPropertySymbol dps = makeGetter( varStmt, strVarIdentifier, strPropertyName, varType, propModifiers, symbol, gsClass );
+    if( !bReadonly )
     {
-      dps = new DynamicPropertySymbol( (DynamicPropertySymbol)symbol );
-      if( dps.getGetterDfs() == null || dps.getGetterDfs().getScriptPart().getContainingType() != gsClass )
-      {
-        VarPropertyGetFunctionSymbol getFunctionSymbol = new VarPropertyGetFunctionSymbol( gsClass, getSymbolTable(), strPropertyName, strVarIdentifier, varType );
-        getFunctionSymbol.getModifierInfo().setAnnotations( varStmt.getAnnotations() );
-        getFunctionSymbol.getModifierInfo().setDescription( varStmt.getModifierInfo().getDescription() );
-        getFunctionSymbol.setClassMember( true );
-        if (dps.getGetterDfs() != null) {
-          getFunctionSymbol.setOverride(true);
-          getFunctionSymbol.setSuperDfs(dps.getGetterDfs());
-        }
-        getFunctionSymbol.setStatic( varStmt.isStatic() );
-        dps.setGetterDfs( getFunctionSymbol );
-        verifyFunction( getFunctionSymbol, varStmt );
-      }
-    }
-    else
-    {
-      VarPropertyGetFunctionSymbol getFunctionSymbol = new VarPropertyGetFunctionSymbol( gsClass, getSymbolTable(), strPropertyName, strVarIdentifier, varType );
-      getFunctionSymbol.getModifierInfo().setAnnotations( varStmt.getAnnotations() );
-      getFunctionSymbol.getModifierInfo().setDescription( varStmt.getModifierInfo().getDescription() );
-      getFunctionSymbol.setClassMember( true );
-      getFunctionSymbol.setStatic( varStmt.isStatic() );
-      verifyFunction( getFunctionSymbol, varStmt );
-      dps = new DynamicPropertySymbol( getFunctionSymbol, true );
-    }
-
-    if( !bReadonly && (dps.getSetterDfs() == null || dps.getSetterDfs().getScriptPart().getContainingType() != gsClass) )
-    {
-      VarPropertySetFunctionSymbol setFunctionSymbol = new VarPropertySetFunctionSymbol( gsClass, getSymbolTable(), strPropertyName, strVarIdentifier, varType );
-      setFunctionSymbol.getModifierInfo().setAnnotations( varStmt.getAnnotations() );
-      setFunctionSymbol.getModifierInfo().setDescription( varStmt.getModifierInfo().getDescription() );
-      setFunctionSymbol.setClassMember( true );
-      setFunctionSymbol.setStatic( varStmt.isStatic() );
-      if (dps.getSetterDfs() != null) {
-        setFunctionSymbol.setOverride(true);
-        setFunctionSymbol.setSuperDfs(dps.getSetterDfs());
-      }
-      dps.setSetterDfs( setFunctionSymbol );
-      verifyFunction( setFunctionSymbol, varStmt );
+      makeSetter( varStmt, strVarIdentifier, strPropertyName, varType, propModifiers, symbol, gsClass, dps );
     }
     dps.setScriptPart( getOwner().getScriptPart() );
     dps.setVarIdentifier( strVarIdentifier );
@@ -10241,6 +10158,110 @@ public final class GosuParser extends ParserBase implements IGosuParser
       varStmt.setAsExpression( expression );
     }
 
+    return dps;
+  }
+
+  DynamicPropertySymbol makeProperties( VarStatement varStmt, String strVarIdentifier, String strPropertyName, IType varType, ModifierInfo modifiers, boolean bGetter, boolean bSetter )
+  {
+    varStmt.setHasProperty( true );
+
+    varStmt.setPropertyName( strPropertyName );
+    ISymbol symbol = getSymbolTable().getSymbol( strPropertyName );
+    if( symbol != null && !symbol.getDisplayName().equals( strPropertyName ) )
+    {
+      // Force case sensitivity, mainly to make overrides consistent
+      symbol = null;
+    }
+    if( symbol instanceof DynamicPropertySymbol &&
+        symbol.getGosuClass() == getGosuClass() &&
+        (((DynamicPropertySymbol)symbol).getVarIdentifier() != null &&
+        !((DynamicPropertySymbol)symbol).getVarIdentifier().equals( strVarIdentifier) ) )
+    {
+      varStmt.addParseException( new ParseException( makeFullParserState(), Res.MSG_PROPERTY_ALREADY_DEFINED, strPropertyName) );
+    }
+
+    ICompilableType gsClass = getGosuClass();
+    DynamicPropertySymbol dps = null;
+    if( bGetter )
+    {
+      dps = makeGetter( varStmt, strVarIdentifier, strPropertyName, varType, modifiers, symbol, gsClass );
+    }
+    if( bSetter )
+    {
+      dps = makeSetter( varStmt, strVarIdentifier, strPropertyName, varType, modifiers, symbol, gsClass, dps );
+    }
+    dps.setScriptPart( getOwner().getScriptPart() );
+    dps.setVarIdentifier( strVarIdentifier );
+
+    return dps;
+  }
+
+  private DynamicPropertySymbol makeGetter( VarStatement varStmt, String strVarIdentifier, String strPropertyName, IType varType, ModifierInfo modifiers, ISymbol symbol, ICompilableType gsClass )
+  {
+    DynamicPropertySymbol dps;
+    if( symbol instanceof DynamicPropertySymbol && symbol.getGosuClass() != null && symbol.getGosuClass().isAssignableFrom( gsClass ) )
+    {
+      dps = new DynamicPropertySymbol( (DynamicPropertySymbol)symbol );
+      if( dps.getGetterDfs() == null || dps.getGetterDfs().getScriptPart().getContainingType() != gsClass )
+      {
+        VarPropertyGetFunctionSymbol getFunctionSymbol = new VarPropertyGetFunctionSymbol( gsClass, getSymbolTable(), strPropertyName, strVarIdentifier, varType );
+        getFunctionSymbol.getModifierInfo().update( modifiers );
+        getFunctionSymbol.setClassMember( true );
+        if( dps.getGetterDfs() != null )
+        {
+          getFunctionSymbol.setOverride( true );
+          getFunctionSymbol.setSuperDfs( dps.getGetterDfs() );
+        }
+        dps.setGetterDfs( getFunctionSymbol );
+        verifyFunction( getFunctionSymbol, varStmt );
+      }
+    }
+    else
+    {
+      VarPropertyGetFunctionSymbol getFunctionSymbol = new VarPropertyGetFunctionSymbol( gsClass, getSymbolTable(), strPropertyName, strVarIdentifier, varType );
+      getFunctionSymbol.getModifierInfo().update( modifiers );
+      getFunctionSymbol.setClassMember( true );
+      verifyFunction( getFunctionSymbol, varStmt );
+      dps = new DynamicPropertySymbol( getFunctionSymbol, true );
+    }
+    return dps;
+  }
+
+  private DynamicPropertySymbol makeSetter( VarStatement varStmt, String strVarIdentifier, String strPropertyName, IType varType, ModifierInfo modifiers, ISymbol symbol, ICompilableType gsClass, DynamicPropertySymbol dps )
+  {
+    if( dps != null )
+    {
+      symbol = dps;
+    }
+
+    if( symbol instanceof DynamicPropertySymbol && symbol.getGosuClass() != null && symbol.getGosuClass().isAssignableFrom( gsClass ) )
+    {
+      if( dps == null )
+      {
+        dps = new DynamicPropertySymbol( (DynamicPropertySymbol)symbol );
+      }
+      if( dps.getSetterDfs() == null || dps.getSetterDfs().getScriptPart().getContainingType() != gsClass )
+      {
+        VarPropertySetFunctionSymbol setFunctionSymbol = new VarPropertySetFunctionSymbol( gsClass, getSymbolTable(), strPropertyName, strVarIdentifier, varType );
+        setFunctionSymbol.getModifierInfo().update( modifiers );
+        setFunctionSymbol.setClassMember( true );
+        if( dps.getSetterDfs() != null )
+        {
+          setFunctionSymbol.setOverride( true );
+          setFunctionSymbol.setSuperDfs( dps.getSetterDfs() );
+        }
+        dps.setSetterDfs( setFunctionSymbol );
+        verifyFunction( setFunctionSymbol, varStmt );
+      }
+    }
+    else
+    {
+      VarPropertySetFunctionSymbol setFunctionSymbol = new VarPropertySetFunctionSymbol( gsClass, getSymbolTable(), strPropertyName, strVarIdentifier, varType );
+      setFunctionSymbol.getModifierInfo().update( modifiers );
+      setFunctionSymbol.setClassMember( true );
+      verifyFunction( setFunctionSymbol, varStmt );
+      dps = new DynamicPropertySymbol( setFunctionSymbol, false );
+    }
     return dps;
   }
 
@@ -12412,7 +12433,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
   // function-declaration
   //   [modifiers] function <identifier> ( [ <argument-declaration-list> ] ) : <type-literal>
   //
-  ISymbol parseFunctionOrPropertyDeclaration( ParsedElement element, boolean bParseProperties, boolean bParseVars )
+  ISymbol parseFunctionOrPropertyDeclaration( ParsedElement element )
   {
     ModifierInfo modifiers;
     do
@@ -12430,12 +12451,27 @@ public final class GosuParser extends ParserBase implements IGosuParser
         eatStatementBlock( symbol != null && symbol.getDeclFunctionStmt() != null ? symbol.getDeclFunctionStmt() : element, Res.MSG_EXPECTING_OPEN_BRACE_FOR_FUNCTION_DEF );
         return symbol;
       }
-      if( bParseProperties && match( null, Keyword.KW_property ) )
+      if( match( null, Keyword.KW_property ) )
       {
         boolean bGetter = match( null, Keyword.KW_get );
-        boolean bSetter = match( null, Keyword.KW_set );
-        // We only care about legal properties
-        if (bGetter || bSetter) {
+        boolean bSetter = !bGetter && match( null, Keyword.KW_set );
+        SourceCodeTokenizer tokenizer = getTokenizer();
+        int mark = tokenizer.mark();
+        boolean bNewPropertySyntax = false;
+        if( match( null, SourceCodeTokenizer.TT_WORD ) )
+        {
+          eatPossibleParametarization( true );
+          if( match( null, '(' ) )
+          {
+            tokenizer.restoreToMark( mark );
+          }
+          else
+          {
+            bNewPropertySyntax = true;
+          }
+        }
+        if( (bGetter || bSetter) && !bNewPropertySyntax)
+        {
           FunctionStatement fs = new FunctionStatement();
           DynamicFunctionSymbol dfs = getOwner().parseFunctionDecl( fs, true, bGetter, modifiers );
           if( dfs == null )
@@ -12453,18 +12489,6 @@ public final class GosuParser extends ParserBase implements IGosuParser
           return dps;
         }
       }
-      if( bParseVars && match( null, Keyword.KW_var ) )
-      {
-        VarStatement var = new VarStatement();
-        Token T = new Token();
-        if( !verify( var, match( T, SourceCodeTokenizer.TT_WORD ), Res.MSG_EXPECTING_IDENTIFIER_VAR ) )
-        {
-          T._strValue = null;
-        }
-        parseVarStatement( var, T, false );
-        return var.getSymbol();
-      }
-
       if( match( null, SourceCodeTokenizer.TT_EOF ) )
       {
         return null;

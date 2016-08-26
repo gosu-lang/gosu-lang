@@ -39,7 +39,7 @@ public class DynamicPropertySymbol extends AbstractDynamicSymbol implements IDyn
     _dfsSetter = bGetter ? null : dfsGetterOrSetter;
     setModifierInfo( dfsGetterOrSetter.getModifierInfo() );
     setClassMember( true );
-    setName( (String)getName() );
+    setName( getName() );
     _scriptPartId = dfsGetterOrSetter._scriptPartId;
   }
 
