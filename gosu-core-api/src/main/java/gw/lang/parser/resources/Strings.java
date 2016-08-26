@@ -298,7 +298,7 @@ public class Strings extends ListResourceBundle
        {Res.MSG_ABSTRACT_MEMBER_NOT_IN_ABSTRACT_CLASS.getKey(), "Abstract member not in abstract class."},
        {Res.MSG_ILLEGAL_USE_OF_MODIFIER.getKey(), "Illegal use of modifier, \"{0}\" cannot be used with \"{1}\" here"},
        {Res.MSG_ILLEGAL_FORWARD_REFERENCE.getKey(), "Illegal forward reference"},
-       {Res.MSG_MISSING_OVERRIDE_MODIFIER.getKey(), "Missing 'override' modifier. Function {0} overrides and/or implements the function from {1}."},
+       {Res.MSG_MISSING_OVERRIDE_MODIFIER.getKey(), "Missing 'override' modifier. {0} overrides and/or implements the member from {1}."},
        {Res.MSG_RENAME_METHOD.getKey(), "Rename function. Function {0} conflicts with the function from {1}, return types incompatible.  Private functions compile with 'internal' access, therefore they conflict at runtime when in same package."},
        {Res.MSG_STATIC_METHOD_CANNOT_OVERRIDE.getKey(), "Static function {0} cannot override/implement the function in {1}."},
        {Res.MSG_OVERRIDES_OBJECT_METHOD.getKey(), "Default method {0} overrides Object method"},

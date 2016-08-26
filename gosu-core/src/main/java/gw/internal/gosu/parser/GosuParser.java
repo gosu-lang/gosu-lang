@@ -10209,6 +10209,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
         getFunctionSymbol.setClassMember( true );
         if( dps.getGetterDfs() != null )
         {
+          warn( varStmt, getFunctionSymbol.isOverride(), Res.MSG_MISSING_OVERRIDE_MODIFIER, dps.getDisplayName(), dps.getGetterDfs().getGosuClass().getName() );
           getFunctionSymbol.setOverride( true );
           getFunctionSymbol.setSuperDfs( dps.getGetterDfs() );
         }
@@ -10247,6 +10248,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
         setFunctionSymbol.setClassMember( true );
         if( dps.getSetterDfs() != null )
         {
+          warn( varStmt, setFunctionSymbol.isOverride() || varStmt.hasParseException( Res.MSG_MISSING_OVERRIDE_MODIFIER ), Res.MSG_MISSING_OVERRIDE_MODIFIER, dps.getDisplayName(), dps.getSetterDfs().getGosuClass().getName() );
           setFunctionSymbol.setOverride( true );
           setFunctionSymbol.setSuperDfs( dps.getSetterDfs() );
         }
