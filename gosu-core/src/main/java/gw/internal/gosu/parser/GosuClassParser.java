@@ -3039,7 +3039,7 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
       strField = "_" + strProperty;
     }
     ISymbol existing = getSymbolTable().getSymbol( strField );
-    boolean bAlreadyDefined = existing != null && (existing.getGosuClass() == null || !existing.getGosuClass().isInterface());
+    boolean bAlreadyDefined = existing != null && (existing.getGosuClass() == null || existing.getGosuClass() == getGosuClass());
     verify( varStmt, !bAlreadyDefined, Res.MSG_VARIABLE_ALREADY_DEFINED, strField );
     checkForEnumConflict( varStmt, strField );
 

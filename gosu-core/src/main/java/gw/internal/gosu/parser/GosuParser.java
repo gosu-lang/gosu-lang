@@ -10206,10 +10206,11 @@ public final class GosuParser extends ParserBase implements IGosuParser
       {
         VarPropertyGetFunctionSymbol getFunctionSymbol = new VarPropertyGetFunctionSymbol( gsClass, getSymbolTable(), strPropertyName, strVarIdentifier, varType );
         getFunctionSymbol.getModifierInfo().update( modifiers );
+        getFunctionSymbol.getModifierInfo().setModifiers( Modifier.setOverride( modifiers.getModifiers(), false ) );
         getFunctionSymbol.setClassMember( true );
         if( dps.getGetterDfs() != null )
         {
-          warn( varStmt, getFunctionSymbol.isOverride(), Res.MSG_MISSING_OVERRIDE_MODIFIER, dps.getDisplayName(), dps.getGetterDfs().getGosuClass().getName() );
+          warn( varStmt, Modifier.isOverride( modifiers.getModifiers() ), Res.MSG_MISSING_OVERRIDE_MODIFIER, dps.getDisplayName(), dps.getGetterDfs().getGosuClass().getName() );
           getFunctionSymbol.setOverride( true );
           getFunctionSymbol.setSuperDfs( dps.getGetterDfs() );
         }
@@ -10245,10 +10246,11 @@ public final class GosuParser extends ParserBase implements IGosuParser
       {
         VarPropertySetFunctionSymbol setFunctionSymbol = new VarPropertySetFunctionSymbol( gsClass, getSymbolTable(), strPropertyName, strVarIdentifier, varType );
         setFunctionSymbol.getModifierInfo().update( modifiers );
+        setFunctionSymbol.getModifierInfo().setModifiers( Modifier.setOverride( modifiers.getModifiers(), false ) );
         setFunctionSymbol.setClassMember( true );
         if( dps.getSetterDfs() != null )
         {
-          warn( varStmt, setFunctionSymbol.isOverride() || varStmt.hasParseException( Res.MSG_MISSING_OVERRIDE_MODIFIER ), Res.MSG_MISSING_OVERRIDE_MODIFIER, dps.getDisplayName(), dps.getSetterDfs().getGosuClass().getName() );
+          warn( varStmt, Modifier.isOverride( modifiers.getModifiers() ) || varStmt.hasParseException( Res.MSG_MISSING_OVERRIDE_MODIFIER ), Res.MSG_MISSING_OVERRIDE_MODIFIER, dps.getDisplayName(), dps.getSetterDfs().getGosuClass().getName() );
           setFunctionSymbol.setOverride( true );
           setFunctionSymbol.setSuperDfs( dps.getSetterDfs() );
         }
