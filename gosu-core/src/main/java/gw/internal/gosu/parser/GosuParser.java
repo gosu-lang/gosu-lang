@@ -10133,10 +10133,10 @@ public final class GosuParser extends ParserBase implements IGosuParser
     ModifierInfo propModifiers = new ModifierInfo( Modifier.PUBLIC | (varStmt.isStatic() ? Modifier.STATIC : 0) );
     propModifiers.setAnnotations( varStmt.getModifierInfo().getAnnotations() );
     propModifiers.setDescription( varStmt.getModifierInfo().getDescription() );
-    DynamicPropertySymbol dps = makeGetter( varStmt, strVarIdentifier, strPropertyName, varType, propModifiers, symbol, gsClass );
+    DynamicPropertySymbol dps = makeGetter( varStmt, strVarIdentifier, strPropertyName, varType, propModifiers, symbol, gsClass, true );
     if( !bReadonly )
     {
-      makeSetter( varStmt, strVarIdentifier, strPropertyName, varType, propModifiers, symbol, gsClass, dps );
+      makeSetter( varStmt, strVarIdentifier, strPropertyName, varType, propModifiers, symbol, gsClass, dps, true );
     }
     dps.setScriptPart( getOwner().getScriptPart() );
     dps.setVarIdentifier( strVarIdentifier );
@@ -10184,11 +10184,11 @@ public final class GosuParser extends ParserBase implements IGosuParser
     DynamicPropertySymbol dps = null;
     if( bGetter )
     {
-      dps = makeGetter( varStmt, strVarIdentifier, strPropertyName, varType, modifiers, symbol, gsClass );
+      dps = makeGetter( varStmt, strVarIdentifier, strPropertyName, varType, modifiers, symbol, gsClass, false );
     }
     if( bSetter )
     {
-      dps = makeSetter( varStmt, strVarIdentifier, strPropertyName, varType, modifiers, symbol, gsClass, dps );
+      dps = makeSetter( varStmt, strVarIdentifier, strPropertyName, varType, modifiers, symbol, gsClass, dps, false );
     }
     dps.setScriptPart( getOwner().getScriptPart() );
     dps.setVarIdentifier( strVarIdentifier );
@@ -10196,7 +10196,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
     return dps;
   }
 
-  private DynamicPropertySymbol makeGetter( VarStatement varStmt, String strVarIdentifier, String strPropertyName, IType varType, ModifierInfo modifiers, ISymbol symbol, ICompilableType gsClass )
+  private DynamicPropertySymbol makeGetter( VarStatement varStmt, String strVarIdentifier, String strPropertyName, IType varType, ModifierInfo modifiers, ISymbol symbol, ICompilableType gsClass, boolean bOldSyntax )
   {
     DynamicPropertySymbol dps;
     if( symbol instanceof DynamicPropertySymbol && symbol.getGosuClass() != null && symbol.getGosuClass().isAssignableFrom( gsClass ) )
@@ -10210,7 +10210,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
         getFunctionSymbol.setClassMember( true );
         if( dps.getGetterDfs() != null )
         {
-          warn( varStmt, Modifier.isOverride( modifiers.getModifiers() ), Res.MSG_MISSING_OVERRIDE_MODIFIER, dps.getDisplayName(), dps.getGetterDfs().getGosuClass().getName() );
+          warn( varStmt, bOldSyntax || Modifier.isOverride( modifiers.getModifiers() ), Res.MSG_MISSING_OVERRIDE_MODIFIER, dps.getDisplayName(), dps.getGetterDfs().getGosuClass().getName() );
           getFunctionSymbol.setOverride( true );
           getFunctionSymbol.setSuperDfs( dps.getGetterDfs() );
         }
@@ -10229,7 +10229,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
     return dps;
   }
 
-  private DynamicPropertySymbol makeSetter( VarStatement varStmt, String strVarIdentifier, String strPropertyName, IType varType, ModifierInfo modifiers, ISymbol symbol, ICompilableType gsClass, DynamicPropertySymbol dps )
+  private DynamicPropertySymbol makeSetter( VarStatement varStmt, String strVarIdentifier, String strPropertyName, IType varType, ModifierInfo modifiers, ISymbol symbol, ICompilableType gsClass, DynamicPropertySymbol dps, boolean bOldSyntax )
   {
     if( dps != null )
     {
@@ -10250,7 +10250,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
         setFunctionSymbol.setClassMember( true );
         if( dps.getSetterDfs() != null )
         {
-          warn( varStmt, Modifier.isOverride( modifiers.getModifiers() ) || varStmt.hasParseException( Res.MSG_MISSING_OVERRIDE_MODIFIER ), Res.MSG_MISSING_OVERRIDE_MODIFIER, dps.getDisplayName(), dps.getSetterDfs().getGosuClass().getName() );
+          warn( varStmt, bOldSyntax || Modifier.isOverride( modifiers.getModifiers() ) || varStmt.hasParseException( Res.MSG_MISSING_OVERRIDE_MODIFIER ), Res.MSG_MISSING_OVERRIDE_MODIFIER, dps.getDisplayName(), dps.getSetterDfs().getGosuClass().getName() );
           setFunctionSymbol.setOverride( true );
           setFunctionSymbol.setSuperDfs( dps.getSetterDfs() );
         }
