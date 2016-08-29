@@ -213,12 +213,19 @@ public class SyntheticFunctionStatementTransformer extends AbstractStatementTran
   {
     VarPropertySetFunctionSymbol setter = (VarPropertySetFunctionSymbol)_dfs;
 
-    final ISymbol valueSymbol = setter.getArgs().get( 0 );
-    return buildFieldSet( getDescriptor( getGosuClass() ),
-                          setter.getVarIdentifier().toString(),
-                          getDescriptor( valueSymbol.getType() ),
-                          (setter.isStatic() ? null : pushThis()),
-                          identifier( _cc().getSymbol( valueSymbol.getName() ) ) );
+    if( getGosuClass().isInterface() )
+    {
+      return buildThrow( buildNewExpression( UnsupportedOperationException.class, new Class[] {String.class}, Collections.singletonList( pushConstant( "Unimplemented set support for " + _dfs.getDisplayName() ) ) ) );
+    }
+    else
+    {
+      final ISymbol valueSymbol = setter.getArgs().get( 0 );
+      return buildFieldSet( getDescriptor( getGosuClass() ),
+                            setter.getVarIdentifier(),
+                            getDescriptor( valueSymbol.getType() ),
+                            (setter.isStatic() ? null : pushThis()),
+                            identifier( _cc().getSymbol( valueSymbol.getName() ) ) );
+    }
   }
 
   private IRStatement compileReturnStatementForGetter()

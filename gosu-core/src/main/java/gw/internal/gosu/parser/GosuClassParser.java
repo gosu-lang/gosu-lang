@@ -3096,7 +3096,7 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
         {
           dps.getGetterDfs().getModifierInfo().addModifiers( Modifier.ABSTRACT );
         }
-        if( dps.getSetterDfs() != null )
+        if( !bHasInit && dps.getSetterDfs() != null )
         {
           dps.getSetterDfs().getModifierInfo().addModifiers( Modifier.ABSTRACT );
         }

@@ -10210,7 +10210,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
         getFunctionSymbol.setClassMember( true );
         if( dps.getGetterDfs() != null )
         {
-          warn( varStmt, bOldSyntax || Modifier.isOverride( modifiers.getModifiers() ), Res.MSG_MISSING_OVERRIDE_MODIFIER, dps.getDisplayName(), dps.getGetterDfs().getGosuClass().getName() );
+          warn( varStmt, bOldSyntax || dps.getGetterDfs().isFinal() || Modifier.isOverride( modifiers.getModifiers() ), Res.MSG_MISSING_OVERRIDE_MODIFIER, dps.getDisplayName(), dps.getGetterDfs().getGosuClass().getName() );
           getFunctionSymbol.setOverride( true );
           getFunctionSymbol.setSuperDfs( dps.getGetterDfs() );
         }
@@ -10250,7 +10250,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
         setFunctionSymbol.setClassMember( true );
         if( dps.getSetterDfs() != null )
         {
-          warn( varStmt, bOldSyntax || Modifier.isOverride( modifiers.getModifiers() ) || varStmt.hasParseException( Res.MSG_MISSING_OVERRIDE_MODIFIER ), Res.MSG_MISSING_OVERRIDE_MODIFIER, dps.getDisplayName(), dps.getSetterDfs().getGosuClass().getName() );
+          warn( varStmt, bOldSyntax || dps.getSetterDfs().isFinal() || Modifier.isOverride( modifiers.getModifiers() ) || varStmt.hasParseException( Res.MSG_MISSING_OVERRIDE_MODIFIER ), Res.MSG_MISSING_OVERRIDE_MODIFIER, dps.getDisplayName(), dps.getSetterDfs().getGosuClass().getName() );
           setFunctionSymbol.setOverride( true );
           setFunctionSymbol.setSuperDfs( dps.getSetterDfs() );
         }

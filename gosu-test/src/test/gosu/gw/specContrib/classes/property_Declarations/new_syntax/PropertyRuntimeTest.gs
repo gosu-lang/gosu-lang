@@ -129,6 +129,29 @@ class PropertyRuntimeTest extends TestClass
     override property Foo: String = "hi"
   }
 
+  static class BaseClass
+  {
+    property Foo: String
+    property Bar: String
+    property get Baz: String
+    property set Biz: String
+  }
+  static class SubClass extends BaseClass
+  {
+    override property Foo: String
+    override property get Bar: String
+    override property Baz: String
+    override property Biz: String
+    //override property NotOverride: String  //## issuekeys: MSG_FUNCTION_NOT_OVERRIDE
+  }
+
+  interface IFaceWithDefaultProperty {
+    property Foo: String = "foo"
+  }
+
+  static class ImplIFaceWithDefault implements IFaceWithDefaultProperty {
+  }
+
   function testOverride()
   {
     var impl = new ImplClass()
@@ -137,5 +160,24 @@ class PropertyRuntimeTest extends TestClass
     impl.Foo = "bye"
     assertEquals( "bye", impl.Foo )
     assertEquals( "bye", impl._Foo )
+
+    var x = new SubClass()
+    x.Foo = "hi"
+    assertEquals( "hi", x.Foo)
+
+    var y: BaseClass = x
+    assertEquals( "hi", y.Foo )
+    assertEquals( null, y._Foo )
+
+    var wdef = new ImplIFaceWithDefault()
+    assertEquals( "foo", wdef.Foo )
+
+    try {
+      wdef.Foo = "nope"
+      fail()
+    }
+    catch( e: UnsupportedOperationException ) {
+      // mmm
+    }
   }
 }

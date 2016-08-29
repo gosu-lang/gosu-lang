@@ -73,6 +73,47 @@ abstract class Errant_Properties {
   static property set S_Set_Only_Init: String = "hi"
   static property set S_Set_Only_Init_Err: String = 4  //## issuekeys: MSG_IMPLICIT_COERCION_ERROR
 
+  // override
+
+  static class BaseClass
+  {
+    property Foo: String
+    property Bar: String
+    property get Baz: String
+    property set Biz: String
+
+    final property FinalProp: String
+    final property get FinalGetProp: String
+    final property set FinalSetProp: String
+  }
+  static class SubClass extends BaseClass
+  {
+    override property Foo: String
+    override property get Bar: String
+    override property Baz: String
+    override property Biz: String
+    override property NotOverride: String  //## issuekeys: MSG_FUNCTION_NOT_OVERRIDE
+
+    property FinalProp: String  //## issuekeys: MSG_CANNOT_OVERRIDE_FINAL, MSG_CANNOT_OVERRIDE_FINAL
+
+    property get FinalGetProp: String  //## issuekeys: MSG_CANNOT_OVERRIDE_FINAL
+    property set FinalGetProp( value: String ) {}
+
+    property set FinalSetProp: String  //## issuekeys: MSG_CANNOT_OVERRIDE_FINAL
+    property get FinalSetProp(): String { return "" }
+  }
+  static class SubClassMissingOverride extends BaseClass
+  {
+    property Foo: String   //## issuekeys: MSG_MISSING_OVERRIDE_MODIFIER
+    property get Bar: String   //## issuekeys: MSG_MISSING_OVERRIDE_MODIFIER
+    property get Baz: String   //## issuekeys: MSG_MISSING_OVERRIDE_MODIFIER
+    property set Biz: String   //## issuekeys: MSG_MISSING_OVERRIDE_MODIFIER
+  }
+  static class DefineGetOrSetNotDefinedInSuper extends BaseClass
+  {
+    property set Baz: String
+    property get Biz: String
+  }
 
   // interface
 
@@ -119,6 +160,21 @@ abstract class Errant_Properties {
 
     static class Foo extends AbstractClass {  //## issuekeys: MSG_UNIMPLEMENTED_METHOD, MSG_UNIMPLEMENTED_METHOD
     }
+  }
+
+  static class ImplIFaceMissingOverrideKeyword implements IFace
+  {
+    property Prop1: String  //## issuekeys: MSG_MISSING_OVERRIDE_MODIFIER
+    property set Prop2: String  //## issuekeys: MSG_MISSING_OVERRIDE_MODIFIER
+    property set Prop4: String  //## issuekeys: MSG_MISSING_OVERRIDE_MODIFIER
+    property set Prop5: String  //## issuekeys: MSG_MISSING_OVERRIDE_MODIFIER
+  }
+  static class ImplIFaceHasOverrideKeyword implements IFace
+  {
+    override property Prop1: String
+    override property set Prop2: String
+    override property set Prop4: String
+    override property set Prop5: String
   }
 
   function foo() {
