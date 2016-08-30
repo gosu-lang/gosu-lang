@@ -1,6 +1,6 @@
 package gw.lang.gosuc.cli;
 
-import com.beust.jcommander.JCommander;
+import gw.internal.ext.com.beust.jcommander.JCommander;
 import gw.lang.Gosu;
 import gw.lang.gosuc.GosucUtil;
 import gw.lang.gosuc.simple.GosuCompiler;
