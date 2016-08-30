@@ -22,4 +22,10 @@ class Errant_InbuiltTypesIntervalExpressions {
   var arrayInterval = array1..array2                  //## issuekeys: OPERATOR '..' CANNOT BE APPLIED TO 'INT[]', 'INT[]'
 
   var boolInterval1 = new Boolean(false)..new Boolean(true)            //## issuekeys: OPERATOR '..' CANNOT BE APPLIED TO 'JAVA.LANG.BOOLEAN', 'JAVA.LANG.BOOLEAN'
+
+  function bar() {
+    for(i in charSeqInterval) {}      //## issuekeys: FOREACH IS NOT APPLICABLE TO TYPE 'GW.LANG.REFLECT.INTERVAL.COMPARABLEINTERVAL<JAVA.LANG.STRING>'
+    for(i in dimensionInterval1) {}      //## issuekeys: FOREACH IS NOT APPLICABLE TO TYPE 'GW.LANG.REFLECT.INTERVAL.COMPARABLEINTERVAL<GW.SPECCONTRIB.EXPRESSIONS.INTERVALS.SAMPLEDIMENSION_INTEGER>'
+    for(i in arrayInterval) {}      //## issuekeys: FOREACH IS NOT APPLICABLE TO TYPE 'GW.LANG.REFLECT.INTERVAL.COMPARABLEINTERVAL<INT[]>'
+  }
 }
