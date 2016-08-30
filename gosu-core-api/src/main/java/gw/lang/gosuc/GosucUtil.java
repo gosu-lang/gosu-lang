@@ -114,7 +114,7 @@ public class GosucUtil {
     return Arrays.asList(getClassLocation("gw.internal.gosu.parser.MetaType"), //get gosu-core
         getClassLocation("gw.lang.Gosu"), //get gosu-core-api
         getClassLocation("gw.internal.ext.org.objectweb.asm.ClassWriter"), //get asm
-        getClassLocation("com.beust.jcommander.JCommander") //get jcommander
+        getClassLocation("gw.internal.ext.com.beust.jcommander.JCommander") //get jcommander
     );
   }
 

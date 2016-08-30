@@ -1,6 +1,6 @@
 package gw.lang.gosuc.cli;
 
-import com.beust.jcommander.Parameter;
+import gw.internal.ext.com.beust.jcommander.Parameter;
 
 import java.util.ArrayList;
 import java.util.List;
