@@ -40,7 +40,6 @@ public class CommandLineCompiler {
     List<String> sourcepath = Arrays.asList(options.getSourcepath().split(File.pathSeparator));
 
     List<String> classpath = new ArrayList<>();
-    //TODO should the gosu libs be required to be on the gosuc -classpath option?
     classpath.addAll(Arrays.asList(options.getClasspath().split(File.pathSeparator)));
     classpath.addAll(GosucUtil.getJreJars());
     try {
