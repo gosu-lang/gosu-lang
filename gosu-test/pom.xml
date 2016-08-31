@@ -43,6 +43,7 @@
               <compilerId>gosuc</compilerId>
               <fork>true</fork>
               <compilerArgs>
+                <arg>-DcheckedArithmetic=true</arg>
                 <!--<arg>-Xdebug</arg>-->
                 <!-- windows -->
                 <!--<arg>-Xrunjdwp:transport=dt_shmem,address=gosuc,server=y,suspend=y</arg> -->
