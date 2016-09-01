@@ -161,6 +161,11 @@ abstract class Errant_Properties {
 
   }
 
+  static class FooImpl2 implements IFace
+  {
+    override property Prop1: String
+  }
+
   static class NotAbstract {
     abstract property Hi: String  //## issuekeys: MSG_ABSTRACT_MEMBER_NOT_IN_ABSTRACT_CLASS
   }
