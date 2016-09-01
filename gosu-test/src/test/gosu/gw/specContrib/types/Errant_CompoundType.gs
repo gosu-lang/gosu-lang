@@ -50,8 +50,8 @@ class Errant_CompoundType {
 
   interface foo {}
   function testCompoundTypes() {
-    var param: java.lang.Comparable<java.lang.Integer> & foo
-    var q1 = param < 11000  //## issuekeys: MSG_
+    var comp: java.lang.Comparable<java.lang.Integer> & foo
+    var q1 = comp < 11000  //## issuekeys: MSG_
   }
 
 }

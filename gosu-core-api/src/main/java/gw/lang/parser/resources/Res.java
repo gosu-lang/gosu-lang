@@ -220,7 +220,9 @@ public class Res
   public static final ResourceKey MSG_MISPLACED_META_ANNOTATION = new ResourceKey("MSG_MISPLACED_META_ANNOTATION");
   public static final ResourceKey MSG_MISPLACED_ANNOTATION = new ResourceKey("MSG_MISPLACED_ANNOTATION");
   public static final ResourceKey MSG_ANNOTATION_WHEN_NONE_ALLOWED = new ResourceKey("MSG_ANNOTATION_WHEN_NONE_ALLOWED");
+  public static final ResourceKey MSG_ANNOTATION_USE_SITE_TARGET_NOT_ALLOWED_HERE = new ResourceKey("MSG_ANNOTATION_USE_SITE_TARGET_NOT_ALLOWED_HERE");
   public static final ResourceKey MSG_TOO_MANY_ANNOTATIONS = new ResourceKey("MSG_TOO_MANY_ANNOTATIONS");
+  public static final ResourceKey MSG_EXPECTING_COLON_ANNOTATION = new ResourceKey("MSG_EXPECTING_COLON_ANNOTATION");
   public static final ResourceKey MSG_INVALID_TYPE = new ResourceKey("MSG_INVALID_TYPE");
   public static final ResourceKey MSG_INVALID_INNER_TYPE = new ResourceKey("MSG_INVALID_INNER_TYPE");
   public static final ResourceKey MSG_INVALID_GENERIC_EXCEPTION = new ResourceKey("MSG_INVALID_GENERIC_EXCEPTION");

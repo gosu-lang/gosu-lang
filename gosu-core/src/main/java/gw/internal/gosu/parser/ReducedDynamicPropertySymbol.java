@@ -41,29 +41,49 @@ public class ReducedDynamicPropertySymbol extends ReducedSymbol implements IRedu
   public boolean isPublic()
   {
     return getGetterDfs() == null
-           ? super.isPublic()
-           : getGetterDfs().isPublic();
+           ? getSetterDfs() == null
+             ? super.isPublic()
+             : getSetterDfs().isPublic()
+           : getSetterDfs() == null
+             ? getGetterDfs().isPublic()
+             : getGetterDfs().isPublic() ||
+               getSetterDfs().isPublic();
   }
 
   public boolean isPrivate()
   {
     return getGetterDfs() == null
-           ? super.isPrivate()
-           : getGetterDfs().isPrivate();
+           ? getSetterDfs() == null
+             ? super.isPrivate()
+             : getSetterDfs().isPrivate()
+           : getSetterDfs() == null
+             ? getGetterDfs().isPrivate()
+             : getGetterDfs().isPrivate() &&
+               getSetterDfs().isPrivate();
   }
 
   public boolean isInternal()
   {
     return getGetterDfs() == null
-           ? super.isInternal()
-           : getGetterDfs().isInternal();
+           ? getSetterDfs() == null
+             ? super.isInternal()
+             : getSetterDfs().isInternal()
+           : getSetterDfs() == null
+             ? getGetterDfs().isInternal()
+             : (getGetterDfs().isInternal() && (getSetterDfs().isInternal() || getSetterDfs().isPrivate())) ||
+               (getSetterDfs().isInternal() && (getGetterDfs().isInternal() || getGetterDfs().isPrivate()));
   }
 
   public boolean isProtected()
   {
     return getGetterDfs() == null
-           ? super.isProtected()
-           : getGetterDfs().isProtected();
+           ? getSetterDfs() == null
+             ? super.isProtected()
+             : getSetterDfs().isProtected()
+           : getSetterDfs() == null
+             ? getGetterDfs().isProtected()
+             : (getGetterDfs().isProtected() && !getSetterDfs().isPublic()) ||
+               (getSetterDfs().isProtected() && !getGetterDfs().isPublic());
   }
 
   public boolean isStatic()

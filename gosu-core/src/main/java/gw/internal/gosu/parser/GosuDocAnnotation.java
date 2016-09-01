@@ -11,6 +11,7 @@ import gw.internal.gosu.parser.expressions.TypeAsExpression;
 import gw.internal.gosu.parser.expressions.TypeLiteral;
 import gw.lang.Param;
 import gw.lang.Throws;
+import gw.lang.parser.AnnotationUseSiteTarget;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.gs.ICompilableType;
@@ -119,6 +120,12 @@ public class GosuDocAnnotation implements Serializable, IGosuAnnotation
   public ICompilableType getOwnersType()
   {
     return _ownersType;
+  }
+
+  @Override
+  public AnnotationUseSiteTarget getTarget()
+  {
+    return null;
   }
 
   private Expression[] exprArray( Expression... exprs )

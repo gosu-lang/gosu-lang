@@ -4,6 +4,7 @@
 
 package gw.lang.parser.expressions;
 
+import gw.lang.parser.IDynamicPropertySymbol;
 import gw.lang.parser.IExpression;
 import gw.lang.parser.IHasType;
 import gw.lang.parser.IParsedElementWithAtLeastOneDeclaration;
@@ -60,4 +61,6 @@ public interface IVarStatement extends IStatement, IParsedElementWithAtLeastOneD
   public int getPropertyNameOffset();
 
   boolean isFieldDeclaration();
+
+  IDynamicPropertySymbol getProperty();
 }

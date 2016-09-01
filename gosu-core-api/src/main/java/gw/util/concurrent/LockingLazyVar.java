@@ -130,4 +130,13 @@ public abstract class LockingLazyVar<T>
     };
   }
 
+  public static <Q> LockingLazyVar<Q> make( Lock lock, final LazyVarInit<Q> init ) {
+    return new LockingLazyVar<Q>( lock ) {
+      protected Q init()
+      {
+        return init.init();
+      }
+    };
+  }
+
 }

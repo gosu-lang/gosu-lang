@@ -25,6 +25,7 @@ public class DynamicPropertySymbol extends AbstractDynamicSymbol implements IDyn
   DynamicFunctionSymbol _dfsGetter;
   DynamicFunctionSymbol _dfsSetter;
   private String _varIdentifier;
+  private IPropertyInfo _pi;
 
   public DynamicPropertySymbol( DynamicFunctionSymbol dfsGetterOrSetter, boolean bGetter )
   {
@@ -118,29 +119,47 @@ public class DynamicPropertySymbol extends AbstractDynamicSymbol implements IDyn
   public boolean isPublic()
   {
     return getGetterDfs() == null
-           ? super.isPublic()
-           : getGetterDfs().isPublic();
+           ? getSetterDfs() == null
+             ? super.isPublic()
+             : getSetterDfs().isPublic()
+           : getSetterDfs() == null
+             ? getGetterDfs().isPublic()
+             : getGetterDfs().isPublic() || getSetterDfs().isPublic();
   }
 
   public boolean isPrivate()
   {
     return getGetterDfs() == null
-           ? super.isPrivate()
-           : getGetterDfs().isPrivate();
+           ? getSetterDfs() == null
+             ? super.isPrivate()
+             : getSetterDfs().isPrivate()
+           : getSetterDfs() == null
+             ? getGetterDfs().isPrivate()
+             : getGetterDfs().isPrivate() && getSetterDfs().isPrivate();
   }
 
   public boolean isInternal()
   {
     return getGetterDfs() == null
-           ? super.isInternal()
-           : getGetterDfs().isInternal();
+           ? getSetterDfs() == null
+             ? super.isInternal()
+             : getSetterDfs().isInternal()
+           : getSetterDfs() == null
+             ? getGetterDfs().isInternal()
+             : (getGetterDfs().isInternal() && (getSetterDfs().isInternal() || getSetterDfs().isPrivate())) ||
+               (getSetterDfs().isInternal() && (getGetterDfs().isInternal() || getGetterDfs().isPrivate()));
   }
 
   public boolean isProtected()
   {
     return getGetterDfs() == null
-           ? super.isProtected()
-           : getGetterDfs().isProtected();
+           ? getSetterDfs() == null
+             ? super.isProtected()
+             : getSetterDfs().isProtected()
+           : getSetterDfs() == null
+             ? getGetterDfs().isProtected()
+             : (getGetterDfs().isProtected() && !getSetterDfs().isPublic()) ||
+               (getSetterDfs().isProtected() && !getGetterDfs().isPublic());
   }
 
   public boolean isStatic()
@@ -272,30 +291,6 @@ public class DynamicPropertySymbol extends AbstractDynamicSymbol implements IDyn
     return new ParameterizedDynamicPropertySymbol( this, (IGosuClassInternal)gsClass );
   }
 
-  public void clearDefn() {
-    if (_dfsGetter != null) {
-      _dfsGetter.clearDefn();
-    }
-
-    if (_dfsSetter != null) {
-      _dfsSetter.clearDefn();
-    }
-  }
-
-  /*
-   * We must copy the annotation information down to the getter and setter, since those annotations
-   * need to head out to bytecode land
-   */
-  public void updateAnnotations(List<IGosuAnnotation> annotations) {
-    getModifierInfo().setAnnotations(annotations);
-    if (_dfsGetter != null) {
-      _dfsGetter.getModifierInfo().setAnnotations(annotations);
-    }
-    if (_dfsSetter != null) {
-      _dfsSetter.getModifierInfo().setAnnotations(annotations);
-    }
-  }
-  
   public IReducedDynamicPropertySymbol createReducedSymbol() {
     return new ReducedDynamicPropertySymbol( this );
   }
@@ -303,11 +298,16 @@ public class DynamicPropertySymbol extends AbstractDynamicSymbol implements IDyn
   @Override
   public IPropertyInfo getPropertyInfo()
   {
+    if( _pi != null )
+    {
+      return _pi;
+    }
+
     IScriptPartId scriptPart = getScriptPart();
     IType declaringType = scriptPart == null ? null : scriptPart.getContainingType();
     if( declaringType == null )
     {
-      return null;
+      return _pi = null;
     }
 
     ITypeInfo typeInfo = declaringType.getTypeInfo();
@@ -323,11 +323,11 @@ public class DynamicPropertySymbol extends AbstractDynamicSymbol implements IDyn
     }
     for( IPropertyInfo pi : properties )
     {
-      if( pi.getName().equals( this.getName() ) )
+      if( pi.getName().equals( getName() ) )
       {
-        return pi;
+        return _pi = pi;
       }
     }
-    return null;
+    return _pi = null;
   }
 }

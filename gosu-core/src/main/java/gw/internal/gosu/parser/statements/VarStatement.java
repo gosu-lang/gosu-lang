@@ -6,6 +6,7 @@ package gw.internal.gosu.parser.statements;
 
 import gw.internal.gosu.parser.CannotExecuteGosuException;
 import gw.internal.gosu.parser.DynamicFunctionSymbol;
+import gw.internal.gosu.parser.DynamicPropertySymbol;
 import gw.internal.gosu.parser.Expression;
 import gw.internal.gosu.parser.IGosuAnnotation;
 import gw.internal.gosu.parser.ModifierInfo;
@@ -44,12 +45,14 @@ public class VarStatement extends Statement implements IVarStatement
   protected TypeLiteral _typeLiteral;
   protected boolean _hasProperty = false;
   protected ModifierInfo _modifiers;
+  private List<IGosuAnnotation> _declAnnotations;
   private ISymbol _symbol;
   private IScriptPartId _scriptPartId;
   private int _iNameOffset;
   private int _iPropertyNameOffset;
   private boolean _bDefinitionParsed;
   private boolean _bIsInitializedTopLevelProgVar;
+  private DynamicPropertySymbol _dps;
 
   public VarStatement()
   {
@@ -128,6 +131,15 @@ public class VarStatement extends Statement implements IVarStatement
   public void setModifierInfo( ModifierInfo modifiers )
   {
     _modifiers = modifiers;
+  }
+
+  public List<IGosuAnnotation> getDeclAnnotations()
+  {
+    return _declAnnotations;
+  }
+  public void setDeclAnnotations( List<IGosuAnnotation> declAnnotations )
+  {
+    _declAnnotations = declAnnotations;
   }
 
   public int getModifiers()
@@ -399,5 +411,15 @@ public class VarStatement extends Statement implements IVarStatement
 
   public void setIsInitializedTopLevelProgVar() {
     _bIsInitializedTopLevelProgVar = true;
+  }
+
+  @Override
+  public DynamicPropertySymbol getProperty()
+  {
+    return _dps;
+  }
+  public void setProperty( DynamicPropertySymbol dps )
+  {
+    _dps = dps;
   }
 }

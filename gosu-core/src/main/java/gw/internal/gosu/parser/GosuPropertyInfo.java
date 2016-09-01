@@ -127,45 +127,40 @@ public class GosuPropertyInfo extends GosuBaseAttributedFeatureInfo implements I
 
   public boolean isReadable()
   {
-    return _bReadable;
+    return isReadable( null );
   }
-
-  public boolean isWritable(IType whosAskin) {
-    if (_dps.isWritable()) {
-      IRelativeTypeInfo.Accessibility accessibilityForType = ((IRelativeTypeInfo) getContainer()).getAccessibilityForType(whosAskin);
-      boolean isAccessible = false;
-      ReducedDynamicFunctionSymbol setter = _dps.getSetterDfs();
-      switch (accessibilityForType) {
-        case PUBLIC:
-          if (setter.isPublic()) {
-            isAccessible = true;
-          }
-          break;
-        case PROTECTED:
-          if (setter.isPublic() || setter.isProtected()) {
-            isAccessible = true;
-          }
-          break;
-        case INTERNAL:
-          if (setter.isPublic() || setter.isInternal() || setter.isProtected()) {
-            isAccessible = true;
-          }
-          break;
-        case PRIVATE:
-          if (setter.isPublic() || setter.isInternal() || setter.isProtected() || setter.isPrivate()) {
-            isAccessible = true;
-          }
-          break;
-      }
-      return isAccessible;
-    }
-
-    return false;
+  public boolean isReadable( IType whosAskin )
+  {
+    return isAccessible( whosAskin, _dps.getGetterDfs() );
   }
 
   public boolean isWritable()
   {
-    return isWritable(null);
+    return isWritable( null );
+  }
+  public boolean isWritable( IType whosAskin )
+  {
+    return isAccessible( whosAskin, _dps.getSetterDfs() );
+  }
+
+  public boolean isAccessible( IType whosAskin, ReducedDynamicFunctionSymbol accessor )
+  {
+    if( accessor != null )
+    {
+      IRelativeTypeInfo.Accessibility accessibilityForType = ((IRelativeTypeInfo)getContainer()).getAccessibilityForType( whosAskin );
+      switch( accessibilityForType )
+      {
+        case PUBLIC:
+          return accessor.isPublic();
+        case PROTECTED:
+          return accessor.isPublic() || accessor.isProtected();
+        case INTERNAL:
+          return accessor.isPublic() || accessor.isInternal() || accessor.isProtected();
+        case PRIVATE:
+          return accessor.isPublic() || accessor.isInternal() || accessor.isProtected() || accessor.isPrivate();
+      }
+    }
+    return false;
   }
 
   public IPropertyAccessor getAccessor()

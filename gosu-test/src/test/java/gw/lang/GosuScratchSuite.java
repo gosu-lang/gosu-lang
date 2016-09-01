@@ -26,6 +26,7 @@ public class GosuScratchSuite extends Suite
             .withTestEnvironment( new ScratchTestEnvironment() )
       .withTest( "gw.specContrib.ProcessSpecContribTest" )
       .withTest( "gw.specContrib.classes.property_Declarations.new_syntax.PropertyRuntimeTest" )
+      .withTest( "gw.specContrib.classes.property_Declarations.new_syntax.AnnotationUseSiteTargetTest" )
             ;
   }
 

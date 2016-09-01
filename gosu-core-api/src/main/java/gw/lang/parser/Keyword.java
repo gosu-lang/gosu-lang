@@ -103,6 +103,11 @@ public class Keyword implements CharSequence
   public static final Keyword KW_classpath = addReservedWord( "classpath", true );
   public static final Keyword KW_typeloader = addReservedWord( "typeloader", true );
   public static final Keyword KW_using = addReservedWord( "using" );
+  public static final Keyword KW_field = addReservedWord( "field", true );
+  public static final Keyword KW_accessors = addReservedWord( "accessors", true );
+  public static final Keyword KW_param = addReservedWord( "param", true );
+  public static final Keyword KW_receiver = addReservedWord( "receiver", true );
+
   //public static final Keyword KW_type = addReservedWord( "Type", true );
 
   private final String _strName;

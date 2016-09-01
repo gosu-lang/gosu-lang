@@ -7,6 +7,7 @@ package gw.internal.gosu.parser;
 import gw.config.CommonServices;
 import gw.internal.gosu.ir.transform.AbstractElementTransformer;
 import gw.internal.gosu.parser.expressions.AnnotationExpression;
+import gw.internal.gosu.parser.expressions.AnnotationUseSiteTargetClause;
 import gw.internal.gosu.parser.expressions.ArithmeticExpression;
 import gw.internal.gosu.parser.expressions.BlockExpression;
 import gw.internal.gosu.parser.expressions.DefaultArgLiteral;
@@ -24,6 +25,7 @@ import gw.internal.gosu.parser.statements.HideFieldNoOpStatement;
 import gw.internal.gosu.parser.statements.VarStatement;
 import gw.lang.annotation.UsageModifier;
 import gw.lang.annotation.UsageTarget;
+import gw.lang.parser.AnnotationUseSiteTarget;
 import gw.lang.parser.GosuParserTypes;
 import gw.lang.parser.ICapturedSymbol;
 import gw.lang.parser.ICoercer;
@@ -1911,9 +1913,33 @@ public abstract class ParserBase implements IParserPart
     IType type = ErrorType.getInstance();
     Expression e = NOT_SET_EXPRESSION;
     int end;
+    AnnotationUseSiteTargetClause useSiteTarget;
     try
     {
-      if( getGosuClass() == null || getGosuClass().shouldFullyCompileAnnotations() )
+      useSiteTarget = parseAnnotationUseSiteTarget();
+      if( useSiteTarget != null &&
+          useSiteTarget.getTarget().isAccessModifierOk() &&
+          (match( null, Keyword.KW_private ) ||
+           match( null, Keyword.KW_internal ) ||
+           match( null, Keyword.KW_protected ) ||
+           match( null, Keyword.KW_public )) )
+      {
+        // e.g., @get:protected
+
+        type = JavaTypes.TARGET_MODIFIER();
+        AnnotationExpression annoExpr = new AnnotationExpression();
+        pushExpression( annoExpr );
+        setLocation( iOffset, iLineNum, iColumn, true );
+        popExpression();
+        Token token = getTokenizer().getPriorToken();
+        Expression[] expr = new StringLiteral[] {new StringLiteral( token._strValue )};
+        annoExpr.setArgs( expr );
+        annoExpr.setArgTypes( JavaTypes.STRING() );
+        annoExpr.setType( type );
+        e = annoExpr;
+        end = token.getTokenEnd();
+      }
+      else if( getGosuClass() == null || getGosuClass().shouldFullyCompileAnnotations() )
       {
         getOwner().parseNewExpressionOrAnnotation( true );
         setLocation( iOffset, iLineNum, iColumn, true );
@@ -1970,12 +1996,37 @@ public abstract class ParserBase implements IParserPart
         TypeSystem.popModule( module );
       }
     }
-    GosuAnnotation annotationInfo = new GosuAnnotation( getGosuClass(), type, e, iOffset, end );
+    GosuAnnotation annotationInfo = new GosuAnnotation( getGosuClass(), type, e, useSiteTarget == null ? null : useSiteTarget.getTarget(), iOffset, end );
     if( e instanceof AnnotationExpression )
     {
       ((AnnotationExpression)e).setAnnotation( annotationInfo );
     }
     annotations.add( annotationInfo );
+  }
+
+  private AnnotationUseSiteTargetClause parseAnnotationUseSiteTarget()
+  {
+    int iOffset = getTokenizer().getTokenStart();
+    int iLineNum = getTokenizer().getLineNumber();
+    int iColumn = getTokenizer().getTokenColumn();
+    int mark = getTokenizer().mark();
+    for( AnnotationUseSiteTarget target: AnnotationUseSiteTarget.values() )
+    {
+      if( match( null, target.getKeyword() ) )
+      {
+        AnnotationUseSiteTargetClause targetClause = new AnnotationUseSiteTargetClause( target );
+        pushExpression( targetClause );
+        if( match( null, ":", SourceCodeTokenizer.TT_OPERATOR ) )
+        {
+          setLocation( iOffset, iLineNum, iColumn, false );
+          popExpression();
+          return targetClause;
+        }
+        getTokenizer().restoreToMark( mark );
+        return null;
+      }
+    }
+    return null;
   }
 
   private void maybeVerifyAnnotationArgs( Expression e )
@@ -1996,7 +2047,7 @@ public abstract class ParserBase implements IParserPart
   void verifyModifiers( IParsedElement pe, ModifierInfo modInfo, UsageTarget targetType )
   {
     verifyModifiersForFeature( pe, modInfo );
-    verifyAnnotations( modInfo, targetType );
+    verifyAnnotations( pe, modInfo, targetType );
   }
 
   protected void verifyModifiersForFeature( IParsedElement pe, ModifierInfo modInfo )
@@ -2012,7 +2063,7 @@ public abstract class ParserBase implements IParserPart
     }
   }
 
-  void verifyAnnotations( ModifierInfo modInfo, UsageTarget targetType )
+  void verifyAnnotations( IParsedElement pe, ModifierInfo modInfo, UsageTarget targetType )
   {
     List<IType> annotationTypes = new ArrayList<IType>();
     for( IGosuAnnotation annotation : modInfo.getAnnotations() )
@@ -2022,17 +2073,25 @@ public abstract class ParserBase implements IParserPart
         IType annotationType = annotation.getType();
         if( !(annotationType instanceof ErrorType) )
         {
-          UsageModifier modifer = UsageModifier.getUsageModifier( targetType, annotationType );
+          AnnotationUseSiteTarget target = annotation.getTarget();
+          if( target != null && !UsageModifier.targetAppliesToParsedElement( pe, target ) )
+          {
+            annotation.getExpression().addParseException( Res.MSG_ANNOTATION_USE_SITE_TARGET_NOT_ALLOWED_HERE, annotation.getName(), target.name() );
+          }
+          else
+          {
+            UsageModifier modifier = UsageModifier.getUsageModifier( pe, targetType, annotationType, target );
 
-          if( modifer.equals( UsageModifier.None ) )
-          {
-            annotation.getExpression().addParseException( Res.MSG_ANNOTATION_WHEN_NONE_ALLOWED, annotation.getName(), targetType.toString().toLowerCase() );
+            if( modifier.equals( UsageModifier.None ) )
+            {
+              annotation.getExpression().addParseException( Res.MSG_ANNOTATION_WHEN_NONE_ALLOWED, annotation.getName(), targetType.toString().toLowerCase() );
+            }
+            else if( modifier.equals( UsageModifier.One ) && annotationTypes.contains( annotationType ) )
+            {
+              annotation.getExpression().addParseException( Res.MSG_TOO_MANY_ANNOTATIONS, annotation.getName(), targetType.toString().toLowerCase() );
+            }
+            annotationTypes.add( annotationType );
           }
-          else if( modifer.equals( UsageModifier.One ) && annotationTypes.contains( annotationType ) )
-          {
-            annotation.getExpression().addParseException( Res.MSG_TOO_MANY_ANNOTATIONS, annotation.getName(), targetType.toString().toLowerCase() );
-          }
-          annotationTypes.add( annotationType );
         }
       }
     }

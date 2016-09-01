@@ -6,6 +6,7 @@ package gw.lang.reflect.java;
 
 import gw.config.ExecutionMode;
 import gw.lang.Autoinsert;
+import gw.lang.TargetModifier;
 import gw.lang.StrictGenerics;
 import gw.lang.IAnnotation;
 import gw.lang.IDimension;
@@ -47,6 +48,7 @@ import javax.script.Bindings;
 import javax.xml.namespace.QName;
 import java.lang.annotation.Annotation;
 import java.lang.annotation.Inherited;
+import java.lang.annotation.Target;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.ArrayList;
@@ -169,7 +171,7 @@ public class JavaTypes {
     if( !ExecutionMode.get().isRefreshSupportEnabled() ) {
       return THIS.VOID == null ? THIS.VOID = getJreType( Void.class ) : THIS.VOID;
     }  
-    return getJreType(Void.class);
+    return getJreType( Void.class );
   }
 
   private IJavaType STRING = null;
@@ -475,6 +477,22 @@ public class JavaTypes {
       return THIS.REPEATABLE == null ? THIS.REPEATABLE = getJreType( Repeatable.class ) : THIS.REPEATABLE;
     }  
     return getJreType(Repeatable.class);
+  }
+
+  private IJavaType TARGET = null;
+  public static IJavaType TARGET() {
+    if( !ExecutionMode.get().isRefreshSupportEnabled() ) {
+      return THIS.TARGET == null ? THIS.TARGET = getJreType( Target.class ) : THIS.TARGET;
+    }
+    return getJreType(Target.class);
+  }
+
+  private IJavaType TARGET_MODIFIER = null;
+  public static IJavaType TARGET_MODIFIER() {
+    if( !ExecutionMode.get().isRefreshSupportEnabled() ) {
+      return THIS.TARGET_MODIFIER == null ? THIS.TARGET_MODIFIER = getJreType( TargetModifier.class ) : THIS.TARGET_MODIFIER;
+    }
+    return getJreType(TargetModifier.class);
   }
 
   private IJavaType STRICT_GENERICS = null;

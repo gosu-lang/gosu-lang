@@ -9,6 +9,7 @@ import gw.config.ExecutionMode;
 import gw.fs.IFile;
 import gw.internal.gosu.dynamic.DynamicConstructorInfo;
 import gw.internal.gosu.dynamic.DynamicMethodInfo;
+import gw.lang.parser.AnnotationUseSiteTarget;
 import gw.lang.parser.TypeSystemAwareCache;
 import gw.lang.reflect.IAnnotationInfo;
 import gw.lang.reflect.IDynamicType;
@@ -197,6 +198,7 @@ import gw.util.SpaceEfficientHashMap;
 import java.io.Closeable;
 import java.io.IOException;
 import java.io.StringReader;
+import java.lang.annotation.ElementType;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.ArrayList;
@@ -2751,9 +2753,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
     int iLineNum = _tokenizer.getLineNumber();
     int iColumn = getTokenizer().getTokenColumn();
     _parseUnaryExpressionNotPlusMinus();
-    setLocation(iOffset, iLineNum, iColumn);
-
-    checkMemberAccessIsReadable();
+    setLocation( iOffset, iLineNum, iColumn );
   }
 
   private void checkMemberAccessIsReadable()
@@ -2764,18 +2764,16 @@ public final class GosuParser extends ParserBase implements IGosuParser
       IPropertyInfo pi = ((MemberAccess)expr).getPropertyInfoWithoutThrowing();
       if( pi != null )
       {
-        verify( expr, pi.isReadable(),
-                Res.MSG_CLASS_PROPERTY_NOT_READABLE, pi.getName(), pi.getOwnersType().getName() );
+        verify( expr, pi.isReadable( getGosuClass() ), Res.MSG_CLASS_PROPERTY_NOT_READABLE, pi.getName(), pi.getOwnersType().getName() );
       }
     }
     else if( (expr instanceof Identifier &&
             ((Identifier)expr).getSymbol() instanceof DynamicPropertySymbol) )
     {
       DynamicPropertySymbol dps = (DynamicPropertySymbol)((Identifier)expr).getSymbol();
-      if( dps != null && !dps.isReadable() )
+      if( dps != null && dps.getPropertyInfo() != null && !dps.getPropertyInfo().isReadable( getGosuClass() ) )
       {
-        verify( expr, dps.isReadable(),
-                Res.MSG_CLASS_PROPERTY_NOT_READABLE, dps.getName(), dps.getScriptPart() == null ? "" : dps.getScriptPart().getContainingType().getName() );
+        verify( expr, false, Res.MSG_CLASS_PROPERTY_NOT_READABLE, dps.getName(), dps.getScriptPart() == null ? "" : dps.getScriptPart().getContainingType().getName() );
       }
     }
   }
@@ -2912,6 +2910,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
       eas.setParent( implicitTypeAsFromRecovery );
     }
     parseIndirectMemberAccess( iOffset, iLineNum, iColumn );
+    checkMemberAccessIsReadable();
   }
   boolean _parsePrimaryExpression( Token token )
   {
@@ -10088,7 +10087,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
     return false;
   }
 
-  DynamicPropertySymbol parseVarPropertyClause( VarStatement varStmt, String strVarIdentifier, IType varType, boolean parseInitializer )
+  DynamicPropertySymbol parseVarPropertyClause( VarStatement varStmt, ModifierInfo modifiers, String strVarIdentifier, IType varType, boolean parseInitializer )
   {
     if( !match( null, Keyword.KW_as ) )
     {
@@ -10131,8 +10130,8 @@ public final class GosuParser extends ParserBase implements IGosuParser
 
     ICompilableType gsClass = getGosuClass();
     ModifierInfo propModifiers = new ModifierInfo( Modifier.PUBLIC | (varStmt.isStatic() ? Modifier.STATIC : 0) );
-    propModifiers.setAnnotations( varStmt.getModifierInfo().getAnnotations() );
-    propModifiers.setDescription( varStmt.getModifierInfo().getDescription() );
+    propModifiers.setAnnotations( modifiers.getAnnotations() );
+    propModifiers.setDescription( modifiers.getDescription() );
     DynamicPropertySymbol dps = makeGetter( varStmt, strVarIdentifier, strPropertyName, varType, propModifiers, symbol, gsClass, true );
     if( !bReadonly )
     {
@@ -10140,6 +10139,8 @@ public final class GosuParser extends ParserBase implements IGosuParser
     }
     dps.setScriptPart( getOwner().getScriptPart() );
     dps.setVarIdentifier( strVarIdentifier );
+    dps.getModifierInfo().setDescription( propModifiers.getDescription() );
+    varStmt.setProperty( dps );
 
     if( parseInitializer && match( null, "=", SourceCodeTokenizer.TT_OPERATOR, false ) )
     {
@@ -10202,11 +10203,12 @@ public final class GosuParser extends ParserBase implements IGosuParser
     if( symbol instanceof DynamicPropertySymbol && symbol.getGosuClass() != null && symbol.getGosuClass().isAssignableFrom( gsClass ) )
     {
       dps = new DynamicPropertySymbol( (DynamicPropertySymbol)symbol );
+      dps.getModifierInfo().setDescription( modifiers.getDescription() );
       if( dps.getGetterDfs() == null || dps.getGetterDfs().getScriptPart().getContainingType() != gsClass )
       {
         VarPropertyGetFunctionSymbol getFunctionSymbol = new VarPropertyGetFunctionSymbol( gsClass, getSymbolTable(), strPropertyName, strVarIdentifier, varType );
-        getFunctionSymbol.getModifierInfo().update( modifiers );
-        getFunctionSymbol.getModifierInfo().setModifiers( Modifier.setOverride( modifiers.getModifiers(), false ) );
+        transferModifierInfo( varStmt, modifiers, AnnotationUseSiteTarget.get, getFunctionSymbol );
+        getFunctionSymbol.getModifierInfo().removeModifiers( Modifier.OVERRIDE );
         getFunctionSymbol.setClassMember( true );
         if( dps.getGetterDfs() != null )
         {
@@ -10221,10 +10223,11 @@ public final class GosuParser extends ParserBase implements IGosuParser
     else
     {
       VarPropertyGetFunctionSymbol getFunctionSymbol = new VarPropertyGetFunctionSymbol( gsClass, getSymbolTable(), strPropertyName, strVarIdentifier, varType );
-      getFunctionSymbol.getModifierInfo().update( modifiers );
+      transferModifierInfo( varStmt, modifiers, AnnotationUseSiteTarget.get, getFunctionSymbol );
       getFunctionSymbol.setClassMember( true );
       verifyFunction( getFunctionSymbol, varStmt );
       dps = new DynamicPropertySymbol( getFunctionSymbol, true );
+      dps.getModifierInfo().setDescription( modifiers.getDescription() );
     }
     return dps;
   }
@@ -10245,8 +10248,8 @@ public final class GosuParser extends ParserBase implements IGosuParser
       if( dps.getSetterDfs() == null || dps.getSetterDfs().getScriptPart().getContainingType() != gsClass )
       {
         VarPropertySetFunctionSymbol setFunctionSymbol = new VarPropertySetFunctionSymbol( gsClass, getSymbolTable(), strPropertyName, strVarIdentifier, varType );
-        setFunctionSymbol.getModifierInfo().update( modifiers );
-        setFunctionSymbol.getModifierInfo().setModifiers( Modifier.setOverride( modifiers.getModifiers(), false ) );
+        transferModifierInfo( varStmt, modifiers, AnnotationUseSiteTarget.set, setFunctionSymbol );
+        setFunctionSymbol.getModifierInfo().removeModifiers( Modifier.OVERRIDE );
         setFunctionSymbol.setClassMember( true );
         if( dps.getSetterDfs() != null )
         {
@@ -10261,12 +10264,111 @@ public final class GosuParser extends ParserBase implements IGosuParser
     else
     {
       VarPropertySetFunctionSymbol setFunctionSymbol = new VarPropertySetFunctionSymbol( gsClass, getSymbolTable(), strPropertyName, strVarIdentifier, varType );
-      setFunctionSymbol.getModifierInfo().update( modifiers );
+      transferModifierInfo( varStmt, modifiers, AnnotationUseSiteTarget.set, setFunctionSymbol );
       setFunctionSymbol.setClassMember( true );
       verifyFunction( setFunctionSymbol, varStmt );
       dps = new DynamicPropertySymbol( setFunctionSymbol, false );
     }
     return dps;
+  }
+
+  private void transferModifierInfo( VarStatement varStmt, ModifierInfo modifiers, AnnotationUseSiteTarget target, DynamicFunctionSymbol dfs )
+  {
+    dfs.getModifierInfo().setDescription( modifiers.getDescription() );
+    dfs.getModifierInfo().setModifiers( modifiers.getModifiers() );
+
+    for( Iterator<IGosuAnnotation> iter = modifiers.getAnnotations().iterator(); iter.hasNext(); )
+    {
+      IGosuAnnotation anno = iter.next();
+      if( anno.getTarget() == target || anno.getTarget() == AnnotationUseSiteTarget.accessors || anno.getTarget() == null )
+      {
+        // 'set' or 'get' or 'accessors' target type, apply annotation exclusively to get and/or set method
+
+        if( appliesToElementType( anno, ElementType.METHOD ) )
+        {
+          verify( varStmt, !anno.isJavaAnnotation() || !GosuClassParser.violatesRepeatable( dfs.getModifierInfo().getAnnotations(), anno ), Res.MSG_TOO_MANY_ANNOTATIONS, anno.getName(), target.name() );
+          if( anno.getType() == JavaTypes.TARGET_MODIFIER() )
+          {
+            setFromTargetModifier( anno, dfs.getModifierInfo() );
+          }
+          else
+          {
+            dfs.getModifierInfo().addAnnotation( anno );
+            if( anno.getTarget() == target ||
+                (anno.getTarget() == AnnotationUseSiteTarget.accessors && target == AnnotationUseSiteTarget.set) )
+            {
+              // annotation exclusively targets get or set or accessors, remove it from further applications
+              iter.remove();
+            }
+          }
+        }
+      }
+      else if( anno.getTarget() == AnnotationUseSiteTarget.param && target == AnnotationUseSiteTarget.set )
+      {
+        // annotation targets 'param', apply exclusively to set method's param
+
+        if( appliesToElementType( anno, ElementType.PARAMETER ) )
+        {
+          if( !dfs.getArgs().isEmpty() )
+          {
+            ModifierInfo paramModifiers = (ModifierInfo)dfs.getArgs().get( 0 ).getModifierInfo();
+            verify( varStmt, !anno.isJavaAnnotation() || !GosuClassParser.violatesRepeatable( paramModifiers.getAnnotations(), anno ), Res.MSG_TOO_MANY_ANNOTATIONS, anno.getName(), Keyword.KW_param.getName() );
+            paramModifiers.addAnnotation( anno );
+          }
+          // annotation exclusively targets param, remove it from further applications
+          iter.remove();
+        }
+      }
+    }
+  }
+
+  static void setFromTargetModifier( IGosuAnnotation anno, ModifierInfo modifierInfo )
+  {
+    String mod = (String)((AnnotationExpression)anno.getExpression()).getArgs()[0].evaluate();
+    int modifier;
+    switch( mod )
+    {
+      case "private":
+        modifier = Modifier.PRIVATE;
+        break;
+      case "internal":
+        modifier = Modifier.INTERNAL;
+        break;
+      case "protected":
+        modifier = Modifier.PROTECTED;
+        break;
+      case "public":
+        modifier = Modifier.PUBLIC;
+        break;
+      default:
+        throw new IllegalStateException();
+    }
+    modifierInfo.removeModifiers( Modifier.PRIVATE | Modifier.INTERNAL | Modifier.PROTECTED | Modifier.PUBLIC );
+    modifierInfo.addModifiers( modifier );
+  }
+
+  private boolean appliesToElementType( IGosuAnnotation anno, ElementType elemType )
+  {
+    IAnnotationInfo annotation = anno.getType().getTypeInfo().getAnnotation( JavaTypes.TARGET() );
+    if( annotation == null )
+    {
+      return true;
+    }
+
+    Object[] values = (Object[])annotation.getFieldValue( "value" );
+    if( values == null || values.length == 0 )
+    {
+      return true;
+    }
+
+    for( Object value: values )
+    {
+      if( value == elemType || value.equals( elemType.name() ) )
+      {
+        return true;
+      }
+    }
+    return false;
   }
 
   void parseDelegateStatement( DelegateStatement delegateStmt, String strIdentifier )
@@ -11948,6 +12050,9 @@ public final class GosuParser extends ParserBase implements IGosuParser
     else if( e instanceof Identifier ||
             (e instanceof ImplicitTypeAsExpression && ((ImplicitTypeAsExpression)e).getLHS() instanceof Identifier) )
     {
+      //noinspection ThrowableResultOfMethodCallIgnored
+      e.removeParseException( Res.MSG_CLASS_PROPERTY_NOT_READABLE );
+
       Identifier id;
       Statement statement;
       // Assigment Statement
@@ -12061,6 +12166,9 @@ public final class GosuParser extends ParserBase implements IGosuParser
     else if( e instanceof MemberAccess ||
             (e instanceof ImplicitTypeAsExpression && ((ImplicitTypeAsExpression)e).getLHS() instanceof MemberAccess))
     {
+      //noinspection ThrowableResultOfMethodCallIgnored
+      e.removeParseException( Res.MSG_CLASS_PROPERTY_NOT_READABLE );
+
       // Member Assignment Statement
       MemberAssignmentStatement as = new MemberAssignmentStatement();
       MemberAccess ma;

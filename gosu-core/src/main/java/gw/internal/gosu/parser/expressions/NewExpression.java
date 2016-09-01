@@ -239,7 +239,7 @@ public class NewExpression extends Expression implements INewExpression
     {
       ParseTree loc = getLocation();
       boolean bProbablyFromACrappyTest = getGosuClass() == null;
-      return new GosuAnnotationInfo( new GosuAnnotation( (ICompilableTypeInternal)getGosuClass(), getType(), this, bProbablyFromACrappyTest ? 0 : loc.getOffset(), bProbablyFromACrappyTest ? -1 : loc.getExtent()+1 ),
+      return new GosuAnnotationInfo( new GosuAnnotation( (ICompilableTypeInternal)getGosuClass(), getType(), this, null, bProbablyFromACrappyTest ? 0 : loc.getOffset(), bProbablyFromACrappyTest ? -1 : loc.getExtent()+1 ),
                                      getGosuClass() == null ? null : getGosuClass().getTypeInfo(), (IGosuClassInternal)getGosuClass() );
     }
     if( getType().isArray() )
