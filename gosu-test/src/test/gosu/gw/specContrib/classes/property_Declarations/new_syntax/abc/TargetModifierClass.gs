@@ -3,6 +3,9 @@ package gw.specContrib.classes.property_Declarations.new_syntax.abc
 class TargetModifierClass {
   @field:public
   property PublicField: int
+
+  @field:protected
+  property ProtectedField: int
   
   @get:protected
   property ProtectedGet: int
@@ -11,5 +14,5 @@ class TargetModifierClass {
   property ProtectedSet: int
   
   @accessors:protected
-  property ProtectedAccessors: int
+  property ProtectedAccessors: int  
 }

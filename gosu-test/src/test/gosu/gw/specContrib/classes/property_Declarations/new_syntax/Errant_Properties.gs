@@ -86,6 +86,11 @@ abstract class Errant_Properties {
     final property get FinalGetProp: String
     final property set FinalSetProp: String
   }
+  static class Sub extends BaseClass
+  {
+    override property get FinalProp(): String { return null }  //## issuekeys: MSG_CANNOT_OVERRIDE_FINAL
+    override property set FinalProp( value: String ) {}  //## issuekeys: MSG_CANNOT_OVERRIDE_FINAL
+  }
   static class SubClass extends BaseClass
   {
     override property Foo: String
@@ -108,6 +113,11 @@ abstract class Errant_Properties {
     property get Bar: String   //## issuekeys: MSG_MISSING_OVERRIDE_MODIFIER
     property get Baz: String   //## issuekeys: MSG_MISSING_OVERRIDE_MODIFIER
     property set Biz: String   //## issuekeys: MSG_MISSING_OVERRIDE_MODIFIER
+  }
+  static class SubClassMissingOverride2 extends BaseClass
+  {
+    property get Foo(): String { return null }  //## issuekeys: MSG_MISSING_OVERRIDE_MODIFIER
+    property set Foo( value: String ) {}  //## issuekeys: MSG_MISSING_OVERRIDE_MODIFIER
   }
   static class DefineGetOrSetNotDefinedInSuper extends BaseClass
   {
@@ -146,7 +156,7 @@ abstract class Errant_Properties {
     }
   }
 
-  static class FooImpl implements IFace  //## issuekeys: MSG_UNIMPLEMENTED_METHOD, MSG_UNIMPLEMENTED_METHOD, MSG_UNIMPLEMENTED_METHOD, MSG_UNIMPLEMENTED_METHOD, MSG_UNIMPLEMENTED_METHOD
+  static class FooImpl implements IFace  //## issuekeys: MSG_UNIMPLEMENTED_METHOD, MSG_UNIMPLEMENTED_METHOD
   {
 
   }

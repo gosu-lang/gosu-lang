@@ -9,6 +9,10 @@ class Errant_TargetModifierClass {
      print( test.PublicField )
      print( test._PublicField ) 
      
+     test.ProtectedField = 1
+     print( test.ProtectedField )
+     print( test._ProtectedField )   //## issuekeys: MSG_NO_PROPERTY_DESCRIPTOR_FOUND
+     
      test.ProtectedGet = 1
      print( test.ProtectedGet )  //## issuekeys: MSG_CLASS_PROPERTY_NOT_READABLE
      print( test._ProtectedGet )   //## issuekeys: MSG_NO_PROPERTY_DESCRIPTOR_FOUND
@@ -31,6 +35,10 @@ class Errant_TargetModifierClass {
        test.PublicField = 1
        print( test.PublicField )
        print( test._PublicField ) 
+
+       test.ProtectedField = 1
+       print( test.ProtectedField )
+       print( test._ProtectedField ) 
      
        test.ProtectedGet = 1
        print( test.ProtectedGet )
