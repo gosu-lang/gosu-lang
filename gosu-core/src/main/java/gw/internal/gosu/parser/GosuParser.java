@@ -10322,6 +10322,36 @@ public final class GosuParser extends ParserBase implements IGosuParser
     }
   }
 
+  private void transferModifierInfo( ParsedElement stmt, ModifierInfo modifiers, AnnotationUseSiteTarget target, EnhancementDynamicFunctionSymbol dfs )
+  {
+    ModifierInfo paramModifiers = dfs.getReceiver().getModifierInfo();
+
+    // Note, we remove existing so as not to duplicate annos.
+    // Also note, the annos added during decl time don't have arg expression, those are parsed only during
+    // defn time, thus we have to re-add them here so we have the full annotation expression with args.
+    paramModifiers.setAnnotations( Collections.emptyList() );
+
+    for( Iterator<IGosuAnnotation> iter = modifiers.getAnnotations().iterator(); iter.hasNext(); )
+    {
+      IGosuAnnotation anno = iter.next();
+      if( anno.getTarget() == AnnotationUseSiteTarget.receiver && target == AnnotationUseSiteTarget.receiver )
+      {
+        // annotation targets 'receiver', apply exclusively to enhancement method
+
+        if( appliesToElementType( anno, ElementType.PARAMETER ) )
+        {
+          if( stmt != null )
+          {
+            verify( stmt, !anno.isJavaAnnotation() || !GosuClassParser.violatesRepeatable( paramModifiers.getAnnotations(), anno ), Res.MSG_TOO_MANY_ANNOTATIONS, anno.getName(), Keyword.KW_receiver.getName() );
+          }
+          paramModifiers.addAnnotation( anno );
+          // annotation exclusively targets param, remove it from further applications
+          iter.remove();
+        }
+      }
+    }
+  }
+
   static void setFromTargetModifier( IGosuAnnotation anno, ModifierInfo modifierInfo )
   {
     String mod = (String)((AnnotationExpression)anno.getExpression()).getArgs()[0].evaluate();
@@ -10355,17 +10385,26 @@ public final class GosuParser extends ParserBase implements IGosuParser
       return true;
     }
 
-    Object[] values = (Object[])annotation.getFieldValue( "value" );
-    if( values == null || values.length == 0 )
+    Object targetValue = annotation.getFieldValue( "value" );
+    if( targetValue == elemType ||
+        targetValue instanceof String && targetValue.equals( elemType.name() ) )
     {
       return true;
     }
-
-    for( Object value: values )
+    else if( targetValue instanceof Object[] )
     {
-      if( value == elemType || value.equals( elemType.name() ) )
+      Object[] values = (Object[])targetValue;
+      if( values == null || values.length == 0 )
       {
         return true;
+      }
+
+      for( Object value : values )
+      {
+        if( value == elemType || value.equals( elemType.name() ) )
+        {
+          return true;
+        }
       }
     }
     return false;
@@ -10564,7 +10603,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
       verifyLoopConditionNotAlwaysFalse( e );
       whileStmt.setStatement( stmt );
     }
-    pushStatement(whileStmt);
+    pushStatement( whileStmt );
   }
 
   private void verifyLoopConditionNotAlwaysFalse( Expression e )
@@ -12978,6 +13017,12 @@ public final class GosuParser extends ParserBase implements IGosuParser
         }
         // Overwrite annotations to use the new-expressions created in
         dfsDecl.getModifierInfo().setAnnotations( modifiers.getAnnotations() );
+
+        if( dfsDecl instanceof EnhancementDynamicFunctionSymbol )
+        {
+          transferModifierInfo( functionStmt, modifiers, AnnotationUseSiteTarget.receiver, (EnhancementDynamicFunctionSymbol)dfsDecl );
+        }
+
         dfsDecl.setAnnotationDefault( annotationDefault );
         dfsDecl.setValueDirectly( statement );
         pushDynamicFunctionSymbol( dfsDecl );
@@ -13628,7 +13673,16 @@ public final class GosuParser extends ParserBase implements IGosuParser
 
         type.setScriptPart( getScriptPart() );
 
-        DynamicFunctionSymbol dfs = new DynamicFunctionSymbol( _symTable, strFunctionName, type, params, (Statement)null );
+        DynamicFunctionSymbol dfs;
+        if( gsClass instanceof IGosuEnhancement && !Modifier.isStatic( modifiers.getModifiers() ) )
+        {
+          dfs = new EnhancementDynamicFunctionSymbol( _symTable, strFunctionName, type, params, ((IGosuEnhancement)gsClass).getEnhancedType() );
+          transferModifierInfo( element, modifiers, AnnotationUseSiteTarget.receiver, (EnhancementDynamicFunctionSymbol)dfs );
+        }
+        else
+        {
+          dfs = new DynamicFunctionSymbol( _symTable, strFunctionName, type, params, (Statement)null );
+        }
         dfs.setScriptPart( getScriptPart() );
         dfs.setModifierInfo( modifiers );
         dfs.setAnnotationDefault( annotationDefault );

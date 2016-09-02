@@ -4,5 +4,5 @@ uses java.lang.annotation.Retention
 
 @Retention(RetentionPolicy.RUNTIME)
 annotation MyNoTargetAnno {
-  function value(): int = 9
+  function value(): int = 4
 }

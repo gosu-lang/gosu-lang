@@ -24,6 +24,7 @@ import gw.lang.reflect.IType;
 import gw.lang.reflect.Modifier;
 import gw.util.GosuObjectUtil;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -139,7 +140,7 @@ public class VarStatement extends Statement implements IVarStatement
   }
   public void setDeclAnnotations( List<IGosuAnnotation> declAnnotations )
   {
-    _declAnnotations = declAnnotations;
+    _declAnnotations = new ArrayList<>( declAnnotations );
   }
 
   public int getModifiers()

@@ -9,9 +9,11 @@ import gw.lang.parser.AnnotationUseSiteTarget;
 import gw.lang.parser.IDynamicPropertySymbol;
 import gw.lang.parser.IParsedElement;
 import gw.lang.parser.expressions.IVarStatement;
+import gw.lang.parser.statements.IFunctionStatement;
 import gw.lang.reflect.IAnnotationInfo;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.TypeSystem;
+import gw.lang.reflect.gs.IGosuEnhancement;
 import gw.lang.reflect.java.JavaTypes;
 
 import java.lang.annotation.ElementType;
@@ -243,6 +245,12 @@ public enum UsageModifier {
             (property.getGetterDfs() != null && !property.getGetterDfs().isAbstract() ||
              property.getSetterDfs() != null && !property.getSetterDfs().isAbstract());
       }
+    }
+    else if( pe instanceof IFunctionStatement &&
+             pe.getGosuClass() instanceof IGosuEnhancement &&
+             !((IFunctionStatement)pe).getDynamicFunctionSymbol().isStatic() )
+    {
+      return target == AnnotationUseSiteTarget.receiver;
     }
     return false;
   }

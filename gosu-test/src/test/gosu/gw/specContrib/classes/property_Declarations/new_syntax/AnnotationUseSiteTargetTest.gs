@@ -2,6 +2,11 @@ package gw.specContrib.classes.property_Declarations.new_syntax
 uses gw.test.TestClass
 
 class AnnotationUseSiteTargetTest extends TestClass {
+  static final var ONE = 1
+  static final var TWO = 2
+  static final var THREE = 3
+  static final var FOUR = 4
+  
   function testAll() {
     verifyField( TestMe, "_field" )
     verifyField( TestMe, "_Prop" )
@@ -43,103 +48,104 @@ class AnnotationUseSiteTargetTest extends TestClass {
   
   function verifyField( cls: Class, name: String ) {
     var f = cls.getDeclaredField( name )
-    assertEquals( 2, f.Annotations.length )
-    assertEquals( 9, f.getAnnotation( MyNoTargetAnno ).value() )      
-    assertEquals( 1, f.getAnnotation( MyFieldAnno ).value() )
+    assertEquals( TWO, f.Annotations.length )
+    assertEquals( FOUR, f.getAnnotation( MyNoTargetAnno ).value() )      
+    assertEquals( ONE, f.getAnnotation( MyFieldAnno ).value() )
   }  
   
   function verifyGet( cls: Class, name: String ) {
     var method = cls.getDeclaredMethod( "get"+name, {} )
-    assertEquals( 3, method.Annotations.length )
-    assertEquals( 9, method.getAnnotation( MyNoTargetAnno ).value() )      
-    assertEquals( 1, method.getAnnotation( MyMethodAnno2 ).value() )
-    assertEquals( 1, method.getAnnotation( MyMethodAnno ).value() )
+    assertEquals( THREE, method.Annotations.length )
+    assertEquals( FOUR, method.getAnnotation( MyNoTargetAnno ).value() )      
+    assertEquals( ONE, method.getAnnotation( MyMethodAnno2 ).value() )
+    assertEquals( ONE, method.getAnnotation( MyMethodAnno ).value() )
     
     assertEquals( 0, method.ParameterAnnotations.length )
   }
   
   function verifySet( cls: Class, name: String ) {
     var method = cls.getDeclaredMethod( "set"+name, {int} )
-    assertEquals( 3, method.Annotations.length )
-    assertEquals( 9, method.getAnnotation( MyNoTargetAnno ).value() )      
-    assertEquals( 1, method.getAnnotation( MyMethodAnno2 ).value() )
-    assertEquals( 2, method.getAnnotation( MyMethodAnno ).value() )
+    assertEquals( THREE, method.Annotations.length )
+    assertEquals( FOUR, method.getAnnotation( MyNoTargetAnno ).value() )      
+    assertEquals( ONE, method.getAnnotation( MyMethodAnno2 ).value() )
+    assertEquals( TWO, method.getAnnotation( MyMethodAnno ).value() )
     
-    assertEquals( 1, method.ParameterAnnotations.length )
-    assertEquals( 1, method.ParameterAnnotations[0].length )
-    assertEquals( 1, (method.ParameterAnnotations[0][0] as MyParamAnno).value() )
+    assertEquals( ONE, method.ParameterAnnotations.length )
+    assertEquals( ONE, method.ParameterAnnotations[0].length )
+    assertEquals( ONE, (method.ParameterAnnotations[0][0] as MyParamAnno).value() )
   }
   
   interface ITestMe {
     /** desc */
     @MyNoTargetAnno  
-    @get:MyMethodAnno( 1 )  
-    @set:MyMethodAnno( 2 )    
-    @accessors:MyMethodAnno2( 1 )    
-    @param:MyParamAnno( 1 )  
+    @get:MyMethodAnno( ONE )  
+    @set:MyMethodAnno( TWO )    
+    @accessors:MyMethodAnno2( ONE )    
+    @param:MyParamAnno( ONE )  
     property Interface_Prop: int        
   }
   
   static abstract class AbstractTestMe {
     /** desc */
     @MyNoTargetAnno  
-    @get:MyMethodAnno( 1 )  
-    @set:MyMethodAnno( 2 )    
-    @accessors:MyMethodAnno2( 1 )    
-    @param:MyParamAnno( 1 )  
+    @get:MyMethodAnno( ONE )  
+    @set:MyMethodAnno( TWO )    
+    @accessors:MyMethodAnno2( ONE )    
+    @param:MyParamAnno( ONE )  
     abstract property Abstract_Prop: int       
   }
   
   static class TestMe extends AbstractTestMe implements ITestMe {
+    
     /** desc */
     @MyNoTargetAnno
-    @get:MyMethodAnno( 1 )  
-    @set:MyMethodAnno( 2 )    
-    @accessors:MyMethodAnno2( 1 )    
-    @field:MyFieldAnno( 1 )
-    @param:MyParamAnno( 1 )  
+    @get:MyMethodAnno( ONE )  
+    @set:MyMethodAnno( TWO )    
+    @accessors:MyMethodAnno2( ONE )    
+    @field:MyFieldAnno( ONE )
+    @param:MyParamAnno( ONE )  
     var _field: int as Field_Prop
     
     /** desc */
     @MyNoTargetAnno  
-    @get:MyMethodAnno( 1 )  
-    @set:MyMethodAnno( 2 )    
-    @accessors:MyMethodAnno2( 1 )    
-    @field:MyFieldAnno( 1 )
-    @param:MyParamAnno( 1 )  
+    @get:MyMethodAnno( ONE )  
+    @set:MyMethodAnno( TWO )    
+    @accessors:MyMethodAnno2( ONE )    
+    @field:MyFieldAnno( ONE )
+    @param:MyParamAnno( ONE )  
     property Prop: int 
     
     /** desc */
     @MyNoTargetAnno  
-    @get:MyMethodAnno( 1 )  
-    @accessors:MyMethodAnno2( 1 )    
-    @field:MyFieldAnno( 1 )
+    @get:MyMethodAnno( ONE )  
+    @accessors:MyMethodAnno2( ONE )    
+    @field:MyFieldAnno( ONE )
     property get GetProp: int 
 
      /** desc */
     @MyNoTargetAnno  
-    @set:MyMethodAnno( 2 )    
-    @accessors:MyMethodAnno2( 1 )    
-    @field:MyFieldAnno( 1 )
-    @param:MyParamAnno( 1 )  
+    @set:MyMethodAnno( TWO )    
+    @accessors:MyMethodAnno2( ONE )    
+    @field:MyFieldAnno( ONE )
+    @param:MyParamAnno( ONE )  
     property set SetProp: int 
        
     /** desc */
     @MyNoTargetAnno  
-    @get:MyMethodAnno( 1 )  
-    @set:MyMethodAnno( 2 )    
-    @accessors:MyMethodAnno2( 1 )    
-    @field:MyFieldAnno( 1 )
-    @param:MyParamAnno( 1 )      
+    @get:MyMethodAnno( ONE )  
+    @set:MyMethodAnno( TWO )    
+    @accessors:MyMethodAnno2( ONE )    
+    @field:MyFieldAnno( ONE )
+    @param:MyParamAnno( ONE )      
     override property Abstract_Prop: int
     
     /** desc */
     @MyNoTargetAnno  
-    @get:MyMethodAnno( 1 )  
-    @set:MyMethodAnno( 2 )    
-    @accessors:MyMethodAnno2( 1 )
-    @field:MyFieldAnno( 1 )    
-    @param:MyParamAnno( 1 )  
+    @get:MyMethodAnno( ONE )  
+    @set:MyMethodAnno( TWO )    
+    @accessors:MyMethodAnno2( ONE )
+    @field:MyFieldAnno( ONE )    
+    @param:MyParamAnno( ONE )  
     override property Interface_Prop: int     
   }
   

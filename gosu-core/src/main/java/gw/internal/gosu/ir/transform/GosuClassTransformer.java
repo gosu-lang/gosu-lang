@@ -17,6 +17,7 @@ import gw.internal.gosu.ir.transform.util.NameResolver;
 import gw.internal.gosu.parser.AbstractDynamicSymbol;
 import gw.internal.gosu.parser.BlockClass;
 import gw.internal.gosu.parser.DynamicFunctionSymbol;
+import gw.internal.gosu.parser.EnhancementDynamicFunctionSymbol;
 import gw.internal.gosu.parser.EnumCodePropertySymbol;
 import gw.internal.gosu.parser.EnumDisplayNamePropertySymbol;
 import gw.internal.gosu.parser.EnumNamePropertySymbol;
@@ -498,16 +499,7 @@ public class GosuClassTransformer extends AbstractElementTransformer<ClassStatem
       maybeGetEnumSuperConstructorSymbols( parameters );
       for( ISymbol param : dfs.getArgs() )
       {
-        String name = param.getName();
-        if( isBlockInvoke( dfs ) )
-        {
-          name = name + "$$blockParam";
-        }
-        else if( param.isValueBoxed() )
-        {
-          name = name + "$$unboxedParam";
-        }
-        parameters.add( makeParamSymbol( param, name ) );
+        parameters.add( makeParamSymbol( dfs, param ) );
       }
 
       IRStatement methodBody;
@@ -546,7 +538,23 @@ public class GosuClassTransformer extends AbstractElementTransformer<ClassStatem
     }
   }
 
-  private IRSymbol makeParamSymbol( ISymbol param, String name ) {
+  IRSymbol makeParamSymbol( DynamicFunctionSymbol dfs, ISymbol param )
+  {
+    String name = param.getName();
+    if( isBlockInvoke( dfs ) )
+    {
+      name = name + "$$blockParam";
+    }
+    else if( param.isValueBoxed() )
+    {
+      name = name + "$$unboxedParam";
+    }
+
+    if( param.getName().equals( "p0" ) && param.getType().equals( JavaTypes.IEXTERNAL_SYMBOL_MAP() ) )
+    {
+      name = GosuFragmentTransformer.SYMBOLS_PARAM_NAME;
+    }
+
     IRSymbol irSym = new IRSymbol( name, getDescriptor( param.getType() ), false );
     IModifierInfo modifierInfo = param.getModifierInfo();
     if( modifierInfo != null && modifierInfo.getAnnotations() != null )
@@ -579,7 +587,7 @@ public class GosuClassTransformer extends AbstractElementTransformer<ClassStatem
   {
     if( isCompilingEnhancement() && !dfs.isStatic() )
     {
-      parameters.add( new IRSymbol( ENHANCEMENT_THIS_REF, getDescriptor( getGosuEnhancement().getEnhancedType() ), false ) );
+      parameters.add( makeParamSymbol( dfs, ((EnhancementDynamicFunctionSymbol)dfs).getReceiver() ) );
     }
   }
 
@@ -1321,22 +1329,7 @@ public class GosuClassTransformer extends AbstractElementTransformer<ClassStatem
     maybeAddImplicitExternalSymbolsParameter( dfs, parameters );
     for( ISymbol param : dfs.getArgs() )
     {
-      String name = param.getName();
-      if( isBlockInvoke( dfs ) )
-      {
-        name = name + "$$blockParam";
-      }
-      else if( param.isValueBoxed() )
-      {
-        name = name + "$$unboxedParam";
-      }
-
-      if( param.getName().equals( "p0" ) && param.getType().equals( JavaTypes.IEXTERNAL_SYMBOL_MAP() ) )
-      {
-        name = GosuFragmentTransformer.SYMBOLS_PARAM_NAME;
-      }
-
-      parameters.add( makeParamSymbol( param, name ) );
+      parameters.add( makeParamSymbol( dfs, param ) );
     }
 
     IRStatement methodBody;
