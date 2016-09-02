@@ -1785,6 +1785,8 @@ public class GosuPanel extends JPanel
             if( cause instanceof AssertionError )
             {
               System.out.println( "   FAILED: " + cause.getClass().getSimpleName() + " : " + cause.getMessage() );
+              String lines = findPertinentLines( gsType, cause );
+              System.out.println( lines );
             }
             else
             {
@@ -1798,6 +1800,21 @@ public class GosuPanel extends JPanel
         }
       }
       runNamedOrAnnotatedMethod( instance, "afterClass", "org.junit.AfterClass" );
+    }
+
+    private static String findPertinentLines( IGosuClass gsType, Throwable cause )
+    {
+      StringBuilder sb = new StringBuilder();
+      StackTraceElement[] trace = cause.getStackTrace();
+      for( int i = 0; i < trace.length; i++ )
+      {
+        StackTraceElement elem = trace[i];
+        if( elem.getClassName().equals( gsType.getName() ) )
+        {
+          sb.append( "     at " ).append( elem.toString() ).append( "\n" );
+        }
+      }
+      return sb.toString();
     }
 
     private static boolean isTestMethod( Method m ) throws Exception
