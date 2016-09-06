@@ -4,7 +4,9 @@ import editor.util.EditorUtilities;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
+import javax.swing.text.AttributeSet;
 import javax.swing.text.JTextComponent;
+import javax.swing.text.StyleConstants;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -115,16 +117,31 @@ public class EditorScrollPane extends JScrollPane
 
       FontMetrics fm = g.getFontMetrics( _editor.getFont() );
       int iLineHeight = fm.getHeight();
-
-      int iMargin = _editor.getInsets().top;
+      iLineHeight += getLineSpacingAttr( iLineHeight );
+      int iMargin = _editor.getMargin().top + getLineSpacingAttr( iLineHeight );
       int iLines = getHeight() / iLineHeight;
       for( int i = 1; i <= iLines; i++ )
       {
         String strLine = String.valueOf( i );
         int iWidth = fm.stringWidth( strLine );
+
         g.drawString( strLine, getWidth() - iWidth - getLineInfoRequiredWidth(), i * iLineHeight - fm.getDescent() + iMargin );
         renderLineInfo( g, i, iLineHeight, getWidth() - getLineInfoRequiredWidth(), (i - 1) * iLineHeight + iMargin );
       }
+    }
+
+    private int getLineSpacingAttr( int iLineHeight )
+    {
+      if( _editor instanceof JTextPane )
+      {
+        AttributeSet attr = ((JTextPane)_editor).getParagraphAttributes();
+        Float lineSpacing = (Float)attr.getAttribute( StyleConstants.LineSpacing );
+        if( lineSpacing != null )
+        {
+          return Math.round( lineSpacing * iLineHeight );
+        }
+      }
+      return 0;
     }
 
     private int getLineInfoRequiredWidth()
