@@ -77,4 +77,9 @@ public class RunMe
     classpath.addAll( collect );
     return classpath;
   }
+
+  public static void setEditorFrame( BasicGosuEditor basicGosuEditor )
+  {
+    _gosuEditor = basicGosuEditor;
+  }
 }

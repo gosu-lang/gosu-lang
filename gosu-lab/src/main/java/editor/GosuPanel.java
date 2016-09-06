@@ -52,16 +52,24 @@ import javax.swing.event.ChangeListener;
 import javax.swing.filechooser.FileFilter;
 import javax.swing.text.AbstractDocument;
 import javax.swing.text.BadLocationException;
+import javax.swing.text.Element;
+import javax.swing.text.SimpleAttributeSet;
+import javax.swing.text.StyleConstants;
 import javax.swing.undo.CompoundEdit;
 import java.awt.*;
 import java.awt.datatransfer.Clipboard;
 import java.awt.event.ActionEvent;
 import java.awt.event.InputEvent;
+import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStreamWriter;
+import java.io.PipedInputStream;
+import java.io.PipedOutputStream;
 import java.io.PrintWriter;
 import java.io.StringReader;
 import java.io.StringWriter;
@@ -84,6 +92,8 @@ public class GosuPanel extends JPanel
 {
   private static final int MAX_TABS = 12;
 
+  public static final String FAILED = "   FAILED: ";
+  public static final String SUCCESS = "   SUCCESS ";
 
   private SystemPanel _resultPanel;
   private CollapsibleSplitPane _outerSplitPane;
@@ -99,6 +109,9 @@ public class GosuPanel extends JPanel
   private boolean _initialFile;
   private TypeNameCache _typeNamesCache;
   private Experiment _experiment;
+  private OutputStreamWriter _inWriter;
+  private SysInListener _sysInListener;
+  private InputStream _oldIn;
 
   public GosuPanel( JFrame basicGosuEditor )
   {
@@ -119,7 +132,7 @@ public class GosuPanel extends JPanel
 
     _resultPanel = new SystemPanel();
     TabPane resultTabPane = new TabPane( TabPane.MINIMIZABLE | TabPane.RESTORABLE );
-    resultTabPane.addTab( "Runtime Output", null, _resultPanel );
+    resultTabPane.addTab( "Console", null, _resultPanel );
 
     _editorTabPane = new TabPane( TabPosition.TOP, TabPane.DYNAMIC | TabPane.MIN_MAX_REST );
 
@@ -255,6 +268,8 @@ public class GosuPanel extends JPanel
     }
 
     //TypeSystem.refresh( TypeSystem.getGlobalModule() );
+
+    RunMe.getEditorFrame().addExperiment( experiment );
 
     for( String openFile : experiment.getOpenFiles() )
     {
@@ -1004,6 +1019,13 @@ public class GosuPanel extends JPanel
 
     fileMenu.addSeparator();
 
+    JMenu reopenExperiment = new JMenu( "Reopen Experiment" );
+    ReopenExperimentPopup.initialize( reopenExperiment );
+    fileMenu.add( reopenExperiment );
+
+
+    fileMenu.addSeparator();
+
 
     JMenu newItem = new JMenu( "New" );
     NewFilePopup.addMenuItems( newItem );
@@ -1618,8 +1640,8 @@ public class GosuPanel extends JPanel
     //int flags = ClassReader.SKIP_FRAMES;
     int flags = 0;
     StringWriter out = new StringWriter();
-    cr.accept( new TraceClassVisitor( null, new GosuTextifier(),  new PrintWriter( out ) ), flags );
-    _resultPanel.setText( out.toString() );
+    cr.accept( new TraceClassVisitor( null, new GosuTextifier(), new PrintWriter( out ) ), flags );
+    System.out.println( out );
   }
 
   private IGosuClass getClassAtCaret()
@@ -1675,7 +1697,7 @@ public class GosuPanel extends JPanel
           {
             Class<?> runnerClass = Class.forName( "editor.GosuPanel$Runner", true, runLoader );
             String fqn = program.getName();
-            System.out.println( "Running: " + fqn + "...\n" );
+            printRunningMessage( fqn );
             getExperiment().setRecentProgram( fqn );
             String result = null;
             try
@@ -1709,6 +1731,16 @@ public class GosuPanel extends JPanel
     {
       editor.util.EditorUtilities.handleUncaughtException( t );
     }
+  }
+
+  private void printRunningMessage( String fqn )
+  {
+    SimpleAttributeSet attr = new SimpleAttributeSet();
+    attr.addAttribute( StyleConstants.Foreground, new Color( 163, 163, 163 ) );
+    TextComponentWriter out = (TextComponentWriter)System.out;
+    out.setAttributes( attr );
+    System.out.println( "Running: " + fqn + "...\n" );
+    out.setAttributes( null );
   }
 
   private URL[] getAllUrlsAboveGosuclassProtocol( URLClassLoader loader )
@@ -1776,7 +1808,7 @@ public class GosuPanel extends JPanel
           {
             System.out.println( " - " + m.getName() );
             m.invoke( instance );
-            System.out.println( "   SUCCESS" );
+            System.out.println( SUCCESS );
           }
           catch( InvocationTargetException e )
           {
@@ -1784,7 +1816,7 @@ public class GosuPanel extends JPanel
             Throwable cause = GosuExceptionUtil.findExceptionCause( e );
             if( cause instanceof AssertionError )
             {
-              System.out.println( "   FAILED: " + cause.getClass().getSimpleName() + " : " + cause.getMessage() );
+              System.out.println( FAILED + cause.getClass().getSimpleName() + " : " + cause.getMessage() );
               String lines = findPertinentLines( gsType, cause );
               System.out.println( lines );
             }
@@ -1885,6 +1917,59 @@ public class GosuPanel extends JPanel
                  } );
     t.setRepeats( false );
     t.start();
+    EventQueue.invokeLater( () -> {
+      PipedInputStream sysIn = new PipedInputStream();
+      try
+      {
+        _inWriter = new OutputStreamWriter( new PipedOutputStream( sysIn ) );
+      }
+      catch( IOException e )
+      {
+        throw new RuntimeException( e );
+      }
+      _oldIn = System.in;
+      System.setIn( sysIn );
+      JTextPane outputPanel = _resultPanel.getOutputPanel();
+      outputPanel.setEditable( true );
+      _sysInListener = new SysInListener();
+      outputPanel.addKeyListener( _sysInListener );
+    } );
+  }
+
+  class SysInListener extends KeyAdapter
+  {
+    @Override
+    public void keyReleased( KeyEvent e )
+    {
+      if( e.getKeyCode() == KeyEvent.VK_ENTER )
+      {
+        JTextPane op = _resultPanel.getOutputPanel();
+        Element elem = getElementAt( op.getCaretPosition()-1 );
+        try
+        {
+          String text = _resultPanel.getOutputPanel().getText( elem.getStartOffset(), elem.getEndOffset() - elem.getStartOffset() );
+          _inWriter.write( text );
+          _inWriter.flush();
+        }
+        catch( Exception e1 )
+        {
+          throw new RuntimeException( e1 );
+        }
+      }
+    }
+
+    public Element getElementAt( int offset )
+    {
+      return getElementAt( _resultPanel.getOutputPanel().getDocument().getDefaultRootElement(), offset );
+    }
+    private Element getElementAt( Element parent, int offset )
+    {
+      if( parent.isLeaf() )
+      {
+        return parent;
+      }
+      return getElementAt( parent.getElement( parent.getElementIndex( offset ) ), offset );
+    }
   }
 
   private void removeBusySignal()
@@ -1894,6 +1979,10 @@ public class GosuPanel extends JPanel
       _bRunning = false;
       _statPanel.setVisible( false );
       _statPanel.revalidate();
+      _resultPanel.getOutputPanel().setEditable( false );
+      _resultPanel.getOutputPanel().removeKeyListener( _sysInListener );
+      _inWriter = null;
+      System.setIn( _oldIn );
     }
   }
 

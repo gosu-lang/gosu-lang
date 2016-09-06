@@ -36,6 +36,7 @@ import java.io.OutputStream;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -784,7 +785,7 @@ public class EditorUtilities
     if( !file.isFile() )
     {
       Properties props = new Properties();
-      props.put( "experiment", makeScratchExperiment( gosuPanel ).getExperimentDir().getAbsolutePath() );
+      props.put( "experiment-0", makeScratchExperiment( gosuPanel ).getExperimentDir().getAbsolutePath() );
 
       try( FileWriter writer = new FileWriter( file ) )
       {
@@ -807,7 +808,7 @@ public class EditorUtilities
       props.load( reader );
       //noinspection unchecked
       restoreScreenProps( (Map)props );
-      return new Experiment( new File( props.getProperty( "experiment" ) ), gosuPanel );
+      return new Experiment( new File( RunMe.getEditorFrame().getExperiments().get( 0 ) ), gosuPanel );
     }
     catch( Exception e )
     {
@@ -815,7 +816,8 @@ public class EditorUtilities
     }
   }
 
-  public static void saveLayoutState( Experiment experiment ) {
+  public static void saveLayoutState( Experiment experiment )
+  {
     if( !RunMe.getEditorFrame().isVisible() )
     {
       return;
@@ -826,7 +828,13 @@ public class EditorUtilities
     {
       Properties props = new Properties();
 
-      props.put( "experiment", experiment.getExperimentDir().getAbsolutePath() );
+      RunMe.getEditorFrame().addExperiment( experiment );
+      List<String> experiments = RunMe.getEditorFrame().getExperiments();
+      for( int i = 0; i < experiments.size(); i++ )
+      {
+        String exp = experiments.get( i );
+        props.put( "experiment." + i, exp );
+      }
 
       //noinspection unchecked
       saveScreenProps( (Map)props );
@@ -890,6 +898,37 @@ public class EditorUtilities
     {
       frame.setExtendedState( Frame.MAXIMIZED_BOTH );
     }
+
+    // handle old version
+    String experiment = props.get( "experiment" );
+    if( experiment != null )
+    {
+      props.remove( experiment );
+      props.put( "experiment.0", experiment );
+    }
+
+    String[] experiments = new String[100];
+    int iMax = 0;
+    for( String key: props.keySet() )
+    {
+      if( key.startsWith( "experiment." ) )
+      {
+        try
+        {
+          int i = Integer.parseInt( key.substring( "experiment.".length() ) );
+          iMax = Math.max( i, iMax );
+          String dir = props.get( key );
+          experiments[i] = dir;
+        }
+        catch( Exception e )
+        {
+          // eat
+        }
+      }
+    }
+    String[] trunc = new String[iMax+1];
+    System.arraycopy( experiments, 0, trunc, 0, trunc.length );
+    frame.setExperiments( new ArrayList<>( Arrays.asList( trunc ) ) );
   }
   private static Integer readInteger( Map<String, String> props, String prop )
   {

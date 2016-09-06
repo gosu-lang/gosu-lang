@@ -8,8 +8,12 @@ import gw.lang.reflect.gs.IGosuClass;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import javax.swing.text.AbstractDocument;
 import javax.swing.text.Element;
+import javax.swing.text.SimpleAttributeSet;
+import javax.swing.text.StyleConstants;
 import javax.swing.text.html.HTML;
 import java.awt.*;
 import java.awt.event.InputEvent;
@@ -33,6 +37,7 @@ public class SystemPanel extends JPanel
   {
     super();
     BatchDocument document = new BatchDocument();
+    document.addDocumentListener( new DocListener() );
     _outputPanel = new JTextPane( document );
     _out = new TextComponentWriter( Color.WHITE, document, System.out );
     _err = new TextComponentWriter( Color.PINK, document, System.err );
@@ -43,12 +48,16 @@ public class SystemPanel extends JPanel
   {
     setLayout( new BorderLayout() );
 
-    _outputPanel.setFont( new Font( "monospaced", Font.BOLD, 12 ) );
+    _outputPanel.setFont( new Font( "monospaced", Font.PLAIN, 14 ) );
     _outputPanel.setBorder( new EmptyBorder( 3, 3, 0, 0 ) );
     _outputPanel.setMargin( new Insets( 10, 10, 10, 10 ) );
-    _outputPanel.setForeground( Color.white );
-    _outputPanel.setBackground( Color.black );
+    _outputPanel.setForeground( new Color( 92, 225, 92 ) );
+    _outputPanel.setBackground( new Color( 20, 20, 20 ) );
+    SimpleAttributeSet sas = new SimpleAttributeSet();
+    StyleConstants.setLineSpacing( sas, -.2f );
+    _outputPanel.setParagraphAttributes( sas, false );
     _outputPanel.setEditable( false );
+    _outputPanel.setCaretColor( Color.white );
 
     ScrollableEditorRootPane editorRootScroller = new ScrollableEditorRootPane( _outputPanel );
     editorRootScroller.setContentPane( _outputPanel );
@@ -234,6 +243,38 @@ public class SystemPanel extends JPanel
         return parent;
       }
       return getElementAt( parent.getElement( parent.getElementIndex( offset ) ), offset );
+    }
+  }
+
+  private class DocListener implements DocumentListener
+  {
+    @Override
+    public void insertUpdate( DocumentEvent e )
+    {
+      maintainForegroundColor();
+    }
+
+    @Override
+    public void removeUpdate( DocumentEvent e )
+    {
+
+    }
+
+    @Override
+    public void changedUpdate( DocumentEvent e )
+    {
+      maintainForegroundColor();
+    }
+
+    private void maintainForegroundColor()
+    {
+      // Ensure text typed into the console uses the foreground color.  If we don't set it here, the
+      // editor sometimes reuses a color from wherever the user may have moved the cursor in the console
+      // and pressed Enter.
+      _outputPanel.getInputAttributes();
+      SimpleAttributeSet sas = new SimpleAttributeSet();
+      StyleConstants.setForeground( sas, _outputPanel.getForeground() );
+      _outputPanel.setCharacterAttributes( sas, false );
     }
   }
 }

@@ -2,7 +2,6 @@ package editor;
 
 import editor.util.EditorUtilities;
 import editor.util.Experiment;
-import editor.util.SettleModalEventQueue;
 import gw.config.CommonServices;
 import gw.lang.parser.IScriptPartId;
 import gw.lang.reflect.module.IFileSystem;
@@ -14,15 +13,21 @@ import java.awt.event.ComponentEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
 
 public class BasicGosuEditor extends JFrame implements IGosuEditor
 {
   private GosuPanel _panel;
   private Rectangle _restoreBounds;
+  private List<String> _experiments = Collections.emptyList();
 
   public BasicGosuEditor() throws HeadlessException
   {
     super( "Gosu Editor" );
+    RunMe.setEditorFrame( this );
     configUI();
     setInitialSize();
     addWindowListener(
@@ -166,6 +171,40 @@ public class BasicGosuEditor extends JFrame implements IGosuEditor
   public void setRestoreBounds( Rectangle restoreBounds )
   {
     _restoreBounds = restoreBounds;
+  }
+
+  public List<String> getExperiments()
+  {
+    return _experiments;
+  }
+  public void setExperiments( List<String> experiments )
+  {
+    _experiments = experiments;
+    for( Iterator<String> iter = experiments.iterator(); iter.hasNext(); )
+    {
+      String exp = iter.next();
+      if( !new File( exp ).exists() )
+      {
+        iter.remove();
+      }
+    }
+  }
+  public void addExperiment( Experiment exp )
+  {
+    String dir = exp.getExperimentDir().getAbsolutePath();
+    if( _experiments.isEmpty() )
+    {
+      _experiments = new ArrayList<>();
+      _experiments.add( dir );
+    }
+    else
+    {
+      if( _experiments.contains( dir ) )
+      {
+        _experiments.remove( dir );
+      }
+      _experiments.add( 0, dir );
+    }
   }
 
   public static BasicGosuEditor create()
