@@ -1736,7 +1736,7 @@ public class GosuPanel extends JPanel
   private void printRunningMessage( String fqn )
   {
     SimpleAttributeSet attr = new SimpleAttributeSet();
-    attr.addAttribute( StyleConstants.Foreground, new Color( 163, 163, 163 ) );
+    attr.addAttribute( StyleConstants.Foreground, new Color( 192, 192, 192 ) );
     TextComponentWriter out = (TextComponentWriter)System.out;
     out.setAttributes( attr );
     System.out.println( "Running: " + fqn + "...\n" );
