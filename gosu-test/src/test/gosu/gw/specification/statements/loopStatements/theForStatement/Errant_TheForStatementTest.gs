@@ -91,6 +91,35 @@ class Errant_TheForStatementTest  {
     for(x in intList index it index i ) { }  //## issuekeys: MSG_EXPECTING_RIGHTPAREN_FE, MSG_NOT_A_STATEMENT, MSG_BAD_IDENTIFIER_NAME, MSG_NOT_A_STATEMENT, MSG_BAD_IDENTIFIER_NAME, MSG_UNEXPECTED_TOKEN
   }
 
+  //IDE-3017
+  //Index, iterator not writable
+  //Also checks in nested for loop
+  function bar() {
+    for (i in {1, 2, 3} index i1 iterator i2) {
+      i = 2 //should not show error
+      i1 = 33      //## issuekeys: "INDEX", "ITERATOR" IN "FOR" LOOP ARE NOT WRITABLE
+      i2 = null      //## issuekeys: "INDEX", "ITERATOR" IN "FOR" LOOP ARE NOT WRITABLE
+      print(i1) //should not show error
+      print(i2)
+
+      var xxx = 333
+      xxx = 444
+
+      for (ii in {1, 2, 3} index ii1 iterator ii2) {
+        i1 = 323344      //## issuekeys: "INDEX", "ITERATOR" IN "FOR" LOOP ARE NOT WRITABLE
+        i2 = 44      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'INT', REQUIRED: 'JAVA.UTIL.ITERATOR<JAVA.LANG.INTEGER>'
+        print(i1)
+        print(i2)
+
+        ii = 44
+        ii1 = 44      //## issuekeys: "INDEX", "ITERATOR" IN "FOR" LOOP ARE NOT WRITABLE
+        ii2 = null      //## issuekeys: "INDEX", "ITERATOR" IN "FOR" LOOP ARE NOT WRITABLE
+        print(ii1)
+        print(ii2)
+      }
+    }
+  }
+
   function testLoneInterval() {
     for(0..2) {  }
     var j = 0
