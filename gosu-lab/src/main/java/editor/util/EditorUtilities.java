@@ -785,7 +785,7 @@ public class EditorUtilities
     if( !file.isFile() )
     {
       Properties props = new Properties();
-      props.put( "experiment-0", makeScratchExperiment( gosuPanel ).getExperimentDir().getAbsolutePath() );
+      props.put( "experiment.0", makeScratchExperiment( gosuPanel ).getExperimentDir().getAbsolutePath() );
 
       try( FileWriter writer = new FileWriter( file ) )
       {

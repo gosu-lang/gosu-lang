@@ -136,7 +136,7 @@ public class SingleServingGosuClassLoader extends ClassLoader implements IGosuCl
       definePackage( strPackage, null, null, null, null, null, null, null );
     }
 
-    cls = defineClass( GosuClassLoader.getJavaName( gsClass ), classBytes, 0, classBytes.length );
+    cls = defineClass( gsClass.getJavaName(), classBytes, 0, classBytes.length );
     if( shouldCache(gsClass) )
     {
       CACHE.put( gosuClassName, cls );

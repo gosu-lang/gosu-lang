@@ -280,9 +280,9 @@ class Board extends JPanel {
     }
 
     class Change implements Runnable {
-      var _change ()
+      var _change()
 
-      construct( change () ) {
+      construct( change() ) {
         _change = change
       }
 

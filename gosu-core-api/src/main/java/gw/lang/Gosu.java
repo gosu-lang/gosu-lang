@@ -41,9 +41,13 @@ import java.util.StringTokenizer;
 
 public class Gosu
 {
-  /** used as a virtual package e.g., for scratchpad */
+  /**
+   * used as a virtual package e.g., for scratchpad
+   */
   public static final String NOPACKAGE = "_nopackage_";
   public static final String GOSU_SCRATCHPAD_FQN = NOPACKAGE + ".GosuScratchpad";
+  public static final String JAR_REPO_DIR = "JAR-REPO";     //!! if you change this, also change it in Launcher
+  public static final String JAR_REPO_TXT = "jar-repo.txt"; //!! "
 
   private static List<File> _classpath;
   private static File _script;
@@ -72,7 +76,7 @@ public class Gosu
         return;
       }
       int i = 0;
-      checkArgsLength(i, args.length);
+      checkArgsLength( i, args.length );
       String cpValue = null;
       boolean cmdLineCP = false;
       if( args[i].equals( "-checkedArithmetic" ) )
@@ -90,26 +94,40 @@ public class Gosu
         cpValue = args[i - 1];
       }
 
-      if( args[i].equals( "-e" ) )
+      switch( args[i] )
       {
-        List<File> classpath = makeClasspath( cpValue, "", cmdLineCP );
-        init( classpath );
-        runWithInlineScript( args[i + 1], collectArgs( i + 2, args ) );
-      }
-      else
-      {
-        File script = new File( args[i] );
-        if( !script.isFile() || !script.exists() )
+        case "-fqn":
         {
-          showHelpAndQuit();
+          List<File> classpath = makeClasspath( cpValue, "", cmdLineCP );
+          init( classpath );
+          runWithType( args[i + 1], collectArgs( i + 2, args ) );
+          break;
         }
-        if( cpValue == null )
+
+        case "-e":
         {
-          cpValue = extractClassPathFromSrc( script.getAbsolutePath() );
+          List<File> classpath = makeClasspath( cpValue, "", cmdLineCP );
+          init( classpath );
+          runWithInlineScript( args[i + 1], collectArgs( i + 2, args ) );
+          break;
         }
-        List<File> classpath = makeClasspath( cpValue, script.getAbsoluteFile().getParent(), cmdLineCP );
-        init( classpath );
-        runWithFile( script, collectArgs( i + 1, args ) );
+
+        default:
+        {
+          File script = new File( args[i] );
+          if( !script.isFile() || !script.exists() )
+          {
+            showHelpAndQuit();
+          }
+          if( cpValue == null )
+          {
+            cpValue = extractClassPathFromSrc( script.getAbsolutePath() );
+          }
+          List<File> classpath = makeClasspath( cpValue, script.getAbsoluteFile().getParent(), cmdLineCP );
+          init( classpath );
+          runWithFile( script, collectArgs( i + 1, args ) );
+          break;
+        }
       }
     }
     catch( Throwable t )
@@ -149,7 +167,10 @@ public class Gosu
     {
       br = new BufferedReader( new FileReader( file ) );
       //noinspection StatementWithEmptyBody
-      while( (line = br.readLine()).trim().isEmpty() ); //ignore
+      while( (line = br.readLine()).trim().isEmpty() )
+      {
+        ; //ignore
+      }
       if( line.startsWith( "classpath" ) )
       {
         int b = line.indexOf( '"' );
@@ -162,14 +183,22 @@ public class Gosu
           }
         }
       }
-    } catch (IOException e) {} //ignore
+    }
+    catch( IOException e )
+    { //ignore
+    }
     finally
     {
       try
       {
         if( br != null )
+        {
           br.close();
-      } catch (IOException ex) {} //ignore
+        }
+      }
+      catch( IOException ex )
+      { //ignore
+      }
     }
     return ret;
   }
@@ -185,11 +214,20 @@ public class Gosu
         String s = st.nextToken();
         if( (s.contains( ":" ) && !OSPlatform.isWindows()) || s.contains( ";" ) )
         {
-          System.err.println( "WARNING: The Gosu classpath argument should be comma separated to avoid system dependencies.\n" +
-                              "It appears you are passing in a system-dependent path delimiter" );
+          for( StringTokenizer sysTok = new StringTokenizer( cpValue, File.pathSeparator, false ); sysTok.hasMoreTokens(); )
+          {
+            s = sysTok.nextToken();
+            String pathname = cmdLineCP
+                              ? s
+                              : scriptRoot + File.separatorChar + s;
+            cp.add( new File( pathname ) );
+          }
         }
-        String pathname = cmdLineCP ? s : scriptRoot + File.separatorChar + s;
-        cp.add( new File( pathname ) );
+        else
+        {
+          String pathname = cmdLineCP ? s : scriptRoot + File.separatorChar + s;
+          cp.add( new File( pathname ) );
+        }
       }
     }
     return cp;
@@ -357,17 +395,19 @@ public class Gosu
     try
     {
       Method m;
-      try {
-        m = ClassLoader.class.getDeclaredMethod("getBootstrapClassPath");
+      try
+      {
+        m = ClassLoader.class.getDeclaredMethod( "getBootstrapClassPath" );
       }
-      catch( NoSuchMethodException nsme ) {
+      catch( NoSuchMethodException nsme )
+      {
         // The VM that does not define getBootstrapClassPath() seems to be the IBM VM (v. 8).
-        getBootstrapForIbm(ll);
+        getBootstrapForIbm( ll );
         return;
       }
       m.setAccessible( true );
       URLClassPath bootstrapClassPath = (URLClassPath)m.invoke( null );
-      for( URL url: bootstrapClassPath.getURLs() )
+      for( URL url : bootstrapClassPath.getURLs() )
       {
         try
         {
@@ -389,7 +429,8 @@ public class Gosu
     }
   }
 
-  private static void getBootstrapForIbm(List<File> ll) {
+  private static void getBootstrapForIbm( List<File> ll )
+  {
     List<String> ibmClasspath = GosucUtil.getJreJars();
     ibmClasspath.stream().forEach( e -> ll.add( new File( e ) ) );
   }
@@ -397,8 +438,9 @@ public class Gosu
   public static GosuVersion getVersion()
   {
     InputStream in = Gosu.class.getClassLoader().getResourceAsStream( GosuVersion.RESOURCE_PATH );
-    if(in == null) {
-      return new GosuVersion(0, 0);
+    if( in == null )
+    {
+      return new GosuVersion( 0, 0 );
     }
     Reader reader = StreamUtil.getInputStreamReader( in );
     return GosuVersion.parse( reader );
@@ -414,9 +456,18 @@ public class Gosu
     return _rawArgs;
   }
 
-  public static void setRawArgs(String[] args)
+  public static void setRawArgs( String[] args )
   {
-    _rawArgs = collectArgs(1, args);
+    _rawArgs = collectArgs( 1, args );
+  }
+
+  private static int runWithType( String fqn, List<String> args ) throws IOException, ParseResultsException
+  {
+     // set remaining arguments as arguments to the Gosu program
+    _rawArgs = args;
+    IGosuProgram program = (IGosuProgram)TypeSystem.getByFullName( fqn );
+    program.getProgramInstance().evaluate( null );
+    return 0;
   }
 
   private static void runWithFile( File script, List<String> args ) throws IOException, ParseResultsException

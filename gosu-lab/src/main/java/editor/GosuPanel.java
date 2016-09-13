@@ -2,6 +2,8 @@ package editor;
 
 import editor.search.StandardLocalSearch;
 import editor.search.StudioUtilities;
+import editor.shipit.BuildIt;
+import editor.shipit.ShipIt;
 import editor.splitpane.CollapsibleSplitPane;
 import editor.tabpane.ITab;
 import editor.tabpane.TabPane;
@@ -133,6 +135,9 @@ public class GosuPanel extends JPanel
     _resultPanel = new SystemPanel();
     TabPane resultTabPane = new TabPane( TabPane.MINIMIZABLE | TabPane.RESTORABLE );
     resultTabPane.addTab( "Console", null, _resultPanel );
+
+
+    resultTabPane.addTab( "Messages", null, _resultPanel );
 
     _editorTabPane = new TabPane( TabPosition.TOP, TabPane.DYNAMIC | TabPane.MIN_MAX_REST );
 
@@ -416,6 +421,7 @@ public class GosuPanel extends JPanel
     makeEditMenu( menuBar );
     makeSearchMenu( menuBar );
     makeCodeMenu( menuBar );
+    makeBuildMenu( menuBar );
     makeRunMenu( menuBar );
     makeWindowMenu( menuBar );
     makeHelpMenu( menuBar );
@@ -654,6 +660,41 @@ public class GosuPanel extends JPanel
         }
       } );
     codeMenu.add( viewBytecodeItem );
+  }
+
+  private void makeBuildMenu( JMenuBar menuBar )
+  {
+    JMenu buildMenu = new SmartMenu( "Build" );
+    buildMenu.setMnemonic( 'b' );
+    menuBar.add( buildMenu );
+
+    JMenuItem compileMenu = new JMenuItem(
+      new AbstractAction( "Compile" )
+      {
+        @Override
+        public void actionPerformed( ActionEvent e )
+        {
+          compile();
+        }
+      } );
+    compileMenu.setMnemonic( 'c' );
+    buildMenu.add( compileMenu );
+
+
+    buildMenu.addSeparator();
+
+
+    JMenuItem shipIt = new JMenuItem(
+      new AbstractAction( "Ship It!" )
+      {
+        @Override
+        public void actionPerformed( ActionEvent e )
+        {
+          shipIt();
+        }
+      } );
+    shipIt.setMnemonic( 'p' );
+    buildMenu.add( shipIt );
   }
 
   public GosuEditor getCurrentEditor()
@@ -1127,10 +1168,51 @@ public class GosuPanel extends JPanel
     dlg.setVisible( true );
   }
 
+  private void shipIt()
+  {
+    ShipIt.instance().shipIt( getExperiment() );
+  }
+
+  @SuppressWarnings("ThrowableResultOfMethodCallIgnored")
+  private boolean compile()
+  {
+    SettleModalEventQueue.instance().run();
+
+    saveIfDirty();
+    clearOutput();
+
+    System.out.println( "Compiling..." );
+
+    boolean[] bRet = {true};
+    int[] issues = new int[3];
+    BuildIt.instance().buildIt( c -> {
+      bRet[0] &= (c.getBytes() != null);
+      Exception exception = c.getException();
+      if( exception != null  )
+      {
+        System.out.println( exception.getMessage() );
+        if( exception instanceof ParseResultsException )
+        {
+          ParseResultsException pre = (ParseResultsException)exception;
+          issues[0] += pre.getParseWarnings().size();
+          issues[1] += pre.getParseExceptions().size();
+        }
+        else if( exception != null )
+        {
+          issues[2]++;
+        }
+      }
+      return true;
+    } );
+    System.out.println( "Compilation " + (bRet[0] ? "succeeded. " : "failed. ") + " Warnings: " + issues[0] + "  Errors: " + issues[1] + "  Failures: " + issues[2] );
+    return bRet[0];
+  }
+
   public void exit()
   {
     if( saveIfDirty() )
     {
+      NoExitSecurityManager.CLOSING = true;
       System.exit( 0 );
     }
   }

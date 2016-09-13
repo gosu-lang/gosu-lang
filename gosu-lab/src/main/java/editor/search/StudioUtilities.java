@@ -966,6 +966,11 @@ public class StudioUtilities implements SwingConstants
     rectangle.setLocation( loc );
   }
 
+  public static void handleUncaughtException( Throwable e )
+  {
+    throw new RuntimeException( e );
+  }
+
   /**
    */
   static final class ClipCursorHandler implements AWTEventListener

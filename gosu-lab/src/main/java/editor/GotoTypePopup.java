@@ -6,10 +6,12 @@ import gw.fs.IFile;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.TypeSystem;
 
+import javax.swing.text.JTextComponent;
 import java.awt.*;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.List;
 
@@ -29,6 +31,17 @@ public class GotoTypePopup extends AbstractGotoPopup<String>
       } );
     Component host = RunMe.getEditorFrame().getRootPane();
     valuePopup.show( host, 0, 0 );
+  }
+
+  public static void display( JTextComponent host, Consumer<String> consumer )
+  {
+    GotoTypePopup valuePopup = new GotoTypePopup( "" );
+    valuePopup.addNodeChangeListener(
+      e -> {
+        String strQualifedType = (String)e.getSource();
+        consumer.accept( strQualifedType );
+      } );
+    valuePopup.show( StudioUtilities.rootPaneForComponent( host ), 0, 0 );
   }
 
   public static void doGoTo( String strQualifedType )
@@ -66,13 +79,23 @@ public class GotoTypePopup extends AbstractGotoPopup<String>
     super( DEFAULT_WAIT_TIME, ROW_COUNT, "Enter type name", strPrefix, true, true );
   }
 
+  protected GotoTypePopup( String title, String strPrefix )
+  {
+    super( DEFAULT_WAIT_TIME, ROW_COUNT, title, strPrefix, true, true );
+  }
+
   protected List<String> initializeData()
   {
     List<String> allTypes = new ArrayList<>( RunMe.getEditorFrame().getGosuPanel().getTypeNamesCache().getAllTypeNames( null ) );
     Experiment experiment = RunMe.getEditorFrame().getGosuPanel().getExperimentView().getExperiment();
-    allTypes = filterGosuClassFromExperimentsInResources( allTypes, experiment );
+    allTypes = filterTypes( allTypes, experiment );
     Collections.sort( allTypes, ( o1, o2 ) -> getRelativeTypeName( o1 ).compareToIgnoreCase( getRelativeTypeName( o2 ) ) );
     return allTypes;
+  }
+
+  protected List<String> filterTypes( List<String> allGosuTypes, Experiment experiment )
+  {
+    return filterGosuClassFromExperimentsInResources( allGosuTypes, experiment );
   }
 
   private List<String> filterGosuClassFromExperimentsInResources( List<String> allGosuTypes, Experiment experiment )
@@ -119,7 +142,7 @@ public class GotoTypePopup extends AbstractGotoPopup<String>
     return text;
   }
 
-  private static class TypeModel extends AbstractPopupListModel<String>
+  static class TypeModel extends AbstractPopupListModel<String>
   {
     private List<String> _allTypes;
 

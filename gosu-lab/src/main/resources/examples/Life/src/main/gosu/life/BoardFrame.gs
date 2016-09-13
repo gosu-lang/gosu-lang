@@ -26,7 +26,6 @@ final class BoardFrame extends JFrame {
   construct() {
     super( "Game of Life" )
     IconImage = new ImageIcon( Class.getResource( "/life/images/gol.png" ) ).Image
-    DefaultCloseOperation = DISPOSE_ON_CLOSE
     ContentPane.setLayout( new BorderLayout() )
     _clientArea = new JPanel( new BorderLayout() )
     _board = new Board( new LifeModel() )
@@ -45,6 +44,17 @@ final class BoardFrame extends JFrame {
       }
     } )
 
+    addWindowListener( new WindowAdapter() {
+        override function windowClosing( e: WindowEvent ) {
+          try {
+            System.exit( 0 )
+          }
+          catch( se: SecurityException ) {
+            dispose()
+          }
+        }
+      } )
+
     setLocation( 300, 100 )
     setSize( 550, 475 )
     EventQueue.invokeLater( \-> {
@@ -57,5 +67,10 @@ final class BoardFrame extends JFrame {
   function adjustClientArea() {
     _controlBoard.resetCellSize()
     _clientArea.revalidate()
+  }
+
+  override function dispose() {
+    super.dispose()
+    _board.stop()
   }
 }

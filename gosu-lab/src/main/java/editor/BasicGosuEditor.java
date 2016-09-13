@@ -83,6 +83,7 @@ public class BasicGosuEditor extends JFrame implements IGosuEditor
     EditorUtilities.saveLayoutState( _panel.getExperimentView().getExperiment() );
     if( _panel.saveIfDirty() )
     {
+      NoExitSecurityManager.CLOSING = true;
       System.exit( 0 );
     }
   }
