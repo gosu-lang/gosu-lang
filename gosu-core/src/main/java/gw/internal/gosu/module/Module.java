@@ -163,7 +163,10 @@ public class Module implements IModule
               // http://www.coderanch.com/t/69641/BEA-Weblogic/wl-cls-gen-jar-coming
               // So we need to always treat it as containing sources
               root.getName().equals("_wl_cls_gen.jar")) {
-        roots.add(root);
+        if( !roots.contains( root ) )
+        {
+          roots.add( root );
+        }
       }
     }
   }
@@ -236,7 +239,10 @@ public class Module implements IModule
     for( IDirectory root : classpath )
     {
       //add the root JAR itself first, preserving ordering
-      newClasspath.add( root );
+      if( !newClasspath.contains( root ) )
+      {
+        newClasspath.add( root );
+      }
       if( root instanceof JarFileDirectoryImpl )
       {
         JarFile jarFile = ((JarFileDirectoryImpl)root).getJarFile();
@@ -265,9 +271,11 @@ public class Module implements IModule
                 }
                 File dirOrJar = new File( url.toURI() );
                 IDirectory idir = CommonServices.getFileSystem().getIDirectory( dirOrJar );
-                newClasspath.add( idir );
+                if( !newClasspath.contains( root ) )
+                {
+                  newClasspath.add( idir );
+                }
               }
-              continue;
             }
           }
         }
