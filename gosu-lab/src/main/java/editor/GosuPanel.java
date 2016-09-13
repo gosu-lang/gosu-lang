@@ -137,7 +137,7 @@ public class GosuPanel extends JPanel
     resultTabPane.addTab( "Console", null, _resultPanel );
 
 
-    resultTabPane.addTab( "Messages", null, _resultPanel );
+    // resultTabPane.addTab( "Messages", null, _resultPanel );
 
     _editorTabPane = new TabPane( TabPosition.TOP, TabPane.DYNAMIC | TabPane.MIN_MAX_REST );
 
@@ -678,6 +678,7 @@ public class GosuPanel extends JPanel
         }
       } );
     compileMenu.setMnemonic( 'c' );
+    compileMenu.setAccelerator( KeyStroke.getKeyStroke( "control F9" ) );
     buildMenu.add( compileMenu );
 
 
@@ -694,6 +695,7 @@ public class GosuPanel extends JPanel
         }
       } );
     shipIt.setMnemonic( 'p' );
+    shipIt.setAccelerator( KeyStroke.getKeyStroke( "control F10" ) );
     buildMenu.add( shipIt );
   }
 

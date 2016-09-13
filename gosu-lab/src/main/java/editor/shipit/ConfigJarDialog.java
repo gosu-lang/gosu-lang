@@ -186,6 +186,7 @@ public class ConfigJarDialog extends JDialog
       } );
     buttonPanel.add( _btnOk );
     getRootPane().setDefaultButton( _btnOk );
+    _btnOk.setEnabled( false );
 
     JButton btnCancel = new JButton( "Cancel" );
     btnCancel.addActionListener( e -> close() );

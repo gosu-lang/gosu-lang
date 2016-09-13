@@ -1,7 +1,5 @@
 import javax.swing.*;
-import java.io.BufferedInputStream;
 import java.io.BufferedReader;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.FileReader;
@@ -19,7 +17,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
 import java.util.UUID;
-import java.util.jar.JarInputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -40,7 +37,8 @@ public class Launcher
       InputStream inProps = loader.getResource( "main.properties" ).openStream();
       props.load( inProps );
       String strProgram = props.getProperty( "Program" );
-      String strBundled = props.getProperty( "BundledGosu" ); inProps.close();
+      String strBundled = props.getProperty( "BundledGosu" );
+      inProps.close();
 
       // Add repo jars directly to the loader's path
       addRepoJarPaths( appRepo );
@@ -90,7 +88,7 @@ public class Launcher
   {
     Class<?> gosuClass = Class.forName( "gw.lang.Gosu" );
     Method main = gosuClass.getMethod( "main", String[].class );
-    main.invoke( null, new Object[] {args.toArray( new String[args.size()] )} );
+    main.invoke( null, new Object[]{args.toArray( new String[args.size()] )} );
   }
 
   private static boolean addGosuJarsToLoader() throws Exception
@@ -190,6 +188,7 @@ public class Launcher
         String outpath = outPath + "/" + entry.getName();
         if( entry.isDirectory() )
         {
+          //noinspection ResultOfMethodCallIgnored
           new File( outpath ).mkdirs();
         }
         else
