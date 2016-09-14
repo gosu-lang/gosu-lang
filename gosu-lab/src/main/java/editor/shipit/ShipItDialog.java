@@ -18,7 +18,7 @@ import java.awt.event.KeyEvent;
 
 /**
  */
-public class ConfigJarDialog extends JDialog
+public class ShipItDialog extends JDialog
 {
   private String _strProgramName;
   private boolean _bBundleGosu;
@@ -29,7 +29,7 @@ public class ConfigJarDialog extends JDialog
   private JButton _btnOk;
   private JLabel _errorMsg;
 
-  public ConfigJarDialog( Experiment experiment )
+  public ShipItDialog( Experiment experiment )
   {
     super( RunMe.getEditorFrame(), "Ship It!", true );
     _experiment = experiment;

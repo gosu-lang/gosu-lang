@@ -1,14 +1,11 @@
 package editor.shipit;
 
-import editor.FileTree;
-import editor.RunMe;
 import editor.search.MessageDisplay;
 import editor.util.EditorUtilities;
 import editor.util.Experiment;
 import gw.lang.Gosu;
 
 import javax.swing.*;
-import javax.swing.tree.TreeModel;
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -46,7 +43,7 @@ public class ShipIt
 
   public boolean shipIt( Experiment experiment )
   {
-    ConfigJarDialog dlg = new ConfigJarDialog( experiment );
+    ShipItDialog dlg = new ShipItDialog( experiment );
     dlg.setVisible( true );
     String programName = dlg.getProgramName();
     if( programName == null )

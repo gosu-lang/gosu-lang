@@ -1,9 +1,11 @@
 package editor;
 
 import editor.search.StudioUtilities;
+import editor.util.EditorUtilities;
 import editor.util.Experiment;
 
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
 import javax.swing.filechooser.FileFilter;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -45,19 +47,32 @@ public class ClasspathDialog extends JDialog
     JPanel mainPanel = new JPanel( new BorderLayout() );
     mainPanel.setBorder( BorderFactory.createCompoundBorder( UIManager.getBorder( "TextField.border" ),
                                                              BorderFactory.createEmptyBorder( 5, 5, 5, 5 ) ) );
-    JPanel panel = new JPanel( new BorderLayout() );
+
+
+    JPanel labelContainer = new JPanel( new BorderLayout() );
+    JLabel label = new JLabel( "<html>Need to use classes outside your experiment? Configure a '<b>" + File.pathSeparator + "</b>' " +
+                               "separated list of directories and/or jar files containing Gosu or Java classes your experiment uses." );
+    label.setBorder( new EmptyBorder( 2, 0, 0, 0 ) );
+    labelContainer.add( label, BorderLayout.NORTH );
+    JLabel label2 = new JLabel( "Dependency List", EditorUtilities.loadIcon( "images/folder.png" ), SwingConstants.LEFT );
+    labelContainer.add( label2, BorderLayout.SOUTH );
+    label2.setBorder( new EmptyBorder( 10, 0, 2, 0 ) );
+    mainPanel.add( labelContainer, BorderLayout.NORTH );
+
     _pathsList = new JTextPane();
     JScrollPane scroller = new JScrollPane( _pathsList );
     setPathsList();
     _pathsList.setBorder( BorderFactory.createEmptyBorder() );
-    JButton btnPaths = new JButton( "..." );
-    btnPaths.setToolTipText( "Add a directory or Jar file" );
-    btnPaths.addActionListener( e -> updatePaths() );
-    panel.add( btnPaths, BorderLayout.NORTH );
+    mainPanel.add( scroller, BorderLayout.CENTER );
+
+    JPanel panel = new JPanel( new BorderLayout() );
     JPanel filler = new JPanel();
     filler.setBorder( BorderFactory.createEmptyBorder( 0, 4, 0, 0 ) );
     panel.add( filler, BorderLayout.CENTER );
-    mainPanel.add( scroller, BorderLayout.CENTER );
+    JButton btnPaths = new JButton( "..." );
+    btnPaths.setToolTipText( "Find a directory or Jar file" );
+    btnPaths.addActionListener( e -> updatePaths() );
+    panel.add( btnPaths, BorderLayout.NORTH );
     mainPanel.add( panel, BorderLayout.EAST );
 
     contentPane.add( mainPanel, BorderLayout.CENTER );

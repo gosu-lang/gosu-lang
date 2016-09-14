@@ -686,7 +686,7 @@ public class GosuPanel extends JPanel
 
 
     JMenuItem shipIt = new JMenuItem(
-      new AbstractAction( "Ship It!" )
+      new AbstractAction( "Ship It! ..." )
       {
         @Override
         public void actionPerformed( ActionEvent e )
