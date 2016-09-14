@@ -51,6 +51,10 @@ public class CommandLineCompiler {
     if(options.isVerbose()) {
       System.out.println("Initializing gosu compiler with classpath:" + classpath);
     }
+    
+    if(options.isCheckedArithmetic()) {
+      System.setProperty("checkedArithmetic", "true");
+    }
 
     gosuc.initializeGosu(sourcepath, classpath, options.getDestDir());
 
