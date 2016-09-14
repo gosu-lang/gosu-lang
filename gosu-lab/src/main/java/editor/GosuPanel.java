@@ -1105,7 +1105,7 @@ public class GosuPanel extends JPanel
 
 
     JMenuItem classpathItem = new JMenuItem(
-      new AbstractAction( "Classpath..." )
+      new AbstractAction( "Dependencies..." )
       {
         @Override
         public void actionPerformed( ActionEvent e )
@@ -1113,7 +1113,7 @@ public class GosuPanel extends JPanel
           displayClasspath();
         }
       } );
-    classpathItem.setMnemonic( 'h' );
+    classpathItem.setMnemonic( 'd' );
     fileMenu.add( classpathItem );
 
 

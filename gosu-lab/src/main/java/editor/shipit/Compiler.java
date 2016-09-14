@@ -1,6 +1,7 @@
 package editor.shipit;
 
 import editor.FileTree;
+import editor.util.IProgressCallback;
 import gw.lang.parser.exceptions.ParseResultsException;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.ITypeRef;
@@ -11,11 +12,12 @@ import gw.lang.reflect.gs.IGosuClass;
  */
 public class Compiler
 {
-  public boolean compileTree( FileTree tree, ICompileConsumer consumer )
+  public boolean compileTree( FileTree tree, ICompileConsumer consumer, IProgressCallback progress )
   {
     if( tree.isFile() )
     {
       IType type = tree.getType();
+      progress.incrementProgress( type != null ? type.getName() : "" );
       if( type instanceof IGosuClass )
       {
         if( !compile( (IGosuClass)type, consumer ) )
@@ -28,7 +30,7 @@ public class Compiler
     {
       for( FileTree file: tree.getChildren() )
       {
-        if( !compileTree( file, consumer ) )
+        if( !compileTree( file, consumer, progress ) )
         {
           return false;
         }

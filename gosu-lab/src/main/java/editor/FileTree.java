@@ -430,4 +430,21 @@ public class FileTree implements MutableTreeNode, IFileWatcherListener
     }
     return FileSystemView.getFileSystemView().getSystemIcon( getFileOrDir() );
   }
+
+  public int getTotalSourceFiles()
+  {
+    int iCount = 0;
+    if( isDirectory() )
+    {
+      for( FileTree csr: getChildren() )
+      {
+        iCount += csr.getTotalSourceFiles();
+      }
+    }
+    else
+    {
+      return 1;
+    }
+    return iCount;
+  }
 }

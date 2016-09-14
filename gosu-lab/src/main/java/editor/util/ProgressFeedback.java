@@ -40,44 +40,41 @@ public class ProgressFeedback implements IProgressCallback, ActionListener
    * @param strNotice The text notice to display in the ProgressWindow.
    * @param task      The task to execute in a separate (worker) thread.
    */
-  public static void runWithProgress( final String strNotice, final IRunnableWithProgress task )
+  public static ProgressFeedback runWithProgress( final String strNotice, final IRunnableWithProgress task )
   {
-    runWithProgress( strNotice, task, false, false );
+    return runWithProgress( strNotice, task, false, false );
   }
 
-  public static void runWithProgress( final String strNotice, final IRunnableWithProgress task, final boolean bHideAbortBtn )
+  public static ProgressFeedback runWithProgress( final String strNotice, final IRunnableWithProgress task, final boolean bHideAbortBtn )
   {
-    runWithProgress( task, new ProgressFeedback( strNotice, bHideAbortBtn, false ) );
+    return runWithProgress( task, new ProgressFeedback( strNotice, bHideAbortBtn, false ) );
   }
 
-  public static void runWithProgress( final String strNotice, final IRunnableWithProgress task, final boolean bHideAbortBtn, final boolean bShowInStudioGlassPane )
+  public static ProgressFeedback runWithProgress( final String strNotice, final IRunnableWithProgress task, final boolean bHideAbortBtn, final boolean bShowInStudioGlassPane )
   {
-    runWithProgress( task, new ProgressFeedback( strNotice, bHideAbortBtn, bShowInStudioGlassPane ) );
+    return runWithProgress( task, new ProgressFeedback( strNotice, bHideAbortBtn, bShowInStudioGlassPane ) );
   }
 
-  protected static void runWithProgress( final IRunnableWithProgress task, final ProgressFeedback progressFeedback )
+  protected static ProgressFeedback runWithProgress( final IRunnableWithProgress task, final ProgressFeedback progressFeedback )
   {
     BackgroundOperation.instance().doBackgroundWaitOp(
-      new Runnable()
-      {
-        public void run()
+      () -> {
+        try
         {
-          try
-          {
-            progressFeedback.startTimer();
-            task.run( progressFeedback );
-          }
-          catch( Throwable e )
-          {
-            StudioUtilities.handleUncaughtException( e );
-          }
-          finally
-          {
-            progressFeedback.stopTimer();
-            progressFeedback.dispose();
-          }
+          progressFeedback.startTimer();
+          task.run( progressFeedback );
+        }
+        catch( Throwable e )
+        {
+          StudioUtilities.handleUncaughtException( e );
+        }
+        finally
+        {
+          progressFeedback.stopTimer();
+          progressFeedback.dispose();
         }
       } );
+    return progressFeedback;
   }
 
   public static <T> T runWithPossibleDialog( final Callable<T> callable, String message )
@@ -325,6 +322,14 @@ public class ProgressFeedback implements IProgressCallback, ActionListener
   public boolean updateProgress( final int iProgress, final String strMessage, String... args )
   {
     _currentValue = iProgress;
+    setCurrentMessage( strMessage, args );
+
+    return _bAbort;
+  }
+
+  public boolean incrementProgress( final String strMessage, String... args )
+  {
+    _currentValue++;
     setCurrentMessage( strMessage, args );
 
     return _bAbort;

@@ -31,7 +31,7 @@ public class ConfigJarDialog extends JDialog
 
   public ConfigJarDialog( Experiment experiment )
   {
-    super( RunMe.getEditorFrame(), "Create Executable Jar for Distribution", true );
+    super( RunMe.getEditorFrame(), "Ship It!", true );
     _experiment = experiment;
     configUi();
   }
@@ -61,10 +61,23 @@ public class ConfigJarDialog extends JDialog
     int iY = 0;
 
     c.anchor = GridBagConstraints.WEST;
+    c.fill = GridBagConstraints.HORIZONTAL;
+    c.gridx = 0;
+    c.gridy = iY++;
+    c.gridwidth = GridBagConstraints.REMAINDER;
+    c.gridheight = 1;
+    c.weightx = 1;
+    c.weighty = 0;
+    c.insets = new Insets( 10, 2, 12, 0 );
+    mainPanel.add( new JLabel( "<html>Ready to release your experiment? Create an all-in-one <i>executable</i> Jar! " +
+                               "Your entire experiment, including dependencies, is bundled up in a single Jar file. " +
+                               "The file directly executes on any machine with Java 8 or later installed." ), c );
+
+    c.anchor = GridBagConstraints.WEST;
     c.fill = GridBagConstraints.NONE;
     c.gridx = 0;
     c.gridy = iY++;
-    c.gridwidth = 1;
+    c.gridwidth = GridBagConstraints.REMAINDER;
     c.gridheight = 1;
     c.weightx = 1;
     c.weighty = 0;
@@ -87,7 +100,7 @@ public class ConfigJarDialog extends JDialog
     c.fill = GridBagConstraints.NONE;
     c.gridx = 1;
     c.gridy = iY++;
-    c.gridwidth = 1;
+    c.gridwidth = GridBagConstraints.REMAINDER;
     c.gridheight = 1;
     c.weightx = 0;
     c.weighty = 0;
@@ -101,7 +114,7 @@ public class ConfigJarDialog extends JDialog
     c.fill = GridBagConstraints.HORIZONTAL;
     c.gridx = 0;
     c.gridy = iY++;
-    c.gridwidth =  GridBagConstraints.REMAINDER;;
+    c.gridwidth = GridBagConstraints.REMAINDER;
     c.gridheight = 1;
     c.weightx = 1;
     c.weighty = 0;
@@ -111,7 +124,7 @@ public class ConfigJarDialog extends JDialog
     _errorMsg.setForeground( new Color( 100, 0, 0 ) );
 
     c.anchor = GridBagConstraints.WEST;
-    c.fill = GridBagConstraints.HORIZONTAL;
+    c.fill = GridBagConstraints.NONE;
     c.gridx = 0;
     c.gridy = iY++;
     c.gridwidth = GridBagConstraints.REMAINDER;
@@ -120,12 +133,13 @@ public class ConfigJarDialog extends JDialog
     c.weighty = 0;
     c.insets = new Insets( 2, 2, 0, 0 );
     mainPanel.add( _cbBundleGosu = new JCheckBox( "Bundle Gosu runtime", true ), c );
-    _cbBundleGosu.setToolTipText( "<html>Uncheck if your jar depends on the user's installed Gosu.  Otherwise leave checked<br>" +
-                                        "if you want to bundle the Gosu runtime with your jar.  Note bundling Gosu is safer<br>" +
-                                        "because it only requires the JRE to be installed on the host environment." );
+    _cbBundleGosu.setToolTipText( "<html>This option bundles a copy of Gosu in your jar.  Without this option your jar<br>" +
+                                  "uses a compatible version of Gosu installed on the user's machine, if one <br>" +
+                                  "exits.  Otherwise, the jar automatically installs Gosu after prompting for <br>" +
+                                  "approval.  Subsequent execution of the jar uses the newly installed Gosu." );
 
     c.anchor = GridBagConstraints.WEST;
-    c.fill = GridBagConstraints.HORIZONTAL;
+    c.fill = GridBagConstraints.NONE;
     c.gridx = 0;
     c.gridy = iY++;
     c.gridwidth = GridBagConstraints.REMAINDER;
@@ -135,9 +149,9 @@ public class ConfigJarDialog extends JDialog
     c.insets = new Insets( 2, 2, 0, 0 );
     mainPanel.add( _cbPrecompile = new JCheckBox( "Precompile Source", true ), c );
     _cbPrecompile.setToolTipText( "<html>This option fully compiles your experiment and includes resulting .class files<br>" +
-                                        "in your jar.  The upside: your experiment may load faster; the downside: your<br>" +
-                                        "jar file will be a little larger.  Note precompilation is optional since Gosu's<br>" +
-                                        "runtime <i>dynamically compiles</i> source if not already compiled." );
+                                  "in your jar.  The upside: your experiment may load faster; the downside: your<br>" +
+                                  "jar file will be a little larger.  Note precompilation is optional since Gosu's<br>" +
+                                  "runtime <i>dynamically compiles</i> source if not already compiled." );
 
     c.anchor = GridBagConstraints.WEST;
     c.fill = GridBagConstraints.HORIZONTAL;
@@ -148,12 +162,12 @@ public class ConfigJarDialog extends JDialog
     c.weightx = 1;
     c.weighty = 0;
     c.insets = new Insets( 20, 2, 8, 0 );
-    mainPanel.add( new JLabel( "<html>The resulting <b>" + getExperiment().getName() + ".jar</b> file will be placed in the project's root folder.<br>" +
-                                     "You can run the file by typing the following on a command line:<br>" +
-                                     "&nbsp;&nbsp;&nbsp;&nbsp;<pre>java -jar " + getExperiment().getName() + ".jar</pre><br>" +
-                                     "You can also run the jar directly from your file manager or command shell.  Note<br>" +
-                                     "you can distribute your jar on the web using a file hosting service like Dropbox,<br>" +
-                                     "Google Drive, etc." ), c );
+    mainPanel.add( new JLabel( "<html>The resulting <b>" + getExperiment().getName() + ".jar</b> file will be placed in the experiment's root folder.<br>" +
+                               "You can run the file by typing the following on a command line:<br>" +
+                               "&nbsp;&nbsp;&nbsp;&nbsp;<pre>java -jar " + getExperiment().getName() + ".jar</pre><br>" +
+                               "You can also run the jar directly from your file manager or command shell.  Note<br>" +
+                               "you can distribute your jar on the web using a file hosting service like Dropbox,<br>" +
+                               "Google Drive, etc." ), c );
 
     c.anchor = GridBagConstraints.WEST;
     c.fill = GridBagConstraints.BOTH;
@@ -197,7 +211,7 @@ public class ConfigJarDialog extends JDialog
 
     mapCancelKeystroke();
 
-    setSize( 600, 390 );
+    setSize( 540, 465 );
 
     StudioUtilities.centerWindowInFrame( this, getOwner() );
   }

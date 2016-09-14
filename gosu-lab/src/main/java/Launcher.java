@@ -375,12 +375,54 @@ public class Launcher
       homeDir = System.getenv( "USERPROFILE" );
     }
     File home = new File( homeDir );
-    String appName = new File( jarLoc ).getName();
-    appName = appName.substring( 0, appName.lastIndexOf( '.' ) );
+    String appName = getAppName( jarLoc );
     File repoDir = new File( home, ".Gosu" + File.separatorChar + JAR_REPO_DIR + File.separatorChar + appName );
     //noinspection ResultOfMethodCallIgnored
     repoDir.mkdirs();
     return repoDir;
+  }
+
+  // Use the name of the jar minus the .jar extension: FooBar.jar => "FooBar".
+  // Also, if the jar name looks like "FooBar (3).jar", the name is just "FooBar".
+  // This avoids issues where from a browser multiple downloads of the same jar
+  // file are distinguished in the file system by appending a number to the file
+  // name.
+  private static String getAppName( String jarLoc )
+  {
+    String appName = new File( jarLoc ).getName();
+    int iDot = appName.lastIndexOf( '.' );
+    if( iDot >= 0 )
+    {
+      appName = appName.substring( 0, iDot );
+    }
+    appName = maybeRemoveAppendage( appName );
+    return appName;
+  }
+
+  private static String maybeRemoveAppendage( String appName )
+  {
+    int iSpace = appName.lastIndexOf( ' ' );
+    if( iSpace >= 0 )
+    {
+      String duplicate = appName.substring( iSpace+1, appName.length() );
+      char open = duplicate.charAt( 0 );
+      char close = duplicate.charAt( duplicate.length() - 1 );
+      if( open == '(' && close == ')' && duplicate.length() > 2 )
+      {
+        String dupNumber = appName.substring( iSpace+2, appName.length()-1 );
+        try
+        {
+          //noinspection ResultOfMethodCallIgnored
+          Integer.parseInt( dupNumber );
+          appName = appName.substring( 0, iSpace );
+        }
+        catch( NumberFormatException e )
+        {
+          // don't care
+        }
+      }
+    }
+    return appName;
   }
 
   public static void copy( InputStream in, OutputStream out ) throws IOException

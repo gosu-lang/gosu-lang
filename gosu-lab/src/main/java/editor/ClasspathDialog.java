@@ -23,7 +23,7 @@ public class ClasspathDialog extends JDialog
 
   public ClasspathDialog( File dir )
   {
-    super( (JFrame)KeyboardFocusManager.getCurrentKeyboardFocusManager().getActiveWindow(), "Classpath", true );
+    super( (JFrame)KeyboardFocusManager.getCurrentKeyboardFocusManager().getActiveWindow(), "Dependencies", true );
     _dir = dir;
     configUI();
     addWindowListener( new WindowAdapter()
@@ -51,6 +51,7 @@ public class ClasspathDialog extends JDialog
     setPathsList();
     _pathsList.setBorder( BorderFactory.createEmptyBorder() );
     JButton btnPaths = new JButton( "..." );
+    btnPaths.setToolTipText( "Add a directory or Jar file" );
     btnPaths.addActionListener( e -> updatePaths() );
     panel.add( btnPaths, BorderLayout.NORTH );
     JPanel filler = new JPanel();
@@ -135,7 +136,7 @@ public class ClasspathDialog extends JDialog
   private void updatePaths()
   {
     JFileChooser fc = new JFileChooser( getCurrentDir() );
-    fc.setDialogTitle( "Add Paths" );
+    fc.setDialogTitle( "Add Dependencies" );
     fc.setDialogType( JFileChooser.OPEN_DIALOG );
     fc.setFileSelectionMode( JFileChooser.FILES_AND_DIRECTORIES );
     fc.setMultiSelectionEnabled( true );
@@ -149,7 +150,7 @@ public class ClasspathDialog extends JDialog
 
         public String getDescription()
         {
-          return "Classpath (directories or archive files)";
+          return "Dependencies (directories or archive files)";
         }
       } );
     int returnVal = fc.showOpenDialog( editor.util.EditorUtilities.frameForComponent( this ) );
