@@ -38,6 +38,7 @@ import gw.internal.gosu.parser.java.classinfo.CompileTimeExpressionParser;
 import gw.internal.gosu.parser.statements.ClassStatement;
 import gw.internal.gosu.parser.statements.VarStatement;
 import gw.internal.gosu.runtime.GosuRuntimeMethods;
+import gw.lang.Gosu;
 import gw.lang.ir.IRAnnotation;
 import gw.lang.ir.IRClass;
 import gw.lang.ir.IRExpression;
@@ -1499,17 +1500,22 @@ public class GosuClassTransformer extends AbstractElementTransformer<ClassStatem
         break;
       }
     }
-    IRExpression newProgram = buildNewExpression( IRTypeResolver.getDescriptor( getGosuClass() ), Collections.<IRType>emptyList(), Collections.<IRExpression>emptyList() );
+
+    // First pass along the main method's args to Gosu.class (assign to _rawArgs)
+    IRSymbol args = new IRSymbol("args", getDescriptor(String[].class), false);
+    IRMethodCallStatement assignRawArgs = new IRMethodCallStatement( buildMethodCall( Gosu.class, "setRawArgs", void.class, new Class[] {String[].class}, null, Collections.singletonList( identifier( args ) ) ) );
+    
+    IRExpression newProgram = buildNewExpression( IRTypeResolver.getDescriptor( getGosuClass() ), Collections.emptyList(), Collections.emptyList() );
     IRMethod evaluateIRMethod = IRMethodFactory.createIRMethod( getGosuClass(), "evaluate", evaluateMethod.getReturnType(), paramTypes.toArray( new IType[paramTypes.size()] ), IRelativeTypeInfo.Accessibility.PUBLIC, false );
     IRExpression callEvaluate = callMethod( evaluateIRMethod, newProgram, Collections.singletonList( nullLiteral() ) );
-    IRStatement methodBody = new IRStatementList( true, buildMethodCall( callEvaluate ), buildReturn() );
+    IRStatement methodBody = new IRStatementList( true, assignRawArgs, buildMethodCall( callEvaluate ), buildReturn() );
     IRMethodStatement method = new IRMethodStatement(
       methodBody,
       "main",
       Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC,
       false,
       getDescriptor( void.class ),
-      Collections.singletonList( new IRSymbol( "args", getDescriptor( String[].class ), false ) )
+      Collections.singletonList(args)
     );
     _irClass.addMethod( method );
   }

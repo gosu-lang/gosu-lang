@@ -35,6 +35,7 @@ import java.lang.reflect.Method;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.StringTokenizer;
@@ -410,6 +411,14 @@ public class Gosu
   public static List<String> getRawArgs()
   {
     return _rawArgs;
+  }
+
+  public static void setRawArgs( String[] rawArgs ) {
+    if (rawArgs != null) {
+      _rawArgs = Arrays.asList(rawArgs);
+    } else {
+      _rawArgs = null;
+    }
   }
 
   private static void runWithFile( File script, List<String> args ) throws IOException, ParseResultsException
