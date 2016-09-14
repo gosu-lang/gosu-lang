@@ -9,6 +9,16 @@ class CommandLineOptions {
 
   // using String parameter types with arity = 0 will suppress the annoying 'Default: false' help output
 
+  @Parameter(names = {"-ca", "-checkedArithmetic"}, description = "Compile with checked arithmetic")
+  private Boolean _checkedarithmetic = null;
+
+  /**
+   * @return true if and only if '-ca' or '-checkedArithmetic' was specified on the command line
+   */
+  protected boolean isCheckedArithmetic() {
+    return !(_checkedarithmetic == null || !_checkedarithmetic);
+  }
+
   @Parameter(names = {"-cp", "-classpath"}, description = "Specify where to find user class files")
   private String _classpath;
 
