@@ -1,6 +1,5 @@
 package editor.shipit;
 
-import gw.lang.parser.exceptions.ParseResultsException;
 import gw.lang.reflect.gs.IGosuClass;
 
 /**

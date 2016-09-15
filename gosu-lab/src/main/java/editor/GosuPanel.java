@@ -11,9 +11,10 @@ import editor.tabpane.TabPosition;
 import editor.undo.AtomicUndoManager;
 import editor.util.BrowserUtil;
 import editor.util.EditorUtilities;
+import editor.util.Experiment;
+import editor.util.GosuTextifier;
 import editor.util.LabelListPopup;
 import editor.util.PlatformUtil;
-import editor.util.Experiment;
 import editor.util.SettleModalEventQueue;
 import editor.util.SmartMenu;
 import editor.util.TaskQueue;
@@ -23,7 +24,6 @@ import gw.config.CommonServices;
 import gw.fs.IDirectory;
 import gw.internal.ext.org.objectweb.asm.ClassReader;
 import gw.internal.ext.org.objectweb.asm.util.TraceClassVisitor;
-import editor.util.GosuTextifier;
 import gw.lang.Gosu;
 import gw.lang.parser.IParseIssue;
 import gw.lang.parser.IParseTree;
@@ -104,6 +104,7 @@ public class GosuPanel extends JPanel
   private JFrame _parentFrame;
   private boolean _bRunning;
   private TabPane _editorTabPane;
+  private TabPane _resultsTabPane;
   private AtomicUndoManager _defaultUndoMgr;
   private NavigationHistory _history;
   private JLabel _status;
@@ -114,6 +115,7 @@ public class GosuPanel extends JPanel
   private OutputStreamWriter _inWriter;
   private SysInListener _sysInListener;
   private InputStream _oldIn;
+  private MessagesPanel _messages;
 
   public GosuPanel( JFrame basicGosuEditor )
   {
@@ -132,12 +134,12 @@ public class GosuPanel extends JPanel
   {
     setLayout( new BorderLayout() );
 
+    _resultsTabPane = new TabPane( TabPane.MINIMIZABLE | TabPane.RESTORABLE );
+
+    _messages = new MessagesPanel();
+
     _resultPanel = new SystemPanel();
-    TabPane resultTabPane = new TabPane( TabPane.MINIMIZABLE | TabPane.RESTORABLE );
-    resultTabPane.addTab( "Console", null, _resultPanel );
-
-
-    // resultTabPane.addTab( "Messages", null, _resultPanel );
+    _resultsTabPane.addTab( "Console", null, _resultPanel );
 
     _editorTabPane = new TabPane( TabPosition.TOP, TabPane.DYNAMIC | TabPane.MIN_MAX_REST );
 
@@ -169,7 +171,7 @@ public class GosuPanel extends JPanel
 
 
     _splitPane = new CollapsibleSplitPane( SwingConstants.HORIZONTAL, experimentViewTabPane, _editorTabPane );
-    _outerSplitPane = new CollapsibleSplitPane( SwingConstants.VERTICAL,  _splitPane, resultTabPane );
+    _outerSplitPane = new CollapsibleSplitPane( SwingConstants.VERTICAL, _splitPane, _resultsTabPane );
 
     add( _outerSplitPane, BorderLayout.CENTER );
 
@@ -183,7 +185,7 @@ public class GosuPanel extends JPanel
     EventQueue.invokeLater( () -> {
       setExperimentSplitPosition( 70 );
       setEditorSplitPosition( 20 );
-     } );
+    } );
 
     EventQueue.invokeLater( this::mapKeystrokes );
   }
@@ -191,6 +193,37 @@ public class GosuPanel extends JPanel
   public ExperimentView getExperimentView()
   {
     return _experimentView;
+  }
+
+  public MessagesPanel getMessagesPanel()
+  {
+    return _messages;
+  }
+
+  public void showMessages( boolean bShow )
+  {
+    if( bShow )
+    {
+      ITab tab = _resultsTabPane.findTabWithContent( _messages );
+      if( tab == null )
+      {
+        _resultsTabPane.addTab( "Messages", null, _messages );
+      }
+      else
+      {
+        _resultsTabPane.selectTab( tab, false );
+      }
+    }
+    else
+    {
+      _messages.clear();
+      _resultsTabPane.removeTabWithContent( _messages );
+    }
+  }
+
+  public void showConsole()
+  {
+    _resultsTabPane.selectTabWithContent( _resultPanel, false );
   }
 
   private void handleMacStuff()
@@ -213,6 +246,7 @@ public class GosuPanel extends JPanel
     {
       _editorTabPane.setVisible( true );
     }
+    showMessages( false );
     SettleModalEventQueue.instance().run();
     getTabSelectionHistory().dispose();
   }
@@ -232,7 +266,8 @@ public class GosuPanel extends JPanel
     return _experiment;
   }
 
-  static List<String> getLocalClasspath() {
+  static List<String> getLocalClasspath()
+  {
     List<String> localPath = new ArrayList<>();
     List<IDirectory> classpath = TypeSystem.getGlobalModule().getSourcePath();
     for( int i = 0; i < classpath.size(); i++ )
@@ -319,7 +354,12 @@ public class GosuPanel extends JPanel
 
   private void parse()
   {
-    EventQueue.invokeLater( () -> {if( getCurrentEditor() != null ) getCurrentEditor().parse();} );
+    EventQueue.invokeLater( () -> {
+      if( getCurrentEditor() != null )
+      {
+        getCurrentEditor().parse();
+      }
+    } );
   }
 
   private void savePreviousTab()
@@ -1181,33 +1221,9 @@ public class GosuPanel extends JPanel
     SettleModalEventQueue.instance().run();
 
     saveIfDirty();
-    clearOutput();
-
-    System.out.println( "Compiling..." );
-
-    boolean[] bRet = {true};
-    int[] issues = new int[3];
-    BuildIt.instance().buildIt( c -> {
-      bRet[0] &= (c.getBytes() != null);
-      Exception exception = c.getException();
-      if( exception != null  )
-      {
-        System.out.println( exception.getMessage() );
-        if( exception instanceof ParseResultsException )
-        {
-          ParseResultsException pre = (ParseResultsException)exception;
-          issues[0] += pre.getParseWarnings().size();
-          issues[1] += pre.getParseExceptions().size();
-        }
-        else if( exception != null )
-        {
-          issues[2]++;
-        }
-      }
-      return true;
-    } );
-    System.out.println( "Compilation " + (bRet[0] ? "succeeded. " : "failed. ") + " Warnings: " + issues[0] + "  Errors: " + issues[1] + "  Failures: " + issues[2] );
-    return bRet[0];
+    getMessagesPanel().clear();
+    showMessages( true );
+    return BuildIt.instance().buildIt( c -> true );
   }
 
   public void exit()
@@ -1451,7 +1467,7 @@ public class GosuPanel extends JPanel
   {
     File file = getCurrentFile();
     Experiment experiment = getExperiment();
-    String currentFilePath = file == null ? "  " :  " - ..." + File.separator + experiment.makeExperimentRelativePath( file ) + " - ";
+    String currentFilePath = file == null ? "  " : " - ..." + File.separator + experiment.makeExperimentRelativePath( file ) + " - ";
     String title = experiment.getName() + " - [" + experiment.getExperimentDir().getAbsolutePath() + "]" + currentFilePath + "Gosu Lab " + Gosu.getVersion();
     _parentFrame.setTitle( title );
   }
@@ -1720,7 +1736,7 @@ public class GosuPanel extends JPanel
     saveAndReloadType( getCurrentFile(), getCurrentEditor() );
     clearOutput();
     byte[] bytes = TypeSystem.getGosuClassLoader().getBytes( getClassAtCaret() );
-    ClassReader cr = new ClassReader(bytes);
+    ClassReader cr = new ClassReader( bytes );
     //int flags = ClassReader.SKIP_FRAMES;
     int flags = 0;
     StringWriter out = new StringWriter();
@@ -1738,7 +1754,7 @@ public class GosuPanel extends JPanel
     IParsedElement elemAtCaret = locAtCaret.getParsedElement();
     while( elemAtCaret != null &&
            !(elemAtCaret instanceof IClassStatement) &&
-           !(elemAtCaret instanceof IBlockExpression))
+           !(elemAtCaret instanceof IBlockExpression) )
     {
       elemAtCaret = elemAtCaret.getParent();
     }
@@ -1770,6 +1786,8 @@ public class GosuPanel extends JPanel
 
       ClassLoader loader = getClass().getClassLoader();
       URLClassLoader runLoader = new URLClassLoader( getAllUrlsAboveGosuclassProtocol( (URLClassLoader)loader ), loader.getParent() );
+
+      showConsole();
 
       TaskQueue queue = TaskQueue.getInstance( "_execute_gosu" );
       addBusySignal();
@@ -1831,11 +1849,14 @@ public class GosuPanel extends JPanel
   {
     List<URL> urls = new ArrayList<>();
     boolean bAdd = true;
-    for( URL url: loader.getURLs() ) {
-      if( bAdd && !url.getProtocol().contains( "gosu" ) ) {
+    for( URL url : loader.getURLs() )
+    {
+      if( bAdd && !url.getProtocol().contains( "gosu" ) )
+      {
         urls.add( url );
       }
-      else {
+      else
+      {
         bAdd = false;
       }
     }
@@ -1870,7 +1891,7 @@ public class GosuPanel extends JPanel
         IMethodInfo mainMethod = hasStaticMain( gsType );
         if( mainMethod != null )
         {
-          ReflectUtil.invokeStaticMethod( gsType.getName(), "main", new Object[]{ new String[]{} } );
+          ReflectUtil.invokeStaticMethod( gsType.getName(), "main", new Object[]{new String[]{}} );
           return null;
         }
         runTest( gsType );
@@ -1883,7 +1904,7 @@ public class GosuPanel extends JPanel
       Class cls = gsType.getBackingClass();
       Object instance = cls.newInstance();
       runNamedOrAnnotatedMethod( instance, "beforeClass", "org.junit.BeforeClass" );
-      for( Method m: cls.getMethods() )
+      for( Method m : cls.getMethods() )
       {
         if( isTestMethod( m ) )
         {
@@ -1937,13 +1958,13 @@ public class GosuPanel extends JPanel
     {
       int modifiers = m.getModifiers();
       return Modifier.isPublic( modifiers ) &&
-          (m.getName().startsWith( "test" ) || hasAnnotation( m, "org.junit.Test" )) &&
-          m.getParameters().length == 0;
+             (m.getName().startsWith( "test" ) || hasAnnotation( m, "org.junit.Test" )) &&
+             m.getParameters().length == 0;
     }
 
     private static void runNamedOrAnnotatedMethod( Object instance, String methodName, String annoName ) throws Exception
     {
-      for( Method m: instance.getClass().getMethods() )
+      for( Method m : instance.getClass().getMethods() )
       {
         if( m.getName().equals( methodName ) )
         {
@@ -2028,7 +2049,7 @@ public class GosuPanel extends JPanel
       if( e.getKeyCode() == KeyEvent.VK_ENTER )
       {
         JTextPane op = _resultPanel.getOutputPanel();
-        Element elem = getElementAt( op.getCaretPosition()-1 );
+        Element elem = getElementAt( op.getCaretPosition() - 1 );
         try
         {
           String text = _resultPanel.getOutputPanel().getText( elem.getStartOffset(), elem.getEndOffset() - elem.getStartOffset() );
@@ -2046,6 +2067,7 @@ public class GosuPanel extends JPanel
     {
       return getElementAt( _resultPanel.getOutputPanel().getDocument().getDefaultRootElement(), offset );
     }
+
     private Element getElementAt( Element parent, int offset )
     {
       if( parent.isLeaf() )
@@ -2222,7 +2244,8 @@ public class GosuPanel extends JPanel
     {
       //noinspection Convert2Lambda
       super( "Run Recent",
-             new Supplier<IType>() {
+             new Supplier<IType>()
+             {
                @Override
                public IType get()
                {
@@ -2272,14 +2295,16 @@ public class GosuPanel extends JPanel
       return;
     }
     final Map<Integer, List<String>> map = new HashMap<>();
-    for( IParseIssue pi: pre.getParseIssues() ) {
+    for( IParseIssue pi : pre.getParseIssues() )
+    {
       ResourceKey messageKey = pi.getMessageKey();
       if( messageKey != null )
       {
         String issue = messageKey.getKey();
         int iLine = pi.getLine();
         List<String> issues = map.get( iLine );
-        if( issues == null ) {
+        if( issues == null )
+        {
           map.put( iLine, issues = new ArrayList<>() );
         }
         issues.add( issue );
@@ -2297,7 +2322,7 @@ public class GosuPanel extends JPanel
       addIssueKeyMarkers( strLines, lines, map );
       CompoundEdit atom = getUndoManager().beginUndoAtom( "Mark Phase" );
       document.replace( 0, text.length(), joinLines( strLines ), null );
-      getUndoManager().endUndoAtom(atom);
+      getUndoManager().endUndoAtom( atom );
     }
     catch( BadLocationException e )
     {
@@ -2307,8 +2332,8 @@ public class GosuPanel extends JPanel
 
   private String joinLines( String[] strLines )
   {
-    StringBuilder sb = new StringBuilder(  );
-    for(String line : strLines)
+    StringBuilder sb = new StringBuilder();
+    for( String line : strLines )
     {
       sb.append( line ).append( '\n' );
     }
@@ -2317,26 +2342,30 @@ public class GosuPanel extends JPanel
 
   private void removeOldIssueKeyMarkers( String[] lines )
   {
-    for(int i = 0;  i < lines.length; i++)
+    for( int i = 0; i < lines.length; i++ )
     {
       int issueIndex = lines[i].indexOf( "  //## issuekeys:" );
-      if(issueIndex != -1)
+      if( issueIndex != -1 )
       {
         lines[i] = lines[i].substring( 0, issueIndex );
       }
     }
   }
 
-  private void addIssueKeyMarkers( String[] strLines, List<Integer> lines, Map<Integer, List<String>> map ) {
-    for( int iLine : lines ) {
+  private void addIssueKeyMarkers( String[] strLines, List<Integer> lines, Map<Integer, List<String>> map )
+  {
+    for( int iLine : lines )
+    {
       String issues = makeIssueString( map.get( iLine ) );
-      strLines[iLine-1] = strLines[iLine-1].concat( issues );
+      strLines[iLine - 1] = strLines[iLine - 1].concat( issues );
     }
   }
 
-  private String makeIssueString( List<String> issues ) {
+  private String makeIssueString( List<String> issues )
+  {
     StringBuilder sb = new StringBuilder();
-    for( String issue: issues ) {
+    for( String issue : issues )
+    {
       sb.append( sb.length() != 0 ? ", " : "" ).append( issue );
     }
     sb.insert( 0, "  //## issuekeys: " );

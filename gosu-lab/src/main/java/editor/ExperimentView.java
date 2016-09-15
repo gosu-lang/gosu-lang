@@ -71,7 +71,7 @@ public class ExperimentView extends JPanel
     _tree.setVisibleRowCount( 20 );
     _tree.setCellRenderer( new FileTreeCellRenderer( _tree ) );
     _tree.addMouseListener( new TreeMouseHandler() );
-    _tree.addKeyListener( new TreeKeyHankder() );
+    _tree.addKeyListener( new TreeKeyHandler() );
     _scroller = new JScrollPane( _tree );
     _scroller.setBorder( new MatteBorder( 0, 0, 1, 1, EditorUtilities.CONTROL_SHADOW ) );
     expandToFirstSourcePath( 0, _tree.getRowCount() );
@@ -153,19 +153,7 @@ public class ExperimentView extends JPanel
         if( selectionPath != null )
         {
           FileTree fileTree = (FileTree)selectionPath.getLastPathComponent();
-          if( fileTree.isFile() )
-          {
-            if( fileTree.getType() != null )
-            {
-              // Open Gosu type in our editor
-              _experiment.getGosuPanel().openFile( fileTree.getFileOrDir() );
-            }
-            else
-            {
-              // Open files on desktop in native app
-              EditorUtilities.openFileOrDir( fileTree.getFileOrDir() );
-            }
-          }
+          openFile( fileTree );
         }
       }
     }
@@ -211,8 +199,25 @@ public class ExperimentView extends JPanel
     }
   }
 
+  private void openFile( FileTree fileTree )
+  {
+    if( fileTree.isFile() )
+    {
+      if( fileTree.getType() != null )
+      {
+        // Open Gosu type in our editor
+        _experiment.getGosuPanel().openFile( fileTree.getFileOrDir() );
+      }
+      else
+      {
+        // Open files on desktop in native app
+        EditorUtilities.openFileOrDir( fileTree.getFileOrDir() );
+      }
+    }
+  }
 
-  private class TreeKeyHankder implements KeyListener
+
+  private class TreeKeyHandler implements KeyListener
   {
     @Override
     public void keyTyped( KeyEvent e )
@@ -229,6 +234,14 @@ public class ExperimentView extends JPanel
         if( selection != null && selection.canDelete() )
         {
           selection.delete();
+        }
+      }
+      else if( e.getKeyCode() == KeyEvent.VK_ENTER )
+      {
+        FileTree selection = getSelectedTree();
+        if( selection != null && selection.isFile() )
+        {
+          openFile( selection );
         }
       }
     }

@@ -1,11 +1,9 @@
 package editor.shipit;
 
-import editor.search.MessageDisplay;
 import editor.util.EditorUtilities;
 import editor.util.Experiment;
 import gw.lang.Gosu;
 
-import javax.swing.*;
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -15,15 +13,12 @@ import java.io.InputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.util.ArrayList;
-import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.jar.JarEntry;
 import java.util.jar.JarOutputStream;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipFile;
 
 /**
  */
@@ -56,6 +51,7 @@ public class ShipIt
     File outFile = new File( experiment.getExperimentDir(), experiment.getName() + ".jar" );
     if( outFile.exists() )
     {
+      //noinspection ResultOfMethodCallIgnored
       outFile.delete();
     }
 
@@ -128,13 +124,7 @@ public class ShipIt
       byte[] bytes = cs.getBytes();
       if( bytes == null || bytes.length == 0 )
       {
-        int iRes = MessageDisplay.displayConfirmation( "<html>The following class failed to compile:<br>" +
-                                                       "<b>" + cs.getGosuClass().getName() + "</b><br>" +
-                                                       "Keep building the jar file?", JOptionPane.YES_NO_OPTION );
-        if( iRes != JOptionPane.YES_OPTION )
-        {
-          return false;
-        }
+        return false;
       }
       else
       {
@@ -293,35 +283,35 @@ public class ShipIt
     }
   }
 
-  private void addZipEntry( ZipFile file ) throws IOException
-  {
-    Enumeration<? extends ZipEntry> en = file.entries();
-    while( en.hasMoreElements() )
-    {
-      ZipEntry entry = en.nextElement();
-      if( !entry.isDirectory() && !entry.getName().toLowerCase().endsWith( "manifest.mf" ) )
-      {
-        String strFile = entry.getName();
-        if( _entries.contains( strFile ) )
-        {
-          return;
-        }
-        _entries.add( strFile );
-        JarEntry je = new JarEntry( strFile );
-        _jo.putNextEntry( je );
-        InputStream in = file.getInputStream( entry );
-        byte[] buf = new byte[1024];
-        while( true )
-        {
-          int iCount = in.read( buf, 0, buf.length );
-          if( iCount <= 0 )
-          {
-            break;
-          }
-          _jo.write( buf, 0, iCount );
-        }
-        in.close();
-      }
-    }
-  }
+//  private void addZipEntry( ZipFile file ) throws IOException
+//  {
+//    Enumeration<? extends ZipEntry> en = file.entries();
+//    while( en.hasMoreElements() )
+//    {
+//      ZipEntry entry = en.nextElement();
+//      if( !entry.isDirectory() && !entry.getName().toLowerCase().endsWith( "manifest.mf" ) )
+//      {
+//        String strFile = entry.getName();
+//        if( _entries.contains( strFile ) )
+//        {
+//          return;
+//        }
+//        _entries.add( strFile );
+//        JarEntry je = new JarEntry( strFile );
+//        _jo.putNextEntry( je );
+//        InputStream in = file.getInputStream( entry );
+//        byte[] buf = new byte[1024];
+//        while( true )
+//        {
+//          int iCount = in.read( buf, 0, buf.length );
+//          if( iCount <= 0 )
+//          {
+//            break;
+//          }
+//          _jo.write( buf, 0, iCount );
+//        }
+//        in.close();
+//      }
+//    }
+//  }
 }

@@ -152,6 +152,24 @@ public class FileTree implements MutableTreeNode, IFileWatcherListener
     return null;
   }
 
+  public FileTree find( String fqn )
+  {
+    if( fqn.equals( makeFqn() ) )
+    {
+      return this;
+    }
+
+    for( FileTree tree: getChildren() )
+    {
+      FileTree found = tree.find( fqn );
+      if( found != null )
+      {
+        return found;
+      }
+    }
+    return null;
+  }
+
   public File getFileOrDir()
   {
     return _fileOrDir;
@@ -361,6 +379,16 @@ public class FileTree implements MutableTreeNode, IFileWatcherListener
 
   public IType getType()
   {
+    String fqn = makeFqn();
+    if( fqn == null )
+    {
+      return null;
+    }
+    return TypeSystem.getByFullNameIfValid( fqn );
+  }
+
+  private String makeFqn()
+  {
     FileTree sourcePathRoot = getSourcePathRoot();
     if( isDirectory() || isSourcePathRoot() || sourcePathRoot == null || getFileOrDir().getName().indexOf( '.' ) < 0 )
     {
@@ -368,7 +396,7 @@ public class FileTree implements MutableTreeNode, IFileWatcherListener
     }
     String fqn = getFileOrDir().getAbsolutePath().substring( sourcePathRoot.getFileOrDir().getAbsolutePath().length() + 1 );
     fqn = fqn.substring( 0, fqn.lastIndexOf( '.' ) ).replace( File.separatorChar, '.' );
-    return TypeSystem.getByFullNameIfValid( fqn );
+    return fqn;
   }
 
   public boolean canDelete()
