@@ -15,10 +15,15 @@ import gw.lang.parser.IParseResult;
 import gw.lang.parser.ParserOptions;
 import gw.lang.parser.StandardSymbolTable;
 import gw.lang.parser.exceptions.ParseResultsException;
+import gw.lang.reflect.IMethodInfo;
 import gw.lang.reflect.IType;
+import gw.lang.reflect.Modifier;
+import gw.lang.reflect.ReflectUtil;
 import gw.lang.reflect.TypeSystem;
+import gw.lang.reflect.gs.IGosuClass;
 import gw.lang.reflect.gs.IGosuProgram;
 import gw.lang.reflect.java.JavaTypes;
+import gw.util.GosuExceptionUtil;
 import gw.util.OSPlatform;
 import gw.util.StreamUtil;
 import sun.misc.URLClassPath;
@@ -31,6 +36,8 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
+import java.lang.annotation.Annotation;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.net.URLClassLoader;
@@ -48,6 +55,8 @@ public class Gosu
   public static final String GOSU_SCRATCHPAD_FQN = NOPACKAGE + ".GosuScratchpad";
   public static final String JAR_REPO_DIR = "JAR-REPO";     //!! if you change this, also change it in Launcher
   public static final String JAR_REPO_TXT = "jar-repo.txt"; //!! "
+  public static final String FAILED = "   FAILED: ";
+  public static final String SUCCESS = "   SUCCESS ";
 
   private static List<File> _classpath;
   private static File _script;
@@ -461,13 +470,122 @@ public class Gosu
     _rawArgs = collectArgs( 1, args );
   }
 
-  private static int runWithType( String fqn, List<String> args ) throws IOException, ParseResultsException
+  private static int runWithType( String fqn, List<String> args ) throws Exception
   {
-     // set remaining arguments as arguments to the Gosu program
+    // set remaining arguments as arguments to the Gosu program
     _rawArgs = args;
-    IGosuProgram program = (IGosuProgram)TypeSystem.getByFullName( fqn );
-    program.getProgramInstance().evaluate( null );
+    IType type = TypeSystem.getByFullName( fqn );
+    if( type instanceof IGosuProgram )
+    {
+      ((IGosuProgram)type).getProgramInstance().evaluate( null );
+    }
+    else
+    {
+      IMethodInfo mainMethod = hasStaticMain( type );
+      if( mainMethod != null )
+      {
+        ReflectUtil.invokeStaticMethod( type.getName(), "main", new Object[]{new String[]{}} );
+      }
+      else if( type instanceof IGosuClass )
+      {
+        runTest( (IGosuClass)type );
+      }
+      else
+      {
+        throw new UnsupportedOperationException( "Don't know how to run: " + fqn );
+      }
+    }
     return 0;
+  }
+
+  private static void runTest( IGosuClass gsType ) throws Exception
+  {
+    Class cls = gsType.getBackingClass();
+    Object instance = cls.newInstance();
+    runNamedOrAnnotatedMethod( instance, "beforeClass", "org.junit.BeforeClass" );
+    for( Method m : cls.getMethods() )
+    {
+      if( isTestMethod( m ) )
+      {
+        runNamedOrAnnotatedMethod( instance, "beforeMethod", "org.junit.Before" );
+        try
+        {
+          System.out.println( " - " + m.getName() );
+          m.invoke( instance );
+          System.out.println( SUCCESS );
+        }
+        catch( InvocationTargetException e )
+        {
+          //noinspection ThrowableResultOfMethodCallIgnored
+          Throwable cause = GosuExceptionUtil.findExceptionCause( e );
+          if( cause instanceof AssertionError )
+          {
+            System.out.println( FAILED + cause.getClass().getSimpleName() + " : " + cause.getMessage() );
+            String lines = findPertinentLines( gsType, cause );
+            System.out.println( lines );
+          }
+          else
+          {
+            throw GosuExceptionUtil.forceThrow( cause );
+          }
+        }
+        finally
+        {
+          runNamedOrAnnotatedMethod( instance, "afterMethod", "org.junit.After" );
+        }
+      }
+    }
+    runNamedOrAnnotatedMethod( instance, "afterClass", "org.junit.AfterClass" );
+  }
+
+  private static boolean isTestMethod( Method m ) throws Exception
+  {
+    int modifiers = m.getModifiers();
+    return Modifier.isPublic( modifiers ) &&
+           (m.getName().startsWith( "test" ) || hasAnnotation( m, "org.junit.Test" )) &&
+           m.getParameters().length == 0;
+  }
+
+  private static void runNamedOrAnnotatedMethod( Object instance, String methodName, String annoName ) throws Exception
+  {
+    for( Method m : instance.getClass().getMethods() )
+    {
+      if( m.getName().equals( methodName ) )
+      {
+        m.invoke( instance );
+        return;
+      }
+      for( Annotation anno : m.getAnnotations() )
+      {
+        if( anno.annotationType().getName().equals( annoName ) )
+        {
+          m.invoke( instance );
+          return;
+        }
+      }
+    }
+  }
+
+  private static boolean hasAnnotation( Method m, String name ) throws Exception
+  {
+    for( Annotation anno : m.getAnnotations() )
+    {
+      if( anno.annotationType().getName().equals( name ) )
+      {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  private static IMethodInfo hasStaticMain( IType type )
+  {
+    IMethodInfo main = type.getTypeInfo().getMethod( "main", JavaTypes.STRING().getArrayType() );
+    if( main != null && main.isStatic() && main.getReturnType() == JavaTypes.pVOID() )
+    {
+      return main;
+    }
+    return null;
   }
 
   private static void runWithFile( File script, List<String> args ) throws IOException, ParseResultsException
@@ -504,5 +622,20 @@ public class Gosu
     {
       GosuShop.print( ret );
     }
+  }
+
+  private static String findPertinentLines( IGosuClass gsType, Throwable cause )
+  {
+    StringBuilder sb = new StringBuilder();
+    StackTraceElement[] trace = cause.getStackTrace();
+    for( int i = 0; i < trace.length; i++ )
+    {
+      StackTraceElement elem = trace[i];
+      if( elem.getClassName().equals( gsType.getName() ) )
+      {
+        sb.append( "     at " ).append( elem.toString() ).append( "\n" );
+      }
+    }
+    return sb.toString();
   }
 }

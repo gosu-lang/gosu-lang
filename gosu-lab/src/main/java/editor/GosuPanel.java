@@ -20,7 +20,6 @@ import editor.util.SmartMenu;
 import editor.util.TaskQueue;
 import editor.util.TypeNameUtil;
 import editor.util.XPToolbarButton;
-import gw.config.CommonServices;
 import gw.fs.IDirectory;
 import gw.internal.ext.org.objectweb.asm.ClassReader;
 import gw.internal.ext.org.objectweb.asm.util.TraceClassVisitor;
@@ -35,17 +34,10 @@ import gw.lang.parser.exceptions.ParseResultsException;
 import gw.lang.parser.expressions.IBlockExpression;
 import gw.lang.parser.resources.ResourceKey;
 import gw.lang.parser.statements.IClassStatement;
-import gw.lang.reflect.IMethodInfo;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.ITypeRef;
-import gw.lang.reflect.Modifier;
-import gw.lang.reflect.ReflectUtil;
 import gw.lang.reflect.TypeSystem;
-import gw.lang.reflect.gs.GosuClassPathThing;
 import gw.lang.reflect.gs.IGosuClass;
-import gw.lang.reflect.gs.IGosuProgram;
-import gw.lang.reflect.java.JavaTypes;
-import gw.util.GosuExceptionUtil;
 import gw.util.StreamUtil;
 
 import javax.swing.*;
@@ -55,8 +47,6 @@ import javax.swing.filechooser.FileFilter;
 import javax.swing.text.AbstractDocument;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.Element;
-import javax.swing.text.SimpleAttributeSet;
-import javax.swing.text.StyleConstants;
 import javax.swing.undo.CompoundEdit;
 import java.awt.*;
 import java.awt.datatransfer.Clipboard;
@@ -75,18 +65,12 @@ import java.io.PipedOutputStream;
 import java.io.PrintWriter;
 import java.io.StringReader;
 import java.io.StringWriter;
-import java.lang.annotation.Annotation;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.net.URL;
-import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 
 /**
  */
@@ -97,14 +81,14 @@ public class GosuPanel extends JPanel
   public static final String FAILED = "   FAILED: ";
   public static final String SUCCESS = "   SUCCESS ";
 
-  private SystemPanel _resultPanel;
+  private SystemPanel _consolePanel;
   private CollapsibleSplitPane _outerSplitPane;
   private CollapsibleSplitPane _splitPane;
   private ExperimentView _experimentView;
   private JFrame _parentFrame;
   private boolean _bRunning;
   private TabPane _editorTabPane;
-  private TabPane _resultsTabPane;
+  private TabPane _consoleTabPane;
   private AtomicUndoManager _defaultUndoMgr;
   private NavigationHistory _history;
   private JLabel _status;
@@ -116,6 +100,7 @@ public class GosuPanel extends JPanel
   private SysInListener _sysInListener;
   private InputStream _oldIn;
   private MessagesPanel _messages;
+  private IProcessRunner _processRunner;
 
   public GosuPanel( JFrame basicGosuEditor )
   {
@@ -134,12 +119,12 @@ public class GosuPanel extends JPanel
   {
     setLayout( new BorderLayout() );
 
-    _resultsTabPane = new TabPane( TabPane.MINIMIZABLE | TabPane.RESTORABLE );
+    _consoleTabPane = new TabPane( TabPane.MINIMIZABLE | TabPane.RESTORABLE );
 
     _messages = new MessagesPanel();
 
-    _resultPanel = new SystemPanel();
-    _resultsTabPane.addTab( "Console", null, _resultPanel );
+    _consolePanel = new SystemPanel();
+    _consoleTabPane.addTab( "Console", null, _consolePanel );
 
     _editorTabPane = new TabPane( TabPosition.TOP, TabPane.DYNAMIC | TabPane.MIN_MAX_REST );
 
@@ -171,7 +156,7 @@ public class GosuPanel extends JPanel
 
 
     _splitPane = new CollapsibleSplitPane( SwingConstants.HORIZONTAL, experimentViewTabPane, _editorTabPane );
-    _outerSplitPane = new CollapsibleSplitPane( SwingConstants.VERTICAL, _splitPane, _resultsTabPane );
+    _outerSplitPane = new CollapsibleSplitPane( SwingConstants.VERTICAL, _splitPane, _consoleTabPane );
 
     add( _outerSplitPane, BorderLayout.CENTER );
 
@@ -200,30 +185,35 @@ public class GosuPanel extends JPanel
     return _messages;
   }
 
+  public SystemPanel getConsolePanel()
+  {
+    return _consolePanel;
+  }
+
   public void showMessages( boolean bShow )
   {
     if( bShow )
     {
-      ITab tab = _resultsTabPane.findTabWithContent( _messages );
+      ITab tab = _consoleTabPane.findTabWithContent( _messages );
       if( tab == null )
       {
-        _resultsTabPane.addTab( "Messages", null, _messages );
+        _consoleTabPane.addTab( "Messages", null, _messages );
       }
       else
       {
-        _resultsTabPane.selectTab( tab, false );
+        _consoleTabPane.selectTab( tab, false );
       }
     }
     else
     {
       _messages.clear();
-      _resultsTabPane.removeTabWithContent( _messages );
+      _consoleTabPane.removeTabWithContent( _messages );
     }
   }
 
   public void showConsole()
   {
-    _resultsTabPane.selectTabWithContent( _resultPanel, false );
+    _consoleTabPane.selectTabWithContent( _consolePanel, false );
   }
 
   private void handleMacStuff()
@@ -261,7 +251,7 @@ public class GosuPanel extends JPanel
     EditorUtilities.saveLayoutState( _experiment );
   }
 
-  private Experiment getExperiment()
+  Experiment getExperiment()
   {
     return _experiment;
   }
@@ -1773,94 +1763,20 @@ public class GosuPanel extends JPanel
     throw new IllegalStateException( "Unexpected parse element: " + elemAtCaret.getClass().getName() );
   }
 
-  public void execute( String typeName )
+  public void execute( String fqn )
   {
-    try
+    if( _bRunning )
     {
-      if( _bRunning )
-      {
-        return;
-      }
-
-      saveAndReloadType( getCurrentFile(), getCurrentEditor() );
-
-      ClassLoader loader = getClass().getClassLoader();
-      URLClassLoader runLoader = new URLClassLoader( getAllUrlsAboveGosuclassProtocol( (URLClassLoader)loader ), loader.getParent() );
-
-      showConsole();
-
-      TaskQueue queue = TaskQueue.getInstance( "_execute_gosu" );
-      addBusySignal();
-      queue.postTask(
-        () -> {
-          GosuEditor.getParserTaskQueue().waitUntilAllCurrentTasksFinish();
-          IGosuClass program = (IGosuClass)TypeSystem.getByFullName( typeName );
-          try
-          {
-            Class<?> runnerClass = Class.forName( "editor.GosuPanel$Runner", true, runLoader );
-            String fqn = program.getName();
-            printRunningMessage( fqn );
-            getExperiment().setRecentProgram( fqn );
-            String result = null;
-            try
-            {
-              result = (String)runnerClass.getMethod( "run", String.class, List.class ).
-                invoke( null, fqn, getExperiment().getSourcePath().stream().map( File::new ).collect( Collectors.toList() ) );
-            }
-            finally
-            {
-              String programResults = result;
-              EventQueue.invokeLater(
-                () -> {
-                  removeBusySignal();
-                  if( programResults != null )
-                  {
-                    System.out.print( programResults );
-                  }
-                } );
-
-              GosuClassPathThing.addOurProtocolHandler();
-            }
-          }
-          catch( Exception e )
-          {
-            Throwable cause = GosuExceptionUtil.findExceptionCause( e );
-            throw GosuExceptionUtil.forceThrow( cause );
-          }
-        } );
+      return;
     }
-    catch( Throwable t )
-    {
-      editor.util.EditorUtilities.handleUncaughtException( t );
-    }
-  }
 
-  private void printRunningMessage( String fqn )
-  {
-    SimpleAttributeSet attr = new SimpleAttributeSet();
-    attr.addAttribute( StyleConstants.Foreground, new Color( 192, 192, 192 ) );
-    TextComponentWriter out = (TextComponentWriter)System.out;
-    out.setAttributes( attr );
-    System.out.println( "Running: " + fqn + "...\n" );
-    out.setAttributes( null );
-  }
+    saveAndReloadType( getCurrentFile(), getCurrentEditor() );
 
-  private URL[] getAllUrlsAboveGosuclassProtocol( URLClassLoader loader )
-  {
-    List<URL> urls = new ArrayList<>();
-    boolean bAdd = true;
-    for( URL url : loader.getURLs() )
-    {
-      if( bAdd && !url.getProtocol().contains( "gosu" ) )
-      {
-        urls.add( url );
-      }
-      else
-      {
-        bAdd = false;
-      }
-    }
-    return urls.toArray( new URL[urls.size()] );
+    showConsole();
+
+    //InProcessRunner.execute( fqn, this );
+    _processRunner = new OutOfProcessRunner();
+    _processRunner.execute( fqn, this );
   }
 
   public boolean isRunning()
@@ -1873,139 +1789,7 @@ public class GosuPanel extends JPanel
     return _typeNamesCache;
   }
 
-  public static class Runner
-  {
-    public static String run( String typeName, List<File> classpath ) throws Exception
-    {
-      Gosu.init( classpath );
-      GosuClassPathThing.addOurProtocolHandler();
-      GosuClassPathThing.init();
-      IGosuClass gsType = (IGosuClass)TypeSystem.getByFullNameIfValid( typeName );
-      if( gsType instanceof IGosuProgram )
-      {
-        Object result = ((IGosuProgram)gsType).evaluate( null );
-        return (String)CommonServices.getCoercionManager().convertValue( result, JavaTypes.STRING() );
-      }
-      else
-      {
-        IMethodInfo mainMethod = hasStaticMain( gsType );
-        if( mainMethod != null )
-        {
-          ReflectUtil.invokeStaticMethod( gsType.getName(), "main", new Object[]{new String[]{}} );
-          return null;
-        }
-        runTest( gsType );
-        return null;
-      }
-    }
-
-    private static void runTest( IGosuClass gsType ) throws Exception
-    {
-      Class cls = gsType.getBackingClass();
-      Object instance = cls.newInstance();
-      runNamedOrAnnotatedMethod( instance, "beforeClass", "org.junit.BeforeClass" );
-      for( Method m : cls.getMethods() )
-      {
-        if( isTestMethod( m ) )
-        {
-          runNamedOrAnnotatedMethod( instance, "beforeMethod", "org.junit.Before" );
-          try
-          {
-            System.out.println( " - " + m.getName() );
-            m.invoke( instance );
-            System.out.println( SUCCESS );
-          }
-          catch( InvocationTargetException e )
-          {
-            //noinspection ThrowableResultOfMethodCallIgnored
-            Throwable cause = GosuExceptionUtil.findExceptionCause( e );
-            if( cause instanceof AssertionError )
-            {
-              System.out.println( FAILED + cause.getClass().getSimpleName() + " : " + cause.getMessage() );
-              String lines = findPertinentLines( gsType, cause );
-              System.out.println( lines );
-            }
-            else
-            {
-              throw GosuExceptionUtil.forceThrow( cause );
-            }
-          }
-          finally
-          {
-            runNamedOrAnnotatedMethod( instance, "afterMethod", "org.junit.After" );
-          }
-        }
-      }
-      runNamedOrAnnotatedMethod( instance, "afterClass", "org.junit.AfterClass" );
-    }
-
-    private static String findPertinentLines( IGosuClass gsType, Throwable cause )
-    {
-      StringBuilder sb = new StringBuilder();
-      StackTraceElement[] trace = cause.getStackTrace();
-      for( int i = 0; i < trace.length; i++ )
-      {
-        StackTraceElement elem = trace[i];
-        if( elem.getClassName().equals( gsType.getName() ) )
-        {
-          sb.append( "     at " ).append( elem.toString() ).append( "\n" );
-        }
-      }
-      return sb.toString();
-    }
-
-    private static boolean isTestMethod( Method m ) throws Exception
-    {
-      int modifiers = m.getModifiers();
-      return Modifier.isPublic( modifiers ) &&
-             (m.getName().startsWith( "test" ) || hasAnnotation( m, "org.junit.Test" )) &&
-             m.getParameters().length == 0;
-    }
-
-    private static void runNamedOrAnnotatedMethod( Object instance, String methodName, String annoName ) throws Exception
-    {
-      for( Method m : instance.getClass().getMethods() )
-      {
-        if( m.getName().equals( methodName ) )
-        {
-          m.invoke( instance );
-          return;
-        }
-        for( Annotation anno : m.getAnnotations() )
-        {
-          if( anno.annotationType().getName().equals( annoName ) )
-          {
-            m.invoke( instance );
-            return;
-          }
-        }
-      }
-    }
-
-    private static boolean hasAnnotation( Method m, String name ) throws Exception
-    {
-      for( Annotation anno : m.getAnnotations() )
-      {
-        if( anno.annotationType().getName().equals( name ) )
-        {
-          return true;
-        }
-      }
-      return false;
-    }
-
-    private static IMethodInfo hasStaticMain( IGosuClass gsType )
-    {
-      IMethodInfo main = gsType.getTypeInfo().getMethod( "main", JavaTypes.STRING().getArrayType() );
-      if( main != null && main.isStatic() && main.getReturnType() == JavaTypes.pVOID() )
-      {
-        return main;
-      }
-      return null;
-    }
-  }
-
-  private void addBusySignal()
+  void addBusySignal()
   {
     _bRunning = true;
     Timer t =
@@ -2022,19 +1806,33 @@ public class GosuPanel extends JPanel
                  } );
     t.setRepeats( false );
     t.start();
+    pipeInput();
+  }
+
+  private void pipeInput()
+  {
     EventQueue.invokeLater( () -> {
-      PipedInputStream sysIn = new PipedInputStream();
       try
       {
-        _inWriter = new OutputStreamWriter( new PipedOutputStream( sysIn ) );
+        _oldIn = System.in;
+        PipedInputStream sysIn = new PipedInputStream();
+        Process process = _processRunner.getProcess();
+        if( process == null )
+        {
+          // Assume we are in-process
+          _inWriter = new OutputStreamWriter( new PipedOutputStream( sysIn ) );
+          System.setIn( sysIn );
+        }
+        else
+        {
+          _inWriter = new OutputStreamWriter( process.getOutputStream() );
+        }
       }
       catch( IOException e )
       {
         throw new RuntimeException( e );
       }
-      _oldIn = System.in;
-      System.setIn( sysIn );
-      JTextPane outputPanel = _resultPanel.getOutputPanel();
+      JTextPane outputPanel = _consolePanel.getOutputPanel();
       outputPanel.setEditable( true );
       _sysInListener = new SysInListener();
       outputPanel.addKeyListener( _sysInListener );
@@ -2048,24 +1846,24 @@ public class GosuPanel extends JPanel
     {
       if( e.getKeyCode() == KeyEvent.VK_ENTER )
       {
-        JTextPane op = _resultPanel.getOutputPanel();
+        JTextPane op = _consolePanel.getOutputPanel();
         Element elem = getElementAt( op.getCaretPosition() - 1 );
         try
         {
-          String text = _resultPanel.getOutputPanel().getText( elem.getStartOffset(), elem.getEndOffset() - elem.getStartOffset() );
+          String text = _consolePanel.getOutputPanel().getText( elem.getStartOffset(), elem.getEndOffset() - elem.getStartOffset() );
           _inWriter.write( text );
           _inWriter.flush();
         }
         catch( Exception e1 )
         {
-          throw new RuntimeException( e1 );
+          //throw new RuntimeException( e1 );
         }
       }
     }
 
     public Element getElementAt( int offset )
     {
-      return getElementAt( _resultPanel.getOutputPanel().getDocument().getDefaultRootElement(), offset );
+      return getElementAt( _consolePanel.getOutputPanel().getDocument().getDefaultRootElement(), offset );
     }
 
     private Element getElementAt( Element parent, int offset )
@@ -2078,15 +1876,15 @@ public class GosuPanel extends JPanel
     }
   }
 
-  private void removeBusySignal()
+  void removeBusySignal()
   {
     if( _bRunning )
     {
       _bRunning = false;
       _statPanel.setVisible( false );
       _statPanel.revalidate();
-      _resultPanel.getOutputPanel().setEditable( false );
-      _resultPanel.getOutputPanel().removeKeyListener( _sysInListener );
+      _consolePanel.getOutputPanel().setEditable( false );
+      _consolePanel.getOutputPanel().removeKeyListener( _sysInListener );
       _inWriter = null;
       System.setIn( _oldIn );
     }
@@ -2106,7 +1904,7 @@ public class GosuPanel extends JPanel
 
   public void clearOutput()
   {
-    _resultPanel.clear();
+    _consolePanel.clear();
   }
 
   public AtomicUndoManager getUndoManager()
@@ -2275,7 +2073,20 @@ public class GosuPanel extends JPanel
         TaskQueue.emptyAndRemoveQueue( "_execute_gosu" );
         //noinspection deprecation
         queue.stop();
+        killProcess();
         removeBusySignal();
+      }
+    }
+
+    private void killProcess()
+    {
+      if( _processRunner != null )
+      {
+        Process process = _processRunner.getProcess();
+        if( process != null && process.isAlive() )
+        {
+          process.destroy();
+        }
       }
     }
   }
