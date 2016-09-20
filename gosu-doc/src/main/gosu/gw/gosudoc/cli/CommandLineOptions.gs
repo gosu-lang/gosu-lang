@@ -8,6 +8,13 @@ uses java.io.File
 
 class CommandLineOptions {
 
+  @Parameter(:names = {"-cp", "-classpath"}, :description = "Specify where to find user class files")
+  var _classpath : List<File>
+
+  property get Classpath() : List<File> {
+    return _classpath
+  }
+
   @Parameter(:names = { "-externalDocs" }, :description = "List of external documents", :variableArity = true)
   var _externalDocs : List<String>
   
@@ -33,14 +40,14 @@ class CommandLineOptions {
   }
 
   @Parameter(:names = { "-inputDirs" }, :description = "List of source directories to process", :variableArity = true, :validateWith = FileExists)
-  var _inputDirs : List<File>// = new ArrayList<File>()
+  var _inputDirs : List<File>
   
   property get InputDirs() : List<File> {
     return _inputDirs
   }
 
   @Parameter(:names = { "-output" }, :description = "Directory to write output")
-  var _output : File //= new ArrayList<File>()
+  var _output : File
   
   property get Output() : File {
     return _output
