@@ -164,7 +164,7 @@ public class Debugger
         }
         else if( event instanceof VMStartEvent )
         {
-          handleVMStartEvent( (VMStartEvent)event );
+          handleVMStartEvent();
         }
         else if( event instanceof VMDisconnectEvent )
         {
@@ -272,7 +272,7 @@ public class Debugger
     handleSuspendLocatableEvent( event );
   }
 
-  private void handleVMStartEvent( VMStartEvent event )
+  private void handleVMStartEvent()
   {
     addBreakpoints();
     resumeProgram();
@@ -548,6 +548,12 @@ public class Debugger
   private String getOutermostType( Location loc )
   {
     String name = loc.declaringType().name();
+    if( name.contains( "$ProxyFor_" ) )
+    {
+      // this is a generated proxy; there is no source for this
+      return name;
+    }
+
     int iDollar = name.indexOf( '$' );
     if( iDollar > 0 )
     {
