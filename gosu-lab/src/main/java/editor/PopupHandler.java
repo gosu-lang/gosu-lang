@@ -47,16 +47,7 @@ public class PopupHandler<E> extends MouseAdapter
   /** */
   protected void handleRightClick( final int iXPos, final int iYPos, final Component component )
   {
-    EventQueue.invokeLater(
-      new Runnable()
-      {
-        public void run()
-        {
-          // Hack to make disabled ui controls wake up.
-//          UpdateNotifier.instance().notifyActionComponentsNow();
-          _contextMenuHandler.displayContextMenu( _owner, iXPos, iYPos, component );
-        }
-      } );
+    EventQueue.invokeLater( () -> _contextMenuHandler.displayContextMenu( _owner, iXPos, iYPos, component ) );
   }
 
 }

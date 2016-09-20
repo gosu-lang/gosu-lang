@@ -1,9 +1,9 @@
 package editor.util;
 
+import editor.actions.UpdateNotifier;
 import gw.util.GosuObjectUtil;
 
 import javax.swing.*;
-import javax.swing.border.Border;
 import javax.swing.plaf.basic.BasicButtonUI;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
@@ -33,13 +33,9 @@ public class XPToolbarButton extends JButton
     setBackground(EditorUtilities.CONTROL );
     setContentAreaFilled( false );
     setOpaque( true );
-    EventQueue.invokeLater( new Runnable()
-    {
-      public void run()
-      {
-        setBorder( BorderFactory.createCompoundBorder( BorderFactory.createLineBorder( EditorUtilities.XP_BORDER_COLOR ), BorderFactory.createEmptyBorder( iMargin, iMargin, iMargin, iMargin ) ) );
-        setBackground(EditorUtilities.CONTROL );
-      }
+    EventQueue.invokeLater( () -> {
+      setBorder( BorderFactory.createCompoundBorder( BorderFactory.createLineBorder( EditorUtilities.XP_BORDER_COLOR ), BorderFactory.createEmptyBorder( iMargin, iMargin, iMargin, iMargin ) ) );
+      setBackground(EditorUtilities.CONTROL );
     } );
 
     addMouseListener( createMouseListener() );
@@ -141,11 +137,7 @@ public class XPToolbarButton extends JButton
   {
     this();
     setAction( action );
-/*
-    if(action.getValue(Action.SMALL_ICON) != null) {
-      setText(null);
-    }
-*/
+    UpdateNotifier.instance().addActionComponent( this );
   }
 
   @Override

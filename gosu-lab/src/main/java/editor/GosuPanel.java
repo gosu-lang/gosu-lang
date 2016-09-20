@@ -1,5 +1,9 @@
 package editor;
 
+import com.sun.jdi.VirtualMachine;
+import editor.actions.UpdateNotifier;
+import editor.debugger.BreakpointManager;
+import editor.debugger.Debugger;
 import editor.search.StandardLocalSearch;
 import editor.search.StudioUtilities;
 import editor.shipit.BuildIt;
@@ -17,10 +21,7 @@ import editor.util.LabelListPopup;
 import editor.util.PlatformUtil;
 import editor.util.SettleModalEventQueue;
 import editor.util.SmartMenu;
-import editor.util.TaskQueue;
 import editor.util.TypeNameUtil;
-import editor.util.XPToolbarButton;
-import gw.fs.IDirectory;
 import gw.internal.ext.org.objectweb.asm.ClassReader;
 import gw.internal.ext.org.objectweb.asm.util.TraceClassVisitor;
 import gw.lang.Gosu;
@@ -47,6 +48,7 @@ import javax.swing.filechooser.FileFilter;
 import javax.swing.text.AbstractDocument;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.Element;
+import javax.swing.tree.TreeModel;
 import javax.swing.undo.CompoundEdit;
 import java.awt.*;
 import java.awt.datatransfer.Clipboard;
@@ -86,9 +88,9 @@ public class GosuPanel extends JPanel
   private CollapsibleSplitPane _splitPane;
   private ExperimentView _experimentView;
   private JFrame _parentFrame;
-  private boolean _bRunning;
+  private RunState _runState;
   private TabPane _editorTabPane;
-  private TabPane _consoleTabPane;
+  private TabPane _bottomTabPane;
   private AtomicUndoManager _defaultUndoMgr;
   private NavigationHistory _history;
   private JLabel _status;
@@ -101,12 +103,16 @@ public class GosuPanel extends JPanel
   private InputStream _oldIn;
   private MessagesPanel _messages;
   private IProcessRunner _processRunner;
+  private BreakpointManager _breakpointManager;
+  private Debugger _debugger;
 
   public GosuPanel( JFrame basicGosuEditor )
   {
     _parentFrame = basicGosuEditor;
     _defaultUndoMgr = new AtomicUndoManager( 10 );
     _typeNamesCache = new TypeNameCache();
+    _runState = RunState.None;
+    _breakpointManager = new BreakpointManager();
     configUI();
   }
 
@@ -119,12 +125,12 @@ public class GosuPanel extends JPanel
   {
     setLayout( new BorderLayout() );
 
-    _consoleTabPane = new TabPane( TabPane.MINIMIZABLE | TabPane.RESTORABLE );
+    _bottomTabPane = new TabPane( TabPane.MINIMIZABLE | TabPane.RESTORABLE );
 
     _messages = new MessagesPanel();
 
     _consolePanel = new SystemPanel();
-    _consoleTabPane.addTab( "Console", null, _consolePanel );
+    _bottomTabPane.addTab( "Console", null, _consolePanel );
 
     _editorTabPane = new TabPane( TabPosition.TOP, TabPane.DYNAMIC | TabPane.MIN_MAX_REST );
 
@@ -156,7 +162,7 @@ public class GosuPanel extends JPanel
 
 
     _splitPane = new CollapsibleSplitPane( SwingConstants.HORIZONTAL, experimentViewTabPane, _editorTabPane );
-    _outerSplitPane = new CollapsibleSplitPane( SwingConstants.VERTICAL, _splitPane, _consoleTabPane );
+    _outerSplitPane = new CollapsibleSplitPane( SwingConstants.VERTICAL, _splitPane, _bottomTabPane );
 
     add( _outerSplitPane, BorderLayout.CENTER );
 
@@ -194,26 +200,26 @@ public class GosuPanel extends JPanel
   {
     if( bShow )
     {
-      ITab tab = _consoleTabPane.findTabWithContent( _messages );
+      ITab tab = _bottomTabPane.findTabWithContent( _messages );
       if( tab == null )
       {
-        _consoleTabPane.addTab( "Messages", null, _messages );
+        _bottomTabPane.addTab( "Messages", null, _messages );
       }
       else
       {
-        _consoleTabPane.selectTab( tab, false );
+        _bottomTabPane.selectTab( tab, false );
       }
     }
     else
     {
       _messages.clear();
-      _consoleTabPane.removeTabWithContent( _messages );
+      _bottomTabPane.removeTabWithContent( _messages );
     }
   }
 
   public void showConsole()
   {
-    _consoleTabPane.selectTabWithContent( _consolePanel, false );
+    _bottomTabPane.selectTabWithContent( _consolePanel, false );
   }
 
   private void handleMacStuff()
@@ -254,37 +260,6 @@ public class GosuPanel extends JPanel
   Experiment getExperiment()
   {
     return _experiment;
-  }
-
-  static List<String> getLocalClasspath()
-  {
-    List<String> localPath = new ArrayList<>();
-    List<IDirectory> classpath = TypeSystem.getGlobalModule().getSourcePath();
-    for( int i = 0; i < classpath.size(); i++ )
-    {
-      File file = classpath.get( i ).toJavaFile();
-      String filePath = file.getAbsolutePath().toLowerCase();
-      if( !isUpperLevelClasspath( filePath ) )
-      {
-        localPath.add( file.getAbsolutePath() );
-      }
-    }
-    return localPath;
-  }
-
-  public static boolean isUpperLevelClasspath( String filePath )
-  {
-    String javaHome = System.getProperty( "java.home" ).toLowerCase();
-    if( filePath.replace( '\\', '/' ).contains( "gosu-lab/src/main/resources" ) )
-    {
-      // sample experiment resource
-      return false;
-    }
-
-    return filePath.startsWith( javaHome ) ||
-           filePath.contains( File.separator + "gosu-lang" + File.separator ) ||
-           filePath.endsWith( File.separator + "tools.jar" ) ||
-           filePath.endsWith( File.separator + "idea_rt.jar" );
   }
 
   public void restoreExperimentState( Experiment experiment )
@@ -334,12 +309,16 @@ public class GosuPanel extends JPanel
   {
     _statPanel = new JPanel( new BorderLayout() );
     _status = new JLabel();
-    XPToolbarButton btnStop = new XPToolbarButton( "Stop" );
-    btnStop.addActionListener( new StopActionHandler() );
-    _statPanel.add( btnStop, BorderLayout.WEST );
     _statPanel.add( _status, BorderLayout.CENTER );
     _statPanel.setVisible( false );
     return _statPanel;
+  }
+
+  public void setStatus( String status )
+  {
+    _status.setText( status );
+    _statPanel.setVisible( status != null && !status.isEmpty() );
+    _status.revalidate();
   }
 
   private void parse()
@@ -376,7 +355,7 @@ public class GosuPanel extends JPanel
 
   private GosuEditor createEditor()
   {
-    final GosuEditor editor = new GosuEditor( null,
+    final GosuEditor editor = new GosuEditor( new GosuClassLineInfoManager(),
                                               new AtomicUndoManager( 10000 ),
                                               ScriptabilityModifiers.SCRIPTABLE,
                                               new DefaultContextMenuHandler(),
@@ -735,33 +714,52 @@ public class GosuPanel extends JPanel
     return selectedTab == null ? null : (GosuEditor)selectedTab.getContentPane();
   }
 
+  public IType getCurrentEditorType()
+  {
+    return getCurrentEditor() == null
+           ? null
+           : getCurrentEditor().getScriptPart() == null
+             ? null
+             : getCurrentEditor().getScriptPart().getContainingType();
+  }
+
   private void makeRunMenu( JMenuBar menuBar )
   {
     JMenu runMenu = new SmartMenu( "Run" );
     runMenu.setMnemonic( 'R' );
     menuBar.add( runMenu );
 
-    runMenu.add( CommonMenus.makeRun( () -> getCurrentEditor() == null
-                                            ? null
-                                            : getCurrentEditor().getScriptPart() == null
-                                              ? null
-                                              : getCurrentEditor().getScriptPart().getContainingType() ) );
+    runMenu.add( CommonMenus.makeRun( this::getCurrentEditorType ) );
+    runMenu.add( CommonMenus.makeDebug( this::getCurrentEditorType ) );
 
     JMenuItem runRecentItem = new JMenuItem( new RunRecentActionHandler() );
     runRecentItem.setMnemonic( 'C' );
-    runRecentItem.setAccelerator( KeyStroke.getKeyStroke( "F9" ) );
+    runRecentItem.setAccelerator( KeyStroke.getKeyStroke( "control F5" ) );
     runMenu.add( runRecentItem );
 
     runMenu.addSeparator();
 
-    JMenuItem stopItem = new JMenuItem( new StopActionHandler() );
-    stopItem.setMnemonic( 'S' );
-    stopItem.setAccelerator( KeyStroke.getKeyStroke( "control F2" ) );
-    runMenu.add( stopItem );
+    runMenu.add( CommonMenus.makeStop( () -> this ) );
 
     runMenu.addSeparator();
 
-    runMenu.add( CommonMenus.makeClear( this::getCurrentEditor ) );
+    runMenu.add( CommonMenus.makeStepOver( this::getDebugger ) );
+    runMenu.add( CommonMenus.makeStepInto( this::getDebugger ) );
+    runMenu.add( CommonMenus.makeStepOut( this::getDebugger ) );
+    runMenu.add( CommonMenus.makeRunToCursor( this::getDebugger, this::getBreakpointManager, this::getCurrentEditor ) );
+    runMenu.add( CommonMenus.makeDropFrame( this::getDebugger ) );
+    runMenu.add( CommonMenus.makePause( this::getDebugger ) );
+    runMenu.add( CommonMenus.makeResume( this::getDebugger ) );
+
+    runMenu.addSeparator();
+
+    runMenu.add( CommonMenus.makeToggleBreakpoint( this::getBreakpointManager, this::getCurrentEditor ) );
+    runMenu.add( CommonMenus.makeViewBreakpoints( () -> null ) );
+    runMenu.add( CommonMenus.makeMuteBreakpoints( this::getBreakpointManager ) );
+
+    runMenu.addSeparator();
+
+    runMenu.add( CommonMenus.makeClear( () -> this ) );
   }
 
   private void makeSearchMenu( JMenuBar menuBar )
@@ -802,10 +800,16 @@ public class GosuPanel extends JPanel
         @Override
         public void actionPerformed( ActionEvent e )
         {
-          if( StandardLocalSearch.canRepeatFind( getCurrentEditor() ) )
+          if( isEnabled() )
           {
             StandardLocalSearch.repeatFind( getCurrentEditor() );
           }
+        }
+
+        @Override
+        public boolean isEnabled()
+        {
+          return StandardLocalSearch.canRepeatFind( getCurrentEditor() );
         }
       } );
     nextItem.setMnemonic( 'N' );
@@ -818,10 +822,16 @@ public class GosuPanel extends JPanel
         @Override
         public void actionPerformed( ActionEvent e )
         {
-          if( StandardLocalSearch.canRepeatFind( getCurrentEditor() ) )
+          if( isEnabled() )
           {
             StandardLocalSearch.repeatFindBackwards( getCurrentEditor() );
           }
+        }
+
+        @Override
+        public boolean isEnabled()
+        {
+          return StandardLocalSearch.canRepeatFind( getCurrentEditor() );
         }
       } );
     previousItem.setMnemonic( 'P' );
@@ -1327,6 +1337,19 @@ public class GosuPanel extends JPanel
     openFile( makePartId( file ), file );
   }
 
+  public boolean openType( String fqn )
+  {
+    TreeModel model = RunMe.getEditorFrame().getGosuPanel().getExperimentView().getTree().getModel();
+    FileTree root = (FileTree)model.getRoot();
+    FileTree fileTree = root.find( fqn );
+    if( fileTree != null )
+    {
+      RunMe.getEditorFrame().getGosuPanel().openFile( fileTree.getFileOrDir() );
+      return true;
+    }
+    return false;
+  }
+
   public static IScriptPartId makePartId( File file )
   {
     TypeSystem.pushGlobalModule();
@@ -1765,7 +1788,7 @@ public class GosuPanel extends JPanel
 
   public void execute( String fqn )
   {
-    if( _bRunning )
+    if( _runState != RunState.None )
     {
       return;
     }
@@ -1775,13 +1798,34 @@ public class GosuPanel extends JPanel
     showConsole();
 
     //InProcessRunner.execute( fqn, this );
-    _processRunner = new OutOfProcessRunner();
+    _processRunner = new OutOfProcessRunner( RunState.Run );
+    _processRunner.execute( fqn, this );
+  }
+
+  public void debug( String fqn )
+  {
+    if( _runState != RunState.None )
+    {
+      return;
+    }
+
+    saveAndReloadType( getCurrentFile(), getCurrentEditor() );
+
+    showConsole();
+
+    //InProcessRunner.execute( fqn, this );
+    _processRunner = new OutOfProcessRunner( RunState.Debug );
     _processRunner.execute( fqn, this );
   }
 
   public boolean isRunning()
   {
-    return _bRunning;
+    return _runState == RunState.Run;
+  }
+
+  public boolean isDebugging()
+  {
+    return _runState == RunState.Debug;
   }
 
   public TypeNameCache getTypeNamesCache()
@@ -1789,27 +1833,12 @@ public class GosuPanel extends JPanel
     return _typeNamesCache;
   }
 
-  void addBusySignal()
+  void addBusySignal( RunState runState )
   {
-    _bRunning = true;
-    Timer t =
-      new Timer( 2000,
-                 e -> {
-                   //noinspection ConstantConditions
-                   if( _bRunning )
-                   {
-                     _status.setIcon( EditorUtilities.loadIcon( "images/status_anim.gif" ) );
-                     _status.setText( "<html>Running <i>" + getCurrentFile().getName() + "</i></html>" );
-                     _statPanel.setVisible( true );
-                     _statPanel.revalidate();
-                   }
-                 } );
-    t.setRepeats( false );
-    t.start();
-    pipeInput();
+    _runState = runState;
   }
 
-  private void pipeInput()
+  void pipeInput()
   {
     EventQueue.invokeLater( () -> {
       try
@@ -1837,6 +1866,38 @@ public class GosuPanel extends JPanel
       _sysInListener = new SysInListener();
       outputPanel.addKeyListener( _sysInListener );
     } );
+  }
+
+  public void killProcess()
+  {
+    if( _processRunner != null )
+    {
+      Process process = _processRunner.getProcess();
+      if( process != null && process.isAlive() )
+      {
+        process.destroy();
+      }
+    }
+  }
+
+  public Debugger getDebugger()
+  {
+    return _debugger;
+  }
+  public void clearDebugger()
+  {
+    _debugger = null;
+  }
+
+  public void makeDebugger( VirtualMachine vm )
+  {
+    _debugger = new Debugger( vm, _breakpointManager );
+    _debugger.startDebugging();
+  }
+
+  public BreakpointManager getBreakpointManager()
+  {
+    return _breakpointManager;
   }
 
   class SysInListener extends KeyAdapter
@@ -1878,9 +1939,9 @@ public class GosuPanel extends JPanel
 
   void removeBusySignal()
   {
-    if( _bRunning )
+    if( _runState != RunState.None )
     {
-      _bRunning = false;
+      _runState = RunState.None;
       _statPanel.setVisible( false );
       _statPanel.revalidate();
       _consolePanel.getOutputPanel().setEditable( false );
@@ -1900,6 +1961,10 @@ public class GosuPanel extends JPanel
     {
       t.printStackTrace();
     }
+  }
+  void debugTemplate()
+  {
+    executeTemplate();
   }
 
   public void clearOutput()
@@ -2055,39 +2120,6 @@ public class GosuPanel extends JPanel
                  return null;
                }
              } );
-    }
-  }
-
-  class StopActionHandler extends AbstractAction
-  {
-    public StopActionHandler()
-    {
-      super( "Stop" );
-    }
-
-    public void actionPerformed( ActionEvent e )
-    {
-      if( isEnabled() )
-      {
-        TaskQueue queue = TaskQueue.getInstance( "_execute_gosu" );
-        TaskQueue.emptyAndRemoveQueue( "_execute_gosu" );
-        //noinspection deprecation
-        queue.stop();
-        killProcess();
-        removeBusySignal();
-      }
-    }
-
-    private void killProcess()
-    {
-      if( _processRunner != null )
-      {
-        Process process = _processRunner.getProcess();
-        if( process != null && process.isAlive() )
-        {
-          process.destroy();
-        }
-      }
     }
   }
 

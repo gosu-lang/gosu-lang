@@ -40,10 +40,11 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.function.Predicate;
 import java.util.regex.Pattern;
-import java.util.List;
 import java.util.regex.PatternSyntaxException;
 
 public class EditorUtilities
@@ -862,6 +863,7 @@ public class EditorUtilities
       props.put( "Frame.Bounds.Height", String.valueOf( bounds.height ) );
     }
   }
+
   private static void restoreScreenProps( Map<String, String> props )
   {
     BasicGosuEditor frame = RunMe.getEditorFrame();
@@ -909,7 +911,7 @@ public class EditorUtilities
 
     String[] experiments = new String[100];
     int iMax = 0;
-    for( String key: props.keySet() )
+    for( String key : props.keySet() )
     {
       if( key.startsWith( "experiment." ) )
       {
@@ -926,10 +928,11 @@ public class EditorUtilities
         }
       }
     }
-    String[] trunc = new String[iMax+1];
+    String[] trunc = new String[iMax + 1];
     System.arraycopy( experiments, 0, trunc, 0, trunc.length );
     frame.setExperiments( new ArrayList<>( Arrays.asList( trunc ) ) );
   }
+
   private static Integer readInteger( Map<String, String> props, String prop )
   {
     String value = props.get( prop );
@@ -943,8 +946,8 @@ public class EditorUtilities
   private static void setInitialFrameBounds( Frame frame )
   {
     Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-    int width = screenSize.width*2/3;
-    int height = width*2/3;
+    int width = screenSize.width * 2 / 3;
+    int height = width * 2 / 3;
     frame.setSize( width, height );
     EditorUtilities.centerWindowInFrame( frame, frame );
   }
@@ -1051,10 +1054,11 @@ public class EditorUtilities
     return experiments;
   }
 
-  public static File findExperimentFile(File dir) {
+  public static File findExperimentFile( File dir )
+  {
     for( File f : dir.listFiles() )
     {
-      if(f.getName().equalsIgnoreCase( dir.getName() + ".prj" ))
+      if( f.getName().equalsIgnoreCase( dir.getName() + ".prj" ) )
       {
         return f;
       }
@@ -1176,5 +1180,46 @@ public class EditorUtilities
   public static ImageIcon loadLabIcon()
   {
     return loadIcon( "images/project4.png" );
+  }
+
+  public static <T> List<T> findDecendents( Component configUI, Class<T> aClass )
+  {
+    return findDecendents( configUI, aClass, c -> true );
+  }
+
+  private static <T> void _findDecendents( ArrayList<T> comps, Component component, Class<T> aClass, Predicate<Container> recurseToChildren )
+  {
+    if( aClass.isInstance( component ) )
+    {
+      //noinspection unchecked
+      comps.add( (T)component );
+    }
+    if( component instanceof Container )
+    {
+      Container container = (Container)component;
+      Component[] components = container.getComponents();
+      if( recurseToChildren.test( container ) )
+      {
+        for( Component child : components )
+        {
+          _findDecendents( comps, child, aClass, recurseToChildren );
+        }
+        if( container instanceof JMenu )
+        {
+          JPopupMenu popupMenu = ((JMenu)container).getPopupMenu();
+          if( popupMenu != null )
+          {
+            _findDecendents( comps, popupMenu, aClass, recurseToChildren );
+          }
+        }
+      }
+    }
+  }
+
+  public static <T> List<T> findDecendents( Component configUI, Class<T> aClass, Predicate<Container> recurseToChildren )
+  {
+    ArrayList<T> comps = new ArrayList<T>();
+    _findDecendents( comps, configUI, aClass, recurseToChildren );
+    return comps;
   }
 }

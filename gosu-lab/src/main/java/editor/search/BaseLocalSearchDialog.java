@@ -157,7 +157,7 @@ public abstract class BaseLocalSearchDialog extends JDialog
           }
           else
           {
-            MessageDisplay.displayInformation( "Text: " + strText );
+            MessageDisplay.displayInformation( "<html><pre>\"" + strText + "\"</pre> not found" );
           }
         }
       }

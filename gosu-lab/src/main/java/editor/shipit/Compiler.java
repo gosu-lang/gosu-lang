@@ -84,7 +84,7 @@ public class Compiler
       messages.appendToTop( _warnings );
     }
     _iWarnings += parseException.getParseWarnings().size();
-    _warnings.setMessage( "Information: " + _iWarnings + " warnings" );
+    _warnings.setMessage( "Warnings: " + _iWarnings );
   }
 
   private void addErrors( ParseResultsException parseException, MessagesPanel messages )
@@ -95,7 +95,7 @@ public class Compiler
       messages.appendToTop( _errors );
     }
     _iErrors += parseException.getParseExceptions().size();
-    _errors.setMessage( "Information: " + _iErrors + " errors" );
+    _errors.setMessage( "Errors: " + _iErrors );
   }
 
   private void addFailure( MessagesPanel messages )
@@ -106,7 +106,7 @@ public class Compiler
       messages.appendToTop( _failures );
     }
     _iFailures++;
-    _failures.setMessage( "Information: " + _iFailures + " failures" );
+    _failures.setMessage( "Failures: " + _iFailures );
   }
 
   public boolean compile( IGosuClass gsClass, ICompileConsumer consumer, MessagesPanel messages )
@@ -218,13 +218,9 @@ public class Compiler
       IGosuClass gsClass = _issue.getSource().getGosuClass();
       gsClass = getOuterMostEnclosingClass( gsClass );
 
-      TreeModel model = RunMe.getEditorFrame().getGosuPanel().getExperimentView().getTree().getModel();
-      FileTree root = (FileTree)model.getRoot();
-      FileTree fileTree = root.find( gsClass.getName() );
-
-      RunMe.getEditorFrame().getGosuPanel().openFile( fileTree.getFileOrDir() );
+      RunMe.getEditorFrame().getGosuPanel().openType( gsClass.getName() );
       SettleModalEventQueue.instance().run();
-      RunMe.getEditorFrame().getGosuPanel().getCurrentEditor().gotoLine( _issue.getLine() );
+      RunMe.getEditorFrame().getGosuPanel().getCurrentEditor().gotoLine( _issue.getLine(), _issue.getColumn() );
     }
 
     private IGosuClass getOuterMostEnclosingClass( IGosuClass innerClass )

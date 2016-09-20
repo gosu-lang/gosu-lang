@@ -18,14 +18,7 @@ public class ModalEventQueue implements Runnable
    */
   public ModalEventQueue( final Component visibleComponent )
   {
-    _modalHandler =
-      new IModalHandler()
-      {
-        public boolean isModal()
-        {
-          return visibleComponent.isVisible();
-        }
-      };
+    _modalHandler = visibleComponent::isVisible;
   }
 
   public ModalEventQueue( IModalHandler modalHandler )
@@ -37,7 +30,7 @@ public class ModalEventQueue implements Runnable
   {
     while( isModal() )
     {
-      // handleIdleTime();
+      handleIdleTime();
       try
       {
         AWTEvent event = Toolkit.getDefaultToolkit().getSystemEventQueue().getNextEvent();
@@ -50,6 +43,21 @@ public class ModalEventQueue implements Runnable
     }
   }
 
+  private void handleIdleTime()
+  {
+    try
+    {
+      if( Toolkit.getDefaultToolkit().getSystemEventQueue().peekEvent() == null )
+      {
+        UpdateNotifier.instance().notifyActionComponentsNow();
+      }
+    }
+    catch( Throwable t )
+    {
+      EditorUtilities.handleUncaughtException(t);
+    }
+  }
+
   protected void handleUncaughtException( Throwable t )
   {
     throw new RuntimeException( t );
@@ -58,14 +66,6 @@ public class ModalEventQueue implements Runnable
   protected boolean isModal()
   {
     return _modalHandler.isModal();
-  }
-
-  private void handleIdleTime()
-  {
-    if( Toolkit.getDefaultToolkit().getSystemEventQueue().peekEvent() == null )
-    {
-      UpdateNotifier.instance().notifyActionComponentsNow();
-    }
   }
 
   public void dispatchEvent( AWTEvent event )
@@ -85,3 +85,4 @@ public class ModalEventQueue implements Runnable
     }
   }
 }
+

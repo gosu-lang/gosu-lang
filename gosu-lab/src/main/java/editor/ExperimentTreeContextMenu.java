@@ -5,7 +5,7 @@ import editor.util.PlatformUtil;
 import editor.util.Experiment;
 import editor.util.SmartMenu;
 import gw.lang.reflect.IType;
-import gw.lang.reflect.gs.IGosuProgram;
+import gw.lang.reflect.gs.IGosuClass;
 
 import javax.swing.*;
 import java.awt.*;
@@ -54,10 +54,11 @@ public class ExperimentTreeContextMenu implements IContextMenuHandler<JTree>
     if( item != null )
     {
       IType type = item.getType();
-      if( type instanceof IGosuProgram )
+      if( type instanceof IGosuClass )
       {
         menu.add( new JSeparator() );
         menu.add( CommonMenus.makeRun( () -> type ) );
+        menu.add( CommonMenus.makeDebug( () -> type ) );
       }
     }
     return menu;

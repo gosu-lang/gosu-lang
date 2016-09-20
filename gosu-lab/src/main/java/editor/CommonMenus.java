@@ -1,5 +1,9 @@
 package editor;
 
+import editor.actions.UpdateNotifier;
+import editor.debugger.BreakpointManager;
+import editor.debugger.Debugger;
+import editor.util.EditorUtilities;
 import gw.lang.reflect.IMethodInfo;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.TypeSystem;
@@ -70,7 +74,7 @@ public class CommonMenus
 
   public static JMenuItem makePasteJavaAsGosu( Supplier<GosuEditor> editor )
   {
-    JMenuItem pasteItem = new JMenuItem(
+    return new JMenuItem(
       new AbstractAction( "Paste Java as Gosu" )
       {
         @Override
@@ -79,7 +83,6 @@ public class CommonMenus
           editor.get().clipPaste( RunMe.getEditorFrame().getGosuPanel().getClipboard(), true );
         }
       } );
-    return pasteItem;
   }
 
   public static JMenuItem makeCodeComplete( Supplier<GosuEditor> editor )
@@ -102,17 +105,17 @@ public class CommonMenus
   public static JMenuItem makeParameterInfo( Supplier<GosuEditor> editor )
   {
     JMenuItem paraminfoItem = new JMenuItem(
-          new AbstractAction( "Parameter Info" )
+      new AbstractAction( "Parameter Info" )
+      {
+        @Override
+        public void actionPerformed( ActionEvent e )
+        {
+          if( !editor.get().isIntellisensePopupShowing() )
           {
-            @Override
-            public void actionPerformed( ActionEvent e )
-            {
-              if( !editor.get().isIntellisensePopupShowing() )
-              {
-                editor.get().displayParameterInfoPopup( editor.get().getEditor().getCaretPosition() );
-              }
-            }
-          } );
+            editor.get().displayParameterInfoPopup( editor.get().getEditor().getCaretPosition() );
+          }
+        }
+      } );
     paraminfoItem.setMnemonic( 'P' );
     paraminfoItem.setAccelerator( KeyStroke.getKeyStroke( "control P" ) );
 
@@ -122,14 +125,14 @@ public class CommonMenus
   public static JMenuItem makeExpressionType( Supplier<GosuEditor> editor )
   {
     JMenuItem typeItem = new JMenuItem(
-          new AbstractAction( "Expression Type" )
-          {
-            @Override
-            public void actionPerformed( ActionEvent e )
-            {
-              editor.get().displayTypeInfoAtCurrentLocation();
-            }
-          } );
+      new AbstractAction( "Expression Type" )
+      {
+        @Override
+        public void actionPerformed( ActionEvent e )
+        {
+          editor.get().displayTypeInfoAtCurrentLocation();
+        }
+      } );
     typeItem.setMnemonic( 'T' );
     typeItem.setAccelerator( KeyStroke.getKeyStroke( "control T" ) );
 
@@ -139,54 +142,54 @@ public class CommonMenus
   public static JMenuItem makeGotoDeclaration( Supplier<GosuEditor> editor )
   {
     JMenuItem navigate = new JMenuItem(
-          new AbstractAction( "Goto Declaration" )
-          {
-            @Override
-            public void actionPerformed( ActionEvent e )
-            {
-              editor.get().gotoDeclaration();
-            }
-          } );
-        navigate.setMnemonic( 'D' );
-        navigate.setAccelerator( KeyStroke.getKeyStroke( "control B" ) );
+      new AbstractAction( "Goto Declaration" )
+      {
+        @Override
+        public void actionPerformed( ActionEvent e )
+        {
+          editor.get().gotoDeclaration();
+        }
+      } );
+    navigate.setMnemonic( 'D' );
+    navigate.setAccelerator( KeyStroke.getKeyStroke( "control B" ) );
     return navigate;
   }
 
   public static JMenuItem makeShowFileInTree( Supplier<GosuEditor> editor )
   {
     JMenuItem navigate = new JMenuItem(
-          new AbstractAction( "Select File in Tree" )
-          {
-            @Override
-            public void actionPerformed( ActionEvent e )
-            {
-              editor.get().showFileInTree();
-            }
-          } );
-        navigate.setMnemonic( 'F' );
-        navigate.setAccelerator( KeyStroke.getKeyStroke( "alt F" ) );
+      new AbstractAction( "Select File in Tree" )
+      {
+        @Override
+        public void actionPerformed( ActionEvent e )
+        {
+          editor.get().showFileInTree();
+        }
+      } );
+    navigate.setMnemonic( 'F' );
+    navigate.setAccelerator( KeyStroke.getKeyStroke( "alt F" ) );
     return navigate;
   }
 
   public static JMenuItem makeQuickDocumentation( Supplier<GosuEditor> editor )
   {
     JMenuItem quickDoc = new JMenuItem(
-          new AbstractAction( "Quick Documentation" )
-          {
-            @Override
-            public void actionPerformed( ActionEvent e )
-            {
-              editor.get().displayJavadocHelp( editor.get().getDeepestLocationAtCaret() );
-            }
-          } );
-        quickDoc.setMnemonic( 'Q' );
-        quickDoc.setAccelerator( KeyStroke.getKeyStroke( "control Q" ) );
+      new AbstractAction( "Quick Documentation" )
+      {
+        @Override
+        public void actionPerformed( ActionEvent e )
+        {
+          editor.get().displayJavadocHelp( editor.get().getDeepestLocationAtCaret() );
+        }
+      } );
+    quickDoc.setMnemonic( 'Q' );
+    quickDoc.setAccelerator( KeyStroke.getKeyStroke( "control Q" ) );
     return quickDoc;
   }
 
   public static JMenuItem makeViewBytecode()
   {
-    JMenuItem viewBytecode = new JMenuItem(
+    JMenuItem item = new JMenuItem(
       new AbstractAction( "View Bytecode" )
       {
         @Override
@@ -195,26 +198,212 @@ public class CommonMenus
           RunMe.getEditorFrame().getGosuPanel().dumpBytecode();
         }
       } );
-    return viewBytecode;
+    item.setMnemonic( 'y' );
+    return item;
   }
 
-  public static JMenuItem makeRun( Supplier<IType> program )
+  public static JMenuItem makeRun( Supplier<IType> type )
   {
-    JMenuItem runItem = new JMenuItem( new ClearAndRunActionHandler( "Run", program ) );
-    runItem.setMnemonic( 'R' );
-    runItem.setAccelerator( KeyStroke.getKeyStroke( "F5" ) );
-    return runItem;
+    JMenuItem item = new JMenuItem( new ClearAndRunActionHandler( "Run", type ) );
+    item.setMnemonic( 'R' );
+    item.setAccelerator( KeyStroke.getKeyStroke( "F5" ) );
+    UpdateNotifier.instance().addActionComponent( item );
+    return item;
   }
 
-  public static JMenuItem makeClear( Supplier<GosuEditor> editor )
+  public static JMenuItem makeDebug( Supplier<IType> type )
+  {
+    JMenuItem item = new JMenuItem( new ClearAndDebugActionHandler( "Debug", type ) );
+    item.setMnemonic( 'D' );
+    item.setAccelerator( KeyStroke.getKeyStroke( "alt F5" ) );
+    UpdateNotifier.instance().addActionComponent( item );
+    return item;
+  }
+
+  public static JMenuItem makeStop( Supplier<GosuPanel> gosuPanel )
+  {
+    JMenuItem item = new JMenuItem( new CommonMenus.StopActionHandler( "Stop", gosuPanel::get ) );
+    item.setMnemonic( 'S' );
+    item.setAccelerator( KeyStroke.getKeyStroke( "control F2" ) );
+    UpdateNotifier.instance().addActionComponent( item );
+    return item;
+  }
+
+  public static JMenuItem makeToggleBreakpoint( Supplier<BreakpointManager> bpm, Supplier<GosuEditor> editor )
+  {
+    JMenuItem item = new JMenuItem(
+      new AbstractAction( "Toggle Breakpoint", EditorUtilities.loadIcon( "images/debug_linebreakpoint.png" ) )
+      {
+        public void actionPerformed( ActionEvent e )
+        {
+          bpm.get().toggleLineBreakpoint( editor.get().getScriptPart().getContainingTypeName(),
+                                          editor.get().getLineNumberAtCaret() );
+        }
+
+        @Override
+        public boolean isEnabled()
+        {
+          return editor.get() != null && bpm.get().canAddBreakpoint( editor.get().getLineNumberAtCaret() );
+        }
+      } );
+    item.setMnemonic( 'B' );
+    item.setAccelerator( KeyStroke.getKeyStroke( "control F8" ) );
+    UpdateNotifier.instance().addActionComponent( item );
+    return item;
+  }
+
+  public static JMenuItem makeStepOver( Supplier<Debugger> debugger )
+  {
+    JMenuItem item = new JMenuItem(
+      new AbstractAction( "Step Over", EditorUtilities.loadIcon( "images/debug_stepover.png" ) )
+      {
+        public void actionPerformed( ActionEvent e )
+        {
+          if( isEnabled() )
+          {
+            debugger.get().stepOver();
+          }
+        }
+
+        @Override
+        public boolean isEnabled()
+        {
+          return debugger.get() != null && debugger.get().isSuspended();
+        }
+      } );
+    item.setMnemonic( 'O' );
+    item.setAccelerator( KeyStroke.getKeyStroke( "F8" ) );
+    UpdateNotifier.instance().addActionComponent( item );
+    return item;
+  }
+
+  public static JMenuItem makeStepInto( Supplier<Debugger> debugger )
+  {
+    JMenuItem item = new JMenuItem(
+      new AbstractAction( "Step Into", EditorUtilities.loadIcon( "images/debug_stepinto.png" ) )
+      {
+        public void actionPerformed( ActionEvent e )
+        {
+          debugger.get().stepInto();
+        }
+
+        @Override
+        public boolean isEnabled()
+        {
+          return debugger.get() != null && debugger.get().isSuspended();
+        }
+      } );
+    item.setMnemonic( 'V' );
+    item.setAccelerator( KeyStroke.getKeyStroke( "F7" ) );
+    UpdateNotifier.instance().addActionComponent( item );
+    return item;
+  }
+
+  public static JMenuItem makeStepOut( Supplier<Debugger> debugger )
+  {
+    JMenuItem item = new JMenuItem(
+      new AbstractAction( "Step Out", EditorUtilities.loadIcon( "images/debug_stepout.png" ) )
+      {
+        public void actionPerformed( ActionEvent e )
+        {
+          debugger.get().stepOut();
+        }
+
+        @Override
+        public boolean isEnabled()
+        {
+          return debugger.get() != null && debugger.get().isSuspended();
+        }
+      } );
+    item.setMnemonic( 'T' );
+    item.setAccelerator( KeyStroke.getKeyStroke( "shift F8" ) );
+    UpdateNotifier.instance().addActionComponent( item );
+    return item;
+  }
+
+  public static JMenuItem makeRunToCursor( Supplier<Debugger> debugger, Supplier<BreakpointManager> bpm, Supplier<GosuEditor> editor )
+  {
+    JMenuItem item = new JMenuItem(
+      new AbstractAction( "Run to Cursor", EditorUtilities.loadIcon( "images/debug_runtocursor.png" ) )
+      {
+        public void actionPerformed( ActionEvent e )
+        {
+          bpm.get().runToCursor( editor.get().getScriptPart().getContainingTypeName(), editor.get().getLineNumberAtCaret() );
+        }
+
+        @Override
+        public boolean isEnabled()
+        {
+          return debugger.get() != null && debugger.get().isSuspended() && editor.get() != null && bpm.get().canAddBreakpoint( editor.get().getLineNumberAtCaret() );
+        }
+      } );
+    item.setMnemonic( 'S' );
+    item.setAccelerator( KeyStroke.getKeyStroke( "alt F9" ) );
+    UpdateNotifier.instance().addActionComponent( item );
+    return item;
+  }
+
+  public static JMenuItem makeDropFrame( Supplier<Debugger> debugger )
+  {
+    JMenuItem item = new JMenuItem(
+      new AbstractAction( "Drop Frame" )
+      {
+        public void actionPerformed( ActionEvent e )
+        {
+          debugger.get().dropFrame();
+        }
+
+        @Override
+        public boolean isEnabled()
+        {
+          return debugger.get() != null && debugger.get().isSuspended();
+        }
+      } );
+    item.setMnemonic( 'F' );
+    UpdateNotifier.instance().addActionComponent( item );
+    return item;
+  }
+
+  public static JMenuItem makePause( Supplier<Debugger> debugger )
+  {
+    JMenuItem item = new JMenuItem( new CommonMenus.PauseActionHandler( "Pause", debugger ) );
+    item.setMnemonic( 'P' );
+    UpdateNotifier.instance().addActionComponent( item );
+    return item;
+  }
+  
+  public static JMenuItem makeResume( Supplier<Debugger> debugger )
+  {
+    JMenuItem item = new JMenuItem( new CommonMenus.ResumeActionHandler( "Resume", debugger ) );
+    item.setMnemonic( 'G' );
+    item.setAccelerator( KeyStroke.getKeyStroke( "F9" ) );
+    UpdateNotifier.instance().addActionComponent( item );
+    return item;
+  }
+
+  public static JMenuItem makeViewBreakpoints( Supplier<Breakpoint> bp )
+  {
+    JMenuItem item = new JMenuItem( new CommonMenus.ViewBreakpointsActionHandler( "View Breakpoints...", bp ) );
+    item.setMnemonic( 'B' );
+    return item;
+  }
+
+  public static JMenuItem makeMuteBreakpoints( Supplier<BreakpointManager> bpm )
+  {
+    JMenuItem item = new JMenuItem( new CommonMenus.MuteBreakpointsActionHandler( "Mute Breakpoints", bpm ) );
+    item.setMnemonic( 'M' );
+    return item;
+  }
+
+  public static JMenuItem makeClear( Supplier<GosuPanel> gosuPanel )
   {
     JMenuItem clearItem = new JMenuItem(
-      new AbstractAction( "Clear" )
+      new AbstractAction( "Clear Console" )
       {
         @Override
         public void actionPerformed( ActionEvent e )
         {
-          RunMe.getEditorFrame().getGosuPanel().clearOutput();
+          gosuPanel.get().clearOutput();
         }
       } );
     clearItem.setMnemonic( 'C' );
@@ -222,38 +411,25 @@ public class CommonMenus
     return clearItem;
   }
 
-  public static class ClearAndRunActionHandler extends AbstractAction
+  public static abstract class AbstractRunActionHandler extends AbstractAction
   {
-    private final Supplier<IType> _program;
+    protected final Supplier<IType> _program;
 
-    ClearAndRunActionHandler( String title, Supplier<IType> program )
+    AbstractRunActionHandler( String title, Icon icon, Supplier<IType> program )
     {
-      super( title );
+      super( title, icon );
       _program = program;
-    }
-
-    public void actionPerformed( ActionEvent e )
-    {
-      RunMe.getEditorFrame().getGosuPanel().clearOutput();
-      IType type = _program.get();
-      if( type instanceof ITemplateType )
-      {
-        RunMe.getEditorFrame().getGosuPanel().executeTemplate();
-      }
-      else
-      {
-        RunMe.getEditorFrame().getGosuPanel().execute( type.getName() );
-      }
     }
 
     public boolean isEnabled()
     {
       IType type = _program.get();
-      if( type == null )
+      if( type == null || !type.isValid() )
       {
         return false;
       }
-      if( RunMe.getEditorFrame().getGosuPanel().isRunning() )
+      if( RunMe.getEditorFrame().getGosuPanel().isRunning() ||
+          RunMe.getEditorFrame().getGosuPanel().isDebugging() )
       {
         return false;
       }
@@ -288,4 +464,176 @@ public class CommonMenus
     }
   }
 
+  public static class ClearAndRunActionHandler extends AbstractRunActionHandler
+  {
+    ClearAndRunActionHandler( String title, Supplier<IType> program )
+    {
+      super( title, EditorUtilities.loadIcon( "images/run.png" ), program );
+    }
+
+    public void actionPerformed( ActionEvent e )
+    {
+      RunMe.getEditorFrame().getGosuPanel().clearOutput();
+      IType type = _program.get();
+      if( type instanceof ITemplateType )
+      {
+        RunMe.getEditorFrame().getGosuPanel().executeTemplate();
+      }
+      else
+      {
+        RunMe.getEditorFrame().getGosuPanel().execute( type.getName() );
+      }
+    }
+  }
+
+  public static class ClearAndDebugActionHandler extends AbstractRunActionHandler
+  {
+    ClearAndDebugActionHandler( String title, Supplier<IType> program )
+    {
+      super( title, EditorUtilities.loadIcon( "images/debug.png" ), program );
+    }
+
+    public void actionPerformed( ActionEvent e )
+    {
+      RunMe.getEditorFrame().getGosuPanel().clearOutput();
+      IType type = _program.get();
+      if( type instanceof ITemplateType )
+      {
+        RunMe.getEditorFrame().getGosuPanel().debugTemplate();
+      }
+      else
+      {
+        RunMe.getEditorFrame().getGosuPanel().debug( type.getName() );
+      }
+    }
+  }
+
+  public static class StopActionHandler extends AbstractAction
+  {
+    private Supplier<GosuPanel> _gosuPanel;
+
+    public StopActionHandler( String label, Supplier<GosuPanel> gosuPanel )
+    {
+      super( label, EditorUtilities.loadIcon( "images/rule_stop_execution.png" ) );
+      _gosuPanel = gosuPanel;
+    }
+
+    public void actionPerformed( ActionEvent e )
+    {
+      if( isEnabled() )
+      {
+        killProcess();
+      }
+
+//## this is for in-process exec, which we don't do anymore (right now)
+//      if( isEnabled() )
+//      {
+//        TaskQueue queue = TaskQueue.getInstance( "_execute_gosu" );
+//        TaskQueue.emptyAndRemoveQueue( "_execute_gosu" );
+//        //noinspection deprecation
+//        queue.stop();
+//        removeBusySignal();
+//      }
+    }
+
+    @Override
+    public boolean isEnabled()
+    {
+      GosuPanel gosuPanel = _gosuPanel.get();
+      if( gosuPanel == null )
+      {
+        return false;
+      }
+      return gosuPanel.isRunning() || gosuPanel.isDebugging();
+    }
+
+    private void killProcess()
+    {
+      GosuPanel gosuPanel = _gosuPanel.get();
+      if( gosuPanel == null )
+      {
+        return;
+      }
+      gosuPanel.killProcess();
+    }
+  }
+
+  public static class PauseActionHandler extends AbstractAction
+  {
+    private Supplier<Debugger> _debugger;
+
+    public PauseActionHandler( String label, Supplier<Debugger> debugger )
+    {
+      super( label, EditorUtilities.loadIcon( "images/pause.png" ) );
+      _debugger = debugger;
+    }
+
+    public void actionPerformed( ActionEvent e )
+    {
+      if( isEnabled() )
+      {
+        _debugger.get().pause();
+      }
+    }
+
+    @Override
+    public boolean isEnabled()
+    {
+      return _debugger.get() != null && !_debugger.get().isSuspended() && !_debugger.get().isPaused();
+    }
+  }
+
+  public static class ResumeActionHandler extends AbstractAction
+  {
+    private Supplier<Debugger> _debugger;
+
+    public ResumeActionHandler( String label, Supplier<Debugger> debugger )
+    {
+      super( label, EditorUtilities.loadIcon( "images/resume.png" ) );
+      _debugger = debugger;
+    }
+
+    public void actionPerformed( ActionEvent e )
+    {
+      _debugger.get().resumeExecution();
+    }
+
+    @Override
+    public boolean isEnabled()
+    {
+      return _debugger.get() != null && (_debugger.get().isSuspended() || _debugger.get().isPaused());
+    }
+  }
+
+  public static class ViewBreakpointsActionHandler extends AbstractAction
+  {
+    private final Supplier<Breakpoint> _bp;
+
+    public ViewBreakpointsActionHandler( String label, Supplier<Breakpoint> bp )
+    {
+      super( label, EditorUtilities.loadIcon( "images/debug_breakpoints.png" ) );
+      _bp = bp;
+    }
+
+    public void actionPerformed( ActionEvent e )
+    {
+      new EditBreakpointsDialog( _bp.get() ).setVisible( true );
+    }
+  }
+
+  public static class MuteBreakpointsActionHandler extends AbstractAction
+  {
+    private final Supplier<BreakpointManager> _bpm;
+
+    public MuteBreakpointsActionHandler( String label, Supplier<BreakpointManager> bpm )
+    {
+      super( label, EditorUtilities.loadIcon( "images/debug_mutebreakpoint.png" ) );
+      _bpm = bpm;
+    }
+
+    public void actionPerformed( ActionEvent e )
+    {
+      _bpm.get().setMuted( !_bpm.get().isMuted() );
+    }
+  }
 }

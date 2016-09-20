@@ -1,5 +1,6 @@
 package editor;
 
+import com.sun.jdi.VirtualMachine;
 import editor.util.TaskQueue;
 import gw.config.CommonServices;
 import gw.lang.Gosu;
@@ -34,6 +35,24 @@ public class InProcessRunner implements IProcessRunner
   {
   }
 
+  @Override
+  public Process getProcess()
+  {
+    return null;
+  }
+
+  @Override
+  public RunState getRunState()
+  {
+    return null;
+  }
+
+  @Override
+  public VirtualMachine getVm()
+  {
+    return null;
+  }
+
   public void execute( String typeName, GosuPanel gosuPanel )
   {
     try
@@ -42,7 +61,7 @@ public class InProcessRunner implements IProcessRunner
       URLClassLoader runLoader = new URLClassLoader( getAllUrlsAboveGosuclassProtocol( (URLClassLoader)loader ), loader.getParent() );
 
       TaskQueue queue = TaskQueue.getInstance( "_execute_gosu" );
-      gosuPanel.addBusySignal();
+      gosuPanel.addBusySignal( RunState.Run );
       queue.postTask(
         () -> {
           GosuEditor.getParserTaskQueue().waitUntilAllCurrentTasksFinish();
@@ -241,12 +260,6 @@ public class InProcessRunner implements IProcessRunner
     {
       return main;
     }
-    return null;
-  }
-
-  @Override
-  public Process getProcess()
-  {
     return null;
   }
 }

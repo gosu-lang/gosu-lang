@@ -1,5 +1,11 @@
 package editor;
 
+import com.sun.jdi.Bootstrap;
+import com.sun.jdi.VirtualMachine;
+import com.sun.jdi.VirtualMachineManager;
+import com.sun.jdi.connect.Connector;
+import com.sun.jdi.connect.LaunchingConnector;
+import editor.debugger.Debugger;
 import editor.util.TaskQueue;
 import gw.lang.Gosu;
 import gw.lang.reflect.TypeSystem;
@@ -13,16 +19,37 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
+import java.util.Map;
 import java.util.StringTokenizer;
 
 /**
  */
 public class OutOfProcessRunner implements IProcessRunner
 {
+  private RunState _runState;
   private Process _process;
+  private VirtualMachine _vm;
 
-  public OutOfProcessRunner()
+  public OutOfProcessRunner( RunState runState )
   {
+    _runState = runState;
+  }
+
+  @Override
+  public RunState getRunState()
+  {
+    return _runState;
+  }
+
+  @Override
+  public Process getProcess()
+  {
+    return _process;
+  }
+
+  public VirtualMachine getVm()
+  {
+    return _vm;
   }
 
   public void execute( String typeName, GosuPanel gosuPanel )
@@ -30,7 +57,7 @@ public class OutOfProcessRunner implements IProcessRunner
     try
     {
       TaskQueue queue = TaskQueue.getInstance( "_execute_gosu" );
-      gosuPanel.addBusySignal();
+      gosuPanel.addBusySignal( _runState );
       queue.postTask(
         () -> {
           GosuEditor.getParserTaskQueue().waitUntilAllCurrentTasksFinish();
@@ -38,12 +65,21 @@ public class OutOfProcessRunner implements IProcessRunner
           try
           {
             String fqn = program.getName();
-            printRunningMessage( fqn );
             gosuPanel.getExperiment().setRecentProgram( fqn );
             String result = null;
             try
             {
-              result = exec( fqn, gosuPanel );
+              switch( _runState )
+              {
+                case Run:
+                  result = exec( fqn, gosuPanel );
+                  break;
+                case Debug:
+                  result = debug( fqn, gosuPanel );
+                  break;
+                default:
+                  throw new IllegalStateException( "Unexpected RunState: " + _runState );
+              }
             }
             finally
             {
@@ -53,7 +89,7 @@ public class OutOfProcessRunner implements IProcessRunner
                   gosuPanel.removeBusySignal();
                   if( programResults != null )
                   {
-                    System.out.print( programResults );
+                    printLabMessage( programResults );
                   }
                 } );
             }
@@ -71,21 +107,41 @@ public class OutOfProcessRunner implements IProcessRunner
     }
   }
 
-  public String exec( String fqn, GosuPanel gosuPanel ) throws Exception
+  private String exec( String fqn, GosuPanel gosuPanel ) throws Exception
   {
     String javaHome = System.getProperty( "java.home" );
     String javaBin = javaHome + File.separator + "bin" + File.separator + "java";
 
+    String debugArgs = _runState == RunState.Debug ? "-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005" : "";
+
     String classpath = makeClasspath( gosuPanel );
-    ProcessBuilder pb = new ProcessBuilder( javaBin, "-classpath", "\"" + classpath + "\"", Gosu.class.getName().replace( '.', '/' ), "-fqn", fqn );
+    ProcessBuilder pb = new ProcessBuilder( javaBin, debugArgs, "-classpath", "\"" + classpath + "\"", Gosu.class.getName().replace( '.', '/' ), "-fqn", fqn );
+    printLabMessage( makeRunningMessage( fqn, pb.command() ) );
     _process = pb.start();
-    waitFor( _process );
-    return String.valueOf( _process.exitValue() );
+    gosuPanel.pipeInput();
+    waitFor();
+    return String.valueOf( "Process finished with exit code " + _process.exitValue() );
   }
 
-  private int waitFor( Process proc ) throws IOException, InterruptedException
+  private String debug( String fqn, GosuPanel gosuPanel ) throws Exception
   {
-    InputStream input = proc.getInputStream();
+    VirtualMachineManager vmm = Bootstrap.virtualMachineManager();
+    LaunchingConnector conn = vmm.defaultConnector();
+    Map<String, Connector.Argument> defaultArguments = conn.defaultArguments();
+    defaultArguments.get( "main" ).setValue( Gosu.class.getName().replace( '.', '/' ) + " -fqn " + fqn );
+    defaultArguments.get( "options" ).setValue( "-cp \"" + makeClasspath( gosuPanel, true ) + "\"" );
+    printLabMessage( makeDebuggingMessage( fqn, defaultArguments ) );
+    _vm = conn.launch( defaultArguments );
+    _process = _vm.process();
+    gosuPanel.pipeInput();
+    gosuPanel.makeDebugger( _vm );
+    waitFor();
+    return String.valueOf( "Process finished with exit code " + _process.exitValue() );
+  }
+
+  private int waitFor() throws IOException, InterruptedException
+  {
+    InputStream input = _process.getInputStream();
 
     byte[] b = new byte[512];
     int read = 1;
@@ -98,10 +154,15 @@ public class OutOfProcessRunner implements IProcessRunner
       }
     }
 
-    return proc.waitFor();
+    return _process.waitFor();
   }
 
   private String makeClasspath( GosuPanel gosuPanel ) throws IOException
+  {
+    return makeClasspath( gosuPanel, false );
+  }
+
+  private String makeClasspath( GosuPanel gosuPanel, boolean bToolsJar ) throws IOException
   {
     StringBuilder classpath = new StringBuilder();
 
@@ -131,22 +192,50 @@ public class OutOfProcessRunner implements IProcessRunner
         classpath.append( path ).append( File.pathSeparator );
       }
     }
+
+    if( bToolsJar )
+    {
+      String javaHome = System.getProperty( "java.home" );
+      String toolsJar = javaHome + File.separator + "lib" + File.separator + "tools.jar";
+      classpath.append( toolsJar ).append( File.pathSeparator );
+    }
+
     return classpath.toString();
   }
 
-  private void printRunningMessage( String fqn )
+  private String makeRunningMessage( String fqn, List<String> command )
+  {
+    StringBuilder sb = new StringBuilder();
+    for( String part : command )
+    {
+      sb.append( part ).append( ' ' );
+    }
+    sb.append( '\n' );
+    sb.append( "Running: " ).append( fqn ).append( "...\n" );
+    return sb.toString();
+  }
+
+  private String makeDebuggingMessage( String fqn, Map<String, Connector.Argument> vmArgs )
+  {
+    StringBuilder sb = new StringBuilder();
+    String java = vmArgs.get( "home" ).value() + File.separator + "bin" + File.separator + "java.exe";
+    String javaArgs = vmArgs.get( "options" ).value();
+    String target = vmArgs.get( "main" ).value();
+    sb.append( java ).append( ' ' )
+      .append( javaArgs ).append( ' ' )
+      .append( target )
+      .append( '\n' );
+    sb.append( "Debugging: " ).append( fqn ).append( "...\n" );
+    return sb.toString();
+  }
+
+  private void printLabMessage( String message )
   {
     SimpleAttributeSet attr = new SimpleAttributeSet();
     attr.addAttribute( StyleConstants.Foreground, new Color( 192, 192, 192 ) );
     TextComponentWriter out = (TextComponentWriter)System.out;
     out.setAttributes( attr );
-    System.out.println( "Running: " + fqn + "...\n" );
+    System.out.println( message );
     out.setAttributes( null );
-  }
-
-  @Override
-  public Process getProcess()
-  {
-    return _process;
   }
 }

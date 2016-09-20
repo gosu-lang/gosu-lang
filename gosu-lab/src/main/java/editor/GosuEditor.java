@@ -824,10 +824,14 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
 
   public void gotoLine( int iLine )
   {
+    gotoLine( iLine, 0 );
+  }
+  public void gotoLine( int iLine, int iColumn )
+  {
     Element root = _editor.getDocument().getRootElements()[0];
     iLine = root.getElementCount() < iLine ? root.getElementCount() : iLine;
     Element line = root.getElement( iLine - 1 );
-    _editor.setCaretPosition( line.getStartOffset() );
+    _editor.setCaretPosition( line.getStartOffset() + iColumn );
   }
 
   public void highlightUsagesOfFeatureUnderCaret()
