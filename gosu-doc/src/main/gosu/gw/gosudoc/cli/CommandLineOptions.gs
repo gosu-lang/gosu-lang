@@ -1,7 +1,5 @@
 package gw.gosudoc.cli
 
-uses gw.internal.ext.com.beust.jcommander.converters.IParameterSplitter
-uses gw.internal.ext.com.beust.jcommander.converters.FileConverter
 uses gw.internal.ext.com.beust.jcommander.IParameterValidator
 uses gw.internal.ext.com.beust.jcommander.ParameterException
 uses gw.internal.ext.com.beust.jcommander.Parameter
@@ -9,13 +7,6 @@ uses gw.internal.ext.com.beust.jcommander.Parameter
 uses java.io.File
 
 class CommandLineOptions {
-
-  @Parameter(:names = {"-cp", "-classpath"}, :description = "Specify where to find user class files", :splitter = PathParameterSplitter, :converter = FileConverter)
-  var _classpath : List<File>
-
-  property get Classpath() : List<File> {
-    return _classpath
-  }
 
   @Parameter(:names = { "-externalDocs" }, :description = "List of external documents", :variableArity = true)
   var _externalDocs : List<String>
@@ -73,10 +64,4 @@ class CommandLineOptions {
     }
   }
 
-  protected static class PathParameterSplitter implements IParameterSplitter {
-    override function split(value : String) : List<String> {
-      return value.split(File.pathSeparator).toList()
-    }
-  }
-  
 }
