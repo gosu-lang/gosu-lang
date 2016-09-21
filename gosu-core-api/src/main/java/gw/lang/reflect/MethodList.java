@@ -183,12 +183,7 @@ public class MethodList extends DynamicArray<IMethodInfo>
     throw new RuntimeException( "Not supported" );
   }
 
-  public Collection<DynamicArray<IMethodInfo>> getMethodBuckets()
-  {
-    return _map.values();
-  }
-
-  public IMethodInfo findAssignableMethod( IMethodInfo miTo, boolean bStatic )
+  public IMethodInfo findAssignableMethod( IMethodInfo miTo, boolean bStatic, TypeVarToTypeMap inferenceMap )
   {
     String mname = miTo.getDisplayName();
     DynamicArray<? extends IMethodInfo> methods = getMethods( mname );
