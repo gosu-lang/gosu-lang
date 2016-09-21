@@ -88,6 +88,10 @@ public class InProcessRunner implements IProcessRunner
                   {
                     System.out.print( programResults );
                   }
+                  else
+                  {
+                    System.out.println("Done.");
+                  }
                 } );
 
               GosuClassPathThing.addOurProtocolHandler();
