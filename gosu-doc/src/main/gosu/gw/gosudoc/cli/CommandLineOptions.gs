@@ -1,5 +1,7 @@
 package gw.gosudoc.cli
 
+uses gw.internal.ext.com.beust.jcommander.converters.IParameterSplitter
+uses gw.internal.ext.com.beust.jcommander.converters.FileConverter
 uses gw.internal.ext.com.beust.jcommander.IParameterValidator
 uses gw.internal.ext.com.beust.jcommander.ParameterException
 uses gw.internal.ext.com.beust.jcommander.Parameter
@@ -8,7 +10,7 @@ uses java.io.File
 
 class CommandLineOptions {
 
-  @Parameter(:names = {"-cp", "-classpath"}, :description = "Specify where to find user class files")
+  @Parameter(:names = {"-cp", "-classpath"}, :description = "Specify where to find user class files", :splitter = PathParameterSplitter, :converter = FileConverter)
   var _classpath : List<File>
 
   property get Classpath() : List<File> {
@@ -30,13 +32,13 @@ class CommandLineOptions {
   }
 
   @Parameter(:names = { "-help" }, :description = "Print a synopsis of standard options", :help = true)
-  var _help : Boolean = null
+  var _help : Boolean
 
   /**
    * @return true if and only if '-help' was specified on the command line
    */
   property get Help() : boolean {
-    return !(_help == null or !_help)
+    return _help ?: false
   }
 
   @Parameter(:names = { "-inputDirs" }, :description = "List of source directories to process", :variableArity = true, :validateWith = FileExists)
@@ -60,7 +62,7 @@ class CommandLineOptions {
    * @return true if and only if '-verbose' was specified on the command line
    */
   property get Verbose() : boolean {
-    return !(_verbose == null or !_verbose)
+    return _verbose ?: false
   }
 
   protected static class FileExists implements IParameterValidator {
@@ -71,4 +73,10 @@ class CommandLineOptions {
     }
   }
 
+  protected static class PathParameterSplitter implements IParameterSplitter {
+    override function split(value : String) : List<String> {
+      return value.split(File.pathSeparator).toList()
+    }
+  }
+  
 }

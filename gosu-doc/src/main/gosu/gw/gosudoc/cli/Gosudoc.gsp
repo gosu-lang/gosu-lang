@@ -1,6 +1,9 @@
 uses gw.config.CommonServices
 uses gw.gosudoc.cli.CommandLineOptions
 uses gw.gosudoc.GSDocHTMLWriter
+uses gw.lang.init.ClasspathToGosuPathEntryUtil
+uses gw.lang.init.GosuInitialization
+uses gw.lang.reflect.TypeSystem
 uses gw.internal.ext.com.beust.jcommander.JCommander
 uses gw.internal.ext.com.beust.jcommander.ParameterException
 
@@ -57,4 +60,15 @@ private function injectClasspathIntoLoader( classpath: List<File> )
       throw new RuntimeException( e )
     }
   }
+
+  //reinit gosu
+  try
+  {
+    GosuInitialization.instance( TypeSystem.ExecutionEnvironment ).reinitializeRuntime( ClasspathToGosuPathEntryUtil.convertClasspathToGosuPathEntries( classpath ), {} )
+  }
+  catch( e : Exception )
+  {
+    e.printStackTrace()
+  }
+  TypeSystem.refresh( true )
 }
