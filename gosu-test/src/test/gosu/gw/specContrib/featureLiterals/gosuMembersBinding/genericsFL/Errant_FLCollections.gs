@@ -10,7 +10,7 @@ class Errant_FLCollections {
   //IDE-1605 - Parser Issue
   var avgArrayArrayFL = array1#average()
   //IDE-1606 - OS Gosu + IDE-1605 - Parser Issue
-  // var getCountArrayFL = array1#getCount() - we do not support resolving implicit getters via typeinfo
+  var getCountArrayFL = array1#getCount() //## issuekeys: IDE-1606 - OS Gosu do not support resolving implicit getters via typeinfo. Error expected
   var sumArrayFL = array1#sum()
   var cloneArrayFL = array1#clone()
   var toListArrayFL = array1#toList()
@@ -18,10 +18,12 @@ class Errant_FLCollections {
   var hashCodeArrayFL = array1#hashCode()
   var toStringArrayFL = array1#toString()
 
+  //Parser issue - IDE-2985
   var aavgArrayArrayFL = Object[]#average()
-  // var agetCountArrayFL = Object[]#getCount()  - we do not support resolving implicit getters via typeinfo
+  var agetCountArrayFL = Object[]#getCount()  //## issuekeys: IDE-1606 - OS Gosu do not support resolving implicit getters via typeinfo. Error expected
   var asumArrayFL = Object[]#sum()            //## issuekeys: AMBIGUOUS METHOD CALL: BOTH 'CoreArrayDoubleSumEnhancement.sum(IBlock1<Double, Object>)' AND 'CoreArrayFloatSumEnhancement.sum(IBlock1<Float, Object>)' MATCH
   var acloneArrayFL = Object[]#clone()
+  //Parser issue - IDE-2985
   var atoListArrayFL = Object[]#toList()
   var aequalsArrayFL = Object[]#equals(Object)
   var ahashCodeArrayFL = Object[]#hashCode()

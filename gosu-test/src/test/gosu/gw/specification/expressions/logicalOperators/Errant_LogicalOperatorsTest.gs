@@ -160,7 +160,7 @@ class Errant_LogicalOperatorsTest {
     r = !setX(1, true)
     r = !setX(1, false)
     var y0 = (4 > 3) && ("string" == "hello")
-    var y1 = 8 || "hello"      //## issuekeys: MSG_IMPLICIT_COERCION_ERROR, MSG_IMPLICIT_COERCION_ERROR
+    var y1 = 8 || "hello"      //## issuekeys: MSG_IMPLICIT_COERCION_ERROR,MSG_IMPLICIT_COERCION_ERROR
     var y2 = !false || !2       //## issuekeys: MSG_TYPE_MISMATCH
     var y3 = true or false
     var y4 = true and 5  //## issuekeys: MSG_IMPLICIT_COERCION_ERROR
