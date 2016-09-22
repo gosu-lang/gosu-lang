@@ -1485,7 +1485,7 @@ public class GosuClass extends InnerClassCapableType implements IGosuClassIntern
   public void compileDefinitionsIfNeeded( boolean bForce )
   {
     boolean bHasError = false;
-    
+
     if( !isDefinitionsCompiled() )
     {
       ((GosuClass)getPureGenericClass().dontEverCallThis())._hasError = null;
@@ -1516,7 +1516,7 @@ public class GosuClass extends InnerClassCapableType implements IGosuClassIntern
           {
             compileDeclarationsIfNeeded();
             if( !isDeclarationsCompiled() ) {
-            	return;
+              return;
             }
           }
           catch( ErrantGosuClassException e )
@@ -2260,7 +2260,7 @@ public class GosuClass extends InnerClassCapableType implements IGosuClassIntern
       }
     }
   }
-  
+
   private void putFunctions( GosuParser owner, ISymbolTable table, IGosuClassInternal gsContextClass, boolean bSuperClass )
   {
     for( DynamicFunctionSymbol dfs : getMemberFunctions() )

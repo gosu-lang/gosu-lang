@@ -81,7 +81,7 @@ public abstract class ParsedElement implements IParsedElement
   public void setGosuProgram( IGosuProgramInternal gosuProgram )
   {
     _gosuProgram = gosuProgram;
-    
+
   }
 
   public void addExceptionsFrom( IParsedElement elem )
@@ -422,7 +422,7 @@ public abstract class ParsedElement implements IParsedElement
     }
     return pe;
   }
-  
+
   private String getSource()
   {
     String src = null;
@@ -774,14 +774,14 @@ public abstract class ParsedElement implements IParsedElement
         return true;
       }
     }
-    
+
     boolean bIgnore = false;
     for( Class ignore : ignoreSet )
     {
       if( ignore.isInstance( this ) )
       {
-    	bIgnore = true;
-    	break;
+      bIgnore = true;
+      break;
       }
     }
     if( !bIgnore )
@@ -953,7 +953,7 @@ public abstract class ParsedElement implements IParsedElement
     IParsedElement parent = getParent();
     return parent == null ? null : parent.getModule();
   }
-  
+
   public static IFeatureInfo getEnclosingFeatureInfo( Stack<IFeatureInfo> enclosingFeatureInfos )
   {
     if( enclosingFeatureInfos.empty() )

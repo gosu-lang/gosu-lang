@@ -12,7 +12,7 @@ import java.util.Set;
  * on this basic interface
  */
 public interface PropertySet {
-	
+
   /**
    * The name of the property set, which will be used as the name of the type
    * @return a non null name
@@ -23,13 +23,13 @@ public interface PropertySet {
    * The set of keys which can be used to look up values in this property set
    * @return a non null set containing the keys
    */
-	public Set<String> getKeys();
+  public Set<String> getKeys();
 
-	/**
-	 * Get the value corresponding to the given key
-	 * @param key the key, never null
-	 * @return the value corresponding to the given key or null if there is no corresponding value
-	 */
-	public String getValue(String key);
+  /**
+   * Get the value corresponding to the given key
+   * @param key the key, never null
+   * @return the value corresponding to the given key or null if there is no corresponding value
+   */
+  public String getValue(String key);
 
 }

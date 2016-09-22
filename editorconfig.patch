@@ -1,0 +1,32 @@
+diff --git a/.editorconfig b/.editorconfig
+new file mode 100644
+index 0000000..5ccf41d
+--- /dev/null
++++ b/.editorconfig
+@@ -0,0 +1,17 @@
++# EditorConfig helps developers define and maintain consistent
++# coding styles between different editors and IDEs
++# editorconfig.org
++
++# indicate this is the root of the project
++root = true
++
++[*]
++# Change these settings to your own preference
++indent_style = space
++indent_size = 2
++
++# We recommend you to keep these unchanged
++end_of_line = lf
++charset = utf-8
++trim_trailing_whitespace = true
++insert_final_newline = true
+diff --git a/.gitattributes b/.gitattributes
+index 34b1256..ff2ce5b 100644
+--- a/.gitattributes
++++ b/.gitattributes
+@@ -1,3 +1,4 @@
++.editorconfig export-ignore
+ .gitattributes export-ignore
+ .gitignore export-ignore
+ circle.yml export-ignore

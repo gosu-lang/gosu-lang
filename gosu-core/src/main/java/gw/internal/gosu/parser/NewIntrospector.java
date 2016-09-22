@@ -112,7 +112,7 @@ public class NewIntrospector
   }
 
   //======================================================================
-  // 			Private implementation methods
+  //      Private implementation methods
   //======================================================================
 
   private NewIntrospector( Class beanClass )

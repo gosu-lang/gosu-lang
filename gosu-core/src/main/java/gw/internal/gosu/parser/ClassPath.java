@@ -166,7 +166,7 @@ public class ClassPath implements IClassPath
     // look for private or anonymous inner classes
     int index = strClassName.lastIndexOf('$');
     return !(
-	    _filter.isIgnoreAnonymous() &&
+      _filter.isIgnoreAnonymous() &&
             index >= 0 && index < strClassName.length() - 1 &&
                     Character.isDigit(strClassName.charAt(index + 1))
     );
