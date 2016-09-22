@@ -559,7 +559,7 @@ public class CommonMenus
 
     public MuteBreakpointsActionHandler( String label, Supplier<BreakpointManager> bpm )
     {
-      super( label, EditorUtilities.loadIcon( "images/debug_mutebreakpoint.png" ) );
+      super( label, EditorUtilities.loadIcon( "images/disabled_breakpoint.png" ) );
       _bpm = bpm;
     }
 

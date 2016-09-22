@@ -12,7 +12,6 @@ import editor.actions.UpdateNotifier;
 import editor.debugger.BreakpointManager;
 import editor.debugger.Debugger;
 import editor.splitpane.CollapsibleSplitPane;
-import editor.tabpane.ContentContainer;
 import editor.tabpane.TabPane;
 import editor.tabpane.TabPosition;
 import editor.tabpane.ToolContainer;
@@ -30,7 +29,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Consumer;
-import java.util.function.Supplier;
 
 /**
  */
@@ -280,6 +278,7 @@ public class DebugPanel extends JPanel
     @Override
     public void configure()
     {
+      setBorder( new EmptyBorder( 0, 2, 0, 0 ) );
       StackFrame frame = getNode();
       if( frame != null )
       {
