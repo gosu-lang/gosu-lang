@@ -41,6 +41,7 @@ class Errant_DateInterval {
   var date1120 = (d1.."mystring")           //## issuekeys: OPERATOR '..' CANNOT BE APPLIED TO 'JAVA.UTIL.DATE', 'JAVA.LANG.STRING'
   var date1121 = (d1..(new Date()))
   var date1122 = (d1..aaa)            //## issuekeys: OPERATOR '..' CANNOT BE APPLIED TO 'JAVA.UTIL.DATE', 'GW.SPECCONTRIB.AAA.PARSERVSOPENSOURCE.INTERVALSANDDIMENSIONS.INTERVALSBASIC.INTERVAL_DATE.A'
+  var date1123 = (d1..false)      //## issuekeys: OPERATOR '..' CANNOT BE APPLIED TO 'JAVA.UTIL.DATE', 'BOOLEAN'
 
   //Lower end point is datetime with step function
   var date1211 = (d1..'c').step(1)      //## issuekeys: OPERATOR '..' CANNOT BE APPLIED TO 'JAVA.UTIL.DATE', 'CHAR'
