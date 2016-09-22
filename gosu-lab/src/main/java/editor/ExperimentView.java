@@ -206,7 +206,7 @@ public class ExperimentView extends JPanel
       if( fileTree.getType() != null )
       {
         // Open Gosu type in our editor
-        _experiment.getGosuPanel().openFile( fileTree.getFileOrDir() );
+        _experiment.getGosuPanel().openFile( fileTree.getFileOrDir(), true );
       }
       else
       {

@@ -218,7 +218,7 @@ public class Compiler
       IGosuClass gsClass = _issue.getSource().getGosuClass();
       gsClass = getOuterMostEnclosingClass( gsClass );
 
-      RunMe.getEditorFrame().getGosuPanel().openType( gsClass.getName() );
+      RunMe.getEditorFrame().getGosuPanel().openType( gsClass.getName(), true );
       SettleModalEventQueue.instance().run();
       RunMe.getEditorFrame().getGosuPanel().getCurrentEditor().gotoLine( _issue.getLine(), _issue.getColumn() );
     }

@@ -40,7 +40,7 @@ public class MessagesPanel extends JPanel
     _tree.addMouseListener( new MouseHandler() );
     _tree.addKeyListener( new TreeKeyHandler() );
     _scroller = new JScrollPane( _tree );
-    _scroller.setBorder( new MatteBorder( 0, 0, 1, 1, EditorUtilities.CONTROL_SHADOW ) );
+    _scroller.setBorder( new MatteBorder( 0, 1, 1, 1, EditorUtilities.CONTROL_SHADOW ) );
     add( _scroller, BorderLayout.CENTER );
   }
 

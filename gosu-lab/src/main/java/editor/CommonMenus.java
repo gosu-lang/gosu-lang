@@ -254,23 +254,7 @@ public class CommonMenus
 
   public static JMenuItem makeStepOver( Supplier<Debugger> debugger )
   {
-    JMenuItem item = new JMenuItem(
-      new AbstractAction( "Step Over", EditorUtilities.loadIcon( "images/debug_stepover.png" ) )
-      {
-        public void actionPerformed( ActionEvent e )
-        {
-          if( isEnabled() )
-          {
-            debugger.get().stepOver();
-          }
-        }
-
-        @Override
-        public boolean isEnabled()
-        {
-          return debugger.get() != null && debugger.get().isSuspended();
-        }
-      } );
+    JMenuItem item = new JMenuItem( new StepOverActionHandler( "Step Over", debugger ) );
     item.setMnemonic( 'O' );
     item.setAccelerator( KeyStroke.getKeyStroke( "F8" ) );
     UpdateNotifier.instance().addActionComponent( item );
@@ -279,20 +263,7 @@ public class CommonMenus
 
   public static JMenuItem makeStepInto( Supplier<Debugger> debugger )
   {
-    JMenuItem item = new JMenuItem(
-      new AbstractAction( "Step Into", EditorUtilities.loadIcon( "images/debug_stepinto.png" ) )
-      {
-        public void actionPerformed( ActionEvent e )
-        {
-          debugger.get().stepInto();
-        }
-
-        @Override
-        public boolean isEnabled()
-        {
-          return debugger.get() != null && debugger.get().isSuspended();
-        }
-      } );
+    JMenuItem item = new JMenuItem( new StepIntoActionHandler( "Step Into", debugger ) );
     item.setMnemonic( 'V' );
     item.setAccelerator( KeyStroke.getKeyStroke( "F7" ) );
     UpdateNotifier.instance().addActionComponent( item );
@@ -301,20 +272,7 @@ public class CommonMenus
 
   public static JMenuItem makeStepOut( Supplier<Debugger> debugger )
   {
-    JMenuItem item = new JMenuItem(
-      new AbstractAction( "Step Out", EditorUtilities.loadIcon( "images/debug_stepout.png" ) )
-      {
-        public void actionPerformed( ActionEvent e )
-        {
-          debugger.get().stepOut();
-        }
-
-        @Override
-        public boolean isEnabled()
-        {
-          return debugger.get() != null && debugger.get().isSuspended();
-        }
-      } );
+    JMenuItem item = new JMenuItem( new StepOutActionHandler( "Step Out", debugger ) );
     item.setMnemonic( 'T' );
     item.setAccelerator( KeyStroke.getKeyStroke( "shift F8" ) );
     UpdateNotifier.instance().addActionComponent( item );
@@ -323,20 +281,7 @@ public class CommonMenus
 
   public static JMenuItem makeRunToCursor( Supplier<Debugger> debugger, Supplier<BreakpointManager> bpm, Supplier<GosuEditor> editor )
   {
-    JMenuItem item = new JMenuItem(
-      new AbstractAction( "Run to Cursor", EditorUtilities.loadIcon( "images/debug_runtocursor.png" ) )
-      {
-        public void actionPerformed( ActionEvent e )
-        {
-          bpm.get().runToCursor( editor.get().getScriptPart().getContainingTypeName(), editor.get().getLineNumberAtCaret() );
-        }
-
-        @Override
-        public boolean isEnabled()
-        {
-          return debugger.get() != null && debugger.get().isSuspended() && editor.get() != null && bpm.get().canAddBreakpoint( editor.get().getLineNumberAtCaret() );
-        }
-      } );
+    JMenuItem item = new JMenuItem( new RunToCursorActionHandler( "Run to Cursor", debugger, bpm, editor ) );
     item.setMnemonic( 'S' );
     item.setAccelerator( KeyStroke.getKeyStroke( "alt F9" ) );
     UpdateNotifier.instance().addActionComponent( item );
@@ -345,20 +290,7 @@ public class CommonMenus
 
   public static JMenuItem makeDropFrame( Supplier<Debugger> debugger )
   {
-    JMenuItem item = new JMenuItem(
-      new AbstractAction( "Drop Frame" )
-      {
-        public void actionPerformed( ActionEvent e )
-        {
-          debugger.get().dropFrame();
-        }
-
-        @Override
-        public boolean isEnabled()
-        {
-          return debugger.get() != null && debugger.get().isSuspended();
-        }
-      } );
+    JMenuItem item = new JMenuItem( new DropFrameActionHandler( "Drop Frame", debugger ) );
     item.setMnemonic( 'F' );
     UpdateNotifier.instance().addActionComponent( item );
     return item;
@@ -636,4 +568,150 @@ public class CommonMenus
       _bpm.get().setMuted( !_bpm.get().isMuted() );
     }
   }
+
+  public static class StepOverActionHandler extends AbstractAction
+  {
+    private final Supplier<Debugger> _debugger;
+
+    public StepOverActionHandler( String label, Supplier<Debugger> debugger )
+    {
+      super( label, EditorUtilities.loadIcon( "images/debug_stepover.png" ) );
+      _debugger = debugger;
+    }
+
+    public void actionPerformed( ActionEvent e )
+    {
+      if( isEnabled() )
+      {
+        _debugger.get().stepOver();
+      }
+    }
+
+    @Override
+    public boolean isEnabled()
+    {
+      return _debugger.get() != null && _debugger.get().isSuspended();
+    }
+  }
+
+  public static class StepIntoActionHandler extends AbstractAction
+  {
+    private final Supplier<Debugger> _debugger;
+
+    public StepIntoActionHandler( String label, Supplier<Debugger> debugger )
+    {
+      super( label, EditorUtilities.loadIcon( "images/debug_stepinto.png" ) );
+      _debugger = debugger;
+    }
+
+    public void actionPerformed( ActionEvent e )
+    {
+      if( isEnabled() )
+      {
+        _debugger.get().stepOver();
+      }
+    }
+
+    @Override
+    public boolean isEnabled()
+    {
+      return _debugger.get() != null && _debugger.get().isSuspended();
+    }
+  }
+
+  public static class StepOutActionHandler extends AbstractAction
+  {
+    private final Supplier<Debugger> _debugger;
+
+    public StepOutActionHandler( String label, Supplier<Debugger> debugger )
+    {
+      super( label, EditorUtilities.loadIcon( "images/debug_stepout.png" ) );
+      _debugger = debugger;
+    }
+
+    public void actionPerformed( ActionEvent e )
+    {
+      if( isEnabled() )
+      {
+        _debugger.get().stepOver();
+      }
+    }
+
+    @Override
+    public boolean isEnabled()
+    {
+      return _debugger.get() != null && _debugger.get().isSuspended();
+    }
+  }
+
+  public static class DropFrameActionHandler extends AbstractAction
+  {
+    private final Supplier<Debugger> _debugger;
+
+    public DropFrameActionHandler( String label, Supplier<Debugger> debugger )
+    {
+      super( label, EditorUtilities.loadIcon( "images/debug_dropframe.png" ) );
+      _debugger = debugger;
+    }
+
+    public void actionPerformed( ActionEvent e )
+    {
+      _debugger.get().dropFrame();
+    }
+
+    @Override
+    public boolean isEnabled()
+    {
+      return _debugger.get() != null && _debugger.get().isSuspended();
+    }
+  }
+
+  public static class ShowExecPointActionHandler extends AbstractAction
+  {
+    private final Supplier<Debugger> _debugger;
+
+    public ShowExecPointActionHandler( String label, Supplier<Debugger> debugger )
+    {
+      super( label, EditorUtilities.loadIcon( "images/debug_showexecpoint.png" ) );
+      _debugger = debugger;
+    }
+
+    public void actionPerformed( ActionEvent e )
+    {
+      RunMe.getEditorFrame().getGosuPanel().jumptToBreakpoint( _debugger.get().getSuspendedLocation(), true );
+    }
+
+    @Override
+    public boolean isEnabled()
+    {
+      return _debugger.get() != null && _debugger.get().isSuspended();
+    }
+  }
+
+  public static class RunToCursorActionHandler extends AbstractAction
+  {
+    private final Supplier<Debugger> _debugger;
+    private final Supplier<BreakpointManager> _bpm;
+    private final Supplier<GosuEditor> _editor;
+
+    public RunToCursorActionHandler( String label,  Supplier<Debugger> debugger, Supplier<BreakpointManager> bpm, Supplier<GosuEditor> editor )
+    {
+      super( label, EditorUtilities.loadIcon( "images/debug_runtocursor.png" ) );
+      _bpm = bpm;
+      _editor = editor;
+      _debugger = debugger;
+    }
+
+    public void actionPerformed( ActionEvent e )
+    {
+      _bpm.get().runToCursor( _editor.get().getScriptPart().getContainingTypeName(), _editor.get().getLineNumberAtCaret() );
+    }
+
+    @Override
+    public boolean isEnabled()
+    {
+      return _debugger.get() != null && _debugger.get().isSuspended() && _editor.get() != null && _bpm.get().canAddBreakpoint( _editor.get().getLineNumberAtCaret() );
+    }
+  }
+
 }

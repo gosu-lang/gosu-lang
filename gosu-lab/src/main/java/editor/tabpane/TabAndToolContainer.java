@@ -27,7 +27,7 @@ public class TabAndToolContainer extends JPanel implements ICaptionBar
 
   public TabAndToolContainer( TabPane tabPane )
   {
-    super( new BorderLayout() );
+    super( new MyBorderLayout() );
     _tabPane = tabPane;
     _tabContainer = _tabPane.getTabContainer();
     _toolContainer = _tabPane.getToolContainer();
@@ -177,6 +177,71 @@ public class TabAndToolContainer extends JPanel implements ICaptionBar
     else
     {
       throw new IllegalStateException( "Unknown TabPosition " );
+    }
+  }
+
+  private static class MyBorderLayout extends BorderLayout
+  {
+    public void layoutContainer( Container target )
+    {
+      synchronized( target.getTreeLock() )
+      {
+        Insets insets = target.getInsets();
+        int top = insets.top;
+        int bottom = target.getHeight() - insets.bottom;
+        int left = insets.left;
+        int right = target.getWidth() - insets.right;
+
+        Component c;
+
+        c = getLayoutComponent( NORTH );
+        if( c != null )
+        {
+          c.setSize( right - left, c.getHeight() );
+          Dimension d = c.getPreferredSize();
+          c.setBounds( left, top, right - left, d.height );
+          top += d.height + getVgap();
+        }
+
+        c = getLayoutComponent( SOUTH );
+        if( c != null )
+        {
+          c.setSize( right - left, c.getHeight() );
+          Dimension d = c.getPreferredSize();
+          c.setBounds( left, bottom - d.height, right - left, d.height );
+          bottom -= d.height + getVgap();
+        }
+
+        c = getLayoutComponent( WEST );
+        if( c != null )
+        {
+          c.setSize( c.getWidth(), bottom - top );
+          Dimension d = c.getPreferredSize();
+          c.setBounds( right - d.width, top, d.width, bottom - top );
+          right -= d.width + getHgap();
+        }
+
+        int centerX = c != null ? c.getWidth() + getHgap() : getHgap() + 1;
+
+        c = getLayoutComponent( EAST );
+        if( c != null )
+        {
+          Component center = getLayoutComponent( CENTER );
+          int cWidth = center.getPreferredSize().width;
+
+          c.setSize( c.getWidth(), bottom - top );
+          Dimension d = c.getPreferredSize();
+          int width = Math.max( right - left - cWidth, d.width );
+          c.setBounds( right - (left + width), top, width, bottom - top );
+          left += width + getHgap();
+        }
+
+        c = getLayoutComponent( CENTER );
+        if( c != null )
+        {
+          c.setBounds( centerX, top, right - left, bottom - top );
+        }
+      }
     }
   }
 }

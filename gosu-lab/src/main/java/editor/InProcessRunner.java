@@ -31,8 +31,16 @@ import java.util.stream.Collectors;
 */
 public class InProcessRunner implements IProcessRunner
 {
+  private String _typeName;
+
   public InProcessRunner()
   {
+  }
+
+  @Override
+  public String getTypeName()
+  {
+    return _typeName;
   }
 
   @Override
@@ -57,6 +65,7 @@ public class InProcessRunner implements IProcessRunner
   {
     try
     {
+      _typeName = typeName;
       ClassLoader loader = InProcessRunner.class.getClassLoader();
       URLClassLoader runLoader = new URLClassLoader( getAllUrlsAboveGosuclassProtocol( (URLClassLoader)loader ), loader.getParent() );
 

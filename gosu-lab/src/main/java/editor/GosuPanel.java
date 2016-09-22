@@ -1,7 +1,7 @@
 package editor;
 
+import com.sun.jdi.Location;
 import com.sun.jdi.VirtualMachine;
-import editor.actions.UpdateNotifier;
 import editor.debugger.BreakpointManager;
 import editor.debugger.Debugger;
 import editor.search.StandardLocalSearch;
@@ -21,10 +21,13 @@ import editor.util.LabelListPopup;
 import editor.util.PlatformUtil;
 import editor.util.SettleModalEventQueue;
 import editor.util.SmartMenu;
+import editor.util.ToolBar;
 import editor.util.TypeNameUtil;
+import editor.util.XPToolbarButton;
 import gw.internal.ext.org.objectweb.asm.ClassReader;
 import gw.internal.ext.org.objectweb.asm.util.TraceClassVisitor;
 import gw.lang.Gosu;
+import gw.lang.ir.SignatureUtil;
 import gw.lang.parser.IParseIssue;
 import gw.lang.parser.IParseTree;
 import gw.lang.parser.IParsedElement;
@@ -102,6 +105,7 @@ public class GosuPanel extends JPanel
   private SysInListener _sysInListener;
   private InputStream _oldIn;
   private MessagesPanel _messages;
+  private DebugPanel _debugPanel;
   private IProcessRunner _processRunner;
   private BreakpointManager _breakpointManager;
   private Debugger _debugger;
@@ -125,7 +129,10 @@ public class GosuPanel extends JPanel
   {
     setLayout( new BorderLayout() );
 
-    _bottomTabPane = new TabPane( TabPane.MINIMIZABLE | TabPane.RESTORABLE );
+    JPanel bottom = new JPanel( new BorderLayout() );
+    _bottomTabPane = new TabPane( TabPane.MINIMIZABLE | TabPane.RESTORABLE | TabPane.TOP_BORDER_ONLY );
+    bottom.add( _bottomTabPane, BorderLayout.CENTER );
+    bottom.add( createToolbar(), BorderLayout.WEST );
 
     _messages = new MessagesPanel();
 
@@ -150,7 +157,9 @@ public class GosuPanel extends JPanel
         {
           return;
         }
-        getCurrentEditor().getEditor().requestFocus();
+        // Don't set focus here, otherwise it could be stealing it from somewhere that wants it after it instructed Lab to display an editor,
+        // but wants to retain focus, like the debug panel when switching between stakc frames.
+        //getCurrentEditor().getEditor().requestFocus();
         parse();
         storeExperimentState();
       } );
@@ -162,7 +171,7 @@ public class GosuPanel extends JPanel
 
 
     _splitPane = new CollapsibleSplitPane( SwingConstants.HORIZONTAL, experimentViewTabPane, _editorTabPane );
-    _outerSplitPane = new CollapsibleSplitPane( SwingConstants.VERTICAL, _splitPane, _bottomTabPane );
+    _outerSplitPane = new CollapsibleSplitPane( SwingConstants.VERTICAL, _splitPane, bottom );
 
     add( _outerSplitPane, BorderLayout.CENTER );
 
@@ -181,6 +190,32 @@ public class GosuPanel extends JPanel
     EventQueue.invokeLater( this::mapKeystrokes );
   }
 
+  private ToolBar createToolbar()
+  {
+    ToolBar toolbar = new ToolBar( JToolBar.VERTICAL );
+    XPToolbarButton item;
+
+    item = new XPToolbarButton( new CommonMenus.ClearAndRunActionHandler( "", this::getCurrentEditorType ) );
+    toolbar.add( item );
+    item = new XPToolbarButton( new CommonMenus.ClearAndDebugActionHandler( "", this::getCurrentEditorType ) );
+    toolbar.add( item );
+    item = new XPToolbarButton( new CommonMenus.StopActionHandler( "", () -> this ) );
+    toolbar.add( item );
+    item = new XPToolbarButton( new CommonMenus.PauseActionHandler( "", this::getDebugger ) );
+    toolbar.add( item );
+    item = new XPToolbarButton( new CommonMenus.ResumeActionHandler( "", this::getDebugger ) );
+    toolbar.add( item );
+
+    toolbar.addSeparator();
+
+    item = new XPToolbarButton( new CommonMenus.ViewBreakpointsActionHandler( "", () -> null ) );
+    toolbar.add( item );
+    ToggleToolBarButton titem = new ToggleToolBarButton( new CommonMenus.MuteBreakpointsActionHandler( "", this::getBreakpointManager ) );
+    toolbar.add( titem );
+
+    return toolbar;
+  }
+
   public ExperimentView getExperimentView()
   {
     return _experimentView;
@@ -194,6 +229,11 @@ public class GosuPanel extends JPanel
   public SystemPanel getConsolePanel()
   {
     return _consolePanel;
+  }
+
+  public DebugPanel getDebugPanel()
+  {
+    return _debugPanel;
   }
 
   public void showMessages( boolean bShow )
@@ -281,17 +321,17 @@ public class GosuPanel extends JPanel
       File file = new File( openFile );
       if( file.isFile() )
       {
-        openFile( file );
+        openFile( file, false );
       }
     }
     String activeFile = experiment.getActiveFile();
     if( activeFile == null )
     {
-      openFile( experiment.getOrMakeUntitledProgram() );
+      openFile( experiment.getOrMakeUntitledProgram(), true );
     }
     else
     {
-      openTab( new File( activeFile ) );
+      openTab( new File( activeFile ), true );
     }
     SettleModalEventQueue.instance().run();
     _experimentView.load( _experiment );
@@ -1328,23 +1368,23 @@ public class GosuPanel extends JPanel
     int returnVal = fc.showOpenDialog( editor.util.EditorUtilities.frameForComponent( this ) );
     if( returnVal == JFileChooser.APPROVE_OPTION )
     {
-      openFile( fc.getSelectedFile() );
+      openFile( fc.getSelectedFile(), true );
     }
   }
 
-  public void openFile( final File file )
+  public void openFile( File file, boolean bFocus )
   {
-    openFile( makePartId( file ), file );
+    openFile( makePartId( file ), file, bFocus );
   }
 
-  public boolean openType( String fqn )
+  public boolean openType( String fqn, boolean bFocus )
   {
-    TreeModel model = RunMe.getEditorFrame().getGosuPanel().getExperimentView().getTree().getModel();
+    TreeModel model = getExperimentView().getTree().getModel();
     FileTree root = (FileTree)model.getRoot();
     FileTree fileTree = root.find( fqn );
     if( fileTree != null )
     {
-      RunMe.getEditorFrame().getGosuPanel().openFile( fileTree.getFileOrDir() );
+      openFile( fileTree.getFileOrDir(), bFocus );
       return true;
     }
     return false;
@@ -1386,7 +1426,7 @@ public class GosuPanel extends JPanel
     {
       if( file != null || _editorTabPane.getTabCount() == 0 )
       {
-        openFile( partId, file );
+        openFile( partId, file, true );
       }
     }
     finally
@@ -1395,9 +1435,9 @@ public class GosuPanel extends JPanel
     }
   }
 
-  private void openFile( IScriptPartId partId, File file )
+  private void openFile( IScriptPartId partId, File file, boolean bFocus )
   {
-    if( openTab( file ) )
+    if( openTab( file, bFocus ) )
     {
       return;
     }
@@ -1448,7 +1488,10 @@ public class GosuPanel extends JPanel
     {
       editor.read( partId, strSource, "" );
       resetChangeHandler();
-      EventQueue.invokeLater( () -> editor.getEditor().requestFocus() );
+      if( bFocus )
+      {
+        EventQueue.invokeLater( () -> editor.getEditor().requestFocus() );
+      }
     }
     catch( Throwable t )
     {
@@ -1485,12 +1528,12 @@ public class GosuPanel extends JPanel
     _parentFrame.setTitle( title );
   }
 
-  private boolean openTab( File file )
+  private boolean openTab( File file, boolean bFocus )
   {
     GosuEditor editor = findTab( file );
     if( editor != null )
     {
-      _editorTabPane.selectTab( _editorTabPane.findTabWithContent( editor ), true );
+      _editorTabPane.selectTab( _editorTabPane.findTabWithContent( editor ), bFocus );
       return true;
     }
     return false;
@@ -1516,7 +1559,7 @@ public class GosuPanel extends JPanel
   private void setCurrentFile( File file )
   {
     getCurrentEditor().putClientProperty( "_file", file );
-    openFile( file );
+    openFile( file, false );
   }
 
   public File getCurrentFile()
@@ -1872,6 +1915,11 @@ public class GosuPanel extends JPanel
   {
     if( _processRunner != null )
     {
+      if( _debugger != null && (_debugger.isSuspended() || _debugger.isPaused()) )
+      {
+        _debugger.resumeExecution();
+      }
+
       Process process = _processRunner.getProcess();
       if( process != null && process.isAlive() )
       {
@@ -1887,12 +1935,64 @@ public class GosuPanel extends JPanel
   public void clearDebugger()
   {
     _debugger = null;
+    showDebugger( false );
   }
 
   public void makeDebugger( VirtualMachine vm )
   {
-    _debugger = new Debugger( vm, _breakpointManager );
-    _debugger.startDebugging();
+    EventQueue.invokeLater( () -> {
+      _debugger = new Debugger( vm, _breakpointManager );
+      _debugger.addChangeListener( dbg -> repaintEditor() );
+      showDebugger( true );
+      _debugger.startDebugging();
+    } );
+  }
+
+  private void repaintEditor()
+  {
+    if( getCurrentEditor() != null )
+    {
+      getCurrentEditor().repaint();
+    }
+    if( _debugger.isSuspended() )
+    {
+      jumptToBreakpoint( _debugger.getSuspendedLocation(), false );
+    }
+  }
+
+  public void jumptToBreakpoint( Location location, boolean bFocus )
+  {
+    String fqn = Debugger.getOutermostType( location.declaringType() );
+    int line = location.lineNumber();
+    java.awt.EventQueue.invokeLater( () -> {
+      if( openType( fqn, bFocus ) )
+      {
+        getCurrentEditor().gotoLine( line );
+      }
+    } );
+  }
+
+  public void showDebugger( boolean bShow )
+  {
+    if( bShow )
+    {
+      if( _debugPanel == null )
+      {
+        _debugPanel = new DebugPanel( _debugger );
+        _bottomTabPane.addTab( "<html>Debugging: <i>" + SignatureUtil.getSimpleName( _processRunner.getTypeName() ) + "</i>", null, _debugPanel );
+        _debugPanel.addLocationListener( loc -> jumptToBreakpoint( loc, false ) );
+      }
+      else
+      {
+        ITab tab = _bottomTabPane.findTabWithContent( _debugPanel );
+        _bottomTabPane.selectTab( tab, false );
+      }
+    }
+    else
+    {
+      _bottomTabPane.removeTabWithContent( _debugPanel );
+      _debugPanel = null;
+    }
   }
 
   public BreakpointManager getBreakpointManager()
@@ -1993,7 +2093,7 @@ public class GosuPanel extends JPanel
         }
       }
     }
-    openFile( file );
+    openFile( file, true );
   }
 
   public void closeTab( File file )

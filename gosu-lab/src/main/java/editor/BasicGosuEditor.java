@@ -81,8 +81,11 @@ public class BasicGosuEditor extends JFrame implements IGosuEditor
   public void exit()
   {
     EditorUtilities.saveLayoutState( _panel.getExperimentView().getExperiment() );
+
     if( _panel.saveIfDirty() )
     {
+      getGosuPanel().killProcess();
+
       NoExitSecurityManager.CLOSING = true;
       System.exit( 0 );
     }
@@ -134,7 +137,7 @@ public class BasicGosuEditor extends JFrame implements IGosuEditor
 
   public void openFile( File anySourceFile )
   {
-    _panel.openFile( anySourceFile );
+    _panel.openFile( anySourceFile, true );
   }
 
   @Override

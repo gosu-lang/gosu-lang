@@ -56,14 +56,19 @@ public abstract class AbstractLineInfoManager implements ILineInfoManager
   {
     Color color = null;
 
-    if( isBreakpointAtLine( iLine ) )
-    {
-      color = Scheme.active().breakpointColor();
-    }
     if( isExecPointAtLine( iLine ) )
     {
       color = Scheme.active().getExecBreakpoint();
     }
+    else if( isBreakpointAtLine( iLine ) )
+    {
+      color = Scheme.active().breakpointColor();
+    }
+    else if( isFramePointAtLine( iLine ) )
+    {
+      color = Scheme.active().getFrameBreakpoint();
+    }
+
     if( color == null )
     {
       return;
@@ -148,4 +153,7 @@ public abstract class AbstractLineInfoManager implements ILineInfoManager
 
   protected abstract boolean isExecPointAtLine( int iLine );
   protected abstract Breakpoint getExecPointAtLine( int iLine );
+
+  protected abstract boolean isFramePointAtLine( int iLine );
+  protected abstract Breakpoint getFramePointAtLine( int iLine );
 }

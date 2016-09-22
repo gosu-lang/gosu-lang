@@ -108,19 +108,19 @@ public class TabPane extends JPanel implements ICaptionedPanel
     _tabContainer.addTabWithoutSelecting( new StandardTab( _tabContainer, tabLabel, contentPane, true ) );
   }
 
-  public void addTab( String strText, Icon icon, JComponent contentPane )
+  public ITab addTab( String strText, Icon icon, JComponent contentPane )
   {
-    insertTab( strText, icon, contentPane, -1 );
+    return insertTab( strText, icon, contentPane, -1 );
   }
 
-  public void insertTab( ILabel tabLabel, JComponent contentPane, int iIndex )
+  public ITab insertTab( ILabel tabLabel, JComponent contentPane, int iIndex )
   {
-    _tabContainer.insertTab( new StandardTab( _tabContainer, tabLabel, contentPane, true ), iIndex, true);
+    return _tabContainer.insertTab( new StandardTab( _tabContainer, tabLabel, contentPane, true ), iIndex, true );
   }
 
-  public void insertTab( String strText, Icon icon, JComponent contentPane, int iIndex )
+  public ITab insertTab( String strText, Icon icon, JComponent contentPane, int iIndex )
   {
-    _tabContainer.insertTab( new StandardTab( _tabContainer, new SimpleLabel( strText, icon ), contentPane, isDynamic() ), iIndex, true);
+    return _tabContainer.insertTab( new StandardTab( _tabContainer, new SimpleLabel( strText, icon ), contentPane, isDynamic() ), iIndex, true );
   }
 
   public void removeTabWithContent( JComponent contentPane )
@@ -150,7 +150,7 @@ public class TabPane extends JPanel implements ICaptionedPanel
 
   public void selectTabWithLabel( String label )
   {
-    ITab tab = findTabWithLabel(label);
+    ITab tab = findTabWithLabel( label );
     if( tab != null )
     {
       _tabContainer.selectTab( tab, true );
@@ -187,10 +187,13 @@ public class TabPane extends JPanel implements ICaptionedPanel
     return _tabContainer.findTabWithContent( contentPane );
   }
 
-  public ITab findTabWithLabel(String label) {
+  public ITab findTabWithLabel( String label )
+  {
     ITab tab = null;
-    for (ITab iTab : getTabs()) {
-      if ( GosuObjectUtil.equals( iTab.getLabel().getDisplayName(), label )) {
+    for( ITab iTab : getTabs() )
+    {
+      if( GosuObjectUtil.equals( iTab.getLabel().getDisplayName(), label ) )
+      {
         tab = iTab;
       }
     }
@@ -402,8 +405,10 @@ public class TabPane extends JPanel implements ICaptionedPanel
     focusMgr.removePropertyChangeListener( "permanentFocusOwner", _focusChangeListener );
   }
 
-  public void localeChanged() {
-    for (ITab tab : getTabs()) {
+  public void localeChanged()
+  {
+    for( ITab tab : getTabs() )
+    {
       tab.refresh();
     }
   }
@@ -527,7 +532,7 @@ public class TabPane extends JPanel implements ICaptionedPanel
         try
         {
           ITab[] tabs = getTabs();
-          for( int i = tabs.length-1; i >= 0; i-- )
+          for( int i = tabs.length - 1; i >= 0; i-- )
           {
             ITab tab = tabs[i];
             if( tab != leaveOpen )

@@ -10,4 +10,6 @@ public interface IProcessRunner
   RunState getRunState();
   Process getProcess();
   VirtualMachine getVm();
+
+  String getTypeName();
 }

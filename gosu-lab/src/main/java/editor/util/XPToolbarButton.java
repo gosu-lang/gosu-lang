@@ -25,6 +25,10 @@ public class XPToolbarButton extends JButton
    */
   public XPToolbarButton( String text, Icon icon, int iMargin )
   {
+    this( text, icon, iMargin, iMargin );
+  }
+  public XPToolbarButton( String text, Icon icon, int iMarginW, int iMarginH )
+  {
     super( text, icon );
 
     setUI( BasicButtonUI.createUI( this ) );
@@ -34,7 +38,7 @@ public class XPToolbarButton extends JButton
     setContentAreaFilled( false );
     setOpaque( true );
     EventQueue.invokeLater( () -> {
-      setBorder( BorderFactory.createCompoundBorder( BorderFactory.createLineBorder( EditorUtilities.XP_BORDER_COLOR ), BorderFactory.createEmptyBorder( iMargin, iMargin, iMargin, iMargin ) ) );
+      setBorder( BorderFactory.createCompoundBorder( BorderFactory.createLineBorder( EditorUtilities.XP_BORDER_COLOR ), BorderFactory.createEmptyBorder( iMarginH, iMarginW, iMarginH, iMarginW ) ) );
       setBackground(EditorUtilities.CONTROL );
     } );
 
@@ -136,8 +140,10 @@ public class XPToolbarButton extends JButton
   public XPToolbarButton( Action action )
   {
     this();
-    setAction( action );
-    UpdateNotifier.instance().addActionComponent( this );
+    EventQueue.invokeLater( () -> {
+      setAction( action );
+      UpdateNotifier.instance().addActionComponent( this );
+    } );
   }
 
   @Override

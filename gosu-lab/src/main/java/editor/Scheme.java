@@ -15,5 +15,6 @@ public abstract class Scheme
 
   abstract Color breakpointColor();
   abstract Color getExecBreakpoint();
+  abstract Color getFrameBreakpoint();
 
 }

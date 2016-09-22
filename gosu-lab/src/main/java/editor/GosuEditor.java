@@ -3446,7 +3446,7 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
       IFile sourceFile = gsClass.getSourceFileHandle().getFile();
       if( sourceFile != null && sourceFile.isJavaFile() )
       {
-        RunMe.getEditorFrame().getGosuPanel().openFile( sourceFile.toJavaFile() );
+        RunMe.getEditorFrame().getGosuPanel().openFile( sourceFile.toJavaFile(), true );
         SettleModalEventQueue.instance().run();
       }
     }

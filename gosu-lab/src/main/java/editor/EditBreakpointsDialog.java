@@ -266,7 +266,7 @@ public class EditBreakpointsDialog extends AbstractCloseDialog
       if( bp != null )
       {
         String strType = bp.getFqn();
-        getGosuPanel().openType( strType );
+        getGosuPanel().openType( strType, false );
         SettleModalEventQueue.instance().run();
         GosuEditor currentEditor = getGosuPanel().getCurrentEditor();
         if( currentEditor != null )

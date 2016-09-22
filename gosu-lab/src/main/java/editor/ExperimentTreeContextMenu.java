@@ -132,7 +132,7 @@ public class ExperimentTreeContextMenu implements IContextMenuHandler<JTree>
       FileTree item = (FileTree)_tree.getLastSelectedPathComponent();
       if( item != null )
       {
-        _experiment.getGosuPanel().openFile( item.getFileOrDir() );
+        _experiment.getGosuPanel().openFile( item.getFileOrDir(), true );
       }
     }
   }

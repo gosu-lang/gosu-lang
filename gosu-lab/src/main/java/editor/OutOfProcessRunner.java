@@ -5,7 +5,6 @@ import com.sun.jdi.VirtualMachine;
 import com.sun.jdi.VirtualMachineManager;
 import com.sun.jdi.connect.Connector;
 import com.sun.jdi.connect.LaunchingConnector;
-import editor.debugger.Debugger;
 import editor.util.TaskQueue;
 import gw.lang.Gosu;
 import gw.lang.reflect.TypeSystem;
@@ -26,6 +25,7 @@ import java.util.StringTokenizer;
  */
 public class OutOfProcessRunner implements IProcessRunner
 {
+  private String _typeName;
   private RunState _runState;
   private Process _process;
   private VirtualMachine _vm;
@@ -33,6 +33,12 @@ public class OutOfProcessRunner implements IProcessRunner
   public OutOfProcessRunner( RunState runState )
   {
     _runState = runState;
+  }
+
+  @Override
+  public String getTypeName()
+  {
+    return _typeName;
   }
 
   @Override
@@ -56,6 +62,7 @@ public class OutOfProcessRunner implements IProcessRunner
   {
     try
     {
+      _typeName = typeName;
       TaskQueue queue = TaskQueue.getInstance( "_execute_gosu" );
       gosuPanel.addBusySignal( _runState );
       queue.postTask(

@@ -67,6 +67,10 @@ public class UpdateNotifier
    */
   public void addActionComponent( JComponent item )
   {
+    if( !SwingUtilities.isEventDispatchThread() )
+    {
+      throw new RuntimeException( "Whoops!  UpdateNotifier is restricted to the EventDispatch thread." );
+    }
     _mapItems.put( item, null );
   }
 
@@ -77,6 +81,10 @@ public class UpdateNotifier
    */
   public void removeActionComponent( JComponent item )
   {
+    if( !SwingUtilities.isEventDispatchThread() )
+    {
+      throw new RuntimeException( "Whoops!  UpdateNotifier is restricted to the EventDispatch thread." );
+    }
     _mapItems.remove( item );
   }
 

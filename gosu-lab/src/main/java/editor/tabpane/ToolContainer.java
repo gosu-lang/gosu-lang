@@ -24,6 +24,7 @@ public class ToolContainer extends JPanel
   private XPToolbarButton _btnMinimize;
   private XPToolbarButton _btnRestore;
   private XPToolbarButton _btnMaximize;
+  private JComponent _filler;
 
 
   public ToolContainer( TabPane tabPane )
@@ -44,6 +45,7 @@ public class ToolContainer extends JPanel
   {
     setBorder( makeBorder() );
     _toolbar = new ToolBar( isVertical() ? ToolBar.VERTICAL : ToolBar.HORIZONTAL );
+    _toolbar.add( _filler = new JPanel() );
     if( _tabPane.isDynamic() )
     {
       addDynamicTools();

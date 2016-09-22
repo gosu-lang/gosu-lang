@@ -31,6 +31,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 
 /**
  */
@@ -39,6 +40,7 @@ public class Debugger
   private static final String TEMPORARY = "temporary";
   private static final String FROM_LOCATION = "from_location";
   private static final String BACK_OUT_LOCATION = "back_out_location";
+  private static final boolean DEBUG = false;
 
   private Thread _debuggerThread;
   private final BreakpointManager _bpm;
@@ -50,6 +52,8 @@ public class Debugger
   private Map<String, ClassPrepareRequest> _classPrepareRequests;
   private final Object _monitor;
   private boolean _bPaused;
+  private List<Consumer<Debugger>> _listeners;
+  private String _eventName;
 
   public Debugger( VirtualMachine vm, BreakpointManager bpm )
   {
@@ -57,6 +61,7 @@ public class Debugger
     _bpm = bpm;
     _classPrepareRequests = new HashMap<>();
     _debuggerThread = new Thread( this::run, "Debugger" );
+    _listeners = new ArrayList<>();
     _monitor =
       new Object()
       {
@@ -97,6 +102,60 @@ public class Debugger
   public ThreadReference getSuspendedThread()
   {
     return _eventThread;
+  }
+
+  public void addChangeListener( Consumer<Debugger> listener )
+  {
+    if( !_listeners.contains( listener ) )
+    {
+      _listeners.add( listener );
+    }
+  }
+  public boolean removeChangeListener( Consumer<Debugger> listener )
+  {
+    return _listeners.remove( listener );
+  }
+  private void notifyListeners()
+  {
+    java.awt.EventQueue.invokeLater( () ->
+      {
+        if( DEBUG )
+        {
+          System.out.println( toString() );
+        }
+        for( Consumer<Debugger> listener : _listeners )
+        {
+          listener.accept( this );
+        }
+      } );
+  }
+
+  @Override
+  public String toString()
+  {
+    StringBuilder sb = new StringBuilder();
+    if( isSuspended() )
+    {
+      String name;
+      try
+      {
+        name = getSuspendedLocation().sourceName();
+      }
+      catch( AbsentInformationException e )
+      {
+        name = getSuspendedLocation().declaringType().name();
+      }
+      sb.append( "Suspended for event: " ).append( _eventName ).append( " at (" ).append( name ).append( ": " ).append( getSuspendedLocation().lineNumber() ).append( ")" );
+    }
+    else if( isPaused() )
+    {
+      sb.append( "Paused" );
+    }
+    else
+    {
+      sb.append( "Running" );
+    }
+    return sb.toString();
   }
 
   public void muteBreakpoints( boolean mute )
@@ -144,7 +203,7 @@ public class Debugger
       while( eventIterator.hasNext() )
       {
         Event event = eventIterator.next();
-        System.out.println( "EVENT: " + event.toString() );
+        _eventName = event.getClass().getSimpleName();
 
         if( event instanceof StepEvent )
         {
@@ -189,7 +248,7 @@ public class Debugger
     _location = event.location();
     _eventThread = event.thread();
 
-    String fqn = getOutermostType( event.location() );
+    String fqn = getOutermostType( event.location().declaringType() );
     EventRequest request = event.request();
     getEventRequestManager().deleteEventRequest( request );
     if( FileTreeUtil.find( fqn ) != null )
@@ -231,7 +290,7 @@ public class Debugger
     List<Breakpoint> allBreakpoints = _bpm.getBreakpoints();
 
     Location loc = event.location();
-    String fqn = getOutermostType( loc );
+    String fqn = getOutermostType( loc.declaringType() );
     int line = loc.lineNumber();
 
     Boolean temporary = (Boolean)event.request().getProperty( TEMPORARY );
@@ -306,7 +365,6 @@ public class Debugger
   {
     _location = event.location();
     _eventThread = event.thread();
-    jumptToBreakpoint();
     synchronized( _monitor )
     {
       suspended();
@@ -375,6 +433,7 @@ public class Debugger
       _vm.suspend();
       _bPaused = true;
     }
+    notifyListeners();
   }
 
   public void dropFrame()
@@ -444,7 +503,7 @@ public class Debugger
     for( BreakpointRequest req : bpRequests )
     {
       Location location = req.location();
-      if( getOutermostType( location ).equals( bp.getFqn() ) && location.lineNumber() == bp.getLine() )
+      if( getOutermostType( location.declaringType() ).equals( bp.getFqn() ) && location.lineNumber() == bp.getLine() )
       {
         erm.deleteEventRequest( req );
       }
@@ -467,7 +526,7 @@ public class Debugger
       for( BreakpointRequest req : bpRequests )
       {
         Location location = req.location();
-        if( getOutermostType( location ).equals( bp.getFqn() ) && location.lineNumber() == bp.getLine() )
+        if( getOutermostType( location.declaringType() ).equals( bp.getFqn() ) && location.lineNumber() == bp.getLine() )
         {
           continue outer;
         }
@@ -515,39 +574,17 @@ public class Debugger
 
   private void suspended()
   {
-    java.awt.EventQueue.invokeLater( this::_suspended );
+    notifyListeners();
   }
 
-  private void _suspended()
-  {
-    System.out.println( "Suspended: " + getSuspendedLocation().lineNumber() );
-    repaintEditor();
-  }
   private void resumed()
   {
-    java.awt.EventQueue.invokeLater( this::_resumed );
+    notifyListeners();
   }
 
-  private void _resumed()
+  public static String getOutermostType( ReferenceType type )
   {
-    System.out.println( "Resumed: " + getSuspendedLocation() );
-    repaintEditor();
-  }
-  private void jumptToBreakpoint()
-  {
-    String fqn = getOutermostType( _location );
-    int line = _location.lineNumber();
-    java.awt.EventQueue.invokeLater( () -> {
-      if( getGosuPanel().openType( fqn ) )
-      {
-        getGosuPanel().getCurrentEditor().gotoLine( line );
-      }
-    } );
-  }
-
-  private String getOutermostType( Location loc )
-  {
-    String name = loc.declaringType().name();
+    String name = type.name();
     if( name.contains( "$ProxyFor_" ) )
     {
       // this is a generated proxy; there is no source for this
@@ -562,13 +599,13 @@ public class Debugger
     return name;
   }
 
-  private void repaintEditor()
-  {
-    getGosuPanel().getCurrentEditor().repaint();
-  }
-
   private GosuPanel getGosuPanel()
   {
     return RunMe.getEditorFrame().getGosuPanel();
+  }
+
+  public List<ThreadReference> getThreads()
+  {
+    return _vm.allThreads();
   }
 }
