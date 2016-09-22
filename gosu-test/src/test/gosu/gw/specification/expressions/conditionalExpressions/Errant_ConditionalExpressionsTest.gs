@@ -259,4 +259,37 @@ class Errant_ConditionalExpressionsTest {
     var r1 = 123 ?: 1  //## issuekeys: MSG_EXPECTING_REFERENCE_TYPE
     r1 = i ?: 1  //## issuekeys: MSG_EXPECTING_REFERENCE_TYPE
   }
+
+  // IDE-327
+  abstract class IDE_327 {
+
+    function a() {
+      var x = 5
+      var y = 6
+      var xxx = x > y ? 42 : "hello world!"
+      var yyy = x > y ? false : "hello world!"
+      var zzz = x > y ? false : 42      //## issuekeys: MSG_LOSS_OF_PRECISION_IN_CONDITIONAL_EXP
+    }
+
+    abstract function foo<T>(p1: T, p2: T): T
+
+    function test(x: int, y: int) {
+      var a: int
+      var b: String
+      var c1: Serializable = foo(a, b)
+      var c2: Serializable = x > y ? a : b
+    }
+  }
+
+  // IDE-451
+  class IDE_451 {
+    class A {}
+    class B extends A {}
+    class C extends A {}
+
+    var mytype = false ? new C() : new B()
+    var someonestype = false ? new Float(42.5) : new ArrayList()
+    var yourtype = true ? new Float(42.5) : new Integer(42)       //## issuekeys: MSG_LOSS_OF_PRECISION_IN_CONDITIONAL_EXP
+  }
+
 }

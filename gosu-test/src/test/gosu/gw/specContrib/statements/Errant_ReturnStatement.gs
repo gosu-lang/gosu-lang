@@ -12,12 +12,63 @@ class Errant_ReturnStatement {
 
   function tricky2(val: boolean): int {
     if (val)
-      return doSomething()
-  }   //## issuekeys: MISSED RETURN
+      return doSomething() // still fails due to if
+  }      //## issuekeys: MISSING RETURN STATEMENT
 
   function tricky3(val: boolean): int {
     if (val)
       return
+          doSomething() // still fails due to if
+  }      //## issuekeys: MISSING RETURN STATEMENT
+
+
+  function aaa(): boolean {
+    return
+        true
+  }
+
+  function bbb(): boolean {
+    return
+    true
+  }
+
+  function ccc(): boolean {
+    return    // no error
+
+        true      // no error
+  }
+
+  function ddd() {
+    return
+  }
+
+  function trick1_else(val: boolean) {
+    if (val)
+      val = !val
+    else
+      return
+    doSomething()
+  }
+
+  function trick1_brace(val: boolean) {
+    if (val)
+      val = !val
+    else {
+      return
+          doSomething()   //## issuekeys: MSG_UNREACHABLE_STMT
+    }
+  }
+
+
+  function nestedTricky(val: boolean): int {
+    if (true) {
+      if (true)
+        return // Studio BAD: Missing return value
+      doSomething()
+      return
+          doSomething()
+    }
+    return
         doSomething()
-  }   //## issuekeys: MISSED RETURN
+  }
 }

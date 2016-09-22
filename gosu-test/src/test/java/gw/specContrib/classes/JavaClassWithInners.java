@@ -6,6 +6,6 @@ public class JavaClassWithInners
 {
   public interface PublicInnerInterface {}
   private interface PrivateInnerInterface {}
-  public interface PublicInnerClass {}
-  private interface PrivateInnerClass{}
+  public class PublicInnerClass {}
+  private class PrivateInnerClass{}
 }
