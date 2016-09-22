@@ -46,7 +46,7 @@ class Errant_TheForStatementTest  {
     for(3) {}  //## issuekeys: MSG_EXPECTING_IDENTIFIER_FOREACH, MSG_EXPECTING_IN_FOREACH, MSG_EXPECTING_ARRAYTYPE_FOREACH
 
     var list1 = {1, 2, 3}
-    for(list1) {}  //## issuekeys: MSG_EXPECTING_IDENTIFIER_FOREACH, MSG_EXPECTING_IN_FOREACH
+    for(list1) {}  //## issuekeys: MSG_VARIABLE_ALREADY_DEFINED, MSG_EXPECTING_IN_FOREACH, MSG_SYNTAX_ERROR
     for(i in list1) {}
     for({4, 5, 6}) {}  //## issuekeys: MSG_EXPECTING_IDENTIFIER_FOREACH, MSG_EXPECTING_IN_FOREACH
   }
@@ -97,8 +97,8 @@ class Errant_TheForStatementTest  {
   function bar() {
     for (i in {1, 2, 3} index i1 iterator i2) {
       i = 2 //should not show error
-      i1 = 33      //## issuekeys: "INDEX", "ITERATOR" IN "FOR" LOOP ARE NOT WRITABLE
-      i2 = null      //## issuekeys: "INDEX", "ITERATOR" IN "FOR" LOOP ARE NOT WRITABLE
+      i1 = 33      //## issuekeys: MSG_PROPERTY_NOT_WRITABLE
+      i2 = null      //## issuekeys: MSG_PROPERTY_NOT_WRITABLE
       print(i1) //should not show error
       print(i2)
 
@@ -106,14 +106,14 @@ class Errant_TheForStatementTest  {
       xxx = 444
 
       for (ii in {1, 2, 3} index ii1 iterator ii2) {
-        i1 = 323344      //## issuekeys: "INDEX", "ITERATOR" IN "FOR" LOOP ARE NOT WRITABLE
-        i2 = 44      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'INT', REQUIRED: 'JAVA.UTIL.ITERATOR<JAVA.LANG.INTEGER>'
+        i1 = 323344      //## issuekeys: MSG_PROPERTY_NOT_WRITABLE
+        i2 = 44      //## issuekeys: MSG_PROPERTY_NOT_WRITABLE, MSG_TYPE_MISMATCH
         print(i1)
         print(i2)
 
         ii = 44
-        ii1 = 44      //## issuekeys: "INDEX", "ITERATOR" IN "FOR" LOOP ARE NOT WRITABLE
-        ii2 = null      //## issuekeys: "INDEX", "ITERATOR" IN "FOR" LOOP ARE NOT WRITABLE
+        ii1 = 44      //## issuekeys: MSG_PROPERTY_NOT_WRITABLE
+        ii2 = null      //## issuekeys: MSG_PROPERTY_NOT_WRITABLE
         print(ii1)
         print(ii2)
       }
