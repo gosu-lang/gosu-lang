@@ -608,7 +608,7 @@ public class CommonMenus
     {
       if( isEnabled() )
       {
-        _debugger.get().stepOver();
+        _debugger.get().stepInto();
       }
     }
 
@@ -633,7 +633,7 @@ public class CommonMenus
     {
       if( isEnabled() )
       {
-        _debugger.get().stepOver();
+        _debugger.get().stepOut();
       }
     }
 
