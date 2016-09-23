@@ -243,7 +243,14 @@ public class DebugPanel extends JPanel
 
   StackFrame getDropToFrame()
   {
-    return _listFrames.getSelectedValue();
+    StackFrame frame = _listFrames.getSelectedValue();
+    if( isFilteredClass( frame.location().declaringType() ) )
+    {
+      // don't support dropping too far outside of filtered classes, otherwise
+      // we get InternalExceptions from jdwp
+      frame = null;
+    }
+    return frame;
   }
 
   private XPToolbarButton makeButton( Action action )

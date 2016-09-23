@@ -440,8 +440,17 @@ public class Debugger
 
   public void dropToFrame( StackFrame frame )
   {
+    if( frame == null )
+    {
+      return;
+    }
+
     try
     {
+      if( isFirstFrame( frame ) )
+      {
+        return;
+      }
       getSuspendedThread().popFrames( frame );
       StackFrame currentFrame = getSuspendedThread().frame( 0 );
       _location = currentFrame.location();
@@ -451,6 +460,12 @@ public class Debugger
     {
       // eat
     }
+  }
+
+  private boolean isFirstFrame( StackFrame frame ) throws IncompatibleThreadStateException
+  {
+    List<StackFrame> frames = getSuspendedThread().frames();
+    return frame.equals( frames.get( frames.size() - 1 ) );
   }
 
   private void addBreakpoints()
