@@ -787,7 +787,8 @@ public class GosuPanel extends JPanel
     runMenu.add( CommonMenus.makeStepInto( this::getDebugger ) );
     runMenu.add( CommonMenus.makeStepOut( this::getDebugger ) );
     runMenu.add( CommonMenus.makeRunToCursor( this::getDebugger, this::getBreakpointManager, this::getCurrentEditor ) );
-    runMenu.add( CommonMenus.makeDropFrame( this::getDebugger ) );
+    //noinspection Convert2MethodRef
+    runMenu.add( CommonMenus.makeDropFrame( this::getDebugger, () -> _debugPanel.getDropToFrame() ) );
     runMenu.add( CommonMenus.makePause( this::getDebugger ) );
     runMenu.add( CommonMenus.makeResume( this::getDebugger ) );
 

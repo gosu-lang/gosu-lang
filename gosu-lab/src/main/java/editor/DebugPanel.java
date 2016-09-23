@@ -126,6 +126,8 @@ public class DebugPanel extends JPanel
   private void updateThreads( List<ThreadReference> threads )
   {
     _cbThreads.setModel( makeThreadModel( threads ) );
+    _cbThreads.setSelectedItem( 0 );
+    EventQueue.invokeLater( () -> _listFrames.setSelectedIndex( 0 ) );
   }
 
   private void resumed()
@@ -230,13 +232,18 @@ public class DebugPanel extends JPanel
 
     tb.add( makeSeparator(), i++ );
 
-    item = makeButton( new CommonMenus.DropFrameActionHandler( "", this::getDebugger ) );
+    item = makeButton( new CommonMenus.DropFrameActionHandler( "", this::getDebugger, () -> getDropToFrame() ) );
     tb.add( item, i++ );
 
     tb.add( makeSeparator(), i++ );
 
     item = makeButton( new CommonMenus.RunToCursorActionHandler( "", this::getDebugger, this::getBreakpointManager, this::getCurrentEditor ) );
     tb.add( item, i++ );
+  }
+
+  StackFrame getDropToFrame()
+  {
+    return _listFrames.getSelectedValue();
   }
 
   private XPToolbarButton makeButton( Action action )

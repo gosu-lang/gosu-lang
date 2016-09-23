@@ -1,8 +1,10 @@
 package editor.debugger;
 
 import com.sun.jdi.AbsentInformationException;
+import com.sun.jdi.IncompatibleThreadStateException;
 import com.sun.jdi.Location;
 import com.sun.jdi.ReferenceType;
+import com.sun.jdi.StackFrame;
 import com.sun.jdi.ThreadReference;
 import com.sun.jdi.VirtualMachine;
 import com.sun.jdi.event.BreakpointEvent;
@@ -436,9 +438,19 @@ public class Debugger
     notifyListeners();
   }
 
-  public void dropFrame()
+  public void dropToFrame( StackFrame frame )
   {
-
+    try
+    {
+      getSuspendedThread().popFrames( frame );
+      StackFrame currentFrame = getSuspendedThread().frame( 0 );
+      _location = currentFrame.location();
+      notifyListeners();
+    }
+    catch( IncompatibleThreadStateException e )
+    {
+      // eat
+    }
   }
 
   private void addBreakpoints()

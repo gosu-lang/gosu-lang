@@ -1,5 +1,6 @@
 package editor;
 
+import com.sun.jdi.StackFrame;
 import editor.actions.UpdateNotifier;
 import editor.debugger.BreakpointManager;
 import editor.debugger.Debugger;
@@ -288,9 +289,9 @@ public class CommonMenus
     return item;
   }
 
-  public static JMenuItem makeDropFrame( Supplier<Debugger> debugger )
+  public static JMenuItem makeDropFrame( Supplier<Debugger> debugger, Supplier<StackFrame> frame )
   {
-    JMenuItem item = new JMenuItem( new DropFrameActionHandler( "Drop Frame", debugger ) );
+    JMenuItem item = new JMenuItem( new DropFrameActionHandler( "Drop Frame", debugger, frame ) );
     item.setMnemonic( 'F' );
     UpdateNotifier.instance().addActionComponent( item );
     return item;
@@ -647,16 +648,18 @@ public class CommonMenus
   public static class DropFrameActionHandler extends AbstractAction
   {
     private final Supplier<Debugger> _debugger;
+    private final Supplier<StackFrame> _frame;
 
-    public DropFrameActionHandler( String label, Supplier<Debugger> debugger )
+    public DropFrameActionHandler( String label, Supplier<Debugger> debugger, Supplier<StackFrame> frame )
     {
       super( label, EditorUtilities.loadIcon( "images/debug_dropframe.png" ) );
       _debugger = debugger;
+      _frame = frame;
     }
 
     public void actionPerformed( ActionEvent e )
     {
-      _debugger.get().dropFrame();
+      _debugger.get().dropToFrame( _frame.get() );
     }
 
     @Override
