@@ -137,7 +137,7 @@ public class GosuPanel extends JPanel
     _messages = new MessagesPanel();
 
     _consolePanel = new SystemPanel();
-    _bottomTabPane.addTab( "Console", null, _consolePanel );
+    _bottomTabPane.addTab( "Console", EditorUtilities.loadIcon( "images/console.png" ), _consolePanel );
 
     _editorTabPane = new TabPane( TabPosition.TOP, TabPane.DYNAMIC | TabPane.MIN_MAX_REST );
 
@@ -1979,7 +1979,7 @@ public class GosuPanel extends JPanel
       if( _debugPanel == null )
       {
         _debugPanel = new DebugPanel( _debugger );
-        _bottomTabPane.addTab( "<html>Debugging: <i>" + SignatureUtil.getSimpleName( _processRunner.getTypeName() ) + "</i>", null, _debugPanel );
+        _bottomTabPane.addTab( "<html>Debugging: <i>" + SignatureUtil.getSimpleName( _processRunner.getTypeName() ) + "</i>", EditorUtilities.loadIcon( "images/debug.png" ), _debugPanel );
         _debugPanel.addLocationListener( loc -> jumptToBreakpoint( loc, false ) );
       }
       else
