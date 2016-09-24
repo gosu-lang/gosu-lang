@@ -86,7 +86,6 @@ public class BasicGosuEditor extends JFrame implements IGosuEditor
     {
       getGosuPanel().killProcess();
 
-      NoExitSecurityManager.CLOSING = true;
       System.exit( 0 );
     }
   }

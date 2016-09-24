@@ -1273,7 +1273,6 @@ public class GosuPanel extends JPanel
   {
     if( saveIfDirty() )
     {
-      NoExitSecurityManager.CLOSING = true;
       System.exit( 0 );
     }
   }
