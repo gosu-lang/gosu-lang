@@ -23,7 +23,7 @@ public class SmartMenu extends JMenu implements MenuListener
     setMargin( new Insets( 1, 1, 1, 1 ) );
     setBackground( EditorUtilities.CONTROL );
     setContentAreaFilled( false );
-    setOpaque( false );
+    //setOpaque( false );
     EventQueue.invokeLater( () -> {
       setBorder( BorderFactory.createCompoundBorder( BorderFactory.createLineBorder( EditorUtilities.XP_BORDER_COLOR ), BorderFactory.createEmptyBorder( 2, 2, 2, 2 ) ) );
       setBackground( EditorUtilities.CONTROL );
