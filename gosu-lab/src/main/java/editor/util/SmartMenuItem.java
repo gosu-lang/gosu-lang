@@ -25,7 +25,7 @@ public class SmartMenuItem extends JMenuItem implements ChangeListener
     setBorderPainted( false );
     setMargin( new Insets( 1, 1, 1, 1 ) );
     setBackground( EditorUtilities.CONTROL );
-    setContentAreaFilled( false );
+    //setContentAreaFilled( false );
     setOpaque( true );
     EventQueue.invokeLater( () -> {
       setBorder( BorderFactory.createCompoundBorder( BorderFactory.createLineBorder( EditorUtilities.XP_BORDER_COLOR ), BorderFactory.createEmptyBorder( 2, 2, 2, 2 ) ) );
