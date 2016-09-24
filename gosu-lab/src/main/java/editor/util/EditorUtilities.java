@@ -58,6 +58,7 @@ public class EditorUtilities
   public static final Color CONTROL_DARKSHADOW = new Color( 105, 105, 105 ); // UIManager.getColor( "controlDkShadow" );
   public static final Color CONTROL_HIGHLIGHT = new Color( 227, 227, 227 ); //UIManager.getColor( "controlHighlight" );
   public static final Color CONTROL_LIGHT = Color.white; //UIManager.getColor( "controlLtHighlight" );
+  public static final Color CONTROL_LIGTH_SHADOW = new Color( 200, 200, 200 );
   public static final Color CONTROL_SHADOW = new Color( 160, 160, 160 ); //EditorUtilities.CONTROL_SHADOW;
   public static final Color CONTROL_TEXT = Color.black; //UIManager.getColor( "controlText" );
   public static final Color TOOLTIP_BACKGROUND = new Color( 255, 255, 225 ); //  UIManager.getColor( "info" );

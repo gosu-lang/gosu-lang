@@ -5,6 +5,7 @@ import editor.actions.UpdateNotifier;
 import editor.debugger.BreakpointManager;
 import editor.debugger.Debugger;
 import editor.util.EditorUtilities;
+import editor.util.SmartMenuItem;
 import gw.lang.reflect.IMethodInfo;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.TypeSystem;
@@ -24,7 +25,7 @@ public class CommonMenus
 {
   public static JMenuItem makeCut( Supplier<GosuEditor> editor )
   {
-    JMenuItem cutItem = new JMenuItem(
+    JMenuItem cutItem = new SmartMenuItem(
       new AbstractAction( "Cut" )
       {
         @Override
@@ -41,7 +42,7 @@ public class CommonMenus
 
   public static JMenuItem makeCopy( Supplier<GosuEditor> editor )
   {
-    JMenuItem copyItem = new JMenuItem(
+    JMenuItem copyItem = new SmartMenuItem(
       new AbstractAction( "Copy" )
       {
         @Override
@@ -58,7 +59,7 @@ public class CommonMenus
 
   public static JMenuItem makePaste( Supplier<GosuEditor> editor )
   {
-    JMenuItem pasteItem = new JMenuItem(
+    JMenuItem pasteItem = new SmartMenuItem(
       new AbstractAction( "Paste" )
       {
         @Override
@@ -75,7 +76,7 @@ public class CommonMenus
 
   public static JMenuItem makePasteJavaAsGosu( Supplier<GosuEditor> editor )
   {
-    return new JMenuItem(
+    return new SmartMenuItem(
       new AbstractAction( "Paste Java as Gosu" )
       {
         @Override
@@ -88,7 +89,7 @@ public class CommonMenus
 
   public static JMenuItem makeCodeComplete( Supplier<GosuEditor> editor )
   {
-    JMenuItem completeItem = new JMenuItem(
+    JMenuItem completeItem = new SmartMenuItem(
       new AbstractAction( "Complete Code" )
       {
         @Override
@@ -105,7 +106,7 @@ public class CommonMenus
 
   public static JMenuItem makeParameterInfo( Supplier<GosuEditor> editor )
   {
-    JMenuItem paraminfoItem = new JMenuItem(
+    JMenuItem paraminfoItem = new SmartMenuItem(
       new AbstractAction( "Parameter Info" )
       {
         @Override
@@ -125,7 +126,7 @@ public class CommonMenus
 
   public static JMenuItem makeExpressionType( Supplier<GosuEditor> editor )
   {
-    JMenuItem typeItem = new JMenuItem(
+    JMenuItem typeItem = new SmartMenuItem(
       new AbstractAction( "Expression Type" )
       {
         @Override
@@ -142,7 +143,7 @@ public class CommonMenus
 
   public static JMenuItem makeGotoDeclaration( Supplier<GosuEditor> editor )
   {
-    JMenuItem navigate = new JMenuItem(
+    JMenuItem navigate = new SmartMenuItem(
       new AbstractAction( "Goto Declaration" )
       {
         @Override
@@ -158,7 +159,7 @@ public class CommonMenus
 
   public static JMenuItem makeShowFileInTree( Supplier<GosuEditor> editor )
   {
-    JMenuItem navigate = new JMenuItem(
+    JMenuItem navigate = new SmartMenuItem(
       new AbstractAction( "Select File in Tree" )
       {
         @Override
@@ -174,7 +175,7 @@ public class CommonMenus
 
   public static JMenuItem makeQuickDocumentation( Supplier<GosuEditor> editor )
   {
-    JMenuItem quickDoc = new JMenuItem(
+    JMenuItem quickDoc = new SmartMenuItem(
       new AbstractAction( "Quick Documentation" )
       {
         @Override
@@ -190,7 +191,7 @@ public class CommonMenus
 
   public static JMenuItem makeViewBytecode()
   {
-    JMenuItem item = new JMenuItem(
+    JMenuItem item = new SmartMenuItem(
       new AbstractAction( "View Bytecode" )
       {
         @Override
@@ -205,7 +206,7 @@ public class CommonMenus
 
   public static JMenuItem makeRun( Supplier<IType> type )
   {
-    JMenuItem item = new JMenuItem( new ClearAndRunActionHandler( "Run", type ) );
+    JMenuItem item = new SmartMenuItem( new ClearAndRunActionHandler( "Run", type ) );
     item.setMnemonic( 'R' );
     item.setAccelerator( KeyStroke.getKeyStroke( "F5" ) );
     UpdateNotifier.instance().addActionComponent( item );
@@ -214,7 +215,7 @@ public class CommonMenus
 
   public static JMenuItem makeDebug( Supplier<IType> type )
   {
-    JMenuItem item = new JMenuItem( new ClearAndDebugActionHandler( "Debug", type ) );
+    JMenuItem item = new SmartMenuItem( new ClearAndDebugActionHandler( "Debug", type ) );
     item.setMnemonic( 'D' );
     item.setAccelerator( KeyStroke.getKeyStroke( "alt F5" ) );
     UpdateNotifier.instance().addActionComponent( item );
@@ -223,7 +224,7 @@ public class CommonMenus
 
   public static JMenuItem makeStop( Supplier<GosuPanel> gosuPanel )
   {
-    JMenuItem item = new JMenuItem( new CommonMenus.StopActionHandler( "Stop", gosuPanel::get ) );
+    JMenuItem item = new SmartMenuItem( new CommonMenus.StopActionHandler( "Stop", gosuPanel::get ) );
     item.setMnemonic( 'S' );
     item.setAccelerator( KeyStroke.getKeyStroke( "control F2" ) );
     UpdateNotifier.instance().addActionComponent( item );
@@ -232,7 +233,7 @@ public class CommonMenus
 
   public static JMenuItem makeToggleBreakpoint( Supplier<BreakpointManager> bpm, Supplier<GosuEditor> editor )
   {
-    JMenuItem item = new JMenuItem(
+    JMenuItem item = new SmartMenuItem(
       new AbstractAction( "Toggle Breakpoint", EditorUtilities.loadIcon( "images/debug_linebreakpoint.png" ) )
       {
         public void actionPerformed( ActionEvent e )
@@ -255,7 +256,7 @@ public class CommonMenus
 
   public static JMenuItem makeStepOver( Supplier<Debugger> debugger )
   {
-    JMenuItem item = new JMenuItem( new StepOverActionHandler( "Step Over", debugger ) );
+    JMenuItem item = new SmartMenuItem( new StepOverActionHandler( "Step Over", debugger ) );
     item.setMnemonic( 'O' );
     item.setAccelerator( KeyStroke.getKeyStroke( "F8" ) );
     UpdateNotifier.instance().addActionComponent( item );
@@ -264,7 +265,7 @@ public class CommonMenus
 
   public static JMenuItem makeStepInto( Supplier<Debugger> debugger )
   {
-    JMenuItem item = new JMenuItem( new StepIntoActionHandler( "Step Into", debugger ) );
+    JMenuItem item = new SmartMenuItem( new StepIntoActionHandler( "Step Into", debugger ) );
     item.setMnemonic( 'V' );
     item.setAccelerator( KeyStroke.getKeyStroke( "F7" ) );
     UpdateNotifier.instance().addActionComponent( item );
@@ -273,7 +274,7 @@ public class CommonMenus
 
   public static JMenuItem makeStepOut( Supplier<Debugger> debugger )
   {
-    JMenuItem item = new JMenuItem( new StepOutActionHandler( "Step Out", debugger ) );
+    JMenuItem item = new SmartMenuItem( new StepOutActionHandler( "Step Out", debugger ) );
     item.setMnemonic( 'T' );
     item.setAccelerator( KeyStroke.getKeyStroke( "shift F8" ) );
     UpdateNotifier.instance().addActionComponent( item );
@@ -282,7 +283,7 @@ public class CommonMenus
 
   public static JMenuItem makeRunToCursor( Supplier<Debugger> debugger, Supplier<BreakpointManager> bpm, Supplier<GosuEditor> editor )
   {
-    JMenuItem item = new JMenuItem( new RunToCursorActionHandler( "Run to Cursor", debugger, bpm, editor ) );
+    JMenuItem item = new SmartMenuItem( new RunToCursorActionHandler( "Run to Cursor", debugger, bpm, editor ) );
     item.setMnemonic( 'S' );
     item.setAccelerator( KeyStroke.getKeyStroke( "alt F9" ) );
     UpdateNotifier.instance().addActionComponent( item );
@@ -291,7 +292,7 @@ public class CommonMenus
 
   public static JMenuItem makeDropFrame( Supplier<Debugger> debugger, Supplier<StackFrame> frame )
   {
-    JMenuItem item = new JMenuItem( new DropFrameActionHandler( "Drop Frame", debugger, frame ) );
+    JMenuItem item = new SmartMenuItem( new DropFrameActionHandler( "Drop Frame", debugger, frame ) );
     item.setMnemonic( 'F' );
     UpdateNotifier.instance().addActionComponent( item );
     return item;
@@ -299,7 +300,7 @@ public class CommonMenus
 
   public static JMenuItem makePause( Supplier<Debugger> debugger )
   {
-    JMenuItem item = new JMenuItem( new CommonMenus.PauseActionHandler( "Pause", debugger ) );
+    JMenuItem item = new SmartMenuItem( new CommonMenus.PauseActionHandler( "Pause", debugger ) );
     item.setMnemonic( 'P' );
     UpdateNotifier.instance().addActionComponent( item );
     return item;
@@ -307,7 +308,7 @@ public class CommonMenus
   
   public static JMenuItem makeResume( Supplier<Debugger> debugger )
   {
-    JMenuItem item = new JMenuItem( new CommonMenus.ResumeActionHandler( "Resume", debugger ) );
+    JMenuItem item = new SmartMenuItem( new CommonMenus.ResumeActionHandler( "Resume", debugger ) );
     item.setMnemonic( 'G' );
     item.setAccelerator( KeyStroke.getKeyStroke( "F9" ) );
     UpdateNotifier.instance().addActionComponent( item );
@@ -316,21 +317,21 @@ public class CommonMenus
 
   public static JMenuItem makeViewBreakpoints( Supplier<Breakpoint> bp )
   {
-    JMenuItem item = new JMenuItem( new CommonMenus.ViewBreakpointsActionHandler( "View Breakpoints...", bp ) );
+    JMenuItem item = new SmartMenuItem( new CommonMenus.ViewBreakpointsActionHandler( "View Breakpoints...", bp ) );
     item.setMnemonic( 'B' );
     return item;
   }
 
   public static JMenuItem makeMuteBreakpoints( Supplier<BreakpointManager> bpm )
   {
-    JMenuItem item = new JMenuItem( new CommonMenus.MuteBreakpointsActionHandler( "Mute Breakpoints", bpm ) );
+    JMenuItem item = new SmartMenuItem( new CommonMenus.MuteBreakpointsActionHandler( "Mute Breakpoints", bpm ) );
     item.setMnemonic( 'M' );
     return item;
   }
 
   public static JMenuItem makeClear( Supplier<GosuPanel> gosuPanel )
   {
-    JMenuItem clearItem = new JMenuItem(
+    JMenuItem clearItem = new SmartMenuItem(
       new AbstractAction( "Clear Console" )
       {
         @Override

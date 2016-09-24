@@ -21,6 +21,7 @@ import editor.util.LabelListPopup;
 import editor.util.PlatformUtil;
 import editor.util.SettleModalEventQueue;
 import editor.util.SmartMenu;
+import editor.util.SmartMenuItem;
 import editor.util.ToolBar;
 import editor.util.TypeNameUtil;
 import editor.util.XPToolbarButton;
@@ -465,6 +466,7 @@ public class GosuPanel extends JPanel
   private JMenuBar makeMenuBar()
   {
     JMenuBar menuBar = new JMenuBar();
+    //menuBar.setBorderPainted( false );
 
     makeFileMenu( menuBar );
     makeEditMenu( menuBar );
@@ -484,7 +486,7 @@ public class GosuPanel extends JPanel
     helpMenu.setMnemonic( 'H' );
     menuBar.add( helpMenu );
 
-    JMenuItem gosuItem = new JMenuItem(
+    JMenuItem gosuItem = new SmartMenuItem(
       new AbstractAction( "Gosu Online" )
       {
         @Override
@@ -498,7 +500,7 @@ public class GosuPanel extends JPanel
 
     helpMenu.addSeparator();
 
-    JMenuItem helpItem = new JMenuItem(
+    JMenuItem helpItem = new SmartMenuItem(
       new AbstractAction( "The Basics" )
       {
         @Override
@@ -512,7 +514,7 @@ public class GosuPanel extends JPanel
 
     helpMenu.addSeparator();
 
-    JMenuItem playItem = new JMenuItem(
+    JMenuItem playItem = new SmartMenuItem(
       new AbstractAction( "Web Editor" )
       {
         @Override
@@ -526,7 +528,7 @@ public class GosuPanel extends JPanel
 
     helpMenu.addSeparator();
 
-    JMenuItem discussItem = new JMenuItem(
+    JMenuItem discussItem = new SmartMenuItem(
       new AbstractAction( "Discuss" )
       {
         @Override
@@ -540,7 +542,7 @@ public class GosuPanel extends JPanel
 
     helpMenu.addSeparator();
 
-    JMenuItem plugin = new JMenuItem(
+    JMenuItem plugin = new SmartMenuItem(
       new AbstractAction( "IntelliJ Plugin" )
       {
         @Override
@@ -559,7 +561,7 @@ public class GosuPanel extends JPanel
     windowMenu.setMnemonic( 'W' );
     menuBar.add( windowMenu );
 
-    JMenuItem previousItem = new JMenuItem(
+    JMenuItem previousItem = new SmartMenuItem(
       new AbstractAction( "Previous Editor" )
       {
         @Override
@@ -577,7 +579,7 @@ public class GosuPanel extends JPanel
     previousItem.setAccelerator( KeyStroke.getKeyStroke( "alt LEFT" ) );
     windowMenu.add( previousItem );
 
-    JMenuItem nextItem = new JMenuItem(
+    JMenuItem nextItem = new SmartMenuItem(
       new AbstractAction( "Next Editor" )
       {
         @Override
@@ -599,7 +601,7 @@ public class GosuPanel extends JPanel
     windowMenu.addSeparator();
 
 
-    JMenuItem recentItem = new JMenuItem(
+    JMenuItem recentItem = new SmartMenuItem(
       new AbstractAction( "Recent Editors" )
       {
         @Override
@@ -616,7 +618,7 @@ public class GosuPanel extends JPanel
     windowMenu.addSeparator();
 
 
-    JMenuItem closeActiveItem = new JMenuItem(
+    JMenuItem closeActiveItem = new SmartMenuItem(
       new AbstractAction( "Close Active Editor" )
       {
         @Override
@@ -630,7 +632,7 @@ public class GosuPanel extends JPanel
     closeActiveItem.setAccelerator( KeyStroke.getKeyStroke( "control F4" ) );
     windowMenu.add( closeActiveItem );
 
-    JMenuItem closeOthersItem = new JMenuItem(
+    JMenuItem closeOthersItem = new SmartMenuItem(
       new AbstractAction( "Close Others" )
       {
         @Override
@@ -661,7 +663,7 @@ public class GosuPanel extends JPanel
 
     codeMenu.addSeparator();
 
-    JMenuItem openTypeItem = new JMenuItem(
+    JMenuItem openTypeItem = new SmartMenuItem(
       new AbstractAction( "Open Type..." )
       {
         @Override
@@ -677,7 +679,7 @@ public class GosuPanel extends JPanel
     if( "true".equals( System.getProperty( "spec" ) ) )
     {
       codeMenu.addSeparator();
-      JMenuItem markItem = new JMenuItem(
+      JMenuItem markItem = new SmartMenuItem(
         new AbstractAction( "Mark Errors For Gosu Language Test" )
         {
           @Override
@@ -692,7 +694,7 @@ public class GosuPanel extends JPanel
     }
 
     codeMenu.addSeparator();
-    JMenuItem viewBytecodeItem = new JMenuItem(
+    JMenuItem viewBytecodeItem = new SmartMenuItem(
       new AbstractAction( "View Bytecode" )
       {
         @Override
@@ -717,7 +719,7 @@ public class GosuPanel extends JPanel
     buildMenu.setMnemonic( 'b' );
     menuBar.add( buildMenu );
 
-    JMenuItem compileMenu = new JMenuItem(
+    JMenuItem compileMenu = new SmartMenuItem(
       new AbstractAction( "Compile" )
       {
         @Override
@@ -734,7 +736,7 @@ public class GosuPanel extends JPanel
     buildMenu.addSeparator();
 
 
-    JMenuItem shipIt = new JMenuItem(
+    JMenuItem shipIt = new SmartMenuItem(
       new AbstractAction( "Ship It! ..." )
       {
         @Override
@@ -772,7 +774,7 @@ public class GosuPanel extends JPanel
     runMenu.add( CommonMenus.makeRun( this::getCurrentEditorType ) );
     runMenu.add( CommonMenus.makeDebug( this::getCurrentEditorType ) );
 
-    JMenuItem runRecentItem = new JMenuItem( new RunRecentActionHandler() );
+    JMenuItem runRecentItem = new SmartMenuItem( new RunRecentActionHandler() );
     runRecentItem.setMnemonic( 'C' );
     runRecentItem.setAccelerator( KeyStroke.getKeyStroke( "control F5" ) );
     runMenu.add( runRecentItem );
@@ -809,7 +811,7 @@ public class GosuPanel extends JPanel
     searchMenu.setMnemonic( 'S' );
     menuBar.add( searchMenu );
 
-    JMenuItem findItem = new JMenuItem(
+    JMenuItem findItem = new SmartMenuItem(
       new AbstractAction( "Find..." )
       {
         @Override
@@ -822,7 +824,7 @@ public class GosuPanel extends JPanel
     findItem.setAccelerator( KeyStroke.getKeyStroke( "control F" ) );
     searchMenu.add( findItem );
 
-    JMenuItem replaceItem = new JMenuItem(
+    JMenuItem replaceItem = new SmartMenuItem(
       new AbstractAction( "Replace..." )
       {
         @Override
@@ -835,7 +837,7 @@ public class GosuPanel extends JPanel
     replaceItem.setAccelerator( KeyStroke.getKeyStroke( "control R" ) );
     searchMenu.add( replaceItem );
 
-    JMenuItem nextItem = new JMenuItem(
+    JMenuItem nextItem = new SmartMenuItem(
       new AbstractAction( "Next" )
       {
         @Override
@@ -857,7 +859,7 @@ public class GosuPanel extends JPanel
     nextItem.setAccelerator( KeyStroke.getKeyStroke( "F3" ) );
     searchMenu.add( nextItem );
 
-    JMenuItem previousItem = new JMenuItem(
+    JMenuItem previousItem = new SmartMenuItem(
       new AbstractAction( "Previous" )
       {
         @Override
@@ -883,7 +885,7 @@ public class GosuPanel extends JPanel
     searchMenu.addSeparator();
 
 
-    JMenuItem gotoLineItem = new JMenuItem(
+    JMenuItem gotoLineItem = new SmartMenuItem(
       new AbstractAction( "Go To Line" )
       {
         @Override
@@ -905,7 +907,7 @@ public class GosuPanel extends JPanel
     menuBar.add( editMenu );
 
 
-    JMenuItem undoItem = new JMenuItem(
+    JMenuItem undoItem = new SmartMenuItem(
       new AbstractAction( "Undo" )
       {
         @Override
@@ -927,7 +929,7 @@ public class GosuPanel extends JPanel
     undoItem.setAccelerator( KeyStroke.getKeyStroke( "control Z" ) );
     editMenu.add( undoItem );
 
-    JMenuItem redoItem = new JMenuItem(
+    JMenuItem redoItem = new SmartMenuItem(
       new AbstractAction( "Redo" )
       {
         @Override
@@ -964,7 +966,7 @@ public class GosuPanel extends JPanel
     editMenu.addSeparator();
 
 
-    JMenuItem deleteItem = new JMenuItem(
+    JMenuItem deleteItem = new SmartMenuItem(
       new AbstractAction( "Delete" )
       {
         @Override
@@ -980,7 +982,7 @@ public class GosuPanel extends JPanel
     deleteItem.setAccelerator( KeyStroke.getKeyStroke( "DELETE" ) );
     editMenu.add( deleteItem );
 
-    JMenuItem deletewordItem = new JMenuItem(
+    JMenuItem deletewordItem = new SmartMenuItem(
       new AbstractAction( "Delete Word" )
       {
         @Override
@@ -993,7 +995,7 @@ public class GosuPanel extends JPanel
     deletewordItem.setAccelerator( KeyStroke.getKeyStroke( "control BACKSPACE" ) );
     editMenu.add( deletewordItem );
 
-    JMenuItem deleteWordForwardItem = new JMenuItem(
+    JMenuItem deleteWordForwardItem = new SmartMenuItem(
       new AbstractAction( "Delete Word Forward" )
       {
         @Override
@@ -1006,7 +1008,7 @@ public class GosuPanel extends JPanel
     deleteWordForwardItem.setAccelerator( KeyStroke.getKeyStroke( "control DELETE" ) );
     editMenu.add( deleteWordForwardItem );
 
-    JMenuItem deleteLine = new JMenuItem(
+    JMenuItem deleteLine = new SmartMenuItem(
       new AbstractAction( "Delete Line" )
       {
         @Override
@@ -1023,7 +1025,7 @@ public class GosuPanel extends JPanel
     editMenu.addSeparator();
 
 
-    JMenuItem selectWord = new JMenuItem(
+    JMenuItem selectWord = new SmartMenuItem(
       new AbstractAction( "Select Word" )
       {
         @Override
@@ -1036,7 +1038,7 @@ public class GosuPanel extends JPanel
     selectWord.setAccelerator( KeyStroke.getKeyStroke( "control W" ) );
     editMenu.add( selectWord );
 
-    JMenuItem narraowSelection = new JMenuItem(
+    JMenuItem narraowSelection = new SmartMenuItem(
       new AbstractAction( "Narrow Selection" )
       {
         @Override
@@ -1053,7 +1055,7 @@ public class GosuPanel extends JPanel
     editMenu.addSeparator();
 
 
-    JMenuItem duplicateItem = new JMenuItem(
+    JMenuItem duplicateItem = new SmartMenuItem(
       new AbstractAction( "Duplicate" )
       {
         @Override
@@ -1065,7 +1067,7 @@ public class GosuPanel extends JPanel
     duplicateItem.setAccelerator( KeyStroke.getKeyStroke( "control D" ) );
     editMenu.add( duplicateItem );
 
-    JMenuItem joinItem = new JMenuItem(
+    JMenuItem joinItem = new SmartMenuItem(
       new AbstractAction( "Join Lines" )
       {
         @Override
@@ -1077,7 +1079,7 @@ public class GosuPanel extends JPanel
     joinItem.setAccelerator( KeyStroke.getKeyStroke( "control J" ) );
     editMenu.add( joinItem );
 
-    JMenuItem indentItem = new JMenuItem(
+    JMenuItem indentItem = new SmartMenuItem(
       new AbstractAction( "Indent Selection" )
       {
         @Override
@@ -1093,7 +1095,7 @@ public class GosuPanel extends JPanel
     indentItem.setAccelerator( KeyStroke.getKeyStroke( "TAB" ) );
     editMenu.add( indentItem );
 
-    JMenuItem outdentItem = new JMenuItem(
+    JMenuItem outdentItem = new SmartMenuItem(
       new AbstractAction( "Outdent Selection" )
       {
         @Override
@@ -1116,7 +1118,7 @@ public class GosuPanel extends JPanel
     fileMenu.setMnemonic( 'F' );
     menuBar.add( fileMenu );
 
-    JMenuItem newExperimentItem = new JMenuItem(
+    JMenuItem newExperimentItem = new SmartMenuItem(
       new AbstractAction( "New Experiment..." )
       {
         @Override
@@ -1128,7 +1130,7 @@ public class GosuPanel extends JPanel
     newExperimentItem.setMnemonic( 'P' );
     fileMenu.add( newExperimentItem );
 
-    JMenuItem openExperimentItem = new JMenuItem(
+    JMenuItem openExperimentItem = new SmartMenuItem(
       new AbstractAction( "Open Experiment..." )
       {
         @Override
@@ -1143,7 +1145,7 @@ public class GosuPanel extends JPanel
 
     fileMenu.addSeparator();
 
-    JMenu reopenExperiment = new JMenu( "Reopen Experiment" );
+    JMenu reopenExperiment = new SmartMenu( "Reopen Experiment" );
     ReopenExperimentPopup.initialize( reopenExperiment );
     fileMenu.add( reopenExperiment );
 
@@ -1151,11 +1153,11 @@ public class GosuPanel extends JPanel
     fileMenu.addSeparator();
 
 
-    JMenu newItem = new JMenu( "New" );
+    JMenu newItem = new SmartMenu( "New" );
     NewFilePopup.addMenuItems( newItem );
     fileMenu.add( newItem );
 
-    JMenuItem openItem = new JMenuItem(
+    JMenuItem openItem = new SmartMenuItem(
       new AbstractAction( "Open..." )
       {
         @Override
@@ -1168,7 +1170,7 @@ public class GosuPanel extends JPanel
     fileMenu.add( openItem );
 
 
-    JMenuItem saveItem = new JMenuItem(
+    JMenuItem saveItem = new SmartMenuItem(
       new AbstractAction( "Save" )
       {
         @Override
@@ -1185,7 +1187,7 @@ public class GosuPanel extends JPanel
     fileMenu.addSeparator();
 
 
-    JMenuItem classpathItem = new JMenuItem(
+    JMenuItem classpathItem = new SmartMenuItem(
       new AbstractAction( "Dependencies..." )
       {
         @Override
@@ -1201,7 +1203,7 @@ public class GosuPanel extends JPanel
     fileMenu.addSeparator();
 
 
-    JMenuItem exitItem = new JMenuItem(
+    JMenuItem exitItem = new SmartMenuItem(
       new AbstractAction( "Exit" )
       {
         @Override

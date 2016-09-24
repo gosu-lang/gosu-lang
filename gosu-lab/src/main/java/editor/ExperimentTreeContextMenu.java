@@ -4,6 +4,7 @@ import editor.util.EditorUtilities;
 import editor.util.PlatformUtil;
 import editor.util.Experiment;
 import editor.util.SmartMenu;
+import editor.util.SmartMenuItem;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.gs.IGosuClass;
 
@@ -40,15 +41,15 @@ public class ExperimentTreeContextMenu implements IContextMenuHandler<JTree>
     NewFilePopup.addMenuItems( newMenu );
     menu.add( newMenu );
     menu.add( new JSeparator() );
-    menu.add( new JMenuItem( new OpenAction( tree ) ) );
+    menu.add( new SmartMenuItem( new OpenAction( tree ) ) );
     menu.add( new JSeparator() );
-    menu.add( new JMenuItem( new OpenOnDesktopAction( tree ) ) );
+    menu.add( new SmartMenuItem( new OpenOnDesktopAction( tree ) ) );
     menu.add( new JSeparator() );
-    menu.add( new JMenuItem( new ClipCutAction( tree ) ) );
-    menu.add( new JMenuItem( new ClipCopyAction( tree ) ) );
-    menu.add( new JMenuItem( new ClipPasteAction( tree ) ) );
+    menu.add( new SmartMenuItem( new ClipCutAction( tree ) ) );
+    menu.add( new SmartMenuItem( new ClipCopyAction( tree ) ) );
+    menu.add( new SmartMenuItem( new ClipPasteAction( tree ) ) );
     menu.add( new JSeparator() );
-    menu.add( new JMenuItem( new DeleteAction( tree ) ) );
+    menu.add( new SmartMenuItem( new DeleteAction( tree ) ) );
 
     FileTree item = (FileTree)tree.getLastSelectedPathComponent();
     if( item != null )

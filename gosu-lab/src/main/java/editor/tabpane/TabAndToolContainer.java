@@ -221,7 +221,7 @@ public class TabAndToolContainer extends JPanel implements ICaptionBar
           right -= d.width + getHgap();
         }
 
-        int centerX = c != null ? c.getWidth() + getHgap() : getHgap() + 1;
+        int centerX = c != null ? c.getWidth() + getHgap() : getHgap();
 
         c = getLayoutComponent( EAST );
         if( c != null )

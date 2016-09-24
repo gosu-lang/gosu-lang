@@ -7,6 +7,7 @@ import editor.splitpane.ICaptionedPanel;
 import editor.util.EditorUtilities;
 import editor.util.ILabel;
 import editor.util.SettleModalEventQueue;
+import editor.util.SmartMenuItem;
 import gw.util.GosuObjectUtil;
 
 import javax.swing.*;
@@ -485,7 +486,7 @@ public class TabPane extends JPanel implements ICaptionedPanel
     {
       JPopupMenu contextMenu = new JPopupMenu();
       contextMenu.add(
-        new JMenuItem(
+        new SmartMenuItem(
           new AbstractAction( "Close This Tab" )
           {
             public void actionPerformed( ActionEvent e )
@@ -494,7 +495,7 @@ public class TabPane extends JPanel implements ICaptionedPanel
             }
           } ) );
       contextMenu.add(
-        new JMenuItem(
+        new SmartMenuItem(
           new AbstractAction( "Close Other Tabs" )
           {
             public void actionPerformed( ActionEvent e )
@@ -503,7 +504,7 @@ public class TabPane extends JPanel implements ICaptionedPanel
             }
           } ) );
       contextMenu.add(
-        new JMenuItem(
+        new SmartMenuItem(
           new AbstractAction( "Close All Tabs" )
           {
             public void actionPerformed( ActionEvent e )

@@ -1,6 +1,7 @@
 package editor;
 
 import com.sun.jdi.ArrayReference;
+import com.sun.jdi.InvalidStackFrameException;
 import com.sun.jdi.Location;
 import com.sun.jdi.ObjectReference;
 import com.sun.jdi.PrimitiveValue;
@@ -60,7 +61,7 @@ public class DebugPanel extends JPanel
     JPanel panel = new JPanel( new BorderLayout() );
 
     _cbThreads = new JComboBox<>();
-    _cbThreads.setBorder( new EmptyBorder( 1, 1, 3, 1 ) );
+    _cbThreads.setBorder( BorderFactory.createCompoundBorder( BorderFactory.createMatteBorder( 1, 1, 1, 1, EditorUtilities.CONTROL_SHADOW ), new EmptyBorder( 1, 1, 1, 1 ) ) );
     _cbThreads.setRenderer( new ThreadCellRenderer( _cbThreads.getRenderer() ) );
     _cbThreads.addActionListener( action -> threadChanged() );
     panel.add( _cbThreads, BorderLayout.NORTH );
@@ -296,7 +297,16 @@ public class DebugPanel extends JPanel
       StackFrame frame = getNode();
       if( frame != null )
       {
-        Location loc = frame.location();
+        Location loc;
+        try
+        {
+          loc = frame.location();
+        }
+        catch( InvalidStackFrameException e )
+        {
+          return;
+        }
+
         String fqn = loc.declaringType().name();
         String className = fqn;
         String pkg = "";

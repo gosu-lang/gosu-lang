@@ -2,6 +2,7 @@ package editor;
 
 import editor.debugger.BreakpointManager;
 import editor.util.EditorUtilities;
+import editor.util.SmartMenuItem;
 
 import javax.swing.*;
 import javax.swing.text.BadLocationException;
@@ -107,7 +108,7 @@ public abstract class AbstractLineInfoManager implements ILineInfoManager
       return;
     }
     JPopupMenu contextMenu = new JPopupMenu();
-    JMenuItem disableItem = new JMenuItem(
+    JMenuItem disableItem = new SmartMenuItem(
       new AbstractAction( bp.isActive() ? "Disable" : "Enable" )
       {
         public void actionPerformed( ActionEvent e )
@@ -131,13 +132,18 @@ public abstract class AbstractLineInfoManager implements ILineInfoManager
         }
       } );
     contextMenu.add( disableItem );
-    JMenuItem removeItem = new JMenuItem(
+    JMenuItem removeItem = new SmartMenuItem(
       new AbstractAction( "Remove" )
       {
         public void actionPerformed( ActionEvent e )
         {
           BreakpointManager bmp = getGosuPanel().getBreakpointManager();
           bmp.toggleLineBreakpoint( getGosuPanel().getCurrentEditor().getScriptPart().getContainingTypeName(), iLine );
+          GosuEditor editor = RunMe.getEditorFrame().getGosuPanel().getGosuEditor();
+          if( editor != null )
+          {
+            editor.repaint();
+          }
         }
       } );
     contextMenu.add( removeItem );

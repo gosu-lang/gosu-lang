@@ -1,6 +1,7 @@
 package editor;
 
 import editor.util.EditorUtilities;
+import editor.util.SmartMenuItem;
 
 import javax.swing.*;
 import javax.swing.event.MenuEvent;
@@ -29,7 +30,7 @@ public class ReopenExperimentPopup implements MenuListener
 
   private void addNewItem( String name, String icon, Runnable action )
   {
-    JMenuItem item = new JMenuItem(
+    JMenuItem item = new SmartMenuItem(
       new AbstractAction( name, EditorUtilities.loadIcon( icon ) )
       {
         public void actionPerformed( ActionEvent e )
@@ -63,7 +64,7 @@ public class ReopenExperimentPopup implements MenuListener
     }
     else
     {
-      JMenuItem empty = new JMenuItem(
+      JMenuItem empty = new SmartMenuItem(
         new AbstractAction( "<empty>", EditorUtilities.loadIcon( "images/empty16x16.gif" ) )
         {
           public void actionPerformed( ActionEvent e )
