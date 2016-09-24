@@ -47,7 +47,6 @@ public class GosuLabLAF extends WindowsLookAndFeel
       System.setProperty( "swing.noxp", "true" );
 
       UIManager.setLookAndFeel( GosuLabLAF.class.getName() );
-      UIManager.setLookAndFeel( UIManager.getSystemLookAndFeelClassName() );
 
       editor.util.FixupLookAndFeel.fixupFieldBorders();
 
@@ -65,13 +64,16 @@ public class GosuLabLAF extends WindowsLookAndFeel
       UIManager.put( "Separator.background", EditorUtilities.CONTROL_LIGTH_SHADOW );
 
       // Menus
-      UIManager.put(  "PopupMenu.border", BorderFactory.createMatteBorder( 1, 1, 1, 1, EditorUtilities.CONTROL_SHADOW ) );
+      UIManager.put( "PopupMenu.border", BorderFactory.createCompoundBorder( BorderFactory.createLineBorder( EditorUtilities.CONTROL_SHADOW ), BorderFactory.createEmptyBorder( 2, 2, 2, 2 ) ) );
+      UIManager.put( "Popup.background", EditorUtilities.CONTROL );
 
+      UIManager.put( "Menu.background", EditorUtilities.CONTROL );
       UIManager.put( "Menu.selectionForeground", EditorUtilities.WINDOW_TEXT );
       UIManager.put( "Menu.selectionBackground", EditorUtilities.ACTIVE_CAPTION );
       UIManager.put( "Menu.disabledForeground", EditorUtilities.CONTROL_SHADOW );
       UIManager.put( "Menu.acceleratorForeground", EditorUtilities.WINDOW_TEXT );
       UIManager.put( "Menu.acceleratorSelectionForeground", EditorUtilities.WINDOW_TEXT );
+      UIManager.put( "Menu.border", BorderFactory.createCompoundBorder( BorderFactory.createLineBorder( EditorUtilities.CONTROL_SHADOW ), BorderFactory.createEmptyBorder( 2, 2, 2, 2 ) ) );
 
       UIManager.put( "Menu.margin", EditorUtilities.WINDOW_TEXT );
 
@@ -80,6 +82,7 @@ public class GosuLabLAF extends WindowsLookAndFeel
       UIManager.put( "MenuItem.disabledForeground", EditorUtilities.CONTROL_SHADOW );
       UIManager.put( "MenuItem.acceleratorForeground", EditorUtilities.WINDOW_TEXT );
       UIManager.put( "MenuItem.acceleratorSelectionForeground", EditorUtilities.WINDOW_TEXT );
+      UIManager.put( "MenuItem.border", BorderFactory.createCompoundBorder( BorderFactory.createLineBorder( EditorUtilities.XP_BORDER_COLOR ), BorderFactory.createEmptyBorder( 2, 2, 2, 2 ) ) );
       UIManager.put( "MenuItem.disabledAreNavigable", false );
       //"MenuItem.acceleratorDelimiter", menuItemAcceleratorDelimiter,
       //"MenuItem.borderPainted", Boolean.FALSE,
