@@ -20,6 +20,7 @@ public class SmartMenu extends JMenu implements MenuListener
   private void init()
   {
     setBorderPainted( false );
+    setOpaque( false );
     setMargin( new Insets( 1, 1, 1, 1 ) );
     //setContentAreaFilled( false );
     addMenuListener( this );
