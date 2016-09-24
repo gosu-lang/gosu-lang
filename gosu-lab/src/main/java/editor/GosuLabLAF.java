@@ -64,6 +64,8 @@ public class GosuLabLAF extends WindowsLookAndFeel
       UIManager.put( "Separator.background", EditorUtilities.CONTROL_LIGTH_SHADOW );
 
       // Menus
+      UIManager.put( "MenuBar.border", BorderFactory.createEmptyBorder( 0, 0, 0, 0 ) );
+
       UIManager.put( "PopupMenu.border", BorderFactory.createCompoundBorder( BorderFactory.createLineBorder( EditorUtilities.CONTROL_SHADOW ), BorderFactory.createEmptyBorder( 2, 2, 2, 2 ) ) );
       UIManager.put( "Popup.background", EditorUtilities.CONTROL );
 

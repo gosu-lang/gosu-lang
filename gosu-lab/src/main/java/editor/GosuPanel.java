@@ -466,7 +466,6 @@ public class GosuPanel extends JPanel
   private JMenuBar makeMenuBar()
   {
     JMenuBar menuBar = new JMenuBar();
-    //menuBar.setBorderPainted( false );
 
     makeFileMenu( menuBar );
     makeEditMenu( menuBar );
