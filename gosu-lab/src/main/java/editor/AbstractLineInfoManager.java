@@ -22,8 +22,8 @@ public abstract class AbstractLineInfoManager implements ILineInfoManager
 
   public AbstractLineInfoManager()
   {
-    _iconBreakpoint = EditorUtilities.loadIcon( "images/debug_lineBreakpoint.png" );
-    _iconBreakpointDisabled = EditorUtilities.loadIcon( "images/disabled_Breakpoint.png" );
+    _iconBreakpoint = EditorUtilities.loadIcon( "images/debug_linebreakpoint.png" );
+    _iconBreakpointDisabled = EditorUtilities.loadIcon( "images/disabled_breakpoint.png" );
     g_iRequiredWidth = _iconBreakpoint.getIconWidth();
   }
 
