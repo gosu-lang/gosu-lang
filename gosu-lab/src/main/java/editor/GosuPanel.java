@@ -1943,19 +1943,19 @@ public class GosuPanel extends JPanel
   {
     EventQueue.invokeLater( () -> {
       _debugger = new Debugger( vm, _breakpointManager );
-      _debugger.addChangeListener( dbg -> repaintEditor() );
+      _debugger.addChangeListener( dbg -> handleDebuggerStateChange() );
       showDebugger( true );
       _debugger.startDebugging();
     } );
   }
 
-  private void repaintEditor()
+  private void handleDebuggerStateChange()
   {
     if( getCurrentEditor() != null )
     {
       getCurrentEditor().repaint();
     }
-    if( _debugger.isSuspended() )
+    if( _debugger != null && _debugger.isSuspended() )
     {
       jumptToBreakpoint( _debugger.getSuspendedLocation(), false );
     }

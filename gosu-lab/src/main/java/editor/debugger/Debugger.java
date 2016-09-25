@@ -260,7 +260,10 @@ public class Debugger
       {
         // This is a generated StepOut from a class we can't debug (like a Java class) (see comment below).
         // Since we are on the same line from where we stepped in, try stepping in to the next call site, if one exists
-        createStep( event.thread(), StepRequest.STEP_INTO );
+        if( createStep( event.thread(), StepRequest.STEP_INTO ) == null )
+        {
+          throw new IllegalStateException();
+        }
         resumeProgram();
       }
       else
@@ -404,7 +407,11 @@ public class Debugger
 
   private void step( int depth )
   {
-    createStep( _eventThread, depth );
+    StepRequest step = createStep( _eventThread, depth );
+    if( step == null )
+    {
+      return;
+    }
     synchronized( _monitor )
     {
       _monitor.notifyAll();
@@ -413,6 +420,12 @@ public class Debugger
 
   private StepRequest createStep( ThreadReference eventThread, int depth )
   {
+    if( getEventRequestManager().stepRequests().size() > 0 )
+    {
+      // Only one at a time
+      return null;
+    }
+
     StepRequest req = getEventRequestManager().createStepRequest( eventThread, StepRequest.STEP_LINE, depth );
     req.addClassExclusionFilter( "sun.*" );
     req.addClassExclusionFilter( "com.sun.*" );

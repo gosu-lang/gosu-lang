@@ -407,6 +407,11 @@ public class CommonMenus
 
     public void actionPerformed( ActionEvent e )
     {
+      if( !isEnabled() )
+      {
+        return;
+      }
+
       RunMe.getEditorFrame().getGosuPanel().clearOutput();
       IType type = _program.get();
       if( type instanceof ITemplateType )
@@ -429,6 +434,11 @@ public class CommonMenus
 
     public void actionPerformed( ActionEvent e )
     {
+      if( !isEnabled() )
+      {
+        return;
+      }
+
       RunMe.getEditorFrame().getGosuPanel().clearOutput();
       IType type = _program.get();
       if( type instanceof ITemplateType )
@@ -529,7 +539,10 @@ public class CommonMenus
 
     public void actionPerformed( ActionEvent e )
     {
-      _debugger.get().resumeExecution();
+      if( isEnabled() )
+      {
+        _debugger.get().resumeExecution();
+      }
     }
 
     @Override
@@ -660,7 +673,10 @@ public class CommonMenus
 
     public void actionPerformed( ActionEvent e )
     {
-      _debugger.get().dropToFrame( _frame.get() );
+      if( isEnabled() )
+      {
+        _debugger.get().dropToFrame( _frame.get() );
+      }
     }
 
     @Override
@@ -682,7 +698,10 @@ public class CommonMenus
 
     public void actionPerformed( ActionEvent e )
     {
-      RunMe.getEditorFrame().getGosuPanel().jumptToBreakpoint( _debugger.get().getSuspendedLocation(), true );
+      if( isEnabled() )
+      {
+        RunMe.getEditorFrame().getGosuPanel().jumptToBreakpoint( _debugger.get().getSuspendedLocation(), true );
+      }
     }
 
     @Override
@@ -708,7 +727,10 @@ public class CommonMenus
 
     public void actionPerformed( ActionEvent e )
     {
-      _bpm.get().runToCursor( _editor.get().getScriptPart().getContainingTypeName(), _editor.get().getLineNumberAtCaret() );
+      if( isEnabled() )
+      {
+        _bpm.get().runToCursor( _editor.get().getScriptPart().getContainingTypeName(), _editor.get().getLineNumberAtCaret() );
+      }
     }
 
     @Override
