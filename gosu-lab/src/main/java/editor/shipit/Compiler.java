@@ -219,8 +219,8 @@ public class Compiler
       gsClass = getOuterMostEnclosingClass( gsClass );
 
       RunMe.getEditorFrame().getGosuPanel().openType( gsClass.getName(), true );
-      SettleModalEventQueue.instance().run();
-      RunMe.getEditorFrame().getGosuPanel().getCurrentEditor().gotoLine( _issue.getLine(), _issue.getColumn() );
+      EventQueue.invokeLater( ()->
+        RunMe.getEditorFrame().getGosuPanel().getCurrentEditor().gotoLine( _issue.getLine(), _issue.getColumn() ) );
     }
 
     private IGosuClass getOuterMostEnclosingClass( IGosuClass innerClass )

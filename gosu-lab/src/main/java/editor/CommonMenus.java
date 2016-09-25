@@ -357,44 +357,7 @@ public class CommonMenus
 
     public boolean isEnabled()
     {
-      IType type = _program.get();
-      if( type == null || !type.isValid() )
-      {
-        return false;
-      }
-      if( RunMe.getEditorFrame().getGosuPanel().isRunning() ||
-          RunMe.getEditorFrame().getGosuPanel().isDebugging() )
-      {
-        return false;
-      }
-
-      // Is Program?
-      if( type instanceof IGosuProgram )
-      {
-        return true;
-      }
-
-      if( type instanceof IGosuClass && !type.isAbstract() &&
-          ((IGosuClassTypeInfo)type.getTypeInfo()).isPublic() )
-      {
-        // Is Main class?
-        IMethodInfo main = type.getTypeInfo().getMethod( "main", JavaTypes.STRING().getArrayType() );
-        if( main != null && main.isStatic() && main.getReturnType() == JavaTypes.pVOID() )
-        {
-          return true;
-        }
-
-        // Is Test class?
-        if( type.getTypeInfo().getConstructor() != null )
-        {
-          IType baseTest = TypeSystem.getByFullNameIfValid( "junit.framework.Assert" );
-          if( baseTest != null )
-          {
-            return baseTest.isAssignableFrom( type );
-          }
-        }
-      }
-      return false;
+      return EditorUtilities.isRunnable( _program.get() );
     }
   }
 

@@ -3397,7 +3397,12 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
     {
       return;
     }
+
     IGosuClass gsClass = (IGosuClass)ownersType;
+    if( IGosuClass.ProxyUtil.isProxy( gsClass ) )
+    {
+      return;
+    }
 
     int offset = 0;
 

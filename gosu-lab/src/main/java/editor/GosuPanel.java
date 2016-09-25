@@ -76,7 +76,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Supplier;
 
 /**
  */
@@ -196,9 +195,9 @@ public class GosuPanel extends JPanel
     ToolBar toolbar = new ToolBar( JToolBar.VERTICAL );
     XPToolbarButton item;
 
-    item = new XPToolbarButton( new CommonMenus.ClearAndRunActionHandler( this::getCurrentEditorType ) );
+    item = new XPToolbarButton( new CommonMenus.ClearAndRunActionHandler( this::getRunType ) );
     toolbar.add( item );
-    item = new XPToolbarButton( new CommonMenus.ClearAndDebugActionHandler( this::getCurrentEditorType ) );
+    item = new XPToolbarButton( new CommonMenus.ClearAndDebugActionHandler( this::getRunType ) );
     toolbar.add( item );
     item = new XPToolbarButton( new CommonMenus.StopActionHandler( () -> this ) );
     toolbar.add( item );
@@ -755,13 +754,27 @@ public class GosuPanel extends JPanel
     return selectedTab == null ? null : (GosuEditor)selectedTab.getContentPane();
   }
 
-  public IType getCurrentEditorType()
+  public IType getRunType()
   {
-    return getCurrentEditor() == null
-           ? null
-           : getCurrentEditor().getScriptPart() == null
-             ? null
-             : getCurrentEditor().getScriptPart().getContainingType();
+    // Get the current editor's type
+
+    IType type = getCurrentEditor() == null
+                 ? null
+                 : getCurrentEditor().getScriptPart() == null
+                   ? null
+                   : getCurrentEditor().getScriptPart().getContainingType();
+
+    if( !EditorUtilities.isRunnable( type ) )
+    {
+      // The current type is not runnable, use the most recently run type
+
+      String recentProgram = getExperiment() == null ? null : getExperiment().getRecentProgram();
+      if( recentProgram != null )
+      {
+        type = TypeSystem.getByFullNameIfValid( recentProgram );
+      }
+    }
+    return type;
   }
 
   private void makeRunMenu( JMenuBar menuBar )
@@ -770,13 +783,8 @@ public class GosuPanel extends JPanel
     runMenu.setMnemonic( 'R' );
     menuBar.add( runMenu );
 
-    runMenu.add( CommonMenus.makeRun( this::getCurrentEditorType ) );
-    runMenu.add( CommonMenus.makeDebug( this::getCurrentEditorType ) );
-
-    JMenuItem runRecentItem = new SmartMenuItem( new RunRecentActionHandler() );
-    runRecentItem.setMnemonic( 'C' );
-    runRecentItem.setAccelerator( KeyStroke.getKeyStroke( "control F5" ) );
-    runMenu.add( runRecentItem );
+    runMenu.add( CommonMenus.makeRun( this::getRunType ) );
+    runMenu.add( CommonMenus.makeDebug( this::getRunType ) );
 
     runMenu.addSeparator();
 
@@ -2199,27 +2207,6 @@ public class GosuPanel extends JPanel
     public boolean isEnabled()
     {
       return getUndoManager().canRedo();
-    }
-  }
-
-  class RunRecentActionHandler extends CommonMenus.ClearAndRunActionHandler
-  {
-    public RunRecentActionHandler()
-    {
-      //noinspection Convert2Lambda
-      super( new Supplier<IType>()
-             {
-               @Override
-               public IType get()
-               {
-                 String recentProgram = getExperiment() == null ? null : getExperiment().getRecentProgram();
-                 if( recentProgram != null )
-                 {
-                   return TypeSystem.getByFullNameIfValid( recentProgram );
-                 }
-                 return null;
-               }
-             } );
     }
   }
 

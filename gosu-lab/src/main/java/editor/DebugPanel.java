@@ -117,23 +117,18 @@ public class DebugPanel extends JPanel
 
   private void suspended( List<ThreadReference> threads, ThreadReference thread )
   {
-    updateThreads( threads );
-    if( thread != null )
-    {
-      _cbThreads.setSelectedItem( thread );
-    }
+    updateThreads( threads, thread );
   }
 
-  private void updateThreads( List<ThreadReference> threads )
+  private void updateThreads( List<ThreadReference> threads, ThreadReference thread )
   {
     _cbThreads.setModel( makeThreadModel( threads ) );
-    _cbThreads.setSelectedItem( 0 );
-    EventQueue.invokeLater( () -> _listFrames.setSelectedIndex( 0 ) );
+    _cbThreads.setSelectedItem( thread );
   }
 
   private void resumed()
   {
-    updateThreads( new ArrayList<>() );
+    updateThreads( new ArrayList<>(), null );
     threadChanged();
   }
 
@@ -141,6 +136,11 @@ public class DebugPanel extends JPanel
   private void updateVars()
   {
     StackFrame frame = _listFrames.getSelectedValue();
+    if( frame ==  null )
+    {
+      return;
+    }
+
     DefaultTreeModel model = new DefaultTreeModel( new VarTree( frame ) );
     _varTree.setModel( model );
 

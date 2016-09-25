@@ -8,15 +8,18 @@ import gw.fs.IDirectory;
 import gw.fs.IFile;
 import gw.fs.IResource;
 import gw.lang.reflect.IFunctionType;
+import gw.lang.reflect.IMethodInfo;
 import gw.lang.reflect.IParameterInfo;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.gs.ClassType;
 import gw.lang.reflect.gs.IGosuClass;
+import gw.lang.reflect.gs.IGosuClassTypeInfo;
 import gw.lang.reflect.gs.IGosuEnhancement;
 import gw.lang.reflect.gs.IGosuProgram;
 import gw.lang.reflect.gs.ITemplateType;
 import gw.lang.reflect.java.IJavaType;
+import gw.lang.reflect.java.JavaTypes;
 import gw.util.GosuStringUtil;
 
 import javax.swing.*;
@@ -49,7 +52,7 @@ import java.util.regex.PatternSyntaxException;
 
 public class EditorUtilities
 {
-  static final HashMap<String, ImageIcon> ICON_TABLE = new HashMap<String, ImageIcon>();
+  static final HashMap<String, ImageIcon> ICON_TABLE = new HashMap<>();
 
   /* colors */
   public static final Color ACTIVE_CAPTION = new Color( 210, 235, 251 );
@@ -1223,4 +1226,46 @@ public class EditorUtilities
     _findDecendents( comps, configUI, aClass, recurseToChildren );
     return comps;
   }
+
+  public static boolean isRunnable( IType type )
+  {
+    if( type == null || !type.isValid() )
+    {
+      return false;
+    }
+    if( RunMe.getEditorFrame().getGosuPanel().isRunning() ||
+        RunMe.getEditorFrame().getGosuPanel().isDebugging() )
+    {
+      return false;
+    }
+
+    // Is Program?
+    if( type instanceof IGosuProgram )
+    {
+      return true;
+    }
+
+    if( type instanceof IGosuClass && !type.isAbstract() &&
+        ((IGosuClassTypeInfo)type.getTypeInfo()).isPublic() )
+    {
+      // Is Main class?
+      IMethodInfo main = type.getTypeInfo().getMethod( "main", JavaTypes.STRING().getArrayType() );
+      if( main != null && main.isStatic() && main.getReturnType() == JavaTypes.pVOID() )
+      {
+        return true;
+      }
+
+      // Is Test class?
+      if( type.getTypeInfo().getConstructor() != null )
+      {
+        IType baseTest = TypeSystem.getByFullNameIfValid( "junit.framework.Assert" );
+        if( baseTest != null )
+        {
+          return baseTest.isAssignableFrom( type );
+        }
+      }
+    }
+    return false;
+  }
+
 }

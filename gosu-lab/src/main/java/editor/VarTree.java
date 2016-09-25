@@ -38,7 +38,7 @@ public class VarTree implements MutableTreeNode
     _type = null;
     _value = null;
     _children = Collections.emptyList();
-    if( frame == null || !frame.thread().isSuspended() )
+    if( frame == null )
     {
       return;
     }
