@@ -196,22 +196,22 @@ public class GosuPanel extends JPanel
     ToolBar toolbar = new ToolBar( JToolBar.VERTICAL );
     XPToolbarButton item;
 
-    item = new XPToolbarButton( new CommonMenus.ClearAndRunActionHandler( "", this::getCurrentEditorType ) );
+    item = new XPToolbarButton( new CommonMenus.ClearAndRunActionHandler( this::getCurrentEditorType ) );
     toolbar.add( item );
-    item = new XPToolbarButton( new CommonMenus.ClearAndDebugActionHandler( "", this::getCurrentEditorType ) );
+    item = new XPToolbarButton( new CommonMenus.ClearAndDebugActionHandler( this::getCurrentEditorType ) );
     toolbar.add( item );
-    item = new XPToolbarButton( new CommonMenus.StopActionHandler( "", () -> this ) );
+    item = new XPToolbarButton( new CommonMenus.StopActionHandler( () -> this ) );
     toolbar.add( item );
-    item = new XPToolbarButton( new CommonMenus.PauseActionHandler( "", this::getDebugger ) );
+    item = new XPToolbarButton( new CommonMenus.PauseActionHandler( this::getDebugger ) );
     toolbar.add( item );
-    item = new XPToolbarButton( new CommonMenus.ResumeActionHandler( "", this::getDebugger ) );
+    item = new XPToolbarButton( new CommonMenus.ResumeActionHandler( this::getDebugger ) );
     toolbar.add( item );
 
     toolbar.addSeparator();
 
-    item = new XPToolbarButton( new CommonMenus.ViewBreakpointsActionHandler( "", () -> null ) );
+    item = new XPToolbarButton( new CommonMenus.ViewBreakpointsActionHandler( () -> null ) );
     toolbar.add( item );
-    ToggleToolBarButton titem = new ToggleToolBarButton( new CommonMenus.MuteBreakpointsActionHandler( "", this::getBreakpointManager ) );
+    ToggleToolBarButton titem = new ToggleToolBarButton( new CommonMenus.MuteBreakpointsActionHandler( this::getBreakpointManager ) );
     toolbar.add( titem );
 
     return toolbar;
@@ -1320,10 +1320,10 @@ public class GosuPanel extends JPanel
 
     // Run
     mapKeystroke( KeyStroke.getKeyStroke( KeyEvent.VK_F5, 0 ),
-                  "Run", new CommonMenus.ClearAndRunActionHandler( "Run", () -> getCurrentEditor().getScriptPart().getContainingType() ) );
+                  "Run", new CommonMenus.ClearAndRunActionHandler( () -> getCurrentEditor().getScriptPart().getContainingType() ) );
 
     mapKeystroke( KeyStroke.getKeyStroke( KeyEvent.VK_ENTER, InputEvent.CTRL_MASK ),
-                  "Run", new CommonMenus.ClearAndRunActionHandler( "Run", () -> getCurrentEditor().getScriptPart().getContainingType() ) );
+                  "Run", new CommonMenus.ClearAndRunActionHandler( () -> getCurrentEditor().getScriptPart().getContainingType() ) );
   }
 
   private void mapKeystroke( KeyStroke ks, String strCmd, Action action )
@@ -2207,8 +2207,7 @@ public class GosuPanel extends JPanel
     public RunRecentActionHandler()
     {
       //noinspection Convert2Lambda
-      super( "Run Recent",
-             new Supplier<IType>()
+      super( new Supplier<IType>()
              {
                @Override
                public IType get()

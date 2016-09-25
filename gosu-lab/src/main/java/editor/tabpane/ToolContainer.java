@@ -24,7 +24,6 @@ public class ToolContainer extends JPanel
   private XPToolbarButton _btnMinimize;
   private XPToolbarButton _btnRestore;
   private XPToolbarButton _btnMaximize;
-  private JComponent _filler;
 
 
   public ToolContainer( TabPane tabPane )
@@ -45,7 +44,7 @@ public class ToolContainer extends JPanel
   {
     setBorder( makeBorder() );
     _toolbar = new ToolBar( isVertical() ? ToolBar.VERTICAL : ToolBar.HORIZONTAL );
-    _toolbar.add( _filler = new JPanel() );
+    _toolbar.add( new JPanel() );
     if( _tabPane.isDynamic() )
     {
       addDynamicTools();
@@ -98,7 +97,6 @@ public class ToolContainer extends JPanel
   private void addDynamicTools()
   {
     _btnDisplayTabs = new XPToolbarButton( new DisplayTabsAction() );
-    _btnDisplayTabs.setToolTipText( "Open views" );
     _toolbar.add( _btnDisplayTabs );
     if( _tabPane.hasAtLeastOneOfMinMaxRestore() )
     {
@@ -109,20 +107,17 @@ public class ToolContainer extends JPanel
   private void addCaptionTools()
   {
     _btnMinimize = new XPToolbarButton( new MinimizeAction() );
-    _btnMinimize.setToolTipText( "Minimize" );
     if( _tabPane.isMinimizable() )
     {
       _toolbar.add( _btnMinimize );
     }
     _btnRestore = new XPToolbarButton( new RestoreAction() );
-    _btnRestore.setToolTipText( "Restore" );
     if( _tabPane.isRestorable() )
     {
       _toolbar.add( _btnRestore );
     }
     _btnRestore.setVisible( false );
     _btnMaximize = new XPToolbarButton( new MaximizeAction() );
-    _btnMaximize.setToolTipText( "Maximize" );
     if( _tabPane.isMaximizable() )
     {
       _toolbar.add( _btnMaximize );
@@ -134,7 +129,6 @@ public class ToolContainer extends JPanel
         _toolbar.addSeparator();
       }
       XPToolbarButton btnCloseTab = new XPToolbarButton( new CloseTabAction() );
-      btnCloseTab.setToolTipText( "Close tab" );
       _toolbar.add( btnCloseTab );
     }
   }
@@ -174,13 +168,9 @@ public class ToolContainer extends JPanel
               null);
       setEnabled( false );
       _tabPane.getTabContainer().addSelectionListener(
-        new ChangeListener()
-        {
-          public void stateChanged( ChangeEvent e )
-          {
-            _enabled = _tabPane.getTabContainer().getTabCount() > 0;
-            setEnabled( _enabled ); // fire changed
-          }
+        e -> {
+          _enabled = _tabPane.getTabContainer().getTabCount() > 0;
+          setEnabled( _enabled ); // fire changed
         } );
     }
 
@@ -203,14 +193,7 @@ public class ToolContainer extends JPanel
       }
 
       TabListPopup tabListPopup = new TabListPopup( _tabPane.getTabContainer() );
-      tabListPopup.addNodeChangeListener(
-        new ChangeListener()
-        {
-          public void stateChanged( ChangeEvent e )
-          {
-            _tabPane.getTabContainer().selectTab( (ITab)e.getSource(), true);
-          }
-        } );
+      tabListPopup.addNodeChangeListener( e -> _tabPane.getTabContainer().selectTab( (ITab)e.getSource(), true) );
       tabListPopup.show( _btnDisplayTabs, _btnDisplayTabs.getX(),
                          _btnDisplayTabs.getY() + _btnDisplayTabs.getHeight() );
     }
@@ -230,14 +213,10 @@ public class ToolContainer extends JPanel
               null );
       setEnabled( false );
       _tabPane.getTabContainer().addSelectionListener(
-        new ChangeListener()
-        {
-          public void stateChanged( ChangeEvent e )
-          {
-            _enabled = _tabPane.getTabContainer().getTabCount() > 0 &&
-                        _tabPane.getTabContainer().getSelectedTab().canClose();
-            setEnabled( _enabled ); // fire changed
-          }
+        e -> {
+          _enabled = _tabPane.getTabContainer().getTabCount() > 0 &&
+                     _tabPane.getTabContainer().getSelectedTab().canClose();
+          setEnabled( _enabled ); // fire changed
         } );
     }
 

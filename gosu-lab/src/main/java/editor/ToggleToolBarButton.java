@@ -32,6 +32,7 @@ public class ToggleToolBarButton extends JToggleButton
   public static final Color XP_BORDER_COLOR = EditorUtilities.XP_BORDER_COLOR;
   private static final Color XP_TOGGLE_ROLLOVER_COLOR = EditorUtilities.XP_HIGHLIGHT_COLOR;
   private static final Color XP_TOGGLE_SELECTED_COLOR = EditorUtilities.XP_HIGHLIGHT_SELECTED_COLOR;
+  private boolean _bShowText;
 
   /**
    * Creates a button with an icon.
@@ -40,7 +41,6 @@ public class ToggleToolBarButton extends JToggleButton
    */
   public ToggleToolBarButton( String text, Icon icon )
   {
-
     super( text, icon );
 
     setContentAreaFilled( false );
@@ -196,20 +196,43 @@ public class ToggleToolBarButton extends JToggleButton
   }
 
   @Override
+  public void setAction( Action a )
+  {
+    super.setAction( a );
+    ToolTipManager.sharedInstance().registerComponent( this );
+  }
+
+  public boolean isShowText()
+  {
+    return _bShowText;
+  }
+  public void setShowText( boolean bShowText )
+  {
+    _bShowText = bShowText;
+  }
+
+  @Override
+  public String getText()
+  {
+    return _bShowText ? super.getText() : null;
+  }
+
+  @Override
   public String getToolTipText()
   {
-    String superText = super.getToolTipText();
-    if( superText == null || superText.length() == 0 )
-    {
-      return null;  // Swing will not register us with the tooltip manager unless it detects a change
-    }
     if( getAction() != null )
     {
-      return GosuObjectUtil.toString( getAction().getValue( Action.SHORT_DESCRIPTION ) );
+      String tip = GosuObjectUtil.toString( getAction().getValue( Action.SHORT_DESCRIPTION ) );
+      if( tip == null || tip.isEmpty() )
+      {
+        tip = GosuObjectUtil.toString( getAction().getValue( Action.NAME ) );
+      }
+      return tip;
     }
     else
     {
-      return superText;
+      return super.getToolTipText();
     }
   }
+
 }

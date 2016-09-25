@@ -9,7 +9,6 @@ import com.sun.jdi.ReferenceType;
 import com.sun.jdi.StackFrame;
 import com.sun.jdi.ThreadReference;
 import com.sun.jdi.Value;
-import editor.actions.UpdateNotifier;
 import editor.debugger.BreakpointManager;
 import editor.debugger.Debugger;
 import editor.splitpane.CollapsibleSplitPane;
@@ -64,6 +63,7 @@ public class DebugPanel extends JPanel
     _cbThreads.setBorder( BorderFactory.createCompoundBorder( BorderFactory.createMatteBorder( 1, 1, 1, 1, EditorUtilities.CONTROL_SHADOW ), new EmptyBorder( 1, 1, 1, 1 ) ) );
     _cbThreads.setRenderer( new ThreadCellRenderer( _cbThreads.getRenderer() ) );
     _cbThreads.addActionListener( action -> threadChanged() );
+    _cbThreads.setFocusable( false );
     panel.add( _cbThreads, BorderLayout.NORTH );
 
     DefaultListModel<StackFrame> model = new DefaultListModel<>();
@@ -219,26 +219,26 @@ public class DebugPanel extends JPanel
   {
     int i = 0;
 
-    XPToolbarButton item = makeButton( new CommonMenus.ShowExecPointActionHandler( "", this::getDebugger ) );
+    XPToolbarButton item = makeButton( new CommonMenus.ShowExecPointActionHandler( this::getDebugger ) );
     tb.add( item, i++ );
 
     tb.add( makeSeparator(), i++ );
 
-    item = makeButton( new CommonMenus.StepOverActionHandler( "", this::getDebugger ) );
+    item = makeButton( new CommonMenus.StepOverActionHandler( this::getDebugger ) );
     tb.add( item, i++ );
-    item = makeButton( new CommonMenus.StepIntoActionHandler( "", this::getDebugger ) );
+    item = makeButton( new CommonMenus.StepIntoActionHandler( this::getDebugger ) );
     tb.add( item, i++ );
-    item = makeButton( new CommonMenus.StepOutActionHandler( "", this::getDebugger ) );
-    tb.add( item, i++ );
-
-    tb.add( makeSeparator(), i++ );
-
-    item = makeButton( new CommonMenus.DropFrameActionHandler( "", this::getDebugger, () -> getDropToFrame() ) );
+    item = makeButton( new CommonMenus.StepOutActionHandler( this::getDebugger ) );
     tb.add( item, i++ );
 
     tb.add( makeSeparator(), i++ );
 
-    item = makeButton( new CommonMenus.RunToCursorActionHandler( "", this::getDebugger, this::getBreakpointManager, this::getCurrentEditor ) );
+    item = makeButton( new CommonMenus.DropFrameActionHandler( this::getDebugger, () -> getDropToFrame() ) );
+    tb.add( item, i++ );
+
+    tb.add( makeSeparator(), i++ );
+
+    item = makeButton( new CommonMenus.RunToCursorActionHandler( this::getDebugger, this::getBreakpointManager, this::getCurrentEditor ) );
     tb.add( item, i++ );
   }
 
@@ -258,7 +258,6 @@ public class DebugPanel extends JPanel
   {
     XPToolbarButton item = new XPToolbarButton( null, null, 2, 0 );
     item.setAction( action );
-    UpdateNotifier.instance().addActionComponent( item );
     return item;
   }
   private JSeparator makeSeparator()

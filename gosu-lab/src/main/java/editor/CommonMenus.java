@@ -206,7 +206,7 @@ public class CommonMenus
 
   public static JMenuItem makeRun( Supplier<IType> type )
   {
-    JMenuItem item = new SmartMenuItem( new ClearAndRunActionHandler( "Run", type ) );
+    JMenuItem item = new SmartMenuItem( new ClearAndRunActionHandler( type ) );
     item.setMnemonic( 'R' );
     item.setAccelerator( KeyStroke.getKeyStroke( "F5" ) );
     UpdateNotifier.instance().addActionComponent( item );
@@ -215,7 +215,7 @@ public class CommonMenus
 
   public static JMenuItem makeDebug( Supplier<IType> type )
   {
-    JMenuItem item = new SmartMenuItem( new ClearAndDebugActionHandler( "Debug", type ) );
+    JMenuItem item = new SmartMenuItem( new ClearAndDebugActionHandler( type ) );
     item.setMnemonic( 'D' );
     item.setAccelerator( KeyStroke.getKeyStroke( "alt F5" ) );
     UpdateNotifier.instance().addActionComponent( item );
@@ -224,7 +224,7 @@ public class CommonMenus
 
   public static JMenuItem makeStop( Supplier<GosuPanel> gosuPanel )
   {
-    JMenuItem item = new SmartMenuItem( new CommonMenus.StopActionHandler( "Stop", gosuPanel::get ) );
+    JMenuItem item = new SmartMenuItem( new CommonMenus.StopActionHandler( gosuPanel::get ) );
     item.setMnemonic( 'S' );
     item.setAccelerator( KeyStroke.getKeyStroke( "control F2" ) );
     UpdateNotifier.instance().addActionComponent( item );
@@ -256,7 +256,7 @@ public class CommonMenus
 
   public static JMenuItem makeStepOver( Supplier<Debugger> debugger )
   {
-    JMenuItem item = new SmartMenuItem( new StepOverActionHandler( "Step Over", debugger ) );
+    JMenuItem item = new SmartMenuItem( new StepOverActionHandler( debugger ) );
     item.setMnemonic( 'O' );
     item.setAccelerator( KeyStroke.getKeyStroke( "F8" ) );
     UpdateNotifier.instance().addActionComponent( item );
@@ -265,7 +265,7 @@ public class CommonMenus
 
   public static JMenuItem makeStepInto( Supplier<Debugger> debugger )
   {
-    JMenuItem item = new SmartMenuItem( new StepIntoActionHandler( "Step Into", debugger ) );
+    JMenuItem item = new SmartMenuItem( new StepIntoActionHandler( debugger ) );
     item.setMnemonic( 'V' );
     item.setAccelerator( KeyStroke.getKeyStroke( "F7" ) );
     UpdateNotifier.instance().addActionComponent( item );
@@ -274,7 +274,7 @@ public class CommonMenus
 
   public static JMenuItem makeStepOut( Supplier<Debugger> debugger )
   {
-    JMenuItem item = new SmartMenuItem( new StepOutActionHandler( "Step Out", debugger ) );
+    JMenuItem item = new SmartMenuItem( new StepOutActionHandler( debugger ) );
     item.setMnemonic( 'T' );
     item.setAccelerator( KeyStroke.getKeyStroke( "shift F8" ) );
     UpdateNotifier.instance().addActionComponent( item );
@@ -283,7 +283,7 @@ public class CommonMenus
 
   public static JMenuItem makeRunToCursor( Supplier<Debugger> debugger, Supplier<BreakpointManager> bpm, Supplier<GosuEditor> editor )
   {
-    JMenuItem item = new SmartMenuItem( new RunToCursorActionHandler( "Run to Cursor", debugger, bpm, editor ) );
+    JMenuItem item = new SmartMenuItem( new RunToCursorActionHandler( debugger, bpm, editor ) );
     item.setMnemonic( 'S' );
     item.setAccelerator( KeyStroke.getKeyStroke( "alt F9" ) );
     UpdateNotifier.instance().addActionComponent( item );
@@ -292,7 +292,7 @@ public class CommonMenus
 
   public static JMenuItem makeDropFrame( Supplier<Debugger> debugger, Supplier<StackFrame> frame )
   {
-    JMenuItem item = new SmartMenuItem( new DropFrameActionHandler( "Drop Frame", debugger, frame ) );
+    JMenuItem item = new SmartMenuItem( new DropFrameActionHandler( debugger, frame ) );
     item.setMnemonic( 'F' );
     UpdateNotifier.instance().addActionComponent( item );
     return item;
@@ -300,7 +300,7 @@ public class CommonMenus
 
   public static JMenuItem makePause( Supplier<Debugger> debugger )
   {
-    JMenuItem item = new SmartMenuItem( new CommonMenus.PauseActionHandler( "Pause", debugger ) );
+    JMenuItem item = new SmartMenuItem( new CommonMenus.PauseActionHandler( debugger ) );
     item.setMnemonic( 'P' );
     UpdateNotifier.instance().addActionComponent( item );
     return item;
@@ -308,7 +308,7 @@ public class CommonMenus
   
   public static JMenuItem makeResume( Supplier<Debugger> debugger )
   {
-    JMenuItem item = new SmartMenuItem( new CommonMenus.ResumeActionHandler( "Resume", debugger ) );
+    JMenuItem item = new SmartMenuItem( new CommonMenus.ResumeActionHandler( debugger ) );
     item.setMnemonic( 'G' );
     item.setAccelerator( KeyStroke.getKeyStroke( "F9" ) );
     UpdateNotifier.instance().addActionComponent( item );
@@ -317,14 +317,14 @@ public class CommonMenus
 
   public static JMenuItem makeViewBreakpoints( Supplier<Breakpoint> bp )
   {
-    JMenuItem item = new SmartMenuItem( new CommonMenus.ViewBreakpointsActionHandler( "View Breakpoints...", bp ) );
+    JMenuItem item = new SmartMenuItem( new CommonMenus.ViewBreakpointsActionHandler( bp ) );
     item.setMnemonic( 'B' );
     return item;
   }
 
   public static JMenuItem makeMuteBreakpoints( Supplier<BreakpointManager> bpm )
   {
-    JMenuItem item = new SmartMenuItem( new CommonMenus.MuteBreakpointsActionHandler( "Mute Breakpoints", bpm ) );
+    JMenuItem item = new SmartMenuItem( new CommonMenus.MuteBreakpointsActionHandler( bpm ) );
     item.setMnemonic( 'M' );
     return item;
   }
@@ -400,9 +400,9 @@ public class CommonMenus
 
   public static class ClearAndRunActionHandler extends AbstractRunActionHandler
   {
-    ClearAndRunActionHandler( String title, Supplier<IType> program )
+    ClearAndRunActionHandler( Supplier<IType> program )
     {
-      super( title, EditorUtilities.loadIcon( "images/run.png" ), program );
+      super( "Run", EditorUtilities.loadIcon( "images/run.png" ), program );
     }
 
     public void actionPerformed( ActionEvent e )
@@ -427,9 +427,9 @@ public class CommonMenus
 
   public static class ClearAndDebugActionHandler extends AbstractRunActionHandler
   {
-    ClearAndDebugActionHandler( String title, Supplier<IType> program )
+    ClearAndDebugActionHandler( Supplier<IType> program )
     {
-      super( title, EditorUtilities.loadIcon( "images/debug.png" ), program );
+      super( "Debug", EditorUtilities.loadIcon( "images/debug.png" ), program );
     }
 
     public void actionPerformed( ActionEvent e )
@@ -456,9 +456,9 @@ public class CommonMenus
   {
     private Supplier<GosuPanel> _gosuPanel;
 
-    public StopActionHandler( String label, Supplier<GosuPanel> gosuPanel )
+    public StopActionHandler( Supplier<GosuPanel> gosuPanel )
     {
-      super( label, EditorUtilities.loadIcon( "images/rule_stop_execution.png" ) );
+      super( "Stop", EditorUtilities.loadIcon( "images/rule_stop_execution.png" ) );
       _gosuPanel = gosuPanel;
     }
 
@@ -506,9 +506,9 @@ public class CommonMenus
   {
     private Supplier<Debugger> _debugger;
 
-    public PauseActionHandler( String label, Supplier<Debugger> debugger )
+    public PauseActionHandler( Supplier<Debugger> debugger )
     {
-      super( label, EditorUtilities.loadIcon( "images/pause.png" ) );
+      super( "Pause", EditorUtilities.loadIcon( "images/pause.png" ) );
       _debugger = debugger;
     }
 
@@ -531,9 +531,9 @@ public class CommonMenus
   {
     private Supplier<Debugger> _debugger;
 
-    public ResumeActionHandler( String label, Supplier<Debugger> debugger )
+    public ResumeActionHandler( Supplier<Debugger> debugger )
     {
-      super( label, EditorUtilities.loadIcon( "images/resume.png" ) );
+      super( "Resume", EditorUtilities.loadIcon( "images/resume.png" ) );
       _debugger = debugger;
     }
 
@@ -556,9 +556,9 @@ public class CommonMenus
   {
     private final Supplier<Breakpoint> _bp;
 
-    public ViewBreakpointsActionHandler( String label, Supplier<Breakpoint> bp )
+    public ViewBreakpointsActionHandler( Supplier<Breakpoint> bp )
     {
-      super( label, EditorUtilities.loadIcon( "images/debug_breakpoints.png" ) );
+      super( "View Breakpoints...", EditorUtilities.loadIcon( "images/debug_breakpoints.png" ) );
       _bp = bp;
     }
 
@@ -572,9 +572,9 @@ public class CommonMenus
   {
     private final Supplier<BreakpointManager> _bpm;
 
-    public MuteBreakpointsActionHandler( String label, Supplier<BreakpointManager> bpm )
+    public MuteBreakpointsActionHandler( Supplier<BreakpointManager> bpm )
     {
-      super( label, EditorUtilities.loadIcon( "images/disabled_breakpoint.png" ) );
+      super( "Mute Breakpoints", EditorUtilities.loadIcon( "images/disabled_breakpoint.png" ) );
       _bpm = bpm;
     }
 
@@ -588,9 +588,9 @@ public class CommonMenus
   {
     private final Supplier<Debugger> _debugger;
 
-    public StepOverActionHandler( String label, Supplier<Debugger> debugger )
+    public StepOverActionHandler( Supplier<Debugger> debugger )
     {
-      super( label, EditorUtilities.loadIcon( "images/debug_stepover.png" ) );
+      super( "Step Over", EditorUtilities.loadIcon( "images/debug_stepover.png" ) );
       _debugger = debugger;
     }
 
@@ -613,9 +613,9 @@ public class CommonMenus
   {
     private final Supplier<Debugger> _debugger;
 
-    public StepIntoActionHandler( String label, Supplier<Debugger> debugger )
+    public StepIntoActionHandler( Supplier<Debugger> debugger )
     {
-      super( label, EditorUtilities.loadIcon( "images/debug_stepinto.png" ) );
+      super( "Step Into", EditorUtilities.loadIcon( "images/debug_stepinto.png" ) );
       _debugger = debugger;
     }
 
@@ -638,9 +638,9 @@ public class CommonMenus
   {
     private final Supplier<Debugger> _debugger;
 
-    public StepOutActionHandler( String label, Supplier<Debugger> debugger )
+    public StepOutActionHandler( Supplier<Debugger> debugger )
     {
-      super( label, EditorUtilities.loadIcon( "images/debug_stepout.png" ) );
+      super( "Step Out", EditorUtilities.loadIcon( "images/debug_stepout.png" ) );
       _debugger = debugger;
     }
 
@@ -664,9 +664,9 @@ public class CommonMenus
     private final Supplier<Debugger> _debugger;
     private final Supplier<StackFrame> _frame;
 
-    public DropFrameActionHandler( String label, Supplier<Debugger> debugger, Supplier<StackFrame> frame )
+    public DropFrameActionHandler( Supplier<Debugger> debugger, Supplier<StackFrame> frame )
     {
-      super( label, EditorUtilities.loadIcon( "images/debug_dropframe.png" ) );
+      super( "Drop Frame", EditorUtilities.loadIcon( "images/debug_dropframe.png" ) );
       _debugger = debugger;
       _frame = frame;
     }
@@ -690,9 +690,9 @@ public class CommonMenus
   {
     private final Supplier<Debugger> _debugger;
 
-    public ShowExecPointActionHandler( String label, Supplier<Debugger> debugger )
+    public ShowExecPointActionHandler( Supplier<Debugger> debugger )
     {
-      super( label, EditorUtilities.loadIcon( "images/debug_showexecpoint.png" ) );
+      super( "Show Execution Point", EditorUtilities.loadIcon( "images/debug_showexecpoint.png" ) );
       _debugger = debugger;
     }
 
@@ -717,9 +717,9 @@ public class CommonMenus
     private final Supplier<BreakpointManager> _bpm;
     private final Supplier<GosuEditor> _editor;
 
-    public RunToCursorActionHandler( String label,  Supplier<Debugger> debugger, Supplier<BreakpointManager> bpm, Supplier<GosuEditor> editor )
+    public RunToCursorActionHandler( Supplier<Debugger> debugger, Supplier<BreakpointManager> bpm, Supplier<GosuEditor> editor )
     {
-      super( label, EditorUtilities.loadIcon( "images/debug_runtocursor.png" ) );
+      super( "Run to Cursor", EditorUtilities.loadIcon( "images/debug_runtocursor.png" ) );
       _bpm = bpm;
       _editor = editor;
       _debugger = debugger;

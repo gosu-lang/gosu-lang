@@ -17,12 +17,9 @@ public class XPToolbarButton extends JButton
   private static final int DEFAULT_MARGIN = 2;
 
   private boolean _bConstantBorder;
+  private boolean _bShowText;
 
-  /**
-   * Creates a button with an icon.
-   *
-   * @param icon The icon that should be display for this button.
-   */
+
   public XPToolbarButton( String text, Icon icon, int iMargin )
   {
     this( text, icon, iMargin, iMargin );
@@ -34,16 +31,46 @@ public class XPToolbarButton extends JButton
     setUI( BasicButtonUI.createUI( this ) );
     setBorderPainted( false );
     setMargin( new Insets( 1, 1, 1, 1 ) );
-    setBackground(EditorUtilities.CONTROL );
+    setBackground( EditorUtilities.CONTROL );
     setContentAreaFilled( false );
     setOpaque( true );
     EventQueue.invokeLater( () -> {
       setBorder( BorderFactory.createCompoundBorder( BorderFactory.createLineBorder( EditorUtilities.XP_BORDER_COLOR ), BorderFactory.createEmptyBorder( iMarginH, iMarginW, iMarginH, iMarginW ) ) );
-      setBackground(EditorUtilities.CONTROL );
+      setBackground( EditorUtilities.CONTROL );
     } );
-
+    _bShowText = false;
     addMouseListener( createMouseListener() );
-    setToolTipText( "" );  // fake out Swing into registering us with the tooltip manager
+  }
+
+  public XPToolbarButton( Action action )
+  {
+    this();
+    EventQueue.invokeLater( () -> setAction( action ) );
+  }
+
+  public XPToolbarButton( String text, Icon icon )
+  {
+    this( text, icon, DEFAULT_MARGIN );
+  }
+
+  public XPToolbarButton( Icon icon, int iMargin )
+  {
+    this( null, icon, iMargin );
+  }
+
+  public XPToolbarButton( Icon icon )
+  {
+    this( icon, DEFAULT_MARGIN );
+  }
+
+  public XPToolbarButton( String text )
+  {
+    this( text, null );
+  }
+
+  public XPToolbarButton()
+  {
+    this( null, null );
   }
 
   protected MouseListener createMouseListener()
@@ -83,29 +110,21 @@ public class XPToolbarButton extends JButton
       };
   }
 
-  public XPToolbarButton( String text, Icon icon )
+  @Override
+  public void setAction( Action a )
   {
-    this( text, icon, DEFAULT_MARGIN );
+    super.setAction( a );
+    UpdateNotifier.instance().addActionComponent( this );
+    ToolTipManager.sharedInstance().registerComponent( this );
   }
 
-  public XPToolbarButton( Icon icon, int iMargin )
+  public boolean isText()
   {
-    this( null, icon, iMargin );
+    return _bShowText;
   }
-
-  public XPToolbarButton( Icon icon )
+  public void setShowText( boolean bShowText )
   {
-    this( icon, DEFAULT_MARGIN );
-  }
-
-  public XPToolbarButton( String text )
-  {
-    this( text, null );
-  }
-
-  public XPToolbarButton()
-  {
-    this( null, null );
+    _bShowText = bShowText;
   }
 
   public void setVisible( boolean bVisible )
@@ -130,37 +149,27 @@ public class XPToolbarButton extends JButton
     setBorderPainted( isBorderConstant() );
   }
 
-  /**
-   * Creates a button from an action and displays only the action's icon, not
-   * the name (unless the icon is null, in which case the name will be
-   * displayed).
-   *
-   * @param action the Action associated with this button
-   */
-  public XPToolbarButton( Action action )
+  @Override
+  public String getText()
   {
-    this();
-    EventQueue.invokeLater( () -> {
-      setAction( action );
-      UpdateNotifier.instance().addActionComponent( this );
-    } );
+    return _bShowText ? super.getText() : null;
   }
 
   @Override
   public String getToolTipText()
   {
-    String superText = super.getToolTipText();
-    if( superText == null || superText.length() == 0 )
-    {
-      return null;  // Swing will not register us with the tooltip manager unless it detects a change
-    }
     if( getAction() != null )
     {
-      return GosuObjectUtil.toString( getAction().getValue( Action.SHORT_DESCRIPTION ) );
+      String tip = GosuObjectUtil.toString( getAction().getValue( Action.SHORT_DESCRIPTION ) );
+      if( tip == null || tip.isEmpty() )
+      {
+        tip = GosuObjectUtil.toString( getAction().getValue( Action.NAME ) );
+      }
+      return tip;
     }
     else
     {
-      return superText;
+      return super.getToolTipText();
     }
   }
 
