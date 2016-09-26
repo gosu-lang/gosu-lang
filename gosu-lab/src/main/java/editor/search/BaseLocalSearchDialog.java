@@ -1,6 +1,7 @@
 package editor.search;
 
 import editor.undo.AtomicUndoManager;
+import editor.util.LabCheckbox;
 
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
@@ -27,8 +28,8 @@ public abstract class BaseLocalSearchDialog extends JDialog
   private static boolean g_bRegex;
   private JComboBox _comboSearch;
   private JComboBox _comboReplace;
-  private JCheckBox _cbCaseSensitive;
-  private JCheckBox _cbRegex;
+  private LabCheckbox _cbCaseSensitive;
+  private LabCheckbox _cbRegex;
   private boolean _bReplaceMode;
   private boolean _bAllMode;
   private boolean _bAllModeFromTop;
@@ -437,11 +438,11 @@ public abstract class BaseLocalSearchDialog extends JDialog
 
     center.add( new JSeparator() );
 
-    _cbCaseSensitive = new JCheckBox( "Case sensitive" );
+    _cbCaseSensitive = new LabCheckbox( "Case sensitive" );
     _cbCaseSensitive.setMnemonic( 'C' );
     center.add( _cbCaseSensitive );
 
-    _cbRegex = new JCheckBox( "Regular expression" );
+    _cbRegex = new LabCheckbox( "Regular expression" );
     _cbRegex.setMnemonic( 'R' );
     center.add( _cbRegex );
 

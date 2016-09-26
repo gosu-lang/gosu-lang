@@ -5,7 +5,7 @@ import editor.tabpane.TabPane;
 import editor.tabpane.TabPosition;
 import editor.util.EditorUtilities;
 import editor.util.Experiment;
-import editor.util.XPToolbarButton;
+import editor.util.LabToolbarButton;
 
 import javax.swing.*;
 import javax.swing.border.MatteBorder;
@@ -86,7 +86,7 @@ public class ExperimentView extends JPanel
     java.util.List<File> examples = EditorUtilities.getStockExampleExperiments();
     for( File dir: examples )
     {
-      XPToolbarButton item = new XPToolbarButton( dir.getName(), EditorUtilities.loadLabIcon() );
+      LabToolbarButton item = new LabToolbarButton( dir.getName(), EditorUtilities.loadLabIcon() );
       item.setToolTipText( null );
       item.setShowText( true );
       item.setHorizontalAlignment( SwingConstants.LEFT );

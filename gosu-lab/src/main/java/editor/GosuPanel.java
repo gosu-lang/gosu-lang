@@ -17,6 +17,7 @@ import editor.util.BrowserUtil;
 import editor.util.EditorUtilities;
 import editor.util.Experiment;
 import editor.util.GosuTextifier;
+import editor.util.LabToolbarButton;
 import editor.util.LabelListPopup;
 import editor.util.PlatformUtil;
 import editor.util.SettleModalEventQueue;
@@ -24,7 +25,6 @@ import editor.util.SmartMenu;
 import editor.util.SmartMenuItem;
 import editor.util.ToolBar;
 import editor.util.TypeNameUtil;
-import editor.util.XPToolbarButton;
 import gw.internal.ext.org.objectweb.asm.ClassReader;
 import gw.internal.ext.org.objectweb.asm.util.TraceClassVisitor;
 import gw.lang.Gosu;
@@ -193,22 +193,22 @@ public class GosuPanel extends JPanel
   private ToolBar createToolbar()
   {
     ToolBar toolbar = new ToolBar( JToolBar.VERTICAL );
-    XPToolbarButton item;
+    LabToolbarButton item;
 
-    item = new XPToolbarButton( new CommonMenus.ClearAndRunActionHandler( this::getRunType ) );
+    item = new LabToolbarButton( new CommonMenus.ClearAndRunActionHandler( this::getRunType ) );
     toolbar.add( item );
-    item = new XPToolbarButton( new CommonMenus.ClearAndDebugActionHandler( this::getRunType ) );
+    item = new LabToolbarButton( new CommonMenus.ClearAndDebugActionHandler( this::getRunType ) );
     toolbar.add( item );
-    item = new XPToolbarButton( new CommonMenus.StopActionHandler( () -> this ) );
+    item = new LabToolbarButton( new CommonMenus.StopActionHandler( () -> this ) );
     toolbar.add( item );
-    item = new XPToolbarButton( new CommonMenus.PauseActionHandler( this::getDebugger ) );
+    item = new LabToolbarButton( new CommonMenus.PauseActionHandler( this::getDebugger ) );
     toolbar.add( item );
-    item = new XPToolbarButton( new CommonMenus.ResumeActionHandler( this::getDebugger ) );
+    item = new LabToolbarButton( new CommonMenus.ResumeActionHandler( this::getDebugger ) );
     toolbar.add( item );
 
     toolbar.addSeparator();
 
-    item = new XPToolbarButton( new CommonMenus.ViewBreakpointsActionHandler( () -> null ) );
+    item = new LabToolbarButton( new CommonMenus.ViewBreakpointsActionHandler( () -> null ) );
     toolbar.add( item );
     ToggleToolBarButton titem = new ToggleToolBarButton( new CommonMenus.MuteBreakpointsActionHandler( this::getBreakpointManager ) );
     toolbar.add( titem );

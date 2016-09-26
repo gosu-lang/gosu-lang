@@ -4,11 +4,11 @@ import editor.undo.AtomicUndoManager;
 import editor.util.EditorUtilities;
 import editor.util.HTMLEscapeUtil;
 import editor.util.IReplaceWordCallback;
+import editor.util.LabToolbarButton;
 import editor.util.PlatformUtil;
 import editor.util.SettleModalEventQueue;
 import editor.util.TaskQueue;
 import editor.util.TextComponentUtil;
-import editor.util.XPToolbarButton;
 import editor.util.transform.java.JavaToGosu;
 import gw.fs.IFile;
 import gw.lang.GosuShop;
@@ -200,7 +200,7 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
   private UndoableEditListener _uel;
   BeanInfoPopup _beanInfoPopup;
   JPopupMenu _valuePopup;
-  private XPToolbarButton _btnAdvice;
+  private LabToolbarButton _btnAdvice;
   private Runnable _adviceRunner;
   private IReplaceWordCallback _replaceWordCallback;
   private boolean _bTemplate;
@@ -363,7 +363,7 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
     _scroller.setBorder( null );
     JViewport vp = _scroller.getViewport();
     vp.setScrollMode( JViewport.BLIT_SCROLL_MODE );
-    _btnAdvice = new XPToolbarButton( editor.util.EditorUtilities.loadIcon( "images/advice.png" ) );
+    _btnAdvice = new LabToolbarButton( editor.util.EditorUtilities.loadIcon( "images/advice.png" ) );
     _btnAdvice.setToolTipText( "Display Smart Help" );
     _btnAdvice.setBorderConstant( true );
     _btnAdvice.addActionListener( new ActionListener()

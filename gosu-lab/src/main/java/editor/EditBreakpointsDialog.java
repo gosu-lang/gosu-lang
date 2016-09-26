@@ -2,6 +2,7 @@ package editor;
 
 import editor.debugger.BreakpointManager;
 import editor.util.EditorUtilities;
+import editor.util.LabCheckbox;
 import editor.util.SettleModalEventQueue;
 
 import javax.swing.*;
@@ -184,7 +185,7 @@ public class EditBreakpointsDialog extends AbstractCloseDialog
   class BreakpointCellRenderer extends JPanel implements ListCellRenderer<Breakpoint>
   {
     private Breakpoint _bp;
-    private JCheckBox _cbActive;
+    private LabCheckbox _cbActive;
     private DefaultListCellRenderer _label;
 
     public BreakpointCellRenderer()
@@ -202,7 +203,8 @@ public class EditBreakpointsDialog extends AbstractCloseDialog
 
     private void configUi()
     {
-      _cbActive = new JCheckBox();
+      _cbActive = new LabCheckbox();
+      _cbActive.setBorderPaintedFlat( true );
       _cbActive.setOpaque( false );
 
       add( _cbActive, BorderLayout.WEST );

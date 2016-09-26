@@ -4,8 +4,8 @@ package editor.tabpane;
 import editor.actions.GenericAction;
 import editor.splitpane.ICaptionActionListener;
 import editor.util.EditorUtilities;
+import editor.util.LabToolbarButton;
 import editor.util.ToolBar;
-import editor.util.XPToolbarButton;
 
 import javax.swing.*;
 import javax.swing.border.Border;
@@ -19,11 +19,11 @@ import java.awt.event.ActionEvent;
 public class ToolContainer extends JPanel
 {
   private ToolBar _toolbar;
-  private XPToolbarButton _btnDisplayTabs;
+  private LabToolbarButton _btnDisplayTabs;
   private TabPane _tabPane;
-  private XPToolbarButton _btnMinimize;
-  private XPToolbarButton _btnRestore;
-  private XPToolbarButton _btnMaximize;
+  private LabToolbarButton _btnMinimize;
+  private LabToolbarButton _btnRestore;
+  private LabToolbarButton _btnMaximize;
 
 
   public ToolContainer( TabPane tabPane )
@@ -96,7 +96,7 @@ public class ToolContainer extends JPanel
 
   private void addDynamicTools()
   {
-    _btnDisplayTabs = new XPToolbarButton( new DisplayTabsAction() );
+    _btnDisplayTabs = new LabToolbarButton( new DisplayTabsAction() );
     _toolbar.add( _btnDisplayTabs );
     if( _tabPane.hasAtLeastOneOfMinMaxRestore() )
     {
@@ -106,18 +106,18 @@ public class ToolContainer extends JPanel
 
   private void addCaptionTools()
   {
-    _btnMinimize = new XPToolbarButton( new MinimizeAction() );
+    _btnMinimize = new LabToolbarButton( new MinimizeAction() );
     if( _tabPane.isMinimizable() )
     {
       _toolbar.add( _btnMinimize );
     }
-    _btnRestore = new XPToolbarButton( new RestoreAction() );
+    _btnRestore = new LabToolbarButton( new RestoreAction() );
     if( _tabPane.isRestorable() )
     {
       _toolbar.add( _btnRestore );
     }
     _btnRestore.setVisible( false );
-    _btnMaximize = new XPToolbarButton( new MaximizeAction() );
+    _btnMaximize = new LabToolbarButton( new MaximizeAction() );
     if( _tabPane.isMaximizable() )
     {
       _toolbar.add( _btnMaximize );
@@ -128,7 +128,7 @@ public class ToolContainer extends JPanel
       {
         _toolbar.addSeparator();
       }
-      XPToolbarButton btnCloseTab = new XPToolbarButton( new CloseTabAction() );
+      LabToolbarButton btnCloseTab = new LabToolbarButton( new CloseTabAction() );
       _toolbar.add( btnCloseTab );
     }
   }
@@ -194,8 +194,7 @@ public class ToolContainer extends JPanel
 
       TabListPopup tabListPopup = new TabListPopup( _tabPane.getTabContainer() );
       tabListPopup.addNodeChangeListener( e -> _tabPane.getTabContainer().selectTab( (ITab)e.getSource(), true) );
-      tabListPopup.show( _btnDisplayTabs, _btnDisplayTabs.getX(),
-                         _btnDisplayTabs.getY() + _btnDisplayTabs.getHeight() );
+      tabListPopup.show( _btnDisplayTabs, 0, _btnDisplayTabs.getY() + _btnDisplayTabs.getHeight() );
     }
   }
 

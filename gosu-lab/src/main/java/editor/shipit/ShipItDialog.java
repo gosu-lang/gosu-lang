@@ -5,6 +5,7 @@ import editor.RunMe;
 import editor.search.StudioUtilities;
 import editor.util.EditorUtilities;
 import editor.util.Experiment;
+import editor.util.LabCheckbox;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.gs.IGosuProgram;
@@ -23,8 +24,8 @@ public class ShipItDialog extends JDialog
   private String _strProgramName;
   private boolean _bBundleGosu;
   private Experiment _experiment;
-  private JCheckBox _cbBundleGosu;
-  private JCheckBox _cbPrecompile;
+  private LabCheckbox _cbBundleGosu;
+  private LabCheckbox _cbPrecompile;
   private JTextField _fieldProgramName;
   private JButton _btnOk;
   private JLabel _errorMsg;
@@ -132,7 +133,7 @@ public class ShipItDialog extends JDialog
     c.weightx = 1;
     c.weighty = 0;
     c.insets = new Insets( 2, 2, 0, 0 );
-    mainPanel.add( _cbBundleGosu = new JCheckBox( "Bundle Gosu runtime", true ), c );
+    mainPanel.add( _cbBundleGosu = new LabCheckbox( "Bundle Gosu runtime", true ), c );
     _cbBundleGosu.setToolTipText( "<html>This option bundles a copy of Gosu in your jar.  Without this option your jar<br>" +
                                   "uses a compatible version of Gosu installed on the user's machine, if one <br>" +
                                   "exits.  Otherwise, the jar automatically installs Gosu after prompting for <br>" +
@@ -147,7 +148,7 @@ public class ShipItDialog extends JDialog
     c.weightx = 1;
     c.weighty = 0;
     c.insets = new Insets( 2, 2, 0, 0 );
-    mainPanel.add( _cbPrecompile = new JCheckBox( "Precompile Source", true ), c );
+    mainPanel.add( _cbPrecompile = new LabCheckbox( "Precompile Source", true ), c );
     _cbPrecompile.setToolTipText( "<html>This option fully compiles your experiment and includes resulting .class files<br>" +
                                   "in your jar.  The upside: your experiment may load faster; the downside: your<br>" +
                                   "jar file will be a little larger.  Note precompilation is optional since Gosu's<br>" +

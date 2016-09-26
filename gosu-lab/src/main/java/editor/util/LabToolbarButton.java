@@ -12,7 +12,7 @@ import java.awt.event.MouseListener;
 
 /**
  */
-public class XPToolbarButton extends JButton
+public class LabToolbarButton extends JButton
 {
   private static final int DEFAULT_MARGIN = 2;
 
@@ -20,11 +20,11 @@ public class XPToolbarButton extends JButton
   private boolean _bShowText;
 
 
-  public XPToolbarButton( String text, Icon icon, int iMargin )
+  public LabToolbarButton( String text, Icon icon, int iMargin )
   {
     this( text, icon, iMargin, iMargin );
   }
-  public XPToolbarButton( String text, Icon icon, int iMarginW, int iMarginH )
+  public LabToolbarButton( String text, Icon icon, int iMarginW, int iMarginH )
   {
     super( text, icon );
 
@@ -42,33 +42,33 @@ public class XPToolbarButton extends JButton
     addMouseListener( createMouseListener() );
   }
 
-  public XPToolbarButton( Action action )
+  public LabToolbarButton( Action action )
   {
     this();
     EventQueue.invokeLater( () -> setAction( action ) );
   }
 
-  public XPToolbarButton( String text, Icon icon )
+  public LabToolbarButton( String text, Icon icon )
   {
     this( text, icon, DEFAULT_MARGIN );
   }
 
-  public XPToolbarButton( Icon icon, int iMargin )
+  public LabToolbarButton( Icon icon, int iMargin )
   {
     this( null, icon, iMargin );
   }
 
-  public XPToolbarButton( Icon icon )
+  public LabToolbarButton( Icon icon )
   {
     this( icon, DEFAULT_MARGIN );
   }
 
-  public XPToolbarButton( String text )
+  public LabToolbarButton( String text )
   {
     this( text, null );
   }
 
-  public XPToolbarButton()
+  public LabToolbarButton()
   {
     this( null, null );
   }

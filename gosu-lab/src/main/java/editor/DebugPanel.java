@@ -17,8 +17,8 @@ import editor.tabpane.TabPosition;
 import editor.tabpane.ToolContainer;
 import editor.util.EditorUtilities;
 import editor.util.HTMLEscapeUtil;
+import editor.util.LabToolbarButton;
 import editor.util.ToolBar;
-import editor.util.XPToolbarButton;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -60,7 +60,8 @@ public class DebugPanel extends JPanel
     JPanel panel = new JPanel( new BorderLayout() );
 
     _cbThreads = new JComboBox<>();
-    _cbThreads.setBorder( BorderFactory.createCompoundBorder( BorderFactory.createMatteBorder( 1, 1, 1, 1, EditorUtilities.CONTROL_SHADOW ), new EmptyBorder( 1, 1, 1, 1 ) ) );
+    _cbThreads.setBackground( EditorUtilities.CONTROL );
+    _cbThreads.setBorder( BorderFactory.createMatteBorder( 1, 1, 1, 1, EditorUtilities.CONTROL_SHADOW ) );
     _cbThreads.setRenderer( new ThreadCellRenderer( _cbThreads.getRenderer() ) );
     _cbThreads.addActionListener( action -> threadChanged() );
     _cbThreads.setFocusable( false );
@@ -136,13 +137,14 @@ public class DebugPanel extends JPanel
   private void updateVars()
   {
     StackFrame frame = _listFrames.getSelectedValue();
+
+    DefaultTreeModel model = new DefaultTreeModel( new VarTree( frame ) );
+    _varTree.setModel( model );
+
     if( frame ==  null )
     {
       return;
     }
-
-    DefaultTreeModel model = new DefaultTreeModel( new VarTree( frame ) );
-    _varTree.setModel( model );
 
     fireLocationChange( frame.location() );
   }
@@ -219,7 +221,7 @@ public class DebugPanel extends JPanel
   {
     int i = 0;
 
-    XPToolbarButton item = makeButton( new CommonMenus.ShowExecPointActionHandler( this::getDebugger ) );
+    LabToolbarButton item = makeButton( new CommonMenus.ShowExecPointActionHandler( this::getDebugger ) );
     tb.add( item, i++ );
 
     tb.add( makeSeparator(), i++ );
@@ -254,9 +256,9 @@ public class DebugPanel extends JPanel
     return frame;
   }
 
-  private XPToolbarButton makeButton( Action action )
+  private LabToolbarButton makeButton( Action action )
   {
-    XPToolbarButton item = new XPToolbarButton( null, null, 2, 0 );
+    LabToolbarButton item = new LabToolbarButton( null, null, 2, 0 );
     item.setAction( action );
     return item;
   }
@@ -384,10 +386,15 @@ public class DebugPanel extends JPanel
       Value value = node.getValue();
       String strValue;
       String address;
+      String valueType = value == null ? "" : value.type().name();
       if( value instanceof PrimitiveValue )
       {
         address = "";
         strValue = value.toString();
+        if( valueType.equals( char.class.getName() ) )
+        {
+          strValue = "<font face=monospaced color=#008000>'" + strValue + "'</font> <font color=#000000>" + (int)strValue.charAt( 0 ) + "</font>";
+        }
       }
       else if( value instanceof ArrayReference )
       {
@@ -409,11 +416,13 @@ public class DebugPanel extends JPanel
           strValue = idValue;
           address = "";
         }
+
         if( address == null )
         {
           address = "<font color=#C0C0C0>" + idValue + "</font>";
         }
-        if( value.type().name().equals( String.class.getName() ) )
+
+        if( valueType.equals( String.class.getName() ) )
         {
           strValue = "<font color=#008000><b>" + strValue + "</b></font>";
         }
