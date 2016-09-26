@@ -68,7 +68,7 @@
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
         <configuration>
-          <argLine>-Dgw.tests.skip.knownbreak=true -DcheckedArithmetic=true -Xmx4g</argLine>
+          <argLine>-Dgw.tests.skip.knownbreak=true -DcheckedArithmetic=true -Xmx2g</argLine>
           <includes>
             <include>gw/config*/**/*Test.class</include>
             <include>gw/internal*/**/*Test.class</include>
