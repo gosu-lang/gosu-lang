@@ -9,12 +9,18 @@ import gw.fs.IDirectory;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.security.CodeSource;
+import java.security.ProtectionDomain;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -102,6 +108,36 @@ public class GosucUtil {
       }
     }
     return retval;
+  }
+
+  public static List<String> getGosuBootstrapJars() throws ClassNotFoundException {
+    return Arrays.asList(getClassLocation("gw.internal.gosu.parser.MetaType"), //get gosu-core
+        getClassLocation("gw.lang.Gosu"), //get gosu-core-api
+        getClassLocation("gw.internal.ext.org.objectweb.asm.ClassWriter"), //get asm
+        getClassLocation("gw.internal.ext.com.beust.jcommander.JCommander") //get jcommander
+    );
+  }
+
+  private static String getClassLocation(String className) throws ClassNotFoundException {
+    Class clazz = Class.forName(className);
+
+    ProtectionDomain pDomain = clazz.getProtectionDomain();
+    CodeSource cSource = pDomain.getCodeSource();
+
+    if (cSource != null) {
+      URL loc = cSource.getLocation();
+      File file;
+      try {
+        file = new File(URLDecoder.decode(loc.getPath(), StandardCharsets.UTF_8.name()));
+      } catch (UnsupportedEncodingException e) {
+        System.err.println("Unsupported Encoding for URL: " + loc);
+        System.err.println(e);
+        file = new File(loc.getPath());
+      }
+      return file.getPath();
+    } else {
+      throw new ClassNotFoundException("Cannot find the location of the requested className <" + className + "> in classpath.");
+    }
   }
 
 }
