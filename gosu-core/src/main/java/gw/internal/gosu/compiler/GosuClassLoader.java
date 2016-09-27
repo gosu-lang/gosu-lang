@@ -36,6 +36,7 @@ import java.lang.ref.WeakReference;
 import java.lang.reflect.Method;
 import java.net.URLClassLoader;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -454,7 +455,8 @@ public class GosuClassLoader implements IGosuClassLoader
 
     private List<String> getDiscretePackages()
     {
-      return Arrays.asList( ExecutionEnvironment.instance().getDiscretePackages() );
+      String[] discretePackages = ExecutionEnvironment.instance().getDiscretePackages();
+      return discretePackages == null ? Collections.emptyList() : Arrays.asList( discretePackages );
     }
 
     private class DelegateCache extends TypeSystemAwareCache<String, WeakReference<DiscreteClassLoader>>

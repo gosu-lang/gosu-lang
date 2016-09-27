@@ -306,11 +306,8 @@ public class GosuPanel extends JPanel
   {
     _experiment = experiment;
 
-    if( experiment.getSourcePath().size() > 0 )
-    {
-      //Gosu.setClasspath( experiment.getSourcePath().stream().map( File::new ).collect( Collectors.toList() ) );
-      RunMe.reinitializeGosu( experiment );
-    }
+    //Gosu.setClasspath( experiment.getSourcePath().stream().map( File::new ).collect( Collectors.toList() ) );
+    RunMe.reinitializeGosu( experiment );
 
     //TypeSystem.refresh( TypeSystem.getGlobalModule() );
 

@@ -80,13 +80,13 @@ class SelectionHandler extends AbstractHandler {
     }
     else {
       var popup = new JPopupMenu()
-      var item = new SmartMenuItem( "Cut" )
+      var item = new JMenuItem( "Cut" )
         item.addActionListener( \ev -> cut() )
         popup.add( item )
-      item = new SmartMenuItem( "Copy" )
+      item = new JMenuItem( "Copy" )
         item.addActionListener( \ev -> copy() )
         popup.add( item )
-      item = new SmartMenuItem( "Paste" )
+      item = new JMenuItem( "Paste" )
         item.addActionListener( \ev -> paste() )
         popup.add( item )
       popup.show( Board, e.X, e.Y )

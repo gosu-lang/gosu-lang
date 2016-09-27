@@ -42,6 +42,8 @@ public class RunMe
       () -> {
         SplashScreen.instance().setFeedbackText( "Initializing..." );
         _gosuEditor = BasicGosuEditor.create();
+        reinitializeGosu( null ); // this is so we can use Gosu to write Gosu Lab :) (right now we are only using the Json stuff)
+        _gosuEditor.checkForUpdate( _gosuEditor.getGosuPanel() );
         _gosuEditor.restoreState( EditorUtilities.loadRecentExperiment( _gosuEditor.getGosuPanel() ) );
         SettleModalEventQueue.instance().run();
         SplashScreen.instance().dispose();
@@ -56,7 +58,7 @@ public class RunMe
     IExecutionEnvironment execEnv = TypeSystem.getExecutionEnvironment();
     GosuInitialization gosuInitialization = GosuInitialization.instance( execEnv );
     GosucModule gosucModule = new GosucModule(
-      IExecutionEnvironment.DEFAULT_SINGLE_MODULE_NAME, experiment.getSourcePath(), deriveClasspath( experiment ),
+      IExecutionEnvironment.DEFAULT_SINGLE_MODULE_NAME, experiment == null ? Collections.emptyList() : experiment.getSourcePath(), deriveClasspath( experiment ),
       "", Collections.<GosucDependency>emptyList(), Collections.<String>emptyList() );
     gosuInitialization.reinitializeSimpleIde( gosucModule );
   }
@@ -64,7 +66,7 @@ public class RunMe
   private static List<String> deriveClasspath( Experiment experiment )
   {
     List<String> classpath = new ArrayList<>();
-    List<String> sourcePath = experiment.getSourcePath();
+    List<String> sourcePath = experiment == null ? Collections.emptyList() : experiment.getSourcePath();
     for( String path: sourcePath )
     {
       if( !path.toLowerCase().startsWith( experiment.getExperimentDir().getAbsolutePath().toLowerCase() + File.separator ) )

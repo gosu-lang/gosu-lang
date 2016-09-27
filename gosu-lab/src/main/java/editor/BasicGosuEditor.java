@@ -216,4 +216,35 @@ public class BasicGosuEditor extends JFrame implements IGosuEditor
     CommonServices.getFileSystem().setCachingMode( IFileSystem.CachingMode.NO_CACHING );
     return new BasicGosuEditor();
   }
+
+  //## todo: dynamically update Gosu Lab
+  public void checkForUpdate( GosuPanel gosuPanel )
+  {
+    try
+    {
+      File userFile = EditorUtilities.getUserFile( gosuPanel );
+      if( !userFile.exists() || EditorUtilities.getVersion( gosuPanel ) < 1 )
+      {
+        deleteDir( EditorUtilities.getUserGosuEditorDir() );
+      }
+    }
+    catch( Exception e )
+    {
+      deleteDir( EditorUtilities.getUserGosuEditorDir() );
+    }
+  }
+
+  private static void deleteDir( File fileOrDirectory )
+  {
+    if( fileOrDirectory.isDirectory() )
+    {
+      for( File child : fileOrDirectory.listFiles() )
+      {
+        deleteDir( child );
+      }
+    }
+    //noinspection ResultOfMethodCallIgnored
+    fileOrDirectory.delete();
+  }
+
 }

@@ -7,10 +7,12 @@ import gw.config.CommonServices;
 import gw.fs.IDirectory;
 import gw.fs.IFile;
 import gw.fs.IResource;
+import gw.lang.reflect.Expando;
 import gw.lang.reflect.IFunctionType;
 import gw.lang.reflect.IMethodInfo;
 import gw.lang.reflect.IParameterInfo;
 import gw.lang.reflect.IType;
+import gw.lang.reflect.ReflectUtil;
 import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.gs.ClassType;
 import gw.lang.reflect.gs.IGosuClass;
@@ -22,6 +24,7 @@ import gw.lang.reflect.java.IJavaType;
 import gw.lang.reflect.java.JavaTypes;
 import gw.util.GosuStringUtil;
 
+import javax.script.Bindings;
 import javax.swing.*;
 import javax.swing.filechooser.FileSystemView;
 import javax.swing.plaf.basic.BasicArrowButton;
@@ -31,12 +34,12 @@ import java.awt.image.FilteredImageSource;
 import java.awt.image.ImageProducer;
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.reflect.Method;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -44,8 +47,6 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.Properties;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
@@ -786,15 +787,18 @@ public class EditorUtilities
 
   public static File getUserFile( GosuPanel gosuPanel )
   {
-    File file = new File( getUserGosuEditorDir(), "layout.properties" );
+    File file = new File( getUserGosuEditorDir(), "layout.gosulab" );
     if( !file.isFile() )
     {
-      Properties props = new Properties();
-      props.put( "experiment.0", makeScratchExperiment( gosuPanel ).getExperimentDir().getAbsolutePath() );
+      Expando bindings = new Expando();
+      bindings.put( "Title", "Gosu Lab" );
+      bindings.put( "Version", 1 );
+      bindings.put( "Experiments", Arrays.asList( makeScratchExperiment( gosuPanel ).getExperimentDir().getAbsolutePath() ) );
 
-      try( FileWriter writer = new FileWriter( file ) )
+      try( FileWriter fw = new FileWriter( file ) )
       {
-        props.store( writer, "Gosu Editor" );
+        String json = (String)ReflectUtil.invokeMethod( bindings, "toJson" );
+        fw.write( json );
       }
       catch( Exception e )
       {
@@ -804,21 +808,26 @@ public class EditorUtilities
     return file;
   }
 
+  public static Integer getVersion( GosuPanel gosuPanel ) throws MalformedURLException
+  {
+    Bindings bindings = (Bindings)ReflectUtil.getProperty( getUserFile( gosuPanel ).toURI().toURL(), "JsonContent" );
+    return (Integer)bindings.get( "Version" );
+  }
+
   public static Experiment loadRecentExperiment( GosuPanel gosuPanel )
   {
-    File userFile = getUserFile( gosuPanel );
-    Properties props = new Properties();
-    try( FileReader reader = new FileReader( userFile ) )
+    Bindings bindings;
+    try
     {
-      props.load( reader );
-      //noinspection unchecked
-      restoreScreenProps( (Map)props );
-      return new Experiment( new File( RunMe.getEditorFrame().getExperiments().get( 0 ) ), gosuPanel );
+      bindings = (Bindings)ReflectUtil.getProperty( getUserFile( gosuPanel ).toURI().toURL(), "JsonContent" );
     }
-    catch( Exception e )
+    catch( MalformedURLException e )
     {
       throw new RuntimeException( e );
     }
+    //noinspection unchecked
+    restoreLayoutState( bindings );
+    return new Experiment( new File( RunMe.getEditorFrame().getExperiments().get( 0 ) ), gosuPanel );
   }
 
   public static void saveLayoutState( Experiment experiment )
@@ -829,22 +838,20 @@ public class EditorUtilities
     }
 
     File userFile = getUserFile( experiment.getGosuPanel() );
-    try( FileWriter writer = new FileWriter( userFile ) )
+    try( FileWriter fw = new FileWriter( userFile ) )
     {
-      Properties props = new Properties();
+      Expando bindings = new Expando();
+
+      bindings.put( "Title", "Gosu Lab" );
+      bindings.put( "Version", 1 );
 
       RunMe.getEditorFrame().addExperiment( experiment );
-      List<String> experiments = RunMe.getEditorFrame().getExperiments();
-      for( int i = 0; i < experiments.size(); i++ )
-      {
-        String exp = experiments.get( i );
-        props.put( "experiment." + i, exp );
-      }
+      bindings.put( "Experiments", RunMe.getEditorFrame().getExperiments() );
 
-      //noinspection unchecked
-      saveScreenProps( (Map)props );
+      saveScreenProps( bindings );
 
-      props.store( writer, "Gosu Editor" );
+      String json = (String)ReflectUtil.invokeMethod( bindings, "toJson" );
+      fw.write( json );
     }
     catch( Exception e )
     {
@@ -852,46 +859,47 @@ public class EditorUtilities
     }
   }
 
-  private static void saveScreenProps( Map<String, String> props )
+  private static void saveScreenProps( Expando bindings )
   {
     BasicGosuEditor frame = RunMe.getEditorFrame();
     boolean maximized = (frame.getExtendedState() & Frame.MAXIMIZED_BOTH) == Frame.MAXIMIZED_BOTH;
-    props.put( "Frame.Maximized", String.valueOf( maximized ) );
+
+    Expando bindingsFrame = new Expando();
+    bindings.put( "Frame", bindingsFrame );
+    bindingsFrame.put( "Maximized", maximized ? 1 : 0 );
+
     Rectangle bounds = frame.getRestoreBounds();
+    Expando bindingsBounds = new Expando();
+    bindingsFrame.put( "Bounds", bindingsBounds );
     if( bounds != null )
     {
       ScreenUtil.convertToPercentageOfScreenWidth( bounds );
-      props.put( "Frame.Bounds.X", String.valueOf( bounds.x ) );
-      props.put( "Frame.Bounds.Y", String.valueOf( bounds.y ) );
-      props.put( "Frame.Bounds.Width", String.valueOf( bounds.width ) );
-      props.put( "Frame.Bounds.Height", String.valueOf( bounds.height ) );
+      bindingsBounds.put( "X", bounds.x );
+      bindingsBounds.put( "Y", bounds.y );
+      bindingsBounds.put( "Width", bounds.width );
+      bindingsBounds.put( "Height", bounds.height );
     }
   }
 
-  private static void restoreScreenProps( Map<String, String> props )
+  private static void restoreLayoutState( Bindings bindings )
   {
     BasicGosuEditor frame = RunMe.getEditorFrame();
-
+    Bindings bindingsFrame = (Bindings)bindings.get( "Frame" );
     boolean bSet = false;
-    Integer x = readInteger( props, "Frame.Bounds.X" );
-    if( x != null )
+    if( bindingsFrame != null )
     {
-      Integer y = readInteger( props, "Frame.Bounds.Y" );
-      if( y != null )
+      Bindings bindingsBounds = (Bindings)bindingsFrame.get( "Bounds" );
+      Integer x = (Integer)bindingsBounds.get( "X" );
+      Integer y = (Integer)bindingsBounds.get( "Y" );
+      Integer width = (Integer)bindingsBounds.get( "Width" );
+      Integer height = (Integer)bindingsBounds.get( "Height" );
+      if( height != null )
       {
-        Integer width = readInteger( props, "Frame.Bounds.Width" );
-        if( width != null )
-        {
-          Integer height = readInteger( props, "Frame.Bounds.Height" );
-          if( height != null )
-          {
-            Rectangle bounds = new Rectangle( x, y, width, height );
-            ScreenUtil.convertFromPercentageOfScreenWidth( bounds );
-            frame.setBounds( bounds );
-            frame.setRestoreBounds( bounds );
-            bSet = true;
-          }
-        }
+        Rectangle bounds = new Rectangle( x, y, width, height );
+        ScreenUtil.convertFromPercentageOfScreenWidth( bounds );
+        frame.setBounds( bounds );
+        frame.setRestoreBounds( bounds );
+        bSet = true;
       }
     }
 
@@ -900,51 +908,13 @@ public class EditorUtilities
       setInitialFrameBounds( RunMe.getEditorFrame() );
     }
 
-    if( Boolean.valueOf( props.get( "Frame.Maximized" ) ) == Boolean.TRUE )
+    if( bindingsFrame != null && (Integer)bindingsFrame.get( "Maximized" ) == 1 )
     {
       frame.setExtendedState( Frame.MAXIMIZED_BOTH );
     }
 
-    // handle old version
-    String experiment = props.get( "experiment" );
-    if( experiment != null )
-    {
-      props.remove( experiment );
-      props.put( "experiment.0", experiment );
-    }
-
-    String[] experiments = new String[100];
-    int iMax = 0;
-    for( String key : props.keySet() )
-    {
-      if( key.startsWith( "experiment." ) )
-      {
-        try
-        {
-          int i = Integer.parseInt( key.substring( "experiment.".length() ) );
-          iMax = Math.max( i, iMax );
-          String dir = props.get( key );
-          experiments[i] = dir;
-        }
-        catch( Exception e )
-        {
-          // eat
-        }
-      }
-    }
-    String[] trunc = new String[iMax + 1];
-    System.arraycopy( experiments, 0, trunc, 0, trunc.length );
-    frame.setExperiments( new ArrayList<>( Arrays.asList( trunc ) ) );
-  }
-
-  private static Integer readInteger( Map<String, String> props, String prop )
-  {
-    String value = props.get( prop );
-    if( value == null )
-    {
-      return null;
-    }
-    return Integer.valueOf( value );
+    //noinspection unchecked
+    frame.setExperiments( (List<String>)bindings.get( "Experiments" ) );
   }
 
   private static void setInitialFrameBounds( Frame frame )
@@ -1222,7 +1192,7 @@ public class EditorUtilities
 
   public static <T> List<T> findDecendents( Component configUI, Class<T> aClass, Predicate<Container> recurseToChildren )
   {
-    ArrayList<T> comps = new ArrayList<T>();
+    ArrayList<T> comps = new ArrayList<>();
     _findDecendents( comps, configUI, aClass, recurseToChildren );
     return comps;
   }

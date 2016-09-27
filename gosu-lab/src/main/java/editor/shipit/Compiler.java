@@ -7,7 +7,6 @@ import editor.MessageTree;
 import editor.MessagesPanel;
 import editor.RunMe;
 import editor.util.IProgressCallback;
-import editor.util.SettleModalEventQueue;
 import gw.lang.parser.IParseIssue;
 import gw.lang.parser.exceptions.ParseResultsException;
 import gw.lang.reflect.IType;
@@ -15,7 +14,6 @@ import gw.lang.reflect.ITypeRef;
 import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.gs.IGosuClass;
 
-import javax.swing.tree.TreeModel;
 import java.awt.*;
 
 /**
@@ -111,6 +109,11 @@ public class Compiler
 
   public boolean compile( IGosuClass gsClass, ICompileConsumer consumer, MessagesPanel messages )
   {
+    if( isExcluded( gsClass ) )
+    {
+      return true;
+    }
+
     // Parse
     parseImpl( gsClass );
     //noinspection ThrowableResultOfMethodCallIgnored
@@ -153,6 +156,12 @@ public class Compiler
       } );
       return consumer.accept( new CompiledClass( gsClass, null, e ) );
     }
+  }
+
+  private boolean isExcluded( IGosuClass gsClass )
+  {
+    //## todo: expose "Excluded" in Lab so users can exclude stuff
+    return false;
   }
 
   private String makeIssueMessage( IParseIssue issue, MessageKind kind )

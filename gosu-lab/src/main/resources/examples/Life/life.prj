@@ -1,6 +1,13 @@
-#Gosu Experiment
-#Sun Jan 31 14:11:23 PST 2016
-Name=Life
-Tab.Active=src/main/gosu/life/GameOfLife.gsp
-Classpath.Entry0=src/main/gosu
-Tab.Open.A=src/main/gosu/life/GameOfLife.gsp
+{
+  "Title": "Gosu Experiment",
+  "Version": 1,
+  "Name": "Life",
+  "ActiveTab": "src/main/gosu/life/GameOfLife.gsp",
+  "Tabs": [
+    "src/main/gosu/life/GameOfLife.gsp"
+  ],
+  "SourcePath": [
+    "src/main/gosu"
+  ],
+  "MruRunConfig": null
+}
