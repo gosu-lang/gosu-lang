@@ -2,7 +2,7 @@
  * Copyright 2014 Guidewire Software, Inc.
  */
 
-package gw.internal.gosu.parser.structural;
+package gw.specification.structures;
 
 public interface IHasProp {
   String getFoo();

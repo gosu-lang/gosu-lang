@@ -4,13 +4,13 @@
 
 package gw.internal.gosu.ir.compiler.bytecode.expression;
 
+import gw.lang.ir.ConditionContext;
+import gw.lang.ir.IRExpression;
 import gw.lang.ir.expression.IRConditionalAndExpression;
 import gw.internal.gosu.ir.compiler.bytecode.IRBytecodeContext;
 import gw.internal.gosu.ir.compiler.bytecode.AbstractBytecodeCompiler;
 import gw.internal.gosu.ir.compiler.bytecode.IRBytecodeCompiler;
 import gw.internal.ext.org.objectweb.asm.MethodVisitor;
-import gw.internal.ext.org.objectweb.asm.Label;
-import gw.internal.ext.org.objectweb.asm.Opcodes;
 
 public class IRConditionalAndExpressionCompiler extends AbstractBytecodeCompiler {
   public static void compile( IRConditionalAndExpression expression, IRBytecodeContext context) {
@@ -18,16 +18,22 @@ public class IRConditionalAndExpressionCompiler extends AbstractBytecodeCompiler
 
     // Push LHS
     IRBytecodeCompiler.compileIRExpression( expression.getLhs(), context );
-    Label falseLabel = new Label();
-    mv.visitJumpInsn( Opcodes.IFEQ, falseLabel );
+    ConditionContext lhsCondCxt = expression.getLhs().getConditionContext();
+    mv.visitJumpInsn( negateOpcode( lhsCondCxt.getOperator() ), lhsCondCxt.generateFalseLabel() );
+    lhsCondCxt.fixLabels( true, mv );
     // Push RHS
-    IRBytecodeCompiler.compileIRExpression( expression.getRhs(), context );
-    mv.visitJumpInsn( Opcodes.IFEQ, falseLabel );
-    mv.visitInsn( Opcodes.ICONST_1 );
-    Label trueLabel = new Label();
-    mv.visitJumpInsn( Opcodes.GOTO, trueLabel );
-    mv.visitLabel( falseLabel );
-    mv.visitInsn( Opcodes.ICONST_0 );
-    mv.visitLabel( trueLabel );
+    IRExpression rhs = expression.getRhs();
+    IRBytecodeCompiler.compileIRExpression( rhs, context );
+    ConditionContext rhsCondCxt = rhs.getConditionContext();
+    lhsCondCxt.mergeLabels( false, rhsCondCxt );
+    lhsCondCxt.setTrueLabels( rhsCondCxt.getLabels( true ) );
+    lhsCondCxt.setOperator( rhsCondCxt.getOperator() );
+    expression.getConditionContext().update( lhsCondCxt );
+    lhsCondCxt.clear();
+    rhsCondCxt.clear();
+    if( isNotPartOfBooleanExpr( expression ) )
+    {
+      compileConditionAssignment( expression, mv );
+    }
   }
 }
