@@ -139,7 +139,8 @@ public class GosuCompiler extends AbstractCompiler {
   
   CompilerResult compileOutOfProcess(CompilerConfiguration config) throws CompilerException {
     Commandline cli = new Commandline();
-    cli.setWorkingDirectory(config.getWorkingDirectory().getAbsolutePath());
+    File workingDirectory = config.getWorkingDirectory() == null ? new File("") : config.getWorkingDirectory();
+    cli.setWorkingDirectory(workingDirectory.getAbsolutePath());
     cli.setExecutable(config.getExecutable());
 
     //respect JAVA_OPTS, if it exists
