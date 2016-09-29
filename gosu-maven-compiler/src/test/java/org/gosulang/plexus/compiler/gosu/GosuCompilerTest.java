@@ -4,6 +4,7 @@ import org.codehaus.plexus.compiler.AbstractCompilerTest;
 import org.codehaus.plexus.compiler.Compiler;
 import org.codehaus.plexus.compiler.CompilerConfiguration;
 import org.codehaus.plexus.compiler.CompilerMessage;
+import org.codehaus.plexus.compiler.CompilerResult;
 import org.codehaus.plexus.util.FileUtils;
 
 import java.io.File;
@@ -24,12 +25,12 @@ public class GosuCompilerTest extends AbstractCompilerTest {
 
   @Override
   protected int expectedWarnings() {
-    return 1; // Person.gs has one intentional warning
+    return 2; // Person.gs has one intentional warning, but we compile it twice (once in-process, once forked)
   }
 
   @Override
   protected int expectedErrors() {
-    return 1; // Bad.gs has one intentional error
+    return 2; // Bad.gs has one intentional error, but we compile it twice (once in-process, once forked)
   }
 
   protected Collection<String> expectedOutputFiles()
@@ -55,7 +56,9 @@ public class GosuCompilerTest extends AbstractCompilerTest {
 
       org.codehaus.plexus.compiler.Compiler compiler = (Compiler) lookup( Compiler.ROLE, getRoleHint() );
 
-      messages.addAll( compiler.performCompile( compilerConfig ).getCompilerMessages() );
+      CompilerResult result = compiler.performCompile(compilerConfig);
+
+      messages.addAll( result.getCompilerMessages() );
 
       if ( outputDir.isDirectory() )
       {
@@ -112,7 +115,7 @@ public class GosuCompilerTest extends AbstractCompilerTest {
     String sourceDir = getBasedir() + "/src/test-input/src/main/gosu";
 
     @SuppressWarnings("unchecked") List<String> filenames =
-        FileUtils.getFileNames(new File(sourceDir), "**/*.gs,**/*.gsx,**/*.gst", null, false, true);
+        FileUtils.getFileNames(new File(sourceDir), "**/*.gs,**/*.gsx,**/*.gst,**/*.gsp", null, false, true);
     Collections.sort(filenames);
 
     List<CompilerConfiguration> compilerConfigurations = new ArrayList<>();
@@ -139,7 +142,19 @@ public class GosuCompilerTest extends AbstractCompilerTest {
 
       compilerConfig.setVerbose(true);
 
+      // create a second config using forking compilation / gosuc
+      CompilerConfiguration forkingCompilerConfig = new CompilerConfiguration();
+      forkingCompilerConfig.setClasspathEntries(getClasspath());
+      forkingCompilerConfig.addSourceLocation(sourceDir);
+      forkingCompilerConfig.addInclude(filename);
+      forkingCompilerConfig.setSourceFiles(Collections.singleton(new File(sourceDir + File.separator + filename)));
+      forkingCompilerConfig.setOutputLocation(getBasedir() + "/target/" + getRoleHint() + "/classes-forked-" + index);
+      FileUtils.deleteDirectory(forkingCompilerConfig.getOutputLocation());
+      forkingCompilerConfig.setFork(true);
+      forkingCompilerConfig.setVerbose(true);
+
       compilerConfigurations.add(compilerConfig);
+      compilerConfigurations.add(forkingCompilerConfig);
 
     }
 
