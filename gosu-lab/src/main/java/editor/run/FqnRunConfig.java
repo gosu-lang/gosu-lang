@@ -2,6 +2,7 @@ package editor.run;
 
 import gw.lang.reflect.TypeSystem;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -35,6 +36,20 @@ public abstract class FqnRunConfig<T extends FqnRunConfigParameters<T>> extends 
   public String getProgArgs()
   {
     return getParams().getProgArgs();
+  }
+
+  public String getWorkingDir()
+  {
+    return getParams().getWorkingDir();
+  }
+
+  public boolean isJreEnabled()
+  {
+    return getParams().isJreEnabled();
+  }
+  public String getJre()
+  {
+    return getParams().getJre();
   }
 
   @Override
@@ -105,4 +120,39 @@ public abstract class FqnRunConfig<T extends FqnRunConfigParameters<T>> extends 
     }
     return list;
   }
-}
+
+  public String getJreForProcessOrDefault()
+  {
+    return getJreForProcessOrDefault( null );
+  }
+  public String getJreForProcessOrDefault( String defaultJreHome )
+  {
+    String jreHomeDir = isJreEnabled() ? getJre() : null;
+    if( jreHomeDir != null && !jreHomeDir.isEmpty() )
+    {
+      File dir = new File( jreHomeDir, "bin" );
+      if( dir.isDirectory() )
+      {
+        return jreHomeDir;
+      }
+      else
+      {
+        throw new RuntimeException( "Invalid JRE path: " + jreHomeDir );
+      }
+    }
+    return defaultJreHome == null ? System.getProperty( "java.home" ) : defaultJreHome;
+  }
+
+  public File getWorkingDirForProcess()
+  {
+    String workingDir = getWorkingDir();
+    if( workingDir != null && !workingDir.isEmpty() )
+    {
+      File dir = new File( workingDir );
+      if( dir.isDirectory() )
+      {
+        return dir;
+      }
+    }
+    return new File( "." );
+  }}

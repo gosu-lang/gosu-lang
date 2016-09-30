@@ -30,6 +30,7 @@ import javax.swing.filechooser.FileSystemView;
 import javax.swing.plaf.basic.BasicArrowButton;
 import java.awt.*;
 import java.awt.datatransfer.Clipboard;
+import java.awt.event.MouseEvent;
 import java.awt.image.FilteredImageSource;
 import java.awt.image.ImageProducer;
 import java.io.File;
@@ -1238,4 +1239,10 @@ public class EditorUtilities
     return false;
   }
 
+  public static void fixSwingFocusBugWhenPopupCloses( Component c )
+  {
+    // This is a fix to workaround a bug with Swing JPopupMenu.  Withou this
+    // focus is stolen from a subsequent selected field. See Bug CC-1140.
+    editor.util.EditorUtilities.rootPaneForComponent( c ).dispatchEvent( new MouseEvent( c, MouseEvent.MOUSE_PRESSED, System.currentTimeMillis(), 0, 3, 3, 1, false ) );
+  }
 }

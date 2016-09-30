@@ -1939,7 +1939,7 @@ public class GosuPanel extends JPanel
   public void clearDebugger()
   {
     _debugger = null;
-    showDebugger( false );
+    EventQueue.invokeLater( () -> showDebugger( false ) );
   }
 
   public void makeDebugger( VirtualMachine vm )

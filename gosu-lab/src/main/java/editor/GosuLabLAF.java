@@ -101,6 +101,8 @@ public class GosuLabLAF extends WindowsLookAndFeel
       UIManager.put( "ComboBox.background", EditorUtilities.WINDOW );
 
       UIManager.put( "TextField.background", EditorUtilities.WINDOW );
+
+      UIManager.put( "TextArea.background", EditorUtilities.WINDOW );
     }
     catch( Exception e )
     {

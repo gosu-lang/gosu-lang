@@ -814,7 +814,7 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
             // ignore
           }
           getEditor().requestFocus();
-          fixSwingFocusBugWhenPopupCloses();
+          EditorUtilities.fixSwingFocusBugWhenPopupCloses( GosuEditor.this );
           getEditor().repaint();
         }
       } );
@@ -2572,13 +2572,6 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
     }
   }
 
-  void fixSwingFocusBugWhenPopupCloses()
-  {
-    // This is a fix to workaround a bug with Swing JPopupMenu.  Withou this
-    // focus is stolen from a subsequent selected field. See Bug CC-1140.
-    editor.util.EditorUtilities.rootPaneForComponent( this ).dispatchEvent( new MouseEvent( this, MouseEvent.MOUSE_PRESSED, System.currentTimeMillis(), 0, 3, 3, 1, false ) );
-  }
-
   @Override
   public void gotoNextError()
   {
@@ -2834,7 +2827,7 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
             throw new RuntimeException( ble );
           }
           _editor.requestFocus();
-          fixSwingFocusBugWhenPopupCloses();
+          EditorUtilities.fixSwingFocusBugWhenPopupCloses( GosuEditor.this );
           _editor.repaint();
         }
         finally

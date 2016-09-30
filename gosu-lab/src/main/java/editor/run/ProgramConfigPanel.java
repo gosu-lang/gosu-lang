@@ -1,9 +1,12 @@
 package editor.run;
 
 import editor.GotoProgramTypePopup;
+import editor.RunMe;
+import editor.util.DirectoryEditor;
 import editor.util.EditorUtilities;
 import editor.util.LabCheckbox;
 import editor.util.LabToolbarButton;
+import editor.util.MoreTextEditor;
 
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
@@ -143,7 +146,7 @@ class ProgramConfigPanel extends JPanel
     c.weightx = 1;
     c.weighty = 0;
     c.insets = new Insets( 10, 0, 10, 0 );
-    JTextField editVmArgs = new JTextField();
+    MoreTextEditor editVmArgs = new MoreTextEditor( label.getText(), true );
     editVmArgs.setText( _params.getVmArgs() );
     editVmArgs.getDocument().addDocumentListener( new DocChangeHandler( this::validateVmArgs, _params::setVmArgs ) );
     configPanel.add( editVmArgs, c );
@@ -170,7 +173,7 @@ class ProgramConfigPanel extends JPanel
     c.weightx = 1;
     c.weighty = 0;
     c.insets = new Insets( 10, 0, 10, 0 );
-    JTextField editProgArgs = new JTextField();
+    MoreTextEditor editProgArgs = new MoreTextEditor( label.getText(), true );
     editProgArgs.setText( _params.getProgArgs() );
     editProgArgs.getDocument().addDocumentListener( new DocChangeHandler( this::validateProgArgs, _params::setProgArgs ) );
     configPanel.add( editProgArgs, c );
@@ -197,8 +200,7 @@ class ProgramConfigPanel extends JPanel
     c.weightx = 1;
     c.weighty = 0;
     c.insets = new Insets( 10, 0, 10, 0 );
-    JTextField editWorkingDir = new JTextField();
-    editWorkingDir.setText( _params.getWorkingDir() );
+    DirectoryEditor editWorkingDir = new DirectoryEditor( label.getText(), _params.getWorkingDir(), RunMe::getEditorFrame );
     editWorkingDir.getDocument().addDocumentListener( new DocChangeHandler( this::validateWorkingDir, _params::setWorkingDir) );
     configPanel.add( editWorkingDir, c );
 
@@ -226,10 +228,9 @@ class ProgramConfigPanel extends JPanel
     c.weightx = 1;
     c.weighty = 0;
     c.insets = new Insets( 10, 0, 10, 0 );
-    JTextField editJre = new JTextField();
-    editJre.setText( _params.getJre() );
+    DirectoryEditor editJre = new DirectoryEditor( cbJre.getText(), _params.getJre(), RunMe::getEditorFrame );
     editJre.getDocument().addDocumentListener( new DocChangeHandler( this::validateJre, _params::setJre ) );
-    editJre.setEnabled( _params.isJreEnabled() );
+    EventQueue.invokeLater( () -> editJre.setEnabled( _params.isJreEnabled() ) );
     cbJre.addChangeListener( e -> editJre.setEnabled( cbJre.isSelected() ) );
     configPanel.add( editJre, c );
 

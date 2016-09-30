@@ -23,6 +23,8 @@ public class OutOfProcessDebug extends AbstractOutOfProcessExecutor<FqnRunConfig
     VirtualMachineManager vmm = Bootstrap.virtualMachineManager();
     LaunchingConnector conn = vmm.defaultConnector();
     Map<String, Connector.Argument> defaultArguments = conn.defaultArguments();
+    String jreHome = getRunConfig().getJreForProcessOrDefault( defaultArguments.get( "home" ).value() );
+    defaultArguments.get( "home" ).setValue( jreHome );
     String progArgs = getRunConfig().getProgArgs() == null ? "" : getRunConfig().getProgArgs();
     defaultArguments.get( "main" ).setValue( Gosu.class.getName().replace( '.', '/' ) + " -fqn " + getRunConfig().getFqn() + " " + progArgs );
     String vmArgs = getRunConfig().getVmArgs() == null ? "" : getRunConfig().getVmArgs();

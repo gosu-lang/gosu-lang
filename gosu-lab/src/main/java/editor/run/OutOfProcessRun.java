@@ -17,7 +17,7 @@ public class OutOfProcessRun extends AbstractOutOfProcessExecutor<FqnRunConfig>
 
   protected String exec() throws Exception
   {
-    String javaHome = System.getProperty( "java.home" );
+    String javaHome = getRunConfig().getJreForProcessOrDefault();
     String javaBin = javaHome + File.separator + "bin" + File.separator + "java";
 
     String classpath = makeClasspath( getGosuPanel() );
@@ -34,6 +34,7 @@ public class OutOfProcessRun extends AbstractOutOfProcessExecutor<FqnRunConfig>
     args.addAll( getRunConfig().makeProgArgs() );
 
     ProcessBuilder pb = new ProcessBuilder( args );
+    pb.directory( getRunConfig().getWorkingDirForProcess() );
     printLabMessage( makeRunningMessage( getRunConfig().getName(), pb.command() ) );
     setProcess( pb.start() );
     getGosuPanel().pipeInput();

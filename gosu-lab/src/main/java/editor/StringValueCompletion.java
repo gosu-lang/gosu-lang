@@ -1,5 +1,6 @@
 package editor;
 
+import editor.util.EditorUtilities;
 import editor.util.TextComponentUtil;
 import gw.config.CommonServices;
 import gw.lang.parser.IParseTree;
@@ -50,7 +51,7 @@ public class StringValueCompletion extends AbstractParseExceptionResolver
                                                          getGosuEditor().getReplaceWordCallback(), false );
           }
           getEditor().requestFocus();
-          getGosuEditor().fixSwingFocusBugWhenPopupCloses();
+          EditorUtilities.fixSwingFocusBugWhenPopupCloses( getGosuEditor() );
           getEditor().repaint();
         }
       } );
@@ -87,7 +88,7 @@ public class StringValueCompletion extends AbstractParseExceptionResolver
         {
           getGosuEditor().replaceLocation( currentLocation, "\"" + e.getSource().toString() + "\"" );
           getEditor().requestFocus();
-          getGosuEditor().fixSwingFocusBugWhenPopupCloses();
+          EditorUtilities.fixSwingFocusBugWhenPopupCloses( getGosuEditor() );
           getEditor().repaint();
         }
       } );

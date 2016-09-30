@@ -27,21 +27,27 @@ public class StringPopup extends JPopupMenu implements IValuePopup
   private EventListenerList _nodeListenerList = new EventListenerList();
   private JTextComponent _editor;
   private String _strValue;
-  private JTextComponent _field;
+  private boolean _escapeForJava;
+  private JTextArea _field;
   private String _strLabel;
 
 
   public StringPopup( String strValue, String strLabel, JTextComponent editor )
   {
+    this( strValue, strLabel, editor, true, 1, 26 );
+  }
+  public StringPopup( String strValue, String strLabel, JTextComponent editor, boolean escapeForJava, int rows, int columns )
+  {
     super();
     _editor = editor;
     _strValue = strValue;
     _strLabel = strLabel;
+    _escapeForJava = escapeForJava;
 
-    initLayout();
+    initLayout( rows, columns );
   }
 
-  protected void initLayout()
+  protected void initLayout( int rows, int columns )
   {
     setOpaque( false );
     setDoubleBuffered( true );
@@ -54,8 +60,10 @@ public class StringPopup extends JPopupMenu implements IValuePopup
 
     _pane.setLayout( new BorderLayout() );
 
-    _field = new JTextArea( 1, 26 );
-    final int iPrefHeight = _field.getPreferredSize().height < 5 ? 22 : _field.getPreferredSize().height;
+    _field = new JTextArea( rows, columns );
+    _field.setLineWrap( true );
+    JTextArea sample = new JTextArea( 1, 26 );
+    final int iPrefHeight = sample.getPreferredSize().height < 5 ? 22 : sample.getPreferredSize().height;
     _field.setText( _strValue );
     _field.addKeyListener(
       new KeyAdapter()
@@ -69,7 +77,7 @@ public class StringPopup extends JPopupMenu implements IValuePopup
             {
               return;
             }
-            fireNodeChanged( _nodeListenerList, new ChangeEvent( GosuEscapeUtil.escapeForJava( _field.getText() ) ) );
+            fireNodeChanged( _nodeListenerList, new ChangeEvent( _escapeForJava ? GosuEscapeUtil.escapeForJava( _field.getText() ) : _field.getText() ) );
             setVisible( false );
           }
         }
@@ -90,17 +98,18 @@ public class StringPopup extends JPopupMenu implements IValuePopup
     Dimension dimPref = _field.getPreferredSize();
     // Hack to make sure there's enough room for horizontal scroll bar if vertical scroll bars display
     dimPref.width += 20;
-    dimPref.height = iPrefHeight;
+    dimPref.height = _field.getPreferredSize().height;
     scrollPane.setPreferredSize( dimPref );
     _pane.add( BorderLayout.CENTER, scrollPane );
 
     content.add( _pane, BorderLayout.CENTER );
     add( content );
 
-    JLabel labelTypeName = new JLabel( _strLabel == null
-                                       ? JavaTypes.STRING().getRelativeName()
-                                       : _strLabel );
-    labelTypeName.setFont( labelTypeName.getFont().deriveFont( Font.BOLD ) );
+    String title = _strLabel == null
+                  ? JavaTypes.STRING().getRelativeName()
+                  : _strLabel;
+    title = "<html><b>" + title + "</b>   (Ctrl+Enter to apply)";
+    JLabel labelTypeName = new JLabel( title );
     labelTypeName.setBorder( BorderFactory.createEmptyBorder( 0, 3, 3, 3 ) );
     content.add( labelTypeName, BorderLayout.NORTH );
 
@@ -138,20 +147,10 @@ public class StringPopup extends JPopupMenu implements IValuePopup
   {
     super.show( invoker, iX, iY );
 
-    EventQueue.invokeLater( new Runnable()
-    {
-      public void run()
-      {
-        EventQueue.invokeLater( new Runnable()
-        {
-          public void run()
-          {
-            _field.requestFocus();
-            _field.selectAll();
-          }
-        } );
-      }
-    } );
+    EventQueue.invokeLater( () -> EventQueue.invokeLater( () -> {
+      _field.requestFocus();
+      _field.selectAll();
+    } ) );
   }
 
   public void addNodeChangeListener( ChangeListener l )
