@@ -3,6 +3,7 @@ package editor.run;
 import gw.lang.reflect.json.IJsonIO;
 
 import javax.swing.*;
+import java.util.function.Consumer;
 
 /**
  */
@@ -19,7 +20,7 @@ public interface IRunConfig<T extends IRunConfigParameters<T>> extends IJsonIO
   boolean isValid();
   Icon getIcon();
 
-  JComponent makePanel( T params );
+  JComponent makePanel( T params, Consumer<T> changeListener );
 
   boolean isRunnable();
   IProcessRunner run();

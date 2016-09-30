@@ -18,6 +18,7 @@ import java.util.function.Function;
 class RemoteConfigPanel extends JPanel
 {
   private final RemoteRunConfigParameters _params;
+  private final Consumer<RemoteRunConfigParameters> _changeListener;
   private JTextField _editAgentArgs;
   private JLabel _labelHost;
   private JTextField _editHost;
@@ -27,10 +28,11 @@ class RemoteConfigPanel extends JPanel
   private JTextField _editAddress;
   private JTextField _editPort;
 
-  RemoteConfigPanel( RemoteRunConfigParameters params )
+  RemoteConfigPanel( RemoteRunConfigParameters params, Consumer<RemoteRunConfigParameters> changeListener )
   {
     super( new BorderLayout() );
     _params = params;
+    _changeListener = changeListener;
     configUi();
   }
 
@@ -383,6 +385,7 @@ class RemoteConfigPanel extends JPanel
         }
         _consumer.accept( text );
         updateTransportMessage();
+        _changeListener.accept( _params );
       }
       catch( BadLocationException e1 )
       {

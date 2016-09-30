@@ -20,11 +20,13 @@ import java.util.function.Function;
 class ProgramConfigPanel extends JPanel
 {
   private final ProgramRunConfigParameters _params;
+  private final Consumer<ProgramRunConfigParameters> _changeListener;
 
-  ProgramConfigPanel( ProgramRunConfigParameters params )
+  ProgramConfigPanel( ProgramRunConfigParameters params, Consumer<ProgramRunConfigParameters> changeListener )
   {
     super( new BorderLayout() );
     _params = params;
+    _changeListener = changeListener;
     configUi();
   }
 
@@ -307,7 +309,7 @@ class ProgramConfigPanel extends JPanel
   }
 
 
-  private static class DocChangeHandler implements DocumentListener
+  private class DocChangeHandler implements DocumentListener
   {
     Function<String, String> _validator;
     Consumer<String> _consumer;
@@ -350,6 +352,7 @@ class ProgramConfigPanel extends JPanel
           //reject( error );
         }
         _consumer.accept( text );
+        _changeListener.accept( _params );
       }
       catch( BadLocationException e1 )
       {

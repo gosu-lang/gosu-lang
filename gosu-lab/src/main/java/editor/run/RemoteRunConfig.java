@@ -3,6 +3,7 @@ package editor.run;
 import editor.util.EditorUtilities;
 
 import javax.swing.*;
+import java.util.function.Consumer;
 
 /**
  */
@@ -53,9 +54,9 @@ public class RemoteRunConfig extends AbstractRunConfig<RemoteRunConfigParameters
   }
 
   @Override
-  public JComponent makePanel( RemoteRunConfigParameters params )
+  public JComponent makePanel( RemoteRunConfigParameters params, Consumer<RemoteRunConfigParameters> changeListener )
   {
-    return new RemoteConfigPanel( params );
+    return new RemoteConfigPanel( params, changeListener );
   }
 
   @Override

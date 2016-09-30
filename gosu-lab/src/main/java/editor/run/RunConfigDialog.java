@@ -181,7 +181,7 @@ public class RunConfigDialog extends JDialog
         IRunConfigFactory factory = selection.getParent().getFactory();
         IRunConfigParameters copyParams = copyParams( runConfig, factory );
         //noinspection unchecked
-        pair = new Pair<>( copyParams, runConfig.makePanel( copyParams ) );
+        pair = new Pair<>( copyParams, runConfig.makePanel( copyParams, cp -> runConfigChanged( (IRunConfigParameters)cp ) ) );
         _mapRunConfigs.put( runConfig, pair );
 
         //## todo: don't add to modified unless the params in the panel are modified
@@ -196,6 +196,19 @@ public class RunConfigDialog extends JDialog
       _configPanel.revalidate();
     }
     _configPanel.repaint();
+  }
+
+  private void runConfigChanged( IRunConfigParameters params )
+  {
+    for( Map.Entry<IRunConfig, Pair<IRunConfigParameters, JComponent>> e: _mapRunConfigs.entrySet() )
+    {
+      if( e.getValue().getFirst() == params )
+      {
+        RunConfigTree tree = ((RunConfigTree)_tree.getModel().getRoot()).find( e.getKey() );
+        ((DefaultTreeModel)_tree.getModel()).nodeChanged( tree );
+        break;
+      }
+    }
   }
 
   private IRunConfigParameters copyParams( IRunConfig runConfig, IRunConfigFactory factory )
@@ -298,12 +311,6 @@ public class RunConfigDialog extends JDialog
     RunConfigTree program = new RunConfigTree( ProgramRunConfigFactory.instance(), root );
     root.addChild( program );
 
-//    RunConfigTree test = new RunConfigTree( new ParentRunConfig( "Test", RunConfigKind.Test ), root );
-//    root.addChild( test );
-//
-//    RunConfigTree web = new RunConfigTree( new ParentRunConfig( "Web", RunConfigKind.Web ), root );
-//    root.addChild( web );
-//
     RunConfigTree remote = new RunConfigTree( RemoteRunConfigFactory.instance(), root );
     root.addChild( remote );
 
@@ -403,7 +410,17 @@ public class RunConfigDialog extends JDialog
       IRunConfig runConfig = node.getRunConfig();
       if( runConfig != null )
       {
-        String name = runConfig.getName();
+        Pair<IRunConfigParameters, JComponent> pair = _mapRunConfigs.get( runConfig );
+        String name;
+        if( pair != null )
+        {
+          // use potientially modified name
+          name = pair.getFirst().getName();
+        }
+        else
+        {
+          name = runConfig.getName();
+        }
         if( _experiment.getMruRunConfig() != null && _experiment.getMruRunConfig().equals( runConfig ) )
         {
           setText( name );

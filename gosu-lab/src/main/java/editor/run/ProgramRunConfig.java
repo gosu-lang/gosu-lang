@@ -4,6 +4,7 @@ package editor.run;
 import editor.util.EditorUtilities;
 
 import javax.swing.*;
+import java.util.function.Consumer;
 
 /**
  */
@@ -27,8 +28,8 @@ public class ProgramRunConfig extends FqnRunConfig<ProgramRunConfigParameters>
   }
 
   @Override
-  public JComponent makePanel( ProgramRunConfigParameters params )
+  public JComponent makePanel( ProgramRunConfigParameters params, Consumer<ProgramRunConfigParameters> changeListener )
   {
-    return new ProgramConfigPanel( params );
+    return new ProgramConfigPanel( params, changeListener );
   }
 }
