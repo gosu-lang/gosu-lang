@@ -37,14 +37,14 @@ public class UpdateNotifier
    */
   static UpdateNotifier _singleton;
 
-  private WeakHashMap _mapItems;
+  private WeakHashMap<JComponent, Object> _mapItems;
 
   /**
    * Enforce singleton access.
    */
   private UpdateNotifier()
   {
-    _mapItems = new WeakHashMap();
+    _mapItems = new WeakHashMap<>();
   }
 
   /**

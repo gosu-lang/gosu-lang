@@ -1,6 +1,7 @@
 package editor;
 
-import gw.lang.reflect.gs.IGosuProgram;
+import editor.run.IRunConfig;
+import editor.util.Experiment;
 
 import javax.swing.*;
 import javax.swing.text.BadLocationException;
@@ -41,10 +42,20 @@ public class DefaultContextMenuHandler implements IContextMenuHandler<IScriptEdi
         editor.getScriptPart().getContainingType() != null )
     {
       menu.add( new JSeparator() );
-      menu.add( CommonMenus.makeRun( () -> editor.getScriptPart().getContainingType() ) );
-      menu.add( CommonMenus.makeDebug( () -> editor.getScriptPart().getContainingType() ) );
+      menu.add( CommonMenus.makeRun( () -> getOrCreateRunConfig( editor ) ) );
+      menu.add( CommonMenus.makeDebug( () -> getOrCreateRunConfig( editor ) ) );
     }
     return menu;
+  }
+
+  private IRunConfig getOrCreateRunConfig( IScriptEditor editor )
+  {
+    return getExperiment().getOrCreateRunConfig( editor.getScriptPart().getContainingType() );
+  }
+
+  private Experiment getExperiment()
+  {
+    return RunMe.getEditorFrame().getGosuPanel().getExperiment();
   }
 
   public void displayContextMenu( IScriptEditor editor, int iXPos, int iYPos, Component eventSource )

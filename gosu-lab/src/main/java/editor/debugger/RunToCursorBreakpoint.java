@@ -1,7 +1,5 @@
 package editor.debugger;
 
-import editor.Breakpoint;
-
 /**
  */
 public class RunToCursorBreakpoint extends Breakpoint

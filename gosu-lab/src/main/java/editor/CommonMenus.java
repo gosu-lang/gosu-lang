@@ -2,18 +2,16 @@ package editor;
 
 import com.sun.jdi.StackFrame;
 import editor.actions.UpdateNotifier;
+import editor.debugger.Breakpoint;
 import editor.debugger.BreakpointManager;
 import editor.debugger.Debugger;
+import editor.debugger.EditBreakpointsDialog;
+import editor.run.IRunConfig;
+import editor.run.RunConfigDialog;
+import editor.run.RunState;
 import editor.util.EditorUtilities;
+import editor.util.Experiment;
 import editor.util.SmartMenuItem;
-import gw.lang.reflect.IMethodInfo;
-import gw.lang.reflect.IType;
-import gw.lang.reflect.TypeSystem;
-import gw.lang.reflect.gs.IGosuClass;
-import gw.lang.reflect.gs.IGosuClassTypeInfo;
-import gw.lang.reflect.gs.IGosuProgram;
-import gw.lang.reflect.gs.ITemplateType;
-import gw.lang.reflect.java.JavaTypes;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
@@ -31,7 +29,7 @@ public class CommonMenus
         @Override
         public void actionPerformed( ActionEvent e )
         {
-          editor.get().clipCut( RunMe.getEditorFrame().getGosuPanel().getClipboard() );
+          editor.get().clipCut( getGosuPanel().getClipboard() );
         }
       } );
     cutItem.setMnemonic( 't' );
@@ -48,7 +46,7 @@ public class CommonMenus
         @Override
         public void actionPerformed( ActionEvent e )
         {
-          editor.get().clipCopy( RunMe.getEditorFrame().getGosuPanel().getClipboard() );
+          editor.get().clipCopy( getGosuPanel().getClipboard() );
         }
       } );
     copyItem.setMnemonic( 'C' );
@@ -65,7 +63,7 @@ public class CommonMenus
         @Override
         public void actionPerformed( ActionEvent e )
         {
-          editor.get().clipPaste( RunMe.getEditorFrame().getGosuPanel().getClipboard(), false );
+          editor.get().clipPaste( getGosuPanel().getClipboard(), false );
         }
       } );
     pasteItem.setMnemonic( 'P' );
@@ -82,7 +80,7 @@ public class CommonMenus
         @Override
         public void actionPerformed( ActionEvent e )
         {
-          editor.get().clipPaste( RunMe.getEditorFrame().getGosuPanel().getClipboard(), true );
+          editor.get().clipPaste( getGosuPanel().getClipboard(), true );
         }
       } );
   }
@@ -197,27 +195,62 @@ public class CommonMenus
         @Override
         public void actionPerformed( ActionEvent e )
         {
-          RunMe.getEditorFrame().getGosuPanel().dumpBytecode();
+          getGosuPanel().dumpBytecode();
         }
       } );
     item.setMnemonic( 'y' );
     return item;
   }
 
-  public static JMenuItem makeRun( Supplier<IType> type )
+  public static JMenuItem makeRun( Supplier<IRunConfig> runConfig )
   {
-    JMenuItem item = new SmartMenuItem( new ClearAndRunActionHandler( type ) );
+    JMenuItem item =
+      new SmartMenuItem( new ClearAndRunActionHandler( runConfig ) )
+      {
+        @Override
+        public String getText()
+        {
+          IRunConfig rc = runConfig.get();
+          return rc == null ? "Run" : "Run '" + rc.getName() + "'";
+        }
+      };
     item.setMnemonic( 'R' );
     item.setAccelerator( KeyStroke.getKeyStroke( "F5" ) );
     UpdateNotifier.instance().addActionComponent( item );
     return item;
   }
 
-  public static JMenuItem makeDebug( Supplier<IType> type )
+  public static JMenuItem makeDebug( Supplier<IRunConfig> runConfig )
   {
-    JMenuItem item = new SmartMenuItem( new ClearAndDebugActionHandler( type ) );
+    JMenuItem item = new SmartMenuItem( new ClearAndDebugActionHandler( runConfig ) )
+    {
+      @Override
+      public String getText()
+      {
+        IRunConfig rc = runConfig.get();
+        return rc == null ? "Debug" : "Debug '" + rc.getName() + "'";
+      }
+    };
     item.setMnemonic( 'D' );
     item.setAccelerator( KeyStroke.getKeyStroke( "alt F5" ) );
+    UpdateNotifier.instance().addActionComponent( item );
+    return item;
+  }
+
+  public static JMenuItem makeRunConfig()
+  {
+    JMenuItem item = new SmartMenuItem( new RunConfigActionHandler() );
+    item.setMnemonic( 'C' );
+    item.setAccelerator( KeyStroke.getKeyStroke( "shift F5" ) );
+    UpdateNotifier.instance().addActionComponent( item );
+    return item;
+  }
+
+  public static JMenuItem makeDebugConfig()
+  {
+    JMenuItem item = new SmartMenuItem( new DebugConfigActionHandler() );
+    item.setMnemonic( 'G' );
+    item.setAccelerator( KeyStroke.getKeyStroke( "alt shift F5" ) );
     UpdateNotifier.instance().addActionComponent( item );
     return item;
   }
@@ -347,25 +380,42 @@ public class CommonMenus
 
   public static abstract class AbstractRunActionHandler extends AbstractAction
   {
-    protected final Supplier<IType> _program;
+    protected final Supplier<IRunConfig> _runConfig;
 
-    AbstractRunActionHandler( String title, Icon icon, Supplier<IType> program )
+    AbstractRunActionHandler( String title, Icon icon, Supplier<IRunConfig> runConfig )
     {
       super( title, icon );
-      _program = program;
+      _runConfig = runConfig;
+    }
+
+    protected IRunConfig getRunConfig()
+    {
+      return _runConfig.get();
     }
 
     public boolean isEnabled()
     {
-      return EditorUtilities.isRunnable( _program.get() );
+      GosuPanel gosuPanel = getGosuPanel();
+      if( gosuPanel == null || gosuPanel.isRunning() || gosuPanel.isDebugging() )
+      {
+        return false;
+      }
+
+      IRunConfig runConfig = getRunConfig();
+      return runConfig != null && runConfig.isValid();
     }
+  }
+
+  private static GosuPanel getGosuPanel()
+  {
+    return RunMe.getEditorFrame().getGosuPanel();
   }
 
   public static class ClearAndRunActionHandler extends AbstractRunActionHandler
   {
-    ClearAndRunActionHandler( Supplier<IType> program )
+    ClearAndRunActionHandler( Supplier<IRunConfig> runConfig )
     {
-      super( "Run", EditorUtilities.loadIcon( "images/run.png" ), program );
+      super( "Run", EditorUtilities.loadIcon( "images/run.png" ), runConfig );
     }
 
     public void actionPerformed( ActionEvent e )
@@ -375,22 +425,21 @@ public class CommonMenus
         return;
       }
 
-      RunMe.getEditorFrame().getGosuPanel().clearOutput();
-      IType type = _program.get();
-      if( type instanceof ITemplateType )
-      {
-        RunMe.getEditorFrame().getGosuPanel().executeTemplate();
-      }
-      else
-      {
-        RunMe.getEditorFrame().getGosuPanel().execute( type.getName() );
-      }
+      getGosuPanel().clearOutput();
+      IRunConfig runConfig = _runConfig.get();
+      getGosuPanel().execute( runConfig );
+    }
+
+    @Override
+    public boolean isEnabled()
+    {
+      return super.isEnabled() && getRunConfig().isRunnable();
     }
   }
 
   public static class ClearAndDebugActionHandler extends AbstractRunActionHandler
   {
-    ClearAndDebugActionHandler( Supplier<IType> program )
+    ClearAndDebugActionHandler( Supplier<IRunConfig> program )
     {
       super( "Debug", EditorUtilities.loadIcon( "images/debug.png" ), program );
     }
@@ -402,15 +451,59 @@ public class CommonMenus
         return;
       }
 
-      RunMe.getEditorFrame().getGosuPanel().clearOutput();
-      IType type = _program.get();
-      if( type instanceof ITemplateType )
+      getGosuPanel().clearOutput();
+      IRunConfig runConfig = _runConfig.get();
+      getGosuPanel().debug( runConfig );
+    }
+
+    @Override
+    public boolean isEnabled()
+    {
+      return super.isEnabled() && getRunConfig().isDebuggable();
+    }
+  }
+
+  public static class RunConfigActionHandler extends AbstractAction
+  {
+    RunConfigActionHandler()
+    {
+      super( "Run...", EditorUtilities.loadIcon( "images/runconfig.png" ) );
+    }
+
+    public void actionPerformed( ActionEvent e )
+    {
+      RunConfigDialog dlg = new RunConfigDialog( getExperiment(), RunState.Run );
+      dlg.setVisible( true );
+
+      IRunConfig configToRun = dlg.getConfigToRun();
+      if( configToRun != null )
       {
-        RunMe.getEditorFrame().getGosuPanel().debugTemplate();
+        new ClearAndRunActionHandler( () -> configToRun ).actionPerformed( null );
       }
-      else
+    }
+  }
+
+  private static Experiment getExperiment()
+  {
+    return getGosuPanel().getExperiment();
+  }
+
+  public static class DebugConfigActionHandler extends AbstractAction
+  {
+    DebugConfigActionHandler()
+    {
+      super( "Debug...", EditorUtilities.loadIcon( "images/debugconfig.png" ) );
+    }
+
+    public void actionPerformed( ActionEvent e )
+    {
+      RunConfigDialog dlg = new RunConfigDialog( getExperiment(), RunState.Debug );
+      dlg.setVisible( true );
+
+      IRunConfig configToRun = dlg.getConfigToRun();
+      if( configToRun != null )
       {
-        RunMe.getEditorFrame().getGosuPanel().debug( type.getName() );
+        new ClearAndDebugActionHandler( () -> configToRun ).actionPerformed( null );
       }
     }
   }
@@ -663,7 +756,7 @@ public class CommonMenus
     {
       if( isEnabled() )
       {
-        RunMe.getEditorFrame().getGosuPanel().jumptToBreakpoint( _debugger.get().getSuspendedLocation(), true );
+        getGosuPanel().jumptToBreakpoint( _debugger.get().getSuspendedLocation(), true );
       }
     }
 

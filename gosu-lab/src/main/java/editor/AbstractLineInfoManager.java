@@ -1,5 +1,6 @@
 package editor;
 
+import editor.debugger.Breakpoint;
 import editor.debugger.BreakpointManager;
 import editor.util.EditorUtilities;
 import editor.util.SmartMenuItem;

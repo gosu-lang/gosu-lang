@@ -1,6 +1,10 @@
-package editor;
+package editor.run;
 
 import com.sun.jdi.VirtualMachine;
+import editor.GosuEditor;
+import editor.GosuPanel;
+import editor.RunMe;
+import editor.TextComponentWriter;
 import editor.util.TaskQueue;
 import gw.config.CommonServices;
 import gw.lang.Gosu;
@@ -29,18 +33,18 @@ import java.util.stream.Collectors;
 
 /**
 */
-public class InProcessRunner implements IProcessRunner
+public class InProcessRunner implements IProcessRunner<FqnRunConfig>
 {
-  private String _typeName;
+  private FqnRunConfig _runConfig;
 
   public InProcessRunner()
   {
   }
 
   @Override
-  public String getTypeName()
+  public FqnRunConfig getRunConfig()
   {
-    return _typeName;
+    return _runConfig;
   }
 
   @Override
@@ -52,7 +56,7 @@ public class InProcessRunner implements IProcessRunner
   @Override
   public RunState getRunState()
   {
-    return null;
+    return RunState.Run;
   }
 
   @Override
@@ -61,26 +65,26 @@ public class InProcessRunner implements IProcessRunner
     return null;
   }
 
-  public void execute( String typeName, GosuPanel gosuPanel )
+  public void execute( FqnRunConfig runConfig )
   {
     try
     {
-      _typeName = typeName;
+      _runConfig = runConfig;
       ClassLoader loader = InProcessRunner.class.getClassLoader();
       URLClassLoader runLoader = new URLClassLoader( getAllUrlsAboveGosuclassProtocol( (URLClassLoader)loader ), loader.getParent() );
 
       TaskQueue queue = TaskQueue.getInstance( "_execute_gosu" );
+      GosuPanel gosuPanel = RunMe.getEditorFrame().getGosuPanel();
       gosuPanel.addBusySignal( RunState.Run );
       queue.postTask(
         () -> {
           GosuEditor.getParserTaskQueue().waitUntilAllCurrentTasksFinish();
-          IGosuClass program = (IGosuClass)TypeSystem.getByFullName( typeName );
+          IGosuClass program = (IGosuClass)TypeSystem.getByFullName( runConfig.getFqn() );
           try
           {
             Class<?> runnerClass = Class.forName( "editor.InProcessRunner", true, runLoader );
             String fqn = program.getName();
-            printRunningMessage( fqn );
-            gosuPanel.getExperiment().setRecentProgram( fqn );
+            printRunningMessage( runConfig.getName() );
             String result = null;
             try
             {
@@ -115,13 +119,13 @@ public class InProcessRunner implements IProcessRunner
     }
   }
 
-  private void printRunningMessage( String fqn )
+  private void printRunningMessage( String runConfigName )
   {
     SimpleAttributeSet attr = new SimpleAttributeSet();
     attr.addAttribute( StyleConstants.Foreground, new Color( 192, 192, 192 ) );
     TextComponentWriter out = (TextComponentWriter)System.out;
     out.setAttributes( attr );
-    System.out.println( "Running: " + fqn + "...\n" );
+    System.out.println( "Running: " + runConfigName + "...\n" );
     out.setAttributes( null );
   }
 

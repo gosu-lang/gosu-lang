@@ -24,7 +24,6 @@ import com.sun.jdi.request.ClassPrepareRequest;
 import com.sun.jdi.request.EventRequest;
 import com.sun.jdi.request.EventRequestManager;
 import com.sun.jdi.request.StepRequest;
-import editor.Breakpoint;
 import editor.FileTreeUtil;
 import editor.GosuPanel;
 import editor.RunMe;

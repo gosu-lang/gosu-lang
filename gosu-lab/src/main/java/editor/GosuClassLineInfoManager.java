@@ -1,5 +1,6 @@
 package editor;
 
+import editor.debugger.Breakpoint;
 import editor.search.MessageDisplay;
 import editor.util.EditorUtilities;
 import gw.lang.parser.IDynamicFunctionSymbol;

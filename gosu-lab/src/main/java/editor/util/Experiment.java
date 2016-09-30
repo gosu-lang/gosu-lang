@@ -2,6 +2,12 @@ package editor.util;
 
 import editor.FileWatcher;
 import editor.GosuPanel;
+import editor.run.FqnRunConfig;
+import editor.run.ProgramRunConfigFactory;
+import editor.run.ProgramRunConfigParameters;
+import gw.lang.reflect.IType;
+import gw.lang.reflect.json.IJsonIO;
+import editor.run.IRunConfig;
 import editor.tabpane.ITab;
 import editor.tabpane.TabPane;
 import gw.lang.reflect.Expando;
@@ -16,6 +22,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 /**
@@ -27,7 +34,8 @@ public class Experiment implements IProject
   private File _experimentDir;
   private List<String> _openFiles;
   private String _activeFile;
-  private String _recentProgram;
+  private IRunConfig _mruRunConfig;
+  private List<IRunConfig> _runConfigs;
   private GosuPanel _gosuPanel;
 
   public Experiment( String name, File dir, GosuPanel gosuPanel )
@@ -39,6 +47,7 @@ public class Experiment implements IProject
     //noinspection ResultOfMethodCallIgnored
     _experimentDir.mkdirs();
     _openFiles = Collections.emptyList();
+    _runConfigs = Collections.emptyList();
   }
 
   public Experiment( File dir, GosuPanel gosuPanel )
@@ -48,6 +57,7 @@ public class Experiment implements IProject
     _sourcePath = Collections.emptyList();
     _experimentDir = dir;
     _openFiles = Collections.emptyList();
+    _runConfigs = Collections.emptyList();
     load();
     FileWatcher.instance( this );
   }
@@ -137,13 +147,15 @@ public class Experiment implements IProject
     File experiment = getExperimentFile();
     if( !experiment.exists() )
     {
-      save( null );
+      save();
     }
     return experiment;
   }
 
-  public void save( TabPane tabPane )
+  public void save()
   {
+    TabPane tabPane = getGosuPanel().getEditorTabPane();
+
     File userFile = getExperimentFile();
 
     Expando bindings = new Expando();
@@ -173,7 +185,9 @@ public class Experiment implements IProject
       return path;
     } ).collect( Collectors.toList() ) );
 
-    bindings.put( "MruRunConfig", getRecentProgram() );
+    IJsonIO.writeList( "RunConfigs", _runConfigs, bindings );
+
+    bindings.put( "MruRunConfig", getMruRunConfig() == null ? null : getMruRunConfig().getName() );
 
     try( FileWriter fw = new FileWriter( userFile ) )
     {
@@ -235,13 +249,17 @@ public class Experiment implements IProject
         }
       }
       _openFiles = openFiles;
+
       _activeFile = (String)bindings.get( "ActiveTab" );
       if( _activeFile != null && !_activeFile.isEmpty() )
       {
         _activeFile = new File( _activeFile ).getAbsolutePath();
       }
 
-      _recentProgram = (String)bindings.get( "MruRunConfig" );
+      //noinspection unchecked
+      _runConfigs = IJsonIO.readList( "RunConfigs", bindings );
+
+      _mruRunConfig = findRunConfig( rc -> rc.getName().equals( (String)bindings.get( "MruRunConfig" ) ) );
     }
     catch( IOException e )
     {
@@ -280,12 +298,83 @@ public class Experiment implements IProject
     return "src" + File.separator + "main" + File.separator + "gosu";
   }
 
-  public String getRecentProgram()
+  public IRunConfig getOrCreateRunConfig( IType type )
   {
-    return _recentProgram;
+    String fqn = type.getName();
+    IRunConfig rc = findRunConfig( runConfig -> runConfig instanceof FqnRunConfig &&
+                                                ((FqnRunConfig)runConfig).getFqn().equals( fqn ) );
+    return rc == null
+           ? ProgramRunConfigFactory.instance().newRunConfig(
+               makeProgramParams( type.getRelativeName(), type.getName() ) )
+           : rc;
   }
-  public void setRecentProgram( String name )
+
+  private ProgramRunConfigParameters makeProgramParams( String name, String fqn )
   {
-    _recentProgram = name;
+    ProgramRunConfigParameters params = ProgramRunConfigFactory.instance().makeParameters();
+    params.setName( name );
+    params.setFqn( fqn );
+    return params;
+  }
+
+  public IRunConfig findRunConfig( Predicate<IRunConfig> matcher )
+  {
+    if( matcher == null )
+    {
+      return null;
+    }
+
+    for( IRunConfig runConfig: _runConfigs )
+    {
+      if( matcher.test( runConfig ) )
+      {
+        return runConfig;
+      }
+    }
+    return null;
+  }
+
+  public IRunConfig getMruRunConfig()
+  {
+    return _mruRunConfig;
+  }
+  public void setMruRunConfig( IRunConfig runConfig )
+  {
+    _mruRunConfig = runConfig;
+  }
+
+  public List<IRunConfig> getRunConfigs()
+  {
+    return _runConfigs;
+  }
+
+  public void addRunConfig( IRunConfig runConfig )
+  {
+    if( _runConfigs.isEmpty() )
+    {
+      _runConfigs = new ArrayList<>();
+    }
+
+    int index = _runConfigs.indexOf( runConfig );
+    if( index >= 0 )
+    {
+      runConfig = _runConfigs.get( index );
+      _runConfigs.remove( index );
+    }
+    _runConfigs.add( 0, runConfig );
+
+    setMruRunConfig( runConfig );
+
+    save();
+  }
+
+  public boolean removeRunConfig( IRunConfig runConfig )
+  {
+    if( _runConfigs.isEmpty() )
+    {
+      return false;
+    }
+
+    return _runConfigs.remove( runConfig );
   }
 }

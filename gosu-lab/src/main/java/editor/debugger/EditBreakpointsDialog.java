@@ -1,6 +1,10 @@
-package editor;
+package editor.debugger;
 
-import editor.debugger.BreakpointManager;
+import editor.AbstractCloseDialog;
+import editor.EditorScrollPane;
+import editor.GosuEditor;
+import editor.GosuPanel;
+import editor.RunMe;
 import editor.util.EditorUtilities;
 import editor.util.LabCheckbox;
 import editor.util.SettleModalEventQueue;

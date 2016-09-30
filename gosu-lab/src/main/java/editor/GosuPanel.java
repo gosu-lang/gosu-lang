@@ -3,7 +3,11 @@ package editor;
 import com.sun.jdi.Location;
 import com.sun.jdi.VirtualMachine;
 import editor.debugger.BreakpointManager;
+import editor.debugger.DebugPanel;
 import editor.debugger.Debugger;
+import editor.run.IProcessRunner;
+import editor.run.IRunConfig;
+import editor.run.RunState;
 import editor.search.StandardLocalSearch;
 import editor.search.StudioUtilities;
 import editor.shipit.BuildIt;
@@ -195,9 +199,9 @@ public class GosuPanel extends JPanel
     ToolBar toolbar = new ToolBar( JToolBar.VERTICAL );
     LabToolbarButton item;
 
-    item = new LabToolbarButton( new CommonMenus.ClearAndRunActionHandler( this::getRunType ) );
+    item = new LabToolbarButton( new CommonMenus.ClearAndRunActionHandler( this::getRunConfig ) );
     toolbar.add( item );
-    item = new LabToolbarButton( new CommonMenus.ClearAndDebugActionHandler( this::getRunType ) );
+    item = new LabToolbarButton( new CommonMenus.ClearAndDebugActionHandler( this::getRunConfig ) );
     toolbar.add( item );
     item = new LabToolbarButton( new CommonMenus.StopActionHandler( () -> this ) );
     toolbar.add( item );
@@ -293,11 +297,11 @@ public class GosuPanel extends JPanel
     {
       return;
     }
-    getExperiment().save( _editorTabPane );
+    getExperiment().save();
     EditorUtilities.saveLayoutState( _experiment );
   }
 
-  Experiment getExperiment()
+  public Experiment getExperiment()
   {
     return _experiment;
   }
@@ -306,10 +310,7 @@ public class GosuPanel extends JPanel
   {
     _experiment = experiment;
 
-    //Gosu.setClasspath( experiment.getSourcePath().stream().map( File::new ).collect( Collectors.toList() ) );
     RunMe.reinitializeGosu( experiment );
-
-    //TypeSystem.refresh( TypeSystem.getGlobalModule() );
 
     RunMe.getEditorFrame().addExperiment( experiment );
 
@@ -751,7 +752,7 @@ public class GosuPanel extends JPanel
     return selectedTab == null ? null : (GosuEditor)selectedTab.getContentPane();
   }
 
-  public IType getRunType()
+  public IRunConfig getRunConfig()
   {
     // Get the current editor's type
 
@@ -763,15 +764,17 @@ public class GosuPanel extends JPanel
 
     if( !EditorUtilities.isRunnable( type ) )
     {
+      type = null;
+
       // The current type is not runnable, use the most recently run type
 
-      String recentProgram = getExperiment() == null ? null : getExperiment().getRecentProgram();
-      if( recentProgram != null )
+      IRunConfig mruRunConfig = getExperiment() == null ? null : getExperiment().getMruRunConfig();
+      if( mruRunConfig != null && mruRunConfig.isValid() )
       {
-        type = TypeSystem.getByFullNameIfValid( recentProgram );
+        return mruRunConfig;
       }
     }
-    return type;
+    return type == null ? null : getExperiment() == null ? null : getExperiment().getOrCreateRunConfig( type ) ;
   }
 
   private void makeRunMenu( JMenuBar menuBar )
@@ -780,8 +783,11 @@ public class GosuPanel extends JPanel
     runMenu.setMnemonic( 'R' );
     menuBar.add( runMenu );
 
-    runMenu.add( CommonMenus.makeRun( this::getRunType ) );
-    runMenu.add( CommonMenus.makeDebug( this::getRunType ) );
+    runMenu.add( CommonMenus.makeRun( this::getRunConfig ) );
+    runMenu.add( CommonMenus.makeDebug( this::getRunConfig ) );
+
+    runMenu.add( CommonMenus.makeRunConfig() );
+    runMenu.add( CommonMenus.makeDebugConfig() );
 
     runMenu.addSeparator();
 
@@ -1322,13 +1328,6 @@ public class GosuPanel extends JPanel
                   "UndoOldStyle", new UndoActionHandler() );
     mapKeystroke( KeyStroke.getKeyStroke( KeyEvent.VK_BACK_SPACE, InputEvent.ALT_MASK | InputEvent.SHIFT_MASK ),
                   "RetoOldStyle", new RedoActionHandler() );
-
-    // Run
-    mapKeystroke( KeyStroke.getKeyStroke( KeyEvent.VK_F5, 0 ),
-                  "Run", new CommonMenus.ClearAndRunActionHandler( () -> getCurrentEditor().getScriptPart().getContainingType() ) );
-
-    mapKeystroke( KeyStroke.getKeyStroke( KeyEvent.VK_ENTER, InputEvent.CTRL_MASK ),
-                  "Run", new CommonMenus.ClearAndRunActionHandler( () -> getCurrentEditor().getScriptPart().getContainingType() ) );
   }
 
   private void mapKeystroke( KeyStroke ks, String strCmd, Action action )
@@ -1835,7 +1834,7 @@ public class GosuPanel extends JPanel
     throw new IllegalStateException( "Unexpected parse element: " + elemAtCaret.getClass().getName() );
   }
 
-  public void execute( String fqn )
+  public void execute( IRunConfig runConfig )
   {
     if( _runState != RunState.None )
     {
@@ -1844,14 +1843,14 @@ public class GosuPanel extends JPanel
 
     saveAndReloadType( getCurrentFile(), getCurrentEditor() );
 
+    getExperiment().addRunConfig( runConfig );
+
     showConsole();
 
-    //InProcessRunner.execute( fqn, this );
-    _processRunner = new OutOfProcessRunner( RunState.Run );
-    _processRunner.execute( fqn, this );
+    _processRunner = runConfig.run();
   }
 
-  public void debug( String fqn )
+  public void debug( IRunConfig runConfig )
   {
     if( _runState != RunState.None )
     {
@@ -1860,11 +1859,10 @@ public class GosuPanel extends JPanel
 
     saveAndReloadType( getCurrentFile(), getCurrentEditor() );
 
-    showConsole();
+    getExperiment().addRunConfig( runConfig );
 
-    //InProcessRunner.execute( fqn, this );
-    _processRunner = new OutOfProcessRunner( RunState.Debug );
-    _processRunner.execute( fqn, this );
+    showConsole();
+    _processRunner = runConfig.debug();
   }
 
   public boolean isRunning()
@@ -1882,12 +1880,12 @@ public class GosuPanel extends JPanel
     return _typeNamesCache;
   }
 
-  void addBusySignal( RunState runState )
+  public void addBusySignal( RunState runState )
   {
     _runState = runState;
   }
 
-  void pipeInput()
+  public void pipeInput()
   {
     EventQueue.invokeLater( () -> {
       try
@@ -1985,7 +1983,7 @@ public class GosuPanel extends JPanel
       if( _debugPanel == null )
       {
         _debugPanel = new DebugPanel( _debugger );
-        _bottomTabPane.addTab( "<html>Debugging: <i>" + SignatureUtil.getSimpleName( _processRunner.getTypeName() ) + "</i>", EditorUtilities.loadIcon( "images/debug.png" ), _debugPanel );
+        _bottomTabPane.addTab( "<html>Debugging: <i>" + SignatureUtil.getSimpleName( _processRunner.getRunConfig().getName() ) + "</i>", EditorUtilities.loadIcon( "images/debug.png" ), _debugPanel );
         _debugPanel.addLocationListener( loc -> jumptToBreakpoint( loc, false ) );
       }
       else
@@ -2004,6 +2002,11 @@ public class GosuPanel extends JPanel
   public BreakpointManager getBreakpointManager()
   {
     return _breakpointManager;
+  }
+
+  public TabPane getEditorTabPane()
+  {
+    return _editorTabPane;
   }
 
   class SysInListener extends KeyAdapter
@@ -2043,7 +2046,7 @@ public class GosuPanel extends JPanel
     }
   }
 
-  void removeBusySignal()
+  public void removeBusySignal()
   {
     if( _runState != RunState.None )
     {
@@ -2055,22 +2058,6 @@ public class GosuPanel extends JPanel
       _inWriter = null;
       System.setIn( _oldIn );
     }
-  }
-
-  void executeTemplate()
-  {
-    try
-    {
-      System.out.println( "Will prompt for args soon, for now run the template programmatically from a program" );
-    }
-    catch( Throwable t )
-    {
-      t.printStackTrace();
-    }
-  }
-  void debugTemplate()
-  {
-    executeTemplate();
   }
 
   public void clearOutput()

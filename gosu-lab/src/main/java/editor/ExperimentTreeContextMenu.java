@@ -58,8 +58,8 @@ public class ExperimentTreeContextMenu implements IContextMenuHandler<JTree>
       if( type instanceof IGosuClass )
       {
         menu.add( new JSeparator() );
-        menu.add( CommonMenus.makeRun( () -> type ) );
-        menu.add( CommonMenus.makeDebug( () -> type ) );
+        menu.add( CommonMenus.makeRun( () -> _experiment.getOrCreateRunConfig( type ) ) );
+        menu.add( CommonMenus.makeDebug( () -> _experiment.getOrCreateRunConfig( type ) ) );
       }
     }
     return menu;

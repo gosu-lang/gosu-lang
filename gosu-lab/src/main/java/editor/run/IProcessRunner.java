@@ -1,15 +1,15 @@
-package editor;
+package editor.run;
 
 import com.sun.jdi.VirtualMachine;
 
 /**
  */
-public interface IProcessRunner
+public interface IProcessRunner<T extends IRunConfig>
 {
-  void execute( String fqn, GosuPanel gosuPanel );
+  void execute( T typeName );
   RunState getRunState();
   Process getProcess();
   VirtualMachine getVm();
 
-  String getTypeName();
+  T getRunConfig();
 }

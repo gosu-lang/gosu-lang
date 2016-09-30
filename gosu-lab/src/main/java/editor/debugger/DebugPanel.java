@@ -1,4 +1,4 @@
-package editor;
+package editor.debugger;
 
 import com.sun.jdi.ArrayReference;
 import com.sun.jdi.InvalidStackFrameException;
@@ -9,8 +9,13 @@ import com.sun.jdi.ReferenceType;
 import com.sun.jdi.StackFrame;
 import com.sun.jdi.ThreadReference;
 import com.sun.jdi.Value;
-import editor.debugger.BreakpointManager;
-import editor.debugger.Debugger;
+import editor.AbstractListCellRenderer;
+import editor.AbstractTreeCellRenderer;
+import editor.CommonMenus;
+import editor.FileTreeUtil;
+import editor.GosuEditor;
+import editor.RunMe;
+import editor.VarTree;
 import editor.splitpane.CollapsibleSplitPane;
 import editor.tabpane.TabPane;
 import editor.tabpane.TabPosition;
@@ -209,7 +214,7 @@ public class DebugPanel extends JPanel
     _varTree.setCellRenderer( new VarTreeCellRenderer( _varTree ) );
     JScrollPane scroller = new JScrollPane( _varTree );
     scroller.setBorder( null );
-    
+
     TabPane varTabPane = new TabPane( TabPosition.TOP, TabPane.MIN_MAX_REST );
     varTabPane.addTab( "Frame", EditorUtilities.loadIcon( "images/single_frame.png" ), scroller );
     ToolContainer toolbar = varTabPane.getToolContainer();
@@ -244,7 +249,30 @@ public class DebugPanel extends JPanel
     tb.add( item, i++ );
   }
 
-  StackFrame getDropToFrame()
+  private LabToolbarButton makeButton( Action action )
+  {
+    LabToolbarButton item = new LabToolbarButton( null, null, 2, 0 );
+    item.setAction( action );
+    return item;
+  }
+
+  private JSeparator makeSeparator()
+  {
+    JSeparator separator = new JSeparator( SwingConstants.VERTICAL );
+    separator.setMaximumSize( new Dimension( 4, 20 ) );
+    return separator;
+  }
+  private GosuEditor getCurrentEditor()
+  {
+    return RunMe.getEditorFrame().getGosuPanel().getCurrentEditor();
+  }
+
+  private BreakpointManager getBreakpointManager()
+  {
+    return RunMe.getEditorFrame().getGosuPanel().getBreakpointManager();
+  }
+
+  public StackFrame getDropToFrame()
   {
     StackFrame frame = _listFrames.getSelectedValue();
     if( isFilteredClass( frame.location().declaringType() ) )
@@ -254,29 +282,6 @@ public class DebugPanel extends JPanel
       frame = null;
     }
     return frame;
-  }
-
-  private LabToolbarButton makeButton( Action action )
-  {
-    LabToolbarButton item = new LabToolbarButton( null, null, 2, 0 );
-    item.setAction( action );
-    return item;
-  }
-  private JSeparator makeSeparator()
-  {
-    JSeparator separator = new JSeparator( SwingConstants.VERTICAL );
-    separator.setMaximumSize( new Dimension( 4, 20 ) );
-    return separator;
-  }
-
-  private GosuEditor getCurrentEditor()
-  {
-    return RunMe.getEditorFrame().getGosuPanel().getCurrentEditor();
-  }
-
-  private BreakpointManager getBreakpointManager()
-  {
-    return RunMe.getEditorFrame().getGosuPanel().getBreakpointManager();
   }
 
   public ThreadReference getSelectedThread()

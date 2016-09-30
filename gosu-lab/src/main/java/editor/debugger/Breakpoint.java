@@ -1,4 +1,7 @@
-package editor;
+package editor.debugger;
+
+import editor.FileTree;
+import editor.FileTreeUtil;
 
 /**
  */

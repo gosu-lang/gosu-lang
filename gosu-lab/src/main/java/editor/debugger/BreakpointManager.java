@@ -4,7 +4,6 @@ import com.sun.jdi.IncompatibleThreadStateException;
 import com.sun.jdi.Location;
 import com.sun.jdi.StackFrame;
 import com.sun.jdi.ThreadReference;
-import editor.Breakpoint;
 import editor.GosuEditor;
 import editor.GosuPanel;
 import editor.RunMe;
