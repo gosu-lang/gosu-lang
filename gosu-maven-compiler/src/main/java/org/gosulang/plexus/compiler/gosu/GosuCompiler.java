@@ -147,7 +147,15 @@ public class GosuCompiler extends AbstractCompiler {
     if(JAVA_OPTS != null) {
       cli.addArguments(new String[] {JAVA_OPTS});
     }
-    
+
+    if(!StringUtils.isEmpty(config.getMeminitial())) {
+      cli.addArguments(new String[] {"-Xms".concat(config.getMeminitial())});
+    }
+
+    if(!StringUtils.isEmpty(config.getMaxmem())) {
+      cli.addArguments(new String[] {"-Xmx".concat(config.getMaxmem())});
+    }
+
     //compilerArgs - arguments to send to the forked JVM
     Set<String> compilerArgs = config.getCustomCompilerArgumentsAsMap().keySet();
     if(compilerArgs.size() > 0) {
