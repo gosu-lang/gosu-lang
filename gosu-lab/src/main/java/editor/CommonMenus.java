@@ -9,6 +9,8 @@ import editor.debugger.EditBreakpointsDialog;
 import editor.run.IRunConfig;
 import editor.run.RunConfigDialog;
 import editor.run.RunState;
+import editor.search.StandardLocalSearch;
+import editor.undo.AtomicUndoManager;
 import editor.util.EditorUtilities;
 import editor.util.Experiment;
 import editor.util.SmartMenuItem;
@@ -23,15 +25,7 @@ public class CommonMenus
 {
   public static JMenuItem makeCut( Supplier<GosuEditor> editor )
   {
-    JMenuItem cutItem = new SmartMenuItem(
-      new AbstractAction( "Cut" )
-      {
-        @Override
-        public void actionPerformed( ActionEvent e )
-        {
-          editor.get().clipCut( getGosuPanel().getClipboard() );
-        }
-      } );
+    JMenuItem cutItem = new SmartMenuItem( new CutActionHandler( editor ) );
     cutItem.setMnemonic( 't' );
     cutItem.setAccelerator( KeyStroke.getKeyStroke( "control X" ) );
 
@@ -40,15 +34,7 @@ public class CommonMenus
 
   public static JMenuItem makeCopy( Supplier<GosuEditor> editor )
   {
-    JMenuItem copyItem = new SmartMenuItem(
-      new AbstractAction( "Copy" )
-      {
-        @Override
-        public void actionPerformed( ActionEvent e )
-        {
-          editor.get().clipCopy( getGosuPanel().getClipboard() );
-        }
-      } );
+    JMenuItem copyItem = new SmartMenuItem( new CopyActionHandler( editor ) );
     copyItem.setMnemonic( 'C' );
     copyItem.setAccelerator( KeyStroke.getKeyStroke( "control C" ) );
 
@@ -57,15 +43,7 @@ public class CommonMenus
 
   public static JMenuItem makePaste( Supplier<GosuEditor> editor )
   {
-    JMenuItem pasteItem = new SmartMenuItem(
-      new AbstractAction( "Paste" )
-      {
-        @Override
-        public void actionPerformed( ActionEvent e )
-        {
-          editor.get().clipPaste( getGosuPanel().getClipboard(), false );
-        }
-      } );
+    JMenuItem pasteItem = new SmartMenuItem( new PasteActionHandler( editor ) );
     pasteItem.setMnemonic( 'P' );
     pasteItem.setAccelerator( KeyStroke.getKeyStroke( "control V" ) );
 
@@ -621,6 +599,221 @@ public class CommonMenus
     public void actionPerformed( ActionEvent e )
     {
       new EditBreakpointsDialog( _bp.get() ).setVisible( true );
+    }
+  }
+
+  public static class OpenProjectActionHandler extends AbstractAction
+  {
+    public OpenProjectActionHandler()
+    {
+      super( "Open Project...", EditorUtilities.loadIcon( "images/folder.png" ) );
+    }
+
+    public void actionPerformed( ActionEvent e )
+    {
+      RunMe.getEditorFrame().getGosuPanel().openExperiment();
+    }
+  }
+
+  public static class SaveActionHandler extends AbstractAction
+  {
+    public SaveActionHandler()
+    {
+      super( "Save All", EditorUtilities.loadIcon( "images/save.png" ) );
+    }
+
+    public void actionPerformed( ActionEvent e )
+    {
+      RunMe.getEditorFrame().getGosuPanel().save();
+    }
+  }
+
+  public static class UndoActionHandler extends AbstractAction
+  {
+    public UndoActionHandler()
+    {
+      super( "Undo", EditorUtilities.loadIcon( "images/undo.png" ) );
+    }
+
+    public void actionPerformed( ActionEvent e )
+    {
+      if( getGosuPanel().getUndoManager().canUndo() )
+      {
+        getGosuPanel().getUndoManager().undo();
+      }
+    }
+
+    @Override
+    public boolean isEnabled()
+    {
+      AtomicUndoManager undoManager = getGosuPanel() != null ? getGosuPanel().getUndoManager() : null;
+      return undoManager != null && undoManager.canUndo();
+    }
+  }
+
+  public static class RedoActionHandler extends AbstractAction
+  {
+    public RedoActionHandler()
+    {
+      super( "Redo", EditorUtilities.loadIcon( "images/redo.png" ) );
+    }
+
+    public void actionPerformed( ActionEvent e )
+    {
+      if( getGosuPanel().getUndoManager().canRedo() )
+      {
+        getGosuPanel().getUndoManager().redo();
+      }
+    }
+
+    @Override
+    public boolean isEnabled()
+    {
+      AtomicUndoManager undoManager = getGosuPanel() != null ? getGosuPanel().getUndoManager() : null;
+      return undoManager != null && undoManager.canRedo();
+    }
+  }
+  
+  public static class CutActionHandler extends AbstractAction
+  {
+    private final Supplier<GosuEditor> _editor;
+
+    public CutActionHandler( Supplier<GosuEditor> editor )
+    {
+      super( "Cut", EditorUtilities.loadIcon( "images/cut.png" ) );
+      _editor = editor;
+    }
+
+    @Override
+    public void actionPerformed( ActionEvent e )
+    {
+      _editor.get().clipCut( getGosuPanel().getClipboard() );
+    }
+    
+    @Override
+    public boolean isEnabled()
+    {
+      return _editor.get() != null;
+    }
+  }
+  
+  public static class CopyActionHandler extends AbstractAction
+  {
+    private final Supplier<GosuEditor> _editor;
+
+    public CopyActionHandler( Supplier<GosuEditor> editor )
+    {
+      super( "Copy", EditorUtilities.loadIcon( "images/copy.png" ) );
+      _editor = editor;
+    }
+
+    @Override
+    public void actionPerformed( ActionEvent e )
+    {
+      _editor.get().clipCopy( getGosuPanel().getClipboard() );
+    }
+    
+    @Override
+    public boolean isEnabled()
+    {
+      return _editor.get() != null;
+    }
+  }
+  
+  public static class PasteActionHandler extends AbstractAction
+  {
+    private final Supplier<GosuEditor> _editor;
+
+    public PasteActionHandler( Supplier<GosuEditor> editor )
+    {
+      super( "Paste", EditorUtilities.loadIcon( "images/paste.png" ) );
+      _editor = editor;
+    }
+
+    @Override
+    public void actionPerformed( ActionEvent e )
+    {
+      _editor.get().clipPaste( getGosuPanel().getClipboard(), false );
+    }
+    
+    @Override
+    public boolean isEnabled()
+    {
+      return _editor.get() != null;
+    }
+  }
+  
+  public static class FindActionHandler extends AbstractAction
+  {
+    private final Supplier<GosuEditor> _editor;
+
+    public FindActionHandler( Supplier<GosuEditor> editor )
+    {
+      super( "Find...", EditorUtilities.loadIcon( "images/find.png" ) );
+      _editor = editor;
+    }
+
+    @Override
+    public void actionPerformed( ActionEvent e )
+    {
+      StandardLocalSearch.performLocalSearch( _editor.get(), false );
+    }
+
+    @Override
+    public boolean isEnabled()
+    {
+      return _editor.get() != null;
+    }
+  }
+  
+  public static class ReplaceActionHandler extends AbstractAction
+  {
+    private final Supplier<GosuEditor> _editor;
+
+    public ReplaceActionHandler( Supplier<GosuEditor> editor )
+    {
+      super( "Replace...", EditorUtilities.loadIcon( "images/find.png" ) );
+      _editor = editor;
+    }
+
+    @Override
+    public void actionPerformed( ActionEvent e )
+    {
+      StandardLocalSearch.performLocalSearch( _editor.get(), true );
+    }
+
+    @Override
+    public boolean isEnabled()
+    {
+      return _editor.get() != null;
+    }
+  }
+  
+  public static class CompileActionHandler extends AbstractAction
+  {
+    public CompileActionHandler()
+    {
+      super( "Compile...", EditorUtilities.loadIcon( "images/compile.png" ) );
+    }
+
+    @Override
+    public void actionPerformed( ActionEvent e )
+    {
+      getGosuPanel().compile();
+    }
+  }
+  
+  public static class ShipItActionHandler extends AbstractAction
+  {
+    public ShipItActionHandler()
+    {
+      super( "ShipIt...", EditorUtilities.loadIcon( "images/accept.png" ) );
+    }
+
+    @Override
+    public void actionPerformed( ActionEvent e )
+    {
+      getGosuPanel().shipIt();
     }
   }
 

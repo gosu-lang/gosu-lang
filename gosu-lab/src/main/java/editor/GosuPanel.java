@@ -23,7 +23,6 @@ import editor.util.Experiment;
 import editor.util.GosuTextifier;
 import editor.util.LabToolbarButton;
 import editor.util.LabelListPopup;
-import editor.util.PlatformUtil;
 import editor.util.SettleModalEventQueue;
 import editor.util.SmartMenu;
 import editor.util.SmartMenuItem;
@@ -136,7 +135,7 @@ public class GosuPanel extends JPanel
     JPanel bottom = new JPanel( new BorderLayout() );
     _bottomTabPane = new TabPane( TabPane.MINIMIZABLE | TabPane.RESTORABLE | TabPane.TOP_BORDER_ONLY );
     bottom.add( _bottomTabPane, BorderLayout.CENTER );
-    bottom.add( createToolbar(), BorderLayout.WEST );
+    bottom.add( makeRunToolbar(), BorderLayout.WEST );
 
     _messages = new MessagesPanel();
 
@@ -182,9 +181,13 @@ public class GosuPanel extends JPanel
     JPanel statPanel = makeStatusBar();
     add( statPanel, BorderLayout.SOUTH );
 
+    ToolBar toolbar = makeMainToolbar();
+    add( toolbar, BorderLayout.NORTH );
+
     JMenuBar menuBar = makeMenuBar();
     _parentFrame.setJMenuBar( menuBar );
     handleMacStuff();
+
 
     EventQueue.invokeLater( () -> {
       setExperimentSplitPosition( 70 );
@@ -194,7 +197,61 @@ public class GosuPanel extends JPanel
     EventQueue.invokeLater( this::mapKeystrokes );
   }
 
-  private ToolBar createToolbar()
+  private ToolBar makeMainToolbar()
+  {
+    ToolBar toolbar = new ToolBar();
+    toolbar.setDynamicBorder( BorderFactory.createCompoundBorder( BorderFactory.createMatteBorder( 1, 0, 0, 0, EditorUtilities.CONTROL_LIGTH_SHADOW ), BorderFactory.createEmptyBorder( 1, 1, 2, 1 ) ) );
+    LabToolbarButton item;
+
+    item = new LabToolbarButton( new CommonMenus.OpenProjectActionHandler() );
+    toolbar.add( item );
+    item = new LabToolbarButton( new CommonMenus.SaveActionHandler() );
+    toolbar.add( item );
+
+    toolbar.addSeparator();
+
+    item = new LabToolbarButton( new CommonMenus.UndoActionHandler() );
+    toolbar.add( item );
+    item = new LabToolbarButton( new CommonMenus.RedoActionHandler() );
+    toolbar.add( item );
+
+    toolbar.addSeparator();
+
+    item = new LabToolbarButton( new CommonMenus.CutActionHandler( this::getCurrentEditor ) );
+    toolbar.add( item );
+    item = new LabToolbarButton( new CommonMenus.CopyActionHandler( this::getCurrentEditor ) );
+    toolbar.add( item );
+    item = new LabToolbarButton( new CommonMenus.PasteActionHandler( this::getCurrentEditor ) );
+    toolbar.add( item );
+
+    toolbar.addSeparator();
+
+    item = new LabToolbarButton( new CommonMenus.FindActionHandler( this::getCurrentEditor ) );
+    toolbar.add( item );
+    item = new LabToolbarButton( new CommonMenus.ReplaceActionHandler( this::getCurrentEditor ) );
+    toolbar.add( item );
+
+    toolbar.addSeparator();
+
+    item = new LabToolbarButton( new CommonMenus.CompileActionHandler() );
+    toolbar.add( item );
+
+    toolbar.addSeparator();
+
+    item = new LabToolbarButton( new CommonMenus.ClearAndRunActionHandler( this::getRunConfig ) );
+    toolbar.add( item );
+    item = new LabToolbarButton( new CommonMenus.ClearAndDebugActionHandler( this::getRunConfig ) );
+    toolbar.add( item );
+
+    toolbar.addSeparator();
+
+    item = new LabToolbarButton( new CommonMenus.ShipItActionHandler() );
+    toolbar.add( item );
+
+    return toolbar;
+  }
+
+  private ToolBar makeRunToolbar()
   {
     ToolBar toolbar = new ToolBar( JToolBar.VERTICAL );
     LabToolbarButton item;
@@ -268,11 +325,12 @@ public class GosuPanel extends JPanel
 
   private void handleMacStuff()
   {
-    if( PlatformUtil.isMac() )
-    {
-      System.setProperty( "apple.laf.useScreenMenuBar", "true" );
-      System.setProperty( "com.apple.mrj.application.apple.menu.about.name", "Gosu Editor" );
-    }
+//## we are using a plaform independent LAF now with menubar on the frame where it belongs
+//    if( PlatformUtil.isMac() )
+//    {
+//      System.setProperty( "apple.laf.useScreenMenuBar", "true" );
+//      System.setProperty( "com.apple.mrj.application.apple.menu.about.name", "Gosu Editor" );
+//    }
   }
 
   public void clearTabs()
@@ -715,15 +773,7 @@ public class GosuPanel extends JPanel
     buildMenu.setMnemonic( 'b' );
     menuBar.add( buildMenu );
 
-    JMenuItem compileMenu = new SmartMenuItem(
-      new AbstractAction( "Compile" )
-      {
-        @Override
-        public void actionPerformed( ActionEvent e )
-        {
-          compile();
-        }
-      } );
+    JMenuItem compileMenu = new SmartMenuItem( new CommonMenus.CompileActionHandler() );
     compileMenu.setMnemonic( 'c' );
     compileMenu.setAccelerator( KeyStroke.getKeyStroke( "control F9" ) );
     buildMenu.add( compileMenu );
@@ -732,15 +782,7 @@ public class GosuPanel extends JPanel
     buildMenu.addSeparator();
 
 
-    JMenuItem shipIt = new SmartMenuItem(
-      new AbstractAction( "Ship It! ..." )
-      {
-        @Override
-        public void actionPerformed( ActionEvent e )
-        {
-          shipIt();
-        }
-      } );
+    JMenuItem shipIt = new SmartMenuItem( new CommonMenus.ShipItActionHandler() );
     shipIt.setMnemonic( 'p' );
     shipIt.setAccelerator( KeyStroke.getKeyStroke( "control F10" ) );
     buildMenu.add( shipIt );
@@ -821,28 +863,12 @@ public class GosuPanel extends JPanel
     searchMenu.setMnemonic( 'S' );
     menuBar.add( searchMenu );
 
-    JMenuItem findItem = new SmartMenuItem(
-      new AbstractAction( "Find..." )
-      {
-        @Override
-        public void actionPerformed( ActionEvent e )
-        {
-          StandardLocalSearch.performLocalSearch( getCurrentEditor(), false );
-        }
-      } );
+    JMenuItem findItem = new SmartMenuItem( new CommonMenus.FindActionHandler( this::getCurrentEditor ) );
     findItem.setMnemonic( 'F' );
     findItem.setAccelerator( KeyStroke.getKeyStroke( "control F" ) );
     searchMenu.add( findItem );
 
-    JMenuItem replaceItem = new SmartMenuItem(
-      new AbstractAction( "Replace..." )
-      {
-        @Override
-        public void actionPerformed( ActionEvent e )
-        {
-          StandardLocalSearch.performLocalSearch( getCurrentEditor(), true );
-        }
-      } );
+    JMenuItem replaceItem = new SmartMenuItem( new CommonMenus.ReplaceActionHandler( this::getCurrentEditor ) );
     replaceItem.setMnemonic( 'R' );
     replaceItem.setAccelerator( KeyStroke.getKeyStroke( "control R" ) );
     searchMenu.add( replaceItem );
@@ -917,46 +943,12 @@ public class GosuPanel extends JPanel
     menuBar.add( editMenu );
 
 
-    JMenuItem undoItem = new SmartMenuItem(
-      new AbstractAction( "Undo" )
-      {
-        @Override
-        public void actionPerformed( ActionEvent e )
-        {
-          if( getUndoManager().canUndo() )
-          {
-            getUndoManager().undo();
-          }
-        }
-
-        @Override
-        public boolean isEnabled()
-        {
-          return getUndoManager().canUndo();
-        }
-      } );
+    JMenuItem undoItem = new SmartMenuItem( new CommonMenus.UndoActionHandler() );
     undoItem.setMnemonic( 'U' );
     undoItem.setAccelerator( KeyStroke.getKeyStroke( "control Z" ) );
     editMenu.add( undoItem );
 
-    JMenuItem redoItem = new SmartMenuItem(
-      new AbstractAction( "Redo" )
-      {
-        @Override
-        public void actionPerformed( ActionEvent e )
-        {
-          if( getUndoManager().canRedo() )
-          {
-            getUndoManager().redo();
-          }
-        }
-
-        @Override
-        public boolean isEnabled()
-        {
-          return getUndoManager().canRedo();
-        }
-      } );
+    JMenuItem redoItem = new SmartMenuItem( new CommonMenus.RedoActionHandler() );
     redoItem.setMnemonic( 'R' );
     redoItem.setAccelerator( KeyStroke.getKeyStroke( "control shift Z" ) );
     editMenu.add( redoItem );
@@ -1140,16 +1132,8 @@ public class GosuPanel extends JPanel
     newExperimentItem.setMnemonic( 'P' );
     fileMenu.add( newExperimentItem );
 
-    JMenuItem openExperimentItem = new SmartMenuItem(
-      new AbstractAction( "Open Experiment..." )
-      {
-        @Override
-        public void actionPerformed( ActionEvent e )
-        {
-          openExperiment();
-        }
-      } );
-    openExperimentItem.setMnemonic( 'J' );
+    JMenuItem openExperimentItem = new SmartMenuItem( new CommonMenus.OpenProjectActionHandler() );
+    openExperimentItem.setMnemonic( 'O' );
     fileMenu.add( openExperimentItem );
 
 
@@ -1180,15 +1164,7 @@ public class GosuPanel extends JPanel
     fileMenu.add( openItem );
 
 
-    JMenuItem saveItem = new SmartMenuItem(
-      new AbstractAction( "Save" )
-      {
-        @Override
-        public void actionPerformed( ActionEvent e )
-        {
-          save();
-        }
-      } );
+    JMenuItem saveItem = new SmartMenuItem( new CommonMenus.SaveActionHandler() );
     saveItem.setMnemonic( 'S' );
     saveItem.setAccelerator( KeyStroke.getKeyStroke( "control S" ) );
     fileMenu.add( saveItem );
@@ -1263,13 +1239,13 @@ public class GosuPanel extends JPanel
     dlg.setVisible( true );
   }
 
-  private void shipIt()
+  public void shipIt()
   {
     ShipIt.instance().shipIt( getExperiment() );
   }
 
   @SuppressWarnings("ThrowableResultOfMethodCallIgnored")
-  private boolean compile()
+  public boolean compile()
   {
     SettleModalEventQueue.instance().run();
 

@@ -14,7 +14,7 @@ import java.awt.event.MouseListener;
  */
 public class LabToolbarButton extends JButton
 {
-  private static final int DEFAULT_MARGIN = 2;
+  private static final int DEFAULT_MARGIN = 3;
 
   private boolean _bConstantBorder;
   private boolean _bShowText;
