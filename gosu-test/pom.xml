@@ -39,6 +39,8 @@
             <configuration>
               <compilerId>gosuc</compilerId>
               <fork>true</fork>
+              <meminitial>1024m</meminitial>
+              <maxmem>2048m</maxmem>
               <compilerArgs>
                 <arg>-DcheckedArithmetic=true</arg>
                 <!--<arg>-Xdebug</arg>-->
@@ -49,7 +51,7 @@
               </compilerArgs>
               <showWarnings>false</showWarnings>
               <useIncrementalCompilation>true</useIncrementalCompilation> <!-- this must be true or else we cannot pick up files with multiple extensions -->
-              <verbose>false</verbose>
+              <verbose>true</verbose>
               <testIncludes>
                 <include>**/*.gs</include>
                 <include>**/*.gsx</include>
