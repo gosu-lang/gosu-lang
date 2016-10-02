@@ -259,6 +259,55 @@ public class FixupLookAndFeel
 
   }
 
+//  private static class XPFillBorder extends RoundedMatteBorder implements UIResource
+//  {
+//    private int _thickness;
+//
+//    XPFillBorder( Color color, int thickness )
+//    {
+//      super( thickness, color );
+//      _thickness = thickness;
+//    }
+//
+//    public Insets getBorderInsets( Component c )
+//    {
+//      return getBorderInsets( c, new Insets( 0, 0, 0, 0 ) );
+//    }
+//
+//    public Insets getBorderInsets( Component c, Insets insets )
+//    {
+//      Insets margin;
+//      if( c instanceof AbstractButton )
+//      {
+//        margin = ((AbstractButton)c).getMargin();
+//      }
+//      else if( c instanceof JToolBar )
+//      {
+//        margin = ((JToolBar)c).getMargin();
+//      }
+//      else if( c instanceof JTextComponent )
+//      {
+//        margin = ((JTextComponent)c).getMargin();
+//      }
+//      else if( c instanceof JComboBox )
+//      {
+//        margin = ((JTextField)((JComboBox)c).getEditor().getEditorComponent()).getMargin();
+//      }
+//      else
+//      {
+//        margin = new Insets( 0, 0, 0, 0 );
+//      }
+//      Insets smargin = super.getBorderInsets( c, insets );
+//
+//      insets.top = margin.top + _thickness + smargin.top;
+//      insets.left = margin.left + _thickness + smargin.left;
+//      insets.bottom = margin.bottom + _thickness + smargin.bottom;
+//      insets.right = margin.right + _thickness + smargin.right;
+//
+//      return insets;
+//    }
+//  }
+
   private static class XPFillBorder extends LineBorder implements UIResource
   {
     XPFillBorder( Color color, int thickness )

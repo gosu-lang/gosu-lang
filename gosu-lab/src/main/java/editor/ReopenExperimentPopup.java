@@ -86,7 +86,7 @@ public class ReopenExperimentPopup implements MenuListener
       if( dir.exists() )
       {
         String label = dir.getName() + " - [" + exp + "]";
-        addNewItem( label, "images/project4.png", () -> RunMe.getEditorFrame().getGosuPanel().openExperiment( new File( exp ) ) );
+        addNewItem( label, "images/g_16.png", () -> RunMe.getEditorFrame().getGosuPanel().openExperiment( new File( exp ) ) );
       }
     }
   }

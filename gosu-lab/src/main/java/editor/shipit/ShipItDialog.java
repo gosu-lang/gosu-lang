@@ -33,6 +33,7 @@ public class ShipItDialog extends JDialog
   public ShipItDialog( Experiment experiment )
   {
     super( RunMe.getEditorFrame(), "Ship It!", true );
+    setIconImage( EditorUtilities.loadIcon( "images/shipit.png" ).getImage() );
     _experiment = experiment;
     configUi();
   }

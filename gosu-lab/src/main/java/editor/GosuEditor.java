@@ -1947,7 +1947,7 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
       //## todo:
       //## value completion should be integrated as part of code completion e.g., Enum constants should be in the same popup as members etc.
 
-      //handleCompleteValue();
+      handleCompleteValue();
     }
   }
 

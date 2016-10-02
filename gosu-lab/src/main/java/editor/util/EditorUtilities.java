@@ -1154,7 +1154,7 @@ public class EditorUtilities
 
   public static ImageIcon loadLabIcon()
   {
-    return loadIcon( "images/project4.png" );
+    return loadIcon( "images/g_16.png" );
   }
 
   public static <T> List<T> findDecendents( Component configUI, Class<T> aClass )

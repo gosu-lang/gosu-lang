@@ -632,7 +632,7 @@ public class CommonMenus
   {
     public UndoActionHandler()
     {
-      super( "Undo", EditorUtilities.loadIcon( "images/undo.png" ) );
+      super( "Undo", EditorUtilities.loadIcon( "images/Undo.png" ) );
     }
 
     public void actionPerformed( ActionEvent e )
@@ -655,7 +655,7 @@ public class CommonMenus
   {
     public RedoActionHandler()
     {
-      super( "Redo", EditorUtilities.loadIcon( "images/redo.png" ) );
+      super( "Redo", EditorUtilities.loadIcon( "images/Redo.png" ) );
     }
 
     public void actionPerformed( ActionEvent e )
@@ -680,7 +680,7 @@ public class CommonMenus
 
     public CutActionHandler( Supplier<GosuEditor> editor )
     {
-      super( "Cut", EditorUtilities.loadIcon( "images/cut.png" ) );
+      super( "Cut", EditorUtilities.loadIcon( "images/Cut.png" ) );
       _editor = editor;
     }
 
@@ -703,7 +703,7 @@ public class CommonMenus
 
     public CopyActionHandler( Supplier<GosuEditor> editor )
     {
-      super( "Copy", EditorUtilities.loadIcon( "images/copy.png" ) );
+      super( "Copy", EditorUtilities.loadIcon( "images/Copy.png" ) );
       _editor = editor;
     }
 
@@ -726,7 +726,7 @@ public class CommonMenus
 
     public PasteActionHandler( Supplier<GosuEditor> editor )
     {
-      super( "Paste", EditorUtilities.loadIcon( "images/paste.png" ) );
+      super( "Paste", EditorUtilities.loadIcon( "images/Paste.png" ) );
       _editor = editor;
     }
 
@@ -749,7 +749,7 @@ public class CommonMenus
 
     public FindActionHandler( Supplier<GosuEditor> editor )
     {
-      super( "Find...", EditorUtilities.loadIcon( "images/find.png" ) );
+      super( "Find...", EditorUtilities.loadIcon( "images/Find.png" ) );
       _editor = editor;
     }
 
@@ -772,7 +772,7 @@ public class CommonMenus
 
     public ReplaceActionHandler( Supplier<GosuEditor> editor )
     {
-      super( "Replace...", EditorUtilities.loadIcon( "images/find.png" ) );
+      super( "Replace...", EditorUtilities.loadIcon( "images/replace.png" ) );
       _editor = editor;
     }
 
@@ -807,7 +807,7 @@ public class CommonMenus
   {
     public ShipItActionHandler()
     {
-      super( "ShipIt...", EditorUtilities.loadIcon( "images/accept.png" ) );
+      super( "ShipIt...", EditorUtilities.loadIcon( "images/shipit.png" ) );
     }
 
     @Override
