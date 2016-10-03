@@ -70,7 +70,8 @@ public class FileWatcher implements Runnable
       File fileOrDir = fileTree.getFileOrDir();
       WatchKey key = fileOrDir.toPath().register( _watcher,
                                                   StandardWatchEventKinds.ENTRY_CREATE,
-                                                  StandardWatchEventKinds.ENTRY_DELETE );
+                                                  StandardWatchEventKinds.ENTRY_DELETE,
+                                                  StandardWatchEventKinds.ENTRY_MODIFY );
       _keyToPath.put( key, fileOrDir.getAbsolutePath() );
       addListener( fileTree );
     }
@@ -131,6 +132,11 @@ public class FileWatcher implements Runnable
             EventQueue.invokeLater( () ->
               fireDelete( dirPath, ((Path)event.context()).getFileName() ) );
           }
+          else if( event.kind() == StandardWatchEventKinds.ENTRY_MODIFY )
+          {
+            EventQueue.invokeLater( () -> 
+              fireModify( dirPath, ((Path)event.context()).getFileName() ) );
+          }
         }
         key.reset();
       }
@@ -173,5 +179,14 @@ public class FileWatcher implements Runnable
     listener.fireCreate( dir, fileName.toString() );
 
     //System.out.println( "Create: " + dirPath + " : " + fileName );
+  }
+  
+  private void fireModify( String dirPath, Path fileName )
+  {
+    String dir = new File( dirPath ).getAbsolutePath();
+    IFileWatcherListener listener = _listeners.get( dir );
+    listener.fireModify( dir, fileName.toString() );
+
+    //System.out.println( "Modify: " + dirPath + " : " + fileName );
   }
 }

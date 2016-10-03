@@ -46,6 +46,7 @@ import gw.lang.reflect.IType;
 import gw.lang.reflect.ITypeRef;
 import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.gs.IGosuClass;
+import gw.util.GosuStringUtil;
 import gw.util.StreamUtil;
 
 import javax.swing.*;
@@ -66,12 +67,14 @@ import java.awt.event.KeyEvent;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStreamWriter;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
 import java.io.PrintWriter;
+import java.io.Reader;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.util.ArrayList;
@@ -1467,7 +1470,7 @@ public class GosuPanel extends JPanel
 
     try
     {
-      editor.read( partId, strSource, "" );
+      editor.read( partId, strSource );
       resetChangeHandler();
       if( bFocus )
       {
@@ -1649,7 +1652,7 @@ public class GosuPanel extends JPanel
     }
   }
 
-  private void reload( IType type )
+  void reload( IType type )
   {
     if( type == null )
     {
@@ -1666,6 +1669,39 @@ public class GosuPanel extends JPanel
       return save();
     }
     return true;
+  }
+
+  public void refresh( File file )
+  {
+    GosuEditor editor = findTab( file );
+    if( editor != null )
+    {
+      // The file is open in an editor, refresh it with the contents of the file
+
+      try( Reader reader = new FileReader( file ) )
+      {
+        editor.refresh( StreamUtil.getContent( reader ) );
+      }
+      catch( IOException e )
+      {
+        throw new RuntimeException( e );
+      }
+    }
+    else
+    {
+      // The file is not open, just refresh the type system to include the changes
+
+      FileTree fileTree = (FileTree)getExperimentView().getTree().getModel().getRoot();
+      FileTree node = fileTree.find( file );
+      if( node != null )
+      {
+        IType type = node.getType();
+        if( type != null )
+        {
+          reload( type );
+        }
+      }
+    }
   }
 
   public void newExperiment()

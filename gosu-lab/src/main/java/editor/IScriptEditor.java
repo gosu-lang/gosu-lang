@@ -18,7 +18,7 @@ public interface IScriptEditor extends IEditorHost
 
   public String getText();
 
-  public void read( IScriptPartId ctx, String strSource, String strDescription ) throws IOException;
+  public void read( IScriptPartId ctx, String strSource ) throws IOException;
 
   public void parse();
 

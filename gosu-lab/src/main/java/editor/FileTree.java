@@ -5,6 +5,8 @@ import editor.util.EditorUtilities;
 import editor.util.Experiment;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.TypeSystem;
+import gw.util.GosuStringUtil;
+import gw.util.StreamUtil;
 
 import javax.swing.*;
 import javax.swing.filechooser.FileSystemView;
@@ -14,6 +16,9 @@ import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 import java.awt.*;
 import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.Reader;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Enumeration;
@@ -317,14 +322,26 @@ public class FileTree implements MutableTreeNode, IFileWatcherListener
   }
 
   @Override
+  public void fireModify( String dir, String file )
+  {
+    File existingFile = new File( dir, file );
+    if( !existingFile.isFile() )
+    {
+      return;
+    }
+
+    EventQueue.invokeLater( () -> getExperiment().getGosuPanel().refresh( existingFile ) );
+  }
+
+  @Override
   public void fireDelete( String dir, String file )
   {
-    File newFileOrDir = new File( dir, file );
-    FileTree fileTree = find( newFileOrDir );
+    File existingFile = new File( dir, file );
+    FileTree fileTree = find( existingFile );
     if( fileTree != null )
     {
       EventQueue.invokeLater( () -> ((DefaultTreeModel)getExperimentView().getTree().getModel()).removeNodeFromParent( fileTree ) );
-      getExperiment().getGosuPanel().closeTab( newFileOrDir );
+      getExperiment().getGosuPanel().closeTab( existingFile );
     }
   }
 

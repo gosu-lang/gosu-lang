@@ -77,6 +77,7 @@ import gw.lang.reflect.gs.IGosuVarPropertyInfo;
 import gw.lang.reflect.gs.StringSourceFileHandle;
 import gw.lang.reflect.java.JavaTypes;
 import gw.util.GosuStringUtil;
+import gw.util.StreamUtil;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -113,7 +114,9 @@ import java.awt.event.KeyListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
+import java.io.Reader;
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -1190,10 +1193,10 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
   }
 
   @Override
-  public void read( IScriptPartId partId, String strSource, String strDescription ) throws IOException
+  public void read( IScriptPartId partId, String strSource ) throws IOException
   {
     _partId = partId;
-    _labelCaption.setText( strDescription );
+    _labelCaption.setText( "" );
 
     AbstractDocument doc = (AbstractDocument)_editor.getDocument();
     if( doc != null )
@@ -1202,14 +1205,21 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
     }
 
     // Replace the Windows style new-line sequence with just a new-line.
-    // Otherwise, we have serious problems with the editor (it ALWAYS thinks new lines are one character, regardless).
+    // Otherwise, the editor thinks new lines are one character
     strSource = GosuStringUtil.replace( strSource, "\r\n", "\n" );
 
-    _editor.read( new StringReader( strSource ), strDescription );
+    _editor.read( new StringReader( strSource ), "" );
 
     addDocumentListener();
 
     parse();
+  }
+
+  public void refresh( String content )
+  {
+    content = GosuStringUtil.replace( content, "\r\n", "\n" );
+    getEditor().setText( content );
+    EventQueue.invokeLater( () -> getUndoManager().discardAllEdits() );
   }
 
   private void addDocumentListener()
