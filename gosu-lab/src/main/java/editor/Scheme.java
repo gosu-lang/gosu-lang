@@ -59,4 +59,8 @@ public abstract class Scheme
   public abstract Color getExecBreakpoint();
   public abstract Color getFrameBreakpoint();
 
+  public abstract Color getColorError();
+  public abstract Color getColorErrorShadow();
+  public abstract Color getColorWarning();
+  public abstract Color getColorWarningShadow();
 }

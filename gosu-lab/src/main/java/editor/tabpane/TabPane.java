@@ -1,7 +1,6 @@
 package editor.tabpane;
 
 import editor.IContextMenuHandler;
-import editor.LabScheme;
 import editor.Scheme;
 import editor.search.StudioUtilities;
 import editor.splitpane.ICaptionBar;

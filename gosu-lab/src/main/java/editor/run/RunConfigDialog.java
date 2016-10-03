@@ -1,7 +1,6 @@
 package editor.run;
 
 import editor.AbstractTreeCellRenderer;
-import editor.LabScheme;
 import editor.RunMe;
 import editor.Scheme;
 import editor.search.StudioUtilities;

@@ -1,7 +1,6 @@
 package editor.tabpane;
 
 
-import editor.LabScheme;
 import editor.Scheme;
 import editor.actions.GenericAction;
 import editor.splitpane.ICaptionActionListener;

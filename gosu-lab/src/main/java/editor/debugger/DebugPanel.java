@@ -14,7 +14,6 @@ import editor.AbstractTreeCellRenderer;
 import editor.CommonMenus;
 import editor.FileTreeUtil;
 import editor.GosuEditor;
-import editor.LabScheme;
 import editor.RunMe;
 import editor.Scheme;
 import editor.VarTree;

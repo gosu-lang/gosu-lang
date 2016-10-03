@@ -1,7 +1,6 @@
 package editor.shipit;
 
 import editor.GotoProgramTypePopup;
-import editor.LabScheme;
 import editor.RunMe;
 import editor.Scheme;
 import editor.search.StudioUtilities;

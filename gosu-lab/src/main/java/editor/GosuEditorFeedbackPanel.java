@@ -25,11 +25,6 @@ import java.util.List;
  */
 public class GosuEditorFeedbackPanel extends JPanel
 {
-  private static final Color COLOR_ERROR = Color.RED;
-  private static final Color COLOR_ERROR_SHADOW = new Color( 128, 0, 0 );
-  private static final Color COLOR_WARNING = Color.YELLOW;
-  private static final Color COLOR_WARNING_SHADOW = new Color( 128, 128, 0 );
-
   private JLabel _icon;
   private FeedbackMargin _feedback;
   private GosuEditor _editor;
@@ -137,9 +132,9 @@ public class GosuEditorFeedbackPanel extends JPanel
     private void paintWarningMark( Graphics g, ParseWarning w, int iLineCount )
     {
       int iMark = getMarkForIssue( w, iLineCount );
-      g.setColor( COLOR_WARNING );
+      g.setColor( Scheme.active().getColorWarning() );
       g.fillRect( 1, iMark - 1, getWidth() - 2, 3 );
-      g.setColor( COLOR_WARNING_SHADOW );
+      g.setColor( Scheme.active().getColorWarningShadow() );
       g.drawLine( 2, iMark + 1, getWidth() - 2, iMark + 1 );
       g.drawLine( getWidth() - 2, iMark - 1, getWidth() - 2, iMark + 1 );
     }
@@ -147,9 +142,9 @@ public class GosuEditorFeedbackPanel extends JPanel
     private void paintErrorMark( Graphics g, ParseException e, int iLineCount )
     {
       int iMark = getMarkForIssue( e, iLineCount );
-      g.setColor( COLOR_ERROR );
+      g.setColor( Scheme.active().getColorError() );
       g.fillRect( 1, iMark - 1, getWidth() - 2, 3 );
-      g.setColor( COLOR_ERROR_SHADOW );
+      g.setColor( Scheme.active().getColorErrorShadow() );
       g.drawLine( 2, iMark + 1, getWidth() - 2, iMark + 1 );
       g.drawLine( getWidth() - 2, iMark - 1, getWidth() - 2, iMark + 1 );
     }

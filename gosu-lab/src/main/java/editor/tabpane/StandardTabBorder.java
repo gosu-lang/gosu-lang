@@ -1,6 +1,5 @@
 package editor.tabpane;
 
-import editor.LabScheme;
 import editor.Scheme;
 
 import javax.swing.border.Border;

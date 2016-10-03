@@ -28,9 +28,15 @@ public class LabScheme extends Scheme
   private static final Color CONTROL_LIGTH_SHADOW = new Color( 200, 200, 200 );
   private static final Color CONTROL_SHADOW = new Color( 160, 160, 160 ); //EditorUtilities.CONTROL_SHADOW;
   private static final Color CONTROL_TEXT = Color.black; //UIManager.getColor( "controlText" );
+
   private static final Color COLOR_BREAKPOINT = new Color( 255, 0, 0, 50 );
   private static final Color COLOR_EXECPOINT = new Color( 0, 255, 0, 50 );
   private static final Color COLOR_FRAMEPOINT = new Color( 128, 128, 128, 50 );
+
+  private static final Color COLOR_ERROR = new Color( 226, 83, 70 );
+  private static final Color COLOR_ERROR_SHADOW = new Color( 193, 44, 36 );
+  private static final Color COLOR_WARNING = new Color( 255, 240, 0 );
+  private static final Color COLOR_WARNING_SHADOW = new Color( 234, 190, 0 );
 
   @Override
   public Color getControlLight()
@@ -174,5 +180,29 @@ public class LabScheme extends Scheme
   public Color getFrameBreakpoint()
   {
     return COLOR_FRAMEPOINT;
+  }
+
+  @Override
+  public Color getColorError()
+  {
+    return COLOR_ERROR;
+  }
+
+  @Override
+  public Color getColorErrorShadow()
+  {
+    return COLOR_ERROR_SHADOW;
+  }
+
+  @Override
+  public Color getColorWarning()
+  {
+    return COLOR_WARNING;
+  }
+
+  @Override
+  public Color getColorWarningShadow()
+  {
+    return COLOR_WARNING_SHADOW;
   }
 }

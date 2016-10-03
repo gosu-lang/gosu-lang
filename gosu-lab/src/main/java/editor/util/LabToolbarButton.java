@@ -1,6 +1,5 @@
 package editor.util;
 
-import editor.LabScheme;
 import editor.Scheme;
 import editor.actions.UpdateNotifier;
 import gw.util.GosuObjectUtil;
@@ -166,6 +165,12 @@ public class LabToolbarButton extends JButton
       if( tip == null || tip.isEmpty() )
       {
         tip = GosuObjectUtil.toString( getAction().getValue( Action.NAME ) );
+      }
+
+      String value = (String)getAction().getValue( Action.ACCELERATOR_KEY );
+      if( value != null && !value.isEmpty() )
+      {
+        tip += " (" + value + ")";
       }
       return tip;
     }

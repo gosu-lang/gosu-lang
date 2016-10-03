@@ -1,6 +1,5 @@
 package editor.util;
 
-import editor.LabScheme;
 import editor.Scheme;
 
 import javax.swing.*;
