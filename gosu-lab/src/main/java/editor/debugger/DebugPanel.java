@@ -14,7 +14,9 @@ import editor.AbstractTreeCellRenderer;
 import editor.CommonMenus;
 import editor.FileTreeUtil;
 import editor.GosuEditor;
+import editor.LabScheme;
 import editor.RunMe;
+import editor.Scheme;
 import editor.VarTree;
 import editor.splitpane.CollapsibleSplitPane;
 import editor.tabpane.TabPane;
@@ -65,8 +67,8 @@ public class DebugPanel extends JPanel
     JPanel panel = new JPanel( new BorderLayout() );
 
     _cbThreads = new JComboBox<>();
-    _cbThreads.setBackground( EditorUtilities.CONTROL );
-    _cbThreads.setBorder( BorderFactory.createMatteBorder( 1, 1, 1, 1, EditorUtilities.CONTROL_SHADOW ) );
+    _cbThreads.setBackground( Scheme.active().getControl() );
+    _cbThreads.setBorder( BorderFactory.createMatteBorder( 1, 1, 1, 1, Scheme.active().getControlShadow() ) );
     _cbThreads.setRenderer( new ThreadCellRenderer( _cbThreads.getRenderer() ) );
     _cbThreads.addActionListener( action -> threadChanged() );
     _cbThreads.setFocusable( false );
@@ -74,7 +76,7 @@ public class DebugPanel extends JPanel
 
     DefaultListModel<StackFrame> model = new DefaultListModel<>();
     _listFrames = new JList<>( model );
-    _listFrames.setBackground( EditorUtilities.WINDOW );
+    _listFrames.setBackground( Scheme.active().getWindow() );
     _listFrames.getSelectionModel().setSelectionMode( ListSelectionModel.SINGLE_SELECTION );
     _listFrames.setFixedCellHeight( 22 );
     _listFrames.setCellRenderer( new StackFrameCellRenderer() );
@@ -205,7 +207,7 @@ public class DebugPanel extends JPanel
   {
     _varTree = new JTree( new DefaultTreeModel( new VarTree( null ) ) );
     _varTree.setBorder( null );
-    _varTree.setBackground( EditorUtilities.WINDOW );
+    _varTree.setBackground( Scheme.active().getWindow() );
     _varTree.setRootVisible( false );
     _varTree.setShowsRootHandles( true );
     _varTree.setRowHeight( 22 );

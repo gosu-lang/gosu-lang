@@ -88,7 +88,7 @@ public class SymbolPopup extends EditorBasedPopup implements ISelectionPopup
     {
       JLabel labelTypeName = new JLabel( "Objects and Functions" );
       labelTypeName.setOpaque( true );
-      labelTypeName.setBackground( editor.util.EditorUtilities.CONTROL );
+      labelTypeName.setBackground( Scheme.active().getControl() );
       labelTypeName.setFont( labelTypeName.getFont().deriveFont( Font.BOLD ) );
       labelTypeName.setBorder( BorderFactory.createEmptyBorder( 3, 3, 3, 3 ) );
       content.add( labelTypeName, BorderLayout.NORTH );

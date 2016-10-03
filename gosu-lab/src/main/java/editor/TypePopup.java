@@ -118,7 +118,7 @@ public class TypePopup extends EditorBasedPopup implements ISelectionPopup
     int iY = 0;
     JLabel labelTypeName = new JLabel( _title );
     labelTypeName.setOpaque( true );
-    labelTypeName.setBackground( editor.util.EditorUtilities.CONTROL );
+    labelTypeName.setBackground( Scheme.active().getControl() );
     labelTypeName.setFont( labelTypeName.getFont().deriveFont( Font.BOLD ) );
     labelTypeName.setBorder( BorderFactory.createEmptyBorder( 3, 3, 3, 3 ) );
     c.anchor = GridBagConstraints.WEST;

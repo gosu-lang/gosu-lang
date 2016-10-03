@@ -62,7 +62,7 @@ public class GosuEditorFeedbackPanel extends JPanel
   void configureUI()
   {
     setLayout( new BorderLayout() );
-    setBackground( editor.util.EditorUtilities.CONTROL );
+    setBackground( Scheme.active().getControl() );
     setBorder( null );
 
     _icon = new JLabel();

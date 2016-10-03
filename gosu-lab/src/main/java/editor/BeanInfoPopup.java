@@ -9,7 +9,6 @@ import editor.util.ContainerMoverSizer;
 import editor.util.ContainerSizer;
 import editor.util.EditorUtilities;
 import editor.util.TextComponentUtil;
-import gw.lang.parser.IDynamicFunctionSymbol;
 import gw.lang.parser.IScriptPartId;
 import gw.lang.parser.ISymbol;
 import gw.lang.parser.exceptions.ParseException;
@@ -201,7 +200,7 @@ public class BeanInfoPopup extends EditorBasedPopup implements ISelectionPopup
     {
       JLabel labelTypeName = new JLabel( TypeSystem.getGenericRelativeName( _classes[0], true ) );
       labelTypeName.setOpaque( true );
-      labelTypeName.setBackground( EditorUtilities.CONTROL );
+      labelTypeName.setBackground( Scheme.active().getControl() );
       labelTypeName.setFont( labelTypeName.getFont().deriveFont( Font.BOLD ) );
       labelTypeName.setBorder( BorderFactory.createEmptyBorder( 0, 3, 3, 3 ) );
       c.anchor = GridBagConstraints.WEST;
@@ -916,7 +915,7 @@ public class BeanInfoPopup extends EditorBasedPopup implements ISelectionPopup
 
       if( _bSelected )
       {
-        bkColor = _tree.isEnabled() ? EditorUtilities.TEXT_HIGHLIGHT : EditorUtilities.CONTROL_SHADOW;
+        bkColor = _tree.isEnabled() ? Scheme.active().getTextHighlight() : Scheme.active().getControlShadow();
       }
       else
       {
@@ -940,7 +939,7 @@ public class BeanInfoPopup extends EditorBasedPopup implements ISelectionPopup
 
           if( _bSelected && _tree.hasFocus() )
           {
-            g.setColor( _tree.isEnabled() ? EditorUtilities.TEXT_HIGHLIGHT_TEXT : EditorUtilities.CONTROL_LIGHT );
+            g.setColor( _tree.isEnabled() ? Scheme.active().getTextHighlightText() : Scheme.active().getControlLight() );
             BasicGraphicsUtils.drawDashedRect( g, offset, 0, getWidth() - 1 - offset, getHeight() - 1 );
           }
 
@@ -951,17 +950,17 @@ public class BeanInfoPopup extends EditorBasedPopup implements ISelectionPopup
 
           if( _bSelected && _tree.hasFocus() )
           {
-            g.setColor( _tree.isEnabled() ? EditorUtilities.TEXT_HIGHLIGHT_TEXT : EditorUtilities.CONTROL_LIGHT );
+            g.setColor( _tree.isEnabled() ? Scheme.active().getTextHighlightText() : Scheme.active().getControlLight() );
             BasicGraphicsUtils.drawDashedRect( g, 0, 0, getWidth() - 1, getHeight() - 1 );
           }
         }
         g.setColor( bkColor );
       }
 
-      setForeground( _bSelected ? _tree.isEnabled() ? EditorUtilities.TEXT_HIGHLIGHT_TEXT
-                                                    : EditorUtilities.CONTROL_LIGHT
-                                : _tree.isEnabled() ? EditorUtilities.TEXT_TEXT
-                                                    : EditorUtilities.CONTROL_SHADOW );
+      setForeground( _bSelected ? _tree.isEnabled() ? Scheme.active().getTextHighlightText()
+                                                    : Scheme.active().getControlLight()
+                                : _tree.isEnabled() ? Scheme.active().getTextText()
+                                                    : Scheme.active().getControlShadow() );
       super.paint( g );
     }
 

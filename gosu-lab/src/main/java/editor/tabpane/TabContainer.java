@@ -1,8 +1,9 @@
 package editor.tabpane;
 
 import editor.IContextMenuHandler;
+import editor.LabScheme;
+import editor.Scheme;
 import editor.search.StudioUtilities;
-import editor.util.EditorUtilities;
 import editor.util.IDisposable;
 import editor.util.ILabel;
 
@@ -278,7 +279,7 @@ public class TabContainer extends JPanel
       return;
     }
 
-    g.setColor( EditorUtilities.CONTROL_SHADOW );
+    g.setColor( Scheme.active().getControlShadow() );
     if( getTabPosition() == TabPosition.TOP )
     {
       g.drawLine( 0, getHeight() - 1, getWidth() - 1, getHeight() - 1 );

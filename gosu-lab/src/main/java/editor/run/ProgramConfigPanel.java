@@ -1,7 +1,9 @@
 package editor.run;
 
 import editor.GotoProgramTypePopup;
+import editor.LabScheme;
 import editor.RunMe;
+import editor.Scheme;
 import editor.util.DirectoryEditor;
 import editor.util.EditorUtilities;
 import editor.util.LabCheckbox;
@@ -79,7 +81,7 @@ class ProgramConfigPanel extends JPanel
     c.weighty = 0;
     c.insets = new Insets( 10, 0, 10, 0 );
     JPanel separator = new JPanel();
-    separator.setBorder( BorderFactory.createMatteBorder( 1, 0, 0, 0, EditorUtilities.CONTROL_SHADOW ) );
+    separator.setBorder( BorderFactory.createMatteBorder( 1, 0, 0, 0, Scheme.active().getControlShadow() ) );
     configPanel.add( separator, c );
 
     

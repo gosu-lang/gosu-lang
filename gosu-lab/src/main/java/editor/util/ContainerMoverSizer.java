@@ -1,5 +1,8 @@
 package editor.util;
 
+import editor.LabScheme;
+import editor.Scheme;
+
 import javax.swing.*;
 import javax.swing.border.Border;
 import java.awt.*;
@@ -70,7 +73,7 @@ public class ContainerMoverSizer extends JComponent
   private void configUi()
   {
     setOpaque( true );
-    setBackground( editor.util.EditorUtilities.CONTROL );
+    setBackground( Scheme.active().getControl() );
     DragController controller = new DragController();
     addMouseListener( controller );
     addMouseMotionListener( controller );

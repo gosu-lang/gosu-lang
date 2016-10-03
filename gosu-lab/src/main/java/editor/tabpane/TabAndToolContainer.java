@@ -1,9 +1,10 @@
 package editor.tabpane;
 
+import editor.LabScheme;
+import editor.Scheme;
 import editor.splitpane.EmptyCaptionBar;
 import editor.splitpane.ICaptionActionListener;
 import editor.splitpane.ICaptionBar;
-import editor.util.EditorUtilities;
 
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
@@ -91,7 +92,7 @@ public class TabAndToolContainer extends JPanel implements ICaptionBar
     if( _tabContainer.getTabCount() > 0 )
     {
       TabAndToolContainer copy = new TabAndToolContainer( this );
-      copy.setBorder( BorderFactory.createMatteBorder( 1, 1, 1, 1, EditorUtilities.CONTROL_SHADOW ) );
+      copy.setBorder( BorderFactory.createMatteBorder( 1, 1, 1, 1, Scheme.active().getControlShadow() ) );
       return copy;
     }
     else

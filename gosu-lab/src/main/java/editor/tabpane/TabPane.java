@@ -1,10 +1,11 @@
 package editor.tabpane;
 
 import editor.IContextMenuHandler;
+import editor.LabScheme;
+import editor.Scheme;
 import editor.search.StudioUtilities;
 import editor.splitpane.ICaptionBar;
 import editor.splitpane.ICaptionedPanel;
-import editor.util.EditorUtilities;
 import editor.util.ILabel;
 import editor.util.SettleModalEventQueue;
 import editor.util.SmartMenuItem;
@@ -329,14 +330,14 @@ public class TabPane extends JPanel implements ICaptionedPanel
       if( !isTopBorderOnly() )
       {
         setBorder( BorderFactory.createCompoundBorder(
-          BorderFactory.createMatteBorder( 1, 1, 1, 1, EditorUtilities.CONTROL_SHADOW ),
+          BorderFactory.createMatteBorder( 1, 1, 1, 1, Scheme.active().getControlShadow() ),
           BorderFactory.createEmptyBorder( HEADER_MARGIN, 0, 0, 0 ) ) );
       }
       else
       {
         setBorder( null );
         _tabAndToolContainer.setBorder( BorderFactory.createCompoundBorder(
-          BorderFactory.createMatteBorder( 1, 1, 0, 1, EditorUtilities.CONTROL_SHADOW ),
+          BorderFactory.createMatteBorder( 1, 1, 0, 1, Scheme.active().getControlShadow() ),
           BorderFactory.createEmptyBorder( HEADER_MARGIN, 0, 0, 0 ) ) );
       }
     }
@@ -345,14 +346,14 @@ public class TabPane extends JPanel implements ICaptionedPanel
       if( !isTopBorderOnly() )
       {
         setBorder( BorderFactory.createCompoundBorder(
-          BorderFactory.createMatteBorder( 1, 1, 1, 1, EditorUtilities.CONTROL_SHADOW ),
+          BorderFactory.createMatteBorder( 1, 1, 1, 1, Scheme.active().getControlShadow() ),
           BorderFactory.createEmptyBorder( 0, 0, HEADER_MARGIN, 0 ) ) );
       }
       else
       {
         setBorder( null );
         _tabAndToolContainer.setBorder( BorderFactory.createCompoundBorder(
-          BorderFactory.createMatteBorder( 0, 1, 1, 1, EditorUtilities.CONTROL_SHADOW ),
+          BorderFactory.createMatteBorder( 0, 1, 1, 1, Scheme.active().getControlShadow() ),
           BorderFactory.createEmptyBorder( 0, 0, HEADER_MARGIN, 0 ) ) );
       }
     }
@@ -361,14 +362,14 @@ public class TabPane extends JPanel implements ICaptionedPanel
       if( !isTopBorderOnly() )
       {
         setBorder( BorderFactory.createCompoundBorder(
-          BorderFactory.createMatteBorder( 1, 1, 1, 1, EditorUtilities.CONTROL_SHADOW ),
+          BorderFactory.createMatteBorder( 1, 1, 1, 1, Scheme.active().getControlShadow() ),
           BorderFactory.createEmptyBorder( 0, 0, 0, HEADER_MARGIN ) ) );
       }
       else
       {
         setBorder( null );
         _tabAndToolContainer.setBorder( BorderFactory.createCompoundBorder(
-          BorderFactory.createMatteBorder( 1, 0, 1, 1, EditorUtilities.CONTROL_SHADOW ),
+          BorderFactory.createMatteBorder( 1, 0, 1, 1, Scheme.active().getControlShadow() ),
           BorderFactory.createEmptyBorder( 0, 0, 0, HEADER_MARGIN ) ) );
       }
     }
@@ -377,14 +378,14 @@ public class TabPane extends JPanel implements ICaptionedPanel
       if( !isTopBorderOnly() )
       {
         setBorder( BorderFactory.createCompoundBorder(
-          BorderFactory.createMatteBorder( 1, 1, 1, 1, EditorUtilities.CONTROL_SHADOW ),
+          BorderFactory.createMatteBorder( 1, 1, 1, 1, Scheme.active().getControlShadow() ),
           BorderFactory.createEmptyBorder( 0, HEADER_MARGIN, 0, 0 ) ) );
       }
       else
       {
         setBorder( null );
         _tabAndToolContainer.setBorder( BorderFactory.createCompoundBorder(
-          BorderFactory.createMatteBorder( 1, 1, 1, 0, EditorUtilities.CONTROL_SHADOW ),
+          BorderFactory.createMatteBorder( 1, 1, 1, 0, Scheme.active().getControlShadow() ),
           BorderFactory.createEmptyBorder( 0, HEADER_MARGIN, 0, 0 ) ) );
       }
     }

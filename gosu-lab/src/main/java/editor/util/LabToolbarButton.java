@@ -1,5 +1,7 @@
 package editor.util;
 
+import editor.LabScheme;
+import editor.Scheme;
 import editor.actions.UpdateNotifier;
 import gw.util.GosuObjectUtil;
 
@@ -31,12 +33,12 @@ public class LabToolbarButton extends JButton
     setUI( BasicButtonUI.createUI( this ) );
     setBorderPainted( false );
     setMargin( new Insets( 1, 1, 1, 1 ) );
-    setBackground( EditorUtilities.CONTROL );
+    setBackground( Scheme.active().getControl() );
     setContentAreaFilled( false );
     setOpaque( true );
     EventQueue.invokeLater( () -> {
-      setBorder( BorderFactory.createCompoundBorder( BorderFactory.createLineBorder( EditorUtilities.XP_BORDER_COLOR ), BorderFactory.createEmptyBorder( iMarginH, iMarginW, iMarginH, iMarginW ) ) );
-      setBackground( EditorUtilities.CONTROL );
+      setBorder( BorderFactory.createCompoundBorder( BorderFactory.createLineBorder( Scheme.active().getXpBorderColor() ), BorderFactory.createEmptyBorder( iMarginH, iMarginW, iMarginH, iMarginW ) ) );
+      setBackground( Scheme.active().getControl() );
     } );
     _bShowText = false;
     addMouseListener( createMouseListener() );
@@ -88,11 +90,11 @@ public class LabToolbarButton extends JButton
             setBorderPainted( true );
             if( getModel().isArmed() )
             {
-              setBackground( EditorUtilities.XP_HIGHLIGHT_SELECTED_COLOR );
+              setBackground( Scheme.active().getXpHighlightSelectedColor() );
             }
             else
             {
-              setBackground( EditorUtilities.XP_HIGHLIGHT_COLOR );
+              setBackground( Scheme.active().getXpHighlightColor() );
             }
           }
         }
@@ -100,12 +102,12 @@ public class LabToolbarButton extends JButton
         public void mouseExited( MouseEvent e )
         {
           setBorderPainted( isBorderConstant() );
-          setBackground( _bkColor != null ? _bkColor :EditorUtilities.CONTROL );
+          setBackground( _bkColor != null ? _bkColor : Scheme.active().getControl() );
         }
 
         public void mousePressed( MouseEvent e )
         {
-          setBackground( EditorUtilities.XP_HIGHLIGHT_SELECTED_COLOR );
+          setBackground( Scheme.active().getXpHighlightSelectedColor() );
         }
       };
   }

@@ -1,5 +1,7 @@
 package editor.util;
 
+import editor.LabScheme;
+import editor.Scheme;
 import editor.search.StudioUtilities;
 
 import javax.swing.*;
@@ -47,7 +49,7 @@ public class ProgressWindow extends JWindow
   {
     ContainerMoverSizer contentPane = new ContainerMoverSizer( null );
     contentPane.setLayout( new BorderLayout() );
-    contentPane.setBackground( SystemColor.window );
+    contentPane.setBackground( Scheme.active().getWindow() );
     setContentPane( contentPane );
     add( panel, BorderLayout.CENTER );
   }

@@ -1,6 +1,7 @@
 package editor.tabpane;
 
-import editor.util.EditorUtilities;
+import editor.LabScheme;
+import editor.Scheme;
 import editor.util.VerticalLabelUI;
 
 import javax.swing.*;
@@ -43,7 +44,7 @@ class InnerLabel extends JLabel
         return
                 _tab.isSelected()
                         ? _tab.getTabPane().isShowing() && _tab.getTabPane().isActive()
-                        ? EditorUtilities.ACTIVE_CAPTION_TEXT
+                        ? Scheme.active().getActiveCaptionText()
                         : super.getForeground()
                         : super.getForeground();
       }

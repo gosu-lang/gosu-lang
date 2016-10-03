@@ -5,7 +5,6 @@
  */
 package editor;
 
-import editor.util.EditorUtilities;
 import editor.util.Pair;
 import gw.lang.parser.ISourceCodeTokenizer;
 import gw.lang.parser.exceptions.ParseWarningForDeprecatedMember;
@@ -214,8 +213,8 @@ public class GosuStyleContext extends StyleContext implements ViewFactory
   {
     // Default
     Style style = getStyle( DEFAULT_STYLE );
-    setBackground( style, editor.util.EditorUtilities.WINDOW );
-    setForeground( style, EditorUtilities.WINDOW_TEXT );
+    setBackground( style, Scheme.active().getWindow() );
+    setForeground( style, Scheme.active().getWindowText() );
 
     // Caret
     // style = getStyle( STYLE_Caret );

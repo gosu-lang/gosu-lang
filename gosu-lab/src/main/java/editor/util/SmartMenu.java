@@ -1,5 +1,8 @@
 package editor.util;
 
+import editor.LabScheme;
+import editor.Scheme;
+
 import javax.swing.*;
 import javax.swing.event.MenuEvent;
 import javax.swing.event.MenuListener;
@@ -46,18 +49,18 @@ public class SmartMenu extends JMenu implements MenuListener
                 setBorderPainted( true );
                 if( getModel().isArmed() )
                 {
-                  setBackground( EditorUtilities.XP_HIGHLIGHT_SELECTED_COLOR );
+                  setBackground( Scheme.active().getXpHighlightSelectedColor() );
                 }
                 else
                 {
-                  setBackground( EditorUtilities.XP_HIGHLIGHT_COLOR );
+                  setBackground( Scheme.active().getXpHighlightColor() );
                 }
               }
               break;
 
             case ItemEvent.DESELECTED:
               setBorderPainted( false );
-              setBackground( _bkColor != null ? _bkColor : EditorUtilities.CONTROL );
+              setBackground( _bkColor != null ? _bkColor : Scheme.active().getControl() );
               break;
           }
         }

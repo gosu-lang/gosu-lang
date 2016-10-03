@@ -2,7 +2,6 @@ package editor;
 
 import editor.debugger.BreakpointManager;
 import editor.debugger.Debugger;
-import editor.util.EditorUtilities;
 import editor.util.SettleModalEventQueue;
 import gw.fs.IFile;
 import gw.lang.reflect.IType;
@@ -67,7 +66,7 @@ public class SystemPanel extends JPanel
     editorRootScroller.setBorder( null );
 
     _scroller = new EditorScrollPane( null, _outputPanel, editorRootScroller );
-    _scroller.setBorder( BorderFactory.createMatteBorder( 0, 1, 0, 1, EditorUtilities.CONTROL_SHADOW ) );
+    _scroller.setBorder( BorderFactory.createMatteBorder( 0, 1, 0, 1, Scheme.active().getControlShadow() ) );
     JViewport vp = _scroller.getViewport();
     vp.setScrollMode( JViewport.BLIT_SCROLL_MODE );
 

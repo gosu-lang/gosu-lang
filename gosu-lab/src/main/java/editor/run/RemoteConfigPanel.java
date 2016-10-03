@@ -1,6 +1,7 @@
 package editor.run;
 
-import editor.util.EditorUtilities;
+import editor.LabScheme;
+import editor.Scheme;
 
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
@@ -82,7 +83,7 @@ class RemoteConfigPanel extends JPanel
     c.weighty = 0;
     c.insets = new Insets( 10, 0, 10, 0 );
     JPanel separator = new JPanel();
-    separator.setBorder( BorderFactory.createMatteBorder( 1, 0, 0, 0, EditorUtilities.CONTROL_SHADOW ) );
+    separator.setBorder( BorderFactory.createMatteBorder( 1, 0, 0, 0, Scheme.active().getControlShadow() ) );
     configPanel.add( separator, c );
 
     

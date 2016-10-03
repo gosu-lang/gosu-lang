@@ -1,7 +1,9 @@
 package editor.shipit;
 
 import editor.GotoProgramTypePopup;
+import editor.LabScheme;
 import editor.RunMe;
+import editor.Scheme;
 import editor.search.StudioUtilities;
 import editor.util.EditorUtilities;
 import editor.util.Experiment;
@@ -300,7 +302,7 @@ public class ShipItDialog extends JDialog
         IType type = TypeSystem.getByFullNameIfValid( fqn );
         if( type instanceof IGosuProgram )
         {
-          _fieldProgramName.setForeground( SystemColor.windowText );
+          _fieldProgramName.setForeground( Scheme.active().getWindowText() );
           _btnOk.setEnabled( true );
           _errorMsg.setText( " " );
         }

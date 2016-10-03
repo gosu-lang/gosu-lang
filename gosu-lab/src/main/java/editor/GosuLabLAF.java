@@ -1,7 +1,6 @@
 package editor;
 
 import com.sun.java.swing.plaf.windows.WindowsLookAndFeel;
-import editor.util.*;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -51,40 +50,40 @@ public class GosuLabLAF extends WindowsLookAndFeel
       editor.util.FixupLookAndFeel.fixupFieldBorders();
 
       UIManager.put( "ScrollBar.width", 11 );
-      UIManager.put( "ScrollBar.background", EditorUtilities.CONTROL );
-      UIManager.put( "ScrollBar.foreground", EditorUtilities.CONTROL );
-      UIManager.put( "ScrollBar.trackHighlight", EditorUtilities.CONTROL );
-      UIManager.put( "ScrollBar.thumb", EditorUtilities.CONTROL_LIGTH_SHADOW );
-      UIManager.put( "ScrollBar.thumbHighlight", EditorUtilities.CONTROL_HIGHLIGHT );
-      UIManager.put( "ScrollBar.thumbDarkShadow", EditorUtilities.CONTROL_HIGHLIGHT );
-      UIManager.put( "ScrollBar.thumbShadow", EditorUtilities.CONTROL_HIGHLIGHT ); //new Color(210, 235, 251 ) ); //EditorUtilities.CONTROL );
+      UIManager.put( "ScrollBar.background", Scheme.active().getControl() );
+      UIManager.put( "ScrollBar.foreground", Scheme.active().getControl() );
+      UIManager.put( "ScrollBar.trackHighlight", Scheme.active().getControl() );
+      UIManager.put( "ScrollBar.thumb", Scheme.active().getControlLigthShadow() );
+      UIManager.put( "ScrollBar.thumbHighlight", Scheme.active().getControlHighlight() );
+      UIManager.put( "ScrollBar.thumbDarkShadow", Scheme.active().getControlHighlight() );
+      UIManager.put( "ScrollBar.thumbShadow", Scheme.active().getControlHighlight() ); //new Color(210, 235, 251 ) ); //EditorUtilities.CONTROL );
       UIManager.put( "ScrollBar.border", null );
 
-      UIManager.put( "Separator.foreground", EditorUtilities.CONTROL );
-      UIManager.put( "Separator.background", EditorUtilities.CONTROL_LIGTH_SHADOW );
+      UIManager.put( "Separator.foreground", Scheme.active().getControl() );
+      UIManager.put( "Separator.background", Scheme.active().getControlLigthShadow() );
 
       // Menus
       UIManager.put( "MenuBar.border", BorderFactory.createEmptyBorder( 0, 0, 0, 0 ) );
 
-      UIManager.put( "PopupMenu.border", BorderFactory.createCompoundBorder( BorderFactory.createLineBorder( EditorUtilities.CONTROL_SHADOW ), BorderFactory.createEmptyBorder( 2, 2, 2, 2 ) ) );
-      UIManager.put( "Popup.background", EditorUtilities.CONTROL );
+      UIManager.put( "PopupMenu.border", BorderFactory.createCompoundBorder( BorderFactory.createLineBorder( Scheme.active().getControlShadow() ), BorderFactory.createEmptyBorder( 2, 2, 2, 2 ) ) );
+      UIManager.put( "Popup.background", Scheme.active().getControl() );
 
-      UIManager.put( "Menu.background", EditorUtilities.CONTROL );
-      UIManager.put( "Menu.selectionForeground", EditorUtilities.WINDOW_TEXT );
-      UIManager.put( "Menu.selectionBackground", EditorUtilities.ACTIVE_CAPTION );
-      UIManager.put( "Menu.disabledForeground", EditorUtilities.CONTROL_SHADOW );
-      UIManager.put( "Menu.acceleratorForeground", EditorUtilities.WINDOW_TEXT );
-      UIManager.put( "Menu.acceleratorSelectionForeground", EditorUtilities.WINDOW_TEXT );
-      UIManager.put( "Menu.border", BorderFactory.createCompoundBorder( BorderFactory.createLineBorder( EditorUtilities.CONTROL_SHADOW ), BorderFactory.createEmptyBorder( 2, 2, 2, 2 ) ) );
+      UIManager.put( "Menu.background", Scheme.active().getControl() );
+      UIManager.put( "Menu.selectionForeground", Scheme.active().getWindowText() );
+      UIManager.put( "Menu.selectionBackground", Scheme.active().getActiveCaption() );
+      UIManager.put( "Menu.disabledForeground", Scheme.active().getControlShadow() );
+      UIManager.put( "Menu.acceleratorForeground", Scheme.active().getWindowText() );
+      UIManager.put( "Menu.acceleratorSelectionForeground", Scheme.active().getWindowText() );
+      UIManager.put( "Menu.border", BorderFactory.createCompoundBorder( BorderFactory.createLineBorder( Scheme.active().getControlShadow() ), BorderFactory.createEmptyBorder( 2, 2, 2, 2 ) ) );
 
-      UIManager.put( "Menu.margin", EditorUtilities.WINDOW_TEXT );
+      UIManager.put( "Menu.margin", Scheme.active().getWindowText() );
 
-      UIManager.put( "MenuItem.selectionForeground", EditorUtilities.WINDOW_TEXT );
-      UIManager.put( "MenuItem.selectionBackground", EditorUtilities.ACTIVE_CAPTION );
-      UIManager.put( "MenuItem.disabledForeground", EditorUtilities.CONTROL_SHADOW );
-      UIManager.put( "MenuItem.acceleratorForeground", EditorUtilities.WINDOW_TEXT );
-      UIManager.put( "MenuItem.acceleratorSelectionForeground", EditorUtilities.WINDOW_TEXT );
-      UIManager.put( "MenuItem.border", BorderFactory.createCompoundBorder( BorderFactory.createLineBorder( EditorUtilities.XP_BORDER_COLOR ), BorderFactory.createEmptyBorder( 2, 2, 2, 2 ) ) );
+      UIManager.put( "MenuItem.selectionForeground", Scheme.active().getWindowText() );
+      UIManager.put( "MenuItem.selectionBackground", Scheme.active().getActiveCaption() );
+      UIManager.put( "MenuItem.disabledForeground", Scheme.active().getControlShadow() );
+      UIManager.put( "MenuItem.acceleratorForeground", Scheme.active().getWindowText() );
+      UIManager.put( "MenuItem.acceleratorSelectionForeground", Scheme.active().getWindowText() );
+      UIManager.put( "MenuItem.border", BorderFactory.createCompoundBorder( BorderFactory.createLineBorder( Scheme.active().getXpBorderColor() ), BorderFactory.createEmptyBorder( 2, 2, 2, 2 ) ) );
       UIManager.put( "MenuItem.disabledAreNavigable", false );
       //"MenuItem.acceleratorDelimiter", menuItemAcceleratorDelimiter,
       //"MenuItem.borderPainted", Boolean.FALSE,
@@ -92,17 +91,17 @@ public class GosuLabLAF extends WindowsLookAndFeel
 
       UIManager.put( "ToolBar.border", new EmptyBorder( 0, 0, 0, 0 ) );
 
-      UIManager.put( "List.background", EditorUtilities.WINDOW );
+      UIManager.put( "List.background", Scheme.active().getWindow() );
 
-      UIManager.put( "Tree.background", EditorUtilities.WINDOW );
+      UIManager.put( "Tree.background", Scheme.active().getWindow() );
 
-      UIManager.put( "Table.background", EditorUtilities.WINDOW );
+      UIManager.put( "Table.background", Scheme.active().getWindow() );
 
-      UIManager.put( "ComboBox.background", EditorUtilities.WINDOW );
+      UIManager.put( "ComboBox.background", Scheme.active().getWindow() );
 
-      UIManager.put( "TextField.background", EditorUtilities.WINDOW );
+      UIManager.put( "TextField.background", Scheme.active().getWindow() );
 
-      UIManager.put( "TextArea.background", EditorUtilities.WINDOW );
+      UIManager.put( "TextArea.background", Scheme.active().getWindow() );
     }
     catch( Exception e )
     {

@@ -1,7 +1,5 @@
 package editor;
 
-import editor.util.EditorUtilities;
-
 import javax.swing.*;
 import java.awt.*;
 
@@ -52,8 +50,8 @@ public abstract class AbstractListCellRenderer<T> extends JLabel implements List
     if( _bSelected )
     {
       bkColor = _list.isEnabled() && bFocus
-                ? EditorUtilities.ACTIVE_CAPTION
-                : EditorUtilities.CONTROL;
+                ? Scheme.active().getActiveCaption()
+                : Scheme.active().getControl();
     }
     else
     {
@@ -71,13 +69,13 @@ public abstract class AbstractListCellRenderer<T> extends JLabel implements List
 
       if( _bSelected )
       {
-        g.setColor( _list.isEnabled() && bFocus ? EditorUtilities.XP_BORDER_COLOR : EditorUtilities.CONTROL_SHADOW );
+        g.setColor( _list.isEnabled() && bFocus ? Scheme.active().getXpBorderColor() : Scheme.active().getControlShadow() );
         g.drawRect( 0, 0, getWidth() - 1, getHeight() - 1 );
       }
       g.setColor( bkColor );
     }
 
-    setForeground( EditorUtilities.CONTROL_TEXT );
+    setForeground( Scheme.active().getControlText() );
 
     super.paint( g );
   }

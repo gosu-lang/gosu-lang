@@ -6,7 +6,6 @@
 package editor;
 
 
-import editor.util.EditorUtilities;
 import gw.util.GosuObjectUtil;
 
 import javax.swing.*;
@@ -29,9 +28,9 @@ public class ToggleToolBarButton extends JToggleButton
   private boolean _bRollover;
   private boolean _bMenu;
 
-  public static final Color XP_BORDER_COLOR = EditorUtilities.XP_BORDER_COLOR;
-  private static final Color XP_TOGGLE_ROLLOVER_COLOR = EditorUtilities.XP_HIGHLIGHT_COLOR;
-  private static final Color XP_TOGGLE_SELECTED_COLOR = EditorUtilities.XP_HIGHLIGHT_SELECTED_COLOR;
+  public static final Color XP_BORDER_COLOR = Scheme.active().getXpBorderColor();
+  private static final Color XP_TOGGLE_ROLLOVER_COLOR = Scheme.active().getXpHighlightColor();
+  private static final Color XP_TOGGLE_SELECTED_COLOR = Scheme.active().getXpHighlightSelectedColor();
   private boolean _bShowText;
 
   /**
@@ -46,7 +45,7 @@ public class ToggleToolBarButton extends JToggleButton
     setContentAreaFilled( false );
     setOpaque( true );
 
-    _clrBkgnd = editor.util.EditorUtilities.CONTROL;
+    _clrBkgnd = Scheme.active().getControl();
 
     _activeBorder = new CompoundBorder( new LineBorder( XP_BORDER_COLOR, 1 ),
                                         BorderFactory.createEmptyBorder( 2, 2, 2, 2 ) );
@@ -160,9 +159,9 @@ public class ToggleToolBarButton extends JToggleButton
                            getInsets().top + getMargin().top );
 
       // Paint the menu button separator
-      g.setColor( editor.util.EditorUtilities.CONTROL_SHADOW );
+      g.setColor( Scheme.active().getControlShadow() );
       g.drawLine( iMenuIconX - 2, 0, iMenuIconX - 2, getHeight() );
-      g.setColor( editor.util.EditorUtilities.CONTROL_LIGHT );
+      g.setColor( Scheme.active().getControlLight() );
       g.drawLine( iMenuIconX - 1, 0, iMenuIconX - 1, getHeight() );
     }
   }

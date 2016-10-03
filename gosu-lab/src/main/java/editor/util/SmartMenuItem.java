@@ -1,5 +1,8 @@
 package editor.util;
 
+import editor.LabScheme;
+import editor.Scheme;
+
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -24,7 +27,7 @@ public class SmartMenuItem extends JMenuItem implements ChangeListener
   {
     setBorderPainted( false );
     setMargin( new Insets( 1, 1, 1, 1 ) );
-    setBackground( EditorUtilities.CONTROL );
+    setBackground( Scheme.active().getControl() );
     //setContentAreaFilled( false );
     setOpaque( true );
     addChangeListener( this );
@@ -37,11 +40,11 @@ public class SmartMenuItem extends JMenuItem implements ChangeListener
       setBorderPainted( true );
       if( getModel().isArmed() )
       {
-        setBackground( EditorUtilities.XP_HIGHLIGHT_SELECTED_COLOR );
+        setBackground( Scheme.active().getXpHighlightSelectedColor() );
       }
       else
       {
-        setBackground( EditorUtilities.XP_HIGHLIGHT_COLOR );
+        setBackground( Scheme.active().getXpHighlightColor() );
       }
     }
   }
@@ -49,7 +52,7 @@ public class SmartMenuItem extends JMenuItem implements ChangeListener
   public void handleUnarmed()
   {
     setBorderPainted( false );
-    setBackground( EditorUtilities.CONTROL );
+    setBackground( Scheme.active().getControl() );
   }
 
   public void stateChanged( ChangeEvent e )

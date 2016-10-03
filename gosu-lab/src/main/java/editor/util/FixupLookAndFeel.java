@@ -1,5 +1,8 @@
 package editor.util;
 
+import editor.LabScheme;
+import editor.Scheme;
+
 import javax.swing.*;
 import javax.swing.border.Border;
 import javax.swing.border.LineBorder;
@@ -171,7 +174,7 @@ public class FixupLookAndFeel
 
   public static void fixupFieldBorders()
   {
-    Border borderTextField = new XPFillBorder( EditorUtilities.CONTROL_SHADOW, 1 );
+    Border borderTextField = new XPFillBorder( Scheme.active().getControlShadow(), 1 );
 
     Insets insets = (Insets)UIManager.get( "TextField.margin" );
     if( insets.left < 2 )
@@ -254,8 +257,8 @@ public class FixupLookAndFeel
     UIManager.put( "ToolTip.font", sansSerifPlain12 );
     UIManager.put( "Tree.font", dialogPlain12 );
 
-    UIManager.put( "PopupMenu.border", BorderFactory.createMatteBorder( 1, 1, 1, 1, EditorUtilities.CONTROL_SHADOW ) );
-    UIManager.put( "Menu.border", BorderFactory.createMatteBorder( 1, 1, 1, 1, EditorUtilities.CONTROL_SHADOW ) );
+    UIManager.put( "PopupMenu.border", BorderFactory.createMatteBorder( 1, 1, 1, 1, Scheme.active().getControlShadow() ) );
+    UIManager.put( "Menu.border", BorderFactory.createMatteBorder( 1, 1, 1, 1, Scheme.active().getControlShadow() ) );
 
   }
 

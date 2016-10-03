@@ -64,7 +64,7 @@ public class ExperimentView extends JPanel
     _experiment = experiment;
     DefaultTreeModel model = new DefaultTreeModel( new FileTree( getExperiment() ) );
     _tree = new JTree( model );
-    _tree.setBackground( EditorUtilities.WINDOW );
+    _tree.setBackground( Scheme.active().getWindow() );
     _tree.setShowsRootHandles( true );
     _tree.setRowHeight( 22 );
     _tree.getSelectionModel().setSelectionMode( TreeSelectionModel.SINGLE_TREE_SELECTION );
@@ -73,7 +73,7 @@ public class ExperimentView extends JPanel
     _tree.addMouseListener( new TreeMouseHandler() );
     _tree.addKeyListener( new TreeKeyHandler() );
     _scroller = new JScrollPane( _tree );
-    _scroller.setBorder( new MatteBorder( 0, 0, 1, 1, EditorUtilities.CONTROL_SHADOW ) );
+    _scroller.setBorder( new MatteBorder( 0, 0, 1, 1, Scheme.active().getControlShadow() ) );
     expandToFirstSourcePath( 0, _tree.getRowCount() );
 
     _splitPane.setTop( _scroller );

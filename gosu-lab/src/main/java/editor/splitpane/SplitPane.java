@@ -5,7 +5,8 @@
  */
 package editor.splitpane;
 
-import editor.util.EditorUtilities;
+import editor.LabScheme;
+import editor.Scheme;
 
 import javax.swing.*;
 import java.awt.*;
@@ -147,7 +148,7 @@ public class SplitPane extends JComponent implements SwingConstants
   {
     Splitter()
     {
-      setBackground( EditorUtilities.CONTROL );
+      setBackground( Scheme.active().getControl() );
       int iOrientation = getOrientation();
 
       setCursor( iOrientation == HORIZONTAL ? Cursor.getPredefinedCursor( Cursor.E_RESIZE_CURSOR )

@@ -1,7 +1,5 @@
 package editor;
 
-import editor.util.EditorUtilities;
-
 import javax.swing.*;
 import javax.swing.border.MatteBorder;
 import javax.swing.tree.DefaultTreeModel;
@@ -30,7 +28,7 @@ public class MessagesPanel extends JPanel
   {
     DefaultTreeModel model = new DefaultTreeModel( new MessageTree() );
     _tree = new JTree( model );
-    _tree.setBackground( EditorUtilities.WINDOW );
+    _tree.setBackground( Scheme.active().getWindow() );
     _tree.setRootVisible( false );
     _tree.setShowsRootHandles( true );
     _tree.setRowHeight( 22 );
@@ -40,7 +38,7 @@ public class MessagesPanel extends JPanel
     _tree.addMouseListener( new MouseHandler() );
     _tree.addKeyListener( new TreeKeyHandler() );
     _scroller = new JScrollPane( _tree );
-    _scroller.setBorder( new MatteBorder( 0, 1, 1, 1, EditorUtilities.CONTROL_SHADOW ) );
+    _scroller.setBorder( new MatteBorder( 0, 1, 1, 1, Scheme.active().getControlShadow() ) );
     add( _scroller, BorderLayout.CENTER );
   }
 

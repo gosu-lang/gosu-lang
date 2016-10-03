@@ -1,9 +1,10 @@
 package editor.tabpane;
 
 
+import editor.LabScheme;
+import editor.Scheme;
 import editor.actions.GenericAction;
 import editor.splitpane.ICaptionActionListener;
-import editor.util.EditorUtilities;
 import editor.util.LabToolbarButton;
 import editor.util.ToolBar;
 
@@ -78,19 +79,19 @@ public class ToolContainer extends JPanel
     TabPosition tp = _tabPane.getTabContainer().getTabPosition();
     if( tp == TabPosition.TOP )
     {
-      return BorderFactory.createMatteBorder( 0, 0, 1, 0, EditorUtilities.CONTROL_SHADOW );
+      return BorderFactory.createMatteBorder( 0, 0, 1, 0, Scheme.active().getControlShadow() );
     }
     else if( tp == TabPosition.BOTTOM )
     {
-      return BorderFactory.createMatteBorder( 1, 0, 0, 0, EditorUtilities.CONTROL_SHADOW );
+      return BorderFactory.createMatteBorder( 1, 0, 0, 0, Scheme.active().getControlShadow() );
     }
     else if( tp == TabPosition.LEFT )
     {
-      return BorderFactory.createMatteBorder( 0, 0, 0, 1, EditorUtilities.CONTROL_SHADOW );
+      return BorderFactory.createMatteBorder( 0, 0, 0, 1, Scheme.active().getControlShadow() );
     }
     else
     {
-      return BorderFactory.createMatteBorder( 0, 1, 0, 0, EditorUtilities.CONTROL_SHADOW );
+      return BorderFactory.createMatteBorder( 0, 1, 0, 0, Scheme.active().getControlShadow() );
     }
   }
 

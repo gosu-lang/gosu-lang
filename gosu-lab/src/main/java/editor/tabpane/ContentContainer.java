@@ -1,7 +1,8 @@
 package editor.tabpane;
 
+import editor.LabScheme;
+import editor.Scheme;
 import editor.search.StudioUtilities;
-import editor.util.EditorUtilities;
 
 import javax.swing.*;
 import javax.swing.border.Border;
@@ -76,9 +77,9 @@ public class ContentContainer extends JPanel
     {
       if( StudioUtilities.containsFocus( ContentContainer.this ) )
       {
-        return EditorUtilities.ACTIVE_CAPTION;
+        return Scheme.active().getActiveCaption();
       }
-      return EditorUtilities.CONTROL;
+      return Scheme.active().getControl();
     }
 
     public boolean isBorderOpaque()
@@ -100,7 +101,7 @@ public class ContentContainer extends JPanel
         g.fillRect( width - insets.right, 0, insets.right, height - insets.bottom );
         if( _tabPane.isTopBorderOnly() )
         {
-          g.setColor( EditorUtilities.CONTROL_SHADOW );
+          g.setColor( Scheme.active().getControlShadow() );
           TabPosition tp = _tabPane.getTabContainer().getTabPosition();
           if( tp == TabPosition.TOP ||
               tp == TabPosition.BOTTOM )

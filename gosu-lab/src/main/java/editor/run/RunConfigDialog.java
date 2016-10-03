@@ -1,7 +1,9 @@
 package editor.run;
 
 import editor.AbstractTreeCellRenderer;
+import editor.LabScheme;
 import editor.RunMe;
+import editor.Scheme;
 import editor.search.StudioUtilities;
 import editor.splitpane.CollapsibleSplitPane;
 import editor.tabpane.ITab;
@@ -250,7 +252,7 @@ public class RunConfigDialog extends JDialog
   {
     DefaultTreeModel model = new DefaultTreeModel( makeRunConfigTree() );
     _tree = new JTree( model );
-    _tree.setBackground( EditorUtilities.WINDOW );
+    _tree.setBackground( Scheme.active().getWindow() );
     _tree.setRootVisible( false );
     _tree.setShowsRootHandles( true );
     _tree.setRowHeight( 22 );

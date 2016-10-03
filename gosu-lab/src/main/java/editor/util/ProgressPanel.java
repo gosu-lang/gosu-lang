@@ -1,5 +1,8 @@
 package editor.util;
 
+import editor.LabScheme;
+import editor.Scheme;
+
 import javax.swing.*;
 import javax.swing.border.Border;
 import java.awt.*;
@@ -69,10 +72,10 @@ public class ProgressPanel extends JPanel
       BorderFactory.createEmptyBorder( 2, 2, 2, 2 ) );
     setBorder( border );
     setLayout( new BorderLayout() );
-    setBackground( SystemColor.window );
+    setBackground( Scheme.active().getWindow() );
 
     JPanel panelCenter = new JPanel( new BorderLayout() );
-    panelCenter.setBackground( SystemColor.window );
+    panelCenter.setBackground( Scheme.active().getWindow() );
     panelCenter.setForeground( UIManager.getColor( "windowText" ) );
     panelCenter.setBorder( new javax.swing.border.EmptyBorder( 10, 10, 10, 10 ) );
     panelCenter.setOpaque( true );
@@ -80,7 +83,7 @@ public class ProgressPanel extends JPanel
     JLabel labelNotice = new JLabel( strNotice );
     labelNotice.setFont( labelNotice.getFont().deriveFont( Font.BOLD ) );
     labelNotice.setBorder( new javax.swing.border.EmptyBorder( 0, 0, 7, 0 ) );
-    labelNotice.setBackground( SystemColor.window );
+    labelNotice.setBackground( Scheme.active().getWindow() );
     labelNotice.setForeground( UIManager.getColor( "windowText" ) );
     labelNotice.setOpaque( true );
     panelCenter.add( BorderLayout.NORTH, labelNotice );
@@ -98,20 +101,20 @@ public class ProgressPanel extends JPanel
     {
       _progress.setIndeterminate( true );
     }
-    _progress.setBackground( SystemColor.window );
+    _progress.setBackground( Scheme.active().getWindow() );
     JPanel progressPanel = new JPanel( new BorderLayout() );
     progressPanel.add( BorderLayout.CENTER, _progress );
-    progressPanel.setBackground( SystemColor.window );
+    progressPanel.setBackground( Scheme.active().getWindow() );
     progressPanel.setBorder( BorderFactory.createEmptyBorder( 0, 10, 15, 10 ) );
     _labelProgress = new JLabel();
-    _labelProgress.setBackground( SystemColor.window );
+    _labelProgress.setBackground( Scheme.active().getWindow() );
     _labelProgress.setForeground( UIManager.getColor( "windowText" ) );
     _labelProgress.setOpaque( true );
     progressPanel.add( BorderLayout.SOUTH, _labelProgress );
     panelCtrl.add( BorderLayout.NORTH, progressPanel );
 
     JPanel panelButtons = new JPanel( new FlowLayout() );
-    panelButtons.setBackground( SystemColor.window );
+    panelButtons.setBackground( Scheme.active().getWindow() );
     panelButtons.add( btnAbort );
     panelCtrl.add( BorderLayout.SOUTH, panelButtons );
     add( BorderLayout.SOUTH, panelCtrl );

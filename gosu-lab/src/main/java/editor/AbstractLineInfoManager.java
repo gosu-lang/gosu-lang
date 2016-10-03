@@ -64,7 +64,7 @@ public abstract class AbstractLineInfoManager implements ILineInfoManager
     }
     else if( isBreakpointAtLine( iLine ) )
     {
-      color = Scheme.active().breakpointColor();
+      color = Scheme.active().getBreakpointColor();
     }
     else if( isFramePointAtLine( iLine ) )
     {

@@ -1,7 +1,8 @@
 package editor.tabpane;
 
+import editor.LabScheme;
+import editor.Scheme;
 import editor.search.StudioUtilities;
-import editor.util.EditorUtilities;
 import editor.util.LabToolbarButton;
 import editor.util.SettleModalEventQueue;
 
@@ -130,22 +131,22 @@ public class MoreTab extends LabToolbarButton
   private void paintTopOrientation( Graphics g )
   {
     int iYStart = 1;
-    g.setColor( EditorUtilities.CONTROL_SHADOW );
+    g.setColor( Scheme.active().getControlShadow() );
     g.drawLine( 0, iYStart, 1, iYStart );
     boolean bLeft = true;
     for( int i = iYStart, x = 1; i <= 32; i+=3, x+=(bLeft ? -1 : 1) )
     {
-      g.setColor( EditorUtilities.CONTROL_SHADOW );
+      g.setColor( Scheme.active().getControlShadow() );
       g.drawLine( x,  i,  x,  i+2 );
-      g.setColor( EditorUtilities.CONTROL_DARKSHADOW );
+      g.setColor( Scheme.active().getControlDarkshadow() );
       g.drawLine( x+1,  i,  x+1,  i+2 );
-      g.setColor( EditorUtilities.CONTROL );
+      g.setColor( Scheme.active().getControl() );
       g.fillRect( x+2, i, getWidth(), i+2 );
       bLeft = x != 0 && (x == 2 || bLeft);
     }
 
     g.setFont( getFont() );
-    g.setColor( EditorUtilities.CONTROL_TEXT );
+    g.setColor( Scheme.active().getControlText() );
     g.drawString( "...", 5, 8 );
   }
 
@@ -219,7 +220,7 @@ public class MoreTab extends LabToolbarButton
         JPopupMenu popup = new TabPopup();
         _selectionListener = new TabPaneSelectionHandler( popup );
         popup.setLayout( new BorderLayout() );
-        popup.setBackground(EditorUtilities.CONTROL );
+        popup.setBackground( Scheme.active().getControl() );
         Point pt = _tabContainer.getLocation();
         pt = fitToScreen( pt, parent, _tabContainer );
         _tabContainer.addSelectionListener( _selectionListener );

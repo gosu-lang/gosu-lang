@@ -1,6 +1,5 @@
 package editor;
 
-import editor.util.EditorUtilities;
 import editor.util.HTMLEscapeUtil;
 import gw.lang.parser.IDynamicFunctionSymbol;
 import gw.lang.parser.IFunctionSymbol;
@@ -79,7 +78,7 @@ public class ParameterInfoPopup extends JPopupMenu
     }
     _labelContainer = new JPanel();
     _labelContainer.setLayout( new BoxLayout( _labelContainer, BoxLayout.Y_AXIS ) );
-    _labelContainer.setBackground( EditorUtilities.TOOLTIP_BACKGROUND );
+    _labelContainer.setBackground( Scheme.active().getTooltipBackground() );
     _labelContainer.setBorder( BorderFactory.createEmptyBorder( 1, 3, 1, 3 ) );
     int iArgIndex = getArgIndex();
     for( int i = 0; i < paramInfoLists.length; i++ )
@@ -148,7 +147,7 @@ public class ParameterInfoPopup extends JPopupMenu
   private void addParameterListLabel( IParameterInfo[] paramList, JPanel container, boolean bBorder, int iArgIndex )
   {
     JLabel label = new JLabel();
-    label.setBorder( bBorder ? BorderFactory.createMatteBorder( 0, 0, 1, 0, EditorUtilities.CONTROL_SHADOW ) : null );
+    label.setBorder( bBorder ? BorderFactory.createMatteBorder( 0, 0, 1, 0, Scheme.active().getControlShadow() ) : null );
     label.setFont( _editor.getEditor().getFont() );
     label.setText( makeParamInfoContent( paramList, iArgIndex ) );
     container.add( label );

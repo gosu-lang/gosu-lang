@@ -200,7 +200,7 @@ public class GosuPanel extends JPanel
   private ToolBar makeMainToolbar()
   {
     ToolBar toolbar = new ToolBar();
-    toolbar.setDynamicBorder( BorderFactory.createCompoundBorder( BorderFactory.createMatteBorder( 1, 0, 0, 0, EditorUtilities.CONTROL_LIGTH_SHADOW ), BorderFactory.createEmptyBorder( 1, 1, 2, 1 ) ) );
+    toolbar.setDynamicBorder( BorderFactory.createCompoundBorder( BorderFactory.createMatteBorder( 1, 0, 0, 0, Scheme.active().getControlLigthShadow() ), BorderFactory.createEmptyBorder( 1, 1, 2, 1 ) ) );
     LabToolbarButton item;
 
     item = new LabToolbarButton( new CommonMenus.OpenProjectActionHandler() );

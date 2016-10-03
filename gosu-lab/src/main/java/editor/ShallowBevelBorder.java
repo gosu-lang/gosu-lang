@@ -15,8 +15,8 @@ import java.awt.*;
  */
 public class ShallowBevelBorder extends BevelBorder
 {
-  private static Color HIGHLIGHT_COLOR = editor.util.EditorUtilities.CONTROL_LIGHT;
-  private static Color SHADOW_COLOR = editor.util.EditorUtilities.CONTROL_SHADOW;
+  private static Color HIGHLIGHT_COLOR = Scheme.active().getControlLight();
+  private static Color SHADOW_COLOR = Scheme.active().getControlShadow();
 
 
   public ShallowBevelBorder( int bevelType )
