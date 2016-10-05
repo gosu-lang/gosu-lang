@@ -1,4 +1,4 @@
-package gw.specContrib.statements
+package gw.specContrib.statements.usesStatement
 
 class Errant_UsesStatementInMethod {
   uses java.sql.BatchUpdateException            //## issuekeys: UNEXPECTED TOKENS
