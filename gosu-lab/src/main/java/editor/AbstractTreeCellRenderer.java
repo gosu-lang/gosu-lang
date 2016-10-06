@@ -82,7 +82,7 @@ public abstract class AbstractTreeCellRenderer<T> extends JLabel implements Tree
       g.setColor( bkColor );
     }
 
-    setForeground( Scheme.active().getControlText() );
+    setForeground( Scheme.active().getWindowText() );
 
     super.paint( g );
   }

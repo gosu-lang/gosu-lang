@@ -19,7 +19,6 @@ import java.util.regex.PatternSyntaxException;
 
 /**
  */
-//## todo: Add support for 'Whole Word' option now that our search supports it
 public abstract class BaseLocalSearchDialog extends JDialog
 {
   public static boolean g_bReplaceMode = false;

@@ -75,7 +75,7 @@ public abstract class AbstractListCellRenderer<T> extends JLabel implements List
       g.setColor( bkColor );
     }
 
-    setForeground( Scheme.active().getControlText() );
+    setForeground( Scheme.active().getWindowText() );
 
     super.paint( g );
   }
