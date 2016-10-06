@@ -17,7 +17,7 @@ class Errant_GosuTestClass1 {
       GosuClass1.foo()      //## issuekeys: STATIC METHOD MAY BE INVOKED ON CONTAINING INTERFACE CLASS ONLY
       JavaInterfaces.JavaInterfaceWithStaticMethod.foo()
       super.foo()      //## issuekeys: CANNOT RESOLVE METHOD 'FOO()'
-      super[JavaInterfaces.JavaInterfaceWithStaticMethod].foo()      //## issuekeys: STATIC METHOD MAY BE INVOKED ON CONTAINING INTERFACE CLASS ONLY
+      super[JavaInterfaces.JavaInterfaceWithStaticMethod].foo()
 
     }
   }
@@ -29,7 +29,7 @@ class Errant_GosuTestClass1 {
       GosuInterface1A.foo()
       super.foo()      //## issuekeys: CANNOT RESOLVE METHOD 'FOO()'
       //IDE-2618 - OS Gosu issue. Should not be able to resolve static method with super map keyword
-      super[GosuInterface1A].foo()      //## issuekeys: STATIC METHOD MAY BE INVOKED ON CONTAINING INTERFACE CLASS ONLY
+      super[GosuInterface1A].foo()
     }
   }
   class GosuClass1B implements GosuInterface1B {
@@ -73,7 +73,7 @@ class Errant_GosuTestClass1 {
       GosuClass2A.bar()      //## issuekeys: STATIC METHOD MAY BE INVOKED ON CONTAINING INTERFACE CLASS ONLY
       GosuInterface2A.bar()
       super.bar()      //## issuekeys: CANNOT RESOLVE METHOD 'BAR()'
-      super[GosuInterface2A].bar()      //## issuekeys: STATIC METHOD MAY BE INVOKED ON CONTAINING INTERFACE CLASS ONLY
+      super[GosuInterface2A].bar()
     }
   }
   class GosuClass2B implements GosuInterface2B {
