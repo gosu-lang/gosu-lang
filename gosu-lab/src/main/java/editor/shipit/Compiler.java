@@ -1,11 +1,9 @@
 package editor.shipit;
 
 import editor.FileTree;
-import editor.IMessageTreeNode;
-import editor.MessageKind;
+import editor.NodeKind;
 import editor.MessageTree;
 import editor.MessagesPanel;
-import editor.RunMe;
 import editor.util.IProgressCallback;
 import gw.lang.parser.IParseIssue;
 import gw.lang.parser.exceptions.ParseResultsException;
@@ -78,33 +76,33 @@ public class Compiler
   {
     if( _warnings == null )
     {
-      _warnings = new MessageTree( "", MessageKind.Info, IMessageTreeNode.empty() );
+      _warnings = new MessageTree( "", NodeKind.Info, MessageTree.empty() );
       messages.appendToTop( _warnings );
     }
     _iWarnings += parseException.getParseWarnings().size();
-    _warnings.setMessage( "Warnings: " + _iWarnings );
+    _warnings.setText( "Warnings: " + _iWarnings );
   }
 
   private void addErrors( ParseResultsException parseException, MessagesPanel messages )
   {
     if( _errors == null )
     {
-      _errors = new MessageTree( "", MessageKind.Info, IMessageTreeNode.empty() );
+      _errors = new MessageTree( "", NodeKind.Info, MessageTree.empty() );
       messages.appendToTop( _errors );
     }
     _iErrors += parseException.getParseExceptions().size();
-    _errors.setMessage( "Errors: " + _iErrors );
+    _errors.setText( "Errors: " + _iErrors );
   }
 
   private void addFailure( MessagesPanel messages )
   {
     if( _failures == null )
     {
-      _failures = new MessageTree( "", MessageKind.Info, IMessageTreeNode.empty() );
+      _failures = new MessageTree( "", NodeKind.Info, MessageTree.empty() );
       messages.appendToTop( _failures );
     }
     _iFailures++;
-    _failures.setMessage( "Failures: " + _iFailures );
+    _failures.setText( "Failures: " + _iFailures );
   }
 
   public boolean compile( IGosuClass gsClass, ICompileConsumer consumer, MessagesPanel messages )
@@ -124,9 +122,9 @@ public class Compiler
       EventQueue.invokeLater( () -> {
         addWarnings( parseException, messages );
         addErrors( parseException, messages );
-        MessageTree typeNode = messages.addTypeMessage( gsClass.getName(), null, IMessageTreeNode.empty() );
-        parseException.getParseWarnings().forEach( warning -> messages.addWarningMessage( makeIssueMessage( warning, MessageKind.Warning ), typeNode, new IssueMessageCallback( warning ) ) );
-        parseException.getParseExceptions().forEach( error -> messages.addErrorMessage( makeIssueMessage( error, MessageKind.Error ), typeNode, new IssueMessageCallback( error ) ) );
+        MessageTree typeNode = messages.addTypeMessage( gsClass.getName(), null, MessageTree.empty() );
+        parseException.getParseWarnings().forEach( warning -> messages.addWarningMessage( makeIssueMessage( warning, NodeKind.Warning ), typeNode, MessageTree.makeIssueMessage( warning ) ) );
+        parseException.getParseExceptions().forEach( error -> messages.addErrorMessage( makeIssueMessage( error, NodeKind.Error ), typeNode, MessageTree.makeIssueMessage( error ) ) );
       } );
 
       return consumer.accept( new CompiledClass( gsClass, null, parseException ) );
@@ -139,8 +137,8 @@ public class Compiler
       {
         EventQueue.invokeLater( () -> {
                                   addWarnings( parseException, messages );
-                                  MessageTree typeNode = messages.addTypeMessage( gsClass.getName(), null, IMessageTreeNode.empty() );
-                                  parseException.getParseWarnings().forEach( warning -> messages.addWarningMessage( makeIssueMessage( warning, MessageKind.Warning ), typeNode, new IssueMessageCallback( warning ) ) );
+                                  MessageTree typeNode = messages.addTypeMessage( gsClass.getName(), null, MessageTree.empty() );
+                                  parseException.getParseWarnings().forEach( warning -> messages.addWarningMessage( makeIssueMessage( warning, NodeKind.Warning ), typeNode, MessageTree.makeIssueMessage( warning ) ) );
                                 } );
       }
 
@@ -150,8 +148,8 @@ public class Compiler
     {
       EventQueue.invokeLater( () -> {
         addFailure( messages );
-        MessageTree typeNode = messages.addTypeMessage( gsClass.getName(), null, IMessageTreeNode.empty() );
-        messages.addFailureMessage( e.getMessage(), typeNode, IMessageTreeNode.empty() );
+        MessageTree typeNode = messages.addTypeMessage( gsClass.getName(), null, MessageTree.empty() );
+        messages.addFailureMessage( e.getMessage(), typeNode, MessageTree.empty() );
         e.printStackTrace();
       } );
       return consumer.accept( new CompiledClass( gsClass, null, e ) );
@@ -164,9 +162,9 @@ public class Compiler
     return false;
   }
 
-  private String makeIssueMessage( IParseIssue issue, MessageKind kind )
+  private String makeIssueMessage( IParseIssue issue, NodeKind kind )
   {
-    String msg = kind == MessageKind.Warning ? "Warning: " : "Error: ";
+    String msg = kind == NodeKind.Warning ? "Warning: " : "Error: ";
     msg += "(" + issue.getLine() + ", " + issue.getColumn() + ") " + issue.getPlainMessage();
     return msg;
   }
@@ -204,44 +202,6 @@ public class Compiler
     {
       TypeSystem.unlock();
     }
-  }
-
-  private class IssueMessageCallback implements IMessageTreeNode
-  {
-    private final IParseIssue _issue;
-
-    public IssueMessageCallback( IParseIssue issue )
-    {
-      _issue = issue;
-    }
-
-    @Override
-    public boolean hasTarget()
-    {
-      return true;
-    }
-
-    @Override
-    public void jumpToTarget()
-    {
-      IGosuClass gsClass = _issue.getSource().getGosuClass();
-      gsClass = getOuterMostEnclosingClass( gsClass );
-
-      RunMe.getEditorFrame().getGosuPanel().openType( gsClass.getName(), true );
-      EventQueue.invokeLater( ()->
-        RunMe.getEditorFrame().getGosuPanel().getCurrentEditor().gotoLine( _issue.getLine(), _issue.getColumn() ) );
-    }
-
-    private IGosuClass getOuterMostEnclosingClass( IGosuClass innerClass )
-    {
-      IGosuClass outerMost = innerClass;
-      while( outerMost != null && outerMost.getEnclosingType() != null )
-      {
-        outerMost = (IGosuClass)outerMost.getEnclosingType();
-      }
-      return outerMost;
-    }
-
   }
 }
 

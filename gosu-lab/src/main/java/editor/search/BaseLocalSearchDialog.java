@@ -19,16 +19,19 @@ import java.util.regex.PatternSyntaxException;
 
 /**
  */
+//## todo: Add support for 'Whole Word' option now that our search supports it
 public abstract class BaseLocalSearchDialog extends JDialog
 {
   public static boolean g_bReplaceMode = false;
   private static final DefaultComboBoxModel g_historySearch = new DefaultComboBoxModel();
   private static final DefaultComboBoxModel g_historyReplace = new DefaultComboBoxModel();
   private static boolean g_bCaseSensitive;
+  private static boolean g_bWords;
   private static boolean g_bRegex;
   private JComboBox _comboSearch;
   private JComboBox _comboReplace;
   private LabCheckbox _cbCaseSensitive;
+  private LabCheckbox _cbWords;
   private LabCheckbox _cbRegex;
   private boolean _bReplaceMode;
   private boolean _bAllMode;
@@ -135,7 +138,7 @@ public abstract class BaseLocalSearchDialog extends JDialog
     }
     else
     {
-      return StringUtil.search( strSource, strPattern, !isCaseSensitive(), iOffset, backwards );
+      return StringUtil.search( strSource, strPattern, !isCaseSensitive(), isWords(), iOffset, backwards );
     }
   }
 
@@ -205,6 +208,7 @@ public abstract class BaseLocalSearchDialog extends JDialog
   private void saveSettings()
   {
     g_bCaseSensitive = _cbCaseSensitive.isSelected();
+    g_bWords = _cbWords.isSelected();
     g_bRegex = _cbRegex.isSelected();
   }
 
@@ -229,6 +233,7 @@ public abstract class BaseLocalSearchDialog extends JDialog
   private void initTextSettings()
   {
     _cbCaseSensitive.setSelected( g_bCaseSensitive );
+    _cbWords.setSelected( g_bWords);
     _cbRegex.setSelected( g_bRegex );
   }
 
@@ -442,8 +447,13 @@ public abstract class BaseLocalSearchDialog extends JDialog
     _cbCaseSensitive.setMnemonic( 'C' );
     center.add( _cbCaseSensitive );
 
+    _cbWords = new LabCheckbox( "Whole words only" );
+    _cbWords.setMnemonic( 'R' );
+    center.add( _cbWords );
+
     _cbRegex = new LabCheckbox( "Regular expression" );
-    _cbRegex.setMnemonic( 'R' );
+    _cbRegex.setMnemonic( 'G' );
+    _cbRegex.addActionListener( e -> _cbWords.setEnabled( !_cbRegex.isSelected() ) );
     center.add( _cbRegex );
 
     contentPane.add( center, BorderLayout.CENTER );
@@ -487,6 +497,11 @@ public abstract class BaseLocalSearchDialog extends JDialog
   public boolean isCaseSensitive()
   {
     return _cbCaseSensitive.isSelected();
+  }
+
+  public boolean isWords()
+  {
+    return _cbWords.isSelected();
   }
 
   public boolean isRegEx()

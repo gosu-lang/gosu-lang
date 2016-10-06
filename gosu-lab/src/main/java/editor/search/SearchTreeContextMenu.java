@@ -1,5 +1,7 @@
-package editor;
+package editor.search;
 
+import editor.IContextMenuHandler;
+import editor.RunMe;
 import editor.util.SmartMenuItem;
 
 import javax.swing.*;
@@ -12,39 +14,39 @@ import java.awt.event.ActionEvent;
 
 /**
  */
-public class MessageTreeContextMenu implements IContextMenuHandler<MessageTree>
+public class SearchTreeContextMenu implements IContextMenuHandler<SearchTree>
 {
-  public MessageTreeContextMenu()
+  public SearchTreeContextMenu()
   {
   }
 
-  public JPopupMenu getContextMenu( MessageTree message )
+  public JPopupMenu getContextMenu( SearchTree search )
   {
     JPopupMenu menu = new JPopupMenu();
-    if( message.getNode().hasTarget() )
+    if( search.getNode().hasTarget() )
     {
-      menu.add( new SmartMenuItem( new OpenAction( message ) ) );
+      menu.add( new SmartMenuItem( new OpenAction( search ) ) );
       menu.add( new JSeparator() );
     }
-    menu.add( new SmartMenuItem( new ClipCopyAction( message.getText() ) ) );
+    menu.add( new SmartMenuItem( new ClipCopyAction( search.getText() ) ) );
     return menu;
   }
 
-  public void displayContextMenu( MessageTree message, int x, int y, Component eventSource )
+  public void displayContextMenu( SearchTree search, int x, int y, Component eventSource )
   {
-    message.getTree().requestFocus();
-    getContextMenu( message ).show( message.getTree(), x, y );
+    search.getTree().requestFocus();
+    getContextMenu( search ).show( search.getTree(), x, y );
   }
 
   class OpenAction extends AbstractAction implements ClipboardOwner
   {
-    MessageTree _message;
+    SearchTree _search;
 
-    public OpenAction( MessageTree message )
+    public OpenAction( SearchTree search )
     {
       super( "Open" );
       putValue( Action.MNEMONIC_KEY, new Integer( 'O' ) );
-      _message = message;
+      _search = search;
     }
 
 
@@ -60,19 +62,19 @@ public class MessageTreeContextMenu implements IContextMenuHandler<MessageTree>
 
     public void actionPerformed( ActionEvent e )
     {
-      _message.getNode().jumpToTarget();
+      _search.getNode().jumpToTarget();
     }
   }
 
   class ClipCopyAction extends AbstractAction implements ClipboardOwner
   {
-    String _message;
+    String _search;
 
-    public ClipCopyAction( String message )
+    public ClipCopyAction( String search )
     {
       super( "Copy" );
       putValue( Action.MNEMONIC_KEY, new Integer( 'C' ) );
-      _message = message;
+      _search = search;
     }
 
 
@@ -89,7 +91,7 @@ public class MessageTreeContextMenu implements IContextMenuHandler<MessageTree>
     public void actionPerformed( ActionEvent e )
     {
       Clipboard clipboard = RunMe.getEditorFrame().getGosuPanel().getClipboard();
-      clipboard.setContents( new StringSelection( _message ), this );
+      clipboard.setContents( new StringSelection( _search ), this );
     }
   }
 }

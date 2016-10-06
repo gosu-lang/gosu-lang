@@ -39,7 +39,7 @@ public class RegExStringUtil
   {
     int iFlags = bIgnoreCase ? Pattern.CASE_INSENSITIVE : 0;
 
-    List<SearchLocation> list = new ArrayList<SearchLocation>();
+    List<SearchLocation> list = new ArrayList<>();
 
     int iIndex = 0;
     Pattern pattern = Pattern.compile( strPattern, iFlags );

@@ -5,9 +5,9 @@ import javax.swing.border.EmptyBorder;
 
 /**
  */
-public class MessageTreeCellRenderer extends AbstractTreeCellRenderer<MessageTree>
+public class LabTreeCellRenderer<T extends AbstractTree> extends AbstractTreeCellRenderer<T>
 {
-  public MessageTreeCellRenderer( JTree tree )
+  public LabTreeCellRenderer( JTree tree )
   {
     super( tree );
   }
@@ -21,7 +21,7 @@ public class MessageTreeCellRenderer extends AbstractTreeCellRenderer<MessageTre
 
     setBorder( new EmptyBorder( 0, 3, 0, 3 ) );
 
-    setText( getNode().getMessage() );
+    setText( getNode().getText() );
     setIcon( getNode().getIcon() );
   }
 }

@@ -8,6 +8,7 @@ import editor.debugger.Debugger;
 import editor.run.IProcessRunner;
 import editor.run.IRunConfig;
 import editor.run.RunState;
+import editor.search.SearchPanel;
 import editor.search.StandardLocalSearch;
 import editor.search.StudioUtilities;
 import editor.shipit.BuildIt;
@@ -46,7 +47,6 @@ import gw.lang.reflect.IType;
 import gw.lang.reflect.ITypeRef;
 import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.gs.IGosuClass;
-import gw.util.GosuStringUtil;
 import gw.util.StreamUtil;
 
 import javax.swing.*;
@@ -56,7 +56,6 @@ import javax.swing.filechooser.FileFilter;
 import javax.swing.text.AbstractDocument;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.Element;
-import javax.swing.tree.TreeModel;
 import javax.swing.undo.CompoundEdit;
 import java.awt.*;
 import java.awt.datatransfer.Clipboard;
@@ -111,6 +110,7 @@ public class GosuPanel extends JPanel
   private SysInListener _sysInListener;
   private InputStream _oldIn;
   private MessagesPanel _messages;
+  private SearchPanel _searches;
   private DebugPanel _debugPanel;
   private IProcessRunner _processRunner;
   private BreakpointManager _breakpointManager;
@@ -141,6 +141,8 @@ public class GosuPanel extends JPanel
     bottom.add( makeRunToolbar(), BorderLayout.WEST );
 
     _messages = new MessagesPanel();
+    
+    _searches = new SearchPanel();
 
     _consolePanel = new SystemPanel();
     _bottomTabPane.addTab( "Console", EditorUtilities.loadIcon( "images/console.png" ), _consolePanel );
@@ -290,6 +292,11 @@ public class GosuPanel extends JPanel
     return _messages;
   }
 
+  public SearchPanel getSearchPanel()
+  {
+    return _searches;
+  }
+  
   public SystemPanel getConsolePanel()
   {
     return _consolePanel;
@@ -321,6 +328,27 @@ public class GosuPanel extends JPanel
     }
   }
 
+  public void showSearches( boolean bShow )
+  {
+    if( bShow )
+    {
+      ITab tab = _bottomTabPane.findTabWithContent( _searches );
+      if( tab == null )
+      {
+        _bottomTabPane.addTab( "Search", null, _searches );
+      }
+      else
+      {
+        _bottomTabPane.selectTab( tab, false );
+      }
+    }
+    else
+    {
+      _searches.clear();
+      _bottomTabPane.removeTabWithContent( _searches );
+    }
+  }
+
   public void showConsole()
   {
     _bottomTabPane.selectTabWithContent( _consolePanel, false );
@@ -348,6 +376,7 @@ public class GosuPanel extends JPanel
       _editorTabPane.setVisible( true );
     }
     showMessages( false );
+    showSearches( false );
     SettleModalEventQueue.instance().run();
     getTabSelectionHistory().dispose();
   }
@@ -922,6 +951,18 @@ public class GosuPanel extends JPanel
 
 
     searchMenu.addSeparator();
+    
+    JMenuItem findIInPathItem = new SmartMenuItem( new CommonMenus.FindInPathActionHandler( FileTreeUtil::getRoot ) );
+    findIInPathItem.setMnemonic( 'P' );
+    findIInPathItem.setAccelerator( KeyStroke.getKeyStroke( "control shift F" ) );
+    searchMenu.add( findIInPathItem );
+
+    JMenuItem replaceInPathItem = new SmartMenuItem( new CommonMenus.ReplaceInPathActionHandler( FileTreeUtil::getRoot ) );
+    replaceInPathItem.setMnemonic( 'A' );
+    replaceInPathItem.setAccelerator( KeyStroke.getKeyStroke( "control shift R" ) );
+    searchMenu.add( replaceInPathItem );
+        
+    searchMenu.addSeparator();
 
 
     JMenuItem gotoLineItem = new SmartMenuItem(
@@ -1363,8 +1404,7 @@ public class GosuPanel extends JPanel
 
   public boolean openType( String fqn, boolean bFocus )
   {
-    TreeModel model = getExperimentView().getTree().getModel();
-    FileTree root = (FileTree)model.getRoot();
+    FileTree root = FileTreeUtil.getRoot();
     FileTree fileTree = root.find( fqn );
     if( fileTree != null )
     {
@@ -1691,8 +1731,8 @@ public class GosuPanel extends JPanel
     {
       // The file is not open, just refresh the type system to include the changes
 
-      FileTree fileTree = (FileTree)getExperimentView().getTree().getModel().getRoot();
-      FileTree node = fileTree.find( file );
+      FileTree root = FileTreeUtil.getRoot();
+      FileTree node = root.find( file );
       if( node != null )
       {
         IType type = node.getType();
@@ -1966,6 +2006,11 @@ public class GosuPanel extends JPanel
 
   private void handleDebuggerStateChange()
   {
+    if( !EventQueue.isDispatchThread() )
+    {
+      throw new Error();
+    }
+
     if( getCurrentEditor() != null )
     {
       getCurrentEditor().repaint();

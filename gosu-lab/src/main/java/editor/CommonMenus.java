@@ -9,6 +9,7 @@ import editor.debugger.EditBreakpointsDialog;
 import editor.run.IRunConfig;
 import editor.run.RunConfigDialog;
 import editor.run.RunState;
+import editor.search.SearchDialog;
 import editor.search.StandardLocalSearch;
 import editor.undo.AtomicUndoManager;
 import editor.util.EditorUtilities;
@@ -789,6 +790,56 @@ public class CommonMenus
     }
   }
   
+  public static class FindInPathActionHandler extends AbstractAction
+  {
+    private final Supplier<FileTree> _dir;
+
+    public FindInPathActionHandler( Supplier<FileTree> dir )
+    {
+      super( "Find in path..." );
+      _dir = dir;
+    }
+
+    @Override
+    public void actionPerformed( ActionEvent e )
+    {
+      getGosuPanel().saveIfDirty();
+      SearchDialog searchDialog = new SearchDialog( _dir.get() );
+      searchDialog.setVisible( true );
+    }
+
+    @Override
+    public boolean isEnabled()
+    {
+      return _dir.get() != null && _dir.get().getFileOrDir().exists();
+    }
+  }
+
+  public static class ReplaceInPathActionHandler extends AbstractAction
+  {
+    private final Supplier<FileTree> _dir;
+
+    public ReplaceInPathActionHandler( Supplier<FileTree> dir )
+    {
+      super( "Replace in path..." );
+      _dir = dir;
+    }
+
+    @Override
+    public void actionPerformed( ActionEvent e )
+    {
+      getGosuPanel().saveIfDirty();
+      SearchDialog searchDialog = new SearchDialog( _dir.get(), true );
+      searchDialog.setVisible( true );
+    }
+
+    @Override
+    public boolean isEnabled()
+    {
+      return _dir.get() != null && _dir.get().getFileOrDir().exists();
+    }
+  }
+
   public static class CompileActionHandler extends AbstractAction
   {
     public CompileActionHandler()

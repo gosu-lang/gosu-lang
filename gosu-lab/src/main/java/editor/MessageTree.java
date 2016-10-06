@@ -1,225 +1,23 @@
 package editor;
 
 import editor.util.EditorUtilities;
+import gw.lang.parser.IParseIssue;
+import gw.lang.reflect.gs.IGosuClass;
 
 import javax.swing.*;
-import javax.swing.tree.DefaultTreeModel;
-import javax.swing.tree.MutableTreeNode;
-import javax.swing.tree.TreeNode;
-import javax.swing.tree.TreePath;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Enumeration;
-import java.util.Iterator;
-import java.util.List;
+import java.awt.*;
 
 /**
  */
-public class MessageTree implements MutableTreeNode
+public class MessageTree extends AbstractTree<MessageTree, MessageTree.IssueNode>
 {
-  private String _message;
-  private MessageKind _kind;
-  private IMessageTreeNode _data;
-  private Icon _icon;
-  private MessageTree _parent;
-  private List<MessageTree> _children;
-
-  public MessageTree()
+  public MessageTree( JTree tree )
   {
-    _message = "_root_";
-    _kind = MessageKind.Root;
-    _children = Collections.emptyList();
+    super( tree );
   }
-
-  public MessageTree( String message, MessageKind kind, IMessageTreeNode data )
+  public MessageTree( String text, NodeKind kind, IssueNode data )
   {
-    _message = message;
-    _kind = kind;
-    _data = data;
-    _children = Collections.emptyList();
-  }
-
-  private MessageTree( String message, MessageKind kind, IMessageTreeNode data, MessageTree parent )
-  {
-    _message = message;
-    _parent = parent;
-    _kind = kind;
-    _data = data;
-    _children = Collections.emptyList();
-  }
-
-  public String getMessage()
-  {
-    return _message;
-  }
-  public void setMessage( String message )
-  {
-    _message = message;
-    ((DefaultTreeModel)getTree().getModel()).nodeStructureChanged( this );
-  }
-
-  public MessageKind getKind()
-  {
-    return _kind;
-  }
-
-  public IMessageTreeNode getData()
-  {
-    return _data;
-  }
-
-  public boolean isTerminal()
-  {
-    return _kind.isTerminal();
-  }
-
-  public List<MessageTree> getChildren()
-  {
-    return _children;
-  }
-
-  @Override
-  public void insert( MutableTreeNode child, int index )
-  {
-    if( _children.isEmpty() )
-    {
-      _children = new ArrayList<>();
-    }
-    _children.add( index, (MessageTree)child );
-    child.setParent( this );
-  }
-
-  public void addViaModel( MutableTreeNode child )
-  {
-    ((DefaultTreeModel)getTree().getModel()).insertNodeInto( child, this, getChildCount() );
-  }
-
-  public void insertViaModel( MutableTreeNode child, int index )
-  {
-    ((DefaultTreeModel)getTree().getModel()).insertNodeInto( child, this, index );
-  }
-
-  @Override
-  public void remove( int index )
-  {
-    remove( getChildren().get( index ) );
-  }
-
-  @Override
-  public void remove( MutableTreeNode node )
-  {
-    //noinspection SuspiciousMethodCalls
-    getChildren().remove( node );
-  }
-
-  @Override
-  public void setUserObject( Object object )
-  {
-
-  }
-
-  @Override
-  public void removeFromParent()
-  {
-    _parent.remove( this );
-  }
-
-  @Override
-  public void setParent( MutableTreeNode newParent )
-  {
-    _parent = (MessageTree)newParent;
-  }
-
-  @Override
-  public TreeNode getChildAt( int childIndex )
-  {
-    return getChildren().get( childIndex );
-  }
-
-  @Override
-  public int getChildCount()
-  {
-    return getChildren().size();
-  }
-
-  @Override
-  public MessageTree getParent()
-  {
-    return _parent;
-  }
-
-  @Override
-  public int getIndex( TreeNode node )
-  {
-    //noinspection SuspiciousMethodCalls
-    return getChildren().indexOf( node );
-  }
-
-  @Override
-  public boolean getAllowsChildren()
-  {
-    return !_kind.isTerminal();
-  }
-
-  @Override
-  public boolean isLeaf()
-  {
-    return isTerminal();
-  }
-
-  @Override
-  public Enumeration children()
-  {
-    Iterator iter = getChildren().iterator();
-    return new Enumeration()
-    {
-      @Override
-      public boolean hasMoreElements()
-      {
-        return iter.hasNext();
-      }
-
-      @Override
-      public Object nextElement()
-      {
-        return iter.next();
-      }
-    };
-  }
-
-  public String toString()
-  {
-    return _message;
-  }
-
-  public void select()
-  {
-    JTree tree = getMessagesPanel().getTree();
-    TreePath path = getPath();
-    tree.expandPath( path );
-    tree.setSelectionPath( path );
-    tree.scrollPathToVisible( path );
-  }
-
-  public TreePath getPath()
-  {
-    List<MessageTree> path = makePath( new ArrayList<>() );
-    return new TreePath( path.toArray( new MessageTree[path.size()] ) );
-  }
-
-  private List<MessageTree> makePath( List<MessageTree> path )
-  {
-    if( getParent() != null )
-    {
-      getParent().makePath( path );
-    }
-    path.add( this );
-    return path;
-  }
-
-  private MessagesPanel getMessagesPanel()
-  {
-    return RunMe.getEditorFrame().getGosuPanel().getMessagesPanel();
+    super( text, kind, data );
   }
 
   public Icon getIcon()
@@ -238,23 +36,62 @@ public class MessageTree implements MutableTreeNode
                : EditorUtilities.loadIcon( "images/info.png" );
   }
 
-  private boolean hasFailures()
-  {
-    return _kind == MessageKind.Failure || getChildren().stream().anyMatch( MessageTree::hasFailures );
-  }
-
-  private boolean hasErrors()
-  {
-    return _kind == MessageKind.Error || getChildren().stream().anyMatch( MessageTree::hasErrors );
-  }
-
-  private boolean hasWarnings()
-  {
-    return _kind == MessageKind.Warning || getChildren().stream().anyMatch( MessageTree::hasWarnings );
-  }
-
   public JTree getTree()
   {
     return RunMe.getEditorFrame().getGosuPanel().getMessagesPanel().getTree();
+  }
+
+  public static IssueNode makeIssueMessage( IParseIssue issue )
+  {
+    return new IssueNode( issue );
+  }
+
+  public static IssueNode empty()
+  {
+    return new IssueNode( null ) {
+      @Override
+      public boolean hasTarget()
+      {
+        return false;
+      }
+    };
+  }
+
+  static class IssueNode implements ITreeNode
+  {
+    private final IParseIssue _issue;
+
+    public IssueNode( IParseIssue issue )
+    {
+      _issue = issue;
+    }
+
+    @Override
+    public boolean hasTarget()
+    {
+      return true;
+    }
+
+    @Override
+    public void jumpToTarget()
+    {
+      IGosuClass gsClass = _issue.getSource().getGosuClass();
+      gsClass = getOuterMostEnclosingClass( gsClass );
+
+      RunMe.getEditorFrame().getGosuPanel().openType( gsClass.getName(), true );
+      EventQueue.invokeLater( () ->
+                                RunMe.getEditorFrame().getGosuPanel().getCurrentEditor().gotoLine( _issue.getLine(), _issue.getColumn() ) );
+    }
+
+    private IGosuClass getOuterMostEnclosingClass( IGosuClass innerClass )
+    {
+      IGosuClass outerMost = innerClass;
+      while( outerMost != null && outerMost.getEnclosingType() != null )
+      {
+        outerMost = (IGosuClass)outerMost.getEnclosingType();
+      }
+      return outerMost;
+    }
+
   }
 }

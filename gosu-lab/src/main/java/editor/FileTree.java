@@ -5,8 +5,6 @@ import editor.util.EditorUtilities;
 import editor.util.Experiment;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.TypeSystem;
-import gw.util.GosuStringUtil;
-import gw.util.StreamUtil;
 
 import javax.swing.*;
 import javax.swing.filechooser.FileSystemView;
@@ -16,9 +14,6 @@ import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 import java.awt.*;
 import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.Reader;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Enumeration;
@@ -476,14 +471,14 @@ public class FileTree implements MutableTreeNode, IFileWatcherListener
     return FileSystemView.getFileSystemView().getSystemIcon( getFileOrDir() );
   }
 
-  public int getTotalSourceFiles()
+  public int getTotalFiles()
   {
     int iCount = 0;
     if( isDirectory() )
     {
       for( FileTree csr: getChildren() )
       {
-        iCount += csr.getTotalSourceFiles();
+        iCount += csr.getTotalFiles();
       }
     }
     else

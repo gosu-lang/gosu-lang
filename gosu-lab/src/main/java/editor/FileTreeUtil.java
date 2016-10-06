@@ -15,11 +15,22 @@ public class FileTreeUtil
 
   public static ExperimentView getExperimentView()
   {
-    return getGosuPanel().getExperimentView();
+    return getGosuPanel() == null ? null : getGosuPanel().getExperimentView();
   }
 
   public static GosuPanel getGosuPanel()
   {
     return RunMe.getEditorFrame().getGosuPanel();
+  }
+
+  public static FileTree getRoot()
+  {
+    ExperimentView experimentView = getExperimentView();
+    if( experimentView == null )
+    {
+      return null;
+    }
+    TreeModel model = experimentView.getTree().getModel();
+    return (FileTree)model.getRoot();
   }
 }

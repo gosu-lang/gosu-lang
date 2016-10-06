@@ -2,7 +2,7 @@ package editor;
 
 /**
 */
-public enum MessageKind
+public enum NodeKind
 {
   Root( false ),
   File( false ),
@@ -14,7 +14,7 @@ public enum MessageKind
 
   private final boolean _bTerminal;
 
-  MessageKind( boolean bTerminal )
+  NodeKind( boolean bTerminal )
   {
     _bTerminal = bTerminal;
   }

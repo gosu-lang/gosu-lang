@@ -77,7 +77,6 @@ import gw.lang.reflect.gs.IGosuVarPropertyInfo;
 import gw.lang.reflect.gs.StringSourceFileHandle;
 import gw.lang.reflect.java.JavaTypes;
 import gw.util.GosuStringUtil;
-import gw.util.StreamUtil;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -96,7 +95,6 @@ import javax.swing.text.Element;
 import javax.swing.text.Highlighter;
 import javax.swing.text.JTextComponent;
 import javax.swing.text.StyleConstants;
-import javax.swing.tree.TreeModel;
 import javax.swing.undo.CompoundEdit;
 import java.awt.*;
 import java.awt.datatransfer.Clipboard;
@@ -114,9 +112,7 @@ import java.awt.event.KeyListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
-import java.io.Reader;
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -754,8 +750,7 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
     GosuPanel gosuPanel = RunMe.getEditorFrame().getGosuPanel();
     File file = gosuPanel.getCurrentFile();
 
-    TreeModel model = RunMe.getEditorFrame().getGosuPanel().getExperimentView().getTree().getModel();
-    FileTree root = (FileTree)model.getRoot();
+    FileTree root = FileTreeUtil.getRoot();
     FileTree fileTree = root.find( file );
     if( fileTree != null )
     {
@@ -831,10 +826,24 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
   }
   public void gotoLine( int iLine, int iColumn )
   {
-    Element root = _editor.getDocument().getRootElements()[0];
+    Element root = getGosuDocument().getRootElements()[0];
     iLine = root.getElementCount() < iLine ? root.getElementCount() : iLine;
     Element line = root.getElement( iLine - 1 );
-    _editor.setCaretPosition( line.getStartOffset() + iColumn );
+    gotoOffset( line.getStartOffset() + iColumn );
+  }
+
+  public void gotoOffset( int offset )
+  {
+    int length = getGosuDocument().getLength();
+    if( offset > length )
+    {
+      offset = length-1;
+    }
+    if( offset < 0 )
+    {
+      offset = 0;
+    }
+    _editor.setCaretPosition( offset );
   }
 
   public void highlightUsagesOfFeatureUnderCaret()
