@@ -8,6 +8,7 @@ import com.sun.jdi.PrimitiveValue;
 import com.sun.jdi.ReferenceType;
 import com.sun.jdi.StackFrame;
 import com.sun.jdi.ThreadReference;
+import com.sun.jdi.VMDisconnectedException;
 import com.sun.jdi.Value;
 import editor.AbstractListCellRenderer;
 import editor.AbstractTreeCellRenderer;
@@ -368,12 +369,19 @@ public class DebugPanel extends JPanel implements IDisposable
     @Override
     public Component getListCellRendererComponent( JList<? extends ThreadReference> list, ThreadReference thread, int index, boolean isSelected, boolean cellHasFocus )
     {
-      JLabel cell = (JLabel)_delegate.getListCellRendererComponent( list, thread, index, isSelected, cellHasFocus );
-      if( thread != null )
+      JLabel cell = (JLabel)_delegate.getListCellRendererComponent( list, null, index, isSelected, cellHasFocus );
+      try
       {
-        String text = "<html><b>" + thread.name() + "</b> @" + thread.uniqueID() + " group: <b>" + thread.threadGroup().name() + "</b> - <i>" + Thread.State.values()[thread.status()].name() + "</i>";
-        cell.setText( text );
-        cell.setIcon( EditorUtilities.loadIcon( "images/thread.png" ) );
+        if( thread != null && thread.isSuspended() )
+        {
+          String text = "<html><b>" + thread.name() + "</b> @" + thread.uniqueID() + " group: <b>" + thread.threadGroup().name() + "</b> - <i>" + Thread.State.values()[thread.status()].name() + "</i>";
+          cell.setText( text );
+          cell.setIcon( EditorUtilities.loadIcon( "images/thread.png" ) );
+        }
+      }
+      catch( VMDisconnectedException e )
+      {
+        // eat
       }
       return cell;
     }
