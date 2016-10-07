@@ -65,8 +65,8 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStreamWriter;
@@ -81,6 +81,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Supplier;
 
 /**
  */
@@ -136,16 +137,9 @@ public class GosuPanel extends JPanel
     setLayout( new BorderLayout() );
 
     JPanel bottom = new JPanel( new BorderLayout() );
-    _bottomTabPane = new TabPane( TabPane.MINIMIZABLE | TabPane.RESTORABLE | TabPane.TOP_BORDER_ONLY );
+    _bottomTabPane = new TabPane( TabPane.MINIMIZABLE | TabPane.RESTORABLE | TabPane.TOP_BORDER_ONLY | TabPane.DYNAMIC );
     bottom.add( _bottomTabPane, BorderLayout.CENTER );
     bottom.add( makeRunToolbar(), BorderLayout.WEST );
-
-    _messages = new MessagesPanel();
-    
-    _searches = new SearchPanel();
-
-    _consolePanel = new SystemPanel();
-    _bottomTabPane.addTab( "Console", EditorUtilities.loadIcon( "images/console.png" ), _consolePanel );
 
     _editorTabPane = new TabPane( TabPosition.TOP, TabPane.DYNAMIC | TabPane.MIN_MAX_REST );
 
@@ -194,10 +188,7 @@ public class GosuPanel extends JPanel
     handleMacStuff();
 
 
-    EventQueue.invokeLater( () -> {
-      setExperimentSplitPosition( 70 );
-      setEditorSplitPosition( 20 );
-    } );
+    EventQueue.invokeLater( () -> _outerSplitPane.collapseBottom( _bottomTabPane ) );
 
     EventQueue.invokeLater( this::mapKeystrokes );
   }
@@ -307,51 +298,49 @@ public class GosuPanel extends JPanel
     return _debugPanel;
   }
 
-  public void showMessages( boolean bShow )
+  public MessagesPanel showMessages( boolean bShow )
+  {
+    return _messages = showTab( bShow, "Messages", null, _messages, MessagesPanel::new );
+  }
+
+  public SearchPanel showSearches( boolean bShow )
+  {
+    return _searches = showTab( bShow, "Search", null, _searches, SearchPanel::new );
+  }
+
+  public SystemPanel showConsole( boolean bShow )
+  {
+    return _consolePanel = showTab( bShow, "Console", EditorUtilities.loadIcon( "images/console.png" ), _consolePanel, SystemPanel::new );
+  }
+
+  public <P extends JComponent> P showTab( boolean bShow, String title, Icon icon, P panel, Supplier<P> creator )
   {
     if( bShow )
     {
-      ITab tab = _bottomTabPane.findTabWithContent( _messages );
+      _outerSplitPane.restorePane();
+
+      ITab tab = _bottomTabPane.findTabWithContent( panel );
       if( tab == null )
       {
-        _bottomTabPane.addTab( "Messages", null, _messages );
+        panel = creator.get();
+        _bottomTabPane.addTab( title, icon, panel );
+        return panel;
       }
       else
       {
         _bottomTabPane.selectTab( tab, false );
+        return panel;
       }
     }
     else
     {
-      _messages.clear();
-      _bottomTabPane.removeTabWithContent( _messages );
-    }
-  }
-
-  public void showSearches( boolean bShow )
-  {
-    if( bShow )
-    {
-      ITab tab = _bottomTabPane.findTabWithContent( _searches );
-      if( tab == null )
+      _bottomTabPane.removeTabWithContent( panel );
+      if( _bottomTabPane.getTabCount() == 0 )
       {
-        _bottomTabPane.addTab( "Search", null, _searches );
+        _outerSplitPane.toggleCollapse( _bottomTabPane );
       }
-      else
-      {
-        _bottomTabPane.selectTab( tab, false );
-      }
+      return null;
     }
-    else
-    {
-      _searches.clear();
-      _bottomTabPane.removeTabWithContent( _searches );
-    }
-  }
-
-  public void showConsole()
-  {
-    _bottomTabPane.selectTabWithContent( _consolePanel, false );
   }
 
   private void handleMacStuff()
@@ -1294,7 +1283,10 @@ public class GosuPanel extends JPanel
     SettleModalEventQueue.instance().run();
 
     saveIfDirty();
-    getMessagesPanel().clear();
+    if( getMessagesPanel() != null )
+    {
+      getMessagesPanel().clear();
+    }
     showMessages( true );
     return BuildIt.instance().buildIt( c -> true );
   }
@@ -1680,7 +1672,12 @@ public class GosuPanel extends JPanel
 
   private void saveAndReloadType( File file, GosuEditor editor )
   {
-    try( FileOutputStream out = new FileOutputStream( file ) )
+    FileTree fileTree = FileTreeUtil.getRoot().find( file );
+    if( fileTree != null )
+    {
+      fileTree.setLastModified();
+    }
+    try( FileWriter out = new FileWriter( file ) )
     {
       StreamUtil.copy( new StringReader( editor.getText() ), out );
       setDirty( editor, false );
@@ -1721,6 +1718,7 @@ public class GosuPanel extends JPanel
       try( Reader reader = new FileReader( file ) )
       {
         editor.refresh( StreamUtil.getContent( reader ) );
+        setDirty( editor, false );
       }
       catch( IOException e )
       {
@@ -1847,6 +1845,7 @@ public class GosuPanel extends JPanel
   public void dumpBytecode()
   {
     saveAndReloadType( getCurrentFile(), getCurrentEditor() );
+    showConsole( true );
     clearOutput();
     byte[] bytes = TypeSystem.getGosuClassLoader().getBytes( getClassAtCaret() );
     ClassReader cr = new ClassReader( bytes );
@@ -1892,13 +1891,8 @@ public class GosuPanel extends JPanel
     {
       return;
     }
-
     saveAndReloadType( getCurrentFile(), getCurrentEditor() );
-
     getExperiment().addRunConfig( runConfig );
-
-    showConsole();
-
     _processRunner = runConfig.run();
   }
 
@@ -1910,10 +1904,7 @@ public class GosuPanel extends JPanel
     }
 
     saveAndReloadType( getCurrentFile(), getCurrentEditor() );
-
     getExperiment().addRunConfig( runConfig );
-
-    showConsole();
     _processRunner = runConfig.debug();
   }
 
@@ -2000,6 +1991,7 @@ public class GosuPanel extends JPanel
       _debugger = new Debugger( vm, _breakpointManager );
       _debugger.addChangeListener( dbg -> handleDebuggerStateChange() );
       showDebugger( true );
+      showConsole( true );
       _debugger.startDebugging();
     } );
   }
@@ -2011,9 +2003,10 @@ public class GosuPanel extends JPanel
       throw new Error();
     }
 
-    if( getCurrentEditor() != null )
+    GosuEditor editor = getCurrentEditor();
+    if( editor != null )
     {
-      getCurrentEditor().repaint();
+      editor.repaint();
     }
     if( _debugger != null && _debugger.isSuspended() )
     {
@@ -2029,6 +2022,11 @@ public class GosuPanel extends JPanel
       if( openType( fqn, bFocus ) )
       {
         getCurrentEditor().gotoLine( line );
+        Debugger debugger = getDebugger();
+        if( debugger != null && debugger.getEventName() != null && debugger.getEventName().contains( "Breakpoint" ) )
+        {
+          showDebugger( true );
+        }
       }
     } );
   }
@@ -2052,6 +2050,10 @@ public class GosuPanel extends JPanel
     else
     {
       _bottomTabPane.removeTabWithContent( _debugPanel );
+      if( _bottomTabPane.getTabCount() == 0 )
+      {
+        _outerSplitPane.collapseBottom( _bottomTabPane );
+      }
       _debugPanel = null;
     }
   }

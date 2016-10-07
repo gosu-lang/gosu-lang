@@ -13,7 +13,7 @@ import java.awt.event.MouseListener;
 
 /**
  */
-public class MessagesPanel extends JPanel
+public class MessagesPanel extends ClearablePanel
 {
   private JTree _tree;
   private JScrollPane _scroller;
@@ -47,9 +47,16 @@ public class MessagesPanel extends JPanel
     return _tree;
   }
 
+  @Override
   public void clear()
   {
     _tree.setModel( new DefaultTreeModel( new MessageTree( _tree ) ) );
+  }
+
+  @Override
+  public void dispose()
+  {
+    RunMe.getEditorFrame().getGosuPanel().showMessages( false );
   }
 
   public MessageTree getSelectedTree()

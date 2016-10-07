@@ -27,9 +27,8 @@ public class BuildIt
   public boolean buildIt( ICompileConsumer consumer )
   {
     GosuPanel gosuPanel = RunMe.getEditorFrame().getGosuPanel();
-    MessagesPanel messages = gosuPanel.getMessagesPanel();
+    MessagesPanel messages = gosuPanel.showMessages( true );
     messages.clear();
-    gosuPanel.showMessages( true );
 
     FileTree root = FileTreeUtil.getRoot();
     boolean[] bRes = {false};

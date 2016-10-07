@@ -2,15 +2,22 @@ package editor.search;
 
 import editor.AbstractTree;
 import editor.FileTree;
+import editor.GosuEditor;
 import editor.ITreeNode;
 import editor.NodeKind;
 import editor.RunMe;
+import gw.lang.reflect.IType;
+import gw.lang.reflect.ITypeRef;
+import gw.lang.reflect.TypeSystem;
 import gw.util.GosuEscapeUtil;
 import gw.util.StreamUtil;
 
 import javax.swing.*;
+import javax.swing.text.AbstractDocument;
+import javax.swing.text.BadLocationException;
 import java.awt.*;
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.Reader;
@@ -73,17 +80,25 @@ public class SearchTree extends AbstractTree<SearchTree, SearchTree.SearchTreeNo
   {
     String text;
     int col = loc._iColumn - 1;
-    if( loc._iLength <= 200 )
+    try
     {
-      String textLine = getTextLine( loc );
-      String beforeMatch = GosuEscapeUtil.escapeForHTML( textLine.substring( 0, col ) );
-      String match = GosuEscapeUtil.escapeForHTML( textLine.substring( col, col + loc._iLength ) );
-      String afterMatch = GosuEscapeUtil.escapeForHTML( textLine.substring( col + loc._iLength ) );
-      text = "<html><font style=italic color=#808080>(" + loc._iLine + ":&nbsp;" + (col+1) + ")</font> " + beforeMatch + "<b>" + match + "</b>" + afterMatch;
+      if( loc._iLength <= 200 )
+      {
+        String textLine = getTextLine( loc );
+        String beforeMatch = GosuEscapeUtil.escapeForHTML( textLine.substring( 0, col ) );
+        String match = GosuEscapeUtil.escapeForHTML( textLine.substring( col, col + loc._iLength ) );
+        String afterMatch = GosuEscapeUtil.escapeForHTML( textLine.substring( col + loc._iLength ) );
+        text = "<html><font style=italic color=#808080>(" + loc._iLine + ":&nbsp;" + (col + 1) + ")</font> " + beforeMatch + "<b>" + match + "</b>" + afterMatch;
+      }
+      else
+      {
+        text = "<html><font style=italic color=#808080>(" + loc._iLine + ":&nbsp;" + (col + 1) + ")</font>";
+      }
     }
-    else
+    catch( StringIndexOutOfBoundsException e )
     {
-      text = "<html><font style=italic color=#808080>(" + loc._iLine + ":&nbsp;" + (col+1) + ")</font>";
+      // this can happen after the user Replaces the text and the overall document size becomes smaller
+      text = "<html><font style=italic color=#808080>(" + loc._iLine + ":&nbsp;" + (col + 1) + ")</font> <b>Invalid</b>";
     }
     return text;
   }
@@ -117,7 +132,7 @@ public class SearchTree extends AbstractTree<SearchTree, SearchTree.SearchTreeNo
   private Icon findIcon()
   {
     SearchTreeNode node = getNode();
-    if( node != null )
+    if( node != null && node.getLocation() == null )
     {
       FileTree file = node.getFile();
       return file == null ? null : file.getIcon();
@@ -167,6 +182,7 @@ public class SearchTree extends AbstractTree<SearchTree, SearchTree.SearchTreeNo
             SearchTree child = getChildAt( i );
             SearchLocation loc = child.getNode().getLocation();
             content.replace( loc._iOffset, loc._iOffset + loc._iLength, pattern );
+            maybeUpdateDoc( loc._iOffset, loc._iLength, pattern );
           }
         } );
       }
@@ -183,7 +199,37 @@ public class SearchTree extends AbstractTree<SearchTree, SearchTree.SearchTreeNo
       getParent().makeChanges( content -> {
         SearchLocation loc = getNode().getLocation();
         content.replace( loc._iOffset, loc._iOffset + loc._iLength, pattern );
+        maybeUpdateDoc( loc._iOffset, loc._iLength, pattern );
       } );
+    }
+  }
+
+  private void maybeUpdateDoc( int iOffset, int iLength, String pattern )
+  {
+    File file = getNode().getFile().getFileOrDir();
+    GosuEditor editor = RunMe.getEditorFrame().getGosuPanel().findTab( file );
+    if( editor == null )
+    {
+      return;
+    }
+
+    editor.getUndoManager().beginUndoAtom( "Replace" );
+    try
+    {
+      ((AbstractDocument)editor.getEditor().getDocument()).replace( iOffset, iLength, pattern, null );
+    }
+    catch( Exception e )
+    {
+      throw new RuntimeException( e );
+    }
+    finally
+    {
+      editor.getUndoManager().endUndoAtom();
+    }
+    IType type = getNode().getFile().getType();
+    if( type != null )
+    {
+      TypeSystem.refresh( (ITypeRef)type );
     }
   }
 
@@ -202,6 +248,7 @@ public class SearchTree extends AbstractTree<SearchTree, SearchTree.SearchTreeNo
 
     contentChanger.accept( content );
 
+    node.getFile().setLastModified();
     try( Writer writer = new FileWriter( node.getFile().getFileOrDir() ) )
     {
       writer.write( content.toString() );

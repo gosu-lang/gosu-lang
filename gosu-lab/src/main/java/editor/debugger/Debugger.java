@@ -131,6 +131,11 @@ public class Debugger
       } );
   }
 
+  public String getEventName()
+  {
+    return _eventName;
+  }
+
   @Override
   public String toString()
   {

@@ -4267,10 +4267,9 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
 
   public void clipCut( Clipboard clipboard )
   {
+    getUndoManager().beginUndoAtom( "Cut" );
     try
     {
-      getUndoManager().beginUndoAtom( "Cut" );
-
       clipCopy( clipboard );
       delete();
     }

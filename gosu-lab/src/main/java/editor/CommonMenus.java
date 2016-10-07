@@ -349,7 +349,14 @@ public class CommonMenus
         @Override
         public void actionPerformed( ActionEvent e )
         {
+          gosuPanel.get().showConsole( true );
           gosuPanel.get().clearOutput();
+        }
+
+        @Override
+        public boolean isEnabled()
+        {
+          return gosuPanel.get().getConsolePanel() != null;
         }
       } );
     clearItem.setMnemonic( 'C' );
@@ -404,6 +411,7 @@ public class CommonMenus
         return;
       }
 
+      getGosuPanel().showConsole( true );
       getGosuPanel().clearOutput();
       IRunConfig runConfig = _runConfig.get();
       getGosuPanel().execute( runConfig );
@@ -430,6 +438,7 @@ public class CommonMenus
         return;
       }
 
+      getGosuPanel().showConsole( true );
       getGosuPanel().clearOutput();
       IRunConfig runConfig = _runConfig.get();
       getGosuPanel().debug( runConfig );

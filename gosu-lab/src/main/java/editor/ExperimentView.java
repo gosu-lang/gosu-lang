@@ -37,7 +37,7 @@ public class ExperimentView extends JPanel
 
     _splitPane = new CollapsibleSplitPane( SwingConstants.VERTICAL, new JPanel(), makeExamplesList() );
     add( _splitPane, BorderLayout.CENTER );
-    _splitPane.setPosition( 70 );
+    _splitPane.setPosition( 75 );
   }
 
   private JComponent makeExamplesList()

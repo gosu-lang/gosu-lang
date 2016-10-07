@@ -1,7 +1,9 @@
 package editor.search;
 
+import editor.ClearablePanel;
 import editor.ITreeNode;
 import editor.LabTreeCellRenderer;
+import editor.RunMe;
 import editor.Scheme;
 
 import javax.swing.*;
@@ -22,7 +24,7 @@ import java.util.List;
 
 /**
  */
-public class SearchPanel extends JPanel
+public class SearchPanel extends ClearablePanel
 {
   private JTree _tree;
   private JPanel _replaceButtonPanel;
@@ -156,9 +158,16 @@ public class SearchPanel extends JPanel
     revalidate();
   }
 
+  @Override
   public void clear()
   {
     _tree.setModel( new DefaultTreeModel( new SearchTree( _tree ) ) );
+  }
+
+  @Override
+  public void dispose()
+  {
+    RunMe.getEditorFrame().getGosuPanel().showSearches( false );
   }
 
   public SearchTree getSelectedTree()

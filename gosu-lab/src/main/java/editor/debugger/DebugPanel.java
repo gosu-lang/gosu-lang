@@ -23,6 +23,7 @@ import editor.tabpane.TabPosition;
 import editor.tabpane.ToolContainer;
 import editor.util.EditorUtilities;
 import editor.util.HTMLEscapeUtil;
+import editor.util.IDisposable;
 import editor.util.LabToolbarButton;
 import editor.util.ToolBar;
 
@@ -38,7 +39,7 @@ import java.util.function.Consumer;
 
 /**
  */
-public class DebugPanel extends JPanel
+public class DebugPanel extends JPanel implements IDisposable
 {
   private JComboBox<ThreadReference> _cbThreads;
   private JList<StackFrame> _listFrames;
@@ -59,6 +60,12 @@ public class DebugPanel extends JPanel
     _splitPane = new CollapsibleSplitPane( SwingConstants.HORIZONTAL, makeThreadsPanel(), makeVariablesAndWatchesPanel() );
     add( _splitPane, BorderLayout.CENTER );
     _splitPane.setPosition( 30 );
+  }
+
+  @Override
+  public void dispose()
+  {
+    RunMe.getEditorFrame().getGosuPanel().killProcess();
   }
 
   private JComponent makeThreadsPanel()

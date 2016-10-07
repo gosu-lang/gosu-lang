@@ -132,9 +132,7 @@ public class SearchDialog extends AbstractDialog
     close();
 
     GosuPanel gosuPanel = RunMe.getEditorFrame().getGosuPanel();
-    SearchPanel searchPanel = gosuPanel.getSearchPanel();
-    searchPanel.clear();
-    gosuPanel.showSearches( true );
+    SearchPanel searchPanel = clearAndShowSearchPanel( gosuPanel );
     searchPanel.showReplace( _bReplace );
     searchPanel.setReplacePattern( (String)_cbReplace.getSelectedItem() );
 
@@ -158,6 +156,17 @@ public class SearchDialog extends AbstractDialog
                                         } );
                                       } );
     new ModalEventQueue( () -> !bFinished[0] ).run();
+  }
+
+  private SearchPanel clearAndShowSearchPanel( GosuPanel gosuPanel )
+  {
+    SearchPanel searchPanel = gosuPanel.getSearchPanel();
+    if( searchPanel != null )
+    {
+      searchPanel.clear();
+    }
+    gosuPanel.showSearches( true );
+    return gosuPanel.getSearchPanel();
   }
 
   private void addReplaceInfo( SearchPanel searchPanel )

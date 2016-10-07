@@ -204,6 +204,11 @@ public class TabContainer extends JPanel
 
   public void selectTab( ITab tab, boolean bFocus )
   {
+    if( getSelectedTab() == tab && StudioUtilities.isInFocusLineage( tab.getContentPane() ) )
+    {
+      return;
+    }
+
     if( isShowing() &&
         (!tab.getComponent().isShowing() || (getTabPane() != null && getTabPane().isDynamic() && !isInView( tab ))) )
     {

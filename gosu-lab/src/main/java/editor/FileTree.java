@@ -30,6 +30,7 @@ public class FileTree implements MutableTreeNode, IFileWatcherListener
   private List<FileTree> _children;
   private Experiment _experiment;
   private Icon _icon;
+  private long _lastModified;
 
   public FileTree( Experiment experiment )
   {
@@ -325,6 +326,13 @@ public class FileTree implements MutableTreeNode, IFileWatcherListener
       return;
     }
 
+    FileTree child = find( existingFile );
+    if( child != null && child._lastModified - existingFile.lastModified() >= 0 )
+    {
+      return;
+    }
+
+    child._lastModified = existingFile.lastModified();
     EventQueue.invokeLater( () -> getExperiment().getGosuPanel().refresh( existingFile ) );
   }
 
@@ -338,6 +346,12 @@ public class FileTree implements MutableTreeNode, IFileWatcherListener
       EventQueue.invokeLater( () -> ((DefaultTreeModel)getExperimentView().getTree().getModel()).removeNodeFromParent( fileTree ) );
       getExperiment().getGosuPanel().closeTab( existingFile );
     }
+  }
+
+  @Override
+  public void setLastModified()
+  {
+    _lastModified = System.currentTimeMillis() + 100;
   }
 
   public void select()

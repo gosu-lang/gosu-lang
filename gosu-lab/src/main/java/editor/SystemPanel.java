@@ -26,7 +26,7 @@ import java.io.PrintStream;
 
 /**
  */
-public class SystemPanel extends JPanel
+public class SystemPanel extends ClearablePanel
 {
   private JTextPane _outputPanel;
   private EditorScrollPane _scroller;
@@ -121,13 +121,17 @@ public class SystemPanel extends JPanel
     _outputPanel.setText( strOut );
   }
 
-  /**
-   *
-   */
+  @Override
   public void clear()
   {
     _outputPanel.setText( "" );
     scrollRectToVisible( new Rectangle( 0, 0, 0, 0 ) );
+  }
+
+  @Override
+  public void dispose()
+  {
+    RunMe.getEditorFrame().getGosuPanel().showConsole( false );
   }
 
   private class MouseHandler extends MouseAdapter
