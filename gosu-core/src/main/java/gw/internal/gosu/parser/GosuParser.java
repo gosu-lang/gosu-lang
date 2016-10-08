@@ -7936,6 +7936,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
       {
         IType resolvedType = ((IResolvingCoercer)iCoercer).resolveType( rawContextType, expressionType );
         TypeLord.inferTypeVariableTypesFromGenParamTypeAndConcreteType( rawContextType, resolvedType, inferenceMap );
+        TypeLord.inferTypeVariableTypesFromGenParamTypeAndConcreteType( rawContextType, expressionType, inferenceMap );
       }
       else
       {
@@ -15231,7 +15232,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
   {
     if( funcType instanceof IFunctionType && funcType.isGenericType() )
     {
-      return inferFunction( funcType, eArgs, bUseCtx );
+      return inferFunction( funcType, eArgs, bUseCtx, inferenceMap );
     }
     else if( funcType instanceof ConstructorType )
     {
@@ -15273,7 +15274,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
     return funcType;
   }
 
-  private IInvocableType inferFunction( IInvocableType funcType, List<? extends IExpression> eArgs, boolean bUseCtx )
+  private IInvocableType inferFunction( IInvocableType funcType, List<? extends IExpression> eArgs, boolean bUseCtx, TypeVarToTypeMap inferenceMap )
   {
     IType[] argTypes = new IType[eArgs.size()];
     for( int i = 0; i < eArgs.size(); i++ )
@@ -15291,6 +15292,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
         if( coercer instanceof IResolvingCoercer )
         {
           argTypes[i] = ((IResolvingCoercer)coercer).resolveType( paramType, argType );
+          argTypes[i] = TypeLord.getActualType( argTypes[i], inferenceMap, true );
         }
       }
     }
