@@ -4,34 +4,46 @@ import java.awt.*;
 
 /**
  */
-public class LabScheme extends Scheme
+public class LabDarkScheme extends Scheme
 {
-  private static final Color CONTROL_LIGHT = Color.white; //UIManager.getColor( "controlLtHighlight" );
-  /* colors */            
+  private static final Color WHITISH = new Color( 222, 222, 222 );
+  private static final Color BLACKISH = new Color( 25, 25, 25 );
+
+  private static final Color CONTROL_LIGHT = WHITISH; //UIManager.getColor( "controlLtHighlight" );
+  /* colors */
   public static final Color TOOLTIP_BACKGROUND = new Color( 255, 255, 225 ); //  UIManager.getColor( "info" );
   private static final Color TOOLTIP_TEXT = Color.black; //  UIManager.getColor( "infoText" );
-  private static final Color WINDOW = new Color( 252, 252, 252 );
-  private static final Color WINDOW_TEXT = Color.black;
-  private static final Color WINDOW_BORDER = new Color( 100, 100, 100 );
+  private static final Color WINDOW = BLACKISH;
+  private static final Color WINDOW_TEXT = WHITISH;
+  private static final Color WINDOW_BORDER = new Color( 49, 106, 197 ); //new Color( 100, 100, 100 );
   private static final Color TEXT_HIGHLIGHT = new Color( 51, 153, 255 );
-  private static final Color TEXT_HIGHLIGHT_TEXT = Color.white;
+  private static final Color TEXT_HIGHLIGHT_TEXT = WHITISH;
   private static final Color TEXT_TEXT = Color.black;
   private static final Color XP_BORDER_COLOR = new Color( 49, 106, 197 );
   private static final Color XP_HIGHLIGHT_TOGGLE_COLOR = new Color( 225, 230, 232 );
   private static final Color XP_HIGHLIGHT_SELECTED_COLOR = new Color( 152, 179, 219 );
-  private static final Color ACTIVE_CAPTION = new Color( 210, 235, 251 );
+  private static final Color ACTIVE_CAPTION = new Color( 0, 37, 58 );
   private static final Color XP_HIGHLIGHT_COLOR = ACTIVE_CAPTION;//new Color( 190, 205, 224 );
-  private static final Color ACTIVE_CAPTION_TEXT = Color.black;
+  private static final Color ACTIVE_CAPTION_TEXT = WHITISH;
 
-  private static final Color CONTROL = new Color( 240, 240, 240 ); //UIManager.getColor( "control" );
-  private static final Color CONTROL_DARKSHADOW = new Color( 105, 105, 105 ); // UIManager.getColor( "controlDkShadow" );
-  private static final Color CONTROL_HIGHLIGHT = Color.white; //UIManager.getColor( "controlHighlight" );
-  private static final Color CONTROL_LIGHT_SHADOW = new Color( 200, 200, 200 );
-  private static final Color CONTROL_SHADOW = new Color( 160, 160, 160 ); //EditorUtilities.CONTROL_SHADOW;
-  private static final Color CONTROL_TEXT = Color.black; //UIManager.getColor( "controlText" );
+  private static final Color CONTROL = new Color( 89, 89, 89 ); //UIManager.getColor( "control" );
+  private static final Color CONTROL_HIGHLIGHT = new Color( 160, 160, 160 ); //UIManager.getColor( "controlHighlight" );
+  private static final Color CONTROL_LIGHT_SHADOW = new Color( 80, 80, 80 );
+  private static final Color CONTROL_SHADOW = new Color( 65, 65, 65 ); //EditorUtilities.CONTROL_SHADOW;
+  private static final Color CONTROL_DARKSHADOW = new Color( 49, 49, 49 ); // UIManager.getColor( "controlDkShadow" );
+  private static final Color CONTROL_TEXT = new Color( 200, 200, 200 ); //UIManager.getColor( "controlText" );
 
-  private static final Color SEPARATOR_1 = CONTROL;
-  private static final Color SEPARATOR_2 = CONTROL_LIGHT_SHADOW;
+  private static final Color BORDER = new Color( 122, 122, 122 );
+
+  private static final Color SCROLLBAR_BORDER = CONTROL_DARKSHADOW;
+
+  private static final Color SEPARATOR_1 = new Color( 0, 0, 0, 0 ); // transparent
+  private static final Color SEPARATOR_2 = BORDER;
+
+  private static final Color MENU = new Color( 65, 65, 65 );
+  private static final Color MENU_TEXT = WINDOW_TEXT;
+
+  private static final Color MENU_BORDER = SEPARATOR_2;
 
   private static final Color COLOR_BREAKPOINT = new Color( 255, 0, 0, 50 );
   private static final Color COLOR_EXECPOINT = new Color( 0, 255, 0, 50 );
@@ -42,20 +54,19 @@ public class LabScheme extends Scheme
   private static final Color COLOR_WARNING = new Color( 255, 240, 0 );
   private static final Color COLOR_WARNING_SHADOW = new Color( 234, 190, 0 );
 
-  
-  // Code editor
+    // Code editor
   private static final Color CODE_WINDOW = WINDOW;
-  private static final Color CODE_WINDOW_TEXT = WINDOW_TEXT;
-  private static final Color CODE_COMMENT = Color.gray;
+  private static final Color CODE_WINDOW_TEXT = new Color( 192, 210, 192 );
+  private static final Color CODE_COMMENT = new Color( 128, 128, 0 );
   private static final Color CODE_MULTILINE_COMMENT = CODE_COMMENT;
-  private static final Color CODE_STRING_LITERAL = new Color( 0, 128, 0 );
-  private static final Color CODE_NUMBER_LITERAL = Color.blue;
-  private static final Color CODE_KEYWORDS = new Color( 0, 0, 128 );
-  private static final Color CODE_ERROR = new Color( 164, 0, 0 );
+  private static final Color CODE_STRING_LITERAL = new Color( 192, 192, 0 );
+  private static final Color CODE_NUMBER_LITERAL = new Color( 120, 120, 192 );
+  private static final Color CODE_KEYWORDS = new Color( 120, 192, 120 );
+  private static final Color CODE_ERROR = new Color( 192, 80, 0 );
   private static final Color CODE_WARNING = Color.gray;
   private static final Color CODE_DEPRECATED = CODE_WINDOW_TEXT;
   private static final Color CODE_OPERATOR = CODE_WINDOW_TEXT;
-  private static final Color CODE_TYPE_LITERAL = new Color( 0, 75, 0 );
+  private static final Color CODE_TYPE_LITERAL = new Color( 120, 192, 192 );
   private static final Color CODE_TYPE_LITERAL_NESTED = CODE_TYPE_LITERAL;
 
   @Override
@@ -320,30 +331,31 @@ public class LabScheme extends Scheme
   @Override
   public Color getMenu()
   {
-    return CONTROL;
+    return MENU;
   }
 
   @Override
   public Color getMenuText()
   {
-    return CONTROL_TEXT;
+    return MENU_TEXT;
   }
 
   @Override
   public Color getMenuBorder()
   {
-    return CONTROL_SHADOW;
+    return MENU_BORDER;
   }
 
   @Override
   public Color getScrollbarBorderColor()
   {
-    return getControlLigthShadow();
+    return SCROLLBAR_BORDER;
   }
 
   @Override
   public Color getButtonBorderColor()
   {
-    return getControlDarkshadow();
+    return getControlText();
   }
+
 }

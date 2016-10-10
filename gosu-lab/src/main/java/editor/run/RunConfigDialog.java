@@ -80,7 +80,6 @@ public class RunConfigDialog extends JDialog
 
     JPanel buttonPanel = makeButtonPanel();
 
-
     CollapsibleSplitPane splitPane = new CollapsibleSplitPane( SwingConstants.HORIZONTAL, makeTreePanel(), configTabPane );
     add( splitPane, BorderLayout.CENTER );
     splitPane.setPosition( 30 );
@@ -89,12 +88,15 @@ public class RunConfigDialog extends JDialog
 
 
     JPanel south = new JPanel( new BorderLayout() );
+    south.setBackground( Scheme.active().getMenu() );
     south.setBorder( BorderFactory.createEmptyBorder( 4, 0, 0, 0 ) );
     JPanel filler = new JPanel();
+    filler.setBackground( Scheme.active().getMenu() );
     south.add( filler, BorderLayout.CENTER );
 
     south.add( buttonPanel, BorderLayout.EAST );
     contentPane.add( south, BorderLayout.SOUTH );
+    contentPane.setBackground( Scheme.active().getMenu() );
 
     mapCancelKeystroke();
 
@@ -106,6 +108,7 @@ public class RunConfigDialog extends JDialog
   private JPanel makeButtonPanel()
   {
     JPanel buttonPanel = new JPanel();
+    buttonPanel.setBackground( Scheme.active().getMenu() );
     buttonPanel.setLayout( new BoxLayout( buttonPanel, BoxLayout.X_AXIS ) );
 
     addRunButton( buttonPanel );
@@ -125,6 +128,7 @@ public class RunConfigDialog extends JDialog
   private void addSeparator( JPanel buttonPanel )
   {
     JPanel separator = new JPanel();
+    separator.setBackground( Scheme.active().getMenu() );
     separator.setMinimumSize( new Dimension( 8, 8 ) );
     buttonPanel.add( separator );
   }
@@ -356,10 +360,7 @@ public class RunConfigDialog extends JDialog
     });
     _addedConfigs.forEach( _experiment::addRunConfig );
     _removedConfigs.forEach( _experiment::removeRunConfig );
-    if( _runMe != null )
-    {
-      _experiment.setMruRunConfig( _runMe );
-    }
+    _experiment.setMruRunConfig( _runMe );
     _experiment.save();
   }
 

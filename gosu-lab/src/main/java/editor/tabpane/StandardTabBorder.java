@@ -49,7 +49,7 @@ public class StandardTabBorder implements Border
   public void paintBorder( Component c, Graphics g, int x, int y, int width, int height )
   {
     Polygon poly = getBorderPoly( c );
-    g.setColor( Scheme.active().getControlShadow() );
+    g.setColor( Scheme.active().getScrollbarBorderColor() );
     g.drawPolygon( poly );
     ITab tab = getTabFromComponent( c );
     if( tab.isSelected() )

@@ -10,6 +10,7 @@ import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.util.function.Supplier;
 
 /**
  */
@@ -19,6 +20,7 @@ public class LabToolbarButton extends JButton
 
   private boolean _bConstantBorder;
   private boolean _bShowText;
+  private Supplier<String> _tooltip;
 
 
   public LabToolbarButton( String text, Icon icon, int iMargin )
@@ -37,7 +39,6 @@ public class LabToolbarButton extends JButton
     setOpaque( true );
     EventQueue.invokeLater( () -> {
       setBorder( BorderFactory.createCompoundBorder( BorderFactory.createLineBorder( Scheme.active().getXpBorderColor() ), BorderFactory.createEmptyBorder( iMarginH, iMarginW, iMarginH, iMarginW ) ) );
-      setBackground( Scheme.active().getControl() );
     } );
     _bShowText = false;
     addMouseListener( createMouseListener() );
@@ -74,6 +75,18 @@ public class LabToolbarButton extends JButton
     this( null, null );
   }
 
+  @Override
+  public void addNotify()
+  {
+    super.addNotify();
+    setBackground( getParent().getBackground() );
+  }
+
+  public void setToolTipSupplier( Supplier<String> tooltip )
+  {
+    _tooltip = tooltip;
+  }
+
   protected MouseListener createMouseListener()
   {
     return
@@ -101,7 +114,7 @@ public class LabToolbarButton extends JButton
         public void mouseExited( MouseEvent e )
         {
           setBorderPainted( isBorderConstant() );
-          setBackground( _bkColor != null ? _bkColor : Scheme.active().getControl() );
+          setBackground( _bkColor != null ? _bkColor : getParent().getBackground() );
         }
 
         public void mousePressed( MouseEvent e )
@@ -161,10 +174,19 @@ public class LabToolbarButton extends JButton
   {
     if( getAction() != null )
     {
-      String tip = GosuObjectUtil.toString( getAction().getValue( Action.SHORT_DESCRIPTION ) );
-      if( tip == null || tip.isEmpty() )
+      String tip;
+
+      if( _tooltip != null )
       {
-        tip = GosuObjectUtil.toString( getAction().getValue( Action.NAME ) );
+        tip = _tooltip.get();
+      }
+      else
+      {
+        tip = GosuObjectUtil.toString( getAction().getValue( Action.SHORT_DESCRIPTION ) );
+        if( tip == null || tip.isEmpty() )
+        {
+          tip = GosuObjectUtil.toString( getAction().getValue( Action.NAME ) );
+        }
       }
 
       String value = (String)getAction().getValue( Action.ACCELERATOR_KEY );

@@ -130,12 +130,12 @@ public class MoreTab extends LabToolbarButton
   private void paintTopOrientation( Graphics g )
   {
     int iYStart = 1;
-    g.setColor( Scheme.active().getControlShadow() );
+    g.setColor( Scheme.active().getScrollbarBorderColor() );
     g.drawLine( 0, iYStart, 1, iYStart );
     boolean bLeft = true;
     for( int i = iYStart, x = 1; i <= 32; i+=3, x+=(bLeft ? -1 : 1) )
     {
-      g.setColor( Scheme.active().getControlShadow() );
+      g.setColor( Scheme.active().getScrollbarBorderColor() );
       g.drawLine( x,  i,  x,  i+2 );
       g.setColor( Scheme.active().getControlDarkshadow() );
       g.drawLine( x+1,  i,  x+1,  i+2 );

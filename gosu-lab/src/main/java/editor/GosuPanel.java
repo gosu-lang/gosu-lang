@@ -167,7 +167,7 @@ public class GosuPanel extends JPanel
       } );
 
     _experimentView = new ExperimentView();
-    _experimentView.setBackground( Color.white );
+    _experimentView.setBackground( Scheme.active().getWindow() );
     TabPane experimentViewTabPane = new TabPane( TabPosition.TOP, TabPane.MINIMIZABLE | TabPane.RESTORABLE | TabPane.TOP_BORDER_ONLY );
     experimentViewTabPane.addTab( "Experiment", null, _experimentView );
 
@@ -204,14 +204,14 @@ public class GosuPanel extends JPanel
     item = new LabToolbarButton( new CommonMenus.SaveActionHandler() );
     toolbar.add( item );
 
-    toolbar.addSeparator();
+    toolbar.add( makeSeparator() );
 
     item = new LabToolbarButton( new CommonMenus.UndoActionHandler() );
     toolbar.add( item );
     item = new LabToolbarButton( new CommonMenus.RedoActionHandler() );
     toolbar.add( item );
 
-    toolbar.addSeparator();
+    toolbar.add( makeSeparator() );
 
     item = new LabToolbarButton( new CommonMenus.CutActionHandler( this::getCurrentEditor ) );
     toolbar.add( item );
@@ -220,42 +220,80 @@ public class GosuPanel extends JPanel
     item = new LabToolbarButton( new CommonMenus.PasteActionHandler( this::getCurrentEditor ) );
     toolbar.add( item );
 
-    toolbar.addSeparator();
+    toolbar.add( makeSeparator() );
 
     item = new LabToolbarButton( new CommonMenus.FindActionHandler( this::getCurrentEditor ) );
     toolbar.add( item );
     item = new LabToolbarButton( new CommonMenus.ReplaceActionHandler( this::getCurrentEditor ) );
     toolbar.add( item );
 
-    toolbar.addSeparator();
+    toolbar.add( makeSeparator() );
 
     item = new LabToolbarButton( new CommonMenus.CompileActionHandler() );
     toolbar.add( item );
 
-    toolbar.addSeparator();
+    toolbar.add( makeSeparator() );
 
     item = new LabToolbarButton( new CommonMenus.ClearAndRunActionHandler( this::getRunConfig ) );
-    toolbar.add( item );
-    item = new LabToolbarButton( new CommonMenus.ClearAndDebugActionHandler( this::getRunConfig ) );
+    item.setToolTipSupplier( () -> {
+      IRunConfig rc = getRunConfig();
+      return rc == null ? "Run..." : "Run '" + rc.getName() + "'";
+    } );
     toolbar.add( item );
 
-    toolbar.addSeparator();
+    item = new LabToolbarButton( new CommonMenus.ClearAndDebugActionHandler( this::getRunConfig ) );
+    item.setToolTipSupplier( () -> {
+      IRunConfig rc = getRunConfig();
+      return rc == null ? "Debug..." : "Debug '" + rc.getName() + "'";
+    } );
+    toolbar.add( item );
+
+    toolbar.add( makeSeparator() );
 
     item = new LabToolbarButton( new CommonMenus.ShipItActionHandler() );
     toolbar.add( item );
 
     return toolbar;
   }
-
-  private ToolBar makeRunToolbar()
+  private JComponent makeSeparator()
   {
-    ToolBar toolbar = new ToolBar( JToolBar.VERTICAL );
-    LabToolbarButton item;
+    JPanel separator = new JPanel( new BorderLayout() ) {
+      @Override
+      protected void paintComponent( Graphics g )
+      {
+        super.paintComponent( g );
+        g.setColor( Scheme.active().getSeparator2() );
+        g.drawLine( getWidth()/2, 0, getWidth()/2, getHeight()-1 );
+      }
+    };
+    separator.setMaximumSize( new Dimension( 9, 20 ) );
+    separator.setBackground( Scheme.active().getMenu() );
+    return separator;
+  }
 
+  private JComponent makeRunToolbar()
+  {
+    JPanel toolbarPanel = new JPanel( new BorderLayout() );
+    toolbarPanel.setBackground( Scheme.active().getMenu() );
+    toolbarPanel.setBorder( BorderFactory.createEmptyBorder( 1, 2, 1, 2 ) );
+
+    ToolBar toolbar = new ToolBar( JToolBar.VERTICAL );
+
+    LabToolbarButton item;
     item = new LabToolbarButton( new CommonMenus.ClearAndRunActionHandler( this::getRunConfig ) );
+    item.setToolTipSupplier( () -> {
+      IRunConfig rc = getRunConfig();
+      return rc == null ? "Run..." : "Run '" + rc.getName() + "'";
+    } );
     toolbar.add( item );
+
     item = new LabToolbarButton( new CommonMenus.ClearAndDebugActionHandler( this::getRunConfig ) );
+    item.setToolTipSupplier( () -> {
+      IRunConfig rc = getRunConfig();
+      return rc == null ? "Debug..." : "Debug '" + rc.getName() + "'";
+    } );
     toolbar.add( item );
+
     item = new LabToolbarButton( new CommonMenus.StopActionHandler( () -> this ) );
     toolbar.add( item );
     item = new LabToolbarButton( new CommonMenus.PauseActionHandler( this::getDebugger ) );
@@ -270,7 +308,8 @@ public class GosuPanel extends JPanel
     ToggleToolBarButton titem = new ToggleToolBarButton( new CommonMenus.MuteBreakpointsActionHandler( this::getBreakpointManager ) );
     toolbar.add( titem );
 
-    return toolbar;
+    toolbarPanel.add( toolbar, BorderLayout.CENTER );
+    return toolbarPanel;
   }
 
   public ExperimentView getExperimentView()
@@ -2038,7 +2077,7 @@ public class GosuPanel extends JPanel
       if( _debugPanel == null )
       {
         _debugPanel = new DebugPanel( _debugger );
-        _bottomTabPane.addTab( "<html>Debugging: <i>" + SignatureUtil.getSimpleName( _processRunner.getRunConfig().getName() ) + "</i>", EditorUtilities.loadIcon( "images/debug.png" ), _debugPanel );
+        _bottomTabPane.addTab( _processRunner.getRunConfig().getName(), EditorUtilities.loadIcon( "images/debug.png" ), _debugPanel );
         _debugPanel.addLocationListener( loc -> jumptToBreakpoint( loc, false ) );
       }
       else
@@ -2112,8 +2151,11 @@ public class GosuPanel extends JPanel
       _runState = RunState.None;
       _statPanel.setVisible( false );
       _statPanel.revalidate();
-      _consolePanel.getOutputPanel().setEditable( false );
-      _consolePanel.getOutputPanel().removeKeyListener( _sysInListener );
+      if( _consolePanel != null )
+      {
+        _consolePanel.getOutputPanel().setEditable( false );
+        _consolePanel.getOutputPanel().removeKeyListener( _sysInListener );
+      }
       _inWriter = null;
       System.setIn( _oldIn );
     }

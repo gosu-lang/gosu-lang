@@ -4,6 +4,7 @@ package editor.tabpane;
 import editor.Scheme;
 import editor.actions.GenericAction;
 import editor.splitpane.ICaptionActionListener;
+import editor.util.EditorUtilities;
 import editor.util.LabToolbarButton;
 import editor.util.ToolBar;
 
@@ -44,6 +45,8 @@ public class ToolContainer extends JPanel
   {
     setBorder( makeBorder() );
     _toolbar = new ToolBar( isVertical() ? ToolBar.VERTICAL : ToolBar.HORIZONTAL );
+    _toolbar.setBackground( Scheme.active().getControl() );
+
     _toolbar.add( new JPanel() );
     if( _tabPane.isDynamic() )
     {
@@ -78,19 +81,19 @@ public class ToolContainer extends JPanel
     TabPosition tp = _tabPane.getTabContainer().getTabPosition();
     if( tp == TabPosition.TOP )
     {
-      return BorderFactory.createMatteBorder( 0, 0, 1, 0, Scheme.active().getControlShadow() );
+      return BorderFactory.createMatteBorder( 0, 0, 1, 0, Scheme.active().getScrollbarBorderColor() );
     }
     else if( tp == TabPosition.BOTTOM )
     {
-      return BorderFactory.createMatteBorder( 1, 0, 0, 0, Scheme.active().getControlShadow() );
+      return BorderFactory.createMatteBorder( 1, 0, 0, 0, Scheme.active().getScrollbarBorderColor() );
     }
     else if( tp == TabPosition.LEFT )
     {
-      return BorderFactory.createMatteBorder( 0, 0, 0, 1, Scheme.active().getControlShadow() );
+      return BorderFactory.createMatteBorder( 0, 0, 0, 1, Scheme.active().getScrollbarBorderColor() );
     }
     else
     {
-      return BorderFactory.createMatteBorder( 0, 1, 0, 0, Scheme.active().getControlShadow() );
+      return BorderFactory.createMatteBorder( 0, 1, 0, 0, Scheme.active().getScrollbarBorderColor() );
     }
   }
 
@@ -161,11 +164,12 @@ public class ToolContainer extends JPanel
     {
       super( "_displayTabs",
               null, //"Display Tabs",
-              "images/caption_list.gif",
+              null,
               ' ',
               null,
               "Display Tabs",
               null);
+      setIcon( new ImageIcon( EditorUtilities.createSystemColorImage( EditorUtilities.loadIcon( "images/caption_list.gif" ).getImage() ) ) );
       setEnabled( false );
       _tabPane.getTabContainer().addSelectionListener(
         e -> {
@@ -205,11 +209,12 @@ public class ToolContainer extends JPanel
     {
       super( "_closeTab",
               null, //"Close Tab",
-              "images/caption_close.png",
+              null,
               ' ',
               null,
               "Close Tab",
               null );
+      setIcon( new ImageIcon( EditorUtilities.createSystemColorImage( EditorUtilities.loadIcon( "images/caption_close.png" ).getImage() ) ) );
       setEnabled( false );
       _tabPane.getTabContainer().addSelectionListener(
         e -> {
@@ -246,11 +251,12 @@ public class ToolContainer extends JPanel
     {
       super( "_minimize",
               null, //"Minimize",
-              "images/caption_min.gif",
+              null,
               ' ',
               null,
               "Minimize",
               null);
+      setIcon( new ImageIcon( EditorUtilities.createSystemColorImage( EditorUtilities.loadIcon( "images/caption_min.gif" ).getImage() ) ) );
     }
 
     @Override
@@ -275,11 +281,12 @@ public class ToolContainer extends JPanel
     {
       super( "_restore",
               null, //"Restore",
-              "images/caption_restore.gif",
+              null,
               ' ',
               null,
               "Restore",
               null );
+      setIcon( new ImageIcon( EditorUtilities.createSystemColorImage( EditorUtilities.loadIcon( "images/caption_restore.gif" ).getImage() ) ) );
     }
 
     @Override
@@ -304,11 +311,12 @@ public class ToolContainer extends JPanel
     {
       super( "_maximize",
               null, //"Maximize",
-              "images/caption_max.gif",
+              null,
               ' ',
               null,
               "Maximize",
               null);
+      setIcon( new ImageIcon( EditorUtilities.createSystemColorImage( EditorUtilities.loadIcon( "images/caption_max.gif" ).getImage() ) ) );
     }
 
     @Override

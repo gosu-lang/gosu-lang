@@ -73,7 +73,7 @@ public class ExperimentView extends JPanel
     _tree.addMouseListener( new TreeMouseHandler() );
     _tree.addKeyListener( new TreeKeyHandler() );
     _scroller = new JScrollPane( _tree );
-    _scroller.setBorder( new MatteBorder( 0, 0, 1, 1, Scheme.active().getControlShadow() ) );
+    _scroller.setBorder( new MatteBorder( 0, 0, 1, 1, Scheme.active().getScrollbarBorderColor() ) );
     expandToFirstSourcePath( 0, _tree.getRowCount() );
 
     _splitPane.setTop( _scroller );

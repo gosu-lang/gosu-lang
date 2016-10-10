@@ -26,7 +26,7 @@ public class SmartMenuItem extends JMenuItem implements ChangeListener
   {
     setBorderPainted( false );
     setMargin( new Insets( 1, 1, 1, 1 ) );
-    setBackground( Scheme.active().getControl() );
+    setBackground( Scheme.active().getMenu() );
     //setContentAreaFilled( false );
     setOpaque( true );
     addChangeListener( this );
@@ -51,7 +51,7 @@ public class SmartMenuItem extends JMenuItem implements ChangeListener
   public void handleUnarmed()
   {
     setBorderPainted( false );
-    setBackground( Scheme.active().getControl() );
+    setBackground( Scheme.active().getMenu() );
   }
 
   public void stateChanged( ChangeEvent e )

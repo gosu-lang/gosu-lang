@@ -66,19 +66,21 @@ public class SearchDialog extends AbstractDialog
     _stateHandler = new DialogStateHandler();
     
     JPanel mainPanel = new JPanel( new BorderLayout() );
-    mainPanel.setBorder( BorderFactory.createCompoundBorder( UIManager.getBorder( "TextField.border" ),
-                                                             BorderFactory.createEmptyBorder( 5, 5, 5, 5 ) ) );
+    mainPanel.setBorder( BorderFactory.createLineBorder( Scheme.active().getMenuBorder() ) );
     mainPanel.add( makeSearchPanel(), BorderLayout.CENTER );
 
     contentPane.add( mainPanel, BorderLayout.CENTER );
 
     JPanel south = new JPanel( new BorderLayout() );
+    south.setBackground( Scheme.active().getMenu() );
     south.setBorder( BorderFactory.createEmptyBorder( 4, 0, 0, 0 ) );
     JPanel filler = new JPanel();
+    filler.setBackground( Scheme.active().getMenu() );
     south.add( filler, BorderLayout.CENTER );
 
     JPanel buttonPanel = new JPanel();
     buttonPanel.setLayout( new BoxLayout( buttonPanel, BoxLayout.X_AXIS ) );
+    buttonPanel.setBackground( Scheme.active().getMenu() );
 
     JButton btnFind = new JButton( _bReplace ? "Replace" : "Find" );
     btnFind.setMnemonic( 'F' );
@@ -92,6 +94,7 @@ public class SearchDialog extends AbstractDialog
 
     south.add( buttonPanel, BorderLayout.EAST );
     contentPane.add( south, BorderLayout.SOUTH );
+    contentPane.setBackground( Scheme.active().getMenu() );
 
     mapCancelKeystroke();
 

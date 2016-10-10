@@ -283,7 +283,7 @@ public class TabContainer extends JPanel
       return;
     }
 
-    g.setColor( Scheme.active().getControlShadow() );
+    g.setColor( Scheme.active().getScrollbarBorderColor() );
     if( getTabPosition() == TabPosition.TOP )
     {
       g.drawLine( 0, getHeight() - 1, getWidth() - 1, getHeight() - 1 );

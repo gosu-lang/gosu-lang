@@ -175,6 +175,10 @@ public abstract class AbstractOutOfProcessExecutor<T extends IRunConfig> impleme
 
   void printLabMessage( String message )
   {
+    if( getGosuPanel().getConsolePanel() == null )
+    {
+      return;
+    }
     SimpleAttributeSet attr = new SimpleAttributeSet();
     attr.addAttribute( StyleConstants.Foreground, new Color( 192, 192, 192 ) );
     TextComponentWriter out = (TextComponentWriter)System.out;

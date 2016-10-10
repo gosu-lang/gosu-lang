@@ -7,11 +7,38 @@ import java.awt.*;
 public abstract class Scheme
 {
   private static Scheme _active = new LabScheme();
+ // private static Scheme _active = new LabDarkScheme();
 
   public static Scheme active()
   {
     return _active;
   }
+
+  public abstract Color getCodeWindow();
+
+  public abstract Color getCodeWindowText();
+
+  public abstract Color getCodeComment();
+
+  public abstract Color getCodeMultilineComment();
+
+  public abstract Color getCodeStringLiteral();
+
+  public abstract Color getCodeNumberLiteral();
+
+  public abstract Color getCodeKeyword();
+
+  public abstract Color getCodeError();
+
+  public abstract Color getCodeWarning();
+
+  public abstract Color getCodeDeprecated();
+
+  public abstract Color getCodeOperator();
+
+  public abstract Color getCodeTypeLiteral();
+
+  public abstract Color getCodeTypeLiteralNested();
 
   public abstract Color getControlLight();
 
@@ -20,6 +47,9 @@ public abstract class Scheme
   public abstract Color getXpHighlightColor();
 
   public abstract Color getActiveCaptionText();
+
+  public abstract Color getSeparator1();
+  public abstract Color getSeparator2();
 
   public abstract Color getControl();
 
@@ -63,4 +93,12 @@ public abstract class Scheme
   public abstract Color getColorErrorShadow();
   public abstract Color getColorWarning();
   public abstract Color getColorWarningShadow();
+
+  public abstract Color getMenu();
+  public abstract Color getMenuText();
+  public abstract Color getMenuBorder();
+
+  public abstract Color getScrollbarBorderColor();
+
+  public abstract Color getButtonBorderColor();
 }

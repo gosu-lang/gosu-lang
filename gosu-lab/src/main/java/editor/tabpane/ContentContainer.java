@@ -100,7 +100,7 @@ public class ContentContainer extends JPanel
         g.fillRect( width - insets.right, 0, insets.right, height - insets.bottom );
         if( _tabPane.isTopBorderOnly() )
         {
-          g.setColor( Scheme.active().getControlShadow() );
+          g.setColor( Scheme.active().getScrollbarBorderColor() );
           TabPosition tp = _tabPane.getTabContainer().getTabPosition();
           if( tp == TabPosition.TOP ||
               tp == TabPosition.BOTTOM )

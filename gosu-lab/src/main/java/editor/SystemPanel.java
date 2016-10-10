@@ -66,7 +66,7 @@ public class SystemPanel extends ClearablePanel
     editorRootScroller.setBorder( null );
 
     _scroller = new EditorScrollPane( null, _outputPanel, editorRootScroller );
-    _scroller.setBorder( BorderFactory.createMatteBorder( 0, 1, 0, 1, Scheme.active().getControlShadow() ) );
+    _scroller.setBorder( BorderFactory.createMatteBorder( 0, 1, 0, 1, Scheme.active().getScrollbarBorderColor() ) );
     JViewport vp = _scroller.getViewport();
     vp.setScrollMode( JViewport.BLIT_SCROLL_MODE );
 
@@ -131,7 +131,10 @@ public class SystemPanel extends ClearablePanel
   @Override
   public void dispose()
   {
-    RunMe.getEditorFrame().getGosuPanel().showConsole( false );
+    GosuPanel gosuPanel = RunMe.getEditorFrame().getGosuPanel();
+
+    gosuPanel.killProcess();
+    gosuPanel.showConsole( false );
   }
 
   private class MouseHandler extends MouseAdapter

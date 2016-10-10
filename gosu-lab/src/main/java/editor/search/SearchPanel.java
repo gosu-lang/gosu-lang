@@ -53,7 +53,7 @@ public class SearchPanel extends ClearablePanel
     _tree.addKeyListener( new TreeKeyHandler() );
     _tree.addTreeSelectionListener( new TreeSelectionHandler() );
     JScrollPane scroller = new JScrollPane( _tree );
-    scroller.setBorder( new MatteBorder( 0, 1, 1, 1, Scheme.active().getControlShadow() ) );
+    scroller.setBorder( new MatteBorder( 0, 1, 1, 1, Scheme.active().getScrollbarBorderColor() ) );
     add( scroller, BorderLayout.CENTER );
 
 

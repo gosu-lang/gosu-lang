@@ -5,6 +5,7 @@ import editor.EditorScrollPane;
 import editor.GosuEditor;
 import editor.GosuPanel;
 import editor.RunMe;
+import editor.Scheme;
 import editor.util.EditorUtilities;
 import editor.util.LabCheckbox;
 import editor.util.SettleModalEventQueue;
@@ -42,7 +43,10 @@ public class EditBreakpointsDialog extends AbstractCloseDialog
   {
     JPanel panel = new JPanel();
     panel.setLayout( new GridBagLayout() );
-    panel.setBorder( BorderFactory.createTitledBorder( "Breakpoints" ) );
+    panel.setBorder( BorderFactory.createCompoundBorder(
+      BorderFactory.createLineBorder( Scheme.active().getMenuBorder() ),
+      BorderFactory.createEmptyBorder( 8, 8, 8, 8  ) ) );
+
     GridBagConstraints c = new GridBagConstraints();
 
     createBreakpointsList();

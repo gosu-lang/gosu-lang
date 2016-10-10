@@ -329,14 +329,14 @@ public class TabPane extends JPanel implements ICaptionedPanel
       if( !isTopBorderOnly() )
       {
         setBorder( BorderFactory.createCompoundBorder(
-          BorderFactory.createMatteBorder( 1, 1, 1, 1, Scheme.active().getControlShadow() ),
+          BorderFactory.createMatteBorder( 1, 1, 1, 1, Scheme.active().getScrollbarBorderColor() ),
           BorderFactory.createEmptyBorder( HEADER_MARGIN, 0, 0, 0 ) ) );
       }
       else
       {
         setBorder( null );
         _tabAndToolContainer.setBorder( BorderFactory.createCompoundBorder(
-          BorderFactory.createMatteBorder( 1, 1, 0, 1, Scheme.active().getControlShadow() ),
+          BorderFactory.createMatteBorder( 1, 1, 0, 1, Scheme.active().getScrollbarBorderColor() ),
           BorderFactory.createEmptyBorder( HEADER_MARGIN, 0, 0, 0 ) ) );
       }
     }
@@ -345,14 +345,14 @@ public class TabPane extends JPanel implements ICaptionedPanel
       if( !isTopBorderOnly() )
       {
         setBorder( BorderFactory.createCompoundBorder(
-          BorderFactory.createMatteBorder( 1, 1, 1, 1, Scheme.active().getControlShadow() ),
+          BorderFactory.createMatteBorder( 1, 1, 1, 1, Scheme.active().getScrollbarBorderColor() ),
           BorderFactory.createEmptyBorder( 0, 0, HEADER_MARGIN, 0 ) ) );
       }
       else
       {
         setBorder( null );
         _tabAndToolContainer.setBorder( BorderFactory.createCompoundBorder(
-          BorderFactory.createMatteBorder( 0, 1, 1, 1, Scheme.active().getControlShadow() ),
+          BorderFactory.createMatteBorder( 0, 1, 1, 1, Scheme.active().getScrollbarBorderColor() ),
           BorderFactory.createEmptyBorder( 0, 0, HEADER_MARGIN, 0 ) ) );
       }
     }
@@ -361,14 +361,14 @@ public class TabPane extends JPanel implements ICaptionedPanel
       if( !isTopBorderOnly() )
       {
         setBorder( BorderFactory.createCompoundBorder(
-          BorderFactory.createMatteBorder( 1, 1, 1, 1, Scheme.active().getControlShadow() ),
+          BorderFactory.createMatteBorder( 1, 1, 1, 1, Scheme.active().getScrollbarBorderColor() ),
           BorderFactory.createEmptyBorder( 0, 0, 0, HEADER_MARGIN ) ) );
       }
       else
       {
         setBorder( null );
         _tabAndToolContainer.setBorder( BorderFactory.createCompoundBorder(
-          BorderFactory.createMatteBorder( 1, 0, 1, 1, Scheme.active().getControlShadow() ),
+          BorderFactory.createMatteBorder( 1, 0, 1, 1, Scheme.active().getScrollbarBorderColor() ),
           BorderFactory.createEmptyBorder( 0, 0, 0, HEADER_MARGIN ) ) );
       }
     }
@@ -377,14 +377,14 @@ public class TabPane extends JPanel implements ICaptionedPanel
       if( !isTopBorderOnly() )
       {
         setBorder( BorderFactory.createCompoundBorder(
-          BorderFactory.createMatteBorder( 1, 1, 1, 1, Scheme.active().getControlShadow() ),
+          BorderFactory.createMatteBorder( 1, 1, 1, 1, Scheme.active().getScrollbarBorderColor() ),
           BorderFactory.createEmptyBorder( 0, HEADER_MARGIN, 0, 0 ) ) );
       }
       else
       {
         setBorder( null );
         _tabAndToolContainer.setBorder( BorderFactory.createCompoundBorder(
-          BorderFactory.createMatteBorder( 1, 1, 1, 0, Scheme.active().getControlShadow() ),
+          BorderFactory.createMatteBorder( 1, 1, 1, 0, Scheme.active().getScrollbarBorderColor() ),
           BorderFactory.createEmptyBorder( 0, HEADER_MARGIN, 0, 0 ) ) );
       }
     }

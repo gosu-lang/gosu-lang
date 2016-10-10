@@ -91,7 +91,7 @@ public class TabAndToolContainer extends JPanel implements ICaptionBar
     if( _tabContainer.getTabCount() > 0 )
     {
       TabAndToolContainer copy = new TabAndToolContainer( this );
-      copy.setBorder( BorderFactory.createMatteBorder( 1, 1, 1, 1, Scheme.active().getControlShadow() ) );
+      copy.setBorder( BorderFactory.createMatteBorder( 1, 1, 1, 1, Scheme.active().getScrollbarBorderColor() ) );
       return copy;
     }
     else
@@ -154,7 +154,7 @@ public class TabAndToolContainer extends JPanel implements ICaptionBar
 
   private void configUi()
   {
-    setOpaque( false );
+    setOpaque( true );
     add( _tabContainer, BorderLayout.CENTER );
 
     TabPosition tabPosition = _tabContainer.getTabPosition();

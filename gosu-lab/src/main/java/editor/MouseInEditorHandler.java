@@ -16,7 +16,7 @@ import java.awt.event.MouseMotionListener;
 
 class MouseInEditorHandler implements MouseListener, MouseMotionListener, KeyListener
 {
-  private static final UnderlineHighlighterPainter PAINTER = new UnderlineHighlighterPainter( Color.BLACK );
+  private static final UnderlineHighlighterPainter PAINTER = new UnderlineHighlighterPainter( Scheme.active().getWindowText() );
   private final GosuEditor _editor;
   private Cursor _previousCursor;
 

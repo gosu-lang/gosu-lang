@@ -165,7 +165,7 @@ public class StandardTab extends JPanel implements ITab
         : Scheme.active().getControl() //(Color)Utilities.getDesktopProperty( DesktopProperties.INACTIVE_GRADIENT )
       : isHover()
        ? Scheme.active().getControl()
-       : Scheme.active().getControlShadow();
+       : Scheme.active().getScrollbarBorderColor();
   }
 
   private Graphics2D getTransformedGraphics( Graphics2D g2, BufferedImage bi )

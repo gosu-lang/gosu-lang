@@ -80,7 +80,7 @@ class ProgramConfigPanel extends JPanel
     c.weighty = 0;
     c.insets = new Insets( 10, 0, 10, 0 );
     JPanel separator = new JPanel();
-    separator.setBorder( BorderFactory.createMatteBorder( 1, 0, 0, 0, Scheme.active().getControlShadow() ) );
+    separator.setBorder( BorderFactory.createMatteBorder( 1, 0, 0, 0, Scheme.active().getSeparator2() ) );
     configPanel.add( separator, c );
 
     

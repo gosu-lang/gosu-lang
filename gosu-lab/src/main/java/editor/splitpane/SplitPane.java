@@ -147,7 +147,7 @@ public class SplitPane extends JComponent implements SwingConstants
   {
     Splitter()
     {
-      setBackground( Scheme.active().getControl() );
+      setBackground( Scheme.active().getMenu() );
       int iOrientation = getOrientation();
 
       setCursor( iOrientation == HORIZONTAL ? Cursor.getPredefinedCursor( Cursor.E_RESIZE_CURSOR )

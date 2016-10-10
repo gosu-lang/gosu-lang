@@ -300,9 +300,9 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
     _editor.setFont( new Font( GosuEditorKit.getStylePreferences().getFontFamily(), Font.PLAIN,
                                GosuEditorKit.getStylePreferences().getFontSize() ) );
     _editor.setBackground( Scheme.active().getWindow() );
-    _editor.setForeground( Color.black );
+    _editor.setForeground( Scheme.active().getWindowText() );
     _editor.putClientProperty( "caretWidth", 2 );
-    _editor.setCaretColor( StyleConstants.getForeground( kit.getViewFactory().getStyle( GosuStyleContext.STYLE_Caret ) ) );
+    _editor.setCaretColor( Scheme.active().getWindowText() );
     _editor.setEditable( true );
     _editor.addKeyListener( new EditorKeyHandler() );
     _editor.addMouseListener( new ScriptEditorPopupHandler( this, _contextMenuHandler ) );

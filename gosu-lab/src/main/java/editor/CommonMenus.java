@@ -382,13 +382,7 @@ public class CommonMenus
     public boolean isEnabled()
     {
       GosuPanel gosuPanel = getGosuPanel();
-      if( gosuPanel == null || gosuPanel.isRunning() || gosuPanel.isDebugging() )
-      {
-        return false;
-      }
-
-      IRunConfig runConfig = getRunConfig();
-      return runConfig != null && runConfig.isValid();
+      return !(gosuPanel == null || gosuPanel.isRunning() || gosuPanel.isDebugging());
     }
   }
 
@@ -411,16 +405,17 @@ public class CommonMenus
         return;
       }
 
-      getGosuPanel().showConsole( true );
-      getGosuPanel().clearOutput();
-      IRunConfig runConfig = _runConfig.get();
-      getGosuPanel().execute( runConfig );
-    }
-
-    @Override
-    public boolean isEnabled()
-    {
-      return super.isEnabled() && getRunConfig().isRunnable();
+      IRunConfig runConfig = getRunConfig();
+      if( runConfig != null && runConfig.isValid() && runConfig.isRunnable() )
+      {
+        getGosuPanel().showConsole( true );
+        getGosuPanel().clearOutput();
+        getGosuPanel().execute( runConfig );
+      }
+      else
+      {
+        new RunConfigActionHandler().actionPerformed( e );
+      }
     }
   }
 
@@ -438,16 +433,17 @@ public class CommonMenus
         return;
       }
 
-      getGosuPanel().showConsole( true );
-      getGosuPanel().clearOutput();
-      IRunConfig runConfig = _runConfig.get();
-      getGosuPanel().debug( runConfig );
-    }
-
-    @Override
-    public boolean isEnabled()
-    {
-      return super.isEnabled() && getRunConfig().isDebuggable();
+      IRunConfig runConfig = getRunConfig();
+      if( runConfig != null && runConfig.isValid() && runConfig.isDebuggable() )
+      {
+        getGosuPanel().showConsole( true );
+        getGosuPanel().clearOutput();
+        getGosuPanel().debug( runConfig );
+      }
+      else
+      {
+        new DebugConfigActionHandler().actionPerformed( e );
+      }
     }
   }
 

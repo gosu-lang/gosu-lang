@@ -73,7 +73,7 @@ public class GosuStyleContext extends StyleContext implements ViewFactory
   private static final Component THISISSTUPID = new Component()
   {
   };
-  private static String g_defFontFamily = "Monospaced";
+  private static String g_defFontFamily = "Monospaced"; // "Consolas";
   private static int g_defFontSize = 12;
 
   public static final String STYLE_EOL = "EOL";
@@ -213,8 +213,8 @@ public class GosuStyleContext extends StyleContext implements ViewFactory
   {
     // Default
     Style style = getStyle( DEFAULT_STYLE );
-    setBackground( style, Scheme.active().getWindow() );
-    setForeground( style, Scheme.active().getWindowText() );
+    setBackground( style, Scheme.active().getCodeWindow() );
+    setForeground( style, Scheme.active().getCodeWindowText() );
 
     // Caret
     // style = getStyle( STYLE_Caret );
@@ -224,64 +224,67 @@ public class GosuStyleContext extends StyleContext implements ViewFactory
 
     // Comments
     style = getStyleForScanValue( ISourceCodeTokenizer.TT_COMMENT );
-    setForeground( style, Color.gray );
+    setForeground( style, Scheme.active().getCodeComment()  );
     setItalic( style, true );
 
     // EOL (same as Comment... to handle multiline comments)
     style = getStyleForScanValue( ISourceCodeTokenizer.TT_EOL );
-    setForeground( style, Color.gray );
+    setForeground( style, Scheme.active().getCodeMultilineComment() );
     setItalic( style, true );
 
     // EOF (same as Comment... to handle multiline comments)
     style = getStyleForScanValue( ISourceCodeTokenizer.TT_EOF );
-    setForeground( style, Color.gray );
+    setForeground( style, Scheme.active().getCodeMultilineComment() );
     setItalic( style, true );
 
     // String Literals
     style = getStyleForScanValue( (int)'"' );
-    setForeground( style, new Color( 0, 128, 0 ) );
+    setForeground( style, Scheme.active().getCodeStringLiteral() );
     setBold( style, true );
 
     // Number Literals
     style = getStyleForScanValue( ISourceCodeTokenizer.TT_NUMBER );
-    setForeground( style, Color.blue );
+    setForeground( style, Scheme.active().getCodeNumberLiteral() );
 
     // Integer Literals
     style = getStyleForScanValue( ISourceCodeTokenizer.TT_INTEGER );
-    setForeground( style, Color.blue );
+    setForeground( style, Scheme.active().getCodeNumberLiteral() );
 
     // Non-key Words (identifiers and bean member access paths)
     // style = getStyleForScanValue( ISourceCodeTokenizer.TT_WORD );
 
     // Key Words
     style = getStyleForScanValue( GosuStyleContext.KEY_WORD );
-    setForeground( style, new Color( 0, 0, 128 ) );
+    setForeground( style, Scheme.active().getCodeKeyword() );
     setBold( style, true );
 
     // Parse Errors
     style = getStyleForScanValue( GosuStyleContext.PARSE_ERROR );
-    setForeground( style, new Color( 164, 0, 0 ) );
+    setForeground( style, Scheme.active().getCodeError() );
 
     // Parse Warnings
     style = getStyleForScanValue( GosuStyleContext.PARSE_WARNING );
+    setForeground( style, Scheme.active().getCodeWarning() );
     setUnderline( style, true );
 
     // Deprecated Member
     style = getStyleForScanValue( GosuStyleContext.DEPRECATED );
+    setForeground( style, Scheme.active().getCodeDeprecated() );
     setStrikeThrough( style, true );
 
     // Operators
     style = getStyleForScanValue( ISourceCodeTokenizer.TT_OPERATOR );
+    setForeground( style, Scheme.active().getCodeOperator() );
     setBold( style, true );
 
     // Type Literals
     style = getStyleForScanValue( GosuStyleContext.TYPE_LITERAL );
-    setForeground( style, new Color( 0, 75, 0 ) );
+    setForeground( style, Scheme.active().getCodeTypeLiteral() );
     setBold( style, true );
 
     // Type Literals (namespaces and type-parameters)
     style = getStyleForScanValue( GosuStyleContext.NESTED_TYPE_LITERAL );
-    setForeground( style, new Color( 0, 75, 0 ) );
+    setForeground( style, Scheme.active().getCodeTypeLiteralNested() );
 
     // Type Literals (namespaces and type-parameters)
     style = getStyleForScanValue( GosuStyleContext.FIELD_ERROR );

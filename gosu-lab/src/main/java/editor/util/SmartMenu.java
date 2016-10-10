@@ -59,7 +59,7 @@ public class SmartMenu extends JMenu implements MenuListener
 
             case ItemEvent.DESELECTED:
               setBorderPainted( false );
-              setBackground( _bkColor != null ? _bkColor : Scheme.active().getControl() );
+              setBackground( _bkColor != null ? _bkColor : Scheme.active().getMenu() );
               break;
           }
         }

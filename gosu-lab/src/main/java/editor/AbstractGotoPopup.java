@@ -161,7 +161,7 @@ public abstract class AbstractGotoPopup<T> extends JPopupMenu
 
     _spinner = new JLabel( EditorUtilities.loadIcon( "images/wait.gif" ) );
     _spinner.setBorder( UIManager.getBorder( "TextField.border" ) );
-    _spinner.setBackground( Color.WHITE );
+    _spinner.setBackground( Scheme.active().getWindow() );
     _spinner.setOpaque( true );
     _spinner.setVisible( false );
     c.gridy = iY;

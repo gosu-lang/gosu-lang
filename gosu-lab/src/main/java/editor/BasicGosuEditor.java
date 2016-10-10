@@ -103,7 +103,7 @@ public class BasicGosuEditor extends JFrame implements IGosuEditor
   private void setInitialSize()
   {
     _panel.setEditorSplitPosition( 20 );
-    _panel.setExperimentSplitPosition( 75 );
+    _panel.setExperimentSplitPosition( 60 );
   }
 
   public void reset()

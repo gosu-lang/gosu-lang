@@ -38,7 +38,7 @@ public class MessagesPanel extends ClearablePanel
     _tree.addMouseListener( new MouseHandler() );
     _tree.addKeyListener( new TreeKeyHandler() );
     _scroller = new JScrollPane( _tree );
-    _scroller.setBorder( new MatteBorder( 0, 1, 1, 1, Scheme.active().getControlShadow() ) );
+    _scroller.setBorder( new MatteBorder( 0, 1, 1, 1, Scheme.active().getScrollbarBorderColor() ) );
     add( _scroller, BorderLayout.CENTER );
   }
 

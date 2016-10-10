@@ -24,7 +24,6 @@ public class ToggleToolBarButton extends JToggleButton
   private static final ImageIcon MENU_ICON = editor.util.EditorUtilities.loadIcon( "images/drop_down_arrow_3.gif" );
 
   private Border _activeBorder;
-  private Color _clrBkgnd;
   private boolean _bRollover;
   private boolean _bMenu;
 
@@ -44,8 +43,6 @@ public class ToggleToolBarButton extends JToggleButton
 
     setContentAreaFilled( false );
     setOpaque( true );
-
-    _clrBkgnd = Scheme.active().getControl();
 
     _activeBorder = new CompoundBorder( new LineBorder( XP_BORDER_COLOR, 1 ),
                                         BorderFactory.createEmptyBorder( 2, 2, 2, 2 ) );
@@ -87,6 +84,13 @@ public class ToggleToolBarButton extends JToggleButton
   public ToggleToolBarButton()
   {
     this( null, null );
+  }
+
+  @Override
+  public void addNotify()
+  {
+    super.addNotify();
+    setBackground( getParent().getBackground() );
   }
 
   @Override
@@ -143,7 +147,7 @@ public class ToggleToolBarButton extends JToggleButton
     }
     else
     {
-      setBackground( _clrBkgnd );
+      setBackground( getParent().getBackground() );
     }
 
     super.paintComponent( g );
@@ -164,12 +168,6 @@ public class ToggleToolBarButton extends JToggleButton
       g.setColor( Scheme.active().getControlLight() );
       g.drawLine( iMenuIconX - 1, 0, iMenuIconX - 1, getHeight() );
     }
-  }
-
-
-  public void setClrBkgnd( Color clrBkgnd )
-  {
-    _clrBkgnd = clrBkgnd;
   }
 
   @Override
