@@ -9,6 +9,7 @@ import editor.util.ProgressFeedback;
 import gw.lang.parser.IDynamicPropertySymbol;
 import gw.lang.parser.IDynamicSymbol;
 import gw.lang.parser.IExpression;
+import gw.lang.parser.IFunctionSymbol;
 import gw.lang.parser.IParseTree;
 import gw.lang.parser.IParsedElement;
 import gw.lang.parser.ISourceCodeTokenizer;
@@ -192,7 +193,8 @@ public class UsageSearcher extends AbstractSearcher
   {
     if( pe instanceof IMethodCallExpression )
     {
-      if( !findMi.getDisplayName().equals( ((IMethodCallExpression)pe).getFunctionSymbol().getDisplayName() ) )
+      IFunctionSymbol funcSym = ((IMethodCallExpression)pe).getFunctionSymbol();
+      if( funcSym == null || !findMi.getDisplayName().equals( funcSym.getDisplayName() ) )
       {
         return locations;
       }
@@ -362,7 +364,7 @@ public class UsageSearcher extends AbstractSearcher
         IType varType = varStmt.getType();
         if( varType != null && referencesType( varType, type ) )
         {
-          locations = addSearchLocation( pe, locations );
+          locations = addZeroLengthSearchLocation( pe, locations );
         }
       }
     }
@@ -489,6 +491,18 @@ public class UsageSearcher extends AbstractSearcher
     return inner != null && (inner == type || encloses( type, inner.getEnclosingType() ));
   }
 
+  private List<SearchLocation> addZeroLengthSearchLocation( IParsedElement elem, List<SearchLocation> locations )
+  {
+    IParseTree parseTree = elem.getLocation();
+    SearchLocation loc = makeZeroLengthSearchLocation( parseTree );
+    if( locations.isEmpty() )
+    {
+      locations = new ArrayList<>();
+    }
+    locations.add( loc );
+    return locations;
+  }
+
   private List<SearchLocation> addSearchLocation( IParsedElement elem, List<SearchLocation> locations )
   {
     IParseTree parseTree = elem.getLocation();
@@ -512,6 +526,12 @@ public class UsageSearcher extends AbstractSearcher
     return locations;
   }
 
+  private SearchLocation makeZeroLengthSearchLocation( IParseTree parseTree )
+  {
+    SearchLocation loc = makeSearchLocation( parseTree );
+    loc._iLength = 0;
+    return loc;
+  }
   private SearchLocation makeSearchLocation( IParseTree parseTree )
   {
     SearchLocation loc = new SearchLocation();
