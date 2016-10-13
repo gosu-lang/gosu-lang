@@ -108,7 +108,7 @@ public class UsageTarget
     return new UsageTarget( pe, fi );
   }
 
-  public static IFeatureInfo findFeatureInfoFor( IParsedElement pe )
+  private static IFeatureInfo findFeatureInfoFor( IParsedElement pe )
   {
     if( pe instanceof IIdentifierExpression )
     {
@@ -159,7 +159,15 @@ public class UsageTarget
     }
     else if( pe instanceof INameInDeclaration )
     {
-      IFeatureInfo fi = getFeatureInfo( (INameInDeclaration)pe );
+      IFeatureInfo fi = findFeatureInfo( (INameInDeclaration)pe );
+      if( fi != null )
+      {
+        return fi;
+      }
+    }
+    else if( pe instanceof IVarStatement && ((IVarStatement)pe).isFieldDeclaration() && ( (IVarStatement)pe ).getType().isEnum() )
+    {
+      IFeatureInfo fi = findFeatureInfo( pe, ((IVarStatement)pe).getIdentifierName() );
       if( fi != null )
       {
         return fi;
@@ -198,16 +206,21 @@ public class UsageTarget
     return null;
   }
 
-  private static IFeatureInfo getFeatureInfo( INameInDeclaration pe )
+  private static IFeatureInfo findFeatureInfo( INameInDeclaration pe )
   {
     final IParsedElement parent = pe.getParent();
+    return findFeatureInfo( parent, pe.getName() );
+  }
+
+  private static IFeatureInfo findFeatureInfo( IParsedElement parent, String name )
+  {
     if( parent instanceof IVarStatement )
     {
       IVarStatement varStatement = (IVarStatement)parent;
       if( varStatement.isFieldDeclaration() )
       {
         IGosuClass gsClass = varStatement.getSymbol().getGosuClass();
-        return gsClass.getTypeInfo().getProperty( gsClass, varStatement.getIdentifierName() );
+        return gsClass.getTypeInfo().getProperty( gsClass, name );
       }
       else
       {
@@ -235,5 +248,4 @@ public class UsageTarget
     return ((type instanceof IMetaType) &&
             (((IMetaType)type).getType() instanceof IErrorType));
   }
-
 }

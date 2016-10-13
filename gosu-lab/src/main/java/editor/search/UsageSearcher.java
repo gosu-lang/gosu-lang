@@ -11,7 +11,9 @@ import gw.lang.parser.IDynamicSymbol;
 import gw.lang.parser.IExpression;
 import gw.lang.parser.IParseTree;
 import gw.lang.parser.IParsedElement;
+import gw.lang.parser.ISourceCodeTokenizer;
 import gw.lang.parser.ISymbol;
+import gw.lang.parser.IToken;
 import gw.lang.parser.expressions.IBeanMethodCallExpression;
 import gw.lang.parser.expressions.IIdentifierExpression;
 import gw.lang.parser.expressions.IMemberAccessExpression;
@@ -30,6 +32,7 @@ import gw.lang.reflect.IFunctionType;
 import gw.lang.reflect.IMethodInfo;
 import gw.lang.reflect.INamespaceType;
 import gw.lang.reflect.IPropertyInfo;
+import gw.lang.reflect.IPropertyInfoDelegate;
 import gw.lang.reflect.IRelativeTypeInfo;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.ITypeInfo;
@@ -201,7 +204,7 @@ public class UsageSearcher extends AbstractSearcher
         if( mi != null && FeatureUtil.methodInfosEqual(
           FeatureUtil.findRootMethodInfo( (IMethodInfo)mi ), findMi ) )
         {
-          locations = addSearchLocation( pe, locations );
+          locations = addSearchLocation( findNameToken( findMi.getDisplayName(), pe ), locations );
         }
       }
     }
@@ -219,7 +222,7 @@ public class UsageSearcher extends AbstractSearcher
         if( mi instanceof IMethodInfo && FeatureUtil.methodInfosEqual(
           FeatureUtil.findRootMethodInfo( (IMethodInfo)mi ), findMi ) )
         {
-          locations = addSearchLocation( pe, locations );
+          locations = addSearchLocation( findNameToken( ((IBeanMethodCallExpression)pe).getMemberName(), pe ), locations );
         }
       }
     }
@@ -246,7 +249,7 @@ public class UsageSearcher extends AbstractSearcher
         pi = ((IMemberAccessExpression)pe).getPropertyInfo();
         if( pi != null && propertyInfosEqual( pi, findPi ) )
         {
-          locations = addSearchLocation( pe, locations );
+          locations = addSearchLocation( findNameToken( findPi.getDisplayName(), pe ), locations );
         }
       }
       catch( Exception e )
@@ -262,7 +265,7 @@ public class UsageSearcher extends AbstractSearcher
         IPropertyInfo pi = (IPropertyInfo)((IDynamicPropertySymbol)((IIdentifierExpression)pe).getSymbol()).getPropertyInfo();
         if( pi != null && propertyInfosEqual( pi, findPi ) )
         {
-          locations = addSearchLocation( pe, locations );
+          locations = addSearchLocation( findNameToken( findPi.getDisplayName(), pe ), locations );
         }
       }
       else
@@ -273,7 +276,7 @@ public class UsageSearcher extends AbstractSearcher
           IType type = symbol.getScriptPart().getContainingType();
           if( type == findPi.getOwnersType() && symbol.getName().equals( findPi.getName() ) )
           {
-            locations = addSearchLocation( pe, locations );
+            locations = addSearchLocation( findNameToken( findPi.getDisplayName(), pe ), locations );
           }
         }
       }
@@ -287,9 +290,30 @@ public class UsageSearcher extends AbstractSearcher
     {
       return true;
     }
+
+    while( pi instanceof IPropertyInfoDelegate )
+    {
+      pi = ((IPropertyInfoDelegate)pi).getSource();
+    }
+
     String name = pi.getName();
     return name != null && name.equals( findPi.getName() ) &&
            findPi.getOwnersType().isAssignableFrom( pi.getOwnersType() );
+  }
+
+  private IToken findNameToken( String name, IParsedElement pe )
+  {
+    for( IToken token: pe.getTokens() )
+    {
+      int tt = token.getType();
+      if( (tt == ISourceCodeTokenizer.TT_WORD ||
+           tt == ISourceCodeTokenizer.TT_KEYWORD) &&
+          token.getStringValue().contains( name ) )
+      {
+        return token;
+      }
+    }
+    throw new IllegalStateException();
   }
 
   private List<SearchLocation> findUsage( IParsedElement pe, LocalVarFeatureInfo findLocal, List<SearchLocation> locations )
@@ -477,6 +501,17 @@ public class UsageSearcher extends AbstractSearcher
     return locations;
   }
 
+  private List<SearchLocation> addSearchLocation( IToken token, List<SearchLocation> locations )
+  {
+    SearchLocation loc = makeSearchLocation( token );
+    if( locations.isEmpty() )
+    {
+      locations = new ArrayList<>();
+    }
+    locations.add( loc );
+    return locations;
+  }
+
   private SearchLocation makeSearchLocation( IParseTree parseTree )
   {
     SearchLocation loc = new SearchLocation();
@@ -485,6 +520,17 @@ public class UsageSearcher extends AbstractSearcher
     loc._iLineOffset = 0;
     loc._iLine = parseTree.getLineNum();
     loc._iColumn = parseTree.getColumn();
+    return loc;
+  }
+
+  private SearchLocation makeSearchLocation( IToken token )
+  {
+    SearchLocation loc = new SearchLocation();
+    loc._iOffset = token.getTokenStart();
+    loc._iLength = token.getTokenEnd() - token.getTokenStart();
+    loc._iLineOffset = 0;
+    loc._iLine = token.getLine();
+    loc._iColumn = token.getTokenColumn();
     return loc;
   }
 
