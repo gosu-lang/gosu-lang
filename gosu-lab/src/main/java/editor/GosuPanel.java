@@ -977,7 +977,6 @@ public class GosuPanel extends JPanel
     previousItem.setAccelerator( KeyStroke.getKeyStroke( "shift F3" ) );
     searchMenu.add( previousItem );
 
-
     searchMenu.addSeparator();
     
     JMenuItem findIInPathItem = new SmartMenuItem( new CommonMenus.FindInPathActionHandler( FileTreeUtil::getRoot ) );
@@ -992,6 +991,12 @@ public class GosuPanel extends JPanel
         
     searchMenu.addSeparator();
 
+    JMenuItem findUsagesIInPathItem = new SmartMenuItem( new CommonMenus.FindUsagesInPathActionHandler( FileTreeUtil::getRoot ) );
+    findUsagesIInPathItem.setMnemonic( 'U' );
+    findUsagesIInPathItem.setAccelerator( KeyStroke.getKeyStroke( "alt F7" ) );
+    searchMenu.add( findUsagesIInPathItem );
+
+    searchMenu.addSeparator();
 
     JMenuItem gotoLineItem = new SmartMenuItem(
       new AbstractAction( "Go To Line" )

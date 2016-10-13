@@ -57,6 +57,10 @@ public class ExperimentTreeContextMenu implements IContextMenuHandler<JTree>
     menu.add( new SmartMenuItem( new CommonMenus.FindInPathActionHandler( () -> item ) ) );
     menu.add( new SmartMenuItem( new CommonMenus.ReplaceInPathActionHandler( () -> item ) ) );
 
+    menu.add( new JSeparator() );
+
+    menu.add( new SmartMenuItem( new CommonMenus.FindUsagesInPathActionHandler( () -> item ) ) );
+
     if( item != null )
     {
       IType type = item.getType();

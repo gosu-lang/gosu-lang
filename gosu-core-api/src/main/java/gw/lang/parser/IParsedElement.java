@@ -13,6 +13,7 @@ import gw.lang.reflect.module.IModule;
 
 import java.util.List;
 import java.util.Set;
+import java.util.function.Consumer;
 
 public interface IParsedElement
 {
@@ -20,6 +21,8 @@ public interface IParsedElement
 
   IParseTree getLocation();
   void setLocation( IParseTree location );
+
+  void visit( Consumer<IParsedElement> visitor );
 
   boolean hasParseIssues();
 

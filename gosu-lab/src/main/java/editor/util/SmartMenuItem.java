@@ -1,6 +1,7 @@
 package editor.util;
 
 import editor.Scheme;
+import editor.actions.UpdateNotifier;
 
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
@@ -14,6 +15,7 @@ public class SmartMenuItem extends JMenuItem implements ChangeListener
   public SmartMenuItem( Action action )
   {
     super( action );
+    UpdateNotifier.instance().addActionComponent( this );
     init();
   }
   public SmartMenuItem( String text, Icon icon )

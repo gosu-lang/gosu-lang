@@ -139,12 +139,11 @@ public class SearchDialog extends AbstractDialog
     searchPanel.showReplace( _bReplace );
     searchPanel.setReplacePattern( (String)_cbReplace.getSelectedItem() );
 
-    FileTree root = FileTreeUtil.getRoot();
     boolean[] bFinished = {false};
     ProgressFeedback.runWithProgress( "Searching...",
                                       progress -> {
                                         EventQueue.invokeLater( () -> {
-                                          progress.setLength( root.getTotalFiles() );
+                                          progress.setLength( getSearchDir().getTotalFiles() );
 
                                           addReplaceInfo( searchPanel );
 
@@ -152,7 +151,7 @@ public class SearchDialog extends AbstractDialog
                                           SearchTree results = new SearchTree( "<html><b>$count</b> occurrences of <b>'" + text + "'</b> in " + getScopeName(), NodeKind.Directory, SearchTree.empty() );
                                           searchPanel.add( results );
 
-                                          FileTreeSearcher searcher = new FileTreeSearcher( text, !_checkCase.isSelected(), _checkWords.isSelected(), _checkRegex.isSelected() );
+                                          TextSearcher searcher = new TextSearcher( text, !_checkCase.isSelected(), _checkWords.isSelected(), _checkRegex.isSelected() );
                                           searcher.searchTree( getSearchDir(), results, ft -> include( ft, getFileMatchRegex() ), progress );
                                           selectFirstMatch( results );
                                           bFinished[0] = true;

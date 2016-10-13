@@ -12,6 +12,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  */
@@ -97,7 +98,7 @@ public abstract class AbstractTree<T extends AbstractTree<T, N>, N extends ITree
   {
     if( _children.isEmpty() )
     {
-      _children = new ArrayList<>();
+      _children = new CopyOnWriteArrayList<>();
     }
     //noinspection unchecked
     _children.add( index, (T)child );

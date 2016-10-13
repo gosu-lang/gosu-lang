@@ -9,8 +9,11 @@ import editor.debugger.EditBreakpointsDialog;
 import editor.run.IRunConfig;
 import editor.run.RunConfigDialog;
 import editor.run.RunState;
+import editor.search.MessageDisplay;
 import editor.search.SearchDialog;
 import editor.search.StandardLocalSearch;
+import editor.search.UsageSearcher;
+import editor.search.UsageTarget;
 import editor.undo.AtomicUndoManager;
 import editor.util.EditorUtilities;
 import editor.util.Experiment;
@@ -62,6 +65,15 @@ public class CommonMenus
           editor.get().clipPaste( getGosuPanel().getClipboard(), true );
         }
       } );
+  }
+
+  public static JMenuItem makeFindUsages( Supplier<FileTree> tree )
+  {
+    JMenuItem completeItem = new SmartMenuItem( new FindUsagesInPathActionHandler( tree ) );
+    completeItem.setMnemonic( 'L' );
+    completeItem.setAccelerator( KeyStroke.getKeyStroke( "control SPACE" ) );
+
+    return completeItem;
   }
 
   public static JMenuItem makeCodeComplete( Supplier<GosuEditor> editor )
@@ -842,6 +854,48 @@ public class CommonMenus
     public boolean isEnabled()
     {
       return _dir.get() != null && _dir.get().getFileOrDir().exists();
+    }
+  }
+
+  public static class FindUsagesInPathActionHandler extends AbstractAction
+  {
+    private final Supplier<FileTree> _dir;
+
+    public FindUsagesInPathActionHandler( Supplier<FileTree> dir )
+    {
+      super( "Find usages..." );
+      _dir = dir;
+    }
+
+    @Override
+    public void actionPerformed( ActionEvent e )
+    {
+      if( !isEnabled() )
+      {
+        return;
+      }
+
+      getGosuPanel().save();
+
+      // Renew parse tree before we get the selected target element
+      getGosuPanel().getCurrentEditor().parseAndWaitForParser();
+
+      UsageTarget target = UsageTarget.findInCurrentEditor();
+      if( target == null )
+      {
+        MessageDisplay.displayInformation( "Please select a valid usage target in the editor" );
+      }
+      else
+      {
+        new UsageSearcher( target, true, false ).search( _dir.get() );
+      }
+    }
+
+    @Override
+    public boolean isEnabled()
+    {
+      GosuEditor editor = getGosuPanel() == null ? null : getGosuPanel().getCurrentEditor();
+      return editor != null;
     }
   }
 

@@ -3709,13 +3709,8 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
   public void waitForParser()
   {
     TaskQueue.getInstance( INTELLISENSE_TASK_QUEUE ).postTaskAndWait(
-      new Runnable()
-      {
-        @Override
-        public void run()
-        {
-          //do nothing
-        }
+      () -> {
+        //do nothing
       } );
   }
 

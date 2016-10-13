@@ -14,7 +14,6 @@ import gw.lang.parser.expressions.IParameterDeclaration;
 import gw.lang.parser.expressions.IParameterListClause;
 import gw.lang.parser.statements.IFunctionStatement;
 import gw.lang.parser.statements.ITerminalStatement;
-import gw.lang.reflect.IFeatureInfo;
 import gw.lang.reflect.IMethodInfo;
 import gw.lang.reflect.IType;
 import gw.util.GosuObjectUtil;
@@ -83,6 +82,7 @@ public class FunctionStatement extends Statement implements IFunctionStatement
   {
     return _iNameOffset;
   }
+
   @Override
   public void setNameOffset( int iOffset, String identifierName )
   {
@@ -96,80 +96,90 @@ public class FunctionStatement extends Statement implements IFunctionStatement
       return false;
     }
 
-    if ( GosuObjectUtil.equals( _dfs.getName(), identifierName)) {
+    if( GosuObjectUtil.equals( _dfs.getName(), identifierName ) )
+    {
       return true;
-    } else {
-      if ( _dfs.getName().charAt( 0 ) == '@') {
-        boolean b = _dfs.getName().toString().contains("(");
+    }
+    else
+    {
+      if( _dfs.getName().charAt( 0 ) == '@' )
+      {
+        boolean b = _dfs.getName().contains( "(" );
         assert b;
         int indexOfParen = _dfs.getName().length() - 1;
-        while(indexOfParen > 0) {
-          if ( _dfs.getName().charAt( indexOfParen ) == '(') {
+        while( indexOfParen > 0 )
+        {
+          if( _dfs.getName().charAt( indexOfParen ) == '(' )
+          {
             break;
           }
           indexOfParen--;
         }
         return _dfs.getName().subSequence( 1, indexOfParen ).equals( identifierName );
-      } else {
+      }
+      else
+      {
         return false;
       }
     }
   }
-  
-  public String[] getDeclarations() {
-    if( _dfs == null ) {
-      return new String[0];
-    } else {
-      return new String[] {_dfs.getDisplayName().replace("@", "")};
-    }
-  }
 
-  public IFeatureInfo findOwningFeatureInfoOfDeclaredSymbols( String identifierName )
+  public String[] getDeclarations()
   {
-    if( declares(identifierName) )
+    if( _dfs == null )
     {
-      return _dfs.getDeclaringTypeInfo();
+      return new String[0];
     }
     else
     {
-      return null;
+      return new String[]{_dfs.getDisplayName().replace( "@", "" )};
     }
   }
 
-  public static IMethodInfo getGenericMethodInfo(IMethodInfo mi) {
+  public static IMethodInfo getGenericMethodInfo( IMethodInfo mi )
+  {
     IMethodInfo genericMethodInfo = null;
     IType type = mi.getOwnersType();
     IType superType = type.getSupertype();
-    while ((superType != null) && (genericMethodInfo == null)) {
+    while( (superType != null) && (genericMethodInfo == null) )
+    {
       if( superType.isParameterizedType() )
       {
         type = TypeLord.getPureGenericType( superType );
         List<? extends IMethodInfo> methodInfos = type.getTypeInfo().getMethods();
-        for (IMethodInfo methodInfo : methodInfos) {
-          if ((methodInfo.getDisplayName().equals(mi.getDisplayName())) &&
-              (methodInfo.getParameters().length == mi.getParameters().length)) {
+        for( IMethodInfo methodInfo : methodInfos )
+        {
+          if( (methodInfo.getDisplayName().equals( mi.getDisplayName() )) &&
+              (methodInfo.getParameters().length == mi.getParameters().length) )
+          {
             genericMethodInfo = methodInfo;
           }
         }
       }
       superType = superType.getSupertype();
     }
-    if (genericMethodInfo == null) {
+    if( genericMethodInfo == null )
+    {
       genericMethodInfo = mi;
     }
     return genericMethodInfo;
   }
 
   @Override
-  public List<IParameterDeclaration> getParameters() {
+  public List<IParameterDeclaration> getParameters()
+  {
     List<IParameterDeclaration> params = new ArrayList<IParameterDeclaration>();
     List<IParseTree> children = getLocation().getChildren();
-    for( IParseTree parseTree : children ) {
+    for( IParseTree parseTree : children )
+    {
       IParsedElement pe = parseTree.getParsedElement();
-      if( pe instanceof IParameterListClause ) {
-        for( IParseTree parseTree2 : parseTree.getChildren() ) {
+      if( pe instanceof IParameterListClause )
+      {
+        for( IParseTree parseTree2 : parseTree.getChildren() )
+        {
           pe = parseTree2.getParsedElement();
-          if( pe instanceof IParameterDeclaration ) {
+          if( pe instanceof IParameterDeclaration )
+          {
             params.add( (IParameterDeclaration)pe );
           }
         }
@@ -187,7 +197,8 @@ public class FunctionStatement extends Statement implements IFunctionStatement
   }
 
   @Override
-  protected List getExcludedReturnTypeElements() {
-    return Arrays.asList(BlockExpression.class);
+  protected List getExcludedReturnTypeElements()
+  {
+    return Arrays.asList( BlockExpression.class );
   }
 }

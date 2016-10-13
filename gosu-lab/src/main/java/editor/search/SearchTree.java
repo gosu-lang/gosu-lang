@@ -14,7 +14,6 @@ import gw.util.StreamUtil;
 
 import javax.swing.*;
 import javax.swing.text.AbstractDocument;
-import javax.swing.text.BadLocationException;
 import java.awt.*;
 import java.io.BufferedReader;
 import java.io.File;
