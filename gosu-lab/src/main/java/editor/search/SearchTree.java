@@ -153,8 +153,7 @@ public class SearchTree extends AbstractTree<SearchTree, SearchTree.SearchTreeNo
   public int getCount()
   {
     SearchTreeNode node = getNode();
-    FileTree file = node.getFile();
-    if( file != null && file.getFileOrDir().isFile() )
+    if( node.isFile() )
     {
       return getChildCount();
     }
@@ -173,7 +172,7 @@ public class SearchTree extends AbstractTree<SearchTree, SearchTree.SearchTreeNo
     if( count > 0 )
     {
       SearchTreeNode node = getNode();
-      if( node != null && node.getFile() != null && node.getFile().isFile() )
+      if( node != null && node.isFile() )
       {
         makeChanges( content -> {
           for( int i = count - 1; i >= 0; i-- )
@@ -262,6 +261,7 @@ public class SearchTree extends AbstractTree<SearchTree, SearchTree.SearchTreeNo
   {
     private final FileTree _file;
     private SearchLocation _loc;
+    private Boolean _bFile;
 
     private SearchTreeNode()
     {
@@ -302,6 +302,13 @@ public class SearchTree extends AbstractTree<SearchTree, SearchTree.SearchTreeNo
     public SearchLocation getLocation()
     {
       return _loc;
+    }
+
+    public boolean isFile()
+    {
+      return _bFile == null
+             ? _bFile = _file != null && _file.isFile()
+             : _bFile;
     }
   }
 }

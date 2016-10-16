@@ -6,30 +6,22 @@ import javax.swing.event.CaretListener;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.text.BadLocationException;
-import javax.swing.text.DefaultHighlighter;
 import javax.swing.text.Document;
-import java.awt.*;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 
-public class ContextHighlighter implements DocumentListener, CaretListener, FocusListener
+public class ScopeHighlighter implements DocumentListener, CaretListener, FocusListener
 {
   private GosuEditor _editor;
   private Object _highlightTag;
   private Object _highlightTag2;
   private Runnable _highlightImmediately;
-  private static final DefaultHighlighter.DefaultHighlightPainter HIGHLIGHTER = new DefaultHighlighter.DefaultHighlightPainter( new Color( 38, 63, 192, 120 ) );
+  private static final GosuEditor.LabHighlighter HIGHLIGHTER = new GosuEditor.LabHighlighter( Scheme.active().scopeHighlightColor() );
 
-  public ContextHighlighter( GosuEditor gosuEditor )
+  public ScopeHighlighter( GosuEditor gosuEditor )
   {
     _editor = gosuEditor;
-    _highlightImmediately = new Runnable()
-    {
-      public void run()
-      {
-        highlightImmediately();
-      }
-    };
+    _highlightImmediately = this::highlightImmediately;
   }
 
   public void updateState()

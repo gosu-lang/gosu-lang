@@ -10,11 +10,14 @@ import gw.lang.parser.IDynamicFunctionSymbol;
 import gw.lang.parser.IDynamicPropertySymbol;
 import gw.lang.parser.IHasInnerClass;
 import gw.lang.parser.exceptions.ParseResultsException;
+import gw.lang.parser.expressions.INameInDeclaration;
 import gw.lang.parser.expressions.IVarStatement;
 import gw.lang.parser.statements.IClassStatement;
+import gw.lang.parser.statements.IConstructorStatement;
 import gw.lang.parser.statements.IFunctionStatement;
 import gw.lang.reflect.ICanBeAnnotation;
 import gw.lang.reflect.ICompoundType;
+import gw.lang.reflect.IConstructorInfo;
 import gw.lang.reflect.IEnhanceableType;
 import gw.lang.reflect.IEnumType;
 import gw.lang.reflect.IHasJavaClass;
@@ -90,6 +93,8 @@ public interface IGosuClass extends ICompilableType, IEnumType, IEnhanceableType
   IType getEnclosingTypeReference();
 
   IFunctionStatement getFunctionStatement( IMethodInfo method );
+  IConstructorStatement getConstructorStatement( IConstructorInfo ctor );
+  INameInDeclaration getPropertyDeclaration( String name );
 
   IJavaType getJavaType();
 

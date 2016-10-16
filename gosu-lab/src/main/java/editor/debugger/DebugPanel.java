@@ -15,9 +15,12 @@ import editor.AbstractTreeCellRenderer;
 import editor.CommonMenus;
 import editor.FileTreeUtil;
 import editor.GosuEditor;
+import editor.GosuPanel;
 import editor.RunMe;
 import editor.Scheme;
+import editor.ToggleToolBarButton;
 import editor.VarTree;
+import editor.run.IRunConfig;
 import editor.splitpane.CollapsibleSplitPane;
 import editor.tabpane.TabPane;
 import editor.tabpane.TabPosition;
@@ -60,13 +63,16 @@ public class DebugPanel extends JPanel implements IDisposable
 
     _splitPane = new CollapsibleSplitPane( SwingConstants.HORIZONTAL, makeThreadsPanel(), makeVariablesAndWatchesPanel() );
     add( _splitPane, BorderLayout.CENTER );
+
+    add( makeRunToolbar(), BorderLayout.WEST );
+
     _splitPane.setPosition( 30 );
   }
 
   @Override
   public void dispose()
   {
-    RunMe.getEditorFrame().getGosuPanel().killProcess();
+    getGosuPanel().killProcess();
   }
 
   private JComponent makeThreadsPanel()
@@ -95,6 +101,47 @@ public class DebugPanel extends JPanel implements IDisposable
     TabPane tabPane = new TabPane( TabPosition.TOP, TabPane.MINIMIZABLE | TabPane.RESTORABLE );
     tabPane.addTab( "Threads", EditorUtilities.loadIcon( "images/thread.png" ), panel );
     return tabPane;
+  }
+
+  private JComponent makeRunToolbar()
+  {
+    JPanel toolbarPanel = new JPanel( new BorderLayout() );
+    toolbarPanel.setBackground( Scheme.active().getMenu() );
+    toolbarPanel.setBorder( BorderFactory.createEmptyBorder( 1, 2, 1, 2 ) );
+
+    ToolBar toolbar = new ToolBar( JToolBar.VERTICAL );
+
+    LabToolbarButton item;
+    item = new LabToolbarButton( new CommonMenus.ClearAndRunActionHandler( () -> getGosuPanel().getRunConfig() ) );
+    item.setToolTipSupplier( () -> {
+      IRunConfig rc = getGosuPanel().getRunConfig();
+      return rc == null ? "Run..." : "Run '" + rc.getName() + "'";
+    } );
+    toolbar.add( item );
+
+    item = new LabToolbarButton( new CommonMenus.ClearAndDebugActionHandler( () -> getGosuPanel().getRunConfig() ) );
+    item.setToolTipSupplier( () -> {
+      IRunConfig rc = getGosuPanel().getRunConfig();
+      return rc == null ? "Debug..." : "Debug '" + rc.getName() + "'";
+    } );
+    toolbar.add( item );
+
+    item = new LabToolbarButton( new CommonMenus.StopActionHandler( this::getGosuPanel ) );
+    toolbar.add( item );
+    item = new LabToolbarButton( new CommonMenus.PauseActionHandler( this::getDebugger ) );
+    toolbar.add( item );
+    item = new LabToolbarButton( new CommonMenus.ResumeActionHandler( this::getDebugger ) );
+    toolbar.add( item );
+
+    toolbar.addSeparator();
+
+    item = new LabToolbarButton( new CommonMenus.ViewBreakpointsActionHandler( () -> null ) );
+    toolbar.add( item );
+    ToggleToolBarButton titem = new ToggleToolBarButton( new CommonMenus.MuteBreakpointsActionHandler( this::getBreakpointManager ) );
+    toolbar.add( titem );
+
+    toolbarPanel.add( toolbar, BorderLayout.CENTER );
+    return toolbarPanel;
   }
 
   public Debugger getDebugger()
@@ -273,12 +320,17 @@ public class DebugPanel extends JPanel implements IDisposable
   }
   private GosuEditor getCurrentEditor()
   {
-    return RunMe.getEditorFrame().getGosuPanel().getCurrentEditor();
+    return getGosuPanel().getCurrentEditor();
+  }
+
+  private GosuPanel getGosuPanel()
+  {
+    return RunMe.getEditorFrame().getGosuPanel();
   }
 
   private BreakpointManager getBreakpointManager()
   {
-    return RunMe.getEditorFrame().getGosuPanel().getBreakpointManager();
+    return getGosuPanel().getBreakpointManager();
   }
 
   public StackFrame getDropToFrame()

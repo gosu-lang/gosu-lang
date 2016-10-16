@@ -101,4 +101,9 @@ public abstract class Scheme
   public abstract Color getScrollbarBorderColor();
 
   public abstract Color getButtonBorderColor();
+
+  public abstract Color usageReadHighlightColor();
+  public abstract Color usageWriteHighlightColor();
+
+  public abstract Color scopeHighlightColor();
 }

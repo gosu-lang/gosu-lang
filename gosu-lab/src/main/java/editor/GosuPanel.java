@@ -9,7 +9,6 @@ import editor.run.IProcessRunner;
 import editor.run.IRunConfig;
 import editor.run.RunState;
 import editor.search.SearchPanel;
-import editor.search.StandardLocalSearch;
 import editor.search.StudioUtilities;
 import editor.shipit.BuildIt;
 import editor.shipit.ShipIt;
@@ -32,7 +31,6 @@ import editor.util.TypeNameUtil;
 import gw.internal.ext.org.objectweb.asm.ClassReader;
 import gw.internal.ext.org.objectweb.asm.util.TraceClassVisitor;
 import gw.lang.Gosu;
-import gw.lang.ir.SignatureUtil;
 import gw.lang.parser.IParseIssue;
 import gw.lang.parser.IParseTree;
 import gw.lang.parser.IParsedElement;
@@ -139,7 +137,6 @@ public class GosuPanel extends JPanel
     JPanel bottom = new JPanel( new BorderLayout() );
     _bottomTabPane = new TabPane( TabPane.MINIMIZABLE | TabPane.RESTORABLE | TabPane.TOP_BORDER_ONLY | TabPane.DYNAMIC );
     bottom.add( _bottomTabPane, BorderLayout.CENTER );
-    bottom.add( makeRunToolbar(), BorderLayout.WEST );
 
     _editorTabPane = new TabPane( TabPosition.TOP, TabPane.DYNAMIC | TabPane.MIN_MAX_REST );
 
@@ -271,47 +268,6 @@ public class GosuPanel extends JPanel
     return separator;
   }
 
-  private JComponent makeRunToolbar()
-  {
-    JPanel toolbarPanel = new JPanel( new BorderLayout() );
-    toolbarPanel.setBackground( Scheme.active().getMenu() );
-    toolbarPanel.setBorder( BorderFactory.createEmptyBorder( 1, 2, 1, 2 ) );
-
-    ToolBar toolbar = new ToolBar( JToolBar.VERTICAL );
-
-    LabToolbarButton item;
-    item = new LabToolbarButton( new CommonMenus.ClearAndRunActionHandler( this::getRunConfig ) );
-    item.setToolTipSupplier( () -> {
-      IRunConfig rc = getRunConfig();
-      return rc == null ? "Run..." : "Run '" + rc.getName() + "'";
-    } );
-    toolbar.add( item );
-
-    item = new LabToolbarButton( new CommonMenus.ClearAndDebugActionHandler( this::getRunConfig ) );
-    item.setToolTipSupplier( () -> {
-      IRunConfig rc = getRunConfig();
-      return rc == null ? "Debug..." : "Debug '" + rc.getName() + "'";
-    } );
-    toolbar.add( item );
-
-    item = new LabToolbarButton( new CommonMenus.StopActionHandler( () -> this ) );
-    toolbar.add( item );
-    item = new LabToolbarButton( new CommonMenus.PauseActionHandler( this::getDebugger ) );
-    toolbar.add( item );
-    item = new LabToolbarButton( new CommonMenus.ResumeActionHandler( this::getDebugger ) );
-    toolbar.add( item );
-
-    toolbar.addSeparator();
-
-    item = new LabToolbarButton( new CommonMenus.ViewBreakpointsActionHandler( () -> null ) );
-    toolbar.add( item );
-    ToggleToolBarButton titem = new ToggleToolBarButton( new CommonMenus.MuteBreakpointsActionHandler( this::getBreakpointManager ) );
-    toolbar.add( titem );
-
-    toolbarPanel.add( toolbar, BorderLayout.CENTER );
-    return toolbarPanel;
-  }
-
   public ExperimentView getExperimentView()
   {
     return _experimentView;
@@ -356,7 +312,7 @@ public class GosuPanel extends JPanel
   {
     if( bShow )
     {
-      _outerSplitPane.restorePane();
+      EventQueue.invokeLater( _outerSplitPane::restorePane );
 
       ITab tab = _bottomTabPane.findTabWithContent( panel );
       if( tab == null )
@@ -725,7 +681,7 @@ public class GosuPanel extends JPanel
         }
       } );
     recentItem.setMnemonic( 'R' );
-    recentItem.setAccelerator( KeyStroke.getKeyStroke( "control E" ) );
+    recentItem.setAccelerator( KeyStroke.getKeyStroke( EditorUtilities.CONTROL_KEY_NAME + " E" ) );
     windowMenu.add( recentItem );
 
 
@@ -743,7 +699,7 @@ public class GosuPanel extends JPanel
         }
       } );
     closeActiveItem.setMnemonic( 'C' );
-    closeActiveItem.setAccelerator( KeyStroke.getKeyStroke( "control F4" ) );
+    closeActiveItem.setAccelerator( KeyStroke.getKeyStroke( EditorUtilities.CONTROL_KEY_NAME + " F4" ) );
     windowMenu.add( closeActiveItem );
 
     JMenuItem closeOthersItem = new SmartMenuItem(
@@ -787,7 +743,7 @@ public class GosuPanel extends JPanel
         }
       } );
     openTypeItem.setMnemonic( 'O' );
-    openTypeItem.setAccelerator( KeyStroke.getKeyStroke( "control N" ) );
+    openTypeItem.setAccelerator( KeyStroke.getKeyStroke( EditorUtilities.CONTROL_KEY_NAME + " N" ) );
     codeMenu.add( openTypeItem );
 
     if( "true".equals( System.getProperty( "spec" ) ) )
@@ -803,7 +759,7 @@ public class GosuPanel extends JPanel
           }
         } );
       markItem.setMnemonic( 'M' );
-      markItem.setAccelerator( KeyStroke.getKeyStroke( "control M" ) );
+      markItem.setAccelerator( KeyStroke.getKeyStroke( EditorUtilities.CONTROL_KEY_NAME + " M" ) );
       codeMenu.add( markItem );
     }
 
@@ -835,7 +791,7 @@ public class GosuPanel extends JPanel
 
     JMenuItem compileMenu = new SmartMenuItem( new CommonMenus.CompileActionHandler() );
     compileMenu.setMnemonic( 'c' );
-    compileMenu.setAccelerator( KeyStroke.getKeyStroke( "control F9" ) );
+    compileMenu.setAccelerator( KeyStroke.getKeyStroke( EditorUtilities.CONTROL_KEY_NAME + " F9" ) );
     buildMenu.add( compileMenu );
 
 
@@ -844,7 +800,7 @@ public class GosuPanel extends JPanel
 
     JMenuItem shipIt = new SmartMenuItem( new CommonMenus.ShipItActionHandler() );
     shipIt.setMnemonic( 'p' );
-    shipIt.setAccelerator( KeyStroke.getKeyStroke( "control F10" ) );
+    shipIt.setAccelerator( KeyStroke.getKeyStroke( EditorUtilities.CONTROL_KEY_NAME + " F10" ) );
     buildMenu.add( shipIt );
   }
 
@@ -925,12 +881,12 @@ public class GosuPanel extends JPanel
 
     JMenuItem findItem = new SmartMenuItem( new CommonMenus.FindActionHandler( this::getCurrentEditor ) );
     findItem.setMnemonic( 'F' );
-    findItem.setAccelerator( KeyStroke.getKeyStroke( "control F" ) );
+    findItem.setAccelerator( KeyStroke.getKeyStroke( EditorUtilities.CONTROL_KEY_NAME + " F" ) );
     searchMenu.add( findItem );
 
     JMenuItem replaceItem = new SmartMenuItem( new CommonMenus.ReplaceActionHandler( this::getCurrentEditor ) );
     replaceItem.setMnemonic( 'R' );
-    replaceItem.setAccelerator( KeyStroke.getKeyStroke( "control R" ) );
+    replaceItem.setAccelerator( KeyStroke.getKeyStroke( EditorUtilities.CONTROL_KEY_NAME + " R" ) );
     searchMenu.add( replaceItem );
 
     JMenuItem nextItem = new SmartMenuItem(
@@ -941,14 +897,14 @@ public class GosuPanel extends JPanel
         {
           if( isEnabled() )
           {
-            StandardLocalSearch.repeatFind( getCurrentEditor() );
+            getCurrentEditor().gotoNextUsageHighlight();
           }
         }
 
         @Override
         public boolean isEnabled()
         {
-          return StandardLocalSearch.canRepeatFind( getCurrentEditor() );
+          return getCurrentEditor() != null && getCurrentEditor().getEditor().getHighlighter().getHighlights().length > 0;
         }
       } );
     nextItem.setMnemonic( 'N' );
@@ -963,14 +919,14 @@ public class GosuPanel extends JPanel
         {
           if( isEnabled() )
           {
-            StandardLocalSearch.repeatFindBackwards( getCurrentEditor() );
+            getCurrentEditor().gotoPrevUsageHighlight();
           }
         }
 
         @Override
         public boolean isEnabled()
         {
-          return StandardLocalSearch.canRepeatFind( getCurrentEditor() );
+          return getCurrentEditor() != null && getCurrentEditor().getEditor().getHighlighter().getHighlights().length > 0;
         }
       } );
     previousItem.setMnemonic( 'P' );
@@ -981,20 +937,19 @@ public class GosuPanel extends JPanel
     
     JMenuItem findIInPathItem = new SmartMenuItem( new CommonMenus.FindInPathActionHandler( FileTreeUtil::getRoot ) );
     findIInPathItem.setMnemonic( 'P' );
-    findIInPathItem.setAccelerator( KeyStroke.getKeyStroke( "control shift F" ) );
+    findIInPathItem.setAccelerator( KeyStroke.getKeyStroke( EditorUtilities.CONTROL_KEY_NAME + " shift F" ) );
     searchMenu.add( findIInPathItem );
 
     JMenuItem replaceInPathItem = new SmartMenuItem( new CommonMenus.ReplaceInPathActionHandler( FileTreeUtil::getRoot ) );
     replaceInPathItem.setMnemonic( 'A' );
-    replaceInPathItem.setAccelerator( KeyStroke.getKeyStroke( "control shift R" ) );
+    replaceInPathItem.setAccelerator( KeyStroke.getKeyStroke( EditorUtilities.CONTROL_KEY_NAME + " shift R" ) );
     searchMenu.add( replaceInPathItem );
         
     searchMenu.addSeparator();
 
-    JMenuItem findUsagesIInPathItem = new SmartMenuItem( new CommonMenus.FindUsagesInPathActionHandler( FileTreeUtil::getRoot ) );
-    findUsagesIInPathItem.setMnemonic( 'U' );
-    findUsagesIInPathItem.setAccelerator( KeyStroke.getKeyStroke( "alt F7" ) );
-    searchMenu.add( findUsagesIInPathItem );
+    searchMenu.add( CommonMenus.makeFindUsages( FileTreeUtil::getRoot ) );
+    searchMenu.add( CommonMenus.makeFindUsagesInFile() );
+    searchMenu.add( CommonMenus.makeHighlightFindUsagesInFile() );
 
     searchMenu.addSeparator();
 
@@ -1008,7 +963,7 @@ public class GosuPanel extends JPanel
         }
       } );
     gotoLineItem.setMnemonic( 'G' );
-    gotoLineItem.setAccelerator( KeyStroke.getKeyStroke( "control G" ) );
+    gotoLineItem.setAccelerator( KeyStroke.getKeyStroke( EditorUtilities.CONTROL_KEY_NAME + " G" ) );
     searchMenu.add( gotoLineItem );
 
   }
@@ -1022,12 +977,12 @@ public class GosuPanel extends JPanel
 
     JMenuItem undoItem = new SmartMenuItem( new CommonMenus.UndoActionHandler() );
     undoItem.setMnemonic( 'U' );
-    undoItem.setAccelerator( KeyStroke.getKeyStroke( "control Z" ) );
+    undoItem.setAccelerator( KeyStroke.getKeyStroke( EditorUtilities.CONTROL_KEY_NAME + " Z" ) );
     editMenu.add( undoItem );
 
     JMenuItem redoItem = new SmartMenuItem( new CommonMenus.RedoActionHandler() );
     redoItem.setMnemonic( 'R' );
-    redoItem.setAccelerator( KeyStroke.getKeyStroke( "control shift Z" ) );
+    redoItem.setAccelerator( KeyStroke.getKeyStroke( EditorUtilities.CONTROL_KEY_NAME + " shift Z" ) );
     editMenu.add( redoItem );
 
 
@@ -1071,7 +1026,7 @@ public class GosuPanel extends JPanel
         }
       } );
     deletewordItem.setMnemonic( 'e' );
-    deletewordItem.setAccelerator( KeyStroke.getKeyStroke( "control BACKSPACE" ) );
+    deletewordItem.setAccelerator( KeyStroke.getKeyStroke( EditorUtilities.CONTROL_KEY_NAME + " BACKSPACE" ) );
     editMenu.add( deletewordItem );
 
     JMenuItem deleteWordForwardItem = new SmartMenuItem(
@@ -1084,7 +1039,7 @@ public class GosuPanel extends JPanel
         }
       } );
     deleteWordForwardItem.setMnemonic( 'F' );
-    deleteWordForwardItem.setAccelerator( KeyStroke.getKeyStroke( "control DELETE" ) );
+    deleteWordForwardItem.setAccelerator( KeyStroke.getKeyStroke( EditorUtilities.CONTROL_KEY_NAME + " DELETE" ) );
     editMenu.add( deleteWordForwardItem );
 
     JMenuItem deleteLine = new SmartMenuItem(
@@ -1097,7 +1052,7 @@ public class GosuPanel extends JPanel
         }
       } );
     deleteLine.setMnemonic( 'L' );
-    deleteLine.setAccelerator( KeyStroke.getKeyStroke( "control Y" ) );
+    deleteLine.setAccelerator( KeyStroke.getKeyStroke( EditorUtilities.CONTROL_KEY_NAME + " Y" ) );
     editMenu.add( deleteLine );
 
 
@@ -1114,7 +1069,7 @@ public class GosuPanel extends JPanel
         }
       } );
     selectWord.setMnemonic( 'W' );
-    selectWord.setAccelerator( KeyStroke.getKeyStroke( "control W" ) );
+    selectWord.setAccelerator( KeyStroke.getKeyStroke( EditorUtilities.CONTROL_KEY_NAME + " W" ) );
     editMenu.add( selectWord );
 
     JMenuItem narraowSelection = new SmartMenuItem(
@@ -1127,7 +1082,7 @@ public class GosuPanel extends JPanel
         }
       } );
     narraowSelection.setMnemonic( 'N' );
-    narraowSelection.setAccelerator( KeyStroke.getKeyStroke( "control shift W" ) );
+    narraowSelection.setAccelerator( KeyStroke.getKeyStroke( EditorUtilities.CONTROL_KEY_NAME + " shift W" ) );
     editMenu.add( narraowSelection );
 
 
@@ -1143,7 +1098,7 @@ public class GosuPanel extends JPanel
           getCurrentEditor().duplicate();
         }
       } );
-    duplicateItem.setAccelerator( KeyStroke.getKeyStroke( "control D" ) );
+    duplicateItem.setAccelerator( KeyStroke.getKeyStroke( EditorUtilities.CONTROL_KEY_NAME + " D" ) );
     editMenu.add( duplicateItem );
 
     JMenuItem joinItem = new SmartMenuItem(
@@ -1155,7 +1110,7 @@ public class GosuPanel extends JPanel
           getCurrentEditor().joinLines();
         }
       } );
-    joinItem.setAccelerator( KeyStroke.getKeyStroke( "control J" ) );
+    joinItem.setAccelerator( KeyStroke.getKeyStroke( EditorUtilities.CONTROL_KEY_NAME + " J" ) );
     editMenu.add( joinItem );
 
     JMenuItem indentItem = new SmartMenuItem(
@@ -1243,7 +1198,7 @@ public class GosuPanel extends JPanel
 
     JMenuItem saveItem = new SmartMenuItem( new CommonMenus.SaveActionHandler() );
     saveItem.setMnemonic( 'S' );
-    saveItem.setAccelerator( KeyStroke.getKeyStroke( "control S" ) );
+    saveItem.setAccelerator( KeyStroke.getKeyStroke( EditorUtilities.CONTROL_KEY_NAME + " S" ) );
     fileMenu.add( saveItem );
 
 
@@ -1370,12 +1325,12 @@ public class GosuPanel extends JPanel
   private void mapKeystrokes()
   {
     // Undo/Redo
-    mapKeystroke( KeyStroke.getKeyStroke( KeyEvent.VK_Z, InputEvent.CTRL_MASK ),
+    mapKeystroke( KeyStroke.getKeyStroke( KeyEvent.VK_Z, EditorUtilities.CONTROL_KEY_MASK ),
                   "Undo", new UndoActionHandler() );
-    mapKeystroke( KeyStroke.getKeyStroke( KeyEvent.VK_Z, InputEvent.CTRL_MASK | InputEvent.SHIFT_MASK ),
+    mapKeystroke( KeyStroke.getKeyStroke( KeyEvent.VK_Z, EditorUtilities.CONTROL_KEY_MASK | InputEvent.SHIFT_MASK ),
                   "Redo", new RedoActionHandler() );
 //## conflicts with Delete Line, which is also ctrl+y (same as IJ)
-//    mapKeystroke( KeyStroke.getKeyStroke( KeyEvent.VK_Y, InputEvent.CTRL_MASK ),
+//    mapKeystroke( KeyStroke.getKeyStroke( KeyEvent.VK_Y, EditorUtilities.CONTROL_KEY_MASK ),
 //                  "Redo2", new RedoActionHandler() );
 
 
@@ -2110,6 +2065,28 @@ public class GosuPanel extends JPanel
   public TabPane getEditorTabPane()
   {
     return _editorTabPane;
+  }
+
+  public List<FileTree> getOpenFilesInProject()
+  {
+    List<FileTree> files = new ArrayList<>();
+    for( ITab tab: getEditorTabPane().getTabs() )
+    {
+      GosuEditor editor = (GosuEditor)tab.getContentPane();
+      if( editor != null )
+      {
+        File file = (File)editor.getClientProperty( "_file" );
+        if( file != null )
+        {
+          FileTree tree = FileTreeUtil.getRoot().find( file );
+          if( tree != null )
+          {
+            files.add( tree );
+          }
+        }
+      }
+    }
+    return files;
   }
 
   class SysInListener extends KeyAdapter

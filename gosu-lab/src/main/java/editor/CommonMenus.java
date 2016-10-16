@@ -9,18 +9,23 @@ import editor.debugger.EditBreakpointsDialog;
 import editor.run.IRunConfig;
 import editor.run.RunConfigDialog;
 import editor.run.RunState;
+import editor.search.AbstractSearchDialog;
+import editor.search.LocalSearchDialog;
+import editor.search.LocalVarFeatureInfo;
 import editor.search.MessageDisplay;
 import editor.search.SearchDialog;
-import editor.search.StandardLocalSearch;
 import editor.search.UsageSearcher;
 import editor.search.UsageTarget;
 import editor.undo.AtomicUndoManager;
 import editor.util.EditorUtilities;
 import editor.util.Experiment;
 import editor.util.SmartMenuItem;
+import gw.lang.reflect.IAttributedFeatureInfo;
+import gw.lang.reflect.IFeatureInfo;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
+import java.io.File;
 import java.util.function.Supplier;
 
 /**
@@ -31,7 +36,7 @@ public class CommonMenus
   {
     JMenuItem cutItem = new SmartMenuItem( new CutActionHandler( editor ) );
     cutItem.setMnemonic( 't' );
-    cutItem.setAccelerator( KeyStroke.getKeyStroke( "control X" ) );
+    cutItem.setAccelerator( KeyStroke.getKeyStroke( EditorUtilities.CONTROL_KEY_NAME + " X" ) );
 
     return cutItem;
   }
@@ -40,7 +45,7 @@ public class CommonMenus
   {
     JMenuItem copyItem = new SmartMenuItem( new CopyActionHandler( editor ) );
     copyItem.setMnemonic( 'C' );
-    copyItem.setAccelerator( KeyStroke.getKeyStroke( "control C" ) );
+    copyItem.setAccelerator( KeyStroke.getKeyStroke( EditorUtilities.CONTROL_KEY_NAME + " C" ) );
 
     return copyItem;
   }
@@ -49,7 +54,7 @@ public class CommonMenus
   {
     JMenuItem pasteItem = new SmartMenuItem( new PasteActionHandler( editor ) );
     pasteItem.setMnemonic( 'P' );
-    pasteItem.setAccelerator( KeyStroke.getKeyStroke( "control V" ) );
+    pasteItem.setAccelerator( KeyStroke.getKeyStroke( EditorUtilities.CONTROL_KEY_NAME + " V" ) );
 
     return pasteItem;
   }
@@ -70,8 +75,26 @@ public class CommonMenus
   public static JMenuItem makeFindUsages( Supplier<FileTree> tree )
   {
     JMenuItem completeItem = new SmartMenuItem( new FindUsagesInPathActionHandler( tree ) );
-    completeItem.setMnemonic( 'L' );
-    completeItem.setAccelerator( KeyStroke.getKeyStroke( "control SPACE" ) );
+    completeItem.setMnemonic( 'U' );
+    completeItem.setAccelerator( KeyStroke.getKeyStroke( "alt F7" ) );
+
+    return completeItem;
+  }
+
+  public static JMenuItem makeFindUsagesInFile()
+  {
+    JMenuItem completeItem = new SmartMenuItem( new FindUsagesInFileActionHandler() );
+    completeItem.setMnemonic( 'F' );
+    completeItem.setAccelerator( KeyStroke.getKeyStroke( EditorUtilities.CONTROL_KEY_NAME + " F7" ) );
+
+    return completeItem;
+  }
+
+  public static JMenuItem makeHighlightFindUsagesInFile()
+  {
+    JMenuItem completeItem = new SmartMenuItem( new HighlightUsagesInFileActionHandler() );
+    completeItem.setMnemonic( 'H' );
+    completeItem.setAccelerator( KeyStroke.getKeyStroke( EditorUtilities.CONTROL_KEY_NAME + " shift F7" ) );
 
     return completeItem;
   }
@@ -88,7 +111,7 @@ public class CommonMenus
         }
       } );
     completeItem.setMnemonic( 'L' );
-    completeItem.setAccelerator( KeyStroke.getKeyStroke( "control SPACE" ) );
+    completeItem.setAccelerator( KeyStroke.getKeyStroke( EditorUtilities.CONTROL_KEY_NAME + " SPACE" ) );
 
     return completeItem;
   }
@@ -108,7 +131,7 @@ public class CommonMenus
         }
       } );
     paraminfoItem.setMnemonic( 'P' );
-    paraminfoItem.setAccelerator( KeyStroke.getKeyStroke( "control P" ) );
+    paraminfoItem.setAccelerator( KeyStroke.getKeyStroke( EditorUtilities.CONTROL_KEY_NAME + " P" ) );
 
     return paraminfoItem;
   }
@@ -125,7 +148,7 @@ public class CommonMenus
         }
       } );
     typeItem.setMnemonic( 'T' );
-    typeItem.setAccelerator( KeyStroke.getKeyStroke( "control T" ) );
+    typeItem.setAccelerator( KeyStroke.getKeyStroke( EditorUtilities.CONTROL_KEY_NAME + " T" ) );
 
     return typeItem;
   }
@@ -142,7 +165,7 @@ public class CommonMenus
         }
       } );
     navigate.setMnemonic( 'D' );
-    navigate.setAccelerator( KeyStroke.getKeyStroke( "control B" ) );
+    navigate.setAccelerator( KeyStroke.getKeyStroke( EditorUtilities.CONTROL_KEY_NAME + " B" ) );
     return navigate;
   }
 
@@ -174,7 +197,7 @@ public class CommonMenus
         }
       } );
     quickDoc.setMnemonic( 'Q' );
-    quickDoc.setAccelerator( KeyStroke.getKeyStroke( "control Q" ) );
+    quickDoc.setAccelerator( KeyStroke.getKeyStroke( EditorUtilities.CONTROL_KEY_NAME + " Q" ) );
     return quickDoc;
   }
 
@@ -250,7 +273,7 @@ public class CommonMenus
   {
     JMenuItem item = new SmartMenuItem( new CommonMenus.StopActionHandler( gosuPanel::get ) );
     item.setMnemonic( 'S' );
-    item.setAccelerator( KeyStroke.getKeyStroke( "control F2" ) );
+    item.setAccelerator( KeyStroke.getKeyStroke( EditorUtilities.CONTROL_KEY_NAME + " F2" ) );
     UpdateNotifier.instance().addActionComponent( item );
     return item;
   }
@@ -273,7 +296,7 @@ public class CommonMenus
         }
       } );
     item.setMnemonic( 'B' );
-    item.setAccelerator( KeyStroke.getKeyStroke( "control F8" ) );
+    item.setAccelerator( KeyStroke.getKeyStroke( EditorUtilities.CONTROL_KEY_NAME + " F8" ) );
     UpdateNotifier.instance().addActionComponent( item );
     return item;
   }
@@ -405,7 +428,7 @@ public class CommonMenus
 
   public static class ClearAndRunActionHandler extends AbstractRunActionHandler
   {
-    ClearAndRunActionHandler( Supplier<IRunConfig> runConfig )
+    public ClearAndRunActionHandler( Supplier<IRunConfig> runConfig )
     {
       super( "Run", EditorUtilities.loadIcon( "images/run.png" ), runConfig );
     }
@@ -433,7 +456,7 @@ public class CommonMenus
 
   public static class ClearAndDebugActionHandler extends AbstractRunActionHandler
   {
-    ClearAndDebugActionHandler( Supplier<IRunConfig> program )
+    public ClearAndDebugActionHandler( Supplier<IRunConfig> program )
     {
       super( "Debug", EditorUtilities.loadIcon( "images/debug.png" ), program );
     }
@@ -774,7 +797,7 @@ public class CommonMenus
     @Override
     public void actionPerformed( ActionEvent e )
     {
-      StandardLocalSearch.performLocalSearch( _editor.get(), false );
+      new LocalSearchDialog( getOrMakeLocalFileTree(), false ).setVisible( true );
     }
 
     @Override
@@ -797,7 +820,7 @@ public class CommonMenus
     @Override
     public void actionPerformed( ActionEvent e )
     {
-      StandardLocalSearch.performLocalSearch( _editor.get(), true );
+      new LocalSearchDialog( getOrMakeLocalFileTree(), true ).setVisible( true );
     }
 
     @Override
@@ -821,7 +844,7 @@ public class CommonMenus
     public void actionPerformed( ActionEvent e )
     {
       getGosuPanel().saveIfDirty();
-      SearchDialog searchDialog = new SearchDialog( _dir.get() );
+      AbstractSearchDialog searchDialog = new SearchDialog( _dir.get(), false );
       searchDialog.setVisible( true );
     }
 
@@ -846,7 +869,7 @@ public class CommonMenus
     public void actionPerformed( ActionEvent e )
     {
       getGosuPanel().saveIfDirty();
-      SearchDialog searchDialog = new SearchDialog( _dir.get(), true );
+      AbstractSearchDialog searchDialog = new SearchDialog( _dir.get(), true );
       searchDialog.setVisible( true );
     }
 
@@ -863,7 +886,7 @@ public class CommonMenus
 
     public FindUsagesInPathActionHandler( Supplier<FileTree> dir )
     {
-      super( "Find usages..." );
+      super( "Find Usages" );
       _dir = dir;
     }
 
@@ -880,22 +903,115 @@ public class CommonMenus
       // Renew parse tree before we get the selected target element
       getGosuPanel().getCurrentEditor().parseAndWaitForParser();
 
-      UsageTarget target = UsageTarget.findInCurrentEditor();
+      UsageTarget target = UsageTarget.makeTargetFromCaret();
       if( target == null )
       {
         MessageDisplay.displayInformation( "Please select a valid usage target in the editor" );
       }
       else
       {
-        new UsageSearcher( target, true, false ).search( _dir.get() );
+        FileTree tree = _dir.get();
+        IFeatureInfo fi = target.getRootFeatureInfo();
+        if( fi instanceof LocalVarFeatureInfo || (fi instanceof IAttributedFeatureInfo) && ((IAttributedFeatureInfo)fi).isPrivate() )
+        {
+          tree = getOrMakeLocalFileTree();
+
+        }
+        new UsageSearcher( target, true, false ).search( tree );
       }
     }
 
     @Override
     public boolean isEnabled()
     {
-      GosuEditor editor = getGosuPanel() == null ? null : getGosuPanel().getCurrentEditor();
-      return editor != null;
+      File file = getGosuPanel() == null ? null : getGosuPanel().getCurrentFile();
+      return file != null;
+    }
+  }
+
+  private static FileTree getOrMakeLocalFileTree()
+  {
+    FileTree tree;
+    File file = getGosuPanel().getCurrentFile();
+    tree = FileTreeUtil.getRoot().find( file );
+    if( tree == null )
+    {
+      // the file is not directly in the the experiment, make a temporary tree for it
+      tree = new ExternalFileTree( file, getGosuPanel().getCurrentEditor().getParsedClass().getName() );
+    }
+    return tree;
+  }
+
+  public static class FindUsagesInFileActionHandler extends AbstractAction
+  {
+    public FindUsagesInFileActionHandler()
+    {
+      super( "Find Usages in File" );
+    }
+
+    @Override
+    public void actionPerformed( ActionEvent e )
+    {
+      if( !isEnabled() )
+      {
+        return;
+      }
+
+      getGosuPanel().save();
+
+      // Renew parse tree before we get the selected target element
+      getGosuPanel().getCurrentEditor().parseAndWaitForParser();
+
+      UsageTarget target = UsageTarget.makeTargetFromCaret();
+      if( target == null )
+      {
+        MessageDisplay.displayInformation( "Please select a valid usage target in the editor" );
+      }
+      else
+      {
+        new UsageSearcher( target, true, false ).search( getOrMakeLocalFileTree() );
+      }
+    }
+
+    @Override
+    public boolean isEnabled()
+    {
+      return findCurrentFile() != null;
+    }
+
+    private File findCurrentFile()
+    {
+      return getGosuPanel() == null ? null : getGosuPanel().getCurrentFile();
+    }
+  }
+
+  public static class HighlightUsagesInFileActionHandler extends AbstractAction
+  {
+    public HighlightUsagesInFileActionHandler()
+    {
+      super( "Highlight Usages in File" );
+    }
+
+    @Override
+    public void actionPerformed( ActionEvent e )
+    {
+      if( !isEnabled() )
+      {
+        return;
+      }
+
+      getGosuPanel().getCurrentEditor().highlightUsagesOfFeatureUnderCaret();
+    }
+
+    @Override
+    public boolean isEnabled()
+    {
+      return findCurrentEditor() != null;
+    }
+
+    private File findCurrentEditor()
+    {
+      return getGosuPanel() == null ? null : getGosuPanel().getCurrentFile();
     }
   }
 

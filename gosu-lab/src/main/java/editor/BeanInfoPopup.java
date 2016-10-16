@@ -646,7 +646,7 @@ public class BeanInfoPopup extends EditorBasedPopup implements ISelectionPopup
     public void keyPressed( final KeyEvent e )
     {
       //ignoring keystrokes with control modifiers
-      if( e.getModifiers() == InputEvent.CTRL_MASK )
+      if( e.getModifiers() == EditorUtilities.CONTROL_KEY_MASK )
       {
         if( e.getKeyCode() == KeyEvent.VK_BACK_SPACE ||
             e.getKeyCode() == KeyEvent.VK_DELETE ||

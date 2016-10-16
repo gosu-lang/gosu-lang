@@ -7,6 +7,7 @@ package editor;
 
 import editor.util.ContainerMoverSizer;
 import editor.util.ContainerSizer;
+import editor.util.EditorUtilities;
 import gw.lang.reflect.java.JavaTypes;
 import gw.util.GosuEscapeUtil;
 
@@ -73,7 +74,7 @@ public class StringPopup extends JPopupMenu implements IValuePopup
           if( e.getKeyCode() == KeyEvent.VK_ENTER )
           {
             if( _field.getHeight() > iPrefHeight * 2 - 2 &&
-                e.getModifiers() != KeyEvent.CTRL_MASK )
+                e.getModifiers() != EditorUtilities.CONTROL_KEY_MASK )
             {
               return;
             }

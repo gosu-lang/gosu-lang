@@ -1,9 +1,12 @@
 package editor.search;
 
+import editor.ExternalFileTree;
 import editor.FileTree;
+import editor.FileTreeUtil;
 import editor.GosuPanel;
 import editor.NodeKind;
 import editor.RunMe;
+import editor.util.EditorUtilities;
 import editor.util.ModalEventQueue;
 import editor.util.ProgressFeedback;
 import gw.lang.parser.IDynamicPropertySymbol;
@@ -24,8 +27,10 @@ import gw.lang.parser.expressions.IPropertyAccessIdentifier;
 import gw.lang.parser.expressions.IPropertyAsMethodCallIdentifier;
 import gw.lang.parser.expressions.ITypeLiteralExpression;
 import gw.lang.parser.expressions.IVarStatement;
+import gw.lang.parser.statements.IAssignmentStatement;
 import gw.lang.parser.statements.IClassFileStatement;
 import gw.lang.parser.statements.IClassStatement;
+import gw.lang.parser.statements.IMemberAssignmentStatement;
 import gw.lang.reflect.IConstructorInfo;
 import gw.lang.reflect.IErrorType;
 import gw.lang.reflect.IFeatureInfo;
@@ -39,6 +44,7 @@ import gw.lang.reflect.IType;
 import gw.lang.reflect.ITypeInfo;
 import gw.lang.reflect.gs.IGosuClass;
 
+import javax.swing.tree.DefaultTreeModel;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -51,6 +57,7 @@ public class UsageSearcher extends AbstractSearcher
   private final UsageTarget _target;
   private final boolean _searchText;
   private boolean _includeMemberUsage;
+  private SearchTree _results;
 
   public UsageSearcher( UsageTarget target, boolean searchText, boolean includeMemberUsage )
   {
@@ -64,8 +71,6 @@ public class UsageSearcher extends AbstractSearcher
     return _includeMemberUsage;
   }
 
-  static int foo = 0;
-
   @Override
   public boolean search( FileTree tree, SearchTree results )
   {
@@ -73,10 +78,6 @@ public class UsageSearcher extends AbstractSearcher
     {
       return false;
     }
-
-    foo++;
-
-    // Search
 
     IType type = tree.getType();
     if( _searchText && !(type instanceof IGosuClass) )
@@ -96,8 +97,18 @@ public class UsageSearcher extends AbstractSearcher
     {
       SearchTree.SearchTreeNode node = new SearchTree.SearchTreeNode( tree, loc );
       SearchTree res = new SearchTree( NodeKind.Info, node );
-      searchTree.addViaModel( res );
-      //res.select();
+      if( searchTree.getTree() != null )
+      {
+        EditorUtilities.invokeInDispatchThread( () -> {
+          searchTree.addViaModel( res );
+          ((DefaultTreeModel)searchTree.getTree().getModel()).nodeChanged( _results );
+        } );
+      }
+      else
+      {
+        // no tree when searching locally (highlighting usages in editor)
+        results.insert( res, res.getChildCount() );
+      }
     }
     return true;
   }
@@ -203,8 +214,7 @@ public class UsageSearcher extends AbstractSearcher
       if( functionType != null )
       {
         IFeatureInfo mi = functionType.getMethodOrConstructorInfo();
-        if( mi != null && FeatureUtil.methodInfosEqual(
-          FeatureUtil.findRootMethodInfo( (IMethodInfo)mi ), findMi ) )
+        if( mi != null && FeatureUtil.methodInfosEqual( FeatureUtil.findRootMethodInfo( (IMethodInfo)mi ), findMi ) )
         {
           locations = addSearchLocation( findNameToken( findMi.getDisplayName(), pe ), locations );
         }
@@ -221,10 +231,121 @@ public class UsageSearcher extends AbstractSearcher
       if( functionType != null )
       {
         IFeatureInfo mi = functionType.getMethodOrConstructorInfo();
-        if( mi instanceof IMethodInfo && FeatureUtil.methodInfosEqual(
-          FeatureUtil.findRootMethodInfo( (IMethodInfo)mi ), findMi ) )
+        if( mi instanceof IMethodInfo && FeatureUtil.methodInfosEqual( FeatureUtil.findRootMethodInfo( (IMethodInfo)mi ), findMi ) )
         {
           locations = addSearchLocation( findNameToken( ((IBeanMethodCallExpression)pe).getMemberName(), pe ), locations );
+        }
+      }
+    }
+    else if( findMi.getName().startsWith( "@" ) )
+    {
+      String propertyName = findMi.getDisplayName().substring( 1 );
+
+      if( pe instanceof IMemberAccessExpression )
+      {
+        if( ((IMemberAccessExpression)pe).getType() instanceof INamespaceType )
+        {
+          return locations;
+        }
+
+        if( !propertyName.equals( ((IMemberAccessExpression)pe).getMemberName() ) )
+        {
+          return locations;
+        }
+
+        boolean bSetter = findMi.getParameters().length > 0;
+
+        IGosuClass gsClass = (IGosuClass)findMi.getOwnersType();
+        IPropertyInfo findPi = gsClass.getTypeInfo().getProperty( gsClass, propertyName );
+
+        IPropertyInfo pi;
+        try
+        {
+          pi = ((IMemberAccessExpression)pe).getPropertyInfo();
+          if( pi != null && propertyInfosEqual( pi, findPi ) )
+          {
+            IParsedElement parent = pe.getParent();
+            if( bSetter )
+            {
+              if( parent instanceof IMemberAssignmentStatement && (((IMemberAssignmentStatement)parent).getMemberAccess() == pe || ((IMemberAssignmentStatement)parent).getRootExpression() == pe) )
+              {
+                locations = addSearchLocation( findNameToken( findPi.getDisplayName(), pe ), locations );
+              }
+            }
+            else
+            {
+              if( !(parent instanceof IMemberAssignmentStatement && (((IMemberAssignmentStatement)parent).getMemberAccess() == pe || ((IMemberAssignmentStatement)parent).getRootExpression() == pe)) )
+              {
+                locations = addSearchLocation( findNameToken( findPi.getDisplayName(), pe ), locations );
+              }
+            }
+          }
+        }
+        catch( Exception e )
+        {
+          return locations;
+        }
+      }
+      else if( pe instanceof IIdentifierExpression )
+      {
+        if( pe instanceof IPropertyAccessIdentifier ||
+            pe instanceof IPropertyAsMethodCallIdentifier )
+        {
+          boolean bSetter = findMi.getParameters().length > 0;
+
+          IGosuClass gsClass = (IGosuClass)findMi.getOwnersType();
+          IPropertyInfo findPi = gsClass.getTypeInfo().getProperty( gsClass, propertyName );
+
+          IPropertyInfo pi = (IPropertyInfo)((IDynamicPropertySymbol)((IIdentifierExpression)pe).getSymbol()).getPropertyInfo();
+          if( pi != null && propertyInfosEqual( pi, findPi ) )
+          {
+            IParsedElement parent = pe.getParent();
+            if( bSetter )
+            {
+              if( parent instanceof IAssignmentStatement && ((IAssignmentStatement)parent).getIdentifier() == pe )
+              {
+                locations = addSearchLocation( findNameToken( findPi.getDisplayName(), pe ), locations );
+              }
+            }
+            else
+            {
+              if( !(parent instanceof IAssignmentStatement) || ((IAssignmentStatement)parent).getIdentifier() != pe )
+              {
+                locations = addSearchLocation( findNameToken( findPi.getDisplayName(), pe ), locations );
+              }
+            }
+          }
+        }
+        else
+        {
+          ISymbol symbol = ((IIdentifierExpression)pe).getSymbol();
+          if( symbol instanceof IDynamicSymbol )
+          {
+            boolean bSetter = findMi.getParameters().length > 0;
+
+            IGosuClass gsClass = (IGosuClass)findMi.getOwnersType();
+            IPropertyInfo findPi = gsClass.getTypeInfo().getProperty( gsClass, propertyName );
+
+            IType type = symbol.getScriptPart().getContainingType();
+            if( type == findPi.getOwnersType() && symbol.getName().equals( findPi.getName() ) )
+            {
+              IParsedElement parent = pe.getParent();
+              if( bSetter )
+              {
+                if( parent instanceof IAssignmentStatement && ((IAssignmentStatement)parent).getIdentifier() == pe )
+                {
+                  locations = addSearchLocation( findNameToken( findPi.getDisplayName(), pe ), locations );
+                }
+              }
+              else
+              {
+                if( !(parent instanceof IAssignmentStatement) || ((IAssignmentStatement)parent).getIdentifier() != pe )
+                {
+                  locations = addSearchLocation( findNameToken( findPi.getDisplayName(), pe ), locations );
+                }
+              }
+            }
+          }
         }
       }
     }
@@ -335,7 +456,13 @@ public class UsageSearcher extends AbstractSearcher
   {
     if( pe instanceof ITypeLiteralExpression )
     {
-      if( ((ITypeLiteralExpression)pe).getType().getType() == type )
+
+      IType t = ((ITypeLiteralExpression)pe).getType().getType();
+      while( t.isArray() )
+      {
+        t = t.getComponentType();
+      }
+      if( t == type )
       {
         locations = addSearchLocation( pe, locations );
       }
@@ -532,7 +659,7 @@ public class UsageSearcher extends AbstractSearcher
     loc._iLength = 0;
     return loc;
   }
-  private SearchLocation makeSearchLocation( IParseTree parseTree )
+  public static SearchLocation makeSearchLocation( IParseTree parseTree )
   {
     SearchLocation loc = new SearchLocation();
     loc._iOffset = parseTree.getOffset();
@@ -573,32 +700,80 @@ public class UsageSearcher extends AbstractSearcher
   public void search( FileTree tree )
   {
     GosuPanel gosuPanel = RunMe.getEditorFrame().getGosuPanel();
-    SearchPanel searchPanel = clearAndShowSearchPanel( gosuPanel );
+    gosuPanel.showSearches( false );
+    SearchPanel searchPanel = gosuPanel.showSearches( true );
     //searchPanel.setReplacePattern( (String)_cbReplace.getSelectedItem() );
 
-    SearchTree results = new SearchTree( "<html><b>$count</b> usages of <b>'" + _target.getRootFeatureInfo().getName() + "'</b> in " + tree.getName(), NodeKind.Directory, SearchTree.empty() );
-    searchPanel.add( results );
+    _results = new SearchTree( "<html><b>$count</b>&nbsp;usages&nbsp;of&nbsp;<b>'" + _target.getRootFeatureInfo().getName() + "'</b>&nbsp;in&nbsp;" + tree.getName(), NodeKind.Directory, SearchTree.empty() );
+    searchPanel.add( _results );
 
     boolean[] bFinished = {false};
     ProgressFeedback.runWithProgress( "Searching...",
       progress -> {
           progress.setLength( tree.getTotalFiles() );
-          searchTree( tree, results, ft -> ft.getType() instanceof IGosuClass, progress );
+          searchTree( tree, _results, ft -> ft.getType() instanceof IGosuClass, progress );
           bFinished[0] = true;
         } );
     new ModalEventQueue( () -> !bFinished[0] ).run();
-    EventQueue.invokeLater( () -> selectFirstMatch( results ) );
+    EventQueue.invokeLater( () -> selectFirstMatch( _results ) );
   }
 
-  private SearchPanel clearAndShowSearchPanel( GosuPanel gosuPanel )
+  public List<SearchLocation> searchLocal()
   {
-    SearchPanel searchPanel = gosuPanel.getSearchPanel();
-    if( searchPanel != null )
+    GosuPanel gosuPanel = RunMe.getEditorFrame().getGosuPanel();
+    FileTree tree = FileTreeUtil.find( gosuPanel.getCurrentFile() );
+    IType type;
+    if( tree == null )
     {
-      searchPanel.clear();
+      type = gosuPanel.getCurrentEditor().getParsedClass();
+      tree = new ExternalFileTree( gosuPanel.getCurrentFile(), type.getName() );
     }
-    gosuPanel.showSearches( true );
-    return gosuPanel.getSearchPanel();
+    else
+    {
+      type = tree.getType();
+    }
+    SearchTree results = new SearchTree( "root", NodeKind.Directory, SearchTree.empty() );
+    searchTree( tree, results, ft -> ft.getType() instanceof IGosuClass, null );
+    List<SearchLocation> locations = findLocations( results, new ArrayList<>() );
+    IParsedElement targetPe = _target.getTargetParsedElement();
+    if( targetPe != null && getOuterMostEnclosingType( targetPe.getGosuClass() ) == getOuterMostEnclosingType( type ) )
+    {
+      locations.add( makeSearchLocation( targetPe.getLocation() ) );
+    }
+    return locations;
+  }
+
+  private IType getOuterMostEnclosingType( IType innerClass )
+  {
+    IType outerMost = innerClass;
+    while( outerMost != null && outerMost.getEnclosingType() != null )
+    {
+      outerMost = outerMost.getEnclosingType();
+    }
+    return outerMost;
+  }
+
+  private List<SearchLocation> findLocations( SearchTree tree, List<SearchLocation> locations )
+  {
+    if( tree == null )
+    {
+      return locations;
+    }
+
+    SearchTree.SearchTreeNode node = tree.getNode();
+    if( node != null && node.getLocation() != null )
+    {
+      locations.add( node.getLocation() );
+    }
+    else
+    {
+      for( int i = 0; i < tree.getChildCount(); i++ )
+      {
+        findLocations( tree.getChildAt( i ), locations );
+      }
+    }
+
+    return locations;
   }
 
 //  private void addReplaceInfo( SearchPanel searchPanel )

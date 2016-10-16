@@ -1,13 +1,19 @@
 package editor.search;
 
+import editor.ExternalFileTree;
 import editor.FileTree;
+import editor.FileTreeUtil;
+import editor.GosuPanel;
 import editor.NodeKind;
+import editor.RunMe;
+import gw.lang.reflect.gs.IGosuClass;
 import gw.util.GosuStringUtil;
 import gw.util.StreamUtil;
 
 import java.io.File;
 import java.io.FileReader;
 import java.io.Reader;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -77,5 +83,42 @@ public class TextSearcher extends AbstractSearcher
     }
     return true;
   }
+
+  public List<SearchLocation> searchLocal()
+  {
+    GosuPanel gosuPanel = RunMe.getEditorFrame().getGosuPanel();
+    FileTree tree = FileTreeUtil.find( gosuPanel.getCurrentFile() );
+    if( tree == null )
+    {
+      tree = new ExternalFileTree( gosuPanel.getCurrentFile(), gosuPanel.getCurrentEditor().getParsedClass().getName() );
+    }
+    SearchTree results = new SearchTree( "root", NodeKind.Directory, SearchTree.empty() );
+    searchTree( tree, results, ft -> ft.getType() instanceof IGosuClass, null );
+    return findLocations( results, new ArrayList<>() );
+  }
+
+  private List<SearchLocation> findLocations( SearchTree tree, List<SearchLocation> locations )
+  {
+    if( tree == null )
+    {
+      return locations;
+    }
+
+    SearchTree.SearchTreeNode node = tree.getNode();
+    if( node != null && node.getLocation() != null )
+    {
+      locations.add( node.getLocation() );
+    }
+    else
+    {
+      for( int i = 0; i < tree.getChildCount(); i++ )
+      {
+        findLocations( tree.getChildAt( i ), locations );
+      }
+    }
+
+    return locations;
+  }
+
 }
 

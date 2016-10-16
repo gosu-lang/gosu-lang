@@ -23,6 +23,10 @@ public class LabScheme extends Scheme
   private static final Color XP_HIGHLIGHT_COLOR = ACTIVE_CAPTION;//new Color( 190, 205, 224 );
   private static final Color ACTIVE_CAPTION_TEXT = Color.black;
 
+  private static final Color USAGE_READ_HIGHLIGHT_COLOR = new Color( 246, 232, 194 );
+  private static final Color USAGE_WRITE_HIGHLIGHT_COLOR = new Color( 255, 201, 247 );
+  private static final Color SCOPE_HIGHLIGHT_COLOR = new Color( 200, 210, 255 );
+
   private static final Color CONTROL = new Color( 240, 240, 240 ); //UIManager.getColor( "control" );
   private static final Color CONTROL_DARKSHADOW = new Color( 105, 105, 105 ); // UIManager.getColor( "controlDkShadow" );
   private static final Color CONTROL_HIGHLIGHT = Color.white; //UIManager.getColor( "controlHighlight" );
@@ -345,5 +349,23 @@ public class LabScheme extends Scheme
   public Color getButtonBorderColor()
   {
     return getControlDarkshadow();
+  }
+
+  @Override
+  public Color usageReadHighlightColor()
+  {
+    return USAGE_READ_HIGHLIGHT_COLOR;
+  }
+
+  @Override
+  public Color usageWriteHighlightColor()
+  {
+    return USAGE_WRITE_HIGHLIGHT_COLOR;
+  }
+
+  @Override
+  public Color scopeHighlightColor()
+  {
+    return SCOPE_HIGHLIGHT_COLOR;
   }
 }

@@ -1,5 +1,7 @@
 package editor;
 
+import editor.util.EditorUtilities;
+
 import javax.swing.*;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.MutableTreeNode;
@@ -50,7 +52,8 @@ public abstract class AbstractTree<T extends AbstractTree<T, N>, N extends ITree
 
   public JTree getTree()
   {
-    return (JTree)getRoot().getUserData( "_tree" );
+    T root = getRoot();
+    return root == null ? null : (JTree)root.getUserData( "_tree" );
   }
 
   public T getRoot()
@@ -60,7 +63,7 @@ public abstract class AbstractTree<T extends AbstractTree<T, N>, N extends ITree
       //noinspection unchecked
       return (T)this;
     }
-    return getParent().getRoot();
+    return getParent() == null ? null : getParent().getRoot();
   }
 
   public String getText()
@@ -107,12 +110,32 @@ public abstract class AbstractTree<T extends AbstractTree<T, N>, N extends ITree
 
   public void addViaModel( MutableTreeNode child )
   {
-    ((DefaultTreeModel)getTree().getModel()).insertNodeInto( child, this, getChildCount() );
+    EditorUtilities.invokeInDispatchThread(
+      ()-> {
+        JTree tree = getTree();
+        if( tree != null )
+        {
+          DefaultTreeModel model = (DefaultTreeModel)tree.getModel();
+          model.insertNodeInto( child, this, getChildCount() );
+        }
+        else
+        {
+          insert( child, getChildCount() );
+        }
+      } );
   }
 
   public void insertViaModel( MutableTreeNode child, int index )
   {
-    ((DefaultTreeModel)getTree().getModel()).insertNodeInto( child, this, index );
+    EditorUtilities.invokeInDispatchThread(
+     ()-> {
+       JTree tree = getTree();
+       if( tree != null )
+       {
+         DefaultTreeModel model = (DefaultTreeModel)tree.getModel();
+         model.insertNodeInto( child, this, index );
+       }
+     } );
   }
 
   @Override

@@ -2,7 +2,11 @@ package editor;
 
 import editor.debugger.BreakpointManager;
 import editor.debugger.Debugger;
+import editor.run.IRunConfig;
+import editor.util.EditorUtilities;
+import editor.util.LabToolbarButton;
 import editor.util.SettleModalEventQueue;
+import editor.util.ToolBar;
 import gw.fs.IFile;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.TypeSystem;
@@ -18,7 +22,6 @@ import javax.swing.text.SimpleAttributeSet;
 import javax.swing.text.StyleConstants;
 import javax.swing.text.html.HTML;
 import java.awt.*;
-import java.awt.event.InputEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
@@ -77,12 +80,54 @@ public class SystemPanel extends ClearablePanel
     label.setBorder( new EmptyBorder( 0, 4 + GosuEditor.MIN_LINENUMBER_WIDTH, 0, 0 ) );
     add( label, BorderLayout.NORTH );
 
+    add( makeRunToolbar(), BorderLayout.WEST );
+
     MouseHandler ml = new MouseHandler();
     _outputPanel.addMouseMotionListener( ml );
     _outputPanel.addMouseListener( ml );
     _outputPanel.addMouseWheelListener( ml );
   }
 
+  private JComponent makeRunToolbar()
+  {
+    JPanel toolbarPanel = new JPanel( new BorderLayout() );
+    toolbarPanel.setBackground( Scheme.active().getMenu() );
+    toolbarPanel.setBorder( BorderFactory.createEmptyBorder( 1, 2, 1, 2 ) );
+
+    ToolBar toolbar = new ToolBar( JToolBar.VERTICAL );
+
+    LabToolbarButton item;
+    item = new LabToolbarButton( new CommonMenus.ClearAndRunActionHandler( () -> getGosuPanel().getRunConfig() ) );
+    item.setToolTipSupplier( () -> {
+      IRunConfig rc = getGosuPanel().getRunConfig();
+      return rc == null ? "Run..." : "Run '" + rc.getName() + "'";
+    } );
+    toolbar.add( item );
+
+    item = new LabToolbarButton( new CommonMenus.ClearAndDebugActionHandler( () -> getGosuPanel().getRunConfig() ) );
+    item.setToolTipSupplier( () -> {
+      IRunConfig rc = getGosuPanel().getRunConfig();
+      return rc == null ? "Debug..." : "Debug '" + rc.getName() + "'";
+    } );
+    toolbar.add( item );
+
+    item = new LabToolbarButton( new CommonMenus.StopActionHandler( this::getGosuPanel ) );
+    toolbar.add( item );
+    item = new LabToolbarButton( new CommonMenus.PauseActionHandler( this::getDebugger ) );
+    toolbar.add( item );
+    item = new LabToolbarButton( new CommonMenus.ResumeActionHandler( this::getDebugger ) );
+    toolbar.add( item );
+
+    toolbar.addSeparator();
+
+    item = new LabToolbarButton( new CommonMenus.ViewBreakpointsActionHandler( () -> null ) );
+    toolbar.add( item );
+    ToggleToolBarButton titem = new ToggleToolBarButton( new CommonMenus.MuteBreakpointsActionHandler( this::getBreakpointManager ) );
+    toolbar.add( titem );
+
+    toolbarPanel.add( toolbar, BorderLayout.CENTER );
+    return toolbarPanel;
+  }
 
   public JTextPane getOutputPanel()
   {
@@ -214,7 +259,7 @@ public class SystemPanel extends ClearablePanel
         return;
       }
 
-      if( (e.getModifiers() & InputEvent.CTRL_MASK) == 0 )
+      if( (e.getModifiers() & EditorUtilities.CONTROL_KEY_MASK) == 0 )
       {
         forward( e );
         return;

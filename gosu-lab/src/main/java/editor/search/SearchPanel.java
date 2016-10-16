@@ -63,7 +63,7 @@ public class SearchPanel extends ClearablePanel
   private void addReplaceButtonsPanel()
   {
     _replaceButtonPanel = new JPanel( new BorderLayout() );
-    _replaceButtonPanel.setBorder( BorderFactory.createEmptyBorder( 5, 0, 5, 0 ) );
+    _replaceButtonPanel.setBorder( BorderFactory.createEmptyBorder( 5, 10, 5, 0 ) );
     JPanel filler = new JPanel();
     _replaceButtonPanel.add( filler, BorderLayout.CENTER );
 

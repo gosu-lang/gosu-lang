@@ -30,6 +30,7 @@ import javax.swing.filechooser.FileSystemView;
 import javax.swing.plaf.basic.BasicArrowButton;
 import java.awt.*;
 import java.awt.datatransfer.Clipboard;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.image.FilteredImageSource;
 import java.awt.image.ImageProducer;
@@ -58,6 +59,25 @@ public class EditorUtilities
 
   private static final String BACKGROUND_QUEUE_NAME = "backgroundTasks";
 
+  /**
+   * Platform dependent keystroke info
+   */
+  public static final String CONTROL_KEY_NAME;
+  public static final int CONTROL_KEY_MASK;
+
+  static
+  {
+    if( PlatformUtil.isMac() )
+    {
+      CONTROL_KEY_MASK = KeyEvent.META_DOWN_MASK;
+      CONTROL_KEY_NAME = "meta";
+    }
+    else
+    {
+      CONTROL_KEY_MASK = KeyEvent.CTRL_DOWN_MASK;
+      CONTROL_KEY_NAME = "control";
+    }
+  }
 
   static public void doBackgroundOp( final Runnable run )
   {
@@ -706,6 +726,30 @@ public class EditorUtilities
       try
       {
         EventQueue.invokeAndWait( task );
+      }
+      catch( Throwable t )
+      {
+        handleUncaughtException( t );
+      }
+    }
+  }
+
+  public static void invokeNowOrLater( Runnable task )
+  {
+    if( task == null )
+    {
+      return;
+    }
+
+    if( EventQueue.isDispatchThread() )
+    {
+      task.run();
+    }
+    else
+    {
+      try
+      {
+        EventQueue.invokeLater( task );
       }
       catch( Throwable t )
       {

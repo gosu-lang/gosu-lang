@@ -96,7 +96,8 @@ public class GosuClassLineInfoManager extends AbstractLineInfoManager
     IParseTree implementedFuction = getOverridden( iLine );
     if( overrideFunction != null && (implementedFuction == null || iY < _iconOverrideAndImpl.getIconHeight() / 2) )
     {
-      getGosuEditor().handleGotoFeature( overrideFunction.getDynamicFunctionSymbol().getSuperDfs().getMethodOrConstructorInfo() );
+      IFunctionStatement funcStmt = overrideFunction.getDynamicFunctionSymbol().getSuperDfs().getDeclFunctionStmt();
+      getGosuEditor().gotoDeclaration( funcStmt.getLocation().getDeepestLocation( funcStmt.getNameOffset( null ), true ).getParsedElement() );
     }
     else if( implementedFuction != null )
     {

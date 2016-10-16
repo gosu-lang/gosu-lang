@@ -1,5 +1,6 @@
 package editor.search;
 
+import gw.lang.parser.ICapturedSymbol;
 import gw.lang.parser.IParsedElement;
 import gw.lang.parser.ISymbol;
 import gw.lang.parser.expressions.IIdentifierExpression;
@@ -18,7 +19,7 @@ public class LocalVarFeatureInfo implements IFeatureInfo
 
   public LocalVarFeatureInfo( IIdentifierExpression id )
   {
-    _symbol = id.getSymbol();
+    _symbol = findRootSymbol( id.getSymbol() );
     _container = findMethodInfo( id );
   }
 
@@ -69,6 +70,15 @@ public class LocalVarFeatureInfo implements IFeatureInfo
     return _symbol.getDisplayName();
   }
 
+  private ISymbol findRootSymbol( ISymbol symbol )
+  {
+    while( symbol instanceof ICapturedSymbol )
+    {
+      symbol = ((ICapturedSymbol)symbol).getReferredSymbol();
+    }
+    return symbol;
+  }
+
   private IFeatureInfo findMethodInfo( IParsedElement pe )
   {
     if( pe == null )
@@ -97,6 +107,11 @@ public class LocalVarFeatureInfo implements IFeatureInfo
     }
 
     LocalVarFeatureInfo that = (LocalVarFeatureInfo)o;
+
+    if( _symbol == that._symbol )
+    {
+      return true;
+    }
 
     if( _container != null ? !_container.equals( that._container ) : that._container != null )
     {

@@ -1,6 +1,7 @@
 package editor;
 
 import javax.swing.tree.TreeModel;
+import java.io.File;
 
 /**
  */
@@ -11,6 +12,11 @@ public class FileTreeUtil
     TreeModel model = getExperimentView().getTree().getModel();
     FileTree root = (FileTree)model.getRoot();
     return root.find( fqn );
+  }
+
+  public static FileTree find( File file )
+  {
+    return FileTreeUtil.getRoot().find( file );
   }
 
   public static ExperimentView getExperimentView()

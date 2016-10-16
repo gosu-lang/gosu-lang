@@ -291,7 +291,9 @@ public class VarStatement extends Statement implements IVarStatement
     return identifierName == null || identifierName.equals( getIdentifierName() ) 
            ? _iNameOffset
            : identifierName.equals( getPropertyName() )
-             ? _iPropertyNameOffset
+             ? _iPropertyNameOffset == 0
+               ? _iNameOffset
+               : _iPropertyNameOffset
              : -1;
   }
   @Override

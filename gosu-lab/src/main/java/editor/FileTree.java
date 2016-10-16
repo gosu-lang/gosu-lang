@@ -40,7 +40,7 @@ public class FileTree implements MutableTreeNode, IFileWatcherListener
     addSourcePaths( experiment );
   }
 
-  private FileTree( File fileOrDir, FileTree parent, Experiment experiment )
+  protected FileTree( File fileOrDir, FileTree parent, Experiment experiment )
   {
     _fileOrDir = fileOrDir;
     _parent = parent;
@@ -413,7 +413,7 @@ public class FileTree implements MutableTreeNode, IFileWatcherListener
     return TypeSystem.getByFullNameIfValid( fqn );
   }
 
-  private String makeFqn()
+  protected String makeFqn()
   {
     FileTree sourcePathRoot = getSourcePathRoot();
     if( isDirectory() || isSourcePathRoot() || sourcePathRoot == null || getFileOrDir().getName().indexOf( '.' ) < 0 )
