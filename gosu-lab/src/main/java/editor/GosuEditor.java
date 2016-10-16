@@ -25,12 +25,11 @@ import gw.lang.parser.IParseIssue;
 import gw.lang.parser.IParseResult;
 import gw.lang.parser.IParseTree;
 import gw.lang.parser.IParsedElement;
-import gw.lang.parser.IParsedElementWithAtLeastOneDeclaration;
 import gw.lang.parser.IScriptPartId;
+import gw.lang.parser.ISymbol;
 import gw.lang.parser.ISymbolTable;
 import gw.lang.parser.ITokenizerInstructor;
 import gw.lang.parser.ITypeUsesMap;
-import gw.lang.parser.Keyword;
 import gw.lang.parser.ParserOptions;
 import gw.lang.parser.ScriptPartId;
 import gw.lang.parser.StandardSymbolTable;
@@ -40,7 +39,9 @@ import gw.lang.parser.exceptions.ParseWarning;
 import gw.lang.parser.expressions.IBeanMethodCallExpression;
 import gw.lang.parser.expressions.IImplicitTypeAsExpression;
 import gw.lang.parser.expressions.IInferredNewExpression;
+import gw.lang.parser.expressions.ILocalVarDeclaration;
 import gw.lang.parser.expressions.IMethodCallExpression;
+import gw.lang.parser.expressions.INameInDeclaration;
 import gw.lang.parser.expressions.INewExpression;
 import gw.lang.parser.expressions.IVarStatement;
 import gw.lang.parser.statements.IClassDeclaration;
@@ -49,26 +50,19 @@ import gw.lang.parser.statements.IClassStatement;
 import gw.lang.parser.statements.IForEachStatement;
 import gw.lang.parser.statements.IFunctionStatement;
 import gw.lang.parser.statements.IMethodCallStatement;
-import gw.lang.parser.statements.IPropertyStatement;
 import gw.lang.parser.statements.IStatementList;
 import gw.lang.parser.template.ITemplateGenerator;
 import gw.lang.reflect.FunctionType;
-import gw.lang.reflect.IFeatureInfo;
 import gw.lang.reflect.IMetaType;
 import gw.lang.reflect.IScriptabilityModifier;
 import gw.lang.reflect.IType;
-import gw.lang.reflect.ITypeInfo;
 import gw.lang.reflect.ITypeLoaderListener;
 import gw.lang.reflect.ITypeRef;
 import gw.lang.reflect.RefreshRequest;
 import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.gs.ClassType;
 import gw.lang.reflect.gs.IGosuClass;
-import gw.lang.reflect.gs.IGosuClassTypeInfo;
 import gw.lang.reflect.gs.IGosuEnhancement;
-import gw.lang.reflect.gs.IGosuMethodInfo;
-import gw.lang.reflect.gs.IGosuPropertyInfo;
-import gw.lang.reflect.gs.IGosuVarPropertyInfo;
 import gw.lang.reflect.gs.StringSourceFileHandle;
 import gw.lang.reflect.java.JavaTypes;
 import gw.util.GosuStringUtil;
@@ -3051,37 +3045,33 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
 
     IParsedElement parsedElement = deepest.getParsedElement();
 
-    if( parsedElement instanceof IClassDeclaration )
+    return getTypeFrom( parsedElement );
+  }
+
+  private IType getTypeFrom( IParsedElement pe )
+  {
+    if( pe instanceof IClassDeclaration )
     {
-      return ((IClassDeclaration)parsedElement).getGSClass();
+      return ((IClassDeclaration)pe).getGSClass();
     }
-    else if( parsedElement instanceof IExpression )
+    else if( pe instanceof INameInDeclaration )
     {
-      return ((IExpression)parsedElement).getType();
-    }
-    else if( parsedElement instanceof IVarStatement )
-    {
-      //TODO cgross - hack to be removed when we begin parsing the declarations within var statements
-      IVarStatement varStmt = (IVarStatement)parsedElement;
-      IParseTree location = varStmt.getLocation();
-      int caret = getEditor().getCaretPosition();
-      if( caret > location.getOffset() + Keyword.KW_var.length() && location.areAllChildrenAfterPosition( caret ) )
+      pe = pe.getParent();
+      if( pe instanceof IVarStatement )
       {
+        IVarStatement varStmt = (IVarStatement)pe;
         return varStmt.getType();
       }
     }
-    else if( parsedElement instanceof IForEachStatement )
+    else if( pe instanceof ILocalVarDeclaration )
     {
-      //TODO cgross - hack to be removed when we begin parsing the declarations within var statements
-      IForEachStatement feStmt = (IForEachStatement)parsedElement;
-      IParseTree location = feStmt.getLocation();
-      int caret = getEditor().getCaretPosition();
-      if( caret > location.getOffset() + Keyword.KW_for.length() && location.areAllChildrenAfterPosition( caret ) )
-      {
-        return feStmt.getIdentifier().getType();
-      }
+      ILocalVarDeclaration local = (ILocalVarDeclaration)pe;
+      return local.getSymbol().getType();
     }
-
+    else if( pe instanceof IExpression )
+    {
+      return ((IExpression)pe).getType();
+    }
     return null;
   }
 
