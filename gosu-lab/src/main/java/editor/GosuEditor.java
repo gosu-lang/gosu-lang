@@ -43,6 +43,7 @@ import gw.lang.parser.expressions.ILocalVarDeclaration;
 import gw.lang.parser.expressions.IMethodCallExpression;
 import gw.lang.parser.expressions.INameInDeclaration;
 import gw.lang.parser.expressions.INewExpression;
+import gw.lang.parser.expressions.IParameterDeclaration;
 import gw.lang.parser.expressions.IVarStatement;
 import gw.lang.parser.statements.IClassDeclaration;
 import gw.lang.parser.statements.IClassFileStatement;
@@ -3061,6 +3062,10 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
       {
         IVarStatement varStmt = (IVarStatement)pe;
         return varStmt.getType();
+      }
+      else if( pe instanceof IParameterDeclaration )
+      {
+        return getTypeFrom( pe );
       }
     }
     else if( pe instanceof ILocalVarDeclaration )
