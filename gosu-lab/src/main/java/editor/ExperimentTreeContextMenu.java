@@ -45,11 +45,11 @@ public class ExperimentTreeContextMenu implements IContextMenuHandler<JTree>
     menu.add( new JSeparator() );
     menu.add( new SmartMenuItem( new OpenOnDesktopAction( tree ) ) );
     menu.add( new JSeparator() );
-    menu.add( new SmartMenuItem( new ClipCutAction( tree ) ) );
-    menu.add( new SmartMenuItem( new ClipCopyAction( tree ) ) );
-    menu.add( new SmartMenuItem( new ClipPasteAction( tree ) ) );
+    menu.add( new SmartMenuItem( new ClipCutAction( tree ), false ) );
+    menu.add( new SmartMenuItem( new ClipCopyAction( tree ), false ) );
+    menu.add( new SmartMenuItem( new ClipPasteAction( tree ), false ) );
     menu.add( new JSeparator() );
-    menu.add( new SmartMenuItem( new DeleteAction( tree ) ) );
+    menu.add( new SmartMenuItem( new DeleteAction( tree ), false ) );
     menu.add( new JSeparator() );
 
     FileTree item = (FileTree)tree.getLastSelectedPathComponent();
@@ -64,7 +64,7 @@ public class ExperimentTreeContextMenu implements IContextMenuHandler<JTree>
     if( item != null )
     {
       IType type = item.getType();
-      if( type instanceof IGosuClass )
+      if( EditorUtilities.isRunnable( type ) )
       {
         menu.add( new JSeparator() );
         menu.add( CommonMenus.makeRun( () -> _experiment.getOrCreateRunConfig( type ) ) );

@@ -870,7 +870,7 @@ public class CommonMenus
     @Override
     public boolean isEnabled()
     {
-      return _dir.get() != null && _dir.get().getFileOrDir().exists();
+      return _dir.get() != null && _dir.get().getFileOrDir() != null;
     }
   }
 
@@ -895,7 +895,7 @@ public class CommonMenus
     @Override
     public boolean isEnabled()
     {
-      return _dir.get() != null && _dir.get().getFileOrDir().exists();
+      return _dir.get() != null && _dir.get().getFileOrDir() != null;
     }
   }
 

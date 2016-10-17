@@ -14,8 +14,15 @@ public class SmartMenuItem extends JMenuItem implements ChangeListener
 {
   public SmartMenuItem( Action action )
   {
+    this( action, true );
+  }
+  public SmartMenuItem( Action action, boolean autoEnable )
+  {
     super( action );
-    UpdateNotifier.instance().addActionComponent( this );
+    if( autoEnable )
+    {
+      UpdateNotifier.instance().addActionComponent( this );
+    }
     init();
   }
   public SmartMenuItem( String text, Icon icon )

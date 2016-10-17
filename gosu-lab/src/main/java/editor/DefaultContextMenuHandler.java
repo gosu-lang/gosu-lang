@@ -1,6 +1,7 @@
 package editor;
 
 import editor.run.IRunConfig;
+import editor.util.EditorUtilities;
 import editor.util.Experiment;
 
 import javax.swing.*;
@@ -40,8 +41,7 @@ public class DefaultContextMenuHandler implements IContextMenuHandler<IScriptEdi
       menu.add( new JSeparator() );
       menu.add( CommonMenus.makeViewBytecode() );
     }
-    if( editor.getScriptPart() != null &&
-        editor.getScriptPart().getContainingType() != null )
+    if( editor.getScriptPart() != null && EditorUtilities.isRunnable( editor.getScriptPart().getContainingType() ) )
     {
       menu.add( new JSeparator() );
       menu.add( CommonMenus.makeRun( () -> getOrCreateRunConfig( editor ) ) );

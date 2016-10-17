@@ -304,8 +304,9 @@ public class Experiment implements IProject
     IRunConfig rc = findRunConfig( runConfig -> runConfig instanceof FqnRunConfig &&
                                                 ((FqnRunConfig)runConfig).getFqn().equals( fqn ) );
     return rc == null
-           ? ProgramRunConfigFactory.instance().newRunConfig(
-               makeProgramParams( type.getRelativeName(), type.getName() ) )
+           ? EditorUtilities.isRunnable( type )
+             ? ProgramRunConfigFactory.instance().newRunConfig( makeProgramParams( type.getRelativeName(), type.getName() ) )
+             : null
            : rc;
   }
 
