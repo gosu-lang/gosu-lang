@@ -23,8 +23,8 @@ public class LabScheme extends Scheme
   private static final Color XP_HIGHLIGHT_COLOR = ACTIVE_CAPTION;//new Color( 190, 205, 224 );
   private static final Color ACTIVE_CAPTION_TEXT = Color.black;
 
-  private static final Color USAGE_READ_HIGHLIGHT_COLOR = new Color( 246, 232, 194 );
-  private static final Color USAGE_WRITE_HIGHLIGHT_COLOR = new Color( 255, 201, 247 );
+  private static final Color USAGE_READ_HIGHLIGHT_COLOR = new Color( 204, 204, 255 );
+  private static final Color USAGE_WRITE_HIGHLIGHT_COLOR = new Color( 255, 204, 255 );
   private static final Color SCOPE_HIGHLIGHT_COLOR = new Color( 200, 210, 255 );
 
   private static final Color CONTROL = new Color( 240, 240, 240 ); //UIManager.getColor( "control" );

@@ -96,6 +96,8 @@ public class ProgressPanel extends JPanel
 
     JPanel panelCtrl = new JPanel( new BorderLayout() );
     _progress = new JProgressBar( 0, iLength < 0 ? 0 : iLength );
+    _progress.setBorder( BorderFactory.createEmptyBorder() );
+    _progress.setUI( new LabProgressBarUI() );
     if( iLength < 0 )
     {
       _progress.setIndeterminate( true );
