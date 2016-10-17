@@ -116,15 +116,7 @@ public class CollapsibleSplitPane extends SplitPane
 
   public void toggleCollapse( final ICaptionedPanel captionedPanel )
   {
-    EventQueue.invokeLater(
-      new Runnable()
-      {
-        public void run()
-        {
-          toggleCollapseNow( captionedPanel );
-        }
-      }
-    );
+    EventQueue.invokeLater( () -> toggleCollapseNow( captionedPanel ) );
   }
 
   private void toggleCollapseNow( ICaptionedPanel captionedPanel )
@@ -138,14 +130,10 @@ public class CollapsibleSplitPane extends SplitPane
       toggleBottomCollapse( captionedPanel );
     }
     EventQueue.invokeLater(
-      new Runnable()
-      {
-        public void run()
-        {
-          revalidate();
-          doLayout();
-          repaint();
-        }
+      () -> {
+        revalidate();
+        doLayout();
+        repaint();
       }
     );
   }

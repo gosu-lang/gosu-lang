@@ -14,6 +14,7 @@ import editor.search.LocalSearchDialog;
 import editor.search.LocalVarFeatureInfo;
 import editor.search.MessageDisplay;
 import editor.search.SearchDialog;
+import editor.search.SearchPanel;
 import editor.search.UsageSearcher;
 import editor.search.UsageTarget;
 import editor.undo.AtomicUndoManager;
@@ -95,6 +96,24 @@ public class CommonMenus
     JMenuItem completeItem = new SmartMenuItem( new HighlightUsagesInFileActionHandler() );
     completeItem.setMnemonic( 'H' );
     completeItem.setAccelerator( KeyStroke.getKeyStroke( EditorUtilities.CONTROL_KEY_NAME + " shift F7" ) );
+
+    return completeItem;
+  }
+
+  public static JMenuItem makeNextOccurrent( Supplier<SearchPanel> search )
+  {
+    JMenuItem completeItem = new SmartMenuItem( new NextOccurrenceActionHandler( search ) );
+    completeItem.setMnemonic( 'X' );
+    completeItem.setAccelerator( KeyStroke.getKeyStroke( EditorUtilities.CONTROL_KEY_NAME + " alt DOWN" ) );
+
+    return completeItem;
+  }
+
+  public static JMenuItem makePrevOccurrent( Supplier<SearchPanel> search )
+  {
+    JMenuItem completeItem = new SmartMenuItem( new PrevOccurrenceActionHandler( search ) );
+    completeItem.setMnemonic( 'V' );
+    completeItem.setAccelerator( KeyStroke.getKeyStroke( EditorUtilities.CONTROL_KEY_NAME + " alt UP" ) );
 
     return completeItem;
   }
@@ -929,6 +948,58 @@ public class CommonMenus
     }
   }
 
+  public static class NextOccurrenceActionHandler extends AbstractAction
+  {
+    private final Supplier<SearchPanel> _search;
+
+    public NextOccurrenceActionHandler( Supplier<SearchPanel> search )
+    {
+      super( "Next Occurrence..." );
+      _search = search;
+    }
+
+    @Override
+    public void actionPerformed( ActionEvent e )
+    {
+      if( isEnabled() )
+      {
+        _search.get().gotoNextItem();
+      }
+    }
+
+    @Override
+    public boolean isEnabled()
+    {
+      return _search.get() != null;
+    }
+  }
+
+  public static class PrevOccurrenceActionHandler extends AbstractAction
+  {
+    private final Supplier<SearchPanel> _search;
+
+    public PrevOccurrenceActionHandler( Supplier<SearchPanel> search )
+    {
+      super( "Previous Occurrence..." );
+      _search = search;
+    }
+
+    @Override
+    public void actionPerformed( ActionEvent e )
+    {
+      if( isEnabled() )
+      {
+        _search.get().gotoPreviousItem();
+      }
+    }
+
+    @Override
+    public boolean isEnabled()
+    {
+      return _search.get() != null;
+    }
+  }
+  
   private static FileTree getOrMakeLocalFileTree()
   {
     FileTree tree;

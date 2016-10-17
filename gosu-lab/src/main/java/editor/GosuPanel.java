@@ -330,10 +330,13 @@ public class GosuPanel extends JPanel
     else
     {
       _bottomTabPane.removeTabWithContent( panel );
-      if( _bottomTabPane.getTabCount() == 0 )
-      {
-        _outerSplitPane.toggleCollapse( _bottomTabPane );
-      }
+      EventQueue.invokeLater( () -> {
+        SettleModalEventQueue.instance().run();
+        if( _bottomTabPane.getTabCount() == 0 && !_outerSplitPane.isMin() )
+        {
+          _outerSplitPane.toggleCollapse( _bottomTabPane );
+        }
+      } );
       return null;
     }
   }
@@ -953,6 +956,11 @@ public class GosuPanel extends JPanel
 
     searchMenu.addSeparator();
 
+    searchMenu.add( CommonMenus.makePrevOccurrent( () -> getGosuPanel() == null ? null : getGosuPanel().getSearchPanel() ) );
+    searchMenu.add( CommonMenus.makeNextOccurrent( () -> getGosuPanel() == null ? null : getGosuPanel().getSearchPanel() ) );
+
+    searchMenu.addSeparator();
+
     JMenuItem gotoLineItem = new SmartMenuItem(
       new AbstractAction( "Go To Line" )
       {
@@ -966,6 +974,11 @@ public class GosuPanel extends JPanel
     gotoLineItem.setAccelerator( KeyStroke.getKeyStroke( EditorUtilities.CONTROL_KEY_NAME + " G" ) );
     searchMenu.add( gotoLineItem );
 
+  }
+
+  private GosuPanel getGosuPanel()
+  {
+    return RunMe.getEditorFrame().getGosuPanel();
   }
 
   private void makeEditMenu( JMenuBar menuBar )

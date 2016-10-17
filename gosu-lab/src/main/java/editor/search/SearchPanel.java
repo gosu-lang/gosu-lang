@@ -1,10 +1,14 @@
 package editor.search;
 
 import editor.ClearablePanel;
+import editor.GosuPanel;
 import editor.ITreeNode;
 import editor.LabTreeCellRenderer;
 import editor.RunMe;
 import editor.Scheme;
+import editor.util.EditorUtilities;
+import editor.util.LabToolbarButton;
+import editor.util.ToolBar;
 
 import javax.swing.*;
 import javax.swing.border.MatteBorder;
@@ -14,6 +18,7 @@ import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
 import java.awt.*;
+import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
@@ -56,8 +61,233 @@ public class SearchPanel extends ClearablePanel
     scroller.setBorder( new MatteBorder( 0, 1, 1, 1, Scheme.active().getScrollbarBorderColor() ) );
     add( scroller, BorderLayout.CENTER );
 
+    add( makeToolbar(), BorderLayout.WEST );
 
     addReplaceButtonsPanel();
+  }
+
+  private JComponent makeToolbar()
+  {
+    JPanel toolbarPanel = new JPanel( new BorderLayout() );
+    toolbarPanel.setBackground( Scheme.active().getMenu() );
+    toolbarPanel.setBorder( BorderFactory.createEmptyBorder( 1, 2, 1, 2 ) );
+
+    ToolBar toolbar = new ToolBar( JToolBar.VERTICAL );
+
+    LabToolbarButton item;
+    item = new LabToolbarButton( new AbstractAction( "Rerun", EditorUtilities.loadIcon( "images/rerun.png" ) ) {
+      public void actionPerformed( ActionEvent e )
+      {
+
+      }
+    } );
+    toolbar.add( item );
+
+    item = new LabToolbarButton( new AbstractAction( "Close", EditorUtilities.loadIcon( "images/close.png" ) ) {
+      public void actionPerformed( ActionEvent e )
+      {
+        getGosuPanel().showSearches( false );
+      }
+    } );
+    toolbar.add( item );
+
+    item = new LabToolbarButton( new AbstractAction( "Expand All", EditorUtilities.loadIcon( "images/expandall.png" ) ) {
+      public void actionPerformed( ActionEvent e )
+      {
+        expandAll();
+      }
+    } );
+    toolbar.add( item );
+
+    item = new LabToolbarButton( new AbstractAction( "Collapse All", EditorUtilities.loadIcon( "images/collapseall.png" ) ) {
+      public void actionPerformed( ActionEvent e )
+      {
+        getTree().collapseRow( 0 );
+      }
+    } );
+    toolbar.add( item );
+
+    item = new LabToolbarButton( new AbstractAction( "Previous", EditorUtilities.loadIcon( "images/up.png" ) )
+    {
+      public void actionPerformed( ActionEvent e )
+      {
+        gotoPreviousItem();
+      }
+    } );
+    toolbar.add( item );
+
+    item = new LabToolbarButton( new AbstractAction( "Next", EditorUtilities.loadIcon( "images/down.png" ) )
+    {
+      public void actionPerformed( ActionEvent e )
+      {
+        gotoNextItem();
+      }
+    } );
+    toolbar.add( item );
+
+    toolbarPanel.add( toolbar, BorderLayout.CENTER );
+    return toolbarPanel;
+  }
+
+  public void gotoPreviousItem()
+  {
+    TreePath selectionPath = _tree.getSelectionPath();
+    SearchTree tree;
+    if( selectionPath != null )
+    {
+      tree = (SearchTree)selectionPath.getLastPathComponent();
+    }
+    else
+    {
+      tree = (SearchTree)getTree().getModel().getRoot();
+    }
+    ITreeNode data = tree.getNode();
+    if( data != null && data.hasTarget() )
+    {
+      SearchTree parent = tree.getParent();
+      int index = parent.getIndex( tree );
+      if( index != 0 )
+      {
+        tree = parent.getChildAt( index - 1 );
+      }
+      else
+      {
+        tree = findLastLeaf( findPrevAncestorSibling( tree ) );
+      }
+    }
+    else
+    {
+      tree = findLastLeaf( tree );
+    }
+    if( tree != null )
+    {
+      tree.select();
+      tree.getNode().jumpToTarget();
+    }
+  }
+
+  public void gotoNextItem()
+  {
+    TreePath selectionPath = _tree.getSelectionPath();
+    SearchTree tree;
+    if( selectionPath != null )
+    {
+      tree = (SearchTree)selectionPath.getLastPathComponent();
+    }
+    else
+    {
+      tree = (SearchTree)getTree().getModel().getRoot();
+    }
+    ITreeNode data = tree.getNode();
+    if( data != null && data.hasTarget() )
+    {
+      SearchTree parent = tree.getParent();
+      int index = parent.getIndex( tree );
+      if( index < parent.getChildCount() - 1 )
+      {
+        tree = parent.getChildAt( index + 1 );
+      }
+      else
+      {
+        tree = findFirstLeaf( findNextAncestorSibling( tree ) );
+      }
+    }
+    else
+    {
+      tree = findFirstLeaf( tree );
+    }
+    if( tree != null )
+    {
+      tree.select();
+      tree.getNode().jumpToTarget();
+    }
+  }
+
+  private SearchTree findFirstLeaf( SearchTree tree )
+  {
+    if( tree == null )
+    {
+      return null;
+    }
+    ITreeNode data = tree.getNode();
+    if( data != null && data.hasTarget() )
+    {
+      return tree;
+    }
+    if( tree.getChildCount() > 0 )
+    {
+      for( SearchTree child: tree.getChildren() )
+      {
+        SearchTree leaf = findFirstLeaf( child );
+        if( leaf != null )
+        {
+          return leaf;
+        }
+      }
+    }
+    return null;
+  }
+
+  private SearchTree findLastLeaf( SearchTree tree )
+  {
+    if( tree == null )
+    {
+      return null;
+    }
+    ITreeNode data = tree.getNode();
+    if( data != null && data.hasTarget() )
+    {
+      return tree;
+    }
+    if( tree.getChildCount() > 0 )
+    {
+      List<SearchTree> children = tree.getChildren();
+      for( int i = children.size()-1; i >= 0; i-- )
+      {
+        SearchTree child = children.get( i );
+        SearchTree leaf = findLastLeaf( child );
+        if( leaf != null )
+        {
+          return leaf;
+        }
+      }
+    }
+    return null;
+  }
+
+  private SearchTree findNextAncestorSibling( SearchTree tree )
+  {
+    SearchTree parent = tree.getParent();
+    if( parent == null )
+    {
+      return null;
+    }
+    int index = parent.getIndex( tree );
+    if( index < parent.getChildCount() - 1 )
+    {
+      return parent.getChildAt( index + 1 );
+    }
+    return findNextAncestorSibling( parent );
+  }
+
+  private SearchTree findPrevAncestorSibling( SearchTree tree )
+  {
+    SearchTree parent = tree.getParent();
+    if( parent == null )
+    {
+      return null;
+    }
+    int index = parent.getIndex( tree );
+    if( index > 0 )
+    {
+      return parent.getChildAt( index - 1 );
+    }
+    return findPrevAncestorSibling( parent );
+  }
+
+  private GosuPanel getGosuPanel()
+  {
+    return RunMe.getEditorFrame().getGosuPanel();
   }
 
   private void addReplaceButtonsPanel()
@@ -167,7 +397,7 @@ public class SearchPanel extends ClearablePanel
   @Override
   public void dispose()
   {
-    RunMe.getEditorFrame().getGosuPanel().showSearches( false );
+    getGosuPanel().showSearches( false );
   }
 
   public SearchTree getSelectedTree()

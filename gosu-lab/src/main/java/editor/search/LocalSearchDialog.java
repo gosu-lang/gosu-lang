@@ -37,6 +37,11 @@ public class LocalSearchDialog extends AbstractSearchDialog
   private void highlight()
   {
     GosuEditor editor = RunMe.getEditorFrame().getGosuPanel().getCurrentEditor();
+    if( editor.getSelectedText() != null )
+    {
+      editor.getEditor().setCaretPosition( editor.getEditor().getSelectionStart() - 1 );
+    }
+
     editor.removeAllHighlights();
     List<SearchLocation> locations = new TextSearcher( getPattern(), isCaseSensitive(), isWholeWords(), isRegex() ).searchLocal();
     if( locations.size() > 0 )

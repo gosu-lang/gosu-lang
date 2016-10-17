@@ -2,6 +2,7 @@ package editor.search;
 
 import editor.FileTree;
 import editor.FileTreeUtil;
+import editor.GosuEditor;
 import editor.GosuPanel;
 import editor.NodeKind;
 import editor.RunMe;
@@ -13,6 +14,7 @@ import editor.util.ProgressFeedback;
 import gw.lang.reflect.json.IJsonIO;
 
 import javax.swing.*;
+import javax.swing.text.JTextComponent;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -142,8 +144,26 @@ public abstract class AbstractSearchDialog extends AbstractDialog
         }
         _stateHandler.actionPerformed( null );
         _cbSearch.requestFocus();
+
+        setTextFromEditor();
       } );
 
+  }
+
+  private void setTextFromEditor()
+  {
+    GosuEditor editor = RunMe.getEditorFrame().getGosuPanel().getCurrentEditor();
+    if( editor != null )
+    {
+      String selection = editor.getSelectedText();
+      if( selection != null )
+      {
+        _cbSearch.setSelectedItem( selection );
+        JTextComponent textField = (JTextComponent)_cbSearch.getEditor().getEditorComponent();
+        textField.setText( selection );
+        textField.select( 0, selection.length() );
+      }
+    }
   }
 
   private void applyState()
@@ -366,7 +386,7 @@ public abstract class AbstractSearchDialog extends AbstractDialog
     c.gridheight = 1;
     c.weightx = 0;
     c.weighty = 0;
-    c.insets = new Insets( 0, 0, 0, 0 );
+    c.insets = new Insets( 0, 0, 0, 5 );
     JLabel label = new JLabel( "Text to find:" );
     configPanel.add( label, c );
 
@@ -396,7 +416,7 @@ public abstract class AbstractSearchDialog extends AbstractDialog
       c.gridheight = 1;
       c.weightx = 0;
       c.weighty = 0;
-      c.insets = new Insets( 0, 0, 0, 0 );
+      c.insets = new Insets( 0, 0, 0, 5 );
       label = new JLabel( "Replace with:" );
       configPanel.add( label, c );
 
