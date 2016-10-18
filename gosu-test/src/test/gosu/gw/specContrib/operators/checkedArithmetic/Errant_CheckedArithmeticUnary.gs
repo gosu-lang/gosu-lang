@@ -33,7 +33,7 @@ class Errant_CheckedArithmeticUnary {
   var primitives000 = !- false            //## issuekeys: OPERATOR '!-' CANNOT BE APPLIED TO 'BOOLEAN'
   var primitives001 = !- 'c'
   var primitives002 = !- 3b
-  var primitives003 = !- 3s
+  var primitives003 = !- 3 as short
   var primitives004 = !- 3
   var primitives005 = !- 3L
   var primitives006 = !- 3.5f
@@ -48,7 +48,7 @@ class Errant_CheckedArithmeticUnary {
 
   var char1 : Character = 'c'
   var byte1 : Byte = 2b
-  var short1 : Short = 3s
+  var short1 : Short = 3 as short
   var int1 : Integer = 42
   var float1 : Float = 42.5f
   var long1 : Long = 100L

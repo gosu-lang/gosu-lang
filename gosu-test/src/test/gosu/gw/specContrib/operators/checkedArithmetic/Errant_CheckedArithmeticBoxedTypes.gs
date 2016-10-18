@@ -7,7 +7,7 @@ class Errant_CheckedArithmeticBoxedTypes {
 
   var char1 : Character = 'c'
   var byte1 : Byte = 2b
-  var short1 : Short = 3s
+  var short1 : Short = 3 as short
   var int1 : Integer = 42
   var float1 : Float = 42.5f
   var long1 : Long = 100L

@@ -13,7 +13,7 @@ class Errant_CheckedArithmeticOperatorsPrimitives {
   var addition010 = 'c' !+ false                        //## issuekeys: OPERATOR '!+' CANNOT BE APPLIED TO 'CHAR', 'BOOLEAN'
   var addition011 = 'c' !+ 'c'
   var addition012 = 'c' !+ 3b
-  var addition013 = 'c' !+ 3s
+  var addition013 = 'c' !+ (3 as short)
   var addition014 = 'c' !+ 3
   var addition015 = 'c' !+ 3L
   var addition016 = 'c' !+ 3.5f
@@ -31,7 +31,7 @@ class Errant_CheckedArithmeticOperatorsPrimitives {
   var addition110 = 10b !+ false                        //## issuekeys: OPERATOR '!+' CANNOT BE APPLIED TO 'BYTE', 'BOOLEAN'
   var addition111 = 10b !+ 'c'
   var addition112 = 10b !+ 3b
-  var addition113 = 10b !+ 3s
+  var addition113 = 10b !+ (3 as short)
   var addition114 = 10b !+ 3
   var addition115 = 10b !+ 3L
   var addition116 = 10b !+ 3.5f
@@ -44,26 +44,26 @@ class Errant_CheckedArithmeticOperatorsPrimitives {
   var addition123 = 10b !+ BigInteger.ONE
   var addition124 = 10b !+ BigDecimal.ONE
 
-  var addition210 = 10s !+ false                        //## issuekeys: OPERATOR '!+' CANNOT BE APPLIED TO 'SHORT', 'BOOLEAN'
-  var addition211 = 10s !+ 'c'
-  var addition212 = 10s !+ 3b
-  var addition213 = 10s !+ 3s
-  var addition214 = 10s !+ 3
-  var addition215 = 10s !+ 3L
-  var addition216 = 10s !+ 3.5f
-  var addition217 = 10s !+ 3.5
-  var addition219 = 10s !+ "string"      //## issuekeys: OPERATOR '!+' CANNOT BE APPLIED TO 'SHORT', 'JAVA.LANG.STRING'
-  var addition2191 = 10s !+ new Object()                        //## issuekeys: OPERATOR '!+' CANNOT BE APPLIED TO 'SHORT', 'JAVA.LANG.OBJECT'
-  var addition220 = 10s !+ date1                        //## issuekeys: OPERATOR '!+' CANNOT BE APPLIED TO 'SHORT', 'JAVA.UTIL.DATE'
-  var addition221 = 10s !+ null                        //## issuekeys: OPERATOR '!+' CANNOT BE APPLIED TO 'SHORT', 'NULL'
-  var addition222 = 10s !+ {1, 2, 3}                        //## issuekeys: OPERATOR '!+' CANNOT BE APPLIED TO 'SHORT', 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.INTEGER>'
-  var addition223 = 10s !+ BigInteger.ONE
-  var addition224 = 10s !+ BigDecimal.ONE
+  var addition210 = (10 as short) !+ false                        //## issuekeys: OPERATOR '!+' CANNOT BE APPLIED TO 'SHORT', 'BOOLEAN'
+  var addition211 = (10 as short) !+ 'c'
+  var addition212 = (10 as short) !+ 3b
+  var addition213 = (10 as short) !+ (3 as short)
+  var addition214 = (10 as short) !+ 3
+  var addition215 = (10 as short) !+ 3L
+  var addition216 = (10 as short) !+ 3.5f
+  var addition217 = (10 as short) !+ 3.5
+  var addition219 = (10 as short) !+ "string"      //## issuekeys: OPERATOR '!+' CANNOT BE APPLIED TO 'SHORT', 'JAVA.LANG.STRING'
+  var addition2191 = (10 as short) !+ new Object()                        //## issuekeys: OPERATOR '!+' CANNOT BE APPLIED TO 'SHORT', 'JAVA.LANG.OBJECT'
+  var addition220 = (10 as short) !+ date1                        //## issuekeys: OPERATOR '!+' CANNOT BE APPLIED TO 'SHORT', 'JAVA.UTIL.DATE'
+  var addition221 = (10 as short) !+ null                        //## issuekeys: OPERATOR '!+' CANNOT BE APPLIED TO 'SHORT', 'NULL'
+  var addition222 = (10 as short) !+ {1, 2, 3}                        //## issuekeys: OPERATOR '!+' CANNOT BE APPLIED TO 'SHORT', 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.INTEGER>'
+  var addition223 = (10 as short) !+ BigInteger.ONE
+  var addition224 = (10 as short) !+ BigDecimal.ONE
 
   var addition310 = 10 !+ false                        //## issuekeys: OPERATOR '!+' CANNOT BE APPLIED TO 'INT', 'BOOLEAN'
   var addition311 = 10 !+ 'c'
   var addition312 = 10 !+ 3b
-  var addition313 = 10 !+ 3s
+  var addition313 = 10 !+ (3 as short)
   var addition314 = 10 !+ 3
   var addition315 = 10 !+ 3L
   var addition316 = 10 !+ 3.5f
@@ -79,7 +79,7 @@ class Errant_CheckedArithmeticOperatorsPrimitives {
   var addition410 = 10L !+ false                        //## issuekeys: OPERATOR '!+' CANNOT BE APPLIED TO 'LONG', 'BOOLEAN'
   var addition411 = 10L !+ 'c'
   var addition412 = 10L !+ 3b
-  var addition413 = 10L !+ 3s
+  var addition413 = 10L !+ (3 as short)
   var addition414 = 10L !+ 3
   var addition415 = 10L !+ 3L
   var addition416 = 10L !+ 3.5f
@@ -96,7 +96,7 @@ class Errant_CheckedArithmeticOperatorsPrimitives {
   var addition510 = 42.5f !+ false                        //## issuekeys: OPERATOR '!+' CANNOT BE APPLIED TO 'FLOAT', 'BOOLEAN'
   var addition511 = 42.5f !+ 'c'
   var addition512 = 42.5f !+ 3b
-  var addition513 = 42.5f !+ 3s
+  var addition513 = 42.5f !+ (3 as short)
   var addition514 = 42.5f !+ 3
   var addition515 = 42.5f !+ 3L
   var addition516 = 42.5f !+ 3.5f
@@ -112,7 +112,7 @@ class Errant_CheckedArithmeticOperatorsPrimitives {
   var addition610 = 42.55 !+ false                        //## issuekeys: OPERATOR '!+' CANNOT BE APPLIED TO 'DOUBLE', 'BOOLEAN'
   var addition611 = 42.55 !+ 'c'
   var addition612 = 42.55 !+ 3b
-  var addition613 = 42.55 !+ 3s
+  var addition613 = 42.55 !+ (3 as short)
   var addition614 = 42.55 !+ 3
   var addition615 = 42.55 !+ 3L
   var addition616 = 42.55 !+ 3.5f
@@ -128,7 +128,7 @@ class Errant_CheckedArithmeticOperatorsPrimitives {
   var addition710 = true !+ true                        //## issuekeys: OPERATOR '!+' CANNOT BE APPLIED TO 'BOOLEAN', 'BOOLEAN'
   var addition711 = true !+ 'c'                        //## issuekeys: OPERATOR '!+' CANNOT BE APPLIED TO 'BOOLEAN', 'CHAR'
   var addition712 = true !+ 3b                        //## issuekeys: OPERATOR '!+' CANNOT BE APPLIED TO 'BOOLEAN', 'BYTE'
-  var addition713 = true !+ 3s                        //## issuekeys: OPERATOR '!+' CANNOT BE APPLIED TO 'BOOLEAN', 'SHORT'
+  var addition713 = true !+ (3 as short)                        //## issuekeys: OPERATOR '!+' CANNOT BE APPLIED TO 'BOOLEAN', 'SHORT'
   var addition714 = true !+ 3                        //## issuekeys: OPERATOR '!+' CANNOT BE APPLIED TO 'BOOLEAN', 'INT'
   var addition715 = true !+ 3L                        //## issuekeys: OPERATOR '!+' CANNOT BE APPLIED TO 'BOOLEAN', 'LONG'
   var addition717 = true !+ 3.5f                        //## issuekeys: OPERATOR '!+' CANNOT BE APPLIED TO 'BOOLEAN', 'FLOAT'
@@ -144,7 +144,7 @@ class Errant_CheckedArithmeticOperatorsPrimitives {
   var addition810 = "string" !+ true      //## issuekeys: OPERATOR '!+' CANNOT BE APPLIED TO 'JAVA.LANG.STRING', 'BOOLEAN'
   var addition811 = "string" !+ 'c'      //## issuekeys: OPERATOR '!+' CANNOT BE APPLIED TO 'JAVA.LANG.STRING', 'CHAR'
   var addition812 = "string" !+ 3b      //## issuekeys: OPERATOR '!+' CANNOT BE APPLIED TO 'JAVA.LANG.STRING', 'BYTE'
-  var addition813 = "string" !+ 3s      //## issuekeys: OPERATOR '!+' CANNOT BE APPLIED TO 'JAVA.LANG.STRING', 'SHORT'
+  var addition813 = "string" !+ (3 as short)      //## issuekeys: OPERATOR '!+' CANNOT BE APPLIED TO 'JAVA.LANG.STRING', 'SHORT'
   var addition814 = "string" !+ 3      //## issuekeys: OPERATOR '!+' CANNOT BE APPLIED TO 'JAVA.LANG.STRING', 'INT'
   var addition815 = "string" !+ 3L      //## issuekeys: OPERATOR '!+' CANNOT BE APPLIED TO 'JAVA.LANG.STRING', 'LONG'
   var addition817 = "string" !+ 3.5f      //## issuekeys: OPERATOR '!+' CANNOT BE APPLIED TO 'JAVA.LANG.STRING', 'FLOAT'
@@ -161,7 +161,7 @@ class Errant_CheckedArithmeticOperatorsPrimitives {
   var addition911 = BigInteger.ONE !+ 'c'
   var addition9111 = addition911 !+ 42
   var addition912 = BigInteger.ONE !+ 3b
-  var addition913 = BigInteger.ONE !+ 3s
+  var addition913 = BigInteger.ONE !+ (3 as short)
   var addition914 = BigInteger.ONE !+ 3
   var addition915 = BigInteger.ONE !+ 3L
   var addition917 = BigInteger.ONE !+ 3.5f
@@ -178,7 +178,7 @@ class Errant_CheckedArithmeticOperatorsPrimitives {
   var addition1010 = BigDecimal.ONE !+ true                        //## issuekeys: OPERATOR '!+' CANNOT BE APPLIED TO 'JAVA.MATH.BIGDECIMAL', 'BOOLEAN'
   var addition1011 = BigDecimal.ONE !+ 'c'
   var addition1012 = BigDecimal.ONE !+ 3b
-  var addition1013 = BigDecimal.ONE !+ 3s
+  var addition1013 = BigDecimal.ONE !+ (3 as short)
   var addition1014 = BigDecimal.ONE !+ 3
   var addition1015 = BigDecimal.ONE !+ 3L
   var addition1017 = BigDecimal.ONE !+ 3.5f
@@ -194,10 +194,10 @@ class Errant_CheckedArithmeticOperatorsPrimitives {
   var addition1910 = 1b !+ !2                        //## issuekeys: OPERATOR '!' CANNOT BE APPLIED TO 'INT'
   var addition1911 = 42 !+ ~32
   var addition1912 = 42 !+ 3b & 42
-  var addition1913 = 42.5f & 3s !+ 3s /4                        //## issuekeys: OPERATOR '&' CANNOT BE APPLIED TO 'FLOAT', 'INT'
+  var addition1913 = 42.5f & (3 as short) !+ (3 as short) /4  //## issuekeys: OPERATOR '&' CANNOT BE APPLIED TO 'FLOAT', 'INT'
   var addition1914 = 42.5 && true !+ 3                        //## issuekeys: OPERATOR '!+' CANNOT BE APPLIED TO 'BOOLEAN', 'INT'
   var addition1915 = 42 !+ !-3L
-  var addition1917 = !-42s !+ 3.5f
+  var addition1917 = !-(42 as short) !+ 3.5f
   var addition1918 = 42 | 10 !+ 3.5                        //## issuekeys: OPERATOR '|' CANNOT BE APPLIED TO 'INT', 'DOUBLE'
   var addition1919 = 42.5 | 10 !+ 3.5                        //## issuekeys: OPERATOR '|' CANNOT BE APPLIED TO 'DOUBLE', 'DOUBLE'
   var addition1920 = 10 !+ 3.5
@@ -210,7 +210,7 @@ class Errant_CheckedArithmeticOperatorsPrimitives {
   var Subtraction010 = 'c' !- false                        //## issuekeys: OPERATOR '!-' CANNOT BE APPLIED TO 'CHAR', 'BOOLEAN'
   var Subtraction011 = 'c' !- 'c'
   var Subtraction012 = 'c' !- 3b
-  var Subtraction013 = 'c' !- 3s
+  var Subtraction013 = 'c' !- (3 as short)
   var Subtraction014 = 'c' !- 3
   var Subtraction015 = 'c' !- 3L
   var Subtraction016 = 'c' !- 3.5f
@@ -226,7 +226,7 @@ class Errant_CheckedArithmeticOperatorsPrimitives {
   var Subtraction110 = 10b !- false                        //## issuekeys: OPERATOR '!-' CANNOT BE APPLIED TO 'BYTE', 'BOOLEAN'
   var Subtraction111 = 10b !- 'c'
   var Subtraction112 = 10b !- 3b
-  var Subtraction113 = 10b !- 3s
+  var Subtraction113 = 10b !- (3 as short)
   var Subtraction114 = 10b !- 3
   var Subtraction115 = 10b !- 3L
   var Subtraction116 = 10b !- 3.5f
@@ -239,26 +239,26 @@ class Errant_CheckedArithmeticOperatorsPrimitives {
   var Subtraction123 = 10b !- BigInteger.ONE
   var Subtraction124 = 10b !- BigDecimal.ONE
 
-  var Subtraction210 = 10s !- false                        //## issuekeys: OPERATOR '!-' CANNOT BE APPLIED TO 'SHORT', 'BOOLEAN'
-  var Subtraction211 = 10s !- 'c'
-  var Subtraction212 = 10s !- 3b
-  var Subtraction213 = 10s !- 3s
-  var Subtraction214 = 10s !- 3
-  var Subtraction215 = 10s !- 3L
-  var Subtraction216 = 10s !- 3.5f
-  var Subtraction217 = 10s !- 3.5
-  var Subtraction219 = 10s !- "string"                        //## issuekeys: OPERATOR '!-' CANNOT BE APPLIED TO 'SHORT', 'JAVA.LANG.STRING'
-  var Subtraction2191 = 10s !- new Object()                        //## issuekeys: OPERATOR '!-' CANNOT BE APPLIED TO 'SHORT', 'JAVA.LANG.OBJECT'
-  var Subtraction220 = 10s !- date1                        //## issuekeys: OPERATOR '!-' CANNOT BE APPLIED TO 'SHORT', 'JAVA.UTIL.DATE'
-  var Subtraction221 = 10s !- null                        //## issuekeys: OPERATOR '!-' CANNOT BE APPLIED TO 'SHORT', 'NULL'
-  var Subtraction222 = 10s !- {1, 2, 3}                        //## issuekeys: OPERATOR '!-' CANNOT BE APPLIED TO 'SHORT', 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.INTEGER>'
-  var Subtraction223 = 10s !- BigInteger.ONE
-  var Subtraction224 = 10s !- BigDecimal.ONE
+  var Subtraction210 = (10 as short) !- false                        //## issuekeys: OPERATOR '!-' CANNOT BE APPLIED TO 'SHORT', 'BOOLEAN'
+  var Subtraction211 = (10 as short) !- 'c'
+  var Subtraction212 = (10 as short) !- 3b
+  var Subtraction213 = (10 as short) !- (3 as short)
+  var Subtraction214 = (10 as short) !- 3
+  var Subtraction215 = (10 as short) !- 3L
+  var Subtraction216 = (10 as short) !- 3.5f
+  var Subtraction217 = (10 as short) !- 3.5
+  var Subtraction219 = (10 as short) !- "string"                        //## issuekeys: OPERATOR '!-' CANNOT BE APPLIED TO 'SHORT', 'JAVA.LANG.STRING'
+  var Subtraction2191 = (10 as short) !- new Object()                        //## issuekeys: OPERATOR '!-' CANNOT BE APPLIED TO 'SHORT', 'JAVA.LANG.OBJECT'
+  var Subtraction220 = (10 as short) !- date1                        //## issuekeys: OPERATOR '!-' CANNOT BE APPLIED TO 'SHORT', 'JAVA.UTIL.DATE'
+  var Subtraction221 = (10 as short) !- null                        //## issuekeys: OPERATOR '!-' CANNOT BE APPLIED TO 'SHORT', 'NULL'
+  var Subtraction222 = (10 as short) !- {1, 2, 3}                        //## issuekeys: OPERATOR '!-' CANNOT BE APPLIED TO 'SHORT', 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.INTEGER>'
+  var Subtraction223 = (10 as short) !- BigInteger.ONE
+  var Subtraction224 = (10 as short) !- BigDecimal.ONE
 
   var Subtraction310 = 10 !- false                        //## issuekeys: OPERATOR '!-' CANNOT BE APPLIED TO 'INT', 'BOOLEAN'
   var Subtraction311 = 10 !- 'c'
   var Subtraction312 = 10 !- 3b
-  var Subtraction313 = 10 !- 3s
+  var Subtraction313 = 10 !- (3 as short)
   var Subtraction314 = 10 !- 3
   var Subtraction315 = 10 !- 3L
   var Subtraction316 = 10 !- 3.5f
@@ -274,7 +274,7 @@ class Errant_CheckedArithmeticOperatorsPrimitives {
   var Subtraction410 = 10L !- false                        //## issuekeys: OPERATOR '!-' CANNOT BE APPLIED TO 'LONG', 'BOOLEAN'
   var Subtraction411 = 10L !- 'c'
   var Subtraction412 = 10L !- 3b
-  var Subtraction413 = 10L !- 3s
+  var Subtraction413 = 10L !- (3 as short)
   var Subtraction414 = 10L !- 3
   var Subtraction415 = 10L !- 3L
   var Subtraction416 = 10L !- 3.5f
@@ -290,7 +290,7 @@ class Errant_CheckedArithmeticOperatorsPrimitives {
   var Subtraction510 = 42.5f !- false                        //## issuekeys: OPERATOR '!-' CANNOT BE APPLIED TO 'FLOAT', 'BOOLEAN'
   var Subtraction511 = 42.5f !- 'c'
   var Subtraction512 = 42.5f !- 3b
-  var Subtraction513 = 42.5f !- 3s
+  var Subtraction513 = 42.5f !- (3 as short)
   var Subtraction514 = 42.5f !- 3
   var Subtraction515 = 42.5f !- 3L
   var Subtraction516 = 42.5f !- 3.5f
@@ -306,7 +306,7 @@ class Errant_CheckedArithmeticOperatorsPrimitives {
   var Subtraction610 = 42.55 !- false                        //## issuekeys: OPERATOR '!-' CANNOT BE APPLIED TO 'DOUBLE', 'BOOLEAN'
   var Subtraction611 = 42.55 !- 'c'
   var Subtraction612 = 42.55 !- 3b
-  var Subtraction613 = 42.55 !- 3s
+  var Subtraction613 = 42.55 !- (3 as short)
   var Subtraction614 = 42.55 !- 3
   var Subtraction615 = 42.55 !- 3L
   var Subtraction616 = 42.55 !- 3.5f
@@ -322,7 +322,7 @@ class Errant_CheckedArithmeticOperatorsPrimitives {
   var Subtraction710 = true !- true                        //## issuekeys: OPERATOR '!-' CANNOT BE APPLIED TO 'BOOLEAN', 'BOOLEAN'
   var Subtraction711 = true !- 'c'                        //## issuekeys: OPERATOR '!-' CANNOT BE APPLIED TO 'BOOLEAN', 'CHAR'
   var Subtraction712 = true !- 3b                        //## issuekeys: OPERATOR '!-' CANNOT BE APPLIED TO 'BOOLEAN', 'BYTE'
-  var Subtraction713 = true !- 3s                        //## issuekeys: OPERATOR '!-' CANNOT BE APPLIED TO 'BOOLEAN', 'SHORT'
+  var Subtraction713 = true !- (3 as short)                        //## issuekeys: OPERATOR '!-' CANNOT BE APPLIED TO 'BOOLEAN', 'SHORT'
   var Subtraction714 = true !- 3                        //## issuekeys: OPERATOR '!-' CANNOT BE APPLIED TO 'BOOLEAN', 'INT'
   var Subtraction715 = true !- 3L                        //## issuekeys: OPERATOR '!-' CANNOT BE APPLIED TO 'BOOLEAN', 'LONG'
   var Subtraction717 = true !- 3.5f                        //## issuekeys: OPERATOR '!-' CANNOT BE APPLIED TO 'BOOLEAN', 'FLOAT'
@@ -338,7 +338,7 @@ class Errant_CheckedArithmeticOperatorsPrimitives {
   var Subtraction810 = "string" !- true                        //## issuekeys: OPERATOR '!-' CANNOT BE APPLIED TO 'JAVA.LANG.STRING', 'BOOLEAN'
   var Subtraction811 = "string" !- 'c'                        //## issuekeys: OPERATOR '!-' CANNOT BE APPLIED TO 'JAVA.LANG.STRING', 'CHAR'
   var Subtraction812 = "string" !- 3b                        //## issuekeys: OPERATOR '!-' CANNOT BE APPLIED TO 'JAVA.LANG.STRING', 'BYTE'
-  var Subtraction813 = "string" !- 3s                        //## issuekeys: OPERATOR '!-' CANNOT BE APPLIED TO 'JAVA.LANG.STRING', 'SHORT'
+  var Subtraction813 = "string" !- (3 as short)                        //## issuekeys: OPERATOR '!-' CANNOT BE APPLIED TO 'JAVA.LANG.STRING', 'SHORT'
   var Subtraction814 = "string" !- 3                        //## issuekeys: OPERATOR '!-' CANNOT BE APPLIED TO 'JAVA.LANG.STRING', 'INT'
   var Subtraction815 = "string" !- 3L                        //## issuekeys: OPERATOR '!-' CANNOT BE APPLIED TO 'JAVA.LANG.STRING', 'LONG'
   var Subtraction817 = "string" !- 3.5f                        //## issuekeys: OPERATOR '!-' CANNOT BE APPLIED TO 'JAVA.LANG.STRING', 'FLOAT'
@@ -354,7 +354,7 @@ class Errant_CheckedArithmeticOperatorsPrimitives {
   var Subtraction910 = BigInteger.ONE !- true                        //## issuekeys: OPERATOR '!-' CANNOT BE APPLIED TO 'JAVA.MATH.BIGINTEGER', 'BOOLEAN'
   var Subtraction911 = BigInteger.ONE !- 'c'
   var Subtraction912 = BigInteger.ONE !- 3b
-  var Subtraction913 = BigInteger.ONE !- 3s
+  var Subtraction913 = BigInteger.ONE !- (3 as short)
   var Subtraction914 = BigInteger.ONE !- 3
   var Subtraction915 = BigInteger.ONE !- 3L
   var Subtraction917 = BigInteger.ONE !- 3.5f
@@ -371,7 +371,7 @@ class Errant_CheckedArithmeticOperatorsPrimitives {
   var Subtraction1010 = BigDecimal.ONE !- true                        //## issuekeys: OPERATOR '!-' CANNOT BE APPLIED TO 'JAVA.MATH.BIGDECIMAL', 'BOOLEAN'
   var Subtraction1011 = BigDecimal.ONE !- 'c'
   var Subtraction1012 = BigDecimal.ONE !- 3b
-  var Subtraction1013 = BigDecimal.ONE !- 3s
+  var Subtraction1013 = BigDecimal.ONE !- (3 as short)
   var Subtraction1014 = BigDecimal.ONE !- 3
   var Subtraction1015 = BigDecimal.ONE !- 3L
   var Subtraction1017 = BigDecimal.ONE !- 3.5f
@@ -388,10 +388,10 @@ class Errant_CheckedArithmeticOperatorsPrimitives {
   var Subtraction1910 = 1b !- !2                        //## issuekeys: OPERATOR '!' CANNOT BE APPLIED TO 'INT'
   var Subtraction1911 = 42 !- ~32
   var Subtraction1912 = 42 !- 3b !- 42
-  var Subtraction1913 = 42.5f !- 3s !- 3s
+  var Subtraction1913 = 42.5f !- (3 as short) !- (3 as short)
   var Subtraction1914 = 42.5 !- true !- 3                        //## issuekeys: OPERATOR '!-' CANNOT BE APPLIED TO 'DOUBLE', 'BOOLEAN'
   var Subtraction1915 = 42 !- !-3L
-  var Subtraction1916 = !-42s !- 3.5f
+  var Subtraction1916 = !-(42 as short) !- 3.5f
   var Subtraction1917 = 42 | 10 !- 3.5                        //## issuekeys: OPERATOR '|' CANNOT BE APPLIED TO 'INT', 'DOUBLE'
   var Subtraction1918 = 42.5 | 10 !- 6                        //## issuekeys: OPERATOR '|' CANNOT BE APPLIED TO 'DOUBLE', 'INT'
 /////////////////////Subtraction ENDS////////////////////
@@ -401,7 +401,7 @@ class Errant_CheckedArithmeticOperatorsPrimitives {
   var multiplication010 = 'c' !* false                        //## issuekeys: OPERATOR '!*' CANNOT BE APPLIED TO 'CHAR', 'BOOLEAN'
   var multiplication011 = 'c' !* 'c'
   var multiplication012 = 'c' !* 3b
-  var multiplication013 = 'c' !* 3s
+  var multiplication013 = 'c' !* (3 as short)
   var multiplication014 = 'c' !* 3
   var multiplication015 = 'c' !* 3L
   var multiplication016 = 'c' !* 3.5f
@@ -418,7 +418,7 @@ class Errant_CheckedArithmeticOperatorsPrimitives {
   var multiplication110 = 10b !* false                        //## issuekeys: OPERATOR '!*' CANNOT BE APPLIED TO 'BYTE', 'BOOLEAN'
   var multiplication111 = 10b !* 'c'
   var multiplication112 = 10b !* 3b
-  var multiplication113 = 10b !* 3s
+  var multiplication113 = 10b !* (3 as short)
   var multiplication114 = 10b !* 3
   var multiplication115 = 10b !* 3L
   var multiplication116 = 10b !* 3.5f
@@ -431,26 +431,26 @@ class Errant_CheckedArithmeticOperatorsPrimitives {
   var multiplication123 = 10b !* BigInteger.ONE
   var multiplication124 = 10b !* BigDecimal.ONE
 
-  var multiplication210 = 10s !* false                        //## issuekeys: OPERATOR '!*' CANNOT BE APPLIED TO 'SHORT', 'BOOLEAN'
-  var multiplication211 = 10s !* 'c'
-  var multiplication212 = 10s !* 3b
-  var multiplication213 = 10s !* 3s
-  var multiplication214 = 10s !* 3
-  var multiplication215 = 10s !* 3L
-  var multiplication216 = 10s !* 3.5f
-  var multiplication217 = 10s !* 3.5
-  var multiplication219 = 10s !* "string"                        //## issuekeys: OPERATOR '!*' CANNOT BE APPLIED TO 'SHORT', 'JAVA.LANG.STRING'
-  var multiplication2191 = 10s !* new Object()                        //## issuekeys: OPERATOR '!*' CANNOT BE APPLIED TO 'SHORT', 'JAVA.LANG.OBJECT'
-  var multiplication220 = 10s !* date1                        //## issuekeys: OPERATOR '!*' CANNOT BE APPLIED TO 'SHORT', 'JAVA.UTIL.DATE'
-  var multiplication221 = 10s !* null                        //## issuekeys: OPERATOR '!*' CANNOT BE APPLIED TO 'SHORT', 'NULL'
-  var multiplication222 = 10s !* BigInteger.ONE
-  var multiplication223 = 10s !* {1, 2, 3}                        //## issuekeys: OPERATOR '!*' CANNOT BE APPLIED TO 'SHORT', 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.INTEGER>'
-  var multiplication224 = 10s !* BigDecimal.ONE
+  var multiplication210 = (10 as short) !* false                        //## issuekeys: OPERATOR '!*' CANNOT BE APPLIED TO 'SHORT', 'BOOLEAN'
+  var multiplication211 = (10 as short) !* 'c'
+  var multiplication212 = (10 as short) !* 3b
+  var multiplication213 = (10 as short) !* (3 as short)
+  var multiplication214 = (10 as short) !* 3
+  var multiplication215 = (10 as short) !* 3L
+  var multiplication216 = (10 as short) !* 3.5f
+  var multiplication217 = (10 as short) !* 3.5
+  var multiplication219 = (10 as short) !* "string"                        //## issuekeys: OPERATOR '!*' CANNOT BE APPLIED TO 'SHORT', 'JAVA.LANG.STRING'
+  var multiplication2191 = (10 as short) !* new Object()                        //## issuekeys: OPERATOR '!*' CANNOT BE APPLIED TO 'SHORT', 'JAVA.LANG.OBJECT'
+  var multiplication220 = (10 as short) !* date1                        //## issuekeys: OPERATOR '!*' CANNOT BE APPLIED TO 'SHORT', 'JAVA.UTIL.DATE'
+  var multiplication221 = (10 as short) !* null                        //## issuekeys: OPERATOR '!*' CANNOT BE APPLIED TO 'SHORT', 'NULL'
+  var multiplication222 = (10 as short) !* BigInteger.ONE
+  var multiplication223 = (10 as short) !* {1, 2, 3}                        //## issuekeys: OPERATOR '!*' CANNOT BE APPLIED TO 'SHORT', 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.INTEGER>'
+  var multiplication224 = (10 as short) !* BigDecimal.ONE
 
   var multiplication310 = 10 !* false                        //## issuekeys: OPERATOR '!*' CANNOT BE APPLIED TO 'INT', 'BOOLEAN'
   var multiplication311 = 10 !* 'c'
   var multiplication312 = 10 !* 3b
-  var multiplication313 = 10 !* 3s
+  var multiplication313 = 10 !* (3 as short)
   var multiplication314 = 10 !* 3
   var multiplication315 = 10 !* 3L
   var multiplication316 = 10 !* 3.5f
@@ -466,7 +466,7 @@ class Errant_CheckedArithmeticOperatorsPrimitives {
   var multiplication410 = 10L !* false                        //## issuekeys: OPERATOR '!*' CANNOT BE APPLIED TO 'LONG', 'BOOLEAN'
   var multiplication411 = 10L !* 'c'
   var multiplication412 = 10L !* 3b
-  var multiplication413 = 10L !* 3s
+  var multiplication413 = 10L !* (3 as short)
   var multiplication414 = 10L !* 3
   var multiplication415 = 10L !* 3L
   var multiplication416 = 10L !* 3.5f
@@ -483,7 +483,7 @@ class Errant_CheckedArithmeticOperatorsPrimitives {
   var multiplication510 = 42.5f !* false                        //## issuekeys: OPERATOR '!*' CANNOT BE APPLIED TO 'FLOAT', 'BOOLEAN'
   var multiplication511 = 42.5f !* 'c'
   var multiplication512 = 42.5f !* 3b
-  var multiplication513 = 42.5f !* 3s
+  var multiplication513 = 42.5f !* (3 as short)
   var multiplication514 = 42.5f !* 3
   var multiplication515 = 42.5f !* 3L
   var multiplication516 = 42.5f !* 3.5f
@@ -499,7 +499,7 @@ class Errant_CheckedArithmeticOperatorsPrimitives {
   var multiplication610 = 42.55 !* false                        //## issuekeys: OPERATOR '!*' CANNOT BE APPLIED TO 'DOUBLE', 'BOOLEAN'
   var multiplication611 = 42.55 !* 'c'
   var multiplication612 = 42.55 !* 3b
-  var multiplication613 = 42.55 !* 3s
+  var multiplication613 = 42.55 !* (3 as short)
   var multiplication614 = 42.55 !* 3
   var multiplication615 = 42.55 !* 3L
   var multiplication616 = 42.55 !* 3.5f
@@ -515,7 +515,7 @@ class Errant_CheckedArithmeticOperatorsPrimitives {
   var multiplication710 = true !* true                        //## issuekeys: OPERATOR '!*' CANNOT BE APPLIED TO 'BOOLEAN', 'BOOLEAN'
   var multiplication711 = true !* 'c'                        //## issuekeys: OPERATOR '!*' CANNOT BE APPLIED TO 'BOOLEAN', 'CHAR'
   var multiplication712 = true !* 3b                        //## issuekeys: OPERATOR '!*' CANNOT BE APPLIED TO 'BOOLEAN', 'BYTE'
-  var multiplication713 = true !* 3s                        //## issuekeys: OPERATOR '!*' CANNOT BE APPLIED TO 'BOOLEAN', 'SHORT'
+  var multiplication713 = true !* (3 as short)               //## issuekeys: OPERATOR '!*' CANNOT BE APPLIED TO 'BOOLEAN', 'SHORT'
   var multiplication714 = true !* 3                        //## issuekeys: OPERATOR '!*' CANNOT BE APPLIED TO 'BOOLEAN', 'INT'
   var multiplication715 = true !* 3L                        //## issuekeys: OPERATOR '!*' CANNOT BE APPLIED TO 'BOOLEAN', 'LONG'
   var multiplication717 = true !* 3.5f                        //## issuekeys: OPERATOR '!*' CANNOT BE APPLIED TO 'BOOLEAN', 'FLOAT'
@@ -531,7 +531,7 @@ class Errant_CheckedArithmeticOperatorsPrimitives {
   var multiplication810 = "string" !* true                        //## issuekeys: OPERATOR '!*' CANNOT BE APPLIED TO 'JAVA.LANG.STRING', 'BOOLEAN'
   var multiplication811 = "string" !* 'c'                        //## issuekeys: OPERATOR '!*' CANNOT BE APPLIED TO 'JAVA.LANG.STRING', 'CHAR'
   var multiplication812 = "string" !* 3b                        //## issuekeys: OPERATOR '!*' CANNOT BE APPLIED TO 'JAVA.LANG.STRING', 'BYTE'
-  var multiplication813 = "string" !* 3s                        //## issuekeys: OPERATOR '!*' CANNOT BE APPLIED TO 'JAVA.LANG.STRING', 'SHORT'
+  var multiplication813 = "string" !* (3 as short)               //## issuekeys: OPERATOR '!*' CANNOT BE APPLIED TO 'JAVA.LANG.STRING', 'SHORT'
   var multiplication814 = "string" !* 3                        //## issuekeys: OPERATOR '!*' CANNOT BE APPLIED TO 'JAVA.LANG.STRING', 'INT'
   var multiplication815 = "string" !* 3L                        //## issuekeys: OPERATOR '!*' CANNOT BE APPLIED TO 'JAVA.LANG.STRING', 'LONG'
   var multiplication817 = "string" !* 3.5f                        //## issuekeys: OPERATOR '!*' CANNOT BE APPLIED TO 'JAVA.LANG.STRING', 'FLOAT'
@@ -548,7 +548,7 @@ class Errant_CheckedArithmeticOperatorsPrimitives {
   var multiplication910 = BigInteger.ONE !* true                        //## issuekeys: OPERATOR '!*' CANNOT BE APPLIED TO 'JAVA.MATH.BIGINTEGER', 'BOOLEAN'
   var multiplication911 = BigInteger.ONE !* 'c'
   var multiplication912 = BigInteger.ONE !* 3b
-  var multiplication913 = BigInteger.ONE !* 3s
+  var multiplication913 = BigInteger.ONE !* (3 as short)
   var multiplication914 = BigInteger.ONE !* 3
   var multiplication915 = BigInteger.ONE !* 3L
   var multiplication917 = BigInteger.ONE !* 3.5f
@@ -565,7 +565,7 @@ class Errant_CheckedArithmeticOperatorsPrimitives {
   var multiplication1010 = BigDecimal.ONE !* true                        //## issuekeys: OPERATOR '!*' CANNOT BE APPLIED TO 'JAVA.MATH.BIGDECIMAL', 'BOOLEAN'
   var multiplication1011 = BigDecimal.ONE !* 'c'
   var multiplication1012 = BigDecimal.ONE !* 3b
-  var multiplication1013 = BigDecimal.ONE !* 3s
+  var multiplication1013 = BigDecimal.ONE !* (3 as short)
   var multiplication1014 = BigDecimal.ONE !* 3
   var multiplication1015 = BigDecimal.ONE !* 3L
   var multiplication1017 = BigDecimal.ONE !* 3.5f
@@ -582,11 +582,11 @@ class Errant_CheckedArithmeticOperatorsPrimitives {
   var multiplication1910 = 1b !* !2                        //## issuekeys: OPERATOR '!' CANNOT BE APPLIED TO 'INT'
   var multiplication1911 = 42 !* ~32
   var multiplication1912 = 42 !* 3b !* 42
-  var multiplication1913 = 42.5f !* 3s !* 3s
+  var multiplication1913 = 42.5f !* (3 as short) !* (3 as short)
   var multiplication1914 = 42.5 !* true !* 3                        //## issuekeys: OPERATOR '!*' CANNOT BE APPLIED TO 'DOUBLE', 'BOOLEAN'
   var multiplication1915 = 42.5 !* !-3 !* ~3
   var multiplication1916 = 42 !* !-3L
-  var multiplication1917 = !-42s !* 3.5f
+  var multiplication1917 = !-(42 as short) !* 3.5f
   var multiplication1918 = 42 !* 10 !* 3.5
   var multiplication1919 = 42.5 !* 10 !* 6
 /////////////////////MULTIPLICATION ENDS////////////////////
