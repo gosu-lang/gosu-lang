@@ -2,9 +2,11 @@ package editor;
 
 import editor.debugger.BreakpointManager;
 import editor.debugger.Debugger;
+import editor.run.IRunConfig;
+import editor.util.EditorUtilities;
+import editor.util.LabToolbarButton;
 import editor.util.SettleModalEventQueue;
 import editor.util.ToolBar;
-import editor.util.XPToolbarButton;
 import gw.fs.IFile;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.TypeSystem;
@@ -20,7 +22,6 @@ import javax.swing.text.SimpleAttributeSet;
 import javax.swing.text.StyleConstants;
 import javax.swing.text.html.HTML;
 import java.awt.*;
-import java.awt.event.InputEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
@@ -28,10 +29,9 @@ import java.io.PrintStream;
 
 /**
  */
-public class SystemPanel extends JPanel
+public class SystemPanel extends ClearablePanel
 {
   private JTextPane _outputPanel;
-  private ToolBar _toolbar;
   private EditorScrollPane _scroller;
   private PrintStream _out;
   private PrintStream _err;
@@ -69,7 +69,7 @@ public class SystemPanel extends JPanel
     editorRootScroller.setBorder( null );
 
     _scroller = new EditorScrollPane( null, _outputPanel, editorRootScroller );
-    _scroller.setBorder( null );
+    _scroller.setBorder( BorderFactory.createMatteBorder( 0, 1, 0, 1, Scheme.active().getScrollbarBorderColor() ) );
     JViewport vp = _scroller.getViewport();
     vp.setScrollMode( JViewport.BLIT_SCROLL_MODE );
 
@@ -80,9 +80,7 @@ public class SystemPanel extends JPanel
     label.setBorder( new EmptyBorder( 0, 4 + GosuEditor.MIN_LINENUMBER_WIDTH, 0, 0 ) );
     add( label, BorderLayout.NORTH );
 
-    _toolbar = createToolbar();
-    add( _toolbar, BorderLayout.WEST );
-
+    add( makeRunToolbar(), BorderLayout.WEST );
 
     MouseHandler ml = new MouseHandler();
     _outputPanel.addMouseMotionListener( ml );
@@ -90,36 +88,45 @@ public class SystemPanel extends JPanel
     _outputPanel.addMouseWheelListener( ml );
   }
 
-  private ToolBar createToolbar()
+  private JComponent makeRunToolbar()
   {
-    ToolBar toolbar = new ToolBar( JToolBar.VERTICAL );
-    XPToolbarButton item;
+    JPanel toolbarPanel = new JPanel( new BorderLayout() );
+    toolbarPanel.setBackground( Scheme.active().getMenu() );
+    toolbarPanel.setBorder( BorderFactory.createEmptyBorder( 1, 2, 1, 2 ) );
 
-    item = new XPToolbarButton( new CommonMenus.ClearAndRunActionHandler( "", this::getCurrentEditorType ) );
+    ToolBar toolbar = new ToolBar( JToolBar.VERTICAL );
+
+    LabToolbarButton item;
+    item = new LabToolbarButton( new CommonMenus.ClearAndRunActionHandler( () -> getGosuPanel().getRunConfig() ) );
+    item.setToolTipSupplier( () -> {
+      IRunConfig rc = getGosuPanel().getRunConfig();
+      return rc == null ? "Run..." : "Run '" + rc.getName() + "'";
+    } );
     toolbar.add( item );
-    item = new XPToolbarButton( new CommonMenus.ClearAndDebugActionHandler( "", this::getCurrentEditorType ) );
+
+    item = new LabToolbarButton( new CommonMenus.ClearAndDebugActionHandler( () -> getGosuPanel().getRunConfig() ) );
+    item.setToolTipSupplier( () -> {
+      IRunConfig rc = getGosuPanel().getRunConfig();
+      return rc == null ? "Debug..." : "Debug '" + rc.getName() + "'";
+    } );
     toolbar.add( item );
-    item = new XPToolbarButton( new CommonMenus.StopActionHandler( "", this::getGosuPanel ) );
+
+    item = new LabToolbarButton( new CommonMenus.StopActionHandler( this::getGosuPanel ) );
     toolbar.add( item );
-    item = new XPToolbarButton( new CommonMenus.PauseActionHandler( "", this::getDebugger ) );
+    item = new LabToolbarButton( new CommonMenus.PauseActionHandler( this::getDebugger ) );
     toolbar.add( item );
-    item = new XPToolbarButton( new CommonMenus.ResumeActionHandler( "", this::getDebugger ) );
+    item = new LabToolbarButton( new CommonMenus.ResumeActionHandler( this::getDebugger ) );
     toolbar.add( item );
 
     toolbar.addSeparator();
 
-    item = new XPToolbarButton( new CommonMenus.ViewBreakpointsActionHandler( "", () -> null ) );
+    item = new LabToolbarButton( new CommonMenus.ViewBreakpointsActionHandler( () -> null ) );
     toolbar.add( item );
-    ToggleToolBarButton titem = new ToggleToolBarButton( new CommonMenus.MuteBreakpointsActionHandler( "", this::getBreakpointManager ) );
+    ToggleToolBarButton titem = new ToggleToolBarButton( new CommonMenus.MuteBreakpointsActionHandler( this::getBreakpointManager ) );
     toolbar.add( titem );
 
-    return toolbar;
-  }
-
-  private IType getCurrentEditorType()
-  {
-    GosuPanel gosuPanel = getGosuPanel();
-    return gosuPanel == null ? null : gosuPanel.getCurrentEditorType();
+    toolbarPanel.add( toolbar, BorderLayout.CENTER );
+    return toolbarPanel;
   }
 
   public JTextPane getOutputPanel()
@@ -159,13 +166,20 @@ public class SystemPanel extends JPanel
     _outputPanel.setText( strOut );
   }
 
-  /**
-   *
-   */
+  @Override
   public void clear()
   {
     _outputPanel.setText( "" );
     scrollRectToVisible( new Rectangle( 0, 0, 0, 0 ) );
+  }
+
+  @Override
+  public void dispose()
+  {
+    GosuPanel gosuPanel = RunMe.getEditorFrame().getGosuPanel();
+
+    gosuPanel.killProcess();
+    gosuPanel.showConsole( false );
   }
 
   private class MouseHandler extends MouseAdapter
@@ -224,7 +238,7 @@ public class SystemPanel extends JPanel
           IFile sourceFile = ((IGosuClass)type).getSourceFileHandle().getFile();
           if( sourceFile != null && sourceFile.isJavaFile() )
           {
-            getGosuPanel().openFile( sourceFile.toJavaFile() );
+            getGosuPanel().openFile( sourceFile.toJavaFile(), true );
             SettleModalEventQueue.instance().run();
           }
           GosuEditorPane editor = getGosuPanel().getCurrentEditor().getEditor();
@@ -245,7 +259,7 @@ public class SystemPanel extends JPanel
         return;
       }
 
-      if( (e.getModifiers() & InputEvent.CTRL_MASK) == 0 )
+      if( (e.getModifiers() & EditorUtilities.CONTROL_KEY_MASK) == 0 )
       {
         forward( e );
         return;

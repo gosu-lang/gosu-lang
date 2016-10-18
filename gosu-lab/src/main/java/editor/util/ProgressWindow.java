@@ -1,6 +1,6 @@
 package editor.util;
 
-import editor.search.StudioUtilities;
+import editor.Scheme;
 
 import javax.swing.*;
 import java.awt.*;
@@ -17,7 +17,7 @@ public class ProgressWindow extends JWindow
 
   private static Frame getFrameWindow()
   {
-    Window activeWindow = StudioUtilities.getActiveWindow();
+    Window activeWindow = EditorUtilities.getActiveWindow();
     if( activeWindow == null )
     {
       return getActiveFrameFromApp();
@@ -47,7 +47,7 @@ public class ProgressWindow extends JWindow
   {
     ContainerMoverSizer contentPane = new ContainerMoverSizer( null );
     contentPane.setLayout( new BorderLayout() );
-    contentPane.setBackground( SystemColor.window );
+    contentPane.setBackground( Scheme.active().getWindow() );
     setContentPane( contentPane );
     add( panel, BorderLayout.CENTER );
   }
@@ -62,10 +62,10 @@ public class ProgressWindow extends JWindow
     }
     */
 
-    StudioUtilities.centerWindowInFrame( this, getOwner() );
+    EditorUtilities.centerWindowInFrame( this, getOwner() );
     super.show();
 
-    _window = StudioUtilities.getActiveWindow();
+    _window = EditorUtilities.getActiveWindow();
     if( _window != null )
     {
       _window.setEnabled( false );

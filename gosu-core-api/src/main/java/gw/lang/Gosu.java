@@ -477,7 +477,11 @@ public class Gosu
     IType type = TypeSystem.getByFullName( fqn );
     if( type instanceof IGosuProgram )
     {
-      ((IGosuProgram)type).getProgramInstance().evaluate( null );
+      Object result = ((IGosuProgram)type).getProgramInstance().evaluate( null );
+      if( result != null )
+      {
+        System.out.println( result );
+      }
     }
     else
     {

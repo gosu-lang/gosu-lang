@@ -1,7 +1,7 @@
 package editor.tabpane;
 
 import editor.IContextMenuHandler;
-import editor.search.StudioUtilities;
+import editor.Scheme;
 import editor.util.EditorUtilities;
 import editor.util.IDisposable;
 import editor.util.ILabel;
@@ -64,7 +64,7 @@ public class TabContainer extends JPanel
 
   public void addTab( ITab tab )
   {
-    insertTab( tab, -1, true);
+    insertTab( tab, -1, true );
   }
 
   public void addTabWithoutSelecting( ITab tab )
@@ -72,7 +72,7 @@ public class TabContainer extends JPanel
     insertTabWithoutSelecting( tab, -1 );
   }
 
-  public void insertTab(ITab tab, int iIndex, boolean focus)
+  public ITab insertTab( ITab tab, int iIndex, boolean focus )
   {
     resetComponentOrderToTabOrder();
     iIndex = iIndex < 0 ? _orderedTabs.size() : iIndex;
@@ -81,10 +81,11 @@ public class TabContainer extends JPanel
     comp.putClientProperty( TAB_PROPERTY, tab );
     add( comp, iIndex );
     tab.getComponent().addMouseListener( new MouseOnTabHandler() );
-    selectTab( tab, focus);
+    selectTab( tab, focus );
+    return tab;
   }
 
-  public void insertTabWithoutSelecting( ITab tab, int iIndex )
+  public ITab insertTabWithoutSelecting( ITab tab, int iIndex )
   {
     ITab selected = getSelectedTab();
     insertTab( tab, iIndex, false );
@@ -92,6 +93,7 @@ public class TabContainer extends JPanel
     {
       selectTab( selected, false );
     }
+    return tab;
   }
 
   public void removeTab( ITab tab )
@@ -101,19 +103,21 @@ public class TabContainer extends JPanel
     dispose( tab );
     revalidate();
     repaint();
-    fireSelectionChanged(tab);
+    fireSelectionChanged( tab );
   }
 
   private void dispose( ITab tab )
   {
     ILabel label = tab.getLabel();
-    if( label instanceof IDisposable ) {
+    if( label instanceof IDisposable )
+    {
       ((IDisposable)label).dispose();
     }
 
     JComponent contentPane = tab.getContentPane();
-    if(contentPane instanceof IDisposable && contentPane != label) {
-      ((IDisposable) contentPane).dispose();
+    if( contentPane instanceof IDisposable && contentPane != label )
+    {
+      ((IDisposable)contentPane).dispose();
     }
 
     tab.dispose();
@@ -179,12 +183,12 @@ public class TabContainer extends JPanel
     return _orderedTabs.indexOf( getSelectedTab() );
   }
 
-  public void selectTab(JComponent contentPane, boolean focus)
+  public void selectTab( JComponent contentPane, boolean focus )
   {
     ITab tab = findTabWithContent( contentPane );
     if( tab != null )
     {
-      selectTab( tab, focus);
+      selectTab( tab, focus );
     }
   }
 
@@ -195,11 +199,16 @@ public class TabContainer extends JPanel
       throw new IllegalArgumentException( iTabIndex + " > " + _orderedTabs.size() );
     }
     ITab tab = _orderedTabs.get( iTabIndex );
-    selectTab( tab, true);
+    selectTab( tab, true );
   }
 
   public void selectTab( ITab tab, boolean bFocus )
   {
+    if( getSelectedTab() == tab && EditorUtilities.isInFocusLineage( tab.getContentPane() ) )
+    {
+      return;
+    }
+
     if( isShowing() &&
         (!tab.getComponent().isShowing() || (getTabPane() != null && getTabPane().isDynamic() && !isInView( tab ))) )
     {
@@ -209,10 +218,9 @@ public class TabContainer extends JPanel
     resetComponentOrderToTabOrder();
     JComponent tabComponent = tab.getComponent();
     add( tabComponent, 0 );
-    requestFocus();
     revalidate();
     repaint();
-    fireSelectionChanged(tab);
+    fireSelectionChanged( tab );
     if( bFocus )
     {
       setFocusToSelectedTab();
@@ -228,7 +236,7 @@ public class TabContainer extends JPanel
   {
     ITab selectedTab = getSelectedTab();
     JComponent selectedTabComponent = selectedTab == null ? null : selectedTab.getComponent();
-    if( selectedTabComponent != null && !StudioUtilities.containsFocus( selectedTabComponent ) )
+    if( selectedTabComponent != null && !EditorUtilities.containsFocus( selectedTabComponent ) )
     {
       selectedTabComponent.transferFocus();
     }
@@ -262,7 +270,7 @@ public class TabContainer extends JPanel
         throw new IllegalArgumentException( "Not an ITab" );
       }
     }
-    
+
     super.addImpl( comp, constraints, iIndex );
   }
 
@@ -275,7 +283,7 @@ public class TabContainer extends JPanel
       return;
     }
 
-    g.setColor( EditorUtilities.CONTROL_SHADOW );
+    g.setColor( Scheme.active().getScrollbarBorderColor() );
     if( getTabPosition() == TabPosition.TOP )
     {
       g.drawLine( 0, getHeight() - 1, getWidth() - 1, getHeight() - 1 );
@@ -304,7 +312,7 @@ public class TabContainer extends JPanel
     _selectionListeners.remove( ChangeListener.class, l );
   }
 
-  private void fireSelectionChanged(ITab tab)
+  private void fireSelectionChanged( ITab tab )
   {
     Object[] listeners = _selectionListeners.getListenerList();
     if( listeners.length == 0 )
@@ -354,6 +362,7 @@ public class TabContainer extends JPanel
   {
     _contextMenuHandler = handler;
   }
+
   public IContextMenuHandler<JComponent> getContextMenuHandler()
   {
     return _contextMenuHandler;
@@ -406,7 +415,7 @@ public class TabContainer extends JPanel
     if( handler != null )
     {
       JComponent c = (JComponent)e.getSource();
-      handler.displayContextMenu( c, e.getX(), c.getHeight(), e.getComponent());
+      handler.displayContextMenu( c, e.getX(), c.getHeight(), e.getComponent() );
     }
   }
 
@@ -445,7 +454,7 @@ public class TabContainer extends JPanel
       {
         return;
       }
-      selectTab( tab, true);
+      selectTab( tab, true );
     }
 
     public void mouseEntered( MouseEvent e )
@@ -475,12 +484,14 @@ public class TabContainer extends JPanel
   {
     private ITab _tab;
 
-    public TabChangeEvent(TabContainer tabContainer, ITab tab) {
-      super(tabContainer);
+    public TabChangeEvent( TabContainer tabContainer, ITab tab )
+    {
+      super( tabContainer );
       _tab = tab;
     }
 
-    public ITab getTab() {
+    public ITab getTab()
+    {
       return _tab;
     }
   }

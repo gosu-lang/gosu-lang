@@ -1,7 +1,5 @@
 package editor;
 
-import editor.util.EditorUtilities;
-
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.text.AttributeSet;
@@ -28,7 +26,7 @@ public class EditorScrollPane extends JScrollPane
     _editor = editor;
     _adviceColumn = new AdviceColumn();
     setRowHeaderView( _adviceColumn );
-    setBackground( EditorUtilities.CONTROL );
+    setBackground( Scheme.active().getControl() );
   }
 
   public EditorScrollPane( ILineInfoManager lineInfoRenderer, JTextComponent editor, JComponent view )
@@ -73,7 +71,7 @@ public class EditorScrollPane extends JScrollPane
     {
       setLayout( null );
       setBorder( new EmptyBorder( new Insets( 0, 0, 0, 1 ) ) );
-      setBackground( editor.util.EditorUtilities.CONTROL );
+      setBackground( Scheme.active().getControl() );
       addMouseListener( new MouseAdapter()
       {
         @Override
@@ -112,7 +110,7 @@ public class EditorScrollPane extends JScrollPane
     {
       super.paintComponent( g );
 
-      g.setColor( editor.util.EditorUtilities.CONTROL_SHADOW );
+      g.setColor( Scheme.active().getControlShadow() );
       g.setFont( _editor.getFont() );
 
       FontMetrics fm = g.getFontMetrics( _editor.getFont() );

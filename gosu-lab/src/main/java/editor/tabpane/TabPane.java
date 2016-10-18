@@ -1,12 +1,13 @@
 package editor.tabpane;
 
 import editor.IContextMenuHandler;
-import editor.search.StudioUtilities;
+import editor.Scheme;
 import editor.splitpane.ICaptionBar;
 import editor.splitpane.ICaptionedPanel;
 import editor.util.EditorUtilities;
 import editor.util.ILabel;
 import editor.util.SettleModalEventQueue;
+import editor.util.SmartMenuItem;
 import gw.util.GosuObjectUtil;
 
 import javax.swing.*;
@@ -108,19 +109,19 @@ public class TabPane extends JPanel implements ICaptionedPanel
     _tabContainer.addTabWithoutSelecting( new StandardTab( _tabContainer, tabLabel, contentPane, true ) );
   }
 
-  public void addTab( String strText, Icon icon, JComponent contentPane )
+  public ITab addTab( String strText, Icon icon, JComponent contentPane )
   {
-    insertTab( strText, icon, contentPane, -1 );
+    return insertTab( strText, icon, contentPane, -1 );
   }
 
-  public void insertTab( ILabel tabLabel, JComponent contentPane, int iIndex )
+  public ITab insertTab( ILabel tabLabel, JComponent contentPane, int iIndex )
   {
-    _tabContainer.insertTab( new StandardTab( _tabContainer, tabLabel, contentPane, true ), iIndex, true);
+    return _tabContainer.insertTab( new StandardTab( _tabContainer, tabLabel, contentPane, true ), iIndex, true );
   }
 
-  public void insertTab( String strText, Icon icon, JComponent contentPane, int iIndex )
+  public ITab insertTab( String strText, Icon icon, JComponent contentPane, int iIndex )
   {
-    _tabContainer.insertTab( new StandardTab( _tabContainer, new SimpleLabel( strText, icon ), contentPane, isDynamic() ), iIndex, true);
+    return _tabContainer.insertTab( new StandardTab( _tabContainer, new SimpleLabel( strText, icon ), contentPane, isDynamic() ), iIndex, true );
   }
 
   public void removeTabWithContent( JComponent contentPane )
@@ -150,7 +151,7 @@ public class TabPane extends JPanel implements ICaptionedPanel
 
   public void selectTabWithLabel( String label )
   {
-    ITab tab = findTabWithLabel(label);
+    ITab tab = findTabWithLabel( label );
     if( tab != null )
     {
       _tabContainer.selectTab( tab, true );
@@ -187,10 +188,13 @@ public class TabPane extends JPanel implements ICaptionedPanel
     return _tabContainer.findTabWithContent( contentPane );
   }
 
-  public ITab findTabWithLabel(String label) {
+  public ITab findTabWithLabel( String label )
+  {
     ITab tab = null;
-    for (ITab iTab : getTabs()) {
-      if ( GosuObjectUtil.equals( iTab.getLabel().getDisplayName(), label )) {
+    for( ITab iTab : getTabs() )
+    {
+      if( GosuObjectUtil.equals( iTab.getLabel().getDisplayName(), label ) )
+      {
         tab = iTab;
       }
     }
@@ -325,14 +329,14 @@ public class TabPane extends JPanel implements ICaptionedPanel
       if( !isTopBorderOnly() )
       {
         setBorder( BorderFactory.createCompoundBorder(
-          BorderFactory.createMatteBorder( 1, 1, 1, 1, EditorUtilities.CONTROL_SHADOW ),
+          BorderFactory.createMatteBorder( 1, 1, 1, 1, Scheme.active().getScrollbarBorderColor() ),
           BorderFactory.createEmptyBorder( HEADER_MARGIN, 0, 0, 0 ) ) );
       }
       else
       {
         setBorder( null );
         _tabAndToolContainer.setBorder( BorderFactory.createCompoundBorder(
-          BorderFactory.createMatteBorder( 1, 1, 0, 1, EditorUtilities.CONTROL_SHADOW ),
+          BorderFactory.createMatteBorder( 1, 1, 0, 1, Scheme.active().getScrollbarBorderColor() ),
           BorderFactory.createEmptyBorder( HEADER_MARGIN, 0, 0, 0 ) ) );
       }
     }
@@ -341,14 +345,14 @@ public class TabPane extends JPanel implements ICaptionedPanel
       if( !isTopBorderOnly() )
       {
         setBorder( BorderFactory.createCompoundBorder(
-          BorderFactory.createMatteBorder( 1, 1, 1, 1, EditorUtilities.CONTROL_SHADOW ),
+          BorderFactory.createMatteBorder( 1, 1, 1, 1, Scheme.active().getScrollbarBorderColor() ),
           BorderFactory.createEmptyBorder( 0, 0, HEADER_MARGIN, 0 ) ) );
       }
       else
       {
         setBorder( null );
         _tabAndToolContainer.setBorder( BorderFactory.createCompoundBorder(
-          BorderFactory.createMatteBorder( 0, 1, 1, 1, EditorUtilities.CONTROL_SHADOW ),
+          BorderFactory.createMatteBorder( 0, 1, 1, 1, Scheme.active().getScrollbarBorderColor() ),
           BorderFactory.createEmptyBorder( 0, 0, HEADER_MARGIN, 0 ) ) );
       }
     }
@@ -357,14 +361,14 @@ public class TabPane extends JPanel implements ICaptionedPanel
       if( !isTopBorderOnly() )
       {
         setBorder( BorderFactory.createCompoundBorder(
-          BorderFactory.createMatteBorder( 1, 1, 1, 1, EditorUtilities.CONTROL_SHADOW ),
+          BorderFactory.createMatteBorder( 1, 1, 1, 1, Scheme.active().getScrollbarBorderColor() ),
           BorderFactory.createEmptyBorder( 0, 0, 0, HEADER_MARGIN ) ) );
       }
       else
       {
         setBorder( null );
         _tabAndToolContainer.setBorder( BorderFactory.createCompoundBorder(
-          BorderFactory.createMatteBorder( 1, 0, 1, 1, EditorUtilities.CONTROL_SHADOW ),
+          BorderFactory.createMatteBorder( 1, 0, 1, 1, Scheme.active().getScrollbarBorderColor() ),
           BorderFactory.createEmptyBorder( 0, 0, 0, HEADER_MARGIN ) ) );
       }
     }
@@ -373,14 +377,14 @@ public class TabPane extends JPanel implements ICaptionedPanel
       if( !isTopBorderOnly() )
       {
         setBorder( BorderFactory.createCompoundBorder(
-          BorderFactory.createMatteBorder( 1, 1, 1, 1, EditorUtilities.CONTROL_SHADOW ),
+          BorderFactory.createMatteBorder( 1, 1, 1, 1, Scheme.active().getScrollbarBorderColor() ),
           BorderFactory.createEmptyBorder( 0, HEADER_MARGIN, 0, 0 ) ) );
       }
       else
       {
         setBorder( null );
         _tabAndToolContainer.setBorder( BorderFactory.createCompoundBorder(
-          BorderFactory.createMatteBorder( 1, 1, 1, 0, EditorUtilities.CONTROL_SHADOW ),
+          BorderFactory.createMatteBorder( 1, 1, 1, 0, Scheme.active().getScrollbarBorderColor() ),
           BorderFactory.createEmptyBorder( 0, HEADER_MARGIN, 0, 0 ) ) );
       }
     }
@@ -402,8 +406,10 @@ public class TabPane extends JPanel implements ICaptionedPanel
     focusMgr.removePropertyChangeListener( "permanentFocusOwner", _focusChangeListener );
   }
 
-  public void localeChanged() {
-    for (ITab tab : getTabs()) {
+  public void localeChanged()
+  {
+    for( ITab tab : getTabs() )
+    {
       tab.refresh();
     }
   }
@@ -453,7 +459,7 @@ public class TabPane extends JPanel implements ICaptionedPanel
       {
         return;
       }
-      setActive( StudioUtilities.containsFocus( TabPane.this ) );
+      setActive( EditorUtilities.containsFocus( TabPane.this ) );
     }
   }
 
@@ -480,7 +486,7 @@ public class TabPane extends JPanel implements ICaptionedPanel
     {
       JPopupMenu contextMenu = new JPopupMenu();
       contextMenu.add(
-        new JMenuItem(
+        new SmartMenuItem(
           new AbstractAction( "Close This Tab" )
           {
             public void actionPerformed( ActionEvent e )
@@ -489,7 +495,7 @@ public class TabPane extends JPanel implements ICaptionedPanel
             }
           } ) );
       contextMenu.add(
-        new JMenuItem(
+        new SmartMenuItem(
           new AbstractAction( "Close Other Tabs" )
           {
             public void actionPerformed( ActionEvent e )
@@ -498,7 +504,7 @@ public class TabPane extends JPanel implements ICaptionedPanel
             }
           } ) );
       contextMenu.add(
-        new JMenuItem(
+        new SmartMenuItem(
           new AbstractAction( "Close All Tabs" )
           {
             public void actionPerformed( ActionEvent e )
@@ -516,7 +522,7 @@ public class TabPane extends JPanel implements ICaptionedPanel
 
     private void closeAll( JComponent c )
     {
-      Component root = StudioUtilities.showWaitCursor( true );
+      Component root = EditorUtilities.showWaitCursor( true );
       try
       {
         ITab leaveOpen = c == null ? null : tabForComponent( c );
@@ -527,7 +533,7 @@ public class TabPane extends JPanel implements ICaptionedPanel
         try
         {
           ITab[] tabs = getTabs();
-          for( int i = tabs.length-1; i >= 0; i-- )
+          for( int i = tabs.length - 1; i >= 0; i-- )
           {
             ITab tab = tabs[i];
             if( tab != leaveOpen )
@@ -543,7 +549,7 @@ public class TabPane extends JPanel implements ICaptionedPanel
       }
       finally
       {
-        StudioUtilities.showWaitCursor( false, root );
+        EditorUtilities.showWaitCursor( false, root );
       }
     }
 

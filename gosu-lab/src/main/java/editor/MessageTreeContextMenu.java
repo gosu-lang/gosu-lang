@@ -1,5 +1,7 @@
 package editor;
 
+import editor.util.SmartMenuItem;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.datatransfer.Clipboard;
@@ -19,12 +21,12 @@ public class MessageTreeContextMenu implements IContextMenuHandler<MessageTree>
   public JPopupMenu getContextMenu( MessageTree message )
   {
     JPopupMenu menu = new JPopupMenu();
-    if( message.getData().hasTarget() )
+    if( message.getNode().hasTarget() )
     {
-      menu.add( new JMenuItem( new OpenAction( message ) ) );
+      menu.add( new SmartMenuItem( new OpenAction( message ) ) );
       menu.add( new JSeparator() );
     }
-    menu.add( new JMenuItem( new ClipCopyAction( message.getMessage() ) ) );
+    menu.add( new SmartMenuItem( new ClipCopyAction( message.getText() ) ) );
     return menu;
   }
 
@@ -58,7 +60,7 @@ public class MessageTreeContextMenu implements IContextMenuHandler<MessageTree>
 
     public void actionPerformed( ActionEvent e )
     {
-      _message.getData().jumpToTarget();
+      _message.getNode().jumpToTarget();
     }
   }
 

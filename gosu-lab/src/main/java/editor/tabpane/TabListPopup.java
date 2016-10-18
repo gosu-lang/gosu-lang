@@ -1,9 +1,9 @@
 package editor.tabpane;
 
 import editor.IValuePopup;
-import editor.search.StudioUtilities;
 import editor.util.ContainerMoverSizer;
 import editor.util.ContainerSizer;
+import editor.util.EditorUtilities;
 
 import javax.swing.*;
 import javax.swing.border.Border;
@@ -104,7 +104,7 @@ public class TabListPopup extends JPopupMenu implements IValuePopup
 
     if( bVisible )
     {
-      StudioUtilities.removePopupBorder( this );
+      EditorUtilities.removePopupBorder( this );
     }
   }
 
@@ -120,13 +120,7 @@ public class TabListPopup extends JPopupMenu implements IValuePopup
 
   protected void fireNodeChanged( final EventListenerList list, final ChangeEvent e )
   {
-    EventQueue.invokeLater( new Runnable()
-    {
-      public void run()
-      {
-        fireNodeChangedNow( list, e );
-      }
-    } );
+    EventQueue.invokeLater( () -> fireNodeChangedNow( list, e ) );
   }
 
   protected void fireNodeChangedNow( EventListenerList list, ChangeEvent e )

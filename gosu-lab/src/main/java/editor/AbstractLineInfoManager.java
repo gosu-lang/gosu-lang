@@ -1,7 +1,9 @@
 package editor;
 
+import editor.debugger.Breakpoint;
 import editor.debugger.BreakpointManager;
 import editor.util.EditorUtilities;
+import editor.util.SmartMenuItem;
 
 import javax.swing.*;
 import javax.swing.text.BadLocationException;
@@ -21,8 +23,8 @@ public abstract class AbstractLineInfoManager implements ILineInfoManager
 
   public AbstractLineInfoManager()
   {
-    _iconBreakpoint = EditorUtilities.loadIcon( "images/debug_lineBreakpoint.png" );
-    _iconBreakpointDisabled = EditorUtilities.loadIcon( "images/disabled_Breakpoint.png" );
+    _iconBreakpoint = EditorUtilities.loadIcon( "images/debug_linebreakpoint.png" );
+    _iconBreakpointDisabled = EditorUtilities.loadIcon( "images/disabled_breakpoint.png" );
     g_iRequiredWidth = _iconBreakpoint.getIconWidth();
   }
 
@@ -56,14 +58,19 @@ public abstract class AbstractLineInfoManager implements ILineInfoManager
   {
     Color color = null;
 
-    if( isBreakpointAtLine( iLine ) )
-    {
-      color = Scheme.active().breakpointColor();
-    }
     if( isExecPointAtLine( iLine ) )
     {
       color = Scheme.active().getExecBreakpoint();
     }
+    else if( isBreakpointAtLine( iLine ) )
+    {
+      color = Scheme.active().getBreakpointColor();
+    }
+    else if( isFramePointAtLine( iLine ) )
+    {
+      color = Scheme.active().getFrameBreakpoint();
+    }
+
     if( color == null )
     {
       return;
@@ -102,7 +109,7 @@ public abstract class AbstractLineInfoManager implements ILineInfoManager
       return;
     }
     JPopupMenu contextMenu = new JPopupMenu();
-    JMenuItem disableItem = new JMenuItem(
+    JMenuItem disableItem = new SmartMenuItem(
       new AbstractAction( bp.isActive() ? "Disable" : "Enable" )
       {
         public void actionPerformed( ActionEvent e )
@@ -126,13 +133,18 @@ public abstract class AbstractLineInfoManager implements ILineInfoManager
         }
       } );
     contextMenu.add( disableItem );
-    JMenuItem removeItem = new JMenuItem(
+    JMenuItem removeItem = new SmartMenuItem(
       new AbstractAction( "Remove" )
       {
         public void actionPerformed( ActionEvent e )
         {
           BreakpointManager bmp = getGosuPanel().getBreakpointManager();
           bmp.toggleLineBreakpoint( getGosuPanel().getCurrentEditor().getScriptPart().getContainingTypeName(), iLine );
+          GosuEditor editor = RunMe.getEditorFrame().getGosuPanel().getGosuEditor();
+          if( editor != null )
+          {
+            editor.repaint();
+          }
         }
       } );
     contextMenu.add( removeItem );
@@ -148,4 +160,7 @@ public abstract class AbstractLineInfoManager implements ILineInfoManager
 
   protected abstract boolean isExecPointAtLine( int iLine );
   protected abstract Breakpoint getExecPointAtLine( int iLine );
+
+  protected abstract boolean isFramePointAtLine( int iLine );
+  protected abstract Breakpoint getFramePointAtLine( int iLine );
 }

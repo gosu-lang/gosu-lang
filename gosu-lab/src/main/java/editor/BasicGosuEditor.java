@@ -81,9 +81,11 @@ public class BasicGosuEditor extends JFrame implements IGosuEditor
   public void exit()
   {
     EditorUtilities.saveLayoutState( _panel.getExperimentView().getExperiment() );
+
     if( _panel.saveIfDirty() )
     {
-      NoExitSecurityManager.CLOSING = true;
+      getGosuPanel().killProcess();
+
       System.exit( 0 );
     }
   }
@@ -100,8 +102,8 @@ public class BasicGosuEditor extends JFrame implements IGosuEditor
 
   private void setInitialSize()
   {
-    _panel.setEditorSplitPosition( 60 );
-    _panel.setExperimentSplitPosition( 30 );
+    _panel.setEditorSplitPosition( 20 );
+    _panel.setExperimentSplitPosition( 60 );
   }
 
   public void reset()
@@ -134,7 +136,7 @@ public class BasicGosuEditor extends JFrame implements IGosuEditor
 
   public void openFile( File anySourceFile )
   {
-    _panel.openFile( anySourceFile );
+    _panel.openFile( anySourceFile, true );
   }
 
   @Override
@@ -210,8 +212,39 @@ public class BasicGosuEditor extends JFrame implements IGosuEditor
 
   public static BasicGosuEditor create()
   {
-    GosuWindowsLAF.setLookAndFeel();
+    GosuLabLAF.setLookAndFeel();
     CommonServices.getFileSystem().setCachingMode( IFileSystem.CachingMode.NO_CACHING );
     return new BasicGosuEditor();
   }
+
+  //## todo: dynamically update Gosu Lab
+  public void checkForUpdate( GosuPanel gosuPanel )
+  {
+    try
+    {
+      File userFile = EditorUtilities.getUserFile( gosuPanel );
+      if( !userFile.exists() || EditorUtilities.getVersion( gosuPanel ) < 1 )
+      {
+        deleteDir( EditorUtilities.getUserGosuEditorDir() );
+      }
+    }
+    catch( Exception e )
+    {
+      deleteDir( EditorUtilities.getUserGosuEditorDir() );
+    }
+  }
+
+  private static void deleteDir( File fileOrDirectory )
+  {
+    if( fileOrDirectory.isDirectory() )
+    {
+      for( File child : fileOrDirectory.listFiles() )
+      {
+        deleteDir( child );
+      }
+    }
+    //noinspection ResultOfMethodCallIgnored
+    fileOrDirectory.delete();
+  }
+
 }

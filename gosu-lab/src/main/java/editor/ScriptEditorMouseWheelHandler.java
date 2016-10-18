@@ -1,5 +1,7 @@
 package editor;
 
+import editor.util.EditorUtilities;
+
 import java.awt.*;
 import java.awt.event.InputEvent;
 import java.awt.event.MouseWheelEvent;
@@ -25,7 +27,7 @@ public class ScriptEditorMouseWheelHandler implements MouseWheelListener
       return;
     }
 
-    if( (e.getModifiers() & InputEvent.CTRL_MASK) == 0 )
+    if( (e.getModifiers() & EditorUtilities.CONTROL_KEY_MASK) == 0 )
     {
       forward( e );
       return;

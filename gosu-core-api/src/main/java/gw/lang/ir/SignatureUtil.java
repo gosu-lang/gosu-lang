@@ -73,7 +73,7 @@ public class SignatureUtil {
     return type.getName();
   }
 
-  private static String getSimpleName( String name ) {
+  public static String getSimpleName( String name ) {
     int iDot = name.lastIndexOf( '.' );
     if( iDot >= 0 ) {
       return name.substring( iDot + 1 );

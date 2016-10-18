@@ -11,6 +11,15 @@ import java.io.File;
 
 public class TypeNameUtil
 {
+  public static final String[] GOSU_EXTS = {
+    GosuClassTypeLoader.GOSU_CLASS_FILE_EXT,
+    GosuClassTypeLoader.GOSU_ENHANCEMENT_FILE_EXT,
+    GosuClassTypeLoader.GOSU_PROGRAM_FILE_EXT,
+    GosuClassTypeLoader.GOSU_TEMPLATE_FILE_EXT,
+    "java"
+  };
+
+
   public static String getClassNameForFile( File classFile )
   {
     GosuClassTypeLoader typeLoader = TypeSystem.getCurrentModule().getModuleTypeLoader().getTypeLoader( GosuClassTypeLoader.class );
@@ -30,6 +39,6 @@ public class TypeNameUtil
     {
       return null;
     }
-    return repo.getClassNameFromFile( root, classIFile, new String[]{GosuClassTypeLoader.GOSU_CLASS_FILE_EXT, GosuClassTypeLoader.GOSU_ENHANCEMENT_FILE_EXT, GosuClassTypeLoader.GOSU_PROGRAM_FILE_EXT, GosuClassTypeLoader.GOSU_TEMPLATE_FILE_EXT} );
+    return repo.getClassNameFromFile( root, classIFile, GOSU_EXTS );
   }
 }

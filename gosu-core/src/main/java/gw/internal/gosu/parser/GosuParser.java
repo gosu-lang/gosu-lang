@@ -7936,6 +7936,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
       {
         IType resolvedType = ((IResolvingCoercer)iCoercer).resolveType( rawContextType, expressionType );
         TypeLord.inferTypeVariableTypesFromGenParamTypeAndConcreteType( rawContextType, resolvedType, inferenceMap );
+        TypeLord.inferTypeVariableTypesFromGenParamTypeAndConcreteType( rawContextType, expressionType, inferenceMap );
       }
       else
       {
@@ -13532,11 +13533,12 @@ public final class GosuParser extends ParserBase implements IGosuParser
     {
       boolean bHasName = true;
       int iTokenStart;
+      Token token;
       if( T == null )
       {
         int mark = getTokenizer().mark();
         bHasName = verify( element, match( null, SourceCodeTokenizer.TT_WORD ), Res.MSG_EXPECTING_NAME_FUNCTION_DEF );
-        Token token = getTokenizer().getTokenAt( mark );
+        token = getTokenizer().getTokenAt( mark );
         iTokenStart = token == null ? 0 : token.getTokenStart();
         if( bHasName )
         {
@@ -13546,7 +13548,8 @@ public final class GosuParser extends ParserBase implements IGosuParser
       else
       {
         // This must be the 'construct' token start position
-        iTokenStart = getTokenizer().getPriorToken( true ).getTokenStart();
+        token = getTokenizer().getPriorToken( true );
+        iTokenStart = token.getTokenStart();
       }
       if( element instanceof IParsedElementWithAtLeastOneDeclaration )
       {
@@ -13569,6 +13572,11 @@ public final class GosuParser extends ParserBase implements IGosuParser
       if( gsClass != null && strFunctionName.equals( gsClass.getRelativeName() ) && gsClass.isEnum() )
       {
         verify( element, Modifier.isPrivate( modifiers.getModifiers() ), Res.MSG_ENUM_CONSTRUCTOR_MUST_BE_PRIVATE );
+      }
+
+      if( token != null && element instanceof IParsedElementWithAtLeastOneDeclaration )
+      {
+        addNameInDeclaration( strFunctionName, token.getTokenStart(), token.getLine(), token.getTokenColumn(), bHasName );
       }
 
       HashMap<String, ITypeVariableDefinition> origTypeVarMap = new HashMap<>( getTypeVariables() );
@@ -15231,7 +15239,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
   {
     if( funcType instanceof IFunctionType && funcType.isGenericType() )
     {
-      return inferFunction( funcType, eArgs, bUseCtx );
+      return inferFunction( funcType, eArgs, bUseCtx, inferenceMap );
     }
     else if( funcType instanceof ConstructorType )
     {
@@ -15273,7 +15281,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
     return funcType;
   }
 
-  private IInvocableType inferFunction( IInvocableType funcType, List<? extends IExpression> eArgs, boolean bUseCtx )
+  private IInvocableType inferFunction( IInvocableType funcType, List<? extends IExpression> eArgs, boolean bUseCtx, TypeVarToTypeMap inferenceMap )
   {
     IType[] argTypes = new IType[eArgs.size()];
     for( int i = 0; i < eArgs.size(); i++ )
@@ -15291,6 +15299,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
         if( coercer instanceof IResolvingCoercer )
         {
           argTypes[i] = ((IResolvingCoercer)coercer).resolveType( paramType, argType );
+          argTypes[i] = TypeLord.getActualType( argTypes[i], inferenceMap, true );
         }
       }
     }

@@ -1,13 +1,15 @@
 package editor.debugger;
 
+import com.sun.jdi.IncompatibleThreadStateException;
 import com.sun.jdi.Location;
-import editor.Breakpoint;
+import com.sun.jdi.StackFrame;
+import com.sun.jdi.ThreadReference;
+import com.sun.jdi.VMDisconnectedException;
 import editor.GosuEditor;
 import editor.GosuPanel;
 import editor.RunMe;
 import gw.lang.parser.IParseTree;
 import gw.lang.parser.IParsedElement;
-import gw.lang.parser.IStatement;
 import gw.lang.parser.expressions.IVarStatement;
 import gw.lang.parser.statements.IClassFileStatement;
 import gw.lang.parser.statements.IClassStatement;
@@ -174,9 +176,41 @@ public class BreakpointManager
     {
       return null;
     }
-    if( line == location.lineNumber() )
+    if( line == location.lineNumber() && fqn.equals( Debugger.getOutermostType( location.declaringType() ) ) )
     {
       return new Breakpoint( fqn, line );
+    }
+    return null;
+  }
+
+  public Breakpoint getFramePointAtEditorLine( String fqn, int line )
+  {
+    Debugger debugger = getDebugger();
+    if( debugger == null )
+    {
+      return null;
+    }
+
+    ThreadReference thread = getGosuPanel().getDebugPanel().getSelectedThread();
+    if( thread == null )
+    {
+      return null;
+    }
+
+    try
+    {
+      for( StackFrame frame: thread.frames() )
+      {
+        Location location = frame.location();
+        if( line == location.lineNumber() && fqn.equals( Debugger.getOutermostType( location.declaringType() ) ) )
+        {
+          return new Breakpoint( fqn, line );
+        }
+      }
+    }
+    catch( IncompatibleThreadStateException | VMDisconnectedException e )
+    {
+      // eat
     }
     return null;
   }

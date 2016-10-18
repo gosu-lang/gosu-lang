@@ -1,21 +1,21 @@
 package editor;
 
+import editor.search.SearchLocation;
+import editor.search.UsageSearcher;
+import editor.search.UsageTarget;
 import editor.undo.AtomicUndoManager;
 import editor.util.EditorUtilities;
 import editor.util.HTMLEscapeUtil;
 import editor.util.IReplaceWordCallback;
-import editor.util.PlatformUtil;
+import editor.util.LabToolbarButton;
 import editor.util.SettleModalEventQueue;
 import editor.util.TaskQueue;
 import editor.util.TextComponentUtil;
-import editor.util.XPToolbarButton;
 import editor.util.transform.java.JavaToGosu;
 import gw.fs.IFile;
 import gw.lang.GosuShop;
 import gw.lang.parser.GosuParserFactory;
 import gw.lang.parser.IDynamicFunctionSymbol;
-import gw.lang.parser.IDynamicPropertySymbol;
-import gw.lang.parser.IDynamicSymbol;
 import gw.lang.parser.IExpression;
 import gw.lang.parser.IFunctionSymbol;
 import gw.lang.parser.IGosuParser;
@@ -25,13 +25,11 @@ import gw.lang.parser.IParseIssue;
 import gw.lang.parser.IParseResult;
 import gw.lang.parser.IParseTree;
 import gw.lang.parser.IParsedElement;
-import gw.lang.parser.IParsedElementWithAtLeastOneDeclaration;
 import gw.lang.parser.IScriptPartId;
 import gw.lang.parser.ISymbol;
 import gw.lang.parser.ISymbolTable;
 import gw.lang.parser.ITokenizerInstructor;
 import gw.lang.parser.ITypeUsesMap;
-import gw.lang.parser.Keyword;
 import gw.lang.parser.ParserOptions;
 import gw.lang.parser.ScriptPartId;
 import gw.lang.parser.StandardSymbolTable;
@@ -39,14 +37,13 @@ import gw.lang.parser.exceptions.ParseException;
 import gw.lang.parser.exceptions.ParseResultsException;
 import gw.lang.parser.exceptions.ParseWarning;
 import gw.lang.parser.expressions.IBeanMethodCallExpression;
-import gw.lang.parser.expressions.IIdentifierExpression;
 import gw.lang.parser.expressions.IImplicitTypeAsExpression;
 import gw.lang.parser.expressions.IInferredNewExpression;
 import gw.lang.parser.expressions.ILocalVarDeclaration;
-import gw.lang.parser.expressions.IMemberAccessExpression;
 import gw.lang.parser.expressions.IMethodCallExpression;
+import gw.lang.parser.expressions.INameInDeclaration;
 import gw.lang.parser.expressions.INewExpression;
-import gw.lang.parser.expressions.ITypeLiteralExpression;
+import gw.lang.parser.expressions.IParameterDeclaration;
 import gw.lang.parser.expressions.IVarStatement;
 import gw.lang.parser.statements.IClassDeclaration;
 import gw.lang.parser.statements.IClassFileStatement;
@@ -54,26 +51,19 @@ import gw.lang.parser.statements.IClassStatement;
 import gw.lang.parser.statements.IForEachStatement;
 import gw.lang.parser.statements.IFunctionStatement;
 import gw.lang.parser.statements.IMethodCallStatement;
-import gw.lang.parser.statements.IPropertyStatement;
 import gw.lang.parser.statements.IStatementList;
 import gw.lang.parser.template.ITemplateGenerator;
 import gw.lang.reflect.FunctionType;
-import gw.lang.reflect.IFeatureInfo;
 import gw.lang.reflect.IMetaType;
 import gw.lang.reflect.IScriptabilityModifier;
 import gw.lang.reflect.IType;
-import gw.lang.reflect.ITypeInfo;
 import gw.lang.reflect.ITypeLoaderListener;
 import gw.lang.reflect.ITypeRef;
 import gw.lang.reflect.RefreshRequest;
 import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.gs.ClassType;
 import gw.lang.reflect.gs.IGosuClass;
-import gw.lang.reflect.gs.IGosuClassTypeInfo;
 import gw.lang.reflect.gs.IGosuEnhancement;
-import gw.lang.reflect.gs.IGosuMethodInfo;
-import gw.lang.reflect.gs.IGosuPropertyInfo;
-import gw.lang.reflect.gs.IGosuVarPropertyInfo;
 import gw.lang.reflect.gs.StringSourceFileHandle;
 import gw.lang.reflect.java.JavaTypes;
 import gw.util.GosuStringUtil;
@@ -89,13 +79,12 @@ import javax.swing.event.DocumentListener;
 import javax.swing.event.UndoableEditListener;
 import javax.swing.text.AbstractDocument;
 import javax.swing.text.BadLocationException;
+import javax.swing.text.DefaultHighlighter;
 import javax.swing.text.Document;
 import javax.swing.text.DocumentFilter;
 import javax.swing.text.Element;
 import javax.swing.text.Highlighter;
 import javax.swing.text.JTextComponent;
-import javax.swing.text.StyleConstants;
-import javax.swing.tree.TreeModel;
 import javax.swing.undo.CompoundEdit;
 import java.awt.*;
 import java.awt.datatransfer.Clipboard;
@@ -116,6 +105,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -130,26 +120,6 @@ import static editor.util.TextComponentUtil.Direction.FORWARD;
  */
 public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITypeLoaderListener
 {
-  /**
-   * Platform dependent keystroke info
-   */
-  public static final String CONTROL_KEY_NAME;
-  public static final int CONTROL_KEY_MASK;
-
-  static
-  {
-    if( PlatformUtil.isMac() )
-    {
-      CONTROL_KEY_MASK = KeyEvent.META_DOWN_MASK;
-      CONTROL_KEY_NAME = "meta";
-    }
-    else
-    {
-      CONTROL_KEY_MASK = KeyEvent.CTRL_DOWN_MASK;
-      CONTROL_KEY_NAME = "control";
-    }
-  }
-
   public static final String INTELLISENSE_TASK_QUEUE = "_intellisenseParser";
 
   /**
@@ -200,7 +170,7 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
   private UndoableEditListener _uel;
   BeanInfoPopup _beanInfoPopup;
   JPopupMenu _valuePopup;
-  private XPToolbarButton _btnAdvice;
+  private LabToolbarButton _btnAdvice;
   private Runnable _adviceRunner;
   private IReplaceWordCallback _replaceWordCallback;
   private boolean _bTemplate;
@@ -227,7 +197,7 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
   private List<ParseListener> _parseListeners = new ArrayList<ParseListener>();
 
   private SmartFixManager _smartFixManager;
-  private ContextHighlighter _ctxHighlighter;
+  private ScopeHighlighter _ctxHighlighter;
   private DynamicSelectionManager _selectionManager;
   private CodeRefactorManager _codeManager;
 
@@ -274,7 +244,7 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
     _replaceWordCallback = new ReplaceWordCallback();
     _parseType = IGosuParser.ParseType.EXPRESSION_OR_PROGRAM;
 
-    _ctxHighlighter = new ContextHighlighter( this );
+    _ctxHighlighter = new ScopeHighlighter( this );
 
     configureLayout( lineInfoRenderer );
     _smartFixManager = new SmartFixManager( this );
@@ -300,10 +270,10 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
     _editor.setMargin( new Insets( 3, 3, 3, 3 ) ); // set margin directly, otherwise some other platforms (cough, mac, cough) don't have a margin at all
     _editor.setFont( new Font( GosuEditorKit.getStylePreferences().getFontFamily(), Font.PLAIN,
                                GosuEditorKit.getStylePreferences().getFontSize() ) );
-    _editor.setBackground( EditorUtilities.WINDOW );
-    _editor.setForeground( Color.black );
+    _editor.setBackground( Scheme.active().getWindow() );
+    _editor.setForeground( Scheme.active().getWindowText() );
     _editor.putClientProperty( "caretWidth", 2 );
-    _editor.setCaretColor( StyleConstants.getForeground( kit.getViewFactory().getStyle( GosuStyleContext.STYLE_Caret ) ) );
+    _editor.setCaretColor( Scheme.active().getWindowText() );
     _editor.setEditable( true );
     _editor.addKeyListener( new EditorKeyHandler() );
     _editor.addMouseListener( new ScriptEditorPopupHandler( this, _contextMenuHandler ) );
@@ -312,37 +282,37 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
     _editor.addCaretListener( _ctxHighlighter );
     _editor.addFocusListener( _ctxHighlighter );
     _editor.addFocusListener( new FocusAdapter()
+    {
+      @Override
+      public void focusGained( FocusEvent e )
       {
-        @Override
-        public void focusGained( FocusEvent e )
-        {
-          _smartFixManager.updateState();
-        }
-      } );
+        _smartFixManager.updateState();
+      }
+    } );
     TypeSystem.addTypeLoaderListenerAsWeakRef( this );
     MouseInEditorHandler mouseInEditorHandler = new MouseInEditorHandler( this );
     _editor.addMouseListener( mouseInEditorHandler );
     _editor.addMouseMotionListener( mouseInEditorHandler );
     _editor.addMouseListener( new MouseAdapter()
+    {
+      @Override
+      public void mouseClicked( MouseEvent e )
       {
-        @Override
-        public void mouseClicked( MouseEvent e )
-        {
-          setCompleteCode( false );
-        }
+        setCompleteCode( false );
+      }
 
-        @Override
-        public void mousePressed( MouseEvent e )
-        {
-          setCompleteCode( false );
-        }
+      @Override
+      public void mousePressed( MouseEvent e )
+      {
+        setCompleteCode( false );
+      }
 
-        @Override
-        public void mouseReleased( MouseEvent e )
-        {
-          setCompleteCode( false );
-        }
-      } );
+      @Override
+      public void mouseReleased( MouseEvent e )
+      {
+        setCompleteCode( false );
+      }
+    } );
 
     addDocumentListener();
 
@@ -363,7 +333,7 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
     _scroller.setBorder( null );
     JViewport vp = _scroller.getViewport();
     vp.setScrollMode( JViewport.BLIT_SCROLL_MODE );
-    _btnAdvice = new XPToolbarButton( editor.util.EditorUtilities.loadIcon( "images/advice.png" ) );
+    _btnAdvice = new LabToolbarButton( editor.util.EditorUtilities.loadIcon( "images/advice.png" ) );
     _btnAdvice.setToolTipText( "Display Smart Help" );
     _btnAdvice.setBorderConstant( true );
     _btnAdvice.addActionListener( new ActionListener()
@@ -383,7 +353,7 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
     add( BorderLayout.CENTER, _scroller );
 
     _labelCaption = new JLabel( "<Script Part>" );
-    _labelCaption.setBackground( editor.util.EditorUtilities.CONTROL );
+    _labelCaption.setBackground( Scheme.active().getControl() );
     _labelCaption.setOpaque( true );
     _labelCaption.setFont( getFont().deriveFont( Font.BOLD ) );
     _labelCaption.setBorder( new EmptyBorder( 0, 4 + MIN_LINENUMBER_WIDTH * (lineInfoRenderer != null ? 2 : 1), 0, 0 ) );
@@ -420,7 +390,7 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
 
   private void addKeyHandlers()
   {
-    _editor.getInputMap().put( KeyStroke.getKeyStroke( CONTROL_KEY_NAME + " T" ), "_typeInfo" );
+    _editor.getInputMap().put( KeyStroke.getKeyStroke( EditorUtilities.CONTROL_KEY_NAME + " T" ), "_typeInfo" );
     _editor.getActionMap().put( "_typeInfo",
                                 new AbstractAction()
                                 {
@@ -431,7 +401,7 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
                                   }
                                 } );
 
-    _editor.getInputMap().put( KeyStroke.getKeyStroke( CONTROL_KEY_NAME + " shift T" ), "_clipCopyTypeInfo" );
+    _editor.getInputMap().put( KeyStroke.getKeyStroke( EditorUtilities.CONTROL_KEY_NAME + " shift T" ), "_clipCopyTypeInfo" );
     _editor.getActionMap().put( "_clipCopyTypeInfo",
                                 new AbstractAction()
                                 {
@@ -442,7 +412,7 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
                                   }
                                 } );
 
-    _editor.getInputMap().put( KeyStroke.getKeyStroke( CONTROL_KEY_NAME + " SLASH" ), "_bulkComment" );
+    _editor.getInputMap().put( KeyStroke.getKeyStroke( EditorUtilities.CONTROL_KEY_NAME + " SLASH" ), "_bulkComment" );
     _editor.getActionMap().put( "_bulkComment",
                                 new AbstractAction()
                                 {
@@ -484,7 +454,7 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
                                   }
                                 } );
 
-    _editor.getInputMap().put( KeyStroke.getKeyStroke( CONTROL_KEY_NAME + " W" ), "_selectWord" );
+    _editor.getInputMap().put( KeyStroke.getKeyStroke( EditorUtilities.CONTROL_KEY_NAME + " W" ), "_selectWord" );
     _editor.getActionMap().put( "_selectWord",
                                 new AbstractAction()
                                 {
@@ -495,7 +465,7 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
                                   }
                                 } );
 
-    _editor.getInputMap().put( KeyStroke.getKeyStroke( CONTROL_KEY_NAME + " shift W" ), "_narrowSelectWord" );
+    _editor.getInputMap().put( KeyStroke.getKeyStroke( EditorUtilities.CONTROL_KEY_NAME + " shift W" ), "_narrowSelectWord" );
     _editor.getActionMap().put( "_narrowSelectWord",
                                 new AbstractAction()
                                 {
@@ -506,7 +476,7 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
                                   }
                                 } );
 
-    _editor.getInputMap().put( KeyStroke.getKeyStroke( CONTROL_KEY_NAME + " shift J" ), "_joinLines" );
+    _editor.getInputMap().put( KeyStroke.getKeyStroke( EditorUtilities.CONTROL_KEY_NAME + " shift J" ), "_joinLines" );
     _editor.getActionMap().put( "_joinLines",
                                 new AbstractAction()
                                 {
@@ -517,7 +487,7 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
                                   }
                                 } );
 
-    _editor.getInputMap().put( KeyStroke.getKeyStroke( CONTROL_KEY_NAME + " G" ), "_gotoLine" );
+    _editor.getInputMap().put( KeyStroke.getKeyStroke( EditorUtilities.CONTROL_KEY_NAME + " G" ), "_gotoLine" );
     _editor.getActionMap().put( "_gotoLine",
                                 new AbstractAction()
                                 {
@@ -528,7 +498,7 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
                                   }
                                 } );
 
-    _editor.getInputMap().put( KeyStroke.getKeyStroke( CONTROL_KEY_NAME + " P" ), "_parameterInfo" );
+    _editor.getInputMap().put( KeyStroke.getKeyStroke( EditorUtilities.CONTROL_KEY_NAME + " P" ), "_parameterInfo" );
     _editor.getActionMap().put( "_parameterInfo",
                                 new AbstractAction()
                                 {
@@ -542,7 +512,7 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
                                   }
                                 } );
 
-    _editor.getInputMap().put( KeyStroke.getKeyStroke( CONTROL_KEY_NAME + " B" ), "_declaration" );
+    _editor.getInputMap().put( KeyStroke.getKeyStroke( EditorUtilities.CONTROL_KEY_NAME + " B" ), "_declaration" );
     _editor.getActionMap().put( "_declaratino",
                                 new AbstractAction()
                                 {
@@ -555,7 +525,7 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
 
     // Add accelerator for Quick Javadoc help
     _editor.getInputMap().put( KeyStroke.getKeyStroke( "F1" ), "_javadocHelp" );
-    _editor.getInputMap().put( KeyStroke.getKeyStroke( CONTROL_KEY_NAME + " Q" ), "_javadocHelp" );
+    _editor.getInputMap().put( KeyStroke.getKeyStroke( EditorUtilities.CONTROL_KEY_NAME + " Q" ), "_javadocHelp" );
     _editor.getActionMap().put( "_javadocHelp",
                                 new AbstractAction()
                                 {
@@ -577,47 +547,61 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
                                   }
                                 } );
 
-//    _editor.getInputMap().put( KeyStroke.getKeyStroke( CONTROL_KEY_NAME + " shift F7" ), "_highlightUsagesInView" );
-//    _editor.getActionMap().put( "_highlightUsagesInView",
-//                                new AbstractAction()
-//                                {
-//                                  @Override
-//                                  public void actionPerformed( ActionEvent e )
-//                                  {
-//                                    if (getScriptPart() != null && getScriptPart().getContainingType() != null) {
-//                                      _highlightMode = HighlightMode.USAGES;
-//                                      highlightUsagesOfFeatureUnderCaret();
-//                                    }
-//                                  }
-//                                } );
+    _editor.getInputMap().put( KeyStroke.getKeyStroke( EditorUtilities.CONTROL_KEY_NAME + " shift F7" ), "_highlightUsagesInView" );
+    _editor.getActionMap().put( "_highlightUsagesInView",
+                                new AbstractAction()
+                                {
+                                  @Override
+                                  public void actionPerformed( ActionEvent e )
+                                  {
+                                    if( getScriptPart() != null && getScriptPart().getContainingType() != null )
+                                    {
+                                      highlightUsagesOfFeatureUnderCaret();
+                                    }
+                                  }
+                                } );
 
-//    _editor.getInputMap().put( KeyStroke.getKeyStroke( KeyEvent.VK_ESCAPE, 0 ), "_removeHighlights" );
-//    _editor.getActionMap().put( "_removeHighlights",
-//                                new AbstractAction()
-//                                {
-//                                  @Override
-//                                  public void actionPerformed( ActionEvent e )
-//                                  {
-//                                    _highlightMode = HighlightMode.SEARCH;
-//                                    removeAllHighlights();
-//                                  }
-//                                } );
-//
-//    _editor.getInputMap().put( KeyStroke.getKeyStroke( "F3" ), "_gotoNextHighlight" );
-//    _editor.getActionMap().put( "_gotoNextHighlight",
-//                                new AbstractAction()
-//                                {
-//                                  @Override
-//                                  public void actionPerformed( ActionEvent e )
-//                                  {
-//                                    if( _highlightMode == HighlightMode.USAGES )
-//                                    {
-//                                      gotoNextUsageHighlight();
-//                                    }
-//                                  }
-//                                } );
+    _editor.getInputMap().put( KeyStroke.getKeyStroke( KeyEvent.VK_ESCAPE, 0 ), "_removeHighlights" );
+    _editor.getActionMap().put( "_removeHighlights",
+                                new AbstractAction()
+                                {
+                                  @Override
+                                  public void actionPerformed( ActionEvent e )
+                                  {
+                                    _highlightMode = HighlightMode.SEARCH;
+                                    removeAllHighlights();
+                                  }
+                                } );
 
-    _editor.getInputMap().put( KeyStroke.getKeyStroke( KeyEvent.VK_BACK_SPACE, CONTROL_KEY_MASK ), "_deleteWord" );
+    _editor.getInputMap().put( KeyStroke.getKeyStroke( "F3" ), "_gotoNextHighlight" );
+    _editor.getActionMap().put( "_gotoNextHighlight",
+                                new AbstractAction()
+                                {
+                                  @Override
+                                  public void actionPerformed( ActionEvent e )
+                                  {
+                                    if( _highlightMode == HighlightMode.USAGES )
+                                    {
+                                      gotoNextUsageHighlight();
+                                    }
+                                  }
+                                } );
+
+    _editor.getInputMap().put( KeyStroke.getKeyStroke( "shift F3" ), "_gotoPrevHighlight" );
+    _editor.getActionMap().put( "_gotoPrevHighlight",
+                                new AbstractAction()
+                                {
+                                  @Override
+                                  public void actionPerformed( ActionEvent e )
+                                  {
+                                    if( _highlightMode == HighlightMode.USAGES )
+                                    {
+                                      gotoPrevUsageHighlight();
+                                    }
+                                  }
+                                } );
+
+    _editor.getInputMap().put( KeyStroke.getKeyStroke( KeyEvent.VK_BACK_SPACE, EditorUtilities.CONTROL_KEY_MASK ), "_deleteWord" );
     _editor.getActionMap().put( "_deleteWord",
                                 new AbstractAction()
                                 {
@@ -628,7 +612,7 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
                                   }
                                 } );
 
-    _editor.getInputMap().put( KeyStroke.getKeyStroke( KeyEvent.VK_DELETE, CONTROL_KEY_MASK ), "_deleteWordForward" );
+    _editor.getInputMap().put( KeyStroke.getKeyStroke( KeyEvent.VK_DELETE, EditorUtilities.CONTROL_KEY_MASK ), "_deleteWordForward" );
     _editor.getActionMap().put( "_deleteWordForward",
                                 new AbstractAction()
                                 {
@@ -639,7 +623,7 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
                                   }
                                 } );
 
-    _editor.getInputMap().put( KeyStroke.getKeyStroke( KeyEvent.VK_Y, CONTROL_KEY_MASK ), "_deleteLine" );
+    _editor.getInputMap().put( KeyStroke.getKeyStroke( KeyEvent.VK_Y, EditorUtilities.CONTROL_KEY_MASK ), "_deleteLine" );
     _editor.getActionMap().put( "_deleteLine",
                                 new AbstractAction()
                                 {
@@ -661,7 +645,7 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
                                   }
                                 } );
 
-    _editor.getInputMap().put( KeyStroke.getKeyStroke( CONTROL_KEY_NAME + " Z" ), "_undo" );
+    _editor.getInputMap().put( KeyStroke.getKeyStroke( EditorUtilities.CONTROL_KEY_NAME + " Z" ), "_undo" );
     _editor.getActionMap().put( "_undo",
                                 new AbstractAction()
                                 {
@@ -676,7 +660,7 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
                                   }
                                 } );
 
-    _editor.getInputMap().put( KeyStroke.getKeyStroke( CONTROL_KEY_NAME + " alt V" ), "_extractVariable" );
+    _editor.getInputMap().put( KeyStroke.getKeyStroke( EditorUtilities.CONTROL_KEY_NAME + " alt V" ), "_extractVariable" );
     _editor.getActionMap().put( "_extractVariable",
                                 new AbstractAction()
                                 {
@@ -688,7 +672,7 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
                                 } );
 
 
-    _editor.getInputMap().put( KeyStroke.getKeyStroke( KeyEvent.VK_UP, CONTROL_KEY_MASK | KeyEvent.SHIFT_DOWN_MASK ), "_moveSelectionUp" );
+    _editor.getInputMap().put( KeyStroke.getKeyStroke( KeyEvent.VK_UP, EditorUtilities.CONTROL_KEY_MASK | KeyEvent.SHIFT_DOWN_MASK ), "_moveSelectionUp" );
     _editor.getActionMap().put( "_moveSelectionUp",
                                 new AbstractAction()
                                 {
@@ -699,7 +683,7 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
                                   }
                                 } );
 
-    _editor.getInputMap().put( KeyStroke.getKeyStroke( KeyEvent.VK_DOWN, CONTROL_KEY_MASK | KeyEvent.SHIFT_DOWN_MASK ), "_moveSelectionDown" );
+    _editor.getInputMap().put( KeyStroke.getKeyStroke( KeyEvent.VK_DOWN, EditorUtilities.CONTROL_KEY_MASK | KeyEvent.SHIFT_DOWN_MASK ), "_moveSelectionDown" );
     _editor.getActionMap().put( "_moveSelectionDown",
                                 new AbstractAction()
                                 {
@@ -721,7 +705,7 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
                                   }
                                 } );
 
-    _editor.getInputMap().put( KeyStroke.getKeyStroke( KeyEvent.VK_L, CONTROL_KEY_MASK ), "_centerView" );
+    _editor.getInputMap().put( KeyStroke.getKeyStroke( KeyEvent.VK_L, EditorUtilities.CONTROL_KEY_MASK ), "_centerView" );
     _editor.getActionMap().put( "_centerView",
                                 new AbstractAction()
                                 {
@@ -732,7 +716,7 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
                                   }
                                 } );
 
-    _editor.getInputMap().put( KeyStroke.getKeyStroke( CONTROL_KEY_NAME + " D" ), "_duplicate" );
+    _editor.getInputMap().put( KeyStroke.getKeyStroke( EditorUtilities.CONTROL_KEY_NAME + " D" ), "_duplicate" );
     _editor.getActionMap().put( "_duplicate",
                                 new AbstractAction()
                                 {
@@ -751,8 +735,7 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
     GosuPanel gosuPanel = RunMe.getEditorFrame().getGosuPanel();
     File file = gosuPanel.getCurrentFile();
 
-    TreeModel model = RunMe.getEditorFrame().getGosuPanel().getExperimentView().getTree().getModel();
-    FileTree root = (FileTree)model.getRoot();
+    FileTree root = FileTreeUtil.getRoot();
     FileTree fileTree = root.find( file );
     if( fileTree != null )
     {
@@ -814,7 +797,7 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
             // ignore
           }
           getEditor().requestFocus();
-          fixSwingFocusBugWhenPopupCloses();
+          EditorUtilities.fixSwingFocusBugWhenPopupCloses( GosuEditor.this );
           getEditor().repaint();
         }
       } );
@@ -826,83 +809,141 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
   {
     gotoLine( iLine, 0 );
   }
+
   public void gotoLine( int iLine, int iColumn )
   {
-    Element root = _editor.getDocument().getRootElements()[0];
+    Element root = getGosuDocument().getRootElements()[0];
     iLine = root.getElementCount() < iLine ? root.getElementCount() : iLine;
     Element line = root.getElement( iLine - 1 );
-    _editor.setCaretPosition( line.getStartOffset() + iColumn );
+    gotoOffset( line.getStartOffset() + iColumn );
+  }
+
+  public void gotoOffset( int offset )
+  {
+    int length = getGosuDocument().getLength();
+    if( offset > length )
+    {
+      offset = length - 1;
+    }
+    if( offset < 0 )
+    {
+      offset = 0;
+    }
+    _editor.setCaretPosition( offset );
+  }
+
+  public void highlightLocations( List<SearchLocation> locations )
+  {
+    _highlightMode = HighlightMode.USAGES;
+
+    for( SearchLocation loc : locations )
+    {
+      try
+      {
+        getEditor().getHighlighter().addHighlight( loc._iOffset, loc._iOffset + loc._iLength, GosuEditor.LabHighlighter.TEXT );
+      }
+      catch( BadLocationException e )
+      {
+        //throw new RuntimeException( e );
+      }
+    }
   }
 
   public void highlightUsagesOfFeatureUnderCaret()
   {
-    highlightUsages( this );
-  }
+    _highlightMode = HighlightMode.USAGES;
 
-  public void highlightUsages( final IScriptEditor scriptEditor )
-  {
-    IParseTree deepestLocationAtCaret = scriptEditor.getDeepestLocationAtCaret();
-//    if( deepestLocationAtCaret != null )
-//    {
-//      IParsedElement deepestParsedElementAtCaret = deepestLocationAtCaret.getParsedElement();
-//      assert scriptEditor.getScriptPart() != null && scriptEditor.getScriptPart().getContainingType() != null;
-//      FeatureInfoRecordFinder localFinder = TypeInfoDatabaseInit.getFeatureInfoRecordFinderForAllLocalFeatures( scriptEditor.getScriptPart().getContainingTypeName() );
-//      Set<IFeatureInfoRecord> usages = localFinder.findUsages( deepestParsedElementAtCaret );
-//      if( usages != null )
-//      {
-//        JTextComponent editor = scriptEditor.getEditor();
-//        for( IFeatureInfoRecord usage : usages )
-//        {
-//          TypeInfoDatabaseStudioUtil.highlightRecord( editor, usage );
-//        }
-//      }
-//    }
+    IParseTree deepestLocationAtCaret = getDeepestLocationAtCaret();
+    if( deepestLocationAtCaret != null )
+    {
+      UsageTarget target = UsageTarget.makeTargetFromCaret();
+      if( target != null )
+      {
+        List<SearchLocation> locations = new UsageSearcher( target, true, false ).searchLocal();
+        for( SearchLocation loc : locations )
+        {
+          try
+          {
+            getEditor().getHighlighter().addHighlight( loc._iOffset, loc._iOffset + loc._iLength, LabHighlighter.USAGE );
+          }
+          catch( BadLocationException e )
+          {
+            //throw new RuntimeException( e );
+          }
+        }
+      }
+    }
   }
 
   public void gotoNextUsageHighlight()
   {
-//    if( !isIntellisensePopupShowing() )
-//    {
-//      JTextComponent editor = getEditor();
-//      int caretPosition = editor.getCaretPosition();
-//      Highlighter.Highlight[] highlights = editor.getHighlighter().getHighlights();
-//      Arrays.sort( highlights, new Comparator<Highlighter.Highlight>()
-//      {
-//        @Override
-//        public int compare( Highlighter.Highlight o1, Highlighter.Highlight o2 )
-//        {
-//          return o1.getStartOffset() - o2.getStartOffset();
-//        }
-//      } );
-//      int i = -1;
-//      do
-//      {
-//        i++;
-//        while( (i < highlights.length) && (highlights[i].getStartOffset() <= caretPosition) )
-//        {
-//          i++;
-//        }
-//      } while ( (i < highlights.length) &&
-//                !(highlights[i].getPainter() instanceof TypeInfoDatabaseStudioUtil.FindUsageHighlighter));
-//
-//      if( i == highlights.length )
-//      {
-//        i = 0;
-//      }
-//      editor.setCaretPosition( highlights[i].getEndOffset() );
-//      editor.moveCaretPosition( highlights[i].getStartOffset() );
-//    }
+    if( isIntellisensePopupShowing() )
+    {
+      return;
+    }
+
+    JTextComponent editor = getEditor();
+    int caretPosition = editor.getCaretPosition();
+    Highlighter.Highlight[] highlights = editor.getHighlighter().getHighlights();
+    Arrays.sort( highlights, (o1, o2) -> o1.getStartOffset() - o2.getStartOffset() );
+    int i = -1;
+    do
+    {
+      i++;
+      while( (i < highlights.length) && (highlights[i].getStartOffset() <= caretPosition) )
+      {
+        i++;
+      }
+    } while( (i < highlights.length) && !(highlights[i].getPainter() instanceof LabHighlighter) );
+
+    if( i == highlights.length )
+    {
+      i = 0;
+    }
+    editor.setCaretPosition( highlights[i].getEndOffset() );
+    editor.moveCaretPosition( highlights[i].getStartOffset() );
+  }
+
+  public void gotoPrevUsageHighlight()
+  {
+    if( isIntellisensePopupShowing() )
+    {
+      return;
+    }
+
+    JTextComponent editor = getEditor();
+    int caretPosition = editor.getCaretPosition();
+    Highlighter.Highlight[] highlights = editor.getHighlighter().getHighlights();
+    Arrays.sort( highlights, (o1, o2) -> o2.getStartOffset() - o1.getStartOffset() );
+    int i = -1;
+    do
+    {
+      i++;
+      while( (i < highlights.length) && (highlights[i].getStartOffset() >= caretPosition) )
+      {
+        i++;
+      }
+    } while( (i < highlights.length) && !(highlights[i].getPainter() instanceof LabHighlighter) );
+
+    if( i == highlights.length )
+    {
+      i = 0;
+    }
+    editor.setCaretPosition( highlights[i].getEndOffset() );
+    editor.moveCaretPosition( highlights[i].getStartOffset() );
   }
 
   public void removeAllHighlights()
   {
-    if( !isIntellisensePopupShowing() )
+    if( isIntellisensePopupShowing() )
     {
-      JTextComponent editor = getEditor();
-      removeHightlights();
-      editor.setCaretPosition( editor.getCaretPosition() );
-      hideMiscPopups();
+      return;
     }
+
+    JTextComponent editor = getEditor();
+    removeHightlights();
+    editor.setCaretPosition( editor.getCaretPosition() );
+    hideMiscPopups();
   }
 
   private void removeHightlights()
@@ -912,6 +953,25 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
     for( Highlighter.Highlight highlight : highlighter.getHighlights() )
     {
       highlighter.removeHighlight( highlight );
+    }
+  }
+
+  public static class LabHighlighter implements Highlighter.HighlightPainter
+  {
+    public static final LabHighlighter TEXT = new LabHighlighter( Scheme.active().usageReadHighlightColor() );
+    public static LabHighlighter USAGE = new LabHighlighter( Scheme.active().usageReadHighlightColor() );
+
+    private Highlighter.HighlightPainter _delegate;
+
+    public LabHighlighter( Color color )
+    {
+      _delegate = new DefaultHighlighter.DefaultHighlightPainter( color );
+    }
+
+    @Override
+    public void paint( Graphics g, int p0, int p1, Shape bounds, JTextComponent c )
+    {
+      _delegate.paint( g, p0, p1, bounds, c );
     }
   }
 
@@ -1190,10 +1250,10 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
   }
 
   @Override
-  public void read( IScriptPartId partId, String strSource, String strDescription ) throws IOException
+  public void read( IScriptPartId partId, String strSource ) throws IOException
   {
     _partId = partId;
-    _labelCaption.setText( strDescription );
+    _labelCaption.setText( "" );
 
     AbstractDocument doc = (AbstractDocument)_editor.getDocument();
     if( doc != null )
@@ -1202,14 +1262,21 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
     }
 
     // Replace the Windows style new-line sequence with just a new-line.
-    // Otherwise, we have serious problems with the editor (it ALWAYS thinks new lines are one character, regardless).
+    // Otherwise, the editor thinks new lines are one character
     strSource = GosuStringUtil.replace( strSource, "\r\n", "\n" );
 
-    _editor.read( new StringReader( strSource ), strDescription );
+    _editor.read( new StringReader( strSource ), "" );
 
     addDocumentListener();
 
     parse();
+  }
+
+  public void refresh( String content )
+  {
+    content = GosuStringUtil.replace( content, "\r\n", "\n" );
+    getEditor().setText( content );
+    EventQueue.invokeLater( () -> getUndoManager().discardAllEdits() );
   }
 
   private void addDocumentListener()
@@ -1947,7 +2014,7 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
       //## todo:
       //## value completion should be integrated as part of code completion e.g., Enum constants should be in the same popup as members etc.
 
-      //handleCompleteValue();
+      handleCompleteValue();
     }
   }
 
@@ -2572,13 +2639,6 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
     }
   }
 
-  void fixSwingFocusBugWhenPopupCloses()
-  {
-    // This is a fix to workaround a bug with Swing JPopupMenu.  Withou this
-    // focus is stolen from a subsequent selected field. See Bug CC-1140.
-    editor.util.EditorUtilities.rootPaneForComponent( this ).dispatchEvent( new MouseEvent( this, MouseEvent.MOUSE_PRESSED, System.currentTimeMillis(), 0, 3, 3, 1, false ) );
-  }
-
   @Override
   public void gotoNextError()
   {
@@ -2834,7 +2894,7 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
             throw new RuntimeException( ble );
           }
           _editor.requestFocus();
-          fixSwingFocusBugWhenPopupCloses();
+          EditorUtilities.fixSwingFocusBugWhenPopupCloses( GosuEditor.this );
           _editor.repaint();
         }
         finally
@@ -2904,7 +2964,7 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
     final JLabel label = new JLabel( displayHTML );
     label.setFocusable( true );
     JPanel panel = new JPanel( true );
-    panel.setBackground( EditorUtilities.TOOLTIP_BACKGROUND );
+    panel.setBackground( Scheme.active().getTooltipBackground() );
     panel.setLayout( new BoxLayout( panel, BoxLayout.X_AXIS ) );
     panel.setBorder( BorderFactory.createEmptyBorder( 1, 3, 1, 3 ) );
     panel.add( label );
@@ -2986,37 +3046,37 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
 
     IParsedElement parsedElement = deepest.getParsedElement();
 
-    if( parsedElement instanceof IClassDeclaration )
+    return getTypeFrom( parsedElement );
+  }
+
+  private IType getTypeFrom( IParsedElement pe )
+  {
+    if( pe instanceof IClassDeclaration )
     {
-      return ((IClassDeclaration)parsedElement).getGSClass();
+      return ((IClassDeclaration)pe).getGSClass();
     }
-    else if( parsedElement instanceof IExpression )
+    else if( pe instanceof INameInDeclaration )
     {
-      return ((IExpression)parsedElement).getType();
-    }
-    else if( parsedElement instanceof IVarStatement )
-    {
-      //TODO cgross - hack to be removed when we begin parsing the declarations within var statements
-      IVarStatement varStmt = (IVarStatement)parsedElement;
-      IParseTree location = varStmt.getLocation();
-      int caret = getEditor().getCaretPosition();
-      if( caret > location.getOffset() + Keyword.KW_var.length() && location.areAllChildrenAfterPosition( caret ) )
+      pe = pe.getParent();
+      if( pe instanceof IVarStatement )
       {
+        IVarStatement varStmt = (IVarStatement)pe;
         return varStmt.getType();
       }
-    }
-    else if( parsedElement instanceof IForEachStatement )
-    {
-      //TODO cgross - hack to be removed when we begin parsing the declarations within var statements
-      IForEachStatement feStmt = (IForEachStatement)parsedElement;
-      IParseTree location = feStmt.getLocation();
-      int caret = getEditor().getCaretPosition();
-      if( caret > location.getOffset() + Keyword.KW_for.length() && location.areAllChildrenAfterPosition( caret ) )
+      else if( pe instanceof IParameterDeclaration )
       {
-        return feStmt.getIdentifier().getType();
+        return getTypeFrom( pe );
       }
     }
-
+    else if( pe instanceof ILocalVarDeclaration )
+    {
+      ILocalVarDeclaration local = (ILocalVarDeclaration)pe;
+      return local.getSymbol().getType();
+    }
+    else if( pe instanceof IExpression )
+    {
+      return ((IExpression)pe).getType();
+    }
     return null;
   }
 
@@ -3316,66 +3376,44 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
     }
 
     IParsedElement deepestParsedElementAtCaret = deepestParseTree.getParsedElement();
-    gotoReference( deepestParsedElementAtCaret );
+    gotoDeclaration( deepestParsedElementAtCaret );
   }
 
-  private void gotoReference( IParsedElement pe )
+  public void gotoDeclaration( IParsedElement pe )
   {
-    int prevCaretPos = getEditor().getCaretPosition();
-
-    if( pe instanceof IMethodCallExpression )
+    UsageTarget target = UsageTarget.makeTarget( pe );
+    if( target != null )
     {
-      IFunctionSymbol fs = ((IMethodCallExpression)pe).getFunctionSymbol();
-      if( fs instanceof IDynamicFunctionSymbol )
+      IParsedElement targetPe = target.getTargetParsedElement();
+      if( targetPe == null )
       {
-        handleGotoFeature( ((IDynamicFunctionSymbol)fs).getMethodOrConstructorInfo() );
+        return;
       }
-    }
-    else if( pe instanceof IBeanMethodCallExpression )
-    {
-      handleGotoFeature( ((IBeanMethodCallExpression)pe).getMethodDescriptor() );
-    }
-    else if( pe instanceof IMemberAccessExpression )
-    {
-      handleGotoFeature( ((IMemberAccessExpression)pe).getPropertyInfo() );
-    }
-    else if( pe instanceof IIdentifierExpression )
-    {
-      ISymbol symbol = ((IIdentifierExpression)pe).getSymbol();
-      if( symbol instanceof IDynamicPropertySymbol )
-      {
-        handleGotoFeature( ((IDynamicPropertySymbol)symbol).getPropertyInfo() );
-      }
-      else if( symbol instanceof IDynamicSymbol )
-      {
-        handleGotoFeature( symbol.getGosuClass().getTypeInfo().getProperty( symbol.getGosuClass(), symbol.getName() ) );
-      }
-      else if( symbol.isLocal() )
-      {
-        handleGotoLocal( symbol, pe );
-      }
-    }
-    else if( pe instanceof ITypeLiteralExpression )
-    {
-      //## todo: handle when type literal is a constructor call
 
-      handleGotoFeature( ((ITypeLiteralExpression)pe).getType().getType().getTypeInfo() );
-    }
-    else
-    {
-      // If not found, the best thing we can do is display some info on the element
-      displayJavadocHelp( pe.getLocation() );
-    }
+      int prevCaretPos = getEditor().getCaretPosition();
 
-    GosuPanel gosuPanel = RunMe.getEditorFrame().getGosuPanel();
-    GosuEditor currentEditor = gosuPanel.getCurrentEditor();
-    int currentCaretPos = currentEditor.getEditor().getCaretPosition();
-    if( currentEditor == this && currentCaretPos != prevCaretPos )
-    {
-      // Only need to handle navigation within current file,
-      // jumps to other files will be caught as tab selection change events
+      IGosuClass gsClass = targetPe.getGosuClass();
+      if( gsClass != getParsedClass() )
+      {
+        IFile sourceFile = gsClass.getSourceFileHandle().getFile();
+        if( sourceFile != null && sourceFile.isJavaFile() )
+        {
+          RunMe.getEditorFrame().getGosuPanel().openFile( sourceFile.toJavaFile(), true );
+          SettleModalEventQueue.instance().run();
+        }
+      }
+      RunMe.getEditorFrame().getGosuPanel().getCurrentEditor().getEditor().setCaretPosition( targetPe.getLocation().getOffset() );
 
-      gosuPanel.getTabSelectionHistory().addNavigationHistory( this, prevCaretPos, currentCaretPos );
+      GosuPanel gosuPanel = RunMe.getEditorFrame().getGosuPanel();
+      GosuEditor currentEditor = gosuPanel.getCurrentEditor();
+      int currentCaretPos = currentEditor.getEditor().getCaretPosition();
+      if( currentEditor == this && currentCaretPos != prevCaretPos )
+      {
+        // Only need to handle navigation within current file,
+        // jumps to other files will be caught as tab selection change events
+
+        gosuPanel.getTabSelectionHistory().addNavigationHistory( this, prevCaretPos, currentCaretPos );
+      }
     }
   }
 
@@ -3383,109 +3421,6 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
   public String getSelectedText()
   {
     return _editor.getSelectedText();
-  }
-
-  public void handleGotoFeature( IFeatureInfo feature )
-  {
-    if( feature == null )
-    {
-      return;
-    }
-
-    IType ownersType = feature.getOwnersType();
-    if( !(ownersType instanceof IGosuClass) )
-    {
-      return;
-    }
-    IGosuClass gsClass = (IGosuClass)ownersType;
-
-    int offset = 0;
-
-    if( feature instanceof IGosuMethodInfo )
-    {
-      List<IParsedElementWithAtLeastOneDeclaration> res = new ArrayList<>();
-      gsClass.getClassStatement().getContainedParsedElementsByType( IParsedElementWithAtLeastOneDeclaration.class, res );
-      for( IParsedElementWithAtLeastOneDeclaration fs: res )
-      {
-        if( ((IGosuMethodInfo)feature).isMethodForProperty() &&
-            fs instanceof IVarStatement && ((IVarStatement)fs).hasProperty() &&
-            ((IVarStatement)fs).hasProperty() &&
-            ((IVarStatement)fs).getPropertyName().equals( feature.getDisplayName().substring( 1 ) ) )
-        {
-          offset = fs.getNameOffset( ((IVarStatement)fs).getPropertyName() );
-          break;
-        }
-
-        if( fs instanceof IFunctionStatement && feature.equals( ((IFunctionStatement)fs).getDynamicFunctionSymbol().getMethodOrConstructorInfo() )||
-            fs instanceof IPropertyStatement && feature.equals( ((IPropertyStatement)fs).getPropertyGetterOrSetter().getDynamicFunctionSymbol().getMethodOrConstructorInfo() ) )
-        {
-          offset = fs.getNameOffset( feature.getName() );
-          break;
-        }
-      }
-    }
-    else if( feature instanceof IGosuPropertyInfo )
-    {
-      handleGotoFeature( ((IGosuPropertyInfo)feature).getReadMethodInfo() );
-      return;
-    }
-    else if( feature instanceof IGosuVarPropertyInfo )
-    {
-      IGosuVarPropertyInfo varProp = (IGosuVarPropertyInfo)feature;
-      offset = varProp.getOffset();
-    }
-    else if( feature instanceof ITypeInfo )
-    {
-      IGosuClass targetClass = ((IGosuClassTypeInfo)feature).getGosuClass();
-      IClassDeclaration classDeclaration = targetClass.getClassStatement().getClassDeclaration();
-      offset = classDeclaration == null ? 0 : classDeclaration.getNameOffset( null );
-    }
-
-    if( gsClass != getParsedClass() )
-    {
-      IFile sourceFile = gsClass.getSourceFileHandle().getFile();
-      if( sourceFile != null && sourceFile.isJavaFile() )
-      {
-        RunMe.getEditorFrame().getGosuPanel().openFile( sourceFile.toJavaFile() );
-        SettleModalEventQueue.instance().run();
-      }
-    }
-    RunMe.getEditorFrame().getGosuPanel().getCurrentEditor().getEditor().setCaretPosition( offset );
-  }
-
-  public void handleGotoLocal( ISymbol symbol, IParsedElement pe )
-  {
-    IParsedElement functionAtCaret = getRootParsedElement();
-    if( functionAtCaret == null )
-    {
-      return;
-    }
-
-    int offset;
-
-    List<ILocalVarDeclaration> res = new ArrayList<>();
-    IParsedElement root = getRootParsedElement();
-    root.getContainedParsedElementsByType( ILocalVarDeclaration.class, res );
-    for( ILocalVarDeclaration fs: res )
-    {
-      if( symbol == fs.getSymbol() )
-      {
-        offset = fs.getNameOffset( (String)fs.getLocalVarName() );
-        getEditor().setCaretPosition( offset );
-        return;
-      }
-    }
-    List<IVarStatement> v = new ArrayList<>();
-    root.getContainedParsedElementsByType( IVarStatement.class, v );
-    for( IVarStatement fs: v )
-    {
-      if( symbol.equals( fs.getSymbol() ) )
-      {
-        offset = fs.getNameOffset( fs.getIdentifierName() );
-        getEditor().setCaretPosition( offset );
-        return;
-      }
-    }
   }
 
   void displayJavadocHelp( IParseTree parseTree )
@@ -3692,13 +3627,8 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
   public void waitForParser()
   {
     TaskQueue.getInstance( INTELLISENSE_TASK_QUEUE ).postTaskAndWait(
-      new Runnable()
-      {
-        @Override
-        public void run()
-        {
-          //do nothing
-        }
+      () -> {
+        //do nothing
       } );
   }
 
@@ -3919,7 +3849,7 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
       {
         _bEnterPressedConsumed = e.isConsumed() || isIntellisensePopupShowing();
       }
-      else if( e.getKeyChar() == KeyEvent.VK_SPACE && (e.getModifiers() & InputEvent.CTRL_MASK) > 0 )
+      else if( e.getKeyChar() == KeyEvent.VK_SPACE && (e.getModifiers() & EditorUtilities.CONTROL_KEY_MASK) > 0 )
       {
         _bAltDown = (e.getModifiers() & InputEvent.ALT_MASK) > 0;
         if( !isIntellisensePopupShowing() )
@@ -4250,10 +4180,9 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
 
   public void clipCut( Clipboard clipboard )
   {
+    getUndoManager().beginUndoAtom( "Cut" );
     try
     {
-      getUndoManager().beginUndoAtom( "Cut" );
-
       clipCopy( clipboard );
       delete();
     }
@@ -4294,11 +4223,12 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
       try
       {
         String strContents = (String)t.getTransferData( DataFlavor.stringFlavor );
-        if ( asGosu )
+        if( asGosu )
         {
           strContents = JavaToGosu.convertString( strContents );
-          if ("".equals(strContents)) {
-            JOptionPane.showMessageDialog( getEditor() , "The copied Java code has errors, only valid Java 8 code can be transformed", "Paste Java as Gosu", JOptionPane.ERROR_MESSAGE);
+          if( "".equals( strContents ) )
+          {
+            JOptionPane.showMessageDialog( getEditor(), "The copied Java code has errors, only valid Java 8 code can be transformed", "Paste Java as Gosu", JOptionPane.ERROR_MESSAGE );
             return;
           }
         }

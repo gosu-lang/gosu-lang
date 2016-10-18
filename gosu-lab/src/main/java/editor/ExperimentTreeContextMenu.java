@@ -4,6 +4,7 @@ import editor.util.EditorUtilities;
 import editor.util.PlatformUtil;
 import editor.util.Experiment;
 import editor.util.SmartMenu;
+import editor.util.SmartMenuItem;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.gs.IGosuClass;
 
@@ -40,25 +41,34 @@ public class ExperimentTreeContextMenu implements IContextMenuHandler<JTree>
     NewFilePopup.addMenuItems( newMenu );
     menu.add( newMenu );
     menu.add( new JSeparator() );
-    menu.add( new JMenuItem( new OpenAction( tree ) ) );
+    menu.add( new SmartMenuItem( new OpenAction( tree ) ) );
     menu.add( new JSeparator() );
-    menu.add( new JMenuItem( new OpenOnDesktopAction( tree ) ) );
+    menu.add( new SmartMenuItem( new OpenOnDesktopAction( tree ) ) );
     menu.add( new JSeparator() );
-    menu.add( new JMenuItem( new ClipCutAction( tree ) ) );
-    menu.add( new JMenuItem( new ClipCopyAction( tree ) ) );
-    menu.add( new JMenuItem( new ClipPasteAction( tree ) ) );
+    menu.add( new SmartMenuItem( new ClipCutAction( tree ), false ) );
+    menu.add( new SmartMenuItem( new ClipCopyAction( tree ), false ) );
+    menu.add( new SmartMenuItem( new ClipPasteAction( tree ), false ) );
     menu.add( new JSeparator() );
-    menu.add( new JMenuItem( new DeleteAction( tree ) ) );
+    menu.add( new SmartMenuItem( new DeleteAction( tree ), false ) );
+    menu.add( new JSeparator() );
 
     FileTree item = (FileTree)tree.getLastSelectedPathComponent();
+
+    menu.add( new SmartMenuItem( new CommonMenus.FindInPathActionHandler( () -> item ) ) );
+    menu.add( new SmartMenuItem( new CommonMenus.ReplaceInPathActionHandler( () -> item ) ) );
+
+    menu.add( new JSeparator() );
+
+    menu.add( new SmartMenuItem( new CommonMenus.FindUsagesInPathActionHandler( () -> item ) ) );
+
     if( item != null )
     {
       IType type = item.getType();
-      if( type instanceof IGosuClass )
+      if( EditorUtilities.isRunnable( type ) )
       {
         menu.add( new JSeparator() );
-        menu.add( CommonMenus.makeRun( () -> type ) );
-        menu.add( CommonMenus.makeDebug( () -> type ) );
+        menu.add( CommonMenus.makeRun( () -> _experiment.getOrCreateRunConfig( type ) ) );
+        menu.add( CommonMenus.makeDebug( () -> _experiment.getOrCreateRunConfig( type ) ) );
       }
     }
     return menu;
@@ -132,7 +142,7 @@ public class ExperimentTreeContextMenu implements IContextMenuHandler<JTree>
       FileTree item = (FileTree)_tree.getLastSelectedPathComponent();
       if( item != null )
       {
-        _experiment.getGosuPanel().openFile( item.getFileOrDir() );
+        _experiment.getGosuPanel().openFile( item.getFileOrDir(), true );
       }
     }
   }

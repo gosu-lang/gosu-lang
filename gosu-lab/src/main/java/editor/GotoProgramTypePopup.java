@@ -1,10 +1,9 @@
 package editor;
 
-import editor.search.StudioUtilities;
+import editor.util.EditorUtilities;
 import editor.util.Experiment;
 
 import javax.swing.text.JTextComponent;
-import javax.swing.tree.TreeModel;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -35,7 +34,7 @@ public class GotoProgramTypePopup extends GotoTypePopup
         host.requestFocus();
       } );
     valuePopup.getNameField().setText( prefix );
-    valuePopup.show( StudioUtilities.rootPaneForComponent( host ), 0, 0 );
+    valuePopup.show( EditorUtilities.rootPaneForComponent( host ), 0, 0 );
   }
 
   public GotoProgramTypePopup( String strPrefix )
@@ -46,9 +45,8 @@ public class GotoProgramTypePopup extends GotoTypePopup
   @Override
   protected List<String> initializeData()
   {
-    TreeModel model = RunMe.getEditorFrame().getGosuPanel().getExperimentView().getTree().getModel();
-    FileTree root = (FileTree)model.getRoot();
-    List<String> progs = new ArrayList<String>();
+    FileTree root = FileTreeUtil.getRoot();
+    List<String> progs = new ArrayList<>();
     findProgs( root, progs );
     return progs;
   }

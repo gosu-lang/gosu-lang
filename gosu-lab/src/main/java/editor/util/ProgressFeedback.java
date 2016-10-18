@@ -1,7 +1,6 @@
 package editor.util;
 
 import editor.RunMe;
-import editor.search.StudioUtilities;
 import gw.util.GosuExceptionUtil;
 
 import javax.swing.*;
@@ -66,7 +65,7 @@ public class ProgressFeedback implements IProgressCallback, ActionListener
         }
         catch( Throwable e )
         {
-          StudioUtilities.handleUncaughtException( e );
+          EditorUtilities.handleUncaughtException( e );
         }
         finally
         {
@@ -114,17 +113,13 @@ public class ProgressFeedback implements IProgressCallback, ActionListener
           {
             done[0] = true;
             done.notifyAll();
-            SwingUtilities.invokeLater( new Runnable()
-            {
-              public void run()
+            SwingUtilities.invokeLater( () -> {
+              synchronized( waitDialog )
               {
-                synchronized( waitDialog )
+                if( waitDialog[0] != null )
                 {
-                  if( waitDialog[0] != null )
-                  {
-                    waitDialog[0].stopTimer();
-                    waitDialog[0].dispose();
-                  }
+                  waitDialog[0].stopTimer();
+                  waitDialog[0].dispose();
                 }
               }
             } );
@@ -138,12 +133,12 @@ public class ProgressFeedback implements IProgressCallback, ActionListener
     {
       try
       {
-        StudioUtilities.showWaitCursor( true );
+        EditorUtilities.showWaitCursor( true );
         localDone = shortWait( 2900L, done );
       }
       finally
       {
-        StudioUtilities.showWaitCursor( false );
+        EditorUtilities.showWaitCursor( false );
       }
     }
     if( !localDone )
@@ -237,65 +232,57 @@ public class ProgressFeedback implements IProgressCallback, ActionListener
       return;
     }
 
-    StudioUtilities.invokeInDispatchThread( new Runnable()
-    {
-      public void run()
+    EditorUtilities.invokeInDispatchThread( () -> {
+      if( _bShowInStudioGlassPane )
       {
-        if( _bShowInStudioGlassPane )
-        {
-          LabGlassPane.getInstance().removeModalComponent( _pp );
-        }
-        else
-        {
-          _pw.dispose();
-        }
-        _pp = null;
-        _pw = null;
+        LabGlassPane.getInstance().removeModalComponent( _pp );
       }
+      else
+      {
+        _pw.dispose();
+      }
+      _pp = null;
+      _pw = null;
     } );
   }
 
   private void startTimer()
   {
-    _timer = new Timer( UPDATE_DELAY, new ActionListener()
-    {
-      public void actionPerformed( ActionEvent e )
+    _timer = new Timer( UPDATE_DELAY, e -> {
+      if( !GraphicsEnvironment.isHeadless() )
       {
-        if( !GraphicsEnvironment.isHeadless() )
+        if( _pp == null )
         {
-          if( _pp == null )
+          _pp = new ProgressPanel( _length, _strNotice, ProgressFeedback.this, _bHideAbortButton );
+          _pp.setSize( _pp.getPreferredSize() );
+          if( _pp.getWidth() < 400 )
           {
-            _pp = new ProgressPanel( _length, _strNotice, ProgressFeedback.this, _bHideAbortButton );
-            _pp.setSize( _pp.getPreferredSize() );
-            if( _pp.getWidth() < 400 )
-            {
-              Dimension size = new Dimension( 400, _pp.getHeight() );
-              _pp.setSize( size );
-              _pp.setPreferredSize( size );
-            }
-            if( _bShowInStudioGlassPane )
-            {
-              LabGlassPane.getInstance().addModalComponent( _pp );
-            }
-            else
-            {
-              _pw = new ProgressWindow( _pp );
-              _pw.show();
-            }
+            Dimension size = new Dimension( 400, _pp.getHeight() );
+            _pp.setSize( size );
+            _pp.setPreferredSize( size );
           }
-
-          if( _changeLength )
+          if( _bShowInStudioGlassPane )
           {
-            _pp.setLength( _length );
-            _changeLength = false;
+            LabGlassPane.getInstance().addModalComponent( _pp );
           }
-
-          _pp.updateProgress( _currentValue, _currentMessage );
+          else
+          {
+            _pw = new ProgressWindow( _pp );
+            _pw.show();
+          }
         }
-        if( _bAbort )
+
+        if( _changeLength )
         {
-          _timer.stop();
+          _pp.setLength( _length );
+          _changeLength = false;
         }
+
+        _pp.updateProgress( _currentValue, _currentMessage );
+      }
+      if( _bAbort )
+      {
+        _timer.stop();
       }
     } );
     _timer.setRepeats( true );
@@ -343,8 +330,7 @@ public class ProgressFeedback implements IProgressCallback, ActionListener
     }
     else
     {
-      String resolved = strMessage;
-      _currentMessage = resolved;
+      _currentMessage = strMessage;
     }
   }
 

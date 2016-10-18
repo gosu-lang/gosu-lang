@@ -1,10 +1,12 @@
 package editor.shipit;
 
 import editor.GotoProgramTypePopup;
+import editor.IHandleCancel;
 import editor.RunMe;
-import editor.search.StudioUtilities;
+import editor.Scheme;
 import editor.util.EditorUtilities;
 import editor.util.Experiment;
+import editor.util.LabCheckbox;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.gs.IGosuProgram;
@@ -13,18 +15,16 @@ import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.KeyEvent;
 
 /**
  */
-public class ShipItDialog extends JDialog
+public class ShipItDialog extends JDialog implements IHandleCancel
 {
   private String _strProgramName;
   private boolean _bBundleGosu;
   private Experiment _experiment;
-  private JCheckBox _cbBundleGosu;
-  private JCheckBox _cbPrecompile;
+  private LabCheckbox _cbBundleGosu;
+  private LabCheckbox _cbPrecompile;
   private JTextField _fieldProgramName;
   private JButton _btnOk;
   private JLabel _errorMsg;
@@ -32,6 +32,7 @@ public class ShipItDialog extends JDialog
   public ShipItDialog( Experiment experiment )
   {
     super( RunMe.getEditorFrame(), "Ship It!", true );
+    setIconImage( EditorUtilities.loadIcon( "images/shipit.png" ).getImage() );
     _experiment = experiment;
     configUi();
   }
@@ -132,7 +133,7 @@ public class ShipItDialog extends JDialog
     c.weightx = 1;
     c.weighty = 0;
     c.insets = new Insets( 2, 2, 0, 0 );
-    mainPanel.add( _cbBundleGosu = new JCheckBox( "Bundle Gosu runtime", true ), c );
+    mainPanel.add( _cbBundleGosu = new LabCheckbox( "Bundle Gosu runtime", true ), c );
     _cbBundleGosu.setToolTipText( "<html>This option bundles a copy of Gosu in your jar.  Without this option your jar<br>" +
                                   "uses a compatible version of Gosu installed on the user's machine, if one <br>" +
                                   "exits.  Otherwise, the jar automatically installs Gosu after prompting for <br>" +
@@ -147,7 +148,7 @@ public class ShipItDialog extends JDialog
     c.weightx = 1;
     c.weighty = 0;
     c.insets = new Insets( 2, 2, 0, 0 );
-    mainPanel.add( _cbPrecompile = new JCheckBox( "Precompile Source", true ), c );
+    mainPanel.add( _cbPrecompile = new LabCheckbox( "Precompile Source", true ), c );
     _cbPrecompile.setToolTipText( "<html>This option fully compiles your experiment and includes resulting .class files<br>" +
                                   "in your jar.  The upside: your experiment may load faster; the downside: your<br>" +
                                   "jar file will be a little larger.  Note precompilation is optional since Gosu's<br>" +
@@ -209,11 +210,11 @@ public class ShipItDialog extends JDialog
     south.add( buttonPanel, BorderLayout.EAST );
     contentPane.add( south, BorderLayout.SOUTH );
 
-    mapCancelKeystroke();
+    mapCancelKeystroke( "Cancel", this::close );
 
     setSize( 540, 465 );
 
-    StudioUtilities.centerWindowInFrame( this, getOwner() );
+    EditorUtilities.centerWindowInFrame( this, getOwner() );
   }
 
   private void displayProgramPopup()
@@ -235,24 +236,6 @@ public class ShipItDialog extends JDialog
   {
     _strProgramName = _fieldProgramName.getText();
     _bBundleGosu = _cbBundleGosu.isSelected();
-  }
-
-  private void mapCancelKeystroke()
-  {
-    Object key = getRootPane().getInputMap( JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT ).get( KeyStroke.getKeyStroke( KeyEvent.VK_ESCAPE, 0 ) );
-    if( key == null )
-    {
-      key = "Cancel";
-      getRootPane().getInputMap( JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT ).put( KeyStroke.getKeyStroke( KeyEvent.VK_ESCAPE, 0 ), key );
-    }
-    getRootPane().getActionMap().put( key,
-                                      new AbstractAction()
-                                      {
-                                        public void actionPerformed( ActionEvent e )
-                                        {
-                                          close();
-                                        }
-                                      } );
   }
 
   private void close()
@@ -298,7 +281,7 @@ public class ShipItDialog extends JDialog
         IType type = TypeSystem.getByFullNameIfValid( fqn );
         if( type instanceof IGosuProgram )
         {
-          _fieldProgramName.setForeground( SystemColor.windowText );
+          _fieldProgramName.setForeground( Scheme.active().getWindowText() );
           _btnOk.setEnabled( true );
           _errorMsg.setText( " " );
         }

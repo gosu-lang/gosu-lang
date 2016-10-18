@@ -1,11 +1,14 @@
 package editor;
 
+import com.sun.jdi.Location;
 import com.sun.jdi.VirtualMachine;
-import editor.actions.UpdateNotifier;
 import editor.debugger.BreakpointManager;
+import editor.debugger.DebugPanel;
 import editor.debugger.Debugger;
-import editor.search.StandardLocalSearch;
-import editor.search.StudioUtilities;
+import editor.run.IProcessRunner;
+import editor.run.IRunConfig;
+import editor.run.RunState;
+import editor.search.SearchPanel;
 import editor.shipit.BuildIt;
 import editor.shipit.ShipIt;
 import editor.splitpane.CollapsibleSplitPane;
@@ -17,10 +20,12 @@ import editor.util.BrowserUtil;
 import editor.util.EditorUtilities;
 import editor.util.Experiment;
 import editor.util.GosuTextifier;
+import editor.util.LabToolbarButton;
 import editor.util.LabelListPopup;
-import editor.util.PlatformUtil;
 import editor.util.SettleModalEventQueue;
 import editor.util.SmartMenu;
+import editor.util.SmartMenuItem;
+import editor.util.ToolBar;
 import editor.util.TypeNameUtil;
 import gw.internal.ext.org.objectweb.asm.ClassReader;
 import gw.internal.ext.org.objectweb.asm.util.TraceClassVisitor;
@@ -48,7 +53,6 @@ import javax.swing.filechooser.FileFilter;
 import javax.swing.text.AbstractDocument;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.Element;
-import javax.swing.tree.TreeModel;
 import javax.swing.undo.CompoundEdit;
 import java.awt.*;
 import java.awt.datatransfer.Clipboard;
@@ -58,13 +62,15 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
+import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStreamWriter;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
 import java.io.PrintWriter;
+import java.io.Reader;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.util.ArrayList;
@@ -102,6 +108,8 @@ public class GosuPanel extends JPanel
   private SysInListener _sysInListener;
   private InputStream _oldIn;
   private MessagesPanel _messages;
+  private SearchPanel _searches;
+  private DebugPanel _debugPanel;
   private IProcessRunner _processRunner;
   private BreakpointManager _breakpointManager;
   private Debugger _debugger;
@@ -125,12 +133,9 @@ public class GosuPanel extends JPanel
   {
     setLayout( new BorderLayout() );
 
-    _bottomTabPane = new TabPane( TabPane.MINIMIZABLE | TabPane.RESTORABLE );
-
-    _messages = new MessagesPanel();
-
-    _consolePanel = new SystemPanel();
-    _bottomTabPane.addTab( "Console", null, _consolePanel );
+    JPanel bottom = new JPanel( new BorderLayout() );
+    _bottomTabPane = new TabPane( TabPane.MINIMIZABLE | TabPane.RESTORABLE | TabPane.TOP_BORDER_ONLY | TabPane.DYNAMIC );
+    bottom.add( _bottomTabPane, BorderLayout.CENTER );
 
     _editorTabPane = new TabPane( TabPosition.TOP, TabPane.DYNAMIC | TabPane.MIN_MAX_REST );
 
@@ -150,35 +155,116 @@ public class GosuPanel extends JPanel
         {
           return;
         }
-        getCurrentEditor().getEditor().requestFocus();
+        // Don't set focus here, otherwise it could be stealing it from somewhere that wants it after it instructed Lab to display an editor,
+        // but wants to retain focus, like the debug panel when switching between stakc frames.
+        //getCurrentEditor().getEditor().requestFocus();
         parse();
         storeExperimentState();
       } );
 
     _experimentView = new ExperimentView();
-    _experimentView.setBackground( Color.white );
+    _experimentView.setBackground( Scheme.active().getWindow() );
     TabPane experimentViewTabPane = new TabPane( TabPosition.TOP, TabPane.MINIMIZABLE | TabPane.RESTORABLE | TabPane.TOP_BORDER_ONLY );
     experimentViewTabPane.addTab( "Experiment", null, _experimentView );
 
 
     _splitPane = new CollapsibleSplitPane( SwingConstants.HORIZONTAL, experimentViewTabPane, _editorTabPane );
-    _outerSplitPane = new CollapsibleSplitPane( SwingConstants.VERTICAL, _splitPane, _bottomTabPane );
+    _outerSplitPane = new CollapsibleSplitPane( SwingConstants.VERTICAL, _splitPane, bottom );
 
     add( _outerSplitPane, BorderLayout.CENTER );
 
     JPanel statPanel = makeStatusBar();
     add( statPanel, BorderLayout.SOUTH );
 
+    ToolBar toolbar = makeMainToolbar();
+    add( toolbar, BorderLayout.NORTH );
+
     JMenuBar menuBar = makeMenuBar();
     _parentFrame.setJMenuBar( menuBar );
     handleMacStuff();
 
-    EventQueue.invokeLater( () -> {
-      setExperimentSplitPosition( 70 );
-      setEditorSplitPosition( 20 );
-    } );
+
+    EventQueue.invokeLater( () -> _outerSplitPane.collapseBottom( _bottomTabPane ) );
 
     EventQueue.invokeLater( this::mapKeystrokes );
+  }
+
+  private ToolBar makeMainToolbar()
+  {
+    ToolBar toolbar = new ToolBar();
+    toolbar.setDynamicBorder( BorderFactory.createCompoundBorder( BorderFactory.createMatteBorder( 1, 0, 0, 0, Scheme.active().getControlLigthShadow() ), BorderFactory.createEmptyBorder( 1, 1, 2, 1 ) ) );
+    LabToolbarButton item;
+
+    item = new LabToolbarButton( new CommonMenus.OpenProjectActionHandler() );
+    toolbar.add( item );
+    item = new LabToolbarButton( new CommonMenus.SaveActionHandler() );
+    toolbar.add( item );
+
+    toolbar.add( makeSeparator() );
+
+    item = new LabToolbarButton( new CommonMenus.UndoActionHandler() );
+    toolbar.add( item );
+    item = new LabToolbarButton( new CommonMenus.RedoActionHandler() );
+    toolbar.add( item );
+
+    toolbar.add( makeSeparator() );
+
+    item = new LabToolbarButton( new CommonMenus.CutActionHandler( this::getCurrentEditor ) );
+    toolbar.add( item );
+    item = new LabToolbarButton( new CommonMenus.CopyActionHandler( this::getCurrentEditor ) );
+    toolbar.add( item );
+    item = new LabToolbarButton( new CommonMenus.PasteActionHandler( this::getCurrentEditor ) );
+    toolbar.add( item );
+
+    toolbar.add( makeSeparator() );
+
+    item = new LabToolbarButton( new CommonMenus.FindActionHandler( this::getCurrentEditor ) );
+    toolbar.add( item );
+    item = new LabToolbarButton( new CommonMenus.ReplaceActionHandler( this::getCurrentEditor ) );
+    toolbar.add( item );
+
+    toolbar.add( makeSeparator() );
+
+    item = new LabToolbarButton( new CommonMenus.CompileActionHandler() );
+    toolbar.add( item );
+
+    toolbar.add( makeSeparator() );
+
+    item = new LabToolbarButton( new CommonMenus.ClearAndRunActionHandler( this::getRunConfig ) );
+    item.setToolTipSupplier( () -> {
+      IRunConfig rc = getRunConfig();
+      return rc == null ? "Run..." : "Run '" + rc.getName() + "'";
+    } );
+    toolbar.add( item );
+
+    item = new LabToolbarButton( new CommonMenus.ClearAndDebugActionHandler( this::getRunConfig ) );
+    item.setToolTipSupplier( () -> {
+      IRunConfig rc = getRunConfig();
+      return rc == null ? "Debug..." : "Debug '" + rc.getName() + "'";
+    } );
+    toolbar.add( item );
+
+    toolbar.add( makeSeparator() );
+
+    item = new LabToolbarButton( new CommonMenus.ShipItActionHandler() );
+    toolbar.add( item );
+
+    return toolbar;
+  }
+  private JComponent makeSeparator()
+  {
+    JPanel separator = new JPanel( new BorderLayout() ) {
+      @Override
+      protected void paintComponent( Graphics g )
+      {
+        super.paintComponent( g );
+        g.setColor( Scheme.active().getSeparator2() );
+        g.drawLine( getWidth()/2, 0, getWidth()/2, getHeight()-1 );
+      }
+    };
+    separator.setMaximumSize( new Dimension( 9, 20 ) );
+    separator.setBackground( Scheme.active().getMenu() );
+    return separator;
   }
 
   public ExperimentView getExperimentView()
@@ -191,44 +277,77 @@ public class GosuPanel extends JPanel
     return _messages;
   }
 
+  public SearchPanel getSearchPanel()
+  {
+    return _searches;
+  }
+  
   public SystemPanel getConsolePanel()
   {
     return _consolePanel;
   }
 
-  public void showMessages( boolean bShow )
+  public DebugPanel getDebugPanel()
+  {
+    return _debugPanel;
+  }
+
+  public MessagesPanel showMessages( boolean bShow )
+  {
+    return _messages = showTab( bShow, "Messages", null, _messages, MessagesPanel::new );
+  }
+
+  public SearchPanel showSearches( boolean bShow )
+  {
+    return _searches = showTab( bShow, "Search", null, _searches, SearchPanel::new );
+  }
+
+  public SystemPanel showConsole( boolean bShow )
+  {
+    return _consolePanel = showTab( bShow, "Console", EditorUtilities.loadIcon( "images/console.png" ), _consolePanel, SystemPanel::new );
+  }
+
+  public <P extends JComponent> P showTab( boolean bShow, String title, Icon icon, P panel, Supplier<P> creator )
   {
     if( bShow )
     {
-      ITab tab = _bottomTabPane.findTabWithContent( _messages );
+      EventQueue.invokeLater( _outerSplitPane::restorePane );
+
+      ITab tab = _bottomTabPane.findTabWithContent( panel );
       if( tab == null )
       {
-        _bottomTabPane.addTab( "Messages", null, _messages );
+        panel = creator.get();
+        _bottomTabPane.addTab( title, icon, panel );
+        return panel;
       }
       else
       {
         _bottomTabPane.selectTab( tab, false );
+        return panel;
       }
     }
     else
     {
-      _messages.clear();
-      _bottomTabPane.removeTabWithContent( _messages );
+      _bottomTabPane.removeTabWithContent( panel );
+      EventQueue.invokeLater( () -> {
+        SettleModalEventQueue.instance().run();
+        if( _bottomTabPane.getTabCount() == 0 && !_outerSplitPane.isMin() )
+        {
+          _outerSplitPane.toggleCollapse( _bottomTabPane );
+        }
+      } );
+      return null;
     }
-  }
-
-  public void showConsole()
-  {
-    _bottomTabPane.selectTabWithContent( _consolePanel, false );
   }
 
   private void handleMacStuff()
   {
-    if( PlatformUtil.isMac() )
-    {
-      System.setProperty( "apple.laf.useScreenMenuBar", "true" );
-      System.setProperty( "com.apple.mrj.application.apple.menu.about.name", "Gosu Editor" );
-    }
+//## we are using a plaform independent LAF now with menubar on the frame where it belongs
+//    if( PlatformUtil.isMac() )
+//    {
+//      System.setProperty( "apple.laf.useScreenMenuBar", "true" );
+//      System.setProperty( "com.apple.mrj.application.apple.menu.about.name", "Gosu Editor" );
+//    }
   }
 
   public void clearTabs()
@@ -243,6 +362,7 @@ public class GosuPanel extends JPanel
       _editorTabPane.setVisible( true );
     }
     showMessages( false );
+    showSearches( false );
     SettleModalEventQueue.instance().run();
     getTabSelectionHistory().dispose();
   }
@@ -253,11 +373,11 @@ public class GosuPanel extends JPanel
     {
       return;
     }
-    getExperiment().save( _editorTabPane );
+    getExperiment().save();
     EditorUtilities.saveLayoutState( _experiment );
   }
 
-  Experiment getExperiment()
+  public Experiment getExperiment()
   {
     return _experiment;
   }
@@ -266,13 +386,7 @@ public class GosuPanel extends JPanel
   {
     _experiment = experiment;
 
-    if( experiment.getSourcePath().size() > 0 )
-    {
-      //Gosu.setClasspath( experiment.getSourcePath().stream().map( File::new ).collect( Collectors.toList() ) );
-      RunMe.reinitializeGosu( experiment );
-    }
-
-    //TypeSystem.refresh( TypeSystem.getGlobalModule() );
+    RunMe.reinitializeGosu( experiment );
 
     RunMe.getEditorFrame().addExperiment( experiment );
 
@@ -281,17 +395,17 @@ public class GosuPanel extends JPanel
       File file = new File( openFile );
       if( file.isFile() )
       {
-        openFile( file );
+        openFile( file, false );
       }
     }
     String activeFile = experiment.getActiveFile();
     if( activeFile == null )
     {
-      openFile( experiment.getOrMakeUntitledProgram() );
+      openFile( experiment.getOrMakeUntitledProgram(), true );
     }
     else
     {
-      openTab( new File( activeFile ) );
+      openTab( new File( activeFile ), true );
     }
     SettleModalEventQueue.instance().run();
     _experimentView.load( _experiment );
@@ -444,7 +558,7 @@ public class GosuPanel extends JPanel
     helpMenu.setMnemonic( 'H' );
     menuBar.add( helpMenu );
 
-    JMenuItem gosuItem = new JMenuItem(
+    JMenuItem gosuItem = new SmartMenuItem(
       new AbstractAction( "Gosu Online" )
       {
         @Override
@@ -458,7 +572,7 @@ public class GosuPanel extends JPanel
 
     helpMenu.addSeparator();
 
-    JMenuItem helpItem = new JMenuItem(
+    JMenuItem helpItem = new SmartMenuItem(
       new AbstractAction( "The Basics" )
       {
         @Override
@@ -472,7 +586,7 @@ public class GosuPanel extends JPanel
 
     helpMenu.addSeparator();
 
-    JMenuItem playItem = new JMenuItem(
+    JMenuItem playItem = new SmartMenuItem(
       new AbstractAction( "Web Editor" )
       {
         @Override
@@ -486,7 +600,7 @@ public class GosuPanel extends JPanel
 
     helpMenu.addSeparator();
 
-    JMenuItem discussItem = new JMenuItem(
+    JMenuItem discussItem = new SmartMenuItem(
       new AbstractAction( "Discuss" )
       {
         @Override
@@ -500,7 +614,7 @@ public class GosuPanel extends JPanel
 
     helpMenu.addSeparator();
 
-    JMenuItem plugin = new JMenuItem(
+    JMenuItem plugin = new SmartMenuItem(
       new AbstractAction( "IntelliJ Plugin" )
       {
         @Override
@@ -519,7 +633,7 @@ public class GosuPanel extends JPanel
     windowMenu.setMnemonic( 'W' );
     menuBar.add( windowMenu );
 
-    JMenuItem previousItem = new JMenuItem(
+    JMenuItem previousItem = new SmartMenuItem(
       new AbstractAction( "Previous Editor" )
       {
         @Override
@@ -537,7 +651,7 @@ public class GosuPanel extends JPanel
     previousItem.setAccelerator( KeyStroke.getKeyStroke( "alt LEFT" ) );
     windowMenu.add( previousItem );
 
-    JMenuItem nextItem = new JMenuItem(
+    JMenuItem nextItem = new SmartMenuItem(
       new AbstractAction( "Next Editor" )
       {
         @Override
@@ -559,7 +673,7 @@ public class GosuPanel extends JPanel
     windowMenu.addSeparator();
 
 
-    JMenuItem recentItem = new JMenuItem(
+    JMenuItem recentItem = new SmartMenuItem(
       new AbstractAction( "Recent Editors" )
       {
         @Override
@@ -569,14 +683,14 @@ public class GosuPanel extends JPanel
         }
       } );
     recentItem.setMnemonic( 'R' );
-    recentItem.setAccelerator( KeyStroke.getKeyStroke( "control E" ) );
+    recentItem.setAccelerator( KeyStroke.getKeyStroke( EditorUtilities.CONTROL_KEY_NAME + " E" ) );
     windowMenu.add( recentItem );
 
 
     windowMenu.addSeparator();
 
 
-    JMenuItem closeActiveItem = new JMenuItem(
+    JMenuItem closeActiveItem = new SmartMenuItem(
       new AbstractAction( "Close Active Editor" )
       {
         @Override
@@ -587,10 +701,10 @@ public class GosuPanel extends JPanel
         }
       } );
     closeActiveItem.setMnemonic( 'C' );
-    closeActiveItem.setAccelerator( KeyStroke.getKeyStroke( "control F4" ) );
+    closeActiveItem.setAccelerator( KeyStroke.getKeyStroke( EditorUtilities.CONTROL_KEY_NAME + " F4" ) );
     windowMenu.add( closeActiveItem );
 
-    JMenuItem closeOthersItem = new JMenuItem(
+    JMenuItem closeOthersItem = new SmartMenuItem(
       new AbstractAction( "Close Others" )
       {
         @Override
@@ -621,7 +735,7 @@ public class GosuPanel extends JPanel
 
     codeMenu.addSeparator();
 
-    JMenuItem openTypeItem = new JMenuItem(
+    JMenuItem openTypeItem = new SmartMenuItem(
       new AbstractAction( "Open Type..." )
       {
         @Override
@@ -631,13 +745,13 @@ public class GosuPanel extends JPanel
         }
       } );
     openTypeItem.setMnemonic( 'O' );
-    openTypeItem.setAccelerator( KeyStroke.getKeyStroke( "control N" ) );
+    openTypeItem.setAccelerator( KeyStroke.getKeyStroke( EditorUtilities.CONTROL_KEY_NAME + " N" ) );
     codeMenu.add( openTypeItem );
 
     if( "true".equals( System.getProperty( "spec" ) ) )
     {
       codeMenu.addSeparator();
-      JMenuItem markItem = new JMenuItem(
+      JMenuItem markItem = new SmartMenuItem(
         new AbstractAction( "Mark Errors For Gosu Language Test" )
         {
           @Override
@@ -647,12 +761,12 @@ public class GosuPanel extends JPanel
           }
         } );
       markItem.setMnemonic( 'M' );
-      markItem.setAccelerator( KeyStroke.getKeyStroke( "control M" ) );
+      markItem.setAccelerator( KeyStroke.getKeyStroke( EditorUtilities.CONTROL_KEY_NAME + " M" ) );
       codeMenu.add( markItem );
     }
 
     codeMenu.addSeparator();
-    JMenuItem viewBytecodeItem = new JMenuItem(
+    JMenuItem viewBytecodeItem = new SmartMenuItem(
       new AbstractAction( "View Bytecode" )
       {
         @Override
@@ -677,34 +791,18 @@ public class GosuPanel extends JPanel
     buildMenu.setMnemonic( 'b' );
     menuBar.add( buildMenu );
 
-    JMenuItem compileMenu = new JMenuItem(
-      new AbstractAction( "Compile" )
-      {
-        @Override
-        public void actionPerformed( ActionEvent e )
-        {
-          compile();
-        }
-      } );
+    JMenuItem compileMenu = new SmartMenuItem( new CommonMenus.CompileActionHandler() );
     compileMenu.setMnemonic( 'c' );
-    compileMenu.setAccelerator( KeyStroke.getKeyStroke( "control F9" ) );
+    compileMenu.setAccelerator( KeyStroke.getKeyStroke( EditorUtilities.CONTROL_KEY_NAME + " F9" ) );
     buildMenu.add( compileMenu );
 
 
     buildMenu.addSeparator();
 
 
-    JMenuItem shipIt = new JMenuItem(
-      new AbstractAction( "Ship It! ..." )
-      {
-        @Override
-        public void actionPerformed( ActionEvent e )
-        {
-          shipIt();
-        }
-      } );
+    JMenuItem shipIt = new SmartMenuItem( new CommonMenus.ShipItActionHandler() );
     shipIt.setMnemonic( 'p' );
-    shipIt.setAccelerator( KeyStroke.getKeyStroke( "control F10" ) );
+    shipIt.setAccelerator( KeyStroke.getKeyStroke( EditorUtilities.CONTROL_KEY_NAME + " F10" ) );
     buildMenu.add( shipIt );
   }
 
@@ -714,13 +812,29 @@ public class GosuPanel extends JPanel
     return selectedTab == null ? null : (GosuEditor)selectedTab.getContentPane();
   }
 
-  public IType getCurrentEditorType()
+  public IRunConfig getRunConfig()
   {
-    return getCurrentEditor() == null
-           ? null
-           : getCurrentEditor().getScriptPart() == null
-             ? null
-             : getCurrentEditor().getScriptPart().getContainingType();
+    // Get the current editor's type
+
+    IType type = getCurrentEditor() == null
+                 ? null
+                 : getCurrentEditor().getScriptPart() == null
+                   ? null
+                   : getCurrentEditor().getScriptPart().getContainingType();
+
+    if( !EditorUtilities.isRunnable( type ) )
+    {
+      type = null;
+
+      // The current type is not runnable, use the most recently run type
+
+      IRunConfig mruRunConfig = getExperiment() == null ? null : getExperiment().getMruRunConfig();
+      if( mruRunConfig != null && mruRunConfig.isValid() )
+      {
+        return mruRunConfig;
+      }
+    }
+    return type == null ? null : getExperiment() == null ? null : getExperiment().getOrCreateRunConfig( type ) ;
   }
 
   private void makeRunMenu( JMenuBar menuBar )
@@ -729,13 +843,11 @@ public class GosuPanel extends JPanel
     runMenu.setMnemonic( 'R' );
     menuBar.add( runMenu );
 
-    runMenu.add( CommonMenus.makeRun( this::getCurrentEditorType ) );
-    runMenu.add( CommonMenus.makeDebug( this::getCurrentEditorType ) );
+    runMenu.add( CommonMenus.makeRun( this::getRunConfig ) );
+    runMenu.add( CommonMenus.makeDebug( this::getRunConfig ) );
 
-    JMenuItem runRecentItem = new JMenuItem( new RunRecentActionHandler() );
-    runRecentItem.setMnemonic( 'C' );
-    runRecentItem.setAccelerator( KeyStroke.getKeyStroke( "control F5" ) );
-    runMenu.add( runRecentItem );
+    runMenu.add( CommonMenus.makeRunConfig() );
+    runMenu.add( CommonMenus.makeDebugConfig() );
 
     runMenu.addSeparator();
 
@@ -747,7 +859,8 @@ public class GosuPanel extends JPanel
     runMenu.add( CommonMenus.makeStepInto( this::getDebugger ) );
     runMenu.add( CommonMenus.makeStepOut( this::getDebugger ) );
     runMenu.add( CommonMenus.makeRunToCursor( this::getDebugger, this::getBreakpointManager, this::getCurrentEditor ) );
-    runMenu.add( CommonMenus.makeDropFrame( this::getDebugger ) );
+    //noinspection Convert2MethodRef
+    runMenu.add( CommonMenus.makeDropFrame( this::getDebugger, () -> _debugPanel.getDropToFrame() ) );
     runMenu.add( CommonMenus.makePause( this::getDebugger ) );
     runMenu.add( CommonMenus.makeResume( this::getDebugger ) );
 
@@ -768,33 +881,17 @@ public class GosuPanel extends JPanel
     searchMenu.setMnemonic( 'S' );
     menuBar.add( searchMenu );
 
-    JMenuItem findItem = new JMenuItem(
-      new AbstractAction( "Find..." )
-      {
-        @Override
-        public void actionPerformed( ActionEvent e )
-        {
-          StandardLocalSearch.performLocalSearch( getCurrentEditor(), false );
-        }
-      } );
+    JMenuItem findItem = new SmartMenuItem( new CommonMenus.FindActionHandler( this::getCurrentEditor ) );
     findItem.setMnemonic( 'F' );
-    findItem.setAccelerator( KeyStroke.getKeyStroke( "control F" ) );
+    findItem.setAccelerator( KeyStroke.getKeyStroke( EditorUtilities.CONTROL_KEY_NAME + " F" ) );
     searchMenu.add( findItem );
 
-    JMenuItem replaceItem = new JMenuItem(
-      new AbstractAction( "Replace..." )
-      {
-        @Override
-        public void actionPerformed( ActionEvent e )
-        {
-          StandardLocalSearch.performLocalSearch( getCurrentEditor(), true );
-        }
-      } );
+    JMenuItem replaceItem = new SmartMenuItem( new CommonMenus.ReplaceActionHandler( this::getCurrentEditor ) );
     replaceItem.setMnemonic( 'R' );
-    replaceItem.setAccelerator( KeyStroke.getKeyStroke( "control R" ) );
+    replaceItem.setAccelerator( KeyStroke.getKeyStroke( EditorUtilities.CONTROL_KEY_NAME + " R" ) );
     searchMenu.add( replaceItem );
 
-    JMenuItem nextItem = new JMenuItem(
+    JMenuItem nextItem = new SmartMenuItem(
       new AbstractAction( "Next" )
       {
         @Override
@@ -802,21 +899,21 @@ public class GosuPanel extends JPanel
         {
           if( isEnabled() )
           {
-            StandardLocalSearch.repeatFind( getCurrentEditor() );
+            getCurrentEditor().gotoNextUsageHighlight();
           }
         }
 
         @Override
         public boolean isEnabled()
         {
-          return StandardLocalSearch.canRepeatFind( getCurrentEditor() );
+          return getCurrentEditor() != null && getCurrentEditor().getEditor().getHighlighter().getHighlights().length > 0;
         }
       } );
     nextItem.setMnemonic( 'N' );
     nextItem.setAccelerator( KeyStroke.getKeyStroke( "F3" ) );
     searchMenu.add( nextItem );
 
-    JMenuItem previousItem = new JMenuItem(
+    JMenuItem previousItem = new SmartMenuItem(
       new AbstractAction( "Previous" )
       {
         @Override
@@ -824,25 +921,46 @@ public class GosuPanel extends JPanel
         {
           if( isEnabled() )
           {
-            StandardLocalSearch.repeatFindBackwards( getCurrentEditor() );
+            getCurrentEditor().gotoPrevUsageHighlight();
           }
         }
 
         @Override
         public boolean isEnabled()
         {
-          return StandardLocalSearch.canRepeatFind( getCurrentEditor() );
+          return getCurrentEditor() != null && getCurrentEditor().getEditor().getHighlighter().getHighlights().length > 0;
         }
       } );
     previousItem.setMnemonic( 'P' );
     previousItem.setAccelerator( KeyStroke.getKeyStroke( "shift F3" ) );
     searchMenu.add( previousItem );
 
+    searchMenu.addSeparator();
+    
+    JMenuItem findIInPathItem = new SmartMenuItem( new CommonMenus.FindInPathActionHandler( FileTreeUtil::getRoot ) );
+    findIInPathItem.setMnemonic( 'P' );
+    findIInPathItem.setAccelerator( KeyStroke.getKeyStroke( EditorUtilities.CONTROL_KEY_NAME + " shift F" ) );
+    searchMenu.add( findIInPathItem );
+
+    JMenuItem replaceInPathItem = new SmartMenuItem( new CommonMenus.ReplaceInPathActionHandler( FileTreeUtil::getRoot ) );
+    replaceInPathItem.setMnemonic( 'A' );
+    replaceInPathItem.setAccelerator( KeyStroke.getKeyStroke( EditorUtilities.CONTROL_KEY_NAME + " shift R" ) );
+    searchMenu.add( replaceInPathItem );
+        
+    searchMenu.addSeparator();
+
+    searchMenu.add( CommonMenus.makeFindUsages( FileTreeUtil::getRoot ) );
+    searchMenu.add( CommonMenus.makeFindUsagesInFile() );
+    searchMenu.add( CommonMenus.makeHighlightFindUsagesInFile() );
 
     searchMenu.addSeparator();
 
+    searchMenu.add( CommonMenus.makePrevOccurrent( () -> getGosuPanel() == null ? null : getGosuPanel().getSearchPanel() ) );
+    searchMenu.add( CommonMenus.makeNextOccurrent( () -> getGosuPanel() == null ? null : getGosuPanel().getSearchPanel() ) );
 
-    JMenuItem gotoLineItem = new JMenuItem(
+    searchMenu.addSeparator();
+
+    JMenuItem gotoLineItem = new SmartMenuItem(
       new AbstractAction( "Go To Line" )
       {
         @Override
@@ -852,9 +970,14 @@ public class GosuPanel extends JPanel
         }
       } );
     gotoLineItem.setMnemonic( 'G' );
-    gotoLineItem.setAccelerator( KeyStroke.getKeyStroke( "control G" ) );
+    gotoLineItem.setAccelerator( KeyStroke.getKeyStroke( EditorUtilities.CONTROL_KEY_NAME + " G" ) );
     searchMenu.add( gotoLineItem );
 
+  }
+
+  private GosuPanel getGosuPanel()
+  {
+    return RunMe.getEditorFrame().getGosuPanel();
   }
 
   private void makeEditMenu( JMenuBar menuBar )
@@ -864,48 +987,14 @@ public class GosuPanel extends JPanel
     menuBar.add( editMenu );
 
 
-    JMenuItem undoItem = new JMenuItem(
-      new AbstractAction( "Undo" )
-      {
-        @Override
-        public void actionPerformed( ActionEvent e )
-        {
-          if( getUndoManager().canUndo() )
-          {
-            getUndoManager().undo();
-          }
-        }
-
-        @Override
-        public boolean isEnabled()
-        {
-          return getUndoManager().canUndo();
-        }
-      } );
+    JMenuItem undoItem = new SmartMenuItem( new CommonMenus.UndoActionHandler() );
     undoItem.setMnemonic( 'U' );
-    undoItem.setAccelerator( KeyStroke.getKeyStroke( "control Z" ) );
+    undoItem.setAccelerator( KeyStroke.getKeyStroke( EditorUtilities.CONTROL_KEY_NAME + " Z" ) );
     editMenu.add( undoItem );
 
-    JMenuItem redoItem = new JMenuItem(
-      new AbstractAction( "Redo" )
-      {
-        @Override
-        public void actionPerformed( ActionEvent e )
-        {
-          if( getUndoManager().canRedo() )
-          {
-            getUndoManager().redo();
-          }
-        }
-
-        @Override
-        public boolean isEnabled()
-        {
-          return getUndoManager().canRedo();
-        }
-      } );
+    JMenuItem redoItem = new SmartMenuItem( new CommonMenus.RedoActionHandler() );
     redoItem.setMnemonic( 'R' );
-    redoItem.setAccelerator( KeyStroke.getKeyStroke( "control shift Z" ) );
+    redoItem.setAccelerator( KeyStroke.getKeyStroke( EditorUtilities.CONTROL_KEY_NAME + " shift Z" ) );
     editMenu.add( redoItem );
 
 
@@ -923,13 +1012,13 @@ public class GosuPanel extends JPanel
     editMenu.addSeparator();
 
 
-    JMenuItem deleteItem = new JMenuItem(
+    JMenuItem deleteItem = new SmartMenuItem(
       new AbstractAction( "Delete" )
       {
         @Override
         public void actionPerformed( ActionEvent e )
         {
-          if( getCurrentEditor() != null && StudioUtilities.containsFocus( getCurrentEditor() ) )
+          if( getCurrentEditor() != null && EditorUtilities.containsFocus( getCurrentEditor() ) )
           {
             getCurrentEditor().delete();
           }
@@ -939,7 +1028,7 @@ public class GosuPanel extends JPanel
     deleteItem.setAccelerator( KeyStroke.getKeyStroke( "DELETE" ) );
     editMenu.add( deleteItem );
 
-    JMenuItem deletewordItem = new JMenuItem(
+    JMenuItem deletewordItem = new SmartMenuItem(
       new AbstractAction( "Delete Word" )
       {
         @Override
@@ -949,10 +1038,10 @@ public class GosuPanel extends JPanel
         }
       } );
     deletewordItem.setMnemonic( 'e' );
-    deletewordItem.setAccelerator( KeyStroke.getKeyStroke( "control BACKSPACE" ) );
+    deletewordItem.setAccelerator( KeyStroke.getKeyStroke( EditorUtilities.CONTROL_KEY_NAME + " BACKSPACE" ) );
     editMenu.add( deletewordItem );
 
-    JMenuItem deleteWordForwardItem = new JMenuItem(
+    JMenuItem deleteWordForwardItem = new SmartMenuItem(
       new AbstractAction( "Delete Word Forward" )
       {
         @Override
@@ -962,10 +1051,10 @@ public class GosuPanel extends JPanel
         }
       } );
     deleteWordForwardItem.setMnemonic( 'F' );
-    deleteWordForwardItem.setAccelerator( KeyStroke.getKeyStroke( "control DELETE" ) );
+    deleteWordForwardItem.setAccelerator( KeyStroke.getKeyStroke( EditorUtilities.CONTROL_KEY_NAME + " DELETE" ) );
     editMenu.add( deleteWordForwardItem );
 
-    JMenuItem deleteLine = new JMenuItem(
+    JMenuItem deleteLine = new SmartMenuItem(
       new AbstractAction( "Delete Line" )
       {
         @Override
@@ -975,14 +1064,14 @@ public class GosuPanel extends JPanel
         }
       } );
     deleteLine.setMnemonic( 'L' );
-    deleteLine.setAccelerator( KeyStroke.getKeyStroke( "control Y" ) );
+    deleteLine.setAccelerator( KeyStroke.getKeyStroke( EditorUtilities.CONTROL_KEY_NAME + " Y" ) );
     editMenu.add( deleteLine );
 
 
     editMenu.addSeparator();
 
 
-    JMenuItem selectWord = new JMenuItem(
+    JMenuItem selectWord = new SmartMenuItem(
       new AbstractAction( "Select Word" )
       {
         @Override
@@ -992,10 +1081,10 @@ public class GosuPanel extends JPanel
         }
       } );
     selectWord.setMnemonic( 'W' );
-    selectWord.setAccelerator( KeyStroke.getKeyStroke( "control W" ) );
+    selectWord.setAccelerator( KeyStroke.getKeyStroke( EditorUtilities.CONTROL_KEY_NAME + " W" ) );
     editMenu.add( selectWord );
 
-    JMenuItem narraowSelection = new JMenuItem(
+    JMenuItem narraowSelection = new SmartMenuItem(
       new AbstractAction( "Narrow Selection" )
       {
         @Override
@@ -1005,14 +1094,14 @@ public class GosuPanel extends JPanel
         }
       } );
     narraowSelection.setMnemonic( 'N' );
-    narraowSelection.setAccelerator( KeyStroke.getKeyStroke( "control shift W" ) );
+    narraowSelection.setAccelerator( KeyStroke.getKeyStroke( EditorUtilities.CONTROL_KEY_NAME + " shift W" ) );
     editMenu.add( narraowSelection );
 
 
     editMenu.addSeparator();
 
 
-    JMenuItem duplicateItem = new JMenuItem(
+    JMenuItem duplicateItem = new SmartMenuItem(
       new AbstractAction( "Duplicate" )
       {
         @Override
@@ -1021,10 +1110,10 @@ public class GosuPanel extends JPanel
           getCurrentEditor().duplicate();
         }
       } );
-    duplicateItem.setAccelerator( KeyStroke.getKeyStroke( "control D" ) );
+    duplicateItem.setAccelerator( KeyStroke.getKeyStroke( EditorUtilities.CONTROL_KEY_NAME + " D" ) );
     editMenu.add( duplicateItem );
 
-    JMenuItem joinItem = new JMenuItem(
+    JMenuItem joinItem = new SmartMenuItem(
       new AbstractAction( "Join Lines" )
       {
         @Override
@@ -1033,10 +1122,10 @@ public class GosuPanel extends JPanel
           getCurrentEditor().joinLines();
         }
       } );
-    joinItem.setAccelerator( KeyStroke.getKeyStroke( "control J" ) );
+    joinItem.setAccelerator( KeyStroke.getKeyStroke( EditorUtilities.CONTROL_KEY_NAME + " J" ) );
     editMenu.add( joinItem );
 
-    JMenuItem indentItem = new JMenuItem(
+    JMenuItem indentItem = new SmartMenuItem(
       new AbstractAction( "Indent Selection" )
       {
         @Override
@@ -1052,7 +1141,7 @@ public class GosuPanel extends JPanel
     indentItem.setAccelerator( KeyStroke.getKeyStroke( "TAB" ) );
     editMenu.add( indentItem );
 
-    JMenuItem outdentItem = new JMenuItem(
+    JMenuItem outdentItem = new SmartMenuItem(
       new AbstractAction( "Outdent Selection" )
       {
         @Override
@@ -1075,7 +1164,7 @@ public class GosuPanel extends JPanel
     fileMenu.setMnemonic( 'F' );
     menuBar.add( fileMenu );
 
-    JMenuItem newExperimentItem = new JMenuItem(
+    JMenuItem newExperimentItem = new SmartMenuItem(
       new AbstractAction( "New Experiment..." )
       {
         @Override
@@ -1087,22 +1176,14 @@ public class GosuPanel extends JPanel
     newExperimentItem.setMnemonic( 'P' );
     fileMenu.add( newExperimentItem );
 
-    JMenuItem openExperimentItem = new JMenuItem(
-      new AbstractAction( "Open Experiment..." )
-      {
-        @Override
-        public void actionPerformed( ActionEvent e )
-        {
-          openExperiment();
-        }
-      } );
-    openExperimentItem.setMnemonic( 'J' );
+    JMenuItem openExperimentItem = new SmartMenuItem( new CommonMenus.OpenProjectActionHandler() );
+    openExperimentItem.setMnemonic( 'O' );
     fileMenu.add( openExperimentItem );
 
 
     fileMenu.addSeparator();
 
-    JMenu reopenExperiment = new JMenu( "Reopen Experiment" );
+    JMenu reopenExperiment = new SmartMenu( "Reopen Experiment" );
     ReopenExperimentPopup.initialize( reopenExperiment );
     fileMenu.add( reopenExperiment );
 
@@ -1110,11 +1191,11 @@ public class GosuPanel extends JPanel
     fileMenu.addSeparator();
 
 
-    JMenu newItem = new JMenu( "New" );
+    JMenu newItem = new SmartMenu( "New" );
     NewFilePopup.addMenuItems( newItem );
     fileMenu.add( newItem );
 
-    JMenuItem openItem = new JMenuItem(
+    JMenuItem openItem = new SmartMenuItem(
       new AbstractAction( "Open..." )
       {
         @Override
@@ -1127,24 +1208,16 @@ public class GosuPanel extends JPanel
     fileMenu.add( openItem );
 
 
-    JMenuItem saveItem = new JMenuItem(
-      new AbstractAction( "Save" )
-      {
-        @Override
-        public void actionPerformed( ActionEvent e )
-        {
-          save();
-        }
-      } );
+    JMenuItem saveItem = new SmartMenuItem( new CommonMenus.SaveActionHandler() );
     saveItem.setMnemonic( 'S' );
-    saveItem.setAccelerator( KeyStroke.getKeyStroke( "control S" ) );
+    saveItem.setAccelerator( KeyStroke.getKeyStroke( EditorUtilities.CONTROL_KEY_NAME + " S" ) );
     fileMenu.add( saveItem );
 
 
     fileMenu.addSeparator();
 
 
-    JMenuItem classpathItem = new JMenuItem(
+    JMenuItem classpathItem = new SmartMenuItem(
       new AbstractAction( "Dependencies..." )
       {
         @Override
@@ -1160,7 +1233,7 @@ public class GosuPanel extends JPanel
     fileMenu.addSeparator();
 
 
-    JMenuItem exitItem = new JMenuItem(
+    JMenuItem exitItem = new SmartMenuItem(
       new AbstractAction( "Exit" )
       {
         @Override
@@ -1210,18 +1283,21 @@ public class GosuPanel extends JPanel
     dlg.setVisible( true );
   }
 
-  private void shipIt()
+  public void shipIt()
   {
     ShipIt.instance().shipIt( getExperiment() );
   }
 
   @SuppressWarnings("ThrowableResultOfMethodCallIgnored")
-  private boolean compile()
+  public boolean compile()
   {
     SettleModalEventQueue.instance().run();
 
     saveIfDirty();
-    getMessagesPanel().clear();
+    if( getMessagesPanel() != null )
+    {
+      getMessagesPanel().clear();
+    }
     showMessages( true );
     return BuildIt.instance().buildIt( c -> true );
   }
@@ -1230,7 +1306,6 @@ public class GosuPanel extends JPanel
   {
     if( saveIfDirty() )
     {
-      NoExitSecurityManager.CLOSING = true;
       System.exit( 0 );
     }
   }
@@ -1262,12 +1337,12 @@ public class GosuPanel extends JPanel
   private void mapKeystrokes()
   {
     // Undo/Redo
-    mapKeystroke( KeyStroke.getKeyStroke( KeyEvent.VK_Z, InputEvent.CTRL_MASK ),
+    mapKeystroke( KeyStroke.getKeyStroke( KeyEvent.VK_Z, EditorUtilities.CONTROL_KEY_MASK ),
                   "Undo", new UndoActionHandler() );
-    mapKeystroke( KeyStroke.getKeyStroke( KeyEvent.VK_Z, InputEvent.CTRL_MASK | InputEvent.SHIFT_MASK ),
+    mapKeystroke( KeyStroke.getKeyStroke( KeyEvent.VK_Z, EditorUtilities.CONTROL_KEY_MASK | InputEvent.SHIFT_MASK ),
                   "Redo", new RedoActionHandler() );
 //## conflicts with Delete Line, which is also ctrl+y (same as IJ)
-//    mapKeystroke( KeyStroke.getKeyStroke( KeyEvent.VK_Y, InputEvent.CTRL_MASK ),
+//    mapKeystroke( KeyStroke.getKeyStroke( KeyEvent.VK_Y, EditorUtilities.CONTROL_KEY_MASK ),
 //                  "Redo2", new RedoActionHandler() );
 
 
@@ -1276,13 +1351,6 @@ public class GosuPanel extends JPanel
                   "UndoOldStyle", new UndoActionHandler() );
     mapKeystroke( KeyStroke.getKeyStroke( KeyEvent.VK_BACK_SPACE, InputEvent.ALT_MASK | InputEvent.SHIFT_MASK ),
                   "RetoOldStyle", new RedoActionHandler() );
-
-    // Run
-    mapKeystroke( KeyStroke.getKeyStroke( KeyEvent.VK_F5, 0 ),
-                  "Run", new CommonMenus.ClearAndRunActionHandler( "Run", () -> getCurrentEditor().getScriptPart().getContainingType() ) );
-
-    mapKeystroke( KeyStroke.getKeyStroke( KeyEvent.VK_ENTER, InputEvent.CTRL_MASK ),
-                  "Run", new CommonMenus.ClearAndRunActionHandler( "Run", () -> getCurrentEditor().getScriptPart().getContainingType() ) );
   }
 
   private void mapKeystroke( KeyStroke ks, String strCmd, Action action )
@@ -1328,23 +1396,22 @@ public class GosuPanel extends JPanel
     int returnVal = fc.showOpenDialog( editor.util.EditorUtilities.frameForComponent( this ) );
     if( returnVal == JFileChooser.APPROVE_OPTION )
     {
-      openFile( fc.getSelectedFile() );
+      openFile( fc.getSelectedFile(), true );
     }
   }
 
-  public void openFile( final File file )
+  public void openFile( File file, boolean bFocus )
   {
-    openFile( makePartId( file ), file );
+    openFile( makePartId( file ), file, bFocus );
   }
 
-  public boolean openType( String fqn )
+  public boolean openType( String fqn, boolean bFocus )
   {
-    TreeModel model = RunMe.getEditorFrame().getGosuPanel().getExperimentView().getTree().getModel();
-    FileTree root = (FileTree)model.getRoot();
+    FileTree root = FileTreeUtil.getRoot();
     FileTree fileTree = root.find( fqn );
     if( fileTree != null )
     {
-      RunMe.getEditorFrame().getGosuPanel().openFile( fileTree.getFileOrDir() );
+      openFile( fileTree.getFileOrDir(), bFocus );
       return true;
     }
     return false;
@@ -1386,7 +1453,7 @@ public class GosuPanel extends JPanel
     {
       if( file != null || _editorTabPane.getTabCount() == 0 )
       {
-        openFile( partId, file );
+        openFile( partId, file, true );
       }
     }
     finally
@@ -1395,9 +1462,9 @@ public class GosuPanel extends JPanel
     }
   }
 
-  private void openFile( IScriptPartId partId, File file )
+  private void openFile( IScriptPartId partId, File file, boolean bFocus )
   {
-    if( openTab( file ) )
+    if( openTab( file, bFocus ) )
     {
       return;
     }
@@ -1446,9 +1513,12 @@ public class GosuPanel extends JPanel
 
     try
     {
-      editor.read( partId, strSource, "" );
+      editor.read( partId, strSource );
       resetChangeHandler();
-      EventQueue.invokeLater( () -> editor.getEditor().requestFocus() );
+      if( bFocus )
+      {
+        EventQueue.invokeLater( () -> editor.getEditor().requestFocus() );
+      }
     }
     catch( Throwable t )
     {
@@ -1485,12 +1555,12 @@ public class GosuPanel extends JPanel
     _parentFrame.setTitle( title );
   }
 
-  private boolean openTab( File file )
+  private boolean openTab( File file, boolean bFocus )
   {
     GosuEditor editor = findTab( file );
     if( editor != null )
     {
-      _editorTabPane.selectTab( _editorTabPane.findTabWithContent( editor ), true );
+      _editorTabPane.selectTab( _editorTabPane.findTabWithContent( editor ), bFocus );
       return true;
     }
     return false;
@@ -1516,7 +1586,7 @@ public class GosuPanel extends JPanel
   private void setCurrentFile( File file )
   {
     getCurrentEditor().putClientProperty( "_file", file );
-    openFile( file );
+    openFile( file, false );
   }
 
   public File getCurrentFile()
@@ -1613,7 +1683,12 @@ public class GosuPanel extends JPanel
 
   private void saveAndReloadType( File file, GosuEditor editor )
   {
-    try( FileOutputStream out = new FileOutputStream( file ) )
+    FileTree fileTree = FileTreeUtil.getRoot().find( file );
+    if( fileTree != null )
+    {
+      fileTree.setLastModified();
+    }
+    try( FileWriter out = new FileWriter( file ) )
     {
       StreamUtil.copy( new StringReader( editor.getText() ), out );
       setDirty( editor, false );
@@ -1625,7 +1700,7 @@ public class GosuPanel extends JPanel
     }
   }
 
-  private void reload( IType type )
+  void reload( IType type )
   {
     if( type == null )
     {
@@ -1642,6 +1717,40 @@ public class GosuPanel extends JPanel
       return save();
     }
     return true;
+  }
+
+  public void refresh( File file )
+  {
+    GosuEditor editor = findTab( file );
+    if( editor != null )
+    {
+      // The file is open in an editor, refresh it with the contents of the file
+
+      try( Reader reader = new FileReader( file ) )
+      {
+        editor.refresh( StreamUtil.getContent( reader ) );
+        setDirty( editor, false );
+      }
+      catch( IOException e )
+      {
+        throw new RuntimeException( e );
+      }
+    }
+    else
+    {
+      // The file is not open, just refresh the type system to include the changes
+
+      FileTree root = FileTreeUtil.getRoot();
+      FileTree node = root.find( file );
+      if( node != null )
+      {
+        IType type = node.getType();
+        if( type != null )
+        {
+          reload( type );
+        }
+      }
+    }
   }
 
   public void newExperiment()
@@ -1747,6 +1856,7 @@ public class GosuPanel extends JPanel
   public void dumpBytecode()
   {
     saveAndReloadType( getCurrentFile(), getCurrentEditor() );
+    showConsole( true );
     clearOutput();
     byte[] bytes = TypeSystem.getGosuClassLoader().getBytes( getClassAtCaret() );
     ClassReader cr = new ClassReader( bytes );
@@ -1786,23 +1896,18 @@ public class GosuPanel extends JPanel
     throw new IllegalStateException( "Unexpected parse element: " + elemAtCaret.getClass().getName() );
   }
 
-  public void execute( String fqn )
+  public void execute( IRunConfig runConfig )
   {
     if( _runState != RunState.None )
     {
       return;
     }
-
     saveAndReloadType( getCurrentFile(), getCurrentEditor() );
-
-    showConsole();
-
-    //InProcessRunner.execute( fqn, this );
-    _processRunner = new OutOfProcessRunner( RunState.Run );
-    _processRunner.execute( fqn, this );
+    getExperiment().addRunConfig( runConfig );
+    _processRunner = runConfig.run();
   }
 
-  public void debug( String fqn )
+  public void debug( IRunConfig runConfig )
   {
     if( _runState != RunState.None )
     {
@@ -1810,12 +1915,8 @@ public class GosuPanel extends JPanel
     }
 
     saveAndReloadType( getCurrentFile(), getCurrentEditor() );
-
-    showConsole();
-
-    //InProcessRunner.execute( fqn, this );
-    _processRunner = new OutOfProcessRunner( RunState.Debug );
-    _processRunner.execute( fqn, this );
+    getExperiment().addRunConfig( runConfig );
+    _processRunner = runConfig.debug();
   }
 
   public boolean isRunning()
@@ -1833,12 +1934,12 @@ public class GosuPanel extends JPanel
     return _typeNamesCache;
   }
 
-  void addBusySignal( RunState runState )
+  public void addBusySignal( RunState runState )
   {
     _runState = runState;
   }
 
-  void pipeInput()
+  public void pipeInput()
   {
     EventQueue.invokeLater( () -> {
       try
@@ -1872,6 +1973,11 @@ public class GosuPanel extends JPanel
   {
     if( _processRunner != null )
     {
+      if( _debugger != null && (_debugger.isSuspended() || _debugger.isPaused()) )
+      {
+        _debugger.resumeExecution();
+      }
+
       Process process = _processRunner.getProcess();
       if( process != null && process.isAlive() )
       {
@@ -1887,17 +1993,112 @@ public class GosuPanel extends JPanel
   public void clearDebugger()
   {
     _debugger = null;
+    EventQueue.invokeLater( () -> showDebugger( false ) );
   }
 
   public void makeDebugger( VirtualMachine vm )
   {
-    _debugger = new Debugger( vm, _breakpointManager );
-    _debugger.startDebugging();
+    EventQueue.invokeLater( () -> {
+      _debugger = new Debugger( vm, _breakpointManager );
+      _debugger.addChangeListener( dbg -> handleDebuggerStateChange() );
+      showDebugger( true );
+      showConsole( true );
+      _debugger.startDebugging();
+    } );
+  }
+
+  private void handleDebuggerStateChange()
+  {
+    if( !EventQueue.isDispatchThread() )
+    {
+      throw new Error();
+    }
+
+    GosuEditor editor = getCurrentEditor();
+    if( editor != null )
+    {
+      editor.repaint();
+    }
+    if( _debugger != null && _debugger.isSuspended() )
+    {
+      jumptToBreakpoint( _debugger.getSuspendedLocation(), false );
+    }
+  }
+
+  public void jumptToBreakpoint( Location location, boolean bFocus )
+  {
+    String fqn = Debugger.getOutermostType( location.declaringType() );
+    int line = location.lineNumber();
+    java.awt.EventQueue.invokeLater( () -> {
+      if( openType( fqn, bFocus ) )
+      {
+        getCurrentEditor().gotoLine( line );
+        Debugger debugger = getDebugger();
+        if( debugger != null && debugger.getEventName() != null && debugger.getEventName().contains( "Breakpoint" ) )
+        {
+          showDebugger( true );
+        }
+      }
+    } );
+  }
+
+  public void showDebugger( boolean bShow )
+  {
+    if( bShow )
+    {
+      if( _debugPanel == null )
+      {
+        _debugPanel = new DebugPanel( _debugger );
+        _bottomTabPane.addTab( _processRunner.getRunConfig().getName(), EditorUtilities.loadIcon( "images/debug.png" ), _debugPanel );
+        _debugPanel.addLocationListener( loc -> jumptToBreakpoint( loc, false ) );
+      }
+      else
+      {
+        ITab tab = _bottomTabPane.findTabWithContent( _debugPanel );
+        _bottomTabPane.selectTab( tab, false );
+      }
+    }
+    else
+    {
+      _bottomTabPane.removeTabWithContent( _debugPanel );
+      if( _bottomTabPane.getTabCount() == 0 )
+      {
+        _outerSplitPane.collapseBottom( _bottomTabPane );
+      }
+      _debugPanel = null;
+    }
   }
 
   public BreakpointManager getBreakpointManager()
   {
     return _breakpointManager;
+  }
+
+  public TabPane getEditorTabPane()
+  {
+    return _editorTabPane;
+  }
+
+  public List<FileTree> getOpenFilesInProject()
+  {
+    List<FileTree> files = new ArrayList<>();
+    for( ITab tab: getEditorTabPane().getTabs() )
+    {
+      GosuEditor editor = (GosuEditor)tab.getContentPane();
+      if( editor != null )
+      {
+        File file = (File)editor.getClientProperty( "_file" );
+        if( file != null )
+        {
+          FileTree tree = FileTreeUtil.getRoot().find( file );
+          if( tree != null )
+          {
+            files.add( tree );
+          }
+        }
+      }
+    }
+    return files;
   }
 
   class SysInListener extends KeyAdapter
@@ -1937,34 +2138,21 @@ public class GosuPanel extends JPanel
     }
   }
 
-  void removeBusySignal()
+  public void removeBusySignal()
   {
     if( _runState != RunState.None )
     {
       _runState = RunState.None;
       _statPanel.setVisible( false );
       _statPanel.revalidate();
-      _consolePanel.getOutputPanel().setEditable( false );
-      _consolePanel.getOutputPanel().removeKeyListener( _sysInListener );
+      if( _consolePanel != null )
+      {
+        _consolePanel.getOutputPanel().setEditable( false );
+        _consolePanel.getOutputPanel().removeKeyListener( _sysInListener );
+      }
       _inWriter = null;
       System.setIn( _oldIn );
     }
-  }
-
-  void executeTemplate()
-  {
-    try
-    {
-      System.out.println( "Will prompt for args soon, for now run the template programmatically from a program" );
-    }
-    catch( Throwable t )
-    {
-      t.printStackTrace();
-    }
-  }
-  void debugTemplate()
-  {
-    executeTemplate();
   }
 
   public void clearOutput()
@@ -1993,7 +2181,7 @@ public class GosuPanel extends JPanel
         }
       }
     }
-    openFile( file );
+    openFile( file, true );
   }
 
   public void closeTab( File file )
@@ -2098,28 +2286,6 @@ public class GosuPanel extends JPanel
     public boolean isEnabled()
     {
       return getUndoManager().canRedo();
-    }
-  }
-
-  class RunRecentActionHandler extends CommonMenus.ClearAndRunActionHandler
-  {
-    public RunRecentActionHandler()
-    {
-      //noinspection Convert2Lambda
-      super( "Run Recent",
-             new Supplier<IType>()
-             {
-               @Override
-               public IType get()
-               {
-                 String recentProgram = getExperiment() == null ? null : getExperiment().getRecentProgram();
-                 if( recentProgram != null )
-                 {
-                   return TypeSystem.getByFullNameIfValid( recentProgram );
-                 }
-                 return null;
-               }
-             } );
     }
   }
 

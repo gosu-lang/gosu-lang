@@ -1,7 +1,5 @@
 package editor.util;
 
-import editor.search.StudioUtilities;
-
 import javax.swing.*;
 import javax.swing.border.Border;
 import java.awt.*;
@@ -48,7 +46,7 @@ public abstract class PopupContainer extends JPopupMenu
 
     if( bVisible )
     {
-      StudioUtilities.removePopupBorder( this );
+      EditorUtilities.removePopupBorder( this );
       transferFocus();
     }
   }

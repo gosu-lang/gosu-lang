@@ -1,7 +1,5 @@
 package editor;
 
-import editor.util.EditorUtilities;
-
 import javax.swing.*;
 import javax.swing.border.MatteBorder;
 import javax.swing.tree.DefaultTreeModel;
@@ -15,7 +13,7 @@ import java.awt.event.MouseListener;
 
 /**
  */
-public class MessagesPanel extends JPanel
+public class MessagesPanel extends ClearablePanel
 {
   private JTree _tree;
   private JScrollPane _scroller;
@@ -28,19 +26,19 @@ public class MessagesPanel extends JPanel
 
   private void configUi()
   {
-    DefaultTreeModel model = new DefaultTreeModel( new MessageTree() );
-    _tree = new JTree( model );
-    _tree.setBackground( EditorUtilities.WINDOW );
+    _tree = new JTree();
+    _tree.setModel( new DefaultTreeModel( new MessageTree( _tree ) ) );
+    _tree.setBackground( Scheme.active().getWindow() );
     _tree.setRootVisible( false );
     _tree.setShowsRootHandles( true );
     _tree.setRowHeight( 22 );
     _tree.getSelectionModel().setSelectionMode( TreeSelectionModel.SINGLE_TREE_SELECTION );
     _tree.setVisibleRowCount( 20 );
-    _tree.setCellRenderer( new MessageTreeCellRenderer( _tree ) );
+    _tree.setCellRenderer( new LabTreeCellRenderer( _tree ) );
     _tree.addMouseListener( new MouseHandler() );
     _tree.addKeyListener( new TreeKeyHandler() );
     _scroller = new JScrollPane( _tree );
-    _scroller.setBorder( new MatteBorder( 0, 0, 1, 1, EditorUtilities.CONTROL_SHADOW ) );
+    _scroller.setBorder( new MatteBorder( 0, 1, 1, 1, Scheme.active().getScrollbarBorderColor() ) );
     add( _scroller, BorderLayout.CENTER );
   }
 
@@ -49,9 +47,16 @@ public class MessagesPanel extends JPanel
     return _tree;
   }
 
+  @Override
   public void clear()
   {
-    _tree.setModel( new DefaultTreeModel( new MessageTree() ) );
+    _tree.setModel( new DefaultTreeModel( new MessageTree( _tree ) ) );
+  }
+
+  @Override
+  public void dispose()
+  {
+    RunMe.getEditorFrame().getGosuPanel().showMessages( false );
   }
 
   public MessageTree getSelectedTree()
@@ -59,32 +64,32 @@ public class MessagesPanel extends JPanel
     return (MessageTree)_tree.getLastSelectedPathComponent();
   }
 
-  public MessageTree addErrorMessage( String message, MessageTree parent, IMessageTreeNode data )
+  public MessageTree addErrorMessage( String message, MessageTree parent, MessageTree.IssueNode data )
   {
-    return addTerminalMessage( message, MessageKind.Error, parent, data );
+    return addTerminalMessage( message, NodeKind.Error, parent, data );
   }
 
-  public MessageTree addWarningMessage( String message, MessageTree parent, IMessageTreeNode data )
+  public MessageTree addWarningMessage( String message, MessageTree parent, MessageTree.IssueNode data )
   {
-    return addTerminalMessage( message, MessageKind.Warning, parent, data );
+    return addTerminalMessage( message, NodeKind.Warning, parent, data );
   }
 
-  public MessageTree addInfoMessage( String message, MessageTree parent, IMessageTreeNode data )
+  public MessageTree addInfoMessage( String message, MessageTree parent, MessageTree.IssueNode data )
   {
-    return addTerminalMessage( message, MessageKind.Info, parent, data );
+    return addTerminalMessage( message, NodeKind.Info, parent, data );
   }
 
-  public MessageTree addFailureMessage( String message, MessageTree parent, IMessageTreeNode data )
+  public MessageTree addFailureMessage( String message, MessageTree parent, MessageTree.IssueNode data )
   {
-    return addTerminalMessage( message, MessageKind.Failure, parent, data );
+    return addTerminalMessage( message, NodeKind.Failure, parent, data );
   }
 
-  public MessageTree addTypeMessage( String message, MessageTree parent, IMessageTreeNode data )
+  public MessageTree addTypeMessage( String message, MessageTree parent, MessageTree.IssueNode data )
   {
-    return addTerminalMessage( message, MessageKind.File, parent, data );
+    return addTerminalMessage( message, NodeKind.File, parent, data );
   }
 
-  private MessageTree addTerminalMessage( String message, MessageKind kind, MessageTree parent, IMessageTreeNode data )
+  private MessageTree addTerminalMessage( String message, NodeKind kind, MessageTree parent, MessageTree.IssueNode data )
   {
     MessageTree tree = new MessageTree( message, kind, data );
     if( parent == null )
@@ -152,7 +157,7 @@ public class MessagesPanel extends JPanel
         if( selectionPath != null )
         {
           MessageTree tree = (MessageTree)selectionPath.getLastPathComponent();
-          IMessageTreeNode data = tree.getData();
+          ITreeNode data = tree.getNode();
           if( data != null && data.hasTarget() )
           {
             data.jumpToTarget();
@@ -218,7 +223,7 @@ public class MessagesPanel extends JPanel
         MessageTree selection = getSelectedTree();
         if( selection != null && selection.isTerminal() )
         {
-          selection.getData().jumpToTarget();
+          selection.getNode().jumpToTarget();
         }
       }
     }

@@ -22,7 +22,7 @@ public class SplashScreen
     {
       return;
     }
-    _splash = ImagePanel.createSplashImagePanel( "images/splash.png" );
+    _splash = ImagePanel.createSplashImagePanel( "images/splash2.png" );
     _splash.setTextRect( new Rectangle( 155, 215, 200, 40 ) );
     _splash.setTextColor( Color.BLACK );
   }

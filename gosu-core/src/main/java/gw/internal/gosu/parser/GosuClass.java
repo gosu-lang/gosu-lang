@@ -38,13 +38,16 @@ import gw.lang.parser.ScriptabilityModifiers;
 import gw.lang.parser.TypeVarToTypeMap;
 import gw.lang.parser.exceptions.ErrantGosuClassException;
 import gw.lang.parser.exceptions.ParseResultsException;
+import gw.lang.parser.expressions.INameInDeclaration;
 import gw.lang.parser.expressions.ITypeVariableDefinition;
 import gw.lang.parser.expressions.IVarStatement;
 import gw.lang.parser.resources.Res;
+import gw.lang.parser.statements.IConstructorStatement;
 import gw.lang.parser.statements.IFunctionStatement;
 import gw.lang.parser.statements.IUsesStatement;
 import gw.lang.reflect.FunctionType;
 import gw.lang.reflect.IAttributedFeatureInfo;
+import gw.lang.reflect.IConstructorInfo;
 import gw.lang.reflect.IEnumValue;
 import gw.lang.reflect.IFunctionType;
 import gw.lang.reflect.IMethodInfo;
@@ -1485,7 +1488,7 @@ public class GosuClass extends InnerClassCapableType implements IGosuClassIntern
   public void compileDefinitionsIfNeeded( boolean bForce )
   {
     boolean bHasError = false;
-    
+
     if( !isDefinitionsCompiled() )
     {
       ((GosuClass)getPureGenericClass().dontEverCallThis())._hasError = null;
@@ -2260,7 +2263,7 @@ public class GosuClass extends InnerClassCapableType implements IGosuClassIntern
       }
     }
   }
-  
+
   private void putFunctions( GosuParser owner, ISymbolTable table, IGosuClassInternal gsContextClass, boolean bSuperClass )
   {
     for( DynamicFunctionSymbol dfs : getMemberFunctions() )
@@ -3164,15 +3167,54 @@ public class GosuClass extends InnerClassCapableType implements IGosuClassIntern
     return (TypeVariableDefinitionImpl) typeVarDef;
   }
 
-  public IFunctionStatement getFunctionStatement(IMethodInfo method) {
-    for (IDynamicFunctionSymbol dfs : getMemberFunctions()) {
-      if (method.getName().equals(dfs.getName()) && equalArgs(method.getParameters(), dfs.getArgs())) {
+  public IFunctionStatement getFunctionStatement( IMethodInfo method )
+  {
+    for( IDynamicFunctionSymbol dfs : getMemberFunctions() )
+    {
+      if( method.getName().equals( dfs.getName() ) && equalArgs( method.getParameters(), dfs.getArgs() ) )
+      {
         return dfs.getDeclFunctionStmt();
       }
     }
-    for (IDynamicFunctionSymbol dfs : getStaticFunctions()) {
-      if (method.getName().equals(dfs.getName()) && equalArgs(method.getParameters(), dfs.getArgs())) {
+    for( IDynamicFunctionSymbol dfs : getStaticFunctions() )
+    {
+      if( method.getName().equals( dfs.getName() ) && equalArgs( method.getParameters(), dfs.getArgs() ) )
+      {
         return dfs.getDeclFunctionStmt();
+      }
+    }
+    return null;
+  }
+
+  public INameInDeclaration getPropertyDeclaration( String name )
+  {
+    for( VarStatement varStmt: getParseInfo().getMemberFields().values() )
+    {
+      int offset = varStmt.getNameOffset( name );
+      if( offset >= 0 )
+      {
+        return (INameInDeclaration)varStmt.getLocation().getDeepestLocation( offset, false ).getParsedElement();
+      }
+    }
+    for( VarStatement varStmt: getParseInfo().getStaticFields().values() )
+    {
+      int offset = varStmt.getNameOffset( name );
+      if( offset >= 0 )
+      {
+        return (INameInDeclaration)varStmt.getLocation().getDeepestLocation( offset, false ).getParsedElement();
+      }
+    }
+    return null;
+  }
+
+  @Override
+  public IConstructorStatement getConstructorStatement( IConstructorInfo ctor )
+  {
+    for( IDynamicFunctionSymbol dfs : getConstructorFunctions() )
+    {
+      if( dfs.getMethodOrConstructorInfo( true ) == ctor )
+      {
+        return (IConstructorStatement)dfs.getDeclFunctionStmt();
       }
     }
     return null;

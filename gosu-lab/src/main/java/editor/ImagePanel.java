@@ -1,7 +1,6 @@
 package editor;
 
 import editor.search.MultiLineLabelUI;
-import editor.search.StudioUtilities;
 import editor.util.EditorUtilities;
 
 import javax.swing.*;
@@ -207,7 +206,7 @@ public class ImagePanel extends JComponent
     splash.add( BorderLayout.CENTER, imagePanel );
     splash.pack();
 
-    StudioUtilities.centerWindowInFrame( splash, splash );
+    EditorUtilities.centerWindowInFrame( splash, splash );
     splash.setVisible( true );
     imagePanel.repaintNow();
 
@@ -224,19 +223,19 @@ public class ImagePanel extends JComponent
     int iconWidth = imagePanel.getImageIcon().getIconWidth();
     int iconHeight = imagePanel.getImageIcon().getIconHeight();
     Point showDim;
-    if( StudioUtilities.getActiveWindow() == null )
+    if( EditorUtilities.getActiveWindow() == null )
     {
-      showDim = StudioUtilities.getXYForDialogRelativeToStudioFrame( iconWidth, iconHeight );
+      showDim = EditorUtilities.getXYForDialogRelativeToStudioFrame( iconWidth, iconHeight );
     }
     else
     {
-      Dimension rootPaneSize = ((JFrame)StudioUtilities.getActiveWindow()).getRootPane().getSize();
+      Dimension rootPaneSize = ((JFrame)EditorUtilities.getActiveWindow()).getRootPane().getSize();
       int x = (rootPaneSize.width - iconWidth) / 2;
       int y = (rootPaneSize.height - iconHeight) / 2;
       showDim = new Point( x, y );
     }
 
-    splash.show( StudioUtilities.getActiveWindow() == null ? null : ((JFrame)StudioUtilities.getActiveWindow()).getRootPane(),
+    splash.show( EditorUtilities.getActiveWindow() == null ? null : ((JFrame)EditorUtilities.getActiveWindow()).getRootPane(),
                  (int)showDim.getX(), (int)showDim.getY() );
     splash.addMouseListener(
       new MouseAdapter()

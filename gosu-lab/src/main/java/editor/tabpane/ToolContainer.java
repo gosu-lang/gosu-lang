@@ -1,11 +1,12 @@
 package editor.tabpane;
 
 
+import editor.Scheme;
 import editor.actions.GenericAction;
 import editor.splitpane.ICaptionActionListener;
 import editor.util.EditorUtilities;
+import editor.util.LabToolbarButton;
 import editor.util.ToolBar;
-import editor.util.XPToolbarButton;
 
 import javax.swing.*;
 import javax.swing.border.Border;
@@ -19,11 +20,11 @@ import java.awt.event.ActionEvent;
 public class ToolContainer extends JPanel
 {
   private ToolBar _toolbar;
-  private XPToolbarButton _btnDisplayTabs;
+  private LabToolbarButton _btnDisplayTabs;
   private TabPane _tabPane;
-  private XPToolbarButton _btnMinimize;
-  private XPToolbarButton _btnRestore;
-  private XPToolbarButton _btnMaximize;
+  private LabToolbarButton _btnMinimize;
+  private LabToolbarButton _btnRestore;
+  private LabToolbarButton _btnMaximize;
 
 
   public ToolContainer( TabPane tabPane )
@@ -44,6 +45,9 @@ public class ToolContainer extends JPanel
   {
     setBorder( makeBorder() );
     _toolbar = new ToolBar( isVertical() ? ToolBar.VERTICAL : ToolBar.HORIZONTAL );
+    _toolbar.setBackground( Scheme.active().getControl() );
+
+    _toolbar.add( new JPanel() );
     if( _tabPane.isDynamic() )
     {
       addDynamicTools();
@@ -77,26 +81,25 @@ public class ToolContainer extends JPanel
     TabPosition tp = _tabPane.getTabContainer().getTabPosition();
     if( tp == TabPosition.TOP )
     {
-      return BorderFactory.createMatteBorder( 0, 0, 1, 0, EditorUtilities.CONTROL_SHADOW );
+      return BorderFactory.createMatteBorder( 0, 0, 1, 0, Scheme.active().getScrollbarBorderColor() );
     }
     else if( tp == TabPosition.BOTTOM )
     {
-      return BorderFactory.createMatteBorder( 1, 0, 0, 0, EditorUtilities.CONTROL_SHADOW );
+      return BorderFactory.createMatteBorder( 1, 0, 0, 0, Scheme.active().getScrollbarBorderColor() );
     }
     else if( tp == TabPosition.LEFT )
     {
-      return BorderFactory.createMatteBorder( 0, 0, 0, 1, EditorUtilities.CONTROL_SHADOW );
+      return BorderFactory.createMatteBorder( 0, 0, 0, 1, Scheme.active().getScrollbarBorderColor() );
     }
     else
     {
-      return BorderFactory.createMatteBorder( 0, 1, 0, 0, EditorUtilities.CONTROL_SHADOW );
+      return BorderFactory.createMatteBorder( 0, 1, 0, 0, Scheme.active().getScrollbarBorderColor() );
     }
   }
 
   private void addDynamicTools()
   {
-    _btnDisplayTabs = new XPToolbarButton( new DisplayTabsAction() );
-    _btnDisplayTabs.setToolTipText( "Open views" );
+    _btnDisplayTabs = new LabToolbarButton( new DisplayTabsAction() );
     _toolbar.add( _btnDisplayTabs );
     if( _tabPane.hasAtLeastOneOfMinMaxRestore() )
     {
@@ -106,21 +109,18 @@ public class ToolContainer extends JPanel
 
   private void addCaptionTools()
   {
-    _btnMinimize = new XPToolbarButton( new MinimizeAction() );
-    _btnMinimize.setToolTipText( "Minimize" );
+    _btnMinimize = new LabToolbarButton( new MinimizeAction() );
     if( _tabPane.isMinimizable() )
     {
       _toolbar.add( _btnMinimize );
     }
-    _btnRestore = new XPToolbarButton( new RestoreAction() );
-    _btnRestore.setToolTipText( "Restore" );
+    _btnRestore = new LabToolbarButton( new RestoreAction() );
     if( _tabPane.isRestorable() )
     {
       _toolbar.add( _btnRestore );
     }
     _btnRestore.setVisible( false );
-    _btnMaximize = new XPToolbarButton( new MaximizeAction() );
-    _btnMaximize.setToolTipText( "Maximize" );
+    _btnMaximize = new LabToolbarButton( new MaximizeAction() );
     if( _tabPane.isMaximizable() )
     {
       _toolbar.add( _btnMaximize );
@@ -131,8 +131,7 @@ public class ToolContainer extends JPanel
       {
         _toolbar.addSeparator();
       }
-      XPToolbarButton btnCloseTab = new XPToolbarButton( new CloseTabAction() );
-      btnCloseTab.setToolTipText( "Close tab" );
+      LabToolbarButton btnCloseTab = new LabToolbarButton( new CloseTabAction() );
       _toolbar.add( btnCloseTab );
     }
   }
@@ -165,20 +164,17 @@ public class ToolContainer extends JPanel
     {
       super( "_displayTabs",
               null, //"Display Tabs",
-              "images/caption_list.gif",
+              null,
               ' ',
               null,
               "Display Tabs",
               null);
+      setIcon( new ImageIcon( EditorUtilities.createSystemColorImage( EditorUtilities.loadIcon( "images/caption_list.gif" ).getImage() ) ) );
       setEnabled( false );
       _tabPane.getTabContainer().addSelectionListener(
-        new ChangeListener()
-        {
-          public void stateChanged( ChangeEvent e )
-          {
-            _enabled = _tabPane.getTabContainer().getTabCount() > 0;
-            setEnabled( _enabled ); // fire changed
-          }
+        e -> {
+          _enabled = _tabPane.getTabContainer().getTabCount() > 0;
+          setEnabled( _enabled ); // fire changed
         } );
     }
 
@@ -201,16 +197,8 @@ public class ToolContainer extends JPanel
       }
 
       TabListPopup tabListPopup = new TabListPopup( _tabPane.getTabContainer() );
-      tabListPopup.addNodeChangeListener(
-        new ChangeListener()
-        {
-          public void stateChanged( ChangeEvent e )
-          {
-            _tabPane.getTabContainer().selectTab( (ITab)e.getSource(), true);
-          }
-        } );
-      tabListPopup.show( _btnDisplayTabs, _btnDisplayTabs.getX(),
-                         _btnDisplayTabs.getY() + _btnDisplayTabs.getHeight() );
+      tabListPopup.addNodeChangeListener( e -> _tabPane.getTabContainer().selectTab( (ITab)e.getSource(), true) );
+      tabListPopup.show( _btnDisplayTabs, 0, _btnDisplayTabs.getY() + _btnDisplayTabs.getHeight() );
     }
   }
 
@@ -221,21 +209,18 @@ public class ToolContainer extends JPanel
     {
       super( "_closeTab",
               null, //"Close Tab",
-              "images/caption_close.png",
+              null,
               ' ',
               null,
               "Close Tab",
               null );
+      setIcon( new ImageIcon( EditorUtilities.createSystemColorImage( EditorUtilities.loadIcon( "images/caption_close.png" ).getImage() ) ) );
       setEnabled( false );
       _tabPane.getTabContainer().addSelectionListener(
-        new ChangeListener()
-        {
-          public void stateChanged( ChangeEvent e )
-          {
-            _enabled = _tabPane.getTabContainer().getTabCount() > 0 &&
-                        _tabPane.getTabContainer().getSelectedTab().canClose();
-            setEnabled( _enabled ); // fire changed
-          }
+        e -> {
+          _enabled = _tabPane.getTabContainer().getTabCount() > 0 &&
+                     _tabPane.getTabContainer().getSelectedTab().canClose();
+          setEnabled( _enabled ); // fire changed
         } );
     }
 
@@ -266,11 +251,12 @@ public class ToolContainer extends JPanel
     {
       super( "_minimize",
               null, //"Minimize",
-              "images/caption_min.gif",
+              null,
               ' ',
               null,
               "Minimize",
               null);
+      setIcon( new ImageIcon( EditorUtilities.createSystemColorImage( EditorUtilities.loadIcon( "images/caption_min.gif" ).getImage() ) ) );
     }
 
     @Override
@@ -295,11 +281,12 @@ public class ToolContainer extends JPanel
     {
       super( "_restore",
               null, //"Restore",
-              "images/caption_restore.gif",
+              null,
               ' ',
               null,
               "Restore",
               null );
+      setIcon( new ImageIcon( EditorUtilities.createSystemColorImage( EditorUtilities.loadIcon( "images/caption_restore.gif" ).getImage() ) ) );
     }
 
     @Override
@@ -324,11 +311,12 @@ public class ToolContainer extends JPanel
     {
       super( "_maximize",
               null, //"Maximize",
-              "images/caption_max.gif",
+              null,
               ' ',
               null,
               "Maximize",
               null);
+      setIcon( new ImageIcon( EditorUtilities.createSystemColorImage( EditorUtilities.loadIcon( "images/caption_max.gif" ).getImage() ) ) );
     }
 
     @Override

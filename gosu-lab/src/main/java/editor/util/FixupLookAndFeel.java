@@ -1,5 +1,7 @@
 package editor.util;
 
+import editor.Scheme;
+
 import javax.swing.*;
 import javax.swing.border.Border;
 import javax.swing.border.LineBorder;
@@ -27,7 +29,7 @@ public class FixupLookAndFeel
     }
     catch( Exception e )
     {
-      editor.util.EditorUtilities.handleUncaughtException( e );
+      EditorUtilities.handleUncaughtException(e);
     }
   }
 
@@ -171,28 +173,27 @@ public class FixupLookAndFeel
 
   public static void fixupFieldBorders()
   {
-    String strJvmVersion = System.getProperty( "java.version" );
-    if( strJvmVersion.startsWith( "1.4.1" ) )
+    Border borderTextField = new XPFillBorder( Scheme.active().getControlShadow(), 1 );
+
+    Insets insets = (Insets)UIManager.get( "TextField.margin" );
+    if( insets.left < 2 )
     {
-      Border borderTextField = new XPFillBorder( new Color( 127, 157, 185 ), 1 );
-
-      Insets insets = (Insets)UIManager.get( "TextField.margin" );
-      if( insets.left < 2 )
-      {
-        insets = FIELD_INSETS;
-      }
-
-      UIManager.put( "ComboBox.border", borderTextField );
-
-      UIManager.put( "FormattedTextField.border", borderTextField );
-      UIManager.put( "FormattedTextField.margin", insets );
-
-      UIManager.put( "PasswordField.border", borderTextField );
-      UIManager.put( "PasswordField.margin", insets );
-
-      UIManager.put( "TextField.border", borderTextField );
-      UIManager.put( "TextField.margin", insets );
+      insets = FIELD_INSETS;
     }
+
+    UIManager.put( "ComboBox.border", borderTextField );
+
+    UIManager.put( "FormattedTextField.border", borderTextField );
+    UIManager.put( "FormattedTextField.margin", insets );
+
+    UIManager.put( "PasswordField.border", borderTextField );
+    UIManager.put( "PasswordField.margin", insets );
+
+    UIManager.put( "TextField.border", borderTextField );
+    UIManager.put( "TextField.margin", insets );
+
+    UIManager.put( "ScrollPane.border", borderTextField );
+    UIManager.put( "ScrollPane.margin", insets );
   }
 
   public static void fixupFonts()
@@ -203,20 +204,20 @@ public class FixupLookAndFeel
     Object dialogPlain12 = getDesktopProperty( "win.messagebox.font" );
     dialogPlain12 = dialogPlain12 == null
                     ? new UIDefaults.ProxyLazyValue(
-      "javax.swing.plaf.FontUIResource",
-      null,
-      new Object[]{"Dialog", fontPlain, twelve} )
+                          "javax.swing.plaf.FontUIResource",
+                          null,
+                          new Object[] {"Dialog", fontPlain, twelve} )
                     : dialogPlain12;
 
     Object menuFont = getDesktopProperty( "win.menu.font" );
     menuFont = menuFont == null ? dialogPlain12 : menuFont;
 
     Object serifPlain12 = dialogPlain12;
-    Object sansSerifPlain12 = dialogPlain12;
+    Object sansSerifPlain12 =  dialogPlain12;
     Object monospacedPlain12 = new UIDefaults.ProxyLazyValue(
-      "javax.swing.plaf.FontUIResource",
-      null,
-      new Object[]{"MonoSpaced", fontPlain, twelve} );
+          "javax.swing.plaf.FontUIResource",
+          null,
+          new Object[] {"MonoSpaced", fontPlain, twelve} );
 
     UIManager.put( "Button.font", dialogPlain12 );
     UIManager.put( "ToggleButton.font", dialogPlain12 );
@@ -255,10 +256,59 @@ public class FixupLookAndFeel
     UIManager.put( "ToolTip.font", sansSerifPlain12 );
     UIManager.put( "Tree.font", dialogPlain12 );
 
-    UIManager.put( "PopupMenu.border", BorderFactory.createMatteBorder( 1, 1, 1, 1, editor.util.EditorUtilities.CONTROL_SHADOW ) );
-    UIManager.put( "Menu.border", BorderFactory.createMatteBorder( 1, 1, 1, 1, editor.util.EditorUtilities.CONTROL_SHADOW ) );
+    UIManager.put( "PopupMenu.border", BorderFactory.createMatteBorder( 1, 1, 1, 1, Scheme.active().getControlShadow() ) );
+    UIManager.put( "Menu.border", BorderFactory.createMatteBorder( 1, 1, 1, 1, Scheme.active().getControlShadow() ) );
 
   }
+
+//  private static class XPFillBorder extends RoundedMatteBorder implements UIResource
+//  {
+//    private int _thickness;
+//
+//    XPFillBorder( Color color, int thickness )
+//    {
+//      super( thickness, color );
+//      _thickness = thickness;
+//    }
+//
+//    public Insets getBorderInsets( Component c )
+//    {
+//      return getBorderInsets( c, new Insets( 0, 0, 0, 0 ) );
+//    }
+//
+//    public Insets getBorderInsets( Component c, Insets insets )
+//    {
+//      Insets margin;
+//      if( c instanceof AbstractButton )
+//      {
+//        margin = ((AbstractButton)c).getMargin();
+//      }
+//      else if( c instanceof JToolBar )
+//      {
+//        margin = ((JToolBar)c).getMargin();
+//      }
+//      else if( c instanceof JTextComponent )
+//      {
+//        margin = ((JTextComponent)c).getMargin();
+//      }
+//      else if( c instanceof JComboBox )
+//      {
+//        margin = ((JTextField)((JComboBox)c).getEditor().getEditorComponent()).getMargin();
+//      }
+//      else
+//      {
+//        margin = new Insets( 0, 0, 0, 0 );
+//      }
+//      Insets smargin = super.getBorderInsets( c, insets );
+//
+//      insets.top = margin.top + _thickness + smargin.top;
+//      insets.left = margin.left + _thickness + smargin.left;
+//      insets.bottom = margin.bottom + _thickness + smargin.bottom;
+//      insets.right = margin.right + _thickness + smargin.right;
+//
+//      return insets;
+//    }
+//  }
 
   private static class XPFillBorder extends LineBorder implements UIResource
   {
@@ -289,7 +339,7 @@ public class FixupLookAndFeel
       }
       else if( c instanceof JComboBox )
       {
-        margin = getBorderInsets( ((JComboBox)c).getEditor().getEditorComponent() );
+        margin = ((JTextField)((JComboBox)c).getEditor().getEditorComponent()).getMargin();
       }
 
       insets.top = (margin != null ? margin.top : 0) + thickness;

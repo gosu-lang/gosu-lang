@@ -4,8 +4,6 @@
 package gw.internal.gosu.parser.statements;
 
 
-
-
 import gw.internal.gosu.parser.CannotExecuteGosuException;
 import gw.internal.gosu.parser.Expression;
 import gw.internal.gosu.parser.Statement;
@@ -186,41 +184,51 @@ public final class ForEachStatement extends LoopStatement implements IForEachSta
       strIndex = "";
     }
 
-    return "for( " + (getIdentifier() == null ? "" : getIdentifier().getName()) + " in " + toString(getInExpression()) + strIndex + ")\n" +
-           toString(getStatement());
+    return "for( " + (getIdentifier() == null ? "" : getIdentifier().getName()) + " in " + toString( getInExpression() ) + strIndex + ")\n" +
+           toString( getStatement() );
   }
-  
-  private String toString(Object o) {
+
+  private String toString( Object o )
+  {
     return o == null ? "" : o.toString();
   }
 
   @Override
   public int getNameOffset( String identifierName )
   {
-    if (identifierName.toString().equals(_identifier.getName())) {
+    if( identifierName.toString().equals( _identifier.getName() ) )
+    {
       return _iIdentifierOffset;
-    } else if (identifierName.toString().equals(_indexIdentifier.getName())) {
+    }
+    else if( identifierName.toString().equals( _indexIdentifier.getName() ) )
+    {
       return _iIndexIdentifierOffset;
-    } else if (identifierName.toString().equals(_iterIdentifier.getName())) {
+    }
+    else if( identifierName.toString().equals( _iterIdentifier.getName() ) )
+    {
       return _iIterOffset;
-    } else {
-      throw new RuntimeException("Wrong name " + identifierName);
+    }
+    else
+    {
+      throw new RuntimeException( "Wrong name " + identifierName );
     }
   }
+
   @Override
   public void setNameOffset( int iOffset, String identifierName )
   {
     _iIdentifierOffset = iOffset;
   }
+
   public void setIndexNameOffset( int iOffset )
   {
     _iIndexIdentifierOffset = iOffset;
   }
+
   public void setIterNameOffset( int iOffset )
   {
     _iIterOffset = iOffset;
   }
-
 
   public boolean declares( String identifierName )
   {
@@ -229,14 +237,22 @@ public final class ForEachStatement extends LoopStatement implements IForEachSta
            ((getIteratorIdentifier() != null) && GosuObjectUtil.equals( getIteratorIdentifier().getName(), identifierName ));
   }
 
-  public String[] getDeclarations() {
-    if (getIndexIdentifier() != null) {
-      return new String[] {getIdentifier().getName(), getIndexIdentifier().getName()};
-    } else if (getIdentifier() != null) {
-      return new String[] {getIdentifier().getName()};
-    } else if (getIteratorIdentifier() != null) {
-      return new String[] {getIteratorIdentifier().getName()};
-    } else {
+  public String[] getDeclarations()
+  {
+    if( getIndexIdentifier() != null )
+    {
+      return new String[]{getIdentifier().getName(), getIndexIdentifier().getName()};
+    }
+    else if( getIdentifier() != null )
+    {
+      return new String[]{getIdentifier().getName()};
+    }
+    else if( getIteratorIdentifier() != null )
+    {
+      return new String[]{getIteratorIdentifier().getName()};
+    }
+    else
+    {
       return new String[1];
     }
   }
@@ -245,6 +261,7 @@ public final class ForEachStatement extends LoopStatement implements IForEachSta
   {
     return _bStructuralIterable;
   }
+
   public void setStructuralIterable( boolean bStructuralIterable )
   {
     _bStructuralIterable = bStructuralIterable;

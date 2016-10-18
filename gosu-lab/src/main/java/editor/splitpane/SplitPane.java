@@ -5,7 +5,7 @@
  */
 package editor.splitpane;
 
-import editor.util.EditorUtilities;
+import editor.Scheme;
 
 import javax.swing.*;
 import java.awt.*;
@@ -23,16 +23,15 @@ import java.util.Set;
  */
 public class SplitPane extends JComponent implements SwingConstants
 {
-  public int SPLITTER_WIDTH = 7;
+  public int SPLITTER_WIDTH = 5;
 
   protected int _iOrientation;
-  protected int _iPosition;
+  protected double _iPosition;
   protected JPanel _pane1;
   protected JPanel _pane2;
   protected JComponent _comp1;
   protected JComponent _comp2;
   protected Splitter _splitter;
-  protected boolean _hasGripBumps;
   public static final int MIN_POSITION = 0;
   public static final int MAX_POSITION = 100;
 
@@ -40,11 +39,6 @@ public class SplitPane extends JComponent implements SwingConstants
 
 
   public SplitPane( int iOrientation, JComponent comp1, JComponent comp2 )
-  {
-    this(iOrientation, comp1, comp2, true);
-  }
-
-  public SplitPane( int iOrientation, JComponent comp1, JComponent comp2, boolean hasGripBumps )
   {
     _iOrientation = iOrientation;
 
@@ -60,7 +54,6 @@ public class SplitPane extends JComponent implements SwingConstants
     _splitter.addMouseMotionListener( splitterHandler );
 
     addMainComponents( comp1, comp2 );
-    _hasGripBumps = hasGripBumps;
   }
 
   protected void addMainComponents( JComponent comp1, JComponent comp2 )
@@ -85,7 +78,8 @@ public class SplitPane extends JComponent implements SwingConstants
     return _comp1;
   }
 
-  public void clearTop() {
+  public void clearTop()
+  {
     _pane1.removeAll();
   }
 
@@ -99,10 +93,6 @@ public class SplitPane extends JComponent implements SwingConstants
     return _comp2;
   }
 
-  public void clearBottom() {
-    _pane2.removeAll();
-  }
-
   protected int getSplitterWidth()
   {
     return SPLITTER_WIDTH;
@@ -112,7 +102,7 @@ public class SplitPane extends JComponent implements SwingConstants
   {
     return _iOrientation;
   }
-
+  @SuppressWarnings("UnusedDeclaration")
   public void setOrientation( int iOrientation )
   {
     _iOrientation = iOrientation;
@@ -125,22 +115,11 @@ public class SplitPane extends JComponent implements SwingConstants
     }
   }
 
-  public boolean hasGripBumps()
-  {
-    return _hasGripBumps;
-  }
-
-  public void setGripBumps(boolean gripBumps)
-  {
-    _hasGripBumps = gripBumps;
-  }
-
-  public int getPosition()
+  public double getPosition()
   {
     return _iPosition;
   }
-
-  public void setPosition( int iPos )
+  public void setPosition( double iPos )
   {
     iPos = iPos < MIN_POSITION ? MIN_POSITION : iPos;
     iPos = iPos > MAX_POSITION ? MAX_POSITION : iPos;
@@ -153,24 +132,26 @@ public class SplitPane extends JComponent implements SwingConstants
       getParent().validate();
     }
 
-    for (ActionListener listener : _listeners) {
-      listener.actionPerformed(new ActionEvent(this, 0, Integer.toString( iPos )));
+    for( ActionListener listener : _listeners )
+    {
+      listener.actionPerformed( new ActionEvent( this, 0, Double.toString( iPos ) ) );
     }
   }
 
-  public void addActionListener(ActionListener l) {
-    _listeners.add(l);
+  public void addActionListener( ActionListener l )
+  {
+    _listeners.add( l );
   }
 
   class Splitter extends JPanel
   {
     Splitter()
     {
-      setBackground( EditorUtilities.CONTROL );
+      setBackground( Scheme.active().getMenu() );
       int iOrientation = getOrientation();
 
       setCursor( iOrientation == HORIZONTAL ? Cursor.getPredefinedCursor( Cursor.E_RESIZE_CURSOR )
-                 : Cursor.getPredefinedCursor( Cursor.N_RESIZE_CURSOR ) );
+                                            : Cursor.getPredefinedCursor( Cursor.N_RESIZE_CURSOR ) );
     }
   }
 
@@ -195,7 +176,7 @@ public class SplitPane extends JComponent implements SwingConstants
     {
       _mouseEvent = e;
 
-      endDrag( e.getPoint() );
+      endDrag();
       e.consume();
     }
 
@@ -218,22 +199,14 @@ public class SplitPane extends JComponent implements SwingConstants
       _ptDrag = pt;
     }
 
-    protected void endDrag( Point pt )
+    protected void endDrag()
     {
       try
       {
         if( _rcLast != null )
         {
-          if( getOrientation() == HORIZONTAL )
-          {
-            setPosition( (int)(((float)(_rcLast.x + _rcLast.width / 2) / (float)SplitPane.this.getWidth()) * MAX_POSITION) );
-          }
-          else
-          {
-            setPosition( (int)(((float)(_rcLast.y + _rcLast.height / 2) / (float)SplitPane.this.getHeight()) * MAX_POSITION) );
-          }
+          setPosition();
 
-          dragBorderXOR( null );
           _rcLast = null;
           _ptDrag = null;
           _ptDragSave = null;
@@ -280,38 +253,22 @@ public class SplitPane extends JComponent implements SwingConstants
 
       _ptDragSave = pt;
 
-      Rectangle rcDrag = new Rectangle( rcBounds.x, rcBounds.y, rcBounds.width, rcBounds.height );
-      dragBorderXOR( rcDrag );
+      _rcLast = new Rectangle( rcBounds.x, rcBounds.y, rcBounds.width, rcBounds.height );
+      setPosition();
     }
 
-    protected synchronized void dragBorderXOR( Rectangle rcBounds )
+    private void setPosition()
     {
-      Container parent = SplitPane.this;
-
-      Graphics g = parent.getGraphics();
-      if( g == null )
+      if( getOrientation() == HORIZONTAL )
       {
-        return;
+        SplitPane.this.setPosition( (double)(_rcLast.x + _rcLast.width / 2) / SplitPane.this.getWidth() * MAX_POSITION );
       }
-
-      g.setXORMode( new Color( UIManager.getColor( "desktop" ).getRGB() ) );  // This color is replaced with...
-      g.setColor( EditorUtilities.WINDOW );     // ...this color when under the pen.
-
-      if( _rcLast != null )
+      else
       {
-        g.fillRect( _rcLast.x + 1, _rcLast.y + 1, _rcLast.width - 2, _rcLast.height - 2 );
+        SplitPane.this.setPosition( (double)(_rcLast.y + _rcLast.height / 2) / SplitPane.this.getHeight() * MAX_POSITION );
       }
-      _rcLast = rcBounds;
-      if( _rcLast != null )
-      {
-        g.fillRect( _rcLast.x + 1, _rcLast.y + 1, _rcLast.width - 2, _rcLast.height - 2 );
-      }
-
-      g.dispose();
-      g = null;
     }
   }
-
 
   class SplitPaneLayout implements LayoutManager
   {
@@ -345,7 +302,7 @@ public class SplitPane extends JComponent implements SwingConstants
 
       if( iOrientation == HORIZONTAL )
       {
-        int iPos = (int)((float)getWidth() * ((float)getPosition() / MAX_POSITION));
+        int iPos = (int)(getWidth() * (getPosition() / MAX_POSITION));
         _splitter.setBounds( insets.left + (iPos - getSplitterWidth() / 2), insets.top, getSplitterWidth(), getHeight() - insets.top - insets.bottom );
 
         _pane1.setBounds( insets.left, insets.top, _splitter.getX() - insets.left, getHeight() - insets.top - insets.bottom );
@@ -353,7 +310,7 @@ public class SplitPane extends JComponent implements SwingConstants
       }
       else
       {
-        int iPos = (int)((float)getHeight() * ((float)getPosition() / MAX_POSITION));
+        int iPos = (int)(getHeight() * (getPosition() / MAX_POSITION));
         _splitter.setBounds( insets.left, insets.top + (iPos - getSplitterWidth() / 2), getWidth() - insets.left - insets.right, getSplitterWidth() );
 
         _pane1.setBounds( insets.left, insets.top, getWidth() - insets.left - insets.right, _splitter.getY() - insets.top );

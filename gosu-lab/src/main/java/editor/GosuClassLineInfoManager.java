@@ -1,5 +1,6 @@
 package editor;
 
+import editor.debugger.Breakpoint;
 import editor.search.MessageDisplay;
 import editor.util.EditorUtilities;
 import gw.lang.parser.IDynamicFunctionSymbol;
@@ -55,7 +56,6 @@ public class GosuClassLineInfoManager extends AbstractLineInfoManager
   {
     return getExecPointAtLine( iLine ) != null;
   }
-
   protected Breakpoint getExecPointAtLine( int iLine )
   {
     GosuEditor editor = getGosuEditor();
@@ -64,6 +64,20 @@ public class GosuClassLineInfoManager extends AbstractLineInfoManager
       return null;
     }
     return getBreakpointManager().getExecPointAtEditorLine( editor.getScriptPart().getContainingTypeName(), iLine );
+  }
+
+  protected boolean isFramePointAtLine( int iLine )
+  {
+    return getFramePointAtLine( iLine ) != null;
+  }
+  protected Breakpoint getFramePointAtLine( int iLine )
+  {
+    GosuEditor editor = getGosuEditor();
+    if( editor == null )
+    {
+      return null;
+    }
+    return getBreakpointManager().getFramePointAtEditorLine( editor.getScriptPart().getContainingTypeName(), iLine );
   }
 
   @Override
@@ -82,7 +96,8 @@ public class GosuClassLineInfoManager extends AbstractLineInfoManager
     IParseTree implementedFuction = getOverridden( iLine );
     if( overrideFunction != null && (implementedFuction == null || iY < _iconOverrideAndImpl.getIconHeight() / 2) )
     {
-      getGosuEditor().handleGotoFeature( overrideFunction.getDynamicFunctionSymbol().getSuperDfs().getMethodOrConstructorInfo() );
+      IFunctionStatement funcStmt = overrideFunction.getDynamicFunctionSymbol().getSuperDfs().getDeclFunctionStmt();
+      getGosuEditor().gotoDeclaration( funcStmt.getLocation().getDeepestLocation( funcStmt.getNameOffset( null ), true ).getParsedElement() );
     }
     else if( implementedFuction != null )
     {

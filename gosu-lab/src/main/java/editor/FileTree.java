@@ -30,6 +30,7 @@ public class FileTree implements MutableTreeNode, IFileWatcherListener
   private List<FileTree> _children;
   private Experiment _experiment;
   private Icon _icon;
+  private long _lastModified;
 
   public FileTree( Experiment experiment )
   {
@@ -39,7 +40,7 @@ public class FileTree implements MutableTreeNode, IFileWatcherListener
     addSourcePaths( experiment );
   }
 
-  private FileTree( File fileOrDir, FileTree parent, Experiment experiment )
+  protected FileTree( File fileOrDir, FileTree parent, Experiment experiment )
   {
     _fileOrDir = fileOrDir;
     _parent = parent;
@@ -317,15 +318,40 @@ public class FileTree implements MutableTreeNode, IFileWatcherListener
   }
 
   @Override
+  public void fireModify( String dir, String file )
+  {
+    File existingFile = new File( dir, file );
+    if( !existingFile.isFile() )
+    {
+      return;
+    }
+
+    FileTree child = find( existingFile );
+    if( child != null && child._lastModified - existingFile.lastModified() >= 0 )
+    {
+      return;
+    }
+
+    child._lastModified = existingFile.lastModified();
+    EventQueue.invokeLater( () -> getExperiment().getGosuPanel().refresh( existingFile ) );
+  }
+
+  @Override
   public void fireDelete( String dir, String file )
   {
-    File newFileOrDir = new File( dir, file );
-    FileTree fileTree = find( newFileOrDir );
+    File existingFile = new File( dir, file );
+    FileTree fileTree = find( existingFile );
     if( fileTree != null )
     {
       EventQueue.invokeLater( () -> ((DefaultTreeModel)getExperimentView().getTree().getModel()).removeNodeFromParent( fileTree ) );
-      getExperiment().getGosuPanel().closeTab( newFileOrDir );
+      getExperiment().getGosuPanel().closeTab( existingFile );
     }
+  }
+
+  @Override
+  public void setLastModified()
+  {
+    _lastModified = System.currentTimeMillis() + 100;
   }
 
   public void select()
@@ -387,7 +413,7 @@ public class FileTree implements MutableTreeNode, IFileWatcherListener
     return TypeSystem.getByFullNameIfValid( fqn );
   }
 
-  private String makeFqn()
+  protected String makeFqn()
   {
     FileTree sourcePathRoot = getSourcePathRoot();
     if( isDirectory() || isSourcePathRoot() || sourcePathRoot == null || getFileOrDir().getName().indexOf( '.' ) < 0 )
@@ -459,14 +485,14 @@ public class FileTree implements MutableTreeNode, IFileWatcherListener
     return FileSystemView.getFileSystemView().getSystemIcon( getFileOrDir() );
   }
 
-  public int getTotalSourceFiles()
+  public int getTotalFiles()
   {
     int iCount = 0;
     if( isDirectory() )
     {
       for( FileTree csr: getChildren() )
       {
-        iCount += csr.getTotalSourceFiles();
+        iCount += csr.getTotalFiles();
       }
     }
     else

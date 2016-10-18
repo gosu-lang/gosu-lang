@@ -1,5 +1,7 @@
 package editor.util;
 
+import editor.Scheme;
+
 import java.awt.*;
 import java.awt.image.RGBImageFilter;
 
@@ -72,25 +74,25 @@ public class SystemColorFilter extends RGBImageFilter
         (g >= _clrFace.getGreen() - _fFudgeFactor * _clrFace.getGreen() && g <= _clrFace.getGreen() + _fFudgeFactor * _clrFace.getGreen()) &&
         (b >= _clrFace.getBlue() - _fFudgeFactor * _clrFace.getBlue() && b <= _clrFace.getBlue() + _fFudgeFactor * _clrFace.getBlue()) )
     {
-      r = editor.util.EditorUtilities.CONTROL.getRed();
-      g = editor.util.EditorUtilities.CONTROL.getGreen();
-      b = editor.util.EditorUtilities.CONTROL.getBlue();
+      r = Scheme.active().getControl().getRed();
+      g = Scheme.active().getControl().getGreen();
+      b = Scheme.active().getControl().getBlue();
     }
     else if( (r >= _clrHighlight.getRed() - _fFudgeFactor * _clrHighlight.getRed() && r <= _clrHighlight.getRed() + _fFudgeFactor * _clrHighlight.getRed()) &&
              (g >= _clrHighlight.getGreen() - _fFudgeFactor * _clrHighlight.getGreen() && g <= _clrHighlight.getGreen() + _fFudgeFactor * _clrHighlight.getGreen()) &&
              (b >= _clrHighlight.getBlue() - _fFudgeFactor * _clrHighlight.getBlue() && b <= _clrHighlight.getBlue() + _fFudgeFactor * _clrHighlight.getBlue()) )
     {
-      r = editor.util.EditorUtilities.CONTROL_HIGHLIGHT.getRed();
-      g = editor.util.EditorUtilities.CONTROL_HIGHLIGHT.getGreen();
-      b = editor.util.EditorUtilities.CONTROL_HIGHLIGHT.getBlue();
+      r = Scheme.active().getControlHighlight().getRed();
+      g = Scheme.active().getControlHighlight().getGreen();
+      b = Scheme.active().getControlHighlight().getBlue();
     }
     else if( (r >= _clrShadow.getRed() - _fFudgeFactor * _clrShadow.getRed() && r <= _clrShadow.getRed() + _fFudgeFactor * _clrShadow.getRed()) &&
              (g >= _clrShadow.getGreen() - _fFudgeFactor * _clrShadow.getGreen() && g <= _clrShadow.getGreen() + _fFudgeFactor * _clrShadow.getGreen()) &&
              (b >= _clrShadow.getBlue() - _fFudgeFactor * _clrShadow.getBlue() && b <= _clrShadow.getBlue() + _fFudgeFactor * _clrShadow.getBlue()) )
     {
-      r = editor.util.EditorUtilities.CONTROL_SHADOW.getRed();
-      g = editor.util.EditorUtilities.CONTROL_SHADOW.getGreen();
-      b = editor.util.EditorUtilities.CONTROL_SHADOW.getBlue();
+      r = Scheme.active().getControlShadow().getRed();
+      g = Scheme.active().getControlShadow().getGreen();
+      b = Scheme.active().getControlShadow().getBlue();
     }
 
     return (rgb & 0xff000000) + (r << 16) + (g << 8) + b;

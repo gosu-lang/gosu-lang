@@ -1,7 +1,5 @@
 package editor;
 
-import editor.util.EditorUtilities;
-
 import javax.swing.*;
 import javax.swing.tree.TreeCellRenderer;
 import java.awt.*;
@@ -59,8 +57,8 @@ public abstract class AbstractTreeCellRenderer<T> extends JLabel implements Tree
     if( _bSelected )
     {
       bkColor = _tree.isEnabled() && bFocus
-                ? EditorUtilities.ACTIVE_CAPTION
-                : EditorUtilities.CONTROL;
+                ? Scheme.active().getActiveCaption()
+                : Scheme.active().getControl();
     }
     else
     {
@@ -78,13 +76,13 @@ public abstract class AbstractTreeCellRenderer<T> extends JLabel implements Tree
 
       if( _bSelected )
       {
-        g.setColor( _tree.isEnabled() && bFocus ? EditorUtilities.XP_BORDER_COLOR : EditorUtilities.CONTROL_SHADOW );
+        g.setColor( _tree.isEnabled() && bFocus ? Scheme.active().getXpBorderColor() : Scheme.active().getControlShadow() );
         g.drawRect( 0, 0, getWidth() - 1, getHeight() - 1 );
       }
       g.setColor( bkColor );
     }
 
-    setForeground( EditorUtilities.CONTROL_TEXT );
+    setForeground( Scheme.active().getWindowText() );
 
     super.paint( g );
   }

@@ -1,5 +1,6 @@
 package editor;
 
+import editor.util.EditorUtilities;
 import editor.util.TextComponentUtil;
 import gw.lang.parser.IParseIssue;
 import gw.lang.parser.IParsedElement;
@@ -82,7 +83,7 @@ public class InitializerCompletionHandler extends AbstractPathCompletionHandler
             editor.select( TextComponentUtil.findCharacterPositionOnLine( editor.getCaretPosition() - 1, editor.getText(), ':', TextComponentUtil.Direction.BACKWARD ) + 1, editor.getCaretPosition() );
             editor.replaceSelection( beanTree.getBeanNode().getName() + " = " );
             editor.requestFocus();
-            gsEditor.fixSwingFocusBugWhenPopupCloses();
+            EditorUtilities.fixSwingFocusBugWhenPopupCloses( gsEditor );
             editor.repaint();
           }
         } );

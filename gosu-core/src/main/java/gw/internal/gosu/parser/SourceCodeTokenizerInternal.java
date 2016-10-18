@@ -1069,6 +1069,10 @@ final public class SourceCodeTokenizerInternal
                   bValidChar = false;
                    _peekc = read();
                 }
+                else if( c == '\n' )
+                {
+                  incrementLineNumber();
+                }
                 break;
             }
             if( bValidChar )

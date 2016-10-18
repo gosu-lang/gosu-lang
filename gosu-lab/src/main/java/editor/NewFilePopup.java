@@ -1,6 +1,7 @@
 package editor;
 
 import editor.util.EditorUtilities;
+import editor.util.SmartMenuItem;
 import editor.util.SourceFileCreator;
 import gw.lang.reflect.gs.ClassType;
 
@@ -41,7 +42,7 @@ public class NewFilePopup extends JPopupMenu
 
   private static void addNewItem( JComponent popup, String name, String icon, Runnable action )
   {
-    JMenuItem item = new JMenuItem(       
+    JMenuItem item = new SmartMenuItem(
       new AbstractAction( name, EditorUtilities.loadIcon( icon ) )
       {
         public void actionPerformed( ActionEvent e )

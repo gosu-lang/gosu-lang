@@ -8,7 +8,7 @@ machine:
       oraclejdk8
 
   environment:
-    JAVA_OPTS: "-Xmx1g"
+    MAVEN_OPTS: "-Xmx512m"
     TERM: dumb
 
 dependencies:
@@ -30,6 +30,7 @@ test:
   post:
     - mkdir -p $CIRCLE_TEST_REPORTS/junit/
     - find . -type f -regex ".*/target/surefire-reports/.*xml" -exec cp {} $CIRCLE_TEST_REPORTS/junit/ \;
+    - find . -type f -regex ".*/target/surefire-reports/.*-output.txt" -exec cp {} $CIRCLE_TEST_REPORTS/junit/ \;
 
 deployment:
   snapshots:

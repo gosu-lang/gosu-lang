@@ -23,6 +23,25 @@
       <version>${project.version}</version>
       <scope>runtime</scope>
     </dependency>
+
+<!--this is for Lucene indexing-->
+    <!--<dependency>-->
+      <!--<groupId>org.apache.lucene</groupId>-->
+      <!--<artifactId>lucene-core</artifactId>-->
+      <!--<version>6.2.1</version>-->
+    <!--</dependency>-->
+    <!--<dependency>-->
+      <!--<groupId>org.apache.lucene</groupId>-->
+      <!--<artifactId>lucene-queryparser</artifactId>-->
+      <!--<version>6.2.1</version>-->
+    <!--</dependency>-->
+    <!--<dependency>-->
+      <!--<groupId>org.apache.lucene</groupId>-->
+      <!--<artifactId>lucene-highlighter</artifactId>-->
+      <!--<version>6.2.1</version>-->
+    <!--</dependency>-->
+
+
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>

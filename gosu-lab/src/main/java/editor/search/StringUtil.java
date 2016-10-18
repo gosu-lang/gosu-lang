@@ -660,7 +660,7 @@ public class StringUtil
    */
   public static String[] decodeCSV( String csvFields )
   {
-    List resultList = new ArrayList();
+    List<String> resultList = new ArrayList<>();
     StringBuilder fieldBuffer = new StringBuilder();
     boolean inQuotedField = false;
     for( int i = 0, n = csvFields.length(); i < n; i++ )
@@ -710,7 +710,7 @@ public class StringUtil
       throw new IllegalArgumentException( "Missing quote at end of CSV string: " + csvFields );
     }
     resultList.add( fieldBuffer.toString() );
-    return (String[])resultList.toArray( new String[resultList.size()] );
+    return resultList.toArray( new String[resultList.size()] );
   }
 
   /**
@@ -725,31 +725,31 @@ public class StringUtil
    */
   public static List searchIgnoreCase( String strSource, String strPattern )
   {
-    return search( strSource, strPattern, true );
+    return search( strSource, strPattern, true, false );
   }
 
-  public static List search( String strSource, String strPattern, boolean bIgnoreCase )
+  public static List<SearchLocation> search( String strSource, String strPattern, boolean bIgnoreCase, boolean bWords )
   {
-    return search( strSource, strPattern, bIgnoreCase, 0 );
+    return search( strSource, strPattern, bIgnoreCase, bWords, 0 );
   }
 
-  public static List search( String strSource, String strPattern, boolean bIgnoreCase, int iOffset )
+  public static List<SearchLocation> search( String strSource, String strPattern, boolean bIgnoreCase, boolean bWords, int iOffset )
   {
-    return search( strSource, strPattern, bIgnoreCase, iOffset, false );
+    return search( strSource, strPattern, bIgnoreCase, bWords, iOffset, false );
   }
 
-  public static List search( String strSource, String strPattern, boolean bIgnoreCase, int iOffset, boolean backwards )
+  public static List<SearchLocation> search( String content, String pattern, boolean bIgnoreCase, boolean bWords, int iOffset, boolean backwards )
   {
     if( bIgnoreCase )
     {
-      strSource = strSource.toLowerCase();
-      strPattern = strPattern.toLowerCase();
+      content = content.toLowerCase();
+      pattern = pattern.toLowerCase();
     }
 
-    List list = new ArrayList();
+    List<SearchLocation> list = new ArrayList<>();
 
-    int iIndex = backwards ? strSource.length() : 0;
-    int iIndex2 = backwards ? strSource.lastIndexOf( strPattern, iOffset - strPattern.length() - 1 ) : strSource.indexOf( strPattern, iOffset );
+    int iIndex = backwards ? content.length() : 0;
+    int iIndex2 = backwards ? content.lastIndexOf( pattern, iOffset - pattern.length() - 1 ) : content.indexOf( pattern, iOffset );
     if( iIndex2 < 0 )
     {
       return list;
@@ -759,18 +759,20 @@ public class StringUtil
 
     while( true )
     {
-      SearchLocation sl = new SearchLocation();
-      sl._iOffset = iIndex2;
-      getLocation( strSource, iIndex, iIndex2, slBuffer );
-      sl._iLine = slBuffer._iLine + 1;
-      sl._iColumn = slBuffer._iColumn + 1;
-      sl._iLineOffset = slBuffer._iLineOffset;
-      sl._iLength = strPattern.length();
+      getLocation( content, iIndex, iIndex2, slBuffer );
+      if( !bWords || isWholeWord( content, iIndex2, pattern ) )
+      {
+        SearchLocation sl = new SearchLocation();
+        sl._iOffset = iIndex2;
+        sl._iLine = slBuffer._iLine + 1;
+        sl._iColumn = slBuffer._iColumn + 1;
+        sl._iLineOffset = slBuffer._iLineOffset;
+        sl._iLength = pattern.length();
 
-      list.add( sl );
-
+        list.add( sl );
+      }
       iIndex = iIndex2;
-      iIndex2 = backwards ? strSource.lastIndexOf( strPattern, iIndex -= 1 ) : strSource.indexOf( strPattern, iIndex += strPattern.length() );
+      iIndex2 = backwards ? content.lastIndexOf( pattern, iIndex -= 1 ) : content.indexOf( pattern, iIndex += pattern.length() );
       if( iIndex2 < 0 )
       {
         break;
@@ -778,6 +780,20 @@ public class StringUtil
     }
 
     return list;
+  }
+
+  private static boolean isWholeWord( String content, int offset, String pattern )
+  {
+    if( offset > 0 && Character.isLetterOrDigit( content.charAt( offset-1 ) ) )
+    {
+      return false;
+    }
+    int followingCharOffset = offset + pattern.length();
+    if( followingCharOffset < content.length() )
+    {
+      return !Character.isLetterOrDigit( content.charAt( followingCharOffset ) );
+    }
+    return true;
   }
 
   /**
@@ -1628,6 +1644,45 @@ public class StringUtil
       }
     }
     return sb.toString();
+  }
+
+  public static String wildcardToRegex( String wildcard )
+  {
+    StringBuilder s = new StringBuilder( wildcard.length() );
+    s.append( '^' );
+    for( int i = 0, is = wildcard.length(); i < is; i++ )
+    {
+      char c = wildcard.charAt( i );
+      switch( c )
+      {
+        case '*':
+          s.append( ".*" );
+          break;
+        case '?':
+          s.append( "." );
+          break;
+        // escape special regexp-characters
+        case '(':
+        case ')':
+        case '[':
+        case ']':
+        case '$':
+        case '^':
+        case '.':
+        case '{':
+        case '}':
+        case '|':
+        case '\\':
+          s.append( "\\" );
+          s.append( c );
+          break;
+        default:
+          s.append( c );
+          break;
+      }
+    }
+    s.append( '$' );
+    return s.toString();
   }
 
   /**
