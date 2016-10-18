@@ -4,6 +4,7 @@ import com.sun.jdi.Bootstrap;
 import com.sun.jdi.VirtualMachineManager;
 import com.sun.jdi.connect.Connector;
 import com.sun.jdi.connect.LaunchingConnector;
+import editor.util.PlatformUtil;
 import gw.lang.Gosu;
 
 import java.io.File;
@@ -42,7 +43,7 @@ public class OutOfProcessDebug extends AbstractOutOfProcessExecutor<FqnRunConfig
   private String makeDebuggingMessage( Map<String, Connector.Argument> vmArgs )
   {
     StringBuilder sb = new StringBuilder();
-    String java = vmArgs.get( "home" ).value() + File.separator + "bin" + File.separator + "java.exe";
+    String java = vmArgs.get( "home" ).value() + File.separator + "bin" + File.separator + "java" + (PlatformUtil.isWindows() ? ".exe" : "");
     String javaArgs = vmArgs.get( "options" ).value();
     String target = vmArgs.get( "main" ).value();
     sb.append( java ).append( ' ' )
