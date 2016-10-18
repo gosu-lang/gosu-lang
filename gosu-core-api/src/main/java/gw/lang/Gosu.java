@@ -278,15 +278,11 @@ public class Gosu
                          : TypeSystem.getGosuClassLoader().getActualLoader();
     if( loader instanceof URLClassLoader )
     {
+      Method addURL = getAddUrlMethod();
       for( File entry : classpath )
       {
         try
         {
-          //## todo:
-          //## Call URL.set( xxx ) so we can set the overwrite the previous ../src path, otherwise these just accumulate with every call to setClasspath() (this method)
-
-          Method addURL = URLClassLoader.class.getDeclaredMethod( "addURL", URL.class );
-          addURL.setAccessible( true );
           addURL.invoke( loader, entry.toURI().toURL() );
         }
         catch( Exception e )
@@ -298,6 +294,21 @@ public class Gosu
 
     reinitGosu( classpath );
     TypeSystem.refresh( true );
+  }
+
+  private static Method getAddUrlMethod()
+  {
+    Method addURL;
+    try
+    {
+      addURL = URLClassLoader.class.getDeclaredMethod( "addURL", URL.class );
+      addURL.setAccessible( true );
+    }
+    catch( Exception e )
+    {
+      throw new RuntimeException( e );
+    }
+    return addURL;
   }
 
   public static List<File> getClasspath()
