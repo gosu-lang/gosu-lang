@@ -351,7 +351,7 @@ public class ExecutionEnvironment implements IExecutionEnvironment
   void checkForDuplicates(String moduleName) {
     for (IModule m : getModules()) {
       if (m.getName().equals(moduleName)) {
-        throw new RuntimeException("Module " + moduleName + " allready exists.");
+        throw new RuntimeException("Module " + moduleName + " already exists.");
       }
     }
   }
@@ -732,10 +732,10 @@ public class ExecutionEnvironment implements IExecutionEnvironment
         if( pathElement.length() > 0 )
         {
           File filePath = new File( pathElement );
-          if( !filePath.exists() )
-          {
-            System.out.println( "Classpath component does not exist on disk: " + pathElement ); //TODO remove me    
-          }
+//          if( !filePath.exists() )
+//          {
+//            System.out.println( "Classpath component does not exist on disk: " + pathElement ); //TODO remove me
+//          }
           IDirectory resource = CommonServices.getFileSystem().getIDirectory( filePath );
           expanded.add(resource);
         }
