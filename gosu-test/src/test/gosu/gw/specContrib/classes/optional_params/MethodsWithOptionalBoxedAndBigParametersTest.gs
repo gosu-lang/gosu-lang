@@ -91,8 +91,8 @@ class MethodsWithOptionalBoxedAndBigParametersTest extends BaseVerifyErrantTest 
     assertEquals( bigInt(), m as BigInteger )
 
     assertEquals( boxedIntList(), {m} )
-    assertEquals( boxedLongList(), {m as long} as List<long> )
-    assertEquals( boxedFloatList(), {m as float} as List<float> )
+    assertEquals( boxedLongList(), {m as long} as List<Long> )
+    assertEquals( boxedFloatList(), {m as float} as List<Float> )
     assertEquals( boxedDoubleList(), {m as double} as List<Double> )
     assertEquals( boxedCharList(), {m as char} as List<Character> )
     assertEquals( boxedBooleanList(), {b} )
