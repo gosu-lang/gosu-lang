@@ -697,7 +697,7 @@ public class ExecutionEnvironment implements IExecutionEnvironment
   public static List<IDirectory> createDefaultClassPath( ) {
     List<String> vals = new ArrayList<String>();
     vals.add(CommonServices.getEntityAccess().getPluginRepositories().toString());
-    vals.add(System.getProperty("java.class.path", ""));
+    vals.add( removeQuotes( System.getProperty( "java.class.path", "" ) ) );
     vals.add(CommonServices.getEntityAccess().getWebServerPaths());
     vals.addAll(getJarsContainingSpecialClasses());
     vals.add(System.getProperty("sun.boot.class.path", ""));
@@ -706,21 +706,42 @@ public class ExecutionEnvironment implements IExecutionEnvironment
     return expand(vals);
   }
 
+  /**
+   * trims leading and/or trailing double quotes
+   * we've only seen this behavior on linux/macOS
+   */
+  private static String removeQuotes( String classpath ) {
+    if( classpath.startsWith( "\"" ) )
+    {
+      classpath = classpath.substring( 1 );
+    }
+    if( classpath.endsWith( "\"" ) )
+    {
+      classpath = classpath.substring( 0, classpath.length()-1 );
+    }
+    return classpath;
+  }
+
   private static List<IDirectory> expand( List<String> paths )
   {
-    LinkedHashSet<IDirectory> expanded = new LinkedHashSet<IDirectory>();
+    LinkedHashSet<IDirectory> expanded = new LinkedHashSet<>();
     for( String path : paths )
     {
       for( String pathElement : path.split( File.pathSeparator ) )
       {
         if( pathElement.length() > 0 )
         {
-          IDirectory resource = CommonServices.getFileSystem().getIDirectory(new File(pathElement));
+          File filePath = new File( pathElement );
+          if( !filePath.exists() )
+          {
+            System.out.println( "Classpath component does not exist on disk: " + pathElement ); //TODO remove me    
+          }
+          IDirectory resource = CommonServices.getFileSystem().getIDirectory( filePath );
           expanded.add(resource);
         }
       }
     }
-    return new ArrayList<IDirectory>( expanded );
+    return new ArrayList<>( expanded );
   }
   @Override
   public boolean isShadowingMode() {
