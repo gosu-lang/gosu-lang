@@ -452,6 +452,7 @@ public class CommonMenus
       super( "Run", EditorUtilities.loadIcon( "images/run.png" ), runConfig );
     }
 
+    @Override
     public void actionPerformed( ActionEvent e )
     {
       if( !isEnabled() )
@@ -480,6 +481,7 @@ public class CommonMenus
       super( "Debug", EditorUtilities.loadIcon( "images/debug.png" ), program );
     }
 
+    @Override
     public void actionPerformed( ActionEvent e )
     {
       if( !isEnabled() )
@@ -508,6 +510,7 @@ public class CommonMenus
       super( "Run...", EditorUtilities.loadIcon( "images/runconfig.png" ) );
     }
 
+    @Override
     public void actionPerformed( ActionEvent e )
     {
       RunConfigDialog dlg = new RunConfigDialog( getExperiment(), RunState.Run );
