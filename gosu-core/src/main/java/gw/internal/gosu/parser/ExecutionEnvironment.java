@@ -695,7 +695,7 @@ public class ExecutionEnvironment implements IExecutionEnvironment
   }
 
   public static List<IDirectory> createDefaultClassPath( ) {
-    List<String> vals = new ArrayList<String>();
+    List<String> vals = new ArrayList<>();
     vals.add(CommonServices.getEntityAccess().getPluginRepositories().toString());
     vals.add( removeQuotes( System.getProperty( "java.class.path", "" ) ) );
     vals.add(CommonServices.getEntityAccess().getWebServerPaths());
