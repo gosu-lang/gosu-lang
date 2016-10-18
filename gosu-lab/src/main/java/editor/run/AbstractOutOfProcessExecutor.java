@@ -111,6 +111,8 @@ public abstract class AbstractOutOfProcessExecutor<T extends IRunConfig> impleme
 
   int waitFor() throws IOException, InterruptedException
   {
+    captureErrorStream();
+
     InputStream input = _process.getInputStream();
 
     byte[] b = new byte[512];
@@ -125,6 +127,35 @@ public abstract class AbstractOutOfProcessExecutor<T extends IRunConfig> impleme
     }
 
     return _process.waitFor();
+  }
+
+  private void captureErrorStream() throws IOException
+  {
+    new Thread( () -> {
+      InputStream input = _process.getErrorStream();
+
+      byte[] b = new byte[512];
+      int read = 1;
+      while( read > -1 )
+      {
+        try
+        {
+          read = input.read( b, 0, b.length );
+        }
+        catch( IOException e )
+        {
+          // eat
+        }
+        if( read > -1 )
+        {
+          System.out.write( b, 0, read );
+        }
+        if( !_process.isAlive() )
+        {
+          break;
+        }
+      }
+    }, "Capture Error Stream" ).start();
   }
 
   String makeClasspath( GosuPanel gosuPanel ) throws IOException
