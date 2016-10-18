@@ -1,7 +1,5 @@
 package editor.util;
 
-import editor.search.StudioUtilities;
-
 import javax.swing.*;
 import java.awt.*;
 import java.util.concurrent.ExecutorService;
@@ -57,7 +55,7 @@ public class BackgroundOperation
   {
     if( showWaitCursor )
     {
-      SwingUtilities.invokeLater( () -> key[0] = StudioUtilities.showWaitCursor( true ) );
+      SwingUtilities.invokeLater( () -> key[0] = EditorUtilities.showWaitCursor( true ) );
     }
 
     try
@@ -68,7 +66,7 @@ public class BackgroundOperation
     {
       if( showWaitCursor )
       {
-        SwingUtilities.invokeLater( () -> StudioUtilities.showWaitCursor( false, key[0] ) );
+        SwingUtilities.invokeLater( () -> EditorUtilities.showWaitCursor( false, key[0] ) );
       }
     }
   }
@@ -97,7 +95,7 @@ public class BackgroundOperation
     if( jobRunner != null )
     {
       final Object wait = new Object();
-      synchronized( wait )
+      synchronized( wait ) //## wtf?
       {
         BackgroundOperation.instance().doBackgroundOp( () -> {
           synchronized( wait )

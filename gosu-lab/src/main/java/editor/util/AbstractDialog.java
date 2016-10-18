@@ -1,13 +1,13 @@
 package editor.util;
 
+import editor.IHandleCancel;
+
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.KeyEvent;
 
 /**
  */
-public class AbstractDialog extends JDialog
+public class AbstractDialog extends JDialog implements IHandleCancel
 {
   public AbstractDialog( Frame owner )
   {
@@ -88,23 +88,4 @@ public class AbstractDialog extends JDialog
   {
     dispose();
   }
-
-  protected void mapCancelKeystroke()
-  {
-    Object key = getRootPane().getInputMap( JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT ).get( KeyStroke.getKeyStroke( KeyEvent.VK_ESCAPE, 0 ) );
-    if( key == null )
-    {
-      key = "Cancel";
-      getRootPane().getInputMap( JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT ).put( KeyStroke.getKeyStroke( KeyEvent.VK_ESCAPE, 0 ), key );
-    }
-    getRootPane().getActionMap().put( key,
-                                      new AbstractAction()
-                                      {
-                                        public void actionPerformed( ActionEvent e )
-                                        {
-                                          close();
-                                        }
-                                      } );
-  }
-
 }

@@ -1,6 +1,5 @@
 package editor;
 
-import editor.search.StudioUtilities;
 import editor.util.EditorUtilities;
 import editor.util.Experiment;
 
@@ -8,8 +7,6 @@ import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.filechooser.FileFilter;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
@@ -18,7 +15,7 @@ import java.util.List;
 import java.util.StringTokenizer;
 import java.util.stream.Collectors;
 
-public class ClasspathDialog extends JDialog
+public class ClasspathDialog extends JDialog implements IHandleCancel
 {
   private JTextPane _pathsList;
   private File _dir;
@@ -102,11 +99,11 @@ public class ClasspathDialog extends JDialog
     south.add( buttonPanel, BorderLayout.EAST );
     contentPane.add( south, BorderLayout.SOUTH );
 
-    mapCancelKeystroke();
+    mapCancelKeystroke( "Cancel", this::close );
 
     setSize( 600, 400 );
 
-    StudioUtilities.centerWindowInFrame( this, getOwner() );
+    EditorUtilities.centerWindowInFrame( this, getOwner() );
   }
 
   private void setPathsList()
@@ -188,25 +185,6 @@ public class ClasspathDialog extends JDialog
   private File getCurrentDir()
   {
     return _dir;
-  }
-
-
-  private void mapCancelKeystroke()
-  {
-    Object key = getRootPane().getInputMap( JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT ).get( KeyStroke.getKeyStroke( KeyEvent.VK_ESCAPE, 0 ) );
-    if( key == null )
-    {
-      key = "Cancel";
-      getRootPane().getInputMap( JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT ).put( KeyStroke.getKeyStroke( KeyEvent.VK_ESCAPE, 0 ), key );
-    }
-    getRootPane().getActionMap().put( key,
-                                      new AbstractAction()
-                                      {
-                                        public void actionPerformed( ActionEvent e )
-                                        {
-                                          close();
-                                        }
-                                      } );
   }
 
   private void close()

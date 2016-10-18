@@ -2,7 +2,7 @@ package editor.tabpane;
 
 import editor.IContextMenuHandler;
 import editor.Scheme;
-import editor.search.StudioUtilities;
+import editor.util.EditorUtilities;
 import editor.util.IDisposable;
 import editor.util.ILabel;
 
@@ -204,7 +204,7 @@ public class TabContainer extends JPanel
 
   public void selectTab( ITab tab, boolean bFocus )
   {
-    if( getSelectedTab() == tab && StudioUtilities.isInFocusLineage( tab.getContentPane() ) )
+    if( getSelectedTab() == tab && EditorUtilities.isInFocusLineage( tab.getContentPane() ) )
     {
       return;
     }
@@ -236,7 +236,7 @@ public class TabContainer extends JPanel
   {
     ITab selectedTab = getSelectedTab();
     JComponent selectedTabComponent = selectedTab == null ? null : selectedTab.getComponent();
-    if( selectedTabComponent != null && !StudioUtilities.containsFocus( selectedTabComponent ) )
+    if( selectedTabComponent != null && !EditorUtilities.containsFocus( selectedTabComponent ) )
     {
       selectedTabComponent.transferFocus();
     }

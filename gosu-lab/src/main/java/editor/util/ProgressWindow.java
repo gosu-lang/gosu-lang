@@ -1,7 +1,6 @@
 package editor.util;
 
 import editor.Scheme;
-import editor.search.StudioUtilities;
 
 import javax.swing.*;
 import java.awt.*;
@@ -18,7 +17,7 @@ public class ProgressWindow extends JWindow
 
   private static Frame getFrameWindow()
   {
-    Window activeWindow = StudioUtilities.getActiveWindow();
+    Window activeWindow = EditorUtilities.getActiveWindow();
     if( activeWindow == null )
     {
       return getActiveFrameFromApp();
@@ -63,10 +62,10 @@ public class ProgressWindow extends JWindow
     }
     */
 
-    StudioUtilities.centerWindowInFrame( this, getOwner() );
+    EditorUtilities.centerWindowInFrame( this, getOwner() );
     super.show();
 
-    _window = StudioUtilities.getActiveWindow();
+    _window = EditorUtilities.getActiveWindow();
     if( _window != null )
     {
       _window.setEnabled( false );

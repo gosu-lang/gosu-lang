@@ -1,5 +1,6 @@
 package editor;
 
+import editor.util.EditorUtilities;
 import gw.lang.parser.IParseTree;
 
 import javax.swing.text.BadLocationException;
@@ -29,7 +30,7 @@ class MouseInEditorHandler implements MouseListener, MouseMotionListener, KeyLis
   @Override
   public void mouseClicked( MouseEvent e )
   {
-    if( e.getButton() == MouseEvent.BUTTON1 && (e.getModifiersEx() & MouseEvent.CTRL_DOWN_MASK) == MouseEvent.CTRL_DOWN_MASK )
+    if( e.getButton() == MouseEvent.BUTTON1 && (e.getModifiersEx() & EditorUtilities.CONTROL_KEY_MASK) == MouseEvent.CTRL_DOWN_MASK )
     {
       // Control-click
       _editor.gotoDeclaration();
@@ -44,7 +45,7 @@ class MouseInEditorHandler implements MouseListener, MouseMotionListener, KeyLis
     JTextComponent editorComponent = _editor.getEditor();
     Highlighter highlighter = editorComponent.getHighlighter();
 
-    if( (event.getModifiersEx() & MouseEvent.CTRL_DOWN_MASK) == MouseEvent.CTRL_DOWN_MASK )
+    if( (event.getModifiersEx() & EditorUtilities.CONTROL_KEY_MASK) == MouseEvent.CTRL_DOWN_MASK )
     {
       if( _previousCursor == null )
       {

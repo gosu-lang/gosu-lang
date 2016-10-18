@@ -9,7 +9,6 @@ import editor.run.IProcessRunner;
 import editor.run.IRunConfig;
 import editor.run.RunState;
 import editor.search.SearchPanel;
-import editor.search.StudioUtilities;
 import editor.shipit.BuildIt;
 import editor.shipit.ShipIt;
 import editor.splitpane.CollapsibleSplitPane;
@@ -1019,7 +1018,7 @@ public class GosuPanel extends JPanel
         @Override
         public void actionPerformed( ActionEvent e )
         {
-          if( getCurrentEditor() != null && StudioUtilities.containsFocus( getCurrentEditor() ) )
+          if( getCurrentEditor() != null && EditorUtilities.containsFocus( getCurrentEditor() ) )
           {
             getCurrentEditor().delete();
           }

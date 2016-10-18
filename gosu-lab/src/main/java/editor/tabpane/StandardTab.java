@@ -1,9 +1,9 @@
 package editor.tabpane;
 
 import editor.Scheme;
-import editor.search.StudioUtilities;
 import editor.splitpane.ICaptionActionListener;
 import editor.splitpane.ICaptionBar;
+import editor.util.EditorUtilities;
 import editor.util.IEditableLabel;
 import editor.util.ILabel;
 
@@ -250,19 +250,15 @@ public class StandardTab extends JPanel implements ITab
             // where the tab pane does not have focus and the active tab is
             // clicked.
             EventQueue.invokeLater(
-              new Runnable()
-              {
-                public void run()
+              () -> {
+                if( !getContentPane().isShowing() )
                 {
-                  if( !getContentPane().isShowing() )
-                  {
-                    return;
-                  }
-                  if( _tabContainer.getSelectedTab() == StandardTab.this &&
-                      !StudioUtilities.containsFocus( getContentPane() ) )
-                  {
-                    getContentPane().transferFocus();
-                  }
+                  return;
+                }
+                if( _tabContainer.getSelectedTab() == StandardTab.this &&
+                    !EditorUtilities.containsFocus( getContentPane() ) )
+                {
+                  getContentPane().transferFocus();
                 }
               } );
           }

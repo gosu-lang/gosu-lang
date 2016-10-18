@@ -1,9 +1,9 @@
 package editor.run;
 
 import editor.AbstractTreeCellRenderer;
+import editor.IHandleCancel;
 import editor.RunMe;
 import editor.Scheme;
-import editor.search.StudioUtilities;
 import editor.splitpane.CollapsibleSplitPane;
 import editor.tabpane.ITab;
 import editor.tabpane.TabPane;
@@ -24,7 +24,6 @@ import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeSelectionModel;
 import java.awt.*;
 import java.awt.event.ActionEvent;
-import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -32,7 +31,7 @@ import java.util.Map;
 
 /**
  */
-public class RunConfigDialog extends JDialog
+public class RunConfigDialog extends JDialog implements IHandleCancel
 {
   private final Experiment _experiment;
   private final RunState _runState;
@@ -98,11 +97,11 @@ public class RunConfigDialog extends JDialog
     contentPane.add( south, BorderLayout.SOUTH );
     contentPane.setBackground( Scheme.active().getMenu() );
 
-    mapCancelKeystroke();
+    mapCancelKeystroke( "Cancel", this::close );
 
     setSize( 800, 500 );
 
-    StudioUtilities.centerWindowInFrame( this, getOwner() );
+    EditorUtilities.centerWindowInFrame( this, getOwner() );
   }
 
   private JPanel makeButtonPanel()
@@ -372,24 +371,6 @@ public class RunConfigDialog extends JDialog
   public RunConfigTree getSelectedTree()
   {
     return (RunConfigTree)_tree.getLastSelectedPathComponent();
-  }
-
-  private void mapCancelKeystroke()
-  {
-    Object key = getRootPane().getInputMap( JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT ).get( KeyStroke.getKeyStroke( KeyEvent.VK_ESCAPE, 0 ) );
-    if( key == null )
-    {
-      key = "Cancel";
-      getRootPane().getInputMap( JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT ).put( KeyStroke.getKeyStroke( KeyEvent.VK_ESCAPE, 0 ), key );
-    }
-    getRootPane().getActionMap().put( key,
-                                      new AbstractAction()
-                                      {
-                                        public void actionPerformed( ActionEvent e )
-                                        {
-                                          close();
-                                        }
-                                      } );
   }
 
   public class RunConfigTreeCellRenderer extends AbstractTreeCellRenderer<RunConfigTree>

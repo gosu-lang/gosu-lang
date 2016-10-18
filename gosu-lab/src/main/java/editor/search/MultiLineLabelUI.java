@@ -1,5 +1,7 @@
 package editor.search;
 
+import editor.util.EditorUtilities;
+
 import javax.swing.*;
 import javax.swing.text.View;
 import java.awt.*;
@@ -85,7 +87,7 @@ public class MultiLineLabelUI extends javax.swing.plaf.basic.BasicLabelUI implem
       int iLines = vtext.size();
       for( int i = 0; i < iLines; i++ )
       {
-        StudioUtilities.drawStringInRectClipped( g, fm, (String)vtext.elementAt( i ), _rcPaintText, ((JLabel)c).getHorizontalAlignment(), ((JLabel)c).getVerticalAlignment(), false );
+        MessageDisplay.drawStringInRectClipped( g, fm, (String)vtext.elementAt( i ), _rcPaintText, ((JLabel)c).getHorizontalAlignment(), ((JLabel)c).getVerticalAlignment(), false );
 
         _rcPaintText.y += fm.getHeight();
       }
@@ -249,7 +251,7 @@ public class MultiLineLabelUI extends javax.swing.plaf.basic.BasicLabelUI implem
       else
       {
         rcText.setBounds( rcView.x, rcView.y, iAvailTextWidth, rcView.height );
-        vtext = StudioUtilities.drawTextWrapped( null, rcText, strText, fm.getFont(), 0, false, false );
+        vtext = MessageDisplay.drawTextWrapped( null, rcText, strText, fm.getFont(), 0, false, false );
         rcText.height = vtext.size() * fm.getHeight();
       }
     }

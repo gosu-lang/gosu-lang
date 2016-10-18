@@ -1,6 +1,6 @@
 package editor;
 
-import editor.search.StudioUtilities;
+import editor.util.EditorUtilities;
 import editor.util.Experiment;
 import gw.fs.IFile;
 import gw.lang.reflect.IType;
@@ -10,8 +10,11 @@ import javax.swing.text.JTextComponent;
 import java.awt.*;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.function.Consumer;
+import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
 import java.util.stream.Collectors;
 import java.util.List;
 
@@ -41,12 +44,12 @@ public class GotoTypePopup extends AbstractGotoPopup<String>
         String strQualifedType = (String)e.getSource();
         consumer.accept( strQualifedType );
       } );
-    valuePopup.show( StudioUtilities.rootPaneForComponent( host ), 0, 0 );
+    valuePopup.show( EditorUtilities.rootPaneForComponent( host ), 0, 0 );
   }
 
   public static void doGoTo( String strQualifedType )
   {
-    StudioUtilities.showWaitCursor( true );
+    EditorUtilities.showWaitCursor( true );
     try
     {
       IType type = TypeSystem.getByFullNameIfValid( strQualifedType );
@@ -70,7 +73,7 @@ public class GotoTypePopup extends AbstractGotoPopup<String>
     }
     finally
     {
-      StudioUtilities.showWaitCursor( false );
+      EditorUtilities.showWaitCursor( false );
     }
   }
 
@@ -113,7 +116,7 @@ public class GotoTypePopup extends AbstractGotoPopup<String>
 
   protected AbstractPopupListModel<String> reconstructModel( String strPrefix )
   {
-    return new TypeModel( StudioUtilities.filterStrings( getInitializedAllData(), strPrefix ) );
+    return new TypeModel( filterStrings( getInitializedAllData(), strPrefix ) );
   }
 
   private static String getRelativeTypeName( String strType )
@@ -160,5 +163,90 @@ public class GotoTypePopup extends AbstractGotoPopup<String>
     {
       return _allTypes.get( i );
     }
+  }
+
+  public static List<String> filterStrings( Collection<? extends CharSequence> collection, String filter )
+  {
+    return filterStrings( collection, filter, false );
+  }
+
+  public static List<String> filterStrings( Collection<? extends CharSequence> collection, String filter, boolean showChoicesIfEmpty )
+  {
+    if( filter == null )
+    {
+      filter = "";
+    }
+    int iDotIndex = filter.lastIndexOf( '.' );
+    if( iDotIndex >= 0 )
+    {
+      filter = filter.substring( iDotIndex + 1 );
+    }
+
+    List<String> filteredTypes = new ArrayList<>();
+    if( showChoicesIfEmpty || filter.length() > 0 )
+    {
+      int iFlags = 0;
+      if( filter.length() > 0 && filter.indexOf( '*' ) < 0 &&
+          Character.isUpperCase( filter.charAt( 0 ) ) )
+      {
+        filter = camelCasePrefix( filter );
+      }
+      else
+      {
+        iFlags = Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE;
+      }
+
+      // Replace all wildcard '*' chars with the regex ".*" expression
+      filter = filter.replaceAll( "\\*", "\\.\\*" );
+
+      // A '#' char indicates that the proper regex syntax has already been embedded in the string;
+      // we only need to replace the '#' with '*'
+      filter = filter.replaceAll( "\\#", "\\*" );
+
+      boolean bHasDot = filter.indexOf( '~' ) >= 0;
+      filter = filter.replaceAll( "~", "(\\\\.|" + '\u2024' + ")" );
+
+      boolean exactMatch = filter.endsWith( " " );
+      filter = filter.trim();
+
+      // Match the expression string followed by any number of chars
+      try
+      {
+        Pattern pattern = Pattern.compile( '^' + filter + (exactMatch ? "" : (filter.startsWith( ".*" ) ? "" : ".*")), iFlags );
+        for( CharSequence cs : collection )
+        {
+          String strType = cs.toString();
+          String strName = bHasDot ? strType : getRelativeTypeName( strType );
+          boolean shouldAdd = exactMatch ? pattern.matcher( strName ).matches() : pattern.matcher( strName ).find();
+          if( shouldAdd )
+          {
+            filteredTypes.add( strType );
+          }
+        }
+      }
+      catch( PatternSyntaxException e )
+      {
+        // Skip
+      }
+    }
+    return filteredTypes;
+  }
+
+  private static String camelCasePrefix( String strPrefix )
+  {
+    StringBuilder sb = new StringBuilder();
+    for( int i = strPrefix.length() - 1; i >= 0; i-- )
+    {
+      char c = strPrefix.charAt( i );
+      sb.insert( 0, c );
+      if( i != 0 && Character.isUpperCase( c ) )
+      {
+        // Each uppercase char in the prefix match all but uppercase chars preceding it e.g.,
+        // "AcT" matches any string starting with "Ac" followed by any number of non-uppercase chars followed by "T".
+        // It's the same as the regex "Ac[^A-Z]*T"
+        sb.insert( 0, "[^A-Z]#" ); // see note in filter method re # char
+      }
+    }
+    return sb.toString();
   }
 }

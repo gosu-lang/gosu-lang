@@ -4,12 +4,10 @@ import editor.util.EditorUtilities;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 
-public abstract class AbstractCloseDialog extends JDialog
+public abstract class AbstractCloseDialog extends JDialog implements IHandleCancel
 {
   protected JButton _btnClose;
 
@@ -77,44 +75,15 @@ public abstract class AbstractCloseDialog extends JDialog
     _btnClose = createCloseButton();
     getRootPane().setDefaultButton( _btnClose );
     _btnClose.addActionListener( e -> close() );
-    mapCancelKeystroke();
+    mapCancelKeystroke( "Close", this::close );
 
     btnPanel.add( _btnClose );
 
     return btnPanel;
   }
 
-  protected boolean onCancel()
-  {
-    return true;
-  }
-
   protected JButton createCloseButton()
   {
     return new JButton( "Close" );
-  }
-
-  public void enableCloseButton( boolean bEnable )
-  {
-    _btnClose.setEnabled( bEnable );
-  }
-
-  private void mapCancelKeystroke()
-  {
-    Object key = getRootPane().getInputMap( JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT ).get( KeyStroke.getKeyStroke( KeyEvent.VK_ESCAPE, 0 ) );
-    if( key == null )
-    {
-      key = "Close";
-      getRootPane().getInputMap( JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT ).put( KeyStroke.getKeyStroke( KeyEvent.VK_ESCAPE, 0 ), key );
-    }
-    getRootPane().getActionMap().put(
-      key,
-      new AbstractAction()
-      {
-        public void actionPerformed( ActionEvent e )
-        {
-          close();
-        }
-      } );
   }
 }

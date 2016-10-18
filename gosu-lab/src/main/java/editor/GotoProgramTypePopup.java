@@ -1,6 +1,6 @@
 package editor;
 
-import editor.search.StudioUtilities;
+import editor.util.EditorUtilities;
 import editor.util.Experiment;
 
 import javax.swing.text.JTextComponent;
@@ -34,7 +34,7 @@ public class GotoProgramTypePopup extends GotoTypePopup
         host.requestFocus();
       } );
     valuePopup.getNameField().setText( prefix );
-    valuePopup.show( StudioUtilities.rootPaneForComponent( host ), 0, 0 );
+    valuePopup.show( EditorUtilities.rootPaneForComponent( host ), 0, 0 );
   }
 
   public GotoProgramTypePopup( String strPrefix )

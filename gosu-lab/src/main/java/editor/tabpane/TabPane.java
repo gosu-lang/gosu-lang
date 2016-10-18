@@ -2,9 +2,9 @@ package editor.tabpane;
 
 import editor.IContextMenuHandler;
 import editor.Scheme;
-import editor.search.StudioUtilities;
 import editor.splitpane.ICaptionBar;
 import editor.splitpane.ICaptionedPanel;
+import editor.util.EditorUtilities;
 import editor.util.ILabel;
 import editor.util.SettleModalEventQueue;
 import editor.util.SmartMenuItem;
@@ -459,7 +459,7 @@ public class TabPane extends JPanel implements ICaptionedPanel
       {
         return;
       }
-      setActive( StudioUtilities.containsFocus( TabPane.this ) );
+      setActive( EditorUtilities.containsFocus( TabPane.this ) );
     }
   }
 
@@ -522,7 +522,7 @@ public class TabPane extends JPanel implements ICaptionedPanel
 
     private void closeAll( JComponent c )
     {
-      Component root = StudioUtilities.showWaitCursor( true );
+      Component root = EditorUtilities.showWaitCursor( true );
       try
       {
         ITab leaveOpen = c == null ? null : tabForComponent( c );
@@ -549,7 +549,7 @@ public class TabPane extends JPanel implements ICaptionedPanel
       }
       finally
       {
-        StudioUtilities.showWaitCursor( false, root );
+        EditorUtilities.showWaitCursor( false, root );
       }
     }
 

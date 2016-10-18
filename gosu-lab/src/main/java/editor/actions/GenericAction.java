@@ -146,7 +146,7 @@ public class GenericAction extends AbstractAction implements ChangeListener
       switch( tok )
       {
         case CTRL:
-          iModifier |= InputEvent.CTRL_DOWN_MASK;
+          iModifier |= EditorUtilities.CONTROL_KEY_MASK;
           break;
         case ALT:
           iModifier |= InputEvent.ALT_DOWN_MASK;

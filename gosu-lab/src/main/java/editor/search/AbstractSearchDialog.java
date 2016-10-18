@@ -9,6 +9,7 @@ import editor.RunMe;
 import editor.Scheme;
 import editor.util.AbstractDialog;
 import editor.util.DirectoryEditor;
+import editor.util.EditorUtilities;
 import editor.util.ModalEventQueue;
 import editor.util.ProgressFeedback;
 import gw.lang.reflect.json.IJsonIO;
@@ -124,11 +125,11 @@ public abstract class AbstractSearchDialog extends AbstractDialog
     contentPane.add( south, BorderLayout.SOUTH );
     contentPane.setBackground( Scheme.active().getMenu() );
 
-    mapCancelKeystroke();
+    mapCancelKeystroke( "Cancel", this::close );
 
     setSize( 400, _bReplace ? 420 : 400 );
 
-    StudioUtilities.centerWindowInFrame( this, getOwner() );
+    EditorUtilities.centerWindowInFrame( this, getOwner() );
 
     EventQueue.invokeLater(
       () -> {

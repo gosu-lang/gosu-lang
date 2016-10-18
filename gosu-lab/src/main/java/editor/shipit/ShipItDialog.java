@@ -1,9 +1,9 @@
 package editor.shipit;
 
 import editor.GotoProgramTypePopup;
+import editor.IHandleCancel;
 import editor.RunMe;
 import editor.Scheme;
-import editor.search.StudioUtilities;
 import editor.util.EditorUtilities;
 import editor.util.Experiment;
 import editor.util.LabCheckbox;
@@ -15,12 +15,10 @@ import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.KeyEvent;
 
 /**
  */
-public class ShipItDialog extends JDialog
+public class ShipItDialog extends JDialog implements IHandleCancel
 {
   private String _strProgramName;
   private boolean _bBundleGosu;
@@ -212,11 +210,11 @@ public class ShipItDialog extends JDialog
     south.add( buttonPanel, BorderLayout.EAST );
     contentPane.add( south, BorderLayout.SOUTH );
 
-    mapCancelKeystroke();
+    mapCancelKeystroke( "Cancel", this::close );
 
     setSize( 540, 465 );
 
-    StudioUtilities.centerWindowInFrame( this, getOwner() );
+    EditorUtilities.centerWindowInFrame( this, getOwner() );
   }
 
   private void displayProgramPopup()
@@ -238,24 +236,6 @@ public class ShipItDialog extends JDialog
   {
     _strProgramName = _fieldProgramName.getText();
     _bBundleGosu = _cbBundleGosu.isSelected();
-  }
-
-  private void mapCancelKeystroke()
-  {
-    Object key = getRootPane().getInputMap( JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT ).get( KeyStroke.getKeyStroke( KeyEvent.VK_ESCAPE, 0 ) );
-    if( key == null )
-    {
-      key = "Cancel";
-      getRootPane().getInputMap( JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT ).put( KeyStroke.getKeyStroke( KeyEvent.VK_ESCAPE, 0 ), key );
-    }
-    getRootPane().getActionMap().put( key,
-                                      new AbstractAction()
-                                      {
-                                        public void actionPerformed( ActionEvent e )
-                                        {
-                                          close();
-                                        }
-                                      } );
   }
 
   private void close()

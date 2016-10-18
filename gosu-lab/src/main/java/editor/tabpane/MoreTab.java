@@ -1,7 +1,7 @@
 package editor.tabpane;
 
 import editor.Scheme;
-import editor.search.StudioUtilities;
+import editor.util.EditorUtilities;
 import editor.util.LabToolbarButton;
 import editor.util.SettleModalEventQueue;
 
@@ -368,7 +368,7 @@ public class MoreTab extends LabToolbarButton
 
         if( bVisible )
         {
-          StudioUtilities.removePopupBorder( this );
+          EditorUtilities.removePopupBorder( this );
         }
       }
     }

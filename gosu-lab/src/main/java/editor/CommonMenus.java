@@ -1090,7 +1090,7 @@ public class CommonMenus
   {
     public CompileActionHandler()
     {
-      super( "Compile...", EditorUtilities.loadIcon( "images/compile.png" ) );
+      super( "Compile", EditorUtilities.loadIcon( "images/compile.png" ) );
     }
 
     @Override

@@ -34,6 +34,8 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.image.FilteredImageSource;
 import java.awt.image.ImageProducer;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
@@ -49,6 +51,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
@@ -58,6 +61,9 @@ public class EditorUtilities
   static final HashMap<String, ImageIcon> ICON_TABLE = new HashMap<>();
 
   private static final String BACKGROUND_QUEUE_NAME = "backgroundTasks";
+
+  static Map<Component, Boolean> CONTAINS_FOCUS;
+  static Map<Component, Boolean> FOCUS_CONTAINS;
 
   /**
    * Platform dependent keystroke info
@@ -391,6 +397,19 @@ public class EditorUtilities
       if( p instanceof Frame )
       {
         return (Frame)p;
+      }
+    }
+
+    return null;
+  }
+
+  public static Window windowForComponent( Component comp )
+  {
+    for( Component p = comp; p != null; p = p.getParent() )
+    {
+      if( p instanceof Window )
+      {
+        return (Window)p;
       }
     }
 
@@ -1264,5 +1283,129 @@ public class EditorUtilities
     // This is a fix to workaround a bug with Swing JPopupMenu.  Withou this
     // focus is stolen from a subsequent selected field. See Bug CC-1140.
     editor.util.EditorUtilities.rootPaneForComponent( c ).dispatchEvent( new MouseEvent( c, MouseEvent.MOUSE_PRESSED, System.currentTimeMillis(), 0, 3, 3, 1, false ) );
+  }
+
+  public static Component showWaitCursor( final boolean bWait )
+  {
+    return WaitCursorRunner.showWaitCursor( bWait );
+  }
+
+  public static void showWaitCursor( boolean bWait, Component c )
+  {
+    WaitCursorRunner.showWaitCursor( bWait, c );
+  }
+
+  public static void doWaitOperation( Runnable op )
+  {
+    Component key = showWaitCursor( true );
+    try
+    {
+      op.run();
+    }
+    finally
+    {
+      showWaitCursor( false, key );
+    }
+  }
+
+  public static Component getFocus()
+  {
+    return KeyboardFocusManager.getCurrentKeyboardFocusManager().getPermanentFocusOwner();
+  }
+
+  public static Window getFocusedWindow()
+  {
+    return KeyboardFocusManager.getCurrentKeyboardFocusManager().getFocusedWindow();
+  }
+
+  public static Window getActiveWindow()
+  {
+    Window activeWindow = KeyboardFocusManager.getCurrentKeyboardFocusManager().getActiveWindow();
+    if( activeWindow == null )
+    {
+      Frame[] frames = Frame.getFrames();
+      if( frames != null && frames.length > 0 )
+      {
+        return frames[0];
+      }
+    }
+    return activeWindow;
+  }
+
+  public static boolean containsFocus( Component c )
+  {
+    addFocusListener();
+    Boolean containsFocus = CONTAINS_FOCUS.get( c );
+    if( containsFocus != null )
+    {
+      return containsFocus;
+    }
+    Component focusOwner = KeyboardFocusManager.getCurrentKeyboardFocusManager().getPermanentFocusOwner();
+    // Verify focusOwner is a descendant of c
+    for( Component temp = focusOwner; temp != null; temp = (temp instanceof Window) ? null : temp.getParent() )
+    {
+      if( temp == c )
+      {
+        CONTAINS_FOCUS.put( c, true );
+        return true;
+      }
+    }
+    CONTAINS_FOCUS.put( c, false );
+    return false;
+  }
+
+  public static boolean focusContains( Component c )
+  {
+    addFocusListener();
+
+    Boolean focusContains = FOCUS_CONTAINS.get( c );
+    if( focusContains != null )
+    {
+      return focusContains;
+    }
+    Component focusOwner = KeyboardFocusManager.getCurrentKeyboardFocusManager().getPermanentFocusOwner();
+    // Verify c is a descendant of focusOwner
+    for( Component temp = c; temp != null; temp = (temp instanceof Window) ? null : temp.getParent() )
+    {
+      if( temp == focusOwner )
+      {
+        FOCUS_CONTAINS.put( c, true );
+        return true;
+      }
+    }
+    FOCUS_CONTAINS.put( c, false );
+    return false;
+  }
+
+  private static void addFocusListener()
+  {
+    if( CONTAINS_FOCUS != null )
+    {
+      return;
+    }
+    CONTAINS_FOCUS = new HashMap<>();
+    FOCUS_CONTAINS = new HashMap<>();
+    KeyboardFocusManager focusMgr = KeyboardFocusManager.getCurrentKeyboardFocusManager();
+    focusMgr.addPropertyChangeListener( "permanentFocusOwner",
+                                        new PropertyChangeListener()
+                                        {
+                                          public void propertyChange( PropertyChangeEvent evt )
+                                          {
+                                            CONTAINS_FOCUS.clear();
+                                            FOCUS_CONTAINS.clear();
+                                          }
+                                        } );
+  }
+
+  public static boolean isInFocusLineage( Component c )
+  {
+    return containsFocus( c ) || focusContains( c );
+  }
+
+  public static Point getXYForDialogRelativeToStudioFrame( int width, int height )
+  {
+    Rectangle screenRect = getPrimaryMonitorScreenRect();
+    return new Point( (int)(screenRect.getX() + (screenRect.getWidth() - width) / 2),
+                      (int)(screenRect.getY() + (screenRect.getHeight() - height) / 2) );
   }
 }
