@@ -2,6 +2,7 @@ package editor;
 
 import editor.debugger.Breakpoint;
 import editor.debugger.BreakpointManager;
+import editor.debugger.EditBreakpointsDialog;
 import editor.util.EditorUtilities;
 import editor.util.SmartMenuItem;
 
@@ -20,12 +21,22 @@ public abstract class AbstractLineInfoManager implements ILineInfoManager
 
   private ImageIcon _iconBreakpoint;
   private ImageIcon _iconBreakpointDisabled;
+  private GosuEditor _editor;
 
   public AbstractLineInfoManager()
   {
     _iconBreakpoint = EditorUtilities.loadIcon( "images/debug_linebreakpoint.png" );
     _iconBreakpointDisabled = EditorUtilities.loadIcon( "images/disabled_breakpoint.png" );
     g_iRequiredWidth = _iconBreakpoint.getIconWidth();
+  }
+
+  public void setEditor( GosuEditor gosuEditor )
+  {
+    _editor = gosuEditor;
+  }
+  public GosuEditor getEditor()
+  {
+    return _editor;
   }
 
   public int getRequiredWidth()
@@ -54,7 +65,7 @@ public abstract class AbstractLineInfoManager implements ILineInfoManager
     return RunMe.getEditorFrame().getGosuPanel();
   }
 
-  public void renderHighlight( GosuEditorPane editor, Graphics g, int iLine )
+  public void renderHighlight( Graphics g, int iLine )
   {
     Color color = null;
 
@@ -75,6 +86,8 @@ public abstract class AbstractLineInfoManager implements ILineInfoManager
     {
       return;
     }
+
+    GosuEditorPane editor = getEditor().getEditor();
 
     FontMetrics fm = g.getFontMetrics( editor.getFont() );
     int iLineHeight = fm.getHeight();
@@ -108,6 +121,10 @@ public abstract class AbstractLineInfoManager implements ILineInfoManager
     {
       return;
     }
+    if( EditBreakpointsDialog.getShowing() != null )
+    {
+      return;
+    }
     JPopupMenu contextMenu = new JPopupMenu();
     JMenuItem disableItem = new SmartMenuItem(
       new AbstractAction( bp.isActive() ? "Disable" : "Enable" )
@@ -121,7 +138,7 @@ public abstract class AbstractLineInfoManager implements ILineInfoManager
           {
             csr.setActive( bp.isActive() );
           }
-          GosuEditor editor = RunMe.getEditorFrame().getGosuPanel().getGosuEditor();
+          GosuEditor editor = getEditor();
           if( editor != null )
           {
             java.util.List<? extends JComponent> columns = EditorUtilities.findDecendents( editor, EditorScrollPane.AdviceColumn.class );
@@ -139,12 +156,8 @@ public abstract class AbstractLineInfoManager implements ILineInfoManager
         public void actionPerformed( ActionEvent e )
         {
           BreakpointManager bmp = getGosuPanel().getBreakpointManager();
-          bmp.toggleLineBreakpoint( getGosuPanel().getCurrentEditor().getScriptPart().getContainingTypeName(), iLine );
-          GosuEditor editor = RunMe.getEditorFrame().getGosuPanel().getGosuEditor();
-          if( editor != null )
-          {
-            editor.repaint();
-          }
+          bmp.toggleLineBreakpoint( getEditor(), getEditor().getScriptPart().getContainingTypeName(), iLine );
+          getEditor().repaint();
         }
       } );
     contextMenu.add( removeItem );

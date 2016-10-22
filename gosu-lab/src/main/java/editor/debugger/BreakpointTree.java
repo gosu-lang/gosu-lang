@@ -1,4 +1,6 @@
-package editor.run;
+package editor.debugger;
+
+import editor.util.EditorUtilities;
 
 import javax.swing.*;
 import javax.swing.tree.DefaultTreeModel;
@@ -11,50 +13,48 @@ import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.List;
 
-/**
- */
-public class RunConfigTree implements MutableTreeNode
+public class BreakpointTree implements MutableTreeNode
 {
-  private IRunConfig _runConfig;
-  private IRunConfigFactory _factory;
-  private RunConfigTree _parent;
-  private List<RunConfigTree> _children;
+  private Breakpoint _bp;
+  private IBreakpointFactory _factory;
+  private BreakpointTree _parent;
+  private List<BreakpointTree> _children;
 
-  public RunConfigTree()
+  public BreakpointTree()
   {
     _children = Collections.emptyList();
   }
 
-  public RunConfigTree( IRunConfigFactory factory, RunConfigTree parent )
+  public BreakpointTree( IBreakpointFactory factory, BreakpointTree parent )
   {
     _parent = parent;
     _factory = factory;
     _children = Collections.emptyList();
   }
 
-  public RunConfigTree( IRunConfig runConfig, RunConfigTree parent )
+  public BreakpointTree( Breakpoint bp, BreakpointTree parent )
   {
     _parent = parent;
-    _runConfig = runConfig;
+    _bp = bp;
     _children = Collections.emptyList();
   }
 
-  public IRunConfig getRunConfig()
+  public Breakpoint getBreakpoint()
   {
-    return _runConfig;
+    return _bp;
   }
 
-  public IRunConfigFactory getFactory()
+  public IBreakpointFactory getFactory()
   {
     return _factory;
   }
 
   public boolean isTerminal()
   {
-    return getRunConfig() != null;
+    return getBreakpoint() != null;
   }
 
-  public List<RunConfigTree> getChildren()
+  public List<BreakpointTree> getChildren()
   {
     return _children;
   }
@@ -66,10 +66,10 @@ public class RunConfigTree implements MutableTreeNode
     {
       _children = new ArrayList<>();
     }
-    _children.add( index, (RunConfigTree)child );
+    _children.add( index, (BreakpointTree)child );
     child.setParent( this );
   }
-  public void addChild( RunConfigTree child )
+  public void addChild( BreakpointTree child )
   {
     insert( child, _children.size() );
   }
@@ -118,11 +118,11 @@ public class RunConfigTree implements MutableTreeNode
   @Override
   public void setParent( MutableTreeNode newParent )
   {
-    _parent = (RunConfigTree)newParent;
+    _parent = (BreakpointTree)newParent;
   }
 
   @Override
-  public RunConfigTree getChildAt( int childIndex )
+  public BreakpointTree getChildAt( int childIndex )
   {
     return getChildren().get( childIndex );
   }
@@ -134,7 +134,7 @@ public class RunConfigTree implements MutableTreeNode
   }
 
   @Override
-  public RunConfigTree getParent()
+  public BreakpointTree getParent()
   {
     return _parent;
   }
@@ -180,8 +180,8 @@ public class RunConfigTree implements MutableTreeNode
 
   public String toString()
   {
-    return _runConfig != null
-           ? _runConfig.getName()
+    return _bp != null
+           ? _bp.getTitle()
            : _factory != null
              ? _factory.getName()
              : "<root>";
@@ -197,11 +197,11 @@ public class RunConfigTree implements MutableTreeNode
 
   public TreePath getPath()
   {
-    List<RunConfigTree> path = makePath( new ArrayList<>() );
-    return new TreePath( path.toArray( new RunConfigTree[path.size()] ) );
+    List<BreakpointTree> path = makePath( new ArrayList<>() );
+    return new TreePath( path.toArray( new BreakpointTree[path.size()] ) );
   }
 
-  private List<RunConfigTree> makePath( List<RunConfigTree> path )
+  private List<BreakpointTree> makePath( List<BreakpointTree> path )
   {
     if( getParent() != null )
     {
@@ -211,16 +211,21 @@ public class RunConfigTree implements MutableTreeNode
     return path;
   }
 
-  public RunConfigTree find( IRunConfig runConfig )
+  public BreakpointTree find( Breakpoint bp )
   {
-    if( runConfig.equals( getRunConfig() ) )
+    if( bp == null )
+    {
+      return null;
+    }
+
+    if( bp.equals( getBreakpoint() ) )
     {
       return this;
     }
 
-    for( RunConfigTree tree: getChildren() )
+    for( BreakpointTree tree: getChildren() )
     {
-      RunConfigTree found = tree.find( runConfig );
+      BreakpointTree found = tree.find( bp );
       if( found != null )
       {
         return found;
@@ -231,10 +236,8 @@ public class RunConfigTree implements MutableTreeNode
 
   public Icon getIcon()
   {
-    return _runConfig != null
-           ? _runConfig.getIcon()
-           : _factory != null
-             ? _factory.getIcon()
-             : null;
+    return getBreakpoint() == null || getBreakpoint().isActive()
+           ? EditorUtilities.loadIcon( "images/debug_linebreakpoint.png" )
+           : EditorUtilities.loadIcon( "images/disabled_breakpoint.png" );
   }
 }

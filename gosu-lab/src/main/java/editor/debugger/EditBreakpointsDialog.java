@@ -1,156 +1,440 @@
 package editor.debugger;
 
-import editor.AbstractCloseDialog;
+import editor.DefaultContextMenuHandler;
 import editor.EditorScrollPane;
+import editor.GosuClassLineInfoManager;
 import editor.GosuEditor;
 import editor.GosuPanel;
+import editor.GotoExceptionTypePopup;
+import editor.IHandleCancel;
 import editor.RunMe;
 import editor.Scheme;
+import editor.splitpane.CollapsibleSplitPane;
+import editor.tabpane.ITab;
+import editor.tabpane.TabPane;
+import editor.tabpane.TabPosition;
+import editor.tabpane.ToolContainer;
+import editor.undo.AtomicUndoManager;
 import editor.util.EditorUtilities;
-import editor.util.LabCheckbox;
+import editor.util.LabToolbarButton;
 import editor.util.SettleModalEventQueue;
+import editor.util.ToolBar;
+import gw.lang.parser.ScriptabilityModifiers;
+import gw.lang.parser.StandardSymbolTable;
+import gw.lang.parser.TypelessScriptPartId;
+import gw.lang.reflect.TypeSystem;
+import gw.lang.reflect.gs.IGosuClass;
+import gw.util.ContextSymbolTableUtil;
 
 import javax.swing.*;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
+import javax.swing.text.BadLocationException;
 import javax.swing.text.Element;
 import javax.swing.text.JTextComponent;
+import javax.swing.tree.DefaultTreeModel;
+import javax.swing.tree.TreePath;
+import javax.swing.tree.TreeSelectionModel;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  */
-public class EditBreakpointsDialog extends AbstractCloseDialog
+public class EditBreakpointsDialog extends JDialog implements IHandleCancel
 {
-  private JList<Breakpoint> _listBreakpoints;
-  private JButton _btnViewSource;
-  private JButton _btnRemove;
-  private JButton _btnGotoSource;
+  private static EditBreakpointsDialog _current;
 
-  public EditBreakpointsDialog( Breakpoint bp )
+  private JTree _tree;
+  private JButton _btnViewSource;
+  private JPanel _configPanel;
+  private ITab _configTab;
+  private AbstractButton _btnPlus;
+  private AbstractButton _btnMinus;
+  private Map<Breakpoint, JPanel> _mapToPanel;
+  private Runnable _listener;
+  private BreakpointTree _exceptionBpTree;
+  private BreakpointTree _anyException;
+  private JCheckBox _cbRunScript;
+  private JCheckBox _cbSuspend;
+  private JCheckBox _cbUncaught;
+  private JCheckBox _cbCaught;
+  private JLabel _labelCondition;
+  private GosuEditor _fieldExpr;
+  private GosuEditor _fieldRunScript;
+
+  public static EditBreakpointsDialog getOrCreate( Breakpoint bp )
+  {
+    if( _current == null )
+    {
+      _current = new EditBreakpointsDialog( bp );
+    }
+    return _current;
+  }
+  public static EditBreakpointsDialog getOrCreate()
+  {
+    if( _current == null )
+    {
+      _current = new EditBreakpointsDialog();
+    }
+    return _current;
+  }
+
+  private EditBreakpointsDialog( Breakpoint bp )
   {
     this();
-    _listBreakpoints.setSelectedValue( bp, true );
+    selectBreakpoint( bp );
   }
 
-  public EditBreakpointsDialog() throws HeadlessException
+  private void selectBreakpoint( Breakpoint bp )
   {
-    super( "Edit Breakpoints" );
+    if( bp == null )
+    {
+      return;
+    }
+
+    BreakpointTree tree = ((BreakpointTree)_tree.getModel().getRoot()).find( bp );
+    _tree.setSelectionPath( tree.getPath() );
+  }
+
+  private EditBreakpointsDialog() throws HeadlessException
+  {
+    super( RunMe.getEditorFrame(), "Breakpoints" );
+    _mapToPanel = new HashMap<>();
     configUi();
+    setDefaultCloseOperation( DISPOSE_ON_CLOSE );
+    addCloseListener();
   }
 
-  protected JComponent createCenterPanel()
+  protected void configUi()
   {
-    JPanel panel = new JPanel();
-    panel.setLayout( new GridBagLayout() );
-    panel.setBorder( BorderFactory.createCompoundBorder(
-      BorderFactory.createLineBorder( Scheme.active().getMenuBorder() ),
-      BorderFactory.createEmptyBorder( 8, 8, 8, 8  ) ) );
+    JComponent contentPane = (JComponent)getContentPane();
+    contentPane.setBorder( BorderFactory.createEmptyBorder( 8, 8, 8, 8 ) );
+    contentPane.setLayout( new BorderLayout() );
 
-    GridBagConstraints c = new GridBagConstraints();
+    _configPanel = new JPanel( new BorderLayout() );
+    TabPane configTabPane = new TabPane( TabPosition.TOP, TabPane.MIN_MAX_REST );
+    _configTab = configTabPane.addTab( "Settings", null, _configPanel );
 
-    createBreakpointsList();
-    JScrollPane scroller = new JScrollPane( _listBreakpoints );
+    JPanel buttonPanel = makeButtonPanel();
+
+    CollapsibleSplitPane splitPane = new CollapsibleSplitPane( SwingConstants.HORIZONTAL, createBreakpointsList(), configTabPane );
+    add( splitPane, BorderLayout.CENTER );
+    splitPane.setPosition( 35 );
+
+    contentPane.add( splitPane, BorderLayout.CENTER );
+
+
+    JPanel south = new JPanel( new BorderLayout() );
+    south.setBackground( Scheme.active().getMenu() );
+    south.setBorder( BorderFactory.createEmptyBorder( 4, 0, 0, 0 ) );
+    JPanel filler = new JPanel();
+    filler.setBackground( Scheme.active().getMenu() );
+    south.add( filler, BorderLayout.CENTER );
+
+    south.add( buttonPanel, BorderLayout.EAST );
+    contentPane.add( south, BorderLayout.SOUTH );
+    contentPane.setBackground( Scheme.active().getMenu() );
+
+    mapCancelKeystroke( "Close", this::close );
+
+    setSize( 800, 500 );
+    EditorUtilities.centerWindowInFrame( this, getOwner() );
+  }
+
+  private void addCloseListener()
+  {
+    addWindowListener( new WindowAdapter() {
+      public void windowClosed( WindowEvent e )
+      {
+        BreakpointManager bpm = getGosuPanel().getBreakpointManager();
+        bpm.removeChangeLisener( _listener );
+        _current = null;
+      }
+    });
+  }
+
+  private JPanel createConfigPanel( Breakpoint bp )
+  {
+    JPanel configPanel = new JPanel( new GridBagLayout() );
+    configPanel.setBorder( BorderFactory.createEmptyBorder( 10, 10, 10, 10 ) );
+
+    final GridBagConstraints c = new GridBagConstraints();
+
+    int iY = 0;
+
+    c.anchor = GridBagConstraints.WEST;
+    c.fill = GridBagConstraints.NONE;
+    c.gridx = 0;
+    c.gridy = iY++;
+    c.gridwidth = GridBagConstraints.REMAINDER;
+    c.gridheight = 1;
+    c.weightx = 0;
+    c.weighty = 0;
+    c.insets = new Insets( 10, 0, 10, 10 );
+    _cbSuspend = new JCheckBox( "Suspend" );
+    EventQueue.invokeLater( () -> _cbSuspend.setSelected( bp.isSuspend() ) );
+    _cbSuspend.addActionListener( e -> {
+      boolean selected = _cbSuspend.isSelected();
+      bp.setSuspend( selected );
+      _labelCondition.setEnabled( selected );
+      _fieldExpr.setEnabled( selected );
+    } );
+    configPanel.add( _cbSuspend, c );
+
+    c.anchor = GridBagConstraints.WEST;
+    c.fill = GridBagConstraints.NONE;
+    c.gridx = 0;
+    c.gridy = iY++;
+    c.gridwidth = 1;
+    c.gridheight = 1;
+    c.weightx = 0;
+    c.weighty = 0;
+    c.insets = new Insets( 10, 0, 5, 10 );
+    _labelCondition = new JLabel( "Condition:" );
+    configPanel.add( _labelCondition, c );
+
     c.anchor = GridBagConstraints.WEST;
     c.fill = GridBagConstraints.BOTH;
     c.gridx = 0;
-    c.gridy = 0;
-    c.gridwidth = 1;
-    c.gridheight = GridBagConstraints.REMAINDER;
+    c.gridy = iY++;
+    c.gridwidth = GridBagConstraints.REMAINDER;
+    c.gridheight = 1;
     c.weightx = 1;
-    c.weighty = 1;
-    c.insets = new Insets( 2, 2, 0, 0 );
-    panel.add( scroller, c );
+    c.weighty = .3;
+    c.insets = new Insets( 0, 0, 5, 0 );
+    _fieldExpr = new GosuEditor( bp.getLine() <= 0 ? new StandardSymbolTable( true ) : ContextSymbolTableUtil.getSymbolTableAtOffset( (IGosuClass)TypeSystem.getByFullNameIfValidNoJava( bp.getFqn() ), bp.getOffset() ),
+      new GosuClassLineInfoManager(), new AtomicUndoManager( 10000 ), ScriptabilityModifiers.SCRIPTABLE, new DefaultContextMenuHandler(), false, true );
+    _fieldExpr.setAccessAll( true );
+    try
+    {
+      String expr = bp.getExpression();
+      _fieldExpr.read( new TypelessScriptPartId( "debugger condition" ), expr == null ? "" : expr );
+      EventQueue.invokeLater( _fieldExpr::parse );
+      _fieldExpr.getEditor().getDocument().addDocumentListener( new DocHandler( bp, true ) );
+    }
+    catch( IOException e )
+    {
+      throw new RuntimeException( e );
+    }
+    JPanel panel = new JPanel( new BorderLayout() );
+    panel.setPreferredSize( new Dimension( 30, 30 ) );
+    panel.add( _fieldExpr, BorderLayout.CENTER );
+    configPanel.add( panel, c );
 
-    _btnGotoSource = new JButton( "Go To" );
-    _btnGotoSource.setMnemonic( 'G' );
-    _btnGotoSource.addActionListener( new GotoAction() );
-    _btnGotoSource.setEnabled( false );
     c.anchor = GridBagConstraints.WEST;
-    c.fill = GridBagConstraints.HORIZONTAL;
-    c.gridx = 1;
-    c.gridy = 0;
+    c.fill = GridBagConstraints.NONE;
+    c.gridx = 0;
+    c.gridy = iY;
     c.gridwidth = 1;
     c.gridheight = 1;
     c.weightx = 0;
     c.weighty = 0;
-    c.insets = new Insets( 2, 4, 2, 0 );
-    panel.add( _btnGotoSource, c );
+    c.insets = new Insets( 5, 0, 0, 5 );
+    _cbRunScript= new JCheckBox( "Run script" );
+    EventQueue.invokeLater( () -> _cbRunScript.setSelected( bp.isRunScriptOn() ) );
+    _cbRunScript.addActionListener( e -> {
+      boolean selected = _cbRunScript.isSelected();
+      bp.setRunScriptOn( selected );
+      _fieldRunScript.setEnabled( selected );
+    } );
+    configPanel.add( _cbRunScript, c );
 
-    _btnViewSource = new JButton( "View Source" );
-    _btnGotoSource.setMnemonic( 'V' );
-    _btnViewSource.addActionListener( new ViewSourceAction() );
-    _btnViewSource.setEnabled( false );
     c.anchor = GridBagConstraints.WEST;
-    c.fill = GridBagConstraints.HORIZONTAL;
+    c.fill = GridBagConstraints.NONE;
     c.gridx = 1;
-    c.gridy = 1;
-    c.gridwidth = 1;
+    c.gridy = iY++;
+    c.gridwidth = GridBagConstraints.REMAINDER;
     c.gridheight = 1;
     c.weightx = 0;
     c.weighty = 0;
-    c.insets = new Insets( 2, 4, 2, 0 );
-    panel.add( _btnViewSource, c );
+    c.insets = new Insets( 5, 0, 0, 5 );
+    JButton btn = new LabToolbarButton( EditorUtilities.loadIcon( "images/help.png") );
+    //noinspection SuspiciousNameCombination
+    btn.setToolTipText( "What's this?" );
+    JPopupMenu popup = new JPopupMenu();
+    JLabel info = new JLabel( "<html>The 'run script' is a script that runs each time the line corresponding<br>" +
+                              "with the breakpoint executes.  You can log messages to the console or your logger,<br>" +
+                              "you can compute stats, anything you like.  Note, unlike most IDE debuggers, both<br>" +
+                              "the condition and the run script are dynamically <b>compiled</b> into the application<br>" +
+                              "during the debug session; they won't bog down the execution of your program." );
+    info.setOpaque( true );
+    info.setBackground( Scheme.active().getTooltipBackground() );
+    info.setForeground( Scheme.active().getTooltipText() );
+    popup.setBackground( info.getBackground() );
+    popup.add( info );
+    btn.addActionListener( e -> {
+      popup.show( btn, 0, btn.getHeight() );
+    } );
+    configPanel.add( btn, c );
 
-    _btnRemove = new JButton( "Remove" );
-    _btnGotoSource.setMnemonic( 'R' );
-    _btnRemove.addActionListener( new RemoveAction() );
-    _btnRemove.setEnabled( false );
     c.anchor = GridBagConstraints.WEST;
-    c.fill = GridBagConstraints.HORIZONTAL;
-    c.gridx = 1;
-    c.gridy = 2;
-    c.gridwidth = 1;
+    c.fill = GridBagConstraints.BOTH;
+    c.gridx = 0;
+    c.gridy = iY++;
+    c.gridwidth = GridBagConstraints.REMAINDER;
     c.gridheight = 1;
-    c.weightx = 0;
-    c.weighty = 0;
-    c.insets = new Insets( 2, 4, 2, 0 );
-    panel.add( _btnRemove, c );
+    c.weightx = 1;
+    c.weighty = .7;
+    c.insets = new Insets( 0, 0, 10, 0 );
+    _fieldRunScript = new GosuEditor( bp.getLine() <= 0 ? new StandardSymbolTable( true ) : ContextSymbolTableUtil.getSymbolTableAtOffset( (IGosuClass)TypeSystem.getByFullNameIfValidNoJava( bp.getFqn() ), bp.getOffset() ),
+      new GosuClassLineInfoManager(), new AtomicUndoManager( 10000 ), ScriptabilityModifiers.SCRIPTABLE, new DefaultContextMenuHandler(), false, true );
+    _fieldRunScript.setAccessAll( true );
+    //exprField.showFeedback( false );
+    try
+    {
+      String expr = bp.getRunScript();
+      _fieldRunScript.read( new TypelessScriptPartId( "debugger run script" ), expr == null ? "" : expr );
+      EventQueue.invokeLater( _fieldRunScript::parse );
+      _fieldRunScript.getEditor().getDocument().addDocumentListener( new DocHandler( bp, false ) );
+    }
+    catch( IOException e )
+    {
+      throw new RuntimeException( e );
+    }
+    panel = new JPanel( new BorderLayout() );
+    panel.setPreferredSize( new Dimension( 30, 30 ) );
+    panel.add( _fieldRunScript, BorderLayout.CENTER );
+    configPanel.add( panel, c );
 
-    JPanel filler = new JPanel();
-    c.anchor = GridBagConstraints.WEST;
-    c.fill = GridBagConstraints.VERTICAL;
-    c.gridx = 1;
-    c.gridy = 3;
-    c.gridwidth = 1;
-    c.gridheight = GridBagConstraints.REMAINDER;
-    c.weightx = 0;
-    c.weighty = 1;
-    c.insets = new Insets( 2, 4, 2, 0 );
-    panel.add( filler, c );
+    if( bp.isExceptionBreakpoint() )
+    {
+      c.anchor = GridBagConstraints.WEST;
+      c.fill = GridBagConstraints.NONE;
+      c.gridx = 0;
+      c.gridy = iY++;
+      c.gridwidth = GridBagConstraints.REMAINDER;
+      c.gridheight = 1;
+      c.weightx = 0;
+      c.weighty = 0;
+      c.insets = new Insets( 10, 0, 5, 10 );
+      _cbCaught = new JCheckBox( "Caught exception" );
+      _cbCaught.setSelected( bp.isCaughtException() );
+      _cbCaught.addActionListener( e -> {
+        bp.setCaughtException( _cbCaught.isSelected() );
+        updateBreakpointJdi( bp );
+      } );
+      configPanel.add( _cbCaught, c );
 
-    return panel;
+      c.anchor = GridBagConstraints.WEST;
+      c.fill = GridBagConstraints.NONE;
+      c.gridx = 0;
+      c.gridy = iY++;
+      c.gridwidth = GridBagConstraints.REMAINDER;
+      c.gridheight = 1;
+      c.weightx = 0;
+      c.weighty = 0;
+      c.insets = new Insets( 0, 0, 5, 10 );
+      _cbUncaught = new JCheckBox( "Uncaught exception" );
+      _cbUncaught.setSelected( bp.isUncaughtException() );
+      _cbUncaught.addActionListener( e -> {
+        bp.setUncaughtException( _cbUncaught.isSelected() );
+        updateBreakpointJdi( bp );
+      } );
+      configPanel.add( _cbUncaught, c );
+    }
+
+    return configPanel;
   }
 
-  private void createBreakpointsList()
+  private JPanel makeButtonPanel()
   {
-    _listBreakpoints = new JList<>( makeBreakpointsModel() );
-    _listBreakpoints.setCellRenderer( new BreakpointCellRenderer() );
-    _listBreakpoints.getSelectionModel().addListSelectionListener(
+    JPanel buttonPanel = new JPanel();
+    buttonPanel.setBackground( Scheme.active().getMenu() );
+    buttonPanel.setLayout( new BoxLayout( buttonPanel, BoxLayout.X_AXIS ) );
+
+    addRunButton( buttonPanel );
+
+    addSeparator( buttonPanel );
+
+    JButton btnClose = new JButton( "Close" );
+    btnClose.addActionListener( e -> close() );
+    buttonPanel.add( btnClose );
+    getRootPane().setDefaultButton( btnClose );
+
+    return buttonPanel;
+  }
+
+  private void addSeparator( JPanel buttonPanel )
+  {
+    JPanel separator = new JPanel();
+    separator.setBackground( Scheme.active().getMenu() );
+    separator.setMinimumSize( new Dimension( 8, 8 ) );
+    buttonPanel.add( separator );
+  }
+
+  private void addRunButton( JPanel buttonPanel )
+  {
+    _btnViewSource = new JButton( "View Source" );
+    _btnViewSource.setMnemonic( 'V' );
+    _btnViewSource.addActionListener( new ViewSourceAction() );
+    buttonPanel.add( _btnViewSource );
+    getRootPane().setDefaultButton( _btnViewSource );
+    _btnViewSource.setEnabled( false );
+  }
+
+  private JComponent createBreakpointsList()
+  {
+    DefaultTreeModel model = new DefaultTreeModel( makeBreakpointTree() );
+    _tree = new JTree( model );
+    _tree.setBackground( Scheme.active().getWindow() );
+    _tree.setRootVisible( false );
+    _tree.setShowsRootHandles( true );
+    _tree.setRowHeight( 22 );
+    _tree.getSelectionModel().setSelectionMode( TreeSelectionModel.SINGLE_TREE_SELECTION );
+    _tree.setVisibleRowCount( 20 );
+    _tree.setCellRenderer( new BreakpointCellRenderer( _tree ) );
+    JScrollPane scroller = new JScrollPane( _tree );
+    scroller.setBorder( BorderFactory.createEmptyBorder() );
+    expandAll();
+
+    _tree.addTreeSelectionListener(
       e -> {
-        boolean bEnabled = _listBreakpoints.getSelectedIndex() >= 0;
-        _btnGotoSource.setEnabled( bEnabled );
-        _btnViewSource.setEnabled( bEnabled );
-        _btnRemove.setEnabled( bEnabled );
+        Breakpoint bp = getSelectedBreakpoint();
+        if( bp != null )
+        {
+          _btnViewSource.setEnabled( bp.isLineBreakpoint() );
+          updateConfigPanel();
+          _configPanel.setVisible( true );
+        }
+        else
+        {
+          _btnViewSource.setEnabled( false );
+          _configPanel.setVisible( false );
+        }
       } );
-    _listBreakpoints.addMouseListener(
+
+    _tree.addMouseListener(
       new MouseAdapter()
       {
         public void mouseClicked( MouseEvent e )
         {
-          Breakpoint bp = _listBreakpoints.getSelectedValue();
+          BreakpointTree bpTree = getSelectedValue();
+          if( bpTree == null )
+          {
+            return;
+          }
+          Breakpoint bp = bpTree.getBreakpoint();
           if( bp == null )
           {
             return;
           }
-          BreakpointCellRenderer renderer = (BreakpointCellRenderer)_listBreakpoints.getCellRenderer();
-          renderer.getListCellRendererComponent( _listBreakpoints, bp, _listBreakpoints.getSelectedIndex(), true, false );
-          renderer.setSize( renderer.getPreferredSize() );
+
+          BreakpointCellRenderer renderer = (BreakpointCellRenderer)_tree.getCellRenderer();
+          TreePath selectionPath = _tree.getSelectionPath();
+          renderer.getTreeCellRendererComponent( _tree, bpTree, true, true, true, _tree.getRowForPath( selectionPath ), true );
+          renderer.setBounds( _tree.getPathBounds( selectionPath ) );
           renderer.doLayout();
-          if( renderer._cbActive.contains( e.getX(), e.getY()%renderer.getHeight() ) )
+          if( renderer.getCheckbox().contains( e.getX() - renderer.getX(), e.getY() % renderer.getHeight() ) )
           {
             bp.setActive( !bp.isActive() );
-            _listBreakpoints.repaint();
+            _tree.repaint();
 
             BreakpointManager bpm = getGosuPanel().getBreakpointManager();
             Breakpoint csr = bpm.getBreakpoint( bp );
@@ -170,109 +454,242 @@ public class EditBreakpointsDialog extends AbstractCloseDialog
           }
         }
       } );
+
+    BreakpointManager bpm = getGosuPanel().getBreakpointManager();
+    bpm.addChangeListener( _listener = this::updateBreakpoints );
+
+    TabPane tabPane = new TabPane( TabPosition.TOP, TabPane.MIN_MAX_REST );
+    tabPane.addTab( "Breakpoints", null, scroller );
+
+    ToolContainer toolbar = tabPane.getToolContainer();
+    addTools( toolbar.getToolBar() );
+
+    return tabPane;
   }
 
-  protected void setInitialSize()
+  public void expandAll()
   {
-    setSize( 550, 400 );
+    expandAll( 0, _tree.getRowCount() );
   }
 
-  private DefaultListModel<Breakpoint> makeBreakpointsModel()
+  private void expandAll( int startingIndex, int rowCount )
+  {
+    for( int i = startingIndex; i < rowCount; ++i )
+    {
+      _tree.expandRow( i );
+    }
+
+    if( _tree.getRowCount() != rowCount )
+    {
+      expandAll( rowCount, _tree.getRowCount() );
+    }
+  }
+
+  private BreakpointTree makeBreakpointTree()
+  {
+    BreakpointTree root = new BreakpointTree();
+
+    BreakpointTree lineBpTree = new BreakpointTree( LineBreakpointFactory.instance(), root );
+    root.addChild( lineBpTree );
+
+    _exceptionBpTree = new BreakpointTree( ExceptionBreakpointFactory.instance(), root );
+    root.addChild( _exceptionBpTree );
+
+    BreakpointManager bpm = getGosuPanel().getBreakpointManager();
+    for( Breakpoint bp : bpm.getBreakpoints() )
+    {
+      lineBpTree.addChild( new BreakpointTree( bp, lineBpTree ) );
+    }
+    for( Breakpoint bp: bpm.getExceptionBreakpoints() )
+    {
+      _exceptionBpTree.addChild( new BreakpointTree( bp, _exceptionBpTree ) );
+    }
+    return root;
+  }
+
+  private void updateBreakpointJdi( Breakpoint bp )
+  {
+    Debugger debugger = getGosuPanel().getDebugger();
+    if( debugger != null )
+    {
+      debugger.removeBreakpointJdi( bp );
+      debugger.addBreakpointJdi( bp );
+    }
+  }
+
+  private void updateBreakpoints()
+  {
+    Breakpoint bp = getSelectedBreakpoint();
+
+    _tree.setModel( new DefaultTreeModel( makeBreakpointTree() ) );
+
+
+    BreakpointTree tree = ((BreakpointTree)_tree.getModel().getRoot()).find( bp );
+    if( tree != null )
+    {
+      tree.select( _tree );
+    }
+  }
+
+  private void updateConfigPanel()
+  {
+    if( _configPanel.getComponentCount() > 0 )
+    {
+      _configPanel.remove( 0 );
+    }
+
+    Breakpoint bp = getSelectedBreakpoint();
+    if( bp == null )
+    {
+      return;
+    }
+
+    JPanel panel = _mapToPanel.get( bp );
+    if( panel == null )
+    {
+      panel = createConfigPanel( bp );
+      _mapToPanel.put( bp, panel );
+    }
+    _configPanel.add( panel, BorderLayout.CENTER );
+    _configPanel.validate();
+    _configPanel.repaint();
+  }
+
+  private Breakpoint getSelectedBreakpoint()
+  {
+    BreakpointTree bpTree = getSelectedValue();
+    return bpTree == null ? null : bpTree.getBreakpoint();
+  }
+
+  private BreakpointTree getSelectedValue()
+  {
+    return _tree.getSelectionPath() == null ? null : (BreakpointTree)_tree.getSelectionPath().getLastPathComponent();
+  }
+
+  private void addTools( ToolBar tb )
+  {
+    int i = 0;
+    _btnPlus = makeButton( new AddBreakpointAction() );
+    tb.add( _btnPlus, i++ );
+
+    _btnMinus = makeButton( new RemoveBreakpointAction() );
+    tb.add( _btnMinus, i );
+  }
+
+  public static EditBreakpointsDialog getShowing()
+  {
+    return _current;
+  }
+
+  private class AddBreakpointAction extends AbstractAction
+  {
+    public AddBreakpointAction()
+    {
+      super( "Add", EditorUtilities.loadIcon( "images/plus.png" ) );
+    }
+
+    public void actionPerformed( ActionEvent e )
+    {
+      GotoExceptionTypePopup.display( _btnPlus, 0, _btnPlus.getHeight(), EditBreakpointsDialog.this::addExceptionBreakpoint );
+    }
+  }
+
+  private void addExceptionBreakpoint( String fqn )
   {
     BreakpointManager bpm = getGosuPanel().getBreakpointManager();
-    DefaultListModel<Breakpoint> model = new DefaultListModel<>();
-    bpm.getBreakpoints().forEach( model::addElement );
-    return model;
+    if( bpm.getExceptionBreakpoint( fqn ) == null )
+    {
+      Breakpoint bp = bpm.addExceptionBreakpoint( fqn );
+      _exceptionBpTree.addViaModel( _tree, new BreakpointTree( bp, _exceptionBpTree ) );
+    }
+    selectBreakpoint( bpm.getExceptionBreakpoint( fqn ) );
+  }
+
+  private class RemoveBreakpointAction extends AbstractAction
+  {
+    public RemoveBreakpointAction()
+    {
+      super( "Remove", EditorUtilities.loadIcon( "images/minus.png" ) );
+    }
+
+    public void actionPerformed( ActionEvent e )
+    {
+      if( !isEnabled() )
+      {
+        return;
+      }
+
+      TreePath[] indexes = _tree.getSelectionPaths();
+      int row = _tree.getRowForPath( indexes[0] );
+      TreePath parent = indexes[0].getParentPath();
+      for( int i = indexes.length-1; i >= 0; i-- )
+      {
+        BreakpointTree bpTree = (BreakpointTree)indexes[i].getLastPathComponent();
+        Breakpoint bp = bpTree.getBreakpoint();
+        if( bp == null )
+        {
+          continue;
+        }
+        bpTree.getParent().deleteViaModel( _tree, bpTree );
+        BreakpointManager bpm = getGosuPanel().getBreakpointManager();
+        bpm.removeBreakpoint( bp );
+        _mapToPanel.remove( bp );
+        GosuEditor editor = getGosuPanel().getCurrentEditor();
+        if( editor != null )
+        {
+          editor.repaint();
+        }
+      }
+      if( row < _tree.getRowCount() )
+      {
+        _tree.expandPath( parent );
+        BreakpointTree bpTree = (BreakpointTree)_tree.getPathForRow( row ).getLastPathComponent();
+        if( bpTree.getBreakpoint() != null )
+        {
+          _tree.setSelectionRow( row );
+        }
+        else
+        {
+          _tree.setSelectionRow( row-1 );
+        }
+      }
+      else
+      {
+        _tree.expandPath( parent );
+        _tree.setSelectionRow( row-1 );
+      }
+      _tree.scrollPathToVisible( getSelectedValue().getPath() );
+    }
+
+    @Override
+    public boolean isEnabled()
+    {
+      if( _tree.getSelectionCount() > 0 )
+      {
+        Breakpoint bp = ((BreakpointTree)_tree.getSelectionPath().getLastPathComponent()).getBreakpoint();
+        return bp != null && !bp.isStatic();
+      }
+      return false;
+    }
+  }
+
+  private LabToolbarButton makeButton( Action action )
+  {
+    LabToolbarButton item = new LabToolbarButton( null, null, 2, 0 );
+    item.setAction( action );
+    return item;
   }
 
   protected void close()
   {
-    super.close();
-  }
-
-  class BreakpointCellRenderer extends JPanel implements ListCellRenderer<Breakpoint>
-  {
-    private Breakpoint _bp;
-    private LabCheckbox _cbActive;
-    private DefaultListCellRenderer _label;
-
-    public BreakpointCellRenderer()
-    {
-      super( new BorderLayout() );
-      configUi();
-    }
-
-    public Dimension getPreferredSize()
-    {
-      Dimension dim = super.getPreferredSize();
-      dim.height = _label.getPreferredSize().height;
-      return dim;
-    }
-
-    private void configUi()
-    {
-      _cbActive = new LabCheckbox();
-      _cbActive.setBorderPaintedFlat( true );
-      _cbActive.setOpaque( false );
-
-      add( _cbActive, BorderLayout.WEST );
-
-      _label =
-        new DefaultListCellRenderer()
-        {
-          public Component getListCellRendererComponent( JList list, Object value, int index, boolean isSelected, boolean cellHasFocus )
-          {
-            Component c = super.getListCellRendererComponent( list, value, index, isSelected, cellHasFocus );
-            Breakpoint bp = (Breakpoint)value;
-            setText( bp.getTitle() );
-            setIcon( bp.isActive()
-                     ? EditorUtilities.loadIcon( "images/debug_linebreakpoint.png" )
-                     : EditorUtilities.loadIcon( "images/disabled_breakpoint.png" ) );
-            setEnabled( bp.isActive() );
-            return c;
-          }
-        };
-      add( _label, BorderLayout.CENTER );
-    }
-
-    void setBreakpoint( Breakpoint bp )
-    {
-      _bp = bp;
-    }
-
-    public Component getListCellRendererComponent( JList list, Breakpoint bp, int index, boolean isSelected, boolean cellHasFocus )
-    {
-      _label.getListCellRendererComponent( list, bp, index, isSelected, cellHasFocus );
-      setBreakpoint( bp );
-      _cbActive.setSelected( _bp.isActive() );
-      if( isSelected )
-      {
-        setBackground( list.getSelectionBackground() );
-        setForeground( list.getSelectionForeground() );
-      }
-      else
-      {
-        setBackground( list.getBackground() );
-        setForeground( list.getForeground() );
-      }
-      return this;
-    }
-  }
-
-  private class GotoAction extends ViewSourceAction
-  {
-    public void actionPerformed( ActionEvent e )
-    {
-      super.actionPerformed( e );
-      close();
-    }
+    dispose();
   }
 
   private class ViewSourceAction extends AbstractAction
   {
     public void actionPerformed( ActionEvent e )
     {
-      Breakpoint bp = _listBreakpoints.getSelectedValue();
+      Breakpoint bp = getSelectedBreakpoint();
       if( bp != null )
       {
         String strType = bp.getFqn();
@@ -300,28 +717,52 @@ public class EditBreakpointsDialog extends AbstractCloseDialog
     return RunMe.getEditorFrame().getGosuPanel();
   }
 
-  private class RemoveAction extends AbstractAction
+  private class DocHandler implements DocumentListener
   {
-    public void actionPerformed( ActionEvent e )
+    private final Breakpoint _bp;
+    private final boolean _bExpr;
+
+    private DocHandler( Breakpoint bp, boolean bExpr )
     {
-      int[] indexes = _listBreakpoints.getSelectedIndices();
-      for( int i = indexes.length-1; i >= 0; i-- )
+      _bp = bp;
+      _bExpr = bExpr;
+    }
+
+    @Override
+    public void insertUpdate( DocumentEvent e )
+    {
+      update( e );
+    }
+
+    @Override
+    public void removeUpdate( DocumentEvent e )
+    {
+      update( e );
+    }
+
+    @Override
+    public void changedUpdate( DocumentEvent e )
+    {
+      update( e );
+    }
+
+    private void update( DocumentEvent e )
+    {
+      try
       {
-        Breakpoint bp = (Breakpoint)((DefaultListModel)_listBreakpoints.getModel()).remove( indexes[i] );
-        BreakpointManager bpm = getGosuPanel().getBreakpointManager();
-        bpm.removeBreakpoint( bp );
+        String text = e.getDocument().getText( 0, e.getDocument().getLength() );
+        if( _bExpr )
+        {
+          _bp.setExpression( text );
+        }
+        else
+        {
+          _bp.setRunScript( text );
+        }
       }
-      if( indexes.length > 0 )
+      catch( BadLocationException e1 )
       {
-        int iIndex = indexes[0];
-        if( _listBreakpoints.getModel().getSize() > iIndex )
-        {
-          _listBreakpoints.setSelectedIndex( iIndex );
-        }
-        else if( iIndex != 0 && _listBreakpoints.getModel().getSize() == iIndex )
-        {
-          _listBreakpoints.setSelectedIndex( iIndex-1 );
-        }
+        throw new RuntimeException( e1 );
       }
     }
   }

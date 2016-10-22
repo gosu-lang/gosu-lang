@@ -3,6 +3,7 @@ package editor.debugger;
 import com.sun.jdi.AbsentInformationException;
 import com.sun.jdi.IncompatibleThreadStateException;
 import com.sun.jdi.Location;
+import com.sun.jdi.ObjectReference;
 import com.sun.jdi.ReferenceType;
 import com.sun.jdi.StackFrame;
 import com.sun.jdi.ThreadReference;
@@ -23,13 +24,17 @@ import com.sun.jdi.request.BreakpointRequest;
 import com.sun.jdi.request.ClassPrepareRequest;
 import com.sun.jdi.request.EventRequest;
 import com.sun.jdi.request.EventRequestManager;
+import com.sun.jdi.request.ExceptionRequest;
 import com.sun.jdi.request.StepRequest;
 import editor.FileTreeUtil;
 import editor.GosuPanel;
 import editor.RunMe;
+import editor.util.EditorUtilities;
 
+import javax.swing.*;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
@@ -41,7 +46,6 @@ public class Debugger
   private static final String TEMPORARY = "temporary";
   private static final String FROM_LOCATION = "from_location";
   private static final String BACK_OUT_LOCATION = "back_out_location";
-  private static final boolean DEBUG = false;
 
   private Thread _debuggerThread;
   private final BreakpointManager _bpm;
@@ -55,6 +59,8 @@ public class Debugger
   private boolean _bPaused;
   private List<Consumer<Debugger>> _listeners;
   private String _eventName;
+  private final HashSet<ObjectReference> _refs;
+  private boolean _temporarilySuspended;
 
   public Debugger( VirtualMachine vm, BreakpointManager bpm )
   {
@@ -63,6 +69,7 @@ public class Debugger
     _classPrepareRequests = new HashMap<>();
     _debuggerThread = new Thread( this::run, "Debugger" );
     _listeners = new ArrayList<>();
+    _refs = new HashSet<>();
     _monitor =
       new Object()
       {
@@ -85,8 +92,8 @@ public class Debugger
       if( isPaused() )
       {
         _bPaused = false;
-        resumed();
         _vm.resume();
+        resumed( false );
       }
       else
       {
@@ -105,6 +112,19 @@ public class Debugger
     return _eventThread;
   }
 
+  private void assignSuspendedState( LocatableEvent event, boolean temporary )
+  {
+    _location = event.location();
+    _eventThread = event.thread();
+    _temporarilySuspended = temporary;
+  }
+  private void clearSuspendedState()
+  {
+    _location = null;
+    _eventThread = null;
+    _temporarilySuspended = false;
+  }
+
   public void addChangeListener( Consumer<Debugger> listener )
   {
     if( !_listeners.contains( listener ) )
@@ -112,23 +132,19 @@ public class Debugger
       _listeners.add( listener );
     }
   }
+
+  @SuppressWarnings("UnusedDeclaration")
   public boolean removeChangeListener( Consumer<Debugger> listener )
   {
     return _listeners.remove( listener );
   }
+
   private void notifyListeners()
   {
-    java.awt.EventQueue.invokeLater( () ->
-      {
-        if( DEBUG )
-        {
-          System.out.println( toString() );
-        }
-        for( Consumer<Debugger> listener : _listeners )
-        {
-          listener.accept( this );
-        }
-      } );
+    for( Consumer<Debugger> listener : _listeners )
+    {
+      listener.accept( this );
+    }
   }
 
   public String getEventName()
@@ -183,6 +199,20 @@ public class Debugger
       {
         Location location = req.location();
         Breakpoint breakpoint = _bpm.findBreakpoint( location.declaringType().name(), location.lineNumber() );
+        req.setEnabled( breakpoint.isActive() );
+      }
+    }
+
+    List<ExceptionRequest> exceptionRequests = new ArrayList<>( erm.exceptionRequests() );
+    for( ExceptionRequest req: exceptionRequests )
+    {
+      if( mute )
+      {
+        req.setEnabled( false );
+      }
+      else
+      {
+        Breakpoint breakpoint = _bpm.getExceptionBreakpoint( req.exception().name() );
         req.setEnabled( breakpoint.isActive() );
       }
     }
@@ -241,7 +271,7 @@ public class Debugger
         }
         else
         {
-          resumeProgram();
+          resumeProgram( true );
         }
       }
       _eventSet = null;
@@ -251,8 +281,7 @@ public class Debugger
 
   private void handleStepEvent( StepEvent event )
   {
-    _location = event.location();
-    _eventThread = event.thread();
+    assignSuspendedState( event, true );
 
     String fqn = getOutermostType( event.location().declaringType() );
     EventRequest request = event.request();
@@ -268,7 +297,7 @@ public class Debugger
         {
           throw new IllegalStateException();
         }
-        resumeProgram();
+        resumeProgram( false );
       }
       else
       {
@@ -285,7 +314,7 @@ public class Debugger
         step.putProperty( BACK_OUT_LOCATION, request.getProperty( FROM_LOCATION ) );
       }
 
-      resumeProgram();
+      resumeProgram( false );
     }
   }
 
@@ -294,10 +323,8 @@ public class Debugger
     return _vm.eventRequestManager();
   }
 
-  private void handleBreakpointEvent( BreakpointEvent event )
+  private void handleBreakpointEvent( LocatableEvent event )
   {
-    List<Breakpoint> allBreakpoints = _bpm.getBreakpoints();
-
     Location loc = event.location();
     String fqn = getOutermostType( loc.declaringType() );
     int line = loc.lineNumber();
@@ -315,7 +342,7 @@ public class Debugger
       // Normal breakpoint
 
       Breakpoint breakpoint = null;
-      for( Breakpoint bp : allBreakpoints )
+      for( Breakpoint bp : _bpm.getBreakpoints() )
       {
         if( bp.getFqn().equals( fqn ) && bp.getLine() == line )
         {
@@ -323,34 +350,71 @@ public class Debugger
           break;
         }
       }
-
-      if( breakpoint != null && breakpoint.condition() )
+      if( breakpoint == null )
       {
-        handleSuspendLocatableEvent( event );
+        String exceptionName = ((ExceptionRequest)event.request()).exception().name();
+        for( Breakpoint bp : _bpm.getExceptionBreakpoints() )
+        {
+          if( bp.getFqn().equals( exceptionName ) )
+          {
+            breakpoint = bp;
+            break;
+          }
+        }
+      }
+
+      if( breakpoint != null )
+      {
+        assignSuspendedState( event, true );
+        boolean suspend = true;
+        try
+        {
+          suspend = breakpoint.condition();
+        }
+        catch( Exception e )
+        {
+          boolean[] shouldSuspend = {true};
+          EditorUtilities.invokeInDispatchThread(
+            () -> shouldSuspend[0] = JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog( RunMe.getEditorFrame(), "<html>Could not evaluate breakpoint expression.<br>Stop at breakpoint?", "Gosu Lab", JOptionPane.YES_NO_OPTION ) );
+          suspend = shouldSuspend[0];
+        }
+        finally
+        {
+          clearSuspendedState();
+        }
+        if( suspend )
+        {
+          handleSuspendLocatableEvent( event );
+        }
+        else
+        {
+          releaseRefs();
+          resumeProgram( true );
+        }
       }
       else
       {
-        resumeProgram();
+        resumeProgram( true );
       }
     }
   }
 
   private void handleExceptionEvent( ExceptionEvent event )
   {
-    handleSuspendLocatableEvent( event );
+    handleBreakpointEvent( event );
   }
 
   private void handleVMStartEvent()
   {
     addBreakpoints();
-    resumeProgram();
+    resumeProgram( false );
   }
 
   private void handleClassPrepareEvent( ClassPrepareEvent event )
   {
     String className = event.referenceType().name();
     addPendingBreakpointFor( className );
-    resumeProgram();
+    resumeProgram( true );
   }
 
   private void handleVMDeathEvent()
@@ -365,15 +429,13 @@ public class Debugger
 
   private void quit()
   {
-    _location = null;
-    _eventThread = null;
+    clearSuspendedState();
     _vmExit = true;
   }
 
   private void handleSuspendLocatableEvent( LocatableEvent event )
   {
-    _location = event.location();
-    _eventThread = event.thread();
+    assignSuspendedState( event, false );
     synchronized( _monitor )
     {
       suspended();
@@ -386,12 +448,12 @@ public class Debugger
         // don't care
       }
     }
-    resumeProgram();
+    resumeProgram( false );
   }
 
   public boolean isSuspended()
   {
-    return _location != null;
+    return _location != null && !_temporarilySuspended;
   }
 
   public void stepOver()
@@ -445,6 +507,7 @@ public class Debugger
   {
     return _bPaused;
   }
+
   public void pause()
   {
     synchronized( _monitor )
@@ -488,6 +551,7 @@ public class Debugger
   private void addBreakpoints()
   {
     _bpm.getBreakpoints().forEach( this::addBreakpointJdi );
+    _bpm.getExceptionBreakpoints().forEach( this::addBreakpointJdi );
   }
 
   public void addBreakpointJdi( Breakpoint bp )
@@ -502,12 +566,21 @@ public class Debugger
     {
       try
       {
-        List<Location> locations = list.get( 0 ).locationsOfLine( bp.getLine() );
-        if( locations.size() > 0 )
+        if( bp.isLineBreakpoint() )
+        {
+          List<Location> locations = list.get( 0 ).locationsOfLine( bp.getLine() );
+          if( locations.size() > 0 )
+          {
+            EventRequestManager erm = getEventRequestManager();
+            BreakpointRequest req = erm.createBreakpointRequest( locations.get( 0 ) );
+            req.putProperty( TEMPORARY, bp.isTemporary() );
+            req.setEnabled( bp.isActive() && (bp.isActiveWhenMuted() || !_bpm.isMuted()) );
+          }
+        }
+        else
         {
           EventRequestManager erm = getEventRequestManager();
-          BreakpointRequest req = erm.createBreakpointRequest( locations.get( 0 ) );
-          req.putProperty( TEMPORARY, bp.isTemporary() );
+          ExceptionRequest req = erm.createExceptionRequest( list.get( 0 ), bp.isCaughtException(), bp.isUncaughtException() );
           req.setEnabled( bp.isActive() && (bp.isActiveWhenMuted() || !_bpm.isMuted()) );
         }
       }
@@ -542,14 +615,30 @@ public class Debugger
       return;
     }
 
-    EventRequestManager erm = getEventRequestManager();
-    List<BreakpointRequest> bpRequests = new ArrayList<>( erm.breakpointRequests() );
-    for( BreakpointRequest req : bpRequests )
+    if( bp.isLineBreakpoint() )
     {
-      Location location = req.location();
-      if( getOutermostType( location.declaringType() ).equals( bp.getFqn() ) && location.lineNumber() == bp.getLine() )
+      EventRequestManager erm = getEventRequestManager();
+      List<BreakpointRequest> bpRequests = new ArrayList<>( erm.breakpointRequests() );
+      for( BreakpointRequest req : bpRequests )
       {
-        erm.deleteEventRequest( req );
+        Location location = req.location();
+        if( getOutermostType( location.declaringType() ).equals( bp.getFqn() ) && location.lineNumber() == bp.getLine() )
+        {
+          erm.deleteEventRequest( req );
+        }
+      }
+    }
+    else
+    {
+      EventRequestManager erm = getEventRequestManager();
+      List<ExceptionRequest> bpRequests = new ArrayList<>( erm.exceptionRequests() );
+      for( ExceptionRequest req : bpRequests )
+      {
+        String fqn = req.exception().name();
+        if( bp.getFqn().equals( fqn ) )
+        {
+          erm.deleteEventRequest( req );
+        }
       }
     }
   }
@@ -563,28 +652,41 @@ public class Debugger
     }
 
     Map<Integer, Breakpoint> byLine = _bpm.getBreakpointsByType( className );
-    EventRequestManager erm = getEventRequestManager();
-    List<BreakpointRequest> bpRequests = new ArrayList<>( erm.breakpointRequests() );
-    outer: for( Breakpoint bp: byLine.values() )
+    if( byLine != null )
     {
-      for( BreakpointRequest req : bpRequests )
+      EventRequestManager erm = getEventRequestManager();
+      List<BreakpointRequest> bpRequests = new ArrayList<>( erm.breakpointRequests() );
+      outer:
+      for( Breakpoint bp : byLine.values() )
       {
-        Location location = req.location();
-        if( getOutermostType( location.declaringType() ).equals( bp.getFqn() ) && location.lineNumber() == bp.getLine() )
+        for( BreakpointRequest req : bpRequests )
         {
-          continue outer;
+          Location location = req.location();
+          if( getOutermostType( location.declaringType() ).equals( bp.getFqn() ) && location.lineNumber() == bp.getLine() )
+          {
+            continue outer;
+          }
         }
+        addBreakpointJdi( bp );
       }
-      addBreakpointJdi( bp );
+      erm.deleteEventRequest( _classPrepareRequests.get( className ) );
     }
-    erm.deleteEventRequest( _classPrepareRequests.get( className ) );
+    else
+    {
+      Breakpoint bp = _bpm.getExceptionBreakpoint( className );
+      if( bp != null )
+      {
+        addBreakpointJdi( bp );
+        EventRequestManager erm = getEventRequestManager();
+        erm.deleteEventRequest( _classPrepareRequests.get( className ) );
+      }
+    }
   }
 
-  private void resumeProgram()
+  private void resumeProgram( boolean silent )
   {
-    _location = null;
-    _eventThread = null;
-    resumed();
+    clearSuspendedState();
+    resumed( silent );
     if( _eventSet != null )
     {
       _eventSet.resume();
@@ -621,9 +723,43 @@ public class Debugger
     notifyListeners();
   }
 
-  private void resumed()
+  private void resumed( boolean silent )
   {
-    notifyListeners();
+    releaseRefs();
+    if( !silent )
+    {
+      notifyListeners();
+    }
+  }
+
+  public void retain( ObjectReference ref )
+  {
+    if( _refs.add( ref ) )
+    {
+      try
+      {
+        ref.disableCollection();
+      }
+      catch( Exception e )
+      {
+        // ignore
+      }
+    }
+  }
+  private void releaseRefs()
+  {
+    for( ObjectReference objectReference : _refs )
+    {
+      try
+      {
+        objectReference.enableCollection();
+      }
+      catch( Exception e )
+      {
+        // ignore
+      }
+    }
+    _refs.clear();
   }
 
   public static String getOutermostType( ReferenceType type )

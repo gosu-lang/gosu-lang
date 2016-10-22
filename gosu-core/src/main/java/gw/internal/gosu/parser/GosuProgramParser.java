@@ -56,7 +56,10 @@ public class GosuProgramParser implements IGosuProgramParser
       }
 
       StringSourceFileHandle sfh = new StringSourceFileHandle( typeName, strSource, false, ClassType.Eval );
-      sfh.setParentType( enclosingClass.getName() );
+      if( enclosingClass != null )
+      {
+        sfh.setParentType( enclosingClass.getName() );
+      }
       ITypeUsesMap typeUsedMap = getTypeUsedMapFrom( ctxElem );
       if( typeUsedMap != null )
       {
@@ -94,7 +97,14 @@ public class GosuProgramParser implements IGosuProgramParser
   }
 
   public static String makeEvalKey( String source, IType enclosingClass, int iEvalExprOffset ) {
-    return enclosingClass.getName() + '.' + IGosuProgram.NAME_PREFIX + "eval_" + iEvalExprOffset + "_" + GosuStringUtil.getSHA1String( source );
+    if( enclosingClass == null )
+    {
+      return "toplevel" + '.' + IGosuProgram.NAME_PREFIX + "eval_0_" + GosuStringUtil.getSHA1String( source );
+    }
+    else
+    {
+      return enclosingClass.getName() + '.' + IGosuProgram.NAME_PREFIX + "eval_" + iEvalExprOffset + "_" + GosuStringUtil.getSHA1String( source );
+    }
   }
 
   private ITypeUsesMap getTypeUsedMapFrom( IParsedElement ctxElem ) {
@@ -105,10 +115,17 @@ public class GosuProgramParser implements IGosuProgramParser
     if( gsClass != null ) {
       return ((IGosuClass)TypeLord.getOuterMostEnclosingClass( gsClass )).getTypeUsesMap().copy();
     }
-    return null;
+    else
+    {
+      return new TypeUsesMap();
+    }
   }
 
   private static int getEvalExprLocationOffset( IParsedElement evalExpr ) {
+    if( evalExpr == null )
+    {
+      return getIndex();
+    }
     IParseTree location = evalExpr.getLocation();
     return location != null ? location.getOffset() : getIndex();
   }

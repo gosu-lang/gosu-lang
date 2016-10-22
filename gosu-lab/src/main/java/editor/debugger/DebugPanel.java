@@ -185,7 +185,18 @@ public class DebugPanel extends JPanel implements IDisposable
   private void updateThreads( List<ThreadReference> threads, ThreadReference thread )
   {
     _cbThreads.setModel( makeThreadModel( threads ) );
-    _cbThreads.setSelectedItem( thread );
+    if( thread != null )
+    {
+      _cbThreads.setSelectedItem( thread );
+    }
+    else if( threads != null && threads.size() > 0 )
+    {
+      _cbThreads.setSelectedIndex( 0 );
+    }
+    else
+    {
+      _cbThreads.setSelectedItem( null );
+    }
   }
 
   private void resumed()

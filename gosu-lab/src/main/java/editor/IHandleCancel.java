@@ -11,11 +11,13 @@ public interface IHandleCancel extends RootPaneContainer
   default void mapCancelKeystroke( String label, Runnable cancel )
   {
     JRootPane rootPane = getRootPane();
-    Object key = rootPane.getInputMap( JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT ).get( KeyStroke.getKeyStroke( KeyEvent.VK_ESCAPE, 0 ) );
+    InputMap inputMap = rootPane.getInputMap( JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT );
+    KeyStroke escKeyStroke = KeyStroke.getKeyStroke( KeyEvent.VK_ESCAPE, 0 );
+    Object key = inputMap.get( escKeyStroke );
     if( key == null )
     {
       key = label;
-      rootPane.getInputMap( JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT ).put( KeyStroke.getKeyStroke( KeyEvent.VK_ESCAPE, 0 ), key );
+      inputMap.put( escKeyStroke, key );
     }
     rootPane.getActionMap().put(
       key,
