@@ -188,6 +188,7 @@ public class EvalExpressionTransformer extends EvalBasedTransformer<EvalExpressi
     IGosuProgram gp = res.getProgram();
     if( !gp.isValid() )
     {
+      System.out.println( gp.getParseResultsException() );
       throw GosuExceptionUtil.forceThrow(gp.getParseResultsException());
     }
 

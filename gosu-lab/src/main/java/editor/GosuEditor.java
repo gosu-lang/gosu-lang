@@ -1,5 +1,7 @@
 package editor;
 
+import editor.debugger.Breakpoint;
+import editor.debugger.BreakpointManager;
 import editor.search.SearchLocation;
 import editor.search.UsageSearcher;
 import editor.search.UsageTarget;
@@ -26,7 +28,6 @@ import gw.lang.parser.IParseResult;
 import gw.lang.parser.IParseTree;
 import gw.lang.parser.IParsedElement;
 import gw.lang.parser.IScriptPartId;
-import gw.lang.parser.ISymbol;
 import gw.lang.parser.ISymbolTable;
 import gw.lang.parser.ITokenizerInstructor;
 import gw.lang.parser.ITypeUsesMap;
@@ -48,7 +49,6 @@ import gw.lang.parser.expressions.IVarStatement;
 import gw.lang.parser.statements.IClassDeclaration;
 import gw.lang.parser.statements.IClassFileStatement;
 import gw.lang.parser.statements.IClassStatement;
-import gw.lang.parser.statements.IForEachStatement;
 import gw.lang.parser.statements.IFunctionStatement;
 import gw.lang.parser.statements.IMethodCallStatement;
 import gw.lang.parser.statements.IStatementList;
@@ -106,6 +106,7 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -217,6 +218,8 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
 
   private static TimerPool _timerPool = new TimerPool();
   private IType _programSuperType;
+  private boolean _bAccessPrivateMembers;
+
 
   private enum HighlightMode
   {
@@ -230,6 +233,21 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
                      IContextMenuHandler<IScriptEditor> contextMenuHandler,
                      boolean bStatement, boolean bEmptyTextOk )
   {
+    this( null, lineInfoRenderer, undoMgr, scriptabilityConstraint, contextMenuHandler, bStatement, bEmptyTextOk );
+  }
+
+  public GosuEditor( ISymbolTable symTable,
+                     ILineInfoManager lineInfoRenderer,
+                     AtomicUndoManager undoMgr,
+                     IScriptabilityModifier scriptabilityConstraint,
+                     IContextMenuHandler<IScriptEditor> contextMenuHandler,
+                     boolean bStatement, boolean bEmptyTextOk )
+  {
+    if( lineInfoRenderer != null )
+    {
+      lineInfoRenderer.setEditor( this );
+    }
+    _symTable = symTable;
     _undoMgr = undoMgr;
     _contextMenuHandler = contextMenuHandler == null
                           ? new DefaultContextMenuHandler()
@@ -730,6 +748,15 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
     TextComponentUtil.fixTextComponentKeyMap( _editor );
   }
 
+  public boolean isAccessAll()
+  {
+    return _bAccessPrivateMembers;
+  }
+  public void setAccessAll( boolean accessPrivateMembers )
+  {
+    _bAccessPrivateMembers = accessPrivateMembers;
+  }
+
   public void showFileInTree()
   {
     GosuPanel gosuPanel = RunMe.getEditorFrame().getGosuPanel();
@@ -885,7 +912,7 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
     JTextComponent editor = getEditor();
     int caretPosition = editor.getCaretPosition();
     Highlighter.Highlight[] highlights = editor.getHighlighter().getHighlights();
-    Arrays.sort( highlights, (o1, o2) -> o1.getStartOffset() - o2.getStartOffset() );
+    Arrays.sort( highlights, ( o1, o2 ) -> o1.getStartOffset() - o2.getStartOffset() );
     int i = -1;
     do
     {
@@ -914,7 +941,7 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
     JTextComponent editor = getEditor();
     int caretPosition = editor.getCaretPosition();
     Highlighter.Highlight[] highlights = editor.getHighlighter().getHighlights();
-    Arrays.sort( highlights, (o1, o2) -> o2.getStartOffset() - o1.getStartOffset() );
+    Arrays.sort( highlights, ( o1, o2 ) -> o2.getStartOffset() - o1.getStartOffset() );
     int i = -1;
     do
     {
@@ -1570,6 +1597,10 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
       return;
     }
 
+    if( isAccessAll() )
+    {
+      TypeSystem.pushIncludeAll();
+    }
     try
     {
       if( _parser == null )
@@ -1683,6 +1714,11 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
     }
     finally
     {
+      if( isAccessAll() )
+      {
+        TypeSystem.popIncludeAll();
+      }
+
       if( !areMoreThanOneParserTasksPendingForThisEditor() )
       {
         if( _parser != null )
@@ -1745,6 +1781,12 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
           _panelFeedback.update( RESCODE_VALID, GosuEditor.this );
         }
       } );
+  }
+
+  public void showFeedback( boolean show )
+  {
+    _panelFeedback.setVisible( show );
+    revalidate();
   }
 
   private ClassType getClassType()
@@ -1945,15 +1987,7 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
 
   private void handleParseException( final boolean forceCodeCompletion )
   {
-    EventQueue.invokeLater(
-      new Runnable()
-      {
-        @Override
-        public void run()
-        {
-          handleParseException( _pe, forceCodeCompletion );
-        }
-      } );
+    EventQueue.invokeLater( () -> handleParseException( _pe, forceCodeCompletion ) );
   }
 
   protected void handleParseException( final ParseResultsException e, final boolean bForceCodeCompletion )
@@ -2213,7 +2247,7 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
     }
     catch( Exception ex )
     {
-      editor.util.EditorUtilities.handleUncaughtException( ex );
+      EditorUtilities.handleUncaughtException( ex );
     }
   }
 
@@ -3152,9 +3186,25 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
 
   public ISymbolTable getSymbolTableAtCursor()
   {
-    int iCaretPos = _editor.getCaretPosition();
+    return getSymbolTableAtOffset( _editor.getCaretPosition() );
+  }
+
+  public ISymbolTable getSymbolTableAtLineStart( int iLine )
+  {
+    return getSymbolTableAtOffset( getLineOffset( iLine ) );
+  }
+
+  public int getLineOffset( int iLine )
+  {
+    Element root = getGosuDocument().getRootElements()[0];
+    iLine = root.getElementCount() < iLine ? root.getElementCount() : iLine;
+    return root.getElement( iLine ).getStartOffset();
+  }
+
+  public ISymbolTable getSymbolTableAtOffset( int offset )
+  {
     StringBuffer sb = new StringBuffer( _editor.getText() );
-    sb.insert( iCaretPos, " +yennikcm ;" ); // Force a parse exception
+    sb.insert( offset, " +yennikcm ;" ); // Force a parse exception
     IGosuParser parserJavadoc = GosuParserFactory.createParser( getSymbolTable(), _scriptabilityModifier );
     parserJavadoc.setEditorParser( true );
 
@@ -3203,10 +3253,10 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
     }
     catch( ParseResultsException pe )
     {
-      List<IParseIssue> errors = pe.getIssuesFromPos( iCaretPos + 2 );
+      List<IParseIssue> errors = pe.getIssuesFromPos( offset + 2 );
       if( errors.isEmpty() )
       {
-        errors = pe.getIssuesFromPos( iCaretPos );
+        errors = pe.getIssuesFromPos( offset );
       }
       if( !errors.isEmpty() )
       {
@@ -3940,6 +3990,7 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
     {
       resizeEditor();
       parse();
+      updateBreakpoints( e );
     }
 
     @Override
@@ -3947,6 +3998,45 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
     {
       resizeEditor();
       parse();
+      updateBreakpoints( e );
+    }
+
+    private void updateBreakpoints( DocumentEvent e )
+    {
+      if( _scroller.getLineInfoMgr() == null )
+      {
+        return;
+      }
+      DocumentEvent.ElementChange change = e.getChange( e.getDocument().getDefaultRootElement() );
+      if( change != null )
+      {
+        int linesInserted = change.getChildrenAdded().length - change.getChildrenRemoved().length;
+        if( linesInserted != 0 && _partId != null )
+        {
+          BreakpointManager bpm = RunMe.getEditorFrame().getGosuPanel().getBreakpointManager();
+          {
+            Collection<Breakpoint> breakpoints = bpm.getLineBreakpointsForType( _partId.getContainingTypeName() );
+            for( Breakpoint bp : breakpoints )
+            {
+              bpm.removeBreakpoint( bp );
+              bp = updateBreakpoint( bp, linesInserted, e );
+              bpm.toggleLineBreakpoint( GosuEditor.this, bp.getFqn(), bp.getLine() );
+            }
+          }
+          _scroller.getAdviceColumn().repaint();
+        }
+      }
+    }
+
+    private Breakpoint updateBreakpoint( Breakpoint bp, int linesInserted, DocumentEvent e )
+    {
+      int firstLine = e.getDocument().getDefaultRootElement().getElementIndex( e.getOffset() ) + 1;
+      int line = bp.getLine();
+      if( bp.getLine() > firstLine )
+      {
+        line = bp.getLine() + linesInserted;
+      }
+      return new Breakpoint( bp.getFqn(), line );
     }
 
     private void resizeEditor()

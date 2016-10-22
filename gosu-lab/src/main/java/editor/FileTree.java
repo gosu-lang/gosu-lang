@@ -155,6 +155,11 @@ public class FileTree implements MutableTreeNode, IFileWatcherListener
 
   public FileTree find( String fqn )
   {
+    if( fqn == null )
+    {
+      return null;
+    }
+
     if( fqn.equals( makeFqn() ) )
     {
       return this;

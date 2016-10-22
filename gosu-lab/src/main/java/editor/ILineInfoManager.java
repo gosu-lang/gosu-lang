@@ -15,5 +15,8 @@ public interface ILineInfoManager
 
   Cursor getCursor( int iLine );
 
-  void renderHighlight( GosuEditorPane editor, Graphics g, int iLine );
+  void renderHighlight( Graphics g, int iLine );
+
+  GosuEditor getEditor();
+  void setEditor( GosuEditor gosuEditor );
 }

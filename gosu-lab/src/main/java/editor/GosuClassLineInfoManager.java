@@ -33,23 +33,7 @@ public class GosuClassLineInfoManager extends AbstractLineInfoManager
 
   protected Breakpoint getBreakpointAtLine( int iLine )
   {
-    GosuEditor editor = getGosuEditor();
-    if( editor == null )
-    {
-      return null;
-    }
-
-    return getBreakpointManager().getBreakpointAtEditorLine( editor.getScriptPart().getContainingTypeName(), iLine );
-  }
-
-  private GosuEditor getGosuEditor()
-  {
-    GosuEditor editor = getGosuPanel().getCurrentEditor();
-    if( editor == null )
-    {
-      return null;
-    }
-    return editor;
+    return getBreakpointManager().getBreakpointAtEditorLine( getEditor().getScriptPart().getContainingTypeName(), iLine );
   }
 
   protected boolean isExecPointAtLine( int iLine )
@@ -58,12 +42,7 @@ public class GosuClassLineInfoManager extends AbstractLineInfoManager
   }
   protected Breakpoint getExecPointAtLine( int iLine )
   {
-    GosuEditor editor = getGosuEditor();
-    if( editor == null )
-    {
-      return null;
-    }
-    return getBreakpointManager().getExecPointAtEditorLine( editor.getScriptPart().getContainingTypeName(), iLine );
+    return getBreakpointManager().getExecPointAtEditorLine( getEditor().getScriptPart().getContainingTypeName(), iLine );
   }
 
   protected boolean isFramePointAtLine( int iLine )
@@ -72,12 +51,7 @@ public class GosuClassLineInfoManager extends AbstractLineInfoManager
   }
   protected Breakpoint getFramePointAtLine( int iLine )
   {
-    GosuEditor editor = getGosuEditor();
-    if( editor == null )
-    {
-      return null;
-    }
-    return getBreakpointManager().getFramePointAtEditorLine( editor.getScriptPart().getContainingTypeName(), iLine );
+    return getBreakpointManager().getFramePointAtEditorLine( getEditor().getScriptPart().getContainingTypeName(), iLine );
   }
 
   @Override
@@ -97,7 +71,7 @@ public class GosuClassLineInfoManager extends AbstractLineInfoManager
     if( overrideFunction != null && (implementedFuction == null || iY < _iconOverrideAndImpl.getIconHeight() / 2) )
     {
       IFunctionStatement funcStmt = overrideFunction.getDynamicFunctionSymbol().getSuperDfs().getDeclFunctionStmt();
-      getGosuEditor().gotoDeclaration( funcStmt.getLocation().getDeepestLocation( funcStmt.getNameOffset( null ), true ).getParsedElement() );
+      getEditor().gotoDeclaration( funcStmt.getLocation().getDeepestLocation( funcStmt.getNameOffset( null ), true ).getParsedElement() );
     }
     else if( implementedFuction != null )
     {
@@ -106,18 +80,13 @@ public class GosuClassLineInfoManager extends AbstractLineInfoManager
     }
     else
     {
-      GosuEditor editor = getGosuEditor();
-      if( editor == null )
-      {
-        return;
-      }
       if( e.isPopupTrigger() )
       {
         showContextMenu( e, iLine );
       }
       else
       {
-        getBreakpointManager().toggleLineBreakpoint( editor.getScriptPart().getContainingTypeName(), iLine );
+        getBreakpointManager().toggleLineBreakpoint( getEditor(), getEditor().getScriptPart().getContainingTypeName(), iLine );
       }
     }
   }
@@ -146,8 +115,7 @@ public class GosuClassLineInfoManager extends AbstractLineInfoManager
 
   private IFunctionStatement getSuperFunction( int iLine )
   {
-    GosuEditor editor = getGosuEditor();
-    Map<Integer, IFunctionStatement> functionsByLine = editor.getFunctionsByLineNumber();
+    Map<Integer, IFunctionStatement> functionsByLine = getEditor().getFunctionsByLineNumber();
     IFunctionStatement functionStatement = functionsByLine.get( iLine );
     if( functionStatement != null )
     {
@@ -162,11 +130,10 @@ public class GosuClassLineInfoManager extends AbstractLineInfoManager
 
   private IParseTree getOverridden( int iLine )
   {
-    GosuEditor editor = getGosuEditor();
-    IFunctionStatement fs = editor.getFunctionsByLineNumber().get( iLine );
+    IFunctionStatement fs = getEditor().getFunctionsByLineNumber().get( iLine );
     if( fs != null )
     {
-      for( IDynamicFunctionSymbol dfs : editor.getOverriddenFunctions() )
+      for( IDynamicFunctionSymbol dfs : getEditor().getOverriddenFunctions() )
       {
         if( Objects.equals( fs.getDynamicFunctionSymbol(), dfs ) && Objects.equals( fs.getDynamicFunctionSymbol().getScriptPart(), dfs.getScriptPart() ) )
         {

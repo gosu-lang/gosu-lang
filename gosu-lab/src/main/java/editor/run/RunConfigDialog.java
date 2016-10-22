@@ -469,7 +469,7 @@ public class RunConfigDialog extends JDialog implements IHandleCancel
     }
   }
 
-  public class AddConfigAction extends AbstractAction
+  private class AddConfigAction extends AbstractAction
   {
     public AddConfigAction()
     {
@@ -507,7 +507,7 @@ public class RunConfigDialog extends JDialog implements IHandleCancel
     }
   }
 
-  public class RemoveConfigAction extends AbstractAction
+  private class RemoveConfigAction extends AbstractAction
   {
     public RemoveConfigAction()
     {

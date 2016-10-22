@@ -304,14 +304,14 @@ public class CommonMenus
       {
         public void actionPerformed( ActionEvent e )
         {
-          bpm.get().toggleLineBreakpoint( editor.get().getScriptPart().getContainingTypeName(),
+          bpm.get().toggleLineBreakpoint( editor.get(), editor.get().getScriptPart().getContainingTypeName(),
                                           editor.get().getLineNumberAtCaret() );
         }
 
         @Override
         public boolean isEnabled()
         {
-          return editor.get() != null && bpm.get().canAddBreakpoint( editor.get().getLineNumberAtCaret() );
+          return editor.get() != null && bpm.get().canAddBreakpoint( editor.get(), editor.get().getLineNumberAtCaret() );
         }
       } );
     item.setMnemonic( 'B' );
@@ -614,6 +614,7 @@ public class CommonMenus
       if( isEnabled() )
       {
         _debugger.get().pause();
+        getGosuPanel().showDebugger( true );
       }
     }
 
@@ -661,7 +662,7 @@ public class CommonMenus
 
     public void actionPerformed( ActionEvent e )
     {
-      new EditBreakpointsDialog( _bp.get() ).setVisible( true );
+      EditBreakpointsDialog.getOrCreate( _bp.get() ).setVisible( true );
     }
   }
 
@@ -1278,14 +1279,14 @@ public class CommonMenus
     {
       if( isEnabled() )
       {
-        _bpm.get().runToCursor( _editor.get().getScriptPart().getContainingTypeName(), _editor.get().getLineNumberAtCaret() );
+        _bpm.get().runToCursor( _editor.get() );
       }
     }
 
     @Override
     public boolean isEnabled()
     {
-      return _debugger.get() != null && _debugger.get().isSuspended() && _editor.get() != null && _bpm.get().canAddBreakpoint( _editor.get().getLineNumberAtCaret() );
+      return _debugger.get() != null && _debugger.get().isSuspended() && _editor.get() != null && _bpm.get().canAddBreakpoint( _editor.get(), _editor.get().getLineNumberAtCaret() );
     }
   }
 

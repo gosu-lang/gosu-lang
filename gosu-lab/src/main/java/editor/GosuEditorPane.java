@@ -92,7 +92,7 @@ public class GosuEditorPane extends JEditorPane
         ILineInfoManager lineInfoMgr = scroller.getLineInfoMgr();
         if( lineInfoMgr != null )
         {
-          lineInfoMgr.renderHighlight( this, g, i );
+          lineInfoMgr.renderHighlight( g, i );
         }
       }
     }

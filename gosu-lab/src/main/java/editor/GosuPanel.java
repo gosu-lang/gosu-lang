@@ -2000,7 +2000,7 @@ public class GosuPanel extends JPanel
   {
     EventQueue.invokeLater( () -> {
       _debugger = new Debugger( vm, _breakpointManager );
-      _debugger.addChangeListener( dbg -> handleDebuggerStateChange() );
+      _debugger.addChangeListener( dbg -> EditorUtilities.invokeInDispatchThread( this::handleDebuggerStateChange ) );
       showDebugger( true );
       showConsole( true );
       _debugger.startDebugging();
@@ -2021,7 +2021,11 @@ public class GosuPanel extends JPanel
     }
     if( _debugger != null && _debugger.isSuspended() )
     {
-      jumptToBreakpoint( _debugger.getSuspendedLocation(), false );
+      Location location = _debugger.getSuspendedLocation();
+      if( location != null )
+      {
+        jumptToBreakpoint( location, false );
+      }
     }
   }
 
@@ -2033,11 +2037,13 @@ public class GosuPanel extends JPanel
       if( openType( fqn, bFocus ) )
       {
         getCurrentEditor().gotoLine( line );
-        Debugger debugger = getDebugger();
-        if( debugger != null && debugger.getEventName() != null && debugger.getEventName().contains( "Breakpoint" ) )
-        {
-          showDebugger( true );
-        }
+      }
+      Debugger debugger = getDebugger();
+      if( debugger != null && debugger.getEventName() != null &&
+          (debugger.getEventName().contains( "Breakpoint" ) ||
+           debugger.getEventName().contains( "Exception" )) )
+      {
+        showDebugger( true );
       }
     } );
   }
