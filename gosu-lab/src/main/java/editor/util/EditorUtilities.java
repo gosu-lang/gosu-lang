@@ -75,12 +75,12 @@ public class EditorUtilities
   {
     if( PlatformUtil.isMac() )
     {
-      CONTROL_KEY_MASK = KeyEvent.META_DOWN_MASK;
+      CONTROL_KEY_MASK = KeyEvent.META_MASK;
       CONTROL_KEY_NAME = "meta";
     }
     else
     {
-      CONTROL_KEY_MASK = KeyEvent.CTRL_DOWN_MASK;
+      CONTROL_KEY_MASK = KeyEvent.CTRL_MASK;
       CONTROL_KEY_NAME = "control";
     }
   }
