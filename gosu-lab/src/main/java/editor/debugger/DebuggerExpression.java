@@ -10,6 +10,7 @@ import com.sun.jdi.ClassType;
 import com.sun.jdi.DoubleValue;
 import com.sun.jdi.FloatValue;
 import com.sun.jdi.IntegerValue;
+import com.sun.jdi.InvocationException;
 import com.sun.jdi.LocalVariable;
 import com.sun.jdi.Location;
 import com.sun.jdi.LongValue;
@@ -22,8 +23,12 @@ import com.sun.jdi.StackFrame;
 import com.sun.jdi.ThreadReference;
 import com.sun.jdi.Value;
 import com.sun.jdi.VirtualMachine;
+import editor.RunMe;
+import editor.util.EditorUtilities;
 import gw.lang.GosuShop;
+import gw.util.GosuExceptionUtil;
 
+import javax.swing.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -34,7 +39,6 @@ import java.util.WeakHashMap;
 
 public class DebuggerExpression
 {
-  private Value _value;
   private String _strText;
   private String _strClassContext;
   private String _strContextElementClass;
@@ -53,12 +57,6 @@ public class DebuggerExpression
     _runtimeStateMap = new WeakHashMap<>();
   }
 
-  //call evaluate before
-  public Value getValue()
-  {
-    return _value;
-  }
-
   // EvaluationContextImpl should be at the same stackFrame as it was in the call to EvaluatorBuilderImpl.build
   public Value evaluate( Debugger debugger )
   {
@@ -71,7 +69,7 @@ public class DebuggerExpression
     Value thisObject = findThisObjectFromCtx( debugger.getSuspendedThread() );
     try
     {
-      _value = classType.invokeMethod(
+      Value value = classType.invokeMethod(
         debugger.getSuspendedThread(), runtimeState.getRunMeSomeCodeMethod(),
         Arrays.asList(
           thisObject,
@@ -81,13 +79,20 @@ public class DebuggerExpression
           vm.mirrorOf( _strClassContext ),
           vm.mirrorOf( _strContextElementClass ),
           vm.mirrorOf( _iContextLocation ) ), 0 );
+      // Primitive boolean value needed for conditional breakpoint expression
+      return unboxIfBoxed( runtimeState, debugger.getSuspendedThread(), value );
+    }
+    catch( InvocationException e )
+    {
+      boolean[] shouldSuspend = {true};
+      EditorUtilities.invokeInDispatchThread(
+        () -> shouldSuspend[0] = JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog( RunMe.getEditorFrame(), "<html>Trouble evaluating breakpoint logic.<br>Stop at breakpoint?", "Gosu Lab", JOptionPane.YES_NO_OPTION ) );
+      return vm.mirrorOf( shouldSuspend[0] );
     }
     catch( Exception e )
     {
-      throw new RuntimeException( e );
+      throw GosuExceptionUtil.forceThrow( e );
     }
-    // Primitive boolean value needed for conditional breakpoint expression
-    return unboxIfBoxed( runtimeState, debugger.getSuspendedThread(), _value );
   }
 
   private RuntimeState getRuntimeState( Debugger debugger )
@@ -111,7 +116,7 @@ public class DebuggerExpression
     }
     catch( Exception e )
     {
-      throw new RuntimeException( e );
+      throw GosuExceptionUtil.forceThrow( e );
     }
     try
     {
@@ -168,7 +173,7 @@ public class DebuggerExpression
     }
     catch( Exception e )
     {
-      throw new RuntimeException( e );
+      throw GosuExceptionUtil.forceThrow( e );
     }
     return argArray;
   }
@@ -286,7 +291,7 @@ public class DebuggerExpression
     }
     catch( Exception e )
     {
-      throw new RuntimeException( e );
+      throw GosuExceptionUtil.forceThrow( e );
     }
   }
 
@@ -306,7 +311,7 @@ public class DebuggerExpression
     }
     catch( Exception e )
     {
-      throw new RuntimeException( e );
+      throw GosuExceptionUtil.forceThrow( e );
     }
   }
 
