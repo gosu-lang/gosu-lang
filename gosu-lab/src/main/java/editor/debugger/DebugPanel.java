@@ -55,7 +55,7 @@ public class DebugPanel extends JPanel implements IDisposable
   public DebugPanel( Debugger debugger )
   {
     _debugger = debugger;
-    debugger.addChangeListener( this::debuggerChanged );
+    debugger.addChangeListener( e -> EventQueue.invokeLater( () -> debuggerChanged( debugger ) ) );
     setBorder( null );
     setLayout( new BorderLayout() );
 

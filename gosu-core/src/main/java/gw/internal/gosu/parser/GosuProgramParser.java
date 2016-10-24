@@ -28,7 +28,6 @@ import gw.lang.reflect.gs.IGosuProgram;
 import gw.lang.reflect.gs.StringSourceFileHandle;
 import gw.lang.reflect.module.IModule;
 import gw.util.GosuStringUtil;
-import gw.util.fingerprint.FP64;
 
 import java.util.List;
 
@@ -37,6 +36,7 @@ import java.util.List;
 public class GosuProgramParser implements IGosuProgramParser
 {
   private static int g_iIndex;
+
 
   public IParseResult parseEval( String strSource, List<ICapturedSymbol> captured, IType enclosingClass, IParsedElement ctxElem, ISymbolTable extSyms )
   {
@@ -92,18 +92,46 @@ public class GosuProgramParser implements IGosuProgramParser
     }
   }
 
-  public static String makeEvalKey( String strSource, IType enclosingClass, IParsedElement ctxElem ) {
+  public IParseResult parseRuntimeExpr( String typeName, String strSource, IGosuClass enclosingClass, ISymbolTable extSyms )
+  {
+    TypeSystem.lock();
+    try
+    {
+      StringSourceFileHandle sfh = new StringSourceFileHandle( typeName, strSource, false, ClassType.Eval );
+      if( enclosingClass != null )
+      {
+        sfh.setParentType( enclosingClass.getName() );
+      }
+      ITypeUsesMap typeUsedMap = enclosingClass.getTypeUsesMap();
+      if( typeUsedMap != null )
+      {
+        sfh.setTypeUsesMap( typeUsedMap );
+      }
+      IGosuProgramInternal program = (IGosuProgramInternal)GosuClassTypeLoader.getDefaultClassLoader().makeNewClass( sfh, null );
+      sfh.setExternalSymbols( extSyms );
+      program.isValid();
+      return new ParseResult( program );
+    }
+    finally
+    {
+      TypeSystem.unlock();
+    }
+  }
+
+  public static String makeEvalKey( String strSource, IType enclosingClass, IParsedElement ctxElem )
+  {
     return makeEvalKey( strSource, enclosingClass, getEvalExprLocationOffset( ctxElem ) );
   }
 
-  public static String makeEvalKey( String source, IType enclosingClass, int iEvalExprOffset ) {
+  public static String makeEvalKey( String source, IType enclosingClass, int offset )
+  {
     if( enclosingClass == null )
     {
       return "toplevel" + '.' + IGosuProgram.NAME_PREFIX + "eval_0_" + GosuStringUtil.getSHA1String( source );
     }
     else
     {
-      return enclosingClass.getName() + '.' + IGosuProgram.NAME_PREFIX + "eval_" + iEvalExprOffset + "_" + GosuStringUtil.getSHA1String( source );
+      return enclosingClass.getName() + '.' + IGosuProgram.NAME_PREFIX + "eval_" + offset + "_" + GosuStringUtil.getSHA1String( source );
     }
   }
 
@@ -128,16 +156,6 @@ public class GosuProgramParser implements IGosuProgramParser
     }
     IParseTree location = evalExpr.getLocation();
     return location != null ? location.getOffset() : getIndex();
-  }
-
-  private String getIndex(String strSource) {
-    FP64 fp = new FP64(strSource);
-    long rawFingerprint = fp.getRawFingerprint();
-    if (rawFingerprint < 0) {
-      return "n" + (-rawFingerprint);
-    } else {
-      return "p" + rawFingerprint;
-    }
   }
 
   @Override

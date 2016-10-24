@@ -5,10 +5,8 @@
 package gw.lang.parser;
 
 import gw.lang.parser.exceptions.ParseResultsException;
-import gw.lang.parser.expressions.IEvalExpression;
 import gw.lang.reflect.IType;
-import gw.lang.reflect.gs.ICompilableType;
-import gw.lang.reflect.gs.IExternalSymbolMap;
+import gw.lang.reflect.gs.IGosuClass;
 
 import java.util.List;
 
@@ -20,4 +18,6 @@ public interface IGosuProgramParser
   IParseResult parseTemplate( String strSource, ISymbolTable symTable, ParserOptions options ) throws ParseResultsException;
 
   IParseResult parseEval( String strSource, List<ICapturedSymbol> symTable, IType enclosingClass, IParsedElement evalExpressionOrAnyCtxElement, ISymbolTable extSyms );
+
+  public IParseResult parseRuntimeExpr( String typeName, String strSource, IGosuClass enclosingClass, ISymbolTable extSyms );
 }

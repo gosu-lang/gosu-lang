@@ -37,6 +37,8 @@ import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
 import java.awt.*;
 import java.awt.event.ActionEvent;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
@@ -211,6 +213,7 @@ public class EditBreakpointsDialog extends JDialog implements IHandleCancel
     c.insets = new Insets( 0, 0, 5, 0 );
     _fieldExpr = new GosuEditor( bp.getLine() <= 0 ? new StandardSymbolTable( true ) : ContextSymbolTableUtil.getSymbolTableAtOffset( (IGosuClass)TypeSystem.getByFullNameIfValidNoJava( bp.getFqn() ), bp.getOffset() ),
       new GosuClassLineInfoManager(), new AtomicUndoManager( 10000 ), ScriptabilityModifiers.SCRIPTABLE, new DefaultContextMenuHandler(), false, true );
+    addEscapeHandler( _fieldExpr );
     _fieldExpr.setAccessAll( true );
     try
     {
@@ -231,8 +234,8 @@ public class EditBreakpointsDialog extends JDialog implements IHandleCancel
     c.anchor = GridBagConstraints.WEST;
     c.fill = GridBagConstraints.NONE;
     c.gridx = 0;
-    c.gridy = iY;
-    c.gridwidth = 1;
+    c.gridy = iY++;
+    c.gridwidth = GridBagConstraints.REMAINDER;;
     c.gridheight = 1;
     c.weightx = 0;
     c.weighty = 0;
@@ -247,34 +250,6 @@ public class EditBreakpointsDialog extends JDialog implements IHandleCancel
     configPanel.add( _cbRunScript, c );
 
     c.anchor = GridBagConstraints.WEST;
-    c.fill = GridBagConstraints.NONE;
-    c.gridx = 1;
-    c.gridy = iY++;
-    c.gridwidth = GridBagConstraints.REMAINDER;
-    c.gridheight = 1;
-    c.weightx = 0;
-    c.weighty = 0;
-    c.insets = new Insets( 5, 0, 0, 5 );
-    JButton btn = new LabToolbarButton( EditorUtilities.loadIcon( "images/help.png") );
-    //noinspection SuspiciousNameCombination
-    btn.setToolTipText( "What's this?" );
-    JPopupMenu popup = new JPopupMenu();
-    JLabel info = new JLabel( "<html>The 'run script' is a script that runs each time the line corresponding<br>" +
-                              "with the breakpoint executes.  You can log messages to the console or your logger,<br>" +
-                              "you can compute stats, anything you like.  Note, unlike most IDE debuggers, both<br>" +
-                              "the condition and the run script are dynamically <b>compiled</b> into the application<br>" +
-                              "during the debug session; they won't bog down the execution of your program." );
-    info.setOpaque( true );
-    info.setBackground( Scheme.active().getTooltipBackground() );
-    info.setForeground( Scheme.active().getTooltipText() );
-    popup.setBackground( info.getBackground() );
-    popup.add( info );
-    btn.addActionListener( e -> {
-      popup.show( btn, 0, btn.getHeight() );
-    } );
-    configPanel.add( btn, c );
-
-    c.anchor = GridBagConstraints.WEST;
     c.fill = GridBagConstraints.BOTH;
     c.gridx = 0;
     c.gridy = iY++;
@@ -285,6 +260,7 @@ public class EditBreakpointsDialog extends JDialog implements IHandleCancel
     c.insets = new Insets( 0, 0, 10, 0 );
     _fieldRunScript = new GosuEditor( bp.getLine() <= 0 ? new StandardSymbolTable( true ) : ContextSymbolTableUtil.getSymbolTableAtOffset( (IGosuClass)TypeSystem.getByFullNameIfValidNoJava( bp.getFqn() ), bp.getOffset() ),
       new GosuClassLineInfoManager(), new AtomicUndoManager( 10000 ), ScriptabilityModifiers.SCRIPTABLE, new DefaultContextMenuHandler(), false, true );
+    addEscapeHandler( _fieldRunScript );
     _fieldRunScript.setAccessAll( true );
     //exprField.showFeedback( false );
     try
@@ -341,6 +317,20 @@ public class EditBreakpointsDialog extends JDialog implements IHandleCancel
     }
 
     return configPanel;
+  }
+
+  private void addEscapeHandler( GosuEditor gosuEditor )
+  {
+    gosuEditor.getEditor().addKeyListener( new KeyAdapter() {
+      @Override
+      public void keyPressed( KeyEvent e )
+      {
+        if( e.getKeyCode() == KeyEvent.VK_ESCAPE && !gosuEditor.isIntellisensePopupShowing() )
+        {
+          close();
+        }
+      }
+    } );
   }
 
   private JPanel makeButtonPanel()

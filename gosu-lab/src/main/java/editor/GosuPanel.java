@@ -2000,7 +2000,7 @@ public class GosuPanel extends JPanel
   {
     EventQueue.invokeLater( () -> {
       _debugger = new Debugger( vm, _breakpointManager );
-      _debugger.addChangeListener( dbg -> EditorUtilities.invokeInDispatchThread( this::handleDebuggerStateChange ) );
+      _debugger.addChangeListener( dbg -> EventQueue.invokeLater( this::handleDebuggerStateChange ) );
       showDebugger( true );
       showConsole( true );
       _debugger.startDebugging();
