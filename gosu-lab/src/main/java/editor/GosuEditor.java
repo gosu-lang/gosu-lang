@@ -3204,7 +3204,7 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
   public ISymbolTable getSymbolTableAtOffset( int offset )
   {
     StringBuffer sb = new StringBuffer( _editor.getText() );
-    sb.insert( offset, " +yennikcm ;" ); // Force a parse exception
+    sb.insert( offset, "; +yennikcm ;" ); // Force a parse exception
     IGosuParser parserJavadoc = GosuParserFactory.createParser( getSymbolTable(), _scriptabilityModifier );
     parserJavadoc.setEditorParser( true );
 

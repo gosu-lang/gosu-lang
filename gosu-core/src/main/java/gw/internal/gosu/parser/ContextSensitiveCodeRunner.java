@@ -4,30 +4,44 @@
 
 package gw.internal.gosu.parser;
 
+import gw.config.CommonServices;
+import gw.internal.gosu.compiler.SingleServingGosuClassLoader;
 import gw.internal.gosu.ir.transform.expression.EvalExpressionTransformer;
 import gw.lang.parser.ExternalSymbolMapForMap;
+import gw.lang.parser.GosuParserFactory;
+import gw.lang.parser.IGosuProgramParser;
 import gw.lang.parser.IParseIssue;
+import gw.lang.parser.IParseResult;
 import gw.lang.parser.IParseTree;
 import gw.lang.parser.IParsedElement;
 import gw.lang.parser.ISymbol;
 import gw.lang.parser.ISymbolTable;
+import gw.lang.parser.ParseResult;
 import gw.lang.parser.StandardSymbolTable;
 import gw.lang.parser.exceptions.ParseResultsException;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.gs.IExternalSymbolMap;
 import gw.lang.reflect.gs.IGosuClass;
+import gw.lang.reflect.gs.IGosuProgram;
+import gw.lang.reflect.gs.IProgramInstance;
 import gw.lang.reflect.java.JavaTypes;
 import gw.util.ContextSymbolTableUtil;
 import gw.util.GosuExceptionUtil;
 
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  */
-public class ContextSensitiveCodeRunner {
+public class ContextSensitiveCodeRunner
+{
+  private static ConcurrentHashMap<String, IGosuProgramInternal> _cacheProgramByFingerprint = new ConcurrentHashMap<>();
+  private static int _refreshChecksum;
 
   //!! Needed to ensure this class is loaded so a debugger can call into it remotely
   static void ensureLoadedForDebuggerEval() {
@@ -57,6 +71,7 @@ public class ContextSensitiveCodeRunner {
       return m.invoke( null, enclosingInstance, extSyms, strText, strClassContext, strContextElementClass, iSourcePosition );
     }
     catch( Exception e ) {
+      e.printStackTrace();
       Throwable cause = GosuExceptionUtil.findExceptionCause( e );
       if( cause instanceof ParseResultsException ) {
         List<IParseIssue> parseExceptions = ((ParseResultsException)cause).getParseExceptions();
@@ -79,18 +94,114 @@ public class ContextSensitiveCodeRunner {
       }
       IGosuClassInternal gsClass = (IGosuClassInternal)type;
       gsClass.isValid();
-      IParsedElement ctxElem = findElemAt( gsClass, iSourcePosition );
-      ISymbolTable compileTimeLocalContextSymbols = ContextSymbolTableUtil.getSymbolTableAtOffset( gsClass, iSourcePosition );
-      IExternalSymbolMap runtimeLocalSymbolValues = makeRuntimeNamesAndValues( extSyms );
       IGosuClassInternal gsImmediateClass = (IGosuClassInternal)TypeSystem.getByFullName( strContextElementClass );
-      return EvalExpressionTransformer.compileAndRunEvalSource( strText, enclosingInstance, null, null, gsImmediateClass, ctxElem, compileTimeLocalContextSymbols, runtimeLocalSymbolValues );
+      return compileAndRunMeSomeCode( strText, gsClass, enclosingInstance, gsImmediateClass, extSyms, iSourcePosition );
     }
     else
     {
-      IExternalSymbolMap runtimeLocalSymbolValues = makeRuntimeNamesAndValues( extSyms );
       IGosuClassInternal gsImmediateClass = (IGosuClassInternal)TypeSystem.getByFullName( strContextElementClass );
-      return EvalExpressionTransformer.compileAndRunEvalSource( strText, enclosingInstance, null, null, gsImmediateClass, null, new StandardSymbolTable( false ), runtimeLocalSymbolValues );
+      return compileAndRunMeSomeCode( strText, null, enclosingInstance, gsImmediateClass, extSyms, 0 );
     }
+  }
+
+  public static Object compileAndRunMeSomeCode( Object source, IGosuClass ctxClass, Object outer, IType enclosingClass, Object[] extSyms, int offset )
+  {
+    String typeName = GosuProgramParser.makeEvalKey( source.toString(), enclosingClass, offset );
+    IGosuProgramInternal program = getCachedProgram( typeName );
+    IParseResult res;
+    if( program != null )
+    {
+      program.isValid();
+      res = new ParseResult( program );
+    }
+    else
+    {
+      ISymbolTable compileTimeLocalContextSymbols = ctxClass == null ? new StandardSymbolTable( true ) : ContextSymbolTableUtil.getSymbolTableAtOffset( ctxClass, offset );
+      String strSource = CommonServices.getCoercionManager().makeStringFrom( source );
+      IGosuProgramParser parser = GosuParserFactory.createProgramParser();
+      //debugInfo( compileTimeLocalContextSymbols );
+      res = parser.parseRuntimeExpr( typeName, strSource, (IGosuClass)enclosingClass, compileTimeLocalContextSymbols );
+
+      cacheProgram( typeName, (IGosuProgramInternal)res.getProgram() );
+    }
+
+    IExternalSymbolMap runtimeLocalSymbolValues = makeRuntimeNamesAndValues( extSyms );
+
+
+    IGosuProgram gp = res.getProgram();
+    if( !gp.isValid() )
+    {
+      System.out.println( gp.getParseResultsException() );
+      throw GosuExceptionUtil.forceThrow( gp.getParseResultsException() );
+    }
+
+    Class<?> javaClass = gp.getBackingClass();
+    ClassLoader classLoader = javaClass.getClassLoader();
+    assert classLoader instanceof SingleServingGosuClassLoader;
+    List<Object> args = new ArrayList<>();
+    if( !gp.isStatic() )
+    {
+      args.add( outer );
+    }
+
+    Constructor ctor = EvalExpressionTransformer._ctorAccessor.get().getConstructor( javaClass );
+    Class[] parameterTypes = ctor.getParameterTypes();
+    if( parameterTypes.length != args.size() )
+    {
+      if( parameterTypes.length > args.size() &&
+          parameterTypes[parameterTypes.length-1].getName().equals( IExternalSymbolMap.class.getName() ) )
+      {
+        args.add( runtimeLocalSymbolValues );
+      }
+      else
+      {
+        throw new IllegalStateException( "Runtime expr constructor param count is not " + args.size() + "\nPassed in args " + printArgs( args ) + "\nActual args: " + printArgs( ctor.getParameterTypes() ) );
+      }
+    }
+    try
+    {
+      IProgramInstance evalInstance = (IProgramInstance)ctor.newInstance( args.toArray() );
+      return evalInstance.evaluate( runtimeLocalSymbolValues );
+    }
+    catch( Exception e )
+    {
+      throw GosuExceptionUtil.forceThrow( e );
+    }
+  }
+
+
+  public static void cacheProgram( String strTypeName, IGosuProgramInternal program )
+  {
+    clearCacheOnChecksumChange();
+    _cacheProgramByFingerprint.put( strTypeName, program );
+  }
+  public static IGosuProgramInternal getCachedProgram( String strTypeName )
+  {
+    clearCacheOnChecksumChange();
+    return _cacheProgramByFingerprint.get( strTypeName );
+  }
+  private static void clearCacheOnChecksumChange()
+  {
+    if( _refreshChecksum != TypeSystem.getRefreshChecksum() )
+    {
+      _cacheProgramByFingerprint.clear();
+      _refreshChecksum = TypeSystem.getRefreshChecksum();
+    }
+  }
+
+  private static String printArgs( Class[] parameterTypes ) {
+    String str = "";
+    for( Class c: parameterTypes ) {
+      str += c.getName() + ", ";
+    }
+    return str;
+  }
+  private static String printArgs( List<Object> args ) {
+    String str = "";
+    for( Object a: args ) {
+      str += a + ", ";
+    }
+    return str;
   }
 
   private static IExternalSymbolMap makeRuntimeNamesAndValues( Object[] extSyms ) {

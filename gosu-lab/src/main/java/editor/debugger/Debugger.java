@@ -61,6 +61,7 @@ public class Debugger
   private String _eventName;
   private final HashSet<ObjectReference> _refs;
   private boolean _temporarilySuspended;
+  private EventIterator _eventIterator;
 
   public Debugger( VirtualMachine vm, BreakpointManager bpm )
   {
@@ -235,10 +236,10 @@ public class Debugger
       {
         e.printStackTrace();
       }
-      EventIterator eventIterator = _eventSet.eventIterator();
-      while( eventIterator.hasNext() )
+      _eventIterator = _eventSet.eventIterator();
+      while( _eventIterator.hasNext() )
       {
-        Event event = eventIterator.next();
+        Event event = _eventIterator.next();
         _eventName = event.getClass().getSimpleName();
 
         if( event instanceof StepEvent )
@@ -301,6 +302,7 @@ public class Debugger
       }
       else
       {
+        consumeRemainingEvents();
         handleSuspendLocatableEvent( event );
       }
     }
@@ -350,16 +352,27 @@ public class Debugger
           break;
         }
       }
+
       if( breakpoint == null )
       {
-        String exceptionName = ((ExceptionRequest)event.request()).exception().name();
-        for( Breakpoint bp : _bpm.getExceptionBreakpoints() )
+        // Exception breakpoint
+
+        EventRequest request = event.request();
+        if( request instanceof ExceptionRequest )
         {
-          if( bp.getFqn().equals( exceptionName ) )
+          String exceptionName = ((ExceptionRequest)request).exception().name();
+          for( Breakpoint bp : _bpm.getExceptionBreakpoints() )
           {
-            breakpoint = bp;
-            break;
+            if( bp.getFqn().equals( exceptionName ) )
+            {
+              breakpoint = bp;
+              break;
+            }
           }
+        }
+        else
+        {
+          throw new IllegalStateException( "Did not find breakpoint for: " + loc + " Class: " + fqn + " Line: " + line );
         }
       }
 
@@ -373,6 +386,7 @@ public class Debugger
         }
         catch( Exception e )
         {
+          e.printStackTrace();
           boolean[] shouldSuspend = {true};
           EditorUtilities.invokeInDispatchThread(
             () -> shouldSuspend[0] = JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog( RunMe.getEditorFrame(), "<html>Could not evaluate breakpoint expression.<br>Stop at breakpoint?", "Gosu Lab", JOptionPane.YES_NO_OPTION ) );
@@ -384,10 +398,15 @@ public class Debugger
         }
         if( suspend )
         {
+          consumeRemainingEvents();
           handleSuspendLocatableEvent( event );
         }
         else
         {
+          if( _eventIterator.hasNext() )
+          {
+            return;
+          }
           releaseRefs();
           resumeProgram( true );
         }
@@ -395,6 +414,19 @@ public class Debugger
       else
       {
         resumeProgram( true );
+      }
+    }
+  }
+
+  private void consumeRemainingEvents()
+  {
+    while( _eventIterator.hasNext() )
+    {
+      Event event = _eventIterator.next();
+      if( event instanceof StepEvent )
+      {
+        // a pending step event is superceded by a breakpoint or exception event
+        getEventRequestManager().deleteEventRequest( event.request() );
       }
     }
   }
@@ -414,6 +446,10 @@ public class Debugger
   {
     String className = event.referenceType().name();
     addPendingBreakpointFor( className );
+    if( _eventIterator.hasNext() )
+    {
+      return;
+    }
     resumeProgram( true );
   }
 

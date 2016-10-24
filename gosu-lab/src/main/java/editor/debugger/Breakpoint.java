@@ -42,6 +42,8 @@ public class Breakpoint implements IJsonIO
   private transient int _offset;
   private transient String _fileName;
   private transient String _immediateClass;
+  private transient LocklessLazyVar<DebuggerExpression> _debuggerExpr;
+  private transient LocklessLazyVar<DebuggerExpression> _debuggerRunScript;
 
 
   public Breakpoint( String fqnException, boolean notifyCaught, boolean notifyUncaught )
@@ -68,6 +70,9 @@ public class Breakpoint implements IJsonIO
     _active = true;
     _expr = expr;
     _suspend = true;
+
+    _debuggerExpr = LocklessLazyVar.make( () -> new DebuggerExpression( _expr, isLineBreakpoint() ? _fqn : null, _immediateClass, _offset ) );
+    _debuggerRunScript = LocklessLazyVar.make( () -> new DebuggerExpression( _runScript, isLineBreakpoint() ? _fqn : null, _immediateClass, _offset ) );
   }
 
   // for JsonIO
@@ -142,6 +147,7 @@ public class Breakpoint implements IJsonIO
   public void setExpression( String expr )
   {
     _expr = expr;
+    _debuggerExpr.clear();
   }
 
   public boolean isActiveWhenMuted()
@@ -161,8 +167,7 @@ public class Breakpoint implements IJsonIO
       String runScript = getRunScript();
       if( runScript != null && runScript.length() > 0 )
       {
-        DebuggerExpression debugExpr = new DebuggerExpression( runScript, isLineBreakpoint() ? _fqn : null, _immediateClass, _offset );
-        debugExpr.evaluate( RunMe.getEditorFrame().getGosuPanel().getDebugger() );
+        _debuggerRunScript.get().evaluate( RunMe.getEditorFrame().getGosuPanel().getDebugger() );
       }
     }
 
@@ -175,8 +180,7 @@ public class Breakpoint implements IJsonIO
         boolean canEvaluateCondition = isLineBreakpoint() && locate();
         if( canEvaluateCondition )
         {
-          DebuggerExpression debugExpr = new DebuggerExpression( expr, isLineBreakpoint() ? _fqn : null, _immediateClass, _offset );
-          BooleanValue result = (BooleanValue)debugExpr.evaluate( RunMe.getEditorFrame().getGosuPanel().getDebugger() );
+          BooleanValue result = (BooleanValue)_debuggerExpr.get().evaluate( RunMe.getEditorFrame().getGosuPanel().getDebugger() );
           suspend = result.value();
         }
       }
@@ -199,11 +203,21 @@ public class Breakpoint implements IJsonIO
     IGosuClass topLevelClass = (IGosuClass)TypeSystem.getByFullName( _fqn );
     _offset = getLineOffset( topLevelClass.getSource() );
     topLevelClass.isValid();
-    IParseTree loc = topLevelClass.getClassStatement().getLocation().getDeepestLocation( _offset, true );
+    IParseTree loc = topLevelClass.getClassStatement().getLocation().getDeepestLocation( _offset, false );
     if( loc == null )
     {
       return false;
     }
+    int i = 0;
+    while( loc != null && loc.getOffset() < _offset )
+    {
+      loc = topLevelClass.getClassStatement().getLocation().getDeepestLocation( _offset + ++i, true );
+    }
+    if( loc == null )
+    {
+      return false;
+    }
+    _offset = loc.getOffset();
     _immediateClass = loc.getParsedElement().getGosuClass().getName();
     return true;
   }
@@ -261,6 +275,7 @@ public class Breakpoint implements IJsonIO
   public void setRunScript( String runScript )
   {
     _runScript = runScript;
+    _debuggerRunScript.clear();
   }
 
   public boolean isCaughtException()

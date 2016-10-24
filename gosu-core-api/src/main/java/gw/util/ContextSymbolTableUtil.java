@@ -31,7 +31,7 @@ public class ContextSymbolTableUtil
   public static ISymbolTable getSymbolTableAtOffset( ISymbolTable symTable, IGosuClass gsClass, int offset )
   {
     StringBuffer sb = new StringBuffer( gsClass.getSource() );
-    sb.insert( offset, " +yennikcm ;" ); // Force a parse exception
+    sb.insert( offset, "; +yennikcm ;" ); // Force a parse exception
     IGosuParser parserJavadoc = GosuParserFactory.createParser( symTable, ScriptabilityModifiers.SCRIPTABLE );
     parserJavadoc.setEditorParser( true );
 

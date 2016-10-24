@@ -45,11 +45,11 @@ public class EvalExpressionTransformer extends EvalBasedTransformer<EvalExpressi
   // ##todo: use a ConcurrentHashMap here somehow i.e., stop using Collections.synchronizedMap(), it's a perf issue here
   public static final Map<String, EvalExpression> EVAL_EXPRESSIONS = Collections.synchronizedMap( new LRUMap( 2000 ) );
 
-  private static interface DeclaredConstructorsAccessor {
+  public static interface DeclaredConstructorsAccessor {
     Constructor getConstructor( Class clz );
   }
 
-  private static LocklessLazyVar<DeclaredConstructorsAccessor> _ctorAccessor = new LocklessLazyVar<DeclaredConstructorsAccessor>()
+  public static LocklessLazyVar<DeclaredConstructorsAccessor> _ctorAccessor = new LocklessLazyVar<DeclaredConstructorsAccessor>()
   {
     @Override
     protected DeclaredConstructorsAccessor init()

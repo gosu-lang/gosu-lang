@@ -27,8 +27,10 @@ import gw.lang.GosuShop;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.WeakHashMap;
 
 public class DebuggerExpression
 {
@@ -37,6 +39,8 @@ public class DebuggerExpression
   private String _strClassContext;
   private String _strContextElementClass;
   private int _iContextLocation;
+  private WeakHashMap<Debugger, RuntimeState> _runtimeStateMap;
+
 
   public DebuggerExpression( String expr,
                              String strClassContext, String strContextElementClass,
@@ -46,6 +50,7 @@ public class DebuggerExpression
     _strClassContext = strClassContext;
     _strContextElementClass = strContextElementClass;
     _iContextLocation = iContextLocation;
+    _runtimeStateMap = new WeakHashMap<>();
   }
 
   //call evaluate before
@@ -57,19 +62,21 @@ public class DebuggerExpression
   // EvaluationContextImpl should be at the same stackFrame as it was in the call to EvaluatorBuilderImpl.build
   public Value evaluate( Debugger debugger )
   {
+    RuntimeState runtimeState = getRuntimeState( debugger );
+
     Location suspendedLoc = debugger.getSuspendedLocation();
     VirtualMachine vm = suspendedLoc.virtualMachine();
-    List<ReferenceType> types = vm.classesByName( "gw.internal.gosu.parser.ContextSensitiveCodeRunner" );
-    ClassType classType = (ClassType)types.get( 0 );
+
+    ClassType classType = runtimeState.getCodeRunnerClass( vm );
     Value thisObject = findThisObjectFromCtx( debugger.getSuspendedThread() );
     try
     {
       _value = classType.invokeMethod(
-        debugger.getSuspendedThread(), classType.methodsByName( "runMeSomeCode" ).get( 0 ),
+        debugger.getSuspendedThread(), runtimeState.getRunMeSomeCodeMethod(),
         Arrays.asList(
           thisObject,
           suspendedLoc.declaringType().classLoader(),
-          makeExternalsSymbolsForLocals( debugger ),
+          makeExternalsSymbolsForLocals( runtimeState, vm, debugger ),
           vm.mirrorOf( _strText ),
           vm.mirrorOf( _strClassContext ),
           vm.mirrorOf( _strContextElementClass ),
@@ -80,7 +87,18 @@ public class DebuggerExpression
       throw new RuntimeException( e );
     }
     // Primitive boolean value needed for conditional breakpoint expression
-    return unboxIfBoxed( suspendedLoc, debugger.getSuspendedThread(), _value );
+    return unboxIfBoxed( runtimeState, debugger.getSuspendedThread(), _value );
+  }
+
+  private RuntimeState getRuntimeState( Debugger debugger )
+  {
+    RuntimeState runtimeState = _runtimeStateMap.get( debugger );
+    if( runtimeState == null )
+    {
+      runtimeState = new RuntimeState();
+      _runtimeStateMap.put( debugger, runtimeState );
+    }
+    return runtimeState;
   }
 
   private Value findThisObjectFromCtx( ThreadReference suspendedThread )
@@ -114,7 +132,7 @@ public class DebuggerExpression
     return frame.thisObject();
   }
 
-  private ArrayReference makeExternalsSymbolsForLocals( Debugger debugger )
+  private ArrayReference makeExternalsSymbolsForLocals( RuntimeState runtimeState, VirtualMachine vm, Debugger debugger )
   {
     Location suspendedLoc = debugger.getSuspendedLocation();
     ThreadReference suspendedThread = debugger.getSuspendedThread();
@@ -129,14 +147,14 @@ public class DebuggerExpression
       {
         values.add( suspendedLoc.virtualMachine().mirrorOf( localVar.name() ) );
         Value value = localValues.get( localVar );
-        values.add( boxIfPrimitive( suspendedLoc, suspendedThread, value ) );
+        values.add( boxIfPrimitive( runtimeState, suspendedThread, value ) );
       }
     }
     catch( Exception e )
     {
       e.printStackTrace();
     }
-    ArrayType objectArrayClass = (ArrayType)suspendedLoc.virtualMachine().classesByName( "java.lang.Object[]" ).get( 0 );
+    ArrayType objectArrayClass = runtimeState.getArrayType( vm, "java.lang.Object[]" );
     if( objectArrayClass == null )
     {
       throw new IllegalStateException();
@@ -155,7 +173,7 @@ public class DebuggerExpression
     return argArray;
   }
 
-  public Value boxIfPrimitive( Location suspendedLoc, ThreadReference suspendedThread, Value value )
+  public Value boxIfPrimitive( RuntimeState runtimeState, ThreadReference suspendedThread, Value value )
   {
     if( value == null || value instanceof ObjectReference )
     {
@@ -164,40 +182,40 @@ public class DebuggerExpression
 
     if( value instanceof BooleanValue )
     {
-      return convertToWrapper( suspendedLoc, suspendedThread, (BooleanValue)value, "java.lang.Boolean" );
+      return convertToWrapper( runtimeState, suspendedThread, (BooleanValue)value, "java.lang.Boolean" );
     }
     if( value instanceof ByteValue )
     {
-      return convertToWrapper( suspendedLoc, suspendedThread, (ByteValue)value, "java.lang.Byte" );
+      return convertToWrapper( runtimeState, suspendedThread, (ByteValue)value, "java.lang.Byte" );
     }
     if( value instanceof CharValue )
     {
-      return convertToWrapper( suspendedLoc, suspendedThread, (CharValue)value, "java.lang.Character" );
+      return convertToWrapper( runtimeState, suspendedThread, (CharValue)value, "java.lang.Character" );
     }
     if( value instanceof ShortValue )
     {
-      return convertToWrapper( suspendedLoc, suspendedThread, (ShortValue)value, "java.lang.Short" );
+      return convertToWrapper( runtimeState, suspendedThread, (ShortValue)value, "java.lang.Short" );
     }
     if( value instanceof IntegerValue )
     {
-      return convertToWrapper( suspendedLoc, suspendedThread, (IntegerValue)value, "java.lang.Integer" );
+      return convertToWrapper( runtimeState, suspendedThread, (IntegerValue)value, "java.lang.Integer" );
     }
     if( value instanceof LongValue )
     {
-      return convertToWrapper( suspendedLoc, suspendedThread, (LongValue)value, "java.lang.Long" );
+      return convertToWrapper( runtimeState, suspendedThread, (LongValue)value, "java.lang.Long" );
     }
     if( value instanceof FloatValue )
     {
-      return convertToWrapper( suspendedLoc, suspendedThread, (FloatValue)value, "java.lang.Float" );
+      return convertToWrapper( runtimeState, suspendedThread, (FloatValue)value, "java.lang.Float" );
     }
     if( value instanceof DoubleValue )
     {
-      return convertToWrapper( suspendedLoc, suspendedThread, (DoubleValue)value, "java.lang.Double" );
+      return convertToWrapper( runtimeState, suspendedThread, (DoubleValue)value, "java.lang.Double" );
     }
     throw new RuntimeException( "Cannot perform boxing conversion for a value of type " + value.type().name() );
   }
 
-  public Value unboxIfBoxed( Location suspendedLoc, ThreadReference suspendedThread, Value value )
+  public Value unboxIfBoxed( RuntimeState runtimeState, ThreadReference suspendedThread, Value value )
   {
     if( value == null || !(value instanceof ObjectReference) )
     {
@@ -209,42 +227,42 @@ public class DebuggerExpression
     //System.out.println( "TYPE IS: " + type.name() );
     if( type.name().equals( Boolean.class.getName() ) )
     {
-      return unbox( suspendedLoc, suspendedThread, valueRef, Boolean.class.getName(), "booleanValue" );
+      return unbox( runtimeState, suspendedThread, valueRef, Boolean.class.getName(), "booleanValue" );
     }
     if( type.name().equals( Byte.class.getName() ) )
     {
-      return unbox( suspendedLoc, suspendedThread, valueRef, Byte.class.getName(), "byteValue" );
+      return unbox( runtimeState, suspendedThread, valueRef, Byte.class.getName(), "byteValue" );
     }
     if( type.name().equals( Character.class.getName() ) )
     {
-      return unbox( suspendedLoc, suspendedThread, valueRef, Character.class.getName(), "charValue" );
+      return unbox( runtimeState, suspendedThread, valueRef, Character.class.getName(), "charValue" );
     }
     if( type.name().equals( Short.class.getName() ) )
     {
-      return unbox( suspendedLoc, suspendedThread, valueRef, Short.class.getName(), "shortValue" );
+      return unbox( runtimeState, suspendedThread, valueRef, Short.class.getName(), "shortValue" );
     }
     if( type.name().equals( Integer.class.getName() ) )
     {
-      return unbox( suspendedLoc, suspendedThread, valueRef, Integer.class.getName(), "intValue" );
+      return unbox( runtimeState, suspendedThread, valueRef, Integer.class.getName(), "intValue" );
     }
     if( type.name().equals( Long.class.getName() ) )
     {
-      return unbox( suspendedLoc, suspendedThread, valueRef, Long.class.getName(), "longValue" );
+      return unbox( runtimeState, suspendedThread, valueRef, Long.class.getName(), "longValue" );
     }
     if( type.name().equals( Float.class.getName() ) )
     {
-      return unbox( suspendedLoc, suspendedThread, valueRef, Float.class.getName(), "floatValue" );
+      return unbox( runtimeState, suspendedThread, valueRef, Float.class.getName(), "floatValue" );
     }
     if( type.name().equals( Double.class.getName() ) )
     {
-      return unbox( suspendedLoc, suspendedThread, valueRef, Double.class.getName(), "doubleValue" );
+      return unbox( runtimeState, suspendedThread, valueRef, Double.class.getName(), "doubleValue" );
     }
     return value;
   }
 
-  private Value convertToWrapper( Location suspendedLoc, ThreadReference suspendedThread, PrimitiveValue value, String wrapperTypeName )
+  private Value convertToWrapper( RuntimeState runtimeState, ThreadReference suspendedThread, PrimitiveValue value, String wrapperTypeName )
   {
-    ClassType wrapperClass = (ClassType)suspendedLoc.virtualMachine().classesByName( wrapperTypeName ).get( 0 );
+    ClassType wrapperClass = runtimeState.getClassType( suspendedThread.virtualMachine(), wrapperTypeName );
     String methodSignature = "(" + GosuShop.toSignature( value.type().name() ) + ")L" + wrapperTypeName.replace( '.', '/' ) + ";";
 
     List<Method> methods = wrapperClass.methodsByName( "valueOf", methodSignature );
@@ -272,9 +290,9 @@ public class DebuggerExpression
     }
   }
 
-  private Value unbox( Location suspectedLoc, ThreadReference suspendedThread, ObjectReference value, String wrapperTypeName, String strMethod )
+  private Value unbox( RuntimeState runtimeState, ThreadReference suspendedThread, ObjectReference value, String wrapperTypeName, String strMethod )
   {
-    ClassType wrapperClass = (ClassType)suspectedLoc.virtualMachine().classesByName( wrapperTypeName ).get( 0 );
+    ClassType wrapperClass = runtimeState.getClassType( suspendedThread.virtualMachine(), wrapperTypeName );
     List<Method> methods = wrapperClass.methodsByName( strMethod );
     if( methods.size() == 0 )
     {
@@ -289,6 +307,51 @@ public class DebuggerExpression
     catch( Exception e )
     {
       throw new RuntimeException( e );
+    }
+  }
+
+  private static class RuntimeState
+  {
+    private ClassType _codeRunnerClass;
+    private Method _runMeSomeCodeMethod;
+    private Map<String, ReferenceType> _classTypes = new HashMap<>();
+
+    public ClassType getCodeRunnerClass( VirtualMachine vm )
+    {
+      if( _codeRunnerClass == null )
+      {
+        List<ReferenceType> types = vm.classesByName( "gw.internal.gosu.parser.ContextSensitiveCodeRunner" );
+        _codeRunnerClass = (ClassType)types.get( 0 );
+      }
+      return _codeRunnerClass;
+    }
+
+    public Method getRunMeSomeCodeMethod()
+    {
+      if( _runMeSomeCodeMethod == null )
+      {
+        _runMeSomeCodeMethod = _codeRunnerClass.methodsByName( "runMeSomeCode" ).get( 0 );
+      }
+      return _runMeSomeCodeMethod;
+    }
+
+    public ClassType getClassType( VirtualMachine vm, String name )
+    {
+      return (ClassType)getType( vm, name );
+    }
+    public ArrayType getArrayType( VirtualMachine vm, String name )
+    {
+      return (ArrayType)getType( vm, name );
+    }
+    private ReferenceType getType( VirtualMachine vm, String name )
+    {
+      ReferenceType classType = _classTypes.get( name );
+      if( classType == null )
+      {
+        classType = vm.classesByName( name ).get( 0 );
+        _classTypes.put( name, classType );
+      }
+      return classType;
     }
   }
 }
