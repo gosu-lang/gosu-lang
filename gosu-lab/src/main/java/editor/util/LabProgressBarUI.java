@@ -72,7 +72,7 @@ public class LabProgressBarUI extends BasicProgressBarUI
     Point2D end = new Point2D.Double( x, y + iInnerHeight );
 
     float[] dist = {0.0f, 0.25f, 1.0f};
-    Color[] colors = {color, color.brighter(), color.darker()};
+    Color[] colors = {color, color, color.darker()};
     LinearGradientPaint p = new LinearGradientPaint( start, end, dist, colors );
 
     g2d.setPaint( p );
