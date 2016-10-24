@@ -24,6 +24,7 @@ import gw.lang.parser.StandardSymbolTable;
 import gw.lang.parser.TypelessScriptPartId;
 import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.gs.IGosuClass;
+import gw.lang.reflect.java.JavaTypes;
 import gw.util.ContextSymbolTableUtil;
 
 import javax.swing.*;
@@ -213,6 +214,7 @@ public class EditBreakpointsDialog extends JDialog implements IHandleCancel
     c.insets = new Insets( 0, 0, 5, 0 );
     _fieldExpr = new GosuEditor( bp.getLine() <= 0 ? new StandardSymbolTable( true ) : ContextSymbolTableUtil.getSymbolTableAtOffset( (IGosuClass)TypeSystem.getByFullNameIfValidNoJava( bp.getFqn() ), bp.getOffset() ),
       new GosuClassLineInfoManager(), new AtomicUndoManager( 10000 ), ScriptabilityModifiers.SCRIPTABLE, new DefaultContextMenuHandler(), false, true );
+    _fieldExpr.setExpectedType( JavaTypes.pBOOLEAN() );
     addEscapeHandler( _fieldExpr );
     _fieldExpr.setAccessAll( true );
     try

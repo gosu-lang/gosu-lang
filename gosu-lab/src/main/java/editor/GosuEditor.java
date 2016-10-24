@@ -219,7 +219,7 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
   private static TimerPool _timerPool = new TimerPool();
   private IType _programSuperType;
   private boolean _bAccessPrivateMembers;
-
+  private IType _expectedType;
 
   private enum HighlightMode
   {
@@ -768,6 +768,15 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
     {
       fileTree.select();
     }
+  }
+
+  public IType getExpectedType()
+  {
+    return _expectedType;
+  }
+  public void setExpectedType( IType type )
+  {
+    _expectedType = type;
   }
 
   public void centerView()
@@ -1675,6 +1684,10 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
           {
             IGosuProgramParser programParser = GosuParserFactory.createProgramParser();
             ParserOptions options = new ParserOptions().withParser( _parser ).withSuperType( _programSuperType );
+            if( _expectedType != null )
+            {
+              options.withExpectedType( _expectedType );
+            }
             IParseResult result = programParser.parseExpressionOrProgram( strText, _parser.getSymbolTable(), options );
             _parsedGosuClass = result.getProgram();
             ParseResultsException parseRes = _parsedGosuClass.getParseResultsException();
