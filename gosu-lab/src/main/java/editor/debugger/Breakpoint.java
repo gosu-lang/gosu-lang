@@ -181,7 +181,7 @@ public class Breakpoint implements IJsonIO
         if( canEvaluateCondition )
         {
           BooleanValue result = (BooleanValue)_debuggerExpr.get().evaluate( RunMe.getEditorFrame().getGosuPanel().getDebugger() );
-          suspend = result.value();
+          suspend = result == null || result.value();
         }
       }
     }

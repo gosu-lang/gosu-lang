@@ -13376,7 +13376,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
       int iLocationsCount = _locations.size();
       try
       {
-        parseExpression();
+        parseProgramExpr();
         Expression expr = popExpression();
         verify( expr, match( null, SourceCodeTokenizer.TT_EOF ), Res.MSG_END_OF_EXPRESSION );
         ((IGosuProgramInternal)getGosuClass()).setExpression( expr );
@@ -13409,7 +13409,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
             _tokenizer.restoreToMark( state );
             _stack.clear();
             removeLocationsFrom( iLocationsCount );
-            parseExpression();
+            parseProgramExpr();
             Expression expr = popExpression();
             verify( expr, match( null, SourceCodeTokenizer.TT_EOF ), Res.MSG_END_OF_EXPRESSION );
             final IGosuValidator validator = getValidator();
@@ -13442,6 +13442,19 @@ public final class GosuParser extends ParserBase implements IGosuParser
     finally
     {
       popParsingFunction();
+    }
+  }
+
+  private void parseProgramExpr()
+  {
+    IType expectedReturnType = ((IGosuProgramInternal)getGosuClass()).getExpectedReturnType();
+    if( expectedReturnType != null )
+    {
+      parseExpression( new ContextType( expectedReturnType ), true );
+    }
+    else
+    {
+      parseExpression();
     }
   }
 
