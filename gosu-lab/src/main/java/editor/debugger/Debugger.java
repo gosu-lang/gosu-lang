@@ -7,6 +7,7 @@ import com.sun.jdi.ObjectReference;
 import com.sun.jdi.ReferenceType;
 import com.sun.jdi.StackFrame;
 import com.sun.jdi.ThreadReference;
+import com.sun.jdi.VMDisconnectedException;
 import com.sun.jdi.VirtualMachine;
 import com.sun.jdi.event.BreakpointEvent;
 import com.sun.jdi.event.ClassPrepareEvent;
@@ -384,13 +385,9 @@ public class Debugger
         {
           suspend = breakpoint.condition();
         }
-        catch( Exception e )
+        catch( VMDisconnectedException e )
         {
-          e.printStackTrace();
-          boolean[] shouldSuspend = {true};
-          EditorUtilities.invokeInDispatchThread(
-            () -> shouldSuspend[0] = JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog( RunMe.getEditorFrame(), "<html>Could not evaluate breakpoint expression.<br>Stop at breakpoint?", "Gosu Lab", JOptionPane.YES_NO_OPTION ) );
-          suspend = shouldSuspend[0];
+          return;
         }
         finally
         {
