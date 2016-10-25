@@ -239,7 +239,7 @@ public class BreakpointManager
   public Breakpoint getExecPointAtEditorLine( String fqn, int line )
   {
     Debugger debugger = getDebugger();
-    if( debugger == null || (!debugger.isSuspended() && !debugger.isPaused()) )
+    if( debugger == null || (!debugger.isSuspended() && !debugger.isPaused()) || fqn == null )
     {
       return null;
     }
@@ -258,7 +258,7 @@ public class BreakpointManager
   public Breakpoint getFramePointAtEditorLine( String fqn, int line )
   {
     Debugger debugger = getDebugger();
-    if( debugger == null || (!debugger.isSuspended() && !debugger.isPaused()) )
+    if( debugger == null || (!debugger.isSuspended() && !debugger.isPaused()) || fqn == null )
     {
       return null;
     }

@@ -4,6 +4,7 @@ import com.sun.jdi.BooleanValue;
 import editor.FileTree;
 import editor.FileTreeUtil;
 import editor.RunMe;
+import editor.search.StringUtil;
 import gw.lang.parser.IParseTree;
 import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.gs.IGosuClass;
@@ -201,7 +202,7 @@ public class Breakpoint implements IJsonIO
     }
 
     IGosuClass topLevelClass = (IGosuClass)TypeSystem.getByFullName( _fqn );
-    _offset = getLineOffset( topLevelClass.getSource() );
+    _offset = StringUtil.getLineOffset( topLevelClass.getSource(), _line );
     topLevelClass.isValid();
     IParseTree loc = topLevelClass.getClassStatement().getLocation().getDeepestLocation( _offset, false );
     if( loc == null )
@@ -220,25 +221,6 @@ public class Breakpoint implements IJsonIO
     _offset = loc.getOffset();
     _immediateClass = loc.getParsedElement().getGosuClass().getName();
     return true;
-  }
-
-  private int getLineOffset( String content )
-  {
-    int lineCsr = 1;
-    int offset = 0;
-    for( ; offset < content.length(); offset++ )
-    {
-      if( lineCsr == _line )
-      {
-        return offset;
-      }
-      char c = content.charAt( offset );
-      if( c == '\n' )
-      {
-        lineCsr++;
-      }
-    }
-    return offset;
   }
 
   public boolean isStatic()

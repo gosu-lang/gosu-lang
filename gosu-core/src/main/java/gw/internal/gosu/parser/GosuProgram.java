@@ -151,7 +151,7 @@ public class GosuProgram extends GosuClass implements IGosuProgramInternal
       return;
     }
 
-    HashMap<String, ISymbol> externalSymbolsMap = new HashMap<String, ISymbol>( 8 );
+    HashMap<String, ISymbol> externalSymbolsMap = new HashMap<>( 8 );
     getParseInfo().setExternalSymbols(new ExternalSymbolMapForMap(externalSymbolsMap));
     Map symbols = symTable.getSymbols();
     if( symbols == null )

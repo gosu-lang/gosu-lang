@@ -1,11 +1,11 @@
 package editor;
 
 import com.sun.jdi.StackFrame;
-import editor.actions.UpdateNotifier;
 import editor.debugger.Breakpoint;
 import editor.debugger.BreakpointManager;
+import editor.debugger.BreakpointsDialog;
 import editor.debugger.Debugger;
-import editor.debugger.EditBreakpointsDialog;
+import editor.debugger.EvaluateDialog;
 import editor.run.IRunConfig;
 import editor.run.RunConfigDialog;
 import editor.run.RunState;
@@ -249,7 +249,6 @@ public class CommonMenus
       };
     item.setMnemonic( 'R' );
     item.setAccelerator( KeyStroke.getKeyStroke( "F5" ) );
-    UpdateNotifier.instance().addActionComponent( item );
     return item;
   }
 
@@ -266,7 +265,6 @@ public class CommonMenus
     };
     item.setMnemonic( 'D' );
     item.setAccelerator( KeyStroke.getKeyStroke( "alt F5" ) );
-    UpdateNotifier.instance().addActionComponent( item );
     return item;
   }
 
@@ -275,7 +273,6 @@ public class CommonMenus
     JMenuItem item = new SmartMenuItem( new RunConfigActionHandler() );
     item.setMnemonic( 'C' );
     item.setAccelerator( KeyStroke.getKeyStroke( "shift F5" ) );
-    UpdateNotifier.instance().addActionComponent( item );
     return item;
   }
 
@@ -284,7 +281,6 @@ public class CommonMenus
     JMenuItem item = new SmartMenuItem( new DebugConfigActionHandler() );
     item.setMnemonic( 'G' );
     item.setAccelerator( KeyStroke.getKeyStroke( "alt shift F5" ) );
-    UpdateNotifier.instance().addActionComponent( item );
     return item;
   }
 
@@ -293,7 +289,6 @@ public class CommonMenus
     JMenuItem item = new SmartMenuItem( new CommonMenus.StopActionHandler( gosuPanel::get ) );
     item.setMnemonic( 'S' );
     item.setAccelerator( KeyStroke.getKeyStroke( EditorUtilities.CONTROL_KEY_NAME + " F2" ) );
-    UpdateNotifier.instance().addActionComponent( item );
     return item;
   }
 
@@ -316,7 +311,6 @@ public class CommonMenus
       } );
     item.setMnemonic( 'B' );
     item.setAccelerator( KeyStroke.getKeyStroke( EditorUtilities.CONTROL_KEY_NAME + " F8" ) );
-    UpdateNotifier.instance().addActionComponent( item );
     return item;
   }
 
@@ -325,7 +319,6 @@ public class CommonMenus
     JMenuItem item = new SmartMenuItem( new StepOverActionHandler( debugger ) );
     item.setMnemonic( 'O' );
     item.setAccelerator( KeyStroke.getKeyStroke( "F8" ) );
-    UpdateNotifier.instance().addActionComponent( item );
     return item;
   }
 
@@ -334,7 +327,6 @@ public class CommonMenus
     JMenuItem item = new SmartMenuItem( new StepIntoActionHandler( debugger ) );
     item.setMnemonic( 'V' );
     item.setAccelerator( KeyStroke.getKeyStroke( "F7" ) );
-    UpdateNotifier.instance().addActionComponent( item );
     return item;
   }
 
@@ -343,7 +335,6 @@ public class CommonMenus
     JMenuItem item = new SmartMenuItem( new StepOutActionHandler( debugger ) );
     item.setMnemonic( 'T' );
     item.setAccelerator( KeyStroke.getKeyStroke( "shift F8" ) );
-    UpdateNotifier.instance().addActionComponent( item );
     return item;
   }
 
@@ -352,7 +343,6 @@ public class CommonMenus
     JMenuItem item = new SmartMenuItem( new RunToCursorActionHandler( debugger, bpm, editor ) );
     item.setMnemonic( 'S' );
     item.setAccelerator( KeyStroke.getKeyStroke( "alt F9" ) );
-    UpdateNotifier.instance().addActionComponent( item );
     return item;
   }
 
@@ -360,7 +350,6 @@ public class CommonMenus
   {
     JMenuItem item = new SmartMenuItem( new DropFrameActionHandler( debugger, frame ) );
     item.setMnemonic( 'F' );
-    UpdateNotifier.instance().addActionComponent( item );
     return item;
   }
 
@@ -368,7 +357,6 @@ public class CommonMenus
   {
     JMenuItem item = new SmartMenuItem( new CommonMenus.PauseActionHandler( debugger ) );
     item.setMnemonic( 'P' );
-    UpdateNotifier.instance().addActionComponent( item );
     return item;
   }
   
@@ -377,7 +365,22 @@ public class CommonMenus
     JMenuItem item = new SmartMenuItem( new CommonMenus.ResumeActionHandler( debugger ) );
     item.setMnemonic( 'G' );
     item.setAccelerator( KeyStroke.getKeyStroke( "F9" ) );
-    UpdateNotifier.instance().addActionComponent( item );
+    return item;
+  }
+
+  public static JMenuItem makeEvaluateExpression( Supplier<Debugger> debugger )
+  {
+    JMenuItem item = new SmartMenuItem( new EvaluateExpressionActionHandler( debugger ) );
+    item.setMnemonic( 'E' );
+    item.setAccelerator( KeyStroke.getKeyStroke( "alt F8" ) );
+    return item;
+  }
+
+  public static JMenuItem makeShowExecutionPoint( Supplier<Debugger> debugger )
+  {
+    JMenuItem item = new SmartMenuItem( new ShowExecPointActionHandler( debugger ) );
+    item.setMnemonic( 'P' );
+    item.setAccelerator( KeyStroke.getKeyStroke( "alt F10" ) );
     return item;
   }
 
@@ -662,7 +665,7 @@ public class CommonMenus
 
     public void actionPerformed( ActionEvent e )
     {
-      EditBreakpointsDialog.getOrCreate( _bp.get() ).setVisible( true );
+      BreakpointsDialog.getOrCreate( _bp.get() ).setVisible( true );
     }
   }
 
@@ -1226,6 +1229,31 @@ public class CommonMenus
       if( isEnabled() )
       {
         _debugger.get().dropToFrame( _frame.get() );
+      }
+    }
+
+    @Override
+    public boolean isEnabled()
+    {
+      return _debugger.get() != null && _debugger.get().isSuspended();
+    }
+  }
+
+  public static class EvaluateExpressionActionHandler extends AbstractAction
+  {
+    private final Supplier<Debugger> _debugger;
+
+    public EvaluateExpressionActionHandler( Supplier<Debugger> debugger )
+    {
+      super( "Evaluate Expression", EditorUtilities.loadIcon( "images/tester.png" ) );
+      _debugger = debugger;
+    }
+
+    public void actionPerformed( ActionEvent e )
+    {
+      if( isEnabled() )
+      {
+        new EvaluateDialog().setVisible( true );
       }
     }
 

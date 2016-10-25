@@ -92,7 +92,7 @@ public class GosuProgramParser implements IGosuProgramParser
     }
   }
 
-  public IParseResult parseRuntimeExpr( String typeName, String strSource, IGosuClass enclosingClass, ISymbolTable extSyms )
+  public IParseResult parseRuntimeExpr( String typeName, String strSource, IGosuClass enclosingClass, ISymbolTable extSyms, IParseTree ctxElem )
   {
     TypeSystem.lock();
     try
@@ -108,6 +108,7 @@ public class GosuProgramParser implements IGosuProgramParser
         sfh.setTypeUsesMap( typeUsedMap );
       }
       IGosuProgramInternal program = (IGosuProgramInternal)GosuClassTypeLoader.getDefaultClassLoader().makeNewClass( sfh, null );
+      program.setEnclosingEvalExpression( ctxElem.getParsedElement() );
       sfh.setExternalSymbols( extSyms );
       program.isValid();
       return new ParseResult( program );

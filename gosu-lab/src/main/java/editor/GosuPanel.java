@@ -866,6 +866,11 @@ public class GosuPanel extends JPanel
 
     runMenu.addSeparator();
 
+    runMenu.add( CommonMenus.makeEvaluateExpression( this::getDebugger ) );
+    runMenu.add( CommonMenus.makeShowExecutionPoint( this::getDebugger ) );
+
+    runMenu.addSeparator();
+
     runMenu.add( CommonMenus.makeToggleBreakpoint( this::getBreakpointManager, this::getCurrentEditor ) );
     runMenu.add( CommonMenus.makeViewBreakpoints( () -> null ) );
     runMenu.add( CommonMenus.makeMuteBreakpoints( this::getBreakpointManager ) );

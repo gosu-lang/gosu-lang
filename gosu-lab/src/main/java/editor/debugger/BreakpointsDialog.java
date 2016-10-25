@@ -50,9 +50,9 @@ import java.util.Map;
 
 /**
  */
-public class EditBreakpointsDialog extends JDialog implements IHandleCancel
+public class BreakpointsDialog extends JDialog implements IHandleCancel
 {
-  private static EditBreakpointsDialog _current;
+  private static BreakpointsDialog _current;
 
   private JTree _tree;
   private JButton _btnViewSource;
@@ -72,27 +72,36 @@ public class EditBreakpointsDialog extends JDialog implements IHandleCancel
   private GosuEditor _fieldExpr;
   private GosuEditor _fieldRunScript;
 
-  public static EditBreakpointsDialog getOrCreate( Breakpoint bp )
+  public static BreakpointsDialog getOrCreate( Breakpoint bp )
   {
     if( _current == null )
     {
-      _current = new EditBreakpointsDialog( bp );
+      _current = new BreakpointsDialog( bp );
     }
     return _current;
   }
-  public static EditBreakpointsDialog getOrCreate()
+  public static BreakpointsDialog getOrCreate()
   {
     if( _current == null )
     {
-      _current = new EditBreakpointsDialog();
+      _current = new BreakpointsDialog();
     }
     return _current;
   }
 
-  private EditBreakpointsDialog( Breakpoint bp )
+  private BreakpointsDialog( Breakpoint bp )
   {
     this();
     selectBreakpoint( bp );
+  }
+
+  private BreakpointsDialog()
+  {
+    super( RunMe.getEditorFrame(), "Breakpoints" );
+    _mapToPanel = new HashMap<>();
+    configUi();
+    setDefaultCloseOperation( DISPOSE_ON_CLOSE );
+    addCloseListener();
   }
 
   private void selectBreakpoint( Breakpoint bp )
@@ -104,15 +113,6 @@ public class EditBreakpointsDialog extends JDialog implements IHandleCancel
 
     BreakpointTree tree = ((BreakpointTree)_tree.getModel().getRoot()).find( bp );
     _tree.setSelectionPath( tree.getPath() );
-  }
-
-  private EditBreakpointsDialog() throws HeadlessException
-  {
-    super( RunMe.getEditorFrame(), "Breakpoints" );
-    _mapToPanel = new HashMap<>();
-    configUi();
-    setDefaultCloseOperation( DISPOSE_ON_CLOSE );
-    addCloseListener();
   }
 
   protected void configUi()
@@ -568,7 +568,7 @@ public class EditBreakpointsDialog extends JDialog implements IHandleCancel
     tb.add( _btnMinus, i );
   }
 
-  public static EditBreakpointsDialog getShowing()
+  public static BreakpointsDialog getShowing()
   {
     return _current;
   }
@@ -582,7 +582,7 @@ public class EditBreakpointsDialog extends JDialog implements IHandleCancel
 
     public void actionPerformed( ActionEvent e )
     {
-      GotoExceptionTypePopup.display( _btnPlus, 0, _btnPlus.getHeight(), EditBreakpointsDialog.this::addExceptionBreakpoint );
+      GotoExceptionTypePopup.display( _btnPlus, 0, _btnPlus.getHeight(), BreakpointsDialog.this::addExceptionBreakpoint );
     }
   }
 

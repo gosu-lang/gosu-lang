@@ -61,7 +61,7 @@ public class VarTree implements MutableTreeNode
     }
   }
 
-  private VarTree( String name, String type, Value value )
+  public VarTree( String name, String type, Value value )
   {
     this( name, type, value, true );
   }

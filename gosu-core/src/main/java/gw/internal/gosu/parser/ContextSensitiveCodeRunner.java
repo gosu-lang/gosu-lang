@@ -120,7 +120,8 @@ public class ContextSensitiveCodeRunner
       String strSource = CommonServices.getCoercionManager().makeStringFrom( source );
       IGosuProgramParser parser = GosuParserFactory.createProgramParser();
       //debugInfo( compileTimeLocalContextSymbols );
-      res = parser.parseRuntimeExpr( typeName, strSource, (IGosuClass)enclosingClass, compileTimeLocalContextSymbols );
+      IParseTree ctxElem = ((IGosuClassInternal)enclosingClass).getClassStatement().getLocation().getDeepestLocation( offset, false );
+      res = parser.parseRuntimeExpr( typeName, strSource, (IGosuClass)enclosingClass, compileTimeLocalContextSymbols, ctxElem );
 
       cacheProgram( typeName, (IGosuProgramInternal)res.getProgram() );
     }

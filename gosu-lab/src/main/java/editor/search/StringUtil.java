@@ -1743,4 +1743,23 @@ public class StringUtil
 
     return buf.toString();
   }
+
+  public static int getLineOffset( String content, int line )
+  {
+    int lineCsr = 1;
+    int offset = 0;
+    for( ; offset < content.length(); offset++ )
+    {
+      if( lineCsr == line )
+      {
+        return offset;
+      }
+      char c = content.charAt( offset );
+      if( c == '\n' )
+      {
+        lineCsr++;
+      }
+    }
+    return offset;
+  }
 }

@@ -2,7 +2,7 @@ package editor;
 
 import editor.debugger.Breakpoint;
 import editor.debugger.BreakpointManager;
-import editor.debugger.EditBreakpointsDialog;
+import editor.debugger.BreakpointsDialog;
 import editor.util.EditorUtilities;
 import editor.util.SmartMenuItem;
 
@@ -121,7 +121,7 @@ public abstract class AbstractLineInfoManager implements ILineInfoManager
     {
       return;
     }
-    if( EditBreakpointsDialog.getShowing() != null )
+    if( BreakpointsDialog.getShowing() != null )
     {
       return;
     }
