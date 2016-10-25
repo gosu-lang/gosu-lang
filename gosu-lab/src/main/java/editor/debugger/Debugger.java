@@ -30,9 +30,7 @@ import com.sun.jdi.request.StepRequest;
 import editor.FileTreeUtil;
 import editor.GosuPanel;
 import editor.RunMe;
-import editor.util.EditorUtilities;
 
-import javax.swing.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -426,6 +424,8 @@ public class Debugger
         getEventRequestManager().deleteEventRequest( event.request() );
       }
     }
+    // delete any pending step requests
+    getEventRequestManager().deleteEventRequests( getEventRequestManager().stepRequests() );
   }
 
   private void handleExceptionEvent( ExceptionEvent event )
