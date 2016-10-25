@@ -130,7 +130,7 @@ public class CommonMenus
         }
       } );
     completeItem.setMnemonic( 'L' );
-    completeItem.setAccelerator( KeyStroke.getKeyStroke( EditorUtilities.CONTROL_KEY_NAME + " SPACE" ) );
+    completeItem.setAccelerator( KeyStroke.getKeyStroke( "control SPACE" ) );
 
     return completeItem;
   }

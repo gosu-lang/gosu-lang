@@ -3912,7 +3912,7 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
       {
         _bEnterPressedConsumed = e.isConsumed() || isIntellisensePopupShowing();
       }
-      else if( e.getKeyChar() == KeyEvent.VK_SPACE && (e.getModifiers() & EditorUtilities.CONTROL_KEY_MASK) > 0 )
+      else if( e.getKeyChar() == KeyEvent.VK_SPACE && e.isControlDown() )
       {
         _bAltDown = (e.getModifiers() & InputEvent.ALT_MASK) > 0;
         if( !isIntellisensePopupShowing() )
