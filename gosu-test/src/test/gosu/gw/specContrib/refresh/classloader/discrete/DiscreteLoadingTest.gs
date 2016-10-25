@@ -1,7 +1,5 @@
 package gw.specContrib.refresh.classloader.discrete
 
-uses gw.BaseVerifyErrantTest
-uses junit.framework.TestCase
 uses gw.lang.reflect.TypeSystem
 uses gw.lang.reflect.IType
 uses gw.lang.reflect.ITypeRef
@@ -10,8 +8,13 @@ uses gw.lang.parser.ParserOptions
 uses gw.lang.parser.GosuParserFactory
 uses gw.config.CommonServices
 uses gw.lang.reflect.java.JavaTypes
+uses org.junit.Assert#assertNotNull
+uses org.junit.Assert#assertTrue
+uses org.junit.Test
 
-public class DiscreteLoadingTest extends BaseVerifyErrantTest {
+public class DiscreteLoadingTest {
+
+  @Test
   function testNonDiscrete() : void {
     var idGarbage1Class = loadAndRunPerm()
     assertNotNull( idGarbage1Class )
@@ -23,6 +26,7 @@ public class DiscreteLoadingTest extends BaseVerifyErrantTest {
     assertTrue( idGarbage1Class == loadAndRunPerm() )
   }
 
+  @Test
   function testDiscrete() : void {
     var oldValue = gw.internal.gosu.parser.ExecutionEnvironment.instance().getDiscretePackages()
     gw.internal.gosu.parser.ExecutionEnvironment.instance().setDiscretePackages( {"gw.specContrib.refresh.classloader.discrete.temp"} )
@@ -41,6 +45,7 @@ public class DiscreteLoadingTest extends BaseVerifyErrantTest {
     }
   }
 
+  @Test
   function testProgram() {
     var fqn = "scott.McKinney"
     var idGarbage1Class = loadProgram( fqn, "'hello'" )
@@ -53,6 +58,7 @@ public class DiscreteLoadingTest extends BaseVerifyErrantTest {
     assertTrue( idGarbage1Class != loadProgram( fqn, "'bye'" ) )
   }
 
+  @Test
   function testScratchpad() {
     var idGarbage1Class = loadProgram( Gosu.GOSU_SCRATCHPAD_FQN, "'hello'" )
     assertNotNull( idGarbage1Class )
@@ -64,7 +70,7 @@ public class DiscreteLoadingTest extends BaseVerifyErrantTest {
     assertTrue( idGarbage1Class != loadProgram( Gosu.GOSU_SCRATCHPAD_FQN, "'bye'" ) )
   }
 
-  function loadProgram( fqn: String, script: String ) : int {
+  private function loadProgram( fqn: String, script: String ) : int {
     var scriptParser = GosuParserFactory.createParser( script )
 
     var programParser = GosuParserFactory.createProgramParser()
@@ -83,13 +89,13 @@ public class DiscreteLoadingTest extends BaseVerifyErrantTest {
     return System.identityHashCode( program.ProgramInstance.Class )
   }
 
-  function loadAndRunTemp() : int {
+  private function loadAndRunTemp() : int {
     var type = TypeSystem.getByFullName( "gw.specContrib.refresh.classloader.discrete.temp.Garbage2" )
     var garbage2 = type.TypeInfo.getConstructor( {} ).Constructor.newInstance( {} )
     return System.identityHashCode( garbage2.Class.getMethod( "getGarbage", {} ).invoke( garbage2, {} ).Class )
   }
 
-  function loadAndRunPerm() : int {
+  private function loadAndRunPerm() : int {
     var type = TypeSystem.getByFullName( "gw.specContrib.refresh.classloader.discrete.perm.Garbage2" )
     var garbage2 = type.TypeInfo.getConstructor( {} ).Constructor.newInstance( {} )
     return System.identityHashCode( garbage2.Class.getMethod( "getGarbage", {} ).invoke( garbage2, {} ).Class )
