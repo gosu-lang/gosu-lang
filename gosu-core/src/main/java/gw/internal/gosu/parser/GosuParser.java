@@ -10,6 +10,7 @@ import gw.fs.IFile;
 import gw.internal.gosu.dynamic.DynamicConstructorInfo;
 import gw.internal.gosu.dynamic.DynamicMethodInfo;
 import gw.lang.parser.AnnotationUseSiteTarget;
+import gw.lang.parser.ExternalSymbolMapForMap;
 import gw.lang.parser.TypeSystemAwareCache;
 import gw.lang.reflect.IAnnotationInfo;
 import gw.lang.reflect.IDynamicType;
@@ -181,6 +182,7 @@ import gw.lang.reflect.gs.IGosuFragment;
 import gw.lang.reflect.gs.IGosuProgram;
 import gw.lang.reflect.gs.IGosuVarPropertyInfo;
 import gw.lang.reflect.gs.ISourceFileHandle;
+import gw.lang.reflect.gs.StringSourceFileHandle;
 import gw.lang.reflect.java.GosuTypes;
 import gw.lang.reflect.java.IJavaPropertyInfo;
 import gw.lang.reflect.java.IJavaType;
@@ -13363,6 +13365,8 @@ public final class GosuParser extends ParserBase implements IGosuParser
 
   private boolean parseProgramFunctionBody( FunctionType type )
   {
+    maybeSetExternalSymbols();
+
     pushParsingFunction( type );
     try
     {
@@ -13451,6 +13455,33 @@ public final class GosuParser extends ParserBase implements IGosuParser
     else
     {
       parseExpression();
+    }
+  }
+
+  private void maybeSetExternalSymbols()
+  {
+    if( getGosuClass() instanceof IGosuProgram )
+    {
+      ISourceFileHandle sfh = getGosuClass().getSourceFileHandle();
+      if( sfh instanceof StringSourceFileHandle )
+      {
+        ISymbolTable extSyms = ((StringSourceFileHandle)sfh).getExternalSymbols();
+        if( extSyms != null )
+        {
+          // If extSyms is non-null, it usually means this program is for context-sensitive evaluation e.g., in a debugger
+          HashMap<String, ISymbol> map = new HashMap<>();
+          //noinspection unchecked
+          for( Symbol s: (Collection<Symbol>)extSyms.getSymbols().values() )
+          {
+            if( s.isLocal() )
+            {
+              map.put( s.getName(), s );
+            }
+          }
+          ExternalSymbolMapForMap extMap = new ExternalSymbolMapForMap( map );
+          ((GosuProgramParseInfo)getGosuClass().getParseInfo()).setExternalSymbols( extMap );
+        }
+      }
     }
   }
 
