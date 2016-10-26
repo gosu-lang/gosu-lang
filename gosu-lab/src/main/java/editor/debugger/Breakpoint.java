@@ -1,15 +1,20 @@
 package editor.debugger;
 
 import com.sun.jdi.BooleanValue;
+import com.sun.jdi.InvocationException;
+import com.sun.jdi.Value;
 import editor.FileTree;
 import editor.FileTreeUtil;
 import editor.RunMe;
 import editor.search.StringUtil;
+import editor.util.EditorUtilities;
 import gw.lang.parser.IParseTree;
 import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.gs.IGosuClass;
 import gw.lang.reflect.json.IJsonIO;
 import gw.util.concurrent.LocklessLazyVar;
+
+import javax.swing.*;
 
 /**
  */
@@ -168,7 +173,14 @@ public class Breakpoint implements IJsonIO
       String runScript = getRunScript();
       if( runScript != null && runScript.length() > 0 )
       {
-        _debuggerRunScript.get().evaluate( RunMe.getEditorFrame().getGosuPanel().getDebugger() );
+        try
+        {
+          _debuggerRunScript.get().evaluate( RunMe.getEditorFrame().getGosuPanel().getDebugger() );
+        }
+        catch( InvocationException e )
+        {
+          return promptToSuspend();
+        }
       }
     }
 
@@ -181,12 +193,35 @@ public class Breakpoint implements IJsonIO
         boolean canEvaluateCondition = isLineBreakpoint() && locate();
         if( canEvaluateCondition )
         {
-          BooleanValue result = (BooleanValue)_debuggerExpr.get().evaluate( RunMe.getEditorFrame().getGosuPanel().getDebugger() );
-          suspend = result == null || result.value();
+          try
+          {
+            Value value = _debuggerExpr.get().evaluate( RunMe.getEditorFrame().getGosuPanel().getDebugger() );
+            if( value instanceof BooleanValue )
+            {
+              BooleanValue result = (BooleanValue)value;
+              suspend = result == null || result.value();
+            }
+            else
+            {
+              return promptToSuspend();
+            }
+          }
+          catch( InvocationException e )
+          {
+            return promptToSuspend();
+          }
         }
       }
     }
     return suspend;
+  }
+
+  private boolean promptToSuspend()
+  {
+    boolean[] shouldSuspend = {true};
+    EditorUtilities.invokeInDispatchThread(
+      () -> shouldSuspend[0] = JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog( RunMe.getEditorFrame(), "<html>Trouble evaluating debugger expression.<br>Stop at breakpoint?", "Gosu Lab", JOptionPane.YES_NO_OPTION ) );
+    return shouldSuspend[0];
   }
 
   private boolean locate()

@@ -58,7 +58,7 @@ public class DebuggerExpression
   }
 
   // EvaluationContextImpl should be at the same stackFrame as it was in the call to EvaluatorBuilderImpl.build
-  public Value evaluate( Debugger debugger )
+  public Value evaluate( Debugger debugger ) throws InvocationException
   {
     RuntimeState runtimeState = getRuntimeState( debugger );
 
@@ -81,13 +81,6 @@ public class DebuggerExpression
           vm.mirrorOf( _iContextLocation ) ), 0 );
       // Primitive boolean value needed for conditional breakpoint expression
       return unboxIfBoxed( runtimeState, debugger.getSuspendedThread(), value );
-    }
-    catch( InvocationException e )
-    {
-      boolean[] shouldSuspend = {true};
-      EditorUtilities.invokeInDispatchThread(
-        () -> shouldSuspend[0] = JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog( RunMe.getEditorFrame(), "<html>Trouble evaluating breakpoint logic.<br>Stop at breakpoint?", "Gosu Lab", JOptionPane.YES_NO_OPTION ) );
-      return vm.mirrorOf( shouldSuspend[0] );
     }
     catch( Exception e )
     {

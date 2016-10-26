@@ -1,5 +1,6 @@
 package editor.debugger;
 
+import com.sun.jdi.InvocationException;
 import com.sun.jdi.Location;
 import com.sun.jdi.Value;
 import editor.DefaultContextMenuHandler;
@@ -129,8 +130,15 @@ public class EvaluateDialog extends JDialog implements IHandleCancel
     DefaultTreeModel model;
     if( locate() && script != null && script.length() > 0 )
     {
-      Value value = new DebuggerExpression( script, _fqn, _immediateClass, _offset ).evaluate( getGosuPanel().getDebugger() );
-      model = new DefaultTreeModel( new VarTree( "Result", value == null ? "null" : value.type().name(), value ) );
+      try
+      {
+        Value value = new DebuggerExpression( script, _fqn, _immediateClass, _offset ).evaluate( getGosuPanel().getDebugger() );
+        model = new DefaultTreeModel( new VarTree( "Result", value == null ? "null" : value.type().name(), value ) );
+      }
+      catch( InvocationException e )
+      {
+        model = new DefaultTreeModel( new VarTree( "Result", e.exception().referenceType().name(), e.exception() ) );
+      }
     }
     else
     {
