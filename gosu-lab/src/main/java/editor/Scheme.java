@@ -103,7 +103,9 @@ public abstract class Scheme
   public abstract Color getButtonBorderColor();
 
   public abstract Color usageReadHighlightColor();
+  public abstract Color usageReadHighlightShadowColor();
   public abstract Color usageWriteHighlightColor();
+  public abstract Color usageWriteHighlightShadowColor();
 
   public abstract Color scopeHighlightColor();
 }

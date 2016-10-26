@@ -27,7 +27,9 @@ public class LabDarkScheme extends Scheme
   private static final Color ACTIVE_CAPTION_TEXT = WHITISH;
 
   private static final Color USAGE_READ_HIGHLIGHT_COLOR = new Color( 0, 74, 102 );
+  private static final Color USAGE_READ_HIGHLIGHT_SHADOW_COLOR = new Color( 0, 140, 200 );
   private static final Color USAGE_WRITE_HIGHLIGHT_COLOR = new Color( 99, 0, 84 );
+  private static final Color USAGE_WRITE_HIGHLIGHT_SHADOW_COLOR = new Color( 200, 0, 160 );
   private static final Color SCOPE_HIGHLIGHT_COLOR = new Color( 0, 40, 110 );
 
   private static final Color CONTROL = new Color( 89, 89, 89 ); //UIManager.getColor( "control" );
@@ -368,9 +370,20 @@ public class LabDarkScheme extends Scheme
     return USAGE_READ_HIGHLIGHT_COLOR;
   }
   @Override
+  public Color usageReadHighlightShadowColor()
+  {
+    return USAGE_READ_HIGHLIGHT_SHADOW_COLOR;
+  }
+  @Override
+
   public Color usageWriteHighlightColor()
   {
     return USAGE_WRITE_HIGHLIGHT_COLOR;
+  }
+  @Override
+  public Color usageWriteHighlightShadowColor()
+  {
+    return USAGE_WRITE_HIGHLIGHT_SHADOW_COLOR;
   }
 
   @Override

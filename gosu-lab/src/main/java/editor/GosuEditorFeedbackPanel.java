@@ -13,11 +13,13 @@ import gw.lang.parser.exceptions.ParseWarning;
 import gw.lang.reflect.IType;
 
 import javax.swing.*;
+import javax.swing.text.Highlighter;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionListener;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -93,7 +95,7 @@ public class GosuEditorFeedbackPanel extends JPanel
 
     FeedbackMargin()
     {
-      ErrorMarkMouseHandler errorMarkMouser = new ErrorMarkMouseHandler();
+      MarkMouseHandler errorMarkMouser = new MarkMouseHandler();
       addMouseMotionListener( errorMarkMouser );
       addMouseListener( errorMarkMouser );
     }
@@ -107,31 +109,40 @@ public class GosuEditorFeedbackPanel extends JPanel
       {
         return;
       }
+      //noinspection ThrowableResultOfMethodCallIgnored
       ParseResultsException pe = _editor.getParseResultsException();
-      if( pe == null )
-      {
-        return;
-      }
       int iLineCount = getLineCount();
-
-      List pws = pe.getParseWarnings();
-      for( int i = 0; i < pws.size(); i++ )
+      if( pe != null )
       {
-        ParseWarning w = (ParseWarning)pws.get( i );
-        paintWarningMark( g, w, iLineCount );
+        List pws = pe.getParseWarnings();
+        for( int i = 0; i < pws.size(); i++ )
+        {
+          ParseWarning w = (ParseWarning)pws.get( i );
+          paintWarningMark( g, w, iLineCount );
+        }
+
+        List pes = pe.getParseExceptions();
+        for( int i = 0; i < pes.size(); i++ )
+        {
+          ParseException e = (ParseException)pes.get( i );
+          paintErrorMark( g, e, iLineCount );
+        }
       }
 
-      List pes = pe.getParseExceptions();
-      for( int i = 0; i < pes.size(); i++ )
+      for( Highlighter.Highlight highlight : _editor.getEditor().getHighlighter().getHighlights() )
       {
-        ParseException e = (ParseException)pes.get( i );
-        paintErrorMark( g, e, iLineCount );
+        Highlighter.HighlightPainter painter = highlight.getPainter();
+        if( painter == GosuEditor.LabHighlighter.TEXT || painter == GosuEditor.LabHighlighter.USAGE )
+        {
+          int line = _editor.getEditor().getDocument().getDefaultRootElement().getElementIndex( highlight.getStartOffset() );
+          paintHighlightMark( g, line, iLineCount );
+        }
       }
     }
 
     private void paintWarningMark( Graphics g, ParseWarning w, int iLineCount )
     {
-      int iMark = getMarkForIssue( w, iLineCount );
+      int iMark = getMarkForLine( w.getLine(), iLineCount );
       g.setColor( Scheme.active().getColorWarning() );
       g.fillRect( 1, iMark - 1, getWidth() - 2, 3 );
       g.setColor( Scheme.active().getColorWarningShadow() );
@@ -141,10 +152,20 @@ public class GosuEditorFeedbackPanel extends JPanel
 
     private void paintErrorMark( Graphics g, ParseException e, int iLineCount )
     {
-      int iMark = getMarkForIssue( e, iLineCount );
+      int iMark = getMarkForLine( e.getLine(), iLineCount );
       g.setColor( Scheme.active().getColorError() );
       g.fillRect( 1, iMark - 1, getWidth() - 2, 3 );
       g.setColor( Scheme.active().getColorErrorShadow() );
+      g.drawLine( 2, iMark + 1, getWidth() - 2, iMark + 1 );
+      g.drawLine( getWidth() - 2, iMark - 1, getWidth() - 2, iMark + 1 );
+    }
+
+    private void paintHighlightMark( Graphics g, int line, int iLineCount )
+    {
+      int iMark = getMarkForLine( line, iLineCount );
+      g.setColor( Scheme.active().usageReadHighlightColor() );
+      g.fillRect( 1, iMark - 1, getWidth() - 2, 3 );
+      g.setColor( Scheme.active().usageReadHighlightShadowColor() );
       g.drawLine( 2, iMark + 1, getWidth() - 2, iMark + 1 );
       g.drawLine( getWidth() - 2, iMark - 1, getWidth() - 2, iMark + 1 );
     }
@@ -201,13 +222,14 @@ public class GosuEditorFeedbackPanel extends JPanel
       return strFeedback;
     }
 
-    private List getErrorsFromCursorPos()
+    private List<IParseIssue> getErrorsFromCursorPos()
     {
       if( _editor == null )
       {
-        return null;
+        return Collections.emptyList();
       }
-      List matches = new ArrayList();
+      List<IParseIssue> matches = new ArrayList<>();
+      //noinspection ThrowableResultOfMethodCallIgnored
       ParseResultsException pe = _editor.getParseResultsException();
       if( pe == null )
       {
@@ -215,11 +237,11 @@ public class GosuEditorFeedbackPanel extends JPanel
       }
 
       int iLineCount = getLineCount();
-      List pes = pe.getParseIssues();
+      List<IParseIssue> pes = pe.getParseIssues();
       for( int i = pes.size() - 1; i >= 0; i-- )
       {
-        IParseIssue e = (IParseIssue)pes.get( i );
-        int iMark = getMarkForIssue( e, iLineCount );
+        IParseIssue e = pes.get( i );
+        int iMark = getMarkForLine( e.getLine(), iLineCount );
         if( iMark >= _iMousePos.y - 3 && iMark <= _iMousePos.y + 3 )
         {
           matches.add( e );
@@ -228,14 +250,40 @@ public class GosuEditorFeedbackPanel extends JPanel
       return matches;
     }
 
-    private int getMarkForIssue( IParseIssue e, int iLineCount )
+    private List<Highlighter.Highlight> getHighlightsFromCursorPos()
+    {
+      if( _editor == null )
+      {
+        return Collections.emptyList();
+      }
+      List<Highlighter.Highlight> matches = new ArrayList<>();
+
+      int iLineCount = getLineCount();
+      for( Highlighter.Highlight highlight : _editor.getEditor().getHighlighter().getHighlights() )
+      {
+        Highlighter.HighlightPainter painter = highlight.getPainter();
+        if( painter == GosuEditor.LabHighlighter.TEXT || painter == GosuEditor.LabHighlighter.USAGE )
+        {
+          int line = _editor.getEditor().getDocument().getDefaultRootElement().getElementIndex( highlight.getStartOffset() );
+          int iMark = getMarkForLine( line, iLineCount );
+          if( iMark >= _iMousePos.y - 3 && iMark <= _iMousePos.y + 3 )
+          {
+            matches.add( highlight );
+          }
+        }
+      }
+
+      return matches;
+    }
+
+    private int getMarkForLine( int line, int iLineCount )
     {
       iLineCount--;
       if( iLineCount == 0 )
       {
         return getHeight() / 2;
       }
-      int iLine = e.getLine() - 1;
+      int iLine = line - 1;
       float fOffset = (float)iLine / (float)iLineCount;
       return (int)((getHeight() - 10) * fOffset) + 5;
     }
@@ -252,26 +300,48 @@ public class GosuEditorFeedbackPanel extends JPanel
       return Math.max( iViewLines, iLinesOfCode );
     }
 
-    private class ErrorMarkMouseHandler extends MouseAdapter implements MouseMotionListener
+    private class MarkMouseHandler extends MouseAdapter implements MouseMotionListener
     {
       @Override
       public void mouseMoved( MouseEvent e )
       {
         _iMousePos = e.getPoint();
-        List errors = getErrorsFromCursorPos();
-        setCursor( errors == null || errors.isEmpty()
-                   ? Cursor.getDefaultCursor()
-                   : Cursor.getPredefinedCursor( Cursor.HAND_CURSOR ) );
+        List<IParseIssue> errors = getErrorsFromCursorPos();
+        if( !errors.isEmpty() )
+        {
+          setCursor( Cursor.getPredefinedCursor( Cursor.HAND_CURSOR ) );
+        }
+        else
+        {
+          List<Highlighter.Highlight> highlights = getHighlightsFromCursorPos();
+          if( !highlights.isEmpty() )
+          {
+            setCursor( Cursor.getPredefinedCursor( Cursor.HAND_CURSOR ) );
+          }
+          else
+          {
+            setCursor( Cursor.getDefaultCursor() );
+          }
+        }
       }
 
       @Override
       public void mouseClicked( MouseEvent e )
       {
-        List errors = getErrorsFromCursorPos();
+        List<IParseIssue> errors = getErrorsFromCursorPos();
         if( !errors.isEmpty() )
         {
           _editor.getEditor().requestFocusInWindow();
-          _editor.setCaretPositionForParseIssue( (IParseIssue)errors.get( 0 ) );
+          _editor.setCaretPositionForParseIssue( errors.get( 0 ) );
+        }
+        else
+        {
+          List<Highlighter.Highlight> highlights = getHighlightsFromCursorPos();
+          if( !highlights.isEmpty() )
+          {
+            _editor.getEditor().requestFocusInWindow();
+            _editor.getEditor().setCaretPosition( highlights.get( 0 ).getStartOffset() );
+          }
         }
       }
 
