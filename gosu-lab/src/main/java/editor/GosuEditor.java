@@ -980,6 +980,7 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
     removeHightlights();
     editor.setCaretPosition( editor.getCaretPosition() );
     hideMiscPopups();
+    _panelFeedback.repaint();
   }
 
   private void removeHightlights()
