@@ -332,7 +332,7 @@ public class FileTree implements MutableTreeNode, IFileWatcherListener
     }
 
     FileTree child = find( existingFile );
-    if( child != null && child._lastModified - existingFile.lastModified() >= 0 )
+    if( child == null || child._lastModified - existingFile.lastModified() >= 0 )
     {
       return;
     }
