@@ -27,6 +27,7 @@ import editor.util.SmartMenu;
 import editor.util.SmartMenuItem;
 import editor.util.ToolBar;
 import editor.util.TypeNameUtil;
+import gw.fs.IFile;
 import gw.internal.ext.org.objectweb.asm.ClassReader;
 import gw.internal.ext.org.objectweb.asm.util.TraceClassVisitor;
 import gw.lang.Gosu;
@@ -1712,7 +1713,11 @@ public class GosuPanel extends JPanel
       return;
     }
 
-    TypeSystem.refresh( (ITypeRef)type );
+    for( IFile file: type.getSourceFiles() )
+    {
+      // This is more thorough re related files than refresh( type )
+      TypeSystem.refreshed( file );
+    }
   }
 
   public boolean saveIfDirty()
@@ -1724,6 +1729,10 @@ public class GosuPanel extends JPanel
     return true;
   }
 
+  /**
+   * This should only be called when either the file's contents change externally,
+   * or when the file saves to disk.
+   */
   public void refresh( File file )
   {
     GosuEditor editor = findTab( file );
@@ -1741,19 +1750,17 @@ public class GosuPanel extends JPanel
         throw new RuntimeException( e );
       }
     }
-    else
-    {
-      // The file is not open, just refresh the type system to include the changes
 
-      FileTree root = FileTreeUtil.getRoot();
-      FileTree node = root.find( file );
-      if( node != null )
+    FileTree root = FileTreeUtil.getRoot();
+    FileTree node = root.find( file );
+
+    if( node != null )
+    {
+      // Refresh the type system to include the changes
+      IType type = node.getType();
+      if( type != null )
       {
-        IType type = node.getType();
-        if( type != null )
-        {
-          reload( type );
-        }
+        reload( type );
       }
     }
   }
