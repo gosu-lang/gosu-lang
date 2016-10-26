@@ -196,7 +196,7 @@ public class EvaluateDialog extends JDialog implements IHandleCancel
         }
         else if( e.getKeyCode() == KeyEvent.VK_ENTER )
         {
-          if( isOneLine() || e.isControlDown() )
+          if( (isOneLine() || e.isControlDown()) && !gosuEditor.isIntellisensePopupShowing() )
           {
             updateResult();
             e.consume();
