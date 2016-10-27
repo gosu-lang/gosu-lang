@@ -1093,20 +1093,34 @@ public class CommonMenus
     }
   }
 
-  public static class CompileActionHandler extends AbstractAction
+  public static class MakeActionHandler extends AbstractAction
   {
-    public CompileActionHandler()
+    public MakeActionHandler()
     {
-      super( "Compile", EditorUtilities.loadIcon( "images/compile.png" ) );
+      super( "Make", EditorUtilities.loadIcon( "images/compile.png" ) );
     }
 
     @Override
     public void actionPerformed( ActionEvent e )
     {
-      getGosuPanel().compile();
+      getGosuPanel().make();
     }
   }
   
+  public static class RebuildActionHandler extends AbstractAction
+  {
+    public RebuildActionHandler()
+    {
+      super( "Rebuild" );
+    }
+
+    @Override
+    public void actionPerformed( ActionEvent e )
+    {
+      getGosuPanel().rebuild();
+    }
+  }
+
   public static class ShipItActionHandler extends AbstractAction
   {
     public ShipItActionHandler()
@@ -1253,7 +1267,14 @@ public class CommonMenus
     {
       if( isEnabled() )
       {
-        new EvaluateDialog().setVisible( true );
+        String expr = "";
+        GosuEditor editor = getGosuPanel().getCurrentEditor();
+        if( editor != null )
+        {
+          String selection = editor.getSelectedText();
+          expr = selection == null ? expr : selection;
+        }
+        new EvaluateDialog( expr ).setVisible( true );
       }
     }
 

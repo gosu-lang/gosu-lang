@@ -83,7 +83,7 @@ public class ShipIt
       boolean bCompile = dlg.isPrecompiled();
       if( bCompile )
       {
-        if( !BuildIt.instance().buildIt( this::addPrecompiledClass ) )
+        if( !ExperimentBuild.instance().rebuild( this::addPrecompiledClass ) )
         {
           _jo.close();
           //noinspection ResultOfMethodCallIgnored

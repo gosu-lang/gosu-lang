@@ -35,6 +35,7 @@ import java.io.IOException;
  */
 public class EvaluateDialog extends JDialog implements IHandleCancel
 {
+  private final String _expr;
   private GosuEditor _fieldExpr;
   private JTree _varTree;
 
@@ -42,9 +43,10 @@ public class EvaluateDialog extends JDialog implements IHandleCancel
   private String _immediateClass;
   private String _fqn;
 
-  public EvaluateDialog()
+  public EvaluateDialog( String expr )
   {
     super( RunMe.getEditorFrame(), "Evaluate Script" );
+    _expr = expr;
     configUi();
     setDefaultCloseOperation( DISPOSE_ON_CLOSE );
   }
@@ -90,7 +92,11 @@ public class EvaluateDialog extends JDialog implements IHandleCancel
     _fieldExpr.setAccessAll( true );
     try
     {
-      _fieldExpr.read( new TypelessScriptPartId( "debugger condition" ), "" );
+      _fieldExpr.read( new TypelessScriptPartId( "debugger condition" ), _expr );
+      if( !_expr.isEmpty() )
+      {
+        _fieldExpr.getEditor().selectAll();
+      }
     }
     catch( IOException e )
     {

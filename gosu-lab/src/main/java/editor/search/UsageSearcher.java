@@ -113,7 +113,7 @@ public class UsageSearcher extends AbstractSearcher
     return true;
   }
 
-  private List<SearchLocation> findUsage( IGosuClass gsClass )
+  List<SearchLocation> findUsage( IGosuClass gsClass )
   {
     gsClass.isValid();
     IClassStatement classStmt = gsClass.getClassStatement();

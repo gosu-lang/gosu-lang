@@ -9,7 +9,7 @@ import editor.run.IProcessRunner;
 import editor.run.IRunConfig;
 import editor.run.RunState;
 import editor.search.SearchPanel;
-import editor.shipit.BuildIt;
+import editor.shipit.ExperimentBuild;
 import editor.shipit.ShipIt;
 import editor.splitpane.CollapsibleSplitPane;
 import editor.tabpane.ITab;
@@ -226,7 +226,7 @@ public class GosuPanel extends JPanel
 
     toolbar.add( makeSeparator() );
 
-    item = new LabToolbarButton( new CommonMenus.CompileActionHandler() );
+    item = new LabToolbarButton( new CommonMenus.MakeActionHandler() );
     toolbar.add( item );
 
     toolbar.add( makeSeparator() );
@@ -792,10 +792,15 @@ public class GosuPanel extends JPanel
     buildMenu.setMnemonic( 'b' );
     menuBar.add( buildMenu );
 
-    JMenuItem compileMenu = new SmartMenuItem( new CommonMenus.CompileActionHandler() );
-    compileMenu.setMnemonic( 'c' );
-    compileMenu.setAccelerator( KeyStroke.getKeyStroke( EditorUtilities.CONTROL_KEY_NAME + " F9" ) );
-    buildMenu.add( compileMenu );
+
+    JMenuItem make = new SmartMenuItem( new CommonMenus.MakeActionHandler() );
+    make.setMnemonic( 'm' );
+    make.setAccelerator( KeyStroke.getKeyStroke( EditorUtilities.CONTROL_KEY_NAME + " F9" ) );
+    buildMenu.add( make );
+
+    JMenuItem rebuild = new SmartMenuItem( new CommonMenus.RebuildActionHandler() );
+    rebuild.setMnemonic( 'b' );
+    buildMenu.add( rebuild );
 
 
     buildMenu.addSeparator();
@@ -1295,7 +1300,7 @@ public class GosuPanel extends JPanel
   }
 
   @SuppressWarnings("ThrowableResultOfMethodCallIgnored")
-  public boolean compile()
+  public boolean make()
   {
     SettleModalEventQueue.instance().run();
 
@@ -1305,7 +1310,27 @@ public class GosuPanel extends JPanel
       getMessagesPanel().clear();
     }
     showMessages( true );
-    return BuildIt.instance().buildIt( c -> true );
+
+    //## NOTE: We distinguish between making during a debug session and not.  This is primarily for the
+    //##       case where the user is running from source (NOT compiling bytecode to disk), in which case
+    //##       we only want to compile and reload classes that have changed since the debugger started.
+
+    Debugger debugger = getDebugger();
+    ExperimentBuild expBuild = debugger != null ? debugger.getClassRedefiner() : ExperimentBuild.instance();
+    return expBuild.make( c -> true );
+  }
+
+  public boolean rebuild()
+  {
+    SettleModalEventQueue.instance().run();
+
+    saveIfDirty();
+    if( getMessagesPanel() != null )
+    {
+      getMessagesPanel().clear();
+    }
+    showMessages( true );
+    return ExperimentBuild.instance().rebuild( c -> true );
   }
 
   public void exit()

@@ -31,12 +31,16 @@ import editor.FileTreeUtil;
 import editor.GosuPanel;
 import editor.RunMe;
 
+import editor.shipit.CompiledClass;
+import editor.shipit.ExperimentBuild;
+import editor.util.EditorUtilities;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
+import javax.swing.JOptionPane;
 
 /**
  */
@@ -61,6 +65,7 @@ public class Debugger
   private final HashSet<ObjectReference> _refs;
   private boolean _temporarilySuspended;
   private EventIterator _eventIterator;
+  private ExperimentBuild _classRedefiner;
 
   public Debugger( VirtualMachine vm, BreakpointManager bpm )
   {
@@ -70,6 +75,7 @@ public class Debugger
     _debuggerThread = new Thread( this::run, "Debugger" );
     _listeners = new ArrayList<>();
     _refs = new HashSet<>();
+    _classRedefiner = new ExperimentBuild( false );
     _monitor =
       new Object()
       {
@@ -820,5 +826,32 @@ public class Debugger
   public List<ThreadReference> getThreads()
   {
     return _vm.allThreads();
+  }
+
+  public ExperimentBuild getClassRedefiner()
+  {
+    return _classRedefiner;
+  }
+
+  public void redefineClasses( List<CompiledClass> listCompiledClasses )
+  {
+    Map<ReferenceType, byte[]> classes = new HashMap<>();
+    for( CompiledClass cc: listCompiledClasses )
+    {
+      List<ReferenceType> referenceTypes = _vm.classesByName( cc.getGosuClass().getName() );
+      if( referenceTypes.size() > 0 )
+      {
+        classes.put( referenceTypes.get( 0 ), cc.getBytes() );
+      }
+    }
+    try
+    {
+      _vm.redefineClasses( classes );
+      EditorUtilities.invokeNowOrLater( () -> JOptionPane.showMessageDialog( RunMe.getEditorFrame(), "Reloaded " + classes.size() + " classes" ) );
+    }
+    catch( UnsupportedOperationException e )
+    {
+      EditorUtilities.invokeNowOrLater( () -> JOptionPane.showMessageDialog( RunMe.getEditorFrame(), "Could not reload classes" ) );
+    }
   }
 }
