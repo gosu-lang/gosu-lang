@@ -30,8 +30,9 @@ public class ExperimentBuild
 {
   private static ExperimentBuild INSTANCE;
 
-  private final FileChangeFinder _typeChangeTracker;
-  private List<CompiledClass> _listCompiledClasses;
+  private final FileChangeFinder _fileChangeFinder;
+  private List<CompiledClass> _compiledClassesNoErrors;
+  private Set<IType> _errantTypes = new HashSet<>();
 
   public static ExperimentBuild instance()
   {
@@ -40,20 +41,15 @@ public class ExperimentBuild
 
   public ExperimentBuild( boolean rebuild )
   {
-    _typeChangeTracker = new FileChangeFinder( rebuild );
-    _listCompiledClasses = new ArrayList<>();
+    _fileChangeFinder = new FileChangeFinder( rebuild );
+    _compiledClassesNoErrors = new ArrayList<>();
   }
 
   public boolean make( ICompileConsumer consumer )
   {
-    Debugger debugger = getDebugger();
-    if( debugger != null )
-    {
-      consumer = chainDebuggerConsumer( consumer );
-    }
-
     boolean result;
-    if( _typeChangeTracker.isRefreshAll() )
+    consumer = getDebugger() == null ? chainForNotDebugging( consumer ) : chainForDebugging( consumer );
+    if( _fileChangeFinder.isRefreshAll() )
     {
       result = rebuild( consumer );
     }
@@ -61,19 +57,26 @@ public class ExperimentBuild
     {
       result = build( consumer, findTypesToCompile(), true );
     }
-
     return result;
   }
 
-  public Set<IType> findTypesToCompile()
+  public boolean rebuild( ICompileConsumer consumer )
+  {
+    boolean result = build( chainForNotDebugging( consumer ), Collections.singleton( FileTreeUtil.getRoot() ), false );
+    TypeSystem.refresh( false );
+    return result;
+  }
+
+  private Set<IType> findTypesToCompile()
   {
     Set<IType> types = new HashSet<>();
-    for( FileTree ft: _typeChangeTracker.findChangedFiles( ref -> ref.getType() != null ) )
+    for( FileTree ft: _fileChangeFinder.findChangedFiles( ref -> ref.getType() != null ) )
     {
       IncrementalCompilerUsageSearcher searcher = new IncrementalCompilerUsageSearcher( ft.getType() );
-      searcher.search( FileTreeUtil.getRoot() );
+      searcher.headlessSearch( FileTreeUtil.getRoot() );
       types.addAll( searcher.getTypes() );
     }
+    types.addAll( _errantTypes );
     return types;
   }
 
@@ -82,26 +85,38 @@ public class ExperimentBuild
     return RunMe.getEditorFrame().getGosuPanel().getDebugger();
   }
 
-  private ICompileConsumer chainDebuggerConsumer( ICompileConsumer consumer )
+  private ICompileConsumer chainForDebugging( ICompileConsumer consumer )
   {
     return cc -> {
-      _listCompiledClasses.add( cc );
+      if( cc.getGosuClass().isValid() )
+      {
+        _compiledClassesNoErrors.add( cc );
+      }
+      else
+      {
+        _errantTypes.add( cc.getGosuClass() );
+      }
       return consumer.accept( cc );
     };
   }
 
-  public boolean rebuild( ICompileConsumer consumer )
+  private ICompileConsumer chainForNotDebugging( ICompileConsumer consumer )
   {
-    boolean result = build( consumer, Collections.singleton( FileTreeUtil.getRoot() ), false );
-    TypeSystem.refresh( false );
-    return result;
+    return cc -> {
+      if( !cc.getGosuClass().isValid() )
+      {
+        _errantTypes.add( cc.getGosuClass() );
+      }
+      return consumer.accept( cc );
+    };
   }
 
   private boolean build( ICompileConsumer consumer, Set sources, boolean incremental )
   {
+    GosuPanel gosuPanel = RunMe.getEditorFrame().getGosuPanel();
+    _errantTypes = new HashSet<>();
     try
     {
-      GosuPanel gosuPanel = RunMe.getEditorFrame().getGosuPanel();
       MessagesPanel messages = gosuPanel.showMessages( true );
       messages.clear();
 
@@ -112,7 +127,7 @@ public class ExperimentBuild
       ProgressFeedback.runWithProgress( "Compiling...",
                                         incremental
                                         ? progress -> incrementalCompileSources( sources, consumer, messages, bRes, bFinished, compiler, progress )
-                                        : progress -> compileSources( sources, consumer, messages, bRes, bFinished, compiler, progress ) );
+                                        : progress -> fullCompileSources( sources, consumer, messages, bRes, bFinished, compiler, progress ) );
       new ModalEventQueue( () -> !bFinished[0] ).run();
       MessageTree doneMessage;
       if( bRes[0] )
@@ -134,23 +149,19 @@ public class ExperimentBuild
     }
     finally
     {
-      _typeChangeTracker.reset();
-      _listCompiledClasses = new ArrayList<>();
+      _fileChangeFinder.reset();
+      _compiledClassesNoErrors = new ArrayList<>();
     }
   }
 
-  private void compileSources( Collection<FileTree> sources, ICompileConsumer consumer, MessagesPanel messages, boolean[] bRes, boolean[] bFinished, Compiler compiler, IProgressCallback progress )
+  private void fullCompileSources( Collection<FileTree> sources, ICompileConsumer consumer, MessagesPanel messages, boolean[] bRes, boolean[] bFinished, Compiler compiler, IProgressCallback progress )
   {
     progress.setLength( sources.stream().mapToInt( FileTree::getTotalFiles ).sum() );
     for( FileTree fileTree: sources )
     {
       bRes[0] |= compiler.compileTree( fileTree, consumer, progress, messages );
     }
-    Debugger debugger = getDebugger();
-    if( debugger != null && !_listCompiledClasses.isEmpty() )
-    {
-      debugger.redefineClasses( _listCompiledClasses );
-    }
+    redefineClassInDebugger();
     bFinished[0] = true;
   }
 
@@ -159,20 +170,26 @@ public class ExperimentBuild
     try
     {
       progress.setLength( sources.size() );
+      bRes[0] = true;
       for( IType type : sources )
       {
         progress.incrementProgress( type != null ? type.getName() : "" );
         bRes[0] |= compiler.compile( (IGosuClass)type, consumer, messages );
       }
-      Debugger debugger = getDebugger();
-      if( debugger != null && !_listCompiledClasses.isEmpty() )
-      {
-        debugger.redefineClasses( _listCompiledClasses );
-      }
+      redefineClassInDebugger();
     }
     finally
     {
       bFinished[0] = true;
+    }
+  }
+
+  private void redefineClassInDebugger()
+  {
+    Debugger debugger = getDebugger();
+    if( debugger != null && !_compiledClassesNoErrors.isEmpty() )
+    {
+      debugger.redefineClasses( _compiledClassesNoErrors );
     }
   }
 }

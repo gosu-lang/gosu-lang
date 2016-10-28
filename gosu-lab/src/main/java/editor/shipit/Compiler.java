@@ -112,7 +112,9 @@ public class Compiler
       return true;
     }
 
+    //
     // Parse
+    //
     parseImpl( gsClass );
     //noinspection ThrowableResultOfMethodCallIgnored
     ParseResultsException parseException = gsClass.getParseResultsException();
@@ -127,10 +129,13 @@ public class Compiler
         parseException.getParseExceptions().forEach( error -> messages.addErrorMessage( makeIssueMessage( error, NodeKind.Error ), typeNode, MessageTree.makeIssueMessage( error ) ) );
       } );
 
+      // Parse Errors, return now
       return consumer.accept( new CompiledClass( gsClass, null, parseException ) );
     }
 
+    //
     // Compile
+    //
     try
     {
       if( parseException != null && parseException.getParseIssues().size() > 0 )
@@ -146,6 +151,9 @@ public class Compiler
     }
     catch( Exception e )
     {
+      //
+      // Failure
+      //
       EventQueue.invokeLater( () -> {
         addFailure( messages );
         MessageTree typeNode = messages.addTypeMessage( gsClass.getName(), null, MessageTree.empty() );

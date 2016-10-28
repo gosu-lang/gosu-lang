@@ -707,6 +707,20 @@ public class UsageSearcher extends AbstractSearcher
     _results = new SearchTree( "<html><b>$count</b>&nbsp;usages&nbsp;of&nbsp;<b>'" + _target.getRootFeatureInfo().getName() + "'</b>&nbsp;in&nbsp;" + tree.getName(), NodeKind.Directory, SearchTree.empty() );
     searchPanel.add( _results );
 
+    doSearch( tree );
+
+    EventQueue.invokeLater( () -> selectFirstMatch( _results ) );
+  }
+
+  public void headlessSearch( FileTree tree )
+  {
+    _results = new SearchTree( _target.getRootFeatureInfo().getName() + " : " + tree.getName(), NodeKind.Directory, SearchTree.empty() );
+
+    doSearch( tree );
+  }
+
+  private void doSearch( FileTree tree )
+  {
     boolean[] bFinished = {false};
     ProgressFeedback.runWithProgress( "Searching...",
       progress -> {
@@ -715,7 +729,6 @@ public class UsageSearcher extends AbstractSearcher
           bFinished[0] = true;
         } );
     new ModalEventQueue( () -> !bFinished[0] ).run();
-    EventQueue.invokeLater( () -> selectFirstMatch( _results ) );
   }
 
   public List<SearchLocation> searchLocal()
