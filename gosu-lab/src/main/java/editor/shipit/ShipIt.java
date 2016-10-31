@@ -1,6 +1,6 @@
 package editor.shipit;
 
-import editor.util.EditorUtilities;
+import editor.LabFrame;
 import editor.util.Experiment;
 import gw.lang.Gosu;
 
@@ -103,7 +103,7 @@ public class ShipIt
 
       _jo.close();
 
-      EditorUtilities.openFileOrDir( outFile );
+      LabFrame.openFileOrDir( outFile );
 
       return true;
     }

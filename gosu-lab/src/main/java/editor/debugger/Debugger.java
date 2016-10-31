@@ -29,7 +29,7 @@ import com.sun.jdi.request.ExceptionRequest;
 import com.sun.jdi.request.StepRequest;
 import editor.FileTreeUtil;
 import editor.GosuPanel;
-import editor.RunMe;
+import editor.LabFrame;
 
 import editor.shipit.CompiledClass;
 import editor.shipit.ExperimentBuild;
@@ -820,7 +820,7 @@ public class Debugger
 
   private GosuPanel getGosuPanel()
   {
-    return RunMe.getEditorFrame().getGosuPanel();
+    return LabFrame.instance().getGosuPanel();
   }
 
   public List<ThreadReference> getThreads()
@@ -847,11 +847,11 @@ public class Debugger
     try
     {
       _vm.redefineClasses( classes );
-      EditorUtilities.invokeNowOrLater( () -> JOptionPane.showMessageDialog( RunMe.getEditorFrame(), "Reloaded " + classes.size() + " classes" ) );
+      EditorUtilities.invokeNowOrLater( () -> JOptionPane.showMessageDialog( LabFrame.instance(), "Reloaded " + classes.size() + " classes" ) );
     }
     catch( UnsupportedOperationException e )
     {
-      EditorUtilities.invokeNowOrLater( () -> JOptionPane.showMessageDialog( RunMe.getEditorFrame(), "Could not reload classes" ) );
+      EditorUtilities.invokeNowOrLater( () -> JOptionPane.showMessageDialog( LabFrame.instance(), "Could not reload classes" ) );
     }
   }
 }

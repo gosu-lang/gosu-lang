@@ -1,7 +1,7 @@
 package editor.search;
 
 import editor.GosuEditor;
-import editor.RunMe;
+import editor.LabFrame;
 import gw.lang.parser.IDynamicFunctionSymbol;
 import gw.lang.parser.IDynamicPropertySymbol;
 import gw.lang.parser.IDynamicSymbol;
@@ -137,7 +137,7 @@ public class UsageTarget
 
   private static GosuEditor getCurrentEditor()
   {
-    return RunMe.getEditorFrame().getGosuPanel().getCurrentEditor();
+    return LabFrame.instance().getGosuPanel().getCurrentEditor();
   }
 
   private static IFeatureInfo findFeatureInfoFor( IParsedElement pe )

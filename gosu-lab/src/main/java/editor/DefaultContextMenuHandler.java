@@ -57,7 +57,7 @@ public class DefaultContextMenuHandler implements IContextMenuHandler<IScriptEdi
 
   private Experiment getExperiment()
   {
-    return RunMe.getEditorFrame().getGosuPanel().getExperiment();
+    return LabFrame.instance().getGosuPanel().getExperiment();
   }
 
   public void displayContextMenu( IScriptEditor editor, int iXPos, int iYPos, Component eventSource )

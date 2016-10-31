@@ -8,7 +8,7 @@ import editor.GosuClassLineInfoManager;
 import editor.GosuEditor;
 import editor.GosuPanel;
 import editor.IHandleCancel;
-import editor.RunMe;
+import editor.LabFrame;
 import editor.Scheme;
 import editor.VarTree;
 import editor.search.StringUtil;
@@ -45,7 +45,7 @@ public class EvaluateDialog extends JDialog implements IHandleCancel
 
   public EvaluateDialog( String expr )
   {
-    super( RunMe.getEditorFrame(), "Evaluate Script" );
+    super( LabFrame.instance(), "Evaluate Script" );
     _expr = expr;
     configUi();
     setDefaultCloseOperation( DISPOSE_ON_CLOSE );
@@ -224,6 +224,6 @@ public class EvaluateDialog extends JDialog implements IHandleCancel
 
   private GosuPanel getGosuPanel()
   {
-    return RunMe.getEditorFrame().getGosuPanel();
+    return LabFrame.instance().getGosuPanel();
   }
 }

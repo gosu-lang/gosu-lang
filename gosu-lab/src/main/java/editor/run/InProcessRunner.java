@@ -3,7 +3,7 @@ package editor.run;
 import com.sun.jdi.VirtualMachine;
 import editor.GosuEditor;
 import editor.GosuPanel;
-import editor.RunMe;
+import editor.LabFrame;
 import editor.TextComponentWriter;
 import editor.util.TaskQueue;
 import gw.config.CommonServices;
@@ -74,7 +74,7 @@ public class InProcessRunner implements IProcessRunner<FqnRunConfig>
       URLClassLoader runLoader = new URLClassLoader( getAllUrlsAboveGosuclassProtocol( (URLClassLoader)loader ), loader.getParent() );
 
       TaskQueue queue = TaskQueue.getInstance( "_execute_gosu" );
-      GosuPanel gosuPanel = RunMe.getEditorFrame().getGosuPanel();
+      GosuPanel gosuPanel = LabFrame.instance().getGosuPanel();
       gosuPanel.addBusySignal( RunState.Run );
       queue.postTask(
         () -> {

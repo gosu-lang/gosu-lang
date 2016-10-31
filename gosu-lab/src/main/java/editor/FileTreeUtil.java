@@ -26,7 +26,7 @@ public class FileTreeUtil
 
   public static GosuPanel getGosuPanel()
   {
-    return RunMe.getEditorFrame().getGosuPanel();
+    return LabFrame.instance().getGosuPanel();
   }
 
   public static FileTree getRoot()

@@ -2,9 +2,12 @@ package editor.util;
 
 import editor.FileWatcher;
 import editor.GosuPanel;
+import editor.LabFrame;
 import editor.run.FqnRunConfig;
 import editor.run.ProgramRunConfigFactory;
 import editor.run.ProgramRunConfigParameters;
+import editor.settings.ISettings;
+import editor.settings.Settings;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.json.IJsonIO;
 import editor.run.IRunConfig;
@@ -14,6 +17,8 @@ import gw.lang.reflect.Expando;
 import gw.lang.reflect.ReflectUtil;
 import gw.lang.reflect.module.IProject;
 
+import java.util.Map;
+import java.util.TreeMap;
 import javax.script.Bindings;
 import java.io.File;
 import java.io.FileWriter;
@@ -36,6 +41,8 @@ public class Experiment implements IProject
   private String _activeFile;
   private IRunConfig _mruRunConfig;
   private List<IRunConfig> _runConfigs;
+  private ISettings _mruSettings;
+  private Map<String, ISettings> _settings;
   private GosuPanel _gosuPanel;
 
   public Experiment( String name, File dir, GosuPanel gosuPanel )
@@ -48,6 +55,7 @@ public class Experiment implements IProject
     _experimentDir.mkdirs();
     _openFiles = Collections.emptyList();
     _runConfigs = Collections.emptyList();
+    _settings = Settings.makeDefaultSettings( this );
   }
 
   public Experiment( File dir, GosuPanel gosuPanel )
@@ -58,6 +66,7 @@ public class Experiment implements IProject
     _experimentDir = dir;
     _openFiles = Collections.emptyList();
     _runConfigs = Collections.emptyList();
+    _settings = Settings.makeDefaultSettings( this );
     load();
     FileWatcher.instance( this );
   }
@@ -109,6 +118,7 @@ public class Experiment implements IProject
   {
     return _experimentDir;
   }
+  @SuppressWarnings("UnusedDeclaration")
   public void setExperimentDir( File experimentDir )
   {
     _experimentDir = experimentDir;
@@ -134,7 +144,7 @@ public class Experiment implements IProject
     File experimentDir = getExperimentDir();
     //noinspection ResultOfMethodCallIgnored
     experimentDir.mkdirs();
-    File experiment = EditorUtilities.findExperimentFile( experimentDir );
+    File experiment = LabFrame.findExperimentFile( experimentDir );
     if( experiment == null )
     {
       experiment = new File( experimentDir.getAbsolutePath() + File.separator + experimentDir.getName() + ".prj" );
@@ -186,8 +196,10 @@ public class Experiment implements IProject
     } ).collect( Collectors.toList() ) );
 
     IJsonIO.writeList( "RunConfigs", _runConfigs, bindings );
-
     bindings.put( "MruRunConfig", getMruRunConfig() == null ? null : getMruRunConfig().getName() );
+
+    IJsonIO.writeList( "Settings", new ArrayList<>( _settings.values() ), bindings );
+    bindings.put( "MruSettings", getMruSettings() == null ? null : getMruSettings().getName() );
 
     try( FileWriter fw = new FileWriter( userFile ) )
     {
@@ -258,8 +270,14 @@ public class Experiment implements IProject
 
       //noinspection unchecked
       _runConfigs = IJsonIO.readList( "RunConfigs", bindings );
-
       _mruRunConfig = findRunConfig( rc -> rc.getName().equals( (String)bindings.get( "MruRunConfig" ) ) );
+
+      _settings = new TreeMap<>();
+      List<ISettings> settingList = IJsonIO.readList( "Settings", bindings );
+      settingList.forEach( setting -> _settings.put( setting.getPath(), setting ) );
+      _settings = Settings.mergeSettings( _settings, this );
+
+      _mruSettings = findSettings( settings -> settings.getName().equals( (String)bindings.get( "MruSettings" ) ) );
     }
     catch( IOException e )
     {
@@ -378,4 +396,35 @@ public class Experiment implements IProject
 
     return _runConfigs.remove( runConfig );
   }
+
+  public Map<String, ISettings> getSettings()
+  {
+    return _settings;
+  }
+
+  public ISettings getMruSettings()
+  {
+    return _mruSettings;
+  }
+  public void setMruSettings( ISettings settings )
+  {
+    _mruSettings = settings;
+  }
+  
+  public ISettings findSettings( Predicate<ISettings> matcher )
+  {
+    if( matcher == null )
+    {
+      return null;
+    }
+
+    for( ISettings settings: _settings.values() )
+    {
+      if( matcher.test( settings ) )
+      {
+        return settings;
+      }
+    }
+    return null;
+  }  
 }

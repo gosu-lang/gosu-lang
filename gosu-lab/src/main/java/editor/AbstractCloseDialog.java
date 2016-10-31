@@ -13,7 +13,7 @@ public abstract class AbstractCloseDialog extends JDialog implements IHandleCanc
 
   public AbstractCloseDialog( String strCaption )
   {
-    super( RunMe.getEditorFrame(), strCaption, true );
+    super( LabFrame.instance(), strCaption, true );
     init();
   }
 

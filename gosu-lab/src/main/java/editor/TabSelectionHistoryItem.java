@@ -49,13 +49,13 @@ public class TabSelectionHistoryItem implements StateEditable
       {
         if( bUndo )
         {
-          GosuEditor editor = RunMe.getEditorFrame().getGosuPanel().findTab( (File)_prevTabContext.getContentId() );
+          GosuEditor editor = LabFrame.instance().getGosuPanel().findTab( (File)_prevTabContext.getContentId() );
           _caretPos = editor.getEditor().getCaretPosition();
           editor.getEditor().setCaretPosition( _prevCaretPos );
         }
         else
         {
-          GosuEditor editor = RunMe.getEditorFrame().getGosuPanel().findTab( (File)_tabContext.getContentId() );
+          GosuEditor editor = LabFrame.instance().getGosuPanel().findTab( (File)_tabContext.getContentId() );
           editor.getEditor().setCaretPosition( _caretPos );
         }
       }

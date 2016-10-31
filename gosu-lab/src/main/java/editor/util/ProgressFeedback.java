@@ -1,6 +1,6 @@
 package editor.util;
 
-import editor.RunMe;
+import editor.LabFrame;
 import gw.util.GosuExceptionUtil;
 
 import javax.swing.*;
@@ -78,7 +78,7 @@ public class ProgressFeedback implements IProgressCallback, ActionListener
 
   public static <T> T runWithPossibleDialog( final Callable<T> callable, String message )
   {
-    if( (!RunMe.getEditorFrame().isVisible()) || !SwingUtilities.isEventDispatchThread() )
+    if( (!LabFrame.instance().isVisible()) || !SwingUtilities.isEventDispatchThread() )
     {
       try
       {

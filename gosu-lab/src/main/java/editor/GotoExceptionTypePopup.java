@@ -18,7 +18,7 @@ public class GotoExceptionTypePopup extends GotoTypePopup
         String strQualifedType = (String)e.getSource();
         doGoTo( strQualifedType );
       } );
-    Component host = RunMe.getEditorFrame().getRootPane();
+    Component host = LabFrame.instance().getRootPane();
     valuePopup.show( host, 0, 0 );
   }
 

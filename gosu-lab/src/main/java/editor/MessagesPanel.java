@@ -56,7 +56,7 @@ public class MessagesPanel extends ClearablePanel
   @Override
   public void dispose()
   {
-    RunMe.getEditorFrame().getGosuPanel().showMessages( false );
+    LabFrame.instance().getGosuPanel().showMessages( false );
   }
 
   public MessageTree getSelectedTree()
@@ -144,6 +144,11 @@ public class MessagesPanel extends ClearablePanel
     {
       expandAll( rowCount, _tree.getRowCount() );
     }
+  }
+
+  public boolean hasErrors()
+  {
+    return ((MessageTree)getTree().getModel().getRoot()).hasErrors();
   }
 
   private class MouseHandler implements MouseListener

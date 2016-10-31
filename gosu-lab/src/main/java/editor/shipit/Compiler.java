@@ -4,6 +4,7 @@ import editor.FileTree;
 import editor.NodeKind;
 import editor.MessageTree;
 import editor.MessagesPanel;
+import editor.settings.CompilerSettings;
 import editor.util.IProgressCallback;
 import gw.lang.parser.IParseIssue;
 import gw.lang.parser.exceptions.ParseResultsException;
@@ -13,6 +14,9 @@ import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.gs.IGosuClass;
 
 import java.awt.*;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 
 /**
  */
@@ -72,37 +76,54 @@ public class Compiler
     return _iFailures;
   }
 
-  private void addWarnings( ParseResultsException parseException, MessagesPanel messages )
+  private void addWarnings( ParseResultsException parseException )
   {
-    if( _warnings == null )
-    {
-      _warnings = new MessageTree( "", NodeKind.Info, MessageTree.empty() );
-      messages.appendToTop( _warnings );
-    }
     _iWarnings += parseException.getParseWarnings().size();
-    _warnings.setText( "Warnings: " + _iWarnings );
   }
 
-  private void addErrors( ParseResultsException parseException, MessagesPanel messages )
+  private void addErrors( ParseResultsException parseException )
   {
-    if( _errors == null )
-    {
-      _errors = new MessageTree( "", NodeKind.Info, MessageTree.empty() );
-      messages.appendToTop( _errors );
-    }
     _iErrors += parseException.getParseExceptions().size();
-    _errors.setText( "Errors: " + _iErrors );
   }
 
-  private void addFailure( MessagesPanel messages )
+  private void addFailure()
   {
-    if( _failures == null )
-    {
-      _failures = new MessageTree( "", NodeKind.Info, MessageTree.empty() );
-      messages.appendToTop( _failures );
-    }
     _iFailures++;
-    _failures.setText( "Failures: " + _iFailures );
+  }
+
+  private void updateMessageTree( MessagesPanel messages )
+  {
+    EventQueue.invokeLater( () -> {
+      if( _iWarnings > 0 )
+      {
+        if( _warnings == null )
+        {
+          _warnings = new MessageTree( "", NodeKind.Info, MessageTree.empty() );
+          messages.appendToTop( _warnings );
+        }
+        _warnings.setText( "Warnings: " + _iWarnings );
+      }
+
+      if( _iErrors > 0 )
+      {
+        if( _errors == null )
+        {
+          _errors = new MessageTree( "", NodeKind.Info, MessageTree.empty() );
+          messages.appendToTop( _errors );
+        }
+        _errors.setText( "Errors: " + _iErrors );
+      }
+
+      if( _iFailures > 0 )
+      {
+        if( _failures == null )
+        {
+          _failures = new MessageTree( "", NodeKind.Info, MessageTree.empty() );
+          messages.appendToTop( _failures );
+        }
+        _failures.setText( "Failures: " + _iFailures );
+      }
+    } );
   }
 
   public boolean compile( IGosuClass gsClass, ICompileConsumer consumer, MessagesPanel messages )
@@ -121,9 +142,10 @@ public class Compiler
 
     if( parseException != null && !parseException.hasOnlyParseWarnings() )
     {
+      addWarnings( parseException );
+      addErrors( parseException );
       EventQueue.invokeLater( () -> {
-        addWarnings( parseException, messages );
-        addErrors( parseException, messages );
+        updateMessageTree( messages );
         MessageTree typeNode = messages.addTypeMessage( gsClass.getName(), null, MessageTree.empty() );
         parseException.getParseWarnings().forEach( warning -> messages.addWarningMessage( makeIssueMessage( warning, NodeKind.Warning ), typeNode, MessageTree.makeIssueMessage( warning ) ) );
         parseException.getParseExceptions().forEach( error -> messages.addErrorMessage( makeIssueMessage( error, NodeKind.Error ), typeNode, MessageTree.makeIssueMessage( error ) ) );
@@ -140,11 +162,12 @@ public class Compiler
     {
       if( parseException != null && parseException.getParseIssues().size() > 0 )
       {
+        addWarnings( parseException );
         EventQueue.invokeLater( () -> {
-                                  addWarnings( parseException, messages );
-                                  MessageTree typeNode = messages.addTypeMessage( gsClass.getName(), null, MessageTree.empty() );
-                                  parseException.getParseWarnings().forEach( warning -> messages.addWarningMessage( makeIssueMessage( warning, NodeKind.Warning ), typeNode, MessageTree.makeIssueMessage( warning ) ) );
-                                } );
+          updateMessageTree( messages );
+          MessageTree typeNode = messages.addTypeMessage( gsClass.getName(), null, MessageTree.empty() );
+          parseException.getParseWarnings().forEach( warning -> messages.addWarningMessage( makeIssueMessage( warning, NodeKind.Warning ), typeNode, MessageTree.makeIssueMessage( warning ) ) );
+        } );
       }
 
       return compileClass( gsClass, consumer );
@@ -154,8 +177,9 @@ public class Compiler
       //
       // Failure
       //
+      addFailure();
       EventQueue.invokeLater( () -> {
-        addFailure( messages );
+        updateMessageTree( messages );
         MessageTree typeNode = messages.addTypeMessage( gsClass.getName(), null, MessageTree.empty() );
         messages.addFailureMessage( e.getMessage(), typeNode, MessageTree.empty() );
         e.printStackTrace();
@@ -184,6 +208,7 @@ public class Compiler
     {
       return false;
     }
+    makeClassFile( gsClass, bytes );
     for( IGosuClass innerClass : gsClass.getInnerClasses() )
     {
       if( !compileClass( innerClass, consumer ) )
@@ -192,6 +217,37 @@ public class Compiler
       }
     }
     return true;
+  }
+
+  private void makeClassFile( IGosuClass gsClass, byte[] bytes )
+  {
+    if( !CompilerSettings.isStaticCompile() )
+    {
+      return;
+    }
+
+    File outputDir = CompilerSettings.getCompilerOutputDir();
+    if( !outputDir.exists() )
+    {
+      if( !outputDir.mkdirs() || !outputDir.isDirectory() )
+      {
+        return;
+      }
+    }
+
+    String javaName = gsClass.getJavaName();
+    javaName = javaName.replace( '.', File.separatorChar ) + ".class";
+    File classFile = new File( outputDir, javaName );
+    //noinspection ResultOfMethodCallIgnored
+    classFile.getParentFile().mkdirs();
+    try( FileOutputStream writer = new FileOutputStream( classFile ) )
+    {
+      writer.write( bytes );
+    }
+    catch( IOException e )
+    {
+      throw new RuntimeException( e );
+    }
   }
 
   protected void parseImpl( IGosuClass gsClass )

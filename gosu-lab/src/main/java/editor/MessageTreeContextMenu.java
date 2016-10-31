@@ -88,7 +88,7 @@ public class MessageTreeContextMenu implements IContextMenuHandler<MessageTree>
 
     public void actionPerformed( ActionEvent e )
     {
-      Clipboard clipboard = RunMe.getEditorFrame().getGosuPanel().getClipboard();
+      Clipboard clipboard = LabFrame.instance().getGosuPanel().getClipboard();
       clipboard.setContents( new StringSelection( _message ), this );
     }
   }

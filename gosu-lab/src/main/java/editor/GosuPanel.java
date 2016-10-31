@@ -250,6 +250,11 @@ public class GosuPanel extends JPanel
     item = new LabToolbarButton( new CommonMenus.ShipItActionHandler() );
     toolbar.add( item );
 
+    toolbar.add( makeSeparator() );
+
+    item = new LabToolbarButton( new CommonMenus.SettingsActionHandler() );
+    toolbar.add( item );
+
     return toolbar;
   }
   private JComponent makeSeparator()
@@ -375,7 +380,7 @@ public class GosuPanel extends JPanel
       return;
     }
     getExperiment().save();
-    EditorUtilities.saveLayoutState( _experiment );
+    LabFrame.instance().saveLabState( _experiment );
   }
 
   public Experiment getExperiment()
@@ -389,7 +394,7 @@ public class GosuPanel extends JPanel
 
     RunMe.reinitializeGosu( experiment );
 
-    RunMe.getEditorFrame().addExperiment( experiment );
+    LabFrame.instance().addExperiment( experiment );
 
     for( String openFile : experiment.getOpenFiles() )
     {
@@ -675,7 +680,7 @@ public class GosuPanel extends JPanel
 
 
     JMenuItem recentItem = new SmartMenuItem(
-      new AbstractAction( "Recent Editors" )
+      new AbstractAction( "Recent Files" )
       {
         @Override
         public void actionPerformed( ActionEvent e )
@@ -988,7 +993,7 @@ public class GosuPanel extends JPanel
 
   private GosuPanel getGosuPanel()
   {
-    return RunMe.getEditorFrame().getGosuPanel();
+    return LabFrame.instance().getGosuPanel();
   }
 
   private void makeEditMenu( JMenuBar menuBar )
@@ -1227,6 +1232,11 @@ public class GosuPanel extends JPanel
 
     fileMenu.addSeparator();
 
+
+    JMenuItem settings = new SmartMenuItem( new CommonMenus.SettingsActionHandler() ) ;
+    saveItem.setMnemonic( 'G' );
+    saveItem.setAccelerator( KeyStroke.getKeyStroke( EditorUtilities.CONTROL_KEY_NAME + " alt S" ) );
+    fileMenu.add( settings );
 
     JMenuItem classpathItem = new SmartMenuItem(
       new AbstractAction( "Dependencies..." )
@@ -2030,7 +2040,13 @@ public class GosuPanel extends JPanel
   public void clearDebugger()
   {
     _debugger = null;
-    EventQueue.invokeLater( () -> showDebugger( false ) );
+    EventQueue.invokeLater( () -> {
+      showDebugger( false );
+      if( getConsolePanel() != null )
+      {
+        showConsole( true );
+      }
+    } );
   }
 
   public void makeDebugger( VirtualMachine vm )
@@ -2276,7 +2292,7 @@ public class GosuPanel extends JPanel
       }
     }
 
-    LabelListPopup popup = new LabelListPopup( "Recent Views", mruViewsList, "No recent views" );
+    LabelListPopup popup = new LabelListPopup( "Recent Files", mruViewsList, "No recent files" );
     popup.addNodeChangeListener(
       e -> {
         ITabHistoryContext context = (ITabHistoryContext)e.getSource();

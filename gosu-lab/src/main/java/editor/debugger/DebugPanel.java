@@ -11,7 +11,7 @@ import editor.CommonMenus;
 import editor.FileTreeUtil;
 import editor.GosuEditor;
 import editor.GosuPanel;
-import editor.RunMe;
+import editor.LabFrame;
 import editor.Scheme;
 import editor.ToggleToolBarButton;
 import editor.VarTree;
@@ -335,7 +335,7 @@ public class DebugPanel extends JPanel implements IDisposable
 
   private GosuPanel getGosuPanel()
   {
-    return RunMe.getEditorFrame().getGosuPanel();
+    return LabFrame.instance().getGosuPanel();
   }
 
   private BreakpointManager getBreakpointManager()

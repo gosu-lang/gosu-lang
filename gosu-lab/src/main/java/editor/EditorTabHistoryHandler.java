@@ -24,7 +24,7 @@ public class EditorTabHistoryHandler implements ITabHistoryHandler
     {
       return;
     }
-    RunMe.getEditorFrame().selectTab( tabContext.getContentId() );
+    LabFrame.instance().selectTab( tabContext.getContentId() );
   }
 
   @Override
@@ -34,7 +34,7 @@ public class EditorTabHistoryHandler implements ITabHistoryHandler
     {
       return;
     }
-    RunMe.getEditorFrame().closeTab( tabContext.getContentId() );
+    LabFrame.instance().closeTab( tabContext.getContentId() );
   }
 
   static class EditorTabContext implements ITabHistoryContext

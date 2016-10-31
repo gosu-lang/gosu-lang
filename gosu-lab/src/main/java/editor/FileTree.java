@@ -418,7 +418,7 @@ public class FileTree implements MutableTreeNode, IFileWatcherListener
     return TypeSystem.getByFullNameIfValid( fqn );
   }
 
-  protected String makeFqn()
+  public String makeFqn()
   {
     FileTree sourcePathRoot = getSourcePathRoot();
     if( isDirectory() || isSourcePathRoot() || sourcePathRoot == null || getFileOrDir().getName().indexOf( '.' ) < 0 )
@@ -456,7 +456,7 @@ public class FileTree implements MutableTreeNode, IFileWatcherListener
         return;
       }
 
-      EditorUtilities.delete( getFileOrDir() );
+      LabFrame.delete( getFileOrDir() );
     }
   }
 
@@ -473,7 +473,7 @@ public class FileTree implements MutableTreeNode, IFileWatcherListener
   {
     if( getParent() == null )
     {
-      return EditorUtilities.loadLabIcon();
+      return LabFrame.loadLabIcon();
     }
     if( isDirectory() )
     {

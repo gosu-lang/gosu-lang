@@ -2,7 +2,7 @@ package editor.shipit;
 
 import editor.GotoProgramTypePopup;
 import editor.IHandleCancel;
-import editor.RunMe;
+import editor.LabFrame;
 import editor.Scheme;
 import editor.util.EditorUtilities;
 import editor.util.Experiment;
@@ -31,7 +31,7 @@ public class ShipItDialog extends JDialog implements IHandleCancel
 
   public ShipItDialog( Experiment experiment )
   {
-    super( RunMe.getEditorFrame(), "Ship It!", true );
+    super( LabFrame.instance(), "Ship It!", true );
     setIconImage( EditorUtilities.loadIcon( "images/shipit.png" ).getImage() );
     _experiment = experiment;
     configUi();

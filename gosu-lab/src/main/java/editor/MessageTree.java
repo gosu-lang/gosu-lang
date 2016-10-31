@@ -38,7 +38,7 @@ public class MessageTree extends AbstractTree<MessageTree, MessageTree.IssueNode
 
   public JTree getTree()
   {
-    return RunMe.getEditorFrame().getGosuPanel().getMessagesPanel().getTree();
+    return LabFrame.instance().getGosuPanel().getMessagesPanel().getTree();
   }
 
   public static IssueNode makeIssueMessage( IParseIssue issue )
@@ -78,9 +78,8 @@ public class MessageTree extends AbstractTree<MessageTree, MessageTree.IssueNode
       IGosuClass gsClass = _issue.getSource().getGosuClass();
       gsClass = getOuterMostEnclosingClass( gsClass );
 
-      RunMe.getEditorFrame().getGosuPanel().openType( gsClass.getName(), true );
-      EventQueue.invokeLater( () ->
-                                RunMe.getEditorFrame().getGosuPanel().getCurrentEditor().gotoLine( _issue.getLine(), _issue.getColumn() ) );
+      LabFrame.instance().getGosuPanel().openType( gsClass.getName(), true );
+      EventQueue.invokeLater( () -> LabFrame.instance().getGosuPanel().getCurrentEditor().gotoLine( _issue.getLine(), _issue.getColumn() ) );
     }
 
     private IGosuClass getOuterMostEnclosingClass( IGosuClass innerClass )

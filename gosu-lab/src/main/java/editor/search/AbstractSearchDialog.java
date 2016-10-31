@@ -4,8 +4,8 @@ import editor.FileTree;
 import editor.FileTreeUtil;
 import editor.GosuEditor;
 import editor.GosuPanel;
+import editor.LabFrame;
 import editor.NodeKind;
-import editor.RunMe;
 import editor.Scheme;
 import editor.util.AbstractDialog;
 import editor.util.DirectoryEditor;
@@ -50,7 +50,7 @@ public abstract class AbstractSearchDialog extends AbstractDialog
 
   public AbstractSearchDialog( FileTree searchDir, boolean bReplace, String title )
   {
-    super( RunMe.getEditorFrame(), title, true );
+    super( LabFrame.instance(), title, true );
     _searchDir = searchDir;
     _bReplace = bReplace;
     configUi();
@@ -153,7 +153,7 @@ public abstract class AbstractSearchDialog extends AbstractDialog
 
   private void setTextFromEditor()
   {
-    GosuEditor editor = RunMe.getEditorFrame().getGosuPanel().getCurrentEditor();
+    GosuEditor editor = LabFrame.instance().getGosuPanel().getCurrentEditor();
     if( editor != null )
     {
       String selection = editor.getSelectedText();
@@ -203,7 +203,7 @@ public abstract class AbstractSearchDialog extends AbstractDialog
 
     _prevSearchTree = getSearchResults();
 
-    GosuPanel gosuPanel = RunMe.getEditorFrame().getGosuPanel();
+    GosuPanel gosuPanel = LabFrame.instance().getGosuPanel();
     gosuPanel.showSearches( false );
     SearchPanel searchPanel = gosuPanel.showSearches( true );
     searchPanel.showReplace( _bReplace );
@@ -247,11 +247,11 @@ public abstract class AbstractSearchDialog extends AbstractDialog
       switch( (SearchScope)_cbScope.getSelectedItem() )
       {
         case CurrentFile:
-          return Collections.singletonList( FileTreeUtil.getRoot().find( RunMe.getEditorFrame().getGosuPanel().getCurrentFile() ) );
+          return Collections.singletonList( FileTreeUtil.getRoot().find( LabFrame.instance().getGosuPanel().getCurrentFile() ) );
         case OpenFiles:
-          return RunMe.getEditorFrame().getGosuPanel().getOpenFilesInProject();
+          return LabFrame.instance().getGosuPanel().getOpenFilesInProject();
         case SelectedFiles:
-          return Collections.singletonList( RunMe.getEditorFrame().getGosuPanel().getExperimentView().getSelectedTree() );
+          return Collections.singletonList( LabFrame.instance().getGosuPanel().getExperimentView().getSelectedTree() );
         case PreviousSearchFiles:
           return _prevSearchTree;
         default:
@@ -266,7 +266,7 @@ public abstract class AbstractSearchDialog extends AbstractDialog
 
   private List<FileTree> getSearchResults()
   {
-    SearchPanel searchPanel = RunMe.getEditorFrame().getGosuPanel().getSearchPanel();
+    SearchPanel searchPanel = LabFrame.instance().getGosuPanel().getSearchPanel();
     if( searchPanel == null )
     {
       return Collections.emptyList();
@@ -546,7 +546,7 @@ public abstract class AbstractSearchDialog extends AbstractDialog
     c.weightx = 1;
     c.weighty = 0;
     c.insets = new Insets( 5, 0, 0, 0 );
-    _cbDir = new DirectoryEditor( "Directory", _searchDir.getFileOrDir().getAbsolutePath(), RunMe::getEditorFrame );
+    _cbDir = new DirectoryEditor( "Directory", _searchDir.getFileOrDir().getAbsolutePath(), LabFrame::instance );
     configPanel.add( _cbDir, c );
 
 

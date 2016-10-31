@@ -17,6 +17,8 @@ import editor.search.SearchDialog;
 import editor.search.SearchPanel;
 import editor.search.UsageSearcher;
 import editor.search.UsageTarget;
+import editor.settings.CompilerSettings;
+import editor.settings.SettingsDialog;
 import editor.undo.AtomicUndoManager;
 import editor.util.EditorUtilities;
 import editor.util.Experiment;
@@ -436,6 +438,28 @@ public class CommonMenus
       return _runConfig.get();
     }
 
+
+    protected boolean prepareToExecute()
+    {
+      GosuPanel gosuPanel = getGosuPanel();
+      if( CompilerSettings.isStaticCompile() )
+      {
+        // Run Make before execution
+        if( !gosuPanel.make() )
+        {
+          return false;
+        }
+      }
+      if( !CompilerSettings.isStaticCompile() ||
+          !gosuPanel.getMessagesPanel().hasErrors() )
+      {
+        gosuPanel.showConsole( true );
+        gosuPanel.clearOutput();
+        return true;
+      }
+      return false;
+    }
+
     public boolean isEnabled()
     {
       GosuPanel gosuPanel = getGosuPanel();
@@ -445,7 +469,7 @@ public class CommonMenus
 
   private static GosuPanel getGosuPanel()
   {
-    return RunMe.getEditorFrame().getGosuPanel();
+    return LabFrame.instance().getGosuPanel();
   }
 
   public static class ClearAndRunActionHandler extends AbstractRunActionHandler
@@ -466,9 +490,10 @@ public class CommonMenus
       IRunConfig runConfig = getRunConfig();
       if( runConfig != null && runConfig.isValid() && runConfig.isRunnable() )
       {
-        getGosuPanel().showConsole( true );
-        getGosuPanel().clearOutput();
-        getGosuPanel().execute( runConfig );
+        if( prepareToExecute() )
+        {
+          getGosuPanel().execute( runConfig );
+        }
       }
       else
       {
@@ -495,9 +520,10 @@ public class CommonMenus
       IRunConfig runConfig = getRunConfig();
       if( runConfig != null && runConfig.isValid() && runConfig.isDebuggable() )
       {
-        getGosuPanel().showConsole( true );
-        getGosuPanel().clearOutput();
-        getGosuPanel().debug( runConfig );
+        if( prepareToExecute() )
+        {
+          getGosuPanel().debug( runConfig );
+        }
       }
       else
       {
@@ -678,7 +704,7 @@ public class CommonMenus
 
     public void actionPerformed( ActionEvent e )
     {
-      RunMe.getEditorFrame().getGosuPanel().openExperiment();
+      LabFrame.instance().getGosuPanel().openExperiment();
     }
   }
 
@@ -691,7 +717,20 @@ public class CommonMenus
 
     public void actionPerformed( ActionEvent e )
     {
-      RunMe.getEditorFrame().getGosuPanel().save();
+      LabFrame.instance().getGosuPanel().save();
+    }
+  }
+
+  public static class SettingsActionHandler extends AbstractAction
+  {
+    public SettingsActionHandler()
+    {
+      super( "Settings...", EditorUtilities.loadIcon( "images/settings.png" ) );
+    }
+
+    public void actionPerformed( ActionEvent e )
+    {
+      new SettingsDialog().setVisible( true );
     }
   }
 

@@ -3,8 +3,8 @@ package editor.search;
 import editor.ClearablePanel;
 import editor.GosuPanel;
 import editor.ITreeNode;
+import editor.LabFrame;
 import editor.LabTreeCellRenderer;
-import editor.RunMe;
 import editor.Scheme;
 import editor.util.EditorUtilities;
 import editor.util.LabToolbarButton;
@@ -287,7 +287,7 @@ public class SearchPanel extends ClearablePanel
 
   private GosuPanel getGosuPanel()
   {
-    return RunMe.getEditorFrame().getGosuPanel();
+    return LabFrame.instance().getGosuPanel();
   }
 
   private void addReplaceButtonsPanel()

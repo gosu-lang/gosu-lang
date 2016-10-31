@@ -3,8 +3,10 @@ package editor.run;
 import com.sun.jdi.VirtualMachine;
 import editor.GosuEditor;
 import editor.GosuPanel;
-import editor.RunMe;
+import editor.LabFrame;
 import editor.TextComponentWriter;
+import editor.settings.CompilerSettings;
+import editor.util.Experiment;
 import editor.util.TaskQueue;
 import gw.util.GosuExceptionUtil;
 
@@ -169,18 +171,7 @@ public abstract class AbstractOutOfProcessExecutor<T extends IRunConfig> impleme
 
     String javaHomePath = System.getProperty( "java.home" );
 
-    List<String> srcPaths = gosuPanel.getExperiment().getSourcePath();
-
-    for( String path : srcPaths )
-    {
-      if( path.startsWith( javaHomePath ) )
-      {
-        // don't pack jre jars
-        continue;
-      }
-
-      classpath.append( path ).append( File.pathSeparator );
-    }
+    addExperimentPaths( gosuPanel, classpath, javaHomePath );
 
     String cp = System.getProperty( "java.class.path" );
     StringTokenizer tok = new StringTokenizer( cp, File.pathSeparator );
@@ -204,6 +195,29 @@ public abstract class AbstractOutOfProcessExecutor<T extends IRunConfig> impleme
     return classpath.toString();
   }
 
+  private void addExperimentPaths( GosuPanel gosuPanel, StringBuilder classpath, String javaHomePath )
+  {
+    if( CompilerSettings.isStaticCompile() )
+    {
+      classpath.append( CompilerSettings.getCompilerOutputDir().getAbsolutePath() ).append( File.pathSeparator );
+    }
+    else
+    {
+      Experiment experiment = gosuPanel.getExperiment();
+      List<String> srcPaths = experiment.getSourcePath();
+      for( String path : srcPaths )
+      {
+        if( path.startsWith( javaHomePath ) )
+        {
+          // don't pack jre jars
+          continue;
+        }
+
+        classpath.append( path ).append( File.pathSeparator );
+      }
+    }
+  }
+
   void printLabMessage( String message )
   {
     if( getGosuPanel().getConsolePanel() == null )
@@ -220,6 +234,6 @@ public abstract class AbstractOutOfProcessExecutor<T extends IRunConfig> impleme
 
   protected GosuPanel getGosuPanel()
   {
-    return RunMe.getEditorFrame().getGosuPanel();
+    return LabFrame.instance().getGosuPanel();
   }
 }

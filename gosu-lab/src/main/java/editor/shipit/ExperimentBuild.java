@@ -3,25 +3,30 @@ package editor.shipit;
 import editor.FileTree;
 import editor.FileTreeUtil;
 import editor.GosuPanel;
+import editor.LabFrame;
 import editor.NodeKind;
 import editor.MessageTree;
 import editor.MessagesPanel;
-import editor.RunMe;
 import editor.debugger.Debugger;
 import editor.search.IncrementalCompilerUsageSearcher;
+import editor.settings.CompilerSettings;
+import editor.util.Experiment;
 import editor.util.IProgressCallback;
 import editor.util.ModalEventQueue;
 import editor.util.ProgressFeedback;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.gs.IGosuClass;
+import gw.util.StreamUtil;
 import java.awt.EventQueue;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import javax.swing.JOptionPane;
 
 
 /**
@@ -62,27 +67,96 @@ public class ExperimentBuild
 
   public boolean rebuild( ICompileConsumer consumer )
   {
+    cleanCompileOutput();
+    copySources();
     boolean result = build( chainForNotDebugging( consumer ), Collections.singleton( FileTreeUtil.getRoot() ), false );
     TypeSystem.refresh( false );
     return result;
   }
 
+  private void copySources()
+  {
+    if( !CompilerSettings.isStaticCompile() )
+    {
+      return;
+    }
+    File outputPath = CompilerSettings.getCompilerOutputDir();
+    if( !outputPath.isDirectory() )
+    {
+      if( !outputPath.mkdirs() )
+      {
+        JOptionPane.showMessageDialog( LabFrame.instance(), "Invalid compiler output path: " + outputPath.getAbsolutePath() );
+      }
+    }
+    Experiment experiment = LabFrame.instance().getGosuPanel().getExperiment();
+    for( String sp : experiment.getSourcePath() )
+    {
+      File sourcePath = new File( sp ).getAbsoluteFile();
+      for( File child: sourcePath.listFiles() )
+      {
+        StreamUtil.copy( child, outputPath );
+      }
+    }
+  }
+
+  private void cleanCompileOutput()
+  {
+    if( CompilerSettings.isStaticCompile() )
+    {
+      File dir = CompilerSettings.getCompilerOutputDir();
+      if( dir.isDirectory() )
+      {
+        for( File child : dir.listFiles() )
+        {
+          LabFrame.delete( child );
+        }
+      }
+    }
+  }
+
   private Set<IType> findTypesToCompile()
   {
+    File outputPath = CompilerSettings.getCompilerOutputDir();
     Set<IType> types = new HashSet<>();
-    for( FileTree ft: _fileChangeFinder.findChangedFiles( ref -> ref.getType() != null ) )
+    for( FileTree ft: _fileChangeFinder.findChangedFiles( ref -> true ) )
     {
-      IncrementalCompilerUsageSearcher searcher = new IncrementalCompilerUsageSearcher( ft.getType() );
-      searcher.headlessSearch( FileTreeUtil.getRoot() );
-      types.addAll( searcher.getTypes() );
+      if( ft.getType() != null )
+      {
+        IncrementalCompilerUsageSearcher searcher = new IncrementalCompilerUsageSearcher( ft.getType() );
+        searcher.headlessSearch( FileTreeUtil.getRoot() );
+        types.addAll( searcher.getTypes() );
+      }
+      else if( ft.isFile() && outputPath != null )
+      {
+        copySourceFileToOutputDir( outputPath, ft );
+      }
     }
     types.addAll( _errantTypes );
     return types;
   }
 
+  private void copySourceFileToOutputDir( File outputPath, FileTree ft )
+  {
+    String fqnDir = ft.getParent().makeFqn();
+    File dir;
+    if( fqnDir != null )
+    {
+      fqnDir = fqnDir.replace( '.', File.separatorChar );
+      dir = new File( outputPath, fqnDir );
+      //noinspection ResultOfMethodCallIgnored
+      dir.mkdirs();
+    }
+    else
+    {
+      dir = outputPath;
+    }
+    File file = new File( dir, ft.getFileOrDir().getName() );
+    StreamUtil.copy( ft.getFileOrDir(), file );
+  }
+
   private Debugger getDebugger()
   {
-    return RunMe.getEditorFrame().getGosuPanel().getDebugger();
+    return LabFrame.instance().getGosuPanel().getDebugger();
   }
 
   private ICompileConsumer chainForDebugging( ICompileConsumer consumer )
@@ -113,7 +187,7 @@ public class ExperimentBuild
 
   private boolean build( ICompileConsumer consumer, Set sources, boolean incremental )
   {
-    GosuPanel gosuPanel = RunMe.getEditorFrame().getGosuPanel();
+    GosuPanel gosuPanel = LabFrame.instance().getGosuPanel();
     _errantTypes = new HashSet<>();
     try
     {

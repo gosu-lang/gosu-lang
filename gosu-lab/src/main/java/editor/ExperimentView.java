@@ -83,10 +83,10 @@ public class ExperimentView extends JPanel
 
   private void addExamples()
   {
-    java.util.List<File> examples = EditorUtilities.getStockExampleExperiments();
+    java.util.List<File> examples = LabFrame.getStockExampleExperiments();
     for( File dir: examples )
     {
-      LabToolbarButton item = new LabToolbarButton( dir.getName(), EditorUtilities.loadLabIcon() );
+      LabToolbarButton item = new LabToolbarButton( dir.getName(), LabFrame.loadLabIcon() );
       item.setToolTipText( null );
       item.setShowText( true );
       item.setHorizontalAlignment( SwingConstants.LEFT );
@@ -213,7 +213,7 @@ public class ExperimentView extends JPanel
       else
       {
         // Open files on desktop in native app
-        EditorUtilities.openFileOrDir( fileTree.getFileOrDir() );
+        LabFrame.openFileOrDir( fileTree.getFileOrDir() );
       }
     }
   }

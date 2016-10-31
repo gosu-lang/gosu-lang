@@ -4,8 +4,8 @@ import editor.ExternalFileTree;
 import editor.FileTree;
 import editor.FileTreeUtil;
 import editor.GosuPanel;
+import editor.LabFrame;
 import editor.NodeKind;
-import editor.RunMe;
 import editor.util.EditorUtilities;
 import editor.util.ModalEventQueue;
 import editor.util.ProgressFeedback;
@@ -699,7 +699,7 @@ public class UsageSearcher extends AbstractSearcher
 
   public void search( FileTree tree )
   {
-    GosuPanel gosuPanel = RunMe.getEditorFrame().getGosuPanel();
+    GosuPanel gosuPanel = LabFrame.instance().getGosuPanel();
     gosuPanel.showSearches( false );
     SearchPanel searchPanel = gosuPanel.showSearches( true );
     //searchPanel.setReplacePattern( (String)_cbReplace.getSelectedItem() );
@@ -733,7 +733,7 @@ public class UsageSearcher extends AbstractSearcher
 
   public List<SearchLocation> searchLocal()
   {
-    GosuPanel gosuPanel = RunMe.getEditorFrame().getGosuPanel();
+    GosuPanel gosuPanel = LabFrame.instance().getGosuPanel();
     FileTree tree = FileTreeUtil.find( gosuPanel.getCurrentFile() );
     IType type;
     if( tree == null )

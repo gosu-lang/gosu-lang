@@ -759,7 +759,7 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
 
   public void showFileInTree()
   {
-    GosuPanel gosuPanel = RunMe.getEditorFrame().getGosuPanel();
+    GosuPanel gosuPanel = LabFrame.instance().getGosuPanel();
     File file = gosuPanel.getCurrentFile();
 
     FileTree root = FileTreeUtil.getRoot();
@@ -2972,7 +2972,7 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
     {
       return;
     }
-    RunMe.getEditorFrame().getGosuPanel().getClipboard().setContents( new StringSelection( type.getName() ), null );
+    LabFrame.instance().getGosuPanel().getClipboard().setContents( new StringSelection( type.getName() ), null );
   }
 
   public void displayTypeInfoAtCurrentLocation()
@@ -3462,13 +3462,13 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
         IFile sourceFile = gsClass.getSourceFileHandle().getFile();
         if( sourceFile != null && sourceFile.isJavaFile() )
         {
-          RunMe.getEditorFrame().getGosuPanel().openFile( sourceFile.toJavaFile(), true );
+          LabFrame.instance().getGosuPanel().openFile( sourceFile.toJavaFile(), true );
           SettleModalEventQueue.instance().run();
         }
       }
-      RunMe.getEditorFrame().getGosuPanel().getCurrentEditor().getEditor().setCaretPosition( targetPe.getLocation().getOffset() );
+      LabFrame.instance().getGosuPanel().getCurrentEditor().getEditor().setCaretPosition( targetPe.getLocation().getOffset() );
 
-      GosuPanel gosuPanel = RunMe.getEditorFrame().getGosuPanel();
+      GosuPanel gosuPanel = LabFrame.instance().getGosuPanel();
       GosuEditor currentEditor = gosuPanel.getCurrentEditor();
       int currentCaretPos = currentEditor.getEditor().getCaretPosition();
       if( currentEditor == this && currentCaretPos != prevCaretPos )
@@ -4027,7 +4027,7 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
         int linesInserted = change.getChildrenAdded().length - change.getChildrenRemoved().length;
         if( linesInserted != 0 && _partId != null )
         {
-          BreakpointManager bpm = RunMe.getEditorFrame().getGosuPanel().getBreakpointManager();
+          BreakpointManager bpm = LabFrame.instance().getGosuPanel().getBreakpointManager();
           {
             Collection<Breakpoint> breakpoints = bpm.getLineBreakpointsForType( _partId.getContainingTypeName() );
             for( Breakpoint bp : breakpoints )

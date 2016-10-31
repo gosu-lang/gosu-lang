@@ -2,7 +2,7 @@ package editor.search;
 
 import editor.FileTree;
 import editor.GosuEditor;
-import editor.RunMe;
+import editor.LabFrame;
 
 import java.util.List;
 
@@ -36,7 +36,7 @@ public class LocalSearchDialog extends AbstractSearchDialog
 
   private void highlight()
   {
-    GosuEditor editor = RunMe.getEditorFrame().getGosuPanel().getCurrentEditor();
+    GosuEditor editor = LabFrame.instance().getGosuPanel().getCurrentEditor();
     if( editor.getSelectedText() != null )
     {
       editor.getEditor().setCaretPosition( editor.getEditor().getSelectionStart() - 1 );

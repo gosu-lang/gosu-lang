@@ -1,7 +1,7 @@
 package editor.search;
 
 import editor.IContextMenuHandler;
-import editor.RunMe;
+import editor.LabFrame;
 import editor.util.SmartMenuItem;
 
 import javax.swing.*;
@@ -90,7 +90,7 @@ public class SearchTreeContextMenu implements IContextMenuHandler<SearchTree>
 
     public void actionPerformed( ActionEvent e )
     {
-      Clipboard clipboard = RunMe.getEditorFrame().getGosuPanel().getClipboard();
+      Clipboard clipboard = LabFrame.instance().getGosuPanel().getClipboard();
       clipboard.setContents( new StringSelection( _search ), this );
     }
   }

@@ -4,9 +4,14 @@
 
 package gw.util;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.Closeable;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.Flushable;
 import java.io.IOException;
 import java.io.InputStream;
@@ -231,6 +236,36 @@ public class StreamUtil
       out.write(buf, 0, count);
     }
     out.flush();
+  }
+
+  /**
+   * Recursively copy a file or directory to a directory.
+   */
+  public static void copy( File fileOrDirectory, File toDir )
+  {
+    File copy = new File( toDir, fileOrDirectory.getName() );
+    if( fileOrDirectory.isDirectory() )
+    {
+      //noinspection ResultOfMethodCallIgnored
+      copy.mkdir();
+      for( File child : fileOrDirectory.listFiles() )
+      {
+        copy( child, copy );
+      }
+    }
+    else
+    {
+      //noinspection ResultOfMethodCallIgnored
+      try( InputStream is = new BufferedInputStream( new FileInputStream( fileOrDirectory ) );
+           OutputStream os = new BufferedOutputStream( new FileOutputStream( copy ) ) )
+      {
+        StreamUtil.copy( is, os );
+      }
+      catch( Exception e )
+      {
+        throw new RuntimeException( e );
+      }
+    }
   }
 
   /**

@@ -4,6 +4,7 @@ import com.sun.jdi.Bootstrap;
 import com.sun.jdi.VirtualMachineManager;
 import com.sun.jdi.connect.Connector;
 import com.sun.jdi.connect.LaunchingConnector;
+import editor.settings.CompilerSettings;
 import editor.util.PlatformUtil;
 import gw.lang.Gosu;
 
@@ -28,7 +29,14 @@ public class OutOfProcessDebug extends AbstractOutOfProcessExecutor<FqnRunConfig
     String jreHome = getRunConfig().getJreForProcessOrDefault( defaultArguments.get( "home" ).value() );
     defaultArguments.get( "home" ).setValue( jreHome );
     String progArgs = getRunConfig().getProgArgs() == null ? "" : getRunConfig().getProgArgs();
-    defaultArguments.get( "main" ).setValue( Gosu.class.getName().replace( '.', '/' ) + " -fqn " + getRunConfig().getFqn() + " " + progArgs );
+    if( CompilerSettings.isStaticCompile() )
+    {
+      defaultArguments.get( "main" ).setValue( getRunConfig().getFqn().replace( '.', '/' ) + " " + progArgs );
+    }
+    else
+    {
+      defaultArguments.get( "main" ).setValue( Gosu.class.getName().replace( '.', '/' ) + " -fqn " + getRunConfig().getFqn() + " " + progArgs );
+    }
     String vmArgs = getRunConfig().getVmArgs() == null ? "" : getRunConfig().getVmArgs();
     defaultArguments.get( "options" ).setValue( vmArgs + " -cp \"" + makeClasspath( getGosuPanel(), true ) + "\"" );
     printLabMessage( makeDebuggingMessage( defaultArguments ) );

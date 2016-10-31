@@ -7,7 +7,7 @@ import com.sun.jdi.ThreadReference;
 import com.sun.jdi.VMDisconnectedException;
 import editor.GosuEditor;
 import editor.GosuPanel;
-import editor.RunMe;
+import editor.LabFrame;
 import gw.lang.parser.IParseTree;
 import gw.lang.parser.IParsedElement;
 import gw.lang.parser.expressions.IVarStatement;
@@ -316,7 +316,7 @@ public class BreakpointManager
 
   private GosuPanel getGosuPanel()
   {
-    return RunMe.getEditorFrame().getGosuPanel();
+    return LabFrame.instance().getGosuPanel();
   }
 
   private void repaintEditor()

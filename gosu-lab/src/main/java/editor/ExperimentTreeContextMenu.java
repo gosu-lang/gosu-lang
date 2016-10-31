@@ -6,7 +6,6 @@ import editor.util.Experiment;
 import editor.util.SmartMenu;
 import editor.util.SmartMenuItem;
 import gw.lang.reflect.IType;
-import gw.lang.reflect.gs.IGosuClass;
 
 import javax.swing.*;
 import java.awt.*;
@@ -109,7 +108,7 @@ public class ExperimentTreeContextMenu implements IContextMenuHandler<JTree>
       if( item != null )
       {
         NewFilePopup popup = new NewFilePopup();
-        popup.show( RunMe.getEditorFrame().getGosuPanel(), 200, 200 );
+        popup.show( LabFrame.instance().getGosuPanel(), 200, 200 );
       }
     }
   }
@@ -188,7 +187,7 @@ public class ExperimentTreeContextMenu implements IContextMenuHandler<JTree>
       FileTree item = (FileTree)_tree.getLastSelectedPathComponent();
       if( item != null )
       {
-        EditorUtilities.openFileOrDir( item.getFileOrDir() );
+        LabFrame.openFileOrDir( item.getFileOrDir() );
       }
     }
   }

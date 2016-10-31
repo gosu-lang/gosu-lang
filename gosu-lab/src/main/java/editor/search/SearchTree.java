@@ -4,8 +4,8 @@ import editor.AbstractTree;
 import editor.FileTree;
 import editor.GosuEditor;
 import editor.ITreeNode;
+import editor.LabFrame;
 import editor.NodeKind;
-import editor.RunMe;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.ITypeRef;
 import gw.lang.reflect.TypeSystem;
@@ -205,7 +205,7 @@ public class SearchTree extends AbstractTree<SearchTree, SearchTree.SearchTreeNo
   private void maybeUpdateDoc( int iOffset, int iLength, String pattern )
   {
     File file = getNode().getFile().getFileOrDir();
-    GosuEditor editor = RunMe.getEditorFrame().getGosuPanel().findTab( file );
+    GosuEditor editor = LabFrame.instance().getGosuPanel().findTab( file );
     if( editor == null )
     {
       return;
@@ -289,9 +289,8 @@ public class SearchTree extends AbstractTree<SearchTree, SearchTree.SearchTreeNo
         return;
       }
 
-      RunMe.getEditorFrame().getGosuPanel().openFile( _file.getFileOrDir(), true );
-      EventQueue.invokeLater( () ->
-                                RunMe.getEditorFrame().getGosuPanel().getCurrentEditor().gotoOffset( getLocation()._iOffset ) );
+      LabFrame.instance().getGosuPanel().openFile( _file.getFileOrDir(), true );
+      EventQueue.invokeLater( () -> LabFrame.instance().getGosuPanel().getCurrentEditor().gotoOffset( getLocation()._iOffset ) );
     }
 
     public FileTree getFile()

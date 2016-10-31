@@ -2,7 +2,7 @@ package editor.run;
 
 import editor.AbstractTreeCellRenderer;
 import editor.IHandleCancel;
-import editor.RunMe;
+import editor.LabFrame;
 import editor.Scheme;
 import editor.splitpane.CollapsibleSplitPane;
 import editor.tabpane.ITab;
@@ -50,7 +50,7 @@ public class RunConfigDialog extends JDialog implements IHandleCancel
 
   public RunConfigDialog( Experiment experiment, RunState runState )
   {
-    super( RunMe.getEditorFrame(), "Run Configurations", true );
+    super( LabFrame.instance(), "Run Configurations", true );
     _experiment = experiment;
     _runState = runState;
     _addedConfigs = new ArrayList<>();
@@ -59,12 +59,6 @@ public class RunConfigDialog extends JDialog implements IHandleCancel
     _mapRunConfigs = new HashMap<>();
 
     configUi();
-  }
-
-  @Override
-  public void setVisible( boolean visible )
-  {
-    super.setVisible( visible );
   }
 
   protected void configUi()
@@ -459,8 +453,8 @@ public class RunConfigDialog extends JDialog implements IHandleCancel
 
     private boolean isRunningOrDebugging()
     {
-      return RunMe.getEditorFrame().getGosuPanel().isRunning() ||
-             RunMe.getEditorFrame().getGosuPanel().isDebugging();
+      return LabFrame.instance().getGosuPanel().isRunning() ||
+             LabFrame.instance().getGosuPanel().isDebugging();
     }
 
     private boolean canRunOrDebug( IRunConfig runConfig )

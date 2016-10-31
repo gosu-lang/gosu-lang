@@ -109,7 +109,7 @@ public class ClasspathDialog extends JDialog implements IHandleCancel
   private void setPathsList()
   {
     String strPaths = "";
-    List<String> paths =  RunMe.getEditorFrame().getGosuPanel().getExperimentView().getExperiment().getSourcePath();
+    List<String> paths =  LabFrame.instance().getGosuPanel().getExperimentView().getExperiment().getSourcePath();
     for( int i = 0; i < paths.size(); i++ )
     {
       String strPath = paths.get( i );
@@ -138,7 +138,7 @@ public class ClasspathDialog extends JDialog implements IHandleCancel
 
   private void savePathsAndReopenExperiment( List<File> pathFiles )
   {
-    GosuPanel gosuPanel = RunMe.getEditorFrame().getGosuPanel();
+    GosuPanel gosuPanel = LabFrame.instance().getGosuPanel();
     Experiment experiment = gosuPanel.getExperimentView().getExperiment();
     List<String> srcPaths = pathFiles.stream().map( File::getAbsolutePath ).collect( Collectors.toList() );
     experiment.setSourcePath( srcPaths );

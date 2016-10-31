@@ -4,8 +4,8 @@ import editor.ExternalFileTree;
 import editor.FileTree;
 import editor.FileTreeUtil;
 import editor.GosuPanel;
+import editor.LabFrame;
 import editor.NodeKind;
-import editor.RunMe;
 import gw.lang.reflect.gs.IGosuClass;
 import gw.util.GosuStringUtil;
 import gw.util.StreamUtil;
@@ -86,7 +86,7 @@ public class TextSearcher extends AbstractSearcher
 
   public List<SearchLocation> searchLocal()
   {
-    GosuPanel gosuPanel = RunMe.getEditorFrame().getGosuPanel();
+    GosuPanel gosuPanel = LabFrame.instance().getGosuPanel();
     FileTree tree = FileTreeUtil.find( gosuPanel.getCurrentFile() );
     if( tree == null )
     {

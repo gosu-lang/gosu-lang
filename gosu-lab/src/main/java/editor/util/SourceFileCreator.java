@@ -2,8 +2,8 @@ package editor.util;
 
 import editor.FileTree;
 import editor.GosuPanel;
+import editor.LabFrame;
 import editor.NewIdentifierDialog;
-import editor.RunMe;
 import editor.search.MessageDisplay;
 import gw.config.CommonServices;
 import gw.lang.reflect.TypeSystem;
@@ -51,7 +51,7 @@ public class SourceFileCreator
 
   private File getParentContext()
   {
-    GosuPanel gosuPanel = RunMe.getEditorFrame().getGosuPanel();
+    GosuPanel gosuPanel = LabFrame.instance().getGosuPanel();
     FileTree selection = gosuPanel.getExperimentView().getSelectedTree();
     File parent = null;
     if( selection != null && selection.getParent() != null )
@@ -95,7 +95,7 @@ public class SourceFileCreator
     TypeSystem.created( CommonServices.getFileSystem().getIFile( selectedFile ) );
     TypeSystem.refresh( TypeSystem.getGlobalModule() );
 
-    RunMe.getEditorFrame().openFile( selectedFile );
+    LabFrame.instance().openFile( selectedFile );
   }
 
   private boolean writeStub( File file, ClassType classType )

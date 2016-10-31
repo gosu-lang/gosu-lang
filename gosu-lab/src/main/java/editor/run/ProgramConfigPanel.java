@@ -1,7 +1,7 @@
 package editor.run;
 
 import editor.GotoProgramTypePopup;
-import editor.RunMe;
+import editor.LabFrame;
 import editor.Scheme;
 import editor.util.DirectoryEditor;
 import editor.util.EditorUtilities;
@@ -201,7 +201,7 @@ class ProgramConfigPanel extends JPanel
     c.weightx = 1;
     c.weighty = 0;
     c.insets = new Insets( 10, 0, 10, 0 );
-    DirectoryEditor editWorkingDir = new DirectoryEditor( label.getText(), _params.getWorkingDir(), RunMe::getEditorFrame );
+    DirectoryEditor editWorkingDir = new DirectoryEditor( label.getText(), _params.getWorkingDir(), LabFrame::instance );
     editWorkingDir.getDocument().addDocumentListener( new DocChangeHandler( this::validateWorkingDir, _params::setWorkingDir) );
     configPanel.add( editWorkingDir, c );
 
@@ -229,7 +229,7 @@ class ProgramConfigPanel extends JPanel
     c.weightx = 1;
     c.weighty = 0;
     c.insets = new Insets( 10, 0, 10, 0 );
-    DirectoryEditor editJre = new DirectoryEditor( cbJre.getText(), _params.getJre(), RunMe::getEditorFrame );
+    DirectoryEditor editJre = new DirectoryEditor( cbJre.getText(), _params.getJre(), LabFrame::instance );
     editJre.getDocument().addDocumentListener( new DocChangeHandler( this::validateJre, _params::setJre ) );
     EventQueue.invokeLater( () -> editJre.setEnabled( _params.isJreEnabled() ) );
     cbJre.addChangeListener( e -> editJre.setEnabled( cbJre.isSelected() ) );

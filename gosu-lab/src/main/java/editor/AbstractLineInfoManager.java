@@ -62,7 +62,7 @@ public abstract class AbstractLineInfoManager implements ILineInfoManager
 
   protected GosuPanel getGosuPanel()
   {
-    return RunMe.getEditorFrame().getGosuPanel();
+    return LabFrame.instance().getGosuPanel();
   }
 
   public void renderHighlight( Graphics g, int iLine )
@@ -132,7 +132,7 @@ public abstract class AbstractLineInfoManager implements ILineInfoManager
         public void actionPerformed( ActionEvent e )
         {
           bp.setActive( !bp.isActive() );
-          BreakpointManager bmp = RunMe.getEditorFrame().getGosuPanel().getBreakpointManager();
+          BreakpointManager bmp = LabFrame.instance().getGosuPanel().getBreakpointManager();
           Breakpoint csr = bmp.getBreakpoint( bp );
           if( csr != null )
           {

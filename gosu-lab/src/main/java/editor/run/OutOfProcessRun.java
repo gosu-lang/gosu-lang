@@ -1,5 +1,6 @@
 package editor.run;
 
+import editor.settings.CompilerSettings;
 import gw.lang.Gosu;
 
 import java.io.File;
@@ -28,9 +29,16 @@ public class OutOfProcessRun extends AbstractOutOfProcessExecutor<FqnRunConfig>
     args.addAll( getRunConfig().makeVmArgs() );
     args.add( "-classpath" );
     args.add( "\"" + classpath + "\"" );
-    args.add( Gosu.class.getName().replace( '.', '/' ) );
-    args.add( "-fqn" );
-    args.add( getRunConfig().getFqn() );
+    if( CompilerSettings.isStaticCompile() )
+    {
+      args.add( getRunConfig().getFqn().replace( ',', '/' ) );
+    }
+    else
+    {
+      args.add( Gosu.class.getName().replace( '.', '/' ) );
+      args.add( "-fqn" );
+      args.add( getRunConfig().getFqn() );
+    }
     //noinspection unchecked
     args.addAll( getRunConfig().makeProgArgs() );
 

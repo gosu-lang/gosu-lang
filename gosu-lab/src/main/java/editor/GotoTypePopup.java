@@ -32,7 +32,7 @@ public class GotoTypePopup extends AbstractGotoPopup<String>
         String strQualifedType = (String)e.getSource();
         doGoTo( strQualifedType );
       } );
-    Component host = RunMe.getEditorFrame().getRootPane();
+    Component host = LabFrame.instance().getRootPane();
     valuePopup.show( host, 0, 0 );
   }
 
@@ -63,7 +63,7 @@ public class GotoTypePopup extends AbstractGotoPopup<String>
         IFile sourceFile = sourceFiles[0];
         if( sourceFile.isJavaFile() )
         {
-          RunMe.getEditorFrame().openFile( sourceFile.toJavaFile() );
+          LabFrame.instance().openFile( sourceFile.toJavaFile() );
         }
       }
     }
@@ -89,8 +89,8 @@ public class GotoTypePopup extends AbstractGotoPopup<String>
 
   protected List<String> initializeData()
   {
-    List<String> allTypes = new ArrayList<>( RunMe.getEditorFrame().getGosuPanel().getTypeNamesCache().getAllTypeNames( null ) );
-    Experiment experiment = RunMe.getEditorFrame().getGosuPanel().getExperimentView().getExperiment();
+    List<String> allTypes = new ArrayList<>( LabFrame.instance().getGosuPanel().getTypeNamesCache().getAllTypeNames( null ) );
+    Experiment experiment = LabFrame.instance().getGosuPanel().getExperimentView().getExperiment();
     allTypes = filterTypes( allTypes, experiment );
     Collections.sort( allTypes, ( o1, o2 ) -> getRelativeTypeName( o1 ).compareToIgnoreCase( getRelativeTypeName( o2 ) ) );
     return allTypes;

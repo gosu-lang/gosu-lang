@@ -288,7 +288,7 @@ public class VarTree implements MutableTreeNode
 
   private MessagesPanel getMessagesPanel()
   {
-    return RunMe.getEditorFrame().getGosuPanel().getMessagesPanel();
+    return LabFrame.instance().getGosuPanel().getMessagesPanel();
   }
 
   public Icon getIcon()
@@ -307,6 +307,6 @@ public class VarTree implements MutableTreeNode
 
   public JTree getTree()
   {
-    return RunMe.getEditorFrame().getGosuPanel().getMessagesPanel().getTree();
+    return LabFrame.instance().getGosuPanel().getMessagesPanel().getTree();
   }
 }

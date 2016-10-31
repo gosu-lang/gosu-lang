@@ -5,7 +5,7 @@ import com.sun.jdi.InvocationException;
 import com.sun.jdi.Value;
 import editor.FileTree;
 import editor.FileTreeUtil;
-import editor.RunMe;
+import editor.LabFrame;
 import editor.search.StringUtil;
 import editor.util.EditorUtilities;
 import gw.lang.parser.IParseTree;
@@ -175,7 +175,7 @@ public class Breakpoint implements IJsonIO
       {
         try
         {
-          _debuggerRunScript.get().evaluate( RunMe.getEditorFrame().getGosuPanel().getDebugger() );
+          _debuggerRunScript.get().evaluate( LabFrame.instance().getGosuPanel().getDebugger() );
         }
         catch( InvocationException e )
         {
@@ -195,7 +195,7 @@ public class Breakpoint implements IJsonIO
         {
           try
           {
-            Value value = _debuggerExpr.get().evaluate( RunMe.getEditorFrame().getGosuPanel().getDebugger() );
+            Value value = _debuggerExpr.get().evaluate( LabFrame.instance().getGosuPanel().getDebugger() );
             if( value instanceof BooleanValue )
             {
               BooleanValue result = (BooleanValue)value;
@@ -220,7 +220,7 @@ public class Breakpoint implements IJsonIO
   {
     boolean[] shouldSuspend = {true};
     EditorUtilities.invokeInDispatchThread(
-      () -> shouldSuspend[0] = JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog( RunMe.getEditorFrame(), "<html>Trouble evaluating debugger expression.<br>Stop at breakpoint?", "Gosu Lab", JOptionPane.YES_NO_OPTION ) );
+      () -> shouldSuspend[0] = JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog( LabFrame.instance(), "<html>Trouble evaluating debugger expression.<br>Stop at breakpoint?", "Gosu Lab", JOptionPane.YES_NO_OPTION ) );
     return shouldSuspend[0];
   }
 

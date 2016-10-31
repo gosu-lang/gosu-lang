@@ -176,7 +176,7 @@ public class SystemPanel extends ClearablePanel
   @Override
   public void dispose()
   {
-    GosuPanel gosuPanel = RunMe.getEditorFrame().getGosuPanel();
+    GosuPanel gosuPanel = LabFrame.instance().getGosuPanel();
 
     gosuPanel.killProcess();
     gosuPanel.showConsole( false );
@@ -313,7 +313,7 @@ public class SystemPanel extends ClearablePanel
 
   private GosuPanel getGosuPanel()
   {
-    return RunMe.getEditorFrame().getGosuPanel();
+    return LabFrame.instance().getGosuPanel();
   }
 
   private class DocListener implements DocumentListener

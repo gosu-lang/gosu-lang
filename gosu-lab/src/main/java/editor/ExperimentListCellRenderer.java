@@ -1,7 +1,5 @@
 package editor;
 
-import editor.util.EditorUtilities;
-
 import javax.swing.*;
 import java.awt.*;
 import java.io.File;
@@ -27,7 +25,7 @@ public class ExperimentListCellRenderer extends DefaultListCellRenderer
 
     if( experimentDir != null )
     {
-      setIcon( EditorUtilities.loadLabIcon() );
+      setIcon( LabFrame.loadLabIcon() );
     }
 
     return renderer;

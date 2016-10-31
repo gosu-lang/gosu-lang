@@ -1,18 +1,10 @@
 package editor.util;
 
-import editor.BasicGosuEditor;
-import editor.GosuPanel;
-import editor.RunMe;
-import gw.config.CommonServices;
-import gw.fs.IDirectory;
-import gw.fs.IFile;
-import gw.fs.IResource;
-import gw.lang.reflect.Expando;
+import editor.LabFrame;
 import gw.lang.reflect.IFunctionType;
 import gw.lang.reflect.IMethodInfo;
 import gw.lang.reflect.IParameterInfo;
 import gw.lang.reflect.IType;
-import gw.lang.reflect.ReflectUtil;
 import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.gs.ClassType;
 import gw.lang.reflect.gs.IGosuClass;
@@ -23,12 +15,22 @@ import gw.lang.reflect.gs.ITemplateType;
 import gw.lang.reflect.java.IJavaType;
 import gw.lang.reflect.java.JavaTypes;
 import gw.util.GosuStringUtil;
-
-import javax.script.Bindings;
-import javax.swing.*;
-import javax.swing.filechooser.FileSystemView;
-import javax.swing.plaf.basic.BasicArrowButton;
-import java.awt.*;
+import java.awt.AWTEvent;
+import java.awt.ActiveEvent;
+import java.awt.Component;
+import java.awt.Container;
+import java.awt.Dimension;
+import java.awt.EventQueue;
+import java.awt.Frame;
+import java.awt.GraphicsDevice;
+import java.awt.GraphicsEnvironment;
+import java.awt.Image;
+import java.awt.KeyboardFocusManager;
+import java.awt.MenuComponent;
+import java.awt.Point;
+import java.awt.Rectangle;
+import java.awt.Toolkit;
+import java.awt.Window;
 import java.awt.datatransfer.Clipboard;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
@@ -37,16 +39,10 @@ import java.awt.image.ImageProducer;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
-import java.io.FileOutputStream;
-import java.io.FileWriter;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.lang.reflect.Method;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -55,6 +51,22 @@ import java.util.Map;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JComponent;
+import javax.swing.JDialog;
+import javax.swing.JFrame;
+import javax.swing.JMenu;
+import javax.swing.JOptionPane;
+import javax.swing.JPopupMenu;
+import javax.swing.JRootPane;
+import javax.swing.JWindow;
+import javax.swing.SwingUtilities;
+import javax.swing.ToolTipManager;
+import javax.swing.UIManager;
+import javax.swing.filechooser.FileSystemView;
+import javax.swing.plaf.basic.BasicArrowButton;
 
 public class EditorUtilities
 {
@@ -257,7 +269,7 @@ public class EditorUtilities
   {
     if( fileOrDir.isDirectory() )
     {
-      if( RunMe.getEditorFrame().getGosuPanel().getExperimentView().getExperiment().getSourcePath().contains( fileOrDir.getAbsolutePath() ) )
+      if( LabFrame.instance().getGosuPanel().getExperimentView().getExperiment().getSourcePath().contains( fileOrDir.getAbsolutePath() ) )
       {
         return loadIcon( "images/srcfolder.png" );
       }
@@ -387,7 +399,7 @@ public class EditorUtilities
 
   public static Clipboard getClipboard()
   {
-    return RunMe.getEditorFrame().getGosuPanel().getClipboard();
+    return LabFrame.instance().getGosuPanel().getClipboard();
   }
 
   public static Frame frameForComponent( Component comp )
@@ -825,377 +837,6 @@ public class EditorUtilities
     return null;
   }
 
-  public static File getUserFile( GosuPanel gosuPanel )
-  {
-    File file = new File( getUserGosuEditorDir(), "layout.gosulab" );
-    if( !file.isFile() )
-    {
-      Expando bindings = new Expando();
-      bindings.put( "Title", "Gosu Lab" );
-      bindings.put( "Version", 1 );
-      bindings.put( "Experiments", Arrays.asList( makeScratchExperiment( gosuPanel ).getExperimentDir().getAbsolutePath() ) );
-
-      try( FileWriter fw = new FileWriter( file ) )
-      {
-        String json = (String)ReflectUtil.invokeMethod( bindings, "toJson" );
-        fw.write( json );
-      }
-      catch( Exception e )
-      {
-        throw new RuntimeException( e );
-      }
-    }
-    return file;
-  }
-
-  public static Integer getVersion( GosuPanel gosuPanel ) throws MalformedURLException
-  {
-    Bindings bindings = (Bindings)ReflectUtil.getProperty( getUserFile( gosuPanel ).toURI().toURL(), "JsonContent" );
-    return (Integer)bindings.get( "Version" );
-  }
-
-  public static Experiment loadRecentExperiment( GosuPanel gosuPanel )
-  {
-    Bindings bindings;
-    try
-    {
-      bindings = (Bindings)ReflectUtil.getProperty( getUserFile( gosuPanel ).toURI().toURL(), "JsonContent" );
-    }
-    catch( MalformedURLException e )
-    {
-      throw new RuntimeException( e );
-    }
-    //noinspection unchecked
-    restoreLayoutState( bindings );
-    return new Experiment( new File( RunMe.getEditorFrame().getExperiments().get( 0 ) ), gosuPanel );
-  }
-
-  public static void saveLayoutState( Experiment experiment )
-  {
-    if( !RunMe.getEditorFrame().isVisible() )
-    {
-      return;
-    }
-
-    File userFile = getUserFile( experiment.getGosuPanel() );
-    try( FileWriter fw = new FileWriter( userFile ) )
-    {
-      Expando bindings = new Expando();
-
-      bindings.put( "Title", "Gosu Lab" );
-      bindings.put( "Version", 1 );
-
-      RunMe.getEditorFrame().addExperiment( experiment );
-      bindings.put( "Experiments", RunMe.getEditorFrame().getExperiments() );
-
-      saveScreenProps( bindings );
-
-      String json = (String)ReflectUtil.invokeMethod( bindings, "toJson" );
-      fw.write( json );
-    }
-    catch( Exception e )
-    {
-      throw new RuntimeException( e );
-    }
-  }
-
-  private static void saveScreenProps( Expando bindings )
-  {
-    BasicGosuEditor frame = RunMe.getEditorFrame();
-    boolean maximized = (frame.getExtendedState() & Frame.MAXIMIZED_BOTH) == Frame.MAXIMIZED_BOTH;
-
-    Expando bindingsFrame = new Expando();
-    bindings.put( "Frame", bindingsFrame );
-    bindingsFrame.put( "Maximized", maximized ? 1 : 0 );
-
-    Rectangle bounds = frame.getRestoreBounds();
-    Expando bindingsBounds = new Expando();
-    bindingsFrame.put( "Bounds", bindingsBounds );
-    if( bounds != null )
-    {
-      ScreenUtil.convertToPercentageOfScreenWidth( bounds );
-      bindingsBounds.put( "X", bounds.x );
-      bindingsBounds.put( "Y", bounds.y );
-      bindingsBounds.put( "Width", bounds.width );
-      bindingsBounds.put( "Height", bounds.height );
-    }
-  }
-
-  private static void restoreLayoutState( Bindings bindings )
-  {
-    BasicGosuEditor frame = RunMe.getEditorFrame();
-    Bindings bindingsFrame = (Bindings)bindings.get( "Frame" );
-    boolean bSet = false;
-    if( bindingsFrame != null )
-    {
-      Bindings bindingsBounds = (Bindings)bindingsFrame.get( "Bounds" );
-      Integer x = (Integer)bindingsBounds.get( "X" );
-      Integer y = (Integer)bindingsBounds.get( "Y" );
-      Integer width = (Integer)bindingsBounds.get( "Width" );
-      Integer height = (Integer)bindingsBounds.get( "Height" );
-      if( height != null )
-      {
-        Rectangle bounds = new Rectangle( x, y, width, height );
-        ScreenUtil.convertFromPercentageOfScreenWidth( bounds );
-        frame.setBounds( bounds );
-        frame.setRestoreBounds( bounds );
-        bSet = true;
-      }
-    }
-
-    if( !bSet )
-    {
-      setInitialFrameBounds( RunMe.getEditorFrame() );
-    }
-
-    if( bindingsFrame != null && (Integer)bindingsFrame.get( "Maximized" ) == 1 )
-    {
-      frame.setExtendedState( Frame.MAXIMIZED_BOTH );
-    }
-
-    //noinspection unchecked
-    frame.setExperiments( (List<String>)bindings.get( "Experiments" ) );
-  }
-
-  private static void setInitialFrameBounds( Frame frame )
-  {
-    Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-    int width = screenSize.width * 2 / 3;
-    int height = width * 2 / 3;
-    frame.setSize( width, height );
-    EditorUtilities.centerWindowInFrame( frame, frame );
-  }
-
-  public static File getUserGosuEditorDir()
-  {
-    File gosuDir = new File( System.getProperty( "user.home" ), ".GosuLab" );
-    //noinspection ResultOfMethodCallIgnored
-    gosuDir.mkdirs();
-    return gosuDir;
-  }
-
-  public static File getStockExperimentsDir()
-  {
-    File gosuDir = new File( System.getProperty( "user.home" ) + File.separator + ".GosuLab" + File.separator + "experiments" );
-    //noinspection ResultOfMethodCallIgnored
-    copyExampleExperiments( getStockExamplesDir() );
-    return gosuDir;
-  }
-
-  private static void copyExampleExperiments( File gosuDir )
-  {
-    URL marker = EditorUtilities.class.getClassLoader().getResource( "examples/marker.txt" );
-    try
-    {
-      IDirectory examplesDir = CommonServices.getFileSystem().getIFile( marker ).getParent();
-      copyExamples( examplesDir, gosuDir );
-    }
-    catch( Exception e )
-    {
-      throw new RuntimeException( e );
-    }
-  }
-
-  private static void copyExamples( IResource from, File to )
-  {
-    if( from instanceof IDirectory )
-    {
-      if( !to.getName().equals( "examples" ) && to.exists() )
-      {
-        // already have this experiment
-        return;
-      }
-
-      if( !to.exists() && !to.mkdirs() )
-      {
-        System.out.println( "Failed to create experiment directory: " + to.getAbsolutePath() );
-      }
-
-      for( IDirectory child : ((IDirectory)from).listDirs() )
-      {
-        copyExamples( child, new File( to, child.getName() ) );
-      }
-      for( IFile child : ((IDirectory)from).listFiles() )
-      {
-        copyExamples( child, new File( to, child.getName() ) );
-      }
-    }
-    else
-    {
-      try
-      {
-        InputStream in = ((IFile)from).openInputStream();
-        OutputStream out = new FileOutputStream( to );
-        byte[] buf = new byte[1024];
-        int len;
-        while( (len = in.read( buf )) > 0 )
-        {
-          out.write( buf, 0, len );
-        }
-        in.close();
-        out.close();
-      }
-      catch( Exception e )
-      {
-        throw new RuntimeException( e );
-      }
-    }
-  }
-
-  public static File getStockExamplesDir()
-  {
-    File gosuDir = new File( System.getProperty( "user.home" ) + File.separator + ".GosuLab" + File.separator + "examples" );
-    //noinspection ResultOfMethodCallIgnored
-    gosuDir.mkdirs();
-    return gosuDir;
-  }
-
-  public static List<File> getStockExampleExperiments()
-  {
-    List<File> experiments = new ArrayList<>();
-    File experimentsDir = getStockExamplesDir();
-    for( File dir : experimentsDir.listFiles() )
-    {
-      if( dir.isDirectory() )
-      {
-        File experimentFile = findExperimentFile( dir );
-        if( experimentFile != null )
-        {
-          experiments.add( dir );
-        }
-      }
-    }
-    return experiments;
-  }
-
-  public static File findExperimentFile( File dir )
-  {
-    for( File f : dir.listFiles() )
-    {
-      if( f.getName().equalsIgnoreCase( dir.getName() + ".prj" ) )
-      {
-        return f;
-      }
-    }
-    return null;
-  }
-
-  private static Experiment makeScratchExperiment( GosuPanel gosuPanel )
-  {
-    File experimentDir = new File( getStockExperimentsDir(), "Scratch" );
-    return new Experiment( experimentDir, gosuPanel );
-  }
-
-  public static void openFileOrDir( File file )
-  {
-    try
-    {
-      File parent;
-      if( file.isDirectory() )
-      {
-        parent = file;
-        file = null;
-      }
-      else
-      {
-        if( !file.exists() )
-        {
-          return;
-        }
-        file = file.getAbsoluteFile();
-        parent = file.getParentFile();
-        if( parent == null )
-        {
-          return;
-        }
-      }
-      doOpen( parent, file );
-    }
-    catch( Exception e )
-    {
-      throw new RuntimeException( e );
-    }
-  }
-
-  private static void doOpen( File dir, File toSelect ) throws IOException
-  {
-    if( PlatformUtil.isWindows() )
-    {
-      String cmd;
-      if( toSelect != null )
-      {
-        cmd = "explorer /select," + toSelect.getAbsolutePath();
-      }
-      else
-      {
-        cmd = "explorer /root," + dir.getAbsolutePath();
-      }
-      // no quoting/escaping is needed
-      Runtime.getRuntime().exec( cmd );
-      return;
-    }
-
-    if( PlatformUtil.isMac() )
-    {
-      if( toSelect != null )
-      {
-        final String script = String.format(
-          "tell application \"Finder\"\n" +
-          "\treveal {\"%s\"} as POSIX file\n" +
-          "\tactivate\n" +
-          "end tell", toSelect.getAbsolutePath() );
-        Runtime.getRuntime().exec( new String[]{"/usr/bin/osascript", "-e", script} );
-      }
-      else
-      {
-        Runtime.getRuntime().exec( new String[]{"open", dir.getAbsolutePath()} );
-      }
-      return;
-    }
-    String path = dir.getAbsolutePath();
-    if( PlatformUtil.hasXdgOpen() )
-    {
-      Runtime.getRuntime().exec( new String[]{"/usr/bin/xdg-open", path} );
-    }
-    else if( Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported( Desktop.Action.OPEN ) )
-    {
-      Desktop.getDesktop().open( new File( path ) );
-    }
-    else
-    {
-      JOptionPane.showMessageDialog( RunMe.getEditorFrame(),
-                                     "This action isn't supported on the current platform",
-                                     "Cannot Open File",
-                                     JOptionPane.ERROR_MESSAGE );
-    }
-  }
-
-  public static void delete( File fileOrDir )
-  {
-    if( fileOrDir.isDirectory() )
-    {
-      for( File f : fileOrDir.listFiles() )
-      {
-        if( f.isDirectory() )
-        {
-          delete( f );
-        }
-        else
-        {
-          //noinspection ResultOfMethodCallIgnored
-          f.delete();
-        }
-      }
-    }
-    //noinspection ResultOfMethodCallIgnored
-    fileOrDir.delete();
-  }
-
-  public static ImageIcon loadLabIcon()
-  {
-    return loadIcon( "images/g_16.png" );
-  }
-
   public static <T> List<T> findDecendents( Component configUI, Class<T> aClass )
   {
     return findDecendents( configUI, aClass, c -> true );
@@ -1243,8 +884,8 @@ public class EditorUtilities
     {
       return false;
     }
-    if( RunMe.getEditorFrame().getGosuPanel().isRunning() ||
-        RunMe.getEditorFrame().getGosuPanel().isDebugging() )
+    if( LabFrame.instance().getGosuPanel().isRunning() ||
+        LabFrame.instance().getGosuPanel().isDebugging() )
     {
       return false;
     }

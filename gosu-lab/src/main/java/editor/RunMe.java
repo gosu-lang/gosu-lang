@@ -1,7 +1,6 @@
 package editor;
 
 
-import editor.util.EditorUtilities;
 import editor.util.Experiment;
 import editor.util.SettleModalEventQueue;
 import gw.config.CommonServices;
@@ -24,16 +23,9 @@ import java.util.stream.Collectors;
  */
 public class RunMe
 {
-  private static BasicGosuEditor _gosuEditor;
-
   public static void main( String[] args ) throws Exception
   {
     launchEditor();
-  }
-
-  public static BasicGosuEditor getEditorFrame()
-  {
-    return _gosuEditor;
   }
 
   public static void launchEditor() throws Exception
@@ -41,13 +33,13 @@ public class RunMe
     EventQueue.invokeLater(
       () -> {
         SplashScreen.instance().setFeedbackText( "Initializing..." );
-        _gosuEditor = BasicGosuEditor.create();
+        LabFrame.create();
         reinitializeGosu( null ); // this is so we can use Gosu to write Gosu Lab :) (right now we are only using the Json stuff)
-        _gosuEditor.checkForUpdate( _gosuEditor.getGosuPanel() );
-        _gosuEditor.restoreState( EditorUtilities.loadRecentExperiment( _gosuEditor.getGosuPanel() ) );
+        LabFrame.instance().checkForUpdate( LabFrame.instance().getGosuPanel() );
+        LabFrame.instance().restoreState( LabFrame.instance().loadRecentExperiment( LabFrame.instance().getGosuPanel() ) );
         SettleModalEventQueue.instance().run();
         SplashScreen.instance().dispose();
-        _gosuEditor.showMe();
+        LabFrame.instance().showMe();
       } );
   }
 
@@ -74,13 +66,8 @@ public class RunMe
         classpath.add( path );
       }
     }
-    List<String> collect = Gosu.deriveClasspathFrom( RunMe.class ).stream().map( File::getAbsolutePath ).collect( Collectors.toList() );
+    List<String> collect = Gosu.deriveClasspathFrom( LabFrame.class ).stream().map( File::getAbsolutePath ).collect( Collectors.toList() );
     classpath.addAll( collect );
     return classpath;
-  }
-
-  public static void setEditorFrame( BasicGosuEditor basicGosuEditor )
-  {
-    _gosuEditor = basicGosuEditor;
   }
 }

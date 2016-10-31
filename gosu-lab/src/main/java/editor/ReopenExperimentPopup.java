@@ -52,14 +52,14 @@ public class ReopenExperimentPopup implements MenuListener
 
   private void addClearList()
   {
-    List<String> experiments = RunMe.getEditorFrame().getExperiments();
+    List<String> experiments = LabFrame.instance().getExperiments();
     if( experiments.size() > 1 )
     {
       _menu.addSeparator();
       addNewItem( "Clear List", "images/delete.gif", () -> {
         List<String> newList = new ArrayList<>();
         newList.add( experiments.get( 0 ) );
-        RunMe.getEditorFrame().setExperiments( newList );
+        LabFrame.instance().setExperiments( newList );
       } );
     }
     else
@@ -78,7 +78,7 @@ public class ReopenExperimentPopup implements MenuListener
 
   private void addExperimentMenuItems()
   {
-    java.util.List<String> experiments = RunMe.getEditorFrame().getExperiments();
+    java.util.List<String> experiments = LabFrame.instance().getExperiments();
     for( int i = 1; i < experiments.size(); i++ )
     {
       String exp = experiments.get( i );
@@ -86,7 +86,7 @@ public class ReopenExperimentPopup implements MenuListener
       if( dir.exists() )
       {
         String label = dir.getName() + " - [" + exp + "]";
-        addNewItem( label, "images/g_16.png", () -> RunMe.getEditorFrame().getGosuPanel().openExperiment( new File( exp ) ) );
+        addNewItem( label, "images/g_16.png", () -> LabFrame.instance().getGosuPanel().openExperiment( new File( exp ) ) );
       }
     }
   }

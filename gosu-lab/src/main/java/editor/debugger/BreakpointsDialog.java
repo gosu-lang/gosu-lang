@@ -7,7 +7,7 @@ import editor.GosuEditor;
 import editor.GosuPanel;
 import editor.GotoExceptionTypePopup;
 import editor.IHandleCancel;
-import editor.RunMe;
+import editor.LabFrame;
 import editor.Scheme;
 import editor.splitpane.CollapsibleSplitPane;
 import editor.tabpane.ITab;
@@ -97,7 +97,7 @@ public class BreakpointsDialog extends JDialog implements IHandleCancel
 
   private BreakpointsDialog()
   {
-    super( RunMe.getEditorFrame(), "Breakpoints" );
+    super( LabFrame.instance(), "Breakpoints" );
     _mapToPanel = new HashMap<>();
     configUi();
     setDefaultCloseOperation( DISPOSE_ON_CLOSE );
@@ -706,7 +706,7 @@ public class BreakpointsDialog extends JDialog implements IHandleCancel
 
   private GosuPanel getGosuPanel()
   {
-    return RunMe.getEditorFrame().getGosuPanel();
+    return LabFrame.instance().getGosuPanel();
   }
 
   private class DocHandler implements DocumentListener
