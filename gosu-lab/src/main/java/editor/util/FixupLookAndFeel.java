@@ -173,7 +173,7 @@ public class FixupLookAndFeel
 
   public static void fixupFieldBorders()
   {
-    Border borderTextField = new XPFillBorder( Scheme.active().getControlShadow(), 1 );
+    Border borderTextField = new XPFillBorder( Scheme.active().getFieldBorderColor(), 1 );
 
     Insets insets = (Insets)UIManager.get( "TextField.margin" );
     if( insets.left < 2 )

@@ -4,8 +4,6 @@ import javax.swing.*;
 import javax.swing.border.Border;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
 
 public class AbstractRangeCellRenderer extends JPanel implements ListCellRenderer
 {
@@ -33,14 +31,7 @@ public class AbstractRangeCellRenderer extends JPanel implements ListCellRendere
 
     updateDimensions();
 
-    _list.addPropertyChangeListener( "model",
-                                     new PropertyChangeListener()
-                                     {
-                                       public void propertyChange( PropertyChangeEvent evt )
-                                       {
-                                         updateDimensions();
-                                       }
-                                     } );
+    _list.addPropertyChangeListener( "model", evt -> updateDimensions() );
   }
 
   /**

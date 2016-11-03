@@ -12,11 +12,9 @@ public class PathCompletionIntellisense
 {
   private static final PathCompletionIntellisense INSTANCE = new PathCompletionIntellisense();
 
-  private static final WeakHashMap<GosuEditor, List<? extends IPathCompletionHandler>> HANDLERS_BY_EDITOR = new WeakHashMap<GosuEditor, List<? extends IPathCompletionHandler>>();
+  private static final WeakHashMap<GosuEditor, List<? extends IPathCompletionHandler>> HANDLERS_BY_EDITOR = new WeakHashMap<>();
 
-  private static final List<Class<? extends IPathCompletionHandler>> HANDLER_TYPES =
-    new ArrayList<Class<? extends IPathCompletionHandler>>();
-
+  private static final List<Class<? extends IPathCompletionHandler>> HANDLER_TYPES = new ArrayList<>();
   static
   {
     HANDLER_TYPES.add( MemberPathCompletionHandler.class );
@@ -55,7 +53,7 @@ public class PathCompletionIntellisense
 
   private List<? extends IPathCompletionHandler> initHandlers( GosuEditor gsEditor )
   {
-    List<IPathCompletionHandler> handlers = new ArrayList<IPathCompletionHandler>( HANDLER_TYPES.size() );
+    List<IPathCompletionHandler> handlers = new ArrayList<>( HANDLER_TYPES.size() );
     for( Class<? extends IPathCompletionHandler> type : HANDLER_TYPES )
     {
       try

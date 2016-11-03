@@ -1,34 +1,31 @@
 package editor.tabpane;
 
+import editor.AbstractListCellRenderer;
 import javax.swing.*;
-import java.awt.*;
 import java.beans.BeanInfo;
 
 /**
  */
-public class TabListCellRenderer extends DefaultListCellRenderer
+public class TabListCellRenderer extends AbstractListCellRenderer<ITab>
 {
-  public TabListCellRenderer()
+  public TabListCellRenderer( JComponent list )
   {
+    super( list, true );
   }
 
-  public Component getListCellRendererComponent( JList list,
-                                                 Object value,
-                                                 int modelIndex,
-                                                 boolean isSelected,
-                                                 boolean cellHasFocus )
+  @Override
+  public void configure()
   {
-    ITab tab = (ITab)value;
-    String text = tab == null ? "" : tab.getLabel().getDisplayName();
-
-    Component renderer = super.getListCellRendererComponent( list, text, modelIndex, isSelected, cellHasFocus );
-
-    if( tab != null )
+    ITab tab = getNode();
+    if( tab == null )
     {
+      setText( "" );
+    }
+    else
+    {
+      setText( tab.getLabel().getDisplayName() );
       setIcon( tab.getLabel().getIcon( BeanInfo.ICON_COLOR_16x16 ) );
     }
-
-    return renderer;
   }
 
 }

@@ -185,7 +185,7 @@ public class ParseResultsException extends Exception
   public List<IParseIssue> getIssuesFromPos( int iPos )
   {
     List<IParseIssue> pes = getParseIssues();
-    List<IParseIssue> matches = new ArrayList<IParseIssue>();
+    List<IParseIssue> matches = new ArrayList<>();
     for( int i = pes.size() - 1; i >= 0; i-- )
     {
       IParseIssue e = pes.get( i );

@@ -15,7 +15,6 @@ import javax.swing.border.Border;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.EventListenerList;
-import javax.swing.event.UndoableEditEvent;
 import javax.swing.event.UndoableEditListener;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -25,35 +24,27 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.Set;
 
 
 public class TypePopup extends EditorBasedPopup implements ISelectionPopup
 {
   private JPanel _pane = new JPanel();
-  private JList _list;
+  private JList<CharSequence> _list;
   private ArrayList<CharSequence> _allTypes;
   private EventListenerList _nodeListenerList = new EventListenerList();
   private boolean _bLocked;
   private EditorKeyListener _editorKeyListener;
   private UndoableEditListener _docListener;
   private String _strPrefix;
-  private boolean _annotationsOnly;
   private String _title;
-
-  public TypePopup( String strPrefix, GosuEditor editor )
-  {
-    this( strPrefix, editor, false );
-  }
 
   public TypePopup( String strPrefix, GosuEditor editor, boolean annotationsOnly )
   {
     super( editor );
 
     _strPrefix = strPrefix;
-    _annotationsOnly = annotationsOnly;
-    if( _annotationsOnly )
+    if( annotationsOnly )
     {
       _title = "Annotations";
     }
@@ -81,7 +72,7 @@ public class TypePopup extends EditorBasedPopup implements ISelectionPopup
   public java.util.List<String> getPopupSuggestions()
   {
     ListModel popupList = _list.getModel();
-    ArrayList<String> suggestionNames = new ArrayList<String>();
+    ArrayList<String> suggestionNames = new ArrayList<>();
     for( int i = 0; i < popupList.getSize(); i++ )
     {
       suggestionNames.add( popupList.getElementAt( i ).toString() );
@@ -105,16 +96,9 @@ public class TypePopup extends EditorBasedPopup implements ISelectionPopup
     content.setLayout( new BorderLayout() );
 
     Set<? extends CharSequence> allTypeNames = TypeSystem.getAllTypeNames();
-    _allTypes = new ArrayList<CharSequence>( allTypeNames );
+    _allTypes = new ArrayList<>( allTypeNames );
     Collections.sort( _allTypes,
-                      new Comparator<CharSequence>()
-                      {
-                        @Override
-                        public int compare( CharSequence o1, CharSequence o2 )
-                        {
-                          return getRelativeTypeName( o1.toString() ).compareToIgnoreCase( getRelativeTypeName( o2.toString() ) );
-                        }
-                      } );
+                      ( o1, o2 ) -> getRelativeTypeName( o1.toString() ).compareToIgnoreCase( getRelativeTypeName( o2.toString() ) ) );
     int iY = 0;
     JLabel labelTypeName = new JLabel( _title );
     labelTypeName.setOpaque( true );
@@ -135,7 +119,7 @@ public class TypePopup extends EditorBasedPopup implements ISelectionPopup
     // The Type list
     //
     _list =
-      new JList( new TypeModel( _allTypes ) )
+      new JList<CharSequence>( new TypeModel( _allTypes ) )
       {
         @Override
         public Dimension getPreferredScrollableViewportSize()
@@ -151,7 +135,7 @@ public class TypePopup extends EditorBasedPopup implements ISelectionPopup
       };
 
     _list.addMouseListener( new TypeListener() );
-    _list.setCellRenderer( new TypeCellRenderer() );
+    _list.setCellRenderer( new TypeCellRenderer( _list ) );
     _list.getSelectionModel().setSelectionMode( ListSelectionModel.SINGLE_SELECTION );
     _list.setVisibleRowCount( 10 );
     JScrollPane scrollPane = new JScrollPane( _list );
@@ -181,14 +165,7 @@ public class TypePopup extends EditorBasedPopup implements ISelectionPopup
     if( getEditor() != null )
     {
       _editorKeyListener = new EditorKeyListener();
-      _docListener = new UndoableEditListener()
-      {
-        @Override
-        public void undoableEditHappened( UndoableEditEvent e )
-        {
-          filterDisplay();
-        }
-      };
+      _docListener = e -> filterDisplay();
     }
     if( _strPrefix != null )
     {
@@ -265,7 +242,7 @@ public class TypePopup extends EditorBasedPopup implements ISelectionPopup
     }
 
     ArrayList<CharSequence> allTypes = getAllTypes();
-    ArrayList<CharSequence> filteredTypes = new ArrayList<CharSequence>();
+    ArrayList<CharSequence> filteredTypes = new ArrayList<>();
     for( CharSequence type : allTypes )
     {
       String strType = type.toString();
@@ -339,6 +316,7 @@ public class TypePopup extends EditorBasedPopup implements ISelectionPopup
     _nodeListenerList.add( ChangeListener.class, l );
   }
 
+  @SuppressWarnings("UnusedDeclaration")
   public void removeNodeChangeListener( ChangeListener l )
   {
     _nodeListenerList.remove( ChangeListener.class, l );
@@ -346,14 +324,7 @@ public class TypePopup extends EditorBasedPopup implements ISelectionPopup
 
   protected void fireNodeChanged( final EventListenerList list, final ChangeEvent e )
   {
-    EventQueue.invokeLater( new Runnable()
-    {
-      @Override
-      public void run()
-      {
-        fireNodeChangedNow( list, e );
-      }
-    } );
+    EventQueue.invokeLater( () -> fireNodeChangedNow( list, e ) );
   }
 
   protected void fireNodeChangedNow( EventListenerList list, ChangeEvent e )
@@ -454,23 +425,10 @@ public class TypePopup extends EditorBasedPopup implements ISelectionPopup
       }
 
       EventQueue.invokeLater(
-        new Runnable()
-        {
-          @Override
-          public void run()
-          {
-            sendKeyEvent( KeyEvent.VK_BACK_SPACE );
-            handleSelection( strType );
-            EventQueue.invokeLater(
-              new Runnable()
-              {
-                @Override
-                public void run()
-                {
-                  sendKeyEvent( KeyEvent.VK_PERIOD );
-                }
-              } );
-          }
+        () -> {
+          sendKeyEvent( KeyEvent.VK_BACK_SPACE );
+          handleSelection( strType );
+          EventQueue.invokeLater( () -> sendKeyEvent( KeyEvent.VK_PERIOD ) );
         } );
     }
 
@@ -516,11 +474,11 @@ public class TypePopup extends EditorBasedPopup implements ISelectionPopup
 
   /**
    */
-  class TypeModel extends AbstractListModel
+  class TypeModel extends AbstractListModel<CharSequence>
   {
-    ArrayList _allTypes;
+    ArrayList<CharSequence> _allTypes;
 
-    TypeModel( ArrayList allTypes )
+    TypeModel( ArrayList<CharSequence> allTypes )
     {
       _allTypes = allTypes;
     }
@@ -532,7 +490,7 @@ public class TypePopup extends EditorBasedPopup implements ISelectionPopup
     }
 
     @Override
-    public Object getElementAt( int i )
+    public CharSequence getElementAt( int i )
     {
       return _allTypes.get( i );
     }

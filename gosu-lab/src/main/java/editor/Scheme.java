@@ -1,18 +1,40 @@
 package editor;
 
+import editor.settings.AppearanceSettings;
 import java.awt.*;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  */
 public abstract class Scheme
 {
-  private static Scheme _active = new LabScheme();
- // private static Scheme _active = new LabDarkScheme();
+  public static final Map<String, Class<? extends Scheme>> SCHEMES_BY_NAME = new HashMap<>();
+  static
+  {
+    SCHEMES_BY_NAME.put( LabScheme.NAME, LabScheme.class );
+    SCHEMES_BY_NAME.put( LabDarkScheme.NAME, LabDarkScheme.class );
+  }
+
+  private static Scheme _active = null;
 
   public static Scheme active()
   {
+    if( _active == null )
+    {
+      try
+      {
+        _active = SCHEMES_BY_NAME.get( AppearanceSettings.getTheme() ).newInstance();
+      }
+      catch( Exception e )
+      {
+        throw new RuntimeException( e );
+      }
+    }
     return _active;
   }
+
+  public abstract boolean isDark();
 
   public abstract Color getCodeWindow();
 
@@ -108,4 +130,10 @@ public abstract class Scheme
   public abstract Color usageWriteHighlightShadowColor();
 
   public abstract Color scopeHighlightColor();
+
+  public abstract Color getFieldBorderColor();
+
+  public abstract Color debugVarRedText();
+  public abstract Color debugVarGreenText();
+  public abstract Color debugVarBlueText();
 }

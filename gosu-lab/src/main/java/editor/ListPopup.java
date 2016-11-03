@@ -11,7 +11,6 @@ import editor.util.ContainerSizer;
 import javax.swing.*;
 import javax.swing.border.Border;
 import javax.swing.event.ChangeEvent;
-import javax.swing.event.UndoableEditEvent;
 import javax.swing.event.UndoableEditListener;
 import javax.swing.text.JTextComponent;
 import java.awt.*;
@@ -129,20 +128,11 @@ public class ListPopup extends AbstractPopup
 
     add( content );
 
-    pane.setPreferredSize( new Dimension( (int)Math.max( getEditor().getWidth(), _list.getPreferredSize().getWidth() ), 150 ) );
-
     _editorKeyListener = new EditorKeyListener();
     if( getEditor() != null )
     {
       _editorKeyListener = new EditorKeyListener();
-      _docListener = new UndoableEditListener()
-      {
-        @Override
-        public void undoableEditHappened( UndoableEditEvent e )
-        {
-          filterDisplay();
-        }
-      };
+      _docListener = e -> filterDisplay();
     }
   }
 
@@ -225,22 +215,21 @@ public class ListPopup extends AbstractPopup
 
   protected ListCellRenderer makeCellRenderer()
   {
-    return new DefaultCellRenderer();
+    return new DefaultCellRenderer( _list );
   }
 
-  public class DefaultCellRenderer extends DefaultListCellRenderer
+  public class DefaultCellRenderer extends AbstractListCellRenderer
   {
-    @Override
-    public Component getListCellRendererComponent( JList list,
-                                                   Object value,
-                                                   int modelIndex,
-                                                   boolean isSelected,
-                                                   boolean cellHasFocus )
+    public DefaultCellRenderer( JComponent list )
     {
-      String text = _model.getDisplayText( value );
-      return super.getListCellRendererComponent( list, text, modelIndex, isSelected, cellHasFocus );
+      super( list, true );
     }
 
+    @Override
+    public void configure()
+    {
+      setText( _model.getDisplayText( getNode() ) );
+    }
   }
 
   /**

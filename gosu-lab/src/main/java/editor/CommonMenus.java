@@ -145,7 +145,7 @@ public class CommonMenus
         @Override
         public void actionPerformed( ActionEvent e )
         {
-          if( !editor.get().isIntellisensePopupShowing() )
+          if( !editor.get().isCompletionPopupShowing() )
           {
             editor.get().displayParameterInfoPopup( editor.get().getEditor().getCaretPosition() );
           }

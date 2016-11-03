@@ -48,127 +48,136 @@ public class GosuLabLAF extends WindowsLookAndFeel
 
       editor.util.FixupLookAndFeel.fixupFieldBorders();
 
-      UIManager.put( "ScrollBar.width", 11 );
-      UIManager.put( "scrollbar", Scheme.active().getControl() ); /* Scrollbar background (usually the "track") */
-      UIManager.put( "ScrollBar.background", Scheme.active().getControl() );
-      UIManager.put( "ScrollBar.foreground", Scheme.active().getControl() );
-      UIManager.put( "ScrollBar.trackHighlight", Scheme.active().getControl() );
-      UIManager.put( "ScrollBar.track", Scheme.active().getControl() );
-      UIManager.put( "ScrollBar.trackForeground", Scheme.active().getControl() );
-//      "ScrollBar.trackHighlight", black,
-      UIManager.put( "ScrollBar.trackHighlightForeground", Scheme.active().getControl() );
-      UIManager.put( "ScrollBar.thumb", Scheme.active().getControl() );
-      UIManager.put( "ScrollBar.thumbHighlight", Scheme.active().getScrollbarBorderColor() );
-      UIManager.put( "ScrollBar.thumbDarkShadow", Scheme.active().getControl() );
-      UIManager.put( "ScrollBar.thumbShadow", Scheme.active().getScrollbarBorderColor() ); //new Color(210, 235, 251 ) ); //EditorUtilities.CONTROL );
-      UIManager.put( "ScrollBar.border", null );
+      UIDefaults table = UIManager.getLookAndFeelDefaults();
+      
+      table.put( "ScrollBar.width", 11 );
+      table.put( "scrollbar", Scheme.active().getControl() ); /* Scrollbar background (usually the "track") */
+      table.put( "ScrollBar.background", Scheme.active().getControl() );
+      table.put( "ScrollBar.foreground", Scheme.active().getControl() );
+      table.put( "ScrollBar.trackHighlight", Scheme.active().getControl() );
+      table.put( "ScrollBar.track", Scheme.active().getControl() );
+      table.put( "ScrollBar.trackForeground", Scheme.active().getControl() );
+      table.put( "ScrollBar.trackHighlightForeground", Scheme.active().getControl() );
+      table.put( "ScrollBar.thumb", Scheme.active().getControl() );
+      table.put( "ScrollBar.thumbHighlight", Scheme.active().getScrollbarBorderColor() );
+      table.put( "ScrollBar.thumbDarkShadow", Scheme.active().getControl() );
+      table.put( "ScrollBar.thumbShadow", Scheme.active().getScrollbarBorderColor() ); //new Color(210, 235, 251 ) ); //EditorUtilities.CONTROL );
+      table.put( "ScrollBar.border", null );
 
-      UIManager.put( "Separator.foreground", Scheme.active().getSeparator1() );
-      UIManager.put( "Separator.background", Scheme.active().getSeparator2() );
+      table.put( "Separator.foreground", Scheme.active().getSeparator1() );
+      table.put( "Separator.background", Scheme.active().getSeparator2() );
 
       // Menus
-      UIManager.put( "MenuBar.border", BorderFactory.createEmptyBorder( 0, 0, 0, 0 ) );
-      UIManager.put( "MenuBar.background", Scheme.active().getMenu() );
+      table.put( "MenuBar.border", BorderFactory.createEmptyBorder( 0, 0, 0, 0 ) );
+      table.put( "MenuBar.background", Scheme.active().getMenu() );
 
-      UIManager.put( "PopupMenu.border", BorderFactory.createCompoundBorder( BorderFactory.createLineBorder( Scheme.active().getMenuBorder() ), BorderFactory.createEmptyBorder( 2, 2, 2, 2 ) ) );
-      UIManager.put( "PopupMenu.foreground", Scheme.active().getMenuText() );
-      UIManager.put( "PopupMenu.background", Scheme.active().getMenu() );
-      UIManager.put( "Popup.foreground", Scheme.active().getMenuText() );
-      UIManager.put( "Popup.background", Scheme.active().getMenu() );
+      table.put( "PopupMenu.border", BorderFactory.createCompoundBorder( BorderFactory.createLineBorder( Scheme.active().getMenuBorder() ), BorderFactory.createEmptyBorder( 2, 2, 2, 2 ) ) );
+      table.put( "PopupMenu.foreground", Scheme.active().getMenuText() );
+      table.put( "PopupMenu.background", Scheme.active().getMenu() );
+      table.put( "Popup.foreground", Scheme.active().getMenuText() );
+      table.put( "Popup.background", Scheme.active().getMenu() );
 
-      UIManager.put( "menu", Scheme.active().getMenu() ); /* Background color for menus */
-      UIManager.put( "menuText", Scheme.active().getMenuText() ); /* Text color for menus  */
-      UIManager.put( "Menu.foreground", Scheme.active().getMenuText() );
-      UIManager.put( "Menu.background", Scheme.active().getMenu() );
-      UIManager.put( "Menu.selectionForeground", Scheme.active().getWindowText() );
-      UIManager.put( "Menu.selectionBackground", Scheme.active().getActiveCaption() );
-      UIManager.put( "Menu.disabledForeground", Scheme.active().getControlShadow() );
-      UIManager.put( "Menu.acceleratorForeground", Scheme.active().getWindowText() );
-      UIManager.put( "Menu.acceleratorSelectionForeground", Scheme.active().getWindowText() );
-      UIManager.put( "Menu.border", BorderFactory.createCompoundBorder( BorderFactory.createLineBorder( Scheme.active().getMenuBorder() ), BorderFactory.createEmptyBorder( 2, 2, 2, 2 ) ) );
-      UIManager.put( "Menu.margin", Scheme.active().getWindowText() );
-      UIManager.put( "menuPressedItemB", Scheme.active().getTextHighlight() ); /* LightShadow of menubutton highlight */
-      UIManager.put( "menuPressedItemF", Scheme.active().getTextHighlightText() ); /* Default color for foreground "text" in menu item */
+      table.put( "menu", Scheme.active().getMenu() ); /* Background color for menus */
+      table.put( "menuText", Scheme.active().getMenuText() ); /* Text color for menus  */
+      table.put( "Menu.foreground", Scheme.active().getMenuText() );
+      table.put( "Menu.background", Scheme.active().getMenu() );
+      table.put( "Menu.selectionForeground", Scheme.active().getWindowText() );
+      table.put( "Menu.selectionBackground", Scheme.active().getActiveCaption() );
+      table.put( "Menu.disabledForeground", Scheme.active().getControlShadow() );
+      table.put( "Menu.acceleratorForeground", Scheme.active().getWindowText() );
+      table.put( "Menu.acceleratorSelectionForeground", Scheme.active().getWindowText() );
+      table.put( "Menu.border", BorderFactory.createCompoundBorder( BorderFactory.createLineBorder( Scheme.active().getMenuBorder() ), BorderFactory.createEmptyBorder( 2, 2, 2, 2 ) ) );
+      table.put( "Menu.margin", Scheme.active().getWindowText() );
+      table.put( "menuPressedItemB", Scheme.active().getTextHighlight() ); /* LightShadow of menubutton highlight */
+      table.put( "menuPressedItemF", Scheme.active().getTextHighlightText() ); /* Default color for foreground "text" in menu item */
 
-      UIManager.put( "MenuItem.foreground", Scheme.active().getMenuText() );
-      UIManager.put( "MenuItem.background", Scheme.active().getMenu() );
-      UIManager.put( "MenuItem.selectionForeground", Scheme.active().getWindowText() );
-      UIManager.put( "MenuItem.selectionBackground", Scheme.active().getActiveCaption() );
-      UIManager.put( "MenuItem.disabledForeground", Scheme.active().getControlShadow() );
-      UIManager.put( "MenuItem.acceleratorForeground", Scheme.active().getWindowText() );
-      UIManager.put( "MenuItem.acceleratorSelectionForeground", Scheme.active().getWindowText() );
-      UIManager.put( "MenuItem.border", BorderFactory.createCompoundBorder( BorderFactory.createLineBorder( Scheme.active().getXpBorderColor() ), BorderFactory.createEmptyBorder( 2, 2, 2, 2 ) ) );
-      UIManager.put( "MenuItem.disabledAreNavigable", false );
+      table.put( "MenuItem.foreground", Scheme.active().getMenuText() );
+      table.put( "MenuItem.background", Scheme.active().getMenu() );
+      table.put( "MenuItem.selectionForeground", Scheme.active().getWindowText() );
+      table.put( "MenuItem.selectionBackground", Scheme.active().getActiveCaption() );
+      table.put( "MenuItem.disabledForeground", Scheme.active().getControlShadow() );
+      table.put( "MenuItem.acceleratorForeground", Scheme.active().getWindowText() );
+      table.put( "MenuItem.acceleratorSelectionForeground", Scheme.active().getWindowText() );
+      table.put( "MenuItem.border", BorderFactory.createCompoundBorder( BorderFactory.createLineBorder( Scheme.active().getXpBorderColor() ), BorderFactory.createEmptyBorder( 2, 2, 2, 2 ) ) );
+      table.put( "MenuItem.disabledAreNavigable", false );
       //"MenuItem.acceleratorDelimiter", menuItemAcceleratorDelimiter,
       //"MenuItem.borderPainted", Boolean.FALSE,
       //"MenuItem.margin", twoInsets,
 
 
-      UIManager.put( "List.foreground", Scheme.active().getWindowText() );
-      UIManager.put( "List.background", Scheme.active().getWindow() );
+      table.put( "List.foreground", Scheme.active().getWindowText() );
+      table.put( "List.background", Scheme.active().getWindow() );
 
-      UIManager.put( "Tree.foreground", Scheme.active().getWindowText() );
-      UIManager.put( "Tree.background", Scheme.active().getWindow() );
+      table.put( "Tree.foreground", Scheme.active().getWindowText() );
+      table.put( "Tree.background", Scheme.active().getWindow() );
 
-      UIManager.put( "Table.foreground", Scheme.active().getWindowText() );
-      UIManager.put( "Table.background", Scheme.active().getWindow() );
+      table.put( "Table.foreground", Scheme.active().getWindowText() );
+      table.put( "Table.background", Scheme.active().getWindow() );
 
-      UIManager.put( "ComboBox.foreground", Scheme.active().getWindowText() );
-      UIManager.put( "ComboBox.background", Scheme.active().getWindow() );
-      UIManager.put( "ComboBox.disabledForeground", Scheme.active().getControlShadow() );
-      UIManager.put( "ComboBox.disabledBackground", Scheme.active().getControl() );
-      UIManager.put( "ComboBox.buttonBackground", Scheme.active().getControl() );
-      UIManager.put( "ComboBox.buttonShadow", Scheme.active().getControlShadow() );
-      UIManager.put( "ComboBox.buttonDarkShadow", Scheme.active().getControlDarkshadow() );
-      UIManager.put( "ComboBox.buttonHighlight", Scheme.active().getControl() );
+      table.put( "ComboBox.foreground", Scheme.active().getWindowText() );
+      table.put( "ComboBox.background", Scheme.active().getWindow() );
+      table.put( "ComboBox.disabledForeground", Scheme.active().getControlShadow() );
+      table.put( "ComboBox.disabledBackground", Scheme.active().getControl() );
+      table.put( "ComboBox.buttonBackground", Scheme.active().getControl() );
+      table.put( "ComboBox.buttonShadow", Scheme.active().getControlShadow() );
+      table.put( "ComboBox.buttonDarkShadow", Scheme.active().getControlDarkshadow() );
+      table.put( "ComboBox.buttonHighlight", Scheme.active().getControl() );
+      table.put( "ComboBox.selectionBackground", Scheme.active().getTextHighlight() );
 
-      UIManager.put( "TextField.foreground", Scheme.active().getWindowText() );
-      UIManager.put( "TextField.background", Scheme.active().getWindow() );
-      UIManager.put( "TextField.caretForeground", Scheme.active().getWindowText() );
-      
-      UIManager.put( "TextArea.foreground", Scheme.active().getWindowText() );
-      UIManager.put( "TextArea.background", Scheme.active().getWindow() );
-      UIManager.put( "TextArea.caretForeground", Scheme.active().getWindowText() );
-      
-      UIManager.put( "TextPane.foreground", Scheme.active().getWindowText() );
-      UIManager.put( "TextPane.background", Scheme.active().getWindow() );
-      UIManager.put( "TextPane.caretForeground", Scheme.active().getWindowText() );
-      
-      UIManager.put( "Panel.foreground", Scheme.active().getControlText() );
-      UIManager.put( "Panel.background", Scheme.active().getControl() );
+      table.put( "TextField.foreground", Scheme.active().getWindowText() );
+      table.put( "TextField.background", Scheme.active().getWindow() );
+      table.put( "TextField.caretForeground", Scheme.active().getWindowText() );
+      table.put( "TextField.selectionBackground", Scheme.active().getTextHighlight() );
 
-      UIManager.put( "ScrollPane.background", Scheme.active().getControl() );
+      table.put( "TextArea.foreground", Scheme.active().getWindowText() );
+      table.put( "TextArea.background", Scheme.active().getWindow() );
+      table.put( "TextArea.caretForeground", Scheme.active().getWindowText() );
+      table.put( "TextArea.selectionBackground", Scheme.active().getTextHighlight() );
 
-      UIManager.put( "EditorPane.caretForeground", Scheme.active().getWindowText() );
-        
-      UIManager.put( "Label.foreground", Scheme.active().getControlText() );
-      UIManager.put( "Label.background", Scheme.active().getControl() );
+      table.put( "TextPane.foreground", Scheme.active().getWindowText() );
+      table.put( "TextPane.background", Scheme.active().getWindow() );
+      table.put( "TextPane.caretForeground", Scheme.active().getWindowText() );
+      table.put( "TextPane.selectionBackground", Scheme.active().getTextHighlight() );
 
-      UIManager.put( "CheckBox.foreground", Scheme.active().getControlText() );
-      UIManager.put( "CheckBox.background", Scheme.active().getControl() );
+      table.put( "Panel.foreground", Scheme.active().getControlText() );
+      table.put( "Panel.background", Scheme.active().getControl() );
 
-      UIDefaults table = UIManager.getLookAndFeelDefaults();
-      UIManager.put( "ToolBar.background", Scheme.active().getMenu() );
-      UIManager.put( "ToolBar.border", BorderFactory.createEmptyBorder() );
+      table.put( "ScrollPane.background", Scheme.active().getControl() );
+
+      table.put( "EditorPane.caretForeground", Scheme.active().getWindowText() );
+      table.put( "EditorPane.selectionBackground", Scheme.active().getTextHighlight() );
+
+      table.put( "Label.foreground", Scheme.active().getControlText() );
+      table.put( "Label.background", Scheme.active().getControl() );
+      table.put( "Label.disabledForeground", Scheme.active().getControl() );
+      table.put( "Label.disabledShadow", Scheme.active().getControlText().darker() );
+      table.put( "Label.interiorBackground", Scheme.active().getControl() );
+      table.put( "Label.shadow", Scheme.active().getControl() );
+      table.put( "Label.darkShadow", Scheme.active().getControlDarkshadow() );
+      table.put( "Label.light", Scheme.active().getControl() );
+      table.put( "Label.highlight", Scheme.active().getControlDarkshadow() );
+
+      table.put( "RadioButton.foreground", Scheme.active().getControlText() );
+      table.put( "RadioButton.background", Scheme.active().getControl() );
+      table.put( "RadioButton.interiorBackground", Scheme.active().getControl() );
+      table.put( "RadioButton.shadow", Scheme.active().getButtonBorderColor() );
+      table.put( "RadioButton.darkShadow", Scheme.active().getControl() );
+      table.put( "RadioButton.light", Scheme.active().getControl() );
+      table.put( "RadioButton.highlight", Scheme.active().getButtonBorderColor() );
+
+      table.put( "CheckBox.foreground", Scheme.active().getControlText() );
+      table.put( "CheckBox.background", Scheme.active().getControl() );
+      table.put( "CheckBox.interiorBackground", Scheme.active().getControl() );
+      table.put( "CheckBox.shadow", Scheme.active().getButtonBorderColor() );
+      table.put( "CheckBox.darkShadow", Scheme.active().getControl() );
+      table.put( "CheckBox.light", Scheme.active().getControl() );
+      table.put( "CheckBox.highlight", Scheme.active().getButtonBorderColor() );
+
+      table.put( "ToolBar.background", Scheme.active().getMenu() );
+      table.put( "ToolBar.border", BorderFactory.createEmptyBorder() );
       table.put( "ToolBar.highlight", Scheme.active().getSeparator1() );
       table.put( "ToolBar.shadow", Scheme.active().getSeparator2() );
-
-      UIManager.put( "RadioButton.foreground", Scheme.active().getControlText() );
-      UIManager.put( "RadioButton.background", Scheme.active().getControl() );
-      UIManager.put( "RadioButton.interiorBackground", Scheme.active().getControl() );
-      UIManager.put( "RadioButton.shadow", Scheme.active().getButtonBorderColor() );
-      UIManager.put( "RadioButton.darkShadow", Scheme.active().getControl() );
-      UIManager.put( "RadioButton.light", Scheme.active().getControl() );
-      UIManager.put( "RadioButton.highlight", Scheme.active().getButtonBorderColor() );
-
-      UIManager.put( "CheckBox.foreground", Scheme.active().getControlText() );
-      UIManager.put( "CheckBox.background", Scheme.active().getControl() );
-      UIManager.put( "CheckBox.interiorBackground", Scheme.active().getControl() );
-      UIManager.put( "CheckBox.shadow", Scheme.active().getButtonBorderColor() );
-      UIManager.put( "CheckBox.darkShadow", Scheme.active().getControl() );
-      UIManager.put( "CheckBox.light", Scheme.active().getControl() );
-      UIManager.put( "CheckBox.highlight", Scheme.active().getButtonBorderColor() );
-
+      
       table.put( "Button.foreground", Scheme.active().getControlText() );
       table.put( "Button.disabledForeground", Scheme.active().getControlShadow() );
       table.put( "Button.disabledShadow", Scheme.active().getControlShadow() );
@@ -179,32 +188,34 @@ public class GosuLabLAF extends WindowsLookAndFeel
       table.put( "Button.light", Scheme.active().getControl() );
       table.put( "Button.highlight", Scheme.active().getControlDarkshadow() );
 
-      UIManager.put( "desktop", Scheme.active().getControl() );
-      UIManager.put( "activeCaption", Scheme.active().getActiveCaption() );
-      UIManager.put( "activeCaptionText", Scheme.active().getActiveCaptionText() );
-      UIManager.put( "activeCaptionBorder", Scheme.active().getControl() ); /* Border color for caption (title bar) window borders. */
-      UIManager.put( "inactiveCaption", Scheme.active().getControlDarkshadow() ); /* Color for captions (title bars) when not active. */
-      UIManager.put( "inactiveCaptionText", Scheme.active().getControl() ); /* Text color for text in inactive captions (title bars). */
-      UIManager.put( "inactiveCaptionBorder", Scheme.active().getControl() ); /* Border color for inactive caption (title bar) window borders. */
-      UIManager.put( "window", Scheme.active().getWindowBorder() ); /* Default color for the interior of windows */
-      UIManager.put( "windowBorder", Scheme.active().getWindowBorder() ); /* ??? */
-      UIManager.put( "windowText", Scheme.active().getWindowText() ); /* ??? */
+      table.put( "desktop", Scheme.active().getControl() );
 
-      UIManager.put( "text", Scheme.active().getControl() ); /* Text background color */
-      UIManager.put( "textText", Scheme.active().getControlText() ); /* Text foreground color */
-      UIManager.put( "textHighlight", Scheme.active().getTextHighlight() ); /* Text background color when selected */
-      UIManager.put( "textHighlightText", Scheme.active().getTextHighlightText() ); /* Text color when selected */
-      UIManager.put( "textInactiveText", Scheme.active().getControlShadow() ); /* Text color when disabled */
-      UIManager.put( "control", Scheme.active().getControl() ); /* Default color for controls (buttons, sliders, etc) */
-      UIManager.put( "controlText", Scheme.active().getControlText() ); /* Default color for text in controls */
-      UIManager.put( "controlHighlight", Scheme.active().getControl() );
+      table.put( "activeCaption", Scheme.active().getActiveCaption() );
+      table.put( "activeCaptionText", Scheme.active().getActiveCaptionText() );
+      table.put( "activeCaptionBorder", Scheme.active().getControl() ); /* Border color for caption (title bar) window borders. */
+      table.put( "inactiveCaption", Scheme.active().getControlDarkshadow() ); /* Color for captions (title bars) when not active. */
+      table.put( "inactiveCaptionText", Scheme.active().getControl() ); /* Text color for text in inactive captions (title bars). */
+      table.put( "inactiveCaptionBorder", Scheme.active().getControl() ); /* Border color for inactive caption (title bar) window borders. */
 
-            /*"controlHighlight", Scheme.active().getControl() );*/ /* Specular highlight (opposite of the shadow) */
-      UIManager.put( "controlLtHighlight", Scheme.active().getControlLight() ); /* Highlight color for controls */
-      UIManager.put( "controlShadow", Scheme.active().getControlDarkshadow() ); /* Shadow color for controls */
-      UIManager.put( "controlDkShadow", Scheme.active().getControlDarkshadow() ); /* Dark shadow color for controls */
-      UIManager.put( "info", Scheme.active().getTooltipBackground() ); /* ??? */
-      UIManager.put( "infoText", Scheme.active().getTooltipText() );  /* ??? */
+      table.put( "window", Scheme.active().getWindowBorder() ); /* Default color for the interior of windows */
+      table.put( "windowBorder", Scheme.active().getWindowBorder() ); /* ??? */
+      table.put( "windowText", Scheme.active().getWindowText() ); /* ??? */
+
+      table.put( "text", Scheme.active().getControl() ); /* Text background color */
+      table.put( "textText", Scheme.active().getControlText() ); /* Text foreground color */
+      table.put( "textHighlight", Scheme.active().getTextHighlight() ); /* Text background color when selected */
+      table.put( "textHighlightText", Scheme.active().getTextHighlightText() ); /* Text color when selected */
+      table.put( "textInactiveText", Scheme.active().getControlShadow() ); /* Text color when disabled */
+
+      table.put( "control", Scheme.active().getControl() ); /* Default color for controls (buttons, sliders, etc) */
+      table.put( "controlText", Scheme.active().getControlText() ); /* Default color for text in controls */
+      table.put( "controlHighlight", Scheme.active().getControl() );
+      table.put( "controlLtHighlight", Scheme.active().getControlLight() ); /* Highlight color for controls */
+      table.put( "controlShadow", Scheme.active().getControlDarkshadow() ); /* Shadow color for controls */
+      table.put( "controlDkShadow", Scheme.active().getControlDarkshadow() ); /* Dark shadow color for controls */
+
+      table.put( "info", Scheme.active().getTooltipBackground() ); /* ??? */
+      table.put( "infoText", Scheme.active().getTooltipText() );  /* ??? */
     }
     catch( Exception e )
     {

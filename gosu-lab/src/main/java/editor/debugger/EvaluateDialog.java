@@ -196,13 +196,13 @@ public class EvaluateDialog extends JDialog implements IHandleCancel
       @Override
       public void keyPressed( KeyEvent e )
       {
-        if( e.getKeyCode() == KeyEvent.VK_ESCAPE && !gosuEditor.isIntellisensePopupShowing() )
+        if( e.getKeyCode() == KeyEvent.VK_ESCAPE && !gosuEditor.isCompletionPopupShowing() )
         {
           close();
         }
         else if( e.getKeyCode() == KeyEvent.VK_ENTER )
         {
-          if( (isOneLine() || e.isControlDown()) && !gosuEditor.isIntellisensePopupShowing() )
+          if( (isOneLine() || e.isControlDown()) && !gosuEditor.isCompletionPopupShowing() )
           {
             updateResult();
             e.consume();

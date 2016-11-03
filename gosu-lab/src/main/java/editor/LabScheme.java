@@ -6,6 +6,14 @@ import java.awt.*;
  */
 public class LabScheme extends Scheme
 {
+  public static final String NAME = "Normie";
+
+  @Override
+  public boolean isDark()
+  {
+    return false;
+  }
+
   private static final Color CONTROL_LIGHT = Color.white; //UIManager.getColor( "controlLtHighlight" );
   /* colors */            
   public static final Color TOOLTIP_BACKGROUND = new Color( 255, 255, 225 ); //  UIManager.getColor( "info" );
@@ -379,5 +387,27 @@ public class LabScheme extends Scheme
   public Color scopeHighlightColor()
   {
     return SCOPE_HIGHLIGHT_COLOR;
+  }
+
+  @Override
+  public Color getFieldBorderColor()
+  {
+    return getControlShadow();
+  }
+
+  @Override
+  public Color debugVarRedText()
+  {
+    return new Color( 128, 0, 0 );
+  }
+  @Override
+  public Color debugVarGreenText()
+  {
+    return new Color( 0, 128, 0 );
+  }
+  @Override
+  public Color debugVarBlueText()
+  {
+    return new Color( 0, 0, 128 );
   }
 }

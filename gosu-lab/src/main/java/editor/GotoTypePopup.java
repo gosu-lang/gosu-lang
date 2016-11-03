@@ -131,7 +131,7 @@ public class GotoTypePopup extends AbstractGotoPopup<String>
 
   protected TypeCellRenderer constructCellRenderer()
   {
-    return new TypeCellRenderer();
+    return new TypeCellRenderer( _list );
   }
 
   protected void handleEdit()

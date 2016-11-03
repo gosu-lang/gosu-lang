@@ -9,6 +9,7 @@ import com.sun.jdi.ReferenceType;
 import com.sun.jdi.StackFrame;
 import com.sun.jdi.Value;
 import editor.util.EditorUtilities;
+import static editor.util.EditorUtilities.hex;
 
 import javax.swing.*;
 import javax.swing.tree.DefaultTreeModel;
@@ -107,7 +108,7 @@ public class VarTree implements MutableTreeNode
           Value elem = elems.get( i );
           if( elem != null )
           {
-            insert( new VarTree( "[<font color=#800000>" + i + "</font>]", elem.type().name(), elem, false ) );
+            insert( new VarTree( "[<font color=#" + hex( Scheme.active().debugVarRedText() ) + ">" + i + "</font>]", elem.type().name(), elem, false ) );
           }
         }
       }

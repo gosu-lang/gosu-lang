@@ -18,16 +18,28 @@ import java.util.List;
  */
 public class LabelListPopup extends PopupContainer implements IValuePopup
 {
-  private JList _list;
-  private List _labelList;
+  private JList<ILabel> _list;
+  private List<? extends ILabel> _labelList;
   private EventListenerList _nodeListenerList = new EventListenerList();
-  private String _emptyText;
+  private ILabel _emptyText;
 
   /** */
-  public LabelListPopup( String strTitle, List labels, String emptyText )
+  public LabelListPopup( String strTitle, List<? extends ILabel> labels, String emptyText )
   {
     _labelList = labels;
-    _emptyText = emptyText;
+    _emptyText = new ILabel() {
+      @Override
+      public String getDisplayName()
+      {
+        return emptyText;
+      }
+
+      @Override
+      public Icon getIcon( int iTypeFlags )
+      {
+        return null;
+      }
+    };
     initLayout( strTitle );
   }
 
@@ -36,7 +48,7 @@ public class LabelListPopup extends PopupContainer implements IValuePopup
   {
     if( _labelList.isEmpty() )
     {
-      _list = new JList( new String[]{_emptyText} );
+      _list = new JList<>( new ILabel[]{_emptyText} );
       _list.setSelectionModel( new DefaultListSelectionModel()
       {
         @Override
@@ -56,9 +68,10 @@ public class LabelListPopup extends PopupContainer implements IValuePopup
     }
     else
     {
-      _list = new JList( new LabelListModel( _labelList ) );
+      _list = new JList<>( new LabelListModel( _labelList ) );
       _list.addMouseListener( new LabelListListener() );
-      _list.setCellRenderer( new LabelListCellRenderer() );
+      _list.setFixedCellHeight( 22 );
+      _list.setCellRenderer( new LabelListCellRenderer( _list ) );
       _list.addKeyListener( new LabelListKeyListener() );
       _list.getSelectionModel().setSelectionMode( ListSelectionModel.SINGLE_SELECTION );
     }
@@ -87,13 +100,7 @@ public class LabelListPopup extends PopupContainer implements IValuePopup
       {
         _list.setSelectedIndex( 0 );
       }
-      SwingUtilities.invokeLater( new Runnable()
-      {
-        public void run()
-        {
-          _list.requestFocus();
-        }
-      } );
+      SwingUtilities.invokeLater( _list::requestFocus );
     }
   }
 
@@ -103,6 +110,7 @@ public class LabelListPopup extends PopupContainer implements IValuePopup
     _nodeListenerList.add( ChangeListener.class, l );
   }
 
+  @SuppressWarnings("UnusedDeclaration")
   public void removeNodeChangeListener( ChangeListener l )
   {
     _nodeListenerList.remove( ChangeListener.class, l );
@@ -110,13 +118,7 @@ public class LabelListPopup extends PopupContainer implements IValuePopup
 
   protected void fireNodeChanged( final EventListenerList list, final ChangeEvent e )
   {
-    EventQueue.invokeLater( new Runnable()
-    {
-      public void run()
-      {
-        fireNodeChangedNow( list, e );
-      }
-    } );
+    EventQueue.invokeLater( () -> fireNodeChangedNow( list, e ) );
   }
 
   protected void fireNodeChangedNow( EventListenerList list, ChangeEvent e )
@@ -148,19 +150,19 @@ public class LabelListPopup extends PopupContainer implements IValuePopup
 
       _list.setSelectedIndex( iIndex );
 
-      ILabel label = (ILabel)_list.getSelectedValue();
+      ILabel label = _list.getSelectedValue();
 
       fireNodeChanged( _nodeListenerList, new ChangeEvent( label ) );
       setVisible( false );
     }
   }
 
-  class LabelListModel extends AbstractListModel
+  class LabelListModel extends AbstractListModel<ILabel>
   {
-    List _labels;
+    List<? extends ILabel> _labels;
 
     /** */
-    LabelListModel( List labels )
+    LabelListModel( List<? extends ILabel> labels )
     {
       _labels = labels;
     }
@@ -170,7 +172,7 @@ public class LabelListPopup extends PopupContainer implements IValuePopup
       return _labels.size();
     }
 
-    public Object getElementAt( int i )
+    public ILabel getElementAt( int i )
     {
       return _labels.size() == 0 ? null : _labels.get( i );
     }
@@ -183,7 +185,7 @@ public class LabelListPopup extends PopupContainer implements IValuePopup
     {
       if( e.getKeyCode() == KeyEvent.VK_ENTER )
       {
-        ILabel label = (ILabel)_list.getSelectedValue();
+        ILabel label = _list.getSelectedValue();
         if( label != null )
         {
           fireNodeChanged( _nodeListenerList, new ChangeEvent( label ) );

@@ -5,27 +5,22 @@ import editor.util.EditorUtilities;
 import gw.lang.reflect.TypeSystem;
 
 import javax.swing.*;
-import java.awt.*;
 
 
 /**
  */
-public class TypeCellRenderer extends DefaultListCellRenderer
+public class TypeCellRenderer extends AbstractListCellRenderer<CharSequence>
 {
-
-  public Component getListCellRendererComponent( JList list,
-                                                 Object value,
-                                                 int modelIndex,
-                                                 boolean isSelected,
-                                                 boolean cellHasFocus )
+  public TypeCellRenderer( JComponent list )
   {
-    Icon icon = EditorUtilities.findIcon( TypeSystem.getByFullNameIfValid( (String)value ) );
+    super( list, true );
+  }
 
-    String text = getDisplayText( value );
-    Component renderer = super.getListCellRendererComponent( list, text, modelIndex, isSelected, cellHasFocus );
-    ((JLabel)renderer).setIcon( icon );
-
-    return renderer;
+  @Override
+  public void configure()
+  {
+    setText( getDisplayText( getNode() ) );
+    setIcon( EditorUtilities.findIcon( TypeSystem.getByFullNameIfValid( getNode().toString() ) ) );
   }
 
   protected String getDisplayText( Object value )

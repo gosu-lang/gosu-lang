@@ -2,17 +2,18 @@ package editor;
 
 import editor.util.EditorUtilities;
 import editor.util.TextComponentUtil;
+import gw.lang.GosuShop;
 import gw.lang.parser.IDynamicFunctionSymbol;
 import gw.lang.parser.IParseTree;
 import gw.lang.parser.ISymbol;
 import gw.lang.parser.ISymbolTable;
 import gw.lang.parser.Keyword;
 import gw.lang.parser.expressions.IMemberAccessExpression;
+import gw.lang.reflect.IEnumType;
+import gw.lang.reflect.IType;
 import gw.lang.reflect.java.GosuTypes;
 import gw.util.GosuObjectUtil;
 
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -51,39 +52,36 @@ public class SymbolCompletionHandler extends AbstractPathCompletionHandler
       return displayTypesPopup( strMemberPath );
     }
 
-    Collection<ISymbol> listSymbols = transientSymTable.getSymbols().values();
+    //noinspection unchecked
+    List<ISymbol> listSymbols = new ArrayList<ISymbol>( transientSymTable.getSymbols().values() );
     filterUnwantedSymbols( listSymbols );
+    IType expectedType = addValuesForType( listSymbols );
 
     ISymbol[] symbols = listSymbols.toArray( new ISymbol[listSymbols.size()] );
-    SymbolPopup valuePopup = new SymbolPopup( symbols, strMemberPath, gsEditor );
+    SymbolPopup valuePopup = new SymbolPopup( symbols, strMemberPath, gsEditor, expectedType );
     valuePopup.addNodeChangeListener(
-      new ChangeListener()
-      {
-        @Override
-        public void stateChanged( ChangeEvent e )
+      e -> {
+        String word = (String)e.getSource();
+        if( word.endsWith( "()" ) )
         {
-          String word = (String)e.getSource();
-          if( word.endsWith( "()" ) )
-          {
-            TextComponentUtil.replaceWordAtCaretDynamicAndRemoveEmptyParens( gsEditor.getEditor(),
-                                                                             word,
-                                                                             gsEditor.getReplaceWordCallback(),
-                                                                             true );
-          }
-          else
-          {
-            TextComponentUtil.replaceWordAtCaretDynamic( gsEditor.getEditor(),
-                                                         word,
-                                                         gsEditor.getReplaceWordCallback(),
-                                                         true );
-          }
-          gsEditor.getEditor().requestFocus();
-          EditorUtilities.fixSwingFocusBugWhenPopupCloses( gsEditor );
-          gsEditor.getEditor().repaint();
+          TextComponentUtil.replaceWordAtCaretDynamicAndRemoveEmptyParens( gsEditor.getEditor(),
+                                                                           word,
+                                                                           gsEditor.getReplaceWordCallback(),
+                                                                           true );
         }
+        else
+        {
+          TextComponentUtil.replaceWordAtCaretDynamic( gsEditor.getEditor(),
+                                                       word,
+                                                       gsEditor.getReplaceWordCallback(),
+                                                       true );
+        }
+        gsEditor.getEditor().requestFocus();
+        EditorUtilities.fixSwingFocusBugWhenPopupCloses( gsEditor );
+        gsEditor.getEditor().repaint();
       } );
-    gsEditor.setValuePopup( valuePopup );
-    gsEditor.displayValuePopup();
+    gsEditor.setCompletionPopup( valuePopup );
+    gsEditor.displayCompletionPopup( gsEditor.getEditor().getCaretPosition() );
     if( !valuePopup.isShowing() && !valuePopup.wasAutoDismissed() )
     {
       return displayTypesPopup( strMemberPath );
@@ -92,10 +90,20 @@ public class SymbolCompletionHandler extends AbstractPathCompletionHandler
     return false;
   }
 
+  private IType addValuesForType( List<ISymbol> listSymbols )
+  {
+    IType expectedType = getGosuEditor().findExpectedTypeErrorAtCaret();
+    if( expectedType != null && expectedType.isEnum() )
+    {
+      int[] i = {0};
+      ((IEnumType)expectedType).getEnumConstants().forEach( e -> listSymbols.add( i[0]++, GosuShop.createSymbol( e, expectedType, null ) ) );
+    }
+    return expectedType;
+  }
 
   private void filterUnwantedSymbols( Collection<ISymbol> listSymbols )
   {
-    List<ISymbol> deleteSyms = new ArrayList<ISymbol>();
+    List<ISymbol> deleteSyms = new ArrayList<>();
     for( ISymbol s : listSymbols )
     {
       if( s.getType() == GosuTypes.DEF_CTOR_TYPE() || (s instanceof IDynamicFunctionSymbol && ((IDynamicFunctionSymbol)s).isConstructor()) )
@@ -115,49 +123,45 @@ public class SymbolCompletionHandler extends AbstractPathCompletionHandler
   boolean displayTypesPopup( String strPrefix )
   {
     TypePopup popup = new TypePopup( strPrefix, getGosuEditor(), isAnnotationsOnly() );
-    getGosuEditor().setValuePopup( popup );
+    getGosuEditor().setCompletionPopup( popup );
     final boolean addUsesAutomatically = getGosuEditor().acceptsUses();
     popup.addNodeChangeListener(
-      new ChangeListener()
-      {
-        @Override
-        public void stateChanged( ChangeEvent e )
+      e -> {
+        String strQualifedType = (String)e.getSource();
+        String strRelativeType = TypePopup.getRelativeTypeName( strQualifedType );
+        String strPartialType = strQualifedType;
+        if( strPartialType.contains( TextComponentUtil.getWordAtCaret( getGosuEditor().getEditor() ) ) )
         {
-          String strQualifedType = (String)e.getSource();
-          String strRelativeType = TypePopup.getRelativeTypeName( strQualifedType );
-          String strPartialType = strQualifedType;
-          if( strPartialType.contains( TextComponentUtil.getWordAtCaret( getGosuEditor().getEditor() ) ) )
-          {
-            strPartialType = strPartialType.substring( strPartialType.indexOf( TextComponentUtil.getWordAtCaret( getGosuEditor().getEditor() ) ) );
-          }
-
-          if( addUsesAutomatically )
-          {
-            // Need to do this before we replace word because replace word causes
-            // reparse, which would leave usesStmts in incomplete state.
-            getGosuEditor().addToUses( strQualifedType );
-          }
-
-          if( addUsesAutomatically &&
-              GosuObjectUtil.equals( TextComponentUtil.getWordBeforeCaret( getGosuEditor().getEditor() ), strRelativeType ) )
-          {
-            //no need to replace the text, since it is already there
-          }
-          else
-          {
-            TextComponentUtil.replaceWordAtCaretDynamic(
-              getGosuEditor().getEditor(),
-              addUsesAutomatically ? strRelativeType : strPartialType,
-              getGosuEditor().getReplaceWordCallback(), false );
-          }
-
-
-          getGosuEditor().getEditor().requestFocus();
-          EditorUtilities.fixSwingFocusBugWhenPopupCloses( getGosuEditor() );
-          getGosuEditor().getEditor().repaint();
+          strPartialType = strPartialType.substring( strPartialType.indexOf( TextComponentUtil.getWordAtCaret( getGosuEditor().getEditor() ) ) );
         }
+
+        if( addUsesAutomatically )
+        {
+          // Need to do this before we replace word because replace word causes
+          // reparse, which would leave usesStmts in incomplete state.
+          getGosuEditor().addToUses( strQualifedType );
+        }
+
+        //noinspection StatementWithEmptyBody
+        if( addUsesAutomatically &&
+            GosuObjectUtil.equals( TextComponentUtil.getWordBeforeCaret( getGosuEditor().getEditor() ), strRelativeType ) )
+        {
+          //no need to replace the text, since it is already there
+        }
+        else
+        {
+          TextComponentUtil.replaceWordAtCaretDynamic(
+            getGosuEditor().getEditor(),
+            addUsesAutomatically ? strRelativeType : strPartialType,
+            getGosuEditor().getReplaceWordCallback(), false );
+        }
+
+
+        getGosuEditor().getEditor().requestFocus();
+        EditorUtilities.fixSwingFocusBugWhenPopupCloses( getGosuEditor() );
+        getGosuEditor().getEditor().repaint();
       } );
-    getGosuEditor().displayValuePopup();
+    getGosuEditor().displayCompletionPopup( getGosuEditor().getEditor().getCaretPosition() );
     return true;
   }
 

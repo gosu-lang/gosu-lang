@@ -9,7 +9,6 @@ import editor.undo.AtomicUndoManager;
 import editor.util.EditorUtilities;
 import editor.util.HTMLEscapeUtil;
 import editor.util.IReplaceWordCallback;
-import editor.util.LabToolbarButton;
 import editor.util.SettleModalEventQueue;
 import editor.util.TaskQueue;
 import editor.util.TextComponentUtil;
@@ -17,9 +16,7 @@ import editor.util.transform.java.JavaToGosu;
 import gw.fs.IFile;
 import gw.lang.GosuShop;
 import gw.lang.parser.GosuParserFactory;
-import gw.lang.parser.IDynamicFunctionSymbol;
 import gw.lang.parser.IExpression;
-import gw.lang.parser.IFunctionSymbol;
 import gw.lang.parser.IGosuParser;
 import gw.lang.parser.IGosuProgramParser;
 import gw.lang.parser.IGosuValidator;
@@ -29,7 +26,6 @@ import gw.lang.parser.IParseTree;
 import gw.lang.parser.IParsedElement;
 import gw.lang.parser.IScriptPartId;
 import gw.lang.parser.ISymbolTable;
-import gw.lang.parser.ITokenizerInstructor;
 import gw.lang.parser.ITypeUsesMap;
 import gw.lang.parser.ParserOptions;
 import gw.lang.parser.ScriptPartId;
@@ -72,8 +68,6 @@ import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.event.CaretEvent;
 import javax.swing.event.CaretListener;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.event.UndoableEditListener;
@@ -169,10 +163,7 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
   private boolean _bEmptyTextOk;
   private ISymbolTable _symTable;
   private UndoableEditListener _uel;
-  BeanInfoPopup _beanInfoPopup;
-  JPopupMenu _valuePopup;
-  private LabToolbarButton _btnAdvice;
-  private Runnable _adviceRunner;
+  JPopupMenu _completionPopup;
   private IReplaceWordCallback _replaceWordCallback;
   private boolean _bTemplate;
   private boolean _bCompleteCode;
@@ -188,14 +179,11 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
   private int _iTimerCount;
   private boolean _bParserSuspended;
   private IGosuClass _parsedGosuClass;
-  private String _enhancedTypeName;
   private Map<Integer, IFunctionStatement> _functionStmtsByLineNumber;
-  private volatile List<IDynamicFunctionSymbol> _overriddenFunctions;
 
   private IGosuValidator _validator;
   private HighlightMode _highlightMode = HighlightMode.SEARCH;
-  private IGosuParser.ParseType _parseType;
-  private List<ParseListener> _parseListeners = new ArrayList<ParseListener>();
+  private List<ParseListener> _parseListeners = new ArrayList<>();
 
   private SmartFixManager _smartFixManager;
   private ScopeHighlighter _ctxHighlighter;
@@ -205,10 +193,6 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
   //This rectangle is used to signal that the editor is being used in test mode and that popups should therefore
   //not display
   private static final Rectangle TEST_RECTANGLE = new Rectangle( 0, 0, 0, 0 );
-
-  private List<IDynamicFunctionSymbol> _specialFunctions = new ArrayList<IDynamicFunctionSymbol>();
-  private Map<IFunctionSymbol, Runnable> _specialFunctionGotoDeclHandlers = new HashMap<IFunctionSymbol, Runnable>();
-  private ITokenizerInstructor _tokenizerInstructor;
 
   private ITypeUsesMap _typeUsesMap;
   private ITypeUsesMap _typeUsesMapFromMostRecentParse;
@@ -260,8 +244,6 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
     _scriptabilityModifier = scriptabilityConstraint;
 
     _replaceWordCallback = new ReplaceWordCallback();
-    _parseType = IGosuParser.ParseType.EXPRESSION_OR_PROGRAM;
-
     _ctxHighlighter = new ScopeHighlighter( this );
 
     configureLayout( lineInfoRenderer );
@@ -337,36 +319,12 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
     addKeyHandlers();
 
     // Sets the editor's width such that lines won't word wrap
-    EventQueue.invokeLater(
-      new Runnable()
-      {
-        @Override
-        public void run()
-        {
-          _editor.setSize( 1000, _editor.getHeight() );
-        }
-      } );
+    EventQueue.invokeLater( () -> _editor.setSize( 1000, _editor.getHeight() ) );
 
     _scroller = new EditorScrollPane( lineInfoRenderer, _editor, editorRootPane );
     _scroller.setBorder( null );
     JViewport vp = _scroller.getViewport();
     vp.setScrollMode( JViewport.BLIT_SCROLL_MODE );
-    _btnAdvice = new LabToolbarButton( editor.util.EditorUtilities.loadIcon( "images/advice.png" ) );
-    _btnAdvice.setToolTipText( "Display Smart Help" );
-    _btnAdvice.setBorderConstant( true );
-    _btnAdvice.addActionListener( new ActionListener()
-    {
-      @Override
-      public void actionPerformed( ActionEvent e )
-      {
-        if( _adviceRunner != null )
-        {
-          _adviceRunner.run();
-        }
-      }
-    } );
-    _btnAdvice.setVisible( false );
-    editorRootPane.getLayeredPane().add( _btnAdvice, JLayeredPane.PALETTE_LAYER );
 
     add( BorderLayout.CENTER, _scroller );
 
@@ -437,7 +395,7 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
                                   @Override
                                   public void actionPerformed( ActionEvent e )
                                   {
-                                    if( !isIntellisensePopupShowing() )
+                                    if( !isCompletionPopupShowing() )
                                     {
                                       handleBulkComment();
                                     }
@@ -451,7 +409,7 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
                                   @Override
                                   public void actionPerformed( ActionEvent e )
                                   {
-                                    if( !isIntellisensePopupShowing() )
+                                    if( !isCompletionPopupShowing() )
                                     {
                                       handleBulkIndent( false );
                                     }
@@ -465,7 +423,7 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
                                   @Override
                                   public void actionPerformed( ActionEvent e )
                                   {
-                                    if( !isIntellisensePopupShowing() )
+                                    if( !isCompletionPopupShowing() )
                                     {
                                       handleBulkIndent( true );
                                     }
@@ -523,7 +481,7 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
                                   @Override
                                   public void actionPerformed( ActionEvent e )
                                   {
-                                    if( !isIntellisensePopupShowing() )
+                                    if( !isCompletionPopupShowing() )
                                     {
                                       displayParameterInfoPopup( _editor.getCaretPosition() );
                                     }
@@ -770,6 +728,7 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
     }
   }
 
+  @SuppressWarnings("UnusedDeclaration")
   public IType getExpectedType()
   {
     return _expectedType;
@@ -793,18 +752,6 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
     }
   }
 
-  void doSmartHelp()
-  {
-    if( _adviceRunner != null )
-    {
-      _adviceRunner.run();
-    }
-    else
-    {
-      displayValueCompletionAtCurrentLocation();
-    }
-  }
-
   void jumpRight()
   {
     TextComponentUtil.jumpRight( _editor );
@@ -812,30 +759,25 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
 
   public void displayGotoLinePopup()
   {
-    dismissBeanInfoPopup();
+    dismissCompletionPopup();
     StringPopup popup = new StringPopup( "", "Line number:", getEditor() );
     popup.addNodeChangeListener(
-      new ChangeListener()
-      {
-        @Override
-        public void stateChanged( ChangeEvent e )
+      e -> {
+        try
         {
-          try
+          int iLine = Integer.parseInt( e.getSource().toString() );
+          if( iLine > 0 )
           {
-            int iLine = Integer.parseInt( e.getSource().toString() );
-            if( iLine > 0 )
-            {
-              gotoLine( iLine );
-            }
+            gotoLine( iLine );
           }
-          catch( NumberFormatException nfe )
-          {
-            // ignore
-          }
-          getEditor().requestFocus();
-          EditorUtilities.fixSwingFocusBugWhenPopupCloses( GosuEditor.this );
-          getEditor().repaint();
         }
+        catch( NumberFormatException nfe )
+        {
+          // ignore
+        }
+        getEditor().requestFocus();
+        EditorUtilities.fixSwingFocusBugWhenPopupCloses( GosuEditor.this );
+        getEditor().repaint();
       } );
     popup.show( this, 0, 0 );
     editor.util.EditorUtilities.centerWindowInFrame( popup, editor.util.EditorUtilities.getWindow() );
@@ -913,7 +855,7 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
 
   public void gotoNextUsageHighlight()
   {
-    if( isIntellisensePopupShowing() )
+    if( isCompletionPopupShowing() )
     {
       return;
     }
@@ -942,7 +884,7 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
 
   public void gotoPrevUsageHighlight()
   {
-    if( isIntellisensePopupShowing() )
+    if( isCompletionPopupShowing() )
     {
       return;
     }
@@ -971,7 +913,7 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
 
   public void removeAllHighlights()
   {
-    if( isIntellisensePopupShowing() )
+    if( isCompletionPopupShowing() )
     {
       return;
     }
@@ -1020,7 +962,7 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
 
   public void selectWord()
   {
-    if( !isIntellisensePopupShowing() && isCaretInEditor() )
+    if( !isCompletionPopupShowing() && isCaretInEditor() )
     {
       _selectionManager.expandSelection();
     }
@@ -1028,7 +970,7 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
 
   public void selectWordForMouseClick()
   {
-    if( !isIntellisensePopupShowing() && isCaretInEditor() )
+    if( !isCompletionPopupShowing() && isCaretInEditor() )
     {
       _selectionManager.expandSelection( false );
     }
@@ -1036,7 +978,7 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
 
   public void narrowSelectWord()
   {
-    if( !isIntellisensePopupShowing() && isCaretInEditor() )
+    if( !isCompletionPopupShowing() && isCaretInEditor() )
     {
       _selectionManager.reduceSelection();
     }
@@ -1160,7 +1102,7 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
 
   public void gotoDeclaration()
   {
-    if( !isIntellisensePopupShowing() )
+    if( !isCompletionPopupShowing() )
     {
       gotoDeclarationAtCursor();
     }
@@ -1244,6 +1186,7 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
     return _bStatement;
   }
 
+  @SuppressWarnings("UnusedDeclaration")
   public void setStatement( boolean bStatement )
   {
     _bStatement = bStatement;
@@ -1275,6 +1218,7 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
     return _pe;
   }
 
+  @SuppressWarnings("UnusedDeclaration")
   public boolean hasParseResultsException()
   {
     return _pe != null;
@@ -1327,6 +1271,7 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
     }
   }
 
+  @SuppressWarnings("UnusedDeclaration")
   public void setTestResource( boolean testResource )
   {
     _bTestResource = testResource;
@@ -1359,6 +1304,7 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
     return _bParserSuspended;
   }
 
+  @SuppressWarnings("UnusedDeclaration")
   public void setParserSuspended( boolean bParserSuspended )
   {
     _bParserSuspended = bParserSuspended;
@@ -1661,10 +1607,6 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
         {
           _parser.putDfsDeclsInTable( _parser.getSymbolTable() );
         }
-        for( IDynamicFunctionSymbol specialFunction : _specialFunctions )
-        {
-          _parser.putDfsDeclInSetByName( specialFunction );
-        }
 
         ClassType classType = getClassType();
         if( classType != null )
@@ -1702,7 +1644,6 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
       else if( _parser != null )
       {
         _parser.setScript( "" );
-        _parser.setTokenizerInstructor( _tokenizerInstructor );
       }
 
       clearParseException();
@@ -1764,18 +1705,13 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
           _typeUsesMapFromMostRecentParse = _parser.getTypeUsesMap().copy();
           final List<IParseTree> locations = _parser.getLocations();
           EventQueue.invokeLater(
-            new Runnable()
-            {
-              @Override
-              public void run()
+            () -> {
+              if( getGosuDocument().getLocations() == null )
               {
-                if( getGosuDocument().getLocations() == null )
-                {
-                  _editor.repaint();
-                }
-                getGosuDocument().setLocations( locations );
-                getGosuDocument().setLocationsOffset( _parser.getOffsetShift() );
+                _editor.repaint();
               }
+              getGosuDocument().setLocations( locations );
+              getGosuDocument().setLocationsOffset( _parser.getOffsetShift() );
             } );
         }
       }
@@ -1786,17 +1722,10 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
       return;
     }
 
-    EventQueue.invokeLater(
-      new Runnable()
-      {
-        @Override
-        public void run()
-        {
-          _panelFeedback.update( RESCODE_VALID, GosuEditor.this );
-        }
-      } );
+    EventQueue.invokeLater( () -> _panelFeedback.update( RESCODE_VALID, GosuEditor.this ) );
   }
 
+  @SuppressWarnings("UnusedDeclaration")
   public void showFeedback( boolean show )
   {
     _panelFeedback.setVisible( show );
@@ -1867,9 +1796,9 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
 
     if( functionStmtsByLineNumber == null )
     {
-      functionStmtsByLineNumber = new HashMap<Integer, IFunctionStatement>();
+      functionStmtsByLineNumber = new HashMap<>();
     }
-    List<IFunctionStatement> functionStatements = new ArrayList<IFunctionStatement>();
+    List<IFunctionStatement> functionStatements = new ArrayList<>();
     gsClass.getClassStatement().getContainedParsedElementsByType( IFunctionStatement.class, functionStatements );
     for( IFunctionStatement fs : functionStatements )
     {
@@ -1878,55 +1807,18 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
     return functionStmtsByLineNumber;
   }
 
-  private void storeOverriddenFunctions()
-  {
-//    if( _parsedGosuClass == null || _parsedGosuClass instanceof IGosuEnhancement )
-//    {
-//      _overriddenFunctions = null;
-//      return;
-//    }
-//
-//    List<IDynamicFunctionSymbol> overriddenFunctions = new ArrayList<IDynamicFunctionSymbol>();
-//    FeatureInfoRecordFinder finder = TypeInfoDatabaseInit.getFeatureInfoRecordFinder();
-//    if( finder != null )
-//    {
-//      for( IFunctionStatement fs : getFunctionsByLineNumber().values() )
-//      {
-//        if( !finder.findMethodsThatOverrideThis( fs ).isEmpty() )
-//        {
-//              overriddenFunctions.add( fs.getDynamicFunctionSymbol() );
-//        }
-//      }
-//    }
-//    _overriddenFunctions = overriddenFunctions;
-  }
-
   public Map<Integer, IFunctionStatement> getFunctionsByLineNumber()
   {
     return _functionStmtsByLineNumber == null ? Collections.<Integer, IFunctionStatement>emptyMap() : _functionStmtsByLineNumber;
   }
 
-  public List<IDynamicFunctionSymbol> getOverriddenFunctions()
-  {
-    return _overriddenFunctions == null ? Collections.<IDynamicFunctionSymbol>emptyList() : _overriddenFunctions;
-  }
-
   protected void clearParseException()
   {
     _pe = null;
-
-    EventQueue.invokeLater(
-      new Runnable()
-      {
-        @Override
-        public void run()
-        {
-          getGosuDocument().setParseResultsException( null );
-          displayAdvice( null );
-        }
-      } );
+    EventQueue.invokeLater( () -> getGosuDocument().setParseResultsException( null ) );
   }
 
+  @SuppressWarnings("UnusedDeclaration")
   public void setValidator( IGosuValidator validator )
   {
     _validator = validator;
@@ -1936,6 +1828,7 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
     }
   }
 
+  @SuppressWarnings("UnusedDeclaration")
   public static boolean areAnyParserTasksPending()
   {
     TaskQueue tq = TaskQueue.getInstance( INTELLISENSE_TASK_QUEUE );
@@ -2050,23 +1943,14 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
       return;
     }
 
-    displayAdvice( null );
-
     //If we are forcing code completion (after a dot) just handle it directly
     if( bForceCodeCompletion )
     {
       handleCompleteCode();
     }
-    else
-    {
-      //## todo:
-      //## value completion should be integrated as part of code completion e.g., Enum constants should be in the same popup as members etc.
-
-      handleCompleteValue();
-    }
   }
 
-  private void handleCompleteValue()
+  public IType findExpectedTypeErrorAtCaret()
   {
     List<IParseIssue> errors = getIssuesNearPos( _editor.getCaretPosition() );
     if( errors == null || errors.isEmpty() )
@@ -2078,61 +1962,27 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
       }
       else
       {
-        return;
+        return null;
       }
     }
 
-    ParseException e = null;
     IType typeExpected = null;
     for( IParseIssue issue : errors )
     {
       if( issue instanceof ParseException )
       {
-        e = (ParseException)issue;
-        typeExpected = e.getExpectedType();
+        typeExpected = issue.getExpectedType();
         if( typeExpected != null )
         {
           break;
         }
       }
     }
-    final ParseException error = e;
-
-    boolean emptyMethodCall = false;
     if( typeExpected == null )
     {
-      typeExpected = AbstractParseExceptionResolver.resolvePossibleContextTypesFromEmptyMethodCalls( getExpressionAtCaret(), _editor );
-      emptyMethodCall = true;
+      typeExpected = ParseExceptionResolver.resolvePossibleContextTypesFromEmptyMethodCalls( getExpressionAtCaret(), _editor );
     }
-
-    if( typeExpected != null )
-    {
-      String strTypesExpected = ParseResultsException.getExpectedTypeName( typeExpected );
-      try
-      {
-        if( strTypesExpected.length() > 0 && (!TextComponentUtil.getWordBeforeCaret( _editor ).equals( "." ) && !TextComponentUtil.getWordBeforeCaret( _editor ).equals( "#" ))
-            && error != null && (emptyMethodCall || error.appliesToPosition( _editor.getCaretPosition() ) ||
-                                 (_editor.getCaretPosition() < error.getTokenStart() && _editor.getDocument().getText( _editor.getCaretPosition(), error.getTokenStart() - _editor.getCaretPosition() ).matches( " *" )) ||
-                                 (_editor.getCaretPosition() > error.getTokenEnd() && _editor.getDocument().getText( error.getTokenEnd(), _editor.getCaretPosition() - error.getTokenEnd() ).matches( " *" ))) )
-        {
-          _adviceRunner =
-            new Runnable()
-            {
-              @Override
-              public void run()
-              {
-                setCaretPositionForValueCompletion( error );
-                displayValueCompletion( error );
-              }
-            };
-          displayAdvice( e );
-        }
-      }
-      catch( BadLocationException e1 )
-      {
-        // ignore
-      }
-    }
+    return typeExpected;
   }
 
   public IGosuParser getParser()
@@ -2166,6 +2016,7 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
     return _symTable;
   }
 
+  @SuppressWarnings("UnusedDeclaration")
   public void resetSymbolTable( ISymbolTable newSymbols )
   {
     setSymbolTable( newSymbols );
@@ -2304,8 +2155,7 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
     {
       if( caretPosition > 0 && (getEditor().getText( caretPosition - 1, 1 ).equals( "." ) || getEditor().getText( caretPosition - 1, 1 ).equals( "#" )) )
       {
-        dismissBeanInfoPopup();
-        dismissValuePopup();
+        dismissCompletionPopup();
       }
     }
     catch( BadLocationException e1 )
@@ -2485,30 +2335,9 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
   {
     final int caretPosition = _editor.getCaretPosition();
     EventQueue.invokeLater(
-      new Runnable()
-      {
-        @Override
-        public void run()
-        {
-          postTaskInParserThread(
-            new Runnable()
-            {
-              @Override
-              public void run()
-              {
-                EventQueue.invokeLater(
-                  new Runnable()
-                  {
-                    @Override
-                    public void run()
-                    {
-                      handleBraceRightNow( caretPosition );
-                    }
-                  } );
-              }
-            } );
-        }
-      } );
+      () -> postTaskInParserThread(
+        () -> EventQueue.invokeLater(
+          () -> handleBraceRightNow( caretPosition ) ) ) );
   }
 
   private void handleBraceRightNow( int caretPosition )
@@ -2586,80 +2415,6 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
     _editor.setCaretPosition( e.getTokenStart() );
   }
 
-  void setCaretPositionForValueCompletion( IParseIssue e )
-  {
-    editor.util.EditorUtilities.settleEventQueue();
-    _editor.setCaretPosition( getCaretPositionForValueCompletion( e ) );
-  }
-
-  int getCaretPositionForValueCompletion( IParseIssue e )
-  {
-    int iErrorPos = e.getSource().getLocation().getOffset();
-    int iCaretPos = _editor.getCaretPosition();
-
-    if( getExpressionAtCaret() == null ||
-        !AbstractParseExceptionResolver.shouldPositionAtStartOfElement( getExpressionAtCaret().getLocation(), _editor ) )
-    {
-      return iCaretPos;
-    }
-
-    if( iErrorPos <= iCaretPos ||
-        TextComponentUtil.isNonWhitespaceBetween( _editor, iCaretPos, iErrorPos ) )
-    {
-      return iErrorPos;
-    }
-    return iCaretPos;
-  }
-
-  void displayAdvice( ParseException e )
-  {
-    //Only update the smartfix manager if this editor has focus (it's expensive to do so, and there may be many
-    //editors on the screen, e.g. the properties window in the PCF Editor.)
-    if( _editor.hasFocus() )
-    {
-      _smartFixManager.updateState();
-    }
-
-    if( !isShowing() || !shouldDisplaySmartHelp( e ) )
-    {
-      _adviceRunner = null;
-      _btnAdvice.setVisible( false );
-      return;
-    }
-
-    try
-    {
-      _btnAdvice.setVisible( true );
-      _btnAdvice.setSize( _btnAdvice.getPreferredSize() );
-      int iPos = getCaretPositionForValueCompletion( e );
-      Rectangle rcAdvice = getPositionFromPoint( iPos );
-      rcAdvice = SwingUtilities.convertRectangle( _editor, rcAdvice, _btnAdvice.getParent() );
-      if( rcAdvice != null )
-      {
-        int adviceY;
-        Rectangle visibleRect = getEditor().getVisibleRect();
-        if( rcAdvice.y + rcAdvice.height + _btnAdvice.getHeight() > visibleRect.y + visibleRect.height )
-        {
-          adviceY = rcAdvice.y - _btnAdvice.getHeight();
-        }
-        else
-        {
-          adviceY = rcAdvice.y + rcAdvice.height;
-        }
-        _btnAdvice.setLocation( rcAdvice.x, adviceY );
-      }
-      else
-      {
-        _adviceRunner = null;
-        _btnAdvice.setVisible( false );
-      }
-    }
-    catch( Throwable t )
-    {
-      editor.util.EditorUtilities.handleUncaughtException( "ElementModel change listener error.", t );
-    }
-  }
-
   public AtomicUndoManager getUndoManager()
   {
     return _undoMgr;
@@ -2716,40 +2471,30 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
   public void handleCompleteCode()
   {
     setCompleteCode( true );
-    postTaskInParserThread( new Runnable()
-    {
-      @Override
-      public void run()
+    postTaskInParserThread( () -> {
+      if( isCompleteCode() )
       {
-        if( isCompleteCode() )
+        try
         {
-          try
-          {
-            final ISymbolTable atCursor = getSymbolTableAtCursor();
-            SwingUtilities.invokeLater( new Runnable()
+          final ISymbolTable atCursor = getSymbolTableAtCursor();
+          SwingUtilities.invokeLater( () -> {
+            if( isCompleteCode() )
             {
-              @Override
-              public void run()
+              try
               {
-                if( isCompleteCode() )
-                {
-                  try
-                  {
-                    handleDot( atCursor );
-                  }
-                  finally
-                  {
-                    setCompleteCode( false );
-                  }
-                }
+                handleDot( atCursor );
               }
-            } );
-          }
-          catch( RuntimeException e )
-          {
-            setCompleteCode( false );
-            throw e;
-          }
+              finally
+              {
+                setCompleteCode( false );
+              }
+            }
+          } );
+        }
+        catch( RuntimeException e )
+        {
+          setCompleteCode( false );
+          throw e;
         }
       }
     } );
@@ -2758,31 +2503,26 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
   void setCompleteCode( final boolean bCompleteCode )
   {
     _bCompleteCode = bCompleteCode;
-    SwingUtilities.invokeLater( new Runnable()
-    {
-      @Override
-      public void run()
+    SwingUtilities.invokeLater( () -> {
+      if( bCompleteCode )
       {
-        if( bCompleteCode )
+        Rectangle rcCaretBounds;
+        try
         {
-          Rectangle rcCaretBounds;
-          try
-          {
-            rcCaretBounds = getPositionFromPoint( getEditor().getCaretPosition() );
-          }
-          catch( BadLocationException e )
-          {
-            throw new RuntimeException( e );
-          }
-          if( rcCaretBounds != TEST_RECTANGLE && !isIntellisensePopupShowing() )
-          {
-            _spinnerPopup.show( _editor, rcCaretBounds.x, rcCaretBounds.y + rcCaretBounds.height );
-          }
+          rcCaretBounds = getPositionFromPoint( getEditor().getCaretPosition() );
         }
-        else
+        catch( BadLocationException e )
         {
-          _spinnerPopup.setVisible( false );
+          throw new RuntimeException( e );
         }
+        if( rcCaretBounds != TEST_RECTANGLE && !isCompletionPopupShowing() )
+        {
+          _spinnerPopup.show( _editor, rcCaretBounds.x, rcCaretBounds.y + rcCaretBounds.height );
+        }
+      }
+      else
+      {
+        _spinnerPopup.setVisible( false );
       }
     } );
   }
@@ -2796,15 +2536,10 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
   {
     // The completion delay is here mostly to prevent doing path completion during undo/redo.
     runIfNoKeyPressedInMillis( COMPLETION_DELAY,
-                               new Runnable()
-                               {
-                                 @Override
-                                 public void run()
-                                 {
-                                   setCompleteCode( true );
-                                   parse( true );
-                                   //handleDot( (ISymbolTable)null );
-                                 }
+                               () -> {
+                                 setCompleteCode( true );
+                                 parse( true );
+                                 //handleDot( (ISymbolTable)null );
                                } );
   }
 
@@ -2812,15 +2547,10 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
   {
     // The completion delay is here mostly to prevent doing path completion during undo/redo.
     runIfNoKeyPressedInMillis( COMPLETION_DELAY,
-                               new Runnable()
-                               {
-                                 @Override
-                                 public void run()
-                                 {
-                                   setCompleteCode( true );
-                                   parse( true );
-                                   //handleDot( (ISymbolTable)null );
-                                 }
+                               () -> {
+                                 setCompleteCode( true );
+                                 parse( true );
+                                 //handleDot( (ISymbolTable)null );
                                } );
   }
 
@@ -2831,14 +2561,11 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
       return;
     }
 
-    if( isIntellisensePopupShowing() )
+    if( isCompletionPopupShowing() )
     {
       // Don't clobber the code completion popup
       return;
     }
-
-    // Hide advice button while handling dot
-    displayAdvice( null );
 
     String strWordAtCaret = TextComponentUtil.getWordAtCaret( _editor );
     if( strWordAtCaret == null || strWordAtCaret.length() == 0 || !Character.isLetterOrDigit( strWordAtCaret.charAt( 0 ) ) )
@@ -2848,14 +2575,13 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
 
     if( isCompleteCode() || strWordAtCaret.equals( "." ) || strWordAtCaret.equals( "#" ) || strWordAtCaret.equals( ":" ) )
     {
-      dismissValuePopup();
       handleDotNow( transientSymTable );
     }
   }
 
   void handleDotNow( ISymbolTable transientSymTable )
   {
-    dismissBeanInfoPopup();
+    dismissCompletionPopup();
     displayPathCompletion( transientSymTable );
   }
 
@@ -2868,101 +2594,85 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
     PathCompletionIntellisense.instance().complete( this, transientSymTable );
   }
 
-  void displayPathCompletionBeanInfoPopup( final boolean bFeatureLiteralCompletion )
+  void displayPathCompletionPopup( final boolean bFeatureLiteralCompletion )
   {
-    if( _beanInfoPopup.isDOA() )
+    if( ((BeanInfoPopup)_completionPopup).isDOA() )
     {
       return;
     }
 
-    _beanInfoPopup.addNodeChangeListener( new ChangeListener()
-    {
-      @Override
-      public void stateChanged( ChangeEvent e )
+    ((BeanInfoPopup)_completionPopup).addNodeChangeListener( e -> {
+      CompoundEdit undoAtom = _undoMgr.getUndoAtom();
+      if( undoAtom != null && undoAtom.getPresentationName().equals( "Script Change" ) )
       {
-        CompoundEdit undoAtom = _undoMgr.getUndoAtom();
-        if( undoAtom != null && undoAtom.getPresentationName().equals( "Script Change" ) )
-        {
-          _undoMgr.endUndoAtom();
-        }
-        undoAtom = getUndoManager().beginUndoAtom( "Code Completion" );
+        _undoMgr.endUndoAtom();
+      }
+      undoAtom = getUndoManager().beginUndoAtom( "Code Completion" );
+      try
+      {
+        BeanTree completionSelection = (BeanTree)e.getSource();
+        String strRef = completionSelection.makePath( bFeatureLiteralCompletion );
         try
         {
-          BeanTree beanInfoSelection = (BeanTree)e.getSource();
-          String strRef = beanInfoSelection.makePath( bFeatureLiteralCompletion );
-          try
+          int dotPosition = _editor.getCaretPosition() - 1;
+          String s = _editor.getText();
+          dotPosition = TextComponentUtil.findCharacterPositionOnLine( dotPosition, s, '.', BACKWARD );
+          if( dotPosition == -1 )
           {
-            int dotPosition = _editor.getCaretPosition() - 1;
-            String s = _editor.getText();
-            dotPosition = TextComponentUtil.findCharacterPositionOnLine( dotPosition, s, '.', BACKWARD );
+            dotPosition = TextComponentUtil.findCharacterPositionOnLine( _editor.getCaretPosition() - 1, s, '#', BACKWARD );
             if( dotPosition == -1 )
             {
-              dotPosition = TextComponentUtil.findCharacterPositionOnLine( _editor.getCaretPosition() - 1, s, '#', BACKWARD );
-              if( dotPosition == -1 )
-              {
-                //the user must have moved out of the path's line, so we cannot complete
-                return;
-              }
-            }
-
-            _editor.getDocument().remove( dotPosition + 1, _editor.getCaretPosition() - (dotPosition + 1) );
-            _editor.getDocument().insertString( _editor.getCaretPosition(), strRef, null );
-
-            // If we are handling a typed dot, no fixing up stuff
-            if( e instanceof BeanInfoPopup.DotWasTypedChangeEvent )
-            {
+              //the user must have moved out of the path's line, so we cannot complete
               return;
             }
-
-            //If this is a method we are inserting, select the first argument position within it
-            if( strRef.contains( "(" ) )
-            {
-              String text = _editor.getText();
-              int wordStart = TextComponentUtil.findCharacterPositionOnLine( dotPosition, text, '(', FORWARD );
-              int closeParen = TextComponentUtil.findCharacterPositionOnLine( dotPosition, text, ')', FORWARD );
-              while( !Character.isJavaIdentifierPart( text.charAt( wordStart ) ) && wordStart < closeParen )
-              {
-                wordStart++;
-              }
-              if( wordStart != closeParen )
-              {
-                _editor.setCaretPosition( wordStart );
-                TextComponentUtil.selectWordAtCaret( _editor );
-              }
-            }
-
-            //If we completed halfway through another word, insert a dot for the developer
-            if( Character.isJavaIdentifierPart( _editor.getDocument().getText( _editor.getCaretPosition(), 1 ).charAt( 0 ) ) )
-            {
-              _editor.getDocument().insertString( _editor.getCaretPosition(), ".", null );
-            }
           }
-          catch( BadLocationException ble )
+
+          _editor.getDocument().remove( dotPosition + 1, _editor.getCaretPosition() - (dotPosition + 1) );
+          _editor.getDocument().insertString( _editor.getCaretPosition(), strRef, null );
+
+          // If we are handling a typed dot, no fixing up stuff
+          if( e instanceof BeanInfoPopup.DotWasTypedChangeEvent )
           {
-            throw new RuntimeException( ble );
+            return;
           }
-          _editor.requestFocus();
-          EditorUtilities.fixSwingFocusBugWhenPopupCloses( GosuEditor.this );
-          _editor.repaint();
+
+          //If this is a method we are inserting, select the first argument position within it
+          if( strRef.contains( "(" ) )
+          {
+            String text = _editor.getText();
+            int wordStart = TextComponentUtil.findCharacterPositionOnLine( dotPosition, text, '(', FORWARD );
+            int closeParen = TextComponentUtil.findCharacterPositionOnLine( dotPosition, text, ')', FORWARD );
+            while( !Character.isJavaIdentifierPart( text.charAt( wordStart ) ) && wordStart < closeParen )
+            {
+              wordStart++;
+            }
+            if( wordStart != closeParen )
+            {
+              _editor.setCaretPosition( wordStart );
+              TextComponentUtil.selectWordAtCaret( _editor );
+            }
+          }
+
+          //If we completed halfway through another word, insert a dot for the developer
+          if( Character.isJavaIdentifierPart( _editor.getDocument().getText( _editor.getCaretPosition(), 1 ).charAt( 0 ) ) )
+          {
+            _editor.getDocument().insertString( _editor.getCaretPosition(), ".", null );
+          }
         }
-        finally
+        catch( BadLocationException ble )
         {
-          getUndoManager().endUndoAtom( undoAtom );
+          throw new RuntimeException( ble );
         }
+        _editor.requestFocus();
+        EditorUtilities.fixSwingFocusBugWhenPopupCloses( GosuEditor.this );
+        _editor.repaint();
+      }
+      finally
+      {
+        getUndoManager().endUndoAtom( undoAtom );
       }
     } );
-    displayBeanInfoPopup( _editor.getCaretPosition() );
-  }
-
-  void displayValueCompletion( ParseException pe )
-  {
-    ParseExceptionIntellisense.instance().resolve( this, pe );
-  }
-
-  @Override
-  public boolean displayValueCompletionAtCurrentLocation()
-  {
-    return ValueCompletionIntellisense.instance().complete( this );
+    displayCompletionPopup( _editor.getCaretPosition() );
   }
 
   public void clipCopyTypeInfoAtCurrentLocation()
@@ -3128,6 +2838,7 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
     return null;
   }
 
+  @SuppressWarnings("UnusedDeclaration")
   void replaceLocationAtCaret( String strReplacement )
   {
     IParseTree deepest = getDeepestLocationAtCaret();
@@ -3144,16 +2855,6 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
     _editor.setCaretPosition( location.getOffset() );
     _editor.moveCaretPosition( location.getOffset() + location.getLength() );
     _editor.replaceSelection( strReplacement );
-  }
-
-  boolean shouldDisplaySmartHelp( ParseException pe )
-  {
-    return pe != null && ParseExceptionIntellisense.instance().canResolve( this, pe );
-  }
-
-  IExpression getExpressionBeforeCaret()
-  {
-    return getExpressionAtPos( _editor.getCaretPosition() - 1 );
   }
 
   IExpression getExpressionAtCaret()
@@ -3203,11 +2904,7 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
     return getSymbolTableAtOffset( _editor.getCaretPosition() );
   }
 
-  public ISymbolTable getSymbolTableAtLineStart( int iLine )
-  {
-    return getSymbolTableAtOffset( getLineOffset( iLine ) );
-  }
-
+  @SuppressWarnings("UnusedDeclaration")
   public int getLineOffset( int iLine )
   {
     Element root = getGosuDocument().getRootElements()[0];
@@ -3286,7 +2983,7 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
     return getSymbolTable();
   }
 
-  protected void displayBeanInfoPopup( int iPosition )
+  protected void displayCompletionPopup( int iPosition )
   {
     if( !_editor.isShowing() )
     {
@@ -3300,22 +2997,15 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
 
     try
     {
-      dismissValuePopup();
-
       Rectangle rcBounds = getPositionFromPoint( iPosition );
       if( rcBounds != TEST_RECTANGLE )
       {
-        _beanInfoPopup.show( _editor, rcBounds.x, rcBounds.y + rcBounds.height );
+        _completionPopup.show( _editor, rcBounds.x, rcBounds.y + rcBounds.height );
       }
 
-      EventQueue.invokeLater( new Runnable()
-      {
-        @Override
-        public void run()
-        {
-          _editor.requestFocus();
-          _editor.repaint();
-        }
+      EventQueue.invokeLater( () -> {
+        _editor.requestFocus();
+        _editor.repaint();
       } );
     }
     catch( BadLocationException e )
@@ -3340,94 +3030,31 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
     return Math.abs( getUndoManager().getLastUndoTime() - System.currentTimeMillis() ) < 400;
   }
 
-  void displayValuePopup()
-  {
-    displayValuePopup( getEditor().getCaretPosition() );
-  }
-
-  void displayValuePopup( int iPosition )
-  {
-    displayValuePopup( iPosition, true );
-  }
-
-  void displayValuePopup( int iPosition, boolean bFocusInEditor )
-  {
-    try
-    {
-      dismissBeanInfoPopup();
-
-      Rectangle rcCaretBounds = getPositionFromPoint( iPosition );
-      if( rcCaretBounds != TEST_RECTANGLE )
-      {
-        _valuePopup.show( _editor, rcCaretBounds.x, rcCaretBounds.y + rcCaretBounds.height );
-      }
-
-      if( bFocusInEditor )
-      {
-        EventQueue.invokeLater( new Runnable()
-        {
-          @Override
-          public void run()
-          {
-            _editor.requestFocus();
-            _editor.repaint();
-          }
-        } );
-      }
-    }
-    catch( BadLocationException e )
-    {
-      editor.util.EditorUtilities.handleUncaughtException( e );
-    }
-  }
-
   ParameterInfoPopup displayParameterInfoPopup( int iPosition )
   {
     return ParameterInfoPopup.invoke( this, iPosition );
   }
 
-  void dismissBeanInfoPopup()
+  void dismissCompletionPopup()
   {
-    if( _beanInfoPopup != null )
+    if( _completionPopup != null )
     {
-      _beanInfoPopup.setVisible( false );
-      _beanInfoPopup = null;
+      _completionPopup.setVisible( false );
+      _completionPopup = null;
     }
   }
 
-  public BeanInfoPopup getBeanInfoPopup()
+  public JPopupMenu getCompletionPopup()
   {
-    return _beanInfoPopup;
+    return _completionPopup;
   }
-
-  public void setBeanInfoPopup( BeanInfoPopup beanInfoPopup )
+  public void setCompletionPopup( JPopupMenu completionPopup )
   {
-    _beanInfoPopup = beanInfoPopup;
+    _completionPopup = completionPopup;
   }
-
-  public IValuePopup getValuePopup()
+  public boolean isCompletionPopupShowing()
   {
-    return (IValuePopup)_valuePopup;
-  }
-
-  public void setValuePopup( IValuePopup valuePopup )
-  {
-    _valuePopup = (JPopupMenu)valuePopup;
-  }
-
-  public boolean isIntellisensePopupShowing()
-  {
-    return (_beanInfoPopup != null && _beanInfoPopup.isShowing()) ||
-           (_valuePopup != null && _valuePopup.isShowing());
-  }
-
-  private void dismissValuePopup()
-  {
-    if( _valuePopup != null )
-    {
-      _valuePopup.setVisible( false );
-      _valuePopup = null;
-    }
+    return _completionPopup != null && _completionPopup.isShowing();
   }
 
   @Override
@@ -3497,9 +3124,7 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
 
     try
     {
-      dismissBeanInfoPopup();
-
-      dismissValuePopup();
+      dismissCompletionPopup();
 
       Rectangle rcCaretBounds = _editor.modelToView( parseTree.getOffset() + _parser.getOffsetShift() );
       _javadocPopup = new JavadocPopup( strHelpText, this );
@@ -3508,14 +3133,9 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
         _javadocPopup.show( _editor, rcCaretBounds.x, rcCaretBounds.y + rcCaretBounds.height );
       }
 
-      EventQueue.invokeLater( new Runnable()
-      {
-        @Override
-        public void run()
-        {
-          _editor.requestFocus();
-          _editor.repaint();
-        }
+      EventQueue.invokeLater( () -> {
+        _editor.requestFocus();
+        _editor.repaint();
       } );
     }
     catch( BadLocationException e )
@@ -3546,6 +3166,7 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
     {
       return null;
     }
+    //noinspection ThrowableResultOfMethodCallIgnored
     ParseResultsException pe = getParseResultsException();
     if( pe == null )
     {
@@ -3555,18 +3176,32 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
     List<IParseIssue> parseIssues = pe.getIssuesFromPos( iPos );
     try
     {
-      if( " ".equals( _editor.getText( iPos - 1, 1 ) ) )
+      int backwardPos = iPos;
+      while( Character.isWhitespace( _editor.getText( --backwardPos, 1 ).charAt( 0 ) ) )
       {
-        parseIssues.addAll( pe.getIssuesFromPos( iPos - 1 ) );
+        parseIssues.addAll( pe.getIssuesFromPos( backwardPos ) );
+      }
+      if( parseIssues.isEmpty() )
+      {
+        int forwardPos = iPos;
+        while( Character.isWhitespace( _editor.getText( ++forwardPos, 1 ).charAt( 0 ) ) )
+        {
+          parseIssues.addAll( pe.getIssuesFromPos( forwardPos ) );
+        }
+        if( parseIssues.isEmpty() )
+        {
+          parseIssues.addAll( pe.getIssuesFromPos( forwardPos+1 ) );
+        }
       }
     }
-    catch( BadLocationException e )
+    catch( Exception e )
     {
       // never mind
     }
     return parseIssues;
   }
 
+  @SuppressWarnings("UnusedDeclaration")
   private List<IParseIssue> getIssuesNearPos( int iPos )
   {
     List<IParseIssue> issues = getIssuesFromPos( iPos );
@@ -3579,6 +3214,7 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
     {
       return null;
     }
+    //noinspection ThrowableResultOfMethodCallIgnored
     ParseResultsException pe = getParseResultsException();
     if( pe == null )
     {
@@ -3619,7 +3255,7 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
     }
     if( error != null )
     {
-      issues = new ArrayList<IParseIssue>( 2 );
+      issues = new ArrayList<>( 2 );
       issues.add( error );
       return issues;
     }
@@ -3662,6 +3298,7 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
     return strFeedback;
   }
 
+  @SuppressWarnings("UnusedDeclaration")
   public void addParseListener( ParseListener parseListener )
   {
     _parseListeners.add( parseListener );
@@ -3843,6 +3480,7 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
     return parsedElement;
   }
 
+  @SuppressWarnings("UnusedDeclaration")
   public IParsedElement getRootParsedElement()
   {
     IParseTree location = getDeepestLocationAtCaret();
@@ -3873,24 +3511,21 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
     _editor.addKeyListener( keyListener );
 
     Timer timer = _timerPool.requestTimer( (int)lMillis,
-                                           new ActionListener()
-                                           {
-                                             @Override
-                                             public void actionPerformed( ActionEvent e )
-                                             {
-                                               _editor.removeKeyListener( keyListener );
-                                               if( !bKeyPressed[0] )
-                                               {
-                                                 editor.util.EditorUtilities.invokeInDispatchThread( task );
-                                               }
-                                               _iTimerCount--;
-                                             }
-                                           } );
+     e -> {
+       _editor.removeKeyListener( keyListener );
+       if( !bKeyPressed[0] )
+       {
+         EditorUtilities.invokeInDispatchThread( task );
+       }
+       _iTimerCount--;
+     } );
+
     timer.setRepeats( false );
     _iTimerCount++;
     timer.start();
   }
 
+  @SuppressWarnings("UnusedDeclaration")
   public int getTimerCount()
   {
     return _iTimerCount;
@@ -3911,12 +3546,12 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
       setCompleteCode( false );
       if( e.getKeyChar() == KeyEvent.VK_ENTER && e.getModifiers() == 0 )
       {
-        _bEnterPressedConsumed = e.isConsumed() || isIntellisensePopupShowing();
+        _bEnterPressedConsumed = e.isConsumed() || isCompletionPopupShowing();
       }
       else if( e.getKeyChar() == KeyEvent.VK_SPACE && e.isControlDown() )
       {
         _bAltDown = (e.getModifiers() & InputEvent.ALT_MASK) > 0;
-        if( !isIntellisensePopupShowing() )
+        if( !isCompletionPopupShowing() )
         {
           handleCompleteCode();
           e.consume();
@@ -3966,7 +3601,7 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
       {
         if( keyChar == KeyEvent.VK_ENTER && modifiers == 0 )
         {
-          if( !consumed && !_bEnterPressedConsumed && !isIntellisensePopupShowing() )
+          if( !consumed && !_bEnterPressedConsumed && !isCompletionPopupShowing() )
           {
             handleEnter();
           }
@@ -3980,7 +3615,7 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
         //      }
         else if( keyChar == '}' )
         {
-          if( !consumed && !isIntellisensePopupShowing() )
+          if( !consumed && !isCompletionPopupShowing() )
           {
             handleBraceRight();
           }
@@ -4124,37 +3759,18 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
     _smartFixManager.performFix();
   }
 
-  public SmartFixManager getSmartFixManager()
-  {
-    return _smartFixManager;
-  }
-
   public void addToUses( String strType )
   {
     _codeManager.addToUses( strType, _bTemplate, _bProgram );
   }
 
-  public void addSpecialFunction( IDynamicFunctionSymbol symbol )
-  {
-    _specialFunctions.add( symbol );
-  }
-
-  public void addSpecialFunctionHandler( IDynamicFunctionSymbol symbol, Runnable handler )
-  {
-    _specialFunctionGotoDeclHandlers.put( symbol, handler );
-  }
-
-  public void clearSpecialFunctions()
-  {
-    _specialFunctions.clear();
-    _specialFunctionGotoDeclHandlers.clear();
-  }
-
+  @SuppressWarnings("UnusedDeclaration")
   public void makeReadOnly( boolean bReadOnly )
   {
     _editor.setEditable( !bReadOnly );
   }
 
+  @SuppressWarnings("UnusedDeclaration")
   public void setPartId( ScriptPartId scriptPartId )
   {
     _partId = scriptPartId;
@@ -4176,18 +3792,11 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
     return _parsedGosuClass;
   }
 
+  @SuppressWarnings("UnusedDeclaration")
   public static void waitOnParserThread()
   {
     TaskQueue queue = TaskQueue.getInstance( INTELLISENSE_TASK_QUEUE );
-    queue.postTaskAndWait(
-      new Runnable()
-      {
-        @Override
-        public void run()
-        {
-          //do nothing
-        }
-      } );
+    queue.postTaskAndWait( () -> { /*do nothing*/ } );
   }
 
   public JavadocPopup getJavadocPopup()
@@ -4195,6 +3804,7 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
     return _javadocPopup;
   }
 
+  @SuppressWarnings("UnusedDeclaration")
   public static void waitForIntellisenseTimers()
   {
     _timerPool.waitForAllTimersToFinish();
@@ -4226,7 +3836,7 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
   private static class TimerPool
   {
 
-    List<Object> _activeTimers = new ArrayList<Object>();
+    List<Object> _activeTimers = new ArrayList<>();
 
     Timer requestTimer( int millis, final ActionListener action )
     {

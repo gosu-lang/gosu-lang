@@ -10,8 +10,6 @@ import javax.swing.text.JTextComponent;
  */
 public class EnumerationListPopup extends ListPopup
 {
-
-  /** */
   public EnumerationListPopup( IEnumType enumAccess, JTextComponent editor )
   {
     super( editor, new EnumerationPopupListModel( enumAccess ) );
@@ -22,11 +20,5 @@ public class EnumerationListPopup extends ListPopup
     JPanel sortPanel = new JPanel();
     sortPanel.setBorder( BorderFactory.createEmptyBorder( 0, 3, 3, 3 ) );
     return sortPanel;
-  }
-
-
-  protected ListCellRenderer makeCellRenderer()
-  {
-    return new EnumerationCellRenderer( getJList() );
   }
 }

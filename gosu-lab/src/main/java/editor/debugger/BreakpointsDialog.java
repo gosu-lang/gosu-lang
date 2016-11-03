@@ -327,7 +327,7 @@ public class BreakpointsDialog extends JDialog implements IHandleCancel
       @Override
       public void keyPressed( KeyEvent e )
       {
-        if( e.getKeyCode() == KeyEvent.VK_ESCAPE && !gosuEditor.isIntellisensePopupShowing() )
+        if( e.getKeyCode() == KeyEvent.VK_ESCAPE && !gosuEditor.isCompletionPopupShowing() )
         {
           close();
         }

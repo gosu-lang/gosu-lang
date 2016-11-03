@@ -10,9 +10,9 @@ import javax.swing.JComponent;
  */
 public interface ISettings<T extends ISettingsParameters<T>> extends IJsonIO
 {
-  default void resetToDefaultSettings( Experiment experiment )
+  default void resetToDefaultSettings( Experiment target )
   {
-    setParams( makeDefaultParameters( experiment ) );
+    setParams( makeDefaultParameters( target ) );
   }
 
   default String getParentPath()

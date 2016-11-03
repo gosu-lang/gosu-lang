@@ -1147,7 +1147,7 @@ public class GosuPanel extends JPanel
         @Override
         public void actionPerformed( ActionEvent e )
         {
-          if( !getCurrentEditor().isIntellisensePopupShowing() )
+          if( !getCurrentEditor().isCompletionPopupShowing() )
           {
             getCurrentEditor().handleBulkIndent( false );
           }
@@ -1163,7 +1163,7 @@ public class GosuPanel extends JPanel
         @Override
         public void actionPerformed( ActionEvent e )
         {
-          if( !getCurrentEditor().isIntellisensePopupShowing() )
+          if( !getCurrentEditor().isCompletionPopupShowing() )
           {
             getCurrentEditor().handleBulkIndent( true );
           }

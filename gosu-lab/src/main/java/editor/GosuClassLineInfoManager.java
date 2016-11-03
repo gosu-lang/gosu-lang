@@ -1,17 +1,14 @@
 package editor;
 
 import editor.debugger.Breakpoint;
-import editor.search.MessageDisplay;
 import editor.util.EditorUtilities;
 import gw.lang.parser.IDynamicFunctionSymbol;
-import gw.lang.parser.IParseTree;
 import gw.lang.parser.statements.IFunctionStatement;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.util.Map;
-import java.util.Objects;
 
 public class GosuClassLineInfoManager extends AbstractLineInfoManager
 {
@@ -57,7 +54,7 @@ public class GosuClassLineInfoManager extends AbstractLineInfoManager
   @Override
   public Cursor getCursor( int iLine )
   {
-    if( getSuperFunction( iLine ) != null || getOverridden( iLine ) != null )
+    if( getSuperFunction( iLine ) != null )
     {
       return Cursor.getPredefinedCursor( Cursor.HAND_CURSOR );
     }
@@ -67,16 +64,10 @@ public class GosuClassLineInfoManager extends AbstractLineInfoManager
   public void handleLineClick( MouseEvent e, int iLine, int iX, int iY )
   {
     IFunctionStatement overrideFunction = getSuperFunction( iLine );
-    IParseTree implementedFuction = getOverridden( iLine );
-    if( overrideFunction != null && (implementedFuction == null || iY < _iconOverrideAndImpl.getIconHeight() / 2) )
+    if( overrideFunction != null && iY < _iconOverrideAndImpl.getIconHeight() / 2 )
     {
       IFunctionStatement funcStmt = overrideFunction.getDynamicFunctionSymbol().getSuperDfs().getDeclFunctionStmt();
       getEditor().gotoDeclaration( funcStmt.getLocation().getDeepestLocation( funcStmt.getNameOffset( null ), true ).getParsedElement() );
-    }
-    else if( implementedFuction != null )
-    {
-      MessageDisplay.displayInformation( "Men at work." );
-      //getGosuEditor().handleGotoFeature( implementedFuction. );
     }
     else
     {
@@ -95,7 +86,7 @@ public class GosuClassLineInfoManager extends AbstractLineInfoManager
   {
     super.render( g, iLine, iLineHeight, iX, iY );
     boolean isOverridden = getSuperFunction( iLine ) != null;
-    boolean isImplemented = getOverridden( iLine ) != null;
+    boolean isImplemented = false; //getOverridden( iLine ) != null;
     if( isOverridden )
     {
       if( isImplemented )
@@ -123,22 +114,6 @@ public class GosuClassLineInfoManager extends AbstractLineInfoManager
       if( dfs != null && dfs.isOverride() )
       {
         return functionStatement;
-      }
-    }
-    return null;
-  }
-
-  private IParseTree getOverridden( int iLine )
-  {
-    IFunctionStatement fs = getEditor().getFunctionsByLineNumber().get( iLine );
-    if( fs != null )
-    {
-      for( IDynamicFunctionSymbol dfs : getEditor().getOverriddenFunctions() )
-      {
-        if( Objects.equals( fs.getDynamicFunctionSymbol(), dfs ) && Objects.equals( fs.getDynamicFunctionSymbol().getScriptPart(), dfs.getScriptPart() ) )
-        {
-          return fs.getLocation();
-        }
       }
     }
     return null;

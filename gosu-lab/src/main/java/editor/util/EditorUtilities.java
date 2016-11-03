@@ -1,6 +1,7 @@
 package editor.util;
 
 import editor.LabFrame;
+import editor.Scheme;
 import gw.lang.reflect.IFunctionType;
 import gw.lang.reflect.IMethodInfo;
 import gw.lang.reflect.IParameterInfo;
@@ -17,6 +18,7 @@ import gw.lang.reflect.java.JavaTypes;
 import gw.util.GosuStringUtil;
 import java.awt.AWTEvent;
 import java.awt.ActiveEvent;
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dimension;
@@ -36,8 +38,6 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.image.FilteredImageSource;
 import java.awt.image.ImageProducer;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Method;
@@ -160,19 +160,15 @@ public class EditorUtilities
   public static void removePopupBorder( final Container c )
   {
     EventQueue.invokeLater(
-      new Runnable()
-      {
-        public void run()
+      () -> {
+        Container p = c;
+        while( p != null )
         {
-          Container p = c;
-          while( p != null )
+          if( p instanceof JComponent )
           {
-            if( p instanceof JComponent )
-            {
-              ((JComponent)p).setBorder( null );
-            }
-            p = p.getParent();
+            ((JComponent)p).setBorder( null );
           }
+          p = p.getParent();
         }
       } );
   }
@@ -245,10 +241,22 @@ public class EditorUtilities
     {
       try
       {
-        URL resource = editor.util.EditorUtilities.class.getClassLoader().getResource( strRes );
-        if( resource != null )
+        if( Scheme.active().isDark() && !strRes.contains( "_dark." ) )
         {
-          icon = new ImageIcon( resource );
+          int iDot = strRes.lastIndexOf( '.' );
+          if( iDot >= 0 )
+          {
+            String strResDark = strRes.substring( 0, iDot ) + "_dark" + strRes.substring( iDot );
+            icon = loadIcon( strResDark );
+          }
+        }
+        if( icon == null )
+        {
+          URL resource = editor.util.EditorUtilities.class.getClassLoader().getResource( strRes );
+          if( resource != null )
+          {
+            icon = new ImageIcon( resource );
+          }
         }
       }
       catch( Exception e )
@@ -442,7 +450,7 @@ public class EditorUtilities
   private static void buildArgListFromType( IFunctionType functionType, StringBuilder sb, boolean topLevel, boolean bFeatureLiteralCompletion )
   {
     IType[] parameters = functionType.getParameterTypes();
-    HashSet<String> generatedNames = new HashSet<String>();
+    HashSet<String> generatedNames = new HashSet<>();
     for( int i = 0; i < parameters.length; i++ )
     {
       if( i != 0 )
@@ -1028,13 +1036,9 @@ public class EditorUtilities
     FOCUS_CONTAINS = new HashMap<>();
     KeyboardFocusManager focusMgr = KeyboardFocusManager.getCurrentKeyboardFocusManager();
     focusMgr.addPropertyChangeListener( "permanentFocusOwner",
-                                        new PropertyChangeListener()
-                                        {
-                                          public void propertyChange( PropertyChangeEvent evt )
-                                          {
-                                            CONTAINS_FOCUS.clear();
-                                            FOCUS_CONTAINS.clear();
-                                          }
+                                        evt -> {
+                                          CONTAINS_FOCUS.clear();
+                                          FOCUS_CONTAINS.clear();
                                         } );
   }
 
@@ -1048,5 +1052,10 @@ public class EditorUtilities
     Rectangle screenRect = getPrimaryMonitorScreenRect();
     return new Point( (int)(screenRect.getX() + (screenRect.getWidth() - width) / 2),
                       (int)(screenRect.getY() + (screenRect.getHeight() - height) / 2) );
+  }
+
+  public static String hex( Color color )
+  {
+    return Integer.toHexString( (color.getRGB() & 0xffffff) | 0x1000000 ).substring( 1 );
   }
 }

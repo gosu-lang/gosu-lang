@@ -40,6 +40,7 @@ import gw.lang.reflect.IType;
 import gw.lang.reflect.TypeInfoUtil;
 import gw.lang.reflect.TypeSystem;
 
+import java.util.function.Supplier;
 import javax.swing.*;
 import javax.swing.plaf.TextUI;
 import javax.swing.text.BadLocationException;
@@ -427,8 +428,8 @@ public class SmartFixManager implements MouseMotionListener, KeyListener
       Rectangle caretRect;
       _selectionPopup = SelectClassToImportPopup.instance();
       hidePopup();
-      final Map<String, IConstructorInfo> ctorMap = new HashMap<String, IConstructorInfo>();
-      LinkedHashSet<String> ctorStrs = new LinkedHashSet<String>();
+      final Map<String, IConstructorInfo> ctorMap = new HashMap<>();
+      LinkedHashSet<String> ctorStrs = new LinkedHashSet<>();
       for( IConstructorInfo constructor : constructors )
       {
         ctorStrs.add( TypeInfoUtil.getParameterDisplay( constructor ) );
@@ -446,14 +447,8 @@ public class SmartFixManager implements MouseMotionListener, KeyListener
       {
         throw new RuntimeException( e );
       }
-      _selectionPopup.show( getEditor(), caretRect, ctorStrs, new SelectClassToImportPopup.ClassSelectionCallback()
-      {
-        @Override
-        public void onSelection( String className )
-        {
-          generateSuperCall( ctorMap.get( className ) );
-        }
-      }, "Select constructor", new DefaultListCellRenderer() );
+      _selectionPopup.show( getEditor(), caretRect, ctorStrs, className -> generateSuperCall( ctorMap.get( className ) ),
+                            "Select constructor", new CtorCellRenderer( _selectionPopup::getList ) );
     }
   }
 
@@ -677,14 +672,8 @@ public class SmartFixManager implements MouseMotionListener, KeyListener
         try
         {
           Rectangle rectangle = getLocationFromOffset( _editor.getCaretPosition() );
-          SelectClassToImportPopup.instance().show( _editor, rectangle, possibleTypesToImport, new SelectClassToImportPopup.ClassSelectionCallback()
-          {
-            @Override
-            public void onSelection( String className )
-            {
-              _gosuEditor.addToUses( className );
-            }
-          }, "Select class to import", new TypeCellRenderer() );
+          SelectClassToImportPopup.instance().show( _editor, rectangle, possibleTypesToImport, _gosuEditor::addToUses,
+                                                    "Select class to import", new TypeCellRenderer( SelectClassToImportPopup.instance().getList() ) );
         }
         catch( BadLocationException e )
         {
@@ -988,7 +977,7 @@ public class SmartFixManager implements MouseMotionListener, KeyListener
 
   private boolean isOtherPopupShowing()
   {
-    return _gosuEditor.isIntellisensePopupShowing();
+    return _gosuEditor.isCompletionPopupShowing();
   }
 
   private boolean isImplictCoercion( IParseIssue parseIssue )
@@ -1403,8 +1392,8 @@ public class SmartFixManager implements MouseMotionListener, KeyListener
       try
       {
         if( !SelectClassToImportPopup.instance().isShowing() &&
-            (_gosuEditor.getBeanInfoPopup() == null || !_gosuEditor.getBeanInfoPopup().isShowing()) &&
-            (!(_gosuEditor.getValuePopup() instanceof Component) || !((Component)_gosuEditor.getValuePopup()).isShowing()) &&
+            (_gosuEditor.getCompletionPopup() == null || !_gosuEditor.getCompletionPopup().isShowing()) &&
+            (!(_gosuEditor.getCompletionPopup() instanceof Component) || !_gosuEditor.getCompletionPopup().isShowing()) &&
             (_gosuEditor.getJavadocPopup() == null || !_gosuEditor.getJavadocPopup().isShowing()) &&
             !EditorContextMenuHandler.instance().isContextMenuShowing() )
         {
@@ -1664,4 +1653,17 @@ public class SmartFixManager implements MouseMotionListener, KeyListener
 
   }
 
+  private class CtorCellRenderer extends AbstractListCellRenderer<String>
+  {
+    public CtorCellRenderer( Supplier<JComponent> list )
+    {
+      super( list, true );
+    }
+
+    @Override
+    public void configure()
+    {
+      setText( getNode() );
+    }
+  }
 }

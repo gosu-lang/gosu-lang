@@ -26,14 +26,14 @@ public abstract class AbstractPathCompletionHandler implements IPathCompletionHa
 
   protected void displayPathCompletionBeanInfoPopup( BeanInfoPopup popup )
   {
-    getGosuEditor().setBeanInfoPopup( popup );
-    getGosuEditor().displayPathCompletionBeanInfoPopup( false );
+    getGosuEditor().setCompletionPopup( popup );
+    getGosuEditor().displayPathCompletionPopup( false );
   }
 
   protected void displayFeaturePathCompletionBeanInfoPopup( BeanInfoPopup popup )
   {
-    getGosuEditor().setBeanInfoPopup( popup );
-    getGosuEditor().displayPathCompletionBeanInfoPopup( true );
+    getGosuEditor().setCompletionPopup( popup );
+    getGosuEditor().displayPathCompletionPopup( true );
   }
 
   protected String getPathAtCaret()

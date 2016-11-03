@@ -33,6 +33,11 @@ public class SelectClassToImportPopup extends JPopupMenu
     return _instance;
   }
 
+  public JList getList()
+  {
+    return _list;
+  }
+
   public void show( Component invoker,
                     Rectangle rectangle,
                     Set<String> possibleTypesToImport,
@@ -51,14 +56,7 @@ public class SelectClassToImportPopup extends JPopupMenu
     if( rectangle != null )
     {
       show( invoker, rectangle.x, rectangle.y );
-      SwingUtilities.invokeLater( new Runnable()
-      {
-        @Override
-        public void run()
-        {
-          _list.requestFocus( true );
-        }
-      } );
+      SwingUtilities.invokeLater( () -> _list.requestFocus( true ) );
     }
     _callBack = callback;
   }
@@ -94,7 +92,7 @@ public class SelectClassToImportPopup extends JPopupMenu
     //
     _list = new JList();
     _list.addMouseListener( new MenuMouseListener() );
-    _list.setCellRenderer( new TypeCellRenderer() );
+    _list.setCellRenderer( new TypeCellRenderer( _list ) );
     _list.getSelectionModel().setSelectionMode( ListSelectionModel.SINGLE_SELECTION );
     _list.setVisibleRowCount( 10 );
     JScrollPane scrollPane = new JScrollPane( _list );

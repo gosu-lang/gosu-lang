@@ -32,6 +32,7 @@ public class RunMe
   {
     EventQueue.invokeLater(
       () -> {
+        LabFrame.loadSettings();
         SplashScreen.instance().setFeedbackText( "Initializing..." );
         LabFrame.create();
         reinitializeGosu( null ); // this is so we can use Gosu to write Gosu Lab :) (right now we are only using the Json stuff)

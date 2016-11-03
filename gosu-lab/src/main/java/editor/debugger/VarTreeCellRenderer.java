@@ -5,7 +5,9 @@ import com.sun.jdi.ObjectReference;
 import com.sun.jdi.PrimitiveValue;
 import com.sun.jdi.Value;
 import editor.AbstractTreeCellRenderer;
+import editor.Scheme;
 import editor.VarTree;
+import static editor.util.EditorUtilities.hex;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -39,7 +41,7 @@ class VarTreeCellRenderer extends AbstractTreeCellRenderer<VarTree>
       strValue = value.toString();
       if( valueType.equals( char.class.getName() ) )
       {
-        strValue = "<font face=monospaced color=#008000>'" + strValue + "'</font> <font color=#000000>" + (int)strValue.charAt( 0 ) + "</font>";
+        strValue = "<font face=monospaced color=#" + hex( Scheme.active().debugVarGreenText() ) + ">'" + strValue + "'</font> <font color=#" + hex( Scheme.active().getWindowText() ) + ">" + (int)strValue.charAt( 0 ) + "</font>";
       }
     }
     else if( value instanceof ArrayReference )
@@ -50,7 +52,7 @@ class VarTreeCellRenderer extends AbstractTreeCellRenderer<VarTree>
     else if( value == null )
     {
       address = "";
-      strValue = "<font color=#000080><b>null</b></font>";
+      strValue = "<font color=#" + hex( Scheme.active().debugVarBlueText() ) + "><b>null</b></font>";
     }
     else
     {
@@ -70,10 +72,10 @@ class VarTreeCellRenderer extends AbstractTreeCellRenderer<VarTree>
 
       if( valueType.equals( String.class.getName() ) )
       {
-        strValue = "<font color=#008000><b>" + strValue + "</b></font>";
+        strValue = "<font color=#" + hex( Scheme.active().debugVarGreenText() ) + "><b>" + strValue + "</b></font>";
       }
     }
-    setText( "<html><font color=#800000>" + node.getName() + "</font> " + address + " = " + strValue );
+    setText( "<html><font color=#" + hex( Scheme.active().debugVarRedText() ) + ">" + node.getName() + "</font> " + address + " = " + strValue );
     setIcon( node.getIcon() );
   }
 

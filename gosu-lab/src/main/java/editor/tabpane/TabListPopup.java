@@ -22,7 +22,7 @@ import java.util.Comparator;
 public class TabListPopup extends JPopupMenu implements IValuePopup
 {
   private JPanel _pane = new JPanel();
-  private JList _list;
+  private JList<ITab> _list;
   private EventListenerList _nodeListenerList = new EventListenerList();
   private TabContainer _tabContainer;
 
@@ -50,7 +50,7 @@ public class TabListPopup extends JPopupMenu implements IValuePopup
     ContainerMoverSizer content = new ContainerMoverSizer( border );
     content.setLayout( new BorderLayout() );
 
-    java.util.List tabs = getTabs();
+    java.util.List<ITab> tabs = getTabs();
 
     int iY = 0;
     if( tabs != null && tabs.size() > 0 )
@@ -71,18 +71,19 @@ public class TabListPopup extends JPopupMenu implements IValuePopup
     //
     // The Tab List
     //
-    _list = new JList( new TabListModel( tabs ) );
+    _list = new JList<>( new TabListModel( tabs ) );
     _list.addMouseListener( new TabListListener() );
-    _list.setCellRenderer( new TabListCellRenderer() );
+    _list.setCellRenderer( new TabListCellRenderer( _list ) );
     _list.getSelectionModel().setSelectionMode( ListSelectionModel.SINGLE_SELECTION );
     _list.setVisibleRowCount( 10 );
+    _list.setFixedCellHeight( 22 );
     JScrollPane scrollPane = new JScrollPane( _list );
     scrollPane.setBorder( UIManager.getBorder( "TextField.border" ) );
 
     c.anchor = GridBagConstraints.CENTER;
     c.fill = GridBagConstraints.BOTH;
     c.gridx = 0;
-    c.gridy = iY++;
+    c.gridy = iY;
     c.gridwidth = GridBagConstraints.REMAINDER;
     c.gridheight = 1;
     c.weightx = 1;
@@ -113,6 +114,7 @@ public class TabListPopup extends JPopupMenu implements IValuePopup
     _nodeListenerList.add( ChangeListener.class, l );
   }
 
+  @SuppressWarnings("UnusedDeclaration")
   public void removeNodeChangeListener( ChangeListener l )
   {
     _nodeListenerList.remove( ChangeListener.class, l );
@@ -139,9 +141,9 @@ public class TabListPopup extends JPopupMenu implements IValuePopup
     }
   }
 
-  private java.util.List getTabs()
+  private java.util.List<ITab> getTabs()
   {
-    java.util.List tabs = Arrays.asList( _tabContainer.getTabs() );
+    java.util.List<ITab> tabs = Arrays.asList( _tabContainer.getTabs() );
     Collections.sort( tabs, new TabComparator() );
     return tabs;
   }
@@ -158,19 +160,19 @@ public class TabListPopup extends JPopupMenu implements IValuePopup
 
       _list.setSelectedIndex( iIndex );
 
-      ITab tab = (ITab)_list.getSelectedValue();
+      ITab tab = _list.getSelectedValue();
 
       fireNodeChanged( _nodeListenerList, new ChangeEvent( tab ) );
       setVisible( false );
     }
   }
 
-  class TabListModel extends AbstractListModel
+  class TabListModel extends AbstractListModel<ITab>
   {
-    java.util.List/*<ITab>*/ _tabs;
+    java.util.List<ITab> _tabs;
 
     /** */
-    TabListModel( java.util.List tabs )
+    TabListModel( java.util.List<ITab> tabs )
     {
       _tabs = tabs;
     }
@@ -180,18 +182,18 @@ public class TabListPopup extends JPopupMenu implements IValuePopup
       return _tabs.size();
     }
 
-    public Object getElementAt( int i )
+    public ITab getElementAt( int i )
     {
       return _tabs.size() == 0 ? null : _tabs.get(i);
     }
   }
 
-  private static class TabComparator implements Comparator
+  private static class TabComparator implements Comparator<ITab>
   {
-    public int compare( Object o1, Object o2 )
+    public int compare( ITab o1, ITab o2 )
     {
-      String code1 = ((ITab)o1).getLabel().getDisplayName();
-      String code2 = ((ITab)o2).getLabel().getDisplayName();
+      String code1 = o1.getLabel().getDisplayName();
+      String code2 = o2.getLabel().getDisplayName();
       try
       {
         int iCode1 = Integer.parseInt( code1 );

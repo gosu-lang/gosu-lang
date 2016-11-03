@@ -1,6 +1,7 @@
 package editor;
 
 import editor.settings.ISettings;
+import editor.settings.Settings;
 import editor.util.EditorUtilities;
 import editor.util.Experiment;
 import editor.util.PlatformUtil;
@@ -13,16 +14,21 @@ import gw.lang.parser.IScriptPartId;
 import gw.lang.reflect.Expando;
 import gw.lang.reflect.ReflectUtil;
 import gw.lang.reflect.json.IJsonIO;
+import gw.lang.reflect.json.Json;
 import gw.lang.reflect.module.IFileSystem;
 
+import gw.util.StreamUtil;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.Reader;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Arrays;
+import java.util.Map;
+import java.util.TreeMap;
 import java.util.function.Predicate;
 import javax.script.Bindings;
 import javax.swing.*;
@@ -40,6 +46,8 @@ import java.util.List;
 public class LabFrame extends JFrame implements IGosuEditor
 {
   private static LabFrame INSTANCE = null;
+  private static Map<String, ISettings> _settings = Settings.makeDefaultSettings();
+
   public static LabFrame instance()
   {
     return INSTANCE;
@@ -48,14 +56,11 @@ public class LabFrame extends JFrame implements IGosuEditor
   private GosuPanel _panel;
   private Rectangle _restoreBounds;
   private List<String> _experiments = Collections.emptyList();
-  private ISettings _mruSettings;
-  private List<ISettings> _settings;
 
   public LabFrame() throws HeadlessException
   {
     super( "Gosu Editor" );
     INSTANCE = this;
-    _settings = Collections.emptyList();
     configUI();
     setInitialSize();
     addWindowListener(
@@ -104,6 +109,11 @@ public class LabFrame extends JFrame implements IGosuEditor
           }
         }
       });
+  }
+
+  private static Map<String, ISettings> makeDefaultSettings()
+  {
+    return new TreeMap<>();
   }
 
   public void exit()
@@ -550,8 +560,6 @@ public class LabFrame extends JFrame implements IGosuEditor
 
       saveScreenProps( bindings );
 
-      IJsonIO.writeList( "Settings", _settings, bindings );
-
       String json = (String)ReflectUtil.invokeMethod( bindings, "toJson" );
       fw.write( json );
     }
@@ -586,6 +594,7 @@ public class LabFrame extends JFrame implements IGosuEditor
   private void restoreLabState( Bindings bindings )
   {
     LabFrame frame = instance();
+
     Bindings bindingsFrame = (Bindings)bindings.get( "Frame" );
     boolean bSet = false;
     if( bindingsFrame != null )
@@ -615,8 +624,6 @@ public class LabFrame extends JFrame implements IGosuEditor
       frame.setExtendedState( Frame.MAXIMIZED_BOTH );
     }
 
-    _settings = IJsonIO.readList( "Settings", bindings );
-
     //noinspection unchecked
     frame.setExperiments( (List<String>)bindings.get( "Experiments" ) );
   }
@@ -630,18 +637,9 @@ public class LabFrame extends JFrame implements IGosuEditor
     EditorUtilities.centerWindowInFrame( frame, frame );
   }
 
-  public List<ISettings> getSettings()
+  public static Map<String, ISettings> getSettings()
   {
     return _settings;
-  }
-
-  public ISettings getMruSettings()
-  {
-    return _mruSettings;
-  }
-  public void setMruSettings( ISettings settings )
-  {
-    _mruSettings = settings;
   }
 
   public ISettings findSettings( Predicate<ISettings> matcher )
@@ -651,7 +649,7 @@ public class LabFrame extends JFrame implements IGosuEditor
       return null;
     }
 
-    for( ISettings settings: _settings )
+    for( ISettings settings: _settings.values() )
     {
       if( matcher.test( settings ) )
       {
@@ -659,5 +657,51 @@ public class LabFrame extends JFrame implements IGosuEditor
       }
     }
     return null;
+  }
+
+  public static void loadSettings()
+  {
+    Bindings bindings;
+    File settingsFile = getSettingsFile();
+    if( settingsFile.isFile() )
+    {
+      try( Reader reader = StreamUtil.getInputStreamReader( settingsFile.toURI().toURL().openStream() ) )
+      {
+        bindings = Json.fromJson( StreamUtil.getContent( reader ) );
+      }
+      catch( Exception e )
+      {
+        throw new RuntimeException( e );
+      }
+    }
+    else
+    {
+      return;
+    }
+    _settings = new TreeMap<>();
+    List<ISettings> settingList = IJsonIO.readList( "Settings", bindings );
+    settingList.forEach( setting -> _settings.put( setting.getPath(), setting ) );
+    _settings = Settings.mergeSettings( _settings );
+  }
+
+  public static void saveSettings()
+  {
+    File settingsFile = getSettingsFile();
+    try( FileWriter fw = new FileWriter( settingsFile ) )
+    {
+      Expando bindings = new Expando();
+      IJsonIO.writeList( "Settings", new ArrayList<>( _settings.values() ), bindings );
+      String json = (String)ReflectUtil.invokeMethod( bindings, "toJson" );
+      fw.write( json );
+    }
+    catch( IOException e )
+    {
+      throw new RuntimeException( e );
+    }
+  }
+
+  private static File getSettingsFile()
+  {
+    return new File( getUserGosuEditorDir(), "settings.gosulab" );
   }
 }

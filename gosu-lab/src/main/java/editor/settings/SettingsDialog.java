@@ -104,6 +104,7 @@ public class SettingsDialog extends JDialog implements IHandleCancel
     });
     _experiment.setMruSettings( _mruSettings );
     _experiment.save();
+    LabFrame.saveSettings();
   }
 
   private void close()
@@ -180,7 +181,7 @@ public class SettingsDialog extends JDialog implements IHandleCancel
     SettingsTree root = new SettingsTree();
 
     Collection<ISettings> settings = new ArrayList<>( _experiment.getSettings().values() );
-    settings.addAll( LabFrame.instance().getSettings() );
+    settings.addAll( LabFrame.instance().getSettings().values() );
 
     while( !settings.isEmpty() )
     {

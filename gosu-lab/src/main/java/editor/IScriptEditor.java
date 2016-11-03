@@ -30,8 +30,6 @@ public interface IScriptEditor extends IEditorHost
 
   public void gotoNextError();
 
-  public boolean displayValueCompletionAtCurrentLocation();
-
   public IParseTree getDeepestLocationAtCaret();
 
   public IParseTree getDeepestStatementLocationAtCaret();

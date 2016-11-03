@@ -23,7 +23,6 @@ import javax.swing.border.Border;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.EventListenerList;
-import javax.swing.event.UndoableEditEvent;
 import javax.swing.event.UndoableEditListener;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeNode;
@@ -46,6 +45,7 @@ public class SymbolPopup extends EditorBasedPopup implements ISelectionPopup
 {
   private JPanel _pane = new JPanel();
   private JTree _tree;
+  private final IType _expectedType;
   private EventListenerList _nodeListenerList = new EventListenerList();
   private boolean _bLocked;
   private EditorKeyListener _editorKeyListener;
@@ -55,12 +55,13 @@ public class SymbolPopup extends EditorBasedPopup implements ISelectionPopup
   private boolean _autoDismissed;
 
 
-  public SymbolPopup( ISymbol[] symbols, String strPrefix, GosuEditor editor )
+  public SymbolPopup( ISymbol[] symbols, String strPrefix, GosuEditor editor, IType expectedType )
   {
     super( editor );
 
     _symbols = symbols;
     _strPrefix = strPrefix;
+    _expectedType = expectedType;
 
     initLayout();
   }
@@ -121,14 +122,7 @@ public class SymbolPopup extends EditorBasedPopup implements ISelectionPopup
     if( getEditor() != null )
     {
       _editorKeyListener = new EditorKeyListener();
-      _docListener = new UndoableEditListener()
-      {
-        @Override
-        public void undoableEditHappened( UndoableEditEvent e )
-        {
-          filterDisplay();
-        }
-      };
+      _docListener = e -> filterDisplay();
     }
     if( _strPrefix != null )
     {
@@ -136,7 +130,6 @@ public class SymbolPopup extends EditorBasedPopup implements ISelectionPopup
     }
   }
 
-  //--------------------------------------------------------------------------------------------------
   @Override
   public void setVisible( boolean bVisible )
   {
@@ -158,7 +151,6 @@ public class SymbolPopup extends EditorBasedPopup implements ISelectionPopup
     }
   }
 
-  //--------------------------------------------------------------------------------------------------
   void registerListeners()
   {
     unregisterListeners();
@@ -167,14 +159,12 @@ public class SymbolPopup extends EditorBasedPopup implements ISelectionPopup
     getEditor().getEditor().getDocument().addUndoableEditListener( _docListener );
   }
 
-  //--------------------------------------------------------------------------------------------------
   void unregisterListeners()
   {
     getEditor().getEditor().getDocument().removeUndoableEditListener( _docListener );
     getEditor().getEditor().removeKeyListener( _editorKeyListener );
   }
 
-  //--------------------------------------------------------------------------------------------------
   void filterDisplay()
   {
     filterDisplay( null );
@@ -209,7 +199,7 @@ public class SymbolPopup extends EditorBasedPopup implements ISelectionPopup
 
     ISymbol[] symbols = getSymbols();
 
-    ArrayList<ISymbol> listSymbols = new ArrayList<ISymbol>();
+    ArrayList<ISymbol> listSymbols = new ArrayList<>();
     for( ISymbol symbol : symbols )
     {
       if( strPrefix != null && symbol.getDisplayName() != null && symbol.getDisplayName().toLowerCase().startsWith( strPrefix.toLowerCase() ) )
@@ -225,7 +215,6 @@ public class SymbolPopup extends EditorBasedPopup implements ISelectionPopup
   }
 
 
-  //----------------------------------------------------------------------------------------------
   @Override
   public void show( Component invoker, int iX, int iY )
   {
@@ -259,33 +248,23 @@ public class SymbolPopup extends EditorBasedPopup implements ISelectionPopup
     }
   }
 
-  //----------------------------------------------------------------------------------------------
   @Override
   public void addNodeChangeListener( ChangeListener l )
   {
     _nodeListenerList.add( ChangeListener.class, l );
   }
 
-  //----------------------------------------------------------------------------------------------
+  @SuppressWarnings("UnusedDeclaration")
   public void removeNodeChangeListener( ChangeListener l )
   {
     _nodeListenerList.remove( ChangeListener.class, l );
   }
 
-  //--------------------------------------------------------------------------------------------------
   protected void fireNodeChanged( final EventListenerList list, final ChangeEvent e )
   {
-    EventQueue.invokeLater( new Runnable()
-    {
-      @Override
-      public void run()
-      {
-        fireNodeChangedNow( list, e );
-      }
-    } );
+    EventQueue.invokeLater( () -> fireNodeChangedNow( list, e ) );
   }
 
-  //--------------------------------------------------------------------------------------------------
   protected void fireNodeChangedNow( EventListenerList list, ChangeEvent e )
   {
     // Guaranteed to return a non-null array
@@ -467,8 +446,6 @@ public class SymbolPopup extends EditorBasedPopup implements ISelectionPopup
     return type.getRelativeName();
   }
 
-  //----------------------------------------------------------------------------------------------
-  //----------------------------------------------------------------------------------------------
   class EditorKeyListener extends KeyAdapter
   {
     @Override
@@ -504,10 +481,14 @@ public class SymbolPopup extends EditorBasedPopup implements ISelectionPopup
                e.getKeyCode() == KeyEvent.VK_SPACE ||
                e.getKeyCode() == KeyEvent.VK_TAB )
       {
-        BeanTree selection = (BeanTree)_tree.getSelectionPath().getLastPathComponent();
-        if( selection != null )
+        TreePath selectionPath = _tree.getSelectionPath();
+        if( selectionPath != null )
         {
-          handleSelection( selection );
+          BeanTree selection = (BeanTree)selectionPath.getLastPathComponent();
+          if( selection != null )
+          {
+            handleSelection( selection );
+          }
         }
         setVisible( false );
         e.consume();
@@ -536,23 +517,10 @@ public class SymbolPopup extends EditorBasedPopup implements ISelectionPopup
       }
 
       EventQueue.invokeLater(
-        new Runnable()
-        {
-          @Override
-          public void run()
-          {
-            sendKeyEvent( KeyEvent.VK_BACK_SPACE );
-            handleSelection( selection );
-            EventQueue.invokeLater(
-              new Runnable()
-              {
-                @Override
-                public void run()
-                {
-                  sendKeyEvent( KeyEvent.VK_PERIOD );
-                }
-              } );
-          }
+        () -> {
+          sendKeyEvent( KeyEvent.VK_BACK_SPACE );
+          handleSelection( selection );
+          EventQueue.invokeLater( () -> sendKeyEvent( KeyEvent.VK_PERIOD ) );
         } );
     }
 
@@ -564,11 +532,8 @@ public class SymbolPopup extends EditorBasedPopup implements ISelectionPopup
     }
   }
 
-  //----------------------------------------------------------------------------------------------
-  //----------------------------------------------------------------------------------------------
   class SymbolListener extends MouseAdapter
   {
-    //----------------------------------------------------------------------------------------------
     @Override
     public void mouseClicked( MouseEvent e )
     {
@@ -616,7 +581,7 @@ public class SymbolPopup extends EditorBasedPopup implements ISelectionPopup
         }
         else if( symbol instanceof IDynamicPropertySymbol )
         {
-          IScriptPartId scriptPart = ((IDynamicPropertySymbol)symbol).getScriptPart();
+          IScriptPartId scriptPart = symbol.getScriptPart();
           if( scriptPart != null )
           {
             IType type = scriptPart.getContainingType();
@@ -654,7 +619,29 @@ public class SymbolPopup extends EditorBasedPopup implements ISelectionPopup
         }
         _children.add( child );
       }
-      Collections.sort( _children );
+      Collections.sort( _children, ( o1, o2 ) -> {
+        if( _expectedType != null )
+        {
+          if( isExectedTypeAssignableFrom( o1 ) )
+          {
+            if( !isExectedTypeAssignableFrom( o2 ) )
+            {
+              return -1;
+            }
+          }
+          else if( isExectedTypeAssignableFrom( o2 ) )
+          {
+            return 1;
+          }
+        }
+        return o1.getBeanNode().getName().compareTo( o2.getBeanNode().getName() );
+      }  );
+    }
+
+    private boolean isExectedTypeAssignableFrom( BeanTree beanTree )
+    {
+      return _expectedType.isAssignableFrom( beanTree.getBeanNode().getType() ) ||
+          (beanTree.getBeanNode().getType() instanceof IFunctionType && _expectedType.isAssignableFrom( ((IFunctionType)beanTree.getBeanNode().getType()).getReturnType() ));
     }
 
     @Override

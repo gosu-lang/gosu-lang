@@ -24,9 +24,7 @@ import javax.swing.border.Border;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.EventListenerList;
-import javax.swing.event.UndoableEditEvent;
 import javax.swing.event.UndoableEditListener;
-import javax.swing.plaf.basic.BasicGraphicsUtils;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeCellRenderer;
 import javax.swing.tree.TreePath;
@@ -300,14 +298,7 @@ public class BeanInfoPopup extends EditorBasedPopup implements ISelectionPopup
     pane.add( scrollPane, c );
 
     _editorKeyListener = new EditorKeyListener();
-    _docListener = new UndoableEditListener()
-    {
-      @Override
-      public void undoableEditHappened( UndoableEditEvent e )
-      {
-        filterDisplay();
-      }
-    };
+    _docListener = e -> filterDisplay();
 
     content.add( pane, BorderLayout.CENTER );
 
@@ -402,7 +393,7 @@ public class BeanInfoPopup extends EditorBasedPopup implements ISelectionPopup
   @Override
   public List<String> getPopupSuggestions()
   {
-    ArrayList<String> suggestionNames = new ArrayList<String>();
+    ArrayList<String> suggestionNames = new ArrayList<>();
     BeanTree root = (BeanTree)_tree.getModel().getRoot();
     for( int i = 0; i < root.getChildCount(); i++ )
     {
@@ -431,21 +422,16 @@ public class BeanInfoPopup extends EditorBasedPopup implements ISelectionPopup
   void filterDisplay()
   {
     getEditor().setCompleteCode( true );
-    GosuEditor.postTaskInParserThread( new Runnable()
-    {
-      @Override
-      public void run()
+    GosuEditor.postTaskInParserThread( () -> {
+      if( getEditor().isCompleteCode() )
       {
-        if( getEditor().isCompleteCode() )
+        try
         {
-          try
-          {
-            filterDisplay( false );
-          }
-          finally
-          {
-            getEditor().setCompleteCode( false );
-          }
+          filterDisplay( false );
+        }
+        finally
+        {
+          getEditor().setCompleteCode( false );
         }
       }
     } );
@@ -509,16 +495,11 @@ public class BeanInfoPopup extends EditorBasedPopup implements ISelectionPopup
     }
 
     final BeanTree beanTree1 = beanTree;
-    SwingUtilities.invokeLater( new Runnable()
-    {
-      @Override
-      public void run()
-      {
-        _tree.setModel( new DefaultTreeModel( beanTree1 ) );
-        _tree.setSelectionRow( 0 );
-        _tree.revalidate();
-        _tree.repaint();
-      }
+    SwingUtilities.invokeLater( () -> {
+      _tree.setModel( new DefaultTreeModel( beanTree1 ) );
+      _tree.setSelectionRow( 0 );
+      _tree.revalidate();
+      _tree.repaint();
     } );
 //    }
   }
@@ -605,15 +586,7 @@ public class BeanInfoPopup extends EditorBasedPopup implements ISelectionPopup
 
   protected void fireNodeChanged( final EventListenerList list, final ChangeEvent e )
   {
-    EventQueue.invokeLater(
-      new Runnable()
-      {
-        @Override
-        public void run()
-        {
-          fireNodeChangedNow( list, e );
-        }
-      } );
+    EventQueue.invokeLater( () -> fireNodeChangedNow( list, e ) );
   }
 
   protected void fireNodeChangedNow( EventListenerList list, ChangeEvent e )
@@ -730,25 +703,12 @@ public class BeanInfoPopup extends EditorBasedPopup implements ISelectionPopup
       }
 
       EventQueue.invokeLater(
-        new Runnable()
-        {
-          @Override
-          public void run()
-          {
-            sendKeyEvent( KeyEvent.VK_BACK_SPACE );
-            BeanTree tree = (BeanTree)path.getLastPathComponent();
-            fireNodeChanged( _nodeListenerList, new DotWasTypedChangeEvent( tree ) );
-            setVisible( false );
-            EventQueue.invokeLater(
-              new Runnable()
-              {
-                @Override
-                public void run()
-                {
-                  sendKeyEvent( KeyEvent.VK_PERIOD );
-                }
-              } );
-          }
+        () -> {
+          sendKeyEvent( KeyEvent.VK_BACK_SPACE );
+          BeanTree tree = (BeanTree)path.getLastPathComponent();
+          fireNodeChanged( _nodeListenerList, new DotWasTypedChangeEvent( tree ) );
+          setVisible( false );
+          EventQueue.invokeLater( () -> sendKeyEvent( KeyEvent.VK_PERIOD ) );
         } );
     }
 
@@ -842,10 +802,10 @@ public class BeanInfoPopup extends EditorBasedPopup implements ISelectionPopup
 
       BeanInfoNode node = _node.getBeanNode();
 
-      ImageIcon icon = null;
 
       setText( node.getDisplayName() );
 
+      ImageIcon icon;
       if( node instanceof MethodNode )
       {
         IMethodInfo mi = ((MethodNode)node).getMethodDescriptor();
@@ -908,14 +868,20 @@ public class BeanInfoPopup extends EditorBasedPopup implements ISelectionPopup
       setIcon( icon );
     }
 
-    @Override
+    /** */
     public void paint( Graphics g )
     {
+  //    ((Graphics2D)g).setRenderingHint( RenderingHints.KEY_TEXT_ANTIALIASING,
+  //                                      RenderingHints.VALUE_TEXT_ANTIALIAS_ON );
+  //    ((Graphics2D)g).setRenderingHint( RenderingHints.KEY_RENDERING,
+  //                                      RenderingHints.VALUE_RENDER_QUALITY );
       Color bkColor;
 
       if( _bSelected )
       {
-        bkColor = _tree.isEnabled() ? Scheme.active().getTextHighlight() : Scheme.active().getControlShadow();
+        bkColor = _tree.isEnabled()
+                  ? Scheme.active().getActiveCaption()
+                  : Scheme.active().getControl();
       }
       else
       {
@@ -928,39 +894,19 @@ public class BeanInfoPopup extends EditorBasedPopup implements ISelectionPopup
 
       if( bkColor != null )
       {
-        Icon currentIcon = getIcon();
-
         g.setColor( bkColor );
-        if( currentIcon != null && getText() != null )
+        g.fillRect( 0, 0, getWidth() - 1, getHeight() - 1 );
+
+        if( _bSelected )
         {
-          int offset = (currentIcon.getIconWidth() + getIconTextGap() - 1);
-
-          g.fillRect( offset, 0, getWidth() - 1 - offset, getHeight() - 1 );
-
-          if( _bSelected && _tree.hasFocus() )
-          {
-            g.setColor( _tree.isEnabled() ? Scheme.active().getTextHighlightText() : Scheme.active().getControlLight() );
-            BasicGraphicsUtils.drawDashedRect( g, offset, 0, getWidth() - 1 - offset, getHeight() - 1 );
-          }
-
-        }
-        else
-        {
-          g.fillRect( 0, 0, getWidth() - 1, getHeight() - 1 );
-
-          if( _bSelected && _tree.hasFocus() )
-          {
-            g.setColor( _tree.isEnabled() ? Scheme.active().getTextHighlightText() : Scheme.active().getControlLight() );
-            BasicGraphicsUtils.drawDashedRect( g, 0, 0, getWidth() - 1, getHeight() - 1 );
-          }
+          g.setColor( _tree.isEnabled() ? Scheme.active().getXpBorderColor() : Scheme.active().getControlShadow() );
+          g.drawRect( 0, 0, getWidth() - 1, getHeight() - 1 );
         }
         g.setColor( bkColor );
       }
 
-      setForeground( _bSelected ? _tree.isEnabled() ? Scheme.active().getTextHighlightText()
-                                                    : Scheme.active().getControlLight()
-                                : _tree.isEnabled() ? Scheme.active().getTextText()
-                                                    : Scheme.active().getControlShadow() );
+      setForeground( Scheme.active().getWindowText() );
+
       super.paint( g );
     }
 

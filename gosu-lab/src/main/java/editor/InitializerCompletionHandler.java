@@ -10,14 +10,9 @@ import gw.lang.parser.expressions.IIdentifierExpression;
 import gw.lang.parser.expressions.IInitializerAssignment;
 import gw.lang.parser.expressions.IObjectInitializerExpression;
 import gw.lang.parser.resources.Res;
-import gw.lang.reflect.IFeatureInfo;
 import gw.lang.reflect.IPropertyInfo;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.java.JavaTypes;
-import gw.util.IFeatureFilter;
-
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 import java.util.List;
 
 public class InitializerCompletionHandler extends AbstractPathCompletionHandler
@@ -48,23 +43,18 @@ public class InitializerCompletionHandler extends AbstractPathCompletionHandler
       BeanInfoPopup valuePopup;
       try
       {
-        valuePopup = new BeanInfoPopup( type, strMemberPath, true, gsEditor, new IFeatureFilter()
-        {
-          @Override
-          public boolean acceptFeature( IType beanType, IFeatureInfo fi )
+        valuePopup = new BeanInfoPopup( type, strMemberPath, true, gsEditor, ( beanType, fi ) -> {
+          if( fi instanceof IPropertyInfo )
           {
-            if( fi instanceof IPropertyInfo )
+            IPropertyInfo pi = (IPropertyInfo)fi;
+            if( pi.isWritable( null ) ||
+                JavaTypes.COLLECTION().isAssignableFrom( pi.getFeatureType() ) ||
+                JavaTypes.MAP().isAssignableFrom( pi.getFeatureType() ) )
             {
-              IPropertyInfo pi = (IPropertyInfo)fi;
-              if( pi.isWritable( null ) ||
-                  JavaTypes.COLLECTION().isAssignableFrom( pi.getFeatureType() ) ||
-                  JavaTypes.MAP().isAssignableFrom( pi.getFeatureType() ) )
-              {
-                return true;
-              }
+              return true;
             }
-            return false;
           }
+          return false;
         } );
       }
       catch( ParseException e )
@@ -73,22 +63,17 @@ public class InitializerCompletionHandler extends AbstractPathCompletionHandler
       }
 
       valuePopup.addNodeChangeListener(
-        new ChangeListener()
-        {
-          @Override
-          public void stateChanged( ChangeEvent e )
-          {
-            BeanTree beanTree = (BeanTree)e.getSource();
-            GosuEditorPane editor = gsEditor.getEditor();
-            editor.select( TextComponentUtil.findCharacterPositionOnLine( editor.getCaretPosition() - 1, editor.getText(), ':', TextComponentUtil.Direction.BACKWARD ) + 1, editor.getCaretPosition() );
-            editor.replaceSelection( beanTree.getBeanNode().getName() + " = " );
-            editor.requestFocus();
-            EditorUtilities.fixSwingFocusBugWhenPopupCloses( gsEditor );
-            editor.repaint();
-          }
+        e -> {
+          BeanTree beanTree = (BeanTree)e.getSource();
+          GosuEditorPane editor = gsEditor.getEditor();
+          editor.select( TextComponentUtil.findCharacterPositionOnLine( editor.getCaretPosition() - 1, editor.getText(), ':', TextComponentUtil.Direction.BACKWARD ) + 1, editor.getCaretPosition() );
+          editor.replaceSelection( beanTree.getBeanNode().getName() + " = " );
+          editor.requestFocus();
+          EditorUtilities.fixSwingFocusBugWhenPopupCloses( gsEditor );
+          editor.repaint();
         } );
-      gsEditor.setValuePopup( valuePopup );
-      gsEditor.displayValuePopup();
+      gsEditor.setCompletionPopup( valuePopup );
+      gsEditor.displayCompletionPopup( getGosuEditor().getEditor().getCaretPosition() );
       return true;
 
     }

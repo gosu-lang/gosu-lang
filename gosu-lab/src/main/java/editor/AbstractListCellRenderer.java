@@ -1,5 +1,6 @@
 package editor;
 
+import java.util.function.Supplier;
 import javax.swing.*;
 import java.awt.*;
 
@@ -9,11 +10,27 @@ public abstract class AbstractListCellRenderer<T> extends JLabel implements List
 {
   private boolean _bSelected;
   private T _node;
-  private JComponent _list;
+  private Supplier<JComponent> _list;
+  private boolean _bRenderAsIfFocused;
 
   public AbstractListCellRenderer( JComponent list )
   {
+    this( list, false );
+  }
+  public AbstractListCellRenderer( JComponent list, boolean bRenderAsIfFocused )
+  {
+    this( () -> list, bRenderAsIfFocused );
+  }
+
+  public AbstractListCellRenderer( Supplier<JComponent> list )
+  {
+    this( list, false );
+  }
+
+  public AbstractListCellRenderer( Supplier<JComponent> list, boolean bRenderAsIfFocused )
+  {
     _list = list;
+    _bRenderAsIfFocused = bRenderAsIfFocused;
   }
 
   public Component getListCellRendererComponent( JList tree, Object value, int index, boolean bSelected, boolean cellHasFocus )
@@ -36,7 +53,7 @@ public abstract class AbstractListCellRenderer<T> extends JLabel implements List
 
   public void update()
   {
-    _list.repaint();
+    _list.get().repaint();
   }
 
   public abstract void configure();
@@ -46,16 +63,16 @@ public abstract class AbstractListCellRenderer<T> extends JLabel implements List
   {
     Color bkColor;
 
-    boolean bFocus = KeyboardFocusManager.getCurrentKeyboardFocusManager().getPermanentFocusOwner() == _list;
+    boolean bFocus = _bRenderAsIfFocused || KeyboardFocusManager.getCurrentKeyboardFocusManager().getPermanentFocusOwner() == _list;
     if( _bSelected )
     {
-      bkColor = _list.isEnabled() && bFocus
+      bkColor = _list.get().isEnabled() && bFocus
                 ? Scheme.active().getActiveCaption()
                 : Scheme.active().getControl();
     }
     else
     {
-      bkColor = _list.getBackground();
+      bkColor = _list.get().getBackground();
       if( bkColor == null )
       {
         bkColor = getBackground();
@@ -69,7 +86,7 @@ public abstract class AbstractListCellRenderer<T> extends JLabel implements List
 
       if( _bSelected )
       {
-        g.setColor( _list.isEnabled() && bFocus ? Scheme.active().getXpBorderColor() : Scheme.active().getControlShadow() );
+        g.setColor( _list.get().isEnabled() && bFocus ? Scheme.active().getXpBorderColor() : Scheme.active().getControlShadow() );
         g.drawRect( 0, 0, getWidth() - 1, getHeight() - 1 );
       }
       g.setColor( bkColor );

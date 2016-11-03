@@ -6,8 +6,16 @@ import java.awt.*;
  */
 public class LabDarkScheme extends Scheme
 {
-  private static final Color WHITISH = new Color( 222, 222, 222 );
-  private static final Color BLACKISH = new Color( 25, 25, 25 );
+  public static final String NAME = "Roll Coal";
+
+  @Override
+  public boolean isDark()
+  {
+    return true;
+  }
+
+  private static final Color WHITISH = new Color( 200, 200, 200 );
+  private static final Color BLACKISH = new Color( 49, 49, 49 );
 
   private static final Color CONTROL_LIGHT = WHITISH; //UIManager.getColor( "controlLtHighlight" );
   /* colors */
@@ -16,13 +24,13 @@ public class LabDarkScheme extends Scheme
   private static final Color WINDOW = BLACKISH;
   private static final Color WINDOW_TEXT = WHITISH;
   private static final Color WINDOW_BORDER = new Color( 49, 106, 197 ); //new Color( 100, 100, 100 );
-  private static final Color TEXT_HIGHLIGHT = new Color( 51, 153, 255 );
+  private static final Color TEXT_HIGHLIGHT = new Color( 0, 70, 132 );
   private static final Color TEXT_HIGHLIGHT_TEXT = WHITISH;
   private static final Color TEXT_TEXT = Color.black;
   private static final Color XP_BORDER_COLOR = new Color( 49, 106, 197 );
   private static final Color XP_HIGHLIGHT_TOGGLE_COLOR = new Color( 225, 230, 232 );
   private static final Color XP_HIGHLIGHT_SELECTED_COLOR = new Color( 152, 179, 219 );
-  private static final Color ACTIVE_CAPTION = new Color( 0, 37, 58 );
+  private static final Color ACTIVE_CAPTION = new Color( 0, 70, 132 );
   private static final Color XP_HIGHLIGHT_COLOR = ACTIVE_CAPTION;//new Color( 190, 205, 224 );
   private static final Color ACTIVE_CAPTION_TEXT = WHITISH;
 
@@ -390,5 +398,27 @@ public class LabDarkScheme extends Scheme
   public Color scopeHighlightColor()
   {
     return SCOPE_HIGHLIGHT_COLOR;
+  }
+
+  @Override
+  public Color getFieldBorderColor()
+  {
+    return BORDER;
+  }
+
+  @Override
+  public Color debugVarRedText()
+  {
+    return new Color( 255, 76, 76 );
+  }
+  @Override
+  public Color debugVarGreenText()
+  {
+    return new Color( 76, 255, 76 );
+  }
+  @Override
+  public Color debugVarBlueText()
+  {
+    return new Color( 76, 164, 255 );
   }
 }

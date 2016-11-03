@@ -109,7 +109,6 @@ class CompilerSettingsPanel extends JPanel
     _editOutputPath = new DirectoryEditor( _labelOutputPath.getText(), _params.getOutputPath(), LabFrame::instance );
     _editOutputPath.getDocument().addDocumentListener( new DocChangeHandler( this::validateOutputPath, _params::setOuputPath ) );
     configPanel.add( _editOutputPath, c );
-    configPanel.add( _editOutputPath, c );
 
     // Bottom Filler
     c.anchor = GridBagConstraints.WEST;
