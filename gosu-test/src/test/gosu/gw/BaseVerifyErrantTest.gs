@@ -13,6 +13,7 @@ uses java.util.Collections
 uses java.lang.Integer
 uses java.lang.System
 uses java.util.regex.Pattern
+//test
 
 abstract class BaseVerifyErrantTest extends TestClass {
   var _skipKnownBreak : boolean as readonly skipKnownBreak
