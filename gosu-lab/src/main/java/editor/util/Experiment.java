@@ -171,7 +171,7 @@ public class Experiment implements IProject
     Expando bindings = new Expando();
 
     bindings.put( "Title", "Gosu Experiment" );
-    bindings.put( "Version", 1 );
+    bindings.put( "Version", LabFrame.VERSION );
     bindings.put( "Name", getName() );
 
     if( tabPane != null )

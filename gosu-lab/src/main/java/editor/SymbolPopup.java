@@ -87,7 +87,7 @@ public class SymbolPopup extends EditorBasedPopup implements ISelectionPopup
 
     if( _symbols != null && _symbols.length > 0 )
     {
-      JLabel labelTypeName = new JLabel( "Objects and Functions" );
+      JLabel labelTypeName = new JLabel( "Symbols" );
       labelTypeName.setOpaque( true );
       labelTypeName.setBackground( Scheme.active().getControl() );
       labelTypeName.setFont( labelTypeName.getFont().deriveFont( Font.BOLD ) );
@@ -619,6 +619,11 @@ public class SymbolPopup extends EditorBasedPopup implements ISelectionPopup
         }
         _children.add( child );
       }
+      sortBy_AssignableToExpectedType_ThenBy_IsFunctionType_ThenBy_Name();
+    }
+
+    private void sortBy_AssignableToExpectedType_ThenBy_IsFunctionType_ThenBy_Name()
+    {
       Collections.sort( _children, ( o1, o2 ) -> {
         if( _expectedType != null )
         {
@@ -626,6 +631,17 @@ public class SymbolPopup extends EditorBasedPopup implements ISelectionPopup
           {
             if( !isExectedTypeAssignableFrom( o2 ) )
             {
+              if( !(o1.getBeanNode().getType() instanceof IFunctionType) )
+              {
+                if( o2.getBeanNode().getType() instanceof IFunctionType )
+                {
+                  return -1;
+                }
+              }
+              else if( !(o2.getBeanNode().getType() instanceof IFunctionType) )
+              {
+                return 1;
+              }
               return -1;
             }
           }
@@ -634,8 +650,19 @@ public class SymbolPopup extends EditorBasedPopup implements ISelectionPopup
             return 1;
           }
         }
+        if( !(o1.getBeanNode().getType() instanceof IFunctionType) )
+        {
+          if( o2.getBeanNode().getType() instanceof IFunctionType )
+          {
+            return -1;
+          }
+        }
+        else if( !(o2.getBeanNode().getType() instanceof IFunctionType) )
+        {
+          return 1;
+        }
         return o1.getBeanNode().getName().compareTo( o2.getBeanNode().getName() );
-      }  );
+      } );
     }
 
     private boolean isExectedTypeAssignableFrom( BeanTree beanTree )

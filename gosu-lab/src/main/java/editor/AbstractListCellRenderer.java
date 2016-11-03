@@ -63,7 +63,7 @@ public abstract class AbstractListCellRenderer<T> extends JLabel implements List
   {
     Color bkColor;
 
-    boolean bFocus = _bRenderAsIfFocused || KeyboardFocusManager.getCurrentKeyboardFocusManager().getPermanentFocusOwner() == _list;
+    boolean bFocus = _bRenderAsIfFocused || KeyboardFocusManager.getCurrentKeyboardFocusManager().getPermanentFocusOwner() == _list.get();
     if( _bSelected )
     {
       bkColor = _list.get().isEnabled() && bFocus

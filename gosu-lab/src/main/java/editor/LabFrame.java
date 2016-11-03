@@ -45,6 +45,7 @@ import java.util.List;
 
 public class LabFrame extends JFrame implements IGosuEditor
 {
+  public static final int VERSION = 2;
   private static LabFrame INSTANCE = null;
   private static Map<String, ISettings> _settings = Settings.makeDefaultSettings();
 
@@ -261,7 +262,7 @@ public class LabFrame extends JFrame implements IGosuEditor
     try
     {
       File userFile = getUserFile( gosuPanel );
-      if( !userFile.exists() || getVersion( gosuPanel ) < 1 )
+      if( !userFile.exists() || getVersion( gosuPanel ) < 2 )
       {
         delete( getUserGosuEditorDir() );
       }
@@ -501,7 +502,7 @@ public class LabFrame extends JFrame implements IGosuEditor
     {
       Expando bindings = new Expando();
       bindings.put( "Title", "Gosu Lab" );
-      bindings.put( "Version", 1 );
+      bindings.put( "Version", VERSION );
       bindings.put( "Experiments", Arrays.asList( makeScratchExperiment( gosuPanel ).getExperimentDir().getAbsolutePath() ) );
 
       try( FileWriter fw = new FileWriter( file ) )
@@ -553,7 +554,7 @@ public class LabFrame extends JFrame implements IGosuEditor
       Expando bindings = new Expando();
 
       bindings.put( "Title", "Gosu Lab" );
-      bindings.put( "Version", 1 );
+      bindings.put( "Version", LabFrame.VERSION );
 
       addExperiment( experiment );
       bindings.put( "Experiments", instance().getExperiments() );
