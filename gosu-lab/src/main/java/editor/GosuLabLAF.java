@@ -188,6 +188,10 @@ public class GosuLabLAF extends WindowsLookAndFeel
       table.put( "Button.light", Scheme.active().getControl() );
       table.put( "Button.highlight", Scheme.active().getControlDarkshadow() );
 
+      table.put( "OptionPane.background", Scheme.active().getControl() );
+      table.put( "OptionPane.foreground", Scheme.active().getControlText() );
+      table.put( "OptionPane.messageForeground", Scheme.active().getControlText() );
+
       table.put( "desktop", Scheme.active().getControl() );
 
       table.put( "activeCaption", Scheme.active().getActiveCaption() );
