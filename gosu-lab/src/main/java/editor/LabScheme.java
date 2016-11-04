@@ -14,6 +14,12 @@ public class LabScheme extends Scheme
     return false;
   }
 
+  @Override
+  public String splash()
+  {
+    return "images/splash2.png";
+  }
+
   private static final Color CONTROL_LIGHT = Color.white; //UIManager.getColor( "controlLtHighlight" );
   /* colors */            
   public static final Color TOOLTIP_BACKGROUND = new Color( 255, 255, 225 ); //  UIManager.getColor( "info" );

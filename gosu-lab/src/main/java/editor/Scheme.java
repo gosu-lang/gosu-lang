@@ -113,4 +113,6 @@ public abstract class Scheme
   public abstract Color debugVarRedText();
   public abstract Color debugVarGreenText();
   public abstract Color debugVarBlueText();
+
+  public abstract String splash();
 }

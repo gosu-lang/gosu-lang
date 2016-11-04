@@ -14,6 +14,12 @@ public class LabDarkScheme extends Scheme
     return true;
   }
 
+  @Override
+  public String splash()
+  {
+    return "images/splash3.png";
+  }
+
   private static final Color WHITISH = new Color( 200, 200, 200 );
   private static final Color BLACKISH = new Color( 39, 39, 39 );
 
