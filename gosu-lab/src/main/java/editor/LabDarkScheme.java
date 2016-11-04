@@ -15,7 +15,7 @@ public class LabDarkScheme extends Scheme
   }
 
   private static final Color WHITISH = new Color( 200, 200, 200 );
-  private static final Color BLACKISH = new Color( 49, 49, 49 );
+  private static final Color BLACKISH = new Color( 39, 39, 39 );
 
   private static final Color CONTROL_LIGHT = WHITISH; //UIManager.getColor( "controlLtHighlight" );
   /* colors */
@@ -40,12 +40,13 @@ public class LabDarkScheme extends Scheme
   private static final Color USAGE_WRITE_HIGHLIGHT_SHADOW_COLOR = new Color( 200, 0, 160 );
   private static final Color SCOPE_HIGHLIGHT_COLOR = new Color( 0, 40, 110 );
 
-  private static final Color CONTROL = new Color( 89, 89, 89 ); //UIManager.getColor( "control" );
-  private static final Color CONTROL_HIGHLIGHT = new Color( 160, 160, 160 ); //UIManager.getColor( "controlHighlight" );
+  private static final Color CONTROL = new Color( 89, 89, 89 );
+  private static final Color CONTROL_HIGHLIGHT = new Color( 160, 160, 160 );
   private static final Color CONTROL_LIGHT_SHADOW = new Color( 80, 80, 80 );
-  private static final Color CONTROL_SHADOW = new Color( 65, 65, 65 ); //EditorUtilities.CONTROL_SHADOW;
-  private static final Color CONTROL_DARKSHADOW = new Color( 49, 49, 49 ); // UIManager.getColor( "controlDkShadow" );
-  private static final Color CONTROL_TEXT = new Color( 200, 200, 200 ); //UIManager.getColor( "controlText" );
+  private static final Color CONTROL_SHADOW = new Color( 65, 65, 65 );
+  private static final Color CONTROL_DARKSHADOW = new Color( 49, 49, 49 );
+  private static final Color CONTROL_DISABLED_TEXT = new Color( 140, 140, 140 );
+  private static final Color CONTROL_TEXT = new Color( 200, 200, 200 );
 
   private static final Color BORDER = new Color( 122, 122, 122 );
 
@@ -232,6 +233,12 @@ public class LabDarkScheme extends Scheme
   public Color getControlText()
   {
     return CONTROL_TEXT;
+  }
+
+  @Override
+  public Color getControlDisabledText()
+  {
+    return getControlDarkshadow();
   }
 
   @Override

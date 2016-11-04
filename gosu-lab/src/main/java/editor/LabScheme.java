@@ -224,6 +224,12 @@ public class LabScheme extends Scheme
   }
 
   @Override
+  public Color getControlDisabledText()
+  {
+    return CONTROL_SHADOW;
+  }
+
+  @Override
   public Color getTooltipBackground()
   {
     return TOOLTIP_BACKGROUND;

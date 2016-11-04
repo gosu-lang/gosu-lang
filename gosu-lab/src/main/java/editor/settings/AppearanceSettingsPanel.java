@@ -1,5 +1,6 @@
 package editor.settings;
 
+import editor.LabFrame;
 import editor.Scheme;
 import java.awt.BorderLayout;
 import java.awt.EventQueue;
@@ -10,6 +11,7 @@ import java.util.function.Consumer;
 import javax.swing.BorderFactory;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 
 /**
@@ -59,7 +61,13 @@ class AppearanceSettingsPanel extends JPanel
     c.weighty = 0;
     c.insets = new Insets( 5, 0, 10, 0 );
     _comboTheme = new JComboBox<>( Scheme.SCHEMES_BY_NAME.keySet().toArray( new String[Scheme.SCHEMES_BY_NAME.size()] ) );
-    _comboTheme.addActionListener( e -> _params.setTheme( (String)_comboTheme.getSelectedItem() ) );
+    _comboTheme.addActionListener( e -> {
+      if( !_comboTheme.getSelectedItem().equals( _params.getTheme() ) )
+      {
+        _params.setTheme( (String)_comboTheme.getSelectedItem() );
+        JOptionPane.showMessageDialog( LabFrame.instance(), "You must restart Gosu Lab for this change.", "Gosu Lab", JOptionPane.INFORMATION_MESSAGE );
+      }
+    } );
     configPanel.add( _comboTheme, c );
 
     // Bottom Filler

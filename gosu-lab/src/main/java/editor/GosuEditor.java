@@ -831,6 +831,8 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
   {
     _highlightMode = HighlightMode.USAGES;
 
+    removeAllHighlights();
+
     IParseTree deepestLocationAtCaret = getDeepestLocationAtCaret();
     if( deepestLocationAtCaret != null )
     {
@@ -851,6 +853,7 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
         }
       }
     }
+    _panelFeedback.repaint();
   }
 
   public void gotoNextUsageHighlight()

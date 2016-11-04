@@ -20,6 +20,7 @@ import editor.util.BrowserUtil;
 import editor.util.EditorUtilities;
 import editor.util.Experiment;
 import editor.util.GosuTextifier;
+import editor.util.LabStatusBar;
 import editor.util.LabToolbarButton;
 import editor.util.LabelListPopup;
 import editor.util.SettleModalEventQueue;
@@ -100,8 +101,7 @@ public class GosuPanel extends JPanel
   private TabPane _bottomTabPane;
   private AtomicUndoManager _defaultUndoMgr;
   private NavigationHistory _history;
-  private JLabel _status;
-  private JPanel _statPanel;
+  private LabStatusBar _statusBar;
   private boolean _initialFile;
   private TypeNameCache _typeNamesCache;
   private Experiment _experiment;
@@ -427,18 +427,13 @@ public class GosuPanel extends JPanel
 
   private JPanel makeStatusBar()
   {
-    _statPanel = new JPanel( new BorderLayout() );
-    _status = new JLabel();
-    _statPanel.add( _status, BorderLayout.CENTER );
-    _statPanel.setVisible( false );
-    return _statPanel;
+    _statusBar = new LabStatusBar();
+    return _statusBar;
   }
 
   public void setStatus( String status )
   {
-    _status.setText( status );
-    _statPanel.setVisible( status != null && !status.isEmpty() );
-    _status.revalidate();
+    _statusBar.setStatus( status );
   }
 
   private void parse()
@@ -2202,8 +2197,6 @@ public class GosuPanel extends JPanel
     if( _runState != RunState.None )
     {
       _runState = RunState.None;
-      _statPanel.setVisible( false );
-      _statPanel.revalidate();
       if( _consolePanel != null )
       {
         _consolePanel.getOutputPanel().setEditable( false );

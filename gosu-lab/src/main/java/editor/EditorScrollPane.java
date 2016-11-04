@@ -110,7 +110,7 @@ public class EditorScrollPane extends JScrollPane
     {
       super.paintComponent( g );
 
-      g.setColor( Scheme.active().getControlShadow() );
+      g.setColor( Scheme.active().getControlDisabledText() );
       g.setFont( _editor.getFont() );
 
       FontMetrics fm = g.getFontMetrics( _editor.getFont() );
