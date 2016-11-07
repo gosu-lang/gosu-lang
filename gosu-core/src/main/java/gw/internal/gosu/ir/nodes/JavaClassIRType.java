@@ -109,8 +109,6 @@ public class JavaClassIRType implements IJavaClassIRType {
       return "I";
     } else if (isLong()) {
       return "J";
-    } else if (isLong()) {
-      return "J";
     } else if (isShort()) {
       return "S";
     } else if (isBoolean()) {

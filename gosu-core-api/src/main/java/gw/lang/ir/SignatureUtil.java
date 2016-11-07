@@ -19,7 +19,6 @@ public class SignatureUtil {
     else if( type.isArray() ) {
       SignatureVisitor arrSv = sv.visitArrayType();
       visitType( arrSv, type.getComponentType(), bGeneric );
-      arrSv.visitEnd();
     } else if( type.isPrimitive() ) {
       String name = type.getName();
       char c;
