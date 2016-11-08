@@ -4,7 +4,7 @@ package editor;
  */
 public interface ITabHistoryHandler
 {
-  public ITabHistoryContext makeTabContext( GosuEditor tab );
+  public ITabHistoryContext makeTabContext( EditorHost tab );
 
   public void selectTab( ITabHistoryContext tabContext );
 

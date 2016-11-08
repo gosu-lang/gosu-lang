@@ -11,7 +11,7 @@ import java.io.File;
 public class EditorTabHistoryHandler implements ITabHistoryHandler
 {
   @Override
-  public ITabHistoryContext makeTabContext( GosuEditor tab )
+  public ITabHistoryContext makeTabContext( EditorHost tab )
   {
 
     return new EditorTabContext( tab );
@@ -42,7 +42,7 @@ public class EditorTabHistoryHandler implements ITabHistoryHandler
     private File _contentId;
     //private Icon _icon;
 
-    public EditorTabContext( GosuEditor editor )
+    public EditorTabContext( EditorHost editor )
     {
       _contentId = (File)editor.getClientProperty( "_file" );
       //_icon = view.getIcon( BeanInfo.ICON_COLOR_16x16 );
@@ -59,7 +59,7 @@ public class EditorTabHistoryHandler implements ITabHistoryHandler
       return EditorUtilities.findIcon( _contentId );
     }
 
-    public boolean represents( GosuEditor editor )
+    public boolean represents( EditorHost editor )
     {
       return editor != null && _contentId.equals( editor.getClientProperty( "_file" ) );
     }

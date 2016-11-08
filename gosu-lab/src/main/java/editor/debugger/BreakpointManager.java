@@ -5,6 +5,7 @@ import com.sun.jdi.Location;
 import com.sun.jdi.StackFrame;
 import com.sun.jdi.ThreadReference;
 import com.sun.jdi.VMDisconnectedException;
+import editor.EditorHost;
 import editor.GosuEditor;
 import editor.GosuPanel;
 import editor.LabFrame;
@@ -304,7 +305,7 @@ public class BreakpointManager
     notifyListeners();
   }
 
-  private GosuEditor getCurrentEditor()
+  private EditorHost getCurrentEditor()
   {
     return getGosuPanel().getCurrentEditor();
   }
@@ -321,7 +322,7 @@ public class BreakpointManager
 
   private void repaintEditor()
   {
-    GosuEditor editor = getCurrentEditor();
+    EditorHost editor = getCurrentEditor();
     if( editor != null )
     {
       editor.repaint();

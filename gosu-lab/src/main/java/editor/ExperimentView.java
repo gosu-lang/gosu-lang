@@ -3,7 +3,6 @@ package editor;
 import editor.splitpane.CollapsibleSplitPane;
 import editor.tabpane.TabPane;
 import editor.tabpane.TabPosition;
-import editor.util.EditorUtilities;
 import editor.util.Experiment;
 import editor.util.LabToolbarButton;
 

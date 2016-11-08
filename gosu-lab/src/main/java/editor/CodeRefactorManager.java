@@ -248,7 +248,7 @@ public class CodeRefactorManager
     }
 
     CompoundEdit undoAtom = _gsEditor.getUndoManager().getUndoAtom();
-    if( undoAtom != null && undoAtom.getPresentationName().equals( "Script Change" ) )
+    if( undoAtom != null && undoAtom.getPresentationName().equals( "Text Change" ) )
     {
       _gsEditor.getUndoManager().endUndoAtom();
     }

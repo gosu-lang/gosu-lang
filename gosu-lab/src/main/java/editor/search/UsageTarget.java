@@ -98,7 +98,7 @@ public class UsageTarget
 
   public static UsageTarget makeTargetFromCaret()
   {
-    GosuEditor editor = getCurrentEditor();
+    GosuEditor editor = getCurrentGosuEditor();
     if( editor == null )
     {
       return null;
@@ -135,9 +135,9 @@ public class UsageTarget
     return new UsageTarget( pe, fi );
   }
 
-  private static GosuEditor getCurrentEditor()
+  private static GosuEditor getCurrentGosuEditor()
   {
-    return LabFrame.instance().getGosuPanel().getCurrentEditor();
+    return LabFrame.instance().getGosuPanel().getCurrentGosuEditor();
   }
 
   private static IFeatureInfo findFeatureInfoFor( IParsedElement pe )

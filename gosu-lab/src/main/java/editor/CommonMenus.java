@@ -35,7 +35,7 @@ import java.util.function.Supplier;
  */
 public class CommonMenus
 {
-  public static JMenuItem makeCut( Supplier<GosuEditor> editor )
+  public static JMenuItem makeCut( Supplier<EditorHost> editor )
   {
     JMenuItem cutItem = new SmartMenuItem( new CutActionHandler( editor ) );
     cutItem.setMnemonic( 't' );
@@ -44,7 +44,7 @@ public class CommonMenus
     return cutItem;
   }
 
-  public static JMenuItem makeCopy( Supplier<GosuEditor> editor )
+  public static JMenuItem makeCopy( Supplier<EditorHost> editor )
   {
     JMenuItem copyItem = new SmartMenuItem( new CopyActionHandler( editor ) );
     copyItem.setMnemonic( 'C' );
@@ -53,7 +53,7 @@ public class CommonMenus
     return copyItem;
   }
 
-  public static JMenuItem makePaste( Supplier<GosuEditor> editor )
+  public static JMenuItem makePaste( Supplier<EditorHost> editor )
   {
     JMenuItem pasteItem = new SmartMenuItem( new PasteActionHandler( editor ) );
     pasteItem.setMnemonic( 'P' );
@@ -71,6 +71,11 @@ public class CommonMenus
         public void actionPerformed( ActionEvent e )
         {
           editor.get().clipPaste( getGosuPanel().getClipboard(), true );
+        }
+        @Override
+        public boolean isEnabled()
+        {
+          return editor.get() != null;
         }
       } );
   }
@@ -130,6 +135,12 @@ public class CommonMenus
         {
           editor.get().handleCompleteCode();
         }
+
+        @Override
+        public boolean isEnabled()
+        {
+          return editor.get() != null;
+        }
       } );
     completeItem.setMnemonic( 'L' );
     completeItem.setAccelerator( KeyStroke.getKeyStroke( "control SPACE" ) );
@@ -150,6 +161,11 @@ public class CommonMenus
             editor.get().displayParameterInfoPopup( editor.get().getEditor().getCaretPosition() );
           }
         }
+        @Override
+        public boolean isEnabled()
+        {
+          return editor.get() != null;
+        }
       } );
     paraminfoItem.setMnemonic( 'P' );
     paraminfoItem.setAccelerator( KeyStroke.getKeyStroke( EditorUtilities.CONTROL_KEY_NAME + " P" ) );
@@ -166,6 +182,11 @@ public class CommonMenus
         public void actionPerformed( ActionEvent e )
         {
           editor.get().displayTypeInfoAtCurrentLocation();
+        }
+        @Override
+        public boolean isEnabled()
+        {
+          return editor.get() != null;
         }
       } );
     typeItem.setMnemonic( 'T' );
@@ -184,13 +205,18 @@ public class CommonMenus
         {
           editor.get().gotoDeclaration();
         }
+        @Override
+        public boolean isEnabled()
+        {
+          return editor.get() != null;
+        }
       } );
     navigate.setMnemonic( 'D' );
     navigate.setAccelerator( KeyStroke.getKeyStroke( EditorUtilities.CONTROL_KEY_NAME + " B" ) );
     return navigate;
   }
 
-  public static JMenuItem makeShowFileInTree( Supplier<GosuEditor> editor )
+  public static JMenuItem makeShowFileInTree( Supplier<EditorHost> editor )
   {
     JMenuItem navigate = new SmartMenuItem(
       new AbstractAction( "Select File in Tree" )
@@ -215,6 +241,11 @@ public class CommonMenus
         public void actionPerformed( ActionEvent e )
         {
           editor.get().displayJavadocHelp( editor.get().getDeepestLocationAtCaret() );
+        }
+        @Override
+        public boolean isEnabled()
+        {
+          return editor.get() != null;
         }
       } );
     quickDoc.setMnemonic( 'Q' );
@@ -782,9 +813,9 @@ public class CommonMenus
   
   public static class CutActionHandler extends AbstractAction
   {
-    private final Supplier<GosuEditor> _editor;
+    private final Supplier<EditorHost> _editor;
 
-    public CutActionHandler( Supplier<GosuEditor> editor )
+    public CutActionHandler( Supplier<EditorHost> editor )
     {
       super( "Cut", EditorUtilities.loadIcon( "images/Cut.png" ) );
       _editor = editor;
@@ -805,9 +836,9 @@ public class CommonMenus
   
   public static class CopyActionHandler extends AbstractAction
   {
-    private final Supplier<GosuEditor> _editor;
+    private final Supplier<EditorHost> _editor;
 
-    public CopyActionHandler( Supplier<GosuEditor> editor )
+    public CopyActionHandler( Supplier<EditorHost> editor )
     {
       super( "Copy", EditorUtilities.loadIcon( "images/Copy.png" ) );
       _editor = editor;
@@ -828,9 +859,9 @@ public class CommonMenus
   
   public static class PasteActionHandler extends AbstractAction
   {
-    private final Supplier<GosuEditor> _editor;
+    private final Supplier<EditorHost> _editor;
 
-    public PasteActionHandler( Supplier<GosuEditor> editor )
+    public PasteActionHandler( Supplier<EditorHost> editor )
     {
       super( "Paste", EditorUtilities.loadIcon( "images/Paste.png" ) );
       _editor = editor;
@@ -851,9 +882,9 @@ public class CommonMenus
   
   public static class FindActionHandler extends AbstractAction
   {
-    private final Supplier<GosuEditor> _editor;
+    private final Supplier<EditorHost> _editor;
 
-    public FindActionHandler( Supplier<GosuEditor> editor )
+    public FindActionHandler( Supplier<EditorHost> editor )
     {
       super( "Find...", EditorUtilities.loadIcon( "images/Find.png" ) );
       _editor = editor;
@@ -874,9 +905,9 @@ public class CommonMenus
   
   public static class ReplaceActionHandler extends AbstractAction
   {
-    private final Supplier<GosuEditor> _editor;
+    private final Supplier<EditorHost> _editor;
 
-    public ReplaceActionHandler( Supplier<GosuEditor> editor )
+    public ReplaceActionHandler( Supplier<EditorHost> editor )
     {
       super( "Replace...", EditorUtilities.loadIcon( "images/replace.png" ) );
       _editor = editor;
@@ -966,7 +997,7 @@ public class CommonMenus
       getGosuPanel().save();
 
       // Renew parse tree before we get the selected target element
-      getGosuPanel().getCurrentEditor().parseAndWaitForParser();
+      ((GosuEditor)getGosuPanel().getCurrentEditor()).parseAndWaitForParser();
 
       UsageTarget target = UsageTarget.makeTargetFromCaret();
       if( target == null )
@@ -989,8 +1020,8 @@ public class CommonMenus
     @Override
     public boolean isEnabled()
     {
-      File file = getGosuPanel() == null ? null : getGosuPanel().getCurrentFile();
-      return file != null;
+      EditorHost editor = getGosuPanel() == null ? null : getGosuPanel().getCurrentEditor();
+      return editor instanceof GosuEditor;
     }
   }
 
@@ -1077,7 +1108,7 @@ public class CommonMenus
       getGosuPanel().save();
 
       // Renew parse tree before we get the selected target element
-      getGosuPanel().getCurrentEditor().parseAndWaitForParser();
+      ((GosuEditor)getGosuPanel().getCurrentEditor()).parseAndWaitForParser();
 
       UsageTarget target = UsageTarget.makeTargetFromCaret();
       if( target == null )
@@ -1093,12 +1124,12 @@ public class CommonMenus
     @Override
     public boolean isEnabled()
     {
-      return findCurrentFile() != null;
+      return findCurrentFile() instanceof GosuEditor;
     }
 
-    private File findCurrentFile()
+    private EditorHost findCurrentFile()
     {
-      return getGosuPanel() == null ? null : getGosuPanel().getCurrentFile();
+      return getGosuPanel() == null ? null : getGosuPanel().getCurrentEditor();
     }
   }
 
@@ -1117,18 +1148,18 @@ public class CommonMenus
         return;
       }
 
-      getGosuPanel().getCurrentEditor().highlightUsagesOfFeatureUnderCaret();
+      ((GosuEditor)getGosuPanel().getCurrentEditor()).highlightUsagesOfFeatureUnderCaret();
     }
 
     @Override
     public boolean isEnabled()
     {
-      return findCurrentEditor() != null;
+      return findCurrentFile() instanceof GosuEditor;
     }
 
-    private File findCurrentEditor()
+    private EditorHost findCurrentFile()
     {
-      return getGosuPanel() == null ? null : getGosuPanel().getCurrentFile();
+      return getGosuPanel() == null ? null : getGosuPanel().getCurrentEditor();
     }
   }
 
@@ -1307,10 +1338,10 @@ public class CommonMenus
       if( isEnabled() )
       {
         String expr = "";
-        GosuEditor editor = getGosuPanel().getCurrentEditor();
+        EditorHost editor = getGosuPanel().getCurrentEditor();
         if( editor != null )
         {
-          String selection = editor.getSelectedText();
+          String selection = editor.getEditor().getSelectedText();
           expr = selection == null ? expr : selection;
         }
         new EvaluateDialog( expr ).setVisible( true );

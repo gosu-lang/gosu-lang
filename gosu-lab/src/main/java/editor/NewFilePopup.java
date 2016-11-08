@@ -1,10 +1,14 @@
 package editor;
 
+import editor.plugin.typeloader.ITypeFactory;
 import editor.util.EditorUtilities;
 import editor.util.SmartMenuItem;
 import editor.util.SourceFileCreator;
+import gw.lang.reflect.ITypeLoader;
+import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.gs.ClassType;
 
+import java.awt.EventQueue;
 import javax.swing.*;
 import java.awt.event.ActionEvent;
 
@@ -32,12 +36,20 @@ public class NewFilePopup extends JPopupMenu
     addNewItem( popup, "Enhancement", "images/Enhancement.png", () -> SourceFileCreator.instance().create( ClassType.Enhancement ) );
     popup.add( new JPopupMenu.Separator() );
     addNewItem( popup, "Namespace", "images/folder.png", () -> SourceFileCreator.instance().createNamespace() );
-    addCustomTypes();
+    popup.add( new JPopupMenu.Separator() );
+    EventQueue.invokeLater( () -> addCustomTypes( popup ) );
   }
 
-  private static void addCustomTypes()
+  private static void addCustomTypes( JComponent popup )
   {
-    //## todo: iterate TypeLoaders and add type creators
+    for( ITypeLoader tl: TypeSystem.getAllTypeLoaders() )
+    {
+      ITypeFactory factory = tl.getInterface( ITypeFactory.class );
+      if( factory != null )
+      {
+        addNewItem( popup, factory.getName(), factory.getIcon(), () -> SourceFileCreator.instance().create( factory ) );
+      }
+    }
   }
 
   private static void addNewItem( JComponent popup, String name, String icon, Runnable action )

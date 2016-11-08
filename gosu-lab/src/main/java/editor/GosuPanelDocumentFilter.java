@@ -10,9 +10,9 @@ import java.io.File;
  */
 public class GosuPanelDocumentFilter extends SimpleDocumentFilter
 {
-  private GosuEditor _editor;
+  private EditorHost _editor;
 
-  public GosuPanelDocumentFilter( GosuEditor editor )
+  public GosuPanelDocumentFilter( EditorHost editor )
   {
     _editor = editor;
   }

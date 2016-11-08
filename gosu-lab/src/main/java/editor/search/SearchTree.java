@@ -1,8 +1,8 @@
 package editor.search;
 
 import editor.AbstractTree;
+import editor.EditorHost;
 import editor.FileTree;
-import editor.GosuEditor;
 import editor.ITreeNode;
 import editor.LabFrame;
 import editor.NodeKind;
@@ -71,7 +71,6 @@ public class SearchTree extends AbstractTree<SearchTree, SearchTree.SearchTreeNo
 
   private String makeDirectoryText( SearchTreeNode node )
   {
-    int count = getCount();
     return "<html>" + node.getFile().getName() + "&nbsp;<font style=italic color=#808080>($count&nbsp;occurrences)</font>&nbsp;";
   }
 
@@ -205,7 +204,7 @@ public class SearchTree extends AbstractTree<SearchTree, SearchTree.SearchTreeNo
   private void maybeUpdateDoc( int iOffset, int iLength, String pattern )
   {
     File file = getNode().getFile().getFileOrDir();
-    GosuEditor editor = LabFrame.instance().getGosuPanel().findTab( file );
+    EditorHost editor = LabFrame.instance().getGosuPanel().findTab( file );
     if( editor == null )
     {
       return;

@@ -42,7 +42,6 @@ public class DebugPanel extends JPanel implements IDisposable
 {
   private JComboBox<ThreadReference> _cbThreads;
   private JList<StackFrame> _listFrames;
-  private CollapsibleSplitPane _splitPane;
   private JTree _varTree;
   private List<Consumer<Location>> _listeners;
   private Debugger _debugger;
@@ -56,12 +55,12 @@ public class DebugPanel extends JPanel implements IDisposable
 
     _listeners = new ArrayList<>();
 
-    _splitPane = new CollapsibleSplitPane( SwingConstants.HORIZONTAL, makeThreadsPanel(), makeVariablesAndWatchesPanel() );
-    add( _splitPane, BorderLayout.CENTER );
+    CollapsibleSplitPane splitPane = new CollapsibleSplitPane( SwingConstants.HORIZONTAL, makeThreadsPanel(), makeVariablesAndWatchesPanel() );
+    add( splitPane, BorderLayout.CENTER );
 
     add( makeRunToolbar(), BorderLayout.WEST );
 
-    _splitPane.setPosition( 30 );
+    splitPane.setPosition( 30 );
   }
 
   @Override
@@ -306,12 +305,12 @@ public class DebugPanel extends JPanel implements IDisposable
 
     tb.add( makeSeparator(), i++ );
 
-    item = makeButton( new CommonMenus.DropFrameActionHandler( this::getDebugger, () -> getDropToFrame() ) );
+    item = makeButton( new CommonMenus.DropFrameActionHandler( this::getDebugger, this::getDropToFrame ) );
     tb.add( item, i++ );
 
     tb.add( makeSeparator(), i++ );
 
-    item = makeButton( new CommonMenus.RunToCursorActionHandler( this::getDebugger, this::getBreakpointManager, this::getCurrentEditor ) );
+    item = makeButton( new CommonMenus.RunToCursorActionHandler( this::getDebugger, this::getBreakpointManager, this::getCurrentGosuEditor ) );
     tb.add( item, i++ );
   }
 
@@ -328,9 +327,9 @@ public class DebugPanel extends JPanel implements IDisposable
     separator.setMaximumSize( new Dimension( 4, 20 ) );
     return separator;
   }
-  private GosuEditor getCurrentEditor()
+  private GosuEditor getCurrentGosuEditor()
   {
-    return getGosuPanel().getCurrentEditor();
+    return getGosuPanel().getCurrentGosuEditor();
   }
 
   private GosuPanel getGosuPanel()

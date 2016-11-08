@@ -17,24 +17,25 @@ public class DefaultContextMenuHandler implements IContextMenuHandler<IScriptEdi
   public JPopupMenu getContextMenu( IScriptEditor editor )
   {
     JPopupMenu menu = new JPopupMenu();
-    Supplier<GosuEditor> contextEditor = () -> (GosuEditor)editor;
+    Supplier<EditorHost> contextEditor = () -> (EditorHost)editor;
+    Supplier<GosuEditor> contextGosuEditor = () -> editor instanceof GosuEditor ? (GosuEditor)editor : null;
     menu.add( CommonMenus.makeCut( contextEditor ) );
     menu.add( CommonMenus.makeCopy( contextEditor ) );
     menu.add( CommonMenus.makePaste( contextEditor ) );
-    menu.add( CommonMenus.makePasteJavaAsGosu( contextEditor ) );
+    menu.add( CommonMenus.makePasteJavaAsGosu( contextGosuEditor ) );
     menu.add( new JSeparator() );
     menu.add( CommonMenus.makeFindUsages( FileTreeUtil::getRoot ) );
     menu.add( new JSeparator() );
-    menu.add( CommonMenus.makeCodeComplete( contextEditor ) );
+    menu.add( CommonMenus.makeCodeComplete( contextGosuEditor ) );
     menu.add( new JSeparator() );
-    menu.add( CommonMenus.makeParameterInfo( contextEditor ) );
-    menu.add( CommonMenus.makeExpressionType( contextEditor ) );
+    menu.add( CommonMenus.makeParameterInfo( contextGosuEditor ) );
+    menu.add( CommonMenus.makeExpressionType( contextGosuEditor ) );
     menu.add( new JSeparator() );
-    menu.add( CommonMenus.makeGotoDeclaration( contextEditor ) );
+    menu.add( CommonMenus.makeGotoDeclaration( contextGosuEditor ) );
     menu.add( new JSeparator() );
     menu.add( CommonMenus.makeShowFileInTree( contextEditor ) );
     menu.add( new JSeparator() );
-    menu.add( CommonMenus.makeQuickDocumentation( contextEditor ) );
+    menu.add( CommonMenus.makeQuickDocumentation( contextGosuEditor ) );
     if( editor.getScriptPart() != null &&
         editor.getScriptPart().getContainingType() != null )
     {

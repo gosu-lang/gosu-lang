@@ -11,16 +11,7 @@ import java.io.File;
 
 public class TypeNameUtil
 {
-  public static final String[] GOSU_EXTS = {
-    GosuClassTypeLoader.GOSU_CLASS_FILE_EXT,
-    GosuClassTypeLoader.GOSU_ENHANCEMENT_FILE_EXT,
-    GosuClassTypeLoader.GOSU_PROGRAM_FILE_EXT,
-    GosuClassTypeLoader.GOSU_TEMPLATE_FILE_EXT,
-    "java"
-  };
-
-
-  public static String getClassNameForFile( File classFile )
+  public static String getTypeNameForFile( File classFile )
   {
     GosuClassTypeLoader typeLoader = TypeSystem.getCurrentModule().getModuleTypeLoader().getTypeLoader( GosuClassTypeLoader.class );
     IFileSystemGosuClassRepository repo = (IFileSystemGosuClassRepository)typeLoader.getRepository();
@@ -39,6 +30,22 @@ public class TypeNameUtil
     {
       return null;
     }
-    return repo.getClassNameFromFile( root, classIFile, GOSU_EXTS );
+    return getTypeNameFromFile( root, classIFile );
   }
+
+  public static String getTypeNameFromFile( IDirectory root, IFile file )
+  {
+    String strClassPath = root.getPath().getFileSystemPathString() + File.separatorChar;
+
+    String strQualifiedClassName = file.getPath().getFileSystemPathString().substring( strClassPath.length() );
+    strQualifiedClassName =
+      strQualifiedClassName.substring( 0, strQualifiedClassName.lastIndexOf( '.' ) );
+    strQualifiedClassName = strQualifiedClassName.replace( '/', '.' ).replace( '\\', '.' );
+    if( strQualifiedClassName.startsWith( "." ) )
+    {
+      strQualifiedClassName = strQualifiedClassName.substring( 1 );
+    }
+    return strQualifiedClassName;
+  }
+
 }

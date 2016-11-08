@@ -36,7 +36,7 @@ public class ScriptChangeHandler implements UndoableEditListener, CaretListener
     _bDirty = false;
   }
 
-  public void establishUndoableEditListener( GosuEditor editor )
+  public void establishUndoableEditListener( EditorHost editor )
   {
     editor.setUndoableEditListener( this );
     editor.getEditor().addCaretListener( this );
@@ -53,7 +53,7 @@ public class ScriptChangeHandler implements UndoableEditListener, CaretListener
   @Override
   public void undoableEditHappened( UndoableEditEvent e )
   {
-    addGosuEditorUndoItem( e );
+    addEditorUndoItem( e );
   }
 
   @Override
@@ -69,26 +69,21 @@ public class ScriptChangeHandler implements UndoableEditListener, CaretListener
     _bCaretPosChangeIsEdit = false;
 
     final CompoundEdit undoAtom = _undoMgr.getUndoAtom();
-    if( undoAtom != null && undoAtom.getPresentationName().equals( "Script Change" ) )
+    if( undoAtom != null && undoAtom.getPresentationName().equals( "Text Change" ) )
     {
       // Note we invokeLater because undoableEditHappened is called directly after
       // caretUpdate() i.e., it has to set _bCaretPosChangeIsEdit to true in order for us to
       // know whether or not an actual undoable edit is related to the caret pos change.
 
       EventQueue.invokeLater(
-        new Runnable()
-        {
-          @Override
-          public void run()
+        () -> {
+          if( !_bCaretPosChangeIsEdit )
           {
-            if( !_bCaretPosChangeIsEdit )
+            if( undoAtom == _undoMgr.getUndoAtom() )
             {
-              if( undoAtom == _undoMgr.getUndoAtom() )
-              {
-                // The caret moved without a text change e.g., arrow key pressed,
-                // so terminate the undo batch with the position change.
-                _undoMgr.endUndoAtom();
-              }
+              // The caret moved without a text change e.g., arrow key pressed,
+              // so terminate the undo batch with the position change.
+              _undoMgr.endUndoAtom();
             }
           }
         } );
@@ -139,7 +134,7 @@ public class ScriptChangeHandler implements UndoableEditListener, CaretListener
     return _editor;
   }
 
-  protected void addGosuEditorUndoItem( UndoableEditEvent e )
+  protected void addEditorUndoItem( UndoableEditEvent e )
   {
     if( isPaused() )
     {
@@ -170,7 +165,7 @@ public class ScriptChangeHandler implements UndoableEditListener, CaretListener
           // group of characters you backspace over until you start typing again.
 
           undoAtom = _undoMgr.getUndoAtom();
-          if( undoAtom != null && undoAtom.getPresentationName().equals( "Script Change" ) )
+          if( undoAtom != null && undoAtom.getPresentationName().equals( "Text Change" ) )
           {
             _undoMgr.endUndoAtom();
             undoAtom = null; // to start a new undo atom for when we change event types
@@ -190,11 +185,11 @@ public class ScriptChangeHandler implements UndoableEditListener, CaretListener
       }
     }
 
-    if( undoAtom == null || !undoAtom.getPresentationName().equals( "Script Change" ) )
+    if( undoAtom == null || !undoAtom.getPresentationName().equals( "Text Change" ) )
     {
       // There is no Script Change undo atom. Add a new one to collect subsequent text changes
 
-      _undoMgr.beginUndoAtom( "Script Change" );
+      _undoMgr.beginUndoAtom( "Text Change" );
 
       final CompoundEdit newUndoAdtom = _undoMgr.getUndoAtom();
       _undoMgr.addChangeListener(
@@ -230,7 +225,7 @@ public class ScriptChangeHandler implements UndoableEditListener, CaretListener
   private void addDocEditChange( UndoableEditEvent e )
   {
     ScriptEditorUndoItem undoItem = new ScriptEditorUndoItem( this, e.getEdit() );
-    addUndoItem( new StagedStateEdit( undoItem, "Script Change" ) );
+    addUndoItem( new StagedStateEdit( undoItem, "Text Change" ) );
   }
 
   private void addUndoItem( StateEdit transaction )

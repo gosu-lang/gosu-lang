@@ -285,32 +285,6 @@ public class Experiment implements IProject
     }
   }
 
-  public File getOrMakeUntitledProgram()
-  {
-    File srcDir = new File( getSourcePath().get( 0 ) );
-    //noinspection ResultOfMethodCallIgnored
-    srcDir.mkdirs();
-    File scratchPackage = new File( srcDir, "scratch" );
-    //noinspection ResultOfMethodCallIgnored
-    scratchPackage.mkdirs();
-    File file = new File( scratchPackage, "RunMe.gsp" );
-    try
-    {
-      if( file.createNewFile() )
-      {
-        try( FileWriter writer = new FileWriter( file ) )
-        {
-          writer.write( "//\n// Run this from the Run menu or press F5\n//\nprint(\"Hello, World!\")\n" );
-        }
-      }
-      return file;
-    }
-    catch( IOException e )
-    {
-      throw new RuntimeException( e );
-    }
-  }
-
   public static String getRelativeGosuSourcePath()
   {
     return "src" + File.separator + "main" + File.separator + "gosu";

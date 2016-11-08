@@ -1,6 +1,6 @@
 package editor.util;
 
-import editor.GosuEditor;
+import editor.EditorHost;
 import editor.LabFrame;
 import editor.Scheme;
 import java.awt.Dimension;
@@ -24,7 +24,7 @@ public class LabStatusBar extends JPanel
   private JLabel _selectionInfo;
   private JLabel _coords;
   private JLabel _status;
-  private GosuEditor _editor;
+  private EditorHost _editor;
 
   public LabStatusBar()
   {
@@ -70,7 +70,7 @@ public class LabStatusBar extends JPanel
 
     c.anchor = GridBagConstraints.EAST;
     c.fill = GridBagConstraints.NONE;
-    c.gridx = iX++;
+    c.gridx = iX;
     c.gridwidth = 1;
     c.gridheight = 1;
     c.weightx = 0;
@@ -116,13 +116,13 @@ public class LabStatusBar extends JPanel
     }
   }
 
-  private void updateCaret( GosuEditor editor )
+  private void updateCaret( EditorHost editor )
   {
     _coords.setText( makeCoords( editor ) );
     _selectionInfo.setText( makeSelectionInfo( editor ) );
   }
 
-  private String makeSelectionInfo( GosuEditor editor )
+  private String makeSelectionInfo( EditorHost editor )
   {
     int start = _editor.getEditor().getSelectionStart();
     int end = editor.getEditor().getSelectionEnd();
@@ -139,7 +139,7 @@ public class LabStatusBar extends JPanel
     return chars + lines;
   }
 
-  private String makeCoords( GosuEditor editor )
+  private String makeCoords( EditorHost editor )
   {
     int line = editor.getLineNumberAtCaret();
     int column = editor.getEditor().getCaretPosition() - editor.getLineOffset( line - 1 );

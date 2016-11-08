@@ -18,7 +18,7 @@ public class TabSelectionHistoryItem implements StateEditable
   private int _prevCaretPos;
   private boolean _bUndo;
 
-  public TabSelectionHistoryItem( NavigationHistory tabHistory, GosuEditor prevTab, int prevCaretPos, GosuEditor selectedTab, int caretPos )
+  public TabSelectionHistoryItem( NavigationHistory tabHistory, EditorHost prevTab, int prevCaretPos, EditorHost selectedTab, int caretPos )
   {
     _tabHistory = tabHistory;
     _prevTabContext = _tabHistory.getTabHistoryHandler().makeTabContext( prevTab );
@@ -30,6 +30,7 @@ public class TabSelectionHistoryItem implements StateEditable
 
   public void storeState( Hashtable stateTable )
   {
+    //noinspection unchecked
     stateTable.put( "_undo", _bUndo ? Boolean.TRUE : Boolean.FALSE );
     _bUndo = !_bUndo;
   }
@@ -49,13 +50,13 @@ public class TabSelectionHistoryItem implements StateEditable
       {
         if( bUndo )
         {
-          GosuEditor editor = LabFrame.instance().getGosuPanel().findTab( (File)_prevTabContext.getContentId() );
+          EditorHost editor = LabFrame.instance().getGosuPanel().findTab( (File)_prevTabContext.getContentId() );
           _caretPos = editor.getEditor().getCaretPosition();
           editor.getEditor().setCaretPosition( _prevCaretPos );
         }
         else
         {
-          GosuEditor editor = LabFrame.instance().getGosuPanel().findTab( (File)_tabContext.getContentId() );
+          EditorHost editor = LabFrame.instance().getGosuPanel().findTab( (File)_tabContext.getContentId() );
           editor.getEditor().setCaretPosition( _caretPos );
         }
       }

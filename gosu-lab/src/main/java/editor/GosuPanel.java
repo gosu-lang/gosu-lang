@@ -26,6 +26,7 @@ import editor.util.LabelListPopup;
 import editor.util.SettleModalEventQueue;
 import editor.util.SmartMenu;
 import editor.util.SmartMenuItem;
+import editor.util.SourceFileCreator;
 import editor.util.ToolBar;
 import editor.util.TypeNameUtil;
 import gw.fs.IFile;
@@ -37,7 +38,6 @@ import gw.lang.parser.IParseTree;
 import gw.lang.parser.IParsedElement;
 import gw.lang.parser.IScriptPartId;
 import gw.lang.parser.ScriptPartId;
-import gw.lang.parser.ScriptabilityModifiers;
 import gw.lang.parser.exceptions.ParseResultsException;
 import gw.lang.parser.expressions.IBlockExpression;
 import gw.lang.parser.resources.ResourceKey;
@@ -115,9 +115,9 @@ public class GosuPanel extends JPanel
   private BreakpointManager _breakpointManager;
   private Debugger _debugger;
 
-  public GosuPanel( JFrame basicGosuEditor )
+  public GosuPanel( JFrame frame )
   {
-    _parentFrame = basicGosuEditor;
+    _parentFrame = frame;
     _defaultUndoMgr = new AtomicUndoManager( 10 );
     _typeNamesCache = new TypeNameCache();
     _runState = RunState.None;
@@ -395,6 +395,7 @@ public class GosuPanel extends JPanel
     RunMe.reinitializeGosu( experiment );
 
     LabFrame.instance().addExperiment( experiment );
+    _experimentView.load( _experiment );
 
     for( String openFile : experiment.getOpenFiles() )
     {
@@ -407,17 +408,16 @@ public class GosuPanel extends JPanel
     String activeFile = experiment.getActiveFile();
     if( activeFile == null )
     {
-      openFile( experiment.getOrMakeUntitledProgram(), true );
+      EventQueue.invokeLater( () -> SourceFileCreator.instance().getOrMakeUntitledProgram( experiment ) );
     }
     else
     {
       openTab( new File( activeFile ), true );
     }
     SettleModalEventQueue.instance().run();
-    _experimentView.load( _experiment );
     EventQueue.invokeLater( () -> {
       parse();
-      GosuEditor currentEditor = getCurrentEditor();
+      EditorHost currentEditor = getCurrentEditor();
       if( currentEditor != null )
       {
         currentEditor.getEditor().requestFocus();
@@ -431,6 +431,7 @@ public class GosuPanel extends JPanel
     return _statusBar;
   }
 
+  @SuppressWarnings("UnusedDeclaration")
   public void setStatus( String status )
   {
     _statusBar.setStatus( status );
@@ -448,7 +449,7 @@ public class GosuPanel extends JPanel
 
   private void savePreviousTab()
   {
-    GosuEditor editor = getTabSelectionHistory().getPreviousEditor();
+    EditorHost editor = getTabSelectionHistory().getPreviousEditor();
     if( editor != null )
     {
       if( isDirty( editor ) )
@@ -468,20 +469,17 @@ public class GosuPanel extends JPanel
     }
   }
 
-  private GosuEditor createEditor()
+  private EditorHost createEditor( File file )
   {
-    final GosuEditor editor = new GosuEditor( new GosuClassLineInfoManager(),
-                                              new AtomicUndoManager( 10000 ),
-                                              ScriptabilityModifiers.SCRIPTABLE,
-                                              new DefaultContextMenuHandler(),
-                                              false, true );
-    editor.setBorder( BorderFactory.createEmptyBorder() );
-    addDirtyListener( editor );
-    EventQueue.invokeLater( () -> ((AbstractDocument)editor.getEditor().getDocument()).setDocumentFilter( new GosuPanelDocumentFilter( editor ) ) );
-    return editor;
+    EditorHost editorHost = EditorFactory.createEditor( file );
+
+    editorHost.setBorder( BorderFactory.createEmptyBorder() );
+    addDirtyListener( editorHost );
+    EventQueue.invokeLater( () -> ((AbstractDocument)editorHost.getEditor().getDocument()).setDocumentFilter( new GosuPanelDocumentFilter( editorHost ) ) );
+    return editorHost;
   }
 
-  private void addDirtyListener( final GosuEditor editor )
+  private void addDirtyListener( final EditorHost editor )
   {
     editor.getUndoManager().addChangeListener(
       new ChangeListener()
@@ -499,42 +497,6 @@ public class GosuPanel extends JPanel
         }
       } );
 
-  }
-
-  private GosuEditor initEditorMode( File file, GosuEditor editor )
-  {
-    if( file != null && file.getName() != null )
-    {
-      if( file.getName().endsWith( ".gsx" ) )
-      {
-        editor.setProgram( false );
-        editor.setTemplate( false );
-        editor.setClass( false );
-        editor.setEnhancement( true );
-      }
-      else if( file.getName().endsWith( ".gs" ) )
-      {
-        editor.setProgram( false );
-        editor.setTemplate( false );
-        editor.setClass( true );
-        editor.setEnhancement( false );
-      }
-      else if( file.getName().endsWith( ".gst" ) )
-      {
-        editor.setProgram( false );
-        editor.setTemplate( true );
-        editor.setClass( false );
-        editor.setEnhancement( false );
-      }
-      else
-      {
-        editor.setProgram( true );
-        editor.setTemplate( false );
-        editor.setClass( false );
-        editor.setEnhancement( false );
-      }
-    }
-    return editor;
   }
 
   private JMenuBar makeMenuBar()
@@ -723,16 +685,16 @@ public class GosuPanel extends JPanel
     JMenu codeMenu = new SmartMenu( "Code" );
     codeMenu.setMnemonic( 'd' );
     menuBar.add( codeMenu );
-    codeMenu.add( CommonMenus.makeCodeComplete( this::getCurrentEditor ) );
+    codeMenu.add( CommonMenus.makeCodeComplete( this::getCurrentGosuEditor ) );
     codeMenu.addSeparator();
-    codeMenu.add( CommonMenus.makeParameterInfo( this::getCurrentEditor ) );
-    codeMenu.add( CommonMenus.makeExpressionType( this::getCurrentEditor ) );
+    codeMenu.add( CommonMenus.makeParameterInfo( this::getCurrentGosuEditor ) );
+    codeMenu.add( CommonMenus.makeExpressionType( this::getCurrentGosuEditor ) );
     codeMenu.addSeparator();
-    codeMenu.add( CommonMenus.makeGotoDeclaration( this::getCurrentEditor ) );
+    codeMenu.add( CommonMenus.makeGotoDeclaration( this::getCurrentGosuEditor ) );
     codeMenu.addSeparator();
     codeMenu.add( CommonMenus.makeShowFileInTree( this::getCurrentEditor ) );
     codeMenu.addSeparator();
-    codeMenu.add( CommonMenus.makeQuickDocumentation( this::getCurrentEditor ) );
+    codeMenu.add( CommonMenus.makeQuickDocumentation( this::getCurrentGosuEditor ) );
 
     codeMenu.addSeparator();
 
@@ -779,11 +741,17 @@ public class GosuPanel extends JPanel
         @Override
         public boolean isEnabled()
         {
-          return getCurrentEditor() != null && getCurrentEditor().getScriptPart() != null &&
+          return getCurrentGosuEditor() != null && getCurrentEditor().getScriptPart() != null &&
                  getCurrentEditor().getScriptPart().getContainingType() != null;
         }
       } );
     codeMenu.add( viewBytecodeItem );
+  }
+
+  public GosuEditor getCurrentGosuEditor()
+  {
+    EditorHost editor = getCurrentEditor();
+    return editor instanceof GosuEditor ? (GosuEditor)editor : null;
   }
 
   private void makeBuildMenu( JMenuBar menuBar )
@@ -812,10 +780,10 @@ public class GosuPanel extends JPanel
     buildMenu.add( shipIt );
   }
 
-  public GosuEditor getCurrentEditor()
+  public EditorHost getCurrentEditor()
   {
     ITab selectedTab = _editorTabPane.getSelectedTab();
-    return selectedTab == null ? null : (GosuEditor)selectedTab.getContentPane();
+    return selectedTab == null ? null : (EditorHost)selectedTab.getContentPane();
   }
 
   public IRunConfig getRunConfig()
@@ -864,7 +832,7 @@ public class GosuPanel extends JPanel
     runMenu.add( CommonMenus.makeStepOver( this::getDebugger ) );
     runMenu.add( CommonMenus.makeStepInto( this::getDebugger ) );
     runMenu.add( CommonMenus.makeStepOut( this::getDebugger ) );
-    runMenu.add( CommonMenus.makeRunToCursor( this::getDebugger, this::getBreakpointManager, this::getCurrentEditor ) );
+    runMenu.add( CommonMenus.makeRunToCursor( this::getDebugger, this::getBreakpointManager, this::getCurrentGosuEditor ) );
     //noinspection Convert2MethodRef
     runMenu.add( CommonMenus.makeDropFrame( this::getDebugger, () -> _debugPanel.getDropToFrame() ) );
     runMenu.add( CommonMenus.makePause( this::getDebugger ) );
@@ -877,7 +845,7 @@ public class GosuPanel extends JPanel
 
     runMenu.addSeparator();
 
-    runMenu.add( CommonMenus.makeToggleBreakpoint( this::getBreakpointManager, this::getCurrentEditor ) );
+    runMenu.add( CommonMenus.makeToggleBreakpoint( this::getBreakpointManager, this::getCurrentGosuEditor ) );
     runMenu.add( CommonMenus.makeViewBreakpoints( () -> null ) );
     runMenu.add( CommonMenus.makeMuteBreakpoints( this::getBreakpointManager ) );
 
@@ -1018,7 +986,7 @@ public class GosuPanel extends JPanel
 
     editMenu.add( CommonMenus.makePaste( this::getCurrentEditor ) );
 
-    editMenu.add( CommonMenus.makePasteJavaAsGosu( this::getCurrentEditor ) );
+    editMenu.add( CommonMenus.makePasteJavaAsGosu( this::getCurrentGosuEditor ) );
 
     editMenu.addSeparator();
 
@@ -1088,8 +1056,14 @@ public class GosuPanel extends JPanel
         @Override
         public void actionPerformed( ActionEvent e )
         {
-          getCurrentEditor().selectWord();
+          getCurrentGosuEditor().selectWord();
         }
+        @Override
+        public boolean isEnabled()
+        {
+          return getCurrentGosuEditor() != null;
+        }
+
       } );
     selectWord.setMnemonic( 'W' );
     selectWord.setAccelerator( KeyStroke.getKeyStroke( EditorUtilities.CONTROL_KEY_NAME + " W" ) );
@@ -1101,8 +1075,14 @@ public class GosuPanel extends JPanel
         @Override
         public void actionPerformed( ActionEvent e )
         {
-          getCurrentEditor().narrowSelectWord();
+          getCurrentGosuEditor().narrowSelectWord();
         }
+        @Override
+        public boolean isEnabled()
+        {
+          return getCurrentGosuEditor() != null;
+        }
+
       } );
     narraowSelection.setMnemonic( 'N' );
     narraowSelection.setAccelerator( KeyStroke.getKeyStroke( EditorUtilities.CONTROL_KEY_NAME + " shift W" ) );
@@ -1362,7 +1342,7 @@ public class GosuPanel extends JPanel
     }
   }
 
-  public GosuEditor getGosuEditor()
+  public EditorHost getGosuEditor()
   {
     return getCurrentEditor();
   }
@@ -1462,19 +1442,8 @@ public class GosuPanel extends JPanel
       {
         return new ScriptPartId( "New Program", null );
       }
-      else if( file.getName().endsWith( ".gs" ) ||
-               file.getName().endsWith( ".gsx" ) ||
-               file.getName().endsWith( ".gsp" ) ||
-               file.getName().endsWith( ".gst" ) )
-      {
-        String classNameForFile = TypeNameUtil.getClassNameForFile( file );
-        return new ScriptPartId( classNameForFile, null );
-      }
-
-      else
-      {
-        return new ScriptPartId( "Unknown Resource Type", null );
-      }
+      String classNameForFile = TypeNameUtil.getTypeNameForFile( file );
+      return new ScriptPartId( classNameForFile, null );
     }
     finally
     {
@@ -1505,19 +1474,17 @@ public class GosuPanel extends JPanel
       return;
     }
 
-    final GosuEditor editor = createEditor();
+    final EditorHost editor = createEditor( file );
 
     if( partId == null )
     {
       throw new IllegalArgumentException( "partId should be non-null" );
     }
 
-    initEditorMode( file, editor );
-
-    file = file == null ? getExperiment().getOrMakeUntitledProgram() : file;
+    file = file == null ? SourceFileCreator.instance().getOrMakeUntitledProgram( _experiment ) : file;
     editor.putClientProperty( "_file", file );
     removeLruTab();
-    String classNameForFile = TypeNameUtil.getClassNameForFile( file );
+    String classNameForFile = TypeNameUtil.getTypeNameForFile( file );
     IType type = TypeSystem.getByFullNameIfValid( classNameForFile );
     if( type == null )
     {
@@ -1574,7 +1541,7 @@ public class GosuPanel extends JPanel
     {
       ITabHistoryContext tabCtx = mruList.get( i );
       File file = (File)tabCtx.getContentId();
-      GosuEditor editor = findTab( file );
+      EditorHost editor = findTab( file );
       if( editor != null )
       {
         closeTab( file );
@@ -1593,7 +1560,7 @@ public class GosuPanel extends JPanel
 
   private boolean openTab( File file, boolean bFocus )
   {
-    GosuEditor editor = findTab( file );
+    EditorHost editor = findTab( file );
     if( editor != null )
     {
       _editorTabPane.selectTab( _editorTabPane.findTabWithContent( editor ), bFocus );
@@ -1602,7 +1569,7 @@ public class GosuPanel extends JPanel
     return false;
   }
 
-  public GosuEditor findTab( File file )
+  public EditorHost findTab( File file )
   {
     if( file == null )
     {
@@ -1610,7 +1577,7 @@ public class GosuPanel extends JPanel
     }
     for( int i = 0; i < _editorTabPane.getTabCount(); i++ )
     {
-      GosuEditor editor = (GosuEditor)_editorTabPane.getTabAt( i ).getContentPane();
+      EditorHost editor = (EditorHost)_editorTabPane.getTabAt( i ).getContentPane();
       if( editor != null && file.equals( editor.getClientProperty( "_file" ) ) )
       {
         return editor;
@@ -1627,7 +1594,7 @@ public class GosuPanel extends JPanel
 
   public File getCurrentFile()
   {
-    GosuEditor currentEditor = getCurrentEditor();
+    EditorHost currentEditor = getCurrentEditor();
     return currentEditor == null ? null : (File)currentEditor.getClientProperty( "_file" );
   }
 
@@ -1689,7 +1656,7 @@ public class GosuPanel extends JPanel
     return true;
   }
 
-  public boolean save( File file, GosuEditor editor )
+  public boolean save( File file, EditorHost editor )
   {
     if( !file.exists() )
     {
@@ -1717,7 +1684,7 @@ public class GosuPanel extends JPanel
     return true;
   }
 
-  private void saveAndReloadType( File file, GosuEditor editor )
+  private void saveAndReloadType( File file, EditorHost editor )
   {
     FileTree fileTree = FileTreeUtil.getRoot().find( file );
     if( fileTree != null )
@@ -1765,7 +1732,7 @@ public class GosuPanel extends JPanel
    */
   public void refresh( File file )
   {
-    GosuEditor editor = findTab( file );
+    EditorHost editor = findTab( file );
     if( editor != null )
     {
       // The file is open in an editor, refresh it with the contents of the file
@@ -1911,10 +1878,10 @@ public class GosuPanel extends JPanel
 
   private IGosuClass getClassAtCaret()
   {
-    IParseTree locAtCaret = getCurrentEditor().getDeepestLocationAtCaret();
+    IParseTree locAtCaret = getCurrentGosuEditor().getDeepestLocationAtCaret();
     if( locAtCaret == null )
     {
-      return getCurrentEditor().getParsedClass();
+      return getCurrentGosuEditor().getParsedClass();
     }
     IParsedElement elemAtCaret = locAtCaret.getParsedElement();
     while( elemAtCaret != null &&
@@ -1925,7 +1892,7 @@ public class GosuPanel extends JPanel
     }
     if( elemAtCaret == null )
     {
-      return getCurrentEditor().getParsedClass();
+      return getCurrentGosuEditor().getParsedClass();
     }
     if( elemAtCaret instanceof IClassStatement )
     {
@@ -2062,11 +2029,12 @@ public class GosuPanel extends JPanel
       throw new Error();
     }
 
-    GosuEditor editor = getCurrentEditor();
+    EditorHost editor = getCurrentEditor();
     if( editor != null )
     {
       editor.repaint();
     }
+
     if( _debugger != null && _debugger.isSuspended() )
     {
       Location location = _debugger.getSuspendedLocation();
@@ -2138,7 +2106,7 @@ public class GosuPanel extends JPanel
     List<FileTree> files = new ArrayList<>();
     for( ITab tab: getEditorTabPane().getTabs() )
     {
-      GosuEditor editor = (GosuEditor)tab.getContentPane();
+      EditorHost editor = (EditorHost)tab.getContentPane();
       if( editor != null )
       {
         File file = (File)editor.getClientProperty( "_file" );
@@ -2223,7 +2191,7 @@ public class GosuPanel extends JPanel
   {
     for( int i = 0; i < _editorTabPane.getTabCount(); i++ )
     {
-      GosuEditor editor = (GosuEditor)_editorTabPane.getTabAt( i ).getContentPane();
+      EditorHost editor = (EditorHost)_editorTabPane.getTabAt( i ).getContentPane();
       if( editor != null )
       {
         if( editor.getClientProperty( "_file" ).equals( file ) )
@@ -2240,7 +2208,7 @@ public class GosuPanel extends JPanel
   {
     for( int i = 0; i < _editorTabPane.getTabCount(); i++ )
     {
-      GosuEditor editor = (GosuEditor)_editorTabPane.getTabAt( i ).getContentPane();
+      EditorHost editor = (EditorHost)_editorTabPane.getTabAt( i ).getContentPane();
       if( editor != null )
       {
         if( editor.getClientProperty( "_file" ).equals( file ) )
@@ -2294,7 +2262,7 @@ public class GosuPanel extends JPanel
     popup.show( this, getWidth() / 2 - 100, getHeight() / 2 - 200 );
   }
 
-  public boolean isDirty( GosuEditor editor )
+  public boolean isDirty( EditorHost editor )
   {
     if( editor == null )
     {
@@ -2304,7 +2272,7 @@ public class GosuPanel extends JPanel
     return bDirty == null ? false : bDirty;
   }
 
-  public void setDirty( GosuEditor editor, boolean bDirty )
+  public void setDirty( EditorHost editor, boolean bDirty )
   {
     editor.putClientProperty( "_bDirty", bDirty );
   }
@@ -2348,7 +2316,7 @@ public class GosuPanel extends JPanel
 
   private void markErrorsForGosuLanguageTest()
   {
-    GosuDocument document = getCurrentEditor().getGosuDocument();
+    GosuDocument document = getCurrentGosuEditor().getDocument();
     //noinspection ThrowableResultOfMethodCallIgnored
     ParseResultsException pre = document.getParseResultsException();
     if( pre == null || (!pre.hasParseExceptions() && !pre.hasParseWarnings()) )

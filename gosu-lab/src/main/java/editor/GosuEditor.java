@@ -12,7 +12,6 @@ import editor.util.IReplaceWordCallback;
 import editor.util.SettleModalEventQueue;
 import editor.util.TaskQueue;
 import editor.util.TextComponentUtil;
-import editor.util.transform.java.JavaToGosu;
 import gw.fs.IFile;
 import gw.lang.GosuShop;
 import gw.lang.parser.GosuParserFactory;
@@ -24,11 +23,9 @@ import gw.lang.parser.IParseIssue;
 import gw.lang.parser.IParseResult;
 import gw.lang.parser.IParseTree;
 import gw.lang.parser.IParsedElement;
-import gw.lang.parser.IScriptPartId;
 import gw.lang.parser.ISymbolTable;
 import gw.lang.parser.ITypeUsesMap;
 import gw.lang.parser.ParserOptions;
-import gw.lang.parser.ScriptPartId;
 import gw.lang.parser.StandardSymbolTable;
 import gw.lang.parser.exceptions.ParseException;
 import gw.lang.parser.exceptions.ParseResultsException;
@@ -70,21 +67,13 @@ import javax.swing.event.CaretEvent;
 import javax.swing.event.CaretListener;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
-import javax.swing.event.UndoableEditListener;
 import javax.swing.text.AbstractDocument;
 import javax.swing.text.BadLocationException;
-import javax.swing.text.DefaultHighlighter;
 import javax.swing.text.Document;
-import javax.swing.text.DocumentFilter;
 import javax.swing.text.Element;
-import javax.swing.text.Highlighter;
-import javax.swing.text.JTextComponent;
 import javax.swing.undo.CompoundEdit;
 import java.awt.*;
-import java.awt.datatransfer.Clipboard;
-import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.StringSelection;
-import java.awt.datatransfer.Transferable;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.FocusAdapter;
@@ -95,25 +84,20 @@ import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.io.File;
-import java.io.IOException;
-import java.io.StringReader;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static editor.util.EditorUtilities.handleUncaughtException;
 import static editor.util.TextComponentUtil.Direction.BACKWARD;
 import static editor.util.TextComponentUtil.Direction.FORWARD;
 
 /**
  * A component for editing Gosu source.
  */
-public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITypeLoaderListener
+public class GosuEditor extends EditorHost implements IScriptEditor, IGosuPanel, ITypeLoaderListener
 {
   public static final String INTELLISENSE_TASK_QUEUE = "_intellisenseParser";
 
@@ -145,11 +129,6 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
 
   public static final int MIN_LINENUMBER_WIDTH = 16;
 
-  /**
-   * The number of spacess assigned to a tab
-   */
-  public static final int TAB_SIZE = 2;
-
   private JLabel _labelCaption;
   private GosuEditorFeedbackPanel _panelFeedback;
   private GosuEditorPane _editor;
@@ -162,14 +141,11 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
   private boolean _bEnhancement;
   private boolean _bEmptyTextOk;
   private ISymbolTable _symTable;
-  private UndoableEditListener _uel;
-  JPopupMenu _completionPopup;
   private IReplaceWordCallback _replaceWordCallback;
   private boolean _bTemplate;
   private boolean _bCompleteCode;
   private IScriptabilityModifier _scriptabilityModifier;
   private AtomicUndoManager _undoMgr;
-  private IScriptPartId _partId;
   private EditorScrollPane _scroller;
   private boolean _bAltDown;
   private ParseResultsException _pe;
@@ -182,7 +158,6 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
   private Map<Integer, IFunctionStatement> _functionStmtsByLineNumber;
 
   private IGosuValidator _validator;
-  private HighlightMode _highlightMode = HighlightMode.SEARCH;
   private List<ParseListener> _parseListeners = new ArrayList<>();
 
   private SmartFixManager _smartFixManager;
@@ -198,18 +173,11 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
   private ITypeUsesMap _typeUsesMapFromMostRecentParse;
 
   private JavadocPopup _javadocPopup;
-  private AbstractPopup _spinnerPopup;
 
   private static TimerPool _timerPool = new TimerPool();
   private IType _programSuperType;
   private boolean _bAccessPrivateMembers;
   private IType _expectedType;
-
-  private enum HighlightMode
-  {
-    SEARCH,
-    USAGES,
-  }
 
   public GosuEditor( ILineInfoManager lineInfoRenderer,
                      AtomicUndoManager undoMgr,
@@ -227,6 +195,7 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
                      IContextMenuHandler<IScriptEditor> contextMenuHandler,
                      boolean bStatement, boolean bEmptyTextOk )
   {
+    super( undoMgr );
     if( lineInfoRenderer != null )
     {
       lineInfoRenderer.setEditor( this );
@@ -337,35 +306,30 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
 
     _panelFeedback = new GosuEditorFeedbackPanel();
     add( BorderLayout.EAST, _panelFeedback );
-
-    _spinnerPopup = new AbstractPopup( getEditor() )
-    {
-      @Override
-      public void setValue( Object value )
-      {
-      }
-
-      @Override
-      public void refresh()
-      {
-      }
-
-      @Override
-      protected void registerListeners()
-      {
-      }
-
-      @Override
-      protected void unregisterListeners()
-      {
-      }
-    };
-    _spinnerPopup.setFocusable( false );
-    _spinnerPopup.add( new JLabel( EditorUtilities.loadIcon( "com/guidewire/studio/resources/images/wait.gif" ) ) );
   }
 
-  private void addKeyHandlers()
+  @Override
+  public void setLabel( String label )
   {
+    _labelCaption.setText( label );
+  }
+
+  @Override
+  public DocumentListener getDocHandler()
+  {
+    return _docHandler;
+  }
+
+  @Override
+  public JComponent getFeedbackPanel()
+  {
+    return _panelFeedback;
+  }
+
+  protected void addKeyHandlers()
+  {
+    super.addKeyHandlers();
+
     _editor.getInputMap().put( KeyStroke.getKeyStroke( EditorUtilities.CONTROL_KEY_NAME + " T" ), "_typeInfo" );
     _editor.getActionMap().put( "_typeInfo",
                                 new AbstractAction()
@@ -402,34 +366,6 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
                                   }
                                 } );
 
-    _editor.getInputMap().put( KeyStroke.getKeyStroke( "TAB" ), "_bulkIndent" );
-    _editor.getActionMap().put( "_bulkIndent",
-                                new AbstractAction()
-                                {
-                                  @Override
-                                  public void actionPerformed( ActionEvent e )
-                                  {
-                                    if( !isCompletionPopupShowing() )
-                                    {
-                                      handleBulkIndent( false );
-                                    }
-                                  }
-                                } );
-
-    _editor.getInputMap().put( KeyStroke.getKeyStroke( "shift TAB" ), "_bulkOutdent" );
-    _editor.getActionMap().put( "_bulkOutdent",
-                                new AbstractAction()
-                                {
-                                  @Override
-                                  public void actionPerformed( ActionEvent e )
-                                  {
-                                    if( !isCompletionPopupShowing() )
-                                    {
-                                      handleBulkIndent( true );
-                                    }
-                                  }
-                                } );
-
     _editor.getInputMap().put( KeyStroke.getKeyStroke( EditorUtilities.CONTROL_KEY_NAME + " W" ), "_selectWord" );
     _editor.getActionMap().put( "_selectWord",
                                 new AbstractAction()
@@ -449,28 +385,6 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
                                   public void actionPerformed( ActionEvent e )
                                   {
                                     narrowSelectWord();
-                                  }
-                                } );
-
-    _editor.getInputMap().put( KeyStroke.getKeyStroke( EditorUtilities.CONTROL_KEY_NAME + " shift J" ), "_joinLines" );
-    _editor.getActionMap().put( "_joinLines",
-                                new AbstractAction()
-                                {
-                                  @Override
-                                  public void actionPerformed( ActionEvent e )
-                                  {
-                                    joinLines();
-                                  }
-                                } );
-
-    _editor.getInputMap().put( KeyStroke.getKeyStroke( EditorUtilities.CONTROL_KEY_NAME + " G" ), "_gotoLine" );
-    _editor.getActionMap().put( "_gotoLine",
-                                new AbstractAction()
-                                {
-                                  @Override
-                                  public void actionPerformed( ActionEvent e )
-                                  {
-                                    displayGotoLinePopup();
                                   }
                                 } );
 
@@ -512,17 +426,6 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
                                   }
                                 } );
 
-    _editor.getInputMap().put( KeyStroke.getKeyStroke( "alt F1" ), "_selectFileInTree" );
-    _editor.getActionMap().put( "_selectFileInTree",
-                                new AbstractAction()
-                                {
-                                  @Override
-                                  public void actionPerformed( ActionEvent e )
-                                  {
-                                    showFileInTree();
-                                  }
-                                } );
-
     _editor.getInputMap().put( KeyStroke.getKeyStroke( EditorUtilities.CONTROL_KEY_NAME + " shift F7" ), "_highlightUsagesInView" );
     _editor.getActionMap().put( "_highlightUsagesInView",
                                 new AbstractAction()
@@ -537,104 +440,6 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
                                   }
                                 } );
 
-    _editor.getInputMap().put( KeyStroke.getKeyStroke( KeyEvent.VK_ESCAPE, 0 ), "_removeHighlights" );
-    _editor.getActionMap().put( "_removeHighlights",
-                                new AbstractAction()
-                                {
-                                  @Override
-                                  public void actionPerformed( ActionEvent e )
-                                  {
-                                    _highlightMode = HighlightMode.SEARCH;
-                                    removeAllHighlights();
-                                  }
-                                } );
-
-    _editor.getInputMap().put( KeyStroke.getKeyStroke( "F3" ), "_gotoNextHighlight" );
-    _editor.getActionMap().put( "_gotoNextHighlight",
-                                new AbstractAction()
-                                {
-                                  @Override
-                                  public void actionPerformed( ActionEvent e )
-                                  {
-                                    if( _highlightMode == HighlightMode.USAGES )
-                                    {
-                                      gotoNextUsageHighlight();
-                                    }
-                                  }
-                                } );
-
-    _editor.getInputMap().put( KeyStroke.getKeyStroke( "shift F3" ), "_gotoPrevHighlight" );
-    _editor.getActionMap().put( "_gotoPrevHighlight",
-                                new AbstractAction()
-                                {
-                                  @Override
-                                  public void actionPerformed( ActionEvent e )
-                                  {
-                                    if( _highlightMode == HighlightMode.USAGES )
-                                    {
-                                      gotoPrevUsageHighlight();
-                                    }
-                                  }
-                                } );
-
-    _editor.getInputMap().put( KeyStroke.getKeyStroke( KeyEvent.VK_BACK_SPACE, EditorUtilities.CONTROL_KEY_MASK ), "_deleteWord" );
-    _editor.getActionMap().put( "_deleteWord",
-                                new AbstractAction()
-                                {
-                                  @Override
-                                  public void actionPerformed( ActionEvent e )
-                                  {
-                                    deleteWord();
-                                  }
-                                } );
-
-    _editor.getInputMap().put( KeyStroke.getKeyStroke( KeyEvent.VK_DELETE, EditorUtilities.CONTROL_KEY_MASK ), "_deleteWordForward" );
-    _editor.getActionMap().put( "_deleteWordForward",
-                                new AbstractAction()
-                                {
-                                  @Override
-                                  public void actionPerformed( ActionEvent e )
-                                  {
-                                    deleteWordForwards();
-                                  }
-                                } );
-
-    _editor.getInputMap().put( KeyStroke.getKeyStroke( KeyEvent.VK_Y, EditorUtilities.CONTROL_KEY_MASK ), "_deleteLine" );
-    _editor.getActionMap().put( "_deleteLine",
-                                new AbstractAction()
-                                {
-                                  @Override
-                                  public void actionPerformed( ActionEvent e )
-                                  {
-                                    deleteLine();
-                                  }
-                                } );
-
-    _editor.getInputMap().put( KeyStroke.getKeyStroke( KeyEvent.VK_TAB, KeyEvent.SHIFT_DOWN_MASK ), "_unindent" );
-    _editor.getActionMap().put( "_unindent",
-                                new AbstractAction()
-                                {
-                                  @Override
-                                  public void actionPerformed( ActionEvent e )
-                                  {
-                                    unindent();
-                                  }
-                                } );
-
-    _editor.getInputMap().put( KeyStroke.getKeyStroke( EditorUtilities.CONTROL_KEY_NAME + " Z" ), "_undo" );
-    _editor.getActionMap().put( "_undo",
-                                new AbstractAction()
-                                {
-                                  @Override
-                                  public void actionPerformed( ActionEvent e )
-                                  {
-                                    AtomicUndoManager undoManager = getUndoManager();
-                                    if( undoManager.canUndo() )
-                                    {
-                                      undoManager.undo();
-                                    }
-                                  }
-                                } );
 
     _editor.getInputMap().put( KeyStroke.getKeyStroke( EditorUtilities.CONTROL_KEY_NAME + " alt V" ), "_extractVariable" );
     _editor.getActionMap().put( "_extractVariable",
@@ -680,30 +485,6 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
                                     smartFix();
                                   }
                                 } );
-
-    _editor.getInputMap().put( KeyStroke.getKeyStroke( KeyEvent.VK_L, EditorUtilities.CONTROL_KEY_MASK ), "_centerView" );
-    _editor.getActionMap().put( "_centerView",
-                                new AbstractAction()
-                                {
-                                  @Override
-                                  public void actionPerformed( ActionEvent e )
-                                  {
-                                    centerView();
-                                  }
-                                } );
-
-    _editor.getInputMap().put( KeyStroke.getKeyStroke( EditorUtilities.CONTROL_KEY_NAME + " D" ), "_duplicate" );
-    _editor.getActionMap().put( "_duplicate",
-                                new AbstractAction()
-                                {
-                                  @Override
-                                  public void actionPerformed( ActionEvent e )
-                                  {
-                                    duplicate();
-                                  }
-                                } );
-
-    TextComponentUtil.fixTextComponentKeyMap( _editor );
   }
 
   public boolean isAccessAll()
@@ -713,19 +494,6 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
   public void setAccessAll( boolean accessPrivateMembers )
   {
     _bAccessPrivateMembers = accessPrivateMembers;
-  }
-
-  public void showFileInTree()
-  {
-    GosuPanel gosuPanel = LabFrame.instance().getGosuPanel();
-    File file = gosuPanel.getCurrentFile();
-
-    FileTree root = FileTreeUtil.getRoot();
-    FileTree fileTree = root.find( file );
-    if( fileTree != null )
-    {
-      fileTree.select();
-    }
   }
 
   @SuppressWarnings("UnusedDeclaration")
@@ -738,98 +506,9 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
     _expectedType = type;
   }
 
-  public void centerView()
-  {
-    try
-    {
-      Point caretPos = getEditor().modelToView( getEditor().getCaretPosition() ).getLocation();
-      Dimension size = getScroller().getBounds().getSize();
-      _editor.scrollRectToVisible( new Rectangle( caretPos.x, caretPos.y - size.height / 2, 0, size.height ) );
-    }
-    catch( BadLocationException e )
-    {
-      // can't center
-    }
-  }
-
-  void jumpRight()
-  {
-    TextComponentUtil.jumpRight( _editor );
-  }
-
-  public void displayGotoLinePopup()
-  {
-    dismissCompletionPopup();
-    StringPopup popup = new StringPopup( "", "Line number:", getEditor() );
-    popup.addNodeChangeListener(
-      e -> {
-        try
-        {
-          int iLine = Integer.parseInt( e.getSource().toString() );
-          if( iLine > 0 )
-          {
-            gotoLine( iLine );
-          }
-        }
-        catch( NumberFormatException nfe )
-        {
-          // ignore
-        }
-        getEditor().requestFocus();
-        EditorUtilities.fixSwingFocusBugWhenPopupCloses( GosuEditor.this );
-        getEditor().repaint();
-      } );
-    popup.show( this, 0, 0 );
-    editor.util.EditorUtilities.centerWindowInFrame( popup, editor.util.EditorUtilities.getWindow() );
-  }
-
-  public void gotoLine( int iLine )
-  {
-    gotoLine( iLine, 0 );
-  }
-
-  public void gotoLine( int iLine, int iColumn )
-  {
-    Element root = getGosuDocument().getRootElements()[0];
-    iLine = root.getElementCount() < iLine ? root.getElementCount() : iLine;
-    Element line = root.getElement( iLine - 1 );
-    gotoOffset( line.getStartOffset() + iColumn );
-  }
-
-  public void gotoOffset( int offset )
-  {
-    int length = getGosuDocument().getLength();
-    if( offset > length )
-    {
-      offset = length - 1;
-    }
-    if( offset < 0 )
-    {
-      offset = 0;
-    }
-    _editor.setCaretPosition( offset );
-  }
-
-  public void highlightLocations( List<SearchLocation> locations )
-  {
-    _highlightMode = HighlightMode.USAGES;
-
-    for( SearchLocation loc : locations )
-    {
-      try
-      {
-        getEditor().getHighlighter().addHighlight( loc._iOffset, loc._iOffset + loc._iLength, GosuEditor.LabHighlighter.TEXT );
-      }
-      catch( BadLocationException e )
-      {
-        //throw new RuntimeException( e );
-      }
-    }
-  }
-
   public void highlightUsagesOfFeatureUnderCaret()
   {
-    _highlightMode = HighlightMode.USAGES;
+    setHighlightMode( HighlightMode.USAGES );
 
     removeAllHighlights();
 
@@ -856,110 +535,9 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
     _panelFeedback.repaint();
   }
 
-  public void gotoNextUsageHighlight()
+  protected void hideMiscPopups()
   {
-    if( isCompletionPopupShowing() )
-    {
-      return;
-    }
-
-    JTextComponent editor = getEditor();
-    int caretPosition = editor.getCaretPosition();
-    Highlighter.Highlight[] highlights = editor.getHighlighter().getHighlights();
-    Arrays.sort( highlights, ( o1, o2 ) -> o1.getStartOffset() - o2.getStartOffset() );
-    int i = -1;
-    do
-    {
-      i++;
-      while( (i < highlights.length) && (highlights[i].getStartOffset() <= caretPosition) )
-      {
-        i++;
-      }
-    } while( (i < highlights.length) && !(highlights[i].getPainter() instanceof LabHighlighter) );
-
-    if( i == highlights.length )
-    {
-      i = 0;
-    }
-    editor.setCaretPosition( highlights[i].getEndOffset() );
-    editor.moveCaretPosition( highlights[i].getStartOffset() );
-  }
-
-  public void gotoPrevUsageHighlight()
-  {
-    if( isCompletionPopupShowing() )
-    {
-      return;
-    }
-
-    JTextComponent editor = getEditor();
-    int caretPosition = editor.getCaretPosition();
-    Highlighter.Highlight[] highlights = editor.getHighlighter().getHighlights();
-    Arrays.sort( highlights, ( o1, o2 ) -> o2.getStartOffset() - o1.getStartOffset() );
-    int i = -1;
-    do
-    {
-      i++;
-      while( (i < highlights.length) && (highlights[i].getStartOffset() >= caretPosition) )
-      {
-        i++;
-      }
-    } while( (i < highlights.length) && !(highlights[i].getPainter() instanceof LabHighlighter) );
-
-    if( i == highlights.length )
-    {
-      i = 0;
-    }
-    editor.setCaretPosition( highlights[i].getEndOffset() );
-    editor.moveCaretPosition( highlights[i].getStartOffset() );
-  }
-
-  public void removeAllHighlights()
-  {
-    if( isCompletionPopupShowing() )
-    {
-      return;
-    }
-
-    JTextComponent editor = getEditor();
-    removeHightlights();
-    editor.setCaretPosition( editor.getCaretPosition() );
-    hideMiscPopups();
-    _panelFeedback.repaint();
-  }
-
-  private void removeHightlights()
-  {
-    Highlighter highlighter = getEditor().getHighlighter();
-
-    for( Highlighter.Highlight highlight : highlighter.getHighlights() )
-    {
-      highlighter.removeHighlight( highlight );
-    }
-  }
-
-  public static class LabHighlighter implements Highlighter.HighlightPainter
-  {
-    public static final LabHighlighter TEXT = new LabHighlighter( Scheme.active().usageReadHighlightColor() );
-    public static LabHighlighter USAGE = new LabHighlighter( Scheme.active().usageReadHighlightColor() );
-
-    private Highlighter.HighlightPainter _delegate;
-
-    public LabHighlighter( Color color )
-    {
-      _delegate = new DefaultHighlighter.DefaultHighlightPainter( color );
-    }
-
-    @Override
-    public void paint( Graphics g, int p0, int p1, Shape bounds, JTextComponent c )
-    {
-      _delegate.paint( g, p0, p1, bounds, c );
-    }
-  }
-
-  private void hideMiscPopups()
-  {
-    editor.util.EditorUtilities.hideToolTip( getEditor() );
+    super.hideMiscPopups();
     _smartFixManager.resetSmartHelpState();
   }
 
@@ -993,91 +571,6 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
     return (_editor.getSelectionStart() <= _editor.getDocument().getLength());
   }
 
-  public void joinLines()
-  {
-    DocumentFilter documentFilter = getGosuDocument().getDocumentFilter();
-    if( documentFilter == null || ((SimpleDocumentFilter)documentFilter).acceptEdit( "" ) )
-    {
-      CompoundEdit undoAtom = getUndoManager().beginUndoAtom( "Join Lines" );
-      try
-      {
-        _joinLines();
-      }
-      finally
-      {
-        getUndoManager().endUndoAtom( undoAtom );
-      }
-    }
-  }
-
-  private void _joinLines()
-  {
-    try
-    {
-      Document document = _editor.getDocument();
-      int start = _editor.getSelectionStart();
-      int end = _editor.getSelectionEnd();
-      if( start == end )
-      {
-        int i = _editor.getCaret().getDot();
-        while( i < document.getLength() )
-        {
-          if( document.getText( i, 1 ).equals( "\n" ) )
-          {
-            document.remove( i, 1 );
-            swallowSpaces( document, i );
-            break;
-          }
-          i++;
-        }
-      }
-      else
-      {
-        while( start < end )
-        {
-          if( document.getText( start, 1 ).equals( "\n" ) )
-          {
-            document.remove( start, 1 );
-            end--;
-            int spacesRemoved = swallowSpaces( document, start );
-            end -= spacesRemoved;
-            start -= spacesRemoved;
-          }
-          else
-          {
-            start++;
-          }
-        }
-      }
-    }
-    catch( BadLocationException e )
-    {
-      //ignore
-    }
-  }
-
-  private int swallowSpaces( Document document, int i ) throws BadLocationException
-  {
-    int removedChars = 0;
-    while( i < document.getLength() )
-    {
-      if( document.getText( i, 1 ).equals( " " ) )
-      {
-        document.remove( i, 1 );
-        removedChars++;
-      }
-      else
-      {
-        break;
-      }
-    }
-    if( !document.getText( i, 1 ).equals( "." ) && !document.getText( i, 1 ).equals( "#" ) )
-    {
-      document.insertString( i, " ", null );
-      removedChars--;
-    }
-    return removedChars;
-  }
 
 //  public IInheritanceHierarchyPanelAutomator openInheritanceHierarchyDialog()
 //  {
@@ -1146,12 +639,6 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
     }
 
     return SourceType.EXPRESSION;
-  }
-
-  @Override
-  public String getText()
-  {
-    return _editor.getText();
   }
 
   public void setProgram( boolean bProgram )
@@ -1227,35 +714,6 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
     return _pe != null;
   }
 
-  @Override
-  public IScriptPartId getScriptPart()
-  {
-    return _partId;
-  }
-
-  @Override
-  public void read( IScriptPartId partId, String strSource ) throws IOException
-  {
-    _partId = partId;
-    _labelCaption.setText( "" );
-
-    AbstractDocument doc = (AbstractDocument)_editor.getDocument();
-    if( doc != null )
-    {
-      doc.removeDocumentListener( _docHandler );
-    }
-
-    // Replace the Windows style new-line sequence with just a new-line.
-    // Otherwise, the editor thinks new lines are one character
-    strSource = GosuStringUtil.replace( strSource, "\r\n", "\n" );
-
-    _editor.read( new StringReader( strSource ), "" );
-
-    addDocumentListener();
-
-    parse();
-  }
-
   public void refresh( String content )
   {
     content = GosuStringUtil.replace( content, "\r\n", "\n" );
@@ -1263,7 +721,7 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
     EventQueue.invokeLater( () -> getUndoManager().discardAllEdits() );
   }
 
-  private void addDocumentListener()
+  protected void addDocumentListener()
   {
     AbstractDocument doc;
     doc = (AbstractDocument)_editor.getDocument();
@@ -1316,187 +774,6 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
   private ParseTask getParseTask( boolean forceCodeCompletion )
   {
     return new ParseTask( _editor.getText(), forceCodeCompletion, true );
-  }
-
-  public void duplicate()
-  {
-    DocumentFilter documentFilter = getGosuDocument().getDocumentFilter();
-    if( documentFilter == null || ((SimpleDocumentFilter)documentFilter).acceptEdit( "" ) )
-    {
-      CompoundEdit undoAtom = _undoMgr.getUndoAtom();
-      if( undoAtom != null && undoAtom.getPresentationName().equals( "Script Change" ) )
-      {
-        _undoMgr.endUndoAtom();
-      }
-      undoAtom = getUndoManager().beginUndoAtom( "Duplicate Line" );
-      try
-      {
-        _duplicate();
-      }
-      finally
-      {
-        getUndoManager().endUndoAtom( undoAtom );
-      }
-    }
-  }
-
-  private void _duplicate()
-  {
-    //No selection, duplicate line
-    String selectedText = _editor.getSelectedText();
-    if( GosuStringUtil.isEmpty( selectedText ) )
-    {
-      String currentText = _editor.getText();
-
-      int initialCaretPosition = _editor.getCaretPosition();
-      int lineStart = TextComponentUtil.getLineStart( _editor.getText(), initialCaretPosition );
-      int lineEnd = TextComponentUtil.getLineEnd( _editor.getText(), initialCaretPosition );
-
-      try
-      {
-        recordCaretPositionForUndo();
-        String insertedLine = "\n" + currentText.substring( lineStart, lineEnd );
-        _editor.getDocument().insertString( lineEnd, insertedLine, null );
-        if( initialCaretPosition < lineEnd )
-        {
-          _editor.setCaretPosition( _editor.getCaretPosition() + insertedLine.length() );
-          recordCaretPositionForUndo();
-        }
-      }
-      catch( BadLocationException e )
-      {
-        throw new RuntimeException( e );
-      }
-    }
-    else
-    {
-      try
-      {
-        int initialSelectionEnd = _editor.getSelectionEnd();
-        _editor.getDocument().insertString( initialSelectionEnd, selectedText, null );
-        _editor.getCaret().setDot( initialSelectionEnd );
-        _editor.getCaret().moveDot( initialSelectionEnd + selectedText.length() );
-        recordCaretPositionForUndo();
-      }
-      catch( BadLocationException e )
-      {
-        throw new RuntimeException( e );
-      }
-    }
-  }
-
-  private void recordCaretPositionForUndo() throws BadLocationException
-  {
-    _editor.getDocument().insertString( _editor.getCaretPosition(), "8", null );
-    _editor.getDocument().remove( _editor.getCaretPosition() - 1, 1 );
-  }
-
-  /**
-   * delete the currently selected text, or the current line if nothing is selected
-   */
-  public void delete()
-  {
-    TextComponentUtil.expandSelectionIfNeeded( _editor );
-    getEditor().replaceSelection( "" );
-  }
-
-  /**
-   * @return the selected text in the editor, expanding to the entire current line if no selection exists
-   */
-  public String getExpandedSelection()
-  {
-    TextComponentUtil.expandSelectionIfNeeded( _editor );
-    return getEditor().getSelectedText();
-  }
-
-  void deleteWord()
-  {
-    CompoundEdit atom = getUndoManager().beginUndoAtom( "Delete Word" );
-    try
-    {
-      if( !GosuStringUtil.isEmpty( getEditor().getSelectedText() ) )
-      {
-        delete();
-      }
-      else
-      {
-        try
-        {
-          TextComponentUtil.deleteWordAtCaret( getEditor() );
-        }
-        catch( BadLocationException e )
-        {
-          //ignore
-        }
-      }
-    }
-    finally
-    {
-      getUndoManager().endUndoAtom( atom );
-    }
-  }
-
-  void deleteWordForwards()
-  {
-    CompoundEdit atom = getUndoManager().beginUndoAtom( "Delete Word" );
-    try
-    {
-      if( !GosuStringUtil.isEmpty( getEditor().getSelectedText() ) )
-      {
-        delete();
-      }
-      else
-      {
-        int start = getEditor().getCaretPosition();
-        jumpRight();
-        int end = getEditor().getCaretPosition();
-        getEditor().select( start, end );
-        getEditor().replaceSelection( "" );
-      }
-    }
-    finally
-    {
-      getUndoManager().endUndoAtom( atom );
-    }
-  }
-
-  void deleteLine()
-  {
-    CompoundEdit atom = getUndoManager().beginUndoAtom( "Delete Line" );
-    try
-    {
-      recordCaretPositionForUndo();
-      TextComponentUtil.selectLineAtCaret( _editor );
-      getEditor().replaceSelection( "" );
-    }
-    catch( Exception e )
-    {
-      throw new RuntimeException( e );
-    }
-    finally
-    {
-      getUndoManager().endUndoAtom( atom );
-    }
-  }
-
-  void unindent()
-  {
-    CompoundEdit atom = getUndoManager().beginUndoAtom( "Unindent" );
-    try
-    {
-      try
-      {
-        TextComponentUtil.unindentLineAtCaret( getEditor() );
-      }
-      catch( BadLocationException e )
-      {
-        //ignore
-      }
-    }
-    finally
-    {
-      getUndoManager().endUndoAtom( atom );
-    }
   }
 
   class ParseTask implements Runnable
@@ -1709,12 +986,12 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
           final List<IParseTree> locations = _parser.getLocations();
           EventQueue.invokeLater(
             () -> {
-              if( getGosuDocument().getLocations() == null )
+              if( getDocument().getLocations() == null )
               {
                 _editor.repaint();
               }
-              getGosuDocument().setLocations( locations );
-              getGosuDocument().setLocationsOffset( _parser.getOffsetShift() );
+              getDocument().setLocations( locations );
+              getDocument().setLocationsOffset( _parser.getOffsetShift() );
             } );
         }
       }
@@ -1818,7 +1095,7 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
   protected void clearParseException()
   {
     _pe = null;
-    EventQueue.invokeLater( () -> getGosuDocument().setParseResultsException( null ) );
+    EventQueue.invokeLater( () -> getDocument().setParseResultsException( null ) );
   }
 
   @SuppressWarnings("UnusedDeclaration")
@@ -1903,7 +1180,7 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
   protected void handleParseException( final ParseResultsException e, final boolean bForceCodeCompletion )
   {
     handleCodeCompletion( bForceCodeCompletion );
-    getGosuDocument().setParseResultsException( e );
+    getDocument().setParseResultsException( e );
     if( e != null )
     {
       boolean hasError = false, hasWarning = false;
@@ -1993,7 +1270,7 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
     return _parser;
   }
 
-  GosuDocument getGosuDocument()
+  public GosuDocument getDocument()
   {
     return (GosuDocument)_editor.getDocument();
   }
@@ -2043,7 +1320,7 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
     {
       getUndoManager().endUndoAtom( undoAtom );
       undoAtom = _undoMgr.getUndoAtom();
-      if( undoAtom != null && undoAtom.getPresentationName().equals( "Script Change" ) )
+      if( undoAtom != null && undoAtom.getPresentationName().equals( "Text Change" ) )
       {
         _undoMgr.endUndoAtom();
       }
@@ -2258,82 +1535,6 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
     }
   }
 
-  void handleBulkIndent( boolean bOutdent )
-  {
-    CompoundEdit atom = getUndoManager().beginUndoAtom( bOutdent ? "Outdent" : "Indent" );
-    try
-    {
-      _handleBulkIndent( bOutdent );
-    }
-    finally
-    {
-      getUndoManager().endUndoAtom( atom );
-    }
-  }
-
-  void _handleBulkIndent( boolean bOutdent )
-  {
-    String strTabSpaces = getIndentWhitespace();
-    int iSelectionStart = _editor.getSelectionStart();
-    int iSelectionEnd = _editor.getSelectionEnd();
-    if( iSelectionStart == iSelectionEnd )
-    {
-      _editor.replaceSelection( strTabSpaces );
-      return;
-    }
-
-    // Calling revalidate after vk_enter to keep the scrollpane, the rootpane, and the editor all in synch.
-    revalidate();
-
-    Element root = _editor.getDocument().getRootElements()[0];
-    int iStartIndex = root.getElementIndex( iSelectionStart );
-    int iEndIndex = root.getElementIndex( iSelectionEnd );
-    if( iStartIndex != iEndIndex && root.getElement( iEndIndex ).getStartOffset() == iSelectionEnd )
-    {
-      iSelectionEnd--;
-      iEndIndex = root.getElementIndex( iSelectionEnd );
-    }
-
-    try
-    {
-      for( int i = iStartIndex; i <= iEndIndex; i++ )
-      {
-        Element line = root.getElement( i );
-        int iStart = line.getStartOffset();
-        int iEnd = line.getEndOffset();
-        String strLine = _editor.getText( iStart, iEnd - iStart );
-        if( strLine.trim().length() == 0 )
-        {
-          continue;
-        }
-        else if( strLine.length() > 0 && bOutdent )
-        {
-          if( strLine.startsWith( strTabSpaces ) )
-          {
-            strLine = strLine.substring( 2 );
-          }
-          else if( Character.isWhitespace( strLine.charAt( 0 ) ) )
-          {
-            strLine = strLine.substring( 1 );
-          }
-        }
-        else
-        {
-          strLine = strTabSpaces + strLine;
-        }
-        iEnd = line.getEndOffset();
-        _editor.select( iStart, iEnd );
-        _editor.replaceSelection( strLine );
-        iSelectionEnd = _editor.getSelectionEnd();
-      }
-      _editor.select( iSelectionStart, iSelectionEnd );
-    }
-    catch( Exception ex )
-    {
-      editor.util.EditorUtilities.handleUncaughtException( ex );
-    }
-  }
-
   void handleBraceRight()
   {
     final int caretPosition = _editor.getCaretPosition();
@@ -2423,28 +1624,6 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
     return _undoMgr;
   }
 
-  /**
-   * Sets the one and only undoable edit listener for this editor section.
-   * The primary use case for this method is to establish an undo manager
-   * connection.
-   *
-   * @param uel The UndoableEditListener to connect to this section's document.
-   */
-  public void setUndoableEditListener( UndoableEditListener uel )
-  {
-    if( _uel != null )
-    {
-      _editor.getDocument().removeUndoableEditListener( _uel );
-    }
-
-    _uel = uel;
-
-    if( _uel != null )
-    {
-      _editor.getDocument().addUndoableEditListener( _uel );
-    }
-  }
-
   @Override
   public void gotoNextError()
   {
@@ -2503,36 +1682,13 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
     } );
   }
 
-  void setCompleteCode( final boolean bCompleteCode )
-  {
-    _bCompleteCode = bCompleteCode;
-    SwingUtilities.invokeLater( () -> {
-      if( bCompleteCode )
-      {
-        Rectangle rcCaretBounds;
-        try
-        {
-          rcCaretBounds = getPositionFromPoint( getEditor().getCaretPosition() );
-        }
-        catch( BadLocationException e )
-        {
-          throw new RuntimeException( e );
-        }
-        if( rcCaretBounds != TEST_RECTANGLE && !isCompletionPopupShowing() )
-        {
-          _spinnerPopup.show( _editor, rcCaretBounds.x, rcCaretBounds.y + rcCaretBounds.height );
-        }
-      }
-      else
-      {
-        _spinnerPopup.setVisible( false );
-      }
-    } );
-  }
-
   boolean isCompleteCode()
   {
     return _bCompleteCode;
+  }
+  void setCompleteCode( final boolean bCompleteCode )
+  {
+    _bCompleteCode = bCompleteCode;
   }
 
   void handleDot()
@@ -2599,14 +1755,15 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
 
   void displayPathCompletionPopup( final boolean bFeatureLiteralCompletion )
   {
-    if( ((BeanInfoPopup)_completionPopup).isDOA() )
+    JPopupMenu completionPopup = getCompletionPopup();
+    if( ((BeanInfoPopup)completionPopup).isDOA() )
     {
       return;
     }
 
-    ((BeanInfoPopup)_completionPopup).addNodeChangeListener( e -> {
+    ((BeanInfoPopup)completionPopup).addNodeChangeListener( e -> {
       CompoundEdit undoAtom = _undoMgr.getUndoAtom();
-      if( undoAtom != null && undoAtom.getPresentationName().equals( "Script Change" ) )
+      if( undoAtom != null && undoAtom.getPresentationName().equals( "Text Change" ) )
       {
         _undoMgr.endUndoAtom();
       }
@@ -2907,14 +2064,6 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
     return getSymbolTableAtOffset( _editor.getCaretPosition() );
   }
 
-  @SuppressWarnings("UnusedDeclaration")
-  public int getLineOffset( int iLine )
-  {
-    Element root = getGosuDocument().getRootElements()[0];
-    iLine = root.getElementCount() < iLine ? root.getElementCount() : iLine;
-    return root.getElement( iLine ).getStartOffset();
-  }
-
   public ISymbolTable getSymbolTableAtOffset( int offset )
   {
     StringBuffer sb = new StringBuffer( _editor.getText() );
@@ -3003,7 +2152,7 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
       Rectangle rcBounds = getPositionFromPoint( iPosition );
       if( rcBounds != TEST_RECTANGLE )
       {
-        _completionPopup.show( _editor, rcBounds.x, rcBounds.y + rcBounds.height );
+        getCompletionPopup().show( _editor, rcBounds.x, rcBounds.y + rcBounds.height );
       }
 
       EventQueue.invokeLater( () -> {
@@ -3036,28 +2185,6 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
   ParameterInfoPopup displayParameterInfoPopup( int iPosition )
   {
     return ParameterInfoPopup.invoke( this, iPosition );
-  }
-
-  void dismissCompletionPopup()
-  {
-    if( _completionPopup != null )
-    {
-      _completionPopup.setVisible( false );
-      _completionPopup = null;
-    }
-  }
-
-  public JPopupMenu getCompletionPopup()
-  {
-    return _completionPopup;
-  }
-  public void setCompletionPopup( JPopupMenu completionPopup )
-  {
-    _completionPopup = completionPopup;
-  }
-  public boolean isCompletionPopupShowing()
-  {
-    return _completionPopup != null && _completionPopup.isShowing();
   }
 
   @Override
@@ -3099,7 +2226,7 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
       LabFrame.instance().getGosuPanel().getCurrentEditor().getEditor().setCaretPosition( targetPe.getLocation().getOffset() );
 
       GosuPanel gosuPanel = LabFrame.instance().getGosuPanel();
-      GosuEditor currentEditor = gosuPanel.getCurrentEditor();
+      EditorHost currentEditor = gosuPanel.getCurrentEditor();
       int currentCaretPos = currentEditor.getEditor().getCaretPosition();
       if( currentEditor == this && currentCaretPos != prevCaretPos )
       {
@@ -3315,11 +2442,6 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
   public void setAcceptUses( boolean acceptUses )
   {
     _bAcceptUses = acceptUses;
-  }
-
-  public int getLineNumberAtCaret()
-  {
-    return _editor.getDocument().getDefaultRootElement().getElementIndex( _editor.getCaretPosition() ) + 1;
   }
 
   public void parseAndWaitForParser()
@@ -3663,11 +2785,11 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
       if( change != null )
       {
         int linesInserted = change.getChildrenAdded().length - change.getChildrenRemoved().length;
-        if( linesInserted != 0 && _partId != null )
+        if( linesInserted != 0 && getScriptPart() != null )
         {
           BreakpointManager bpm = LabFrame.instance().getGosuPanel().getBreakpointManager();
           {
-            Collection<Breakpoint> breakpoints = bpm.getLineBreakpointsForType( _partId.getContainingTypeName() );
+            Collection<Breakpoint> breakpoints = bpm.getLineBreakpointsForType( getScriptPart().getContainingTypeName() );
             for( Breakpoint bp : breakpoints )
             {
               bpm.removeBreakpoint( bp );
@@ -3771,12 +2893,6 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
   public void makeReadOnly( boolean bReadOnly )
   {
     _editor.setEditable( !bReadOnly );
-  }
-
-  @SuppressWarnings("UnusedDeclaration")
-  public void setPartId( ScriptPartId scriptPartId )
-  {
-    _partId = scriptPartId;
   }
 
   public void setTypeUsesMap( ITypeUsesMap typeUsesMap )
@@ -3894,80 +3010,4 @@ public class GosuEditor extends JPanel implements IScriptEditor, IGosuPanel, ITy
   {
     return this;
   }
-
-  public void clipCut( Clipboard clipboard )
-  {
-    getUndoManager().beginUndoAtom( "Cut" );
-    try
-    {
-      clipCopy( clipboard );
-      delete();
-    }
-    finally
-    {
-      getUndoManager().endUndoAtom();
-    }
-  }
-
-  public void clipCopy( Clipboard clipboard )
-  {
-    try
-    {
-      Transferable contents = getClipCopyContents();
-      if( contents == null )
-      {
-        return;
-      }
-
-      clipboard.setContents( contents, null );
-    }
-    catch( Exception e )
-    {
-      handleUncaughtException( e );
-    }
-  }
-
-  public void clipPaste( Clipboard clipboard, boolean asGosu )
-  {
-    Transferable t = clipboard.getContents( this );
-    if( t == null )
-    {
-      return;
-    }
-
-    if( t.isDataFlavorSupported( DataFlavor.stringFlavor ) )
-    {
-      try
-      {
-        String strContents = (String)t.getTransferData( DataFlavor.stringFlavor );
-        if( asGosu )
-        {
-          strContents = JavaToGosu.convertString( strContents );
-          if( "".equals( strContents ) )
-          {
-            JOptionPane.showMessageDialog( getEditor(), "The copied Java code has errors, only valid Java 8 code can be transformed", "Paste Java as Gosu", JOptionPane.ERROR_MESSAGE );
-            return;
-          }
-        }
-        getEditor().replaceSelection( strContents );
-      }
-      catch( Exception e )
-      {
-        throw new RuntimeException( e );
-      }
-    }
-  }
-
-  private Transferable getClipCopyContents()
-  {
-    Transferable contents = null;
-    String strSelection = getExpandedSelection();
-    if( strSelection != null && strSelection.length() > 0 )
-    {
-      contents = new StringSelection( strSelection );
-    }
-    return contents;
-  }
-
-
 }

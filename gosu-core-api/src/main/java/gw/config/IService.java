@@ -4,7 +4,9 @@
 
 package gw.config;
 
-public interface IService
+import gw.plugin.IPluginHost;
+
+public interface IService extends IPluginHost
 {
   /**
    * @return true if this service has been initialized, false otherwise

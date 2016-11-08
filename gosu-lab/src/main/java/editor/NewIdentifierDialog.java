@@ -1,5 +1,6 @@
 package editor;
 
+import editor.plugin.typeloader.ITypeFactory;
 import editor.util.EditorUtilities;
 import gw.lang.reflect.gs.ClassType;
 
@@ -17,6 +18,20 @@ public class NewIdentifierDialog extends JDialog implements IHandleCancel
   {
     super( (JFrame)KeyboardFocusManager.getCurrentKeyboardFocusManager().getActiveWindow(), "New " + classType.keyword() + " Name", true );
     setIconImage( ((ImageIcon)EditorUtilities.findIcon( classType )).getImage() );
+    configUI();
+    addWindowListener( new WindowAdapter()
+    {
+      public void windowClosing( WindowEvent e )
+      {
+        dispose();
+      }
+    } );
+  }
+
+  public NewIdentifierDialog( ITypeFactory factory )
+  {
+    super( (JFrame)KeyboardFocusManager.getCurrentKeyboardFocusManager().getActiveWindow(), "New " + factory.getName() + " Name", true );
+    setIconImage( EditorUtilities.loadIcon( factory.getIcon() ).getImage() );
     configUI();
     addWindowListener( new WindowAdapter()
     {

@@ -1,8 +1,8 @@
 package editor.search;
 
+import editor.EditorHost;
 import editor.FileTree;
 import editor.FileTreeUtil;
-import editor.GosuEditor;
 import editor.GosuPanel;
 import editor.LabFrame;
 import editor.NodeKind;
@@ -153,10 +153,10 @@ public abstract class AbstractSearchDialog extends AbstractDialog
 
   private void setTextFromEditor()
   {
-    GosuEditor editor = LabFrame.instance().getGosuPanel().getCurrentEditor();
+    EditorHost editor = LabFrame.instance().getGosuPanel().getCurrentEditor();
     if( editor != null )
     {
-      String selection = editor.getSelectedText();
+      String selection = editor.getEditor().getSelectedText();
       if( selection != null )
       {
         _cbSearch.setSelectedItem( selection );
@@ -211,22 +211,20 @@ public abstract class AbstractSearchDialog extends AbstractDialog
 
     boolean[] bFinished = {false};
     ProgressFeedback.runWithProgress( "Searching...",
-                                      progress -> {
-                                        EventQueue.invokeLater( () -> {
-                                          progress.setLength( numOfFiles() );
+                                      progress -> EventQueue.invokeLater( () -> {
+                                        progress.setLength( numOfFiles() );
 
-                                          addReplaceInfo( searchPanel );
+                                        addReplaceInfo( searchPanel );
 
-                                          String text = (String)_cbSearch.getSelectedItem();
-                                          SearchTree results = new SearchTree( "<html><b>$count</b>&nbsp;occurrences&nbsp;of&nbsp;<b>'" + text + "'</b>&nbsp;in&nbsp;" + getScopeName(), NodeKind.Directory, SearchTree.empty() );
-                                          searchPanel.add( results );
+                                        String text = (String)_cbSearch.getSelectedItem();
+                                        SearchTree results = new SearchTree( "<html><b>$count</b>&nbsp;occurrences&nbsp;of&nbsp;<b>'" + text + "'</b>&nbsp;in&nbsp;" + getScopeName(), NodeKind.Directory, SearchTree.empty() );
+                                        searchPanel.add( results );
 
-                                          TextSearcher searcher = new TextSearcher( text, !_checkCase.isSelected(), _checkWords.isSelected(), _checkRegex.isSelected() );
-                                          searcher.searchTrees( getSelectedTrees(), results, ft -> include( ft, getFileMatchRegex() ), progress );
-                                          selectFirstMatch( results );
-                                          bFinished[0] = true;
-                                        } );
-                                      } );
+                                        TextSearcher searcher = new TextSearcher( text, !_checkCase.isSelected(), _checkWords.isSelected(), _checkRegex.isSelected() );
+                                        searcher.searchTrees( getSelectedTrees(), results, ft -> include( ft, getFileMatchRegex() ), progress );
+                                        selectFirstMatch( results );
+                                        bFinished[0] = true;
+                                      } ) );
     new ModalEventQueue( () -> !bFinished[0] ).run();
   }
 
@@ -610,13 +608,13 @@ public abstract class AbstractSearchDialog extends AbstractDialog
     c.anchor = GridBagConstraints.WEST;
     c.fill = GridBagConstraints.HORIZONTAL;
     c.gridx = 1;
-    c.gridy = iY++;
+    c.gridy = iY;
     c.gridwidth = GridBagConstraints.REMAINDER;
     c.gridheight = 1;
     c.weightx = 1;
     c.weighty = 0;
     c.insets = new Insets( 5, 0, 0, 0 );
-    _cbFileMasks= new JComboBox();
+    _cbFileMasks= new JComboBox<>();
     _cbFileMasks.setEditable( true );
     configPanel.add( _cbFileMasks, c );
 

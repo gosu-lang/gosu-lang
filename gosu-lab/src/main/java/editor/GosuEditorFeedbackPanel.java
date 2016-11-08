@@ -109,9 +109,17 @@ public class GosuEditorFeedbackPanel extends JPanel
       {
         return;
       }
+
+      int iLineCount = getLineCount();
+
+      paintHighlightMarks( g, iLineCount );
+      paintIssueMarks( g, iLineCount );
+    }
+
+    private void paintIssueMarks( Graphics g, int iLineCount )
+    {
       //noinspection ThrowableResultOfMethodCallIgnored
       ParseResultsException pe = _editor.getParseResultsException();
-      int iLineCount = getLineCount();
       if( pe != null )
       {
         List pws = pe.getParseWarnings();
@@ -128,7 +136,10 @@ public class GosuEditorFeedbackPanel extends JPanel
           paintErrorMark( g, e, iLineCount );
         }
       }
+    }
 
+    private void paintHighlightMarks( Graphics g, int iLineCount )
+    {
       for( Highlighter.Highlight highlight : _editor.getEditor().getHighlighter().getHighlights() )
       {
         Highlighter.HighlightPainter painter = highlight.getPainter();

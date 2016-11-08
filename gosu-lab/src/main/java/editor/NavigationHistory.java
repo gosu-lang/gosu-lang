@@ -21,7 +21,7 @@ public class NavigationHistory
 
   private TabPane _tabPane;
   private AtomicUndoManager _undoMgr;
-  private GosuEditor _prevTab;
+  private EditorHost _prevTab;
   private boolean _bLocked;
   private ITabHistoryHandler _tabHistoryHandler;
   private List<ITabHistoryContext> _tabMruList;
@@ -80,7 +80,7 @@ public class NavigationHistory
     return _tabMruList;
   }
 
-  public GosuEditor getPreviousEditor()
+  public EditorHost getPreviousEditor()
   {
     return _prevTab;
   }
@@ -109,7 +109,7 @@ public class NavigationHistory
     public void stateChanged( ChangeEvent e )
     {
       ITab selectedTab = _tabPane.getSelectedTab();
-      GosuEditor editor = selectedTab == null ? null : (GosuEditor)selectedTab.getContentPane();
+      EditorHost editor = selectedTab == null ? null : (EditorHost)selectedTab.getContentPane();
       if( editor != null )
       {
         addToMruList( _tabHistoryHandler.makeTabContext( editor ) );

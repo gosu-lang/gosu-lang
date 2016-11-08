@@ -2,6 +2,7 @@ package editor.util;
 
 import editor.LabFrame;
 import editor.Scheme;
+import editor.plugin.typeloader.ITypeFactory;
 import gw.lang.reflect.IFunctionType;
 import gw.lang.reflect.IMethodInfo;
 import gw.lang.reflect.IParameterInfo;
@@ -284,7 +285,7 @@ public class EditorUtilities
       return loadIcon( "images/folder.png" );
     }
 
-    String classNameForFile = TypeNameUtil.getClassNameForFile( fileOrDir );
+    String classNameForFile = TypeNameUtil.getTypeNameForFile( fileOrDir );
     if( classNameForFile != null )
     {
       IType type = TypeSystem.getByFullNameIfValid( classNameForFile );
@@ -336,6 +337,14 @@ public class EditorUtilities
     else if( type instanceof IJavaType )
     {
       return EditorUtilities.loadIcon( "images/javaclass.png" );
+    }
+    else
+    {
+      ITypeFactory factory = type.getTypeLoader().getInterface( ITypeFactory.class );
+      if( factory != null )
+      {
+        return EditorUtilities.loadIcon( factory.getIcon() );
+      }
     }
     return EditorUtilities.loadIcon( "images/empty16x16.gif" );
   }

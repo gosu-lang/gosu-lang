@@ -4,9 +4,8 @@ import editor.FileTree;
 import editor.GosuPanel;
 import editor.LabFrame;
 import editor.NewIdentifierDialog;
+import editor.plugin.typeloader.ITypeFactory;
 import editor.search.MessageDisplay;
-import gw.config.CommonServices;
-import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.gs.ClassType;
 
 import javax.swing.*;
@@ -24,8 +23,47 @@ public class SourceFileCreator
   {
     return INSTANCE;
   }
+
+  private File _created;
+
   private SourceFileCreator()
   {
+  }
+
+  public File getCreated()
+  {
+    return _created;
+  }
+  public void clearCreated()
+  {
+    _created = null;
+  }
+
+  public File getOrMakeUntitledProgram( Experiment experiment )
+  {
+    File srcDir = new File( experiment.getSourcePath().get( 0 ) );
+    //noinspection ResultOfMethodCallIgnored
+    srcDir.mkdirs();
+    File scratchPackage = new File( srcDir, "scratch" );
+    //noinspection ResultOfMethodCallIgnored
+    scratchPackage.mkdirs();
+    File file = new File( scratchPackage, "RunMe.gsp" );
+    try
+    {
+      if( file.createNewFile() )
+      {
+        try( FileWriter writer = new FileWriter( file ) )
+        {
+          writer.write( "//\n// Run this from the Run menu or press F5\n//\nprint(\"Hello, World!\")\n" );
+        }
+        _created = file;
+      }
+      return file;
+    }
+    catch( IOException e )
+    {
+      throw new RuntimeException( e );
+    }
   }
 
   public void create( ClassType classType )
@@ -38,6 +76,16 @@ public class SourceFileCreator
     }
   }
 
+  public void create( ITypeFactory factory )
+  {
+    NewIdentifierDialog dlg = new NewIdentifierDialog( factory );
+    dlg.setVisible( true );
+    if( dlg.getClassName() != null )
+    {
+      create( new File( getParentContext(), dlg.getClassName() + factory.getFileExtension() ), factory, dlg.getClassName() );
+    }
+  }
+
   public void createNamespace()
   {
     NewIdentifierDialog dlg = new NewIdentifierDialog();
@@ -45,6 +93,7 @@ public class SourceFileCreator
     if( dlg.getClassName() != null )
     {
       File dir = new File( getParentContext(), dlg.getClassName() );
+      //noinspection ResultOfMethodCallIgnored
       dir.mkdirs();
     }
   }
@@ -73,6 +122,31 @@ public class SourceFileCreator
     return parent;
   }
 
+  public void create( File file, ITypeFactory factory, String typeName )
+  {
+    try
+    {
+      if( file.createNewFile() )
+      {
+        try( FileWriter writer = new FileWriter( file ) )
+        {
+          writer.write( factory.createNewFileContents( factory.makeDefaultParams( typeName ) ).toString() );
+        }
+        catch( Exception e )
+        {
+          //noinspection ResultOfMethodCallIgnored
+          file.delete();
+          throw new RuntimeException( e );
+        }
+      }
+    }
+    catch( IOException e )
+    {
+      throw new RuntimeException( e );
+    }
+    _created = file;
+  }
+
   public void create( File selectedFile, ClassType classType )
   {
     try
@@ -91,11 +165,7 @@ public class SourceFileCreator
     {
       throw new RuntimeException( e );
     }
-
-    TypeSystem.created( CommonServices.getFileSystem().getIFile( selectedFile ) );
-    TypeSystem.refresh( TypeSystem.getGlobalModule() );
-
-    LabFrame.instance().openFile( selectedFile );
+    _created = selectedFile;
   }
 
   private boolean writeStub( File file, ClassType classType )
@@ -122,7 +192,7 @@ public class SourceFileCreator
 
   private boolean writeClassStub( File file, ClassType classType )
   {
-    String strName = TypeNameUtil.getClassNameForFile( file );
+    String strName = TypeNameUtil.getTypeNameForFile( file );
     if( strName == null )
     {
       int iOption = displayTypeWarning( file );
@@ -162,7 +232,7 @@ public class SourceFileCreator
 
   private boolean writeTempateStub( File file )
   {
-    String strName = TypeNameUtil.getClassNameForFile( file );
+    String strName = TypeNameUtil.getTypeNameForFile( file );
     if( strName == null )
     {
       int iOption = displayTypeWarning( file );
@@ -214,7 +284,7 @@ public class SourceFileCreator
 
   private boolean writeEnhancementStub( File file )
   {
-    String strName = TypeNameUtil.getClassNameForFile( file );
+    String strName = TypeNameUtil.getTypeNameForFile( file );
     if( strName == null )
     {
       int iOption = displayTypeWarning( file );

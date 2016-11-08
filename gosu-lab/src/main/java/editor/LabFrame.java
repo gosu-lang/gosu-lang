@@ -76,7 +76,7 @@ public class LabFrame extends JFrame implements IGosuEditor
         public void windowActivated( WindowEvent e )
         {
           EventQueue.invokeLater( ()-> {
-            GosuEditor currentEditor = _panel.getCurrentEditor();
+            EditorHost currentEditor = _panel.getCurrentEditor();
             if( currentEditor != null )
             {
               currentEditor.parse();

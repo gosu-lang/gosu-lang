@@ -9,7 +9,7 @@ public interface ITabHistoryContext extends ILabel
   /**
    * @return true if this history context represents the given view, false otherwise
    */
-  public boolean represents( GosuEditor editor );
+  public boolean represents( EditorHost editor );
 
   public Object getContentId();
 

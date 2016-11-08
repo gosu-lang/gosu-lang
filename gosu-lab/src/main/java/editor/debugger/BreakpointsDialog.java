@@ -1,6 +1,7 @@
 package editor.debugger;
 
 import editor.DefaultContextMenuHandler;
+import editor.EditorHost;
 import editor.EditorScrollPane;
 import editor.GosuClassLineInfoManager;
 import editor.GosuEditor;
@@ -10,7 +11,6 @@ import editor.IHandleCancel;
 import editor.LabFrame;
 import editor.Scheme;
 import editor.splitpane.CollapsibleSplitPane;
-import editor.tabpane.ITab;
 import editor.tabpane.TabPane;
 import editor.tabpane.TabPosition;
 import editor.tabpane.ToolContainer;
@@ -57,13 +57,10 @@ public class BreakpointsDialog extends JDialog implements IHandleCancel
   private JTree _tree;
   private JButton _btnViewSource;
   private JPanel _configPanel;
-  private ITab _configTab;
   private AbstractButton _btnPlus;
-  private AbstractButton _btnMinus;
   private Map<Breakpoint, JPanel> _mapToPanel;
   private Runnable _listener;
   private BreakpointTree _exceptionBpTree;
-  private BreakpointTree _anyException;
   private JCheckBox _cbRunScript;
   private JCheckBox _cbSuspend;
   private JCheckBox _cbUncaught;
@@ -80,6 +77,7 @@ public class BreakpointsDialog extends JDialog implements IHandleCancel
     }
     return _current;
   }
+  @SuppressWarnings("UnusedDeclaration")
   public static BreakpointsDialog getOrCreate()
   {
     if( _current == null )
@@ -123,7 +121,7 @@ public class BreakpointsDialog extends JDialog implements IHandleCancel
 
     _configPanel = new JPanel( new BorderLayout() );
     TabPane configTabPane = new TabPane( TabPosition.TOP, TabPane.MIN_MAX_REST );
-    _configTab = configTabPane.addTab( "Settings", null, _configPanel );
+    configTabPane.addTab( "Settings", null, _configPanel );
 
     JPanel buttonPanel = makeButtonPanel();
 
@@ -237,7 +235,7 @@ public class BreakpointsDialog extends JDialog implements IHandleCancel
     c.fill = GridBagConstraints.NONE;
     c.gridx = 0;
     c.gridy = iY++;
-    c.gridwidth = GridBagConstraints.REMAINDER;;
+    c.gridwidth = GridBagConstraints.REMAINDER;
     c.gridheight = 1;
     c.weightx = 0;
     c.weighty = 0;
@@ -303,7 +301,7 @@ public class BreakpointsDialog extends JDialog implements IHandleCancel
       c.anchor = GridBagConstraints.WEST;
       c.fill = GridBagConstraints.NONE;
       c.gridx = 0;
-      c.gridy = iY++;
+      c.gridy = iY;
       c.gridwidth = GridBagConstraints.REMAINDER;
       c.gridheight = 1;
       c.weightx = 0;
@@ -434,10 +432,10 @@ public class BreakpointsDialog extends JDialog implements IHandleCancel
             {
               csr.setActive( bp.isActive() );
             }
-            GosuEditor view = getGosuPanel().getGosuEditor();
-            if( view != null )
+            EditorHost editor = getGosuPanel().getGosuEditor();
+            if( editor != null )
             {
-              java.util.List<? extends JComponent> columns = EditorUtilities.findDecendents( view.getComponent(), EditorScrollPane.AdviceColumn.class );
+              java.util.List<? extends JComponent> columns = EditorUtilities.findDecendents( editor, EditorScrollPane.AdviceColumn.class );
               for( JComponent column : columns )
               {
                 column.repaint();
@@ -564,8 +562,8 @@ public class BreakpointsDialog extends JDialog implements IHandleCancel
     _btnPlus = makeButton( new AddBreakpointAction() );
     tb.add( _btnPlus, i++ );
 
-    _btnMinus = makeButton( new RemoveBreakpointAction() );
-    tb.add( _btnMinus, i );
+    AbstractButton btnMinus = makeButton( new RemoveBreakpointAction() );
+    tb.add( btnMinus, i );
   }
 
   public static BreakpointsDialog getShowing()
@@ -626,7 +624,7 @@ public class BreakpointsDialog extends JDialog implements IHandleCancel
         BreakpointManager bpm = getGosuPanel().getBreakpointManager();
         bpm.removeBreakpoint( bp );
         _mapToPanel.remove( bp );
-        GosuEditor editor = getGosuPanel().getCurrentEditor();
+        EditorHost editor = getGosuPanel().getCurrentEditor();
         if( editor != null )
         {
           editor.repaint();
@@ -687,7 +685,7 @@ public class BreakpointsDialog extends JDialog implements IHandleCancel
         String strType = bp.getFqn();
         getGosuPanel().openType( strType, false );
         SettleModalEventQueue.instance().run();
-        GosuEditor currentEditor = getGosuPanel().getCurrentEditor();
+        EditorHost currentEditor = getGosuPanel().getCurrentEditor();
         if( currentEditor != null )
         {
           int iLine = bp.getLine();

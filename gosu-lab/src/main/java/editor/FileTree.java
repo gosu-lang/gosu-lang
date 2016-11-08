@@ -3,7 +3,10 @@ package editor;
 import editor.search.MessageDisplay;
 import editor.util.EditorUtilities;
 import editor.util.Experiment;
+import editor.util.SourceFileCreator;
+import gw.config.CommonServices;
 import gw.lang.reflect.IType;
+import gw.lang.reflect.ITypeLoader;
 import gw.lang.reflect.TypeSystem;
 
 import javax.swing.*;
@@ -73,6 +76,8 @@ public class FileTree implements MutableTreeNode, IFileWatcherListener
     for( String path: sourcePath )
     {
       File srcPath = new File( path );
+      //noinspection ResultOfMethodCallIgnored
+      srcPath.mkdirs();
       String srcPathAbsolute = srcPath.getAbsolutePath();
       String experimentDir = experiment.getExperimentDir().getAbsolutePath();
       if( srcPathAbsolute.startsWith( experimentDir + File.separator ) )
@@ -308,18 +313,69 @@ public class FileTree implements MutableTreeNode, IFileWatcherListener
       FileTree fileTree = new FileTree( newFileOrDir, this, _experiment );
       ((DefaultTreeModel)getExperimentView().getTree().getModel()).insertNodeInto( fileTree, this, getSortedIndex( getChildren(), fileTree ) );
 
-      if( fileTree.getType() != null )
-      {
-        EventQueue.invokeLater( () -> {
-          File currentFile = getExperiment().getGosuPanel().getCurrentFile();
-          if( currentFile != null && currentFile.equals( newFileOrDir ) )
-          {
-            fileTree.select();
-          }
-          //## todo: update file if opened in editor
-        } );
-      }
+      handleNewFileTree( fileTree );
     } );
+  }
+
+  private void handleNewFileTree( FileTree fileTree )
+  {
+    if( fileTree.isDirectory() )
+    {
+      fileTree.getChildren().forEach( this::handleNewFileTree );
+    }
+    else
+    {
+      handlePossibleNewType( fileTree );
+    }
+  }
+
+  private boolean handlePossibleNewType( FileTree fileTree )
+  {
+    if( isTypeFile( fileTree.getFileOrDir() ) )
+    {
+      handleNewType( fileTree );
+      return true;
+    }
+    return false;
+  }
+
+  private void handleNewType( FileTree fileTree )
+  {
+    File file = fileTree.getFileOrDir();
+    TypeSystem.created( CommonServices.getFileSystem().getIFile( file ) );
+    TypeSystem.refresh( TypeSystem.getGlobalModule() );
+
+    if( SourceFileCreator.instance().getCreated().equals( file ) )
+    {
+      LabFrame.instance().openFile( file );
+      SourceFileCreator.instance().clearCreated();
+
+      EventQueue.invokeLater( () -> {
+        File currentFile = getExperiment().getGosuPanel().getCurrentFile();
+        if( currentFile != null && currentFile.equals( file ) )
+        {
+          fileTree.select();
+        }
+        //## todo: update file if opened in editor
+      } );
+    }
+  }
+
+  private boolean isTypeFile( File file )
+  {
+    if( !file.isFile() )
+    {
+      return false;
+    }
+
+    for( ITypeLoader tl: TypeSystem.getAllTypeLoaders() )
+    {
+      if( tl.handlesFile( CommonServices.getFileSystem().getIFile( file ) ) )
+      {
+        return true;
+      }
+    }
+    return false;
   }
 
   @Override
