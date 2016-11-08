@@ -331,7 +331,7 @@ public class FileTree implements MutableTreeNode, IFileWatcherListener
 
   private boolean handlePossibleNewType( FileTree fileTree )
   {
-    if( isTypeFile( fileTree.getFileOrDir() ) )
+    if( isTypeFile( fileTree ) )
     {
       handleNewType( fileTree );
       return true;
@@ -361,16 +361,16 @@ public class FileTree implements MutableTreeNode, IFileWatcherListener
     }
   }
 
-  private boolean isTypeFile( File file )
+  private boolean isTypeFile( FileTree fileTree )
   {
-    if( !file.isFile() )
+    if( fileTree.isDirectory() )
     {
       return false;
     }
 
     for( ITypeLoader tl: TypeSystem.getAllTypeLoaders() )
     {
-      if( tl.handlesFile( CommonServices.getFileSystem().getIFile( file ) ) )
+      if( tl.handlesFile( CommonServices.getFileSystem().getIFile( fileTree.getFileOrDir() ) ) )
       {
         return true;
       }
@@ -406,7 +406,31 @@ public class FileTree implements MutableTreeNode, IFileWatcherListener
     {
       EventQueue.invokeLater( () -> ((DefaultTreeModel)getExperimentView().getTree().getModel()).removeNodeFromParent( fileTree ) );
       getExperiment().getGosuPanel().closeTab( existingFile );
+
+      handleDeletedFileTree( fileTree );
     }
+  }
+
+  private void handleDeletedFileTree( FileTree fileTree )
+  {
+    if( fileTree.isDirectory() )
+    {
+      fileTree.getChildren().forEach( this::handleDeletedFileTree );
+    }
+    else
+    {
+      handlePossibleDeletedType( fileTree );
+    }
+  }
+
+  private boolean handlePossibleDeletedType( FileTree fileTree )
+  {
+    if( isTypeFile( fileTree ) )
+    {
+      TypeSystem.deleted( CommonServices.getFileSystem().getIFile( fileTree.getFileOrDir() ) );
+      return true;
+    }
+    return false;
   }
 
   @Override
