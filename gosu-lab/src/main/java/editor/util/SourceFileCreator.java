@@ -82,7 +82,9 @@ public class SourceFileCreator
     dlg.setVisible( true );
     if( dlg.getClassName() != null )
     {
-      create( new File( getParentContext(), dlg.getClassName() + factory.getFileExtension() ), factory, dlg.getClassName() );
+      File file = new File( getParentContext(), dlg.getClassName() + factory.getFileExtension() );
+      String fqn = TypeNameUtil.getTypeNameForFile( file );
+      create( file, factory, fqn );
     }
   }
 

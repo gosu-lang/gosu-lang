@@ -52,41 +52,47 @@ import gw.lang.reflect.java.ITypeInfoResolver;
 import gw.lang.reflect.java.JavaTypes;
 import gw.lang.reflect.module.IModule;
 import gw.util.GosuObjectUtil;
-
-import javax.tools.JavaCompiler;
-import javax.tools.StandardJavaFileManager;
 import java.lang.annotation.Annotation;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import javax.tools.JavaCompiler;
+import javax.tools.StandardJavaFileManager;
 
-public abstract class JavaSourceType extends AbstractJavaClassInfo implements IJavaClassType, ITypeInfoResolver {
+public abstract class JavaSourceType extends AbstractJavaClassInfo implements IJavaClassType, ITypeInfoResolver
+{
   public static final int IGNORE_NONE = 0;
   public static final int IGNORE_INTERFACES = 1;
   public static final int IGNORE_SUPERCLASS = 2;
 
-  private static Map<String, Class> PRIMITIVES = new HashMap<String, Class>();
+  private static Map<String, Class> PRIMITIVES = new HashMap<>();
 
-  static {
-    PRIMITIVES.put(int.class.getName(), int.class);
-    PRIMITIVES.put(byte.class.getName(), byte.class);
-    PRIMITIVES.put(char.class.getName(), char.class);
-    PRIMITIVES.put(short.class.getName(), short.class);
-    PRIMITIVES.put(long.class.getName(), long.class);
-    PRIMITIVES.put(float.class.getName(), float.class);
-    PRIMITIVES.put(double.class.getName(), double.class);
-    PRIMITIVES.put(boolean.class.getName(), boolean.class);
-    PRIMITIVES.put(void.class.getName(), void.class);
+  static
+  {
+    PRIMITIVES.put( int.class.getName(), int.class );
+    PRIMITIVES.put( byte.class.getName(), byte.class );
+    PRIMITIVES.put( char.class.getName(), char.class );
+    PRIMITIVES.put( short.class.getName(), short.class );
+    PRIMITIVES.put( long.class.getName(), long.class );
+    PRIMITIVES.put( float.class.getName(), float.class );
+    PRIMITIVES.put( double.class.getName(), double.class );
+    PRIMITIVES.put( boolean.class.getName(), boolean.class );
+    PRIMITIVES.put( void.class.getName(), void.class );
   }
 
-  private static final Object CACHE_MISS = new Object() { public String toString() {return "cache miss";}};
+  private static final Object CACHE_MISS = new Object()
+  {
+    public String toString()
+    {
+      return "cache miss";
+    }
+  };
 
   protected IModule _gosuModule;
   protected String _fullyQualifiedName;
@@ -116,134 +122,155 @@ public abstract class JavaSourceType extends AbstractJavaClassInfo implements IJ
   static private StandardJavaFileManager fileManager;
   private IJavaType _javaType;
 
-  public static IJavaClassInfo createTopLevel(ISourceFileHandle fileHandle, IModule gosuModule) {
-    List<CompilationUnitTree> trees = new ArrayList<CompilationUnitTree>();
-    boolean err = parseJavaFile(fileHandle, trees);
-    if(err) {
-      return new JavaSourceUnresolvedClass(fileHandle, gosuModule);
+  public static IJavaClassInfo createTopLevel( ISourceFileHandle fileHandle, IModule gosuModule )
+  {
+    List<CompilationUnitTree> trees = new ArrayList<>();
+    boolean err = parseJavaFile( fileHandle, trees );
+    if( err )
+    {
+      return new JavaSourceUnresolvedClass( fileHandle, gosuModule );
     }
 
-    ClassTree def = getTopLevelDefinition(trees, fileHandle.getFileName());
-    if(def != null) {
+    ClassTree def = getTopLevelDefinition( trees, fileHandle.getFileName() );
+    if( def != null )
+    {
       JavaSourceType result = null;
       final Tree.Kind kind = def.getKind();
-      final List<? extends ImportTree> imports = trees.get(0).getImports();
-      switch(kind) {
+      final List<? extends ImportTree> imports = trees.get( 0 ).getImports();
+      switch( kind )
+      {
         case CLASS:
-          result = new JavaSourceClass(fileHandle, def, imports, gosuModule);
+          result = new JavaSourceClass( fileHandle, def, imports, gosuModule );
           break;
         case INTERFACE:
-          result = new JavaSourceInterface(fileHandle, def, imports, gosuModule);
+          result = new JavaSourceInterface( fileHandle, def, imports, gosuModule );
           break;
         case ENUM:
-          result = new JavaSourceEnum(fileHandle, def, imports, gosuModule);
+          result = new JavaSourceEnum( fileHandle, def, imports, gosuModule );
           break;
         case ANNOTATION_TYPE:
-          result = new JavaSourceAnnotation(fileHandle,  def, imports, gosuModule);
+          result = new JavaSourceAnnotation( fileHandle, def, imports, gosuModule );
           break;
       }
       return result;
-    } else {
-      return new JavaSourceUnresolvedClass(fileHandle, gosuModule);
+    }
+    else
+    {
+      return new JavaSourceUnresolvedClass( fileHandle, gosuModule );
     }
   }
 
-  private static ClassTree getTopLevelDefinition(List<CompilationUnitTree> trees, String fileName) {
-    String name = fileName.substring(0, fileName.indexOf('.'));
+  private static ClassTree getTopLevelDefinition( List<CompilationUnitTree> trees, String fileName )
+  {
+    String name = fileName.substring( 0, fileName.indexOf( '.' ) );
     // We know that there is just one tree (trees.get(0)) as we parsed one file
-    final List<? extends Tree> typeDecls = trees.get(0).getTypeDecls();
-    for(Tree t : typeDecls) {
-      if(t instanceof ClassTree &&
-         name.equals(((ClassTree) t).getSimpleName().toString()))
+    final List<? extends Tree> typeDecls = trees.get( 0 ).getTypeDecls();
+    for( Tree t : typeDecls )
+    {
+      if( t instanceof ClassTree &&
+          name.equals( ((ClassTree)t).getSimpleName().toString() ) )
       {
-         return (ClassTree) t;
+        return (ClassTree)t;
       }
     }
     return null;
   }
 
-  private static boolean parseJavaFile(ISourceFileHandle src, List<CompilationUnitTree> trees) {
+  private static boolean parseJavaFile( ISourceFileHandle src, List<CompilationUnitTree> trees )
+  {
     boolean err = false;
-    try {
-      if(compiler == null) {
+    try
+    {
+      if( compiler == null )
+      {
         compiler = JavacTool.create();
-        fileManager = compiler.getStandardFileManager(null, null, Charset.forName("UTF-8"));
+        fileManager = compiler.getStandardFileManager( null, null, Charset.forName( "UTF-8" ) );
       }
-      ArrayList<JavaStringObject> javaStringObjects = new ArrayList<JavaStringObject>();
-      javaStringObjects.add(new JavaStringObject(src.getSource().getSource()));
-      JavaCompiler.CompilationTask task = compiler.getTask(null, fileManager, null, Arrays.asList("-proc:none"), null, javaStringObjects );
-      JavacTaskImpl javacTask = (JavacTaskImpl) task;
+      ArrayList<JavaStringObject> javaStringObjects = new ArrayList<>();
+      javaStringObjects.add( new JavaStringObject( src.getSource().getSource() ) );
+      JavaCompiler.CompilationTask task = compiler.getTask( null, fileManager, null, Arrays.asList( "-proc:none" ), null, javaStringObjects );
+      JavacTaskImpl javacTask = (JavacTaskImpl)task;
       Iterable<? extends CompilationUnitTree> iterable = javacTask.parse();
-      for (CompilationUnitTree x : iterable) {
-        trees.add(x);
+      for( CompilationUnitTree x : iterable )
+      {
+        trees.add( x );
       }
       fileManager.close();
-    } catch (Exception e) {
+    }
+    catch( Exception e )
+    {
       err = true;
     }
     return err;
   }
 
-  private static JavaSourceType createInner(ClassTree typeDecl, JavaSourceType containingClass) {
+  private static JavaSourceType createInner( ClassTree typeDecl, JavaSourceType containingClass )
+  {
     final Tree.Kind kind = typeDecl.getKind();
-    switch (kind) {
+    switch( kind )
+    {
       case CLASS:
-        return new JavaSourceClass(typeDecl, containingClass);
+        return new JavaSourceClass( typeDecl, containingClass );
       case INTERFACE:
-        return new JavaSourceInterface(typeDecl, containingClass);
+        return new JavaSourceInterface( typeDecl, containingClass );
       case ENUM:
-        return new JavaSourceEnum(typeDecl, containingClass);
+        return new JavaSourceEnum( typeDecl, containingClass );
       case ANNOTATION_TYPE:
-        return new JavaSourceAnnotation(typeDecl, containingClass);
+        return new JavaSourceAnnotation( typeDecl, containingClass );
       default:
-        throw new RuntimeException("unsupported node type");
+        throw new RuntimeException( "unsupported node type" );
     }
   }
 
   /**
    * For top level classes.
    */
-  protected JavaSourceType(ISourceFileHandle fileHandle, ClassTree typeDecl, List<? extends ImportTree> imports, IModule gosuModule) {
+  protected JavaSourceType( ISourceFileHandle fileHandle, ClassTree typeDecl, List<? extends ImportTree> imports, IModule gosuModule )
+  {
     _fileHandle = fileHandle;
     _namespace = fileHandle.getNamespace();
     _simpleName = fileHandle.getRelativeName();
     _gosuModule = gosuModule;
-    makeImportList(imports);
+    makeImportList( imports );
     _typeDecl = typeDecl;
-    _cache = new HashMap<String, Object>();
+    _cache = new HashMap<>();
   }
 
   /**
    * For inner classes.
    */
-  protected JavaSourceType(ClassTree typeDecl, JavaSourceType enclosingClass) {
+  protected JavaSourceType( ClassTree typeDecl, JavaSourceType enclosingClass )
+  {
     _enclosingClass = enclosingClass;
     _gosuModule = enclosingClass.getModule();
-    _cache = new HashMap<String, Object>();
+    _cache = new HashMap<>();
     _namespace = enclosingClass.getNamespace();
     _typeDecl = typeDecl;
     _simpleName = _typeDecl.getSimpleName().toString();
   }
 
-  private static IJavaClassType resolveParameterizedArrayType(ITypeInfoResolver typeResolver, Tree tree, String typeName) {
-    if (!(tree instanceof ArrayTypeTree)) {
-      return resolveParameterizedType(typeResolver, tree, typeName);
+  private static IJavaClassType resolveParameterizedArrayType( ITypeInfoResolver typeResolver, Tree tree, String typeName )
+  {
+    if( !(tree instanceof ArrayTypeTree) )
+    {
+      return resolveParameterizedType( typeResolver, tree, typeName );
     }
-    IJavaClassType type = resolveParameterizedArrayType(typeResolver, ((ArrayTypeTree) tree).getType(), typeName.substring(0, typeName.length() - 2));
-    return new JavaSourceArrayType(type);
+    IJavaClassType type = resolveParameterizedArrayType( typeResolver, ((ArrayTypeTree)tree).getType(), typeName.substring( 0, typeName.length() - 2 ) );
+    return new JavaSourceArrayType( type );
   }
 
-  public static IJavaClassType createType(ITypeInfoResolver typeResolver, Tree tree) {
-    final String typeName = getTypeName(tree);
+  public static IJavaClassType createType( ITypeInfoResolver typeResolver, Tree tree )
+  {
+    final String typeName = getTypeName( tree );
 
-    if (tree instanceof ArrayTypeTree &&
-        ((ArrayTypeTree) tree).getType() instanceof ParameterizedTypeTree )
+    if( tree instanceof ArrayTypeTree &&
+        ((ArrayTypeTree)tree).getType() instanceof ParameterizedTypeTree )
     {
-      return resolveParameterizedArrayType(typeResolver, tree, typeName);
+      return resolveParameterizedArrayType( typeResolver, tree, typeName );
     }
-    else if (tree instanceof ParameterizedTypeTree)
+    else if( tree instanceof ParameterizedTypeTree )
     {
-      return resolveParameterizedType(typeResolver, tree, typeName);
+      return resolveParameterizedType( typeResolver, tree, typeName );
     }
     else if( tree instanceof WildcardTree )
     {
@@ -256,111 +283,136 @@ public abstract class JavaSourceType extends AbstractJavaClassInfo implements IJ
       }
       return new JavaWildcardType( createType( typeResolver, wildcardTree.getBound() ), kind == Tree.Kind.SUPER_WILDCARD );
     }
-    else if(tree instanceof IdentifierTree ||
-            tree instanceof PrimitiveTypeTree ||
-            tree instanceof ArrayTypeTree ||
-            tree instanceof MemberSelectTree)
+    else if( tree instanceof IdentifierTree ||
+             tree instanceof PrimitiveTypeTree ||
+             tree instanceof ArrayTypeTree ||
+             tree instanceof MemberSelectTree )
     {
-      return createType(typeResolver, typeName, IGNORE_NONE);
+      return createType( typeResolver, typeName, IGNORE_NONE );
     }
-    throw new RuntimeException("Type tree '" + tree  + "' of kind: " + tree.getKind() + " has not been handled");
+    throw new RuntimeException( "Type tree '" + tree + "' of kind: " + tree.getKind() + " has not been handled" );
   }
 
-  private static IJavaClassType resolveParameterizedType(ITypeInfoResolver typeResolver, Tree typeNode, String typeName) {
-    final List<? extends Tree> typeArguments = ((ParameterizedTypeTree) typeNode).getTypeArguments();
+  private static IJavaClassType resolveParameterizedType( ITypeInfoResolver typeResolver, Tree typeNode, String typeName )
+  {
+    final List<? extends Tree> typeArguments = ((ParameterizedTypeTree)typeNode).getTypeArguments();
     IJavaClassType[] typeParameters = new IJavaClassType[typeArguments.size()];
-    IJavaClassType concreteType = createType(typeResolver, typeName, IGNORE_NONE);
-    if (concreteType == null || concreteType instanceof ErrorJavaClassInfo) {
+    IJavaClassType concreteType = createType( typeResolver, typeName, IGNORE_NONE );
+    if( concreteType == null || concreteType instanceof ErrorJavaClassInfo )
+    {
       return ERROR_TYPE;
     }
-    IJavaClassTypeVariable[] parameters = ((IJavaClassInfo) concreteType).getTypeParameters();
-    if (parameters.length != typeParameters.length) {
-      throw new RuntimeException("Type parameters screwup.");
+    IJavaClassTypeVariable[] parameters = ((IJavaClassInfo)concreteType).getTypeParameters();
+    if( parameters.length != typeParameters.length )
+    {
+      throw new RuntimeException( "Type parameters screwup." );
     }
-    for (int i = 0; i < typeParameters.length; i++) {
+    for( int i = 0; i < typeParameters.length; i++ )
+    {
       Tree tree = typeArguments.get( i );
       typeParameters[i] = createType( typeResolver, tree );
     }
-    return new JavaParameterizedType(typeParameters, concreteType);
+    return new JavaParameterizedType( typeParameters, concreteType );
   }
 
-  public static IJavaClassType createType(ITypeInfoResolver typeResolver, String typeName, int ignoreFlags) {
-    if (typeName.endsWith("[]")) {
-      String typeNameNoArray = typeName.substring(0, typeName.length() - 2);
-      IJavaClassType componentType = createType(typeResolver, typeNameNoArray, ignoreFlags);
-      if (componentType instanceof IJavaClassInfo) {
-        return new JavaArrayClassInfo((IJavaClassInfo) componentType);
-      } else {
-        return new JavaSourceArrayType(componentType);
+  public static IJavaClassType createType( ITypeInfoResolver typeResolver, String typeName, int ignoreFlags )
+  {
+    if( typeName.endsWith( "[]" ) )
+    {
+      String typeNameNoArray = typeName.substring( 0, typeName.length() - 2 );
+      IJavaClassType componentType = createType( typeResolver, typeNameNoArray, ignoreFlags );
+      if( componentType instanceof IJavaClassInfo )
+      {
+        return new JavaArrayClassInfo( (IJavaClassInfo)componentType );
       }
-    } else {
-      IJavaClassType type = typeResolver.resolveType(typeName, ignoreFlags);
+      else
+      {
+        return new JavaSourceArrayType( componentType );
+      }
+    }
+    else
+    {
+      IJavaClassType type = typeResolver.resolveType( typeName, ignoreFlags );
       return type == null ? ERROR_TYPE : type;
     }
   }
 
-  protected void makeImportList(List<? extends ImportTree> imports) {
-    List<String> staticImportList = new ArrayList<String>(imports.size());
-    List<String> importList = new ArrayList<String>(imports.size());
+  protected void makeImportList( List<? extends ImportTree> imports )
+  {
+    List<String> staticImportList = new ArrayList<>( imports.size() );
+    List<String> importList = new ArrayList<>( imports.size() );
 
-    importList.add("java.lang.*");
-    for (ImportTree it : imports) {
-      final JCTree qualifiedIdentifier = (JCTree) it.getQualifiedIdentifier();
-      final String importStr = TreeInfo.fullName(qualifiedIdentifier).toString();
-      importList.add(importStr);
-      if(it.isStatic()) {
-        staticImportList.add(importStr);
+    importList.add( "java.lang.*" );
+    for( ImportTree it : imports )
+    {
+      final JCTree qualifiedIdentifier = (JCTree)it.getQualifiedIdentifier();
+      final String importStr = TreeInfo.fullName( qualifiedIdentifier ).toString();
+      importList.add( importStr );
+      if( it.isStatic() )
+      {
+        staticImportList.add( importStr );
       }
     }
-    Collections.sort(importList, new Comparator<String>() {
-      public int compare(String s1, String s2) {
-        if (s1.endsWith("*")) {
-          return +1;
-        }
-        if (s2.endsWith("*")) {
-          return -1;
-        }
-        return 0;
+    Collections.sort( importList, ( s1, s2 ) -> {
+      if( s1.endsWith( "*" ) )
+      {
+        return +1;
       }
-    });
+      if( s2.endsWith( "*" ) )
+      {
+        return -1;
+      }
+      return 0;
+    } );
     _importList = importList;
     _staticImportList = staticImportList;
   }
 
-  public IModule getModule() {
+  public IModule getModule()
+  {
     return _gosuModule;
   }
 
   @Override
-  public String getNameSignature() {
-    return GosuShop.toSignature(getName());
+  public String getNameSignature()
+  {
+    return GosuShop.toSignature( getName() );
   }
 
   @Override
-  public String getRelativeName() {
-    return getName().substring(getNamespace().length() + 1);
+  public String getRelativeName()
+  {
+    return getName().substring( getNamespace().length() + 1 );
   }
 
   @Override
-  public String getDisplayName() {
+  public String getDisplayName()
+  {
     return getSimpleName();
   }
 
   @Override
-  public String getSimpleName() {
+  public String getSimpleName()
+  {
     return _simpleName;
   }
 
   @Override
-  public boolean isArray() {
+  public boolean isArray()
+  {
     return false;
   }
 
-  public String getName() {
-    if (_fullyQualifiedName == null) {
-      if (_enclosingClass == null) {
+  public String getName()
+  {
+    if( _fullyQualifiedName == null )
+    {
+      if( _enclosingClass == null )
+      {
         _fullyQualifiedName = _namespace + "." + getSimpleName();
-      } else {
+      }
+      else
+      {
         _fullyQualifiedName = _enclosingClass.getName() + "." + getSimpleName();
       }
     }
@@ -368,26 +420,34 @@ public abstract class JavaSourceType extends AbstractJavaClassInfo implements IJ
   }
 
   @Override
-  public IJavaClassInfo[] getInterfaces() {
-    if (_interfaces == null) {
+  public IJavaClassInfo[] getInterfaces()
+  {
+    if( _interfaces == null )
+    {
       TypeSystem.lock();
-      try {
-        if (_interfaces == null) {
+      try
+      {
+        if( _interfaces == null )
+        {
           final List<? extends Tree> implementsClause = _typeDecl.getImplementsClause();
-          if (implementsClause == null) {
+          if( implementsClause == null )
+          {
             _interfaces = IJavaClassType.EMPTY_ARRAY;
             return _interfaces;
           }
           IJavaClassInfo[] interfaces = new IJavaClassInfo[implementsClause.size()];
-          for (int i = 0; i < interfaces.length; i++) {
-            Tree clause = implementsClause.get(i);
-            String typeName = getTypeName(clause);
-            IJavaClassInfo classInfo = (IJavaClassInfo) createType(this, typeName, IGNORE_SUPERCLASS | IGNORE_INTERFACES);
+          for( int i = 0; i < interfaces.length; i++ )
+          {
+            Tree clause = implementsClause.get( i );
+            String typeName = getTypeName( clause );
+            IJavaClassInfo classInfo = (IJavaClassInfo)createType( this, typeName, IGNORE_SUPERCLASS | IGNORE_INTERFACES );
             interfaces[i] = classInfo;
           }
           _interfaces = interfaces;
         }
-      } finally {
+      }
+      finally
+      {
         TypeSystem.unlock();
       }
     }
@@ -395,133 +455,176 @@ public abstract class JavaSourceType extends AbstractJavaClassInfo implements IJ
   }
 
 
-  static public String getTypeName(Tree tree) {
-    return tree.toString().replaceAll("<.*>", "");
+  static public String getTypeName( Tree tree )
+  {
+    return tree.toString().replaceAll( "<.*>", "" );
   }
 
   @Override
-  public IJavaClassType[] getGenericInterfaces() {
+  public IJavaClassType[] getGenericInterfaces()
+  {
     TypeSystem.lock();
-    try {
-      if (_genericInterfaces == null) {
+    try
+    {
+      if( _genericInterfaces == null )
+      {
         final List<? extends Tree> implementsClause = _typeDecl.getImplementsClause();
-        if (implementsClause.isEmpty()) {
+        if( implementsClause.isEmpty() )
+        {
           _genericInterfaces = IJavaClassType.EMPTY_ARRAY;
           return _genericInterfaces;
         }
         IJavaClassType[] genericInterfaces = new IJavaClassType[implementsClause.size()];
-        for (int i = 0; i < genericInterfaces.length; i++) {
-          genericInterfaces[i] = createType(this, implementsClause.get(i));
+        for( int i = 0; i < genericInterfaces.length; i++ )
+        {
+          genericInterfaces[i] = createType( this, implementsClause.get( i ) );
         }
         _genericInterfaces = genericInterfaces;
       }
       return _genericInterfaces;
-    } finally {
+    }
+    finally
+    {
       TypeSystem.unlock();
     }
   }
 
   @Override
-  public IJavaClassInfo getSuperclass() {
-    if (_superClass == null) {
-      if (isInterface()) {
+  public IJavaClassInfo getSuperclass()
+  {
+    if( _superClass == null )
+    {
+      if( isInterface() )
+      {
         _superClass = NULL_TYPE;
-      } else if (isEnum()) {
+      }
+      else if( isEnum() )
+      {
         _superClass = JavaTypes.ENUM().getBackingClassInfo();
-      } else {
+      }
+      else
+      {
         final Tree extendsClause = _typeDecl.getExtendsClause();
         _superClass = extendsClause != null
-                ? (IJavaClassInfo) createType(this, getTypeName(extendsClause), IGNORE_SUPERCLASS | IGNORE_INTERFACES)
-                : JavaTypes.OBJECT().getBackingClassInfo();
+                      ? (IJavaClassInfo)createType( this, getTypeName( extendsClause ), IGNORE_SUPERCLASS | IGNORE_INTERFACES )
+                      : JavaTypes.OBJECT().getBackingClassInfo();
       }
-      if (hasCyclicInheritance(_superClass)) {
+      if( hasCyclicInheritance( _superClass ) )
+      {
         _superClass = NULL_TYPE;
       }
     }
     return _superClass == NULL_TYPE ? null : _superClass;
   }
 
-  private boolean hasCyclicInheritance(IJavaClassInfo superClass) {
-    Set<IJavaClassInfo> visited = new HashSet<IJavaClassInfo>();
-    visited.add(this);
-    while (superClass != null && !visited.contains(superClass)) {
-      visited.add(superClass);
+  private boolean hasCyclicInheritance( IJavaClassInfo superClass )
+  {
+    Set<IJavaClassInfo> visited = new HashSet<>();
+    visited.add( this );
+    while( superClass != null && !visited.contains( superClass ) )
+    {
+      visited.add( superClass );
       superClass = superClass.getSuperclass();
     }
     return superClass != null;
   }
 
   @Override
-  public IJavaClassType getGenericSuperclass() {
-    if (_genericSuperClass == null) {
-      if (isInterface()) {
+  public IJavaClassType getGenericSuperclass()
+  {
+    if( _genericSuperClass == null )
+    {
+      if( isInterface() )
+      {
         _genericSuperClass = NULL_TYPE;
-      } else if (isEnum()) {
+      }
+      else if( isEnum() )
+      {
         _genericSuperClass = JavaTypes.ENUM().getBackingClassInfo();
-      } else {
+      }
+      else
+      {
         final Tree extendsClause = _typeDecl.getExtendsClause();
-        _genericSuperClass = extendsClause != null ? createType(this, extendsClause) : NULL_TYPE;
+        _genericSuperClass = extendsClause != null ? createType( this, extendsClause ) : NULL_TYPE;
       }
     }
     return _genericSuperClass == NULL_TYPE ? null : _genericSuperClass;
   }
 
-  public void initMethodsAndConstructors() {
+  public void initMethodsAndConstructors()
+  {
     final List<? extends Tree> members = _typeDecl.getMembers();
-    List<IJavaClassMethod> methods = new ArrayList<IJavaClassMethod>();
-    List<IJavaClassConstructor> constructors = new ArrayList<IJavaClassConstructor>();
-    for(Tree t : members) {
-      if(t.getKind() == Tree.Kind.METHOD)
+    List<IJavaClassMethod> methods = new ArrayList<>();
+    List<IJavaClassConstructor> constructors = new ArrayList<>();
+    //noinspection Convert2streamapi
+    for( Tree t : members )
+    {
+      if( t.getKind() == Tree.Kind.METHOD )
       {
-        final MethodTree m = (MethodTree) t;
-        JavaSourceMethod method = JavaSourceMethod.create(m, this);
-        if (method != null) {
-          if (method.isConstructor()) {
-            constructors.add((IJavaClassConstructor) method);
-          } else {
-            methods.add(method);
+        final MethodTree m = (MethodTree)t;
+        JavaSourceMethod method = JavaSourceMethod.create( m, this );
+        if( method != null )
+        {
+          if( method.isConstructor() )
+          {
+            constructors.add( (IJavaClassConstructor)method );
+          }
+          else
+          {
+            methods.add( method );
           }
         }
       }
     }
-    if (isEnum()) {
-      methods.add(new SyntheticJavaMethod(this, this, this, "valueOf",
-        Modifier.STATIC | Modifier.PUBLIC, new IJavaClassInfo[]{
-        TypeSystem.getJavaClassInfo(String.class)
-      }, new IJavaClassInfo[0]));
-      methods.add(new SyntheticJavaMethod(this, this.getArrayType(), this.getArrayType(), "values",
-        Modifier.STATIC | Modifier.PUBLIC, new IJavaClassInfo[0], new IJavaClassInfo[0]));
+    if( isEnum() )
+    {
+      methods.add( new SyntheticJavaMethod( this, this, this, "valueOf",
+                                            Modifier.STATIC | Modifier.PUBLIC, new IJavaClassInfo[]{
+        TypeSystem.getJavaClassInfo( String.class )
+      }, new IJavaClassInfo[0] ) );
+      methods.add( new SyntheticJavaMethod( this, this.getArrayType(), this.getArrayType(), "values",
+                                            Modifier.STATIC | Modifier.PUBLIC, new IJavaClassInfo[0], new IJavaClassInfo[0] ) );
     }
-    if (isClass() && constructors.size() == 0) {
-      constructors.add(new JavaSourceDefaultConstructor(this));
+    if( isClass() && constructors.size() == 0 )
+    {
+      constructors.add( new JavaSourceDefaultConstructor( this ) );
     }
-    _methods = methods.toArray(new IJavaClassMethod[methods.size()]);
-    _constructors = constructors.toArray(new IJavaClassConstructor[constructors.size()]);
+    _methods = methods.toArray( new IJavaClassMethod[methods.size()] );
+    _constructors = constructors.toArray( new IJavaClassConstructor[constructors.size()] );
   }
 
-  public IJavaClassMethod[] getDeclaredMethods() {
-    if (_methods == null) {
+  public IJavaClassMethod[] getDeclaredMethods()
+  {
+    if( _methods == null )
+    {
       initMethodsAndConstructors();
     }
     return _methods;
   }
 
-  public IJavaClassConstructor[] getDeclaredConstructors() {
-    if (_constructors == null) {
+  public IJavaClassConstructor[] getDeclaredConstructors()
+  {
+    if( _constructors == null )
+    {
       initMethodsAndConstructors();
     }
     return _constructors;
   }
 
-  public IJavaClassConstructor getConstructor( IJavaClassInfo... paramTypes ) throws NoSuchMethodException {
+  public IJavaClassConstructor getConstructor( IJavaClassInfo... paramTypes ) throws NoSuchMethodException
+  {
     outer:
-    for (IJavaClassConstructor ctor : getDeclaredConstructors()) {
+    for( IJavaClassConstructor ctor : getDeclaredConstructors() )
+    {
       IJavaClassInfo[] methodParamTypes = ctor.getParameterTypes();
-      if (paramTypes.length != methodParamTypes.length) {
+      if( paramTypes.length != methodParamTypes.length )
+      {
         continue;
       }
-      for (int i = 0; i < paramTypes.length; i++) {
-        if (!paramTypes[i].equals(methodParamTypes[i])) {
+      for( int i = 0; i < paramTypes.length; i++ )
+      {
+        if( !paramTypes[i].equals( methodParamTypes[i] ) )
+        {
           continue outer;
         }
       }
@@ -530,147 +633,189 @@ public abstract class JavaSourceType extends AbstractJavaClassInfo implements IJ
     throw new NoSuchMethodException();
   }
 
-  public IJavaClassField[] getDeclaredFields() {
-    if (_fields == null) {
-      List<VariableTree> fieldTrees = new ArrayList<VariableTree>();
+  public IJavaClassField[] getDeclaredFields()
+  {
+    if( _fields == null )
+    {
+      List<VariableTree> fieldTrees = new ArrayList<>();
       final List<? extends Tree> members = _typeDecl.getMembers();
-      for (Tree t : members) {
-        if (t.getKind() == Tree.Kind.VARIABLE) {
-          fieldTrees.add((VariableTree)t);
+      //noinspection Convert2streamapi
+      for( Tree t : members )
+      {
+        if( t.getKind() == Tree.Kind.VARIABLE )
+        {
+          fieldTrees.add( (VariableTree)t );
         }
       }
       _fields = new JavaSourceField[fieldTrees.size()];
-      for (int i = 0; i < _fields.length; i++) {
-        _fields[i] = JavaSourceField.create(fieldTrees.get(i), this);
+      for( int i = 0; i < _fields.length; i++ )
+      {
+        _fields[i] = JavaSourceField.create( fieldTrees.get( i ), this );
       }
     }
     return _fields;
   }
 
-  public IJavaClassField[] getFields() {
-    if (_allFields == null) {
-      List<IJavaClassField> fields = new ArrayList<IJavaClassField>();
+  public IJavaClassField[] getFields()
+  {
+    if( _allFields == null )
+    {
+      List<IJavaClassField> fields = new ArrayList<>();
       IJavaClassField[] declaredFields = getDeclaredFields();
-      for (int i = 0; i < declaredFields.length; i++) {
+      for( int i = 0; i < declaredFields.length; i++ )
+      {
         IJavaClassField field = declaredFields[i];
-        if (Modifier.isPublic(field.getModifiers())) {
-          fields.add(field);
+        if( Modifier.isPublic( field.getModifiers() ) )
+        {
+          fields.add( field );
         }
       }
       IJavaClassInfo superclass = getSuperclass();
-      if (superclass != null) {
-        fields.addAll(Arrays.asList(superclass.getFields()));
+      if( superclass != null )
+      {
+        fields.addAll( Arrays.asList( superclass.getFields() ) );
       }
-      _allFields = fields.toArray(new IJavaClassField[fields.size()]);
+      _allFields = fields.toArray( new IJavaClassField[fields.size()] );
     }
     return _allFields;
   }
 
   @Override
-  public Object[] getEnumConstants() {
-    if (_enumConstants == null) {
-      List<IEnumValue> enums = new ArrayList<IEnumValue>();
+  public Object[] getEnumConstants()
+  {
+    if( _enumConstants == null )
+    {
+      List<IEnumValue> enums = new ArrayList<>();
       IJavaClassField[] fields = getFields();
-      for (IJavaClassField field : fields) {
-        if (field.isEnumConstant()) {
-          enums.add(new EnumValuePlaceholder(field.getName()));
+      for( IJavaClassField field : fields )
+      {
+        if( field.isEnumConstant() )
+        {
+          enums.add( new EnumValuePlaceholder( field.getName() ) );
         }
       }
-      _enumConstants = enums.toArray(new IEnumValue[enums.size()]);
+      _enumConstants = enums.toArray( new IEnumValue[enums.size()] );
     }
     return _enumConstants;
   }
 
   @Override
-  public IJavaPropertyDescriptor[] getPropertyDescriptors() {
-    if (_propertyDescriptors == null) {
+  public IJavaPropertyDescriptor[] getPropertyDescriptors()
+  {
+    if( _propertyDescriptors == null )
+    {
       _propertyDescriptors = initPropertyDescriptors();
     }
     return _propertyDescriptors;
   }
 
-  protected IJavaPropertyDescriptor[] initPropertyDescriptors() {
-    Map<String, IJavaClassMethod> getters = new HashMap<String, IJavaClassMethod>();
-    Map<String, IJavaClassMethod> setters = new HashMap<String, IJavaClassMethod>();
-    List<IJavaClassMethod> methods = new ArrayList<IJavaClassMethod>();
-    methods.addAll(Arrays.asList(getDeclaredMethods()));
+  protected IJavaPropertyDescriptor[] initPropertyDescriptors()
+  {
+    Map<String, IJavaClassMethod> getters = new HashMap<>();
+    Map<String, IJavaClassMethod> setters = new HashMap<>();
+    List<IJavaClassMethod> methods = new ArrayList<>();
+    methods.addAll( Arrays.asList( getDeclaredMethods() ) );
 
-    boolean simplePropertyProcessing = getModifierList().isAnnotationPresent(SimplePropertyProcessing.class);
+    boolean simplePropertyProcessing = getModifierList().isAnnotationPresent( SimplePropertyProcessing.class );
 
-    for (IJavaClassMethod method : methods) {
-      ImplicitPropertyUtil.ImplicitPropertyInfo info = JavaSourceUtil.getImplicitProperty(method, simplePropertyProcessing);
-      if (info != null) {
-        if (info.isGetter() && !getters.containsKey(info.getName())) {
-          getters.put(info.getName(), method);
-        } else if (info.isSetter() && !setters.containsKey(info.getName())) {
-          setters.put(info.getName(), method);
+    for( IJavaClassMethod method : methods )
+    {
+      ImplicitPropertyUtil.ImplicitPropertyInfo info = JavaSourceUtil.getImplicitProperty( method, simplePropertyProcessing );
+      if( info != null )
+      {
+        if( info.isGetter() && !getters.containsKey( info.getName() ) )
+        {
+          getters.put( info.getName(), method );
+        }
+        else if( info.isSetter() && !setters.containsKey( info.getName() ) )
+        {
+          setters.put( info.getName(), method );
         }
       }
     }
 
-    List<IJavaPropertyDescriptor> propertyDescriptors = new ArrayList<IJavaPropertyDescriptor>();
-    for (Map.Entry<String, IJavaClassMethod> entry : getters.entrySet()) {
+    List<IJavaPropertyDescriptor> propertyDescriptors = new ArrayList<>();
+    for( Map.Entry<String, IJavaClassMethod> entry : getters.entrySet() )
+    {
       String propName = entry.getKey();
-      IJavaClassMethod setter = setters.get(propName);
+      IJavaClassMethod setter = setters.get( propName );
       IJavaClassMethod getter = entry.getValue();
       IJavaClassType getterType = getter == null ? null : getter.getGenericReturnType();
-      if (setter != null) {
-        setters.remove(propName);
-        if (getterType != null &&
-          !setter.getGenericParameterTypes()[0].equals(getterType) &&
-          !GosuObjectUtil.equals(setter.getGenericParameterTypes()[0].getConcreteType(), getterType)) {
+      if( setter != null )
+      {
+        setters.remove( propName );
+        if( getterType != null &&
+            !setter.getGenericParameterTypes()[0].equals( getterType ) &&
+            !GosuObjectUtil.equals( setter.getGenericParameterTypes()[0].getConcreteType(), getterType ) )
+        {
           setter = null;
         }
       }
-      if (getterType != null) {
-        if( setter == null ) {
+      if( getterType != null )
+      {
+        if( setter == null )
+        {
           setter = AsmClassJavaClassInfo.maybeFindSetterInSuper( getter, getSuperclass() );
         }
-        propertyDescriptors.add(new JavaSourcePropertyDescriptor(
-            propName, (IJavaClassInfo) getterType.getConcreteType(), getter, setter));
+        propertyDescriptors.add( new JavaSourcePropertyDescriptor(
+          propName, (IJavaClassInfo)getterType.getConcreteType(), getter, setter ) );
       }
-      else {
-        setter = setters.get(propName);
-        if( setter != null ) {
+      else
+      {
+        setter = setters.get( propName );
+        if( setter != null )
+        {
           getter = AsmClassJavaClassInfo.maybeFindGetterInSuper( setter, getSuperclass() );
-          if( getter != null ) {
+          if( getter != null )
+          {
             setters.remove( propName );
             propertyDescriptors.add( new JavaSourcePropertyDescriptor(
-                    propName, (IJavaClassInfo)getterType.getConcreteType(), getter, setter ) );
+              propName, (IJavaClassInfo)getterType.getConcreteType(), getter, setter ) );
           }
         }
       }
     }
-    for (Map.Entry<String, IJavaClassMethod> entry : setters.entrySet()) {
+    for( Map.Entry<String, IJavaClassMethod> entry : setters.entrySet() )
+    {
       String propName = entry.getKey();
       IJavaClassMethod setter = entry.getValue();
       IJavaClassType propType = setter.getGenericReturnType();
       IJavaClassMethod getter = AsmClassJavaClassInfo.maybeFindGetterInSuper( setter, getSuperclass() );
-      if( getter != null ) {
+      if( getter != null )
+      {
         propType = getter.getGenericReturnType();
       }
-      propertyDescriptors.add(new JavaSourcePropertyDescriptor(propName, (IJavaClassInfo) propType.getConcreteType(), getter, setter));
+      propertyDescriptors.add( new JavaSourcePropertyDescriptor( propName, (IJavaClassInfo)propType.getConcreteType(), getter, setter ) );
     }
-    return propertyDescriptors.toArray(new IJavaPropertyDescriptor[propertyDescriptors.size()]);
+    return propertyDescriptors.toArray( new IJavaPropertyDescriptor[propertyDescriptors.size()] );
   }
 
   @Override
-  public IType getJavaType() {
-    return _javaType == null ? (_javaType = (IJavaType) TypeSystem.get(this)) : _javaType;
+  public IType getJavaType()
+  {
+    return _javaType == null ? (_javaType = (IJavaType)TypeSystem.get( this )) : _javaType;
   }
-  public void setJavaType( IJavaType javaType ) {
+
+  public void setJavaType( IJavaType javaType )
+  {
     _javaType = javaType;
   }
 
-  public IJavaClassTypeVariable[] getTypeParameters() {
-    if (_typeParameters == null) {
+  public IJavaClassTypeVariable[] getTypeParameters()
+  {
+    if( _typeParameters == null )
+    {
       List<? extends TypeParameterTree> typeParameters = _typeDecl.getTypeParameters();
-      if (!typeParameters.isEmpty()) {
+      if( !typeParameters.isEmpty() )
+      {
         _typeParameters = new IJavaClassTypeVariable[typeParameters.size()];
-        for (int i = 0; i < _typeParameters.length; i++) {
-          _typeParameters[i] = JavaSourceTypeVariable.create(this, typeParameters.get(i));
+        for( int i = 0; i < _typeParameters.length; i++ )
+        {
+          _typeParameters[i] = JavaSourceTypeVariable.create( this, typeParameters.get( i ) );
         }
-      } else {
+      }
+      else
+      {
         _typeParameters = JavaSourceTypeVariable.EMPTY;
       }
     }
@@ -678,87 +823,108 @@ public abstract class JavaSourceType extends AbstractJavaClassInfo implements IJ
   }
 
   @Override
-  public IClassDocNode createClassDocNode() {
+  public IClassDocNode createClassDocNode()
+  {
     return null;
   }
 
   @Override
-  public boolean hasCustomBeanInfo() {
+  public boolean hasCustomBeanInfo()
+  {
     return false;
   }
 
   @Override
-  public boolean isVisibleViaFeatureDescriptor(IScriptabilityModifier constraint) {
+  public boolean isVisibleViaFeatureDescriptor( IScriptabilityModifier constraint )
+  {
     return true;
   }
 
   @Override
-  public boolean isHiddenViaFeatureDescriptor() {
+  public boolean isHiddenViaFeatureDescriptor()
+  {
     return false;
   }
 
   @Override
-  public IJavaClassInfo getComponentType() {
+  public IJavaClassInfo getComponentType()
+  {
     return null;
   }
 
   @Override
-  public int getModifiers() {
+  public int getModifiers()
+  {
     return getModifierList().getModifiers() | ((isInterface() && getEnclosingClass() != null) ? Modifier.STATIC : 0);
   }
 
-  public IModifierList getModifierList() {
-    if (_modifiersList == null) {
-      _modifiersList = new JavaSourceModifierList(this, _typeDecl.getModifiers());
+  public IModifierList getModifierList()
+  {
+    if( _modifiersList == null )
+    {
+      _modifiersList = new JavaSourceModifierList( this, _typeDecl.getModifiers() );
     }
     return _modifiersList;
   }
 
-  public IType getEnclosingType() {
-    return _enclosingClass == null ? null : TypeSystem.get(_enclosingClass);
+  public IType getEnclosingType()
+  {
+    return _enclosingClass == null ? null : TypeSystem.get( _enclosingClass );
   }
 
-  public String getNamespace() {
+  public String getNamespace()
+  {
     return _namespace;
   }
 
   @Override
-  public IJavaClassInfo getArrayType() {
-    return new JavaArrayClassInfo(this);
+  public IJavaClassInfo getArrayType()
+  {
+    return new JavaArrayClassInfo( this );
   }
 
   @Override
-  public IJavaClassInfo[] getDeclaredClasses() {
-    if (_innerClasses == null) {
+  public IJavaClassInfo[] getDeclaredClasses()
+  {
+    if( _innerClasses == null )
+    {
       final List<? extends Tree> members = _typeDecl.getMembers();
-      List<ClassTree> innerTrees = new ArrayList<ClassTree>(members.size());
-      for (Tree t : members) {
-        if (t.getKind() == Tree.Kind.CLASS ||
+      List<ClassTree> innerTrees = new ArrayList<>( members.size() );
+      //noinspection Convert2streamapi
+      for( Tree t : members )
+      {
+        if( t.getKind() == Tree.Kind.CLASS ||
             t.getKind() == Tree.Kind.INTERFACE ||
             t.getKind() == Tree.Kind.ENUM ||
-            t.getKind() == Tree.Kind.ANNOTATION_TYPE) {
-          innerTrees.add((ClassTree) t);
+            t.getKind() == Tree.Kind.ANNOTATION_TYPE )
+        {
+          innerTrees.add( (ClassTree)t );
         }
       }
-      List<JavaSourceType> innerClasses = new ArrayList<JavaSourceType>(innerTrees.size());
+      List<JavaSourceType> innerClasses = new ArrayList<>( innerTrees.size() );
       //noinspection ForLoopReplaceableByForEach
-      for (int i = 0; i < innerTrees.size(); i++) {
-        JavaSourceType inner = JavaSourceType.createInner(innerTrees.get(i), this);
-        innerClasses.add(inner);
+      for( int i = 0; i < innerTrees.size(); i++ )
+      {
+        JavaSourceType inner = JavaSourceType.createInner( innerTrees.get( i ), this );
+        innerClasses.add( inner );
       }
-      _innerClasses = innerClasses.toArray(new JavaSourceType[innerClasses.size()]);
+      _innerClasses = innerClasses.toArray( new JavaSourceType[innerClasses.size()] );
     }
     return _innerClasses;
   }
 
   @Override
-  public Class getBackingClass() {
+  public Class getBackingClass()
+  {
     return null;
   }
 
-  public IJavaClassInfo getInnerClass(String relativeName) {
-    for (IJavaClassInfo innerClass : getDeclaredClasses()) {
-      if (innerClass.getSimpleName().equals(relativeName)) {
+  public IJavaClassInfo getInnerClass( String relativeName )
+  {
+    for( IJavaClassInfo innerClass : getDeclaredClasses() )
+    {
+      if( innerClass.getSimpleName().equals( relativeName ) )
+      {
         return innerClass;
       }
     }
@@ -766,46 +932,58 @@ public abstract class JavaSourceType extends AbstractJavaClassInfo implements IJ
   }
 
   @Override
-  public IType getActualType(TypeVarToTypeMap typeMap) {
-    return getActualType(typeMap, false);
+  public IType getActualType( TypeVarToTypeMap typeMap )
+  {
+    return getActualType( typeMap, false );
   }
 
   @Override
-  public IType getActualType(TypeVarToTypeMap typeMap, boolean bKeepTypeVars) {
-    return TypeSystem.getActualType(getJavaType(), typeMap, bKeepTypeVars);
+  public IType getActualType( TypeVarToTypeMap typeMap, boolean bKeepTypeVars )
+  {
+    return TypeSystem.getActualType( getJavaType(), typeMap, bKeepTypeVars );
   }
 
   @Override
-  public IJavaClassType getConcreteType() {
+  public IJavaClassType getConcreteType()
+  {
     return this;
   }
 
-  public boolean isClass() {
+  public boolean isClass()
+  {
     return this instanceof JavaSourceClass;
   }
 
-  public boolean isInterface() {
+  public boolean isInterface()
+  {
     return this instanceof JavaSourceInterface;
   }
 
   @Override
-  public Object newInstance() throws InstantiationException, IllegalAccessException {
+  public Object newInstance() throws InstantiationException, IllegalAccessException
+  {
     return null;
   }
 
   @Override
-  public IJavaClassMethod getMethod(String methodName, IJavaClassInfo... paramTypes) throws NoSuchMethodException {
+  public IJavaClassMethod getMethod( String methodName, IJavaClassInfo... paramTypes ) throws NoSuchMethodException
+  {
     outer:
-    for (IJavaClassMethod method : getDeclaredMethods()) {
-      if (!method.getName().equals(methodName)) {
+    for( IJavaClassMethod method : getDeclaredMethods() )
+    {
+      if( !method.getName().equals( methodName ) )
+      {
         continue;
       }
       IJavaClassInfo[] methodParamTypes = method.getParameterTypes();
-      if (paramTypes.length != methodParamTypes.length) {
+      if( paramTypes.length != methodParamTypes.length )
+      {
         continue;
       }
-      for (int i = 0; i < paramTypes.length; i++) {
-        if (!paramTypes[i].equals(methodParamTypes[i])) {
+      for( int i = 0; i < paramTypes.length; i++ )
+      {
+        if( !paramTypes[i].equals( methodParamTypes[i] ) )
+        {
           continue outer;
         }
       }
@@ -814,100 +992,125 @@ public abstract class JavaSourceType extends AbstractJavaClassInfo implements IJ
     throw new NoSuchMethodException();
   }
 
-  public IJavaClassMethod getDeclaredMethod(String methodName, IJavaClassInfo... paramTypes) throws NoSuchMethodException {
-    return getMethod(methodName, paramTypes);
+  public IJavaClassMethod getDeclaredMethod( String methodName, IJavaClassInfo... paramTypes ) throws NoSuchMethodException
+  {
+    return getMethod( methodName, paramTypes );
   }
 
   @Override
-  public IJavaMethodDescriptor[] getMethodDescriptors() {
-    if (_methodDescriptors == null) {
+  public IJavaMethodDescriptor[] getMethodDescriptors()
+  {
+    if( _methodDescriptors == null )
+    {
       IJavaClassMethod[] declaredMethods = getDeclaredMethods();
       _methodDescriptors = new IJavaMethodDescriptor[declaredMethods.length];
-      for (int i = 0; i < declaredMethods.length; i++) {
-        _methodDescriptors[i] = new JavaSourceMethodDescriptor(declaredMethods[i]);
+      for( int i = 0; i < declaredMethods.length; i++ )
+      {
+        _methodDescriptors[i] = new JavaSourceMethodDescriptor( declaredMethods[i] );
       }
     }
     return _methodDescriptors;
   }
 
-  public boolean isEnum() {
+  public boolean isEnum()
+  {
     return this instanceof JavaSourceEnum;
   }
 
   @Override
-  public boolean isPrimitive() {
+  public boolean isPrimitive()
+  {
     return false;
   }
 
-  public boolean isAnnotation() {
+  public boolean isAnnotation()
+  {
     return this instanceof JavaSourceAnnotation;
   }
 
-  public boolean isPublic() {
-    return getModifierList().hasModifier(Modifier.PUBLIC);
+  public boolean isPublic()
+  {
+    return getModifierList().hasModifier( Modifier.PUBLIC );
   }
 
-  public boolean isProtected() {
-    return getModifierList().hasModifier(Modifier.PROTECTED);
+  public boolean isProtected()
+  {
+    return getModifierList().hasModifier( Modifier.PROTECTED );
   }
 
-  public boolean isPrivate() {
-    return getModifierList().hasModifier(Modifier.PRIVATE);
+  public boolean isPrivate()
+  {
+    return getModifierList().hasModifier( Modifier.PRIVATE );
   }
 
-  public boolean isInternal() {
-    return getModifierList().hasModifier(Modifier.INTERNAL) ||
-           (!getModifierList().hasModifier(Modifier.PUBLIC) &&
-            !getModifierList().hasModifier(Modifier.PROTECTED) &&
-            !getModifierList().hasModifier(Modifier.PRIVATE));
+  public boolean isInternal()
+  {
+    return getModifierList().hasModifier( Modifier.INTERNAL ) ||
+           (!getModifierList().hasModifier( Modifier.PUBLIC ) &&
+            !getModifierList().hasModifier( Modifier.PROTECTED ) &&
+            !getModifierList().hasModifier( Modifier.PRIVATE ));
   }
 
-  public IJavaClassType resolveType(String relativeName, int ignoreFlags) {
-    return resolveType(relativeName, this, ignoreFlags);
+  public IJavaClassType resolveType( String relativeName, int ignoreFlags )
+  {
+    return resolveType( relativeName, this, ignoreFlags );
   }
 
-  public IJavaClassType resolveType(String relativeName, IJavaClassInfo whosAskin, int ignoreFlags) {
-    Object cachedOrCyclicType = getCachedDetectCyclicType(relativeName);
-    if( cachedOrCyclicType != null ) {
+  public IJavaClassType resolveType( String relativeName, IJavaClassInfo whosAskin, int ignoreFlags )
+  {
+    Object cachedOrCyclicType = getCachedDetectCyclicType( relativeName );
+    if( cachedOrCyclicType != null )
+    {
       return cachedOrCyclicType == CACHE_MISS ? null : (IJavaClassType)cachedOrCyclicType;
     }
     IJavaClassType type = null;
-    try {
+    try
+    {
 
       // Primitives
-      if (PRIMITIVES.containsKey(relativeName)) {
-        return type = JavaTypes.getJreType(PRIMITIVES.get(relativeName)).getBackingClassInfo();
+      if( PRIMITIVES.containsKey( relativeName ) )
+      {
+        return type = JavaTypes.getJreType( PRIMITIVES.get( relativeName ) ).getBackingClassInfo();
       }
 
       // Qualified or Semi-qualified Type e.g., Outer.Inner
-      int iDot = relativeName.indexOf(".");
-      if (iDot == 0) {
+      int iDot = relativeName.indexOf( "." );
+      if( iDot == 0 )
+      {
         return type = null;
-      } else if (iDot >= 0) {
-        return type = resolveQualifiedOrSemiQualifiedType(relativeName, whosAskin, iDot, ignoreFlags);
+      }
+      else if( iDot >= 0 )
+      {
+        return type = resolveQualifiedOrSemiQualifiedType( relativeName, whosAskin, iDot, ignoreFlags );
       }
 
       // Identity
-      if (relativeName.equals(getSimpleName())) {
+      if( relativeName.equals( getSimpleName() ) )
+      {
         return type = this;
       }
 
       // Direct Inner Classes (no recursion)
-      IJavaClassType innerClass = JavaSourceUtil.resolveInnerClass(this, relativeName, whosAskin);
-      if (innerClass != null) {
+      IJavaClassType innerClass = JavaSourceUtil.resolveInnerClass( this, relativeName, whosAskin );
+      if( innerClass != null )
+      {
         return type = innerClass;
       }
 
       // Imported Class
-      IJavaClassType importedType = resolveImport(relativeName);
-      if (importedType != null) {
+      IJavaClassType importedType = resolveImport( relativeName );
+      if( importedType != null )
+      {
         return type = importedType;
       }
 
       // type variable
-      for (IJavaClassTypeVariable typeParameter : getTypeParameters()) {
-        if (relativeName.equals(typeParameter.getName())) {
-          if( typeParameter instanceof JavaSourceTypeVariable ) {
+      for( IJavaClassTypeVariable typeParameter : getTypeParameters() )
+      {
+        if( relativeName.equals( typeParameter.getName() ) )
+        {
+          if( typeParameter instanceof JavaSourceTypeVariable )
+          {
             typeParameter = ((JavaSourceTypeVariable)typeParameter).copy();
           }
           return type = typeParameter;
@@ -916,35 +1119,44 @@ public abstract class JavaSourceType extends AbstractJavaClassInfo implements IJ
 
       // Enclosing Class
       IJavaClassInfo enclosingClass = getEnclosingClass();
-      if (enclosingClass != null) {
-        IJavaClassType outerClsCtx = enclosingClass.resolveType(relativeName, whosAskin, IGNORE_NONE);
-        if (outerClsCtx != null) {
+      if( enclosingClass != null )
+      {
+        IJavaClassType outerClsCtx = enclosingClass.resolveType( relativeName, whosAskin, IGNORE_NONE );
+        if( outerClsCtx != null )
+        {
           return type = outerClsCtx;
         }
       }
 
       // Class in Same Package
-      IJavaClassType neighborClass = resolveClassInSamePackage(relativeName);
-      if (neighborClass != null) {
+      IJavaClassType neighborClass = resolveClassInSamePackage( relativeName );
+      if( neighborClass != null )
+      {
         return type = neighborClass;
       }
 
       // Super Ancestry
-      if ((ignoreFlags & IGNORE_SUPERCLASS) == 0) {
+      if( (ignoreFlags & IGNORE_SUPERCLASS) == 0 )
+      {
         IJavaClassInfo superClass = getSuperclass();
-        if (superClass != null) {
-          IJavaClassType outerClsCtx = superClass.resolveType(relativeName, whosAskin, ignoreFlags);
-          if (outerClsCtx != null) {
+        if( superClass != null )
+        {
+          IJavaClassType outerClsCtx = superClass.resolveType( relativeName, whosAskin, ignoreFlags );
+          if( outerClsCtx != null )
+          {
             return type = outerClsCtx;
           }
         }
       }
 
       // Interface Ancestry
-      if ((ignoreFlags & IGNORE_INTERFACES) == 0) {
-        for (IJavaClassInfo ifaceType : getInterfaces()) {
-          IJavaClassType innerClassCtx = ifaceType.resolveType(relativeName, whosAskin, ignoreFlags);
-          if (innerClassCtx != null) {
+      if( (ignoreFlags & IGNORE_INTERFACES) == 0 )
+      {
+        for( IJavaClassInfo ifaceType : getInterfaces() )
+        {
+          IJavaClassType innerClassCtx = ifaceType.resolveType( relativeName, whosAskin, ignoreFlags );
+          if( innerClassCtx != null )
+          {
             return type = innerClassCtx;
           }
         }
@@ -953,77 +1165,100 @@ public abstract class JavaSourceType extends AbstractJavaClassInfo implements IJ
       // Not found
       return type = null;
     }
-    finally {
-      if( type == null ) {
+    finally
+    {
+      if( type == null )
+      {
         _cache.put( relativeName, CACHE_MISS );
       }
-      else {
+      else
+      {
         _cache.put( relativeName, type );
       }
     }
   }
 
-  private Object getCachedDetectCyclicType( String relativeName ) {
+  private Object getCachedDetectCyclicType( String relativeName )
+  {
     // Short-circuit type cycles
     Object type = _cache.get( relativeName );
-    if( type != null ) {
+    if( type != null )
+    {
       return type;
     }
 //    _cache.put( relativeName, CACHE_MISS );
     return null;
   }
 
-  private IJavaClassType resolveQualifiedOrSemiQualifiedType(String typeName, IJavaClassInfo whosAskin, int iDot, int ignoreFlags) {
+  private IJavaClassType resolveQualifiedOrSemiQualifiedType( String typeName, IJavaClassInfo whosAskin, int iDot, int ignoreFlags )
+  {
     // typeName is either:
     // 1) A fully qualified name e.g., com.abc.Foo
     // 2) A semi-qualified inner class name e.g., Foo.Inner
     // 3) A fully qualified inner class name e.g., com.abc.Foo.Inner
     String rootName = typeName.substring( 0, iDot );
     // First try to resolve a relative root type e.g., the Foo in Foo.Inner (for case #2)
-    IJavaClassType rootType = resolveType( rootName, whosAskin, ignoreFlags);
-    if (rootType == null) {
+    IJavaClassType rootType = resolveType( rootName, whosAskin, ignoreFlags );
+    if( rootType == null )
+    {
       // Now try to resolve a root qualified type, with or without an inner class (for cases #1 and #3)
-      rootType = resolveRootQualifiedType(typeName);
-      if (rootType != null) {
-        if (rootType.getName().replace('$', '.').equals(typeName)) {
+      rootType = resolveRootQualifiedType( typeName );
+      if( rootType != null )
+      {
+        if( rootType.getName().replace( '$', '.' ).equals( typeName ) )
+        {
           // Case #1, no inner class
           return rootType;
         }
-      } else {
+      }
+      else
+      {
         return null;
       }
     }
     // Case #2 or #3
-    return resolveTrailingInnerClass(rootType, typeName, whosAskin);
+    return resolveTrailingInnerClass( rootType, typeName, whosAskin );
   }
 
-  private IJavaClassType resolveRootQualifiedType(String qname) {
-    while (true) {
-      IJavaClassType rootType = JavaSourceUtil.getClassInfo(qname, _gosuModule);
-      if (rootType != null) {
+  private IJavaClassType resolveRootQualifiedType( String qname )
+  {
+    while( true )
+    {
+      IJavaClassType rootType = JavaSourceUtil.getClassInfo( qname, _gosuModule );
+      if( rootType != null )
+      {
         return rootType;
       }
-      int iLastDot = qname.lastIndexOf('.');
-      if (iLastDot > 0) {
-        qname = qname.substring(0, iLastDot);
-      } else {
+      int iLastDot = qname.lastIndexOf( '.' );
+      if( iLastDot > 0 )
+      {
+        qname = qname.substring( 0, iLastDot );
+      }
+      else
+      {
         return null;
       }
     }
   }
 
-  private IJavaClassType resolveTrailingInnerClass(IJavaClassType rootType, String fullNameIncludingRoot, IJavaClassInfo whosAskin) {
+  private IJavaClassType resolveTrailingInnerClass( IJavaClassType rootType, String fullNameIncludingRoot, IJavaClassInfo whosAskin )
+  {
     String rootName;
-    if (fullNameIncludingRoot.startsWith(rootType.getName())) {
+    if( fullNameIncludingRoot.startsWith( rootType.getName() ) )
+    {
       rootName = rootType.getName();
-    } else {
-      rootName = rootType.getSimpleName().replace('$', '.');
     }
-    String innerSuffix = fullNameIncludingRoot.substring(rootName.length() + 1);
-    String[] innerNames = innerSuffix.split("\\.");
-    for (String innerName : innerNames) {
-      IJavaClassType innerClass = JavaSourceUtil.resolveInnerClass((IJavaClassInfo) rootType.getConcreteType(), innerName, whosAskin);
-      if (innerClass == null) {
+    else
+    {
+      rootName = rootType.getSimpleName().replace( '$', '.' );
+    }
+    String innerSuffix = fullNameIncludingRoot.substring( rootName.length() + 1 );
+    String[] innerNames = innerSuffix.split( "\\." );
+    for( String innerName : innerNames )
+    {
+      IJavaClassType innerClass = JavaSourceUtil.resolveInnerClass( (IJavaClassInfo)rootType.getConcreteType(), innerName, whosAskin );
+      if( innerClass == null )
+      {
         return null;
       }
       rootType = innerClass;
@@ -1031,28 +1266,38 @@ public abstract class JavaSourceType extends AbstractJavaClassInfo implements IJ
     return rootType;
   }
 
-  private IJavaClassType resolveClassInSamePackage(String relativeName) {
+  private IJavaClassType resolveClassInSamePackage( String relativeName )
+  {
     String packageName = getNamespace();
-    if (packageName.length() > 0) {
+    if( packageName.length() > 0 )
+    {
       relativeName = packageName + '.' + relativeName;
     }
-    return JavaSourceUtil.getClassInfo(relativeName, _gosuModule);
+    return JavaSourceUtil.getClassInfo( relativeName, _gosuModule );
   }
 
-  public IJavaClassType resolveImport(String relativeName) {
-    if( _importList == null ) {
+  public IJavaClassType resolveImport( String relativeName )
+  {
+    if( _importList == null )
+    {
       return null;
     }
-    for (String importText : _importList) {
-      int iStar = importText.lastIndexOf("*");
-      if (iStar > 0) {
-        IJavaClassType type = JavaSourceUtil.getClassInfo(importText.substring(0, iStar) + relativeName, _gosuModule);
-        if (type != null) {
+    for( String importText : _importList )
+    {
+      int iStar = importText.lastIndexOf( "*" );
+      if( iStar > 0 )
+      {
+        IJavaClassType type = JavaSourceUtil.getClassInfo( importText.substring( 0, iStar ) + relativeName, _gosuModule );
+        if( type != null )
+        {
           return type;
         }
-      } else if (importText.endsWith('.' + relativeName)) {
-        IJavaClassType type = JavaSourceUtil.getClassInfo(importText, _gosuModule);
-        if (type != null) {
+      }
+      else if( importText.endsWith( '.' + relativeName ) )
+      {
+        IJavaClassType type = JavaSourceUtil.getClassInfo( importText, _gosuModule );
+        if( type != null )
+        {
           return type;
         }
       }
@@ -1061,53 +1306,62 @@ public abstract class JavaSourceType extends AbstractJavaClassInfo implements IJ
   }
 
   @Override
-  public IJavaClassInfo getEnclosingClass() {
+  public IJavaClassInfo getEnclosingClass()
+  {
     return _enclosingClass;
   }
 
-  public String toString() {
+  public String toString()
+  {
     return getName();
   }
 
   @Override
-  public boolean isAnnotationPresent(Class<? extends Annotation> annotationClass) {
-    return getModifierList().isAnnotationPresent(annotationClass);
+  public boolean isAnnotationPresent( Class<? extends Annotation> annotationClass )
+  {
+    return getModifierList().isAnnotationPresent( annotationClass );
   }
 
   @Override
-  public IAnnotationInfo getAnnotation(Class annotationClass) {
-    return getModifierList().getAnnotation(annotationClass);
+  public IAnnotationInfo getAnnotation( Class annotationClass )
+  {
+    return getModifierList().getAnnotation( annotationClass );
   }
 
   @Override
-  public IAnnotationInfo[] getDeclaredAnnotations() {
+  public IAnnotationInfo[] getDeclaredAnnotations()
+  {
     return getModifierList().getAnnotations();
   }
 
-  public TypeUsesMap getTypeUsesMap() {
+  public TypeUsesMap getTypeUsesMap()
+  {
     TypeUsesMap typeUsesMap = new TypeUsesMap();
     typeUsesMap.addToTypeUses( getNamespace() + ".*" );
-    if (_importList != null) {
-      for (String s : _importList) {
-        typeUsesMap.addToTypeUses(s);
-      }
+    if( _importList != null )
+    {
+      _importList.forEach( typeUsesMap::addToTypeUses );
     }
     return typeUsesMap;
   }
 
-  public List<String> getImportList() {
+  public List<String> getImportList()
+  {
     return _importList;
   }
-  
-  public List<String> getStaticImports() {
+
+  public List<String> getStaticImports()
+  {
     return _staticImportList;
   }
 
   @Override
-  public ISourceFileHandle getSourceFileHandle() {
-    if (_fileHandle == null) {
-      IDefaultTypeLoader loader = _enclosingClass.getModule().getTypeLoaders(IDefaultTypeLoader.class).get(0);
-      _fileHandle = loader.getSouceFileHandle(getName());
+  public ISourceFileHandle getSourceFileHandle()
+  {
+    if( _fileHandle == null )
+    {
+      IDefaultTypeLoader loader = _enclosingClass.getModule().getTypeLoaders( IDefaultTypeLoader.class ).get( 0 );
+      _fileHandle = loader.getSouceFileHandle( getName() );
     }
     return _fileHandle;
   }

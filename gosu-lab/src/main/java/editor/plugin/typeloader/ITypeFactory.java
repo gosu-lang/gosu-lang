@@ -1,15 +1,20 @@
 package editor.plugin.typeloader;
 
+import gw.lang.reflect.IType;
 import javax.swing.JComponent;
+import javax.swing.text.StyledEditorKit;
 
 /**
  */
 public interface ITypeFactory
 {
+  boolean canCreate();
   String getFileExtension();
   String getName();
   String getIcon();
   INewFileParams makeDefaultParams( String fqn );
   JComponent makePanel( INewFileParams params );
   CharSequence createNewFileContents( INewFileParams params );
+  StyledEditorKit makeEditorKit();
+  void parse( IType type, JComponent editor );
 }

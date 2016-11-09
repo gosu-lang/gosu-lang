@@ -376,4 +376,21 @@ public class DefaultTypeLoader extends SimpleTypeLoader implements IExtendedType
     return names;
   }
 
+  @Override
+  public <T> T getInterface( Class<T> apiInterface )
+  {
+    if( apiInterface.getName().equals( "editor.plugin.typeloader.ITypeFactory" ) )
+    {
+      try
+      {
+        //noinspection unchecked
+        return (T)Class.forName( "editor.plugin.typeloader.java.JavaTypeFactory" ).newInstance();
+      }
+      catch( Exception e )
+      {
+        throw new RuntimeException( e );
+      }
+    }
+    return super.getInterface( apiInterface );
+  }
 }

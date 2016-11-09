@@ -2,7 +2,9 @@ package editor.plugin.typeloader.properties;
 
 import editor.plugin.typeloader.INewFileParams;
 import editor.plugin.typeloader.ITypeFactory;
+import gw.lang.reflect.IType;
 import javax.swing.JComponent;
+import javax.swing.text.StyledEditorKit;
 
 /**
  */
@@ -10,6 +12,12 @@ public class PropertiesTypeFactory implements ITypeFactory
 {
   public PropertiesTypeFactory()
   {
+  }
+
+  @Override
+  public boolean canCreate()
+  {
+    return true;
   }
 
   @Override
@@ -47,5 +55,17 @@ public class PropertiesTypeFactory implements ITypeFactory
   public JComponent makePanel( INewFileParams params )
   {
     return null;
+  }
+
+  @Override
+  public StyledEditorKit makeEditorKit()
+  {
+    return null;
+  }
+
+  @Override
+  public void parse( IType type, JComponent editor )
+  {
+
   }
 }

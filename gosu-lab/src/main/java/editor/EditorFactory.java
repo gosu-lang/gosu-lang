@@ -35,13 +35,9 @@ public class EditorFactory
       initEditorMode( file, editor );
       return editor;
     }
-    else if( type instanceof IPropertiesType )
-    {
-      return new TextEditor();
-    }
     else
     {
-      return new TextEditor();
+      return new TextEditor( type );
       //return new PlainTextEditor();
     }
 
