@@ -1,6 +1,7 @@
 package gw.lang.gosuc.cli;
 
 import gw.internal.ext.com.beust.jcommander.Parameter;
+import gw.internal.ext.com.beust.jcommander.validators.PositiveInteger;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -85,6 +86,26 @@ class CommandLineOptions {
 
   protected List<String> getSourceFiles() {
     return _srcFiles;
+  }
+
+  @Parameter(names = "-maxerrs", description = "Set the maximum number of errors to print", validateWith = PositiveInteger.class)
+  private int _maxerrs = 100;
+
+  /**
+   * @return maximum error threshold. Defaults to 1,000.
+   */
+  protected int getMaxErrs() {
+    return _maxerrs;
+  }
+
+  @Parameter(names = "-maxwarns", description = "Set the maximum number of warnings to print", validateWith = PositiveInteger.class)
+  private int _maxwarns = Integer.MAX_VALUE;
+
+  /**
+   * @return maximum warning threshold. Defaults to Integer.MAX_VALUE.
+   */
+  protected int getMaxWarns() {
+    return _maxwarns;
   }
 
 }
