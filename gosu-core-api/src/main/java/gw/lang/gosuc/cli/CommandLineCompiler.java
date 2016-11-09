@@ -34,7 +34,6 @@ public class CommandLineCompiler {
       System.exit(0);
     }
 
-    SoutCompilerDriver driver = new SoutCompilerDriver();
     IGosuCompiler gosuc = new GosuCompiler();
 
     List<String> sourcepath = Arrays.asList(options.getSourcepath().split(File.pathSeparator));
@@ -58,12 +57,36 @@ public class CommandLineCompiler {
 
     gosuc.initializeGosu(sourcepath, classpath, options.getDestDir());
 
+    final List<String> warnings = new ArrayList<>();
+    final List<String> errors = new ArrayList<>();
+    boolean thresholdExceeded = false;
+    
     for(String file : options.getSourceFiles()) {
       try {
         if(options.isVerbose()) {
           System.out.println("gosuc: about to compile file: " + file);
         }
+        SoutCompilerDriver driver = new SoutCompilerDriver();
         gosuc.compile(new File(file), driver);
+        
+        //output warnings/errors
+        printErrorsAndWarnings(driver, options.isNoWarn());
+        
+        //collect & check thresholds
+        warnings.addAll(driver.getWarnings());
+        errors.addAll(driver.getErrors());
+        
+        //if exceed threshold then break
+        if(errors.size() > options.getMaxErrs()) {
+          System.out.println("\nError threshold exceeded; aborting compilation.");
+          thresholdExceeded = true;
+          break;
+        }
+        if(!options.isNoWarn() && warnings.size() > options.getMaxWarns()) {
+          System.out.println("\nWarning threshold exceeded; aborting compilation.");
+          thresholdExceeded = true;
+          break;
+        }        
       } catch (Exception e) {
           System.out.println("Error compiling " + file);
           e.printStackTrace();
@@ -72,38 +95,45 @@ public class CommandLineCompiler {
 
     gosuc.unitializeGosu();
 
-    boolean hasErrors = printErrorsAndWarnings(driver, options.isNoWarn());
+    //print summary
+    boolean exitWithFailure = summarize(warnings, errors, options.isNoWarn()) || thresholdExceeded;
 
-    System.exit(hasErrors ? 1 : 0);
+    System.exit(exitWithFailure ? 1 : 0);
   }
 
   /**
-   * @param driver
-   * @return true if driver had errors, false otherwise
+   * @param driver results of compiling a single file
+   * @param isNoWarn true if warnings are disabled
    */
-  private boolean printErrorsAndWarnings(SoutCompilerDriver driver, boolean isNoWarn) {
-    boolean hasErrors = driver.hasErrors();
-    List<String> warnings = driver.getWarnings();
-    List<String> errors = driver.getErrors();
-
-    for(String warningMsg : warnings) {
-      if(!isNoWarn) {
+  private void printErrorsAndWarnings(SoutCompilerDriver driver, boolean isNoWarn) {
+    if(!isNoWarn) {
+      //noinspection Convert2streamapi
+      for(String warningMsg : driver.getWarnings()) {
         System.out.println(warningMsg);
       }
     }
-    if(hasErrors) {
-      for(String errorMsg : errors) {
+    if(driver.hasErrors()) {
+      //noinspection Convert2streamapi
+      for(String errorMsg : driver.getErrors()) {
         System.out.println(errorMsg);
       }
     }
+  }
 
+  /**
+   * @param warnings List of warnings
+   * @param errors List of errors
+   * @param isNoWarn true if warnings are disabled
+   * @return true if compilation resulted in errors, false otherwise
+   */
+  private boolean summarize(List<String> warnings, List<String> errors, boolean isNoWarn) {
     if(isNoWarn) {
       System.out.printf("\ngosuc completed with %d errors. Warnings were disabled.\n", errors.size());
     } else {
       System.out.printf("\ngosuc completed with %d warnings and %d errors.\n", warnings.size(), errors.size());
     }
 
-    return hasErrors;
+    return errors.size() > 0;
   }
-
+  
 }
