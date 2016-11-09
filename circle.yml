@@ -32,7 +32,7 @@ test:
     - find . -type f -regex ".*/target/surefire-reports/.*xml" -exec cp {} $CIRCLE_TEST_REPORTS/junit/ \;
     - find . -type f -regex ".*/target/surefire-reports/.*-output.txt" -exec cp {} $CIRCLE_TEST_REPORTS/junit/ \;
     - mkdir -p $CIRCLE_TEST_REPORTS/vm_crash/
-    - find . -type f -regex ".*/hs_err*" -exec cp {} $CIRCLE_TEST_REPORTS/vm_crash/ \;
+    - find . -type f -regex ".*/hs_err.*" -exec cp {} $CIRCLE_TEST_REPORTS/vm_crash/ \;
 
 deployment:
   snapshots:
