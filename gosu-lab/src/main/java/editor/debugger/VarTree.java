@@ -1,16 +1,25 @@
-package editor;
+package editor.debugger;
 
 import com.sun.jdi.AbsentInformationException;
 import com.sun.jdi.ArrayReference;
+import com.sun.jdi.ClassType;
 import com.sun.jdi.Field;
 import com.sun.jdi.LocalVariable;
+import com.sun.jdi.Method;
 import com.sun.jdi.ObjectReference;
+import com.sun.jdi.PrimitiveValue;
 import com.sun.jdi.ReferenceType;
 import com.sun.jdi.StackFrame;
+import com.sun.jdi.ThreadReference;
 import com.sun.jdi.Value;
+import editor.LabFrame;
+import editor.MessagesPanel;
+import editor.Scheme;
 import editor.util.EditorUtilities;
 import static editor.util.EditorUtilities.hex;
 
+
+import java.util.stream.Collectors;
 import javax.swing.*;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.MutableTreeNode;
@@ -98,33 +107,124 @@ public class VarTree implements MutableTreeNode
     if( _children == Collections.<VarTree>emptyList() )
     {
       _children = new ArrayList<>();
+      showValue( _value );
+    }
+  }
 
-      if( _value instanceof ArrayReference )
+  private void showValue( Value value )
+  {
+    switch( getValueKind( value ) )
+    {
+      case Null:
+        break;
+
+      case Primitive:
+        break;
+
+      case Array:
       {
-        ArrayReference ref = (ArrayReference)_value;
-        List<Value> elems = ref.getValues();
-        for( int i = 0; i < elems.size(); i++ )
+        showArrayElements( (ArrayReference)value );
+        break;
+      }
+
+      case Object:
+      {
+        ObjectReference ref = (ObjectReference)value;
+        ReferenceType type = ref.referenceType();
+        showFields( ref, type );
+        break;
+      }
+
+      case Collection:
+      {
+        ObjectReference ref = (ObjectReference)value;
+        ReferenceType type = ref.referenceType();
+        Method toArray = type.methodsByName( "toArray" ).stream().filter( e -> e.argumentTypeNames().size() == 0 ).collect( Collectors.toList() ).get( 0 );
+        ThreadReference thread = LabFrame.instance().getGosuPanel().getDebugger().getSuspendedThread();
+        try
         {
-          Value elem = elems.get( i );
-          if( elem != null )
-          {
-            insert( new VarTree( "[<font color=#" + hex( Scheme.active().debugVarRedText() ) + ">" + i + "</font>]", elem.type().name(), elem, false ) );
-          }
+          ArrayReference elements = (ArrayReference)ref.invokeMethod( thread, toArray, Collections.emptyList(), 0 );
+          showValue( elements );
+          break;
+        }
+        catch( Exception e )
+        {
+          throw new RuntimeException( e );
         }
       }
-      else if( _value instanceof ObjectReference )
+
+      case Map:
       {
-        ObjectReference ref = (ObjectReference)_value;
+        ObjectReference ref = (ObjectReference)value;
         ReferenceType type = ref.referenceType();
-        for( Field field : type.allFields() )
+        Method toArray = type.methodsByName( "entrySet" ).stream().filter( e -> e.argumentTypeNames().size() == 0 ).collect( Collectors.toList() ).get( 0 );
+        ThreadReference thread = LabFrame.instance().getGosuPanel().getDebugger().getSuspendedThread();
+        try
         {
-          if( field.isFinal() && field.isStatic() )
-          {
-            continue;
-          }
-          Value fvalue = ref.getValue( field );
-          insert( new VarTree( field.name(), field.typeName(), fvalue, false ) );
+          ObjectReference entries = (ObjectReference)ref.invokeMethod( thread, toArray, Collections.emptyList(), 0 );
+          showValue( entries );
+          break;
         }
+        catch( Exception e )
+        {
+          throw new RuntimeException( e );
+        }
+      }
+
+      default:
+        throw new UnsupportedOperationException();
+    }
+  }
+
+  static ValueKind getValueKind( Value value )
+  {
+    if( value == null )
+    {
+      return ValueKind.Null;
+    }
+    if( value instanceof PrimitiveValue )
+    {
+      return ValueKind.Primitive;
+    }
+    if( value instanceof ArrayReference )
+    {
+      return ValueKind.Array;
+    }
+    ClassType classType = (ClassType)((ObjectReference)value).referenceType();
+    List<String> interfaces = classType.allInterfaces().stream().map( ReferenceType::name ).collect( Collectors.toList() );
+    if( interfaces.contains( "java.util.Collection" ) )
+    {
+      return ValueKind.Collection;
+    }
+    if( interfaces.contains( "java.util.Map" ) )
+    {
+      return ValueKind.Map;
+    }
+    return ValueKind.Object;
+  }
+
+  private void showFields( ObjectReference ref, ReferenceType type )
+  {
+    for( Field field : type.allFields() )
+    {
+      if( field.isFinal() && field.isStatic() )
+      {
+        continue;
+      }
+      Value fvalue = ref.getValue( field );
+      insert( new VarTree( field.name(), field.typeName(), fvalue, false ) );
+    }
+  }
+
+  private void showArrayElements( ArrayReference ref )
+  {
+    List<Value> elems = ref.getValues();
+    for( int i = 0; i < elems.size(); i++ )
+    {
+      Value elem = elems.get( i );
+      if( elem != null )
+      {
+        insert( new VarTree( "[<font color=#" + hex( Scheme.active().debugVarRedText() ) + ">" + i + "</font>]", elem.type().name(), elem, false ) );
       }
     }
   }
@@ -309,5 +409,25 @@ public class VarTree implements MutableTreeNode
   public JTree getTree()
   {
     return LabFrame.instance().getGosuPanel().getMessagesPanel().getTree();
+  }
+
+  public static boolean hasSuperClass( ReferenceType referenceType, String typeName )
+  {
+    if( referenceType == null )
+    {
+      return false;
+    }
+
+    if( referenceType.name().equals( typeName ) )
+    {
+      return true;
+    }
+
+    if( !(referenceType instanceof ClassType) )
+    {
+      return false;
+    }
+
+    return hasSuperClass( ((ClassType)referenceType).superclass(), typeName );
   }
 }

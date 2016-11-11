@@ -14,7 +14,6 @@ import editor.GosuPanel;
 import editor.LabFrame;
 import editor.Scheme;
 import editor.ToggleToolBarButton;
-import editor.VarTree;
 import editor.run.IRunConfig;
 import editor.splitpane.CollapsibleSplitPane;
 import editor.tabpane.TabPane;

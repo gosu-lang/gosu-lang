@@ -10,7 +10,6 @@ import editor.GosuPanel;
 import editor.IHandleCancel;
 import editor.LabFrame;
 import editor.Scheme;
-import editor.VarTree;
 import editor.search.StringUtil;
 import editor.splitpane.CollapsibleSplitPane;
 import editor.undo.AtomicUndoManager;
