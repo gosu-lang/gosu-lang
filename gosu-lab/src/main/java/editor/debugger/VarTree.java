@@ -42,16 +42,17 @@ public class VarTree implements MutableTreeNode
   private VarTree _parent;
   private List<VarTree> _children;
 
-  public VarTree( StackFrame frame )
+  public VarTree( DebugPanel.StackFrameRef ref )
   {
     _name = null;
     _type = null;
     _value = null;
     _children = Collections.emptyList();
-    if( frame == null )
+    if( ref == null )
     {
       return;
     }
+    StackFrame frame = ref.getRef();
     ObjectReference thisObj = frame.thisObject();
     if( thisObj != null )
     {
@@ -205,14 +206,27 @@ public class VarTree implements MutableTreeNode
 
   private void showFields( ObjectReference ref, ReferenceType type )
   {
-    for( Field field : type.allFields() )
+    List<Field> fields = new ArrayList<>();
+    List<Field> allFields = type.allFields();
+    for( Field field: allFields )
     {
       if( field.isFinal() && field.isStatic() )
       {
         continue;
       }
-      Value fvalue = ref.getValue( field );
-      insert( new VarTree( field.name(), field.typeName(), fvalue, false ) );
+      fields.add( field );
+    }
+    if( !fields.isEmpty() )
+    {
+      Map<Field, Value> mapFields = ref.getValues( fields );
+      for( Field field : allFields )
+      {
+        if( !mapFields.containsKey( field ) )
+        {
+          continue;
+        }
+        insert( new VarTree( field.name(), field.typeName(), mapFields.get( field ), false ) );
+      }
     }
   }
 

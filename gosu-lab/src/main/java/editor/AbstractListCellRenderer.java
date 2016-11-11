@@ -11,6 +11,7 @@ public abstract class AbstractListCellRenderer<T> extends JLabel implements List
   private boolean _bSelected;
   private T _node;
   private Supplier<JComponent> _list;
+  private int _index;
   private boolean _bRenderAsIfFocused;
 
   public AbstractListCellRenderer( JComponent list )
@@ -40,6 +41,7 @@ public abstract class AbstractListCellRenderer<T> extends JLabel implements List
       //noinspection unchecked
       _node = (T)value;
       _bSelected = bSelected;
+      _index = index;
       configure();
     }
 
@@ -49,6 +51,11 @@ public abstract class AbstractListCellRenderer<T> extends JLabel implements List
   protected T getNode()
   {
     return _node;
+  }
+
+  public int getIndex()
+  {
+    return _index;
   }
 
   public void update()

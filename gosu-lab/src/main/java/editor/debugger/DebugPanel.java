@@ -1,5 +1,6 @@
 package editor.debugger;
 
+import com.sun.jdi.IncompatibleThreadStateException;
 import com.sun.jdi.InvalidStackFrameException;
 import com.sun.jdi.Location;
 import com.sun.jdi.ReferenceType;
@@ -40,7 +41,7 @@ import java.util.function.Consumer;
 public class DebugPanel extends JPanel implements IDisposable
 {
   private JComboBox<ThreadReference> _cbThreads;
-  private JList<StackFrame> _listFrames;
+  private JList<StackFrameRef> _listFrames;
   private JTree _varTree;
   private List<Consumer<Location>> _listeners;
   private Debugger _debugger;
@@ -80,7 +81,7 @@ public class DebugPanel extends JPanel implements IDisposable
     _cbThreads.setFocusable( false );
     panel.add( _cbThreads, BorderLayout.NORTH );
 
-    DefaultListModel<StackFrame> model = new DefaultListModel<>();
+    DefaultListModel<StackFrameRef> model = new DefaultListModel<>();
     _listFrames = new JList<>( model );
     _listFrames.setBackground( Scheme.active().getWindow() );
     _listFrames.getSelectionModel().setSelectionMode( ListSelectionModel.SINGLE_SELECTION );
@@ -146,6 +147,7 @@ public class DebugPanel extends JPanel implements IDisposable
   {
     _listeners.add( listener );
   }
+  @SuppressWarnings("UnusedDeclaration")
   public void removeLocationListener( Consumer<Location> listener )
   {
     _listeners.remove( listener );
@@ -201,7 +203,7 @@ public class DebugPanel extends JPanel implements IDisposable
 
   private void updateVars()
   {
-    StackFrame frame = _listFrames.getSelectedValue();
+    StackFrameRef frame = _listFrames.getSelectedValue();
 
     DefaultTreeModel model = new DefaultTreeModel( new VarTree( frame ) );
     _varTree.setModel( model );
@@ -211,7 +213,7 @@ public class DebugPanel extends JPanel implements IDisposable
       return;
     }
 
-    fireLocationChange( frame.location() );
+    fireLocationChange( frame.getRef().location() );
   }
 
   private void threadChanged()
@@ -235,10 +237,11 @@ public class DebugPanel extends JPanel implements IDisposable
     }
   }
 
-  private ListModel<StackFrame> makeThreadsModel( List<StackFrame> frames )
+  private ListModel<StackFrameRef> makeThreadsModel( List<StackFrame> frames )
   {
-    DefaultListModel<StackFrame> model = new DefaultListModel<>();
-    frames.forEach( model::addElement );
+    DefaultListModel<StackFrameRef> model = new DefaultListModel<>();
+    final int[] i = {0};
+    frames.forEach( e -> model.addElement( new StackFrameRef( i[0]++ ) ) );
     return model;
   }
 
@@ -310,7 +313,7 @@ public class DebugPanel extends JPanel implements IDisposable
     tb.add( makeSeparator(), i++ );
 
     item = makeButton( new CommonMenus.RunToCursorActionHandler( this::getDebugger, this::getBreakpointManager, this::getCurrentGosuEditor ) );
-    tb.add( item, i++ );
+    tb.add( item, i );
   }
 
   private LabToolbarButton makeButton( Action action )
@@ -343,7 +346,8 @@ public class DebugPanel extends JPanel implements IDisposable
 
   public StackFrame getDropToFrame()
   {
-    StackFrame frame = _listFrames.getSelectedValue();
+    StackFrameRef ref = _listFrames.getSelectedValue();
+    StackFrame frame = ref.getRef();
     if( isFilteredClass( frame.location().declaringType() ) )
     {
       // don't support dropping too far outside of filtered classes, otherwise
@@ -358,7 +362,7 @@ public class DebugPanel extends JPanel implements IDisposable
     return (ThreadReference)_cbThreads.getSelectedItem();
   }
 
-  private class StackFrameCellRenderer extends AbstractListCellRenderer<StackFrame>
+  private class StackFrameCellRenderer extends AbstractListCellRenderer<StackFrameRef>
   {
     private StackFrameCellRenderer()
     {
@@ -369,7 +373,7 @@ public class DebugPanel extends JPanel implements IDisposable
     public void configure()
     {
       setBorder( new EmptyBorder( 0, 2, 0, 0 ) );
-      StackFrame frame = getNode();
+      StackFrame frame = getNode().getRef();
       if( frame != null )
       {
         Location loc;
@@ -447,4 +451,27 @@ public class DebugPanel extends JPanel implements IDisposable
     }
   }
 
+  //!! using a reference object instead of direct StackFrame because the debugger can indirectly invalidate a StackFrame when it invokes a method remotely on a suspended.
+  //!! This happens because all threads are resumed when code executes in the remote VM i.e., a thread resumed after a StackFrame is stored renders the StackFrame unusable,
+  //!! so we have to get the latest one.
+  public class StackFrameRef
+  {
+    private final int _index;
+
+    StackFrameRef( int index )
+    {
+      _index = index;
+    }
+    StackFrame getRef()
+    {
+      try
+      {
+        return ((ThreadReference)_cbThreads.getSelectedItem()).frame( _index );
+      }
+      catch( IncompatibleThreadStateException e )
+      {
+        throw new RuntimeException( e );
+      }
+    }
+  }
 }

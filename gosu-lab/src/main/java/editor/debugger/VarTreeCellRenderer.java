@@ -135,6 +135,11 @@ class VarTreeCellRenderer extends AbstractTreeCellRenderer<VarTree>
       return "";
     }
     ThreadReference thread = debugger.getSuspendedThread();
+    if( thread == null )
+    {
+      return "";
+    }
+
     ReferenceType refType = value.referenceType();
     try
     {
