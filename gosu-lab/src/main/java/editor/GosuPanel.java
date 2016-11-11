@@ -2049,6 +2049,11 @@ public class GosuPanel extends JPanel
   {
     String fqn = Debugger.getOutermostType( location.declaringType() );
     int line = location.lineNumber();
+    if( line <= 0 )
+    {
+      // ignore invalid line numbers e.g., sometimes -1 is a line number for generated code
+      return;
+    }
     java.awt.EventQueue.invokeLater( () -> {
       if( openType( fqn, bFocus ) )
       {

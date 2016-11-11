@@ -1,5 +1,6 @@
 package editor;
 
+import editor.search.MessageDisplay;
 import editor.search.SearchLocation;
 import editor.undo.AtomicUndoManager;
 import editor.util.EditorUtilities;
@@ -522,6 +523,11 @@ public abstract class EditorHost extends JPanel implements IEditorHost
   {
     Element root = getEditor().getDocument().getRootElements()[0];
     iLine = root.getElementCount() < iLine ? root.getElementCount() : iLine;
+    if( iLine < 1 )
+    {
+      MessageDisplay.displayError( "Invalide line number: " + iLine );
+      return;
+    }
     Element line = root.getElement( iLine - 1 );
     gotoOffset( line.getStartOffset() + iColumn );
   }
