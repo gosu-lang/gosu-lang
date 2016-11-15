@@ -146,8 +146,8 @@ public class AtomicUndoManager extends UndoManager
     super();
 
     setLimit( iUndoLimit );
-    _undoAtomNest = new Stack<DisplayableCompoundEdit>();
-    _changeListeners = new ArrayList<ChangeListener>();
+    _undoAtomNest = new Stack<>();
+    _changeListeners = new ArrayList<>();
   }
 
   /**
@@ -194,6 +194,7 @@ public class AtomicUndoManager extends UndoManager
   /**
    * @param edit The edit to be removed.
    */
+  @SuppressWarnings("UnusedDeclaration")
   public synchronized void removeEdit( UndoableEdit edit )
   {
     int iIndex = edits.indexOf( edit );
@@ -409,6 +410,7 @@ public class AtomicUndoManager extends UndoManager
   /**
    * Utility method that records a change that can be undone/redone.
    */
+  @SuppressWarnings("UnusedDeclaration")
   public void recordChange( StateEditable change )
   {
     beginUndoAtom();
@@ -446,11 +448,6 @@ public class AtomicUndoManager extends UndoManager
   static class DisplayableCompoundEdit extends CompoundEdit implements IStagedStateEdit
   {
     String _strDisplayName;
-
-    DisplayableCompoundEdit()
-    {
-      this( null );
-    }
 
     DisplayableCompoundEdit( String strDisplayName )
     {

@@ -5,7 +5,6 @@ import javax.swing.undo.UndoableEdit;
 
 public class UndoChangeEvent extends ChangeEvent
 {
-
   private UndoableEdit _edit;
   private ChangeType _type;
 
@@ -13,7 +12,10 @@ public class UndoChangeEvent extends ChangeEvent
   {
     ADD_EDIT,
     UNDO,
-    REDO, UNDO_OR_REDO, UNDO_TO, REDO_TO,
+    REDO,
+    UNDO_OR_REDO,
+    UNDO_TO,
+    REDO_TO,
   }
 
   public UndoChangeEvent( AtomicUndoManager atomicUndoManager, ChangeType type, UndoableEdit edit )
@@ -23,6 +25,7 @@ public class UndoChangeEvent extends ChangeEvent
     _type = type;
   }
 
+  @SuppressWarnings("UnusedDeclaration")
   public UndoableEdit getEdit()
   {
     return _edit;
@@ -32,5 +35,4 @@ public class UndoChangeEvent extends ChangeEvent
   {
     return _type;
   }
-
 }
