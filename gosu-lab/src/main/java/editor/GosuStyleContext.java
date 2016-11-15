@@ -102,7 +102,6 @@ public class GosuStyleContext extends StyleContext implements ViewFactory
   private String _strFontFamily;
   private int _iFontSize;
   private boolean _bAntialias;
-  private boolean _bStylizedQuotes;
   private HashMap<AttributeSet, Font> _fontCache;
   private HashMap<Integer, Style> _tokenStyles;
 
@@ -143,8 +142,7 @@ public class GosuStyleContext extends StyleContext implements ViewFactory
     _strFontFamily = g_defFontFamily;
     _iFontSize = g_defFontSize;
     _bAntialias = true;
-    _bStylizedQuotes = false;
-    _fontCache = new HashMap<AttributeSet, Font>();
+    _fontCache = new HashMap<>();
 
     setDefaultStyles();
   }
@@ -477,11 +475,6 @@ public class GosuStyleContext extends StyleContext implements ViewFactory
     _bAntialias = bAntialias;
   }
 
-  public void setStylizedQuotes( boolean bStylizedQuotes )
-  {
-    _bStylizedQuotes = bStylizedQuotes;
-  }
-
   //----------------------------------------------------------------------------------------------
   //-- ViewFactory methods --
 
@@ -755,22 +748,15 @@ public class GosuStyleContext extends StyleContext implements ViewFactory
         {
           if( strText.length() == 1 && strText.charAt( 0 ) == '\\' )
           {
-            strText = Character.toString( (char)955 );
+            strText = "\u039B"; // lambda
           }
           else if( strText.length() == 2 && strText.equals( "->" ) )
           {
-            strText = (char)8594 + " ";
+            strText = "\u2192 "; // right arrow
           }
           else if( strText.length() == 1 && strText.equals( "*" ) )
           {
-            strText = "\u22C5";
-          }
-        }
-        else if( _bStylizedQuotes && style.getName().equals( "StringLiteral" ) )
-        {
-          if( strText.length() >= 2 && strText.charAt( 0 ) == '\"' && strText.charAt( strText.length() - 1 ) == '\"' )
-          {
-            strText = '\u201C' + strText.substring( 1, strText.length() - 1 ) + '\u201D';
+            strText = "\u22C5"; // dot product
           }
         }
         drawText( g, style, font, strText, x, y );
