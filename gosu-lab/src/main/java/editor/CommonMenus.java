@@ -1,6 +1,7 @@
 package editor;
 
 import com.sun.jdi.StackFrame;
+import editor.actions.GenericAction;
 import editor.debugger.Breakpoint;
 import editor.debugger.BreakpointManager;
 import editor.debugger.BreakpointsDialog;
@@ -1205,19 +1206,31 @@ public class CommonMenus
     }
   }
 
-  public static class MuteBreakpointsActionHandler extends AbstractAction
+  public static class MuteBreakpointsActionHandler extends GenericAction
   {
     private final Supplier<BreakpointManager> _bpm;
 
     public MuteBreakpointsActionHandler( Supplier<BreakpointManager> bpm )
     {
-      super( "Mute Breakpoints", EditorUtilities.loadIcon( "images/disabled_breakpoint.png" ) );
+      super( "_muteBreakpoints", "Mute Breakpoints", "images/disabled_breakpoint.png", (char)0, null, null, null );
       _bpm = bpm;
     }
 
     public void actionPerformed( ActionEvent e )
     {
       _bpm.get().setMuted( !_bpm.get().isMuted() );
+    }
+
+    @Override
+    public boolean isSelected()
+    {
+      return _bpm.get().isMuted();
+    }
+
+    @Override
+    public boolean isEnabled()
+    {
+      return true;
     }
   }
 

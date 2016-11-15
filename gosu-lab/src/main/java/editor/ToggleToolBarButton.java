@@ -6,6 +6,7 @@
 package editor;
 
 
+import editor.actions.UpdateNotifier;
 import gw.util.GosuObjectUtil;
 
 import javax.swing.*;
@@ -196,6 +197,7 @@ public class ToggleToolBarButton extends JToggleButton
   public void setAction( Action a )
   {
     super.setAction( a );
+    UpdateNotifier.instance().addActionComponent( this );
     ToolTipManager.sharedInstance().registerComponent( this );
   }
 

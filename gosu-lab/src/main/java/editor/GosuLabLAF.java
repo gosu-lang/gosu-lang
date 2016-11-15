@@ -49,7 +49,35 @@ public class GosuLabLAF extends WindowsLookAndFeel
       editor.util.FixupLookAndFeel.fixupFieldBorders();
 
       UIDefaults table = UIManager.getLookAndFeelDefaults();
-      
+
+      table.put( "desktop", Scheme.active().getControl() );
+
+      table.put( "activeCaption", Scheme.active().getActiveCaption() );
+      table.put( "activeCaptionText", Scheme.active().getActiveCaptionText() );
+      table.put( "activeCaptionBorder", Scheme.active().getControl() ); /* Border color for caption (title bar) window borders. */
+      table.put( "inactiveCaption", Scheme.active().getControlDarkshadow() ); /* Color for captions (title bars) when not active. */
+      table.put( "inactiveCaptionText", Scheme.active().getControl() ); /* Text color for text in inactive captions (title bars). */
+      table.put( "inactiveCaptionBorder", Scheme.active().getControl() ); /* Border color for inactive caption (title bar) window borders. */
+
+      table.put( "window", Scheme.active().getWindow() ); /* Default color for the interior of windows */
+      table.put( "windowBorder", Scheme.active().getWindowBorder() ); /* ??? */
+      table.put( "windowText", Scheme.active().getWindowText() ); /* ??? */
+
+      table.put( "text", Scheme.active().getControl() ); /* Text background color */
+      table.put( "textText", Scheme.active().getControlText() ); /* Text foreground color */
+      table.put( "textHighlight", Scheme.active().getTextHighlight() ); /* Text background color when selected */
+      table.put( "textHighlightText", Scheme.active().getTextHighlightText() ); /* Text color when selected */
+      table.put( "textInactiveText", Scheme.active().getControlShadow() ); /* Text color when disabled */
+
+      table.put( "control", Scheme.active().getControl() ); /* Default color for controls (buttons, sliders, etc) */
+      table.put( "controlText", Scheme.active().getControlText() ); /* Default color for text in controls */
+      table.put( "controlHighlight", Scheme.active().getControl() );
+      table.put( "controlLtHighlight", Scheme.active().getControlLight() ); /* Highlight color for controls */
+      table.put( "controlShadow", Scheme.active().getControlDarkshadow() ); /* Shadow color for controls */
+      table.put( "controlDkShadow", Scheme.active().getControlDarkshadow() ); /* Dark shadow color for controls */
+
+      table.put( "info", Scheme.active().getTooltipBackground() ); /* ??? */
+      table.put( "infoText", Scheme.active().getTooltipText() );  /* ??? */
       table.put( "ScrollBar.width", 11 );
       table.put( "scrollbar", Scheme.active().getControl() ); /* Scrollbar background (usually the "track") */
       table.put( "ScrollBar.background", Scheme.active().getControl() );
@@ -100,7 +128,27 @@ public class GosuLabLAF extends WindowsLookAndFeel
       table.put( "MenuItem.acceleratorSelectionForeground", Scheme.active().getWindowText() );
       table.put( "MenuItem.border", BorderFactory.createCompoundBorder( BorderFactory.createLineBorder( Scheme.active().getXpBorderColor() ), BorderFactory.createEmptyBorder( 2, 2, 2, 2 ) ) );
       table.put( "MenuItem.disabledAreNavigable", false );
-      //"MenuItem.acceleratorDelimiter", menuItemAcceleratorDelimiter,
+      
+      table.put( "RadioButtonMenuItem.foreground", Scheme.active().getMenuText() );
+      table.put( "RadioButtonMenuItem.background", Scheme.active().getMenu() );
+      table.put( "RadioButtonMenuItem.selectionForeground", Scheme.active().getWindowText() );
+      table.put( "RadioButtonMenuItem.selectionBackground", Scheme.active().getActiveCaption() );
+      table.put( "RadioButtonMenuItem.disabledForeground", Scheme.active().getControlShadow() );
+      table.put( "RadioButtonMenuItem.acceleratorForeground", Scheme.active().getWindowText() );
+      table.put( "RadioButtonMenuItem.acceleratorSelectionForeground", Scheme.active().getWindowText() );
+      table.put( "RadioButtonMenuItem.border", BorderFactory.createCompoundBorder( BorderFactory.createLineBorder( Scheme.active().getXpBorderColor() ), BorderFactory.createEmptyBorder( 2, 2, 2, 2 ) ) );
+      table.put( "RadioButtonMenuItem.disabledAreNavigable", false );
+      
+      table.put( "CheckBoxMenuItem.foreground", Scheme.active().getMenuText() );
+      table.put( "CheckBoxMenuItem.background", Scheme.active().getMenu() );
+      table.put( "CheckBoxMenuItem.selectionForeground", Scheme.active().getWindowText() );
+      table.put( "CheckBoxMenuItem.selectionBackground", Scheme.active().getActiveCaption() );
+      table.put( "CheckBoxMenuItem.disabledForeground", Scheme.active().getControlShadow() );
+      table.put( "CheckBoxMenuItem.acceleratorForeground", Scheme.active().getWindowText() );
+      table.put( "CheckBoxMenuItem.acceleratorSelectionForeground", Scheme.active().getWindowText() );
+      table.put( "CheckBoxMenuItem.border", BorderFactory.createCompoundBorder( BorderFactory.createLineBorder( Scheme.active().getXpBorderColor() ), BorderFactory.createEmptyBorder( 2, 2, 2, 2 ) ) );
+      table.put( "CheckBoxMenuItem.disabledAreNavigable", false );
+      //"CheckBoxMenuItem.acceleratorDelimiter", menuItemAcceleratorDelimiter,
       //"MenuItem.borderPainted", Boolean.FALSE,
       //"MenuItem.margin", twoInsets,
 
@@ -143,6 +191,10 @@ public class GosuLabLAF extends WindowsLookAndFeel
       table.put( "Panel.background", Scheme.active().getControl() );
 
       table.put( "ScrollPane.background", Scheme.active().getControl() );
+      table.put( "ScrollPane.foreground", Scheme.active().getControlText() );
+
+      table.put( "Viewport.background", Scheme.active().getControl() );
+      table.put( "Viewport.foreground", Scheme.active().getControlText() );
 
       table.put( "EditorPane.caretForeground", Scheme.active().getWindowText() );
       table.put( "EditorPane.selectionBackground", Scheme.active().getTextHighlight() );
@@ -192,34 +244,7 @@ public class GosuLabLAF extends WindowsLookAndFeel
       table.put( "OptionPane.foreground", Scheme.active().getControlText() );
       table.put( "OptionPane.messageForeground", Scheme.active().getControlText() );
 
-      table.put( "desktop", Scheme.active().getControl() );
-
-      table.put( "activeCaption", Scheme.active().getActiveCaption() );
-      table.put( "activeCaptionText", Scheme.active().getActiveCaptionText() );
-      table.put( "activeCaptionBorder", Scheme.active().getControl() ); /* Border color for caption (title bar) window borders. */
-      table.put( "inactiveCaption", Scheme.active().getControlDarkshadow() ); /* Color for captions (title bars) when not active. */
-      table.put( "inactiveCaptionText", Scheme.active().getControl() ); /* Text color for text in inactive captions (title bars). */
-      table.put( "inactiveCaptionBorder", Scheme.active().getControl() ); /* Border color for inactive caption (title bar) window borders. */
-
-      table.put( "window", Scheme.active().getWindowBorder() ); /* Default color for the interior of windows */
-      table.put( "windowBorder", Scheme.active().getWindowBorder() ); /* ??? */
-      table.put( "windowText", Scheme.active().getWindowText() ); /* ??? */
-
-      table.put( "text", Scheme.active().getControl() ); /* Text background color */
-      table.put( "textText", Scheme.active().getControlText() ); /* Text foreground color */
-      table.put( "textHighlight", Scheme.active().getTextHighlight() ); /* Text background color when selected */
-      table.put( "textHighlightText", Scheme.active().getTextHighlightText() ); /* Text color when selected */
-      table.put( "textInactiveText", Scheme.active().getControlShadow() ); /* Text color when disabled */
-
-      table.put( "control", Scheme.active().getControl() ); /* Default color for controls (buttons, sliders, etc) */
-      table.put( "controlText", Scheme.active().getControlText() ); /* Default color for text in controls */
-      table.put( "controlHighlight", Scheme.active().getControl() );
-      table.put( "controlLtHighlight", Scheme.active().getControlLight() ); /* Highlight color for controls */
-      table.put( "controlShadow", Scheme.active().getControlDarkshadow() ); /* Shadow color for controls */
-      table.put( "controlDkShadow", Scheme.active().getControlDarkshadow() ); /* Dark shadow color for controls */
-
-      table.put( "info", Scheme.active().getTooltipBackground() ); /* ??? */
-      table.put( "infoText", Scheme.active().getTooltipText() );  /* ??? */
+      table.put( "FileChooser.listViewBackground", Scheme.active().getWindow() );
     }
     catch( Exception e )
     {

@@ -194,6 +194,8 @@ public class FixupLookAndFeel
 
     UIManager.put( "ScrollPane.border", borderTextField );
     UIManager.put( "ScrollPane.margin", insets );
+
+    UIManager.put( "FileChooser.listViewBorder", borderTextField );
   }
 
   public static void fixupFonts()
