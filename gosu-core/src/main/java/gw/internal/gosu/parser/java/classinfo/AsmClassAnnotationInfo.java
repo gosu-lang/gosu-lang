@@ -13,6 +13,7 @@ import gw.lang.reflect.java.IJavaClassMethod;
 import gw.lang.reflect.java.IJavaClassType;
 import gw.lang.reflect.java.asm.AsmAnnotation;
 
+import gw.lang.reflect.module.IModule;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Array;
 import java.util.HashMap;
@@ -64,7 +65,7 @@ public class AsmClassAnnotationInfo implements IAnnotationInfo {
   }
 
   private Object makeArray( String fieldName, List l ) {
-    IJavaClassInfo classInfo = TypeSystem.getJavaClassInfo( _annotation.getType().getName(), ((IJavaClassType)_owner).getModule() );
+    IJavaClassInfo classInfo = TypeSystem.getJavaClassInfo( _annotation.getType().getName(), findModule( _owner ) );
     try {
       IJavaClassMethod method = classInfo.getDeclaredMethod( fieldName );
       IJavaClassInfo ci = method.getReturnClassInfo();
@@ -73,6 +74,15 @@ public class AsmClassAnnotationInfo implements IAnnotationInfo {
     catch( Exception e ) {
       throw new RuntimeException( e );
     }
+  }
+
+  private IModule findModule( IJavaAnnotatedElement elem )
+  {
+    if( elem instanceof IJavaClassType )
+    {
+      return ((IJavaClassType)elem).getModule();
+    }
+    return findModule( elem.getEnclosingClass() );
   }
 
   public IType getType() {
