@@ -2,6 +2,7 @@ package editor;
 
 import com.sun.java.swing.plaf.windows.WindowsLookAndFeel;
 
+import editor.util.EditorUtilities;
 import javax.swing.*;
 
 /**
@@ -245,6 +246,7 @@ public class GosuLabLAF extends WindowsLookAndFeel
       table.put( "OptionPane.messageForeground", Scheme.active().getControlText() );
 
       table.put( "FileChooser.listViewBackground", Scheme.active().getWindow() );
+      table.put( "FileChooser.listViewIcon", EditorUtilities.loadIcon( "images/ListView.gif" ) ); // missing in some plafs e.g., linux
     }
     catch( Exception e )
     {
