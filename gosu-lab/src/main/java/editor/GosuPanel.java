@@ -393,6 +393,7 @@ public class GosuPanel extends JPanel
     _experiment = experiment;
 
     RunMe.reinitializeGosu( experiment );
+    TypeSystem.refresh( TypeSystem.getGlobalModule() );
 
     LabFrame.instance().addExperiment( experiment );
     _experimentView.load( _experiment );
