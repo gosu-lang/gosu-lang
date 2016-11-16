@@ -69,8 +69,9 @@ public abstract class Scheme
   public abstract Color getControlDisabledText();
 
   public abstract Color getTooltipBackground();
-
   public abstract Color getTooltipText();
+
+  public abstract Color getTreeHandleBorderColor();
 
   public abstract Color getWindow();
   public abstract Color getWindowText();

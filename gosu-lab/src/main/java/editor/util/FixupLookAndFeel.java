@@ -198,6 +198,15 @@ public class FixupLookAndFeel
     UIManager.put( "FileChooser.listViewBorder", borderTextField );
   }
 
+  public static void fixupTreeHandles()
+  {
+//    UIManager.put( "Tree.expandedIcon", GosuTreeUi.ExpandedIcon.createExpandedIcon() );
+//    UIManager.put( "Tree.collapsedIcon", GosuTreeUi.CollapsedIcon.createCollapsedIcon() );
+    UIManager.put( "Tree.expandedIcon", EditorUtilities.loadIcon( "images/tree_expanded.png" ) );
+    UIManager.put( "Tree.collapsedIcon", EditorUtilities.loadIcon( "images/tree_collapsed.png" ) );
+    UIManager.put( "Tree.paintLines", false );
+  }
+
   public static void fixupFonts()
   {
     Integer twelve = new Integer( 12 );

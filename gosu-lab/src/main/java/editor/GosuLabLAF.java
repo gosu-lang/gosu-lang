@@ -3,6 +3,7 @@ package editor;
 import com.sun.java.swing.plaf.windows.WindowsLookAndFeel;
 
 import editor.util.EditorUtilities;
+import editor.util.FixupLookAndFeel;
 import javax.swing.*;
 
 /**
@@ -47,7 +48,8 @@ public class GosuLabLAF extends WindowsLookAndFeel
 
       UIManager.setLookAndFeel( GosuLabLAF.class.getName() );
 
-      editor.util.FixupLookAndFeel.fixupFieldBorders();
+      FixupLookAndFeel.fixupFieldBorders();
+      FixupLookAndFeel.fixupTreeHandles();
 
       UIDefaults table = UIManager.getLookAndFeelDefaults();
 

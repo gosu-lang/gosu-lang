@@ -53,6 +53,8 @@ public class LabScheme extends Scheme
   private static final Color SEPARATOR_1 = CONTROL;
   private static final Color SEPARATOR_2 = CONTROL_LIGHT_SHADOW;
 
+  private static final Color TREE_HANDLE_BORDER = new Color( 128, 128, 128 );
+
   private static final Color COLOR_BREAKPOINT = new Color( 255, 0, 0, 50 );
   private static final Color COLOR_EXECPOINT = new Color( 0, 255, 0, 50 );
   private static final Color COLOR_FRAMEPOINT = new Color( 128, 128, 128, 50 );
@@ -245,6 +247,12 @@ public class LabScheme extends Scheme
   public Color getTooltipText()
   {
     return TOOLTIP_TEXT;
+  }
+
+  @Override
+  public Color getTreeHandleBorderColor()
+  {
+    return TREE_HANDLE_BORDER;
   }
 
   @Override

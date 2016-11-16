@@ -35,7 +35,7 @@ public class LabDarkScheme extends Scheme
   private static final Color TEXT_TEXT = Color.black;
   private static final Color XP_BORDER_COLOR = new Color( 49, 106, 197 );
   private static final Color XP_HIGHLIGHT_TOGGLE_COLOR = new Color( 225, 230, 232 );
-  private static final Color XP_HIGHLIGHT_SELECTED_COLOR = new Color( 152, 179, 219 );
+  private static final Color XP_HIGHLIGHT_SELECTED_COLOR = new Color( 0, 50, 94 );
   private static final Color ACTIVE_CAPTION = new Color( 0, 70, 132 );
   private static final Color XP_HIGHLIGHT_COLOR = ACTIVE_CAPTION;//new Color( 190, 205, 224 );
   private static final Color ACTIVE_CAPTION_TEXT = WHITISH;
@@ -55,6 +55,8 @@ public class LabDarkScheme extends Scheme
   private static final Color CONTROL_TEXT = new Color( 200, 200, 200 );
 
   private static final Color BORDER = new Color( 122, 122, 122 );
+
+  private static final Color TREE_HANDLE_BORDER = new Color( 128, 128, 128 );
 
   private static final Color SCROLLBAR_BORDER = CONTROL_DARKSHADOW;
 
@@ -257,6 +259,12 @@ public class LabDarkScheme extends Scheme
   public Color getTooltipText()
   {
     return TOOLTIP_TEXT;
+  }
+
+  @Override
+  public Color getTreeHandleBorderColor()
+  {
+    return TREE_HANDLE_BORDER;
   }
 
   @Override
