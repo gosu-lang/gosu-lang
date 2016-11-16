@@ -12,14 +12,14 @@ import javax.swing.tree.TreeCellRenderer;
 
 /**
  */
-public class GosuTreeUi extends WindowsTreeUI
+public class GosuLabTreeUi extends WindowsTreeUI
 {
   static protected final int HALF_SIZE = 4;
   static protected final int SIZE = 9;
 
   public static ComponentUI createUI( JComponent c )
   {
-    return new GosuTreeUi();
+    return new GosuLabTreeUi();
   }
 
   /**

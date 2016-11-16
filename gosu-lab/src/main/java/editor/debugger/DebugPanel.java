@@ -74,7 +74,6 @@ public class DebugPanel extends JPanel implements IDisposable
     JPanel panel = new JPanel( new BorderLayout() );
 
     _cbThreads = new JComboBox<>();
-    _cbThreads.setBackground( Scheme.active().getControl() );
     _cbThreads.setBorder( BorderFactory.createMatteBorder( 1, 1, 1, 1, Scheme.active().getControlShadow() ) );
     _cbThreads.setRenderer( new ThreadCellRenderer( _cbThreads.getRenderer() ) );
     _cbThreads.addActionListener( action -> threadChanged() );
