@@ -97,6 +97,10 @@ public class GosuLabLAF extends WindowsLookAndFeel
       table.put( "ScrollBar.thumbShadow", Scheme.active().getScrollbarBorderColor() ); //new Color(210, 235, 251 ) ); //EditorUtilities.CONTROL );
       table.put( "ScrollBar.border", null );
 
+      table.put( "ToolTip.background", Scheme.active().getTooltipBackground() );
+      table.put( "ToolTip.foreground", Scheme.active().getTooltipText() );
+      table.put( "ToolTip.border", BorderFactory.createLineBorder( Scheme.active().getFieldBorderColor() ) );
+
       table.put( "Separator.foreground", Scheme.active().getSeparator1() );
       table.put( "Separator.background", Scheme.active().getSeparator2() );
 

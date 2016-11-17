@@ -9,6 +9,7 @@ import gw.lang.parser.IFunctionSymbol;
 import gw.lang.parser.IParseTree;
 import gw.lang.parser.IParsedElement;
 import gw.lang.parser.ISymbol;
+import gw.lang.parser.exceptions.ParseIssue;
 import gw.lang.parser.expressions.IBeanMethodCallExpression;
 import gw.lang.parser.expressions.IFieldAccessExpression;
 import gw.lang.parser.expressions.IIdentifierExpression;
@@ -126,13 +127,23 @@ public class UsageTarget
       pe = pe.getParent();
     }
 
-    IFeatureInfo fi = findFeatureInfoFor( pe );
-    if( fi == null )
+    try
     {
-      return null;
+      IFeatureInfo fi = findFeatureInfoFor( pe );
+      if( fi == null )
+      {
+        return null;
+      }
+      return new UsageTarget( pe, fi );
     }
-
-    return new UsageTarget( pe, fi );
+    catch( RuntimeException e )
+    {
+      if( e.getCause() instanceof ParseIssue )
+      {
+        return null;
+      }
+      throw e;
+    }
   }
 
   private static GosuEditor getCurrentGosuEditor()

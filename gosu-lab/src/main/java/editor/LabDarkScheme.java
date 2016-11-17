@@ -20,13 +20,15 @@ public class LabDarkScheme extends Scheme
     return "images/splash3.png";
   }
 
+  private static final Color ORANGE = new Color( 251, 166, 0 );
+
   private static final Color WHITISH = new Color( 200, 200, 200 );
   private static final Color BLACKISH = new Color( 39, 39, 39 );
 
   private static final Color CONTROL_LIGHT = WHITISH; //UIManager.getColor( "controlLtHighlight" );
   /* colors */
-  public static final Color TOOLTIP_BACKGROUND = new Color( 255, 255, 225 ); //  UIManager.getColor( "info" );
-  private static final Color TOOLTIP_TEXT = Color.black; //  UIManager.getColor( "infoText" );
+  public static final Color TOOLTIP_BACKGROUND = BLACKISH; //  UIManager.getColor( "info" );
+  private static final Color TOOLTIP_TEXT = WHITISH; //  UIManager.getColor( "infoText" );
   private static final Color WINDOW = BLACKISH;
   private static final Color WINDOW_TEXT = WHITISH;
   private static final Color WINDOW_BORDER = new Color( 49, 106, 197 ); //new Color( 100, 100, 100 );

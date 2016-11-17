@@ -1,5 +1,6 @@
 package editor;
 
+import java.awt.EventQueue;
 import javax.swing.*;
 import javax.swing.event.CaretEvent;
 import javax.swing.event.CaretListener;
@@ -16,12 +17,15 @@ public class ScopeHighlighter implements DocumentListener, CaretListener, FocusL
   private Object _highlightTag;
   private Object _highlightTag2;
   private Runnable _highlightImmediately;
+  private Timer _timer;
   private static final GosuEditor.LabHighlighter HIGHLIGHTER = new GosuEditor.LabHighlighter( Scheme.active().scopeHighlightColor() );
 
   public ScopeHighlighter( GosuEditor gosuEditor )
   {
     _editor = gosuEditor;
     _highlightImmediately = this::highlightImmediately;
+    _timer = new Timer( 300, e -> highlightUsagesUnderCaret() );
+    _timer.setRepeats( false );
   }
 
   public void updateState()
@@ -45,6 +49,9 @@ public class ScopeHighlighter implements DocumentListener, CaretListener, FocusL
     {
       return;
     }
+
+   //## still need to tweak and test this feature
+   // highlightUsages();
 
     int caret = editor.getCaretPosition();
     try
@@ -81,6 +88,33 @@ public class ScopeHighlighter implements DocumentListener, CaretListener, FocusL
     {
       //ignore
     }
+  }
+
+  private void highlightUsages()
+  {
+    if( _timer.isRunning() )
+    {
+      _timer.stop();
+      _timer.restart();
+    }
+    else
+    {
+      _timer.start();
+    }
+  }
+  private void highlightUsagesUnderCaret()
+  {
+    if( !_editor.isVisible() )
+    {
+      return;
+    }
+
+    if( _editor.isCompletionPopupShowing() || _editor.isCompleteCode() )
+    {
+      return;
+    }
+
+    GosuEditor.postTaskInParserThread( () -> EventQueue.invokeLater( _editor::highlightUsagesOfFeatureUnderCaret ) );
   }
 
   private boolean positionInDoc( int caret, Document doc )

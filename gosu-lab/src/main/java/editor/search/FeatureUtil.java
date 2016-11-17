@@ -132,7 +132,7 @@ public class FeatureUtil
     List<? extends IConstructorInfo> constructors = ((IRelativeTypeInfo)genType.getTypeInfo()).getConstructors( genType );
     for( IConstructorInfo ci : constructors )
     {
-      if( ci instanceof IJavaConstructorInfo && ci.getConstructor() == ctor )
+      if( ci instanceof IJavaConstructorInfo && ((IJavaConstructorInfo)ci).getJavaConstructor() == ctor )
       {
         return ci;
       }
