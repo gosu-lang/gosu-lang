@@ -20,4 +20,15 @@ public class BigDecimalCoercer extends StandardCoercer
   {
     return INSTANCE;
   }
+
+  @Override
+  public int getPriority( IType to, IType from )
+  {
+    if( isCoercingDimensionWithSameType( to, from ) )
+    {
+      // must be higher priority than blind boxed coercion
+      return 3;
+    }
+    return super.getPriority( to, from );
+  }
 }
