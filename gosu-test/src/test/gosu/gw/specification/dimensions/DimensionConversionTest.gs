@@ -24,4 +24,12 @@ class DimensionConversionTest extends BaseVerifyErrantTest {
     dim = null
     assertNull( dim )
   }
+
+  function testCoercerPriority() {
+    var dim = new SampleDim( 7 )
+    assertTrue( overloaded( dim ) )
+  }
+
+  function overloaded( n: Double ) : boolean { return false }
+  function overloaded( n: Integer ) : boolean { return true }
 }
