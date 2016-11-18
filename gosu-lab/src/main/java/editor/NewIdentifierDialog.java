@@ -12,6 +12,7 @@ import java.awt.event.WindowEvent;
 public class NewIdentifierDialog extends JDialog implements IHandleCancel
 {
   private IdentifierTextField _nameField;
+  private boolean _bAcceptDot;
   private String _name;
 
   public NewIdentifierDialog( ClassType classType )
@@ -32,6 +33,21 @@ public class NewIdentifierDialog extends JDialog implements IHandleCancel
   {
     super( (JFrame)KeyboardFocusManager.getCurrentKeyboardFocusManager().getActiveWindow(), "New " + factory.getName() + " Name", true );
     setIconImage( EditorUtilities.loadIcon( factory.getIcon() ).getImage() );
+    configUI();
+    addWindowListener( new WindowAdapter()
+    {
+      public void windowClosing( WindowEvent e )
+      {
+        dispose();
+      }
+    } );
+  }
+
+  public NewIdentifierDialog( boolean bAcceptDot )
+  {
+    super( (JFrame)KeyboardFocusManager.getCurrentKeyboardFocusManager().getActiveWindow(), "New File", true );
+    _bAcceptDot = bAcceptDot;
+    setIconImage( EditorUtilities.loadIcon( "images/FileText.png" ).getImage() );
     configUI();
     addWindowListener( new WindowAdapter()
     {
@@ -63,7 +79,7 @@ public class NewIdentifierDialog extends JDialog implements IHandleCancel
     contentPane.setLayout( new BorderLayout() );
 
     JPanel mainPanel = new JPanel( new BorderLayout() );
-    _nameField = new IdentifierTextField( false, true );
+    _nameField = new IdentifierTextField( _bAcceptDot, true );
     _nameField.setColumns( 30 );
     mainPanel.add( _nameField, BorderLayout.NORTH );
     mainPanel.add( new JPanel(), BorderLayout.CENTER );

@@ -1487,11 +1487,14 @@ public class GosuPanel extends JPanel
     removeLruTab();
     String classNameForFile = TypeNameUtil.getTypeNameForFile( file );
     IType type = TypeSystem.getByFullNameIfValid( classNameForFile );
-    if( type == null )
+    if( type != null )
     {
-      return;
+      _editorTabPane.addTab( type.getRelativeName(), EditorUtilities.findIcon( type ), editor );
     }
-    _editorTabPane.addTab( type.getRelativeName(), EditorUtilities.findIcon( type ), editor );
+    else
+    {
+      _editorTabPane.addTab( file.getName(), EditorUtilities.findIcon( file ), editor );
+    }
     _editorTabPane.selectTab( _editorTabPane.findTabWithContent( editor ), true );
 
     String strSource;

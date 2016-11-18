@@ -93,7 +93,7 @@ public abstract class AbstractListCellRenderer<T> extends JLabel implements List
 
       if( _bSelected )
       {
-        g.setColor( _list.get().isEnabled() && bFocus ? Scheme.active().getXpBorderColor() : Scheme.active().getControlShadow() );
+        g.setColor( _list.get().isEnabled() && bFocus ? Scheme.active().getXpBorderColor() : Scheme.active().getFieldBorderColor() );
         g.drawRect( 0, 0, getWidth() - 1, getHeight() - 1 );
       }
       g.setColor( bkColor );

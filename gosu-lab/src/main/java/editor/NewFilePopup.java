@@ -50,6 +50,8 @@ public class NewFilePopup extends JPopupMenu
         addNewItem( popup, factory.getName(), factory.getIcon(), () -> SourceFileCreator.instance().create( factory ) );
       }
     }
+    popup.add( new JPopupMenu.Separator() );
+    addNewItem( popup, "File", "images/FileText.png", () -> SourceFileCreator.instance().createTextFile() );
   }
 
   private static void addNewItem( JComponent popup, String name, String icon, Runnable action )

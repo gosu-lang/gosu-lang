@@ -100,6 +100,29 @@ public class SourceFileCreator
     }
   }
 
+  public void createTextFile()
+  {
+    NewIdentifierDialog dlg = new NewIdentifierDialog( true );
+    dlg.setVisible( true );
+    if( dlg.getClassName() != null )
+    {
+      File file = new File( getParentContext(), dlg.getClassName() );
+      //noinspection ResultOfMethodCallIgnored
+      file.getParentFile().mkdirs();
+      try
+      {
+        if( file.createNewFile() )
+        {
+          _created = file;
+        }
+      }
+      catch( IOException e )
+      {
+        throw new RuntimeException( e );
+      }
+    }
+  }
+
   private File getParentContext()
   {
     GosuPanel gosuPanel = LabFrame.instance().getGosuPanel();

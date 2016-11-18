@@ -325,40 +325,37 @@ public class FileTree implements MutableTreeNode, IFileWatcherListener
     }
     else
     {
-      handlePossibleNewType( fileTree );
+      handleNewFile( fileTree );
     }
   }
 
-  private boolean handlePossibleNewType( FileTree fileTree )
-  {
-    if( isTypeFile( fileTree ) )
-    {
-      handleNewType( fileTree );
-      return true;
-    }
-    return false;
-  }
-
-  private void handleNewType( FileTree fileTree )
+  private void handleNewFile( FileTree fileTree )
   {
     File file = fileTree.getFileOrDir();
-    TypeSystem.created( CommonServices.getFileSystem().getIFile( file ) );
-    TypeSystem.refresh( TypeSystem.getGlobalModule() );
-
+    if( isTypeFile( fileTree ) )
+    {
+      TypeSystem.created( CommonServices.getFileSystem().getIFile( file ) );
+      TypeSystem.refresh( TypeSystem.getGlobalModule() );
+    }
     if( SourceFileCreator.instance().getCreated().equals( file ) )
     {
-      LabFrame.instance().openFile( file );
-      SourceFileCreator.instance().clearCreated();
-
-      EventQueue.invokeLater( () -> {
-        File currentFile = getExperiment().getGosuPanel().getCurrentFile();
-        if( currentFile != null && currentFile.equals( file ) )
-        {
-          fileTree.select();
-        }
-        //## todo: update file if opened in editor
-      } );
+      openFile( fileTree, file );
     }
+  }
+
+  private void openFile( FileTree fileTree, File file )
+  {
+    LabFrame.instance().openFile( file );
+    SourceFileCreator.instance().clearCreated();
+
+    EventQueue.invokeLater( () -> {
+      File currentFile = getExperiment().getGosuPanel().getCurrentFile();
+      if( currentFile != null && currentFile.equals( file ) )
+      {
+        fileTree.select();
+      }
+      //## todo: update file if opened in editor
+    } );
   }
 
   private boolean isTypeFile( FileTree fileTree )

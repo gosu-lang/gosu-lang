@@ -6,7 +6,6 @@ import editor.FileTreeUtil;
 import editor.GosuPanel;
 import editor.LabFrame;
 import editor.NodeKind;
-import gw.lang.reflect.gs.IGosuClass;
 import gw.util.GosuStringUtil;
 import gw.util.StreamUtil;
 
@@ -14,6 +13,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.Reader;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -93,8 +93,15 @@ public class TextSearcher extends AbstractSearcher
       tree = new ExternalFileTree( gosuPanel.getCurrentFile(), gosuPanel.getCurrentEditor().getParsedClass().getName() );
     }
     SearchTree results = new SearchTree( "root", NodeKind.Directory, SearchTree.empty() );
-    searchTree( tree, results, ft -> ft.getType() instanceof IGosuClass, null );
+    searchTree( tree, results, this::isTextFile, null );
     return findLocations( results, new ArrayList<>() );
+  }
+
+  private boolean isTextFile( FileTree ft )
+  {
+    String[] binaryExt = { ".jar", ".zip", ".tar", ".gz", ".hprof", ".png", ".gif", ".jpg", ".bmp", ".exe", ".dll", ".so",  };
+    String fileName = ft.getFileOrDir().getName().toLowerCase();
+    return !Arrays.stream( binaryExt ).anyMatch( fileName::endsWith );
   }
 
   private List<SearchLocation> findLocations( SearchTree tree, List<SearchLocation> locations )
