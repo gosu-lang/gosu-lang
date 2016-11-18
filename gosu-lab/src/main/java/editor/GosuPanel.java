@@ -1994,7 +1994,7 @@ public class GosuPanel extends JPanel
       Process process = _processRunner.getProcess();
       if( process != null && process.isAlive() )
       {
-        process.destroy();
+        process.destroyForcibly();
       }
     }
   }
