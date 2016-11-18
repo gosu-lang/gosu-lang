@@ -99,10 +99,10 @@ class CommandLineOptions {
   }
 
   @Parameter(names = "-maxwarns", description = "Set the maximum number of warnings to print", validateWith = PositiveInteger.class)
-  private int _maxwarns = 100;
+  private int _maxwarns = Integer.MAX_VALUE;
 
   /**
-   * @return maximum warning threshold. Defaults to 1,000.
+   * @return maximum warning threshold. Defaults to Integer.MAX_VALUE.
    */
   protected int getMaxWarns() {
     return _maxwarns;

@@ -78,12 +78,12 @@ public class CommandLineCompiler {
         
         //if exceed threshold then break
         if(errors.size() > options.getMaxErrs()) {
-          System.out.println("\nError threshold exceeded; aborting compilation.");
+          System.out.printf("\nError threshold of %d exceeded; aborting compilation.", options.getMaxErrs());
           thresholdExceeded = true;
           break;
         }
         if(!options.isNoWarn() && warnings.size() > options.getMaxWarns()) {
-          System.out.println("\nWarning threshold exceeded; aborting compilation.");
+          System.out.printf("\nWarning threshold of %d exceeded; aborting compilation.", options.getMaxWarns());
           thresholdExceeded = true;
           break;
         }        
