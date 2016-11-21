@@ -478,7 +478,7 @@ public class Gosu
 
   public static void setRawArgs( String[] args )
   {
-    _rawArgs = collectArgs( 1, args );
+    _rawArgs = collectArgs( 0, args );
   }
 
   private static int runWithType( String fqn, List<String> args ) throws Exception
