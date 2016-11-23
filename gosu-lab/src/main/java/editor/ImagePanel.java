@@ -1,6 +1,5 @@
 package editor;
 
-import editor.search.MultiLineLabelUI;
 import editor.util.EditorUtilities;
 
 import javax.swing.*;
@@ -29,56 +28,7 @@ public class ImagePanel extends JComponent
 
     _image = EditorUtilities.loadIcon( strImage );
 
-    // Construct a label with multi-line display capability via MultiLineLabelUI
-    _label =
-      new JLabel()
-      {
-        public void setUI( javax.swing.plaf.LabelUI ui )
-        {
-          setOpaque( false );
-          ui = (MultiLineLabelUI)MultiLineLabelUI.createUI( this );
-          setHorizontalAlignment( JLabel.LEFT );
-          super.setUI( ui );
-        }
-
-        public Dimension getPreferredSize()
-        {
-          Insets insets = getInsets();
-
-          String strText = getText();
-          if( strText == null )
-          {
-            return super.getPreferredSize();
-          }
-
-          int iMaxLen = 0;
-          StringBuilder strbBuf = new StringBuilder();
-
-          FontMetrics fm = getFontMetrics( getFont() );
-
-          for( int i = 0; i < strText.length(); i++ )
-          {
-            char c = strText.charAt( i );
-            if( c != '\n' )
-            {
-              strbBuf.append( c );
-            }
-            else
-            {
-              iMaxLen = Math.max( fm.stringWidth( strbBuf.toString() ), iMaxLen );
-              strbBuf.setLength( 0 );
-            }
-          }
-
-          iMaxLen = Math.max( fm.stringWidth( strbBuf.toString() ), iMaxLen );
-          iMaxLen += insets.left + insets.right;
-
-          //## return new Dimension( iMaxLen, (fm.getHeight() * iLines) + insets.top + insets.bottom );
-
-          //## Hard coding to 3 lines max to maintain a consistent height in the feedback
-          return new Dimension( iMaxLen, (fm.getHeight() * 3) + insets.top + insets.bottom );
-        }
-      };
+    _label = new JLabel();
     setLayout( null );
   }
 

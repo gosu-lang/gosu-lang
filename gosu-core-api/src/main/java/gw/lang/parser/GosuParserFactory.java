@@ -81,4 +81,9 @@ public class GosuParserFactory
   public static IGosuFragmentParser createFragmentParser() {
     return CommonServices.getGosuParserFactory().createFragmentParser();
   }
+
+  public static <T> T getInterface( Class<T> apiClass )
+  {
+    return CommonServices.getGosuParserFactory().getInterface( apiClass );
+  }
 }

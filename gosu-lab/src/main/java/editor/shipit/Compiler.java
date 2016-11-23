@@ -6,6 +6,10 @@ import editor.MessageTree;
 import editor.MessagesPanel;
 import editor.settings.CompilerSettings;
 import editor.util.IProgressCallback;
+import gw.lang.javac.ClassJavaFileObject;
+import gw.lang.javac.IJavaParser;
+import gw.lang.parser.GosuParserFactory;
+import gw.lang.parser.IFileRepositoryBasedType;
 import gw.lang.parser.IParseIssue;
 import gw.lang.parser.exceptions.ParseResultsException;
 import gw.lang.reflect.IType;
@@ -13,10 +17,16 @@ import gw.lang.reflect.ITypeRef;
 import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.gs.IGosuClass;
 
+import gw.lang.reflect.java.IJavaType;
 import java.awt.*;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.*;
+import java.util.List;
+import javax.tools.Diagnostic;
+import javax.tools.DiagnosticCollector;
+import javax.tools.JavaFileObject;
 
 /**
  */
@@ -40,9 +50,9 @@ public class Compiler
     {
       IType type = tree.getType();
       progress.incrementProgress( type != null ? type.getName() : "" );
-      if( type instanceof IGosuClass )
+      if( type instanceof IFileRepositoryBasedType )
       {
-        if( !compile( (IGosuClass)type, consumer, messagesPanel ) )
+        if( !compile( type, consumer, messagesPanel ) )
         {
           return false;
         }
@@ -126,7 +136,23 @@ public class Compiler
     } );
   }
 
-  public boolean compile( IGosuClass gsClass, ICompileConsumer consumer, MessagesPanel messages )
+  public boolean compile( IType type, ICompileConsumer consumer, MessagesPanel messages )
+  {
+    //## todo: provide a plugin interface for type compiler
+
+    if( type instanceof IGosuClass )
+    {
+      return compileGosu( (IGosuClass)type, consumer, messages );
+    }
+    if( type instanceof IJavaType )
+    {
+      return compileJava( (IJavaType)type, consumer, messages );
+    }
+
+    return true;
+  }
+
+  private boolean compileGosu( IGosuClass gsClass, ICompileConsumer consumer, MessagesPanel messages )
   {
     if( isExcluded( gsClass ) )
     {
@@ -152,7 +178,7 @@ public class Compiler
       } );
 
       // Parse Errors, return now
-      return consumer.accept( new CompiledClass( gsClass, null, parseException ) );
+      return consumer.accept( new CompiledClass( gsClass, null ) );
     }
 
     //
@@ -184,11 +210,115 @@ public class Compiler
         messages.addFailureMessage( e.getMessage(), typeNode, MessageTree.empty() );
         e.printStackTrace();
       } );
-      return consumer.accept( new CompiledClass( gsClass, null, e ) );
+      return consumer.accept( new CompiledClass( gsClass, null ) );
     }
   }
 
-  private boolean isExcluded( IGosuClass gsClass )
+  private boolean compileJava( IJavaType javaType, ICompileConsumer consumer, MessagesPanel messages )
+  {
+    if( isExcluded( javaType ) )
+    {
+      return true;
+    }
+
+    IJavaParser javaParser = GosuParserFactory.getInterface( IJavaParser.class );
+    JavaFileObject file = javaParser.findJavaSource( javaType.getName() );
+    DiagnosticCollector<JavaFileObject> errorHandler = new DiagnosticCollector<>();
+    List<ClassJavaFileObject> classes = javaParser.compile( file, javaType.getName(), Collections.singleton( "-Xlint:unchecked" ), errorHandler );
+    boolean errant = errorHandler.getDiagnostics().stream().anyMatch( e -> e.getKind() == Diagnostic.Kind.ERROR );
+    if( errant )
+    {
+      errorHandler.getDiagnostics().forEach(
+        e ->
+        {
+          switch( e.getKind() )
+          {
+            case ERROR:
+              _iErrors++;
+              break;
+            case WARNING:
+            case MANDATORY_WARNING:
+              _iWarnings++;
+              break;
+          }
+        } );
+      EventQueue.invokeLater( () -> {
+        updateMessageTree( messages );
+        MessageTree typeNode = messages.addTypeMessage( javaType.getName(), null, MessageTree.empty() );
+        errorHandler.getDiagnostics().forEach(
+          e ->
+          {
+            switch( e.getKind() )
+            {
+              case ERROR:
+                messages.addErrorMessage( makeIssueMessage( e, NodeKind.Error ), typeNode, MessageTree.makeIssueMessage( e, javaType ) );
+                break;
+              case WARNING:
+              case MANDATORY_WARNING:
+                messages.addWarningMessage( makeIssueMessage( e, NodeKind.Warning ), typeNode, MessageTree.makeIssueMessage( e, javaType ) );
+                break;
+            }
+          } );
+      } );
+
+      // Parse Errors, return now
+      return consumer.accept( new CompiledClass( javaType, null ) );
+    }
+
+    //
+    // Compile
+    //
+    try
+    {
+      if( errorHandler.getDiagnostics().stream().anyMatch( e -> e.getKind() == Diagnostic.Kind.WARNING || e.getKind() == Diagnostic.Kind.MANDATORY_WARNING ) )
+      {
+        errorHandler.getDiagnostics().forEach(
+          e ->
+          {
+            switch( e.getKind() )
+            {
+              case WARNING:
+              case MANDATORY_WARNING:
+                _iWarnings++;
+                break;
+            }
+          } );
+        EventQueue.invokeLater( () -> {
+          updateMessageTree( messages );
+          MessageTree typeNode = messages.addTypeMessage( javaType.getName(), null, MessageTree.empty() );
+          errorHandler.getDiagnostics().forEach(
+            e ->
+            {
+              switch( e.getKind() )
+              {
+                case WARNING:
+                case MANDATORY_WARNING:
+                  messages.addWarningMessage( makeIssueMessage( e, NodeKind.Warning ), typeNode, MessageTree.makeIssueMessage( e, javaType ) );
+                  break;
+              }
+            } );
+        } );
+      }
+
+      return compileClass( classes, consumer );
+    }
+    catch( Exception e )
+    {
+      //
+      // Failure
+      //
+      addFailure();
+      EventQueue.invokeLater( () -> {
+        updateMessageTree( messages );
+        MessageTree typeNode = messages.addTypeMessage( javaType.getName(), null, MessageTree.empty() );
+        messages.addFailureMessage( e.getMessage(), typeNode, MessageTree.empty() );
+        e.printStackTrace();
+      } );
+      return consumer.accept( new CompiledClass( javaType, null ) );
+    }
+  }
+
+  private boolean isExcluded( IType gsClass )
   {
     //## todo: expose "Excluded" in Lab so users can exclude stuff
     return false;
@@ -201,10 +331,17 @@ public class Compiler
     return msg;
   }
 
+  private String makeIssueMessage( Diagnostic<? extends JavaFileObject> issue, NodeKind kind )
+  {
+    String msg = kind == NodeKind.Error ? "Error: " : "Warning: ";
+    msg += "(" + issue.getLineNumber() + ", " + issue.getColumnNumber() + ") " + issue.getMessage( Locale.getDefault() );
+    return msg;
+  }
+
   private boolean compileClass( IGosuClass gsClass, ICompileConsumer consumer )
   {
     byte[] bytes = TypeSystem.getGosuClassLoader().getBytes( gsClass );
-    if( !consumer.accept( new CompiledClass( gsClass, bytes, gsClass.getParseResultsException() ) ) )
+    if( !consumer.accept( new CompiledClass( gsClass, bytes ) ) )
     {
       return false;
     }
@@ -219,7 +356,22 @@ public class Compiler
     return true;
   }
 
-  private void makeClassFile( IGosuClass gsClass, byte[] bytes )
+  private boolean compileClass( List<ClassJavaFileObject> classes, ICompileConsumer consumer )
+  {
+    for( ClassJavaFileObject cls: classes )
+    {
+      IJavaType javaType = (IJavaType)TypeSystem.getByFullNameIfValid( cls.getClassName().replace( '$', '.' ) );
+      byte[] bytes = cls.getBytes();
+      if( !consumer.accept( new CompiledClass( javaType, bytes ) ) )
+      {
+        return false;
+      }
+      makeClassFile( javaType, bytes );
+    }
+    return true;
+  }
+
+  private void makeClassFile( IFileRepositoryBasedType type, byte[] bytes )
   {
     if( !CompilerSettings.isStaticCompile() )
     {
@@ -235,7 +387,7 @@ public class Compiler
       }
     }
 
-    String javaName = gsClass.getJavaName();
+    String javaName = type.getJavaName();
     javaName = javaName.replace( '.', File.separatorChar ) + ".class";
     File classFile = new File( outputDir, javaName );
     //noinspection ResultOfMethodCallIgnored

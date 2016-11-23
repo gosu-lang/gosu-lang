@@ -16,7 +16,6 @@ import editor.util.ModalEventQueue;
 import editor.util.ProgressFeedback;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.TypeSystem;
-import gw.lang.reflect.gs.IGosuClass;
 import gw.util.StreamUtil;
 import java.awt.EventQueue;
 import java.io.File;
@@ -162,13 +161,13 @@ public class ExperimentBuild
   private ICompileConsumer chainForDebugging( ICompileConsumer consumer )
   {
     return cc -> {
-      if( cc.getGosuClass().isValid() )
+      if( !cc.isErrant() )
       {
         _compiledClassesNoErrors.add( cc );
       }
       else
       {
-        _errantTypes.add( cc.getGosuClass() );
+        _errantTypes.add( cc.getType() );
       }
       return consumer.accept( cc );
     };
@@ -177,9 +176,9 @@ public class ExperimentBuild
   private ICompileConsumer chainForNotDebugging( ICompileConsumer consumer )
   {
     return cc -> {
-      if( !cc.getGosuClass().isValid() )
+      if( cc.isErrant() )
       {
-        _errantTypes.add( cc.getGosuClass() );
+        _errantTypes.add( cc.getType() );
       }
       return consumer.accept( cc );
     };
@@ -248,7 +247,7 @@ public class ExperimentBuild
       for( IType type : sources )
       {
         progress.incrementProgress( type != null ? type.getName() : "" );
-        bRes[0] |= compiler.compile( (IGosuClass)type, consumer, messages );
+        bRes[0] |= compiler.compile( type, consumer, messages );
       }
       redefineClassInDebugger();
     }

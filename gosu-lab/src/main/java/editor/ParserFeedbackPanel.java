@@ -5,12 +5,8 @@
  */
 package editor;
 
+import editor.util.EditorUtilities;
 import editor.util.HTMLEscapeUtil;
-import gw.lang.parser.IParseIssue;
-import gw.lang.parser.exceptions.ParseException;
-import gw.lang.parser.exceptions.ParseResultsException;
-import gw.lang.parser.exceptions.ParseWarning;
-import gw.lang.reflect.IType;
 
 import javax.swing.*;
 import javax.swing.text.Highlighter;
@@ -25,13 +21,13 @@ import java.util.List;
 /**
  * Displays gosu parser error feedback within a GosuEditor.
  */
-public class GosuEditorFeedbackPanel extends JPanel
+public class ParserFeedbackPanel extends JPanel
 {
   private JLabel _icon;
   private FeedbackMargin _feedback;
-  private GosuEditor _editor;
+  private EditorHost _editor;
 
-  public GosuEditorFeedbackPanel()
+  public ParserFeedbackPanel()
   {
     configureUI();
   }
@@ -39,21 +35,29 @@ public class GosuEditorFeedbackPanel extends JPanel
   /**
    * Updates this panel with current parser feedback.
    *
-   * @param iResCode The parse result code. One of:
-   *                 <ul>
-   *                 <li> GosuEditor.RESCODE_VALID
-   *                 <li> GosuEditor.RESCODE_WARNINGS
-   *                 <li> GosuEditor.RESCODE_ERRORS
-   *                 </ul>
    * @param editor   The Gosu editor
    */
-  public void update( int iResCode, GosuEditor editor )
+  public void update( EditorHost editor )
   {
-    _icon.setIcon( loadIcon( iResCode ) );
     _editor = editor;
+    _icon.setIcon( findIconForResults() );
     _feedback.repaint();
     repaint();
     editor.repaint();
+  }
+
+  private Icon findIconForResults()
+  {
+    IIssueContainer issues = _editor.getIssues();
+    if( issues.isEmpty() )
+    {
+      return EditorUtilities.loadIcon( "images/rule_green.gif" );
+    }
+    if( !issues.getErrors().isEmpty() )
+    {
+      return EditorUtilities.loadIcon( "images/rule_red.gif" );
+    }
+    return EditorUtilities.loadIcon( "images/rule_yellow.gif" );
   }
 
   void configureUI()
@@ -69,24 +73,6 @@ public class GosuEditorFeedbackPanel extends JPanel
     _feedback = new FeedbackMargin();
     ToolTipManager.sharedInstance().registerComponent( _feedback );
     add( _feedback, BorderLayout.CENTER );
-  }
-
-  protected Icon loadIcon( int iResCode )
-  {
-    switch( iResCode )
-    {
-      case GosuEditor.RESCODE_VALID:
-        return editor.util.EditorUtilities.loadIcon( "images/rule_green.gif" );
-
-      case GosuEditor.RESCODE_WARNINGS:
-        return editor.util.EditorUtilities.loadIcon( "images/rule_yellow.gif" );
-
-      case GosuEditor.RESCODE_PENDING:
-        return editor.util.EditorUtilities.loadIcon( "images/status_anim.gif" );
-
-      default:
-        return editor.util.EditorUtilities.loadIcon( "images/rule_red.gif" );
-    }
   }
 
   private class FeedbackMargin extends JPanel
@@ -119,21 +105,19 @@ public class GosuEditorFeedbackPanel extends JPanel
     private void paintIssueMarks( Graphics g, int iLineCount )
     {
       //noinspection ThrowableResultOfMethodCallIgnored
-      ParseResultsException pe = _editor.getParseResultsException();
+      IIssueContainer pe = _editor.getIssues();
       if( pe != null )
       {
-        List pws = pe.getParseWarnings();
-        for( int i = 0; i < pws.size(); i++ )
+        Iterable<IIssue> warnings = pe.getWarnings();
+        for( IIssue issue: warnings )
         {
-          ParseWarning w = (ParseWarning)pws.get( i );
-          paintWarningMark( g, w, iLineCount );
+          paintWarningMark( g, issue, iLineCount );
         }
 
-        List pes = pe.getParseExceptions();
-        for( int i = 0; i < pes.size(); i++ )
+        Iterable<IIssue> errors = pe.getErrors();
+        for( IIssue issue: errors )
         {
-          ParseException e = (ParseException)pes.get( i );
-          paintErrorMark( g, e, iLineCount );
+          paintErrorMark( g, issue, iLineCount );
         }
       }
     }
@@ -151,7 +135,7 @@ public class GosuEditorFeedbackPanel extends JPanel
       }
     }
 
-    private void paintWarningMark( Graphics g, ParseWarning w, int iLineCount )
+    private void paintWarningMark( Graphics g, IIssue w, int iLineCount )
     {
       int iMark = getMarkForLine( w.getLine(), iLineCount );
       g.setColor( Scheme.active().getColorWarning() );
@@ -161,7 +145,7 @@ public class GosuEditorFeedbackPanel extends JPanel
       g.drawLine( getWidth() - 2, iMark - 1, getWidth() - 2, iMark + 1 );
     }
 
-    private void paintErrorMark( Graphics g, ParseException e, int iLineCount )
+    private void paintErrorMark( Graphics g, IIssue e, int iLineCount )
     {
       int iMark = getMarkForLine( e.getLine(), iLineCount );
       g.setColor( Scheme.active().getColorError() );
@@ -192,15 +176,15 @@ public class GosuEditorFeedbackPanel extends JPanel
       return makeToolTipText( getErrorsFromCursorPos() );
     }
 
-    private String makeToolTipText( List parseExceptions )
+    private String makeToolTipText( List<IIssue> issues )
     {
-      if( parseExceptions == null || parseExceptions.isEmpty() )
+      if( issues == null || issues.isEmpty() )
       {
         return null;
       }
 
       String strFeedback = "";
-      for( int i = parseExceptions.size() - 1; i >= 0; i-- )
+      for( int i = issues.size() - 1; i >= 0; i-- )
       {
         if( strFeedback.length() > 0 )
         {
@@ -211,47 +195,31 @@ public class GosuEditorFeedbackPanel extends JPanel
           strFeedback = "<html>";
         }
 
-        IParseIssue pi = (IParseIssue)parseExceptions.get( i );
-        strFeedback += "&nbsp;" + HTMLEscapeUtil.escape( pi.getUIMessage() );
-
-        if( pi instanceof ParseException )
-        {
-          ParseException pe = (ParseException)pi;
-          IType typeExpected = pe.getExpectedType();
-
-          if( typeExpected != null )
-          {
-            String strTypesExpected = ParseResultsException.getExpectedTypeName( typeExpected );
-
-            if( strTypesExpected.length() > 0 )
-            {
-              strFeedback += "\n" + "Expected Type" + ":" + strTypesExpected;
-            }
-          }
-        }
+        IIssue pi = issues.get( i );
+        strFeedback += "&nbsp;" + HTMLEscapeUtil.escape( pi.getMessage() );
       }
       return strFeedback;
     }
 
-    private List<IParseIssue> getErrorsFromCursorPos()
+    private List<IIssue> getErrorsFromCursorPos()
     {
       if( _editor == null )
       {
         return Collections.emptyList();
       }
-      List<IParseIssue> matches = new ArrayList<>();
+      List<IIssue> matches = new ArrayList<>();
       //noinspection ThrowableResultOfMethodCallIgnored
-      ParseResultsException pe = _editor.getParseResultsException();
+      IIssueContainer pe = _editor.getIssues();
       if( pe == null )
       {
         return matches;
       }
 
       int iLineCount = getLineCount();
-      List<IParseIssue> pes = pe.getParseIssues();
+      List<IIssue> pes = pe.getIssues();
       for( int i = pes.size() - 1; i >= 0; i-- )
       {
-        IParseIssue e = pes.get( i );
+        IIssue e = pes.get( i );
         int iMark = getMarkForLine( e.getLine(), iLineCount );
         if( iMark >= _iMousePos.y - 3 && iMark <= _iMousePos.y + 3 )
         {
@@ -317,7 +285,7 @@ public class GosuEditorFeedbackPanel extends JPanel
       public void mouseMoved( MouseEvent e )
       {
         _iMousePos = e.getPoint();
-        List<IParseIssue> errors = getErrorsFromCursorPos();
+        List<IIssue> errors = getErrorsFromCursorPos();
         if( !errors.isEmpty() )
         {
           setCursor( Cursor.getPredefinedCursor( Cursor.HAND_CURSOR ) );
@@ -339,11 +307,11 @@ public class GosuEditorFeedbackPanel extends JPanel
       @Override
       public void mouseClicked( MouseEvent e )
       {
-        List<IParseIssue> errors = getErrorsFromCursorPos();
+        List<IIssue> errors = getErrorsFromCursorPos();
         if( !errors.isEmpty() )
         {
           _editor.getEditor().requestFocusInWindow();
-          _editor.setCaretPositionForParseIssue( errors.get( 0 ) );
+          _editor.getEditor().setCaretPosition( errors.get( 0 ).getStartOffset() );
         }
         else
         {

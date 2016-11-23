@@ -5,9 +5,8 @@
 package gw.lang.reflect.java;
 
 import gw.lang.reflect.IAnnotationInfo;
-import gw.lang.reflect.IType;
-import gw.lang.reflect.module.IModule;
 
+import gw.lang.reflect.ILocationInfo;
 import java.lang.annotation.Annotation;
 
 public interface IJavaAnnotatedElement {
@@ -54,4 +53,10 @@ public interface IJavaAnnotatedElement {
 
 
   IJavaClassInfo getEnclosingClass();
+
+  default ILocationInfo getLocationInfo()
+  {
+    return ILocationInfo.EMPTY;
+  }
+
 }

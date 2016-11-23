@@ -13,18 +13,21 @@ import java.awt.event.MouseEvent;
 
 /**
  */
-public class GosuEditorPane extends JEditorPane
+public class EditorHostTextPane extends JEditorPane
 {
-  private GosuEditor _gosuEditor;
+  private EditorHost _editor;
 
-  public GosuEditorPane( GosuEditor gosuEditor )
+  public EditorHostTextPane( EditorHost editor )
   {
-    _gosuEditor = gosuEditor;
+    _editor = editor;
+
+     // necessary for font changes to apply e.g., during ctrl + mousewheel font sizing
+    putClientProperty( JEditorPane.HONOR_DISPLAY_PROPERTIES, true );
   }
 
-  public GosuEditor getGosuEditor()
+  public EditorHost getEditor()
   {
-    return _gosuEditor;
+    return _editor;
   }
 
   @Override
@@ -61,7 +64,7 @@ public class GosuEditorPane extends JEditorPane
   {
     try
     {
-      return _gosuEditor.getTooltipMessage( event );
+      return _editor.getTooltipMessage( event );
     }
     catch( ArrayIndexOutOfBoundsException ex )
     {
@@ -73,10 +76,7 @@ public class GosuEditorPane extends JEditorPane
   @Override
   public void paint( Graphics g )
   {
-    if( ((GosuEditorKit)getEditorKit()).getViewFactory().isAntialias() )
-    {
-      ((Graphics2D)g).setRenderingHint( RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON );
-    }
+    ((Graphics2D)g).setRenderingHint( RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON );
     super.paint( g );
   }
 
@@ -86,7 +86,7 @@ public class GosuEditorPane extends JEditorPane
     int[] lines = getLinesInClipBounds( rc );
     for( int i = lines[0]; i <= lines[1]; i++ )
     {
-      EditorScrollPane scroller = _gosuEditor.getScroller();
+      EditorScrollPane scroller = _editor.getScroller();
       if( scroller != null )
       {
         ILineInfoManager lineInfoMgr = scroller.getLineInfoMgr();

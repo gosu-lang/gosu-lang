@@ -1,6 +1,7 @@
 package editor.search;
 
 import editor.FileTree;
+import editor.FileTreeUtil;
 import editor.NodeKind;
 import editor.util.IProgressCallback;
 
@@ -69,7 +70,6 @@ public abstract class AbstractSearcher
 
   protected boolean isExcluded( FileTree tree )
   {
-    //## todo: maybe filter out binary files and such?
-    return false;
+    return !FileTreeUtil.isSupportedTextFile( tree );
   }
 }

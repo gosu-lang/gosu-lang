@@ -1,6 +1,5 @@
 package editor;
 
-import editor.search.MessageDisplay;
 import editor.util.EditorUtilities;
 import editor.util.Experiment;
 import editor.util.SourceFileCreator;
@@ -518,17 +517,17 @@ public class FileTree implements MutableTreeNode, IFileWatcherListener
     {
       if( isFile() )
       {
-        if( MessageDisplay.displayConfirmation(
-          "Delete file \"" + getName() + "\"?",
-          JOptionPane.OK_CANCEL_OPTION ) != JOptionPane.OK_OPTION )
+        if( JOptionPane.showConfirmDialog( LabFrame.instance(),
+              "Delete file \"" + getName() + "\"?",
+              "Gosu Lab", JOptionPane.OK_CANCEL_OPTION ) != JOptionPane.OK_OPTION )
         {
           return;
         }
       }
-      else if( MessageDisplay.displayConfirmation(
-        "<html>Delete directory \"" + getName() + "\"?<br>" +
-        "All files and subdirectories in \"" + getName() + "\" will be deleted!",
-        JOptionPane.OK_CANCEL_OPTION ) != JOptionPane.OK_OPTION )
+      else if( JOptionPane.showConfirmDialog( LabFrame.instance(),
+                 "<html>Delete directory \"" + getName() + "\"?<br>" +
+                 "All files and subdirectories in \"" + getName() + "\" will be deleted!",
+                 "Gosu Lab", JOptionPane.OK_CANCEL_OPTION ) != JOptionPane.OK_OPTION )
       {
         return;
       }

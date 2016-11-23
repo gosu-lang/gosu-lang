@@ -5,22 +5,22 @@ import editor.undo.AtomicUndoManager;
 import gw.lang.parser.IScriptPartId;
 import gw.lang.reflect.IType;
 import java.awt.datatransfer.Clipboard;
+import java.awt.event.MouseEvent;
 import java.io.IOException;
 import java.util.List;
 import javax.swing.JComponent;
 import javax.swing.event.DocumentListener;
 import javax.swing.event.UndoableEditListener;
 import javax.swing.text.AbstractDocument;
-import javax.swing.text.JTextComponent;
 
 /**
  */
 public interface IEditorHost
 {
-  JTextComponent getEditor();
+  EditorHostTextPane getEditor();
   void read( IScriptPartId partId, String strSource ) throws IOException;
   void refresh( String content );
-  void parse();
+  void parse( String strText, boolean forceCodeCompletion, boolean changed );
   AtomicUndoManager getUndoManager();
   DocumentListener getDocHandler();
   void setUndoableEditListener( UndoableEditListener uel );
@@ -33,7 +33,15 @@ public interface IEditorHost
   EditorScrollPane getScroller();
   JComponent getFeedbackPanel();
   void highlightLocations( List<SearchLocation> locations );
+  String getLineCommentDelimiter();
+  int getOffsetOfDeepestStatementLocationAtPos( int caretPosition, boolean strict );
+  String getTooltipMessage( MouseEvent event );
 
+  IIssueContainer getIssues();
+
+  boolean canAddBreakpoint( int line );
+
+  void gotoDeclaration();
   void gotoNextUsageHighlight();
   void gotoPrevUsageHighlight();
   void removeAllHighlights();

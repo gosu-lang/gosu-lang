@@ -1,9 +1,6 @@
 package editor;
 
-import editor.util.EditorUtilities;
-
 import java.awt.*;
-import java.awt.event.InputEvent;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
 
@@ -11,11 +8,11 @@ import java.awt.event.MouseWheelListener;
  */
 public class ScriptEditorMouseWheelHandler implements MouseWheelListener
 {
-  private GosuEditor _gsEditor;
+  private EditorHost _editor;
 
-  public ScriptEditorMouseWheelHandler( GosuEditor gsEditor )
+  public ScriptEditorMouseWheelHandler( EditorHost editor )
   {
-    _gsEditor = gsEditor;
+    _editor = editor;
   }
 
   public void mouseWheelMoved( MouseWheelEvent e )
@@ -27,7 +24,7 @@ public class ScriptEditorMouseWheelHandler implements MouseWheelListener
       return;
     }
 
-    if( (e.getModifiers() & EditorUtilities.CONTROL_KEY_MASK) == 0 )
+    if( !e.isControlDown() )
     {
       forward( e );
       return;
@@ -35,7 +32,7 @@ public class ScriptEditorMouseWheelHandler implements MouseWheelListener
 
     int iInc = e.getWheelRotation() < 0 ? -1 : 1;
 
-    Font font = _gsEditor.getEditor().getFont();
+    Font font = _editor.getEditor().getFont();
     int iSize = font.getSize() + iInc;
     if( iSize < 4 || iSize > 72 )
     {
@@ -46,9 +43,9 @@ public class ScriptEditorMouseWheelHandler implements MouseWheelListener
     GosuEditorKit.getStylePreferences().setFontSize( iSize );
 
     font = font.deriveFont( (float)iSize );
-    _gsEditor.getEditor().setFont( font );
-    _gsEditor.getScroller().getAdviceColumn().revalidate();
-    _gsEditor.getScroller().getAdviceColumn().repaint();
+    _editor.getEditor().setFont( font );
+    _editor.getScroller().getAdviceColumn().revalidate();
+    _editor.getScroller().getAdviceColumn().repaint();
   }
 
   /**

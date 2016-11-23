@@ -1,8 +1,8 @@
 package editor.util;
 
 import editor.CopyBuffer;
+import editor.EditorHostTextPane;
 import editor.GosuEditor;
-import editor.GosuEditorPane;
 import editor.PasteBufferSelectDialog;
 import gw.util.GosuObjectUtil;
 import gw.util.GosuStringUtil;
@@ -1113,7 +1113,7 @@ public class TextComponentUtil
     editor.setSelectionEnd( end );
   }
 
-  public static String getIdentifierAtCaret( GosuEditorPane editor )
+  public static String getIdentifierAtCaret( EditorHostTextPane editor )
   {
     String wordAtCaret = getWordAtCaret( editor );
     if( isValidIdentifier( wordAtCaret, false ) )

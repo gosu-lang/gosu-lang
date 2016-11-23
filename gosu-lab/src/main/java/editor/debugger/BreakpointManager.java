@@ -98,7 +98,7 @@ public class BreakpointManager
     return null;
   }
 
-  public void toggleLineBreakpoint( GosuEditor editor, String fqn, int line )
+  public void toggleLineBreakpoint( EditorHost editor, String fqn, int line )
   {
     Breakpoint bp = getBreakpointAtEditorLine( fqn, line );
     if( bp == null )
@@ -144,23 +144,9 @@ public class BreakpointManager
     }
   }
 
-  public boolean canAddBreakpoint( GosuEditor editor, int line )
+  public boolean canAddBreakpoint( EditorHost editor, int line )
   {
-    IParseTree location = editor.getStatementAtLine( line );
-    if( location == null )
-    {
-      return false;
-    }
-    IParsedElement parsedElement = location.getParsedElement();
-    return !(parsedElement instanceof IStatementList ||
-             parsedElement instanceof IFunctionStatement ||
-             parsedElement instanceof IPropertyStatement ||
-             parsedElement instanceof IClassStatement ||
-             parsedElement instanceof IClassFileStatement ||
-             parsedElement instanceof IUsesStatement ||
-             parsedElement instanceof IUsesStatementList ||
-             parsedElement instanceof INamespaceStatement ||
-             (parsedElement instanceof IVarStatement && !((IVarStatement)parsedElement).getHasInitializer()));
+    return editor.canAddBreakpoint( line );
   }
 
   public List<Breakpoint> getBreakpoints()

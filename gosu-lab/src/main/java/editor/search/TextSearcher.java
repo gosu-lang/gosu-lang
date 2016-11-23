@@ -13,7 +13,6 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.Reader;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -99,9 +98,7 @@ public class TextSearcher extends AbstractSearcher
 
   private boolean isTextFile( FileTree ft )
   {
-    String[] binaryExt = { ".jar", ".zip", ".tar", ".gz", ".hprof", ".png", ".gif", ".jpg", ".bmp", ".exe", ".dll", ".so",  };
-    String fileName = ft.getFileOrDir().getName().toLowerCase();
-    return !Arrays.stream( binaryExt ).anyMatch( fileName::endsWith );
+    return FileTreeUtil.isSupportedTextFile( ft );
   }
 
   private List<SearchLocation> findLocations( SearchTree tree, List<SearchLocation> locations )

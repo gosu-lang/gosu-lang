@@ -65,7 +65,7 @@ public class InitializerCompletionHandler extends AbstractPathCompletionHandler
       valuePopup.addNodeChangeListener(
         e -> {
           BeanTree beanTree = (BeanTree)e.getSource();
-          GosuEditorPane editor = gsEditor.getEditor();
+          EditorHostTextPane editor = gsEditor.getEditor();
           editor.select( TextComponentUtil.findCharacterPositionOnLine( editor.getCaretPosition() - 1, editor.getText(), ':', TextComponentUtil.Direction.BACKWARD ) + 1, editor.getCaretPosition() );
           editor.replaceSelection( beanTree.getBeanNode().getName() + " = " );
           editor.requestFocus();

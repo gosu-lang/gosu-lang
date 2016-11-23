@@ -1,12 +1,21 @@
 package editor.plugin.typeloader.java;
 
+import editor.EditorHost;
+import editor.IIssueContainer;
 import editor.plugin.typeloader.INewFileParams;
 import editor.plugin.typeloader.ITypeFactory;
+import gw.lang.javac.IJavaParser;
+import gw.lang.javac.StringJavaFileObject;
+import gw.lang.parser.GosuParserFactory;
 import gw.lang.reflect.IType;
+import java.util.Collections;
 import javax.swing.JComponent;
+import javax.tools.DiagnosticCollector;
+import javax.tools.JavaFileObject;
 
 /**
  */
+@SuppressWarnings("UnusedDeclaration")
 public class JavaTypeFactory implements ITypeFactory
 {
   @Override
@@ -65,10 +74,32 @@ public class JavaTypeFactory implements ITypeFactory
     return new JavaEditorKit();
   }
 
-  public void parse( IType type, JComponent editor )
+  public void parse( IType type, String strText, boolean forceCodeCompletion, boolean changed, EditorHost editor )
   {
-//    List<CompilationUnitTree> trees = new ArrayList<>();
-//    DiagnosticCollector<JavaFileObject> errorHandler = new DiagnosticCollector<>();
-//    JavaParser.instance().parse( ((IJavaType)type).getSourceFileHandle().getSource().getSource(), trees, errorHandler );
+    DiagnosticCollector<JavaFileObject> errorHandler = new DiagnosticCollector<>();
+    IJavaParser javaParser = GosuParserFactory.getInterface( IJavaParser.class );
+    StringJavaFileObject fileObj = new StringJavaFileObject( type.getName(), strText );
+    javaParser.compile( fileObj, type.getName(), Collections.singleton( "-Xlint:unchecked" ), errorHandler );
+    ((JavaDocument)editor.getDocument()).setErrorHandler( errorHandler );
+    editor.getEditor().repaint();
+  }
+
+  @Override
+  public boolean canAddBreakpoint( IType type, int line )
+  {
+    //## todo: maybe store the results of the parse() above in the document and then have the document determine if the line can have a breakpoint
+    return true;
+  }
+
+  @Override
+  public String getTooltipMessage( int iPos, EditorHost editor )
+  {
+    return ((JavaDocument)editor.getDocument()).findErrorMessage( iPos );
+  }
+
+  @Override
+  public IIssueContainer getIssueContainer( EditorHost editor )
+  {
+    return new JavaIssueContainer( ((JavaDocument)editor.getDocument()).getErrorHandler() );
   }
 }

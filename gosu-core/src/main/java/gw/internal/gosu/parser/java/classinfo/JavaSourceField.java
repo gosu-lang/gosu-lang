@@ -18,7 +18,7 @@ import java.lang.annotation.Annotation;
 
 import static com.sun.tools.javac.code.Flags.ENUM;
 
-public class JavaSourceField implements IJavaClassField {
+public class JavaSourceField extends JavaSourceElement implements IJavaClassField {
   protected VariableTree _fieldTree;
   protected JavaSourceType _containingClass;
   protected IModifierList _modifierList;
@@ -119,5 +119,11 @@ public class JavaSourceField implements IJavaClassField {
   @Override
   public IAnnotationInfo[] getDeclaredAnnotations() {
     return getModifierList().getAnnotations();
+  }
+
+  @Override
+  protected Tree getTree()
+  {
+    return _fieldTree;
   }
 }

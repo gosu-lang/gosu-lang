@@ -73,8 +73,7 @@ public class StringPopup extends JPopupMenu implements IValuePopup
         {
           if( e.getKeyCode() == KeyEvent.VK_ENTER )
           {
-            if( _field.getHeight() > iPrefHeight * 2 - 2 &&
-                e.getModifiers() != EditorUtilities.CONTROL_KEY_MASK )
+            if( _field.getHeight() > iPrefHeight * 2 - 2 && !e.isControlDown() )
             {
               return;
             }

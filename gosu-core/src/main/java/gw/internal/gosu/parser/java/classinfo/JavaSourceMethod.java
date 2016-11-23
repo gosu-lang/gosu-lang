@@ -17,7 +17,6 @@ import gw.lang.reflect.IFeatureInfo;
 import gw.lang.reflect.IParameterInfo;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.SimpleParameterInfo;
-import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.gs.IGenericTypeVariable;
 import gw.lang.reflect.java.ClassInfoUtil;
 import gw.lang.reflect.java.IJavaClassInfo;
@@ -36,7 +35,8 @@ import java.util.List;
 
 import static gw.internal.gosu.parser.java.classinfo.JavaSourceType.getTypeName;
 
-public class JavaSourceMethod implements IJavaClassMethod, ITypeInfoResolver {
+public class JavaSourceMethod extends JavaSourceElement implements IJavaClassMethod, ITypeInfoResolver
+{
   protected MethodTree _method;
   protected JavaSourceType _containingClass;
   protected JavaSourceParameter[] _parameters;
@@ -127,6 +127,12 @@ public class JavaSourceMethod implements IJavaClassMethod, ITypeInfoResolver {
 
   public boolean isConstructor() {
     return false;
+  }
+
+  @Override
+  protected Tree getTree()
+  {
+    return _method;
   }
 
   public JavaSourceType getEnclosingClass() {

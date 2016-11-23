@@ -5,6 +5,7 @@
 package gw.internal.gosu.parser;
 
 import gw.config.CommonServices;
+import gw.internal.gosu.parser.java.classinfo.JavaSourceElement;
 import gw.lang.Deprecated;
 import gw.lang.GosuShop;
 import gw.lang.PublishedName;
@@ -14,6 +15,7 @@ import gw.lang.parser.EvaluationException;
 import gw.lang.parser.TypeVarToTypeMap;
 import gw.lang.reflect.IAnnotationInfo;
 import gw.lang.reflect.IFeatureInfo;
+import gw.lang.reflect.ILocationInfo;
 import gw.lang.reflect.IMethodInfo;
 import gw.lang.reflect.IPresentationInfo;
 import gw.lang.reflect.IPropertyAccessor;
@@ -609,5 +611,23 @@ public class JavaPropertyInfo extends JavaBaseFeatureInfo implements IJavaProper
     {
       return _setMethod;
     }
+  }
+
+  @Override
+  public ILocationInfo getLocationInfo()
+  {
+    if( getPublicField() != null )
+    {
+      return getPublicField().getLocationInfo();
+    }
+    else if( _getMethod != null )
+    {
+      return _getMethod.getLocationInfo();
+    }
+    else if( _setMethod != null )
+    {
+      return _setMethod.getLocationInfo();
+    }
+    return super.getLocationInfo();
   }
 }

@@ -2,6 +2,7 @@ package editor.plugin.typeloader.java;
 
 import editor.Scheme;
 import java.util.HashSet;
+import java.util.Locale;
 import java.util.Set;
 import javax.swing.event.DocumentEvent;
 import javax.swing.text.AttributeSet;
@@ -12,16 +13,22 @@ import javax.swing.text.Element;
 import javax.swing.text.MutableAttributeSet;
 import javax.swing.text.SimpleAttributeSet;
 import javax.swing.text.StyleConstants;
+import javax.tools.Diagnostic;
+import javax.tools.DiagnosticCollector;
+import javax.tools.JavaFileObject;
 
 public class JavaDocument extends DefaultStyledDocument
 {
   private Element _root;
   private MutableAttributeSet _word;
   private MutableAttributeSet _keyword;
+  private MutableAttributeSet _error;
+  private MutableAttributeSet _warning;
   private MutableAttributeSet _comment;
   private MutableAttributeSet _stringLiteral;
   private boolean _multiLineComment;
   private Set<String> _keywords;
+  private DiagnosticCollector<JavaFileObject> _errorHandler;
 
   public JavaDocument()
   {
@@ -30,6 +37,12 @@ public class JavaDocument extends DefaultStyledDocument
 
     _word = new SimpleAttributeSet();
     StyleConstants.setForeground( _word, Scheme.active().getCodeWindowText() );
+
+    _error = new SimpleAttributeSet();
+    StyleConstants.setForeground( _error, Scheme.active().getCodeError() );
+
+    _warning = new SimpleAttributeSet();
+    StyleConstants.setForeground( _warning, Scheme.active().getCodeWarning() );
 
     _keyword = new SimpleAttributeSet();
     StyleConstants.setForeground( _keyword, Scheme.active().getCodeKeyword() );
@@ -324,6 +337,15 @@ public class JavaDocument extends DefaultStyledDocument
       // skip the delimiters to find the start of a new token
       while( isDelimiter( content.substring( startOffset, startOffset + 1 ) ) )
       {
+        if( isError( startOffset ) )
+        {
+          setCharacterAttributes( startOffset, 1, _error, true );
+        }
+        else if( isWarning( startOffset ) )
+        {
+          setCharacterAttributes( startOffset, 1, _warning, true );
+        }
+
         if( startOffset < endOffset )
         {
           startOffset++;
@@ -375,6 +397,18 @@ public class JavaDocument extends DefaultStyledDocument
     {
       endOfQuote = index;
     }
+
+    if( isError( startOffset, endOfQuote - startOffset + 1 ) )
+    {
+      setCharacterAttributes( startOffset, endOfQuote - startOffset + 1, _error, true );
+      return endOfQuote + 1;
+    }
+    if( isWarning( startOffset, endOfQuote - startOffset + 1 ) )
+    {
+      setCharacterAttributes( startOffset, endOfQuote - startOffset + 1, _warning, true );
+      return endOfQuote + 1;
+    }
+
     setCharacterAttributes( startOffset, endOfQuote - startOffset + 1, _stringLiteral, false );
     return endOfQuote + 1;
   }
@@ -391,6 +425,18 @@ public class JavaDocument extends DefaultStyledDocument
       endOfToken++;
     }
     String token = content.substring( startOffset, endOfToken );
+
+    if( isError( startOffset, endOfToken - startOffset ) )
+    {
+      setCharacterAttributes( startOffset, endOfToken - startOffset, _error, true );
+      return endOfToken + 1;
+    }
+    if( isWarning( startOffset, endOfToken - startOffset ) )
+    {
+      setCharacterAttributes( startOffset, endOfToken - startOffset, _warning, true );
+      return endOfToken + 1;
+    }
+
     if( isKeyword( token ) )
     {
       setCharacterAttributes( startOffset, endOfToken - startOffset, _keyword, false );
@@ -602,5 +648,132 @@ public class JavaDocument extends DefaultStyledDocument
   protected String addParenthesis() throws BadLocationException
   {
     return "()";
+  }
+
+  public DiagnosticCollector<JavaFileObject> getErrorHandler()
+  {
+    return _errorHandler;
+  }
+  public void setErrorHandler( DiagnosticCollector<JavaFileObject> errorHandler )
+  {
+    DiagnosticCollector<JavaFileObject> oldErrorHandler = _errorHandler;
+    _errorHandler = errorHandler;
+    processIssues( oldErrorHandler );
+    processIssues( _errorHandler );
+  }
+
+  private void processIssues( DiagnosticCollector<JavaFileObject> errorHandler )
+  {
+    if( errorHandler == null )
+    {
+      return;
+    }
+
+    for( Diagnostic issue: errorHandler.getDiagnostics() )
+    {
+      try
+      {
+        processChangedLines( (int)issue.getStartPosition(), (int)issue.getEndPosition() - (int)issue.getStartPosition() );
+      }
+      catch( BadLocationException e )
+      {
+        throw new RuntimeException( e );
+      }
+    }
+  }
+
+  private boolean isError( int iPos )
+  {
+    return isError( iPos, 1 );
+  }
+  private boolean isError( int iPos, int iLength )
+  {
+    if( _errorHandler == null )
+    {
+      return false;
+    }
+
+    for( Diagnostic issue: _errorHandler.getDiagnostics() )
+    {
+      if( issue.getKind() == Diagnostic.Kind.ERROR &&
+          (iPos >= issue.getStartPosition() && iPos <= issue.getEndPosition() ||
+           iPos+iLength >= issue.getStartPosition() && iPos+iLength <= issue.getEndPosition()) )
+      {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  private boolean isWarning( int iPos )
+  {
+    return isWarning( iPos, 1 );
+  }
+  private boolean isWarning( int iPos, int iLength )
+  {
+    if( _errorHandler == null )
+    {
+      return false;
+    }
+
+    for( Diagnostic issue: _errorHandler.getDiagnostics() )
+    {
+      if( (issue.getKind() == Diagnostic.Kind.WARNING ||
+           issue.getKind() == Diagnostic.Kind.MANDATORY_WARNING) &&
+          (iPos >= issue.getStartPosition() && iPos <= issue.getEndPosition() ||
+           iPos+iLength >= issue.getStartPosition() && iPos+iLength <= issue.getEndPosition()) )
+      {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  public String findErrorMessage( int iPos )
+  {
+    if( _errorHandler == null )
+    {
+      return null;
+    }
+
+    Element root = getDefaultRootElement();
+    int index = root.getElementIndex( iPos );
+    if( index < 0 )
+    {
+      return null;
+    }
+
+    Element lineElement = root.getElement( index );
+    if( lineElement == null )
+    {
+      return null;
+    }
+
+    int tokenIndex = lineElement.getElementIndex( iPos );
+    if( tokenIndex < 0 )
+    {
+      return null;
+    }
+
+    Element tokenElem = lineElement.getElement( tokenIndex );
+    if( tokenElem == null )
+    {
+      return null;
+    }
+
+    if( tokenElem.getAttributes().containsAttributes( _error ) ||
+        tokenElem.getAttributes().containsAttributes( _warning ) )
+    {
+      for( Diagnostic issue: _errorHandler.getDiagnostics() )
+      {
+        if( issue.getStartPosition() >= tokenElem.getStartOffset() && issue.getStartPosition() >= tokenElem.getEndOffset() ||
+            issue.getEndPosition() >= tokenElem.getStartOffset() && issue.getEndPosition() >= tokenElem.getEndOffset() )
+        {
+          return issue.getMessage( Locale.getDefault() );
+        }
+      }
+    }
+
+    return null;
   }
 }

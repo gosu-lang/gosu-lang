@@ -2,10 +2,12 @@ package editor;
 
 import editor.util.EditorUtilities;
 import gw.lang.parser.IParseIssue;
-import gw.lang.reflect.gs.IGosuClass;
+import gw.lang.reflect.IType;
 
 import javax.swing.*;
 import java.awt.*;
+import javax.tools.Diagnostic;
+import javax.tools.JavaFileObject;
 
 /**
  */
@@ -46,48 +48,64 @@ public class MessageTree extends AbstractTree<MessageTree, MessageTree.IssueNode
     return new IssueNode( issue );
   }
 
+  public static IssueNode makeIssueMessage( Diagnostic<? extends JavaFileObject> issue, IType type )
+  {
+    return new IssueNode( issue, type );
+  }
+
   public static IssueNode empty()
   {
-    return new IssueNode( null ) {
-      @Override
-      public boolean hasTarget()
-      {
-        return false;
-      }
-    };
+    return IssueNode.EMPTY;
   }
 
   static class IssueNode implements ITreeNode
   {
-    private final IParseIssue _issue;
+    private static final IssueNode EMPTY = new IssueNode();
+
+    private final int _line;
+    private final int _column;
+    private final String _fqn;
+
+    private IssueNode()
+    {
+      _line = -1;
+      _column = -1;
+      _fqn = null;
+    }
 
     public IssueNode( IParseIssue issue )
     {
-      _issue = issue;
+      _line = issue.getLine();
+      _column = issue.getColumn();
+      _fqn =  getOuterMostEnclosingClass( issue.getSource().getGosuClass() ).getName();
+    }
+
+    public IssueNode( Diagnostic<? extends JavaFileObject> issue, IType type )
+    {
+      _line = (int)issue.getLineNumber();
+      _column = (int)issue.getColumnNumber();
+      _fqn =  getOuterMostEnclosingClass( type ).getName();
     }
 
     @Override
     public boolean hasTarget()
     {
-      return true;
+      return _fqn != null;
     }
 
     @Override
     public void jumpToTarget()
     {
-      IGosuClass gsClass = _issue.getSource().getGosuClass();
-      gsClass = getOuterMostEnclosingClass( gsClass );
-
-      LabFrame.instance().getGosuPanel().openType( gsClass.getName(), true );
-      EventQueue.invokeLater( () -> LabFrame.instance().getGosuPanel().getCurrentEditor().gotoLine( _issue.getLine(), _issue.getColumn() ) );
+      LabFrame.instance().getGosuPanel().openType( _fqn, true );
+      EventQueue.invokeLater( () -> LabFrame.instance().getGosuPanel().getCurrentEditor().gotoLine( _line, _column ) );
     }
 
-    private IGosuClass getOuterMostEnclosingClass( IGosuClass innerClass )
+    private IType getOuterMostEnclosingClass( IType innerClass )
     {
-      IGosuClass outerMost = innerClass;
+      IType outerMost = innerClass;
       while( outerMost != null && outerMost.getEnclosingType() != null )
       {
-        outerMost = (IGosuClass)outerMost.getEnclosingType();
+        outerMost = outerMost.getEnclosingType();
       }
       return outerMost;
     }

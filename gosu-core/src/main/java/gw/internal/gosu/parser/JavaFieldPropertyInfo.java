@@ -6,6 +6,7 @@ package gw.internal.gosu.parser;
 
 import gw.config.CommonServices;
 import gw.internal.gosu.parser.java.classinfo.CompileTimeExpressionParser;
+import gw.internal.gosu.parser.java.classinfo.JavaSourceElement;
 import gw.internal.gosu.parser.java.classinfo.JavaSourceEnumConstant;
 import gw.internal.gosu.parser.java.classinfo.JavaSourceField;
 import gw.lang.Deprecated;
@@ -18,6 +19,7 @@ import gw.lang.parser.IExpression;
 import gw.lang.reflect.FeatureManager;
 import gw.lang.reflect.IAnnotationInfo;
 import gw.lang.reflect.IFeatureInfo;
+import gw.lang.reflect.ILocationInfo;
 import gw.lang.reflect.IPresentationInfo;
 import gw.lang.reflect.IPropertyAccessor;
 import gw.lang.reflect.IRelativeTypeInfo;
@@ -296,6 +298,16 @@ public class JavaFieldPropertyInfo extends JavaBaseFeatureInfo implements IJavaF
     else {
       throw new IllegalStateException( "Unexpected field type: " + field );
     }
+  }
+
+  @Override
+  public ILocationInfo getLocationInfo()
+  {
+    if( getField() instanceof JavaSourceElement )
+    {
+      return getField().getLocationInfo();
+    }
+    return super.getLocationInfo();
   }
 
   private class StaticAccessor implements IPropertyAccessor

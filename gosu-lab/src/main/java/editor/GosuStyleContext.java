@@ -101,7 +101,6 @@ public class GosuStyleContext extends StyleContext implements ViewFactory
 
   private String _strFontFamily;
   private int _iFontSize;
-  private boolean _bAntialias;
   private HashMap<AttributeSet, Font> _fontCache;
   private HashMap<Integer, Style> _tokenStyles;
 
@@ -141,7 +140,6 @@ public class GosuStyleContext extends StyleContext implements ViewFactory
 
     _strFontFamily = g_defFontFamily;
     _iFontSize = g_defFontSize;
-    _bAntialias = true;
     _fontCache = new HashMap<>();
 
     setDefaultStyles();
@@ -463,16 +461,6 @@ public class GosuStyleContext extends StyleContext implements ViewFactory
   {
     _iFontSize = iSize;
     _fontCache.clear();
-  }
-
-  public boolean isAntialias()
-  {
-    return _bAntialias;
-  }
-
-  public void setAntialias( boolean bAntialias )
-  {
-    _bAntialias = bAntialias;
   }
 
   //----------------------------------------------------------------------------------------------

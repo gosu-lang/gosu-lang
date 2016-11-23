@@ -67,7 +67,7 @@ public class GosuClassLineInfoManager extends AbstractLineInfoManager
     if( overrideFunction != null && iY < _iconOverrideAndImpl.getIconHeight() / 2 )
     {
       IFunctionStatement funcStmt = overrideFunction.getDynamicFunctionSymbol().getSuperDfs().getDeclFunctionStmt();
-      getEditor().gotoDeclaration( funcStmt.getLocation().getDeepestLocation( funcStmt.getNameOffset( null ), true ).getParsedElement() );
+      ((GosuEditor)getEditor()).gotoDeclaration( funcStmt.getLocation().getDeepestLocation( funcStmt.getNameOffset( null ), true ).getParsedElement() );
     }
     else
     {
@@ -106,7 +106,7 @@ public class GosuClassLineInfoManager extends AbstractLineInfoManager
 
   private IFunctionStatement getSuperFunction( int iLine )
   {
-    Map<Integer, IFunctionStatement> functionsByLine = getEditor().getFunctionsByLineNumber();
+    Map<Integer, IFunctionStatement> functionsByLine = ((GosuEditor)getEditor()).getFunctionsByLineNumber();
     IFunctionStatement functionStatement = functionsByLine.get( iLine );
     if( functionStatement != null )
     {

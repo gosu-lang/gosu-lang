@@ -1,5 +1,7 @@
 package editor.plugin.typeloader;
 
+import editor.EditorHost;
+import editor.IIssueContainer;
 import gw.lang.reflect.IType;
 import javax.swing.JComponent;
 import javax.swing.text.StyledEditorKit;
@@ -16,5 +18,10 @@ public interface ITypeFactory
   JComponent makePanel( INewFileParams params );
   CharSequence createNewFileContents( INewFileParams params );
   StyledEditorKit makeEditorKit();
-  void parse( IType type, JComponent editor );
+  void parse( IType type, String strText, boolean forceCodeCompletion, boolean changed, EditorHost editor );
+  boolean canAddBreakpoint( IType type, int line );
+
+  String getTooltipMessage( int iPos, EditorHost editor );
+
+  IIssueContainer getIssueContainer( EditorHost editor );
 }

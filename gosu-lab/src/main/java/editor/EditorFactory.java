@@ -4,7 +4,6 @@ import editor.undo.AtomicUndoManager;
 import gw.lang.parser.ScriptabilityModifiers;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.gs.IGosuClass;
-import gw.lang.reflect.gs.IPropertiesType;
 import java.io.File;
 
 /**
@@ -37,7 +36,7 @@ public class EditorFactory
     }
     else
     {
-      return new TextEditor( type );
+      return new StandardEditor( new SimpleLineInfoManager(), type );
       //return new PlainTextEditor();
     }
 

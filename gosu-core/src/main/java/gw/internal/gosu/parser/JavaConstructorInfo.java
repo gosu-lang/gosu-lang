@@ -4,6 +4,7 @@
 
 package gw.internal.gosu.parser;
 
+import gw.internal.gosu.parser.java.classinfo.JavaSourceElement;
 import gw.lang.GosuShop;
 import gw.lang.javadoc.IDocRef;
 import gw.lang.javadoc.IClassDocNode;
@@ -16,6 +17,7 @@ import gw.lang.reflect.IConstructorHandler;
 import gw.lang.reflect.IConstructorInfo;
 import gw.lang.reflect.IExceptionInfo;
 import gw.lang.reflect.IFeatureInfo;
+import gw.lang.reflect.ILocationInfo;
 import gw.lang.reflect.IParameterInfo;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.TypeSystem;
@@ -294,5 +296,15 @@ public class JavaConstructorInfo extends JavaBaseFeatureInfo implements IJavaCon
   protected boolean isDefaultEnumFeature()
   {
     return true;
+  }
+
+  @Override
+  public ILocationInfo getLocationInfo()
+  {
+    if( getJavaConstructor() instanceof JavaSourceElement )
+    {
+      return getJavaConstructor().getLocationInfo();
+    }
+    return super.getLocationInfo();
   }
 }

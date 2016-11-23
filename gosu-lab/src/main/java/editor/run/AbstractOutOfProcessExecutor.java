@@ -1,6 +1,7 @@
 package editor.run;
 
 import com.sun.jdi.VirtualMachine;
+import com.sun.tools.javac.api.JavacTool;
 import editor.GosuEditor;
 import editor.GosuPanel;
 import editor.LabFrame;
@@ -10,6 +11,8 @@ import editor.util.Experiment;
 import editor.util.TaskQueue;
 import gw.util.GosuExceptionUtil;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import javax.swing.text.SimpleAttributeSet;
 import javax.swing.text.StyleConstants;
 import java.awt.*;
@@ -162,7 +165,7 @@ public abstract class AbstractOutOfProcessExecutor<T extends IRunConfig> impleme
 
   String makeClasspath( GosuPanel gosuPanel ) throws IOException
   {
-    return makeClasspath( gosuPanel, false );
+    return makeClasspath( gosuPanel, true );
   }
 
   String makeClasspath( GosuPanel gosuPanel, boolean bToolsJar ) throws IOException
@@ -189,6 +192,18 @@ public abstract class AbstractOutOfProcessExecutor<T extends IRunConfig> impleme
     {
       String javaHome = System.getProperty( "java.home" );
       String toolsJar = javaHome + File.separator + "lib" + File.separator + "tools.jar";
+      if( !new File( toolsJar ).isFile() )
+      {
+        try
+        {
+          URI toolsJarUri = JavacTool.class.getProtectionDomain().getCodeSource().getLocation().toURI();
+          toolsJar = new File( toolsJarUri ).getAbsolutePath();
+        }
+        catch( URISyntaxException e )
+        {
+          System.out.println( "Could not find tools.jar" );
+        }
+      }
       classpath.append( toolsJar ).append( File.pathSeparator );
     }
 

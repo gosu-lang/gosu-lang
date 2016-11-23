@@ -681,6 +681,17 @@ public class UsageSearcher extends AbstractSearcher
     return loc;
   }
 
+  private SearchLocation makeSearchLocation( SearchElement target )
+  {
+    SearchLocation loc = new SearchLocation();
+    loc._iOffset = target.getOffset();
+    loc._iLength = target.getLength();
+    loc._iLineOffset = 0;
+    loc._iLine = target.getLine();
+    loc._iColumn = target.getColumn();
+    return loc;
+  }
+
   private boolean maybeSearchForText( FileTree tree, SearchTree results )
   {
     if( !(_target instanceof ITypeInfo) )
@@ -748,10 +759,10 @@ public class UsageSearcher extends AbstractSearcher
     SearchTree results = new SearchTree( "root", NodeKind.Directory, SearchTree.empty() );
     searchTree( tree, results, ft -> ft.getType() instanceof IGosuClass, null );
     List<SearchLocation> locations = findLocations( results, new ArrayList<>() );
-    IParsedElement targetPe = _target.getTargetParsedElement();
-    if( targetPe != null && getOuterMostEnclosingType( targetPe.getGosuClass() ) == getOuterMostEnclosingType( type ) )
+    SearchElement target = _target.getTargetElement();
+    if( target != null && getOuterMostEnclosingType( target.getEnclosingType() ) == getOuterMostEnclosingType( type ) )
     {
-      locations.add( makeSearchLocation( targetPe.getLocation() ) );
+      locations.add( makeSearchLocation( target ) );
     }
     return locations;
   }

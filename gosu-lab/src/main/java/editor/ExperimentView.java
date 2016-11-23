@@ -204,16 +204,16 @@ public class ExperimentView extends JPanel
   {
     if( fileTree.isFile() )
     {
-      if( fileTree.getType() != null )
-      {
+//      if( fileTree.getType() != null )
+//      {
         // Open Gosu type in our editor
         _experiment.getGosuPanel().openFile( fileTree.getFileOrDir(), true );
-      }
-      else
-      {
-        // Open files on desktop in native app
-        LabFrame.openFileOrDir( fileTree.getFileOrDir() );
-      }
+//      }
+//      else
+//      {
+//        // Open files on desktop in native app
+//        LabFrame.openFileOrDir( fileTree.getFileOrDir() );
+//      }
     }
   }
 

@@ -5,13 +5,16 @@
 package gw.internal.gosu.properties;
 
 import gw.fs.IFile;
+import gw.lang.reflect.IDefaultTypeLoader;
 import gw.lang.reflect.IPropertyInfo;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.ITypeInfo;
 import gw.lang.reflect.ITypeLoader;
 import gw.lang.reflect.Modifier;
 import gw.lang.reflect.TypeBase;
+import gw.lang.reflect.gs.ClassType;
 import gw.lang.reflect.gs.IPropertiesType;
+import gw.lang.reflect.gs.ISourceFileHandle;
 import gw.util.GosuClassUtil;
 import gw.util.StreamUtil;
 import gw.util.concurrent.LockingLazyVar;
@@ -30,6 +33,7 @@ public class PropertiesType extends TypeBase implements IPropertiesType {
   private final PropertiesTypeLoader _typeLoader;
   private final PropertyNode _propertyNode;
   private IFile _file;
+  private ISourceFileHandle _fileHandle;
   private String _contentCached;
   private final LockingLazyVar<PropertiesTypeInfo> _typeInfo = new LockingLazyVar<PropertiesTypeInfo>() {
     @Override
@@ -40,7 +44,7 @@ public class PropertiesType extends TypeBase implements IPropertiesType {
   private final LockingLazyVar<List<IPropertiesType>> _innerClasses = new LockingLazyVar<List<IPropertiesType>>() {
     @Override
     protected List<IPropertiesType> init() {
-      List<IPropertiesType> innerClasses = new ArrayList<IPropertiesType>();
+      List<IPropertiesType> innerClasses = new ArrayList<>();
       for( IPropertyInfo pi: getTypeInfo().getProperties() )
       {
         IType type = pi.getFeatureType();
@@ -142,7 +146,7 @@ public class PropertiesType extends TypeBase implements IPropertiesType {
         try
         {
           InputStream inputStream = files[0].openInputStream();
-          _contentCached = StreamUtil.getContent( new InputStreamReader( inputStream ) );
+          _contentCached = StreamUtil.getContent( new InputStreamReader( inputStream ) ).replace( "\r\n", "\n" );
           inputStream.close();
         }
         catch( Exception e )
@@ -183,5 +187,22 @@ public class PropertiesType extends TypeBase implements IPropertiesType {
   public IType resolveRelativeInnerClass( String strTypeName, boolean bForce )
   {
     return null;
+  }
+
+  @Override
+  public ISourceFileHandle getSourceFileHandle()
+  {
+    if( _fileHandle == null )
+    {
+      IDefaultTypeLoader loader = _typeLoader.getModule().getTypeLoaders( IDefaultTypeLoader.class ).get( 0 );
+      _fileHandle = loader.getSouceFileHandle( getName() );
+    }
+    return _fileHandle;
+  }
+
+  @Override
+  public ClassType getClassType()
+  {
+    return ClassType.Unknown;
   }
 }

@@ -1,5 +1,7 @@
 package editor.plugin.typeloader.properties;
 
+import editor.EditorHost;
+import editor.IIssueContainer;
 import editor.plugin.typeloader.INewFileParams;
 import editor.plugin.typeloader.ITypeFactory;
 import gw.lang.reflect.IType;
@@ -8,6 +10,7 @@ import javax.swing.text.StyledEditorKit;
 
 /**
  */
+@SuppressWarnings("UnusedDeclaration")
 public class PropertiesTypeFactory implements ITypeFactory
 {
   public PropertiesTypeFactory()
@@ -64,8 +67,27 @@ public class PropertiesTypeFactory implements ITypeFactory
   }
 
   @Override
-  public void parse( IType type, JComponent editor )
+  public void parse( IType type, String strText, boolean forceCodeCompletion, boolean changed, EditorHost editor )
   {
+    //## todo: write a properties file parser
+  }
 
+  @Override
+  public boolean canAddBreakpoint( IType type, int line )
+  {
+    return false;
+  }
+
+  @Override
+  public String getTooltipMessage( int iPos, EditorHost editor )
+  {
+    //## todo: get error message for iPos
+    return null;
+  }
+
+  @Override
+  public IIssueContainer getIssueContainer( EditorHost editor )
+  {
+    return new PropertiesIssueContainer();
   }
 }

@@ -5,7 +5,6 @@ import editor.GosuPanel;
 import editor.LabFrame;
 import editor.NewIdentifierDialog;
 import editor.plugin.typeloader.ITypeFactory;
-import editor.search.MessageDisplay;
 import gw.lang.reflect.gs.ClassType;
 
 import javax.swing.*;
@@ -227,7 +226,7 @@ public class SourceFileCreator
       }
       if( file.getParentFile() == null )
       {
-        MessageDisplay.displayError( "A class must have a parent directory" );
+        JOptionPane.showMessageDialog( LabFrame.instance(), "A class must have a parent directory", "Gosu Lab", JOptionPane.ERROR_MESSAGE );
         return false;
       }
       strName = file.getParentFile().getName() + '.' + file.getName().substring( 0, file.getName().lastIndexOf( '.' ) );
@@ -267,7 +266,7 @@ public class SourceFileCreator
       }
       if( file.getParentFile() == null )
       {
-        MessageDisplay.displayError( "A template must have a parent directory" );
+        JOptionPane.showMessageDialog( LabFrame.instance(), "A template must have a parent directory", "Gosu Lab", JOptionPane.ERROR_MESSAGE );
         return false;
       }
       strName = file.getParentFile().getName() + '.' + file.getName().substring( 0, file.getName().lastIndexOf( '.' ) );
@@ -299,12 +298,14 @@ public class SourceFileCreator
 
   private int displayTypeWarning( File file )
   {
-    return MessageDisplay.displayConfirmation( "<html>The class " + file.getName() + " is not on the current classpath.  " +
-                                               "Create the class anyway and put it's parent directory in the classpath?  " +
-                                               "<br><br>" +
-                                               "WARNING!!!  Ensure that the parent directory does not cover other files and directories you don't want in your class path." +
-                                               "<br><br>" +
-                                               "Consider creating a \"src\" directory and create package folders in there.", JOptionPane.YES_NO_OPTION );
+    return
+      JOptionPane.showConfirmDialog( LabFrame.instance(),
+         "<html>The class " + file.getName() + " is not on the current classpath.  " +
+         "Create the class anyway and put it's parent directory in the classpath?  " +
+         "<br><br>" +
+         "WARNING!!!  Ensure that the parent directory does not cover other files and directories you don't want in your class path." +
+         "<br><br>" +
+         "Consider creating a \"src\" directory and create package folders in there.", "Gosu Lab", JOptionPane.YES_NO_OPTION );
   }
 
   private boolean writeEnhancementStub( File file )
@@ -319,7 +320,7 @@ public class SourceFileCreator
       }
       if( file.getParentFile() == null )
       {
-        MessageDisplay.displayError( "A class must have a parent directory" );
+        JOptionPane.showMessageDialog( LabFrame.instance(), "A class must have a parent directory", "Gosu Lab", JOptionPane.ERROR_MESSAGE );
         return false;
       }
       strName = file.getParentFile().getName() + '.' + file.getName().substring( 0, file.getName().lastIndexOf( '.' ) );

@@ -2,6 +2,7 @@ package editor;
 
 import editor.debugger.Breakpoint;
 import editor.debugger.BreakpointManager;
+import editor.search.SearchElement;
 import editor.search.SearchLocation;
 import editor.search.UsageSearcher;
 import editor.search.UsageTarget;
@@ -12,7 +13,6 @@ import editor.util.IReplaceWordCallback;
 import editor.util.SettleModalEventQueue;
 import editor.util.TaskQueue;
 import editor.util.TextComponentUtil;
-import gw.fs.IFile;
 import gw.lang.GosuShop;
 import gw.lang.parser.GosuParserFactory;
 import gw.lang.parser.IExpression;
@@ -29,7 +29,6 @@ import gw.lang.parser.ParserOptions;
 import gw.lang.parser.StandardSymbolTable;
 import gw.lang.parser.exceptions.ParseException;
 import gw.lang.parser.exceptions.ParseResultsException;
-import gw.lang.parser.exceptions.ParseWarning;
 import gw.lang.parser.expressions.IBeanMethodCallExpression;
 import gw.lang.parser.expressions.IImplicitTypeAsExpression;
 import gw.lang.parser.expressions.IInferredNewExpression;
@@ -44,7 +43,11 @@ import gw.lang.parser.statements.IClassFileStatement;
 import gw.lang.parser.statements.IClassStatement;
 import gw.lang.parser.statements.IFunctionStatement;
 import gw.lang.parser.statements.IMethodCallStatement;
+import gw.lang.parser.statements.INamespaceStatement;
+import gw.lang.parser.statements.IPropertyStatement;
 import gw.lang.parser.statements.IStatementList;
+import gw.lang.parser.statements.IUsesStatement;
+import gw.lang.parser.statements.IUsesStatementList;
 import gw.lang.parser.template.ITemplateGenerator;
 import gw.lang.reflect.FunctionType;
 import gw.lang.reflect.IMetaType;
@@ -61,6 +64,7 @@ import gw.lang.reflect.gs.StringSourceFileHandle;
 import gw.lang.reflect.java.JavaTypes;
 import gw.util.GosuStringUtil;
 
+import java.io.File;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.event.CaretEvent;
@@ -69,19 +73,15 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.text.AbstractDocument;
 import javax.swing.text.BadLocationException;
-import javax.swing.text.Document;
 import javax.swing.text.Element;
 import javax.swing.undo.CompoundEdit;
 import java.awt.*;
 import java.awt.datatransfer.StringSelection;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
-import java.awt.event.InputEvent;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
@@ -99,39 +99,11 @@ import static editor.util.TextComponentUtil.Direction.FORWARD;
  */
 public class GosuEditor extends EditorHost implements IScriptEditor, IGosuPanel, ITypeLoaderListener
 {
-  public static final String INTELLISENSE_TASK_QUEUE = "_intellisenseParser";
-
-  /**
-   * Parse result code for a valid parse.
-   */
-  public static final int RESCODE_VALID = 0;
-
-  /**
-   * Parse result code for a valid parse with warnings.
-   */
-  public static final int RESCODE_WARNINGS = 1;
-
-  /**
-   * Parse result code for an invalid parse.
-   */
-  public static final int RESCODE_ERRORS = 2;
-
-  /**
-   * Parse result code during parsing.
-   */
-  public static final int RESCODE_PENDING = 4;
-
-  /**
-   * Delay in millis for code completion to wait for key presses
-   * before displaying.
-   */
-  static int COMPLETION_DELAY = 500;
-
   public static final int MIN_LINENUMBER_WIDTH = 16;
 
   private JLabel _labelCaption;
-  private GosuEditorFeedbackPanel _panelFeedback;
-  private GosuEditorPane _editor;
+  private ParserFeedbackPanel _panelFeedback;
+  private EditorHostTextPane _editor;
   private GosuDocumentHandler _docHandler;
   private IContextMenuHandler<IScriptEditor> _contextMenuHandler;
   private volatile IGosuParser _parser;
@@ -143,22 +115,16 @@ public class GosuEditor extends EditorHost implements IScriptEditor, IGosuPanel,
   private ISymbolTable _symTable;
   private IReplaceWordCallback _replaceWordCallback;
   private boolean _bTemplate;
-  private boolean _bCompleteCode;
   private IScriptabilityModifier _scriptabilityModifier;
   private AtomicUndoManager _undoMgr;
   private EditorScrollPane _scroller;
-  private boolean _bAltDown;
   private ParseResultsException _pe;
-  boolean _bEnterPressedConsumed;
   private boolean _bTestResource;
   private boolean _bAcceptUses;
-  private int _iTimerCount;
-  private boolean _bParserSuspended;
   private IGosuClass _parsedGosuClass;
   private Map<Integer, IFunctionStatement> _functionStmtsByLineNumber;
 
   private IGosuValidator _validator;
-  private List<ParseListener> _parseListeners = new ArrayList<>();
 
   private SmartFixManager _smartFixManager;
   private ScopeHighlighter _ctxHighlighter;
@@ -174,7 +140,6 @@ public class GosuEditor extends EditorHost implements IScriptEditor, IGosuPanel,
 
   private JavadocPopup _javadocPopup;
 
-  private static TimerPool _timerPool = new TimerPool();
   private IType _programSuperType;
   private boolean _bAccessPrivateMembers;
   private IType _expectedType;
@@ -304,7 +269,7 @@ public class GosuEditor extends EditorHost implements IScriptEditor, IGosuPanel,
     _labelCaption.setBorder( new EmptyBorder( 0, 4 + MIN_LINENUMBER_WIDTH * (lineInfoRenderer != null ? 2 : 1), 0, 0 ) );
     add( BorderLayout.NORTH, _labelCaption );
 
-    _panelFeedback = new GosuEditorFeedbackPanel();
+    _panelFeedback = new ParserFeedbackPanel();
     add( BorderLayout.EAST, _panelFeedback );
   }
 
@@ -324,6 +289,12 @@ public class GosuEditor extends EditorHost implements IScriptEditor, IGosuPanel,
   public JComponent getFeedbackPanel()
   {
     return _panelFeedback;
+  }
+
+  @Override
+  public IIssueContainer getIssues()
+  {
+    return new GosuIssueContainer( getParseResultsException() );
   }
 
   protected void addKeyHandlers()
@@ -349,20 +320,6 @@ public class GosuEditor extends EditorHost implements IScriptEditor, IGosuPanel,
                                   public void actionPerformed( ActionEvent e )
                                   {
                                     clipCopyTypeInfoAtCurrentLocation();
-                                  }
-                                } );
-
-    _editor.getInputMap().put( KeyStroke.getKeyStroke( EditorUtilities.CONTROL_KEY_NAME + " SLASH" ), "_bulkComment" );
-    _editor.getActionMap().put( "_bulkComment",
-                                new AbstractAction()
-                                {
-                                  @Override
-                                  public void actionPerformed( ActionEvent e )
-                                  {
-                                    if( !isCompletionPopupShowing() )
-                                    {
-                                      handleBulkComment();
-                                    }
                                   }
                                 } );
 
@@ -506,6 +463,12 @@ public class GosuEditor extends EditorHost implements IScriptEditor, IGosuPanel,
     _expectedType = type;
   }
 
+  @Override
+  public String getLineCommentDelimiter()
+  {
+    return "//";
+  }
+
   public void highlightUsagesOfFeatureUnderCaret()
   {
     setHighlightMode( HighlightMode.USAGES );
@@ -604,9 +567,9 @@ public class GosuEditor extends EditorHost implements IScriptEditor, IGosuPanel,
     }
   }
 
-  protected GosuEditorPane createEditorPane()
+  protected EditorHostTextPane createEditorPane()
   {
-    return new GosuEditorPane( this );
+    return new EditorHostTextPane( this );
   }
 
   @Override
@@ -693,7 +656,7 @@ public class GosuEditor extends EditorHost implements IScriptEditor, IGosuPanel,
   }
 
   @Override
-  public GosuEditorPane getEditor()
+  public EditorHostTextPane getEditor()
   {
     return _editor;
   }
@@ -738,95 +701,7 @@ public class GosuEditor extends EditorHost implements IScriptEditor, IGosuPanel,
     _bTestResource = testResource;
   }
 
-  @Override
-  public void parse()
-  {
-    parse( false );
-  }
-
-  private void parse( boolean forceCodeCompletion )
-  {
-    postTaskInParserThread( getParseTask( forceCodeCompletion ) );
-  }
-
-  public static void postTaskInParserThread( Runnable task )
-  {
-    TaskQueue tq = TaskQueue.getInstance( INTELLISENSE_TASK_QUEUE );
-    tq.postTask( task );
-  }
-
-  public static TaskQueue getParserTaskQueue()
-  {
-    return TaskQueue.getInstance( INTELLISENSE_TASK_QUEUE );
-  }
-
-  public boolean isParserSuspended()
-  {
-    return _bParserSuspended;
-  }
-
-  @SuppressWarnings("UnusedDeclaration")
-  public void setParserSuspended( boolean bParserSuspended )
-  {
-    _bParserSuspended = bParserSuspended;
-  }
-
-  private ParseTask getParseTask( boolean forceCodeCompletion )
-  {
-    return new ParseTask( _editor.getText(), forceCodeCompletion, true );
-  }
-
-  class ParseTask implements Runnable
-  {
-    private String _strSource;
-    private boolean _forceCodeCompletion;
-    private boolean _changed;
-
-    public ParseTask( String strSource, boolean forceCodeCompletion, boolean changed )
-    {
-      _strSource = strSource;
-      _forceCodeCompletion = forceCodeCompletion;
-      _changed = changed;
-    }
-
-    GosuEditor getEditor()
-    {
-      return GosuEditor.this;
-    }
-
-    @Override
-    public void run()
-    {
-      if( !getEditor().isShowing() )
-      {
-        return;
-      }
-      if( !areMoreThanOneParserTasksPendingForThisEditor() || _forceCodeCompletion )
-      {
-        TypeSystem.lock();
-        try
-        {
-          _parseNow( _strSource, _forceCodeCompletion, _changed );
-        }
-        finally
-        {
-          //!! NOTE: do not refresh the type we just parsed in the editor, it will otherwise
-          //!!       reparse the type from DISK, which will be stale compared with changes in the editor.
-          TypeSystem.unlock();
-          if( _forceCodeCompletion )
-          {
-            setCompleteCode( false );
-          }
-        }
-        for( ParseListener parseListener : _parseListeners )
-        {
-          parseListener.parseComplete();
-        }
-      }
-    }
-  }
-
-  private void _parseNow( String strText, boolean forceCodeCompletion, boolean changed )
+  public void parse( String strText, boolean forceCodeCompletion, boolean changed )
   {
     if( isParserSuspended() )
     {
@@ -1002,7 +877,7 @@ public class GosuEditor extends EditorHost implements IScriptEditor, IGosuPanel,
       return;
     }
 
-    EventQueue.invokeLater( () -> _panelFeedback.update( RESCODE_VALID, GosuEditor.this ) );
+    EventQueue.invokeLater( () -> _panelFeedback.update( GosuEditor.this ) );
   }
 
   @SuppressWarnings("UnusedDeclaration")
@@ -1108,70 +983,6 @@ public class GosuEditor extends EditorHost implements IScriptEditor, IGosuPanel,
     }
   }
 
-  @SuppressWarnings("UnusedDeclaration")
-  public static boolean areAnyParserTasksPending()
-  {
-    TaskQueue tq = TaskQueue.getInstance( INTELLISENSE_TASK_QUEUE );
-    List tasks = tq.getTasks();
-    for( Object task1 : tasks )
-    {
-      Runnable task = (Runnable)task1;
-      if( task instanceof ParseTask )
-      {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  private boolean areMoreThanOneParserTasksPendingForThisEditor()
-  {
-    TaskQueue tq = TaskQueue.getInstance( INTELLISENSE_TASK_QUEUE );
-    int iCount = 0;
-    List tasks = tq.getTasks();
-    for( Object task1 : tasks )
-    {
-      Runnable task = (Runnable)task1;
-      if( task instanceof ParseTask && ((ParseTask)task).getEditor() == this )
-      {
-        if( iCount > 0 )
-        {
-          // Note we don't count the first one assuming we're trying to determine
-          // if there are any queued behind it.
-          return true;
-        }
-        iCount++;
-      }
-    }
-    return false;
-  }
-
-  private boolean areMoreThanOneParserTasksGoingToUpdateContainingType()
-  {
-    TaskQueue tq = TaskQueue.getInstance( INTELLISENSE_TASK_QUEUE );
-    int iCount = 0;
-    List tasks = tq.getTasks();
-    for( Object task1 : tasks )
-    {
-      Runnable task = (Runnable)task1;
-      if( task instanceof ParseTask )
-      {
-        GosuEditor otherEditor = ((ParseTask)task).getEditor();
-        if( otherEditor == this || (otherEditor.getScriptPart() != null && getScriptPart() != null && getScriptPart().getContainingType() == otherEditor.getScriptPart().getContainingType()) )
-        {
-          if( iCount > 0 )
-          {
-            // Note we don't count the first one assuming we're trying to determine
-            // if there are any queued behind it.
-            return true;
-          }
-          iCount++;
-        }
-      }
-    }
-    return false;
-  }
-
   private void handleParseException( final boolean forceCodeCompletion )
   {
     EventQueue.invokeLater( () -> handleParseException( _pe, forceCodeCompletion ) );
@@ -1181,39 +992,7 @@ public class GosuEditor extends EditorHost implements IScriptEditor, IGosuPanel,
   {
     handleCodeCompletion( bForceCodeCompletion );
     getDocument().setParseResultsException( e );
-    if( e != null )
-    {
-      boolean hasError = false, hasWarning = false;
-      for( IParseIssue issue : e.getParseIssues() )
-      {
-        if( issue.getTokenEnd() > 0 && issue.getTokenStart() < _editor.getDocument().getLength() )
-        {
-          if( issue instanceof ParseWarning )
-          {
-            hasWarning = true;
-          }
-          else
-          {
-            hasError = true;
-          }
-        }
-      }
-      if( !hasError )
-      {
-        if( hasWarning )
-        {
-          _panelFeedback.update( RESCODE_WARNINGS, this );
-        }
-        else
-        {
-          _panelFeedback.update( RESCODE_VALID, this );
-        }
-      }
-      else
-      {
-        _panelFeedback.update( RESCODE_ERRORS, this );
-      }
-    }
+    _panelFeedback.update( this );
   }
 
   private void handleCodeCompletion( boolean bForceCodeCompletion )
@@ -1309,316 +1088,6 @@ public class GosuEditor extends EditorHost implements IScriptEditor, IGosuPanel,
     _symTable = newSymbols;
   }
 
-  void handleEnter()
-  {
-    CompoundEdit undoAtom = getUndoManager().beginUndoAtom( "New Line" );
-    try
-    {
-      _handleEnter();
-    }
-    finally
-    {
-      getUndoManager().endUndoAtom( undoAtom );
-      undoAtom = _undoMgr.getUndoAtom();
-      if( undoAtom != null && undoAtom.getPresentationName().equals( "Text Change" ) )
-      {
-        _undoMgr.endUndoAtom();
-      }
-    }
-  }
-
-  void _handleEnter()
-  {
-    // Calling revalidate after vk_enter to keep the scrollpane, the rootpane, and the editor all in synch.
-    revalidate();
-
-    Element root = _editor.getDocument().getRootElements()[0];
-    int index = root.getElementIndex( _editor.getCaretPosition() - 1 );
-    Element line = root.getElement( index );
-    int iStart = line.getStartOffset();
-    int iEnd = line.getEndOffset();
-    try
-    {
-      String strLine = line.getDocument().getText( iStart, iEnd - iStart );
-      StringBuilder strbIndent = new StringBuilder();
-      for( int iIndent = 0; iIndent < strLine.length(); iIndent++ )
-      {
-        char c = strLine.charAt( iIndent );
-        if( c != ' ' && c != '\t' )
-        {
-          break;
-        }
-        strbIndent.append( c );
-      }
-      if( strbIndent.length() > 0 )
-      {
-        _editor.replaceSelection( strbIndent.toString() );
-      }
-      indentIfOpenBracePrecedes( strLine );
-
-      fixCloseBraceIfNecessary( strLine );
-
-      if( strLine.trim().startsWith( "/**" ) )
-      {
-        _editor.replaceSelection( " * " );
-        int caretPos = _editor.getCaretPosition();
-        _editor.replaceSelection( "\n" + strbIndent.toString() + " */" );
-        _editor.setCaretPosition( caretPos );
-      }
-      else
-      {
-        boolean isJavadoc = false;
-        while( strLine.trim().startsWith( "*" ) && !strLine.contains( "*/" ) )
-        {
-          index--;
-          if( index >= 0 )
-          {
-            line = root.getElement( index );
-            iStart = line.getStartOffset();
-            iEnd = line.getEndOffset();
-            strLine = line.getDocument().getText( iStart, iEnd - iStart );
-            if( strLine.trim().startsWith( "/**" ) )
-            {
-              isJavadoc = true;
-              break;
-            }
-          }
-        }
-        if( isJavadoc )
-        {
-          _editor.replaceSelection( "* " );
-        }
-      }
-    }
-    catch( Exception ex )
-    {
-      EditorUtilities.handleUncaughtException( ex );
-    }
-  }
-
-  private void fixCloseBraceIfNecessary( String previousLine ) throws BadLocationException
-  {
-    Element root = _editor.getDocument().getRootElements()[0];
-    int iStart = _editor.getCaretPosition();
-    Element line = root.getElement( root.getElementIndex( iStart ) );
-    int iEnd = line.getEndOffset();
-    if( iStart < _editor.getDocument().getLength() )
-    {
-      String strLine = line.getDocument().getText( iStart, iEnd - iStart );
-      if( strLine.trim().startsWith( "}" ) )
-      {
-        int offset = strLine.indexOf( '}' );
-        boolean previousLineWasOpenBrace = previousLine.trim().endsWith( "{" );
-
-        if( previousLineWasOpenBrace )
-        {
-          _editor.getDocument().insertString( iStart, "\n", null );
-          offset += 1;
-        }
-
-        parseAndWaitForParser();
-        _editor.setCaretPosition( iStart + offset );
-        _handleBraceRightNow( _editor.getCaretPosition(), false );
-
-        if( previousLineWasOpenBrace )
-        {
-          _editor.setCaretPosition( iStart );
-        }
-      }
-    }
-  }
-
-  void handleBackspace()
-  {
-    int caretPosition = getEditor().getCaretPosition();
-    try
-    {
-      if( caretPosition > 0 && (getEditor().getText( caretPosition - 1, 1 ).equals( "." ) || getEditor().getText( caretPosition - 1, 1 ).equals( "#" )) )
-      {
-        dismissCompletionPopup();
-      }
-    }
-    catch( BadLocationException e1 )
-    {
-      // ignore
-    }
-  }
-
-  private void indentIfOpenBracePrecedes( String strLine )
-  {
-    strLine = strLine.trim();
-    if( strLine.length() > 0 && strLine.charAt( strLine.length() - 1 ) == '{' )
-    {
-      _editor.replaceSelection( getIndentWhitespace() );
-    }
-  }
-
-  private String getIndentWhitespace()
-  {
-    return GosuStringUtil.repeat( " ", TAB_SIZE );
-  }
-
-  void handleBulkComment()
-  {
-    CompoundEdit undoAtom = getUndoManager().beginUndoAtom( "Comment" );
-    try
-    {
-      _handleBulkComment();
-    }
-    finally
-    {
-      getUndoManager().endUndoAtom( undoAtom );
-    }
-  }
-
-  void _handleBulkComment()
-  {
-    // Calling revalidate after vk_enter to keep the scrollpane, the rootpane, and the editor all in synch.
-    revalidate();
-
-    int iSelectionStart = _editor.getSelectionStart();
-    int iSelectionEnd = _editor.getSelectionEnd();
-    Element root = _editor.getDocument().getRootElements()[0];
-    int iStartIndex = root.getElementIndex( iSelectionStart );
-    int iEndIndex = root.getElementIndex( iSelectionEnd );
-    if( iStartIndex != iEndIndex && root.getElement( iEndIndex ).getStartOffset() == iSelectionEnd )
-    {
-      iSelectionEnd--;
-      iEndIndex = root.getElementIndex( iSelectionEnd );
-    }
-
-    try
-    {
-      boolean bHasLineWithoutLeadingComment = false;
-      for( int i = iStartIndex; i <= iEndIndex; i++ )
-      {
-        Element line = root.getElement( i );
-        int iStart = line.getStartOffset();
-        int iEnd = line.getEndOffset();
-        String strLine = _editor.getText( iStart, iEnd - iStart );
-        String strLineTrimmed = strLine.trim();
-        if( strLineTrimmed.length() > 0 && !strLineTrimmed.startsWith( "//" ) )
-        {
-          bHasLineWithoutLeadingComment = true;
-          break;
-        }
-      }
-
-      for( int i = iStartIndex; i <= iEndIndex; i++ )
-      {
-        Element line = root.getElement( i );
-        int iStart = line.getStartOffset();
-        int iEnd = line.getEndOffset();
-        String strLine = _editor.getText( iStart, iEnd - iStart );
-        if( bHasLineWithoutLeadingComment )
-        {
-          strLine = "//" + strLine;
-        }
-        else
-        {
-          int iCommentIndex = strLine.indexOf( "//" );
-          if( iCommentIndex >= 0 )
-          {
-            strLine = strLine.substring( 0, iCommentIndex ) + strLine.substring( iCommentIndex + 2 );
-          }
-        }
-        iEnd = line.getEndOffset();
-        _editor.select( iStart, iEnd );
-        _editor.replaceSelection( strLine );
-        iSelectionEnd = _editor.getSelectionEnd();
-      }
-      _editor.select( iSelectionStart, iSelectionEnd );
-    }
-    catch( Exception ex )
-    {
-      editor.util.EditorUtilities.handleUncaughtException( ex );
-    }
-  }
-
-  void handleBraceRight()
-  {
-    final int caretPosition = _editor.getCaretPosition();
-    EventQueue.invokeLater(
-      () -> postTaskInParserThread(
-        () -> EventQueue.invokeLater(
-          () -> handleBraceRightNow( caretPosition ) ) ) );
-  }
-
-  private void handleBraceRightNow( int caretPosition )
-  {
-    CompoundEdit undoAtom = getUndoManager().beginUndoAtom( "Right Brace" );
-    try
-    {
-      _handleBraceRightNow( caretPosition, true );
-    }
-    finally
-    {
-      getUndoManager().endUndoAtom( undoAtom );
-    }
-  }
-
-  private void _handleBraceRightNow( int caretPosition, boolean wasBraceTyped )
-  {
-
-    Document doc = _editor.getDocument();
-    Element root = doc.getRootElements()[0];
-    Element line = root.getElement( root.getElementIndex( caretPosition ) );
-    int iBraceLineStart = line.getStartOffset();
-    int iBraceLineEnd = line.getEndOffset();
-    try
-    {
-      String strLine = line.getDocument().getText( iBraceLineStart, Math.min( iBraceLineEnd, doc.getLength() ) - iBraceLineStart );
-      iBraceLineEnd = strLine.endsWith( "\n" ) ? iBraceLineEnd - 1 : iBraceLineEnd;
-      strLine = strLine.trim();
-      if( strLine.length() > 1 )
-      {
-        return;
-      }
-      IParseTree stmtAtBrace = getDeepestStatementLocationAtPos( caretPosition, true );
-      if( stmtAtBrace == null )
-      {
-        return;
-      }
-
-      line = root.getElement( root.getElementIndex( stmtAtBrace.getOffset() ) );
-      int iStmtLineStart = line.getStartOffset();
-      int iStmtLineEnd = line.getEndOffset();
-      strLine = line.getDocument().getText( iStmtLineStart, iStmtLineEnd - iStmtLineStart );
-      StringBuilder strbIndent = new StringBuilder();
-      for( int iIndent = 0; iIndent < strLine.length(); iIndent++ )
-      {
-        char c = strLine.charAt( iIndent );
-        if( c != ' ' && c != '\t' )
-        {
-          break;
-        }
-        strbIndent.append( c );
-      }
-
-      String newText = strbIndent.toString() + '}';
-      _editor.select( iBraceLineStart, iBraceLineEnd );
-      _editor.replaceSelection( newText );
-
-      //restore the caret position if necessary
-      if( _editor.getCaretPosition() != caretPosition )
-      {
-        _editor.setCaretPosition( iBraceLineStart + strbIndent.length() + (wasBraceTyped ? 1 : 0) );
-      }
-
-      revalidate();
-    }
-    catch( Exception e )
-    {
-      // ignore
-    }
-  }
-
-  void setCaretPositionForParseIssue( IParseIssue e )
-  {
-    editor.util.EditorUtilities.settleEventQueue();
-    _editor.setCaretPosition( e.getTokenStart() );
-  }
-
   public AtomicUndoManager getUndoManager()
   {
     return _undoMgr;
@@ -1645,75 +1114,12 @@ public class GosuEditor extends EditorHost implements IScriptEditor, IGosuPanel,
     }
     if( first != null )
     {
-      setCaretPositionForParseIssue( first );
+      getEditor().requestFocusInWindow();
+      getEditor().setCaretPosition( first.getTokenStart() );
     }
   }
 
-  @Override
-  public void handleCompleteCode()
-  {
-    setCompleteCode( true );
-    postTaskInParserThread( () -> {
-      if( isCompleteCode() )
-      {
-        try
-        {
-          final ISymbolTable atCursor = getSymbolTableAtCursor();
-          SwingUtilities.invokeLater( () -> {
-            if( isCompleteCode() )
-            {
-              try
-              {
-                handleDot( atCursor );
-              }
-              finally
-              {
-                setCompleteCode( false );
-              }
-            }
-          } );
-        }
-        catch( RuntimeException e )
-        {
-          setCompleteCode( false );
-          throw e;
-        }
-      }
-    } );
-  }
-
-  boolean isCompleteCode()
-  {
-    return _bCompleteCode;
-  }
-  void setCompleteCode( final boolean bCompleteCode )
-  {
-    _bCompleteCode = bCompleteCode;
-  }
-
-  void handleDot()
-  {
-    // The completion delay is here mostly to prevent doing path completion during undo/redo.
-    runIfNoKeyPressedInMillis( COMPLETION_DELAY,
-                               () -> {
-                                 setCompleteCode( true );
-                                 parse( true );
-                                 //handleDot( (ISymbolTable)null );
-                               } );
-  }
-
-  void handleColon()
-  {
-    // The completion delay is here mostly to prevent doing path completion during undo/redo.
-    runIfNoKeyPressedInMillis( COMPLETION_DELAY,
-                               () -> {
-                                 setCompleteCode( true );
-                                 parse( true );
-                                 //handleDot( (ISymbolTable)null );
-                               } );
-  }
-
-  void handleDot( final ISymbolTable transientSymTable )
+  protected void handleDot( final ISymbolTable transientSymTable )
   {
     if( transientSymTable == null )
     {
@@ -2205,7 +1611,7 @@ public class GosuEditor extends EditorHost implements IScriptEditor, IGosuPanel,
     UsageTarget target = UsageTarget.makeTarget( pe );
     if( target != null )
     {
-      IParsedElement targetPe = target.getTargetParsedElement();
+      SearchElement targetPe = target.getTargetElement();
       if( targetPe == null )
       {
         return;
@@ -2213,17 +1619,26 @@ public class GosuEditor extends EditorHost implements IScriptEditor, IGosuPanel,
 
       int prevCaretPos = getEditor().getCaretPosition();
 
-      IGosuClass gsClass = targetPe.getGosuClass();
-      if( gsClass != getParsedClass() )
+      IType type = targetPe.getEnclosingType();
+      if( type != getParsedClass() )
       {
-        IFile sourceFile = gsClass.getSourceFileHandle().getFile();
-        if( sourceFile != null && sourceFile.isJavaFile() )
+        FileTree fileTree = FileTreeUtil.find( type.getName() );
+        if( fileTree != null )
         {
-          LabFrame.instance().getGosuPanel().openFile( sourceFile.toJavaFile(), true );
-          SettleModalEventQueue.instance().run();
+          File sourceFile = fileTree.getFileOrDir();
+          if( sourceFile != null )
+          {
+            LabFrame.instance().getGosuPanel().openFile( sourceFile, true );
+            SettleModalEventQueue.instance().run();
+          }
+        }
+        else
+        {
+          //## todo: find in source location for dependency
+          return;
         }
       }
-      LabFrame.instance().getGosuPanel().getCurrentEditor().getEditor().setCaretPosition( targetPe.getLocation().getOffset() );
+      LabFrame.instance().getGosuPanel().getCurrentEditor().getEditor().setCaretPosition( targetPe.getOffset() );
 
       GosuPanel gosuPanel = LabFrame.instance().getGosuPanel();
       EditorHost currentEditor = gosuPanel.getCurrentEditor();
@@ -2279,7 +1694,7 @@ public class GosuEditor extends EditorHost implements IScriptEditor, IGosuPanel,
     return ContextHelpUtil.getContextHelp( parseTree );
   }
 
-  String getTooltipMessage( MouseEvent event )
+  public String getTooltipMessage( MouseEvent event )
   {
     if( _parser == null )
     {
@@ -2428,12 +1843,6 @@ public class GosuEditor extends EditorHost implements IScriptEditor, IGosuPanel,
     return strFeedback;
   }
 
-  @SuppressWarnings("UnusedDeclaration")
-  public void addParseListener( ParseListener parseListener )
-  {
-    _parseListeners.add( parseListener );
-  }
-
   public boolean acceptsUses()
   {
     return _bAcceptUses;
@@ -2444,18 +1853,24 @@ public class GosuEditor extends EditorHost implements IScriptEditor, IGosuPanel,
     _bAcceptUses = acceptUses;
   }
 
-  public void parseAndWaitForParser()
+  @Override
+  public boolean canAddBreakpoint( int line )
   {
-    parse();
-    waitForParser();
-  }
-
-  public void waitForParser()
-  {
-    TaskQueue.getInstance( INTELLISENSE_TASK_QUEUE ).postTaskAndWait(
-      () -> {
-        //do nothing
-      } );
+    IParseTree location = getStatementAtLine( line );
+    if( location == null )
+    {
+      return false;
+    }
+    IParsedElement parsedElement = location.getParsedElement();
+    return !(parsedElement instanceof IStatementList ||
+             parsedElement instanceof IFunctionStatement ||
+             parsedElement instanceof IPropertyStatement ||
+             parsedElement instanceof IClassStatement ||
+             parsedElement instanceof IClassFileStatement ||
+             parsedElement instanceof IUsesStatement ||
+             parsedElement instanceof IUsesStatementList ||
+             parsedElement instanceof INamespaceStatement ||
+             (parsedElement instanceof IVarStatement && !((IVarStatement)parsedElement).getHasInitializer()));
   }
 
   @Override
@@ -2501,6 +1916,16 @@ public class GosuEditor extends EditorHost implements IScriptEditor, IGosuPanel,
     }
   }
 
+  @Override
+  public int getOffsetOfDeepestStatementLocationAtPos( int caretPosition, boolean strict )
+  {
+    IParseTree stmt = getDeepestStatementLocationAtPos( caretPosition, strict );
+    if( stmt == null )
+    {
+      return -1;
+    }
+    return stmt.getOffset();
+  }
 
   @Override
   public IParseTree getDeepestStatementLocationAtCaret()
@@ -2619,135 +2044,6 @@ public class GosuEditor extends EditorHost implements IScriptEditor, IGosuPanel,
       parsedElement = parsedElement.getParent();
     }
     return parsedElement;
-  }
-
-  void runIfNoKeyPressedInMillis( long lMillis, final Runnable task )
-  {
-    final boolean[] bKeyPressed = new boolean[]{false};
-    final KeyListener keyListener =
-      new KeyAdapter()
-      {
-        @Override
-        public void keyPressed( KeyEvent e )
-        {
-          bKeyPressed[0] = true;
-        }
-      };
-    _editor.addKeyListener( keyListener );
-
-    Timer timer = _timerPool.requestTimer( (int)lMillis,
-     e -> {
-       _editor.removeKeyListener( keyListener );
-       if( !bKeyPressed[0] )
-       {
-         EditorUtilities.invokeInDispatchThread( task );
-       }
-       _iTimerCount--;
-     } );
-
-    timer.setRepeats( false );
-    _iTimerCount++;
-    timer.start();
-  }
-
-  @SuppressWarnings("UnusedDeclaration")
-  public int getTimerCount()
-  {
-    return _iTimerCount;
-  }
-
-  public boolean isAltDown()
-  {
-    return _bAltDown;
-  }
-
-  /**
-   */
-  class EditorKeyHandler extends KeyAdapter
-  {
-    @Override
-    public void keyPressed( KeyEvent e )
-    {
-      setCompleteCode( false );
-      if( e.getKeyChar() == KeyEvent.VK_ENTER && e.getModifiers() == 0 )
-      {
-        _bEnterPressedConsumed = e.isConsumed() || isCompletionPopupShowing();
-      }
-      else if( e.getKeyChar() == KeyEvent.VK_SPACE && e.isControlDown() )
-      {
-        _bAltDown = (e.getModifiers() & InputEvent.ALT_MASK) > 0;
-        if( !isCompletionPopupShowing() )
-        {
-          handleCompleteCode();
-          e.consume();
-        }
-      }
-      else if( e.getKeyCode() == KeyEvent.VK_BACK_SPACE || e.getKeyChar() == '\b' )
-      {
-        handleBackspace();
-        if( e.getModifiers() == InputEvent.SHIFT_MASK )
-        {
-          _editor.dispatchEvent( new KeyEvent( (Component)e.getSource(), e.getID(), e.getWhen(), 0, e.getKeyCode(), e.getKeyChar(), e.getKeyLocation() ) );
-        }
-      }
-    }
-
-    @Override
-    public void keyTyped( final KeyEvent e )
-    {
-      final boolean consumed = e.isConsumed();
-      if( consumed || !_editor.isEditable() )
-      {
-        return;
-      }
-
-      final char keyChar = e.getKeyChar();
-      final int modifiers = e.getModifiers();
-
-      postProcessKeystroke( consumed, keyChar, modifiers );
-    }
-
-    private void postProcessKeystroke( boolean consumed, char keyChar, int modifiers )
-    {
-      if( keyChar == '.' )
-      {
-        handleDot();
-      }
-      if( keyChar == ':' )
-      {
-        handleColon();
-      }
-      if( keyChar == '#' )
-      {
-        handleDot();
-      }
-
-      else
-      {
-        if( keyChar == KeyEvent.VK_ENTER && modifiers == 0 )
-        {
-          if( !consumed && !_bEnterPressedConsumed && !isCompletionPopupShowing() )
-          {
-            handleEnter();
-          }
-        }
-        //      else if( e.getKeyChar() == KeyEvent.VK_SPACE && (e.getModifiers() & InputEvent.CTRL_MASK) > 0 )
-        //      {
-        //        if( !isIntellisenseShowing() )
-        //        {
-        //          handleCompleteCode();
-        //        }
-        //      }
-        else if( keyChar == '}' )
-        {
-          if( !consumed && !isCompletionPopupShowing() )
-          {
-            handleBraceRight();
-          }
-        }
-      }
-    }
-
   }
 
   /**
@@ -2911,22 +2207,9 @@ public class GosuEditor extends EditorHost implements IScriptEditor, IGosuPanel,
     return _parsedGosuClass;
   }
 
-  @SuppressWarnings("UnusedDeclaration")
-  public static void waitOnParserThread()
-  {
-    TaskQueue queue = TaskQueue.getInstance( INTELLISENSE_TASK_QUEUE );
-    queue.postTaskAndWait( () -> { /*do nothing*/ } );
-  }
-
   public JavadocPopup getJavadocPopup()
   {
     return _javadocPopup;
-  }
-
-  @SuppressWarnings("UnusedDeclaration")
-  public static void waitForIntellisenseTimers()
-  {
-    _timerPool.waitForAllTimersToFinish();
   }
 
   @Override
@@ -2950,59 +2233,6 @@ public class GosuEditor extends EditorHost implements IScriptEditor, IGosuPanel,
     }
     //!! this causes perpetual parsing since the parse() command refreshes the type...
     // parse();
-  }
-
-  private static class TimerPool
-  {
-
-    List<Object> _activeTimers = new ArrayList<>();
-
-    Timer requestTimer( int millis, final ActionListener action )
-    {
-      synchronized( this )
-      {
-        final Object timerToken = new Object();
-        Timer timer = new Timer( millis, new ActionListener()
-        {
-          @Override
-          public void actionPerformed( ActionEvent e )
-          {
-            try
-            {
-              action.actionPerformed( e );
-            }
-            finally
-            {
-              synchronized( TimerPool.this )
-              {
-                _activeTimers.remove( timerToken );
-                TimerPool.this.notify();
-              }
-            }
-          }
-        } );
-        _activeTimers.add( timerToken );
-        return timer;
-      }
-    }
-
-    void waitForAllTimersToFinish()
-    {
-      synchronized( this )
-      {
-        while( !_activeTimers.isEmpty() )
-        {
-          try
-          {
-            wait();
-          }
-          catch( InterruptedException e )
-          {
-            // ?
-          }
-        }
-      }
-    }
   }
 
   @Override

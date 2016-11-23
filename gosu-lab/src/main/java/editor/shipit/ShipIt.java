@@ -116,7 +116,7 @@ public class ShipIt
   private boolean addPrecompiledClass( CompiledClass cs )
   {
     // Create the Main.class file
-    String javaName = cs.getGosuClass().getJavaName();
+    String javaName = cs.getType().getJavaName();
     javaName = javaName.replace( '.', '/' ) + ".class";
     JarEntry je = new JarEntry( javaName );
     try

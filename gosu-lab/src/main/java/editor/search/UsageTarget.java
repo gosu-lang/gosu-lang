@@ -5,6 +5,7 @@ import editor.LabFrame;
 import gw.lang.parser.IDynamicFunctionSymbol;
 import gw.lang.parser.IDynamicPropertySymbol;
 import gw.lang.parser.IDynamicSymbol;
+import gw.lang.parser.IFileRepositoryBasedType;
 import gw.lang.parser.IFunctionSymbol;
 import gw.lang.parser.IParseTree;
 import gw.lang.parser.IParsedElement;
@@ -30,6 +31,7 @@ import gw.lang.parser.statements.IMemberAssignmentStatement;
 import gw.lang.reflect.IConstructorInfo;
 import gw.lang.reflect.IErrorType;
 import gw.lang.reflect.IFeatureInfo;
+import gw.lang.reflect.ILocationInfo;
 import gw.lang.reflect.IMetaType;
 import gw.lang.reflect.IMethodInfo;
 import gw.lang.reflect.INamespaceType;
@@ -50,14 +52,14 @@ public class UsageTarget
   private final IParsedElement _pe;
   private final IFeatureInfo _selectedFi;
   private final IFeatureInfo _rootFi;
-  private final IParsedElement _targetPe;
+  private final SearchElement _targetPe;
 
   public UsageTarget( IParsedElement pe, IFeatureInfo selectedFi )
   {
     _pe = pe;
     _selectedFi = selectedFi;
     _rootFi = findRootFeatureInfo();
-    _targetPe = findTargetPe( _rootFi, pe );
+    _targetPe = findTarget( _rootFi, pe );
   }
 
   private IFeatureInfo findRootFeatureInfo()
@@ -92,7 +94,7 @@ public class UsageTarget
     return _rootFi;
   }
 
-  public IParsedElement getTargetParsedElement()
+  public SearchElement getTargetElement()
   {
     return _targetPe;
   }
@@ -159,10 +161,10 @@ public class UsageTarget
           pe instanceof IPropertyAsMethodCallIdentifier )
       {
         IFeatureInfo pi = ((IDynamicPropertySymbol)((IIdentifierExpression)pe).getSymbol()).getPropertyInfo();
-        IParsedElement targetPe = findTargetPe( pi, pe );
-        if( targetPe != null )
+        SearchElement target = findTarget( pi, pe );
+        if( target != null )
         {
-          return findFeatureInfoFor( targetPe );
+          return findFeatureInfoFor( (IParsedElement)target.getElement() );
         }
         return ((IDynamicPropertySymbol)((IIdentifierExpression)pe).getSymbol()).getPropertyInfo();
       }
@@ -177,7 +179,11 @@ public class UsageTarget
             IPropertyInfo pi = gsClass.getTypeInfo().getProperty( gsClass, symbol.getDisplayName() );
             if( pi != null )
             {
-              return findFeatureInfoFor( findTargetPe( pi, pe ) );
+              SearchElement target = findTarget( pi, pe );
+              if( target != null )
+              {
+                return findFeatureInfoFor( (IParsedElement)target.getElement() );
+              }
             }
           }
         }
@@ -193,10 +199,10 @@ public class UsageTarget
       IFieldAccessExpression memberAccess = (IFieldAccessExpression)pe;
       if( !(memberAccess.getType() instanceof INamespaceType) )
       {
-        IParsedElement targetPe = findTargetPe( memberAccess.getPropertyInfo(), pe );
+        SearchElement targetPe = findTarget( memberAccess.getPropertyInfo(), pe );
         if( targetPe != null )
         {
-          return findFeatureInfoFor( targetPe );
+          return findFeatureInfoFor( (IParsedElement)targetPe.getElement() );
         }
         return memberAccess.getPropertyInfo();
       }
@@ -279,33 +285,56 @@ public class UsageTarget
     return null;
   }
 
-  private static IParsedElement findTargetPe( IFeatureInfo fi, IParsedElement ref )
+  private static SearchElement findTarget( IFeatureInfo fi, IParsedElement ref )
   {
-    if( !(fi.getOwnersType() instanceof IGosuClass) )
+    if( !(fi.getOwnersType() instanceof IFileRepositoryBasedType) )
     {
       return null;
     }
-    IGosuClass declaringType = (IGosuClass)fi.getOwnersType();
+    IFileRepositoryBasedType declaringType = (IFileRepositoryBasedType)fi.getOwnersType();
 
     if( fi instanceof ITypeInfo )
     {
       IType type = fi.getOwnersType();
       if( type instanceof IGosuClass )
       {
-        return ((IGosuClass)type).getClassStatement().getClassDeclaration();
+        return new SearchElement( ((IGosuClass)type).getClassStatement().getClassDeclaration() );
+      }
+      else
+      {
+        ILocationInfo loc = fi.getLocationInfo();
+        if( loc != null && loc != ILocationInfo.EMPTY )
+        {
+          return new SearchElement( fi, declaringType, loc.getOffset() );
+        }
+        else
+        {
+          return new SearchElement( fi, declaringType, 0 );
+        }
       }
     }
     if( fi instanceof IMethodInfo )
     {
-      IFunctionStatement fs = declaringType.getFunctionStatement( (IMethodInfo)fi );
-      return fs.getLocation().getDeepestLocation( fs.getNameOffset( null ), true ).getParsedElement();
+      if( declaringType instanceof IGosuClass )
+      {
+        IFunctionStatement fs = ((IGosuClass)declaringType).getFunctionStatement( (IMethodInfo)fi );
+        return new SearchElement( fs.getLocation().getDeepestLocation( fs.getNameOffset( null ), true ).getParsedElement() );
+      }
+      else
+      {
+        ILocationInfo loc = fi.getLocationInfo();
+        if( loc != null && loc != ILocationInfo.EMPTY )
+        {
+          return new SearchElement( fi, declaringType, loc.getOffset() );
+        }
+      }
     }
     else if( fi instanceof IPropertyInfo )
     {
       if( fi instanceof IGosuVarPropertyInfo )
       {
         int offset = ((IGosuVarPropertyInfo)fi).getOffset();
-        return declaringType.getClassStatement().getLocation().getDeepestLocation( offset, true ).getParsedElement();
+        return new SearchElement( ((IGosuClass)declaringType).getClassStatement().getLocation().getDeepestLocation( offset, true ).getParsedElement() );
       }
       else if( fi instanceof IGosuPropertyInfo )
       {
@@ -327,11 +356,19 @@ public class UsageTarget
         IFunctionStatement fs = ((IGosuClass)mi.getOwnersType()).getFunctionStatement( mi );
         if( fs == null )
         {
-          return declaringType.getPropertyDeclaration( fi.getDisplayName() );
+          return new SearchElement( ((IGosuClass)declaringType).getPropertyDeclaration( fi.getDisplayName() ) );
         }
         else
         {
-          return fs.getLocation().getDeepestLocation( fs.getNameOffset( null ), true ).getParsedElement();
+          return new SearchElement( fs.getLocation().getDeepestLocation( fs.getNameOffset( null ), true ).getParsedElement() );
+        }
+      }
+      else
+      {
+        ILocationInfo loc = fi.getLocationInfo();
+        if( loc != null && loc != ILocationInfo.EMPTY )
+        {
+          return new SearchElement( fi, declaringType, loc.getOffset() );
         }
       }
     }
@@ -339,14 +376,25 @@ public class UsageTarget
     {
       if( ((IConstructorInfo)fi).isDefault() )
       {
-        return null;
+        return findTarget( fi.getContainer(), ref );
       }
-      IFunctionStatement fs = declaringType.getConstructorStatement( (IConstructorInfo)fi );
-      return fs == null ? null : fs.getLocation().getDeepestLocation( fs.getNameOffset( null ), true ).getParsedElement();
+      if( declaringType instanceof IGosuClass )
+      {
+        IFunctionStatement fs = ((IGosuClass)declaringType).getConstructorStatement( (IConstructorInfo)fi );
+        return new SearchElement( fs == null ? null : fs.getLocation().getDeepestLocation( fs.getNameOffset( null ), true ).getParsedElement() );
+      }
+      else
+      {
+        ILocationInfo loc = fi.getLocationInfo();
+        if( loc != null && loc != ILocationInfo.EMPTY )
+        {
+          return new SearchElement( fi, declaringType, loc.getOffset() );
+        }
+      }
     }
     else if( fi instanceof LocalVarFeatureInfo )
     {
-      return findLocalDeclaration( ((LocalVarFeatureInfo)fi).getSymbol(), ref );
+      return new SearchElement( findLocalDeclaration( ((LocalVarFeatureInfo)fi).getSymbol(), ref ) );
     }
     return null;
   }

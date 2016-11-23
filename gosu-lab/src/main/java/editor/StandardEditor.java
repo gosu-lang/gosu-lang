@@ -2,58 +2,67 @@ package editor;
 
 import editor.plugin.typeloader.ITypeFactory;
 import editor.undo.AtomicUndoManager;
+import gw.lang.parser.ISymbolTable;
 import gw.lang.reflect.IType;
 import gw.util.GosuStringUtil;
 import java.awt.BorderLayout;
 import java.awt.EventQueue;
 import java.awt.Font;
 import java.awt.Insets;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import javax.swing.BorderFactory;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
-import javax.swing.JTextPane;
 import javax.swing.JViewport;
+import javax.swing.ToolTipManager;
 import javax.swing.UIManager;
 import javax.swing.border.EmptyBorder;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
-import javax.swing.text.JTextComponent;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.Element;
 import javax.swing.text.SimpleAttributeSet;
 import javax.swing.text.StyleConstants;
 import javax.swing.text.StyledEditorKit;
 
-/**
- */
-public class TextEditor extends EditorHost
+public class StandardEditor extends EditorHost
 {
   private EditorScrollPane _scroller;
   private DocumentHandler _docHandler;
-  private JTextPane _editor;
-  private GosuEditorFeedbackPanel _panelFeedback;
+  private EditorHostTextPane _editor;
+  private ParserFeedbackPanel _panelFeedback;
   private ITypeFactory _factory;
   private IType _type;
 
-  public TextEditor( IType type )
+  public StandardEditor( ILineInfoManager lineInfoRenderer, IType type )
   {
     super( new AtomicUndoManager( 1000 ) );
     _docHandler = new DocumentHandler();
     _type = type;
-    configUi();
+    if( lineInfoRenderer != null )
+    {
+      lineInfoRenderer.setEditor( this );
+    }
+    configUi( lineInfoRenderer );
   }
 
-  private void configUi()
+  private void configUi( ILineInfoManager lineInfoRenderer )
   {
     setLayout( new BorderLayout() );
 
-    _editor = new JTextPane();
+    _editor = new EditorHostTextPane( this );
+    ToolTipManager.sharedInstance().registerComponent( _editor );
+    ToolTipManager.sharedInstance().setDismissDelay( 60000 );
     _editor.setFont( new Font( "monospaced", Font.PLAIN, 12 ) );
     setBorder( UIManager.getBorder( "TextField.border" ) );
     _editor.setMargin( new Insets( 3, 3, 3, 3 ) );
     _editor.setForeground( Scheme.active().getCodeWindowText() );
     _editor.setBackground( Scheme.active().getCodeWindow() );
+    _editor.putClientProperty( "caretWidth", 2 );
     SimpleAttributeSet sas = new SimpleAttributeSet();
     StyleConstants.setLineSpacing( sas, -.2f );
-    _editor.setParagraphAttributes( sas, false );
+    //_editor.setParagraphAttributes( sas, false );
     _editor.setCaretColor( Scheme.active().getCodeWindowText() );
 
     configureEditorKit( _type );
@@ -62,7 +71,7 @@ public class TextEditor extends EditorHost
     editorRootScroller.setContentPane( _editor );
     editorRootScroller.setBorder( null );
 
-    _scroller = new EditorScrollPane( null, _editor, editorRootScroller );
+    _scroller = new EditorScrollPane( lineInfoRenderer, _editor, editorRootScroller );
     _scroller.setBorder( BorderFactory.createMatteBorder( 0, 1, 0, 1, Scheme.active().getScrollbarBorderColor() ) );
     JViewport vp = _scroller.getViewport();
     vp.setScrollMode( JViewport.BLIT_SCROLL_MODE );
@@ -74,12 +83,62 @@ public class TextEditor extends EditorHost
     label.setBorder( new EmptyBorder( 0, 4 + GosuEditor.MIN_LINENUMBER_WIDTH, 0, 0 ) );
     add( label, BorderLayout.NORTH );
 
-    _panelFeedback = new GosuEditorFeedbackPanel();
+    _panelFeedback = new ParserFeedbackPanel();
     add( BorderLayout.EAST, _panelFeedback );
+
+    _editor.addKeyListener( new EditorKeyHandler() );
+    _editor.addMouseWheelListener( new ScriptEditorMouseWheelHandler( this ) );
+    MouseInEditorHandler mouseInEditorHandler = new MouseInEditorHandler( this );
+    _editor.addMouseListener( mouseInEditorHandler );
+    _editor.addMouseMotionListener( mouseInEditorHandler );
+    _editor.addMouseListener( new MouseAdapter()
+    {
+      @Override
+      public void mouseClicked( MouseEvent e )
+      {
+        setCompleteCode( false );
+      }
+
+      @Override
+      public void mousePressed( MouseEvent e )
+      {
+        setCompleteCode( false );
+      }
+
+      @Override
+      public void mouseReleased( MouseEvent e )
+      {
+        setCompleteCode( false );
+      }
+    } );
 
     addDocumentListener();
 
     addKeyHandlers();
+  }
+
+  @Override
+  protected void handleDot( ISymbolTable transientSymTable )
+  {
+
+  }
+
+  @Override
+  public ISymbolTable getSymbolTableAtCursor()
+  {
+    return null;
+  }
+
+  @Override
+  public void gotoDeclaration()
+  {
+
+  }
+
+  @Override
+  public boolean canAddBreakpoint( int line )
+  {
+    return _factory.canAddBreakpoint( _type, line );
   }
 
   private void configureEditorKit( IType type )
@@ -115,7 +174,7 @@ public class TextEditor extends EditorHost
   }
 
   @Override
-  public JTextComponent getEditor()
+  public EditorHostTextPane getEditor()
   {
     return _editor;
   }
@@ -124,6 +183,56 @@ public class TextEditor extends EditorHost
   public EditorScrollPane getScroller()
   {
     return _scroller;
+  }
+
+  @Override
+  public String getLineCommentDelimiter()
+  {
+    return "//";
+  }
+
+  @Override
+  public int getOffsetOfDeepestStatementLocationAtPos( int caretPosition, boolean strict )
+  {
+    Element root = getDocument().getDefaultRootElement();
+    int iElem = root.getElementIndex( caretPosition );
+    if( iElem < 0 )
+    {
+      return -1;
+    }
+    Element elem = root.getElement( iElem );
+    try
+    {
+      int lineStart = elem.getStartOffset();
+      int lineEnd = elem.getEndOffset();
+      String text = getDocument().getText( lineStart, lineEnd - lineStart );
+      String trimmed = text.trim();
+      int whitespace = text.indexOf( trimmed );
+      if( whitespace == text.length() )
+      {
+        // all whitespace
+        return -1;
+      }
+      // location of first non-whitespace char in line
+      return lineStart + whitespace;
+    }
+    catch( BadLocationException e )
+    {
+      throw new RuntimeException( e );
+    }
+  }
+
+  @Override
+  public String getTooltipMessage( MouseEvent event )
+  {
+    int iPos = getEditor().viewToModel( event.getPoint() );
+    return _factory.getTooltipMessage( iPos, this );
+  }
+
+  @Override
+  public IIssueContainer getIssues()
+  {
+    return _factory.getIssueContainer( this );
   }
 
   @Override
@@ -139,11 +248,13 @@ public class TextEditor extends EditorHost
   }
 
   @Override
-  public void parse()
+  public void parse( String strText, boolean forceCodeCompletion, boolean changed )
   {
     if( _factory != null )
     {
-      _factory.parse( _type, this );
+      _factory.parse( _type, strText, forceCodeCompletion, changed, this );
+
+      EventQueue.invokeLater( () -> _panelFeedback.update( this ) );
     }
   }
 

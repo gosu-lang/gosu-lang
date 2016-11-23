@@ -241,7 +241,7 @@ public class SystemPanel extends ClearablePanel
             getGosuPanel().openFile( sourceFile.toJavaFile(), true );
             SettleModalEventQueue.instance().run();
           }
-          GosuEditorPane editor = getGosuPanel().getCurrentGosuEditor().getEditor();
+          EditorHostTextPane editor = getGosuPanel().getCurrentGosuEditor().getEditor();
           Element root = editor.getDocument().getDefaultRootElement();
           int startOfLineOffset = root.getElement( link.getLine() - 1 ).getStartOffset();
           editor.setCaretPosition( startOfLineOffset );
@@ -259,7 +259,7 @@ public class SystemPanel extends ClearablePanel
         return;
       }
 
-      if( (e.getModifiers() & EditorUtilities.CONTROL_KEY_MASK) == 0 )
+      if( !e.isControlDown() )
       {
         forward( e );
         return;

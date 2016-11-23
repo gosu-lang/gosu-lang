@@ -838,7 +838,7 @@ public class Debugger
     Map<ReferenceType, byte[]> classes = new HashMap<>();
     for( CompiledClass cc: listCompiledClasses )
     {
-      List<ReferenceType> referenceTypes = _vm.classesByName( cc.getGosuClass().getName() );
+      List<ReferenceType> referenceTypes = _vm.classesByName( cc.getType().getName() );
       if( referenceTypes.size() > 0 )
       {
         classes.put( referenceTypes.get( 0 ), cc.getBytes() );

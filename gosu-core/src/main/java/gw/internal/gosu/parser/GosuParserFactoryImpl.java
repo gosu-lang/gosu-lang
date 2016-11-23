@@ -4,6 +4,8 @@
 package gw.internal.gosu.parser;
 
 import gw.config.BaseService;
+import gw.internal.gosu.parser.java.compiler.JavaParser;
+import gw.lang.javac.IJavaParser;
 import gw.lang.parser.IGosuParser;
 import gw.lang.parser.IGosuParserFactory;
 import gw.lang.reflect.IScriptabilityModifier;
@@ -95,8 +97,19 @@ public class GosuParserFactoryImpl extends BaseService implements IGosuParserFac
   }
 
   @Override
-  public IGosuFragmentParser createFragmentParser() {
+  public IGosuFragmentParser createFragmentParser()
+  {
     return GosuFragmentParser.getInstance();
   }
 
+  @SuppressWarnings("unchecked")
+  @Override
+  public <T> T getInterface( Class<T> apiInterface )
+  {
+    if( apiInterface == IJavaParser.class )
+    {
+      return (T)JavaParser.instance();
+    }
+    return null;
+  }
 }

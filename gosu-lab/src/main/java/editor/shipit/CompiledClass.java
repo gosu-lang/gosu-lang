@@ -1,25 +1,23 @@
 package editor.shipit;
 
-import gw.lang.reflect.gs.IGosuClass;
+import gw.lang.parser.IFileRepositoryBasedType;
 
 /**
  */
 public class CompiledClass
 {
-  private final IGosuClass _gsClass;
+  private final IFileRepositoryBasedType _type;
   private final byte[] _bytes;
-  private final Exception _exception;
 
-  public CompiledClass( IGosuClass gsClass, byte[] bytes, Exception parseException )
+  public CompiledClass( IFileRepositoryBasedType type, byte[] bytes )
   {
-    _gsClass = gsClass;
+    _type = type;
     _bytes = bytes;
-    _exception = parseException;
   }
 
-  public IGosuClass getGosuClass()
+  public IFileRepositoryBasedType getType()
   {
-    return _gsClass;
+    return _type;
   }
 
   public byte[] getBytes()
@@ -27,8 +25,8 @@ public class CompiledClass
     return _bytes;
   }
 
-  public Exception getException()
+  public boolean isErrant()
   {
-    return _exception;
+    return _bytes == null || _bytes.length == 0;
   }
 }

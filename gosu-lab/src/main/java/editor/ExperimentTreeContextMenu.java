@@ -124,7 +124,6 @@ public class ExperimentTreeContextMenu implements IContextMenuHandler<JTree>
       _tree = tree;
     }
 
-
     public void lostOwnership( Clipboard clipboard, Transferable contents )
     {
     }
@@ -133,7 +132,7 @@ public class ExperimentTreeContextMenu implements IContextMenuHandler<JTree>
     public boolean isEnabled()
     {
       FileTree item = (FileTree)_tree.getLastSelectedPathComponent();
-      return item != null && item.isFile() && item.getType() != null;
+      return item != null && item.isFile();
     }
 
     public void actionPerformed( ActionEvent e )

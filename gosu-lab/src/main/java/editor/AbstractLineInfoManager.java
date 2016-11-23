@@ -12,6 +12,7 @@ import javax.swing.text.Element;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.MouseEvent;
+import javax.swing.text.JTextComponent;
 
 /**
  */
@@ -21,7 +22,7 @@ public abstract class AbstractLineInfoManager implements ILineInfoManager
 
   private ImageIcon _iconBreakpoint;
   private ImageIcon _iconBreakpointDisabled;
-  private GosuEditor _editor;
+  private EditorHost _editor;
 
   public AbstractLineInfoManager()
   {
@@ -30,11 +31,11 @@ public abstract class AbstractLineInfoManager implements ILineInfoManager
     g_iRequiredWidth = _iconBreakpoint.getIconWidth();
   }
 
-  public void setEditor( GosuEditor gosuEditor )
+  public void setEditor( EditorHost gosuEditor )
   {
     _editor = gosuEditor;
   }
-  public GosuEditor getEditor()
+  public EditorHost getEditor()
   {
     return _editor;
   }
@@ -87,7 +88,7 @@ public abstract class AbstractLineInfoManager implements ILineInfoManager
       return;
     }
 
-    GosuEditorPane editor = getEditor().getEditor();
+    JTextComponent editor = getEditor().getEditor();
 
     FontMetrics fm = g.getFontMetrics( editor.getFont() );
     int iLineHeight = fm.getHeight();
@@ -138,7 +139,7 @@ public abstract class AbstractLineInfoManager implements ILineInfoManager
           {
             csr.setActive( bp.isActive() );
           }
-          GosuEditor editor = getEditor();
+          EditorHost editor = getEditor();
           if( editor != null )
           {
             java.util.List<? extends JComponent> columns = EditorUtilities.findDecendents( editor, EditorScrollPane.AdviceColumn.class );

@@ -463,6 +463,10 @@ public class DebugPanel extends JPanel implements IDisposable
     }
     StackFrame getRef()
     {
+      if( !((ThreadReference)_cbThreads.getSelectedItem()).isSuspended() )
+      {
+        return null;
+      }
       try
       {
         return ((ThreadReference)_cbThreads.getSelectedItem()).frame( _index );

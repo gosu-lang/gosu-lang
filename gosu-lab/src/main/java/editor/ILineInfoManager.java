@@ -17,6 +17,6 @@ public interface ILineInfoManager
 
   void renderHighlight( Graphics g, int iLine );
 
-  GosuEditor getEditor();
-  void setEditor( GosuEditor gosuEditor );
+  EditorHost getEditor();
+  void setEditor( EditorHost gosuEditor );
 }

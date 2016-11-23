@@ -1,5 +1,6 @@
 package editor;
 
+import java.util.Arrays;
 import javax.swing.tree.TreeModel;
 import java.io.File;
 
@@ -38,5 +39,12 @@ public class FileTreeUtil
     }
     TreeModel model = experimentView.getTree().getModel();
     return (FileTree)model.getRoot();
+  }
+
+  public static boolean isSupportedTextFile( FileTree ft )
+  {
+    String[] binaryExt = { ".jar", ".zip", ".tar", ".gz", ".hprof", ".png", ".gif", ".jpg", ".bmp", ".exe", ".dll", ".so",  };
+    String fileName = ft.getFileOrDir().getName().toLowerCase();
+    return !Arrays.stream( binaryExt ).anyMatch( fileName::endsWith );
   }
 }

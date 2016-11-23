@@ -8,6 +8,8 @@ import gw.fs.IFile;
 import gw.internal.gosu.compiler.GosuClassLoader;
 import gw.internal.gosu.compiler.SingleServingGosuClassLoader;
 import gw.internal.gosu.parser.TypeLord;
+import gw.internal.gosu.parser.java.compiler.JavaParser;
+import gw.lang.javac.ClassJavaFileObject;
 import gw.lang.reflect.IHasJavaClass;
 import gw.lang.reflect.IInjectableClassLoader;
 import gw.lang.reflect.IType;
@@ -29,6 +31,9 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.net.URLConnection;
 import java.net.URLDecoder;
+import java.util.Arrays;
+import java.util.List;
+import javax.tools.JavaFileObject;
 
 /**
  */
@@ -39,6 +44,9 @@ public class GosuClassesUrlConnection extends URLConnection {
   private static final String META_INF_MANIFEST_MF = "META-INF/MANIFEST.MF";
 
   private ICompilableType _type;
+  private JavaFileObject _javaType;
+  private String _fqn;
+
   private ClassLoader _loader;
   private boolean _bDirectory;
   private boolean _bInvalid;
@@ -62,7 +70,7 @@ public class GosuClassesUrlConnection extends URLConnection {
     if( _bInvalid ) {
       return false;
     }
-    if( _type == null && !_bDirectory ) {
+    if( _type == null && _javaType == null && !_bDirectory ) {
       String strPath = URLDecoder.decode( getURL().getPath() );
       String strClass = strPath.substring( 1 );
       if( isManifest( strClass ) ) {
@@ -80,7 +88,7 @@ public class GosuClassesUrlConnection extends URLConnection {
           _bDirectory = true;
         }
       }
-      _bInvalid = _type == null && !_bDirectory;
+      _bInvalid = _type == null && _javaType == null && !_bDirectory;
     }
     return !_bInvalid;
   }
@@ -113,6 +121,13 @@ public class GosuClassesUrlConnection extends URLConnection {
       TypeSystem.pushModule( global );
       try {
         type = TypeSystem.getByFullNameIfValidNoJava( strType );
+        if( type == null ) {
+          _javaType = JavaParser.instance().findJavaSource( strType );
+          if( _javaType != null ) {
+            _fqn = strType;
+            _loader = loader;
+          }
+        }
       }
       finally {
         TypeSystem.popModule( global );
@@ -263,7 +278,7 @@ public class GosuClassesUrlConnection extends URLConnection {
 
   @Override
   public InputStream getInputStream() throws IOException {
-    if( _type != null ) {
+    if( _type != null || _javaType != null ) {
       // Avoid compiling until the bytes are actually requested;
       // sun.misc.URLClassPath grabs the inputstream twice, the first time is for practice :)
       return new LazyByteArrayInputStream();
@@ -292,7 +307,12 @@ public class GosuClassesUrlConnection extends URLConnection {
         TypeSystemLockHelper.getTypeSystemLockWithMonitor( _loader );
         try {
           //System.out.println( "Compiling: " + _type.getName() );
-          _buf = GosuClassLoader.instance().getBytes( _type );
+          if( _type != null ) {
+            _buf = GosuClassLoader.instance().getBytes( _type );
+          }
+          else if( _javaType != null ) {
+            _buf = compileJavaClass();
+          }
           _pos = 0;
           _count = _buf.length;
         }
@@ -305,6 +325,19 @@ public class GosuClassesUrlConnection extends URLConnection {
           TypeSystem.unlock();
         }
       }
+    }
+
+    private byte[] compileJavaClass()
+    {
+      List<ClassJavaFileObject> classes = JavaParser.instance().compile( _javaType, _fqn, Arrays.asList( "-nowarn", "-Xlint:none", "-proc:none" ), null );
+      for( ClassJavaFileObject cls: classes )
+      {
+        if( cls.getClassName().replace( '$', '.' ).equals( _fqn ) )
+        {
+          return cls.getBytes();
+        }
+      }
+      throw new IllegalStateException( "Did not compile: " + _fqn );
     }
 
     public int read() {

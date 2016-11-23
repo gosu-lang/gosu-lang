@@ -1,16 +1,20 @@
 package editor;
 
-import editor.search.MessageDisplay;
 import editor.search.SearchLocation;
 import editor.undo.AtomicUndoManager;
 import editor.util.EditorUtilities;
+import editor.util.TaskQueue;
 import editor.util.TextComponentUtil;
 import editor.util.transform.java.JavaToGosu;
 import gw.lang.parser.IScriptPartId;
+import gw.lang.parser.ISymbolTable;
 import gw.lang.reflect.IType;
+import gw.lang.reflect.TypeSystem;
 import gw.util.GosuStringUtil;
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.EventQueue;
 import java.awt.Graphics;
 import java.awt.Point;
 import java.awt.Rectangle;
@@ -20,10 +24,15 @@ import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.StringSelection;
 import java.awt.datatransfer.Transferable;
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.InputEvent;
+import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.io.File;
 import java.io.IOException;
 import java.io.StringReader;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import javax.swing.AbstractAction;
@@ -31,6 +40,8 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.KeyStroke;
+import javax.swing.SwingUtilities;
+import javax.swing.Timer;
 import javax.swing.event.UndoableEditListener;
 import javax.swing.text.AbstractDocument;
 import javax.swing.text.BadLocationException;
@@ -45,19 +56,31 @@ import javax.swing.undo.CompoundEdit;
 
 import static editor.util.EditorUtilities.handleUncaughtException;
 
-/**
- */
 public abstract class EditorHost extends JPanel implements IEditorHost
 {
   /**
    * The number of spacess assigned to a tab
    */
   public static final int TAB_SIZE = 2;
+  public static final String INTELLISENSE_TASK_QUEUE = "_intellisenseParser";
+
+  /**
+   * Delay in millis for code completion to wait for key presses
+   * before displaying.
+   */
+  static int COMPLETION_DELAY = 500;
+
 
   private JPopupMenu _completionPopup;
   private AtomicUndoManager _undoMgr;
   private UndoableEditListener _uel;
   private IScriptPartId _partId;
+  private boolean _bParserSuspended;
+  private boolean _bEnterPressedConsumed;
+  private boolean _bAltDown;
+  private boolean _bCompleteCode;
+  private int _iTimerCount;
+  private static TimerPool _timerPool = new TimerPool();
   private HighlightMode _highlightMode = HighlightMode.SEARCH;
 
 
@@ -113,6 +136,20 @@ public abstract class EditorHost extends JPanel implements IEditorHost
     parse();
   }
 
+  public void parseAndWaitForParser()
+  {
+    parse();
+    waitForParser();
+  }
+
+  public void waitForParser()
+  {
+    TaskQueue.getInstance( INTELLISENSE_TASK_QUEUE ).postTaskAndWait(
+      () -> {
+        //do nothing
+      } );
+  }
+
   protected void addKeyHandlers()
   {
     JTextComponent editor = getEditor();
@@ -141,6 +178,20 @@ public abstract class EditorHost extends JPanel implements IEditorHost
                                     if( !isCompletionPopupShowing() )
                                     {
                                       handleBulkIndent( true );
+                                    }
+                                  }
+                                } );
+
+    editor.getInputMap().put( KeyStroke.getKeyStroke( EditorUtilities.CONTROL_KEY_NAME + " SLASH" ), "_bulkComment" );
+    editor.getActionMap().put( "_bulkComment",
+                                new AbstractAction()
+                                {
+                                  @Override
+                                  public void actionPerformed( ActionEvent e )
+                                  {
+                                    if( !isCompletionPopupShowing() )
+                                    {
+                                      handleBulkComment();
                                     }
                                   }
                                 } );
@@ -404,11 +455,6 @@ public abstract class EditorHost extends JPanel implements IEditorHost
     }
   }
 
-  private String getIndentWhitespace()
-  {
-    return GosuStringUtil.repeat( " ", TAB_SIZE );
-  }
-
   public void setLabel( String label )
   {
     //## nothing?
@@ -525,7 +571,7 @@ public abstract class EditorHost extends JPanel implements IEditorHost
     iLine = root.getElementCount() < iLine ? root.getElementCount() : iLine;
     if( iLine < 1 )
     {
-      MessageDisplay.displayError( "Invalide line number: " + iLine );
+      JOptionPane.showMessageDialog( LabFrame.instance(), "Invalide line number: " + iLine, "Gosu Lab", JOptionPane.ERROR_MESSAGE );
       return;
     }
     Element line = root.getElement( iLine - 1 );
@@ -844,7 +890,7 @@ public abstract class EditorHost extends JPanel implements IEditorHost
     {
       try
       {
-        getEditor().getHighlighter().addHighlight( loc._iOffset, loc._iOffset + loc._iLength, GosuEditor.LabHighlighter.TEXT );
+        getEditor().getHighlighter().addHighlight( loc._iOffset, loc._iOffset + loc._iLength, EditorHost.LabHighlighter.TEXT );
       }
       catch( BadLocationException e )
       {
@@ -1023,6 +1069,664 @@ public abstract class EditorHost extends JPanel implements IEditorHost
     return contents;
   }
 
+  void handleEnter()
+  {
+    CompoundEdit undoAtom = getUndoManager().beginUndoAtom( "New Line" );
+    try
+    {
+      _handleEnter();
+    }
+    finally
+    {
+      getUndoManager().endUndoAtom( undoAtom );
+      undoAtom = getUndoManager().getUndoAtom();
+      if( undoAtom != null && undoAtom.getPresentationName().equals( "Text Change" ) )
+      {
+        getUndoManager().endUndoAtom();
+      }
+    }
+  }
+
+  void _handleEnter()
+  {
+    // Calling revalidate after vk_enter to keep the scrollpane, the rootpane, and the editor all in synch.
+    revalidate();
+
+    Element root = getEditor().getDocument().getRootElements()[0];
+    int index = root.getElementIndex( getEditor().getCaretPosition() - 1 );
+    Element line = root.getElement( index );
+    int iStart = line.getStartOffset();
+    int iEnd = line.getEndOffset();
+    try
+    {
+      String strLine = line.getDocument().getText( iStart, iEnd - iStart );
+      StringBuilder strbIndent = new StringBuilder();
+      for( int iIndent = 0; iIndent < strLine.length(); iIndent++ )
+      {
+        char c = strLine.charAt( iIndent );
+        if( c != ' ' && c != '\t' )
+        {
+          break;
+        }
+        strbIndent.append( c );
+      }
+      if( strbIndent.length() > 0 )
+      {
+        getEditor().replaceSelection( strbIndent.toString() );
+      }
+      indentIfOpenBracePrecedes( strLine );
+
+      fixCloseBraceIfNecessary( strLine );
+
+      if( strLine.trim().startsWith( "/**" ) )
+      {
+        getEditor().replaceSelection( " * " );
+        int caretPos = getEditor().getCaretPosition();
+        getEditor().replaceSelection( "\n" + strbIndent.toString() + " */" );
+        getEditor().setCaretPosition( caretPos );
+      }
+      else
+      {
+        boolean isJavadoc = false;
+        while( strLine.trim().startsWith( "*" ) && !strLine.contains( "*/" ) )
+        {
+          index--;
+          if( index >= 0 )
+          {
+            line = root.getElement( index );
+            iStart = line.getStartOffset();
+            iEnd = line.getEndOffset();
+            strLine = line.getDocument().getText( iStart, iEnd - iStart );
+            if( strLine.trim().startsWith( "/**" ) )
+            {
+              isJavadoc = true;
+              break;
+            }
+          }
+        }
+        if( isJavadoc )
+        {
+          getEditor().replaceSelection( "* " );
+        }
+      }
+    }
+    catch( Exception ex )
+    {
+      EditorUtilities.handleUncaughtException( ex );
+    }
+  }
+
+  private void fixCloseBraceIfNecessary( String previousLine ) throws BadLocationException
+  {
+    Element root = getEditor().getDocument().getRootElements()[0];
+    int iStart = getEditor().getCaretPosition();
+    Element line = root.getElement( root.getElementIndex( iStart ) );
+    int iEnd = line.getEndOffset();
+    if( iStart < getEditor().getDocument().getLength() )
+    {
+      String strLine = line.getDocument().getText( iStart, iEnd - iStart );
+      if( strLine.trim().startsWith( "}" ) )
+      {
+        int offset = strLine.indexOf( '}' );
+        boolean previousLineWasOpenBrace = previousLine.trim().endsWith( "{" );
+
+        if( previousLineWasOpenBrace )
+        {
+          getEditor().getDocument().insertString( iStart, "\n", null );
+          offset += 1;
+        }
+
+        parseAndWaitForParser();
+        getEditor().setCaretPosition( iStart + offset );
+        _handleBraceRightNow( getEditor().getCaretPosition(), false );
+
+        if( previousLineWasOpenBrace )
+        {
+          getEditor().setCaretPosition( iStart );
+        }
+      }
+    }
+  }
+
+  void handleBackspace()
+  {
+    int caretPosition = getEditor().getCaretPosition();
+    try
+    {
+      if( caretPosition > 0 && (getEditor().getText( caretPosition - 1, 1 ).equals( "." ) || getEditor().getText( caretPosition - 1, 1 ).equals( "#" )) )
+      {
+        dismissCompletionPopup();
+      }
+    }
+    catch( BadLocationException e1 )
+    {
+      // ignore
+    }
+  }
+
+  private void indentIfOpenBracePrecedes( String strLine )
+  {
+    strLine = strLine.trim();
+    if( strLine.length() > 0 && strLine.charAt( strLine.length() - 1 ) == '{' )
+    {
+      getEditor().replaceSelection( getIndentWhitespace() );
+    }
+  }
+
+  private String getIndentWhitespace()
+  {
+    return GosuStringUtil.repeat( " ", TAB_SIZE );
+  }
+
+  void handleBulkComment()
+  {
+    CompoundEdit undoAtom = getUndoManager().beginUndoAtom( "Comment" );
+    try
+    {
+      _handleBulkComment();
+    }
+    finally
+    {
+      getUndoManager().endUndoAtom( undoAtom );
+    }
+  }
+
+  void _handleBulkComment()
+  {
+    // Calling revalidate after vk_enter to keep the scrollpane, the rootpane, and the editor all in synch.
+    revalidate();
+
+    int iSelectionStart = getEditor().getSelectionStart();
+    int iSelectionEnd = getEditor().getSelectionEnd();
+    Element root = getEditor().getDocument().getRootElements()[0];
+    int iStartIndex = root.getElementIndex( iSelectionStart );
+    int iEndIndex = root.getElementIndex( iSelectionEnd );
+    if( iStartIndex != iEndIndex && root.getElement( iEndIndex ).getStartOffset() == iSelectionEnd )
+    {
+      iSelectionEnd--;
+      iEndIndex = root.getElementIndex( iSelectionEnd );
+    }
+
+    try
+    {
+      boolean bHasLineWithoutLeadingComment = false;
+      for( int i = iStartIndex; i <= iEndIndex; i++ )
+      {
+        Element line = root.getElement( i );
+        int iStart = line.getStartOffset();
+        int iEnd = line.getEndOffset();
+        String strLine = getEditor().getText( iStart, iEnd - iStart );
+        String strLineTrimmed = strLine.trim();
+        if( strLineTrimmed.length() > 0 && !strLineTrimmed.startsWith( "//" ) )
+        {
+          bHasLineWithoutLeadingComment = true;
+          break;
+        }
+      }
+
+      for( int i = iStartIndex; i <= iEndIndex; i++ )
+      {
+        Element line = root.getElement( i );
+        int iStart = line.getStartOffset();
+        int iEnd = line.getEndOffset();
+        String strLine = getEditor().getText( iStart, iEnd - iStart );
+        if( bHasLineWithoutLeadingComment )
+        {
+          strLine = getLineCommentDelimiter() + strLine;
+        }
+        else
+        {
+          int iCommentIndex = strLine.indexOf( "//" );
+          if( iCommentIndex >= 0 )
+          {
+            strLine = strLine.substring( 0, iCommentIndex ) + strLine.substring( iCommentIndex + 2 );
+          }
+        }
+        iEnd = line.getEndOffset();
+        getEditor().select( iStart, iEnd );
+        getEditor().replaceSelection( strLine );
+        iSelectionEnd = getEditor().getSelectionEnd();
+      }
+      getEditor().select( iSelectionStart, iSelectionEnd );
+    }
+    catch( Exception ex )
+    {
+      editor.util.EditorUtilities.handleUncaughtException( ex );
+    }
+  }
+
+  void handleBraceRight()
+  {
+    final int caretPosition = getEditor().getCaretPosition();
+    EventQueue.invokeLater(
+      () -> postTaskInParserThread(
+        () -> EventQueue.invokeLater(
+          () -> handleBraceRightNow( caretPosition ) ) ) );
+  }
+
+  private void handleBraceRightNow( int caretPosition )
+  {
+    CompoundEdit undoAtom = getUndoManager().beginUndoAtom( "Right Brace" );
+    try
+    {
+      _handleBraceRightNow( caretPosition, true );
+    }
+    finally
+    {
+      getUndoManager().endUndoAtom( undoAtom );
+    }
+  }
+
+  private void _handleBraceRightNow( int caretPosition, boolean wasBraceTyped )
+  {
+    Document doc = getEditor().getDocument();
+    Element root = doc.getRootElements()[0];
+    Element line = root.getElement( root.getElementIndex( caretPosition ) );
+    int iBraceLineStart = line.getStartOffset();
+    int iBraceLineEnd = line.getEndOffset();
+    try
+    {
+      String strLine = line.getDocument().getText( iBraceLineStart, Math.min( iBraceLineEnd, doc.getLength() ) - iBraceLineStart );
+      iBraceLineEnd = strLine.endsWith( "\n" ) ? iBraceLineEnd - 1 : iBraceLineEnd;
+      strLine = strLine.trim();
+      if( strLine.length() > 1 )
+      {
+        return;
+      }
+      int iOffset = getOffsetOfDeepestStatementLocationAtPos( caretPosition, true );
+      if( iOffset < 0 )
+      {
+        return;
+      }
+
+      line = root.getElement( root.getElementIndex( iOffset ) );
+      int iStmtLineStart = line.getStartOffset();
+      int iStmtLineEnd = line.getEndOffset();
+      strLine = line.getDocument().getText( iStmtLineStart, iStmtLineEnd - iStmtLineStart );
+      StringBuilder strbIndent = new StringBuilder();
+      for( int iIndent = 0; iIndent < strLine.length(); iIndent++ )
+      {
+        char c = strLine.charAt( iIndent );
+        if( c != ' ' && c != '\t' )
+        {
+          break;
+        }
+        strbIndent.append( c );
+      }
+
+      String newText = strbIndent.toString() + '}';
+      getEditor().select( iBraceLineStart, iBraceLineEnd );
+      getEditor().replaceSelection( newText );
+
+      //restore the caret position if necessary
+      if( getEditor().getCaretPosition() != caretPosition )
+      {
+        getEditor().setCaretPosition( iBraceLineStart + strbIndent.length() + (wasBraceTyped ? 1 : 0) );
+      }
+
+      revalidate();
+    }
+    catch( Exception e )
+    {
+      // ignore
+    }
+  }
+
+  public void parse()
+  {
+    parse( false );
+  }
+
+  protected void parse( boolean forceCodeCompletion )
+  {
+    postTaskInParserThread( getParseTask( forceCodeCompletion ) );
+  }
+
+  public static void postTaskInParserThread( Runnable task )
+  {
+    TaskQueue tq = TaskQueue.getInstance( INTELLISENSE_TASK_QUEUE );
+    tq.postTask( task );
+  }
+
+  public static TaskQueue getParserTaskQueue()
+  {
+    return TaskQueue.getInstance( INTELLISENSE_TASK_QUEUE );
+  }
+
+  public boolean isParserSuspended()
+  {
+    return _bParserSuspended;
+  }
+
+  @SuppressWarnings("UnusedDeclaration")
+  public void setParserSuspended( boolean bParserSuspended )
+  {
+    _bParserSuspended = bParserSuspended;
+  }
+
+  private ParseTask getParseTask( boolean forceCodeCompletion )
+  {
+    return new ParseTask( getEditor().getText(), forceCodeCompletion, true );
+  }
+
+  @SuppressWarnings("UnusedDeclaration")
+  public static boolean areAnyParserTasksPending()
+  {
+    TaskQueue tq = TaskQueue.getInstance( INTELLISENSE_TASK_QUEUE );
+    List tasks = tq.getTasks();
+    for( Object task1 : tasks )
+    {
+      Runnable task = (Runnable)task1;
+      if( task instanceof ParseTask )
+      {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  protected boolean areMoreThanOneParserTasksPendingForThisEditor()
+  {
+    TaskQueue tq = TaskQueue.getInstance( INTELLISENSE_TASK_QUEUE );
+    int iCount = 0;
+    List tasks = tq.getTasks();
+    for( Object task1 : tasks )
+    {
+      Runnable task = (Runnable)task1;
+      if( task instanceof ParseTask && ((ParseTask)task).getEditor() == this )
+      {
+        if( iCount > 0 )
+        {
+          // Note we don't count the first one assuming we're trying to determine
+          // if there are any queued behind it.
+          return true;
+        }
+        iCount++;
+      }
+    }
+    return false;
+  }
+
+  protected boolean areMoreThanOneParserTasksGoingToUpdateContainingType()
+  {
+    TaskQueue tq = TaskQueue.getInstance( INTELLISENSE_TASK_QUEUE );
+    int iCount = 0;
+    List tasks = tq.getTasks();
+    for( Object task1 : tasks )
+    {
+      Runnable task = (Runnable)task1;
+      if( task instanceof ParseTask )
+      {
+        EditorHost otherEditor = ((ParseTask)task).getEditor();
+        if( otherEditor == this || (otherEditor.getScriptPart() != null && getScriptPart() != null && getScriptPart().getContainingType() == otherEditor.getScriptPart().getContainingType()) )
+        {
+          if( iCount > 0 )
+          {
+            // Note we don't count the first one assuming we're trying to determine
+            // if there are any queued behind it.
+            return true;
+          }
+          iCount++;
+        }
+      }
+    }
+    return false;
+  }
+
+  public boolean isCompleteCode()
+  {
+    return _bCompleteCode;
+  }
+  public void setCompleteCode( final boolean bCompleteCode )
+  {
+    _bCompleteCode = bCompleteCode;
+  }
+
+  public void handleDot()
+  {
+    // The completion delay is here mostly to prevent doing path completion during undo/redo.
+    runIfNoKeyPressedInMillis( COMPLETION_DELAY,
+                               () -> {
+                                 setCompleteCode( true );
+                                 parse( true );
+                                 //handleDot( (ISymbolTable)null );
+                               } );
+  }
+
+  public void handleColon()
+  {
+    // The completion delay is here mostly to prevent doing path completion during undo/redo.
+    runIfNoKeyPressedInMillis( COMPLETION_DELAY,
+                               () -> {
+                                 setCompleteCode( true );
+                                 parse( true );
+                                 //handleDot( (ISymbolTable)null );
+                               } );
+  }
+
+  public void handleCompleteCode()
+  {
+    setCompleteCode( true );
+    postTaskInParserThread( () -> {
+      if( isCompleteCode() )
+      {
+        try
+        {
+          final ISymbolTable atCursor = getSymbolTableAtCursor();
+          SwingUtilities.invokeLater( () -> {
+            if( isCompleteCode() )
+            {
+              try
+              {
+                handleDot( atCursor );
+              }
+              finally
+              {
+                setCompleteCode( false );
+              }
+            }
+          } );
+        }
+        catch( RuntimeException e )
+        {
+          setCompleteCode( false );
+          throw e;
+        }
+      }
+    } );
+  }
+
+  protected abstract void handleDot( final ISymbolTable transientSymTable );
+
+  public abstract ISymbolTable getSymbolTableAtCursor();
+
+  void runIfNoKeyPressedInMillis( long lMillis, final Runnable task )
+  {
+    final boolean[] bKeyPressed = new boolean[]{false};
+    final KeyListener keyListener =
+      new KeyAdapter()
+      {
+        @Override
+        public void keyPressed( KeyEvent e )
+        {
+          bKeyPressed[0] = true;
+        }
+      };
+    getEditor().addKeyListener( keyListener );
+
+    Timer timer = _timerPool.requestTimer( (int)lMillis,
+     e -> {
+       getEditor().removeKeyListener( keyListener );
+       if( !bKeyPressed[0] )
+       {
+         EditorUtilities.invokeInDispatchThread( task );
+       }
+       _iTimerCount--;
+     } );
+
+    timer.setRepeats( false );
+    _iTimerCount++;
+    timer.start();
+  }
+
+  @SuppressWarnings("UnusedDeclaration")
+  public static void waitOnParserThread()
+  {
+    TaskQueue queue = TaskQueue.getInstance( INTELLISENSE_TASK_QUEUE );
+    queue.postTaskAndWait( () -> { /*do nothing*/ } );
+  }
+
+  @SuppressWarnings("UnusedDeclaration")
+  public int getTimerCount()
+  {
+    return _iTimerCount;
+  }
+
+  @SuppressWarnings("UnusedDeclaration")
+  public static void waitForIntellisenseTimers()
+  {
+    _timerPool.waitForAllTimersToFinish();
+  }
+
+  class ParseTask implements Runnable
+  {
+    private String _strSource;
+    private boolean _forceCodeCompletion;
+    private boolean _changed;
+
+    public ParseTask( String strSource, boolean forceCodeCompletion, boolean changed )
+    {
+      _strSource = strSource;
+      _forceCodeCompletion = forceCodeCompletion;
+      _changed = changed;
+    }
+
+    public EditorHost getEditor()
+    {
+      return EditorHost.this;
+    }
+
+    @Override
+    public void run()
+    {
+      if( !getEditor().isShowing() )
+      {
+        return;
+      }
+      if( !areMoreThanOneParserTasksPendingForThisEditor() || _forceCodeCompletion )
+      {
+        TypeSystem.lock();
+        try
+        {
+          parse( _strSource, _forceCodeCompletion, _changed );
+        }
+        finally
+        {
+          //!! NOTE: do not refresh the type we just parsed in the editor, it will otherwise
+          //!!       reparse the type from DISK, which will be stale compared with changes in the editor.
+          TypeSystem.unlock();
+          if( _forceCodeCompletion )
+          {
+            setCompleteCode( false );
+          }
+        }
+      }
+    }
+  }
+
+  public boolean isAltDown()
+  {
+    return _bAltDown;
+  }
+
+  /**
+   */
+  class EditorKeyHandler extends KeyAdapter
+  {
+    @Override
+    public void keyPressed( KeyEvent e )
+    {
+      setCompleteCode( false );
+      _bAltDown = (e.getModifiers() & InputEvent.ALT_MASK) > 0;
+      if( e.getKeyChar() == KeyEvent.VK_ENTER && e.getModifiers() == 0 )
+      {
+        _bEnterPressedConsumed = e.isConsumed() || isCompletionPopupShowing();
+      }
+      else if( e.getKeyChar() == KeyEvent.VK_SPACE && e.isControlDown() )
+      {
+        if( !isCompletionPopupShowing() )
+        {
+          handleCompleteCode();
+          e.consume();
+        }
+      }
+      else if( e.getKeyCode() == KeyEvent.VK_BACK_SPACE || e.getKeyChar() == '\b' )
+      {
+        handleBackspace();
+        if( e.getModifiers() == InputEvent.SHIFT_MASK )
+        {
+          getEditor().dispatchEvent( new KeyEvent( (Component)e.getSource(), e.getID(), e.getWhen(), 0, e.getKeyCode(), e.getKeyChar(), e.getKeyLocation() ) );
+        }
+      }
+    }
+
+    @Override
+    public void keyTyped( final KeyEvent e )
+    {
+      final boolean consumed = e.isConsumed();
+      if( consumed || !getEditor().isEditable() )
+      {
+        return;
+      }
+
+      final char keyChar = e.getKeyChar();
+      final int modifiers = e.getModifiers();
+
+      postProcessKeystroke( consumed, keyChar, modifiers );
+    }
+
+    private void postProcessKeystroke( boolean consumed, char keyChar, int modifiers )
+    {
+      if( keyChar == '.' )
+      {
+        handleDot();
+      }
+      if( keyChar == ':' )
+      {
+        handleColon();
+      }
+      if( keyChar == '#' )
+      {
+        handleDot();
+      }
+
+      else
+      {
+        if( keyChar == KeyEvent.VK_ENTER && modifiers == 0 )
+        {
+          if( !consumed && !_bEnterPressedConsumed && !isCompletionPopupShowing() )
+          {
+            handleEnter();
+          }
+        }
+        //      else if( e.getKeyChar() == KeyEvent.VK_SPACE && (e.getModifiers() & InputEvent.CTRL_MASK) > 0 )
+        //      {
+        //        if( !isIntellisenseShowing() )
+        //        {
+        //          handleCompleteCode();
+        //        }
+        //      }
+        else if( keyChar == '}' )
+        {
+          if( !consumed && !isCompletionPopupShowing() )
+          {
+            handleBraceRight();
+          }
+        }
+      }
+    }
+  }
+  
   public static class LabHighlighter implements Highlighter.HighlightPainter
   {
     public static final LabHighlighter TEXT = new LabHighlighter( Scheme.active().usageReadHighlightColor() );
@@ -1042,4 +1746,55 @@ public abstract class EditorHost extends JPanel implements IEditorHost
     }
   }
 
+  private static class TimerPool
+  {
+    List<Object> _activeTimers = new ArrayList<>();
+
+    Timer requestTimer( int millis, final ActionListener action )
+    {
+      synchronized( this )
+      {
+        final Object timerToken = new Object();
+        Timer timer = new Timer( millis, new ActionListener()
+        {
+          @Override
+          public void actionPerformed( ActionEvent e )
+          {
+            try
+            {
+              action.actionPerformed( e );
+            }
+            finally
+            {
+              synchronized( TimerPool.this )
+              {
+                _activeTimers.remove( timerToken );
+                TimerPool.this.notify();
+              }
+            }
+          }
+        } );
+        _activeTimers.add( timerToken );
+        return timer;
+      }
+    }
+
+    void waitForAllTimersToFinish()
+    {
+      synchronized( this )
+      {
+        while( !_activeTimers.isEmpty() )
+        {
+          try
+          {
+            wait();
+          }
+          catch( InterruptedException e )
+          {
+            // ?
+          }
+        }
+      }
+    }
+  }
 }

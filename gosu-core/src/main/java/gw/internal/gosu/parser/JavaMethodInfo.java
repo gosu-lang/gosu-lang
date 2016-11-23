@@ -6,6 +6,8 @@ package gw.internal.gosu.parser;
 
 import gw.internal.ext.org.objectweb.asm.Opcodes;
 import gw.internal.gosu.parser.java.classinfo.JavaSourceDefaultValue;
+import gw.internal.gosu.parser.java.classinfo.JavaSourceElement;
+import gw.internal.gosu.parser.java.classinfo.JavaSourceMethod;
 import gw.lang.Deprecated;
 import gw.lang.GosuShop;
 import gw.lang.PublishedName;
@@ -18,6 +20,7 @@ import gw.lang.parser.TypeVarToTypeMap;
 import gw.lang.reflect.IAnnotationInfo;
 import gw.lang.reflect.IExceptionInfo;
 import gw.lang.reflect.IFeatureInfo;
+import gw.lang.reflect.ILocationInfo;
 import gw.lang.reflect.IMethodCallHandler;
 import gw.lang.reflect.IParameterInfo;
 import gw.lang.reflect.IScriptabilityModifier;
@@ -717,5 +720,15 @@ public class JavaMethodInfo extends JavaBaseFeatureInfo implements IJavaMethodIn
   @Override
   public int getModifiers() {
     return _md.getMethod().getModifiers();
+  }
+
+  @Override
+  public ILocationInfo getLocationInfo()
+  {
+    if( getMethod() instanceof JavaSourceElement )
+    {
+      return getMethod().getLocationInfo();
+    }
+    return super.getLocationInfo();
   }
 }

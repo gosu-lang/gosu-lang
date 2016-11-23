@@ -13,7 +13,6 @@ import editor.run.RunState;
 import editor.search.AbstractSearchDialog;
 import editor.search.LocalSearchDialog;
 import editor.search.LocalVarFeatureInfo;
-import editor.search.MessageDisplay;
 import editor.search.SearchDialog;
 import editor.search.SearchPanel;
 import editor.search.UsageSearcher;
@@ -998,12 +997,12 @@ public class CommonMenus
       getGosuPanel().save();
 
       // Renew parse tree before we get the selected target element
-      ((GosuEditor)getGosuPanel().getCurrentEditor()).parseAndWaitForParser();
+      getGosuPanel().getCurrentEditor().parseAndWaitForParser();
 
       UsageTarget target = UsageTarget.makeTargetFromCaret();
       if( target == null )
       {
-        MessageDisplay.displayInformation( "Please select a valid usage target in the editor" );
+        JOptionPane.showMessageDialog( LabFrame.instance(), "Please select a valid usage target in the editor", "Gosu Lab", JOptionPane.INFORMATION_MESSAGE );
       }
       else
       {
@@ -1114,7 +1113,7 @@ public class CommonMenus
       UsageTarget target = UsageTarget.makeTargetFromCaret();
       if( target == null )
       {
-        MessageDisplay.displayInformation( "Please select a valid usage target in the editor" );
+        JOptionPane.showMessageDialog( LabFrame.instance(), "Please select a valid usage target in the editor", "Gosu Lab", JOptionPane.INFORMATION_MESSAGE );
       }
       else
       {

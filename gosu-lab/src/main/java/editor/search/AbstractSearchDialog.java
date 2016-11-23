@@ -220,7 +220,7 @@ public abstract class AbstractSearchDialog extends AbstractDialog
                                         SearchTree results = new SearchTree( "<html><b>$count</b>&nbsp;occurrences&nbsp;of&nbsp;<b>'" + text + "'</b>&nbsp;in&nbsp;" + getScopeName(), NodeKind.Directory, SearchTree.empty() );
                                         searchPanel.add( results );
 
-                                        TextSearcher searcher = new TextSearcher( text, !_checkCase.isSelected(), _checkWords.isSelected(), _checkRegex.isSelected() );
+                                        TextSearcher searcher = new TextSearcher( text, _checkCase.isSelected(), _checkWords.isSelected(), _checkRegex.isSelected() );
                                         searcher.searchTrees( getSelectedTrees(), results, ft -> include( ft, getFileMatchRegex() ), progress );
                                         selectFirstMatch( results );
                                         bFinished[0] = true;
