@@ -11,6 +11,9 @@ import gw.lang.javac.IJavaParser;
 import gw.lang.parser.GosuParserFactory;
 import java.util.ArrayList;
 import java.util.List;
+import javax.tools.Diagnostic;
+import javax.tools.DiagnosticCollector;
+import javax.tools.JavaFileObject;
 
 public class JavaToGosu
 {
@@ -107,7 +110,12 @@ public class JavaToGosu
   private static boolean parseJava( List<CompilationUnitTree> trees, String src )
   {
     IJavaParser javaParser = GosuParserFactory.getInterface( IJavaParser.class );
-    return javaParser.parseText( src, trees, null );
+    DiagnosticCollector<JavaFileObject> errorHandler = new DiagnosticCollector<>();
+    if( !javaParser.parseText( src, trees, errorHandler ) )
+    {
+      return false;
+    }
+    return !errorHandler.getDiagnostics().stream().anyMatch( e -> e.getKind() == Diagnostic.Kind.ERROR );
   }
 }
 

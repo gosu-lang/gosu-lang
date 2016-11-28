@@ -8,6 +8,7 @@ import gw.lang.javac.ClassJavaFileObject;
 import gw.lang.javac.IJavaParser;
 import gw.lang.javac.StringJavaFileObject;
 import gw.lang.reflect.TypeSystem;
+import gw.lang.reflect.module.IModule;
 import gw.util.Pair;
 import java.io.IOException;
 import java.io.StringWriter;
@@ -53,7 +54,11 @@ public class JavaParser implements IJavaParser
 
       try
       {
-        _fileManager.setLocation( StandardLocation.SOURCE_PATH, TypeSystem.getGlobalModule().getSourcePath().stream().map( IResource::toJavaFile ).collect( Collectors.toList() ) );
+        IModule globalModule = TypeSystem.getGlobalModule();
+        if( globalModule != null )
+        {
+          _fileManager.setLocation( StandardLocation.SOURCE_PATH, globalModule.getSourcePath().stream().map( IResource::toJavaFile ).collect( Collectors.toList() ) );
+        }
         _gfm = new GosuJavaFileManager( _fileManager );
       }
       catch( IOException e )
