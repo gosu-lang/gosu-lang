@@ -37,7 +37,7 @@ public class BatchDocument extends DefaultStyledDocument
     synchronized( _batch )
     {
       _batch.addAll( getElementsForString( str, a ) );
-      while( _batch.size() > 2000 )
+      while( _batch.size() > 100 * 1024 )
       {
         _batch.remove( 0 );
       }
