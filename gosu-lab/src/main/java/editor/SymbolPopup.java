@@ -74,7 +74,7 @@ public class SymbolPopup extends EditorBasedPopup implements ISelectionPopup
   protected void initLayout()
   {
     setLayout( new BorderLayout() );
-    setOpaque( false );
+    setOpaque( true );
     setDoubleBuffered( true );
 
     Border border = BorderFactory.createEmptyBorder( 2, 2, 2, 2 );

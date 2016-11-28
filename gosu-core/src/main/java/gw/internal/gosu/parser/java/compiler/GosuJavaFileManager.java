@@ -1,9 +1,11 @@
 package gw.internal.gosu.parser.java.compiler;
 
 import gw.lang.javac.ClassJavaFileObject;
+import gw.lang.reflect.ITypeLoaderListener;
+import gw.lang.reflect.RefreshRequest;
+import gw.lang.reflect.TypeSystem;
+import gw.util.cache.FqnCache;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 import javax.tools.FileObject;
 import javax.tools.ForwardingJavaFileManager;
 import javax.tools.JavaFileManager;
@@ -11,42 +13,51 @@ import javax.tools.JavaFileObject;
 
 /**
 */
-class GosuJavaFileManager extends ForwardingJavaFileManager<JavaFileManager>
+class GosuJavaFileManager extends ForwardingJavaFileManager<JavaFileManager> implements ITypeLoaderListener
 {
-  private final List<ClassJavaFileObject> _classFiles;
-  private List<ClassJavaFileObject> _sessionFiles;
+  private FqnCache<ClassJavaFileObject> _classFiles;
 
   GosuJavaFileManager( JavaFileManager fileManager )
   {
     super( fileManager );
-    _classFiles = new ArrayList<>();
+    _classFiles = new FqnCache<>();
+    TypeSystem.addTypeLoaderListenerAsWeakRef( this );
   }
 
   @Override
   public JavaFileObject getJavaFileForOutput( Location location, String className, JavaFileObject.Kind kind, FileObject sibling ) throws IOException
   {
     ClassJavaFileObject file = new ClassJavaFileObject( className, kind );
-    _classFiles.add( file );
-    if( _sessionFiles != null )
-    {
-      _sessionFiles.add( file );
-    }
+    _classFiles.add( className, file );
+    className = className.replace( '$', '.' );
+    _classFiles.add( className, file );
     return file;
   }
 
-  public List<ClassJavaFileObject> getGeneratedOutputFiles()
+  public ClassJavaFileObject findCompiledFile( String fqn )
   {
-    return _classFiles;
+    return _classFiles.get( fqn );
   }
 
-  public void beginSession()
+  public void remove( String fqn )
   {
-    _sessionFiles = new ArrayList<>();
+    _classFiles.remove( fqn );
   }
-  public List<ClassJavaFileObject> endSession()
+
+  @Override
+  public void refreshedTypes( RefreshRequest request )
   {
-    ArrayList<ClassJavaFileObject> sessionFiles = new ArrayList<>( _sessionFiles );
-    _sessionFiles = null;
-    return sessionFiles;
+    switch( request.kind )
+    {
+      case MODIFICATION:
+      case DELETION:
+        _classFiles.remove( request.types );
+    }
+  }
+
+  @Override
+  public void refreshed()
+  {
+    _classFiles = new FqnCache<>();
   }
 }

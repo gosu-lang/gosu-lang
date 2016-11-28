@@ -27,7 +27,6 @@ public class LabDarkScheme extends Scheme
 
   private static final Color CONTROL_LIGHT = WHITISH; //UIManager.getColor( "controlLtHighlight" );
   /* colors */
-  public static final Color TOOLTIP_BACKGROUND = BLACKISH; //  UIManager.getColor( "info" );
   private static final Color TOOLTIP_TEXT = WHITISH; //  UIManager.getColor( "infoText" );
   private static final Color WINDOW = BLACKISH;
   private static final Color WINDOW_TEXT = WHITISH;
@@ -69,6 +68,8 @@ public class LabDarkScheme extends Scheme
   private static final Color MENU_TEXT = WINDOW_TEXT;
 
   private static final Color MENU_BORDER = SEPARATOR_2;
+
+  public static final Color TOOLTIP_BACKGROUND = MENU; //  UIManager.getColor( "info" );
 
   private static final Color COLOR_BREAKPOINT = new Color( 255, 0, 0, 50 );
   private static final Color COLOR_EXECPOINT = new Color( 0, 255, 0, 50 );

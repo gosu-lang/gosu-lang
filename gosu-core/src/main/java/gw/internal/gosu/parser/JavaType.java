@@ -1433,4 +1433,16 @@ class JavaType extends InnerClassCapableType implements IJavaTypeInternal
   protected IType getTheRef() {
     return thisRef();
   }
+
+  @Override
+  public boolean isCompilable()
+  {
+    return getBackingClassInfo().isCompilable();
+  }
+
+  @Override
+  public byte[] compile()
+  {
+    return getBackingClassInfo().compile();
+  }
 }

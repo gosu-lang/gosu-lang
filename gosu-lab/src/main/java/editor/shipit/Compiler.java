@@ -6,10 +6,10 @@ import editor.MessageTree;
 import editor.MessagesPanel;
 import editor.settings.CompilerSettings;
 import editor.util.IProgressCallback;
-import gw.lang.javac.ClassJavaFileObject;
 import gw.lang.javac.IJavaParser;
 import gw.lang.parser.GosuParserFactory;
 import gw.lang.parser.IFileRepositoryBasedType;
+import gw.lang.parser.IHasInnerClass;
 import gw.lang.parser.IParseIssue;
 import gw.lang.parser.exceptions.ParseResultsException;
 import gw.lang.reflect.IType;
@@ -23,7 +23,6 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.*;
-import java.util.List;
 import javax.tools.Diagnostic;
 import javax.tools.DiagnosticCollector;
 import javax.tools.JavaFileObject;
@@ -222,9 +221,8 @@ public class Compiler
     }
 
     IJavaParser javaParser = GosuParserFactory.getInterface( IJavaParser.class );
-    JavaFileObject file = javaParser.findJavaSource( javaType.getName() );
     DiagnosticCollector<JavaFileObject> errorHandler = new DiagnosticCollector<>();
-    List<ClassJavaFileObject> classes = javaParser.compile( file, javaType.getName(), Collections.singleton( "-Xlint:unchecked" ), errorHandler );
+    javaParser.compile( javaType.getName(), Collections.singleton( "-Xlint:unchecked" ), errorHandler );
     boolean errant = errorHandler.getDiagnostics().stream().anyMatch( e -> e.getKind() == Diagnostic.Kind.ERROR );
     if( errant )
     {
@@ -300,7 +298,7 @@ public class Compiler
         } );
       }
 
-      return compileClass( classes, consumer );
+      return compileClass( javaType, consumer );
     }
     catch( Exception e )
     {
@@ -338,35 +336,23 @@ public class Compiler
     return msg;
   }
 
-  private boolean compileClass( IGosuClass gsClass, ICompileConsumer consumer )
+  private boolean compileClass( IFileRepositoryBasedType type, ICompileConsumer consumer )
   {
-    byte[] bytes = TypeSystem.getGosuClassLoader().getBytes( gsClass );
-    if( !consumer.accept( new CompiledClass( gsClass, bytes ) ) )
+    byte[] bytes = type.compile();
+    if( !consumer.accept( new CompiledClass( type, bytes ) ) )
     {
       return false;
     }
-    makeClassFile( gsClass, bytes );
-    for( IGosuClass innerClass : gsClass.getInnerClasses() )
+    makeClassFile( type, bytes );
+    if( type instanceof IHasInnerClass )
     {
-      if( !compileClass( innerClass, consumer ) )
+      for( IType innerClass : ((IHasInnerClass)type).getInnerClasses() )
       {
-        return false;
+        if( !compileClass( (IFileRepositoryBasedType)innerClass, consumer ) )
+        {
+          return false;
+        }
       }
-    }
-    return true;
-  }
-
-  private boolean compileClass( List<ClassJavaFileObject> classes, ICompileConsumer consumer )
-  {
-    for( ClassJavaFileObject cls: classes )
-    {
-      IJavaType javaType = (IJavaType)TypeSystem.getByFullNameIfValid( cls.getClassName().replace( '$', '.' ) );
-      byte[] bytes = cls.getBytes();
-      if( !consumer.accept( new CompiledClass( javaType, bytes ) ) )
-      {
-        return false;
-      }
-      makeClassFile( javaType, bytes );
     }
     return true;
   }

@@ -42,7 +42,7 @@ public final class ParseTree implements IParseTree
   private int _iLength;
   private transient IScriptPartId _scriptPart;
 
-  ParseTree( ParsedElement pe, int iOffset, int iLength, IScriptPartId scriptPart )
+  public ParseTree( ParsedElement pe, int iOffset, int iLength, IScriptPartId scriptPart )
   {
     _pe = pe;
     _iOffset = iOffset;

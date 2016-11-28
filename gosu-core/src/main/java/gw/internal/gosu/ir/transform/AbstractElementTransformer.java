@@ -3107,8 +3107,8 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
 
   public static ICustomExpressionRuntime getCustomRuntime( String id, IType enclosingClass ) {
     ICustomExpressionRuntime runtime = CUSTOM_RUNTIMES.get( id );
-    if( runtime == null && enclosingClass instanceof ICompilableType ) {
-      ((ICompilableType)enclosingClass).compile(); // force compilation of enclosing class indirectly compiles custom runtime expr which caches itself
+    if( runtime == null && enclosingClass.isCompilable() ) {
+      enclosingClass.compile(); // force compilation of enclosing class indirectly compiles custom runtime expr which caches itself
       runtime = CUSTOM_RUNTIMES.get( id );
     }
 

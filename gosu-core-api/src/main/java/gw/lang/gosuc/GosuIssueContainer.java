@@ -1,8 +1,9 @@
-package editor;
+package gw.lang.gosuc;
 
-import editor.plugin.typeloader.java.GosuIssue;
 import gw.lang.parser.IParseIssue;
 import gw.lang.parser.exceptions.ParseResultsException;
+import gw.lang.IIssue;
+import gw.lang.IIssueContainer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;

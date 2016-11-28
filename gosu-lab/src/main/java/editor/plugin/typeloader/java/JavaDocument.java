@@ -1,6 +1,7 @@
 package editor.plugin.typeloader.java;
 
 import editor.Scheme;
+import editor.util.HTMLEscapeUtil;
 import java.util.HashSet;
 import java.util.Locale;
 import java.util.Set;
@@ -769,7 +770,7 @@ public class JavaDocument extends DefaultStyledDocument
         if( issue.getStartPosition() >= tokenElem.getStartOffset() && issue.getStartPosition() >= tokenElem.getEndOffset() ||
             issue.getEndPosition() >= tokenElem.getStartOffset() && issue.getEndPosition() >= tokenElem.getEndOffset() )
         {
-          return issue.getMessage( Locale.getDefault() );
+          return "<html>" + HTMLEscapeUtil.escape( issue.getMessage( Locale.getDefault() ) );
         }
       }
     }

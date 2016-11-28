@@ -8,6 +8,8 @@ package editor;
 import editor.util.EditorUtilities;
 import editor.util.HTMLEscapeUtil;
 
+import gw.lang.IIssue;
+import gw.lang.IIssueContainer;
 import javax.swing.*;
 import javax.swing.text.Highlighter;
 import java.awt.*;

@@ -1,7 +1,7 @@
 package editor.plugin.typeloader.properties;
 
-import editor.IIssue;
-import editor.IIssueContainer;
+import gw.lang.IIssue;
+import gw.lang.IIssueContainer;
 import java.util.Collections;
 import java.util.List;
 

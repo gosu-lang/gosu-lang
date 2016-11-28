@@ -1,7 +1,7 @@
 package editor.plugin.typeloader.properties;
 
 import editor.EditorHost;
-import editor.IIssueContainer;
+import gw.lang.IIssueContainer;
 import editor.plugin.typeloader.INewFileParams;
 import editor.plugin.typeloader.ITypeFactory;
 import gw.lang.reflect.IType;

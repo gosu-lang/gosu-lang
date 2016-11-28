@@ -15,7 +15,8 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.TreeSet;
 
-public interface IJavaClassInfo extends IJavaAnnotatedElement, IJavaClassType, ITypeInfoResolver {
+public interface IJavaClassInfo extends IJavaAnnotatedElement, IJavaClassType, ITypeInfoResolver
+{
   Object LOCK = IJavaClassInfo.class;
 
   String getNameSignature();
@@ -176,5 +177,15 @@ public interface IJavaClassInfo extends IJavaAnnotatedElement, IJavaClassType, I
       }
       return jcis;
     }
+  }
+
+  default boolean isCompilable()
+  {
+    return false;
+  }
+
+  default byte[] compile()
+  {
+    throw new UnsupportedOperationException();
   }
 }

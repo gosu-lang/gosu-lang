@@ -1,6 +1,7 @@
 package editor;
 
 import editor.undo.AtomicUndoManager;
+import gw.lang.parser.IScriptPartId;
 import gw.lang.parser.ScriptabilityModifiers;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.gs.IGosuClass;
@@ -10,12 +11,13 @@ import java.io.File;
  */
 public class EditorFactory
 {
-  public static EditorHost createEditor( File file )
+  public static EditorHost createEditor( File file, IScriptPartId partId )
   {
     FileTree fileTree = FileTreeUtil.find( file );
     if( fileTree == null )
     {
-      return null;
+      //## todo: add this to the root as an external filetree?
+      fileTree = FileTreeUtil.makeExternalFileTree( file, partId == null ? null : partId.getContainingTypeName() );
     }
 
     IType type = fileTree.getType();

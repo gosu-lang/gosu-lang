@@ -17,15 +17,17 @@ import com.sun.source.tree.Tree;
 import com.sun.source.tree.TypeParameterTree;
 import com.sun.source.tree.VariableTree;
 import com.sun.source.tree.WildcardTree;
-import com.sun.tools.javac.api.JavacTaskImpl;
-import com.sun.tools.javac.api.JavacTool;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.TreeInfo;
 import gw.internal.gosu.parser.AsmClassJavaClassInfo;
 import gw.internal.gosu.parser.TypeUsesMap;
 import gw.lang.GosuShop;
 import gw.lang.SimplePropertyProcessing;
+import gw.lang.javac.ClassJavaFileObject;
+import gw.lang.javac.IJavaParser;
+import gw.lang.javac.JavaCompileIssuesException;
 import gw.lang.javadoc.IClassDocNode;
+import gw.lang.parser.GosuParserFactory;
 import gw.lang.parser.TypeVarToTypeMap;
 import gw.lang.reflect.EnumValuePlaceholder;
 import gw.lang.reflect.IAnnotationInfo;
@@ -53,7 +55,6 @@ import gw.lang.reflect.java.JavaTypes;
 import gw.lang.reflect.module.IModule;
 import gw.util.GosuObjectUtil;
 import java.lang.annotation.Annotation;
-import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -62,8 +63,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import javax.tools.JavaCompiler;
-import javax.tools.StandardJavaFileManager;
+import javax.tools.DiagnosticCollector;
+import javax.tools.JavaFileObject;
 
 public abstract class JavaSourceType extends AbstractJavaClassInfo implements IJavaClassType, ITypeInfoResolver
 {
@@ -118,15 +119,12 @@ public abstract class JavaSourceType extends AbstractJavaClassInfo implements IJ
   private ISourceFileHandle _fileHandle;
   private List<String> _staticImportList;
   private ClassTree _typeDecl;
-  static private JavaCompiler compiler;
-  static private StandardJavaFileManager fileManager;
   private IJavaType _javaType;
 
   public static IJavaClassInfo createTopLevel( ISourceFileHandle fileHandle, IModule gosuModule )
   {
     List<CompilationUnitTree> trees = new ArrayList<>();
-    boolean err = parseJavaFile( fileHandle, trees );
-    if( err )
+    if( !parseJavaFile( fileHandle, trees ) )
     {
       return new JavaSourceUnresolvedClass( fileHandle, gosuModule );
     }
@@ -178,30 +176,8 @@ public abstract class JavaSourceType extends AbstractJavaClassInfo implements IJ
 
   private static boolean parseJavaFile( ISourceFileHandle src, List<CompilationUnitTree> trees )
   {
-    boolean err = false;
-    try
-    {
-      if( compiler == null )
-      {
-        compiler = JavacTool.create();
-        fileManager = compiler.getStandardFileManager( null, null, Charset.forName( "UTF-8" ) );
-      }
-      ArrayList<JavaStringObject> javaStringObjects = new ArrayList<>();
-      javaStringObjects.add( new JavaStringObject( src.getSource().getSource() ) );
-      JavaCompiler.CompilationTask task = compiler.getTask( null, fileManager, null, Arrays.asList( "-proc:none" ), null, javaStringObjects );
-      JavacTaskImpl javacTask = (JavacTaskImpl)task;
-      Iterable<? extends CompilationUnitTree> iterable = javacTask.parse();
-      for( CompilationUnitTree x : iterable )
-      {
-        trees.add( x );
-      }
-      fileManager.close();
-    }
-    catch( Exception e )
-    {
-      err = true;
-    }
-    return err;
+    IJavaParser javaParser = GosuParserFactory.getInterface( IJavaParser.class );
+    return javaParser.parseText( src.getSource().getSource(), trees, null );
   }
 
   private static JavaSourceType createInner( ClassTree typeDecl, JavaSourceType containingClass )
@@ -1364,5 +1340,24 @@ public abstract class JavaSourceType extends AbstractJavaClassInfo implements IJ
       _fileHandle = loader.getSouceFileHandle( getName() );
     }
     return _fileHandle;
+  }
+
+  @Override
+  public boolean isCompilable()
+  {
+    return true;
+  }
+
+  @Override
+  public byte[] compile()
+  {
+    IJavaParser javaParser = GosuParserFactory.getInterface( IJavaParser.class );
+    DiagnosticCollector<JavaFileObject> errorHandler = new DiagnosticCollector<>();
+    ClassJavaFileObject fileObj = javaParser.compile( getName(), Collections.singleton( "-Xlint:unchecked" ), errorHandler );
+    if( fileObj != null )
+    {
+      return fileObj.getBytes();
+    }
+    throw new JavaCompileIssuesException( errorHandler );
   }
 }

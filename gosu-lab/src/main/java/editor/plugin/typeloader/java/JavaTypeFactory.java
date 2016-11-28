@@ -1,13 +1,16 @@
 package editor.plugin.typeloader.java;
 
 import editor.EditorHost;
-import editor.IIssueContainer;
+import editor.util.HTMLEscapeUtil;
+import gw.lang.javac.JavaIssueContainer;
+import gw.lang.IIssueContainer;
 import editor.plugin.typeloader.INewFileParams;
 import editor.plugin.typeloader.ITypeFactory;
 import gw.lang.javac.IJavaParser;
 import gw.lang.javac.StringJavaFileObject;
 import gw.lang.parser.GosuParserFactory;
 import gw.lang.reflect.IType;
+import java.awt.EventQueue;
 import java.util.Collections;
 import javax.swing.JComponent;
 import javax.tools.DiagnosticCollector;
@@ -80,8 +83,12 @@ public class JavaTypeFactory implements ITypeFactory
     IJavaParser javaParser = GosuParserFactory.getInterface( IJavaParser.class );
     StringJavaFileObject fileObj = new StringJavaFileObject( type.getName(), strText );
     javaParser.compile( fileObj, type.getName(), Collections.singleton( "-Xlint:unchecked" ), errorHandler );
-    ((JavaDocument)editor.getDocument()).setErrorHandler( errorHandler );
-    editor.getEditor().repaint();
+    EventQueue.invokeLater(
+      () ->
+      {
+        ((JavaDocument)editor.getDocument()).setErrorHandler( errorHandler );
+        editor.getEditor().repaint();
+      } );
   }
 
   @Override

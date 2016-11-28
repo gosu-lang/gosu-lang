@@ -10,10 +10,12 @@ import editor.undo.AtomicUndoManager;
 import editor.util.EditorUtilities;
 import editor.util.HTMLEscapeUtil;
 import editor.util.IReplaceWordCallback;
+import editor.util.LabToolbarButton;
 import editor.util.SettleModalEventQueue;
 import editor.util.TaskQueue;
 import editor.util.TextComponentUtil;
 import gw.lang.GosuShop;
+import gw.lang.gosuc.GosuIssueContainer;
 import gw.lang.parser.GosuParserFactory;
 import gw.lang.parser.IExpression;
 import gw.lang.parser.IGosuParser;
@@ -62,6 +64,7 @@ import gw.lang.reflect.gs.IGosuClass;
 import gw.lang.reflect.gs.IGosuEnhancement;
 import gw.lang.reflect.gs.StringSourceFileHandle;
 import gw.lang.reflect.java.JavaTypes;
+import gw.lang.IIssueContainer;
 import gw.util.GosuStringUtil;
 
 import java.io.File;
@@ -1265,18 +1268,22 @@ public class GosuEditor extends EditorHost implements IScriptEditor, IGosuPanel,
     final IType typeAtCursor = type;
 
     final JPopupMenu popup = new JPopupMenu();
+    popup.setLayout( new BorderLayout() );
 
     String displayHTML;
     boolean foundType = true;
+    Color typeColor = Scheme.active().getCodeTypeLiteral();
+    String hexTypeColor = String.format( "#%02x%02x%02x", typeColor.getRed(), typeColor.getGreen(), typeColor.getBlue() );
     if( typeAtCursor != null )
     {
       if( typeAtCursor instanceof IMetaType )
       {
-        displayHTML = "<html><b>" + "Type" + ":</b>&nbsp;" + "Type" + "&lt;<i>" + HTMLEscapeUtil.escape( ((IMetaType)type).getType().getName() ) + "</i>&gt;</html>";
+       //displayHTML = "<html>" + "Type" + ":&nbsp;<font color= " + hexTypeColor + "><b>Type" + "&lt;</b>" + HTMLEscapeUtil.escape( ((IMetaType)type).getType().getName() ) + "<b>&gt;</b></font></html>";
+        displayHTML = "<html>" + "Type" + ":&nbsp;<span style=\"font-family: monospaced; color: " + hexTypeColor + "\"><b>Type" + "&lt;</b>" + HTMLEscapeUtil.escape( ((IMetaType)type).getType().getName() ) + "<b>&gt;</b></span></html>";
       }
       else
       {
-        displayHTML = "<html><b>" + "Type" + ":</b>&nbsp;" + HTMLEscapeUtil.escape( type.getName() ) + "</html>";
+        displayHTML = "<html>Type:&nbsp;<span style=\"font-family: monospaced; color: " + hexTypeColor + "\"><b>" + HTMLEscapeUtil.escape( type.getName() ) + "</b></span></html>";
       }
     }
     else
@@ -1286,30 +1293,27 @@ public class GosuEditor extends EditorHost implements IScriptEditor, IGosuPanel,
     }
 
     final JLabel label = new JLabel( displayHTML );
-    label.setFocusable( true );
-    JPanel panel = new JPanel( true );
+    JPanel panel = new JPanel( new BorderLayout() );
     panel.setBackground( Scheme.active().getTooltipBackground() );
-    panel.setLayout( new BoxLayout( panel, BoxLayout.X_AXIS ) );
-    panel.setBorder( BorderFactory.createEmptyBorder( 1, 3, 1, 3 ) );
-    panel.add( label );
+    panel.setBorder( BorderFactory.createEmptyBorder( 1, 3, 1, 1 ) );
+    panel.add( label, BorderLayout.CENTER );
     if( foundType )
     {
-      JButton copyBtn = new JButton( "copy" );
-      final IType type1 = type;
-      copyBtn.setAction( new AbstractAction( "copy" )
-      {
-        @Override
-        public void actionPerformed( ActionEvent e )
+      final IType finalType = type;
+      JButton copyBtn = new LabToolbarButton(
+        new AbstractAction( "copy", EditorUtilities.loadIcon( "images/Copy.png" ) )
         {
-          editor.util.EditorUtilities.getClipboard().setContents( new StringSelection( type1.getName() ), null );
-          CopyBuffer.instance().captureState();
-        }
+          @Override
+          public void actionPerformed( ActionEvent e )
+          {
+            editor.util.EditorUtilities.getClipboard().setContents( new StringSelection( finalType.getName() ), null );
+            CopyBuffer.instance().captureState();
+          }
       } );
-      copyBtn.setFont( copyBtn.getFont().deriveFont( 10f ) );
-      panel.add( Box.createHorizontalStrut( 4 ) );
-      panel.add( copyBtn );
+      panel.add( copyBtn, BorderLayout.EAST );
     }
-    popup.add( panel );
+    panel.setPreferredSize( new Dimension( panel.getPreferredSize().width + 20, panel.getPreferredSize().height + 4 ) );
+    popup.add( panel, BorderLayout.CENTER );
 
     try
     {

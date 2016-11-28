@@ -56,7 +56,7 @@ public class ReopenExperimentPopup implements MenuListener
     if( experiments.size() > 1 )
     {
       _menu.addSeparator();
-      addNewItem( "Clear List", "images/delete.gif", () -> {
+      addNewItem( "Clear List", "images/close.png", () -> {
         List<String> newList = new ArrayList<>();
         newList.add( experiments.get( 0 ) );
         LabFrame.instance().setExperiments( newList );

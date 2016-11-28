@@ -4,6 +4,7 @@ import editor.search.SearchLocation;
 import editor.undo.AtomicUndoManager;
 import gw.lang.parser.IScriptPartId;
 import gw.lang.reflect.IType;
+import gw.lang.IIssueContainer;
 import java.awt.datatransfer.Clipboard;
 import java.awt.event.MouseEvent;
 import java.io.IOException;

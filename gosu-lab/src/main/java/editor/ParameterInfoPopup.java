@@ -7,6 +7,7 @@ import gw.lang.parser.IHasArguments;
 import gw.lang.parser.IParseTree;
 import gw.lang.parser.IParsedElement;
 import gw.lang.parser.ISymbol;
+import gw.lang.parser.expressions.IArgumentListClause;
 import gw.lang.parser.expressions.IBeanMethodCallExpression;
 import gw.lang.parser.expressions.IMethodCallExpression;
 import gw.lang.parser.expressions.INewExpression;
@@ -23,14 +24,12 @@ import gw.lang.reflect.gs.IGosuClass;
 import javax.swing.*;
 import javax.swing.event.CaretEvent;
 import javax.swing.event.CaretListener;
-import javax.swing.event.UndoableEditEvent;
 import javax.swing.event.UndoableEditListener;
 import javax.swing.text.BadLocationException;
 import java.awt.*;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -55,7 +54,7 @@ public class ParameterInfoPopup extends JPopupMenu
 
   protected void initLayout()
   {
-    setOpaque( false );
+    setOpaque( true );
     setDoubleBuffered( true );
 
     GridBagLayout gridBag = new GridBagLayout();
@@ -65,15 +64,7 @@ public class ParameterInfoPopup extends JPopupMenu
     IParameterInfo[][] paramInfoLists = getParamInfoLists( _editor.getFunctionCallAtCaret() );
     if( paramInfoLists == null || paramInfoLists.length == 0 )
     {
-      EventQueue.invokeLater(
-        new Runnable()
-        {
-          @Override
-          public void run()
-          {
-            setVisible( false );
-          }
-        } );
+      EventQueue.invokeLater( () -> setVisible( false ) );
       return;
     }
     _labelContainer = new JPanel();
@@ -106,42 +97,37 @@ public class ParameterInfoPopup extends JPopupMenu
     {
       _editorKeyListener = new EditorKeyListener();
       _editorCaretListener = new EditorCaretListener();
-      _docListener = new UndoableEditListener()
-      {
-        @Override
-        public void undoableEditHappened( UndoableEditEvent e )
-        {
-          filterDisplay();
-        }
-      };
+      _docListener = e -> filterDisplay();
     }
   }
 
   private int getArgIndex()
   {
-    IParsedElement function = _editor.getFunctionCallAtCaret();
-    if( function == null )
+    IParseTree deepest = _editor.getDeepestLocationAtCaret();
+    if( deepest == null )
     {
       return -1;
     }
-    int iCaretPos = _editor.getEditor().getCaretPosition();
-    List args = function.getLocation().getChildren();
-    int iNonArgLocations = 0;
-    for( int i = args.size() - 1; i >= 0; i-- )
+    while( deepest != null && !(deepest.getParsedElement() instanceof IArgumentListClause) )
     {
-      IParseTree location = (IParseTree)args.get( i );
-      if( (function instanceof IBeanMethodCallExpression &&
-           ((IBeanMethodCallExpression)function).getRootExpression().getLocation().contains( location )) ||
-          (function instanceof INewExpression && !Arrays.stream( ((INewExpression)function).getArgs() ).anyMatch( e -> e.equals( location.getParsedElement() ) )) )
+      deepest = deepest.getParent();
+      if( deepest == null )
       {
-        iNonArgLocations++;
-      }
-      else if( location.getExtent() + 1 >= iCaretPos )
-      {
-        return (args.size() - 1) - i - iNonArgLocations;
+        return -1;
       }
     }
-    return Math.max( 0, args.size() - 1 - iNonArgLocations );
+    IArgumentListClause argListClause = (IArgumentListClause)deepest.getParsedElement();
+    int iCaretPos = _editor.getEditor().getCaretPosition();
+    List<IParseTree> args = argListClause.getLocation().getChildren();
+    for( int i = 0; i < args.size(); i++ )
+    {
+      IParseTree location = args.get( i );
+      if( location.getExtent() + 1 >= iCaretPos )
+      {
+        return i;
+      }
+    }
+    return args.size() -1;
   }
 
   private void addParameterListLabel( IParameterInfo[] paramList, JPanel container, boolean bBorder, int iArgIndex )
@@ -173,6 +159,8 @@ public class ParameterInfoPopup extends JPopupMenu
         }
       }
 
+      Color typeClr = Scheme.active().getCodeTypeLiteral();
+      String typeColor = String.format( "#%02x%02x%02x", typeClr.getRed(), typeClr.getGreen(), typeClr.getBlue() );
       for( int j = 0; j < paramInfoList.length; j++ )
       {
         IParameterInfo pi = paramInfoList[j];
@@ -188,17 +176,16 @@ public class ParameterInfoPopup extends JPopupMenu
         {
           if( j == iArgIndex )
           {
-            strContent += "<b><i>" + pi.getName() + "</i></b>";
+            strContent += "<b><i>" + pi.getName() + "</i></b>: ";
           }
           else
           {
-            strContent += "<i>" + pi.getName() + "</i>";
+            strContent += "<i>" + pi.getName() + "</i>: ";
           }
-          strContent += ": ";
         }
         if( j == iArgIndex )
         {
-          strContent += "<b>" + strTypeName + "</b>";
+          strContent += "<font color= " + typeColor + "><b>" + strTypeName + "</b></font>";
         }
         else
         {

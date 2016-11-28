@@ -2152,8 +2152,7 @@ public class GosuClass extends InnerClassCapableType implements IGosuClassIntern
       return getGenericType().compile();
     }
 
-    if( _proxiedJavaClassInGosuProxy != null &&
-        !_proxiedJavaClassInGosuProxy.getBackingClassInfo().isAnnotation() )
+    if( !isCompilable() )
     {
       // This is a Gosu proxy, which corresponds to a Java class
       throw new RuntimeException();

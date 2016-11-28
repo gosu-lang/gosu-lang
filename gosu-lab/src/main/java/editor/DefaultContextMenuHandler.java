@@ -63,7 +63,6 @@ public class DefaultContextMenuHandler implements IContextMenuHandler<IScriptEdi
 
   public void displayContextMenu( IScriptEditor editor, int iXPos, int iYPos, Component eventSource )
   {
-    editor.getEditor().requestFocus();
     try
     {
       Rectangle rcCaretBounds = editor.getEditor().modelToView( editor.getEditor().getCaretPosition() );

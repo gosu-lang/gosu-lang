@@ -18,7 +18,7 @@ public class FqnCache<T> implements IFqnCache<T> {
   private static final TypeSystemAwareCache<String, String[]> PARTS_CACHE =
      TypeSystemAwareCache.make( "Fqn Parts Cache", 10000, FqnCache::split );
 
-  private FqnCacheNode<T> _root = new FqnCacheNode<T>("root", null);
+  private FqnCacheNode<T> _root = new FqnCacheNode<>( "root", null );
 
   public FqnCacheNode<T> getRoot() {
     return _root;
@@ -87,13 +87,13 @@ public class FqnCache<T> implements IFqnCache<T> {
 
   @Override
   public Set<String> getFqns() {
-    Set<String> names = new HashSet<String>();
+    Set<String> names = new HashSet<>();
     _root.collectNames(names, "");
     return names;
   }
 
   public void visitDepthFirst( Predicate<T> visitor ) {
-    List<FqnCacheNode<T>> copy = new ArrayList<FqnCacheNode<T>>( _root.getChildren() );
+    List<FqnCacheNode<T>> copy = new ArrayList<>( _root.getChildren() );
     for( FqnCacheNode<T> child: copy ) {
       if( !child.visitDepthFirst( visitor ) ) {
         return;
@@ -102,7 +102,7 @@ public class FqnCache<T> implements IFqnCache<T> {
   }
 
   public void visitNodeDepthFirst( Predicate<FqnCacheNode> visitor ) {
-    List<FqnCacheNode<T>> copy = new ArrayList<FqnCacheNode<T>>( _root.getChildren() );
+    List<FqnCacheNode<T>> copy = new ArrayList<>( _root.getChildren() );
     for( FqnCacheNode<T> child: copy ) {
       if( !child.visitNodeDepthFirst( visitor ) ) {
         return;
@@ -111,7 +111,7 @@ public class FqnCache<T> implements IFqnCache<T> {
   }
 
   public void visitBreadthFirst( Predicate<T> visitor ) {
-    List<FqnCacheNode<T>> copy = new ArrayList<FqnCacheNode<T>>( _root.getChildren() );
+    List<FqnCacheNode<T>> copy = new ArrayList<>( _root.getChildren() );
     for( FqnCacheNode<T> child: copy ) {
       child.visitBreadthFirst( visitor );
     }
@@ -119,7 +119,7 @@ public class FqnCache<T> implements IFqnCache<T> {
 
   private static String[] split( String fqn ) {
     String theRest = fqn;
-    DynamicArray<String> parts = new DynamicArray<String>();
+    DynamicArray<String> parts = new DynamicArray<>();
     while( theRest != null ) {
       int iParam = theRest.indexOf( '<' );
       int iDot = theRest.indexOf( '.' );

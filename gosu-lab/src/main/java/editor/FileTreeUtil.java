@@ -41,6 +41,11 @@ public class FileTreeUtil
     return (FileTree)model.getRoot();
   }
 
+  public static FileTree makeExternalFileTree( File file, String fqn )
+  {
+    return new ExternalFileTree( file, fqn );
+  }
+
   public static boolean isSupportedTextFile( FileTree ft )
   {
     String[] binaryExt = { ".jar", ".zip", ".tar", ".gz", ".hprof", ".png", ".gif", ".jpg", ".bmp", ".exe", ".dll", ".so",  };

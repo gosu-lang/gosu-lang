@@ -1,7 +1,7 @@
 package editor.plugin.typeloader;
 
 import editor.EditorHost;
-import editor.IIssueContainer;
+import gw.lang.IIssueContainer;
 import gw.lang.reflect.IType;
 import javax.swing.JComponent;
 import javax.swing.text.StyledEditorKit;

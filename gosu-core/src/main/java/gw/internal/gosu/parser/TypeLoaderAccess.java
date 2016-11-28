@@ -536,6 +536,7 @@ public class TypeLoaderAccess extends BaseService implements ITypeSystem
 
       // Step 1: Find all top-level types that need to be refreshed
       Set<IType> typesToRefresh = new HashSet<IType>(10);
+      Set<String> doNotDelete = new HashSet<String>(10);
       for (String typeName : request.types) {
         IType type = typeRefFactory.get(typeName);
 
@@ -551,10 +552,11 @@ public class TypeLoaderAccess extends BaseService implements ITypeSystem
               // add the current enhanced type
               IGosuEnhancement enhancement = (IGosuEnhancement) type;
               IType enhancedType = enhancement.getEnhancedType();
-              if (enhancedType != null && !(enhancedType instanceof INonLoadableType) && !TypeSystem.isDeleted(enhancedType)) {
-                ITypeRef topLevelType1 = getTopLevelType(enhancedType);
-                if (topLevelType != null) {
-                  typesToRefresh.add(topLevelType1);
+              if( enhancedType != null && !(enhancedType instanceof INonLoadableType) && !TypeSystem.isDeleted( enhancedType ) ) {
+                AbstractTypeRef enhancedTopLevelType = (AbstractTypeRef)getTopLevelType( enhancedType );
+                if( enhancedTopLevelType != null ) {
+                  typesToRefresh.add( enhancedTopLevelType );
+                  doNotDelete.add( enhancedTopLevelType._getTypeName() );
                 }
               }
             }
@@ -567,6 +569,7 @@ public class TypeLoaderAccess extends BaseService implements ITypeSystem
                 IType orphanedEnhancement = typeRefFactory.get(orphanedEnhancementName);
                 if (orphanedEnhancement instanceof AbstractTypeRef && !((AbstractTypeRef) orphanedEnhancement).isStale()) {
                   typesToRefresh.add(orphanedEnhancement);
+                  doNotDelete.add( ((AbstractTypeRef)orphanedEnhancement)._getTypeName() );
                 }
               }
             }
@@ -626,7 +629,14 @@ public class TypeLoaderAccess extends BaseService implements ITypeSystem
       // Step 5: Make the references stale
       for (IType type : typesToMakeStaleArray) {
         if (type != null) {
-          ((ITypeRef) type)._setStale(request.kind);
+          RefreshKind kind = request.kind;
+          if( kind == RefreshKind.DELETION ) {
+            if( doNotDelete.stream().anyMatch( e -> ((AbstractTypeRef)type)._getTypeName().startsWith( e ) ) ) {
+              // only delete what was deleted e.g., if an enhancement is deleted, don't delete the enhanced type, just refresh it
+              kind = RefreshKind.MODIFICATION;
+            }
+          }
+          ((ITypeRef)type)._setStale( kind );
         }
       }
 

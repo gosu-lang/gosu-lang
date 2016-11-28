@@ -10,11 +10,10 @@ import gw.lang.parser.IHasInnerClass;
 import gw.lang.parser.ISymbol;
 import gw.lang.parser.ITypeUsesMap;
 import gw.lang.parser.statements.IClassStatement;
-import gw.lang.reflect.ICompilable;
 import gw.lang.reflect.IRelativeTypeInfo;
 import gw.lang.reflect.IType;
 
-public interface ICompilableType extends IType, ICompilable, IHasInnerClass, IFileRepositoryBasedType {
+public interface ICompilableType extends IType, IHasInnerClass, IFileRepositoryBasedType {
 
   ICompilableType getEnclosingType();
 

@@ -1,6 +1,6 @@
-package editor.plugin.typeloader.java;
+package gw.lang.gosuc;
 
-import editor.IIssue;
+import gw.lang.IIssue;
 import gw.lang.parser.IParseIssue;
 import gw.lang.parser.exceptions.ParseException;
 

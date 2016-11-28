@@ -2029,6 +2029,7 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
       {
         IType type = parseEnhancedOrImplementedType( gsClass, false, Collections.<IType>emptyList() );
         gsClass.setSuperType( type );
+        //note: the ClassDeclaration for a program is added dynamically in ClassStatement
       }
       strClassName = gsClass.getName();
     }

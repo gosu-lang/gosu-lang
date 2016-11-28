@@ -1394,8 +1394,7 @@ public class SmartFixManager implements MouseMotionListener, KeyListener
         if( !SelectClassToImportPopup.instance().isShowing() &&
             (_gosuEditor.getCompletionPopup() == null || !_gosuEditor.getCompletionPopup().isShowing()) &&
             (!(_gosuEditor.getCompletionPopup() instanceof Component) || !_gosuEditor.getCompletionPopup().isShowing()) &&
-            (_gosuEditor.getJavadocPopup() == null || !_gosuEditor.getJavadocPopup().isShowing()) &&
-            !EditorContextMenuHandler.instance().isContextMenuShowing() )
+            (_gosuEditor.getJavadocPopup() == null || !_gosuEditor.getJavadocPopup().isShowing()) )
         {
           _managerPopup.show( _editor, getLocationFromOffset( _offset ) );
         }

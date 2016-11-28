@@ -1,10 +1,10 @@
-package editor;
+package gw.lang;
 
 /**
  */
 public interface IIssue
 {
-  enum Kind { Error, Warning }
+  enum Kind { Error, Warning, Info, Failure, Other }
 
   Kind getKind();
   int getStartOffset();

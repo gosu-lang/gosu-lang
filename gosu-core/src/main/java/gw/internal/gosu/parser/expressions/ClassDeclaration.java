@@ -9,19 +9,18 @@ import gw.internal.gosu.parser.IGosuClassInternal;
 import gw.internal.gosu.parser.statements.ClassStatement;
 
 import gw.lang.parser.statements.IClassDeclaration;
-import gw.util.StringPool;
 
 public class ClassDeclaration extends Expression implements IClassDeclaration
 {
-  private final CharSequence _className;
+  private final String _className;
   private IGosuClassInternal _gsClass;
 
-  public ClassDeclaration( CharSequence className )
+  public ClassDeclaration( String className )
   {
-    _className = className instanceof String ? StringPool.get( (String)className ) : className;
+    _className = className;
   }
 
-  public CharSequence getClassName()
+  public String getClassName()
   {
     return _className;
   }
@@ -29,7 +28,7 @@ public class ClassDeclaration extends Expression implements IClassDeclaration
   @Override
   public String getName()
   {
-    return getClassName().toString();
+    return getClassName();
   }
 
   public Object evaluate()
@@ -40,7 +39,7 @@ public class ClassDeclaration extends Expression implements IClassDeclaration
   @Override
   public String toString()
   {
-    return getClassName().toString();
+    return getClassName();
   }
 
   @Override

@@ -10,10 +10,8 @@ import gw.lang.parser.IParseIssue;
 import gw.lang.parser.exceptions.ParseResultsException;
 import gw.lang.parser.exceptions.ParseWarning;
 import gw.lang.reflect.IAnnotationInfo;
-import gw.lang.reflect.ICompilable;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.TypeSystem;
-import gw.lang.reflect.gs.IFileSystemGosuClassRepository;
 import gw.lang.reflect.gs.IGosuClass;
 import gw.lang.reflect.gs.ISourceFileHandle;
 import gw.lang.reflect.module.IModule;
@@ -53,7 +51,7 @@ public class GosucCompiler {
   }
 
   private boolean compileType( IType type ) {
-    if( !(type instanceof ICompilable) || !((ICompilable)type).isCompilable() ) {
+    if( !type.isCompilable() ) {
       return false;
     }
     if( !(type instanceof IGosuClass) ) {

@@ -164,8 +164,8 @@ public class EvalExpressionTransformer extends EvalBasedTransformer<EvalExpressi
   {
     String evalExprKey = makeEvalKey( enclosingClass, iLineNum, iColumn, evalExprText );
     EvalExpression evalExpr = EVAL_EXPRESSIONS.get( evalExprKey );
-    if( evalExpr == null && enclosingClass instanceof ICompilableType ) {
-      ((ICompilableType)enclosingClass).compile(); // force compilation of enclosing class indirectly compiles eval-expr which caches the expr
+    if( evalExpr == null && enclosingClass.isCompilable() ) {
+      enclosingClass.compile(); // force compilation of enclosing class indirectly compiles eval-expr which caches the expr
       evalExpr = EVAL_EXPRESSIONS.get( evalExprKey );
     }
     return compileAndRunEvalSource( source, outer, capturedValues, immediateFuncTypeParams, enclosingClass, evalExpr );

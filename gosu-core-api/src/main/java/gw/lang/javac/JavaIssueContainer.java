@@ -1,7 +1,7 @@
-package editor.plugin.typeloader.java;
+package gw.lang.javac;
 
-import editor.IIssue;
-import editor.IIssueContainer;
+import gw.lang.IIssue;
+import gw.lang.IIssueContainer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;

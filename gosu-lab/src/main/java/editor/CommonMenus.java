@@ -228,7 +228,7 @@ public class CommonMenus
         }
       } );
     navigate.setMnemonic( 'F' );
-    navigate.setAccelerator( KeyStroke.getKeyStroke( "alt F" ) );
+    navigate.setAccelerator( KeyStroke.getKeyStroke( "alt F1" ) );
     return navigate;
   }
 
@@ -1031,7 +1031,7 @@ public class CommonMenus
 
     public NextOccurrenceActionHandler( Supplier<SearchPanel> search )
     {
-      super( "Next Occurrence..." );
+      super( "Next Occurrence" );
       _search = search;
     }
 
@@ -1057,7 +1057,7 @@ public class CommonMenus
 
     public PrevOccurrenceActionHandler( Supplier<SearchPanel> search )
     {
-      super( "Previous Occurrence..." );
+      super( "Previous Occurrence" );
       _search = search;
     }
 
@@ -1076,7 +1076,7 @@ public class CommonMenus
       return _search.get() != null;
     }
   }
-  
+
   private static FileTree getOrMakeLocalFileTree()
   {
     FileTree tree;
@@ -1085,7 +1085,7 @@ public class CommonMenus
     if( tree == null )
     {
       // the file is not directly in the the experiment, make a temporary tree for it
-      tree = new ExternalFileTree( file, getGosuPanel().getCurrentEditor().getParsedClass().getName() );
+      tree = FileTreeUtil.makeExternalFileTree( file, getGosuPanel().getCurrentEditor().getParsedClass().getName() );
     }
     return tree;
   }

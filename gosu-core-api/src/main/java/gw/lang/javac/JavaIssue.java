@@ -1,6 +1,6 @@
-package editor.plugin.typeloader.java;
+package gw.lang.javac;
 
-import editor.IIssue;
+import gw.lang.IIssue;
 import java.util.Locale;
 import javax.tools.Diagnostic;
 

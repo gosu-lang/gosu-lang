@@ -280,13 +280,21 @@ public interface IType extends Serializable
   IMetaType getMetaType();
 
   IMetaType getLiteralMetaType();
-  
+
   default IFile[] getSourceFiles() {
     return IFile.EMPTY_ARRAY;
   }
 
   default boolean isDynamic() {
     return this instanceof IPlaceholder && ((IPlaceholder)this).isPlaceholder();
+  }
+
+  default boolean isCompilable() {
+    return false;
+  }
+
+  default byte[] compile() {
+    throw new UnsupportedOperationException();
   }
 }
 

@@ -470,9 +470,9 @@ public class GosuPanel extends JPanel
     }
   }
 
-  private EditorHost createEditor( File file )
+  private EditorHost createEditor( File file, IScriptPartId partId )
   {
-    EditorHost editorHost = EditorFactory.createEditor( file );
+    EditorHost editorHost = EditorFactory.createEditor( file, partId );
 
     editorHost.setBorder( BorderFactory.createEmptyBorder() );
     addDirtyListener( editorHost );
@@ -1475,7 +1475,7 @@ public class GosuPanel extends JPanel
       return;
     }
 
-    final EditorHost editor = createEditor( file );
+    final EditorHost editor = createEditor( file, partId );
 
     if( partId == null )
     {
