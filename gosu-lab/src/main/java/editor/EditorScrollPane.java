@@ -70,7 +70,7 @@ public class EditorScrollPane extends JScrollPane
     public AdviceColumn()
     {
       setLayout( null );
-      setBorder( new EmptyBorder( new Insets( 0, 0, 0, 1 ) ) );
+      setBorder( new EmptyBorder( new Insets( 0, 1, 0, 1 ) ) );
       setBackground( Scheme.active().getControl() );
       addMouseListener( new MouseAdapter()
       {
@@ -98,9 +98,14 @@ public class EditorScrollPane extends JScrollPane
       dim.height = _editor.getHeight();
 
       FontMetrics fm = _editor.getFontMetrics( _editor.getFont() );
-      dim.width = fm.stringWidth( String.valueOf( dim.height / fm.getHeight() + 1 ) );
+      int iLineHeight = fm.getHeight();
+      iLineHeight += getLineSpacingAttr( iLineHeight );
+      int iLines = getHeight() / iLineHeight;
+      dim.width = fm.stringWidth( String.valueOf( iLines ) );
       dim.width = Math.max( dim.width, GosuEditor.MIN_LINENUMBER_WIDTH );
       dim.width += getLineInfoRequiredWidth();
+      Insets borderInsets = getBorder().getBorderInsets( this );
+      dim.width += borderInsets.left + borderInsets.right;
 
       return dim;
     }
@@ -118,13 +123,14 @@ public class EditorScrollPane extends JScrollPane
       iLineHeight += getLineSpacingAttr( iLineHeight );
       int iMargin = _editor.getMargin().top + getLineSpacingAttr( iLineHeight );
       int iLines = getHeight() / iLineHeight;
+      int borderWidth = getBorder().getBorderInsets( this ).right;
       for( int i = 1; i <= iLines; i++ )
       {
         String strLine = String.valueOf( i );
         int iWidth = fm.stringWidth( strLine );
 
-        g.drawString( strLine, getWidth() - iWidth - getLineInfoRequiredWidth(), i * iLineHeight - fm.getDescent() + iMargin );
-        renderLineInfo( g, i, iLineHeight, getWidth() - getLineInfoRequiredWidth(), (i - 1) * iLineHeight + iMargin );
+        g.drawString( strLine, getWidth() - iWidth - getLineInfoRequiredWidth() - borderWidth, i * iLineHeight - fm.getDescent() + iMargin );
+        renderLineInfo( g, i, iLineHeight, getWidth() - getLineInfoRequiredWidth() - borderWidth, (i - 1) * iLineHeight + iMargin );
       }
     }
 
@@ -173,7 +179,7 @@ public class EditorScrollPane extends JScrollPane
 
         int iLine = (e.getY() - 2) / iLineHeight + 1;
         int iY = e.getY() - ((iLine - 1) * iLineHeight);
-        int iX = e.getX() - (getWidth() - getLineInfoRequiredWidth());
+        int iX = e.getX() - (getWidth() - getLineInfoRequiredWidth() - getBorder().getBorderInsets( this ).right);
         _lineInfoMgr.handleLineClick( e, (e.getY() - 2) / iLineHeight + 1, iX, iY );
         repaint();
         _editor.repaint();
