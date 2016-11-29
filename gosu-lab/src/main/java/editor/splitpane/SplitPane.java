@@ -21,7 +21,7 @@ import java.util.Set;
 /**
  * An alternative split pane with an easier api
  */
-public class SplitPane extends JComponent implements SwingConstants
+public class SplitPane extends JPanel implements SwingConstants
 {
   public int SPLITTER_WIDTH = 5;
 
@@ -52,6 +52,8 @@ public class SplitPane extends JComponent implements SwingConstants
     SplitterHandler splitterHandler = new SplitterHandler();
     _splitter.addMouseListener( splitterHandler );
     _splitter.addMouseMotionListener( splitterHandler );
+
+    setBackground( Scheme.active().getMenu() );
 
     addMainComponents( comp1, comp2 );
   }
