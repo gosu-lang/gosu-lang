@@ -23,7 +23,7 @@ import java.util.Set;
  */
 public class SplitPane extends JPanel implements SwingConstants
 {
-  public int SPLITTER_WIDTH = 5;
+  public static int SPLITTER_WIDTH = 5;
 
   protected int _iOrientation;
   protected double _iPosition;

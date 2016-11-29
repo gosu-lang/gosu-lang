@@ -1,6 +1,7 @@
 package editor.tabpane;
 
 import editor.Scheme;
+import editor.splitpane.SplitPane;
 import editor.util.EditorUtilities;
 import editor.util.LabToolbarButton;
 import editor.util.SettleModalEventQueue;
@@ -231,8 +232,11 @@ public class MoreTab extends LabToolbarButton
             iTabDimDelta = _tabContainer.getHeight() - _tabContainer.getPreferredSize().height;
             break;
           case LEFT:
+            iTabDimDelta = _tabContainer.getWidth() - _tabContainer.getPreferredSize().width;
+            break;
           case RIGHT:
             iTabDimDelta = _tabContainer.getWidth() - _tabContainer.getPreferredSize().width;
+            iTabDimDelta -= SplitPane.SPLITTER_WIDTH + 1;
             break;
         }
         parent.remove( _tabContainer );
