@@ -145,7 +145,7 @@ public class GosuTemplateType extends GosuProgram implements IGosuTemplateIntern
       paramTypes.add( JavaTypes.getJreType( Writer.class ) );
       if( delegateParamTypes.length >= 4 )
       {
-        paramTypes.add( JavaTypes.getJreType( StringEscaper.class ) );
+        paramTypes.add( JavaTypes.getGosuType( StringEscaper.class ) );
       }
     }
     for( int i = 0; i < params.size(); i++ )
