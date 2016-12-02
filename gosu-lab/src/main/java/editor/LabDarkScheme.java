@@ -64,7 +64,7 @@ public class LabDarkScheme extends Scheme
   private static final Color SEPARATOR_1 = new Color( 0, 0, 0, 0 ); // transparent
   private static final Color SEPARATOR_2 = BORDER;
 
-  private static final Color MENU = new Color( 65, 65, 65 );
+  private static final Color MENU = new Color( 77, 77, 77 );
   private static final Color MENU_TEXT = WINDOW_TEXT;
 
   private static final Color MENU_BORDER = SEPARATOR_2;
