@@ -216,18 +216,19 @@ public abstract class AbstractOutOfProcessExecutor<T extends IRunConfig> impleme
     {
       classpath.append( CompilerSettings.getCompilerOutputDir().getAbsolutePath() ).append( File.pathSeparator );
     }
-    else
+    Experiment experiment = gosuPanel.getExperiment();
+    List<String> srcPaths = experiment.getSourcePath();
+    for( String path : srcPaths )
     {
-      Experiment experiment = gosuPanel.getExperiment();
-      List<String> srcPaths = experiment.getSourcePath();
-      for( String path : srcPaths )
+      if( path.startsWith( javaHomePath ) )
       {
-        if( path.startsWith( javaHomePath ) )
-        {
-          // don't pack jre jars
-          continue;
-        }
+        // don't pack jre jars
+        continue;
+      }
 
+      if( !CompilerSettings.isStaticCompile() || new File( path ).getAbsoluteFile().isFile() )
+      {
+        // Include jars in classpath, include source directories only if running with static compilation OFF
         classpath.append( path ).append( File.pathSeparator );
       }
     }

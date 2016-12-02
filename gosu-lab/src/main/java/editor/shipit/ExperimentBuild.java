@@ -90,10 +90,13 @@ public class ExperimentBuild
     Experiment experiment = LabFrame.instance().getGosuPanel().getExperiment();
     for( String sp : experiment.getSourcePath() )
     {
-      File sourcePath = new File( sp ).getAbsoluteFile();
-      for( File child: sourcePath.listFiles() )
+      File jarOrDir = new File( sp ).getAbsoluteFile();
+      if( jarOrDir.isDirectory() )
       {
-        StreamUtil.copy( child, outputPath );
+        for( File child : jarOrDir.listFiles() )
+        {
+          StreamUtil.copy( child, outputPath );
+        }
       }
     }
   }
