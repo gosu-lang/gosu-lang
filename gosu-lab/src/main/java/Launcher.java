@@ -162,7 +162,7 @@ public class Launcher
     try
     {
       //## todo: use a static link to LATEST GOSU RELEASE
-      URL url = new URL( "https://dl.dropboxusercontent.com/u/10642488/gosu-1.14.1-full.zip" );
+      URL url = new URL( "https://dl.dropboxusercontent.com/u/10642488/gosu-1.14.2-full.zip" );
       File outDir = new File( new File( getHomeDir(), File.separatorChar + ".Gosu" ), "Gosu-" + System.currentTimeMillis() );
       extractGosu( url, outDir, progress );
       progress.setProgress( 3 );
