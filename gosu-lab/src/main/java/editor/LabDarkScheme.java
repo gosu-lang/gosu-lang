@@ -175,12 +175,6 @@ public class LabDarkScheme extends Scheme
 
 
   @Override
-  public Color getControlLight()
-  {
-    return CONTROL_LIGHT;
-  }
-
-  @Override
   public Color getActiveCaption()
   {
     return ACTIVE_CAPTION;
@@ -217,6 +211,12 @@ public class LabDarkScheme extends Scheme
   }
 
   @Override
+  public Color getControlLight()
+  {
+    return CONTROL_LIGHT;
+  }
+
+  @Override
   public Color getControlDarkshadow()
   {
     return CONTROL_DARKSHADOW;
@@ -249,7 +249,7 @@ public class LabDarkScheme extends Scheme
   @Override
   public Color getControlDisabledText()
   {
-    return getControlDarkshadow();
+    return CONTROL_DISABLED_TEXT;
   }
 
   @Override

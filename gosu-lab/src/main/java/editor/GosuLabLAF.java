@@ -5,6 +5,7 @@ import com.sun.java.swing.plaf.windows.WindowsLookAndFeel;
 import editor.util.EditorUtilities;
 import editor.util.FixupLookAndFeel;
 import javax.swing.*;
+import javax.swing.plaf.basic.BasicMenuItemUI;
 
 /**
  */
@@ -54,6 +55,7 @@ public class GosuLabLAF extends WindowsLookAndFeel
       UIDefaults table = UIManager.getLookAndFeelDefaults();
 
       table.put( "ComboBoxUI", GosuLabComboBoxUI.class.getName() );
+      table.put( "MenuItemUI", BasicMenuItemUI.class.getName() );
 
       table.put( "desktop", Scheme.active().getControl() );
 
@@ -104,6 +106,17 @@ public class GosuLabLAF extends WindowsLookAndFeel
       table.put( "Separator.foreground", Scheme.active().getSeparator1() );
       table.put( "Separator.background", Scheme.active().getSeparator2() );
 
+
+      table.put( "Button.foreground", Scheme.active().getControlText() );
+      table.put( "Button.disabledForeground", Scheme.active().getControlShadow() );
+      table.put( "Button.disabledShadow", Scheme.active().getControlShadow() );
+      table.put( "Button.background", Scheme.active().getControl() );
+      table.put( "Button.interiorBackground", Scheme.active().getControl() );
+      table.put( "Button.shadow", Scheme.active().getControl() );
+      table.put( "Button.darkShadow", Scheme.active().getControlDarkshadow() );
+      table.put( "Button.light", Scheme.active().getControl() );
+      table.put( "Button.highlight", Scheme.active().getControlDarkshadow() );
+
       // Menus
       table.put( "MenuBar.border", BorderFactory.createEmptyBorder( 0, 0, 0, 0 ) );
       table.put( "MenuBar.background", Scheme.active().getMenu() );
@@ -120,7 +133,7 @@ public class GosuLabLAF extends WindowsLookAndFeel
       table.put( "Menu.background", Scheme.active().getMenu() );
       table.put( "Menu.selectionForeground", Scheme.active().getWindowText() );
       table.put( "Menu.selectionBackground", Scheme.active().getActiveCaption() );
-      table.put( "Menu.disabledForeground", Scheme.active().getControlShadow() );
+      table.put( "Menu.disabledForeground", Scheme.active().getControlDisabledText() );
       table.put( "Menu.acceleratorForeground", Scheme.active().getWindowText() );
       table.put( "Menu.acceleratorSelectionForeground", Scheme.active().getWindowText() );
       table.put( "Menu.border", BorderFactory.createCompoundBorder( BorderFactory.createLineBorder( Scheme.active().getMenuBorder() ), BorderFactory.createEmptyBorder( 2, 2, 2, 2 ) ) );
@@ -132,7 +145,7 @@ public class GosuLabLAF extends WindowsLookAndFeel
       table.put( "MenuItem.background", Scheme.active().getMenu() );
       table.put( "MenuItem.selectionForeground", Scheme.active().getWindowText() );
       table.put( "MenuItem.selectionBackground", Scheme.active().getActiveCaption() );
-      table.put( "MenuItem.disabledForeground", Scheme.active().getControlShadow() );
+      table.put( "MenuItem.disabledForeground", Scheme.active().getControlDisabledText() );
       table.put( "MenuItem.acceleratorForeground", Scheme.active().getWindowText() );
       table.put( "MenuItem.acceleratorSelectionForeground", Scheme.active().getWindowText() );
       table.put( "MenuItem.border", BorderFactory.createCompoundBorder( BorderFactory.createLineBorder( Scheme.active().getXpBorderColor() ), BorderFactory.createEmptyBorder( 2, 2, 2, 2 ) ) );
@@ -142,7 +155,7 @@ public class GosuLabLAF extends WindowsLookAndFeel
       table.put( "RadioButtonMenuItem.background", Scheme.active().getMenu() );
       table.put( "RadioButtonMenuItem.selectionForeground", Scheme.active().getWindowText() );
       table.put( "RadioButtonMenuItem.selectionBackground", Scheme.active().getActiveCaption() );
-      table.put( "RadioButtonMenuItem.disabledForeground", Scheme.active().getControlShadow() );
+      table.put( "RadioButtonMenuItem.disabledForeground", Scheme.active().getControlDisabledText() );
       table.put( "RadioButtonMenuItem.acceleratorForeground", Scheme.active().getWindowText() );
       table.put( "RadioButtonMenuItem.acceleratorSelectionForeground", Scheme.active().getWindowText() );
       table.put( "RadioButtonMenuItem.border", BorderFactory.createCompoundBorder( BorderFactory.createLineBorder( Scheme.active().getXpBorderColor() ), BorderFactory.createEmptyBorder( 2, 2, 2, 2 ) ) );
@@ -152,7 +165,7 @@ public class GosuLabLAF extends WindowsLookAndFeel
       table.put( "CheckBoxMenuItem.background", Scheme.active().getMenu() );
       table.put( "CheckBoxMenuItem.selectionForeground", Scheme.active().getWindowText() );
       table.put( "CheckBoxMenuItem.selectionBackground", Scheme.active().getActiveCaption() );
-      table.put( "CheckBoxMenuItem.disabledForeground", Scheme.active().getControlShadow() );
+      table.put( "CheckBoxMenuItem.disabledForeground", Scheme.active().getControlDisabledText() );
       table.put( "CheckBoxMenuItem.acceleratorForeground", Scheme.active().getWindowText() );
       table.put( "CheckBoxMenuItem.acceleratorSelectionForeground", Scheme.active().getWindowText() );
       table.put( "CheckBoxMenuItem.border", BorderFactory.createCompoundBorder( BorderFactory.createLineBorder( Scheme.active().getXpBorderColor() ), BorderFactory.createEmptyBorder( 2, 2, 2, 2 ) ) );
@@ -238,16 +251,6 @@ public class GosuLabLAF extends WindowsLookAndFeel
       table.put( "ToolBar.border", BorderFactory.createEmptyBorder() );
       table.put( "ToolBar.highlight", Scheme.active().getSeparator1() );
       table.put( "ToolBar.shadow", Scheme.active().getSeparator2() );
-      
-      table.put( "Button.foreground", Scheme.active().getControlText() );
-      table.put( "Button.disabledForeground", Scheme.active().getControlShadow() );
-      table.put( "Button.disabledShadow", Scheme.active().getControlShadow() );
-      table.put( "Button.background", Scheme.active().getControl() );
-      table.put( "Button.interiorBackground", Scheme.active().getControl() );
-      table.put( "Button.shadow", Scheme.active().getControl() );
-      table.put( "Button.darkShadow", Scheme.active().getControlDarkshadow() );
-      table.put( "Button.light", Scheme.active().getControl() );
-      table.put( "Button.highlight", Scheme.active().getControlDarkshadow() );
 
       table.put( "OptionPane.background", Scheme.active().getControl() );
       table.put( "OptionPane.foreground", Scheme.active().getControlText() );
