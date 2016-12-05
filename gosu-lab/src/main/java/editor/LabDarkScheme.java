@@ -445,4 +445,10 @@ public class LabDarkScheme extends Scheme
   {
     return new Color( 76, 164, 255 );
   }
+
+  @Override
+  public Color getLineNumberColor()
+  {
+    return SCROLLBAR_BORDER;
+  }
 }

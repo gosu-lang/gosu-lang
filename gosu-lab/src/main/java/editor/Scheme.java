@@ -115,5 +115,7 @@ public abstract class Scheme
   public abstract Color debugVarGreenText();
   public abstract Color debugVarBlueText();
 
+  public abstract Color getLineNumberColor();
+
   public abstract String splash();
 }

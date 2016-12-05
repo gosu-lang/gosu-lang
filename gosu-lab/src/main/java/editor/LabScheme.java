@@ -430,4 +430,10 @@ public class LabScheme extends Scheme
   {
     return new Color( 0, 0, 128 );
   }
+
+  @Override
+  public Color getLineNumberColor()
+  {
+    return getScrollbarBorderColor();
+  }
 }
