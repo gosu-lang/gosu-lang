@@ -316,9 +316,24 @@ public class Compiler
     }
   }
 
-  private boolean isExcluded( IType gsClass )
+  private boolean isExcluded( IType type )
   {
     //## todo: expose "Excluded" in Lab so users can exclude stuff
+
+    if( type.getRelativeName().startsWith( "Errant_" ) )
+    {
+      return true;
+    }
+
+    if( type instanceof IGosuClass )
+    {
+      IGosuClass gsClass = (IGosuClass)type;
+      if( gsClass.getSource().contains( "@DoNotVerifyResource" ) )
+      {
+        return true;
+      }
+    }
+
     return false;
   }
 
@@ -338,6 +353,13 @@ public class Compiler
 
   private boolean compileClass( IFileRepositoryBasedType type, ICompileConsumer consumer )
   {
+    if( !type.isCompilable() )
+    {
+      // For instance, a JavaSourceUnresolvedClass is not ocmpilable;
+      // this happens if the Java source file doesn't have a class in it matching the name of the file
+      return true;
+    }
+
     byte[] bytes = type.compile();
     if( !consumer.accept( new CompiledClass( type, bytes ) ) )
     {

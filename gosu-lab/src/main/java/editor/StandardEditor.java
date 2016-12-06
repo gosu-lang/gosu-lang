@@ -73,7 +73,7 @@ public class StandardEditor extends EditorHost
     editorRootScroller.setBorder( null );
 
     _scroller = new EditorScrollPane( lineInfoRenderer, _editor, editorRootScroller );
-    _scroller.setBorder( BorderFactory.createMatteBorder( 0, 1, 0, 1, Scheme.active().getScrollbarBorderColor() ) );
+    _scroller.setBorder( null );
     JViewport vp = _scroller.getViewport();
     vp.setScrollMode( JViewport.BLIT_SCROLL_MODE );
 

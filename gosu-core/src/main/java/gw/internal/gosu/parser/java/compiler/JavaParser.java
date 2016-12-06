@@ -58,6 +58,7 @@ public class JavaParser implements IJavaParser
         if( globalModule != null )
         {
           _fileManager.setLocation( StandardLocation.SOURCE_PATH, globalModule.getSourcePath().stream().map( IResource::toJavaFile ).collect( Collectors.toList() ) );
+          _fileManager.setLocation( StandardLocation.CLASS_PATH, globalModule.getJavaClassPath().stream().map( IResource::toJavaFile ).collect( Collectors.toList() ) );
         }
         _gfm = new GosuJavaFileManager( _fileManager );
       }
