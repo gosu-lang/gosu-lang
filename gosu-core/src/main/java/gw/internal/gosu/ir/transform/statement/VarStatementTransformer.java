@@ -7,16 +7,18 @@ package gw.internal.gosu.ir.transform.statement;
 import gw.internal.gosu.ir.nodes.JavaClassIRType;
 import gw.lang.ir.IRExpression;
 import gw.lang.ir.IRStatement;
+import gw.lang.ir.IRSymbol;
 import gw.lang.ir.IRType;
 import gw.lang.ir.expression.IRNullLiteral;
-import gw.lang.ir.statement.IRNoOpStatement;
 import gw.internal.gosu.ir.transform.ExpressionTransformer;
 import gw.internal.gosu.ir.transform.TopLevelTransformationContext;
 import gw.internal.gosu.ir.transform.util.AccessibilityUtil;
 import gw.internal.gosu.parser.DynamicSymbol;
 import gw.internal.gosu.parser.Symbol;
+import gw.lang.ir.statement.IRStatementList;
 import gw.lang.parser.IExpression;
 import gw.lang.parser.expressions.IVarStatement;
+import gw.lang.reflect.IBlockType;
 import gw.lang.reflect.IType;
 
 import java.util.Collections;
@@ -42,6 +44,11 @@ public class VarStatementTransformer extends AbstractStatementTransformer<IVarSt
     IExpression asExp = _stmt().getAsExpression();
     Symbol symbol = (Symbol)_stmt().getSymbol();
     IType type = symbol.getType();
+
+    if( type instanceof IBlockType && symbol.isValueBoxed() && !isProgramVar( symbol ) && _stmt().getAsExpression() != null )
+    {
+      return compilePossibleForwardRefBlockLocalVar();
+    }
 
     // Determine the initial value
     IRExpression value = null;
@@ -92,6 +99,36 @@ public class VarStatementTransformer extends AbstractStatementTransformer<IVarSt
     }
     assignmentStmt.setImplicit( asExp == null );
     return assignmentStmt;
+  }
+
+  private IRStatement compilePossibleForwardRefBlockLocalVar()
+  {
+    Symbol symbol = (Symbol)_stmt().getSymbol();
+    IType type = symbol.getType();
+
+    // If the symbol is boxed, create an array of the type
+    IRType symbolType = getDescriptor( symbol.getType() ).getArrayType();
+
+    // Forward declare the symbol
+    IRSymbol irSymbol = _cc().createSymbol( symbol.getName(), symbolType );
+    IRStatement initializer = buildAssignment( irSymbol, buildInitializedArray( getDescriptor( type ), Collections.singletonList( pushNull() ) ) );
+
+    // Determine the initial value
+    IRExpression value;
+    IExpression asExp = _stmt().getAsExpression();
+    value = ExpressionTransformer.compile( asExp, _cc() );
+    // If the value we're assigning isn't assignable to the symbol's type, we need to insert a cast.
+    // This should only happen in strange cases like assigning a GroupBase to a Group or in the case
+    // of a compound type.
+    IRType irSymbolType = getDescriptor( type );
+    if( !(value instanceof IRNullLiteral) &&
+        !irSymbolType.isAssignableFrom( value.getType() ) &&
+        !(irSymbolType == JavaClassIRType.get( char.class ) && value.getType() == JavaClassIRType.get( int.class ) ))
+    {
+      value = buildCast( irSymbolType, value );
+    }
+
+    return new IRStatementList( false, initializer, buildArrayStore( identifier( irSymbol ), pushConstant( 0 ), value, symbolType.getComponentType() ) );
   }
 
   private boolean isProgramVar( Symbol symbol )

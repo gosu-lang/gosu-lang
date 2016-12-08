@@ -62,6 +62,11 @@ class BlockRecursiveCaptureTest extends TestClass {
     assertEquals( "foo", cc.callIt() ) 
   }
 
+  function testRecursiveLocalVarInitialer() {
+    var bar(x: int): int = \ x -> x == 0 ? 0 : x + bar( x - 1 )
+    assertEquals( 10, bar( 4 ) )
+  }
+
   static class CallsMethodInClassFromBlockImplementsJavaInterface implements ISampleInterface {    
     
     var _str  : String

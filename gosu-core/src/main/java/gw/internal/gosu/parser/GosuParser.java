@@ -9926,11 +9926,26 @@ public final class GosuParser extends ParserBase implements IGosuParser
       }
     }
 
+    varStmt.setTypeLiteral( typeLiteral );
+
+    ISymbol symbol = null;
     Expression eas = null;
     if( match( null, "=", SourceCodeTokenizer.TT_OPERATOR ) )
     {
       pushParsingFieldInitializer( varStmt );
       putThisAndSuperSymbols( varStmt.getModifierInfo() ); // assume caller must pushes scope
+      if( existingSymbol == null &&
+          !bClassMember && !bFieldSymbolFromProgram &&
+          typeLiteral != null && typeLiteral.getType().getType() instanceof IBlockType )
+      {
+        // need symbol assigned now so a local var that is a block can be recursive: var foo(i:int):int = i > 0 ? foo(i-1) : 0
+        Symbol newSym = new Symbol( strIdentifier, typeLiteral.getType().getType(), _symTable, null );
+        newSym.setModifierInfo( varStmt.getModifierInfo() );
+        symbol = newSym;
+        varStmt.setSymbol( newSym );
+
+        _symTable.putSymbol( symbol );
+      }
       try
       {
         parseExpression( typeLiteral == null ? ContextType.EMPTY : new ContextType( typeLiteral.getType().getType() ) );
@@ -9993,29 +10008,30 @@ public final class GosuParser extends ParserBase implements IGosuParser
       type = ErrorType.getInstance();
     }
 
-    ISymbol symbol;
-    if( bClassMember || bFieldSymbolFromProgram )
+    if( symbol == null )
     {
-      symbol = varStmt.getSymbol();
-      symbol.setType( type );
-      varStmt.setType( type );
-    }
-    else
-    {
-      Symbol newSym = new Symbol( strIdentifier, type, _symTable, null );
-      newSym.setModifierInfo( varStmt.getModifierInfo() );
-      symbol = newSym;
-      varStmt.setSymbol( newSym );
-    }
+      if( bClassMember || bFieldSymbolFromProgram )
+      {
+        symbol = varStmt.getSymbol();
+        symbol.setType( type );
+        varStmt.setType( type );
+      }
+      else
+      {
+        Symbol newSym = new Symbol( strIdentifier, type, _symTable, null );
+        newSym.setModifierInfo( varStmt.getModifierInfo() );
+        symbol = newSym;
+        varStmt.setSymbol( newSym );
+      }
 
-    if( existingSymbol == null )
-    {
-      _symTable.putSymbol( symbol );
+      if( existingSymbol == null )
+      {
+        _symTable.putSymbol( symbol );
+      }
     }
 
     eas = possiblyWrapWithImplicitCoercion( eas, type );
     varStmt.setAsExpression( eas );
-    varStmt.setTypeLiteral( typeLiteral );
     varStmt.setScriptPart( getScriptPart() );
     varStmt.setDefinitionParsed( true );
 
