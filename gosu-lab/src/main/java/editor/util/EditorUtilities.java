@@ -1,5 +1,6 @@
 package editor.util;
 
+import editor.GosuEditorKit;
 import editor.LabFrame;
 import editor.Scheme;
 import editor.plugin.typeloader.ITypeFactory;
@@ -44,6 +45,7 @@ import java.io.IOException;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -1066,5 +1068,14 @@ public class EditorUtilities
   public static String hex( Color color )
   {
     return Integer.toHexString( (color.getRGB() & 0xffffff) | 0x1000000 ).substring( 1 );
+  }
+
+  public static String getFontFamilyOrDefault( String name, String defaultFont )
+  {
+    if( Arrays.stream( GraphicsEnvironment.getLocalGraphicsEnvironment().getAvailableFontFamilyNames() ).anyMatch( e -> e.equalsIgnoreCase( name ) ) )
+    {
+      return name;
+    }
+    return defaultFont;
   }
 }

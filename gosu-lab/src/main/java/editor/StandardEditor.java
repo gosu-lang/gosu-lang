@@ -2,6 +2,7 @@ package editor;
 
 import editor.plugin.typeloader.ITypeFactory;
 import editor.undo.AtomicUndoManager;
+import editor.util.EditorUtilities;
 import gw.lang.parser.ISymbolTable;
 import gw.lang.reflect.IType;
 import gw.lang.IIssueContainer;
@@ -12,7 +13,6 @@ import java.awt.Font;
 import java.awt.Insets;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import javax.swing.BorderFactory;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JViewport;
@@ -55,7 +55,7 @@ public class StandardEditor extends EditorHost
     _editor = new EditorHostTextPane( this );
     ToolTipManager.sharedInstance().registerComponent( _editor );
     ToolTipManager.sharedInstance().setDismissDelay( 60000 );
-    _editor.setFont( new Font( "monospaced", Font.PLAIN, 12 ) );
+    _editor.setFont( new Font( EditorUtilities.getFontFamilyOrDefault( "Consolas", "monospaced" ), Font.PLAIN, 12 ) );
     setBorder( UIManager.getBorder( "TextField.border" ) );
     _editor.setMargin( new Insets( 3, 3, 3, 3 ) );
     _editor.setForeground( Scheme.active().getCodeWindowText() );

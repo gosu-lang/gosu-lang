@@ -73,7 +73,7 @@ public class GosuStyleContext extends StyleContext implements ViewFactory
   private static final Component THISISSTUPID = new Component()
   {
   };
-  private static String g_defFontFamily = "Monospaced"; // "Consolas";
+  private static String g_defFontFamily = "Consolas";
   private static int g_defFontSize = 12;
 
   public static final String STYLE_EOL = "EOL";
@@ -736,7 +736,7 @@ public class GosuStyleContext extends StyleContext implements ViewFactory
         {
           if( strText.length() == 1 && strText.charAt( 0 ) == '\\' )
           {
-            strText = "\u039B"; // lambda
+            strText = "\u03BB"; // lambda
           }
           else if( strText.length() == 2 && strText.equals( "->" ) )
           {
