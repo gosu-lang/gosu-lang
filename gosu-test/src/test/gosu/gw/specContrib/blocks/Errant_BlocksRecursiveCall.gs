@@ -15,7 +15,7 @@ class Errant_BlocksRecursiveCall {
   var sumField(int): int = \x -> x == 0 ? 0 : x + sumField(x - 1) // yet another valid way
 
   function foo() {
-    var sumMember(x: int): int = \x -> x == 0 ? 0 : x + sumMember(x - 1) // Error: block(int):Object cannot be converted to block(int):int
+    var sumMember(x: int): int = \x -> x == 0 ? 0 : x + sumMember(x - 1)  // Should work, but fails due to IDE-3805
   }
 
   class Foo {
