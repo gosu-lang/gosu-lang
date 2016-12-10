@@ -299,6 +299,12 @@ class DynamicTypeTest extends gw.BaseVerifyErrantTest {
     assertEquals( 0, local )
     dyn()
     assertEquals( 8, local )
+
+    // w/ captured closure
+    var callMe = \ -> "hi"
+    var delg: Dynamic = callMe
+    var func = \ -> delg()
+    assertEquals( "hi", func() )
   }
 
   //

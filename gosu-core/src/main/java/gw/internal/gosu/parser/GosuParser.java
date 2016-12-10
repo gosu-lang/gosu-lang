@@ -5802,6 +5802,9 @@ public final class GosuParser extends ParserBase implements IGosuParser
       }
       if( symbolType.isDynamic() )
       {
+        // dynamic symbol may need to be captured e.g., if it's value is a closure
+        functionSymbol = maybeCaptureSymbol( e, functionSymbol );
+
         parseDynamicFunction( (Symbol)functionSymbol );
         verifyCase( peekExpression(), strFunction, functionSymbol.getName(), state, Res.MSG_FUNCTION_CASE_MISMATCH, false );
         return;
@@ -6000,6 +6003,19 @@ public final class GosuParser extends ParserBase implements IGosuParser
     }
 
     pushExpression( e );
+  }
+
+  private ISymbol maybeCaptureSymbol( MethodCallExpression e, ISymbol functionSymbol )
+  {
+    if( isParsingBlock() || isOrIsEnclosedByAnonymousClass( getGosuClass() ) && !getOwner().isParsingAnnotation() )
+    {
+      ISymbol capturedSym = captureSymbol( getCurrentEnclosingGosuClass(), functionSymbol.getName(), e );
+      if( capturedSym != null )
+      {
+        functionSymbol = capturedSym;
+      }
+    }
+    return functionSymbol;
   }
 
   private boolean isInSeparateStringTemplateExpression()

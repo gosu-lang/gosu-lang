@@ -1277,7 +1277,7 @@ public abstract class ParserBase implements IParserPart
     return sym;
   }
 
-  private boolean isOrIsEnclosedByAnonymousClass( ICompilableType type )
+  boolean isOrIsEnclosedByAnonymousClass( ICompilableType type )
   {
     return type instanceof IGosuClassInternal &&
            (type.isAnonymous() || isOrIsEnclosedByAnonymousClass( type.getEnclosingType() ));
