@@ -202,6 +202,12 @@ public class UsageTarget
         SearchElement targetPe = findTarget( memberAccess.getPropertyInfo(), pe );
         if( targetPe != null )
         {
+          Object element = targetPe.getElement();
+          if( element instanceof IFeatureInfo )
+          {
+            // element is a featureinfo if type derived from non-Gosu source e.g., a Java source file
+            return (IFeatureInfo)element;
+          }
           return findFeatureInfoFor( (IParsedElement)targetPe.getElement() );
         }
         return memberAccess.getPropertyInfo();

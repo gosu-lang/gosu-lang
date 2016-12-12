@@ -1,6 +1,7 @@
 package editor;
 
 import editor.splitpane.SplitPane;
+import editor.util.LabButton;
 import gw.util.GosuStringUtil;
 
 import javax.swing.*;
@@ -62,7 +63,7 @@ public class PasteBufferSelectDialog extends JDialog implements ListSelectionLis
 
     contentPanel.add( _splitPane, BorderLayout.CENTER );
     JPanel buttonPane = new JPanel( new FlowLayout( FlowLayout.RIGHT ) );
-    buttonPane.add( new JButton( new AbstractAction( "OK" )
+    buttonPane.add( new LabButton( new AbstractAction( "OK" )
     {
       public void actionPerformed( ActionEvent e )
       {
@@ -70,7 +71,7 @@ public class PasteBufferSelectDialog extends JDialog implements ListSelectionLis
       }
     } ) );
 
-    buttonPane.add( new JButton( new AbstractAction( "Cancel" )
+    buttonPane.add( new LabButton( new AbstractAction( "Cancel" )
     {
       public void actionPerformed( ActionEvent e )
       {

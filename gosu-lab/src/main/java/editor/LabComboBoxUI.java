@@ -10,11 +10,11 @@ import javax.swing.plaf.ComponentUI;
 
 /**
  */
-public class GosuLabComboBoxUI extends WindowsComboBoxUI
+public class LabComboBoxUI extends WindowsComboBoxUI
 {
   public static ComponentUI createUI( JComponent c )
   {
-    return new GosuLabComboBoxUI();
+    return new LabComboBoxUI();
   }
 
   protected JButton createArrowButton()

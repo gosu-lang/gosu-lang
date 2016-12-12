@@ -2089,14 +2089,12 @@ public class GosuEditor extends EditorHost implements IScriptEditor, IGosuPanel,
         if( linesInserted != 0 && getScriptPart() != null )
         {
           BreakpointManager bpm = LabFrame.instance().getGosuPanel().getBreakpointManager();
+          Collection<Breakpoint> breakpoints = new ArrayList<>( bpm.getLineBreakpointsForType( getScriptPart().getContainingTypeName() ) );
+          for( Breakpoint bp : breakpoints )
           {
-            Collection<Breakpoint> breakpoints = bpm.getLineBreakpointsForType( getScriptPart().getContainingTypeName() );
-            for( Breakpoint bp : breakpoints )
-            {
-              bpm.removeBreakpoint( bp );
-              bp = updateBreakpoint( bp, linesInserted, e );
-              bpm.toggleLineBreakpoint( GosuEditor.this, bp.getFqn(), bp.getLine() );
-            }
+            bpm.removeBreakpoint( bp );
+            bp = updateBreakpoint( bp, linesInserted, e );
+            bpm.toggleLineBreakpoint( GosuEditor.this, bp.getFqn(), bp.getLine() );
           }
           _scroller.getAdviceColumn().repaint();
         }

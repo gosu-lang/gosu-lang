@@ -16,6 +16,7 @@ import editor.tabpane.TabPosition;
 import editor.tabpane.ToolContainer;
 import editor.undo.AtomicUndoManager;
 import editor.util.EditorUtilities;
+import editor.util.LabButton;
 import editor.util.LabToolbarButton;
 import editor.util.SettleModalEventQueue;
 import editor.util.ToolBar;
@@ -343,7 +344,7 @@ public class BreakpointsDialog extends JDialog implements IHandleCancel
 
     addSeparator( buttonPanel );
 
-    JButton btnClose = new JButton( "Close" );
+    JButton btnClose = new LabButton( "Close" );
     btnClose.addActionListener( e -> close() );
     buttonPanel.add( btnClose );
     getRootPane().setDefaultButton( btnClose );
@@ -361,7 +362,7 @@ public class BreakpointsDialog extends JDialog implements IHandleCancel
 
   private void addRunButton( JPanel buttonPanel )
   {
-    _btnViewSource = new JButton( "View Source" );
+    _btnViewSource = new LabButton( "View Source" );
     _btnViewSource.setMnemonic( 'V' );
     _btnViewSource.addActionListener( new ViewSourceAction() );
     buttonPanel.add( _btnViewSource );

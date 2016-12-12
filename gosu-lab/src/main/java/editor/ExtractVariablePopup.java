@@ -1,5 +1,6 @@
 package editor;
 
+import editor.util.LabButton;
 import editor.util.LabCheckbox;
 import editor.util.TextComponentUtil;
 import gw.lang.parser.IExpression;
@@ -120,7 +121,7 @@ public class ExtractVariablePopup extends JDialog
 
     JPanel buttonPanel = new JPanel();
     buttonPanel.setLayout( new FlowLayout( FlowLayout.CENTER, 4, 0 ) );
-    _okBtn = new JButton( new AbstractAction( "OK" )
+    _okBtn = new LabButton( new AbstractAction( "OK" )
     {
       @Override
       public void actionPerformed( ActionEvent e )
@@ -131,7 +132,7 @@ public class ExtractVariablePopup extends JDialog
     } );
     _okBtn.setEnabled( false );
 
-    _cancelBtn = new JButton( new AbstractAction( "Cancel" )
+    _cancelBtn = new LabButton( new AbstractAction( "Cancel" )
     {
       @Override
       public void actionPerformed( ActionEvent e )

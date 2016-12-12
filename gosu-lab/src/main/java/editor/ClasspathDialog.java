@@ -3,6 +3,7 @@ package editor;
 import editor.util.EditorUtilities;
 import editor.util.Experiment;
 
+import editor.util.LabButton;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.filechooser.FileFilter;
@@ -66,7 +67,7 @@ public class ClasspathDialog extends JDialog implements IHandleCancel
     JPanel filler = new JPanel();
     filler.setBorder( BorderFactory.createEmptyBorder( 0, 4, 0, 0 ) );
     panel.add( filler, BorderLayout.CENTER );
-    JButton btnPaths = new JButton( "..." );
+    JButton btnPaths = new LabButton( "..." );
     btnPaths.setToolTipText( "Find a directory or Jar file" );
     btnPaths.addActionListener( e -> updatePaths() );
     panel.add( btnPaths, BorderLayout.NORTH );
@@ -82,7 +83,7 @@ public class ClasspathDialog extends JDialog implements IHandleCancel
     JPanel buttonPanel = new JPanel();
     buttonPanel.setLayout( new BoxLayout( buttonPanel, BoxLayout.X_AXIS ) );
 
-    JButton btnFind = new JButton( "OK" );
+    JButton btnFind = new LabButton( "OK" );
     btnFind.setMnemonic( 'O' );
     btnFind.addActionListener(
       e -> {
@@ -92,7 +93,7 @@ public class ClasspathDialog extends JDialog implements IHandleCancel
     buttonPanel.add( btnFind );
     getRootPane().setDefaultButton( btnFind );
 
-    JButton btnCancel = new JButton( "Cancel" );
+    JButton btnCancel = new LabButton( "Cancel" );
     btnCancel.addActionListener( e -> close() );
     buttonPanel.add( btnCancel );
 

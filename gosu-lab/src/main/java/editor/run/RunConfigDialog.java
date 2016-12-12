@@ -12,6 +12,7 @@ import editor.tabpane.ToolContainer;
 import editor.util.EditorUtilities;
 import editor.util.Experiment;
 import editor.util.IEditableLabel;
+import editor.util.LabButton;
 import editor.util.LabToolbarButton;
 import editor.util.ToolBar;
 import gw.util.Pair;
@@ -112,7 +113,7 @@ public class RunConfigDialog extends JDialog implements IHandleCancel
 
     addSeparator( buttonPanel );
 
-    JButton btnCancel = new JButton( "Cancel" );
+    JButton btnCancel = new LabButton( "Cancel" );
     btnCancel.addActionListener( e -> close() );
     buttonPanel.add( btnCancel );
     return buttonPanel;
@@ -128,7 +129,7 @@ public class RunConfigDialog extends JDialog implements IHandleCancel
 
   private void addSaveButton( JPanel buttonPanel )
   {
-    _btnSave = new JButton( "Save" );
+    _btnSave = new LabButton( "Save" );
     _btnSave.setMnemonic( 'S' );
     _btnSave.addActionListener(
       e -> {
@@ -142,7 +143,7 @@ public class RunConfigDialog extends JDialog implements IHandleCancel
 
   private void addRunButton( JPanel buttonPanel )
   {
-    _btnRun = new JButton( _runState.name() );
+    _btnRun = new LabButton( _runState.name() );
     _btnRun.setMnemonic( _runState.name().charAt( 0 ) );
     _btnRun.addActionListener(
       e -> {

@@ -12,6 +12,7 @@ import editor.tabpane.TabPosition;
 import editor.util.EditorUtilities;
 import editor.util.Experiment;
 import editor.util.IEditableLabel;
+import editor.util.LabButton;
 import gw.util.Pair;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
@@ -127,7 +128,7 @@ public class SettingsDialog extends JDialog implements IHandleCancel
 
     addSeparator( buttonPanel );
 
-    JButton btnCancel = new JButton( "Cancel" );
+    JButton btnCancel = new LabButton( "Cancel" );
     btnCancel.addActionListener( e -> close() );
     buttonPanel.add( btnCancel );
     return buttonPanel;
@@ -143,7 +144,7 @@ public class SettingsDialog extends JDialog implements IHandleCancel
 
   private void addOkButton( JPanel buttonPanel )
   {
-    _btnOk = new JButton( "OK" );
+    _btnOk = new LabButton( "OK" );
     _btnOk.addActionListener(
       e -> {
         save();

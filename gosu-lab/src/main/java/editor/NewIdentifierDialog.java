@@ -2,6 +2,7 @@ package editor;
 
 import editor.plugin.typeloader.ITypeFactory;
 import editor.util.EditorUtilities;
+import editor.util.LabButton;
 import gw.lang.reflect.gs.ClassType;
 
 import javax.swing.*;
@@ -94,7 +95,7 @@ public class NewIdentifierDialog extends JDialog implements IHandleCancel
     JPanel buttonPanel = new JPanel();
     buttonPanel.setLayout( new BoxLayout( buttonPanel, BoxLayout.X_AXIS ) );
 
-    JButton btnOk = new JButton( "OK" );
+    JButton btnOk = new LabButton( "OK" );
     btnOk.setMnemonic( 'O' );
     btnOk.addActionListener(
       e -> {
@@ -104,7 +105,7 @@ public class NewIdentifierDialog extends JDialog implements IHandleCancel
     buttonPanel.add( btnOk );
     getRootPane().setDefaultButton( btnOk );
 
-    JButton btnCancel = new JButton( "Cancel" );
+    JButton btnCancel = new LabButton( "Cancel" );
     btnCancel.addActionListener( e -> close() );
     buttonPanel.add( btnCancel );
 

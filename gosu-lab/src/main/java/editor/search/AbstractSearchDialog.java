@@ -10,6 +10,7 @@ import editor.Scheme;
 import editor.util.AbstractDialog;
 import editor.util.DirectoryEditor;
 import editor.util.EditorUtilities;
+import editor.util.LabButton;
 import editor.util.ModalEventQueue;
 import editor.util.ProgressFeedback;
 import gw.lang.reflect.json.IJsonIO;
@@ -95,7 +96,7 @@ public abstract class AbstractSearchDialog extends AbstractDialog
     _stateHandler = new DialogStateHandler();
     
     JPanel mainPanel = new JPanel( new BorderLayout() );
-    mainPanel.setBorder( BorderFactory.createLineBorder( Scheme.active().getMenuBorder() ) );
+    mainPanel.setBorder( BorderFactory.createLineBorder( Scheme.active().getScrollbarBorderColor() ) );
     mainPanel.add( makeSearchPanel(), BorderLayout.CENTER );
 
     contentPane.add( mainPanel, BorderLayout.CENTER );
@@ -111,13 +112,13 @@ public abstract class AbstractSearchDialog extends AbstractDialog
     buttonPanel.setLayout( new BoxLayout( buttonPanel, BoxLayout.X_AXIS ) );
     buttonPanel.setBackground( Scheme.active().getMenu() );
 
-    JButton btnFind = new JButton( _bReplace ? "Replace" : "Find" );
+    JButton btnFind = new LabButton( _bReplace ? "Replace" : "Find" );
     btnFind.setMnemonic( 'F' );
     btnFind.addActionListener( e -> find() );
     buttonPanel.add( btnFind );
     getRootPane().setDefaultButton( btnFind );
 
-    JButton btnCancel = new JButton( "Cancel" );
+    JButton btnCancel = new LabButton( "Cancel" );
     btnCancel.addActionListener( e -> close() );
     buttonPanel.add( btnCancel );
 

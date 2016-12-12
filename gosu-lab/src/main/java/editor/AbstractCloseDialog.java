@@ -2,6 +2,7 @@ package editor;
 
 import editor.util.EditorUtilities;
 
+import editor.util.LabButton;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.WindowAdapter;
@@ -84,6 +85,6 @@ public abstract class AbstractCloseDialog extends JDialog implements IHandleCanc
 
   protected JButton createCloseButton()
   {
-    return new JButton( "Close" );
+    return new LabButton( "Close" );
   }
 }

@@ -54,8 +54,9 @@ public class GosuLabLAF extends WindowsLookAndFeel
 
       UIDefaults table = UIManager.getLookAndFeelDefaults();
 
-      table.put( "ComboBoxUI", GosuLabComboBoxUI.class.getName() );
+      table.put( "ComboBoxUI", LabComboBoxUI.class.getName() );
       table.put( "MenuItemUI", BasicMenuItemUI.class.getName() );
+      table.put( "ButtonUI", LabButtonUI.class.getName() );
 
       table.put( "desktop", Scheme.active().getControl() );
 

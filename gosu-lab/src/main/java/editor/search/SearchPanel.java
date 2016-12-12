@@ -7,6 +7,7 @@ import editor.LabFrame;
 import editor.LabTreeCellRenderer;
 import editor.Scheme;
 import editor.util.EditorUtilities;
+import editor.util.LabButton;
 import editor.util.LabToolbarButton;
 import editor.util.ToolBar;
 
@@ -300,12 +301,12 @@ public class SearchPanel extends ClearablePanel
     JPanel buttonPanel = new JPanel();
     buttonPanel.setLayout( new BoxLayout( buttonPanel, BoxLayout.X_AXIS ) );
 
-    _btnReplaceAll = new JButton( "Replace All" );
+    _btnReplaceAll = new LabButton( "Replace All" );
     _btnReplaceAll.setMnemonic( 'A' );
     _btnReplaceAll.addActionListener( e -> replaceAll() );
     buttonPanel.add( _btnReplaceAll );
 
-    _btnReplaceSelected = new JButton( "Replace Selected" );
+    _btnReplaceSelected = new LabButton( "Replace Selected" );
     _btnReplaceSelected.addActionListener( e -> replaceSelected() );
     buttonPanel.add( _btnReplaceSelected );
 

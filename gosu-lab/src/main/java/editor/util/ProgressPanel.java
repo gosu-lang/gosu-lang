@@ -89,7 +89,7 @@ public class ProgressPanel extends JPanel
 
     add( BorderLayout.NORTH, panelCenter );
 
-    final JButton btnAbort = new JButton( "Abort" );
+    final JButton btnAbort = new LabButton( "Abort" );
     btnAbort.setMnemonic( 'A' );
     btnAbort.setFocusable( false );
     btnAbort.setCursor( Cursor.getPredefinedCursor( Cursor.DEFAULT_CURSOR ) );

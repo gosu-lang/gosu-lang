@@ -6,6 +6,7 @@ import editor.LabFrame;
 import editor.Scheme;
 import editor.util.EditorUtilities;
 import editor.util.Experiment;
+import editor.util.LabButton;
 import editor.util.LabCheckbox;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.TypeSystem;
@@ -106,7 +107,7 @@ public class ShipItDialog extends JDialog implements IHandleCancel
     c.weightx = 0;
     c.weighty = 0;
     c.insets = new Insets( 2, 2, 0, 0 );
-    JButton btn = new JButton( "..." );
+    JButton btn = new LabButton( "..." );
     btn.setToolTipText( "Find program" );
     btn.addActionListener( e -> displayProgramPopup() );
     mainPanel.add( btn, c );
@@ -192,7 +193,7 @@ public class ShipItDialog extends JDialog implements IHandleCancel
     JPanel buttonPanel = new JPanel();
     buttonPanel.setLayout( new BoxLayout( buttonPanel, BoxLayout.X_AXIS ) );
 
-    _btnOk = new JButton( "Make Executable Jar" );
+    _btnOk = new LabButton( "Make Executable Jar" );
     _btnOk.setMnemonic( 'M' );
     _btnOk.addActionListener(
       e -> {
@@ -203,7 +204,7 @@ public class ShipItDialog extends JDialog implements IHandleCancel
     getRootPane().setDefaultButton( _btnOk );
     _btnOk.setEnabled( false );
 
-    JButton btnCancel = new JButton( "Cancel" );
+    JButton btnCancel = new LabButton( "Cancel" );
     btnCancel.addActionListener( e -> close() );
     buttonPanel.add( btnCancel );
 
