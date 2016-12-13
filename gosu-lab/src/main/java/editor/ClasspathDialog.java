@@ -39,11 +39,12 @@ public class ClasspathDialog extends JDialog implements IHandleCancel
   protected void configUI()
   {
     JComponent contentPane = (JComponent)getContentPane();
+    contentPane.setBackground( Scheme.active().getMenu() );
     contentPane.setBorder( BorderFactory.createEmptyBorder( 8, 8, 8, 8 ) );
     contentPane.setLayout( new BorderLayout() );
 
     JPanel mainPanel = new JPanel( new BorderLayout() );
-    mainPanel.setBorder( BorderFactory.createCompoundBorder( UIManager.getBorder( "TextField.border" ),
+    mainPanel.setBorder( BorderFactory.createCompoundBorder( BorderFactory.createLineBorder( Scheme.active().getScrollbarBorderColor() ),
                                                              BorderFactory.createEmptyBorder( 5, 5, 5, 5 ) ) );
 
 
@@ -77,7 +78,9 @@ public class ClasspathDialog extends JDialog implements IHandleCancel
 
     JPanel south = new JPanel( new BorderLayout() );
     south.setBorder( BorderFactory.createEmptyBorder( 4, 0, 0, 0 ) );
+    south.setBackground( Scheme.active().getMenu() );
     filler = new JPanel();
+    filler.setBackground( Scheme.active().getMenu() );
     south.add( filler, BorderLayout.CENTER );
 
     JPanel buttonPanel = new JPanel();
@@ -96,6 +99,7 @@ public class ClasspathDialog extends JDialog implements IHandleCancel
     JButton btnCancel = new LabButton( "Cancel" );
     btnCancel.addActionListener( e -> close() );
     buttonPanel.add( btnCancel );
+    buttonPanel.setBackground( Scheme.active().getMenu() );
 
     south.add( buttonPanel, BorderLayout.EAST );
     contentPane.add( south, BorderLayout.SOUTH );

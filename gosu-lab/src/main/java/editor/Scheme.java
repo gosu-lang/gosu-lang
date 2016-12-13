@@ -4,6 +4,10 @@ import editor.settings.AppearanceSettings;
 import java.awt.*;
 import java.util.HashMap;
 import java.util.Map;
+import javax.swing.JOptionPane;
+
+
+import static javax.swing.JOptionPane.ERROR_MESSAGE;
 
 /**
  */
@@ -24,7 +28,16 @@ public abstract class Scheme
     {
       try
       {
-        _active = SCHEMES_BY_NAME.get( AppearanceSettings.getTheme() ).newInstance();
+        Class<? extends Scheme> themeClass = SCHEMES_BY_NAME.get( AppearanceSettings.getTheme() );
+        if( themeClass != null )
+        {
+          _active = themeClass.newInstance();
+        }
+        else
+        {
+          JOptionPane.showMessageDialog( null, "Could not load scheme: " + AppearanceSettings.getTheme() + "\n Loading default scheme.", "Gosu Lab", ERROR_MESSAGE );
+          _active = new LabScheme();
+        }
       }
       catch( Exception e )
       {

@@ -55,7 +55,7 @@ public class ShipItDialog extends JDialog implements IHandleCancel
     contentPane.setLayout( new BorderLayout() );
 
     JPanel mainPanel = new JPanel( new GridBagLayout() );
-    mainPanel.setBorder( BorderFactory.createCompoundBorder( UIManager.getBorder( "TextField.border" ),
+    mainPanel.setBorder( BorderFactory.createCompoundBorder( BorderFactory.createLineBorder( Scheme.active().getScrollbarBorderColor() ),
                                                              BorderFactory.createEmptyBorder( 5, 5, 5, 5 ) ) );
 
     final GridBagConstraints c = new GridBagConstraints();

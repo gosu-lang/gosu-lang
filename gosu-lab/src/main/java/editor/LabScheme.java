@@ -6,7 +6,7 @@ import java.awt.*;
  */
 public class LabScheme extends Scheme
 {
-  public static final String NAME = "Normie";
+  public static final String NAME = "Default";
 
   @Override
   public boolean isDark()

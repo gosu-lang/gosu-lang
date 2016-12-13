@@ -6,7 +6,7 @@ import java.awt.*;
  */
 public class LabDarkScheme extends Scheme
 {
-  public static final String NAME = "Roll Coal";
+  public static final String NAME = "Dark";
 
   @Override
   public boolean isDark()
