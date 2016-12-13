@@ -33,13 +33,13 @@ import gw.lang.reflect.IErrorType;
 import gw.lang.reflect.IFeatureInfo;
 import gw.lang.reflect.ILocationInfo;
 import gw.lang.reflect.IMetaType;
+import gw.lang.reflect.IMethodBackedPropertyInfo;
 import gw.lang.reflect.IMethodInfo;
 import gw.lang.reflect.INamespaceType;
 import gw.lang.reflect.IPropertyInfo;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.ITypeInfo;
 import gw.lang.reflect.gs.IGosuClass;
-import gw.lang.reflect.gs.IGosuPropertyInfo;
 import gw.lang.reflect.gs.IGosuVarPropertyInfo;
 
 import java.util.ArrayList;
@@ -342,7 +342,7 @@ public class UsageTarget
         int offset = ((IGosuVarPropertyInfo)fi).getOffset();
         return new SearchElement( ((IGosuClass)declaringType).getClassStatement().getLocation().getDeepestLocation( offset, true ).getParsedElement() );
       }
-      else if( fi instanceof IGosuPropertyInfo )
+      else
       {
         boolean bSetter;
         if( ref instanceof IIdentifierExpression )
@@ -356,21 +356,30 @@ public class UsageTarget
           bSetter = parent instanceof IMemberAssignmentStatement && (((IMemberAssignmentStatement)parent).getMemberAccess() == ref ||
                                                                      ((IMemberAssignmentStatement)parent).getRootExpression() == ref);
         }
-        IMethodInfo mi = bSetter
-                         ? (IMethodInfo)((IGosuPropertyInfo)fi).getDps().getSetterDfs().getMethodOrConstructorInfo()
-                         : (IMethodInfo)((IGosuPropertyInfo)fi).getDps().getGetterDfs().getMethodOrConstructorInfo();
-        IFunctionStatement fs = ((IGosuClass)mi.getOwnersType()).getFunctionStatement( mi );
-        if( fs == null )
+        if( fi instanceof IMethodBackedPropertyInfo )
         {
-          return new SearchElement( ((IGosuClass)declaringType).getPropertyDeclaration( fi.getDisplayName() ) );
+          IMethodInfo mi = bSetter
+                           ? ((IMethodBackedPropertyInfo)fi).getWriteMethodInfo()
+                           : ((IMethodBackedPropertyInfo)fi).getReadMethodInfo();
+          IType ownersType = mi.getOwnersType();
+          if( ownersType instanceof IGosuClass )
+          {
+            IFunctionStatement fs = ((IGosuClass)ownersType).getFunctionStatement( mi );
+            if( fs == null )
+            {
+              return new SearchElement( ((IGosuClass)declaringType).getPropertyDeclaration( fi.getDisplayName() ) );
+            }
+            else
+            {
+              return new SearchElement( fs.getLocation().getDeepestLocation( fs.getNameOffset( null ), true ).getParsedElement() );
+            }
+          }
+          else
+          {
+            fi = mi;
+          }
         }
-        else
-        {
-          return new SearchElement( fs.getLocation().getDeepestLocation( fs.getNameOffset( null ), true ).getParsedElement() );
-        }
-      }
-      else
-      {
+
         ILocationInfo loc = fi.getLocationInfo();
         if( loc != null && loc != ILocationInfo.EMPTY )
         {

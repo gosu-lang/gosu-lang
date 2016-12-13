@@ -164,7 +164,11 @@ public class FileTree implements MutableTreeNode, IFileWatcherListener
       return null;
     }
 
-    if( fqn.equals( makeFqn() ) )
+    String thisFqn = makeFqn();
+    if( thisFqn != null &&
+        (fqn.equals( thisFqn ) ||
+         // Also see if this file is an enclosing type of the fqn
+         fqn.startsWith( thisFqn ) && fqn.startsWith( thisFqn + '.' )) )
     {
       return this;
     }

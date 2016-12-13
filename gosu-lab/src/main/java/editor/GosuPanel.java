@@ -597,41 +597,31 @@ public class GosuPanel extends JPanel
     windowMenu.setMnemonic( 'W' );
     menuBar.add( windowMenu );
 
-    JMenuItem previousItem = new SmartMenuItem(
-      new AbstractAction( "Previous Editor" )
+    JMenuItem backItem = new SmartMenuItem(
+      new AbstractAction( "Back" )
       {
         @Override
         public void actionPerformed( ActionEvent e )
         {
           goBackward();
         }
-
-//        public boolean isEnabled()
-//        {
-//          return canGoBackward();
-//        }
       } );
-    previousItem.setMnemonic( 'P' );
-    previousItem.setAccelerator( KeyStroke.getKeyStroke( "alt LEFT" ) );
-    windowMenu.add( previousItem );
+    backItem.setMnemonic( 'B' );
+    backItem.setAccelerator( KeyStroke.getKeyStroke( "alt LEFT" ) );
+    windowMenu.add( backItem );
 
-    JMenuItem nextItem = new SmartMenuItem(
-      new AbstractAction( "Next Editor" )
+    JMenuItem forwardItem = new SmartMenuItem(
+      new AbstractAction( "Forward" )
       {
         @Override
         public void actionPerformed( ActionEvent e )
         {
           goForward();
         }
-
-//        public boolean isEnabled()
-//        {
-//          return canGoForward();
-//        }
       } );
-    nextItem.setMnemonic( 'N' );
-    nextItem.setAccelerator( KeyStroke.getKeyStroke( "alt RIGHT" ) );
-    windowMenu.add( nextItem );
+    forwardItem.setMnemonic( 'F' );
+    forwardItem.setAccelerator( KeyStroke.getKeyStroke( "alt RIGHT" ) );
+    windowMenu.add( forwardItem );
 
 
     windowMenu.addSeparator();
