@@ -13,7 +13,7 @@ public class InferredNewExpression extends NewExpression implements IInferredNew
   @Override
   public boolean isCompileTimeConstant()
   {
-    if( getInitializer() == null )
+    if( getValueExpressions() == null && getInitializer() == null )
     {
       return true;
     }
