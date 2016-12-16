@@ -10403,10 +10403,16 @@ public final class GosuParser extends ParserBase implements IGosuParser
       case "public":
         modifier = Modifier.PUBLIC;
         break;
+      case "final":
+        modifier = Modifier.FINAL;
+        break;
       default:
         throw new IllegalStateException();
     }
-    modifierInfo.removeModifiers( Modifier.PRIVATE | Modifier.INTERNAL | Modifier.PROTECTED | Modifier.PUBLIC );
+    if( modifier != Modifier.FINAL )
+    {
+      modifierInfo.removeModifiers( Modifier.PRIVATE | Modifier.INTERNAL | Modifier.PROTECTED | Modifier.PUBLIC );
+    }
     modifierInfo.addModifiers( modifier );
   }
 

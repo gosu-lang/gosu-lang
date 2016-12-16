@@ -287,4 +287,46 @@ class Errant_TestTargets
   @get:MyFieldAnno( STATIC_FINAL_FIELD )
   @set:MyFieldAnno( STATIC_FINAL_FIELD )
   property MuhDate: long = Date.parse( "" + STATIC_FINAL_FIELD ) // this is deprecated and should masked by suppresswarnings
+
+  //
+  // Test final modifier targeting
+  //
+
+  class Bar {
+    // final on getter-only applies to field only (because this is usually the intention on a property get declaration)
+    final property get Hi: String
+
+    @get:final property get Bye: String
+    @get:final final property get Hey: String = "hey"
+    @get:final final property get Konnichiwa: String //## issuekeys: MSG_VAR_MIGHT_NOT_HAVE_BEEN_INIT
+
+    construct() {
+      _Hi = ""
+    }
+  }
+  class Far {
+    // final on getter-only applies to field only (because this is usually the intention on a property get declaration)
+    final property get Hi: String   //## issuekeys: MSG_VAR_MIGHT_NOT_HAVE_BEEN_INIT
+  }
+  class Har extends Bar {
+    override property get Hi: String
+
+    override property get Bye: String   //## issuekeys: MSG_CANNOT_OVERRIDE_FINAL
+    override property get Hey: String   //## issuekeys: MSG_CANNOT_OVERRIDE_FINAL
+  }
+  class Mar {
+    // final on regular property applies to methods only (because setter modifies field)
+    final property Hi: String
+  }
+
+  class Xar extends Mar {
+    override property Hi: String   //## issuekeys: MSG_CANNOT_OVERRIDE_FINAL, MSG_CANNOT_OVERRIDE_FINAL
+  }
+  class Zar extends Mar {
+    override property get Hi() : String {   //## issuekeys: MSG_CANNOT_OVERRIDE_FINAL
+      return "hi"
+    }
+    override property set Hi( v: String ) {  //## issuekeys: MSG_CANNOT_OVERRIDE_FINAL
+    }
+  }
 }

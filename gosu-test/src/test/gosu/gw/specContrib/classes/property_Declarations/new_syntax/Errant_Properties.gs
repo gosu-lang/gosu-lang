@@ -83,7 +83,7 @@ abstract class Errant_Properties {
     property set Biz: String
 
     final property FinalProp: String
-    final property get FinalGetProp: String
+    final property get FinalGetProp: String = "immutable"
     final property set FinalSetProp: String
   }
   static class Sub extends BaseClass
@@ -101,7 +101,7 @@ abstract class Errant_Properties {
 
     property FinalProp: String  //## issuekeys: MSG_CANNOT_OVERRIDE_FINAL, MSG_CANNOT_OVERRIDE_FINAL
 
-    property get FinalGetProp: String  //## issuekeys: MSG_CANNOT_OVERRIDE_FINAL
+    override property get FinalGetProp: String
     property set FinalGetProp( value: String ) {}
 
     property set FinalSetProp: String  //## issuekeys: MSG_CANNOT_OVERRIDE_FINAL

@@ -3074,6 +3074,12 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
                                                   (bStatic ? Modifier.STATIC : 0) |
                                                   // abstract var tells the compiler it's not real
                                                   (getGosuClass().isInterface() || Modifier.isAbstract( modifiers.getModifiers() ) ? Modifier.ABSTRACT : 0) );
+    if( bGetter && !bSetter && Modifier.isFinal( modifiers.getModifiers() ) )
+    {
+      // final property get Foo: String  // this makes the field final, not the get method, use longer syntax for final get method
+      varModifiers.addModifiers( Modifier.FINAL );
+      modifiers.removeModifiers( Modifier.FINAL );
+    }
     transferModifierInfo( varStmt, modifiers, varModifiers );
     varStmt.setModifierInfo( varModifiers );
 

@@ -1918,11 +1918,13 @@ public abstract class ParserBase implements IParserPart
     {
       useSiteTarget = parseAnnotationUseSiteTarget();
       if( useSiteTarget != null &&
-          useSiteTarget.getTarget().isAccessModifierOk() &&
-          (match( null, Keyword.KW_private ) ||
-           match( null, Keyword.KW_internal ) ||
-           match( null, Keyword.KW_protected ) ||
-           match( null, Keyword.KW_public )) )
+          ((useSiteTarget.getTarget().isAccessModifierOk() &&
+           (match( null, Keyword.KW_private ) ||
+            match( null, Keyword.KW_internal ) ||
+            match( null, Keyword.KW_protected ) ||
+            match( null, Keyword.KW_public ))) ||
+           (useSiteTarget.getTarget().isFinalModifierOk() &&
+            match( null, Keyword.KW_final ))) )
       {
         // e.g., @get:protected
 
