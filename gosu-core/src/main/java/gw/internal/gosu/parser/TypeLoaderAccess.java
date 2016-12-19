@@ -153,7 +153,7 @@ public class TypeLoaderAccess extends BaseService implements ITypeSystem
 
   public void pushModule(IModule module) {
     if (module == null) {
-      throw  new IllegalStateException("Attempted to push NULL module on Gosu module stack:");
+      throw new IllegalStateException("Attempted to push NULL module on Gosu module stack:");
     }
     ArrayList<IModule> list = g_moduleStack.get();
     if (list == null) {
