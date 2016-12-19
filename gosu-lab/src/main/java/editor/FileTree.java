@@ -340,7 +340,8 @@ public class FileTree implements MutableTreeNode, IFileWatcherListener
       TypeSystem.created( CommonServices.getFileSystem().getIFile( file ) );
       TypeSystem.refresh( TypeSystem.getGlobalModule() );
     }
-    if( SourceFileCreator.instance().getCreated().equals( file ) )
+    File createdFile = SourceFileCreator.instance().getCreated();
+    if( createdFile != null && createdFile.equals( file ) )
     {
       openFile( fileTree, file );
     }
