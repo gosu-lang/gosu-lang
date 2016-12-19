@@ -293,15 +293,16 @@ public class UsageTarget
 
   private static SearchElement findTarget( IFeatureInfo fi, IParsedElement ref )
   {
-    if( !(fi.getOwnersType() instanceof IFileRepositoryBasedType) )
+    IType type = fi.getOwnersType();
+    type = type instanceof IMetaType ? ((IMetaType)type).getType() : type;
+    if( !(type instanceof IFileRepositoryBasedType) )
     {
       return null;
     }
-    IFileRepositoryBasedType declaringType = (IFileRepositoryBasedType)fi.getOwnersType();
+    IFileRepositoryBasedType declaringType = (IFileRepositoryBasedType)type;
 
     if( fi instanceof ITypeInfo )
     {
-      IType type = fi.getOwnersType();
       if( type instanceof IGosuClass )
       {
         return new SearchElement( ((IGosuClass)type).getClassStatement().getClassDeclaration() );
