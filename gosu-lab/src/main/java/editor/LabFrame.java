@@ -46,6 +46,7 @@ import java.util.List;
 public class LabFrame extends JFrame implements IGosuEditor
 {
   public static final int VERSION = 2;
+  private static final String GOSU_LAB_DIR = ".GosuLab";
   private static LabFrame INSTANCE = null;
   private static Map<String, ISettings> _settings = Settings.makeDefaultSettings();
 
@@ -110,11 +111,6 @@ public class LabFrame extends JFrame implements IGosuEditor
           }
         }
       });
-  }
-
-  private static Map<String, ISettings> makeDefaultSettings()
-  {
-    return new TreeMap<>();
   }
 
   public void exit()
@@ -288,7 +284,15 @@ public class LabFrame extends JFrame implements IGosuEditor
 
   public static File getUserGosuEditorDir()
   {
-    File gosuDir = new File( System.getProperty( "user.home" ), ".GosuLab" );
+    File gosuDir = new File( System.getProperty( "user.home" ), GOSU_LAB_DIR );
+    //noinspection ResultOfMethodCallIgnored
+    gosuDir.mkdirs();
+    return gosuDir;
+  }
+
+  public static File getIndexDir()
+  {
+    File gosuDir = new File( System.getProperty( "user.home" ) + File.separator + GOSU_LAB_DIR + File.separator + "index" );
     //noinspection ResultOfMethodCallIgnored
     gosuDir.mkdirs();
     return gosuDir;
@@ -296,8 +300,7 @@ public class LabFrame extends JFrame implements IGosuEditor
 
   public static File getStockExperimentsDir()
   {
-    File gosuDir = new File( System.getProperty( "user.home" ) + File.separator + ".GosuLab" + File.separator + "experiments" );
-    //noinspection ResultOfMethodCallIgnored
+    File gosuDir = new File( System.getProperty( "user.home" ) + File.separator + GOSU_LAB_DIR + File.separator + "experiments" );
     copyExampleExperiments( getStockExamplesDir() );
     return gosuDir;
   }
@@ -364,7 +367,7 @@ public class LabFrame extends JFrame implements IGosuEditor
 
   public static File getStockExamplesDir()
   {
-    File gosuDir = new File( System.getProperty( "user.home" ) + File.separator + ".GosuLab" + File.separator + "examples" );
+    File gosuDir = new File( System.getProperty( "user.home" ) + File.separator + GOSU_LAB_DIR + File.separator + "examples" );
     //noinspection ResultOfMethodCallIgnored
     gosuDir.mkdirs();
     return gosuDir;
