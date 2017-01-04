@@ -109,8 +109,8 @@ public class GosuLabLAF extends WindowsLookAndFeel
 
 
       table.put( "Button.foreground", Scheme.active().getControlText() );
-      table.put( "Button.disabledForeground", Scheme.active().getControlShadow() );
-      table.put( "Button.disabledShadow", Scheme.active().getControlShadow() );
+      table.put( "Button.disabledForeground", Scheme.active().getControlDisabledText() );
+      table.put( "Button.disabledShadow", Scheme.active().getControl() );
       table.put( "Button.background", Scheme.active().getControl() );
       table.put( "Button.interiorBackground", Scheme.active().getControl() );
       table.put( "Button.shadow", Scheme.active().getControl() );
@@ -223,9 +223,9 @@ public class GosuLabLAF extends WindowsLookAndFeel
       table.put( "EditorPane.selectionBackground", Scheme.active().getTextHighlight() );
 
       table.put( "Label.foreground", Scheme.active().getControlText() );
+      table.put( "Label.disabledForeground", Scheme.active().getControlDisabledText() );
+      table.put( "Label.disabledShadow", Scheme.active().getControl() );
       table.put( "Label.background", Scheme.active().getControl() );
-      table.put( "Label.disabledForeground", Scheme.active().getControl() );
-      table.put( "Label.disabledShadow", Scheme.active().getControlText().darker() );
       table.put( "Label.interiorBackground", Scheme.active().getControl() );
       table.put( "Label.shadow", Scheme.active().getControl() );
       table.put( "Label.darkShadow", Scheme.active().getControlDarkshadow() );

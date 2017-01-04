@@ -14,7 +14,6 @@ import javax.swing.Icon;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.ToolTipManager;
-import javax.swing.plaf.basic.BasicButtonUI;
 
 /**
  */
@@ -24,7 +23,7 @@ public class LabButton extends JButton
   {
     super( text, icon );
 
-    setUI( BasicButtonUI.createUI( this ) );
+    setUI( LabButtonUI.createUI( this ) );
     addMouseListener( createMouseListener() );
   }
 
