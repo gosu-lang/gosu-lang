@@ -11,6 +11,7 @@ import gw.internal.gosu.parser.TypeLord;
 import gw.internal.gosu.parser.java.compiler.JavaParser;
 import gw.lang.javac.ClassJavaFileObject;
 import gw.lang.javac.JavaCompileIssuesException;
+import gw.lang.parser.ILanguageLevel;
 import gw.lang.reflect.IHasJavaClass;
 import gw.lang.reflect.IInjectableClassLoader;
 import gw.lang.reflect.IType;
@@ -123,7 +124,7 @@ public class GosuClassesUrlConnection extends URLConnection {
       TypeSystem.pushModule( global );
       try {
         type = TypeSystem.getByFullNameIfValidNoJava( strType );
-        if( type == null ) {
+        if( type == null && ILanguageLevel.Util.STANDARD_GOSU() ) {
           //
           // Compile the java source file directly, not through the type, because we don't load JavaType from source at runtime.
           // For now at least, at runtime we load JavaType from a loaded Class object i.e., from ClassJavaClassInfo.
