@@ -4,7 +4,7 @@
   <parent>
     <groupId>org.gosu-lang.gosu</groupId>
     <artifactId>gosu-parent</artifactId>
-    <version>1.14.3</version>
+    <version>1.14.3-SNAPSHOT</version>
     <relativePath>gosu-parent</relativePath>
   </parent>
   <artifactId>gosu-proj</artifactId>
@@ -14,7 +14,7 @@
 
   <scm>
     <developerConnection>${scm.root}/gosu-lang.git</developerConnection>
-    <tag>v1.14.3</tag>
+    <tag>rel/1.14.3</tag>
   </scm>
   
   <modules>
