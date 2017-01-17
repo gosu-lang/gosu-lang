@@ -1163,6 +1163,44 @@ public class CommonMenus
     }
   }
 
+  public static class GoBackActionHandler extends AbstractAction
+  {
+    public GoBackActionHandler()
+    {
+      super( "Back", EditorUtilities.loadIcon( "images/back.png" ) );
+    }
+
+    public void actionPerformed( ActionEvent e )
+    {
+      getGosuPanel().goBackward();
+    }
+
+    @Override
+    public boolean isEnabled()
+    {
+      return getGosuPanel() != null && getGosuPanel().canGoBackward();
+    }
+  }
+
+  public static class GoForwardActionHandler extends AbstractAction
+  {
+    public GoForwardActionHandler()
+    {
+      super( "Forward", EditorUtilities.loadIcon( "images/forward.png" ) );
+    }
+
+    public void actionPerformed( ActionEvent e )
+    {
+      getGosuPanel().goForward();
+    }
+
+    @Override
+    public boolean isEnabled()
+    {
+      return getGosuPanel() != null && getGosuPanel().canGoForward();
+    }
+  }
+
   public static class MakeActionHandler extends AbstractAction
   {
     public MakeActionHandler()

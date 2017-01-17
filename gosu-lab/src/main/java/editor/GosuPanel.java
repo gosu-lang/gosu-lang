@@ -226,6 +226,13 @@ public class GosuPanel extends JPanel
 
     toolbar.add( makeSeparator() );
 
+    item = new LabToolbarButton( new CommonMenus.GoBackActionHandler() );
+    toolbar.add( item );
+    item = new LabToolbarButton( new CommonMenus.GoForwardActionHandler() );
+    toolbar.add( item );
+
+    toolbar.add( makeSeparator() );
+
     item = new LabToolbarButton( new CommonMenus.MakeActionHandler() );
     toolbar.add( item );
 
@@ -597,28 +604,12 @@ public class GosuPanel extends JPanel
     windowMenu.setMnemonic( 'W' );
     menuBar.add( windowMenu );
 
-    JMenuItem backItem = new SmartMenuItem(
-      new AbstractAction( "Back" )
-      {
-        @Override
-        public void actionPerformed( ActionEvent e )
-        {
-          goBackward();
-        }
-      } );
+    JMenuItem backItem = new SmartMenuItem( new CommonMenus.GoBackActionHandler() );
     backItem.setMnemonic( 'B' );
     backItem.setAccelerator( KeyStroke.getKeyStroke( "alt LEFT" ) );
     windowMenu.add( backItem );
 
-    JMenuItem forwardItem = new SmartMenuItem(
-      new AbstractAction( "Forward" )
-      {
-        @Override
-        public void actionPerformed( ActionEvent e )
-        {
-          goForward();
-        }
-      } );
+    JMenuItem forwardItem = new SmartMenuItem( new CommonMenus.GoForwardActionHandler() );
     forwardItem.setMnemonic( 'F' );
     forwardItem.setAccelerator( KeyStroke.getKeyStroke( "alt RIGHT" ) );
     windowMenu.add( forwardItem );
