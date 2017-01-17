@@ -55,7 +55,7 @@ public class StandardEditor extends EditorHost
     _editor = new EditorHostTextPane( this );
     ToolTipManager.sharedInstance().registerComponent( _editor );
     ToolTipManager.sharedInstance().setDismissDelay( 60000 );
-    _editor.setFont( new Font( EditorUtilities.getFontFamilyOrDefault( "Consolas", "monospaced" ), Font.PLAIN, 12 ) );
+    _editor.setFont( new Font( EditorUtilities.getFontFamilyOrDefault( "Consolas", "Monospaced" ), Font.PLAIN, 12 ) );
     setBorder( UIManager.getBorder( "TextField.border" ) );
     _editor.setMargin( new Insets( 3, 3, 3, 3 ) );
     _editor.setForeground( Scheme.active().getCodeWindowText() );

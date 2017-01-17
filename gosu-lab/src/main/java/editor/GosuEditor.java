@@ -205,7 +205,7 @@ public class GosuEditor extends EditorHost implements IScriptEditor, IGosuPanel,
     _editor.setEditorKitForContentType( "text/gosu", kit );
     _editor.setContentType( "text/gosu" );
     _editor.setMargin( new Insets( 3, 3, 3, 3 ) ); // set margin directly, otherwise some other platforms (cough, mac, cough) don't have a margin at all
-    _editor.setFont( new Font( EditorUtilities.getFontFamilyOrDefault( GosuEditorKit.getStylePreferences().getFontFamily(), "monospaced" ), Font.PLAIN,
+    _editor.setFont( new Font( GosuEditorKit.getStylePreferences().getFontFamily(), Font.PLAIN,
                                GosuEditorKit.getStylePreferences().getFontSize() ) );
     _editor.setBackground( Scheme.active().getWindow() );
     _editor.setForeground( Scheme.active().getWindowText() );

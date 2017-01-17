@@ -5,6 +5,7 @@
  */
 package editor;
 
+import editor.util.EditorUtilities;
 import editor.util.Pair;
 import gw.lang.parser.ISourceCodeTokenizer;
 import gw.lang.parser.exceptions.ParseWarningForDeprecatedMember;
@@ -73,7 +74,7 @@ public class GosuStyleContext extends StyleContext implements ViewFactory
   private static final Component THISISSTUPID = new Component()
   {
   };
-  private static String g_defFontFamily = "Consolas";
+  private static String g_defFontFamily =  EditorUtilities.getFontFamilyOrDefault( "Consolas", "Monospaced" );
   private static int g_defFontSize = 12;
 
   public static final String STYLE_EOL = "EOL";
