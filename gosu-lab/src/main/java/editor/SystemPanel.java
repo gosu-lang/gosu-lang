@@ -51,6 +51,7 @@ public class SystemPanel extends ClearablePanel
 
   public void configureUI()
   {
+
     setLayout( new BorderLayout() );
 
     _outputPanel.setFont( new Font( EditorUtilities.getFontFamilyOrDefault( "Consolas", "Monospaced" ), Font.PLAIN, 14 ) );
