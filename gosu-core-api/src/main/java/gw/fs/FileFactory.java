@@ -57,12 +57,27 @@ public class FileFactory {
   }
 
   public IFile getIFile(URL url) {
-    return getIFile( url, true );
+    try {
+      return getIFile( url.toURI() );
+    }
+    catch( URISyntaxException e ) {
+      throw new RuntimeException( e );
+    }
+  }
+  public IFile getIFile(URI uri) {
+    return getIFile( uri, true );
   }
   public IFile getIFile(URL url, boolean bCreateIfNotExists) {
-    if (url.getProtocol().equals("file")) {
+    try {
+      return getIFile( url.toURI(), bCreateIfNotExists );
+    }
+    catch( URISyntaxException e ) {
+      throw new RuntimeException( e );
+    }
+  }
+  public IFile getIFile(URI uri, boolean bCreateIfNotExists) {
+    if ( uri.getScheme().equals("file")) {
       try {
-        URI uri = url.toURI();
         if (uri.getFragment() != null) {
           uri = new URI(uri.getScheme(), uri.getSchemeSpecificPart(), null);
         }
@@ -73,10 +88,11 @@ public class FileFactory {
       }
       catch (IllegalArgumentException ex) {
         // debug getting IAE only in TH - unable to parse URL with fragment identifier
-        throw new IllegalArgumentException("Unable to parse URL " + url.toExternalForm(), ex);
+        throw new IllegalArgumentException("Unable to parse URI " + uri, ex);
       }
-    } else if (url.getProtocol().equals("jar")) {
-      String path = url.getPath();
+    } else if ( uri.getScheme().equals("jar")) {
+      String path = uri.getPath();
+      path = path == null ? uri.getSchemeSpecificPart() : path;
       int idx = path.lastIndexOf('!');
       String filePath = path.substring(idx + 1);
       String jarPath = path.substring(0, idx);
@@ -94,7 +110,7 @@ public class FileFactory {
       }
       return jarFileDirectory.file( filePath );
     } else {
-      throw new RuntimeException("Unrecognized protocol: " + url.getProtocol());
+      throw new RuntimeException("Unrecognized protocol: " + uri.getScheme());
     }
   }
 

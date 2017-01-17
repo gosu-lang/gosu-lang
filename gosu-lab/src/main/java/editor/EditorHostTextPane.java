@@ -78,11 +78,12 @@ public class EditorHostTextPane extends JEditorPane
   {
     ((Graphics2D)g).setRenderingHint( RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON );
     super.paint( g );
+    paintBreakpoints( g );
   }
 
-  private void paintBreakpoints( Graphics g, Rectangle rcClipBounds )
+  private void paintBreakpoints( Graphics g )
   {
-    Rectangle rc = rcClipBounds == null ? g.getClipBounds() : rcClipBounds;
+    Rectangle rc = g.getClipBounds();
     int[] lines = getLinesInClipBounds( rc );
     for( int i = lines[0]; i <= lines[1]; i++ )
     {
@@ -191,12 +192,6 @@ public class EditorHostTextPane extends JEditorPane
     @Override
     public void paintLayeredHighlights( Graphics g, int p0, int p1, Shape viewBounds, JTextComponent editor, View view )
     {
-      Shape saveClip = g.getClip();
-      Rectangle rc = viewBounds.getBounds();
-      g.clipRect( 0, rc.y, getWidth(), rc.height );
-      paintBreakpoints( g, rc );
-      g.setClip( saveClip );
-
       // Paint these last so that selection highlights paint over breakpoint highlights
       _highlighter.paintLayeredHighlights( g, p0, p1, viewBounds, editor, view );
     }

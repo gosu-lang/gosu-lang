@@ -1,6 +1,7 @@
 package editor;
 
 import editor.util.Experiment;
+import gw.util.PathUtil;
 import gw.config.AbstractPlatformHelper;
 import gw.config.ExecutionMode;
 import gw.lang.reflect.module.IModule;
@@ -25,7 +26,7 @@ public class GosuEditorPlatformHelper extends AbstractPlatformHelper
   @Override
   public File getIndexFile( String id )
   {
-    final File indexPath = LabFrame.getIndexDir();
+    final File indexPath = LabFrame.getIndexDir().toFile();
     File dir = new File( indexPath, "gosutypenames" );
     if( !dir.exists() )
     {
@@ -33,7 +34,7 @@ public class GosuEditorPlatformHelper extends AbstractPlatformHelper
       dir.mkdir();
     }
     Experiment experiment = LabFrame.instance().getGosuPanel().getExperiment();
-    String projectLocationId = Integer.toHexString( experiment.getOrMakeExperimentFile().getAbsolutePath().hashCode() );
+    String projectLocationId = Integer.toHexString( PathUtil.getAbsolutePathName( experiment.getOrMakeExperimentFile() ).hashCode() );
     String projectId = experiment.getName().replace( ' ', '_' ) + "$" + projectLocationId;
     return new File( dir, projectId + "$" + id + "$index.txt" );
   }

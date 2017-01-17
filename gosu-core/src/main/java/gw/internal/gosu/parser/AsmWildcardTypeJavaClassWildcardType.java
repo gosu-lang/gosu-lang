@@ -4,9 +4,11 @@
 
 package gw.internal.gosu.parser;
 
+import com.sun.source.tree.Tree;
 import gw.lang.parser.coercers.FunctionToInterfaceCoercer;
 import gw.lang.parser.expressions.Variance;
 import gw.lang.reflect.TypeSystem;
+import gw.lang.reflect.java.IJavaClassInfo;
 import gw.lang.reflect.java.IJavaClassType;
 import gw.lang.reflect.java.IJavaClassTypeVariable;
 import gw.lang.reflect.java.IJavaClassWildcardType;
@@ -72,5 +74,17 @@ public class AsmWildcardTypeJavaClassWildcardType extends AsmTypeJavaClassType i
   @Override
   public IModule getModule() {
     return _module;
+  }
+
+  @Override
+  public Tree getTree()
+  {
+    return null;
+  }
+
+  @Override
+  public IJavaClassInfo getEnclosingClass()
+  {
+    return null;
   }
 }

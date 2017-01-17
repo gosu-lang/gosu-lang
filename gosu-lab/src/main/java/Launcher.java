@@ -24,6 +24,7 @@ public class Launcher
 {
   public static final String JAR_REPO_DIR = "JAR-REPO";     //!! if you change this, also change it in Gosu.java
   public static final String JAR_REPO_TXT = "jar-repo.txt"; //!! "
+  private static final String URL_TO_LATEST_GOSU_RELEASE = "https://repository.sonatype.org/service/local/artifact/maven/redirect?r=central-proxy&g=org.gosu-lang.gosu&a=gosu&c=full&e=zip&v=RELEASE";
 
 
   public static void main( String[] args ) throws IOException
@@ -132,7 +133,9 @@ public class Launcher
     {
       if( csr.isFile() )
       {
-        if( (csr.getName().contains( "gosu-core" ) || csr.getName().contains( "asm" ))
+        if( (csr.getName().contains( "gosu-core" ) ||
+             csr.getName().contains( "asm" ) ||
+             csr.getName().endsWith( "tools.jar" ))
             && csr.getName().endsWith( ".jar" ) )
         {
           if( jars.isEmpty() )
@@ -161,8 +164,7 @@ public class Launcher
     progress.setNote( "Downloading latest Gosu release" );
     try
     {
-      //## todo: use a static link to LATEST GOSU RELEASE
-      URL url = new URL( "https://dl.dropboxusercontent.com/u/10642488/gosu-1.14.2-full.zip" );
+      URL url = new URL( URL_TO_LATEST_GOSU_RELEASE );
       File outDir = new File( new File( getHomeDir(), File.separatorChar + ".Gosu" ), "Gosu-" + System.currentTimeMillis() );
       extractGosu( url, outDir, progress );
       progress.setProgress( 3 );

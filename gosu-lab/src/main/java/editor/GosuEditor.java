@@ -11,6 +11,7 @@ import editor.util.EditorUtilities;
 import editor.util.HTMLEscapeUtil;
 import editor.util.IReplaceWordCallback;
 import editor.util.LabToolbarButton;
+import java.nio.file.Path;
 import editor.util.SettleModalEventQueue;
 import editor.util.TaskQueue;
 import editor.util.TextComponentUtil;
@@ -67,8 +68,6 @@ import gw.lang.reflect.java.JavaTypes;
 import gw.lang.IIssueContainer;
 import gw.util.GosuStringUtil;
 
-import java.io.File;
-import java.util.Arrays;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.event.CaretEvent;
@@ -1627,10 +1626,14 @@ public class GosuEditor extends EditorHost implements IScriptEditor, IGosuPanel,
       IType type = targetPe.getEnclosingType();
       if( type != getParsedClass() )
       {
+        while( type.isParameterizedType() )
+        {
+          type = type.getGenericType();
+        }
         FileTree fileTree = FileTreeUtil.find( type.getName() );
         if( fileTree != null )
         {
-          File sourceFile = fileTree.getFileOrDir();
+          Path sourceFile = fileTree.getFileOrDir();
           if( sourceFile != null )
           {
             LabFrame.instance().getGosuPanel().openFile( sourceFile, true );

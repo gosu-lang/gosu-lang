@@ -32,7 +32,8 @@ public class GosuProjectParserTest extends TestClass  {
     return new GosucSdk( Arrays.asList(
         "I/am/an/sdk/path.jar",
         "me/too/.jar"
-      )
+      ),
+      Collections.emptyList()
     );
   }
 
@@ -62,6 +63,6 @@ public class GosuProjectParserTest extends TestClass  {
     for( String dep: deps ) {
       dependencies.add( new GosucDependency( dep, !exported ) );
     }
-    return new GosucModule( modName, sources, classpath, outpath, dependencies, exclusions );
+    return new GosucModule( modName, sources, classpath, Collections.emptyList(), outpath, dependencies, exclusions );
   }
 }

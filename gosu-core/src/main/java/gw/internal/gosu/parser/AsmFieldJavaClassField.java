@@ -4,10 +4,15 @@
 
 package gw.internal.gosu.parser;
 
+import com.sun.source.tree.Tree;
 import gw.internal.gosu.parser.java.classinfo.AsmClassAnnotationInfo;
+import gw.lang.reflect.java.JavaSourceElement;
+import gw.internal.gosu.parser.java.classinfo.JavaSourceType;
 import gw.internal.gosu.parser.java.classinfo.JavaSourceUtil;
 import gw.lang.gosuc.simple.CompilerDriverException;
 import gw.lang.reflect.IAnnotationInfo;
+import gw.lang.reflect.IType;
+import gw.lang.reflect.gs.ISourceFileHandle;
 import gw.lang.reflect.java.IJavaClassField;
 import gw.lang.reflect.java.IJavaClassInfo;
 import gw.lang.reflect.java.IJavaClassType;
@@ -18,7 +23,8 @@ import gw.lang.reflect.module.IModule;
 import java.lang.annotation.Annotation;
 import java.util.List;
 
-public class AsmFieldJavaClassField implements IJavaClassField {
+public class AsmFieldJavaClassField extends JavaSourceElement implements IJavaClassField
+{
   private AsmField _field;
   private IModule _module;
 
@@ -94,5 +100,37 @@ public class AsmFieldJavaClassField implements IJavaClassField {
 
   public Object getStaticValue( ) {
     return _field.getStaticValue();
+  }
+
+  @Override
+  public Tree getTree()
+  {
+    ISourceFileHandle sfh = getEnclosingClass().getSourceFileHandle();
+    if( sfh != null )
+    {
+      JavaSourceElement sourceMethod = findSourceField( sfh );
+      if( sourceMethod != null )
+      {
+        return sourceMethod.getTree();
+      }
+    }
+    return null;
+  }
+
+  private JavaSourceElement findSourceField( ISourceFileHandle sfh )
+  {
+    IJavaClassInfo sourceType = JavaSourceType.createTopLevel( sfh, getEnclosingClass().getModule() );
+    if( sourceType == null )
+    {
+      return null;
+    }
+
+    IType enclosingClass = getEnclosingClass().getJavaType();
+    if( enclosingClass.getEnclosingType() != null )
+    {
+      sourceType = findInnerSourceType( sourceType, enclosingClass.getName() );
+    }
+
+    return (JavaSourceElement)sourceType.getDeclaredField( getName() );
   }
 }

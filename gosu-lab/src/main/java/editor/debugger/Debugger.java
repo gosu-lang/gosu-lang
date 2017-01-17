@@ -534,7 +534,7 @@ public class Debugger
     StepRequest req = getEventRequestManager().createStepRequest( eventThread, StepRequest.STEP_LINE, depth );
     req.addClassExclusionFilter( "sun.*" );
     req.addClassExclusionFilter( "com.sun.*" );
-    req.addClassExclusionFilter( "java.*" );
+    //req.addClassExclusionFilter( "java.*" ); // we support dependency source now for java runtime debugging now
     req.addClassExclusionFilter( "gw.*" );
     req.addCountFilter( 1 );
     req.putProperty( FROM_LOCATION, _location );

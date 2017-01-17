@@ -4,7 +4,7 @@
 
 package gw.internal.gosu.parser;
 
-import gw.internal.gosu.parser.java.classinfo.JavaSourceElement;
+import gw.lang.reflect.java.JavaSourceElement;
 import gw.lang.GosuShop;
 import gw.lang.javadoc.IDocRef;
 import gw.lang.javadoc.IClassDocNode;

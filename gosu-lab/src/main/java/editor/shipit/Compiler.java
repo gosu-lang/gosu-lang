@@ -6,6 +6,9 @@ import editor.MessageTree;
 import editor.MessagesPanel;
 import editor.settings.CompilerSettings;
 import editor.util.IProgressCallback;
+import java.io.File;
+import java.nio.file.Path;
+import gw.util.PathUtil;
 import gw.lang.javac.IJavaParser;
 import gw.lang.parser.GosuParserFactory;
 import gw.lang.parser.IFileRepositoryBasedType;
@@ -19,9 +22,8 @@ import gw.lang.reflect.gs.IGosuClass;
 
 import gw.lang.reflect.java.IJavaType;
 import java.awt.*;
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.util.*;
 import javax.tools.Diagnostic;
 import javax.tools.DiagnosticCollector;
@@ -386,10 +388,10 @@ public class Compiler
       return;
     }
 
-    File outputDir = CompilerSettings.getCompilerOutputDir();
-    if( !outputDir.exists() )
+    Path outputDir = CompilerSettings.getCompilerOutputDir();
+    if( !PathUtil.exists( outputDir ) )
     {
-      if( !outputDir.mkdirs() || !outputDir.isDirectory() )
+      if( !PathUtil.mkdirs( outputDir ) || !PathUtil.isDirectory( outputDir ) )
       {
         return;
       }
@@ -397,10 +399,10 @@ public class Compiler
 
     String javaName = type.getJavaName();
     javaName = javaName.replace( '.', File.separatorChar ) + ".class";
-    File classFile = new File( outputDir, javaName );
+    Path classFile = PathUtil.create( outputDir, javaName );
     //noinspection ResultOfMethodCallIgnored
-    classFile.getParentFile().mkdirs();
-    try( FileOutputStream writer = new FileOutputStream( classFile ) )
+    PathUtil.mkdirs( classFile.getParent() );
+    try( OutputStream writer = PathUtil.createOutputStream( classFile ) )
     {
       writer.write( bytes );
     }

@@ -5,6 +5,7 @@
 package gw.internal.gosu.parser;
 
 import gw.config.CommonServices;
+import gw.lang.reflect.java.JavaSourceElement;
 import gw.lang.GosuShop;
 import gw.lang.SimplePropertyProcessing;
 import gw.lang.javadoc.IClassDocNode;
@@ -17,6 +18,7 @@ import gw.lang.reflect.FeatureManager;
 import gw.lang.reflect.IAnnotationInfo;
 import gw.lang.reflect.IConstructorInfo;
 import gw.lang.reflect.IEventInfo;
+import gw.lang.reflect.ILocationInfo;
 import gw.lang.reflect.IMethodInfo;
 import gw.lang.reflect.IPropertyInfo;
 import gw.lang.reflect.IRelativeTypeInfo;
@@ -631,4 +633,13 @@ public class JavaTypeInfo extends JavaBaseFeatureInfo implements IJavaTypeInfo
     return _docRef;
   }
 
-}
+  @Override
+  public ILocationInfo getLocationInfo()
+  {
+    IJavaClassInfo classInfo = ((IJavaType)getOwnersType()).getBackingClassInfo();
+    if( classInfo instanceof JavaSourceElement )
+    {
+      return classInfo.getLocationInfo();
+    }
+    return super.getLocationInfo();
+  }}

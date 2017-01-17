@@ -8,6 +8,7 @@ import editor.run.ProgramRunConfigFactory;
 import editor.run.ProgramRunConfigParameters;
 import editor.settings.ISettings;
 import editor.settings.Settings;
+import gw.lang.Gosu;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.json.IJsonIO;
 import editor.run.IRunConfig;
@@ -17,11 +18,13 @@ import gw.lang.reflect.Expando;
 import gw.lang.reflect.ReflectUtil;
 import gw.lang.reflect.module.IProject;
 
+import java.nio.file.Path;
+import gw.util.PathUtil;
+import java.io.File;
+import java.io.Writer;
 import java.util.Map;
 import java.util.TreeMap;
 import javax.script.Bindings;
-import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -36,7 +39,8 @@ public class Experiment implements IProject
 {
   private String _name;
   private List<String> _sourcePath;
-  private File _experimentDir;
+  private List<String> _backingSourcePath;
+  private Path _experimentDir;
   private List<String> _openFiles;
   private String _activeFile;
   private IRunConfig _mruRunConfig;
@@ -45,24 +49,26 @@ public class Experiment implements IProject
   private Map<String, ISettings> _settings;
   private GosuPanel _gosuPanel;
 
-  public Experiment( String name, File dir, GosuPanel gosuPanel )
+  public Experiment( String name, Path dir, GosuPanel gosuPanel )
   {
     _name = name;
     _gosuPanel = gosuPanel;
-    _sourcePath = Arrays.asList( new File( dir, getRelativeGosuSourcePath() ).getAbsolutePath() );
+    _sourcePath = Arrays.asList( PathUtil.getAbsolutePathName( PathUtil.create( dir, getRelativeGosuSourcePath() ) ) );
+    _backingSourcePath = Gosu.findJreSourcePath();
     _experimentDir = dir;
     //noinspection ResultOfMethodCallIgnored
-    _experimentDir.mkdirs();
+    PathUtil.mkdirs( _experimentDir );
     _openFiles = Collections.emptyList();
     _runConfigs = Collections.emptyList();
     _settings = Settings.makeDefaultSettings( this );
   }
 
-  public Experiment( File dir, GosuPanel gosuPanel )
+  public Experiment( Path dir, GosuPanel gosuPanel )
   {
-    _name = dir.getName();
+    _name = PathUtil.getName( dir );
     _gosuPanel = gosuPanel;
     _sourcePath = Collections.emptyList();
+    _backingSourcePath = Gosu.findJreSourcePath();
     _experimentDir = dir;
     _openFiles = Collections.emptyList();
     _runConfigs = Collections.emptyList();
@@ -114,12 +120,21 @@ public class Experiment implements IProject
     _sourcePath = classpath;
   }
 
-  public File getExperimentDir()
+  public List<String> getBackingSourcePath()
+  {
+    return _backingSourcePath;
+  }
+  public void setBackingSourcePath( List<String> backingSource )
+  {
+    _backingSourcePath = backingSource;
+  }
+
+  public Path getExperimentDir()
   {
     return _experimentDir;
   }
   @SuppressWarnings("UnusedDeclaration")
-  public void setExperimentDir( File experimentDir )
+  public void setExperimentDir( Path experimentDir )
   {
     _experimentDir = experimentDir;
   }
@@ -139,23 +154,23 @@ public class Experiment implements IProject
     return _gosuPanel;
   }
 
-  private File getExperimentFile()
+  private Path getExperimentFile()
   {
-    File experimentDir = getExperimentDir();
+    Path experimentDir = getExperimentDir();
     //noinspection ResultOfMethodCallIgnored
-    experimentDir.mkdirs();
-    File experiment = LabFrame.findExperimentFile( experimentDir );
+    PathUtil.mkdirs( experimentDir );
+    Path experiment = LabFrame.findExperimentFile( experimentDir );
     if( experiment == null )
     {
-      experiment = new File( experimentDir.getAbsolutePath() + File.separator + experimentDir.getName() + ".prj" );
+      experiment = PathUtil.create( PathUtil.getAbsolutePathName( experimentDir ) + File.separator + PathUtil.getName( experimentDir ) + ".prj" );
     }
     return experiment;
   }
 
-  public File getOrMakeExperimentFile()
+  public Path getOrMakeExperimentFile()
   {
-    File experiment = getExperimentFile();
-    if( !experiment.exists() )
+    Path experiment = getExperimentFile();
+    if( !PathUtil.exists( experiment ) )
     {
       save();
     }
@@ -166,7 +181,7 @@ public class Experiment implements IProject
   {
     TabPane tabPane = getGosuPanel().getEditorTabPane();
 
-    File userFile = getExperimentFile();
+    Path userFile = getExperimentFile();
 
     Expando bindings = new Expando();
 
@@ -179,19 +194,27 @@ public class Experiment implements IProject
       ITab selectedTab = tabPane.getSelectedTab();
       if( selectedTab != null )
       {
-        bindings.put( "ActiveTab", makeExperimentRelativePathWithSlashes( (File)tabPane.getSelectedTab().getContentPane().getClientProperty( "_file" ) ) );
+        bindings.put( "ActiveTab", makeExperimentRelativePathWithSlashes( (Path)tabPane.getSelectedTab().getContentPane().getClientProperty( "_file" ) ) );
         bindings.put( "Tabs", Arrays.stream( tabPane.getTabs() ).map( e -> {
-          File file = (File)e.getContentPane().getClientProperty( "_file" );
+          Path file = (Path)e.getContentPane().getClientProperty( "_file" );
           return makeExperimentRelativePathWithSlashes( file );
         } ).collect( Collectors.toList() ) );
       }
     }
 
     bindings.put( "SourcePath", getSourcePath().stream().map( path -> {
-      String relativePath = makeExperimentRelativePathWithSlashes( new File( path ) );
+      String relativePath = makeExperimentRelativePathWithSlashes( PathUtil.create( path ) );
       path = relativePath == null ? path : relativePath;
       //noinspection ResultOfMethodCallIgnored
-      new File( path ).mkdirs();
+      PathUtil.mkdirs( PathUtil.create( path ) );
+      return path;
+    } ).collect( Collectors.toList() ) );
+
+    bindings.put( "BackingSource", getBackingSourcePath().stream().map( path -> {
+      String relativePath = makeExperimentRelativePathWithSlashes( PathUtil.create( path ) );
+      path = relativePath == null ? path : relativePath;
+      //noinspection ResultOfMethodCallIgnored
+      PathUtil.mkdirs( PathUtil.create( path ) );
       return path;
     } ).collect( Collectors.toList() ) );
 
@@ -201,7 +224,7 @@ public class Experiment implements IProject
     IJsonIO.writeList( "Settings", new ArrayList<>( _settings.values() ), bindings );
     bindings.put( "MruSettings", getMruSettings() == null ? null : getMruSettings().getName() );
 
-    try( FileWriter fw = new FileWriter( userFile ) )
+    try( Writer fw = PathUtil.createWriter( userFile ) )
     {
       String json = (String)ReflectUtil.invokeMethod( bindings, "toJson" );
       fw.write( json );
@@ -212,17 +235,17 @@ public class Experiment implements IProject
     }
   }
 
-  public String makeExperimentRelativePath( File file )
+  public String makeExperimentRelativePath( Path file )
   {
-    String absExperimentDir = getExperimentDir().getAbsolutePath();
-    String absFile = file.getAbsolutePath();
+    String absExperimentDir = PathUtil.getAbsolutePathName( getExperimentDir() );
+    String absFile = PathUtil.getAbsolutePathName( file );
     if( !absFile.startsWith( absExperimentDir + File.separator ) )
     {
       return absFile;
     }
     return absFile.substring( absExperimentDir.length() + 1 );
   }
-  public String makeExperimentRelativePathWithSlashes( File file )
+  public String makeExperimentRelativePathWithSlashes( Path file )
   {
     return makeExperimentRelativePath( file ).replace( '\\', '/' );
   }
@@ -231,22 +254,33 @@ public class Experiment implements IProject
   {
     try
     {
-      System.setProperty( "user.dir", getExperimentDir().getAbsolutePath() );
-      Bindings bindings = (Bindings)ReflectUtil.getProperty( getOrMakeExperimentFile().toURI().toURL(), "JsonContent" );
+      System.setProperty( "user.dir", PathUtil.getAbsolutePathName( getExperimentDir() ) );
+      Bindings bindings = (Bindings)ReflectUtil.getProperty( getOrMakeExperimentFile().toUri().toURL(), "JsonContent" );
 
-      setName( (String)bindings.getOrDefault( "Name", getExperimentDir().getName() ) );
+      setName( (String)bindings.getOrDefault( "Name", PathUtil.getName( getExperimentDir() ) ) );
 
       //noinspection unchecked
       List<String> sourcePath = (List<String>)bindings.getOrDefault( "SourcePath", Collections.emptyList() );
       if( sourcePath.isEmpty() )
       {
-        File srcPath = new File( getExperimentDir(), getRelativeGosuSourcePath() );
-        sourcePath.add( srcPath.getAbsolutePath() );
+        Path srcPath = PathUtil.create( getExperimentDir(), getRelativeGosuSourcePath() );
+        sourcePath.add( PathUtil.getAbsolutePathName( srcPath ) );
         _sourcePath = sourcePath;
       }
       else
       {
-        _sourcePath = sourcePath.stream().map( e -> new File( e ).getAbsolutePath() ).collect( Collectors.toList() );
+        _sourcePath = sourcePath.stream().map( e -> PathUtil.getAbsolutePathName( PathUtil.create( e ) ) ).collect( Collectors.toList() );
+      }
+
+      //noinspection unchecked
+      List<String> backingSource = (List<String>)bindings.getOrDefault( "BackingSource", Collections.emptyList() );
+      if( backingSource.isEmpty() )
+      {
+        _backingSourcePath = Gosu.findJreSourcePath();
+      }
+      else
+      {
+        _backingSourcePath = backingSource.stream().map( e -> PathUtil.getAbsolutePathName( PathUtil.create( e ) ) ).collect( Collectors.toList() );
       }
 
       //noinspection unchecked
@@ -254,10 +288,10 @@ public class Experiment implements IProject
       List<String> openFiles = new ArrayList<>();
       for( String strTab : tabs )
       {
-        File file = new File( strTab ).getAbsoluteFile();
-        if( file.isFile() )
+        Path file = PathUtil.getAbsolutePath( PathUtil.create( strTab ) );
+        if( PathUtil.isFile( file ) )
         {
-          openFiles.add( file.getAbsolutePath() );
+          openFiles.add( PathUtil.getAbsolutePathName( file ) );
         }
       }
       _openFiles = openFiles;
@@ -265,7 +299,7 @@ public class Experiment implements IProject
       _activeFile = (String)bindings.get( "ActiveTab" );
       if( _activeFile != null && !_activeFile.isEmpty() )
       {
-        _activeFile = new File( _activeFile ).getAbsolutePath();
+        _activeFile = PathUtil.getAbsolutePathName( PathUtil.create( _activeFile ) );
       }
 
       //noinspection unchecked

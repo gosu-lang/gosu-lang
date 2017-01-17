@@ -25,7 +25,10 @@ import gw.lang.reflect.gs.IGosuProgram;
 import gw.lang.reflect.java.JavaTypes;
 import gw.util.GosuExceptionUtil;
 import gw.util.OSPlatform;
+import gw.util.PathUtil;
 import gw.util.StreamUtil;
+import java.nio.file.Path;
+import java.util.Collections;
 import sun.misc.URLClassPath;
 
 import java.io.BufferedInputStream;
@@ -652,5 +655,34 @@ public class Gosu
       }
     }
     return sb.toString();
+  }
+
+  public static List<String> findJreSourcePath()
+  {
+    String javaHomePath = System.getProperty( "java.home" );
+    Path javaDir = PathUtil.create( javaHomePath );
+    if( PathUtil.getName( javaDir ).equalsIgnoreCase( "jre" ) )
+    {
+      javaDir = javaDir.getParent();
+    }
+    Path srcZip = PathUtil.create( javaDir, "src.zip" );
+    if( PathUtil.isFile( srcZip ) )
+    {
+      return Collections.singletonList( srcZip.toString() );
+    }
+    else
+    {
+      String javaDirName = PathUtil.getName( javaDir );
+      if( javaDirName.startsWith( "jre" ) )
+      {
+        javaDirName = javaDirName.replace( "jre", "jdk" );
+        Path jdkSrc = PathUtil.create( javaDirName, "src.zip" );
+        if( PathUtil.isFile( jdkSrc ) )
+        {
+          return Collections.singletonList( jdkSrc.toString() );
+        }
+      }
+    }
+    return Collections.emptyList();
   }
 }

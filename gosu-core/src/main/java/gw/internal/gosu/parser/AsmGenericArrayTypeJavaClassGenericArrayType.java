@@ -4,7 +4,9 @@
 
 package gw.internal.gosu.parser;
 
+import com.sun.source.tree.Tree;
 import gw.lang.reflect.java.IJavaClassGenericArrayType;
+import gw.lang.reflect.java.IJavaClassInfo;
 import gw.lang.reflect.java.IJavaClassType;
 import gw.lang.reflect.java.asm.IAsmType;
 import gw.lang.reflect.module.IModule;
@@ -33,5 +35,17 @@ public class AsmGenericArrayTypeJavaClassGenericArrayType extends AsmTypeJavaCla
   @Override
   public IModule getModule() {
     return _module;
+  }
+
+  @Override
+  public Tree getTree()
+  {
+    return null;
+  }
+
+  @Override
+  public IJavaClassInfo getEnclosingClass()
+  {
+    return null;
   }
 }

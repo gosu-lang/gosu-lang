@@ -17,7 +17,6 @@ import gw.internal.gosu.properties.PropertiesTypeLoader;
 import gw.lang.parser.ILanguageLevel;
 import gw.lang.reflect.ITypeLoader;
 import gw.lang.reflect.TypeSystem;
-import gw.lang.reflect.TypeSystemShutdownListener;
 import gw.lang.reflect.gs.GosuClassTypeLoader;
 import gw.lang.reflect.gs.IFileSystemGosuClassRepository;
 import gw.lang.reflect.gs.IGosuClassRepository;
@@ -49,7 +48,7 @@ public class Module implements IModule
   private final IExecutionEnvironment _execEnv;
   private String _strName;
 
-  private List<Dependency> _dependencies = new ArrayList<Dependency>();
+  private List<Dependency> _dependencies = new ArrayList<>();
   private LocklessLazyVar<IModule[]> _traversalList = new LocklessLazyVar<IModule[]>() {
     @Override
     protected IModule[] init() {
@@ -59,7 +58,8 @@ public class Module implements IModule
   private ModuleTypeLoader _modTypeLoader;
 
   // Paths
-  protected List<IDirectory> _classpath = new ArrayList<IDirectory>();
+  private List<IDirectory> _classpath = new ArrayList<>();
+  private List<IDirectory> _backingSourcePath = new ArrayList<>();
 
   private INativeModule _nativeModule;
   private ClassLoader _moduleClassLoader;
@@ -85,7 +85,7 @@ public class Module implements IModule
 
   @Override
   public void setDependencies(List<Dependency> newDeps) {
-    _dependencies = new ArrayList<Dependency>(newDeps);
+    _dependencies = new ArrayList<>(newDeps);
     _traversalList.clear();
   }
 
@@ -117,7 +117,7 @@ public class Module implements IModule
   @Override
   public void setSourcePath( List<IDirectory> sourcePaths )
   {
-    List<IDirectory> sources = new ArrayList<IDirectory>(sourcePaths);
+    List<IDirectory> sources = new ArrayList<>(sourcePaths);
 
     //## todo: Kill this so the classpath from the ClassLoaders is 1:1 with Modules i.e., why are we not copying these into the target classpath??!!
     sources.addAll(getAdditionalSourceRoots());
@@ -155,6 +155,7 @@ public class Module implements IModule
     extensions.add(".java");
     extensions.add(".xsd");
     extensions.addAll(Arrays.asList(GosuClassTypeLoader.ALL_EXTS));
+    //noinspection Convert2streamapi
     for (IDirectory root : paths) {
       // roots without manifests are considered source roots
       if (!Extensions.containsManifest(root) || !Extensions.getExtensions(root, Extensions.CONTAINS_SOURCES).isEmpty() ||
@@ -188,20 +189,20 @@ public class Module implements IModule
   }
 
   @Override
-  public void configurePaths(List<IDirectory> classpath, List<IDirectory> sourcePaths)
+  public void configurePaths( List<IDirectory> classpath, List<IDirectory> sourcePaths, List<IDirectory> backingSourcePaths )
   {
     // Maybe expand paths to include Class-Path attribute from Manifest...
     classpath = addFromManifestClassPath( classpath );
     sourcePaths = addFromManifestClassPath( sourcePaths );
 
     // Scan....
-    List<IDirectory> sourceRoots = new ArrayList<IDirectory>(sourcePaths);
-    Set<String> extensions = new HashSet<String>();
+    List<IDirectory> sourceRoots = new ArrayList<>(sourcePaths);
+    Set<String> extensions = new HashSet<>();
     scanPaths(classpath, extensions, sourceRoots);
 
-    // FIXME: extensions...
     setSourcePath(sourceRoots);
     setJavaClassPath(classpath);
+    setBackingSourcePath( backingSourcePaths );
   }
 
   /**
@@ -294,10 +295,19 @@ public class Module implements IModule
   {
     return _classpath;
   }
-
   @Override
   public void setJavaClassPath( List<IDirectory> classpath ) {
     _classpath = classpath;
+  }
+
+  @Override
+  public List<IDirectory> getBackingSourcePath()
+  {
+    return _backingSourcePath;
+  }
+  @Override
+  public void setBackingSourcePath( List<IDirectory> backingSourcePath ) {
+    _backingSourcePath = backingSourcePath;
   }
 
   @Override
@@ -350,7 +360,7 @@ public class Module implements IModule
   }
 
   private Set<String> getExtensionTypeloaderNames() {
-    Set<String> set = new HashSet<String>();
+    Set<String> set = new HashSet<>();
     for (IModule m : getModuleTraversalList()) {
       for (IDirectory dir : m.getJavaClassPath()) {
         Extensions.getExtensions(set, dir, "Gosu-Typeloaders");
@@ -383,7 +393,7 @@ public class Module implements IModule
 
   private IModule[] buildTraversalList() {
     // create default traversal list
-    List<IModule> traversalList = new ArrayList<IModule>();
+    List<IModule> traversalList = new ArrayList<>();
     traverse(this, traversalList);
     // make sure that the jre module is last
     IModule jreModule = getExecutionEnvironment().getJreModule();
@@ -413,10 +423,11 @@ public class Module implements IModule
 
   @Override
   public <T extends ITypeLoader> List<? extends T> getTypeLoaders(Class<T> typeLoaderClass) {
-    List<T> results = new ArrayList<T>();
+    List<T> results = new ArrayList<>();
     if (_modTypeLoader == null) {
       return results;
     }
+    //noinspection Convert2streamapi
     for (ITypeLoader loader : getModuleTypeLoader().getTypeLoaderStack()) {
       if (typeLoaderClass.isInstance(loader)) {
         results.add(typeLoaderClass.cast(loader));
@@ -498,7 +509,7 @@ public class Module implements IModule
   }
 
   private URL[] getExtensionURLs() {
-    List<URL> urls = new ArrayList<URL>();
+    List<URL> urls = new ArrayList<>();
     for (IModule m : getModuleTraversalList()) {
       for (IDirectory path : m.getJavaClassPath()) {
         try {
@@ -511,7 +522,7 @@ public class Module implements IModule
     return urls.toArray(new URL[urls.size()]);
   }
 
-  private Constructor getConstructor( Class loaderClass, Class... argTypes )
+  private Constructor getConstructor( Class<?> loaderClass, Class... argTypes )
   {
     try
     {
@@ -563,12 +574,7 @@ public class Module implements IModule
     };
 
     static {
-      TypeSystem.addShutdownListener(new TypeSystemShutdownListener() {
-        @Override
-        public void shutdown() {
-          INSTANCE.clear();
-        }
-      });
+      TypeSystem.addShutdownListener( INSTANCE::clear );
     }
 
     public static ClassLoader create(URL[] urls) {

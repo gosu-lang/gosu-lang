@@ -23,6 +23,7 @@ import editor.util.GosuTextifier;
 import editor.util.LabStatusBar;
 import editor.util.LabToolbarButton;
 import editor.util.LabelListPopup;
+import gw.util.PathUtil;
 import editor.util.SettleModalEventQueue;
 import editor.util.SmartMenu;
 import editor.util.SmartMenuItem;
@@ -48,6 +49,9 @@ import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.gs.IGosuClass;
 import gw.util.StreamUtil;
 
+import java.io.Writer;
+import java.nio.file.Path;
+import java.io.File;
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -62,10 +66,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStreamWriter;
@@ -400,8 +400,8 @@ public class GosuPanel extends JPanel
 
     for( String openFile : experiment.getOpenFiles() )
     {
-      File file = new File( openFile );
-      if( file.isFile() )
+      Path file = PathUtil.create( openFile );
+      if( PathUtil.isFile( file ) )
       {
         openFile( file, false );
       }
@@ -413,7 +413,7 @@ public class GosuPanel extends JPanel
     }
     else
     {
-      openTab( new File( activeFile ), true );
+      openTab( PathUtil.create( activeFile ), true );
     }
     SettleModalEventQueue.instance().run();
     EventQueue.invokeLater( () -> {
@@ -455,7 +455,7 @@ public class GosuPanel extends JPanel
     {
       if( isDirty( editor ) )
       {
-        save( (File)editor.getClientProperty( "_file" ), editor );
+        save( (Path)editor.getClientProperty( "_file" ), editor );
       }
       else
       {
@@ -470,7 +470,7 @@ public class GosuPanel extends JPanel
     }
   }
 
-  private EditorHost createEditor( File file, IScriptPartId partId )
+  private EditorHost createEditor( Path file, IScriptPartId partId )
   {
     EditorHost editorHost = EditorFactory.createEditor( file, partId );
 
@@ -1383,16 +1383,16 @@ public class GosuPanel extends JPanel
 
   public void openFile()
   {
-    JFileChooser fc = new JFileChooser( getCurrentFile().getParentFile() );
-    fc.setDialogTitle( "Open Gosu File" );
+    JFileChooser fc = new JFileChooser( getCurrentFile().getParent().toFile() );
+    fc.setDialogTitle( "Open Gosu Path" );
     fc.setDialogType( JFileChooser.OPEN_DIALOG );
-    fc.setCurrentDirectory( getCurrentFile().getParentFile() );
+    fc.setCurrentDirectory( getCurrentFile().getParent().toFile() );
     fc.setFileFilter(
       new FileFilter()
       {
         public boolean accept( File f )
         {
-          return f.isDirectory() || isValidGosuSourceFile( f );
+          return f.isDirectory() || isValidGosuSourceFile( f.toPath() );
         }
 
         public String getDescription()
@@ -1403,19 +1403,18 @@ public class GosuPanel extends JPanel
     int returnVal = fc.showOpenDialog( editor.util.EditorUtilities.frameForComponent( this ) );
     if( returnVal == JFileChooser.APPROVE_OPTION )
     {
-      openFile( fc.getSelectedFile(), true );
+      openFile( fc.getSelectedFile().toPath(), true );
     }
   }
 
-  public void openFile( File file, boolean bFocus )
+  public void openFile( Path file, boolean bFocus )
   {
     openFile( makePartId( file ), file, bFocus );
   }
 
   public boolean openType( String fqn, boolean bFocus )
   {
-    FileTree root = FileTreeUtil.getRoot();
-    FileTree fileTree = root.find( fqn );
+    FileTree fileTree = FileTreeUtil.find( fqn );
     if( fileTree != null )
     {
       openFile( fileTree.getFileOrDir(), bFocus );
@@ -1424,7 +1423,7 @@ public class GosuPanel extends JPanel
     return false;
   }
 
-  public static IScriptPartId makePartId( File file )
+  public static IScriptPartId makePartId( Path file )
   {
     TypeSystem.pushGlobalModule();
     try
@@ -1442,7 +1441,7 @@ public class GosuPanel extends JPanel
     }
   }
 
-  public void openInitialFile( IScriptPartId partId, File file )
+  public void openInitialFile( IScriptPartId partId, Path file )
   {
     _initialFile = true;
     try
@@ -1458,7 +1457,7 @@ public class GosuPanel extends JPanel
     }
   }
 
-  private void openFile( IScriptPartId partId, File file, boolean bFocus )
+  private void openFile( IScriptPartId partId, Path file, boolean bFocus )
   {
     if( openTab( file, bFocus ) )
     {
@@ -1483,18 +1482,18 @@ public class GosuPanel extends JPanel
     }
     else
     {
-      _editorTabPane.addTab( file.getName(), EditorUtilities.findIcon( file ), editor );
+      _editorTabPane.addTab( PathUtil.getName( file ), EditorUtilities.findIcon( file ), editor );
     }
     _editorTabPane.selectTab( _editorTabPane.findTabWithContent( editor ), true );
 
     String strSource;
-    if( !file.exists() )
+    if( !PathUtil.exists( file ) )
     {
       strSource = "";
     }
     else
     {
-      try( FileInputStream in = new FileInputStream( file ) )
+      try( InputStream in = PathUtil.createInputStream( file ) )
       {
         strSource = StreamUtil.getContent( StreamUtil.getInputStreamReader( in ) );
       }
@@ -1534,7 +1533,7 @@ public class GosuPanel extends JPanel
     for( int i = mruList.size() - 1; i >= 0; i-- )
     {
       ITabHistoryContext tabCtx = mruList.get( i );
-      File file = (File)tabCtx.getContentId();
+      Path file = (Path)tabCtx.getContentId();
       EditorHost editor = findTab( file );
       if( editor != null )
       {
@@ -1545,14 +1544,14 @@ public class GosuPanel extends JPanel
 
   private void updateTitle()
   {
-    File file = getCurrentFile();
+    Path file = getCurrentFile();
     Experiment experiment = getExperiment();
     String currentFilePath = file == null ? "  " : " - ..." + File.separator + experiment.makeExperimentRelativePath( file ) + " - ";
-    String title = experiment.getName() + " - [" + experiment.getExperimentDir().getAbsolutePath() + "]" + currentFilePath + "Gosu Lab " + Gosu.getVersion();
+    String title = experiment.getName() + " - [" + PathUtil.getAbsolutePathName( experiment.getExperimentDir() ) + "]" + currentFilePath + "Gosu Lab " + Gosu.getVersion();
     _parentFrame.setTitle( title );
   }
 
-  private boolean openTab( File file, boolean bFocus )
+  private boolean openTab( Path file, boolean bFocus )
   {
     EditorHost editor = findTab( file );
     if( editor != null )
@@ -1563,7 +1562,7 @@ public class GosuPanel extends JPanel
     return false;
   }
 
-  public EditorHost findTab( File file )
+  public EditorHost findTab( Path file )
   {
     if( file == null )
     {
@@ -1580,16 +1579,16 @@ public class GosuPanel extends JPanel
     return null;
   }
 
-  private void setCurrentFile( File file )
+  private void setCurrentFile( Path file )
   {
     getCurrentEditor().putClientProperty( "_file", file );
     openFile( file, false );
   }
 
-  public File getCurrentFile()
+  public Path getCurrentFile()
   {
     EditorHost currentEditor = getCurrentEditor();
-    return currentEditor == null ? null : (File)currentEditor.getClientProperty( "_file" );
+    return currentEditor == null ? null : (Path)currentEditor.getClientProperty( "_file" );
   }
 
   public boolean save()
@@ -1597,14 +1596,14 @@ public class GosuPanel extends JPanel
     if( getCurrentFile() == null )
     {
       JFileChooser fc = new JFileChooser();
-      fc.setDialogTitle( "Save Gosu File" );
+      fc.setDialogTitle( "Save Gosu Path" );
       fc.setDialogType( JFileChooser.SAVE_DIALOG );
       fc.setCurrentDirectory( new File( "." ) );
       fc.setFileFilter( new FileFilter()
       {
         public boolean accept( File f )
         {
-          return f.isDirectory() || isValidGosuSourceFile( f );
+          return f.isDirectory() || isValidGosuSourceFile( f.toPath() );
         }
 
         public String getDescription()
@@ -1616,7 +1615,7 @@ public class GosuPanel extends JPanel
 
       if( returnVal == JFileChooser.APPROVE_OPTION )
       {
-        setCurrentFile( fc.getSelectedFile() );
+        setCurrentFile( fc.getSelectedFile().toPath() );
       }
       else
       {
@@ -1624,24 +1623,12 @@ public class GosuPanel extends JPanel
       }
     }
 
-    if( !getCurrentFile().exists() )
+    if( !PathUtil.exists( getCurrentFile() ) )
     {
-      boolean created = false;
       String msg = "";
-      try
+      if( !PathUtil.createNewFile( getCurrentFile() ) )
       {
-        created = getCurrentFile().createNewFile();
-      }
-      catch( IOException e )
-      {
-        //ignore
-        e.printStackTrace();
-        msg += " : " + e.getMessage();
-      }
-
-      if( !created )
-      {
-        JOptionPane.showMessageDialog( this, "Could not create file " + getCurrentFile().getName() + msg );
+        JOptionPane.showMessageDialog( this, "Could not create file " + PathUtil.getName( getCurrentFile() ) + msg );
         return false;
       }
     }
@@ -1650,26 +1637,14 @@ public class GosuPanel extends JPanel
     return true;
   }
 
-  public boolean save( File file, EditorHost editor )
+  public boolean save( Path file, EditorHost editor )
   {
-    if( !file.exists() )
+    if( !PathUtil.exists( file ) )
     {
-      boolean created = false;
       String msg = "";
-      try
+      if( !PathUtil.createNewFile( file ) )
       {
-        created = file.createNewFile();
-      }
-      catch( IOException e )
-      {
-        //ignore
-        e.printStackTrace();
-        msg += " : " + e.getMessage();
-      }
-
-      if( !created )
-      {
-        JOptionPane.showMessageDialog( this, "Could not create file " + file.getName() + msg );
+        JOptionPane.showMessageDialog( this, "Could not create file " + PathUtil.getName( file ) + msg );
         return false;
       }
     }
@@ -1678,14 +1653,19 @@ public class GosuPanel extends JPanel
     return true;
   }
 
-  private void saveAndReloadType( File file, EditorHost editor )
+  private void saveAndReloadType( Path file, EditorHost editor )
   {
+    if( !PathUtil.canWrite( file ) )
+    {
+      return;
+    }
+
     FileTree fileTree = FileTreeUtil.getRoot().find( file );
     if( fileTree != null )
     {
       fileTree.setLastModified();
     }
-    try( FileWriter out = new FileWriter( file ) )
+    try( Writer out = PathUtil.createWriter( file ) )
     {
       StreamUtil.copy( new StringReader( editor.getText() ), out );
       setDirty( editor, false );
@@ -1724,14 +1704,14 @@ public class GosuPanel extends JPanel
    * This should only be called when either the file's contents change externally,
    * or when the file saves to disk.
    */
-  public void refresh( File file )
+  public void refresh( Path file )
   {
     EditorHost editor = findTab( file );
     if( editor != null )
     {
       // The file is open in an editor, refresh it with the contents of the file
 
-      try( Reader reader = new FileReader( file ) )
+      try( Reader reader = PathUtil.createReader( file ) )
       {
         editor.refresh( StreamUtil.getContent( reader ) );
         setDirty( editor, false );
@@ -1758,10 +1738,10 @@ public class GosuPanel extends JPanel
 
   public void newExperiment()
   {
-    File untitled = new File( getExperiment().getExperimentDir().getParentFile(), "Untitled" );
+    Path untitled = PathUtil.create( getExperiment().getExperimentDir().getParent(), "Untitled" );
     //noinspection ResultOfMethodCallIgnored
-    untitled.mkdirs();
-    JFileChooser fc = new JFileChooser( untitled );
+    PathUtil.mkdirs( untitled );
+    JFileChooser fc = new JFileChooser( untitled.toFile() );
     fc.setDialogTitle( "New Experiment" );
     fc.setDialogType( JFileChooser.OPEN_DIALOG );
     fc.setFileSelectionMode( JFileChooser.DIRECTORIES_ONLY );
@@ -1784,8 +1764,8 @@ public class GosuPanel extends JPanel
     {
       return;
     }
-    File selectedFile = fc.getSelectedFile();
-    Experiment experiment = new Experiment( selectedFile.getName(), selectedFile, this );
+    Path selectedFile = fc.getSelectedFile().toPath();
+    Experiment experiment = new Experiment( PathUtil.getName( selectedFile ), selectedFile, this );
     clearTabs();
     EventQueue.invokeLater( () -> restoreExperimentState( experiment ) );
   }
@@ -1793,36 +1773,36 @@ public class GosuPanel extends JPanel
   public void openExperiment()
   {
     FileDialog fc = new FileDialog( EditorUtilities.frameForComponent( this ), "Open Experiment", FileDialog.LOAD );
-    fc.setDirectory( getExperiment().getExperimentDir().getAbsolutePath() );
+    fc.setDirectory( PathUtil.getAbsolutePathName( getExperiment().getExperimentDir() ) );
     fc.setMultipleMode( false );
     fc.setFile( "*.prj" );
     fc.setVisible( true );
     String selectedFile = fc.getFile();
     if( selectedFile != null )
     {
-      File prjFile = new File( fc.getDirectory(), selectedFile );
-      if( prjFile.isFile() )
+      Path prjFile = PathUtil.create( fc.getDirectory(), selectedFile );
+      if( PathUtil.isFile( prjFile ) )
       {
-        File experimentDir = prjFile.getParentFile();
+        Path experimentDir = prjFile.getParent();
         openExperiment( experimentDir );
       }
     }
   }
 
-  public void openExperiment( File experimentDir )
+  public void openExperiment( Path experimentDir )
   {
     storeExperimentState();
     clearTabs();
     EventQueue.invokeLater( () -> restoreExperimentState( new Experiment( experimentDir, this ) ) );
   }
 
-  private boolean isValidGosuSourceFile( File file )
+  private boolean isValidGosuSourceFile( Path file )
   {
     if( file == null )
     {
       return false;
     }
-    String strName = file.getName().toLowerCase();
+    String strName = PathUtil.getName( file ).toLowerCase();
     return strName.endsWith( ".gs" ) ||
            strName.endsWith( ".gsx" ) ||
            strName.endsWith( ".gst" ) ||
@@ -1831,16 +1811,16 @@ public class GosuPanel extends JPanel
 
   public void saveAs()
   {
-    JFileChooser fc = new JFileChooser( getCurrentFile() );
-    fc.setDialogTitle( "Save Gosu File" );
+    JFileChooser fc = new JFileChooser( getCurrentFile().toFile() );
+    fc.setDialogTitle( "Save Gosu Path" );
     fc.setDialogType( JFileChooser.SAVE_DIALOG );
-    fc.setCurrentDirectory( getCurrentFile() != null ? getCurrentFile().getParentFile() : new File( "." ) );
+    fc.setCurrentDirectory( getCurrentFile() != null ? getCurrentFile().getParent().toFile() : PathUtil.create( "." ).toFile() );
     fc.setFileFilter(
       new FileFilter()
       {
         public boolean accept( File f )
         {
-          return f.isDirectory() || isValidGosuSourceFile( f );
+          return f.isDirectory() || isValidGosuSourceFile( f.toPath() );
         }
 
         public String getDescription()
@@ -1851,7 +1831,7 @@ public class GosuPanel extends JPanel
     int returnVal = fc.showOpenDialog( editor.util.EditorUtilities.frameForComponent( this ) );
     if( returnVal == JFileChooser.APPROVE_OPTION )
     {
-      setCurrentFile( fc.getSelectedFile() );
+      setCurrentFile( fc.getSelectedFile().toPath() );
       save();
     }
   }
@@ -2108,7 +2088,7 @@ public class GosuPanel extends JPanel
       EditorHost editor = (EditorHost)tab.getContentPane();
       if( editor != null )
       {
-        File file = (File)editor.getClientProperty( "_file" );
+        Path file = (Path)editor.getClientProperty( "_file" );
         if( file != null )
         {
           FileTree tree = FileTreeUtil.getRoot().find( file );
@@ -2186,7 +2166,7 @@ public class GosuPanel extends JPanel
            : _defaultUndoMgr;
   }
 
-  public void selectTab( File file )
+  public void selectTab( Path file )
   {
     for( int i = 0; i < _editorTabPane.getTabCount(); i++ )
     {
@@ -2203,7 +2183,7 @@ public class GosuPanel extends JPanel
     openFile( file, true );
   }
 
-  public void closeTab( File file )
+  public void closeTab( Path file )
   {
     for( int i = 0; i < _editorTabPane.getTabCount(); i++ )
     {

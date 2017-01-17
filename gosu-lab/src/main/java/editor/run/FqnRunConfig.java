@@ -1,8 +1,9 @@
 package editor.run;
 
+import java.nio.file.Path;
+import gw.util.PathUtil;
 import gw.lang.reflect.TypeSystem;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -130,8 +131,8 @@ public abstract class FqnRunConfig<T extends FqnRunConfigParameters<T>> extends 
     String jreHomeDir = isJreEnabled() ? getJre() : null;
     if( jreHomeDir != null && !jreHomeDir.isEmpty() )
     {
-      File dir = new File( jreHomeDir, "bin" );
-      if( dir.isDirectory() )
+      Path dir = PathUtil.create( jreHomeDir, "bin" );
+      if( PathUtil.isDirectory( dir ) )
       {
         return jreHomeDir;
       }
@@ -143,16 +144,16 @@ public abstract class FqnRunConfig<T extends FqnRunConfigParameters<T>> extends 
     return defaultJreHome == null ? System.getProperty( "java.home" ) : defaultJreHome;
   }
 
-  public File getWorkingDirForProcess()
+  public Path getWorkingDirForProcess()
   {
     String workingDir = getWorkingDir();
     if( workingDir != null && !workingDir.isEmpty() )
     {
-      File dir = new File( workingDir );
-      if( dir.isDirectory() )
+      Path dir = PathUtil.create( workingDir );
+      if( PathUtil.isDirectory( dir ) )
       {
         return dir;
       }
     }
-    return new File( "." );
+    return PathUtil.create( "." );
   }}

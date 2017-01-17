@@ -64,10 +64,10 @@ public class TypeSystemSetup
   private List<IModule> defineModules( List<IDirectory> javaClassPath ) {
     _execEnv.createJreModule( );
     IModule jreModule = _execEnv.getJreModule();
-    jreModule.configurePaths(javaClassPath, Collections.<IDirectory>emptyList());
+    jreModule.configurePaths( javaClassPath, Collections.emptyList(), Collections.emptyList() );
 
     _globalModule = GosuShop.createGlobalModule(_execEnv);
-    _globalModule.configurePaths(Collections.<IDirectory>emptyList(), Collections.<IDirectory>emptyList());
+    _globalModule.configurePaths( Collections.emptyList(), Collections.emptyList(), Collections.emptyList() );
     _globalModule.addDependency(new Dependency(jreModule, false));
 
     List<IModule> allModules = new ArrayList<IModule>();
@@ -104,7 +104,7 @@ public class TypeSystemSetup
       throw new IllegalStateException( "Curious path: " + strPath );
     }
     IDirectory root = CommonServices.getFileSystem().getIDirectory( new File( strPath ) );
-    gosuModule.configurePaths(Collections.singletonList(root), Collections.singletonList(root));
+    gosuModule.configurePaths( Collections.singletonList(root), Collections.singletonList(root), Collections.emptyList() );
 
     //Fix this
 //    ModuleRootManager rootManager = ModuleRootManager.getInstance(ijModule);

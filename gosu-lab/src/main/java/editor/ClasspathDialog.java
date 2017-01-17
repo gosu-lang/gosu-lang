@@ -19,6 +19,7 @@ import java.util.stream.Collectors;
 public class ClasspathDialog extends JDialog implements IHandleCancel
 {
   private JTextPane _pathsList;
+  private JTextPane _backingSourceList;
   private File _dir;
 
   public ClasspathDialog( File dir )
@@ -43,43 +44,133 @@ public class ClasspathDialog extends JDialog implements IHandleCancel
     contentPane.setBorder( BorderFactory.createEmptyBorder( 8, 8, 8, 8 ) );
     contentPane.setLayout( new BorderLayout() );
 
-    JPanel mainPanel = new JPanel( new BorderLayout() );
+    GridBagLayout gridBag = new GridBagLayout();
+    JPanel mainPanel = new JPanel( gridBag );
+    GridBagConstraints c = new GridBagConstraints();
+
     mainPanel.setBorder( BorderFactory.createCompoundBorder( BorderFactory.createLineBorder( Scheme.active().getScrollbarBorderColor() ),
                                                              BorderFactory.createEmptyBorder( 5, 5, 5, 5 ) ) );
 
 
-    JPanel labelContainer = new JPanel( new BorderLayout() );
+
     JLabel label = new JLabel( "<html>Need to use classes outside your experiment? Configure a '<b>" + File.pathSeparator + "</b>' " +
                                "separated list of directories and/or jar files containing Gosu or Java classes your experiment uses." );
     label.setBorder( new EmptyBorder( 2, 0, 0, 0 ) );
-    labelContainer.add( label, BorderLayout.NORTH );
-    JLabel label2 = new JLabel( "Dependency List", EditorUtilities.loadIcon( "images/folder.png" ), SwingConstants.LEFT );
-    labelContainer.add( label2, BorderLayout.SOUTH );
-    label2.setBorder( new EmptyBorder( 10, 0, 2, 0 ) );
-    mainPanel.add( labelContainer, BorderLayout.NORTH );
+    int iY = 0;
+    c.anchor = GridBagConstraints.WEST;
+    c.fill = GridBagConstraints.HORIZONTAL;
+    c.gridx = 0;
+    c.gridy = iY++;
+    c.gridwidth = 1;
+    c.gridheight = 1;
+    c.weightx = 1;
+    c.weighty = 0;
+    c.insets = new Insets( 0, 0, 10, 0 );
+    mainPanel.add( label, c );
+
+    label = new JLabel( "Dependencies", EditorUtilities.loadIcon( "images/folder.png" ), SwingConstants.LEFT );
+    label.setBorder( new EmptyBorder( 0, 0, 2, 0 ) );
+    c.anchor = GridBagConstraints.WEST;
+    c.fill = GridBagConstraints.NONE;
+    c.gridx = 0;
+    c.gridy = iY++;
+    c.gridwidth = 1;
+    c.gridheight = 1;
+    c.weightx = 1;
+    c.weighty = 0;
+    c.insets = new Insets( 0, 0, 2, 0 );
+    mainPanel.add( label, c );
 
     _pathsList = new JTextPane();
     JScrollPane scroller = new JScrollPane( _pathsList );
     setPathsList();
     _pathsList.setBorder( BorderFactory.createEmptyBorder() );
-    mainPanel.add( scroller, BorderLayout.CENTER );
+    c.anchor = GridBagConstraints.WEST;
+    c.fill = GridBagConstraints.BOTH;
+    c.gridx = 0;
+    c.gridy = iY;
+    c.gridwidth = 1;
+    c.gridheight = 1;
+    c.weightx = 1;
+    c.weighty = .5;
+    c.insets = new Insets( 0, 0, 10, 0 );
+    mainPanel.add( scroller, c );
 
-    JPanel panel = new JPanel( new BorderLayout() );
-    JPanel filler = new JPanel();
-    filler.setBorder( BorderFactory.createEmptyBorder( 0, 4, 0, 0 ) );
-    panel.add( filler, BorderLayout.CENTER );
     JButton btnPaths = new LabButton( "..." );
     btnPaths.setToolTipText( "Find a directory or Jar file" );
-    btnPaths.addActionListener( e -> updatePaths() );
-    panel.add( btnPaths, BorderLayout.NORTH );
-    mainPanel.add( panel, BorderLayout.EAST );
+    btnPaths.addActionListener( e -> updatePaths( _pathsList ) );
+    c.anchor = GridBagConstraints.NORTH;
+    c.fill = GridBagConstraints.NONE;
+    c.gridx = 1;
+    c.gridy = iY++;
+    c.gridwidth = 1;
+    c.gridheight = 1;
+    c.weightx = 0;
+    c.weighty = 0;
+    c.insets = new Insets( 0, 4, 2, 0 );
+    mainPanel.add( btnPaths, c );
+
+    label = new JLabel( "<html>If you have source files corresponding with any of the above dependencies, you can add those here.  They are useful for debugging, code navigation, etc." );
+    label.setBorder( new EmptyBorder( 2, 0, 0, 0 ) );
+    c.anchor = GridBagConstraints.WEST;
+    c.fill = GridBagConstraints.HORIZONTAL;
+    c.gridx = 0;
+    c.gridy = iY++;
+    c.gridwidth = 1;
+    c.gridheight = 1;
+    c.weightx = 1;
+    c.weighty = 0;
+    c.insets = new Insets( 0, 0, 10, 0 );
+    mainPanel.add( label, c );
+
+    label = new JLabel( "Dependency Sources (optional)", EditorUtilities.loadIcon( "images/folder.png" ), SwingConstants.LEFT );
+    label.setBorder( new EmptyBorder( 0, 0, 2, 0 ) );
+    c.anchor = GridBagConstraints.WEST;
+    c.fill = GridBagConstraints.NONE;
+    c.gridx = 0;
+    c.gridy = iY++;
+    c.gridwidth = 1;
+    c.gridheight = 1;
+    c.weightx = 1;
+    c.weighty = 0;
+    c.insets = new Insets( 0, 0, 2, 0 );
+    mainPanel.add( label, c );
+
+    _backingSourceList = new JTextPane();
+    scroller = new JScrollPane( _backingSourceList );
+    setBackingSourceList();
+    _backingSourceList.setBorder( BorderFactory.createEmptyBorder() );
+    c.anchor = GridBagConstraints.WEST;
+    c.fill = GridBagConstraints.BOTH;
+    c.gridx = 0;
+    c.gridy = iY;
+    c.gridwidth = 1;
+    c.gridheight = 1;
+    c.weightx = 1;
+    c.weighty = .5;
+    c.insets = new Insets( 0, 0, 10, 0 );
+    mainPanel.add( scroller, c );
+
+    btnPaths = new LabButton( "..." );
+    btnPaths.setToolTipText( "Find a directory or Jar file" );
+    btnPaths.addActionListener( e -> updatePaths( _backingSourceList ) );
+    c.anchor = GridBagConstraints.NORTH;
+    c.fill = GridBagConstraints.NONE;
+    c.gridx = 1;
+    c.gridy = iY++;
+    c.gridwidth = 1;
+    c.gridheight = 1;
+    c.weightx = 0;
+    c.weighty = 0;
+    c.insets = new Insets( 0, 4, 2, 0 );
+    mainPanel.add( btnPaths, c );
 
     contentPane.add( mainPanel, BorderLayout.CENTER );
 
     JPanel south = new JPanel( new BorderLayout() );
     south.setBorder( BorderFactory.createEmptyBorder( 4, 0, 0, 0 ) );
     south.setBackground( Scheme.active().getMenu() );
-    filler = new JPanel();
+    JPanel filler = new JPanel();
     filler.setBackground( Scheme.active().getMenu() );
     south.add( filler, BorderLayout.CENTER );
 
@@ -90,7 +181,7 @@ public class ClasspathDialog extends JDialog implements IHandleCancel
     btnFind.setMnemonic( 'O' );
     btnFind.addActionListener(
       e -> {
-        saveClassPath();
+        save();
         close();
       } );
     buttonPanel.add( btnFind );
@@ -123,9 +214,26 @@ public class ClasspathDialog extends JDialog implements IHandleCancel
     _pathsList.setText( strPaths );
   }
 
-  private void saveClassPath()
+  private void setBackingSourceList()
   {
-    String strPaths = _pathsList.getText();
+    String strPaths = "";
+    List<String> paths =  LabFrame.instance().getGosuPanel().getExperimentView().getExperiment().getBackingSourcePath();
+    for( int i = 0; i < paths.size(); i++ )
+    {
+      String strPath = paths.get( i );
+      strPaths += strPath + (i == paths.size() - 1 ? "" : File.pathSeparator + "\n");
+    }
+    _backingSourceList.setText( strPaths );
+  }
+
+  private void save()
+  {
+    List<File> classpath = saveClassPath( _pathsList.getText() );
+    List<File> backingSourcePath = saveClassPath( _backingSourceList.getText() );
+    savePathsAndReopenExperiment( classpath, backingSourcePath );
+  }
+  private List<File> saveClassPath( String strPaths )
+  {
     StringTokenizer tokenizer = new StringTokenizer( strPaths, File.pathSeparator + "\n\r\t" );
     List<String> paths = new ArrayList<>();
     for(; tokenizer.hasMoreTokens(); )
@@ -134,26 +242,29 @@ public class ClasspathDialog extends JDialog implements IHandleCancel
       paths.add( strPath.trim() );
     }
     List<File> pathFiles = new ArrayList<>();
+    //noinspection Convert2streamapi
     for( String strPath : paths )
     {
       pathFiles.add( new File( strPath ).getAbsoluteFile() );
     }
-    savePathsAndReopenExperiment( pathFiles );
+    return pathFiles;
   }
 
-  private void savePathsAndReopenExperiment( List<File> pathFiles )
+  private void savePathsAndReopenExperiment( List<File> pathFiles, List<File> backingSourcePath )
   {
     GosuPanel gosuPanel = LabFrame.instance().getGosuPanel();
     Experiment experiment = gosuPanel.getExperimentView().getExperiment();
-    List<String> srcPaths = pathFiles.stream().map( File::getAbsolutePath ).collect( Collectors.toList() );
-    experiment.setSourcePath( srcPaths );
+    List<String> sourcePaths = pathFiles.stream().map( File::getAbsolutePath ).collect( Collectors.toList() );
+    experiment.setSourcePath( sourcePaths );
+    List<String> backingSourcePaths = backingSourcePath.stream().map( File::getAbsolutePath ).collect( Collectors.toList() );
+    experiment.setBackingSourcePath( backingSourcePaths );
     gosuPanel.openExperiment( experiment.getExperimentDir() );
   }
 
-  private void updatePaths()
+  private void updatePaths( JTextPane target )
   {
     JFileChooser fc = new JFileChooser( getCurrentDir() );
-    fc.setDialogTitle( "Add Dependencies" );
+    fc.setDialogTitle( "Add Paths" );
     fc.setDialogType( JFileChooser.OPEN_DIALOG );
     fc.setFileSelectionMode( JFileChooser.FILES_AND_DIRECTORIES );
     fc.setMultiSelectionEnabled( true );
@@ -167,13 +278,13 @@ public class ClasspathDialog extends JDialog implements IHandleCancel
 
         public String getDescription()
         {
-          return "Dependencies (directories or archive files)";
+          return "Directories or Archive Files";
         }
       } );
     int returnVal = fc.showOpenDialog( editor.util.EditorUtilities.frameForComponent( this ) );
     if( returnVal == JFileChooser.APPROVE_OPTION )
     {
-      String strExisting = _pathsList.getText().trim();
+      String strExisting = target.getText().trim();
       if( strExisting.endsWith( File.pathSeparator ) )
       {
         strExisting = strExisting.substring( 0, strExisting.length()-1 );
@@ -183,7 +294,7 @@ public class ClasspathDialog extends JDialog implements IHandleCancel
         strExisting += File.pathSeparatorChar + "\n" + f.getAbsolutePath();
       }
       _dir = fc.getCurrentDirectory();
-      _pathsList.setText( strExisting );
+      target.setText( strExisting );
     }
   }
 

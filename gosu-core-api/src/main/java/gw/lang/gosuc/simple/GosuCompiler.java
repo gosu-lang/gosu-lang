@@ -212,7 +212,7 @@ public class GosuCompiler implements IGosuCompiler {
     }
   }
 
-  public long initializeGosu(List<String> sourceFolders, List<String> classpath, String outputPath) {
+  public long initializeGosu( List<String> sourceFolders, List<String> classpath, List<String> backingSourcePath, String outputPath ) {
     final long start = System.currentTimeMillis();
 
     CommonServices.getKernel().redefineService_Privileged(IFileSystem.class, createFileSystemInstance());
@@ -233,9 +233,13 @@ public class GosuCompiler implements IGosuCompiler {
 
     IExecutionEnvironment execEnv = TypeSystem.getExecutionEnvironment();
     _gosuInitialization = GosuInitialization.instance(execEnv);
-    GosucModule gosucModule = new GosucModule(
-        IExecutionEnvironment.DEFAULT_SINGLE_MODULE_NAME, sourceFolders, classpath,
-        outputPath, Collections.<GosucDependency>emptyList(), Collections.<String>emptyList());
+    GosucModule gosucModule = new GosucModule( IExecutionEnvironment.DEFAULT_SINGLE_MODULE_NAME,
+                                               sourceFolders,
+                                               classpath,
+                                               backingSourcePath,
+                                               outputPath,
+                                               Collections.<GosucDependency>emptyList(),
+                                               Collections.<String>emptyList());
     _gosuInitialization.initializeCompiler(gosucModule);
 
     return System.currentTimeMillis() - start;

@@ -1,5 +1,6 @@
 package editor;
 
+import gw.util.PathUtil;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.TypeSystem;
 
@@ -28,7 +29,7 @@ public class FileTreeCellRenderer extends AbstractTreeCellRenderer<FileTree>
     TypeSystem.lock();
     try
     {
-      if( node.isDirectory() || !node.isFile() && node.getFileOrDir().getName().indexOf( '.' ) < 0 )
+      if( node.isDirectory() || !node.isFile() && PathUtil.getName( node.getFileOrDir() ).indexOf( '.' ) < 0 )
       {
         setText( node.getName() );
       }

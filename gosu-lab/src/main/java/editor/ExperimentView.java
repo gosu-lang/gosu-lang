@@ -6,6 +6,8 @@ import editor.tabpane.TabPosition;
 import editor.util.Experiment;
 import editor.util.LabToolbarButton;
 
+import java.nio.file.Path;
+import gw.util.PathUtil;
 import javax.swing.*;
 import javax.swing.border.MatteBorder;
 import javax.swing.tree.DefaultTreeModel;
@@ -16,7 +18,6 @@ import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
-import java.io.File;
 
 /**
  */
@@ -82,10 +83,10 @@ public class ExperimentView extends JPanel
 
   private void addExamples()
   {
-    java.util.List<File> examples = LabFrame.getStockExampleExperiments();
-    for( File dir: examples )
+    java.util.List<Path> examples = LabFrame.getStockExampleExperiments();
+    for( Path dir: examples )
     {
-      LabToolbarButton item = new LabToolbarButton( dir.getName(), LabFrame.loadLabIcon() );
+      LabToolbarButton item = new LabToolbarButton( PathUtil.getName( dir ), LabFrame.loadLabIcon() );
       item.setToolTipText( null );
       item.setShowText( true );
       item.setHorizontalAlignment( SwingConstants.LEFT );

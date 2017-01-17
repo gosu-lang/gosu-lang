@@ -111,7 +111,7 @@ public class GosuStyleContext extends StyleContext implements ViewFactory
   {
     super();
     Style root = getStyle( DEFAULT_STYLE );
-    _tokenStyles = new HashMap<Integer, Style>();
+    _tokenStyles = new HashMap<>();
 
     _tokenStyles.put( new Integer( ISourceCodeTokenizer.TT_EOL ), addStyle( STYLE_EOL, root ) );
     _tokenStyles.put( new Integer( ISourceCodeTokenizer.TT_EOF ), addStyle( STYLE_EOF, root ) );

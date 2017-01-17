@@ -5,14 +5,10 @@
 package gw.lang.reflect.module;
 
 import gw.fs.IDirectory;
-import gw.fs.IFile;
-import gw.fs.IResource;
 import gw.lang.reflect.ITypeLoader;
 import gw.lang.UnstableAPI;
 import gw.lang.reflect.gs.IFileSystemGosuClassRepository;
 
-import java.io.File;
-import java.net.URL;
 import java.util.List;
 
 @UnstableAPI
@@ -55,8 +51,10 @@ public interface IModule
   void setSourcePath( List<IDirectory> path );
 
   List<IDirectory> getJavaClassPath();
-
   void setJavaClassPath(List<IDirectory> paths);
+
+  List<IDirectory> getBackingSourcePath();
+  void setBackingSourcePath(List<IDirectory> paths);
 
   List<IDirectory> getExcludedPaths();
 
@@ -67,9 +65,11 @@ public interface IModule
    * is Java classpath. Second parameter is extended with all paths from Java classpath that are marked
    * to have Gosu "sources" (through MANIFEST.MF with Contains-Sources header) and used as Gosu source path.
    *
-   * @param classpath
+   * @param classpath path to types not directly in the module's sources e.g., jar files containing .class files and other types/resources
+   * @param sourcePaths path to the sources directly defined in this module; sources in this path are statically compiled as part of this module's build target e.g., ./src directories
+   * @param backingSourcePaths path to sources corresponding with the classpath parameter (intended for IDE usa)
    */
-  void configurePaths(List<IDirectory> classpath, List<IDirectory> sourcePaths);
+  void configurePaths( List<IDirectory> classpath, List<IDirectory> sourcePaths, List<IDirectory> backingSourcePaths );
 
   /**
    * @return The module/project from the execution environment that corresponds

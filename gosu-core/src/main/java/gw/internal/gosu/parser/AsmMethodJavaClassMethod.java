@@ -4,13 +4,17 @@
 
 package gw.internal.gosu.parser;
 
+import com.sun.source.tree.Tree;
 import gw.internal.gosu.parser.java.classinfo.AsmClassAnnotationInfo;
+import gw.lang.reflect.java.JavaSourceElement;
+import gw.internal.gosu.parser.java.classinfo.JavaSourceType;
 import gw.internal.gosu.parser.java.classinfo.JavaSourceUtil;
 import gw.lang.reflect.FunctionType;
 import gw.lang.reflect.IAnnotationInfo;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.gs.IGenericTypeVariable;
+import gw.lang.reflect.gs.ISourceFileHandle;
 import gw.lang.reflect.java.IJavaClassBytecodeMethod;
 import gw.lang.reflect.java.IJavaClassInfo;
 import gw.lang.reflect.java.IJavaClassMethod;
@@ -27,7 +31,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 import java.util.List;
 
-public class AsmMethodJavaClassMethod implements IJavaClassMethod, IJavaClassBytecodeMethod {
+public class AsmMethodJavaClassMethod extends JavaSourceElement implements IJavaClassMethod, IJavaClassBytecodeMethod {
   private AsmMethod _method;
   private IModule _module;
 
@@ -202,5 +206,44 @@ public class AsmMethodJavaClassMethod implements IJavaClassMethod, IJavaClassByt
 
   public String toString() {
     return _method.toString();
+  }
+
+  @Override
+  public Tree getTree()
+  {
+    ISourceFileHandle sfh = getEnclosingClass().getSourceFileHandle();
+    if( sfh != null )
+    {
+      JavaSourceElement sourceMethod = findSourceMethod( sfh );
+      if( sourceMethod != null )
+      {
+        return sourceMethod.getTree();
+      }
+    }
+    return null;
+  }
+
+  private JavaSourceElement findSourceMethod( ISourceFileHandle sfh )
+  {
+    IJavaClassInfo sourceType = JavaSourceType.createTopLevel( sfh, getEnclosingClass().getModule() );
+    if( sourceType == null )
+    {
+      return null;
+    }
+
+    IType enclosingClass = getEnclosingClass().getJavaType();
+    if( enclosingClass.getEnclosingType() != null )
+    {
+      sourceType = findInnerSourceType( sourceType, enclosingClass.getName() );
+    }
+
+    try
+    {
+      return (JavaSourceElement)sourceType.getDeclaredMethod( getName(), getParameterTypes() );
+    }
+    catch( NoSuchMethodException e )
+    {
+      throw new RuntimeException( e );
+    }
   }
 }

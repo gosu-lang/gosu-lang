@@ -4,7 +4,9 @@
 
 package gw.internal.gosu.parser;
 
+import com.sun.source.tree.Tree;
 import gw.lang.parser.expressions.Variance;
+import gw.lang.reflect.java.IJavaClassInfo;
 import gw.lang.reflect.java.IJavaClassType;
 import gw.lang.reflect.java.IJavaClassTypeVariable;
 import gw.lang.reflect.java.JavaTypes;
@@ -72,5 +74,17 @@ public class AsmTypeVariableJavaClassTypeVariable extends AsmTypeJavaClassType i
 
   public String toString() {
     return getName();
+  }
+
+  @Override
+  public Tree getTree()
+  {
+    return null;
+  }
+
+  @Override
+  public IJavaClassInfo getEnclosingClass()
+  {
+    return null;
   }
 }

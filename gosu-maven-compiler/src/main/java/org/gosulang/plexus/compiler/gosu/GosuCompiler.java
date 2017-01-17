@@ -5,6 +5,7 @@ import gw.lang.gosuc.cli.CommandLineCompiler;
 import gw.lang.gosuc.simple.ICompilerDriver;
 import gw.lang.gosuc.simple.IGosuCompiler;
 import gw.lang.gosuc.simple.SoutCompilerDriver;
+import java.util.Collections;
 import org.codehaus.plexus.compiler.AbstractCompiler;
 import org.codehaus.plexus.compiler.CompilerConfiguration;
 import org.codehaus.plexus.compiler.CompilerException;
@@ -108,7 +109,7 @@ public class GosuCompiler extends AbstractCompiler {
       throw new CompilerException("Unable to locate Gosu libraries in classpath.  Please add Gosu as a project dependency.", cnfe);
     }
 
-    gosuc.initializeGosu(config.getSourceLocations(), classpath, config.getOutputLocation());
+    gosuc.initializeGosu(config.getSourceLocations(), classpath, Collections.emptyList(), config.getOutputLocation());
 
     for(File file : config.getSourceFiles()) {
       try {

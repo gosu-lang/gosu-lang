@@ -13,6 +13,8 @@ import editor.settings.CompilerSettings;
 import editor.util.Experiment;
 import editor.util.IProgressCallback;
 import editor.util.ModalEventQueue;
+import java.nio.file.Path;
+import gw.util.PathUtil;
 import editor.util.ProgressFeedback;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.TypeSystem;
@@ -79,21 +81,21 @@ public class ExperimentBuild
     {
       return;
     }
-    File outputPath = CompilerSettings.getCompilerOutputDir();
-    if( !outputPath.isDirectory() )
+    Path outputPath = CompilerSettings.getCompilerOutputDir();
+    if( !PathUtil.isDirectory( outputPath ) )
     {
-      if( !outputPath.mkdirs() )
+      if( !PathUtil.mkdirs( outputPath ) )
       {
-        JOptionPane.showMessageDialog( LabFrame.instance(), "Invalid compiler output path: " + outputPath.getAbsolutePath() );
+        JOptionPane.showMessageDialog( LabFrame.instance(), "Invalid compiler output path: " + PathUtil.getAbsolutePathName( outputPath ) );
       }
     }
     Experiment experiment = LabFrame.instance().getGosuPanel().getExperiment();
     for( String sp : experiment.getSourcePath() )
     {
-      File jarOrDir = new File( sp ).getAbsoluteFile();
-      if( jarOrDir.isDirectory() )
+      Path jarOrDir = PathUtil.getAbsolutePath( PathUtil.create( sp ) );
+      if( PathUtil.isDirectory( jarOrDir ) )
       {
-        for( File child : jarOrDir.listFiles() )
+        for( Path child : PathUtil.listFiles( jarOrDir ) )
         {
           StreamUtil.copy( child, outputPath );
         }
@@ -105,12 +107,12 @@ public class ExperimentBuild
   {
     if( CompilerSettings.isStaticCompile() )
     {
-      File dir = CompilerSettings.getCompilerOutputDir();
-      if( dir.isDirectory() )
+      Path dir = CompilerSettings.getCompilerOutputDir();
+      if( PathUtil.isDirectory( dir ) )
       {
-        for( File child : dir.listFiles() )
+        for( Path child : PathUtil.listFiles( dir ) )
         {
-          LabFrame.delete( child );
+          PathUtil.delete( child, true );
         }
       }
     }
@@ -118,7 +120,7 @@ public class ExperimentBuild
 
   private Set<IType> findTypesToCompile()
   {
-    File outputPath = CompilerSettings.getCompilerOutputDir();
+    Path outputPath = CompilerSettings.getCompilerOutputDir();
     Set<IType> types = new HashSet<>();
     for( FileTree ft: _fileChangeFinder.findChangedFiles( ref -> true ) )
     {
@@ -137,22 +139,22 @@ public class ExperimentBuild
     return types;
   }
 
-  private void copySourceFileToOutputDir( File outputPath, FileTree ft )
+  private void copySourceFileToOutputDir( Path outputPath, FileTree ft )
   {
     String fqnDir = ft.getParent().makeFqn();
-    File dir;
+    Path dir;
     if( fqnDir != null )
     {
       fqnDir = fqnDir.replace( '.', File.separatorChar );
-      dir = new File( outputPath, fqnDir );
+      dir = PathUtil.create( outputPath, fqnDir );
       //noinspection ResultOfMethodCallIgnored
-      dir.mkdirs();
+      PathUtil.mkdirs( dir );
     }
     else
     {
       dir = outputPath;
     }
-    File file = new File( dir, ft.getFileOrDir().getName() );
+    Path file = PathUtil.create( dir, PathUtil.getName( ft.getFileOrDir() ) );
     StreamUtil.copy( ft.getFileOrDir(), file );
   }
 

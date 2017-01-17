@@ -13,6 +13,7 @@ import gw.lang.reflect.gs.ISourceFileHandle;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.util.Arrays;
 import java.util.TreeSet;
 
 public interface IJavaClassInfo extends IJavaAnnotatedElement, IJavaClassType, ITypeInfoResolver
@@ -65,8 +66,20 @@ public interface IJavaClassInfo extends IJavaAnnotatedElement, IJavaClassType, I
 
 
   IJavaClassField[] getDeclaredFields();
+  default IJavaClassField getDeclaredField( String name )
+  {
+    return Arrays.stream( getDeclaredFields() )
+                 .filter( f -> f.getName().equals( name ) )
+                 .findFirst().get();
+  }
 
   IJavaClassField[] getFields();
+  default IJavaClassField getField( String name )
+  {
+    return Arrays.stream( getFields() )
+                 .filter( f -> f.getName().equals( name ) )
+                 .findFirst().get();
+  }
 
   Object[] getEnumConstants();
 

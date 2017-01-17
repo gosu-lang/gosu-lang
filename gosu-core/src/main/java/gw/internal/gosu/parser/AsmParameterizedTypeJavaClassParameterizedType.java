@@ -4,6 +4,8 @@
 
 package gw.internal.gosu.parser;
 
+import com.sun.source.tree.Tree;
+import gw.lang.reflect.java.IJavaClassInfo;
 import gw.lang.reflect.java.IJavaClassParameterizedType;
 import gw.lang.reflect.java.IJavaClassType;
 import gw.lang.reflect.java.asm.AsmType;
@@ -36,5 +38,38 @@ public class AsmParameterizedTypeJavaClassParameterizedType extends AsmTypeJavaC
   @Override
   public String getSimpleName() {
     return getType().getSimpleName();
+  }
+
+  @Override
+  public Tree getTree()
+  {
+    IJavaClassType concreteType = getConcreteType();
+    if( concreteType instanceof AsmClassJavaClassInfo )
+    {
+      return ((AsmClassJavaClassInfo)concreteType).getTree();
+    }
+    return null;
+  }
+
+  @Override
+  public IJavaClassInfo getEnclosingClass()
+  {
+    IJavaClassType concreteType = getConcreteType();
+    if( concreteType instanceof IJavaClassInfo )
+    {
+      return ((IJavaClassInfo)concreteType).getEnclosingClass();
+    }
+    return null;
+  }
+
+  @Override
+  public IJavaClassInfo getDeclaringClass()
+  {
+    IJavaClassType concreteType = getConcreteType();
+    if( concreteType instanceof IJavaClassInfo )
+    {
+      return (IJavaClassInfo)concreteType;
+    }
+    return null;
   }
 }

@@ -1,8 +1,12 @@
 package editor;
 
+import gw.fs.IFile;
+import gw.lang.reflect.IType;
+import gw.lang.reflect.TypeSystem;
+import java.nio.file.Path;
+import gw.util.PathUtil;
 import java.util.Arrays;
 import javax.swing.tree.TreeModel;
-import java.io.File;
 
 /**
  */
@@ -10,14 +14,36 @@ public class FileTreeUtil
 {
   public static FileTree find( String fqn )
   {
-    TreeModel model = getExperimentView().getTree().getModel();
-    FileTree root = (FileTree)model.getRoot();
-    return root.find( fqn );
+    FileTree fileTree = FileTreeUtil.getRoot().find( fqn );
+    if( fileTree == null )
+    {
+      IType type = TypeSystem.getByFullNameIfValid( fqn );
+      if( type != null )
+      {
+        IFile[] sourceFiles = type.getSourceFiles();
+        if( sourceFiles != null && sourceFiles.length > 0 )
+        {
+          IFile sourceFile = sourceFiles[0];
+          fileTree = find( PathUtil.create( sourceFile.toURI() ), fqn );
+        }
+      }
+    }
+    return fileTree;
   }
 
-  public static FileTree find( File file )
+  public static FileTree find( Path file )
   {
-    return FileTreeUtil.getRoot().find( file );
+    return find( file, null );
+  }
+  public static FileTree find( Path file, String typeName )
+  {
+    FileTree fileTree = FileTreeUtil.getRoot().find( file );
+    if( fileTree == null )
+    {
+      //## todo: add this to the root as an external filetree?
+      fileTree = FileTreeUtil.makeExternalFileTree( file, typeName );
+    }
+    return fileTree;
   }
 
   public static ExperimentView getExperimentView()
@@ -41,7 +67,7 @@ public class FileTreeUtil
     return (FileTree)model.getRoot();
   }
 
-  public static FileTree makeExternalFileTree( File file, String fqn )
+  public static FileTree makeExternalFileTree( Path file, String fqn )
   {
     return new ExternalFileTree( file, fqn );
   }
@@ -49,7 +75,7 @@ public class FileTreeUtil
   public static boolean isSupportedTextFile( FileTree ft )
   {
     String[] binaryExt = { ".jar", ".zip", ".tar", ".gz", ".hprof", ".png", ".gif", ".jpg", ".bmp", ".exe", ".dll", ".so",  };
-    String fileName = ft.getFileOrDir().getName().toLowerCase();
+    String fileName = PathUtil.getName( ft.getFileOrDir() ).toLowerCase();
     return !Arrays.stream( binaryExt ).anyMatch( fileName::endsWith );
   }
 }

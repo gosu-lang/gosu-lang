@@ -26,9 +26,9 @@ import editor.util.SmartMenuItem;
 import gw.lang.reflect.IAttributedFeatureInfo;
 import gw.lang.reflect.IFeatureInfo;
 
+import java.nio.file.Path;
 import javax.swing.*;
 import java.awt.event.ActionEvent;
-import java.io.File;
 import java.util.function.Supplier;
 
 /**
@@ -1080,7 +1080,7 @@ public class CommonMenus
   private static FileTree getOrMakeLocalFileTree()
   {
     FileTree tree;
-    File file = getGosuPanel().getCurrentFile();
+    Path file = getGosuPanel().getCurrentFile();
     tree = FileTreeUtil.getRoot().find( file );
     if( tree == null )
     {
@@ -1108,7 +1108,7 @@ public class CommonMenus
       getGosuPanel().save();
 
       // Renew parse tree before we get the selected target element
-      ((GosuEditor)getGosuPanel().getCurrentEditor()).parseAndWaitForParser();
+      getGosuPanel().getCurrentEditor().parseAndWaitForParser();
 
       UsageTarget target = UsageTarget.makeTargetFromCaret();
       if( target == null )

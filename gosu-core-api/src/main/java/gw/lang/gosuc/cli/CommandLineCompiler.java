@@ -10,6 +10,7 @@ import gw.lang.gosuc.simple.SoutCompilerDriver;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 public class CommandLineCompiler {
@@ -55,7 +56,7 @@ public class CommandLineCompiler {
       System.setProperty("checkedArithmetic", "true");
     }
 
-    gosuc.initializeGosu(sourcepath, classpath, options.getDestDir());
+    gosuc.initializeGosu(sourcepath, classpath, Collections.emptyList(), options.getDestDir());
 
     final List<String> warnings = new ArrayList<>();
     final List<String> errors = new ArrayList<>();

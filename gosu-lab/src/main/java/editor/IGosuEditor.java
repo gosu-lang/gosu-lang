@@ -1,9 +1,8 @@
 package editor;
 
 import editor.util.Experiment;
+import java.nio.file.Path;
 import gw.lang.parser.IScriptPartId;
-
-import java.io.File;
 
 /**
  * Copyright 2010 Guidewire Software, Inc.
@@ -12,9 +11,9 @@ public interface IGosuEditor
 {
   void showMe();
 
-  void openInitialFile( IScriptPartId partId, File program );
+  void openInitialFile( IScriptPartId partId, Path program );
 
-  void openFile( File sourceFile );
+  void openFile( Path sourceFile );
 
   void restoreState( Experiment experiment );
 

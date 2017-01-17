@@ -14,6 +14,7 @@ import gw.lang.reflect.java.IJavaClassField;
 import gw.lang.reflect.java.IJavaClassInfo;
 import gw.lang.reflect.java.IJavaClassType;
 
+import gw.lang.reflect.java.JavaSourceElement;
 import java.lang.annotation.Annotation;
 
 import static com.sun.tools.javac.code.Flags.ENUM;
@@ -122,7 +123,7 @@ public class JavaSourceField extends JavaSourceElement implements IJavaClassFiel
   }
 
   @Override
-  protected Tree getTree()
+  public Tree getTree()
   {
     return _fieldTree;
   }

@@ -43,7 +43,7 @@ public class OutOfProcessRun extends AbstractOutOfProcessExecutor<FqnRunConfig>
     args.addAll( getRunConfig().makeProgArgs() );
 
     ProcessBuilder pb = new ProcessBuilder( args );
-    pb.directory( getRunConfig().getWorkingDirForProcess() );
+    pb.directory( getRunConfig().getWorkingDirForProcess().toFile() );
     printLabMessage( makeRunningMessage( getRunConfig().getName(), pb.command() ) );
     setProcess( pb.start() );
     getGosuPanel().pipeInput();

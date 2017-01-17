@@ -1,18 +1,16 @@
 package editor.run;
 
 import com.sun.jdi.VirtualMachine;
-import com.sun.tools.javac.api.JavacTool;
 import editor.GosuEditor;
 import editor.GosuPanel;
 import editor.LabFrame;
 import editor.TextComponentWriter;
 import editor.settings.CompilerSettings;
 import editor.util.Experiment;
+import gw.util.PathUtil;
 import editor.util.TaskQueue;
 import gw.util.GosuExceptionUtil;
 
-import java.net.URI;
-import java.net.URISyntaxException;
 import javax.swing.text.SimpleAttributeSet;
 import javax.swing.text.StyleConstants;
 import java.awt.*;
@@ -190,21 +188,7 @@ public abstract class AbstractOutOfProcessExecutor<T extends IRunConfig> impleme
 
     if( bToolsJar )
     {
-      String javaHome = System.getProperty( "java.home" );
-      String toolsJar = javaHome + File.separator + "lib" + File.separator + "tools.jar";
-      if( !new File( toolsJar ).isFile() )
-      {
-        try
-        {
-          URI toolsJarUri = JavacTool.class.getProtectionDomain().getCodeSource().getLocation().toURI();
-          toolsJar = new File( toolsJarUri ).getAbsolutePath();
-        }
-        catch( URISyntaxException e )
-        {
-          System.out.println( "Could not find tools.jar" );
-        }
-      }
-      classpath.append( toolsJar ).append( File.pathSeparator );
+      classpath.append( PathUtil.findToolsJar() ).append( File.pathSeparator );
     }
 
     return classpath.toString();
@@ -214,7 +198,7 @@ public abstract class AbstractOutOfProcessExecutor<T extends IRunConfig> impleme
   {
     if( CompilerSettings.isStaticCompile() )
     {
-      classpath.append( CompilerSettings.getCompilerOutputDir().getAbsolutePath() ).append( File.pathSeparator );
+      classpath.append( PathUtil.getAbsolutePathName( CompilerSettings.getCompilerOutputDir() ) ).append( File.pathSeparator );
     }
     Experiment experiment = gosuPanel.getExperiment();
     List<String> srcPaths = experiment.getSourcePath();
@@ -226,7 +210,7 @@ public abstract class AbstractOutOfProcessExecutor<T extends IRunConfig> impleme
         continue;
       }
 
-      if( !CompilerSettings.isStaticCompile() || new File( path ).getAbsoluteFile().isFile() )
+      if( !CompilerSettings.isStaticCompile() || PathUtil.isFile( PathUtil.getAbsolutePath( PathUtil.create( path ) ) ) )
       {
         // Include jars in classpath, include source directories only if running with static compilation OFF
         classpath.append( path ).append( File.pathSeparator );

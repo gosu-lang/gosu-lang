@@ -1,16 +1,15 @@
 package editor.search;
 
-import editor.ExternalFileTree;
 import editor.FileTree;
 import editor.FileTreeUtil;
 import editor.GosuPanel;
 import editor.LabFrame;
 import editor.NodeKind;
+import java.nio.file.Path;
+import gw.util.PathUtil;
 import gw.util.GosuStringUtil;
 import gw.util.StreamUtil;
 
-import java.io.File;
-import java.io.FileReader;
 import java.io.Reader;
 import java.util.ArrayList;
 import java.util.List;
@@ -45,8 +44,8 @@ public class TextSearcher extends AbstractSearcher
     // Search
 
     String content;
-    File file = tree.getFileOrDir();
-    try( Reader reader = new FileReader( file ) )
+    Path file = tree.getFileOrDir();
+    try( Reader reader = PathUtil.createReader( file ) )
     {
       content = StreamUtil.getContent( reader );
       content = GosuStringUtil.replace( content, "\r\n", "\n" );
@@ -86,11 +85,7 @@ public class TextSearcher extends AbstractSearcher
   public List<SearchLocation> searchLocal()
   {
     GosuPanel gosuPanel = LabFrame.instance().getGosuPanel();
-    FileTree tree = FileTreeUtil.find( gosuPanel.getCurrentFile() );
-    if( tree == null )
-    {
-      tree = new ExternalFileTree( gosuPanel.getCurrentFile(), gosuPanel.getCurrentEditor().getParsedClass().getName() );
-    }
+    FileTree tree = FileTreeUtil.find( gosuPanel.getCurrentFile(), gosuPanel.getCurrentEditor().getParsedClass().getName() );
     SearchTree results = new SearchTree( "root", NodeKind.Directory, SearchTree.empty() );
     searchTree( tree, results, this::isTextFile, null );
     return findLocations( results, new ArrayList<>() );

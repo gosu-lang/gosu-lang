@@ -1,6 +1,8 @@
 package editor;
 
 import editor.util.EditorUtilities;
+import java.nio.file.Path;
+import gw.util.PathUtil;
 import editor.util.PlatformUtil;
 import editor.util.Experiment;
 import editor.util.SmartMenu;
@@ -15,9 +17,6 @@ import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.StringSelection;
 import java.awt.datatransfer.Transferable;
 import java.awt.event.ActionEvent;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
 
@@ -159,7 +158,7 @@ public class ExperimentTreeContextMenu implements IContextMenuHandler<JTree>
       {
         return "Open in Explorer";
       }
-      return "Open in File Manager";
+      return "Open in Path Manager";
     }
 
     public OpenOnDesktopAction( JTree tree )
@@ -220,7 +219,7 @@ public class ExperimentTreeContextMenu implements IContextMenuHandler<JTree>
       if( item != null )
       {
         Clipboard clipboard = _experiment.getGosuPanel().getClipboard();
-        clipboard.setContents( new StringSelection( item.getFileOrDir().getAbsolutePath() ), this );
+        clipboard.setContents( new StringSelection( PathUtil.getAbsolutePathName( item.getFileOrDir() ) ), this );
       }
     }
   }
@@ -260,7 +259,7 @@ public class ExperimentTreeContextMenu implements IContextMenuHandler<JTree>
           {
             path = path.substring( CUT_PREFIX.length() );
           }
-          return new File( path ).exists();
+          return PathUtil.exists( PathUtil.create( path ) );
         }
         return false;
       }
@@ -285,15 +284,14 @@ public class ExperimentTreeContextMenu implements IContextMenuHandler<JTree>
           {
             path = path.substring( CUT_PREFIX.length() );
           }
-          File source = new File( path );
-          File target = selection.getFileOrDir().isFile() ? selection.getFileOrDir().getParentFile() : selection.getFileOrDir();
-          File newSource = new File( target.getAbsolutePath() + File.separator + source.getName() );
+          Path source = PathUtil.create( path );
+          Path target = PathUtil.isFile( selection.getFileOrDir() ) ? selection.getFileOrDir().getParent() : selection.getFileOrDir();
+          Path newSource = PathUtil.create( PathUtil.getAbsolutePath( target ), PathUtil.getName( source ) );
           if( bCut )
           {
-            if( !newSource.exists() )
+            if( !PathUtil.exists( newSource ) )
             {
-              //noinspection ResultOfMethodCallIgnored
-              source.renameTo( newSource );
+              PathUtil.renameTo( source, newSource );
             }
           }
           else
@@ -332,7 +330,7 @@ public class ExperimentTreeContextMenu implements IContextMenuHandler<JTree>
       if( item != null )
       {
         Clipboard clipboard = _experiment.getGosuPanel().getClipboard();
-        clipboard.setContents( new StringSelection( CUT_PREFIX + item.getFileOrDir().getAbsolutePath() ), this );
+        clipboard.setContents( new StringSelection( CUT_PREFIX + PathUtil.getAbsolutePathName( item.getFileOrDir() ) ), this );
       }
     }
   }
@@ -364,25 +362,25 @@ public class ExperimentTreeContextMenu implements IContextMenuHandler<JTree>
     }
   }
 
-  public void copy( File from, File to )
+  public void copy( Path from, Path to )
   {
-    if( from.isDirectory() )
+    if( PathUtil.isDirectory( from ) )
     {
-      //noinspection ResultOfMethodCallIgnored
-      to.mkdir();
+      PathUtil.mkdir( to );
 
-      String[] children = from.list();
+      Path[] children = PathUtil.listFiles( from );
       for( int i = 0; i < children.length; i++ )
       {
-        copy( new File( from, children[i] ), new File( to, children[i] ) );
+        String name = PathUtil.getName( children[i] );
+        copy( PathUtil.create( from, name ), PathUtil.create( to, name ) );
       }
     }
     else
     {
       try
       {
-        InputStream in = new FileInputStream( from );
-        OutputStream out = new FileOutputStream( to );
+        InputStream in = PathUtil.createInputStream( from );
+        OutputStream out = PathUtil.createOutputStream( to );
         byte[] buf = new byte[1024];
         int len;
         while( (len = in.read( buf )) > 0 )

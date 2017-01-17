@@ -5,7 +5,6 @@
 package gw.internal.gosu.parser;
 
 import gw.config.CommonServices;
-import gw.internal.gosu.parser.java.classinfo.JavaSourceElement;
 import gw.lang.Deprecated;
 import gw.lang.GosuShop;
 import gw.lang.PublishedName;

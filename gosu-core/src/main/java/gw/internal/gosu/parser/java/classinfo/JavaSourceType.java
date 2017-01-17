@@ -1287,6 +1287,12 @@ public abstract class JavaSourceType extends AbstractJavaClassInfo implements IJ
     return _enclosingClass;
   }
 
+  @Override
+  public IJavaClassInfo getDeclaringClass()
+  {
+    return this;
+  }
+
   public String toString()
   {
     return getName();
@@ -1359,5 +1365,11 @@ public abstract class JavaSourceType extends AbstractJavaClassInfo implements IJ
       return fileObj.getBytes();
     }
     throw new JavaCompileIssuesException( errorHandler );
+  }
+
+  @Override
+  public ClassTree getTree()
+  {
+    return _typeDecl;
   }
 }

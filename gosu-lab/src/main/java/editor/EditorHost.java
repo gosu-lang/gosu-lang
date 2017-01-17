@@ -3,6 +3,7 @@ package editor;
 import editor.search.SearchLocation;
 import editor.undo.AtomicUndoManager;
 import editor.util.EditorUtilities;
+import java.nio.file.Path;
 import editor.util.TaskQueue;
 import editor.util.TextComponentUtil;
 import editor.util.transform.java.JavaToGosu;
@@ -29,7 +30,6 @@ import java.awt.event.InputEvent;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
-import java.io.File;
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.ArrayList;
@@ -356,7 +356,7 @@ public abstract class EditorHost extends JPanel implements IEditorHost
   public void showFileInTree()
   {
     GosuPanel gosuPanel = LabFrame.instance().getGosuPanel();
-    File file = gosuPanel.getCurrentFile();
+    Path file = gosuPanel.getCurrentFile();
 
     FileTree root = FileTreeUtil.getRoot();
     FileTree fileTree = root.find( file );

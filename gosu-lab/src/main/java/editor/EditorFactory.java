@@ -1,30 +1,25 @@
 package editor;
 
 import editor.undo.AtomicUndoManager;
+import java.nio.file.Path;
 import gw.lang.parser.IScriptPartId;
 import gw.lang.parser.ScriptabilityModifiers;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.gs.IGosuClass;
-import java.io.File;
+import gw.util.PathUtil;
 
 /**
  */
 public class EditorFactory
 {
-  public static EditorHost createEditor( File file, IScriptPartId partId )
+  public static EditorHost createEditor( Path file, IScriptPartId partId )
   {
-    FileTree fileTree = FileTreeUtil.find( file );
-    if( fileTree == null )
-    {
-      //## todo: add this to the root as an external filetree?
-      fileTree = FileTreeUtil.makeExternalFileTree( file, partId == null ? null : partId.getContainingTypeName() );
-    }
-
+    FileTree fileTree = FileTreeUtil.find( file, partId == null ? null : partId.getContainingTypeName() );
     IType type = fileTree.getType();
     return createEditor( file, type );
   }
 
-  private static EditorHost createEditor( File file, IType type )
+  private static EditorHost createEditor( Path file, IType type )
   {
     if( type instanceof IGosuClass )
     {
@@ -44,25 +39,25 @@ public class EditorFactory
 
   }
 
-  private static GosuEditor initEditorMode( File file, GosuEditor editor )
+  private static GosuEditor initEditorMode( Path file, GosuEditor editor )
   {
-    if( file != null && file.getName() != null )
+    if( file != null && PathUtil.getName( file ) != null )
     {
-      if( file.getName().endsWith( ".gsx" ) )
+      if( PathUtil.getName( file ).endsWith( ".gsx" ) )
       {
         editor.setProgram( false );
         editor.setTemplate( false );
         editor.setClass( false );
         editor.setEnhancement( true );
       }
-      else if( file.getName().endsWith( ".gs" ) )
+      else if( PathUtil.getName( file ).endsWith( ".gs" ) )
       {
         editor.setProgram( false );
         editor.setTemplate( false );
         editor.setClass( true );
         editor.setEnhancement( false );
       }
-      else if( file.getName().endsWith( ".gst" ) )
+      else if( PathUtil.getName( file ).endsWith( ".gst" ) )
       {
         editor.setProgram( false );
         editor.setTemplate( true );

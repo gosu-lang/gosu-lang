@@ -27,6 +27,8 @@ import java.nio.charset.CharacterCodingException;
 import java.nio.charset.Charset;
 import java.nio.charset.CharsetEncoder;
 import java.nio.charset.CodingErrorAction;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Properties;
 
 public class StreamUtil
@@ -258,6 +260,39 @@ public class StreamUtil
       //noinspection ResultOfMethodCallIgnored
       try( InputStream is = new BufferedInputStream( new FileInputStream( fileOrDirectory ) );
            OutputStream os = new BufferedOutputStream( new FileOutputStream( copy ) ) )
+      {
+        StreamUtil.copy( is, os );
+      }
+      catch( Exception e )
+      {
+        throw new RuntimeException( e );
+      }
+    }
+  }
+  /**
+   * Recursively copy a file or directory to a directory.
+   */
+  public static void copy( Path fileOrDirectory, Path toDir )
+  {
+    Path copy = PathUtil.create( toDir, PathUtil.getName( fileOrDirectory ) );
+    if( PathUtil.isDirectory( fileOrDirectory ) )
+    {
+      //noinspection ResultOfMethodCallIgnored
+      try
+      {
+        PathUtil.mkdir( copy );
+        Files.list( fileOrDirectory ).forEach( child -> copy( child, copy ) );
+      }
+      catch( IOException e )
+      {
+        throw new RuntimeException( e );
+      }
+    }
+    else
+    {
+      //noinspection ResultOfMethodCallIgnored
+      try( InputStream is = new BufferedInputStream( Files.newInputStream( fileOrDirectory ) );
+           OutputStream os = new BufferedOutputStream( Files.newOutputStream( copy ) ) )
       {
         StreamUtil.copy( is, os );
       }

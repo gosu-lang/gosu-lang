@@ -4,6 +4,7 @@
 
 package gw.internal.gosu.parser.java.classinfo;
 
+import com.sun.source.tree.Tree;
 import gw.lang.javadoc.IClassDocNode;
 import gw.lang.parser.TypeVarToTypeMap;
 import gw.lang.reflect.IAnnotationInfo;
@@ -20,6 +21,7 @@ import gw.lang.reflect.java.IJavaClassTypeVariable;
 import gw.lang.reflect.java.IJavaMethodDescriptor;
 import gw.lang.reflect.java.IJavaPropertyDescriptor;
 import gw.lang.reflect.java.IJavaType;
+import gw.lang.reflect.java.JavaSourceElement;
 import gw.lang.reflect.java.JavaTypes;
 import gw.lang.reflect.module.IModule;
 import gw.util.concurrent.LocklessLazyVar;
@@ -325,7 +327,29 @@ public class JavaArrayClassInfo extends AbstractJavaClassInfo
   }
 
   @Override
+  public Tree getTree()
+  {
+    IJavaClassInfo componentType = getComponentType();
+    if( componentType instanceof JavaSourceElement )
+    {
+      return ((JavaSourceElement)componentType).getTree();
+    }
+    return null;
+  }
+
+  @Override
   public IJavaClassInfo getEnclosingClass() {
+    return null;
+  }
+
+  @Override
+  public IJavaClassInfo getDeclaringClass()
+  {
+    IJavaClassInfo componentType = getComponentType();
+    if( componentType instanceof JavaSourceElement )
+    {
+      return ((JavaSourceElement)componentType).getDeclaringClass();
+    }
     return null;
   }
 }

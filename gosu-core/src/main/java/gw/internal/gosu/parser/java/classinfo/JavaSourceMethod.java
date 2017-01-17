@@ -25,6 +25,7 @@ import gw.lang.reflect.java.IJavaClassType;
 import gw.lang.reflect.java.IJavaClassTypeVariable;
 import gw.lang.reflect.java.IJavaMethodInfo;
 import gw.lang.reflect.java.ITypeInfoResolver;
+import gw.lang.reflect.java.JavaSourceElement;
 import gw.lang.reflect.module.IModule;
 
 import javax.lang.model.element.Name;
@@ -130,7 +131,7 @@ public class JavaSourceMethod extends JavaSourceElement implements IJavaClassMet
   }
 
   @Override
-  protected Tree getTree()
+  public Tree getTree()
   {
     return _method;
   }

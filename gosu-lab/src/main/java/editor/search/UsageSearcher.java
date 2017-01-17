@@ -745,17 +745,8 @@ public class UsageSearcher extends AbstractSearcher
   public List<SearchLocation> searchLocal()
   {
     GosuPanel gosuPanel = LabFrame.instance().getGosuPanel();
-    FileTree tree = FileTreeUtil.find( gosuPanel.getCurrentFile() );
-    IType type;
-    if( tree == null )
-    {
-      type = gosuPanel.getCurrentEditor().getParsedClass();
-      tree = new ExternalFileTree( gosuPanel.getCurrentFile(), type.getName() );
-    }
-    else
-    {
-      type = tree.getType();
-    }
+    FileTree tree = FileTreeUtil.find( gosuPanel.getCurrentFile(), gosuPanel.getCurrentEditor().getParsedClass().getName() );
+    IType type = tree.getType();
     SearchTree results = new SearchTree( "root", NodeKind.Directory, SearchTree.empty() );
     searchTree( tree, results, ft -> ft.getType() instanceof IGosuClass, null );
     List<SearchLocation> locations = findLocations( results, new ArrayList<>() );

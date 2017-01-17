@@ -2,12 +2,15 @@ package editor;
 
 import editor.util.EditorUtilities;
 import editor.util.Experiment;
+import gw.util.PathUtil;
 import editor.util.SourceFileCreator;
 import gw.config.CommonServices;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.ITypeLoader;
 import gw.lang.reflect.TypeSystem;
 
+import java.io.File;
+import java.nio.file.Path;
 import javax.swing.*;
 import javax.swing.filechooser.FileSystemView;
 import javax.swing.tree.DefaultTreeModel;
@@ -15,7 +18,6 @@ import javax.swing.tree.MutableTreeNode;
 import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 import java.awt.*;
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Enumeration;
@@ -27,7 +29,7 @@ import java.util.List;
 public class FileTree implements MutableTreeNode, IFileWatcherListener
 {
   private String _name;
-  private File _fileOrDir;
+  private Path _fileOrDir;
   private FileTree _parent;
   private List<FileTree> _children;
   private Experiment _experiment;
@@ -42,13 +44,13 @@ public class FileTree implements MutableTreeNode, IFileWatcherListener
     addSourcePaths( experiment );
   }
 
-  protected FileTree( File fileOrDir, FileTree parent, Experiment experiment )
+  protected FileTree( Path fileOrDir, FileTree parent, Experiment experiment )
   {
     _fileOrDir = fileOrDir;
     _parent = parent;
     _experiment = experiment;
-    _name = _fileOrDir.getName();
-    if( _fileOrDir.isDirectory() )
+    _name = PathUtil.getName( _fileOrDir );
+    if( PathUtil.isDirectory( _fileOrDir ) )
     {
       makeSourcePathChildren();
       FileWatcher.instance( _experiment ).register( this );
@@ -74,11 +76,11 @@ public class FileTree implements MutableTreeNode, IFileWatcherListener
     _children = new ArrayList<>();
     for( String path: sourcePath )
     {
-      File srcPath = new File( path );
+      Path srcPath = PathUtil.create( path );
       //noinspection ResultOfMethodCallIgnored
-      srcPath.mkdirs();
-      String srcPathAbsolute = srcPath.getAbsolutePath();
-      String experimentDir = experiment.getExperimentDir().getAbsolutePath();
+      PathUtil.mkdirs( srcPath );
+      String srcPathAbsolute = PathUtil.getAbsolutePathName( srcPath );
+      String experimentDir = PathUtil.getAbsolutePathName( experiment.getExperimentDir() );
       if( srcPathAbsolute.startsWith( experimentDir + File.separator ) )
       {
         // Only include *source* path in the tree; classpath is mixed in source path :|
@@ -94,13 +96,13 @@ public class FileTree implements MutableTreeNode, IFileWatcherListener
   {
     makeSourcePathChildren( _fileOrDir );
   }
-  private void makeSourcePathChildren( File fileOrDir )
+  private void makeSourcePathChildren( Path fileOrDir )
   {
     List<FileTree> children = new ArrayList<>();
-    File[] files = fileOrDir.listFiles();
+    Path[] files = PathUtil.listFiles( fileOrDir );
     if( files != null )
     {
-      for( File path : files )
+      for( Path path : files )
       {
         FileTree insert = new FileTree( path, this, _experiment );
         children.add( getSortedIndex( children, insert ), insert );
@@ -125,12 +127,12 @@ public class FileTree implements MutableTreeNode, IFileWatcherListener
     return count;
   }
 
-  private boolean isInSourcePath( File path )
+  private boolean isInSourcePath( Path path )
   {
+    String absolutePath = PathUtil.getAbsolutePathName( path );
     for( String sp: _experiment.getSourcePath() )
     {
-      sp = new File( sp ).getAbsolutePath();
-      String absolutePath = path.getAbsolutePath();
+      sp = PathUtil.getAbsolutePathName( sp );
       if( absolutePath.contains( sp ) )
       {
         return true;
@@ -139,7 +141,7 @@ public class FileTree implements MutableTreeNode, IFileWatcherListener
     return false;
   }
 
-  public FileTree find( File file )
+  public FileTree find( Path file )
   {
     if( getFileOrDir().equals( file ) )
     {
@@ -184,19 +186,19 @@ public class FileTree implements MutableTreeNode, IFileWatcherListener
     return null;
   }
 
-  public File getFileOrDir()
+  public Path getFileOrDir()
   {
     return _fileOrDir;
   }
 
   public boolean isDirectory()
   {
-    return _fileOrDir.isDirectory();
+    return PathUtil.isDirectory( _fileOrDir );
   }
 
   public boolean isFile()
   {
-    return _fileOrDir.isFile();
+    return PathUtil.isFile( _fileOrDir );
   }
 
   public List<FileTree> getChildren()
@@ -311,7 +313,7 @@ public class FileTree implements MutableTreeNode, IFileWatcherListener
   @Override
   public void fireCreate( String dir, String file )
   {
-    File newFileOrDir = new File( dir, file );
+    Path newFileOrDir = PathUtil.create( dir, file );
     EventQueue.invokeLater( () -> {
       FileTree fileTree = new FileTree( newFileOrDir, this, _experiment );
       ((DefaultTreeModel)getExperimentView().getTree().getModel()).insertNodeInto( fileTree, this, getSortedIndex( getChildren(), fileTree ) );
@@ -334,26 +336,26 @@ public class FileTree implements MutableTreeNode, IFileWatcherListener
 
   private void handleNewFile( FileTree fileTree )
   {
-    File file = fileTree.getFileOrDir();
+    Path file = fileTree.getFileOrDir();
     if( isTypeFile( fileTree ) )
     {
-      TypeSystem.created( CommonServices.getFileSystem().getIFile( file ) );
+      TypeSystem.created( CommonServices.getFileSystem().getIFile( file.toFile() ) );
       TypeSystem.refresh( TypeSystem.getGlobalModule() );
     }
-    File createdFile = SourceFileCreator.instance().getCreated();
+    Path createdFile = SourceFileCreator.instance().getCreated();
     if( createdFile != null && createdFile.equals( file ) )
     {
       openFile( fileTree, file );
     }
   }
 
-  private void openFile( FileTree fileTree, File file )
+  private void openFile( FileTree fileTree, Path file )
   {
     LabFrame.instance().openFile( file );
     SourceFileCreator.instance().clearCreated();
 
     EventQueue.invokeLater( () -> {
-      File currentFile = getExperiment().getGosuPanel().getCurrentFile();
+      Path currentFile = getExperiment().getGosuPanel().getCurrentFile();
       if( currentFile != null && currentFile.equals( file ) )
       {
         fileTree.select();
@@ -371,7 +373,7 @@ public class FileTree implements MutableTreeNode, IFileWatcherListener
 
     for( ITypeLoader tl: TypeSystem.getAllTypeLoaders() )
     {
-      if( tl.handlesFile( CommonServices.getFileSystem().getIFile( fileTree.getFileOrDir() ) ) )
+      if( tl.handlesFile( PathUtil.getIFile( fileTree.getFileOrDir() ) ) )
       {
         return true;
       }
@@ -382,26 +384,26 @@ public class FileTree implements MutableTreeNode, IFileWatcherListener
   @Override
   public void fireModify( String dir, String file )
   {
-    File existingFile = new File( dir, file );
-    if( !existingFile.isFile() )
+    Path existingFile = PathUtil.create( dir, file );
+    if( !PathUtil.exists( existingFile ) )
     {
       return;
     }
 
     FileTree child = find( existingFile );
-    if( child == null || child._lastModified - existingFile.lastModified() >= 0 )
+    if( child == null || child._lastModified - PathUtil.lastModified( existingFile ) >= 0 )
     {
       return;
     }
 
-    child._lastModified = existingFile.lastModified();
+    child._lastModified = PathUtil.lastModified( existingFile );
     EventQueue.invokeLater( () -> getExperiment().getGosuPanel().refresh( existingFile ) );
   }
 
   @Override
   public void fireDelete( String dir, String file )
   {
-    File existingFile = new File( dir, file );
+    Path existingFile = PathUtil.create( dir, file );
     FileTree fileTree = find( existingFile );
     if( fileTree != null )
     {
@@ -428,7 +430,7 @@ public class FileTree implements MutableTreeNode, IFileWatcherListener
   {
     if( isTypeFile( fileTree ) )
     {
-      TypeSystem.deleted( CommonServices.getFileSystem().getIFile( fileTree.getFileOrDir() ) );
+      TypeSystem.deleted( PathUtil.getIFile( fileTree.getFileOrDir() ) );
       return true;
     }
     return false;
@@ -476,7 +478,7 @@ public class FileTree implements MutableTreeNode, IFileWatcherListener
 
   public boolean isSourcePathRoot()
   {
-    return isDirectory() && getExperiment().getSourcePath().contains( getFileOrDir().getAbsolutePath() );
+    return isDirectory() && getExperiment().getSourcePath().contains( PathUtil.getAbsolutePathName( getFileOrDir() ) );
   }
 
   public FileTree getSourcePathRoot()
@@ -502,11 +504,11 @@ public class FileTree implements MutableTreeNode, IFileWatcherListener
   public String makeFqn()
   {
     FileTree sourcePathRoot = getSourcePathRoot();
-    if( isDirectory() || isSourcePathRoot() || sourcePathRoot == null || getFileOrDir().getName().indexOf( '.' ) < 0 )
+    if( isDirectory() || isSourcePathRoot() || sourcePathRoot == null || PathUtil.getName( getFileOrDir() ).indexOf( '.' ) < 0 )
     {
       return null;
     }
-    String fqn = getFileOrDir().getAbsolutePath().substring( sourcePathRoot.getFileOrDir().getAbsolutePath().length() + 1 );
+    String fqn = PathUtil.getAbsolutePathName( getFileOrDir() ).substring( PathUtil.getAbsolutePathName( sourcePathRoot.getFileOrDir() ).length() + 1 );
     fqn = fqn.substring( 0, fqn.lastIndexOf( '.' ) ).replace( File.separatorChar, '.' );
     return fqn;
   }
@@ -537,7 +539,7 @@ public class FileTree implements MutableTreeNode, IFileWatcherListener
         return;
       }
 
-      LabFrame.delete( getFileOrDir() );
+      PathUtil.delete( getFileOrDir(), true );
     }
   }
 
@@ -568,7 +570,15 @@ public class FileTree implements MutableTreeNode, IFileWatcherListener
     {
       return EditorUtilities.findIcon( getType() );
     }
-    return FileSystemView.getFileSystemView().getSystemIcon( getFileOrDir() );
+    try
+    {
+      File file = getFileOrDir().toFile();
+      return FileSystemView.getFileSystemView().getSystemIcon( file );
+    }
+    catch( UnsupportedOperationException e )
+    {
+      return EditorUtilities.loadIcon( "images/FileText.png" );
+    }
   }
 
   public int getTotalFiles()

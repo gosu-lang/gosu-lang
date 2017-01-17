@@ -4,6 +4,7 @@
 
 package gw.internal.gosu.parser.java.classinfo;
 
+import com.sun.source.tree.Tree;
 import gw.lang.GosuShop;
 import gw.lang.javadoc.IClassDocNode;
 import gw.lang.parser.TypeVarToTypeMap;
@@ -267,6 +268,12 @@ public class JavaSourceUnresolvedClass extends AbstractJavaClassInfo implements 
   @Override
   public IAnnotationInfo[] getDeclaredAnnotations() {
     return new IAnnotationInfo[0];  
+  }
+
+  @Override
+  public Tree getTree()
+  {
+    return null;
   }
 
   @Override

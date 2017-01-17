@@ -2,6 +2,7 @@ package editor;
 
 import editor.util.EditorUtilities;
 import editor.util.Experiment;
+import gw.util.PathUtil;
 import gw.fs.IFile;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.TypeSystem;
@@ -60,11 +61,9 @@ public class GotoTypePopup extends AbstractGotoPopup<String>
       IFile[] sourceFiles = type.getSourceFiles();
       if( sourceFiles != null && sourceFiles.length > 0 )
       {
+        //## todo: maybe support multiple files here?
         IFile sourceFile = sourceFiles[0];
-        if( sourceFile.isJavaFile() )
-        {
-          LabFrame.instance().openFile( sourceFile.toJavaFile() );
-        }
+        LabFrame.instance().openFile( PathUtil.create( sourceFile.toURI() ) );
       }
     }
     catch( Exception e )
@@ -103,7 +102,7 @@ public class GotoTypePopup extends AbstractGotoPopup<String>
 
   private List<String> filterGosuClassFromExperimentsInResources( List<String> allGosuTypes, Experiment experiment )
   {
-    String experimentPath = experiment.getExperimentDir().getAbsolutePath();
+    String experimentPath = PathUtil.getAbsolutePathName( experiment.getExperimentDir() );
     List<String> relativeSrcPaths = experiment.getSourcePath().stream().map( srcPath ->
       (srcPath.startsWith( experimentPath )
        ? srcPath.substring( experimentPath.length() + 1 )

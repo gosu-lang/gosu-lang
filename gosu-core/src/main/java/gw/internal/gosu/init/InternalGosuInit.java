@@ -12,6 +12,7 @@ import gw.lang.init.IGosuInitialization;
 import gw.lang.reflect.module.IExecutionEnvironment;
 import gw.lang.reflect.module.IModule;
 
+import java.util.Collections;
 import java.util.List;
 
 public class InternalGosuInit implements IGosuInitialization
@@ -28,11 +29,11 @@ public class InternalGosuInit implements IGosuInitialization
   // single module (i.e. runtime)
 
   public void initializeRuntime( IExecutionEnvironment execEnv, List<? extends GosuPathEntry> pathEntries, String... discretePackages ) {
-    ((ExecutionEnvironment)execEnv).initializeDefaultSingleModule( pathEntries, discretePackages );
+    ((ExecutionEnvironment)execEnv).initializeDefaultSingleModule( pathEntries, Collections.emptyList(), discretePackages );
   }
 
   public void reinitializeRuntime( IExecutionEnvironment execEnv, List<? extends GosuPathEntry> pathEntries, String... discretePackages ) {
-    ((ExecutionEnvironment)execEnv).initializeDefaultSingleModule( pathEntries, discretePackages );
+    ((ExecutionEnvironment)execEnv).initializeDefaultSingleModule( pathEntries, Collections.emptyList(), discretePackages );
     TypeLoaderAccess.instance().incrementChecksums();
   }
 

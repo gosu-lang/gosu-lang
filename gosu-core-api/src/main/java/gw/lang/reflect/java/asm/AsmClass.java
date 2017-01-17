@@ -19,6 +19,7 @@ import gw.lang.reflect.java.IJavaClassInfo;
 import gw.lang.reflect.module.IModule;
 
 import java.lang.annotation.Annotation;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -54,6 +55,7 @@ public class AsmClass implements IAsmType, IGeneric {
   }
 
   private Object _module;
+  private URI _uri;
   private int _version;
   private int _modifiers;
   private AsmType _type;
@@ -67,8 +69,9 @@ public class AsmClass implements IAsmType, IGeneric {
   private List<AsmAnnotation> _annotations;
 
 
-  AsmClass( Object module ) {
+  AsmClass( Object module, URI uri ) {
     _module = module;
+    _uri = uri;
   }
 
   private AsmClass( AsmPrimitiveType ptype ) {
@@ -85,6 +88,10 @@ public class AsmClass implements IAsmType, IGeneric {
   public void init( byte[] classBytes ) {
     ClassReader cr = new ClassReader( classBytes );
     cr.accept( new AsmClassVisitor(), ClassReader.SKIP_CODE | ClassReader.SKIP_DEBUG | ClassReader.SKIP_FRAMES );
+  }
+
+  public URI getUri() {
+    return _uri;
   }
 
   public AsmType getType() {

@@ -2,8 +2,9 @@ package editor;
 
 import editor.util.EditorUtilities;
 
+import java.nio.file.Path;
+import gw.util.PathUtil;
 import javax.swing.*;
-import java.io.File;
 
 
 /**
@@ -39,18 +40,18 @@ public class EditorTabHistoryHandler implements ITabHistoryHandler
 
   static class EditorTabContext implements ITabHistoryContext
   {
-    private File _contentId;
+    private Path _contentId;
     //private Icon _icon;
 
     public EditorTabContext( EditorHost editor )
     {
-      _contentId = (File)editor.getClientProperty( "_file" );
+      _contentId = (Path)editor.getClientProperty( "_file" );
       //_icon = view.getIcon( BeanInfo.ICON_COLOR_16x16 );
     }
 
     public String getDisplayName()
     {
-      return _contentId.getName();
+      return PathUtil.getName( _contentId );
     }
 
     @Override
@@ -96,7 +97,7 @@ public class EditorTabHistoryHandler implements ITabHistoryHandler
     }
 
     @Override
-    public File getContentId()
+    public Path getContentId()
     {
       return _contentId;
     }

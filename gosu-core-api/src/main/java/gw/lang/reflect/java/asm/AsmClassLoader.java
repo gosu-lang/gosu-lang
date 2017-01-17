@@ -4,9 +4,12 @@
 
 package gw.lang.reflect.java.asm;
 
+import gw.fs.IFile;
 import gw.util.cache.FqnCache;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -21,14 +24,41 @@ public class AsmClassLoader {
     _cache = new FqnCache<>();
   }
 
-  public AsmClass findClass( String fqn, InputStream is ) {
+  public AsmClass findClass( String fqn, IFile file ) {
     AsmClass asmClass = _cache.get( fqn );
     if( asmClass == null ) {
       asmClass = _cache.get( fqn );
       if( asmClass == null ) {
-        asmClass = new AsmClass( _module );
-        _cache.add( fqn, asmClass );
-        asmClass.init( getContent( is ) );
+        try
+        {
+          asmClass = new AsmClass( _module, file.toURI() );
+          _cache.add( fqn, asmClass );
+          asmClass.init( getContent( file.openInputStream() ) );
+        }
+        catch( IOException e )
+        {
+          throw new RuntimeException( e );
+        }
+      }
+    }
+    return asmClass;
+  }
+
+  public AsmClass findClass( String fqn, File file ) {
+    AsmClass asmClass = _cache.get( fqn );
+    if( asmClass == null ) {
+      asmClass = _cache.get( fqn );
+      if( asmClass == null ) {
+        try
+        {
+          asmClass = new AsmClass( _module, file.toURI() );
+          _cache.add( fqn, asmClass );
+          asmClass.init( getContent( new FileInputStream( file ) ) );
+        }
+        catch( IOException e )
+        {
+          throw new RuntimeException( e );
+        }
       }
     }
     return asmClass;

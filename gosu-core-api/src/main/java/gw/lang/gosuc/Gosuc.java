@@ -83,7 +83,7 @@ public class Gosuc implements IGosuc {
     IExecutionEnvironment execEnv = TypeSystem.getExecutionEnvironment( project );
     execEnv.createJreModule( );
     _globalModule = GosuShop.createGlobalModule(execEnv);
-    _globalModule.configurePaths(Collections.<IDirectory>emptyList(), Collections.<IDirectory>emptyList());
+    _globalModule.configurePaths( Collections.emptyList(), Collections.emptyList(), Collections.emptyList() );
     _globalModule.addDependency( new Dependency( execEnv.getJreModule(), true ) );
 
     List<IDirectory> allSourcePaths = new ArrayList<IDirectory>();
@@ -133,7 +133,7 @@ public class Gosuc implements IGosuc {
     IModule gosuModule = GosuShop.createModule( TypeSystem.getExecutionEnvironment( project ),
                                                 gosucModule.getName() );
     List<IDirectory> sourceFolders = getSourceFolders( gosucModule );
-    gosuModule.configurePaths(getClassPaths(gosucModule), sourceFolders);
+    gosuModule.configurePaths( getClassPaths( gosucModule ), sourceFolders, getBackingSourcePaths( gosucModule ) );
     gosuModule.setNativeModule( gosucModule );
     gosuModule.setExcludedPaths(getExcludedFolders( gosucModule ));
     return gosuModule;
@@ -187,12 +187,9 @@ public class Gosuc implements IGosuc {
 
   protected void updateJreModuleWithProjectSdk( GosucProject project, IJreModule jreModule ) {
     GosucSdk projectSdk = project.getSdk();
-    List<String> classFiles = projectSdk.getPaths();
-    List<IDirectory> dirs = new ArrayList<IDirectory>();
-    for (String path : classFiles) {
-      dirs.add(GosucUtil.getDirectoryForPath(path));
-    }
-    jreModule.configurePaths(dirs, Collections.<IDirectory>emptyList());
+    jreModule.configurePaths( GosucUtil.toDirectories( projectSdk.getPaths() ),
+                              Collections.emptyList(),
+                              GosucUtil.toDirectories( projectSdk.getBackingSourcePath() ) );
     jreModule.setNativeSDK( projectSdk );
   }
 
@@ -210,7 +207,9 @@ public class Gosuc implements IGosuc {
     Map<String, List<IDirectory>> classpathMap = createClassPathMap( gosucModules.toArray( new GosucModule[gosucModules.size()] ) );
     for( IModule module : modules ) {
       if( module.getNativeModule() != null ) {
-        module.configurePaths(classpathMap.get(module.getName()), module.getSourcePath());
+        module.configurePaths( classpathMap.get( module.getName() ),
+                               module.getSourcePath(),
+                               module.getBackingSourcePath() );
       }
     }
   }
@@ -274,6 +273,14 @@ public class Gosuc implements IGosuc {
   private static List<IDirectory> getClassPaths(GosucModule gosucModule) {
     List<IDirectory> paths = new ArrayList<IDirectory>();
     for( String path : gosucModule.getClasspath() ) {
+      paths.add( GosucUtil.getDirectoryForPath( path ) );
+    }
+    return paths;
+  }
+
+  private static List<IDirectory> getBackingSourcePaths( GosucModule gosucModule ) {
+    List<IDirectory> paths = new ArrayList<>();
+    for( String path : gosucModule.getBackingSourcePath() ) {
       paths.add( GosucUtil.getDirectoryForPath( path ) );
     }
     return paths;

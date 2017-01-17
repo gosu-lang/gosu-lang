@@ -120,12 +120,7 @@ public class ClassCache {
       if( ignoreTheCache || _classPathCache.get().contains( className ) ) {
         IFile file = _classPathCache.get().get( className );
         if( file != null ) {
-          try {
-            return _asmClassLoader.findClass( className, file.openInputStream() );
-          }
-          catch( IOException e ) {
-            throw new RuntimeException( e );
-          }
+          return _asmClassLoader.findClass( className, file );
         }
       }
       i = s.lastIndexOf( "." );

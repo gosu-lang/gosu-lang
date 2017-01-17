@@ -1,13 +1,14 @@
 package editor;
 
 import editor.util.EditorUtilities;
+import java.nio.file.Path;
 import editor.util.SmartMenuItem;
 
+import gw.util.PathUtil;
 import javax.swing.*;
 import javax.swing.event.MenuEvent;
 import javax.swing.event.MenuListener;
 import java.awt.event.ActionEvent;
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -82,11 +83,11 @@ public class ReopenExperimentPopup implements MenuListener
     for( int i = 1; i < experiments.size(); i++ )
     {
       String exp = experiments.get( i );
-      File dir = new File( exp );
-      if( dir.exists() )
+      Path dir = PathUtil.create( exp );
+      if( PathUtil.exists( dir ) )
       {
-        String label = dir.getName() + " - [" + exp + "]";
-        addNewItem( label, "images/g_16.png", () -> LabFrame.instance().getGosuPanel().openExperiment( new File( exp ) ) );
+        String label = PathUtil.getName( dir ) + " - [" + exp + "]";
+        addNewItem( label, "images/g_16.png", () -> LabFrame.instance().getGosuPanel().openExperiment( PathUtil.create( exp ) ) );
       }
     }
   }

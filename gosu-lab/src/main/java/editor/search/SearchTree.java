@@ -6,19 +6,18 @@ import editor.FileTree;
 import editor.ITreeNode;
 import editor.LabFrame;
 import editor.NodeKind;
+import java.nio.file.Path;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.ITypeRef;
 import gw.lang.reflect.TypeSystem;
 import gw.util.GosuEscapeUtil;
+import gw.util.PathUtil;
 import gw.util.StreamUtil;
 
 import javax.swing.*;
 import javax.swing.text.AbstractDocument;
 import java.awt.*;
 import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.Reader;
 import java.io.Writer;
 import java.util.function.Consumer;
@@ -103,7 +102,7 @@ public class SearchTree extends AbstractTree<SearchTree, SearchTree.SearchTreeNo
 
   private String getTextLine( SearchLocation loc )
   {
-    try( BufferedReader reader = new BufferedReader( new FileReader( getNode().getFile().getFileOrDir() ) ) )
+    try( BufferedReader reader = PathUtil.createReader( getNode().getFile().getFileOrDir() ) )
     {
       for( int line = 0; line < loc._iLine; line++ )
       {
@@ -203,7 +202,7 @@ public class SearchTree extends AbstractTree<SearchTree, SearchTree.SearchTreeNo
 
   private void maybeUpdateDoc( int iOffset, int iLength, String pattern )
   {
-    File file = getNode().getFile().getFileOrDir();
+    Path file = getNode().getFile().getFileOrDir();
     EditorHost editor = LabFrame.instance().getGosuPanel().findTab( file );
     if( editor == null )
     {
@@ -234,7 +233,7 @@ public class SearchTree extends AbstractTree<SearchTree, SearchTree.SearchTreeNo
   {
     SearchTreeNode node = getNode();
     StringBuilder content;
-    try( Reader reader = new FileReader( node.getFile().getFileOrDir() ) )
+    try( Reader reader = PathUtil.createReader( node.getFile().getFileOrDir() ) )
     {
       content = new StringBuilder( StreamUtil.getContent( reader ).replace( "\r\n", "\n" ) );
     }
@@ -246,7 +245,7 @@ public class SearchTree extends AbstractTree<SearchTree, SearchTree.SearchTreeNo
     contentChanger.accept( content );
 
     node.getFile().setLastModified();
-    try( Writer writer = new FileWriter( node.getFile().getFileOrDir() ) )
+    try( Writer writer = PathUtil.createWriter( node.getFile().getFileOrDir() ) )
     {
       writer.write( content.toString() );
     }

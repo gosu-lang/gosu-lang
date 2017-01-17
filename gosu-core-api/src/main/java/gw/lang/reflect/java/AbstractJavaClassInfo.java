@@ -4,7 +4,7 @@
 
 package gw.lang.reflect.java;
 
-public abstract class AbstractJavaClassInfo implements IJavaClassInfo {
+public abstract class AbstractJavaClassInfo extends JavaSourceElement implements IJavaClassInfo {
   
   @Override
   public boolean isAssignableFrom(IJavaClassInfo that) {

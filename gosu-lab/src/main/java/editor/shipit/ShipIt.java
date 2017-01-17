@@ -2,12 +2,12 @@ package editor.shipit;
 
 import editor.LabFrame;
 import editor.util.Experiment;
+import java.io.File;
+import java.nio.file.Path;
+import gw.util.PathUtil;
 import gw.lang.Gosu;
 
 import java.io.BufferedOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStreamWriter;
@@ -48,18 +48,17 @@ public class ShipIt
     String strProgramName = dlg.getProgramName();
 
     List<String> progClasspath = new ArrayList<>();
-    File outFile = new File( experiment.getExperimentDir(), experiment.getName() + ".jar" );
-    if( outFile.exists() )
+    Path outFile = PathUtil.create( experiment.getExperimentDir(), experiment.getName() + ".jar" );
+    if( PathUtil.exists( outFile ) )
     {
-      //noinspection ResultOfMethodCallIgnored
-      outFile.delete();
+      PathUtil.delete( outFile );
     }
 
     _entries = new HashSet<>();
     _jars = new ArrayList<>();
     try
     {
-      BufferedOutputStream bo = new BufferedOutputStream( new FileOutputStream( outFile ) );
+      BufferedOutputStream bo = new BufferedOutputStream( PathUtil.createOutputStream( outFile ) );
       _jo = new JarOutputStream( bo );
 
       // Add source paths
@@ -86,8 +85,7 @@ public class ShipIt
         if( !ExperimentBuild.instance().rebuild( this::addPrecompiledClass ) )
         {
           _jo.close();
-          //noinspection ResultOfMethodCallIgnored
-          outFile.delete();
+          PathUtil.delete( outFile );
           return false;
         }
       }
@@ -155,9 +153,10 @@ public class ShipIt
     for( String path : classpath )
     {
       if( path.contains( "gw-asm-all" ) ||
-          path.contains( "gosu-core" ) )
+          path.contains( "gosu-core" ) ||
+          path.contains( "tools.jar" ) )
       {
-        addClasspathEntry( progClasspath, new File( path ) );
+        addClasspathEntry( progClasspath, PathUtil.create( path ) );
       }
     }
   }
@@ -175,7 +174,7 @@ public class ShipIt
         continue;
       }
 
-      addClasspathEntry( progClasspath, new File( path ) );
+      addClasspathEntry( progClasspath, PathUtil.create( path ) );
     }
   }
 
@@ -192,19 +191,19 @@ public class ShipIt
     writer.flush();
   }
 
-  private void addClasspathEntry( List<String> progClasspath, File csr ) throws IOException
+  private void addClasspathEntry( List<String> progClasspath, Path csr ) throws IOException
   {
-    if( csr.isDirectory() )
+    if( PathUtil.isDirectory( csr ) )
     {
-      for( File fileOrDir : csr.getAbsoluteFile().listFiles() )
+      for( Path fileOrDir: PathUtil.listFiles( PathUtil.getAbsolutePath( csr ) ) )
       {
         addEntry( fileOrDir, "" );
-        progClasspath.add( fileOrDir.getAbsolutePath() );
+        progClasspath.add( PathUtil.getAbsolutePathName( fileOrDir ) );
       }
     }
     else
     {
-      String lowercaseName = csr.getName().toLowerCase();
+      String lowercaseName = PathUtil.getName( csr ).toLowerCase();
       if( lowercaseName.endsWith( ".jar" ) || lowercaseName.endsWith( ".zip" ) )
       {
         addJarEntry( csr );
@@ -213,10 +212,10 @@ public class ShipIt
     }
   }
 
-  private void addJarEntry( File jarFile ) throws IOException
+  private void addJarEntry( Path jarFile ) throws IOException
   {
     addEntry( jarFile, Gosu.JAR_REPO_DIR );
-    _jars.add( jarFile.getName() );
+    _jars.add( PathUtil.getName( jarFile ) );
   }
 
   private void createJarRepoFile() throws IOException
@@ -233,39 +232,46 @@ public class ShipIt
     writer.flush();
   }
 
-  private void addEntry( File file, String strPath ) throws IOException
+  private void addEntry( Path file, String strPath )
   {
-    if( file.isDirectory() )
+    if( PathUtil.isDirectory( file ) )
     {
-      String strDir = (strPath.length() > 0 ? strPath + '/' : "") + file.getName();
-      for( File csr : file.listFiles() )
+      String strDir = (strPath.length() > 0 ? strPath + '/' : "") + PathUtil.getName( file );
+      for( Path csr: PathUtil.listFiles( file ) )
       {
         addEntry( csr, strDir );
       }
     }
-    else if( file.isFile() )
+    else if( PathUtil.isFile( file ) )
     {
-      if( file.getName().toLowerCase().equals( "manifest.mf" ) )
+      if( PathUtil.getName( file ).toLowerCase().equals( "manifest.mf" ) )
       {
         //## todo: maybe merge all manifests into one?  but really the corresponding path should be in a jar, not unjarred files
         return;
       }
 
-      String strFile = (strPath.length() > 0 ? strPath + '/' : "") + file.getName();
+      String strFile = (strPath.length() > 0 ? strPath + '/' : "") + PathUtil.getName( file );
       if( _entries.contains( strFile ) )
       {
         return;
       }
       _entries.add( strFile );
       JarEntry je = new JarEntry( strFile );
-      _jo.putNextEntry( je );
-      FileInputStream in = new FileInputStream( file );
-      writeBytes( in );
-      in.close();
+      try
+      {
+        _jo.putNextEntry( je );
+        InputStream in = PathUtil.createInputStream( file );
+        writeBytes( in );
+        in.close();
+      }
+      catch( IOException e )
+      {
+        throw new RuntimeException( e );
+      }
     }
     else
     {
-      throw new IOException( file + " is not a file" );
+      throw new RuntimeException( file + " is not a file" );
     }
   }
 

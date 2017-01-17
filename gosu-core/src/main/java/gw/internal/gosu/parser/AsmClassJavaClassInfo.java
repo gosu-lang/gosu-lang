@@ -4,10 +4,15 @@
 
 package gw.internal.gosu.parser;
 
+import com.sun.source.tree.Tree;
+import gw.fs.IDirectory;
+import gw.fs.IFile;
 import gw.internal.gosu.parser.java.classinfo.AsmClassAnnotationInfo;
 import gw.internal.gosu.parser.java.classinfo.JavaArrayClassInfo;
+import gw.lang.reflect.java.JavaSourceElement;
 import gw.internal.gosu.parser.java.classinfo.JavaSourceMethodDescriptor;
 import gw.internal.gosu.parser.java.classinfo.JavaSourcePropertyDescriptor;
+import gw.internal.gosu.parser.java.classinfo.JavaSourceType;
 import gw.internal.gosu.parser.java.classinfo.JavaSourceUtil;
 import gw.lang.GosuShop;
 import gw.lang.SimplePropertyProcessing;
@@ -33,6 +38,7 @@ import gw.lang.reflect.java.IJavaMethodDescriptor;
 import gw.lang.reflect.java.IJavaPropertyDescriptor;
 import gw.lang.reflect.java.IJavaType;
 import gw.lang.reflect.java.asm.AsmAnnotation;
+import gw.lang.reflect.java.asm.AsmBackingSourceFileHandle;
 import gw.lang.reflect.java.asm.AsmClass;
 import gw.lang.reflect.java.asm.AsmField;
 import gw.lang.reflect.java.asm.AsmInnerClassType;
@@ -73,6 +79,7 @@ public class AsmClassJavaClassInfo extends AsmTypeJavaClassType implements IAsmJ
   private String _simpleName;
   private String _namespace;
   private IJavaType _javaType;
+  private ISourceFileHandle _sourceFileHandle;
 
   public AsmClassJavaClassInfo( AsmClass cls, IModule module ) {
     super( cls, module );
@@ -544,6 +551,12 @@ public class AsmClassJavaClassInfo extends AsmTypeJavaClassType implements IAsmJ
   }
 
   @Override
+  public IJavaClassInfo getDeclaringClass()
+  {
+    return this;
+  }
+
+  @Override
   public IType getEnclosingType() {
     return _enclosingClass.get();
   }
@@ -652,7 +665,78 @@ public class AsmClassJavaClassInfo extends AsmTypeJavaClassType implements IAsmJ
 
   @Override
   public ISourceFileHandle getSourceFileHandle() {
+    if( _sourceFileHandle == null )
+    {
+      _sourceFileHandle = findSourceFile();
+    }
+    return _sourceFileHandle;
+  }
+
+  private ISourceFileHandle findSourceFile()
+  {
+    IJavaClassInfo csr = this;
+    while( csr.getEnclosingClass() != null )
+    {
+      csr = csr.getEnclosingClass();
+    }
+    List<IDirectory> backingSourcePath = getModule().getBackingSourcePath();
+    if( backingSourcePath != null )
+    {
+      String classFileName = makeClassFileName();
+      for( IDirectory dir: backingSourcePath )
+      {
+        IFile child = dir.file( classFileName );
+        if( child.exists() )
+        {
+          return new AsmBackingSourceFileHandle( child, ((AsmClassJavaClassInfo)csr).getAsmType(), false );
+        }
+      }
+    }
     return null;
+  }
+
+  private String makeClassFileName()
+  {
+    String classFileName = getName().replace( '.', '/' );
+    int i$ = classFileName.indexOf( '$' );
+    if( i$ > 0 )
+    {
+      classFileName = classFileName.substring( 0, i$ );
+    }
+    classFileName += ".java";
+    return classFileName;
+  }
+
+  @Override
+  public Tree getTree()
+  {
+    ISourceFileHandle sfh = getSourceFileHandle();
+    if( sfh != null )
+    {
+      JavaSourceElement sourceType = findSourceClass( sfh );
+      if( sourceType != null )
+      {
+        return sourceType.getTree();
+      }
+    }
+    return null;
+  }
+
+  private JavaSourceElement findSourceClass( ISourceFileHandle sfh )
+  {
+    IJavaClassInfo sourceType = JavaSourceType.createTopLevel( sfh, getModule() );
+    if( sourceType == null )
+    {
+      return null;
+    }
+
+    IType cls = getJavaType();
+    if( cls.getEnclosingType() != null )
+    {
+      sourceType = findInnerSourceType( sourceType, cls.getName() );
+    }
+
+    return (JavaSourceElement)sourceType;
   }
 
   @Override

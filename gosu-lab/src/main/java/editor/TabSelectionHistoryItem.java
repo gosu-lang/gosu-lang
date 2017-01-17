@@ -1,10 +1,10 @@
 package editor;
 
+import java.nio.file.Path;
 import editor.util.SettleModalEventQueue;
 import gw.util.GosuObjectUtil;
 
 import javax.swing.undo.StateEditable;
-import java.io.File;
 import java.util.Hashtable;
 
 /**
@@ -50,13 +50,13 @@ public class TabSelectionHistoryItem implements StateEditable
       {
         if( bUndo )
         {
-          EditorHost editor = LabFrame.instance().getGosuPanel().findTab( (File)_prevTabContext.getContentId() );
+          EditorHost editor = LabFrame.instance().getGosuPanel().findTab( (Path)_prevTabContext.getContentId() );
           _caretPos = editor.getEditor().getCaretPosition();
           editor.getEditor().setCaretPosition( _prevCaretPos );
         }
         else
         {
-          EditorHost editor = LabFrame.instance().getGosuPanel().findTab( (File)_tabContext.getContentId() );
+          EditorHost editor = LabFrame.instance().getGosuPanel().findTab( (Path)_tabContext.getContentId() );
           editor.getEditor().setCaretPosition( _caretPos );
         }
       }

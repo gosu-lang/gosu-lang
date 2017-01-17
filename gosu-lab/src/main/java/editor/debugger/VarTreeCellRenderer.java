@@ -150,7 +150,7 @@ class VarTreeCellRenderer extends AbstractTreeCellRenderer<VarTree>
     {
       throw new RuntimeException( e );
     }
-    return displayValue.toString();
+    return displayValue == null ? "null" : displayValue.toString();
   }
 
   private String makeIdValue( Value value )

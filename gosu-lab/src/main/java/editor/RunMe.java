@@ -2,6 +2,7 @@ package editor;
 
 
 import editor.util.Experiment;
+import gw.util.PathUtil;
 import editor.util.SettleModalEventQueue;
 import gw.config.CommonServices;
 import gw.config.IPlatformHelper;
@@ -50,9 +51,13 @@ public class RunMe
 
     IExecutionEnvironment execEnv = TypeSystem.getExecutionEnvironment();
     GosuInitialization gosuInitialization = GosuInitialization.instance( execEnv );
-    GosucModule gosucModule = new GosucModule(
-      IExecutionEnvironment.DEFAULT_SINGLE_MODULE_NAME, experiment == null ? Collections.emptyList() : experiment.getSourcePath(), deriveClasspath( experiment ),
-      "", Collections.<GosucDependency>emptyList(), Collections.<String>emptyList() );
+    GosucModule gosucModule = new GosucModule( IExecutionEnvironment.DEFAULT_SINGLE_MODULE_NAME,
+                                               experiment == null ? Collections.emptyList() : experiment.getSourcePath(),
+                                               deriveClasspath( experiment ),
+                                               deriveBackingSourcePath( experiment ),
+                                               "",
+                                               Collections.<GosucDependency>emptyList(),
+                                               Collections.<String>emptyList() );
     gosuInitialization.reinitializeSimpleIde( gosucModule );
   }
 
@@ -62,7 +67,7 @@ public class RunMe
     List<String> sourcePath = experiment == null ? Collections.emptyList() : experiment.getSourcePath();
     for( String path: sourcePath )
     {
-      if( !path.toLowerCase().startsWith( experiment.getExperimentDir().getAbsolutePath().toLowerCase() + File.separator ) )
+      if( !path.toLowerCase().startsWith( PathUtil.getAbsolutePathName( experiment.getExperimentDir() ).toLowerCase() + File.separator ) )
       {
         classpath.add( path );
       }
@@ -70,5 +75,23 @@ public class RunMe
     List<String> collect = Gosu.deriveClasspathFrom( LabFrame.class ).stream().map( File::getAbsolutePath ).collect( Collectors.toList() );
     classpath.addAll( collect );
     return classpath;
+  }
+
+  private static List<String> deriveBackingSourcePath( Experiment experiment )
+  {
+    List<String> backingSource = new ArrayList<>();
+    List<String> sourcePath = experiment == null ? Collections.emptyList() : experiment.getBackingSourcePath();
+    for( String path: sourcePath )
+    {
+      if( !path.toLowerCase().startsWith( PathUtil.getAbsolutePathName( experiment.getExperimentDir() ).toLowerCase() + File.separator ) )
+      {
+        backingSource.add( path );
+      }
+    }
+    List<String> collect = Gosu.findJreSourcePath();
+    backingSource.addAll( collect );
+    backingSource = new ArrayList<>( new HashSet<>( collect ) );
+
+    return backingSource;
   }
 }

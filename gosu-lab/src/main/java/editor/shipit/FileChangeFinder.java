@@ -2,6 +2,7 @@ package editor.shipit;
 
 import editor.FileTree;
 import editor.FileTreeUtil;
+import gw.util.PathUtil;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Predicate;
@@ -41,7 +42,7 @@ public class FileChangeFinder
   {
     if( ft.isFile() )
     {
-      if( ft.getFileOrDir().lastModified() > _timestamp && filter.test( ft ) )
+      if( PathUtil.lastModified( ft.getFileOrDir() ) > _timestamp && filter.test( ft ) )
       {
         result.add( ft );
       }

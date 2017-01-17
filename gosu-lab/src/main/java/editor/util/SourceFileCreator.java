@@ -7,9 +7,10 @@ import editor.NewIdentifierDialog;
 import editor.plugin.typeloader.ITypeFactory;
 import gw.lang.reflect.gs.ClassType;
 
+import gw.util.PathUtil;
+import java.io.Writer;
+import java.nio.file.Path;
 import javax.swing.*;
-import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 
 /**
@@ -23,13 +24,13 @@ public class SourceFileCreator
     return INSTANCE;
   }
 
-  private File _created;
+  private Path _created;
 
   private SourceFileCreator()
   {
   }
 
-  public File getCreated()
+  public Path getCreated()
   {
     return _created;
   }
@@ -38,20 +39,20 @@ public class SourceFileCreator
     _created = null;
   }
 
-  public File getOrMakeUntitledProgram( Experiment experiment )
+  public Path getOrMakeUntitledProgram( Experiment experiment )
   {
-    File srcDir = new File( experiment.getSourcePath().get( 0 ) );
+    Path srcDir = PathUtil.create( experiment.getSourcePath().get( 0 ) );
     //noinspection ResultOfMethodCallIgnored
-    srcDir.mkdirs();
-    File scratchPackage = new File( srcDir, "scratch" );
+    PathUtil.mkdirs( srcDir );
+    Path scratchPackage = PathUtil.create( srcDir, "scratch" );
     //noinspection ResultOfMethodCallIgnored
-    scratchPackage.mkdirs();
-    File file = new File( scratchPackage, "RunMe.gsp" );
+    PathUtil.mkdirs( scratchPackage );
+    Path file = PathUtil.create( scratchPackage, "RunMe.gsp" );
     try
     {
-      if( file.createNewFile() )
+      if( PathUtil.createNewFile( file ) )
       {
-        try( FileWriter writer = new FileWriter( file ) )
+        try( Writer writer = PathUtil.createWriter( file ) )
         {
           writer.write( "//\n// Run this from the Run menu or press F5\n//\nprint(\"Hello, World!\")\n" );
         }
@@ -71,7 +72,7 @@ public class SourceFileCreator
     dlg.setVisible( true );
     if( dlg.getClassName() != null )
     {
-      create( new File( getParentContext(), dlg.getClassName() + classType.getExt() ), classType );
+      create( PathUtil.create( getParentContext(), dlg.getClassName() + classType.getExt() ), classType );
     }
   }
 
@@ -81,7 +82,7 @@ public class SourceFileCreator
     dlg.setVisible( true );
     if( dlg.getClassName() != null )
     {
-      File file = new File( getParentContext(), dlg.getClassName() + factory.getFileExtension() );
+      Path file = PathUtil.create( getParentContext(), dlg.getClassName() + factory.getFileExtension() );
       String fqn = TypeNameUtil.getTypeNameForFile( file );
       create( file, factory, fqn );
     }
@@ -93,9 +94,9 @@ public class SourceFileCreator
     dlg.setVisible( true );
     if( dlg.getClassName() != null )
     {
-      File dir = new File( getParentContext(), dlg.getClassName() );
+      Path dir = PathUtil.create( getParentContext(), dlg.getClassName() );
       //noinspection ResultOfMethodCallIgnored
-      dir.mkdirs();
+      PathUtil.mkdirs( dir );
     }
   }
 
@@ -105,28 +106,21 @@ public class SourceFileCreator
     dlg.setVisible( true );
     if( dlg.getClassName() != null )
     {
-      File file = new File( getParentContext(), dlg.getClassName() );
+      Path file = PathUtil.create( getParentContext(), dlg.getClassName() );
       //noinspection ResultOfMethodCallIgnored
-      file.getParentFile().mkdirs();
-      try
+      PathUtil.mkdirs( file.getParent() );
+      if( PathUtil.createNewFile( file ) )
       {
-        if( file.createNewFile() )
-        {
-          _created = file;
-        }
-      }
-      catch( IOException e )
-      {
-        throw new RuntimeException( e );
+        _created = file;
       }
     }
   }
 
-  private File getParentContext()
+  private Path getParentContext()
   {
     GosuPanel gosuPanel = LabFrame.instance().getGosuPanel();
     FileTree selection = gosuPanel.getExperimentView().getSelectedTree();
-    File parent = null;
+    Path parent = null;
     if( selection != null && selection.getParent() != null )
     {
       if( selection.isFile() )
@@ -137,64 +131,50 @@ public class SourceFileCreator
     }
     else
     {
-      File currentEditor = gosuPanel.getCurrentFile();
+      Path currentEditor = gosuPanel.getCurrentFile();
       if( currentEditor != null )
       {
-        parent = currentEditor.getParentFile();
+        parent = currentEditor.getParent();
       }
     }
     return parent;
   }
 
-  public void create( File file, ITypeFactory factory, String typeName )
+  public void create( Path file, ITypeFactory factory, String typeName )
   {
-    try
+    if( PathUtil.createNewFile( file ) )
     {
-      if( file.createNewFile() )
+      try( Writer writer = PathUtil.createWriter( file ) )
       {
-        try( FileWriter writer = new FileWriter( file ) )
-        {
-          writer.write( factory.createNewFileContents( factory.makeDefaultParams( typeName ) ).toString() );
-        }
-        catch( Exception e )
-        {
-          //noinspection ResultOfMethodCallIgnored
-          file.delete();
-          throw new RuntimeException( e );
-        }
+        writer.write( factory.createNewFileContents( factory.makeDefaultParams( typeName ) ).toString() );
       }
-    }
-    catch( IOException e )
-    {
-      throw new RuntimeException( e );
+      catch( Exception e )
+      {
+        //noinspection ResultOfMethodCallIgnored
+        PathUtil.delete( file );
+        throw new RuntimeException( e );
+      }
     }
     _created = file;
   }
 
-  public void create( File selectedFile, ClassType classType )
+  public void create( Path selectedFile, ClassType classType )
   {
-    try
+    if( PathUtil.createNewFile( selectedFile ) )
     {
-      if( selectedFile.createNewFile() )
+      if( !writeStub( selectedFile, classType ) )
       {
-        if( !writeStub( selectedFile, classType ) )
-        {
-          //noinspection ResultOfMethodCallIgnored
-          selectedFile.delete();
-          return;
-        }
+        //noinspection ResultOfMethodCallIgnored
+        PathUtil.delete( selectedFile );
+        return;
       }
-    }
-    catch( IOException e )
-    {
-      throw new RuntimeException( e );
     }
     _created = selectedFile;
   }
 
-  private boolean writeStub( File file, ClassType classType )
+  private boolean writeStub( Path file, ClassType classType )
   {
-    String strFile = file.getName().toLowerCase();
+    String strFile = PathUtil.getName( file ).toLowerCase();
     if( strFile.endsWith( ".gs" ) )
     {
       return writeClassStub( file, classType );
@@ -209,12 +189,12 @@ public class SourceFileCreator
     }
     else if( classType == null )
     {
-      return file.mkdirs();
+      return PathUtil.mkdirs( file );
     }
     return true;
   }
 
-  private boolean writeClassStub( File file, ClassType classType )
+  private boolean writeClassStub( Path file, ClassType classType )
   {
     String strName = TypeNameUtil.getTypeNameForFile( file );
     if( strName == null )
@@ -224,12 +204,12 @@ public class SourceFileCreator
       {
         return false;
       }
-      if( file.getParentFile() == null )
+      if( file.getParent() == null )
       {
         JOptionPane.showMessageDialog( LabFrame.instance(), "A class must have a parent directory", "Gosu Lab", JOptionPane.ERROR_MESSAGE );
         return false;
       }
-      strName = file.getParentFile().getName() + '.' + file.getName().substring( 0, file.getName().lastIndexOf( '.' ) );
+      strName = PathUtil.getName( file.getParent() ) + '.' + PathUtil.getName( file ).substring( 0, PathUtil.getName( file ).lastIndexOf( '.' ) );
     }
     int iLastDot = strName.lastIndexOf( '.' );
     String strRelativeName = strName.substring( iLastDot + 1 );
@@ -237,7 +217,7 @@ public class SourceFileCreator
 
     try
     {
-      FileWriter writer = new FileWriter( file );
+      Writer writer = PathUtil.createWriter( file );
       String eol = System.getProperty( "line.separator" );
       writer.write( "package " + strPackage + eol +
                     eol +
@@ -254,7 +234,7 @@ public class SourceFileCreator
     return true;
   }
 
-  private boolean writeTempateStub( File file )
+  private boolean writeTempateStub( Path file )
   {
     String strName = TypeNameUtil.getTypeNameForFile( file );
     if( strName == null )
@@ -264,19 +244,19 @@ public class SourceFileCreator
       {
         return false;
       }
-      if( file.getParentFile() == null )
+      if( file.getParent() == null )
       {
         JOptionPane.showMessageDialog( LabFrame.instance(), "A template must have a parent directory", "Gosu Lab", JOptionPane.ERROR_MESSAGE );
         return false;
       }
-      strName = file.getParentFile().getName() + '.' + file.getName().substring( 0, file.getName().lastIndexOf( '.' ) );
+      strName = PathUtil.getName( file.getParent() ) + '.' + PathUtil.getName( file ).substring( 0, PathUtil.getName( file ).lastIndexOf( '.' ) );
     }
     int iLastDot = strName.lastIndexOf( '.' );
     String strRelativeName = strName.substring( iLastDot + 1 );
 
     try
     {
-      FileWriter writer = new FileWriter( file );
+      Writer writer = PathUtil.createWriter( file );
       String eol = System.getProperty( "line.separator" );
       writer.write( "<%@ params( myParam: String ) %>" + eol +
                     eol +
@@ -296,11 +276,11 @@ public class SourceFileCreator
     return true;
   }
 
-  private int displayTypeWarning( File file )
+  private int displayTypeWarning( Path file )
   {
     return
       JOptionPane.showConfirmDialog( LabFrame.instance(),
-         "<html>The class " + file.getName() + " is not on the current classpath.  " +
+         "<html>The class " + PathUtil.getName( file ) + " is not on the current classpath.  " +
          "Create the class anyway and put it's parent directory in the classpath?  " +
          "<br><br>" +
          "WARNING!!!  Ensure that the parent directory does not cover other files and directories you don't want in your class path." +
@@ -308,7 +288,7 @@ public class SourceFileCreator
          "Consider creating a \"src\" directory and create package folders in there.", "Gosu Lab", JOptionPane.YES_NO_OPTION );
   }
 
-  private boolean writeEnhancementStub( File file )
+  private boolean writeEnhancementStub( Path file )
   {
     String strName = TypeNameUtil.getTypeNameForFile( file );
     if( strName == null )
@@ -318,12 +298,12 @@ public class SourceFileCreator
       {
         return false;
       }
-      if( file.getParentFile() == null )
+      if( file.getParent() == null )
       {
         JOptionPane.showMessageDialog( LabFrame.instance(), "A class must have a parent directory", "Gosu Lab", JOptionPane.ERROR_MESSAGE );
         return false;
       }
-      strName = file.getParentFile().getName() + '.' + file.getName().substring( 0, file.getName().lastIndexOf( '.' ) );
+      strName = PathUtil.getName( file.getParent() ) + '.' + PathUtil.getName( file ).substring( 0, PathUtil.getName( file ).lastIndexOf( '.' ) );
     }
     int iLastDot = strName.lastIndexOf( '.' );
     String strRelativeName = strName.substring( iLastDot + 1 );
@@ -331,7 +311,7 @@ public class SourceFileCreator
 
     try
     {
-      FileWriter writer = new FileWriter( file );
+      Writer writer = PathUtil.createWriter( file );
       String eol = System.getProperty( "line.separator" );
       writer.write( "package " + strPackage + eol +
                     eol +

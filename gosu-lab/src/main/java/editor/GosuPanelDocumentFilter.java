@@ -1,7 +1,8 @@
 package editor;
 
+import java.nio.file.Path;
+import gw.util.PathUtil;
 import javax.swing.*;
-import java.io.File;
 
 
 /**
@@ -18,15 +19,15 @@ public class GosuPanelDocumentFilter extends SimpleDocumentFilter
   @Override
   public boolean acceptEdit( String insertedText )
   {
-    File file = (File)_editor.getClientProperty( "_file" );
-    if( file.isFile() && !file.canWrite() )
+    Path file = (Path)_editor.getClientProperty( "_file" );
+    if( PathUtil.isFile( file ) && !PathUtil.canWrite( file ) )
     {
-      if( JOptionPane.showConfirmDialog( LabFrame.instance(), file.getName() + " is not writable.  Do you want to make the file writable?", "Gosu Lab",
+      if( JOptionPane.showConfirmDialog( LabFrame.instance(), PathUtil.getName( file ) + " is not writable.  Do you want to make the file writable?", "Gosu Lab",
                                          JOptionPane.YES_NO_OPTION ) == JOptionPane.YES_OPTION )
       {
-        if( !file.setWritable( true ) )
+        if( !PathUtil.setWritable( file, true ) )
         {
-          JOptionPane.showMessageDialog( LabFrame.instance(), "Failed to make " + file.getName() + " writable.", "Gosu Lab", JOptionPane.ERROR_MESSAGE );
+          JOptionPane.showMessageDialog( LabFrame.instance(), "Failed to make " + PathUtil.getName( file ) + " writable.", "Gosu Lab", JOptionPane.ERROR_MESSAGE );
           return false;
         }
         return true;

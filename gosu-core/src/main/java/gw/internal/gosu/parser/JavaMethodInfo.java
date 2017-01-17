@@ -6,8 +6,7 @@ package gw.internal.gosu.parser;
 
 import gw.internal.ext.org.objectweb.asm.Opcodes;
 import gw.internal.gosu.parser.java.classinfo.JavaSourceDefaultValue;
-import gw.internal.gosu.parser.java.classinfo.JavaSourceElement;
-import gw.internal.gosu.parser.java.classinfo.JavaSourceMethod;
+import gw.lang.reflect.java.JavaSourceElement;
 import gw.lang.Deprecated;
 import gw.lang.GosuShop;
 import gw.lang.PublishedName;

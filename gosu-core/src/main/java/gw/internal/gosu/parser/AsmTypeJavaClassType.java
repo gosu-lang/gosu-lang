@@ -5,6 +5,7 @@
 package gw.internal.gosu.parser;
 
 import gw.internal.gosu.parser.java.classinfo.JavaArrayClassInfo;
+import gw.lang.reflect.java.JavaSourceElement;
 import gw.internal.gosu.parser.java.classinfo.JavaSourceUtil;
 import gw.lang.parser.TypeVarToTypeMap;
 import gw.lang.reflect.IType;
@@ -18,7 +19,7 @@ import gw.lang.reflect.module.IModule;
 
 import java.util.LinkedHashSet;
 
-public abstract class AsmTypeJavaClassType implements IJavaClassType {
+public abstract class AsmTypeJavaClassType extends JavaSourceElement implements IJavaClassType {
   private IAsmType _type;
   protected IModule _module;
 

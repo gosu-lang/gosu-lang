@@ -1,6 +1,7 @@
 package editor;
 
 import editor.util.Experiment;
+import gw.util.PathUtil;
 import gw.util.concurrent.ConcurrentWeakValueHashMap;
 
 import java.awt.*;
@@ -46,7 +47,7 @@ public class FileWatcher implements Runnable
     _experiment = experiment;
     _listeners = new ConcurrentWeakValueHashMap<>();
     _keyToPath = new ConcurrentHashMap<>();
-    Path path = new File( experiment.getSourcePath().get( 0 ) ).toPath();
+    Path path = PathUtil.create( experiment.getSourcePath().get( 0 ) );
     try
     {
       _watcher = path.getFileSystem().newWatchService();
@@ -67,12 +68,12 @@ public class FileWatcher implements Runnable
 
     try
     {
-      File fileOrDir = fileTree.getFileOrDir();
-      WatchKey key = fileOrDir.toPath().register( _watcher,
-                                                  StandardWatchEventKinds.ENTRY_CREATE,
-                                                  StandardWatchEventKinds.ENTRY_DELETE,
-                                                  StandardWatchEventKinds.ENTRY_MODIFY );
-      _keyToPath.put( key, fileOrDir.getAbsolutePath() );
+      Path fileOrDir = fileTree.getFileOrDir();
+      WatchKey key = fileOrDir.register( _watcher,
+                                         StandardWatchEventKinds.ENTRY_CREATE,
+                                         StandardWatchEventKinds.ENTRY_DELETE,
+                                         StandardWatchEventKinds.ENTRY_MODIFY );
+      _keyToPath.put( key, PathUtil.getAbsolutePathName( fileOrDir ) );
       addListener( fileTree );
     }
     catch( Exception e )
@@ -92,7 +93,7 @@ public class FileWatcher implements Runnable
     for( WatchKey key: _keyToPath.keySet() )
     {
       String path = _keyToPath.get( key );
-      if( path.equals( fileTree.getFileOrDir().getAbsolutePath() ) )
+      if( path.equals( PathUtil.getAbsolutePathName( fileTree.getFileOrDir() ) ) )
       {
         _keyToPath.remove( key );
       }
@@ -125,17 +126,17 @@ public class FileWatcher implements Runnable
           if( event.kind() == StandardWatchEventKinds.ENTRY_CREATE )
           {
             EventQueue.invokeLater( () ->
-             fireCreate( dirPath, ((Path)event.context()).getFileName() ) );
+             fireCreate( dirPath, (Path)event.context() ) );
           }
           else if( event.kind() == StandardWatchEventKinds.ENTRY_DELETE )
           {
             EventQueue.invokeLater( () ->
-              fireDelete( dirPath, ((Path)event.context()).getFileName() ) );
+              fireDelete( dirPath, (Path)event.context() ) );
           }
           else if( event.kind() == StandardWatchEventKinds.ENTRY_MODIFY )
           {
             EventQueue.invokeLater( () -> 
-              fireModify( dirPath, ((Path)event.context()).getFileName() ) );
+              fireModify( dirPath, (Path)event.context() ) );
           }
         }
         key.reset();
@@ -156,11 +157,11 @@ public class FileWatcher implements Runnable
 
   private void addListener( FileTree fileTree )
   {
-    _listeners.put( fileTree.getFileOrDir().getAbsolutePath(), fileTree );
+    _listeners.put( PathUtil.getAbsolutePathName( fileTree.getFileOrDir() ), fileTree );
   }
   private void removeListener( FileTree fileTree )
   {
-    _listeners.remove( fileTree.getFileOrDir().getAbsolutePath() );
+    _listeners.remove( PathUtil.getAbsolutePathName( fileTree.getFileOrDir() ) );
   }
 
   private void fireDelete( String dirPath, Path fileName )

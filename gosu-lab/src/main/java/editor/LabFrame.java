@@ -4,6 +4,7 @@ import editor.settings.ISettings;
 import editor.settings.Settings;
 import editor.util.EditorUtilities;
 import editor.util.Experiment;
+import gw.util.PathUtil;
 import editor.util.PlatformUtil;
 import editor.util.ScreenUtil;
 import gw.config.CommonServices;
@@ -18,14 +19,15 @@ import gw.lang.reflect.json.Json;
 import gw.lang.reflect.module.IFileSystem;
 
 import gw.util.StreamUtil;
-import java.io.FileOutputStream;
-import java.io.FileWriter;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.Reader;
+import java.io.Writer;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.TreeMap;
@@ -37,7 +39,6 @@ import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
@@ -47,6 +48,7 @@ public class LabFrame extends JFrame implements IGosuEditor
 {
   public static final int VERSION = 2;
   private static final String GOSU_LAB_DIR = ".GosuLab";
+  private static final String GOSU_DIR = ".Gosu";
   private static LabFrame INSTANCE = null;
   private static Map<String, ISettings> _settings = Settings.makeDefaultSettings();
 
@@ -164,12 +166,12 @@ public class LabFrame extends JFrame implements IGosuEditor
     _panel.clearTabs();
   }
 
-  public void openInitialFile( IScriptPartId partId, File file )
+  public void openInitialFile( IScriptPartId partId, Path file )
   {
     _panel.openInitialFile( partId, file );
   }
 
-  public void openFile( File anySourceFile )
+  public void openFile( Path anySourceFile )
   {
     _panel.openFile( anySourceFile, true );
   }
@@ -194,12 +196,12 @@ public class LabFrame extends JFrame implements IGosuEditor
 
   public void selectTab( Object contentId )
   {
-    _panel.selectTab( (File)contentId );
+    _panel.selectTab( (Path)contentId );
   }
 
   public void closeTab( Object contentId )
   {
-    _panel.closeTab( (File)contentId );
+    _panel.closeTab( (Path)contentId );
   }
 
   public Rectangle getRestoreBounds()
@@ -221,7 +223,7 @@ public class LabFrame extends JFrame implements IGosuEditor
     for( Iterator<String> iter = experiments.iterator(); iter.hasNext(); )
     {
       String exp = iter.next();
-      if( !new File( exp ).exists() )
+      if( !PathUtil.exists( PathUtil.create( exp ) ) )
       {
         iter.remove();
       }
@@ -229,7 +231,7 @@ public class LabFrame extends JFrame implements IGosuEditor
   }
   public void addExperiment( Experiment exp )
   {
-    String dir = exp.getExperimentDir().getAbsolutePath();
+    String dir = PathUtil.getAbsolutePathName( exp.getExperimentDir() );
     if( _experiments.isEmpty() )
     {
       _experiments = new ArrayList<>();
@@ -257,55 +259,50 @@ public class LabFrame extends JFrame implements IGosuEditor
   {
     try
     {
-      File userFile = getUserFile( gosuPanel );
-      if( !userFile.exists() || getVersion( gosuPanel ) < 2 )
+      Path userFile = getUserFile( gosuPanel );
+      if( !PathUtil.exists( userFile ) || getVersion( gosuPanel ) < 2 )
       {
-        delete( getUserGosuEditorDir() );
+        PathUtil.delete( getUserGosuEditorDir(), true );
       }
     }
     catch( Exception e )
     {
-      delete( getUserGosuEditorDir() );
+      PathUtil.delete( getUserGosuEditorDir(), true );
     }
   }
 
-  public static void delete( File fileOrDirectory )
+  public static Path getUserGosuDir()
   {
-    if( fileOrDirectory.isDirectory() )
-    {
-      for( File child : fileOrDirectory.listFiles() )
-      {
-        delete( child );
-      }
-    }
+    Path gosuDir = PathUtil.create( System.getProperty( "user.home" ), GOSU_DIR );
     //noinspection ResultOfMethodCallIgnored
-    fileOrDirectory.delete();
-  }
-
-  public static File getUserGosuEditorDir()
-  {
-    File gosuDir = new File( System.getProperty( "user.home" ), GOSU_LAB_DIR );
-    //noinspection ResultOfMethodCallIgnored
-    gosuDir.mkdirs();
+    PathUtil.mkdirs( gosuDir );
     return gosuDir;
   }
 
-  public static File getIndexDir()
+  public static Path getUserGosuEditorDir()
   {
-    File gosuDir = new File( System.getProperty( "user.home" ) + File.separator + GOSU_LAB_DIR + File.separator + "index" );
+    Path gosuDir = PathUtil.create( System.getProperty( "user.home" ), GOSU_LAB_DIR );
     //noinspection ResultOfMethodCallIgnored
-    gosuDir.mkdirs();
+    PathUtil.mkdirs( gosuDir );
     return gosuDir;
   }
 
-  public static File getStockExperimentsDir()
+  public static Path getIndexDir()
   {
-    File gosuDir = new File( System.getProperty( "user.home" ) + File.separator + GOSU_LAB_DIR + File.separator + "experiments" );
+    Path gosuDir = PathUtil.create( System.getProperty( "user.home" ) + File.separator + GOSU_LAB_DIR + File.separator + "index" );
+    //noinspection ResultOfMethodCallIgnored
+    PathUtil.mkdirs( gosuDir );
+    return gosuDir;
+  }
+
+  public static Path getStockExperimentsDir()
+  {
+    Path gosuDir = PathUtil.create( System.getProperty( "user.home" ) + File.separator + GOSU_LAB_DIR + File.separator + "experiments" );
     copyExampleExperiments( getStockExamplesDir() );
     return gosuDir;
   }
 
-  private static void copyExampleExperiments( File gosuDir )
+  private static void copyExampleExperiments( Path gosuDir )
   {
     URL marker = EditorUtilities.class.getClassLoader().getResource( "examples/marker.txt" );
     try
@@ -319,28 +316,28 @@ public class LabFrame extends JFrame implements IGosuEditor
     }
   }
 
-  private static void copyExamples( IResource from, File to )
+  private static void copyExamples( IResource from, Path to )
   {
     if( from instanceof IDirectory )
     {
-      if( !to.getName().equals( "examples" ) && to.exists() )
+      if( !PathUtil.getName( to ).equals( "examples" ) && PathUtil.exists( to ) )
       {
         // already have this experiment
         return;
       }
 
-      if( !to.exists() && !to.mkdirs() )
+      if( !PathUtil.exists( to ) && !PathUtil.mkdirs( to ) )
       {
-        System.out.println( "Failed to create experiment directory: " + to.getAbsolutePath() );
+        System.out.println( "Failed to create experiment directory: " + PathUtil.getAbsolutePathName( to ) );
       }
 
       for( IDirectory child : ((IDirectory)from).listDirs() )
       {
-        copyExamples( child, new File( to, child.getName() ) );
+        copyExamples( child, PathUtil.create( to, child.getName() ) );
       }
       for( IFile child : ((IDirectory)from).listFiles() )
       {
-        copyExamples( child, new File( to, child.getName() ) );
+        copyExamples( child, PathUtil.create( to, child.getName() ) );
       }
     }
     else
@@ -348,7 +345,7 @@ public class LabFrame extends JFrame implements IGosuEditor
       try
       {
         InputStream in = ((IFile)from).openInputStream();
-        OutputStream out = new FileOutputStream( to );
+        OutputStream out = PathUtil.createOutputStream( to );
         byte[] buf = new byte[1024];
         int len;
         while( (len = in.read( buf )) > 0 )
@@ -365,23 +362,23 @@ public class LabFrame extends JFrame implements IGosuEditor
     }
   }
 
-  public static File getStockExamplesDir()
+  public static Path getStockExamplesDir()
   {
-    File gosuDir = new File( System.getProperty( "user.home" ) + File.separator + GOSU_LAB_DIR + File.separator + "examples" );
+    Path gosuDir = PathUtil.create( System.getProperty( "user.home" ) + File.separator + GOSU_LAB_DIR + File.separator + "examples" );
     //noinspection ResultOfMethodCallIgnored
-    gosuDir.mkdirs();
+    PathUtil.mkdirs( gosuDir );
     return gosuDir;
   }
 
-  public static List<File> getStockExampleExperiments()
+  public static List<Path> getStockExampleExperiments()
   {
-    List<File> experiments = new ArrayList<>();
-    File experimentsDir = getStockExamplesDir();
-    for( File dir : experimentsDir.listFiles() )
+    List<Path> experiments = new ArrayList<>();
+    Path experimentsDir = getStockExamplesDir();
+    for( Path dir : PathUtil.listFiles( experimentsDir ) )
     {
-      if( dir.isDirectory() )
+      if( PathUtil.isDirectory( dir ) )
       {
-        File experimentFile = findExperimentFile( dir );
+        Path experimentFile = findExperimentFile( dir );
         if( experimentFile != null )
         {
           experiments.add( dir );
@@ -391,11 +388,11 @@ public class LabFrame extends JFrame implements IGosuEditor
     return experiments;
   }
 
-  public static File findExperimentFile( File dir )
+  public static Path findExperimentFile( Path dir )
   {
-    for( File f : dir.listFiles() )
+    for( Path f : PathUtil.listFiles( dir ) )
     {
-      if( f.getName().equalsIgnoreCase( dir.getName() + ".prj" ) )
+      if( PathUtil.getName( f ).equalsIgnoreCase( PathUtil.getName( dir ) + ".prj" ) )
       {
         return f;
       }
@@ -405,28 +402,28 @@ public class LabFrame extends JFrame implements IGosuEditor
 
   private static Experiment makeScratchExperiment( GosuPanel gosuPanel )
   {
-    File experimentDir = new File( getStockExperimentsDir(), "Scratch" );
+    Path experimentDir = PathUtil.create( getStockExperimentsDir(), "Scratch" );
     return new Experiment( experimentDir, gosuPanel );
   }
 
-  public static void openFileOrDir( File file )
+  public static void openFileOrDir( Path file )
   {
     try
     {
-      File parent;
-      if( file.isDirectory() )
+      Path parent;
+      if( PathUtil.isDirectory( file ) )
       {
         parent = file;
         file = null;
       }
       else
       {
-        if( !file.exists() )
+        if( !PathUtil.exists( file ) )
         {
           return;
         }
-        file = file.getAbsoluteFile();
-        parent = file.getParentFile();
+        file = PathUtil.getAbsolutePath( file );
+        parent = file.getParent();
         if( parent == null )
         {
           return;
@@ -440,18 +437,18 @@ public class LabFrame extends JFrame implements IGosuEditor
     }
   }
 
-  private static void doOpen( File dir, File toSelect ) throws IOException
+  private static void doOpen( Path dir, Path toSelect ) throws IOException
   {
     if( PlatformUtil.isWindows() )
     {
       String cmd;
       if( toSelect != null )
       {
-        cmd = "explorer /select," + toSelect.getAbsolutePath();
+        cmd = "explorer /select," + PathUtil.getAbsolutePathName( toSelect );
       }
       else
       {
-        cmd = "explorer /root," + dir.getAbsolutePath();
+        cmd = "explorer /root," + PathUtil.getAbsolutePathName( dir );
       }
       // no quoting/escaping is needed
       Runtime.getRuntime().exec( cmd );
@@ -466,29 +463,29 @@ public class LabFrame extends JFrame implements IGosuEditor
           "tell application \"Finder\"\n" +
           "\treveal {\"%s\"} as POSIX file\n" +
           "\tactivate\n" +
-          "end tell", toSelect.getAbsolutePath() );
+          "end tell", PathUtil.getAbsolutePathName( toSelect ) );
         Runtime.getRuntime().exec( new String[]{"/usr/bin/osascript", "-e", script} );
       }
       else
       {
-        Runtime.getRuntime().exec( new String[]{"open", dir.getAbsolutePath()} );
+        Runtime.getRuntime().exec( new String[]{"open", PathUtil.getAbsolutePathName( dir )} );
       }
       return;
     }
-    String path = dir.getAbsolutePath();
+    String path = PathUtil.getAbsolutePathName( dir );
     if( PlatformUtil.hasXdgOpen() )
     {
       Runtime.getRuntime().exec( new String[]{"/usr/bin/xdg-open", path} );
     }
     else if( Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported( Desktop.Action.OPEN ) )
     {
-      Desktop.getDesktop().open( new File( path ) );
+      Desktop.getDesktop().open( PathUtil.create( path ).toFile() );
     }
     else
     {
       JOptionPane.showMessageDialog( instance(),
                                      "This action isn't supported on the current platform",
-                                     "Cannot Open File",
+                                     "Cannot Open Path",
                                      JOptionPane.ERROR_MESSAGE );
     }
   }
@@ -498,17 +495,17 @@ public class LabFrame extends JFrame implements IGosuEditor
     return EditorUtilities.loadIcon( "images/g_16.png" );
   }
 
-  public static File getUserFile( GosuPanel gosuPanel )
+  public static Path getUserFile( GosuPanel gosuPanel )
   {
-    File file = new File( getUserGosuEditorDir(), "layout.gosulab" );
-    if( !file.isFile() )
+    Path file = PathUtil.create( getUserGosuEditorDir(), "layout.gosulab" );
+    if( !PathUtil.isFile( file ) )
     {
       Expando bindings = new Expando();
       bindings.put( "Title", "Gosu Lab" );
       bindings.put( "Version", VERSION );
-      bindings.put( "Experiments", Arrays.asList( makeScratchExperiment( gosuPanel ).getExperimentDir().getAbsolutePath() ) );
+      bindings.put( "Experiments", Arrays.asList( PathUtil.getAbsolutePathName( makeScratchExperiment( gosuPanel ).getExperimentDir() ) ) );
 
-      try( FileWriter fw = new FileWriter( file ) )
+      try( Writer fw = PathUtil.createWriter( file ) )
       {
         String json = (String)ReflectUtil.invokeMethod( bindings, "toJson" );
         fw.write( json );
@@ -523,7 +520,7 @@ public class LabFrame extends JFrame implements IGosuEditor
 
   public static Integer getVersion( GosuPanel gosuPanel ) throws MalformedURLException
   {
-    Bindings bindings = (Bindings)ReflectUtil.getProperty( getUserFile( gosuPanel ).toURI().toURL(), "JsonContent" );
+    Bindings bindings = (Bindings)ReflectUtil.getProperty( getUserFile( gosuPanel ).toUri().toURL(), "JsonContent" );
     return (Integer)bindings.get( "Version" );
   }
 
@@ -532,7 +529,7 @@ public class LabFrame extends JFrame implements IGosuEditor
     Bindings bindings;
     try
     {
-      bindings = (Bindings)ReflectUtil.getProperty( getUserFile( gosuPanel ).toURI().toURL(), "JsonContent" );
+      bindings = (Bindings)ReflectUtil.getProperty( getUserFile( gosuPanel ).toUri().toURL(), "JsonContent" );
     }
     catch( MalformedURLException e )
     {
@@ -540,7 +537,7 @@ public class LabFrame extends JFrame implements IGosuEditor
     }
     //noinspection unchecked
     restoreLabState( bindings );
-    return new Experiment( new File( instance().getExperiments().get( 0 ) ), gosuPanel );
+    return new Experiment( PathUtil.create( instance().getExperiments().get( 0 ) ), gosuPanel );
   }
 
 
@@ -551,8 +548,8 @@ public class LabFrame extends JFrame implements IGosuEditor
       return;
     }
 
-    File userFile = getUserFile( experiment.getGosuPanel() );
-    try( FileWriter fw = new FileWriter( userFile ) )
+    Path userFile = getUserFile( experiment.getGosuPanel() );
+    try( Writer fw = PathUtil.createWriter( userFile ) )
     {
       Expando bindings = new Expando();
 
@@ -666,10 +663,10 @@ public class LabFrame extends JFrame implements IGosuEditor
   public static void loadSettings()
   {
     Bindings bindings;
-    File settingsFile = getSettingsFile();
-    if( settingsFile.isFile() )
+    Path settingsFile = getSettingsFile();
+    if( PathUtil.isFile( settingsFile ) )
     {
-      try( Reader reader = StreamUtil.getInputStreamReader( settingsFile.toURI().toURL().openStream() ) )
+      try( Reader reader = StreamUtil.getInputStreamReader( settingsFile.toUri().toURL().openStream() ) )
       {
         bindings = Json.fromJson( StreamUtil.getContent( reader ) );
       }
@@ -690,8 +687,8 @@ public class LabFrame extends JFrame implements IGosuEditor
 
   public static void saveSettings()
   {
-    File settingsFile = getSettingsFile();
-    try( FileWriter fw = new FileWriter( settingsFile ) )
+    Path settingsFile = getSettingsFile();
+    try( Writer fw = PathUtil.createWriter( settingsFile ) )
     {
       Expando bindings = new Expando();
       IJsonIO.writeList( "Settings", new ArrayList<>( _settings.values() ), bindings );
@@ -704,8 +701,8 @@ public class LabFrame extends JFrame implements IGosuEditor
     }
   }
 
-  private static File getSettingsFile()
+  private static Path getSettingsFile()
   {
-    return new File( getUserGosuEditorDir(), "settings.gosulab" );
+    return PathUtil.create( getUserGosuEditorDir(), "settings.gosulab" );
   }
 }

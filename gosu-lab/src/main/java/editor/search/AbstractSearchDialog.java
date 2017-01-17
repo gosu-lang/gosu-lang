@@ -12,6 +12,8 @@ import editor.util.DirectoryEditor;
 import editor.util.EditorUtilities;
 import editor.util.LabButton;
 import editor.util.ModalEventQueue;
+import java.nio.file.Path;
+import gw.util.PathUtil;
 import editor.util.ProgressFeedback;
 import gw.lang.reflect.json.IJsonIO;
 
@@ -20,7 +22,6 @@ import javax.swing.text.JTextComponent;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -138,7 +139,7 @@ public abstract class AbstractSearchDialog extends AbstractDialog
         if( _searchDir != FileTreeUtil.getRoot() )
         {
           _rbDirectory.setSelected( true );
-          _cbDir.setText( _searchDir.getFileOrDir().getAbsolutePath() );
+          _cbDir.setText( PathUtil.getAbsolutePathName( _searchDir.getFileOrDir() ) );
         }
         else if( !_rbScope.isSelected() )
         {
@@ -545,7 +546,7 @@ public abstract class AbstractSearchDialog extends AbstractDialog
     c.weightx = 1;
     c.weighty = 0;
     c.insets = new Insets( 5, 0, 0, 0 );
-    _cbDir = new DirectoryEditor( "Directory", _searchDir.getFileOrDir().getAbsolutePath(), LabFrame::instance );
+    _cbDir = new DirectoryEditor( "Directory", PathUtil.getAbsolutePathName( _searchDir.getFileOrDir() ), LabFrame::instance );
     configPanel.add( _cbDir, c );
 
 
@@ -601,7 +602,7 @@ public abstract class AbstractSearchDialog extends AbstractDialog
     c.weightx = 0;
     c.weighty = 0;
     c.insets = new Insets( 0, 0, 0, 0 );
-    _checkFileMask = new JCheckBox( "File mask(s):" );
+    _checkFileMask = new JCheckBox( "Path mask(s):" );
     _checkFileMask.setMnemonic( 'M' );
     _checkFileMask.addActionListener( _stateHandler );
     configPanel.add( _checkFileMask, c );
@@ -626,8 +627,8 @@ public abstract class AbstractSearchDialog extends AbstractDialog
   {
     if( _rbDirectory.isSelected() )
     {
-      File file = new File( _cbDir.getText() );
-      if( file.exists() )
+      Path file = PathUtil.create( _cbDir.getText() );
+      if( PathUtil.exists( file ) )
       {
         FileTree fileTree = FileTreeUtil.getRoot().find( file );
         if( fileTree != null )

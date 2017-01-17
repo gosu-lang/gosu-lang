@@ -238,7 +238,7 @@ public class SystemPanel extends ClearablePanel
           IFile sourceFile = ((IGosuClass)type).getSourceFileHandle().getFile();
           if( sourceFile != null && sourceFile.isJavaFile() )
           {
-            getGosuPanel().openFile( sourceFile.toJavaFile(), true );
+            getGosuPanel().openFile( sourceFile.toJavaFile().toPath(), true );
             SettleModalEventQueue.instance().run();
           }
           EditorHostTextPane editor = getGosuPanel().getCurrentGosuEditor().getEditor();

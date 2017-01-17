@@ -1,6 +1,5 @@
 package editor.util;
 
-import editor.GosuEditorKit;
 import editor.LabFrame;
 import editor.Scheme;
 import editor.plugin.typeloader.ITypeFactory;
@@ -18,6 +17,8 @@ import gw.lang.reflect.gs.ITemplateType;
 import gw.lang.reflect.java.IJavaType;
 import gw.lang.reflect.java.JavaTypes;
 import gw.util.GosuStringUtil;
+import java.nio.file.Path;
+import gw.util.PathUtil;
 import java.awt.AWTEvent;
 import java.awt.ActiveEvent;
 import java.awt.Color;
@@ -40,7 +41,6 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.image.FilteredImageSource;
 import java.awt.image.ImageProducer;
-import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.net.URL;
@@ -276,11 +276,11 @@ public class EditorUtilities
 
   }
 
-  public static Icon findIcon( File fileOrDir )
+  public static Icon findIcon( Path fileOrDir )
   {
-    if( fileOrDir.isDirectory() )
+    if( PathUtil.isDirectory( fileOrDir ) )
     {
-      if( LabFrame.instance().getGosuPanel().getExperimentView().getExperiment().getSourcePath().contains( fileOrDir.getAbsolutePath() ) )
+      if( LabFrame.instance().getGosuPanel().getExperimentView().getExperiment().getSourcePath().contains( PathUtil.getAbsolutePathName( fileOrDir ) ) )
       {
         return loadIcon( "images/srcfolder.png" );
       }
@@ -296,7 +296,18 @@ public class EditorUtilities
         return findIcon( type );
       }
     }
-    return FileSystemView.getFileSystemView().getSystemIcon( fileOrDir );
+    if( PathUtil.isFile( fileOrDir ) )
+    {
+      try
+      {
+        return FileSystemView.getFileSystemView().getSystemIcon( fileOrDir.toFile() );
+      }
+      catch( UnsupportedOperationException e )
+      {
+        // eat
+      }
+    }
+    return loadIcon( "images/FileText.png" );
   }
 
   public static Icon findIcon( IType type )

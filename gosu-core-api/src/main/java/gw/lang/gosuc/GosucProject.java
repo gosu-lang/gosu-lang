@@ -139,6 +139,7 @@ public class GosucProject implements IProject {
     return new GosucModule( module.getName(),
                             GosucUtil.makeStringPaths( module.getSourcePath() ),
                             GosucUtil.makeStringPaths( module.getJavaClassPath() ),
+                            GosucUtil.makeStringPaths( module.getBackingSourcePath() ),
                             outputPath != null ? outputPath.getPath().getPathString() : null,
                             makeDependencies( module.getDependencies() ),
                             GosucUtil.makeStringPaths( module.getExcludedPaths() ));
@@ -156,7 +157,8 @@ public class GosucProject implements IProject {
 
   private void assignSdk( IExecutionEnvironment execEnv ) {
     List<String> classpath = GosucUtil.makeStringPaths( execEnv.getJreModule().getJavaClassPath() );
-    _sdk = new GosucSdk( classpath );
+    List<String> backingSource = GosucUtil.makeStringPaths( execEnv.getJreModule().getBackingSourcePath() );
+    _sdk = new GosucSdk( classpath, backingSource );
   }
 
   private void assignGlobalLoadersFromProvider() {
