@@ -10,6 +10,7 @@ import gw.lang.parser.ParserOptions;
 import gw.lang.parser.ScriptabilityModifiers;
 import gw.lang.parser.StandardSymbolTable;
 import gw.lang.parser.exceptions.ParseResultsException;
+import gw.lang.reflect.ITypeRef;
 import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.gs.ClassType;
 import gw.lang.reflect.gs.IGosuClass;
@@ -80,11 +81,16 @@ public class ContextSymbolTableUtil
         {
           if( error.getSymbolTable() != null )
           {
-            return error.getSymbolTable();
+            symTable = error.getSymbolTable();
+            break;
           }
         }
       }
     }
+
+    // Refresh the type to force it to reparse without the errant token above
+    TypeSystem.refresh( (ITypeRef)gsClass );
+
     return symTable;
   }
 }
