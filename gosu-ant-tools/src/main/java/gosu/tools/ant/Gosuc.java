@@ -5,7 +5,6 @@ import gw.lang.gosuc.GosucUtil;
 import gw.lang.gosuc.simple.ICompilerDriver;
 import gw.lang.gosuc.simple.IGosuCompiler;
 import gw.lang.gosuc.simple.SoutCompilerDriver;
-import java.util.Collections;
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.DirectoryScanner;
 import org.apache.tools.ant.types.Path;
@@ -315,7 +314,7 @@ public class Gosuc extends GosuMatchingTask {
       }
     }
     
-    gosuc.initializeGosu( sourceRoots, classpath, Collections.emptyList(), getDestdir().getAbsolutePath() );
+    gosuc.initializeGosu( sourceRoots, classpath, getDestdir().getAbsolutePath() );
 
     log.debug("About to compile these files:");
     for(File file : compileList) {
@@ -331,7 +330,7 @@ public class Gosuc extends GosuMatchingTask {
       }
     }
 
-    gosuc.unitializeGosu();
+    gosuc.uninitializeGosu();
 
     List<String> warnings = ((SoutCompilerDriver) driver).getWarnings();
     boolean errorsInCompilation = ((SoutCompilerDriver) driver).hasErrors();
