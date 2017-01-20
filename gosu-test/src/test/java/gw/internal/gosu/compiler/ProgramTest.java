@@ -9,7 +9,7 @@ import gw.internal.gosu.parser.Symbol;
 import gw.lang.function.IBlock;
 import gw.lang.parser.GosuParserFactory;
 import gw.lang.parser.IGosuProgramParser;
-import gw.lang.parser.IParseResult;
+import gw.lang.parser.ILanguageLevel;
 import gw.lang.parser.StandardSymbolTable;
 import gw.lang.parser.ParserOptions;
 import gw.lang.parser.ExternalSymbolMapSymbolTableWrapper;
@@ -419,6 +419,12 @@ public class ProgramTest extends ByteCodeTestBase
 
   public void testAnonymousInnerClassInFunctionReferencesGlobalSymbol() throws Exception
   {
+    if( ILanguageLevel.Util.STANDARD_GOSU() )
+    {
+      // global (external) symbols are deprecated in standard Gosu
+      return;
+    }
+
     StandardSymbolTable symTable = makeSymbolTableWithGlobalSymbol();
 
     IProgramInstance instance =
@@ -445,6 +451,12 @@ public class ProgramTest extends ByteCodeTestBase
 
   public void testAnonymousInnerClassInFunctionReferencesGlobalSymbolFromGlobalBlock() throws Exception
   {
+    if( ILanguageLevel.Util.STANDARD_GOSU() )
+    {
+      // global (external) symbols are deprecated in standard Gosu
+      return;
+    }
+
     StandardSymbolTable symTable = makeSymbolTableWithGlobalSymbol();
 
     IProgramInstance instance =
@@ -536,6 +548,12 @@ public class ProgramTest extends ByteCodeTestBase
 
   public void testFunctionSymbolWithSymTable() throws Exception
   {
+    if( ILanguageLevel.Util.STANDARD_GOSU() )
+    {
+      // global (external) symbols are deprecated in standard Gosu
+      return;
+    }
+
     StandardSymbolTable symTable = makeSymbolTableWithGlobalSymbol();
     Symbol sym = new Symbol( "globalFunc",
                              new FunctionType( "globalFunc", JavaTypes.STRING(), new IType[] {JavaTypes.STRING()} ),
@@ -835,6 +853,12 @@ public class ProgramTest extends ByteCodeTestBase
 
   public void testAnonymousInstanceExpr() throws Exception
   {
+    if( ILanguageLevel.Util.STANDARD_GOSU() )
+    {
+      // global (external) symbols are deprecated in standard Gosu
+      return;
+    }
+
     StandardSymbolTable symTable = makeSymbolTableWithGlobalSymbol();
 
     IProgramInstance instance =
