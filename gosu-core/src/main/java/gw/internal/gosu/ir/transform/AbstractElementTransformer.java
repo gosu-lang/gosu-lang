@@ -3163,6 +3163,11 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
   }
 
   public static boolean requiresExternalSymbolCapture( IType type ) {
+    if( ILanguageLevel.Util.STANDARD_GOSU() ) {
+      // global (external) symbols are deprecated in standard Gosu
+      return false;
+    }
+
     IType enclosingType = type.getEnclosingType();
     if( enclosingType == null ) {
       return false;
