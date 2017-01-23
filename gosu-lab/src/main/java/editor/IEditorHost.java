@@ -36,6 +36,7 @@ public interface IEditorHost
   void highlightLocations( List<SearchLocation> locations );
   String getLineCommentDelimiter();
   int getOffsetOfDeepestStatementLocationAtPos( int caretPosition, boolean strict );
+  String getTypeAtLine( int line );
   String getTooltipMessage( MouseEvent event );
 
   IIssueContainer getIssues();

@@ -224,6 +224,16 @@ public class StandardEditor extends EditorHost
   }
 
   @Override
+  public String getTypeAtLine( int line )
+  {
+    if( _factory != null )
+    {
+      return _factory.getTypeAtOffset( _type, getLineOffset( line ) );
+    }
+    return null;
+  }
+
+  @Override
   public String getTooltipMessage( MouseEvent event )
   {
     if( _factory == null )

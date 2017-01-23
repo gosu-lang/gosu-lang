@@ -60,6 +60,7 @@ public class VarTree implements MutableTreeNode
     }
     try
     {
+      frame = ref.getRef();
       Map<LocalVariable, Value> values = frame.getValues( frame.visibleVariables() );
       for( LocalVariable v: frame.visibleVariables() )
       {

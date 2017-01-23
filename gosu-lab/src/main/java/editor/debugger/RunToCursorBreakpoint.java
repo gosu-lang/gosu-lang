@@ -4,9 +4,9 @@ package editor.debugger;
  */
 public class RunToCursorBreakpoint extends Breakpoint
 {
-  public RunToCursorBreakpoint( String fqn, int line )
+  public RunToCursorBreakpoint( String fqn, String fqnDeclaring, int line )
   {
-    super( fqn, line );
+    super( fqn, fqnDeclaring, line );
   }
 
   @Override

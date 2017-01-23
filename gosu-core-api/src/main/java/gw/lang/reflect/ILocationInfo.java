@@ -25,6 +25,11 @@ public interface ILocationInfo
 
   int getColumn();
 
+  default boolean contains( int offset )
+  {
+    return getOffset() <= offset && getOffset() + getTextLength() > offset;
+  }
+
   URL getFileUrl();
 
   static ILocationInfo EMPTY =

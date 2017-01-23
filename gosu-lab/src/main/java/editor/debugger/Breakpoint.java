@@ -32,6 +32,7 @@ public class Breakpoint implements IJsonIO
     };
 
   private String _fqn;
+  private String _fqnDeclaring;
 
   private int _line;
   private String _expr;
@@ -58,20 +59,21 @@ public class Breakpoint implements IJsonIO
   }
   public Breakpoint( String fqnException, boolean notifyCaught, boolean notifyUncaught, boolean staticBp )
   {
-    this( fqnException, 0, null );
+    this( fqnException, fqnException, 0, null );
     _caughtException = notifyCaught;
     _uncaughtException = notifyUncaught;
     _static = staticBp;
   }
 
-  public Breakpoint( String fqn, int line )
+  public Breakpoint( String fqn, String fqnDeclaring, int line )
   {
-    this( fqn, line, null );
+    this( fqn, fqnDeclaring, line, null );
   }
 
-  public Breakpoint( String fqn, int line, String expr )
+  public Breakpoint( String fqn, String fqnDeclaring, int line, String expr )
   {
     _fqn = fqn;
+    _fqnDeclaring = fqnDeclaring;
     _line = line;
     _active = true;
     _expr = expr;
@@ -85,6 +87,15 @@ public class Breakpoint implements IJsonIO
   @SuppressWarnings("UnusedDeclaration")
   private Breakpoint()
   {
+  }
+
+  private String makeJavaName( String fqn, String fqnDeclaring )
+  {
+    if( fqn.length() >= fqnDeclaring.length() )
+    {
+      return fqnDeclaring;
+    }
+    return fqn + fqnDeclaring.substring( fqn.length() ).replace( '.', '$' );
   }
 
   public boolean isLineBreakpoint()
@@ -133,6 +144,15 @@ public class Breakpoint implements IJsonIO
   public String getFqn()
   {
     return _fqn;
+  }
+
+  public String getDeclaringFqn()
+  {
+    return _fqnDeclaring;
+  }
+  public String getDeclaringFqn_Java()
+  {
+    return makeJavaName( getFqn(), getDeclaringFqn() );
   }
 
   public int getLine()

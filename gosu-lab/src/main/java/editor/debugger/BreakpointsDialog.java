@@ -23,6 +23,7 @@ import editor.util.ToolBar;
 import gw.lang.parser.ScriptabilityModifiers;
 import gw.lang.parser.StandardSymbolTable;
 import gw.lang.parser.TypelessScriptPartId;
+import gw.lang.reflect.IType;
 import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.gs.IGosuClass;
 import gw.lang.reflect.java.JavaTypes;
@@ -211,7 +212,8 @@ public class BreakpointsDialog extends JDialog implements IHandleCancel
     c.weightx = 1;
     c.weighty = .3;
     c.insets = new Insets( 0, 0, 5, 0 );
-    _fieldExpr = new GosuEditor( bp.getLine() <= 0 ? new StandardSymbolTable( true ) : ContextSymbolTableUtil.getSymbolTableAtOffset( (IGosuClass)TypeSystem.getByFullNameIfValidNoJava( bp.getFqn() ), bp.getOffset() ),
+    IType type = TypeSystem.getByFullNameIfValidNoJava( bp.getFqn() );
+    _fieldExpr = new GosuEditor( type instanceof IGosuClass && bp.getLine() > 0 ? ContextSymbolTableUtil.getSymbolTableAtOffset( (IGosuClass)type, bp.getOffset() ) : new StandardSymbolTable( true ),
       new GosuClassLineInfoManager(), new AtomicUndoManager( 10000 ), ScriptabilityModifiers.SCRIPTABLE, new DefaultContextMenuHandler(), false, true );
     _fieldExpr.setExpectedType( JavaTypes.pBOOLEAN() );
     addEscapeHandler( _fieldExpr );
@@ -259,7 +261,8 @@ public class BreakpointsDialog extends JDialog implements IHandleCancel
     c.weightx = 1;
     c.weighty = .7;
     c.insets = new Insets( 0, 0, 10, 0 );
-    _fieldRunScript = new GosuEditor( bp.getLine() <= 0 ? new StandardSymbolTable( true ) : ContextSymbolTableUtil.getSymbolTableAtOffset( (IGosuClass)TypeSystem.getByFullNameIfValidNoJava( bp.getFqn() ), bp.getOffset() ),
+    type = TypeSystem.getByFullNameIfValidNoJava( bp.getFqn() );
+    _fieldRunScript = new GosuEditor( type instanceof IGosuClass && bp.getLine() > 0 ? ContextSymbolTableUtil.getSymbolTableAtOffset( (IGosuClass)type, bp.getOffset() ) : new StandardSymbolTable( true ),
       new GosuClassLineInfoManager(), new AtomicUndoManager( 10000 ), ScriptabilityModifiers.SCRIPTABLE, new DefaultContextMenuHandler(), false, true );
     addEscapeHandler( _fieldRunScript );
     _fieldRunScript.setAccessAll( true );
@@ -487,7 +490,7 @@ public class BreakpointsDialog extends JDialog implements IHandleCancel
     root.addChild( _exceptionBpTree );
 
     BreakpointManager bpm = getGosuPanel().getBreakpointManager();
-    for( Breakpoint bp : bpm.getBreakpoints() )
+    for( Breakpoint bp : bpm.getLineBreakpoints() )
     {
       lineBpTree.addChild( new BreakpointTree( bp, lineBpTree ) );
     }

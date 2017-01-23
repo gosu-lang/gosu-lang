@@ -21,6 +21,8 @@ public interface ITypeFactory
   void parse( IType type, String strText, boolean forceCodeCompletion, boolean changed, EditorHost editor );
   boolean canAddBreakpoint( IType type, int line );
 
+  String getTypeAtOffset( IType type, int offset );
+
   String getTooltipMessage( int iPos, EditorHost editor );
 
   IIssueContainer getIssueContainer( EditorHost editor );

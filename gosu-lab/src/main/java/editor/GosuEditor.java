@@ -1979,6 +1979,17 @@ public class GosuEditor extends EditorHost implements IScriptEditor, IGosuPanel,
   }
 
   @Override
+  public String getTypeAtLine( int line )
+  {
+    IParseTree statementAtLine = getStatementAtLine( line );
+    return statementAtLine == null
+           ? null
+           : statementAtLine.getParsedElement().getGosuClass() == null
+             ? getScriptPart().getContainingType().getName()
+             : statementAtLine.getParsedElement().getGosuClass().getName();
+  }
+
+  @Override
   public IParseTree getStatementAtLineOrExpression( int iLine )
   {
     IParseTree statement = getStatementAtLine( iLine );
@@ -2092,12 +2103,16 @@ public class GosuEditor extends EditorHost implements IScriptEditor, IGosuPanel,
         if( linesInserted != 0 && getScriptPart() != null )
         {
           BreakpointManager bpm = LabFrame.instance().getGosuPanel().getBreakpointManager();
-          Collection<Breakpoint> breakpoints = new ArrayList<>( bpm.getLineBreakpointsForType( getScriptPart().getContainingTypeName() ) );
+          Collection<Breakpoint> breakpoints = new ArrayList<>( bpm.getLineBreakpoints() );
+          String fqn = getScriptPart().getContainingTypeName();
           for( Breakpoint bp : breakpoints )
           {
-            bpm.removeBreakpoint( bp );
-            bp = updateBreakpoint( bp, linesInserted, e );
-            bpm.toggleLineBreakpoint( GosuEditor.this, bp.getFqn(), bp.getLine() );
+            if( fqn.equals( bp.getFqn() ) )
+            {
+              bpm.removeBreakpoint( bp );
+              bp = updateBreakpoint( bp, linesInserted, e );
+              bpm.toggleLineBreakpoint( GosuEditor.this, bp.getFqn(), bp.getDeclaringFqn(), bp.getLine() );
+            }
           }
           _scroller.getAdviceColumn().repaint();
         }
@@ -2112,7 +2127,7 @@ public class GosuEditor extends EditorHost implements IScriptEditor, IGosuPanel,
       {
         line = bp.getLine() + linesInserted;
       }
-      return new Breakpoint( bp.getFqn(), line );
+      return new Breakpoint( bp.getFqn(), bp.getDeclaringFqn(), line );
     }
 
     private void resizeEditor()

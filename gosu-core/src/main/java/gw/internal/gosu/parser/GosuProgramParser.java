@@ -92,23 +92,26 @@ public class GosuProgramParser implements IGosuProgramParser
     }
   }
 
-  public IParseResult parseRuntimeExpr( String typeName, String strSource, IGosuClass enclosingClass, ISymbolTable extSyms, IParseTree ctxElem )
+  public IParseResult parseRuntimeExpr( String typeName, String strSource, IType enclosingClass, ISymbolTable extSyms, IParseTree ctxElem )
   {
     TypeSystem.lock();
     try
     {
       StringSourceFileHandle sfh = new StringSourceFileHandle( typeName, strSource, false, ClassType.Eval );
-      if( enclosingClass != null )
+      sfh.setParentType( enclosingClass.getName() );
+      if( enclosingClass instanceof IGosuClass )
       {
-        sfh.setParentType( enclosingClass.getName() );
-      }
-      ITypeUsesMap typeUsedMap = enclosingClass.getTypeUsesMap();
-      if( typeUsedMap != null )
-      {
-        sfh.setTypeUsesMap( typeUsedMap );
+        ITypeUsesMap typeUsedMap = ((IGosuClass)enclosingClass).getTypeUsesMap();
+        if( typeUsedMap != null )
+        {
+          sfh.setTypeUsesMap( typeUsedMap );
+        }
       }
       IGosuProgramInternal program = (IGosuProgramInternal)GosuClassTypeLoader.getDefaultClassLoader().makeNewClass( sfh, null );
-      program.setEnclosingEvalExpression( ctxElem.getParsedElement() );
+      if( ctxElem != null )
+      {
+        program.setEnclosingEvalExpression( ctxElem.getParsedElement() );
+      }
       sfh.setExternalSymbols( extSyms );
       program.isValid();
       return new ParseResult( program );

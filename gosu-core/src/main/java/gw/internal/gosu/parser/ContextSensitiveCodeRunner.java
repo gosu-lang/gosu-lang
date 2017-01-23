@@ -30,6 +30,7 @@ import gw.util.ContextSymbolTableUtil;
 import gw.util.GosuExceptionUtil;
 
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -64,8 +65,17 @@ public class ContextSensitiveCodeRunner
   public static Object runMeSomeCode( Object enclosingInstance, ClassLoader cl, Object[] extSyms, String strText, final String strClassContext, String strContextElementClass, int iSourcePosition )
   {
      // Must execute in caller's classloader
-    try {
-      Class<?> cls = Class.forName( ContextSensitiveCodeRunner.class.getName(), false, cl );
+    try
+    {
+      Class<?> cls;
+      try
+      {
+        cls = Class.forName( ContextSensitiveCodeRunner.class.getName(), false, cl );
+      }
+      catch( Exception e )
+      {
+        cls = ContextSensitiveCodeRunner.class;
+      }
       Method m = cls.getDeclaredMethod( "_runMeSomeCode", Object.class, Object[].class, String.class, String.class, String.class, int.class );
       m.setAccessible( true );
       return m.invoke( null, enclosingInstance, extSyms, strText, strClassContext, strContextElementClass, iSourcePosition );
@@ -84,14 +94,9 @@ public class ContextSensitiveCodeRunner
   }
   private static Object _runMeSomeCode( Object enclosingInstance, Object[] extSyms, String strText, final String strClassContext, String strContextElementClass, int iSourcePosition )
   {
-    if( strClassContext != null )
+    IType type = TypeSystem.getByFullName( strClassContext, TypeSystem.getGlobalModule() );
+    if( type instanceof IGosuClassInternal )
     {
-      IType type = TypeSystem.getByFullName( strClassContext, TypeSystem.getGlobalModule() );
-      if( !(type instanceof IGosuClassInternal) )
-      {
-        System.out.println( strClassContext + " is not a Gosu class" );
-        return null;
-      }
       IGosuClassInternal gsClass = (IGosuClassInternal)type;
       gsClass.isValid();
       IGosuClassInternal gsImmediateClass = (IGosuClassInternal)TypeSystem.getByFullName( strContextElementClass );
@@ -99,7 +104,7 @@ public class ContextSensitiveCodeRunner
     }
     else
     {
-      IGosuClassInternal gsImmediateClass = (IGosuClassInternal)TypeSystem.getByFullName( strContextElementClass );
+      IType gsImmediateClass = TypeSystem.getByFullName( strContextElementClass );
       return compileAndRunMeSomeCode( strText, null, enclosingInstance, gsImmediateClass, extSyms, 0 );
     }
   }
@@ -120,22 +125,60 @@ public class ContextSensitiveCodeRunner
       String strSource = CommonServices.getCoercionManager().makeStringFrom( source );
       IGosuProgramParser parser = GosuParserFactory.createProgramParser();
       //debugInfo( compileTimeLocalContextSymbols );
-      IParseTree ctxElem = ((IGosuClassInternal)enclosingClass).getClassStatement().getLocation().getDeepestLocation( offset, false );
-      res = parser.parseRuntimeExpr( typeName, strSource, (IGosuClass)enclosingClass, compileTimeLocalContextSymbols, ctxElem );
 
+      // use parent class if nested class has no recorded location eg., closure
+      while( enclosingClass.getEnclosingType() != null && enclosingClass instanceof IGosuClassInternal && ((IGosuClassInternal)enclosingClass).getClassStatement().getLocation() == null )
+      {
+        enclosingClass = enclosingClass.getEnclosingType();
+        try
+        {
+          Field f = outer.getClass().getDeclaredField( "this$0" );
+          f.setAccessible( true );
+          outer = f.get( outer );
+        }
+        catch( Exception e )
+        {
+          throw new RuntimeException( e );
+        }
+      }
+
+      TypeSystem.pushIncludeAll();
+      try
+      {
+        IParseTree ctxElem = null;
+        if( enclosingClass instanceof IGosuClassInternal )
+        {
+          //## todo: for Java types we can fake a ctxElem by getting the Gosu proxy class and then get the corresponding function stmt
+          ctxElem = ((IGosuClassInternal)enclosingClass).getClassStatement().getLocation().getDeepestLocation( offset, false );
+        }
+        res = parser.parseRuntimeExpr( typeName, strSource, enclosingClass, compileTimeLocalContextSymbols, ctxElem );
+      }
+      finally
+      {
+        TypeSystem.popIncludeAll();
+      }
       cacheProgram( typeName, (IGosuProgramInternal)res.getProgram() );
     }
 
     IExternalSymbolMap runtimeLocalSymbolValues = makeRuntimeNamesAndValues( extSyms );
 
 
-    IGosuProgram gp = res.getProgram();
-    if( !gp.isValid() )
+    TypeSystem.pushIncludeAll();
+    IGosuProgram gp;
+    try
     {
-      System.out.println( gp.getParseResultsException() );
-      throw GosuExceptionUtil.forceThrow( gp.getParseResultsException() );
-    }
+      gp = res.getProgram();
+      if( !gp.isValid() )
+      {
+        System.out.println( gp.getParseResultsException() );
+        throw GosuExceptionUtil.forceThrow( gp.getParseResultsException() );
+      }
 
+    }
+    finally
+    {
+      TypeSystem.popIncludeAll();
+    }
     Class<?> javaClass = gp.getBackingClass();
     ClassLoader classLoader = javaClass.getClassLoader();
     assert classLoader instanceof SingleServingGosuClassLoader;

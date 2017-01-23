@@ -126,5 +126,28 @@ public interface IRelativeTypeInfo extends ITypeInfo
         return PUBLIC;
       }
     }
+
+    public int toModifier()
+    {
+      switch( this )
+      {
+        case PUBLIC:
+          return Modifier.PUBLIC;
+        case PROTECTED:
+          return Modifier.PROTECTED;
+        case INTERNAL:
+          return Modifier.INTERNAL;
+        case PRIVATE:
+          return Modifier.PRIVATE;
+        case NONE:
+          return -1;
+      }
+      throw new IllegalStateException();
+    }
+
+    public boolean isAccessible( Accessibility acc )
+    {
+      return isAccessible( acc.toModifier() );
+    }
   }
 }

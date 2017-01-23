@@ -119,20 +119,22 @@ public class AsmConstructorJavaClassConstructor extends JavaSourceElement implem
   @Override
   public Tree getTree()
   {
-    ISourceFileHandle sfh = getEnclosingClass().getSourceFileHandle();
-    if( sfh != null )
+    JavaSourceElement sourceCtor = findSourceConstructor();
+    if( sourceCtor != null )
     {
-      JavaSourceElement sourceCtor = findSourceConstructor( sfh );
-      if( sourceCtor != null )
-      {
-        return sourceCtor.getTree();
-      }
+      return sourceCtor.getTree();
     }
     return null;
   }
 
-  private JavaSourceElement findSourceConstructor( ISourceFileHandle sfh )
+  private JavaSourceElement findSourceConstructor()
   {
+    ISourceFileHandle sfh = getEnclosingClass().getSourceFileHandle();
+    if( sfh == null )
+    {
+      return null;
+    }
+
     IJavaClassInfo sourceType = JavaSourceType.createTopLevel( sfh, getEnclosingClass().getModule() );
     if( sourceType == null )
     {

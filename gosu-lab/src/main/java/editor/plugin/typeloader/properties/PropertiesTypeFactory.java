@@ -79,6 +79,12 @@ public class PropertiesTypeFactory implements ITypeFactory
   }
 
   @Override
+  public String getTypeAtOffset( IType type, int offset )
+  {
+    return type.getName();
+  }
+
+  @Override
   public String getTooltipMessage( int iPos, EditorHost editor )
   {
     //## todo: get error message for iPos

@@ -9,17 +9,6 @@ import editor.EditorHost;
 import editor.GosuEditor;
 import editor.GosuPanel;
 import editor.LabFrame;
-import gw.lang.parser.IParseTree;
-import gw.lang.parser.IParsedElement;
-import gw.lang.parser.expressions.IVarStatement;
-import gw.lang.parser.statements.IClassFileStatement;
-import gw.lang.parser.statements.IClassStatement;
-import gw.lang.parser.statements.IFunctionStatement;
-import gw.lang.parser.statements.INamespaceStatement;
-import gw.lang.parser.statements.IPropertyStatement;
-import gw.lang.parser.statements.IStatementList;
-import gw.lang.parser.statements.IUsesStatement;
-import gw.lang.parser.statements.IUsesStatementList;
 
 import java.awt.*;
 import java.util.ArrayList;
@@ -80,7 +69,7 @@ public class BreakpointManager
 
   public Breakpoint getBreakpoint( Breakpoint bp )
   {
-    return getBreakpointAtEditorLine( bp.getFqn(), bp.getLine() );
+    return getBreakpointAtEditorLine( bp.getDeclaringFqn(), bp.getLine() );
   }
 
   public Breakpoint getBreakpoint( String exceptionFqn )
@@ -88,9 +77,9 @@ public class BreakpointManager
     return _exceptionBreakpoints.get( exceptionFqn );
   }
 
-  public Breakpoint findBreakpoint( String fqn, int line )
+  public Breakpoint findBreakpoint( String fqnDeclaring, int line )
   {
-    Map<Integer, Breakpoint> byLine = _lineBreakpointsByType.get( fqn );
+    Map<Integer, Breakpoint> byLine = _lineBreakpointsByType.get( fqnDeclaring );
     if( byLine != null )
     {
       return byLine.get( line );
@@ -98,14 +87,14 @@ public class BreakpointManager
     return null;
   }
 
-  public void toggleLineBreakpoint( EditorHost editor, String fqn, int line )
+  public void toggleLineBreakpoint( EditorHost editor, String fqn, String fqnDeclaring, int line )
   {
-    Breakpoint bp = getBreakpointAtEditorLine( fqn, line );
+    Breakpoint bp = getBreakpointAtEditorLine( fqnDeclaring, line );
     if( bp == null )
     {
       if( canAddBreakpoint( editor, line ) )
       {
-        addBreakpoint( fqn, line );
+        addBreakpoint( fqn, fqnDeclaring, line );
       }
     }
     else
@@ -137,7 +126,7 @@ public class BreakpointManager
       if( debugger != null )
       {
         String fqn = editor.getScriptPart().getContainingTypeName();
-        Breakpoint runToCursorBp = new RunToCursorBreakpoint( fqn, line );
+        Breakpoint runToCursorBp = new RunToCursorBreakpoint( fqn, editor.getTypeAtLine( line ), line );
         debugger.addBreakpointJdi( runToCursorBp );
         debugger.resumeExecution();
       }
@@ -149,23 +138,23 @@ public class BreakpointManager
     return editor.canAddBreakpoint( line );
   }
 
-  public List<Breakpoint> getBreakpoints()
+  public List<Breakpoint> getLineBreakpoints()
   {
     List<Breakpoint> breakpoints = new ArrayList<>();
     _lineBreakpointsByType.values().stream().forEach( m -> m.values().forEach( breakpoints::add ) );
     return breakpoints;
   }
 
-  public Map<Integer, Breakpoint> getBreakpointsByType( String fqn )
+  public Map<Integer, Breakpoint> getBreakpointsByType( String fqnDeclaring )
   {
-    return _lineBreakpointsByType.get( fqn );
+    return _lineBreakpointsByType.get( fqnDeclaring );
   }
 
   public void removeBreakpoint( Breakpoint bp )
   {
     if( bp.isLineBreakpoint() )
     {
-      Map<Integer, Breakpoint> byLine = _lineBreakpointsByType.get( bp.getFqn() );
+      Map<Integer, Breakpoint> byLine = _lineBreakpointsByType.get( bp.getDeclaringFqn() );
       if( byLine == null )
       {
         return;
@@ -197,20 +186,14 @@ public class BreakpointManager
     notifyListeners();
   }
 
-  public Breakpoint getBreakpointAtEditorLine( String fqn, int line )
+  public Breakpoint getBreakpointAtEditorLine( String fqnDeclaring, int line )
   {
-    Map<Integer, Breakpoint> byLine = _lineBreakpointsByType.get( fqn );
+    Map<Integer, Breakpoint> byLine = _lineBreakpointsByType.get( fqnDeclaring );
     if( byLine == null )
     {
       return null;
     }
     return byLine.get( line );
-  }
-
-  public Collection<Breakpoint> getLineBreakpointsForType( String fqn )
-  {
-    Map<Integer, Breakpoint> breakpointsByLine = _lineBreakpointsByType.get( fqn );
-    return breakpointsByLine == null ? Collections.emptyList() : breakpointsByLine.values();
   }
 
   public Collection<Breakpoint> getExceptionBreakpoints()
@@ -223,7 +206,7 @@ public class BreakpointManager
     return _exceptionBreakpoints.get( fqnException );
   }
 
-  public Breakpoint getExecPointAtEditorLine( String fqn, int line )
+  public Breakpoint getExecPointAtEditorLine( String fqn, String fqnDeclaring, int line )
   {
     Debugger debugger = getDebugger();
     if( debugger == null || (!debugger.isSuspended() && !debugger.isPaused()) || fqn == null )
@@ -237,12 +220,12 @@ public class BreakpointManager
     }
     if( line == location.lineNumber() && fqn.equals( Debugger.getOutermostType( location.declaringType() ) ) )
     {
-      return new Breakpoint( fqn, line );
+      return new Breakpoint( fqn, fqnDeclaring, line );
     }
     return null;
   }
 
-  public Breakpoint getFramePointAtEditorLine( String fqn, int line )
+  public Breakpoint getFramePointAtEditorLine( String fqn, String fqnDeclaring, int line )
   {
     Debugger debugger = getDebugger();
     if( debugger == null || (!debugger.isSuspended() && !debugger.isPaused()) || fqn == null )
@@ -263,7 +246,7 @@ public class BreakpointManager
         Location location = frame.location();
         if( line == location.lineNumber() && fqn.equals( Debugger.getOutermostType( location.declaringType() ) ) )
         {
-          return new Breakpoint( fqn, line );
+          return new Breakpoint( fqn, fqnDeclaring, line );
         }
       }
     }
@@ -274,14 +257,14 @@ public class BreakpointManager
     return null;
   }
 
-  private void addBreakpoint( String fqn, int line )
+  private void addBreakpoint( String fqn, String fqnDeclaring, int line )
   {
-    Map<Integer, Breakpoint> byLine = _lineBreakpointsByType.get( fqn );
+    Map<Integer, Breakpoint> byLine = _lineBreakpointsByType.get( fqnDeclaring );
     if( byLine == null )
     {
-      _lineBreakpointsByType.put( fqn, byLine = new HashMap<>() );
+      _lineBreakpointsByType.put( fqnDeclaring, byLine = new HashMap<>() );
     }
-    Breakpoint bp = new Breakpoint( fqn, line );
+    Breakpoint bp = new Breakpoint( fqn, fqnDeclaring, line );
     byLine.put( line, bp );
     Debugger debugger = getDebugger();
     if( debugger != null )

@@ -19,5 +19,5 @@ public interface IGosuProgramParser
 
   IParseResult parseEval( String strSource, List<ICapturedSymbol> symTable, IType enclosingClass, IParsedElement evalExpressionOrAnyCtxElement, ISymbolTable extSyms );
 
-  public IParseResult parseRuntimeExpr( String typeName, String strSource, IGosuClass enclosingClass, ISymbolTable extSyms, IParseTree ctxElem );
+  public IParseResult parseRuntimeExpr( String typeName, String strSource, IType enclosingClass, ISymbolTable extSyms, IParseTree ctxElem );
 }
