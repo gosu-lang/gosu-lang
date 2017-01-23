@@ -1,8 +1,8 @@
 package gw.lang.reflect.java;
 
+import com.sun.source.tree.CompilationUnitTree;
 import com.sun.source.tree.Tree;
-import com.sun.tools.javac.tree.JCTree;
-import com.sun.tools.javac.tree.TreeInfo;
+import com.sun.source.util.SourcePositions;
 import gw.lang.reflect.ILocationInfo;
 import gw.lang.reflect.LocationInfo;
 import java.net.MalformedURLException;
@@ -20,6 +20,40 @@ public abstract class JavaSourceElement
   {
     return getEnclosingClass();
   }
+  public CompilationUnitTree getCompilationUnitTree()
+  {
+    if( getEnclosingClass() instanceof JavaSourceElement )
+    {
+      return ((JavaSourceElement)getEnclosingClass()).getCompilationUnitTree();
+    }
+    return null;
+  }
+  public SourcePositions getSourcePositions()
+  {
+    if( getEnclosingClass() instanceof JavaSourceElement )
+    {
+      return ((JavaSourceElement)getEnclosingClass()).getSourcePositions();
+    }
+    return null;
+  }
+  public int getStartPosition()
+  {
+    SourcePositions sp = getSourcePositions();
+    if( sp != null )
+    {
+      return (int)sp.getStartPosition( getCompilationUnitTree(), getTree() );
+    }
+    return -1;
+  }
+  public int getEndPosition()
+  {
+    SourcePositions sp = getSourcePositions();
+    if( sp != null )
+    {
+      return (int)sp.getEndPosition( getCompilationUnitTree(), getTree() );
+    }
+    return -1;
+  }
 
   public ILocationInfo getLocationInfo()
   {
@@ -28,8 +62,8 @@ public abstract class JavaSourceElement
       return _location;
     }
 
-    int startPos = TreeInfo.getStartPos( (JCTree)getTree() );
-    int endPos = TreeInfo.getEndPos( (JCTree)getTree(), null );
+    int startPos = getStartPosition();
+    int endPos =  getEndPosition();
     try
     {
       _location = new LocationInfo( startPos, endPos - startPos, -1, -1, getDeclaringClass().getSourceFileHandle().getFile().toURI().toURL() );

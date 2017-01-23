@@ -1,7 +1,6 @@
 package editor.plugin.typeloader.java;
 
 import editor.EditorHost;
-import editor.util.HTMLEscapeUtil;
 import gw.lang.javac.JavaIssueContainer;
 import gw.lang.IIssueContainer;
 import editor.plugin.typeloader.INewFileParams;
@@ -10,6 +9,8 @@ import gw.lang.javac.IJavaParser;
 import gw.lang.javac.StringJavaFileObject;
 import gw.lang.parser.GosuParserFactory;
 import gw.lang.reflect.IType;
+import gw.lang.reflect.java.IJavaClassInfo;
+import gw.lang.reflect.java.IJavaType;
 import java.awt.EventQueue;
 import java.util.Collections;
 import javax.swing.JComponent;
@@ -89,6 +90,18 @@ public class JavaTypeFactory implements ITypeFactory
         ((JavaDocument)editor.getDocument()).setErrorHandler( errorHandler );
         editor.getEditor().repaint();
       } );
+  }
+
+  @Override
+  public String getTypeAtOffset( IType type, int offset )
+  {
+    IJavaClassInfo classInfo = ((IJavaType)type).getBackingClassInfo();
+    IJavaClassInfo deepestClass = classInfo.getDeepestClassAtOffset( offset );
+    if( deepestClass != null )
+    {
+      return deepestClass.getName();
+    }
+    return null;
   }
 
   @Override

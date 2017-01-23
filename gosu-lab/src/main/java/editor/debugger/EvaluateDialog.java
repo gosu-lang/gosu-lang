@@ -14,10 +14,14 @@ import editor.search.StringUtil;
 import editor.splitpane.CollapsibleSplitPane;
 import editor.undo.AtomicUndoManager;
 import editor.util.EditorUtilities;
+import gw.lang.GosuShop;
 import gw.lang.parser.IParseTree;
+import gw.lang.parser.ISymbolTable;
+import gw.lang.parser.Keyword;
 import gw.lang.parser.ScriptabilityModifiers;
 import gw.lang.parser.StandardSymbolTable;
 import gw.lang.parser.TypelessScriptPartId;
+import gw.lang.reflect.IType;
 import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.gs.IGosuClass;
 import gw.util.ContextSymbolTableUtil;
@@ -117,10 +121,25 @@ public class EvaluateDialog extends JDialog implements IHandleCancel
     else
     {
       String outermostTypeName = Debugger.getOutermostType( loc.declaringType() );
-      IGosuClass outermostType = (IGosuClass)TypeSystem.getByFullNameIfValidNoJava( outermostTypeName );
-      return new GosuEditor( ContextSymbolTableUtil.getSymbolTableAtOffset( outermostType, StringUtil.getLineOffset( outermostType.getSource(), loc.lineNumber() ) ),
+      IType outermostType = TypeSystem.getByFullNameIfValidNoJava( outermostTypeName );
+      return new GosuEditor( makeSymTable( loc, outermostType ),
                              new GosuClassLineInfoManager(), new AtomicUndoManager( 10000 ), ScriptabilityModifiers.SCRIPTABLE, new DefaultContextMenuHandler(), false, true );
     }
+  }
+
+  private ISymbolTable makeSymTable( Location loc, IType outermostType )
+  {
+    if( outermostType instanceof IGosuClass )
+    {
+      return ContextSymbolTableUtil.getSymbolTableAtOffset( (IGosuClass)outermostType, StringUtil.getLineOffset( ((IGosuClass)outermostType).getSource(), loc.lineNumber() ) );
+    }
+    StandardSymbolTable symTable = new StandardSymbolTable();
+    IType thisType = TypeSystem.getByFullNameIfValid( loc.declaringType().name().replace( '$', '.' ) );
+    if( thisType != null )
+    {
+      symTable.putSymbol( GosuShop.createSymbol( Keyword.KW_this.getName(), thisType, null ) );
+    }
+    return symTable;
   }
 
   private Location getSuspendedLocation()
@@ -167,10 +186,16 @@ public class EvaluateDialog extends JDialog implements IHandleCancel
 
     _fqn = Debugger.getOutermostType( suspendedLoc.declaringType() );
 
-    IGosuClass topLevelClass = (IGosuClass)TypeSystem.getByFullName( _fqn );
-    _offset = StringUtil.getLineOffset( topLevelClass.getSource(), suspendedLoc.lineNumber() );
+    IType topLevelClass = TypeSystem.getByFullName( _fqn );
+    if( !(topLevelClass instanceof IGosuClass) )
+    {
+      _immediateClass = suspendedLoc.declaringType().name().replace( '$', '.' );
+      return true;
+    }
+    IGosuClass topLevelGosuClass = (IGosuClass)topLevelClass;
+    _offset = StringUtil.getLineOffset( topLevelGosuClass.getSource(), suspendedLoc.lineNumber() );
     topLevelClass.isValid();
-    IParseTree loc = topLevelClass.getClassStatement().getLocation().getDeepestLocation( _offset, false );
+    IParseTree loc = topLevelGosuClass.getClassStatement().getLocation().getDeepestLocation( _offset, false );
     if( loc == null )
     {
       return false;
@@ -178,7 +203,7 @@ public class EvaluateDialog extends JDialog implements IHandleCancel
     int i = 0;
     while( loc != null && loc.getOffset() < _offset )
     {
-      loc = topLevelClass.getClassStatement().getLocation().getDeepestLocation( _offset + ++i, true );
+      loc = topLevelGosuClass.getClassStatement().getLocation().getDeepestLocation( _offset + ++i, true );
     }
     if( loc == null )
     {

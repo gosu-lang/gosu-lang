@@ -30,7 +30,7 @@ public class GosuClassLineInfoManager extends AbstractLineInfoManager
 
   protected Breakpoint getBreakpointAtLine( int iLine )
   {
-    return getBreakpointManager().getBreakpointAtEditorLine( getEditor().getScriptPart().getContainingTypeName(), iLine );
+    return getBreakpointManager().getBreakpointAtEditorLine( getEditor().getTypeAtLine( iLine ), iLine );
   }
 
   protected boolean isExecPointAtLine( int iLine )
@@ -39,7 +39,7 @@ public class GosuClassLineInfoManager extends AbstractLineInfoManager
   }
   protected Breakpoint getExecPointAtLine( int iLine )
   {
-    return getBreakpointManager().getExecPointAtEditorLine( getEditor().getScriptPart().getContainingTypeName(), iLine );
+    return getBreakpointManager().getExecPointAtEditorLine( getEditor().getScriptPart().getContainingTypeName(), getEditor().getTypeAtLine( iLine ), iLine );
   }
 
   protected boolean isFramePointAtLine( int iLine )
@@ -48,7 +48,7 @@ public class GosuClassLineInfoManager extends AbstractLineInfoManager
   }
   protected Breakpoint getFramePointAtLine( int iLine )
   {
-    return getBreakpointManager().getFramePointAtEditorLine( getEditor().getScriptPart().getContainingTypeName(), iLine );
+    return getBreakpointManager().getFramePointAtEditorLine( getEditor().getScriptPart().getContainingTypeName(), getEditor().getTypeAtLine( iLine ), iLine );
   }
 
   @Override
@@ -77,7 +77,7 @@ public class GosuClassLineInfoManager extends AbstractLineInfoManager
       }
       else
       {
-        getBreakpointManager().toggleLineBreakpoint( getEditor(), getEditor().getScriptPart().getContainingTypeName(), iLine );
+        getBreakpointManager().toggleLineBreakpoint( getEditor(), getEditor().getScriptPart().getContainingTypeName(), getEditor().getTypeAtLine( iLine ), iLine );
       }
     }
   }

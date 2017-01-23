@@ -375,7 +375,8 @@ public abstract class EditorHost extends JPanel implements IEditorHost
   {
     Element root = getDocument().getRootElements()[0];
     iLine = root.getElementCount() < iLine ? root.getElementCount() : iLine;
-    return root.getElement( iLine ).getStartOffset();
+    Element elemAtLine = root.getElement( iLine );
+    return elemAtLine == null ? 0 : elemAtLine.getStartOffset();
   }
 
   void handleBulkIndent( boolean bOutdent )

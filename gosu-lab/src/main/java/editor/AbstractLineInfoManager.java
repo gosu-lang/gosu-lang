@@ -157,7 +157,7 @@ public abstract class AbstractLineInfoManager implements ILineInfoManager
         public void actionPerformed( ActionEvent e )
         {
           BreakpointManager bmp = getGosuPanel().getBreakpointManager();
-          bmp.toggleLineBreakpoint( getEditor(), getEditor().getScriptPart().getContainingTypeName(), iLine );
+          bmp.toggleLineBreakpoint( getEditor(), getEditor().getScriptPart().getContainingTypeName(), getEditor().getTypeAtLine( iLine ), iLine );
           getEditor().repaint();
         }
       } );

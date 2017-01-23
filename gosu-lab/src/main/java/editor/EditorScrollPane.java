@@ -124,14 +124,25 @@ public class EditorScrollPane extends JScrollPane
       int iMargin = _editor.getMargin().top + getLineSpacingAttr( iLineHeight );
       int iLines = getHeight() / iLineHeight;
       int borderWidth = getBorder().getBorderInsets( this ).right;
+      Rectangle clipBounds = g.getClipBounds();
       for( int i = 1; i <= iLines; i++ )
       {
         String strLine = String.valueOf( i );
         int iWidth = fm.stringWidth( strLine );
 
-        g.drawString( strLine, getWidth() - iWidth - getLineInfoRequiredWidth() - borderWidth, i * iLineHeight - fm.getDescent() + iMargin );
-        renderLineInfo( g, i, iLineHeight, getWidth() - getLineInfoRequiredWidth() - borderWidth, (i - 1) * iLineHeight + iMargin );
+        int x = getWidth() - iWidth - getLineInfoRequiredWidth() - borderWidth;
+        int y = i * iLineHeight - fm.getDescent() + iMargin;
+        if( inClipBounds( clipBounds, y ) || inClipBounds( clipBounds, y + iLineHeight ) )
+        {
+          g.drawString( strLine, x, y );
+          renderLineInfo( g, i, iLineHeight, getWidth() - getLineInfoRequiredWidth() - borderWidth, (i - 1) * iLineHeight + iMargin );
+        }
       }
+    }
+
+    private boolean inClipBounds( Rectangle clipBounds, int y )
+    {
+      return y >= clipBounds.y && y <= clipBounds.y + clipBounds.height;
     }
 
     private int getLineSpacingAttr( int iLineHeight )

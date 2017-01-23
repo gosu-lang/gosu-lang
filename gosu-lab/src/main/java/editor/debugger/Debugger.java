@@ -204,7 +204,7 @@ public class Debugger
       else
       {
         Location location = req.location();
-        Breakpoint breakpoint = _bpm.findBreakpoint( location.declaringType().name(), location.lineNumber() );
+        Breakpoint breakpoint = _bpm.findBreakpoint( location.declaringType().name().replace( '$', '.' ), location.lineNumber() );
         req.setEnabled( breakpoint.isActive() );
       }
     }
@@ -349,7 +349,7 @@ public class Debugger
       // Normal breakpoint
 
       Breakpoint breakpoint = null;
-      for( Breakpoint bp : _bpm.getBreakpoints() )
+      for( Breakpoint bp : _bpm.getLineBreakpoints() )
       {
         if( bp.getFqn().equals( fqn ) && bp.getLine() == line )
         {
@@ -589,7 +589,7 @@ public class Debugger
 
   private void addBreakpoints()
   {
-    _bpm.getBreakpoints().forEach( this::addBreakpointJdi );
+    _bpm.getLineBreakpoints().forEach( this::addBreakpointJdi );
     _bpm.getExceptionBreakpoints().forEach( this::addBreakpointJdi );
   }
 
@@ -600,7 +600,7 @@ public class Debugger
       return;
     }
 
-    List<ReferenceType> list = _vm.classesByName( bp.getFqn() );
+    List<ReferenceType> list = _vm.classesByName( bp.getDeclaringFqn_Java() );
     if( list.size() > 0 )
     {
       try
@@ -636,7 +636,7 @@ public class Debugger
 
   private void deferAddVmBreakpoint( Breakpoint bp )
   {
-    String className = bp.getFqn();
+    String className = bp.getDeclaringFqn_Java();
     if( _classPrepareRequests.containsKey( className ) )
     {
       return;
@@ -690,7 +690,7 @@ public class Debugger
       return;
     }
 
-    Map<Integer, Breakpoint> byLine = _bpm.getBreakpointsByType( className );
+    Map<Integer, Breakpoint> byLine = _bpm.getBreakpointsByType( className.replace( '$', '.' ) );
     if( byLine != null )
     {
       EventRequestManager erm = getEventRequestManager();

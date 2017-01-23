@@ -4,7 +4,9 @@
 
 package gw.internal.gosu.parser;
 
+import com.sun.source.tree.CompilationUnitTree;
 import com.sun.source.tree.Tree;
+import com.sun.source.util.SourcePositions;
 import gw.fs.IDirectory;
 import gw.fs.IFile;
 import gw.internal.gosu.parser.java.classinfo.AsmClassAnnotationInfo;
@@ -80,6 +82,7 @@ public class AsmClassJavaClassInfo extends AsmTypeJavaClassType implements IAsmJ
   private String _namespace;
   private IJavaType _javaType;
   private ISourceFileHandle _sourceFileHandle;
+  private IJavaClassInfo _sourceType;
 
   public AsmClassJavaClassInfo( AsmClass cls, IModule module ) {
     super( cls, module );
@@ -710,33 +713,81 @@ public class AsmClassJavaClassInfo extends AsmTypeJavaClassType implements IAsmJ
   @Override
   public Tree getTree()
   {
-    ISourceFileHandle sfh = getSourceFileHandle();
-    if( sfh != null )
+    JavaSourceElement sourceType = findSourceClass();
+    if( sourceType != null )
     {
-      JavaSourceElement sourceType = findSourceClass( sfh );
-      if( sourceType != null )
-      {
-        return sourceType.getTree();
-      }
+      return sourceType.getTree();
     }
     return null;
   }
 
-  private JavaSourceElement findSourceClass( ISourceFileHandle sfh )
+  @Override
+  public CompilationUnitTree getCompilationUnitTree()
   {
-    IJavaClassInfo sourceType = JavaSourceType.createTopLevel( sfh, getModule() );
-    if( sourceType == null )
+    JavaSourceElement sourceType = findSourceClass();
+    if( sourceType != null )
     {
-      return null;
+      return sourceType.getCompilationUnitTree();
     }
+    return null;
+  }
 
-    IType cls = getJavaType();
-    if( cls.getEnclosingType() != null )
+  @Override
+  public SourcePositions getSourcePositions()
+  {
+    JavaSourceElement sourceType = findSourceClass();
+    if( sourceType != null )
     {
-      sourceType = findInnerSourceType( sourceType, cls.getName() );
+      return sourceType.getSourcePositions();
     }
+    return null;
+  }
 
-    return (JavaSourceElement)sourceType;
+  @Override
+  public int getStartPosition()
+  {
+    JavaSourceElement sourceType = findSourceClass();
+    if( sourceType != null )
+    {
+      return sourceType.getStartPosition();
+    }
+    return -1;
+  }
+
+  @Override
+  public int getEndPosition()
+  {
+    JavaSourceElement sourceType = findSourceClass();
+    if( sourceType != null )
+    {
+      return sourceType.getEndPosition();
+    }
+    return -1;
+  }
+
+  private JavaSourceElement findSourceClass()
+  {
+    if( _sourceType == null )
+    {
+      ISourceFileHandle sfh = getSourceFileHandle();
+      if( sfh == null )
+      {
+        return null;
+      }
+
+      _sourceType = JavaSourceType.createTopLevel( sfh, getModule() );
+      if( _sourceType == null )
+      {
+        return null;
+      }
+
+      IType cls = getJavaType();
+      if( cls.getEnclosingType() != null )
+      {
+        _sourceType = findInnerSourceType( _sourceType, cls.getName() );
+      }
+    }
+    return (JavaSourceElement)_sourceType;
   }
 
   @Override
@@ -746,6 +797,17 @@ public class AsmClassJavaClassInfo extends AsmTypeJavaClassType implements IAsmJ
 
   @Override
   public IJavaClassType resolveType( String relativeName, int ignoreFlags ) {
+    return null;
+  }
+
+  @Override
+  public IJavaClassInfo getDeepestClassAtOffset( int offset )
+  {
+    JavaSourceElement sourceType = findSourceClass();
+    if( sourceType != null )
+    {
+      return sourceType.getDeclaringClass().getDeepestClassAtOffset( offset );
+    }
     return null;
   }
 

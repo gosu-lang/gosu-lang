@@ -17,6 +17,7 @@ import com.sun.source.tree.Tree;
 import com.sun.source.tree.TypeParameterTree;
 import com.sun.source.tree.VariableTree;
 import com.sun.source.tree.WildcardTree;
+import com.sun.source.util.SourcePositions;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.TreeInfo;
 import gw.internal.gosu.parser.AsmClassJavaClassInfo;
@@ -33,6 +34,7 @@ import gw.lang.reflect.EnumValuePlaceholder;
 import gw.lang.reflect.IAnnotationInfo;
 import gw.lang.reflect.IDefaultTypeLoader;
 import gw.lang.reflect.IEnumValue;
+import gw.lang.reflect.ILocationInfo;
 import gw.lang.reflect.IScriptabilityModifier;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.ImplicitPropertyUtil;
@@ -118,13 +120,16 @@ public abstract class JavaSourceType extends AbstractJavaClassInfo implements IJ
   protected Map<String, Object> _cache;
   private ISourceFileHandle _fileHandle;
   private List<String> _staticImportList;
+  private CompilationUnitTree _compilationUnitTree;
+  private SourcePositions _sourcePositions;
   private ClassTree _typeDecl;
   private IJavaType _javaType;
 
   public static IJavaClassInfo createTopLevel( ISourceFileHandle fileHandle, IModule gosuModule )
   {
     List<CompilationUnitTree> trees = new ArrayList<>();
-    if( !parseJavaFile( fileHandle, trees ) )
+    SourcePositions[] sourcePositions = {null};
+    if( !parseJavaFile( fileHandle, trees, sourcePositions ) )
     {
       return new JavaSourceUnresolvedClass( fileHandle, gosuModule );
     }
@@ -138,16 +143,16 @@ public abstract class JavaSourceType extends AbstractJavaClassInfo implements IJ
       switch( kind )
       {
         case CLASS:
-          result = new JavaSourceClass( fileHandle, def, imports, gosuModule );
+          result = new JavaSourceClass( fileHandle, trees.get( 0 ), def, imports, sourcePositions[0], gosuModule );
           break;
         case INTERFACE:
-          result = new JavaSourceInterface( fileHandle, def, imports, gosuModule );
+          result = new JavaSourceInterface( fileHandle, trees.get( 0 ), def, imports, sourcePositions[0], gosuModule );
           break;
         case ENUM:
-          result = new JavaSourceEnum( fileHandle, def, imports, gosuModule );
+          result = new JavaSourceEnum( fileHandle, trees.get( 0 ), def, imports, sourcePositions[0], gosuModule );
           break;
         case ANNOTATION_TYPE:
-          result = new JavaSourceAnnotation( fileHandle, def, imports, gosuModule );
+          result = new JavaSourceAnnotation( fileHandle, trees.get( 0 ), def, imports, sourcePositions[0], gosuModule );
           break;
       }
       return result;
@@ -161,23 +166,25 @@ public abstract class JavaSourceType extends AbstractJavaClassInfo implements IJ
   private static ClassTree getTopLevelDefinition( List<CompilationUnitTree> trees, String fileName )
   {
     String name = fileName.substring( 0, fileName.indexOf( '.' ) );
-    // We know that there is just one tree (trees.get(0)) as we parsed one file
-    final List<? extends Tree> typeDecls = trees.get( 0 ).getTypeDecls();
-    for( Tree t : typeDecls )
+    for( CompilationUnitTree cut: trees )
     {
-      if( t instanceof ClassTree &&
-          name.equals( ((ClassTree)t).getSimpleName().toString() ) )
+      //## todo: support multiple top-level classes declared in a single java source file
+      for( Tree t : cut.getTypeDecls() )
       {
-        return (ClassTree)t;
+        if( t instanceof ClassTree &&
+            name.equals( ((ClassTree)t).getSimpleName().toString() ) )
+        {
+          return (ClassTree)t;
+        }
       }
     }
     return null;
   }
 
-  private static boolean parseJavaFile( ISourceFileHandle src, List<CompilationUnitTree> trees )
+  private static boolean parseJavaFile( ISourceFileHandle src, List<CompilationUnitTree> trees, SourcePositions[] sourcePositions )
   {
     IJavaParser javaParser = GosuParserFactory.getInterface( IJavaParser.class );
-    return javaParser.parseText( src.getSource().getSource(), trees, null );
+    return javaParser.parseText( src.getSource().getSource().replace( "\r\n", "\n" ), trees, sp -> sourcePositions[0] = sp, null );
   }
 
   private static JavaSourceType createInner( ClassTree typeDecl, JavaSourceType containingClass )
@@ -196,33 +203,6 @@ public abstract class JavaSourceType extends AbstractJavaClassInfo implements IJ
       default:
         throw new RuntimeException( "unsupported node type" );
     }
-  }
-
-  /**
-   * For top level classes.
-   */
-  protected JavaSourceType( ISourceFileHandle fileHandle, ClassTree typeDecl, List<? extends ImportTree> imports, IModule gosuModule )
-  {
-    _fileHandle = fileHandle;
-    _namespace = fileHandle.getNamespace();
-    _simpleName = fileHandle.getRelativeName();
-    _gosuModule = gosuModule;
-    makeImportList( imports );
-    _typeDecl = typeDecl;
-    _cache = new HashMap<>();
-  }
-
-  /**
-   * For inner classes.
-   */
-  protected JavaSourceType( ClassTree typeDecl, JavaSourceType enclosingClass )
-  {
-    _enclosingClass = enclosingClass;
-    _gosuModule = enclosingClass.getModule();
-    _cache = new HashMap<>();
-    _namespace = enclosingClass.getNamespace();
-    _typeDecl = typeDecl;
-    _simpleName = _typeDecl.getSimpleName().toString();
   }
 
   private static IJavaClassType resolveParameterizedArrayType( ITypeInfoResolver typeResolver, Tree tree, String typeName )
@@ -281,7 +261,7 @@ public abstract class JavaSourceType extends AbstractJavaClassInfo implements IJ
     IJavaClassTypeVariable[] parameters = ((IJavaClassInfo)concreteType).getTypeParameters();
     if( parameters.length != typeParameters.length )
     {
-      throw new RuntimeException( "Type parameters screwup." );
+      throw new IllegalStateException();
     }
     for( int i = 0; i < typeParameters.length; i++ )
     {
@@ -311,6 +291,35 @@ public abstract class JavaSourceType extends AbstractJavaClassInfo implements IJ
       IJavaClassType type = typeResolver.resolveType( typeName, ignoreFlags );
       return type == null ? ERROR_TYPE : type;
     }
+  }
+
+  /**
+   * For top level classes.
+   */
+  protected JavaSourceType( ISourceFileHandle fileHandle, CompilationUnitTree compilationUnitTree, ClassTree typeDecl, List<? extends ImportTree> imports, SourcePositions sourcePositions, IModule gosuModule )
+  {
+    _fileHandle = fileHandle;
+    _namespace = fileHandle.getNamespace();
+    _simpleName = fileHandle.getRelativeName();
+    _gosuModule = gosuModule;
+    makeImportList( imports );
+    _typeDecl = typeDecl;
+    _compilationUnitTree = compilationUnitTree;
+    _sourcePositions = sourcePositions;
+    _cache = new HashMap<>();
+  }
+
+  /**
+   * For inner classes.
+   */
+  protected JavaSourceType( ClassTree typeDecl, JavaSourceType enclosingClass )
+  {
+    _enclosingClass = enclosingClass;
+    _gosuModule = enclosingClass.getModule();
+    _cache = new HashMap<>();
+    _namespace = enclosingClass.getNamespace();
+    _typeDecl = typeDecl;
+    _simpleName = _typeDecl.getSimpleName().toString();
   }
 
   protected void makeImportList( List<? extends ImportTree> imports )
@@ -1293,6 +1302,24 @@ public abstract class JavaSourceType extends AbstractJavaClassInfo implements IJ
     return this;
   }
 
+  public JavaSourceType getDeepestClassAtOffset( int offset )
+  {
+    ILocationInfo loc = getLocationInfo();
+    if( loc.contains( offset ) )
+    {
+      for( IJavaClassInfo ci: getDeclaredClasses() )
+      {
+        JavaSourceType deepest = ((JavaSourceType)ci).getDeepestClassAtOffset( offset );
+        if( deepest != null )
+        {
+          return deepest;
+        }
+      }
+      return this;
+    }
+    return null;
+  }
+
   public String toString()
   {
     return getName();
@@ -1344,6 +1371,10 @@ public abstract class JavaSourceType extends AbstractJavaClassInfo implements IJ
     {
       IDefaultTypeLoader loader = _enclosingClass.getModule().getTypeLoaders( IDefaultTypeLoader.class ).get( 0 );
       _fileHandle = loader.getSouceFileHandle( getName() );
+      if( _fileHandle == null )
+      {
+        _fileHandle = getEnclosingClass().getSourceFileHandle();
+      }
     }
     return _fileHandle;
   }
@@ -1371,5 +1402,35 @@ public abstract class JavaSourceType extends AbstractJavaClassInfo implements IJ
   public ClassTree getTree()
   {
     return _typeDecl;
+  }
+
+  public CompilationUnitTree getCompilationUnitTree()
+  {
+    if( _enclosingClass instanceof JavaSourceType )
+    {
+      return _enclosingClass.getCompilationUnitTree();
+    }
+    return _compilationUnitTree;
+  }
+
+  public SourcePositions getSourcePositions()
+  {
+    if( _enclosingClass instanceof JavaSourceType )
+    {
+      return _enclosingClass.getSourcePositions();
+    }
+    return _sourcePositions;
+  }
+
+  @Override
+  public int getStartPosition()
+  {
+    return (int)getSourcePositions().getStartPosition( getCompilationUnitTree(), getTree() );
+  }
+
+  @Override
+  public int getEndPosition()
+  {
+    return (int)getSourcePositions().getEndPosition( getCompilationUnitTree(), getTree() );
   }
 }

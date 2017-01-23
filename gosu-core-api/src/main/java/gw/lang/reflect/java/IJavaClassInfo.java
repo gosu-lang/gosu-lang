@@ -192,6 +192,11 @@ public interface IJavaClassInfo extends IJavaAnnotatedElement, IJavaClassType, I
     }
   }
 
+  default IJavaClassInfo getDeepestClassAtOffset( int offset )
+  {
+    return null;
+  }
+
   default boolean isCompilable()
   {
     return false;

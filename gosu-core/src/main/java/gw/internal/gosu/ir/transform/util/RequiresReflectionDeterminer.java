@@ -17,6 +17,7 @@ import gw.internal.gosu.parser.java.classinfo.JavaSourceType;
 import gw.lang.ir.IRType;
 import gw.lang.parser.IFileRepositoryBasedType;
 import gw.lang.parser.ILanguageLevel;
+import gw.lang.reflect.FeatureManager;
 import gw.lang.reflect.IRelativeTypeInfo;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.TypeSystem;
@@ -38,6 +39,7 @@ public class RequiresReflectionDeterminer
   public static boolean shouldUseReflection( IType declaringClass, ICompilableTypeInternal compilingClass, IRType root, IRelativeTypeInfo.Accessibility accessibility )
   {
     boolean bRet =
+      isIllegalAccess( declaringClass, compilingClass, accessibility ) ||
       isEnhancementAccessRequiringReflection( declaringClass, compilingClass, accessibility ) ||
       isEvalProgramBetweenCallingClassAndDeclaringClass( compilingClass, declaringClass, accessibility ) ||
       isDeclaringClassInAncestryOfEnclosingClassesOfEvalProgram( compilingClass, declaringClass, accessibility ) ||
@@ -46,6 +48,17 @@ public class RequiresReflectionDeterminer
       isProgramCompilingDuringDebuggerSuspension( compilingClass, accessibility ) ||
       (isProgramNotEval( compilingClass, declaringClass ) && accessibility != IRelativeTypeInfo.Accessibility.PUBLIC); // for studio debugger expressions
     return bRet;
+  }
+
+  private static boolean isIllegalAccess( IType declaringClass, ICompilableTypeInternal compilingClass, IRelativeTypeInfo.Accessibility accessibility )
+  {
+    if( accessibility == IRelativeTypeInfo.Accessibility.PUBLIC )
+    {
+      return false;
+    }
+
+    // this is mostly for use with (Lab) debugger expressions e.g., private members are accessible in debugger expressions
+    return !FeatureManager.getAccessibilityForClass( declaringClass, compilingClass ).isAccessible( accessibility );
   }
 
   private static boolean isProgramCompilingDuringDebuggerSuspension( IType compilingClass, IRelativeTypeInfo.Accessibility accessibility )
@@ -159,9 +172,9 @@ public class RequiresReflectionDeterminer
   // Java will blow up if the package-level access is relied upon across class loaders, though, so we make the call reflectively.
   private static boolean isGosuClassAccessingProtectedOrInternalMethodOfClassInDifferentClassloader( ICompilableTypeInternal callingClass, IType declaringClass, IRelativeTypeInfo.Accessibility accessibility )
   {
-    return (accessibility == IRelativeTypeInfo.Accessibility.PROTECTED ||
-            accessibility == IRelativeTypeInfo.Accessibility.INTERNAL ||
-            AccessibilityUtil.forType( declaringClass ) == IRelativeTypeInfo.Accessibility.INTERNAL)
+    return (accessibility != IRelativeTypeInfo.Accessibility.PUBLIC ||
+            AccessibilityUtil.forType( declaringClass ) == IRelativeTypeInfo.Accessibility.INTERNAL ||
+            AccessibilityUtil.forType( declaringClass ) == IRelativeTypeInfo.Accessibility.PRIVATE)
            && getTopLevelNamespace( callingClass ).equals( getTopLevelNamespace( declaringClass ) )
            && (isInSeparateClassLoader( callingClass, declaringClass ) ||
                classesLoadInSeparateLoader( callingClass, declaringClass ));

@@ -103,6 +103,7 @@ public class EvalExpressionTransformer extends EvalBasedTransformer<EvalExpressi
             catch( Exception e )
             {
               System.err.println( "WARNING Cannot load constructors of " + clz.getName() + ": " + e.toString() );
+              e.printStackTrace();
               return null;
             }
           }

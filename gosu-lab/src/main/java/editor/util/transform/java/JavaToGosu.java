@@ -111,7 +111,7 @@ public class JavaToGosu
   {
     IJavaParser javaParser = GosuParserFactory.getInterface( IJavaParser.class );
     DiagnosticCollector<JavaFileObject> errorHandler = new DiagnosticCollector<>();
-    if( !javaParser.parseText( src, trees, errorHandler ) )
+    if( !javaParser.parseText( src, trees, null, errorHandler ) )
     {
       return false;
     }

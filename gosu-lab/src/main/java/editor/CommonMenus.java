@@ -332,8 +332,8 @@ public class CommonMenus
       {
         public void actionPerformed( ActionEvent e )
         {
-          bpm.get().toggleLineBreakpoint( editor.get(), editor.get().getScriptPart().getContainingTypeName(),
-                                          editor.get().getLineNumberAtCaret() );
+          int lineAtCaret = editor.get().getLineNumberAtCaret();
+          bpm.get().toggleLineBreakpoint( editor.get(), editor.get().getScriptPart().getContainingTypeName(), editor.get().getTypeAtLine( lineAtCaret ), lineAtCaret );
         }
 
         @Override
