@@ -276,7 +276,6 @@ public class ContextSensitiveCodeRunner
 
   private static ISymbolTable findCompileTimeSymbols( IGosuClassInternal enclosingClass, int iLocation )
   {
-    System.out.println( "HEY NOW: " + enclosingClass.getName() );
     ISymbolTable symTable = new StandardSymbolTable( false );
     IParseTree deepestLocation = enclosingClass.getClassStatement().getClassFileStatement().getLocation().getDeepestLocation( iLocation, false );
     collectLocalSymbols( enclosingClass, symTable,
