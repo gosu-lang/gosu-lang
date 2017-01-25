@@ -214,7 +214,7 @@ public class BreakpointsDialog extends JDialog implements IHandleCancel
     c.insets = new Insets( 0, 0, 5, 0 );
     IType type = TypeSystem.getByFullNameIfValidNoJava( bp.getFqn() );
     _fieldExpr = new GosuEditor( type instanceof IGosuClass && bp.getLine() > 0 ? ContextSymbolTableUtil.getSymbolTableAtOffset( (IGosuClass)type, bp.getOffset() ) : new StandardSymbolTable( true ),
-      new GosuClassLineInfoManager(), new AtomicUndoManager( 10000 ), ScriptabilityModifiers.SCRIPTABLE, new DefaultContextMenuHandler(), false, true );
+      null, new AtomicUndoManager( 10000 ), ScriptabilityModifiers.SCRIPTABLE, new DefaultContextMenuHandler(), false, true );
     _fieldExpr.setExpectedType( JavaTypes.pBOOLEAN() );
     addEscapeHandler( _fieldExpr );
     _fieldExpr.setAccessAll( true );
@@ -263,7 +263,7 @@ public class BreakpointsDialog extends JDialog implements IHandleCancel
     c.insets = new Insets( 0, 0, 10, 0 );
     type = TypeSystem.getByFullNameIfValidNoJava( bp.getFqn() );
     _fieldRunScript = new GosuEditor( type instanceof IGosuClass && bp.getLine() > 0 ? ContextSymbolTableUtil.getSymbolTableAtOffset( (IGosuClass)type, bp.getOffset() ) : new StandardSymbolTable( true ),
-      new GosuClassLineInfoManager(), new AtomicUndoManager( 10000 ), ScriptabilityModifiers.SCRIPTABLE, new DefaultContextMenuHandler(), false, true );
+      null, new AtomicUndoManager( 10000 ), ScriptabilityModifiers.SCRIPTABLE, new DefaultContextMenuHandler(), false, true );
     addEscapeHandler( _fieldRunScript );
     _fieldRunScript.setAccessAll( true );
     //exprField.showFeedback( false );

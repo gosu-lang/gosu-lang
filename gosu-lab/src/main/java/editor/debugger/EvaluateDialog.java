@@ -116,14 +116,14 @@ public class EvaluateDialog extends JDialog implements IHandleCancel
     if( loc == null )
     {
       return new GosuEditor( new StandardSymbolTable( true ),
-                             new GosuClassLineInfoManager(), new AtomicUndoManager( 10000 ), ScriptabilityModifiers.SCRIPTABLE, new DefaultContextMenuHandler(), false, true );
+                             null, new AtomicUndoManager( 10000 ), ScriptabilityModifiers.SCRIPTABLE, new DefaultContextMenuHandler(), false, true );
     }
     else
     {
       String outermostTypeName = Debugger.getOutermostType( loc.declaringType() );
       IType outermostType = TypeSystem.getByFullNameIfValidNoJava( outermostTypeName );
       return new GosuEditor( makeSymTable( loc, outermostType ),
-                             new GosuClassLineInfoManager(), new AtomicUndoManager( 10000 ), ScriptabilityModifiers.SCRIPTABLE, new DefaultContextMenuHandler(), false, true );
+                             null, new AtomicUndoManager( 10000 ), ScriptabilityModifiers.SCRIPTABLE, new DefaultContextMenuHandler(), false, true );
     }
   }
 
