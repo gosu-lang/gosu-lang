@@ -486,7 +486,8 @@ public class ModuleTypeLoader implements ITypeLoaderStackInternal {
       checkPos -= 2;
     }
     assert checkPos <= name.length();
-    return name.substring( 0, checkPos );
+    
+    return checkPos == name.length() ? name : name.substring( 0, checkPos );
   }
 
   private IType loadTypeAndCacheResult(String fullyQualifiedName, boolean skipJava)
