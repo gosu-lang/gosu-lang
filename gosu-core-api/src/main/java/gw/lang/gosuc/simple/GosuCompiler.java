@@ -46,6 +46,7 @@ public class GosuCompiler implements IGosuCompiler {
   protected GosuInitialization _gosuInitialization;
   protected File _compilingSourceFile;
 
+  @Override
   public boolean compile(File sourceFile, ICompilerDriver driver) throws Exception {
     _compilingSourceFile = sourceFile;
 
@@ -212,6 +213,7 @@ public class GosuCompiler implements IGosuCompiler {
     }
   }
 
+  @Override
   public long initializeGosu( List<String> sourceFolders, List<String> classpath, List<String> backingSourcePath, String outputPath ) {
     final long start = System.currentTimeMillis();
 
@@ -255,7 +257,8 @@ public class GosuCompiler implements IGosuCompiler {
     }
   }
 
-  public void unitializeGosu() {
+  @Override
+  public void uninitializeGosu() {
     TypeSystem.shutdown(TypeSystem.getExecutionEnvironment());
     if (_gosuInitialization != null) {
       if (_gosuInitialization.isInitialized()) {
@@ -265,6 +268,7 @@ public class GosuCompiler implements IGosuCompiler {
     }
   }
 
+  @Override
   public boolean isPathIgnored(String sourceFile) {
     return CommonServices.getPlatformHelper().isPathIgnored(sourceFile);
   }

@@ -109,7 +109,7 @@ public class GosuCompiler extends AbstractCompiler {
       throw new CompilerException("Unable to locate Gosu libraries in classpath.  Please add Gosu as a project dependency.", cnfe);
     }
 
-    gosuc.initializeGosu(config.getSourceLocations(), classpath, Collections.emptyList(), config.getOutputLocation());
+    gosuc.initializeGosu(config.getSourceLocations(), classpath, config.getOutputLocation());
 
     for(File file : config.getSourceFiles()) {
       try {
@@ -119,7 +119,7 @@ public class GosuCompiler extends AbstractCompiler {
       }
     }
 
-    gosuc.unitializeGosu();
+    gosuc.uninitializeGosu();
 
     boolean success = true;
     List<CompilerMessage> errorMessages = new ArrayList<>();
