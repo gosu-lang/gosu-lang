@@ -191,7 +191,12 @@ public abstract class AbstractOutOfProcessExecutor<T extends IRunConfig> impleme
       classpath.append( PathUtil.findToolsJar() ).append( File.pathSeparator );
     }
 
-    return classpath.toString();
+    cp = classpath.toString();
+    if( cp.endsWith( File.pathSeparator ) )
+    {
+      cp = cp.substring( 0, cp.length()-1 );
+    }
+    return cp;
   }
 
   private void addExperimentPaths( GosuPanel gosuPanel, StringBuilder classpath, String javaHomePath )
