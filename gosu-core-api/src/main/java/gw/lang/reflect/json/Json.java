@@ -92,7 +92,11 @@ public class Json
       type = parent.findChild( name );
     }
 
-    if( jsonObj instanceof Bindings )
+    if( jsonObj == null )
+    {
+      return DynamicType.instance();
+    }
+    else if( jsonObj instanceof Bindings )
     {
       if( type == null )
       {
@@ -120,14 +124,29 @@ public class Json
         type = new JsonListType( parent );
       }
       IJsonType compType = null;
-      for( Object elem: (List)jsonObj )
+      if( !((List)jsonObj).isEmpty() )
       {
-        IJsonType csr = transformJsonObject( name, (IJsonParentType)type, elem );
-        if( compType != null && csr != compType )
+        for( Object elem : (List)jsonObj )
         {
-          throw new RuntimeException( "Types in array are different: " + compType.getName() + " vs: " + csr.getName() );
+          IJsonType csr = transformJsonObject( name, (IJsonParentType)type, elem );
+          if( compType != null && csr != compType && csr != DynamicType.instance() && compType != DynamicType.instance() )
+          {
+            // Heterogeneous list implies dynamic component type
+            System.out.println( "\nWarning: elements have conflicting type in list: " + name +
+                                "\nTypes: " + csr.getName() + ", " + compType.getName() +
+                                "\nThe component type for this list will be Dynamic.\n" );
+            compType = DynamicType.instance();
+            break;
+          }
+          compType = csr;
         }
-        compType = csr;
+      }
+      else
+      {
+        // Empty list implies dynamic component type
+        System.out.println( "\nWarning: there are no sample elements in list: " + name +
+                            "\nThe component type for this list will be Dynamic.\n" );
+        compType = DynamicType.instance();
       }
       ((JsonListType)type).setComponentType( compType );
       if( parent != null )

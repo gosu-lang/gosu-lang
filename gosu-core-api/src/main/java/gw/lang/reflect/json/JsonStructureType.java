@@ -47,7 +47,17 @@ class JsonStructureType implements IJsonParentType
     IJsonType existingType = _members.get( name );
     if( existingType != null && existingType != type )
     {
-      throw new RuntimeException( "Types disagree for '" + name + "' from array data: " + type.getName() + " vs: " + existingType.getName() );
+      if( type == DynamicType.instance() )
+      {
+        // Keep the more specific type (the dynamic type was inferred form a 'null' value, which should not override a static type)
+        return;
+      }
+      if( existingType != DynamicType.instance() )
+      {
+        // if the existing type is dynamic, override it with a more specific type,
+        // otherwise the types disagree...
+        throw new RuntimeException( "Types disagree for '" + name + "' from array data: " + type.getName() + " vs: " + existingType.getName() );
+      }
     }
     _members.put( name, type );
   }

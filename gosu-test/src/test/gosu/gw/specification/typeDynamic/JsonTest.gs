@@ -365,146 +365,204 @@ class JsonTest extends gw.BaseVerifyErrantTest {
       "}"
         
   var _structure: String =
-    "structure YahooQuotes {\n" +
-    "  static function fromJson( jsonText: String ): YahooQuotes {\n" +
-    "    return gw.lang.reflect.json.Json.fromJson( jsonText ) as YahooQuotes\n" +
-    "  }\n" +
-    "  static function fromJsonUrl( url: String ): YahooQuotes {\n" +
-    "    return new java.net.URL( url ).JsonContent\n" +
-    "  }\n" +
-    "  static function fromJsonUrl( url: java.net.URL ): YahooQuotes {\n" +
-    "    return url.JsonContent\n" +
-    "  }\n" +
-    "  static function fromJsonFile( file: java.io.File ) : YahooQuotes {\n" +
-    "    return fromJsonUrl( file.toURI().toURL() )\n" +
-    "  }\n" +
-    "  property get query(): query\n" +
-    "  property set query( $value: query )\n" +
-    "  structure query {\n" +
-    "    property get created(): String\n" +
-    "    property set created( $value: String )\n" +
-    "    property get count(): Integer\n" +
-    "    property set count( $value: Integer )\n" +
-    "    property get lang(): String\n" +
-    "    property set lang( $value: String )\n" +
-    "    property get results(): results\n" +
-    "    property set results( $value: results )\n" +
-    "    structure results {\n" +
-    "      property get quote(): List<quote>\n" +
-    "      property set quote( $value: List<quote> )\n" +
-    "      structure quote {\n" +
-    "        property get symbol(): String\n" +
-    "        property set symbol( $value: String )\n" +
-    "        property get PriceEPSEstimateNextYear(): String\n" +
-    "        property set PriceEPSEstimateNextYear( $value: String )\n" +
-    "        property get ChangeinPercent(): String\n" +
-    "        property set ChangeinPercent( $value: String )\n" +
-    "        property get EPSEstimateNextQuarter(): String\n" +
-    "        property set EPSEstimateNextQuarter( $value: String )\n" +
-    "        property get EBITDA(): String\n" +
-    "        property set EBITDA( $value: String )\n" +
-    "        property get PriceBook(): String\n" +
-    "        property set PriceBook( $value: String )\n" +
-    "        property get PriceSales(): String\n" +
-    "        property set PriceSales( $value: String )\n" +
-    "        property get DividendShare(): String\n" +
-    "        property set DividendShare( $value: String )\n" +
-    "        property get PercebtChangeFromYearHigh(): String\n" +
-    "        property set PercebtChangeFromYearHigh( $value: String )\n" +
-    "        property get ExDividendDate(): String\n" +
-    "        property set ExDividendDate( $value: String )\n" +
-    "        property get PreviousClose(): String\n" +
-    "        property set PreviousClose( $value: String )\n" +
-    "        property get Name(): String\n" +
-    "        property set Name( $value: String )\n" +
-    "        property get YearHigh(): String\n" +
-    "        property set YearHigh( $value: String )\n" +
-    "        property get Currency(): String\n" +
-    "        property set Currency( $value: String )\n" +
-    "        property get DividendPayDate(): String\n" +
-    "        property set DividendPayDate( $value: String )\n" +
-    "        property get LastTradeDate(): String\n" +
-    "        property set LastTradeDate( $value: String )\n" +
-    "        property get PriceEPSEstimateCurrentYear(): String\n" +
-    "        property set PriceEPSEstimateCurrentYear( $value: String )\n" +
-    "        property get StockExchange(): String\n" +
-    "        property set StockExchange( $value: String )\n" +
-    "        property get AverageDailyVolume(): String\n" +
-    "        property set AverageDailyVolume( $value: String )\n" +
-    "        property get PercentChange(): String\n" +
-    "        property set PercentChange( $value: String )\n" +
-    "        property get ChangeFromYearHigh(): String\n" +
-    "        property set ChangeFromYearHigh( $value: String )\n" +
-    "        property get FiftydayMovingAverage(): String\n" +
-    "        property set FiftydayMovingAverage( $value: String )\n" +
-    "        property get TwoHundreddayMovingAverage(): String\n" +
-    "        property set TwoHundreddayMovingAverage( $value: String )\n" +
-    "        property get PercentChangeFromTwoHundreddayMovingAverage(): String\n" +
-    "        property set PercentChangeFromTwoHundreddayMovingAverage( $value: String )\n" +
-    "        property get LastTradeTime(): String\n" +
-    "        property set LastTradeTime( $value: String )\n" +
-    "        property get Volume(): String\n" +
-    "        property set Volume( $value: String )\n" +
-    "        property get MarketCapitalization(): String\n" +
-    "        property set MarketCapitalization( $value: String )\n" +
-    "        property get PercentChangeFromYearLow(): String\n" +
-    "        property set PercentChangeFromYearLow( $value: String )\n" +
-    "        property get DaysHigh(): String\n" +
-    "        property set DaysHigh( $value: String )\n" +
-    "        property get DaysRange(): String\n" +
-    "        property set DaysRange( $value: String )\n" +
-    "        property get Symbol(): String\n" +
-    "        property set Symbol( $value: String )\n" +
-    "        property get EPSEstimateNextYear(): String\n" +
-    "        property set EPSEstimateNextYear( $value: String )\n" +
-    "        property get PercentChangeFromFiftydayMovingAverage(): String\n" +
-    "        property set PercentChangeFromFiftydayMovingAverage( $value: String )\n" +
-    "        property get Open(): String\n" +
-    "        property set Open( $value: String )\n" +
-    "        property get DaysLow(): String\n" +
-    "        property set DaysLow( $value: String )\n" +
-    "        property get DividendYield(): String\n" +
-    "        property set DividendYield( $value: String )\n" +
-    "        property get Ask(): String\n" +
-    "        property set Ask( $value: String )\n" +
-    "        property get EPSEstimateCurrentYear(): String\n" +
-    "        property set EPSEstimateCurrentYear( $value: String )\n" +
-    "        property get YearLow(): String\n" +
-    "        property set YearLow( $value: String )\n" +
-    "        property get ChangeFromFiftydayMovingAverage(): String\n" +
-    "        property set ChangeFromFiftydayMovingAverage( $value: String )\n" +
-    "        property get Bid(): String\n" +
-    "        property set Bid( $value: String )\n" +
-    "        property get LastTradeWithTime(): String\n" +
-    "        property set LastTradeWithTime( $value: String )\n" +
-    "        property get ShortRatio(): String\n" +
-    "        property set ShortRatio( $value: String )\n" +
-    "        property get Change(): String\n" +
-    "        property set Change( $value: String )\n" +
-    "        property get ChangeFromTwoHundreddayMovingAverage(): String\n" +
-    "        property set ChangeFromTwoHundreddayMovingAverage( $value: String )\n" +
-    "        property get EarningsShare(): String\n" +
-    "        property set EarningsShare( $value: String )\n" +
-    "        property get BookValue(): String\n" +
-    "        property set BookValue( $value: String )\n" +
-    "        property get ChangeFromYearLow(): String\n" +
-    "        property set ChangeFromYearLow( $value: String )\n" +
-    "        property get OneyrTargetPrice(): String\n" +
-    "        property set OneyrTargetPrice( $value: String )\n" +
-    "        property get PERatio(): String\n" +
-    "        property set PERatio( $value: String )\n" +
-    "        property get YearRange(): String\n" +
-    "        property set YearRange( $value: String )\n" +
-    "        property get Change_PercentChange(): String\n" +
-    "        property set Change_PercentChange( $value: String )\n" +
-    "        property get PEGRatio(): String\n" +
-    "        property set PEGRatio( $value: String )\n" +
-    "        property get LastTradePriceOnly(): String\n" +
-    "        property set LastTradePriceOnly( $value: String )\n" +
-    "      }\n" +
-    "    }\n" +
-    "  }\n" +
-    "}\n"
+      "structure YahooQuotes {\n" +
+      "  static function fromJson( jsonText: String ): YahooQuotes {\n" +
+      "    return gw.lang.reflect.json.Json.fromJson( jsonText ) as YahooQuotes\n" +
+      "  }\n" +
+      "  static function fromJsonUrl( url: String ): YahooQuotes {\n" +
+      "    return new java.net.URL( url ).JsonContent\n" +
+      "  }\n" +
+      "  static function fromJsonUrl( url: java.net.URL ): YahooQuotes {\n" +
+      "    return url.JsonContent\n" +
+      "  }\n" +
+      "  static function fromJsonFile( file: java.io.File ) : YahooQuotes {\n" +
+      "    return fromJsonUrl( file.toURI().toURL() )\n" +
+      "  }\n" +
+      "  property get query(): query\n" +
+      "  property set query( $value: query )\n" +
+      "  structure query {\n" +
+      "    property get created(): String\n" +
+      "    property set created( $value: String )\n" +
+      "    property get count(): Integer\n" +
+      "    property set count( $value: Integer )\n" +
+      "    property get lang(): String\n" +
+      "    property set lang( $value: String )\n" +
+      "    property get results(): results\n" +
+      "    property set results( $value: results )\n" +
+      "    structure results {\n" +
+      "      property get quote(): List<quote>\n" +
+      "      property set quote( $value: List<quote> )\n" +
+      "      structure quote {\n" +
+      "        property get HoldingsGainPercent(): Dynamic\n" +
+      "        property set HoldingsGainPercent( $value: Dynamic )\n" +
+      "        property get symbol(): String\n" +
+      "        property set symbol( $value: String )\n" +
+      "        property get PriceEPSEstimateNextYear(): String\n" +
+      "        property set PriceEPSEstimateNextYear( $value: String )\n" +
+      "        property get ChangeinPercent(): String\n" +
+      "        property set ChangeinPercent( $value: String )\n" +
+      "        property get EPSEstimateNextQuarter(): String\n" +
+      "        property set EPSEstimateNextQuarter( $value: String )\n" +
+      "        property get DaysValueChange(): Dynamic\n" +
+      "        property set DaysValueChange( $value: Dynamic )\n" +
+      "        property get HoldingsValue(): Dynamic\n" +
+      "        property set HoldingsValue( $value: Dynamic )\n" +
+      "        property get EBITDA(): String\n" +
+      "        property set EBITDA( $value: String )\n" +
+      "        property get PriceBook(): String\n" +
+      "        property set PriceBook( $value: String )\n" +
+      "        property get Commission(): Dynamic\n" +
+      "        property set Commission( $value: Dynamic )\n" +
+      "        property get DividendShare(): String\n" +
+      "        property set DividendShare( $value: String )\n" +
+      "        property get PriceSales(): String\n" +
+      "        property set PriceSales( $value: String )\n" +
+      "        property get MoreInfo(): Dynamic\n" +
+      "        property set MoreInfo( $value: Dynamic )\n" +
+      "        property get PercebtChangeFromYearHigh(): String\n" +
+      "        property set PercebtChangeFromYearHigh( $value: String )\n" +
+      "        property get ExDividendDate(): String\n" +
+      "        property set ExDividendDate( $value: String )\n" +
+      "        property get HighLimit(): Dynamic\n" +
+      "        property set HighLimit( $value: Dynamic )\n" +
+      "        property get PreviousClose(): String\n" +
+      "        property set PreviousClose( $value: String )\n" +
+      "        property get Name(): String\n" +
+      "        property set Name( $value: String )\n" +
+      "        property get PERatioRealtime(): Dynamic\n" +
+      "        property set PERatioRealtime( $value: Dynamic )\n" +
+      "        property get YearHigh(): String\n" +
+      "        property set YearHigh( $value: String )\n" +
+      "        property get AnnualizedGain(): Dynamic\n" +
+      "        property set AnnualizedGain( $value: Dynamic )\n" +
+      "        property get HoldingsGain(): Dynamic\n" +
+      "        property set HoldingsGain( $value: Dynamic )\n" +
+      "        property get Currency(): String\n" +
+      "        property set Currency( $value: String )\n" +
+      "        property get ChangePercentRealtime(): Dynamic\n" +
+      "        property set ChangePercentRealtime( $value: Dynamic )\n" +
+      "        property get DividendPayDate(): String\n" +
+      "        property set DividendPayDate( $value: String )\n" +
+      "        property get LastTradeDate(): String\n" +
+      "        property set LastTradeDate( $value: String )\n" +
+      "        property get PriceEPSEstimateCurrentYear(): String\n" +
+      "        property set PriceEPSEstimateCurrentYear( $value: String )\n" +
+      "        property get BidRealtime(): Dynamic\n" +
+      "        property set BidRealtime( $value: Dynamic )\n" +
+      "        property get StockExchange(): String\n" +
+      "        property set StockExchange( $value: String )\n" +
+      "        property get SharesOwned(): Dynamic\n" +
+      "        property set SharesOwned( $value: Dynamic )\n" +
+      "        property get AverageDailyVolume(): String\n" +
+      "        property set AverageDailyVolume( $value: String )\n" +
+      "        property get PercentChange(): String\n" +
+      "        property set PercentChange( $value: String )\n" +
+      "        property get ChangeFromYearHigh(): String\n" +
+      "        property set ChangeFromYearHigh( $value: String )\n" +
+      "        property get FiftydayMovingAverage(): String\n" +
+      "        property set FiftydayMovingAverage( $value: String )\n" +
+      "        property get AskRealtime(): Dynamic\n" +
+      "        property set AskRealtime( $value: Dynamic )\n" +
+      "        property get TwoHundreddayMovingAverage(): String\n" +
+      "        property set TwoHundreddayMovingAverage( $value: String )\n" +
+      "        property get PercentChangeFromTwoHundreddayMovingAverage(): String\n" +
+      "        property set PercentChangeFromTwoHundreddayMovingAverage( $value: String )\n" +
+      "        property get PricePaid(): Dynamic\n" +
+      "        property set PricePaid( $value: Dynamic )\n" +
+      "        property get LastTradeTime(): String\n" +
+      "        property set LastTradeTime( $value: String )\n" +
+      "        property get Volume(): String\n" +
+      "        property set Volume( $value: String )\n" +
+      "        property get OrderBookRealtime(): Dynamic\n" +
+      "        property set OrderBookRealtime( $value: Dynamic )\n" +
+      "        property get MarketCapitalization(): String\n" +
+      "        property set MarketCapitalization( $value: String )\n" +
+      "        property get LastTradeRealtimeWithTime(): Dynamic\n" +
+      "        property set LastTradeRealtimeWithTime( $value: Dynamic )\n" +
+      "        property get PercentChangeFromYearLow(): String\n" +
+      "        property set PercentChangeFromYearLow( $value: String )\n" +
+      "        property get DaysHigh(): String\n" +
+      "        property set DaysHigh( $value: String )\n" +
+      "        property get AfterHoursChangeRealtime(): Dynamic\n" +
+      "        property set AfterHoursChangeRealtime( $value: Dynamic )\n" +
+      "        property get DaysRange(): String\n" +
+      "        property set DaysRange( $value: String )\n" +
+      "        property get Symbol(): String\n" +
+      "        property set Symbol( $value: String )\n" +
+      "        property get EPSEstimateNextYear(): String\n" +
+      "        property set EPSEstimateNextYear( $value: String )\n" +
+      "        property get HoldingsGainRealtime(): Dynamic\n" +
+      "        property set HoldingsGainRealtime( $value: Dynamic )\n" +
+      "        property get PercentChangeFromFiftydayMovingAverage(): String\n" +
+      "        property set PercentChangeFromFiftydayMovingAverage( $value: String )\n" +
+      "        property get Open(): String\n" +
+      "        property set Open( $value: String )\n" +
+      "        property get ChangeRealtime(): Dynamic\n" +
+      "        property set ChangeRealtime( $value: Dynamic )\n" +
+      "        property get DaysLow(): String\n" +
+      "        property set DaysLow( $value: String )\n" +
+      "        property get DividendYield(): String\n" +
+      "        property set DividendYield( $value: String )\n" +
+      "        property get Ask(): String\n" +
+      "        property set Ask( $value: String )\n" +
+      "        property get EPSEstimateCurrentYear(): String\n" +
+      "        property set EPSEstimateCurrentYear( $value: String )\n" +
+      "        property get YearLow(): String\n" +
+      "        property set YearLow( $value: String )\n" +
+      "        property get MarketCapRealtime(): Dynamic\n" +
+      "        property set MarketCapRealtime( $value: Dynamic )\n" +
+      "        property get TradeDate(): Dynamic\n" +
+      "        property set TradeDate( $value: Dynamic )\n" +
+      "        property get ChangeFromFiftydayMovingAverage(): String\n" +
+      "        property set ChangeFromFiftydayMovingAverage( $value: String )\n" +
+      "        property get Bid(): String\n" +
+      "        property set Bid( $value: String )\n" +
+      "        property get LastTradeWithTime(): String\n" +
+      "        property set LastTradeWithTime( $value: String )\n" +
+      "        property get ErrorIndicationreturnedforsymbolchangedinvalid(): Dynamic\n" +
+      "        property set ErrorIndicationreturnedforsymbolchangedinvalid( $value: Dynamic )\n" +
+      "        property get Notes(): Dynamic\n" +
+      "        property set Notes( $value: Dynamic )\n" +
+      "        property get DaysValueChangeRealtime(): Dynamic\n" +
+      "        property set DaysValueChangeRealtime( $value: Dynamic )\n" +
+      "        property get TickerTrend(): Dynamic\n" +
+      "        property set TickerTrend( $value: Dynamic )\n" +
+      "        property get DaysRangeRealtime(): Dynamic\n" +
+      "        property set DaysRangeRealtime( $value: Dynamic )\n" +
+      "        property get ShortRatio(): String\n" +
+      "        property set ShortRatio( $value: String )\n" +
+      "        property get Change(): String\n" +
+      "        property set Change( $value: String )\n" +
+      "        property get ChangeFromTwoHundreddayMovingAverage(): String\n" +
+      "        property set ChangeFromTwoHundreddayMovingAverage( $value: String )\n" +
+      "        property get EarningsShare(): String\n" +
+      "        property set EarningsShare( $value: String )\n" +
+      "        property get BookValue(): String\n" +
+      "        property set BookValue( $value: String )\n" +
+      "        property get ChangeFromYearLow(): String\n" +
+      "        property set ChangeFromYearLow( $value: String )\n" +
+      "        property get OneyrTargetPrice(): String\n" +
+      "        property set OneyrTargetPrice( $value: String )\n" +
+      "        property get PERatio(): String\n" +
+      "        property set PERatio( $value: String )\n" +
+      "        property get YearRange(): String\n" +
+      "        property set YearRange( $value: String )\n" +
+      "        property get LowLimit(): Dynamic\n" +
+      "        property set LowLimit( $value: Dynamic )\n" +
+      "        property get HoldingsValueRealtime(): Dynamic\n" +
+      "        property set HoldingsValueRealtime( $value: Dynamic )\n" +
+      "        property get Change_PercentChange(): String\n" +
+      "        property set Change_PercentChange( $value: String )\n" +
+      "        property get PEGRatio(): String\n" +
+      "        property set PEGRatio( $value: String )\n" +
+      "        property get HoldingsGainPercentRealtime(): Dynamic\n" +
+      "        property set HoldingsGainPercentRealtime( $value: Dynamic )\n" +
+      "        property get LastTradePriceOnly(): String\n" +
+      "        property set LastTradePriceOnly( $value: String )\n" +
+      "      }\n" +
+      "    }\n" +
+      "  }\n" +
+      "}\n";
 
   var _amazon_ecs_json: String =
        "{\n" +
