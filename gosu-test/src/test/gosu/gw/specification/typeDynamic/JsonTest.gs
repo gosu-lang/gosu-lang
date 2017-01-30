@@ -901,6 +901,24 @@ class JsonTest extends gw.BaseVerifyErrantTest {
     assertEquals( 51, json.hi[1].bye[1][1] )
   }
 
+  function testTypeMerge() {
+    verifyJsonType( "[{'a': 1}, {'a': 'hi'}]", {"a"->String} )
+    verifyJsonType( "[{'a': 'hi'}, {'a': 1}]", {"a"->String} )
+    verifyJsonType( "[{'a': 1}, {'a': 1.2}]", {"a"->Double} )
+    verifyJsonType( "[{'a': 1.2}, {'a': 1}]", {"a"->Double} )
+    verifyJsonType( "[[{'a': 1.2}, {'b': 1}], \
+                      [{'a': 1}, {'b': 'hi'}]]", {"a"->Double, "b"->String} )
+  }
+
+  static function verifyJsonType( jsonString: String, props: Map<String, Type> ) {
+    var json: Dynamic = Json.fromJson( jsonString )
+    var struct = json.toStructure( "Merge1", false )
+    //print( struct )
+    for( e in props.entrySet() ) {
+      assertEquals( e.Value, eval( struct + " return Merge1.value.TypeInfo.getProperty( \"${e.Key}\" ).FeatureType" ) as Type )
+    }
+  }
+
   // Generated
   structure YahooQuotes {
     static function fromJson( jsonText: String ): YahooQuotes {

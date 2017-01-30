@@ -54,9 +54,13 @@ class JsonStructureType implements IJsonParentType
       }
       if( existingType != DynamicType.instance() )
       {
-        // if the existing type is dynamic, override it with a more specific type,
-        // otherwise the types disagree...
-        throw new RuntimeException( "Types disagree for '" + name + "' from array data: " + type.getName() + " vs: " + existingType.getName() );
+        type = Json.mergeTypes( existingType, type );
+        if( type == null )
+        {
+          // if the existing type is dynamic, override it with a more specific type,
+          // otherwise the types disagree...
+          throw new RuntimeException( "Types disagree for '" + name + "' from array data: " + type.getName() + " vs: " + existingType.getName() );
+        }
       }
     }
     _members.put( name, type );
@@ -67,6 +71,64 @@ class JsonStructureType implements IJsonParentType
     return _members.get( name );
   }
 
+  JsonStructureType merge( JsonStructureType other )
+  {
+    if( !getName().equals( other.getName() ) )
+    {
+      return null;
+    }
+
+    JsonStructureType mergedType = new JsonStructureType( getParent(), getName() );
+    
+    for( Map.Entry<String, IJsonType> e: _members.entrySet() )
+    {
+      String memberName = e.getKey();
+      IJsonType memberType = other.findMemberType( memberName );
+      if( memberType != null )
+      {
+        memberType = Json.mergeTypes( e.getValue(), memberType );
+      }
+      else
+      {
+        memberType = e.getValue();
+      }
+
+      if( memberType != null )
+      {
+        mergedType.addMember( memberName, memberType );
+      }
+      else
+      {
+        return null;
+      }
+    }
+    
+    for( Map.Entry<String, IJsonParentType> e: _innerTypes.entrySet() )
+    {
+      String name = e.getKey();
+      IJsonType innerType = other.findChild( name );
+      if( innerType != null )
+      {
+        innerType = Json.mergeTypes( e.getValue(), innerType );
+      }
+      else
+      {
+        innerType = e.getValue();
+      }
+
+      if( innerType != null )
+      {
+        mergedType.addChild( name, (IJsonParentType)innerType );
+      }
+      else
+      {
+        return null;
+      }
+    }
+    
+    return mergedType;
+  }
+  
   public void render( StringBuilder sb, int indent, boolean mutable )
   {
     indent( sb, indent );
@@ -170,5 +232,44 @@ class JsonStructureType implements IJsonParentType
     {
       sb.append( ' ' );
     }
+  }
+
+  @Override
+  public boolean equals( Object o )
+  {
+    if( this == o )
+    {
+      return true;
+    }
+    if( o == null || getClass() != o.getClass() )
+    {
+      return false;
+    }
+
+    JsonStructureType that = (JsonStructureType)o;
+
+    if( !_innerTypes.equals( that._innerTypes ) )
+    {
+      return false;
+    }
+    if( !_members.equals( that._members ) )
+    {
+      return false;
+    }
+    if( !_name.equals( that._name ) )
+    {
+      return false;
+    }
+
+    return true;
+  }
+
+  @Override
+  public int hashCode()
+  {
+    int result = _name.hashCode();
+    result = 31 * result + _members.hashCode();
+    result = 31 * result + _innerTypes.hashCode();
+    return result;
   }
 }

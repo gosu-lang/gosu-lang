@@ -50,11 +50,88 @@ class JsonListType implements IJsonParentType
     _componentType = compType;
   }
 
+  public IJsonType merge( JsonListType other )
+  {
+    JsonListType mergedType = new JsonListType( getParent() );
+
+    if( !getComponentType().equals( other.getComponentType() ) )
+    {
+      IJsonType componentType = Json.mergeTypes( getComponentType(), other.getComponentType() );
+      if( componentType != null )
+      {
+        mergedType.setComponentType( componentType );
+      }
+      else
+      {
+        return null;
+      }
+    }
+
+    for( Map.Entry<String, IJsonParentType> e: _innerTypes.entrySet() )
+    {
+      String name = e.getKey();
+      IJsonType innerType = other.findChild( name );
+      if( innerType != null )
+      {
+        innerType = Json.mergeTypes( e.getValue(), innerType );
+      }
+      else
+      {
+        innerType = e.getValue();
+      }
+
+      if( innerType != null )
+      {
+        mergedType.addChild( name, (IJsonParentType)innerType );
+      }
+      else
+      {
+        return null;
+      }
+    }
+
+    return mergedType;
+  }
+
   public void render( StringBuilder sb, int indent, boolean mutable )
   {
     for( IJsonParentType child: _innerTypes.values() )
     {
       child.render( sb, indent, mutable );
     }
+  }
+
+  @Override
+  public boolean equals( Object o )
+  {
+    if( this == o )
+    {
+      return true;
+    }
+    if( o == null || getClass() != o.getClass() )
+    {
+      return false;
+    }
+
+    JsonListType that = (JsonListType)o;
+
+    if( !_componentType.equals( that._componentType ) )
+    {
+      return false;
+    }
+    if( !_innerTypes.equals( that._innerTypes ) )
+    {
+      return false;
+    }
+
+    return true;
+  }
+
+  @Override
+  public int hashCode()
+  {
+    int result = _componentType.hashCode();
+    result = 31 * result + _innerTypes.hashCode();
+    return result;
   }
 }

@@ -123,25 +123,20 @@ public class Json
       {
         type = new JsonListType( parent );
       }
-      IJsonType compType = null;
+      IJsonType compType = ((JsonListType)type).getComponentType();
       if( !((List)jsonObj).isEmpty() )
       {
         for( Object elem : (List)jsonObj )
         {
           IJsonType csr = transformJsonObject( name, (IJsonParentType)type, elem );
-          if( compType != null && csr != compType && csr != DynamicType.instance() && compType != DynamicType.instance() )
+          if( compType != null && csr != compType && compType != DynamicType.instance() )
           {
-            // Heterogeneous list implies dynamic component type
-            System.out.println( "\nWarning: elements have conflicting type in list: " + name +
-                                "\nTypes: " + csr.getName() + ", " + compType.getName() +
-                                "\nThe component type for this list will be Dynamic.\n" );
-            compType = DynamicType.instance();
-            break;
+            csr = mergeTypes( compType, csr );
           }
           compType = csr;
         }
       }
-      else
+      else if( compType == null )
       {
         // Empty list implies dynamic component type
         System.out.println( "\nWarning: there are no sample elements in list: " + name +
@@ -159,5 +154,61 @@ public class Json
       type = JsonSimpleType.get( jsonObj );
     }
     return type;
+  }
+
+  public static IJsonType mergeTypes( IJsonType type1, IJsonType type2 )
+  {
+    if( type1 == null && type2 != null )
+    {
+      return type2;
+    }
+
+    if( type2 == null && type1 != null )
+    {
+      return type1;
+    }
+
+    if( type1.equals( type2 ) )
+    {
+      return type1;
+    }
+
+    if( type1 == DynamicType.instance() )
+    {
+      // Keep the more specific type (Dynamic type is inferred from a 'null', thus the more specific type wins)
+      return type2;
+    }
+
+    if( type2 == DynamicType.instance() )
+    {
+      // Keep the more specific type
+      return type1;
+    }
+
+    IJsonType mergedType = null;
+
+    if( type1 instanceof JsonSimpleType && type2 instanceof JsonSimpleType )
+    {
+      mergedType = ((JsonSimpleType)type1).merge( (JsonSimpleType)type2 );
+    }
+
+    if( type1 instanceof JsonStructureType && type2 instanceof JsonStructureType )
+    {
+      mergedType = ((JsonStructureType)type1).merge( (JsonStructureType)type2 );
+    }
+
+    if( type1 instanceof JsonListType && type2 instanceof JsonListType )
+    {
+      mergedType = ((JsonListType)type1).merge( (JsonListType)type2 );
+    }
+
+    if( mergedType != null )
+    {
+      return mergedType;
+    }
+
+    // if the existing type is dynamic, override it with a more specific type,
+    // otherwise the types disagree...
+    throw new RuntimeException( "Incompatible types: " + type1.getName() + " vs: " + type2.getName() );
   }
 }
