@@ -1,3 +1,5 @@
+package wsi
+
 class Errant_TypeAssignment {
 
   function foo(): EntityInfo {
@@ -21,10 +23,11 @@ class Errant_TypeAssignment {
     }
   }
 
+  class KeyableBean { }
+
   class EntityInfo<T extends KeyableBean> {
   }
 
-  class KeyableBean { }
 
   class Ide1958 {
 
@@ -33,6 +36,27 @@ class Errant_TypeAssignment {
     function test() {
       var x: gw.lang.reflect.IType
       new Ide1958(x) //##issuekeys: CANNOT RESOLVE CONSTRUCTOR 'IDE1958(GW.LANG.REFLECT.ITYPE)'
+    }
+
+  }
+
+  interface IEntityType { }
+  class Bean { }
+
+  class Ide3611 {
+
+    function test(x : IEntityType) : Type<Bean> {
+      return x as Type<Bean>      //##issuekeys: INCONVERTIBLE TYPES; CANNOT CAST 'GW.ENTITY.IENTITYTYPE' TO 'TYPE<GW.PL.PERSISTENCE.CORE.BEAN>'
+    }
+
+    function test2() : java.util.LinkedList {
+      var x: java.util.List
+      return x as  java.util.LinkedList
+    }
+
+    function test3() : javax.script.Bindings {
+      var x: java.lang.Object
+      return  x as javax.script.Bindings
     }
 
   }
