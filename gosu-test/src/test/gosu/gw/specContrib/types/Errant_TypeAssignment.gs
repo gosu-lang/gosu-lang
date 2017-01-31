@@ -49,6 +49,10 @@ class Errant_TypeAssignment {
       return x as Type<Bean>      //##issuekeys: INCONVERTIBLE TYPES; CANNOT CAST 'GW.ENTITY.IENTITYTYPE' TO 'TYPE<GW.PL.PERSISTENCE.CORE.BEAN>'
     }
 
+    function test1(x : IType) : Type<Bean> {
+      return x as  Type<Bean>
+    }
+
     function test2() : java.util.LinkedList {
       var x: java.util.List
       return x as  java.util.LinkedList
