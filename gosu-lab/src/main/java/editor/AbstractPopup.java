@@ -124,7 +124,7 @@ public abstract class AbstractPopup extends JPopupMenu implements IValuePopup
     if( strPrefix != null && strPrefix.length() > 0 &&
         (Character.isWhitespace( strPrefix.charAt( 0 ) ) || !Character.isJavaIdentifierPart( strPrefix.charAt( 0 ) )) )
     {
-      strPrefix = TextComponentUtil.getWordBeforeCaret( _editor );
+      strPrefix = TextComponentUtil.getPartialWordBeforeCaret( _editor );
       if( strPrefix != null && strPrefix.length() > 0 &&
           (Character.isWhitespace( strPrefix.charAt( 0 ) ) || !Character.isJavaIdentifierPart( strPrefix.charAt( 0 ) )) )
       {

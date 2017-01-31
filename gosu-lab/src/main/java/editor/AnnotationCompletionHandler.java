@@ -19,7 +19,8 @@ public class AnnotationCompletionHandler extends SymbolCompletionHandler
     {
       return false;
     }
-    boolean bAtAtCaret = GosuObjectUtil.equals( TextComponentUtil.getWordBeforePos( getGosuEditor().getEditor(), getGosuEditor().getPositionAtStartOfExpressionAtCaret() ), "@" );
+    String wordAtCaret = TextComponentUtil.getWordAtCaret( getGosuEditor().getEditor() );
+    boolean bAtAtCaret = "@".equals( wordAtCaret ) || GosuObjectUtil.equals( TextComponentUtil.getPartialWordBeforePos( getGosuEditor().getEditor(), getGosuEditor().getPositionAtStartOfExpressionAtCaret() ), "@" );
     if( !bAtAtCaret )
     {
       return false;

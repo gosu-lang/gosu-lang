@@ -43,7 +43,7 @@ public class PackageCompletionHandler extends AbstractPathCompletionHandler
       }
     }
     String strMemberPath = getSingleNameAtCaret();
-    boolean bDotAtCaret = GosuObjectUtil.equals( TextComponentUtil.getWordBeforeCaret( getGosuEditor().getEditor() ), "." );
+    boolean bDotAtCaret = GosuObjectUtil.equals( TextComponentUtil.getPartialWordBeforeCaret( getGosuEditor().getEditor() ), "." );
     boolean bFilterByLastPathElement = strMemberPath == null || !bDotAtCaret;
     IType rootType;
     IMemberAccessExpression memberExpr;

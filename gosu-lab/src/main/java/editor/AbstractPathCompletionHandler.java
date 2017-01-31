@@ -48,7 +48,7 @@ public abstract class AbstractPathCompletionHandler implements IPathCompletionHa
 
   protected String getSingleNameAtCaret()
   {
-    String strMemberPath = TextComponentUtil.getWordBeforeCaret( _gsEditor.getEditor() );
+    String strMemberPath = TextComponentUtil.getPartialWordBeforeCaret( _gsEditor.getEditor() );
     if( strMemberPath != null && strMemberPath.length() > 0 )
     {
       int iIndex = strMemberPath.lastIndexOf( '.' );

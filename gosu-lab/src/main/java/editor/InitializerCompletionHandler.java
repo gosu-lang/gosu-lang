@@ -83,7 +83,7 @@ public class InitializerCompletionHandler extends AbstractPathCompletionHandler
 
   private boolean isDoubleColonAtCaret()
   {
-    if( ":".equals( TextComponentUtil.getWordBeforeCaret( getGosuEditor().getEditor() ) ) )
+    if( ":".equals( TextComponentUtil.getPartialWordBeforeCaret( getGosuEditor().getEditor() ) ) )
     {
       return getGosuEditor().getDeepestLocationAtCaret() != null &&
              getGosuEditor().getDeepestLocationAtCaret().getParsedElement() instanceof IInitializerAssignment &&

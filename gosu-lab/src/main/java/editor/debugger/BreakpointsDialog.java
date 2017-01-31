@@ -3,7 +3,6 @@ package editor.debugger;
 import editor.DefaultContextMenuHandler;
 import editor.EditorHost;
 import editor.EditorScrollPane;
-import editor.GosuClassLineInfoManager;
 import editor.GosuEditor;
 import editor.GosuPanel;
 import editor.GotoExceptionTypePopup;

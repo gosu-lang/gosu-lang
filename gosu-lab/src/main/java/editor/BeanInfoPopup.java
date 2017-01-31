@@ -445,7 +445,7 @@ public class BeanInfoPopup extends EditorBasedPopup implements ISelectionPopup
       return;
     }
 
-    String strWholePath = TextComponentUtil.getWordBeforeCaret( getEditor().getEditor() );
+    String strWholePath = TextComponentUtil.getPartialWordBeforeCaret( getEditor().getEditor() );
     if( isOutOfScope() )
     {
       setDOA( true );

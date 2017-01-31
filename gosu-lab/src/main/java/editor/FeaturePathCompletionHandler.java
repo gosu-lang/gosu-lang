@@ -18,7 +18,7 @@ public class FeaturePathCompletionHandler extends AbstractPathCompletionHandler
   @Override
   public boolean handleCompletePath( ISymbolTable transientSymTable )
   {
-    boolean bDotAtCaret = GosuObjectUtil.equals( TextComponentUtil.getWordBeforeCaret( getGosuEditor().getEditor() ), "#" );
+    boolean bDotAtCaret = GosuObjectUtil.equals( TextComponentUtil.getPartialWordBeforeCaret( getGosuEditor().getEditor() ), "#" );
     IExpression exprAtCaret;
     if( bDotAtCaret )
     {

@@ -13,13 +13,13 @@ import javax.swing.text.DefaultEditorKit;
 import javax.swing.text.Document;
 import javax.swing.text.Element;
 import javax.swing.text.JTextComponent;
-import javax.swing.text.Utilities;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
+import javax.swing.undo.CompoundEdit;
 
 public class TextComponentUtil
 {
@@ -61,52 +61,24 @@ public class TextComponentUtil
       int iCaretPos = editor.getCaretPosition();
       int iStart = getWordStart( editor, iCaretPos );
       int iEnd = getWordEnd( editor, iCaretPos );
-
-      String strWord = editor.getText( iStart, iEnd - iStart );
-      if( strWord != null && strWord.equals( "_" ) )
-      {
-        strWord = getWordBeforePos( editor, iCaretPos - 1 ) + strWord;
-      }
-      return strWord;
-
+      return editor.getText( iStart, iEnd - iStart );
     }
     catch( BadLocationException e )
     {
-      return getWordBeforeCaret( editor );
+      return getPartialWordBeforeCaret( editor );
     }
   }
 
-  public static String getWordBeforeCaret( JTextComponent editor )
+  public static String getPartialWordBeforeCaret( JTextComponent editor )
   {
-    return getWordBeforePos( editor, editor.getCaretPosition() );
+    return getPartialWordBeforePos( editor, editor.getCaretPosition() );
   }
-
-  public static String getWordBeforePos( JTextComponent editor, int iPos )
+  public static String getPartialWordBeforePos( JTextComponent editor, int iPos )
   {
     try
     {
-      int iStart = getPreviousWord( editor, iPos );
-
-      String strWord = editor.getText( iStart, iPos - iStart );
-      if( strWord != null && strWord.equals( "_" ) )
-      {
-        if( iStart == 0 || !editor.getText( iStart - 1, 1 ).equals( " " ) )
-        {
-          String strPrev = getWordBeforePos( editor, iPos - 1 );
-          if( strPrev != null )
-          {
-            strPrev = strPrev.trim();
-            if( strPrev.length() > 0 )
-            {
-              if( Character.isJavaIdentifierPart( strPrev.charAt( 0 ) ) )
-              {
-                strWord = strPrev.trim() + strWord;
-              }
-            }
-          }
-        }
-      }
-      return strWord;
+      int iStart = getWordStart( editor, iPos );
+      return editor.getText( iStart, iPos - iStart );
     }
     catch( BadLocationException e )
     {
@@ -311,7 +283,7 @@ public class TextComponentUtil
     if( firstParen >= 0 && firstParen < strText.indexOf( ")" ) - 1 )
     {
       int startPos = initialSelectionStart + firstParen + 1;
-      int wordStart = Utilities.getNextWord( editor, startPos );
+      int wordStart = getWordStart( editor, startPos );
       editor.getCaret().setDot( wordStart );
       String atCaret = getWordAtCaret( editor );
       if( GosuStringUtil.isAlphanumeric( atCaret ) )
@@ -320,7 +292,7 @@ public class TextComponentUtil
       }
       else if( "\\".equals( atCaret ) )
       {
-        wordStart = Utilities.getNextWord( editor, editor.getCaretPosition() );
+        wordStart = getWordStart( editor, editor.getCaretPosition() );
         editor.getCaret().setDot( wordStart );
         atCaret = getWordAtCaret( editor );
         if( GosuStringUtil.isAlphanumeric( atCaret ) )
@@ -377,7 +349,7 @@ public class TextComponentUtil
       return;
     }
 
-    String strWordBeforeCaret = getWordBeforeCaret( editor );
+    String strWordBeforeCaret = getPartialWordBeforeCaret( editor );
     if( strWordBeforeCaret != null && strWordBeforeCaret.length() > 0 && Character.isLetterOrDigit( strWordBeforeCaret.charAt( 0 ) ) )
     {
       replaceWordBeforeCaret( editor, strText );
@@ -387,115 +359,187 @@ public class TextComponentUtil
     editor.replaceSelection( strText == null ? "" : strText );
   }
 
-  public static void replaceWordAtCaretDynamic( JTextComponent editor, String strText, IReplaceWordCallback replaceWordCallback, boolean selectFirstArg )
+  public static void replaceWordAtCaretDynamic( JTextComponent editor, String strText, IReplaceWordCallback replaceWordCallback, boolean selectFirstArg, boolean replaceWholeWord )
   {
-    int initialSelectionStart;
-    String strWordAtCaret = getWordAtCaret( editor );
-    int caretPosition = editor.getCaretPosition();
-    if( strWordAtCaret != null && strWordAtCaret.length() > 0 && replaceWordCallback.shouldReplace( strWordAtCaret ) )
-    {
-      try
+    performCompoundUndableEdit( editor, () -> {
+      int initialSelectionStart;
+      int wordEnd;
+      String strWordAtCaret = getWordAtCaret( editor );
+      int caretPosition = editor.getCaretPosition();
+      if( strWordAtCaret != null && strWordAtCaret.length() > 0 && replaceWordCallback.shouldReplace( strWordAtCaret ) )
       {
-        initialSelectionStart = getWordStart( editor, caretPosition );
-      }
-      catch( BadLocationException e )
-      {
-        initialSelectionStart = caretPosition;
-      }
-      editor.setSelectionStart( initialSelectionStart );
-      editor.setSelectionEnd( caretPosition );
-      editor.replaceSelection( strText );
-    }
-    else
-    {
-      String strWordBeforeCaret = getWordBeforeCaret( editor );
-      if( strWordBeforeCaret != null && strWordBeforeCaret.length() > 0 && replaceWordCallback.shouldReplace( strWordBeforeCaret ) )
-      {
-        if( strWordBeforeCaret.endsWith( " " ) )
+        try
+        {
+          initialSelectionStart = getWordStart( editor, caretPosition );
+          wordEnd = replaceWholeWord ? getWordEnd( editor, initialSelectionStart ) : caretPosition;
+        }
+        catch( BadLocationException e )
         {
           initialSelectionStart = caretPosition;
           try
           {
-            editor.getDocument().insertString( initialSelectionStart, strText, null );
+            wordEnd = replaceWholeWord ? getWordEnd( editor, initialSelectionStart ) : caretPosition;
           }
-          catch( BadLocationException e )
+          catch( BadLocationException e1 )
           {
-            throw new RuntimeException( e );
+            throw new RuntimeException( e1 );
+          }
+        }
+        editor.setSelectionStart( initialSelectionStart );
+        editor.setSelectionEnd( wordEnd );
+        editor.replaceSelection( strText );
+      }
+      else
+      {
+        String strWordBeforeCaret = getPartialWordBeforeCaret( editor );
+        if( strWordBeforeCaret != null && strWordBeforeCaret.length() > 0 && replaceWordCallback.shouldReplace( strWordBeforeCaret ) )
+        {
+          if( strWordBeforeCaret.endsWith( " " ) )
+          {
+            initialSelectionStart = caretPosition;
+            try
+            {
+              editor.getDocument().insertString( initialSelectionStart, strText, null );
+            }
+            catch( BadLocationException e )
+            {
+              throw new RuntimeException( e );
+            }
+          }
+          else
+          {
+            initialSelectionStart = replaceWordBeforeCaret( editor, strText );
           }
         }
         else
         {
-          initialSelectionStart = replaceWordBeforeCaret( editor, strText );
+          String strSeparationSpace = strWordAtCaret != null && strWordAtCaret.length() > 0 &&
+                                      Character.isJavaIdentifierPart( strWordAtCaret.charAt( 0 ) ) ? " " : "";
+          initialSelectionStart = editor.getSelectionStart();
+          editor.replaceSelection( strText == null ? "" : strText + strSeparationSpace );
         }
       }
-      else
-      {
-        String strSeparationSpace = strWordAtCaret != null && strWordAtCaret.length() > 0 &&
-                                    Character.isJavaIdentifierPart( strWordAtCaret.charAt( 0 ) ) ? " " : "";
-        initialSelectionStart = editor.getSelectionStart();
-        editor.replaceSelection( strText == null ? "" : strText + strSeparationSpace );
-      }
-    }
 
-    if( selectFirstArg && strText != null )
-    {
-      EditorUtilities.settleEventQueue();
+      if( selectFirstArg && strText != null )
+      {
+        EditorUtilities.settleEventQueue();
+        try
+        {
+          selectFirstArg( strText, initialSelectionStart, editor );
+        }
+        catch( BadLocationException e )
+        {
+          EditorUtilities.handleUncaughtException( e );
+        }
+      }
+    } );
+  }
+
+  public static void replaceWordAtCaretDynamicAndRemoveEmptyParens( JTextComponent editor, String strText, IReplaceWordCallback replaceWordCallback, boolean selectFirstArg, boolean replaceWholeWord )
+  {
+    performCompoundUndableEdit( editor, () -> {
       try
       {
-        selectFirstArg( strText, initialSelectionStart, editor );
+        int caret = editor.getCaretPosition();
+        if( editor.getDocument().getLength() >= caret + 2 && editor.getText( caret, 2 ).equals( "()" ) )
+        {
+          editor.setSelectionStart( caret );
+          editor.setSelectionEnd( caret + 2 );
+          editor.replaceSelection( "" );
+        }
       }
       catch( BadLocationException e )
       {
-        EditorUtilities.handleUncaughtException( e );
+        // ignore
       }
-    }
+      replaceWordAtCaretDynamic( editor, strText, replaceWordCallback, selectFirstArg, replaceWholeWord );
+    } );
   }
 
-  public static void replaceWordAtCaretDynamicAndRemoveEmptyParens( JTextComponent editor, String strText, IReplaceWordCallback replaceWordCallback, boolean selectFirstArg )
+  private static void performCompoundUndableEdit( JTextComponent editor, Runnable edit )
   {
+    CompoundEdit undoAtom = null;
+    if( editor instanceof EditorHostTextPane )
+    {
+      undoAtom = ((EditorHostTextPane)editor).getEditor().getUndoManager().beginUndoAtom( "Duplicate Line" );
+    }
     try
     {
-      int caret = editor.getCaretPosition();
-      if( editor.getDocument().getLength() >= caret + 2 && editor.getText( caret, 2 ).equals( "()" ) )
+      edit.run();
+    }
+    finally
+    {
+      if( undoAtom != null )
       {
-        editor.setSelectionStart( caret );
-        editor.setSelectionEnd( caret + 2 );
-        editor.replaceSelection( "" );
+        ((EditorHostTextPane)editor).getEditor().getUndoManager().endUndoAtom( undoAtom );
       }
     }
-    catch( BadLocationException e )
-    {
-      // ignore
-    }
-    replaceWordAtCaretDynamic( editor, strText, replaceWordCallback, selectFirstArg );
   }
 
   public static int getWordStart( JTextComponent editor, int iOffset ) throws BadLocationException
   {
-    int iStart = Utilities.getWordStart( editor, iOffset );
-    if( !editor.getText( editor.getCaretPosition(), 1 ).equals( "\n" ) )
+    String text = editor.getText();
+    iOffset = maybeAdjustOffsetToNextWord( text, iOffset );
+
+    int iStart = iOffset;
+    for( ;iStart > 0 && Character.isJavaIdentifierPart( text.charAt( iStart ) ); iStart-- );
+    if( iStart != iOffset )
     {
-      iStart = adjustForAdditionalSymbols( editor, iStart, Utilities.getWordEnd( editor, iOffset ) );
+      iStart++;
     }
     return iStart;
   }
 
-  public static int getWordEnd( JTextComponent editor, int iCaretPos ) throws BadLocationException
+  public static int getWordEnd( JTextComponent editor, int iOffset ) throws BadLocationException
   {
-    return Utilities.getWordEnd( editor, iCaretPos );
+    String text = editor.getText();
+    iOffset = maybeAdjustOffsetToNextWord( text, iOffset );
+
+    int iEnd = iOffset;
+    for( ;iEnd < text.length() && Character.isJavaIdentifierPart( text.charAt( iEnd ) ); iEnd++ );
+    if( iEnd == iOffset && !Character.isWhitespace( text.charAt( iEnd ) ) )
+    {
+      // the word is a single, non-identifier character
+      iEnd++;
+    }
+    return iEnd;
+  }
+
+  private static int maybeAdjustOffsetToNextWord( String text, int iOffset ) throws BadLocationException
+  {
+    if( text.length() < iOffset )
+    {
+      throw new BadLocationException( "Index out of bounds. Offset: " + iOffset + "  Length: " + text.length(), iOffset );
+    }
+
+    if( text.length() == iOffset || Character.isWhitespace( text.charAt( iOffset ) ) )
+    {
+      if( Character.isWhitespace( text.charAt( iOffset-1 ) ) )
+      {
+        while( iOffset < text.length() )
+        {
+          if( !Character.isWhitespace( text.charAt( iOffset ) ) )
+          {
+            return iOffset;
+          }
+          iOffset++;
+        }
+      }
+      iOffset--;
+    }
+    return iOffset;
   }
 
   private static int getPreviousWord( JTextComponent editor, int iOffset ) throws BadLocationException
   {
-    int iStart = Utilities.getPreviousWord( editor, iOffset );
-    iStart = adjustForAdditionalSymbols( editor, iStart, Utilities.getWordEnd( editor, iOffset ) );
-
-    int iLineStart = adjustForLineComment( editor, iStart );
-    if( iLineStart != iStart )
+    String text = editor.getText();
+    int iStart = getWordStart( editor, iOffset );
+    for( iOffset = iStart-1; iOffset >= 0 && Character.isWhitespace( text.charAt( iOffset ) ); iOffset-- );
+    if( iOffset < 0 )
     {
-      return getPreviousWord( editor, iLineStart );
+      return iStart;
     }
-    return iStart;
+    return getWordStart( editor, iOffset );
   }
 
   public static int adjustForLineComment( JTextComponent editor, int iStart ) throws BadLocationException
@@ -510,7 +554,7 @@ public class TextComponentUtil
       return iStart;
     }
     String strLine = doc.getText( iLineOffset, iLength );
-    if( strLine.indexOf( "//" ) >= 0 )
+    if( strLine.contains( "//" ) )
     {
       return iLineOffset;
     }
@@ -538,27 +582,27 @@ public class TextComponentUtil
     return false;
   }
 
-  private static int adjustForAdditionalSymbols( JTextComponent editor, int iStart, int iEnd )
-  {
-    try
-    {
-      int iPossibleStart = Utilities.getPreviousWord( editor, iStart );
-      String currWord = editor.getText( iStart, iEnd - iStart );
-      String strPossibleAdditionalSymbol = editor.getText( iPossibleStart, iStart - iPossibleStart );
-      while( isAdditionalSymbol( currWord, strPossibleAdditionalSymbol, "_" ) || isAdditionalSymbol( currWord, strPossibleAdditionalSymbol, "$" ) )
-      {
-        iStart = iPossibleStart;
-        iPossibleStart = Utilities.getPreviousWord( editor, iStart );
-        currWord = strPossibleAdditionalSymbol;
-        strPossibleAdditionalSymbol = editor.getText( iPossibleStart, iStart - iPossibleStart );
-      }
-    }
-    catch( BadLocationException e )
-    {
-      // Ignore
-    }
-    return iStart;
-  }
+//  private static int adjustForAdditionalSymbols( JTextComponent editor, int iStart, int iEnd )
+//  {
+//    try
+//    {
+//      int iPossibleStart = Utilities.getPreviousWord( editor, iStart );
+//      String currWord = editor.getText( iStart, iEnd - iStart );
+//      String strPossibleAdditionalSymbol = editor.getText( iPossibleStart, iStart - iPossibleStart );
+//      while( isAdditionalSymbol( currWord, strPossibleAdditionalSymbol, "_" ) || isAdditionalSymbol( currWord, strPossibleAdditionalSymbol, "$" ) )
+//      {
+//        iStart = iPossibleStart;
+//        iPossibleStart = Utilities.getPreviousWord( editor, iStart );
+//        currWord = strPossibleAdditionalSymbol;
+//        strPossibleAdditionalSymbol = editor.getText( iPossibleStart, iStart - iPossibleStart );
+//      }
+//    }
+//    catch( BadLocationException e )
+//    {
+//      // Ignore
+//    }
+//    return iStart;
+//  }
 
   private static boolean isAdditionalSymbol( String currWord, String strPossibleAdditionalSymbol, String symbol )
   {
@@ -1122,7 +1166,7 @@ public class TextComponentUtil
     }
     else
     {
-      String wordBeforeCaret = getWordBeforeCaret( editor );
+      String wordBeforeCaret = getPartialWordBeforeCaret( editor );
       if( isValidIdentifier( wordBeforeCaret, false ) )
       {
         return wordBeforeCaret;

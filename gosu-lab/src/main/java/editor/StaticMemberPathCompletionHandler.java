@@ -23,7 +23,7 @@ public class StaticMemberPathCompletionHandler extends AbstractPathCompletionHan
       return false;
     }
 
-    boolean bDotAtCaret = GosuObjectUtil.equals( TextComponentUtil.getWordBeforeCaret( getGosuEditor().getEditor() ), "." );
+    boolean bDotAtCaret = GosuObjectUtil.equals( TextComponentUtil.getPartialWordBeforeCaret( getGosuEditor().getEditor() ), "." );
     boolean bFilterByLastPathElement = !bDotAtCaret;
     if( exprAtCaret instanceof IMemberAccessExpression )
     {

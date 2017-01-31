@@ -18,12 +18,12 @@ public class MemberPathCompletionHandler extends AbstractPathCompletionHandler
   @Override
   public boolean handleCompletePath( ISymbolTable transientSymTable )
   {
-    boolean bDotAtCaret = GosuObjectUtil.equals( TextComponentUtil.getWordBeforeCaret( getGosuEditor().getEditor() ), "." );
+    boolean bDotAtCaret = GosuObjectUtil.equals( TextComponentUtil.getPartialWordBeforeCaret( getGosuEditor().getEditor() ), "." );
     boolean bExpansionAtCaret = false;
     int iCaretPos = getGosuEditor().getEditor().getCaretPosition();
     if( iCaretPos > 1 )
     {
-      bExpansionAtCaret = GosuObjectUtil.equals( TextComponentUtil.getWordBeforePos( getGosuEditor().getEditor(), iCaretPos - 1 ), "*" );
+      bExpansionAtCaret = GosuObjectUtil.equals( TextComponentUtil.getPartialWordBeforePos( getGosuEditor().getEditor(), iCaretPos - 1 ), "*" );
     }
     IExpression exprAtCaret;
     if( bDotAtCaret )
@@ -42,7 +42,7 @@ public class MemberPathCompletionHandler extends AbstractPathCompletionHandler
       strMemberPath += '.';
     }
     boolean bFilterByLastPathElement = strMemberPath.length() == 0 || !bDotAtCaret;
-    if( exprAtCaret instanceof IMemberAccessExpression )
+    if( exprAtCaret instanceof IMemberAccessExpression && (strMemberPath.length() > 0 || bDotAtCaret) )
     {
       IMemberAccessExpression memberExpr = (IMemberAccessExpression)exprAtCaret;
       IType rootType = memberExpr.getRootType();

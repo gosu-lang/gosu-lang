@@ -53,6 +53,7 @@ public class SymbolPopup extends EditorBasedPopup implements ISelectionPopup
   private ISymbol[] _symbols;
   private String _strPrefix;
   private boolean _autoDismissed;
+  private boolean _replaceWholeWord;
 
 
   public SymbolPopup( ISymbol[] symbols, String strPrefix, GosuEditor editor, IType expectedType )
@@ -177,7 +178,7 @@ public class SymbolPopup extends EditorBasedPopup implements ISelectionPopup
       strWholePath = TextComponentUtil.getWordAtCaret( getEditor().getEditor() );
       if( strWholePath != null && strWholePath.length() > 0 && Character.isWhitespace( strWholePath.charAt( 0 ) ) )
       {
-        strWholePath = TextComponentUtil.getWordBeforeCaret( getEditor().getEditor() );
+        strWholePath = TextComponentUtil.getPartialWordBeforeCaret( getEditor().getEditor() );
       }
     }
 
@@ -234,6 +235,7 @@ public class SymbolPopup extends EditorBasedPopup implements ISelectionPopup
         if( _strPrefix != null && !_strPrefix.equalsIgnoreCase( symbol.getBeanNode().getName() ) )
         {
           // Auto-complete if only one matching symbol
+          _replaceWholeWord = true;
           fireNodeChanged( _nodeListenerList, new ChangeEvent( symbol.makePath( false ) ) );
           _autoDismissed = true;
           return;
@@ -446,6 +448,15 @@ public class SymbolPopup extends EditorBasedPopup implements ISelectionPopup
     return type.getRelativeName();
   }
 
+  public void setReplaceWholeWord( boolean replaceWholeWord )
+  {
+    _replaceWholeWord = replaceWholeWord;
+  }
+  public boolean isReplaceWholeWord()
+  {
+    return _replaceWholeWord;
+  }
+
   class EditorKeyListener extends KeyAdapter
   {
     @Override
@@ -487,6 +498,7 @@ public class SymbolPopup extends EditorBasedPopup implements ISelectionPopup
           BeanTree selection = (BeanTree)selectionPath.getLastPathComponent();
           if( selection != null )
           {
+            setReplaceWholeWord( e.getKeyCode() == KeyEvent.VK_TAB );
             handleSelection( selection );
           }
         }

@@ -38,6 +38,7 @@ public class TypePopup extends EditorBasedPopup implements ISelectionPopup
   private UndoableEditListener _docListener;
   private String _strPrefix;
   private String _title;
+  private boolean _replaceWholeWord;
 
   public TypePopup( String strPrefix, GosuEditor editor, boolean annotationsOnly )
   {
@@ -221,7 +222,7 @@ public class TypePopup extends EditorBasedPopup implements ISelectionPopup
       strWholePath = TextComponentUtil.getWordAtCaret( getEditor().getEditor() );
       if( strWholePath != null && strWholePath.length() > 0 && Character.isWhitespace( strWholePath.charAt( 0 ) ) )
       {
-        strWholePath = TextComponentUtil.getWordBeforeCaret( getEditor().getEditor() );
+        strWholePath = TextComponentUtil.getPartialWordBeforeCaret( getEditor().getEditor() );
       }
     }
 
@@ -282,6 +283,7 @@ public class TypePopup extends EditorBasedPopup implements ISelectionPopup
           if( isTypeUsed( strType ) )
           {
             // Auto-complete if only one matching type
+            _replaceWholeWord = true;
             fireNodeChanged( _nodeListenerList, new ChangeEvent( strType ) );
             return;
           }
@@ -358,6 +360,15 @@ public class TypePopup extends EditorBasedPopup implements ISelectionPopup
     return strType;
   }
 
+  public void setReplaceWholeWord( boolean replaceWholeWord )
+  {
+    _replaceWholeWord = replaceWholeWord;
+  }
+  public boolean isReplaceWholeWord()
+  {
+    return _replaceWholeWord;
+  }
+
   /**
    */
   class EditorKeyListener extends KeyAdapter
@@ -398,6 +409,7 @@ public class TypePopup extends EditorBasedPopup implements ISelectionPopup
         String strType = (String)_list.getSelectedValue();
         if( strType != null )
         {
+          setReplaceWholeWord( e.getKeyCode() == KeyEvent.VK_TAB );
           fireNodeChanged( _nodeListenerList, new ChangeEvent( strType ) );
         }
         setVisible( false );

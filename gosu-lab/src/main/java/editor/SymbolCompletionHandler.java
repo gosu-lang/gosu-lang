@@ -8,7 +8,6 @@ import gw.lang.parser.IParseTree;
 import gw.lang.parser.ISymbol;
 import gw.lang.parser.ISymbolTable;
 import gw.lang.parser.Keyword;
-import gw.lang.parser.expressions.IMemberAccessExpression;
 import gw.lang.reflect.IEnumType;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.java.GosuTypes;
@@ -27,17 +26,16 @@ public class SymbolCompletionHandler extends AbstractPathCompletionHandler
   {
     final GosuEditor gsEditor = getGosuEditor();
     boolean bDotAtCaret = GosuObjectUtil.equals( TextComponentUtil.getWordAtCaret( gsEditor.getEditor() ), "." ) ||
-                          GosuObjectUtil.equals( TextComponentUtil.getWordBeforeCaret( gsEditor.getEditor() ), "." ) ||
+                          GosuObjectUtil.equals( TextComponentUtil.getPartialWordBeforeCaret( gsEditor.getEditor() ), "." ) ||
                           GosuObjectUtil.equals( TextComponentUtil.getWordAtCaret( gsEditor.getEditor() ), ":" ) ||
-                          GosuObjectUtil.equals( TextComponentUtil.getWordBeforeCaret( gsEditor.getEditor() ), ":" );
+                          GosuObjectUtil.equals( TextComponentUtil.getPartialWordBeforeCaret( gsEditor.getEditor() ), ":" );
     if( bDotAtCaret )
     {
       return false;
     }
     IParseTree locationAtCaret = gsEditor.getDeepestLocationAtCaret();
     if( locationAtCaret != null &&
-        (locationAtCaret.getParsedElement() instanceof IMemberAccessExpression ||
-         InitializerCompletionHandler.isInitializerStart( locationAtCaret.getParsedElement() )) )
+        InitializerCompletionHandler.isInitializerStart( locationAtCaret.getParsedElement() ) )
     {
       return false;
     }
@@ -45,7 +43,7 @@ public class SymbolCompletionHandler extends AbstractPathCompletionHandler
     String strMemberPath = getSingleNameAtCaret();
     strMemberPath = strMemberPath != null ? strMemberPath.trim() : null;
 
-    String wordBeforeCaret = TextComponentUtil.getWordBeforeCaret( getGosuEditor().getEditor() );
+    String wordBeforeCaret = TextComponentUtil.getPartialWordBeforeCaret( getGosuEditor().getEditor() );
     boolean isAtAsPosition = wordBeforeCaret != null && wordBeforeCaret.trim().equals( Keyword.KW_as.toString() );
     if( gsEditor.isAltDown() || isAtAsPosition )
     {
@@ -67,14 +65,16 @@ public class SymbolCompletionHandler extends AbstractPathCompletionHandler
           TextComponentUtil.replaceWordAtCaretDynamicAndRemoveEmptyParens( gsEditor.getEditor(),
                                                                            word,
                                                                            gsEditor.getReplaceWordCallback(),
-                                                                           true );
+                                                                           true,
+                                                                           valuePopup.isReplaceWholeWord() );
         }
         else
         {
           TextComponentUtil.replaceWordAtCaretDynamic( gsEditor.getEditor(),
                                                        word,
                                                        gsEditor.getReplaceWordCallback(),
-                                                       true );
+                                                       true,
+                                                       valuePopup.isReplaceWholeWord() );
         }
         gsEditor.getEditor().requestFocus();
         EditorUtilities.fixSwingFocusBugWhenPopupCloses( gsEditor );
@@ -144,7 +144,7 @@ public class SymbolCompletionHandler extends AbstractPathCompletionHandler
 
         //noinspection StatementWithEmptyBody
         if( addUsesAutomatically &&
-            GosuObjectUtil.equals( TextComponentUtil.getWordBeforeCaret( getGosuEditor().getEditor() ), strRelativeType ) )
+            GosuObjectUtil.equals( TextComponentUtil.getPartialWordBeforeCaret( getGosuEditor().getEditor() ), strRelativeType ) )
         {
           //no need to replace the text, since it is already there
         }
@@ -153,7 +153,7 @@ public class SymbolCompletionHandler extends AbstractPathCompletionHandler
           TextComponentUtil.replaceWordAtCaretDynamic(
             getGosuEditor().getEditor(),
             addUsesAutomatically ? strRelativeType : strPartialType,
-            getGosuEditor().getReplaceWordCallback(), false );
+            getGosuEditor().getReplaceWordCallback(), false, popup.isReplaceWholeWord() );
         }
 
 

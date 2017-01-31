@@ -1138,7 +1138,7 @@ public class GosuEditor extends EditorHost implements IScriptEditor, IGosuPanel,
     String strWordAtCaret = TextComponentUtil.getWordAtCaret( _editor );
     if( strWordAtCaret == null || strWordAtCaret.length() == 0 || !Character.isLetterOrDigit( strWordAtCaret.charAt( 0 ) ) )
     {
-      strWordAtCaret = TextComponentUtil.getWordBeforeCaret( _editor );
+      strWordAtCaret = TextComponentUtil.getPartialWordBeforeCaret( _editor );
     }
 
     if( isCompleteCode() || strWordAtCaret.equals( "." ) || strWordAtCaret.equals( "#" ) || strWordAtCaret.equals( ":" ) )
@@ -2170,7 +2170,7 @@ public class GosuEditor extends EditorHost implements IScriptEditor, IGosuPanel,
       }
 
       //
-      // Finally, do a little hack to determine the likelyhood that the word is
+      // Finally, do a little hack to determine the likelihood that the word is
       // by itself a legal expression. The assumption is that if the word starts
       // with a valid symbol, it's a valid expression. Not perfect, but should
       // suffice for value completion purposes.
