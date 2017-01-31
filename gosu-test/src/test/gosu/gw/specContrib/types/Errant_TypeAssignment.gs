@@ -1,4 +1,3 @@
-package wsi
 
 class Errant_TypeAssignment {
 
