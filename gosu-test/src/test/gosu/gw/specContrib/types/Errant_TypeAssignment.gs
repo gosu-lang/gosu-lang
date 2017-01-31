@@ -1,5 +1,7 @@
 package gw.specContrib.types
 
+uses gw.lang.reflect.IType
+
 class Errant_TypeAssignment {
 
   function foo(): EntityInfo {
