@@ -31,14 +31,15 @@ class ToStructureTest {
   function SimpleIntVsLongs() {
     print("About to evaluate: \n" + simpleArrayOfNumbersJson)
 
-    try {
-      print(Json.fromJson(simpleArrayOfNumbersJson).toStructure("ArrayOfSimpleNumbers"))
-      Assert.fail()
-    } catch (e : RuntimeException) {} // Types in array are different: Integer vs: Long
+    var x = Json.fromJson(simpleArrayOfNumbersJson).toStructure("ArrayOfSimpleNumbers")
+
+    print(x)
+
+    Assert.assertTrue(x.contains("property get value(): List<Long>")) // values are auto-widened to Longs
 
     Json.setParserName("gw.lang.reflect.json.DefaultParser_Big")
 
-    var x = Json.fromJson(simpleArrayOfNumbersJson).toStructure("ArrayOfSimpleNumbers")
+    x = Json.fromJson(simpleArrayOfNumbersJson).toStructure("ArrayOfSimpleNumbers")
 
     print(x)
     
@@ -49,14 +50,15 @@ class ToStructureTest {
   function IntVsLongs() {
     print("About to evaluate: \n" + arrayOfNumbersJson)
 
-    try {
-      print(Json.fromJson(arrayOfNumbersJson).toStructure("ArrayOfNumbers"))
-      Assert.fail()
-    } catch (e : RuntimeException) {} // Types in array are different: Integer vs: Long
+    var x = Json.fromJson(arrayOfNumbersJson).toStructure("ArrayOfNumbers")
 
+    print(x)
+    
+    Assert.assertTrue(x.contains("  structure digits {\n    property get val(): Long")) // values are auto-widened to Longs
+    
     Json.setParserName("gw.lang.reflect.json.DefaultParser_Big")
 
-    var x = Json.fromJson(arrayOfNumbersJson).toStructure("ArrayOfNumbers")
+    x = Json.fromJson(arrayOfNumbersJson).toStructure("ArrayOfNumbers")
     
     print(x)
     
