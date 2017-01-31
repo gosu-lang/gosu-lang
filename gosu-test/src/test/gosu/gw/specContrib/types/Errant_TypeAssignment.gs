@@ -37,7 +37,7 @@ class Errant_TypeAssignment {
     construct(p: Type<String>) {}
     function test() {
       var x: gw.lang.reflect.IType
-      new Ide1958(x) //##issuekeys: CANNOT RESOLVE CONSTRUCTOR 'IDE1958(GW.LANG.REFLECT.ITYPE)'
+      new Ide1958(x) //## issuekeys: CANNOT RESOLVE CONSTRUCTOR 'IDE1958(GW.LANG.REFLECT.ITYPE)'
     }
 
   }
@@ -48,7 +48,7 @@ class Errant_TypeAssignment {
   class Ide3611 {
 
     function test(x : IEntityType) : Type<Bean> {
-      return x as Type<Bean>      //##issuekeys: INCONVERTIBLE TYPES; CANNOT CAST 'GW.ENTITY.IENTITYTYPE' TO 'TYPE<GW.PL.PERSISTENCE.CORE.BEAN>'
+      return x as Type<Bean>      //## issuekeys: INCONVERTIBLE TYPES; CANNOT CAST 'GW.ENTITY.IENTITYTYPE' TO 'TYPE<GW.PL.PERSISTENCE.CORE.BEAN>'
     }
 
     function test1(x : IType) : Type<Bean> {
