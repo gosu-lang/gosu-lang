@@ -1,3 +1,4 @@
+package gw.specContrib.types
 
 class Errant_TypeAssignment {
 
