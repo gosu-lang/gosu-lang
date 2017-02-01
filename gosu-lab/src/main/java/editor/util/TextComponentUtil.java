@@ -512,7 +512,7 @@ public class TextComponentUtil
       throw new BadLocationException( "Index out of bounds. Offset: " + iOffset + "  Length: " + text.length(), iOffset );
     }
 
-    if( text.length() == iOffset || Character.isWhitespace( text.charAt( iOffset ) ) )
+    if( !text.isEmpty() && (text.length() == iOffset || Character.isWhitespace( text.charAt( iOffset ) )) )
     {
       if( Character.isWhitespace( text.charAt( iOffset-1 ) ) )
       {
