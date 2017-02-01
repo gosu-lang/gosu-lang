@@ -54,6 +54,7 @@ import gw.lang.reflect.IUncacheableFeature;
 import gw.lang.reflect.ReflectUtil;
 import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.gs.IGosuClass;
+import gw.lang.reflect.gs.IGosuEnhancement;
 import gw.lang.reflect.java.GosuTypes;
 import gw.lang.reflect.java.JavaTypes;
 
@@ -222,7 +223,10 @@ public class MemberAccessTransformer extends AbstractExpressionTransformer<Membe
     else if( irProperty.isBytecodeProperty() )
     {
       IRExpression irMethodCall = callMethod( irProperty.getGetterMethod(), root, exprList() );
-      assignStructuralTypeOwner( rootExpr, irMethodCall );
+      if( !(irProperty.getOwningIType() instanceof IGosuEnhancement) )
+      {
+        assignStructuralTypeOwner( rootExpr, irMethodCall );
+      }
       return irMethodCall;
     }
     else

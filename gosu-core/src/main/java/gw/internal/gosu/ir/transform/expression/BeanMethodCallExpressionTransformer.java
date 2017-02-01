@@ -29,6 +29,7 @@ import gw.lang.reflect.IMethodInfo;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.ITypeInfoMethodInfo;
 import gw.lang.reflect.gs.IGosuClass;
+import gw.lang.reflect.gs.IGosuEnhancement;
 import gw.lang.reflect.java.JavaTypes;
 
 import java.util.ArrayList;
@@ -119,7 +120,10 @@ public class BeanMethodCallExpressionTransformer extends AbstractExpressionTrans
         else
         {
           irMethodCall = callMethod( irMethod, irRoot, irArgs, namedArgOrder );
-          assignStructuralTypeOwner( rootExpr, irMethodCall );
+          if( irMethod.getFunctionType() == null || !(irMethod.getFunctionType().getEnclosingType() instanceof IGosuEnhancement) )
+          {
+            assignStructuralTypeOwner( rootExpr, irMethodCall );
+          }
         }
       }
       else

@@ -33,7 +33,7 @@ import gw.lang.reflect.IPlaceholder;
 import gw.lang.reflect.IPropertyInfo;
 import gw.lang.reflect.IPropertyInfoDelegate;
 import gw.lang.reflect.IType;
-import gw.lang.reflect.gs.IGosuVarPropertyInfo;
+import gw.lang.reflect.gs.IGosuEnhancement;
 import gw.lang.reflect.java.IJavaPropertyInfo;
 
 /**
@@ -124,7 +124,9 @@ public class MemberAssignmentStatementTransformer extends AbstractStatementTrans
         }
         else {
           IRExpression irMethodCall = callMethod( irProperty.getSetterMethod(), root, exprList( rhs ) );
-          assignStructuralTypeOwner( rootExpr, irMethodCall );
+          if( !(irProperty.getOwningIType() instanceof IGosuEnhancement) ) {
+            assignStructuralTypeOwner( rootExpr, irMethodCall );
+          }
           ret = buildMethodCall( irMethodCall );
         }
       }

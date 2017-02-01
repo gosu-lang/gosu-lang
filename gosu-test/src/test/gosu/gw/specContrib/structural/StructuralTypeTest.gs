@@ -23,4 +23,20 @@ class StructuralTypeTest extends gw.BaseVerifyErrantTest
     }
     return result
   }
+
+
+  function testEnhancementOnStructure()
+  {
+    var c: MyStructure = new MyClass()
+    assertEquals( "bar", c.bar() )
+    assertEquals( "bar", c.hard( c ) )
+    assertEquals( "MyProp", c.MyProp )
+  }
+  static class MyClass
+  {
+    function foo()
+    {
+      print( "foo" )
+    }
+  }
 }
