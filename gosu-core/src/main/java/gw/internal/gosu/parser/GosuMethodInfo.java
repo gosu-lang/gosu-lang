@@ -95,7 +95,7 @@ public class GosuMethodInfo extends AbstractGenericMethodInfo implements IGosuMe
       {
         throw new ErrantGosuClassException( gsClass );
       }
-      _callHandler = gsClass.isStructure() ? new ReflectiveMethodCallHandler(): new GosuMethodCallHandler();
+      _callHandler = gsClass.isStructure() && !isStatic() ? new ReflectiveMethodCallHandler(): new GosuMethodCallHandler();
     }
 
     return _callHandler;
