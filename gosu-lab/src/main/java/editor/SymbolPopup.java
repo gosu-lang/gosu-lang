@@ -53,7 +53,6 @@ public class SymbolPopup extends EditorBasedPopup implements ISelectionPopup
   private ISymbol[] _symbols;
   private String _strPrefix;
   private boolean _autoDismissed;
-  private boolean _replaceWholeWord;
 
 
   public SymbolPopup( ISymbol[] symbols, String strPrefix, GosuEditor editor, IType expectedType )
@@ -235,7 +234,7 @@ public class SymbolPopup extends EditorBasedPopup implements ISelectionPopup
         if( _strPrefix != null && !_strPrefix.equalsIgnoreCase( symbol.getBeanNode().getName() ) )
         {
           // Auto-complete if only one matching symbol
-          _replaceWholeWord = true;
+          setReplaceWholeWord( true );
           fireNodeChanged( _nodeListenerList, new ChangeEvent( symbol.makePath( false ) ) );
           _autoDismissed = true;
           return;
@@ -446,15 +445,6 @@ public class SymbolPopup extends EditorBasedPopup implements ISelectionPopup
   static String getTypeDisplayText( IType type )
   {
     return type.getRelativeName();
-  }
-
-  public void setReplaceWholeWord( boolean replaceWholeWord )
-  {
-    _replaceWholeWord = replaceWholeWord;
-  }
-  public boolean isReplaceWholeWord()
-  {
-    return _replaceWholeWord;
   }
 
   class EditorKeyListener extends KeyAdapter

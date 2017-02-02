@@ -1,6 +1,7 @@
 package editor.util;
 
 import editor.CopyBuffer;
+import editor.EditorHost;
 import editor.EditorHostTextPane;
 import editor.GosuEditor;
 import editor.PasteBufferSelectDialog;
@@ -77,8 +78,9 @@ public class TextComponentUtil
   {
     try
     {
-      int iStart = getWordStart( editor, iPos );
-      return editor.getText( iStart, iPos - iStart );
+      int iNonWhitespace = findNonWhitespacePositionBefore( editor.getText(), iPos-1 );
+      int iStart = getWordStart( editor, iNonWhitespace );
+      return editor.getText( iStart, iPos - iStart ).trim();
     }
     catch( BadLocationException e )
     {
@@ -275,31 +277,14 @@ public class TextComponentUtil
     }
   }
 
-  //TODO cgross - this is hacky.  We need to implement something more IntelliJ like with argument selection
   private static void selectFirstArg( String strText, int initialSelectionStart, JTextComponent editor )
     throws BadLocationException
   {
     int firstParen = strText.indexOf( "(" );
-    if( firstParen >= 0 && firstParen < strText.indexOf( ")" ) - 1 )
+    if( firstParen >= 0 && firstParen < strText.indexOf( ")" ) )
     {
       int startPos = initialSelectionStart + firstParen + 1;
-      int wordStart = getWordStart( editor, startPos );
-      editor.getCaret().setDot( wordStart );
-      String atCaret = getWordAtCaret( editor );
-      if( GosuStringUtil.isAlphanumeric( atCaret ) )
-      {
-        selectWordAtCaret( editor );
-      }
-      else if( "\\".equals( atCaret ) )
-      {
-        wordStart = getWordStart( editor, editor.getCaretPosition() );
-        editor.getCaret().setDot( wordStart );
-        atCaret = getWordAtCaret( editor );
-        if( GosuStringUtil.isAlphanumeric( atCaret ) )
-        {
-          selectWordAtCaret( editor );
-        }
-      }
+      editor.setCaretPosition( startPos );
     }
   }
 
@@ -387,7 +372,17 @@ public class TextComponentUtil
         }
         editor.setSelectionStart( initialSelectionStart );
         editor.setSelectionEnd( wordEnd );
-        editor.replaceSelection( strText );
+        String insertText = strText;
+        if( replaceWholeWord && insertText.endsWith( "()" ) )
+        {
+          String text = editor.getText();
+          if( text.length() > wordEnd && text.charAt( wordEnd ) == '(' )
+          {
+            // keep existing parens, don't insert new ones for method
+            insertText = insertText.substring( 0, insertText.length()-2 );
+          }
+        }
+        editor.replaceSelection( insertText );
       }
       else
       {
@@ -426,6 +421,14 @@ public class TextComponentUtil
         try
         {
           selectFirstArg( strText, initialSelectionStart, editor );
+          if( editor instanceof EditorHostTextPane )
+          {
+            EditorHost hostPane = ((EditorHostTextPane)editor).getEditor();
+            if( hostPane instanceof GosuEditor )
+            {
+              EventQueue.invokeLater( () -> ((GosuEditor)hostPane).displayParameterInfoPopup( editor.getCaretPosition() ) );
+            }
+          }
         }
         catch( BadLocationException e )
         {
@@ -512,7 +515,7 @@ public class TextComponentUtil
       throw new BadLocationException( "Index out of bounds. Offset: " + iOffset + "  Length: " + text.length(), iOffset );
     }
 
-    if( !text.isEmpty() && (text.length() == iOffset || Character.isWhitespace( text.charAt( iOffset ) )) )
+    if( iOffset > 0 && !text.isEmpty() && (text.length() == iOffset || Character.isWhitespace( text.charAt( iOffset ) )) )
     {
       if( Character.isWhitespace( text.charAt( iOffset-1 ) ) )
       {

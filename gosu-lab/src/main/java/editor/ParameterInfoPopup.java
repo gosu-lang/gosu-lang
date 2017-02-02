@@ -212,7 +212,7 @@ public class ParameterInfoPopup extends JPopupMenu
       }
       _iArgPosition = iArgPosition;
 
-      List<IParameterInfo[]> paramInfoLists = new ArrayList<IParameterInfo[]>();
+      List<IParameterInfo[]> paramInfoLists = new ArrayList<>();
       if( parsedElement instanceof IMethodCallExpression )
       {
         IFunctionSymbol fs = ((IMethodCallExpression)parsedElement).getFunctionSymbol();
@@ -286,6 +286,7 @@ public class ParameterInfoPopup extends JPopupMenu
         {
           IType type = newExpression.getType();
           List<? extends IConstructorInfo> ctors = type.getTypeInfo().getConstructors();
+          //noinspection Convert2streamapi
           for( IConstructorInfo ctor : ctors )
           {
             if( ctor.isVisible( _editor.getScriptabilityModifier() ) )
@@ -348,10 +349,6 @@ public class ParameterInfoPopup extends JPopupMenu
 
   public void display( int iPosition ) throws BadLocationException
   {
-    if( _iArgPosition != 0 )
-    {
-      iPosition = _iArgPosition;
-    }
     Rectangle rcCaretBounds = _editor.getEditor().modelToView( iPosition );
     if( rcCaretBounds == null )
     { // the editor doesn't have a positive size - most likely we're in a test
@@ -359,19 +356,11 @@ public class ParameterInfoPopup extends JPopupMenu
     }
     else
     {
-      show( _editor.getEditor(), rcCaretBounds.x, rcCaretBounds.y - getPreferredHeight() );
-    }
-  }
+      FontMetrics fm = getToolkit().getFontMetrics( _editor.getFont() );
+      int iLineHeight = fm.getHeight();
 
-  public int getPreferredHeight()
-  {
-    if( _labelContainer == null )
-    {
-      return 0;
+      show( _editor.getEditor(), rcCaretBounds.x, rcCaretBounds.y + iLineHeight );
     }
-
-    _labelContainer.doLayout();
-    return _labelContainer.getPreferredSize().height + 2;
   }
 
   public static ParameterInfoPopup invoke( final GosuEditor gsEditor, int iPosition )
@@ -382,14 +371,9 @@ public class ParameterInfoPopup extends JPopupMenu
       parameterInfoPopup.display( iPosition );
 
       EventQueue.invokeLater(
-        new Runnable()
-        {
-          @Override
-          public void run()
-          {
-            gsEditor.getEditor().requestFocus();
-            gsEditor.getEditor().repaint();
-          }
+        () -> {
+          gsEditor.getEditor().requestFocus();
+          gsEditor.getEditor().repaint();
         } );
       return parameterInfoPopup;
     }
@@ -410,15 +394,7 @@ public class ParameterInfoPopup extends JPopupMenu
     @Override
     public void caretUpdate( CaretEvent e )
     {
-      EventQueue.invokeLater(
-        new Runnable()
-        {
-          @Override
-          public void run()
-          {
-            ParameterInfoPopup.invoke( _editor, _editor.getEditor().getCaretPosition() );
-          }
-        } );
+      EventQueue.invokeLater( () -> invoke( _editor, _editor.getEditor().getCaretPosition() ) );
     }
   }
 
@@ -427,12 +403,10 @@ public class ParameterInfoPopup extends JPopupMenu
     @Override
     public void keyPressed( KeyEvent e )
     {
-      if( e.getKeyCode() == KeyEvent.VK_ENTER ||
-          e.getKeyCode() == KeyEvent.VK_SPACE ||
-          e.getKeyCode() == KeyEvent.VK_TAB )
+      if( e.getKeyCode() == KeyEvent.VK_ENTER )
       {
         setVisible( false );
-        e.consume();
+        EventQueue.invokeLater( () -> invoke( _editor, _editor.getEditor().getCaretPosition() ) );
       }
       else if( e.getKeyCode() == KeyEvent.VK_ESCAPE )
       {

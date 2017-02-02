@@ -38,7 +38,6 @@ public class TypePopup extends EditorBasedPopup implements ISelectionPopup
   private UndoableEditListener _docListener;
   private String _strPrefix;
   private String _title;
-  private boolean _replaceWholeWord;
 
   public TypePopup( String strPrefix, GosuEditor editor, boolean annotationsOnly )
   {
@@ -283,7 +282,7 @@ public class TypePopup extends EditorBasedPopup implements ISelectionPopup
           if( isTypeUsed( strType ) )
           {
             // Auto-complete if only one matching type
-            _replaceWholeWord = true;
+            setReplaceWholeWord( true );
             fireNodeChanged( _nodeListenerList, new ChangeEvent( strType ) );
             return;
           }
@@ -358,15 +357,6 @@ public class TypePopup extends EditorBasedPopup implements ISelectionPopup
       return strType.substring( iIndex + 1 );
     }
     return strType;
-  }
-
-  public void setReplaceWholeWord( boolean replaceWholeWord )
-  {
-    _replaceWholeWord = replaceWholeWord;
-  }
-  public boolean isReplaceWholeWord()
-  {
-    return _replaceWholeWord;
   }
 
   /**

@@ -1181,57 +1181,30 @@ public class GosuEditor extends EditorHost implements IScriptEditor, IGosuPanel,
       {
         BeanTree completionSelection = (BeanTree)e.getSource();
         String strRef = completionSelection.makePath( bFeatureLiteralCompletion );
-        try
+        int dotPosition = _editor.getCaretPosition() - 1;
+        String s = _editor.getText();
+        dotPosition = TextComponentUtil.findCharacterPositionOnLine( dotPosition, s, '.', BACKWARD );
+        if( dotPosition == -1 )
         {
-          int dotPosition = _editor.getCaretPosition() - 1;
-          String s = _editor.getText();
-          dotPosition = TextComponentUtil.findCharacterPositionOnLine( dotPosition, s, '.', BACKWARD );
+          dotPosition = TextComponentUtil.findCharacterPositionOnLine( _editor.getCaretPosition() - 1, s, '#', BACKWARD );
           if( dotPosition == -1 )
           {
-            dotPosition = TextComponentUtil.findCharacterPositionOnLine( _editor.getCaretPosition() - 1, s, '#', BACKWARD );
-            if( dotPosition == -1 )
-            {
-              //the user must have moved out of the path's line, so we cannot complete
-              return;
-            }
-          }
-
-          _editor.getDocument().remove( dotPosition + 1, _editor.getCaretPosition() - (dotPosition + 1) );
-          _editor.getDocument().insertString( _editor.getCaretPosition(), strRef, null );
-
-          // If we are handling a typed dot, no fixing up stuff
-          if( e instanceof BeanInfoPopup.DotWasTypedChangeEvent )
-          {
+            //the user must have moved out of the path's line, so we cannot complete
             return;
           }
-
-          //If this is a method we are inserting, select the first argument position within it
-          if( strRef.contains( "(" ) )
-          {
-            String text = _editor.getText();
-            int wordStart = TextComponentUtil.findCharacterPositionOnLine( dotPosition, text, '(', FORWARD );
-            int closeParen = TextComponentUtil.findCharacterPositionOnLine( dotPosition, text, ')', FORWARD );
-            while( !Character.isJavaIdentifierPart( text.charAt( wordStart ) ) && wordStart < closeParen )
-            {
-              wordStart++;
-            }
-            if( wordStart != closeParen )
-            {
-              _editor.setCaretPosition( wordStart );
-              TextComponentUtil.selectWordAtCaret( _editor );
-            }
-          }
-
-          //If we completed halfway through another word, insert a dot for the developer
-          if( Character.isJavaIdentifierPart( _editor.getDocument().getText( _editor.getCaretPosition(), 1 ).charAt( 0 ) ) )
-          {
-            _editor.getDocument().insertString( _editor.getCaretPosition(), ".", null );
-          }
         }
-        catch( BadLocationException ble )
+
+        TextComponentUtil.replaceWordAtCaretDynamic( getEditor(),
+                                                     strRef,
+                                                     getReplaceWordCallback(),
+                                                     true,
+                                                     ((BeanInfoPopup)completionPopup).isReplaceWholeWord() );
+        // If we are handling a typed dot, no fixing up stuff
+        if( e instanceof BeanInfoPopup.DotWasTypedChangeEvent )
         {
-          throw new RuntimeException( ble );
+          return;
         }
+
         _editor.requestFocus();
         EditorUtilities.fixSwingFocusBugWhenPopupCloses( GosuEditor.this );
         _editor.repaint();
@@ -1592,7 +1565,7 @@ public class GosuEditor extends EditorHost implements IScriptEditor, IGosuPanel,
     return Math.abs( getUndoManager().getLastUndoTime() - System.currentTimeMillis() ) < 400;
   }
 
-  ParameterInfoPopup displayParameterInfoPopup( int iPosition )
+  public ParameterInfoPopup displayParameterInfoPopup( int iPosition )
   {
     return ParameterInfoPopup.invoke( this, iPosition );
   }

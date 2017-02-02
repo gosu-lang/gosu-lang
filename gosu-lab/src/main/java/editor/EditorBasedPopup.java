@@ -8,6 +8,8 @@ import java.awt.*;
 public abstract class EditorBasedPopup extends JPopupMenu implements IValuePopup
 {
   private GosuEditor _editor;
+  private boolean _replaceWholeWord;
+
 
   public EditorBasedPopup( GosuEditor editor )
   {
@@ -58,4 +60,12 @@ public abstract class EditorBasedPopup extends JPopupMenu implements IValuePopup
     return false;
   }
 
+  public void setReplaceWholeWord( boolean replaceWholeWord )
+  {
+    _replaceWholeWord = replaceWholeWord;
+  }
+  public boolean isReplaceWholeWord()
+  {
+    return _replaceWholeWord;
+  }
 }

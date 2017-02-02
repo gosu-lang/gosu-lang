@@ -554,6 +554,7 @@ public class BeanInfoPopup extends EditorBasedPopup implements ISelectionPopup
             !_strCompleteCodePrefix.equalsIgnoreCase( strWordAtCaret ) )
         {
           // Auto-complete when the text in the editor is *not* identical to the one and only field/method name.
+          setReplaceWholeWord( true );
           fireNodeChanged( _nodeListenerList, new ChangeEvent( tree ) );
           return;
         }
@@ -676,6 +677,7 @@ public class BeanInfoPopup extends EditorBasedPopup implements ISelectionPopup
                e.getKeyCode() == KeyEvent.VK_SPACE ||
                e.getKeyCode() == KeyEvent.VK_TAB )
       {
+        setReplaceWholeWord( e.getKeyCode() == KeyEvent.VK_TAB );
         handleSelection();
         e.consume();
       }

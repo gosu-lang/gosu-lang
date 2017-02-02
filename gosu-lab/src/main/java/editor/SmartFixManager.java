@@ -734,8 +734,6 @@ public class SmartFixManager implements MouseMotionListener, KeyListener
 //      }
 //    }
 
-    final String wordAtCaret = TextComponentUtil.getIdentifierAtCaret( _gosuEditor.getEditor() );
-
     final ITypeUsesMap[] uses = new ITypeUsesMap[]{_gosuEditor.getTypeUsesMapFromMostRecentParse()};
 
     Runnable runnable = new Runnable()
