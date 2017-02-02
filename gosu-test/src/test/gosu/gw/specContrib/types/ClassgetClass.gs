@@ -9,4 +9,12 @@ class ClassgetClass {
     make(test1.Class) // Correct: No error from compiler or Studio
   }
 
+  function f() {
+    var s = "hello"
+    print(String.Class)
+    print(String.getClass())
+    print(s.Class)
+    print(s.getClass())
+  }
+
 }
