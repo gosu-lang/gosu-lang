@@ -3,6 +3,11 @@ package editor;
 import editor.search.SearchLocation;
 import editor.undo.AtomicUndoManager;
 import editor.util.EditorUtilities;
+import editor.util.SettleModalEventQueue;
+import gw.lang.GosuShop;
+import gw.lang.parser.IParserPart;
+import gw.lang.parser.ISourceCodeTokenizer;
+import gw.lang.parser.IToken;
 import java.nio.file.Path;
 import editor.util.TaskQueue;
 import editor.util.TextComponentUtil;
@@ -34,6 +39,7 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import javax.swing.AbstractAction;
 import javax.swing.JOptionPane;
@@ -1101,6 +1107,15 @@ public abstract class EditorHost extends JPanel implements IEditorHost
     try
     {
       String strLine = line.getDocument().getText( iStart, iEnd - iStart );
+
+      if( strLine.trim().endsWith( "{" ) )
+      {
+        if( handleOpenBrace( strLine ) )
+        {
+          return;
+        }
+      }
+
       StringBuilder strbIndent = new StringBuilder();
       for( int iIndent = 0; iIndent < strLine.length(); iIndent++ )
       {
@@ -1155,6 +1170,58 @@ public abstract class EditorHost extends JPanel implements IEditorHost
     {
       EditorUtilities.handleUncaughtException( ex );
     }
+  }
+
+  private boolean handleOpenBrace( String strLine )
+  {
+    SettleModalEventQueue.instance().run();
+
+    int caretPos = getEditor().getCaretPosition();
+    String text = getEditor().getText();
+
+    ISourceCodeTokenizer tokenizer = GosuShop.createSourceCodeTokenizer( text );
+    while( tokenizer.getCurrentToken().getTokenStart() < caretPos )
+    {
+      tokenizer.nextToken();
+    }
+    IToken startToken = tokenizer.getCurrentToken();
+    int goback = 1;
+    while( (char)startToken.getType() != '{' )
+    {
+      startToken = tokenizer.getTokenAt( tokenizer.getState() - goback++ );
+    }
+    if( startToken == null )
+    {
+      return false;
+    }
+    IToken endToken = IParserPart.eatBlock( '{', '}', false, tokenizer );
+
+    String trimLine = strLine.trim();
+    int lineColumn = strLine.indexOf( trimLine ) + 1;
+
+    if( endToken == null || endToken.getTokenColumn() != lineColumn )
+    {
+      final IToken tard = startToken;
+      EventQueue.invokeLater( () -> {
+        try
+        {
+          String fromOpenBrace = getEditor().getDocument().getText( tard.getTokenStart(), getEditor().getDocument().getLength() - tard.getTokenStart() );
+          int newLineOffset = fromOpenBrace.indexOf( "\n" ) + 1;
+
+          String spaces = String.join( "", Collections.nCopies( lineColumn - 1, " " ) );
+          String emptyLine = spaces + "  ";
+          String closeBraceLine = "\n" + spaces + "}";
+          getEditor().getDocument().insertString( tard.getTokenStart() + newLineOffset, emptyLine + closeBraceLine, null );
+          EventQueue.invokeLater( () -> getEditor().setCaretPosition( tard.getTokenStart() + newLineOffset + emptyLine.length() ) );
+        }
+        catch( BadLocationException e )
+        {
+          throw new RuntimeException( e );
+        }
+      } );
+      return true;
+    }
+    return false;
   }
 
   private void fixCloseBraceIfNecessary( String previousLine ) throws BadLocationException

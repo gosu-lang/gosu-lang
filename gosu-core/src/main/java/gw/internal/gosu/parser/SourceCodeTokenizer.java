@@ -199,6 +199,18 @@ final public class SourceCodeTokenizer implements ISourceCodeTokenizer
     return getTokens().get( iTokenIndex );
   }
 
+  public IToken getTokenAtPosition( int docPosition )
+  {
+    for( Token tok: getTokens() )
+    {
+      if( tok.getTokenStart() <= docPosition && tok.getTokenEnd() > docPosition )
+      {
+        return tok;
+      }
+    }
+    return null;
+  }
+
   public int getLineNumber()
   {
     return getCurrentToken().getLine();

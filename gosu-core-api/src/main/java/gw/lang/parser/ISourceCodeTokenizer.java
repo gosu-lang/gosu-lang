@@ -22,6 +22,8 @@ public interface ISourceCodeTokenizer
 
   IToken copy();
 
+  IToken copyInto( IToken t );
+
   ISourceCodeTokenizer lightweightRestore();
 
   boolean isPositioned();
@@ -56,7 +58,9 @@ public interface ISourceCodeTokenizer
 
   public IToken getCurrentToken();
 
-  public IToken getTokenAt( int iTokenIndex );
+  IToken getTokenAt( int iTokenIndex );
+
+  IToken getTokenAtPosition( int docPosition );
 
   void wordChars( int iLow, int iHigh );
 

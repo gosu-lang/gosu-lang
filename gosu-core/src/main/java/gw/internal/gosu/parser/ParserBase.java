@@ -378,72 +378,12 @@ public abstract class ParserBase implements IParserPart
 
   final public Token eatBlock( char cBegin, char cEnd, boolean bOperator )
   {
-    return eatBlock( cBegin, cEnd, bOperator, getTokenizer() );
+    return (Token)IParserPart.eatBlock( cBegin, cEnd, bOperator, getTokenizer() );
   }
 
   final public Token eatBlock( char cBegin, char cEnd, boolean bOperator, boolean bStopAtDeclarationKeyword )
   {
-    return eatBlock( cBegin, cEnd, bOperator, bStopAtDeclarationKeyword, getTokenizer() );
-  }
-
-  public static Token eatBlock( char cBegin, char cEnd, boolean bOperator, SourceCodeTokenizer tokenizer )
-  {
-    return eatBlock( cBegin, cEnd, bOperator, false, tokenizer );
-  }
-  public static Token eatBlock( char cBegin, char cEnd, boolean bOperator, boolean bStopAtDeclarationKeyword, SourceCodeTokenizer tokenizer )
-  {
-    int iBraceDepth = 1;
-    boolean bNewMatched = false;
-    do
-    {
-      Token token = tokenizer.getCurrentToken();
-
-      final int type = token.getType();
-
-      if( type == SourceCodeTokenizer.TT_EOF )
-      {
-        tokenizer.nextToken();
-        return null;
-      }
-
-      String value = token.getStringValue();
-
-      if( bStopAtDeclarationKeyword )
-      {
-        // Total hack to handle an annotation with an anonymous new expression and blocks (they has declarations that need to be eaten)
-        // We're hacking this because soon, real soon now, we'll be dropkicking support for an anonymous new expression or block
-        // as an argument to a gosu annotation -- gosu annotations need to behave like java annotation, no more no less.
-        bNewMatched = bNewMatched ||
-                      match( null, Keyword.KW_new.toString(), SourceCodeTokenizer.TT_KEYWORD, true, tokenizer ) ||
-                      match( null, "->", SourceCodeTokenizer.TT_OPERATOR, true, tokenizer ) ||
-                      match( null, "#", SourceCodeTokenizer.TT_OPERATOR, true, tokenizer );
-        if( !bNewMatched && matchDeclarationKeyword( null, true, tokenizer ) )
-        {
-          return null;
-        }
-      }
-
-      int mark = tokenizer.mark();
-      if( cEnd == type ||
-          (bOperator && type == SourceCodeTokenizer.TT_OPERATOR && value.equals( String.valueOf( cEnd ) )) )
-      {
-        tokenizer.nextToken();
-        if( --iBraceDepth == 0 )
-        {
-          return (Token)tokenizer.getTokenAt( mark ).copy();
-        }
-        continue;
-      }
-      if( cBegin == type ||
-          (bOperator && type == SourceCodeTokenizer.TT_OPERATOR && value.equals( String.valueOf( cBegin ) )) )
-      {
-        tokenizer.nextToken();
-        iBraceDepth++;
-        continue;
-      }
-
-      tokenizer.nextToken();
-    } while( true );
+    return (Token)IParserPart.eatBlock( cBegin, cEnd, bOperator, bStopAtDeclarationKeyword, getTokenizer() );
   }
 
   public void eatTypeLiteral()
@@ -553,38 +493,7 @@ public abstract class ParserBase implements IParserPart
    */
   final public boolean match( Token T, String token, int iType, boolean bPeek )
   {
-    return match( T, token, iType, bPeek, getTokenizer() );
-  }
-
-  private static boolean match( Token T, String strToken, int iType, boolean bPeek, SourceCodeTokenizer tokenizer )
-  {
-    boolean bMatch = false;
-
-    if( T != null )
-    {
-      tokenizer.copyInto( T );
-    }
-
-    Token currentToken = tokenizer.getCurrentToken();
-    int iCurrentType = currentToken.getType();
-    if( strToken != null )
-    {
-      if( (iType == iCurrentType) || ((iType == 0) && (iCurrentType == SourceCodeTokenizer.TT_WORD)) )
-      {
-        bMatch = strToken.equals( currentToken.getStringValue() );
-      }
-    }
-    else
-    {
-      bMatch = (iCurrentType == iType) || (iType == SourceCodeTokenizer.TT_WORD && currentToken.isValueKeyword());
-    }
-
-    if( bMatch && !bPeek )
-    {
-      tokenizer.nextToken();
-    }
-
-    return bMatch;
+    return IParserPart.match( T, token, iType, bPeek, getTokenizer() );
   }
 
   final boolean isWordOrValueKeyword( Token T )
