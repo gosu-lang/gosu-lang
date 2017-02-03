@@ -1174,10 +1174,14 @@ public abstract class EditorHost extends JPanel implements IEditorHost
 
   private boolean handleOpenBrace( String strLine )
   {
-    SettleModalEventQueue.instance().run();
+    //SettleModalEventQueue.instance().run();
 
-    int caretPos = getEditor().getCaretPosition();
+    int caretPos = getEditor().getCaretPosition() -1;
     String text = getEditor().getText();
+    while( text.charAt( caretPos ) != '{' )
+    {
+      caretPos--;
+    }
 
     ISourceCodeTokenizer tokenizer = GosuShop.createSourceCodeTokenizer( text );
     while( tokenizer.getCurrentToken().getTokenStart() < caretPos )
@@ -1185,11 +1189,7 @@ public abstract class EditorHost extends JPanel implements IEditorHost
       tokenizer.nextToken();
     }
     IToken startToken = tokenizer.getCurrentToken();
-    int goback = 1;
-    while( (char)startToken.getType() != '{' )
-    {
-      startToken = tokenizer.getTokenAt( tokenizer.getState() - goback++ );
-    }
+
     if( startToken == null )
     {
       return false;
