@@ -3,7 +3,6 @@ package editor;
 import editor.search.SearchLocation;
 import editor.undo.AtomicUndoManager;
 import editor.util.EditorUtilities;
-import editor.util.SettleModalEventQueue;
 import gw.lang.GosuShop;
 import gw.lang.parser.IParserPart;
 import gw.lang.parser.ISourceCodeTokenizer;
