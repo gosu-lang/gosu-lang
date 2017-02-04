@@ -1188,11 +1188,12 @@ public abstract class EditorHost extends JPanel implements IEditorHost
       tokenizer.nextToken();
     }
     IToken startToken = tokenizer.getCurrentToken();
-
     if( startToken == null )
     {
       return false;
     }
+
+    tokenizer.nextToken();
     IToken endToken = IParserPart.eatBlock( '{', '}', false, tokenizer );
 
     String trimLine = strLine.trim();
