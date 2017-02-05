@@ -5,6 +5,7 @@ import com.sun.source.tree.Tree;
 import com.sun.source.util.SourcePositions;
 import gw.lang.reflect.ILocationInfo;
 import gw.lang.reflect.LocationInfo;
+import gw.lang.reflect.gs.ISourceFileHandle;
 import java.net.MalformedURLException;
 import java.util.StringTokenizer;
 
@@ -66,7 +67,11 @@ public abstract class JavaSourceElement
     int endPos =  getEndPosition();
     try
     {
-      _location = new LocationInfo( startPos, endPos - startPos, -1, -1, getDeclaringClass().getSourceFileHandle().getFile().toURI().toURL() );
+      ISourceFileHandle sfh = getDeclaringClass().getSourceFileHandle();
+      if( sfh != null )
+      {
+        _location = new LocationInfo( startPos, endPos - startPos, -1, -1, sfh.getFile().toURI().toURL() );
+      }
       return _location;
     }
     catch( MalformedURLException e )

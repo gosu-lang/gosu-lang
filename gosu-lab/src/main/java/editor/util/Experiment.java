@@ -54,7 +54,7 @@ public class Experiment implements IProject
     _name = name;
     _gosuPanel = gosuPanel;
     _sourcePath = Arrays.asList( PathUtil.getAbsolutePathName( PathUtil.create( dir, getRelativeGosuSourcePath() ) ) );
-    _backingSourcePath = Gosu.findJreSourcePath();
+    _backingSourcePath = Gosu.findJreSources();
     _experimentDir = dir;
     //noinspection ResultOfMethodCallIgnored
     PathUtil.mkdirs( _experimentDir );
@@ -68,7 +68,7 @@ public class Experiment implements IProject
     _name = PathUtil.getName( dir );
     _gosuPanel = gosuPanel;
     _sourcePath = Collections.emptyList();
-    _backingSourcePath = Gosu.findJreSourcePath();
+    _backingSourcePath = Gosu.findJreSources();
     _experimentDir = dir;
     _openFiles = Collections.emptyList();
     _runConfigs = Collections.emptyList();
@@ -276,7 +276,7 @@ public class Experiment implements IProject
       List<String> backingSource = (List<String>)bindings.getOrDefault( "BackingSource", Collections.emptyList() );
       if( backingSource.isEmpty() )
       {
-        _backingSourcePath = Gosu.findJreSourcePath();
+        _backingSourcePath = Gosu.findJreSources();
       }
       else
       {

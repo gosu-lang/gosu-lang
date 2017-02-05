@@ -28,7 +28,7 @@ import gw.util.OSPlatform;
 import gw.util.PathUtil;
 import gw.util.StreamUtil;
 import java.nio.file.Path;
-import java.util.Collections;
+import java.util.Arrays;
 import sun.misc.URLClassPath;
 
 import java.io.BufferedInputStream;
@@ -657,7 +657,14 @@ public class Gosu
     return sb.toString();
   }
 
-  public static List<String> findJreSourcePath()
+  public static List<String> findJreSources()
+  {
+    List<String> sources = new ArrayList<>();
+    Arrays.asList( "src.zip", "javafx-src.zip" ).forEach( fileName -> findJreSourcePath( sources, fileName ) );
+    return sources;
+  }
+
+  private static void findJreSourcePath( List<String> sources, String archiveName )
   {
     String javaHomePath = System.getProperty( "java.home" );
     Path javaDir = PathUtil.create( javaHomePath );
@@ -665,10 +672,10 @@ public class Gosu
     {
       javaDir = javaDir.getParent();
     }
-    Path srcZip = PathUtil.create( javaDir, "src.zip" );
+    Path srcZip = PathUtil.create( javaDir, archiveName );
     if( PathUtil.isFile( srcZip ) )
     {
-      return Collections.singletonList( srcZip.toString() );
+      sources.add( srcZip.toString() );
     }
     else
     {
@@ -676,13 +683,12 @@ public class Gosu
       if( javaDirName.startsWith( "jre" ) )
       {
         javaDirName = javaDirName.replace( "jre", "jdk" );
-        Path jdkSrc = PathUtil.create( javaDirName, "src.zip" );
+        Path jdkSrc = PathUtil.create( javaDirName, archiveName );
         if( PathUtil.isFile( jdkSrc ) )
         {
-          return Collections.singletonList( jdkSrc.toString() );
+          sources.add( jdkSrc.toString() );
         }
       }
     }
-    return Collections.emptyList();
   }
 }
