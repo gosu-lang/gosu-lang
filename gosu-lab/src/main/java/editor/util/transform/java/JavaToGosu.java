@@ -83,6 +83,18 @@ public class JavaToGosu
   {
     StringBuilder src = new StringBuilder();
     String[] lines = output.split( "\n" );
+    boolean leadingLines = true;
+    List<String> removedEmptyLeadingLines = new ArrayList<>();
+    int index = 0;
+    for( ; index < lines.length; index++ )
+    {
+      if( !leadingLines || !lines[index].trim().isEmpty() )
+      {
+        removedEmptyLeadingLines.add( lines[index] );
+        leadingLines = false;
+      }
+    }
+    lines = removedEmptyLeadingLines.toArray( new String[removedEmptyLeadingLines.size()] );
     int tab = 0;
     char[] chars = lines[0].toCharArray();
     while( tab < chars.length && chars[tab] == ' ' )
@@ -101,6 +113,10 @@ public class JavaToGosu
         {
           src.append( line );
         }
+        src.append( "\n" );
+      }
+      else
+      {
         src.append( "\n" );
       }
     }
