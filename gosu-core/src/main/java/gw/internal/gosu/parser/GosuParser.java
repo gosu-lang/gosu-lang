@@ -4087,12 +4087,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
       IFunctionType functionType = FunctionToInterfaceCoercer.getRepresentativeFunctionType( type );
       if( functionType != null )
       {
-        ArrayList<IType> paramTypes = new ArrayList<>();
-        for( IType parameterType : functionType.getParameterTypes() )
-        {
-          paramTypes.add( TypeLord.getDefaultParameterizedType( parameterType ) );
-        }
-        return paramTypes;
+        return Arrays.asList( functionType.getParameterTypes() );
       }
     }
 
