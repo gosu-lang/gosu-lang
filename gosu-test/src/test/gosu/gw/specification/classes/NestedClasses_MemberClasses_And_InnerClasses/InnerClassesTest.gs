@@ -10,5 +10,4 @@ class InnerClassesTest extends BaseVerifyErrantTest {
   function testErrant_OuterKeywordTest() {
     processErrantType(Errant_OuterKeywordTest)
   }
-
 }

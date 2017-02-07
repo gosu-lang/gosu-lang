@@ -65,7 +65,7 @@ class Errant_ControlFlowAnalysis {
             case THREE:
               break
           }
-        case Runnable:
+        case Runnable: //## issuekeys: MSG_NONTERMINAL_CASE_CLAUSE
           if (x typeis Runnable)    //As all "case MyEnum" are NOT ending with "return" - before doing any operation on x; parser and compiler needs to identify x is type of 'Runnable' or not.
             x.run()                 //This behaviour is identical with Java.
       }
