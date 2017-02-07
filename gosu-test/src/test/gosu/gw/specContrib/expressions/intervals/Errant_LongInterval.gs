@@ -41,6 +41,7 @@ class Errant_LongInterval {
   var long1120 = (42L.."mystring")      //## issuekeys: OPERATOR '..' CANNOT BE APPLIED TO 'LONG', 'JAVA.LANG.STRING'
   var long1121 = (42L..(new Date()))      //## issuekeys: OPERATOR '..' CANNOT BE APPLIED TO 'LONG', 'JAVA.UTIL.DATE'
   var long1122 = (42L..aaa)      //## issuekeys: OPERATOR '..' CANNOT BE APPLIED TO 'LONG', 'GW.SPECCONTRIB.AAA.PARSERVSOPENSOURCE.INTERVALSANDDIMENSIONS.INTERVALSBASIC.INTERVAL_LONG.A'
+  var long1123 = (42L..false)      //## issuekeys: OPERATOR '..' CANNOT BE APPLIED TO 'LONG', 'BOOLEAN'
 
   //Lower end point is long with step function
   var long1211 = (42L..'c').step(42)
