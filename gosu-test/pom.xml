@@ -85,20 +85,10 @@
         <artifactId>maven-surefire-plugin</artifactId>
         <configuration>
           <argLine>-Dgw.tests.skip.knownbreak=true -DcheckedArithmetic=true -Xmx2g</argLine>
-          <includes>
-            <include>gw/config*/**/*Test.class</include>
-            <include>gw/internal*/**/*Test.class</include>
-            <include>gw/lang*/**/*Test.class</include>
-            <include>gw/spec*/**/*Test.class</include>
-            <include>gw/test*/**/*Test.class</include>
-            <include>gw/util*/**/*Test.class</include>
-            <include>gw/xml*/**/*Test.class</include>
-          </includes>
           <excludes>
             <exclude>gw/internal/gosu/parser/java/*</exclude>
             <exclude>gw/test/SuiteTest*</exclude>
             <exclude>**/*BenchmarkTest*</exclude>
-            <exclude>**/junit/framework/TestSuite*BenchmarkTest*</exclude>
           </excludes>
         </configuration>
       </plugin>
