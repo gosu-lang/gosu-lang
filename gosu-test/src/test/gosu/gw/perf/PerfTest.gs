@@ -2,11 +2,14 @@ package gw.perf
 
 uses gw.lang.reflect.TypeSystem
 uses gw.lang.reflect.ITypeRef
+uses org.junit.Ignore
+uses org.junit.Test
 
-class PerfTest extends gw.BaseVerifyErrantTest {
+class PerfTest {
 
+  @Test
+  @Ignore
   function testMe() {
-/*
     var stonesPrj =
       {"gw.perf.play.stones.Board",
        "gw.perf.play.stones.BoardFrame",
@@ -28,7 +31,6 @@ class PerfTest extends gw.BaseVerifyErrantTest {
        stonesPrj.each( \ name -> TypeSystem.getByFullName( name ).Valid )
        stonesPrj.each( \ name -> TypeSystem.refresh( TypeSystem.getByFullName( name ) as ITypeRef ) )
      }
-*/     
   }
 
 }
