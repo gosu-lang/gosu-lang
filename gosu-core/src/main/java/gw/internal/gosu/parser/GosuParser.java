@@ -7856,7 +7856,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
 
       verify( expression, !bError_AnonymousArgFollowsNamedArg, Res.MSG_EXPECTING_NAMED_ARG );
 
-      inferFunctionTypeVariables( rawCtxType, boundCtxType, expression.getType(), inferenceMap );
+      inferFunctionTypeVariables( ctxType, boundCtxType, expression.getType(), inferenceMap );
       if( retainTypeVarsCtxType != null )
       {
         IType actualType = TypeLord.getActualType( expression.getType(), inferenceMap, true );
@@ -8029,12 +8029,12 @@ public final class GosuParser extends ParserBase implements IGosuParser
       if( iCoercer instanceof IResolvingCoercer )
       {
         IType resolvedType = ((IResolvingCoercer)iCoercer).resolveType( rawContextType, expressionType );
-        TypeLord.inferTypeVariableTypesFromGenParamTypeAndConcreteType( rawContextType, resolvedType, inferenceMap );
-        TypeLord.inferTypeVariableTypesFromGenParamTypeAndConcreteType( rawContextType, expressionType, inferenceMap );
+        TypeLord.inferTypeVariableTypesFromGenParamTypeAndConcreteType_Reverse( rawContextType, resolvedType, inferenceMap );
+        TypeLord.inferTypeVariableTypesFromGenParamTypeAndConcreteType_Reverse( rawContextType, expressionType, inferenceMap );
       }
       else
       {
-        TypeLord.inferTypeVariableTypesFromGenParamTypeAndConcreteType( rawContextType, expressionType, inferenceMap );
+        TypeLord.inferTypeVariableTypesFromGenParamTypeAndConcreteType_Reverse( rawContextType, expressionType, inferenceMap );
       }
     }
   }

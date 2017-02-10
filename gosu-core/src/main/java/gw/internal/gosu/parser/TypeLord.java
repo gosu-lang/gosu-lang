@@ -1089,6 +1089,11 @@ public class TypeLord
       return null;
     }
 
+    if( !sourceType.isParameterizedType() )
+    {
+      return null;
+    }
+
     // List<Z>
     IType sourceTypeInHier = findParameterizedType( targetType, getPureGenericType( sourceType ) );
 
@@ -2581,7 +2586,11 @@ public class TypeLord
       IType argTypeInTermsOfParamType = bReverse ? findParameterizedType_Reverse( argType, genParamType ) : findParameterizedType( argType, genParamType.getGenericType() );
       if( argTypeInTermsOfParamType == null )
       {
-        return;
+        argTypeInTermsOfParamType = !bReverse ? findParameterizedType_Reverse( argType, genParamType ) : findParameterizedType( argType, genParamType.getGenericType() );
+        if( argTypeInTermsOfParamType == null )
+        {
+          return;
+        }
       }
       IType[] concreteTypeParams = argTypeInTermsOfParamType.getTypeParameters();
       if( concreteTypeParams != null && concreteTypeParams.length > 0 )

@@ -19,9 +19,10 @@ class Errant_SmoomashCorndogwood {
 
   var ll41: ArrayList<String> = FooJava.newArrayList( FooJava.filter( {}, FooJava.not( \ r -> r.Alpha ) ) )
 
-  //## todo: make these work
-  //var ll5: List<Object> = FooJava.newArrayList( FooJava.filter( {""}, FooJava.not( \ r -> r.Alpha ) ) )
-  //var ll51: Iterable<Object> = FooJava.filter( {""}, FooJava.not( \ r -> r.Alpha ) )
+  var ll5: List<Object> = FooJava.newArrayList( FooJava.filter( {""}, FooJava.not( \ r -> r.Alpha ) ) )
+  var ll51: Iterable<Object> = FooJava.filter( {""}, FooJava.not( \ r -> r.Alpha ) )
+
+  var ll53: List<String> = FooJava.newArrayList( FooJava.filter( {""}, {new Object()} ) )  //## issuekeys: MSG_TYPE_MISMATCH
 
   var ll6: List<RelinkFilter> = FooJava.newArrayList( FooJava.filter( {""}, FooJava.not( \ r -> r.Alpha ) ) )  //## issuekeys: MSG_TYPE_MISMATCH, MSG_TYPE_MISMATCH, MSG_NO_PROPERTY_DESCRIPTOR_FOUND
 
