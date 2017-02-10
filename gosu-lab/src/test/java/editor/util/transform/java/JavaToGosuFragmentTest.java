@@ -4,10 +4,15 @@
 
 package editor.util.transform.java;
 
-import junit.framework.TestCase;
+import org.junit.Ignore;
+import org.junit.Test;
 
-public class JavaToGosuFragmentTest extends TestCase {
+import static org.junit.Assert.assertEquals;
 
+@Ignore
+public class JavaToGosuFragmentTest {
+
+  @Test
   public void testExpressionFragment() {
     String src = "2";
     String reference = "2\n";
@@ -15,6 +20,7 @@ public class JavaToGosuFragmentTest extends TestCase {
     assertEquals(out, reference);
   }
 
+  @Test
   public void testStatementFragment() {
     String src = "int x = 2;";
     String reference = "var x = 2\n";
@@ -22,6 +28,7 @@ public class JavaToGosuFragmentTest extends TestCase {
     assertEquals(out, reference);
   }
 
+  @Test
   public void testStatementWithLineCommentFragment() {
     String src = "int x = 2; // hello";
     String reference = "var x = 2\n";
@@ -29,6 +36,7 @@ public class JavaToGosuFragmentTest extends TestCase {
     assertEquals(out, reference);
   }
 
+  @Test
   public void testMethodFragment() {
     String src = "  void B() {\n" +
             "    int x = 2;\n" +
@@ -42,6 +50,7 @@ public class JavaToGosuFragmentTest extends TestCase {
     assertEquals(out, reference);
   }
 
+  @Test
   public void testMethodDeclarationFragment() {
     String src = "void add(int index, E element);";
     String reference = "function add(index_0 : int, element : E) : void\n";
@@ -49,6 +58,7 @@ public class JavaToGosuFragmentTest extends TestCase {
     assertEquals(out, reference);
   }
 
+  @Test
   public void testClassFragment() {
     String src = "public class A {\n" +
             "  void B() {\n" +
@@ -66,6 +76,7 @@ public class JavaToGosuFragmentTest extends TestCase {
     assertEquals(out, reference);
   }
 
+  @Test
   public void testClassWithInstanceVariableFragment() {
     String src = "private int x;";
     String reference = "private var x : int\n";
@@ -73,6 +84,7 @@ public class JavaToGosuFragmentTest extends TestCase {
     assertEquals(out, reference);
   }
 
+  @Test
   public void testCompilationUnit() {
     String src = "import java.util.LinkedList;\n" +
             "\n" +
