@@ -36,6 +36,13 @@ class BlockInterfaceCompatibilityTest extends gw.test.TestClass
 
     var mapVar = l.stream().map( \ s -> s.length() ).toArray<Integer>( \ len -> new Integer[len] )
     assertArrayEquals( {1, 1, 2, 1, 2, 1}, mapVar )
+
+    var ll = {{"a"}, {"b"}, {"c"}}
+    ll.stream().flatMap(
+      \ e -> {
+        e.get( 0 ).charAt(0 ) // this line verifies that e is type: ArrayList<String>
+        return ll.stream()
+      } )
   }
 
   function testComparator() {
