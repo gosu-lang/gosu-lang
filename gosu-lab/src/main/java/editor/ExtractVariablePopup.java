@@ -41,7 +41,9 @@ public class ExtractVariablePopup extends JDialog
 
   public ExtractVariablePopup() throws HeadlessException
   {
-    setLayout( new GridBagLayout() );
+    super( LabFrame.instance(), "Extract Variable", true );
+
+    setLayout( new BorderLayout() );
 
     getRootPane().getInputMap( JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT ).put( KeyStroke.getKeyStroke( KeyEvent.VK_ESCAPE, 0 ), CLOSE );
     getRootPane().getActionMap().put( CLOSE, new AbstractAction()
@@ -63,24 +65,28 @@ public class ExtractVariablePopup extends JDialog
       }
     } );
 
-    GridBagConstraints constraints = new GridBagConstraints();
-    constraints.insets = new Insets( 4, 4, 4, 4 );
-    constraints.ipadx = 2;
-    constraints.ipady = 2;
-    constraints.anchor = GridBagConstraints.FIRST_LINE_START;
+    JPanel mainPanel = new JPanel( new GridBagLayout() );
+    mainPanel.setBorder( BorderFactory.createEmptyBorder( 8, 8, 8, 8 ) );
+
+    GridBagConstraints c = new GridBagConstraints();
+    int iX = 0;
+    int iY = 0;
 
     _varName = new IdentifierTextField();
 
-    constraints.gridx = 0;
-    constraints.gridy = 0;
-    JLabel nameLabel = new JLabel( "Name" );
+    c.anchor = GridBagConstraints.WEST;
+    c.fill = GridBagConstraints.HORIZONTAL;
+    c.gridx = iX++;
+    c.gridy = iY;
+    c.gridwidth = 1;
+    c.gridheight = 1;
+    c.weightx = 0;
+    c.weighty = 0;
+    c.insets = new Insets( 0, 0, 0, 4 );
+    JLabel nameLabel = new JLabel( "Name:" );
     nameLabel.setDisplayedMnemonic( 'N' );
     nameLabel.setLabelFor( _varName );
-    add( nameLabel, constraints );
-
-    constraints.gridx++;
-    _varName.setColumns( 20 );
-
+    mainPanel.add( nameLabel, c );
 
     _varName.getDocument().addDocumentListener( new DocumentListener()
     {
@@ -101,54 +107,67 @@ public class ExtractVariablePopup extends JDialog
       {
       }
     } );
-    add( _varName, constraints );
+
+    c.anchor = GridBagConstraints.WEST;
+    c.fill = GridBagConstraints.HORIZONTAL;
+    c.gridx = iX;
+    c.gridy = iY++;
+    c.gridwidth = GridBagConstraints.REMAINDER;
+    c.gridheight = 1;
+    c.weightx = 1;
+    c.weighty = 0;
+    c.insets = new Insets( 0, 0, 0, 0 );
+    mainPanel.add( _varName, c );
 
     _replaceAll = new LabCheckbox();
 
-    //TODO cgross - post bedrock renable this once we have the parse tree cleaned up
-//    constraints.gridx = 0;
-//    constraints.gridy++;
-    constraints.gridwidth = 2;
-    _replaceAll = new LabCheckbox( "Replace All Occurences" );
+    _replaceAll = new LabCheckbox( "Replace All Occurrences" );
 //    _replaceAll.setMnemonic( 'A' );
 //    _replaceAll.setDisplayedMnemonicIndex( 8 );
 //    _replaceAll.setSelected( true );
-//    add( _replaceAll, constraints );
+//    c.anchor = GridBagConstraints.WEST;
+//    c.fill = GridBagConstraints.NONE;
+//    c.gridx = iX = 0;
+//    c.gridy = iY;
+//    c.gridwidth = GridBagConstraints.REMAINDER;
+//    c.gridheight = 1;
+//    c.weightx = 0;
+//    c.weighty = 0;
+//    c.insets = new Insets( 0, 0, 10, 0 );
+//    add( _replaceAll, c );
 
-    constraints.anchor = GridBagConstraints.CENTER;
-    constraints.gridy++;
-    constraints.gridx = 0;
+    add( mainPanel, BorderLayout.CENTER );
 
     JPanel buttonPanel = new JPanel();
-    buttonPanel.setLayout( new FlowLayout( FlowLayout.CENTER, 4, 0 ) );
+    buttonPanel.setBorder( BorderFactory.createEmptyBorder( 8, 8, 8, 8 ) );
+    FlowLayout layout = new FlowLayout( FlowLayout.RIGHT );
+    layout.setVgap( 0 );
+    buttonPanel.setLayout( layout );
     _okBtn = new LabButton( new AbstractAction( "OK" )
-    {
-      @Override
-      public void actionPerformed( ActionEvent e )
-      {
-        extractVariable( _gosuEditor, _varName.getText(), _replaceAll.isSelected() );
-        setVisible( false );
-      }
-    } );
+             {
+               @Override
+               public void actionPerformed( ActionEvent e )
+               {
+                 extractVariable( _gosuEditor, _varName.getText(), _replaceAll.isSelected() );
+                 setVisible( false );
+               }
+             } );
     _okBtn.setEnabled( false );
 
     _cancelBtn = new LabButton( new AbstractAction( "Cancel" )
-    {
-      @Override
-      public void actionPerformed( ActionEvent e )
-      {
-        ExtractVariablePopup.this.setVisible( false );
-      }
-    } );
+                 {
+                   @Override
+                   public void actionPerformed( ActionEvent e )
+                   {
+                     ExtractVariablePopup.this.setVisible( false );
+                   }
+                 } );
     buttonPanel.add( _okBtn );
     buttonPanel.add( _cancelBtn );
 
-    add( buttonPanel, constraints );
+    add( buttonPanel, BorderLayout.SOUTH );
 
-    pack();
-    setModal( true );
-    setTitle( "Extract Variable" );
-    setResizable( false );
+    setSize( 240, 140 );
   }
 
   static void extractVariable( GosuEditor gosuEditor, String varName, boolean replaceAll )
