@@ -2,52 +2,48 @@ package gw.util.transform.java.JavaClasses
 
 uses java.util.*
 
-public class TestGenerics<T extends Comparable<T> & CharSequence, B, Q> extends LinkedList<T> implements List<T>, MyGenericPair<T, B> {
-
+class TestGenerics<T extends Comparable<T> & CharSequence, B, Q> extends LinkedList<T> implements List<T>, MyGenericPair<T, B> {
     private class FloatCmp<T1 extends Comparable<T1>> implements Comparator<T1> {
-
-        public function compare(o1 : T1, o2 : T1) : int {
+        function compare(o1: T1, o2: T1) : int {
             return o1.compareTo(o2)
         }
 
     }
 
     class Inner<A, B2>  {
-
-        public construct(a : String & Comparable<String>, n : B2, jj : Object) {
+        construct(a: String & Comparable<String>, n: B2, jj: Object) {
         }
 
     }
 
     class Builder<S extends T>  {
-
     }
 
-    construct(a0 : Comparable<T> & CharSequence, a1 : Object, a2 : Comparable<T> & CharSequence, a3 : Object) {
+    construct(a0: Comparable<T> & CharSequence, a1: Object, a2: Comparable<T> & CharSequence, a3: Object) {
     }
 
     construct() {
     }
 
-    private function innstance() : void {
-        var tmp = new TestGenerics<String, String, Integer>()
+    private function innstance() {
+        var tmp: TestGenerics<String, String, Integer> = new TestGenerics()
         var tmpNoDiamond = new TestGenerics<String, String, Integer>()
-        var tmp2 : TestGenerics<Object, Object, Integer> = new TestGenerics<String, String, Integer>()
-        var myMap : Map<String, List<String>> = new HashMap<String, List<String>>()
+        var tmp2: TestGenerics<Object, Object, Integer> = new TestGenerics<String, String, Integer>()
+        var myMap: Map<String, List<String>> = new HashMap()
     }
 
-    public function rrrr() : void {
-        var floats : List<Float> = new LinkedList<Float>()
+    function rrrr() {
+        var floats: List<Float> = new LinkedList<Float>()
         var nums = new Float[10]
         Arrays.sort<Float>(nums, new FloatCmp<Float>())
         var monster = new Inner<String, String>("132", "321", "888")
         var Hello = new Comparator<String>() {
 
-            override public function compare(o1 : String, o2 : String) : int {
+            override function compare(o1: String, o2: String) : int {
                 return 0
             }
 
-            override public function equals(obj : Object) : boolean {
+            override function equals(obj: Object) : boolean {
                 return false
             }
 
@@ -55,100 +51,100 @@ public class TestGenerics<T extends Comparable<T> & CharSequence, B, Q> extends 
 
     }
 
-    private static function cmp<J extends Comparable<J>>(a : J, b : J) : void {
+    private static function cmp<J extends Comparable<J>>(a: J, b: J) {
         a.compareTo(b)
     }
 
-    private static function uuu<J extends Comparable<J>, K>(a : K, b : K, c : TestGenerics<K, Object, Object>) : void {
+    private static function uuu<J extends Comparable<J>, K>(a: K, b: K, c: TestGenerics<K, Object, Object>) {
     }
 
-    override public function size() : int {
+    override function size() : int {
         return 0
     }
 
-    override public function isEmpty() : boolean {
+    override property get Empty() : boolean {
         return false
     }
 
-    override public function contains(o : Object) : boolean {
+    override function contains(o: Object) : boolean {
         return false
     }
 
-    override public function iterator() : Iterator<T> {
+    override function iterator() : Iterator<T> {
         return null
     }
 
-    override public function toArray() : Object[] {
+    override function toArray() : Object[] {
         return new Object[0]
     }
 
-    override public function toArray<T3>(a : T3[]) : T3[] {
+    override function toArray<T3>(a: T3[]) : T3[] {
         return null
     }
 
-    override public function add(t : T) : boolean {
+    override function add(t: T) : boolean {
         return false
     }
 
-    override public function remove(o : Object) : boolean {
+    override function remove(o: Object) : boolean {
         return false
     }
 
-    override public function containsAll(c : Collection<Object>) : boolean {
+    override function containsAll(c: Collection<Object>) : boolean {
         return false
     }
 
-    override public function addAll(c : Collection<T>) : boolean {
+    override function addAll(c: Collection<T>) : boolean {
         return false
     }
 
-    override public function addAll(in_0 : int, c : Collection<T>) : boolean {
+    override function addAll(in_0: int, c: Collection<T>) : boolean {
         return false
     }
 
-    override public function removeAll(c : Collection<Object>) : boolean {
+    override function removeAll(c: Collection<Object>) : boolean {
         return false
     }
 
-    override public function retainAll(c : Collection<Object>) : boolean {
+    override function retainAll(c: Collection<Object>) : boolean {
         return false
     }
 
-    override public function clear() : void {
+    override function clear() {
     }
 
-    override public function get(in_0 : int) : T {
+    override function get(in_0: int) : T {
         return null
     }
 
-    override public function set(in_0 : int, element : T) : T {
+    override function set(in_0: int, element: T) : T {
         return null
     }
 
-    override public function add(in_0 : int, element : T) : void {
+    override function add(in_0: int, element: T) {
     }
 
-    override public function remove(in_0 : int) : T {
+    override function remove(in_0: int) : T {
         return null
     }
 
-    override public function indexOf(o : Object) : int {
+    override function indexOf(o: Object) : int {
         return 0
     }
 
-    override public function lastIndexOf(o : Object) : int {
+    override function lastIndexOf(o: Object) : int {
         return 0
     }
 
-    override public function listIterator() : ListIterator<T> {
+    override function listIterator() : ListIterator<T> {
         return null
     }
 
-    override public function listIterator(in_0 : int) : ListIterator<T> {
+    override function listIterator(in_0: int) : ListIterator<T> {
         return null
     }
 
-    override public function subList(fromIndex : int, toIndex : int) : List<T> {
+    override function subList(fromIndex: int, toIndex: int) : List<T> {
         return null
     }
 

@@ -1,10 +1,9 @@
 package gw.util.transform.java.JavaClasses
 
 
-public class TestEnhancedFor  {
-
-    function foo() : void {
-        var nums : int[] = {0, 1, 2, 4}
+class TestEnhancedFor  {
+    function foo() {
+        var nums = {0, 1, 2, 4}
         var sum = 0
         for (i in nums) {
             sum = sum + i

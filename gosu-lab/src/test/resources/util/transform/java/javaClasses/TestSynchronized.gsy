@@ -1,8 +1,7 @@
 package gw.util.transform.java.JavaClasses
 
 
-public class TestSynchronized  {
-
+class TestSynchronized  {
     function bar() : String {
         using (new String() as IMonitorLock) {
             var b = 0

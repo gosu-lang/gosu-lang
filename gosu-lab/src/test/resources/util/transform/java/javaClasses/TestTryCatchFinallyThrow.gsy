@@ -5,11 +5,11 @@ uses java.io.FileNotFoundException
 uses java.io.FileReader
 uses java.io.IOException
 
-public class TestTryCatchFinallyThrow  {
+class TestTryCatchFinallyThrow  {
+    internal var y: int
+    internal var ex: int
 
-    internal var y : int
-    internal var ex : int
-    function foo() : void {
+    function foo() {
         using (var br = new BufferedReader(new FileReader("13")), var zf = new java.util.zip.ZipFile("31")) {
             System.out.print("bar0")
         }
@@ -27,13 +27,13 @@ public class TestTryCatchFinallyThrow  {
         try {
             System.out.print("bar0" + br_1 + zf_1)
         }
-        catch (bau : NullPointerException) {
+        catch (bau: NullPointerException) {
             System.out.print("bar1" + bau)
         }
-        catch (ex_0 : IndexOutOfBoundsException) {
+        catch (ex_0: IndexOutOfBoundsException) {
             System.out.print("bar2" + ex_0)
         }
-        catch (ex_0 : FileNotFoundException) {
+        catch (ex_0: FileNotFoundException) {
             System.out.print("bar2" + ex_0)
         }
         finally  {
@@ -53,13 +53,13 @@ public class TestTryCatchFinallyThrow  {
         try {
             throw new FileNotFoundException()
         }
-        catch (bau : NullPointerException) {
+        catch (bau: NullPointerException) {
             System.out.print("bar0" + bau)
         }
-        catch (ex_0 : IndexOutOfBoundsException) {
+        catch (ex_0: IndexOutOfBoundsException) {
             System.out.print("bar1" + ex_0)
         }
-        catch (ex_0 : FileNotFoundException) {
+        catch (ex_0: FileNotFoundException) {
             System.out.print("bar1" + ex_0)
         }
 
@@ -67,13 +67,13 @@ public class TestTryCatchFinallyThrow  {
         try {
             throw new FileNotFoundException()
         }
-        catch (bau : NullPointerException) {
+        catch (bau: NullPointerException) {
             System.out.print("bar0" + bau)
         }
-        catch (ex_0 : IndexOutOfBoundsException) {
+        catch (ex_0: IndexOutOfBoundsException) {
             System.out.print("bar1" + ex_0)
         }
-        catch (ex_0 : FileNotFoundException) {
+        catch (ex_0: FileNotFoundException) {
             System.out.print("bar1" + ex_0)
         }
         finally  {
@@ -88,14 +88,14 @@ public class TestTryCatchFinallyThrow  {
 
     }
 
-    function bar() : void {
+    function bar() {
         
         final var br = new BufferedReader(new FileReader("13"))
         final var zf = new java.util.zip.ZipFile("31")
         try {
             System.out.print("bar0" + br + zf)
         }
-        catch (bau : NullPointerException) {
+        catch (bau: NullPointerException) {
             System.out.print("bar1" + bau)
             
             final var br_0 = new BufferedReader(new FileReader("13"))
@@ -103,7 +103,7 @@ public class TestTryCatchFinallyThrow  {
             try {
                 System.out.print("bar2-0" + br_0 + zf_0)
             }
-            catch (ex_0 : IndexOutOfBoundsException) {
+            catch (ex_0: IndexOutOfBoundsException) {
                 System.out.print("bar2-1" + ex_0)
                  {
                     var y_0 = 0
@@ -117,10 +117,10 @@ public class TestTryCatchFinallyThrow  {
             }
 
         }
-        catch (ex_0 : IndexOutOfBoundsException) {
+        catch (ex_0: IndexOutOfBoundsException) {
             System.out.print("bar2-2" + ex_0)
         }
-        catch (ex_0 : FileNotFoundException) {
+        catch (ex_0: FileNotFoundException) {
             System.out.print("bar2-2" + ex_0)
         }
         finally  {

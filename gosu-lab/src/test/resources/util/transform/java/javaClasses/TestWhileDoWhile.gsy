@@ -1,11 +1,10 @@
 package gw.util.transform.java.JavaClasses
 
 
-public class TestWhileDoWhile  {
-
-    function foo() : void {
-        var a : int
-        var b : int
+class TestWhileDoWhile  {
+    function foo() {
+        var a: int
+        var b: int
         var flag = false
         while (flag) {
             a = 0

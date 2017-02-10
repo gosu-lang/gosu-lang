@@ -4,110 +4,92 @@
 
 package editor.util.transform.java;
 
-import org.junit.Ignore;
-import org.junit.Test;
+
+import junit.framework.TestCase;
 
 import java.io.IOException;
 
-import static org.junit.Assert.*;
 
-@Ignore
-public class GosuVisitorTest
-{
+public class GosuVisitorTest extends TestCase {
   private String folder = "util/transform/java/javaClasses/";
   private GosuVisitorTestUtil helper = new GosuVisitorTestUtil();
 
-  @Test
   public void testBasic() {
     verify("BasicClass");
   }
 
-  @Test
+  public void testJavaDoc() {
+    verify("JavaDoc");
+  }
+
   public void testBasicEnum() {
     verify("BasicEnum");
   }
 
-  @Test
   public void testBasicInterface() {
     verify("BasicInterface");
   }
 
-  @Test
   public void testVisitIf() {
     verify("TestIf");
   }
 
-  @Test
   public void testVisitWhileLoopDoWhileLoop() {
     verify("TestWhileDoWhile");
   }
 
-  @Test
   public void testVisitForLoop() {
     verify("TestFor");
   }
 
-  @Test
   public void testScope() {
     verify("TestScope");
   }
 
-  @Test
   public void testVisitEnhancedForLoop() {
     verify("TestEnhancedFor");
   }
 
-  @Test
   public void testVisitAssert() {
     verify("TestAssert");
   }
 
-  @Test
   public void testTryCatchFinallyThrow() {
     verify("TestTryCatchFinallyThrow");
   }
 
-  @Test
   public void testSwitchCase() {
     verify("TestSwitchCase");
   }
 
-  @Test
   public void testSynchronized() {
     verify("TestSynchronized");
   }
 
-  @Test
   public void testExpressions() {
     verify("TestExpressions");
   }
 
-  @Test
   public void testMethod() {
     verify("TestMethod");
   }
 
-  @Test
   public void testEnum() {
     verify("TestEnum");
   }
 
-  @Test
   public void testOuterMemberSelect() {
     verify("TestOuterMemberSelect");
   }
 
-  @Test
   public void testVisitAnnotation() {
     verify("TestAnnotation");
   }
 
-  @Test
   public void testJava8() {
     verify("TestJava8");
   }
 
-  @Test
   public void testIllegalSyntax() {
     String out = null;
     try {
@@ -118,17 +100,14 @@ public class GosuVisitorTest
     assertEquals(out, "");
   }
 
-  @Test
   public void testGenericsPair() {
     verify("MyGenericPair");
   }
 
-  @Test
   public void testLocalVariableRename() {
     verify("TestLocalVariableRename");
   }
 
-  @Test
   public void testGenerics() {
     verify("TestGenerics");
   }

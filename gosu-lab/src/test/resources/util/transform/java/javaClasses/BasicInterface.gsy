@@ -1,8 +1,7 @@
 package gw.util.transform.java.JavaClasses
 
 
-public interface BasicInterface  {
-
-    function push(o : Object) : void
+interface BasicInterface  {
+    function push(o: Object)
     function pop() : Object
 }

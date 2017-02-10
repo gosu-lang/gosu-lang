@@ -1,0 +1,26 @@
+package gw.util.transform.java.JavaClasses;
+
+/**
+ *  Hello this is some JavaDoc
+ *
+ *  @Deprecated
+ *
+ *  More text
+ */
+interface JavaDoc  {
+  /**
+   * This is a field
+   */
+  String FINAL_STRING = "hi";
+
+  /**
+   * This is the foo method
+   * It foos.
+   *
+   * @param size the size
+   * @return some stuff
+   *
+   * And some more text
+   */
+  String foo( int size );
+}

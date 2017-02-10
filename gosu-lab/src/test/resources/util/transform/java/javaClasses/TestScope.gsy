@@ -3,22 +3,25 @@ package gw.util.transform.java.JavaClasses
 uses java.io.FileNotFoundException
 uses java.io.IOException
 
-public class TestScope  {
+class TestScope  {
+    internal var tmp: int = 6
+    internal var tmp2: int = 6
+    internal var i: int = 0
+    internal var ex: int
+    internal var p: ex
+    internal var x: int
 
-    internal var tmp : int = 6
-    internal var tmp2 : int = 6
-    internal var i : int = 0
-    internal var ex : int
-    internal var p : ex
     enum ex  {
         TODO
-        internal var ex : int
-        internal var tmp : int
+
+        internal var ex: int
+        internal var tmp: int
+
         /* FIX ME: initializer blocks not allowed in Gosu */ {
             var i_0 = 1
         }
 
-        function todo(ex_0 : int) : void {
+        function todo(ex_0: int) {
             ex_0 = ex_0
             this.ex = ex_0
             var TODO_0 = 1f
@@ -29,18 +32,18 @@ public class TestScope  {
     }
 
     interface tmp  {
+        var tmp: int = 0
 
-        var tmp : int = 0
-        function push(tmp_0 : Object) : void
+        function push(tmp_0: Object)
         function pop() : Object
     }
 
     class inner  {
+        internal var x: int = 0
+        internal var j: int
+        internal var ex: int
 
-        internal var x : int = 0
-        internal var j : int
-        internal var ex : int
-        function ifScope() : void {
+        function ifScope() {
             if (x == 0) {
                 var x_0 = 1
                 if (x_0 == 3) {
@@ -53,7 +56,8 @@ public class TestScope  {
 
                         j = 0
                     }
-                } else {
+                }
+                else {
                     var i_0 = 0
                     tmp = i_0 + j
                      {
@@ -65,7 +69,7 @@ public class TestScope  {
             }
         }
 
-        function forScope() : void {
+        function forScope() {
             var tmp_0 = 0
             var i_0 = 1
             var i_1 = 0
@@ -74,7 +78,7 @@ public class TestScope  {
                 tmp_0 = tmp_0 + i_1
                 var o = 0
                 while (o < i_1) {
-                    var sum : int = o + i_1
+                    var sum = o + i
                     new TestScope().i = 0
                     new TestScope()
                     o++
@@ -115,7 +119,7 @@ public class TestScope  {
                 i_3++
             }
 
-            var i_4 : int
+            var i_4: int
             i_4 = 1
             j_0 = 0
             while (i_4 < 10) {
@@ -129,7 +133,7 @@ public class TestScope  {
 
         }
 
-        function whileScope() : void {
+        function whileScope() {
             var j_0 = 0
             var i_0 = 1
             while (i < 10) {
@@ -156,8 +160,8 @@ public class TestScope  {
 
         }
 
-        function enhancedForScope() : void {
-            var nums : int[] = {0, 1, 2, 4}
+        function enhancedForScope() {
+            var nums = {0, 1, 2, 4}
             var ex_0 = 0
             for (i_0 in nums) {
                 ex_0 = ex_0 + i_0
@@ -169,7 +173,7 @@ public class TestScope  {
 
         }
 
-        function doWhileScope() : void {
+        function doWhileScope() {
             var j_0 = 0
             var i_0 = 1
             do {
@@ -196,8 +200,8 @@ public class TestScope  {
             while (i < 10)
         }
 
-        function tryScope() : void {
-            var j_0 : int
+        function tryScope() {
+            var j_0: int
             
             try {
                 i = 0
@@ -213,26 +217,26 @@ public class TestScope  {
                 ex = 1
                 throw new FileNotFoundException()
             }
-            catch (bau : NullPointerException) {
+            catch (bau: NullPointerException) {
                 System.out.print("bar0" + bau)
                 
                 try {
                 }
-                catch (ex_0 : IndexOutOfBoundsException) {
-                    var tmp_0 : int
+                catch (ex_0: IndexOutOfBoundsException) {
+                    var tmp_0: int
                 }
-                catch (ex_0 : OutOfMemoryError) {
-                    var tmp_0 : int
+                catch (ex_0: OutOfMemoryError) {
+                    var tmp_0: int
                 }
 
             }
-            catch (ex_0 : IndexOutOfBoundsException) {
+            catch (ex_0: IndexOutOfBoundsException) {
                 System.out.print("bar1" + ex_0)
                 
                 try {
                 }
-                catch (ex0 : IndexOutOfBoundsException) {
-                    var tmp_0 : int
+                catch (ex0: IndexOutOfBoundsException) {
+                    var tmp_0: int
                      {
                         var tmp2_0 = 1
                         var bau = 1
@@ -240,8 +244,8 @@ public class TestScope  {
 
                     new TestScope().ex = 0
                 }
-                catch (ex0 : OutOfMemoryError) {
-                    var tmp_0 : int
+                catch (ex0: OutOfMemoryError) {
+                    var tmp_0: int
                      {
                         var tmp2_0 = 1
                         var bau = 1
@@ -251,13 +255,13 @@ public class TestScope  {
                 }
 
             }
-            catch (ex_0 : FileNotFoundException) {
+            catch (ex_0: FileNotFoundException) {
                 System.out.print("bar1" + ex_0)
                 
                 try {
                 }
-                catch (ex0 : IndexOutOfBoundsException) {
-                    var tmp_0 : int
+                catch (ex0: IndexOutOfBoundsException) {
+                    var tmp_0: int
                      {
                         var tmp2_0 = 1
                         var bau = 1
@@ -265,8 +269,8 @@ public class TestScope  {
 
                     new TestScope().ex = 0
                 }
-                catch (ex0 : OutOfMemoryError) {
-                    var tmp_0 : int
+                catch (ex0: OutOfMemoryError) {
+                    var tmp_0: int
                      {
                         var tmp2_0 = 1
                         var bau = 1
@@ -281,29 +285,29 @@ public class TestScope  {
                 
                 try {
                 }
-                catch (ex_0 : IndexOutOfBoundsException) {
-                    var tmp_0 : int
+                catch (ex_0: IndexOutOfBoundsException) {
+                    var tmp_0: int
                 }
-                catch (ex_0 : OutOfMemoryError) {
-                    var tmp_0 : int
+                catch (ex_0: OutOfMemoryError) {
+                    var tmp_0: int
                 }
 
             }
 
         }
 
-        function newClassScope() : void {
+        function newClassScope() {
             var o = 0
-            var tmp_0 : Object = new BasicInterface() {
+            var tmp_0 = new BasicInterface() {
 
-                internal var o : Object = null
-                override public function push(o_0 : Object) : void {
+                internal var o: Object = null
+                override function push(o_0: Object) {
                     this.o = o_0
-                    var ex_0 : int
+                    var ex_0: int
                 }
 
-                override public function pop() : Object {
-                    var tmp_1 : Object = null
+                override function pop() : Object {
+                    var tmp_1: Object = null
                     return tmp_1
                 }
 
@@ -311,7 +315,7 @@ public class TestScope  {
 
         }
 
-        function switchScope() : void {
+        function switchScope() {
             var tmp_0 = 0
             switch (tmp_0) {
                 case 0:
@@ -346,38 +350,37 @@ public class TestScope  {
 
     }
 
-    function m1(x_0 : int) : void {
+    function m1(x_0: int) {
         x_0 = 7
         this.x = x_0
     }
 
-    function m2(v2 : int) : void {
+    function m2(v2: int) {
         x = 7
     }
 
-    function m3(v3 : int) : void {
+    function m3(v3: int) {
         x = 7
-        var x_0 : int
+        var x_0: int
         x_0 = 7
     }
 
-    function m4(v4 : int) : void {
+    function m4(v4: int) {
         x = 7
          {
-            var x_0 : int
+            var x_0: int
             x_0 = 7
         }
 
         x = 7
          {
-            var x_0 : int
+            var x_0: int
             x_0 = 7
         }
 
         x = 7
     }
 
-    internal var x : int
     /* FIX ME: initializer blocks not allowed in Gosu */ {
         x = 7
     }

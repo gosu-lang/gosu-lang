@@ -4,16 +4,15 @@ uses java.util.LinkedList
 uses java.util.List
 
 class A  {
+    internal var A: int
+    internal var foo: int
 
-    internal var A : int
-    internal var foo : int
     class B  {
-
-        internal var A : int
+        internal var A: int
 
     }
 
-    function Z(A_0 : String, t : List<A>) : String {
+    function Z(A_0: String, t: List<A>) : String {
         if (A_0.equals("")) {
         }
         A_0.toLowerCase()
@@ -21,19 +20,19 @@ class A  {
         Z("hello", new LinkedList<A>())
         A_0 = "bar"
         this.A = 1
-        var b : int = new A.B().A
-        var l : List<A> = new LinkedList<A>()
-        var c : A = null
-        var c2 : A[] = new A[A_0.length()]
-        var a3 : A.B = null
+        var b = new A.B().A
+        var l: List<A_0> = new LinkedList<A>()
+        var c: A = null
+        var c2 = new A[A_0.length()]
+        var a3: A.B = null
         a3.A = 8
-        var d : A = new A()
+        var d = new A()
         d.Z("Hello", t)
         d.A = 4 + new Integer(A_0)
         return A_0
     }
 
-    function foo(foo_0 : int) : void {
+    function foo(foo_0: int) {
         foo_0 = 1
         foo(0)
     }

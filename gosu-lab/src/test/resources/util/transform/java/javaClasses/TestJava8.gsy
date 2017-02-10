@@ -4,27 +4,25 @@ uses java.util.*
 uses java.util.function.Consumer
 uses java.util.function.Supplier
 
-public class TestJava8  {
+class TestJava8  {
+    internal var x: int
 
-    internal var x : int
     interface IA  {
-
-        function doIt(x_0 : int, y : int) : int
+        function doIt(x_0: int, y: int) : int
     }
 
     interface IB  {
-
-        function doIt() : void
+        function doIt()
     }
 
-    function callA(a : IA) : void {
+    function callA(a: IA) {
     }
 
-    function callB(b : IB) : void {
+    function callB(b: IB) {
     }
 
-    function testLambda() : void {
-        callA(\ x_0 : int, y : int -> x_0 + y)
+    function testLambda() {
+        callA(\ x_0: int, y: int -> x_0 + y)
         callA(\ x_1, y_0 -> x_1 + y_0)
         callA(\ a, b -> {  {
             return a + b
@@ -37,49 +35,46 @@ public class TestJava8  {
  })
     }
 
-    function testIntersectionTypeCast() : void {
-        var s : Serializable = \  -> System.out.println("intersection") as Runnable & Serializable
+    function testIntersectionTypeCast() {
+        var s = \  -> System.out.println("intersection") as Runnable & Serializable
     }
 
     @Target({ElementType.TYPE_USE})
-    public annotation MyAnno  {
-
+    annotation MyAnno  {
     }
 
     abstract class foo<T> implements /* @MyAnno() */List</* @MyAnno() */T> {
-
     }
 
-    function testTypeAnnotation() : void {
+    function testTypeAnnotation() {
         new /* @MyAnno() */Object()
-        var a : String = "" as /* @MyAnno() */String
+        var a = "" as /* @MyAnno() */String
     }
 
     static class MyInteger  {
-
-        public static function compare(x_0 : Integer, y : Integer) : int {
+        static function compare(x_0: Integer, y: Integer) : int {
             return (x_0 < y) ? -1 : ((x_0 == y) ? 0 : 1)
         }
 
     }
 
-    function sort<T>(a : T[], c : Comparator<T>) : void {
+    function sort<T>(a: T[], c: Comparator<T>) {
     }
 
-    function forEach<T>(l : List<T>, action : Consumer<T>) : void {
+    function forEach<T>(l: List<T>, action: Consumer<T>) {
     }
 
-    function m<T>(s : Supplier<T>) : void {
+    function m<T>(s: Supplier<T>) {
     }
 
-    function testMethoReferences() : void {
-        var stringArray : String[] = {"Niklaus", "Rob", "James"}
-        var intArray : Integer[] = {5, 2, 1}
+    function testMethoReferences() {
+        var stringArray = {"Niklaus", "Rob", "James"}
+        var intArray = {5, 2, 1}
         sort(stringArray, String#compareToIgnoreCase().toBlock())
         sort(intArray, Integer#compare().toBlock())
         sort(intArray, Integer#compare(Integer, Integer).toBlock())
         sort(intArray, MyInteger#compare().toBlock())
-        var l : List<String> = Arrays.asList(new String[]{"A", "B"})
+        var l: List<String> = Arrays.asList(new String[]{"A", "B"})
         forEach(l, System.out#print().toBlock())
         forEach(l, System.out#print(String).toBlock())
         forEach(l, System.out#print(Object).toBlock())
@@ -87,25 +82,22 @@ public class TestJava8  {
     }
 
     interface IDog  {
-
-        function bark() : void {
+        function bark() {
             System.out.println("ruff")
         }
 
-        static function run() : void {
+        static function run() {
             System.out.println("running")
         }
 
     }
 
-    public abstract static class Tree  {
-
-        public abstract function bark() : void
+    abstract static class Tree  {
+        abstract function bark()
     }
 
     static class DogWood extends Tree implements IDog {
-
-        override public function bark() : void {
+        override function bark() {
             super[IDog].bark()
             IDog.run()
             super[TestJava8.IDog].bark()
@@ -114,22 +106,19 @@ public class TestJava8  {
     }
 
     annotation MyAnnotation  {
-
         function str() : String[] = {"Hello", "World"}
         function integer() : int
         function doubleN() : double = 1.0
         function bol() : boolean
         function character() : char
         function arr() : IntAnnotation[]
-        public static class FooBar<T>  {
-
-            public static final var val : int = 3
+        static class FooBar<T>  {
+            public static final var val: int = 3
 
         }
 
         function value() : Class<String>
         annotation MyAnnotation2  {
-
             function shortInt() : short
         }
 
@@ -137,7 +126,6 @@ public class TestJava8  {
     }
 
     annotation IntAnnotation  {
-
         function num() : int
     }
 

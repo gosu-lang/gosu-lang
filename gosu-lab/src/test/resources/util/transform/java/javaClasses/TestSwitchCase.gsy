@@ -1,11 +1,10 @@
 package gw.util.transform.java.JavaClasses
 
 
-public class TestSwitchCase  {
-
-    function foo() : void {
+class TestSwitchCase  {
+    function foo() {
         var strDigitName = "three"
-        var strOrdinalName : String
+        var strOrdinalName: String
         switch (strDigitName) {
             case "one":
                 strOrdinalName = "first"

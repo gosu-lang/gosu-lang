@@ -1,21 +1,21 @@
 package gw.util.transform.java.JavaClasses
 
 
-public class BasicClass  {
+class BasicClass  {
+    var x: int = 8
+    final var z: int = 2
+    final var y: int
 
-    private var x : int = 8
-    private final var z : int = 2
-    private final var y : int
-    public construct(x_0 : int, y_0 : int) {
+    construct(x_0: int, y_0: int) {
         this.x = x_0
         this.y = y_0 + z
     }
 
-    public function getX() : int {
+    property get X() : int {
         return x
     }
 
-    public function setX(x1 : int) : void {
+    property set X(x1: int) {
         x = x1
     }
 

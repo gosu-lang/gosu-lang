@@ -2,10 +2,10 @@ package gw.util.transform.java.JavaClasses
 
 uses java.util.*
 
-public class TestFor  {
+class TestFor  {
+    public var tmp: int = 6
 
-    public var tmp : int = 6
-    function foo() : void {
+    function foo() {
         tmp = 0
         while (true) {
             if (1 == 1) {
@@ -40,7 +40,7 @@ public class TestFor  {
             break
         }
 
-        var j1 : int
+        var j1: int
         while (true) {
             if (1 == 1) {
                 break
@@ -72,12 +72,12 @@ public class TestFor  {
             System.out.print(f.charAt(i_0))
         }
 
-        var fa : char[] = {'f', 'o', 'o'}
+        var fa = {'f', 'o', 'o'}
         for (i_0 in 0..|fa.length) {
             System.out.print(fa[i_0])
         }
 
-        var fc : List<Character> = new ArrayList<Character>()
+        var fc: List<Character> = new ArrayList<Character>()
         fc.add('f')
         fc.add('o')
         fc.add('o')

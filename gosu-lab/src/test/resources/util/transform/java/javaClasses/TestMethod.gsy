@@ -3,109 +3,108 @@ package gw.util.transform.java.JavaClasses
 uses java.io.EOFException
 uses java.util.*
 
-public class TestMethod  {
-
-    public construct() {
+class TestMethod  {
+    construct() {
     }
 
-    public function thrower() : void {
+    function thrower() {
     }
 
-    public function annotationInArg(@SuppressWarnings("foo")
-    foo : int) : void {
+    function annotationInArg(@SuppressWarnings("foo")
+    foo: int) {
         @SuppressWarnings("bar")
-        var bar : int
+        var bar: int
     }
 
-    public function size() : int {
+    function size() : int {
         var a = new int[]{3, 5, 1}
         Arrays.sort(a)
         return 0
     }
 
-    public function isEmpty() : boolean {
+    property get Empty() : boolean {
         return false
     }
 
-    public function contains(o : Object) : boolean {
+    function contains(o: Object) : boolean {
         return false
     }
 
-    public function iterator() : Iterator {
+    function iterator() : Iterator {
         return null
     }
 
-    public function toArray() : Object[] {
+    function toArray() : Object[] {
         return new Object[0]
     }
 
-    public function toArray(a : Object[]) : Object[] {
+    function toArray(a: Object[]) : Object[] {
         return new Object[0]
     }
 
-    public function add(o : Object) : boolean {
+    function add(o: Object) : boolean {
         return false
     }
 
-    public function remove(o : Object) : boolean {
+    function remove(o: Object) : boolean {
         return false
     }
 
-    public function containsAll(c : Collection) : boolean {
+    function containsAll(c: Collection) : boolean {
         return false
     }
 
-    public function addAll(c : Collection) : boolean {
+    function addAll(c: Collection) : boolean {
         return false
     }
 
-    public function addAll(in_0 : int, c : Collection) : boolean {
+    function addAll(in_0: int, c: Collection) : boolean {
         return false
     }
 
-    public function removeAll(c : Collection) : boolean {
+    function removeAll(c: Collection) : boolean {
         return false
     }
 
-    public function retainAll(c : Collection) : boolean {
+    function retainAll(c: Collection) : boolean {
         return false
     }
 
-    public function clear() : void {
+    function clear() {
     }
 
-    public function get(in_0 : int) : Object {
+    function get(in_0: int) : Object {
         return null
     }
 
-    public function set(in_0 : int, element : Object) : Object {
+    function set(in_0: int, element: Object) : Object {
         return null
     }
 
-    public function add(in_0 : int, element : Object) : void {
+    function add(in_0: int, element: Object) {
     }
 
-    public function remove(in_0 : int) : Object {
+    function remove(in_0: int) : Object {
         return null
     }
 
-    public function indexOf(o : Object) : int {
+    function indexOf(o: Object) : int {
         return 0
     }
 
-    public function lastIndexOf(o : Object) : int {
+    function lastIndexOf(o: Object) : int {
         return 0
     }
 
-    public function listIterator() : ListIterator {
+    function listIterator() : ListIterator {
         return null
     }
 
-    public function listIterator(in_0 : int) : ListIterator {
+    function listIterator(in_0: int) : ListIterator {
         return null
     }
 
-    public function subList(fromIndex : int, toIndex : int) : List {
+    function subList(fromIndex: int, toIndex: int) : List {
         return null
     }
 

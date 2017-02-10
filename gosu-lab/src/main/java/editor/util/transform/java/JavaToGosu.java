@@ -6,11 +6,14 @@ package editor.util.transform.java;
 
 
 import com.sun.source.tree.CompilationUnitTree;
+import com.sun.source.util.DocTrees;
+import com.sun.source.util.SourcePositions;
 import editor.util.transform.java.visitor.GosuVisitor;
 import gw.lang.javac.IJavaParser;
 import gw.lang.parser.GosuParserFactory;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 import javax.tools.Diagnostic;
 import javax.tools.DiagnosticCollector;
 import javax.tools.JavaFileObject;
@@ -18,7 +21,7 @@ import javax.tools.JavaFileObject;
 public class JavaToGosu
 {
 
-  public static String convertString( String javaSource )
+  public static String convertString( String javaSource, int... indent )
   {
     Wrap[] wraps = new Wrap[]{
       new Wrap( "", "", "", "" ),
@@ -44,26 +47,28 @@ public class JavaToGosu
     String gosuWrapStart = "";
     String gosuWrapEnd = "";
     List<CompilationUnitTree> trees = null;
+    final DocTrees[] docTrees = {null};
     boolean parsed = false;
-    String output = null;
+    String output;
     int i = wraps.length - 1;
 
+    String src = null;
     while( i >= 0 && !parsed )
     {
       javaWrapStart = wraps[i].JAVA_WRAP_START;
       javaWrapEnd = wraps[i].JAVA_WRAP_END;
       gosuWrapStart = wraps[i].GOSU_WRAP_START;
       gosuWrapEnd = wraps[i].GOSU_WRAP_END;
-      trees = new ArrayList<CompilationUnitTree>();
-      String src = javaWrapStart + javaSource + javaWrapEnd;
-      parsed = parseJava( trees, src );
+      trees = new ArrayList<>();
+      src = javaWrapStart + javaSource + javaWrapEnd;
+      parsed = parseJava( trees, null, dc -> docTrees[0] = dc, src );
       i--;
     }
     if( !parsed )
     {
       return "";
     }
-    GosuVisitor visitor = new GosuVisitor( 2 );
+    GosuVisitor visitor = new GosuVisitor( indent == null || indent.length == 0 ? 2 : indent[0], docTrees[0] );
     for( CompilationUnitTree tree : trees )
     {
       tree.accept( visitor, null );
@@ -123,11 +128,11 @@ public class JavaToGosu
     return src.toString();
   }
 
-  private static boolean parseJava( List<CompilationUnitTree> trees, String src )
+  private static boolean parseJava( List<CompilationUnitTree> trees, Consumer<SourcePositions> sourcePositions, Consumer<DocTrees> docTrees, String src )
   {
     IJavaParser javaParser = GosuParserFactory.getInterface( IJavaParser.class );
     DiagnosticCollector<JavaFileObject> errorHandler = new DiagnosticCollector<>();
-    if( !javaParser.parseText( src, trees, null, errorHandler ) )
+    if( !javaParser.parseText( src, trees, sourcePositions, docTrees, errorHandler ) )
     {
       return false;
     }

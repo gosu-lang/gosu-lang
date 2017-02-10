@@ -1,6 +1,7 @@
 package gw.lang.javac;
 
 import com.sun.source.tree.CompilationUnitTree;
+import com.sun.source.util.DocTrees;
 import com.sun.source.util.SourcePositions;
 import gw.util.Pair;
 import java.util.List;
@@ -12,7 +13,7 @@ import javax.tools.JavaFileObject;
  */
 public interface IJavaParser
 {
-  boolean parseText( String src, List<CompilationUnitTree> trees, Consumer<SourcePositions> sourcePositions, DiagnosticCollector<JavaFileObject> errorHandler );
+  boolean parseText( String src, List<CompilationUnitTree> trees, Consumer<SourcePositions> sourcePositions, Consumer<DocTrees> docTrees, DiagnosticCollector<JavaFileObject> errorHandler );
   boolean parseType( String fqn, List<CompilationUnitTree> trees, DiagnosticCollector<JavaFileObject> errorHandler );
 
   ClassJavaFileObject compile( JavaFileObject jfo, String fqn, Iterable<String> options, DiagnosticCollector<JavaFileObject> errorHandler );
