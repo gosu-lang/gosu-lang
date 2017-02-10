@@ -115,13 +115,27 @@ public class MethodList extends DynamicArray<IMethodInfo>
   @Override
   public int indexOf( Object o )
   {
+    IMethodInfo mi = (IMethodInfo)o;
     for( int i = 0; i < size; i++ )
     {
-      if( data[i] == o )
+      // compare quickly with ==
+      if( data[i] == mi )
       {
         return i;
       }
     }
+
+    // If == compare fails, compare the full signatures of the methods,
+    // this comes into play with a generic method's type variable[s]
+    // e.g., comparing the declaration version with the definition version
+    for( int i = 0; i < size; i++ )
+    {
+      if( data[i].equals( mi ) )
+      {
+        return i;
+      }
+    }
+
     return -1;
   }
 
