@@ -446,7 +446,8 @@ public class TypeLord
           IType genType = TypeSystem.getByFullNameIfValid( rawTypeName );//getActualType( type.getRawType(), actualParamByVarName, bKeepTypeVars, recursiveTypes );
           if( genType == null )
           {
-            throw new TypeNotPresentException( rawTypeName, null );
+            return ErrorType.getInstance( rawTypeName );
+            //throw new TypeNotPresentException( rawTypeName, null );
           }
           return genType.getParameterizedType( types.toArray( new IType[types.size()] ) );
         }
@@ -2600,7 +2601,7 @@ public class TypeLord
       if( type == null || type instanceof ITypeVariableType )
       {
         // Infer the type
-        inferenceMap.put( tvType, argType );
+        inferenceMap.put( tvType, getActualType( argType, inferenceMap, true ) );
         inferredInCallStack.add( tvType );
         if( type != null && type.equals( argType ) )
         {
@@ -2609,7 +2610,7 @@ public class TypeLord
       }
       else if( type != null )
       {
-        IType combinedType = sovleType( genParamType, argType, inferenceMap, bReverse, tvType, type );
+        IType combinedType = solveType( genParamType, argType, inferenceMap, bReverse, tvType, type );
         inferenceMap.put( tvType, combinedType );
       }
       IType boundingType = ((ITypeVariableType)genParamType).getBoundingType();
@@ -2654,7 +2655,7 @@ public class TypeLord
     }
   }
 
-  private static IType sovleType( IType genParamType, IType argType, TypeVarToTypeMap inferenceMap, boolean bReverse, ITypeVariableType tvType, IType type )
+  private static IType solveType( IType genParamType, IType argType, TypeVarToTypeMap inferenceMap, boolean bReverse, ITypeVariableType tvType, IType type )
   {
     // Solve the type.  Either LUB or GLB.
     //

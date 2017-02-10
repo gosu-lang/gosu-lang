@@ -4,7 +4,6 @@
 
 package gw.internal.gosu.parser;
 
-import gw.lang.reflect.IBlockType;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.java.JavaTypes;
 
@@ -91,19 +90,19 @@ public class ContextType {
     }
   }
 
-  public static ContextType makeBlockContexType( IType ctxType, IBlockType ctxTypeWithTypeVars, boolean bScoring ) {
+  public static ContextType makeBlockContexType( IType ctxType, IType ctxTypeWithTypeVars, boolean bScoring ) {
     return new BlockContextType( ctxType, ctxTypeWithTypeVars, bScoring );
   }
 
   private static class BlockContextType extends ContextType {
-    private IBlockType _ctxTypeWithTypeVars;
+    private IType _ctxTypeWithTypeVars;
 
-    private BlockContextType( IType ctxType, IBlockType ctxTypeWithTypeVars, boolean bScoring ) {
+    private BlockContextType( IType ctxType, IType ctxTypeWithTypeVars, boolean bScoring ) {
       super( ctxType, bScoring );
       _ctxTypeWithTypeVars = ctxTypeWithTypeVars;
     }
 
-    public IBlockType getAlternateType() {
+    public IType getAlternateType() {
       return _ctxTypeWithTypeVars;
     }
   }

@@ -6,6 +6,7 @@ package gw.lang.reflect;
 
 import gw.lang.parser.IExpression;
 
+import gw.lang.parser.TypeVarToTypeMap;
 import java.util.List;
 
 public final class MethodScore implements Comparable<MethodScore>
@@ -19,6 +20,7 @@ public final class MethodScore implements Comparable<MethodScore>
   private List<IExpression> _exprs;
   private List _parserStates;
   private int[] _namedArgOrder;
+  private TypeVarToTypeMap _inferenceMap;
 
   public MethodScore( IRelativeTypeInfo.Accessibility acc, IType receiverType )
   {
@@ -152,5 +154,14 @@ public final class MethodScore implements Comparable<MethodScore>
     {
       _namedArgOrder = null;
     }
+  }
+
+  public TypeVarToTypeMap getInferenceMap()
+  {
+    return _inferenceMap;
+  }
+  public void setInferenceMap( TypeVarToTypeMap inferenceMap )
+  {
+    _inferenceMap = inferenceMap;
   }
 }

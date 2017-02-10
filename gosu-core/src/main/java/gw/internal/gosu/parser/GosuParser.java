@@ -240,6 +240,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
   private int _iContinueOk;
   int _iReturnOk;
   private Stack<IScriptPartId> _scriptPartIdStack;
+  private Stack<TypeVarToTypeMap> _inferenceMapStack;
   private HashMap<String, ITypeVariableDefinition> _typeVarsByName;
   private Stack<ContextType> _inferredContextStack = new Stack<>();
   private boolean _bThrowForWarnings;
@@ -327,6 +328,31 @@ public final class GosuParser extends ParserBase implements IGosuParser
     if( top != partId )
     {
       throw new IllegalStateException( "Unbalanced push/pop script id" );
+    }
+  }
+
+  public TypeVarToTypeMap getInferenceMap()
+  {
+    if( _inferenceMapStack == null || _inferenceMapStack.isEmpty() )
+    {
+      return null;
+    }
+    return _inferenceMapStack.peek();
+  }
+  public void pushInferenceMap( TypeVarToTypeMap inferenceMap )
+  {
+    if( _inferenceMapStack == null )
+    {
+      _inferenceMapStack = new Stack<>();
+    }
+    _inferenceMapStack.push( inferenceMap );
+  }
+  void popInferenceMap( TypeVarToTypeMap inferenceMap )
+  {
+    TypeVarToTypeMap top = _inferenceMapStack.pop();
+    if( top != inferenceMap )
+    {
+      throw new IllegalStateException( "Unbalanced push/pop inferenceMap" );
     }
   }
 
@@ -3871,7 +3897,8 @@ public final class GosuParser extends ParserBase implements IGosuParser
     try
     {
       ContextType contextType = getContextType();
-      IType expectedBlockReturnType = inferReturnTypeForBlockArgument( contextType );
+      IType[] unbound = {null};
+      IType expectedBlockReturnType = inferReturnTypeForBlockArgument( contextType, unbound );
       _blockReturnTypeStack.push( expectedBlockReturnType );
       pushed = true;
 
@@ -3953,7 +3980,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
             else
             {
               int tokenizerPostion = getTokenizer().getTokenStart();
-              parseExpression( expectedBlockReturnType == null ? ContextType.EMPTY : new ContextType( expectedBlockReturnType, false ) );
+              parseExpression( expectedBlockReturnType == null ? ContextType.EMPTY : new ContextType( expectedBlockReturnType, unbound[0], false ) );
               Expression exprBody = popExpression();
 
               // void functions can work in the body of a block
@@ -4073,12 +4100,17 @@ public final class GosuParser extends ParserBase implements IGosuParser
       return null;
     }
 
+    IType alternateType = ctxType.getAlternateType();
     if( type instanceof FunctionType )
     {
-      if( ctxType.getAlternateType() instanceof FunctionType )
+      if( alternateType instanceof FunctionType )
       {
         // Alternate type includes type vars so that untyped parameters in the block can potentially be inferred *after* the block expression parses
-        type = ctxType.getAlternateType();
+        type = alternateType;
+      }
+      else if( alternateType != null )
+      {
+        type = FunctionToInterfaceCoercer.getRepresentativeFunctionType( alternateType );
       }
       return Arrays.asList( ((FunctionType)type).getParameterTypes() );
     }
@@ -4087,6 +4119,16 @@ public final class GosuParser extends ParserBase implements IGosuParser
       IFunctionType functionType = FunctionToInterfaceCoercer.getRepresentativeFunctionType( type );
       if( functionType != null )
       {
+        if( alternateType instanceof FunctionType )
+        {
+          // Alternate type includes type vars so that untyped parameters in the block can potentially be inferred *after* the block expression parses
+          functionType = (IFunctionType)alternateType;
+        }
+        else if(  alternateType != null )
+        {
+          functionType = FunctionToInterfaceCoercer.getRepresentativeFunctionType( alternateType );
+        }
+
         return Arrays.asList( functionType.getParameterTypes() );
       }
     }
@@ -4094,7 +4136,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
     return null;
   }
 
-  private IType inferReturnTypeForBlockArgument( ContextType contextType )
+  private IType inferReturnTypeForBlockArgument( ContextType contextType, IType[] unbound )
   {
     if( contextType.isMethodScoring() )
     {
@@ -4108,14 +4150,37 @@ public final class GosuParser extends ParserBase implements IGosuParser
     }
 
     IType returnType = null;
+    IType alternateType = contextType.getAlternateType();
     if( ctxType instanceof FunctionType )
     {
-      if( contextType.getAlternateType() instanceof FunctionType )
+      if( alternateType instanceof FunctionType )
       {
         // Alternate type includes type vars so that untyped parameters in the block can potentially be inferred *after* the block expression parses
         ctxType = contextType.getAlternateType();
       }
+      else if( alternateType != null )
+      {
+        ctxType = FunctionToInterfaceCoercer.getRepresentativeFunctionType( alternateType );
+      }
       returnType = ((FunctionType)ctxType).getReturnType();
+    }
+    else
+    {
+      IFunctionType functionType = FunctionToInterfaceCoercer.getRepresentativeFunctionType( ctxType );
+      if( functionType != null )
+      {
+        if( alternateType instanceof FunctionType )
+        {
+          // Alternate type includes type vars so that untyped parameters in the block can potentially be inferred *after* the block expression parses
+          functionType = (IFunctionType)alternateType;
+        }
+        else if(  alternateType != null )
+        {
+          functionType = FunctionToInterfaceCoercer.getRepresentativeFunctionType( alternateType );
+        }
+
+        returnType = functionType.getReturnType();
+      }
     }
 
     IFunctionType functionType = FunctionToInterfaceCoercer.getRepresentativeFunctionType( ctxType );
@@ -4132,11 +4197,11 @@ public final class GosuParser extends ParserBase implements IGosuParser
       }
     }
 
-    // If we are currently infering the return type, use the bounding type to parse
+    // If we are currently inferring the return type, use the bounding type to parse
     // on the way in so that we get the actual type on the way out to infer with
-    returnType = TypeLord.boundTypes( returnType, getCurrentlyInferringFunctionTypeVars() );
-
-    return returnType;
+    IType result = TypeLord.boundTypes( returnType, getCurrentlyInferringFunctionTypeVars() );
+    unbound[0] = result != returnType ? returnType : null;
+    return result;
   }
 
   /**
@@ -7261,7 +7326,6 @@ public final class GosuParser extends ParserBase implements IGosuParser
 
     listFunctionTypes = maybeRemoveNonGenericMethods( listFunctionTypes, typeParams );
 
-    TypeVarToTypeMap inferenceMap = new TypeVarToTypeMap();
     List<Integer> namedArgOrder = null;
 
     int mark = getTokenizer().mark();
@@ -7277,6 +7341,13 @@ public final class GosuParser extends ParserBase implements IGosuParser
       List<LightweightParserState> parserStates = new ArrayList<>( 4 );
 
       IInvocableType funcType = listFunctionTypes.isEmpty() ? null : listFunctionTypes.get( i );
+
+      TypeVarToTypeMap inferenceMap = getInferenceMap();
+      if( inferenceMap == null )
+      {
+        inferenceMap = new TypeVarToTypeMap();
+      }
+      pushInferenceMap( inferenceMap );
       maybeInferFunctionTypeVarsFromReturnType( funcType, inferenceMap );
       pushTypeVariableTypesToInfer( funcType );
       try
@@ -7324,6 +7395,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
         }
 
         score = scoreMethod( getGosuClass(), rootType, funcType, listFunctionTypes, argExpressions, !bShouldScoreMethods, !hasContextSensitiveExpression( argExpressions ) );
+        score.setInferenceMap( inferenceMap );
       }
       finally
       {
@@ -7331,7 +7403,9 @@ public final class GosuParser extends ParserBase implements IGosuParser
         {
           popInferringFunctionTypeVariableTypes();
         }
+        popInferenceMap( inferenceMap );
       }
+
       //noinspection unchecked
       score.setArguments( (List)argExpressions );
       score.setParserStates( parserStates );
@@ -7401,7 +7475,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
         maybeReassignOffsetForArgumentListClause( argExpressions.size(), argExpressions, iOffset, iLineNum, iColumn );
 
         // Infer the function type
-        IInvocableType inferredFunctionType = inferFunctionType( rawFunctionType, bestScore.getArguments(), isEndOfArgExpression(), inferenceMap );
+        IInvocableType inferredFunctionType = inferFunctionType( rawFunctionType, bestScore.getArguments(), isEndOfArgExpression(), bestScore.getInferenceMap() );
 
         if( !getContextType().isMethodScoring() )
         {
@@ -7415,12 +7489,12 @@ public final class GosuParser extends ParserBase implements IGosuParser
           if( bestScore.isValid() )
           {
             // if the bestScore is valid, bound infered variables to avoid them getting out as raw type variables
-            inferredFunctionType = maybeBoundFunctionTypeVars( inferredFunctionType, inferenceMap );
+            inferredFunctionType = maybeBoundFunctionTypeVars( inferredFunctionType, bestScore.getInferenceMap() );
 
             // Some args may need implicit coercions applied
             handleImplicitCoercionsInArgs( element, inferredFunctionType.getParameterTypes(),
-                    rawFunctionType.getParameterTypes(),
-                    (List)bestScore.getArguments() );
+                                           rawFunctionType.getParameterTypes(),
+                                           (List)bestScore.getArguments() );
           }
         }
 
@@ -7715,7 +7789,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
       int iArgPos = iArgs;
       boolean bAlreadyDef = false;
       IType[] paramTypes = funcType == null ? IType.EMPTY_ARRAY : funcType.getParameterTypes();
-      IBlockType retainTypeVarsCtxType = null;
+      IType retainTypeVarsCtxType = null;
       if( match( null, ":", ISourceCodeTokenizer.TT_OPERATOR, true ) )
       {
         iArgPos = parseNamedParamExpression( funcType, bMethodScoring );
@@ -7761,7 +7835,16 @@ public final class GosuParser extends ParserBase implements IGosuParser
         boundCtxType = boundCtxType( rawCtxType );
         if( rawCtxType instanceof IBlockType )
         {
-          retainTypeVarsCtxType = (IBlockType)boundCtxType( rawCtxType, true );
+          retainTypeVarsCtxType = boundCtxType( rawCtxType, true );
+        }
+        else if( rawCtxType != null )
+        {
+          // handle functional interface types
+          IFunctionType ftype = FunctionToInterfaceCoercer.getRepresentativeFunctionType( rawCtxType );
+          if( ftype != null )
+          {
+            retainTypeVarsCtxType = boundCtxType( rawCtxType, true );
+          }
         }
       }
       ContextType ctx = retainTypeVarsCtxType != null

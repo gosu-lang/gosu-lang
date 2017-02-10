@@ -85,7 +85,7 @@ public class FunctionToInterfaceCoercer extends BaseCoercer implements IResolvin
   {
     if( interfaceType.isInterface() && (interfaceType instanceof IJavaType || interfaceType instanceof IGosuClass) )
     {
-      List<IMethodInfo> list = new ArrayList<IMethodInfo>( interfaceType.getTypeInfo().getMethods() );
+      List<IMethodInfo> list = new ArrayList<>( interfaceType.getTypeInfo().getMethods() );
 
       //extract all object methods since they are guaranteed to be implemented
       ITypeInfo objTypeInfo = JavaTypes.OBJECT().getTypeInfo();
