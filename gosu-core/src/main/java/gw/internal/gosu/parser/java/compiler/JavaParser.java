@@ -1,6 +1,7 @@
 package gw.internal.gosu.parser.java.compiler;
 
 import com.sun.source.tree.CompilationUnitTree;
+import com.sun.source.util.DocTrees;
 import com.sun.source.util.SourcePositions;
 import com.sun.source.util.Trees;
 import com.sun.tools.javac.api.JavacTaskImpl;
@@ -95,7 +96,7 @@ public class JavaParser implements IJavaParser
     return true;
   }
 
-  public boolean parseText( String src, List<CompilationUnitTree> trees, Consumer<SourcePositions> sourcePositions, DiagnosticCollector<JavaFileObject> errorHandler )
+  public boolean parseText( String src, List<CompilationUnitTree> trees, Consumer<SourcePositions> sourcePositions, Consumer<DocTrees> docTrees, DiagnosticCollector<JavaFileObject> errorHandler )
   {
     try
     {
@@ -114,6 +115,10 @@ public class JavaParser implements IJavaParser
       if( sourcePositions != null )
       {
         sourcePositions.accept( Trees.instance( javacTask ).getSourcePositions() );
+      }
+      if( docTrees != null )
+      {
+        docTrees.accept( DocTrees.instance( javacTask ) );
       }
     }
     catch( Exception e )

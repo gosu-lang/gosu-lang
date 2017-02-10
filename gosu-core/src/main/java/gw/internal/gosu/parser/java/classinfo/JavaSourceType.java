@@ -17,6 +17,7 @@ import com.sun.source.tree.Tree;
 import com.sun.source.tree.TypeParameterTree;
 import com.sun.source.tree.VariableTree;
 import com.sun.source.tree.WildcardTree;
+import com.sun.source.util.DocTrees;
 import com.sun.source.util.SourcePositions;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.TreeInfo;
@@ -129,7 +130,7 @@ public abstract class JavaSourceType extends AbstractJavaClassInfo implements IJ
   {
     List<CompilationUnitTree> trees = new ArrayList<>();
     SourcePositions[] sourcePositions = {null};
-    if( !parseJavaFile( fileHandle, trees, sourcePositions ) )
+    if( !parseJavaFile( fileHandle, trees, sourcePositions, null ) )
     {
       return new JavaSourceUnresolvedClass( fileHandle, gosuModule );
     }
@@ -181,10 +182,10 @@ public abstract class JavaSourceType extends AbstractJavaClassInfo implements IJ
     return null;
   }
 
-  private static boolean parseJavaFile( ISourceFileHandle src, List<CompilationUnitTree> trees, SourcePositions[] sourcePositions )
+  private static boolean parseJavaFile( ISourceFileHandle src, List<CompilationUnitTree> trees, SourcePositions[] sourcePositions, DocTrees[] docTrees )
   {
     IJavaParser javaParser = GosuParserFactory.getInterface( IJavaParser.class );
-    return javaParser.parseText( src.getSource().getSource().replace( "\r\n", "\n" ), trees, sp -> sourcePositions[0] = sp, null );
+    return javaParser.parseText( src.getSource().getSource().replace( "\r\n", "\n" ), trees, sp -> sourcePositions[0] = sp, dc -> {if( docTrees != null ) docTrees[0] = dc;}, null );
   }
 
   private static JavaSourceType createInner( ClassTree typeDecl, JavaSourceType containingClass )
