@@ -251,8 +251,11 @@ public class DebugPanel extends JPanel implements IDisposable
 
   private JComponent makeVariablesAndWatchesPanel()
   {
-    CollapsibleSplitPane varPanel = new CollapsibleSplitPane( SwingConstants.HORIZONTAL, makeFramePane(), makeWatchesPane() );
+    TabPane framePane = makeFramePane();
+    TabPane watchesPane = makeWatchesPane();
+    CollapsibleSplitPane varPanel = new CollapsibleSplitPane( SwingConstants.HORIZONTAL, framePane, watchesPane );
     varPanel.setPosition( 50 );
+    varPanel.toggleCollapse( watchesPane );
     return varPanel;
   }
 
