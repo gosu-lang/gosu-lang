@@ -62,9 +62,12 @@ public class TypeNameUtil
     String strClassPath = root.getPath().getFileSystemPathString() + File.separatorChar;
 
     String strQualifiedClassName = file.getPath().getFileSystemPathString().substring( strClassPath.length() );
-    strQualifiedClassName =
-      strQualifiedClassName.substring( 0, strQualifiedClassName.lastIndexOf( '.' ) );
-    strQualifiedClassName = strQualifiedClassName.replace( '/', '.' ).replace( '\\', '.' );
+    int iDot = strQualifiedClassName.lastIndexOf( '.' );
+    if( iDot >= 0 )
+    {
+      strQualifiedClassName = strQualifiedClassName.substring( 0, iDot );
+      strQualifiedClassName = strQualifiedClassName.replace( '/', '.' ).replace( '\\', '.' );
+    }
     if( strQualifiedClassName.startsWith( "." ) )
     {
       strQualifiedClassName = strQualifiedClassName.substring( 1 );

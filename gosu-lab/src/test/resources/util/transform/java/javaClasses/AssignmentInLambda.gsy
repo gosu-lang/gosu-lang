@@ -1,0 +1,20 @@
+package gw.util.transform.java.JavaClasses
+
+
+class AssignmentInLambda  {
+    internal var _str: String
+
+    function asdf() {
+        var r = \ -> {Str = ""}
+        r = \ -> {this.Str = ""}
+        r = \ -> {_str = ""}
+    }
+
+    property get Str() : String {
+        return null
+    }
+
+    property set Str(str: String) {
+    }
+
+}

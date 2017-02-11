@@ -39,6 +39,7 @@ public class GosuVisitor implements TreeVisitor<String, Object>
   private boolean _isInterface;
   boolean _skipBlockScope;
   private boolean _skipSymConversion;
+  private ClassTree _topLevelClass;
 
   private enum Mode
   {
@@ -107,6 +108,10 @@ public class GosuVisitor implements TreeVisitor<String, Object>
     List<? extends Tree> typeDecls = node.getTypeDecls();
     for( Tree typeDecl : typeDecls )
     {
+      if( typeDecl instanceof ClassTree )
+      {
+        _topLevelClass = (ClassTree)typeDecl;
+      }
       _output.append( typeDecl.accept( this, v ) );
     }
     return _output.toString();
@@ -1416,6 +1421,35 @@ public class GosuVisitor implements TreeVisitor<String, Object>
     return out.toString();
   }
 
+  private boolean isMethodInvocationPropertyAssignment( MethodInvocationTree node, Object v )
+  {
+    List<? extends ExpressionTree> arguments = node.getArguments();
+    ExpressionTree methodSelect = node.getMethodSelect();
+    boolean propAssign = false;
+    if( methodSelect instanceof IdentifierTree )
+    {
+      _skipSymConversion = true;
+      String methodName = methodSelect.accept( this, v );
+      String propertyName = getPropertyName( methodName, arguments.size() );
+      if( propertyName != null )
+      {
+        propAssign = methodName.startsWith( "set" );
+      }
+    }
+    else
+    {
+      String ms = methodSelect.accept( this, v );
+      int iDot = ms.lastIndexOf( '.' );
+      String methodName = iDot >= 0 ? ms.substring( iDot + 1 ) : ms;
+      String propertyName = getPropertyName( methodName, arguments.size() );
+      if( propertyName != null )
+      {
+        propAssign = methodName.startsWith( "set" );
+      }
+    }
+    return propAssign;
+  }
+
   @Override
   public String visitMethodInvocation( MethodInvocationTree node, Object v )
   {
@@ -1497,6 +1531,20 @@ public class GosuVisitor implements TreeVisitor<String, Object>
           }
           first = false;
           out.append( arg.accept( this, v ) );
+        }
+      }
+      int iNewLine = out.lastIndexOf( "\n", out.length() - 1 );
+      if( iNewLine >= 0 && out.substring( iNewLine ).trim().isEmpty() )
+      {
+        // the ')' is on a new line
+        String removeNewLine = out.substring( 0, iNewLine ).trim();
+        if( removeNewLine.endsWith( "}" ) )
+        {
+          out = new StringBuilder( removeNewLine );
+        }
+        else
+        {
+          appendIndent( out );
         }
       }
       out.append( ")" );
@@ -1629,18 +1677,21 @@ public class GosuVisitor implements TreeVisitor<String, Object>
         first = false;
         out.append( p.accept( this, v ) );
       }
+      out.append( " " );
     }
     _mode = oldMode;
-    out.append( " -> " );
-    boolean isBlock = node.getBodyKind() == LambdaExpressionTree.BodyKind.STATEMENT;
-    if( isBlock )
+    out.append( "-> " );
+    Tree body = node.getBody();
+    boolean bAssignment = body instanceof AssignmentTree ||
+                          body instanceof MethodInvocationTree && isMethodInvocationPropertyAssignment( (MethodInvocationTree)body, v );
+    if( bAssignment )
     {
-      out.append( "{ " );
+      out.append( "{" );
     }
-    out.append( node.getBody().accept( this, v ) );
-    if( isBlock )
+    out.append( body.accept( this, v ) );
+    if( bAssignment )
     {
-      out.append( " }" );
+      out.append( "}" );
     }
     return out.toString();
   }
@@ -1744,16 +1795,37 @@ public class GosuVisitor implements TreeVisitor<String, Object>
     {
       out.append( " : " ).append( retType );
     }
+
     if( body != null )
     {
+      boolean bSynchronized = modifiers.getFlags().contains( Modifier.SYNCHRONIZED );
+      if( bSynchronized )
+      {
+        out.append( "{\n" );
+        pushIndent();
+        appendIndent( out );
+        String lock = modifiers.getFlags().contains( Modifier.STATIC ) ? _topLevelClass.getSimpleName().toString() : "this";
+        out.append( "using(" ).append( lock ).append( " as IMonitorLock)" );
+      }
+
       _skipBlockScope = true;
       out.append( body.accept( this, v ) );
+
+      if( bSynchronized )
+      {
+        popIndent();
+        appendIndent( out );
+        out.append( "}\n" );
+      }
     }
-    Tree defaultValue = node.getDefaultValue();
-    if( defaultValue != null )
+    else
     {
-      out.append( " = " );
-      out.append( defaultValue.accept( this, v ) );
+      Tree defaultValue = node.getDefaultValue();
+      if( defaultValue != null )
+      {
+        out.append( " = " );
+        out.append( defaultValue.accept( this, v ) );
+      }
     }
     _symTable.popLocalScope();
     return out.toString();
@@ -1863,7 +1935,8 @@ public class GosuVisitor implements TreeVisitor<String, Object>
         continue;
       }
       String mod = modifier.toString();
-      if( !"default".equals( mod ) )
+      if( !"default".equals( mod ) &&
+          !"synchronized".equals( mod ) )
       {
         out.append( mod );
         out.append( " " );

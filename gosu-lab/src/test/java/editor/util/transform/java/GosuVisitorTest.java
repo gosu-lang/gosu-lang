@@ -112,6 +112,10 @@ public class GosuVisitorTest extends TestCase {
     verify("TestGenerics");
   }
 
+  public void testAssignmentInLambda() {
+    verify("AssignmentInLambda");
+  }
+
   private void verifyNoOutput(String baseName) {
     try {
       String out = helper.transform(folder + baseName + ".javax");

@@ -1,0 +1,15 @@
+package gw.util.transform.java.JavaClasses;
+
+
+public class AssignmentInLambda {
+  String _str;
+
+  void asdf() {
+    Runnable r = () -> setStr( "" );
+    r = () -> this.setStr( "" );
+    r = () -> _str = "";
+  }
+
+  String getStr() { return null; }
+  void setStr( String str ) {}
+}

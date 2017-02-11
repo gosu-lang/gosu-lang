@@ -24,19 +24,17 @@ class TestJava8  {
     function testLambda() {
         callA(\ x_0: int, y: int -> x_0 + y)
         callA(\ x_1, y_0 -> x_1 + y_0)
-        callA(\ a, b -> {  {
+        callA(\ a, b ->  {
             return a + b
-        }
- })
-        callB(\  -> System.out.print("yay"))
-        callB(\  -> {  {
+        })
+        callB(\ -> System.out.print("yay"))
+        callB(\ ->  {
             System.out.print("yay")
-        }
- })
+        })
     }
 
     function testIntersectionTypeCast() {
-        var s = \  -> System.out.println("intersection") as Runnable & Serializable
+        var s = \ -> System.out.println("intersection") as Runnable & Serializable
     }
 
     @Target({ElementType.TYPE_USE})
