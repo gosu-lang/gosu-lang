@@ -106,7 +106,7 @@ class Errant_MethodDeclarationTest {
     property set X(x : int) {  _x = x }
   }  //## issuekeys: MSG_EXPECTING_RIGHTBRACE_STMTBLOCK
   function m45() {
-    delegate myList represents List = new ArrayList()  //## issuekeys: MSG_UNEXPECTED_TOKEN, MSG_NOT_A_STATEMENT, MSG_BAD_IDENTIFIER_NAME, MSG_UNEXPECTED_TOKEN, MSG_UNEXPECTED_TOKEN, MSG_UNEXPECTED_TOKEN
+    delegate myList represents List = new ArrayList()  //## issuekeys: MSG_UNEXPECTED_TOKEN, MSG_NOT_A_STATEMENT, MSG_BAD_IDENTIFIER_NAME, MSG_NOT_A_STATEMENT, MSG_BAD_IDENTIFIER_NAME, MSG_UNEXPECTED_TOKEN, MSG_UNEXPECTED_TOKEN
   }
   function m46() {
     class C {}  //## issuekeys: MSG_UNEXPECTED_TOKEN, MSG_UNEXPECTED_TOKEN

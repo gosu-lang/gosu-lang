@@ -16,6 +16,9 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Type;
 import java.lang.annotation.Annotation;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 public class ConstructorJavaClassConstructor implements IJavaClassConstructor, IJavaClassBytecodeConstructor {
   private Constructor _ctor;
@@ -45,6 +48,22 @@ public class ConstructorJavaClassConstructor implements IJavaClassConstructor, I
   }
 
   @Override
+  public List<Parameter> getParameterInfos()
+  {
+    java.lang.reflect.Parameter[] params = _ctor.getParameters();
+    if( params != null )
+    {
+      List<Parameter> paramInfos = new ArrayList<>();
+      for( java.lang.reflect.Parameter p: params )
+      {
+        paramInfos.add( new Parameter( p.getName(), p.getModifiers() ) );
+      }
+      return paramInfos;
+    }
+    return Collections.emptyList();
+  }
+
+  @Override
   public int getModifiers() {
     return _ctor.getModifiers();
   }
@@ -56,7 +75,7 @@ public class ConstructorJavaClassConstructor implements IJavaClassConstructor, I
 
   @Override
   public IParameterInfo[] convertGenericParameterTypes(IFeatureInfo container, TypeVarToTypeMap actualParamByVarName) {
-    return JavaMethodInfo.convertGenericParameterTypes(container, actualParamByVarName, getGenericParameterTypes(), getEnclosingClass());
+    return JavaMethodInfo.convertGenericParameterTypes(container, actualParamByVarName, getGenericParameterTypes(), getEnclosingClass(), getParameterInfos());
   }
 
   private IJavaClassType[] getGenericParameterTypes() {

@@ -12,7 +12,7 @@ import gw.lang.reflect.IType;
 import gw.lang.reflect.java.IJavaClassInfo;
 import gw.lang.reflect.java.IJavaType;
 import java.awt.EventQueue;
-import java.util.Collections;
+import java.util.Arrays;
 import javax.swing.JComponent;
 import javax.tools.DiagnosticCollector;
 import javax.tools.JavaFileObject;
@@ -83,7 +83,7 @@ public class JavaTypeFactory implements ITypeFactory
     DiagnosticCollector<JavaFileObject> errorHandler = new DiagnosticCollector<>();
     IJavaParser javaParser = GosuParserFactory.getInterface( IJavaParser.class );
     StringJavaFileObject fileObj = new StringJavaFileObject( type.getName(), strText );
-    javaParser.compile( fileObj, type.getName(), Collections.singleton( "-Xlint:unchecked" ), errorHandler );
+    javaParser.compile( fileObj, type.getName(), Arrays.asList( "-Xlint:unchecked", "-parameters" ), errorHandler );
     EventQueue.invokeLater(
       () ->
       {

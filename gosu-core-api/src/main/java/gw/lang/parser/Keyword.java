@@ -33,7 +33,7 @@ public class Keyword implements CharSequence
   public static final Keyword KW_where = addReservedWord( "where", true );
   public static final Keyword KW_var = addReservedWord( "var" );
   public static final Keyword KW_delegate = addReservedWord( "delegate" );
-  public static final Keyword KW_represents = addReservedWord( "represents" );
+  public static final Keyword KW_represents = addReservedWord( "represents", true );
   public static final Keyword KW_as = addReservedWord( "as", true );
   public static final Keyword KW_typeof = addReservedWord( "typeof" );
   public static final Keyword KW_statictypeof = addReservedWord( "statictypeof" );

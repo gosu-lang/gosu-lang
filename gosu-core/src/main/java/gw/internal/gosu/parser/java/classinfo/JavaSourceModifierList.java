@@ -5,7 +5,10 @@
 package gw.internal.gosu.parser.java.classinfo;
 
 import com.sun.source.tree.AnnotationTree;
+import com.sun.source.tree.MethodTree;
 import com.sun.source.tree.ModifiersTree;
+import com.sun.source.tree.VariableTree;
+import com.sun.tools.javac.code.Flags;
 import com.sun.tools.javac.tree.JCTree;
 import gw.lang.reflect.IAnnotationInfo;
 import gw.lang.reflect.Modifier;
@@ -56,6 +59,18 @@ public class JavaSourceModifierList implements IModifierList {
     }
     if (declaringOwner.getEnclosingClass() == null && !hasModifier(Modifier.PUBLIC) && !hasModifier(Modifier.PROTECTED) && !hasModifier(Modifier.PRIVATE)) {
       _modifiers |= Modifier.INTERNAL;
+    }
+    if( owner instanceof JavaSourceMethod )
+    {
+      // var args
+      for( VariableTree p: ((MethodTree)((JavaSourceMethod)owner).getTree()).getParameters() )
+      {
+        if( p instanceof JCTree.JCVariableDecl && (((JCTree.JCVariableDecl)p).mods.flags & Flags.VARARGS) != 0 )
+        {
+          _modifiers |= 0x00000080; // from Modifier.VARARGS non-public id
+          break;
+        }
+      }
     }
   }
 

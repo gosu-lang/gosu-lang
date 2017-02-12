@@ -5,7 +5,9 @@
 package gw.internal.gosu.parser;
 
 import gw.internal.ext.org.objectweb.asm.Opcodes;
+import gw.internal.gosu.parser.expressions.NewExpression;
 import gw.internal.gosu.parser.java.classinfo.JavaSourceDefaultValue;
+import gw.lang.parser.IExpression;
 import gw.lang.reflect.java.JavaSourceElement;
 import gw.lang.Deprecated;
 import gw.lang.GosuShop;
@@ -37,6 +39,7 @@ import gw.lang.reflect.java.IJavaMethodDescriptor;
 import gw.lang.reflect.java.IJavaMethodInfo;
 import gw.lang.reflect.java.JavaExceptionInfo;
 
+import gw.lang.reflect.java.Parameter;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
@@ -597,7 +600,7 @@ public class JavaMethodInfo extends JavaBaseFeatureInfo implements IJavaMethodIn
   private IParameterInfo[] convertParameterDescriptors()
   {
     IJavaClassType[] paramTypes = _md.getMethod().getGenericParameterTypes();
-    return convertGenericParameterTypes( this, initTypeVarMap(), paramTypes, _md.getMethod().getEnclosingClass() );
+    return convertGenericParameterTypes( this, initTypeVarMap(), paramTypes, _md.getMethod().getEnclosingClass(), _md.getMethod().getParameterInfos() );
   }
 
   private TypeVarToTypeMap initTypeVarMap()
@@ -630,7 +633,8 @@ public class JavaMethodInfo extends JavaBaseFeatureInfo implements IJavaMethodIn
   static IParameterInfo[] convertGenericParameterTypes( IFeatureInfo container,
                                                         TypeVarToTypeMap actualParamByVarName,
                                                         IJavaClassType[] paramTypes,
-                                                        IJavaClassInfo declaringClass )
+                                                        IJavaClassInfo declaringClass,
+                                                        List<Parameter> paramInfos )
   {
     if( paramTypes == null )
     {
@@ -656,10 +660,45 @@ public class JavaMethodInfo extends JavaBaseFeatureInfo implements IJavaMethodIn
 
       parameterType = TypeLord.replaceRawGenericTypesWithDefaultParameterizedTypes( parameterType );
 
-      pi[i] = new SimpleParameterInfo( container, parameterType, i );
+      pi[i] = new SimpleParameterInfo( container, parameterType, i, paramInfos.isEmpty() ? null : paramInfos.get( i ).getName() );
     }
     return pi;
 
+  }
+
+  private boolean isVarArgs()
+  {
+    return (getMethod().getModifiers() & 0x00000080) != 0;
+  }
+
+  @Override
+  public IExpression[] getDefaultValueExpressions()
+  {
+    IParameterInfo[] parameters = getParameters();
+    IExpression[] defaults = new IExpression[parameters.length];
+    if( !isVarArgs() )
+    {
+      return defaults;
+    }
+
+    NewExpression expr = new NewExpression();
+    IType type = parameters[parameters.length - 1].getFeatureType();
+    type = TypeLord.replaceTypeVariableTypeParametersWithBoundingTypes( type );
+    expr.setType( type );
+    defaults[parameters.length-1] = expr;
+
+    return defaults;
+  }
+
+  @Override
+  public String[] getParameterNames()
+  {
+    List<String> names = new ArrayList<>();
+    for( IParameterInfo pi: getParameters() )
+    {
+      names.add( pi.getName() );
+    }
+    return names.toArray( new String[names.size()] );
   }
 
   @Override

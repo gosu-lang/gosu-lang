@@ -128,14 +128,18 @@ public abstract class JavaSourceType extends AbstractJavaClassInfo implements IJ
 
   public static IJavaClassInfo createTopLevel( ISourceFileHandle fileHandle, IModule gosuModule )
   {
+    return createTopLevel( fileHandle, gosuModule, null );
+  }
+  public static IJavaClassInfo createTopLevel( ISourceFileHandle fileHandle, IModule gosuModule, DiagnosticCollector<JavaFileObject> errorHandler )
+  {
     List<CompilationUnitTree> trees = new ArrayList<>();
     SourcePositions[] sourcePositions = {null};
-    if( !parseJavaFile( fileHandle, trees, sourcePositions, null ) )
+    if( !parseJavaFile( fileHandle, trees, sourcePositions, errorHandler, null ) )
     {
       return new JavaSourceUnresolvedClass( fileHandle, gosuModule );
     }
 
-    ClassTree def = getTopLevelDefinition( trees, fileHandle.getFileName() );
+    ClassTree def = getTopLevelDefinition( trees, fileHandle.getRelativeName() );
     if( def != null )
     {
       JavaSourceType result = null;
@@ -164,16 +168,15 @@ public abstract class JavaSourceType extends AbstractJavaClassInfo implements IJ
     }
   }
 
-  private static ClassTree getTopLevelDefinition( List<CompilationUnitTree> trees, String fileName )
+  private static ClassTree getTopLevelDefinition( List<CompilationUnitTree> trees, String relativeName )
   {
-    String name = fileName.substring( 0, fileName.indexOf( '.' ) );
     for( CompilationUnitTree cut: trees )
     {
       //## todo: support multiple top-level classes declared in a single java source file
       for( Tree t : cut.getTypeDecls() )
       {
         if( t instanceof ClassTree &&
-            name.equals( ((ClassTree)t).getSimpleName().toString() ) )
+            relativeName.equals( ((ClassTree)t).getSimpleName().toString() ) )
         {
           return (ClassTree)t;
         }
@@ -182,10 +185,10 @@ public abstract class JavaSourceType extends AbstractJavaClassInfo implements IJ
     return null;
   }
 
-  private static boolean parseJavaFile( ISourceFileHandle src, List<CompilationUnitTree> trees, SourcePositions[] sourcePositions, DocTrees[] docTrees )
+  private static boolean parseJavaFile( ISourceFileHandle src, List<CompilationUnitTree> trees, SourcePositions[] sourcePositions, DiagnosticCollector<JavaFileObject> errorHandler, DocTrees[] docTrees )
   {
     IJavaParser javaParser = GosuParserFactory.getInterface( IJavaParser.class );
-    return javaParser.parseText( src.getSource().getSource().replace( "\r\n", "\n" ), trees, sp -> sourcePositions[0] = sp, dc -> {if( docTrees != null ) docTrees[0] = dc;}, null );
+    return javaParser.parseText( src.getSource().getSource().replace( "\r\n", "\n" ), trees, sp -> sourcePositions[0] = sp, dc -> {if( docTrees != null ) docTrees[0] = dc;}, errorHandler );
   }
 
   private static JavaSourceType createInner( ClassTree typeDecl, JavaSourceType containingClass )
@@ -1391,7 +1394,7 @@ public abstract class JavaSourceType extends AbstractJavaClassInfo implements IJ
   {
     IJavaParser javaParser = GosuParserFactory.getInterface( IJavaParser.class );
     DiagnosticCollector<JavaFileObject> errorHandler = new DiagnosticCollector<>();
-    ClassJavaFileObject fileObj = javaParser.compile( getName(), Collections.singleton( "-Xlint:unchecked" ), errorHandler );
+    ClassJavaFileObject fileObj = javaParser.compile( getName(), Arrays.asList( "-Xlint:unchecked", "-parameters" ), errorHandler );
     if( fileObj != null )
     {
       return fileObj.getBytes();

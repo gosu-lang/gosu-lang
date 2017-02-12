@@ -11,11 +11,12 @@ import gw.lang.javadoc.JavaHasParams;
 import gw.lang.reflect.IAttributedFeatureInfo;
 import gw.lang.reflect.IGenericMethodInfo;
 import gw.lang.reflect.IMethodInfo;
+import gw.lang.reflect.IOptionalParamCapable;
 import gw.lang.reflect.gs.ICanHaveAnnotationDefault;
 
 import java.lang.reflect.Method;
 
-public interface IJavaMethodInfo extends IAttributedFeatureInfo, IMethodInfo, IGenericMethodInfo, JavaHasParams, ICanHaveAnnotationDefault
+public interface IJavaMethodInfo extends IAttributedFeatureInfo, IMethodInfo, IOptionalParamCapable, IGenericMethodInfo, JavaHasParams, ICanHaveAnnotationDefault
 {
   String getShortDescription();
 

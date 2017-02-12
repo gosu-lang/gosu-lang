@@ -5,21 +5,21 @@
 package gw.internal.gosu.parser;
 
 import gw.internal.gosu.parser.java.classinfo.JavaSourceUtil;
-import gw.lang.parser.TypeVarToTypeMap;
 import gw.lang.reflect.IAnnotationInfo;
 import gw.lang.reflect.java.*;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.FunctionType;
 import gw.lang.reflect.gs.IGenericTypeVariable;
+import gw.lang.reflect.java.Parameter;
 import gw.lang.reflect.module.IModule;
 
-import java.lang.reflect.Method;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.TypeVariable;
-import java.lang.reflect.Type;
+import java.lang.reflect.*;
 import java.lang.annotation.Annotation;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 public class MethodJavaClassMethod implements IJavaClassMethod, IJavaClassBytecodeMethod {
   private Method _method;
@@ -43,6 +43,22 @@ public class MethodJavaClassMethod implements IJavaClassMethod, IJavaClassByteco
   @Override
   public String getName() {
     return _method.getName();
+  }
+
+  @Override
+  public List<Parameter> getParameterInfos()
+  {
+    java.lang.reflect.Parameter[] params = _method.getParameters();
+    if( params != null )
+    {
+      List<Parameter> paramInfos = new ArrayList<>();
+      for( java.lang.reflect.Parameter p: params )
+      {
+        paramInfos.add( new Parameter( p.getName(), p.getModifiers() ) );
+      }
+      return paramInfos;
+    }
+    return Collections.emptyList();
   }
 
   @Override
@@ -153,6 +169,7 @@ public class MethodJavaClassMethod implements IJavaClassMethod, IJavaClassByteco
     return TypeJavaClassType.createType(_method.getGenericReturnType(), _module);
   }
 
+  @SuppressWarnings("UnusedDeclaration")
   public Class[] getJavaParameterTypes() {
     return _method.getParameterTypes();
   }

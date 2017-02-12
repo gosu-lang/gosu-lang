@@ -14,6 +14,7 @@ import java.util.List;
 public class SimpleParameterInfo extends BaseFeatureInfo implements IParameterInfo
 {
   private IType _type;
+  private String _name;
   private int _parentIndex;
 
   private IDocRef<IParamNode> _docs = new IDocRef<IParamNode>() {
@@ -31,16 +32,25 @@ public class SimpleParameterInfo extends BaseFeatureInfo implements IParameterIn
    */
   public SimpleParameterInfo(IFeatureInfo container, IType type, int parentIndex)
   {
+    this( container, type, parentIndex, null );
+  }
+  public SimpleParameterInfo(IFeatureInfo container, IType type, int parentIndex, String name)
+  {
     super( container );
     _parentIndex = parentIndex;
     if (type == null) {
       throw new IllegalArgumentException("Type cannot be null");
     }
     _type = type;
+    _name = name;
   }
 
   public String getName()
   {
+    if( _name != null && !_name.isEmpty() )
+    {
+      return _name;
+    }
     return getDocs() != null ? getDocs().getName() : getTypeName( _type );
   }
 

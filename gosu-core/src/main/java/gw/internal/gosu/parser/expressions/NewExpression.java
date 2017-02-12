@@ -280,13 +280,13 @@ public class NewExpression extends Expression implements INewExpression
     {
       type = JavaTypes.STRING();
     }
-    else if( !type.isPrimitive() &&
-             type != JavaTypes.STRING() &&
-             !TypeSystem.get( IAnnotationInfo.class ).isAssignableFrom( type ) &&
-             !JavaTypes.CLASS().isAssignableFrom( type  ) )
-    {
-      throw new IllegalStateException( " Illegal type: " + type.getName() + "  A compile-time constant expression must be either primitive, String, Class, or Enum." );
-    }
+//    else if( !type.isPrimitive() &&
+//             type != JavaTypes.STRING() &&
+//             !TypeSystem.get( IAnnotationInfo.class ).isAssignableFrom( type ) &&
+//             !JavaTypes.CLASS().isAssignableFrom( type  ) )
+//    {
+//      throw new IllegalStateException( " Illegal type: " + type.getName() + "  A compile-time constant expression must be either primitive, String, Class, or Enum." );
+//    }
     Class<?> cls = ((IJavaType)type).getBackingClass();
     cls = cls != null ? cls : getClassForRareCaseWhenRunningIJEditorProjectWhereGosuCoreJavaTypesAreSourceBased( type );
     return cls;

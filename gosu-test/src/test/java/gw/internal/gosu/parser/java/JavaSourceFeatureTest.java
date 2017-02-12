@@ -7,6 +7,7 @@ package gw.internal.gosu.parser.java;
 import gw.internal.gosu.parser.java.classinfo.CompileTimeExpressionParser;
 import gw.internal.gosu.parser.java.classinfo.JavaSourceField;
 import gw.internal.gosu.parser.java.classinfo.JavaSourceType;
+import gw.internal.gosu.parser.java.classinfo.JavaSourceUnresolvedClass;
 import gw.lang.parser.IExpression;
 import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.gs.ClassType;
@@ -16,6 +17,9 @@ import gw.lang.reflect.java.IJavaClassInfo;
 import gw.lang.reflect.java.IJavaClassMethod;
 import gw.lang.reflect.java.IJavaClassType;
 import gw.test.TestClass;
+import javax.tools.Diagnostic;
+import javax.tools.DiagnosticCollector;
+import javax.tools.JavaFileObject;
 
 
 public class JavaSourceFeatureTest extends TestClass {
@@ -133,7 +137,8 @@ public class JavaSourceFeatureTest extends TestClass {
             "} \n"
     );
     IJavaClassInfo[] declaredClasses = type.getDeclaredClasses();
-    assertEquals(0, declaredClasses.length);
+    assertEquals(1, declaredClasses.length);
+    assertEquals("<error>", declaredClasses[0].getSimpleName());
   }
 
   public void testWithMergedClassName_Inner() {
@@ -149,15 +154,15 @@ public class JavaSourceFeatureTest extends TestClass {
   }
 
   public void testWithWrongModifier_Inner() {
-    JavaSourceType type = (JavaSourceType) createSourceType(
+    DiagnosticCollector<JavaFileObject> errorHandler = new DiagnosticCollector<>();
+    createSourceType( errorHandler,
         "package foo; \n" +
             "public class TestClass { \n" +
             "  pub class Inner { \n" +
             "  } \n" +
             "} \n"
     );
-    IJavaClassInfo[] declaredClasses = type.getDeclaredClasses();
-    assertEquals(1, declaredClasses.length);
+    assertErrorLine( errorHandler, 3, 5 );
   }
 
   public void testMisspelledClassKeyword_Inner() {
@@ -227,9 +232,7 @@ public class JavaSourceFeatureTest extends TestClass {
             "} \n"
     );
     IJavaClassField[] declaredFields = type.getDeclaredFields();
-    assertEquals(1, declaredFields.length);
-    assertEquals("s", declaredFields[0].getName());
-    assertEquals("java.lang.String", declaredFields[0].getType().getName());
+    assertEquals(2, declaredFields.length);
   }
 
   public void testFieldWithMissingType() {
@@ -244,16 +247,6 @@ public class JavaSourceFeatureTest extends TestClass {
     assertEquals("s", declaredFields[0].getName());
     assertEquals(IJavaClassType.ERROR_TYPE, declaredFields[0].getGenericType());
     assertEquals(IJavaClassType.ERROR_TYPE, declaredFields[0].getType());
-  }
-
-  public void testFieldWithWrongName() {
-    JavaSourceType type = (JavaSourceType) createSourceType(
-        "package foo; \n" +
-            "class TestClass { \n" +
-            "  MyString s.s = \"aaa\"; \n" +
-            "} \n"
-    );
-    assertEquals(0, type.getDeclaredFields().length);
   }
 
   public void testFieldWithDiamond() {
@@ -302,6 +295,35 @@ public class JavaSourceFeatureTest extends TestClass {
     assertEquals("java.util.List<java.lang.String>", declaredMethods[0].getGenericParameterTypes()[1].getName());
   }
 
+  public void testVarArgsMethod() {
+    JavaSourceType type = (JavaSourceType)createSourceType(
+        "package foo; \n" +
+            "public class TestClass {\n" +
+            "  public int[] varargInts( int... ints ) { \n" +
+            "    return ints;        \n" +
+            "  }\n" +
+            "  \n" +
+            "  public String[] varargStrings( String... strs ) { \n" +
+            "    return strs;        \n" +
+            "  }\n" +
+            "}\n"
+    );
+    IJavaClassMethod[] declaredMethods = type.getDeclaredMethods();
+    assertEquals( 2, declaredMethods.length );
+
+    IJavaClassMethod varargInts = declaredMethods[0];
+    assertEquals( "varargInts", varargInts.getName() );
+    assertEquals( "int[]", varargInts.getReturnType().getName() );
+    assertEquals( "int[]", varargInts.getGenericParameterTypes()[0].getName() );
+    assertTrue( (varargInts.getModifiers() & 0x00000080) != 0 );
+
+    IJavaClassMethod varargStrings = declaredMethods[1];
+    assertEquals( "varargStrings", varargStrings.getName() );
+    assertEquals( "java.lang.String[]", varargStrings.getReturnType().getName() );
+    assertEquals( "java.lang.String[]", varargStrings.getGenericParameterTypes()[0].getName() );
+    assertTrue( (varargStrings.getModifiers() & 0x00000080) != 0 );
+  }
+
   public void testMethodWithMissingName() {
     JavaSourceType type = (JavaSourceType) createSourceType(
         "package foo; \n" +
@@ -315,7 +337,8 @@ public class JavaSourceFeatureTest extends TestClass {
   }
 
   public void testMethodWithWrongModifier() {
-    JavaSourceType type = (JavaSourceType) createSourceType(
+    DiagnosticCollector<JavaFileObject> errorHandler = new DiagnosticCollector<>();
+    createSourceType( errorHandler,
         "package foo; \n" +
             "import java.util.*; \n" +
             "class TestClass { \n" +
@@ -323,12 +346,7 @@ public class JavaSourceFeatureTest extends TestClass {
             "  } \n" +
             "} \n"
     );
-    IJavaClassMethod[] declaredMethods = type.getDeclaredMethods();
-    assertEquals(1, declaredMethods.length);
-    assertEquals("getValue", declaredMethods[0].getName());
-    assertEquals("java.lang.String", declaredMethods[0].getReturnType().getName());
-    assertEquals("int", declaredMethods[0].getGenericParameterTypes()[0].getName());
-    assertEquals("java.util.List<java.lang.String>", declaredMethods[0].getGenericParameterTypes()[1].getName());
+    assertErrorLine( errorHandler, 4 );
   }
 
   public void testMethodWithMissingReturnType() {
@@ -341,11 +359,7 @@ public class JavaSourceFeatureTest extends TestClass {
             "} \n"
     );
     IJavaClassMethod[] declaredMethods = type.getDeclaredMethods();
-    assertEquals(1, declaredMethods.length);
-    assertEquals("getValue", declaredMethods[0].getName());
-    assertEquals(IJavaClassInfo.ERROR_TYPE, declaredMethods[0].getReturnClassInfo());
-    assertEquals("int", declaredMethods[0].getGenericParameterTypes()[0].getName());
-    assertEquals("java.util.List<java.lang.String>", declaredMethods[0].getGenericParameterTypes()[1].getName());
+    assertEquals(0, declaredMethods.length);
   }
 
   public void testMethodWithMissingParameterType() {
@@ -377,7 +391,7 @@ public class JavaSourceFeatureTest extends TestClass {
   }
 
   public void testMergedClassName_InnerExtendsCausesCyclicInheritance() {
-    JavaSourceType type = (JavaSourceType) createSourceType(
+    IJavaClassType type = createSourceType(
         "package foo; \n" +
             "public classTestClass {\n" +
             "    private class Derived extends TestClass {\n" +
@@ -385,7 +399,7 @@ public class JavaSourceFeatureTest extends TestClass {
             "}"
 
     );
-    assertNull(type.getSuperclass());
+    assertTrue( type instanceof JavaSourceUnresolvedClass );
   }
 
   public void testInnerCyclicInheritance() {
@@ -565,14 +579,48 @@ public class JavaSourceFeatureTest extends TestClass {
     }
   }*/
 
-  // private
+  public void assertErrorLine( DiagnosticCollector<JavaFileObject> errorHandler, int... lines )
+  {
+    verify_actual:
+    for( Diagnostic d: errorHandler.getDiagnostics() )
+    {
+      for( int line: lines )
+      {
+        if( d.getLineNumber() == line )
+        {
+          continue verify_actual;
+        }
+      }
+      fail( "Found unexpected error on line:" + d.getLineNumber() );
+    }
 
-  public IJavaClassInfo createSourceType(String source) {
-    StringSourceFileHandle handle = new StringSourceFileHandle("foo.TestClass", source, false, ClassType.JavaClass);
-    IJavaClassInfo type = JavaSourceType.createTopLevel(handle, TypeSystem.getCurrentModule());
-    assertEquals("foo.TestClass", type.getName());
-    assertEquals("foo", type.getNamespace());
-    return type;
+    verify_expected:
+    for( int line: lines )
+    {
+      for( Diagnostic d: errorHandler.getDiagnostics() )
+      {
+        if( line == d.getLineNumber() )
+        {
+          continue verify_expected;
+        }
+      }
+      fail( "Expected error missing for line: " + line );
+    }
   }
 
+  // private
+
+  public IJavaClassInfo createSourceType( String source )
+  {
+    return createSourceType( null, source );
+  }
+
+  public IJavaClassInfo createSourceType( DiagnosticCollector<JavaFileObject> errorHandler, String source )
+  {
+    StringSourceFileHandle handle = new StringSourceFileHandle( "foo.TestClass", source, false, ClassType.JavaClass );
+    IJavaClassInfo type = JavaSourceType.createTopLevel( handle, TypeSystem.getCurrentModule(), errorHandler );
+    assertEquals( "foo.TestClass", type.getName() );
+    assertEquals( "foo", type.getNamespace() );
+    return type;
+  }
 }

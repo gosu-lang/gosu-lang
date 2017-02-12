@@ -10,17 +10,25 @@ import gw.lang.reflect.IFeatureInfo;
 import gw.lang.reflect.IParameterInfo;
 import gw.lang.reflect.java.IJavaClassConstructor;
 import gw.lang.reflect.java.IJavaClassInfo;
-import gw.lang.reflect.module.IModule;
+import gw.lang.reflect.java.Parameter;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
+import java.util.Collections;
+import java.util.List;
 
 public class JavaSourceDefaultConstructor implements IJavaClassConstructor {
   private IJavaClassInfo _classInfo;
 
   public JavaSourceDefaultConstructor(IJavaClassInfo classInfo) {
     _classInfo = classInfo;
+  }
+
+  @Override
+  public List<Parameter> getParameterInfos()
+  {
+    return Collections.emptyList();
   }
 
   @Override

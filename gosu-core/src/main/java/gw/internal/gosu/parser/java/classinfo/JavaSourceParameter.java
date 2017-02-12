@@ -11,9 +11,10 @@ import gw.lang.reflect.java.IJavaAnnotatedElement;
 import gw.lang.reflect.java.IJavaClassInfo;
 import gw.lang.reflect.java.IJavaClassType;
 
+import gw.lang.reflect.java.Parameter;
 import java.lang.annotation.Annotation;
 
-public class JavaSourceParameter implements IJavaAnnotatedElement {
+public class JavaSourceParameter extends Parameter implements IJavaAnnotatedElement {
   private JavaSourceMethod _method;
   private VariableTree _parameterTree;
   private IJavaClassType _genericType;
@@ -21,6 +22,7 @@ public class JavaSourceParameter implements IJavaAnnotatedElement {
   private IJavaClassInfo _type;
 
   public JavaSourceParameter(JavaSourceMethod sourceJavaMethod, VariableTree parameterTree) {
+    super( parameterTree.getName().toString(), 0 );
     _parameterTree = parameterTree;
     _method = sourceJavaMethod;
   }
@@ -49,7 +51,7 @@ public class JavaSourceParameter implements IJavaAnnotatedElement {
   }
 
   public String getName() {
-    return null;
+    return _parameterTree.getName().toString();
   }
 
   public IModifierList getModifierList() {

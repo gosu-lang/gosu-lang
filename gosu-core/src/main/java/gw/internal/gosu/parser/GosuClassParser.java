@@ -2882,12 +2882,6 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
         fs.setDynamicFunctionSymbol( dfs );
         pushStatement( fs );
 
-        if( bInterface && !match( null, null, '{', true ) )
-        {
-          modifiers.addModifiers( Modifier.ABSTRACT );
-          dfs.setAbstract( true );
-        }
-
         if( dfs != null )
         {
           dfs.setClassMember( true );

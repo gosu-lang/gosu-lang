@@ -432,10 +432,17 @@ public class SymbolPopup extends EditorBasedPopup implements ISelectionPopup
       return "()";
     }
 
+    String[] names = type.getParameterNames();
+
     String strParams = "(";
     for( int i = 0; i < argTypes.length; i++ )
     {
-      strParams += (i == 0 ? "" : ", ") + getTypeDisplayText( argTypes[i] );
+      String name = "";
+      if( names != null && names.length > 0 && names[i] != null )
+      {
+        name = names[i] + ": ";
+      }
+      strParams += (i == 0 ? "" : ", ") + name + getTypeDisplayText( argTypes[i] );
     }
     strParams += ")";
 

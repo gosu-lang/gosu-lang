@@ -35,8 +35,7 @@ public class PLGosuBytecodeSuite extends Suite
 
   static boolean isByteCodeTest(IType type)
   {
-    return !type.getNamespace().equals("gw.internal.gosu.parser.java") &&
-           !isInstrumentationSuiteOnlyTest( type );
+    return !isInstrumentationSuiteOnlyTest( type );
   }
 
   static boolean isInstrumentationSuiteOnlyTest( IType type )

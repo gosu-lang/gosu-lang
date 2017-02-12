@@ -13825,12 +13825,20 @@ public final class GosuParser extends ParserBase implements IGosuParser
           dfs = new DynamicFunctionSymbol( _symTable, strFunctionName, type, params, (Statement)null );
         }
         dfs.setScriptPart( getScriptPart() );
+
+        if( gsClass != null && gsClass.isInterface() && !match( null, null, '{', true ) )
+        {
+          modifiers.addModifiers( Modifier.ABSTRACT );
+          dfs.setAbstract( true );
+        }
+
         dfs.setModifierInfo( modifiers );
         dfs.setAnnotationDefault( annotationDefault );
         if( element instanceof FunctionStatement )
         {
           dfs.setDeclFunctionStmt( (FunctionStatement)element );
         }
+
         verifyFunction( dfs, element );
 
         int iDupIndex = nextIndexOfErrantDuplicateDynamicSymbol( dfs, _dfsDeclByName.get( dfs.getDisplayName() ), true );

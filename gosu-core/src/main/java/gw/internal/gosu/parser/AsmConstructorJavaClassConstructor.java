@@ -19,6 +19,7 @@ import gw.lang.reflect.java.IJavaClassConstructor;
 import gw.lang.reflect.java.IJavaClassInfo;
 import gw.lang.reflect.java.IJavaClassType;
 import gw.lang.reflect.java.JavaSourceElement;
+import gw.lang.reflect.java.Parameter;
 import gw.lang.reflect.java.asm.AsmAnnotation;
 import gw.lang.reflect.java.asm.AsmMethod;
 import gw.lang.reflect.java.asm.AsmType;
@@ -48,6 +49,12 @@ public class AsmConstructorJavaClassConstructor extends JavaSourceElement implem
   }
 
   @Override
+  public List<Parameter> getParameterInfos()
+  {
+    return _ctor.getParameterInfos();
+  }
+
+  @Override
   public int getModifiers() {
     return _ctor.getModifiers();
   }
@@ -59,7 +66,7 @@ public class AsmConstructorJavaClassConstructor extends JavaSourceElement implem
 
   @Override
   public IParameterInfo[] convertGenericParameterTypes( IFeatureInfo container, TypeVarToTypeMap actualParamByVarName ) {
-    return JavaMethodInfo.convertGenericParameterTypes( container, actualParamByVarName, getGenericParameterTypes(), getEnclosingClass() );
+    return JavaMethodInfo.convertGenericParameterTypes( container, actualParamByVarName, getGenericParameterTypes(), getEnclosingClass(), getParameterInfos() );
   }
 
   private IJavaClassType[] getGenericParameterTypes() {

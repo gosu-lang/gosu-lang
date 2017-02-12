@@ -26,6 +26,7 @@ import gw.lang.reflect.java.IJavaClassTypeVariable;
 import gw.lang.reflect.java.IJavaMethodInfo;
 import gw.lang.reflect.java.ITypeInfoResolver;
 import gw.lang.reflect.java.JavaSourceElement;
+import gw.lang.reflect.java.Parameter;
 import gw.lang.reflect.module.IModule;
 
 import javax.lang.model.element.Name;
@@ -109,6 +110,12 @@ public class JavaSourceMethod extends JavaSourceElement implements IJavaClassMet
 
   public String getName() {
     return _method.getName().toString();
+  }
+
+  @Override
+  public List<Parameter> getParameterInfos()
+  {
+    return Arrays.asList( getParameters() );
   }
 
   public JavaSourceParameter[] getParameters() {

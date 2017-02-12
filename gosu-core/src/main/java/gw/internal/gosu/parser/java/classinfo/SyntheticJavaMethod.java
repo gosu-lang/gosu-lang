@@ -13,8 +13,11 @@ import gw.lang.reflect.java.IJavaClassMethod;
 import gw.lang.reflect.java.IJavaClassType;
 import gw.lang.reflect.java.IJavaMethodInfo;
 
+import gw.lang.reflect.java.Parameter;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
+import java.util.Collections;
+import java.util.List;
 
 public class SyntheticJavaMethod implements IJavaClassMethod {
 
@@ -75,6 +78,12 @@ public class SyntheticJavaMethod implements IJavaClassMethod {
   @Override
   public String getName() {
     return _name;
+  }
+
+  @Override
+  public List<Parameter> getParameterInfos()
+  {
+    return Collections.emptyList();
   }
 
   @Override

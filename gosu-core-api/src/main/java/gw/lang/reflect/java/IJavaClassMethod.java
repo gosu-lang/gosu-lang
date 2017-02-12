@@ -9,6 +9,7 @@ import gw.lang.reflect.gs.IGenericTypeVariable;
 
 import java.io.Serializable;
 import java.lang.reflect.InvocationTargetException;
+import java.util.List;
 
 public interface IJavaClassMethod extends IJavaAnnotatedElement, Comparable<IJavaClassMethod>, Serializable {
 
@@ -25,8 +26,9 @@ public interface IJavaClassMethod extends IJavaAnnotatedElement, Comparable<IJav
 
   IJavaClassInfo[] getParameterTypes();
 
-
   String getName();
+
+  List<Parameter> getParameterInfos();
 
   int getModifiers();
 

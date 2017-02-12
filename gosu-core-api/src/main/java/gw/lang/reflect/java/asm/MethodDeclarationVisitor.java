@@ -42,4 +42,9 @@ public class MethodDeclarationVisitor extends MethodVisitor {
   public void visitLineNumber( int iLine, Label label ) {
     _asmMethod.assignLineNumber( iLine );
   }
+
+  @Override
+  public void visitParameter( String name, int access ) {
+    _asmMethod.assignParameter( name, access );
+  }
 }

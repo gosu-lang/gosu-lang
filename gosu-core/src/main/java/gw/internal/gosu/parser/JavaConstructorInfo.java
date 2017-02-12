@@ -4,6 +4,8 @@
 
 package gw.internal.gosu.parser;
 
+import gw.internal.gosu.parser.expressions.NewExpression;
+import gw.lang.parser.IExpression;
 import gw.lang.reflect.java.JavaSourceElement;
 import gw.lang.GosuShop;
 import gw.lang.javadoc.IDocRef;
@@ -274,6 +276,41 @@ public class JavaConstructorInfo extends JavaBaseFeatureInfo implements IJavaCon
         Thread.currentThread().setContextClassLoader( previousClassLoader );
       }
     }
+  }
+
+  private boolean isVarArgs()
+  {
+    return (getJavaConstructor().getModifiers() & 0x00000080) != 0;
+  }
+
+  @Override
+  public IExpression[] getDefaultValueExpressions()
+  {
+    IParameterInfo[] parameters = getParameters();
+    IExpression[] defaults = new IExpression[parameters.length];
+    if( !isVarArgs() )
+    {
+      return defaults;
+    }
+
+    NewExpression expr = new NewExpression();
+    IType type = parameters[parameters.length - 1].getFeatureType();
+    type = TypeLord.replaceTypeVariableTypeParametersWithBoundingTypes( type );
+    expr.setType( type );
+    defaults[parameters.length-1] = expr;
+
+    return defaults;
+  }
+
+  @Override
+  public String[] getParameterNames()
+  {
+    List<String> names = new ArrayList<>();
+    for( IParameterInfo pi: getParameters() )
+    {
+      names.add( pi.getName() );
+    }
+    return names.toArray( new String[names.size()] );
   }
 
   @Override

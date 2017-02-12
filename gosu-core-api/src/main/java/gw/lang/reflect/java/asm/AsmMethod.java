@@ -6,6 +6,7 @@ package gw.lang.reflect.java.asm;
 
 import gw.internal.ext.org.objectweb.asm.Type;
 
+import gw.lang.reflect.java.Parameter;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
@@ -21,6 +22,7 @@ public class AsmMethod implements IGeneric {
   private AsmType _returnType;
   private AsmType _genericReturnType;
   private List<AsmType> _parameters;
+  private List<Parameter> _paramInfos;
   private List<AsmType> _genericParameters;
   private List<AsmType> _exceptions;
   private List<AsmType> _genericExceptions;
@@ -40,6 +42,7 @@ public class AsmMethod implements IGeneric {
     _parameters = Collections.emptyList();
     _genericExceptions = Collections.emptyList();
     _genericParameters = Collections.emptyList();
+    _paramInfos = Collections.emptyList();
     _iLine = -1;
     assignTypeFromDesc( desc );
     //noinspection unchecked
@@ -50,14 +53,14 @@ public class AsmMethod implements IGeneric {
   public void update( List<DeclarationPartSignatureVisitor> paramTypes, DeclarationPartSignatureVisitor returnType, List<DeclarationPartSignatureVisitor> exceptionTypes  ) {
     for( DeclarationPartSignatureVisitor v: paramTypes ) {
       if( _genericParameters.isEmpty() ) {
-        _genericParameters = new ArrayList<AsmType>();
+        _genericParameters = new ArrayList<>();
       }
       _genericParameters.add( v.getCurrentType() );
     }
     _genericReturnType = returnType.getCurrentType();
     for( DeclarationPartSignatureVisitor v: exceptionTypes ) {
       if( _genericExceptions.isEmpty() ) {
-        _genericExceptions = new ArrayList<AsmType>();
+        _genericExceptions = new ArrayList<>();
       }
       _genericExceptions.add( v.getCurrentType() );
     }
@@ -121,11 +124,14 @@ public class AsmMethod implements IGeneric {
   public List<AsmType> getExceptions() {
     return _exceptions;
   }
+  @SuppressWarnings("UnusedDeclaration")
   public List<AsmType> getGenericExceptions() {
     return _genericExceptions.isEmpty() ? _exceptions : _genericExceptions;
   }
+  @SuppressWarnings("UnusedDeclaration")
   void initGenericExceptions() {
-    _genericExceptions = new ArrayList<AsmType>( _exceptions.size() );
+    _genericExceptions = new ArrayList<>( _exceptions.size() );
+    //noinspection Convert2streamapi
     for( AsmType exception : _exceptions ) {
       _genericExceptions.add( exception.copyNoArrayOrParameters() );
     }
@@ -134,6 +140,7 @@ public class AsmMethod implements IGeneric {
   public List<AsmAnnotation> getAnnotations() {
     return _annotations;
   }
+  @SuppressWarnings("UnusedDeclaration")
   public List<AsmAnnotation>[] getParameterAnnotations() {
     return _paramAnnotations;
   }
@@ -162,7 +169,7 @@ public class AsmMethod implements IGeneric {
     }
     for( String exception : exceptions ) {
       if( _exceptions.isEmpty() ) {
-        _exceptions = new ArrayList<AsmType>( exceptions.length );
+        _exceptions = new ArrayList<>( exceptions.length );
       }
       _exceptions.add( AsmUtil.makeType( exception ) );
     }
@@ -175,7 +182,7 @@ public class AsmMethod implements IGeneric {
     Type[] params = Type.getArgumentTypes( desc );
     for( Type param : params ) {
       if( _parameters.isEmpty() ) {
-        _parameters = new ArrayList<AsmType>( params.length );
+        _parameters = new ArrayList<>( params.length );
       }
       _parameters.add( AsmUtil.makeType( param ) );
     }
@@ -183,14 +190,14 @@ public class AsmMethod implements IGeneric {
 
   public void addAnnotation( AsmAnnotation asmAnnotation ) {
     if( _annotations.isEmpty() ) {
-      _annotations = new ArrayList<AsmAnnotation>( 2 );
+      _annotations = new ArrayList<>( 2 );
     }
     _annotations.add( asmAnnotation );
   }
 
   public void addParameterAnnotation( int iParam, AsmAnnotation asmAnnotation ) {
     if( _paramAnnotations[iParam] == null ) {
-      _paramAnnotations[iParam] = new ArrayList<AsmAnnotation>( 2 );
+      _paramAnnotations[iParam] = new ArrayList<>( 2 );
     }
     _paramAnnotations[iParam].add( asmAnnotation );
   }
@@ -297,11 +304,7 @@ public class AsmMethod implements IGeneric {
     if( !_parameters.equals( asmMethod._parameters ) ) {
       return false;
     }
-    if( !_returnType.equals( asmMethod._returnType ) ) {
-      return false;
-    }
-
-    return true;
+    return _returnType.equals( asmMethod._returnType );
   }
 
   @Override
@@ -320,5 +323,20 @@ public class AsmMethod implements IGeneric {
     result = 31 * result + (_bGeneric ? 1 : 0);
     result = 31 * result + (_defaultAnnoValue != null ? _defaultAnnoValue.hashCode() : 0);
     return result;
+  }
+
+  void assignParameter( String name, int access )
+  {
+    if( _paramInfos.isEmpty() )
+    {
+      _paramInfos = new ArrayList<>( 2 );
+    }
+
+    _paramInfos.add( new Parameter( name, access ) );
+  }
+
+  public List<Parameter> getParameterInfos()
+  {
+    return _paramInfos;
   }
 }

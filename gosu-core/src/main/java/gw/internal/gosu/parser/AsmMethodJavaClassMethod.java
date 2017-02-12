@@ -21,6 +21,7 @@ import gw.lang.reflect.java.IJavaClassMethod;
 import gw.lang.reflect.java.IJavaClassType;
 import gw.lang.reflect.java.IJavaClassTypeVariable;
 import gw.lang.reflect.java.IJavaMethodInfo;
+import gw.lang.reflect.java.Parameter;
 import gw.lang.reflect.java.asm.AsmAnnotation;
 import gw.lang.reflect.java.asm.AsmMethod;
 import gw.lang.reflect.java.asm.AsmType;
@@ -53,6 +54,12 @@ public class AsmMethodJavaClassMethod extends JavaSourceElement implements IJava
   @Override
   public String getName() {
     return _method.getName();
+  }
+
+  @Override
+  public List<Parameter> getParameterInfos()
+  {
+    return _method.getParameterInfos();
   }
 
   @Override
