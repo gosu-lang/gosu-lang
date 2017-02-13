@@ -58,8 +58,8 @@ public class Gosu
   public static final String GOSU_SCRATCHPAD_FQN = NOPACKAGE + ".GosuScratchpad";
   public static final String JAR_REPO_DIR = "JAR-REPO";     //!! if you change this, also change it in Launcher
   public static final String JAR_REPO_TXT = "jar-repo.txt"; //!! "
-  public static final String FAILED = "   FAILED: ";
-  public static final String SUCCESS = "   SUCCESS ";
+  public static final String FAILED = "  FAILED: ";
+  public static final String SUCCESS = "  SUCCESS ";
 
   private static List<File> _classpath;
   private static File _script;
@@ -516,19 +516,19 @@ public class Gosu
     return 0;
   }
 
-  private static void runTest( IGosuClass gsType ) throws Exception
+  public static void runTest( IGosuClass gsType ) throws Exception
   {
     Class cls = gsType.getBackingClass();
-    Object instance = cls.newInstance();
-    runNamedOrAnnotatedMethod( instance, "beforeClass", "org.junit.BeforeClass" );
+    runNamedOrAnnotatedMethod( cls.newInstance(), "beforeClass", "org.junit.BeforeClass" );
     for( Method m : cls.getMethods() )
     {
       if( isTestMethod( m ) )
       {
+        Object instance = cls.newInstance();
         runNamedOrAnnotatedMethod( instance, "beforeMethod", "org.junit.Before" );
         try
         {
-          System.out.println( " - " + m.getName() );
+          System.out.println( "- " + m.getName() );
           m.invoke( instance );
           System.out.println( SUCCESS );
         }
@@ -550,10 +550,12 @@ public class Gosu
         finally
         {
           runNamedOrAnnotatedMethod( instance, "afterMethod", "org.junit.After" );
+          System.out.println();
         }
       }
     }
-    runNamedOrAnnotatedMethod( instance, "afterClass", "org.junit.AfterClass" );
+    runNamedOrAnnotatedMethod( cls.newInstance(), "afterClass", "org.junit.AfterClass" );
+    System.out.println();
   }
 
   private static boolean isTestMethod( Method m ) throws Exception

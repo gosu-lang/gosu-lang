@@ -1,5 +1,6 @@
 package editor;
 
+import gw.lang.Gosu;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.gs.IGosuProgram;
@@ -150,19 +151,19 @@ public class BatchDocument extends DefaultStyledDocument
 
   private boolean handleTestResults( String str, List<ElementSpec> ret, AttributeSet a )
   {
-    if( str.equals( GosuPanel.SUCCESS ) )
+    if( str.equals( Gosu.SUCCESS ) )
     {
       SimpleAttributeSet newAttr = new SimpleAttributeSet();
       newAttr.addAttribute( StyleConstants.Foreground, new Color( 90, 220, 90 ) );
       ret.add( new ElementSpec( newAttr, ElementSpec.ContentType, str.toCharArray(), 0, str.length() ) );
       return true;
     }
-    else if( str.startsWith( GosuPanel.FAILED ) && str.contains( " : " ) )
+    else if( str.startsWith( Gosu.FAILED ) && str.contains( " : " ) )
     {
       SimpleAttributeSet newAttr = new SimpleAttributeSet();
       newAttr.addAttribute( StyleConstants.Foreground, new Color( 240, 90, 90 ) );
-      ret.add( new ElementSpec( newAttr, ElementSpec.ContentType, GosuPanel.FAILED.toCharArray(), 0, GosuPanel.FAILED.length() ) );
-      String theRest = str.substring( GosuPanel.FAILED.length() );
+      ret.add( new ElementSpec( newAttr, ElementSpec.ContentType, Gosu.FAILED.toCharArray(), 0, Gosu.FAILED.length() ) );
+      String theRest = str.substring( Gosu.FAILED.length() );
       ret.add( new ElementSpec( a, ElementSpec.ContentType, theRest.toCharArray(), 0, theRest.length() ) );
       return true;
     }

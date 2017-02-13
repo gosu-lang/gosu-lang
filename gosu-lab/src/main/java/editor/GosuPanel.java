@@ -88,9 +88,6 @@ public class GosuPanel extends JPanel
 {
   private static final int MAX_TABS = 12;
 
-  public static final String FAILED = "   FAILED: ";
-  public static final String SUCCESS = "   SUCCESS ";
-
   private SystemPanel _consolePanel;
   private CollapsibleSplitPane _outerSplitPane;
   private CollapsibleSplitPane _splitPane;

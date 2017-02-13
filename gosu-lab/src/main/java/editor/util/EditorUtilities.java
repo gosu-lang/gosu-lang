@@ -856,8 +856,9 @@ public class EditorUtilities
         IType baseTest = TypeSystem.getByFullNameIfValid( "junit.framework.Assert" );
         if( baseTest != null )
         {
-          return baseTest.isAssignableFrom( type ) || type.getName().endsWith( "Test" );
+          return baseTest.isAssignableFrom( type );
         }
+        return type.getName().endsWith( "Test" );
       }
     }
     return false;
