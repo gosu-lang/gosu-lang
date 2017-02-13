@@ -90,7 +90,7 @@ public class RunMe
     }
     List<String> collect = Gosu.findJreSources();
     backingSource.addAll( collect );
-    backingSource = new ArrayList<>( new HashSet<>( collect ) );
+    backingSource = new ArrayList<>( new HashSet<>( backingSource ) );
 
     return backingSource;
   }
