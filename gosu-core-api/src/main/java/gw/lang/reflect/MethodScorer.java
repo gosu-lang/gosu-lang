@@ -77,6 +77,12 @@ public class MethodScorer {
       // Skip method scoring
       score.setRawFunctionType( funcType );
     }
+
+    if( funcType != null && funcType.hasOptionalParams() ) {
+      // Disambiguate Java varargs methods
+      score.incScore( 1 );
+    }
+
     return score;
   }
 

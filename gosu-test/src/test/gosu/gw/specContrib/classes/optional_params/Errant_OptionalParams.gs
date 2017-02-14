@@ -1,5 +1,8 @@
 package gw.specContrib.classes.optional_params
 
+uses gw.util.Pair
+uses gw.lang.reflect.IType
+
 class Errant_OptionalParams {
   function testJavaVarArgAsOptional() {
     String.join( "hi", {"asfd"} )
@@ -8,5 +11,11 @@ class Errant_OptionalParams {
 
     Arrays.asList()
     Arrays.asList( {9} )
+  }
+
+  function testVarArgsWithOverloadedMethods() {
+    var l1: ImmutableList<Pair<IType, Object>> = ImmutableList.of()
+    var l2: ImmutableList<Pair<IType, Object>> = ImmutableList.of(Pair.make(String, ""))
+    var l3: ImmutableList<Pair<IType, Object>> = ImmutableList.of(Pair.make(String, ""), {})
   }
 }

@@ -7560,6 +7560,10 @@ public final class GosuParser extends ParserBase implements IGosuParser
           score.incScore( 1 );
           bErrors = true;
         }
+        else if( arg.getType() instanceof IErrorType )
+        {
+          bErrors = true;
+        }
       }
       if( !bErrors )
       {
