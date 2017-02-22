@@ -19,9 +19,23 @@ class Errant_StringTemplates {
     var f = "<%= a + b %>"
     var g = "<% a + b %>"      //## issuekeys: NOT A STATEMENT
     var h = "<% print(a + b) %>"      // wow...can you actually call print() from inside a template??!
-    var i = "<% class Foo { } ; var x = new Foo() %>" //## issuekeys: MSG_NOT_A_STATEMENT
-    var j = "<% var a = "x z" %>"      //## issuekeys: VARIABLE 'A' IS ALREADY DEFINED IN THE SCOPE
-    var k = "<% b = 10 %>"      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'INT', REQUIRED: 'JAVA.LANG.STRING'
-    var l = "<% c = "10" %>" // and you can change a variable from inside a template.  Wow.
+    var i = "<% var a = "x z" %>"      //## issuekeys: VARIABLE 'A' IS ALREADY DEFINED IN THE SCOPE
+    var j = "<% b = 10 %>"      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'INT', REQUIRED: 'JAVA.LANG.STRING'
+    var k = "<% c = "10" %>" // and you can change a variable from inside a template.  Wow.
+
+    var m = "<% extends Object %>"      //## issuekeys: GST_SCRIPTLET_END EXPECTED
+    var n = "<%= extends Object %>"      //## issuekeys: UNEXPECTED TOKEN: EXTENDS
+    var o = "<% params(x : String, y : boolean) %>"      //## issuekeys: CANNOT RESOLVE METHOD 'PARAMS(?)'
+    var p = "<%= params(x : String, y : boolean) %>"      //## issuekeys: CANNOT RESOLVE METHOD 'PARAMS(?)'
+
+    var q = "<% class Foo { } ; var x = new Foo() %>" //## issuekeys: TEMPLATE CANNOT DECLARE CLASS, INTERFACE, STRUCTURE OR ENHANCEMENT
+    var r = "<% interface Foo { } %>" //## issuekeys: TEMPLATE CANNOT DECLARE CLASS, INTERFACE, STRUCTURE OR ENHANCEMENT
+    var s = "<% structure Foo { } %>" //## issuekeys: TEMPLATE CANNOT DECLARE CLASS, INTERFACE, STRUCTURE OR ENHANCEMENT
+    var t = "<% enhancement Foo : Integer { } %>" //## issuekeys: CANNOT RESOLVE SYMBOL 'ENHANCEMENT'
+
+    var w = "<%= class Foo { } ; var x = new Foo() %>" //## issuekeys: UNEXPECTED TOKEN: CLASS
+    var x = "<%= interface Foo { } %>" //## issuekeys: UNEXPECTED TOKEN: INTERFACE
+    var y = "<%= structure Foo { } %>" //## issuekeys: UNEXPECTED TOKEN: STRUCTURE
+    var z = "<%= enhancement Foo : Integer { } %>" //## issuekeys: CANNOT RESOLVE SYMBOL 'ENHANCEMENT'
   }
 }
