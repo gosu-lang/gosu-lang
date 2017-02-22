@@ -7,6 +7,7 @@ package gw.lang.parser;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.ITypeVariableType;
 
+import gw.util.Pair;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -18,9 +19,9 @@ import java.util.Set;
  */
 public class TypeVarToTypeMap
 {
-  public static final TypeVarToTypeMap EMPTY_MAP = new TypeVarToTypeMap( Collections.<ITypeVariableType, IType>emptyMap() );
+  public static final TypeVarToTypeMap EMPTY_MAP = new TypeVarToTypeMap( Collections.<ITypeVariableType, Pair<IType, Boolean>>emptyMap() );
 
-  private Map<ITypeVariableType, IType> _map;
+  private Map<ITypeVariableType, Pair<IType, Boolean>> _map;
   private Set<ITypeVariableType> _typesInferredFromCovariance;
   private boolean _bStructural;
 
@@ -30,7 +31,7 @@ public class TypeVarToTypeMap
     _typesInferredFromCovariance = new HashSet<>( 2 );
   }
 
-  private TypeVarToTypeMap( Map<ITypeVariableType, IType> emptyMap )
+  private TypeVarToTypeMap( Map<ITypeVariableType, Pair<IType, Boolean>> emptyMap )
   {
     _map = emptyMap;
     _typesInferredFromCovariance = new HashSet<>( 2 );
@@ -46,6 +47,11 @@ public class TypeVarToTypeMap
 
   public IType get( ITypeVariableType tvType )
   {
+    Pair<IType, Boolean> pair = _map.get( tvType );
+    return pair != null ? pair.getFirst() : null;
+  }
+  public Pair<IType, Boolean> getPair( ITypeVariableType tvType )
+  {
     return _map.get( tvType );
   }
 
@@ -55,7 +61,7 @@ public class TypeVarToTypeMap
     {
       if( matcher.matches( tv, key ) )
       {
-        return _map.get( key );
+        return get( key );
       }
     }
     return null;
@@ -80,8 +86,12 @@ public class TypeVarToTypeMap
 
   public IType put( ITypeVariableType tvType, IType type )
   {
+    return put( tvType, type, false );
+  }
+  public IType put( ITypeVariableType tvType, IType type, boolean bReverse )
+  {
     IType existing = remove( tvType );
-    _map.put( tvType, type );
+    _map.put( tvType, type == null ? null : new Pair<>( type, bReverse ) );
     return existing;
   }
 
@@ -117,17 +127,18 @@ public class TypeVarToTypeMap
     return _map.keySet();
   }
 
-  public Set<Map.Entry<ITypeVariableType,IType>> entrySet()
+  public Set<Map.Entry<ITypeVariableType,Pair<IType, Boolean>>> entrySet()
   {
     return _map.entrySet();
   }
 
   public IType remove( ITypeVariableType tvType )
   {
-    return _map.remove( tvType );
+    Pair<IType, Boolean> pair = _map.remove( tvType );
+    return pair != null ? pair.getFirst() : null;
   }
 
-  public Collection<IType> values()
+  public Collection<Pair<IType, Boolean>> values()
   {
     return _map.values();
   }

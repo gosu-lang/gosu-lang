@@ -24,6 +24,7 @@ import gw.lang.reflect.gs.IGosuEnhancement;
 import gw.lang.reflect.gs.ISourceFileHandle;
 import gw.util.GosuObjectUtil;
 
+import gw.util.Pair;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -32,6 +33,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.stream.Collectors;
 
 /**
  */
@@ -581,7 +583,7 @@ public class EnhancementIndex implements IEnhancementIndex
         TypeLord.inferTypeVariableTypesFromGenParamTypeAndConcreteType( genericEnhancedType, typeToGetEnhancementsFor, typeVars );
         if( typeVars.size() > 0 )
         {
-          return (IGosuEnhancementInternal)enhancementType.getParameterizedType( (IType[])typeVars.values().toArray( new IType[typeVars.values().size()] ) );
+          return (IGosuEnhancementInternal)enhancementType.getParameterizedType( typeVars.values().stream().map( Pair::getFirst ).toArray( IType[]::new ) );
         }
         else
         {

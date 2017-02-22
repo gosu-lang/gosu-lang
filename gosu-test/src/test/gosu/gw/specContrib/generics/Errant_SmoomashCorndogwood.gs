@@ -4,6 +4,7 @@ uses java.lang.Integer
 uses java.lang.CharSequence
 uses java.util.ArrayList
 uses java.util.function.Predicate
+uses gw.lang.reflect.features.PropertyReference
 
 class Errant_SmoomashCorndogwood {
   static class RelinkFilter {
@@ -65,5 +66,36 @@ class Errant_SmoomashCorndogwood {
   static interface IMyList<T, U> extends List<U> {
     property get Tee() : T { return null }
     property get You() : U { return null }
+  }
+
+  static class Smoomash
+  {
+    function corndogWood()
+    {
+      var bp: BeanPopulator<Contact>
+      var b( bla:BeanPopulator<Address> )
+
+      bp.populateBeanArray( Contact#ContactAddresses, \ contactAddressBP -> {
+           contactAddressBP.populateBeanFk( ContactAddress#Address, \ addressBP -> {
+             b( addressBP )
+           } )
+         } )
+    }
+
+    static class Contact<E>
+    {
+      property ContactAddresses: ContactAddress[]
+    }
+
+    static class Address<E> {}
+
+    static class ContactAddress<E> extends Address {
+      property Address: Address<E>
+    }
+
+    static class BeanPopulator<E> {
+      function populateBeanArray<BP3>( p: PropertyReference<E,BP3[]>,  b(bp:BeanPopulator<BP3>) ) {}
+      function populateBeanFk<BP5>( p: PropertyReference<E,BP5>,  b(bp:BeanPopulator<BP5>)) {}
+    }
   }
 }

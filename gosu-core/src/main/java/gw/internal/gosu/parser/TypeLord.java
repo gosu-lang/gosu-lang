@@ -2606,11 +2606,14 @@ public class TypeLord
              argType != GosuParserTypes.NULL_TYPE() )
     {
       ITypeVariableType tvType = ((ITypeVariableType)genParamType).getTypeVarDef().getType();
-      IType type = inferenceMap.get( tvType );
+      Pair<IType, Boolean> pair = inferenceMap.getPair( tvType );
+      IType type = pair == null ? null : pair.getFirst();
+      boolean pairReverse = pair != null && pair.getSecond();
+
       if( type == null || type instanceof ITypeVariableType )
       {
         // Infer the type
-        inferenceMap.put( tvType, getActualType( argType, inferenceMap, true ) );
+        inferenceMap.put( tvType, getActualType( argType, inferenceMap, true ), bReverse );
         inferredInCallStack.add( tvType );
         if( type != null && type.equals( argType ) )
         {
@@ -2619,8 +2622,8 @@ public class TypeLord
       }
       else if( type != null )
       {
-        IType combinedType = solveType( genParamType, argType, inferenceMap, bReverse, tvType, type );
-        inferenceMap.put( tvType, combinedType );
+        IType combinedType = solveType( genParamType, argType, inferenceMap, bReverse || pairReverse, tvType, type );
+        inferenceMap.put( tvType, combinedType, bReverse );
       }
       IType boundingType = ((ITypeVariableType)genParamType).getBoundingType();
       if( !isRecursiveType( (ITypeVariableType)genParamType, boundingType ) )
