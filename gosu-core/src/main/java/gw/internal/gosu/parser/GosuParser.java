@@ -7899,10 +7899,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
 
       verify( expression, !bError_AnonymousArgFollowsNamedArg, Res.MSG_EXPECTING_NAMED_ARG );
 
-      if( !(expression instanceof NullExpression) )
-      {
-        inferFunctionTypeVariables( ctxType, boundCtxType, expression.getType(), inferenceMap );
-      }
+      inferFunctionTypeVariables( ctxType, boundCtxType, expression, inferenceMap );
 
       if( retainTypeVarsCtxType != null )
       {
@@ -8068,20 +8065,37 @@ public final class GosuParser extends ParserBase implements IGosuParser
     return TypeLord.boundTypes( ctxType, inferringTypes, bKeepTypeVars );
   }
 
-  private void inferFunctionTypeVariables( IType rawContextType, IType boundContextType, IType expressionType, TypeVarToTypeMap inferenceMap )
+  private void inferFunctionTypeVariables( IType rawContextType, IType boundContextType, Expression expression, TypeVarToTypeMap inferenceMap )
   {
     if( rawContextType != null && boundContextType != null )
     {
+      IType expressionType = expression.getType();
+
       ICoercer iCoercer = CommonServices.getCoercionManager().resolveCoercerStatically( boundContextType, expressionType );
       if( iCoercer instanceof IResolvingCoercer )
       {
         IType resolvedType = ((IResolvingCoercer)iCoercer).resolveType( rawContextType, expressionType );
-        TypeLord.inferTypeVariableTypesFromGenParamTypeAndConcreteType( rawContextType, resolvedType, inferenceMap );
-        TypeLord.inferTypeVariableTypesFromGenParamTypeAndConcreteType( rawContextType, expressionType, inferenceMap );
+        if( expression instanceof NullExpression )
+        {
+          TypeLord.inferTypeVariableTypesFromGenParamTypeAndConcreteType_Reverse( rawContextType, resolvedType, inferenceMap );
+          TypeLord.inferTypeVariableTypesFromGenParamTypeAndConcreteType_Reverse( rawContextType, expressionType, inferenceMap );
+        }
+        else
+        {
+          TypeLord.inferTypeVariableTypesFromGenParamTypeAndConcreteType( rawContextType, resolvedType, inferenceMap );
+          TypeLord.inferTypeVariableTypesFromGenParamTypeAndConcreteType( rawContextType, expressionType, inferenceMap );
+        }
       }
       else
       {
-        TypeLord.inferTypeVariableTypesFromGenParamTypeAndConcreteType( rawContextType, expressionType, inferenceMap );
+        if( expression instanceof NullExpression )
+        {
+          TypeLord.inferTypeVariableTypesFromGenParamTypeAndConcreteType_Reverse( rawContextType, expressionType, inferenceMap );
+        }
+        else
+        {
+          TypeLord.inferTypeVariableTypesFromGenParamTypeAndConcreteType( rawContextType, expressionType, inferenceMap );
+        }
       }
     }
   }
@@ -8164,7 +8178,14 @@ public final class GosuParser extends ParserBase implements IGosuParser
       LightweightParserState state = parserStates.get( i );
 
       // Adds any parse exceptions that may have been cleared during method scoring
-      verifyComparable( argTypes[i], e, false, true, state );
+      if( e instanceof NullExpression )
+      {
+        e.setType( argTypes[i] );
+      }
+      else
+      {
+        verifyComparable( argTypes[i], e, false, true, state );
+      }
 
       //Add a warning if a closure with a void return type is passed to a method expecting
       //a non-void return value
