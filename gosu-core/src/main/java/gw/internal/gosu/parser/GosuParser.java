@@ -7348,8 +7348,10 @@ public final class GosuParser extends ParserBase implements IGosuParser
         inferenceMap = new TypeVarToTypeMap();
       }
       pushInferenceMap( inferenceMap );
-      maybeInferFunctionTypeVarsFromReturnType( funcType, inferenceMap );
+
       pushTypeVariableTypesToInfer( funcType );
+      TypeVarToTypeMap masked = maskCurrentFunctionTypeVarsFromPriorInference();
+      maybeInferFunctionTypeVarsFromReturnType( funcType, inferenceMap );
       try
       {
         if( !bNoArgsProvided )
@@ -7404,6 +7406,12 @@ public final class GosuParser extends ParserBase implements IGosuParser
           popInferringFunctionTypeVariableTypes();
         }
         popInferenceMap( inferenceMap );
+        inferenceMap = getInferenceMap();
+        if( inferenceMap != null )
+        {
+          // put back masked inferences
+          inferenceMap.putAll( masked );
+        }
       }
 
       //noinspection unchecked
@@ -7516,6 +7524,37 @@ public final class GosuParser extends ParserBase implements IGosuParser
       errScore.setArguments( Collections.<IExpression>emptyList() );
       return errScore;
     }
+  }
+
+  private TypeVarToTypeMap maskCurrentFunctionTypeVarsFromPriorInference()
+  {
+    // this is for this case:
+    //
+    //   var listOfLists: List<List<String>>
+    //   var mappedListofLists: List<List<String>> = listOfLists.map( \ list -> list.map( \ e -> e ) )
+    //
+    // where basically we have nested calls involving the same function, simplified:
+    //
+    //   listList.map( \ list -> list.map( \ e -> e ) ) // map() nests another call to map()
+    //
+    // where map()'s type var needs to be distinguished in each call, but type vars
+    // are only distinguished in terms of their declaring type.  Because we don't want
+    // to complicate type vars any further, we instead create a separate "scope" for
+    // inferring them via masking type vars from nested calls.  This technique eliminates
+    // interference from outer nestings while preserving all other mappings.
+
+    TypeVarToTypeMap inferenceMap = getInferenceMap();
+    List<IType> inferringFunctionTypeVars = peekInferringFunctionTypeVariableTypes();
+    TypeVarToTypeMap masked = new TypeVarToTypeMap();
+    for( IType tv: inferringFunctionTypeVars )
+    {
+      IType type = inferenceMap.remove( (ITypeVariableType)tv );
+      if( type != null )
+      {
+        masked.put( (ITypeVariableType)tv, type );
+      }
+    }
+    return masked;
   }
 
   private void maybeInferFunctionTypeVarsFromReturnType( IInvocableType invType, TypeVarToTypeMap inferenceMap )

@@ -2398,6 +2398,10 @@ public abstract class ParserBase implements IParserPart
   {
     _inferringFunctionTypes.pop();
   }
+  protected List<IType> peekInferringFunctionTypeVariableTypes()
+  {
+    return _inferringFunctionTypes == null || _inferringFunctionTypes.isEmpty() ? Collections.emptyList() : _inferringFunctionTypes.peek();
+  }
 
   public List<IType> getCurrentlyInferringFunctionTypeVars()
   {

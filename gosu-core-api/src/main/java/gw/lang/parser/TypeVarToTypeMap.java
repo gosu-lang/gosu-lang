@@ -40,7 +40,6 @@ public class TypeVarToTypeMap
   {
     this();
     _map.putAll( from._map );
-    _typesInferredFromCovariance = new HashSet<>( 2 );
     _typesInferredFromCovariance.addAll( from._typesInferredFromCovariance );
     _bStructural = from._bStructural;
   }

@@ -30,6 +30,12 @@ class Errant_SmoomashCorndogwood {
   var ll8 = FooJava.newArrayList( FooJava.filter( rf, FooJava.not( \ t: Object -> true) ) )
   var ll9 = FooJava.newArrayList( FooJava.filter( rf, FooJava.not( \ t -> true) ) )
 
+  // test nested calls of same function:   listList.foo( \ list -> list.foo( \ e -> e ) )
+  var listOfLists: List<List<String>>
+  var mappedListofLists: List<List<Integer>> = listOfLists.map( \ list -> list.map( \ e -> e.length ) )
+  var arrayOfArrays: String[][]
+  var mappedArrayOfArrays: Integer[][] = arrayOfArrays.map( \ arr -> arr.map( \ e -> e.length ) )
+
   function testReverseInferenceOnClosureFromClosureParam() {
     var result = f1( \ p: List<CharSequence> -> true )
     result.charAt(0) // confirms infers as CharSequence
