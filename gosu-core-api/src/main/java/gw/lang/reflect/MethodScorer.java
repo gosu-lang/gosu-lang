@@ -78,11 +78,6 @@ public class MethodScorer {
       score.setRawFunctionType( funcType );
     }
 
-    if( funcType != null && funcType.hasOptionalParams() ) {
-      // Disambiguate Java varargs methods
-      score.incScore( 1 );
-    }
-
     return score;
   }
 
@@ -122,6 +117,12 @@ public class MethodScorer {
       // Missing argument  +Max
       iScore += Byte.MAX_VALUE;
     }
+
+    if( funcType != null && funcType.hasOptionalParams() ) {
+      // Disambiguate Java varargs methods
+      iScore += 1;
+    }
+
     return iScore;
   }
 

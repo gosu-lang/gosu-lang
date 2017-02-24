@@ -17,5 +17,11 @@ class Errant_OptionalParams {
     var l1: ImmutableList<Pair<IType, Object>> = ImmutableList.of()
     var l2: ImmutableList<Pair<IType, Object>> = ImmutableList.of(Pair.make(String, ""))
     var l3: ImmutableList<Pair<IType, Object>> = ImmutableList.of(Pair.make(String, ""), {})
+
+    var l4: String = OverloadedVarArgs.overloaded( "abc", null )
+    var l5: String = OverloadedVarArgs.overloaded( "abc", {} )
+    var l6 = OverloadedVarArgs.overloaded( null, {} )  //## issuekeys: MSG_AMBIGUOUS_METHOD_INVOCATION
+    var l7 = OverloadedVarArgs.overloaded( new Object(), {} )
+    var l8: String = l7  //## issuekeys: MSG_IMPLICIT_COERCION_ERROR
   }
 }
