@@ -1,5 +1,7 @@
 package gw.specContrib.typeinference
 
+uses gw.util.Pair
+
 class Errant_InferConstructorTypeFromArgs {
 
   static class Hey<T extends CharSequence> {
@@ -75,6 +77,18 @@ class Errant_InferConstructorTypeFromArgs {
       var foo = new Batin2( new StringBuilder() )
       // StringBuilder not Comparable, default to Ccomparable
       var test5 = numba.MuhT.append( "" )  //## issuekeys: MSG_NO_METHOD_DESCRIPTOR_FOUND_FOR_METHOD, MSG_NO_SUCH_FUNCTION
+    }
+  }
+
+  static class Batin3
+  {
+    function make<B>( ref: Pair<String, B> ) : Pair<String, B> { return null }
+
+    function hi()
+    {
+      var x = make( new Pair( "", new StringBuilder() ) )
+      x.First.charAt( 0 )    // verify Pair<String, StringBuilder>
+      x.Second.append( 'a' ) // verify Pair<String, StringBuilder>
     }
   }
 }

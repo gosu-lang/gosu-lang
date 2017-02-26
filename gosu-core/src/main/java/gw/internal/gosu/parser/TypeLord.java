@@ -2596,9 +2596,13 @@ public class TypeLord
       if( concreteTypeParams != null && concreteTypeParams.length > 0 )
       {
         int i = 0;
-        for( IType typeArg : genParamType.getTypeParameters() )
+        IType[] genTypeParams = genParamType.getTypeParameters();
+        if( concreteTypeParams.length >= genTypeParams.length )
         {
-          inferTypeVariableTypesFromGenParamTypeAndConcreteType( typeArg, concreteTypeParams[i++], inferenceMap, inferredInCallStack, bReverse );
+          for( IType typeArg : genTypeParams )
+          {
+            inferTypeVariableTypesFromGenParamTypeAndConcreteType( typeArg, concreteTypeParams[i++], inferenceMap, inferredInCallStack, bReverse );
+          }
         }
       }
     }

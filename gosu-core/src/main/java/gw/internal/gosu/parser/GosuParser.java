@@ -230,6 +230,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
   private List<ParseTree> _locations;
   private Program _parsingProgram;
   private ArrayList<FunctionType> _parsingFunctions;
+  private boolean _parsingNewExpressionTypeLiteral;
   private ArrayList<VarStatement> _parsingFieldInitializer;
   private Map<String, List<IFunctionSymbol>> _dfsDeclByName;
   private ITypeUsesMap _typeUsesMap;
@@ -523,6 +524,15 @@ public final class GosuParser extends ParserBase implements IGosuParser
   public boolean isParsingFunction()
   {
     return _parsingFunctions.size() > 0;
+  }
+
+  private boolean isParsingTypeListeralForNewExpression()
+  {
+    return _parsingNewExpressionTypeLiteral;
+  }
+  private void setParsingTypeLiteralForNewExpression( boolean value )
+  {
+    _parsingNewExpressionTypeLiteral = value;
   }
 
   public VarStatement peekParsingFieldInitializer()
@@ -4235,7 +4245,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
       }
       if( typeLiteral == null )
       {
-        parseTypeLiteralIgnoreArrayBrackets();
+        parseTypeLiteralForNewExpression();
         typeLiteral = (TypeLiteral)popExpression();
         IType type = typeLiteral.getType().getType();
         if( !bBacktracking )
@@ -8953,15 +8963,24 @@ public final class GosuParser extends ParserBase implements IGosuParser
     }
   }
 
-  void parseTypeLiteralIgnoreArrayBrackets()
+  void parseTypeLiteralForNewExpression()
   {
     Token token = getTokenizer().getCurrentToken();
     int iOffset = token.getTokenStart();
     int iLineNum = token.getLine();
     int iColumn = token.getTokenColumn();
-    if( _parseTypeLiteralWithAggregateSyntax( token, true, false ) )
+
+    setParsingTypeLiteralForNewExpression( true );
+    try
     {
-      setLocation( iOffset, iLineNum, iColumn );
+      if( _parseTypeLiteralWithAggregateSyntax( token, true, false ) )
+      {
+        setLocation( iOffset, iLineNum, iColumn );
+      }
+    }
+    finally
+    {
+      setParsingTypeLiteralForNewExpression( false );
     }
   }
 
@@ -9369,7 +9388,14 @@ public final class GosuParser extends ParserBase implements IGosuParser
             // If a generic type, assume the default parameterized version e.g., List => List<Object>.
             // But if the type is assignable to the context type and the context type is parameterized,
             // derive the parameters from the context type.
-            type = TypeLord.deriveParameterizedTypeFromContext( type, getContextType().getType() );
+
+            ContextType ctxType = getContextType();
+            type = TypeLord.deriveParameterizedTypeFromContext( type, ctxType.getUnboundType() != null ? ctxType.getUnboundType() : ctxType.getType() );
+            TypeVarToTypeMap inferenceMap = getInferenceMap();
+            if( inferenceMap != null )
+            {
+              type = TypeLord.getActualType( type, inferenceMap, isParsingTypeListeralForNewExpression() );
+            }
             typeLiteral.setType( MetaType.getLiteral( type ) );
           }
         }
@@ -15452,7 +15478,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
     }
     else if( funcType instanceof ConstructorType )
     {
-      return inferConstructor( funcType, inferenceMap );
+      return inferConstructor( (ConstructorType)funcType, inferenceMap );
     }
     else
     {
@@ -15460,9 +15486,9 @@ public final class GosuParser extends ParserBase implements IGosuParser
     }
   }
 
-  private IInvocableType inferConstructor( IInvocableType funcType, TypeVarToTypeMap inferenceMap )
+  private IInvocableType inferConstructor( ConstructorType ctorType, TypeVarToTypeMap inferenceMap )
   {
-    IType declaringType = ((ConstructorType)funcType).getDeclaringType();
+    IType declaringType = ctorType.getDeclaringType();
     if( declaringType.isGenericType() && !declaringType.isParameterizedType() )
     {
       IType actualDeclaringType = TypeLord.makeParameteredType( declaringType, inferenceMap );
@@ -15472,7 +15498,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
         for( int i = 0; i < genDeclaredConstructors.size(); i++ )
         {
           IConstructorInfo rawCtor = genDeclaredConstructors.get( i );
-          if( new ConstructorType( rawCtor ).equals( funcType ) )
+          if( new ConstructorType( rawCtor ).equals( ctorType ) )
           {
             List<? extends IConstructorInfo> paramDeclaredConstructors = ((IRelativeTypeInfo)actualDeclaringType.getTypeInfo()).getDeclaredConstructors();
             for( IConstructorInfo csr: paramDeclaredConstructors )
@@ -15487,7 +15513,20 @@ public final class GosuParser extends ParserBase implements IGosuParser
         }
       }
     }
-    return funcType;
+    else if( declaringType.isParameterizedType() )
+    {
+      IConstructorInfo ci = ctorType.getConstructor();
+      List<? extends IConstructorInfo> constructors = ((IRelativeTypeInfo)declaringType.getTypeInfo()).getConstructors( getGosuClass() );
+      int index = constructors.indexOf( ci );
+      if( index >= 0 )
+      {
+        IType actualType = TypeLord.getActualType( declaringType, inferenceMap, true );
+        List<? extends IConstructorInfo> actualTypeCtors = ((IRelativeTypeInfo)actualType.getTypeInfo()).getConstructors( getGosuClass() );
+        ci = actualTypeCtors.get( index );
+        ctorType = new ConstructorType( ci );
+      }
+    }
+    return ctorType;
   }
 
   private IInvocableType inferFunction( IInvocableType funcType, List<? extends IExpression> eArgs, boolean bUseCtx, TypeVarToTypeMap inferenceMap )
