@@ -42,6 +42,7 @@ class Errant_BigIntegerInterval {
   var bigInteger1120 = (BigInteger.TEN.."mystring")      //## issuekeys: OPERATOR '..' CANNOT BE APPLIED TO 'JAVA.MATH.BIGINTEGER', 'JAVA.LANG.STRING'
   var bigInteger1121 = (BigInteger.TEN..(new Date()))      //## issuekeys: OPERATOR '..' CANNOT BE APPLIED TO 'JAVA.MATH.BIGINTEGER', 'JAVA.UTIL.DATE'
   var bigInteger1122 = (BigInteger.TEN..aaa)      //## issuekeys: OPERATOR '..' CANNOT BE APPLIED TO 'JAVA.MATH.BIGINTEGER', 'GW.SPECCONTRIB.AAA.PARSERVSOPENSOURCE.INTERVALSANDDIMENSIONS.INTERVALSBASIC.INTERVAL_BIGINTEGER.A'
+  var bigInteger1123 = (BigInteger.TEN..false)      //## issuekeys: OPERATOR '..' CANNOT BE APPLIED TO 'JAVA.MATH.BIGINTEGER', 'BOOLEAN'
 
   //Lower end point is BigInteger with step function
   var bigInteger1211 = (BigInteger.ONE..'c').step(42)
