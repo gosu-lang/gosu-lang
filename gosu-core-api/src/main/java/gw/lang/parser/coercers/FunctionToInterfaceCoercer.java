@@ -87,8 +87,8 @@ public class FunctionToInterfaceCoercer extends BaseCoercer implements IResolvin
     if( interfaceType.isInterface() && (interfaceType instanceof IJavaType || interfaceType instanceof IGosuClass) )
     {
       if( interfaceType instanceof IJavaType &&
+          (interfaceType.isGenericType() || interfaceType.isParameterizedType()) &&
           interfaceType.getName().startsWith( "java." ) &&
-          !interfaceType.getName().startsWith( "java.awt." ) && // support event listeners (for some reason oracle did not mark these with @FunctionalInterface)
           !interfaceType.getTypeInfo().hasAnnotation( JavaTypes.FUNCTIONAL_INTERFACE() ) )
       {
         // Avoid mistaking some Java interfaces for functional interfaces e.g., Comparable, Iterable, etc.
