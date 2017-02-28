@@ -168,7 +168,7 @@ public abstract class BaseFeatureInfo implements IAttributedFeatureInfo
     if( _internalAPI == null )
     {
       if( ILanguageLevel.Util.STANDARD_GOSU() ||
-          Arrays.stream( notInternalNs ).noneMatch( ns -> getOwnersType().getNamespace().startsWith( ns ) ) )
+          Arrays.stream( notInternalNs ).noneMatch( ns -> getOwnersType() != null && getOwnersType().getNamespace() != null && getOwnersType().getNamespace().startsWith( ns ) ) )
       {
         return _internalAPI = false;
       }
