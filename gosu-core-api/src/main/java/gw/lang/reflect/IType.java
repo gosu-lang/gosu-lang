@@ -76,6 +76,8 @@ public interface IType extends Serializable
    */
   boolean isInterface();
 
+  default IFunctionType getFunctionalInterface() { return null; }
+
   /**
    * Returns true if this type is an enumeration.
    */

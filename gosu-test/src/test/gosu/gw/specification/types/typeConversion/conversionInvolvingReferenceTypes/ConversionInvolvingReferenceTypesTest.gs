@@ -98,8 +98,8 @@ class ConversionInvolvingReferenceTypesTest extends BaseVerifyErrantTest {
   }
 
   function testImplicitConversionFromBlock() {
-    var tt0 : Comparable =  \ o : Object -> 8
-    assertEquals(tt0.compareTo(null), 8)
+    var tt0 : java.util.function.Function =  \ o : Object -> 8
+    assertEquals(tt0.apply(null), 8)
   }
 
   function testExplicitConversionToBigInteger() {

@@ -35,17 +35,17 @@ public class ScriptableTest extends TestClass {
     }
   }
 
-  public void testInternalAPIHidesMembers() {
-    IType scriptableTestExampleType = TypeSystem.get(ScriptableTestExample.class);
-
-    IPropertyInfo exampleProperty = scriptableTestExampleType.getTypeInfo().getProperty("ExampleProperty");
-    assertTrue(exampleProperty.isVisible(ScriptabilityModifiers.SCRIPTABLE));
-    IPropertyInfo internalProperty = scriptableTestExampleType.getTypeInfo().getProperty("InternalProperty");
-    assertFalse(internalProperty.isVisible(ScriptabilityModifiers.SCRIPTABLE));
-
-    IMethodInfo exampleMethod = scriptableTestExampleType.getTypeInfo().getMethod("exampleMethod");
-    assertTrue(exampleMethod.isVisible(ScriptabilityModifiers.SCRIPTABLE));
-    IMethodInfo internalMethod = scriptableTestExampleType.getTypeInfo().getMethod("internalMethod");
-    assertFalse(internalMethod.isVisible(ScriptabilityModifiers.SCRIPTABLE));
-  }
+//  public void testInternalAPIHidesMembers() {
+//    IType scriptableTestExampleType = TypeSystem.get(ScriptableTestExample.class);
+//
+//    IPropertyInfo exampleProperty = scriptableTestExampleType.getTypeInfo().getProperty("ExampleProperty");
+//    assertTrue(exampleProperty.isVisible(ScriptabilityModifiers.SCRIPTABLE));
+//    IPropertyInfo internalProperty = scriptableTestExampleType.getTypeInfo().getProperty("InternalProperty");
+//    assertFalse(internalProperty.isVisible(ScriptabilityModifiers.SCRIPTABLE));
+//
+//    IMethodInfo exampleMethod = scriptableTestExampleType.getTypeInfo().getMethod("exampleMethod");
+//    assertTrue(exampleMethod.isVisible(ScriptabilityModifiers.SCRIPTABLE));
+//    IMethodInfo internalMethod = scriptableTestExampleType.getTypeInfo().getMethod("internalMethod");
+//    assertFalse(internalMethod.isVisible(ScriptabilityModifiers.SCRIPTABLE));
+//  }
 }

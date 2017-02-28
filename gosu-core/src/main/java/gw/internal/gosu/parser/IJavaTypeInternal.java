@@ -37,4 +37,5 @@ public interface IJavaTypeInternal extends IJavaArrayType, IJavaType
 
   boolean hasAncestorBeenUpdated();
 
+  String getSimpleName();
 }

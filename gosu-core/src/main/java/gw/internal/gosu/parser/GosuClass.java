@@ -36,6 +36,7 @@ import gw.lang.parser.PostCompilationAnalysis;
 import gw.lang.parser.ScriptPartId;
 import gw.lang.parser.ScriptabilityModifiers;
 import gw.lang.parser.TypeVarToTypeMap;
+import gw.lang.parser.coercers.FunctionToInterfaceCoercer;
 import gw.lang.parser.exceptions.ErrantGosuClassException;
 import gw.lang.parser.exceptions.ParseResultsException;
 import gw.lang.parser.expressions.INameInDeclaration;
@@ -74,6 +75,7 @@ import gw.util.GosuStringUtil;
 import gw.util.StringPool;
 import gw.util.concurrent.LockingLazyVar;
 
+import gw.util.concurrent.LocklessLazyVar;
 import java.io.File;
 import java.io.InvalidClassException;
 import java.io.ObjectStreamException;
@@ -116,6 +118,7 @@ public class GosuClass extends InnerClassCapableType implements IGosuClassIntern
   transient private volatile SoftReference<Class<?>> _javaClass;
   transient private IGosuClassInternal _genericClass;
   transient private Map<String, IGosuClassInternal> _parameterizationByParamsName;
+  private LocklessLazyVar<IFunctionType> _functionalInterface;
   transient private volatile GosuClassTypeInfo _typeInfo;
   transient private IType _gsArrayClass;
   transient private volatile Boolean _bHasSessionVarStatements;
@@ -1125,6 +1128,12 @@ public class GosuClass extends InnerClassCapableType implements IGosuClassIntern
     return ProxyUtil.isProxy( this );
   }
 
+  @Override
+  public IFunctionType getFunctionalInterface()
+  {
+    return _functionalInterface.get();
+  }
+
   protected ITypeRef getOrCreateTypeReference()
   {
     if( _typeRef == null )
@@ -1600,8 +1609,7 @@ public class GosuClass extends InnerClassCapableType implements IGosuClassIntern
 
   private boolean hasParseIssuesInUsesStatements()
   {
-    if( (getTypeUsesMap() != null) &&
-        (getTypeUsesMap().getUsesStatements() != null) )
+    if( getTypeUsesMap() != null )
     {
       for( IUsesStatement usesStatement : getTypeUsesMap().getUsesStatements() )
       {
@@ -3091,14 +3099,8 @@ public class GosuClass extends InnerClassCapableType implements IGosuClassIntern
 
   private void initLazyVars()
   {
-    _valid =
-      new LockingLazyVar<Boolean>()
-      {
-        @Override protected Boolean init()
-        {
-          return getClassStatement() != null && !getClassStatement().hasParseExceptions() ? Boolean.TRUE : Boolean.FALSE;
-        }
-      };
+    _valid = LockingLazyVar.make( () -> getClassStatement() != null && !getClassStatement().hasParseExceptions() ? Boolean.TRUE : Boolean.FALSE );
+    _functionalInterface = LocklessLazyVar.make( () -> FunctionToInterfaceCoercer.getRepresentativeFunctionType( getOrCreateTypeReference() ) );
   }
 
   /**
@@ -3257,6 +3259,6 @@ public class GosuClass extends InnerClassCapableType implements IGosuClassIntern
   public boolean isAnnotation() {
     return Modifier.isAnnotation( getModifiers() )
     //## todo: kill IANNOTATION check if/after we completely remove support for old-style Gosu annotations
-    || JavaTypes.IANNOTATION().isAssignableFrom(this);
+    || (!ILanguageLevel.Util.STANDARD_GOSU() && JavaTypes.IANNOTATION().isAssignableFrom(this));
   }
 }

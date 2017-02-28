@@ -4120,13 +4120,13 @@ public final class GosuParser extends ParserBase implements IGosuParser
       }
       else if( alternateType != null )
       {
-        type = FunctionToInterfaceCoercer.getRepresentativeFunctionType( alternateType );
+        type = alternateType.getFunctionalInterface();
       }
       return Arrays.asList( ((FunctionType)type).getParameterTypes() );
     }
     else
     {
-      IFunctionType functionType = FunctionToInterfaceCoercer.getRepresentativeFunctionType( type );
+      IFunctionType functionType = type.getFunctionalInterface();
       if( functionType != null )
       {
         if( alternateType instanceof FunctionType )
@@ -4136,7 +4136,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
         }
         else if(  alternateType != null )
         {
-          functionType = FunctionToInterfaceCoercer.getRepresentativeFunctionType( alternateType );
+          functionType = alternateType.getFunctionalInterface();
         }
 
         return Arrays.asList( functionType.getParameterTypes() );
@@ -4170,13 +4170,13 @@ public final class GosuParser extends ParserBase implements IGosuParser
       }
       else if( alternateType != null )
       {
-        ctxType = FunctionToInterfaceCoercer.getRepresentativeFunctionType( alternateType );
+        ctxType = alternateType.getFunctionalInterface();
       }
       returnType = ((FunctionType)ctxType).getReturnType();
     }
     else
     {
-      IFunctionType functionType = FunctionToInterfaceCoercer.getRepresentativeFunctionType( ctxType );
+      IFunctionType functionType = ctxType.getFunctionalInterface();
       if( functionType != null )
       {
         if( alternateType instanceof FunctionType )
@@ -4186,14 +4186,14 @@ public final class GosuParser extends ParserBase implements IGosuParser
         }
         else if(  alternateType != null )
         {
-          functionType = FunctionToInterfaceCoercer.getRepresentativeFunctionType( alternateType );
+          functionType = alternateType.getFunctionalInterface();
         }
 
         returnType = functionType.getReturnType();
       }
     }
 
-    IFunctionType functionType = FunctionToInterfaceCoercer.getRepresentativeFunctionType( ctxType );
+    IFunctionType functionType = ctxType.getFunctionalInterface();
     if( functionType != null )
     {
       IType iType = functionType.getReturnType();
@@ -7893,7 +7893,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
         else if( rawCtxType != null )
         {
           // handle functional interface types
-          IFunctionType ftype = FunctionToInterfaceCoercer.getRepresentativeFunctionType( rawCtxType );
+          IFunctionType ftype = rawCtxType.getFunctionalInterface();
           if( ftype != null )
           {
             retainTypeVarsCtxType = boundCtxType( rawCtxType, true );

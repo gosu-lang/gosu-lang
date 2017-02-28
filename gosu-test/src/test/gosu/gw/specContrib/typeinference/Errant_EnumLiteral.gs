@@ -31,4 +31,11 @@ class Errant_EnumLiteral {
     var m = {GosuEnum.VAL1 -> "val1", GosuEnum.VAL2 -> "val2"}
     var v4: String = m[VAL2]
   }
+
+  function make<B>( ref: B, iter: Iterable<B> ) : B { return null }
+  function testIterableAsNonFunctional()
+  {
+    var x = make( GosuEnum.VAL1, {VAL2} )
+    var en: GosuEnum = x
+  }
 }

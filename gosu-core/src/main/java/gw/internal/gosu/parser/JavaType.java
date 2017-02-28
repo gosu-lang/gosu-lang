@@ -10,7 +10,9 @@ import gw.fs.IFile;
 import gw.internal.gosu.annotations.AnnotationMap;
 import gw.lang.StrictGenerics;
 import gw.lang.parser.TypeVarToTypeMap;
+import gw.lang.parser.coercers.FunctionToInterfaceCoercer;
 import gw.lang.reflect.IErrorType;
+import gw.lang.reflect.IFunctionType;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.ITypeInfo;
 import gw.lang.reflect.ITypeRef;
@@ -26,15 +28,14 @@ import gw.lang.reflect.java.IJavaClassType;
 import gw.lang.reflect.java.IJavaType;
 import gw.lang.reflect.java.JavaTypes;
 import gw.lang.reflect.module.IModule;
-import gw.util.GosuClassUtil;
 import gw.util.concurrent.LockingLazyVar;
+import gw.util.concurrent.LocklessLazyVar;
 import gw.util.perf.objectsize.IObjectSizeFilter;
 import gw.util.perf.objectsize.ObjectSize;
 import gw.util.perf.objectsize.ObjectSizeUtil;
 import gw.util.perf.objectsize.UnmodifiableArraySet;
 
 import java.beans.MethodDescriptor;
-import java.io.File;
 import java.io.InvalidClassException;
 import java.io.ObjectStreamException;
 import java.lang.reflect.Array;
@@ -66,6 +67,7 @@ class JavaType extends InnerClassCapableType implements IJavaTypeInternal
   transient protected IJavaClassInfo _classInfo;
   transient private ITypeInfo _typeInfo;
   transient private String _strRelativeName;
+  transient private String _strSimpleName;
   transient volatile private Set<IType> _allTypesInHierarchy; //!! Do NOT make this a lazy var, it's init needs to be re-entrant
   transient private boolean _bArray;
   transient private boolean _bPrimitive;
@@ -80,13 +82,10 @@ class JavaType extends InnerClassCapableType implements IJavaTypeInternal
   transient volatile private IType _superType;  //!! Do NOT make this a lazy var, it's init needs to be re-entrant
   transient private List<IType> _tempInterfaces;
   transient volatile private IType[] _interfaces; //!! Do NOT make this a lazy var, it's init needs to be re-entrant
+  transient private LocklessLazyVar<IFunctionType> _functionalInterface = LocklessLazyVar.make( () -> FunctionToInterfaceCoercer.getRepresentativeFunctionType( getTheRef() ) );
   transient private IGosuClassInternal _adapterClass;
   transient private GenericTypeVariable[] _tempGenericTypeVars;
-  transient private LockingLazyVar<GenericTypeVariable[]> _lazyGenericTypeVars = new LockingLazyVar<GenericTypeVariable[]>() {
-  protected GenericTypeVariable[] init() {
-      return assignGenericTypeVariables();
-    }
-  };
+  transient private LockingLazyVar<GenericTypeVariable[]> _lazyGenericTypeVars = LockingLazyVar.make( this::assignGenericTypeVariables );
   transient private boolean _bDefiningGenericTypes;
   transient private ConcurrentMap<String, IJavaTypeInternal> _parameterizationByParamsName;
   transient volatile private IJavaTypeInternal _arrayType;
@@ -326,6 +325,31 @@ class JavaType extends InnerClassCapableType implements IJavaTypeInternal
     }
 
     return _strRelativeName = strRelativeName;
+  }
+
+  public String getSimpleName()
+  {
+    if( _strSimpleName != null )
+    {
+      return _strSimpleName;
+    }
+
+    if( isArray() )
+    {
+      return getComponentType().getSimpleName() + "[]";
+    }
+
+    String strQualifiedClassName = _classInfo.getName();
+    strQualifiedClassName = strQualifiedClassName.replace( '$', '.' );
+    int iDotIndex = strQualifiedClassName.lastIndexOf( '.' );
+    String strSimpleName = strQualifiedClassName.substring( iDotIndex + 1 );
+
+    if( isParameterizedType() )
+    {
+      strSimpleName += TypeLord.getNameOfParams( _typeParams, true, false );
+    }
+
+    return _strSimpleName = strSimpleName;
   }
 
   public String getNamespace()
@@ -793,7 +817,7 @@ class JavaType extends InnerClassCapableType implements IJavaTypeInternal
     IJavaTypeInternal enclosingType = this;
     for( IJavaType javaType : enclosingType.getInnerClasses() )
     {
-      if( GosuClassUtil.getNameNoPackage( javaType.getRelativeName() ).equals( simpleName ) )
+      if( ((IJavaTypeInternal)javaType).getSimpleName().equals( simpleName ) )
       {
         return (IJavaTypeInternal)javaType;
       }
@@ -1092,7 +1116,7 @@ class JavaType extends InnerClassCapableType implements IJavaTypeInternal
     return Array.getLength( array );
   }
 
-  public IType getComponentType()
+  public IJavaTypeInternal getComponentType()
   {
     IModule module = getTypeLoader().getModule();
     TypeSystem.pushModule( module );
@@ -1426,6 +1450,12 @@ class JavaType extends InnerClassCapableType implements IJavaTypeInternal
   @Override
   public boolean isAnnotation() {
     return _classInfo.isAnnotation();
+  }
+
+  @Override
+  public IFunctionType getFunctionalInterface()
+  {
+    return _functionalInterface.get();
   }
 
   @Override

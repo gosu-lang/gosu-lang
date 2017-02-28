@@ -182,7 +182,7 @@ public class MethodScorer {
     else {
       int iFunctionToInterfacePenalty = 0;
       if( paramType.isInterface() && argType instanceof IInvocableType ) {
-        IFunctionType funcType = FunctionToInterfaceCoercer.getRepresentativeFunctionType( paramType );
+        IFunctionType funcType = paramType.getFunctionalInterface();
         if( funcType != null ) {
           paramType = funcType;
           // Function type assignable to functional interface

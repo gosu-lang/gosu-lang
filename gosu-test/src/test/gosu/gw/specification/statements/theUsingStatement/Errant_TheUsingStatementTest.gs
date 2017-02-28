@@ -7,7 +7,7 @@ class Errant_TheUsingStatementTest {
 
   function testUsingBasic() {
     var x : List<Integer> = new ArrayList<Integer>();
-    var closeMe : Closeable = \ -> { x.add(2) }
+    var closeMe : Closeable = new(){ override function close() {x.add(2)} }
     var notFinal : Closeable = null
     using(closeMe) {
       x.add(1)
@@ -15,14 +15,6 @@ class Errant_TheUsingStatementTest {
     } finally {
       x.add(3)
     }
-    x.clear();
-    using(var closeMe2 : Closeable = \ -> { x.add(2) }) {
-      closeMe2 = null  //## issuekeys: MSG_CANNOT_ASSIGN_VALUE_TO_FINAL_VAR
-      x.add(1)
-    } finally {
-      x.add(3)
-    }
-    x.clear();
     using(new Object() { function  close() { x.add(2)}}) {
       x.add(1)
     } finally {

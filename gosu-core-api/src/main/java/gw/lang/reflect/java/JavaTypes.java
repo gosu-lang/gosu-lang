@@ -519,6 +519,14 @@ public class JavaTypes {
     return getJreType(Inherited.class);
   }
 
+  private IJavaType FUNCTIONAL_INTERFACE = null;
+  public static IJavaType FUNCTIONAL_INTERFACE() {
+    if( !ExecutionMode.get().isRefreshSupportEnabled() ) {
+      return THIS.FUNCTIONAL_INTERFACE == null ? THIS.FUNCTIONAL_INTERFACE = getJreType( FunctionalInterface.class ) : THIS.FUNCTIONAL_INTERFACE;
+    }  
+    return getJreType(FunctionalInterface.class);
+  }
+
   private IJavaType LOCK = null;
   public static IJavaType LOCK() {
     if( !ExecutionMode.get().isRefreshSupportEnabled() ) {

@@ -4,11 +4,13 @@
 
 package gw.lang.reflect;
 
+import gw.lang.parser.ILanguageLevel;
 import gw.lang.parser.ScriptabilityModifiers;
 import gw.lang.reflect.java.JavaTypes;
 import gw.util.GosuCollectionUtil;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -157,10 +159,20 @@ public abstract class BaseFeatureInfo implements IAttributedFeatureInfo
     }
   }
 
+  // The package prefixes that may have classes using the @InternalAPI.
+  // This list exists for performance; it is otherwise expensive to load up annotations to find the goddamn @InternalAPI tag
+  private static final String[] notInternalNs = {"gw.", "com.guidewire.", "entity."};
+
   public boolean isInternalAPI()
   {
     if( _internalAPI == null )
     {
+      if( ILanguageLevel.Util.STANDARD_GOSU() ||
+          Arrays.stream( notInternalNs ).noneMatch( ns -> getOwnersType().getNamespace().startsWith( ns ) ) )
+      {
+        return _internalAPI = false;
+      }
+
       TypeSystem.lock();
       try
       {

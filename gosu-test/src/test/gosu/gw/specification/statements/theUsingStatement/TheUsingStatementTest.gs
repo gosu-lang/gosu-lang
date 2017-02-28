@@ -12,7 +12,7 @@ class TheUsingStatementTest extends BaseVerifyErrantTest {
 
   function testUsingBasic() {
     var x : List<Integer> = new ArrayList<Integer>();
-    var closeMe : Closeable = \ -> { x.add(2) }
+    var closeMe : Closeable = new(){ function close() {x.add(2)} }
     var notFinal : Closeable = null
      using(closeMe) {
        x.add(1)
@@ -20,14 +20,6 @@ class TheUsingStatementTest extends BaseVerifyErrantTest {
      } finally {
        x.add(3)
      }
-    assertTrue({1,2,3}.equals(x))
-    x.clear();
-    using(var closeMe2 : Closeable = \ -> { x.add(2) }) {
-      //closeMe2 = null
-      x.add(1)
-    } finally {
-      x.add(3)
-    }
     assertTrue({1,2,3}.equals(x))
     x.clear();
     using(new Object() { function  close() { x.add(2)}}) {

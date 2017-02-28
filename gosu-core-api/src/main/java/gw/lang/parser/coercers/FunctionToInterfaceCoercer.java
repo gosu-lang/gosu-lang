@@ -68,6 +68,7 @@ public class FunctionToInterfaceCoercer extends BaseCoercer implements IResolvin
     }
   }
 
+  //## WARNING: call interfaceType.getFunctionalInterface() instead, it caches the result
   public static IFunctionType getRepresentativeFunctionType( IType interfaceType )
   {
     IMethodInfo javaMethodInfo = getSingleMethod( interfaceType );
@@ -85,6 +86,14 @@ public class FunctionToInterfaceCoercer extends BaseCoercer implements IResolvin
   {
     if( interfaceType.isInterface() && (interfaceType instanceof IJavaType || interfaceType instanceof IGosuClass) )
     {
+      if( interfaceType instanceof IJavaType &&
+          interfaceType.getName().startsWith( "java." ) &&
+          !interfaceType.getTypeInfo().hasAnnotation( JavaTypes.FUNCTIONAL_INTERFACE() ) )
+      {
+        // Avoid mistaking some Java interfaces for functional interfaces e.g., Comparable, Iterable, etc.
+        return null;
+      }
+
       List<IMethodInfo> list = new ArrayList<>( interfaceType.getTypeInfo().getMethods() );
 
       //extract all object methods since they are guaranteed to be implemented
@@ -243,7 +252,7 @@ public class FunctionToInterfaceCoercer extends BaseCoercer implements IResolvin
 
   private IType extractReturnTypeFromInterface( IType target )
   {
-    IFunctionType funcType = getRepresentativeFunctionType( target );
+    IFunctionType funcType = target.getFunctionalInterface();
     return funcType == null ? null : funcType.getReturnType();
   }
 

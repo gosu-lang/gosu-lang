@@ -331,7 +331,7 @@ public class StandardCoercionManager extends BaseService implements ICoercionMan
     if( rhsType instanceof IFunctionType && lhsType.isInterface() )
     {
       IFunctionType rhsFunctionType = (IFunctionType)rhsType;
-      IFunctionType lhsFunctionType = FunctionToInterfaceCoercer.getRepresentativeFunctionType( lhsType );
+      IFunctionType lhsFunctionType = lhsType.getFunctionalInterface();
       if( lhsFunctionType != null )
       {
         if( lhsFunctionType.isAssignableFrom( rhsFunctionType ) )

@@ -14,6 +14,7 @@ import gw.lang.reflect.gs.IGosuObject;
 import gw.lang.reflect.java.JavaTypes;
 import gw.test.TestClass;
 import gw.util.GosuTestUtil;
+import java.util.function.Supplier;
 import junit.framework.Assert;
 
 import java.math.BigDecimal;
@@ -380,11 +381,9 @@ public class StandardCoercionManagerTest extends TestClass
   public void testBlockCoercesToParameterizedInterface2()
   {
     @SuppressWarnings({"unchecked"})
-    Iterable<String> updated = (Iterable<String>)eval( "( \\-> new java.util.ArrayList<String>(){\"a\"}.iterator() ) as java.lang.Iterable<String>" );
-    Iterator<String> iterator = updated.iterator();
-    Assert.assertTrue( iterator.hasNext() );
-    Assert.assertEquals( "a", iterator.next() );
-    Assert.assertFalse( iterator.hasNext() );
+    Supplier<String> updated = (Supplier<String>)eval( "( \\-> 'hi' ) as java.util.function.Supplier<String>" );
+    String value = updated.get();
+    Assert.assertEquals( "hi", value );
   }
 
 

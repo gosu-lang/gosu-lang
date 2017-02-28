@@ -2568,7 +2568,7 @@ public class TypeLord
     {
       if( argType instanceof FunctionType )
       {
-        IFunctionType funcType = FunctionToInterfaceCoercer.getRepresentativeFunctionType( genParamType );
+        IFunctionType funcType = genParamType.getFunctionalInterface();
         if( funcType != null )
         {
           inferTypeVariableTypesFromGenParamTypeAndConcreteType( funcType, argType, inferenceMap, inferredInCallStack, bReverse );
@@ -2642,7 +2642,7 @@ public class TypeLord
       {
         if( argType.isParameterizedType() )
         {
-          argType = FunctionToInterfaceCoercer.getRepresentativeFunctionType( argType );
+          argType = argType.getFunctionalInterface();
         }
 
         if( !(argType instanceof FunctionType) )
