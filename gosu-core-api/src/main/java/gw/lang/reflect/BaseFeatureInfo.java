@@ -6,6 +6,7 @@ package gw.lang.reflect;
 
 import gw.lang.parser.ILanguageLevel;
 import gw.lang.parser.ScriptabilityModifiers;
+import gw.lang.reflect.gs.IGosuClass;
 import gw.lang.reflect.java.JavaTypes;
 import gw.util.GosuCollectionUtil;
 
@@ -168,7 +169,8 @@ public abstract class BaseFeatureInfo implements IAttributedFeatureInfo
     if( _internalAPI == null )
     {
       if( ILanguageLevel.Util.STANDARD_GOSU() ||
-          Arrays.stream( notInternalNs ).noneMatch( ns -> getOwnersType() != null && getOwnersType().getNamespace() != null && getOwnersType().getNamespace().startsWith( ns ) ) )
+          Arrays.stream( notInternalNs ).noneMatch( ns -> getOwnersType() != null && getOwnersType().getNamespace() != null && getOwnersType().getNamespace().startsWith( ns ) ) &&
+          Arrays.stream( notInternalNs ).noneMatch( ns -> getOwnersType() != null && getOwnersType().getNamespace() != null && getOwnersType().getNamespace().startsWith( IGosuClass.PROXY_PREFIX + '.' + ns ) ) )
       {
         return _internalAPI = false;
       }
