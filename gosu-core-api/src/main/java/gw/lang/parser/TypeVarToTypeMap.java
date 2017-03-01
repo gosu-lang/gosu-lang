@@ -19,7 +19,7 @@ import java.util.Set;
  */
 public class TypeVarToTypeMap
 {
-  public static final TypeVarToTypeMap EMPTY_MAP = new TypeVarToTypeMap( Collections.<ITypeVariableType, Pair<IType, Boolean>>emptyMap() );
+  public static final TypeVarToTypeMap EMPTY_MAP = new TypeVarToTypeMap( Collections.emptyMap() );
 
   private Map<ITypeVariableType, Pair<IType, Boolean>> _map;
   private Set<ITypeVariableType> _typesInferredFromCovariance;

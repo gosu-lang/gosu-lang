@@ -7362,6 +7362,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
       pushTypeVariableTypesToInfer( funcType );
       TypeVarToTypeMap masked = maskCurrentFunctionTypeVarsFromPriorInference();
       maybeInferFunctionTypeVarsFromReturnType( funcType, inferenceMap );
+      List<ITypeVariableType> added = funcType instanceof ConstructorType ? Collections.emptyList() : new ArrayList<>( 2 );
       try
       {
         if( !bNoArgsProvided )
@@ -7370,15 +7371,27 @@ public final class GosuParser extends ParserBase implements IGosuParser
           {
             backtrackArgParsing( mark, iLocationsCount, (List)score.getArguments() );
           }
-          do
-          {
-            parserStates.add( makeLightweightParserState() );
 
-            int iArgPos = parseArgExpression( funcType, iArgs, argExpressions, inferenceMap, parserStates, namedArgs, bShouldScoreMethods || getContextType().isMethodScoring()/* avoid nested scoring */ );
-            namedArgOrder = assignArgExprPosition( listFunctionTypes, iArgs, namedArgOrder, iArgPos );
-            iArgs++;
+          pushTypeVariableTypesToInfer( funcType );
+          try
+          {
+            do
+            {
+              parserStates.add( makeLightweightParserState() );
+
+              int iArgPos = parseArgExpression( funcType, iArgs, argExpressions, inferenceMap, added, parserStates, namedArgs, bShouldScoreMethods || getContextType().isMethodScoring()/* avoid nested scoring */ );
+              namedArgOrder = assignArgExprPosition( listFunctionTypes, iArgs, namedArgOrder, iArgPos );
+              iArgs++;
+            }
+            while( match( null, ',' ) );
           }
-          while( match( null, ',' ) );
+          finally
+          {
+            if( funcType != null )
+            {
+              popInferringFunctionTypeVariableTypes();
+            }
+          }
         }
 
         // Extend the args list with default (or empty) values
@@ -7407,12 +7420,26 @@ public final class GosuParser extends ParserBase implements IGosuParser
         }
 
         score = scoreMethod( getGosuClass(), rootType, funcType, listFunctionTypes, argExpressions, !bShouldScoreMethods, !hasContextSensitiveExpression( argExpressions ) );
-        score.setInferenceMap( inferenceMap );
+        score.setInferenceMap( inferenceMap.isEmpty() ? TypeVarToTypeMap.EMPTY_MAP : new TypeVarToTypeMap( inferenceMap ) );
       }
       finally
       {
         if( funcType != null )
         {
+          if( funcType instanceof ConstructorType && !added.isEmpty() )
+          {
+            // remove type vars of class corresponding with constructor call
+            // e.g., foo(new Foo(a), new Foo(b)) // given Foo<T> and Foo#construct(t: T), we don't want a's inference of T to effect b's; they are different Ts
+
+            List<IType> ifv = getCurrentlyInferringFunctionTypeVars();
+            for( ITypeVariableType tv: added )
+            {
+              if( ifv.contains( tv ) && !tv.isFunctionStatement() )
+              {
+                inferenceMap.remove( tv );
+              }
+            }
+          }
           popInferringFunctionTypeVariableTypes();
         }
         popInferenceMap( inferenceMap );
@@ -7828,121 +7855,111 @@ public final class GosuParser extends ParserBase implements IGosuParser
                                   int iArgs,
                                   List<Expression> argExpressions,
                                   TypeVarToTypeMap inferenceMap,
+                                  List<ITypeVariableType> added,
                                   List<LightweightParserState> parserStates,
                                   Set<String> namedArgs,
                                   boolean bMethodScoring )
   {
-    pushTypeVariableTypesToInfer( funcType );
-    try
+    IType rawCtxType;
+    IType boundCtxType;
+
+    boolean bError_AnonymousArgFollowsNamedArg = false;
+    int iArgPos = iArgs;
+    boolean bAlreadyDef = false;
+    IType[] paramTypes = funcType == null ? IType.EMPTY_ARRAY : funcType.getParameterTypes();
+    IType retainTypeVarsCtxType = null;
+    if( match( null, ":", ISourceCodeTokenizer.TT_OPERATOR, true ) )
     {
-      IType rawCtxType;
-      IType boundCtxType;
-
-      boolean bError_AnonymousArgFollowsNamedArg = false;
-      int iArgPos = iArgs;
-      boolean bAlreadyDef = false;
-      IType[] paramTypes = funcType == null ? IType.EMPTY_ARRAY : funcType.getParameterTypes();
-      IType retainTypeVarsCtxType = null;
-      if( match( null, ":", ISourceCodeTokenizer.TT_OPERATOR, true ) )
+      iArgPos = parseNamedParamExpression( funcType, bMethodScoring );
+      if( iArgPos == -1 )
       {
-        iArgPos = parseNamedParamExpression( funcType, bMethodScoring );
-        if( iArgPos == -1 )
-        {
-          namedArgs.add( "err" );
-        }
-        else if( funcType != null )
-        {
-          String[] parameterNames = funcType.getParameterNames();
-          bAlreadyDef = namedArgs.add( parameterNames[iArgPos] );
-        }
-
-        if( argExpressions.size() < iArgPos+1 )
-        {
-          // Extend the args list with default (or empty) values up to, but not including, the newly parsed arg
-          for( int i = argExpressions.size(); i < iArgPos; i++ )
-          {
-            argExpressions.add( i, getDefaultValueOrPlaceHolderForParam( i, funcType ) );
-            parserStates.add( i, makeLightweightParserState() );
-          }
-          assert argExpressions.size() == iArgPos;
-        }
+        namedArgs.add( "err" );
       }
-      else if( !namedArgs.isEmpty() )
+      else if( funcType != null )
       {
-        bError_AnonymousArgFollowsNamedArg = true;
+        String[] parameterNames = funcType.getParameterNames();
+        bAlreadyDef = namedArgs.add( parameterNames[iArgPos] );
       }
 
-      IType ctxType = iArgPos < 0 ? ErrorType.getInstance() : iArgPos < paramTypes.length ? paramTypes[iArgPos] : null;
-      ctxType = ctxType == null ? useDynamicTypeIfDynamicRoot( funcType, ctxType ) : ctxType;
-      rawCtxType = ctxType == null ? null : inferArgType( ctxType, inferenceMap );
-      if( ctxType == null )
+      if( argExpressions.size() < iArgPos+1 )
       {
-        boundCtxType = null;
+        // Extend the args list with default (or empty) values up to, but not including, the newly parsed arg
+        for( int i = argExpressions.size(); i < iArgPos; i++ )
+        {
+          argExpressions.add( i, getDefaultValueOrPlaceHolderForParam( i, funcType ) );
+          parserStates.add( i, makeLightweightParserState() );
+        }
+        assert argExpressions.size() == iArgPos;
       }
-      else if( rawCtxType.isGenericType() && !rawCtxType.isParameterizedType() )
+    }
+    else if( !namedArgs.isEmpty() )
+    {
+      bError_AnonymousArgFollowsNamedArg = true;
+    }
+
+    IType ctxType = iArgPos < 0 ? ErrorType.getInstance() : iArgPos < paramTypes.length ? paramTypes[iArgPos] : null;
+    ctxType = ctxType == null ? useDynamicTypeIfDynamicRoot( funcType, ctxType ) : ctxType;
+    rawCtxType = ctxType == null ? null : inferArgType( ctxType, inferenceMap, added );
+    if( ctxType == null )
+    {
+      boundCtxType = null;
+    }
+    else if( rawCtxType.isGenericType() && !rawCtxType.isParameterizedType() )
+    {
+      boundCtxType = TypeLord.getDefaultParameterizedType( rawCtxType );
+    }
+    else
+    {
+      boundCtxType = boundCtxType( rawCtxType );
+      if( rawCtxType instanceof IBlockType )
       {
-        boundCtxType = TypeLord.getDefaultParameterizedType( rawCtxType );
+        retainTypeVarsCtxType = boundCtxType( rawCtxType, true );
       }
-      else
+      else if( rawCtxType != null )
       {
-        boundCtxType = boundCtxType( rawCtxType );
-        if( rawCtxType instanceof IBlockType )
+        // handle functional interface types
+        IFunctionType ftype = rawCtxType.getFunctionalInterface();
+        if( ftype != null )
         {
           retainTypeVarsCtxType = boundCtxType( rawCtxType, true );
         }
-        else if( rawCtxType != null )
-        {
-          // handle functional interface types
-          IFunctionType ftype = rawCtxType.getFunctionalInterface();
-          if( ftype != null )
-          {
-            retainTypeVarsCtxType = boundCtxType( rawCtxType, true );
-          }
-        }
       }
-      ContextType ctx = retainTypeVarsCtxType != null
-                        ? ContextType.makeBlockContexType( ctxType, retainTypeVarsCtxType, bMethodScoring )
-                        : new ContextType( boundCtxType, ctxType, bMethodScoring );
-
-      parseExpressionNoVerify( ctx );
-      Expression expression = popExpression();
-
-      verify( expression, !bError_AnonymousArgFollowsNamedArg, Res.MSG_EXPECTING_NAMED_ARG );
-
-      inferFunctionTypeVariables( ctxType, boundCtxType, expression, inferenceMap );
-
-      if( retainTypeVarsCtxType != null )
-      {
-        IType actualType = TypeLord.getActualType( expression.getType(), inferenceMap, true );
-        actualType = boundCtxType( actualType, false );
-        expression.setType( actualType );
-      }
-      iArgPos = iArgPos < 0 ? iArgs : iArgPos;
-      if( iArgPos >= 0 )
-      {
-        if( iArgPos == argExpressions.size() )
-        {
-          argExpressions.add( iArgPos, expression );
-        }
-        else if( iArgPos >=0 && iArgPos < argExpressions.size() && bAlreadyDef )
-        {
-          Expression existingExpr = argExpressions.set( iArgPos, expression );
-          verify( expression,
-                  existingExpr == DefaultParamValueLiteral.instance() ||
-                          existingExpr instanceof DefaultArgLiteral ||
-                          existingExpr instanceof NullExpression,
-                  Res.MSG_ARGUMENT_ALREADY_DEFINED );
-        }
-      }
-      return iArgPos;
     }
-    finally
+    ContextType ctx = retainTypeVarsCtxType != null
+                      ? ContextType.makeBlockContexType( ctxType, retainTypeVarsCtxType, bMethodScoring )
+                      : new ContextType( boundCtxType, ctxType, bMethodScoring );
+
+    parseExpressionNoVerify( ctx );
+    Expression expression = popExpression();
+
+    verify( expression, !bError_AnonymousArgFollowsNamedArg, Res.MSG_EXPECTING_NAMED_ARG );
+
+    inferFunctionTypeVariables( ctxType, boundCtxType, expression, inferenceMap );
+
+    if( retainTypeVarsCtxType != null )
     {
-      if( funcType != null )
+      IType actualType = TypeLord.getActualType( expression.getType(), inferenceMap, true );
+      actualType = boundCtxType( actualType, false );
+      expression.setType( actualType );
+    }
+    iArgPos = iArgPos < 0 ? iArgs : iArgPos;
+    if( iArgPos >= 0 )
+    {
+      if( iArgPos == argExpressions.size() )
       {
-        popInferringFunctionTypeVariableTypes();
+        argExpressions.add( iArgPos, expression );
+      }
+      else if( iArgPos >= 0 && iArgPos < argExpressions.size() && bAlreadyDef )
+      {
+        Expression existingExpr = argExpressions.set( iArgPos, expression );
+        verify( expression,
+                existingExpr == DefaultParamValueLiteral.instance() ||
+                existingExpr instanceof DefaultArgLiteral ||
+                existingExpr instanceof NullExpression,
+                Res.MSG_ARGUMENT_ALREADY_DEFINED );
       }
     }
+    return iArgPos;
   }
 
   private IType useDynamicTypeIfDynamicRoot( IInvocableType funcType, IType ctxType )
@@ -8110,9 +8127,9 @@ public final class GosuParser extends ParserBase implements IGosuParser
     }
   }
 
-  private IType inferArgType( IType contextType, TypeVarToTypeMap inferenceMap )
+  private IType inferArgType( IType contextType, TypeVarToTypeMap inferenceMap, List<ITypeVariableType> added )
   {
-    TypeLord.addReferencedTypeVarsThatAreNotInMap( contextType, inferenceMap );
+    TypeLord.addReferencedTypeVarsThatAreNotInMap( contextType, inferenceMap, added );
     return TypeLord.getActualType( contextType, inferenceMap, true );
   }
 
