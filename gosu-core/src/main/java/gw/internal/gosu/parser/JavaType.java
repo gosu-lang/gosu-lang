@@ -82,7 +82,7 @@ class JavaType extends InnerClassCapableType implements IJavaTypeInternal
   transient volatile private IType _superType;  //!! Do NOT make this a lazy var, it's init needs to be re-entrant
   transient private List<IType> _tempInterfaces;
   transient volatile private IType[] _interfaces; //!! Do NOT make this a lazy var, it's init needs to be re-entrant
-  transient private LocklessLazyVar<IFunctionType> _functionalInterface = LocklessLazyVar.make( () -> FunctionToInterfaceCoercer.getRepresentativeFunctionType( getTheRef() ) );
+  transient private LocklessLazyVar<IFunctionType> _functionalInterface;
   transient private IGosuClassInternal _adapterClass;
   transient private GenericTypeVariable[] _tempGenericTypeVars;
   transient private LockingLazyVar<GenericTypeVariable[]> _lazyGenericTypeVars = LockingLazyVar.make( this::assignGenericTypeVariables );
@@ -218,6 +218,22 @@ class JavaType extends InnerClassCapableType implements IJavaTypeInternal
     _typeLoader = loader;
     _tiChecksum = TypeSystem.getSingleRefreshChecksum();
     _strName = computeQualifiedName();
+    _functionalInterface =
+        LocklessLazyVar.make( () -> {
+          if( !isInterface() )
+          {
+            return null;
+          }
+          if( (isGenericType() || isParameterizedType()) &&
+              getName().startsWith( "java." ) &&
+              !getTypeInfo().hasAnnotation( JavaTypes.FUNCTIONAL_INTERFACE() ) )
+          {
+            // Avoid mistaking some Java interfaces for functional interfaces e.g., Comparable, Iterable, etc.
+            return null;
+          }
+
+          return FunctionToInterfaceCoercer.getRepresentativeFunctionType( getTheRef() );
+        } );
   }
 
   JavaType( Class cls, DefaultTypeLoader loader )

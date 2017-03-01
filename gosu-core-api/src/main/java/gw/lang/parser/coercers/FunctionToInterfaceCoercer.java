@@ -84,52 +84,45 @@ public class FunctionToInterfaceCoercer extends BaseCoercer implements IResolvin
 
   public static IMethodInfo getSingleMethod( IType interfaceType )
   {
-    if( interfaceType.isInterface() && (interfaceType instanceof IJavaType || interfaceType instanceof IGosuClass) )
+    if( !interfaceType.isInterface() )
     {
-      if( interfaceType instanceof IJavaType &&
-          (interfaceType.isGenericType() || interfaceType.isParameterizedType()) &&
-          interfaceType.getName().startsWith( "java." ) &&
-          !interfaceType.getTypeInfo().hasAnnotation( JavaTypes.FUNCTIONAL_INTERFACE() ) )
+      return null;
+    }
+
+    List<IMethodInfo> list = new ArrayList<>( interfaceType.getTypeInfo().getMethods() );
+
+    //extract all object methods since they are guaranteed to be implemented
+    ITypeInfo objTypeInfo = JavaTypes.OBJECT().getTypeInfo();
+    for( Iterator<? extends IMethodInfo> it = list.iterator(); it.hasNext(); )
+    {
+      IMethodInfo methodInfo = it.next();
+      IParameterInfo[] parameterInfos = methodInfo.getParameters();
+      IType[] paramTypes = new IType[parameterInfos.length];
+      for( int i = 0; i < parameterInfos.length; i++ )
       {
-        // Avoid mistaking some Java interfaces for functional interfaces e.g., Comparable, Iterable, etc.
-        return null;
+        paramTypes[i] = parameterInfos[i].getFeatureType();
       }
-
-      List<IMethodInfo> list = new ArrayList<>( interfaceType.getTypeInfo().getMethods() );
-
-      //extract all object methods since they are guaranteed to be implemented
-      ITypeInfo objTypeInfo = JavaTypes.OBJECT().getTypeInfo();
-      for( Iterator<? extends IMethodInfo> it = list.iterator(); it.hasNext(); )
+      if( objTypeInfo.getMethod( methodInfo.getDisplayName(), paramTypes ) != null ||
+          methodInfo.getOwnersType() instanceof IGosuEnhancement )
       {
-        IMethodInfo methodInfo = it.next();
-        IParameterInfo[] parameterInfos = methodInfo.getParameters();
-        IType[] paramTypes = new IType[parameterInfos.length];
-        for( int i = 0; i < parameterInfos.length; i++ )
-        {
-          paramTypes[i] = parameterInfos[i].getFeatureType();
-        }
-        if( objTypeInfo.getMethod( methodInfo.getDisplayName(), paramTypes ) != null ||
-            methodInfo.getOwnersType() instanceof IGosuEnhancement )
-        {
-          it.remove();
-        }
-        else if( methodInfo.getOwnersType().getName().contains( IGosuObject.class.getName() ) )
-        {
-          it.remove();
-        }
-        else if( !methodInfo.isAbstract() )
-        {
-          it.remove();
-        }
+        it.remove();
       }
-
-      if( list.size() == 1 )
+      else if( methodInfo.getOwnersType().getName().contains( IGosuObject.class.getName() ) )
       {
-        IMethodInfo mi = list.get( 0 );
-        if( mi instanceof IJavaMethodInfo || mi instanceof IGosuMethodInfo )
-        {
-          return mi;
-        }
+        it.remove();
+      }
+      else if( !methodInfo.isAbstract() )
+      {
+        it.remove();
+      }
+    }
+
+    if( list.size() == 1 )
+    {
+      IMethodInfo mi = list.get( 0 );
+      if( mi instanceof IJavaMethodInfo || mi instanceof IGosuMethodInfo )
+      {
+        return mi;
       }
     }
     return null;
