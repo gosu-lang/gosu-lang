@@ -7,6 +7,7 @@ uses java.time.chrono.IsoEra
 uses java.time.LocalDateTime
 uses java.time.LocalTime
 uses gw.util.science.Time
+uses java.time.ZoneId
 uses java.time.ZonedDateTime
 
 enhancement CoreLocalDateEnhancement : LocalDate
@@ -14,7 +15,11 @@ enhancement CoreLocalDateEnhancement : LocalDate
   function prefixBind( era: JapaneseEra ) : JapaneseDate {
     return JapaneseDate.of( era, this.Year, this.MonthValue, this.DayOfMonth )
   }
-  
+
+  function prefixBind( zoneId: ZoneId ) : ZonedDateTime {
+    return ZonedDateTime.of( this, LocalTime.MIDNIGHT, zoneId )
+  }
+
   function prefixBind( time: Time ) : LocalDateTime {
     return LocalDateTime.of( this, LocalTime.ofSecondOfDay( time.toBaseNumber().intValue() ) )
   }

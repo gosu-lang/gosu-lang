@@ -142,6 +142,8 @@ var date3 = 1966-Apr-19 0235
 print( date3 )
 var date4 = 1966 Apr 19 133508.012
 print( date4 )     
+var date7 = 1966-Apr-19 UTC
+print( date7 )
 var dt = 1966 Apr 19 (12hr+3min) AM
 print( dt )
 dt = 1966 Apr 19 (12hr+3min) PM
