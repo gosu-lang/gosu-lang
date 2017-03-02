@@ -5,9 +5,15 @@
 package gw.lang.annotation;
 
 import gw.lang.GosuShop;
+import gw.lang.parser.AnnotationUseSiteTarget;
+import gw.lang.parser.IDynamicPropertySymbol;
+import gw.lang.parser.IParsedElement;
+import gw.lang.parser.expressions.IVarStatement;
+import gw.lang.parser.statements.IFunctionStatement;
 import gw.lang.reflect.IAnnotationInfo;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.TypeSystem;
+import gw.lang.reflect.gs.IGosuEnhancement;
 import gw.lang.reflect.java.JavaTypes;
 
 import java.lang.annotation.ElementType;
@@ -22,32 +28,39 @@ public enum UsageModifier {
    */
   None,
   /**
-   * Use None to specify this annotation can only appear once on a class
+   * Use One to specify this annotation can only appear once on a class
    */
   One,
   /**
-   * Use None to specify this annotation can appear many times on a class
+   * Use Many to specify this annotation can appear many times on a class
    */
   Many;
 
-  public static UsageModifier getUsageModifier( UsageTarget targetType, IType annotationType )
+  public static UsageModifier getUsageModifier( UsageTarget targetType, IAnnotationInfo annotation )
+  {
+    return getUsageModifier( null, targetType, annotation.getType(), annotation.getTarget() );
+  }
+  public static UsageModifier getUsageModifier( IParsedElement pe, UsageTarget targetType, IType annotationType, AnnotationUseSiteTarget target )
   {
     UsageModifier modifier = null;
     //First look for gosu-style usage annotations
-    ArrayList<IAnnotationInfo> usageInfos = getExplicitUsageAnnotations(annotationType);
+    ArrayList<IAnnotationInfo> usageInfos = getExplicitUsageAnnotations( annotationType );
     if( usageInfos != null && usageInfos.size() > 0 )
     {
       return getUsageModifier( targetType, modifier, usageInfos );
     }
-    // if it's a java annotation with no explicit annotation usage, translate the java element type information
-    else if( JavaTypes.ANNOTATION().isAssignableFrom( annotationType ) )
-    {
-      return translateJavaElementTypeToUsageModifier( targetType, annotationType );
-    }
     else
     {
-      // By default, gosu annotations can appear multiple times
-      return UsageModifier.Many;
+      // if it's a java annotation with no explicit annotation usage, translate the java element type information
+      if( JavaTypes.ANNOTATION().isAssignableFrom( annotationType ) )
+      {
+        return translateJavaElementTypeToUsageModifier( pe, targetType, annotationType, target );
+      }
+      else
+      {
+        // By default, gosu annotations can appear multiple times
+        return UsageModifier.Many;
+      }
     }
   }
 
@@ -99,13 +112,22 @@ public enum UsageModifier {
     return modifier;
   }
 
-  private static UsageModifier translateJavaElementTypeToUsageModifier( UsageTarget targetType, IType annotationType )
+  private static UsageModifier translateJavaElementTypeToUsageModifier( IParsedElement pe, UsageTarget targetType, IType annotationType, AnnotationUseSiteTarget target )
   {
     IAnnotationInfo targetAnnotation = annotationType.getTypeInfo().getAnnotation( TypeSystem.get( Target.class ) );
     boolean bRepeatable = annotationType.getTypeInfo().hasAnnotation( JavaTypes.REPEATABLE() );
 
     if( targetAnnotation == null )
     {
+      if( target != null )
+      {
+        if( !targetAppliesToParsedElement( pe, target ) )
+        {
+          return UsageModifier.None;
+        }
+        // return Many here since we check for repeats in individual parts of properties later (field, get, set), during makeProperties()
+        return UsageModifier.Many;
+      }
       return bRepeatable ? UsageModifier.Many : UsageModifier.One;
     }
     else
@@ -142,11 +164,52 @@ public enum UsageModifier {
       // otherwise, look for a target that matches our own UsageTarget
       for( String elementTypeConst : value ) {
         if( elementTypeConst.equals( ElementType.CONSTRUCTOR.name() ) && targetType == UsageTarget.ConstructorTarget ||
-            elementTypeConst.equals( ElementType.FIELD.name() ) && targetType == UsageTarget.PropertyTarget ||
             elementTypeConst.equals( ElementType.ANNOTATION_TYPE.name() ) && targetType == UsageTarget.TypeTarget ||
             elementTypeConst.equals( ElementType.TYPE.name() ) && targetType == UsageTarget.TypeTarget ||
-            elementTypeConst.equals( ElementType.METHOD.name() ) && (targetType == UsageTarget.MethodTarget || targetType == UsageTarget.PropertyTarget) ||
             elementTypeConst.equals( ElementType.PARAMETER.name() ) && targetType == UsageTarget.ParameterTarget ) {
+          return bRepeatable ? UsageModifier.Many : UsageModifier.One;
+        }
+        else if( elementTypeConst.equals( ElementType.PARAMETER.name() ) && targetType == UsageTarget.PropertyTarget )
+        {
+          if( target != null )
+          {
+            if( !targetAppliesToParsedElement( pe, target ) )
+            {
+              return UsageModifier.None;
+            }
+          }
+          // return Many here since we check for repeats in individual parts of properties later (field, get, set), during makeProperties()
+          return UsageModifier.Many;
+        }
+        else if( elementTypeConst.equals( ElementType.FIELD.name() ) && targetType == UsageTarget.PropertyTarget )
+        {
+          if( target != null )
+          {
+            if( !targetAppliesToParsedElement( pe, target ) )
+            {
+              return UsageModifier.None;
+            }
+          }
+          // return Many here since we check for repeats in individual parts of properties later (field, get, set), during makeProperties()
+          return UsageModifier.Many;
+        }
+        else if( elementTypeConst.equals( ElementType.METHOD.name() ) && (targetType == UsageTarget.MethodTarget || targetType == UsageTarget.PropertyTarget) )
+        {
+          if( target != null )
+          {
+            if( targetType == UsageTarget.MethodTarget )
+            {
+              // the annotation is on a method, but only shorthand property declarations can have a specific targets e.g., set, get, field
+              return UsageModifier.None;
+            }
+            if( !targetAppliesToParsedElement( pe, target ) )
+            {
+              return UsageModifier.None;
+            }
+            // return Many here since we check for repeats in individual parts of properties later (field, get, set), during makeProperties()
+            return UsageModifier.Many;
+          }
+
           return bRepeatable ? UsageModifier.Many : UsageModifier.One;
         }
       }
@@ -154,5 +217,41 @@ public enum UsageModifier {
     }
   }
 
+  public static boolean targetAppliesToParsedElement( IParsedElement pe, AnnotationUseSiteTarget target )
+  {
+    if( target == null )
+    {
+      return true;
+    }
 
+    if( pe instanceof IVarStatement && ((IVarStatement)pe).hasProperty() )
+    {
+      IVarStatement varStmt = (IVarStatement)pe;
+      IDynamicPropertySymbol property = varStmt.getProperty();
+      switch( target )
+      {
+        case get:
+          return property != null && property.getGetterDfs() != null;
+
+        case set:
+        case param:
+          return property != null && property.getSetterDfs() != null;
+
+        case accessors:
+          return property != null;
+
+        case field:
+          return property != null &&
+            (property.getGetterDfs() != null && !property.getGetterDfs().isAbstract() ||
+             property.getSetterDfs() != null && !property.getSetterDfs().isAbstract());
+      }
+    }
+    else if( pe instanceof IFunctionStatement &&
+             pe.getGosuClass() instanceof IGosuEnhancement &&
+             !((IFunctionStatement)pe).getDynamicFunctionSymbol().isStatic() )
+    {
+      return target == AnnotationUseSiteTarget.receiver;
+    }
+    return false;
+  }
 }

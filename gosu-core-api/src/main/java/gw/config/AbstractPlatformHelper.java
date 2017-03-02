@@ -112,7 +112,7 @@ public abstract class AbstractPlatformHelper extends BaseService implements IPla
     // AHK - We use file.getParent().hasChild() instead of file.exists() since we don't want to hit the disk
     // for the file existence check if we don't have to, and hasChild() will usually work off the cached sub-files
     // of a given directory
-    if (file != null && file.getParent().hasChildFile(file.getName()) && isConfigFile(file)) {
+    if (file != null && file.getParent() != null && file.getParent().hasChildFile(file.getName()) && isConfigFile(file)) {
       final IModule module = TypeSystem.getExecutionEnvironment().getModule(file);
       if (module != null) {
         for (IDirectory dir : module.getSourcePath()) {

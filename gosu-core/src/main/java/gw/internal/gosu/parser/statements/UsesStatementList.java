@@ -50,12 +50,15 @@ public class UsesStatementList extends Statement implements IUsesStatementList
 
   public IUsesStatement conflicts( IUsesStatement stmt ) {
     String fqn = stmt.getTypeName();
-    if( fqn == null ) {
+    if( fqn == null || stmt.getFeatureInfo() != null || stmt.isFeatureSpace()) {
       return null;
     }
     String relativeName = getRelativeName( fqn );
     boolean bPackage = relativeName.equals( "*" );
     for( IUsesStatement csrStmt : _stmts ) {
+      if( csrStmt.isFeatureSpace() || csrStmt.getFeatureInfo() != null ) {
+        continue;
+      }
       String csrFqn = csrStmt.getTypeName();
       if( csrFqn == null ) {
         continue;

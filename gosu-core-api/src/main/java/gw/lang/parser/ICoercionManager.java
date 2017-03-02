@@ -7,6 +7,7 @@ package gw.lang.parser;
 import gw.config.IService;
 import gw.lang.reflect.IType;
 import gw.lang.parser.exceptions.ParseIssue;
+import gw.util.Rational;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -114,6 +115,8 @@ public interface ICoercionManager extends IService
   public BigDecimal makeBigDecimalFrom( Object obj );
 
   public BigInteger makeBigIntegerFrom( Object obj );
+
+  public Rational makeRationalFrom( Object obj );
 
   public String makeStringFrom( Object obj );
 

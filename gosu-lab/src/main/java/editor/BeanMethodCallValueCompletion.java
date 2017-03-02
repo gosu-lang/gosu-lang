@@ -1,5 +1,6 @@
 package editor;
 
+import editor.util.EditorUtilities;
 import gw.lang.parser.IParseTree;
 import gw.lang.parser.IParsedElement;
 import gw.lang.parser.exceptions.ParseException;
@@ -50,7 +51,7 @@ public class BeanMethodCallValueCompletion extends AbstractParseExceptionResolve
               throw new RuntimeException( e1 );
             }
             getEditor().requestFocus();
-            getGosuEditor().fixSwingFocusBugWhenPopupCloses();
+            EditorUtilities.fixSwingFocusBugWhenPopupCloses( getGosuEditor() );
             getEditor().repaint();
           }
         } );

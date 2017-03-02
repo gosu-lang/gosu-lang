@@ -22,7 +22,7 @@ class Errant_GenericInterfacesTest {
   static interface C5<T1 extends T1> {}  //## issuekeys: MSG_CYCLIC_INHERITANCE
   static interface C6<T1, T2 extends  T1> {}
   static interface C62<T1, T2 extends  T2> {}  //## issuekeys: MSG_CYCLIC_INHERITANCE
-  static interface C7<T1, T2 extends  T3, T3> {}  //## issuekeys: MSG_INVALID_TYPE
+  static interface C7<T1, T2 extends  T3, T3> {}
 
   static interface B<U> {}
   static interface Z extends B<Z> {}
@@ -30,7 +30,7 @@ class Errant_GenericInterfacesTest {
   static interface C8<T1 extends B<T1>> {}
   static interface C9<T1, T2 extends B<T1>> {}
   static interface C10<T1, T2 extends B<T2>> {}
-  static interface C11<T1, T2 extends B<T3>, T3> {}  //## issuekeys: MSG_INVALID_TYPE
+  static interface C11<T1, T2 extends B<T3>, T3> {}
 
   static interface Z3 extends C12<Z3> {}
   static interface Z4 extends C13<String, Z4> {}
@@ -40,7 +40,7 @@ class Errant_GenericInterfacesTest {
   static interface C13<T1, T2 extends C13<T1, T2>> {}
   static interface C131<T1, T2 extends C13<Object, Object>> {}  //## issuekeys: MSG_TYPE_PARAM_NOT_ASSIGNABLE_TO
   static interface C14<T1, T2 extends C14<T2, T2>> {}
-  static interface C15<T1, T2 extends C15<T3, T2, T3>, T3> {}  //## issuekeys: MSG_INVALID_TYPE, MSG_INVALID_TYPE
+  static interface C15<T1, T2 extends C15<T3, T2, T3>, T3> {}
 
   static interface si {}
   static interface  M extends si[] {}  //## issuekeys: MSG_INTERFACE_CANNOT_EXTEND_CLASS

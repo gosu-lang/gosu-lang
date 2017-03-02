@@ -38,18 +38,18 @@ class TestConditionaryTernaryExpression
     var x = 5
     return (x < 0 ? 1 : 2b) as byte
   }
-  
+
   function shortTernaryPos() : short
   {
     var x = 5
-    return (x > 0 ? 1 : 2s) as short
+    return (x > 0 ? 1 : 2 as short) as short
   }
   function shortTernaryNeg() : short
   {
     var x = 5
-    return (x < 0 ? 1 : 2s) as short
+    return (x < 0 ? 1 : (2 as short)) as short
   }
-  
+
   function intTernaryPos() : int
   {
     var x = 5

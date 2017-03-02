@@ -11,7 +11,6 @@ uses java.awt.event.WindowEvent
 final class BoardFrame extends JFrame {
   construct() {
     super( "Match 3" )
-    DefaultCloseOperation = DISPOSE_ON_CLOSE
     ContentPane = new JPanel( new BorderLayout() )
     var board = new Board()
     ContentPane.add( board, BorderLayout.CENTER )
@@ -22,7 +21,16 @@ final class BoardFrame extends JFrame {
     setLocation( 300, 300 )
 
     addWindowListener( new WindowAdapter() {
-      function windowClosed( e: WindowEvent ) {
+      override function windowClosing( e: WindowEvent ) {
+        try {
+          System.exit( 0 )
+        }
+        catch( se: SecurityException ) {
+          dispose()
+        }
+      }
+
+      override function windowClosed( e: WindowEvent ) {
         timeBoard.dispose()
       }
     } )

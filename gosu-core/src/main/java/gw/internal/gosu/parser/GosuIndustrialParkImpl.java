@@ -385,7 +385,7 @@ public class GosuIndustrialParkImpl extends BaseService implements IGosuShop
   @Override
   public boolean isAnnotationAllowedMultipleTimes( IFeatureInfo fi, IAnnotationInfo annotationInfo )
   {
-    return UsageModifier.Many == UsageModifier.getUsageModifier( UsageTarget.getForFeature( fi ), annotationInfo.getType() );
+    return UsageModifier.Many == UsageModifier.getUsageModifier( UsageTarget.getForFeature( fi ), annotationInfo );
   }
 
   @Override

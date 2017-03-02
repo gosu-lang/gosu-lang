@@ -19,7 +19,7 @@ class Errant_IntegerHashMapInitializer {
 
   var integerHashMap1111 : HashMap<Integer, Integer> = {42->'c'}
   var integerHashMap1110 : HashMap<Integer, Integer> = {42->1b}
-  var integerHashMap1112 : HashMap<Integer, Integer> = {42->1s}
+  var integerHashMap1112 : HashMap<Integer, Integer> = {42->1 as short}
   var integerHashMap1113 : HashMap<Integer, Integer> = {42->42}
   var integerHashMap1114 : HashMap<Integer, Integer> = {42->42.5f}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'FLOAT', REQUIRED: 'JAVA.LANG.INTEGER'
   var integerHashMap1115 : HashMap<Integer, Integer> = {42->42.5}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'DOUBLE', REQUIRED: 'JAVA.LANG.INTEGER'
@@ -34,7 +34,7 @@ class Errant_IntegerHashMapInitializer {
 
   var integerHashMap1211 : HashMap<Integer, Integer> = {'c'-> 42}
   var integerHashMap1210 : HashMap<Integer, Integer> = {1b-> 42}
-  var integerHashMap1212 : HashMap<Integer, Integer> = {1s-> 42}
+  var integerHashMap1212 : HashMap<Integer, Integer> = {1 as short-> 42}
   var integerHashMap1213 : HashMap<Integer, Integer> = {42-> 42}
   var integerHashMap1214 : HashMap<Integer, Integer> = {42.5f-> 42}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'FLOAT', REQUIRED: 'JAVA.LANG.INTEGER'
   var integerHashMap1215 : HashMap<Integer, Integer> = {42.5-> 42}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'DOUBLE', REQUIRED: 'JAVA.LANG.INTEGER'
@@ -49,7 +49,7 @@ class Errant_IntegerHashMapInitializer {
 
   var integerHashMap1311 : HashMap<Integer, Integer> = {42->43, 42->'c'}
   var integerHashMap1310 : HashMap<Integer, Integer> = {42->43, 42->1b}
-  var integerHashMap1312 : HashMap<Integer, Integer> = {42->43, 42->1s}
+  var integerHashMap1312 : HashMap<Integer, Integer> = {42->43, 42->1 as short}
   var integerHashMap1313 : HashMap<Integer, Integer> = {42->43, 42->42}
   var integerHashMap1314 : HashMap<Integer, Integer> = {42->43, 42->42.5f}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'FLOAT', REQUIRED: 'JAVA.LANG.INTEGER'
   var integerHashMap1315 : HashMap<Integer, Integer> = {42->43, 42->42.5}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'DOUBLE', REQUIRED: 'JAVA.LANG.INTEGER'
@@ -64,7 +64,7 @@ class Errant_IntegerHashMapInitializer {
 
   var integerHashMap1411 : HashMap<Integer, Integer> = {42->43, 'c'->43}
   var integerHashMap1410 : HashMap<Integer, Integer> = {42->43, 1b->43}
-  var integerHashMap1412 : HashMap<Integer, Integer> = {42->43, 1s->43}
+  var integerHashMap1412 : HashMap<Integer, Integer> = {42->43, 1 as short->43}
   var integerHashMap1413 : HashMap<Integer, Integer> = {42->43, 42->43}
   var integerHashMap1414 : HashMap<Integer, Integer> = {42->43, 42.5f->43}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'FLOAT', REQUIRED: 'JAVA.LANG.INTEGER'
   var integerHashMap1415 : HashMap<Integer, Integer> = {42->43, 42.5->43}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'DOUBLE', REQUIRED: 'JAVA.LANG.INTEGER'

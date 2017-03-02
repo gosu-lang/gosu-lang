@@ -15,6 +15,7 @@ import java.io.Reader;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 
@@ -353,6 +354,22 @@ final public class SourceCodeTokenizerInternal
         // Feature Literals
         "#",
       };
+  }
+
+  public static List<String> getDefaultBindingOperators()
+  {
+    return Arrays.asList(
+        ":",
+
+        "-",
+
+        "/",
+
+        "|",
+
+        "\\",
+
+        "#" );
   }
 
   public static String[] getBitshiftOperators()
@@ -804,6 +821,15 @@ final public class SourceCodeTokenizerInternal
         }
         else if( !hex && (c == 'b' || c == 'B') )
         {
+          if( Character.isJavaIdentifierPart( _reader.peek() ) &&
+              Character.isJavaIdentifierPart( _reader.peek( 2 ) ) &&
+              v.charAt( 0 ) != '0' )
+          {
+            // Only consume bd/bi if it is *not* part of a larger word eg., bit,
+            // this is mostly for the benefit of the BindingExpression use-case.
+            break;
+          }
+
           v.append( (char)c );
           int next = read();
           if( (c == 'b' && next == 'd' ) || (c == 'B' && next == 'D' ) ||
@@ -833,13 +859,18 @@ final public class SourceCodeTokenizerInternal
         {
           v.append( (char)c );
         }
-        else if( c == 's' || c == 'S' ||
-                 c == 'l' || c == 'L' ||
+        else if( c == 'l' || c == 'L' ||
                  c == 'f' || c == 'F' ||
-                 c == 'd' || c == 'D' )
+                 c == 'd' || c == 'D'||
+                 c == 'r' || c == 'R' )
         {
-          v.append( (char)c );
-          c = read();
+          if( !Character.isJavaIdentifierPart( _reader.peek() ) )
+          {
+            // Only consume the number designation char if it is *not* part of a larger word,
+            // this is mostly for the benefit of the BindingExpression use-case.
+            v.append( (char)c );
+            c = read();
+          }
           break;
         }
         else
@@ -1037,6 +1068,10 @@ final public class SourceCodeTokenizerInternal
                   // Illegal escape char
                   bValidChar = false;
                    _peekc = read();
+                }
+                else if( c == '\n' )
+                {
+                  incrementLineNumber();
                 }
                 break;
             }

@@ -4,6 +4,7 @@
 
 package gw.lang.parser.expressions;
 
+import gw.lang.parser.IDynamicPropertySymbol;
 import gw.lang.parser.IExpression;
 import gw.lang.parser.IHasType;
 import gw.lang.parser.IParsedElementWithAtLeastOneDeclaration;
@@ -43,6 +44,8 @@ public interface IVarStatement extends IStatement, IParsedElementWithAtLeastOneD
 
   boolean isFinal();
 
+  boolean isAbstract();
+
   boolean isEnumConstant();
 
   IType getType();
@@ -54,8 +57,10 @@ public interface IVarStatement extends IStatement, IParsedElementWithAtLeastOneD
   String getFullDescription();
 
   void setSymbol( ISymbol symbol );
-  
+
   public int getPropertyNameOffset();
 
   boolean isFieldDeclaration();
+
+  IDynamicPropertySymbol getProperty();
 }

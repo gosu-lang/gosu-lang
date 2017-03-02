@@ -116,15 +116,7 @@ public class CollapsibleSplitPane extends SplitPane
 
   public void toggleCollapse( final ICaptionedPanel captionedPanel )
   {
-    EventQueue.invokeLater(
-      new Runnable()
-      {
-        public void run()
-        {
-          toggleCollapseNow( captionedPanel );
-        }
-      }
-    );
+    EventQueue.invokeLater( () -> toggleCollapseNow( captionedPanel ) );
   }
 
   private void toggleCollapseNow( ICaptionedPanel captionedPanel )
@@ -138,14 +130,10 @@ public class CollapsibleSplitPane extends SplitPane
       toggleBottomCollapse( captionedPanel );
     }
     EventQueue.invokeLater(
-      new Runnable()
-      {
-        public void run()
-        {
-          revalidate();
-          doLayout();
-          repaint();
-        }
+      () -> {
+        revalidate();
+        doLayout();
+        repaint();
       }
     );
   }
@@ -173,7 +161,6 @@ public class CollapsibleSplitPane extends SplitPane
       collapseBottom( captionedPanel );
     }
   }
-
 
 
   private void restore()
@@ -326,16 +313,18 @@ public class CollapsibleSplitPane extends SplitPane
         if( getTop() == captionedPanel ||
             getTop().isAncestorOf( (Component)captionedPanel ) )
         {
-          ICaptionedPanel bottom = findCaptionedPanel(getBottom());
-          if (bottom != null) {
-            toggleBottomCollapse(bottom);
+          ICaptionedPanel bottom = findCaptionedPanel( getBottom() );
+          if( bottom != null )
+          {
+            toggleBottomCollapse( bottom );
           }
         }
         else
         {
-          ICaptionedPanel top = findCaptionedPanel(getTop());
-          if (top != null) {
-            toggleTopCollapse(top);
+          ICaptionedPanel top = findCaptionedPanel( getTop() );
+          if( top != null )
+          {
+            toggleTopCollapse( top );
           }
         }
       }

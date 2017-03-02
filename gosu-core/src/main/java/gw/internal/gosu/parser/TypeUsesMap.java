@@ -6,6 +6,7 @@ package gw.internal.gosu.parser;
 
 import gw.lang.parser.ITypeUsesMap;
 import gw.lang.parser.statements.IUsesStatement;
+import gw.lang.reflect.IFeatureInfo;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.INamespaceType;
 import gw.lang.reflect.TypeSystem;
@@ -31,6 +32,8 @@ public class TypeUsesMap implements ITypeUsesMap
   private DynamicArray<String> _defaultNamespaces;
   private DynamicArray<String> _namespaces;
   private DynamicArray<String> _specialNamespaces; // Namespaces that get searched by default
+  private DynamicArray<String> _featureSpaces;
+  private DynamicArray<IFeatureInfo> _featureLiterals;
   private HashMap<String, IUsesStatement> _usesStmts;
   private boolean _locked = false;
 
@@ -47,6 +50,8 @@ public class TypeUsesMap implements ITypeUsesMap
     _specialTypeUsesByRelativeName = new HashMap<>();
     _typeUsesByRelativeName = new HashMap<>();
     _namespaces = new DynamicArray<>();
+    _featureSpaces = new DynamicArray<>();
+    _featureLiterals = new DynamicArray<>();
     _usesStmts = new HashMap<>();
     _defaultNamespaces = new DynamicArray<>();
     _specialNamespaces = new DynamicArray<>();
@@ -67,6 +72,8 @@ public class TypeUsesMap implements ITypeUsesMap
     copy._specialNamespaces = _specialNamespaces.copy();
     copy._typeUsesByRelativeName = new HashMap<>( _typeUsesByRelativeName );
     copy._namespaces = _namespaces.copy();
+    copy._featureSpaces = _featureSpaces.copy();
+    copy._featureLiterals = _featureLiterals.copy();
     return copy;
   }
 
@@ -81,6 +88,8 @@ public class TypeUsesMap implements ITypeUsesMap
     copy._typeUsesByRelativeName = new HashMap<>( _typeUsesByRelativeName );
     copy._usesStmts = new HashMap<>( _usesStmts );
     copy._namespaces = _namespaces.copy();
+    copy._featureSpaces = _featureSpaces.copy();
+    copy._featureLiterals = _featureLiterals.copy();
     return copy;
   }
 
@@ -122,6 +131,20 @@ public class TypeUsesMap implements ITypeUsesMap
     return combined;
   }
 
+  @Override
+  public Set<String> getFeatureSpaces() {
+    Set<String> combined = new LinkedHashSet<>();
+    combined.addAll( _featureSpaces );
+    return combined;
+  }
+
+  @Override
+  public Set<IFeatureInfo> getFeatureLiterals() {
+    Set<IFeatureInfo> combined = new LinkedHashSet<>();
+    combined.addAll( _featureLiterals );
+    return combined;
+  }
+
   public void addToTypeUses( String strType )
   {
     checkLocked();
@@ -139,10 +162,49 @@ public class TypeUsesMap implements ITypeUsesMap
     }
   }
 
+  public void addToFeatureSpaces( String strType )
+  {
+    checkLocked();
+    if( strType != null )
+    {
+      strType = strType.replace( '$', '.' );
+      // Store them so that they end with a dot
+      String ns = StringPool.get( strType );
+      if( !_featureSpaces.contains( ns ) )
+      {
+        _featureSpaces.add( ns );
+      }
+    }
+  }
+
+  public void addToFeatureLiterals( IFeatureInfo fi )
+  {
+    checkLocked();
+    if( fi != null )
+    {
+      _featureLiterals.add( fi );
+    }
+  }
+
   public void addToTypeUses( IUsesStatement usesSmt )
   {
     String strType = usesSmt.getTypeName();
-    addToTypeUses( strType );
+    if( usesSmt.isFeatureSpace() )
+    {
+      addToFeatureSpaces( strType );
+    }
+    else
+    {
+      IFeatureInfo fi = usesSmt.getFeatureInfo();
+      if( fi != null )
+      {
+        addToFeatureLiterals( fi );
+      }
+      else
+      {
+        addToTypeUses( strType );
+      }
+    }
     _usesStmts.put( StringPool.get( strType ), usesSmt );
   }
 
@@ -240,6 +302,8 @@ public class TypeUsesMap implements ITypeUsesMap
   {
     _typeUsesByRelativeName.clear();
     _namespaces.clear();
+    _featureSpaces.clear();
+    _featureLiterals.clear();
     _usesStmts.clear();
   }
 

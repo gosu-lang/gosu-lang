@@ -38,6 +38,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.TimeZone;
 
 
 /**
@@ -178,6 +179,11 @@ public class DefaultEntityAccess extends BaseService implements IEntityAccess
   public Date getCurrentTime()
   {
     return new Date();
+  }
+
+  @Override
+  public TimeZone getTimeZone() {
+    return TimeZone.getDefault();
   }
 
   @Override

@@ -97,6 +97,10 @@ public class KeywordsTest extends TestClass {
     kw.put("where", true);
     kw.put("while", false);
     kw.put("true", true);
+    kw.put("field", true);
+    kw.put("accessors", true);
+    kw.put("param", true);
+    kw.put("receiver", true);
 
     final Set<String> all = Keyword.getAll();
     assertEquals(all.size(), kw.size());

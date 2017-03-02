@@ -7,7 +7,6 @@ import gw.internal.gosu.parser.StringCache;
 import gw.lang.parser.expressions.INumericLiteralExpression;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.TypeSystem;
-import gw.lang.reflect.TypeSystemShutdownListener;
 import gw.lang.reflect.java.JavaTypes;
 import gw.util.concurrent.LockingLazyVar;
 
@@ -27,17 +26,12 @@ public final class NumericLiteral extends Literal implements INumericLiteralExpr
     }
   };
   static {
-    TypeSystem.addShutdownListener(new TypeSystemShutdownListener() {
-      public void shutdown() {
-        INFINITY.clear();
-        NaN.clear();
-      }
-    });
+    TypeSystem.addShutdownListener( () -> {
+      INFINITY.clear();
+      NaN.clear();
+    } );
   }
 
-  /**
-   * The value of the numberic lister as a Double.
-   */
   protected Number _value;
   private String _strValue;
   private boolean _explicitlyTyped;

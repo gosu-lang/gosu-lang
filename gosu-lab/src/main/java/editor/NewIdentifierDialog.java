@@ -1,17 +1,14 @@
 package editor;
 
-import editor.search.StudioUtilities;
 import editor.util.EditorUtilities;
 import gw.lang.reflect.gs.ClassType;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 
-public class NewIdentifierDialog extends JDialog
+public class NewIdentifierDialog extends JDialog implements IHandleCancel
 {
   private IdentifierTextField _nameField;
   private String _name;
@@ -83,29 +80,11 @@ public class NewIdentifierDialog extends JDialog
     south.add( buttonPanel, BorderLayout.EAST );
     contentPane.add( south, BorderLayout.SOUTH );
 
-    mapCancelKeystroke();
+    mapCancelKeystroke( "Cancel", this::close );
 
     pack();
 
-    StudioUtilities.centerWindowInFrame( this, getOwner() );
-  }
-
-  private void mapCancelKeystroke()
-  {
-    Object key = getRootPane().getInputMap( JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT ).get( KeyStroke.getKeyStroke( KeyEvent.VK_ESCAPE, 0 ) );
-    if( key == null )
-    {
-      key = "Cancel";
-      getRootPane().getInputMap( JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT ).put( KeyStroke.getKeyStroke( KeyEvent.VK_ESCAPE, 0 ), key );
-    }
-    getRootPane().getActionMap().put( key,
-                                      new AbstractAction()
-                                      {
-                                        public void actionPerformed( ActionEvent e )
-                                        {
-                                          close();
-                                        }
-                                      } );
+    EditorUtilities.centerWindowInFrame( this, getOwner() );
   }
 
   public String getClassName()

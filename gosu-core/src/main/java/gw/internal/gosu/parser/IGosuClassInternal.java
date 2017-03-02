@@ -179,6 +179,7 @@ public interface IGosuClassInternal extends IGosuClass, ICompilableTypeInternal
 
   void putClassMembers( GosuParser owner, ISymbolTable table, IGosuClassInternal gsContextClass, boolean bStatic );
   void putClassMembers( GosuClassTypeLoader loader, GosuParser owner, ISymbolTable table, IGosuClassInternal gsContextClass, boolean bStatic );
+  void putClassMembers( GosuClassTypeLoader loader, GosuParser owner, ISymbolTable table, IGosuClassInternal gsContextClass, boolean bStatic, boolean bStaticImport );
 
   boolean isAccessible( IGosuClassInternal compilingClass, AbstractDynamicSymbol ads );
 

@@ -7,11 +7,15 @@ package gw.internal.gosu.parser.expressions;
 import gw.config.CommonServices;
 import gw.internal.gosu.parser.ParserBase;
 import gw.lang.IDimension;
+import gw.lang.parser.ICoercionManager;
 import gw.lang.parser.expressions.IMultiplicativeExpression;
+import gw.lang.reflect.IMethodInfo;
 import gw.lang.reflect.IPlaceholder;
 import gw.lang.reflect.IType;
+import gw.lang.reflect.ReflectUtil;
 import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.java.JavaTypes;
+import gw.util.Rational;
 
 import java.math.BigDecimal;
 import java.math.MathContext;
@@ -55,15 +59,26 @@ public final class MultiplicativeExpression extends ArithmeticExpression impleme
   @SuppressWarnings({"ConstantConditions"})
   public static Object evaluate( IType type, Object lhsValue, Object rhsValue, IType lhsType, IType rhsType, int iOperator, boolean bNullSafe )
   {
+    boolean bDynamic = false;
     if( lhsType instanceof IPlaceholder && ((IPlaceholder)lhsType).isPlaceholder() )
     {
       lhsType = TypeSystem.getFromObject( lhsValue );
-      type = ParserBase.resolveRuntimeType( lhsType, iOperator, rhsType );
+      bDynamic = true;
     }
     if( rhsType instanceof IPlaceholder && ((IPlaceholder)rhsType).isPlaceholder() )
     {
       rhsType = TypeSystem.getFromObject( rhsValue );
-      type = ParserBase.resolveRuntimeType( lhsType, iOperator, rhsType );
+      bDynamic = true;
+    }
+    if( bDynamic )
+    {
+      ArithmeticExpression overrideMethod = new MultiplicativeExpression();
+      type = ParserBase.resolveRuntimeType( overrideMethod, lhsType, iOperator, rhsType );
+      IMethodInfo mi = overrideMethod.getOverride();
+      if( mi != null )
+      {
+        return mi.getCallHandler().handleCall( lhsValue, ReflectUtil.coerceArgsIfNecessary( mi.getParameters(), rhsValue ) );
+      }
     }
 
     if( lhsValue == null )
@@ -84,9 +99,9 @@ public final class MultiplicativeExpression extends ArithmeticExpression impleme
     }
 
     IDimension customNumberBase = null;
-    if( JavaTypes.IDIMENSION().isAssignableFrom( type ) ) {
-      DimensionOperandResolver customNumberResolver =
-        DimensionOperandResolver.resolve( type, lhsType, lhsValue, rhsType, rhsValue );
+    if( JavaTypes.IDIMENSION().isAssignableFrom( type ) )
+    {
+      DimensionOperandResolver customNumberResolver = DimensionOperandResolver.resolve( type, lhsType, lhsValue, rhsType, rhsValue );
       type = customNumberResolver.getRawNumberType();
       lhsValue = customNumberResolver.getLhsValue();
       rhsValue = customNumberResolver.getRhsValue();
@@ -94,27 +109,30 @@ public final class MultiplicativeExpression extends ArithmeticExpression impleme
     }
 
     Object retValue;
+    ICoercionManager cm = CommonServices.getCoercionManager();
     switch( iOperator )
     {
       case '*':
       {
-        if( type == JavaTypes.BIG_DECIMAL() )
+        if( type == JavaTypes.RATIONAL() )
         {
-          BigDecimal lhsBD = CommonServices.getCoercionManager().makeBigDecimalFrom( lhsValue );
-          BigDecimal rhsBD = CommonServices.getCoercionManager().makeBigDecimalFrom( rhsValue );
-          retValue = lhsBD.multiply( rhsBD );
+          retValue = cm.makeRationalFrom( lhsValue ).multiply( cm.makeRationalFrom( rhsValue ) );
+        }
+        else if( type == JavaTypes.BIG_DECIMAL() )
+        {
+          retValue = cm.makeBigDecimalFrom( lhsValue ).multiply( cm.makeBigDecimalFrom( rhsValue ) );
         }
         else if( type == JavaTypes.BIG_INTEGER() )
         {
-          retValue = CommonServices.getCoercionManager().makeBigIntegerFrom( lhsValue ).multiply( CommonServices.getCoercionManager().makeBigIntegerFrom( rhsValue ) );
+          retValue = cm.makeBigIntegerFrom( lhsValue ).multiply( cm.makeBigIntegerFrom( rhsValue ) );
         }
         else if( type == JavaTypes.INTEGER() || type == JavaTypes.pINT() )
         {
-          retValue = CommonServices.getCoercionManager().makeIntegerFrom( lhsValue ) * CommonServices.getCoercionManager().makeIntegerFrom( rhsValue );
+          retValue = cm.makeIntegerFrom( lhsValue ) * cm.makeIntegerFrom( rhsValue );
         }
         else if( type == JavaTypes.LONG() || type == JavaTypes.pLONG() )
         {
-          retValue = makeLong( CommonServices.getCoercionManager().makeLongFrom( lhsValue ) * CommonServices.getCoercionManager().makeLongFrom( rhsValue ) );
+          retValue = makeLong( cm.makeLongFrom( lhsValue ) * cm.makeLongFrom( rhsValue ) );
         }
         else if( type == JavaTypes.DOUBLE() || type == JavaTypes.pDOUBLE() )
         {
@@ -126,11 +144,11 @@ public final class MultiplicativeExpression extends ArithmeticExpression impleme
         }
         else if( type == JavaTypes.SHORT() || type == JavaTypes.pSHORT() )
         {
-          retValue = Integer.valueOf( CommonServices.getCoercionManager().makeIntegerFrom( lhsValue ) * CommonServices.getCoercionManager().makeIntegerFrom( rhsValue ) ).shortValue();
+          retValue = Integer.valueOf( cm.makeIntegerFrom( lhsValue ) * cm.makeIntegerFrom( rhsValue ) ).shortValue();
         }
         else if( type == JavaTypes.BYTE() || type == JavaTypes.pBYTE() )
         {
-          retValue = (byte)(CommonServices.getCoercionManager().makeIntegerFrom( lhsValue ) * CommonServices.getCoercionManager().makeIntegerFrom( rhsValue ));
+          retValue = (byte)(cm.makeIntegerFrom( lhsValue ) * cm.makeIntegerFrom( rhsValue ));
         }
         else
         {
@@ -141,23 +159,25 @@ public final class MultiplicativeExpression extends ArithmeticExpression impleme
 
       case '/':
       {
-        if( type == JavaTypes.BIG_DECIMAL() )
+        if( type == JavaTypes.RATIONAL() )
         {
-          BigDecimal lhsBD = CommonServices.getCoercionManager().makeBigDecimalFrom( lhsValue );
-          BigDecimal rhsBD = CommonServices.getCoercionManager().makeBigDecimalFrom( rhsValue );
-          retValue = lhsBD.divide( rhsBD, MathContext.DECIMAL128 );
+          retValue = cm.makeRationalFrom( lhsValue ).divide( cm.makeRationalFrom( rhsValue ) );
+        }
+        else if( type == JavaTypes.BIG_DECIMAL() )
+        {
+          retValue = cm.makeBigDecimalFrom( lhsValue ).divide( cm.makeBigDecimalFrom( rhsValue ), MathContext.DECIMAL128 );
         }
         else if( type == JavaTypes.BIG_INTEGER() )
         {
-          retValue = CommonServices.getCoercionManager().makeBigIntegerFrom( lhsValue ).divide( CommonServices.getCoercionManager().makeBigIntegerFrom( rhsValue ) );
+          retValue = cm.makeBigIntegerFrom( lhsValue ).divide( cm.makeBigIntegerFrom( rhsValue ) );
         }
         else if( type == JavaTypes.INTEGER() || type == JavaTypes.pINT() )
         {
-          retValue = CommonServices.getCoercionManager().makeIntegerFrom( lhsValue ) / CommonServices.getCoercionManager().makeIntegerFrom( rhsValue );
+          retValue = cm.makeIntegerFrom( lhsValue ) / cm.makeIntegerFrom( rhsValue );
         }
         else if( type == JavaTypes.LONG() || type == JavaTypes.pLONG() )
         {
-          retValue = makeLong( CommonServices.getCoercionManager().makeLongFrom( lhsValue ) / CommonServices.getCoercionManager().makeLongFrom( rhsValue ) );
+          retValue = makeLong( cm.makeLongFrom( lhsValue ) / cm.makeLongFrom( rhsValue ) );
         }
         else if( type == JavaTypes.DOUBLE() || type == JavaTypes.pDOUBLE() )
         {
@@ -169,11 +189,11 @@ public final class MultiplicativeExpression extends ArithmeticExpression impleme
         }
         else if( type == JavaTypes.SHORT() || type == JavaTypes.pSHORT() )
         {
-          retValue = Integer.valueOf( CommonServices.getCoercionManager().makeIntegerFrom( lhsValue ) / CommonServices.getCoercionManager().makeIntegerFrom( rhsValue ) ).shortValue();
+          retValue = Integer.valueOf( cm.makeIntegerFrom( lhsValue ) / cm.makeIntegerFrom( rhsValue ) ).shortValue();
         }
         else if( type == JavaTypes.BYTE() || type == JavaTypes.pBYTE() )
         {
-          retValue = (byte)(CommonServices.getCoercionManager().makeIntegerFrom( lhsValue ) / CommonServices.getCoercionManager().makeIntegerFrom( rhsValue ));
+          retValue = (byte)(cm.makeIntegerFrom( lhsValue ) / cm.makeIntegerFrom( rhsValue ));
         }
         else
         {
@@ -184,24 +204,25 @@ public final class MultiplicativeExpression extends ArithmeticExpression impleme
 
       case '%':
       {
-        if( type == JavaTypes.BIG_DECIMAL() )
+        if( type == JavaTypes.RATIONAL() )
         {
-          BigDecimal lhsBD = CommonServices.getCoercionManager().makeBigDecimalFrom( lhsValue );
-          BigDecimal rhsBD = CommonServices.getCoercionManager().makeBigDecimalFrom( rhsValue );
-          BigDecimal result = lhsBD.remainder( rhsBD, MathContext.DECIMAL128 );
-          retValue = result.abs();
+          retValue = cm.makeRationalFrom( lhsValue ).modulo( cm.makeRationalFrom( rhsValue ) );
+        }
+        else if( type == JavaTypes.BIG_DECIMAL() )
+        {
+          retValue = cm.makeBigDecimalFrom( lhsValue ).remainder( cm.makeBigDecimalFrom( rhsValue ), MathContext.DECIMAL128 ).abs();
         }
         else if( type == JavaTypes.BIG_INTEGER() )
         {
-          retValue = CommonServices.getCoercionManager().makeBigIntegerFrom( lhsValue ).mod( CommonServices.getCoercionManager().makeBigIntegerFrom( rhsValue ) );
+          retValue = cm.makeBigIntegerFrom( lhsValue ).mod( cm.makeBigIntegerFrom( rhsValue ) );
         }
         else if( type == JavaTypes.INTEGER() || type == JavaTypes.pINT() )
         {
-          retValue = CommonServices.getCoercionManager().makeIntegerFrom( lhsValue ) % CommonServices.getCoercionManager().makeIntegerFrom( rhsValue );
+          retValue = cm.makeIntegerFrom( lhsValue ) % cm.makeIntegerFrom( rhsValue );
         }
         else if( type == JavaTypes.LONG() || type == JavaTypes.pLONG() )
         {
-          retValue = makeLong( CommonServices.getCoercionManager().makeLongFrom( lhsValue ) % CommonServices.getCoercionManager().makeLongFrom( rhsValue ) );
+          retValue = makeLong( cm.makeLongFrom( lhsValue ) % cm.makeLongFrom( rhsValue ) );
         }
         else if( type == JavaTypes.DOUBLE() || type == JavaTypes.pDOUBLE() )
         {
@@ -213,11 +234,11 @@ public final class MultiplicativeExpression extends ArithmeticExpression impleme
         }
         else if( type == JavaTypes.SHORT() || type == JavaTypes.pSHORT() )
         {
-          retValue = Integer.valueOf( CommonServices.getCoercionManager().makeIntegerFrom( lhsValue ) % CommonServices.getCoercionManager().makeIntegerFrom( rhsValue ) ).shortValue();
+          retValue = Integer.valueOf( cm.makeIntegerFrom( lhsValue ) % cm.makeIntegerFrom( rhsValue ) ).shortValue();
         }
         else if( type == JavaTypes.BYTE() || type == JavaTypes.pBYTE() )
         {
-          retValue = (byte)(CommonServices.getCoercionManager().makeIntegerFrom( lhsValue ) % CommonServices.getCoercionManager().makeIntegerFrom( rhsValue ));
+          retValue = (byte)(cm.makeIntegerFrom( lhsValue ) % cm.makeIntegerFrom( rhsValue ));
         }
         else
         {
@@ -240,5 +261,4 @@ public final class MultiplicativeExpression extends ArithmeticExpression impleme
     }
     return retValue;
   }
-
 }

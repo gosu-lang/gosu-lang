@@ -15,12 +15,10 @@ class NumericLiteralBoundaryTest extends BaseVerifyErrantTest {
 
   function testShortSyntax() {
     // boundary cases
-    assertEquals( new Short( (Short.MIN_VALUE + 1) as short ), eval( "${(Short.MIN_VALUE + 1) as short}s") )
-    assertEquals( new Short( (Short.MIN_VALUE + 1) as short ), eval( "${(Short.MIN_VALUE + 1) as short}S") )
-    assertEquals( new Short( Short.MAX_VALUE ), eval( "${Short.MAX_VALUE}s" ) )
-    assertEquals( new Short( Short.MAX_VALUE ), eval( "${Short.MAX_VALUE}S") )
-    assertEquals( new Short( "-0" ), -0s )
-    assertEquals( new Short( "-0" ), -0S )
+    assertEquals( new Short( (Short.MIN_VALUE + 1) as short ), eval( "${(Short.MIN_VALUE + 1) as short} as short") )
+    assertEquals( new Short( Short.MAX_VALUE ), eval( "${Short.MAX_VALUE} as short" ) )
+    assertEquals( new Short( "-0" ), -0 as short )
+    assertEquals( new Short( "-0" ), -0 as short )
   }
 
   function testLongSyntax() {

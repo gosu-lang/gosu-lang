@@ -5,10 +5,15 @@
 package gw.internal.gosu.ir.transform.statement;
 
 import gw.config.CommonServices;
+import gw.internal.gosu.ir.nodes.IRMethod;
+import gw.internal.gosu.ir.nodes.IRMethodFactory;
+import gw.internal.gosu.ir.transform.ExpressionTransformer;
 import gw.internal.gosu.ir.transform.TopLevelTransformationContext;
+import gw.internal.gosu.ir.transform.util.IRTypeResolver;
 import gw.internal.gosu.parser.DelegateFunctionSymbol;
 import gw.internal.gosu.parser.DynamicFunctionSymbol;
 import gw.internal.gosu.parser.Expression;
+import gw.internal.gosu.parser.ProgramExecuteFunctionSymbol;
 import gw.internal.gosu.parser.TemplateRenderFunctionSymbol;
 import gw.internal.gosu.parser.Statement;
 import gw.internal.gosu.parser.Symbol;
@@ -30,17 +35,30 @@ import gw.internal.gosu.parser.statements.ReturnStatement;
 import gw.internal.gosu.parser.statements.StatementList;
 import gw.internal.gosu.parser.statements.SyntheticFunctionStatement;
 import gw.internal.gosu.parser.statements.VarStatement;
+import gw.lang.Gosu;
 import gw.lang.ir.IRExpression;
 import gw.lang.ir.IRStatement;
+import gw.lang.ir.IRSymbol;
+import gw.lang.ir.IRType;
+import gw.lang.ir.IRTypeConstants;
+import gw.lang.ir.expression.IRMethodCallExpression;
+import gw.lang.ir.statement.IRMethodCallStatement;
 import gw.lang.ir.statement.IRReturnStatement;
+import gw.lang.ir.statement.IRStatementList;
 import gw.lang.parser.ISymbol;
 import gw.lang.parser.StandardSymbolTable;
 import gw.lang.reflect.FunctionType;
+import gw.lang.reflect.IFunctionType;
+import gw.lang.reflect.IMethodInfo;
 import gw.lang.reflect.IParameterInfo;
+import gw.lang.reflect.IRelativeTypeInfo;
+import gw.lang.reflect.IType;
 import gw.lang.reflect.TypeSystem;
+import gw.lang.reflect.gs.IGenericTypeVariable;
 import gw.lang.reflect.java.JavaTypes;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -79,6 +97,10 @@ public class SyntheticFunctionStatementTransformer extends AbstractStatementTran
     else if( _dfs instanceof TemplateRenderFunctionSymbol )
     {
       return compileForwardingMethod();
+    }
+    else if( _dfs instanceof ProgramExecuteFunctionSymbol )
+    {
+      return compileProgramExecute();
     }
     else
     {
@@ -191,22 +213,38 @@ public class SyntheticFunctionStatementTransformer extends AbstractStatementTran
   {
     VarPropertySetFunctionSymbol setter = (VarPropertySetFunctionSymbol)_dfs;
 
-    final ISymbol valueSymbol = setter.getArgs().get( 0 );
-    return buildFieldSet( getDescriptor( getGosuClass() ),
-                          setter.getVarIdentifier().toString(),
-                          getDescriptor( valueSymbol.getType() ),
-                          (setter.isStatic() ? null : pushThis()),
-                          identifier( _cc().getSymbol( valueSymbol.getName() ) ) );
+    if( getGosuClass().isInterface() )
+    {
+      return buildThrow( buildNewExpression( UnsupportedOperationException.class, new Class[] {String.class}, Collections.singletonList( pushConstant( "Unimplemented set support for " + _dfs.getDisplayName() ) ) ) );
+    }
+    else
+    {
+      final ISymbol valueSymbol = setter.getArgs().get( 0 );
+      return buildFieldSet( getDescriptor( getGosuClass() ),
+                            setter.getVarIdentifier(),
+                            getDescriptor( valueSymbol.getType() ),
+                            (setter.isStatic() ? null : pushThis()),
+                            identifier( _cc().getSymbol( valueSymbol.getName() ) ) );
+    }
   }
 
   private IRStatement compileReturnStatementForGetter()
   {
     VarPropertyGetFunctionSymbol getter = (VarPropertyGetFunctionSymbol)_dfs;
 
-    IRExpression returnValue = buildFieldGet( getDescriptor( getGosuClass() ),
-                                              getter.getVarIdentifier().toString(),
-                                              getDescriptor( getter.getReturnType() ),
-                                              (getter.isStatic() ? null : pushThis()) );
+    IRExpression returnValue;
+    if( getGosuClass().isInterface() )
+    {
+      VarStatement varStmt = getGosuClass().getParseInfo().getMemberFields().get( getter.getVarIdentifier() );
+      returnValue = ExpressionTransformer.compile( varStmt.getAsExpression(), _cc() );
+    }
+    else
+    {
+      returnValue = buildFieldGet( getDescriptor( getGosuClass() ),
+                                   getter.getVarIdentifier(),
+                                   getDescriptor( getter.getReturnType() ),
+                                   (getter.isStatic() ? null : pushThis()) );
+    }
     return new IRReturnStatement( null, returnValue );
   }
 
@@ -256,8 +294,7 @@ public class SyntheticFunctionStatementTransformer extends AbstractStatementTran
       methodCall.setRootExpression( id );
       methodCall.setMethodDescriptor( delegateSymbol.getMi() );
       methodCall.setType( delegateSymbol.getReturnType() );
-      // PL-21982
-      methodCall.setFunctionType( new FunctionType(delegateSymbol.getMi()));
+      methodCall.setFunctionType( getDelegateFunctionType( delegateSymbol ) );
 
       Expression[] args = new Expression[delegateSymbol.getArgs().size()];
       for( int i = 0; i < delegateSymbol.getArgs().size(); i++ )
@@ -283,4 +320,50 @@ public class SyntheticFunctionStatementTransformer extends AbstractStatementTran
       }
     }
   }
+
+  private IFunctionType getDelegateFunctionType( DelegateFunctionSymbol delegateSymbol )
+  {
+    IFunctionType functionType = new FunctionType( delegateSymbol.getMi() );
+    if( !functionType.isGenericType() )
+    {
+      return functionType;
+    }
+
+    // If the method is generic, we must parameterize the method call in order to forward the method's type params
+
+    IGenericTypeVariable[] typeVariables = functionType.getGenericTypeVariables();
+    IType[] typeParams = new IType[typeVariables.length];
+    for( int i = 0; i < typeVariables.length; i++ )
+    {
+      IGenericTypeVariable gtv = typeVariables[i];
+      typeParams[i] = gtv.getTypeVariableDefinition().getType();
+    }
+    return (IFunctionType)functionType.getParameterizedType( typeParams );
+  }
+
+  private IRStatement compileProgramExecute()
+  {
+    List<IType> paramTypes = new ArrayList<IType>();
+    IMethodInfo evaluateMethod = null;
+    for( IMethodInfo mi : getGosuClass().getTypeInfo().getMethods() )
+    {
+      if( mi.getName().startsWith( "evaluate(" ) )
+      {
+        evaluateMethod = mi;
+        for( IParameterInfo param : mi.getParameters() )
+        {
+          IType paramType = param.getFeatureType();
+          paramTypes.add( paramType );
+        }
+        break;
+      }
+    }
+    boolean bArgs = _dfs.getArgTypes().length > 0;
+    IRExpression newProgram = buildNewExpression( IRTypeResolver.getDescriptor( getGosuClass() ), Collections.<IRType>emptyList(), Collections.<IRExpression>emptyList() );
+    IRMethod evaluateIRMethod = IRMethodFactory.createIRMethod( getGosuClass(), "evaluate", evaluateMethod.getReturnType(), paramTypes.toArray( new IType[paramTypes.size()] ), IRelativeTypeInfo.Accessibility.PUBLIC, false );
+    IRExpression callEvaluate = callMethod( evaluateIRMethod, newProgram, Collections.singletonList( nullLiteral() ) );
+    IRExpression setRawArgs = callStaticMethod( Gosu.class, "setRawArgs", new Class[]{String[].class}, exprList( bArgs ? identifier( _cc().getSymbol( _dfs.getArgs().get( 0 ).getName() ) ) : pushNull() ) );
+    return new IRStatementList( true, buildMethodCall( setRawArgs ), new IRReturnStatement( null, callEvaluate ) );
+  }
+
 }

@@ -20,7 +20,7 @@ class IntervalExpressionsTest extends BaseVerifyErrantTest {
     var s1 : CharSequence = "2"
 
     var i0 : IntegerInterval = 0..2
-    var i1 : IntegerInterval = 0s..2s
+    var i1 : IntegerInterval = 0 as short..2 as short
     var i2 : LongInterval = 0l..2l
     var i3 : IntegerInterval = 0b..2b
     var i4 : IntegerInterval = 'a'..'c'

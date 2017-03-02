@@ -38,8 +38,8 @@ class Errant_DimensionTest {
     var f1 = d1 + e1
     var f2 = d1 - e1
     var f3 = d1 * e1   //## issuekeys: MSG_DIMENSION_MULTIPLICATION_UNDEFINED, MSG_ARITHMETIC_OPERATOR_CANNOT_BE_APPLIED_TO_TYPES
-    var f4 = d1 / e1   //## issuekeys: MSG_DIMENSION_MULTIPLICATION_UNDEFINED, MSG_ARITHMETIC_OPERATOR_CANNOT_BE_APPLIED_TO_TYPES
-    var f5 = d1 % e1   //## issuekeys: MSG_DIMENSION_MULTIPLICATION_UNDEFINED, MSG_ARITHMETIC_OPERATOR_CANNOT_BE_APPLIED_TO_TYPES
+    var f4 = d1 / e1
+    var f5 = d1 % e1
     var f6 = d1 ^ e1  //## issuekeys: MSG_BITWISE_OPERAND_MUST_BE_INT_OR_LONG, MSG_BITWISE_OPERAND_MUST_BE_INT_OR_LONG
 
     var g1 : SampleDimension_BigInteger = new SampleDimension_BigInteger (new BigInteger("3"))
@@ -47,8 +47,8 @@ class Errant_DimensionTest {
     var i1 = g1 + h1
     var i2 = g1 - h1
     var i3 = g1 * h1  //## issuekeys: MSG_DIMENSION_MULTIPLICATION_UNDEFINED, MSG_ARITHMETIC_OPERATOR_CANNOT_BE_APPLIED_TO_TYPES
-    var i4 = g1 / h1  //## issuekeys: MSG_DIMENSION_MULTIPLICATION_UNDEFINED, MSG_ARITHMETIC_OPERATOR_CANNOT_BE_APPLIED_TO_TYPES
-    var i5 = g1 % h1  //## issuekeys: MSG_DIMENSION_MULTIPLICATION_UNDEFINED, MSG_ARITHMETIC_OPERATOR_CANNOT_BE_APPLIED_TO_TYPES
+    var i4 = g1 / h1
+    var i5 = g1 % h1
     var i6 = g1 ^ h1  //## issuekeys: MSG_BITWISE_OPERAND_MUST_BE_INT_OR_LONG, MSG_BITWISE_OPERAND_MUST_BE_INT_OR_LONG
 
     var a : SampleDimension_SpecialNumber = new SampleDimension_SpecialNumber(new SpecialNumber(5))
@@ -77,8 +77,8 @@ class Errant_DimensionTest {
     var f1 = d1 + e1
     var f2 = d1 - e1
     var f3 = d1 * e1  //## issuekeys: MSG_DIMENSION_MULTIPLICATION_UNDEFINED, MSG_ARITHMETIC_OPERATOR_CANNOT_BE_APPLIED_TO_TYPES
-    var f4 = d1 / e1  //## issuekeys: MSG_DIMENSION_MULTIPLICATION_UNDEFINED, MSG_ARITHMETIC_OPERATOR_CANNOT_BE_APPLIED_TO_TYPES
-    var f5 = d1 % e1  //## issuekeys: MSG_DIMENSION_MULTIPLICATION_UNDEFINED, MSG_ARITHMETIC_OPERATOR_CANNOT_BE_APPLIED_TO_TYPES
+    var f4 = d1 / e1
+    var f5 = d1 % e1
     var f6 = d1 ^ e1  //## issuekeys: MSG_BITWISE_OPERAND_MUST_BE_INT_OR_LONG, MSG_BITWISE_OPERAND_MUST_BE_INT_OR_LONG
 
     var g1 : SampleDimWithoutArith_BigInteger = new SampleDimWithoutArith_BigInteger (new BigInteger("3"))
@@ -86,8 +86,8 @@ class Errant_DimensionTest {
     var i1 = g1 + h1
     var i2 = g1 - h1
     var i3 = g1 * h1  //## issuekeys: MSG_DIMENSION_MULTIPLICATION_UNDEFINED, MSG_ARITHMETIC_OPERATOR_CANNOT_BE_APPLIED_TO_TYPES
-    var i4 = g1 / h1  //## issuekeys: MSG_DIMENSION_MULTIPLICATION_UNDEFINED, MSG_ARITHMETIC_OPERATOR_CANNOT_BE_APPLIED_TO_TYPES
-    var i5 = g1 % h1  //## issuekeys: MSG_DIMENSION_MULTIPLICATION_UNDEFINED, MSG_ARITHMETIC_OPERATOR_CANNOT_BE_APPLIED_TO_TYPES
+    var i4 = g1 / h1
+    var i5 = g1 % h1
     var i6 = g1 ^ h1  //## issuekeys: MSG_BITWISE_OPERAND_MUST_BE_INT_OR_LONG, MSG_BITWISE_OPERAND_MUST_BE_INT_OR_LONG
 
     var a : SampleDimWithoutArith_SpecialNum = new SampleDimWithoutArith_SpecialNum(new SpecialNum(5))

@@ -2,7 +2,7 @@
   <parent>
     <groupId>org.gosu-lang.gosu</groupId>
     <artifactId>gosu-parent</artifactId>
-    <version>1-spec-SNAPSHOT</version>
+    <version>1-X-SNAPSHOT</version>
     <relativePath>../gosu-parent/pom.xml</relativePath>
   </parent>
   <modelVersion>4.0.0</modelVersion>
@@ -15,12 +15,12 @@
     <dependency>
       <groupId>org.gosu-lang.gosu</groupId>
       <artifactId>gosu-test-api</artifactId>
-      <version>1-spec-SNAPSHOT</version>
+      <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>org.gosu-lang.gosu</groupId>
       <artifactId>gosu-core</artifactId>
-      <version>1-spec-SNAPSHOT</version>
+      <version>${project.version}</version>
     </dependency>
   </dependencies>
 
@@ -37,11 +37,19 @@
               <goal>testCompile</goal>
             </goals>
             <configuration>
+              <compilerId>gosuc</compilerId>
+              <fork>true</fork>
+              <meminitial>1024m</meminitial>
+              <maxmem>2048m</maxmem>
               <compilerArgs>
                 <arg>-DcheckedArithmetic=true</arg>
+                <!--<arg>-Xdebug</arg>-->
+                <!-- windows -->
+                <!--<arg>-Xrunjdwp:transport=dt_shmem,address=gosuc,server=y,suspend=y</arg> -->
+                <!-- linux/OS X -->
+                <!--<arg>-Xrunjdwp:transport=dt_socket,address=5005,server=y,suspend=y</arg>-->
               </compilerArgs>
-              <compilerId>gosuc</compilerId>
-              <fork>false</fork>
+              <showWarnings>false</showWarnings>
               <useIncrementalCompilation>true</useIncrementalCompilation> <!-- this must be true or else we cannot pick up files with multiple extensions -->
               <verbose>true</verbose>
               <testIncludes>
@@ -63,7 +71,7 @@
           <dependency>
             <groupId>org.gosu-lang.gosu</groupId>
             <artifactId>gosu-maven-compiler</artifactId>
-            <version>1-spec-SNAPSHOT</version>
+            <version>${project.version}</version>
           </dependency>
         </dependencies>
       </plugin>
@@ -71,7 +79,7 @@
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
         <configuration>
-          <argLine>-Dgw.tests.skip.knownbreak=true -DcheckedArithmetic=true -Xmx4g</argLine>
+          <argLine>-Dgw.tests.skip.knownbreak=true -DcheckedArithmetic=true -Xmx2g</argLine>
           <includes>
             <include>gw/config*/**/*Test.class</include>
             <include>gw/internal*/**/*Test.class</include>
@@ -120,5 +128,4 @@
     </plugins>
   </reporting>
   
-
 </project>

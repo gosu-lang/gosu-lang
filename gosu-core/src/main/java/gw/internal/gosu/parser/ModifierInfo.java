@@ -67,11 +67,20 @@ public class ModifierInfo implements IModifierInfo
     _iModifiers &= ~iModifiers;
   }
 
+  public void addAnnotation( IGosuAnnotation annotation )
+  {
+    if( _annotations.isEmpty() )
+    {
+      _annotations = new ArrayList<>( 2 );
+    }
+    _annotations.add( annotation );
+  }
+
   private void addAnnotations( List<IGosuAnnotation> annotations )
   {
     if( _annotations.isEmpty() )
     {
-      _annotations = new ArrayList<IGosuAnnotation>( annotations.size() );
+      _annotations = new ArrayList<>( annotations.size() );
     }
     _annotations.addAll( annotations );
   }

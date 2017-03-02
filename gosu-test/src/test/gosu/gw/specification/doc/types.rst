@@ -71,7 +71,6 @@ type can be inferred.
 Suffix             Type              Example
 ================   ================  =======
 ``b`` or ``B``     ``byte``          18b 
-``s`` or ``S``     ``short``         17s
 ``l`` or ``L``     ``long``          16L
 ``bi`` or ``BI``   ``BigInteger``    15bi
 ``f`` or ``F``     ``float``         1.5f 
@@ -84,7 +83,7 @@ The production rules defining a number literal are the followings:
 .. productionlist:: number literal
     NumberLiteral : "NaN" | "Infinity" | `HexLiteral` | `BinLiteral` | `IntOrFloatPointLiteral` .
     BinLiteral : ("0b" | "0B") "0" | "1" {"0" | "1"} [`IntegerTypeSuffix`] .
-    HexLiteral : ("0x" | "0X") `HexDigit` {`HexDigit`} ["s" | "S" | "l" | "L"] .
+    HexLiteral : ("0x" | "0X") `HexDigit` {`HexDigit`} ["l" | "L"] .
     IntOrFloatPointLiteral : "." `Digit` {`Digit`} [`FloatTypeSuffix`] |
                            : `Digit` {`Digit`} ["." {`Digit`} [`Exponent`] [`FloatTypeSuffix`] | `Exponent` [`FloatTypeSuffix`] | `FloatTypeSuffix` | `IntegerTypeSuffix` ] .
     HexDigit : `Digit` | "a".."f" | "A".."F" .

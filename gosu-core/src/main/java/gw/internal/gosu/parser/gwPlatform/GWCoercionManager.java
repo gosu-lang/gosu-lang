@@ -9,6 +9,7 @@ import gw.lang.reflect.IEnumConstant;
 import gw.lang.reflect.IMetaType;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.TypeSystem;
+import gw.util.Rational;
 
 import java.math.BigDecimal;
 import java.util.Date;
@@ -102,4 +103,9 @@ public class GWCoercionManager extends StandardCoercionManager {
     return super.makeBigDecimalFrom(obj);
   }
 
+  @Override
+  public Rational makeRationalFrom( Object obj )
+  {
+    return super.makeRationalFrom( obj );
+  }
 }

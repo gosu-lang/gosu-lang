@@ -150,7 +150,7 @@ public class ListPopup extends AbstractPopup
   {
     JLabel labelTypeName = new JLabel( listModel.getTypeName() );
     labelTypeName.setOpaque( true );
-    labelTypeName.setBackground( editor.util.EditorUtilities.CONTROL );
+    labelTypeName.setBackground( Scheme.active().getControl() );
     labelTypeName.setFont( labelTypeName.getFont().deriveFont( Font.BOLD ) );
     labelTypeName.setBorder( BorderFactory.createEmptyBorder( 0, 3, 3, 3 ) );
 

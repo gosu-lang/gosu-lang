@@ -119,7 +119,7 @@ import java.util.Stack;
 public class AtomicUndoManager extends UndoManager
 {
   /**
-   * A stack used for managing nested undo atoms. Whenver an atomic undo atom
+   * A stack used for managing nested undo atoms. Whenever an atomic undo atom
    * begins a new <code>DisplayableCompoundEdit</code> is constructed on it's
    * behalf and pushed onto the stack. When an undo atom ends its <code>DisplayableCompoundEdit</code>
    * is popped off the stack and added to the next atom's edit list in the stack or,
@@ -203,6 +203,14 @@ public class AtomicUndoManager extends UndoManager
     }
 
     trimEdits( iIndex, iIndex );
+  }
+
+  @Override
+  public synchronized void discardAllEdits()
+  {
+    super.discardAllEdits();
+    _bPaused = false;
+    _undoAtomNest.clear();
   }
 
   /**

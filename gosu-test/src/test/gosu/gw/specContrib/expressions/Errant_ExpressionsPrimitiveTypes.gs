@@ -11,7 +11,7 @@ class Errant_ExpressionsPrimitiveTypes {
 
   //char
   var char1: char = 3b      //## issuekeys: MSG_IMPLICIT_COERCION_ERROR
-  var char2: char = 3s      //## issuekeys: MSG_IMPLICIT_COERCION_ERROR
+  var char2: char = 3 as short      //## issuekeys: MSG_IMPLICIT_COERCION_ERROR
   var char3: char = 3      //## issuekeys: MSG_IMPLICIT_COERCION_ERROR
   var char4: char = 3L      //## issuekeys: MSG_IMPLICIT_COERCION_ERROR
   var char5: char = 3.3f      //## issuekeys: MSG_IMPLICIT_COERCION_ERROR
@@ -49,7 +49,7 @@ class Errant_ExpressionsPrimitiveTypes {
 
   //byte
   var byte1: byte = 1b
-  var byte2: byte = 1s      //## issuekeys: MSG_IMPLICIT_COERCION_ERROR
+  var byte2: byte = 1 as short      //## issuekeys: MSG_IMPLICIT_COERCION_ERROR
   var byte31: byte = 127
   var byte32: byte = -129      //## issuekeys: MSG_IMPLICIT_COERCION_ERROR
   var byte33: byte = 300      //## issuekeys: MSG_IMPLICIT_COERCION_ERROR
@@ -72,7 +72,7 @@ class Errant_ExpressionsPrimitiveTypes {
 
   //short
   var short1: short = 2b
-  var short2: short = 2s
+  var short2: short = 2 as short
   var short31: short = 31111
   var short32: short = 33333      //## issuekeys: MSG_IMPLICIT_COERCION_ERROR
   var short4: short = 2L      //## issuekeys: MSG_IMPLICIT_COERCION_ERROR
@@ -88,7 +88,7 @@ class Errant_ExpressionsPrimitiveTypes {
 
   //int
   var int1: int = 3b
-  var int2: int = 3s
+  var int2: int = 3 as short
   var int3: int = 3
   var int4: int = 3L      //## issuekeys: MSG_IMPLICIT_COERCION_ERROR
   var int5: int = 3.3f      //## issuekeys: MSG_IMPLICIT_COERCION_ERROR
@@ -103,7 +103,7 @@ class Errant_ExpressionsPrimitiveTypes {
 
   //long
   var long1: long = 3b
-  var long2: long = 3s
+  var long2: long = 3 as short
   var long3: long = 3
   var long4: long = 3L
   var long5: long = 3.3f      //## issuekeys: MSG_IMPLICIT_COERCION_ERROR
@@ -118,7 +118,7 @@ class Errant_ExpressionsPrimitiveTypes {
 
   //float
   var float1: float = 3b
-  var float2: float = 3s
+  var float2: float = 3 as short
   var float3: float = 3
   var float4: float = 3L
   var float5: float = 3.3f
@@ -139,7 +139,7 @@ class Errant_ExpressionsPrimitiveTypes {
 
   //double
   var double1: double = 3b
-  var double2: double = 3s
+  var double2: double = 3 as short
   var double3: double = 3
   var double4: double = 3L
   var double5: double = 3.3f
@@ -154,7 +154,7 @@ class Errant_ExpressionsPrimitiveTypes {
 
   //boolean
   var boolean1: boolean = 3b      //## issuekeys: MSG_IMPLICIT_COERCION_ERROR
-  var boolean2: boolean = 3s      //## issuekeys: MSG_IMPLICIT_COERCION_ERROR
+  var boolean2: boolean = 3 as short      //## issuekeys: MSG_IMPLICIT_COERCION_ERROR
   var boolean3: boolean = 3      //## issuekeys: MSG_IMPLICIT_COERCION_ERROR
   var boolean4: boolean = 3L      //## issuekeys: MSG_IMPLICIT_COERCION_ERROR
   var boolean5: boolean = 3.3f      //## issuekeys: MSG_IMPLICIT_COERCION_ERROR
@@ -169,7 +169,7 @@ class Errant_ExpressionsPrimitiveTypes {
 
   //BigInteger
   var bigInteger1: BigInteger = 3b
-  var bigInteger2: BigInteger = 3s
+  var bigInteger2: BigInteger = 3 as short
   var bigInteger3: BigInteger = 3
   var bigInteger4: BigInteger = 3L
   var bigInteger5: BigInteger = 3.3f      //## issuekeys: MSG_IMPLICIT_COERCION_ERROR
@@ -184,7 +184,7 @@ class Errant_ExpressionsPrimitiveTypes {
 
   //BigDecimal
   var bigDecimal1: BigDecimal = 3b
-  var bigDecimal2: BigDecimal = 3s
+  var bigDecimal2: BigDecimal = 3 as short
   var bigDecimal3: BigDecimal = 3
   var bigDecimal4: BigDecimal = 3L
   var bigDecimal5: BigDecimal = 3.3f
@@ -198,7 +198,7 @@ class Errant_ExpressionsPrimitiveTypes {
   var bigDecimal13: BigDecimal = BigDecimal.ZERO
 
   var string1: String = 3b      //## issuekeys: MSG_IMPLICIT_COERCION_ERROR
-  var string2: String = 3s      //## issuekeys: MSG_IMPLICIT_COERCION_ERROR
+  var string2: String = 3 as short      //## issuekeys: MSG_IMPLICIT_COERCION_ERROR
   var string3: String = 3      //## issuekeys: MSG_IMPLICIT_COERCION_ERROR
   var string4: String = 3L      //## issuekeys: MSG_IMPLICIT_COERCION_ERROR
   var string5: String = 3.3f      //## issuekeys: MSG_IMPLICIT_COERCION_ERROR

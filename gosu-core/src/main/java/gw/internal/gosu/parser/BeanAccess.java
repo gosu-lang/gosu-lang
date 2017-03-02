@@ -81,6 +81,7 @@ public class BeanAccess
            JavaTypes.DOUBLE() == intrType ||
            JavaTypes.BIG_INTEGER() == intrType ||
            JavaTypes.BIG_DECIMAL() == intrType ||
+           JavaTypes.RATIONAL() == intrType ||
            isDimension( intrType );
   }
 

@@ -26,6 +26,7 @@ import gw.lang.reflect.java.IJavaType;
 import gw.lang.reflect.java.JavaTypes;
 import gw.util.GosuExceptionUtil;
 import gw.util.Pair;
+import gw.util.Rational;
 import gw.util.concurrent.Cache;
 
 import java.math.BigDecimal;
@@ -34,6 +35,7 @@ import java.text.DateFormat;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 
@@ -304,6 +306,14 @@ public class StandardCoercionManager extends BaseService implements ICoercionMan
       if( lhsType.equals( JavaTypes.BIG_DECIMAL() ))
       {
         return BigDecimalCoercer.instance();
+      }
+
+      //=============================================================================
+      // All numeric values can be coerced to Rational
+      //=============================================================================
+      if( lhsType.equals( JavaTypes.RATIONAL() ))
+      {
+        return RationalCoercer.instance();
       }
 
       //=============================================================================
@@ -796,14 +806,30 @@ public class StandardCoercionManager extends BaseService implements ICoercionMan
   }
   public static boolean isStructurallyAssignable_Laxed( IType toType, IType fromType, TypeVarToTypeMap inferenceMap )
   {
+    return isStructurallyAssignable_Laxed( toType, fromType, null, inferenceMap );
+  }
+  public static boolean isStructurallyAssignable_Laxed( IType toType, IType fromType, IMethodInfo specificMethod, TypeVarToTypeMap inferenceMap )
+  {
     ITypeInfo fromTypeInfo = fromType.getTypeInfo();
+    if( fromTypeInfo == null )
+    {
+      return false;
+    }
     MethodList fromMethods = fromTypeInfo instanceof IRelativeTypeInfo
                              ? ((IRelativeTypeInfo)fromTypeInfo).getMethods( toType )
                              : fromTypeInfo.getMethods();
+
     ITypeInfo toTypeInfo = toType.getTypeInfo();
-    MethodList toMethods = toTypeInfo instanceof IRelativeTypeInfo
-                           ? ((IRelativeTypeInfo)toTypeInfo).getMethods( fromType )
-                           : toTypeInfo.getMethods();
+    if( toTypeInfo == null )
+    {
+      return false;
+    }
+    MethodList toMethods = specificMethod == null
+                           ? toTypeInfo instanceof IRelativeTypeInfo
+                             ? ((IRelativeTypeInfo)toTypeInfo).getMethods( fromType )
+                             : toTypeInfo.getMethods()
+                           : new MethodList( Arrays.asList( specificMethod ) );
+
     IType ownersType = toTypeInfo.getOwnersType();
 
     inferenceMap.setStructural( true );
@@ -816,7 +842,7 @@ public class StandardCoercionManager extends BaseService implements ICoercionMan
       if( toMi.getOwnersType() instanceof IGosuEnhancement ) {
         continue;
       }
-      if( toMi instanceof IAttributedFeatureInfo && toMi.isDefaultImpl() || toMi.isStatic() ) {
+      if( (specificMethod == null && toMi instanceof IAttributedFeatureInfo && toMi.isDefaultImpl()) || toMi.isStatic() ) {
         continue;
       }
       IMethodInfo fromMi = fromMethods.findAssignableMethod( toMi, fromType instanceof IMetaType && (!(((IMetaType)fromType).getType() instanceof IGosuClass) || !((IGosuClass)((IMetaType)fromType).getType()).isStructure()), inferenceMap );
@@ -826,7 +852,8 @@ public class StandardCoercionManager extends BaseService implements ICoercionMan
           IPropertyInfo fromPi = fromTypeInfo.getProperty( toMi.getDisplayName().substring( 1 ) );
           if( fromPi != null ) {
             IType fromPropertyType = fromPi.getFeatureType();
-            if( toMi.getParameters().length == 0 ) {
+            IParameterInfo[] parameters = toMi.getParameters();
+            if( parameters.length == 0 && fromPi.isReadable() ) {
               // Getter Property
               IType toReturnType = MethodList.maybeInferReturnType( inferenceMap, ownersType, fromPropertyType, toMi.getReturnType() );
               boolean bAssignable = toReturnType.equals( fromPropertyType ) ||
@@ -837,9 +864,9 @@ public class StandardCoercionManager extends BaseService implements ICoercionMan
                 continue;
               }
             }
-            else {
+            else if( parameters.length == 1 && fromPi.isWritable() ) {
               // Setter Property ...
-              IType toParamType = MethodList.maybeInferParamType( inferenceMap, ownersType, fromPropertyType, toMi.getParameters()[0].getFeatureType() );
+              IType toParamType = MethodList.maybeInferParamType( inferenceMap, ownersType, fromPropertyType, parameters[0].getFeatureType() );
               boolean bAssignable = fromPi.isWritable( toType ) &&
                                     (fromPi.getFeatureType().equals( toParamType ) ||
                                     arePrimitiveTypesAssignable( fromPropertyType, toParamType ) ||
@@ -1561,6 +1588,67 @@ public class StandardCoercionManager extends BaseService implements ICoercionMan
       Double d = makeDoubleFrom( obj );
       return new BigDecimal( d.toString() );
     }
+  }
+
+  public Rational makeRationalFrom( Object obj )
+  {
+    if( obj instanceof IDimension )
+    {
+      obj = ((IDimension)obj).toNumber();
+    }
+
+    if( obj == null || obj instanceof Rational )
+    {
+      return (Rational)obj;
+    }
+
+    if( obj instanceof String )
+    {
+      return Rational.get( (String)obj );
+    }
+
+    if( obj instanceof Integer )
+    {
+      return Rational.get( (Integer)obj );
+    }
+    else if( obj instanceof BigInteger )
+    {
+      return Rational.get( (BigInteger)obj );
+    }
+    else if( obj instanceof BigDecimal )
+    {
+      return Rational.get( (BigDecimal)obj );
+    }
+    else if( obj instanceof Long )
+    {
+      return Rational.get( (Long)obj );
+    }
+    else if( obj instanceof Short )
+    {
+      return Rational.get( (Short)obj );
+    }
+    else if( obj instanceof Byte )
+    {
+      return Rational.get( (Byte)obj );
+    }
+    else if( obj instanceof Character )
+    {
+      return Rational.get( (Character)obj );
+    }
+    else if (obj instanceof Float)
+    {
+      return Rational.get( obj.toString() );
+    }
+    else if( obj instanceof Number )
+    {
+      Double d = makeDoubleFrom( obj );
+      return Rational.get( d.toString() );
+    }
+    else if( obj instanceof Boolean )
+    {
+      return (Boolean) obj ? Rational.ONE : Rational.ZERO;
+    }
+    throw new UnsupportedOperationException( "Cannot coerce " + obj + " to Rational" );
   }
 
   public BigInteger makeBigIntegerFrom( Object obj )

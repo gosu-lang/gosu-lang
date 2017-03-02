@@ -76,8 +76,11 @@ public class GosuProgramParseInfo extends GosuClassParseInfo {
   @Override
   public void addMemberField( VarStatement varStmt ) {
     super.addMemberField( varStmt );
-    // Remove initializers, fields are assigned in the programs entry point function
-    varStmt.setAsExpression( null );
+    if( !varStmt.isStatic() )
+    {
+      // Remove initializers, fields are assigned in the programs entry point function
+      varStmt.setAsExpression( null );
+    }
     varStmt.setIsInitializedTopLevelProgVar();
   }
 }

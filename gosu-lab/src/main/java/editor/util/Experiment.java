@@ -2,20 +2,28 @@ package editor.util;
 
 import editor.FileWatcher;
 import editor.GosuPanel;
+import editor.run.FqnRunConfig;
+import editor.run.ProgramRunConfigFactory;
+import editor.run.ProgramRunConfigParameters;
+import gw.lang.reflect.IType;
+import gw.lang.reflect.json.IJsonIO;
+import editor.run.IRunConfig;
 import editor.tabpane.ITab;
 import editor.tabpane.TabPane;
+import gw.lang.reflect.Expando;
+import gw.lang.reflect.ReflectUtil;
 import gw.lang.reflect.module.IProject;
 
+import javax.script.Bindings;
 import java.io.File;
-import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.Properties;
-import java.util.Set;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 /**
  */
@@ -26,7 +34,8 @@ public class Experiment implements IProject
   private File _experimentDir;
   private List<String> _openFiles;
   private String _activeFile;
-  private String _recentProgram;
+  private IRunConfig _mruRunConfig;
+  private List<IRunConfig> _runConfigs;
   private GosuPanel _gosuPanel;
 
   public Experiment( String name, File dir, GosuPanel gosuPanel )
@@ -38,13 +47,17 @@ public class Experiment implements IProject
     //noinspection ResultOfMethodCallIgnored
     _experimentDir.mkdirs();
     _openFiles = Collections.emptyList();
+    _runConfigs = Collections.emptyList();
   }
 
   public Experiment( File dir, GosuPanel gosuPanel )
   {
     _name = dir.getName();
-    _experimentDir = dir;
     _gosuPanel = gosuPanel;
+    _sourcePath = Collections.emptyList();
+    _experimentDir = dir;
+    _openFiles = Collections.emptyList();
+    _runConfigs = Collections.emptyList();
     load();
     FileWatcher.instance( this );
   }
@@ -116,75 +129,70 @@ public class Experiment implements IProject
     return _gosuPanel;
   }
 
-  public File getOrMakeExperimentFile()
+  private File getExperimentFile()
   {
     File experimentDir = getExperimentDir();
     //noinspection ResultOfMethodCallIgnored
     experimentDir.mkdirs();
     File experiment = EditorUtilities.findExperimentFile( experimentDir );
-    if( experiment != null )
+    if( experiment == null )
     {
-      return experiment;
-    }
-    experiment = new File( experimentDir.getAbsolutePath() + File.separator + experimentDir.getName() + ".prj" );
-    //noinspection ResultOfMethodCallIgnored
-    try( FileWriter writer = new FileWriter( experiment ) )
-    {
-      Properties props = new Properties();
-      props.put( "Name", getName() );
-      if( getSourcePath() != null )
-      {
-        for( int i = 0; i < getSourcePath().size(); i++ )
-        {
-          String sourcePath = getSourcePath().get( i );
-          props.put( "Classpath.Entry" + i, sourcePath );
-          File sourceDir = new File( sourcePath );
-          sourceDir.mkdirs();
-        }
-      }
-      props.store( writer, "Gosu Experiment: " + getName() );
-    }
-    catch( Exception e )
-    {
-      throw new RuntimeException( e );
+      experiment = new File( experimentDir.getAbsolutePath() + File.separator + experimentDir.getName() + ".prj" );
     }
     return experiment;
   }
 
-  public void save( TabPane tabPane )
+  public File getOrMakeExperimentFile()
   {
-    File userFile = getOrMakeExperimentFile();
-
-    Properties props = new Properties();
-    props.put( "Name", getName() );
-    ITab selectedTab = tabPane.getSelectedTab();
-    if( selectedTab != null )
+    File experiment = getExperimentFile();
+    if( !experiment.exists() )
     {
-      props.put( "Tab.Active", makeExperimentRelativePathWithSlashes( (File)tabPane.getSelectedTab().getContentPane().getClientProperty( "_file" ) ) );
-      for( int i = 0; i < tabPane.getTabCount(); i++ )
+      save();
+    }
+    return experiment;
+  }
+
+  public void save()
+  {
+    TabPane tabPane = getGosuPanel().getEditorTabPane();
+
+    File userFile = getExperimentFile();
+
+    Expando bindings = new Expando();
+
+    bindings.put( "Title", "Gosu Experiment" );
+    bindings.put( "Version", 1 );
+    bindings.put( "Name", getName() );
+
+    if( tabPane != null )
+    {
+      ITab selectedTab = tabPane.getSelectedTab();
+      if( selectedTab != null )
       {
-        File file = (File)tabPane.getTabAt( i ).getContentPane().getClientProperty( "_file" );
-        props.put( "Tab.Open." + ((char)(i + 'A')), makeExperimentRelativePathWithSlashes( file ) );
+        bindings.put( "ActiveTab", makeExperimentRelativePathWithSlashes( (File)tabPane.getSelectedTab().getContentPane().getClientProperty( "_file" ) ) );
+        bindings.put( "Tabs", Arrays.stream( tabPane.getTabs() ).map( e -> {
+          File file = (File)e.getContentPane().getClientProperty( "_file" );
+          return makeExperimentRelativePathWithSlashes( file );
+        } ).collect( Collectors.toList() ) );
       }
     }
 
-    for( int i = 0; i < getSourcePath().size(); i++ )
-    {
-      String path = getSourcePath().get( i );
+    bindings.put( "SourcePath", getSourcePath().stream().map( path -> {
       String relativePath = makeExperimentRelativePathWithSlashes( new File( path ) );
-      props.put( "Classpath.Entry" + i, relativePath == null ? path : relativePath );
-    }
+      path = relativePath == null ? path : relativePath;
+      //noinspection ResultOfMethodCallIgnored
+      new File( path ).mkdirs();
+      return path;
+    } ).collect( Collectors.toList() ) );
 
-    if( getRecentProgram() != null )
-    {
-      props.put( "Recent.Program", getRecentProgram() );
-    }
+    IJsonIO.writeList( "RunConfigs", _runConfigs, bindings );
 
-    try
+    bindings.put( "MruRunConfig", getMruRunConfig() == null ? null : getMruRunConfig().getName() );
+
+    try( FileWriter fw = new FileWriter( userFile ) )
     {
-      FileWriter fw = new FileWriter( userFile );
-      props.store( fw, "Gosu Experiment" );
-      fw.close();
+      String json = (String)ReflectUtil.invokeMethod( bindings, "toJson" );
+      fw.write( json );
     }
     catch( IOException e )
     {
@@ -196,7 +204,7 @@ public class Experiment implements IProject
   {
     String absExperimentDir = getExperimentDir().getAbsolutePath();
     String absFile = file.getAbsolutePath();
-    if( !absFile.startsWith( absExperimentDir ) )
+    if( !absFile.startsWith( absExperimentDir + File.separator ) )
     {
       return absFile;
     }
@@ -209,59 +217,49 @@ public class Experiment implements IProject
 
   private void load()
   {
-    Properties props = new Properties();
     try
     {
       System.setProperty( "user.dir", getExperimentDir().getAbsolutePath() );
-      FileReader reader = new FileReader( getOrMakeExperimentFile() );
-      props.load( reader );
-      reader.close();
+      Bindings bindings = (Bindings)ReflectUtil.getProperty( getOrMakeExperimentFile().toURI().toURL(), "JsonContent" );
 
-      setName( props.getProperty( "Name", getExperimentDir().getName() ) );
+      setName( (String)bindings.getOrDefault( "Name", getExperimentDir().getName() ) );
 
-      Set<String> keys = props.stringPropertyNames();
-      //noinspection SuspiciousToArrayCall
-      String[] sortedKeys = keys.toArray( new String[keys.size()] );
-      Arrays.sort( sortedKeys );
-      ArrayList<String> sourcePath = new ArrayList<>();
-      for( String cpEntry : sortedKeys )
-      {
-        if( cpEntry.startsWith( "Classpath.Entry" ) )
-        {
-          File file = new File( props.getProperty( cpEntry ) ).getAbsoluteFile();
-          if( file.exists() )
-          {
-            sourcePath.add( file.getAbsolutePath() );
-          }
-        }
-      }
-      _sourcePath = sourcePath;
-      if( _sourcePath.isEmpty() )
+      //noinspection unchecked
+      List<String> sourcePath = (List<String>)bindings.getOrDefault( "SourcePath", Collections.emptyList() );
+      if( sourcePath.isEmpty() )
       {
         File srcPath = new File( getExperimentDir(), getRelativeGosuSourcePath() );
-        _sourcePath.add( srcPath.getAbsolutePath() );
+        sourcePath.add( srcPath.getAbsolutePath() );
+        _sourcePath = sourcePath;
+      }
+      else
+      {
+        _sourcePath = sourcePath.stream().map( e -> new File( e ).getAbsolutePath() ).collect( Collectors.toList() );
       }
 
+      //noinspection unchecked
+      List<String> tabs = (List<String>)bindings.getOrDefault( "Tabs", Collections.emptyList() );
       List<String> openFiles = new ArrayList<>();
-      for( String strTab : sortedKeys )
+      for( String strTab : tabs )
       {
-        if( strTab.startsWith( "Tab.Open" ) )
+        File file = new File( strTab ).getAbsoluteFile();
+        if( file.isFile() )
         {
-          File file = new File( props.getProperty( strTab ) ).getAbsoluteFile();
-          if( file.isFile() )
-          {
-            openFiles.add( file.getAbsolutePath() );
-          }
+          openFiles.add( file.getAbsolutePath() );
         }
       }
       _openFiles = openFiles;
-      _activeFile = props.getProperty( "Tab.Active" );
+
+      _activeFile = (String)bindings.get( "ActiveTab" );
       if( _activeFile != null && !_activeFile.isEmpty() )
       {
         _activeFile = new File( _activeFile ).getAbsolutePath();
       }
 
-      _recentProgram = props.getProperty( "Recent.Program" );
+      //noinspection unchecked
+      _runConfigs = IJsonIO.readList( "RunConfigs", bindings );
+
+      _mruRunConfig = findRunConfig( rc -> rc.getName().equals( (String)bindings.get( "MruRunConfig" ) ) );
     }
     catch( IOException e )
     {
@@ -300,12 +298,84 @@ public class Experiment implements IProject
     return "src" + File.separator + "main" + File.separator + "gosu";
   }
 
-  public String getRecentProgram()
+  public IRunConfig getOrCreateRunConfig( IType type )
   {
-    return _recentProgram;
+    String fqn = type.getName();
+    IRunConfig rc = findRunConfig( runConfig -> runConfig instanceof FqnRunConfig &&
+                                                ((FqnRunConfig)runConfig).getFqn().equals( fqn ) );
+    return rc == null
+           ? EditorUtilities.isRunnable( type )
+             ? ProgramRunConfigFactory.instance().newRunConfig( makeProgramParams( type.getRelativeName(), type.getName() ) )
+             : null
+           : rc;
   }
-  public void setRecentProgram( String name )
+
+  private ProgramRunConfigParameters makeProgramParams( String name, String fqn )
   {
-    _recentProgram = name;
+    ProgramRunConfigParameters params = ProgramRunConfigFactory.instance().makeParameters();
+    params.setName( name );
+    params.setFqn( fqn );
+    return params;
+  }
+
+  public IRunConfig findRunConfig( Predicate<IRunConfig> matcher )
+  {
+    if( matcher == null )
+    {
+      return null;
+    }
+
+    for( IRunConfig runConfig: _runConfigs )
+    {
+      if( matcher.test( runConfig ) )
+      {
+        return runConfig;
+      }
+    }
+    return null;
+  }
+
+  public IRunConfig getMruRunConfig()
+  {
+    return _mruRunConfig;
+  }
+  public void setMruRunConfig( IRunConfig runConfig )
+  {
+    _mruRunConfig = runConfig;
+  }
+
+  public List<IRunConfig> getRunConfigs()
+  {
+    return _runConfigs;
+  }
+
+  public void addRunConfig( IRunConfig runConfig )
+  {
+    if( _runConfigs.isEmpty() )
+    {
+      _runConfigs = new ArrayList<>();
+    }
+
+    int index = _runConfigs.indexOf( runConfig );
+    if( index >= 0 )
+    {
+      runConfig = _runConfigs.get( index );
+      _runConfigs.remove( index );
+    }
+    _runConfigs.add( 0, runConfig );
+
+    setMruRunConfig( runConfig );
+
+    save();
+  }
+
+  public boolean removeRunConfig( IRunConfig runConfig )
+  {
+    if( _runConfigs.isEmpty() )
+    {
+      return false;
+    }
+
+    return _runConfigs.remove( runConfig );
   }
 }

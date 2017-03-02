@@ -943,5 +943,8 @@ public class TypeSystem
     return getExecutionEnvironment().getJreModule();
   }
 
+  public static IType getCompoundType( Set<IType> types ) {
+    return CommonServices.getTypeSystem().getCompoundType( types );
+  }
 }
 

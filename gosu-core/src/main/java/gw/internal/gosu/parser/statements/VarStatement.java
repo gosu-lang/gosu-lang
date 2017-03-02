@@ -5,24 +5,22 @@
 package gw.internal.gosu.parser.statements;
 
 import gw.internal.gosu.parser.CannotExecuteGosuException;
-import gw.internal.gosu.parser.DynamicFunctionSymbol;
+import gw.internal.gosu.parser.DynamicPropertySymbol;
 import gw.internal.gosu.parser.Expression;
 import gw.internal.gosu.parser.IGosuAnnotation;
 import gw.internal.gosu.parser.ModifierInfo;
 import gw.internal.gosu.parser.Statement;
-import gw.internal.gosu.parser.expressions.BlockExpression;
 import gw.internal.gosu.parser.expressions.TypeLiteral;
-import gw.lang.parser.IParsedElement;
 import gw.lang.parser.IScriptPartId;
 import gw.lang.parser.ISymbol;
 import gw.lang.parser.expressions.IVarStatement;
 import gw.lang.parser.statements.IClassStatement;
 import gw.lang.parser.statements.ITerminalStatement;
-import gw.lang.reflect.IFeatureInfo;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.Modifier;
 import gw.util.GosuObjectUtil;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -44,12 +42,14 @@ public class VarStatement extends Statement implements IVarStatement
   protected TypeLiteral _typeLiteral;
   protected boolean _hasProperty = false;
   protected ModifierInfo _modifiers;
+  private List<IGosuAnnotation> _declAnnotations;
   private ISymbol _symbol;
   private IScriptPartId _scriptPartId;
   private int _iNameOffset;
   private int _iPropertyNameOffset;
   private boolean _bDefinitionParsed;
   private boolean _bIsInitializedTopLevelProgVar;
+  private DynamicPropertySymbol _dps;
 
   public VarStatement()
   {
@@ -130,6 +130,15 @@ public class VarStatement extends Statement implements IVarStatement
     _modifiers = modifiers;
   }
 
+  public List<IGosuAnnotation> getDeclAnnotations()
+  {
+    return _declAnnotations;
+  }
+  public void setDeclAnnotations( List<IGosuAnnotation> declAnnotations )
+  {
+    _declAnnotations = new ArrayList<>( declAnnotations );
+  }
+
   public int getModifiers()
   {
     return _modifiers.getModifiers();
@@ -195,11 +204,18 @@ public class VarStatement extends Statement implements IVarStatement
     _modifiers.setModifiers( Modifier.setFinal( _modifiers.getModifiers(), bFinal ) );
   }
 
-  public boolean isEnumConstant() {
-    return Modifier.isEnum( getModifiers() );
+  @Override
+  public boolean isAbstract()
+  {
+    return Modifier.isAbstract( getModifiers() );
   }
 
-  public void setEnumConstant( boolean bEnumConstant ) {
+  public boolean isEnumConstant()
+  {
+    return Modifier.isEnum( getModifiers() );
+  }
+  public void setEnumConstant( boolean bEnumConstant )
+  {
     _modifiers.setModifiers( Modifier.setEnum( _modifiers.getModifiers(), bEnumConstant ) );
   }
 
@@ -275,7 +291,9 @@ public class VarStatement extends Statement implements IVarStatement
     return identifierName == null || identifierName.equals( getIdentifierName() ) 
            ? _iNameOffset
            : identifierName.equals( getPropertyName() )
-             ? _iPropertyNameOffset
+             ? _iPropertyNameOffset == 0
+               ? _iNameOffset
+               : _iPropertyNameOffset
              : -1;
   }
   @Override
@@ -302,47 +320,6 @@ public class VarStatement extends Statement implements IVarStatement
       return new String[] {getIdentifierName().toString()};
     } else {
       return new String[] {getIdentifierName().toString(), getPropertyName().toString()};
-    }
-  }
-
-  private IFeatureInfo findOwningFeatureInfoOfDeclaredSymbols( String identifierName)
-  {
-    // sct: The only cases that I know of:
-    // 1. var has no enclosing type, or
-    // 2. it is a "child" of ClassStatement, or
-    // 3. it is local to a function or property (i.e. a "child" of FunctionStatement or PropertyStatement), or
-    // 4. it is local to a block
-    IParsedElement parsedElement = findAncestorParsedElementByType( ClassStatement.class,
-                                                                    FunctionStatement.class,
-                                                                    PropertyStatement.class,
-                                                                    BlockExpression.class );
-    if( parsedElement == null )
-    {
-      return null;
-    }
-    else if( parsedElement instanceof ClassStatement )
-    {
-      return ((ClassStatement)parsedElement).getGosuClass().getTypeInfo();
-    }
-    else if( parsedElement instanceof FunctionStatement )
-    {
-      DynamicFunctionSymbol dfs = ((FunctionStatement)parsedElement).getDynamicFunctionSymbol();
-      if( dfs != null )
-      {
-        return dfs.getMethodOrConstructorInfo();
-      }
-      else
-      {
-        return null;
-      }
-    }
-    else if( parsedElement instanceof PropertyStatement )
-    {
-      return ((PropertyStatement)parsedElement).getPropertyGetterOrSetter().getDynamicFunctionSymbol().getMethodOrConstructorInfo();
-    }
-    else
-    {
-      return null;
     }
   }
 
@@ -392,5 +369,15 @@ public class VarStatement extends Statement implements IVarStatement
 
   public void setIsInitializedTopLevelProgVar() {
     _bIsInitializedTopLevelProgVar = true;
+  }
+
+  @Override
+  public DynamicPropertySymbol getProperty()
+  {
+    return _dps;
+  }
+  public void setProperty( DynamicPropertySymbol dps )
+  {
+    _dps = dps;
   }
 }

@@ -95,6 +95,7 @@ import gw.lang.reflect.FunctionType;
 import gw.lang.reflect.IBlockType;
 import gw.lang.reflect.IConstructorInfo;
 import gw.lang.reflect.IEnumConstant;
+import gw.lang.reflect.IErrorType;
 import gw.lang.reflect.IFeatureInfo;
 import gw.lang.reflect.IFunctionType;
 import gw.lang.reflect.IMetaType;
@@ -107,6 +108,7 @@ import gw.lang.reflect.ITypeInfo;
 import gw.lang.reflect.ITypeVariableType;
 import gw.lang.reflect.LazyTypeResolver;
 import gw.lang.reflect.Modifier;
+import gw.lang.reflect.NotLazyTypeResolver;
 import gw.lang.reflect.ParameterizedFunctionType;
 import gw.lang.reflect.PropertyInfoDelegate;
 import gw.lang.reflect.SimpleTypeLazyTypeResolver;
@@ -129,6 +131,7 @@ import gw.lang.reflect.java.IJavaConstructorInfo;
 import gw.lang.reflect.java.IJavaType;
 import gw.lang.reflect.java.JavaTypes;
 import gw.lang.reflect.module.IModule;
+import gw.util.Rational;
 import gw.util.concurrent.LocklessLazyVar;
 
 import java.lang.reflect.Field;
@@ -164,13 +167,14 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
 
   private TopLevelTransformationContext _cc;
   private T _parsedElement;
-  private static LocklessLazyVar<Boolean> _checkedArithmetic = new LocklessLazyVar<Boolean>() {
-                                                                                                @Override
-                                                                                                protected Boolean init()
-                                                                                                {
-                                                                                                  return Boolean.valueOf( System.getProperty("checkedArithmetic") );
-                                                                                                }
-                                                                                              };
+  private static LocklessLazyVar<Boolean> _checkedArithmetic =
+    new LocklessLazyVar<Boolean>()
+    {
+      protected Boolean init()
+      {
+        return Boolean.valueOf( System.getProperty("checkedArithmetic") );
+      }
+    };
 
   public AbstractElementTransformer( TopLevelTransformationContext cc, T parsedElem )
   {
@@ -370,11 +374,23 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
            !method.getName().equals("access$0") &&
            !method.isGeneratedEnumMethod() &&
            !(method.getOwningIType() instanceof IGosuTemplateInternal) &&
-           !(method instanceof SyntheticIRMethod);
+           !(method instanceof SyntheticIRMethod) &&
+           !isExecuteMethod( method.getName() );
+  }
+
+  public static boolean isExecuteMethod( String name)
+  {
+    return name.equals( "execute" ) ||
+           name.equals( "executeWithArgs" );
   }
 
   private IRExpression callMethod( IRMethod method, IRExpression root, boolean special, IType owner, List<IRExpression> actualArgs ) {
-    if( !special && _cc().shouldUseReflection( owner, method.getAccessibility() ) )
+    IRType rootType = root == null ? null : root.getType();
+    if( rootType == null && method.isStatic() )
+    {
+      rootType = method.getOwningIRType();
+    }
+    if( !special && _cc().shouldUseReflection( owner, rootType, method.getAccessibility() ) )
     {
       return callMethodReflectively( owner, method.getName(), method.getReturnType(), method.getAllParameterTypes(), root, actualArgs );
     }
@@ -847,6 +863,15 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
       IRExpression setCreation = new IRCompositeExpression(elements);
       return callStaticMethod( CompoundType.class, "get", new Class[]{Set.class},
               Collections.singletonList(setCreation));
+    }
+    else if( type instanceof IErrorType )
+    {
+      String errorMsg = "Unexpected Error Type: " + type.getName() + ", while compiling " + _cc().getGosuClass().getName() + "\n" +
+                        "  Enclosing class:  " + (_cc().getEnclosingType() == null ? "" : _cc().getEnclosingType().getName()) + "\n" +
+                        "  Current function: " + _cc().getCurrentFunctionName() + "\n" +
+                        "  Parsed element: " + (_parsedElement == null ? "" : _parsedElement.toString()) + "\n" +
+                        "  Class source: " + _cc().getGosuClass().getSource() + "\n";
+      throw new IllegalStateException( errorMsg );
     }
     else
     {
@@ -1704,6 +1729,17 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
     if( operandType == bigType ) {
       tempOperandAssn = buildAssignment( tempRet, operand );
     }
+    else if( operandType == JavaTypes.RATIONAL() )
+    {
+      if( bigType == JavaTypes.BIG_DECIMAL() )
+      {
+        tempOperandAssn = buildAssignment( tempRet, buildMethodCall( Rational.class, "toBigDecimal", BigInteger.class, new Class[]{}, operand, Collections.<IRExpression>emptyList() ) );
+      }
+      else
+      {
+        tempOperandAssn = buildAssignment( tempRet, buildMethodCall( Rational.class, "toBigInteger", BigInteger.class, new Class[]{}, operand, Collections.<IRExpression>emptyList() ) );
+      }
+    }
     else {
       IType dimensionType = findDimensionType( operandType );
       if( dimensionType != null ) {
@@ -1763,6 +1799,81 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
         }
         else {
           tempOperandAssn = buildAssignment( tempRet, callStaticMethod( BigDecimal.class, "valueOf", new Class[] {double.class}, Collections.singletonList( numberConvert( operandType, JavaTypes.pDOUBLE(), operand ) ) ) );
+        }
+      }
+      else {
+        throw new IllegalStateException( "Unhandled type: " + operandType.getName() );
+      }
+    }
+    return tempOperandAssn;
+  }
+
+  protected IRAssignmentStatement convertOperandToRational( IType operandType, IRExpression operand, IRSymbol tempRet ) {
+    IRAssignmentStatement tempOperandAssn;
+    if( operandType == JavaTypes.RATIONAL() ) {
+      tempOperandAssn = buildAssignment( tempRet, operand );
+    }
+    else if( operandType == JavaTypes.BIG_DECIMAL() )
+    {
+      tempOperandAssn = buildAssignment( tempRet, buildMethodCall( Rational.class, "get", Rational.class, new Class[]{BigDecimal.class}, null, Collections.singletonList( operand ) ) );
+    }
+    else if( operandType == JavaTypes.BIG_INTEGER() )
+    {
+      tempOperandAssn = buildAssignment( tempRet, buildMethodCall( Rational.class, "get", Rational.class, new Class[]{BigInteger.class}, null, Collections.singletonList( operand ) ) );
+    }
+    else {
+      IType dimensionType = findDimensionType( operandType );
+      if( dimensionType != null ) {
+        return convertOperandToRational( dimensionType, callMethod( IDimension.class, "toNumber", new Class[]{}, operand, Collections.<IRExpression>emptyList() ), tempRet );
+      }
+
+      if( StandardCoercionManager.isBoxed( operandType ) ) {
+        if( isBoxedIntType( operandType ) || operandType == JavaTypes.LONG() ) {
+          if( operandType == JavaTypes.CHARACTER() ) {
+            tempOperandAssn = buildAssignment( tempRet, callStaticMethod( Rational.class, "get", new Class[] {long.class},
+                                                                      Collections.<IRExpression>singletonList( numberConvert( getDescriptor( char.class ), getDescriptor( long.class ),
+                                                                                                                              buildMethodCall( getDescriptor( operandType ), "charValue", false,
+                                                                                                                                               getDescriptor( char.class ), Collections.<IRType>emptyList(), operand,
+                                                                                                                                               Collections.<IRExpression>emptyList() ) ) ) ) );
+          }
+          else {
+            tempOperandAssn = buildAssignment( tempRet, callStaticMethod( Rational.class, "get", new Class[] {long.class},
+                                                                      Collections.<IRExpression>singletonList( buildMethodCall( getDescriptor( operandType ), "longValue", false,
+                                                                                                                  getDescriptor( long.class ), Collections.<IRType>emptyList(), operand,
+                                                                                                                  Collections.<IRExpression>emptyList() ) ) ) );
+          }
+        }
+        else {
+          if( operandType == JavaTypes.CHARACTER() ) {
+            tempOperandAssn = buildAssignment( tempRet, callStaticMethod( Rational.class, "valueOf", new Class[] {double.class},
+                                                                      Collections.<IRExpression>singletonList( numberConvert( getDescriptor( char.class ), getDescriptor( double.class ),
+                                                                                                                 buildMethodCall( getDescriptor( operandType ), "charValue", false,
+                                                                                                                                  getDescriptor( char.class ), Collections.<IRType>emptyList(), operand,
+                                                                                                                                  Collections.<IRExpression>emptyList() ) ) ) ) );
+          }
+          else if( operandType == JavaTypes.FLOAT() ) {
+            tempOperandAssn = buildAssignment( tempRet, callStaticMethod( Rational.class, "get", new Class[] {String.class},
+                                                Collections.<IRExpression>singletonList( buildMethodCall( getDescriptor( Float.class ), "toString", false,
+                                                                                                          getDescriptor( String.class ), Collections.<IRType>emptyList(), operand,
+                                                                                                          Collections.<IRExpression>emptyList() ) ) ) );
+          }
+          else {
+            tempOperandAssn = buildAssignment( tempRet, callStaticMethod( Rational.class, "get", new Class[] {double.class},
+                                                                      Collections.<IRExpression>singletonList( buildMethodCall( getDescriptor( operandType ), "doubleValue", false,
+                                                                                                                  getDescriptor( double.class ), Collections.<IRType>emptyList(), operand,
+                                                                                                                  Collections.<IRExpression>emptyList() ) ) ) );
+          }
+        }
+      }
+      else if( operandType.isPrimitive() ) {
+        if( operandType == JavaTypes.pFLOAT() ) {
+          tempOperandAssn = buildAssignment( tempRet,  callStaticMethod( Rational.class, "get", new Class[]{String.class}, Collections.singletonList( callStaticMethod( String.class, "valueOf", new Class[]{float.class}, Collections.<IRExpression>singletonList( operand ) ) ) ) );
+        }
+        else if( isIntType( operandType ) || operandType == JavaTypes.pLONG() ) {
+          tempOperandAssn = buildAssignment( tempRet, callStaticMethod( Rational.class, "get", new Class[] {long.class}, Collections.singletonList( numberConvert( operandType, JavaTypes.pLONG(), operand ) ) ) );
+        }
+        else {
+          tempOperandAssn = buildAssignment( tempRet, callStaticMethod( Rational.class, "get", new Class[] {double.class}, Collections.singletonList( numberConvert( operandType, JavaTypes.pDOUBLE(), operand ) ) ) );
         }
       }
       else {
@@ -2080,7 +2191,12 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
 
   private IRExpression getField( IType owner, String strField, IRType fieldType, IRelativeTypeInfo.Accessibility accessibility, IRExpression root )
   {
-    if( _cc().shouldUseReflection( owner, accessibility ) )
+    IRType rootType = root == null ? null : root.getType();
+    if( rootType == null )
+    {
+      rootType = getDescriptor( owner );
+    }
+    if( _cc().shouldUseReflection( owner, rootType, accessibility ) )
     {
       // Can't gen bytecode for protected call otherwise verify error
       return getFieldReflectively( owner, strField, fieldType, root );
@@ -2089,9 +2205,9 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
     return buildFieldGet( getDescriptor( owner ), strField, fieldType, root );
   }
 
-  protected boolean avoidVerifyError( IType owner, IRelativeTypeInfo.Accessibility accessibility )
+  protected boolean avoidVerifyError( IType owner, IRType rootType, IRelativeTypeInfo.Accessibility accessibility )
   {
-    return _cc().isIllegalProtectedCall( owner, accessibility ) ||
+    return _cc().isIllegalProtectedCall( owner, rootType, accessibility ) ||
         AccessibilityUtil.forType( owner ) == IRelativeTypeInfo.Accessibility.INTERNAL;
   }
 
@@ -2113,7 +2229,12 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
   protected IRStatement setField( IType owner, String strField, IRType fieldType, IRelativeTypeInfo.Accessibility accessibility,
                                 IRExpression root, IRExpression value )
   {
-    if( _cc().shouldUseReflection( owner, accessibility ) )
+    IRType rootType = root == null ? null : root.getType();
+    if( rootType == null )
+    {
+      rootType = getDescriptor( owner );
+    }
+    if( _cc().shouldUseReflection( owner, rootType, accessibility ) )
     {
       return setFieldReflectively( owner, strField, root, value );
     }
@@ -2497,13 +2618,21 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
     //
     // Case #1
     //
+    int i = 0;
     String strTypeVarField = TYPE_PARAM_PREFIX + type.getRelativeName();
     for( IGenericTypeVariable gv : getGosuClass().getGenericTypeVariables() )
     {
       if( gv.getName().equals( type.getName() ) )
       {
+        if( getGosuClass().isInterface() )
+        {
+          // Type var can be referenced inside default interface method
+          IRExpression typeExpr = callMethod( GosuRuntimeMethods.class, "getTypeForTypeVar", new Class[]{Object.class, IType.class, int.class}, null, exprList( pushThis(), pushType( getGosuClass() ), pushConstant( i ) ) );
+          return buildNewExpression( NotLazyTypeResolver.class, new Class[]{IType.class}, Collections.singletonList( typeExpr ) );
+        }
         return getInstanceField( getGosuClass(), strTypeVarField, getDescriptor( LazyTypeResolver.class ), AccessibilityUtil.forTypeParameter(), pushThis() );
       }
+      i++;
     }
 
     //
@@ -2525,12 +2654,20 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
       //
       // Case #1
       //
+      i = 0;
       for( IGenericTypeVariable gv : gsClass.getGenericTypeVariables() )
       {
         if( gv.getName().equals( type.getName() ) )
         {
+          if( gsClass.isInterface() )
+          {
+            // Type var can be referenced inside default interface method
+            IRExpression typeExpr = callMethod( GosuRuntimeMethods.class, "getTypeForTypeVar", new Class[]{Object.class, IType.class, int.class}, null, exprList( pushThis(), pushType( gsClass ), pushConstant( i ) ) );
+            return buildNewExpression( NotLazyTypeResolver.class, new Class[]{IType.class}, Collections.singletonList( typeExpr ) );
+          }
           return getInstanceField( gsClass, strTypeVarField, getDescriptor( LazyTypeResolver.class ), AccessibilityUtil.forTypeParameter(), pushOuter( gsClass ) );
         }
+        i++;
       }
 
       //
@@ -2961,7 +3098,7 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
     // Unfortunately, it's possible for a class literal to be illegal in a given context:  if that literal refers to an
     // internal or private type, for example, and classloader issues result in the caller being in a different package/classloader
     // at runtime, the type needs to be looked up reflectively instead.  For purposes of this method call, the feature itself is public
-    if( type != null && RequiresReflectionDeterminer.shouldUseReflection( type, _cc.getGosuClass(), IRelativeTypeInfo.Accessibility.PUBLIC ) ) {
+    if( type != null && RequiresReflectionDeterminer.shouldUseReflection( type, _cc.getGosuClass(), null, IRelativeTypeInfo.Accessibility.PUBLIC ) ) {
       return callMethod( GosuRuntimeMethods.class, "lookUpClass", new Class[]{String.class}, null, exprList( stringLiteral( value.getDescriptor() ) ) );
     } else {
       return new IRClassLiteral( value );
@@ -3013,7 +3150,15 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
     else
     {
       // Otherwise, the symbol should be in scope in the current function
-      return identifier( _cc().getSymbol( GosuFragmentTransformer.SYMBOLS_PARAM_NAME ) );
+      if( _cc().hasSymbol( GosuFragmentTransformer.SYMBOLS_PARAM_NAME ) )
+      {
+        return identifier( _cc().getSymbol( GosuFragmentTransformer.SYMBOLS_PARAM_NAME ) );
+      }
+      else
+      {
+        // Fuck it, external symbols are not available outside a program, but we call sites exist outside program context
+        return pushNull();
+      }
     }
   }
 
@@ -3264,7 +3409,7 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
 
   public static boolean isNonStaticInnerClass( IType type )
   {
-    return (type instanceof IGosuClass) && type.getEnclosingType() != null && !((IGosuClass)type).isStatic();
+    return type != null && type.getEnclosingType() != null && !Modifier.isStatic( type.getModifiers() );
   }
 
   protected IRExpression getField_new( IRProperty irProp, IRExpression root, IRType expectedType )
@@ -3288,7 +3433,12 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
 
   private IRExpression getFieldImpl_new( IRProperty irProp, IRExpression root )
   {
-    if( _cc().shouldUseReflection( irProp.getOwningIType(), irProp.getAccessibility() ) )
+    IRType rootType = root == null ? null : root.getType();
+    if( rootType == null )
+    {
+      rootType = irProp.getOwningIRType();
+    }
+    if( _cc().shouldUseReflection( irProp.getOwningIType(), rootType, irProp.getAccessibility() ) )
     {
       return getFieldReflectively_new( irProp, root );
     }

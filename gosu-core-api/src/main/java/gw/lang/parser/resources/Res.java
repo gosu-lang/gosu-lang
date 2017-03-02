@@ -220,7 +220,9 @@ public class Res
   public static final ResourceKey MSG_MISPLACED_META_ANNOTATION = new ResourceKey("MSG_MISPLACED_META_ANNOTATION");
   public static final ResourceKey MSG_MISPLACED_ANNOTATION = new ResourceKey("MSG_MISPLACED_ANNOTATION");
   public static final ResourceKey MSG_ANNOTATION_WHEN_NONE_ALLOWED = new ResourceKey("MSG_ANNOTATION_WHEN_NONE_ALLOWED");
+  public static final ResourceKey MSG_ANNOTATION_USE_SITE_TARGET_NOT_ALLOWED_HERE = new ResourceKey("MSG_ANNOTATION_USE_SITE_TARGET_NOT_ALLOWED_HERE");
   public static final ResourceKey MSG_TOO_MANY_ANNOTATIONS = new ResourceKey("MSG_TOO_MANY_ANNOTATIONS");
+  public static final ResourceKey MSG_EXPECTING_COLON_ANNOTATION = new ResourceKey("MSG_EXPECTING_COLON_ANNOTATION");
   public static final ResourceKey MSG_INVALID_TYPE = new ResourceKey("MSG_INVALID_TYPE");
   public static final ResourceKey MSG_INVALID_INNER_TYPE = new ResourceKey("MSG_INVALID_INNER_TYPE");
   public static final ResourceKey MSG_INVALID_GENERIC_EXCEPTION = new ResourceKey("MSG_INVALID_GENERIC_EXCEPTION");
@@ -284,6 +286,7 @@ public class Res
   public static final ResourceKey MSG_ENUM_CONSTRUCTOR_NOT_ACCESSIBLE = new ResourceKey("MSG_ENUM_CONSTRUCTOR_NOT_ACCESSIBLE");
   public static final ResourceKey MSG_ENUM_MAY_NOT_HAVE_TYPEPARAM = new ResourceKey("MSG_ENUM_MAY_NOT_HAVE_TYPEPARAM");
   public static final ResourceKey MSG_MISSING_OVERRIDE_MODIFIER = new ResourceKey("MSG_MISSING_OVERRIDE_MODIFIER");
+  public static final ResourceKey MSG_RENAME_METHOD = new ResourceKey("MSG_RENAME_METHOD");
   public static final ResourceKey MSG_STATIC_METHOD_CANNOT_OVERRIDE = new ResourceKey("MSG_STATIC_METHOD_CANNOT_OVERRIDE");
   public static final ResourceKey MSG_OVERRIDES_OBJECT_METHOD = new ResourceKey("MSG_OVERRIDES_OBJECT_METHOD");
   public static final ResourceKey MSG_INHEREITED_WITH_DIFF_ARG_TYPES = new ResourceKey("MSG_INHEREITED_WITH_DIFF_ARG_TYPES");
@@ -355,6 +358,7 @@ public class Res
   public static final ResourceKey MSG_TEMPLATE_MULTIPLE_PARAMS = new ResourceKey("MSG_TEMPLATE_MULTIPLE_PARAMS");
   public static final ResourceKey MSG_TEMPLATE_UNKNOWN_DIRECTIVE = new ResourceKey("MSG_TEMPLATE_UNKNOWN_DIRECTIVE");
   public static final ResourceKey MSG_EQUALS_FOR_INITIALIZER_EXPR = new ResourceKey( "MSG_EQUALS_FOR_INITIALIZER_EXPR" );
+  public static final ResourceKey MSG_INITIALIZER_NOT_ALLOWED_ABSTRACT_PROPERTY = new ResourceKey( "MSG_INITIALIZER_NOT_ALLOWED_ABSTRACT_PROPERTY" );
   public static final ResourceKey MSG_EXPECTING_NAME_VALUE_PAIR = new ResourceKey( "MSG_EXPECTING_NAME_VALUE_PAIR" );
   public static final ResourceKey MSG_REDUNTANT_INITIALIZERS = new ResourceKey( "MSG_REDUNTANT_INITIALIZERS" );
   public static final ResourceKey MSG_ONLY_ONE_COLON_IN_INITIALIZERS = new ResourceKey( "MSG_ONLY_ONE_COLON_IN_INITIALIZERS" );
@@ -376,6 +380,8 @@ public class Res
   public static final ResourceKey MSG_CANNOT_REFERENCE_THIS_IN_STATIC_CONTEXT = new ResourceKey( "MSG_CANNOT_REFERENCE_THIS_IN_STATIC_CONTEXT" );
   public static final ResourceKey MSG_CANNOT_CALL_NON_STATIC_METHOD_FROM_STATIC_CONTEXT = new ResourceKey( "MSG_CANNOT_CALL_NON_STATIC_METHOD_FROM_STATIC_CONTEXT" );
   public static final ResourceKey MSG_CANNOT_REFERENCE_NON_STATIC_PROPERTY_FROM_STATIC_CONTEXT = new ResourceKey( "MSG_CANNOT_REFERENCE_NON_STATIC_PROPERTY_FROM_STATIC_CONTEXT" );
+  public static final ResourceKey MSG_CANNOT_REFERENCE_NON_STATIC_FEATURE_HERE = new ResourceKey( "MSG_CANNOT_REFERENCE_NON_STATIC_FEATURE_HERE" );
+  public static final ResourceKey MSG_ONLY_GOSU_JAVA_TYPES = new ResourceKey( "MSG_ONLY_GOSU_JAVA_TYPES" );
   public static final ResourceKey MSG_ATTEMPTING_TO_ASSIGN_WEAKER_ACCESS_PRIVILEGES = new ResourceKey( "MSG_ATTEMPTING_TO_ASSIGN_WEAKER_ACCESS_PRIVILEGES" );
   public static final ResourceKey MSG_CTOR_HAS_XXX_ACCESS = new ResourceKey( "MSG_CTOR_HAS_XXX_ACCESS" );
   public static final ResourceKey MSG_TYPE_HAS_XXX_ACCESS = new ResourceKey( "MSG_TYPE_HAS_XXX_ACCESS" );

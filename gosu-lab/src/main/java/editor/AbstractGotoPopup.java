@@ -93,7 +93,7 @@ public abstract class AbstractGotoPopup<T> extends JPopupMenu
     int iY = 0;
     JLabel labelName = new JLabel( _title );
     labelName.setOpaque( true );
-    labelName.setBackground( EditorUtilities.CONTROL );
+    labelName.setBackground( Scheme.active().getControl() );
     labelName.setFont( labelName.getFont().deriveFont( Font.BOLD ) );
     labelName.setBorder( BorderFactory.createEmptyBorder( 3, 3, 3, 3 ) );
     c.anchor = GridBagConstraints.WEST;
@@ -161,7 +161,7 @@ public abstract class AbstractGotoPopup<T> extends JPopupMenu
 
     _spinner = new JLabel( EditorUtilities.loadIcon( "images/wait.gif" ) );
     _spinner.setBorder( UIManager.getBorder( "TextField.border" ) );
-    _spinner.setBackground( Color.WHITE );
+    _spinner.setBackground( Scheme.active().getWindow() );
     _spinner.setOpaque( true );
     _spinner.setVisible( false );
     c.gridy = iY;

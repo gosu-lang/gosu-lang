@@ -5,7 +5,7 @@ import editor.tabpane.TabPane;
 import editor.tabpane.TabPosition;
 import editor.util.EditorUtilities;
 import editor.util.Experiment;
-import editor.util.XPToolbarButton;
+import editor.util.LabToolbarButton;
 
 import javax.swing.*;
 import javax.swing.border.MatteBorder;
@@ -37,7 +37,7 @@ public class ExperimentView extends JPanel
 
     _splitPane = new CollapsibleSplitPane( SwingConstants.VERTICAL, new JPanel(), makeExamplesList() );
     add( _splitPane, BorderLayout.CENTER );
-    _splitPane.setPosition( 70 );
+    _splitPane.setPosition( 75 );
   }
 
   private JComponent makeExamplesList()
@@ -64,16 +64,16 @@ public class ExperimentView extends JPanel
     _experiment = experiment;
     DefaultTreeModel model = new DefaultTreeModel( new FileTree( getExperiment() ) );
     _tree = new JTree( model );
-    _tree.setBackground( EditorUtilities.WINDOW );
+    _tree.setBackground( Scheme.active().getWindow() );
     _tree.setShowsRootHandles( true );
     _tree.setRowHeight( 22 );
     _tree.getSelectionModel().setSelectionMode( TreeSelectionModel.SINGLE_TREE_SELECTION );
     _tree.setVisibleRowCount( 20 );
     _tree.setCellRenderer( new FileTreeCellRenderer( _tree ) );
     _tree.addMouseListener( new TreeMouseHandler() );
-    _tree.addKeyListener( new TreeKeyHankder() );
+    _tree.addKeyListener( new TreeKeyHandler() );
     _scroller = new JScrollPane( _tree );
-    _scroller.setBorder( new MatteBorder( 0, 0, 1, 1, EditorUtilities.CONTROL_SHADOW ) );
+    _scroller.setBorder( new MatteBorder( 0, 0, 1, 1, Scheme.active().getScrollbarBorderColor() ) );
     expandToFirstSourcePath( 0, _tree.getRowCount() );
 
     _splitPane.setTop( _scroller );
@@ -86,7 +86,9 @@ public class ExperimentView extends JPanel
     java.util.List<File> examples = EditorUtilities.getStockExampleExperiments();
     for( File dir: examples )
     {
-      XPToolbarButton item = new XPToolbarButton( dir.getName(), EditorUtilities.loadLabIcon() );
+      LabToolbarButton item = new LabToolbarButton( dir.getName(), EditorUtilities.loadLabIcon() );
+      item.setToolTipText( null );
+      item.setShowText( true );
       item.setHorizontalAlignment( SwingConstants.LEFT );
       item.addActionListener( e -> getExperiment().getGosuPanel().openExperiment( dir ) );
       _examplesListNorth.add( item );
@@ -153,19 +155,7 @@ public class ExperimentView extends JPanel
         if( selectionPath != null )
         {
           FileTree fileTree = (FileTree)selectionPath.getLastPathComponent();
-          if( fileTree.isFile() )
-          {
-            if( fileTree.getType() != null )
-            {
-              // Open Gosu type in our editor
-              _experiment.getGosuPanel().openFile( fileTree.getFileOrDir() );
-            }
-            else
-            {
-              // Open files on desktop in native app
-              EditorUtilities.openFileOrDir( fileTree.getFileOrDir() );
-            }
-          }
+          openFile( fileTree );
         }
       }
     }
@@ -211,8 +201,25 @@ public class ExperimentView extends JPanel
     }
   }
 
+  private void openFile( FileTree fileTree )
+  {
+    if( fileTree.isFile() )
+    {
+      if( fileTree.getType() != null )
+      {
+        // Open Gosu type in our editor
+        _experiment.getGosuPanel().openFile( fileTree.getFileOrDir(), true );
+      }
+      else
+      {
+        // Open files on desktop in native app
+        EditorUtilities.openFileOrDir( fileTree.getFileOrDir() );
+      }
+    }
+  }
 
-  private class TreeKeyHankder implements KeyListener
+
+  private class TreeKeyHandler implements KeyListener
   {
     @Override
     public void keyTyped( KeyEvent e )
@@ -229,6 +236,14 @@ public class ExperimentView extends JPanel
         if( selection != null && selection.canDelete() )
         {
           selection.delete();
+        }
+      }
+      else if( e.getKeyCode() == KeyEvent.VK_ENTER )
+      {
+        FileTree selection = getSelectedTree();
+        if( selection != null && selection.isFile() )
+        {
+          openFile( selection );
         }
       }
     }

@@ -17,14 +17,14 @@ class Errant_FloatArrayListInitializer {
   var arrayList : ArrayList
   var hashMap : HashMap
 
-  var floatArrayList0111 : ArrayList<Float> = {'c', 1b, 1s, 42, 42.5f, 42L}
+  var floatArrayList0111 : ArrayList<Float> = {'c', 1b, 1 as short, 42, 42.5f, 42L}
   //TODO IDE-494 Decision pending. Assigning double to a float
-  //var floatArrayList0112 : ArrayList<Float> = {'c', 1b, 1s, 42, 42.5f, 42L, 42.5}
-  var floatArrayList0113 : ArrayList<Float> = {'c', 1b, 1s, 42, 42.5f, 42L, 42.5, BigInteger.ONE, BigDecimal.TEN}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.IO.SERIALIZABLE & JAVA.LANG.COMPARABLE<JAVA.IO.SERIALIZABLE & JAVA.LANG.COMPARABLE<? EXTENDS JAVA.LANG.COMPARABLE<?>>>>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.FLOAT>'
+  //var floatArrayList0112 : ArrayList<Float> = {'c', 1b, 1 as short, 42, 42.5f, 42L, 42.5}
+  var floatArrayList0113 : ArrayList<Float> = {'c', 1b, 1 as short, 42, 42.5f, 42L, 42.5, BigInteger.ONE, BigDecimal.TEN}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.IO.SERIALIZABLE & JAVA.LANG.COMPARABLE<JAVA.IO.SERIALIZABLE & JAVA.LANG.COMPARABLE<? EXTENDS JAVA.LANG.COMPARABLE<?>>>>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.FLOAT>'
 
   var floatArrayList1111 : ArrayList<Float> = {'c', 'c'}
   var floatArrayList1110 : ArrayList<Float> = {'c', 1b}
-  var floatArrayList1112 : ArrayList<Float> = {'c', 1s}
+  var floatArrayList1112 : ArrayList<Float> = {'c', 1 as short}
   var floatArrayList1113 : ArrayList<Float> = {'c', 42}
   var floatArrayList1114 : ArrayList<Float> = {'c', 42.5f}
   //TODO IDE-494 Decision pending. Assigning double to a float
@@ -40,7 +40,7 @@ class Errant_FloatArrayListInitializer {
 
   var floatArrayList1211 : ArrayList<Float> = {1b, 'c'}
   var floatArrayList1210 : ArrayList<Float> = {1b, 1b}
-  var floatArrayList1212 : ArrayList<Float> = {1b, 1s}
+  var floatArrayList1212 : ArrayList<Float> = {1b, 1 as short}
   var floatArrayList1213 : ArrayList<Float> = {1b, 42}
   var floatArrayList1214 : ArrayList<Float> = {1b, 42.5f}
   //TODO IDE-494 Decision pending. Assigning double to a float
@@ -54,26 +54,26 @@ class Errant_FloatArrayListInitializer {
   var floatArrayList1222 : ArrayList<Float> = {1b, arrayList}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.IO.SERIALIZABLE>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.FLOAT>'
   var floatArrayList1223 : ArrayList<Float> = {1b, hashMap}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.IO.SERIALIZABLE>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.FLOAT>'
 
-  var floatArrayList1311 : ArrayList<Float> = {1s, 'c'}
-  var floatArrayList1310 : ArrayList<Float> = {1s, 1b}
-  var floatArrayList1312 : ArrayList<Float> = {1s, 1s}
-  var floatArrayList1313 : ArrayList<Float> = {1s, 42}
-  var floatArrayList1314 : ArrayList<Float> = {1s, 42.5f}
+  var floatArrayList1311 : ArrayList<Float> = {1 as short, 'c'}
+  var floatArrayList1310 : ArrayList<Float> = {1 as short, 1b}
+  var floatArrayList1312 : ArrayList<Float> = {1 as short, 1 as short}
+  var floatArrayList1313 : ArrayList<Float> = {1 as short, 42}
+  var floatArrayList1314 : ArrayList<Float> = {1 as short, 42.5f}
   //TODO IDE-494 Decision pending. Assigning double to a float
-  //var floatArrayList1315 : ArrayList<Float> = {1s, 42.5}
-  var floatArrayList1316 : ArrayList<Float> = {1s, BigInteger.ONE}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.MATH.BIGINTEGER', REQUIRED: 'JAVA.LANG.FLOAT'
-  var floatArrayList1317 : ArrayList<Float> = {1s, BigDecimal.TEN}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.MATH.BIGDECIMAL', REQUIRED: 'JAVA.LANG.FLOAT'
-  var floatArrayList1318 : ArrayList<Float> = {1s, d1}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.IO.SERIALIZABLE & JAVA.LANG.COMPARABLE<JAVA.IO.SERIALIZABLE & JAVA.LANG.COMPARABLE<? EXTENDS JAVA.LANG.COMPARABLE<?>>>>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.FLOAT>'
-  var floatArrayList1319 : ArrayList<Float> = {1s, o}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.OBJECT>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.FLOAT>'
-  var floatArrayList1320 : ArrayList<Float> = {1s, aaa}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.OBJECT>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.FLOAT>'
-  var floatArrayList1321 : ArrayList<Float> = {1s, "mystring"}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.IO.SERIALIZABLE & JAVA.LANG.COMPARABLE<JAVA.IO.SERIALIZABLE & JAVA.LANG.COMPARABLE<? EXTENDS JAVA.LANG.COMPARABLE<?>>>>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.FLOAT>'
-  var floatArrayList1322 : ArrayList<Float> = {1s, arrayList}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.IO.SERIALIZABLE>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.FLOAT>'
-  var floatArrayList1323 : ArrayList<Float> = {1s, hashMap}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.IO.SERIALIZABLE>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.FLOAT>'
+  //var floatArrayList1315 : ArrayList<Float> = {1 as short, 42.5}
+  var floatArrayList1316 : ArrayList<Float> = {1 as short, BigInteger.ONE}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.MATH.BIGINTEGER', REQUIRED: 'JAVA.LANG.FLOAT'
+  var floatArrayList1317 : ArrayList<Float> = {1 as short, BigDecimal.TEN}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.MATH.BIGDECIMAL', REQUIRED: 'JAVA.LANG.FLOAT'
+  var floatArrayList1318 : ArrayList<Float> = {1 as short, d1}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.IO.SERIALIZABLE & JAVA.LANG.COMPARABLE<JAVA.IO.SERIALIZABLE & JAVA.LANG.COMPARABLE<? EXTENDS JAVA.LANG.COMPARABLE<?>>>>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.FLOAT>'
+  var floatArrayList1319 : ArrayList<Float> = {1 as short, o}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.OBJECT>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.FLOAT>'
+  var floatArrayList1320 : ArrayList<Float> = {1 as short, aaa}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.OBJECT>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.FLOAT>'
+  var floatArrayList1321 : ArrayList<Float> = {1 as short, "mystring"}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.IO.SERIALIZABLE & JAVA.LANG.COMPARABLE<JAVA.IO.SERIALIZABLE & JAVA.LANG.COMPARABLE<? EXTENDS JAVA.LANG.COMPARABLE<?>>>>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.FLOAT>'
+  var floatArrayList1322 : ArrayList<Float> = {1 as short, arrayList}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.IO.SERIALIZABLE>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.FLOAT>'
+  var floatArrayList1323 : ArrayList<Float> = {1 as short, hashMap}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.IO.SERIALIZABLE>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.FLOAT>'
 
 
   var floatArrayList1411 : ArrayList<Float> = {42, 'c'}
   var floatArrayList1410 : ArrayList<Float> = {42, 1b}
-  var floatArrayList1412 : ArrayList<Float> = {42, 1s}
+  var floatArrayList1412 : ArrayList<Float> = {42, 1 as short}
   var floatArrayList1413 : ArrayList<Float> = {42, 42}
   var floatArrayList1414 : ArrayList<Float> = {42, 42.5f}
   //TODO IDE-494 Decision pending. Assigning double to a float
@@ -89,7 +89,7 @@ class Errant_FloatArrayListInitializer {
 
   var floatArrayList1511 : ArrayList<Float> = {42.5f, 'c'}
   var floatArrayList1510 : ArrayList<Float> = {42.5f, 1b}
-  var floatArrayList1512 : ArrayList<Float> = {42.5f, 1s}
+  var floatArrayList1512 : ArrayList<Float> = {42.5f, 1 as short}
   var floatArrayList1513 : ArrayList<Float> = {42.5f, 42}
   var floatArrayList1514 : ArrayList<Float> = {42.5f, 42.5f}
   //TODO IDE-494 Decision pending. Assigning double to a float
@@ -106,7 +106,7 @@ class Errant_FloatArrayListInitializer {
   //TODO IDE-494 Decision pending. Assigning double to a float
   //var floatArrayList1611 : ArrayList<Float> = {42.5, 'c'}
   //var floatArrayList1610 : ArrayList<Float> = {42.5, 1b}
-  //var floatArrayList1612 : ArrayList<Float> = {42.5, 1s}
+  //var floatArrayList1612 : ArrayList<Float> = {42.5, 1 as short}
   //var floatArrayList1613 : ArrayList<Float> = {42.5, 42}
   //var floatArrayList1614 : ArrayList<Float> = {42.5, 42.5f}
   //var floatArrayList1615 : ArrayList<Float> = {42.5, 42.5}
@@ -122,7 +122,7 @@ class Errant_FloatArrayListInitializer {
 
   var floatArrayList1711 : ArrayList<Float> = {BigInteger.ONE, 'c'}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.IO.SERIALIZABLE & JAVA.LANG.COMPARABLE<JAVA.IO.SERIALIZABLE & JAVA.LANG.COMPARABLE<? EXTENDS JAVA.LANG.COMPARABLE<?>>>>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.FLOAT>'
   var floatArrayList1710 : ArrayList<Float> = {BigInteger.ONE, 1b}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.MATH.BIGINTEGER', REQUIRED: 'JAVA.LANG.FLOAT'
-  var floatArrayList1712 : ArrayList<Float> = {BigInteger.ONE, 1s}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.MATH.BIGINTEGER', REQUIRED: 'JAVA.LANG.FLOAT'
+  var floatArrayList1712 : ArrayList<Float> = {BigInteger.ONE, 1 as short}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.MATH.BIGINTEGER', REQUIRED: 'JAVA.LANG.FLOAT'
   var floatArrayList1713 : ArrayList<Float> = {BigInteger.ONE, 42}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.MATH.BIGINTEGER', REQUIRED: 'JAVA.LANG.FLOAT'
   var floatArrayList1714 : ArrayList<Float> = {BigInteger.ONE, 42.5f}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.MATH.BIGINTEGER', REQUIRED: 'JAVA.LANG.FLOAT'
   var floatArrayList1715 : ArrayList<Float> = {BigInteger.ONE, 42.5}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.MATH.BIGINTEGER', REQUIRED: 'JAVA.LANG.FLOAT'
@@ -137,7 +137,7 @@ class Errant_FloatArrayListInitializer {
 
   var floatArrayList1811 : ArrayList<Float> = {BigDecimal.TEN, 'c'}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.IO.SERIALIZABLE & JAVA.LANG.COMPARABLE<JAVA.IO.SERIALIZABLE & JAVA.LANG.COMPARABLE<? EXTENDS JAVA.LANG.COMPARABLE<?>>>>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.FLOAT>'
   var floatArrayList1810 : ArrayList<Float> = {BigDecimal.TEN, 1b}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.MATH.BIGDECIMAL', REQUIRED: 'JAVA.LANG.FLOAT'
-  var floatArrayList1812 : ArrayList<Float> = {BigDecimal.TEN, 1s}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.MATH.BIGDECIMAL', REQUIRED: 'JAVA.LANG.FLOAT'
+  var floatArrayList1812 : ArrayList<Float> = {BigDecimal.TEN, 1 as short}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.MATH.BIGDECIMAL', REQUIRED: 'JAVA.LANG.FLOAT'
   var floatArrayList1813 : ArrayList<Float> = {BigDecimal.TEN, 42}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.MATH.BIGDECIMAL', REQUIRED: 'JAVA.LANG.FLOAT'
   var floatArrayList1814 : ArrayList<Float> = {BigDecimal.TEN, 42.5f}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.MATH.BIGDECIMAL', REQUIRED: 'JAVA.LANG.FLOAT'
   var floatArrayList1815 : ArrayList<Float> = {BigDecimal.TEN, 42.5}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.MATH.BIGDECIMAL', REQUIRED: 'JAVA.LANG.FLOAT'
@@ -152,7 +152,7 @@ class Errant_FloatArrayListInitializer {
 
   var floatArrayList1911 : ArrayList<Float> = {d1, 'c'}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.IO.SERIALIZABLE & JAVA.LANG.COMPARABLE<JAVA.IO.SERIALIZABLE & JAVA.LANG.COMPARABLE<? EXTENDS JAVA.LANG.COMPARABLE<?>>>>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.FLOAT>'
   var floatArrayList1910 : ArrayList<Float> = {d1, 1b}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.IO.SERIALIZABLE & JAVA.LANG.COMPARABLE<JAVA.IO.SERIALIZABLE & JAVA.LANG.COMPARABLE<? EXTENDS JAVA.LANG.COMPARABLE<?>>>>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.FLOAT>'
-  var floatArrayList1912 : ArrayList<Float> = {d1, 1s}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.IO.SERIALIZABLE & JAVA.LANG.COMPARABLE<JAVA.IO.SERIALIZABLE & JAVA.LANG.COMPARABLE<? EXTENDS JAVA.LANG.COMPARABLE<?>>>>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.FLOAT>'
+  var floatArrayList1912 : ArrayList<Float> = {d1, 1 as short}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.IO.SERIALIZABLE & JAVA.LANG.COMPARABLE<JAVA.IO.SERIALIZABLE & JAVA.LANG.COMPARABLE<? EXTENDS JAVA.LANG.COMPARABLE<?>>>>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.FLOAT>'
   var floatArrayList1913 : ArrayList<Float> = {d1, 42}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.IO.SERIALIZABLE & JAVA.LANG.COMPARABLE<JAVA.IO.SERIALIZABLE & JAVA.LANG.COMPARABLE<? EXTENDS JAVA.LANG.COMPARABLE<?>>>>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.FLOAT>'
   var floatArrayList1914 : ArrayList<Float> = {d1, 42.5f}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.IO.SERIALIZABLE & JAVA.LANG.COMPARABLE<JAVA.IO.SERIALIZABLE & JAVA.LANG.COMPARABLE<? EXTENDS JAVA.LANG.COMPARABLE<?>>>>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.FLOAT>'
   var floatArrayList1915 : ArrayList<Float> = {d1, 42.5}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.IO.SERIALIZABLE & JAVA.LANG.COMPARABLE<JAVA.IO.SERIALIZABLE & JAVA.LANG.COMPARABLE<? EXTENDS JAVA.LANG.COMPARABLE<?>>>>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.FLOAT>'
@@ -167,7 +167,7 @@ class Errant_FloatArrayListInitializer {
 
   var floatArrayList2011 : ArrayList<Float> = {o, 'c'}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.OBJECT>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.FLOAT>'
   var floatArrayList2010 : ArrayList<Float> = {o, 1b}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.OBJECT>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.FLOAT>'
-  var floatArrayList2012 : ArrayList<Float> = {o, 1s}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.OBJECT>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.FLOAT>'
+  var floatArrayList2012 : ArrayList<Float> = {o, 1 as short}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.OBJECT>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.FLOAT>'
   var floatArrayList2013 : ArrayList<Float> = {o, 42}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.OBJECT>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.FLOAT>'
   var floatArrayList2014 : ArrayList<Float> = {o, 42.5f}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.OBJECT>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.FLOAT>'
   var floatArrayList2015 : ArrayList<Float> = {o, 42.5}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.OBJECT>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.FLOAT>'
@@ -182,7 +182,7 @@ class Errant_FloatArrayListInitializer {
 
   var floatArrayList2111 : ArrayList<Float> = {aaa, 'c'}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.OBJECT>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.FLOAT>'
   var floatArrayList2110 : ArrayList<Float> = {aaa, 1b}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.OBJECT>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.FLOAT>'
-  var floatArrayList2112 : ArrayList<Float> = {aaa, 1s}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.OBJECT>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.FLOAT>'
+  var floatArrayList2112 : ArrayList<Float> = {aaa, 1 as short}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.OBJECT>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.FLOAT>'
   var floatArrayList2113 : ArrayList<Float> = {aaa, 42}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.OBJECT>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.FLOAT>'
   var floatArrayList2114 : ArrayList<Float> = {aaa, 42.5f}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.OBJECT>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.FLOAT>'
   var floatArrayList2115 : ArrayList<Float> = {aaa, 42.5}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.OBJECT>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.FLOAT>'
@@ -197,7 +197,7 @@ class Errant_FloatArrayListInitializer {
 
   var floatArrayList2211 : ArrayList<Float> = {"mystring", 'c'}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.IO.SERIALIZABLE & JAVA.LANG.COMPARABLE<JAVA.IO.SERIALIZABLE & JAVA.LANG.COMPARABLE<? EXTENDS JAVA.LANG.COMPARABLE<?>>>>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.FLOAT>'
   var floatArrayList2210 : ArrayList<Float> = {"mystring", 1b}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.IO.SERIALIZABLE & JAVA.LANG.COMPARABLE<JAVA.IO.SERIALIZABLE & JAVA.LANG.COMPARABLE<? EXTENDS JAVA.LANG.COMPARABLE<?>>>>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.FLOAT>'
-  var floatArrayList2212 : ArrayList<Float> = {"mystring", 1s}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.IO.SERIALIZABLE & JAVA.LANG.COMPARABLE<JAVA.IO.SERIALIZABLE & JAVA.LANG.COMPARABLE<? EXTENDS JAVA.LANG.COMPARABLE<?>>>>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.FLOAT>'
+  var floatArrayList2212 : ArrayList<Float> = {"mystring", 1 as short}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.IO.SERIALIZABLE & JAVA.LANG.COMPARABLE<JAVA.IO.SERIALIZABLE & JAVA.LANG.COMPARABLE<? EXTENDS JAVA.LANG.COMPARABLE<?>>>>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.FLOAT>'
   var floatArrayList2213 : ArrayList<Float> = {"mystring", 42}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.IO.SERIALIZABLE & JAVA.LANG.COMPARABLE<JAVA.IO.SERIALIZABLE & JAVA.LANG.COMPARABLE<? EXTENDS JAVA.LANG.COMPARABLE<?>>>>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.FLOAT>'
   var floatArrayList2214 : ArrayList<Float> = {"mystring", 42.5f}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.IO.SERIALIZABLE & JAVA.LANG.COMPARABLE<JAVA.IO.SERIALIZABLE & JAVA.LANG.COMPARABLE<? EXTENDS JAVA.LANG.COMPARABLE<?>>>>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.FLOAT>'
   var floatArrayList2215 : ArrayList<Float> = {"mystring", 42.5}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.IO.SERIALIZABLE & JAVA.LANG.COMPARABLE<JAVA.IO.SERIALIZABLE & JAVA.LANG.COMPARABLE<? EXTENDS JAVA.LANG.COMPARABLE<?>>>>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.FLOAT>'
@@ -213,7 +213,7 @@ class Errant_FloatArrayListInitializer {
 
   var floatArrayList2311 : ArrayList<Float> = {arrayList, 'c'}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.IO.SERIALIZABLE>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.FLOAT>'
   var floatArrayList2310 : ArrayList<Float> = {arrayList, 1b}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.IO.SERIALIZABLE>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.FLOAT>'
-  var floatArrayList2312 : ArrayList<Float> = {arrayList, 1s}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.IO.SERIALIZABLE>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.FLOAT>'
+  var floatArrayList2312 : ArrayList<Float> = {arrayList, 1 as short}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.IO.SERIALIZABLE>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.FLOAT>'
   var floatArrayList2313 : ArrayList<Float> = {arrayList, 42}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.IO.SERIALIZABLE>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.FLOAT>'
   var floatArrayList2314 : ArrayList<Float> = {arrayList, 42.5f}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.IO.SERIALIZABLE>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.FLOAT>'
   var floatArrayList2315 : ArrayList<Float> = {arrayList, 42.5}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.IO.SERIALIZABLE>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.FLOAT>'
@@ -228,7 +228,7 @@ class Errant_FloatArrayListInitializer {
 
   var floatArrayList2411 : ArrayList<Float> = {hashMap, 'c'}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.IO.SERIALIZABLE>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.FLOAT>'
   var floatArrayList2410 : ArrayList<Float> = {hashMap, 1b}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.IO.SERIALIZABLE>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.FLOAT>'
-  var floatArrayList2412 : ArrayList<Float> = {hashMap, 1s}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.IO.SERIALIZABLE>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.FLOAT>'
+  var floatArrayList2412 : ArrayList<Float> = {hashMap, 1 as short}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.IO.SERIALIZABLE>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.FLOAT>'
   var floatArrayList2413 : ArrayList<Float> = {hashMap, 42}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.IO.SERIALIZABLE>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.FLOAT>'
   var floatArrayList2414 : ArrayList<Float> = {hashMap, 42.5f}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.IO.SERIALIZABLE>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.FLOAT>'
   var floatArrayList2415 : ArrayList<Float> = {hashMap, 42.5}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.IO.SERIALIZABLE>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.FLOAT>'

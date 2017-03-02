@@ -83,7 +83,7 @@ class Errant_AnnotationTypes {
     function stuff_e2() : java.lang.Class = java.util.ArrayList<String>  //## issuekeys: MSG_COMPILE_TIME_CONSTANT_REQUIRED
     function stuff_e3() : Object  //## issuekeys: MSG_INVALID_TYPE_FOR_ANNOTATION_MEMBER
     function stuff_e4() : void  //## issuekeys: MSG_INVALID_TYPE_FOR_ANNOTATION_MEMBER
-    function stuff_e5()  //## issuekeys: MSG_EXPECTING_RETURN_TYPE_OR_FUN_BODY
-
+    function stuff_e5() : String = null //## issuekeys: MSG_COMPILE_TIME_CONSTANT_REQUIRED
+    function stuff_e6()  //## issuekeys: MSG_EXPECTING_RETURN_TYPE_OR_FUN_BODY
   }
 }

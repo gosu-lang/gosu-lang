@@ -17,16 +17,16 @@ class Errant_BigDecimalArrayListInitializer {
   var hashMap : HashMap
 
   var bigDecimalArrayList120 : ArrayList<BigDecimal> = {BigDecimal.ONE, 1b, 'c'} //IDE-1284
-  var bigDecimalArrayList121 : ArrayList<BigDecimal> = {BigDecimal.ONE, 1b, 1s}
+  var bigDecimalArrayList121 : ArrayList<BigDecimal> = {BigDecimal.ONE, 1b, 1 as short}
   var bigDecimalArrayList123 : ArrayList<BigDecimal> = {BigDecimal.ONE, 45.5f, 43.5}
   var bigDecimalArrayList124 : ArrayList<BigDecimal> = {BigDecimal.ONE, 100L, 42.5f}
-  var bigDecimalArrayList129 : ArrayList<BigDecimal> = {'c', 1b, 1s, 42, 42.5f, 42L, 42.5}
-  var bigDecimalArrayList130 : ArrayList<BigDecimal> = {'c', 1b, 1s, 42, 42.5f, 42L, 42.5, BigInteger.ONE, BigDecimal.TEN}
+  var bigDecimalArrayList129 : ArrayList<BigDecimal> = {'c', 1b, 1 as short, 42, 42.5f, 42L, 42.5}
+  var bigDecimalArrayList130 : ArrayList<BigDecimal> = {'c', 1b, 1 as short, 42, 42.5f, 42L, 42.5, BigInteger.ONE, BigDecimal.TEN}
 
 
   var bigDecimalArrayList1111 : ArrayList<BigDecimal> = {'c', 'c'}
   var bigDecimalArrayList1110 : ArrayList<BigDecimal> = {'c', 1b}
-  var bigDecimalArrayList1112 : ArrayList<BigDecimal> = {'c', 1s}
+  var bigDecimalArrayList1112 : ArrayList<BigDecimal> = {'c', 1 as short}
   var bigDecimalArrayList1113 : ArrayList<BigDecimal> = {'c', 42}
   var bigDecimalArrayList1114 : ArrayList<BigDecimal> = {'c', 42.5f}
   var bigDecimalArrayList1115 : ArrayList<BigDecimal> = {'c', 42.5}
@@ -41,7 +41,7 @@ class Errant_BigDecimalArrayListInitializer {
 
   var bigDecimalArrayList1211 : ArrayList<BigDecimal> = {1b, 'c'}
   var bigDecimalArrayList1210 : ArrayList<BigDecimal> = {1b, 1b}
-  var bigDecimalArrayList1212 : ArrayList<BigDecimal> = {1b, 1s}
+  var bigDecimalArrayList1212 : ArrayList<BigDecimal> = {1b, 1 as short}
   var bigDecimalArrayList1213 : ArrayList<BigDecimal> = {1b, 42}
   var bigDecimalArrayList1214 : ArrayList<BigDecimal> = {1b, 42.5f}
   var bigDecimalArrayList1215 : ArrayList<BigDecimal> = {1b, 42.5}
@@ -54,25 +54,25 @@ class Errant_BigDecimalArrayListInitializer {
   var bigDecimalArrayList1222 : ArrayList<BigDecimal> = {1b, arrayList}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.IO.SERIALIZABLE>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.MATH.BIGDECIMAL>'
   var bigDecimalArrayList1223 : ArrayList<BigDecimal> = {1b, hashMap}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.IO.SERIALIZABLE>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.MATH.BIGDECIMAL>'
 
-  var bigDecimalArrayList1311 : ArrayList<BigDecimal> = {1s, 'c'}
-  var bigDecimalArrayList1310 : ArrayList<BigDecimal> = {1s, 1b}
-  var bigDecimalArrayList1312 : ArrayList<BigDecimal> = {1s, 1s}
-  var bigDecimalArrayList1313 : ArrayList<BigDecimal> = {1s, 42}
-  var bigDecimalArrayList1314 : ArrayList<BigDecimal> = {1s, 42.5f}
-  var bigDecimalArrayList1315 : ArrayList<BigDecimal> = {1s, 42.5}
-  var bigDecimalArrayList1316 : ArrayList<BigDecimal> = {1s, BigInteger.ONE}
-  var bigDecimalArrayList1317 : ArrayList<BigDecimal> = {1s, BigDecimal.TEN}
-  var bigDecimalArrayList1318 : ArrayList<BigDecimal> = {1s, d1}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.IO.SERIALIZABLE & JAVA.LANG.COMPARABLE<JAVA.IO.SERIALIZABLE & JAVA.LANG.COMPARABLE<? EXTENDS JAVA.LANG.COMPARABLE<?>>>>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.MATH.BIGDECIMAL>'
-  var bigDecimalArrayList1319 : ArrayList<BigDecimal> = {1s, o}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.OBJECT>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.MATH.BIGDECIMAL>'
-  var bigDecimalArrayList1320 : ArrayList<BigDecimal> = {1s, aaa}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.OBJECT>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.MATH.BIGDECIMAL>'
-  var bigDecimalArrayList1321 : ArrayList<BigDecimal> = {1s, "mystring"}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.IO.SERIALIZABLE & JAVA.LANG.COMPARABLE<JAVA.IO.SERIALIZABLE & JAVA.LANG.COMPARABLE<? EXTENDS JAVA.LANG.COMPARABLE<?>>>>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.MATH.BIGDECIMAL>'
-  var bigDecimalArrayList1322 : ArrayList<BigDecimal> = {1s, arrayList}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.IO.SERIALIZABLE>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.MATH.BIGDECIMAL>'
-  var bigDecimalArrayList1323 : ArrayList<BigDecimal> = {1s, hashMap}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.IO.SERIALIZABLE>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.MATH.BIGDECIMAL>'
+  var bigDecimalArrayList1311 : ArrayList<BigDecimal> = {1 as short, 'c'}
+  var bigDecimalArrayList1310 : ArrayList<BigDecimal> = {1 as short, 1b}
+  var bigDecimalArrayList1312 : ArrayList<BigDecimal> = {1 as short, 1 as short}
+  var bigDecimalArrayList1313 : ArrayList<BigDecimal> = {1 as short, 42}
+  var bigDecimalArrayList1314 : ArrayList<BigDecimal> = {1 as short, 42.5f}
+  var bigDecimalArrayList1315 : ArrayList<BigDecimal> = {1 as short, 42.5}
+  var bigDecimalArrayList1316 : ArrayList<BigDecimal> = {1 as short, BigInteger.ONE}
+  var bigDecimalArrayList1317 : ArrayList<BigDecimal> = {1 as short, BigDecimal.TEN}
+  var bigDecimalArrayList1318 : ArrayList<BigDecimal> = {1 as short, d1}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.IO.SERIALIZABLE & JAVA.LANG.COMPARABLE<JAVA.IO.SERIALIZABLE & JAVA.LANG.COMPARABLE<? EXTENDS JAVA.LANG.COMPARABLE<?>>>>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.MATH.BIGDECIMAL>'
+  var bigDecimalArrayList1319 : ArrayList<BigDecimal> = {1 as short, o}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.OBJECT>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.MATH.BIGDECIMAL>'
+  var bigDecimalArrayList1320 : ArrayList<BigDecimal> = {1 as short, aaa}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.OBJECT>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.MATH.BIGDECIMAL>'
+  var bigDecimalArrayList1321 : ArrayList<BigDecimal> = {1 as short, "mystring"}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.IO.SERIALIZABLE & JAVA.LANG.COMPARABLE<JAVA.IO.SERIALIZABLE & JAVA.LANG.COMPARABLE<? EXTENDS JAVA.LANG.COMPARABLE<?>>>>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.MATH.BIGDECIMAL>'
+  var bigDecimalArrayList1322 : ArrayList<BigDecimal> = {1 as short, arrayList}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.IO.SERIALIZABLE>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.MATH.BIGDECIMAL>'
+  var bigDecimalArrayList1323 : ArrayList<BigDecimal> = {1 as short, hashMap}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.IO.SERIALIZABLE>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.MATH.BIGDECIMAL>'
 
 
   var bigDecimalArrayList1411 : ArrayList<BigDecimal> = {42, 'c'}
   var bigDecimalArrayList1410 : ArrayList<BigDecimal> = {42, 1b}
-  var bigDecimalArrayList1412 : ArrayList<BigDecimal> = {42, 1s}
+  var bigDecimalArrayList1412 : ArrayList<BigDecimal> = {42, 1 as short}
   var bigDecimalArrayList1413 : ArrayList<BigDecimal> = {42, 42}
   var bigDecimalArrayList1414 : ArrayList<BigDecimal> = {42, 42.5f}
   var bigDecimalArrayList1415 : ArrayList<BigDecimal> = {42, 42.5}
@@ -87,7 +87,7 @@ class Errant_BigDecimalArrayListInitializer {
 
   var bigDecimalArrayList1511 : ArrayList<BigDecimal> = {42.5f, 'c'}
   var bigDecimalArrayList1510 : ArrayList<BigDecimal> = {42.5f, 1b}
-  var bigDecimalArrayList1512 : ArrayList<BigDecimal> = {42.5f, 1s}
+  var bigDecimalArrayList1512 : ArrayList<BigDecimal> = {42.5f, 1 as short}
   var bigDecimalArrayList1513 : ArrayList<BigDecimal> = {42.5f, 42}
   var bigDecimalArrayList1514 : ArrayList<BigDecimal> = {42.5f, 42.5f}
   var bigDecimalArrayList1515 : ArrayList<BigDecimal> = {42.5f, 42.5}
@@ -102,7 +102,7 @@ class Errant_BigDecimalArrayListInitializer {
 
   var bigDecimalArrayList1611 : ArrayList<BigDecimal> = {42.5, 'c'}
   var bigDecimalArrayList1610 : ArrayList<BigDecimal> = {42.5, 1b}
-  var bigDecimalArrayList1612 : ArrayList<BigDecimal> = {42.5, 1s}
+  var bigDecimalArrayList1612 : ArrayList<BigDecimal> = {42.5, 1 as short}
   var bigDecimalArrayList1613 : ArrayList<BigDecimal> = {42.5, 42}
   var bigDecimalArrayList1614 : ArrayList<BigDecimal> = {42.5, 42.5f}
   var bigDecimalArrayList1615 : ArrayList<BigDecimal> = {42.5, 42.5}
@@ -117,7 +117,7 @@ class Errant_BigDecimalArrayListInitializer {
 
   var bigDecimalArrayList1711 : ArrayList<BigDecimal> = {BigInteger.ONE, 'c'}
   var bigDecimalArrayList1710 : ArrayList<BigDecimal> = {BigInteger.ONE, 1b}
-  var bigDecimalArrayList1712 : ArrayList<BigDecimal> = {BigInteger.ONE, 1s}
+  var bigDecimalArrayList1712 : ArrayList<BigDecimal> = {BigInteger.ONE, 1 as short}
   var bigDecimalArrayList1713 : ArrayList<BigDecimal> = {BigInteger.ONE, 42}
   var bigDecimalArrayList1714 : ArrayList<BigDecimal> = {BigInteger.ONE, 42.5f}
   var bigDecimalArrayList1715 : ArrayList<BigDecimal> = {BigInteger.ONE, 42.5}
@@ -132,7 +132,7 @@ class Errant_BigDecimalArrayListInitializer {
 
   var bigDecimalArrayList1811 : ArrayList<BigDecimal> = {BigDecimal.TEN, 'c'}
   var bigDecimalArrayList1810 : ArrayList<BigDecimal> = {BigDecimal.TEN, 1b}
-  var bigDecimalArrayList1812 : ArrayList<BigDecimal> = {BigDecimal.TEN, 1s}
+  var bigDecimalArrayList1812 : ArrayList<BigDecimal> = {BigDecimal.TEN, 1 as short}
   var bigDecimalArrayList1813 : ArrayList<BigDecimal> = {BigDecimal.TEN, 42}
   var bigDecimalArrayList1814 : ArrayList<BigDecimal> = {BigDecimal.TEN, 42.5f}
   var bigDecimalArrayList1815 : ArrayList<BigDecimal> = {BigDecimal.TEN, 42.5}
@@ -147,7 +147,7 @@ class Errant_BigDecimalArrayListInitializer {
 
   var bigDecimalArrayList1911 : ArrayList<BigDecimal> = {d1, 'c'}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.IO.SERIALIZABLE & JAVA.LANG.COMPARABLE<JAVA.IO.SERIALIZABLE & JAVA.LANG.COMPARABLE<? EXTENDS JAVA.LANG.COMPARABLE<?>>>>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.MATH.BIGDECIMAL>'
   var bigDecimalArrayList1910 : ArrayList<BigDecimal> = {d1, 1b}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.IO.SERIALIZABLE & JAVA.LANG.COMPARABLE<JAVA.IO.SERIALIZABLE & JAVA.LANG.COMPARABLE<? EXTENDS JAVA.LANG.COMPARABLE<?>>>>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.MATH.BIGDECIMAL>'
-  var bigDecimalArrayList1912 : ArrayList<BigDecimal> = {d1, 1s}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.IO.SERIALIZABLE & JAVA.LANG.COMPARABLE<JAVA.IO.SERIALIZABLE & JAVA.LANG.COMPARABLE<? EXTENDS JAVA.LANG.COMPARABLE<?>>>>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.MATH.BIGDECIMAL>'
+  var bigDecimalArrayList1912 : ArrayList<BigDecimal> = {d1, 1 as short}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.IO.SERIALIZABLE & JAVA.LANG.COMPARABLE<JAVA.IO.SERIALIZABLE & JAVA.LANG.COMPARABLE<? EXTENDS JAVA.LANG.COMPARABLE<?>>>>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.MATH.BIGDECIMAL>'
   var bigDecimalArrayList1913 : ArrayList<BigDecimal> = {d1, 42}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.IO.SERIALIZABLE & JAVA.LANG.COMPARABLE<JAVA.IO.SERIALIZABLE & JAVA.LANG.COMPARABLE<? EXTENDS JAVA.LANG.COMPARABLE<?>>>>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.MATH.BIGDECIMAL>'
   var bigDecimalArrayList1914 : ArrayList<BigDecimal> = {d1, 42.5f}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.IO.SERIALIZABLE & JAVA.LANG.COMPARABLE<JAVA.IO.SERIALIZABLE & JAVA.LANG.COMPARABLE<? EXTENDS JAVA.LANG.COMPARABLE<?>>>>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.MATH.BIGDECIMAL>'
   var bigDecimalArrayList1915 : ArrayList<BigDecimal> = {d1, 42.5}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.IO.SERIALIZABLE & JAVA.LANG.COMPARABLE<JAVA.IO.SERIALIZABLE & JAVA.LANG.COMPARABLE<? EXTENDS JAVA.LANG.COMPARABLE<?>>>>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.MATH.BIGDECIMAL>'
@@ -162,7 +162,7 @@ class Errant_BigDecimalArrayListInitializer {
 
   var bigDecimalArrayList2011 : ArrayList<BigDecimal> = {o, 'c'}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.OBJECT>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.MATH.BIGDECIMAL>'
   var bigDecimalArrayList2010 : ArrayList<BigDecimal> = {o, 1b}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.OBJECT>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.MATH.BIGDECIMAL>'
-  var bigDecimalArrayList2012 : ArrayList<BigDecimal> = {o, 1s}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.OBJECT>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.MATH.BIGDECIMAL>'
+  var bigDecimalArrayList2012 : ArrayList<BigDecimal> = {o, 1 as short}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.OBJECT>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.MATH.BIGDECIMAL>'
   var bigDecimalArrayList2013 : ArrayList<BigDecimal> = {o, 42}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.OBJECT>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.MATH.BIGDECIMAL>'
   var bigDecimalArrayList2014 : ArrayList<BigDecimal> = {o, 42.5f}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.OBJECT>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.MATH.BIGDECIMAL>'
   var bigDecimalArrayList2015 : ArrayList<BigDecimal> = {o, 42.5}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.OBJECT>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.MATH.BIGDECIMAL>'
@@ -177,7 +177,7 @@ class Errant_BigDecimalArrayListInitializer {
 
   var bigDecimalArrayList2111 : ArrayList<BigDecimal> = {aaa, 'c'}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.OBJECT>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.MATH.BIGDECIMAL>'
   var bigDecimalArrayList2110 : ArrayList<BigDecimal> = {aaa, 1b}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.OBJECT>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.MATH.BIGDECIMAL>'
-  var bigDecimalArrayList2112 : ArrayList<BigDecimal> = {aaa, 1s}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.OBJECT>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.MATH.BIGDECIMAL>'
+  var bigDecimalArrayList2112 : ArrayList<BigDecimal> = {aaa, 1 as short}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.OBJECT>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.MATH.BIGDECIMAL>'
   var bigDecimalArrayList2113 : ArrayList<BigDecimal> = {aaa, 42}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.OBJECT>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.MATH.BIGDECIMAL>'
   var bigDecimalArrayList2114 : ArrayList<BigDecimal> = {aaa, 42.5f}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.OBJECT>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.MATH.BIGDECIMAL>'
   var bigDecimalArrayList2115 : ArrayList<BigDecimal> = {aaa, 42.5}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.OBJECT>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.MATH.BIGDECIMAL>'
@@ -192,7 +192,7 @@ class Errant_BigDecimalArrayListInitializer {
 
   var bigDecimalArrayList2211 : ArrayList<BigDecimal> = {"mystring", 'c'}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.IO.SERIALIZABLE & JAVA.LANG.COMPARABLE<JAVA.IO.SERIALIZABLE & JAVA.LANG.COMPARABLE<? EXTENDS JAVA.LANG.COMPARABLE<?>>>>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.MATH.BIGDECIMAL>'
   var bigDecimalArrayList2210 : ArrayList<BigDecimal> = {"mystring", 1b}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.IO.SERIALIZABLE & JAVA.LANG.COMPARABLE<JAVA.IO.SERIALIZABLE & JAVA.LANG.COMPARABLE<? EXTENDS JAVA.LANG.COMPARABLE<?>>>>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.MATH.BIGDECIMAL>'
-  var bigDecimalArrayList2212 : ArrayList<BigDecimal> = {"mystring", 1s}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.IO.SERIALIZABLE & JAVA.LANG.COMPARABLE<JAVA.IO.SERIALIZABLE & JAVA.LANG.COMPARABLE<? EXTENDS JAVA.LANG.COMPARABLE<?>>>>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.MATH.BIGDECIMAL>'
+  var bigDecimalArrayList2212 : ArrayList<BigDecimal> = {"mystring", 1 as short}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.IO.SERIALIZABLE & JAVA.LANG.COMPARABLE<JAVA.IO.SERIALIZABLE & JAVA.LANG.COMPARABLE<? EXTENDS JAVA.LANG.COMPARABLE<?>>>>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.MATH.BIGDECIMAL>'
   var bigDecimalArrayList2213 : ArrayList<BigDecimal> = {"mystring", 42}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.IO.SERIALIZABLE & JAVA.LANG.COMPARABLE<JAVA.IO.SERIALIZABLE & JAVA.LANG.COMPARABLE<? EXTENDS JAVA.LANG.COMPARABLE<?>>>>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.MATH.BIGDECIMAL>'
   var bigDecimalArrayList2214 : ArrayList<BigDecimal> = {"mystring", 42.5f}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.IO.SERIALIZABLE & JAVA.LANG.COMPARABLE<JAVA.IO.SERIALIZABLE & JAVA.LANG.COMPARABLE<? EXTENDS JAVA.LANG.COMPARABLE<?>>>>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.MATH.BIGDECIMAL>'
   var bigDecimalArrayList2215 : ArrayList<BigDecimal> = {"mystring", 42.5}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.IO.SERIALIZABLE & JAVA.LANG.COMPARABLE<JAVA.IO.SERIALIZABLE & JAVA.LANG.COMPARABLE<? EXTENDS JAVA.LANG.COMPARABLE<?>>>>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.MATH.BIGDECIMAL>'
@@ -208,7 +208,7 @@ class Errant_BigDecimalArrayListInitializer {
 
   var bigDecimalArrayList2311 : ArrayList<BigDecimal> = {arrayList, 'c'}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.IO.SERIALIZABLE>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.MATH.BIGDECIMAL>'
   var bigDecimalArrayList2310 : ArrayList<BigDecimal> = {arrayList, 1b}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.IO.SERIALIZABLE>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.MATH.BIGDECIMAL>'
-  var bigDecimalArrayList2312 : ArrayList<BigDecimal> = {arrayList, 1s}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.IO.SERIALIZABLE>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.MATH.BIGDECIMAL>'
+  var bigDecimalArrayList2312 : ArrayList<BigDecimal> = {arrayList, 1 as short}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.IO.SERIALIZABLE>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.MATH.BIGDECIMAL>'
   var bigDecimalArrayList2313 : ArrayList<BigDecimal> = {arrayList, 42}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.IO.SERIALIZABLE>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.MATH.BIGDECIMAL>'
   var bigDecimalArrayList2314 : ArrayList<BigDecimal> = {arrayList, 42.5f}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.IO.SERIALIZABLE>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.MATH.BIGDECIMAL>'
   var bigDecimalArrayList2315 : ArrayList<BigDecimal> = {arrayList, 42.5}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.IO.SERIALIZABLE>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.MATH.BIGDECIMAL>'
@@ -223,7 +223,7 @@ class Errant_BigDecimalArrayListInitializer {
 
   var bigDecimalArrayList2411 : ArrayList<BigDecimal> = {hashMap, 'c'}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.IO.SERIALIZABLE>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.MATH.BIGDECIMAL>'
   var bigDecimalArrayList2410 : ArrayList<BigDecimal> = {hashMap, 1b}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.IO.SERIALIZABLE>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.MATH.BIGDECIMAL>'
-  var bigDecimalArrayList2412 : ArrayList<BigDecimal> = {hashMap, 1s}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.IO.SERIALIZABLE>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.MATH.BIGDECIMAL>'
+  var bigDecimalArrayList2412 : ArrayList<BigDecimal> = {hashMap, 1 as short}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.IO.SERIALIZABLE>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.MATH.BIGDECIMAL>'
   var bigDecimalArrayList2413 : ArrayList<BigDecimal> = {hashMap, 42}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.IO.SERIALIZABLE>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.MATH.BIGDECIMAL>'
   var bigDecimalArrayList2414 : ArrayList<BigDecimal> = {hashMap, 42.5f}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.IO.SERIALIZABLE>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.MATH.BIGDECIMAL>'
   var bigDecimalArrayList2415 : ArrayList<BigDecimal> = {hashMap, 42.5}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.IO.SERIALIZABLE>', REQUIRED: 'JAVA.UTIL.ARRAYLIST<JAVA.MATH.BIGDECIMAL>'

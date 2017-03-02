@@ -13,7 +13,6 @@ import gw.lang.parser.coercers.BasePrimitiveCoercer;
 import gw.lang.parser.coercers.FunctionToInterfaceCoercer;
 import gw.lang.reflect.java.JavaTypes;
 import gw.util.Pair;
-import gw.util.concurrent.Cache;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -29,11 +28,7 @@ public class MethodScorer {
 
   private final TypeSystemAwareCache<Pair<IType, IType>, Integer> _typeScoreCache =
     TypeSystemAwareCache.make( "Type Score Cache", 1000,
-                               new Cache.MissHandler<Pair<IType, IType>, Integer>() {
-                                 public final Integer load( Pair<IType, IType> key ) {
-                                   return _addToScoreForTypes( Collections.<IType>emptyList(), key.getFirst(), key.getSecond() );
-                                 }
-                               } );
+                               key -> _addToScoreForTypes( Collections.<IType>emptyList(), key.getFirst(), key.getSecond() ) );
 
   private final MethodScoreCache _methodScoreCache = new MethodScoreCache();
 
@@ -53,19 +48,19 @@ public class MethodScorer {
   }
 
   public List<MethodScore> scoreMethods( List<IInvocableType> funcTypes, List<IType> argTypes) {
-    List<MethodScore> scores = new ArrayList<MethodScore>();
+    List<MethodScore> scores = new ArrayList<>();
     for( IInvocableType funcType : funcTypes ) {
-      scores.add( scoreMethod( funcType, Collections.<IInvocableType>emptyList(), argTypes,  Collections.<IType>emptyList(), funcTypes.size() == 1, true ) );
+      scores.add( scoreMethod( null, null, funcType, Collections.<IInvocableType>emptyList(), argTypes,  Collections.<IType>emptyList(), funcTypes.size() == 1, true ) );
     }
     Collections.sort( scores );
     return scores;
   }
 
-  public MethodScore scoreMethod( IInvocableType funcType, List<? extends IInvocableType> listFunctionTypes, List<IType> argTypes, List<IType> inferringTypes, boolean bSkipScoring, boolean bLookInCache ) {
-    MethodScore score = new MethodScore();
+  public MethodScore scoreMethod( IType callsiteEnclosingType, IType rootType, IInvocableType funcType, List<? extends IInvocableType> listFunctionTypes, List<IType> argTypes, List<IType> inferringTypes, boolean bSkipScoring, boolean bLookInCache ) {
+    MethodScore score = new MethodScore( rootType, callsiteEnclosingType );
     score.setValid( true );
     if( !bSkipScoring ) {
-      IInvocableType cachedFuncType = bLookInCache ? getCachedMethodScore( funcType, argTypes ) : null;
+      IInvocableType cachedFuncType = bLookInCache ? getCachedMethodScore( funcType, callsiteEnclosingType, rootType, argTypes ) : null;
       cachedFuncType = matchInOverloads( listFunctionTypes, cachedFuncType );
       if( cachedFuncType != null ) {
         // Found cached function type, no need for further scoring
@@ -131,7 +126,7 @@ public class MethodScorer {
       {
         return 0;
       }
-      return _typeScoreCache.get( new Pair<IType, IType>( paramType, argType ) );
+      return _typeScoreCache.get( new Pair<>( paramType, argType ) );
     }
     if( argType == paramType )
     {
@@ -319,33 +314,65 @@ public class MethodScorer {
     }
   }
 
-  public IInvocableType getCachedMethodScore( IInvocableType funcType, List<IType> argTypes ) {
-    return _methodScoreCache.get( new MethodScoreKey( argTypes, funcType ) );
+  public IInvocableType getCachedMethodScore( IInvocableType funcType, IType callsiteEnclosingType, IType rootType, List<IType> argTypes ) {
+    return _methodScoreCache.get( new MethodScoreKey( argTypes, funcType, callsiteEnclosingType, rootType ) );
   }
   public void putCachedMethodScore( MethodScore score ) {
     score.setScore( 0 );
     List<IExpression> argExpressions = score.getArguments();
-    List<IType> argTypes = new ArrayList<IType>( argExpressions.size() );
+    List<IType> argTypes = new ArrayList<>( argExpressions.size() );
     for( IExpression argExpression : argExpressions ) {
       argTypes.add( argExpression.getType() );
     }
-    _methodScoreCache.put( new MethodScoreKey( argTypes, score.getRawFunctionType() ), score.getRawFunctionType() );
+    _methodScoreCache.put( new MethodScoreKey( argTypes, score ), score.getRawFunctionType() );
   }
 
   private class MethodScoreKey {
     private String _methodName;
-    private IType _enclosingType;
+    private IType _declaringType;
+    private IType _rootType;
+    private IRelativeTypeInfo.Accessibility _acc;
     private List<IType> _argTypes;
 
-    private MethodScoreKey( List<IType> argTypes, IInvocableType funcType ) {
+    private MethodScoreKey( List<IType> argTypes, IInvocableType funcType, IType callsiteEnclosingType, IType rootType ) {
       _argTypes = argTypes;
+      _rootType = rootType;
+      if( rootType != null && callsiteEnclosingType != null )
+      {
+        if( rootType instanceof IMetaType )
+        {
+          rootType = ((IMetaType)rootType).getType();
+        }
+        _acc = FeatureManager.getAccessibilityForClass( rootType, callsiteEnclosingType );
+      }
+      else
+      {
+        _acc = IRelativeTypeInfo.Accessibility.NONE;
+      }
       if( funcType instanceof IConstructorType ) {
         _methodName = "construct";
-        _enclosingType = ((IConstructorType)funcType).getDeclaringType();
+        _declaringType = ((IConstructorType)funcType).getDeclaringType();
       }
       else {
         _methodName = funcType.getDisplayName();
-        _enclosingType = funcType.getEnclosingType();
+        _declaringType = funcType.getEnclosingType();
+      }
+    }
+
+    public MethodScoreKey( List<IType> argTypes, MethodScore score )
+    {
+      _argTypes = argTypes;
+      _rootType = score.getReceiverType();
+      _acc = score.getAccessibility();
+
+      IInvocableType funcType = score.getRawFunctionType();
+      if( funcType instanceof IConstructorType ) {
+        _methodName = "construct";
+        _declaringType = ((IConstructorType)funcType).getDeclaringType();
+      }
+      else {
+        _methodName = funcType.getDisplayName();
+        _declaringType = funcType.getEnclosingType();
       }
     }
 
@@ -363,7 +390,13 @@ public class MethodScorer {
       if( !_argTypes.equals( that._argTypes ) ) {
         return false;
       }
-      if( _enclosingType != null ? !_enclosingType.equals( that._enclosingType ) : that._enclosingType != null ) {
+      if( _declaringType != null ? !_declaringType.equals( that._declaringType ) : that._declaringType != null ) {
+        return false;
+      }
+      if( _rootType != null ? !_rootType.equals( that._rootType ) : that._rootType != null ) {
+        return false;
+      }
+      if( _acc != null ? !_acc.equals( that._acc ) : that._acc != null ) {
         return false;
       }
       if( !_methodName.equals( that._methodName ) ) {
@@ -376,7 +409,9 @@ public class MethodScorer {
     @Override
     public int hashCode() {
       int result = _methodName.hashCode();
-      result = 31 * result + (_enclosingType != null ? _enclosingType.hashCode() : 0);
+      result = 31 * result + (_declaringType != null ? _declaringType.hashCode() : 0);
+      result = 31 * result + (_rootType != null ? _rootType.hashCode() : 0);
+      result = 31 * result + (_acc != null ? _acc.hashCode() : 0);
       result = 31 * result + _argTypes.hashCode();
       return result;
     }

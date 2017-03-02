@@ -24,6 +24,7 @@ import gw.lang.parser.GosuParserTypes;
 import gw.lang.parser.IBlockClass;
 import gw.lang.parser.ICapturedSymbol;
 import gw.lang.parser.IDynamicFunctionSymbol;
+import gw.lang.parser.IFunctionSymbol;
 import gw.lang.parser.IGosuParser;
 import gw.lang.parser.ILanguageLevel;
 import gw.lang.parser.IScriptPartId;
@@ -37,13 +38,16 @@ import gw.lang.parser.ScriptabilityModifiers;
 import gw.lang.parser.TypeVarToTypeMap;
 import gw.lang.parser.exceptions.ErrantGosuClassException;
 import gw.lang.parser.exceptions.ParseResultsException;
+import gw.lang.parser.expressions.INameInDeclaration;
 import gw.lang.parser.expressions.ITypeVariableDefinition;
 import gw.lang.parser.expressions.IVarStatement;
 import gw.lang.parser.resources.Res;
+import gw.lang.parser.statements.IConstructorStatement;
 import gw.lang.parser.statements.IFunctionStatement;
 import gw.lang.parser.statements.IUsesStatement;
 import gw.lang.reflect.FunctionType;
 import gw.lang.reflect.IAttributedFeatureInfo;
+import gw.lang.reflect.IConstructorInfo;
 import gw.lang.reflect.IEnumValue;
 import gw.lang.reflect.IFunctionType;
 import gw.lang.reflect.IMethodInfo;
@@ -57,7 +61,6 @@ import gw.lang.reflect.Modifier;
 import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.gs.ClassType;
 import gw.lang.reflect.gs.GosuClassTypeLoader;
-import gw.lang.reflect.gs.IEnhancementIndex;
 import gw.lang.reflect.gs.IGosuArrayClass;
 import gw.lang.reflect.gs.IGosuClass;
 import gw.lang.reflect.gs.IGosuEnhancement;
@@ -1485,7 +1488,7 @@ public class GosuClass extends InnerClassCapableType implements IGosuClassIntern
   public void compileDefinitionsIfNeeded( boolean bForce )
   {
     boolean bHasError = false;
-    
+
     if( !isDefinitionsCompiled() )
     {
       ((GosuClass)getPureGenericClass().dontEverCallThis())._hasError = null;
@@ -2175,6 +2178,10 @@ public class GosuClass extends InnerClassCapableType implements IGosuClassIntern
   }
   public void putClassMembers( GosuClassTypeLoader loader, GosuParser owner, ISymbolTable table, IGosuClassInternal gsContextClass, boolean bStatic )
   {
+    putClassMembers( loader, owner, table, gsContextClass, bStatic, false );
+  }
+  public void putClassMembers( GosuClassTypeLoader loader, GosuParser owner, ISymbolTable table, IGosuClassInternal gsContextClass, boolean bStatic, boolean bStaticImport )
+  {
     // Visit interfaces first so that concrete impls stamp over them,
     // then visit super classes so that subclass members stamp over super ones.
 
@@ -2210,13 +2217,14 @@ public class GosuClass extends InnerClassCapableType implements IGosuClassIntern
 
     boolean bSuperClass = gsContextClass != getOrCreateTypeReference();
 
-    putStaticFields( table, gsContextClass, bSuperClass );
+    putStaticFields( table, gsContextClass, bSuperClass, bStaticImport );
     if( gsContextClass == null ||
+        bStaticImport ||
         !isInterface() ||
         getOrCreateTypeReference( gsContextClass ) == getOrCreateTypeReference() ) // Static interface methods/properties are NOT inherited
     {
-      putStaticFunctions( owner, table, gsContextClass, bSuperClass );
-      putStaticProperties( table, gsContextClass, bSuperClass );
+      putStaticFunctions( owner, table, gsContextClass, bSuperClass, bStaticImport );
+      putStaticProperties( table, gsContextClass, bSuperClass, bStaticImport );
     }
     if( !bStatic )
     {
@@ -2255,7 +2263,7 @@ public class GosuClass extends InnerClassCapableType implements IGosuClassIntern
       }
     }
   }
-  
+
   private void putFunctions( GosuParser owner, ISymbolTable table, IGosuClassInternal gsContextClass, boolean bSuperClass )
   {
     for( DynamicFunctionSymbol dfs : getMemberFunctions() )
@@ -2366,56 +2374,80 @@ public class GosuClass extends InnerClassCapableType implements IGosuClassIntern
     }
   }
 
-  private void putStaticFunctions( GosuParser owner, ISymbolTable table, IGosuClassInternal gsContextClass, boolean bSuperClass )
+  private void putStaticFunctions( GosuParser owner, ISymbolTable table, IGosuClassInternal gsContextClass, boolean bSuperClass, boolean bStaticImport )
   {
     List<DynamicFunctionSymbol> staticFunctions = getStaticFunctions();
-    for (int i = 0; i < staticFunctions.size(); i++) {
-      DynamicFunctionSymbol dfs = staticFunctions.get(i);
+    for( int i = 0; i < staticFunctions.size(); i++ ) {
+      DynamicFunctionSymbol dfs = staticFunctions.get( i );
       if( !bSuperClass || (isAccessible( gsContextClass, dfs ) && !isHidden( dfs )) )
       {
         if( isParameterizedType() )
         {
           dfs = dfs.getParameterizedVersion( (IGosuClass) getOrCreateTypeReference());
         }
-        table.putSymbol( dfs );
+        if( !bStaticImport || table.getSymbol( dfs.getName() ) == null )
+        {
+          table.putSymbol( dfs );
+        }
         if( owner != null )
         {
-          owner.putDfsDeclInSetByName( dfs );
+          if( bStaticImport )
+          {
+            List<IFunctionSymbol> existing = owner.getDfsDeclsForFunction( dfs.getDisplayName() );
+            if( existing == null || !existing.contains( dfs ) )
+            {
+              owner.putDfsDeclInSetByName( dfs );
+            }
+          }
+          else
+          {
+            owner.putDfsDeclInSetByName( dfs );
+          }
         }
       }
     }
   }
 
-  private void putStaticProperties( ISymbolTable table, IGosuClassInternal gsContextClass, boolean bSuperClass )
+  private void putStaticProperties( ISymbolTable table, IGosuClassInternal gsContextClass, boolean bSuperClass, boolean bStaticImport )
   {
     List<DynamicPropertySymbol> staticProperties = getStaticProperties();
-    for (int i = 0; i < staticProperties.size(); i++) {
-      DynamicPropertySymbol dps = staticProperties.get(i);
+    for( int i = 0; i < staticProperties.size(); i++ ) {
+      DynamicPropertySymbol dps = staticProperties.get( i );
       if( !bSuperClass || (isAccessible( gsContextClass, dps ) && !isHidden( dps )) )
       {
         if( isParameterizedType() )
         {
           dps = dps.getParameterizedVersion( (IGosuClass) getOrCreateTypeReference());
         }
-        table.putSymbol( dps );
+        if( !bStaticImport || table.getSymbol( dps.getName() ) == null )
+        {
+          table.putSymbol( dps );
+        }
       }
     }
   }
 
-  private void putStaticFields( ISymbolTable table, IGosuClassInternal gsContextClass, boolean bSuperClass )
+  private void putStaticFields( ISymbolTable table, IGosuClassInternal gsContextClass, boolean bSuperClass, boolean bStaticImport )
   {
     for( IVarStatement varStmt : getStaticFields() )
     {
+      if( varStmt.isAbstract() )
+      {
+        continue;
+      }
       if( !bSuperClass || (isAccessible( gsContextClass, varStmt ) && !isHidden( varStmt )) )
       {
         ISymbol existingSymbol = table.getSymbol( varStmt.getSymbol().getName() );
-        if( existingSymbol != null && !areSymbolsFromSameDeclaration(varStmt, existingSymbol))
+        if( !bStaticImport || existingSymbol == null )
         {
-          table.putSymbol( new AmbiguousSymbol( varStmt.getSymbol().getName() ) );
-        }
-        else
-        {
-          table.putSymbol( varStmt.getSymbol() );
+          if( existingSymbol != null && !areSymbolsFromSameDeclaration( varStmt, existingSymbol ) )
+          {
+            table.putSymbol( new AmbiguousSymbol( varStmt.getSymbol().getName() ) );
+          }
+          else
+          {
+            table.putSymbol( varStmt.getSymbol() );
+          }
         }
       }
     }
@@ -2441,6 +2473,11 @@ public class GosuClass extends InnerClassCapableType implements IGosuClassIntern
   {
     for( IVarStatement varStmt : getMemberFields() )
     {
+      if( varStmt.isAbstract() )
+      {
+        continue;
+      }
+
       if( !bSuperClass || (isAccessible( gsContextClass, varStmt ) && !isHidden( varStmt )) )
       {
         ISymbol symbol = varStmt.getSymbol();
@@ -3130,15 +3167,54 @@ public class GosuClass extends InnerClassCapableType implements IGosuClassIntern
     return (TypeVariableDefinitionImpl) typeVarDef;
   }
 
-  public IFunctionStatement getFunctionStatement(IMethodInfo method) {
-    for (IDynamicFunctionSymbol dfs : getMemberFunctions()) {
-      if (method.getName().equals(dfs.getName()) && equalArgs(method.getParameters(), dfs.getArgs())) {
+  public IFunctionStatement getFunctionStatement( IMethodInfo method )
+  {
+    for( IDynamicFunctionSymbol dfs : getMemberFunctions() )
+    {
+      if( method.getName().equals( dfs.getName() ) && equalArgs( method.getParameters(), dfs.getArgs() ) )
+      {
         return dfs.getDeclFunctionStmt();
       }
     }
-    for (IDynamicFunctionSymbol dfs : getStaticFunctions()) {
-      if (method.getName().equals(dfs.getName()) && equalArgs(method.getParameters(), dfs.getArgs())) {
+    for( IDynamicFunctionSymbol dfs : getStaticFunctions() )
+    {
+      if( method.getName().equals( dfs.getName() ) && equalArgs( method.getParameters(), dfs.getArgs() ) )
+      {
         return dfs.getDeclFunctionStmt();
+      }
+    }
+    return null;
+  }
+
+  public INameInDeclaration getPropertyDeclaration( String name )
+  {
+    for( VarStatement varStmt: getParseInfo().getMemberFields().values() )
+    {
+      int offset = varStmt.getNameOffset( name );
+      if( offset >= 0 )
+      {
+        return (INameInDeclaration)varStmt.getLocation().getDeepestLocation( offset, false ).getParsedElement();
+      }
+    }
+    for( VarStatement varStmt: getParseInfo().getStaticFields().values() )
+    {
+      int offset = varStmt.getNameOffset( name );
+      if( offset >= 0 )
+      {
+        return (INameInDeclaration)varStmt.getLocation().getDeepestLocation( offset, false ).getParsedElement();
+      }
+    }
+    return null;
+  }
+
+  @Override
+  public IConstructorStatement getConstructorStatement( IConstructorInfo ctor )
+  {
+    for( IDynamicFunctionSymbol dfs : getConstructorFunctions() )
+    {
+      if( dfs.getMethodOrConstructorInfo( true ) == ctor )
+      {
+        return (IConstructorStatement)dfs.getDeclFunctionStmt();
       }
     }
     return null;

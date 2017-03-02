@@ -2,7 +2,7 @@
   <parent>
     <groupId>org.gosu-lang.gosu</groupId>
     <artifactId>gosu-parent</artifactId>
-    <version>1-spec-SNAPSHOT</version>
+    <version>1-X-SNAPSHOT</version>
     <relativePath>../gosu-parent/pom.xml</relativePath>
   </parent>
   <modelVersion>4.0.0</modelVersion>
@@ -15,14 +15,33 @@
     <dependency>
       <groupId>org.gosu-lang.gosu</groupId>
       <artifactId>gosu-core-api</artifactId>
-      <version>1-spec-SNAPSHOT</version>
+      <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>org.gosu-lang.gosu</groupId>
       <artifactId>gosu-core</artifactId>
-      <version>1-spec-SNAPSHOT</version>
+      <version>${project.version}</version>
       <scope>runtime</scope>
     </dependency>
+
+<!--this is for Lucene indexing-->
+    <!--<dependency>-->
+      <!--<groupId>org.apache.lucene</groupId>-->
+      <!--<artifactId>lucene-core</artifactId>-->
+      <!--<version>6.2.1</version>-->
+    <!--</dependency>-->
+    <!--<dependency>-->
+      <!--<groupId>org.apache.lucene</groupId>-->
+      <!--<artifactId>lucene-queryparser</artifactId>-->
+      <!--<version>6.2.1</version>-->
+    <!--</dependency>-->
+    <!--<dependency>-->
+      <!--<groupId>org.apache.lucene</groupId>-->
+      <!--<artifactId>lucene-highlighter</artifactId>-->
+      <!--<version>6.2.1</version>-->
+    <!--</dependency>-->
+
+
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>

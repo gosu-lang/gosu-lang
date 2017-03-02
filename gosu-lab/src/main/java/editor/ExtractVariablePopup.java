@@ -1,5 +1,6 @@
 package editor;
 
+import editor.util.LabCheckbox;
 import editor.util.TextComponentUtil;
 import gw.lang.parser.IExpression;
 import gw.lang.parser.IParseTree;
@@ -31,7 +32,7 @@ public class ExtractVariablePopup extends JDialog
 {
   private IdentifierTextField _varName;
   private GosuEditor _gosuEditor;
-  private JCheckBox _replaceAll;
+  private LabCheckbox _replaceAll;
   private JButton _okBtn;
   private static final String CLOSE = "_close";
   private static final String OK = "_ok";
@@ -101,13 +102,13 @@ public class ExtractVariablePopup extends JDialog
     } );
     add( _varName, constraints );
 
-    _replaceAll = new JCheckBox();
+    _replaceAll = new LabCheckbox();
 
     //TODO cgross - post bedrock renable this once we have the parse tree cleaned up
 //    constraints.gridx = 0;
 //    constraints.gridy++;
     constraints.gridwidth = 2;
-    _replaceAll = new JCheckBox( "Replace All Occurences" );
+    _replaceAll = new LabCheckbox( "Replace All Occurences" );
 //    _replaceAll.setMnemonic( 'A' );
 //    _replaceAll.setDisplayedMnemonicIndex( 8 );
 //    _replaceAll.setSelected( true );

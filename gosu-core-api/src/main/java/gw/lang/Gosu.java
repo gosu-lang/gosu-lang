@@ -5,6 +5,7 @@
 package gw.lang;
 
 import gw.config.CommonServices;
+import gw.lang.gosuc.GosucUtil;
 import gw.lang.init.ClasspathToGosuPathEntryUtil;
 import gw.lang.init.GosuInitialization;
 import gw.lang.parser.GosuParserFactory;
@@ -14,10 +15,15 @@ import gw.lang.parser.IParseResult;
 import gw.lang.parser.ParserOptions;
 import gw.lang.parser.StandardSymbolTable;
 import gw.lang.parser.exceptions.ParseResultsException;
+import gw.lang.reflect.IMethodInfo;
 import gw.lang.reflect.IType;
+import gw.lang.reflect.Modifier;
+import gw.lang.reflect.ReflectUtil;
 import gw.lang.reflect.TypeSystem;
+import gw.lang.reflect.gs.IGosuClass;
 import gw.lang.reflect.gs.IGosuProgram;
 import gw.lang.reflect.java.JavaTypes;
+import gw.util.GosuExceptionUtil;
 import gw.util.OSPlatform;
 import gw.util.StreamUtil;
 import sun.misc.URLClassPath;
@@ -30,6 +36,8 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
+import java.lang.annotation.Annotation;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.net.URLClassLoader;
@@ -40,9 +48,15 @@ import java.util.StringTokenizer;
 
 public class Gosu
 {
-  /** used as a virtual package e.g., for scratchpad */
+  /**
+   * used as a virtual package e.g., for scratchpad
+   */
   public static final String NOPACKAGE = "_nopackage_";
   public static final String GOSU_SCRATCHPAD_FQN = NOPACKAGE + ".GosuScratchpad";
+  public static final String JAR_REPO_DIR = "JAR-REPO";     //!! if you change this, also change it in Launcher
+  public static final String JAR_REPO_TXT = "jar-repo.txt"; //!! "
+  public static final String FAILED = "   FAILED: ";
+  public static final String SUCCESS = "   SUCCESS ";
 
   private static List<File> _classpath;
   private static File _script;
@@ -71,7 +85,7 @@ public class Gosu
         return;
       }
       int i = 0;
-      checkArgsLength(i, args.length);
+      checkArgsLength( i, args.length );
       String cpValue = null;
       boolean cmdLineCP = false;
       if( args[i].equals( "-checkedArithmetic" ) )
@@ -89,26 +103,40 @@ public class Gosu
         cpValue = args[i - 1];
       }
 
-      if( args[i].equals( "-e" ) )
+      switch( args[i] )
       {
-        List<File> classpath = makeClasspath( cpValue, "", cmdLineCP );
-        init( classpath );
-        runWithInlineScript( args[i + 1], collectArgs( i + 2, args ) );
-      }
-      else
-      {
-        File script = new File( args[i] );
-        if( !script.isFile() || !script.exists() )
+        case "-fqn":
         {
-          showHelpAndQuit();
+          List<File> classpath = makeClasspath( cpValue, "", cmdLineCP );
+          init( classpath );
+          runWithType( args[i + 1], collectArgs( i + 2, args ) );
+          break;
         }
-        if( cpValue == null )
+
+        case "-e":
         {
-          cpValue = extractClassPathFromSrc( script.getAbsolutePath() );
+          List<File> classpath = makeClasspath( cpValue, "", cmdLineCP );
+          init( classpath );
+          runWithInlineScript( args[i + 1], collectArgs( i + 2, args ) );
+          break;
         }
-        List<File> classpath = makeClasspath( cpValue, script.getAbsoluteFile().getParent(), cmdLineCP );
-        init( classpath );
-        runWithFile( script, collectArgs( i + 1, args ) );
+
+        default:
+        {
+          File script = new File( args[i] );
+          if( !script.isFile() || !script.exists() )
+          {
+            showHelpAndQuit();
+          }
+          if( cpValue == null )
+          {
+            cpValue = extractClassPathFromSrc( script.getAbsolutePath() );
+          }
+          List<File> classpath = makeClasspath( cpValue, script.getAbsoluteFile().getParent(), cmdLineCP );
+          init( classpath );
+          runWithFile( script, collectArgs( i + 1, args ) );
+          break;
+        }
       }
     }
     catch( Throwable t )
@@ -127,11 +155,13 @@ public class Gosu
   private static List<String> collectArgs( int i, String[] args )
   {
     List<String> scriptArgs = new ArrayList<>();
-
-    while( i < args.length )
+    if( args != null )
     {
-      scriptArgs.add( args[i] );
-      i++;
+      while( i < args.length )
+      {
+        scriptArgs.add( args[i] );
+        i++;
+      }
     }
     return scriptArgs;
   }
@@ -146,7 +176,10 @@ public class Gosu
     {
       br = new BufferedReader( new FileReader( file ) );
       //noinspection StatementWithEmptyBody
-      while( (line = br.readLine()).trim().isEmpty() ); //ignore
+      while( (line = br.readLine()).trim().isEmpty() )
+      {
+        ; //ignore
+      }
       if( line.startsWith( "classpath" ) )
       {
         int b = line.indexOf( '"' );
@@ -159,14 +192,22 @@ public class Gosu
           }
         }
       }
-    } catch (IOException e) {} //ignore
+    }
+    catch( IOException e )
+    { //ignore
+    }
     finally
     {
       try
       {
         if( br != null )
+        {
           br.close();
-      } catch (IOException ex) {} //ignore
+        }
+      }
+      catch( IOException ex )
+      { //ignore
+      }
     }
     return ret;
   }
@@ -182,11 +223,20 @@ public class Gosu
         String s = st.nextToken();
         if( (s.contains( ":" ) && !OSPlatform.isWindows()) || s.contains( ";" ) )
         {
-          System.err.println( "WARNING: The Gosu classpath argument should be comma separated to avoid system dependencies.\n" +
-                              "It appears you are passing in a system-dependent path delimiter" );
+          for( StringTokenizer sysTok = new StringTokenizer( cpValue, File.pathSeparator, false ); sysTok.hasMoreTokens(); )
+          {
+            s = sysTok.nextToken();
+            String pathname = cmdLineCP
+                              ? s
+                              : scriptRoot + File.separatorChar + s;
+            cp.add( new File( pathname ) );
+          }
         }
-        String pathname = cmdLineCP ? s : scriptRoot + File.separatorChar + s;
-        cp.add( new File( pathname ) );
+        else
+        {
+          String pathname = cmdLineCP ? s : scriptRoot + File.separatorChar + s;
+          cp.add( new File( pathname ) );
+        }
       }
     }
     return cp;
@@ -291,11 +341,11 @@ public class Gosu
   public static void init( List<File> classpath )
   {
     List<File> combined = new ArrayList<>();
-    combined.addAll( deriveClasspathFrom( Gosu.class ) );
     if( classpath != null )
     {
       combined.addAll( classpath );
     }
+    combined.addAll( deriveClasspathFrom( Gosu.class ) );
     setClasspath( combined );
   }
 
@@ -353,10 +403,20 @@ public class Gosu
   {
     try
     {
-      Method m = ClassLoader.class.getDeclaredMethod( "getBootstrapClassPath" );
+      Method m;
+      try
+      {
+        m = ClassLoader.class.getDeclaredMethod( "getBootstrapClassPath" );
+      }
+      catch( NoSuchMethodException nsme )
+      {
+        // The VM that does not define getBootstrapClassPath() seems to be the IBM VM (v. 8).
+        getBootstrapForIbm( ll );
+        return;
+      }
       m.setAccessible( true );
       URLClassPath bootstrapClassPath = (URLClassPath)m.invoke( null );
-      for( URL url: bootstrapClassPath.getURLs() )
+      for( URL url : bootstrapClassPath.getURLs() )
       {
         try
         {
@@ -378,11 +438,18 @@ public class Gosu
     }
   }
 
+  private static void getBootstrapForIbm( List<File> ll )
+  {
+    List<String> ibmClasspath = GosucUtil.getJreJars();
+    ibmClasspath.stream().forEach( e -> ll.add( new File( e ) ) );
+  }
+
   public static GosuVersion getVersion()
   {
     InputStream in = Gosu.class.getClassLoader().getResourceAsStream( GosuVersion.RESOURCE_PATH );
-    if(in == null) {
-      return new GosuVersion(0, 0);
+    if( in == null )
+    {
+      return new GosuVersion( 0, 0 );
     }
     Reader reader = StreamUtil.getInputStreamReader( in );
     return GosuVersion.parse( reader );
@@ -398,9 +465,131 @@ public class Gosu
     return _rawArgs;
   }
 
-  public static void setRawArgs(String[] args)
+  public static void setRawArgs( String[] args )
   {
-    _rawArgs = collectArgs(1, args);
+    _rawArgs = collectArgs( 1, args );
+  }
+
+  private static int runWithType( String fqn, List<String> args ) throws Exception
+  {
+    // set remaining arguments as arguments to the Gosu program
+    _rawArgs = args;
+    IType type = TypeSystem.getByFullName( fqn );
+    if( type instanceof IGosuProgram )
+    {
+      Object result = ((IGosuProgram)type).getProgramInstance().evaluate( null );
+      if( result != null )
+      {
+        System.out.println( result );
+      }
+    }
+    else
+    {
+      IMethodInfo mainMethod = hasStaticMain( type );
+      if( mainMethod != null )
+      {
+        ReflectUtil.invokeStaticMethod( type.getName(), "main", new Object[]{new String[]{}} );
+      }
+      else if( type instanceof IGosuClass )
+      {
+        runTest( (IGosuClass)type );
+      }
+      else
+      {
+        throw new UnsupportedOperationException( "Don't know how to run: " + fqn );
+      }
+    }
+    return 0;
+  }
+
+  private static void runTest( IGosuClass gsType ) throws Exception
+  {
+    Class cls = gsType.getBackingClass();
+    Object instance = cls.newInstance();
+    runNamedOrAnnotatedMethod( instance, "beforeClass", "org.junit.BeforeClass" );
+    for( Method m : cls.getMethods() )
+    {
+      if( isTestMethod( m ) )
+      {
+        runNamedOrAnnotatedMethod( instance, "beforeMethod", "org.junit.Before" );
+        try
+        {
+          System.out.println( " - " + m.getName() );
+          m.invoke( instance );
+          System.out.println( SUCCESS );
+        }
+        catch( InvocationTargetException e )
+        {
+          //noinspection ThrowableResultOfMethodCallIgnored
+          Throwable cause = GosuExceptionUtil.findExceptionCause( e );
+          if( cause instanceof AssertionError )
+          {
+            System.out.println( FAILED + cause.getClass().getSimpleName() + " : " + cause.getMessage() );
+            String lines = findPertinentLines( gsType, cause );
+            System.out.println( lines );
+          }
+          else
+          {
+            throw GosuExceptionUtil.forceThrow( cause );
+          }
+        }
+        finally
+        {
+          runNamedOrAnnotatedMethod( instance, "afterMethod", "org.junit.After" );
+        }
+      }
+    }
+    runNamedOrAnnotatedMethod( instance, "afterClass", "org.junit.AfterClass" );
+  }
+
+  private static boolean isTestMethod( Method m ) throws Exception
+  {
+    int modifiers = m.getModifiers();
+    return Modifier.isPublic( modifiers ) &&
+           (m.getName().startsWith( "test" ) || hasAnnotation( m, "org.junit.Test" )) &&
+           m.getParameters().length == 0;
+  }
+
+  private static void runNamedOrAnnotatedMethod( Object instance, String methodName, String annoName ) throws Exception
+  {
+    for( Method m : instance.getClass().getMethods() )
+    {
+      if( m.getName().equals( methodName ) )
+      {
+        m.invoke( instance );
+        return;
+      }
+      for( Annotation anno : m.getAnnotations() )
+      {
+        if( anno.annotationType().getName().equals( annoName ) )
+        {
+          m.invoke( instance );
+          return;
+        }
+      }
+    }
+  }
+
+  private static boolean hasAnnotation( Method m, String name ) throws Exception
+  {
+    for( Annotation anno : m.getAnnotations() )
+    {
+      if( anno.annotationType().getName().equals( name ) )
+      {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  private static IMethodInfo hasStaticMain( IType type )
+  {
+    IMethodInfo main = type.getTypeInfo().getMethod( "main", JavaTypes.STRING().getArrayType() );
+    if( main != null && main.isStatic() && main.getReturnType() == JavaTypes.pVOID() )
+    {
+      return main;
+    }
+    return null;
   }
 
   private static void runWithFile( File script, List<String> args ) throws IOException, ParseResultsException
@@ -437,5 +626,20 @@ public class Gosu
     {
       GosuShop.print( ret );
     }
+  }
+
+  private static String findPertinentLines( IGosuClass gsType, Throwable cause )
+  {
+    StringBuilder sb = new StringBuilder();
+    StackTraceElement[] trace = cause.getStackTrace();
+    for( int i = 0; i < trace.length; i++ )
+    {
+      StackTraceElement elem = trace[i];
+      if( elem.getClassName().equals( gsType.getName() ) )
+      {
+        sb.append( "     at " ).append( elem.toString() ).append( "\n" );
+      }
+    }
+    return sb.toString();
   }
 }

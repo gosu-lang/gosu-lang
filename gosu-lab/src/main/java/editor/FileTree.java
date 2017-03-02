@@ -30,6 +30,7 @@ public class FileTree implements MutableTreeNode, IFileWatcherListener
   private List<FileTree> _children;
   private Experiment _experiment;
   private Icon _icon;
+  private long _lastModified;
 
   public FileTree( Experiment experiment )
   {
@@ -39,7 +40,7 @@ public class FileTree implements MutableTreeNode, IFileWatcherListener
     addSourcePaths( experiment );
   }
 
-  private FileTree( File fileOrDir, FileTree parent, Experiment experiment )
+  protected FileTree( File fileOrDir, FileTree parent, Experiment experiment )
   {
     _fileOrDir = fileOrDir;
     _parent = parent;
@@ -74,7 +75,7 @@ public class FileTree implements MutableTreeNode, IFileWatcherListener
       File srcPath = new File( path );
       String srcPathAbsolute = srcPath.getAbsolutePath();
       String experimentDir = experiment.getExperimentDir().getAbsolutePath();
-      if( srcPathAbsolute.startsWith( experimentDir ) )
+      if( srcPathAbsolute.startsWith( experimentDir + File.separator ) )
       {
         // Only include *source* path in the tree; classpath is mixed in source path :|
         String srcPathName = srcPathAbsolute.substring( experimentDir.length() );
@@ -134,7 +135,7 @@ public class FileTree implements MutableTreeNode, IFileWatcherListener
     return false;
   }
 
-  private FileTree find( File file )
+  public FileTree find( File file )
   {
     if( getFileOrDir().equals( file ) )
     {
@@ -146,7 +147,25 @@ public class FileTree implements MutableTreeNode, IFileWatcherListener
       FileTree found = tree.find( file );
       if( found != null )
       {
-        return tree;
+        return found;
+      }
+    }
+    return null;
+  }
+
+  public FileTree find( String fqn )
+  {
+    if( fqn.equals( makeFqn() ) )
+    {
+      return this;
+    }
+
+    for( FileTree tree: getChildren() )
+    {
+      FileTree found = tree.find( fqn );
+      if( found != null )
+      {
+        return found;
       }
     }
     return null;
@@ -299,15 +318,40 @@ public class FileTree implements MutableTreeNode, IFileWatcherListener
   }
 
   @Override
+  public void fireModify( String dir, String file )
+  {
+    File existingFile = new File( dir, file );
+    if( !existingFile.isFile() )
+    {
+      return;
+    }
+
+    FileTree child = find( existingFile );
+    if( child != null && child._lastModified - existingFile.lastModified() >= 0 )
+    {
+      return;
+    }
+
+    child._lastModified = existingFile.lastModified();
+    EventQueue.invokeLater( () -> getExperiment().getGosuPanel().refresh( existingFile ) );
+  }
+
+  @Override
   public void fireDelete( String dir, String file )
   {
-    File newFileOrDir = new File( dir, file );
-    FileTree fileTree = find( newFileOrDir );
+    File existingFile = new File( dir, file );
+    FileTree fileTree = find( existingFile );
     if( fileTree != null )
     {
       EventQueue.invokeLater( () -> ((DefaultTreeModel)getExperimentView().getTree().getModel()).removeNodeFromParent( fileTree ) );
-      getExperiment().getGosuPanel().closeTab( newFileOrDir );
+      getExperiment().getGosuPanel().closeTab( existingFile );
     }
+  }
+
+  @Override
+  public void setLastModified()
+  {
+    _lastModified = System.currentTimeMillis() + 100;
   }
 
   public void select()
@@ -361,6 +405,16 @@ public class FileTree implements MutableTreeNode, IFileWatcherListener
 
   public IType getType()
   {
+    String fqn = makeFqn();
+    if( fqn == null )
+    {
+      return null;
+    }
+    return TypeSystem.getByFullNameIfValid( fqn );
+  }
+
+  protected String makeFqn()
+  {
     FileTree sourcePathRoot = getSourcePathRoot();
     if( isDirectory() || isSourcePathRoot() || sourcePathRoot == null || getFileOrDir().getName().indexOf( '.' ) < 0 )
     {
@@ -368,7 +422,7 @@ public class FileTree implements MutableTreeNode, IFileWatcherListener
     }
     String fqn = getFileOrDir().getAbsolutePath().substring( sourcePathRoot.getFileOrDir().getAbsolutePath().length() + 1 );
     fqn = fqn.substring( 0, fqn.lastIndexOf( '.' ) ).replace( File.separatorChar, '.' );
-    return TypeSystem.getByFullNameIfValid( fqn );
+    return fqn;
   }
 
   public boolean canDelete()
@@ -429,5 +483,22 @@ public class FileTree implements MutableTreeNode, IFileWatcherListener
       return EditorUtilities.findIcon( getType() );
     }
     return FileSystemView.getFileSystemView().getSystemIcon( getFileOrDir() );
+  }
+
+  public int getTotalFiles()
+  {
+    int iCount = 0;
+    if( isDirectory() )
+    {
+      for( FileTree csr: getChildren() )
+      {
+        iCount += csr.getTotalFiles();
+      }
+    }
+    else
+    {
+      return 1;
+    }
+    return iCount;
   }
 }

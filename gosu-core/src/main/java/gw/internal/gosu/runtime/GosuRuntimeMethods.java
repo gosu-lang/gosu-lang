@@ -502,4 +502,11 @@ public class GosuRuntimeMethods {
     throw new Error( String.valueOf( strError ) );
   }
 
+  public static IType getTypeForTypeVar( Object ref, IType iface, int iIndex )
+  {
+    IType rtType = TypeSystem.getFromObject( ref );
+    IType rtIface = TypeSystem.findParameterizedType( rtType, iface );
+    return rtIface.getTypeParameters()[iIndex];
+  }
+
 }

@@ -29,4 +29,14 @@ class DefaultParamSuperConstructorTest extends TestClass {
   function testSuperCallHandlesOptionalArgs() {
     assertTrue( new Blah.C() typeis Blah.C )
   }
+
+  class AA {
+    construct(a: int = 1, b : int = 2, c : int = 3) {}
+  }
+
+  class BB extends AA {}
+
+  class CC extends AA {
+    construct() { super () }
+  }
 }

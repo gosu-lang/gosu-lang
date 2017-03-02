@@ -233,7 +233,7 @@ enhancement CoreDateEnhancement : Date {
    * Returns a new Calendar representing this Date in the system TimeZone and Locale.
    */
   function toCalendar() : Calendar {
-    var cal = Calendar.getInstance()
+    var cal = Calendar.getInstance(CommonServices.getEntityAccess().TimeZone)
     cal.setTime(this)
     return cal
   }
@@ -251,7 +251,7 @@ enhancement CoreDateEnhancement : Date {
    * Returns a new Calendar representing this Date in the specified Locale and the system TimeZone.
    */
   function toCalendar(locale : Locale) : Calendar {
-    var cal = Calendar.getInstance(locale)
+    var cal = Calendar.getInstance(CommonServices.getEntityAccess().TimeZone, locale)
     cal.setTime(this)
     return cal
   }

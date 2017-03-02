@@ -1,6 +1,6 @@
 package editor.tabpane;
 
-import editor.search.StudioUtilities;
+import editor.Scheme;
 import editor.splitpane.ICaptionActionListener;
 import editor.splitpane.ICaptionBar;
 import editor.util.EditorUtilities;
@@ -45,7 +45,7 @@ public class StandardTab extends JPanel implements ITab
     _bCanClose = bCanClose;
     setLayout( new BorderLayout() );
     setOpaque( false );
-    setBackground( EditorUtilities.WINDOW );
+    setBackground( Scheme.active().getWindow() );
     _tabContainer = tabContainer;
     _innerLabel = createInnerLabel( labelAttr );
     add( _innerLabel, BorderLayout.CENTER );
@@ -130,9 +130,9 @@ public class StandardTab extends JPanel implements ITab
     return
       isSelected()
       ? getTabPane().isShowing() && getTabPane().isActive()
-        ? EditorUtilities.ACTIVE_CAPTION
+        ? Scheme.active().getActiveCaption()
         : super.getBackground()
-      :EditorUtilities.CONTROL;
+      : Scheme.active().getControl();
   }
 
   protected void paintBorder( Graphics g )
@@ -161,11 +161,11 @@ public class StandardTab extends JPanel implements ITab
     return
       isSelected()
       ? getTabPane().isShowing() && getTabPane().isActive()
-        ? EditorUtilities.ACTIVE_CAPTION
-        :EditorUtilities.CONTROL //(Color)Utilities.getDesktopProperty( DesktopProperties.INACTIVE_GRADIENT )
+        ? Scheme.active().getActiveCaption()
+        : Scheme.active().getControl() //(Color)Utilities.getDesktopProperty( DesktopProperties.INACTIVE_GRADIENT )
       : isHover()
-       ?EditorUtilities.CONTROL
-       : EditorUtilities.CONTROL_SHADOW;
+       ? Scheme.active().getControl()
+       : Scheme.active().getScrollbarBorderColor();
   }
 
   private Graphics2D getTransformedGraphics( Graphics2D g2, BufferedImage bi )
@@ -250,19 +250,15 @@ public class StandardTab extends JPanel implements ITab
             // where the tab pane does not have focus and the active tab is
             // clicked.
             EventQueue.invokeLater(
-              new Runnable()
-              {
-                public void run()
+              () -> {
+                if( !getContentPane().isShowing() )
                 {
-                  if( !getContentPane().isShowing() )
-                  {
-                    return;
-                  }
-                  if( _tabContainer.getSelectedTab() == StandardTab.this &&
-                      !StudioUtilities.containsFocus( getContentPane() ) )
-                  {
-                    getContentPane().transferFocus();
-                  }
+                  return;
+                }
+                if( _tabContainer.getSelectedTab() == StandardTab.this &&
+                    !EditorUtilities.containsFocus( getContentPane() ) )
+                {
+                  getContentPane().transferFocus();
                 }
               } );
           }

@@ -7,6 +7,7 @@ package gw.internal.gosu.parser;
 import gw.config.CommonServices;
 import gw.internal.gosu.ir.transform.AbstractElementTransformer;
 import gw.internal.gosu.parser.expressions.AnnotationExpression;
+import gw.internal.gosu.parser.expressions.AnnotationUseSiteTargetClause;
 import gw.internal.gosu.parser.expressions.ArithmeticExpression;
 import gw.internal.gosu.parser.expressions.BlockExpression;
 import gw.internal.gosu.parser.expressions.DefaultArgLiteral;
@@ -24,6 +25,7 @@ import gw.internal.gosu.parser.statements.HideFieldNoOpStatement;
 import gw.internal.gosu.parser.statements.VarStatement;
 import gw.lang.annotation.UsageModifier;
 import gw.lang.annotation.UsageTarget;
+import gw.lang.parser.AnnotationUseSiteTarget;
 import gw.lang.parser.GosuParserTypes;
 import gw.lang.parser.ICapturedSymbol;
 import gw.lang.parser.ICoercer;
@@ -361,6 +363,19 @@ public abstract class ParserBase implements IParserPart
     }
   }
 
+  void eatPossibleArrayBrackets()
+  {
+    eatPossibleArrayBrackets( true );
+  }
+
+  void eatPossibleArrayBrackets( boolean bMatchStart )
+  {
+    if( !bMatchStart || match( null, '[' ) )
+    {
+      eatBlock( '[', ']', false );
+    }
+  }
+
   final public Token eatBlock( char cBegin, char cEnd, boolean bOperator )
   {
     return eatBlock( cBegin, cEnd, bOperator, getTokenizer() );
@@ -429,6 +444,27 @@ public abstract class ParserBase implements IParserPart
 
       tokenizer.nextToken();
     } while( true );
+  }
+
+  public void eatTypeLiteral()
+  {
+    do
+    {
+      if( getOwner().matchPrimitiveType( false ) )
+      {
+        getTokenizer().nextToken();
+      }
+      else
+      {
+        match( null, SourceCodeTokenizer.TT_WORD );
+        parseDotPathWord( null );
+      }
+      eatPossibleParametarization();
+      while( match( null, '[' ) )
+      {
+        eatPossibleArrayBrackets( false );
+      }
+    } while( match( null, "&", SourceCodeTokenizer.TT_OPERATOR ) );
   }
 
   /**
@@ -766,8 +802,8 @@ public abstract class ParserBase implements IParserPart
               Res.MSG_TYPE_MISMATCH,
               rhsType.getDisplayName(),
               lhsType.getDisplayName(),
-              rhsType.getTypeLoader().getModule().getName(),
-              lhsType.getTypeLoader().getModule().getName());
+              rhsType.getTypeLoader() == null ? null : rhsType.getTypeLoader().getModule().getName(),
+              lhsType.getTypeLoader() == null ? null : lhsType.getTypeLoader().getModule().getName());
       return retType;
     }
 
@@ -794,7 +830,7 @@ public abstract class ParserBase implements IParserPart
     return JavaTypes.IDIMENSION().isAssignableFrom( type ) && !type.isFinal();
   }
 
-  public static IType resolveRuntimeType( IType lhsType, int op, IType rhsType )
+  public static IType resolveRuntimeType( ArithmeticExpression expr, IType lhsType, int op, IType rhsType )
   {
     if( op == '+' &&
         (JavaTypes.CHAR_SEQUENCE().isAssignableFrom( lhsType ) ||
@@ -803,12 +839,11 @@ public abstract class ParserBase implements IParserPart
       return GosuParserTypes.STRING_TYPE();
     }
 
-//## todo: support dimensional arithmetic with Dynamic types
-//    IType retType = resolveIfDimensionOperand( null, null, lhsType, op, rhsType );
-//    if( retType != null )
-//    {
-//      return retType;
-//    }
+    IType retType = resolveIfDimensionOperand( null, expr, lhsType, op, rhsType );
+    if( retType != null )
+    {
+      return retType;
+    }
 
     return resolveType( lhsType, op, rhsType );
   }
@@ -851,6 +886,11 @@ public abstract class ParserBase implements IParserPart
       {
         return ErrorType.getInstance();
       }
+    }
+
+    if( JavaTypes.RATIONAL() == lhsType || JavaTypes.RATIONAL() == rhsType )
+    {
+      return JavaTypes.RATIONAL();
     }
 
     if( JavaTypes.BIG_DECIMAL() == lhsType || JavaTypes.BIG_DECIMAL() == rhsType )
@@ -970,7 +1010,7 @@ public abstract class ParserBase implements IParserPart
 
       if( isFinalDimension( parser, rhsType, parsedElement ) )
       {
-        if( op == '*' || op == '/' || op == '%' )
+        if( op == '*' )
         {
           // Unless the lhs overrides default behavior (via method impl e.g., divide(... )),
           // multiplication is undefined between to dimensions.
@@ -991,6 +1031,12 @@ public abstract class ParserBase implements IParserPart
             parser.addError( parsedElement, Res.MSG_DIMENSION_ADDITION_MUST_BE_SAME_TYPE );
           }
           return ErrorType.getInstance();
+        }
+
+        if( op == '/' || op == '%' )
+        {
+          IType dimType = TypeLord.findParameterizedType( lhsType, JavaTypes.IDIMENSION() );
+          return dimType.getTypeParameters()[1];
         }
       }
       else if( op == '+' || op == '-' )
@@ -1016,8 +1062,11 @@ public abstract class ParserBase implements IParserPart
         if( retType != null )
         {
           Expression temp = ((ArithmeticExpression)parsedElement).getLHS();
-          ((ArithmeticExpression)parsedElement).setLHS( ((ArithmeticExpression)parsedElement).getRHS() );
-          ((ArithmeticExpression)parsedElement).setRHS( temp );
+          if( parsedElement != null )
+          {
+            ((ArithmeticExpression)parsedElement).setLHS( ((ArithmeticExpression)parsedElement).getRHS() );
+            ((ArithmeticExpression)parsedElement).setRHS( temp );
+          }
           return retType;
         }
       }
@@ -1069,7 +1118,7 @@ public abstract class ParserBase implements IParserPart
         return true;
     }
     IType numberType = AbstractElementTransformer.findDimensionType( rhsType );
-    if( !StandardCoercionManager.isBoxed( numberType ) && !AbstractElementTransformer.isBigType( numberType ) )
+    if( !StandardCoercionManager.isBoxed( numberType ) && !AbstractElementTransformer.isBigType( numberType ) && numberType != JavaTypes.RATIONAL() )
     {
       if( parser != null )
       {
@@ -1864,9 +1913,33 @@ public abstract class ParserBase implements IParserPart
     IType type = ErrorType.getInstance();
     Expression e = NOT_SET_EXPRESSION;
     int end;
+    AnnotationUseSiteTargetClause useSiteTarget;
     try
     {
-      if( getGosuClass() == null || getGosuClass().shouldFullyCompileAnnotations() )
+      useSiteTarget = parseAnnotationUseSiteTarget();
+      if( useSiteTarget != null &&
+          useSiteTarget.getTarget().isAccessModifierOk() &&
+          (match( null, Keyword.KW_private ) ||
+           match( null, Keyword.KW_internal ) ||
+           match( null, Keyword.KW_protected ) ||
+           match( null, Keyword.KW_public )) )
+      {
+        // e.g., @get:protected
+
+        type = JavaTypes.TARGET_MODIFIER();
+        AnnotationExpression annoExpr = new AnnotationExpression();
+        pushExpression( annoExpr );
+        setLocation( iOffset, iLineNum, iColumn, true );
+        popExpression();
+        Token token = getTokenizer().getPriorToken();
+        Expression[] expr = new StringLiteral[] {new StringLiteral( token._strValue )};
+        annoExpr.setArgs( expr );
+        annoExpr.setArgTypes( JavaTypes.STRING() );
+        annoExpr.setType( type );
+        e = annoExpr;
+        end = token.getTokenEnd();
+      }
+      else if( getGosuClass() == null || getGosuClass().shouldFullyCompileAnnotations() )
       {
         getOwner().parseNewExpressionOrAnnotation( true );
         setLocation( iOffset, iLineNum, iColumn, true );
@@ -1923,12 +1996,37 @@ public abstract class ParserBase implements IParserPart
         TypeSystem.popModule( module );
       }
     }
-    GosuAnnotation annotationInfo = new GosuAnnotation( getGosuClass(), type, e, iOffset, end );
+    GosuAnnotation annotationInfo = new GosuAnnotation( getGosuClass(), type, e, useSiteTarget == null ? null : useSiteTarget.getTarget(), iOffset, end );
     if( e instanceof AnnotationExpression )
     {
       ((AnnotationExpression)e).setAnnotation( annotationInfo );
     }
     annotations.add( annotationInfo );
+  }
+
+  private AnnotationUseSiteTargetClause parseAnnotationUseSiteTarget()
+  {
+    int iOffset = getTokenizer().getTokenStart();
+    int iLineNum = getTokenizer().getLineNumber();
+    int iColumn = getTokenizer().getTokenColumn();
+    int mark = getTokenizer().mark();
+    for( AnnotationUseSiteTarget target: AnnotationUseSiteTarget.values() )
+    {
+      if( match( null, target.getKeyword() ) )
+      {
+        AnnotationUseSiteTargetClause targetClause = new AnnotationUseSiteTargetClause( target );
+        pushExpression( targetClause );
+        if( match( null, ":", SourceCodeTokenizer.TT_OPERATOR ) )
+        {
+          setLocation( iOffset, iLineNum, iColumn, false );
+          popExpression();
+          return targetClause;
+        }
+        getTokenizer().restoreToMark( mark );
+        return null;
+      }
+    }
+    return null;
   }
 
   private void maybeVerifyAnnotationArgs( Expression e )
@@ -1949,7 +2047,7 @@ public abstract class ParserBase implements IParserPart
   void verifyModifiers( IParsedElement pe, ModifierInfo modInfo, UsageTarget targetType )
   {
     verifyModifiersForFeature( pe, modInfo );
-    verifyAnnotations( modInfo, targetType );
+    verifyAnnotations( pe, modInfo, targetType );
   }
 
   protected void verifyModifiersForFeature( IParsedElement pe, ModifierInfo modInfo )
@@ -1965,7 +2063,7 @@ public abstract class ParserBase implements IParserPart
     }
   }
 
-  void verifyAnnotations( ModifierInfo modInfo, UsageTarget targetType )
+  void verifyAnnotations( IParsedElement pe, ModifierInfo modInfo, UsageTarget targetType )
   {
     List<IType> annotationTypes = new ArrayList<IType>();
     for( IGosuAnnotation annotation : modInfo.getAnnotations() )
@@ -1975,17 +2073,25 @@ public abstract class ParserBase implements IParserPart
         IType annotationType = annotation.getType();
         if( !(annotationType instanceof ErrorType) )
         {
-          UsageModifier modifer = UsageModifier.getUsageModifier( targetType, annotationType );
+          AnnotationUseSiteTarget target = annotation.getTarget();
+          if( target != null && !UsageModifier.targetAppliesToParsedElement( pe, target ) )
+          {
+            annotation.getExpression().addParseException( Res.MSG_ANNOTATION_USE_SITE_TARGET_NOT_ALLOWED_HERE, annotation.getName(), target.name() );
+          }
+          else
+          {
+            UsageModifier modifier = UsageModifier.getUsageModifier( pe, targetType, annotationType, target );
 
-          if( modifer.equals( UsageModifier.None ) )
-          {
-            annotation.getExpression().addParseException( Res.MSG_ANNOTATION_WHEN_NONE_ALLOWED, annotation.getName(), targetType.toString().toLowerCase() );
+            if( modifier.equals( UsageModifier.None ) )
+            {
+              annotation.getExpression().addParseException( Res.MSG_ANNOTATION_WHEN_NONE_ALLOWED, annotation.getName(), targetType.toString().toLowerCase() );
+            }
+            else if( modifier.equals( UsageModifier.One ) && annotationTypes.contains( annotationType ) )
+            {
+              annotation.getExpression().addParseException( Res.MSG_TOO_MANY_ANNOTATIONS, annotation.getName(), targetType.toString().toLowerCase() );
+            }
+            annotationTypes.add( annotationType );
           }
-          else if( modifer.equals( UsageModifier.One ) && annotationTypes.contains( annotationType ) )
-          {
-            annotation.getExpression().addParseException( Res.MSG_TOO_MANY_ANNOTATIONS, annotation.getName(), targetType.toString().toLowerCase() );
-          }
-          annotationTypes.add( annotationType );
         }
       }
     }

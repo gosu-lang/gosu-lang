@@ -17,6 +17,7 @@ import gw.internal.gosu.ir.transform.util.NameResolver;
 import gw.internal.gosu.parser.AbstractDynamicSymbol;
 import gw.internal.gosu.parser.BlockClass;
 import gw.internal.gosu.parser.DynamicFunctionSymbol;
+import gw.internal.gosu.parser.EnhancementDynamicFunctionSymbol;
 import gw.internal.gosu.parser.EnumCodePropertySymbol;
 import gw.internal.gosu.parser.EnumDisplayNamePropertySymbol;
 import gw.internal.gosu.parser.EnumNamePropertySymbol;
@@ -30,6 +31,7 @@ import gw.internal.gosu.parser.IGosuTemplateInternal;
 import gw.internal.gosu.parser.IJavaTypeInternal;
 import gw.internal.gosu.parser.MemberFieldSymbol;
 import gw.internal.gosu.parser.ParameterizedDynamicFunctionSymbol;
+import gw.internal.gosu.parser.ProgramExecuteFunctionSymbol;
 import gw.internal.gosu.parser.RepeatableContainerAnnotationInfo;
 import gw.internal.gosu.parser.Symbol;
 import gw.internal.gosu.parser.TemplateRenderFunctionSymbol;
@@ -314,6 +316,12 @@ public class GosuClassTransformer extends AbstractElementTransformer<ClassStatem
   {
     for( IVarStatement field : getOrderedFields() )
     {
+      if( field.isAbstract() )
+      {
+        // the field exists merely as parse tree info for the corresponding property compiled elsewhere
+        continue;
+      }
+
       IRFieldDecl fieldDecl = new IRFieldDecl( getModifiers( (AbstractDynamicSymbol)field.getSymbol() ),
                                                field.isInternal(),
                                                field.getIdentifierName(),
@@ -491,16 +499,7 @@ public class GosuClassTransformer extends AbstractElementTransformer<ClassStatem
       maybeGetEnumSuperConstructorSymbols( parameters );
       for( ISymbol param : dfs.getArgs() )
       {
-        String name = param.getName();
-        if( isBlockInvoke( dfs ) )
-        {
-          name = name + "$$blockParam";
-        }
-        else if( param.isValueBoxed() )
-        {
-          name = name + "$$unboxedParam";
-        }
-        parameters.add( makeParamSymbol( param, name ) );
+        parameters.add( makeParamSymbol( dfs, param ) );
       }
 
       IRStatement methodBody;
@@ -539,7 +538,23 @@ public class GosuClassTransformer extends AbstractElementTransformer<ClassStatem
     }
   }
 
-  private IRSymbol makeParamSymbol( ISymbol param, String name ) {
+  IRSymbol makeParamSymbol( DynamicFunctionSymbol dfs, ISymbol param )
+  {
+    String name = param.getName();
+    if( isBlockInvoke( dfs ) )
+    {
+      name = name + "$$blockParam";
+    }
+    else if( param.isValueBoxed() )
+    {
+      name = name + "$$unboxedParam";
+    }
+
+    if( param.getName().equals( "p0" ) && param.getType().equals( JavaTypes.IEXTERNAL_SYMBOL_MAP() ) )
+    {
+      name = GosuFragmentTransformer.SYMBOLS_PARAM_NAME;
+    }
+
     IRSymbol irSym = new IRSymbol( name, getDescriptor( param.getType() ), false );
     IModifierInfo modifierInfo = param.getModifierInfo();
     if( modifierInfo != null && modifierInfo.getAnnotations() != null )
@@ -572,7 +587,7 @@ public class GosuClassTransformer extends AbstractElementTransformer<ClassStatem
   {
     if( isCompilingEnhancement() && !dfs.isStatic() )
     {
-      parameters.add( new IRSymbol( ENHANCEMENT_THIS_REF, getDescriptor( getGosuEnhancement().getEnhancedType() ), false ) );
+      parameters.add( makeParamSymbol( dfs, ((EnhancementDynamicFunctionSymbol)dfs).getReceiver() ) );
     }
   }
 
@@ -582,6 +597,7 @@ public class GosuClassTransformer extends AbstractElementTransformer<ClassStatem
          (dfs.isStatic() && isProgramOrEnclosedInProgram( _cc().getGosuClass() ))) &&
         !(dfs instanceof IProgramClassFunctionSymbol) &&
         !(dfs instanceof TemplateRenderFunctionSymbol) &&
+        !(dfs instanceof ProgramExecuteFunctionSymbol) &&
         !isOverrideForSuperClass( dfs ) )
     {
       parameters.add( new IRSymbol( GosuFragmentTransformer.SYMBOLS_PARAM_NAME, getDescriptor( IExternalSymbolMap.class ), false ) );
@@ -697,7 +713,7 @@ public class GosuClassTransformer extends AbstractElementTransformer<ClassStatem
     IType superType = _gsClass.getSupertype();
     if( isNonStaticInnerClass( superType ) )
     {
-      IGosuClass typeToPass = (IGosuClass)superType.getEnclosingType();
+      IType typeToPass = superType.getEnclosingType();
       ICompilableTypeInternal outerType = _gsClass.getEnclosingType();
       if( outerType == typeToPass || (typeToPass != null && outerType != null && typeToPass.isAssignableFrom( outerType )) )
       {
@@ -1313,22 +1329,7 @@ public class GosuClassTransformer extends AbstractElementTransformer<ClassStatem
     maybeAddImplicitExternalSymbolsParameter( dfs, parameters );
     for( ISymbol param : dfs.getArgs() )
     {
-      String name = param.getName();
-      if( isBlockInvoke( dfs ) )
-      {
-        name = name + "$$blockParam";
-      }
-      else if( param.isValueBoxed() )
-      {
-        name = name + "$$unboxedParam";
-      }
-
-      if( param.getName().equals( "p0" ) && param.getType().equals( JavaTypes.IEXTERNAL_SYMBOL_MAP() ) )
-      {
-        name = GosuFragmentTransformer.SYMBOLS_PARAM_NAME;
-      }
-
-      parameters.add( makeParamSymbol( param, name ) );
+      parameters.add( makeParamSymbol( dfs, param ) );
     }
 
     IRStatement methodBody;
@@ -1500,7 +1501,7 @@ public class GosuClassTransformer extends AbstractElementTransformer<ClassStatem
         break;
       }
     }
-    IRExpression newProgram = buildNewExpression( IRTypeResolver.getDescriptor( getGosuClass() ), Collections.<IRType>emptyList(), Collections.<IRExpression>emptyList() );
+    IRExpression newProgram = buildNewExpression( IRTypeResolver.getDescriptor( getGosuClass() ), Collections.emptyList(), Collections.emptyList() );
     IRMethod evaluateIRMethod = IRMethodFactory.createIRMethod( getGosuClass(), "evaluate", evaluateMethod.getReturnType(), paramTypes.toArray( new IType[paramTypes.size()] ), IRelativeTypeInfo.Accessibility.PUBLIC, false );
     IRExpression callEvaluate = callMethod( evaluateIRMethod, newProgram, Collections.singletonList( nullLiteral() ) );
     IRSymbol args = new IRSymbol( "args", getDescriptor( String[].class ), false );

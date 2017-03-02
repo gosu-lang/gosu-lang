@@ -104,9 +104,13 @@ public class GosuVisitor implements TreeVisitor<String, Void> {
   @Override
   public String visitImport(ImportTree node, Void v) {
     StringBuilder out = new StringBuilder();
-    Tree qualId = node.getQualifiedIdentifier();
     out.append("uses ");
-    out.append(qualId.accept(this, v));
+    String fqn = node.getQualifiedIdentifier().accept(this, v);
+    if(node.isStatic()) {
+      int dot = fqn.lastIndexOf(".");
+      fqn = fqn.substring(0, dot) + "#" + fqn.substring(dot+1);
+    }
+    out.append(fqn);
     out.append("\n");
     return out.toString();
   }
@@ -124,7 +128,6 @@ public class GosuVisitor implements TreeVisitor<String, Void> {
       output.append(packageName);
       output.append("\n\n");
     }
-    output.append("uses java.lang.*\n");
     List<? extends ImportTree> imports = node.getImports();
     for (ImportTree imp : imports) {
       output.append(imp.accept(this, v));
@@ -642,7 +645,7 @@ public class GosuVisitor implements TreeVisitor<String, Void> {
       if (varType.equals("byte")) {
         iniz = iniz + "b";
       } else if (varType.equals("short")) {
-        iniz = iniz + "s";
+        iniz = iniz + " as short";
       } else if (varType.equals("float") && initializer.getKind() == Tree.Kind.INT_LITERAL) {
         iniz = iniz + "f";
       } else if (varType.equals("double") && initializer.getKind() == Tree.Kind.INT_LITERAL) {

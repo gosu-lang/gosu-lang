@@ -6,6 +6,7 @@ package gw.internal.gosu.parser;
 
 import gw.internal.gosu.parser.java.classinfo.CompileTimeExpressionParser;
 import gw.internal.gosu.parser.java.classinfo.JavaSourceDefaultValue;
+import gw.lang.parser.AnnotationUseSiteTarget;
 import gw.lang.parser.GosuParserFactory;
 import gw.lang.parser.ICompilationState;
 import gw.lang.parser.IExpression;
@@ -18,7 +19,6 @@ import gw.lang.parser.ParserOptions;
 import gw.lang.parser.StandardSymbolTable;
 import gw.lang.parser.SymbolType;
 import gw.lang.parser.TypelessScriptPartId;
-import gw.lang.parser.exceptions.ErrantGosuClassException;
 import gw.lang.parser.exceptions.ParseResultsException;
 import gw.lang.parser.expressions.IIdentifierExpression;
 import gw.lang.parser.expressions.INewExpression;
@@ -95,6 +95,12 @@ public class GosuAnnotationInfo implements IAnnotationInfo
   public String getDescription()
   {
     return getName();
+  }
+
+  @Override
+  public AnnotationUseSiteTarget getTarget()
+  {
+    return _rawAnnotation.getTarget();
   }
 
   public Object getInstance()

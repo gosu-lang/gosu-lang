@@ -14,9 +14,34 @@ public final class MethodScore implements Comparable<MethodScore>
   private boolean _bValid;
   private IInvocableType _rawFuncType;
   private IInvocableType _inferredFuncType;
+  private IType _receiverType;
+  private IRelativeTypeInfo.Accessibility _acc;
   private List<IExpression> _exprs;
   private List _parserStates;
   private int[] _namedArgOrder;
+
+  public MethodScore( IRelativeTypeInfo.Accessibility acc, IType receiverType )
+  {
+    _receiverType = receiverType;
+    _acc = acc;
+  }
+
+  public MethodScore( IType receiverType, IType callsiteEnclosingType )
+  {
+    _receiverType = receiverType;
+    if( receiverType != null && callsiteEnclosingType != null )
+    {
+      if( receiverType instanceof IMetaType )
+      {
+        receiverType = ((IMetaType)receiverType).getType();
+      }
+      _acc = FeatureManager.getAccessibilityForClass( receiverType, callsiteEnclosingType );
+    }
+    else
+    {
+      _acc = IRelativeTypeInfo.Accessibility.NONE;
+    }
+  }
 
   /**
    * @return true if this score represents an actual matching method score rather than
@@ -31,12 +56,10 @@ public final class MethodScore implements Comparable<MethodScore>
   {
     return _iScore;
   }
-
   public void setScore( long iScore )
   {
     _iScore = iScore;
   }
-
   public void incScore( int amount )
   {
     _iScore += amount;
@@ -51,7 +74,6 @@ public final class MethodScore implements Comparable<MethodScore>
   {
     return _rawFuncType;
   }
-
   public void setRawFunctionType( IInvocableType funcType )
   {
     _rawFuncType = funcType;
@@ -61,10 +83,19 @@ public final class MethodScore implements Comparable<MethodScore>
   {
     return _inferredFuncType;
   }
-
   public void setInferredFunctionType( IInvocableType funcType )
   {
     _inferredFuncType = funcType;
+  }
+
+  public IType getReceiverType()
+  {
+    return _receiverType;
+  }
+
+  public IRelativeTypeInfo.Accessibility getAccessibility()
+  {
+    return _acc;
   }
 
   public int compareTo( MethodScore o )

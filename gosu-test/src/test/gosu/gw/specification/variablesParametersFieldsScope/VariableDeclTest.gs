@@ -22,7 +22,7 @@ class VariableDeclTest extends BaseVerifyErrantTest {
     assertEquals(t, false)
     assertEquals(c, 0)
     assertEquals(b, 0b)
-    assertEquals(s, 0s)
+    assertEquals(s, 0 as short)
     assertEquals(i, 0)
     assertEquals(l, 0L)
     assertEquals(f, 0.0f, 0.01f)

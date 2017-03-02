@@ -45,9 +45,7 @@ class BugDumpingGroundTest extends TestClass {
   function testBadWildCardImportsAreFlaggedAsErrorsPL_7265() {
     assertFalse( Errant_BadImports.Type.Valid )
     var issues = Errant_BadImports.Type.ParseResultsException.ParseIssues
-    assertEquals( 2, issues.Count )
-    assertTrue( issues.hasMatch(\ i -> i.Line == 3 and i.MessageKey == Res.MSG_BAD_NAMESPACE ) )
-    assertTrue( issues.hasMatch(\ i -> i.Line == 4 and i.MessageKey == Res.MSG_BAD_NAMESPACE ) )
+    assertEquals( 9, issues.Count )
   }
   
   class TestRunnable implements Runnable {

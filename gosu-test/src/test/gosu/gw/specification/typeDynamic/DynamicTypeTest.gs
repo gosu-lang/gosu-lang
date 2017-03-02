@@ -132,8 +132,8 @@ class DynamicTypeTest extends gw.BaseVerifyErrantTest {
     var dyn : Dynamic
     dyn = 1
     assertTrue( typeof dyn === Integer && dyn == 1 )
-    dyn = 1S
-    assertTrue( typeof dyn === Short && dyn == 1S )
+    dyn = 1 as short
+    assertTrue( typeof dyn === Short && dyn == 1 as short )
     dyn = 1B
     assertTrue( typeof dyn === Byte && dyn == 1B )
     dyn = true
@@ -160,9 +160,9 @@ class DynamicTypeTest extends gw.BaseVerifyErrantTest {
     dyn = true
     var bool_box : Boolean = dyn
     assertEquals( true, bool_box )
-    dyn = 1S
+    dyn = 1 as short
     var short_box : Short = dyn
-    assertEquals( 1S, short_box )
+    assertEquals( 1 as short, short_box )
     dyn = 1B
     var byte_box : Byte = dyn
     assertEquals( 1B, byte_box )

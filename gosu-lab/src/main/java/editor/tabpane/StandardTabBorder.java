@@ -1,6 +1,6 @@
 package editor.tabpane;
 
-import editor.util.EditorUtilities;
+import editor.Scheme;
 
 import javax.swing.border.Border;
 import java.awt.*;
@@ -49,7 +49,7 @@ public class StandardTabBorder implements Border
   public void paintBorder( Component c, Graphics g, int x, int y, int width, int height )
   {
     Polygon poly = getBorderPoly( c );
-    g.setColor( EditorUtilities.CONTROL_SHADOW );
+    g.setColor( Scheme.active().getScrollbarBorderColor() );
     g.drawPolygon( poly );
     ITab tab = getTabFromComponent( c );
     if( tab.isSelected() )

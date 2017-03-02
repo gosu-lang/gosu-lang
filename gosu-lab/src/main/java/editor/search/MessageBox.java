@@ -1,5 +1,7 @@
 package editor.search;
 
+import editor.util.EditorUtilities;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -90,7 +92,7 @@ public class MessageBox extends JDialog
     }
     else
     {
-      StudioUtilities.centerWindowInFrame( this, getOwner() );
+      EditorUtilities.centerWindowInFrame( this, getOwner() );
     }
     super.show();
   }

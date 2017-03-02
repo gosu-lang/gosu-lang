@@ -5,6 +5,7 @@
 package gw.internal.gosu.parser;
 
 import gw.internal.gosu.parser.expressions.AnnotationExpression;
+import gw.lang.parser.AnnotationUseSiteTarget;
 import gw.lang.reflect.IAnnotationInfo;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.TypeSystem;
@@ -24,17 +25,18 @@ public class GosuAnnotation implements Serializable, IGosuAnnotation
   private ICompilableTypeInternal _enclosingType;
   private IType _type;
   private Expression _expression;
+  private AnnotationUseSiteTarget _target;
   private int _start;
   private int _end;
 
-  public GosuAnnotation( ICompilableTypeInternal enclosingType, IType type, Expression expression, int iOffset, int end )
+  public GosuAnnotation( ICompilableTypeInternal enclosingType, IType type, Expression expression, AnnotationUseSiteTarget target, int iOffset, int end )
   {
     _enclosingType = enclosingType;
     _type = type;
     _expression = expression;
+    _target = target;
     _start = iOffset;
     _end = end;
-
   }
 
   public String getName()
@@ -50,17 +52,18 @@ public class GosuAnnotation implements Serializable, IGosuAnnotation
   @Override
   public String getNewExpressionAsString()
   {
-    // what, you were expecting something more sophisictated?
-    if (_start > _end) {
+    if( _start > _end )
+    {
       return "";
     }
     String typeName = _enclosingType.getSource().substring( _start, _end );
     if( typeName.startsWith( "@" ) )
     {
-      typeName = typeName.substring( 1 );
+      int iColon = getTarget() != null ? typeName.indexOf( ":" ) : -1;
+      typeName = typeName.substring( iColon > 0 ? iColon+1 : 1 );
     }
     String s = "new " + typeName;
-    if( !s.contains( "(" ) ) // I'll just rub some contains on it...
+    if( !s.contains( "(" ) )
     {
       s += "()";
     }
@@ -71,10 +74,22 @@ public class GosuAnnotation implements Serializable, IGosuAnnotation
   {
     return _expression;
   }
-
-  @Override
-  public void clearExpression() {
+  public void setExpression( Expression expr )
+  {
+    if( expr instanceof AnnotationExpression )
+    {
+      ((AnnotationExpression)expr).setAnnotation( this );
+    }
+    _expression = expr;
+  }
+  public void clearExpression()
+  {
     _expression = null;
+  }
+
+  public AnnotationUseSiteTarget getTarget()
+  {
+    return _target;
   }
 
   public boolean shouldPersistToClass()
@@ -85,11 +100,6 @@ public class GosuAnnotation implements Serializable, IGosuAnnotation
   @Override
   public boolean shouldRetainAtRuntime() {
     return isJavaAnnotation() && hasRetentionPolicy(RetentionPolicy.RUNTIME) && !hasBadArgs();
-  }
-
-  private boolean isJavaAnnotation()
-  {
-    return JavaTypes.ANNOTATION().isAssignableFrom( getType() );
   }
 
   private boolean hasRetentionPolicy(RetentionPolicy policy) {

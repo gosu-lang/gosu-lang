@@ -932,8 +932,8 @@ public class TextComponentUtil
   {
     KeyMapController keyMapController = new KeyMapController( editor );
 
-    keyMapController.bindKeyToAction( "control X", new CustomCutAction() );
-    keyMapController.bindKeyToAction( "control C", new CustomCopyAction() );
+    keyMapController.bindKeyToAction( EditorUtilities.CONTROL_KEY_NAME + " X", new CustomCutAction() );
+    keyMapController.bindKeyToAction( EditorUtilities.CONTROL_KEY_NAME + " C", new CustomCopyAction() );
 
     keyMapController.bindKeyToAction(
       KeyEvent.VK_HOME,
@@ -941,27 +941,27 @@ public class TextComponentUtil
       new CustomHomeAction() );
 
     keyMapController.bindKeyToAction(
-      KeyEvent.VK_RIGHT, KeyEvent.CTRL_DOWN_MASK,
+      KeyEvent.VK_RIGHT, EditorUtilities.CONTROL_KEY_MASK,
       DefaultEditorKit.nextWordAction,
       new JumpRightAction() );
 
     keyMapController.bindKeyToAction(
-      KeyStroke.getKeyStroke( KeyEvent.VK_RIGHT, KeyEvent.CTRL_DOWN_MASK | KeyEvent.SHIFT_DOWN_MASK ),
+      KeyStroke.getKeyStroke( KeyEvent.VK_RIGHT, EditorUtilities.CONTROL_KEY_MASK | KeyEvent.SHIFT_DOWN_MASK ),
       DefaultEditorKit.selectionNextWordAction,
       new SelectRightAction() );
 
     keyMapController.bindKeyToAction(
-      KeyStroke.getKeyStroke( KeyEvent.VK_LEFT, KeyEvent.CTRL_DOWN_MASK ),
+      KeyStroke.getKeyStroke( KeyEvent.VK_LEFT, EditorUtilities.CONTROL_KEY_MASK ),
       DefaultEditorKit.previousWordAction,
       new JumpLeftAction() );
 
     keyMapController.bindKeyToAction(
-      KeyStroke.getKeyStroke( KeyEvent.VK_LEFT, KeyEvent.CTRL_DOWN_MASK | KeyEvent.SHIFT_DOWN_MASK ),
+      KeyStroke.getKeyStroke( KeyEvent.VK_LEFT, EditorUtilities.CONTROL_KEY_MASK | KeyEvent.SHIFT_DOWN_MASK ),
       DefaultEditorKit.selectionPreviousWordAction,
       new SelectLeftAction() );
 
     keyMapController.bindKeyToAction(
-      KeyStroke.getKeyStroke( KeyEvent.VK_V, KeyEvent.CTRL_DOWN_MASK | KeyEvent.SHIFT_DOWN_MASK ),
+      KeyStroke.getKeyStroke( KeyEvent.VK_V, EditorUtilities.CONTROL_KEY_MASK | KeyEvent.SHIFT_DOWN_MASK ),
       SHOW_PASTE_BUFFER,
       new ShowPasteBufferAction() );
   }
@@ -1344,13 +1344,13 @@ public class TextComponentUtil
 
     private int flipControlToMeta( int keyMask )
     {
-      if( (keyMask & KeyEvent.CTRL_DOWN_MASK) == 0 )
+      if( (keyMask & EditorUtilities.CONTROL_KEY_MASK) == 0 )
       {
         return keyMask;
       }
       else
       {
-        return keyMask & ~KeyEvent.CTRL_DOWN_MASK | KeyEvent.META_DOWN_MASK;
+        return keyMask & ~EditorUtilities.CONTROL_KEY_MASK | KeyEvent.META_DOWN_MASK;
       }
     }
 

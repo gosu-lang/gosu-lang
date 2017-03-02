@@ -14,6 +14,7 @@ import gw.lang.parser.IBlockClass;
 import gw.lang.parser.Keyword;
 import gw.lang.reflect.IRelativeTypeInfo;
 import gw.lang.reflect.IType;
+import gw.lang.reflect.gs.IGosuProgram;
 import gw.lang.reflect.gs.ISourceFileHandle;
 
 import java.util.ArrayList;
@@ -79,12 +80,24 @@ public class GosuClassTransformationContext extends TransformationContextBase {
     // Try to find the outermost class that's a Gosu class, so that inner classes get the
     // source file name of the outermost class
     IGosuClassInternal outermostClass = _gsClass;
+    outermostClass = handleTemplatePrograms( outermostClass );
     while (outermostClass.getEnclosingType() != null && outermostClass.getEnclosingType() instanceof IGosuClassInternal) {
       outermostClass = (IGosuClassInternal) outermostClass.getEnclosingType();
     }
     
     ISourceFileHandle sfh = outermostClass.getSourceFileHandle();
     return sfh == null ? null : sfh.getFileName();
+  }
+
+  private IGosuClassInternal handleTemplatePrograms( IGosuClassInternal outermostClass )
+  {
+    if( _gsClass instanceof IGosuProgram ) {
+      IType contextType = ((IGosuProgram)_gsClass).getContextType();
+      if( contextType instanceof IGosuClassInternal ) {
+        outermostClass = (IGosuClassInternal)contextType;
+      }
+    }
+    return outermostClass;
   }
 
   @Override
@@ -138,14 +151,14 @@ public class GosuClassTransformationContext extends TransformationContextBase {
     return results;
   }
 
-  public boolean shouldUseReflection( IType declaringClass, IRelativeTypeInfo.Accessibility accessibility )
+  public boolean shouldUseReflection( IType declaringClass, IRType root, IRelativeTypeInfo.Accessibility accessibility )
   {
-    return RequiresReflectionDeterminer.shouldUseReflection( declaringClass, _gsClass, accessibility );
+    return RequiresReflectionDeterminer.shouldUseReflection( declaringClass, _gsClass, root, accessibility );
   }
 
-  public boolean isIllegalProtectedCall( IType declaringClass, IRelativeTypeInfo.Accessibility accessibility )
+  public boolean isIllegalProtectedCall( IType declaringClass, IRType root, IRelativeTypeInfo.Accessibility accessibility )
   {
-    return RequiresReflectionDeterminer.isCallingClassEnclosedInDifferentPackageFromDeclaringSuperclass( _gsClass, declaringClass, accessibility );
+    return RequiresReflectionDeterminer.isCallingClassEnclosedInDifferentPackageFromDeclaringSuperclass( _gsClass, declaringClass, root, accessibility );
   }
 
   @Override

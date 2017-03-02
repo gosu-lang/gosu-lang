@@ -31,7 +31,7 @@ class Errant_BigDecimalInterval {
   //Lower end point is BigDecimal. upper limit various types
   var bigDecimal1111 = (BigDecimal.TEN..'c')
   var bigDecimal1112 = (BigDecimal.TEN..1b)
-  var bigDecimal1113 = (BigDecimal.TEN..1s)
+  var bigDecimal1113 = (BigDecimal.TEN..1 as short)
   var bigDecimal1114 = (BigDecimal.TEN..10)
   var bigDecimal1115 = (BigDecimal.TEN..10L)
   var bigDecimal1116 = (BigDecimal.TEN..10.5f)
@@ -47,7 +47,7 @@ class Errant_BigDecimalInterval {
   var bigDecimal1211 = (BigDecimal.ONE..'c').step(42)
   var bigDecimal1212 = (BigDecimal.ONE..1b).step(42)
   //IDE-1282
-  var bigDecimal1213 = (BigDecimal.ONE..1s).step(42)
+  var bigDecimal1213 = (BigDecimal.ONE..1 as short).step(42)
   var bigDecimal1214 = (BigDecimal.ONE..10).step(42)
   var bigDecimal1215 = (BigDecimal.ONE..10L).step(42)
   var bigDecimal1216 = (BigDecimal.ONE..10.5f).step(42)
@@ -62,7 +62,7 @@ class Errant_BigDecimalInterval {
   //Both end points are 'BigDecimal' but step function has parameter of different type
   var bigDecimal1311 = (BigDecimal.ONE..BigDecimal.TEN).step('c')
   var bigDecimal1312 = (BigDecimal.ONE..BigDecimal.TEN).step(1b)
-  var bigDecimal1313 = (BigDecimal.ONE..BigDecimal.TEN).step(1s)
+  var bigDecimal1313 = (BigDecimal.ONE..BigDecimal.TEN).step(1 as short)
   var bigDecimal1314 = (BigDecimal.ONE..BigDecimal.TEN).step(42)
   var bigDecimal1315 = (BigDecimal.ONE..BigDecimal.TEN).step(42.5f)
   var bigDecimal1316 = (BigDecimal.ONE..BigDecimal.TEN).step(42L)
@@ -79,7 +79,7 @@ class Errant_BigDecimalInterval {
     }
     for (i in (BigDecimal.ONE..1b)) {
     }
-    for (i in (BigDecimal.ONE..1s)) {
+    for (i in (BigDecimal.ONE..1 as short)) {
     }
     for (i in (BigDecimal.ONE..10)) {
     }

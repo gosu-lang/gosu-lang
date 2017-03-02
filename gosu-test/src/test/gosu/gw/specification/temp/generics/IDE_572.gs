@@ -20,9 +20,9 @@ class IDE_572 {
     foo(1.5, 1.5)
     foo(1.5, 1.5f)
     foo(1, 1.5)
-    foo(1s, 1.5)
-    foo(1, 1s)
-    foo(1b, 1s)
+    foo(1 as short, 1.5)
+    foo(1, 1 as short)
+    foo(1b, 1 as short)
   }
 
   function bar<T extends Serializable>(t1 : T, t2 : T): T  { return t1 }

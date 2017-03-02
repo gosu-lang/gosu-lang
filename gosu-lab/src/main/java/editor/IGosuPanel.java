@@ -16,7 +16,7 @@ public interface IGosuPanel
 {
   JComponent asJComponent();
 
-  void read( IScriptPartId partId, String strSource, String strDescription ) throws IOException;
+  void read( IScriptPartId partId, String strSource ) throws IOException;
 
   void parse();
 

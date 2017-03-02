@@ -5,8 +5,6 @@
  */
 package editor;
 
-import editor.util.EditorUtilities;
-
 import javax.swing.*;
 import javax.swing.text.Position;
 import java.awt.*;
@@ -48,7 +46,7 @@ public class JavadocPopup extends JPopupMenu implements MouseMotionListener, Mou
   protected void initLayout()
   {
     setOpaque( false );
-    setBorder( BorderFactory.createLineBorder( EditorUtilities.WINDOW_BORDER ) );
+    setBorder( BorderFactory.createLineBorder( Scheme.active().getWindowBorder() ) );
 
     GridBagLayout gridBag = new GridBagLayout();
     JPanel pane = new JPanel();
@@ -65,7 +63,7 @@ public class JavadocPopup extends JPopupMenu implements MouseMotionListener, Mou
     _scroller = new JScrollPane( _viewer );
     _scroller.setBorder( BorderFactory.createEmptyBorder( 0, 0, 0, 0 ) );
     _scroller.setMaximumSize( calcMaximumViewerSize() );
-    _viewer.setBackground( EditorUtilities.TOOLTIP_BACKGROUND );
+    _viewer.setBackground( Scheme.active().getTooltipBackground() );
 
     c.anchor = GridBagConstraints.CENTER;
     c.fill = GridBagConstraints.BOTH;

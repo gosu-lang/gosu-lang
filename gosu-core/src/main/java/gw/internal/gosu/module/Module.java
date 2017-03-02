@@ -6,6 +6,7 @@ package gw.internal.gosu.module;
 
 import gw.config.CommonServices;
 import gw.fs.IDirectory;
+import gw.fs.jar.JarFileDirectoryImpl;
 import gw.internal.gosu.dynamic.DynamicTypeLoader;
 import gw.internal.gosu.parser.DefaultTypeLoader;
 import gw.internal.gosu.parser.FileSystemGosuClassRepository;
@@ -28,6 +29,7 @@ import gw.util.Extensions;
 import gw.util.GosuExceptionUtil;
 import gw.util.concurrent.LocklessLazyVar;
 
+import java.io.File;
 import java.lang.reflect.Constructor;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -38,6 +40,9 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.jar.Attributes;
+import java.util.jar.JarFile;
+import java.util.jar.Manifest;
 
 public class Module implements IModule
 {
@@ -158,7 +163,10 @@ public class Module implements IModule
               // http://www.coderanch.com/t/69641/BEA-Weblogic/wl-cls-gen-jar-coming
               // So we need to always treat it as containing sources
               root.getName().equals("_wl_cls_gen.jar")) {
-        roots.add(root);
+        if( !roots.contains( root ) )
+        {
+          roots.add( root );
+        }
       }
     }
   }
@@ -182,6 +190,10 @@ public class Module implements IModule
   @Override
   public void configurePaths(List<IDirectory> classpath, List<IDirectory> sourcePaths)
   {
+    // Maybe expand paths to include Class-Path attribute from Manifest...
+    classpath = addFromManifestClassPath( classpath );
+    sourcePaths = addFromManifestClassPath( sourcePaths );
+
     // Scan....
     List<IDirectory> sourceRoots = new ArrayList<IDirectory>(sourcePaths);
     Set<String> extensions = new HashSet<String>();
@@ -190,6 +202,91 @@ public class Module implements IModule
     // FIXME: extensions...
     setSourcePath(sourceRoots);
     setJavaClassPath(classpath);
+  }
+
+  /**
+   * <p>This will add items to the Gosu classpath, but only under very specific circumstances.
+   * <p>If both of the following conditions are met:
+   * <ul>
+   *   <li>The JAR's manifest contains a Class-Path entry</li>
+   *   <li>The Class-Path entry contains a space-delimited list of URIs</li>
+   * </ul>
+   * <p>Then the entries will be parsed and added to the Gosu classpath.
+   * 
+   * <p>This logic also handles strange libraries packaged pre-Maven such as xalan:xalan:2.4.1
+   * 
+   * <p>The xalan JAR above has a Class-Path attribute referencing the following:
+   * <pre>
+   *   Class-Path: xercesImpl.jar xml-apis.jar
+   * </pre>
+   * 
+   * These unqualified references should have been resolved by the build tooling, and if we try to interfere and resolve
+   * the references, we may cause classpath confusion. Therefore any Class-Path entry not resolvable to an absolute
+   * path on disk (and, therefore, can be listed as a URL) will be skipped.
+   * 
+   * @see java.util.jar.Attributes.Name#CLASS_PATH
+   * @param classpath The module's Java classpath
+   * @return The original classpath, possibly with dependencies listed in JAR manifests Class-Path extracted and explicitly listed
+   */
+  private List<IDirectory> addFromManifestClassPath( List<IDirectory> classpath )
+  {
+    if( classpath == null )
+    {
+      return classpath;
+    }
+
+    ArrayList<IDirectory> newClasspath = new ArrayList<>();
+    for( IDirectory root : classpath )
+    {
+      //add the root JAR itself first, preserving ordering
+      if( !newClasspath.contains( root ) )
+      {
+        newClasspath.add( root );
+      }
+      if( root instanceof JarFileDirectoryImpl )
+      {
+        JarFile jarFile = ((JarFileDirectoryImpl)root).getJarFile();
+        try
+        {
+          Manifest manifest = jarFile.getManifest();
+          if( manifest != null )
+          {
+            Attributes man = manifest.getMainAttributes();
+            String paths = man.getValue( Attributes.Name.CLASS_PATH );
+            if( paths != null && !paths.isEmpty() )
+            {
+              // We found a Jar with a Class-Path listing.
+              // Note sometimes happens when running from IntelliJ where the
+              // classpath would otherwise make the command line to java.exe
+              // too long.
+              for( String j : paths.split( " " ) )
+              {
+                // Add each of the paths to our classpath
+                URL url;
+                try {
+                  url = new URL( j );
+                } catch (MalformedURLException e) {
+                  //Class-Path contained an invalid URL, skip it
+                  continue;
+                }
+                File dirOrJar = new File( url.toURI() );
+                IDirectory idir = CommonServices.getFileSystem().getIDirectory( dirOrJar );
+                if( !newClasspath.contains( root ) )
+                {
+                  newClasspath.add( idir );
+                }
+              }
+            }
+          }
+        }
+        catch( Exception e )
+        {
+          throw GosuExceptionUtil.forceThrow( e );
+        }
+      }
+    }
+
+    return newClasspath;
   }
 
   @Override
@@ -276,7 +373,7 @@ public class Module implements IModule
   protected void maybeCreateModuleTypeLoader() {
     if (getModuleTypeLoader() == null) {
       ModuleTypeLoader tla = new ModuleTypeLoader( this, new DefaultTypeLoader(this) );
-      setModuleTypeLoader(tla);
+      setModuleTypeLoader( tla );
     }
   }
 
@@ -297,7 +394,7 @@ public class Module implements IModule
     if (this != globalModule) {
       traversalList.add(0, globalModule);
     }
-    return traversalList.toArray(new IModule[traversalList.size()]);
+    return traversalList.toArray( new IModule[traversalList.size()] );
   }
 
 

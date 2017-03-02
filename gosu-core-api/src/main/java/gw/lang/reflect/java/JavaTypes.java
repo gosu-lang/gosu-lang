@@ -6,6 +6,7 @@ package gw.lang.reflect.java;
 
 import gw.config.ExecutionMode;
 import gw.lang.Autoinsert;
+import gw.lang.TargetModifier;
 import gw.lang.StrictGenerics;
 import gw.lang.IAnnotation;
 import gw.lang.IDimension;
@@ -41,11 +42,13 @@ import gw.lang.reflect.interval.NumberInterval;
 import gw.lang.reflect.interval.SequenceableInterval;
 import gw.lang.reflect.module.IExecutionEnvironment;
 import gw.lang.reflect.module.IProject;
+import gw.util.Rational;
 
 import javax.script.Bindings;
 import javax.xml.namespace.QName;
 import java.lang.annotation.Annotation;
 import java.lang.annotation.Inherited;
+import java.lang.annotation.Target;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.ArrayList;
@@ -152,7 +155,7 @@ public class JavaTypes {
     if( !ExecutionMode.get().isRefreshSupportEnabled() ) {
       return THIS.RUNNABLE == null ? THIS.RUNNABLE = getJreType( Runnable.class ) : THIS.RUNNABLE;
     }
-    return getJreType(Runnable.class);
+    return getJreType( Runnable.class );
   }
 
   private IType THROWS = null;
@@ -160,7 +163,7 @@ public class JavaTypes {
     if( !ExecutionMode.get().isRefreshSupportEnabled() ) {
       return THIS.THROWS == null ? THIS.THROWS = getSystemType( Throws.class ) : THIS.THROWS;
     }  
-    return getSystemType(Throws.class);
+    return getSystemType( Throws.class );
   }
 
   private IType VOID = null;
@@ -168,7 +171,7 @@ public class JavaTypes {
     if( !ExecutionMode.get().isRefreshSupportEnabled() ) {
       return THIS.VOID == null ? THIS.VOID = getJreType( Void.class ) : THIS.VOID;
     }  
-    return getJreType(Void.class);
+    return getJreType( Void.class );
   }
 
   private IJavaType STRING = null;
@@ -476,6 +479,22 @@ public class JavaTypes {
     return getJreType(Repeatable.class);
   }
 
+  private IJavaType TARGET = null;
+  public static IJavaType TARGET() {
+    if( !ExecutionMode.get().isRefreshSupportEnabled() ) {
+      return THIS.TARGET == null ? THIS.TARGET = getJreType( Target.class ) : THIS.TARGET;
+    }
+    return getJreType(Target.class);
+  }
+
+  private IJavaType TARGET_MODIFIER = null;
+  public static IJavaType TARGET_MODIFIER() {
+    if( !ExecutionMode.get().isRefreshSupportEnabled() ) {
+      return THIS.TARGET_MODIFIER == null ? THIS.TARGET_MODIFIER = getJreType( TargetModifier.class ) : THIS.TARGET_MODIFIER;
+    }
+    return getJreType(TargetModifier.class);
+  }
+
   private IJavaType STRICT_GENERICS = null;
   public static IJavaType STRICT_GENERICS() {
     if( !ExecutionMode.get().isRefreshSupportEnabled() ) {
@@ -772,6 +791,14 @@ public class JavaTypes {
       return THIS.ACTUAL_NAME == null ? THIS.ACTUAL_NAME = getGosuType( ActualName.class ) : THIS.ACTUAL_NAME;
     }  
     return getGosuType(ActualName.class);
+  }
+
+  private IJavaType RATIONAL = null;
+  public static IJavaType RATIONAL() {
+    if( !ExecutionMode.get().isRefreshSupportEnabled() ) {
+      return THIS.RATIONAL == null ? THIS.RATIONAL = getGosuType( Rational.class ) : THIS.RATIONAL;
+    }
+    return getGosuType(Rational.class);
   }
 
 

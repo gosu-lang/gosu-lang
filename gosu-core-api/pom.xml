@@ -2,7 +2,7 @@
   <parent>
     <groupId>org.gosu-lang.gosu</groupId>
     <artifactId>gosu-parent</artifactId>
-    <version>1-spec-SNAPSHOT</version>
+    <version>1-X-SNAPSHOT</version>
     <relativePath>../gosu-parent/pom.xml</relativePath>
   </parent>
   <modelVersion>4.0.0</modelVersion>
@@ -27,7 +27,13 @@
       <artifactId>gw-asm-all</artifactId>
       <version>5.0.4</version>
     </dependency>
+    <dependency>
+      <groupId>org.gosu-lang.gosu.managed</groupId>
+      <artifactId>gw-jcommander</artifactId>
+      <version>1.48</version>
+    </dependency>
   </dependencies>
+  
   <profiles>
     <profile>
         <id>internal.tools-jar</id>
@@ -47,6 +53,7 @@
         </dependencies>
     </profile>
   </profiles>
+  
   <build>
     <plugins>
       <plugin>

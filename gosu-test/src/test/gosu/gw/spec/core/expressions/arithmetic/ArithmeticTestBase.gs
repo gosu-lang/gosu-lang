@@ -9,18 +9,23 @@ uses java.lang.Double
 uses java.math.BigInteger
 uses java.math.BigDecimal
 uses java.lang.Character
+uses gw.util.Rational
 uses java.lang.ArithmeticException
 
 abstract class ArithmeticTestBase extends TestClass {
   
   // Helper functions
-  
+
   protected function assertEquals(p1 : float, p2 : float) {
     assertEquals(p1, p2, 0.0 as float)  
   }
   
   protected function assertEquals(p1 : double, p2 : double) {
     assertEquals(p1, p2, 0.0)  
+  }
+
+  protected function assertEquals( r1: Rational, r2: Rational ) {
+    assertTrue( r1 == r2 )
   }
 
   protected function p_byte(c : int) : byte{
@@ -89,6 +94,10 @@ abstract class ArithmeticTestBase extends TestClass {
   
   protected function big_decimal(value : String) : BigDecimal {
     return new BigDecimal(value)  
+  }
+
+  protected function rational(value : String) : Rational {
+    return Rational.get(value)
   }
 
   protected function assertThrowsArithmeticException(message : String, op : block()) {

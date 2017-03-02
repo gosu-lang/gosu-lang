@@ -83,13 +83,13 @@ public class GosuFragmentTransformationContext extends TransformationContextBase
   }
 
   @Override
-  public boolean shouldUseReflection(IType declaringClass, IRelativeTypeInfo.Accessibility accessibility) {
+  public boolean shouldUseReflection(IType declaringClass, IRType root, IRelativeTypeInfo.Accessibility accessibility) {
     // We should assume that reflection is required for any non-public method access from a fragment
     return accessibility != IRelativeTypeInfo.Accessibility.PUBLIC;
   }
 
   @Override
-  public boolean isIllegalProtectedCall( IType declaringClass, IRelativeTypeInfo.Accessibility accessibility )
+  public boolean isIllegalProtectedCall( IType declaringClass, IRType root, IRelativeTypeInfo.Accessibility accessibility )
   {
     return accessibility != IRelativeTypeInfo.Accessibility.PUBLIC;
   }

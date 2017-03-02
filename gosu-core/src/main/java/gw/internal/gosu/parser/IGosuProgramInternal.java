@@ -16,6 +16,7 @@ public interface IGosuProgramInternal extends IGosuProgram, IGosuClassInternal
   ISymbolTable getSymbolTable();
   void addCapturedProgramSymbols( ISymbolTable classCompilationSymTable );
   void addProgramEntryPoint( ISymbolTable symbolTable, GosuClassParser gosuClassParser );
+  void addExecuteEntryPoint( ISymbolTable symTable, GosuClassParser parser );
 
   void setExpression( Expression expr );
   void setStatement( Statement stmt );

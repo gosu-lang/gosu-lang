@@ -4,6 +4,8 @@
 
 package gw.date;
 
+import gw.config.CommonServices;
+
 import java.util.Calendar;
 import java.util.Date;
 
@@ -274,7 +276,7 @@ public class GosuDateUtil {
     if (date == null) {
       throw new NullPointerException( "Null date" );
     }
-    Calendar dateTime = Calendar.getInstance();
+    Calendar dateTime = Calendar.getInstance(CommonServices.getEntityAccess().getTimeZone());
     dateTime.setTime(date);
     return dateTime;
   }

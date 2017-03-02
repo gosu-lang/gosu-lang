@@ -119,6 +119,24 @@ public class GosuProgram extends GosuClass implements IGosuProgramInternal
     addCapturedProgramSymbols( symTable );
   }
 
+  public void addExecuteEntryPoint( ISymbolTable symTable, GosuClassParser parser )
+  {
+    symTable.pushScope();
+    ProgramExecuteFunctionSymbol executeFs;
+    ProgramExecuteFunctionSymbol executeWithArgsFs;
+    try
+    {
+      executeFs = new ProgramExecuteFunctionSymbol( getOrCreateTypeReference(), symTable );
+      executeWithArgsFs = new ProgramExecuteFunctionSymbol( getOrCreateTypeReference(), symTable, true );
+    }
+    finally
+    {
+      symTable.popScope();
+    }
+    parser.processFunctionSymbol( executeFs, this );
+    parser.processFunctionSymbol( executeWithArgsFs, this );
+  }
+
   public void addCapturedProgramSymbols( ISymbolTable classCompilationSymTable )
   {
     ISymbolTable symTable = getSymbolTable();

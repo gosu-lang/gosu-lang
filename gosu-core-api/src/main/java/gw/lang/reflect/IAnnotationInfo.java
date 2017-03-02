@@ -4,6 +4,8 @@
 
 package gw.lang.reflect;
 
+import gw.lang.parser.AnnotationUseSiteTarget;
+
 import java.io.Serializable;
 
 public interface IAnnotationInfo extends Serializable {
@@ -20,4 +22,8 @@ public interface IAnnotationInfo extends Serializable {
 
   IType getOwnersType();
 
+  default AnnotationUseSiteTarget getTarget()
+  {
+    return null;
+  }
 }

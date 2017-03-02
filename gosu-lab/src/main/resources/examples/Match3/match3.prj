@@ -1,6 +1,13 @@
-#Gosu Experiment
-#Mon Feb 01 13:48:09 PST 2016
-Name=Match3
-Tab.Active=src/main/gosu/match3/RunGame.gsp
-Classpath.Entry0=src/main/gosu
-Tab.Open.A=src/main/gosu/match3/RunGame.gsp
+{
+  "Title": "Gosu Experiment",
+  "Version": 1,
+  "Name": "Match3",
+  "ActiveTab": "src/main/gosu/match3/RunGame.gsp",
+  "Tabs": [
+    "src/main/gosu/match3/RunGame.gsp"
+  ],
+  "SourcePath": [
+    "src/main/gosu"
+  ],
+  "MruRunConfig": null
+}

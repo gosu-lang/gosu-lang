@@ -16,6 +16,11 @@ public interface IDimension<S extends IDimension<S,T>, T extends Number> extends
    */
   T toNumber();
 
+  default T toBaseNumber()
+  {
+    return toNumber();
+  }
+
   /**
    * Returns a separate instance of this type with the given number of units.
    * <p>

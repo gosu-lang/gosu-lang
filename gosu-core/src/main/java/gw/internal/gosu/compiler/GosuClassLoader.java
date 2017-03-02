@@ -36,6 +36,7 @@ import java.lang.ref.WeakReference;
 import java.lang.reflect.Method;
 import java.net.URLClassLoader;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -216,7 +217,7 @@ public class GosuClassLoader implements IGosuClassLoader
 
   private Class findOrDefineClass( ICompilableTypeInternal gsClass ) throws ClassNotFoundException
   {
-    String strName = getJavaName( gsClass );
+    String strName = gsClass.getJavaName();
     Class cls = null;
     try
     {
@@ -338,7 +339,7 @@ public class GosuClassLoader implements IGosuClassLoader
     {
       GosuClassPathThing.init();
 
-      String strJavaClass = getJavaName( gsClass );
+      String strJavaClass = gsClass.getJavaName();
       Class cls = _loader.loadClass( strJavaClass );
 
       if( BytecodeOptions.aggressivelyVerify() )
@@ -368,21 +369,6 @@ public class GosuClassLoader implements IGosuClassLoader
     return TransformingCompiler.compileClass( type, debug );
   }
 
-  private String getJavaName( ICompilableType type )
-  {
-    if( type != null )
-    {
-      type = TypeLord.getPureGenericType( type );
-      IType outerType = type.getEnclosingType();
-      if( outerType != null )
-      {
-        return getJavaName( outerType ) + "$" + type.getRelativeName();
-      }
-      return type.getName();
-    }
-    return null;
-  }
-
   private boolean isThrowawayProgram( ICompilableType gsClass ) {
     return gsClass instanceof IGosuProgramInternal && ((IGosuProgramInternal) gsClass).isThrowaway();
   }
@@ -410,21 +396,6 @@ public class GosuClassLoader implements IGosuClassLoader
     {
       TypeSystem.unlock();
     }
-  }
-
-  public static String getJavaName( IType type )
-  {
-    if( type != null )
-    {
-      type = TypeLord.getPureGenericType( type );
-      IType outerType = type.getEnclosingType();
-      if( outerType != null )
-      {
-        return getJavaName( outerType ) + "$" + type.getRelativeName();
-      }
-      return type.getName();
-    }
-    return null;
   }
 
   public boolean waitForLoaderToUnload( String packageName, long millisToWait )
@@ -484,7 +455,8 @@ public class GosuClassLoader implements IGosuClassLoader
 
     private List<String> getDiscretePackages()
     {
-      return Arrays.asList( ExecutionEnvironment.instance().getDiscretePackages() );
+      String[] discretePackages = ExecutionEnvironment.instance().getDiscretePackages();
+      return discretePackages == null ? Collections.emptyList() : Arrays.asList( discretePackages );
     }
 
     private class DelegateCache extends TypeSystemAwareCache<String, WeakReference<DiscreteClassLoader>>

@@ -20,7 +20,7 @@ class Errant_TypeAssignment {
 
   function testSwitchInference02() {
     var x : String
-    switch(typeof x) {
+    switch(typeof x) { //## issuekeys: MSG_TYPE_MISMATCH
       case  Boolean:  //## issuekeys: INCONVERTIBLE TYPES; CANNOT CAST 'TYPE<JAVA.LANG.STRING>' TO 'TYPE<JAVA.LANG.BOOLEAN>'
     }
   }

@@ -35,6 +35,8 @@ class Errant_StringTest {
     var x25 = "A"%"B"  //## issuekeys: MSG_ARITHMETIC_OPERATOR_CANNOT_BE_APPLIED_TO_TYPES
     var x26 = "A"+"B"
     var x27 = "A"-"B"  //## issuekeys: MSG_ARITHMETIC_OPERATOR_CANNOT_BE_APPLIED_TO_TYPES
+    //IDE-3045
+    var x28 = "a" !+ "string"  //## issuekeys: MSG_ARITHMETIC_OPERATOR_CANNOT_BE_APPLIED_TO_TYPES
   }
 
 }

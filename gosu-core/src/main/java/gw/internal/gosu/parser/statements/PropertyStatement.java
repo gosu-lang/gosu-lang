@@ -5,7 +5,6 @@
 package gw.internal.gosu.parser.statements;
 
 import gw.internal.gosu.parser.DynamicPropertySymbol;
-import gw.lang.reflect.IFeatureInfo;
 import gw.lang.parser.statements.IPropertyStatement;
 import gw.lang.parser.statements.ITerminalStatement;
 import gw.internal.gosu.parser.Statement;
@@ -86,10 +85,4 @@ public class PropertyStatement extends Statement implements IPropertyStatement
   public String[] getDeclarations() {
     return new String[] {_propertyGetterOrSetter.getDynamicFunctionSymbol().getDisplayName().replace("@", "")};
   }
-
-  private IFeatureInfo findOwningFeatureInfoOfDeclaredSymbols( String identifierName)
-  {
-    return _propertyGetterOrSetter.findOwningFeatureInfoOfDeclaredSymbols( identifierName );
-  }
-
 }

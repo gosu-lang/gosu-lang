@@ -1,5 +1,7 @@
 package editor.util;
 
+import editor.Scheme;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
@@ -35,7 +37,7 @@ public class ContainerSizer extends JComponent
     g_grabber.setImage( editor.util.EditorUtilities.createSystemColorImage( g_grabber.getImage() ) );
     setPreferredSize( new Dimension( g_grabber.getIconWidth(), g_grabber.getIconHeight() ) );
     setOpaque( true );
-    setBackground( editor.util.EditorUtilities.CONTROL );
+    setBackground( Scheme.active().getControl() );
     DragController controller = new DragController();
     addMouseListener( controller );
     addMouseMotionListener( controller );

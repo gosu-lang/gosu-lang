@@ -831,4 +831,9 @@ public final class ParseTree implements IParseTree
 
     return isAncestor(child.getParent());
   }
+
+  public ParseTree getChild( int index )
+  {
+    return _children.get( index );
+  }
 }

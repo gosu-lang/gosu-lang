@@ -7,73 +7,83 @@ import gw.config.CommonServices;
 import gw.fs.IDirectory;
 import gw.fs.IFile;
 import gw.fs.IResource;
+import gw.lang.reflect.Expando;
 import gw.lang.reflect.IFunctionType;
+import gw.lang.reflect.IMethodInfo;
 import gw.lang.reflect.IParameterInfo;
 import gw.lang.reflect.IType;
+import gw.lang.reflect.ReflectUtil;
 import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.gs.ClassType;
 import gw.lang.reflect.gs.IGosuClass;
+import gw.lang.reflect.gs.IGosuClassTypeInfo;
 import gw.lang.reflect.gs.IGosuEnhancement;
 import gw.lang.reflect.gs.IGosuProgram;
 import gw.lang.reflect.gs.ITemplateType;
 import gw.lang.reflect.java.IJavaType;
+import gw.lang.reflect.java.JavaTypes;
 import gw.util.GosuStringUtil;
 
+import javax.script.Bindings;
 import javax.swing.*;
 import javax.swing.filechooser.FileSystemView;
 import javax.swing.plaf.basic.BasicArrowButton;
 import java.awt.*;
 import java.awt.datatransfer.Clipboard;
+import java.awt.event.KeyEvent;
+import java.awt.event.MouseEvent;
 import java.awt.image.FilteredImageSource;
 import java.awt.image.ImageProducer;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.reflect.Method;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Map;
-import java.util.Properties;
-import java.util.regex.Pattern;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Predicate;
+import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
 public class EditorUtilities
 {
-  static final HashMap<String, ImageIcon> ICON_TABLE = new HashMap<String, ImageIcon>();
-
-  /* colors */
-  public static final Color ACTIVE_CAPTION = new Color( 210, 235, 251 );
-  public static final Color ACTIVE_CAPTION_TEXT = Color.black;
-  public static final Color CONTROL = new Color( 240, 240, 240 ); //UIManager.getColor( "control" );
-  public static final Color CONTROL_DARKSHADOW = new Color( 105, 105, 105 ); // UIManager.getColor( "controlDkShadow" );
-  public static final Color CONTROL_HIGHLIGHT = new Color( 227, 227, 227 ); //UIManager.getColor( "controlHighlight" );
-  public static final Color CONTROL_LIGHT = Color.white; //UIManager.getColor( "controlLtHighlight" );
-  public static final Color CONTROL_SHADOW = new Color( 160, 160, 160 ); //EditorUtilities.CONTROL_SHADOW;
-  public static final Color CONTROL_TEXT = Color.black; //UIManager.getColor( "controlText" );
-  public static final Color TOOLTIP_BACKGROUND = new Color( 255, 255, 225 ); //  UIManager.getColor( "info" );
-  public static final Color TOOLTIP_TEXT = Color.black; //  UIManager.getColor( "infoText" );
-  public static final Color WINDOW = new Color( 252, 252, 252 );
-  public static final Color WINDOW_TEXT = Color.black;
-  public static final Color WINDOW_BORDER = new Color( 100, 100, 100 );
-  public static final Color TEXT_HIGHLIGHT = new Color( 51, 153, 255 );
-  public static final Color TEXT_HIGHLIGHT_TEXT = Color.white;
-  public static final Color TEXT_TEXT = Color.black;
-
-  public static final Color XP_BORDER_COLOR = new Color( 49, 106, 197 );
-  public static final Color XP_HIGHLIGHT_TOGGLE_COLOR = new Color( 225, 230, 232 );
-  public static final Color XP_HIGHLIGHT_COLOR = ACTIVE_CAPTION;//new Color( 190, 205, 224 );
-  public static final Color XP_HIGHLIGHT_SELECTED_COLOR = new Color( 152, 179, 219 );
+  static final HashMap<String, ImageIcon> ICON_TABLE = new HashMap<>();
 
   private static final String BACKGROUND_QUEUE_NAME = "backgroundTasks";
 
+  static Map<Component, Boolean> CONTAINS_FOCUS;
+  static Map<Component, Boolean> FOCUS_CONTAINS;
+
+  /**
+   * Platform dependent keystroke info
+   */
+  public static final String CONTROL_KEY_NAME;
+  public static final int CONTROL_KEY_MASK;
+
+  static
+  {
+    if( PlatformUtil.isMac() )
+    {
+      CONTROL_KEY_MASK = KeyEvent.META_DOWN_MASK;
+      CONTROL_KEY_NAME = "meta";
+    }
+    else
+    {
+      CONTROL_KEY_MASK = KeyEvent.CTRL_DOWN_MASK;
+      CONTROL_KEY_NAME = "control";
+    }
+  }
 
   static public void doBackgroundOp( final Runnable run )
   {
@@ -387,6 +397,19 @@ public class EditorUtilities
       if( p instanceof Frame )
       {
         return (Frame)p;
+      }
+    }
+
+    return null;
+  }
+
+  public static Window windowForComponent( Component comp )
+  {
+    for( Component p = comp; p != null; p = p.getParent() )
+    {
+      if( p instanceof Window )
+      {
+        return (Window)p;
       }
     }
 
@@ -730,6 +753,30 @@ public class EditorUtilities
     }
   }
 
+  public static void invokeNowOrLater( Runnable task )
+  {
+    if( task == null )
+    {
+      return;
+    }
+
+    if( EventQueue.isDispatchThread() )
+    {
+      task.run();
+    }
+    else
+    {
+      try
+      {
+        EventQueue.invokeLater( task );
+      }
+      catch( Throwable t )
+      {
+        handleUncaughtException( t );
+      }
+    }
+  }
+
   public static Process browse( String strURL ) throws IOException
   {
     String strCmd;
@@ -780,15 +827,18 @@ public class EditorUtilities
 
   public static File getUserFile( GosuPanel gosuPanel )
   {
-    File file = new File( getUserGosuEditorDir(), "layout.properties" );
+    File file = new File( getUserGosuEditorDir(), "layout.gosulab" );
     if( !file.isFile() )
     {
-      Properties props = new Properties();
-      props.put( "experiment", makeScratchExperiment( gosuPanel ).getExperimentDir().getAbsolutePath() );
+      Expando bindings = new Expando();
+      bindings.put( "Title", "Gosu Lab" );
+      bindings.put( "Version", 1 );
+      bindings.put( "Experiments", Arrays.asList( makeScratchExperiment( gosuPanel ).getExperimentDir().getAbsolutePath() ) );
 
-      try( FileWriter writer = new FileWriter( file ) )
+      try( FileWriter fw = new FileWriter( file ) )
       {
-        props.store( writer, "Gosu Editor" );
+        String json = (String)ReflectUtil.invokeMethod( bindings, "toJson" );
+        fw.write( json );
       }
       catch( Exception e )
       {
@@ -798,40 +848,50 @@ public class EditorUtilities
     return file;
   }
 
+  public static Integer getVersion( GosuPanel gosuPanel ) throws MalformedURLException
+  {
+    Bindings bindings = (Bindings)ReflectUtil.getProperty( getUserFile( gosuPanel ).toURI().toURL(), "JsonContent" );
+    return (Integer)bindings.get( "Version" );
+  }
+
   public static Experiment loadRecentExperiment( GosuPanel gosuPanel )
   {
-    File userFile = getUserFile( gosuPanel );
-    Properties props = new Properties();
-    try( FileReader reader = new FileReader( userFile ) )
+    Bindings bindings;
+    try
     {
-      props.load( reader );
-      //noinspection unchecked
-      restoreScreenProps( (Map)props );
-      return new Experiment( new File( props.getProperty( "experiment" ) ), gosuPanel );
+      bindings = (Bindings)ReflectUtil.getProperty( getUserFile( gosuPanel ).toURI().toURL(), "JsonContent" );
     }
-    catch( Exception e )
+    catch( MalformedURLException e )
     {
       throw new RuntimeException( e );
     }
+    //noinspection unchecked
+    restoreLayoutState( bindings );
+    return new Experiment( new File( RunMe.getEditorFrame().getExperiments().get( 0 ) ), gosuPanel );
   }
 
-  public static void saveLayoutState( Experiment experiment ) {
+  public static void saveLayoutState( Experiment experiment )
+  {
     if( !RunMe.getEditorFrame().isVisible() )
     {
       return;
     }
 
     File userFile = getUserFile( experiment.getGosuPanel() );
-    try( FileWriter writer = new FileWriter( userFile ) )
+    try( FileWriter fw = new FileWriter( userFile ) )
     {
-      Properties props = new Properties();
+      Expando bindings = new Expando();
 
-      props.put( "experiment", experiment.getExperimentDir().getAbsolutePath() );
+      bindings.put( "Title", "Gosu Lab" );
+      bindings.put( "Version", 1 );
 
-      //noinspection unchecked
-      saveScreenProps( (Map)props );
+      RunMe.getEditorFrame().addExperiment( experiment );
+      bindings.put( "Experiments", RunMe.getEditorFrame().getExperiments() );
 
-      props.store( writer, "Gosu Editor" );
+      saveScreenProps( bindings );
+
+      String json = (String)ReflectUtil.invokeMethod( bindings, "toJson" );
+      fw.write( json );
     }
     catch( Exception e )
     {
@@ -839,45 +899,47 @@ public class EditorUtilities
     }
   }
 
-  private static void saveScreenProps( Map<String, String> props )
+  private static void saveScreenProps( Expando bindings )
   {
     BasicGosuEditor frame = RunMe.getEditorFrame();
     boolean maximized = (frame.getExtendedState() & Frame.MAXIMIZED_BOTH) == Frame.MAXIMIZED_BOTH;
-    props.put( "Frame.Maximized", String.valueOf( maximized ) );
+
+    Expando bindingsFrame = new Expando();
+    bindings.put( "Frame", bindingsFrame );
+    bindingsFrame.put( "Maximized", maximized ? 1 : 0 );
+
     Rectangle bounds = frame.getRestoreBounds();
+    Expando bindingsBounds = new Expando();
+    bindingsFrame.put( "Bounds", bindingsBounds );
     if( bounds != null )
     {
       ScreenUtil.convertToPercentageOfScreenWidth( bounds );
-      props.put( "Frame.Bounds.X", String.valueOf( bounds.x ) );
-      props.put( "Frame.Bounds.Y", String.valueOf( bounds.y ) );
-      props.put( "Frame.Bounds.Width", String.valueOf( bounds.width ) );
-      props.put( "Frame.Bounds.Height", String.valueOf( bounds.height ) );
+      bindingsBounds.put( "X", bounds.x );
+      bindingsBounds.put( "Y", bounds.y );
+      bindingsBounds.put( "Width", bounds.width );
+      bindingsBounds.put( "Height", bounds.height );
     }
   }
-  private static void restoreScreenProps( Map<String, String> props )
+
+  private static void restoreLayoutState( Bindings bindings )
   {
     BasicGosuEditor frame = RunMe.getEditorFrame();
-
+    Bindings bindingsFrame = (Bindings)bindings.get( "Frame" );
     boolean bSet = false;
-    Integer x = readInteger( props, "Frame.Bounds.X" );
-    if( x != null )
+    if( bindingsFrame != null )
     {
-      Integer y = readInteger( props, "Frame.Bounds.Y" );
-      if( y != null )
+      Bindings bindingsBounds = (Bindings)bindingsFrame.get( "Bounds" );
+      Integer x = (Integer)bindingsBounds.get( "X" );
+      Integer y = (Integer)bindingsBounds.get( "Y" );
+      Integer width = (Integer)bindingsBounds.get( "Width" );
+      Integer height = (Integer)bindingsBounds.get( "Height" );
+      if( height != null )
       {
-        Integer width = readInteger( props, "Frame.Bounds.Width" );
-        if( width != null )
-        {
-          Integer height = readInteger( props, "Frame.Bounds.Height" );
-          if( height != null )
-          {
-            Rectangle bounds = new Rectangle( x, y, width, height );
-            ScreenUtil.convertFromPercentageOfScreenWidth( bounds );
-            frame.setBounds( bounds );
-            frame.setRestoreBounds( bounds );
-            bSet = true;
-          }
-        }
+        Rectangle bounds = new Rectangle( x, y, width, height );
+        ScreenUtil.convertFromPercentageOfScreenWidth( bounds );
+        frame.setBounds( bounds );
+        frame.setRestoreBounds( bounds );
+        bSet = true;
       }
     }
 
@@ -886,26 +948,20 @@ public class EditorUtilities
       setInitialFrameBounds( RunMe.getEditorFrame() );
     }
 
-    if( Boolean.valueOf( props.get( "Frame.Maximized" ) ) == Boolean.TRUE )
+    if( bindingsFrame != null && (Integer)bindingsFrame.get( "Maximized" ) == 1 )
     {
       frame.setExtendedState( Frame.MAXIMIZED_BOTH );
     }
-  }
-  private static Integer readInteger( Map<String, String> props, String prop )
-  {
-    String value = props.get( prop );
-    if( value == null )
-    {
-      return null;
-    }
-    return Integer.valueOf( value );
+
+    //noinspection unchecked
+    frame.setExperiments( (List<String>)bindings.get( "Experiments" ) );
   }
 
   private static void setInitialFrameBounds( Frame frame )
   {
     Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-    int width = screenSize.width*2/3;
-    int height = width*2/3;
+    int width = screenSize.width * 2 / 3;
+    int height = width * 2 / 3;
     frame.setSize( width, height );
     EditorUtilities.centerWindowInFrame( frame, frame );
   }
@@ -1012,10 +1068,11 @@ public class EditorUtilities
     return experiments;
   }
 
-  public static File findExperimentFile(File dir) {
+  public static File findExperimentFile( File dir )
+  {
     for( File f : dir.listFiles() )
     {
-      if(f.getName().equalsIgnoreCase( dir.getName() + ".prj" ))
+      if( f.getName().equalsIgnoreCase( dir.getName() + ".prj" ) )
       {
         return f;
       }
@@ -1136,6 +1193,219 @@ public class EditorUtilities
 
   public static ImageIcon loadLabIcon()
   {
-    return loadIcon( "images/project4.png" );
+    return loadIcon( "images/g_16.png" );
+  }
+
+  public static <T> List<T> findDecendents( Component configUI, Class<T> aClass )
+  {
+    return findDecendents( configUI, aClass, c -> true );
+  }
+
+  private static <T> void _findDecendents( ArrayList<T> comps, Component component, Class<T> aClass, Predicate<Container> recurseToChildren )
+  {
+    if( aClass.isInstance( component ) )
+    {
+      //noinspection unchecked
+      comps.add( (T)component );
+    }
+    if( component instanceof Container )
+    {
+      Container container = (Container)component;
+      Component[] components = container.getComponents();
+      if( recurseToChildren.test( container ) )
+      {
+        for( Component child : components )
+        {
+          _findDecendents( comps, child, aClass, recurseToChildren );
+        }
+        if( container instanceof JMenu )
+        {
+          JPopupMenu popupMenu = ((JMenu)container).getPopupMenu();
+          if( popupMenu != null )
+          {
+            _findDecendents( comps, popupMenu, aClass, recurseToChildren );
+          }
+        }
+      }
+    }
+  }
+
+  public static <T> List<T> findDecendents( Component configUI, Class<T> aClass, Predicate<Container> recurseToChildren )
+  {
+    ArrayList<T> comps = new ArrayList<>();
+    _findDecendents( comps, configUI, aClass, recurseToChildren );
+    return comps;
+  }
+
+  public static boolean isRunnable( IType type )
+  {
+    if( type == null || !type.isValid() )
+    {
+      return false;
+    }
+    if( RunMe.getEditorFrame().getGosuPanel().isRunning() ||
+        RunMe.getEditorFrame().getGosuPanel().isDebugging() )
+    {
+      return false;
+    }
+
+    // Is Program?
+    if( type instanceof IGosuProgram )
+    {
+      return true;
+    }
+
+    if( type instanceof IGosuClass && !type.isAbstract() &&
+        ((IGosuClassTypeInfo)type.getTypeInfo()).isPublic() )
+    {
+      // Is Main class?
+      IMethodInfo main = type.getTypeInfo().getMethod( "main", JavaTypes.STRING().getArrayType() );
+      if( main != null && main.isStatic() && main.getReturnType() == JavaTypes.pVOID() )
+      {
+        return true;
+      }
+
+      // Is Test class?
+      if( type.getTypeInfo().getConstructor() != null )
+      {
+        IType baseTest = TypeSystem.getByFullNameIfValid( "junit.framework.Assert" );
+        if( baseTest != null )
+        {
+          return baseTest.isAssignableFrom( type );
+        }
+      }
+    }
+    return false;
+  }
+
+  public static void fixSwingFocusBugWhenPopupCloses( Component c )
+  {
+    // This is a fix to workaround a bug with Swing JPopupMenu.  Withou this
+    // focus is stolen from a subsequent selected field. See Bug CC-1140.
+    editor.util.EditorUtilities.rootPaneForComponent( c ).dispatchEvent( new MouseEvent( c, MouseEvent.MOUSE_PRESSED, System.currentTimeMillis(), 0, 3, 3, 1, false ) );
+  }
+
+  public static Component showWaitCursor( final boolean bWait )
+  {
+    return WaitCursorRunner.showWaitCursor( bWait );
+  }
+
+  public static void showWaitCursor( boolean bWait, Component c )
+  {
+    WaitCursorRunner.showWaitCursor( bWait, c );
+  }
+
+  public static void doWaitOperation( Runnable op )
+  {
+    Component key = showWaitCursor( true );
+    try
+    {
+      op.run();
+    }
+    finally
+    {
+      showWaitCursor( false, key );
+    }
+  }
+
+  public static Component getFocus()
+  {
+    return KeyboardFocusManager.getCurrentKeyboardFocusManager().getPermanentFocusOwner();
+  }
+
+  public static Window getFocusedWindow()
+  {
+    return KeyboardFocusManager.getCurrentKeyboardFocusManager().getFocusedWindow();
+  }
+
+  public static Window getActiveWindow()
+  {
+    Window activeWindow = KeyboardFocusManager.getCurrentKeyboardFocusManager().getActiveWindow();
+    if( activeWindow == null )
+    {
+      Frame[] frames = Frame.getFrames();
+      if( frames != null && frames.length > 0 )
+      {
+        return frames[0];
+      }
+    }
+    return activeWindow;
+  }
+
+  public static boolean containsFocus( Component c )
+  {
+    addFocusListener();
+    Boolean containsFocus = CONTAINS_FOCUS.get( c );
+    if( containsFocus != null )
+    {
+      return containsFocus;
+    }
+    Component focusOwner = KeyboardFocusManager.getCurrentKeyboardFocusManager().getPermanentFocusOwner();
+    // Verify focusOwner is a descendant of c
+    for( Component temp = focusOwner; temp != null; temp = (temp instanceof Window) ? null : temp.getParent() )
+    {
+      if( temp == c )
+      {
+        CONTAINS_FOCUS.put( c, true );
+        return true;
+      }
+    }
+    CONTAINS_FOCUS.put( c, false );
+    return false;
+  }
+
+  public static boolean focusContains( Component c )
+  {
+    addFocusListener();
+
+    Boolean focusContains = FOCUS_CONTAINS.get( c );
+    if( focusContains != null )
+    {
+      return focusContains;
+    }
+    Component focusOwner = KeyboardFocusManager.getCurrentKeyboardFocusManager().getPermanentFocusOwner();
+    // Verify c is a descendant of focusOwner
+    for( Component temp = c; temp != null; temp = (temp instanceof Window) ? null : temp.getParent() )
+    {
+      if( temp == focusOwner )
+      {
+        FOCUS_CONTAINS.put( c, true );
+        return true;
+      }
+    }
+    FOCUS_CONTAINS.put( c, false );
+    return false;
+  }
+
+  private static void addFocusListener()
+  {
+    if( CONTAINS_FOCUS != null )
+    {
+      return;
+    }
+    CONTAINS_FOCUS = new HashMap<>();
+    FOCUS_CONTAINS = new HashMap<>();
+    KeyboardFocusManager focusMgr = KeyboardFocusManager.getCurrentKeyboardFocusManager();
+    focusMgr.addPropertyChangeListener( "permanentFocusOwner",
+                                        new PropertyChangeListener()
+                                        {
+                                          public void propertyChange( PropertyChangeEvent evt )
+                                          {
+                                            CONTAINS_FOCUS.clear();
+                                            FOCUS_CONTAINS.clear();
+                                          }
+                                        } );
+  }
+
+  public static boolean isInFocusLineage( Component c )
+  {
+    return containsFocus( c ) || focusContains( c );
+  }
+
+  public static Point getXYForDialogRelativeToStudioFrame( int width, int height )
+  {
+    Rectangle screenRect = getPrimaryMonitorScreenRect();
+    return new Point( (int)(screenRect.getX() + (screenRect.getWidth() - width) / 2),
+                      (int)(screenRect.getY() + (screenRect.getHeight() - height) / 2) );
   }
 }

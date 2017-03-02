@@ -25,7 +25,6 @@ import java.util.stream.Collectors;
 public class RunMe
 {
   private static BasicGosuEditor _gosuEditor;
-  private static GosuInitialization _gosuInitialization;
 
   public static void main( String[] args ) throws Exception
   {
@@ -43,6 +42,8 @@ public class RunMe
       () -> {
         SplashScreen.instance().setFeedbackText( "Initializing..." );
         _gosuEditor = BasicGosuEditor.create();
+        reinitializeGosu( null ); // this is so we can use Gosu to write Gosu Lab :) (right now we are only using the Json stuff)
+        _gosuEditor.checkForUpdate( _gosuEditor.getGosuPanel() );
         _gosuEditor.restoreState( EditorUtilities.loadRecentExperiment( _gosuEditor.getGosuPanel() ) );
         SettleModalEventQueue.instance().run();
         SplashScreen.instance().dispose();
@@ -55,20 +56,20 @@ public class RunMe
     CommonServices.getKernel().redefineService_Privileged( IPlatformHelper.class, new GosuEditorPlatformHelper() );
 
     IExecutionEnvironment execEnv = TypeSystem.getExecutionEnvironment();
-    _gosuInitialization = GosuInitialization.instance( execEnv );
+    GosuInitialization gosuInitialization = GosuInitialization.instance( execEnv );
     GosucModule gosucModule = new GosucModule(
-      IExecutionEnvironment.DEFAULT_SINGLE_MODULE_NAME, experiment.getSourcePath(), deriveClasspath( experiment ),
+      IExecutionEnvironment.DEFAULT_SINGLE_MODULE_NAME, experiment == null ? Collections.emptyList() : experiment.getSourcePath(), deriveClasspath( experiment ),
       "", Collections.<GosucDependency>emptyList(), Collections.<String>emptyList() );
-    _gosuInitialization.reinitializeSimpleIde( gosucModule );
+    gosuInitialization.reinitializeSimpleIde( gosucModule );
   }
 
   private static List<String> deriveClasspath( Experiment experiment )
   {
     List<String> classpath = new ArrayList<>();
-    List<String> sourcePath = experiment.getSourcePath();
+    List<String> sourcePath = experiment == null ? Collections.emptyList() : experiment.getSourcePath();
     for( String path: sourcePath )
     {
-      if( !path.toLowerCase().startsWith( experiment.getExperimentDir().getAbsolutePath().toLowerCase() ) )
+      if( !path.toLowerCase().startsWith( experiment.getExperimentDir().getAbsolutePath().toLowerCase() + File.separator ) )
       {
         classpath.add( path );
       }
@@ -76,5 +77,10 @@ public class RunMe
     List<String> collect = Gosu.deriveClasspathFrom( RunMe.class ).stream().map( File::getAbsolutePath ).collect( Collectors.toList() );
     classpath.addAll( collect );
     return classpath;
+  }
+
+  public static void setEditorFrame( BasicGosuEditor basicGosuEditor )
+  {
+    _gosuEditor = basicGosuEditor;
   }
 }

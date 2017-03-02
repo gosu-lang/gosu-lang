@@ -26,7 +26,7 @@ class ArrayTest extends BaseVerifyErrantTest {
     assertEquals(t[0], false)
     assertEquals(c[0], 0)
     assertEquals(b[0], 0b)
-    assertEquals(s[0], 0s)
+    assertEquals(s[0], 0 as short)
     assertEquals(i[0], 0)
     assertEquals(l[0], 0L)
     assertEquals(f[0], 0.0f, 0.01f)

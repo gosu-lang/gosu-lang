@@ -38,7 +38,7 @@ class Errant_ConditionalExpressionsTest {
 
   function testConditionalExpressionsWithPrimitiveAndBoxedTypes() {
     var b : byte  = 0b
-    var s : short = 0s
+    var s : short = 0
     var L : long = 0L
     var i : int = 0
     var t : boolean = true
@@ -208,7 +208,7 @@ class Errant_ConditionalExpressionsTest {
 
   function testConditionalExpressionsWithNull() {
     var b : byte  = 0b
-    var s : short = 0s
+    var s : short = 0
     var L : long = 0L
     var i : int = 0
     var t : boolean = true

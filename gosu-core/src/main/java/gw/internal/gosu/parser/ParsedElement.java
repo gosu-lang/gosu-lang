@@ -39,6 +39,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.Stack;
+import java.util.function.Consumer;
 
 /**
  * ParsedElement is the root class for all non-terminal elements represented in
@@ -151,6 +152,29 @@ public abstract class ParsedElement implements IParsedElement
     }
 
     return _location;
+  }
+
+  @Override
+  public void visit( Consumer<IParsedElement> visitor )
+  {
+    ParseTree location = getLocation();
+    if( location != null )
+    {
+      int count = location.getChildCount();
+      if( count > 0 )
+      {
+        for( int i = 0; i < count; i++ )
+        {
+          ParseTree child = location.getChild( i );
+          ParsedElement pe = child.getParsedElement();
+          if( pe != null )
+          {
+            pe.visit( visitor );
+          }
+        }
+      }
+    }
+    visitor.accept( this );
   }
 
   public void initEmptyParseTree()
@@ -1114,29 +1138,6 @@ public abstract class ParsedElement implements IParsedElement
       }
     }
     return false;
-  }
-
-  private Map<CharSequence, UsesStatement> computeUsesStatementsMap() {
-    IGosuClassInternal gosuClass = null;
-    if (this instanceof ClassStatement) {
-      gosuClass = ((ClassStatement) this).getGosuClass();
-    } else if (this instanceof ClassFileStatement) {
-      ClassStatement classStatement = ((ClassFileStatement) this).getClassStatement();
-      if (classStatement != null) {
-        gosuClass = classStatement.getGosuClass();
-      }
-    }
-    if ((gosuClass != null) && (gosuClass.getTypeUsesMap() != null)) {
-      Set<IUsesStatement> usesStatements = gosuClass.getTypeUsesMap().getUsesStatements();
-      final int initialCapacity = usesStatements.size();
-      Map<CharSequence, UsesStatement> usesMap = new HashMap<CharSequence, UsesStatement>( initialCapacity );
-      for (IUsesStatement usesStatement : usesStatements) {
-        usesMap.put(usesStatement.getTypeName(), (UsesStatement)usesStatement );
-      }
-      return usesMap;
-    } else {
-      return Collections.emptyMap();
-    }
   }
 
   public boolean shouldClearParseInfo() {

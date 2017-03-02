@@ -41,8 +41,8 @@ public interface TopLevelTransformationContext {
   IRClass getIrClass();
   void setIrClass( IRClass irClass );
 
-  boolean shouldUseReflection( IType declaringClass, IRelativeTypeInfo.Accessibility accessibility );
-  boolean isIllegalProtectedCall( IType declaringClass, IRelativeTypeInfo.Accessibility accessibility );
+  boolean shouldUseReflection( IType declaringClass, IRType root, IRelativeTypeInfo.Accessibility accessibility );
+  boolean isIllegalProtectedCall( IType declaringClass, IRType root, IRelativeTypeInfo.Accessibility accessibility );
 
   String getOuterThisFieldName();
 

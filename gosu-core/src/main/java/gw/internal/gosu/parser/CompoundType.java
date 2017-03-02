@@ -5,6 +5,7 @@
 package gw.internal.gosu.parser;
 
 import gw.lang.reflect.AbstractType;
+import gw.lang.reflect.DefaultNonLoadableArrayType;
 import gw.lang.reflect.ICompoundType;
 import gw.lang.reflect.INonLoadableType;
 import gw.lang.reflect.IType;
@@ -12,7 +13,6 @@ import gw.lang.reflect.ITypeInfo;
 import gw.lang.reflect.ITypeLoader;
 import gw.lang.reflect.ITypeLoaderListener;
 import gw.lang.reflect.AbstractTypeSystemListener;
-import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.gs.IGenericTypeVariable;
 import gw.lang.reflect.java.JavaTypes;
 
@@ -279,7 +279,7 @@ public class CompoundType extends AbstractType implements INonLoadableType, ICom
   @Override
   public IType getArrayType()
   {
-    return JavaTypes.OBJECT().getArrayType();
+    return new DefaultNonLoadableArrayType( this, JavaTypes.OBJECT().getBackingClassInfo(), getTypeLoader() );
   }
 
   @Override

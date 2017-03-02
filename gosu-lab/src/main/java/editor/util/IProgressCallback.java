@@ -24,6 +24,7 @@ public interface IProgressCallback
    * True to abort operation.
    */
   public boolean updateProgress( int iProgress, String strMessage, String... args );
+  public boolean incrementProgress( String strMessage, String... args );
 
   /**
    * Call this to update the progress message without modifying the amount of progress completed.

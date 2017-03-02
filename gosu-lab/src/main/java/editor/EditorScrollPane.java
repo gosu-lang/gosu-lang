@@ -1,10 +1,10 @@
 package editor;
 
-import editor.util.EditorUtilities;
-
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
+import javax.swing.text.AttributeSet;
 import javax.swing.text.JTextComponent;
+import javax.swing.text.StyleConstants;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -26,7 +26,7 @@ public class EditorScrollPane extends JScrollPane
     _editor = editor;
     _adviceColumn = new AdviceColumn();
     setRowHeaderView( _adviceColumn );
-    setBackground( EditorUtilities.CONTROL );
+    setBackground( Scheme.active().getControl() );
   }
 
   public EditorScrollPane( ILineInfoManager lineInfoRenderer, JTextComponent editor, JComponent view )
@@ -71,7 +71,7 @@ public class EditorScrollPane extends JScrollPane
     {
       setLayout( null );
       setBorder( new EmptyBorder( new Insets( 0, 0, 0, 1 ) ) );
-      setBackground( editor.util.EditorUtilities.CONTROL );
+      setBackground( Scheme.active().getControl() );
       addMouseListener( new MouseAdapter()
       {
         @Override
@@ -110,21 +110,36 @@ public class EditorScrollPane extends JScrollPane
     {
       super.paintComponent( g );
 
-      g.setColor( editor.util.EditorUtilities.CONTROL_SHADOW );
+      g.setColor( Scheme.active().getControlShadow() );
       g.setFont( _editor.getFont() );
 
       FontMetrics fm = g.getFontMetrics( _editor.getFont() );
       int iLineHeight = fm.getHeight();
-
-      int iMargin = _editor.getInsets().top;
+      iLineHeight += getLineSpacingAttr( iLineHeight );
+      int iMargin = _editor.getMargin().top + getLineSpacingAttr( iLineHeight );
       int iLines = getHeight() / iLineHeight;
       for( int i = 1; i <= iLines; i++ )
       {
         String strLine = String.valueOf( i );
         int iWidth = fm.stringWidth( strLine );
+
         g.drawString( strLine, getWidth() - iWidth - getLineInfoRequiredWidth(), i * iLineHeight - fm.getDescent() + iMargin );
         renderLineInfo( g, i, iLineHeight, getWidth() - getLineInfoRequiredWidth(), (i - 1) * iLineHeight + iMargin );
       }
+    }
+
+    private int getLineSpacingAttr( int iLineHeight )
+    {
+      if( _editor instanceof JTextPane )
+      {
+        AttributeSet attr = ((JTextPane)_editor).getParagraphAttributes();
+        Float lineSpacing = (Float)attr.getAttribute( StyleConstants.LineSpacing );
+        if( lineSpacing != null )
+        {
+          return Math.round( lineSpacing * iLineHeight );
+        }
+      }
+      return 0;
     }
 
     private int getLineInfoRequiredWidth()

@@ -6,7 +6,6 @@
 package editor;
 
 
-import editor.util.EditorUtilities;
 import gw.util.GosuObjectUtil;
 
 import javax.swing.*;
@@ -25,13 +24,13 @@ public class ToggleToolBarButton extends JToggleButton
   private static final ImageIcon MENU_ICON = editor.util.EditorUtilities.loadIcon( "images/drop_down_arrow_3.gif" );
 
   private Border _activeBorder;
-  private Color _clrBkgnd;
   private boolean _bRollover;
   private boolean _bMenu;
 
-  public static final Color XP_BORDER_COLOR = EditorUtilities.XP_BORDER_COLOR;
-  private static final Color XP_TOGGLE_ROLLOVER_COLOR = EditorUtilities.XP_HIGHLIGHT_COLOR;
-  private static final Color XP_TOGGLE_SELECTED_COLOR = EditorUtilities.XP_HIGHLIGHT_SELECTED_COLOR;
+  public static final Color XP_BORDER_COLOR = Scheme.active().getXpBorderColor();
+  private static final Color XP_TOGGLE_ROLLOVER_COLOR = Scheme.active().getXpHighlightColor();
+  private static final Color XP_TOGGLE_SELECTED_COLOR = Scheme.active().getXpHighlightSelectedColor();
+  private boolean _bShowText;
 
   /**
    * Creates a button with an icon.
@@ -40,13 +39,10 @@ public class ToggleToolBarButton extends JToggleButton
    */
   public ToggleToolBarButton( String text, Icon icon )
   {
-
     super( text, icon );
 
     setContentAreaFilled( false );
     setOpaque( true );
-
-    _clrBkgnd = editor.util.EditorUtilities.CONTROL;
 
     _activeBorder = new CompoundBorder( new LineBorder( XP_BORDER_COLOR, 1 ),
                                         BorderFactory.createEmptyBorder( 2, 2, 2, 2 ) );
@@ -88,6 +84,13 @@ public class ToggleToolBarButton extends JToggleButton
   public ToggleToolBarButton()
   {
     this( null, null );
+  }
+
+  @Override
+  public void addNotify()
+  {
+    super.addNotify();
+    setBackground( getParent().getBackground() );
   }
 
   @Override
@@ -144,7 +147,7 @@ public class ToggleToolBarButton extends JToggleButton
     }
     else
     {
-      setBackground( _clrBkgnd );
+      setBackground( getParent().getBackground() );
     }
 
     super.paintComponent( g );
@@ -160,17 +163,11 @@ public class ToggleToolBarButton extends JToggleButton
                            getInsets().top + getMargin().top );
 
       // Paint the menu button separator
-      g.setColor( editor.util.EditorUtilities.CONTROL_SHADOW );
+      g.setColor( Scheme.active().getControlShadow() );
       g.drawLine( iMenuIconX - 2, 0, iMenuIconX - 2, getHeight() );
-      g.setColor( editor.util.EditorUtilities.CONTROL_LIGHT );
+      g.setColor( Scheme.active().getControlLight() );
       g.drawLine( iMenuIconX - 1, 0, iMenuIconX - 1, getHeight() );
     }
-  }
-
-
-  public void setClrBkgnd( Color clrBkgnd )
-  {
-    _clrBkgnd = clrBkgnd;
   }
 
   @Override
@@ -196,20 +193,43 @@ public class ToggleToolBarButton extends JToggleButton
   }
 
   @Override
+  public void setAction( Action a )
+  {
+    super.setAction( a );
+    ToolTipManager.sharedInstance().registerComponent( this );
+  }
+
+  public boolean isShowText()
+  {
+    return _bShowText;
+  }
+  public void setShowText( boolean bShowText )
+  {
+    _bShowText = bShowText;
+  }
+
+  @Override
+  public String getText()
+  {
+    return _bShowText ? super.getText() : null;
+  }
+
+  @Override
   public String getToolTipText()
   {
-    String superText = super.getToolTipText();
-    if( superText == null || superText.length() == 0 )
-    {
-      return null;  // Swing will not register us with the tooltip manager unless it detects a change
-    }
     if( getAction() != null )
     {
-      return GosuObjectUtil.toString( getAction().getValue( Action.SHORT_DESCRIPTION ) );
+      String tip = GosuObjectUtil.toString( getAction().getValue( Action.SHORT_DESCRIPTION ) );
+      if( tip == null || tip.isEmpty() )
+      {
+        tip = GosuObjectUtil.toString( getAction().getValue( Action.NAME ) );
+      }
+      return tip;
     }
     else
     {
-      return superText;
+      return super.getToolTipText();
     }
   }
+
 }

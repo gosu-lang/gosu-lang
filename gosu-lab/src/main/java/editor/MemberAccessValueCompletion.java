@@ -1,5 +1,6 @@
 package editor;
 
+import editor.util.EditorUtilities;
 import editor.util.TextComponentUtil;
 import gw.lang.parser.IParseTree;
 import gw.lang.parser.IParsedElement;
@@ -43,7 +44,7 @@ public class MemberAccessValueCompletion extends AbstractParseExceptionResolver
             String strRef = beanInfoSelection.makePath( false );
             TextComponentUtil.replaceWordAtClosestDot( getEditor(), strRef );
             getEditor().requestFocus();
-            getGosuEditor().fixSwingFocusBugWhenPopupCloses();
+            EditorUtilities.fixSwingFocusBugWhenPopupCloses( getGosuEditor() );
             getEditor().repaint();
           }
         } );

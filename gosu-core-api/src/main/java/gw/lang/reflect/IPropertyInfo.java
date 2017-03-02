@@ -11,28 +11,29 @@ public interface IPropertyInfo extends IAttributedFeatureInfo, IIntrinsicTypeRef
    * @return true if the property is readable given the visibility constraint passed in,
    *         false otherwise.
    */
-  public boolean isReadable();
+  boolean isReadable();
+  default boolean isReadable( IType whosAskin ) { return isReadable(); }
 
   /**
    * @return True if the property is writable given the visibility constraint passed in,
    *         false otherwise.
    */
-  public boolean isWritable();
+  boolean isWritable();
 
   /**
    * @param whosAskin The type querying the property writability.  For example, passing in the type the property is on will
    *   allow properties that have private access in the setter to be written to.  Passing in an unrelated type will only
-   *   allow properties that are public to be written to.
+   *   allow properties that are to be written to.
    *
    * @return True if the property is writable given the visibility constraint passed in,
    *         false otherwise.
    */
-  public boolean isWritable( IType whosAskin );
+  boolean isWritable( IType whosAskin );
 
   /**
    * @return the PropertyAccessor (for getting and setting) this property.
    */
-  public IPropertyAccessor getAccessor();
+  IPropertyAccessor getAccessor();
 
-  public IPresentationInfo getPresentationInfo();
+  IPresentationInfo getPresentationInfo();
 }

@@ -4,6 +4,7 @@ uses gw.specification.dimensions.p0.SampleDimension_SpecialNumber
 uses java.lang.Integer
 uses java.math.BigInteger
 uses gw.BaseVerifyErrantTest
+uses gw.util.science.*
 uses gw.specification.dimensions.p0.SampleDimension_BigInteger
 uses gw.specification.dimensions.p0.SampleDimension_Integer
 uses gw.specification.dimensions.p0.SampleDimensionWithArith_Integer
@@ -36,6 +37,16 @@ class DimensionTest extends BaseVerifyErrantTest {
     processErrantType(Errant_DimensionTest)
   }
 
+  function testMultiplyDivideWithNumbers() {
+    var inch10 = new Length( 5, Inch ) * 2
+    assertEquals( new Length( 10, Inch ), inch10 )
+
+    var inch5 = inch10 / 2
+    assertEquals( new Length( 5, Inch ), inch5 )
+
+    var inch1 = inch10 % 3
+    assertEquals( new Length( 1, Inch ), inch1 )
+  }
 
   function testDifferentNumberUnitInDimensionWithoutArith(){
     var d1 : SampleDimension_Integer = new SampleDimension_Integer (new Integer(7))

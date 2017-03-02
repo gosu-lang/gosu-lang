@@ -6,7 +6,6 @@ package gw.internal.gosu.parser.expressions;
 import gw.internal.gosu.parser.Expression;
 import gw.lang.parser.IExpression;
 import gw.lang.parser.expressions.ILiteralExpression;
-import gw.lang.parser.expressions.ITypeAsExpression;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.java.JavaTypes;
 

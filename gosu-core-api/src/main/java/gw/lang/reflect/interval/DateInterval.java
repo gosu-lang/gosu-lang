@@ -4,6 +4,8 @@
 
 package gw.lang.reflect.interval;
 
+import gw.config.CommonServices;
+
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Iterator;
@@ -40,7 +42,7 @@ public class DateInterval extends IterableInterval<Date, Integer, DateUnit, Date
   }
   private Date add( Date date, int iMultiple )
   {
-    Calendar dateTime = Calendar.getInstance();
+    Calendar dateTime = Calendar.getInstance(CommonServices.getEntityAccess().getTimeZone());
     dateTime.setTime( date );
 
     dateTime.add( getUnit().getCalendarConst(), getStep() * iMultiple );
@@ -53,7 +55,7 @@ public class DateInterval extends IterableInterval<Date, Integer, DateUnit, Date
   }
   private Date subtract( Date date, int iMultiple )
   {
-    Calendar dateTime = Calendar.getInstance();
+    Calendar dateTime = Calendar.getInstance(CommonServices.getEntityAccess().getTimeZone());
     dateTime.setTime( date );
 
     dateTime.add( getUnit().getCalendarConst(), -(getStep() * iMultiple) );

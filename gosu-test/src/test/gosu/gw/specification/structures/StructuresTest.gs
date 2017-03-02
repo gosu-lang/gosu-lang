@@ -191,4 +191,82 @@ class StructuresTest extends BaseVerifyErrantTest {
     var obj: ReturnParameterizedType_Function = new ImplReturnParameterizedType_Function()
     assertEquals( {"hi"}, obj.getX() )
   }
+
+  function testDefaultMethodTest() {
+    DefaultMethodTest.test()
+  }
+  static class DefaultMethodTest {
+    structure MyStructure {
+      function foo() : String {
+        return "I am in structure"
+      }
+    }
+
+    static class OverridesMethod {
+      function foo() : String {
+        return "I am in class"
+      }
+    }
+
+    static class NotOverridesMethod {
+    }
+
+    static function test() {
+      var t: MyStructure = new OverridesMethod()
+      assertEquals( "I am in class", t.foo() )
+
+      t = new NotOverridesMethod()
+      assertEquals( "I am in structure", t.foo() )
+    }
+  }
+  
+  function testDefaultPropertyTest() {
+    DefaultPropertyTest.test()
+  }
+  static class DefaultPropertyTest {
+    static var _state: String
+
+    structure MyStructure {
+      property get Hi() : String { return "Get Structure" }
+      property set Hi(s: String) { _state = s + " Set Structure" }
+    }
+
+    static class OverridesAll {
+      property get Hi() : String { return "Get Class" }
+      property set Hi(s: String) { _state = s + " Set Class" }
+    }
+
+    static class OverridesNone {
+    }
+
+    static class OverridesSet {
+      property set Hi(s: String) { _state = s + " Set Class" }
+    }
+
+    static class OverridesGet {
+      property get Hi() : String { return "Get Class" }
+    }
+
+    static function test() {
+      var t: MyStructure = new OverridesAll()
+      assertEquals( "Get Class", t.Hi )
+      t.Hi = "foo"
+      assertEquals( "foo Set Class", _state )
+
+      t = new OverridesNone()
+      assertEquals( "Get Structure", t.Hi )
+      t.Hi = "bar"
+      assertEquals( "bar Set Structure", _state )
+
+      t = new OverridesSet()
+      assertEquals( "Get Structure", t.Hi )
+      t.Hi = "baz"
+      assertEquals( "baz Set Class", _state )
+
+      t = new OverridesGet()
+      assertEquals( "Get Class", t.Hi )
+      t.Hi = "bom"
+      assertEquals( "bom Set Structure", _state )
+    }
+  }
 }

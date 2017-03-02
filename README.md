@@ -54,6 +54,13 @@ Clone the project from GitHub and run:
 
     mvn compile
 
+To execute tests:
+
+    mvn test
+
+To change the version number:
+
+    mvn -B release:update-versions -DdevelopmentVersion=1-someValue-SNAPSHOT
 
 Quickstart
 ----------

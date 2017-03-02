@@ -156,7 +156,7 @@ public class NewExpressionTransformer extends AbstractExpressionTransformer<NewE
     if( irConstructor.isBytecodeMethod() &&
         isBytecodeType( type ) &&
         !hasExpansionExpressionInArguments() &&
-        !_cc().shouldUseReflection( irConstructor.getOwningIType(), irConstructor.getAccessibility() ) )
+        !_cc().shouldUseReflection( irConstructor.getOwningIType(), null, irConstructor.getAccessibility() ) )
     {
       return makeConstructorCallDirectly( ci );
     }

@@ -31,8 +31,15 @@ public class SourceCodeReader
 
   public int peek()
   {
-    return _iLength > _iPosition
-           ? _source.charAt( _iPosition )
+    return peek( 1 );
+  }
+
+  public int peek( int n )
+  {
+    n -= 1; // already positioned +1 ahead
+
+    return _iLength > _iPosition + n
+           ? _source.charAt( _iPosition + n )
            : -1;
   }
 

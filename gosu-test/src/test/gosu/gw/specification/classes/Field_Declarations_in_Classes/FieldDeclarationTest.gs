@@ -46,7 +46,7 @@ class FieldDeclarationTest extends BaseVerifyErrantTest {
     assertEquals(c.t, false)
     assertEquals(c.c, 0)
     assertEquals(c.b, 0b)
-    assertEquals(c.s, 0s)
+    assertEquals(c.s, 0 as short)
     assertEquals(c.i, 0)
     assertEquals(c.l, 0L)
     assertEquals(c.f, 0.0f, 0.01f)

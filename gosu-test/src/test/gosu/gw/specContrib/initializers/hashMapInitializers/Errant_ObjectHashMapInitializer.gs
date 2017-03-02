@@ -18,7 +18,7 @@ class Errant_ObjectHashMapInitializer {
 
   var objectHashMap1111 : HashMap<Object, Object> = {new Object()->'c'}
   var objectHashMap1110 : HashMap<Object, Object> = {new Object()->1b}
-  var objectHashMap1112 : HashMap<Object, Object> = {new Object()->1s}
+  var objectHashMap1112 : HashMap<Object, Object> = {new Object()->1 as short}
   var objectHashMap1113 : HashMap<Object, Object> = {new Object()->42}
   var objectHashMap1114 : HashMap<Object, Object> = {new Object()->42.5f}
   var objectHashMap1115 : HashMap<Object, Object> = {new Object()->42.5}
@@ -33,7 +33,7 @@ class Errant_ObjectHashMapInitializer {
 
   var objectHashMap1211 : HashMap<Object, Object> = {'c'-> new Object()}
   var objectHashMap1210 : HashMap<Object, Object> = {1b-> new Object()}
-  var objectHashMap1212 : HashMap<Object, Object> = {1s-> new Object()}
+  var objectHashMap1212 : HashMap<Object, Object> = {1 as short-> new Object()}
   var objectHashMap1213 : HashMap<Object, Object> = {42-> new Object()}
   var objectHashMap1214 : HashMap<Object, Object> = {42.5f-> new Object()}
   var objectHashMap1215 : HashMap<Object, Object> = {42.5-> new Object()}
@@ -48,7 +48,7 @@ class Errant_ObjectHashMapInitializer {
 
   var objectHashMap1311 : HashMap<Object, Object> = {new Object()-> new Object(), new Object()->'c'}
   var objectHashMap1310 : HashMap<Object, Object> = {new Object()-> new Object(), new Object()->1b}
-  var objectHashMap1312 : HashMap<Object, Object> = {new Object()-> new Object(), new Object()->1s}
+  var objectHashMap1312 : HashMap<Object, Object> = {new Object()-> new Object(), new Object()->1 as short}
   var objectHashMap1313 : HashMap<Object, Object> = {new Object()-> new Object(), new Object()->42}
   var objectHashMap1314 : HashMap<Object, Object> = {new Object()-> new Object(), new Object()->42.5f}
   var objectHashMap1315 : HashMap<Object, Object> = {new Object()-> new Object(), new Object()->42.5}
@@ -63,7 +63,7 @@ class Errant_ObjectHashMapInitializer {
 
   var objectHashMap1411 : HashMap<Object, Object> = {new Object()-> new Object(), 'c'->new Object()}
   var objectHashMap1410 : HashMap<Object, Object> = {new Object()-> new Object(), 1b->new Object()}
-  var objectHashMap1412 : HashMap<Object, Object> = {new Object()-> new Object(), 1s->new Object()}
+  var objectHashMap1412 : HashMap<Object, Object> = {new Object()-> new Object(), 1 as short->new Object()}
   var objectHashMap1413 : HashMap<Object, Object> = {new Object()-> new Object(), 42->new Object()}
   var objectHashMap1414 : HashMap<Object, Object> = {new Object()-> new Object(), 42.5f->new Object()}
   var objectHashMap1415 : HashMap<Object, Object> = {new Object()-> new Object(), 42.5->new Object()}

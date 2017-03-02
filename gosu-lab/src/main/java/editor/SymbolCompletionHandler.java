@@ -1,5 +1,6 @@
 package editor;
 
+import editor.util.EditorUtilities;
 import editor.util.TextComponentUtil;
 import gw.lang.parser.IDynamicFunctionSymbol;
 import gw.lang.parser.IParseTree;
@@ -77,7 +78,7 @@ public class SymbolCompletionHandler extends AbstractPathCompletionHandler
                                                          true );
           }
           gsEditor.getEditor().requestFocus();
-          gsEditor.fixSwingFocusBugWhenPopupCloses();
+          EditorUtilities.fixSwingFocusBugWhenPopupCloses( gsEditor );
           gsEditor.getEditor().repaint();
         }
       } );
@@ -152,7 +153,7 @@ public class SymbolCompletionHandler extends AbstractPathCompletionHandler
 
 
           getGosuEditor().getEditor().requestFocus();
-          getGosuEditor().fixSwingFocusBugWhenPopupCloses();
+          EditorUtilities.fixSwingFocusBugWhenPopupCloses( getGosuEditor() );
           getGosuEditor().getEditor().repaint();
         }
       } );

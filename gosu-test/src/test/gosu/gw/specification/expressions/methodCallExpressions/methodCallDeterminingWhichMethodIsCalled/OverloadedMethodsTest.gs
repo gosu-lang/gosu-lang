@@ -122,7 +122,7 @@ class OverloadedMethodsTest extends BaseVerifyErrantTest {
     assertTrue(res == 0)
     res = l.m(1 as short)
     assertTrue(res == 0)
-    res = l.m(1s)
+    res = l.m(1 as short)
     assertTrue(res == 0)
     res = l.m(1 as int)
     assertTrue(res == 0)

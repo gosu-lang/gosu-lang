@@ -13,6 +13,7 @@ import gw.lang.parser.statements.IClassStatement;
 import gw.lang.reflect.ICompilable;
 import gw.lang.reflect.IRelativeTypeInfo;
 import gw.lang.reflect.IType;
+import gw.lang.reflect.TypeSystem;
 
 public interface ICompilableType extends IType, ICompilable, IHasInnerClass, IFileRepositoryBasedType {
 
@@ -36,4 +37,14 @@ public interface ICompilableType extends IType, ICompilable, IHasInnerClass, IFi
 
   IGosuClass getBlock(int i);
 
+  default String getJavaName()
+  {
+    IType type = TypeSystem.getPureGenericType( this );
+    IType outerType = type.getEnclosingType();
+    if( outerType instanceof ICompilableType )
+    {
+      return ((ICompilableType)outerType).getJavaName() + "$" + type.getRelativeName();
+    }
+    return type.getName();
+  }
 }

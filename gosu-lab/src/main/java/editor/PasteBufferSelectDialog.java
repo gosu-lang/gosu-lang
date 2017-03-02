@@ -1,5 +1,6 @@
 package editor;
 
+import editor.splitpane.SplitPane;
 import gw.util.GosuStringUtil;
 
 import javax.swing.*;
@@ -24,8 +25,8 @@ public class PasteBufferSelectDialog extends JDialog implements ListSelectionLis
   private JTextArea _textArea;
   private List<String> _copyBuffer;
   private JTextComponent _textComponent;
-  private JList _selectionList;
-  private JSplitPane _splitPane;
+  private JList<String> _selectionList;
+  private SplitPane _splitPane;
 
   public PasteBufferSelectDialog( JTextComponent textComponent )
     throws HeadlessException
@@ -45,17 +46,19 @@ public class PasteBufferSelectDialog extends JDialog implements ListSelectionLis
 
     _textArea = new JTextArea();
     _textArea.setEditable( false );
+    _textArea.setBorder( BorderFactory.createEmptyBorder() );
     JScrollPane bottom = new JScrollPane( _textArea );
 
     List<String> strings = _copyBuffer;
-    _selectionList = new JList( truncateList( strings ) );
+    _selectionList = new JList<>( truncateList( strings ) );
+    _selectionList.setBorder( BorderFactory.createEmptyBorder() );
     _selectionList.setSelectionMode( ListSelectionModel.SINGLE_SELECTION );
     _selectionList.addListSelectionListener( this );
     _selectionList.setFont( _textArea.getFont() );
     _selectionList.setCellRenderer( new CustomListCellRenderer() );
     JScrollPane top = new JScrollPane( _selectionList );
 
-    _splitPane = new JSplitPane( JSplitPane.HORIZONTAL_SPLIT, top, bottom );
+    _splitPane = new SplitPane( SplitPane.HORIZONTAL, top, bottom );
 
     contentPanel.add( _splitPane, BorderLayout.CENTER );
     JPanel buttonPane = new JPanel( new FlowLayout( FlowLayout.RIGHT ) );
@@ -149,13 +152,13 @@ public class PasteBufferSelectDialog extends JDialog implements ListSelectionLis
     }
   }
 
-  private Object[] truncateList( List<String> strings )
+  private String[] truncateList( List<String> strings )
   {
-    List<String> returnList = new ArrayList<String>();
+    List<String> returnList = new ArrayList<>();
     for( String s : strings )
     {
       String str = GosuStringUtil.isWhitespace( s ) ? s : GosuStringUtil.strip( s );
-      if( str.indexOf( "\n" ) >= 0 )
+      if( str.contains( "\n" ) )
       {
         String[] strings1 = str.split( "\n" );
         if( strings1.length > 0 )
@@ -169,7 +172,7 @@ public class PasteBufferSelectDialog extends JDialog implements ListSelectionLis
       }
       returnList.add( elide( str ) );
     }
-    return returnList.toArray();
+    return returnList.toArray( new String[returnList.size()] );
   }
 
   private String elide( String str )
@@ -203,7 +206,7 @@ public class PasteBufferSelectDialog extends JDialog implements ListSelectionLis
   {
     if( visible )
     {
-      _splitPane.setDividerLocation( 50 );
+      _splitPane.setPosition( 50 );
       if( _selectionList.getModel().getSize() > 0 )
       {
         _selectionList.setSelectedIndex( 0 );

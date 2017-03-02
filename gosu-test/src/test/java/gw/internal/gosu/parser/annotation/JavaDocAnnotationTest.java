@@ -7,8 +7,6 @@ package gw.internal.gosu.parser.annotation;
 import gw.internal.gosu.parser.IGosuClassInternal;
 import gw.lang.reflect.ReflectUtil;
 import gw.lang.parser.exceptions.ParseResultsException;
-import gw.lang.reflect.java.IJavaType;
-import gw.lang.reflect.java.JavaTypes;
 import gw.lang.reflect.java.JavaTypes;
 import gw.test.TestClass;
 

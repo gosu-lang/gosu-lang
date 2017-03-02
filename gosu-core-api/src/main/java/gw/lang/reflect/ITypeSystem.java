@@ -252,4 +252,6 @@ public interface ITypeSystem extends IService
   IGosuc makeGosucCompiler( String gosucProjectFile, ICustomParser custParser );
 
   boolean isParameterizedWith( IType type, ITypeVariableType... typeVar );
+
+  IType getCompoundType( Set<IType> types );
 }

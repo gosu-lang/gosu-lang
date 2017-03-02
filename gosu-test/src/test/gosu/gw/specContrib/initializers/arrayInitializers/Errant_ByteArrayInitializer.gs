@@ -9,7 +9,7 @@ class Errant_ByteArrayInitializer {
   var byteArray110 : byte[] = {'c', 'd', 'e'}
   var byteArray111 : byte[] = {'ü', 'é', 'â'}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.CHARACTER>', REQUIRED: 'BYTE[]'
   var byteArray112 : byte[] = {1b, 2b, 3b}
-  var byteArray113 : byte[] = {1s,2s,3s}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.SHORT>', REQUIRED: 'BYTE[]'
+  var byteArray113 : byte[] = {1 as short,2 as short,3 as short}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.SHORT>', REQUIRED: 'BYTE[]'
   //IDE-1284
   var byteArray114 : byte[] = {1,2,3}
   var byteArray115 : byte[] = {1000.5f, 42.5f,2.5f}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.FLOAT>', REQUIRED: 'BYTE[]'
@@ -19,7 +19,7 @@ class Errant_ByteArrayInitializer {
   var byteArray119 : byte[] = {BigInteger.ONE}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.MATH.BIGINTEGER>', REQUIRED: 'BYTE[]'
   var byteArray120 : byte[] = {1b, 'c'}
   var byteArray120_1 : byte[] = {1b, 'â'}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.INTEGER>', REQUIRED: 'BYTE[]'
-  var byteArray121 : byte[] = {1b, 1s}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.INTEGER>', REQUIRED: 'BYTE[]'
+  var byteArray121 : byte[] = {1b, 1 as short}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.INTEGER>', REQUIRED: 'BYTE[]'
   //IDE-1284
   var byteArray122 : byte[] = {1b, 42}
   var byteArray123 : byte[] = {1b, 45l}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.LONG>', REQUIRED: 'BYTE[]'
@@ -27,13 +27,13 @@ class Errant_ByteArrayInitializer {
   var byteArray125 : byte[] = {1b, "mystring"}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.IO.SERIALIZABLE & JAVA.LANG.COMPARABLE<JAVA.IO.SERIALIZABLE & JAVA.LANG.COMPARABLE<? EXTENDS JAVA.LANG.COMPARABLE<?>>>>', REQUIRED: 'BYTE[]'
   var byteArray126 : byte[] = {new Date(), new Date()}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.UTIL.DATE>', REQUIRED: 'BYTE[]'
   var byteArray127 : byte[] = {1b, new Date()}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.IO.SERIALIZABLE & JAVA.LANG.COMPARABLE<JAVA.IO.SERIALIZABLE & JAVA.LANG.COMPARABLE<? EXTENDS JAVA.LANG.COMPARABLE<?>>>>', REQUIRED: 'BYTE[]'
-  var byteArray128 : byte[] = {'c', 1b, 1s, 42, 42.5f, 42L, 42.5}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.DOUBLE>', REQUIRED: 'BYTE[]'
+  var byteArray128 : byte[] = {'c', 1b, 1 as short, 42, 42.5f, 42L, 42.5}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.DOUBLE>', REQUIRED: 'BYTE[]'
 
 
   var byteArray210 : Byte[] = {'c', 'd', 'e'}
   var byteArray211 : Byte[] = {'ü', 'é', 'â'}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.CHARACTER>', REQUIRED: 'BYTE[]'
   var byteArray212 : Byte[] = {1b, 2b, 3b}
-  var byteArray213 : Byte[] = {1s,2s,3s}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.SHORT>', REQUIRED: 'BYTE[]'
+  var byteArray213 : Byte[] = {1 as short,2 as short,3 as short}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.SHORT>', REQUIRED: 'BYTE[]'
   //IDE-1284
   var byteArray214 : Byte[] = {1,2,3}
   var byteArray215 : Byte[] = {1000.5f, 42.5f,2.5f}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.FLOAT>', REQUIRED: 'BYTE[]'
@@ -43,7 +43,7 @@ class Errant_ByteArrayInitializer {
   var byteArray219 : Byte[] = {BigInteger.ONE}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.MATH.BIGINTEGER>', REQUIRED: 'BYTE[]'
   var byteArray220 : Byte[] = {1b, 'c'}
   var byteArray220_1 : Byte[] = {1b, 'â'}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.INTEGER>', REQUIRED: 'BYTE[]'
-  var byteArray221 : Byte[] = {1b, 1s}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.INTEGER>', REQUIRED: 'BYTE[]'
+  var byteArray221 : Byte[] = {1b, 1 as short}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.INTEGER>', REQUIRED: 'BYTE[]'
   //IDE-1284
   var byteArray222 : Byte[] = {1b, 42}
   var byteArray223 : Byte[] = {1b, 45L}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.LONG>', REQUIRED: 'BYTE[]'
@@ -51,6 +51,6 @@ class Errant_ByteArrayInitializer {
   var byteArray225 : Byte[] = {1b, "mystring"}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.IO.SERIALIZABLE & JAVA.LANG.COMPARABLE<JAVA.IO.SERIALIZABLE & JAVA.LANG.COMPARABLE<? EXTENDS JAVA.LANG.COMPARABLE<?>>>>', REQUIRED: 'BYTE[]'
   var byteArray226 : Byte[] = {new Date(), new Date()}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.UTIL.DATE>', REQUIRED: 'BYTE[]'
   var byteArray227 : Byte[] = {1b, new Date()}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.IO.SERIALIZABLE & JAVA.LANG.COMPARABLE<JAVA.IO.SERIALIZABLE & JAVA.LANG.COMPARABLE<? EXTENDS JAVA.LANG.COMPARABLE<?>>>>', REQUIRED: 'BYTE[]'
-  var byteArray228 : Byte[] = {'c', 1b, 1s, 42, 42.5f, 42L, 42.5}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.DOUBLE>', REQUIRED: 'BYTE[]'
+  var byteArray228 : Byte[] = {'c', 1b, 1 as short, 42, 42.5f, 42L, 42.5}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.DOUBLE>', REQUIRED: 'BYTE[]'
 
 }

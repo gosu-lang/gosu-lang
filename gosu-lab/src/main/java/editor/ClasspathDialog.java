@@ -1,13 +1,12 @@
 package editor;
 
-import editor.search.StudioUtilities;
+import editor.util.EditorUtilities;
 import editor.util.Experiment;
 
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
 import javax.swing.filechooser.FileFilter;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
@@ -16,14 +15,14 @@ import java.util.List;
 import java.util.StringTokenizer;
 import java.util.stream.Collectors;
 
-public class ClasspathDialog extends JDialog
+public class ClasspathDialog extends JDialog implements IHandleCancel
 {
   private JTextPane _pathsList;
   private File _dir;
 
   public ClasspathDialog( File dir )
   {
-    super( (JFrame)KeyboardFocusManager.getCurrentKeyboardFocusManager().getActiveWindow(), "Classpath", true );
+    super( (JFrame)KeyboardFocusManager.getCurrentKeyboardFocusManager().getActiveWindow(), "Dependencies", true );
     _dir = dir;
     configUI();
     addWindowListener( new WindowAdapter()
@@ -45,18 +44,32 @@ public class ClasspathDialog extends JDialog
     JPanel mainPanel = new JPanel( new BorderLayout() );
     mainPanel.setBorder( BorderFactory.createCompoundBorder( UIManager.getBorder( "TextField.border" ),
                                                              BorderFactory.createEmptyBorder( 5, 5, 5, 5 ) ) );
-    JPanel panel = new JPanel( new BorderLayout() );
+
+
+    JPanel labelContainer = new JPanel( new BorderLayout() );
+    JLabel label = new JLabel( "<html>Need to use classes outside your experiment? Configure a '<b>" + File.pathSeparator + "</b>' " +
+                               "separated list of directories and/or jar files containing Gosu or Java classes your experiment uses." );
+    label.setBorder( new EmptyBorder( 2, 0, 0, 0 ) );
+    labelContainer.add( label, BorderLayout.NORTH );
+    JLabel label2 = new JLabel( "Dependency List", EditorUtilities.loadIcon( "images/folder.png" ), SwingConstants.LEFT );
+    labelContainer.add( label2, BorderLayout.SOUTH );
+    label2.setBorder( new EmptyBorder( 10, 0, 2, 0 ) );
+    mainPanel.add( labelContainer, BorderLayout.NORTH );
+
     _pathsList = new JTextPane();
     JScrollPane scroller = new JScrollPane( _pathsList );
     setPathsList();
     _pathsList.setBorder( BorderFactory.createEmptyBorder() );
-    JButton btnPaths = new JButton( "..." );
-    btnPaths.addActionListener( e -> updatePaths() );
-    panel.add( btnPaths, BorderLayout.NORTH );
+    mainPanel.add( scroller, BorderLayout.CENTER );
+
+    JPanel panel = new JPanel( new BorderLayout() );
     JPanel filler = new JPanel();
     filler.setBorder( BorderFactory.createEmptyBorder( 0, 4, 0, 0 ) );
     panel.add( filler, BorderLayout.CENTER );
-    mainPanel.add( scroller, BorderLayout.CENTER );
+    JButton btnPaths = new JButton( "..." );
+    btnPaths.setToolTipText( "Find a directory or Jar file" );
+    btnPaths.addActionListener( e -> updatePaths() );
+    panel.add( btnPaths, BorderLayout.NORTH );
     mainPanel.add( panel, BorderLayout.EAST );
 
     contentPane.add( mainPanel, BorderLayout.CENTER );
@@ -86,11 +99,11 @@ public class ClasspathDialog extends JDialog
     south.add( buttonPanel, BorderLayout.EAST );
     contentPane.add( south, BorderLayout.SOUTH );
 
-    mapCancelKeystroke();
+    mapCancelKeystroke( "Cancel", this::close );
 
     setSize( 600, 400 );
 
-    StudioUtilities.centerWindowInFrame( this, getOwner() );
+    EditorUtilities.centerWindowInFrame( this, getOwner() );
   }
 
   private void setPathsList()
@@ -113,7 +126,7 @@ public class ClasspathDialog extends JDialog
     for(; tokenizer.hasMoreTokens(); )
     {
       String strPath = tokenizer.nextToken();
-      paths.add( strPath );
+      paths.add( strPath.trim() );
     }
     List<File> pathFiles = new ArrayList<>();
     for( String strPath : paths )
@@ -135,7 +148,7 @@ public class ClasspathDialog extends JDialog
   private void updatePaths()
   {
     JFileChooser fc = new JFileChooser( getCurrentDir() );
-    fc.setDialogTitle( "Add Paths" );
+    fc.setDialogTitle( "Add Dependencies" );
     fc.setDialogType( JFileChooser.OPEN_DIALOG );
     fc.setFileSelectionMode( JFileChooser.FILES_AND_DIRECTORIES );
     fc.setMultiSelectionEnabled( true );
@@ -149,7 +162,7 @@ public class ClasspathDialog extends JDialog
 
         public String getDescription()
         {
-          return "Classpath (directories or archive files)";
+          return "Dependencies (directories or archive files)";
         }
       } );
     int returnVal = fc.showOpenDialog( editor.util.EditorUtilities.frameForComponent( this ) );
@@ -172,25 +185,6 @@ public class ClasspathDialog extends JDialog
   private File getCurrentDir()
   {
     return _dir;
-  }
-
-
-  private void mapCancelKeystroke()
-  {
-    Object key = getRootPane().getInputMap( JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT ).get( KeyStroke.getKeyStroke( KeyEvent.VK_ESCAPE, 0 ) );
-    if( key == null )
-    {
-      key = "Cancel";
-      getRootPane().getInputMap( JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT ).put( KeyStroke.getKeyStroke( KeyEvent.VK_ESCAPE, 0 ), key );
-    }
-    getRootPane().getActionMap().put( key,
-                                      new AbstractAction()
-                                      {
-                                        public void actionPerformed( ActionEvent e )
-                                        {
-                                          close();
-                                        }
-                                      } );
   }
 
   private void close()
