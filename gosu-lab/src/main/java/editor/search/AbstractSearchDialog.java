@@ -52,7 +52,7 @@ public abstract class AbstractSearchDialog extends AbstractDialog
 
   public AbstractSearchDialog( FileTree searchDir, boolean bReplace, String title )
   {
-    super( LabFrame.instance(), title, true );
+    super( LabFrame.instance(), title, false );
     _searchDir = searchDir;
     _bReplace = bReplace;
     configUi();
@@ -113,9 +113,8 @@ public abstract class AbstractSearchDialog extends AbstractDialog
     buttonPanel.setLayout( new BoxLayout( buttonPanel, BoxLayout.X_AXIS ) );
     buttonPanel.setBackground( Scheme.active().getMenu() );
 
-    JButton btnFind = new LabButton( _bReplace ? "Replace" : "Find" );
+    JButton btnFind = new LabButton( new FindActionHandler() );
     btnFind.setMnemonic( 'F' );
-    btnFind.addActionListener( e -> find() );
     buttonPanel.add( btnFind );
     getRootPane().setDefaultButton( btnFind );
 
@@ -744,6 +743,33 @@ public abstract class AbstractSearchDialog extends AbstractDialog
         array[i+extra] = model.getElementAt( i );
       }
       return array;
+    }
+  }
+
+  private class FindActionHandler extends AbstractAction
+  {
+    private FindActionHandler()
+    {
+      super( _bReplace ? "Replace" : "Find" );
+    }
+
+    @Override
+    public boolean isEnabled()
+    {
+      String pattern = ((JTextComponent)_cbSearch.getEditor().getEditorComponent()).getText();
+      boolean enabled = pattern != null && !pattern.isEmpty();
+      if( _bReplace && enabled )
+      {
+        String replace = ((JTextComponent)_cbReplace.getEditor().getEditorComponent()).getText();
+        enabled = replace != null && !replace.isEmpty();
+      }
+      return enabled;
+    }
+
+    @Override
+    public void actionPerformed( ActionEvent e )
+    {
+      find();
     }
   }
 }

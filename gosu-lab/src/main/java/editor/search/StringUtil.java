@@ -25,6 +25,11 @@ public class StringUtil
 
     List<SearchLocation> list = new ArrayList<>();
 
+    if( content.isEmpty() )
+    {
+      return list;
+    }
+
     int iIndex = backwards ? content.length() : 0;
     int iIndex2 = backwards ? content.lastIndexOf( pattern, iOffset - pattern.length() - 1 ) : content.indexOf( pattern, iOffset );
     if( iIndex2 < 0 )

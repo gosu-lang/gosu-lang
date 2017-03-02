@@ -31,6 +31,7 @@ public class LabButton extends JButton
   {
     this();
     EventQueue.invokeLater( () -> setAction( action ) );
+    UpdateNotifier.instance().addActionComponent( this );
   }
 
   public LabButton( Icon icon )
