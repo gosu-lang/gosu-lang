@@ -54,7 +54,7 @@ public class MethodJavaClassMethod implements IJavaClassMethod, IJavaClassByteco
       List<Parameter> paramInfos = new ArrayList<>();
       for( java.lang.reflect.Parameter p: params )
       {
-        paramInfos.add( new Parameter( p.getName(), p.getModifiers() ) );
+        paramInfos.add( new Parameter( p.isNamePresent() ? p.getName() : null, p.getModifiers() ) );
       }
       return paramInfos;
     }
