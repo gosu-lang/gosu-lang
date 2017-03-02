@@ -105,7 +105,6 @@ import gw.lang.parser.StandardScope;
 import gw.lang.parser.SymbolType;
 import gw.lang.parser.ThreadSafeSymbolTable;
 import gw.lang.parser.TypeVarToTypeMap;
-import gw.lang.parser.coercers.FunctionToInterfaceCoercer;
 import gw.lang.parser.coercers.IdentityCoercer;
 import gw.lang.parser.exceptions.DoesNotOverrideFunctionException;
 import gw.lang.parser.exceptions.ErrantGosuClassException;
@@ -7360,7 +7359,17 @@ public final class GosuParser extends ParserBase implements IGosuParser
       pushInferenceMap( inferenceMap );
 
       pushTypeVariableTypesToInfer( funcType );
-      TypeVarToTypeMap masked = maskCurrentFunctionTypeVarsFromPriorInference();
+      TypeVarToTypeMap masked;
+      if( inferenceMap.isReparsing() )
+      {
+        masked = TypeVarToTypeMap.EMPTY_MAP;
+        inferenceMap.setReparsing( false );
+      }
+      else
+      {
+        masked = maskCurrentFunctionTypeVarsFromPriorInference();
+      }
+
       maybeInferFunctionTypeVarsFromReturnType( funcType, inferenceMap );
       List<ITypeVariableType> added = funcType instanceof ConstructorType ? Collections.emptyList() : new ArrayList<>( 2 );
       try
@@ -7509,12 +7518,11 @@ public final class GosuParser extends ParserBase implements IGosuParser
       pushTypeVariableTypesToInfer( rawFunctionType );
       try
       {
-        if( bShouldScoreMethods )
+        MethodScore theScore = reparseWithCorrectFunctionAndGtfo( bestScore, bShouldScoreMethods, argExpressions, element,
+                                                                  mark, iLocationsCount, rootType, typeParams, bVerifyArgs, bNoArgsProvided );
+        if( theScore != null )
         {
-          // Reparse with correct funcType context and get out of dodge
-          backtrackArgParsing( mark, iLocationsCount, argExpressions );
-          MethodScorer.instance().putCachedMethodScore( bestScore );
-          return parseArgumentList( rootType, element, Arrays.asList( bestScore.getRawFunctionType() ), typeParams, bVerifyArgs, bNoArgsProvided );
+          return theScore;
         }
 
         maybeReassignOffsetForArgumentListClause( argExpressions.size(), argExpressions, iOffset, iLineNum, iColumn );
@@ -7561,6 +7569,113 @@ public final class GosuParser extends ParserBase implements IGosuParser
       errScore.setArguments( Collections.<IExpression>emptyList() );
       return errScore;
     }
+  }
+
+  private MethodScore reparseWithCorrectFunctionAndGtfo( MethodScore bestScore, boolean bShouldScoreMethods, List<Expression> argExpressions,
+                                                         ParsedElement element, int mark, int iLocationsCount, IType rootType, IType[] typeParams, boolean bVerifyArgs, boolean bNoArgsProvided )
+  {
+    if( bShouldScoreMethods )
+    {
+      // Reparse with correct funcType overload in context
+
+      return reparseArguments( bestScore, argExpressions, element, mark, iLocationsCount, rootType, typeParams, bVerifyArgs, bNoArgsProvided );
+    }
+    else
+    {
+      // Reparse if there is an error in a parameter expression and we can possibly
+      // infer a type in the expression from a subsequent expression.
+      //
+      // For example, given:
+      //
+      //   function make<B>( consume(b:B), ref: B ) : B
+      //
+      //   make( \ b -> b.Code, MyEnum.Hi )
+      //
+      // the type of 'b' can be inferred from the second argument, thus we must reparse
+      // with the inference map having B inferred.
+
+      TypeVarToTypeMap inferenceMap = bestScore.getInferenceMap();
+      if( !inferenceMap.isEmpty() &&
+          argExpressions.stream().anyMatch( ParsedElement::hasParseExceptions ) &&
+          (getInferenceMap() == null || getInferenceMap().getReparseElement() != element || reparseErrorsAreDifferent( getInferenceMap(), argExpressions )) )
+      {
+        if( !inferenceMap.isEmpty() )
+        {
+          inferenceMap = new TypeVarToTypeMap( inferenceMap );
+          inferenceMap.setReparsing( true );
+          inferenceMap.setReparseElement( element );
+          inferenceMap.pushReparseErrors( argExpressions.stream().flatMap( e -> e.getParseExceptions().stream() ).collect( Collectors.toList() ) );
+          pushInferenceMap( inferenceMap );
+        }
+        try
+        {
+          // Reparse with a potentially better inference map
+
+          return reparseArguments( bestScore, argExpressions, element, mark, iLocationsCount, rootType, typeParams, bVerifyArgs, bNoArgsProvided );
+        }
+        finally
+        {
+          if( getInferenceMap() == inferenceMap )
+          {
+            inferenceMap.setReparsing( false );
+            inferenceMap.setReparseElement( null );
+            inferenceMap.popReparseErrors();
+            popInferenceMap( inferenceMap );
+          }
+        }
+      }
+    }
+    return null;
+  }
+
+  private boolean reparseErrorsAreDifferent( TypeVarToTypeMap inferenceMap, List<Expression> argExpressions )
+  {
+    Stack<List<IParseIssue>> reparseErrors = inferenceMap.getReparseErrorStack();
+    if( reparseErrors == null || reparseErrors.isEmpty() )
+    {
+      return true;
+    }
+
+    List<IParseIssue> newErrors = argExpressions.stream().flatMap( e -> e.getParseExceptions().stream() ).collect( Collectors.toList() );
+    for( List<IParseIssue> errors: reparseErrors )
+    {
+      if( errorsSame( newErrors, errors ) )
+      {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  private boolean errorsSame( List<IParseIssue> newErrors, List<IParseIssue> errors )
+  {
+    int size = newErrors.size();
+    if( size != errors.size() )
+    {
+      return false;
+    }
+
+    for( int i = 0; i < size; i++ )
+    {
+      IParseIssue newErr = newErrors.get( i );
+      IParseIssue oldErr = errors.get( i );
+      if( newErr.getLine() != oldErr.getLine() ||
+          newErr.getColumn() != oldErr.getColumn() ||
+          newErr.getMessageKey() != oldErr.getMessageKey() )
+      {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  private MethodScore reparseArguments( MethodScore bestScore, List<Expression> argExpressions, ParsedElement element, int mark, int iLocationsCount, IType rootType, IType[] typeParams, boolean bVerifyArgs, boolean bNoArgsProvided )
+  {
+    backtrackArgParsing( mark, iLocationsCount, argExpressions );
+    MethodScorer.instance().putCachedMethodScore( bestScore );
+    return parseArgumentList( rootType, element, Arrays.asList( bestScore.getRawFunctionType() ), typeParams, bVerifyArgs, bNoArgsProvided );
   }
 
   private TypeVarToTypeMap maskCurrentFunctionTypeVarsFromPriorInference()

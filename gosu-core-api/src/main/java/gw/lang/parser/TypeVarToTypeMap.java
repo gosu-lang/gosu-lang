@@ -8,10 +8,12 @@ import gw.lang.reflect.IType;
 import gw.lang.reflect.ITypeVariableType;
 
 import gw.util.Pair;
+import gw.util.Stack;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -24,6 +26,9 @@ public class TypeVarToTypeMap
   private Map<ITypeVariableType, Pair<IType, Boolean>> _map;
   private Set<ITypeVariableType> _typesInferredFromCovariance;
   private boolean _bStructural;
+  private boolean _bReparsing;
+  private IParsedElement _reparseElem;
+  private Stack<List<IParseIssue>> _reparseErrorStack;
 
   public TypeVarToTypeMap()
   {
@@ -159,5 +164,40 @@ public class TypeVarToTypeMap
 
   public interface ITypeVarMatcher<E> {
     boolean matches( E thisOne, ITypeVariableType thatOne );
+  }
+
+  public boolean isReparsing()
+  {
+    return _bReparsing;
+  }
+  public void setReparsing( boolean bReparsing )
+  {
+    _bReparsing = bReparsing;
+  }
+
+  public IParsedElement getReparseElement()
+  {
+    return _reparseElem;
+  }
+  public void setReparseElement( IParsedElement reparseElem )
+  {
+    _reparseElem = reparseElem;
+  }
+
+  public Stack<List<IParseIssue>> getReparseErrorStack()
+  {
+    return _reparseErrorStack;
+  }
+  public void pushReparseErrors( List<IParseIssue> reparseErrors )
+  {
+    if( _reparseErrorStack == null )
+    {
+      _reparseErrorStack = new Stack<>();
+    }
+    _reparseErrorStack.push( reparseErrors );
+  }
+  public void popReparseErrors()
+  {
+    _reparseErrorStack.pop();
   }
 }
