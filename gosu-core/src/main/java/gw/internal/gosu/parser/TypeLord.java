@@ -2385,7 +2385,7 @@ public class TypeLord
     return (type instanceof IGosuProgram) && ((IGosuProgram)type).isAnonymous();
   }
 
-  public static void addReferencedTypeVarsThatAreNotInMap( IType type, TypeVarToTypeMap map, List<ITypeVariableType> added )
+  public static void addReferencedTypeVarsThatAreNotInMap( IType type, TypeVarToTypeMap map )
   {
     if( type instanceof TypeVariableType )
     {
@@ -2393,22 +2393,18 @@ public class TypeLord
       if( existingType == null )
       {
         map.put( (ITypeVariableType)type, type );
-        if( added != Collections.EMPTY_LIST )
-        {
-          added.add( (ITypeVariableType)type );
-        }
       }
     }
     else if( type.isParameterizedType() )
     {
       for( IType typeParam : type.getTypeParameters() )
       {
-        addReferencedTypeVarsThatAreNotInMap( typeParam, map, added );
+        addReferencedTypeVarsThatAreNotInMap( typeParam, map );
       }
     }
     else if( type.isArray() )
     {
-      addReferencedTypeVarsThatAreNotInMap( type.getComponentType(), map, added );
+      addReferencedTypeVarsThatAreNotInMap( type.getComponentType(), map );
     }
     else if( type instanceof IFunctionType )
     {
@@ -2416,9 +2412,9 @@ public class TypeLord
       IType[] types = funType.getParameterTypes();
       for( IType iType : types )
       {
-        addReferencedTypeVarsThatAreNotInMap( iType, map, added );
+        addReferencedTypeVarsThatAreNotInMap( iType, map );
       }
-      addReferencedTypeVarsThatAreNotInMap( funType.getReturnType(), map, added );
+      addReferencedTypeVarsThatAreNotInMap( funType.getReturnType(), map );
     }
   }
 

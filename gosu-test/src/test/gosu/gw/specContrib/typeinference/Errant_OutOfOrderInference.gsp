@@ -14,3 +14,18 @@ var z = make( \ a ->a.Alpha, \ b ->b.Code, First )  //## issuekeys: MSG_NO_PROPE
 
 static enum MyEnum { First, Second }
 
+//
+// This bit demonstrates type variables don't bleed into other calls and cause
+// unnecessary out-of-order reparsing which would create parse errors
+//
+execute( \ -> {
+  foo( "" )
+  execute( \ p -> {} )
+} )
+
+function execute( runme() ) {}
+function execute( runMe(p: String) ) {}
+
+function foo<T>( t: T ): T { return null }
+
+

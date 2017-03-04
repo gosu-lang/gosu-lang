@@ -2394,9 +2394,9 @@ public abstract class ParserBase implements IParserPart
   {
     _inferringFunctionTypes.push( typeVariableTypes );
   }
-  protected void popInferringFunctionTypeVariableTypes()
+  protected List<IType> popInferringFunctionTypeVariableTypes()
   {
-    _inferringFunctionTypes.pop();
+    return _inferringFunctionTypes.pop();
   }
   protected List<IType> peekInferringFunctionTypeVariableTypes()
   {

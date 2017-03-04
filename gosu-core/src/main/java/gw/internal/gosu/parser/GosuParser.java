@@ -7371,7 +7371,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
       }
 
       maybeInferFunctionTypeVarsFromReturnType( funcType, inferenceMap );
-      List<ITypeVariableType> added = funcType instanceof ConstructorType ? Collections.emptyList() : new ArrayList<>( 2 );
+      List<ITypeVariableType> funcLocalTypeVars = null;
       try
       {
         if( !bNoArgsProvided )
@@ -7388,7 +7388,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
             {
               parserStates.add( makeLightweightParserState() );
 
-              int iArgPos = parseArgExpression( funcType, iArgs, argExpressions, inferenceMap, added, parserStates, namedArgs, bShouldScoreMethods || getContextType().isMethodScoring()/* avoid nested scoring */ );
+              int iArgPos = parseArgExpression( funcType, iArgs, argExpressions, inferenceMap, parserStates, namedArgs, bShouldScoreMethods || getContextType().isMethodScoring()/* avoid nested scoring */ );
               namedArgOrder = assignArgExprPosition( listFunctionTypes, iArgs, namedArgOrder, iArgPos );
               iArgs++;
             }
@@ -7398,7 +7398,8 @@ public final class GosuParser extends ParserBase implements IGosuParser
           {
             if( funcType != null )
             {
-              popInferringFunctionTypeVariableTypes();
+              //noinspection unchecked
+              funcLocalTypeVars = (List)popInferringFunctionTypeVariableTypes();
             }
           }
         }
@@ -7435,18 +7436,11 @@ public final class GosuParser extends ParserBase implements IGosuParser
       {
         if( funcType != null )
         {
-          if( funcType instanceof ConstructorType && !added.isEmpty() )
+          if( funcLocalTypeVars != null )
           {
-            // remove type vars of class corresponding with constructor call
-            // e.g., foo(new Foo(a), new Foo(b)) // given Foo<T> and Foo#construct(t: T), we don't want a's inference of T to effect b's; they are different Ts
-
-            List<IType> ifv = getCurrentlyInferringFunctionTypeVars();
-            for( ITypeVariableType tv: added )
+            for( ITypeVariableType tv: funcLocalTypeVars )
             {
-              if( ifv.contains( tv ) && !tv.isFunctionStatement() )
-              {
-                inferenceMap.remove( tv );
-              }
+              inferenceMap.remove( tv );
             }
           }
           popInferringFunctionTypeVariableTypes();
@@ -7599,14 +7593,11 @@ public final class GosuParser extends ParserBase implements IGosuParser
           argExpressions.stream().anyMatch( ParsedElement::hasParseExceptions ) &&
           (getInferenceMap() == null || getInferenceMap().getReparseElement() != element || reparseErrorsAreDifferent( getInferenceMap(), argExpressions )) )
       {
-        if( !inferenceMap.isEmpty() )
-        {
-          inferenceMap = new TypeVarToTypeMap( inferenceMap );
-          inferenceMap.setReparsing( true );
-          inferenceMap.setReparseElement( element );
-          inferenceMap.pushReparseErrors( argExpressions.stream().flatMap( e -> e.getParseExceptions().stream() ).collect( Collectors.toList() ) );
-          pushInferenceMap( inferenceMap );
-        }
+        inferenceMap = new TypeVarToTypeMap( inferenceMap );
+        inferenceMap.setReparsing( true );
+        inferenceMap.setReparseElement( element );
+        inferenceMap.pushReparseErrors( argExpressions.stream().flatMap( e -> e.getParseExceptions().stream() ).collect( Collectors.toList() ) );
+        pushInferenceMap( inferenceMap );
         try
         {
           // Reparse with a potentially better inference map
@@ -7615,13 +7606,10 @@ public final class GosuParser extends ParserBase implements IGosuParser
         }
         finally
         {
-          if( getInferenceMap() == inferenceMap )
-          {
-            inferenceMap.setReparsing( false );
-            inferenceMap.setReparseElement( null );
-            inferenceMap.popReparseErrors();
-            popInferenceMap( inferenceMap );
-          }
+          inferenceMap.setReparsing( false );
+          inferenceMap.setReparseElement( null );
+          inferenceMap.popReparseErrors();
+          popInferenceMap( inferenceMap );
         }
       }
     }
@@ -7970,7 +7958,6 @@ public final class GosuParser extends ParserBase implements IGosuParser
                                   int iArgs,
                                   List<Expression> argExpressions,
                                   TypeVarToTypeMap inferenceMap,
-                                  List<ITypeVariableType> added,
                                   List<LightweightParserState> parserStates,
                                   Set<String> namedArgs,
                                   boolean bMethodScoring )
@@ -8014,7 +8001,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
 
     IType ctxType = iArgPos < 0 ? ErrorType.getInstance() : iArgPos < paramTypes.length ? paramTypes[iArgPos] : null;
     ctxType = ctxType == null ? useDynamicTypeIfDynamicRoot( funcType, ctxType ) : ctxType;
-    rawCtxType = ctxType == null ? null : inferArgType( ctxType, inferenceMap, added );
+    rawCtxType = ctxType == null ? null : inferArgType( ctxType, inferenceMap );
     if( ctxType == null )
     {
       boundCtxType = null;
@@ -8242,9 +8229,9 @@ public final class GosuParser extends ParserBase implements IGosuParser
     }
   }
 
-  private IType inferArgType( IType contextType, TypeVarToTypeMap inferenceMap, List<ITypeVariableType> added )
+  private IType inferArgType( IType contextType, TypeVarToTypeMap inferenceMap )
   {
-    TypeLord.addReferencedTypeVarsThatAreNotInMap( contextType, inferenceMap, added );
+    TypeLord.addReferencedTypeVarsThatAreNotInMap( contextType, inferenceMap );
     return TypeLord.getActualType( contextType, inferenceMap, true );
   }
 
@@ -10515,7 +10502,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
         (((DynamicPropertySymbol)symbol).getVarIdentifier() != null &&
         !((DynamicPropertySymbol)symbol).getVarIdentifier().equals( strVarIdentifier) ) )
     {
-      varStmt.addParseException( new ParseException( makeFullParserState(), Res.MSG_PROPERTY_ALREADY_DEFINED, strPropertyName) );
+      varStmt.addParseException( new ParseException( makeFullParserState(), Res.MSG_PROPERTY_ALREADY_DEFINED, strPropertyName ) );
     }
 
     ICompilableType gsClass = getGosuClass();
