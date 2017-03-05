@@ -208,7 +208,7 @@ public class GosuStyleContext extends StyleContext implements ViewFactory
 
   public void setDefaultStyles()
   {
-    boolean bAllowBold = false;
+    boolean bAllowBold = true;
 
     // Default
     Style style = getStyle( DEFAULT_STYLE );
