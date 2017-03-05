@@ -71,10 +71,15 @@ class DefaultExchangeRatesService implements IExchangeRatesService
         //print( "Failed to get currency for: " + name )
       }
       if( currencyOfName != null ) {
-        var mid = Rational.get( r.Rate )
-        var ask = bigDecimalDefault( name, Ask, r.Ask, mid )
-        var bid = bigDecimalDefault( name, Bid, r.Bid, mid )
-        rateTable.put( Currency.getInstance( name ), new ExchangeRate( mid, ask, bid ) ) 
+        try {
+          var mid = Rational.get( r.Rate )
+          var ask = bigDecimalDefault( name, Ask, r.Ask, mid )
+          var bid = bigDecimalDefault( name, Bid, r.Bid, mid )
+          rateTable.put( Currency.getInstance( name ), new ExchangeRate( mid, ask, bid ) )
+        }
+        catch( nfe: NumberFormatException ) {
+          // sometimes the data is garbage
+        }
       }
     }    
     return rateTable

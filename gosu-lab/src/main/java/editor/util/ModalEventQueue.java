@@ -49,13 +49,18 @@ public class ModalEventQueue implements Runnable
     {
       if( Toolkit.getDefaultToolkit().getSystemEventQueue().peekEvent() == null )
       {
-        UpdateNotifier.instance().notifyActionComponentsNow();
+        executeIdleTasks();
       }
     }
     catch( Throwable t )
     {
       EditorUtilities.handleUncaughtException(t);
     }
+  }
+
+  protected void executeIdleTasks()
+  {
+    UpdateNotifier.instance().notifyActionComponentsNow();
   }
 
   protected void handleUncaughtException( Throwable t )

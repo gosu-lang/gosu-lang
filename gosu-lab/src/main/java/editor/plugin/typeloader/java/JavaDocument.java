@@ -85,6 +85,7 @@ public class JavaDocument extends DefaultStyledDocument
     _keywords.add( "long" );
     _keywords.add( "native" );
     _keywords.add( "new" );
+    _keywords.add( "null" );
     _keywords.add( "package" );
     _keywords.add( "private" );
     _keywords.add( "protected" );

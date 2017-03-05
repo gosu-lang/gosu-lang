@@ -208,6 +208,8 @@ public class GosuStyleContext extends StyleContext implements ViewFactory
 
   public void setDefaultStyles()
   {
+    boolean bAllowBold = false;
+
     // Default
     Style style = getStyle( DEFAULT_STYLE );
     setBackground( style, Scheme.active().getCodeWindow() );
@@ -237,7 +239,7 @@ public class GosuStyleContext extends StyleContext implements ViewFactory
     // String Literals
     style = getStyleForScanValue( (int)'"' );
     setForeground( style, Scheme.active().getCodeStringLiteral() );
-    setBold( style, true );
+    setBold( style, bAllowBold );
 
     // Number Literals
     style = getStyleForScanValue( ISourceCodeTokenizer.TT_NUMBER );
@@ -253,7 +255,7 @@ public class GosuStyleContext extends StyleContext implements ViewFactory
     // Key Words
     style = getStyleForScanValue( GosuStyleContext.KEY_WORD );
     setForeground( style, Scheme.active().getCodeKeyword() );
-    setBold( style, true );
+    setBold( style, bAllowBold );
 
     // Parse Errors
     style = getStyleForScanValue( GosuStyleContext.PARSE_ERROR );
@@ -272,12 +274,12 @@ public class GosuStyleContext extends StyleContext implements ViewFactory
     // Operators
     style = getStyleForScanValue( ISourceCodeTokenizer.TT_OPERATOR );
     setForeground( style, Scheme.active().getCodeOperator() );
-    setBold( style, true );
+    setBold( style, bAllowBold );
 
     // Type Literals
     style = getStyleForScanValue( GosuStyleContext.TYPE_LITERAL );
     setForeground( style, Scheme.active().getCodeTypeLiteral() );
-    setBold( style, true );
+    setBold( style, bAllowBold );
 
     // Type Literals (namespaces and type-parameters)
     style = getStyleForScanValue( GosuStyleContext.NESTED_TYPE_LITERAL );

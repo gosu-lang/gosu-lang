@@ -1,10 +1,8 @@
 package editor;
 
 
-import editor.util.IModalHandler;
 import editor.util.ModalEventQueue;
 
-import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -15,7 +13,6 @@ class GosuEventQueue extends ModalEventQueue
 {
   private static GosuEventQueue INSTANCE;
 
-  private String[] _args;
   private long _lErrMsgTime;
   private final List<Runnable> _idleListeners;
 
@@ -23,16 +20,15 @@ class GosuEventQueue extends ModalEventQueue
   {
     if( INSTANCE == null )
     {
-      INSTANCE = new GosuEventQueue( new String[0] );
+      INSTANCE = new GosuEventQueue();
     }
     return INSTANCE;
   }
 
-  private GosuEventQueue( String[] args )
+  private GosuEventQueue()
   {
-    super( new ModalHandler() );
-    _args = args;
-    _idleListeners = new ArrayList<Runnable>();
+    super( () -> true );
+    _idleListeners = new ArrayList<>();
   }
 
   public void addIdleListener( Runnable l )
@@ -43,6 +39,7 @@ class GosuEventQueue extends ModalEventQueue
     }
   }
 
+  @SuppressWarnings("UnusedDeclaration")
   public boolean removeIdleListener( Runnable l )
   {
     synchronized( _idleListeners )
@@ -61,50 +58,23 @@ class GosuEventQueue extends ModalEventQueue
   }
 
   @Override
-  public void dispatchEvent( AWTEvent event )
+  protected void executeIdleTasks()
   {
-    super.dispatchEvent( event );
-    checkForIdleTime();
-  }
-
-  private void checkForIdleTime()
-  {
-    try
+    for( int i = 0; i < _idleListeners.size(); i++ )
     {
-      if( Toolkit.getDefaultToolkit().getSystemEventQueue().peekEvent() == null )
+      Runnable task;
+      try
       {
-        handleIdleTasks();
+        task = _idleListeners.get( i );
       }
-    }
-    catch( Exception t )
-    {
-      handleUncaughtException( t );
-    }
-  }
-
-  private void handleIdleTasks()
-  {
-    synchronized( _idleListeners )
-    {
-      for( Runnable r : _idleListeners )
+      catch( Exception e )
       {
-        try
-        {
-          r.run();
-        }
-        catch( Exception e )
-        {
-          handleUncaughtException( e );
-        }
+        break;
       }
-    }
-  }
 
-  private static class ModalHandler implements IModalHandler
-  {
-    public boolean isModal()
-    {
-      return true;
+      task.run();
     }
+
+    super.executeIdleTasks();
   }
 }
