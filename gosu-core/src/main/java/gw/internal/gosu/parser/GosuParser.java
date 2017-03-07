@@ -7662,7 +7662,10 @@ public final class GosuParser extends ParserBase implements IGosuParser
   private MethodScore reparseArguments( MethodScore bestScore, List<Expression> argExpressions, ParsedElement element, int mark, int iLocationsCount, IType rootType, IType[] typeParams, boolean bVerifyArgs, boolean bNoArgsProvided )
   {
     backtrackArgParsing( mark, iLocationsCount, argExpressions );
-    MethodScorer.instance().putCachedMethodScore( bestScore );
+    if( !getContextType().isMethodScoring() )
+    {
+      MethodScorer.instance().putCachedMethodScore( bestScore );
+    }
     return parseArgumentList( rootType, element, Arrays.asList( bestScore.getRawFunctionType() ), typeParams, bVerifyArgs, bNoArgsProvided );
   }
 
