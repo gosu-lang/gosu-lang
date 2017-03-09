@@ -5,6 +5,7 @@
 package gw.config;
 
 
+import gw.lang.parser.ILanguageLevel;
 import gw.util.Stack;
 
 import java.lang.reflect.Constructor;
@@ -166,6 +167,8 @@ public abstract class ServiceKernel
     }
     catch (Exception e1) {
       throw new RuntimeException( e1 );
+    } finally {
+      ILanguageLevel.Util.reset();
     }
   }
 
