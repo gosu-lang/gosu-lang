@@ -39,24 +39,21 @@ public class PropertiesPropertySet implements PropertySet {
     private static final String EXTENSION = ".properties";
 
     private final IModule _module;
-    private final LockingLazyVar<Map<String,IFile>> _filesByTypeName = new LockingLazyVar<Map<String, IFile>>() {
-      @Override
-      protected Map<String, IFile> init() {
-        List<Pair<String, IFile>> propertiesFiles = findAllFilesByExtension( EXTENSION );
-        final int initialCapacity = propertiesFiles.size();
-        Map<String,IFile> result = new HashMap<String, IFile>( initialCapacity );
-        for (Pair<String,IFile> pair : propertiesFiles) {
-          String fileName = pair.getFirst();
-          if( !PropertiesTypeLoader.isDisplayPropertiesFile( pair.getSecond().getName() ) ) {
-            String typeName = fileName.substring(0, fileName.length() - EXTENSION.length()).replace('/', '.');
-            if (isValidTypeName(typeName)) {
-              result.put(typeName, pair.getSecond());
-            }
+    private final LockingLazyVar<Map<String, IFile>> _filesByTypeName = LockingLazyVar.make( () -> {
+      List<Pair<String, IFile>> propertiesFiles = findAllFilesByExtension( EXTENSION );
+      final int initialCapacity = propertiesFiles.size();
+      Map<String, IFile> result = new HashMap<>( initialCapacity );
+      for (Pair<String, IFile> pair : propertiesFiles) {
+        String fileName = pair.getFirst();
+        if( !PropertiesTypeLoader.isDisplayPropertiesFile( pair.getSecond().getName() ) ) {
+          String typeName = fileName.substring(0, fileName.length() - EXTENSION.length()).replace('/', '.');
+          if (isValidTypeName(typeName)) {
+            result.putIfAbsent(typeName, pair.getSecond());
           }
         }
-        return result;
       }
-    };
+      return result;
+    });
 
     public List<Pair<String, IFile>> findAllFilesByExtension(String extension) {
       List<Pair<String, IFile>> results = new ArrayList<>();
