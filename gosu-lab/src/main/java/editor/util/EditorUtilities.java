@@ -376,6 +376,8 @@ public class EditorUtilities
         return EditorUtilities.loadIcon( "images/program.png" );
       case Template:
         return EditorUtilities.loadIcon( "images/template.png" );
+      case JavaClass:
+        return EditorUtilities.loadIcon( "images/javaclass.png" );
     }
     return null;
   }

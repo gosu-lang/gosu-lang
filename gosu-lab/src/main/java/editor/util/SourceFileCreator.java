@@ -187,6 +187,10 @@ public class SourceFileCreator
     {
       return writeTempateStub( file );
     }
+    else if( strFile.endsWith( ".java" ) )
+    {
+      return writeJavaStub( file, classType );
+    }
     else if( classType == null )
     {
       return PathUtil.mkdirs( file );
@@ -222,6 +226,46 @@ public class SourceFileCreator
       writer.write( "package " + strPackage + eol +
                     eol +
                     classType.keyword() + ' ' + strRelativeName + " {" + eol +
+                    eol +
+                    "}" );
+      writer.flush();
+      writer.close();
+    }
+    catch( IOException e )
+    {
+      throw new RuntimeException( e );
+    }
+    return true;
+  }
+
+  private boolean writeJavaStub( Path file, ClassType classType )
+  {
+    String strName = TypeNameUtil.getTypeNameForFile( file );
+    if( strName == null )
+    {
+      int iOption = displayTypeWarning( file );
+      if( iOption != JOptionPane.YES_OPTION )
+      {
+        return false;
+      }
+      if( file.getParent() == null )
+      {
+        JOptionPane.showMessageDialog( LabFrame.instance(), "A class must have a parent directory", "Gosu Lab", JOptionPane.ERROR_MESSAGE );
+        return false;
+      }
+      strName = PathUtil.getName( file.getParent() ) + '.' + PathUtil.getName( file ).substring( 0, PathUtil.getName( file ).lastIndexOf( '.' ) );
+    }
+    int iLastDot = strName.lastIndexOf( '.' );
+    String strRelativeName = strName.substring( iLastDot + 1 );
+    String strPackage = iLastDot > 0 ? strName.substring( 0, iLastDot ) : "";
+
+    try
+    {
+      Writer writer = PathUtil.createWriter( file );
+      String eol = System.getProperty( "line.separator" );
+      writer.write( "package " + strPackage + ";" + eol +
+                    eol +
+                    "public " + classType.keyword() + ' ' + strRelativeName + " {" + eol +
                     eol +
                     "}" );
       writer.flush();

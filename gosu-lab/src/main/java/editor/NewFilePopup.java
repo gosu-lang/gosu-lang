@@ -51,6 +51,8 @@ public class NewFilePopup extends JPopupMenu
       }
     }
     popup.add( new JPopupMenu.Separator() );
+    addNewItem( popup, "Java Class", "images/javaclass.png", () -> SourceFileCreator.instance().create( ClassType.JavaClass ) );
+    popup.add( new JPopupMenu.Separator() );
     addNewItem( popup, "File", "images/FileText.png", () -> SourceFileCreator.instance().createTextFile() );
   }
 

@@ -74,6 +74,8 @@ public enum ClassType
         return GosuClassTypeLoader.GOSU_ENHANCEMENT_FILE_EXT;
       case Template:
         return GosuClassTypeLoader.GOSU_TEMPLATE_FILE_EXT;
+      case JavaClass:
+        return ".java";
       default:
         return "";
     }
@@ -95,6 +97,7 @@ public enum ClassType
       case Program:
       case Template:
       case Eval:
+      case JavaClass:
          return Keyword.KW_class.getName();
       default:
         return "<unknown>";
