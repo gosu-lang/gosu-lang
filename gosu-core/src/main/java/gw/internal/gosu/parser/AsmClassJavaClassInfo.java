@@ -80,7 +80,7 @@ public class AsmClassJavaClassInfo extends AsmTypeJavaClassType implements IAsmJ
   private IEnumValue[] _enumConstants;
   private String _simpleName;
   private String _namespace;
-  private IJavaType _javaType;
+  private IType _javaType;
   private ISourceFileHandle _sourceFileHandle;
   private IJavaClassInfo _sourceType;
 
@@ -187,7 +187,7 @@ public class AsmClassJavaClassInfo extends AsmTypeJavaClassType implements IAsmJ
 
   @Override
   public IType getJavaType() {
-    return _javaType == null ? (_javaType = (IJavaType) TypeSystem.get(this)) : _javaType;
+    return _javaType == null ? (_javaType = TypeSystem.get(this)) : _javaType;
   }
   public void setJavaType( IJavaType javaType ) {
     _javaType = javaType;

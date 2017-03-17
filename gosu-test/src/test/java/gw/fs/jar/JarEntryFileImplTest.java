@@ -8,6 +8,7 @@ import gw.fs.IFile;
 import gw.internal.gosu.module.fs.ModuleFSTestUtil;
 import gw.test.TestClass;
 
+import gw.testharness.Disabled;
 import java.io.InputStream;
 import java.io.IOException;
 import java.io.File;
@@ -22,7 +23,7 @@ import java.io.File;
 public class JarEntryFileImplTest extends TestClass {
 
   // -------------------------- getParent()
-
+  @Disabled(assignee = "smckinney", reason = "uses wrong separator char in windows")
   public void testGetParentForRootFile() {
     JarFileDirectoryImpl jarFile = getJarFile();
     IFile entryFile = jarFile.file("rootfile.txt");

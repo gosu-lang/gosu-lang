@@ -252,7 +252,7 @@ public class DefaultTypeLoader extends SimpleTypeLoader implements IExtendedType
 
   private IJavaClassInfo getByClass( String className, IModule lookupModule, IModule actualModule ) {
     DefaultTypeLoader loader = (DefaultTypeLoader)lookupModule.getTypeLoaders( IDefaultTypeLoader.class ).get( 0 );
-    if(ExecutionMode.isRuntime() ) {
+    if( ExecutionMode.isRuntime() ) {
       Class theClass = loader.loadClass( className );
       if( theClass == null ) {
         return null;

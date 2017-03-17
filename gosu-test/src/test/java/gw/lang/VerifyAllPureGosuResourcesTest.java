@@ -4,45 +4,55 @@
 
 package gw.lang;
 
-import gw.lang.parser.exceptions.ParseResultsException;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.TypeSystem;
-import gw.lang.reflect.gs.ICompilableType;
 import gw.lang.reflect.gs.IGosuClass;
-import gw.lang.reflect.gs.ITemplateType;
 import gw.test.TestClass;
-import gw.testharness.Disabled;
 import gw.testharness.DoNotVerifyResource;
-import gw.util.GosuStringUtil;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  */
 public class VerifyAllPureGosuResourcesTest extends TestClass
 {
-  @Disabled(assignee = "cgross", reason = "Ugh.  Finds pl resources on the path in th...")
+  @Override
+  public void beforeTestClass()
+  {
+    TypeSystem.refresh( true );
+  }
+
+  @Override
+  public void afterTestClass()
+  {
+    TypeSystem.refresh( true );
+  }
+
   public void testAllResourcesAreValid() {
-    ArrayList<String> names = new ArrayList<String>();
-    names.addAll( (Set)TypeSystem.getAllTypeNames() );
-    Collections.sort( names );
-    List<String> badTypes = new ArrayList<String>();
+    List<String> names = TypeSystem.getAllTypeNames().stream().map( Object::toString ).sorted().collect( Collectors.toList() );
+    List<String> badTypes = new ArrayList<>();
     for( String name : names )
     {
+      if( name.contains( "Errant_" ) ||
+          name.endsWith( ".PLACEHOLDER" ) )
+      {
+        continue;
+      }
+
       try
       {
-        IType iType = TypeSystem.getByFullName( name );
-        if( !iType.isValid() && !iType.getTypeInfo().hasAnnotation( TypeSystem.get( DoNotVerifyResource.class ) ) && !iType.getRelativeName().startsWith( "Errant_" ) )
+        IType type = TypeSystem.getByFullName( name );
+        if( !type.getTypeInfo().hasAnnotation( TypeSystem.get( DoNotVerifyResource.class ) ) &&
+            !type.isValid() )
         {
-          System.out.println( "Error in " + name );
-          if( iType instanceof IGosuClass )
+          System.out.println( "Parse Error in " + name );
+          if( type instanceof IGosuClass )
           {
             System.out.println( "-------------------------------------------" );
-            ParseResultsException resultsException = ((IGosuClass)iType).getParseResultsException();
-            System.out.println( "  " + GosuStringUtil.join( GosuStringUtil.split( resultsException.getFeedback(), "\n" ), "    " ) );
+            //noinspection ThrowableResultOfMethodCallIgnored
+            ((IGosuClass)type).getParseResultsException().getParseExceptions().forEach( e -> System.out.println( "  " + e.getConsoleMessage() ) );
             System.out.println( "-------------------------------------------" );
           }
           badTypes.add( name );
@@ -50,6 +60,12 @@ public class VerifyAllPureGosuResourcesTest extends TestClass
       }
       catch( Exception e )
       {
+        System.out.println( "Catastrophe while parsing " + name );
+        System.out.println( "-------------------------------------------" );
+        System.out.println( "  " + e.getMessage() );
+        System.out.println( "-------------------------------------------" );
+
+        badTypes.add( name );
       }
     }
     System.out.println( "\n\n" );

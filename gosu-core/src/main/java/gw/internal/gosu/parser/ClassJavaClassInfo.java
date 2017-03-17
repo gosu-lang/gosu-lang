@@ -171,7 +171,7 @@ public class ClassJavaClassInfo extends TypeJavaClassType implements IClassJavaC
   public IType getJavaType() {
     return _javaType == null ? (_javaType = TypeSystem.get(_class, _module)) : _javaType;
   }
-  public void setJavaType( IJavaType javaType ) {
+  public void setJavaType( IType javaType ) {
     _javaType = javaType;
   }
 

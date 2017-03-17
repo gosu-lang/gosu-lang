@@ -913,12 +913,21 @@ public abstract class JavaSourceType extends AbstractJavaClassInfo implements IJ
   {
     try
     {
-      return Class.forName( getName(), false, TypeSystem.getCurrentModule().getModuleClassLoader() );
+      return Class.forName( getJavaName(), false, TypeSystem.getCurrentModule().getModuleClassLoader() );
     }
     catch( ClassNotFoundException e )
     {
       throw GosuExceptionUtil.forceThrow( e );
     }
+  }
+
+  private String getJavaName()
+  {
+    if( _enclosingClass != null )
+    {
+      return _enclosingClass.getJavaName() + '$' + getSimpleName();
+    }
+    return getName();
   }
 
   public IJavaClassInfo getInnerClass( String relativeName )
