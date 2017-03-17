@@ -65,6 +65,7 @@ public class KeywordsTest extends TestClass {
     kw.put("protected", true);
     kw.put("public", true);
     kw.put("readonly", true);
+    kw.put("reified", true);
     kw.put("represents", false);
     kw.put("return", false);
     kw.put("set", true);

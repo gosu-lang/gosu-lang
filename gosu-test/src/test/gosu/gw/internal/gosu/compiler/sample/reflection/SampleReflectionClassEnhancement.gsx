@@ -127,19 +127,19 @@ enhancement SampleReflectionClassEnhancement : gw.internal.gosu.compiler.sample.
     return arg
   }
 
-  function e_genericFunctionReturnsT<T>( arg : T ) : Type {
+  reified function e_genericFunctionReturnsT<T>( arg : T ) : Type {
     return T
   }
 
-  static function e_staticGenericFunctionReturnsT<T>( arg : T ) : Type {
+  reified static function e_staticGenericFunctionReturnsT<T>( arg : T ) : Type {
     return T
   }
 
-  function e_genericFunctionReturnsBoundedT<T extends CharSequence>( arg : T ) : Type {
+  reified function e_genericFunctionReturnsBoundedT<T extends CharSequence>( arg : T ) : Type {
     return T
   }
 
-  static function e_staticGenericFunctionReturnsBoundedT<T extends CharSequence>( arg : T ) : Type {
+  reified static function e_staticGenericFunctionReturnsBoundedT<T extends CharSequence>( arg : T ) : Type {
     return T
   }
  

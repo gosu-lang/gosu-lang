@@ -227,7 +227,7 @@ public class NewExpressionTransformer extends AbstractExpressionTransformer<NewE
       args.add( pushThisOrOuter( type.getEnclosingType() ) );
     }
     pushCapturedSymbols( type, args, false );
-    pushTypeParametersForConstructor( _expr(), type, args, false );
+    pushTypeParametersForConstructor( _expr(), type, args, false, false );
     _cc().pushEnumNameAndOrdinal( type, args );
     args.addAll( explicitArgs );
     constructorCall = buildNewExpression( getDescriptor( type ), irConstructor.getAllParameterTypes(), args );
@@ -329,7 +329,7 @@ public class NewExpressionTransformer extends AbstractExpressionTransformer<NewE
 
     List<IRExpression> args = new ArrayList<IRExpression>();
     //pushCapturedSymbols( type, args, false );
-    pushTypeParametersForConstructor( _expr(), type, args, false );
+    pushTypeParametersForConstructor( _expr(), type, args, false, false );
     _cc().pushEnumNameAndOrdinal( type, args );
     args.addAll( explicitArgs );
 

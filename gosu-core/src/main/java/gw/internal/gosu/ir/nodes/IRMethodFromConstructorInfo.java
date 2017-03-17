@@ -215,7 +215,10 @@ public class IRMethodFromConstructorInfo extends IRFeatureBase implements IRMeth
       {
         break;
       }
-      addTypeVariableParameters( parameters, AbstractElementTransformer.getTypeVarsForDFS( dfs ).size() );
+      if( dfs.isReified() )
+      {
+        addTypeVariableParameters( parameters, AbstractElementTransformer.getTypeVarsForDFS( dfs ).size() );
+      }
       gsClass = (IGosuClassInternal)dfs.getGosuClass();
     }
   }

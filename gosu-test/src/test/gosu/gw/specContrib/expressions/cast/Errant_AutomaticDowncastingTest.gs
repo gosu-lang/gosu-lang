@@ -193,7 +193,7 @@ class Errant_AutomaticDowncastingTest {
 
   function foo(x : String) {}
 
-  function bar<T>( value: T) {
+  reified function bar<T>( value: T) {
     if (value typeis String) {
       foo(value)
     }

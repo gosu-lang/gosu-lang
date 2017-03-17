@@ -7,12 +7,12 @@ uses java.math.BigDecimal
 class DelegateTest extends BaseVerifyErrantTest {
 
   interface IHi {
-    function blah<T>() : Type<T>
+    reified function blah<T>() : Type<T>
     function blah2<T>( t: T ) : T
   }
 
   static class HiDelegate implements IHi {
-    override function blah<T>() : Type<T> {
+    override reified function blah<T>() : Type<T> {
       return T
     }
     function blah2<T>( t: T ) : T {

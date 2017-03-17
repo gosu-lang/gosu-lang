@@ -13,7 +13,7 @@ enhancement CoreArrayOfComparablesEnhancement<T extends Comparable> : T[]
    * Returns the minium non-null element in this collection, or null
    * if all elements are null or the colleciton is empty.
    */
-  function min() : T {
+  reified function min() : T {
     return this.toList().min( \ e -> e )
   }
 
@@ -21,7 +21,7 @@ enhancement CoreArrayOfComparablesEnhancement<T extends Comparable> : T[]
    * Returns the maximum non-null element in this collection, or null if
    * all elements are null or the collection is empty.
    */
-  function max() : T {
+  reified function max() : T {
     return this.toList().max( \ e -> e )
   }
 

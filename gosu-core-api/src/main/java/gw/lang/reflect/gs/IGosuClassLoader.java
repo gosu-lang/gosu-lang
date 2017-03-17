@@ -11,7 +11,7 @@ public interface IGosuClassLoader
 {
   Class<?> findClass( String strName ) throws ClassNotFoundException;
 
-  IJavaType getFunctionClassForArity(int length);
+  IJavaType getFunctionClassForArity( boolean hasReturn, int length );
 
   void dumpAllClasses();
 

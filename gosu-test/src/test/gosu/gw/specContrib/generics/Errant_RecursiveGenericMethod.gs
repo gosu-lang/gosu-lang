@@ -1,7 +1,7 @@
 package gw.specContrib.generics
 
 class Errant_RecursiveGenericMethod {
-  function recursive<P>(o: Object): P {
+  reified function recursive<P>(o: Object): P {
     // r is Object, not P
     var r = o != null ? recursive(null) : null
     // s is Object, not P

@@ -15,7 +15,7 @@ enhancement CoreIOrderedListEnhancement<T> : IOrderedList<T> {
    * Returns a new lazily constructed list secondarily ordered by the given
    * block
    */
-  function thenBy<R extends Comparable>( by(elt:T):R, comparator : Comparator = null ) : IOrderedList<T> {
+  reified function thenBy<R extends Comparable>( by(elt:T):R, comparator : Comparator = null ) : IOrderedList<T> {
     if( this typeis OrderedList ) {
       var typedThis = this as OrderedList<T>
       return typedThis.addThenBy( by, comparator )
@@ -28,7 +28,7 @@ enhancement CoreIOrderedListEnhancement<T> : IOrderedList<T> {
    * Returns a new lazily constructed list secondarily descendingly ordered by the given
    * block
    */
-  function thenByDescending<R extends Comparable>( by(elt:T):R, comparator : Comparator = null ) : IOrderedList<T> {
+  reified function thenByDescending<R extends Comparable>( by(elt:T):R, comparator : Comparator = null ) : IOrderedList<T> {
     if( this typeis OrderedList ) {
       var typedThis = this as OrderedList<T>
       return typedThis.addThenByDescending( by, comparator )

@@ -163,9 +163,9 @@ public class GosuClassLoader implements IGosuClassLoader
   }
 
   @Override
-  public IJavaType getFunctionClassForArity(int length)
+  public IJavaType getFunctionClassForArity( boolean hasReturn, int length )
   {
-    return FunctionClassUtil.getFunctionClassForArity( length );
+    return FunctionClassUtil.getFunctionClassForArity( hasReturn, length );
   }
 
   public Class defineClass( ICompilableTypeInternal gsClass, boolean useSingleServingLoader ) throws ClassNotFoundException

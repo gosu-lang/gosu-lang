@@ -17,7 +17,7 @@ class GenericsContribEnumTest extends TestClass {
     assertEquals( JavaEnum.HI, omg<JavaEnum>( JavaEnum, "HI" ) )
   }
 
-  static function omg<T extends Enum<T>>( c: Class<T>, s: String ) : T {
+  static reified function omg<T extends Enum<T>>( c: Class<T>, s: String ) : T {
     return T.valueOf( c, s )
   }
 }

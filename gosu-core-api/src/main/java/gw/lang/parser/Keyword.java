@@ -78,6 +78,7 @@ public class Keyword implements CharSequence
   public static final Keyword KW_hide = addReservedWord( "hide", true );
   public static final Keyword KW_final = addReservedWord( "final", true );
   public static final Keyword KW_static = addReservedWord( "static", true );
+  public static final Keyword KW_reified = addReservedWord( "reified", true );
   public static final Keyword KW_extends = addReservedWord( "extends" );
   public static final Keyword KW_transient = addReservedWord( "transient", false );
   public static final Keyword KW_implements = addReservedWord( "implements" );

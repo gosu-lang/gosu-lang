@@ -7,6 +7,7 @@ package gw.internal.gosu.parser;
 import gw.internal.gosu.parser.statements.DelegateStatement;
 import gw.internal.gosu.parser.statements.SyntheticFunctionStatement;
 import gw.lang.parser.IReducedDynamicFunctionSymbol;
+import gw.lang.reflect.Modifier;
 import gw.lang.reflect.gs.IGosuClass;
 import gw.lang.parser.IDelegateFunctionSymbol;
 import gw.lang.parser.ISymbolTable;
@@ -29,6 +30,10 @@ public class DelegateFunctionSymbol extends DynamicFunctionSymbol implements IDe
     SyntheticFunctionStatement stmt = (SyntheticFunctionStatement)getValueDirectly();
     stmt.setDfsOwner( this );
     setClassMember( true );
+    if( dfs.isReified() )
+    {
+      getModifierInfo().addModifiers( Modifier.REIFIED );
+    }
     setName( dfs.getName() );
     _scriptPartId = new ScriptPartId( gsClass, null );
     _delegateStmt = delegateStmt;

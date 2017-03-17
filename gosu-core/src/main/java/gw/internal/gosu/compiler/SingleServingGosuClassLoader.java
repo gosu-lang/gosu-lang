@@ -155,7 +155,7 @@ public class SingleServingGosuClassLoader extends ClassLoader implements IGosuCl
   }
 
   @Override
-  public IJavaType getFunctionClassForArity(int length)
+  public IJavaType getFunctionClassForArity(boolean hasReturn, int length)
   {
     return null;
   }

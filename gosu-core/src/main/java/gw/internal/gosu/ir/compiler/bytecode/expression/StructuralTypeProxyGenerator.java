@@ -7,7 +7,6 @@ package gw.internal.gosu.ir.compiler.bytecode.expression;
 import gw.internal.gosu.parser.GosuClassProxyFactory;
 import gw.internal.gosu.parser.MetaType;
 import gw.internal.gosu.parser.TypeLord;
-import gw.lang.parser.ISource;
 import gw.lang.parser.StandardCoercionManager;
 import gw.lang.parser.TypeVarToTypeMap;
 import gw.lang.reflect.IAnnotationInfo;
@@ -26,11 +25,9 @@ import gw.lang.reflect.gs.GosuClassTypeLoader;
 import gw.lang.reflect.gs.IGosuClass;
 import gw.lang.reflect.gs.IGosuEnhancement;
 import gw.lang.reflect.gs.IGosuPropertyInfo;
-import gw.lang.reflect.gs.StringSourceFileHandle;
+import gw.lang.reflect.gs.LazyStringSourceFileHandle;
 import gw.lang.reflect.java.JavaTypes;
 import gw.lang.reflect.module.IModule;
-
-import java.util.concurrent.Callable;
 
 /**
  */
@@ -60,41 +57,13 @@ public class StructuralTypeProxyGenerator {
       new LazyStringSourceFileHandle( gen.getNamespace( ifaceType ), name, () -> {
         TypeSystem.pushModule( module );
         try {
-          return gen.generateProxy( ifaceType, type, name );
+          return gen.generateProxy( ifaceType, type, name ).toString();
         }
         finally {
           TypeSystem.popModule( module );
         }
-      } ) );
+      }, ClassType.Class ) );
     return gsProxy.getBackingClass();
-  }
-
-  private static class LazyStringSourceFileHandle extends StringSourceFileHandle {
-    private Callable<StringBuilder> _sourceGen;
-    private String _namespace;
-
-    public LazyStringSourceFileHandle( String nspace, String fqn, Callable<StringBuilder> sourceGen ) {
-      super( fqn, null, false, ClassType.Class );
-      _namespace = nspace;
-      _sourceGen = sourceGen;
-    }
-
-    public String getTypeNamespace() {
-      return _namespace;
-    }
-
-    @Override
-    public ISource getSource() {
-      if( getRawSource() == null ) {
-        try {
-          setRawSource( _sourceGen.call().toString() );
-        }
-        catch( Exception e ) {
-          throw new RuntimeException( e );
-        }
-      }
-      return super.getSource();
-    }
   }
 
   private StringBuilder generateProxy( IType ifaceType, IType type, String name ) {

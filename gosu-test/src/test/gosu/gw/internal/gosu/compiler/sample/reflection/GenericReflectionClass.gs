@@ -181,19 +181,19 @@ class GenericReflectionClass<T, QQ, RR> {
     return arg
   }
 
-  function genericFunctionReturnsQ<Q>( arg : Q ) : Type {
+  reified function genericFunctionReturnsQ<Q>( arg : Q ) : Type {
     return Q
   }
 
-  static function staticGenericFunctionReturnsQ<Q>( arg : Q ) : Type {
+  reified static function staticGenericFunctionReturnsQ<Q>( arg : Q ) : Type {
     return Q
   }
 
-  function genericFunctionReturnsBoundedQ<Q extends CharSequence>( arg : Q ) : Type {
+  reified function genericFunctionReturnsBoundedQ<Q extends CharSequence>( arg : Q ) : Type {
     return Q
   }
 
-  static function staticGenericFunctionReturnsBoundedQ<Q extends CharSequence>( arg : Q ) : Type {
+  reified static function staticGenericFunctionReturnsBoundedQ<Q extends CharSequence>( arg : Q ) : Type {
     return Q
   }
 }

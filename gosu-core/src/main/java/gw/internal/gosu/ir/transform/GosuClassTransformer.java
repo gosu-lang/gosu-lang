@@ -23,6 +23,7 @@ import gw.internal.gosu.parser.EnumDisplayNamePropertySymbol;
 import gw.internal.gosu.parser.EnumNamePropertySymbol;
 import gw.internal.gosu.parser.EnumValueOfFunctionSymbol;
 import gw.internal.gosu.parser.EnumValuesFunctionSymbol;
+import gw.internal.gosu.parser.Expression;
 import gw.internal.gosu.parser.GosuAnnotationInfo;
 import gw.internal.gosu.parser.ICompilableTypeInternal;
 import gw.internal.gosu.parser.IGosuClassInternal;
@@ -35,9 +36,14 @@ import gw.internal.gosu.parser.ProgramExecuteFunctionSymbol;
 import gw.internal.gosu.parser.RepeatableContainerAnnotationInfo;
 import gw.internal.gosu.parser.Symbol;
 import gw.internal.gosu.parser.TemplateRenderFunctionSymbol;
+import gw.internal.gosu.parser.ThisConstructorFunctionSymbol;
 import gw.internal.gosu.parser.TypeLord;
+import gw.internal.gosu.parser.expressions.Identifier;
+import gw.internal.gosu.parser.expressions.MethodCallExpression;
 import gw.internal.gosu.parser.java.classinfo.CompileTimeExpressionParser;
 import gw.internal.gosu.parser.statements.ClassStatement;
+import gw.internal.gosu.parser.statements.ConstructorStatement;
+import gw.internal.gosu.parser.statements.MethodCallStatement;
 import gw.internal.gosu.parser.statements.VarStatement;
 import gw.internal.gosu.runtime.GosuRuntimeMethods;
 import gw.lang.Gosu;
@@ -535,8 +541,171 @@ public class GosuClassTransformer extends AbstractElementTransformer<ClassStatem
 
       methodStatement.setAnnotations( getIRAnnotations( makeAnnotationInfos( dfs.getModifierInfo().getAnnotations(), getGosuClass().getTypeInfo() ) ) );
       _irClass.addMethod( methodStatement );
+
+      if( _gsClass.isGenericType() &&
+          !Modifier.isPrivate( _gsClass.getModifiers() ) &&
+          !_gsClass.isAnonymous() &&
+          !isNonStaticInnerClass() )
+      {
+        compileJavaInteropBridgeConstructor( dfs );
+      }
     }
   }
+
+  /**
+   * Add constructor so Java can use the Gosu generic class without explicitly passing in type arguments.
+   *
+   * Note this constructor forwards to the given constructor with default type arguments.
+   */
+  private void compileJavaInteropBridgeConstructor( DynamicFunctionSymbol dfs )
+  {
+    DynamicFunctionSymbol copy = new DynamicFunctionSymbol( dfs );
+    copy.setValue( null );
+    copy.setInitializer( null );
+    ConstructorStatement fs = new ConstructorStatement( true );
+    fs.setDynamicFunctionSymbol( copy );
+    fs.setSynthetic( true );
+    MethodCallExpression expr = new MethodCallExpression();
+    expr.setType( JavaTypes.pVOID() );
+    List<ISymbol> args = dfs.getArgs();
+    Expression[] exprArgs = new Expression[args.size()];
+    for( int i = 0; i < args.size(); i++ )
+    {
+      ISymbol arg = args.get( i );
+
+      Identifier id = new Identifier();
+      id.setSymbol( arg, dfs.getSymbolTable() );
+      id.setType( arg.getType() );
+      exprArgs[i] = id;
+    }
+    expr.setArgs( exprArgs );
+    expr.setFunctionSymbol( new ThisConstructorFunctionSymbol( dfs, true ) );
+    MethodCallStatement stmt = new MethodCallStatement();
+    stmt.setMethodCall( expr );
+    stmt.setSynthetic( true );
+    copy.setValue( stmt );
+    copy.setDeclFunctionStmt( fs );
+
+    int iModifiers = getModifiers( copy );
+
+    List<IRSymbol> parameters = new ArrayList<>();
+    maybeGetEnumSuperConstructorSymbols( parameters );
+    for( ISymbol param : copy.getArgs() )
+    {
+      parameters.add( makeParamSymbol( copy, param ) );
+    }
+
+    setUpFunctionContext( copy, true, parameters );
+    FunctionStatementTransformer funcStmtCompiler = new FunctionStatementTransformer( copy, _context );
+    IRStatement methodBody = funcStmtCompiler.compile();
+    IExpression annotationDefault = copy.getAnnotationDefault();
+    Object[] annotationDefaultValue = null;
+    if( annotationDefault != null )
+    {
+      annotationDefaultValue = new Object[] {CompileTimeExpressionParser.convertValueToInfoFriendlyValue( annotationDefault.evaluate(), getGosuClass().getTypeInfo() )};
+    }
+
+    IRMethodStatement methodStatement = new IRMethodStatement(
+      methodBody,
+      "<init>",
+      iModifiers,
+      copy.isInternal(),
+      IRTypeConstants.pVOID(),
+      copy.getReturnType(),
+      parameters,
+      copy.getArgTypes(),
+      copy.getType(), annotationDefaultValue);
+
+    methodStatement.setAnnotations( getIRAnnotations( makeAnnotationInfos( copy.getModifierInfo().getAnnotations(), getGosuClass().getTypeInfo() ) ) );
+    _irClass.addMethod( methodStatement );
+  }
+
+//
+// Decided to not generate these since calling them (from Java) would probably result in unexpected/unintended results.
+// The method is reified for a reason...
+//
+//  /**
+//   * Add method so Java can use the Gosu generic class without explicitly passing in type arguments.
+//   *
+//   * Note this method forwards to the given method with default type arguments.
+//   *
+//   * Also note this method serves as a bridge if given method overrides a method from a super or interface.
+//   */
+//  private void compileJavaInteropBridgeMethod( DynamicFunctionSymbol dfs )
+//  {
+//    DynamicFunctionSymbol copy = new DynamicFunctionSymbol( dfs );
+//    copy.setValue( null );
+//    copy.setInitializer( null );
+//    FunctionStatement fs = new FunctionStatement();
+//    fs.setDynamicFunctionSymbol( copy );
+//    fs.setSynthetic( true );
+//    MethodCallExpression expr = new MethodCallExpression();
+//    expr.setType( TypeLord.getDefaultParameterizedTypeWithTypeVars( dfs.getReturnType() ) );
+//    expr.setFunctionType( (IFunctionType)dfs.getType() );
+//    List<ISymbol> args = dfs.getArgs();
+//    Expression[] exprArgs = new Expression[args.size()];
+//    for( int i = 0; i < args.size(); i++ )
+//    {
+//      ISymbol arg = args.get( i );
+//
+//      Identifier id = new Identifier();
+//      id.setSymbol( arg, dfs.getSymbolTable() );
+//      id.setType( arg.getType() );
+//      exprArgs[i] = id;
+//    }
+//    expr.setArgs( exprArgs );
+//    expr.setFunctionSymbol( dfs );
+//
+//    Statement stmt;
+//    if( dfs.getReturnType() == JavaTypes.pVOID() )
+//    {
+//      MethodCallStatement methodCallStmt = new MethodCallStatement();
+//      methodCallStmt.setMethodCall( expr );
+//      methodCallStmt.setSynthetic( true );
+//      stmt = methodCallStmt;
+//    }
+//    else
+//    {
+//      ReturnStatement returnStmt = new ReturnStatement();
+//      returnStmt.setSynthetic( true );
+//      returnStmt.setValue( expr );
+//      stmt = returnStmt;
+//    }
+//
+//    copy.setValue( stmt );
+//    copy.setDeclFunctionStmt( fs );
+//
+//    List<IRSymbol> parameters = new ArrayList<>();
+//    maybeGetEnumSuperConstructorSymbols( parameters );
+//    for( ISymbol param : copy.getArgs() )
+//    {
+//      parameters.add( makeParamSymbol( copy, param ) );
+//    }
+//
+//    setUpFunctionContext( copy, true, parameters );
+//    FunctionStatementTransformer funcStmtCompiler = new FunctionStatementTransformer( copy, _context );
+//    IRStatement methodBody = funcStmtCompiler.compile();
+//    IExpression annotationDefault = copy.getAnnotationDefault();
+//    Object[] annotationDefaultValue = null;
+//    if( annotationDefault != null )
+//    {
+//      annotationDefaultValue = new Object[] {CompileTimeExpressionParser.convertValueToInfoFriendlyValue( annotationDefault.evaluate(), getGosuClass().getTypeInfo() )};
+//    }
+//
+//    IRMethodStatement method = new IRMethodStatement(
+//      methodBody,
+//      NameResolver.getFunctionName( copy ),
+//      getModifiers( copy ) & ~Modifier.ABSTRACT,
+//      copy.isInternal(),
+//      getDescriptor( copy.getReturnType() ),
+//      copy.getReturnType(),
+//      parameters,
+//      copy.getArgTypes(),
+//      copy.getType(),
+//      annotationDefaultValue );
+//    method.setAnnotations( getIRAnnotations( makeAnnotationInfos( copy.getModifierInfo().getAnnotations(), getGosuClass().getTypeInfo() ) ) );
+//    _irClass.addMethod( method );
+//  }
 
   IRSymbol makeParamSymbol( DynamicFunctionSymbol dfs, ISymbol param )
   {
@@ -614,7 +783,10 @@ public class GosuClassTransformer extends AbstractElementTransformer<ClassStatem
 
   private void maybeGetTypeVarSymbolTypes( DynamicFunctionSymbol dfs, List<IRSymbol> parameters )
   {
-    addTypeParamDescriptor( parameters, getTypeVarsForDFS( dfs ) );
+    if( Modifier.isReified( dfs.getModifiers() ) )
+    {
+      addTypeParamDescriptor( parameters, getTypeVarsForDFS( dfs ) );
+    }
   }
 
 
@@ -635,7 +807,10 @@ public class GosuClassTransformer extends AbstractElementTransformer<ClassStatem
       {
         break;
       }
-      addTypeParamDescriptor( parameters, getTypeVarsForDFS( dfs ) );
+      if( Modifier.isReified( dfs.getModifiers() ) )
+      {
+        addTypeParamDescriptor( parameters, getTypeVarsForDFS( dfs ) );
+      }
       gsClass = (IGosuClassInternal)dfs.getGosuClass();
     }
   }
@@ -677,7 +852,7 @@ public class GosuClassTransformer extends AbstractElementTransformer<ClassStatem
     maybePushSupersEnclosingThisRef( superArgs );
 
     pushCapturedSymbols( _cc().getSuperType(), superArgs, false );
-    int iTypeParams = pushTypeParametersForConstructor( null, _cc().getSuperType(), superArgs, true );
+    int iTypeParams = pushTypeParametersForConstructor( null, _cc().getSuperType(), superArgs, true, false );
     pushEnumSuperConstructorArguments( superArgs );
     IType[] superParameterTypes = IType.EMPTY_ARRAY;
     if( _gsClass.isEnum() )
@@ -743,6 +918,17 @@ public class GosuClassTransformer extends AbstractElementTransformer<ClassStatem
       {
         compileBridgeMethods( (DynamicFunctionSymbol)idfs );
       }
+
+//      if( idfs.getType().isGenericType() &&
+//          !Modifier.isPrivate( _gsClass.getModifiers() ) &&
+//          !idfs.isPrivate() &&
+//          Modifier.isReified( idfs.getModifiers() ) &&
+//          !_gsClass.isAnonymous() &&
+//          !isNonStaticInnerClass() &&
+//          !(idfs.getDeclaringTypeInfo().getOwnersType() instanceof IGosuEnhancement) )
+//      {
+//        compileJavaInteropBridgeMethod( (DynamicFunctionSymbol)idfs );
+//      }
     }
 
     if( !_gsClass.isInterface() && !isCompilingEnhancement() && !_cc().compilingBlock() )
@@ -1261,21 +1447,25 @@ public class GosuClassTransformer extends AbstractElementTransformer<ClassStatem
 
   private IType[] getParamsIncludingTypeParams( DynamicFunctionSymbol dfs )
   {
-    List<IGenericTypeVariable> typeVars = getTypeVarsForDFS( dfs );
-    final IType[] argTypes = dfs.getArgTypes();
-    IType[] paramTypes = new IType[typeVars.size() + argTypes.length];
-    System.arraycopy( argTypes, 0, paramTypes, typeVars.size(), argTypes.length );
-    for( int i = 0; i < typeVars.size(); i++ )
+    if( dfs.isReified() )
     {
-      paramTypes[i] = TypeSystem.get( LazyTypeResolver.class );
+      List<IGenericTypeVariable> typeVars = getTypeVarsForDFS( dfs );
+      final IType[] argTypes = dfs.getArgTypes();
+      IType[] paramTypes = new IType[typeVars.size() + argTypes.length];
+      System.arraycopy( argTypes, 0, paramTypes, typeVars.size(), argTypes.length );
+      for( int i = 0; i < typeVars.size(); i++ )
+      {
+        paramTypes[i] = TypeSystem.get( LazyTypeResolver.class );
+      }
+      return paramTypes;
     }
-    return paramTypes;
+    return dfs.getArgTypes();
   }
 
   private void maybePassTypeParams( DynamicFunctionSymbol dfs, List<IRExpression> args )
   {
     IType type = dfs.getType();
-    if( type.isGenericType() )
+    if( type.isGenericType() && dfs.isReified() )
     {
       IGenericTypeVariable[] typeVars = type.getGenericTypeVariables();
       for( int i = 0; i < typeVars.length; i++ )
@@ -1743,12 +1933,15 @@ public class GosuClassTransformer extends AbstractElementTransformer<ClassStatem
       {
         break;
       }
-      for( IGenericTypeVariable genTypeVar : getTypeVarsForDFS( dfs ) )
+      if( Modifier.isReified( dfs.getModifiers() ) )
       {
-        statements.add(
-          setInstanceField( _gsClass, TYPE_PARAM_PREFIX + genTypeVar.getName(), getDescriptor( LazyTypeResolver.class ), AccessibilityUtil.forTypeParameter(),
-                            pushThis(),
-                            identifier( _context.getSymbol( getTypeVarParamName( genTypeVar ) ) ) ) );
+        for( IGenericTypeVariable genTypeVar : getTypeVarsForDFS( dfs ) )
+        {
+          statements.add(
+            setInstanceField( _gsClass, TYPE_PARAM_PREFIX + genTypeVar.getName(), getDescriptor( LazyTypeResolver.class ), AccessibilityUtil.forTypeParameter(),
+                              pushThis(),
+                              identifier( _context.getSymbol( getTypeVarParamName( genTypeVar ) ) ) ) );
+        }
       }
       gsClass = (IGosuClassInternal)dfs.getGosuClass();
     }

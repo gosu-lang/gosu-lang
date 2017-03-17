@@ -23,6 +23,7 @@ import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.TreeInfo;
 import gw.internal.gosu.parser.AsmClassJavaClassInfo;
 import gw.internal.gosu.parser.TypeUsesMap;
+import gw.internal.gosu.parser.java.compiler.JavaStubGenerator;
 import gw.lang.GosuShop;
 import gw.lang.SimplePropertyProcessing;
 import gw.lang.javac.ClassJavaFileObject;
@@ -41,7 +42,10 @@ import gw.lang.reflect.IType;
 import gw.lang.reflect.ImplicitPropertyUtil;
 import gw.lang.reflect.Modifier;
 import gw.lang.reflect.TypeSystem;
+import gw.lang.reflect.gs.IGosuClass;
 import gw.lang.reflect.gs.ISourceFileHandle;
+import gw.lang.reflect.gs.LazyStringSourceFileHandle;
+import gw.lang.reflect.gs.StringSourceFileHandle;
 import gw.lang.reflect.java.AbstractJavaClassInfo;
 import gw.lang.reflect.java.ErrorJavaClassInfo;
 import gw.lang.reflect.java.IJavaClassConstructor;
@@ -56,6 +60,8 @@ import gw.lang.reflect.java.IJavaType;
 import gw.lang.reflect.java.ITypeInfoResolver;
 import gw.lang.reflect.java.JavaTypes;
 import gw.lang.reflect.module.IModule;
+import gw.util.GosuClassUtil;
+import gw.util.GosuExceptionUtil;
 import gw.util.GosuObjectUtil;
 import java.lang.annotation.Annotation;
 import java.util.ArrayList;
@@ -124,7 +130,7 @@ public abstract class JavaSourceType extends AbstractJavaClassInfo implements IJ
   private CompilationUnitTree _compilationUnitTree;
   private SourcePositions _sourcePositions;
   private ClassTree _typeDecl;
-  private IJavaType _javaType;
+  private IType _javaType;
 
   public static IJavaClassInfo createTopLevel( ISourceFileHandle fileHandle, IModule gosuModule )
   {
@@ -782,7 +788,7 @@ public abstract class JavaSourceType extends AbstractJavaClassInfo implements IJ
   @Override
   public IType getJavaType()
   {
-    return _javaType == null ? (_javaType = (IJavaType)TypeSystem.get( this )) : _javaType;
+    return _javaType == null ? (_javaType = TypeSystem.get( this )) : _javaType;
   }
 
   public void setJavaType( IJavaType javaType )
@@ -905,7 +911,14 @@ public abstract class JavaSourceType extends AbstractJavaClassInfo implements IJ
   @Override
   public Class getBackingClass()
   {
-    return null;
+    try
+    {
+      return Class.forName( getName(), false, TypeSystem.getCurrentModule().getModuleClassLoader() );
+    }
+    catch( ClassNotFoundException e )
+    {
+      throw GosuExceptionUtil.forceThrow( e );
+    }
   }
 
   public IJavaClassInfo getInnerClass( String relativeName )
@@ -1213,7 +1226,7 @@ public abstract class JavaSourceType extends AbstractJavaClassInfo implements IJ
   {
     while( true )
     {
-      IJavaClassType rootType = JavaSourceUtil.getClassInfo( qname, _gosuModule );
+      IJavaClassType rootType = getClassInfo( qname );
       if( rootType != null )
       {
         return rootType;
@@ -1228,6 +1241,44 @@ public abstract class JavaSourceType extends AbstractJavaClassInfo implements IJ
         return null;
       }
     }
+  }
+
+  private IJavaClassInfo getClassInfo( String fqn )
+  {
+    IJavaClassInfo classInfo = JavaSourceUtil.getClassInfo( fqn, _gosuModule );
+    if( classInfo != null )
+    {
+      return classInfo;
+    }
+
+    return maybeLoadJavaStubIfGosuType( fqn );
+  }
+
+  // Java can reference Gosu directly from source and visa versa, therefore we must handle the case were
+  // a Gosu class references a Java class that in turn references a Gosu class:
+  //
+  //  // from MyJavaClass.java
+  //  public MyGosuClass getMyGosu() {...}
+  //
+  //  // from MyGosuClass.gs
+  //  property MyJava: MyJavaClass
+  //
+  //  // from MyOtherGosuClass.gs
+  //  var MyGosuClass = new MyJavaClass().MyGosu  // <~~~ this is of type MyGosuClass, which must resolve in terms of an IJavaClassInfo
+  //
+  private IJavaClassInfo maybeLoadJavaStubIfGosuType( String fqn )
+  {
+    IType type = TypeSystem.getByFullNameIfValidNoJava( fqn );
+    if( type instanceof IGosuClass )
+    {
+      StringSourceFileHandle sfh =
+        new LazyStringSourceFileHandle( GosuClassUtil.getPackage( fqn ), fqn,
+          () -> JavaStubGenerator.instance().genStub( (IGosuClass)type ),
+          ((IGosuClass)type).getClassType() );
+      return JavaSourceType.createTopLevel( sfh, TypeSystem.getCurrentModule() );
+    }
+
+    return null;
   }
 
   private IJavaClassType resolveTrailingInnerClass( IJavaClassType rootType, String fullNameIncludingRoot, IJavaClassInfo whosAskin )
@@ -1262,7 +1313,7 @@ public abstract class JavaSourceType extends AbstractJavaClassInfo implements IJ
     {
       relativeName = packageName + '.' + relativeName;
     }
-    return JavaSourceUtil.getClassInfo( relativeName, _gosuModule );
+    return getClassInfo( relativeName );
   }
 
   public IJavaClassType resolveImport( String relativeName )
@@ -1276,7 +1327,7 @@ public abstract class JavaSourceType extends AbstractJavaClassInfo implements IJ
       int iStar = importText.lastIndexOf( "*" );
       if( iStar > 0 )
       {
-        IJavaClassType type = JavaSourceUtil.getClassInfo( importText.substring( 0, iStar ) + relativeName, _gosuModule );
+        IJavaClassType type = getClassInfo( importText.substring( 0, iStar ) + relativeName );
         if( type != null )
         {
           return type;
@@ -1284,7 +1335,7 @@ public abstract class JavaSourceType extends AbstractJavaClassInfo implements IJ
       }
       else if( importText.endsWith( '.' + relativeName ) )
       {
-        IJavaClassType type = JavaSourceUtil.getClassInfo( importText, _gosuModule );
+        IJavaClassType type = getClassInfo( importText );
         if( type != null )
         {
           return type;

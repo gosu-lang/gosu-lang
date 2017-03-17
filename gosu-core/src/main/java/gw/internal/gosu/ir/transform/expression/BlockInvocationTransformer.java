@@ -13,9 +13,9 @@ import gw.internal.gosu.compiler.FunctionClassUtil;
 import gw.lang.ir.expression.IRCompositeExpression;
 import gw.lang.parser.IExpression;
 import gw.lang.reflect.IType;
-import gw.lang.reflect.java.IJavaClassInfo;
 import gw.lang.reflect.java.IJavaType;
 
+import gw.lang.reflect.java.JavaTypes;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -38,10 +38,10 @@ public class BlockInvocationTransformer extends AbstractExpressionTransformer<Bl
     List<IRElement> callElements = handleNamedArgs( explicitArgs, _expr().getNamedArgOrder() );
 
     IRExpression root = ExpressionTransformer.compile( _expr().getRoot(), _cc() );
-    IJavaType interfaceForArity = FunctionClassUtil.getFunctionInterfaceForArity(_expr().getArgs().size());
-    IRExpression call = callMethod(interfaceForArity.getBackingClassInfo(),
-        "invoke", FunctionClassUtil.getArgArrayForArity(_expr().getArgs().size()),
-        root, explicitArgs);
+    boolean hasReturn = _expr().getReturnType() != JavaTypes.pVOID();
+    IJavaType interfaceForArity = FunctionClassUtil.getFunctionInterfaceForArity( hasReturn, _expr().getArgs().size() );
+    IRExpression call = callMethod( interfaceForArity.getBackingClassInfo(), "invoke",
+                                    FunctionClassUtil.getArgArrayForArity( _expr().getArgs().size() ),root, explicitArgs );
     IType returnType = _expr().getType();
     if( returnType.isPrimitive() )
     {
@@ -62,7 +62,7 @@ public class BlockInvocationTransformer extends AbstractExpressionTransformer<Bl
 
   private List<IRExpression> boxArgs()
   {
-    List<IRExpression> irArgs = new ArrayList<IRExpression>();
+    List<IRExpression> irArgs = new ArrayList<>();
     for( IExpression arg : _expr().getArgs() )
     {
       IRExpression irArg = ExpressionTransformer.compile( arg, _cc() );

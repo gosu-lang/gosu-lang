@@ -103,6 +103,11 @@ public class MemberFieldSymbol implements ISymbol
   }
 
   @Override
+  public boolean isReified() {
+    return false;  //To change body of implemented methods use File | Settings | File Templates.
+  }
+
+  @Override
   public IScriptPartId getScriptPart() {
     return null;  //To change body of implemented methods use File | Settings | File Templates.
   }

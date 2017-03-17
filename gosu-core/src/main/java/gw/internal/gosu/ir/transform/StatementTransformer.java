@@ -48,6 +48,10 @@ public class StatementTransformer
       {
         return MethodCallStatementTransformer.compile( context, (MethodCallStatement)stmt );
       }
+      else if( stmt instanceof ExpressionStatement )
+      {
+        return ExpressionStatementTransformer.compile( context, (ExpressionStatement)stmt );
+      }
       else if( stmt instanceof NewStatement )
       {
         return NewStatementTransformer.compile( context, (NewStatement)stmt );

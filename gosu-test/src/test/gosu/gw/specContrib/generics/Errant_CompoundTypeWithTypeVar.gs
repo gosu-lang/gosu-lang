@@ -3,7 +3,7 @@ package gw.specContrib.generics
 uses java.lang.Integer
 
 class Errant_CompoundTypeWithTypeVar {
-  function fun<T,S>(a: T, b: T, c: S) {
+  reified function fun<T,S>(a: T, b: T, c: S) {
     if (a typeis Integer) {
       if (a == b) {
         print("equal")

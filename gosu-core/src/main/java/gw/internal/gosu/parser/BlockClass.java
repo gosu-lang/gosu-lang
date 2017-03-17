@@ -9,9 +9,9 @@ import gw.internal.gosu.compiler.FunctionClassUtil;
 import gw.internal.gosu.parser.expressions.BeanMethodCallExpression;
 import gw.internal.gosu.parser.expressions.BlockExpression;
 import gw.internal.gosu.parser.expressions.Identifier;
+import gw.internal.gosu.parser.statements.ExpressionStatement;
 import gw.internal.gosu.parser.statements.ReturnStatement;
 import gw.lang.reflect.java.JavaTypes;
-import gw.internal.gosu.parser.statements.VarStatement;
 import gw.lang.function.IBlock;
 import gw.lang.parser.ICapturedSymbol;
 import gw.lang.parser.IParsedElement;
@@ -36,11 +36,11 @@ public class BlockClass extends SyntheticClass implements IBlockClassInternal
   private static final AtomicInteger TMP_INT_IDENTIFIER = new AtomicInteger( 0 );
   private BlockClass( BlockExpression blk )
   {
-    super("_todo_remove_me", "_todo_remove_me." + GosuClassTypeLoader.BLOCK_PREFIX + TMP_INT_IDENTIFIER.incrementAndGet() + GosuClassTypeLoader.BLOCK_POSTFIX,
-        TypeSystem.getTypeLoader(GosuClassTypeLoader.class), null, CommonServices.getEntityAccess().getDefaultTypeUses());
+    super( "_todo_remove_me", "_todo_remove_me." + GosuClassTypeLoader.BLOCK_PREFIX + TMP_INT_IDENTIFIER.incrementAndGet() + GosuClassTypeLoader.BLOCK_POSTFIX,
+           TypeSystem.getTypeLoader( GosuClassTypeLoader.class ), null, CommonServices.getEntityAccess().getDefaultTypeUses() );
     initCompilationState();
     createNewParseInfo();
-    getParseInfo().setBlock(blk);
+    getParseInfo().setBlock( blk );
   }
 
   private BlockClass( ICompilableType enclosingClass, int i, BlockExpression blk )
@@ -48,8 +48,8 @@ public class BlockClass extends SyntheticClass implements IBlockClassInternal
     super( enclosingClass.getName(), GosuClassTypeLoader.BLOCK_PREFIX + i + GosuClassTypeLoader.BLOCK_POSTFIX,
            enclosingClass.getTypeLoader(), enclosingClass.getSourceFileHandle(), enclosingClass.getTypeUsesMap() );
     createNewParseInfo();
-    getParseInfo().setBlock(blk);
-    initType( enclosingClass );
+    getParseInfo().setBlock( blk );
+    setEnclosingType( enclosingClass );
     initCompilationState();
   }
 
@@ -59,24 +59,25 @@ public class BlockClass extends SyntheticClass implements IBlockClassInternal
     return getParseInfo().getBlock().getCapturedSymbols();
   }
 
-  private void initType( ICompilableType enclosingClass )
+  private void initType()
   {
-    setEnclosingType( enclosingClass );
     BlockExpression block = getBlock();
     if( block.getArgs().size() < IBlock.MAX_ARGS )
     {
-      IType functionClassForArity = FunctionClassUtil.getFunctionClassForArity(block.getArgs().size());
+      IType returnType = block.getBlockReturnType();
+      IType functionClassForArity = FunctionClassUtil.getFunctionClassForArity( returnType != null && returnType != JavaTypes.pVOID(), block.getArgs().size());
       setSuperType(functionClassForArity);
     }
     else
     {
       // This is a bad block that will have errors, so just set up a super type with zero args
-      setSuperType(FunctionClassUtil.getFunctionClassForArity(0));
+      setSuperType( FunctionClassUtil.getFunctionClassForArity( block.getReturnType() != JavaTypes.pVOID(), 0 ) );
     }
   }
 
   public void update()
   {
+    initType();
     createNewParseInfo();
     getParseInfo().addDefaultConstructor( new StandardSymbolTable(), null );
 
@@ -94,11 +95,23 @@ public class BlockClass extends SyntheticClass implements IBlockClassInternal
     if( body instanceof Expression )
     {
       Expression expression = (Expression)body;
-      ReturnStatement syntheticReturnStatement = new ReturnStatement();
-      syntheticReturnStatement.setValue( expression );
-      syntheticReturnStatement.initLocation(expression.getLocation().getOffset(), expression.getLocation().getLength(),
-        expression.getLineNum(), expression.getColumn(), expression.getLocation().getScriptPartId());
-      value = new DynamicFunctionSymbol( null, INVOKE_METHOD_NAME, convertToObjectSignature(block), convertToObjectSymbols(block), syntheticReturnStatement );
+      if( block.getBlockReturnType() == JavaTypes.pVOID() )
+      {
+        ExpressionStatement exprStmt = new ExpressionStatement();
+        exprStmt.setExpression( expression );
+        exprStmt.setSynthetic( true );
+        exprStmt.initLocation( expression.getLocation().getOffset(), expression.getLocation().getLength(),
+                                     expression.getLineNum(), expression.getColumn(), expression.getLocation().getScriptPartId() );
+        value = new DynamicFunctionSymbol( null, INVOKE_METHOD_NAME, convertToObjectSignature( block ), convertToObjectSymbols( block ), exprStmt );
+      }
+      else
+      {
+        ReturnStatement syntheticReturnStatement = new ReturnStatement();
+        syntheticReturnStatement.setValue( expression );
+        syntheticReturnStatement.initLocation( expression.getLocation().getOffset(), expression.getLocation().getLength(),
+                                               expression.getLineNum(), expression.getColumn(), expression.getLocation().getScriptPartId() );
+        value = new DynamicFunctionSymbol( null, INVOKE_METHOD_NAME, convertToObjectSignature( block ), convertToObjectSymbols( block ), syntheticReturnStatement );
+      }
     }
     else
     {
@@ -134,7 +147,9 @@ public class BlockClass extends SyntheticClass implements IBlockClassInternal
     {
       iTypes[i] = JavaTypes.OBJECT();
     }
-    return new FunctionType( blk.getFunctionName(), JavaTypes.OBJECT(), iTypes );
+    return new FunctionType( blk.getFunctionName(), blk.getBlockReturnType() == null  || blk.getBlockReturnType() == JavaTypes.pVOID()
+                                                    ? JavaTypes.pVOID()
+                                                    : JavaTypes.OBJECT(), iTypes );
   }
 
   @Override

@@ -47,5 +47,5 @@ public interface IDynamicFunctionSymbol extends IDynamicSymbol
   IDynamicFunctionSymbol getBackingDfs();
   
   IReducedDynamicFunctionSymbol createReducedSymbol();
-  
+
 }

@@ -14,7 +14,7 @@ class MethodScoringWithTypeInferenceTest extends TestClass {
     return false
   }
 
-  private function inferReturnType<U>() : U {
+  reified private function inferReturnType<U>() : U {
     return new U()
   }
 

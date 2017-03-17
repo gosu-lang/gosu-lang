@@ -410,6 +410,15 @@ public class Symbol implements IFunctionSymbol
     _modifiers.setModifiers( Modifier.setFinal( _modifiers.getModifiers(), bFinal ) );
   }
 
+  public boolean isReified()
+  {
+    return Modifier.isReified( _modifiers.getModifiers() );
+  }
+  public void setReified( boolean bReified )
+  {
+    _modifiers.setModifiers( Modifier.setReified( _modifiers.getModifiers(), bReified ) );
+  }
+
   public boolean isOverride()
   {
     return Modifier.isOverride( _modifiers.getModifiers() );

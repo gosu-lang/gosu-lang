@@ -6,6 +6,7 @@ package gw.internal.gosu.ir.transform.expression;
 
 import gw.config.CommonServices;
 import gw.internal.gosu.coercer.FunctionToInterfaceClassGenerator;
+import gw.internal.gosu.compiler.FunctionClassUtil;
 import gw.internal.gosu.ir.nodes.IRTypeFactory;
 import gw.internal.gosu.ir.nodes.JavaClassIRType;
 import gw.internal.gosu.parser.TypeLord;
@@ -75,7 +76,7 @@ public class TypeAsTransformer extends AbstractExpressionTransformer<ITypeAsExpr
     IType lhsType = _expr().getLHS().getType();
     IType concreteType = TypeLord.replaceTypeVariableTypeParametersWithBoundingTypes( lhsType, lhsType.getEnclosingType() );
 
-    if( _expr().getType().getName().equals( GosuTypes.IMONITORLOCK().getName() ) )
+    if( asType.getName().equals( GosuTypes.IMONITORLOCK().getName() ) )
     {
       return root;
     }
@@ -442,51 +443,70 @@ public class TypeAsTransformer extends AbstractExpressionTransformer<ITypeAsExpr
   {
     IRExpression result;
     //special handling to inline the function from interface coercer (needs more context information)
-    if (coercer instanceof FunctionFromInterfaceCoercer) {
-      IFunctionType returnType = (IFunctionType) _expr().getReturnType();
+    if( coercer instanceof FunctionFromInterfaceCoercer )
+    {
+      IFunctionType returnType = (IFunctionType)_expr().getReturnType();
       int length = returnType.getParameterTypes().length;
-      String functionTypeName = "gw.lang.function.IFunction" + length;
-      IType functionType = TypeSystem.getByFullName(functionTypeName);
-      result = callStaticMethod(FunctionFromInterfaceCoercer.class, "doCoercion", new Class[]{Class.class, Class.class, Object.class}, exprList(
-        classLiteral(IRTypeFactory.get(functionType)),
-        classLiteral(IRTypeFactory.get(_expr().getLHS().getType())),
+      String functionTypeName = returnType.getReturnType() == JavaTypes.pVOID()
+                                ? FunctionClassUtil.PROCEDURE_INTERFACE_PREFIX + length
+                                : FunctionClassUtil.FUNCTION_INTERFACE_PREFIX + length;
+      IType functionType = TypeSystem.getByFullName( functionTypeName );
+      result = callStaticMethod( FunctionFromInterfaceCoercer.class, "doCoercion", new Class[]{Class.class, Class.class, Object.class}, exprList(
+        classLiteral( IRTypeFactory.get( functionType ) ),
+        classLiteral( IRTypeFactory.get( _expr().getLHS().getType() ) ),
         root
-      ));
-    } else {
+      ) );
+    }
+    else
+    {
       // Push the coercer
       IRExpression coercerExpression = null;
-      if (coercer != null) {
-        if (coercer instanceof BasePrimitiveCoercer) {
-          for (Field f : BasePrimitiveCoercer.class.getDeclaredFields()) {
-            try {
-              if (Modifier.isPublic(f.getModifiers()) && LockingLazyVar.class.isAssignableFrom(f.getType())) {
-                Object value = f.get(null);
-                LockingLazyVar<BasePrimitiveCoercer> lv = (LockingLazyVar<BasePrimitiveCoercer>) value;
-                if (lv.get() == coercer) {
-                  IRExpression coercerField = getStaticField(TypeSystem.get(BasePrimitiveCoercer.class), f.getName(),
-                    JavaClassIRType.get(LockingLazyVar.class), IRelativeTypeInfo.Accessibility.PUBLIC);
-                  IRSymbol coercerSym = new IRSymbol(_cc().makeTempSymbolName(), JavaClassIRType.get(LockingLazyVar.class), true);
-                  _cc().putSymbol(coercerSym);
-                  IRStatement tempAssignStmt = buildAssignment(coercerSym, coercerField);
-                  IRExpression getCoercerCall = buildMethodCall(LockingLazyVar.class, "get", Object.class, new Class[0], new IRIdentifier(coercerSym), Collections.<IRExpression>emptyList());
-                  coercerExpression = new IRCompositeExpression(tempAssignStmt, getCoercerCall);
+      if( coercer != null )
+      {
+        if( coercer instanceof BasePrimitiveCoercer )
+        {
+          for( Field f : BasePrimitiveCoercer.class.getDeclaredFields() )
+          {
+            try
+            {
+              if( Modifier.isPublic( f.getModifiers() ) && LockingLazyVar.class.isAssignableFrom( f.getType() ) )
+              {
+                Object value = f.get( null );
+                LockingLazyVar<BasePrimitiveCoercer> lv = (LockingLazyVar<BasePrimitiveCoercer>)value;
+                if( lv.get() == coercer )
+                {
+                  IRExpression coercerField = getStaticField( TypeSystem.get( BasePrimitiveCoercer.class ), f.getName(),
+                                                              JavaClassIRType.get( LockingLazyVar.class ), IRelativeTypeInfo.Accessibility.PUBLIC );
+                  IRSymbol coercerSym = new IRSymbol( _cc().makeTempSymbolName(), JavaClassIRType.get( LockingLazyVar.class ), true );
+                  _cc().putSymbol( coercerSym );
+                  IRStatement tempAssignStmt = buildAssignment( coercerSym, coercerField );
+                  IRExpression getCoercerCall = buildMethodCall( LockingLazyVar.class, "get", Object.class, new Class[0], new IRIdentifier( coercerSym ), Collections.<IRExpression>emptyList() );
+                  coercerExpression = new IRCompositeExpression( tempAssignStmt, getCoercerCall );
                 }
               }
-            } catch (Exception e) {
-              throw new RuntimeException(e);
+            }
+            catch( Exception e )
+            {
+              throw new RuntimeException( e );
             }
           }
-        } else {
-          coercerExpression = callStaticMethod(coercer.getClass(), "instance", new Class[0], exprList());
         }
-      } else {
+        else
+        {
+          coercerExpression = callStaticMethod( coercer.getClass(), "instance", new Class[0], exprList() );
+        }
+      }
+      else
+      {
         coercerExpression = pushNull();
       }
-      result = callStaticMethod(TypeAsTransformer.class, "coerceValue", new Class[]{Object.class, IType.class, ICoercer.class},
-        exprList(root, pushType(_expr().getType()), coercerExpression));
+      IType type = _expr().getType();
+      result = callStaticMethod( TypeAsTransformer.class, "coerceValue", new Class[]{Object.class, IType.class, ICoercer.class},
+                                 exprList( root, pushType( type ), coercerExpression ) );
     }
-    if (!_expr().getType().isPrimitive()) {
-      result = checkCast(_expr().getType(), result);
+    if( !_expr().getType().isPrimitive() )
+    {
+      result = checkCast( _expr().getType(), result );
     }
     return result;
   }

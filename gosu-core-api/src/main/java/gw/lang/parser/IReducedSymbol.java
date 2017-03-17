@@ -23,6 +23,7 @@ public interface IReducedSymbol {
   boolean isPublic();
   boolean isAbstract();
   boolean isFinal();
+  boolean isReified();
   IType getType();
   IScriptPartId getScriptPart();
   IGosuClass getGosuClass();

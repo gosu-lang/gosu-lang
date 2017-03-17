@@ -24,7 +24,7 @@ enhancement CoreIterableEnhancement<T> : java.lang.Iterable<T> {
    * Return the number of elements in this Iterable object
    */
   @ShortCircuitingProperty
-  property get Count() : int { 
+  reified property get Count() : int {
     if( this typeis Collection ) {
       return this.size()
     } else {
@@ -59,7 +59,7 @@ enhancement CoreIterableEnhancement<T> : java.lang.Iterable<T> {
    * If this Iterable is already a Collection, return this Itearble cast to a Collection.  
    * Otherwise create a new Collection and copy this Iterable into it.
    */
-  function toCollection() : Collection<T> {
+  reified function toCollection() : Collection<T> {
     if( this typeis Collection ) {
       return this as Collection<T>
     } else {
@@ -75,7 +75,7 @@ enhancement CoreIterableEnhancement<T> : java.lang.Iterable<T> {
    * If this Iterable is already a List, return this Iterable cast to a List.  
    * Otherwise create a new List and copy this Iterable into it.
    */
-  function toList() : List<T> {
+  reified function toList() : List<T> {
     if( this typeis List ) {
       return this as List<T>
     } else {
@@ -91,7 +91,7 @@ enhancement CoreIterableEnhancement<T> : java.lang.Iterable<T> {
    * If this Iterable is already a Set, return this Iterable cast to a Set.  Otherwise create a new
    * Set based on this Iterable.
    */
-  function toSet() : Set<T> {
+  reified function toSet() : Set<T> {
     if( this typeis Set ) {
       return this as Set<T>
     } else {
@@ -108,7 +108,7 @@ enhancement CoreIterableEnhancement<T> : java.lang.Iterable<T> {
    * returns an Object array.  This method takes advantage of static reification and, therefore, does not necessarily
    * return an array that matches the theoretical runtime type of the Iterable, if actual reification were supported.
    */
-  function toTypedArray() : T[]
+  reified function toTypedArray() : T[]
   {
     var asCollection = this.toCollection()
     var arr = T.Type.makeArrayInstance( asCollection.size() ) as T[]
@@ -137,14 +137,14 @@ enhancement CoreIterableEnhancement<T> : java.lang.Iterable<T> {
   /**
    * Return the average of the mapped value
    */
-  function average( select:block(elt:T):java.lang.Number ) : BigDecimal {
+  reified function average( select:block(elt:T):java.lang.Number ) : BigDecimal {
      return this.sum( \ elt -> select(elt) as BigDecimal ) / (this.Count as BigDecimal) 
   }
   
   /**
    * Return a new list that is the concatenation of this Iterable and the specified Collection
    */
-  function concat( that : Collection<T> ) : Collection<T> {
+  reified function concat( that : Collection<T> ) : Collection<T> {
     var returnList = new ArrayList<T>( that.size() + 8 )
     returnList.addAll( toList() )
     returnList.addAll( that )
@@ -167,7 +167,7 @@ enhancement CoreIterableEnhancement<T> : java.lang.Iterable<T> {
   * Returns a the set disjunction of this collection and the other collection, that is,
   * all elements that are in one collection *not* and not the other.
   */
-  function disjunction( that : Collection<T> ) : Set<T> {
+  reified function disjunction( that : Collection<T> ) : Set<T> {
     var intersection = this.intersect( that )
     return this.union( that ).subtract( intersection ) 
   }
@@ -221,7 +221,7 @@ enhancement CoreIterableEnhancement<T> : java.lang.Iterable<T> {
    * Returns the first element in this collection.  If the collection is
    * empty, null is returned.
    */
-  function first() : T {
+  reified function first() : T {
     if( !HasElements ) {
       return null
     } else {
@@ -251,7 +251,7 @@ enhancement CoreIterableEnhancement<T> : java.lang.Iterable<T> {
    * returns true if the collection is empty, but null (interpreted
    * as false in if statements by Gosu) if the collection is null.
    */
-  property get HasElements() : Boolean {
+  reified property get HasElements() : Boolean {
     if( this typeis Collection ) {
       return this.size() > 0
     }
@@ -275,7 +275,7 @@ enhancement CoreIterableEnhancement<T> : java.lang.Iterable<T> {
   /**
    * Return the set intersection of these two collections. 
    */
-  function intersect( that : Collection<T> ) : Set<T> {
+  reified function intersect( that : Collection<T> ) : Set<T> {
     var retVal = this typeis Set ? new HashSet<T>(toList()) : new LinkedHashSet<T>( toList() )
     retVal.retainAll( that )
     return retVal
@@ -300,7 +300,7 @@ enhancement CoreIterableEnhancement<T> : java.lang.Iterable<T> {
    * Returns the last element in this collection.  If the collection is 
    * empty, null is returned.
    */
-  function last() : T {
+  reified function last() : T {
     if( !HasElements ) {
       return null
     } else {
@@ -347,7 +347,7 @@ enhancement CoreIterableEnhancement<T> : java.lang.Iterable<T> {
   /**
    * Returns the maximum value of the transformed elements.
    */
-  function max<R extends Comparable>( transform(elt:T):R ) : R {
+  reified function max<R extends Comparable>( transform(elt:T):R ) : R {
     if( !HasElements ) {
       throw new IllegalStateException( "${this} is empty" )
     }
@@ -387,7 +387,7 @@ enhancement CoreIterableEnhancement<T> : java.lang.Iterable<T> {
   /**
    * Returns the minimum value of the transformed elements.
    */
-  function min<R extends Comparable>( transform(elt:T):R ) : R {
+  reified function min<R extends Comparable>( transform(elt:T):R ) : R {
     if( !HasElements ) {
       throw new IllegalStateException( "${this} is empty" )
     }
@@ -483,7 +483,7 @@ enhancement CoreIterableEnhancement<T> : java.lang.Iterable<T> {
    * Returns a new list of the elements in the collection, in their
    * reverse iteration order 
    */  
-  function reverse() : List<T> {
+  reified function reverse() : List<T> {
     var returnList = this typeis List ? this.copy() : this.toList()
     Collections.reverse( returnList )
     return returnList as List<T>
@@ -517,7 +517,7 @@ enhancement CoreIterableEnhancement<T> : java.lang.Iterable<T> {
   /**
    * Returns the Set subtraction of that Collection from this Collection
    */
-  function subtract( that : Collection<T> ) : Set<T> {
+  reified function subtract( that : Collection<T> ) : Set<T> {
     var returnSet = new LinkedHashSet<T>( toList() )
     returnSet.removeAll( that )
     return returnSet
@@ -526,7 +526,7 @@ enhancement CoreIterableEnhancement<T> : java.lang.Iterable<T> {
   /**
    * Returns the set union of the two collections.
    */
-  function union( that : Collection<T> ) : Set<T>{
+  reified function union( that : Collection<T> ) : Set<T>{
     var returnSet = new LinkedHashSet<T>( toList() )
     returnSet.addAll( that )
     return returnSet
@@ -549,7 +549,7 @@ enhancement CoreIterableEnhancement<T> : java.lang.Iterable<T> {
    * Returns all the elements of this collection that are assignable to the 
    * given type
    */
-  function whereTypeIs<R>( type : Type<R> ) : List<R>{
+  reified function whereTypeIs<R>( type : Type<R> ) : List<R>{
     var retList = new ArrayList<R>()
     for( elt in this ) {
       if( type.Type.isAssignableFrom( typeof elt ) ) {

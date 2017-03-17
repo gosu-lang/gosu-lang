@@ -28,7 +28,7 @@ class VictorTetstTest extends TestClass {
   
     override function iterator() : Iterator<E> { return (IsSome ? {Some} : ({} as Iterable<E>)).iterator() }
   
-    function transform<T>(f(e : E) : T) : Option<T> { return IsSome ? some(f(Some)) : none<T>() }
+    reified function transform<T>(f(e : E) : T) : Option<T> { return IsSome ? some(f(Some)) : none<T>() }
 
     function orSome(e : E) : E { return IsSome ? Some : e }
   
@@ -44,15 +44,15 @@ class VictorTetstTest extends TestClass {
   
     override function hashCode() : int { return IsSome ? Some.hashCode() : 0 }
   
-    static function none<T>() : Option<T> { return new NoneType<T>() }
+    static reified function none<T>() : Option<T> { return new NoneType<T>() }
   
-    static function some<T>(t : T) : Option<T> { return new SomeType<T>() { :_t = t } }
+    static reified function some<T>(t : T) : Option<T> { return new SomeType<T>() { :_t = t } }
   
-    static function iff<T>(b : boolean, t : T) : Option<T> { return b ? some(t) : none<T>() }
+    reified static function iff<T>(b : boolean, t : T) : Option<T> { return b ? some(t) : none<T>() }
   
-    static function iff<T>(b : boolean, p() : T) : Option<T> { return b ? some(p()) : none<T>() }
+    reified static function iff<T>(b : boolean, p() : T) : Option<T> { return b ? some(p()) : none<T>() }
   
-    static function nonNull<T>(t : T) : Option<T> { return iff(t != null, t) }
+    reified static function nonNull<T>(t : T) : Option<T> { return iff(t != null, t) }
   
     static function IsNone<T>() : block(t : Option<T>) : boolean { return \ t : Option<T> -> t.IsNone }
   
@@ -61,7 +61,7 @@ class VictorTetstTest extends TestClass {
     static function Some<T>() : block(t : Option<T>) : T { return \ t : Option<T> -> t.Some }
 
     // FIXME: PL-23787, had to rename function to make code to compile
-    static function transform2<A, B>() : block(f : block(a : A) : B) : block(a : Option<A>) : Option<B> {
+    reified static function transform2<A, B>() : block(f : block(a : A) : B) : block(a : Option<A>) : Option<B> {
       return \ f : block(a : A) : B -> \ a : Option<A> -> a.transform(f)
     }
   
@@ -79,7 +79,7 @@ class VictorTetstTest extends TestClass {
   
     abstract property get One() : A
   
-    function map<B>(f(a : A) : B) : P1<B> { return p(\ -> f(One)) }
+    reified function map<B>(f(a : A) : B) : P1<B> { return p(\ -> f(One)) }
   
     abstract function memo() : P1<A>
   
@@ -89,18 +89,18 @@ class VictorTetstTest extends TestClass {
   
     override function hashCode() : int { return One.hashCode() } // deal with null
   
-    static function p<X>(x : X) : P1<X> { return new ConstantP1<X>() { :_one = x } }
+    static reified function p<X>(x : X) : P1<X> { return new ConstantP1<X>() { :_one = x } }
   
-    static function p<X>(p() : X) : P1<X> { return new LazyP1<X>() { :_one = p } }
+    static reified function p<X>(p() : X) : P1<X> { return new LazyP1<X>() { :_one = p } }
   
     static function One<X>() : block(x : P1<X>) : X { return \ x : P1<X> -> x.One }
 
     // FIXME: PL-23787, had to rename function to make code to compile
-    static function map2<X, Y>() : block(f : block(x : X) : Y) : block(x : P1<X>) : P1<Y> {
+    reified static function map2<X, Y>() : block(f : block(x : X) : Y) : block(x : P1<X>) : P1<Y> {
       return \ f : block(x : X) : Y -> \ x : P1<X> -> x.map(f)
     }
   
-    static function curry<X, Y>(f(x : X) : Y) : block(x : X) : P1<Y> { return \ x -> P1.p(f(x)) }
+    reified static function curry<X, Y>(f(x : X) : Y) : block(x : X) : P1<Y> { return \ x -> P1.p(f(x)) }
   
     private static class ConstantP1<T> extends P1<T> {
       var _one : T as readonly One
@@ -193,15 +193,15 @@ class VictorTetstTest extends TestClass {
       return mt ? P1.p(Unit.Unit) : suspended.compareAndSet(not mt, false) ? act.act(Unit.Unit) : P1.p(Unit.Unit) 
     } 
 
-    static function ofLinked<Q>(s : Strategy<Unit>, e(q : Q) : P1<Unit>) : QueueActor<Q> { 
+    reified static function ofLinked<Q>(s : Strategy<Unit>, e(q : Q) : P1<Unit>) : QueueActor<Q> {
       return of(s, QueueStrategy.linked(), e) 
     } 
 
-    static function of<Q>(s : Strategy<Unit>, qs : QueueStrategy, e(q : Q) : P1<Unit>) : QueueActor<Q> { 
+    reified static function of<Q>(s : Strategy<Unit>, qs : QueueStrategy, e(q : Q) : P1<Unit>) : QueueActor<Q> {
       return new QueueActor<Q>(s, qs, e) 
     } 
 
-    static function of<Q>(s : Strategy<Unit>, e(q : Q) : P1<Unit>) : QueueActor<Q> { return ofLinked(s, e) } 
+    reified static function of<Q>(s : Strategy<Unit>, e(q : Q) : P1<Unit>) : QueueActor<Q> { return ofLinked(s, e) }
 
     function act(a : A) : P1<Unit> { return mbox.offer(a) ? work() : selfish.act(a) } 
   }  
@@ -214,7 +214,7 @@ class VictorTetstTest extends TestClass {
    
     function act(a : X) : P1<Unit> { return _f(a) } 
    
-    static function of<T>(s : Strategy<Unit>, f(a : T) : P1<Unit>) : Actor<T> { 
+    reified static function of<T>(s : Strategy<Unit>, f(a : T) : P1<Unit>) : Actor<T> {
       return new Actor<T>() { :_s = s, :_f = \ a -> s.par(f(a)) } 
     } 
   } 
@@ -237,7 +237,7 @@ class VictorTetstTest extends TestClass {
       } 
     } 
 
-    static function simpleThread<T>() : Strategy<T> { 
+    reified static function simpleThread<T>() : Strategy<T> {
       return 
         new Strategy<T>() 
         { :_f = \ p:P1<T> ->

@@ -14,7 +14,7 @@ class StructuralTypeTest extends gw.BaseVerifyErrantTest
    A, B
   }
 
-  function foo<T extends Enum<T>>( render(T): String ) : String {
+  reified function foo<T extends Enum<T>>( render(T): String ) : String {
     print( T )
     var values = (T as EnumValues<T>).values()
     var result = ""

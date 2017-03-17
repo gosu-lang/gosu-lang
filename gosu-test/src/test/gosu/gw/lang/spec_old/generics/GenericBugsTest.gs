@@ -24,7 +24,7 @@ class GenericBugsTest extends TestClass
   
   static class Concrete extends GenericHelper<String> {}
 
-  function genericMethod<R>( blk():R ) : Iterable<R>{
+  reified function genericMethod<R>( blk():R ) : Iterable<R>{
     return new Iterable<R>() {   
       override function iterator() : Iterator<R> { 
         return new Iterator<R>() {
@@ -124,7 +124,7 @@ class GenericBugsTest extends TestClass
     assertEquals( "a", selected.single() ) 
   }
   
-  function xselect<T, R>(lst:List<T>, mapper(elt:T):R) : Iterable<R> {
+  reified function xselect<T, R>(lst:List<T>, mapper(elt:T):R) : Iterable<R> {
     var gen():block(done:block():R):R
     gen = \ -> {
       var iter = lst.iterator()

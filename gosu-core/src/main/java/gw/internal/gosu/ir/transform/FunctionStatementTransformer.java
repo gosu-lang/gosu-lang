@@ -171,7 +171,7 @@ public class FunctionStatementTransformer extends AbstractElementTransformer<Fun
       if( terminalStmt == null || !bAbsolute[0] )
       {
         //visit a label
-        IRReturnStatement returnStatement = new IRReturnStatement( null, nullLiteral() );
+        IRReturnStatement returnStatement = new IRReturnStatement( null, returnType != JavaTypes.pVOID() ? nullLiteral() : null );
         returnStatement.setLineNumber( statement.getLineNum() );
         statements.add( returnStatement );
       }

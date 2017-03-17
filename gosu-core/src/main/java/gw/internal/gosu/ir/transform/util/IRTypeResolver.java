@@ -20,6 +20,7 @@ import gw.lang.reflect.gs.IGosuClass;
 import gw.lang.reflect.java.IJavaBackedType;
 import gw.lang.reflect.java.IJavaClassInfo;
 import gw.lang.reflect.java.IJavaType;
+import gw.lang.reflect.java.JavaTypes;
 import gw.util.GosuExceptionUtil;
 
 import java.util.ArrayList;
@@ -73,7 +74,8 @@ public class IRTypeResolver {
     }
     else if( type instanceof IFunctionType)
     {
-      return getDescriptor( FunctionClassUtil.getFunctionInterfaceForArity( ((IFunctionType)type).getParameterTypes().length ) );
+      IFunctionType funcType = (IFunctionType)type;
+      return getDescriptor( FunctionClassUtil.getFunctionInterfaceForArity( funcType.getReturnType() != JavaTypes.pVOID(), funcType.getParameterTypes().length ) );
     }
     else if( type instanceof MetaType)
     {

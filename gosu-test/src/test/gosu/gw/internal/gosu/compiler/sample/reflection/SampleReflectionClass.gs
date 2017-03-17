@@ -203,19 +203,19 @@ class SampleReflectionClass
     return arg
   }
 
-  function genericFunctionReturnsT<T>( arg : T ) : Type {
+  reified function genericFunctionReturnsT<T>( arg : T ) : Type {
     return T
   }
 
-  static function staticGenericFunctionReturnsT<T>( arg : T ) : Type {
+  reified static function staticGenericFunctionReturnsT<T>( arg : T ) : Type {
     return T
   }
 
-  function genericFunctionReturnsBoundedT<T extends CharSequence>( arg : T ) : Type {
+  reified function genericFunctionReturnsBoundedT<T extends CharSequence>( arg : T ) : Type {
     return T
   }
 
-  static function staticGenericFunctionReturnsBoundedT<T extends CharSequence>( arg : T ) : Type {
+  reified static function staticGenericFunctionReturnsBoundedT<T extends CharSequence>( arg : T ) : Type {
     return T
   }
   

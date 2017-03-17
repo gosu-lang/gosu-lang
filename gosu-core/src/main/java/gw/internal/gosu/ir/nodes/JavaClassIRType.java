@@ -4,7 +4,6 @@
 
 package gw.internal.gosu.ir.nodes;
 
-import gw.config.CommonServices;
 import gw.config.ExecutionMode;
 import gw.internal.gosu.ir.transform.util.IRTypeResolver;
 import gw.internal.gosu.parser.ClassJavaClassInfo;
@@ -12,6 +11,7 @@ import gw.internal.gosu.parser.IGosuClassInternal;
 import gw.lang.ir.IJavaClassIRType;
 import gw.lang.ir.IRType;
 import gw.lang.ir.SyntheticIRType;
+import gw.lang.parser.ILanguageLevel;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.TypeSystemShutdownListener;
@@ -60,6 +60,13 @@ public class JavaClassIRType implements IJavaClassIRType {
   }
 
   private static boolean shouldReplaceAnyway(IJavaClassInfo cls, JavaClassIRType javaClassIRType) {
+    if( ILanguageLevel.Util.STANDARD_GOSU() )
+    {
+      return false;
+    }
+
+    // Barf...
+
     return ExecutionMode.isRuntime() && !equal(javaClassIRType.getJavaClassInfo().getBackingClass().getClassLoader(), cls.getBackingClass().getClassLoader());
   }
 

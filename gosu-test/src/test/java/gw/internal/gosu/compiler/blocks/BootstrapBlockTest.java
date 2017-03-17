@@ -34,7 +34,7 @@ public class BootstrapBlockTest extends ByteCodeTestBase
     //No arg block
     Method m = getMethodByName( javaClass, "takesABlockWithNoArgsOrReturnType" );
     Class<?> aClass = m.getParameterTypes()[0];
-    assertEquals( FunctionClassUtil.FUNCTION_INTERFACE_PREFIX + 0, aClass.getName() );
+    assertEquals( FunctionClassUtil.PROCEDURE_INTERFACE_PREFIX + 0, aClass.getName() );
 
     //No arg block with return type
     m = getMethodByName( javaClass, "takesABlockWithNoArgs" );

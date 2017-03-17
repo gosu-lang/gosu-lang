@@ -31,6 +31,11 @@ public interface IAttributedFeatureInfo extends IAnnotatedFeatureInfo
    */
   public boolean isStatic();
 
+  default boolean isReified()
+  {
+    return false;
+  }
+
   /**
    * True if this feature is private. Private features are only accessible from
    * within the type that owns them.

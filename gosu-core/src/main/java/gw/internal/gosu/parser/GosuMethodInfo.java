@@ -252,7 +252,8 @@ public class GosuMethodInfo extends AbstractGenericMethodInfo implements IGosuMe
           if( isEnhancement )
           {
             argList.add( gsClassInstance );
-            if( !dfs.isStatic() )
+
+            if( !dfs.isStatic() && dfs.isReified() )
             {
               if( dfsClass.isParameterizedType() )
               {
@@ -274,9 +275,12 @@ public class GosuMethodInfo extends AbstractGenericMethodInfo implements IGosuMe
           }
 
           //handle function args
-          for( IGenericTypeVariable typeVar : dfs.getType().getGenericTypeVariables() )
+          if( dfs.isReified() )
           {
-            argList.add( new NotLazyTypeResolver( typeVar.getBoundingType() ) );
+            for( IGenericTypeVariable typeVar : dfs.getType().getGenericTypeVariables() )
+            {
+              argList.add( new NotLazyTypeResolver( typeVar.getBoundingType() ) );
+            }
           }
 
           // If it's an instance of a Gosu program, for now pass through null for the external symbols argument

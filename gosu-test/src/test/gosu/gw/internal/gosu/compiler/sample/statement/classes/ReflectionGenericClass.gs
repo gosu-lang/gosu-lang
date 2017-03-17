@@ -27,7 +27,7 @@ class ReflectionGenericClass<T>
     assignTypeFromCtor()
   }
 
-  private function assignTypeFromCtor()
+  reified private function assignTypeFromCtor()
   {
     _testTypeFromCtor = T
   }
@@ -42,12 +42,12 @@ class ReflectionGenericClass<T>
     return returnClassTypeParam()
   }
 
-  function returnClassTypeParam() : Type
+  reified function returnClassTypeParam() : Type
   {
     return T
   }
 
-  function indirectCallReturnClassTypeParam() : Type
+  reified function indirectCallReturnClassTypeParam() : Type
   {
     return returnClassTypeParam()
   }
@@ -61,7 +61,7 @@ class ReflectionGenericClass<T>
     return this.returnFunctionTypeParam<java.lang.StringBuilder>()
   }
 
-  private function returnFunctionTypeParam<F>() : Type
+  private reified function returnFunctionTypeParam<F>() : Type
   {
     return F
   }

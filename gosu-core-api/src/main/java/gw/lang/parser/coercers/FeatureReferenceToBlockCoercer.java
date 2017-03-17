@@ -4,9 +4,11 @@
 
 package gw.lang.parser.coercers;
 
+import gw.lang.reflect.IFunctionType;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.features.BlockWrapper;
 import gw.lang.reflect.features.FeatureReference;
+import gw.lang.reflect.java.JavaTypes;
 
 public class FeatureReferenceToBlockCoercer extends BaseCoercer
 {
@@ -14,7 +16,7 @@ public class FeatureReferenceToBlockCoercer extends BaseCoercer
 
   public Object coerceValue( IType typeToCoerceTo, Object value )
   {
-    return BlockWrapper.toBlock((FeatureReference) value);
+    return BlockWrapper.toBlock( (FeatureReference)value, ((IFunctionType)typeToCoerceTo).getReturnType() != JavaTypes.pVOID() );
   }
 
   public boolean isExplicitCoercion()

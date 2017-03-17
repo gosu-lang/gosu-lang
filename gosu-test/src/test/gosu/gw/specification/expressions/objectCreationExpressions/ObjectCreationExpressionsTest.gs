@@ -87,7 +87,7 @@ class ObjectCreationExpressionsTest extends BaseVerifyErrantTest {
     return new( s )
   }
 
-  function create<T>() : T  {
+  reified function create<T>() : T  {
     return new()
   }
 

@@ -8,7 +8,7 @@ class DefaultMetaType {
     return assertOnPage( t as Type )
   }
 
-  function assertOnPage<T>( pageType : Type<T>) : T {
+  reified function assertOnPage<T>( pageType : Type<T>) : T {
     return (pageType as java.lang.Class<T>).newInstance();
   }
 }

@@ -67,7 +67,7 @@ class TestBridgeMethods_Generic
           return v
         }
 
-        function genmeth<E extends java.lang.Number>( v: E, v2: T ) : Object
+        reified function genmeth<E extends java.lang.Number>( v: E, v2: T ) : Object
         {
           return v
         }
@@ -80,7 +80,7 @@ class TestBridgeMethods_Generic
           return i + 3
         }
 
-        function genmeth<E extends java.lang.Number>( v: E, v2: Integer ) : Object
+        reified function genmeth<E extends java.lang.Number>( v: E, v2: Integer ) : Object
         {
           return (v.floatValue() + v2) + (E as String)
         }

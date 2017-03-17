@@ -69,6 +69,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import java.util.StringTokenizer;
+import java.util.function.Predicate;
 
 /**
  */
@@ -1331,6 +1332,21 @@ public class TypeLord
       return replaceTypeVariableTypeParametersWithBoundingTypes( type.getComponentType(), enclType ).getArrayType();
     }
 
+    if( type instanceof CompoundType )
+    {
+      Set<IType> types = ((CompoundType)type).getTypes();
+      Set<IType> newTypes = new HashSet<>();
+      for( IType t: types )
+      {
+        newTypes.add( replaceTypeVariableTypeParametersWithBoundingTypes( t ) );
+      }
+      if( newTypes.size() == 1 )
+      {
+        return newTypes.iterator().next();
+      }
+      return CompoundType.get( newTypes );
+    }
+
     if( type.isParameterizedType() )
     {
       IType[] typeParams = type.getTypeParameters();
@@ -2420,17 +2436,41 @@ public class TypeLord
 
   public static boolean hasTypeVariable( IType type )
   {
+    return getTypeVariables( type, tv -> true );
+  }
+
+  public static List<ITypeVariableType> getTypeVariables( IType type )
+  {
+    final List<ITypeVariableType> tvs = new ArrayList<>();
+    getTypeVariables( type, tv -> {tvs.add( tv ); return false;} );
+    return tvs;
+  }
+
+  public static boolean getTypeVariables( IType type, Predicate<ITypeVariableType> cb )
+  {
+    boolean bRet = false;
     if( type == null )
     {
-      return false;
+      bRet = false;
     }
     else if( type instanceof TypeVariableType )
     {
-      return true;
+      bRet = cb.test( (ITypeVariableType)type );
     }
     else if( type instanceof TypeVariableArrayType )
     {
-      return true;
+      bRet = getTypeVariables( type.getComponentType(), cb );
+    }
+    else if( type instanceof CompoundType )
+    {
+      for( IType t: ((CompoundType)type).getTypes() )
+      {
+        if( getTypeVariables( t, cb ) )
+        {
+          bRet = true;
+          break;
+        }
+      }
     }
     else if( type.isParameterizedType() )
     {
@@ -2438,30 +2478,16 @@ public class TypeLord
       for( int i = 0; i < compileTimeTypeParams.length; i++ )
       {
         IType ctTypeParam = compileTimeTypeParams[i];
-        if( hasTypeVariable( ctTypeParam ) )
+        if( getTypeVariables( ctTypeParam, cb ) )
         {
-          return true;
+          bRet = true;
+          break;
         }
-      }
-    }
-    else if( type instanceof FunctionType )
-    {
-      IFunctionType funType = (IFunctionType)type;
-      IType[] types = funType.getParameterTypes();
-      for( IType param : types )
-      {
-        if( hasTypeVariable( param ) )
-        {
-          return true;
-        }
-      }
-      if( hasTypeVariable( funType.getReturnType() ) )
-      {
-        return true;
       }
     }
 
-    return false;
+
+    return bRet;
   }
 
   public static boolean isExpandable( IType type )

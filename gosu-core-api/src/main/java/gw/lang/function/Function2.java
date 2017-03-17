@@ -5,7 +5,7 @@
 package gw.lang.function;
 
 @SuppressWarnings({"UnusedDeclaration"})
-public abstract class Function2 extends AbstractBlock implements IFunction2 { 
+public abstract class Function2 extends AbstractBlock implements IFunction2 {
 
   public Object invokeWithArgs(Object[] args) {
     if(args.length != 2) {

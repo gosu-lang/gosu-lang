@@ -19,7 +19,7 @@ enhancement CoreCollectionEnhancement<T> : Collection<T> {
    * Returns a lazily-computed List that consists of the elements of this Collection, ordered
    * by the value mapped to by the given block.
    */
-  function orderBy<R extends Comparable>( value(elt:T):R ) : IOrderedList<T> {
+  reified function orderBy<R extends Comparable>( value(elt:T):R ) : IOrderedList<T> {
     return orderBy(value, null)
   }
   
@@ -27,7 +27,7 @@ enhancement CoreCollectionEnhancement<T> : Collection<T> {
    * Returns a lazily-computed List that consists of the elements of this Collection, ordered
    * by the value mapped to by the given block using the specified comparator.
    */
-  function orderBy<R extends Comparable>( value(elt:T):R, comparator : Comparator ) : IOrderedList<T> {
+  reified function orderBy<R extends Comparable>( value(elt:T):R, comparator : Comparator ) : IOrderedList<T> {
     if( this typeis IOrderedList ) {
       throw new IllegalStateException( "You must only call thenBy() after an orderBy()" )
     }
@@ -40,7 +40,7 @@ enhancement CoreCollectionEnhancement<T> : Collection<T> {
    * Returns a lazily-computed List that consists of the elements of this Collection, in descending order
    * by the value mapped to by the given block.
    */
-  function orderByDescending<R extends Comparable>( value(elt:T):R ) : IOrderedList<T> {
+  reified function orderByDescending<R extends Comparable>( value(elt:T):R ) : IOrderedList<T> {
     return orderByDescending(value, null)
   }
 
@@ -48,7 +48,7 @@ enhancement CoreCollectionEnhancement<T> : Collection<T> {
    * Returns a lazily-computed List that consists of the elements of this Collection, in descending order
    * by the value mapped to by the given block using the specified comparator.
    */
-  function orderByDescending<R extends Comparable>( value(elt:T):R, comparator : Comparator ) : IOrderedList<T> {
+  reified function orderByDescending<R extends Comparable>( value(elt:T):R, comparator : Comparator ) : IOrderedList<T> {
     if( this typeis IOrderedList ) {
       throw new IllegalStateException( "You must only call thenBy() after an orderBy()" )
     }

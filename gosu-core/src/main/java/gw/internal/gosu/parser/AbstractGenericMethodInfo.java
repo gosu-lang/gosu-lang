@@ -66,6 +66,11 @@ public class AbstractGenericMethodInfo extends GosuBaseAttributedFeatureInfo imp
     return getDfs().isStatic();
   }
 
+  public boolean isReified()
+  {
+    return getDfs().isReified();
+  }
+
   @Override
   public boolean isPrivate()
   {

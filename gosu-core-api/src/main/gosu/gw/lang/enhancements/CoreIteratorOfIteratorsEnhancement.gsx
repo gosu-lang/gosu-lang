@@ -6,7 +6,7 @@ uses java.util.Iterator
  *  Copyright 2014 Guidewire Software, Inc.
  */
 enhancement CoreIteratorOfIteratorsEnhancement<E, T extends Iterator<E>> : Iterator<T> {
-  function flatten() : Iterator<E> {
+  reified function flatten() : Iterator<E> {
     var outerIter : Iterator<T> = this
     return new Iterator<E>() {
       var _cur : Iterator<E>

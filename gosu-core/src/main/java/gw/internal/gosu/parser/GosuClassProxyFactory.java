@@ -6,7 +6,6 @@ package gw.internal.gosu.parser;
 
 import gw.config.CommonServices;
 import gw.internal.gosu.parser.java.classinfo.JavaSourceDefaultValue;
-import gw.lang.parser.ISource;
 import gw.lang.parser.Keyword;
 import gw.lang.reflect.IAnnotatedFeatureInfo;
 import gw.lang.reflect.IAnnotationInfo;
@@ -26,16 +25,16 @@ import gw.lang.reflect.gs.ClassType;
 import gw.lang.reflect.gs.GosuClassTypeLoader;
 import gw.lang.reflect.gs.IGosuClass;
 import gw.lang.reflect.gs.IGosuObject;
-import gw.lang.reflect.gs.StringSourceFileHandle;
+import gw.lang.reflect.gs.LazyStringSourceFileHandle;
 import gw.lang.reflect.java.IJavaMethodInfo;
 import gw.lang.reflect.java.IJavaPropertyInfo;
 import gw.lang.reflect.java.IJavaType;
 import gw.lang.reflect.java.JavaTypes;
 import gw.lang.reflect.module.IModule;
 
+import gw.util.GosuClassUtil;
 import java.lang.reflect.Array;
 import java.util.List;
-import java.util.concurrent.Callable;
 
 /**
  */
@@ -165,17 +164,17 @@ public class GosuClassProxyFactory
   {
     final IModule module = type.getTypeLoader().getModule();
     GosuClassTypeLoader loader = GosuClassTypeLoader.getDefaultClassLoader( module );
+    String fqn = getProxyName( type );
     return loader.makeNewClass(
-        new LazyStringSourceFileHandle(type, new Callable<StringBuilder>() {
-          public StringBuilder call() {
-            TypeSystem.pushModule( module );
-            try {
-              return genJavaInterfaceProxy(type);
-            } finally {
-              TypeSystem.popModule( module );
-            }
+        new LazyStringSourceFileHandle( GosuClassUtil.getPackage( fqn ), fqn, () -> {
+          TypeSystem.pushModule( module );
+          try {
+            return genJavaInterfaceProxy( type ).toString();
           }
-        }));
+          finally {
+            TypeSystem.popModule( module );
+          }
+        }, ClassType.Class ));
   }
 
   private IGosuClass createJavaClassProxy( final IJavaType type )
@@ -188,49 +187,18 @@ public class GosuClassProxyFactory
     }
 
     final IModule module = type.getTypeLoader().getModule();
+    String fqn = getProxyName( type );
     return GosuClassTypeLoader.getDefaultClassLoader( module ).makeNewClass(
-      new LazyStringSourceFileHandle( type, new Callable<StringBuilder>()
-      {
-        public StringBuilder call()
-        {
-          TypeSystem.pushModule( module );
-          try {
-            return genJavaClassProxy( type );
-          } 
-          finally
-          {
-            TypeSystem.popModule( module );
-          }
+      new LazyStringSourceFileHandle( GosuClassUtil.getPackage( fqn ), fqn, () -> {
+        TypeSystem.pushModule( module );
+        try {
+          return genJavaClassProxy( type ).toString();
         }
-      } ) );
-  }
-
-  private static class LazyStringSourceFileHandle extends StringSourceFileHandle
-  {
-    private Callable<StringBuilder> _sourceGen;
-
-    public LazyStringSourceFileHandle( IType type, Callable<StringBuilder> sourceGen )
-    {
-      super( getProxyName( type ), null, false, ClassType.Class );
-      _sourceGen = sourceGen;
-    }
-
-    @Override
-    public ISource getSource()
-    {
-      if( getRawSource() == null )
-      {
-        try
+        finally
         {
-          setRawSource( _sourceGen.call().toString() );
+          TypeSystem.popModule( module );
         }
-        catch( Exception e )
-        {
-          throw new RuntimeException( e );
-        }
-      }
-      return super.getSource();
-    }
+      }, ClassType.Class ) );
   }
 
   private static String getProxyName( IType type )

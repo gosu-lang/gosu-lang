@@ -9,6 +9,7 @@ import gw.internal.gosu.parser.IGosuTemplateInternal;
 import gw.internal.gosu.parser.JavaFieldPropertyInfo;
 import gw.lang.reflect.IRelativeTypeInfo;
 import gw.lang.reflect.LazyTypeResolver;
+import gw.lang.reflect.Modifier;
 import gw.lang.reflect.gs.IGosuEnhancement;
 import gw.lang.reflect.gs.IGosuClass;
 import gw.lang.reflect.gs.IExternalSymbolMap;
@@ -103,22 +104,26 @@ public class IRFeatureBase {
   }
 
   protected void addImplicitParameters( IType owner, IFunctionType functionType, boolean bStatic, List<IRType> params ) {
-    addImplicitEnhancementParams( owner, bStatic, params );
+    addImplicitEnhancementParams( functionType, owner, bStatic, params );
     addFunctionTypeParams( functionType, params );
     addImplicitExternalSymbolMapParam( functionType, owner, bStatic, params );
   }
 
-  private void addImplicitEnhancementParams( IType owner, boolean bStatic, List<IRType> params )
+  private void addImplicitEnhancementParams( IFunctionType functionType, IType owner, boolean bStatic, List<IRType> params )
   {
-    if ( owner instanceof IGosuEnhancement && !bStatic ) {
+    if( owner instanceof IGosuEnhancement && !bStatic )
+    {
       params.add( IRTypeResolver.getDescriptor( ( (IGosuEnhancement) owner).getEnhancedType() ) );
-      if( owner.isParameterizedType() )
+      if( Modifier.isReified( functionType.getModifiers() ) )
       {
-        addTypeVariableParameters( params, owner.getTypeParameters().length );
-      }
-      else if( owner.isGenericType() )
-      {
-        addTypeVariableParameters( params, owner.getGenericTypeVariables().length );
+        if( owner.isParameterizedType() )
+        {
+          addTypeVariableParameters( params, owner.getTypeParameters().length );
+        }
+        else if( owner.isGenericType() )
+        {
+          addTypeVariableParameters( params, owner.getGenericTypeVariables().length );
+        }
       }
     }
   }
@@ -144,7 +149,8 @@ public class IRFeatureBase {
 
   private void addFunctionTypeParams( IFunctionType functionType, List<IRType> params )
   {
-    if (functionType == null) {
+    if( functionType == null || !Modifier.isReified( functionType.getModifiers() ) )
+    {
       return;
     }
 

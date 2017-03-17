@@ -21,49 +21,115 @@ import gw.lang.function.Function6;
 import gw.lang.function.Function7;
 import gw.lang.function.Function8;
 import gw.lang.function.Function9;
+import gw.lang.function.Procedure0;
+import gw.lang.function.Procedure1;
+import gw.lang.function.Procedure10;
+import gw.lang.function.Procedure11;
+import gw.lang.function.Procedure12;
+import gw.lang.function.Procedure13;
+import gw.lang.function.Procedure14;
+import gw.lang.function.Procedure15;
+import gw.lang.function.Procedure16;
+import gw.lang.function.Procedure2;
+import gw.lang.function.Procedure3;
+import gw.lang.function.Procedure4;
+import gw.lang.function.Procedure5;
+import gw.lang.function.Procedure6;
+import gw.lang.function.Procedure7;
+import gw.lang.function.Procedure8;
+import gw.lang.function.Procedure9;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 
 public class BlockWrapper {
 
-  public static Object toBlock(FeatureReference ref) {
+  public static Object toBlock( FeatureReference ref ) {
+    return toBlock( ref, ref.hasReturn() );
+  }
+  public static Object toBlock( FeatureReference ref, boolean hasReturn ) {
     int i = ref.getFullArgTypes().size();
-    if (i == 0) {
-      return new Function0Wrapper(ref);
-    } else if (i == 1) {
-      return new Function1Wrapper(ref);
-    } else if (i == 2) {
-      return new Function2Wrapper(ref);
-    } else if (i == 3) {
-      return new Function3Wrapper(ref);
-    } else if (i == 4) {
-      return new Function4Wrapper(ref);
-    } else if (i == 5) {
-      return new Function5Wrapper(ref);
-    } else if (i == 6) {
-      return new Function6Wrapper(ref);
-    } else if (i == 7) {
-      return new Function7Wrapper(ref);
-    } else if (i == 8) {
-      return new Function8Wrapper(ref);
-    } else if (i == 9) {
-      return new Function9Wrapper(ref);
-    } else if (i == 10) {
-      return new Function10Wrapper(ref);
-    } else if (i == 11) {
-      return new Function11Wrapper(ref);
-    } else if (i == 12) {
-      return new Function12Wrapper(ref);
-    } else if (i == 13) {
-      return new Function13Wrapper(ref);
-    } else if (i == 14) {
-      return new Function14Wrapper(ref);
-    } else if (i == 15) {
-      return new Function15Wrapper(ref);
-    } else if (i == 16) {
-      return new Function16Wrapper(ref);
-    } 
+    if( !hasReturn )
+    {
+      switch( i )
+      {
+        case 0:
+          return new Procedure0Wrapper( ref );
+        case 1:
+          return new Procedure1Wrapper( ref );
+        case 2:
+          return new Procedure2Wrapper( ref );
+        case 3:
+          return new Procedure3Wrapper( ref );
+        case 4:
+          return new Procedure4Wrapper( ref );
+        case 5:
+          return new Procedure5Wrapper( ref );
+        case 6:
+          return new Procedure6Wrapper( ref );
+        case 7:
+          return new Procedure7Wrapper( ref );
+        case 8:
+          return new Procedure8Wrapper( ref );
+        case 9:
+          return new Procedure9Wrapper( ref );
+        case 10:
+          return new Procedure10Wrapper( ref );
+        case 11:
+          return new Procedure11Wrapper( ref );
+        case 12:
+          return new Procedure12Wrapper( ref );
+        case 13:
+          return new Procedure13Wrapper( ref );
+        case 14:
+          return new Procedure14Wrapper( ref );
+        case 15:
+          return new Procedure15Wrapper( ref );
+        case 16:
+          return new Procedure16Wrapper( ref );
+      }
+    }
+    else
+    {
+      switch( i )
+      {
+        case 0:
+          return new Function0Wrapper( ref );
+        case 1:
+          return new Function1Wrapper( ref );
+        case 2:
+          return new Function2Wrapper( ref );
+        case 3:
+          return new Function3Wrapper( ref );
+        case 4:
+          return new Function4Wrapper( ref );
+        case 5:
+          return new Function5Wrapper( ref );
+        case 6:
+          return new Function6Wrapper( ref );
+        case 7:
+          return new Function7Wrapper( ref );
+        case 8:
+          return new Function8Wrapper( ref );
+        case 9:
+          return new Function9Wrapper( ref );
+        case 10:
+          return new Function10Wrapper( ref );
+        case 11:
+          return new Function11Wrapper( ref );
+        case 12:
+          return new Function12Wrapper( ref );
+        case 13:
+          return new Function13Wrapper( ref );
+        case 14:
+          return new Function14Wrapper( ref );
+        case 15:
+          return new Function15Wrapper( ref );
+        case 16:
+          return new Function16Wrapper( ref );
+      }
+    }
     return null;
   }
 
@@ -76,7 +142,7 @@ public class BlockWrapper {
 
     @Override
     public Object invoke() {
-      return _ref.evaluate(new ArrayList().iterator());
+      return _ref.evaluate( Collections.emptyList().iterator() );
     }
   }
 
@@ -283,4 +349,224 @@ public class BlockWrapper {
       return _ref.evaluate(Arrays.asList(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15, arg16).iterator());
     }
   }
+  
+
+  
+  private static class Procedure0Wrapper extends Procedure0
+  {
+    private FeatureReference _ref;
+    public Procedure0Wrapper(FeatureReference ref) {
+      _ref = ref;
+    }
+
+    @Override
+    public void invoke() {
+      _ref.evaluate( Collections.emptyList().iterator() );
+    }
+  }
+
+  private static class Procedure1Wrapper extends Procedure1
+  {
+    private FeatureReference _ref;
+    public Procedure1Wrapper(FeatureReference ref) {
+      _ref = ref;
+    }
+
+    @Override
+    public void invoke(Object arg1) {
+      _ref.evaluate(Arrays.asList(arg1).iterator());
+    }
+  }
+
+  private static class Procedure2Wrapper extends Procedure2
+  {
+    private FeatureReference _ref;
+    public Procedure2Wrapper(FeatureReference ref) {
+      _ref = ref;
+    }
+
+    @Override
+    public void invoke(Object arg1, Object arg2) {
+      _ref.evaluate(Arrays.asList(arg1, arg2).iterator());
+    }
+  }
+
+  private static class Procedure3Wrapper extends Procedure3
+  {
+    private FeatureReference _ref;
+    public Procedure3Wrapper(FeatureReference ref) {
+      _ref = ref;
+    }
+
+    @Override
+    public void invoke(Object arg1, Object arg2, Object arg3) {
+      _ref.evaluate(Arrays.asList(arg1, arg2, arg3).iterator());
+    }
+  }
+
+  private static class Procedure4Wrapper extends Procedure4
+  {
+    private FeatureReference _ref;
+    public Procedure4Wrapper(FeatureReference ref) {
+      _ref = ref;
+    }
+
+    @Override
+    public void invoke(Object arg1, Object arg2, Object arg3, Object arg4) {
+      _ref.evaluate(Arrays.asList(arg1, arg2, arg3, arg4).iterator());
+    }
+  }
+
+  private static class Procedure5Wrapper extends Procedure5
+  {
+    private FeatureReference _ref;
+    public Procedure5Wrapper(FeatureReference ref) {
+      _ref = ref;
+    }
+
+    @Override
+    public void invoke(Object arg1, Object arg2, Object arg3, Object arg4, Object arg5) {
+      _ref.evaluate(Arrays.asList(arg1, arg2, arg3, arg4, arg5).iterator());
+    }
+  }
+
+  private static class Procedure6Wrapper extends Procedure6
+  {
+    private FeatureReference _ref;
+    public Procedure6Wrapper(FeatureReference ref) {
+      _ref = ref;
+    }
+
+    @Override
+    public void invoke(Object arg1, Object arg2, Object arg3, Object arg4, Object arg5, Object arg6) {
+      _ref.evaluate(Arrays.asList(arg1, arg2, arg3, arg4, arg5, arg6).iterator());
+    }
+  }
+
+  private static class Procedure7Wrapper extends Procedure7
+  {
+    private FeatureReference _ref;
+    public Procedure7Wrapper(FeatureReference ref) {
+      _ref = ref;
+    }
+
+    @Override
+    public void invoke(Object arg1, Object arg2, Object arg3, Object arg4, Object arg5, Object arg6, Object arg7) {
+      _ref.evaluate(Arrays.asList(arg1, arg2, arg3, arg4, arg5, arg6, arg7).iterator());
+    }
+  }
+
+  private static class Procedure8Wrapper extends Procedure8
+  {
+    private FeatureReference _ref;
+    public Procedure8Wrapper(FeatureReference ref) {
+      _ref = ref;
+    }
+
+    @Override
+    public void invoke(Object arg1, Object arg2, Object arg3, Object arg4, Object arg5, Object arg6, Object arg7, Object arg8) {
+      _ref.evaluate(Arrays.asList(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8).iterator());
+    }
+  }
+
+  private static class Procedure9Wrapper extends Procedure9
+  {
+    private FeatureReference _ref;
+    public Procedure9Wrapper(FeatureReference ref) {
+      _ref = ref;
+    }
+
+    @Override
+    public void invoke(Object arg1, Object arg2, Object arg3, Object arg4, Object arg5, Object arg6, Object arg7, Object arg8, Object arg9) {
+      _ref.evaluate(Arrays.asList(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9).iterator());
+    }
+  }
+
+  private static class Procedure10Wrapper extends Procedure10
+  {
+    private FeatureReference _ref;
+    public Procedure10Wrapper(FeatureReference ref) {
+      _ref = ref;
+    }
+
+    @Override
+    public void invoke(Object arg1, Object arg2, Object arg3, Object arg4, Object arg5, Object arg6, Object arg7, Object arg8, Object arg9, Object arg10) {
+      _ref.evaluate(Arrays.asList(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10).iterator());
+    }
+  }
+
+  private static class Procedure11Wrapper extends Procedure11
+  {
+    private FeatureReference _ref;
+    public Procedure11Wrapper(FeatureReference ref) {
+      _ref = ref;
+    }
+
+    @Override
+    public void invoke(Object arg1, Object arg2, Object arg3, Object arg4, Object arg5, Object arg6, Object arg7, Object arg8, Object arg9, Object arg10, Object arg11) {
+      _ref.evaluate(Arrays.asList(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11).iterator());
+    }
+  }
+
+  private static class Procedure12Wrapper extends Procedure12
+  {
+    private FeatureReference _ref;
+    public Procedure12Wrapper(FeatureReference ref) {
+      _ref = ref;
+    }
+
+    @Override
+    public void invoke(Object arg1, Object arg2, Object arg3, Object arg4, Object arg5, Object arg6, Object arg7, Object arg8, Object arg9, Object arg10, Object arg11, Object arg12) {
+      _ref.evaluate(Arrays.asList(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12).iterator());
+    }
+  }
+
+  private static class Procedure13Wrapper extends Procedure13 {
+    private FeatureReference _ref;
+    public Procedure13Wrapper(FeatureReference ref) {
+      _ref = ref;
+    }
+
+    @Override
+    public void invoke(Object arg1, Object arg2, Object arg3, Object arg4, Object arg5, Object arg6, Object arg7, Object arg8, Object arg9, Object arg10, Object arg11, Object arg12, Object arg13) {
+      _ref.evaluate(Arrays.asList(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13).iterator());
+    }
+  }
+
+  private static class Procedure14Wrapper extends Procedure14 {
+    private FeatureReference _ref;
+    public Procedure14Wrapper(FeatureReference ref) {
+      _ref = ref;
+    }
+
+    @Override
+    public void invoke(Object arg1, Object arg2, Object arg3, Object arg4, Object arg5, Object arg6, Object arg7, Object arg8, Object arg9, Object arg10, Object arg11, Object arg12, Object arg13, Object arg14) {
+      _ref.evaluate(Arrays.asList(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14).iterator());
+    }
+  }
+
+  private static class Procedure15Wrapper extends Procedure15 {
+    private FeatureReference _ref;
+    public Procedure15Wrapper(FeatureReference ref) {
+      _ref = ref;
+    }
+
+    @Override
+    public void invoke(Object arg1, Object arg2, Object arg3, Object arg4, Object arg5, Object arg6, Object arg7, Object arg8, Object arg9, Object arg10, Object arg11, Object arg12, Object arg13, Object arg14, Object arg15) {
+      _ref.evaluate(Arrays.asList(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15).iterator());
+    }
+  }
+
+  private static class Procedure16Wrapper extends Procedure16 {
+    private FeatureReference _ref;
+    public Procedure16Wrapper(FeatureReference ref) {
+      _ref = ref;
+    }
+
+    @Override
+    public void invoke(Object arg1, Object arg2, Object arg3, Object arg4, Object arg5, Object arg6, Object arg7, Object arg8, Object arg9, Object arg10, Object arg11, Object arg12, Object arg13, Object arg14, Object arg15, Object arg16) {
+      _ref.evaluate(Arrays.asList(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15, arg16).iterator());
+    }
+  }
+  
 }

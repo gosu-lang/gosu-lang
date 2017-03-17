@@ -5,8 +5,8 @@
 package gw.lang.function;
 
 @SuppressWarnings({"UnusedDeclaration"})
-public interface IFunction0 extends IBlock { 
+public interface IFunction0<R> {
 
-  public Object invoke();
+  public R invoke();
 
 }

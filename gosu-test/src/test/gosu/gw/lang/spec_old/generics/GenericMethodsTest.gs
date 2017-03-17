@@ -121,7 +121,7 @@ class GenericMethodsTest extends TestClass
   // Sample generic methods
   //----------------------------------------------------------
 
-  function inferAndAlsoHandleNewTypeVar<U>(o: Object): U {
+  reified function inferAndAlsoHandleNewTypeVar<U>(o: Object): U {
     var r: U = o != null ? inferAndAlsoHandleNewTypeVar(null) : new U()
     return r
   }
@@ -150,11 +150,11 @@ class GenericMethodsTest extends TestClass
     return identity( arg )
   }
     
-  function getFirst<C>( arg : List<C> ) : C {
+  reified function getFirst<C>( arg : List<C> ) : C {
     return arg.first()
   }
   
-  function getFirstFromFirst<D>( arg : List<List<D>> ) : D {
+  reified function getFirstFromFirst<D>( arg : List<List<D>> ) : D {
     return arg.first().first()
   }
   

@@ -130,6 +130,10 @@ public class ReducedSymbol implements IReducedSymbol {
     return Modifier.isFinal( getModifiers() );
   }
 
+  public boolean isReified() {
+    return Modifier.isReified( getModifiers() );
+  }
+
   public IType getType() {
     return _type;
   }

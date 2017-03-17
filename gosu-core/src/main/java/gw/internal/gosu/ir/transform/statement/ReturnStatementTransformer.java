@@ -50,21 +50,6 @@ public class ReturnStatementTransformer extends AbstractStatementTransformer<Ret
       IRExpression returnValue = compileReturnExpr( retType );
       return makeReturnStmt( returnValue );
     }
-    else if( _cc().isBlockInvoke() )
-    {
-      // Blocks can return nothing but consist of a single expression that has a value.
-      // If that's the case, we wrap that call in a synthetic statement so that the value gets popped off,
-      // then follow it with the actual return statement that returns null.
-      if( _stmt().getValue() != null )
-      {
-        return new IRStatementList(false,
-          new IRSyntheticStatement( compileReturnExpr( retType ) ),
-          makeReturnStmt( nullLiteral() )
-        );
-      } else {
-        return makeReturnStmt( nullLiteral() );
-      }
-    }
     else
     {
       return buildReturn( );

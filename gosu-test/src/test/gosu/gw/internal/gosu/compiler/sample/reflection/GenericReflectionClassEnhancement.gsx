@@ -3,27 +3,27 @@ uses java.lang.CharSequence
 
 enhancement GenericReflectionClassEnhancement<T, Q, R extends CharSequence> : GenericReflectionClass<T, Q, R> {
   
-  function e_getT() : Type { 
+  reified function e_getT() : Type {
     return T
   }
 
-  function e_getQ() : Type { 
+  reified function e_getQ() : Type {
     return Q
   }
 
-  function e_getR() : Type { 
+  reified function e_getR() : Type {
     return R
   }
 
-  property get e_PropT() : Type { 
+  reified property get e_PropT() : Type {
     return T
   }
 
-  property get e_PropQ() : Type { 
+  reified property get e_PropQ() : Type {
     return Q
   }
 
-  property get e_PropR() : Type { 
+  reified property get e_PropR() : Type {
     return R
   }
 
@@ -159,19 +159,19 @@ enhancement GenericReflectionClassEnhancement<T, Q, R extends CharSequence> : Ge
     return arg
   }
 
-  function e_genericFunctionReturnsS<S>( arg : S ) : Type {
+  reified function e_genericFunctionReturnsS<S>( arg : S ) : Type {
     return S
   }
 
-  static function e_staticGenericFunctionReturnsS<S>( arg : S ) : Type {
+  reified static function e_staticGenericFunctionReturnsS<S>( arg : S ) : Type {
     return S
   }
 
-  function e_genericFunctionReturnsBoundedS<S extends CharSequence>( arg : S ) : Type {
+  reified function e_genericFunctionReturnsBoundedS<S extends CharSequence>( arg : S ) : Type {
     return S
   }
 
-  static function e_staticGenericFunctionReturnsBoundedS<S extends CharSequence>( arg : S ) : Type {
+  reified static function e_staticGenericFunctionReturnsBoundedS<S extends CharSequence>( arg : S ) : Type {
     return S
   }
  

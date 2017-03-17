@@ -198,7 +198,7 @@ class GenericStructuresTest extends TestClass {
     assertTrue( Fap == statictypeof v2 ) // contravariance Fap + Fap = fFap
   }
 
-  function addAll<T>( c: Comparable<T>, l: List<T> ): T {
+  reified function addAll<T>( c: Comparable<T>, l: List<T> ): T {
     l.each( \e-> c.compareTo( e ) )
     return l.first()
   }
@@ -223,7 +223,7 @@ class GenericStructuresTest extends TestClass {
     assertTrue( Fap == statictypeof v2 ) // covariance Fap + Fap == Fap
   }
 
-  function addAll_java<T>( c: java.lang.Comparable<T>, l: List<T> ): T {
+  reified function addAll_java<T>( c: java.lang.Comparable<T>, l: List<T> ): T {
     l.each( \e-> c.compareTo( e ) )
     return l.first()
   }

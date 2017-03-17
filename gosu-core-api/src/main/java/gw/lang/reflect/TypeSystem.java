@@ -5,7 +5,6 @@
 package gw.lang.reflect;
 
 import gw.config.CommonServices;
-import gw.config.ExecutionMode;
 import gw.fs.IFile;
 import gw.fs.IResource;
 import gw.internal.gosu.parser.TypeSystemState;
@@ -762,7 +761,8 @@ public class TypeSystem
     return type instanceof IJavaType ||
      type instanceof IGosuClass ||
      type instanceof IGosuArrayClass ||
-     type instanceof IJavaArrayType;
+     type instanceof IJavaArrayType ||
+     type instanceof ICompoundType && ((ICompoundType)type).getTypes().stream().allMatch( TypeSystem::isBytecodeType );
   }
 
   public static IType getTypeFromJavaBackedType(IType type) {

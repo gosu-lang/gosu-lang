@@ -25,7 +25,7 @@ enhancement CoreThrowableEnhancement : java.lang.Throwable
    * Returns this object if it is of the given type. Returns null if no Throwable
    * exists in the cause chain that is of the given type.
    */
-  function getCauseOfType<T extends Throwable>( causeType : Type<T> ) : T
+  reified function getCauseOfType<T extends Throwable>( causeType : Type<T> ) : T
   {
     var visited = new IdentityHashMap<Throwable, Boolean>()
     var cause = this

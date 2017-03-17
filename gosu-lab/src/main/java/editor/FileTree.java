@@ -167,12 +167,22 @@ public class FileTree implements MutableTreeNode, IFileWatcherListener
     }
 
     String thisFqn = makeFqn();
-    if( thisFqn != null &&
-        (fqn.equals( thisFqn ) ||
-         // Also see if this file is an enclosing type of the fqn
-         fqn.startsWith( thisFqn ) && fqn.startsWith( thisFqn + '.' )) )
+    if( thisFqn != null )
     {
-      return this;
+      if( fqn.equals( thisFqn ) ||
+          // Also see if this file is an enclosing type of the fqn
+          fqn.startsWith( thisFqn ) && fqn.startsWith( thisFqn + '.' ) )
+      {
+        return this;
+      }
+    }
+    else if( isDirectory() )
+    {
+      String dotPath = makeDotPath();
+      if( dotPath != null && !fqn.startsWith( dotPath ) )
+      {
+        return null;
+      }
     }
 
     for( FileTree tree: getChildren() )
@@ -508,8 +518,30 @@ public class FileTree implements MutableTreeNode, IFileWatcherListener
     {
       return null;
     }
+    return _makeDotPath( sourcePathRoot );
+  }
+
+  private String makeDotPath()
+  {
+    return makeDotPath( getSourcePathRoot() );
+  }
+  private String makeDotPath( FileTree sourcePathRoot )
+  {
+    if( isSourcePathRoot() || sourcePathRoot == null )
+    {
+      return null;
+    }
+    return _makeDotPath( sourcePathRoot );
+  }
+  private String _makeDotPath( FileTree sourcePathRoot )
+  {
     String fqn = PathUtil.getAbsolutePathName( getFileOrDir() ).substring( PathUtil.getAbsolutePathName( sourcePathRoot.getFileOrDir() ).length() + 1 );
-    fqn = fqn.substring( 0, fqn.lastIndexOf( '.' ) ).replace( File.separatorChar, '.' );
+    int iDot = fqn.lastIndexOf( '.' );
+    if( iDot >= 0 )
+    {
+      fqn = fqn.substring( 0, iDot );
+    }
+    fqn = fqn.replace( File.separatorChar, '.' );
     return fqn;
   }
 

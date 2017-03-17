@@ -27,6 +27,11 @@ public class Modifier extends java.lang.reflect.Modifier
   public static final int INTERNAL = 0x00080000;
 
   /**
+   * The <code>int</code> value representing the <code>reified</code> modifier.
+   */
+  public static final int REIFIED = 0x00100000;
+
+  /**
    * The <code>int</code> value representing the <code>enum</code> modifier.  This value should match
    * the Java version of the enum modifier (which isn't publically exposed).  Note that the enum modifier
    * may mean different things in different contexts.
@@ -45,6 +50,8 @@ public class Modifier extends java.lang.reflect.Modifier
     iModifiers = Modifier.setBit( iModifiers, afi.isProtected(), PROTECTED );
     iModifiers = Modifier.setBit( iModifiers, afi.isInternal(), INTERNAL );
     iModifiers = Modifier.setBit( iModifiers, afi.isStatic(), STATIC );
+    iModifiers = Modifier.setBit( iModifiers, afi.isFinal(), FINAL );
+    iModifiers = Modifier.setBit( iModifiers, afi.isReified(), REIFIED );
     return iModifiers;
   }
 
@@ -128,6 +135,11 @@ public class Modifier extends java.lang.reflect.Modifier
     return (mod & ANNOTATION) != 0;
   }
 
+  public static boolean isReified( int mod )
+  {
+    return (mod & REIFIED) != 0;
+  }
+
   public static int setPublic( int mod, boolean bValue )
   {
     return setBit( mod, bValue, PUBLIC );
@@ -193,6 +205,11 @@ public class Modifier extends java.lang.reflect.Modifier
     return setBit(mod, bValue, DEPRECATED);
   }
 
+  public static int setReified( int mod, boolean bValue )
+  {
+    return setBit( mod, bValue, REIFIED );
+  }
+
   private static int setBit( int mod, boolean bValue, int bit )
   {
     if( bValue )
@@ -211,6 +228,7 @@ public class Modifier extends java.lang.reflect.Modifier
 
     if ((mod & PUBLIC) != 0) sb.append("public ");
     if ((mod & PROTECTED) != 0) sb.append("protected ");
+    if ((mod & INTERNAL) != 0) sb.append("internal ");
     if ((mod & PRIVATE) != 0) sb.append("private ");
 
     /* Canonical order */
@@ -222,6 +240,7 @@ public class Modifier extends java.lang.reflect.Modifier
     if ((mod & SYNCHRONIZED) != 0) sb.append("synchronized ");
     if ((mod & NATIVE) != 0) sb.append("native ");
     if ((mod & STRICT) != 0) sb.append("strictfp ");
+    if ((mod & REIFIED) != 0) sb.append("reified ");
 
     if ((len = sb.length()) > 0)  /* trim trailing space */
       return sb.toString().substring(0, len - 1);

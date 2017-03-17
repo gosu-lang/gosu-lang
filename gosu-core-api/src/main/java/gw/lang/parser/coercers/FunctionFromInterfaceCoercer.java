@@ -13,7 +13,6 @@ import gw.lang.reflect.java.IJavaMethodInfo;
 import gw.lang.reflect.IFunctionType;
 import gw.lang.GosuShop;
 
-import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Proxy;
@@ -40,19 +39,21 @@ public class FunctionFromInterfaceCoercer extends BaseCoercer
     return value; // Ideally I'd throw here, but there are places that rely on this working
   }
 
+  @SuppressWarnings("UnusedDeclaration")
   public static Object doCoercion( Class classToCoerceTo, Class ifaceClass, final Object value )
   {
     final Method abstractMethod = findSingleAbstractMethod( ifaceClass );
-    return Proxy.newProxyInstance(classToCoerceTo.getClassLoader(), new Class[]{classToCoerceTo}, new InvocationHandler() {
-      @Override
-      public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-        if (method.getName().startsWith("invoke")) {
-          return abstractMethod.invoke(value, args);
-        } else {
-          return method.invoke(value, args);
-        }
-      }
-    });
+    return Proxy.newProxyInstance( classToCoerceTo.getClassLoader(), new Class[]{classToCoerceTo},
+     ( proxy, method, args ) -> {
+       if( method.getName().startsWith( "invoke" ) )
+       {
+         return abstractMethod.invoke( value, args );
+       }
+       else
+       {
+         return method.invoke( value, args );
+       }
+     } );
   }
 
   private static Method findSingleAbstractMethod( Class ifaceClass )

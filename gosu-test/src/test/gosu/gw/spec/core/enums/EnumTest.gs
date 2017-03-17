@@ -601,7 +601,7 @@ class EnumTest extends TestClass
     }
   }
   
-  private function serializeAndDeserialize<T>(arg : T) : T {
+  private reified function serializeAndDeserialize<T>(arg : T) : T {
     var byteArray = new ByteArrayOutputStream()
     var oos = new ObjectOutputStream(byteArray)
     oos.writeObject(arg)  

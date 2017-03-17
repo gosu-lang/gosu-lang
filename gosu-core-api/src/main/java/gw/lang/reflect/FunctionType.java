@@ -108,7 +108,17 @@ public class FunctionType extends AbstractType implements IFunctionType, IGeneri
     if (!lazyTypes) {
       initLazyMethodInfoState();
     }
-    setName(mi.getDisplayName());
+    setName( mi.getDisplayName() );
+
+    IMethodInfo backingMi = mi;
+    while( backingMi instanceof IMethodInfoDelegate )
+    {
+      backingMi = ((IMethodInfoDelegate)backingMi).getSource();
+    }
+    if( backingMi instanceof IDFSBackedFeatureInfo )
+    {
+      _iModifiers = ((IDFSBackedFeatureInfo)backingMi).getDfs().getModifiers();
+    }
     _allTypesInHierarchy = Collections.<IType>singleton( this );
   }
 
@@ -213,6 +223,7 @@ public class FunctionType extends AbstractType implements IFunctionType, IGeneri
     _signature = source._signature;
     _parameterizationByParamsName = source._parameterizationByParamsName;
     _enclosingType = source._enclosingType;
+    _iModifiers = source._iModifiers;
   }
 
   /**
@@ -611,7 +622,7 @@ public class FunctionType extends AbstractType implements IFunctionType, IGeneri
 
   private IJavaClassInfo getFunctionClass()
   {
-    return TypeSystem.getGosuClassLoader().getFunctionClassForArity( getParameterTypes().length ).getBackingClassInfo();
+    return TypeSystem.getGosuClassLoader().getFunctionClassForArity( getReturnType() != JavaTypes.pVOID(), getParameterTypes().length ).getBackingClassInfo();
   }
 
   public Object getArrayComponent( Object array, int iIndex ) throws IllegalArgumentException, ArrayIndexOutOfBoundsException
@@ -814,6 +825,7 @@ public class FunctionType extends AbstractType implements IFunctionType, IGeneri
   public IType newInstance( IType[] paramTypes, IType returnType )
   {
     FunctionType functionType = new FunctionType(this._strFunctionName, returnType, paramTypes, cloneTypeVars() );
+    functionType._iModifiers = _iModifiers;
     if (getScriptPart() == null && _mi != null) {
       if (_mi instanceof MethodInfoDelegate) {
         functionType.setScriptPart(new ScriptPartId(((MethodInfoDelegate)_mi).getSource().getOwnersType(), null));

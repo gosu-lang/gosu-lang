@@ -15,7 +15,7 @@ class NewArrayFromTypeVariableTest extends TestClass {
     assertEquals(5, result.length)  
   }
   
-  function parameterized<T>(arrayType : Type<T>, length : int) : T[] {
+  reified function parameterized<T>(arrayType : Type<T>, length : int) : T[] {
     return new T[length]  
   }
   

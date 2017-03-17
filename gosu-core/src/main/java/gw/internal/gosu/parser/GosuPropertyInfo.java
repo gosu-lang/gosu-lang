@@ -100,6 +100,11 @@ public class GosuPropertyInfo extends GosuBaseAttributedFeatureInfo implements I
     return _dps.isFinal();
   }
 
+  public boolean isReified()
+  {
+    return _dps.isReified();
+  }
+
   public boolean isGetterDefault()
   {
     return isDefault( _dps.getGetterDfs() );
@@ -266,27 +271,31 @@ public class GosuPropertyInfo extends GosuBaseAttributedFeatureInfo implements I
       try
       {
         Object[] args;
-        if( AbstractElementTransformer.requiresImplicitEnhancementArg( _dps.getGetterDfs() ) )
+        ReducedDynamicFunctionSymbol getterDfs = _dps.getGetterDfs();
+        if( AbstractElementTransformer.requiresImplicitEnhancementArg( getterDfs ) )
         {
-          IGosuEnhancementInternal enhancement = (IGosuEnhancementInternal)_dps.getGetterDfs().getGosuClass();
+          IGosuEnhancementInternal enhancement = (IGosuEnhancementInternal)getterDfs.getGosuClass();
           List<Object> argList = new ArrayList<Object>();
 
           argList.add( ctx );
 
-          if( enhancement.isParameterizedType() )
+          if( getterDfs.isReified() )
           {
-            IType[] parameters = enhancement.getTypeParameters();
-            for( IType parameter : parameters )
+            if( enhancement.isParameterizedType() )
             {
-              argList.add( new NotLazyTypeResolver( parameter ) );
+              IType[] parameters = enhancement.getTypeParameters();
+              for( IType parameter : parameters )
+              {
+                argList.add( new NotLazyTypeResolver( parameter ) );
+              }
             }
-          }
-          else
-          {
-            IGenericTypeVariable[] typeVariables = enhancement.getGenericTypeVariables();
-            for( IGenericTypeVariable typeVariable : typeVariables )
+            else
             {
-              argList.add( new NotLazyTypeResolver( typeVariable.getBoundingType() ) );
+              IGenericTypeVariable[] typeVariables = enhancement.getGenericTypeVariables();
+              for( IGenericTypeVariable typeVariable : typeVariables )
+              {
+                argList.add( new NotLazyTypeResolver( typeVariable.getBoundingType() ) );
+              }
             }
           }
           args = argList.toArray( new Object[argList.size()] );
@@ -325,27 +334,31 @@ public class GosuPropertyInfo extends GosuBaseAttributedFeatureInfo implements I
       try
       {
         Object[] args;
-        if( AbstractElementTransformer.requiresImplicitEnhancementArg( _dps.getSetterDfs() ) )
+        ReducedDynamicFunctionSymbol setterDfs = _dps.getSetterDfs();
+        if( AbstractElementTransformer.requiresImplicitEnhancementArg( setterDfs ) )
         {
-          IGosuEnhancementInternal enhancement = (IGosuEnhancementInternal)_dps.getSetterDfs().getGosuClass();
+          IGosuEnhancementInternal enhancement = (IGosuEnhancementInternal)setterDfs.getGosuClass();
           List<Object> argList = new ArrayList<Object>();
 
           argList.add( ctx );
 
-          if( enhancement.isParameterizedType() )
+          if( setterDfs.isReified() )
           {
-            IType[] parameters = enhancement.getTypeParameters();
-            for( IType parameter : parameters )
+            if( enhancement.isParameterizedType() )
             {
-              argList.add( new NotLazyTypeResolver( parameter ) );
+              IType[] parameters = enhancement.getTypeParameters();
+              for( IType parameter : parameters )
+              {
+                argList.add( new NotLazyTypeResolver( parameter ) );
+              }
             }
-          }
-          else
-          {
-            IGenericTypeVariable[] typeVariables = enhancement.getGenericTypeVariables();
-            for( IGenericTypeVariable typeVariable : typeVariables )
+            else
             {
-              argList.add( new NotLazyTypeResolver( typeVariable.getBoundingType() ) );
+              IGenericTypeVariable[] typeVariables = enhancement.getGenericTypeVariables();
+              for( IGenericTypeVariable typeVariable : typeVariables )
+              {
+                argList.add( new NotLazyTypeResolver( typeVariable.getBoundingType() ) );
+              }
             }
           }
 

@@ -125,6 +125,12 @@ public class GosuVarPropertyInfo extends GosuBaseAttributedFeatureInfo implement
     return _isFinal;
   }
 
+  @Override
+  public boolean isReified()
+  {
+    return false;
+  }
+
   public boolean isPublic()
   {
     return _bPublic || (!isPrivate() && !isInternal() && !isProtected());

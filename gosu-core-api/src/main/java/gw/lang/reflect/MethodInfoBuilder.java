@@ -275,6 +275,10 @@ public class MethodInfoBuilder {
       return false;
     }
 
+    public boolean isReified() {
+      return false;
+    }
+
     public List<IAnnotationInfo> getAnnotations() {
       return Collections.emptyList();
     }

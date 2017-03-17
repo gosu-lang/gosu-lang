@@ -11,6 +11,7 @@ import gw.lang.parser.IDynamicFunctionSymbol;
 import gw.lang.parser.IParsedElement;
 import gw.lang.parser.statements.IFunctionStatement;
 import gw.lang.reflect.IType;
+import gw.lang.reflect.Modifier;
 import gw.lang.reflect.gs.IGenericTypeVariable;
 import gw.lang.reflect.gs.IGosuClass;
 import gw.lang.reflect.gs.IGosuProgram;
@@ -104,7 +105,7 @@ public abstract class EvalBasedTransformer<T extends IExpression> extends Abstra
       if( funcStmt != null ) // can be null e.g., anonymous classes can be constructed as field initializers
       {
         IDynamicFunctionSymbol dfs = funcStmt.getDynamicFunctionSymbol();
-        if( dfs.getType().isGenericType() )
+        if( dfs.getType().isGenericType() && Modifier.isReified( dfs.getModifiers() ) )
         {
           IGenericTypeVariable[] genTypeVars = dfs.getType().getGenericTypeVariables();
           for( int i = 0; i < genTypeVars.length; i++ )

@@ -64,7 +64,7 @@ public class ClassJavaClassInfo extends TypeJavaClassType implements IClassJavaC
   private IJavaClassType[] _genericInterfaces;
   private IJavaClassInfo[] _declaredClasses;
   private ISourceFileHandle _fileHandle;
-  private IJavaType _javaType;
+  private IType _javaType;
   private String _namespace;
   private volatile Integer _modifiers;
   private Boolean _bArray;
@@ -169,7 +169,7 @@ public class ClassJavaClassInfo extends TypeJavaClassType implements IClassJavaC
 
   @Override
   public IType getJavaType() {
-    return _javaType == null ? (_javaType = (IJavaType) TypeSystem.get(_class, _module)) : _javaType;
+    return _javaType == null ? (_javaType = TypeSystem.get(_class, _module)) : _javaType;
   }
   public void setJavaType( IJavaType javaType ) {
     _javaType = javaType;

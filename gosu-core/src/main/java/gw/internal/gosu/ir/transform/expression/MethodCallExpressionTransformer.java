@@ -142,8 +142,10 @@ public class MethodCallExpressionTransformer extends AbstractExpressionTransform
         dfs instanceof InitConstructorFunctionSymbol)
     {
       // Call 'this( xxx )' or 'super( xxx )' from ctor
-      result = callSuperOrThisConstructorSymbol( dfs, dfs instanceof SuperConstructorFunctionSymbol ||
-                                                      dfs instanceof InitConstructorFunctionSymbol );
+      result = callSuperOrThisConstructorSymbol( dfs,
+                                                 dfs instanceof SuperConstructorFunctionSymbol ||
+                                                 dfs instanceof InitConstructorFunctionSymbol,
+                                                 dfs instanceof ThisConstructorFunctionSymbol && ((ThisConstructorFunctionSymbol)dfs).isGenericJavaInterop() );
     }
     else
     {
@@ -184,14 +186,14 @@ public class MethodCallExpressionTransformer extends AbstractExpressionTransform
     return castIfReturnTypeDerivedFromTypeVariable( dfs, result );
   }
 
-  private IRExpression callSuperOrThisConstructorSymbol( DynamicFunctionSymbol dfs, boolean bSuper )
+  private IRExpression callSuperOrThisConstructorSymbol( DynamicFunctionSymbol dfs, boolean bSuper, boolean genericJavaInterop )
   {
     IRExpression result;
-    List<IRStatement> bonusStatements = new ArrayList<IRStatement>();
+    List<IRStatement> bonusStatements = new ArrayList<>();
     _cc().maybeAssignOuterRef( bonusStatements );
 
     // Assemble the args
-    List<IRExpression> implicitArgs = new ArrayList<IRExpression>();
+    List<IRExpression> implicitArgs = new ArrayList<>();
     IType targetType;
     _cc().markInvokingSuper();
     if( bSuper )
@@ -217,7 +219,7 @@ public class MethodCallExpressionTransformer extends AbstractExpressionTransform
     {
       implicitArgs.add( identifier( _cc().getSymbol( GosuFragmentTransformer.SYMBOLS_PARAM_NAME + "arg" ) ) );
     }
-    int iTypeParams = pushTypeParametersForConstructor( _expr(), targetType, implicitArgs, bSuper );
+    int iTypeParams = pushTypeParametersForConstructor( _expr(), targetType, implicitArgs, bSuper, genericJavaInterop );
     pushEnumSuperConstructorArguments( implicitArgs );
     IRMethod irMethod = IRMethodFactory.createConstructorIRMethod( targetType, dfs, iTypeParams );
     List<IRExpression> explicitArgs = pushArguments( irMethod );

@@ -279,7 +279,7 @@ public class ParameterizedFunctionType extends AbstractType implements IFunction
 
   public int getModifiers()
   {
-    return _typeInfo != null ? Modifier.getModifiersFrom( _typeInfo ) : Modifier.PUBLIC;
+    return _genericFuncType.getModifiers();
   }
 
   public boolean isAbstract()

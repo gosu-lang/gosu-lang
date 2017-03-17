@@ -131,6 +131,11 @@ public class ArrayExpansionMethodInfo implements IMethodInfo
     return _delegate.isFinal();
   }
 
+  public boolean isReified()
+  {
+    return _delegate.isReified();
+  }
+
   public List<IAnnotationInfo> getAnnotations()
   {
     return Collections.emptyList();

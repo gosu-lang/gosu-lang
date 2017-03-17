@@ -720,16 +720,22 @@ class JavaType extends InnerClassCapableType implements IJavaTypeInternal
       }
 
       IJavaClassInfo superclass = _classInfo.getSuperclass();
-      IJavaType notParameterizedSuperType;
-      if(superclass != null) {
+      IType notParameterizedSuperType;
+      if( superclass != null )
+      {
         IType superType = superclass.getJavaType();
-        if (superType instanceof IErrorType) {
+        if( superType instanceof IErrorType )
+        {
           return TypeSystem.getErrorType();
         }
-        notParameterizedSuperType = (IJavaType) superType;
-      } else if(_classInfo != null) {
-        notParameterizedSuperType = (IJavaType) TypeSystem.get(_classInfo.getSuperclass());
-      } else {
+        notParameterizedSuperType = superType;
+      }
+      else if( _classInfo != null )
+      {
+        notParameterizedSuperType = TypeSystem.get( _classInfo.getSuperclass() );
+      }
+      else
+      {
         // ?
         notParameterizedSuperType = JavaTypes.OBJECT();
       }

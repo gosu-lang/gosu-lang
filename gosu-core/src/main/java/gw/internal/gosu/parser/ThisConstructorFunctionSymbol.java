@@ -13,6 +13,7 @@ import gw.lang.reflect.IConstructorInfo;
 
 public class ThisConstructorFunctionSymbol extends DynamicFunctionSymbol implements IConstructorFunctionSymbol
 {
+  private boolean _genericJavaInterop;
   private DynamicFunctionSymbol _dfsDelegate;
 
   public ThisConstructorFunctionSymbol( DynamicFunctionSymbol dfsDelegate )
@@ -20,6 +21,17 @@ public class ThisConstructorFunctionSymbol extends DynamicFunctionSymbol impleme
     super( dfsDelegate );
     _dfsDelegate = dfsDelegate;
     setName( getSignatureName( getDisplayName() ) );
+  }
+
+  public ThisConstructorFunctionSymbol( DynamicFunctionSymbol dfs, boolean genericJavaInterop )
+  {
+    this( dfs );
+    _genericJavaInterop = genericJavaInterop;
+  }
+
+  public boolean isGenericJavaInterop()
+  {
+    return _genericJavaInterop;
   }
 
   public ISymbol getLightWeightReference()

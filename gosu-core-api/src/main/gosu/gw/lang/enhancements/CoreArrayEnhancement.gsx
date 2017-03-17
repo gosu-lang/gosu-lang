@@ -31,7 +31,7 @@ enhancement CoreArrayEnhancement<T> : T[] {
    * array into it.  If every element of this array is not of type N,
    * an ArrayStoreException will be thrown.
    */
-  function cast<N>( type : Type<N> ) : N[] {
+  reified function cast<N>( type : Type<N> ) : N[] {
     var newArray = type.Type.makeArrayInstance(this.length) as N[]
     
     if( GosuObjectUtil.isJavaReferenceArray( this ) and GosuObjectUtil.isJavaReferenceArray( newArray ) ) {
@@ -69,11 +69,11 @@ enhancement CoreArrayEnhancement<T> : T[] {
     return this.fastList().reduce( init, aggregator )
   }
    
-  function allMatch( cond(elt1 : T):Boolean ) : Boolean {
+  function allMatch( cond(elt1 : T):boolean ) : boolean {
     return this.fastList().allMatch( cond )
   }
 
-  function concat( that : T[] ) : T[] {
+  reified function concat( that : T[] ) : T[] {
     return this.fastList().concat( that.fastList() ).toTypedArray()
   }
    
@@ -81,11 +81,11 @@ enhancement CoreArrayEnhancement<T> : T[] {
     return this.length > 0
   }
    
-  function hasMatch( cond(elt1 : T):Boolean ) : Boolean {
+  reified function hasMatch( cond(elt1 : T):Boolean ) : Boolean {
     return this.fastList().hasMatch( cond )
   }
          
-  function average<N extends java.lang.Number>( select:block(elt:T):N ) : BigDecimal {
+  reified function average<N extends java.lang.Number>( select(elt:T):N ) : BigDecimal {
     return this.fastList().average( select )
   }
 
@@ -106,7 +106,7 @@ enhancement CoreArrayEnhancement<T> : T[] {
     return this.length == 0
   }
 
-  function first() : T {
+  reified function first() : T {
     return this.fastList().first()
   }
   
@@ -114,11 +114,11 @@ enhancement CoreArrayEnhancement<T> : T[] {
     return this.fastList().firstWhere( cond )
   }
 
-  function intersect( that : T[] ) : Set<T>{
+  reified function intersect( that : T[] ) : Set<T>{
     return this.fastList().intersect( that.fastList() )
   }
   
-  function last() : T {
+  reified function last() : T {
     return this.fastList().last()
   }
     
@@ -126,31 +126,31 @@ enhancement CoreArrayEnhancement<T> : T[] {
     return this.fastList().lastWhere( cond )
   }
 
-  function max<R extends Comparable>( transform(elt:T):R ) : R {
+  reified function max<R extends Comparable>( transform(elt:T):R ) : R {
     return this.fastList().max( transform )
   }
 
-  function min<R extends Comparable>( transform(elt:T):R ) : R {
+  reified function min<R extends Comparable>( transform(elt:T):R ) : R {
     return this.fastList().min( transform )
   }
   
-  function whereTypeIs<R>( type : Type<R> ) : R[]{
+  reified function whereTypeIs<R>( type : Type<R> ) : R[]{
     return this.fastList().whereTypeIs( type ).toTypedArray()
   }
 
-  function orderBy<R extends Comparable>( value(elt:T):R, comparator : Comparator = null ) : IOrderedList<T> {
+  reified function orderBy<R extends Comparable>( value(elt:T):R, comparator : Comparator = null ) : IOrderedList<T> {
     return this.toList().orderBy( value, comparator )
   }
   
-  function orderByDescending<R extends Comparable>( value(elt:T):R, comparator : Comparator = null ) : IOrderedList<T> {
+  reified function orderByDescending<R extends Comparable>( value(elt:T):R, comparator : Comparator = null ) : IOrderedList<T> {
     return this.toList().orderByDescending( value, comparator )
   }
   
-  function map<Q>( mapper(elt : T):Q ) : Q[] {
+  reified function map<Q>( mapper(elt : T):Q ) : Q[] {
     return this.fastList().map( mapper ).toTypedArray()
   }
   
-  function flatMap<R>( mapper(elt:T):Collection<R> ) : R[] {
+  reified function flatMap<R>( mapper(elt:T):Collection<R> ) : R[] {
     return this.fastList().flatMap( mapper ).toTypedArray() 
   }
 
@@ -166,19 +166,19 @@ enhancement CoreArrayEnhancement<T> : T[] {
     return this.fastList().partitionUniquely( partitioner )    
   }
 
-  function partition<Q>( partitioner(elt : T):Q ) : Map<Q, List<T>> {
+  reified function partition<Q>( partitioner(elt : T):Q ) : Map<Q, List<T>> {
     return this.fastList().partition( partitioner )
   }
   
-  function union( that : T[] ) : Set<T>{
+  reified function union( that : T[] ) : Set<T>{
     return this.fastList().union( that.fastList() )    
   }
   
-  function where( cond(elt:T): boolean ) : T[] {
+  reified function where( cond(elt:T): boolean ) : T[] {
     return this.fastList().where( cond ).toTypedArray()    
   }
 
-  function toSet() : Set<T> {
+  reified function toSet() : Set<T> {
     return this.fastList().toSet()
   }
 
@@ -224,7 +224,7 @@ enhancement CoreArrayEnhancement<T> : T[] {
   /**
    * Creates a copy of this array
     */
-  function copy() : T[] {
+  reified function copy() : T[] {
     var arr = T.Type.makeArrayInstance( this.length ) as T[]
     for( elt in this index i ) {
       arr[i] = elt
@@ -264,7 +264,7 @@ enhancement CoreArrayEnhancement<T> : T[] {
    * Returns a new set, which is this iterable as a set minus the given set.  This is slightly different
    * than except(), which does not convert this Iterble to a set and thus may contain duplicates
    */
-  function subtract( otherArray : T[] ) : Set<T> {
+  reified function subtract( otherArray : T[] ) : Set<T> {
     return this.fastList().subtract( otherArray.fastList() )
   }
 
@@ -272,14 +272,14 @@ enhancement CoreArrayEnhancement<T> : T[] {
   * Returns a new set, which is the disjunction of this set and the given set, that is,
   * all elements that are in one set *not* and not the other
   */
-  function disjunction( otherArray : T[] ) : Set<T> {
+  reified function disjunction( otherArray : T[] ) : Set<T> {
     return this.fastList().disjunction( otherArray.fastList() )
   }
   
   /**
    * Returns a new array that is the reverse of this array
    */
-  function reverse() : T[] {
+  reified function reverse() : T[] {
     return this.toList().reverse().toTypedArray()
   }
 
@@ -287,7 +287,7 @@ enhancement CoreArrayEnhancement<T> : T[] {
    * takes two arrays and returns an array of corresponding <code>gw.util.Pair</code>s.
    * If one input array is short, excess elements of the longer array are discarded.
    */
-  function zip<R>( other : R[]) : Pair<T,R>[] {
+  reified function zip<R>( other : R[]) : Pair<T,R>[] {
     if (other == null) {
       throw new NullPointerException("other should be non-null")
     }

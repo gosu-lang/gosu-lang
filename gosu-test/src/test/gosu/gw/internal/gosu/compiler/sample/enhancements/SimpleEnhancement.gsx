@@ -78,7 +78,7 @@ enhancement SimpleEnhancement : _Enhanced {
     return this.returnAMethodWithArgs( s )
   }
 
-  function genericMethodReturningType<T>( arg : T ) : Type {
+  reified function genericMethodReturningType<T>( arg : T ) : Type {
     return T
   }
 
@@ -98,11 +98,11 @@ enhancement SimpleEnhancement : _Enhanced {
       return "prop"
     }
 
-    function parameterizedFunction<T>( s : T ) : Type {
+    reified function parameterizedFunction<T>( s : T ) : Type {
       return T
     }
 
-    static function staticParameterizedFunction<T>( s : T ) : Type {
+    reified static function staticParameterizedFunction<T>( s : T ) : Type {
       return T
     }
 

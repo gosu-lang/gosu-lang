@@ -17,28 +17,28 @@ class BlockTypeVariableTest extends gw.test.TestClass
     assertEquals( String, staticReturnsBlockOfBlockToT4( String )()()()() )
   }
 
-  function returnsBlockOfBlockToT1<T>( t : Type<T> ) : block():Type {
+  reified function returnsBlockOfBlockToT1<T>( t : Type<T> ) : block():Type {
     return \->T
   }
-  function returnsBlockOfBlockToT2<T>( t : Type<T> ) : block():block():Type {
+  reified function returnsBlockOfBlockToT2<T>( t : Type<T> ) : block():block():Type {
     return \->\->T
   }
-  function returnsBlockOfBlockToT3<T>( t : Type<T> ) : block():block():block():Type {
+  reified function returnsBlockOfBlockToT3<T>( t : Type<T> ) : block():block():block():Type {
     return \->\->\->T
   }
-  function returnsBlockOfBlockToT4<T>( t : Type<T> ) : block():block():block():block():Type {
+  reified function returnsBlockOfBlockToT4<T>( t : Type<T> ) : block():block():block():block():Type {
     return \->\->\->\->T
   }
-  static function staticReturnsBlockOfBlockToT1<T>( t : Type<T> ) : block():Type {
+  reified static function staticReturnsBlockOfBlockToT1<T>( t : Type<T> ) : block():Type {
     return \->T
   }
-  static function staticReturnsBlockOfBlockToT2<T>( t : Type<T> ) : block():block():Type {
+  reified static function staticReturnsBlockOfBlockToT2<T>( t : Type<T> ) : block():block():Type {
     return \->\->T
   }
-  static function staticReturnsBlockOfBlockToT3<T>( t : Type<T> ) : block():block():block():Type {
+  reified static function staticReturnsBlockOfBlockToT3<T>( t : Type<T> ) : block():block():block():Type {
     return \->\->\->T
   }
-  static function staticReturnsBlockOfBlockToT4<T>( t : Type<T> ) : block():block():block():block():Type {
+  reified static function staticReturnsBlockOfBlockToT4<T>( t : Type<T> ) : block():block():block():block():Type {
     return \->\->\->\->T
   }
 }

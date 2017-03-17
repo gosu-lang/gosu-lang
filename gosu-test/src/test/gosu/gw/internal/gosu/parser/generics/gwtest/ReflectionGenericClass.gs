@@ -44,7 +44,7 @@ class ReflectionGenericClass<T>
     return this.returnFunctionTypeParam<java.lang.StringBuilder>()
   }
 
-  private function returnFunctionTypeParam<F>() : Type
+  private reified function returnFunctionTypeParam<F>() : Type
   {
     return F
   }

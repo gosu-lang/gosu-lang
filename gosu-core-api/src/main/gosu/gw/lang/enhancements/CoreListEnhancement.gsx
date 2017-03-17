@@ -20,7 +20,7 @@ enhancement CoreListEnhancement<T> : List<T>  {
    * Returns this list cast to a List<N>, checking each element in the
    * list to ensure the cast is legal.
    */
-  function cast<N>( type : Type<N> ) : List<N> {
+  reified function cast<N>( type : Type<N> ) : List<N> {
     for( elt in this ) {
       if( not type.Type.isAssignableFrom( typeof elt ) ) {
         throw new IllegalArgumentException( "The element ${elt} is not of type ${type.Type.Name}" )
@@ -33,7 +33,7 @@ enhancement CoreListEnhancement<T> : List<T>  {
    * Partitions each element into a Map where the keys are the value produce by the mapper block and the
    * values lists of elements of the Collection that map to that value.
    */
-  function partition<Q>( partitioner(elt : T):Q ) : Map<Q, List<T>> {
+  reified function partition<Q>( partitioner(elt : T):Q ) : Map<Q, List<T>> {
     var returnMap = new HashMap<Q, List<T>>()
     var autoMap = returnMap.toAutoMap( \ q -> new ArrayList<T>() )
     for( elt in this )

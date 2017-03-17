@@ -179,6 +179,7 @@ import gw.lang.reflect.gs.IGosuClassTypeInfo;
 import gw.lang.reflect.gs.IGosuEnhancement;
 import gw.lang.reflect.gs.IGosuFragment;
 import gw.lang.reflect.gs.IGosuProgram;
+import gw.lang.reflect.gs.IGosuPropertyInfo;
 import gw.lang.reflect.gs.IGosuVarPropertyInfo;
 import gw.lang.reflect.gs.ISourceFileHandle;
 import gw.lang.reflect.gs.StringSourceFileHandle;
@@ -2299,6 +2300,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
           IType rhsType = ((TypeLiteral)rhs).getType().getType();
           verify( rhs, !rhsType.isPrimitive(), Res.MSG_PRIMITIVES_NOT_ALLOWED_HERE );
           verify( rhs, TypeLoaderAccess.instance().canCast( lhs.getType(), rhsType ), Res.MSG_INCONVERTIBLE_TYPES, lhs.getType().getName(), rhsType.getName() );
+          verifyTypeVarAreReified( rhs, rhsType );
           e.setRHS( (TypeLiteral)rhs );
           _ctxInferenceMgr.updateType( ContextInferenceManager.getUnwrappedExpression( lhs ), e.getRHS().evaluate() );
         }
@@ -2666,6 +2668,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
           checkComparableAndCastable( lhs, rhs );
           e.setType( rhsType );
           e.setCoercer( CommonServices.getCoercionManager().resolveCoercerStatically( rhsType, lhs.getType() ) );
+          verifyTypeVarAreReified( rhs, rhsType );
 
           warn( lhs, lhs.getType() instanceof IErrorType ||
                   rhs.getType() instanceof IErrorType ||
@@ -4062,9 +4065,16 @@ public final class GosuParser extends ParserBase implements IGosuParser
 
   private IType getBlockReturnType( IParsedElement blockBody, IType ctxType )
   {
-    if(blockBody == null) {
+    if( blockBody == null )
+    {
       return ErrorType.getInstance();
     }
+
+    if( ctxType == JavaTypes.pVOID() )
+    {
+      return ctxType;
+    }
+
     if( blockBody instanceof Expression )
     {
       return ((Expression)blockBody).getType();
@@ -4319,6 +4329,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
     verifyCanConstructInnerClassFromCallSite( e, declaringClass );
     if( bNoArgNoParenthesis || match( null, '(' ) )
     {
+      boolean bAnonymous = false;
       boolean bAssumeClosingParenMatch = true;
       e.setArgPosition( iParenStart + 1 );
 
@@ -4356,7 +4367,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
           e.setType( ErrorType.getInstance() );
         }
         bAssumeClosingParenMatch = verify( e, match( null, ')' ), Res.MSG_EXPECTING_FUNCTION_CLOSE );
-        boolean bAnonymous = !isInitializableType( e.getType() ) && match( null, null, '{', true );
+        bAnonymous = !isInitializableType( e.getType() ) && match( null, null, '{', true );
         verifyConstructorIsAccessible( declaringClass, e, constructorType, bAnonymous );
       }
       else
@@ -4372,7 +4383,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
           e.setType( declaringClass );
           e.setConstructor( constructorType.getConstructor() );
 
-          boolean bAnonymous = !isInitializableType( e.getType() ) && match( null, null, '{', true );
+          bAnonymous = !isInitializableType( e.getType() ) && match( null, null, '{', true );
           verifyConstructorIsAccessible( declaringClass, e, constructorType, bAnonymous );
         }
         catch( ParseException pe )
@@ -4382,6 +4393,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
           if( (possibleAnonymousClassDecl || possibleDataStructDecl) && match( null, null, '{', true ) )
           {
             // Assume we are constructing an anonymous class on an interface or a data structure
+            bAnonymous = true;
           }
           else
           {
@@ -4391,6 +4403,11 @@ public final class GosuParser extends ParserBase implements IGosuParser
             e.addParseException( pe );
           }
         }
+      }
+
+      if( typeLiteral != null && (!(typeLiteral.getType().getType() instanceof IJavaType) || bAnonymous) )
+      {
+        verifyTypeVarAreReified( typeLiteral, typeLiteral.getType().getType() );
       }
 
       if( match( null, null, '{', true ) )
@@ -6062,16 +6079,28 @@ public final class GosuParser extends ParserBase implements IGosuParser
       e.addParseException( new ParseException( state, Res.MSG_NO_ABSTRACT_METHOD_CALL_IN_CONSTR, e.getFunctionSymbol().getDisplayName() ) );
     }
 
-    if( e instanceof MethodCallExpression )
+    if( e != null )
     {
-      verifyNotCallingOverridableFunctionFromCtor( (MethodCallExpression)e );
+      verifyNotCallingOverridableFunctionFromCtor( e );
       if( getGosuClass() != null && getGosuClass().isAnonymous() && getGosuClass().getEnclosingType() instanceof IGosuEnhancement )
       {
         verify( e, false, Res.MSG_CANNOT_REFERENCE_ENCLOSING_METHODS_WITHIN_ENHANCEMENTS );
       }
+      verifyReifiedCallHasProperContext( e );
     }
 
     pushExpression( e );
+  }
+
+  private void verifyReifiedCallHasProperContext( MethodCallExpression e )
+  {
+    IFunctionType funcType = e.getFunctionType();
+    if( funcType == null || !Modifier.isReified( funcType.getModifiers() ) )
+    {
+      return;
+    }
+
+    verifyTypeVarAreReified( e, e.getFunctionType() );
   }
 
   private ISymbol maybeCaptureSymbol( MethodCallExpression e, ISymbol functionSymbol )
@@ -6319,6 +6348,30 @@ public final class GosuParser extends ParserBase implements IGosuParser
       //resolve a symbol, let's make sure its case is correct
       verifyCase( e, name, s.getName(), Res.MSG_VAR_CASE_MISMATCH, false );
     }
+
+    if( e instanceof PropertyAccessIdentifier )
+    {
+      verifyReifiedCallHasProperContext( (PropertyAccessIdentifier)e, (DynamicPropertySymbol)s );
+    }
+  }
+
+  private void verifyReifiedCallHasProperContext( PropertyAccessIdentifier e, DynamicPropertySymbol dps )
+  {
+    IType type = dps.getType();
+    if( type instanceof IErrorType )
+    {
+      return;
+    }
+
+    IFunctionType funcType = (IFunctionType)(dps.isReadable()
+                                             ? dps.getGetterDfs().getType()
+                                             : dps.getSetterDfs().getType());
+    if( funcType == null || !Modifier.isReified( funcType.getModifiers() ) )
+    {
+      return;
+    }
+
+    verifyTypeVarAreReified( e, TypeLord.getPureGenericType( funcType) );
   }
 
   private void parseIdentifierOrTypeLiteralOrEnumConstant( String[] T, int iOffset, int iLineNum, int iColumn )
@@ -6377,10 +6430,16 @@ public final class GosuParser extends ParserBase implements IGosuParser
 
       pushExpression( errantExpression );
     }
-    else if( match( null, "&", SourceCodeTokenizer.TT_OPERATOR, true ) )
+    else
     {
-      setLocation( iOffset, iLineNum, iColumn ); // set location of initial type literal (tl)
-      parseAggregateTypeLiteral(false);
+      if( match( null, "&", SourceCodeTokenizer.TT_OPERATOR, true ) )
+      {
+        setLocation( iOffset, iLineNum, iColumn ); // set location of initial type literal (tl)
+        parseAggregateTypeLiteral(false);
+      }
+
+      TypeLiteral typeLiteral = (TypeLiteral)peekExpression();
+      verifyTypeVarAreReified( typeLiteral, typeLiteral.getType().getType() );
     }
   }
 
@@ -6830,7 +6889,26 @@ public final class GosuParser extends ParserBase implements IGosuParser
 
     verifyNotCallingOverridableFunctionFromCtor( e );
 
+    verifyReifiedCallHasProperContext( e );
+
     pushExpression( e );
+  }
+
+  private void verifyReifiedCallHasProperContext( BeanMethodCallExpression e )
+  {
+    IType rootType = e.getRootType();
+    if( rootType instanceof IMetaType )
+    {
+      verifyTypeVarAreReified( e.getRootExpression(), ((IMetaType)rootType).getType() );
+    }
+
+    IFunctionType funcType = e.getFunctionType();
+    if( funcType == null || !Modifier.isReified( funcType.getModifiers() ) )
+    {
+      return;
+    }
+
+    verifyTypeVarAreReified( e, TypeLord.getPureGenericType( e.getFunctionType() ) );
   }
 
   private void parsePropertyMember( Expression rootExpression, MemberAccessKind kind, int iTokenStart, String strMemberName, LazyLightweightParserState state, boolean bParseTypeLiteralOnly, boolean createSynthesizedProperty, IType rootType, boolean bExpansion )
@@ -7013,7 +7091,41 @@ public final class GosuParser extends ParserBase implements IGosuParser
               Res.MSG_ABSTRACT_METHOD_CANNOT_BE_ACCESSED_DIRECTLY, strMemberName );
     }
     verifySuperAccess( rootExpression, ma, pi, strMemberName );
+    verifyReifiedCallHasProperContext( ma );
     pushExpression( ma );
+  }
+
+  private void verifyReifiedCallHasProperContext( MemberAccess e )
+  {
+    if( e.getType() instanceof IErrorType )
+    {
+      return;
+    }
+
+    IType rootType = e.getRootType();
+    if( rootType instanceof IErrorType || rootType instanceof INamespaceType )
+    {
+      return;
+    }
+
+    if( rootType instanceof IMetaType )
+    {
+      verifyTypeVarAreReified( e.getRootExpression(), ((IMetaType)rootType).getType() );
+    }
+
+    IPropertyInfo pi = e.getPropertyInfo();
+    if( pi instanceof IGosuPropertyInfo )
+    {
+      IFunctionType funcType = pi.isReadable( getGosuClass() )
+                               ? (IFunctionType)((IGosuPropertyInfo)pi).getDps().getGetterDfs().getType()
+                               : (IFunctionType)((IGosuPropertyInfo)pi).getDps().getSetterDfs().getType();
+      if( funcType == null || !Modifier.isReified( funcType.getModifiers() ) )
+      {
+        return;
+      }
+
+      verifyTypeVarAreReified( e, TypeLord.getPureGenericType( funcType ) );
+    }
   }
 
   private void verifySuperAccess( Expression rootExpression, Expression memberExpr, IAttributedFeatureInfo feature, String strMemberName )
@@ -14029,6 +14141,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
         type.setRetType( typeLiteral.getType().getType() );
 
         type.setScriptPart( getScriptPart() );
+        type.setModifiers( modifiers.getModifiers() );
 
         DynamicFunctionSymbol dfs;
         if( gsClass instanceof IGosuEnhancement && !Modifier.isStatic( modifiers.getModifiers() ) )
@@ -14181,7 +14294,17 @@ public final class GosuParser extends ParserBase implements IGosuParser
     {
       verifyOverrideNotOnMethodThatDoesNotExtend( element, dfs );
     }
+    else
+    {
+      verifyReified( element, dfs );
+    }
     verifyNoImplicitPropertyMethodConflicts( element, dfs );
+  }
+
+  private void verifyReified( ParsedElement element, DynamicFunctionSymbol dfs )
+  {
+    DynamicFunctionSymbol superDfs = dfs.getSuperDfs();
+    verify( element, dfs.isReified() == superDfs.isReified(), Res.MSG_REIFIED_DONT_MATCH );
   }
 
   // Since we compile private methods as internal (so inner classes have easier access) we must

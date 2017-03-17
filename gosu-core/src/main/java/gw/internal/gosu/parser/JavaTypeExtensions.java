@@ -9,6 +9,7 @@ import gw.config.ExecutionMode;
 import gw.internal.ext.org.objectweb.asm.ClassWriter;
 import gw.internal.ext.org.objectweb.asm.MethodVisitor;
 import gw.internal.ext.org.objectweb.asm.Type;
+import gw.lang.parser.ILanguageLevel;
 import gw.lang.reflect.IAnnotationInfo;
 import gw.lang.reflect.IInjectableClassLoader;
 import gw.lang.reflect.TypeSystem;
@@ -31,7 +32,15 @@ class JavaTypeExtensions {
   private JavaTypeExtensions() {
   }
 
-  public static IJavaPropertyInfo maybeExtendProperty(JavaPropertyInfo javaProperty) {
+  public static IJavaPropertyInfo maybeExtendProperty( JavaPropertyInfo javaProperty )
+  {
+    if( ILanguageLevel.Util.STANDARD_GOSU() )
+    {
+      return javaProperty;
+    }
+
+    // Barf...
+
     IJavaPropertyInfo result = javaProperty;
     IJavaClassMethod readMethod = javaProperty.getPropertyDescriptor().getReadMethod();
     if (readMethod != null) {
@@ -47,7 +56,15 @@ class JavaTypeExtensions {
     return result;
   }
 
-  public static IJavaTypeInternal maybeExtendType(JavaType javaType) {
+  public static IJavaTypeInternal maybeExtendType( JavaType javaType )
+  {
+    if( ILanguageLevel.Util.STANDARD_GOSU() )
+    {
+      return javaType;
+    }
+
+    // Barf...
+
     IJavaTypeInternal result = javaType;
     ExtendedTypeDataFactory factory = getExtendedTypeDataFactory(javaType);
     if (factory != null) {

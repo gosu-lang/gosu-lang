@@ -300,9 +300,20 @@ public class VarInitializationVerifier {
     //## todo: introduce static constructors
 
     boolean bAssigned = varStmt.getHasInitializer();
-    if( !bAssigned ) {
-      ParseException parseException = new ParseException( varStmt.getLineNum(), 1, varStmt.getLocation().getColumn(), varStmt.getLocation().getOffset(), varStmt.getLocation().getExtent(),
-                                                          new StandardSymbolTable(), Res.MSG_VAR_MIGHT_NOT_HAVE_BEEN_INIT, varStmt.getSymbol().getName() );
+    if( !bAssigned )
+    {
+      ParseException parseException;
+      if( varStmt.getLocation() == null )
+      {
+        parseException = new ParseException( varStmt.getLineNum(), 1, 0, 0, 0,
+                                             new StandardSymbolTable(), Res.MSG_VAR_MIGHT_NOT_HAVE_BEEN_INIT, varStmt.getSymbol().getName() );
+
+      }
+      else
+      {
+        parseException = new ParseException( varStmt.getLineNum(), 1, varStmt.getLocation().getColumn(), varStmt.getLocation().getOffset(), varStmt.getLocation().getExtent(),
+                                             new StandardSymbolTable(), Res.MSG_VAR_MIGHT_NOT_HAVE_BEEN_INIT, varStmt.getSymbol().getName() );
+      }
       varStmt.addParseException( parseException );
     }
   }

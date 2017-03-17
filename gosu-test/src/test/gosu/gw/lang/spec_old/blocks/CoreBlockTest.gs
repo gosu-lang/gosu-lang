@@ -219,7 +219,7 @@ class CoreBlockTest extends TestClass
     blockAssignment(false)
   }
 
-  function blockAssignment<T>(b : boolean) {
+  reified function blockAssignment<T>(b : boolean) {
     var blockType = block(s:String):T
     assertEquals( b, blockType.isAssignableFrom( block(s:String) )) // block():void is not assignable to block():non-void
   }

@@ -132,19 +132,19 @@ class FunctionPropertyConflictTest extends TestClass {
   //  Utility Methods  
   //-----------------------------------------------------------------  
 
-  function assertErrorAt<T extends IParsedElement>( t : Class<T>, line : int, key : ResourceKey){
+  reified function assertErrorAt<T extends IParsedElement>( t : Class<T>, line : int, key : ResourceKey){
     var elt = getParsedElementAtLine(t, line)
     assertTrue( elt.ParseExceptions.hasMatch(\ i -> i.MessageKey == key ) )
   }
 
-  function assertNoErrorAt<T extends IParsedElement>( t : Class<T>, lines : IntegerInterval){
+  reified function assertNoErrorAt<T extends IParsedElement>( t : Class<T>, lines : IntegerInterval){
     for( line in lines ) { 
       var elt = getParsedElementAtLine(t, line)
       assertFalse( elt.hasParseExceptions() )
     }
   }
   
-  function getParsedElementAtLine<T extends IParsedElement>( t : Class<T>, line : int ) : T {
+  reified function getParsedElementAtLine<T extends IParsedElement>( t : Class<T>, line : int ) : T {
     var lst = getParsedElementOfType(t).where(\ i -> i.LineNum == line )
     if( lst.Empty ) 
     {

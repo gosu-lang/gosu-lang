@@ -93,7 +93,7 @@ class HasEvalExpression
   {
     return _testReifiedTypeVarFromGenericFunction( new StringBuilder() )
   }
-  private function _testReifiedTypeVarFromGenericFunction<A extends CharSequence>( cs : A ) : String
+  private reified function _testReifiedTypeVarFromGenericFunction<A extends CharSequence>( cs : A ) : String
   {
     var x = "hello"
     return eval( "x + A" ) as String
@@ -103,7 +103,7 @@ class HasEvalExpression
   {
     return _testReifiedTypeVarParameterizedWithGosuClassFromGenericFunction( this )
   }
-  private function _testReifiedTypeVarParameterizedWithGosuClassFromGenericFunction<A>( cs : A ) : String
+  private reified function _testReifiedTypeVarParameterizedWithGosuClassFromGenericFunction<A>( cs : A ) : String
   {
     return eval( "A" ) as String
   }
@@ -117,7 +117,7 @@ class HasEvalExpression
   {
     return _testReifiedTypeVarParameterizedWithNullFromGenericFunctionWithNullCapture( null )
   }
-  private function _testReifiedTypeVarParameterizedWithNullFromGenericFunctionWithNullCapture<A>( cs : A ) : String
+  private reified function _testReifiedTypeVarParameterizedWithNullFromGenericFunctionWithNullCapture<A>( cs : A ) : String
   {
     return eval( "A.Type.Name + cs" ) as String
   }
@@ -126,7 +126,7 @@ class HasEvalExpression
   {
     return _testReifiedTypeVarsParameterizedWithGosuClassFromGenericFunction( this, 3 as java.lang.Integer )
   }
-  private function _testReifiedTypeVarsParameterizedWithGosuClassFromGenericFunction<A, B>( cs : A, bs : B ) : String
+  private reified function _testReifiedTypeVarsParameterizedWithGosuClassFromGenericFunction<A, B>( cs : A, bs : B ) : String
   {
     return eval( "A.Type.Name + B.Type.Name" ) as String
   }
@@ -135,7 +135,7 @@ class HasEvalExpression
   {
     return _testReifiedTypeVarsParameterizedWithGosuClassFromGenericFunctionWithCapturedSymbols( this, 3 as java.lang.Integer )
   }
-  private function _testReifiedTypeVarsParameterizedWithGosuClassFromGenericFunctionWithCapturedSymbols<A, B>( cs : A, bs : B ) : String
+  private reified function _testReifiedTypeVarsParameterizedWithGosuClassFromGenericFunctionWithCapturedSymbols<A, B>( cs : A, bs : B ) : String
   {
     return eval( "A.Type.Name + B.Type.Name + typeof cs + bs " ) as String
   }
@@ -144,7 +144,7 @@ class HasEvalExpression
   {
     return _testReifiedTypeVarFromGenericFunctionInNestedEval( "" )
   }
-  private function _testReifiedTypeVarFromGenericFunctionInNestedEval<A extends CharSequence>( cs : A ) : String
+  private reified function _testReifiedTypeVarFromGenericFunctionInNestedEval<A extends CharSequence>( cs : A ) : String
   {
     var x = "hello_nested_"
     return eval( "eval( \"x + A\" )" ) as String
@@ -183,7 +183,7 @@ class HasEvalExpression
   {
     return _testReifiedTypeVarFromStaticMethod( new java.lang.StringBuilder() )
   }
-  private static function _testReifiedTypeVarFromStaticMethod<M>( value : M ) : Type
+  private reified static function _testReifiedTypeVarFromStaticMethod<M>( value : M ) : Type
   {
     return eval( "M" ) as Type
   }
@@ -192,7 +192,7 @@ class HasEvalExpression
   {
     return _testReifiedTypeVarFromStaticMethodWithCapturedSymbols( new java.lang.StringBuilder() )
   }
-  private static function _testReifiedTypeVarFromStaticMethodWithCapturedSymbols<M>( value : M ) : String
+  private reified static function _testReifiedTypeVarFromStaticMethodWithCapturedSymbols<M>( value : M ) : String
   {
     var dude = "duuude"
     return eval( "M.Type.Name + dude" ) as String
@@ -202,7 +202,7 @@ class HasEvalExpression
   {
     return _testReifiedTypeVarsFromStaticMethodWithCapturedSymbols( new java.lang.StringBuilder(), new java.lang.Integer( 3 ) )
   }
-  private static function _testReifiedTypeVarsFromStaticMethodWithCapturedSymbols<M,N>( value : M, value2 : N ) : String
+  private reified static function _testReifiedTypeVarsFromStaticMethodWithCapturedSymbols<M,N>( value : M, value2 : N ) : String
   {
     var dude = "duuude"
     return eval( "M.Type.Name + N.Type.Name + dude" ) as String

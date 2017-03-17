@@ -87,6 +87,7 @@ public class DynamicFunctionSymbol extends AbstractDynamicSymbol implements IDyn
     _args = dfs._args;
     _initializer = dfs._initializer;
     setName( dfs.getName() );
+    setDisplayName( dfs.getDisplayName() );
     _scriptPartId = dfs._scriptPartId;
     replaceModifierInfo(dfs.getModifierInfo());
   }

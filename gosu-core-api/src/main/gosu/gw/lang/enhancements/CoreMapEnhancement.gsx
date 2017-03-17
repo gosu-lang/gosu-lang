@@ -48,7 +48,7 @@ enhancement CoreMapEnhancement<K, V> : java.util.Map<K, V>
     return returnMap
   }
 
-  public function toAutoMap( defaultValue(k : K):V ) : Map<K, V> {
+  reified function toAutoMap( defaultValue(k : K):V ) : Map<K, V> {
     return new AutoMap<K,V>(this, defaultValue)
   }
 

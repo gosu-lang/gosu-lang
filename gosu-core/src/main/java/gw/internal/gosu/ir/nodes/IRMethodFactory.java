@@ -28,27 +28,6 @@ public class IRMethodFactory {
     if (originalMethodInfo == null) {
       return null;
     }
-
-//    IMethodInfo resolvedMethodInfo = originalMethodInfo;
-//
-//    while( resolvedMethodInfo instanceof IMethodInfoDelegate) {
-//      resolvedMethodInfo = ((IMethodInfoDelegate)resolvedMethodInfo).getSource();
-//    }
-//
-//    // If the owning type is a Gosu proxy, we actually want the IMethodInfo off of the underlying Java type
-//    IType owner = getTrueOwningType(resolvedMethodInfo);
-//    if (IGosuClass.ProxyUtil.isProxy(owner)) {
-//      owner = IGosuClass.ProxyUtil.getProxiedType(owner);
-//      IType[] parameterTypes = getParameterTypes( resolvedMethodInfo );
-//      resolvedMethodInfo = owner.getTypeInfo().getMethod(resolvedMethodInfo.getDisplayName(), parameterTypes);
-//
-//      if (resolvedMethodInfo == null) {
-//        System.out.println("Huh?");
-//      }
-//
-//      assert(resolvedMethodInfo != null);
-//    }
-
     return new IRMethodFromMethodInfo(originalMethodInfo, functionType);
   }
 

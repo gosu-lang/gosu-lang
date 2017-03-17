@@ -7,7 +7,7 @@ uses java.lang.Iterable
  */
 enhancement CoreIterableOfNumbersEnhancement<N extends java.lang.Number> : Iterable<N> {
 
-  function average() : BigDecimal {
+  reified function average() : BigDecimal {
     return this.average( \ i -> i )
   }  
 }

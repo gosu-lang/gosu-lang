@@ -66,22 +66,22 @@ class ContextTypeThroughReturnTypeInferenceTest extends TestClass {
     assertEquals( String, _lastT )
   }
 
-  function genericFunction<T>() : T {
+  reified function genericFunction<T>() : T {
     _lastT = T
     return null
   }
   
-  function genericFunctionWithArg<T>(tPrime : Type<T>) : T {
+  reified function genericFunctionWithArg<T>(tPrime : Type<T>) : T {
     _lastT = T
     return null
   }
   
-  function genericFunctionList<T>() : List<T> {
+  reified function genericFunctionList<T>() : List<T> {
     _lastT = T
     return null
   }
   
-  function genericFunctionWithArgList<T>(tPrime : Type<T>) : List<T> {
+  reified function genericFunctionWithArgList<T>(tPrime : Type<T>) : List<T> {
     _lastT = T
     return null
   }

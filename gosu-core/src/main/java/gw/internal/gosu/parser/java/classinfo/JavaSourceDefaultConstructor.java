@@ -73,7 +73,15 @@ public class JavaSourceDefaultConstructor implements IJavaClassConstructor {
 
   @Override
   public Object newInstance(Object... objects) throws InvocationTargetException, IllegalAccessException, InstantiationException {
-    throw new UnsupportedOperationException();
+    try
+    {
+      //## todo: support all constructors
+      return Class.forName( getEnclosingClass().getName() ).newInstance();
+    }
+    catch( ClassNotFoundException e )
+    {
+      throw new RuntimeException( e );
+    }
   }
 
   @Override

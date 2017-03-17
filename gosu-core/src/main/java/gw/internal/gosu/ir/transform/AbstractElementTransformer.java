@@ -266,7 +266,7 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
       // So we evaluate all the arguments to temp variables, then evaluate the root and null check-it,
       // and lastly invoke the method
       List<IRExpression> tempArgs = new ArrayList<IRExpression>();
-      pushEnhancementTypeParams( owner, tempArgs );
+      pushEnhancementTypeParams( method, owner, tempArgs );
       pushTypeParams( method, tempArgs );
       if( shouldAddExternalSymbolsMapToCall( method ) )
       {
@@ -414,8 +414,14 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
     return result;
   }
 
-  private void pushEnhancementTypeParams( IType enhancementType, List<IRExpression> args )
+  private void pushEnhancementTypeParams( IRMethod irMethod, IType enhancementType, List<IRExpression> args )
   {
+    IFunctionType funcType = irMethod.getFunctionType();
+    if( !Modifier.isReified( funcType.getModifiers() ) )
+    {
+      return;
+    }
+
     if( enhancementType.isParameterizedType() )
     {
       for( IType typeParam : enhancementType.getTypeParameters() )
@@ -476,7 +482,7 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
   private void pushTypeParams( IRMethod irMethod, List<IRExpression> args )
   {
     IFunctionType funcType = irMethod.getFunctionType();
-    if( funcType == null || !irMethod.couldHaveTypeVariables() )
+    if( funcType == null || !irMethod.couldHaveTypeVariables() || (!Modifier.isReified( funcType.getModifiers() ) && !irMethod.getName().equals( "<init>" )) )
     {
       return;
     }
@@ -494,14 +500,20 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
       IGenericTypeVariable[] typeVars = irMethod.getTypeVariables();
       for( IGenericTypeVariable typeVariable : typeVars )
       {
-        args.add( pushLazyType( typeVariable.getBoundingType() ) );
+        IType boundingType = typeVariable.getBoundingType();
+        boundingType = boundingType == null ? JavaTypes.OBJECT() : TypeLord.getDefaultParameterizedTypeWithTypeVars( boundingType );
+        boundingType = TypeLord.getPureGenericType( boundingType );
+        args.add( pushLazyType( boundingType ) );
       }
     }
     else if( funcType.isGenericType() )
     {
       for( IGenericTypeVariable typeVariable : funcType.getGenericTypeVariables() )
       {
-        args.add( pushLazyType( typeVariable.getTypeVariableDefinition().getType().getBoundingType() ) );
+        IType boundingType = typeVariable.getBoundingType();
+        boundingType = boundingType == null ? JavaTypes.OBJECT() : TypeLord.getDefaultParameterizedTypeWithTypeVars( boundingType );
+        boundingType = TypeLord.getPureGenericType( boundingType );
+        args.add( pushLazyType( boundingType ) );
       }
     }
   }
@@ -2845,7 +2857,7 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
     return params.toArray( new IRType[params.size()] );
   }
 
-  protected int pushTypeParametersForConstructor( IExpression expr, IType type, List<IRExpression> args, boolean bSuperCall )
+  protected int pushTypeParametersForConstructor( IExpression expr, IType type, List<IRExpression> args, boolean bSuperCall, boolean genericJavaInterop )
   {
     if( !(type instanceof IGosuClassInternal) )
     {
@@ -2863,12 +2875,31 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
         iCount++;
       }
     }
-    else if( type.isGenericType() ) {
-      // We should only be here if it's a this() call, so we grab the type parameters out of the current scope,
-      // i.e. just pass through whatever was passed to this constructor
-      for ( IGenericTypeVariable typeVariable : type.getGenericTypeVariables() ) {
-        args.add( identifier( new IRSymbol( getTypeVarParamName( typeVariable ), getDescriptor( LazyTypeResolver.class ), false) ) );
-        iCount++;
+    else if( type.isGenericType() )
+    {
+      // We should only be here if it's a this() call...
+
+      if( genericJavaInterop )
+      {
+        // Push default (bounding) types for java interop
+        for( IGenericTypeVariable typeVariable : type.getGenericTypeVariables() )
+        {
+          IType boundingType = typeVariable.getTypeVariableDefinition().getBoundingType();
+          boundingType = boundingType == null ? JavaTypes.OBJECT() : TypeLord.getDefaultParameterizedTypeWithTypeVars( boundingType );
+          boundingType = TypeLord.getPureGenericType( boundingType );
+          args.add( pushLazyType( boundingType ) );
+          iCount++;
+        }
+      }
+      else
+      {
+        // Grab the type parameters out of the current scope,
+        // i.e. just pass through whatever was passed to this constructor
+        for( IGenericTypeVariable typeVariable : type.getGenericTypeVariables() )
+        {
+          args.add( identifier( new IRSymbol( getTypeVarParamName( typeVariable ), getDescriptor( LazyTypeResolver.class ), false ) ) );
+          iCount++;
+        }
       }
     }
 
@@ -2908,20 +2939,23 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
           {
             gsClass = gsClass.getEnclosingType();
           }
-
-          for( int i = 0; i < genTypeVars.size(); i++ )
+          if( Modifier.isReified( dfs.getModifiers() ) )
           {
-            if( gsClass == type )
+
+            for( int i = 0; i < genTypeVars.size(); i++ )
             {
-              args.add( identifier( _cc().getSymbol( getTypeVarParamName( genTypeVars.get(i) ) ) ) );
+              if( gsClass == type )
+              {
+                args.add( identifier( _cc().getSymbol( getTypeVarParamName( genTypeVars.get( i ) ) ) ) );
+              }
+              else
+              {
+                args.add( getInstanceField( gsClass, TYPE_PARAM_PREFIX + genTypeVars.get( i ).getName(),
+                                            getDescriptor( LazyTypeResolver.class ), AccessibilityUtil.forTypeParameter(),
+                                            pushThisOrOuter( gsClass ) ) );
+              }
+              iCount++;
             }
-            else
-            {
-              args.add( getInstanceField( gsClass, TYPE_PARAM_PREFIX + genTypeVars.get( i ).getName(),
-                                          getDescriptor( LazyTypeResolver.class ), AccessibilityUtil.forTypeParameter(),
-                        pushThisOrOuter( gsClass ) ) );
-            }
-            iCount++;
           }
         }
       }
@@ -3393,9 +3427,9 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
     return _cc().isCurrentFunctionStatic();
   }
 
-  protected List<GosuAnnotationInfo> makeAnnotationInfos( List<IGosuAnnotation> gosuAnnotations, IFeatureInfo fiAnnotated )
+  public static List<GosuAnnotationInfo> makeAnnotationInfos( List<IGosuAnnotation> gosuAnnotations, IFeatureInfo fiAnnotated )
   {
-    List<GosuAnnotationInfo> annotationInfos = new ArrayList<GosuAnnotationInfo>();
+    List<GosuAnnotationInfo> annotationInfos = new ArrayList<>();
     for( int i = 0; i < gosuAnnotations.size(); i++ )
     {
       IGosuAnnotation ga = gosuAnnotations.get( i );

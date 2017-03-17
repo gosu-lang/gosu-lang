@@ -9,6 +9,7 @@ import gw.fs.IDirectory;
 import gw.internal.gosu.compiler.GosuClassLoader;
 import gw.internal.gosu.parser.java.classinfo.JavaSourceClass;
 import gw.lang.parser.IBlockClass;
+import gw.lang.parser.ILanguageLevel;
 import gw.lang.reflect.IDefaultTypeLoader;
 import gw.lang.reflect.IErrorType;
 import gw.lang.reflect.IExtendedTypeLoader;
@@ -141,16 +142,79 @@ public class DefaultTypeLoader extends SimpleTypeLoader implements IExtendedType
   }
   }
 
-  public IJavaClassInfo resolveJavaClassInfo(String fullyQualifiedName) {
-    if (!ExecutionMode.isIDE()) {
-      // get class either by the .class file (java.lang.Class or by ASM, not by source, which is only done in the IDE)
-      return getByClass(fullyQualifiedName, _module, _module);
+  public IJavaClassInfo resolveJavaClassInfo( String fqn )
+  {
+    // We can load IJavaClassInfo from .class file or from .java file.
+    //
+    // In addition to loading bytecode directly by .class file,
+    // we can also load bytecode indirectly by .java file via dynamic compilation.
+    //
+    // How does this work?
+    //
+    // - .class file
+    // -- if there is a .class file for the name for the fqn, we load either using
+    // --- ASM, which is only done during compilation or in an IDE, or using
+    // --- class loading, which is done only at runtime
+    //
+    // - .java file
+    // -- if there is a .java source file for the fqn, our Gosu URL handler intervenes
+    //    with the primary class loader and dynamically compiles the .java file and
+    //    and serves it up as if it were loaded from disk.  This is only done at
+    //    runtime.
+    //
+    // If there is a .java file on disk for the type, Standard Gosu always loads
+    // classinfo from source as JavaSourceType (both in IDE/compiler and runtime).
+    // However the class loader still dynamically compiles the java source
+    // in the course of running a program.  Likewise, JavaSourceType leverages
+    // this in its implementation of getBackingClass(), which simply call Class.forName()
+    // to dynamically compile the source via our class loading transmogrifier.
+    //
+    //                              JavaClassInfo
+    //                                    +
+    //                 +------------------+-----------------+
+    //                 |                                    |
+    //                 v                                    v
+    //          Bytecode-based                         Source-based
+    //                 +                                    +
+    //       +---------+---------+                          |
+    //       |                   |                          |
+    //       v                   v                          |
+    // ASM Processing       Class loading                   |
+    //       +                   +                          |
+    //       |            +------+------+            +------+-----+
+    //       |            |             |            |            |
+    //       v            v             v            v            v
+    //  .class file   .class file  .java file   .java file    .gs file (!)
+    //                                  +            +            +
+    //                                  |            |            |
+    //                                  v            v            v
+    //                               Dynamic    Java parser   Gosu Stub
+    //                               compiler                   file
+    //
+    // (!) Note Java from .gs file supports the use-case where a Java source file
+    // references a Gosu class e.g., in a method return type.  Gosu needs to get
+    // the type info at the *IJavaClassInfo* level for the the Gosu class.
+
+    if( !ExecutionMode.isIDE() && !ILanguageLevel.Util.STANDARD_GOSU() )
+    {
+      // Runtime, Guidewire language-level...
+      //
+      // Don't get classinfo from the source, Load exclusively via bytecode,
+      // note we still can load bytecode from source, but the classinfo
+      // comes from the dynamically compiled bytecode, not from the source
+      // i.e., a JavaSourceType cannot result form getByClass()...
+
+      return getByClass( fqn, _module, _module );
     }
 
-    ISourceFileHandle fileHandle = getSouceFileHandle( fullyQualifiedName );
-    if (fileHandle == null) {
-      return getByClass(fullyQualifiedName, _module, _module);
+    // First check for a .java file and load a JavaSourceType...
+    ISourceFileHandle fileHandle = getSouceFileHandle( fqn );
+    if( fileHandle == null )
+    {
+      // If no .java file is found, load from .class file
+      return getByClass( fqn, _module, _module );
     }
+
     if( fileHandle.getParentType() != null && !fileHandle.getParentType().isEmpty() )
     {
       String parentType = fileHandle.getTypeNamespace();
@@ -167,8 +231,7 @@ public class DefaultTypeLoader extends SimpleTypeLoader implements IExtendedType
           _classInfoCache.put(name, declaredClass);
         }
         //## todo: these names should be consistent
-        if (fullyQualifiedName.equals(name) ||
-            name.replace( '$', '.').equals( fullyQualifiedName ) ) {
+        if( fqn.equals( name ) || name.replace( '$', '.' ).equals( fqn ) ) {
           inner = declaredClass;
         }
       }

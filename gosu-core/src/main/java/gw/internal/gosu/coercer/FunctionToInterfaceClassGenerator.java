@@ -8,7 +8,6 @@ import gw.internal.gosu.compiler.GosuClassLoader;
 import gw.internal.gosu.parser.IGosuClassInternal;
 import gw.internal.gosu.parser.TypeLord;
 import gw.lang.parser.IHasInnerClass;
-import gw.lang.parser.ISource;
 import gw.lang.parser.TypeVarToTypeMap;
 import gw.lang.reflect.IMethodInfo;
 import gw.lang.reflect.IParameterInfo;
@@ -19,7 +18,7 @@ import gw.lang.reflect.gs.GosuClassTypeLoader;
 import gw.lang.reflect.gs.IGosuClass;
 import gw.lang.reflect.gs.IGosuEnhancement;
 import gw.lang.reflect.gs.IGosuObject;
-import gw.lang.reflect.gs.StringSourceFileHandle;
+import gw.lang.reflect.gs.LazyStringSourceFileHandle;
 import gw.lang.reflect.java.IJavaMethodInfo;
 import gw.lang.reflect.java.JavaTypes;
 import gw.lang.reflect.module.IModule;
@@ -31,7 +30,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.Callable;
 
 public class FunctionToInterfaceClassGenerator {
   private static final Map<String, String> MAP = new HashMap<>();
@@ -83,12 +81,11 @@ public class FunctionToInterfaceClassGenerator {
     TypeSystem.pushModule( mod );
     try {
       final String namespace = enclosingType.getNamespace();
-      IGosuClassInternal gsClass = (IGosuClassInternal)GosuClassTypeLoader.getDefaultClassLoader().makeNewClass(
-        new LazyStringSourceFileHandle( enclosingType.getName() + "." + relativeName, TypeLord.getPureGenericType( enclosingType ), new Callable<StringBuilder>() {
-          public StringBuilder call() {
-            return genProxy( name, typeToCoerceTo, namespace, relativeName );
-          }
-        } ) );
+      String enclosingTypeName = TypeLord.getPureGenericType( enclosingType ).getName();
+      LazyStringSourceFileHandle sfh = new LazyStringSourceFileHandle( enclosingTypeName, enclosingType.getName() + "." + relativeName,
+                                                        () -> genProxy( name, typeToCoerceTo, namespace, relativeName ).toString(), ClassType.Class );
+      sfh.setParentType( enclosingTypeName );
+      IGosuClassInternal gsClass = (IGosuClassInternal)GosuClassTypeLoader.getDefaultClassLoader().makeNewClass( sfh );
       gsClass.setEnclosingType( enclosingType );
       ((IGosuClassInternal)enclosingType).addInnerClass( gsClass );
       gsClass.compileDeclarationsIfNeeded();
@@ -173,40 +170,11 @@ public class FunctionToInterfaceClassGenerator {
            : "";
   }
 
-  private static class LazyStringSourceFileHandle extends StringSourceFileHandle {
-    private Callable<StringBuilder> _sourceGen;
-    private String _typeNamespace;
-
-    public LazyStringSourceFileHandle( String fqn, IType enclosingType, Callable<StringBuilder> sourceGen ) {
-      super( fqn, null, false, ClassType.Class );
-      _sourceGen = sourceGen;
-      setParentType( enclosingType.getName() );
-      _typeNamespace = enclosingType.getName();
-    }
-
-    public String getTypeNamespace() {
-      return _typeNamespace;
-    }
-
-    @Override
-    public ISource getSource() {
-      if( getRawSource() == null ) {
-        try {
-          setRawSource( _sourceGen.call().toString() );
-        }
-        catch( Exception e ) {
-          throw new RuntimeException( e );
-        }
-      }
-      return super.getSource();
-    }
-  }
-
   private static IMethodInfo getSingleMethod( IType interfaceType )
   {
     if( interfaceType.isInterface() )
     {
-      List<IMethodInfo> list = new ArrayList<IMethodInfo>( interfaceType.getTypeInfo().getMethods() );
+      List<IMethodInfo> list = new ArrayList<>( interfaceType.getTypeInfo().getMethods() );
 
       //extract all object methods since they are guaranteed to be implemented
       for( Iterator<? extends IMethodInfo> it = list.iterator(); it.hasNext(); )

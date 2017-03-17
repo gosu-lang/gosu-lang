@@ -59,18 +59,23 @@ import gw.lang.parser.expressions.IOverridableOperation;
 import gw.lang.parser.resources.Res;
 import gw.lang.parser.resources.ResourceKey;
 import gw.lang.reflect.IErrorType;
+import gw.lang.reflect.IFunctionType;
 import gw.lang.reflect.IMethodInfo;
 import gw.lang.reflect.INamespaceType;
 import gw.lang.reflect.IType;
+import gw.lang.reflect.ITypeVariableType;
 import gw.lang.reflect.Modifier;
 import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.gs.ICompilableType;
+import gw.lang.reflect.gs.IGosuClass;
+import gw.lang.reflect.gs.IGosuEnhancement;
 import gw.lang.reflect.gs.IGosuProgram;
 import gw.lang.reflect.java.JavaTypes;
 import gw.lang.reflect.module.IModule;
 import gw.util.Stack;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -1733,6 +1738,13 @@ public abstract class ParserBase implements IParserPart
           verify( elem, bIgnoreErrors || !Modifier.isPrivate( iModifiers ), Res.MSG_ILLEGAL_USE_OF_MODIFIER, Keyword.KW_private, Keyword.KW_hide );
           iModifiers = Modifier.setHide( iModifiers, true );
         }
+        else if( Keyword.KW_reified == keyword )
+        {
+          getTokenizer().nextToken();
+
+          verify( elem, bIgnoreErrors || !Modifier.isFinal( iModifiers ), Res.MSG_ILLEGAL_USE_OF_MODIFIER, Keyword.KW_reified, Keyword.KW_reified );
+          iModifiers = Modifier.setReified( iModifiers, true );
+        }
         else if( Keyword.KW_final == keyword )
         {
           getTokenizer().nextToken();
@@ -2300,9 +2312,56 @@ public abstract class ParserBase implements IParserPart
       tas.setType( typeToCoerceTo );
       tas.setCoercer( coercer );
 
+      verifyTypeVarAreReified( expressionToCoerce, typeToCoerceTo );
+
       setLocationForImplicitTypeAs( expressionToCoerce, tas );
       return tas;
     }
+  }
+
+  void verifyTypeVarAreReified( Expression expr, IType rhsType )
+  {
+    if( expr.hasParseExceptions() )
+    {
+      return;
+    }
+
+    TypeLord.getTypeVariables( rhsType, tv -> {
+      isTypeVarInReifiedContext( expr, tv );
+      return false;
+    } );
+
+    if( rhsType instanceof IFunctionType &&
+        getGosuClass() instanceof IGosuEnhancement &&
+        getGosuClass().isGenericType() &&
+        !expr.hasParseExceptions() )
+    {
+      Arrays.stream( getGosuClass().getGenericTypeVariables() )
+        .forEach( gtv -> isTypeVarInReifiedContext( expr, gtv.getTypeVariableDefinition().getType() ) );
+    }
+  }
+
+  boolean isTypeVarInReifiedContext( Expression expr, ITypeVariableType typeVarType )
+  {
+    IType typeVarDeclarer = typeVarType.getTypeVarDef().getEnclosingType();
+    IType enclosingType = typeVarDeclarer.getEnclosingType();
+    if( typeVarDeclarer instanceof IFunctionType && !(enclosingType instanceof IGosuClass) )
+    {
+      return true;
+    }
+
+    if( typeVarDeclarer instanceof IFunctionType )
+    {
+      return verify( expr, Modifier.isReified( typeVarDeclarer.getModifiers() ), Res.MSG_TYPE_NOT_REIFIED, ((IFunctionType)typeVarDeclarer).getParamSignature(), typeVarType.getRelativeName() );
+    }
+    else if( typeVarDeclarer instanceof IGosuEnhancement )
+    {
+      if( getOwner().isParsingFunction() )
+      {
+        return verify( expr, Modifier.isReified( getOwner().peekParsingFunction().getModifiers() ), Res.MSG_TYPE_NOT_REIFIED, getOwner().peekParsingFunction().getParamSignature(), typeVarType.getRelativeName() );
+      }
+    }
+    return true;
   }
 
   protected void setLocationForImplicitTypeAs( Expression expressionToCoerce, TypeAsExpression tas )

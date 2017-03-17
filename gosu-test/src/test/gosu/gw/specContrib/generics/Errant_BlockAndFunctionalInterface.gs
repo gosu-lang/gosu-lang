@@ -8,7 +8,7 @@ class Errant_BlockAndFunctionalInterface {
   function acceptBlock1<S extends I>(p: block(a: S)) {}
   function acceptBlock2<S extends I>(p: block(): S) {}
 
-  function test<S extends I, Q>() {
+  reified function test<S extends I, Q>() {
     // IDE-2125
     var b1: block(p: S)
     Errant_BlockAndFunctionalInterface_Java.acceptFun1(b1)

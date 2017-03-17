@@ -84,6 +84,11 @@ public class DefaultReducedSymbol implements IReducedSymbol
   }
 
   @Override
+  public boolean isReified() {
+    return false;  //To change body of implemented methods use File | Settings | File Templates.
+  }
+
+  @Override
   public IType getType() {
     return _type;
   }

@@ -8,11 +8,11 @@ enhancement GenericEnhancement<T> : _GenericEnhanced<T> {
     return "foo"
   }
 
-  function returnsGenericTypeVar() : IType {
+  reified function returnsGenericTypeVar() : IType {
     return T
   }
 
-  function returnsGenericTypeVarWithArg( s : String ) : IType {
+  reified function returnsGenericTypeVarWithArg( s : String ) : IType {
     return T
   }
 
@@ -20,125 +20,125 @@ enhancement GenericEnhancement<T> : _GenericEnhanced<T> {
     return s
   }
 
-  function methodWithVar() : IType {
+  reified function methodWithVar() : IType {
     var tmp = ""
     return T
   }
 
-  function methodWithVarAndArg( s : String ) : IType {
+  reified function methodWithVarAndArg( s : String ) : IType {
     var tmp = ""
     return T
   }
 
-  function methodWTypeParamThatReturnsEnhancementParameterization<Q>() : IType {
+  reified function methodWTypeParamThatReturnsEnhancementParameterization<Q>() : IType {
     return T
   }
 
-  function methodWTypeParamThatReturnsMethodParameterization<Q>() : IType {
+  reified function methodWTypeParamThatReturnsMethodParameterization<Q>() : IType {
     return Q
   }
 
-  function methodWTypeParamAndArgThatReturnsEnhancementParameterization<Q>( arg : Q ) : IType {
+  reified function methodWTypeParamAndArgThatReturnsEnhancementParameterization<Q>( arg : Q ) : IType {
     return T
   }
 
-  function methodWTypeParamAndArgThatReturnsMethodParameterization<Q>( arg : Q ) : IType {
+  reified function methodWTypeParamAndArgThatReturnsMethodParameterization<Q>( arg : Q ) : IType {
     return Q
   }
 
   // Direct invocation
 
-  function directlyInvokesMethodWTypeParamThatReturnsEnhancementParameterization<Q>() : IType {
+  reified function directlyInvokesMethodWTypeParamThatReturnsEnhancementParameterization<Q>() : IType {
     return methodWTypeParamThatReturnsEnhancementParameterization()
   }
   
-  function directlyInvokesMethodWTypeParamExplicitlySetThatReturnsMethodParameterization<Q>() : IType {
+  reified function directlyInvokesMethodWTypeParamExplicitlySetThatReturnsMethodParameterization<Q>() : IType {
     return methodWTypeParamThatReturnsMethodParameterization<Q>()
   }
 
-  function directlyInvokesMethodWTypeParamNotSetThatReturnsMethodParameterization<Q>() : IType {
+  reified function directlyInvokesMethodWTypeParamNotSetThatReturnsMethodParameterization<Q>() : IType {
     return methodWTypeParamThatReturnsMethodParameterization()
   }
   
-  function directlyInvokesMethodWTypeParamAndArgThatReturnsEnhancementParameterization<Q>( arg : Q ) : IType {
+  reified function directlyInvokesMethodWTypeParamAndArgThatReturnsEnhancementParameterization<Q>( arg : Q ) : IType {
     return methodWTypeParamAndArgThatReturnsEnhancementParameterization( arg )
   }
 
-  function directlyInvokesMethodWTypeParamAndArgThatReturnsMethodParameterization<Q>( arg : Q ) : IType {
+  reified function directlyInvokesMethodWTypeParamAndArgThatReturnsMethodParameterization<Q>( arg : Q ) : IType {
     return methodWTypeParamAndArgThatReturnsMethodParameterization( arg )
   }
 
   // Indirect invocation
 
-  function indirectlyInvokesMethodWTypeParamThatReturnsEnhancementParameterization<Q>() : IType {
+  reified function indirectlyInvokesMethodWTypeParamThatReturnsEnhancementParameterization<Q>() : IType {
     return this.methodWTypeParamThatReturnsEnhancementParameterization()
   }
   
-  function indirectlyInvokesMethodWTypeParamExplicitlySetThatReturnsMethodParameterization<Q>() : IType {
+  reified function indirectlyInvokesMethodWTypeParamExplicitlySetThatReturnsMethodParameterization<Q>() : IType {
     return this.methodWTypeParamThatReturnsMethodParameterization<Q>()
   }
 
-  function indirectlyInvokesMethodWTypeParamNotSetThatReturnsMethodParameterization<Q>() : IType {
+  reified function indirectlyInvokesMethodWTypeParamNotSetThatReturnsMethodParameterization<Q>() : IType {
     return this.methodWTypeParamThatReturnsMethodParameterization()
   }
   
-  function indirectlyInvokesMethodWTypeParamAndArgThatReturnsEnhancementParameterization<Q>( arg : Q ) : IType {
+  reified function indirectlyInvokesMethodWTypeParamAndArgThatReturnsEnhancementParameterization<Q>( arg : Q ) : IType {
     return this.methodWTypeParamAndArgThatReturnsEnhancementParameterization( arg )
   }
 
-  function indirectlyInvokesMethodWTypeParamAndArgThatReturnsMethodParameterization<Q>( arg : Q ) : IType {
+  reified function indirectlyInvokesMethodWTypeParamAndArgThatReturnsMethodParameterization<Q>( arg : Q ) : IType {
     return this.methodWTypeParamAndArgThatReturnsMethodParameterization( arg )
   }
 
-  function returnsBlockToBlockToBlockToT() : block():block():block():Type {
+  reified function returnsBlockToBlockToBlockToT() : block():block():block():Type {
     return \->\->\->T
   }
   
-  function returnsBlockToBlockToBlockToQ<Q>() : block():block():block():Type {
+  reified function returnsBlockToBlockToBlockToQ<Q>() : block():block():block():Type {
     return \->\->\->Q
   }
   
-  function returnsBlockToBlockToQ<Q>() : block():block():Type {
+  reified function returnsBlockToBlockToQ<Q>() : block():block():Type {
     return \->\->Q
   }
   
-  function returnsBlockToBlockToT() : block():block():Type {
+  reified function returnsBlockToBlockToT() : block():block():Type {
     return \->\->T
   }
   
-  function returnsBlockToQ<Q>() : block():Type {
+  reified function returnsBlockToQ<Q>() : block():Type {
     return \->Q
   }
   
-  function returnsBlockToT() : block():Type {
+  reified function returnsBlockToT() : block():Type {
     return \->T
   }
   
-  function callsGenericMethodReturnsQIndirectlyWithT<Q>() : Type {
+  reified function callsGenericMethodReturnsQIndirectlyWithT<Q>() : Type {
     return this.basicGenericMethodReturnsQ<T>()
   }
   
-  function callsGenericMethodReturnsQIndirectlyWithQ<Q>() : Type {
+  reified function callsGenericMethodReturnsQIndirectlyWithQ<Q>() : Type {
     return this.basicGenericMethodReturnsQ<Q>()
   }
   
-  function callsGenericMethodReturnsQDirectlyWithT<Q>() : Type {
+  reified function callsGenericMethodReturnsQDirectlyWithT<Q>() : Type {
     return basicGenericMethodReturnsQ<T>()
   }
   
-  function callsGenericMethodReturnsQDirectlyWithQ<Q>() : Type {
+  reified function callsGenericMethodReturnsQDirectlyWithQ<Q>() : Type {
     return basicGenericMethodReturnsQ<Q>()
   }
   
-  function callsGenericMethodReturnsTDirectly() : Type {
+  reified function callsGenericMethodReturnsTDirectly() : Type {
     return T
   }
   
-  function basicGenericMethodReturnsQ<Q>() : Type {
+  reified function basicGenericMethodReturnsQ<Q>() : Type {
     return Q
   }
   
-  function basicGenericMethodReturnsT() : Type {
+  reified function basicGenericMethodReturnsT() : Type {
     return T
   }
 }

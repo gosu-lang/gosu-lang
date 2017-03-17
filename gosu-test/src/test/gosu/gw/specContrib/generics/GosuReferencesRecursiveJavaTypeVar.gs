@@ -13,7 +13,7 @@ class GosuReferencesRecursiveJavaTypeVar {
    return null
  }
 
- function get<T extends Enum>(enumType : Class<T>) : T {
+ reified function get<T extends Enum>(enumType : Class<T>) : T {
    return MuhEnum.HI as T
  }
 }

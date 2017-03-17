@@ -4,18 +4,12 @@
 
 package gw.internal.gosu.ir.transform.expression;
 
-import gw.internal.gosu.ir.nodes.JavaClassIRType;
 import gw.internal.gosu.parser.expressions.BlockExpression;
-import gw.lang.ir.IRStatement;
-import gw.lang.ir.IRSymbol;
-import gw.lang.ir.expression.IRCompositeExpression;
-import gw.lang.ir.statement.IRAssignmentStatement;
 import gw.lang.parser.IBlockClass;
 import gw.internal.gosu.ir.transform.TopLevelTransformationContext;
 import gw.lang.ir.IRExpression;
 import gw.lang.ir.IRType;
 import gw.lang.parser.expressions.IBlockExpression;
-import gw.lang.reflect.IBlockType;
 import gw.lang.reflect.IType;
 
 import java.util.ArrayList;
@@ -42,7 +36,7 @@ public class BlockExpressionTransformer extends AbstractExpressionTransformer<IB
       args.add( pushThisOrOuter( blockClazz.getEnclosingType() ) );
     }
     pushCapturedSymbols( blockClazz, args, false );
-    int typeParams = pushTypeParametersForConstructor( _expr(), blockClazz, args, false );
+    int typeParams = pushTypeParametersForConstructor( _expr(), blockClazz, args, false, false );
 
     List<IRType> paramTypes = Arrays.asList( getConstructorParamTypes( new IType[0], typeParams, blockClazz ) );
 

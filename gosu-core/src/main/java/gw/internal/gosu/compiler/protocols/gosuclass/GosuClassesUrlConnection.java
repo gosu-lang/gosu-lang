@@ -21,6 +21,7 @@ import gw.lang.reflect.gs.ICompilableType;
 import gw.lang.reflect.gs.IGosuProgram;
 import gw.lang.reflect.gs.ISourceFileHandle;
 import gw.lang.reflect.java.IJavaBackedType;
+import gw.lang.reflect.java.IJavaType;
 import gw.lang.reflect.module.IModule;
 import gw.lang.reflect.module.TypeSystemLockHelper;
 import gw.util.GosuExceptionUtil;
@@ -124,20 +125,24 @@ public class GosuClassesUrlConnection extends URLConnection {
       TypeSystem.pushModule( global );
       try {
         type = TypeSystem.getByFullNameIfValidNoJava( strType );
-        if( type == null && ILanguageLevel.Util.STANDARD_GOSU() ) {
-          //
-          // Compile the java source file directly, not through the type, because we don't load JavaType from source at runtime.
-          // For now at least, at runtime we load JavaType from a loaded Class object i.e., from ClassJavaClassInfo.
-          //
+        if( ILanguageLevel.Util.STANDARD_GOSU() && (type == null || type instanceof IJavaType) ) {
           // If there were a class file for the Java type on disk, it would have loaded by now (the gosuclass protocol is last).
           // Therefore we compile and load the java class from the Java source file, eventually a JavaType based on the resulting class
-          // may load as opposed to a source-based java type, which is the desired outcome at runtime i.e., we don't support JavaSourceType
-          // at runtime.
-          Pair<JavaFileObject, String> pair = JavaParser.instance().findJavaSource( strType );
-          if( pair != null ) {
-            _javaSrcFile = pair.getFirst();
-            _javaFqn = strType;
-            _loader = loader;
+          // may load, if a source-based one hasn't already loaded.
+          try
+          {
+            Pair<JavaFileObject, String> pair = JavaParser.instance().findJavaSource( strType );
+            if( pair != null )
+            {
+              _javaSrcFile = pair.getFirst();
+              _javaFqn = strType;
+              _loader = loader;
+            }
+          }
+          catch( NoClassDefFoundError e )
+          {
+            // tools.jar likely not in the path...
+            System.out.println( "!! Unable to dynamically compile Java from source.  tools.jar is missing from classpath." );
           }
         }
       }
@@ -329,14 +334,30 @@ public class GosuClassesUrlConnection extends URLConnection {
           _count = _buf.length;
         }
         catch( Throwable e ) {
-          // log the exception, it tends to get swollowed esp. if it's the class doesn't parse
-          e.printStackTrace();
+          logExceptionForFailedCompilation( e );
           throw GosuExceptionUtil.forceThrow( e );
         }
         finally {
           TypeSystem.unlock();
         }
       }
+    }
+
+    private void logExceptionForFailedCompilation( Throwable e )
+    {
+      // Log the exception, it tends to get swallowed esp. if the class doesn't parse.
+      //
+      // Note this is sometimes OK because the failure is recoverable. For example,
+      // a Gosu class references a Java class which in turn extends the Gosu class.
+      // Due the the circular reference at the header level, the Java compiler will
+      // fail to compile the Gosu class via this Url loader (because the Gosu class
+      // needs the Java class, which is compiling). In this case the DefaultTypeLoader
+      // catches the exception and generates a Java stub for the Gosu class and returns
+      // that as the definitive JavaClassInfo.  Thus, we don't really want to log
+      // a nasty message here or print the stack trace, if it's recoverable.
+
+      System.out.println( "!! Failed to compile: " + _type.getName() + " (don't worry, these are mostly recoverable, mostly)" );
+      //e.printStackTrace();
     }
 
     private byte[] compileJavaClass()

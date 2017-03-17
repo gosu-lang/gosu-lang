@@ -101,6 +101,11 @@ public class FeatureLiteral extends Expression implements IFeatureLiteralExpress
     IType[] argTypes = typesList.toArray( new IType[typesList.size()] );
 
     IType typeToResolveAgainst = getRootTypeToResolveFeaturesAgainst();
+    if( typeToResolveAgainst instanceof IErrorType )
+    {
+      return false;
+    }
+
     ITypeInfo typeInfo = typeToResolveAgainst.getTypeInfo();
     IConstructorInfo constructorInfo;
 

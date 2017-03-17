@@ -40,7 +40,7 @@ class GosuMethodInfoReflectionTest extends TestClass {
     return "foo"  
   }
   
-  function genericMethod<T>( arg : T) : String {
+  reified function genericMethod<T>( arg : T) : String {
     return arg + T.Type.RelativeName 
   }
   

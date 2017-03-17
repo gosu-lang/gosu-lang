@@ -202,6 +202,11 @@ public abstract class BaseFeatureInfo implements IAttributedFeatureInfo
     return false;
   }
 
+  public boolean isReified()
+  {
+    return false;
+  }
+
   public boolean isDefaultImpl()
   {
     return false;

@@ -145,7 +145,7 @@ class NewExpression_ImplicitTypeLiteralTest extends TestClass {
     return new( s )
   }
   
-  function create<T>() : T 
+  reified function create<T>() : T
   {
     return new()
   }

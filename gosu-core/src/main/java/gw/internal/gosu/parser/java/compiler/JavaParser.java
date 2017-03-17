@@ -80,6 +80,11 @@ public class JavaParser implements IJavaParser
       init();
 
       Pair<JavaFileObject, String> pair = findJavaSource( fqn );
+      if( pair == null )
+      {
+        return false;
+      }
+
       StringWriter errors = new StringWriter();
       JavaCompiler.CompilationTask task = _javac.getTask( errors, _fileManager, errorHandler, Arrays.asList( "-proc:none" ), null, Arrays.asList( pair.getFirst() ) );
       JavacTaskImpl javacTask = (JavacTaskImpl)task;
@@ -182,20 +187,29 @@ public class JavaParser implements IJavaParser
   {
     init();
 
+    if( _gfm == null )
+    {
+      // short-circuit reentrancy during init()
+      return null;
+    }
+
     try
     {
       JavaFileObject fileObj = _gfm.getJavaFileForInput( StandardLocation.SOURCE_PATH, fqn, JavaFileObject.Kind.SOURCE );
-      Pair<JavaFileObject, String> pair = new Pair<>( fileObj, fqn );
-      if( pair.getFirst() == null )
+      if( fileObj == null )
       {
         int iDot = fqn.lastIndexOf( '.' );
         if( iDot > 0 )
         {
           String enclosingFqn = fqn.substring( 0, iDot );
-          pair = findJavaSource( enclosingFqn );
+          return findJavaSource( enclosingFqn );
         }
+        return null;
       }
-      return pair;
+      else
+      {
+        return new Pair<>( fileObj, fqn );
+      }
     }
     catch( IOException e )
     {
