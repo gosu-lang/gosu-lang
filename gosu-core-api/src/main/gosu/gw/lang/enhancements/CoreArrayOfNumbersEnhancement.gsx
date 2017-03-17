@@ -6,7 +6,7 @@ uses java.math.BigDecimal
  */
 enhancement CoreArrayOfNumbersEnhancement<N extends java.lang.Number> : N[]
 {
-  function average() : BigDecimal {
+  reified function average() : BigDecimal {
     return this.toList().average( \ i -> i )
   }
 }

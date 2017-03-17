@@ -17,7 +17,7 @@ enhancement CoreSetEnhancement<T> :  Set<T>
    * Returns this Set cast to a Set<N>, checking each element in the
    * list to ensure the cast is legal.
    */
-  function cast<N>( type : Type<N> ) : Set<N> {
+  reified function cast<N>( type : Type<N> ) : Set<N> {
     for( elt in this ) {
       if( not type.Type.isAssignableFrom( typeof elt ) ) {
         throw new IllegalArgumentException( "The element ${elt} is not of type ${type.Type.Name}" )
@@ -30,7 +30,7 @@ enhancement CoreSetEnhancement<T> :  Set<T>
    * Partitions each element into a Map where the keys are the value produce by the mapper block and the
    * values lists of elements of the Collection that map to that value.
    */
-  function partition<Q>( partitioner(elt : T):Q ) : Map<Q, Set<T>> {
+  reified function partition<Q>( partitioner(elt : T):Q ) : Map<Q, Set<T>> {
     var returnMap = new HashMap<Q, Set<T>>()
     var autoMap = returnMap.toAutoMap( \ q -> new HashSet<T>() )
     for( elt in this )
@@ -45,7 +45,7 @@ enhancement CoreSetEnhancement<T> :  Set<T>
    * of this set.  An exception will be thrown if this set is larger than 10, to avoid
    * very long-running calculations
    */
-  function powerSet() : Set<Set<T>> {
+  reified function powerSet() : Set<Set<T>> {
     if( this.size() > 10 ) {
       throw "You cannot call powerSet() on a set that is larger than size 10.  It will kill the CPU."
     } else {

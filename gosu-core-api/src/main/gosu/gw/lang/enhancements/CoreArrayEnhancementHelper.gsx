@@ -8,7 +8,7 @@ package gw.lang.enhancements
  */
 enhancement CoreArrayEnhancementHelper<T> : T[] {
   
-  function flatMap<R>( mapper(elt:T):R[] ) : R[] {
+  reified function flatMap<R>( mapper(elt:T):R[] ) : R[] {
     return this.fastList().flatMap( \ elt -> mapper( elt ).fastList() ).toTypedArray() 
   }
 
