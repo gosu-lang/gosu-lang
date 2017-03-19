@@ -4,7 +4,7 @@ class MyGosu
 {
   property Name: String
   
-  // NOTE: FrnoJava references MyGosu, so this verifeis bi-directional 
+  // NOTE: FromJava references MyGosu, so this verifeis bi-directional
   // reference support at the member declaration level
   property FJ: FromJava 
   

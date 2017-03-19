@@ -28,4 +28,10 @@ public class JavaSourceInterface extends JavaSourceType {
   public JavaSourceInterface(ClassTree typeDecl, JavaSourceType parent) {
     super(typeDecl, parent);
   }
+
+  @Override
+  public boolean isInterface()
+  {
+    return true;
+  }
 }

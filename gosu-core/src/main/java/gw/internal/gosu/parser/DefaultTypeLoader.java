@@ -195,14 +195,24 @@ public class DefaultTypeLoader extends SimpleTypeLoader implements IExtendedType
     // references a Gosu class e.g., in a method return type.  Gosu needs to get
     // the type info at the *IJavaClassInfo* level for the the Gosu class.
 
-    if( !ExecutionMode.isIDE() && !ILanguageLevel.Util.STANDARD_GOSU() )
+    if( !ExecutionMode.isIDE() && classFileExists( fqn ) )
     {
-      // Runtime, Guidewire language-level...
+      // If not in an IDE, favor .class files as the basis for Java types.
       //
-      // Don't get classinfo from the source, Load exclusively via bytecode,
-      // note we still can load bytecode from source, but the classinfo
-      // comes from the dynamically compiled bytecode, not from the source
-      // i.e., a JavaSourceType cannot result form getByClass()...
+      // Note since we can dynamically compile and load a Java class from Java source and since this process can
+      // be triggered via the class loader, we must avoid loading it via getByClass(), which will indirectly load
+      // the bytecode class via source.
+      //
+      // We avoid this at runtime for the use-case where we are running both a Gosu class and a Java class from
+      // source.  The Java class extends the Gosu class (the Gosu class may be generic) and the Gosu class references
+      // the Java class in one of its member declaration types.
+      //
+      // Essentially, in order for Java and Gosu to reference each other in this way Gosu we must parse against our
+      // declaration-level source-based IJavaClassInfo, not the full bytecode class-based IJavaClasaInfo.
+      // Otherwise the bytecode IJavaClassInfo resolves Gosu references via on-demand Java stub file generation from
+      // declaration-compiled Gosu, which won't work since declaration-compiled Gosu needs the IJavaClassInfo for
+      // the Java class reference.  The source-based IJavaClassInfo can resolve type references using lazy Java
+      // stub files generated from Gosu and avoid this paradox.
 
       return getByClass( fqn, _module, _module );
     }
@@ -218,27 +228,31 @@ public class DefaultTypeLoader extends SimpleTypeLoader implements IExtendedType
     if( fileHandle.getParentType() != null && !fileHandle.getParentType().isEmpty() )
     {
       String parentType = fileHandle.getTypeNamespace();
-      IJavaClassInfo parentClassInfo = getJavaClassInfo(parentType);
-      if (parentClassInfo == null) {
+      IJavaClassInfo parentClassInfo = getJavaClassInfo( parentType );
+      if( parentClassInfo == null )
+      {
         return null;
       }
       IJavaClassInfo[] declaredClasses = parentClassInfo.getDeclaredClasses();
       IJavaClassInfo inner = null;
-      for (IJavaClassInfo declaredClass : declaredClasses) {
+      for( IJavaClassInfo declaredClass : declaredClasses )
+      {
         String name = declaredClass.getName();
         // cache all inner classes now
-        if (!_classInfoCache.containsKey(name)) {
-          _classInfoCache.put(name, declaredClass);
+        if( !_classInfoCache.containsKey( name ) )
+        {
+          _classInfoCache.put( name, declaredClass );
         }
         //## todo: these names should be consistent
-        if( fqn.equals( name ) || name.replace( '$', '.' ).equals( fqn ) ) {
+        if( fqn.equals( name ) || name.replace( '$', '.' ).equals( fqn ) )
+        {
           inner = declaredClass;
         }
       }
       return inner;
     }
 
-    return JavaSourceClass.createTopLevel(fileHandle, _module);
+    return JavaSourceClass.createTopLevel( fileHandle, _module );
   }
 
   @Override
@@ -361,6 +375,10 @@ public class DefaultTypeLoader extends SimpleTypeLoader implements IExtendedType
 
   public AsmClass loadAsmClass(String className) {
     return _classCache.loadAsmClass( className );
+  }
+
+  public boolean classFileExists( String className ) {
+    return _classCache.classFileExists( className );
   }
 
   public IGosuClassLoader getGosuClassLoader() {

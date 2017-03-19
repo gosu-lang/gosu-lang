@@ -608,7 +608,7 @@ class JavaType extends InnerClassCapableType implements IJavaTypeInternal
 
   public boolean isInterface()
   {
-    return _classInfo.isInterface();
+    return _classInfo.isInterface() || _classInfo.isAnnotation();
   }
 
   public boolean isEnum()

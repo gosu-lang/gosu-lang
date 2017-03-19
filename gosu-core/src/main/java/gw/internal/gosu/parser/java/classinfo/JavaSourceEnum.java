@@ -28,4 +28,10 @@ public class JavaSourceEnum extends JavaSourceType {
   public JavaSourceEnum(ClassTree typeDecl, JavaSourceType parent) {
     super(typeDecl, parent);
   }
+
+  @Override
+  public boolean isEnum()
+  {
+    return true;
+  }
 }

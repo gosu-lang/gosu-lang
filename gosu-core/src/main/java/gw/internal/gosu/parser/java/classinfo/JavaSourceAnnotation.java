@@ -48,4 +48,15 @@ public class JavaSourceAnnotation extends JavaSourceType {
     return _genericInterfaces;
   }
 
+  @Override
+  public boolean isInterface()
+  {
+    return true;
+  }
+
+  @Override
+  public boolean isAnnotation()
+  {
+    return true;
+  }
 }

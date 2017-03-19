@@ -98,6 +98,44 @@ public class ClassCache {
     }
   }
 
+  public boolean classFileExists( String className ) {
+    AsmClass primitiveClazz = AsmClass.findPrimitive( className );
+    try {
+      IModule jreModule = _module.getExecutionEnvironment().getJreModule();
+      if( jreModule == _module && primitiveClazz != null ) {
+        return true;
+      }
+    }
+    catch( Exception e ) {
+      // ignore, jreModule isn't available yet
+    }
+
+    if( _classPathCache.get().isEmpty() ) {
+      return false;
+    }
+
+    StringBuilder s = new StringBuilder( className );
+    int i;
+    do {
+      if( ignoreTheCache || _classPathCache.get().contains( className ) ) {
+        IFile file = _classPathCache.get().get( className );
+        if( file != null ) {
+          return true;
+        }
+      }
+      i = s.lastIndexOf( "." );
+      if( i >= 0 ) {
+        if( isPackage( s, i ) ) {
+          return false;
+        }
+        s.setCharAt( i, '$' );
+        className = s.toString();
+      }
+    } while( i >= 0 );
+
+    return false;
+  }
+
   public AsmClass loadAsmClass( String className ) {
     AsmClass primitiveClazz = AsmClass.findPrimitive( className );
     try {

@@ -35,6 +35,7 @@ import gw.lang.parser.coercers.MetaTypeToClassCoercer;
 import gw.lang.parser.coercers.RuntimeCoercer;
 import gw.lang.parser.coercers.StringCoercer;
 import gw.lang.parser.expressions.ITypeAsExpression;
+import gw.lang.parser.expressions.ITypeLiteralExpression;
 import gw.lang.reflect.IBlockType;
 import gw.lang.reflect.IFunctionType;
 import gw.lang.reflect.IHasJavaClass;
@@ -353,6 +354,13 @@ public class TypeAsTransformer extends AbstractExpressionTransformer<ITypeAsExpr
     if( coercer == MetaTypeToClassCoercer.instance() && ((IMetaType)lhsType).getType() instanceof IHasJavaClass )
     {
       // Handle MetaType-to-Class coercion directly
+
+      if( _expr().getLHS() instanceof ITypeLiteralExpression )
+      {
+        // TypeLiteral as Class -> treat as LDC directly
+        return pushConstant( getDescriptor( ((IMetaType)lhsType).getType() ) );
+      }
+
       IRSymbol rootValue = _cc().makeAndIndexTempSymbol( root.getType() );
       return buildComposite(
         buildAssignment( rootValue, root ),

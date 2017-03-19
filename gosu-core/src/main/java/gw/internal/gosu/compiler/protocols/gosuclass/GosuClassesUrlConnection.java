@@ -356,7 +356,7 @@ public class GosuClassesUrlConnection extends URLConnection {
       // that as the definitive JavaClassInfo.  Thus, we don't really want to log
       // a nasty message here or print the stack trace, if it's recoverable.
 
-      System.out.println( "!! Failed to compile: " + _type.getName() + " (don't worry, these are mostly recoverable, mostly)" );
+      //System.out.println( "!! Failed to compile: " + _type.getName() + " (don't worry, these are mostly recoverable, mostly)" );
       //e.printStackTrace();
     }
 

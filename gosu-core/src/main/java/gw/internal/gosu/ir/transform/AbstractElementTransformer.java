@@ -3114,14 +3114,17 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
     return classLiteral( JavaClassIRType.get( value ) );
   }
 
-  protected IRExpression classLiteral( IRType value ) {
+  protected IRExpression classLiteral( IRType value )
+  {
     IType type;
-    if (value instanceof JavaClassIRType) {
-      type = ((JavaClassIRType) value).getType();
-    } else if (value instanceof GosuClassIRType) {
-      type = ((GosuClassIRType) value).getType();
-    } else {
-      throw new RuntimeException("Unsupported IRType " + value.getClass());
+    if( value instanceof JavaClassIRType ||
+        value instanceof GosuClassIRType )
+    {
+      type = value.getType();
+    }
+    else
+    {
+      throw new RuntimeException( "Unsupported IRType " + value.getClass() );
     }
     return pushClassLiteral( value, type );
   }

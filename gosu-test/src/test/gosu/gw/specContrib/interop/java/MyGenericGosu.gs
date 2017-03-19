@@ -5,7 +5,7 @@ class MyGenericGosu<T extends CharSequence> {
   property Tee: T
   property Name: String
   
-  // NOTE: FrnoJava references MyGosu in it's extends clause, so this verifeis bi-directional 
+  // NOTE: FromJavaSubclass references MyGenericGosu in its extends clause, so this verifeis bi-directional
   // reference support at the *header* declaration level
   property FJS: FromJavaSubclass<String>
   

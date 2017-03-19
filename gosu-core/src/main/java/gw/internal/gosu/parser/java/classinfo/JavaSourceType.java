@@ -21,6 +21,7 @@ import com.sun.source.util.DocTrees;
 import com.sun.source.util.SourcePositions;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.TreeInfo;
+import gw.config.ExecutionMode;
 import gw.internal.gosu.parser.AsmClassJavaClassInfo;
 import gw.internal.gosu.parser.TypeUsesMap;
 import gw.internal.gosu.parser.java.compiler.JavaStubGenerator;
@@ -911,6 +912,11 @@ public abstract class JavaSourceType extends AbstractJavaClassInfo implements IJ
   @Override
   public Class getBackingClass()
   {
+    if( !ExecutionMode.isRuntime() )
+    {
+      return null;
+    }
+
     try
     {
       return Class.forName( getJavaName(), false, TypeSystem.getCurrentModule().getModuleClassLoader() );
@@ -967,7 +973,7 @@ public abstract class JavaSourceType extends AbstractJavaClassInfo implements IJ
 
   public boolean isInterface()
   {
-    return this instanceof JavaSourceInterface;
+    return false;
   }
 
   @Override
@@ -1025,7 +1031,7 @@ public abstract class JavaSourceType extends AbstractJavaClassInfo implements IJ
 
   public boolean isEnum()
   {
-    return this instanceof JavaSourceEnum;
+    return false;
   }
 
   @Override
@@ -1036,7 +1042,7 @@ public abstract class JavaSourceType extends AbstractJavaClassInfo implements IJ
 
   public boolean isAnnotation()
   {
-    return this instanceof JavaSourceAnnotation;
+    return false;
   }
 
   public boolean isPublic()
