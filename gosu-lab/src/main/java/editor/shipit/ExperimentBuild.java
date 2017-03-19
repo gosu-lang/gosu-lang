@@ -66,6 +66,12 @@ public class ExperimentBuild
     return result;
   }
 
+  public boolean compile( ICompileConsumer consumer, Set<IType> typesToCompile )
+  {
+    consumer = getDebugger() == null ? chainForNotDebugging( consumer ) : chainForDebugging( consumer );
+    return build( consumer, typesToCompile, true );
+  }
+
   public boolean rebuild( ICompileConsumer consumer )
   {
     cleanCompileOutput();

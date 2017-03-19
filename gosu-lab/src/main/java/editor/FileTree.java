@@ -11,6 +11,7 @@ import gw.lang.reflect.TypeSystem;
 
 import java.io.File;
 import java.nio.file.Path;
+import java.util.function.Predicate;
 import javax.swing.*;
 import javax.swing.filechooser.FileSystemView;
 import javax.swing.tree.DefaultTreeModel;
@@ -628,5 +629,23 @@ public class FileTree implements MutableTreeNode, IFileWatcherListener
       return 1;
     }
     return iCount;
+  }
+
+  public boolean traverse( Predicate<FileTree> visitor )
+  {
+    if( !visitor.test( this ) )
+    {
+      return false;
+    }
+
+    for( FileTree ft: getChildren() )
+    {
+      if( !ft.traverse( visitor ) )
+      {
+        return false;
+      }
+    }
+
+    return true;
   }
 }

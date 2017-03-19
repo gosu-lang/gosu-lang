@@ -52,6 +52,7 @@ import gw.util.StreamUtil;
 import java.io.Writer;
 import java.nio.file.Path;
 import java.io.File;
+import java.util.Set;
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -1282,6 +1283,26 @@ public class GosuPanel extends JPanel
     Debugger debugger = getDebugger();
     ExperimentBuild expBuild = debugger != null ? debugger.getClassRedefiner() : ExperimentBuild.instance();
     return expBuild.make( c -> true );
+  }
+
+  public boolean compile( Set<IType> types )
+  {
+    SettleModalEventQueue.instance().run();
+
+    saveIfDirty();
+    if( getMessagesPanel() != null )
+    {
+      getMessagesPanel().clear();
+    }
+    showMessages( true );
+
+    //## NOTE: We distinguish between making during a debug session and not.  This is primarily for the
+    //##       case where the user is running from source (NOT compiling bytecode to disk), in which case
+    //##       we only want to compile and reload classes that have changed since the debugger started.
+
+    Debugger debugger = getDebugger();
+    ExperimentBuild expBuild = debugger != null ? debugger.getClassRedefiner() : ExperimentBuild.instance();
+    return expBuild.compile( c -> true, types );
   }
 
   public boolean rebuild()

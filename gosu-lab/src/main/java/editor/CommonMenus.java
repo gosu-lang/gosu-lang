@@ -26,7 +26,10 @@ import editor.util.SmartMenuItem;
 import gw.lang.reflect.IAttributedFeatureInfo;
 import gw.lang.reflect.IFeatureInfo;
 
+import gw.lang.reflect.IType;
 import java.nio.file.Path;
+import java.util.Collections;
+import java.util.HashSet;
 import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.util.function.Supplier;
@@ -265,6 +268,21 @@ public class CommonMenus
         }
       } );
     item.setMnemonic( 'y' );
+    return item;
+  }
+
+  public static JMenuItem makeViewCompile()
+  {
+    JMenuItem item = new SmartMenuItem(
+      new AbstractAction( "Compile" )
+      {
+        @Override
+        public void actionPerformed( ActionEvent e )
+        {
+          getGosuPanel().compile( Collections.singleton( getGosuPanel().getCurrentEditor().getParsedClass() ));
+        }
+      } );
+    item.setMnemonic( 'i' );
     return item;
   }
 
@@ -1212,6 +1230,35 @@ public class CommonMenus
     public void actionPerformed( ActionEvent e )
     {
       getGosuPanel().make();
+    }
+  }
+  
+  public static class CompileActionHandler extends AbstractAction
+  {
+    private final Supplier<FileTree> _fileTree;
+
+    public CompileActionHandler( Supplier<FileTree> fileTree )
+    {
+      super( "Compile" );
+      _fileTree = fileTree;
+    }
+
+    @Override
+    public void actionPerformed( ActionEvent e )
+    {
+      HashSet<IType> types = new HashSet<>();
+      _fileTree.get().traverse( ft -> {
+        IType type = ft.getType();
+        if( type != null )
+        {
+          types.add( type );
+        }
+        return true;
+      } );
+      if( !types.isEmpty() )
+      {
+        getGosuPanel().compile( types );
+      }
     }
   }
   
