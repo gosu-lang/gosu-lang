@@ -7014,10 +7014,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
           pi = BeanAccess.getPropertyInfo( rootType, strMemberName, null, this, getVisibilityConstraint() );
           memberType = bExpansion ? new ArrayExpansionPropertyInfo( pi ).getFeatureType() : pi.getFeatureType();
 
-          if( pi != null )
-          {
-            verifyCase( ma, strMemberName, pi.getName(), state, Res.MSG_PROPERTY_CASE_MISMATCH, false );
-          }
+          verifyCase( ma, strMemberName, pi.getName(), state, Res.MSG_PROPERTY_CASE_MISMATCH, false );
 
           if( pi.isStatic() && !JavaTypes.ITYPE().isAssignableFrom( rootType ) )
           {

@@ -186,13 +186,9 @@ public class SwitchStatementTransformer extends AbstractStatementTransformer<Swi
     }
     else
     {
-      return callStaticMethod( BeanAccess.class, "areValuesEqual", new Class[]{IType.class, Object.class, IType.class, Object.class},
-              exprList(
-                      pushType( switchType ),
-                      identifier( tempRoot ),
-                      pushType( caseExpression.getType() ),
-                      ExpressionTransformer.compile( caseExpression, _cc() )
-              ));
+      return callStaticMethod( BeanAccess.class, "areValuesEqual", new Class[]{Object.class, Object.class},
+               exprList( identifier( tempRoot ),
+                 ExpressionTransformer.compile( caseExpression, _cc() ) ) );
     }
   }
 

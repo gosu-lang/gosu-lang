@@ -66,7 +66,7 @@ public class EqualityExpression extends ConditionalExpression implements IEquali
     }
     else
     {
-      bValue = BeanAccess.areValuesEqual( lhsType, lhsValue, rhsType, rhsValue );
+      bValue = BeanAccess.areValuesEqual( lhsValue, rhsValue );
     }
     return isEquals() ? bValue : !bValue;
   }

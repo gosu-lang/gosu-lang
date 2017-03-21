@@ -257,7 +257,7 @@ public class EqualityExpressionTransformer extends AbstractExpressionTransformer
     IRAssignmentStatement tempLhsAssignment = buildAssignment( lhsTemp, ExpressionTransformer.compile( _expr().getLHS(), _cc() ) );
     IRSymbol rhsTemp = _cc().makeAndIndexTempSymbol( getDescriptor( _expr().getRHS().getType() ) );
     IRAssignmentStatement tempRhsAssignment = buildAssignment( rhsTemp, ExpressionTransformer.compile( _expr().getRHS(), _cc() ) );
-    IRExpression callCompareTo = buildMethodCall( lhsIrType, "compareTo", lhsType.isInterface(), getDescriptor( int.class ), Collections.<IRType>singletonList( getDescriptor( Object.class ) ),
+    IRExpression callCompareTo = buildMethodCall( lhsIrType, "compareTo", lhsType.isInterface(), getDescriptor( int.class ), Collections.singletonList( getDescriptor( Object.class ) ),
                                                   identifier( lhsTemp ), Collections.singletonList( (IRExpression)identifier( rhsTemp ) ) );
     IRExpression theExpr = new IRConditionalOrExpression( buildEquals( identifier( lhsTemp ), identifier( rhsTemp ) ),
                                                           new IRConditionalAndExpression( buildNotEquals( identifier( lhsTemp ), nullLiteral() ),
@@ -276,23 +276,31 @@ public class EqualityExpressionTransformer extends AbstractExpressionTransformer
     IRSymbol rhsTemp = _cc().makeAndIndexTempSymbol( getDescriptor( Object.class ) );
     IRAssignmentStatement tempRhsAssignment = buildAssignment( rhsTemp,  boxValue( _expr().getRHS().getType(), ExpressionTransformer.compile( _expr().getRHS(), _cc() ) ) );
 
-    List<IRExpression> args = new ArrayList<IRExpression>();
+    List<IRExpression> args = new ArrayList<>();
     args.add( identifier( lhsTemp ) );
-    args.add( pushType( _expr().getLHS().getType() ) );
     args.add( pushConstant( _expr().isEquals() ) );
     args.add( identifier( rhsTemp ) );
-    args.add( pushType( _expr().getRHS().getType() ) );
 
     // lhs === rhs ? true : compareDynamically( ... )
     return buildComposite( tempLhsAssignment, tempRhsAssignment,
                            buildTernary( buildEquals( identifier( lhsTemp ), identifier( rhsTemp ) ), booleanLiteral( _expr().isEquals() ),
                                          callStaticMethod( EqualityExpressionTransformer.class, "evaluate",
-                                                           new Class[]{Object.class, IType.class, boolean.class, Object.class, IType.class},
+                                                           new Class[]{Object.class, boolean.class, Object.class},
                                                            args ), getDescriptor( boolean.class ) ) );
   }
 
-  public static boolean evaluate( Object lhsValue, IType lhsType, boolean bEquals, Object rhsValue, IType rhsType )
+  public static boolean evaluate( Object lhsValue, boolean bEquals, Object rhsValue )
   {
+    if( lhsValue == null && rhsValue == null )
+    {
+      return true;
+    }
+    if( lhsValue == null || rhsValue == null )
+    {
+      return false;
+    }
+    IType lhsType = TypeSystem.getFromObject( lhsValue );
+    IType rhsType = TypeSystem.getFromObject( rhsValue );
     boolean bValue;
     if( lhsValue != null && rhsValue != null && BeanAccess.isNumericType( lhsType ) )
     {
@@ -300,8 +308,7 @@ public class EqualityExpressionTransformer extends AbstractExpressionTransformer
     }
     else
     {
-      bValue = BeanAccess.areValuesEqual( lhsType, lhsValue,
-                                          rhsType, rhsValue );
+      bValue = BeanAccess.areValuesEqual( lhsValue, rhsValue );
     }
     return bEquals ? bValue : !bValue;
   }

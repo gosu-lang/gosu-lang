@@ -150,7 +150,7 @@ public class RelationalExpressionTransformer extends AbstractExpressionTransform
     IRAssignmentStatement tempLhsAssignment = buildAssignment( lhsTemp, ExpressionTransformer.compile( _expr().getLHS(), _cc() ) );
     IRSymbol rhsTemp = _cc().makeAndIndexTempSymbol( getDescriptor( _expr().getRHS().getType() ) );
     IRAssignmentStatement tempRhsAssignment = buildAssignment( rhsTemp, ExpressionTransformer.compile( _expr().getRHS(), _cc() ) );
-    IRExpression callCompareTo = buildMethodCall( lhsIrType, "compareTo", lhsType.isInterface(), getDescriptor( int.class ), Collections.<IRType>singletonList( getDescriptor( Object.class ) ),
+    IRExpression callCompareTo = buildMethodCall( lhsIrType, "compareTo", lhsType.isInterface(), getDescriptor( int.class ), Collections.singletonList( getDescriptor( Object.class ) ),
                                                   identifier( lhsTemp ), Collections.singletonList( (IRExpression)identifier( rhsTemp ) ) );
     IRExpression theExpr = new IRConditionalAndExpression( buildNotEquals( identifier( lhsTemp ), nullLiteral() ),
                                                            new IRConditionalAndExpression( buildNotEquals( identifier( rhsTemp ), nullLiteral() ),
@@ -198,13 +198,10 @@ public class RelationalExpressionTransformer extends AbstractExpressionTransform
 
   private IRExpression compareDynamically()
   {
-    List<IRExpression> args = new ArrayList<IRExpression>();
+    List<IRExpression> args = new ArrayList<>();
 
     // Push the LHS expression value and make sure it's boxed for the method call
     args.add( boxValue( _expr().getLHS().getType(), ExpressionTransformer.compile( _expr().getLHS(), _cc() ) ) );
-
-    // Push the LHS Type
-    args.add( pushType( _expr().getLHS().getType() ) );
 
     // Push operator
     args.add( pushConstant( _expr().getOperator() ) );
@@ -212,16 +209,13 @@ public class RelationalExpressionTransformer extends AbstractExpressionTransform
     // Push the RHS expression value and make sure it's boxed for the method call
     args.add( boxValue( _expr().getRHS().getType(), ExpressionTransformer.compile( _expr().getRHS(), _cc() ) ) );
 
-    // Push the RHS Type
-    args.add( pushType( _expr().getRHS().getType() ) );
-
     // Call into Gosu's runtime for the Boolean answer
     return callStaticMethod( RelationalExpressionTransformer.class, "evaluate",
-            new Class[]{Object.class, IType.class, String.class, Object.class, IType.class},
+            new Class[]{Object.class, String.class, Object.class},
             args);
   }
 
-  public static boolean evaluate( Object lhsValue, IType lhsType, String strOperator, Object rhsValue, IType rhsType )
+  public static boolean evaluate( Object lhsValue, String strOperator, Object rhsValue )
   {
     if( lhsValue == null )
     {
@@ -232,132 +226,143 @@ public class RelationalExpressionTransformer extends AbstractExpressionTransform
       return false;
     }
 
+    IType lhsType = TypeSystem.getFromObject( lhsValue );
+    IType rhsType = TypeSystem.getFromObject( rhsValue );
+
     final ICoercionManager coercionMgr = CommonServices.getCoercionManager();
 
-    if( strOperator.equals( ">" ) )
+    switch( strOperator )
     {
-      if( BeanAccess.isNumericType( lhsType ) )
+      case ">":
       {
-        return ConditionalExpression.compareNumbers( lhsValue, rhsValue, lhsType, rhsType ) > 0 ? Boolean.TRUE : Boolean.FALSE;
-      }
-      else if( lhsType == GosuParserTypes.DATETIME_TYPE() )
-      {
-        return coercionMgr.makeDateFrom( lhsValue ).after( coercionMgr.makeDateFrom( rhsValue ) ) ? Boolean.TRUE : Boolean.FALSE;
-      }
-      else
-      {
-        if( BeanAccess.isBeanType( lhsType ) )
+        if( BeanAccess.isNumericType( lhsType ) )
         {
-          if( BeanAccess.isBeanType( rhsType ) )
+          return ConditionalExpression.compareNumbers( lhsValue, rhsValue, lhsType, rhsType ) > 0 ? Boolean.TRUE : Boolean.FALSE;
+        }
+        else if( lhsType == GosuParserTypes.DATETIME_TYPE() )
+        {
+          return coercionMgr.makeDateFrom( lhsValue ).after( coercionMgr.makeDateFrom( rhsValue ) ) ? Boolean.TRUE : Boolean.FALSE;
+        }
+        else
+        {
+          if( BeanAccess.isBeanType( lhsType ) )
           {
-            if( lhsType.isAssignableFrom( rhsType ) )
+            if( BeanAccess.isBeanType( rhsType ) )
             {
-              if( JavaTypes.COMPARABLE().isAssignableFrom( lhsType ) )
+              if( lhsType.isAssignableFrom( rhsType ) )
               {
-                //noinspection unchecked
-                return ((Comparable)lhsValue).compareTo( rhsValue ) > 0 ? Boolean.TRUE : Boolean.FALSE;
+                if( JavaTypes.COMPARABLE().isAssignableFrom( lhsType ) )
+                {
+                  //noinspection unchecked
+                  return ((Comparable)lhsValue).compareTo( rhsValue ) > 0 ? Boolean.TRUE : Boolean.FALSE;
+                }
               }
             }
           }
         }
+
+        return coercionMgr.makeStringFrom( lhsValue ).compareTo( coercionMgr.makeStringFrom( rhsValue ) ) > 0 ? Boolean.TRUE : Boolean.FALSE;
       }
 
-      return coercionMgr.makeStringFrom( lhsValue ).compareTo( coercionMgr.makeStringFrom( rhsValue ) ) > 0 ? Boolean.TRUE : Boolean.FALSE;
-    }
-    else if( strOperator.equals( "<" ) )
-    {
-      if( BeanAccess.isNumericType( lhsType ) )
+      case "<":
       {
-        return ConditionalExpression.compareNumbers( lhsValue, rhsValue, lhsType, rhsType ) < 0 ? Boolean.TRUE : Boolean.FALSE;
-      }
-      else if( lhsType == GosuParserTypes.DATETIME_TYPE() )
-      {
-        return coercionMgr.makeDateFrom( lhsValue ).before( coercionMgr.makeDateFrom( rhsValue ) ) ? Boolean.TRUE : Boolean.FALSE;
-      }
-      else
-      {
-        if( BeanAccess.isBeanType( lhsType ) )
+        if( BeanAccess.isNumericType( lhsType ) )
         {
-          if( BeanAccess.isBeanType( rhsType ) )
+          return ConditionalExpression.compareNumbers( lhsValue, rhsValue, lhsType, rhsType ) < 0 ? Boolean.TRUE : Boolean.FALSE;
+        }
+        else if( lhsType == GosuParserTypes.DATETIME_TYPE() )
+        {
+          return coercionMgr.makeDateFrom( lhsValue ).before( coercionMgr.makeDateFrom( rhsValue ) ) ? Boolean.TRUE : Boolean.FALSE;
+        }
+        else
+        {
+          if( BeanAccess.isBeanType( lhsType ) )
           {
-            if( lhsType.isAssignableFrom( rhsType ) )
+            if( BeanAccess.isBeanType( rhsType ) )
             {
-              if( JavaTypes.COMPARABLE().isAssignableFrom( lhsType ) )
+              if( lhsType.isAssignableFrom( rhsType ) )
               {
-                //noinspection unchecked
-                return ((Comparable)lhsValue).compareTo( rhsValue ) < 0 ? Boolean.TRUE : Boolean.FALSE;
+                if( JavaTypes.COMPARABLE().isAssignableFrom( lhsType ) )
+                {
+                  //noinspection unchecked
+                  return ((Comparable)lhsValue).compareTo( rhsValue ) < 0 ? Boolean.TRUE : Boolean.FALSE;
+                }
               }
             }
           }
         }
+
+        return coercionMgr.makeStringFrom( lhsValue ).compareTo( coercionMgr.makeStringFrom( rhsValue ) ) < 0 ? Boolean.TRUE : Boolean.FALSE;
       }
 
-      return coercionMgr.makeStringFrom( lhsValue ).compareTo( coercionMgr.makeStringFrom( rhsValue ) ) < 0 ? Boolean.TRUE : Boolean.FALSE;
-    }
-    else if( strOperator.equals( ">=" ) )
-    {
-      if( BeanAccess.isNumericType( lhsType ) )
+      case ">=":
       {
-        return ConditionalExpression.compareNumbers( lhsValue, rhsValue, lhsType, rhsType ) >= 0 ? Boolean.TRUE : Boolean.FALSE;
-      }
-      else if( lhsType == GosuParserTypes.DATETIME_TYPE() )
-      {
-        Date l = coercionMgr.makeDateFrom( lhsValue );
-        Date r = coercionMgr.makeDateFrom( rhsValue );
-        return (l.compareTo( r ) >= 0) ? Boolean.TRUE : Boolean.FALSE;
-      }
-      else
-      {
-        if( BeanAccess.isBeanType( lhsType ) )
+        if( BeanAccess.isNumericType( lhsType ) )
         {
-          if( BeanAccess.isBeanType( rhsType ) )
+          return ConditionalExpression.compareNumbers( lhsValue, rhsValue, lhsType, rhsType ) >= 0 ? Boolean.TRUE : Boolean.FALSE;
+        }
+        else if( lhsType == GosuParserTypes.DATETIME_TYPE() )
+        {
+          Date l = coercionMgr.makeDateFrom( lhsValue );
+          Date r = coercionMgr.makeDateFrom( rhsValue );
+          return (l.compareTo( r ) >= 0) ? Boolean.TRUE : Boolean.FALSE;
+        }
+        else
+        {
+          if( BeanAccess.isBeanType( lhsType ) )
           {
-            if( lhsType.isAssignableFrom( rhsType ) )
+            if( BeanAccess.isBeanType( rhsType ) )
             {
-              if( JavaTypes.COMPARABLE().isAssignableFrom( lhsType ) )
+              if( lhsType.isAssignableFrom( rhsType ) )
               {
-                //noinspection unchecked
-                return ((Comparable)lhsValue).compareTo( rhsValue ) >= 0 ? Boolean.TRUE : Boolean.FALSE;
+                if( JavaTypes.COMPARABLE().isAssignableFrom( lhsType ) )
+                {
+                  //noinspection unchecked
+                  return ((Comparable)lhsValue).compareTo( rhsValue ) >= 0 ? Boolean.TRUE : Boolean.FALSE;
+                }
               }
             }
           }
         }
+
+        return coercionMgr.makeStringFrom( lhsValue ).compareTo( coercionMgr.makeStringFrom( rhsValue ) ) >= 0 ? Boolean.TRUE : Boolean.FALSE;
       }
 
-      return coercionMgr.makeStringFrom( lhsValue ).compareTo( coercionMgr.makeStringFrom( rhsValue ) ) >= 0 ? Boolean.TRUE : Boolean.FALSE;
-    }
-    else // if( _strOperator.equals( "<=" ) )
-    {
-      if( BeanAccess.isNumericType( lhsType ) )
+      case "<=":
       {
-        return ConditionalExpression.compareNumbers( lhsValue, rhsValue, lhsType, rhsType ) <= 0 ? Boolean.TRUE : Boolean.FALSE;
-      }
-      else if( lhsType == GosuParserTypes.DATETIME_TYPE() )
-      {
-        Date l = coercionMgr.makeDateFrom( lhsValue );
-        Date r = coercionMgr.makeDateFrom( rhsValue );
-        return (l.before( r ) || l.equals( r )) ? Boolean.TRUE : Boolean.FALSE;
-      }
-      else
-      {
-        if( BeanAccess.isBeanType( lhsType ) )
+        if( BeanAccess.isNumericType( lhsType ) )
         {
-          if( BeanAccess.isBeanType( rhsType ) )
+          return ConditionalExpression.compareNumbers( lhsValue, rhsValue, lhsType, rhsType ) <= 0 ? Boolean.TRUE : Boolean.FALSE;
+        }
+        else if( lhsType == GosuParserTypes.DATETIME_TYPE() )
+        {
+          Date l = coercionMgr.makeDateFrom( lhsValue );
+          Date r = coercionMgr.makeDateFrom( rhsValue );
+          return (l.before( r ) || l.equals( r )) ? Boolean.TRUE : Boolean.FALSE;
+        }
+        else
+        {
+          if( BeanAccess.isBeanType( lhsType ) )
           {
-            if( lhsType.isAssignableFrom( rhsType ) )
+            if( BeanAccess.isBeanType( rhsType ) )
             {
-              if( JavaTypes.COMPARABLE().isAssignableFrom( lhsType ) )
+              if( lhsType.isAssignableFrom( rhsType ) )
               {
-                //noinspection unchecked
-                return ((Comparable)lhsValue).compareTo( rhsValue ) <= 0 ? Boolean.TRUE : Boolean.FALSE;
+                if( JavaTypes.COMPARABLE().isAssignableFrom( lhsType ) )
+                {
+                  //noinspection unchecked
+                  return ((Comparable)lhsValue).compareTo( rhsValue ) <= 0 ? Boolean.TRUE : Boolean.FALSE;
+                }
               }
             }
           }
         }
+
+        return coercionMgr.makeStringFrom( lhsValue ).compareTo( coercionMgr.makeStringFrom( rhsValue ) ) <= 0 ? Boolean.TRUE : Boolean.FALSE;
       }
 
-      return coercionMgr.makeStringFrom( lhsValue ).compareTo( coercionMgr.makeStringFrom( rhsValue ) ) <= 0 ? Boolean.TRUE : Boolean.FALSE;
+      default:
+        throw new IllegalStateException();
     }
   }
-
 }

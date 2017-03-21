@@ -10,6 +10,7 @@ import gw.lang.parser.GosuParserTypes;
 import gw.lang.parser.StandardCoercionManager;
 import gw.lang.reflect.IConstructorType;
 import gw.lang.reflect.MethodList;
+import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.gs.IGosuProgram;
 import gw.lang.reflect.java.JavaTypes;
 import gw.util.GosuExceptionUtil;
@@ -153,8 +154,7 @@ public class BeanAccess
    * <li> Otherwise, compare with equals().
    * </ul>
    */
-  public static boolean areValuesEqual( IType lhsType, Object lhsValue,
-                                        IType rhsType, Object rhsValue )
+  public static boolean areValuesEqual( Object lhsValue, Object rhsValue )
   {
     //
     // Note we do *not* verify the compatibility of the lhs & rhs types. That
@@ -171,8 +171,9 @@ public class BeanAccess
       return false;
     }
 
+    IType lhsType = TypeSystem.getFromObject( lhsValue );
+    IType rhsType = TypeSystem.getFromObject( rhsValue );
     boolean bValue;
-
 
     //## todo: This is insane. THe equality operator should be symmetric; we should not be looking at the lhs type!
 
@@ -217,8 +218,8 @@ public class BeanAccess
         {
           for( int i = 0; i < lhsLength; i++ )
           {
-            bValue &= areValuesEqual( lhsType.getComponentType(), lhsType.getArrayComponent( lhsValue, i ),
-                                      rhsType.getComponentType(), rhsType.getArrayComponent( rhsValue, i ) );
+            bValue &= areValuesEqual( lhsType.getArrayComponent( lhsValue, i ),
+                                      rhsType.getArrayComponent( rhsValue, i ) );
             if( !bValue )
             {
               break;

@@ -47,6 +47,7 @@ public class PLGosuBytecodeSuite extends Suite
   {
     return type -> isByteCodeTest(type) &&
         !type.getName().startsWith("gw.test.SuiteTest") &&
-        !type.getName().contains("BenchmarkTest");
+        !type.getName().contains("BenchmarkTest") &&
+        !type.getName().endsWith( "VerifyAllPureGosuResourcesTest");
   }
 }
