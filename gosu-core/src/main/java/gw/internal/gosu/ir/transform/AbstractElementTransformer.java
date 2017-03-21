@@ -621,50 +621,98 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
     }
   }
   private IRCompositeExpression buildStaticLazyTypeResolverCall( IRMethodStatement method ) {
-    IGenericTypeVariable[] tvs = getGenericFunctionTypeVariables( _cc().getCurrentFunction() );
-    IRElement[] exprs = new IRElement[1 + (tvs == null ? 0 : tvs.length)];
+    IRElement[] exprs = null;
     int i = 0;
-    if( tvs != null ) {
-      for( IGenericTypeVariable tv: tvs ) {
-        exprs[i++] = identifier( _cc().getSymbol( getTypeVarParamName( tv ) ) );
+    IGenericTypeVariable[] tvs = null;
+    DynamicFunctionSymbol dfs = _cc().getCurrentFunction();
+    if( dfs != null && dfs.isReified() )
+    {
+      tvs = getGenericFunctionTypeVariables( dfs );
+      exprs = new IRElement[1 + (tvs == null ? 0 : tvs.length)];
+      if( tvs != null )
+      {
+        for( IGenericTypeVariable tv : tvs )
+        {
+          exprs[i++] = identifier( _cc().getSymbol( getTypeVarParamName( tv ) ) );
+        }
       }
+    }
+    if( exprs == null )
+    {
+      exprs = new IRElement[1];
     }
     exprs[i] = new IRLazyTypeMethodCallExpression( method.getName(), getDescriptor( getGosuClass() ), getGosuClass().getName(), tvs == null ? 0 : tvs.length, true );
     return buildComposite( exprs );
   }
   private IRCompositeExpression buildEnhancementLazyTypeResolverCall( IRMethodStatement method ) {
-    IGenericTypeVariable[] tvs = getGenericFunctionTypeVariables( _cc().getCurrentFunction() );
-    IRElement[] exprs = new IRElement[1 + (tvs == null ? 0 : tvs.length)];
+    IRElement[] exprs = null;
     int i = 0;
-    if( tvs != null ) {
-      for( IGenericTypeVariable tv: tvs ) {
-        exprs[i++] = identifier( _cc().getSymbol( getTypeVarParamName( tv ) ) );
+    IGenericTypeVariable[] tvs = null;
+    DynamicFunctionSymbol dfs = _cc().getCurrentFunction();
+    if( dfs != null && dfs.isReified() )
+    {
+      tvs = getGenericFunctionTypeVariables( dfs );
+      exprs = new IRElement[1 + (tvs == null ? 0 : tvs.length)];
+      if( tvs != null )
+      {
+        for( IGenericTypeVariable tv : tvs )
+        {
+          exprs[i++] = identifier( _cc().getSymbol( getTypeVarParamName( tv ) ) );
+        }
       }
+    }
+    if( exprs == null )
+    {
+      exprs = new IRElement[1];
     }
     exprs[i] = new IRLazyTypeMethodCallExpression( method.getName(), getDescriptor( getGosuClass() ), getGosuClass().getName(), tvs == null ? 0 : tvs.length, true );
     return buildComposite( exprs );
   }
   private IRCompositeExpression buildInstanceLazyTypeResolverCall( IRMethodStatement method ) {
-    IGenericTypeVariable[] tvs = getGenericFunctionTypeVariables( _cc().getCurrentFunction() );
-    IRElement[] exprs = new IRElement[2 + (tvs == null ? 0 : tvs.length)];
+    DynamicFunctionSymbol dfs = _cc().getCurrentFunction();
     int i = 0;
-    exprs[i++] = pushThis();
-    if( tvs != null ) {
-      for( IGenericTypeVariable tv: tvs ) {
-        exprs[i++] = identifier( _cc().getSymbol( getTypeVarParamName( tv ) ) );
+    IRElement[] exprs = null;
+    IGenericTypeVariable[] tvs = null;
+    if( dfs != null && dfs.isReified() )
+    {
+      tvs = getGenericFunctionTypeVariables( dfs );
+      exprs = new IRElement[2 + (tvs == null ? 0 : tvs.length)];
+      exprs[i++] = pushThis();
+      if( tvs != null )
+      {
+        for( IGenericTypeVariable tv : tvs )
+        {
+          exprs[i++] = identifier( _cc().getSymbol( getTypeVarParamName( tv ) ) );
+        }
       }
+    }
+    if( exprs == null )
+    {
+      exprs = new IRElement[2];
+      exprs[i++] = pushThis();
     }
     exprs[i] = new IRLazyTypeMethodCallExpression( method.getName(), getDescriptor( getGosuClass() ), getGosuClass().getName(), tvs == null ? 0 : tvs.length, false );
     return buildComposite( exprs );
   }
   private IRCompositeExpression buildSuperCallLazyTypeResolverCall( IRMethodStatement method, IGenericTypeVariable[] tvs ) {
-    tvs = tvs != null ? tvs : getGenericFunctionTypeVariables( _cc().getCurrentFunction() );
-    IRElement[] exprs = new IRElement[1 + (tvs == null ? 0 : tvs.length)];
+    DynamicFunctionSymbol dfs = _cc().getCurrentFunction();
+    IRElement[] exprs = null;
     int i = 0;
-    if( tvs != null ) {
-      for( IGenericTypeVariable tv: tvs ) {
-        exprs[i++] = identifier( _cc().getSymbol( getTypeVarParamName( tv ) ) );
+    if( tvs != null || dfs != null && dfs.isReified() )
+    {
+      tvs = tvs != null ? tvs : getGenericFunctionTypeVariables( dfs );
+      exprs = new IRElement[1 + (tvs == null ? 0 : tvs.length)];
+      if( tvs != null )
+      {
+        for( IGenericTypeVariable tv : tvs )
+        {
+          exprs[i++] = identifier( _cc().getSymbol( getTypeVarParamName( tv ) ) );
+        }
       }
+    }
+    if( exprs == null )
+    {
+      exprs = new IRElement[1];
     }
     exprs[i] = new IRLazyTypeMethodCallExpression( method.getName(), getDescriptor( getGosuClass() ), getGosuClass().getName(), tvs == null ? 0 : tvs.length, true );
     return buildComposite( exprs );
@@ -689,11 +737,17 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
     }
   }
   private IRMethodStatement makeStaticLazyTypeMethod( IType type ) {
-    IGenericTypeVariable[] tvs = getGenericFunctionTypeVariables( _cc().getCurrentFunction() );
+    DynamicFunctionSymbol dfs = _cc().getCurrentFunction();
     List<IRSymbol> functionTypeVarParams = new ArrayList<IRSymbol>();
-    if( tvs != null ) {
-      for( IGenericTypeVariable tv: tvs ) {
+    if( dfs != null && dfs.isReified() )
+    {
+      IGenericTypeVariable[] tvs = getGenericFunctionTypeVariables( dfs );
+      if( tvs != null )
+      {
+        for( IGenericTypeVariable tv : tvs )
+        {
           functionTypeVarParams.add( _cc().getSymbol( getTypeVarParamName( tv ) ) );
+        }
       }
     }
     int iIndex = _cc().incrementLazyTypeMethodCount();
@@ -707,11 +761,17 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
       functionTypeVarParams );
   }
   private IRMethodStatement makeEnhancementLazyTypeMethod( IType type ) {
-    IGenericTypeVariable[] tvs = getGenericFunctionTypeVariables( _cc().getCurrentFunction() );
-    List<IRSymbol> functionTypeVarParams = new ArrayList<IRSymbol>();
-    if( tvs != null ) {
-      for( IGenericTypeVariable tv: tvs ) {
+    List<IRSymbol> functionTypeVarParams = new ArrayList<>();
+    DynamicFunctionSymbol dfs = _cc().getCurrentFunction();
+    if( dfs != null && dfs.isReified() )
+    {
+      IGenericTypeVariable[] tvs = getGenericFunctionTypeVariables( dfs );
+      if( tvs != null )
+      {
+        for( IGenericTypeVariable tv : tvs )
+        {
           functionTypeVarParams.add( _cc().getSymbol( getTypeVarParamName( tv ) ) );
+        }
       }
     }
     int iIndex = _cc().incrementLazyTypeMethodCount();
@@ -726,11 +786,17 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
   }
   private IRMethodStatement makeSuperCallLazyTypeMethod( IType type, IGenericTypeVariable[] tvs ) {
     boolean bStatic = tvs != null;
-    tvs = tvs == null ? getGenericFunctionTypeVariables( _cc().getCurrentFunction() ) : tvs;
-    List<IRSymbol> functionTypeVarParams = new ArrayList<IRSymbol>();
-    if( tvs != null ) {
-      for( IGenericTypeVariable tv: tvs ) {
+    List<IRSymbol> functionTypeVarParams = new ArrayList<>();
+    DynamicFunctionSymbol dfs = _cc().getCurrentFunction();
+    if( tvs != null || dfs != null && dfs.isReified() )
+    {
+      tvs = tvs == null ? getGenericFunctionTypeVariables( dfs ) : tvs;
+      if( tvs != null )
+      {
+        for( IGenericTypeVariable tv : tvs )
+        {
           functionTypeVarParams.add( _cc().getSymbol( getTypeVarParamName( tv ) ) );
+        }
       }
     }
     int iIndex = _cc().incrementLazyTypeMethodCount();
@@ -744,11 +810,17 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
       functionTypeVarParams );
   }
   private IRMethodStatement makeInstanceLazyTypeMethod( IType type ) {
-    IGenericTypeVariable[] tvs = getGenericFunctionTypeVariables( _cc().getCurrentFunction() );
-    List<IRSymbol> functionTypeVarParams = new ArrayList<IRSymbol>();
-    if( tvs != null ) {
-      for( IGenericTypeVariable tv: tvs ) {
-        functionTypeVarParams.add( _cc().getSymbol( getTypeVarParamName( tv ) ) );
+    List<IRSymbol> functionTypeVarParams = new ArrayList<>();
+    DynamicFunctionSymbol dfs = _cc().getCurrentFunction();
+    if( dfs != null && dfs.isReified() )
+    {
+      IGenericTypeVariable[] tvs = getGenericFunctionTypeVariables( dfs );
+      if( tvs != null )
+      {
+        for( IGenericTypeVariable tv : tvs )
+        {
+          functionTypeVarParams.add( _cc().getSymbol( getTypeVarParamName( tv ) ) );
+        }
       }
     }
     int iIndex = _cc().incrementLazyTypeMethodCount();

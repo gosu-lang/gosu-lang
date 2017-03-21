@@ -225,6 +225,12 @@ public class DynamicFunctionSymbol extends AbstractDynamicSymbol implements IDyn
     }
   }
 
+  @Override
+  public boolean isReified()
+  {
+    return super.isReified() || isConstructor();
+  }
+
   public boolean isConstructor()
   {
     return getInitializer() != null;
