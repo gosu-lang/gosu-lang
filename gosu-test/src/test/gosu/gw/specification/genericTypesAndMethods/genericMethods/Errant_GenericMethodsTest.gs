@@ -100,5 +100,25 @@ class Errant_GenericMethodsTest {
       m2<String>("", 1)  //## issuekeys: MSG_WRONG_NUM_OF_ARGS, MSG_NO_SUCH_FUNCTION
     }
   }
+
+  static class A5
+  {
+    function foo<E>( e: E ) : E[] {
+      var arr = new E[] {e}  //## issuekeys: MSG_TYPE_NOT_REIFIED
+      return arr
+    }
+
+    function foo2<E>( e: E ) : ArrayList<E>[] {  //## issuekeys: MSG_PARAMETERIZED_ARRAY_COMPONENT
+      var arr = new ArrayList<E>[] {{e}} // no need to preserve type A since ArrayList is erased
+      return arr
+    }
+
+    function foo3<E>( e: E ) : Thing<E>[] {  //## issuekeys: MSG_PARAMETERIZED_ARRAY_COMPONENT
+      var arr = new Thing<E>[] {{e}}  //## issuekeys: MSG_TYPE_NOT_REIFIED, MSG_TYPE_MISMATCH
+      return arr
+    }
+
+    static class Thing<T> {}
+  }
 }
 

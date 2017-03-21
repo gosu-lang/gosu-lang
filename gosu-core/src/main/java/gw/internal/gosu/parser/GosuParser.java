@@ -4460,6 +4460,11 @@ public final class GosuParser extends ParserBase implements IGosuParser
     }
     else if( !bAnnotation )
     {
+      if( typeLiteral != null && !(typeLiteral.getType().getType() instanceof IJavaType) )
+      {
+        verifyTypeVarAreReified( typeLiteral, typeLiteral.getType().getType() );
+      }
+
       if( verify( e, match( null, '[' ), Res.MSG_EXPECTING_NEW_ARRAY_OR_CTOR ) )
       {
         if( match( null, ']' ) )
