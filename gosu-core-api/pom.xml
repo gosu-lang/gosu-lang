@@ -55,7 +55,56 @@
   </profiles>
   
   <build>
+    <sourceDirectory>src/main/java</sourceDirectory>
     <plugins>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>build-helper-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>add-source</id>
+            <phase>generate-sources</phase>
+            <goals>
+              <goal>add-source</goal>
+            </goals>
+            <configuration>
+              <sources>
+                <source>src/main/gosu</source>
+              </sources>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>Compile Gosu sources</id>
+            <phase>compile</phase>
+            <goals>
+              <goal>compile</goal>
+            </goals>
+            <configuration>
+              <compilerId>gosuc</compilerId>
+              <excludes>
+                <exclude>**/gw/config/*.xml</exclude>
+                <exclude>**/gw/lang/shell/*.xml</exclude>
+                <exclude>**/gw/lang/function/gen_classes.gsp-text</exclude>
+              </excludes>
+            </configuration>
+          </execution>
+
+        </executions>
+        <dependencies>
+          <dependency>
+            <groupId>org.gosu-lang.gosu</groupId>
+            <artifactId>gosu-maven-compiler</artifactId>
+            <version>1.14.2</version>
+          </dependency>
+        </dependencies>
+      </plugin>
+
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>build-helper-maven-plugin</artifactId>

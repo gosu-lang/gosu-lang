@@ -24,7 +24,22 @@ enhancement CoreIterableEnhancement<T> : java.lang.Iterable<T> {
    * Return the number of elements in this Iterable object
    */
   @ShortCircuitingProperty
-  property get Count() : int { 
+  property get Count() : int {
+    if( this typeis Collection ) {
+      return this.size()
+    } else {
+      var iter = this.iterator()
+      var i = 0
+      while(iter.hasNext()) {
+        iter.next()
+        i++
+      }
+      return i
+    }
+  }
+
+  @ShortCircuitingProperty
+  property get FindCount() : int {
     if( this typeis Collection ) {
       return this.size()
     } else {

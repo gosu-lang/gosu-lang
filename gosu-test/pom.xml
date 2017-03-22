@@ -10,7 +10,9 @@
   <artifactId>gosu-test</artifactId>
 
   <name>Gosu :: Test</name>
-
+  <properties>
+    <argLine>-Xms256m -Xmx2048m -Dgw.tests.skip.knownbreak=true -DcheckedArithmetic=true</argLine>
+  </properties>
   <dependencies>
     <dependency>
       <groupId>org.gosu-lang.gosu</groupId>
@@ -84,7 +86,6 @@
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
         <configuration>
-          <argLine>-Dgw.tests.skip.knownbreak=true -DcheckedArithmetic=true -Xmx2g</argLine>
           <includes>
             <include>gw/config*/**/*Test.class</include>
             <include>gw/internal*/**/*Test.class</include>
@@ -95,6 +96,8 @@
             <include>gw/xml*/**/*Test.class</include>
           </includes>
           <excludes>
+            <exclude>gw/lang/reflect/java/asm/AsmClassTest*</exclude>
+            <exclude>gw/lang/enhancements/CoreArrayEnhancementTest*</exclude>
             <exclude>gw/internal/gosu/parser/java/*</exclude>
             <exclude>gw/test/SuiteTest*</exclude>
             <exclude>**/*BenchmarkTest*</exclude>
@@ -102,6 +105,7 @@
           </excludes>
         </configuration>
       </plugin>
+
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>build-helper-maven-plugin</artifactId>
@@ -120,6 +124,21 @@
           </execution>
         </executions>
       </plugin>
+      <!--<plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <version>2.3.2</version>
+        <configuration>
+          <archive>
+            <manifest>
+              <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+            </manifest>
+            <manifestEntries>
+              <Contains-Sources>gs, gsx, gst</Contains-Sources>
+            </manifestEntries>
+          </archive>
+        </configuration>
+      </plugin>-->
     </plugins>
   </build>
   

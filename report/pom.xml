@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <artifactId>gosu-proj</artifactId>
+        <groupId>org.gosu-lang.gosu</groupId>
+        <version>1-X-SNAPSHOT</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+
+    <artifactId>report</artifactId>
+    <name>Gosu :: Report</name>
+    <properties>
+        <argLine>-Xms256m -Xmx2048m</argLine>
+    </properties>
+    <dependencies>
+
+        <dependency>
+            <groupId>org.gosu-lang.gosu</groupId>
+            <artifactId>gosu-core-api</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.gosu-lang.gosu</groupId>
+            <artifactId>gosu-core</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.gosu-lang.gosu</groupId>
+            <artifactId>gosu-maven-compiler</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.gosu-lang.gosu</groupId>
+            <artifactId>gosu-test</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.gosu-lang.gosu</groupId>
+            <artifactId>gosu-doc</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.gosu-lang.gosu</groupId>
+            <artifactId>gosu-ant-tools</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+    </dependencies>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>report-aggregate</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>report-aggregate</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+</project>

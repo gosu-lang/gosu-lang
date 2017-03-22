@@ -30,6 +30,7 @@
     <module>gosu-parent</module>
     <module>gosu-test</module>
     <module>gosu-test-api</module>
+    <module>report</module>
   </modules>
 
   <build>
