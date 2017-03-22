@@ -104,10 +104,15 @@ public class FunctionBodyTransformationContext
     return _scopes.peek().getSymbol( AbstractElementTransformer.TYPE_PARAM_PREFIX + type.getRelativeName() );
   }
 
-  public IRSymbol getSymbol(String symbolName) {
+  public IRSymbol getSymbol( String symbolName )
+  {
     IRSymbol symbol = _scopes.peek().getSymbol( symbolName );
-    if (symbol == null) {
-      throw new IllegalStateException("No symbol found named " + symbolName);
+    if( symbol == null )
+    {
+      throw new IllegalStateException( "No symbol found named: " + symbolName + "\n" +
+                                       "while compiling function: " + _context.getCurrentFunctionName() + "\n" +
+                                       "in class: " + (_context.getGosuClass() == null ? "" : _context.getGosuClass().getName()) + "\n" +
+                                       "enclosed by: " + (_context.getEnclosingType() == null ? "" : _context.getEnclosingType().getName()) + "\n" );
     }
     return symbol;
   }

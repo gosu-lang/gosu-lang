@@ -58,6 +58,7 @@ import gw.lang.parser.expressions.IBlockExpression;
 import gw.lang.parser.expressions.IOverridableOperation;
 import gw.lang.parser.resources.Res;
 import gw.lang.parser.resources.ResourceKey;
+import gw.lang.reflect.FunctionType;
 import gw.lang.reflect.IErrorType;
 import gw.lang.reflect.IFunctionType;
 import gw.lang.reflect.IMethodInfo;
@@ -77,6 +78,7 @@ import gw.util.Stack;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -2358,7 +2360,14 @@ public abstract class ParserBase implements IParserPart
     {
       if( getOwner().isParsingFunction() )
       {
-        return verify( expr, Modifier.isReified( getOwner().peekParsingFunction().getModifiers() ), Res.MSG_TYPE_NOT_REIFIED, getOwner().peekParsingFunction().getParamSignature(), typeVarType.getRelativeName() );
+        for( Iterator<FunctionType> iter = getOwner().iterateParsingFunctions(); iter.hasNext(); )
+        {
+          FunctionType funcType = iter.next();
+          if( funcType.getEnclosingType() == typeVarDeclarer )
+          {
+            return verify( expr, Modifier.isReified( funcType.getModifiers() ), Res.MSG_TYPE_NOT_REIFIED, getOwner().peekParsingFunction().getParamSignature(), typeVarType.getRelativeName() );
+          }
+        }
       }
     }
     return true;

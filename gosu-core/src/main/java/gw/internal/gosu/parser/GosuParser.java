@@ -513,6 +513,10 @@ public final class GosuParser extends ParserBase implements IGosuParser
   {
     return _parsingFunctions.get( 0 );
   }
+  public Iterator<FunctionType> iterateParsingFunctions()
+  {
+    return _parsingFunctions.iterator();
+  }
   FunctionType popParsingFunction()
   {
     return _parsingFunctions.remove( 0 );
@@ -6376,7 +6380,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
       return;
     }
 
-    verifyTypeVarAreReified( e, TypeLord.getPureGenericType( funcType) );
+    verifyTypeVarAreReified( e, funcType );
   }
 
   private void parseIdentifierOrTypeLiteralOrEnumConstant( String[] T, int iOffset, int iLineNum, int iColumn )
@@ -6913,7 +6917,15 @@ public final class GosuParser extends ParserBase implements IGosuParser
       return;
     }
 
-    verifyTypeVarAreReified( e, TypeLord.getPureGenericType( e.getFunctionType() ) );
+    verifyTypeVarAreReified( e, funcType );
+
+    if( !Modifier.isStatic( funcType.getModifiers() ) &&
+        funcType.getEnclosingType() instanceof IGosuEnhancement &&
+        funcType.getEnclosingType().isGenericType() &&
+        !e.hasParseExceptions() )
+    {
+      verifyTypeVarAreReified( e.getRootExpression(), e.getRootType() );
+    }
   }
 
   private void parsePropertyMember( Expression rootExpression, MemberAccessKind kind, int iTokenStart, String strMemberName, LazyLightweightParserState state, boolean bParseTypeLiteralOnly, boolean createSynthesizedProperty, IType rootType, boolean bExpansion )
@@ -7126,7 +7138,15 @@ public final class GosuParser extends ParserBase implements IGosuParser
         return;
       }
 
-      verifyTypeVarAreReified( e, TypeLord.getPureGenericType( funcType ) );
+      verifyTypeVarAreReified( e, funcType );
+
+      if( !Modifier.isStatic( funcType.getModifiers() ) &&
+          funcType.getEnclosingType() instanceof IGosuEnhancement &&
+          funcType.getEnclosingType().isGenericType() &&
+          !e.hasParseExceptions() )
+      {
+        verifyTypeVarAreReified( e.getRootExpression(), e.getRootType() );
+      }
     }
   }
 
