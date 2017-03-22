@@ -2162,6 +2162,10 @@ public class GosuClassTransformer extends AbstractElementTransformer<ClassStatem
         (Modifier.isStatic( iGsModifiers ) ||
          (gsClass.getEnclosingType() != null && gsClass.isInterface())) )
     {
+      if( gsClass.isInterface() )
+      {
+        iModifiers |= Opcodes.ACC_INTERFACE;
+      }
       iModifiers |= Opcodes.ACC_STATIC;
     }
 

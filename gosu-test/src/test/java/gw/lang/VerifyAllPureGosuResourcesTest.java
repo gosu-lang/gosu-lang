@@ -44,18 +44,38 @@ public class VerifyAllPureGosuResourcesTest extends TestClass
       try
       {
         IType type = TypeSystem.getByFullName( name );
-        if( !type.getTypeInfo().hasAnnotation( TypeSystem.get( DoNotVerifyResource.class ) ) &&
-            !type.isValid() )
+        if( !type.getTypeInfo().hasAnnotation( TypeSystem.get( DoNotVerifyResource.class ) ) )
         {
-          System.out.println( "Parse Error in " + name );
-          if( type instanceof IGosuClass )
+          if( !type.isValid() )
           {
-            System.out.println( "-------------------------------------------" );
-            //noinspection ThrowableResultOfMethodCallIgnored
-            ((IGosuClass)type).getParseResultsException().getParseExceptions().forEach( e -> System.out.println( "  " + e.getConsoleMessage() ) );
-            System.out.println( "-------------------------------------------" );
+            System.out.println( "Parse Error in " + name );
+            if( type instanceof IGosuClass )
+            {
+              System.out.println( "-------------------------------------------" );
+              //noinspection ThrowableResultOfMethodCallIgnored
+              ((IGosuClass)type).getParseResultsException().getParseExceptions().forEach( e -> System.out.println( "  " + e.getConsoleMessage() ) );
+              System.out.println( "-------------------------------------------" );
+            }
+            badTypes.add( name );
           }
-          badTypes.add( name );
+          else if( type instanceof IGosuClass )
+          {
+            // Compile gosu classes
+
+            try
+            {
+              ((IGosuClass)type).getBackingClass();
+            }
+            catch( Throwable e )
+            {
+              System.out.println( "Catastrophe while compiling " + name );
+              System.out.println( "-------------------------------------------" );
+              System.out.println( "  " + e.getMessage() );
+              System.out.println( "-------------------------------------------" );
+
+              badTypes.add( name );
+            }
+          }
         }
       }
       catch( Exception e )
