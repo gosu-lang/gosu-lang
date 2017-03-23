@@ -21,10 +21,12 @@ import gw.lang.reflect.IMetaType;
 import gw.lang.reflect.IMethodInfo;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.ITypeVariableType;
+import gw.lang.reflect.LazyTypeResolver;
 import gw.lang.reflect.MethodList;
 import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.gs.IGenericTypeVariable;
 import gw.lang.reflect.gs.IGosuClass;
+import gw.lang.reflect.gs.IGosuEnhancement;
 import gw.lang.reflect.java.JavaTypes;
 import java.lang.reflect.Array;
 import java.lang.reflect.Modifier;
@@ -317,7 +319,7 @@ public class JavaStubGenerator
 
   private void genMethod( StringBuilder sb, IGosuClassInternal gsClass, DynamicFunctionSymbol method, String name )
   {
-    if( method.isPrivate() || method.isReified() )
+    if( method.isPrivate() ) // || method.isReified() )
     {
       return;
     }
@@ -467,11 +469,60 @@ public class JavaStubGenerator
   private void genParameters( StringBuilder sb, DynamicFunctionSymbol dfs )
   {
     List<ISymbol> parameters = dfs.getArgs();
+    int iParam = addReifiedTypeParamaters( sb, dfs );
     for( int i = 0; i < parameters.size(); i++ )
     {
       ISymbol param = parameters.get( i );
-      sb.append( i > 0 ? ", " : "" ).append( getTypeName( param.getType() ) ).append( ' ' ).append( param.getDisplayName() );
+      sb.append( iParam > 0 ? ", " : "" ).append( getTypeName( param.getType() ) ).append( ' ' ).append( param.getDisplayName() );
+      iParam++;
     }
+  }
+
+  private int addReifiedTypeParamaters( StringBuilder sb, DynamicFunctionSymbol dfs )
+  {
+    int iParam = 0;
+    if( dfs.getType().isGenericType() && dfs.isReified() )
+    {
+      int typeVarCount = getTypeVarCountForDFS( dfs );
+      for( int i = 0; i < typeVarCount; i++ )
+      {
+        sb.append( i > 0 ? ", " : "" ).append( LazyTypeResolver.class.getName() ).append( ' ' ).append( AbstractElementTransformer.TYPE_PARAM_PREFIX ).append( i );
+        iParam++;
+      }
+    }
+    return iParam;
+  }
+
+  public static int getTypeVarCountForDFS( DynamicFunctionSymbol dfs )
+  {
+    int typeVarCount = 0;
+    if( !dfs.isStatic() && dfs.getGosuClass() instanceof IGosuEnhancement )
+    {
+      typeVarCount = getTypeVarsForEnhancement( dfs );
+    }
+    if( dfs.getType().isGenericType() )
+    {
+      typeVarCount += dfs.getType().getGenericTypeVariables().length;
+    }
+//    else if( dfs.isConstructor() )
+//    {
+//      IType declaringType = TypeLord.getPureGenericType( dfs.getDeclaringTypeInfo().getOwnersType() );
+//      if( declaringType.isGenericType() )
+//      {
+//        typeVarCount += declaringType.getGenericTypeVariables().length;
+//      }
+//    }
+    return typeVarCount;
+  }
+
+  private static int getTypeVarsForEnhancement( DynamicFunctionSymbol dfs )
+  {
+    IGosuClass aClass = dfs.getGosuClass();
+    if( aClass.isParameterizedType() )
+    {
+      aClass = (IGosuClass)aClass.getGenericType();
+    }
+    return aClass.getGenericTypeVariables().length;
   }
 
   void genModifiers( StringBuilder sb, int mod, boolean isDefault, int defModifier )

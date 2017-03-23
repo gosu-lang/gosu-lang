@@ -14316,17 +14316,23 @@ public final class GosuParser extends ParserBase implements IGosuParser
     {
       verifyOverrideNotOnMethodThatDoesNotExtend( element, dfs );
     }
-    else
-    {
-      verifyReified( element, dfs );
-    }
+    verifyReified( bValidOverrideFound, element, dfs );
     verifyNoImplicitPropertyMethodConflicts( element, dfs );
   }
 
-  private void verifyReified( ParsedElement element, DynamicFunctionSymbol dfs )
+  private void verifyReified( boolean bValidOverrideFound, ParsedElement element, DynamicFunctionSymbol dfs )
   {
-    DynamicFunctionSymbol superDfs = dfs.getSuperDfs();
-    verify( element, dfs.isReified() == superDfs.isReified(), Res.MSG_REIFIED_DONT_MATCH );
+    if( bValidOverrideFound )
+    {
+      DynamicFunctionSymbol superDfs = dfs.getSuperDfs();
+      verify( element, dfs.isReified() == superDfs.isReified(), Res.MSG_REIFIED_DONT_MATCH );
+    }
+
+    if( dfs.isReified() )
+    {
+      verify( element, dfs.getType().isGenericType() ||
+                       !dfs.isStatic() && dfs.getDeclaringTypeInfo().getOwnersType() instanceof IGosuEnhancement, Res.NOTHING_TO_REIFY );
+    }
   }
 
   // Since we compile private methods as internal (so inner classes have easier access) we must

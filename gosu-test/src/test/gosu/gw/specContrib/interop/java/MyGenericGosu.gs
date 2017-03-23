@@ -55,4 +55,9 @@ class MyGenericGosu<T extends CharSequence> {
   {
     return cb( e, f )
   }
+  
+  reified function make<E>() : E
+  {
+    return new E()
+  }
 }

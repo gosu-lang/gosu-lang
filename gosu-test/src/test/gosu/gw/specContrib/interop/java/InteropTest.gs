@@ -65,6 +65,7 @@ class InteropTest extends gw.BaseVerifyErrantTest
     var value = javaSubclass.ret_block_one_arg( \ e -> e as String, 9 )
     assertEquals( "9", value )
     
+    assertEquals( 0, new FromJavaSubclass( "hi" ).call_reified().length() )
     
 //    var res = fromJava.reified_gen_method_no_args()
 //    assertEquals( Object.Type.Name, res )

@@ -27,7 +27,7 @@ class ReflectionGenericClass<T>
     assignTypeFromCtor()
   }
 
-  reified private function assignTypeFromCtor()
+  private function assignTypeFromCtor()
   {
     _testTypeFromCtor = T
   }
@@ -42,12 +42,12 @@ class ReflectionGenericClass<T>
     return returnClassTypeParam()
   }
 
-  reified function returnClassTypeParam() : Type
+  function returnClassTypeParam() : Type
   {
     return T
   }
 
-  reified function indirectCallReturnClassTypeParam() : Type
+  function indirectCallReturnClassTypeParam() : Type
   {
     return returnClassTypeParam()
   }

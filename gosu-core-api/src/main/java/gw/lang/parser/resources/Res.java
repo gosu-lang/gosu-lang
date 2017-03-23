@@ -465,6 +465,7 @@ public class Res
   public static final ResourceKey MSG_METHOD_REIFIES_TO_SAME_SIGNATURE_AS_ANOTHER_METHOD = new ResourceKey("MSG_METHOD_REIFIES_TO_SAME_SIGNATURE_AS_ANOTHER_METHOD");
   public static final ResourceKey MSG_TYPE_NOT_REIFIED = new ResourceKey("MSG_TYPE_NOT_REIFIED");
   public static final ResourceKey MSG_REIFIED_DONT_MATCH = new ResourceKey("MSG_REIFIED_DONT_MATCH");
+  public static final ResourceKey NOTHING_TO_REIFY = new ResourceKey("NOTHING_TO_REIFY");
   public static final ResourceKey MSG_PROPERTY_AND_FUNCTION_CONFLICT = new ResourceKey("MSG_PROPERTY_AND_FUNCTION_CONFLICT");
   public static final ResourceKey MSG_PROPERTY_AND_FUNCTION_CONFLICT_UPON_REIFICATION = new ResourceKey("MSG_PROPERTY_AND_FUNCTION_CONFLICT_UPON_REIFICATION");
   public static final ResourceKey MSG_CANNOT_OVERRIDE_FUNCTION_FROM_ENHANCEMENT = new ResourceKey("MSG_CANNOT_OVERRIDE_FUNCTION_FROM_ENHANCEMENT");
