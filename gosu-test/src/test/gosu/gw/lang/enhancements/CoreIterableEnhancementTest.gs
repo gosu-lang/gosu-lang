@@ -27,17 +27,6 @@ class CoreIterableEnhancementTest extends TestClass {
       assertEquals( num, i + 1 )
     }
   }
-
-  function testFindCount() {
-    assertEquals( 0, {}.FindCount )
-    assertEquals( 1, {1}.FindCount )
-    assertEquals( 2, {1, 2}.FindCount )
-    assertEquals( 3, {1, 2, 3}.FindCount )
-    assertEquals( 0, ({} as Iterable).FindCount )
-    assertEquals( 1, ({1} as Iterable).FindCount )
-    assertEquals( 2, ({1, 2} as Iterable).FindCount )
-    assertEquals( 3, ({1, 2, 3} as Iterable).FindCount )
-  }
   
   function testSingle() {
     assertCausesException( \ -> ({}.single()), IllegalStateException )

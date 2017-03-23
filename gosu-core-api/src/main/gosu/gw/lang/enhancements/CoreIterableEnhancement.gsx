@@ -37,21 +37,7 @@ enhancement CoreIterableEnhancement<T> : java.lang.Iterable<T> {
       return i
     }
   }
-
-  @ShortCircuitingProperty
-  property get FindCount() : int {
-    if( this typeis Collection ) {
-      return this.size()
-    } else {
-      var iter = this.iterator()
-      var i = 0
-      while(iter.hasNext()) {
-        iter.next()
-        i++
-      }
-      return i
-    }
-  }
+  
  
   /**
    * Returns a single element from this iterable, if only one exists.  It no elements are
