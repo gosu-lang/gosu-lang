@@ -3752,6 +3752,12 @@ public final class GosuParser extends ParserBase implements IGosuParser
         }
       }
 
+      IType componentType = e.getType().isArray() ? e.getType().getComponentType() : e.getType();
+      if( !(componentType instanceof IJavaType) )
+      {
+        verifyTypeVarAreReified( e, componentType );
+      }
+
       pushExpression( e );
       return true;
     }

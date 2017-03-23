@@ -196,5 +196,10 @@ static class ReifiedTest
     foo_reified<T>()
     this.foo_reified<T>()
     new ReifiedTest().foo_reified<T>()
-  }   
+  }
+
+  function test_8<T>( t: Type<T> )
+  {
+    var x: IType[] = { t }  //## issuekeys: MSG_TYPE_NOT_REIFIED
+  }
 }
