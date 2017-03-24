@@ -6,7 +6,7 @@ import gw.internal.ext.com.beust.jcommander.validators.PositiveInteger;
 import java.util.ArrayList;
 import java.util.List;
 
-class CommandLineOptions {
+public class CommandLineOptions {
 
   // using String parameter types with arity = 0 will suppress the annoying 'Default: false' help output
 
@@ -16,21 +16,21 @@ class CommandLineOptions {
   /**
    * @return true if and only if '-ca' or '-checkedArithmetic' was specified on the command line
    */
-  protected boolean isCheckedArithmetic() {
+  public boolean isCheckedArithmetic() {
     return !(_checkedarithmetic == null || !_checkedarithmetic);
   }
 
   @Parameter(names = {"-cp", "-classpath"}, description = "Specify where to find user class files")
   private String _classpath;
 
-  protected String getClasspath() {
+  public String getClasspath() {
     return _classpath == null ? "" : _classpath;
   }
 
   @Parameter(names = "-d", description = "Specify where to place generated class files")
   private String _destDir;
 
-  protected String getDestDir() {
+  public String getDestDir() {
     return _destDir == null ? "" : _destDir;
   }
 
@@ -40,7 +40,7 @@ class CommandLineOptions {
   /**
    * @return true if and only if '-help' was specified on the command line
    */
-  protected boolean isHelp() {
+  public boolean isHelp() {
     return !(_help == null || !_help);
   }
 
@@ -50,14 +50,14 @@ class CommandLineOptions {
   /**
    * @return true if and only if '-nowarn' was specified on the command line
    */
-  protected boolean isNoWarn() {
+  public boolean isNoWarn() {
     return !(_nowarn == null || !_nowarn);
   }
 
   @Parameter(names = "-sourcepath", description = "Specify where to find input source files")
   private String _sourcepath;
 
-  protected String getSourcepath() {
+  public String getSourcepath() {
     return _sourcepath == null ? "" : _sourcepath;
   }
 
@@ -67,7 +67,7 @@ class CommandLineOptions {
   /**
    * @return true if and only if '-verbose' was specified on the command line
    */
-  protected boolean isVerbose() {
+  public boolean isVerbose() {
     return !(_verbose == null || !_verbose);
   }
 
@@ -77,15 +77,18 @@ class CommandLineOptions {
   /**
    * @return true if and only if '-version' was specified on the command line
    */
-  protected boolean isVersion() {
+  public boolean isVersion() {
     return !(_version == null || !_version);
   }
 
   @Parameter(description = "<source files>")
   private List<String> _srcFiles = new ArrayList<>();
 
-  protected List<String> getSourceFiles() {
+  public List<String> getSourceFiles() {
     return _srcFiles;
+  }
+  public void setSourceFiles( List<String> srcFiles ) {
+    _srcFiles = srcFiles;
   }
 
   @Parameter(names = "-maxerrs", description = "Set the maximum number of errors to print", validateWith = PositiveInteger.class)
@@ -94,7 +97,7 @@ class CommandLineOptions {
   /**
    * @return maximum error threshold. Defaults to 1,000.
    */
-  protected int getMaxErrs() {
+  public int getMaxErrs() {
     return _maxerrs;
   }
 
@@ -104,7 +107,7 @@ class CommandLineOptions {
   /**
    * @return maximum warning threshold. Defaults to Integer.MAX_VALUE.
    */
-  protected int getMaxWarns() {
+  public int getMaxWarns() {
     return _maxwarns;
   }
 

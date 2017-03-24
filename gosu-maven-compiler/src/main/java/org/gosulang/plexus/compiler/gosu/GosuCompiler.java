@@ -1,11 +1,14 @@
 package org.gosulang.plexus.compiler.gosu;
 
+import gw.internal.ext.com.beust.jcommander.JCommander;
 import gw.lang.gosuc.GosucUtil;
 import gw.lang.gosuc.cli.CommandLineCompiler;
+import gw.lang.gosuc.cli.CommandLineOptions;
 import gw.lang.gosuc.simple.ICompilerDriver;
 import gw.lang.gosuc.simple.IGosuCompiler;
 import gw.lang.gosuc.simple.SoutCompilerDriver;
-import java.util.Collections;
+import java.util.Arrays;
+import java.util.stream.Collectors;
 import org.codehaus.plexus.compiler.AbstractCompiler;
 import org.codehaus.plexus.compiler.CompilerConfiguration;
 import org.codehaus.plexus.compiler.CompilerException;
@@ -20,15 +23,9 @@ import org.codehaus.plexus.util.cli.Commandline;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.net.URL;
-import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.security.CodeSource;
-import java.security.ProtectionDomain;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
 import java.util.Set;
@@ -91,53 +88,6 @@ public class GosuCompiler extends AbstractCompiler {
     return result;
   }
 
-  CompilerResult compileInProcess(CompilerConfiguration config) throws CompilerException {
-    return compileInProcess(new String[0], config);
-  }
-
-  CompilerResult compileInProcess(String[] args, CompilerConfiguration config) throws CompilerException {
-    ICompilerDriver driver = new SoutCompilerDriver();
-    IGosuCompiler gosuc = new gw.lang.gosuc.simple.GosuCompiler();
-
-    List<String> classpath = new ArrayList<>();
-    classpath.addAll(config.getClasspathEntries());
-    classpath.addAll(GosucUtil.getJreJars());
-    try {
-      getLogger().info("Adding Gosu JARs to compiler classpath");
-      classpath.addAll(GosucUtil.getGosuBootstrapJars());
-    } catch(ClassNotFoundException cnfe) {
-      throw new CompilerException("Unable to locate Gosu libraries in classpath.  Please add Gosu as a project dependency.", cnfe);
-    }
-
-    gosuc.initializeGosu(config.getSourceLocations(), classpath, config.getOutputLocation());
-
-    for(File file : config.getSourceFiles()) {
-      try {
-        gosuc.compile(file, driver);
-      } catch (Exception e) {
-        getLogger().error(e.getMessage());
-      }
-    }
-
-    gosuc.uninitializeGosu();
-
-    boolean success = true;
-    List<CompilerMessage> errorMessages = new ArrayList<>();
-
-    for(String warningMsg : ((SoutCompilerDriver) driver).getWarnings()) {
-      errorMessages.add(new CompilerMessage(warningMsg, CompilerMessage.Kind.WARNING));
-    }
-
-    if (((SoutCompilerDriver) driver).hasErrors()) {
-      success = false;
-      for(String errorMsg : ((SoutCompilerDriver) driver).getErrors()) {
-        errorMessages.add(new CompilerMessage(errorMsg, CompilerMessage.Kind.ERROR));
-      }
-    }
-
-    return new CompilerResult(success, errorMessages);
-  }
-  
   CompilerResult compileOutOfProcess(CompilerConfiguration config) throws CompilerException {
     Commandline cli = new Commandline();
     cli.setWorkingDirectory(config.getWorkingDirectory().getAbsolutePath());
@@ -221,6 +171,42 @@ public class GosuCompiler extends AbstractCompiler {
     return new CompilerResult(exitCode == 0, messages);
   }
 
+  CompilerResult compileInProcess( CompilerConfiguration config ) throws CompilerException
+  {
+    List<String> cli = new ArrayList<>();
+    File workingDirectory = config.getWorkingDirectory();
+    if( workingDirectory != null )
+    {
+      System.setProperty( "user.dir", workingDirectory.getAbsolutePath() );
+    }
+
+    getLogger().info( "Initializing gosuc compiler" );
+
+    addGosucArgs( config, cli );
+
+    CommandLineOptions options = new CommandLineOptions();
+    new JCommander( options, cli.toArray( new String[cli.size()] ) );
+    options.setSourceFiles( Arrays.asList( getSourceFiles( config ) ) );
+    SoutCompilerDriver driver = new SoutCompilerDriver( true, !options.isNoWarn() );
+    boolean thresholdExceeded = CommandLineCompiler.invoke( options, driver );
+
+    if( config.isShowWarnings() )
+    {
+      getLogger().info( String.format( "gosuc completed with %d warnings and %d errors.", driver.getWarnings().size(), driver.getErrors().size() ) );
+    }
+    else
+    {
+      getLogger().info( String.format( "gosuc completed with %d errors. Warnings were disabled.", driver.getErrors().size() ) );
+    }
+
+    List<CompilerMessage> messages = driver.getWarnings().stream().map( warningMsg -> new CompilerMessage( warningMsg, CompilerMessage.Kind.WARNING ) ).collect( Collectors.toList() );
+    if( driver.hasErrors() )
+    {
+      messages.addAll( driver.getErrors().stream().map( errorMsg -> new CompilerMessage( errorMsg, CompilerMessage.Kind.ERROR ) ).collect( Collectors.toList() ) );
+    }
+    return new CompilerResult( !thresholdExceeded, messages );
+  }
+
   private File createArgFile(CompilerConfiguration config) throws IOException {
     File tempFile;
     if ((getLogger() != null) && getLogger().isDebugEnabled()) {
@@ -231,10 +217,22 @@ public class GosuCompiler extends AbstractCompiler {
     }
 
     List<String> fileOutput = new ArrayList<>();
+    addGosucArgs( config, fileOutput );
 
+    for(File sourceFile : config.getSourceFiles()) {
+      fileOutput.add(sourceFile.getPath());
+    }
+
+    Files.write(tempFile.toPath(), fileOutput, StandardCharsets.UTF_8);
+
+    return tempFile;
+  }
+
+  private void addGosucArgs( CompilerConfiguration config, List<String> fileOutput )
+  {
     // The classpath used to initialize Gosu; CommandLineCompiler will supplement this with the JRE jars
     fileOutput.add("-classpath");
-    fileOutput.add(String.join(File.pathSeparator, config.getClasspathEntries()));
+    fileOutput.add(String.join( File.pathSeparator, config.getClasspathEntries()));
 
     fileOutput.add("-d");
     fileOutput.add(config.getOutputLocation());
@@ -249,14 +247,6 @@ public class GosuCompiler extends AbstractCompiler {
     if(config.isVerbose()) {
       fileOutput.add("-verbose");
     }
-
-    for(File sourceFile : config.getSourceFiles()) {
-      fileOutput.add(sourceFile.getPath());
-    }
-
-    Files.write(tempFile.toPath(), fileOutput, StandardCharsets.UTF_8);
-
-    return tempFile;
   }
 
   private List<CompilerMessage> parseMessages(int exitCode, String sysout) {

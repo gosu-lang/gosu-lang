@@ -18,6 +18,7 @@ import java.io.StringWriter;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -28,6 +29,10 @@ import javax.tools.StandardJavaFileManager;
 import javax.tools.StandardLocation;
 
 /**
+ * A tool for parsing and compiling Java source.
+ *
+ * A notable feature of this tool is its ability to compile Java sources that reference
+ * and invoke Gosu types.  This feature enables bi-directional Java interop with Gosu.
  */
 public class JavaParser implements IJavaParser
 {
@@ -136,11 +141,6 @@ public class JavaParser implements IJavaParser
   /**
    * Compiles specified Java class name.  Maintains cache between calls to this method, therefore subsequent calls to this
    * method will consult the cache and return the previously compiled class if cached.
-   *
-   * @param fqn
-   * @param options
-   * @param errorHandler
-   * @return
    */
   public ClassJavaFileObject compile( String fqn, Iterable<String> options, DiagnosticCollector<JavaFileObject> errorHandler )
   {
@@ -166,12 +166,6 @@ public class JavaParser implements IJavaParser
 
   /**
    * Compiles fresh, no caching.  Intended for use with parser feedback tooling e.g., a Java editor.
-   *
-   * @param jfo
-   * @param fqn
-   * @param options
-   * @param errorHandler
-   * @return
    */
   public ClassJavaFileObject compile( JavaFileObject jfo, String fqn, Iterable<String> options, DiagnosticCollector<JavaFileObject> errorHandler )
   {
@@ -181,6 +175,19 @@ public class JavaParser implements IJavaParser
     JavaCompiler.CompilationTask compilationTask = _javac.getTask( errors, _gfm, errorHandler, options, null, Arrays.asList( jfo ) );
     compilationTask.call();
     return _gfm.findCompiledFile( fqn );
+  }
+
+  /**
+   * Compiles a collection of java source files, intended for use a command line compiler.
+   */
+  public Collection<ClassJavaFileObject> compile( Collection<JavaFileObject> files, Iterable<String> options, DiagnosticCollector<JavaFileObject> errorHandler )
+  {
+    init();
+
+    StringWriter errors = new StringWriter();
+    JavaCompiler.CompilationTask compilationTask = _javac.getTask( errors, _gfm, errorHandler, options, null, files );
+    compilationTask.call();
+    return _gfm.getCompiledFiles();
   }
 
   public Pair<JavaFileObject, String> findJavaSource( String fqn )

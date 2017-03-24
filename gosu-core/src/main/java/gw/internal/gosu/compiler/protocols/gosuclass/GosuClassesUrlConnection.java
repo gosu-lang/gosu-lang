@@ -363,7 +363,7 @@ public class GosuClassesUrlConnection extends URLConnection {
     private byte[] compileJavaClass()
     {
       DiagnosticCollector<JavaFileObject> errorHandler = new DiagnosticCollector<>();
-      ClassJavaFileObject cls = JavaParser.instance().compile( _javaFqn, Arrays.asList( "-nowarn", "-Xlint:none", "-proc:none", "-parameters" ), errorHandler );
+      ClassJavaFileObject cls = JavaParser.instance().compile( _javaFqn, Arrays.asList( "-g", "-nowarn", "-Xlint:none", "-proc:none", "-parameters" ), errorHandler );
       if( cls != null )
       {
         return cls.getBytes();

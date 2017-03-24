@@ -20,6 +20,7 @@ import java.io.File;
  * Time: 2:24:56 PM
  * To change this template use File | Settings | File Templates.
  */
+@Disabled( assignee = "smckinney", reason = "this test is written with hardcoded separators and fails on windows")
 public class JarEntryFileImplTest extends TestClass {
 
   // -------------------------- getParent()

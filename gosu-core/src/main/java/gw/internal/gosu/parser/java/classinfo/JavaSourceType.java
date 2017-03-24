@@ -1460,7 +1460,7 @@ public abstract class JavaSourceType extends AbstractJavaClassInfo implements IJ
   {
     IJavaParser javaParser = GosuParserFactory.getInterface( IJavaParser.class );
     DiagnosticCollector<JavaFileObject> errorHandler = new DiagnosticCollector<>();
-    ClassJavaFileObject fileObj = javaParser.compile( getName(), Arrays.asList( "-Xlint:unchecked", "-parameters" ), errorHandler );
+    ClassJavaFileObject fileObj = javaParser.compile( getName(), Arrays.asList( "-g", "-Xlint:unchecked", "-parameters" ), errorHandler );
     if( fileObj != null )
     {
       return fileObj.getBytes();

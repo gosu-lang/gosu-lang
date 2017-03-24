@@ -15,6 +15,7 @@ import gw.util.cache.FqnCache;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 import javax.tools.FileObject;
@@ -138,5 +139,12 @@ class GosuJavaFileManager extends ForwardingJavaFileManager<JavaFileManager> imp
   public void refreshed()
   {
     _classFiles = new FqnCache<>();
+  }
+
+  public Collection<ClassJavaFileObject> getCompiledFiles()
+  {
+    HashSet<ClassJavaFileObject> files = new HashSet<>();
+    _classFiles.visitDepthFirst( o -> {if( o != null ) files.add( o ); return true;} );
+    return files;
   }
 }

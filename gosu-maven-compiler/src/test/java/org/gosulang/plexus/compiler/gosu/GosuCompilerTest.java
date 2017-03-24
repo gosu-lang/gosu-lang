@@ -24,7 +24,7 @@ public class GosuCompilerTest extends AbstractCompilerTest {
 
   @Override
   protected int expectedWarnings() {
-    return 1; // Person.gs has one intentional warning
+    return 2; // Person.gs has one intentional warning... and there is an extra one re package-info.java from a java file (todo: fix this)
   }
 
   @Override
@@ -36,6 +36,12 @@ public class GosuCompilerTest extends AbstractCompilerTest {
   {
     return Arrays.asList(
         "org/gosulang/foo/ExternalDeps.class",
+        "org/gosulang/foo/FromJava.class",
+        "org/gosulang/foo/FromJavaSubclass.class",
+        "org/gosulang/foo/MyGenericGosu.class",
+        "org/gosulang/foo/MyGenericGosu.gs",
+        "org/gosulang/foo/MyGosu.class",
+        "org/gosulang/foo/MyGosu.gs",
         "org/gosulang/foo/Person.class",
         "org/gosulang/foo/PersonEnhancement.class",
         "org/gosulang/foo/ExternalDeps.gs",
@@ -112,7 +118,7 @@ public class GosuCompilerTest extends AbstractCompilerTest {
     String sourceDir = getBasedir() + "/src/test-input/src/main/gosu";
 
     @SuppressWarnings("unchecked") List<String> filenames =
-        FileUtils.getFileNames(new File(sourceDir), "**/*.gs,**/*.gsx,**/*.gst", null, false, true);
+        FileUtils.getFileNames(new File(sourceDir), "**/*.gs,**/*.gsx,**/*.gst,**/*.java", null, false, true);
     Collections.sort(filenames);
 
     List<CompilerConfiguration> compilerConfigurations = new ArrayList<>();

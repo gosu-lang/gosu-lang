@@ -4,6 +4,7 @@ import com.sun.source.tree.CompilationUnitTree;
 import com.sun.source.util.DocTrees;
 import com.sun.source.util.SourcePositions;
 import gw.util.Pair;
+import java.util.Collection;
 import java.util.List;
 import java.util.function.Consumer;
 import javax.tools.DiagnosticCollector;
@@ -17,6 +18,7 @@ public interface IJavaParser
   boolean parseType( String fqn, List<CompilationUnitTree> trees, DiagnosticCollector<JavaFileObject> errorHandler );
 
   ClassJavaFileObject compile( JavaFileObject jfo, String fqn, Iterable<String> options, DiagnosticCollector<JavaFileObject> errorHandler );
+  Collection<ClassJavaFileObject> compile( Collection<JavaFileObject > jfo, Iterable<String> options, DiagnosticCollector<JavaFileObject> errorHandler );
   ClassJavaFileObject compile( String fqn, Iterable<String> options, DiagnosticCollector<JavaFileObject> errorHandler );
 
   Pair<JavaFileObject, String> findJavaSource( String fqn );

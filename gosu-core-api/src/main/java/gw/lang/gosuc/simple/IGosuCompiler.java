@@ -1,5 +1,6 @@
 package gw.lang.gosuc.simple;
 
+import gw.lang.gosuc.cli.CommandLineOptions;
 import java.io.File;
 import java.util.Collections;
 import java.util.List;
@@ -28,5 +29,5 @@ public interface IGosuCompiler {
   boolean isPathIgnored(String sourceFile);
 
   boolean compile(File sourceFile, ICompilerDriver driver) throws Exception;
-
+  void compile( CommandLineOptions options, ICompilerDriver driver );
 }
