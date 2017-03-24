@@ -128,8 +128,8 @@ enhancement CoreMapEnhancement<K, V> : java.util.Map<K, V>
   function writeToPropertiesFile( file : File, comments : String ) {
     var x = new Properties()
     x.putAll( this )
-    using( var out = new FileOutputStream( file ) ) {
-      x.store( out, comments )
+    using( var fos = new FileOutputStream( file ) ) {
+      x.store( fos, comments )
     }
   }
 

@@ -38,9 +38,9 @@ enhancement CoreFileEnhancement : File
     if( not this.exists() ){
       this.createNewFile()
     }
-    using( var out = StreamUtil.getOutputStreamWriter( new FileOutputStream( this, false ) ) ) 
+    using( var fos = StreamUtil.getOutputStreamWriter( new FileOutputStream( this, false ) ) )
     {
-      out.write( str )
+      fos.write( str )
     }
   }
 
@@ -68,18 +68,18 @@ enhancement CoreFileEnhancement : File
     if( not this.exists() ){
       this.createNewFile()
     }
-    using( var out = new FileOutputStream( this, false ) ) 
+    using( var fos = new FileOutputStream( this, false ) )
     {
-      out.write( content )
+      fos.write( content )
     }
   }
 
   function copyTo( otherFile : File )
   {
     using( var reader = new FileInputStream(this),
-           var out = new FileOutputStream( otherFile, false ) ) 
+           var fos = new FileOutputStream( otherFile, false ) )
            {
-      StreamUtil.copy( reader, out )
+      StreamUtil.copy( reader, fos )
     }
   }
 
