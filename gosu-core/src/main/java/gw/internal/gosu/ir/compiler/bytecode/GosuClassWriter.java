@@ -128,6 +128,10 @@ public class GosuClassWriter extends ClassVisitor
 
     private IType findCommonClass( IType t1, IType t2 )
     {
+      if( t1 == null ) {
+        return JavaTypes.OBJECT();
+      }
+
       do {
         t1 = t1.getSupertype();
         if( t1 == null ) {
