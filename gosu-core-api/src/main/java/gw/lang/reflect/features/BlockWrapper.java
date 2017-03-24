@@ -39,7 +39,6 @@ import gw.lang.function.Procedure7;
 import gw.lang.function.Procedure8;
 import gw.lang.function.Procedure9;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 
@@ -136,7 +135,7 @@ public class BlockWrapper {
   private static class Function0Wrapper extends Function0
   {
     private FeatureReference _ref;
-    public Function0Wrapper(FeatureReference ref) {
+    Function0Wrapper(FeatureReference ref) {
       _ref = ref;
     }
 
@@ -149,20 +148,20 @@ public class BlockWrapper {
   private static class Function1Wrapper extends Function1
   {
     private FeatureReference _ref;
-    public Function1Wrapper(FeatureReference ref) {
+    Function1Wrapper(FeatureReference ref) {
       _ref = ref;
     }
 
     @Override
     public Object invoke(Object arg1) {
-      return _ref.evaluate(Arrays.asList(arg1).iterator());
+      return _ref.evaluate(Collections.singletonList(arg1).iterator());
     }
   }
 
   private static class Function2Wrapper extends Function2
   {
     private FeatureReference _ref;
-    public Function2Wrapper(FeatureReference ref) {
+    Function2Wrapper(FeatureReference ref) {
       _ref = ref;
     }
 
@@ -175,7 +174,7 @@ public class BlockWrapper {
   private static class Function3Wrapper extends Function3
   {
     private FeatureReference _ref;
-    public Function3Wrapper(FeatureReference ref) {
+    Function3Wrapper(FeatureReference ref) {
       _ref = ref;
     }
 
@@ -188,7 +187,7 @@ public class BlockWrapper {
   private static class Function4Wrapper extends Function4
   {
     private FeatureReference _ref;
-    public Function4Wrapper(FeatureReference ref) {
+    Function4Wrapper(FeatureReference ref) {
       _ref = ref;
     }
 
@@ -201,7 +200,7 @@ public class BlockWrapper {
   private static class Function5Wrapper extends Function5
   {
     private FeatureReference _ref;
-    public Function5Wrapper(FeatureReference ref) {
+    Function5Wrapper(FeatureReference ref) {
       _ref = ref;
     }
 
@@ -214,7 +213,7 @@ public class BlockWrapper {
   private static class Function6Wrapper extends Function6
   {
     private FeatureReference _ref;
-    public Function6Wrapper(FeatureReference ref) {
+    Function6Wrapper(FeatureReference ref) {
       _ref = ref;
     }
 
@@ -227,7 +226,7 @@ public class BlockWrapper {
   private static class Function7Wrapper extends Function7
   {
     private FeatureReference _ref;
-    public Function7Wrapper(FeatureReference ref) {
+    Function7Wrapper(FeatureReference ref) {
       _ref = ref;
     }
 
@@ -240,7 +239,7 @@ public class BlockWrapper {
   private static class Function8Wrapper extends Function8
   {
     private FeatureReference _ref;
-    public Function8Wrapper(FeatureReference ref) {
+    Function8Wrapper(FeatureReference ref) {
       _ref = ref;
     }
 
@@ -253,7 +252,7 @@ public class BlockWrapper {
   private static class Function9Wrapper extends Function9
   {
     private FeatureReference _ref;
-    public Function9Wrapper(FeatureReference ref) {
+    Function9Wrapper(FeatureReference ref) {
       _ref = ref;
     }
 
@@ -266,7 +265,7 @@ public class BlockWrapper {
   private static class Function10Wrapper extends Function10
   {
     private FeatureReference _ref;
-    public Function10Wrapper(FeatureReference ref) {
+    Function10Wrapper(FeatureReference ref) {
       _ref = ref;
     }
 
@@ -279,7 +278,7 @@ public class BlockWrapper {
   private static class Function11Wrapper extends Function11
   {
     private FeatureReference _ref;
-    public Function11Wrapper(FeatureReference ref) {
+    Function11Wrapper(FeatureReference ref) {
       _ref = ref;
     }
 
@@ -292,7 +291,7 @@ public class BlockWrapper {
   private static class Function12Wrapper extends Function12
   {
     private FeatureReference _ref;
-    public Function12Wrapper(FeatureReference ref) {
+    Function12Wrapper(FeatureReference ref) {
       _ref = ref;
     }
 
@@ -304,7 +303,7 @@ public class BlockWrapper {
 
   private static class Function13Wrapper extends Function13 {
     private FeatureReference _ref;
-    public Function13Wrapper(FeatureReference ref) {
+    Function13Wrapper(FeatureReference ref) {
       _ref = ref;
     }
 
@@ -316,7 +315,7 @@ public class BlockWrapper {
 
   private static class Function14Wrapper extends Function14 {
     private FeatureReference _ref;
-    public Function14Wrapper(FeatureReference ref) {
+    Function14Wrapper(FeatureReference ref) {
       _ref = ref;
     }
 
@@ -328,7 +327,7 @@ public class BlockWrapper {
 
   private static class Function15Wrapper extends Function15 {
     private FeatureReference _ref;
-    public Function15Wrapper(FeatureReference ref) {
+    Function15Wrapper(FeatureReference ref) {
       _ref = ref;
     }
 
@@ -340,7 +339,7 @@ public class BlockWrapper {
 
   private static class Function16Wrapper extends Function16 {
     private FeatureReference _ref;
-    public Function16Wrapper(FeatureReference ref) {
+    Function16Wrapper(FeatureReference ref) {
       _ref = ref;
     }
 
@@ -351,11 +350,11 @@ public class BlockWrapper {
   }
   
 
-  
+
   private static class Procedure0Wrapper extends Procedure0
   {
     private FeatureReference _ref;
-    public Procedure0Wrapper(FeatureReference ref) {
+    Procedure0Wrapper(FeatureReference ref) {
       _ref = ref;
     }
 
@@ -368,20 +367,20 @@ public class BlockWrapper {
   private static class Procedure1Wrapper extends Procedure1
   {
     private FeatureReference _ref;
-    public Procedure1Wrapper(FeatureReference ref) {
+    Procedure1Wrapper(FeatureReference ref) {
       _ref = ref;
     }
 
     @Override
     public void invoke(Object arg1) {
-      _ref.evaluate(Arrays.asList(arg1).iterator());
+      _ref.evaluate(Collections.singletonList(arg1).iterator());
     }
   }
 
   private static class Procedure2Wrapper extends Procedure2
   {
     private FeatureReference _ref;
-    public Procedure2Wrapper(FeatureReference ref) {
+    Procedure2Wrapper(FeatureReference ref) {
       _ref = ref;
     }
 
@@ -394,7 +393,7 @@ public class BlockWrapper {
   private static class Procedure3Wrapper extends Procedure3
   {
     private FeatureReference _ref;
-    public Procedure3Wrapper(FeatureReference ref) {
+    Procedure3Wrapper(FeatureReference ref) {
       _ref = ref;
     }
 
@@ -407,7 +406,7 @@ public class BlockWrapper {
   private static class Procedure4Wrapper extends Procedure4
   {
     private FeatureReference _ref;
-    public Procedure4Wrapper(FeatureReference ref) {
+    Procedure4Wrapper(FeatureReference ref) {
       _ref = ref;
     }
 
@@ -420,7 +419,7 @@ public class BlockWrapper {
   private static class Procedure5Wrapper extends Procedure5
   {
     private FeatureReference _ref;
-    public Procedure5Wrapper(FeatureReference ref) {
+    Procedure5Wrapper(FeatureReference ref) {
       _ref = ref;
     }
 
@@ -433,7 +432,7 @@ public class BlockWrapper {
   private static class Procedure6Wrapper extends Procedure6
   {
     private FeatureReference _ref;
-    public Procedure6Wrapper(FeatureReference ref) {
+    Procedure6Wrapper(FeatureReference ref) {
       _ref = ref;
     }
 
@@ -446,7 +445,7 @@ public class BlockWrapper {
   private static class Procedure7Wrapper extends Procedure7
   {
     private FeatureReference _ref;
-    public Procedure7Wrapper(FeatureReference ref) {
+    Procedure7Wrapper(FeatureReference ref) {
       _ref = ref;
     }
 
@@ -459,7 +458,7 @@ public class BlockWrapper {
   private static class Procedure8Wrapper extends Procedure8
   {
     private FeatureReference _ref;
-    public Procedure8Wrapper(FeatureReference ref) {
+    Procedure8Wrapper(FeatureReference ref) {
       _ref = ref;
     }
 
@@ -472,7 +471,7 @@ public class BlockWrapper {
   private static class Procedure9Wrapper extends Procedure9
   {
     private FeatureReference _ref;
-    public Procedure9Wrapper(FeatureReference ref) {
+    Procedure9Wrapper(FeatureReference ref) {
       _ref = ref;
     }
 
@@ -485,7 +484,7 @@ public class BlockWrapper {
   private static class Procedure10Wrapper extends Procedure10
   {
     private FeatureReference _ref;
-    public Procedure10Wrapper(FeatureReference ref) {
+    Procedure10Wrapper(FeatureReference ref) {
       _ref = ref;
     }
 
@@ -498,7 +497,7 @@ public class BlockWrapper {
   private static class Procedure11Wrapper extends Procedure11
   {
     private FeatureReference _ref;
-    public Procedure11Wrapper(FeatureReference ref) {
+    Procedure11Wrapper(FeatureReference ref) {
       _ref = ref;
     }
 
@@ -511,7 +510,7 @@ public class BlockWrapper {
   private static class Procedure12Wrapper extends Procedure12
   {
     private FeatureReference _ref;
-    public Procedure12Wrapper(FeatureReference ref) {
+    Procedure12Wrapper(FeatureReference ref) {
       _ref = ref;
     }
 
@@ -523,7 +522,7 @@ public class BlockWrapper {
 
   private static class Procedure13Wrapper extends Procedure13 {
     private FeatureReference _ref;
-    public Procedure13Wrapper(FeatureReference ref) {
+    Procedure13Wrapper(FeatureReference ref) {
       _ref = ref;
     }
 
@@ -535,7 +534,7 @@ public class BlockWrapper {
 
   private static class Procedure14Wrapper extends Procedure14 {
     private FeatureReference _ref;
-    public Procedure14Wrapper(FeatureReference ref) {
+    Procedure14Wrapper(FeatureReference ref) {
       _ref = ref;
     }
 
@@ -547,7 +546,7 @@ public class BlockWrapper {
 
   private static class Procedure15Wrapper extends Procedure15 {
     private FeatureReference _ref;
-    public Procedure15Wrapper(FeatureReference ref) {
+    Procedure15Wrapper(FeatureReference ref) {
       _ref = ref;
     }
 
@@ -559,7 +558,7 @@ public class BlockWrapper {
 
   private static class Procedure16Wrapper extends Procedure16 {
     private FeatureReference _ref;
-    public Procedure16Wrapper(FeatureReference ref) {
+    Procedure16Wrapper(FeatureReference ref) {
       _ref = ref;
     }
 

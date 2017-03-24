@@ -4,7 +4,6 @@
 
 package gw.lang.function;
 
-@SuppressWarnings({"UnusedDeclaration"})
 public abstract class Function0 extends AbstractBlock implements IFunction0 {
 
   public Object invokeWithArgs(Object[] args) {

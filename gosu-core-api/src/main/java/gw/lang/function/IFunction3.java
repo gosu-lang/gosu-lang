@@ -4,9 +4,9 @@
 
 package gw.lang.function;
 
-@SuppressWarnings({"UnusedDeclaration"})
+@FunctionalInterface
 public interface IFunction3<R, P0, P1, P2> {
 
-  public R invoke(P0 arg0, P1 arg1, P2 arg2);
+  R invoke(P0 arg0, P1 arg1, P2 arg2);
 
 }

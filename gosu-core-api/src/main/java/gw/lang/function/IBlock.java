@@ -10,11 +10,11 @@ import gw.lang.parser.expressions.IBlockExpression;
 
 public interface IBlock extends IGosuClassObject
 {
-  public static final int MAX_ARGS = 16;
+  int MAX_ARGS = 16;
 
-  public Object invokeWithArgs( Object... args );
+  Object invokeWithArgs( Object... args );
 
-  public IBlockExpression getParsedElement();
+  IBlockExpression getParsedElement();
 
   IFunctionType getFunctionType();
 }

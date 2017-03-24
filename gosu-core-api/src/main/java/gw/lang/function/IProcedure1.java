@@ -4,7 +4,7 @@
 
 package gw.lang.function;
 
-@SuppressWarnings({"UnusedDeclaration"})
+@FunctionalInterface
 public interface IProcedure1<P0> {
 
   void invoke( P0 arg0 );
