@@ -22,6 +22,12 @@ public class SoutCompilerDriver implements ICompilerDriver {
   }
 
   @Override
+  public void sendCompileIssue( File file, int category, long offset, long line, long column, String message )
+  {
+    sendCompileIssue( file, category, offset, line, column, message );
+  }
+
+  @Override
   public void sendCompileIssue(Object file, int category, long offset, long line, long column, String message) {
     if (category == WARNING) {
       String warning = String.format( "%s:[%s,%s] warning: %s", file.toString(), line, column, message );

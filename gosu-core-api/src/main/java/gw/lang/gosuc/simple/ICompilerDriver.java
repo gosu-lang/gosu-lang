@@ -10,9 +10,16 @@ public interface ICompilerDriver {
   public static final int ERROR = 0;
   public static final int WARNING = 1;
 
-  void sendCompileIssue(Object file, int category, long offset, long line, long column, String message);
+  void sendCompileIssue(File file, int category, long offset, long line, long column, String message);
 
-  void sendCompileIssue( Diagnostic d );
+  default void sendCompileIssue(Object file, int category, long offset, long line, long column, String message)
+  {
+    sendCompileIssue( (File)file, category, offset, line, column, message );
+  }
+
+  default void sendCompileIssue( Diagnostic d )
+  {
+  }
 
   void registerOutput(Object sourceFile, File outputFile);
 }
