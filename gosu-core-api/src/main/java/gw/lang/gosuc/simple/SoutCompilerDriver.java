@@ -24,7 +24,7 @@ public class SoutCompilerDriver implements ICompilerDriver {
   @Override
   public void sendCompileIssue( File file, int category, long offset, long line, long column, String message )
   {
-    sendCompileIssue( file, category, offset, line, column, message );
+    sendCompileIssue( (Object)file, category, offset, line, column, message );
   }
 
   @Override
