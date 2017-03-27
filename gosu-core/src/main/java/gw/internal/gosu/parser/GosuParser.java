@@ -6927,7 +6927,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
 
     if( !Modifier.isStatic( funcType.getModifiers() ) &&
         funcType.getEnclosingType() instanceof IGosuEnhancement &&
-        funcType.getEnclosingType().isGenericType() &&
+        TypeLord.getPureGenericType( funcType.getEnclosingType() ).isGenericType() &&
         !e.hasParseExceptions() )
     {
       verifyTypeVarAreReified( e.getRootExpression(), e.getRootType() );
@@ -7148,7 +7148,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
 
       if( !Modifier.isStatic( funcType.getModifiers() ) &&
           funcType.getEnclosingType() instanceof IGosuEnhancement &&
-          funcType.getEnclosingType().isGenericType() &&
+          TypeLord.getPureGenericType( funcType.getEnclosingType() ).isGenericType() &&
           !e.hasParseExceptions() )
       {
         verifyTypeVarAreReified( e.getRootExpression(), e.getRootType() );
@@ -14331,7 +14331,11 @@ public final class GosuParser extends ParserBase implements IGosuParser
     if( bValidOverrideFound )
     {
       DynamicFunctionSymbol superDfs = dfs.getSuperDfs();
-      verify( element, dfs.isReified() == superDfs.isReified(), Res.MSG_REIFIED_DONT_MATCH );
+      if( !IGosuClass.ProxyUtil.isProxy( superDfs.getDeclaringTypeInfo().getOwnersType() ) )
+      {
+        // If overriding a Gosu function, be sure both functions are reified or neither
+        verify( element, dfs.isReified() == superDfs.isReified(), Res.MSG_REIFIED_DONT_MATCH );
+      }
     }
 
     if( dfs.isReified() )
