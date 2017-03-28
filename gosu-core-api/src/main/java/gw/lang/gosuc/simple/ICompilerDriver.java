@@ -21,5 +21,10 @@ public interface ICompilerDriver {
   {
   }
 
-  void registerOutput(Object sourceFile, File outputFile);
+  void registerOutput(File sourceFile, File outputFile);
+  
+  default void registerOutput(Object sourceFile, File outputFile) 
+  {
+    registerOutput( (File) sourceFile, outputFile);
+  }
 }
