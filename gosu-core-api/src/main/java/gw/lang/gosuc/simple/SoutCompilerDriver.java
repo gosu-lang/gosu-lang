@@ -56,6 +56,12 @@ public class SoutCompilerDriver implements ICompilerDriver {
   }
 
   @Override
+  public void registerOutput( File sourceFile, File outputFile )
+  {
+    registerOutput( (Object) sourceFile, outputFile );
+  }
+
+  @Override
   public void registerOutput(Object sourceFile, File outputFile) {
     // nothing to do
   }
