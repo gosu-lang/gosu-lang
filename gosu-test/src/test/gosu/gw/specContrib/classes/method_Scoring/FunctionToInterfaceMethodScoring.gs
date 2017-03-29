@@ -1,4 +1,4 @@
-package gw.specContrib.classes.method_Scoring;
+package test.gosu.gw.specContrib;
 
 class FunctionToInterfaceMethodScoring {
 
