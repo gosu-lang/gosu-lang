@@ -49,4 +49,25 @@ class GenericsContribTest extends TestClass {
 
   static class StringMap<V> extends HashMap<String, V> {
   }
+
+  function testAnonymousImplicitlyPassingOuterTypeParams() {
+    new Foo( "hi" ).foo( "bye" )
+  }
+  static class Foo<T extends CharSequence> {
+    construct( t: T ) {
+      new BeanPopulator2<T>() {
+        override function execute( a: T ) {
+          print( T )
+        }
+      }.execute( t )
+    }
+    function foo( t: T ) {
+      new BeanPopulator2<T>() {
+        override function execute( a: T ) {
+          print( T )
+        }
+      }.execute( t )
+    }
+  }
+
 }

@@ -783,7 +783,7 @@ public class GosuClassTransformer extends AbstractElementTransformer<ClassStatem
 
   private void maybeGetTypeVarSymbolTypes( DynamicFunctionSymbol dfs, List<IRSymbol> parameters )
   {
-    if( Modifier.isReified( dfs.getModifiers() ) )
+    if( dfs.isReified() )
     {
       addTypeParamDescriptor( parameters, getTypeVarsForDFS( dfs ) );
     }
@@ -807,7 +807,7 @@ public class GosuClassTransformer extends AbstractElementTransformer<ClassStatem
       {
         break;
       }
-      if( Modifier.isReified( dfs.getModifiers() ) )
+      if( dfs.isReified() )
       {
         addTypeParamDescriptor( parameters, getTypeVarsForDFS( dfs ) );
       }
@@ -922,7 +922,7 @@ public class GosuClassTransformer extends AbstractElementTransformer<ClassStatem
 //      if( idfs.getType().isGenericType() &&
 //          !Modifier.isPrivate( _gsClass.getModifiers() ) &&
 //          !idfs.isPrivate() &&
-//          Modifier.isReified( idfs.getModifiers() ) &&
+//          dfs.isReified() &&
 //          !_gsClass.isAnonymous() &&
 //          !isNonStaticInnerClass() &&
 //          !(idfs.getDeclaringTypeInfo().getOwnersType() instanceof IGosuEnhancement) )
@@ -1933,7 +1933,7 @@ public class GosuClassTransformer extends AbstractElementTransformer<ClassStatem
       {
         break;
       }
-      if( Modifier.isReified( dfs.getModifiers() ) )
+      if( dfs.isReified() )
       {
         for( IGenericTypeVariable genTypeVar : getTypeVarsForDFS( dfs ) )
         {

@@ -3011,7 +3011,7 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
           {
             gsClass = gsClass.getEnclosingType();
           }
-          if( Modifier.isReified( dfs.getModifiers() ) )
+          if( dfs.isReified() )
           {
 
             for( int i = 0; i < genTypeVars.size(); i++ )
