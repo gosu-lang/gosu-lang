@@ -29,9 +29,12 @@ import gw.lang.parser.ICoercer;
 import gw.lang.parser.ILanguageLevel;
 import gw.lang.parser.StandardCoercionManager;
 import gw.lang.parser.coercers.BasePrimitiveCoercer;
+import gw.lang.parser.coercers.BlockCoercer;
+import gw.lang.parser.coercers.FeatureReferenceToBlockCoercer;
 import gw.lang.parser.coercers.FunctionFromInterfaceCoercer;
 import gw.lang.parser.coercers.IdentityCoercer;
 import gw.lang.parser.coercers.MetaTypeToClassCoercer;
+import gw.lang.parser.coercers.MethodReferenceCoercer;
 import gw.lang.parser.coercers.RuntimeCoercer;
 import gw.lang.parser.coercers.StringCoercer;
 import gw.lang.parser.expressions.ITypeAsExpression;
@@ -44,6 +47,9 @@ import gw.lang.reflect.IRelativeTypeInfo;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.Modifier;
 import gw.lang.reflect.TypeSystem;
+import gw.lang.reflect.features.BlockWrapper;
+import gw.lang.reflect.features.FeatureReference;
+import gw.lang.reflect.features.IMethodReference;
 import gw.lang.reflect.gs.IGosuClass;
 import gw.lang.reflect.java.GosuTypes;
 import gw.lang.reflect.java.JavaTypes;
@@ -52,6 +58,7 @@ import gw.util.concurrent.LockingLazyVar;
 import java.lang.reflect.Field;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.util.Arrays;
 import java.util.Collections;
 
 /**
@@ -367,6 +374,41 @@ public class TypeAsTransformer extends AbstractExpressionTransformer<ITypeAsExpr
         buildNullCheckTernary( identifier( rootValue ), pushNull(),
                                callMethod( IHasJavaClass.class, "getBackingClass", new Class[0],
                                            checkCast( IHasJavaClass.class, identifier( rootValue ) ), Collections.<IRExpression>emptyList() ) ) );
+    }
+    else if( coercer == BlockCoercer.instance() )
+    {
+      IBlockType type = (IBlockType)_expr().getType();
+      if( type.getReturnType() == JavaTypes.pVOID() && type.areParamsCompatible( (IBlockType)lhsType ) )
+      {
+        IRSymbol rootValue = _cc().makeAndIndexTempSymbol( root.getType() );
+        Class procedureIface;
+        try
+        {
+          procedureIface = Class.forName( "gw.lang.function.IProcedure" + ((IBlockType)lhsType).getParameterTypes().length );
+        }
+        catch( ClassNotFoundException e )
+        {
+          throw new RuntimeException( e );
+        }
+        return buildComposite(
+          buildAssignment( rootValue, root ),
+          checkCast( procedureIface, callStaticMethod( BlockWrapper.class, "wrapFunctionAsProcedure", new Class[] {Object.class, Class.class}, Arrays.asList( identifier( rootValue ), pushConstant( procedureIface ) ) ) ) );
+      }
+    }
+    else if( coercer == MethodReferenceCoercer.instance() )
+    {
+      IRSymbol rootValue = _cc().makeAndIndexTempSymbol( root.getType() );
+      return buildComposite(
+        buildAssignment( rootValue, root ),
+        callMethod( IMethodReference.class, "copyWithVoidReturn", new Class[0], identifier( rootValue ), Collections.emptyList() ) );
+    }
+    else if( coercer == FeatureReferenceToBlockCoercer.instance() )
+    {
+      //BlockWrapper.toBlock( (FeatureReference)value, ((IFunctionType)typeToCoerceTo).getReturnType() != JavaTypes.pVOID() );
+      IRSymbol rootValue = _cc().makeAndIndexTempSymbol( root.getType() );
+      return buildComposite(
+        buildAssignment( rootValue, root ),
+        checkCast( _expr().getType(), callStaticMethod( BlockWrapper.class, "toBlock", new Class[] {FeatureReference.class, boolean.class}, Arrays.asList( identifier( rootValue ), pushConstant( ((IFunctionType)_expr().getType()).getReturnType() != JavaTypes.pVOID() ) ) ) ) );
     }
 
     IType exprType = _expr().getType();

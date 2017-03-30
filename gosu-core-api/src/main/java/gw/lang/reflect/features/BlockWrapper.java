@@ -39,6 +39,8 @@ import gw.lang.function.Procedure7;
 import gw.lang.function.Procedure8;
 import gw.lang.function.Procedure9;
 
+import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
 import java.util.Arrays;
 import java.util.Collections;
 
@@ -567,5 +569,21 @@ public class BlockWrapper {
       _ref.evaluate(Arrays.asList(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15, arg16).iterator());
     }
   }
-  
+
+  @SuppressWarnings("unused")
+  public static Object wrapFunctionAsProcedure( Object function, Class<?> procedureInterface )
+  {
+    return
+      function == null ? null :
+      Proxy.newProxyInstance( function.getClass().getClassLoader(), new Class[] {procedureInterface},
+                              (proxy, method, args) -> {
+                                if( method.getName().equals( "invoke" ) )
+                                {
+                                  Method invoke = function.getClass().getMethod( "invoke", method.getParameterTypes() );
+                                  invoke.invoke( function, args );
+                                  return null;
+                                }
+                                return method.invoke( function, args );
+                              } );
+  }
 }

@@ -22,12 +22,32 @@ public class MethodReference<R, T> extends FeatureReference<R, T> implements IMe
   private IMethodInfo _mi;
   private IType _rootType;
   private Object[] _boundValues;
+  private boolean _voidReturn;
 
   public MethodReference( IType rootType, String funcName, IType[] params, Object[] boundValues )
   {
     _rootType = rootType;
     _mi = getMethodInfo( rootType, funcName, params );
     _boundValues = boundValues;
+  }
+
+  private MethodReference()
+  {}
+
+  public MethodReference copyWithVoidReturn()
+  {
+    MethodReference<R, T> voidReturnCopy = new MethodReference<>();
+    voidReturnCopy._mi = _mi;
+    voidReturnCopy._rootType = _rootType;
+    voidReturnCopy._boundValues = _boundValues;
+    voidReturnCopy._voidReturn = true;
+    return voidReturnCopy;
+  }
+
+  @Override
+  protected boolean hasReturn()
+  {
+    return !_voidReturn && super.hasReturn();
   }
 
   static IMethodInfo getMethodInfo( IType rootType, String funcName, IType[] params )

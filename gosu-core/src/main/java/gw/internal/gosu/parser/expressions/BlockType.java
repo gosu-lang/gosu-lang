@@ -120,8 +120,7 @@ public class BlockType extends FunctionType implements IBlockType
     return
       thisType == thatType ||
       thatType != JavaTypes.pVOID() && thisType.isAssignableFrom( thatType ) ||
-      StandardCoercionManager.arePrimitiveTypesAssignable( thisType, thatType ) ||
-      thisType == GosuParserTypes.NULL_TYPE();
+      StandardCoercionManager.arePrimitiveTypesAssignable( thisType, thatType );
   }
 
   @Override

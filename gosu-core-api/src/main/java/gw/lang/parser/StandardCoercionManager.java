@@ -13,7 +13,6 @@ import gw.lang.parser.coercers.*;
 import gw.lang.parser.exceptions.ParseException;
 import gw.lang.parser.resources.Res;
 import gw.lang.reflect.*;
-import gw.lang.reflect.features.FeatureReference;
 import gw.lang.reflect.features.IMethodReference;
 import gw.lang.reflect.gs.IGosuArrayClass;
 import gw.lang.reflect.gs.IGosuArrayClassInstance;
@@ -382,7 +381,10 @@ public class StandardCoercionManager extends BaseService implements ICoercionMan
     // block <- compatible block
     //=============================================================================
     if (lhsType instanceof IFunctionType &&
-      TypeSystem.get(FeatureReference.class).getParameterizedType(TypeSystem.get(Object.class), lhsType).isAssignableFrom(rhsType)) {
+        rhsType.isParameterizedType() &&
+        JavaTypes.IFEATURE_REFERENCE().isAssignableFrom( rhsType ) &&
+        (lhsType.isAssignableFrom( rhsType.getTypeParameters()[1] ) ||
+         getCoercerInternal( lhsType, rhsType.getTypeParameters()[1], runtime ) != null) ) {
       return FeatureReferenceToBlockCoercer.instance();
     }
 
@@ -426,6 +428,19 @@ public class StandardCoercionManager extends BaseService implements ICoercionMan
         }
       }
     }
+
+    if( lhsType.isParameterizedType() && rhsType.isParameterizedType() &&
+        JavaTypes.IMETHOD_REFERENCE().isAssignableFrom( lhsType ) &&
+        JavaTypes.IMETHOD_REFERENCE().isAssignableFrom( rhsType ) )
+    {
+      ICoercer coercer = getCoercerInternal( lhsType.getTypeParameters()[1], rhsType.getTypeParameters()[1], runtime );
+      if( coercer != null )
+      {
+        // handles method ref with return to method ref with void return conversion
+        return MethodReferenceCoercer.instance();
+      }
+    }
+
     return null;
   }
 

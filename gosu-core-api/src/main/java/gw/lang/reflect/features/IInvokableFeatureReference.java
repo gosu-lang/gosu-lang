@@ -11,10 +11,10 @@ public interface IInvokableFeatureReference<R, T> extends IFeatureReference<R, T
   /**
    * Evaluates reflectively
    */
-  public Object evaluate( Object... args );
+  Object evaluate( Object... args );
 
   /**
-   * Returns the method reference as a block in an invokation-friendly syntax
+   * Returns the method reference as a block in an invocation-friendly syntax
    */
   @PublishedName("invoke")
   T getinvoke();

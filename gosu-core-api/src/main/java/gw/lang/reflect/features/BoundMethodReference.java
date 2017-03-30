@@ -20,6 +20,7 @@ public class BoundMethodReference<R, T> extends FeatureReference<R, T> implement
   private IType _rootType;
   private Object _ctx;
   private Object[] _boundValues;
+  private boolean _voidReturn;
 
   public BoundMethodReference( IType rootType, Object ctx, String funcName, IType[] params, Object[] boundValues )
   {
@@ -28,6 +29,27 @@ public class BoundMethodReference<R, T> extends FeatureReference<R, T> implement
     _mi = MethodReference.getMethodInfo(rootType, funcName, params );
     _boundValues = boundValues;
   }
+
+  private BoundMethodReference()
+  {}
+
+  public BoundMethodReference copyWithVoidReturn()
+  {
+    BoundMethodReference<R, T> voidReturnCopy = new BoundMethodReference<>();
+    voidReturnCopy._mi = _mi;
+    voidReturnCopy._rootType = _rootType;
+    voidReturnCopy._ctx = _ctx;
+    voidReturnCopy._boundValues = _boundValues;
+    voidReturnCopy._voidReturn = true;
+    return voidReturnCopy;
+  }
+
+  @Override
+  protected boolean hasReturn()
+  {
+    return !_voidReturn && super.hasReturn();
+  }
+
 
   public IMethodInfo getMethodInfo()
   {

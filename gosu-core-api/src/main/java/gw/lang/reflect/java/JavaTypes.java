@@ -17,6 +17,8 @@ import gw.lang.Throws;
 import gw.lang.annotation.AnnotationUsage;
 import gw.lang.annotation.AnnotationUsages;
 import gw.lang.annotation.IInherited;
+import gw.lang.reflect.features.IFeatureReference;
+import gw.lang.reflect.features.IMethodReference;
 import java.lang.annotation.Repeatable;
 import gw.lang.function.IBlock;
 import gw.lang.parser.expressions.IBlockExpression;
@@ -624,6 +626,22 @@ public class JavaTypes {
       return THIS.IBLOCK == null ? THIS.IBLOCK = getGosuType( IBlock.class ) : THIS.IBLOCK;
     }  
     return getGosuType(IBlock.class);
+  }
+
+  private IType IMETHOD_REFERENCE = null;
+  public static IType IMETHOD_REFERENCE() {
+    if( !ExecutionMode.get().isRefreshSupportEnabled() ) {
+      return THIS.IMETHOD_REFERENCE == null ? THIS.IMETHOD_REFERENCE = getGosuType( IMethodReference.class ) : THIS.IMETHOD_REFERENCE;
+    }  
+    return getGosuType(IMethodReference.class);
+  }
+
+  private IType IFEATURE_REFERENCE = null;
+  public static IType IFEATURE_REFERENCE() {
+    if( !ExecutionMode.get().isRefreshSupportEnabled() ) {
+      return THIS.IFEATURE_REFERENCE == null ? THIS.IFEATURE_REFERENCE = getGosuType( IFeatureReference.class ) : THIS.IFEATURE_REFERENCE;
+    }  
+    return getGosuType(IFeatureReference.class);
   }
 
   private IType GW_LANG_DEPRECATED = null;

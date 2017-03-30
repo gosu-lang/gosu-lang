@@ -11,5 +11,8 @@ public interface IMethodReference<R, T> extends IInvokableFeatureReference<R, T>
   /**
    * Returns the method info for this reference
    */
-  public IMethodInfo getMethodInfo();
+  IMethodInfo getMethodInfo();
+
+  @SuppressWarnings("unused") // called via compiler
+  IMethodReference copyWithVoidReturn();
 }
