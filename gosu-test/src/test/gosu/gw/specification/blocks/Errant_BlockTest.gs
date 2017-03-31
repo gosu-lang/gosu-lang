@@ -77,4 +77,19 @@ class Errant_BlockTest {
     y = x //## issuekeys: MSG_TYPE_MISMATCH
     y = y //## issuekeys: MSG_SILLY_ASSIGNMENT
   }
+
+  function nestedBlockCallingGenericTypeDoesNotUseStaleContextType()
+  {
+    outside( \ -> {
+      inside( \  -> {
+        return "hi"
+      } )
+    } )
+  }
+  static function outside(cb()) {
+  }
+  static function inside<E>(cb() : E) : E {
+    return null
+  }
+
 }

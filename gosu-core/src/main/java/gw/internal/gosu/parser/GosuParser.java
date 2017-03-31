@@ -3964,12 +3964,14 @@ public final class GosuParser extends ParserBase implements IGosuParser
             if( match( null, '{' ) )
             {
               _ctxInferenceMgr.pushLoopCompromised();
+              pushInferredContextTypes( ContextType.EMPTY );
               try
               {
                 parseStatementBlock();
               }
               finally
               {
+                popInferredContextTypes();
                 _ctxInferenceMgr.popLoopCompromised();
               }
               if( peekStatement() instanceof StatementList )
