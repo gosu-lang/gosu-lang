@@ -45,6 +45,8 @@ import gw.lang.reflect.IHasJavaClass;
 import gw.lang.reflect.IMetaType;
 import gw.lang.reflect.IRelativeTypeInfo;
 import gw.lang.reflect.IType;
+import gw.lang.reflect.ITypeVariableArrayType;
+import gw.lang.reflect.ITypeVariableType;
 import gw.lang.reflect.Modifier;
 import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.features.BlockWrapper;
@@ -364,8 +366,12 @@ public class TypeAsTransformer extends AbstractExpressionTransformer<ITypeAsExpr
 
       if( _expr().getLHS() instanceof ITypeLiteralExpression )
       {
-        // TypeLiteral as Class -> treat as LDC directly
-        return pushConstant( getDescriptor( ((IMetaType)lhsType).getType() ) );
+        IType lhsDeclaredType = ((IMetaType)_expr().getLHS().getType()).getType();
+        if( !(lhsDeclaredType instanceof ITypeVariableType || lhsDeclaredType instanceof ITypeVariableArrayType) )
+        {
+          // TypeLiteral as Class -> treat as LDC directly
+          return pushConstant( getDescriptor( ((IMetaType)lhsType).getType() ) );
+        }
       }
 
       IRSymbol rootValue = _cc().makeAndIndexTempSymbol( root.getType() );

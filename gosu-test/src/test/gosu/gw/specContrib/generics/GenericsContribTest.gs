@@ -70,4 +70,13 @@ class GenericsContribTest extends TestClass {
     }
   }
 
+  function testRefiedTypeVarToClassCoercion() {
+    assertEquals( Hello.Name, new ReifySample<Hello>().className() )
+  }
+  static class ReifySample<T> {
+    function className() : String {
+      return ClassStuff.forClass( T ).replace( '$', '.' );
+    }
+  }
+  static class Hello {}
 }
