@@ -571,15 +571,19 @@ public class FunctionType extends AbstractType implements IFunctionType, IGeneri
     IType[] typeParams = new IType[typeVars.length];
     for( int i = 0; i < typeVars.length; i++ )
     {
-      IType inferredType = map.get( typeVars[i].getTypeVariableDefinition().getType() );
+      IGenericTypeVariable typeVar = typeVars[i];
+      IType inferredType = map.get( typeVar.getTypeVariableDefinition().getType() );
       if( inferredType == null && ctxType != null )
       {
         //try to infer type from context type
         TypeVarToTypeMap returnTypeVars = new TypeVarToTypeMap();
         TypeSystem.inferTypeVariableTypesFromGenParamTypeAndConcreteType( getReturnType(), ctxType, returnTypeVars, false );
-        ITypeVariableType typeVarType = typeVars[i].getTypeVariableDefinition().getType();
+        ITypeVariableType typeVarType = typeVar.getTypeVariableDefinition().getType();
         inferredType = returnTypeVars.get( typeVarType );
-        inferredType = (inferredType != null && typeVarType.getBoundingType().isAssignableFrom( inferredType )) ? inferredType : typeVarType.getBoundingType();
+        if( inferredType == null || !typeVar.getBoundingType().isAssignableFrom( inferredType ) )
+        {
+          inferredType = TypeSystem.replaceTypeVariableTypeParametersWithBoundingTypes( typeVar.getBoundingType(), getEnclosingType() );
+        }
       }
       typeParams[i] = inferredType;
       if( typeParams[i] == null )

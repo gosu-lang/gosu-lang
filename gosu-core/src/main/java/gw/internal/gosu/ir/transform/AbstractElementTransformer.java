@@ -500,20 +500,14 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
       IGenericTypeVariable[] typeVars = irMethod.getTypeVariables();
       for( IGenericTypeVariable typeVariable : typeVars )
       {
-        IType boundingType = typeVariable.getBoundingType();
-        boundingType = boundingType == null ? JavaTypes.OBJECT() : TypeLord.getDefaultParameterizedTypeWithTypeVars( boundingType );
-        boundingType = TypeLord.getPureGenericType( boundingType );
-        args.add( pushLazyType( boundingType ) );
+        args.add( pushLazyType( typeVariable.getBoundingType() ) );
       }
     }
     else if( funcType.isGenericType() )
     {
       for( IGenericTypeVariable typeVariable : funcType.getGenericTypeVariables() )
       {
-        IType boundingType = typeVariable.getBoundingType();
-        boundingType = boundingType == null ? JavaTypes.OBJECT() : TypeLord.getDefaultParameterizedTypeWithTypeVars( boundingType );
-        boundingType = TypeLord.getPureGenericType( boundingType );
-        args.add( pushLazyType( boundingType ) );
+        args.add( pushLazyType( typeVariable.getTypeVariableDefinition().getType().getBoundingType() ) );
       }
     }
   }

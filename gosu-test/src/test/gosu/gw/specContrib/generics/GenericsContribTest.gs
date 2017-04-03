@@ -79,4 +79,15 @@ class GenericsContribTest extends TestClass {
     }
   }
   static class Hello {}
+
+  function testReifyEnclosingTypeVarFromGenericFunctionParameterizedWithDefaultBoundingType() {
+    var hello = new ReifyEnclosingTypeVar<String>()
+    var type = hello.foo()
+    assertEquals( ReifyEnclosingTypeVar<String>, type )
+  }
+  static class ReifyEnclosingTypeVar<T> {
+    reified function foo<E extends ReifyEnclosingTypeVar<T>>() : Type<E> {
+      return E
+    }
+  }
 }
