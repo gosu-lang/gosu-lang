@@ -1067,21 +1067,28 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
     }
 
     Token t = new Token();
-    int state = getTokenizer().mark();
     boolean bAtLeastOneConst = false;
     boolean bConst;
+    int mark;
+    int iLocationsCount;
     do
     {
+      mark = getTokenizer().mark();
+      iLocationsCount = getOwner().getLocations().size();
+
       bConst = false;
       int iOffset = getTokenizer().getTokenStart();
       int iLineNum = getTokenizer().getLineNumber();
       int iColumn = getTokenizer().getTokenColumn();
 
+      VarStatement varStmt = new VarStatement();
+      ModifierInfo modifiers = parseModifiers();
+
       if( match( t, null, SourceCodeTokenizer.TT_WORD, true ) &&
           !Keyword.isKeyword( t._strValue ) &&
           match( t, SourceCodeTokenizer.TT_WORD ) )
       {
-        VarStatement varStmt = parseEnumConstantDecl( t._strValue );
+        parseEnumConstantDecl( varStmt, t._strValue, modifiers );
         varStmt.setNameOffset( t.getTokenStart(), t._strValue );
         setLocation( iOffset, iLineNum, iColumn );
         popStatement();
@@ -1089,6 +1096,12 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
         processVarStmt( gsClass, varStmt );
         bAtLeastOneConst = bConst = true;
       }
+      else if( modifiers.getModifiers() != 0 || modifiers.getAnnotations().size() > 0 )
+      {
+        getOwner().backtrack( mark, iLocationsCount, null );
+        getTokenizer().restoreToMark( mark );
+      }
+
       if( match( null, ';' ) )
       {
         break;
@@ -1096,18 +1109,29 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
     } while( bConst && match( null, ',' ) );
     if( !bAtLeastOneConst )
     {
-      getTokenizer().restoreToMark( state );
+      getOwner().backtrack( mark, iLocationsCount, null );
+      getTokenizer().restoreToMark( mark );
     }
   }
 
-  private VarStatement parseEnumConstantDecl( String strIdentifier )
+  private VarStatement parseEnumConstantDecl( VarStatement varStmt, String strIdentifier, ModifierInfo modifiers )
   {
-    VarStatement varStmt = new VarStatement();
-    ModifierInfo modifiers = new ModifierInfo( Modifier.PUBLIC | Modifier.STATIC | Modifier.FINAL );
-
+    verify( varStmt, modifiers.getModifiers() == 0 || modifiers.getModifiers() == Modifier.DEPRECATED, Res.MSG_MODIFIERS_NOT_ALLOWED_HERE );
+    modifiers.setModifiers( Modifier.PUBLIC | Modifier.STATIC | Modifier.FINAL );
     varStmt.setModifierInfo( modifiers );
 
-    verify( varStmt, getSymbolTable().getSymbol( strIdentifier ) == null, Res.MSG_VARIABLE_ALREADY_DEFINED, strIdentifier );
+    IType type = getGosuClass();
+
+    AbstractDynamicSymbol symbol = new DynamicSymbol( getGosuClass(), getSymbolTable(), strIdentifier, type, null );
+
+    if( !verify( varStmt, getSymbolTable().getSymbol( strIdentifier ) == null, Res.MSG_VARIABLE_ALREADY_DEFINED, strIdentifier ) )
+    {
+      int iDupIndex = getOwner().nextIndexOfErrantDuplicateDynamicSymbol( symbol, getSymbolTable().getSymbols().values(), false );
+      if( iDupIndex >= 0 )
+      {
+        symbol.renameAsErrantDuplicate( iDupIndex );
+      }
+    }
 
     if( match( null, null, '(', true ) )
     {
@@ -1118,9 +1142,6 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
       }
     }
 
-    IType type = getGosuClass();
-
-    AbstractDynamicSymbol symbol = new DynamicSymbol( getGosuClass(), getSymbolTable(), strIdentifier, type, null );
     modifiers.addAll( symbol.getModifierInfo() );
     symbol.setModifierInfo( modifiers );
     varStmt.setSymbol( symbol );
@@ -4325,46 +4346,38 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
       return;
     }
 
-    Set<String> constants = new HashSet<String>();
+    Set<String> constants = new HashSet<>();
     Token t = new Token();
-    boolean bConst;
-    do
+    List<String> enumConstants = gsClass.getEnumConstants();
+    for( int i = 0; i < enumConstants.size(); i++ )
     {
-      bConst = false;
       int iOffset = getTokenizer().getTokenStart();
       int iLineNum = getTokenizer().getLineNumber();
       int iColumn = getTokenizer().getTokenColumn();
 
-      if( match( t, null, SourceCodeTokenizer.TT_WORD, true ) &&
-          !Keyword.isKeyword( t._strValue ) &&
-          match( t, SourceCodeTokenizer.TT_WORD ) )
+      parseModifiers( true );
+
+      if( match( t, SourceCodeTokenizer.TT_WORD ) )
       {
         parseEnumConstant( t._strValue, scopeCache, constants.contains( t._strValue ) );
-        setLocation(iOffset, iLineNum, iColumn);
+        setLocation( iOffset, iLineNum, iColumn );
         constants.add( t._strValue );
         popStatement();
-        bConst = true;
       }
+
       if( match( null, ';' ) )
       {
         break;
       }
-    } while( bConst && match( null, ',' ) );
+
+      match( null, ',' );
+    }
   }
 
   private void parseEnumConstant( String strIdentifier, ClassScopeCache scopeCache, boolean bIsDuplicate )
   {
     IGosuClassInternal gsClass = getGosuClass();
-    VarStatement varStmt = gsClass.getStaticField( strIdentifier );
-
-    if( bIsDuplicate )
-    {
-      VarStatement dup = new VarStatement();
-      dup.setSymbol( varStmt.getSymbol() );
-      dup.setModifierInfo( varStmt.getModifierInfo() );
-      dup.setParent( varStmt.getParent() );
-      varStmt = dup;
-    }
+    VarStatement varStmt = findStaticMemberField( gsClass, strIdentifier );
 
     pushClassSymbols( true, scopeCache );
     try

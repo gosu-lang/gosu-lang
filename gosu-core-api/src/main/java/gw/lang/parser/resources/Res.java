@@ -478,6 +478,7 @@ public class Res
   public static final ResourceKey MSG_CATCH_STMT_CANNOT_EXECUTE = new ResourceKey( "MSG_CATCH_STMT_CANNOT_EXECUTE" );
   public static final ResourceKey MSG_IMONITOR_LOCK_SHOULD_ONLY_BE_USED_WITHIN_USING_STMTS = new ResourceKey( "MSG_IMONITOR_LOCK_SHOULD_ONLY_BE_USED_WITHIN_USING_STMTS" );
   public static final ResourceKey MSG_STATIC_MODIFIER_NOT_ALLOWED_HERE = new ResourceKey( "MSG_STATIC_MODIFIER_NOT_ALLOWED_HERE" );
+  public static final ResourceKey MSG_MODIFIERS_NOT_ALLOWED_HERE = new ResourceKey( "MSG_MODIFIERS_NOT_ALLOWED_HERE" );
   public static final ResourceKey MSG_CANNOT_INSTANTIATE_NON_STATIC_CLASSES_HERE = new ResourceKey( "MSG_CANNOT_INSTANTIATE_NON_STATIC_CLASSES_HERE" );
   public static final ResourceKey MSG_WARN_ON_SUSPICIOUS_THIS_COMPARISON = new ResourceKey( "MSG_WARN_ON_SUSPICIOUS_THIS_COMPARISON" );
   public static final ResourceKey MSG_ANY = new ResourceKey("MSG_ANY");

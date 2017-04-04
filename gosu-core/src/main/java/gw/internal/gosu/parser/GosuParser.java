@@ -5866,11 +5866,11 @@ public final class GosuParser extends ParserBase implements IGosuParser
     }
   }
 
-  private void backtrack( int mark, int iLocationsCount )
+  void backtrack( int mark, int iLocationsCount )
   {
     backtrack( mark, iLocationsCount, popExpression() );
   }
-  private void backtrack( int mark, int iLocationsCount, Expression expr )
+  void backtrack( int mark, int iLocationsCount, Expression expr )
   {
     _tokenizer.restoreToMark( mark );
     removeInnerClasses( expr );

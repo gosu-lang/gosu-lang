@@ -444,6 +444,7 @@ public class Strings extends ListResourceBundle
        {Res.MSG_CATCH_STMT_CANNOT_EXECUTE.getKey(), "This catch statement will never execute because a previous catch statement already catches exceptions of this type." },
        {Res.MSG_IMONITOR_LOCK_SHOULD_ONLY_BE_USED_WITHIN_USING_STMTS.getKey(), "The IMonitorLock interface may only be used within expression-style using statements for legacy-style synchronization." },
        {Res.MSG_STATIC_MODIFIER_NOT_ALLOWED_HERE.getKey(), "The 'static' modifier is not allowed here." },
+       {Res.MSG_MODIFIERS_NOT_ALLOWED_HERE.getKey(), "Modifiers are not allowed here." },
        {Res.MSG_CANNOT_INSTANTIATE_NON_STATIC_CLASSES_HERE.getKey(), "Cannot instantiate a non-static class here." },
        {Res.MSG_WARN_ON_SUSPICIOUS_THIS_COMPARISON.getKey(), "This appears to be a bad comparison.  In gosu, the '==' operator is equivalent to .equals().  If you wish to do instance equivalence, use the '===' operator instead." },
 
