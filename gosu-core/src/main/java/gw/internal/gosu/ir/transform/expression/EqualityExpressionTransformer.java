@@ -293,11 +293,11 @@ public class EqualityExpressionTransformer extends AbstractExpressionTransformer
   {
     if( lhsValue == null && rhsValue == null )
     {
-      return true;
+      return bEquals;
     }
     if( lhsValue == null || rhsValue == null )
     {
-      return false;
+      return !bEquals;
     }
     IType lhsType = TypeSystem.getFromObject( lhsValue );
     IType rhsType = TypeSystem.getFromObject( rhsValue );
@@ -310,7 +310,7 @@ public class EqualityExpressionTransformer extends AbstractExpressionTransformer
     {
       bValue = BeanAccess.areValuesEqual( lhsValue, rhsValue );
     }
-    return bEquals ? bValue : !bValue;
+    return bEquals == bValue;
   }
 
 }
