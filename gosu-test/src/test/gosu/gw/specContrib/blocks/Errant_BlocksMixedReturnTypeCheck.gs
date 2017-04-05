@@ -64,6 +64,15 @@ class Errant_BlocksMixedReturnTypeCheck {
 
     var l11 = \-> {}                     // l11: <nothing>   Good    return not required because block return type not specified
 
+    var l12: block() = \-> {            // l12: void   ERROR:
+      if (true)
+        return 3       //## issuekeys: CANNOT RETURN A VALUE FROM A METHOD OR BLOCK WITH VOID RESULT TYPE
+    }
+
+    var l13 = \-> {                     // l13: <nothing>  Good
+      if (true)
+        return 3
+    }
   }
 
 
