@@ -25,7 +25,8 @@ class Errant_ProtectedAccessModifierAndSubclasses extends Errant_ProtectedAccess
   class subC0 extends protectedC0 {
     var x0 : int = a
     var x1 : int = b
-    var x2 : int = new nested().c  //## issuekeys: MSG_NO_PROPERTY_DESCRIPTOR_FOUND
+    var x2 : int = new nested().c
     var x3 : int = new nested().d
+    var x4 : int = new protectedNested().p
   }
 }

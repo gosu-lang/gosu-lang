@@ -8,4 +8,8 @@ class protectedC0 {
     protected var c : int
     public var d : int
   }
+  
+  protected class protectedNested {
+    protected var p: int
+  }
 }
