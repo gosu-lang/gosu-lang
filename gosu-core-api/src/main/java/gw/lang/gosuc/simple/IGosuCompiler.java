@@ -29,5 +29,5 @@ public interface IGosuCompiler {
   boolean isPathIgnored(String sourceFile);
 
   boolean compile(File sourceFile, ICompilerDriver driver) throws Exception;
-  void compile( CommandLineOptions options, ICompilerDriver driver );
+  boolean compile( CommandLineOptions options, ICompilerDriver driver );
 }

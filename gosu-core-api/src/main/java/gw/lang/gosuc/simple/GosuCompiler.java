@@ -65,7 +65,7 @@ public class GosuCompiler implements IGosuCompiler
   protected File _compilingSourceFile;
 
   @Override
-  public void compile( CommandLineOptions options, ICompilerDriver driver )
+  public boolean compile( CommandLineOptions options, ICompilerDriver driver )
   {
     List<String> gosuFiles = new ArrayList<>();
     List<String> javaFiles = new ArrayList<>();
@@ -83,13 +83,20 @@ public class GosuCompiler implements IGosuCompiler
 
     if( !gosuFiles.isEmpty() )
     {
-      compileGosuSources( options, driver, gosuFiles );
+      if( compileGosuSources( options, driver, gosuFiles ) )
+      {
+        return true;
+      }
     }
 
     if( !javaFiles.isEmpty() )
     {
-      compileJavaSources( options, driver, javaFiles );
+      if( compileJavaSources( options, driver, javaFiles ) )
+      {
+        return true;
+      }
     }
+    return false;
   }
 
   private List<String> getSourceFiles( CommandLineOptions options )
@@ -146,8 +153,9 @@ public class GosuCompiler implements IGosuCompiler
     return Arrays.stream( SOURCE_EXTS ).anyMatch( e -> absolutePathName.toLowerCase().endsWith( e ) );
   }
 
-  private void compileGosuSources( CommandLineOptions options, ICompilerDriver driver, List<String> gosuFiles )
+  private boolean compileGosuSources( CommandLineOptions options, ICompilerDriver driver, List<String> gosuFiles )
   {
+    boolean thresholdExceeded = false;
     for( String fileName : gosuFiles )
     {
       File file = new File( fileName );
@@ -158,10 +166,24 @@ public class GosuCompiler implements IGosuCompiler
       }
 
       compile( file, driver );
+
+      if( driver.getErrors().size() > options.getMaxErrs() )
+      {
+        System.out.printf( "\nError threshold of %d exceeded; aborting compilation.", options.getMaxErrs() );
+        thresholdExceeded = true;
+        break;
+      }
+      if( !options.isNoWarn() && driver.getWarnings().size() > options.getMaxWarns() )
+      {
+        System.out.printf( "\nWarning threshold of %d exceeded; aborting compilation.", options.getMaxWarns() );
+        thresholdExceeded = true;
+        break;
+      }
     }
+    return thresholdExceeded;
   }
 
-  private void compileJavaSources( CommandLineOptions options, ICompilerDriver driver, List<String> javaFiles )
+  private boolean compileJavaSources( CommandLineOptions options, ICompilerDriver driver, List<String> javaFiles )
   {
     IJavaParser javaParser = GosuParserFactory.getInterface( IJavaParser.class );
     DiagnosticCollector<JavaFileObject> errorHandler = new DiagnosticCollector<>();
@@ -169,6 +191,17 @@ public class GosuCompiler implements IGosuCompiler
     Collection<ClassJavaFileObject> files = javaParser.compile( sourceFiles, makeJavacOptions( options ), errorHandler );
     errorHandler.getDiagnostics().forEach( driver::sendCompileIssue );
     createJavaOutputFiles( files, driver );
+    if( driver.getErrors().size() > options.getMaxErrs() )
+    {
+      System.out.printf( "\nError threshold of %d exceeded; aborting compilation.", options.getMaxErrs() );
+      return true;
+    }
+    if( !options.isNoWarn() && driver.getWarnings().size() > options.getMaxWarns() )
+    {
+      System.out.printf( "\nWarning threshold of %d exceeded; aborting compilation.", options.getMaxWarns() );
+      return true;
+    }
+    return false;
   }
 
   private List<String> makeJavacOptions( CommandLineOptions options )

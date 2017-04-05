@@ -39,24 +39,10 @@ public class CommandLineCompiler
 
   public static boolean invoke( CommandLineOptions options, SoutCompilerDriver driver )
   {
-    new CommandLineCompiler().execute( options, driver );
-
-    boolean thresholdExceeded = false;
-
-    if( driver.getErrors().size() > options.getMaxErrs() )
-    {
-      System.out.printf( "\nError threshold of %d exceeded; aborting compilation.", options.getMaxErrs() );
-      thresholdExceeded = true;
-    }
-    if( !options.isNoWarn() && driver.getWarnings().size() > options.getMaxWarns() )
-    {
-      System.out.printf( "\nWarning threshold of %d exceeded; aborting compilation.", options.getMaxWarns() );
-      thresholdExceeded = true;
-    }
-    return thresholdExceeded;
+    return new CommandLineCompiler().execute( options, driver );
   }
 
-  private void execute( CommandLineOptions options, ICompilerDriver driver )
+  private boolean execute( CommandLineOptions options, ICompilerDriver driver )
   {
     if( options.isVersion() )
     {
@@ -92,9 +78,11 @@ public class CommandLineCompiler
 
     gosuc.initializeGosu( sourcepath, classpath, options.getDestDir() );
 
-    gosuc.compile( options, driver );
+    boolean thresholdExceeded = gosuc.compile( options, driver );
 
     gosuc.uninitializeGosu();
+    
+    return thresholdExceeded;
   }
 
   /**

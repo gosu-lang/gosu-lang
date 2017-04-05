@@ -1,6 +1,7 @@
 package gw.lang.gosuc.simple;
 
 import java.io.File;
+import java.util.List;
 import javax.tools.Diagnostic;
 
 /**
@@ -26,5 +27,25 @@ public interface ICompilerDriver {
   default void registerOutput(Object sourceFile, File outputFile) 
   {
     registerOutput( (File) sourceFile, outputFile);
+  }
+
+  default boolean isIncludeWarnings()
+  {
+    throw new UnsupportedOperationException();
+  }
+
+  default boolean hasErrors() 
+  {
+    throw new UnsupportedOperationException();
+  }
+
+  default List<String> getErrors() 
+  {
+    throw new UnsupportedOperationException();
+  }
+
+  default List<String> getWarnings() 
+  {
+    throw new UnsupportedOperationException();
   }
 }
