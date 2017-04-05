@@ -113,6 +113,7 @@ public class FeatureManager<T extends CharSequence> {
 
   protected static boolean isInHierarchy(IType ownersClass, IType whosAskin) {
     return ownersClass.isAssignableFrom(whosAskin) ||
+           ownersClass.getEnclosingType() != null && isInHierarchy( ownersClass.getEnclosingType(), whosAskin ) ||
            (ownersClass instanceof IGosuClass && ((IGosuClass) ownersClass).isSubClass( whosAskin ));
   }
 
