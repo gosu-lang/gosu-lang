@@ -4,64 +4,67 @@ uses java.lang.Integer
 
 class Errant_BlocksMixedReturnTypeCheck {
 
-  function oneInt() : int { return 1 }
+   function oneInt() : int { return 1 }
   function oneInteger() : Integer { return 1 as Integer }
+  var One : Integer = 1
 
   function testReturnType() {
-    var l1: block(): Object = \-> {    // l1: Object:   ERROR:
+    var l1: block(): Object = \-> {    // l1: Object:   ERROR:                  //## issuekeys: MISSING RETURN VALUE
       if (true) 
-        return oneInt()
-      return      //## issuekeys: MISSING RETURN VALUE
+        return oneInt() + 1
+      return
     }
 
-    var l2: block(): int = \-> {      // l2: int:     ERROR:
+    var l2: block(): int = \-> {      // l2: int:     ERROR:                  //## issuekeys: MISSING RETURN VALUE
       if (true)
-        return oneInt()
-      return      //## issuekeys: MISSING RETURN VALUE
+        return oneInt() + 1
+      return
     }
 
     var l3 = \-> {           // l3: <nothing>    Good: OS Gosu accepts this because the block return type is not specified
       if (true)
-        return oneInt()
+        return oneInt() + 1
       return
     }
 
-    var l4: block(): Object = \-> {    // l4: Object:   ERROR:
+    var l4: block(): Object = \-> {    // l4: Object:   ERROR:                  //## issuekeys: MISSING RETURN VALUE
       if (true)
-        return oneInteger()
-      return      //## issuekeys: MISSING RETURN VALUE
+        return oneInteger() + One
+      return
     }
 
-    var l5: block(): int =  \-> {      // l5: int:   ERROR:
+    var l5: block(): int =  \-> {      // l5: int:   ERROR:                  //## issuekeys: MISSING RETURN VALUE
       if (true)
-        return oneInteger()
-      return      //## issuekeys: MISSING RETURN VALUE
+        return oneInteger() + One
+      return
     }
 
     var l6 = \-> {                    // l6: <nothing>    Good:     OS Gosu accepts this because the block return type is not specified
       if (true)
-         return oneInteger()
+         return oneInteger() + One
       return
     }
 
-    var l7: block() = \-> {           // l7: <nothing>    Good:     OS Gosu accepts this because block return type is not specified
+    var l7: block() = \-> {           // l7: void    ERROR:
       if (true)
-         return oneInt()
+         return       //## issuekeys: CANNOT RETURN A VALUE FROM A METHOD WITH VOID RESULT TYPE
+      oneInt() + 1
       return
     }
 
     var l8: block(): void = \-> {      // l8: void:    ERROR:
       if (true)
-        return 1      //## issuekeys: CANNOT RETURN A VALUE FROM A METHOD WITH VOID RESULT TYPE
+        return oneInt() + 1                       //## issuekeys: CANNOT RETURN A VALUE FROM A METHOD WITH VOID RESULT TYPE
       return
     }
 
- 
 
-    var l10: block() =  \-> { }             // l10: <nothing>  Good    return not required because block return type not specified
+
+    var l10: block() =  \-> { }             // l10: void  Good    return not required because block return type not specified
 
     var l11 = \-> {}                     // l11: <nothing>   Good    return not required because block return type not specified
 
   }
+
 
 }
