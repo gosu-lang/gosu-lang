@@ -360,7 +360,7 @@ public class VarInitializationVerifier {
       IExpression rootExpr = stmt.getRootExpression();
       if( rootExpr instanceof IIdentifierExpression &&
           Keyword.KW_this.getName().equals( ((IIdentifierExpression)rootExpr).getSymbol().getName() ) &&
-          stmt.getMemberName().equals( sym.getName() ) ) {
+          stmt.getMemberName() != null && stmt.getMemberName().equals( sym.getName() ) ) {
         assignments.add( new AssignmentOrReference( stmt, assignments, localState ) );
         retState = AssignedState.Fully;
       }

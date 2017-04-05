@@ -83,4 +83,12 @@ class Errant_FinalFieldCoverageInConstructors {
       _field1 = 1  //## issuekeys: MSG_CANNOT_ASSIGN_VALUE_TO_FINAL_VAR
     }
   }
+
+  // regression involving associative array on 'this'
+  static class c11 {
+    final var _field1 : int = 1
+    construct() {
+      this["_field1"] = 1 // not an error
+    }
+  }
 }
