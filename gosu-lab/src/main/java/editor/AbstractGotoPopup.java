@@ -4,17 +4,17 @@ package editor;
 import editor.util.ContainerMoverSizer;
 import editor.util.ContainerSizer;
 import editor.util.EditorUtilities;
-
-import javax.swing.*;
-import javax.swing.border.Border;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
-import javax.swing.event.EventListenerList;
-import javax.swing.event.UndoableEditEvent;
-import javax.swing.event.UndoableEditListener;
-import java.awt.*;
+import java.awt.AWTException;
+import java.awt.BorderLayout;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.EventQueue;
+import java.awt.Font;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
+import java.awt.KeyboardFocusManager;
+import java.awt.Robot;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
@@ -24,6 +24,30 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
+import javax.swing.AbstractListModel;
+import javax.swing.Action;
+import javax.swing.BorderFactory;
+import javax.swing.DefaultListModel;
+import javax.swing.JCheckBox;
+import javax.swing.JLabel;
+import javax.swing.JList;
+import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
+import javax.swing.JScrollPane;
+import javax.swing.JTextField;
+import javax.swing.ListCellRenderer;
+import javax.swing.ListModel;
+import javax.swing.ListSelectionModel;
+import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
+import javax.swing.border.Border;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
+import javax.swing.event.EventListenerList;
+import javax.swing.event.UndoableEditEvent;
+import javax.swing.event.UndoableEditListener;
 
 /**
  * Generic implementation of a popup. Refactored from original GotoTypePopup.
@@ -39,6 +63,7 @@ public abstract class AbstractGotoPopup<T> extends JPopupMenu
   private UndoableEditListener _docListener;
   private DocumentListener _docListenerForEdits;
   private JScrollPane _scrollPane;
+  private JCheckBox _cbExternalTypes;
 
   //----- Exposed pieces of the popup implementation -----//
   /**
@@ -58,9 +83,10 @@ public abstract class AbstractGotoPopup<T> extends JPopupMenu
   private Object _dataLock = new Object();
   private boolean _dataInitialized;
   private JLabel _spinner;
+  private boolean _externalOption;
 
 
-  public AbstractGotoPopup( int waitTime, int rowCount, String title, String strPrefix, boolean takesInput, boolean centerInFrame )
+  public AbstractGotoPopup( int waitTime, int rowCount, String title, String strPrefix, boolean takesInput, boolean centerInFrame, boolean externalOption )
   {
     _waitTime = waitTime;
     _timer = new Timer();
@@ -69,6 +95,7 @@ public abstract class AbstractGotoPopup<T> extends JPopupMenu
     _strPrefix = strPrefix;
     _takesInput = takesInput;
     _centerInFrame = centerInFrame;
+    _externalOption = externalOption;
     initLayout();
   }
 
@@ -88,6 +115,8 @@ public abstract class AbstractGotoPopup<T> extends JPopupMenu
     ContainerMoverSizer content = new ContainerMoverSizer( border );
     content.setLayout( new BorderLayout() );
 
+    _cbExternalTypes = new JCheckBox( "Include external types" );
+
     initializeDataInWaitMode();
 
     int iY = 0;
@@ -105,6 +134,25 @@ public abstract class AbstractGotoPopup<T> extends JPopupMenu
     c.weightx = 1;
     c.weighty = 0;
     pane.add( labelName, c );
+
+    if( _externalOption )
+    {
+      _cbExternalTypes.setBackground( Scheme.active().getControl() );
+      _cbExternalTypes.setMnemonic( 'n' );
+      _cbExternalTypes.addItemListener( e -> {
+        initializeDataInWaitMode();
+        handleEdit();
+      } );
+      c.anchor = GridBagConstraints.WEST;
+      c.fill = GridBagConstraints.HORIZONTAL;
+      c.gridx = 1;
+      c.gridy = iY-1;
+      c.gridwidth = 1;
+      c.gridheight = 1;
+      c.weightx = 0;
+      c.weighty = 0;
+      pane.add( _cbExternalTypes, c );
+    }
 
     if( _takesInput )
     {
@@ -242,6 +290,11 @@ public abstract class AbstractGotoPopup<T> extends JPopupMenu
 
   protected abstract void handleEdit();
 
+  protected boolean isExternalTypes()
+  {
+    return _cbExternalTypes.isSelected();
+  }
+
   private void initializeDataInWaitMode()
   {
     editor.util.EditorUtilities.doBackgroundOp(
@@ -275,6 +328,8 @@ public abstract class AbstractGotoPopup<T> extends JPopupMenu
     {
       registerListeners();
       editor.util.EditorUtilities.removePopupBorder( this );
+
+      turnOnMnemonics();
     }
     else
     {
@@ -283,6 +338,27 @@ public abstract class AbstractGotoPopup<T> extends JPopupMenu
       {
         _nameField.requestFocus();
       }
+
+      turnOffMnemonics();
+    }
+  }
+
+  private void turnOnMnemonics()
+  {
+    UIManager.getDefaults().put( "Button.showMnemonics", true );
+    EventQueue.invokeLater( () -> UIManager.getDefaults().put( "Button.showMnemonics", false ) );
+  }
+  private void turnOffMnemonics()
+  {
+    try
+    {
+      Robot robot = new Robot();
+      robot.keyPress( KeyEvent.VK_ALT );
+      robot.keyRelease( KeyEvent.VK_ALT );
+    }
+    catch( AWTException e )
+    {
+      // eat
     }
   }
 
@@ -482,29 +558,32 @@ public abstract class AbstractGotoPopup<T> extends JPopupMenu
     @Override
     public void keyPressed( KeyEvent e )
     {
-      if( e.getKeyCode() == KeyEvent.VK_UP || e.getKeyCode() == KeyEvent.VK_KP_UP )
+      if( e.isAltDown() )
+      {
+        if( e.getKeyChar() == 'n' )
+        {
+          _cbExternalTypes.setSelected( !_cbExternalTypes.isSelected() );
+        }
+      }
+      else if( e.getKeyCode() == KeyEvent.VK_UP || e.getKeyCode() == KeyEvent.VK_KP_UP )
       {
         Action selectPrevious = _list.getActionMap().get( "selectPreviousRow" );
         selectPrevious.actionPerformed( new ActionEvent( _list, 0, "selectPreviousRow" ) );
-        e.consume();
       }
       else if( e.getKeyCode() == KeyEvent.VK_DOWN || e.getKeyCode() == KeyEvent.VK_KP_DOWN )
       {
         Action selectNext = _list.getActionMap().get( "selectNextRow" );
         selectNext.actionPerformed( new ActionEvent( _list, 0, "selectNextRow" ) );
-        e.consume();
       }
       else if( e.getKeyCode() == KeyEvent.VK_PAGE_UP )
       {
         Action scrollUpChangeSelection = _list.getActionMap().get( "scrollUp" );
         scrollUpChangeSelection.actionPerformed( new ActionEvent( _list, 0, "scrollUp" ) );
-        e.consume();
       }
       else if( e.getKeyCode() == KeyEvent.VK_PAGE_DOWN )
       {
         Action scrollDownChangeSelection = _list.getActionMap().get( "scrollDown" );
         scrollDownChangeSelection.actionPerformed( new ActionEvent( _list, 0, "scrollDown" ) );
-        e.consume();
       }
       else if( e.getKeyCode() == KeyEvent.VK_ENTER )
       {
@@ -514,13 +593,16 @@ public abstract class AbstractGotoPopup<T> extends JPopupMenu
           fireNodeChanged( _nodeListenerList, new ChangeEvent( datum ) );
         }
         setVisible( false );
-        e.consume();
       }
       else if( e.getKeyCode() == KeyEvent.VK_ESCAPE )
       {
         setVisible( false );
-        e.consume();
       }
+      else
+      {
+        return;
+      }
+      e.consume();
     }
   }
 

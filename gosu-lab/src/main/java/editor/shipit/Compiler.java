@@ -1,12 +1,16 @@
 package editor.shipit;
 
 import editor.FileTree;
+import editor.LabFrame;
 import editor.NodeKind;
 import editor.MessageTree;
 import editor.MessagesPanel;
 import editor.settings.CompilerSettings;
+import editor.util.Experiment;
 import editor.util.IProgressCallback;
+import gw.util.StreamUtil;
 import java.io.File;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import gw.util.PathUtil;
 import gw.lang.javac.IJavaParser;
@@ -409,6 +413,20 @@ public class Compiler
     catch( IOException e )
     {
       throw new RuntimeException( e );
+    }
+
+    copySourceFile( type, outputDir );
+  }
+
+  private void copySourceFile( IFileRepositoryBasedType type, Path outputDir )
+  {
+    if( !(type instanceof IJavaType) && type.getEnclosingType() == null )
+    {
+      File file = type.getSourceFileHandle().getFile().toJavaFile();
+      File toDir = new File( outputDir.toFile(), type.getNamespace().replace( '.', File.separatorChar ) );
+      //noinspection ResultOfMethodCallIgnored
+      toDir.mkdirs();
+      StreamUtil.copy( file, toDir );
     }
   }
 

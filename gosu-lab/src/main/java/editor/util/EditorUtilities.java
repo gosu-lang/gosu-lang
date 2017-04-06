@@ -345,7 +345,7 @@ public class EditorUtilities
     {
       return EditorUtilities.loadIcon( "images/javaclass.png" );
     }
-    else
+    else if( type != null )
     {
       ITypeFactory factory = type.getTypeLoader().getInterface( ITypeFactory.class );
       if( factory != null )

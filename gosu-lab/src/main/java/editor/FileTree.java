@@ -11,6 +11,7 @@ import gw.lang.reflect.TypeSystem;
 
 import java.io.File;
 import java.nio.file.Path;
+import java.util.Set;
 import java.util.function.Predicate;
 import javax.swing.*;
 import javax.swing.filechooser.FileSystemView;
@@ -195,6 +196,20 @@ public class FileTree implements MutableTreeNode, IFileWatcherListener
       }
     }
     return null;
+  }
+
+  public void getAllTypeNames( Set<String> typeNames )
+  {
+    String fqn = makeFqn();
+    if( fqn != null )
+    {
+      typeNames.add( fqn );
+    }
+
+    for( FileTree tree: getChildren() )
+    {
+      tree.getAllTypeNames( typeNames );
+    }
   }
 
   public Path getFileOrDir()

@@ -5,7 +5,11 @@ import gw.lang.reflect.IType;
 import gw.lang.reflect.TypeSystem;
 import java.nio.file.Path;
 import gw.util.PathUtil;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
 import javax.swing.tree.TreeModel;
 
 /**
@@ -65,6 +69,13 @@ public class FileTreeUtil
     }
     TreeModel model = experimentView.getTree().getModel();
     return (FileTree)model.getRoot();
+  }
+
+  public static Set<String> getAllExperimentTypes()
+  {
+    Set<String> names = new TreeSet<>();
+    getRoot().getAllTypeNames( names );
+    return names;
   }
 
   public static FileTree makeExternalFileTree( Path file, String fqn )

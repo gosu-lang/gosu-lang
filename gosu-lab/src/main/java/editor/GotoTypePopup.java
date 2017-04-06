@@ -7,12 +7,13 @@ import gw.fs.IFile;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.TypeSystem;
 
+import java.util.Set;
+import java.util.TreeSet;
 import javax.swing.text.JTextComponent;
 import java.awt.*;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.function.Consumer;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
@@ -78,29 +79,48 @@ public class GotoTypePopup extends AbstractGotoPopup<String>
 
   public GotoTypePopup( String strPrefix )
   {
-    super( DEFAULT_WAIT_TIME, ROW_COUNT, "Enter type name", strPrefix, true, true );
+    super( DEFAULT_WAIT_TIME, ROW_COUNT, "Enter type name", strPrefix, true, true, true );
   }
 
   protected GotoTypePopup( String title, String strPrefix )
   {
-    super( DEFAULT_WAIT_TIME, ROW_COUNT, title, strPrefix, true, true );
+    super( DEFAULT_WAIT_TIME, ROW_COUNT, title, strPrefix, true, true, true );
   }
+
+//  protected List<String> initializeData()
+//  {
+//    List<String> allTypes = new ArrayList<>( LabFrame.instance().getGosuPanel().getTypeNamesCache().getAllTypeNames( null ) );
+//    Experiment experiment = LabFrame.instance().getGosuPanel().getExperimentView().getExperiment();
+//    allTypes = filterTypes( allTypes, experiment );
+//    Collections.sort( allTypes, ( o1, o2 ) -> getRelativeTypeName( o1 ).compareToIgnoreCase( getRelativeTypeName( o2 ) ) );
+//    return allTypes;
+//  }
 
   protected List<String> initializeData()
   {
-    List<String> allTypes = new ArrayList<>( LabFrame.instance().getGosuPanel().getTypeNamesCache().getAllTypeNames( null ) );
+    Set<String> allTypes;
+    if( !isExternalTypes() )
+    {
+      allTypes = FileTreeUtil.getAllExperimentTypes();
+    }
+    else
+    {
+      allTypes = LabFrame.instance().getGosuPanel().getTypeNamesCache().getAllTypeNames( null );
+    }
     Experiment experiment = LabFrame.instance().getGosuPanel().getExperimentView().getExperiment();
     allTypes = filterTypes( allTypes, experiment );
-    Collections.sort( allTypes, ( o1, o2 ) -> getRelativeTypeName( o1 ).compareToIgnoreCase( getRelativeTypeName( o2 ) ) );
-    return allTypes;
+
+    ArrayList<String> sortedList = new ArrayList<>( allTypes );
+    sortedList.sort( ( o1, o2) -> getRelativeTypeName( o1 ).compareToIgnoreCase( getRelativeTypeName( o2 ) ) );
+    return sortedList;
   }
 
-  protected List<String> filterTypes( List<String> allGosuTypes, Experiment experiment )
+  protected Set<String> filterTypes( Set<String> allGosuTypes, Experiment experiment )
   {
     return filterGosuClassFromExperimentsInResources( allGosuTypes, experiment );
   }
 
-  private List<String> filterGosuClassFromExperimentsInResources( List<String> allGosuTypes, Experiment experiment )
+  private Set<String> filterGosuClassFromExperimentsInResources( Set<String> allGosuTypes, Experiment experiment )
   {
     String experimentPath = PathUtil.getAbsolutePathName( experiment.getExperimentDir() );
     List<String> relativeSrcPaths = experiment.getSourcePath().stream().map( srcPath ->
@@ -108,9 +128,9 @@ public class GotoTypePopup extends AbstractGotoPopup<String>
        ? srcPath.substring( experimentPath.length() + 1 )
        : srcPath).replace( File.separatorChar, '.' ) ).collect( Collectors.toList() );
     return allGosuTypes.stream()
-           .filter( s -> !relativeSrcPaths.stream().anyMatch( s::contains ) )
-           .filter( s -> !s.startsWith( "gw.internal" ) )
-           .collect( Collectors.toList() );
+           .filter( fqn -> relativeSrcPaths.stream().noneMatch( fqn::contains ) )
+           .filter( fqn -> !fqn.startsWith( "gw.internal" ) )
+           .collect( Collectors.toSet() );
   }
 
   protected AbstractPopupListModel<String> reconstructModel( String strPrefix )
@@ -166,10 +186,11 @@ public class GotoTypePopup extends AbstractGotoPopup<String>
 
   public static List<String> filterStrings( Collection<? extends CharSequence> collection, String filter )
   {
-    return filterStrings( collection, filter, false );
+    Set<String> set = _filterStrings( collection, filter, false );
+    set.addAll( _filterStrings( collection, filter, true ) );
+    return new ArrayList<>( set );
   }
-
-  public static List<String> filterStrings( Collection<? extends CharSequence> collection, String filter, boolean showChoicesIfEmpty )
+  private static Set<String> _filterStrings( Collection<? extends CharSequence> collection, String filter, boolean forceLower )
   {
     if( filter == null )
     {
@@ -181,11 +202,12 @@ public class GotoTypePopup extends AbstractGotoPopup<String>
       filter = filter.substring( iDotIndex + 1 );
     }
 
-    List<String> filteredTypes = new ArrayList<>();
-    if( showChoicesIfEmpty || filter.length() > 0 )
+    TreeSet<String> filteredTypes = new TreeSet<>();
+    if( filter.length() > 0 )
     {
       int iFlags = 0;
-      if( filter.length() > 0 && filter.indexOf( '*' ) < 0 &&
+      if( !forceLower &&
+          filter.length() > 0 && filter.indexOf( '*' ) < 0 &&
           Character.isUpperCase( filter.charAt( 0 ) ) )
       {
         filter = camelCasePrefix( filter );
