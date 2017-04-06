@@ -167,10 +167,10 @@ class Errant_MetaType {
     }
   }
 
-  var x: Type<Foo>
+  var myFoo: Type<Foo>
   function testIsAssignableFrom() {
-    x.isAssignableFrom(Foo)  //## issuekeys: CANNOT RESOLVE METHOD 'ISASSIGNABLEFROM(TYPE<GW.SPECCONTRIB.TYPES.ERRANT_METATYPE.FOO>)'
-    x.Type.isAssignableFrom(A)
+    myFoo.isAssignableFrom(Foo)  //## issuekeys: CANNOT RESOLVE METHOD 'ISASSIGNABLEFROM(TYPE<GW.SPECCONTRIB.TYPES.ERRANT_METATYPE.FOO>)'
+    myFoo.Type.isAssignableFrom(A)
   }
 
 }
