@@ -44,17 +44,14 @@
             <configuration>
               <compilerArgs>
                 <arg>-DcheckedArithmetic=true</arg>
-              </compilerArgs>
-              <compilerId>gosuc</compilerId>
-              <fork>true</fork>
-              <compilerArgs>
-                <arg>-DcheckedArithmetic=true</arg>
                 <!--<arg>-Xdebug</arg>-->
                 <!-- windows -->
                 <!--<arg>-Xrunjdwp:transport=dt_shmem,address=gosuc,server=y,suspend=y</arg> -->
                 <!-- linux/OS X -->
                 <!--<arg>-Xrunjdwp:transport=dt_socket,address=5005,server=y,suspend=y</arg>-->
               </compilerArgs>
+              <compilerId>gosuc</compilerId>
+              <fork>true</fork>
               <showWarnings>false</showWarnings>
               <useIncrementalCompilation>true</useIncrementalCompilation> <!-- this must be true or else we cannot pick up files with multiple extensions -->
               <verbose>false</verbose>
