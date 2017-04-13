@@ -30,7 +30,7 @@ It was nominated Language of the Month in a Dr Dobb's [article](http://www.drdob
 
 The Open Type System
 --------------------
-Excerpt from the article [What Differentiates Gosu From Other Languages?](http://devblog.guidewire.com/2012/02/27/what-differentiates-gosu-from-other-languages/ "Link"):
+Excerpt from the article [What Differentiates Gosu From Other Languages?](https://guidewiredevelopment.wordpress.com/2012/02/27/what-differentiates-gosu-from-other-languages/ "Link"):
 
 "The idea itself is simple: programmatic expansion of the type system.
 The only language with a similar feature is F#, the idea was independently developed around the same time.
@@ -39,10 +39,10 @@ The open type system breathes life into the otherwise dead world of raw data. Th
 
 You can read more about the Open Type System in these articles:
 
-* [Gosu's Secret Sauce: The Open Type System](http://devblog.guidewire.com/2010/11/18/gosus-secret-sauce-the-open-type-system/ "Link")
-* [The Open Type System vs. Code Gen](http://devblog.guidewire.com/2011/05/23/the-open-type-system-vs-code-ge/ "Link")
-* [Pragmatic Type Systems](http://devblog.guidewire.com/2008/07/25/pragmatic-type-systems/ "Link")
-* [Why Gosu?](http://devblog.guidewire.com/2010/11/11/why-gosu/ "Link")
+* [Gosu's Secret Sauce: The Open Type System](https://guidewiredevelopment.wordpress.com/2010/11/18/gosus-secret-sauce-the-open-type-system/ "Link")
+* [The Open Type System vs. Code Gen](https://guidewiredevelopment.wordpress.com/2011/05/23/the-open-type-system-vs-code-ge/ "Link")
+* [Pragmatic Type Systems](https://guidewiredevelopment.wordpress.com2008/07/25/pragmatic-type-systems/ "Link")
+* [Why Gosu?](https://guidewiredevelopment.wordpress.com/2010/11/11/why-gosu/ "Link")
 
 
 Build instructions
