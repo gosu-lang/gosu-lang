@@ -74,11 +74,11 @@ class Errant_BlocksMixedReturnTypeCheck {
         return 3
     }
 
-    var l14: block(): int = \-> {
+    var l14: block(): int = \-> {  // l14: int  ERROR:  //## issuekeys: INCOMPATIBLE RETURN TYPE NULL IN LAMBDA EXPRESSION
       if (true) {
         return 0
       }
-      return null   // l14: int  ERROR: Incompatible return type.
+      return null
     }
 
 }
