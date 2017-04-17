@@ -1440,7 +1440,7 @@ public abstract class JavaSourceType extends AbstractJavaClassInfo implements IJ
     if( _fileHandle == null )
     {
       IDefaultTypeLoader loader = _enclosingClass.getModule().getTypeLoaders( IDefaultTypeLoader.class ).get( 0 );
-      _fileHandle = loader.getSouceFileHandle( getName() );
+      _fileHandle = loader.getSourceFileHandle( getName() );
       if( _fileHandle == null )
       {
         _fileHandle = getEnclosingClass().getSourceFileHandle();

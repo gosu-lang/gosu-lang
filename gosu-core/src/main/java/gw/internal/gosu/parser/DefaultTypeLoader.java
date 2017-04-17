@@ -218,7 +218,7 @@ public class DefaultTypeLoader extends SimpleTypeLoader implements IExtendedType
     }
 
     // First check for a .java file and load a JavaSourceType...
-    ISourceFileHandle fileHandle = getSouceFileHandle( fqn );
+    ISourceFileHandle fileHandle = getSourceFileHandle( fqn );
     if( fileHandle == null )
     {
       // If no .java file is found, load from .class file
@@ -256,7 +256,7 @@ public class DefaultTypeLoader extends SimpleTypeLoader implements IExtendedType
   }
 
   @Override
-  public ISourceFileHandle getSouceFileHandle(String qualifiedName) {
+  public ISourceFileHandle getSourceFileHandle(String qualifiedName) {
     ISourceFileHandle aClass = _module.getFileRepository().findClass(qualifiedName, EXTENSIONS_ARRAY);
     if (aClass == null || !aClass.getClassType().isJava()) {
       return null;

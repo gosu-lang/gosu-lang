@@ -25,7 +25,14 @@ public interface IDefaultTypeLoader extends ITypeLoader
 
   public IJavaClassInfo getJavaClassInfoForClassDirectly(Class clazz, IModule module);
 
-  ISourceFileHandle getSouceFileHandle(String qualifiedName);
+  /**
+   * @deprecated use getSourceFileHandle(String) instead 
+   */
+  default ISourceFileHandle getSouceFileHandle(String qualifiedName) {
+    return getSourceFileHandle(qualifiedName);
+  }
+  
+  ISourceFileHandle getSourceFileHandle(String qualifiedName);
 
   IGosuClassLoader getGosuClassLoader();
 }

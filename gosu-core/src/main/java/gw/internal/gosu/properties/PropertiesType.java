@@ -195,7 +195,7 @@ public class PropertiesType extends TypeBase implements IPropertiesType {
     if( _fileHandle == null )
     {
       IDefaultTypeLoader loader = _typeLoader.getModule().getTypeLoaders( IDefaultTypeLoader.class ).get( 0 );
-      _fileHandle = loader.getSouceFileHandle( getName() );
+      _fileHandle = loader.getSourceFileHandle( getName() );
     }
     return _fileHandle;
   }

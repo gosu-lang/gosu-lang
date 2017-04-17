@@ -984,7 +984,7 @@ public class TypeLoaderAccess extends BaseService implements ITypeSystem
    * "java.lang.String".  Names can have [] appended to them to create arrays, and multi-dimensional arrays
    * are supported.
    * <p/>
-   * This method behaves the same as getByFullName execept instead of throwing it returns null.
+   * This method behaves the same as getByFullName except instead of throwing it returns null.
    *
    * @param fullyQualifiedName the fully qualified name of the type
    * @return the corresponding IType or null if the type does not exist
