@@ -349,16 +349,16 @@ public abstract class JavaSourceType extends AbstractJavaClassInfo implements IJ
         staticImportList.add( importStr );
       }
     }
-    Collections.sort( importList, ( s1, s2 ) -> {
-      if( s1.endsWith( "*" ) )
+    importList.sort( ( s1, s2 ) -> {
+      if( s1.endsWith( "*" ) && !s2.endsWith( "*" ) )
       {
         return +1;
       }
-      if( s2.endsWith( "*" ) )
+      if( s2.endsWith( "*" ) && !s1.endsWith( "*" ) )
       {
         return -1;
       }
-      return 0;
+      return s1.compareTo(s2);
     } );
     _importList = importList;
     _staticImportList = staticImportList;
