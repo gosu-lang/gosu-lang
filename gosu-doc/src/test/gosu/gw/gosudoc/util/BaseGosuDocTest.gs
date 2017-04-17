@@ -27,17 +27,17 @@ class BaseGosuDocTest {
    * ---------------------------------------------------------------------------- */
   private static function genGosuDocForTests() : File {
 
-    var out = Files.createTempDirectory( null, {} ).toFile()
+    var outfile = Files.createTempDirectory( null, {} ).toFile()
 
     var htmlGenerator = new GSDocHTMLWriter() {
-      :Output = out,
+      :Output = outfile,
       :InputDirs = {new File('src/test/gosu')},
       :Verbose = true
     }
 
     htmlGenerator.write()
 
-    return out
+    return outfile
   }
 
   /* ----------------------------------------------------------------------------

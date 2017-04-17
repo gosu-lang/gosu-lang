@@ -3,27 +3,27 @@ package com.example.bootstrap
 class Sub extends Super {
 
   /* From sub */
-  function methodToOverrideDocs() {
+  override function methodToOverrideDocs() {
   }
 
   /* From sub */
-  property get PropertyToOverrideDocs() : String {
+  override property get PropertyToOverrideDocs() : String {
     return null
   }
 
-  function methodToNotOverrideDocs() {
+  override function methodToNotOverrideDocs() {
   }
 
-  property get PropertyToNotOverrideDocs() : String {
+  override property get PropertyToNotOverrideDocs() : String {
     return null
   }
 
   /* {@inheritDoc} */
-  function methodToInheritDoc() {
+  override function methodToInheritDoc() {
   }
 
   /* {@inheritDoc} */
-  property get PropertyToInheritDoc() : String {
+  override property get PropertyToInheritDoc() : String {
     return null
   }
 
