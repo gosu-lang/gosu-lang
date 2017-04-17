@@ -41,7 +41,7 @@ You can read more about the Open Type System in these articles:
 
 * [Gosu's Secret Sauce: The Open Type System](https://guidewiredevelopment.wordpress.com/2010/11/18/gosus-secret-sauce-the-open-type-system/ "Link")
 * [The Open Type System vs. Code Gen](https://guidewiredevelopment.wordpress.com/2011/05/23/the-open-type-system-vs-code-ge/ "Link")
-* [Pragmatic Type Systems](https://guidewiredevelopment.wordpress.com2008/07/25/pragmatic-type-systems/ "Link")
+* [Pragmatic Type Systems](https://guidewiredevelopment.wordpress.com/2008/07/25/pragmatic-type-systems/ "Link")
 * [Why Gosu?](https://guidewiredevelopment.wordpress.com/2010/11/11/why-gosu/ "Link")
 
 
