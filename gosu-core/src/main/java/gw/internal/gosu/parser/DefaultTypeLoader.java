@@ -195,7 +195,7 @@ public class DefaultTypeLoader extends SimpleTypeLoader implements IExtendedType
     // references a Gosu class e.g., in a method return type.  Gosu needs to get
     // the type info at the *IJavaClassInfo* level for the the Gosu class.
 
-    if( !ExecutionMode.isIDE() && classFileExists( fqn ) )
+    if( ExecutionMode.isRuntime() && classFileExists( fqn ) )
     {
       // If not in an IDE, favor .class files as the basis for Java types.
       //

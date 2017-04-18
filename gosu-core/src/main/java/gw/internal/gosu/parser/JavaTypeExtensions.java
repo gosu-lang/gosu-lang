@@ -78,6 +78,11 @@ class JavaTypeExtensions {
     boolean extendedType;
     if( !ExecutionMode.isIDE() ) {
       Class<?> backingClass = javaType.getBackingClass();
+      // backingClass may be null when loaded from source
+      if( backingClass == null )
+      {
+        return null;
+      }
       // Server runtime case. We can't go through the IJavaClassInfo for this case, because it leads to a
       // circularity w.r.t. the JavaType (ClassAnnotationInfo attempts to get the JavaType)
       extendedType = backingClass.isAnnotationPresent(ExtendedType.class);
