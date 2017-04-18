@@ -25,6 +25,7 @@ import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 
+import static gw.lang.parser.StandardCoercionManager.NO_DICE;
 
 /**
  * The 'new' operator as an expression:
@@ -245,7 +246,7 @@ public class NewExpression extends Expression implements INewExpression
     if( getType().isArray() )
     {
       Class<?> arrayClass = getArrayClass(getType().getComponentType());
-      return Array.newInstance(arrayClass.getComponentType(), 0);
+      return arrayClass == null ? NO_DICE : Array.newInstance(arrayClass.getComponentType(), 0);
     }
     if( this instanceof InferredNewExpression )
     {
@@ -255,7 +256,8 @@ public class NewExpression extends Expression implements INewExpression
   }
 
   private Class<?> getArrayClass(IType type) {
-    return Array.newInstance(getComponentClass(type), 0).getClass();
+    Class<?> componentClass = getComponentClass(type);
+    return componentClass == null ? null : Array.newInstance(componentClass, 0).getClass();
   }
 
   private Class<?> getComponentClass(IType type) {
@@ -288,21 +290,6 @@ public class NewExpression extends Expression implements INewExpression
 //      throw new IllegalStateException( " Illegal type: " + type.getName() + "  A compile-time constant expression must be either primitive, String, Class, or Enum." );
 //    }
     Class<?> cls = ((IJavaType)type).getBackingClass();
-    cls = cls != null ? cls : getClassForRareCaseWhenRunningIJEditorProjectWhereGosuCoreJavaTypesAreSourceBased( type );
-    return cls;
-  }
-
-  private Class<?> getClassForRareCaseWhenRunningIJEditorProjectWhereGosuCoreJavaTypesAreSourceBased( IType type ) {
-    String fqn = type.getName();
-    Class<?> cls = Primitives.get( fqn );
-    if( cls == null ) {
-      try {
-        cls = Class.forName( fqn, false, getClass().getClassLoader() );
-      }
-      catch( ClassNotFoundException e ) {
-        throw new RuntimeException( e );
-      }
-    }
     return cls;
   }
 

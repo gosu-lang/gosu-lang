@@ -51,7 +51,7 @@ public class DefaultArgLiteralTransformer extends AbstractExpressionTransformer<
     {
       expression = new IRFieldGetExpression( null, (String)value, getDescriptor( type ), getDescriptor( type ) );
     }
-    else if( value.getClass().isArray() )
+    else if( type.isArray() )
     {
       expression = NewExpressionTransformer.compile( _cc(), (NewExpression)_expr().getExpression() );
     }
