@@ -327,8 +327,6 @@ public class GosuCompiler implements IGosuCompiler
       throw new RuntimeException( "Can't make class file, no output path defined." );
     }
 
-    compiledJavaFiles = compiledJavaFiles.stream().filter( e -> TypeSystem.getByFullNameIfValid( e.getClassName().replace( '$', '.' ) ) instanceof IJavaType ).collect( Collectors.toList() );
-
     for( ClassJavaFileObject compiledJavaFile: compiledJavaFiles )
     {
       final String outRelativePath = compiledJavaFile.getClassName().replace( '.', File.separatorChar ) + ".class";
