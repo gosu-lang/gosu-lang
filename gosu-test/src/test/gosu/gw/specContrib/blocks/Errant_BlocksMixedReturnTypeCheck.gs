@@ -111,5 +111,10 @@ class Errant_BlocksMixedReturnTypeCheck {
     }
   }
 
+  function testReturnType15() {
+    var block0118: block() = \-> 42   // Good because of backward compatibility -- GRRRR
+    var block0120: block() = \-> { return 42 }      //## issuekeys: CANNOT RETURN A VALUE FROM A METHOD OR BLOCK WITH VOID RESULT TYPE
+  }
+
 
 }
