@@ -53,7 +53,6 @@ public class WriterJavaFileObject extends SimpleJavaFileObject
         //noinspection ResultOfMethodCallIgnored
         file.getParentFile().mkdirs();
         //noinspection ResultOfMethodCallIgnored
-        System.out.println( "#### " + file.getAbsolutePath() );
         file.createNewFile();
       }
       return _outputStream = new BufferedOutputStream( new FileOutputStream( file ) );
