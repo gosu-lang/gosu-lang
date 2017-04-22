@@ -33,13 +33,13 @@ public class SoutCompilerDriver implements ICompilerDriver {
   @Override
   public void sendCompileIssue( Object file, int category, long offset, long line, long column, String message) {
     if (category == WARNING) {
-      String warning = String.format( "%s:[%s,%s] warning: %s", file.toString(), line, column, message );
+      String warning = String.format( "%s:[%s,%s] warning: %s", file == null ? "" : file.toString(), line, column, message );
       warnings.add( warning );
       if( _echo && _includeWarnings ) {
         System.out.println( warning );
       }
     } else if (category == ERROR) {
-      String error = String.format( "%s:[%s,%s] error: %s", file.toString(), line, column, message );
+      String error = String.format( "%s:[%s,%s] error: %s", file == null ? "" : file.toString(), line, column, message );
       errors.add( error );
       if( _echo ) {
         System.out.println( error );

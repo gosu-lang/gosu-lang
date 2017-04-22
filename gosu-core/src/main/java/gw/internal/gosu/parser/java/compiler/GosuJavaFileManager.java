@@ -132,7 +132,7 @@ class GosuJavaFileManager extends ForwardingJavaFileManager<JavaFileManager> imp
 
     IType type = TypeSystem.getByFullNameIfValid( fqn, module );
     JavaFileObject file = null;
-    if( type != null && type instanceof IFileRepositoryBasedType && !GosuClass.ProxyUtil.isProxy( type ) )
+    if( type != null && type instanceof IFileRepositoryBasedType && !GosuClass.ProxyUtil.isProxy( type ) && !isErrantTestArtifact( fqn ) )
     {
       if( !(type instanceof IJavaType) )
       {
@@ -154,12 +154,19 @@ class GosuJavaFileManager extends ForwardingJavaFileManager<JavaFileManager> imp
         }
       }
     }
+
     if( file == null )
     {
       // cache the miss
       _generatedFiles.add( fqn, null );
     }
+
     return file;
+  }
+
+  private boolean isErrantTestArtifact( String fqn )
+  {
+    return fqn.contains( ".Errant_" );
   }
 
   private Set<String> makeNames( Iterable<JavaFileObject> list )

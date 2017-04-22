@@ -235,6 +235,7 @@ public class GosuCompiler implements IGosuCompiler
     ArrayList<String> javacOpts = new ArrayList<>();
     javacOpts.add( "-g" );
     javacOpts.add( "-Xlint:unchecked" );
+    javacOpts.add( "-proc:none" );
     javacOpts.add( "-parameters" );
     if( options.isVerbose() )
     {
