@@ -8,8 +8,8 @@ import gw.config.ExecutionMode;
 import gw.fs.IDirectory;
 import gw.internal.gosu.compiler.GosuClassLoader;
 import gw.internal.gosu.parser.java.classinfo.JavaSourceClass;
+import gw.internal.gosu.properties.PropertiesSourceProducer;
 import gw.lang.parser.IBlockClass;
-import gw.lang.parser.ILanguageLevel;
 import gw.lang.reflect.IDefaultTypeLoader;
 import gw.lang.reflect.IErrorType;
 import gw.lang.reflect.IExtendedTypeLoader;
@@ -22,6 +22,8 @@ import gw.lang.reflect.gs.GosuClassPathThing;
 import gw.lang.reflect.gs.IGosuClassLoader;
 import gw.lang.reflect.gs.IGosuObject;
 import gw.lang.reflect.gs.ISourceFileHandle;
+import gw.lang.reflect.gs.ISourceProducer;
+import gw.lang.reflect.gs.SourceProducerSourceFileHandle;
 import gw.lang.reflect.gs.TypeName;
 import gw.lang.reflect.java.IJavaClassInfo;
 import gw.lang.reflect.java.IJavaClassType;
@@ -31,6 +33,7 @@ import gw.lang.reflect.java.asm.AsmClass;
 import gw.lang.reflect.module.IModule;
 
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -38,11 +41,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Consumer;
 
 public class DefaultTypeLoader extends SimpleTypeLoader implements IExtendedTypeLoader, IDefaultTypeLoader {
   private ClassCache _classCache;
   private IGosuClassLoader _gosuClassLoader;            //## todo: use a ConcurrentWeakValueHashMap here?
-  private Map<String, IJavaClassInfo> _classInfoCache = new ConcurrentHashMap<String, IJavaClassInfo>(1000);
+  private Map<String, IJavaClassInfo> _classInfoCache = new ConcurrentHashMap<>( 1000 );
   protected Set<String> _namespaces;
 
   public static DefaultTypeLoader instance(IModule module) {
@@ -256,12 +260,37 @@ public class DefaultTypeLoader extends SimpleTypeLoader implements IExtendedType
   }
 
   @Override
-  public ISourceFileHandle getSourceFileHandle(String qualifiedName) {
-    ISourceFileHandle aClass = _module.getFileRepository().findClass(qualifiedName, EXTENSIONS_ARRAY);
-    if (aClass == null || !aClass.getClassType().isJava()) {
-      return null;
+  public ISourceFileHandle getSourceFileHandle( String fqn ) {
+    ISourceFileHandle aClass = _module.getFileRepository().findClass( fqn, EXTENSIONS_ARRAY );
+    if( aClass == null ) {
+      aClass = loadFromSourceProducer( fqn );
+    }
+    else if( !aClass.getClassType().isJava() ) {
+      aClass = null;
     }
     return aClass;
+  }
+
+  private ISourceFileHandle loadFromSourceProducer( String fqn )
+  {
+    for( ISourceProducer sp: getJavaSourceProducers() )
+    {
+      if( sp.isType( fqn ) )
+      {
+        if( sp.isTopLevelType( fqn ) )
+        {
+          return new SourceProducerSourceFileHandle( fqn, sp );
+        }
+        else
+        {
+          int iLastDot = fqn.lastIndexOf( '.' );
+          String enclosingClass = fqn.substring( 0, iLastDot );
+          String simpleName = fqn.substring( iLastDot+1 );
+          return new InnerClassFileSystemSourceFileHandle( sp.getClassType( fqn ), enclosingClass, simpleName, false );
+        }
+      }
+    }
+    return null;
   }
 
   private IJavaClassInfo getByClass( String className, IModule lookupModule, IModule actualModule ) {
@@ -309,6 +338,7 @@ public class DefaultTypeLoader extends SimpleTypeLoader implements IExtendedType
   public Set<String> computeTypeNames() {
     Set<String> allTypeNames = _classCache.getAllTypeNames();
     allTypeNames.addAll(_module.getFileRepository().getAllTypeNames(DOT_JAVA_EXTENSION));
+    getJavaSourceProducers().forEach( sp -> allTypeNames.addAll( sp.getAllTypeNames() ) );
     return allTypeNames;
   }
 
@@ -353,6 +383,8 @@ public class DefaultTypeLoader extends SimpleTypeLoader implements IExtendedType
     _namespaces = null;
 
     _classInfoCache.clear();
+
+    doForAllSourceProviders( ISourceProducer::clear );
 
     _module.getFileRepository().typesRefreshed( null );
 
@@ -454,24 +486,45 @@ public class DefaultTypeLoader extends SimpleTypeLoader implements IExtendedType
     Set<TypeName> names = new HashSet<TypeName>();
     names.addAll(_module.getFileRepository().getTypeNames(namespace, Collections.singleton(".java"), this));
     names.addAll(_classCache.getTypeNames(namespace));
+
+    doForAllSourceProviders( sp -> names.addAll( sp.getTypeNames( namespace ) ) );
+
     return names;
   }
 
+
   @Override
-  public <T> T getInterface( Class<T> apiInterface )
+  public <T> List<T> getInterface( Class<T> apiInterface )
   {
     if( apiInterface.getName().equals( "editor.plugin.typeloader.ITypeFactory" ) )
     {
+      List<T> impls = new ArrayList<T>();
       try
       {
         //noinspection unchecked
-        return (T)Class.forName( "editor.plugin.typeloader.java.JavaTypeFactory" ).newInstance();
+        impls.add( (T)Class.forName( "editor.plugin.typeloader.java.JavaTypeFactory" ).newInstance() );
       }
       catch( Exception e )
       {
         throw new RuntimeException( e );
       }
+
+      doForAllSourceProviders( sp -> impls.addAll( sp.getInterface( apiInterface ) ) );
+
+      return impls;
     }
     return super.getInterface( apiInterface );
+  }
+
+  private void doForAllSourceProviders( Consumer<ISourceProducer> consumer )
+  {
+    getJavaSourceProducers().forEach( consumer );
+    getGosuSourceProducers().forEach( consumer );
+  }
+
+  @Override
+  protected void addBuiltInSourceProducers( Set<ISourceProducer> set )
+  {
+    set.add( new PropertiesSourceProducer( this ) );
   }
 }

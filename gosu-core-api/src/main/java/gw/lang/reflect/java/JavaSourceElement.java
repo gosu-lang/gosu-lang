@@ -3,17 +3,22 @@ package gw.lang.reflect.java;
 import com.sun.source.tree.CompilationUnitTree;
 import com.sun.source.tree.Tree;
 import com.sun.source.util.SourcePositions;
+import gw.lang.reflect.IAnnotationInfo;
 import gw.lang.reflect.ILocationInfo;
 import gw.lang.reflect.LocationInfo;
+import gw.lang.reflect.SourcePosition;
 import gw.lang.reflect.gs.ISourceFileHandle;
+import gw.util.GosuExceptionUtil;
 import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.StringTokenizer;
+
 
 /**
  */
 public abstract class JavaSourceElement
 {
-  private LocationInfo _location;
+  private ILocationInfo _location;
 
   public abstract Tree getTree();
   public abstract IJavaClassInfo getEnclosingClass();
@@ -63,6 +68,11 @@ public abstract class JavaSourceElement
       return _location;
     }
 
+    if( maybeGetLocationToResourceFile() )
+    {
+      return _location;
+    }
+
     int startPos = getStartPosition();
     int endPos =  getEndPosition();
     try
@@ -78,6 +88,29 @@ public abstract class JavaSourceElement
     {
       throw new RuntimeException( e );
     }
+  }
+
+  private boolean maybeGetLocationToResourceFile()
+  {
+    if( this instanceof IJavaAnnotatedElement )
+    {
+      IAnnotationInfo anno = ((IJavaAnnotatedElement)this).getAnnotation( SourcePosition.class );
+      if( anno != null )
+      {
+        try
+        {
+          _location = new LocationInfo( ((Integer)anno.getFieldValue( "offset" )).intValue(),
+                                        ((Integer)anno.getFieldValue( "length" )).intValue(), -1, -1,
+                                        new URL( (String)anno.getFieldValue( "url" ) ) );
+          return true;
+        }
+        catch( Exception e )
+        {
+          throw GosuExceptionUtil.forceThrow( e );
+        }
+      }
+    }
+    return false;
   }
 
   protected IJavaClassInfo findInnerSourceType( IJavaClassInfo topLevelType, String fqnInner )

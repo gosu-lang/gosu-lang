@@ -27,7 +27,7 @@ import gw.internal.gosu.parser.TypeUsesMap;
 import gw.internal.gosu.parser.java.compiler.JavaStubGenerator;
 import gw.lang.GosuShop;
 import gw.lang.SimplePropertyProcessing;
-import gw.lang.javac.ClassJavaFileObject;
+import gw.lang.javac.InMemoryClassJavaFileObject;
 import gw.lang.javac.IJavaParser;
 import gw.lang.javac.JavaCompileIssuesException;
 import gw.lang.javadoc.IClassDocNode;
@@ -38,6 +38,7 @@ import gw.lang.reflect.IAnnotationInfo;
 import gw.lang.reflect.IDefaultTypeLoader;
 import gw.lang.reflect.IEnumValue;
 import gw.lang.reflect.ILocationInfo;
+import gw.lang.reflect.INonLoadableType;
 import gw.lang.reflect.IScriptabilityModifier;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.ImplicitPropertyUtil;
@@ -67,7 +68,6 @@ import gw.util.GosuObjectUtil;
 import java.lang.annotation.Annotation;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -194,7 +194,7 @@ public abstract class JavaSourceType extends AbstractJavaClassInfo implements IJ
 
   private static boolean parseJavaFile( ISourceFileHandle src, List<CompilationUnitTree> trees, SourcePositions[] sourcePositions, DiagnosticCollector<JavaFileObject> errorHandler, DocTrees[] docTrees )
   {
-    IJavaParser javaParser = GosuParserFactory.getInterface( IJavaParser.class );
+    IJavaParser javaParser = GosuParserFactory.getInterface( IJavaParser.class ).get( 0 );
     return javaParser.parseText( src.getSource().getSource().replace( "\r\n", "\n" ), trees, sp -> sourcePositions[0] = sp, dc -> {if( docTrees != null ) docTrees[0] = dc;}, errorHandler );
   }
 
@@ -1260,16 +1260,20 @@ public abstract class JavaSourceType extends AbstractJavaClassInfo implements IJ
 
   private IJavaClassInfo getClassInfo( String fqn )
   {
-    IJavaClassInfo classInfo = JavaSourceUtil.getClassInfo( fqn, _gosuModule );
-    if( classInfo != null )
+    IType type = TypeSystem.getByFullNameIfValid( fqn );
+    if( type instanceof IJavaType )
     {
-      return classInfo;
+      IJavaClassInfo classInfo = JavaSourceUtil.getClassInfo( fqn, _gosuModule );
+      if( classInfo != null )
+      {
+        return classInfo;
+      }
     }
 
     return maybeLoadJavaStubIfGosuType( fqn );
   }
 
-  // Java can reference Gosu directly from source and visa versa, therefore we must handle the case were
+  // Java can reference Gosu directly from source and visa versa, therefore we must handle the case where
   // a Gosu class references a Java class that in turn references a Gosu class:
   //
   //  // from MyJavaClass.java
@@ -1284,11 +1288,11 @@ public abstract class JavaSourceType extends AbstractJavaClassInfo implements IJ
   private IJavaClassInfo maybeLoadJavaStubIfGosuType( String fqn )
   {
     IType type = TypeSystem.getByFullNameIfValidNoJava( fqn );
-    if( type instanceof IGosuClass )
+    if( type != null && !(type instanceof IJavaType) && !(type instanceof INonLoadableType) )
     {
       StringSourceFileHandle sfh =
         new LazyStringSourceFileHandle( GosuClassUtil.getPackage( fqn ), fqn,
-          () -> JavaStubGenerator.instance().genStub( (IGosuClass)type ),
+          () -> JavaStubGenerator.instance().genStub( type ),
           ((IGosuClass)type).getClassType() );
       return JavaSourceType.createTopLevel( sfh, TypeSystem.getCurrentModule() );
     }
@@ -1458,14 +1462,14 @@ public abstract class JavaSourceType extends AbstractJavaClassInfo implements IJ
   @Override
   public byte[] compile()
   {
-    IJavaParser javaParser = GosuParserFactory.getInterface( IJavaParser.class );
+    IJavaParser javaParser = GosuParserFactory.getInterface( IJavaParser.class ).get( 0 );
     DiagnosticCollector<JavaFileObject> errorHandler = new DiagnosticCollector<>();
-    ClassJavaFileObject fileObj = javaParser.compile( getName(), Arrays.asList( "-g", "-Xlint:unchecked", "-parameters" ), errorHandler );
+    InMemoryClassJavaFileObject fileObj = javaParser.compile( getName(), Arrays.asList( "-g", "-Xlint:unchecked", "-parameters" ), errorHandler );
     if( fileObj != null )
     {
       return fileObj.getBytes();
     }
-    throw new JavaCompileIssuesException( errorHandler );
+    throw new JavaCompileIssuesException( fileObj.getClassName(), errorHandler );
   }
 
   @Override

@@ -7,7 +7,7 @@ import com.sun.source.util.Trees;
 import com.sun.tools.javac.api.JavacTaskImpl;
 import com.sun.tools.javac.api.JavacTool;
 import gw.fs.IResource;
-import gw.lang.javac.ClassJavaFileObject;
+import gw.lang.javac.InMemoryClassJavaFileObject;
 import gw.lang.javac.IJavaParser;
 import gw.lang.javac.StringJavaFileObject;
 import gw.lang.reflect.TypeSystem;
@@ -69,7 +69,7 @@ public class JavaParser implements IJavaParser
           _fileManager.setLocation( StandardLocation.SOURCE_PATH, globalModule.getSourcePath().stream().map( IResource::toJavaFile ).collect( Collectors.toList() ) );
           _fileManager.setLocation( StandardLocation.CLASS_PATH, globalModule.getJavaClassPath().stream().map( IResource::toJavaFile ).collect( Collectors.toList() ) );
         }
-        _gfm = new GosuJavaFileManager( _fileManager );
+        _gfm = new GosuJavaFileManager( _fileManager, false );
       }
       catch( IOException e )
       {
@@ -142,11 +142,11 @@ public class JavaParser implements IJavaParser
    * Compiles specified Java class name.  Maintains cache between calls to this method, therefore subsequent calls to this
    * method will consult the cache and return the previously compiled class if cached.
    */
-  public ClassJavaFileObject compile( String fqn, Iterable<String> options, DiagnosticCollector<JavaFileObject> errorHandler )
+  public InMemoryClassJavaFileObject compile( String fqn, Iterable<String> options, DiagnosticCollector<JavaFileObject> errorHandler )
   {
     init();
 
-    ClassJavaFileObject compiledClass = _gfm.findCompiledFile( fqn );
+    InMemoryClassJavaFileObject compiledClass = _gfm.findCompiledFile( fqn );
     if( compiledClass != null )
     {
       return compiledClass;
@@ -167,7 +167,7 @@ public class JavaParser implements IJavaParser
   /**
    * Compiles fresh, no caching.  Intended for use with parser feedback tooling e.g., a Java editor.
    */
-  public ClassJavaFileObject compile( JavaFileObject jfo, String fqn, Iterable<String> options, DiagnosticCollector<JavaFileObject> errorHandler )
+  public InMemoryClassJavaFileObject compile( JavaFileObject jfo, String fqn, Iterable<String> options, DiagnosticCollector<JavaFileObject> errorHandler )
   {
     init();
 
@@ -180,7 +180,7 @@ public class JavaParser implements IJavaParser
   /**
    * Compiles a collection of java source files, intended for use a command line compiler.
    */
-  public Collection<ClassJavaFileObject> compile( Collection<JavaFileObject> files, Iterable<String> options, DiagnosticCollector<JavaFileObject> errorHandler )
+  public Collection<InMemoryClassJavaFileObject> compile( Collection<JavaFileObject> files, Iterable<String> options, DiagnosticCollector<JavaFileObject> errorHandler )
   {
     init();
 
@@ -202,7 +202,7 @@ public class JavaParser implements IJavaParser
 
     try
     {
-      JavaFileObject fileObj = _gfm.getJavaFileForInput( StandardLocation.SOURCE_PATH, fqn, JavaFileObject.Kind.SOURCE );
+      JavaFileObject fileObj = _gfm.getSourceFileForInput( StandardLocation.SOURCE_PATH, fqn, JavaFileObject.Kind.SOURCE );
       if( fileObj == null )
       {
         int iDot = fqn.lastIndexOf( '.' );
@@ -230,7 +230,10 @@ public class JavaParser implements IJavaParser
     _javac = null;
     try
     {
-      _fileManager.close();
+      if( _fileManager != null )
+      {
+        _fileManager.close();
+      }
     }
     catch( IOException e )
     {

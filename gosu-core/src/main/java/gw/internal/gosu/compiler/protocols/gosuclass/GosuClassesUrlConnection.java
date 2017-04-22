@@ -9,11 +9,12 @@ import gw.internal.gosu.compiler.GosuClassLoader;
 import gw.internal.gosu.compiler.SingleServingGosuClassLoader;
 import gw.internal.gosu.parser.TypeLord;
 import gw.internal.gosu.parser.java.compiler.JavaParser;
-import gw.lang.javac.ClassJavaFileObject;
+import gw.lang.javac.InMemoryClassJavaFileObject;
 import gw.lang.javac.JavaCompileIssuesException;
 import gw.lang.parser.ILanguageLevel;
 import gw.lang.reflect.IHasJavaClass;
 import gw.lang.reflect.IInjectableClassLoader;
+import gw.lang.reflect.INonLoadableType;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.gs.GosuClassPathThing;
@@ -21,7 +22,6 @@ import gw.lang.reflect.gs.ICompilableType;
 import gw.lang.reflect.gs.IGosuProgram;
 import gw.lang.reflect.gs.ISourceFileHandle;
 import gw.lang.reflect.java.IJavaBackedType;
-import gw.lang.reflect.java.IJavaType;
 import gw.lang.reflect.module.IModule;
 import gw.lang.reflect.module.TypeSystemLockHelper;
 import gw.util.GosuExceptionUtil;
@@ -125,7 +125,7 @@ public class GosuClassesUrlConnection extends URLConnection {
       TypeSystem.pushModule( global );
       try {
         type = TypeSystem.getByFullNameIfValidNoJava( strType );
-        if( ILanguageLevel.Util.STANDARD_GOSU() && (type == null || type instanceof IJavaType) ) {
+        if( ILanguageLevel.Util.STANDARD_GOSU() && (type == null || !(type instanceof INonLoadableType)) ) {
           // If there were a class file for the Java type on disk, it would have loaded by now (the gosuclass protocol is last).
           // Therefore we compile and load the java class from the Java source file, eventually a JavaType based on the resulting class
           // may load, if a source-based one hasn't already loaded.
@@ -363,12 +363,12 @@ public class GosuClassesUrlConnection extends URLConnection {
     private byte[] compileJavaClass()
     {
       DiagnosticCollector<JavaFileObject> errorHandler = new DiagnosticCollector<>();
-      ClassJavaFileObject cls = JavaParser.instance().compile( _javaFqn, Arrays.asList( "-g", "-nowarn", "-Xlint:none", "-proc:none", "-parameters" ), errorHandler );
+      InMemoryClassJavaFileObject cls = JavaParser.instance().compile( _javaFqn, Arrays.asList( "-g", "-nowarn", "-Xlint:none", "-proc:none", "-parameters" ), errorHandler );
       if( cls != null )
       {
         return cls.getBytes();
       }
-      throw new JavaCompileIssuesException( errorHandler );
+      throw new JavaCompileIssuesException( _javaFqn, errorHandler );
     }
 
     public int read() {

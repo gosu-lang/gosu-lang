@@ -13,6 +13,7 @@ import java.awt.Font;
 import java.awt.Insets;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.util.List;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JViewport;
@@ -149,7 +150,21 @@ public class StandardEditor extends EditorHost
       return;
     }
 
-    _factory = type.getTypeLoader().getInterface( ITypeFactory.class );
+    List<ITypeFactory> factories = type.getTypeLoader().getInterface( ITypeFactory.class );
+    if( factories.isEmpty() )
+    {
+      return;
+    }
+
+    for( ITypeFactory factory: factories )
+    {
+      if( factory.handlesType( type ) )
+      {
+        _factory = factory;
+        break;
+      }
+    }
+
     if( _factory == null )
     {
       return;

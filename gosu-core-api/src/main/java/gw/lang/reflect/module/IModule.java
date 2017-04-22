@@ -15,8 +15,6 @@ import java.util.List;
 @UnstableAPI
 public interface IModule
 {
-  public static final String CONFIG_RESOURCE_PREFIX = "config";
-
   IExecutionEnvironment getExecutionEnvironment();
 
   IDirectory getOutputPath();

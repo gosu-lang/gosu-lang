@@ -15,6 +15,9 @@ import gw.lang.parser.StandardSymbolTable;
 import gw.lang.parser.ITypeUsesMap;
 import gw.lang.parser.IGosuProgramParser;
 import gw.lang.parser.IGosuFragmentParser;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * Defines a factory for constructing concrete IGosuParser implementations.
@@ -104,12 +107,12 @@ public class GosuParserFactoryImpl extends BaseService implements IGosuParserFac
 
   @SuppressWarnings("unchecked")
   @Override
-  public <T> T getInterface( Class<T> apiInterface )
+  public <T> List<T> getInterface( Class<T> apiInterface )
   {
     if( apiInterface == IJavaParser.class )
     {
-      return (T)JavaParser.instance();
+      return Collections.singletonList( (T)JavaParser.instance() );
     }
-    return null;
+    return super.getInterface( apiInterface );
   }
 }

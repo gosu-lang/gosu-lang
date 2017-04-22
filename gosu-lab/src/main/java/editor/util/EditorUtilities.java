@@ -341,18 +341,21 @@ public class EditorUtilities
         return findIcon( ClassType.Class );
       }
     }
+    else if( type != null )
+    {
+      for( ITypeFactory factory: type.getTypeLoader().getInterface( ITypeFactory.class ) )
+      {
+        if( factory != null && factory.handlesType( type ) )
+        {
+          return EditorUtilities.loadIcon( factory.getIcon() );
+        }
+      }
+    }
     else if( type instanceof IJavaType )
     {
       return EditorUtilities.loadIcon( "images/javaclass.png" );
     }
-    else if( type != null )
-    {
-      ITypeFactory factory = type.getTypeLoader().getInterface( ITypeFactory.class );
-      if( factory != null )
-      {
-        return EditorUtilities.loadIcon( factory.getIcon() );
-      }
-    }
+
     return EditorUtilities.loadIcon( "images/empty16x16.gif" );
   }
 

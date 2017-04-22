@@ -78,7 +78,7 @@ public class WeakFqnCache<T> implements IFqnCache<T> {
   }
 
   @Override
-  public void visitDepthFirst( final Predicate<T> visitor ) {
+  public boolean visitDepthFirst( final Predicate<T> visitor ) {
     Predicate<WeakReference<T>> delegate = new Predicate<WeakReference<T>>() {
       @Override
       public boolean evaluate( WeakReference<T> node ) {
@@ -86,25 +86,27 @@ public class WeakFqnCache<T> implements IFqnCache<T> {
         return visitor.evaluate( userData );
       }
     };
-    List<FqnCacheNode<WeakReference<T>>> copy = new ArrayList<FqnCacheNode<WeakReference<T>>>( _cache.getRoot().getChildren() );
+    List<FqnCacheNode<WeakReference<T>>> copy = new ArrayList<FqnCacheNode<WeakReference<T>>>( _cache.getChildren() );
     for( FqnCacheNode<WeakReference<T>> child: copy ) {
       if( !child.visitDepthFirst( delegate ) ) {
-        return;
+        return false;
       }
     }
+    return true;
   }
 
-  public void visitNodeDepthFirst( final Predicate<FqnCacheNode> visitor ) {
-    List<FqnCacheNode<WeakReference<T>>> copy = new ArrayList<FqnCacheNode<WeakReference<T>>>( _cache.getRoot().getChildren() );
+  public boolean visitNodeDepthFirst( final Predicate<FqnCacheNode> visitor ) {
+    List<FqnCacheNode<WeakReference<T>>> copy = new ArrayList<FqnCacheNode<WeakReference<T>>>( _cache.getChildren() );
     for( FqnCacheNode<WeakReference<T>> child: copy ) {
       if( !child.visitNodeDepthFirst( visitor ) ) {
-        return;
+        return false;
       }
     }
+    return true;
   }
 
   @Override
-  public void visitBreadthFirst( final Predicate<T> visitor ) {
+  public boolean visitBreadthFirst( final Predicate<T> visitor ) {
     Predicate<WeakReference<T>> delegate = new Predicate<WeakReference<T>>() {
       @Override
       public boolean evaluate( WeakReference<T> node ) {
@@ -112,10 +114,11 @@ public class WeakFqnCache<T> implements IFqnCache<T> {
         return visitor.evaluate( userData );
       }
     };
-    List<FqnCacheNode<WeakReference<T>>> copy = new ArrayList<FqnCacheNode<WeakReference<T>>>( _cache.getRoot().getChildren() );
+    List<FqnCacheNode<WeakReference<T>>> copy = new ArrayList<FqnCacheNode<WeakReference<T>>>( _cache.getChildren() );
     for( FqnCacheNode<WeakReference<T>> child: copy ) {
       child.visitBreadthFirst( delegate );
     }
+    return true;
   }
 
   private static class KeyedReference<T> extends WeakReference<T> {

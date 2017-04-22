@@ -1,30 +1,27 @@
 package gw.internal.gosu.parser.java.compiler;
 
-import com.sun.tools.javac.file.BaseFileObject;
-import com.sun.tools.javac.file.JavacFileManager;
-import gw.lang.ir.SignatureUtil;
 import gw.util.concurrent.LocklessLazyVar;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.Writer;
 import java.net.URI;
 import java.util.function.Supplier;
+import javax.tools.SimpleJavaFileObject;
 
 /**
 */
-public class GeneratedJavaStubFileObject extends BaseFileObject
+public class GeneratedJavaStubFileObject extends SimpleJavaFileObject
 {
   private String _name;
   private long _timestamp;
   private Supplier<String> _sourceSupplier;
   private LocklessLazyVar<String> _src = LocklessLazyVar.make( () -> _sourceSupplier.get() );
 
-  public GeneratedJavaStubFileObject( JavacFileManager mgr, String name, Supplier<String> sourceSupplier )
+  public GeneratedJavaStubFileObject( String name, Supplier<String> sourceSupplier )
   {
-    super( mgr );
-    _name = name;
+    super( URI.create( "genstub:///" + name.replace( '.', '/' ) + Kind.SOURCE.extension ), Kind.SOURCE );
+    _name = name.replace( '.', '/' ) + Kind.SOURCE.extension;
     _timestamp = System.currentTimeMillis();
     _sourceSupplier = sourceSupplier;
   }
@@ -32,7 +29,7 @@ public class GeneratedJavaStubFileObject extends BaseFileObject
   @Override
   public URI toUri()
   {
-    return URI.create( "genstub:///" + _name.replace( '.', '/' ) + Kind.SOURCE.extension );
+    return URI.create( "genstub:///" + getName() );
   }
 
   @Override
@@ -75,18 +72,6 @@ public class GeneratedJavaStubFileObject extends BaseFileObject
   public boolean delete()
   {
     throw new UnsupportedOperationException();
-  }
-
-  @Override
-  public String getShortName()
-  {
-    return SignatureUtil.getSimpleName( _name );
-  }
-
-  @Override
-  protected String inferBinaryName( Iterable<? extends File> files )
-  {
-    return _name;
   }
 
   @Override

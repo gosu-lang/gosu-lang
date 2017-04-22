@@ -13,7 +13,7 @@ import gw.internal.gosu.parser.FileSystemGosuClassRepository;
 import gw.internal.gosu.parser.IModuleClassLoader;
 import gw.internal.gosu.parser.ModuleClassLoader;
 import gw.internal.gosu.parser.ModuleTypeLoader;
-import gw.internal.gosu.properties.PropertiesTypeLoader;
+import gw.internal.gosu.properties.PropertiesSourceProducer;
 import gw.lang.parser.ILanguageLevel;
 import gw.lang.reflect.ITypeLoader;
 import gw.lang.reflect.TypeSystem;
@@ -27,7 +27,6 @@ import gw.lang.reflect.module.INativeModule;
 import gw.util.Extensions;
 import gw.util.GosuExceptionUtil;
 import gw.util.concurrent.LocklessLazyVar;
-
 import java.io.File;
 import java.lang.reflect.Constructor;
 import java.net.MalformedURLException;
@@ -346,35 +345,42 @@ public class Module implements IModule
     createExtensionTypeloadersImpl();
   }
 
-  protected void createExtensionTypeloadersImpl() {
-    Set<String> typeLoaders = getExtensionTypeloaderNames();
-    for( String additionalTypeLoader : typeLoaders) {
-      try {
-        createAndPushTypeLoader(_fileRepository, additionalTypeLoader);
-      } catch (Throwable e) {
-        System.err.println("==> WARNING: Cannot create extension typeloader " + additionalTypeLoader + ". " + e.getMessage());
+  protected void createExtensionTypeloadersImpl()
+  {
+    Set<String> typeLoaders = new HashSet<>();
+    Set<String> sourceProducers = new HashSet<>();
+    findExtensionClasses( typeLoaders, sourceProducers );
+    getModuleTypeLoader().getDefaultTypeLoader().setSourceProducers( sourceProducers );
+    for( String additionalTypeLoader: typeLoaders )
+    {
+      try
+      {
+        createAndPushTypeLoader( _fileRepository, additionalTypeLoader );
+      }
+      catch( Throwable e )
+      {
+        System.err.println( "==> WARNING: Cannot create extension typeloader " + additionalTypeLoader + ". " + e.getMessage() );
 //        e.printStackTrace(System.err);
-        System.err.println("==> END WARNING.");
+        System.err.println( "==> END WARNING." );
       }
     }
   }
 
-  private Set<String> getExtensionTypeloaderNames() {
-    Set<String> set = new HashSet<>();
-    for (IModule m : getModuleTraversalList()) {
-      for (IDirectory dir : m.getJavaClassPath()) {
-        Extensions.getExtensions(set, dir, "Gosu-Typeloaders");
+  private void findExtensionClasses( Set<String> typeLoaders, Set<String> sourceProducers )
+  {
+    for( IModule m : getModuleTraversalList() )
+    {
+      for( IDirectory dir: m.getJavaClassPath() )
+      {
+        Extensions.getExtensions( typeLoaders, dir, "Gosu-Typeloaders" );
+        Extensions.getExtensions( sourceProducers, dir, "Gosu-SourceProducers" );
       }
     }
-    return set;
   }
 
   protected void createStandardTypeLoaders()
   {
     CommonServices.getTypeSystem().pushTypeLoader( this, new GosuClassTypeLoader( this, _fileRepository ) );
-    if( ILanguageLevel.Util.STANDARD_GOSU() ) {
-      CommonServices.getTypeSystem().pushTypeLoader( this, new PropertiesTypeLoader( this ) );
-    }
     if( ILanguageLevel.Util.DYNAMIC_TYPE() ) {
       CommonServices.getTypeSystem().pushTypeLoader( this, new DynamicTypeLoader( this ) );
     }

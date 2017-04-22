@@ -43,4 +43,9 @@ public interface ISourceFileHandle
   String getFileName();
 
   IFile getFile();
+
+  default ISourceProducer getSourceProducer()
+  {
+    return null;
+  }
 }

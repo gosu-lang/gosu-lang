@@ -1,9 +1,11 @@
 package gw.lang.gosuc.simple;
 
+import com.sun.tools.javac.processing.JavacProcessingEnvironment;
 import gw.lang.gosuc.cli.CommandLineOptions;
 import java.io.File;
 import java.util.Collections;
 import java.util.List;
+import javax.tools.JavaFileManager;
 
 /**
  * @author dpetrusca
@@ -30,4 +32,6 @@ public interface IGosuCompiler {
 
   boolean compile(File sourceFile, ICompilerDriver driver) throws Exception;
   boolean compile( CommandLineOptions options, ICompilerDriver driver );
+
+  boolean compile( List<String> gosuInputFiles, JavacProcessingEnvironment jpe, JavaFileManager fileManager );
 }

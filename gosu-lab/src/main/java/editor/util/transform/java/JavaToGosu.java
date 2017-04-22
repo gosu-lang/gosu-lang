@@ -130,7 +130,7 @@ public class JavaToGosu
 
   private static boolean parseJava( List<CompilationUnitTree> trees, Consumer<SourcePositions> sourcePositions, Consumer<DocTrees> docTrees, String src )
   {
-    IJavaParser javaParser = GosuParserFactory.getInterface( IJavaParser.class );
+    IJavaParser javaParser = GosuParserFactory.getInterface( IJavaParser.class ).get( 0 );
     DiagnosticCollector<JavaFileObject> errorHandler = new DiagnosticCollector<>();
     if( !javaParser.parseText( src, trees, sourcePositions, docTrees, errorHandler ) )
     {

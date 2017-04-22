@@ -10,12 +10,12 @@ import javax.tools.SimpleJavaFileObject;
 
 /**
 */
-public class ClassJavaFileObject extends SimpleJavaFileObject
+public class InMemoryClassJavaFileObject extends SimpleJavaFileObject
 {
   private final ByteArrayOutputStream _outputStream;
   private final String _className;
 
-  public ClassJavaFileObject( String className, Kind kind )
+  public InMemoryClassJavaFileObject( String className, Kind kind )
   {
     super( URI.create( "mem:///" + className.replace( '.', '/' ) + kind.extension ), kind );
     _className = className;

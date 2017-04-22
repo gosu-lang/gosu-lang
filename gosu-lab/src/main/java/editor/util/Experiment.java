@@ -9,6 +9,8 @@ import editor.run.ProgramRunConfigParameters;
 import editor.settings.ISettings;
 import editor.settings.Settings;
 import gw.lang.Gosu;
+import gw.lang.javac.IJavaParser;
+import gw.lang.parser.GosuParserFactory;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.json.IJsonIO;
 import editor.run.IRunConfig;
@@ -61,6 +63,7 @@ public class Experiment implements IProject
     _openFiles = Collections.emptyList();
     _runConfigs = Collections.emptyList();
     _settings = Settings.makeDefaultSettings( this );
+    GosuParserFactory.getInterface( IJavaParser.class ).get( 0 ).clear();
   }
 
   public Experiment( Path dir, GosuPanel gosuPanel )
@@ -73,6 +76,7 @@ public class Experiment implements IProject
     _openFiles = Collections.emptyList();
     _runConfigs = Collections.emptyList();
     _settings = Settings.makeDefaultSettings( this );
+    GosuParserFactory.getInterface( IJavaParser.class ).get( 0 ).clear();
     load();
     FileWatcher.instance( this );
   }

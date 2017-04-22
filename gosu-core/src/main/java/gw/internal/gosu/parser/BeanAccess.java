@@ -358,20 +358,25 @@ public class BeanAccess
 
   public static IPropertyInfo getPropertyInfo( IType classBean, String strProperty, IFeatureFilter filter, ParserBase parser, IScriptabilityModifier scriptabilityConstraint) throws ParseException
   {
+    IType whosaskin = findWhosAskin( classBean, parser );
+    return getPropertyInfo( classBean, whosaskin, strProperty, filter, parser, scriptabilityConstraint );
+  }
+
+  private static IType findWhosAskin( IType classBean, ParserBase parser )
+  {
     IType whosaskin = classBean;
+    if( GosuClassTypeInfo.isIncludeAll() )
+    {
+      return whosaskin;
+    }
+
     if( parser != null )
     {
       whosaskin = parser.getGosuClass();
       // Hack to ensure that we adhere to visibility rules when parsing
-      whosaskin = whosaskin != null || GosuClassTypeInfo.isIncludeAll() ? whosaskin : JavaTypes.OBJECT();
-      if( GosuClassTypeInfo.isIncludeAll() && whosaskin instanceof IGosuProgram &&
-          // Well... downstream we check for null on whosaskin and ignore TypeSystem.isIncludeAll(), that can't happen for CompileTimeExpressionParser
-          !whosaskin.getName().startsWith( IGosuProgram.PACKAGE )  )
-      {
-        whosaskin = null;
-      }
+      whosaskin = whosaskin != null ? whosaskin : JavaTypes.OBJECT();
     }
-    return getPropertyInfo( classBean, whosaskin, strProperty, filter, parser, scriptabilityConstraint );
+    return whosaskin;
   }
 
   public static IPropertyInfo getPropertyInfo( IType classBean, IType whosAskin, String strProperty, IFeatureFilter filter, ParserBase parser, IScriptabilityModifier scriptabilityConstraint) throws ParseException
@@ -420,19 +425,7 @@ public class BeanAccess
 
   public static IPropertyInfo getPropertyInfo_NoException( IType classBean, String strProperty, IFeatureFilter filter, ParserBase parser, IScriptabilityModifier scriptabilityConstraint)
   {
-    IType whosaskin = classBean;
-    if( parser != null )
-    {
-      whosaskin = parser.getGosuClass();
-      // Hack to ensure that we adhere to visibility rules when parsing
-      whosaskin = whosaskin != null || GosuClassTypeInfo.isIncludeAll() ? whosaskin : JavaTypes.OBJECT();
-      if( GosuClassTypeInfo.isIncludeAll() && whosaskin instanceof IGosuProgram &&
-          // Well... downstream we check for null on whosaskin and ignore TypeSystem.isIncludeAll(), that can't happen for CompileTimeExpressionParser
-          !whosaskin.getName().startsWith( IGosuProgram.PACKAGE )  )
-      {
-        whosaskin = null;
-      }
-    }
+    IType whosaskin = findWhosAskin( classBean, parser );
     return getPropertyInfo_NoException( classBean, whosaskin, strProperty, filter, parser, scriptabilityConstraint );
   }
 

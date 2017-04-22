@@ -84,7 +84,7 @@ public class ClassPath implements IClassPath
   }
 
   public boolean isEmpty() {
-    return _cache.getRoot().isLeaf();
+    return _cache.isLeaf();
   }
 
   // ====================== PRIVATE ====================================
