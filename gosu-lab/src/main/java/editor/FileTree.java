@@ -342,9 +342,8 @@ public class FileTree implements MutableTreeNode, IFileWatcherListener
     Path newFileOrDir = PathUtil.create( dir, file );
     EventQueue.invokeLater( () -> {
       FileTree fileTree = new FileTree( newFileOrDir, this, _experiment );
-      ((DefaultTreeModel)getExperimentView().getTree().getModel()).insertNodeInto( fileTree, this, getSortedIndex( getChildren(), fileTree ) );
-
       handleNewFileTree( fileTree );
+      ((DefaultTreeModel)getExperimentView().getTree().getModel()).insertNodeInto( fileTree, this, getSortedIndex( getChildren(), fileTree ) );
     } );
   }
 
@@ -371,7 +370,7 @@ public class FileTree implements MutableTreeNode, IFileWatcherListener
     Path createdFile = SourceFileCreator.instance().getCreated();
     if( createdFile != null && createdFile.equals( file ) )
     {
-      openFile( fileTree, file );
+      EventQueue.invokeLater( () -> openFile( fileTree, file ) );
     }
   }
 

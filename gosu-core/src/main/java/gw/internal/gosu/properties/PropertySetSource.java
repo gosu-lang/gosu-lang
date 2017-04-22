@@ -9,8 +9,7 @@ import gw.fs.IFile;
 import java.util.Set;
 
 /**
- * Represents the different sources of {@link PropertySet} objects that can be used to build
- * {@link PropertiesType} objects.
+ * Represents the different sources of {@link PropertySet} objects that can be used to build properties source
  */
 public interface PropertySetSource {
 

@@ -1,10 +1,13 @@
 package gw.lang.gosuc.simple;
 
+import gw.lang.javac.WriterJavaFileObject;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import javax.tools.Diagnostic;
+import javax.tools.FileObject;
+import javax.tools.JavaFileObject;
 
 public class SoutCompilerDriver implements ICompilerDriver {
   private final boolean _echo;
@@ -28,7 +31,7 @@ public class SoutCompilerDriver implements ICompilerDriver {
   }
 
   @Override
-  public void sendCompileIssue(Object file, int category, long offset, long line, long column, String message) {
+  public void sendCompileIssue( Object file, int category, long offset, long line, long column, String message) {
     if (category == WARNING) {
       String warning = String.format( "%s:[%s,%s] warning: %s", file.toString(), line, column, message );
       warnings.add( warning );
@@ -56,14 +59,15 @@ public class SoutCompilerDriver implements ICompilerDriver {
   }
 
   @Override
-  public void registerOutput( File sourceFile, File outputFile )
+  public JavaFileObject createClassFile( String fqn )
   {
-    registerOutput( (Object) sourceFile, outputFile );
+    return new WriterJavaFileObject( fqn );
   }
 
   @Override
-  public void registerOutput(Object sourceFile, File outputFile) {
-    // nothing to do
+  public FileObject createResourceFile( String pkg, String filename )
+  {
+    return new WriterJavaFileObject( pkg, filename );
   }
 
   public boolean isIncludeWarnings()

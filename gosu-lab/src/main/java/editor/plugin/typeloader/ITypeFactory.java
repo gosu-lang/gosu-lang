@@ -26,4 +26,6 @@ public interface ITypeFactory
   String getTooltipMessage( int iPos, EditorHost editor );
 
   IIssueContainer getIssueContainer( EditorHost editor );
+
+  boolean handlesType( IType type );
 }

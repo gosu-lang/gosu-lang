@@ -241,13 +241,6 @@ public class StandardCoercionManagerTest extends TestClass
     Assert.assertEquals( String.class, o );
   }
 
-  public void testClassCoercionFromNonJavaMetaFails()
-  {
-    IType byFullName = TypeSystem.getByFullName("gw.lang.SystemProperties");
-    assertNotNull(byFullName);
-    assertDoesNotCompile( "gw.lang.SystemProperties as java.lang.Class" );
-  }
-
   public void testJavaIntrinsicTypeCoercionFromJavaMetaWorksCorrectly()
   {
     Object o = eval( "java.lang.String as gw.lang.reflect.java.IJavaType" );

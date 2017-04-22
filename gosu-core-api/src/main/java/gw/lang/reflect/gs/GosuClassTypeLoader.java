@@ -395,4 +395,8 @@ public class GosuClassTypeLoader extends SimpleTypeLoader
     return _repository.hasNamespace(namespace) > 0;
   }
 
+  @Override
+  protected void addBuiltInSourceProducers( Set<ISourceProducer> set )
+  {
+  }
 }

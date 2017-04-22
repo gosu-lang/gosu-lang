@@ -44,10 +44,12 @@ public class NewFilePopup extends JPopupMenu
   {
     for( ITypeLoader tl: TypeSystem.getAllTypeLoaders() )
     {
-      ITypeFactory factory = tl.getInterface( ITypeFactory.class );
-      if( factory != null && factory.canCreate() )
+      for( ITypeFactory factory: tl.getInterface( ITypeFactory.class ) )
       {
-        addNewItem( popup, factory.getName(), factory.getIcon(), () -> SourceFileCreator.instance().create( factory ) );
+        if( factory != null && factory.canCreate() )
+        {
+          addNewItem( popup, factory.getName(), factory.getIcon(), () -> SourceFileCreator.instance().create( factory ) );
+        }
       }
     }
     popup.add( new JPopupMenu.Separator() );

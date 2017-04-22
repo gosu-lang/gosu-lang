@@ -184,4 +184,10 @@ public class PropertyInfoDelegate implements IPropertyInfoDelegate
   {
     return _source;
   }
+
+  @Override
+  public ILocationInfo getLocationInfo()
+  {
+    return _source.getLocationInfo();
+  }
 }

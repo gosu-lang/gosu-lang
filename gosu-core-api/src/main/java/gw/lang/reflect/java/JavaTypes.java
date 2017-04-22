@@ -17,6 +17,7 @@ import gw.lang.Throws;
 import gw.lang.annotation.AnnotationUsage;
 import gw.lang.annotation.AnnotationUsages;
 import gw.lang.annotation.IInherited;
+import gw.lang.reflect.SourcePosition;
 import gw.lang.reflect.features.IFeatureReference;
 import gw.lang.reflect.features.IMethodReference;
 import java.lang.annotation.Repeatable;
@@ -570,6 +571,14 @@ public class JavaTypes {
       return THIS.AUTOINSERT == null ? THIS.AUTOINSERT = getGosuType( Autoinsert.class ) : THIS.AUTOINSERT;
     }  
     return getGosuType(Autoinsert.class);
+  }
+
+  private IJavaType SOURCE_POSITION = null;
+  public static IJavaType SOURCE_POSITION() {
+    if( !ExecutionMode.get().isRefreshSupportEnabled() ) {
+      return THIS.SOURCE_POSITION == null ? THIS.SOURCE_POSITION = getGosuType( SourcePosition.class ) : THIS.SOURCE_POSITION;
+    }  
+    return getGosuType(SourcePosition.class);
   }
 
   private IJavaType IGOSU_OBJECT = null;

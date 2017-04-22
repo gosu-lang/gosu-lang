@@ -12,32 +12,32 @@ import java.util.HashSet;
 public class PropertiesTypeLoaderTypeNameSetTest extends TestClass {
   
   public void testFindsExactMatch() {
-    PropertiesTypeLoader.TypeNameSet typeNameSet = createNameList("alpha", "beta", "gamma");
+    PropertiesSourceProducer.TypeNameSet typeNameSet = createNameList( "alpha", "beta", "gamma");
     assertListEquals(Arrays.asList("alpha"), typeNameSet.findMatchesFor("alpha"));
   }
 
   public void testFindsCaseInsensitiveMatch() {
-    PropertiesTypeLoader.TypeNameSet typeNameSet = createNameList("alpha", "beta", "gamma");
+    PropertiesSourceProducer.TypeNameSet typeNameSet = createNameList( "alpha", "beta", "gamma");
     assertListEquals(Arrays.asList("beta"), typeNameSet.findMatchesFor("Beta"));
   }
 
   public void testFindsPrefixMatch() {
-    PropertiesTypeLoader.TypeNameSet typeNameSet = createNameList("gamma", "beta", "alpha");
+    PropertiesSourceProducer.TypeNameSet typeNameSet = createNameList( "gamma", "beta", "alpha");
     assertListEquals(Arrays.asList("alpha"), typeNameSet.findMatchesFor("alpha.beta"));
   }
 
   public void testFindsCaseInsensitivePrefixMatch() {
-    PropertiesTypeLoader.TypeNameSet typeNameSet = createNameList("alpha", "beta", "gamma");
+    PropertiesSourceProducer.TypeNameSet typeNameSet = createNameList( "alpha", "beta", "gamma");
     assertListEquals(Arrays.asList("beta"), typeNameSet.findMatchesFor("Beta.Gamma"));
   }
 
   public void testOnlyFindsPrefixMatchIfPeriodFollowsPrefixInFullName() {
-    PropertiesTypeLoader.TypeNameSet typeNameSet = createNameList("st", "sta", "start", "starts");
+    PropertiesSourceProducer.TypeNameSet typeNameSet = createNameList( "st", "sta", "start", "starts");
     assertListEquals(Arrays.asList("start"), typeNameSet.findMatchesFor("Start.Follow"));
   }
 
   public void testFindsMultipleMatches() {
-    PropertiesTypeLoader.TypeNameSet typeNameSet = createNameList(
+    PropertiesSourceProducer.TypeNameSet typeNameSet = createNameList(
             "start.follow1.follow2", "start.follow1.foll",
             "st", "start",
             "start.fo", "start.follow1"
@@ -48,7 +48,7 @@ public class PropertiesTypeLoaderTypeNameSetTest extends TestClass {
     );
   }
 
-  private PropertiesTypeLoader.TypeNameSet createNameList(String... values) {
-    return new PropertiesTypeLoader.TypeNameSet(new HashSet<String>(Arrays.asList(values)));
+  private PropertiesSourceProducer.TypeNameSet createNameList( String... values) {
+    return new PropertiesSourceProducer.TypeNameSet( new HashSet<String>( Arrays.asList( values)));
   }
 }

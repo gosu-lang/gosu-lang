@@ -81,7 +81,7 @@ public class JavaTypeFactory implements ITypeFactory
   public void parse( IType type, String strText, boolean forceCodeCompletion, boolean changed, EditorHost editor )
   {
     DiagnosticCollector<JavaFileObject> errorHandler = new DiagnosticCollector<>();
-    IJavaParser javaParser = GosuParserFactory.getInterface( IJavaParser.class );
+    IJavaParser javaParser = GosuParserFactory.getInterface( IJavaParser.class ).get( 0 );
     StringJavaFileObject fileObj = new StringJavaFileObject( type.getName(), strText );
     javaParser.compile( fileObj, type.getName(), Arrays.asList( "-g", "-Xlint:unchecked", "-parameters" ), errorHandler );
     EventQueue.invokeLater(
@@ -121,5 +121,11 @@ public class JavaTypeFactory implements ITypeFactory
   public IIssueContainer getIssueContainer( EditorHost editor )
   {
     return new JavaIssueContainer( ((JavaDocument)editor.getDocument()).getErrorHandler() );
+  }
+
+  @Override
+  public boolean handlesType( IType type )
+  {
+    return type instanceof IJavaType && ((IJavaType)type).getSourceFileHandle().getSourceProducer() == null;
   }
 }

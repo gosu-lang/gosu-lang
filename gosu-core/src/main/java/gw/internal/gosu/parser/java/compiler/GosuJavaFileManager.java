@@ -1,17 +1,21 @@
 package gw.internal.gosu.parser.java.compiler;
 
-import com.sun.tools.javac.file.JavacFileManager;
 import gw.internal.gosu.parser.GosuClass;
 import gw.lang.ir.SignatureUtil;
-import gw.lang.javac.ClassJavaFileObject;
+import gw.lang.javac.InMemoryClassJavaFileObject;
+import gw.lang.parser.IFileRepositoryBasedType;
 import gw.lang.reflect.INamespaceType;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.ITypeLoaderListener;
 import gw.lang.reflect.RefreshRequest;
 import gw.lang.reflect.TypeSystem;
-import gw.lang.reflect.gs.IGosuClass;
+import gw.lang.reflect.gs.ISourceFileHandle;
+import gw.lang.reflect.gs.ISourceProducer;
 import gw.lang.reflect.gs.TypeName;
+import gw.lang.reflect.java.IJavaType;
+import gw.lang.reflect.module.IModule;
 import gw.util.cache.FqnCache;
+import gw.util.cache.FqnCacheNode;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -25,40 +29,58 @@ import javax.tools.JavaFileObject;
 import javax.tools.StandardLocation;
 
 /**
-*/
+ */
 class GosuJavaFileManager extends ForwardingJavaFileManager<JavaFileManager> implements ITypeLoaderListener
 {
-  private FqnCache<ClassJavaFileObject> _classFiles;
-  private JavacFileManager _javacMgr;
+  private final boolean _fromJavaC;
+  private FqnCache<InMemoryClassJavaFileObject> _classFiles;
+  private FqnCache<JavaFileObject> _generatedFiles;
+  private JavaFileManager _javacMgr;
 
-  GosuJavaFileManager( JavaFileManager fileManager )
+  GosuJavaFileManager( JavaFileManager fileManager, boolean fromJavaC )
   {
     super( fileManager );
-    _javacMgr = (JavacFileManager)fileManager;
+    _fromJavaC = fromJavaC;
+    _javacMgr = fileManager;
     _classFiles = new FqnCache<>();
+    _generatedFiles = new FqnCache<>();
     TypeSystem.addTypeLoaderListenerAsWeakRef( this );
   }
 
   @Override
   public JavaFileObject getJavaFileForOutput( Location location, String className, JavaFileObject.Kind kind, FileObject sibling ) throws IOException
   {
-    ClassJavaFileObject file = new ClassJavaFileObject( className, kind );
-    _classFiles.add( className, file );
-    className = className.replace( '$', '.' );
-    _classFiles.add( className, file );
-    return file;
+    if( !_fromJavaC || kind == JavaFileObject.Kind.CLASS && sibling instanceof GeneratedJavaStubFileObject )
+    {
+      InMemoryClassJavaFileObject file = new InMemoryClassJavaFileObject( className, kind );
+      _classFiles.add( className, file );
+      className = className.replace( '$', '.' );
+      _classFiles.add( className, file );
+      return file;
+    }
+    return super.getJavaFileForOutput( location, className, kind, sibling );
   }
 
-  public ClassJavaFileObject findCompiledFile( String fqn )
+  public InMemoryClassJavaFileObject findCompiledFile( String fqn )
   {
     return _classFiles.get( fqn );
+  }
+
+  public JavaFileObject getSourceFileForInput( Location location, String fqn, JavaFileObject.Kind kind ) throws IOException
+  {
+    JavaFileObject file = super.getJavaFileForInput( location, fqn, kind );
+    if( file != null )
+    {
+      return file;
+    }
+
+    return findGeneratedFile( fqn.replace( '$', '.' ), TypeSystem.getCurrentModule() );
   }
 
   public Iterable<JavaFileObject> list( Location location, String packageName, Set<JavaFileObject.Kind> kinds, boolean recurse ) throws IOException
   {
     Iterable<JavaFileObject> list = super.list( location, packageName, kinds, recurse );
-    if( kinds.contains( JavaFileObject.Kind.SOURCE )&&
-        (location == StandardLocation.SOURCE_PATH) )
+    if( kinds.contains( JavaFileObject.Kind.SOURCE ) && (location == StandardLocation.SOURCE_PATH || location == StandardLocation.CLASS_PATH) )
     {
       INamespaceType namespace = TypeSystem.getNamespace( packageName );
       if( namespace == null )
@@ -71,7 +93,7 @@ class GosuJavaFileManager extends ForwardingJavaFileManager<JavaFileManager> imp
       Set<String> names = makeNames( list );
 
       Set<TypeName> children = namespace.getChildren( namespace );
-      for( TypeName tn: children )
+      for( TypeName tn : children )
       {
         if( names.contains( SignatureUtil.getSimpleName( tn.name ) ) )
         {
@@ -88,10 +110,10 @@ class GosuJavaFileManager extends ForwardingJavaFileManager<JavaFileManager> imp
         }
         else
         {
-          IType type = TypeSystem.getByFullNameIfValid( tn.name.replace( '$', '.' ), tn.getModule() );
-          if( type instanceof IGosuClass && !GosuClass.ProxyUtil.isProxy( type ) )
+          JavaFileObject file = findGeneratedFile( tn.name.replace( '$', '.' ), tn.getModule() );
+          if( file != null )
           {
-            newList.add( makeJavaStub( (IGosuClass)type ) );
+            newList.add( file );
           }
         }
       }
@@ -100,10 +122,50 @@ class GosuJavaFileManager extends ForwardingJavaFileManager<JavaFileManager> imp
     return list;
   }
 
+  private JavaFileObject findGeneratedFile( String fqn, IModule module )
+  {
+    FqnCacheNode<JavaFileObject> node = _generatedFiles.getNode( fqn );
+    if( node != null )
+    {
+      return node.getUserData();
+    }
+
+    IType type = TypeSystem.getByFullNameIfValid( fqn, module );
+    JavaFileObject file = null;
+    if( type != null && type instanceof IFileRepositoryBasedType && !GosuClass.ProxyUtil.isProxy( type ) )
+    {
+      if( !(type instanceof IJavaType) )
+      {
+        file = makeJavaStub( type );
+        _generatedFiles.add( type.getName(), file );
+      }
+      else
+      {
+        ISourceFileHandle sourceFileHandle = ((IJavaType)type).getSourceFileHandle();
+        if( sourceFileHandle != null )
+        {
+          ISourceProducer sourceProducer = sourceFileHandle.getSourceProducer();
+          if( sourceProducer != null )
+          {
+            // The source for this type is not on disk, but is instead generated on demand
+            file = produceSource( (IFileRepositoryBasedType)type );
+            _generatedFiles.add( type.getName(), file );
+          }
+        }
+      }
+    }
+    if( file == null )
+    {
+      // cache the miss
+      _generatedFiles.add( fqn, null );
+    }
+    return file;
+  }
+
   private Set<String> makeNames( Iterable<JavaFileObject> list )
   {
     HashSet<String> set = new HashSet<>();
-    for( JavaFileObject file: list )
+    for( JavaFileObject file : list )
     {
       String name = file.getName();
       if( name.endsWith( ".java" ) )
@@ -114,9 +176,14 @@ class GosuJavaFileManager extends ForwardingJavaFileManager<JavaFileManager> imp
     return set;
   }
 
-  private JavaFileObject makeJavaStub( IGosuClass gsClass )
+  private JavaFileObject produceSource( IFileRepositoryBasedType loadableType )
   {
-    return new GeneratedJavaStubFileObject( _javacMgr, gsClass.getName(), () -> JavaStubGenerator.instance().genStub( gsClass ) );
+    return new GeneratedJavaStubFileObject( loadableType.getName(), () -> loadableType.getSourceFileHandle().getSource().getSource() );
+  }
+
+  private JavaFileObject makeJavaStub( IType loadableType )
+  {
+    return new GeneratedJavaStubFileObject( loadableType.getName(), () -> JavaStubGenerator.instance().genStub( loadableType ) );
   }
 
   public void remove( String fqn )
@@ -141,10 +208,43 @@ class GosuJavaFileManager extends ForwardingJavaFileManager<JavaFileManager> imp
     _classFiles = new FqnCache<>();
   }
 
-  public Collection<ClassJavaFileObject> getCompiledFiles()
+  public Collection<InMemoryClassJavaFileObject> getCompiledFiles()
   {
-    HashSet<ClassJavaFileObject> files = new HashSet<>();
-    _classFiles.visitDepthFirst( o -> {if( o != null ) files.add( o ); return true;} );
+    HashSet<InMemoryClassJavaFileObject> files = new HashSet<>();
+    _classFiles.visitDepthFirst(
+      o -> {
+        if( o != null )
+        {
+          files.add( o );
+        }
+        return true;
+      } );
     return files;
+  }
+
+  @Override
+  public String inferBinaryName( Location location, JavaFileObject fileObj )
+  {
+    if( fileObj instanceof GeneratedJavaStubFileObject )
+    {
+      return removeExtension( fileObj.getName() ).replace( File.separatorChar, '.' ).replace( '/', '.' );
+    }
+    return super.inferBinaryName( location, fileObj );
+  }
+
+  @Override
+  public boolean isSameFile( FileObject var1, FileObject var2 )
+  {
+    if( var1 instanceof GeneratedJavaStubFileObject || var2 instanceof GeneratedJavaStubFileObject )
+    {
+      return var1.equals( var2 );
+    }
+    return super.isSameFile( var1, var2 );
+  }
+
+  protected static String removeExtension( String var0 )
+  {
+    int var1 = var0.lastIndexOf( "." );
+    return var1 == -1 ? var0 : var0.substring( 0, var1 );
   }
 }
