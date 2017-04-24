@@ -17,6 +17,7 @@ import gw.lang.Throws;
 import gw.lang.annotation.AnnotationUsage;
 import gw.lang.annotation.AnnotationUsages;
 import gw.lang.annotation.IInherited;
+import gw.lang.reflect.LazyTypeResolver;
 import gw.lang.reflect.SourcePosition;
 import gw.lang.reflect.features.IFeatureReference;
 import gw.lang.reflect.features.IMethodReference;
@@ -627,6 +628,14 @@ public class JavaTypes {
       return THIS.FUNCTION_TYPE == null ? THIS.FUNCTION_TYPE = getGosuType( FunctionType.class ) : THIS.FUNCTION_TYPE;
     }  
     return getGosuType(FunctionType.class);
+  }
+
+  private IType LAZY_TYPE_RESOLVER = null;
+  public static IType LAZY_TYPE_RESOLVER() {
+    if( !ExecutionMode.get().isRefreshSupportEnabled() ) {
+      return THIS.LAZY_TYPE_RESOLVER == null ? THIS.LAZY_TYPE_RESOLVER = getGosuType( LazyTypeResolver.class ) : THIS.LAZY_TYPE_RESOLVER;
+    }  
+    return getGosuType(LazyTypeResolver.class);
   }
 
   private IType IBLOCK = null;

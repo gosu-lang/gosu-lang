@@ -6,7 +6,7 @@ package gw.internal.gosu.ir.transform.expression;
 
 import gw.config.CommonServices;
 import gw.internal.gosu.coercer.FunctionToInterfaceClassGenerator;
-import gw.internal.gosu.compiler.FunctionClassUtil;
+import gw.util.FunctionClassUtil;
 import gw.internal.gosu.ir.nodes.IRTypeFactory;
 import gw.internal.gosu.ir.nodes.JavaClassIRType;
 import gw.internal.gosu.parser.TypeLord;

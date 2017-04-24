@@ -20,7 +20,7 @@ import gw.lang.reflect.IHasJavaClass;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.gs.BytecodeOptions;
-import gw.lang.reflect.gs.GosuClassPathThing;
+import gw.lang.reflect.gs.GosuBootstrap;
 import gw.lang.reflect.gs.ICompilableType;
 import gw.lang.reflect.gs.IGosuClassLoader;
 import gw.lang.reflect.gs.IGosuProgram;
@@ -29,6 +29,7 @@ import gw.lang.reflect.java.IJavaBackedType;
 import gw.lang.reflect.java.IJavaType;
 import gw.lang.reflect.java.JavaTypes;
 import gw.lang.reflect.module.TypeSystemLockHelper;
+import gw.util.FunctionClassUtil;
 import gw.util.GosuExceptionUtil;
 
 import java.io.IOException;
@@ -337,7 +338,7 @@ public class GosuClassLoader implements IGosuClassLoader
   {
     try
     {
-      GosuClassPathThing.init();
+      GosuBootstrap.init();
 
       String strJavaClass = gsClass.getJavaName();
       Class cls = _loader.loadClass( strJavaClass );

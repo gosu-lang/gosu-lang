@@ -17,7 +17,7 @@ import gw.lang.reflect.IInjectableClassLoader;
 import gw.lang.reflect.INonLoadableType;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.TypeSystem;
-import gw.lang.reflect.gs.GosuClassPathThing;
+import gw.lang.reflect.gs.GosuBootstrap;
 import gw.lang.reflect.gs.ICompilableType;
 import gw.lang.reflect.gs.IGosuProgram;
 import gw.lang.reflect.gs.ISourceFileHandle;
@@ -151,7 +151,7 @@ public class GosuClassesUrlConnection extends URLConnection {
       }
       if( type instanceof ICompilableType ) {
         if( !isInSingleServingLoader( type.getEnclosingType() ) ) {
-          if( !GosuClassPathThing.canWrapChain() ) {
+          if( !GosuBootstrap.canWrapChain() ) {
             if( !hasClassFileOnDiskInParentLoaderPath( loader, type ) ) {
               _type = (ICompilableType)type;
               _loader = loader;

@@ -40,14 +40,26 @@ import static javax.lang.model.SourceVersion.RELEASE_8;
 @SupportedAnnotationTypes({})
 public class JavacJacker extends AbstractProcessor
 {
+  private static JavacJacker INSTANCE = null;
+
   public static final String GOSU_SOURCE_FILES = "gosu.source.files";
 
   private JavacProcessingEnvironment _jpe;
   private Context _ctx;
-  private JavaCompiler _javaCompiler;
+  private GosuJavaFileManager _gosuFileManager;
   private JavaFileManager _fileManager;
   private Set<JavaFileObject> _javaInputFiles;
   private List<String> _gosuInputFiles;
+
+  static JavacJacker instancne()
+  {
+    return INSTANCE;
+  }
+
+  public JavacJacker()
+  {
+    INSTANCE = this;
+  }
 
   @Override
   public synchronized void init( ProcessingEnvironment processingEnv )
@@ -55,12 +67,22 @@ public class JavacJacker extends AbstractProcessor
     super.init( processingEnv );
     _jpe = (JavacProcessingEnvironment)processingEnv;
     _ctx = _jpe.getContext();
-    _javaCompiler = JavaCompiler.instance( _ctx );
     _fileManager = _ctx.get( JavaFileManager.class );
     _javaInputFiles = fetchJavaInputFiles();
     _gosuInputFiles = fetchGosuInputFiles();
+    //JavacTask.instance( _jpe );
 
     hijackJavacFileManager();
+  }
+
+  GosuJavaFileManager getGosuFileManager()
+  {
+    return _gosuFileManager;
+  }
+
+  JavaFileManager getJavaFileManager()
+  {
+    return _fileManager;
   }
 
   private void hijackJavacFileManager()
@@ -78,9 +100,9 @@ public class JavacJacker extends AbstractProcessor
 
   private void injectGosuFileManager()
   {
-    GosuJavaFileManager gosuFileManager = new GosuJavaFileManager( _fileManager, true );
+    _gosuFileManager = new GosuJavaFileManager( _fileManager, true );
     _ctx.put( JavaFileManager.class, (JavaFileManager)null );
-    _ctx.put( JavaFileManager.class, gosuFileManager );
+    _ctx.put( JavaFileManager.class, _gosuFileManager );
   }
 
   private IGosuCompiler initializeGosu()
@@ -223,10 +245,11 @@ public class JavacJacker extends AbstractProcessor
   {
     try
     {
-      Field field = _javaCompiler.getClass().getDeclaredField( "inputFiles" );
+      JavaCompiler javaCompiler = JavaCompiler.instance( _ctx );
+      Field field = javaCompiler.getClass().getDeclaredField( "inputFiles" );
       field.setAccessible( true );
       //noinspection unchecked
-      return (Set<JavaFileObject>)field.get( _javaCompiler );
+      return (Set<JavaFileObject>)field.get( javaCompiler );
     }
     catch( Exception e )
     {

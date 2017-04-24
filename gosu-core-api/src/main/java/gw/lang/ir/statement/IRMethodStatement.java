@@ -12,8 +12,9 @@ import gw.lang.ir.IRStatement;
 import gw.lang.ir.IRSymbol;
 import gw.lang.ir.IRType;
 import gw.lang.ir.SignatureUtil;
-import gw.lang.reflect.ICompoundType;
+import gw.lang.reflect.IFunctionType;
 import gw.lang.reflect.IType;
+import gw.lang.reflect.Modifier;
 import gw.lang.reflect.gs.IGenericTypeVariable;
 import gw.lang.reflect.java.JavaTypes;
 import gw.util.GosuStringUtil;
@@ -50,11 +51,11 @@ public class IRMethodStatement extends IRStatement {
     _annotations = Collections.emptyList();
     setParentToThis( methodBody );
     _annotationDefault = annotationDefault;
-    _genericSignature = makeGenericSignature( methodType, returnIType, argTypes );
+    _genericSignature = makeGenericSignature( (IFunctionType)methodType, returnIType, argTypes );
   }
 
-  private String makeGenericSignature(IType type, IType rtype, IType[] args) {
-    if( type == null || rtype == null || args == null ) {
+  private String makeGenericSignature( IFunctionType funcType, IType rtype, IType[] args) {
+    if( funcType == null || rtype == null || args == null ) {
       return null;
     }
     /*
@@ -62,37 +63,9 @@ public class IRMethodStatement extends IRStatement {
     */
     boolean[] bGeneric = {false};
     SignatureWriter sw = new SignatureWriter();
-    if( type.isGenericType() ) {
-      bGeneric[0] = true;
-      for( IGenericTypeVariable tv: type.getGenericTypeVariables() ) {
-        sw.visitFormalTypeParameter( tv.getName() );
-        IType boundingType = tv.getBoundingType();
-        if( boundingType != null ) {
-          IType[] types;
-          if( boundingType instanceof ICompoundType) {
-            types = ((ICompoundType) boundingType).getTypes().toArray(new IType[0]);
-          } else {
-            types = new IType[] {boundingType};
-          }
-          SignatureVisitor sv;
-          for(int i = types.length-1; i >= 0 ; i--) {
-            if( types[i].isInterface() ) {
-              sv = sw.visitInterfaceBound();
-            }
-            else {
-              sv = sw.visitClassBound();
-            }
-            SignatureUtil.visitType( sv, SignatureUtil.getPureGenericType(types[i]), bGeneric );
-          }
-        }
-        else {
-          SignatureVisitor sv = sw.visitClassBound();
-          SignatureUtil.visitType( sv, JavaTypes.OBJECT(), bGeneric );
-        }
-      }
-    }
-    SignatureVisitor sv;
-    sv = sw.visitParameterType();
+    SignatureUtil.visitGenericType( sw, funcType, bGeneric );
+    SignatureVisitor sv = sw.visitParameterType();
+    handleReifiedParams( sv, funcType, bGeneric );
     for( IType arg : args ) {
       SignatureUtil.visitType( sv, arg, bGeneric );
     }
@@ -102,6 +75,19 @@ public class IRMethodStatement extends IRStatement {
       return sw.toString();
     }
     return null;
+  }
+
+  private void handleReifiedParams( SignatureVisitor sv, IFunctionType funcType, boolean[] bGeneric )
+  {
+    if( !funcType.isGenericType() ) {
+      return;
+    }
+
+    if( getName().equals( "<init>" ) || (funcType.getModifiers() & Modifier.REIFIED) != 0 ) {
+      for( IGenericTypeVariable tv: funcType.getGenericTypeVariables() ) {
+        SignatureUtil.visitType( sv, JavaTypes.LAZY_TYPE_RESOLVER(), bGeneric );
+      }
+    }
   }
 
   public IRStatement getMethodBody() {

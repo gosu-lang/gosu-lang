@@ -340,7 +340,7 @@ public class JavaStubGenerator
 
   private void genMethods( StringBuilder sb, IGosuClassInternal gsClass, GosuClassParseInfo parseInfo, int indent )
   {
-    sb.append( "\n" ).append( indent( sb, indent )).append( "// inner methods //\n" );
+    sb.append( "\n" ).append( indent( sb, indent )).append( "// methods //\n" );
 
     genMethods( sb, gsClass, parseInfo.getStaticFunctions(), indent );
     genMethods( sb, gsClass, parseInfo.getMemberFunctions().values(), indent );

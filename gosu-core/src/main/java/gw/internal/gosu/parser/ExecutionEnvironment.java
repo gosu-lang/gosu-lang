@@ -30,7 +30,7 @@ import gw.lang.reflect.IType;
 import gw.lang.reflect.ITypeRef;
 import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.gs.BytecodeOptions;
-import gw.lang.reflect.gs.GosuClassPathThing;
+import gw.lang.reflect.gs.GosuBootstrap;
 import gw.lang.reflect.gs.GosuClassTypeLoader;
 import gw.lang.reflect.java.JavaTypes;
 import gw.lang.reflect.module.Dependency;
@@ -305,7 +305,7 @@ public class ExecutionEnvironment implements IExecutionEnvironment
         m.getModuleTypeLoader().reset();
         m.configurePaths( Collections.emptyList(), Collections.emptyList(), Collections.emptyList() );
 
-        GosuClassPathThing.cleanup();
+        GosuBootstrap.cleanup();
       }
 
       _jreModule = null;

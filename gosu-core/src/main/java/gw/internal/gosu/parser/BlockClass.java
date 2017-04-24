@@ -5,7 +5,7 @@
 package gw.internal.gosu.parser;
 
 import gw.config.CommonServices;
-import gw.internal.gosu.compiler.FunctionClassUtil;
+import gw.util.FunctionClassUtil;
 import gw.internal.gosu.parser.expressions.BeanMethodCallExpression;
 import gw.internal.gosu.parser.expressions.BlockExpression;
 import gw.internal.gosu.parser.expressions.Identifier;

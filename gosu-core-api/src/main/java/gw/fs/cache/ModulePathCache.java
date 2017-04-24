@@ -33,11 +33,11 @@ public class ModulePathCache
   private PathCache makePathCache( IModule module )
   {
     return new PathCache( module,
-                          () ->
-                            module.getSourcePath().stream()
-                              .filter( dir -> Arrays.stream( module.getFileRepository().getExcludedPath() )
-                                .allMatch( excludeDir -> !excludeDir.equals( dir ) ) )
-                              .collect( Collectors.toList() ),
-                          () -> _cacheByModule.get( module ).clear() );
+      () ->
+        module.getSourcePath().stream()
+          .filter( dir -> Arrays.stream( module.getFileRepository().getExcludedPath() )
+            .noneMatch( excludeDir -> excludeDir.equals( dir ) ) )
+          .collect( Collectors.toList() ),
+      () -> _cacheByModule.get( module ).clear() );
   }
 }

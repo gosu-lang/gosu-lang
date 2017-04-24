@@ -2,13 +2,13 @@
  * Copyright 2014 Guidewire Software, Inc.
  */
 
-package gw.internal.gosu.compiler;
+package gw.util;
 
 import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.java.IJavaType;
 import gw.lang.function.IBlock;
 
-public class FunctionClassUtil extends ClassLoader
+public class FunctionClassUtil
 {
   public static final String FUNCTION_PACKAGE = "gw.lang.function";
   public static final String FUNCTION_CLASS_PREFIX = FUNCTION_PACKAGE + ".Function";
