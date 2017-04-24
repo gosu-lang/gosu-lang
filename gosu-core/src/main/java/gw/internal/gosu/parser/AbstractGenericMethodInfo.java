@@ -22,6 +22,7 @@ import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.gs.IGenericTypeVariable;
 import gw.lang.reflect.gs.IGosuClass;
 
+import gw.util.GosuCollectionUtil;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -276,19 +277,20 @@ public class AbstractGenericMethodInfo extends GosuBaseAttributedFeatureInfo imp
 
   public List<IExceptionInfo> getExceptions() {
     if (_exceptions == null) {
-      _exceptions = Collections.emptyList();
+      List<IExceptionInfo> exceptions = Collections.emptyList();
       List<IAnnotationInfo> annotations = getAnnotationsOfType(TypeSystem.getByFullName("gw.lang.Throws"));
       if (annotations != null) {
         for (IAnnotationInfo annotation : annotations) {
           Throws throwsInstance = (Throws) annotation.getInstance();
           if (throwsInstance != null) {
-            if( _exceptions.isEmpty() ) {
-              _exceptions = new ArrayList<IExceptionInfo>( 2 );
+            if( exceptions.isEmpty() ) {
+              exceptions = new ArrayList<>( 2 );
             }
-            _exceptions.add(new GosuExceptionInfo(this, throwsInstance.ExceptionType().getName(), throwsInstance.ExceptionDescription()));
+            exceptions.add( new GosuExceptionInfo( this, throwsInstance.ExceptionType().getName(), throwsInstance.ExceptionDescription()));
           }
         }
       }
+      _exceptions = GosuCollectionUtil.compactAndLockList( exceptions );
     }
     return _exceptions;
   }
