@@ -17,13 +17,14 @@ import java.io.IOException;
 import java.io.StringWriter;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import javax.tools.DiagnosticCollector;
 import javax.tools.JavaCompiler;
+import javax.tools.JavaFileManager;
 import javax.tools.JavaFileObject;
 import javax.tools.StandardJavaFileManager;
 import javax.tools.StandardLocation;
@@ -43,37 +44,47 @@ public class JavaParser implements IJavaParser
   }
 
   private JavaCompiler _javac;
-  private StandardJavaFileManager _fileManager;
+  private JavaFileManager _fileManager;
   private GosuJavaFileManager _gfm;
 
   private JavaParser()
   {
   }
 
-
   private void init()
   {
     if( _javac == null )
     {
       _javac = JavacTool.create();
-      _fileManager = _javac.getStandardFileManager( null, null, Charset.forName( "UTF-8" ) );
 
-
-      //JavaFileObject compilationUnit = new StringJavaFileObject( fqn, src );
-
-      try
+      JavacJacker javacJacker = JavacJacker.instancne();
+      if( javacJacker != null )
       {
-        IModule globalModule = TypeSystem.getGlobalModule();
-        if( globalModule != null )
-        {
-          _fileManager.setLocation( StandardLocation.SOURCE_PATH, globalModule.getSourcePath().stream().map( IResource::toJavaFile ).collect( Collectors.toList() ) );
-          _fileManager.setLocation( StandardLocation.CLASS_PATH, globalModule.getJavaClassPath().stream().map( IResource::toJavaFile ).collect( Collectors.toList() ) );
-        }
-        _gfm = new GosuJavaFileManager( _fileManager, false );
+        // Share our existing Gosu file manager from Javac
+
+        _fileManager = javacJacker.getJavaFileManager();
+        _gfm = javacJacker.getGosuFileManager();
       }
-      catch( IOException e )
+      else
       {
-        throw new RuntimeException( e );
+        // Make a new Gosu file manager exclusively for this JavaParser
+
+        _fileManager = _javac.getStandardFileManager( null, null, Charset.forName( "UTF-8" ) );
+
+        try
+        {
+          IModule globalModule = TypeSystem.getGlobalModule();
+          if( globalModule != null )
+          {
+            ((StandardJavaFileManager)_fileManager).setLocation( StandardLocation.SOURCE_PATH, globalModule.getSourcePath().stream().map( IResource::toJavaFile ).collect( Collectors.toList() ) );
+            ((StandardJavaFileManager)_fileManager).setLocation( StandardLocation.CLASS_PATH, globalModule.getJavaClassPath().stream().map( IResource::toJavaFile ).collect( Collectors.toList() ) );
+          }
+          _gfm = new GosuJavaFileManager( _fileManager, false );
+        }
+        catch( IOException e )
+        {
+          throw new RuntimeException( e );
+        }
       }
     }
   }
@@ -91,7 +102,7 @@ public class JavaParser implements IJavaParser
       }
 
       StringWriter errors = new StringWriter();
-      JavaCompiler.CompilationTask task = _javac.getTask( errors, _fileManager, errorHandler, Arrays.asList( "-proc:none" ), null, Arrays.asList( pair.getFirst() ) );
+      JavaCompiler.CompilationTask task = _javac.getTask( errors, _fileManager, errorHandler, Collections.singletonList( "-proc:none" ), null, Collections.singletonList( pair.getFirst() ) );
       JavacTaskImpl javacTask = (JavacTaskImpl)task;
       Iterable<? extends CompilationUnitTree> iterable = javacTask.parse();
       for( CompilationUnitTree x : iterable )
@@ -115,7 +126,7 @@ public class JavaParser implements IJavaParser
       ArrayList<JavaFileObject> javaStringObjects = new ArrayList<>();
       javaStringObjects.add( new StringJavaFileObject( "sample", src ) );
       StringWriter errors = new StringWriter();
-      JavaCompiler.CompilationTask task = _javac.getTask( errors, _fileManager, errorHandler, Arrays.asList( "-proc:none" ), null, javaStringObjects );
+      JavaCompiler.CompilationTask task = _javac.getTask( errors, _fileManager, errorHandler, Collections.singletonList( "-proc:none" ), null, javaStringObjects );
       JavacTaskImpl javacTask = (JavacTaskImpl)task;
       Iterable<? extends CompilationUnitTree> iterable = javacTask.parse();
       for( CompilationUnitTree x : iterable )
@@ -159,7 +170,7 @@ public class JavaParser implements IJavaParser
     }
 
     StringWriter errors = new StringWriter();
-    JavaCompiler.CompilationTask compilationTask = _javac.getTask( errors, _gfm, errorHandler, options, null, Arrays.asList( fileObj.getFirst() ) );
+    JavaCompiler.CompilationTask compilationTask = _javac.getTask( errors, _gfm, errorHandler, options, null, Collections.singletonList( fileObj.getFirst() ) );
     compilationTask.call();
     return _gfm.findCompiledFile( fileObj.getSecond() );
   }
@@ -172,7 +183,7 @@ public class JavaParser implements IJavaParser
     init();
 
     StringWriter errors = new StringWriter();
-    JavaCompiler.CompilationTask compilationTask = _javac.getTask( errors, _gfm, errorHandler, options, null, Arrays.asList( jfo ) );
+    JavaCompiler.CompilationTask compilationTask = _javac.getTask( errors, _gfm, errorHandler, options, null, Collections.singletonList( jfo ) );
     compilationTask.call();
     return _gfm.findCompiledFile( fqn );
   }

@@ -15,7 +15,8 @@ import java.util.Hashtable;
 
 /**
  */
-public class GosuClassPathThing {
+public class GosuBootstrap
+{
   public static final String GOSU_CLASS_PROTOCOL = "gosuclass";
   private static final String PROTOCOL_PACKAGE = "gw.internal.gosu.compiler.protocols";
 

@@ -399,8 +399,8 @@ public class GosuCompiler implements IGosuCompiler
       File file = new File( javaFile.toUri() );
       String enclosingName = file.getName().substring( 0, file.getName().lastIndexOf( '.' ) );
       String innerName = innerClass.getRelativeName();
-      javaFile = driver.createClassFile( getPackage( gosuClass ) + '.' + enclosingName + '$' + innerName );
-      populateGosuClassFile( javaFile, innerClass, driver );
+      JavaFileObject innerFile = driver.createClassFile( getPackage( gosuClass ) + '.' + enclosingName + '$' + innerName );
+      populateGosuClassFile( innerFile, innerClass, driver );
     }
   }
 

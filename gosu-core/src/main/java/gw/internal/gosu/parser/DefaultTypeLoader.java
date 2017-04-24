@@ -18,7 +18,7 @@ import gw.lang.reflect.RefreshKind;
 import gw.lang.reflect.RefreshRequest;
 import gw.lang.reflect.SimpleTypeLoader;
 import gw.lang.reflect.TypeSystem;
-import gw.lang.reflect.gs.GosuClassPathThing;
+import gw.lang.reflect.gs.GosuBootstrap;
 import gw.lang.reflect.gs.IGosuClassLoader;
 import gw.lang.reflect.gs.IGosuObject;
 import gw.lang.reflect.gs.ISourceFileHandle;
@@ -416,7 +416,7 @@ public class DefaultTypeLoader extends SimpleTypeLoader implements IExtendedType
   public IGosuClassLoader getGosuClassLoader() {
     if (_gosuClassLoader == null) {
       _gosuClassLoader = new GosuClassLoader(_module.getModuleClassLoader());
-      GosuClassPathThing.init();
+      GosuBootstrap.init();
     }
     return _gosuClassLoader;
   }
@@ -431,7 +431,7 @@ public class DefaultTypeLoader extends SimpleTypeLoader implements IExtendedType
         _classCache.reassignClassLoader();
       }
       _gosuClassLoader.assignParent( _module.getModuleClassLoader() );
-      GosuClassPathThing.init();
+      GosuBootstrap.init();
     }
   }
 

@@ -1,5 +1,7 @@
 package gw.internal.gosu.parser.java.compiler;
 
+import gw.fs.cache.ModulePathCache;
+import gw.fs.cache.PathCache;
 import gw.internal.gosu.parser.GosuClass;
 import gw.lang.ir.SignatureUtil;
 import gw.lang.javac.InMemoryClassJavaFileObject;
@@ -100,6 +102,11 @@ class GosuJavaFileManager extends ForwardingJavaFileManager<JavaFileManager> imp
           continue;
         }
 
+        if( isClassFile( tn ) )
+        {
+          continue;
+        }
+
         if( tn.kind == TypeName.Kind.NAMESPACE )
         {
           if( recurse )
@@ -120,6 +127,18 @@ class GosuJavaFileManager extends ForwardingJavaFileManager<JavaFileManager> imp
       list = newList;
     }
     return list;
+  }
+
+  private boolean isClassFile( TypeName tn )
+  {
+    String fqn = tn.name;
+    int iDollar = fqn.indexOf( '$' );
+    if( iDollar > 0 )
+    {
+      fqn = fqn.substring( 0, iDollar );
+    }
+    PathCache pathCache = ModulePathCache.instance().get( TypeSystem.getCurrentModule() );
+    return pathCache.getExtensionCache( "class" ).get( fqn ) != null;
   }
 
   private JavaFileObject findGeneratedFile( String fqn, IModule module )

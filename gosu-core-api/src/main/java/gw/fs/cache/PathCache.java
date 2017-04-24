@@ -8,17 +8,21 @@ import gw.lang.reflect.RefreshRequest;
 import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.json.Json;
 import gw.lang.reflect.module.IModule;
+import gw.util.Extensions;
 import gw.util.cache.FqnCache;
-import gw.util.cache.FqnCacheNode;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
 
 /**
  */
-public class PathCache extends FqnCache<IFile>
+public class PathCache
 {
   @SuppressWarnings({"FieldCanBeLocal", "UnusedDeclaration"})
   private CacheClearer _clearer;
@@ -43,12 +47,54 @@ public class PathCache extends FqnCache<IFile>
     Map<String, FqnCache<IFile>> filesByExtension = new ConcurrentHashMap<>();
     for( IDirectory sourceEntry : _pathSupplier.get() )
     {
-      if( sourceEntry.exists() )
+      if( hasSourceFiles( sourceEntry ) )
       {
         addFilesInDir( "", sourceEntry, filesByExtension );
       }
     }
     _filesByExtension = filesByExtension;
+  }
+
+  /**
+   * Avoid including dependency jar files that are not meant to be scanned for source files
+   */
+  private boolean hasSourceFiles( IDirectory root )
+  {
+    if( !root.exists() )
+    {
+      return false;
+    }
+
+//    if( root.toString().contains( File.separator + "gosu-" ) )
+//    {
+//      return false;
+//    }
+
+    return !Extensions.containsManifest( root ) ||
+           !Extensions.getExtensions( root, Extensions.CONTAINS_SOURCES ).isEmpty() ||
+           // Weblogic packages all WEB-INF/classes content into this JAR
+           // http://middlewaremagic.com/weblogic/?p=408
+           // http://www.coderanch.com/t/69641/BEA-Weblogic/wl-cls-gen-jar-coming
+           // So we need to always treat it as containing sources
+           root.getName().equals( "_wl_cls_gen.jar" );
+  }
+
+  public Set<IFile> findFiles( String fqn )
+  {
+    Set<IFile> result = Collections.emptySet();
+    for( String ext: _filesByExtension.keySet() )
+    {
+      IFile file = _filesByExtension.get( ext ).get( fqn );
+      if( file != null )
+      {
+        if( result.isEmpty() )
+        {
+          result = new HashSet<>( 2 );
+        }
+        result.add( file );
+      }
+    }
+    return result;
   }
 
   public FqnCache<IFile> getExtensionCache( String extension )
@@ -66,20 +112,6 @@ public class PathCache extends FqnCache<IFile>
     return _reverseMap.get( file );
   }
 
-  @Override
-  protected void updateReverseMap( FqnCacheNode<IFile> node, IFile prev )
-  {
-    IFile newValue = node.getUserData();
-    if( newValue == null )
-    {
-      _reverseMap.remove( prev, node.getFqn() );
-    }
-    else
-    {
-      _reverseMap.put( newValue, node.getFqn() );
-    }
-  }
-
   private void addFilesInDir( String relativePath, IDirectory dir, Map<String, FqnCache<IFile>> filesByExtension )
   {
     if( !CommonServices.getPlatformHelper().isPathIgnored( relativePath ) )
@@ -93,7 +125,6 @@ public class PathCache extends FqnCache<IFile>
           simpleName = simpleName.substring( 0, iDot );
         }
         String fqn = appendResourceNameToPath( relativePath, simpleName );
-        add( fqn, file );
         addToExtension( fqn, file, filesByExtension );
       }
       for( IDirectory subdir : dir.listDirs() )
@@ -138,10 +169,8 @@ public class PathCache extends FqnCache<IFile>
     return path;
   }
 
-  @Override
   public void clear()
   {
-    super.clear();
     _filesByExtension.clear();
     _reverseMap = new ConcurrentHashMap<>();
   }
@@ -170,7 +199,7 @@ public class PathCache extends FqnCache<IFile>
         {
           Arrays.stream( request.types ).forEach(
             fqn -> {
-              add( fqn, request.file );
+              _reverseMap.put( request.file, fqn );
               addToExtension( fqn, request.file, _filesByExtension );
             } );
           break;
@@ -180,7 +209,7 @@ public class PathCache extends FqnCache<IFile>
         {
           Arrays.stream( request.types ).forEach(
             fqn -> {
-              remove( fqn );
+              _reverseMap.remove( request.file );
               removeFromExtension( fqn, request.file, _filesByExtension );
             } );
           break;
