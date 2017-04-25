@@ -1,6 +1,5 @@
 package gw.lang.reflect.gs;
 
-import gw.config.IService;
 import gw.fs.IFile;
 import gw.lang.reflect.IFileConnected;
 import gw.lang.reflect.ITypeLoader;
@@ -9,8 +8,17 @@ import java.util.Set;
 
 /**
  */
-public interface ISourceProducer extends IFileConnected, IService
+public interface ISourceProducer extends IFileConnected
 {
+  /**
+   * Supported kinds of source.
+   */
+  enum SourceKind
+  {
+    Java,
+    Gosu
+  }
+
   /**
    * The TypeLoader to which this producer is scoped
    */
@@ -50,21 +58,10 @@ public interface ISourceProducer extends IFileConnected, IService
   Collection<String> getAllTypeNames();
   Collection<TypeName> getTypeNames( String namespace );
 
-  void invalidate();
-
   IFile findFileForType( String fqn );
 
   /**
    * Clear all cached data
    */
   void clear();
-
-  /**
-   * Supported kinds of source.
-   */
-  enum SourceKind
-  {
-    Java,
-    Gosu
-  }
 }

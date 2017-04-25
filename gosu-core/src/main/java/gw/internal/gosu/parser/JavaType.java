@@ -34,7 +34,6 @@ import gw.util.perf.objectsize.IObjectSizeFilter;
 import gw.util.perf.objectsize.ObjectSize;
 import gw.util.perf.objectsize.ObjectSizeUtil;
 import gw.util.perf.objectsize.UnmodifiableArraySet;
-
 import java.beans.MethodDescriptor;
 import java.io.InvalidClassException;
 import java.io.ObjectStreamException;
@@ -1461,11 +1460,16 @@ class JavaType extends InnerClassCapableType implements IJavaTypeInternal
   }
 
   @Override
-  public IFile[] getSourceFiles() {
-    if (getSourceFileHandle() == null) {
+  public IFile[] getSourceFiles()
+  {
+    if( getSourceFileHandle() == null )
+    {
       return IFile.EMPTY_ARRAY;
-    } else {
-      return new IFile[] {getSourceFileHandle().getFile()};
+    }
+    else
+    {
+      IFile file = getSourceFileHandle().getFile();
+      return file == null ? IFile.EMPTY_ARRAY : new IFile[]{file};
     }
   }
 

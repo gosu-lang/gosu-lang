@@ -5,6 +5,7 @@
 package gw.internal.gosu.parser;
 
 import gw.config.ExecutionMode;
+import gw.config.IService;
 import gw.fs.IDirectory;
 import gw.internal.gosu.compiler.GosuClassLoader;
 import gw.internal.gosu.parser.java.classinfo.JavaSourceClass;
@@ -509,7 +510,7 @@ public class DefaultTypeLoader extends SimpleTypeLoader implements IExtendedType
         throw new RuntimeException( e );
       }
 
-      doForAllSourceProviders( sp -> impls.addAll( sp.getInterface( apiInterface ) ) );
+      doForAllSourceProviders( sp -> {if( sp instanceof IService ) impls.addAll( ((IService)sp).getInterface( apiInterface ) );} );
 
       return impls;
     }
