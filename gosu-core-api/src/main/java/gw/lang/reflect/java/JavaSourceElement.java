@@ -78,7 +78,7 @@ public abstract class JavaSourceElement
     try
     {
       ISourceFileHandle sfh = getDeclaringClass().getSourceFileHandle();
-      if( sfh != null )
+      if( sfh != null && sfh.getFile() != null )
       {
         _location = new LocationInfo( startPos, endPos - startPos, -1, -1, sfh.getFile().toURI().toURL() );
       }

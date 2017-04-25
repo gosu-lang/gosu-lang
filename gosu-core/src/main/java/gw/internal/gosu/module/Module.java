@@ -13,7 +13,6 @@ import gw.internal.gosu.parser.FileSystemGosuClassRepository;
 import gw.internal.gosu.parser.IModuleClassLoader;
 import gw.internal.gosu.parser.ModuleClassLoader;
 import gw.internal.gosu.parser.ModuleTypeLoader;
-import gw.internal.gosu.properties.PropertiesSourceProducer;
 import gw.lang.parser.ILanguageLevel;
 import gw.lang.reflect.ITypeLoader;
 import gw.lang.reflect.TypeSystem;

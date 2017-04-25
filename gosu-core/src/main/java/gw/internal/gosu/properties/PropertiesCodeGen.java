@@ -21,6 +21,7 @@ import gw.lang.reflect.SourcePosition;
 import gw.lang.reflect.java.JavaTypes;
 import gw.util.GosuClassUtil;
 import gw.util.StreamUtil;
+import gw.util.cache.FqnCache;
 import gw.util.cache.FqnCacheNode;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -32,17 +33,17 @@ import static gw.lang.javac.gen.SrcClass.Kind.Class;
 
 /**
  */
-public class PropertiesSource
+public class PropertiesCodeGen
 {
   private static final String FIELD_FILE_URL = "__FILE_URL_";
   private final String _fqn;
   private final String _content;
-  private final PropertySet _propertiesSet;
+  private final FqnCache<String> _model;
   private IFile _file;
 
-  public PropertiesSource( PropertySet propertiesSet, IFile file, String fqn )
+  public PropertiesCodeGen( FqnCache<String> model, IFile file, String fqn )
   {
-    _propertiesSet = propertiesSet;
+    _model = model;
     _file = file;
     _fqn = fqn;
     _content = assignContent();
@@ -50,12 +51,11 @@ public class PropertiesSource
 
   public SrcClass make()
   {
-    FqnCacheNode<String> node = PropertiesSourceProducer.buildCache( _propertiesSet );
     SrcClass srcClass = new SrcClass( _fqn, Class );
 
-    addLocationAndPropertiesFileUrlField( srcClass, node );
+    addLocationAndPropertiesFileUrlField( srcClass, _model );
 
-    return make( srcClass, node );
+    return make( srcClass, _model );
   }
 
   private void addLocationAndPropertiesFileUrlField( SrcClass srcClass, FqnCacheNode<String> node )
@@ -65,7 +65,7 @@ public class PropertiesSource
       return;
     }
 
-    srcClass.annotation( addSourcePositionAnnotation( node, true ) );
+    srcClass.annotation( addSourcePositionAnnotation( node ) );
 
     srcClass.addField(
       new SrcField( srcClass )
@@ -89,7 +89,7 @@ public class PropertiesSource
                       : new SrcRawExpression( "new " + type + "()" ) );
       if( _file != null )
       {
-        propertyField.annotation( addSourcePositionAnnotation( childNode, false ) );
+        propertyField.annotation( addSourcePositionAnnotation( childNode ) );
       }
       srcClass.addField( propertyField );
       if( !childNode.isLeaf() )
@@ -116,12 +116,10 @@ public class PropertiesSource
     }
   }
 
-  private SrcAnnotationExpression addSourcePositionAnnotation( FqnCacheNode<String> node, boolean qualified )
+  private SrcAnnotationExpression addSourcePositionAnnotation( FqnCacheNode<String> node )
   {
     return new SrcAnnotationExpression( SourcePosition.class.getSimpleName() )
-      .addArgument( new SrcArgument( qualified
-                                     ? new SrcMemberAccessExpression( GosuClassUtil.getShortClassName( _fqn ), FIELD_FILE_URL ).name( "url" )
-                                     : new SrcIdentifier( FIELD_FILE_URL ) ).name( "url" ) )
+      .addArgument( new SrcArgument( new SrcMemberAccessExpression( GosuClassUtil.getShortClassName( _fqn ), FIELD_FILE_URL ) ).name( "url" ) )
       .addArgument( "offset", int.class, findOffsetOf( node ) )
       .addArgument( "length", int.class, node.getName() == null ? 0 : node.getName().length() );
   }

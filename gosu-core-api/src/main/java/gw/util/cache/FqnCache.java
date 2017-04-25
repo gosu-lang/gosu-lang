@@ -9,6 +9,7 @@ import gw.lang.parser.TypeSystemAwareCache;
 import gw.util.DynamicArray;
 import gw.util.concurrent.Cache;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 public class FqnCache<T> extends FqnCacheNode<T> implements IFqnCache<T> {
@@ -70,6 +71,16 @@ public class FqnCache<T> extends FqnCacheNode<T> implements IFqnCache<T> {
       n = n.getOrCreateChild(part);
     }
     n.setUserData(userData);
+  }
+
+  public void addAll( FqnCache<T> from )
+  {
+    from.getFqns().forEach( fqn -> add( fqn, from.get( fqn ) ) );
+  }
+
+  public void addAll( Map<String, T> from )
+  {
+    from.keySet().forEach( fqn -> add( fqn, from.get( fqn ) ) );
   }
 
   @Override
