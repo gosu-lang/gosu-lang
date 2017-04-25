@@ -21,6 +21,11 @@ import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 
+/**
+ * A base class for a source producer that is based on a resource file of a specific extension.
+ *
+ * @param <M> The model you derive backing production of source code.
+ */
 public abstract class ResourceFileSourceProducer<M> extends BaseService implements ISourceProducer
 {
   private final ITypeLoader _typeLoader;
@@ -31,6 +36,22 @@ public abstract class ResourceFileSourceProducer<M> extends BaseService implemen
   @SuppressWarnings("all")
   private final CacheClearer _cacheClearer;
 
+  /**
+   * @param typeLoader The typeloader passed into the ISourceProvider implementation constructor
+   * @param extension The extension of the resource file this source producer handles
+   * @param modelMapper A function to provide a model given a qualified name and resource file
+   */
+  public ResourceFileSourceProducer( ITypeLoader typeLoader, String extension, BiFunction<String, IFile, M> modelMapper )
+  {
+    this( typeLoader, extension, modelMapper, null, null );
+  }
+  /**
+   * @param typeLoader The typeloader passed into the ISourceProvider implementation constructor
+   * @param extension The extension of the resource file this source producer handles
+   * @param modelMapper A function to provide a model given a qualified name and resource file
+   * @param typeFactoryFqn For Gosu Lab.  Optional.
+   * @param peripheralTypes A map of name-to-model peripheral to the main map of name-to-model, possibly including types that are not file-based. Optional.
+   */
   public ResourceFileSourceProducer( ITypeLoader typeLoader, String extension, BiFunction<String, IFile, M> modelMapper,
                                      String typeFactoryFqn, Map<String, LocklessLazyVar<M>> peripheralTypes )
   {
@@ -182,8 +203,12 @@ public abstract class ResourceFileSourceProducer<M> extends BaseService implemen
   {
     String topLevel = findTopLevelFqn( fqn );
     LocklessLazyVar<M> lazyModel = _fqnToModel.get().get( topLevel );
+
     String source = produce( topLevel, lazyModel.get() );
+
+    // Now remove the model since we don't need it anymore
     lazyModel.clear();
+
     return source;
   }
 
