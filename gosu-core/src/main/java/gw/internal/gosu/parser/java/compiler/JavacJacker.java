@@ -194,8 +194,15 @@ public class JavacJacker extends AbstractProcessor
         }
       }
       TypeElement type = findType( inputFile );
-      String path = derivePath( type, inputFile );
-      sourcePath.add( path );
+      if( type != null )
+      {
+        String path = derivePath( type, inputFile );
+        sourcePath.add( path );
+      }
+      else
+      {
+        System.err.println( "Could not find type for file: " + inputFile );
+      }
     }
   }
 
