@@ -83,7 +83,7 @@ public class JavaTypeFactory implements ITypeFactory
     DiagnosticCollector<JavaFileObject> errorHandler = new DiagnosticCollector<>();
     IJavaParser javaParser = GosuParserFactory.getInterface( IJavaParser.class ).get( 0 );
     StringJavaFileObject fileObj = new StringJavaFileObject( type.getName(), strText );
-    javaParser.compile( fileObj, type.getName(), Arrays.asList( "-g", "-Xlint:unchecked", "-parameters" ), errorHandler );
+    javaParser.compile( fileObj, type.getName(), Arrays.asList( "-g", "-proc:none", "-Xlint:unchecked", "-parameters" ), errorHandler );
     EventQueue.invokeLater(
       () ->
       {
