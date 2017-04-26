@@ -119,7 +119,7 @@ public class PropertiesCodeGen
   private SrcAnnotationExpression addSourcePositionAnnotation( FqnCacheNode<String> node )
   {
     return new SrcAnnotationExpression( SourcePosition.class.getSimpleName() )
-      .addArgument( new SrcArgument( new SrcMemberAccessExpression( GosuClassUtil.getShortClassName( _fqn ), FIELD_FILE_URL ) ).name( "url" ) )
+      .addArgument( new SrcArgument( new SrcMemberAccessExpression( _fqn, FIELD_FILE_URL ) ).name( "url" ) )
       .addArgument( "offset", int.class, findOffsetOf( node ) )
       .addArgument( "length", int.class, node.getName() == null ? 0 : node.getName().length() );
   }

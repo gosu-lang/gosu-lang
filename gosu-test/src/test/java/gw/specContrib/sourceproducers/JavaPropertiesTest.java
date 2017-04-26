@@ -1,15 +1,10 @@
 package gw.specContrib.sourceproducers;
 
-import gw.lang.reflect.gs.GosuBootstrap;
 import junit.framework.TestCase;
 import gw.lang.SystemProperties;
 
 public class JavaPropertiesTest extends TestCase
 {
-  static {
-    GosuBootstrap.init();
-  }
-
   public void testMe() {
     assertEquals( "My value", MyProperties.MyProperty.toString() );
     assertEquals( "1st", MyProperties.MyProperty.First );

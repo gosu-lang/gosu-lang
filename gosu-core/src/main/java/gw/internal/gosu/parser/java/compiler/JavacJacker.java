@@ -1,7 +1,10 @@
 package gw.internal.gosu.parser.java.compiler;
 
+import com.sun.source.util.Trees;
 import com.sun.tools.javac.main.JavaCompiler;
 import com.sun.tools.javac.processing.JavacProcessingEnvironment;
+import com.sun.tools.javac.tree.JCTree;
+import com.sun.tools.javac.tree.TreeTranslator;
 import com.sun.tools.javac.util.Context;
 import gw.lang.gosuc.GosucUtil;
 import gw.lang.gosuc.simple.GosuCompiler;
@@ -26,7 +29,10 @@ import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.RoundEnvironment;
 import javax.annotation.processing.SupportedAnnotationTypes;
 import javax.annotation.processing.SupportedSourceVersion;
+import javax.lang.model.element.Element;
+import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.TypeElement;
+import javax.tools.Diagnostic;
 import javax.tools.JavaFileManager;
 import javax.tools.JavaFileObject;
 import javax.tools.StandardLocation;
@@ -37,7 +43,7 @@ import static javax.lang.model.SourceVersion.RELEASE_8;
 /**
  */
 @SupportedSourceVersion(RELEASE_8)
-@SupportedAnnotationTypes({})
+@SupportedAnnotationTypes({"*"})
 public class JavacJacker extends AbstractProcessor
 {
   private static JavacJacker INSTANCE = null;
@@ -83,6 +89,11 @@ public class JavacJacker extends AbstractProcessor
   JavaFileManager getJavaFileManager()
   {
     return _fileManager;
+  }
+
+  Context getContext()
+  {
+    return _ctx;
   }
 
   private void hijackJavacFileManager()
@@ -162,16 +173,16 @@ public class JavacJacker extends AbstractProcessor
     URL[] classpathUrls = ((URLClassLoader)_jpe.getProcessorClassLoader()).getURLs();
     return Arrays.stream( classpathUrls )
       .map( url ->
-           {
-             try
-             {
-               return new File( url.toURI() ).getAbsolutePath();
-             }
-             catch( URISyntaxException e )
-             {
-               throw new RuntimeException( e );
-             }
-           } ).collect( Collectors.toList() );
+            {
+              try
+              {
+                return new File( url.toURI() ).getAbsolutePath();
+              }
+              catch( URISyntaxException e )
+              {
+                throw new RuntimeException( e );
+              }
+            } ).collect( Collectors.toList() );
   }
 
   private Set<String> deriveSourcePath()
@@ -186,7 +197,7 @@ public class JavacJacker extends AbstractProcessor
     outer:
     for( JavaFileObject inputFile: inputFiles )
     {
-      for( String sp: sourcePath )
+      for( String sp : sourcePath )
       {
         if( inputFile.getName().startsWith( sp + File.separatorChar ) )
         {
@@ -201,7 +212,7 @@ public class JavacJacker extends AbstractProcessor
       }
       else
       {
-        System.err.println( "Could not find type for file: " + inputFile );
+        _jpe.getMessager().printMessage( Diagnostic.Kind.WARNING, "Could not find type for file: " + inputFile );
       }
     }
   }
@@ -213,7 +224,7 @@ public class JavacJacker extends AbstractProcessor
     String ext = iDot > 0 ? filename.substring( iDot ) : "";
     String pathRelativeFile = type.getQualifiedName().toString().replace( '.', File.separatorChar ) + ext;
     assert filename.endsWith( pathRelativeFile );
-    return filename.substring( 0, filename.indexOf( pathRelativeFile )-1 );
+    return filename.substring( 0, filename.indexOf( pathRelativeFile ) - 1 );
   }
 
   private TypeElement findType( JavaFileObject inputFile )
@@ -232,7 +243,7 @@ public class JavacJacker extends AbstractProcessor
     }
     String typeName = "";
     TypeElement type = null;
-    for( int i = tokens.size()-1; i >= 0; i-- )
+    for( int i = tokens.size() - 1; i >= 0; i-- )
     {
       typeName = tokens.get( i ) + typeName;
       TypeElement csr = getType( typeName );
@@ -276,7 +287,7 @@ public class JavacJacker extends AbstractProcessor
 
   private TypeElement getType( String className )
   {
-    return processingEnv.getElementUtils().getTypeElement( className );
+    return _jpe.getElementUtils().getTypeElement( className );
     // DeclaredType declaredType = jpe.getTypeUtils().getDeclaredType( typeElement );
     // return new ElementTypePair( typeElement, declaredType );
   }
@@ -284,6 +295,28 @@ public class JavacJacker extends AbstractProcessor
   @Override
   public boolean process( Set<? extends TypeElement> annotations, RoundEnvironment roundEnv )
   {
+    if( roundEnv.processingOver() )
+    {
+      return false;
+    }
+
+    insertBootstrap( roundEnv );
     return false;
+  }
+
+  private void insertBootstrap( RoundEnvironment roundEnv )
+  {
+    Trees trees = Trees.instance( _jpe );
+
+    Set<? extends Element> elements = roundEnv.getRootElements();
+    for( Element elem : elements )
+    {
+      if( elem.getKind() == ElementKind.CLASS )
+      {
+        JCTree tree = (JCTree)trees.getTree( elem );
+        TreeTranslator visitor = new BootstrapInserter( this );
+        tree.accept( visitor );
+      }
+    }
   }
 }
