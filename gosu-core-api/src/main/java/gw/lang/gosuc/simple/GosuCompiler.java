@@ -453,6 +453,11 @@ public class GosuCompiler implements IGosuCompiler
 
     IExecutionEnvironment execEnv = TypeSystem.getExecutionEnvironment();
     _gosuInitialization = GosuInitialization.instance( execEnv );
+    if( _gosuInitialization.isInitialized() )
+    {
+      _gosuInitialization.uninitializeCompiler();
+    }
+
     GosucModule gosucModule = new GosucModule( IExecutionEnvironment.DEFAULT_SINGLE_MODULE_NAME,
                                                sourceFolders,
                                                classpath,

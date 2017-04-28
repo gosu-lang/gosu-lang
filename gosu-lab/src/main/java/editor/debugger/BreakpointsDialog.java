@@ -19,6 +19,7 @@ import editor.util.LabButton;
 import editor.util.LabToolbarButton;
 import editor.util.SettleModalEventQueue;
 import editor.util.ToolBar;
+import gw.lang.parser.ISymbolTable;
 import gw.lang.parser.ScriptabilityModifiers;
 import gw.lang.parser.StandardSymbolTable;
 import gw.lang.parser.TypelessScriptPartId;
@@ -212,8 +213,8 @@ public class BreakpointsDialog extends JDialog implements IHandleCancel
     c.weighty = .3;
     c.insets = new Insets( 0, 0, 5, 0 );
     IType type = TypeSystem.getByFullNameIfValidNoJava( bp.getFqn() );
-    _fieldExpr = new GosuEditor( type instanceof IGosuClass && bp.getLine() > 0 ? ContextSymbolTableUtil.getSymbolTableAtOffset( (IGosuClass)type, bp.getOffset() ) : new StandardSymbolTable( true ),
-      null, new AtomicUndoManager( 10000 ), ScriptabilityModifiers.SCRIPTABLE, new DefaultContextMenuHandler(), false, true );
+    ISymbolTable symTable = type instanceof IGosuClass && bp.getLine() > 0 ? ContextSymbolTableUtil.getSymbolTableAtOffset( (IGosuClass)type, bp.getOffset() ) : new StandardSymbolTable( true );
+    _fieldExpr = new GosuEditor( symTable, null, new AtomicUndoManager( 10000 ), ScriptabilityModifiers.SCRIPTABLE, new DefaultContextMenuHandler(), null, false, true );
     _fieldExpr.setExpectedType( JavaTypes.pBOOLEAN() );
     addEscapeHandler( _fieldExpr );
     _fieldExpr.setAccessAll( true );
@@ -261,8 +262,8 @@ public class BreakpointsDialog extends JDialog implements IHandleCancel
     c.weighty = .7;
     c.insets = new Insets( 0, 0, 10, 0 );
     type = TypeSystem.getByFullNameIfValidNoJava( bp.getFqn() );
-    _fieldRunScript = new GosuEditor( type instanceof IGosuClass && bp.getLine() > 0 ? ContextSymbolTableUtil.getSymbolTableAtOffset( (IGosuClass)type, bp.getOffset() ) : new StandardSymbolTable( true ),
-      null, new AtomicUndoManager( 10000 ), ScriptabilityModifiers.SCRIPTABLE, new DefaultContextMenuHandler(), false, true );
+    symTable = type instanceof IGosuClass && bp.getLine() > 0 ? ContextSymbolTableUtil.getSymbolTableAtOffset( (IGosuClass)type, bp.getOffset() ) : new StandardSymbolTable( true );
+    _fieldRunScript = new GosuEditor( symTable, null, new AtomicUndoManager( 10000 ), ScriptabilityModifiers.SCRIPTABLE, new DefaultContextMenuHandler(), null, false, true );
     addEscapeHandler( _fieldRunScript );
     _fieldRunScript.setAccessAll( true );
     //exprField.showFeedback( false );
@@ -537,12 +538,7 @@ public class BreakpointsDialog extends JDialog implements IHandleCancel
       return;
     }
 
-    JPanel panel = _mapToPanel.get( bp );
-    if( panel == null )
-    {
-      panel = createConfigPanel( bp );
-      _mapToPanel.put( bp, panel );
-    }
+    JPanel panel = _mapToPanel.computeIfAbsent( bp, k -> createConfigPanel( bp ) );
     _configPanel.add( panel, BorderLayout.CENTER );
     _configPanel.validate();
     _configPanel.repaint();

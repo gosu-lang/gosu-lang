@@ -87,10 +87,4 @@ public class DynamicSymbol extends AbstractDynamicSymbol
       throw new RuntimeException( e );
     }
   }
-
-  public String toString()
-  {
-    return getName() + " : " + getType();
-  }
-
 }

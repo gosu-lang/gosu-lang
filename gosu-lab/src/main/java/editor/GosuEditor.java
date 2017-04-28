@@ -11,6 +11,8 @@ import editor.util.EditorUtilities;
 import editor.util.HTMLEscapeUtil;
 import editor.util.IReplaceWordCallback;
 import editor.util.LabToolbarButton;
+import gw.config.CommonServices;
+import gw.fs.IFile;
 import java.nio.file.Path;
 import editor.util.SettleModalEventQueue;
 import editor.util.TaskQueue;
@@ -95,7 +97,6 @@ import java.util.List;
 import java.util.Map;
 
 import static editor.util.TextComponentUtil.Direction.BACKWARD;
-import static editor.util.TextComponentUtil.Direction.FORWARD;
 
 /**
  * A component for editing Gosu source.
@@ -123,6 +124,7 @@ public class GosuEditor extends EditorHost implements IScriptEditor, IGosuPanel,
   private EditorScrollPane _scroller;
   private ParseResultsException _pe;
   private boolean _bTestResource;
+  private Path _file;
   private boolean _bAcceptUses;
   private IGosuClass _parsedGosuClass;
   private Map<Integer, IFunctionStatement> _functionStmtsByLineNumber;
@@ -151,9 +153,10 @@ public class GosuEditor extends EditorHost implements IScriptEditor, IGosuPanel,
                      AtomicUndoManager undoMgr,
                      IScriptabilityModifier scriptabilityConstraint,
                      IContextMenuHandler<IScriptEditor> contextMenuHandler,
+                     Path file,
                      boolean bStatement, boolean bEmptyTextOk )
   {
-    this( null, lineInfoRenderer, undoMgr, scriptabilityConstraint, contextMenuHandler, bStatement, bEmptyTextOk );
+    this( null, lineInfoRenderer, undoMgr, scriptabilityConstraint, contextMenuHandler, file, bStatement, bEmptyTextOk );
   }
 
   public GosuEditor( ISymbolTable symTable,
@@ -161,6 +164,7 @@ public class GosuEditor extends EditorHost implements IScriptEditor, IGosuPanel,
                      AtomicUndoManager undoMgr,
                      IScriptabilityModifier scriptabilityConstraint,
                      IContextMenuHandler<IScriptEditor> contextMenuHandler,
+                     Path file,
                      boolean bStatement, boolean bEmptyTextOk )
   {
     super( undoMgr );
@@ -173,6 +177,7 @@ public class GosuEditor extends EditorHost implements IScriptEditor, IGosuPanel,
     _contextMenuHandler = contextMenuHandler == null
                           ? new DefaultContextMenuHandler()
                           : contextMenuHandler;
+    _file = file;
     _bStatement = bStatement;
     _bEmptyTextOk = bEmptyTextOk;
     _bAcceptUses = true;
@@ -770,8 +775,8 @@ public class GosuEditor extends EditorHost implements IScriptEditor, IGosuPanel,
         if( classType != null )
         {
           // The context here is expected to be a fully qualified class/program/enhancement/template
-
-          _parsedGosuClass = _parser.parseClass( getScriptPart().getContainingTypeName(), new StringSourceFileHandle( getScriptPart().getContainingTypeName(), strText, _bTestResource, classType ), true, true );
+           IFile file = _file == null ? null : CommonServices.getFileSystem().getIFile( _file.toFile() );
+          _parsedGosuClass = _parser.parseClass( getScriptPart().getContainingTypeName(), new StringSourceFileHandle( getScriptPart().getContainingTypeName(), strText, file, _bTestResource, classType ), true, true );
         }
         else
         {
@@ -967,7 +972,7 @@ public class GosuEditor extends EditorHost implements IScriptEditor, IGosuPanel,
 
   public Map<Integer, IFunctionStatement> getFunctionsByLineNumber()
   {
-    return _functionStmtsByLineNumber == null ? Collections.<Integer, IFunctionStatement>emptyMap() : _functionStmtsByLineNumber;
+    return _functionStmtsByLineNumber == null ? Collections.emptyMap() : _functionStmtsByLineNumber;
   }
 
   protected void clearParseException()

@@ -35,13 +35,13 @@ public class StringSourceFileHandle implements ISourceFileHandle
   {
     this( typeName, source, null, isTestResource, classType );
   }
-  public StringSourceFileHandle( String typeName, CharSequence source, IFile strPath, boolean isTestResource, ClassType classType )
+  public StringSourceFileHandle( String typeName, CharSequence source, IFile file, boolean isTestResource, ClassType classType )
   {
     _typeName = typeName;
     _source = source != null ? source.toString() : null;
     _bTestResource = isTestResource;
     _classType = classType;
-    _file = strPath;
+    _file = file;
     assignFileRef();
   }
 

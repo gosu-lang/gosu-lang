@@ -27,6 +27,7 @@ public class EditorFactory
                             new AtomicUndoManager( 10000 ),
                             ScriptabilityModifiers.SCRIPTABLE,
                             new DefaultContextMenuHandler(),
+                            file,
                             false, true );
       initEditorMode( file, editor );
       return editor;

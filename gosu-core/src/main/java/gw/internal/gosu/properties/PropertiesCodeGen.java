@@ -19,7 +19,6 @@ import gw.lang.javac.gen.SrcSwitchStatement;
 import gw.lang.javac.gen.SrcType;
 import gw.lang.reflect.SourcePosition;
 import gw.lang.reflect.java.JavaTypes;
-import gw.util.GosuClassUtil;
 import gw.util.StreamUtil;
 import gw.util.cache.FqnCache;
 import gw.util.cache.FqnCacheNode;
@@ -120,6 +119,7 @@ public class PropertiesCodeGen
   {
     return new SrcAnnotationExpression( SourcePosition.class.getSimpleName() )
       .addArgument( new SrcArgument( new SrcMemberAccessExpression( _fqn, FIELD_FILE_URL ) ).name( "url" ) )
+      .addArgument( "feature", String.class, node.getFqn() )
       .addArgument( "offset", int.class, findOffsetOf( node ) )
       .addArgument( "length", int.class, node.getName() == null ? 0 : node.getName().length() );
   }
