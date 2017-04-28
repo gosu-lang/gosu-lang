@@ -1,5 +1,7 @@
 package gw.specContrib.sourceproducers
+uses gw.lang.reflect.DoNotCompile
 
+@DoNotCompile // this class must not be compiled during the build, for testing purposes javac must only see this class via stub generation
 class MyGosu implements Runnable {
   static internal var _static_string: String = "_static_string"
   static internal var _static_int: int = 5
