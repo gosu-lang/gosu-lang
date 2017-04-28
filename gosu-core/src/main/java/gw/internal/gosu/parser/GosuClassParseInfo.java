@@ -406,7 +406,10 @@ public class GosuClassParseInfo {
     {
       _listStaticProperties = new ArrayList<DynamicPropertySymbol>( 2 );
     }
-    _listStaticProperties.add( property );
+    if( !_listStaticProperties.contains( property ) )
+    {
+      _listStaticProperties.add( property );
+    }
   }
 
   public List<DynamicPropertySymbol> getStaticProperties() {
@@ -421,13 +424,13 @@ public class GosuClassParseInfo {
   {
     if( property.isStatic() )
     {
-      addStaticProperty(property);
+      addStaticProperty( property );
       return;
     }
     if( _mapMemberProperties == Collections.EMPTY_MAP )
     {
       //noinspection unchecked
-      _mapMemberProperties = new LinkedHashMap(2);
+      _mapMemberProperties = new LinkedHashMap( 2 );
     }
     _mapMemberProperties.put( property.getName(), property );
   }

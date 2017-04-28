@@ -5,6 +5,7 @@ import gw.lang.IIssueContainer;
 import editor.plugin.typeloader.INewFileParams;
 import editor.plugin.typeloader.ITypeFactory;
 import gw.lang.reflect.IType;
+import gw.lang.reflect.gs.ISourceFileHandle;
 import gw.lang.reflect.gs.ISourceProducer;
 import gw.lang.reflect.java.IJavaType;
 import javax.swing.JComponent;
@@ -104,8 +105,12 @@ public class PropertiesTypeFactory implements ITypeFactory
   {
     if( type instanceof IJavaType )
     {
-      ISourceProducer sourceProducer = ((IJavaType)type).getSourceFileHandle().getSourceProducer();
-      return sourceProducer != null && sourceProducer.getExtensions().contains( "properties" );
+      ISourceFileHandle sfh = ((IJavaType)type).getSourceFileHandle();
+      if( sfh != null )
+      {
+        ISourceProducer sourceProducer = sfh.getSourceProducer();
+        return sourceProducer != null && sourceProducer.getExtensions().contains( "properties" );
+      }
     }
     return false;
   }

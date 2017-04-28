@@ -175,7 +175,7 @@ public class JavaStubGenerator
     genClassFeatures( sb, gsClass, indent + INDENT );
 
     indent( sb, indent );
-    sb.append( "}" );
+    sb.append( "}\n" );
   }
 
   private void genClassFeatures( StringBuilder sb, IGosuClassInternal gsClass, int indent )
@@ -183,9 +183,9 @@ public class JavaStubGenerator
     GosuClassParseInfo parseInfo = gsClass.getParseInfo();
 
     genFields( sb, gsClass, parseInfo, indent );
-    genConstructors( sb, gsClass, parseInfo, indent );
-    genProperties( sb, gsClass, parseInfo, indent );
-    genMethods( sb, gsClass, parseInfo, indent );
+    genConstructors( sb, gsClass, indent );
+    genProperties( sb, gsClass, indent );
+    genMethods( sb, gsClass, indent );
     genInnerClasses( sb, gsClass, indent );
   }
 
@@ -266,20 +266,31 @@ public class JavaStubGenerator
   {
     sb.append( "\n" ).append( indent( sb, indent )).append( "// fields //\n" );
 
-    Collection<VarStatement> fields = parseInfo.getMemberFields().values();
+    Collection<VarStatement> fields = parseInfo.getStaticFields().values();
+    genFields( sb, gsClass, fields, indent );
+
+    fields = parseInfo.getMemberFields().values();
+    genFields( sb, gsClass, fields, indent );
+  }
+  private void genFields( StringBuilder sb, IGosuClassInternal gsClass, Collection<VarStatement> fields, int indent )
+  {
     for( VarStatement field : fields )
     {
-      if( field.isPrivate() )
-      {
-        continue;
-      }
+//      if( field.isPrivate() && !field.isFinal() )
+//      {
+//        continue;
+//      }
 
-      List<GosuAnnotationInfo> gosuAnnotationInfos = AbstractElementTransformer.makeAnnotationInfos( field.getAnnotations(), gsClass.getTypeInfo() );
+      List<? extends IAnnotationInfo> gosuAnnotationInfos = AbstractElementTransformer.makeAnnotationInfos( field.getAnnotations(), gsClass.getTypeInfo() );
       genAnnotations( sb, gosuAnnotationInfos, indent );
-
       indent( sb, indent );
       genModifiers( sb, field.getModifiers(), false, Modifier.PUBLIC );
-      sb.append( getTypeName( field.getType() ) ).append( ' ' ).append( field.getIdentifierName() ).append( ";\n" );
+      sb.append( getTypeName( field.getType() ) ).append( ' ' ).append( field.getIdentifierName() );
+      if( field.isFinal() )
+      {
+        sb.append( " = " ).append( getEmptyValueForType( field.getType() ) );
+      }
+      sb.append( ";\n" );
     }
   }
 
@@ -292,41 +303,52 @@ public class JavaStubGenerator
     return "";
   }
 
-  private void genConstructors( StringBuilder sb, IGosuClassInternal gsClass, GosuClassParseInfo parseInfo, int indent )
+  private void genConstructors( StringBuilder sb, IGosuClassInternal gsClass, int indent )
   {
     sb.append( "\n" ).append( indent( sb, indent )).append( "// constructors //\n" );
 
-    Collection<DynamicFunctionSymbol> constructors = parseInfo.getConstructorFunctions().values();
+    Collection<DynamicFunctionSymbol> constructors = gsClass.getConstructorFunctions();
     for( DynamicFunctionSymbol constructor : constructors )
     {
-      if( constructor.isPrivate() )
+      // Generate private constructors for tooling and better error messages
+//      if( constructor.isPrivate() )
+//      {
+//        continue;
+//      }
+
+      if( gsClass.isGenericType() )
       {
-        continue;
+        genConstructor( sb, gsClass, constructor, true, indent );
       }
-
-      List<GosuAnnotationInfo> gosuAnnotationInfos = AbstractElementTransformer.makeAnnotationInfos( constructor.getAnnotations(), gsClass.getTypeInfo() );
-      genAnnotations( sb, gosuAnnotationInfos, indent );
-
-      indent( sb, indent );
-      genModifiers( sb, constructor.getModifiers(), false, Modifier.PUBLIC );
-      sb.append( SignatureUtil.getSimpleName( gsClass.getName() ) ).append( "(" );
-      genParameters( sb, constructor );
-      sb.append( ") {}\n" );
+      genConstructor( sb, gsClass, constructor, false, indent );
     }
   }
 
-  private void genProperties( StringBuilder sb, IGosuClassInternal gsClass, GosuClassParseInfo parseInfo, int indent )
+  private void genConstructor( StringBuilder sb, IGosuClassInternal gsClass, DynamicFunctionSymbol constructor, boolean hideReified, int indent )
+  {
+    List<? extends IAnnotationInfo> gosuAnnotationInfos = AbstractElementTransformer.makeAnnotationInfos( constructor.getAnnotations(), gsClass.getTypeInfo() );
+    genAnnotations( sb, gosuAnnotationInfos, indent );
+    indent( sb, indent );
+    genModifiers( sb, constructor.getModifiers(), false, Modifier.PUBLIC );
+    sb.append( SignatureUtil.getSimpleName( gsClass.getName() ) ).append( "(" );
+    genParameters( sb, constructor, hideReified );
+    sb.append( ") {}\n" );
+  }
+
+  private void genProperties( StringBuilder sb, IGosuClassInternal gsClass, int indent )
   {
     sb.append( "\n" ).append( indent( sb, indent )).append( "// properties //\n" );
 
-    genProperties( sb, gsClass, parseInfo.getStaticProperties(), indent );
-    genProperties( sb, gsClass, parseInfo.getMemberProperties().values(), indent );
+    genProperties( sb, gsClass, gsClass.getStaticProperties(), indent );
+    genProperties( sb, gsClass, gsClass.getMemberProperties(), indent );
   }
 
-  private void genProperties( StringBuilder sb, IGosuClassInternal gsClass, Collection<DynamicPropertySymbol> properties, int indent )
+  private void genProperties( StringBuilder sb, IGosuClassInternal gsClass, List<DynamicPropertySymbol> properties, int indent )
   {
-    for( DynamicPropertySymbol dps : properties )
+    for( int i = 0; i < properties.size(); i++ )
     {
+      DynamicPropertySymbol dps = properties.get( i );
+
       if( dps.isReadable() )
       {
         genMethod( sb, gsClass, dps.getGetterDfs(), dps.getType() == JavaTypes.pBOOLEAN() ? "is" : "get" + dps.getDisplayName(), indent );
@@ -338,12 +360,12 @@ public class JavaStubGenerator
     }
   }
 
-  private void genMethods( StringBuilder sb, IGosuClassInternal gsClass, GosuClassParseInfo parseInfo, int indent )
+  private void genMethods( StringBuilder sb, IGosuClassInternal gsClass, int indent )
   {
     sb.append( "\n" ).append( indent( sb, indent )).append( "// methods //\n" );
 
-    genMethods( sb, gsClass, parseInfo.getStaticFunctions(), indent );
-    genMethods( sb, gsClass, parseInfo.getMemberFunctions().values(), indent );
+    genMethods( sb, gsClass, gsClass.getStaticFunctions(), indent );
+    genMethods( sb, gsClass, gsClass.getMemberFunctions(), indent );
   }
 
   private void genMethods( StringBuilder sb, IGosuClassInternal gsClass, Collection<DynamicFunctionSymbol> methods, int indent )
@@ -361,10 +383,11 @@ public class JavaStubGenerator
 
   private void genMethod( StringBuilder sb, IGosuClassInternal gsClass, DynamicFunctionSymbol method, String name, int indent )
   {
-    if( method.isPrivate() ) // || method.isReified() )
-    {
-      return;
-    }
+    // Generating private methods for tooling to recognize its existence e.g., more informative error messages
+//    if( method.isPrivate() ) // || method.isReified() )
+//    {
+//      return;
+//    }
 
     if( method.getDisplayName().startsWith( "@" ) && name == null )
     {
@@ -378,7 +401,6 @@ public class JavaStubGenerator
 
     List<GosuAnnotationInfo> gosuAnnotationInfos = AbstractElementTransformer.makeAnnotationInfos( method.getAnnotations(), gsClass.getTypeInfo() );
     genAnnotations( sb, gosuAnnotationInfos, indent );
-
     indent( sb, indent );
     int modifiers = method.getModifiers();
     if( gsClass.isInterface() )
@@ -603,6 +625,7 @@ public class JavaStubGenerator
       indent( sb, indent );
       sb.append( '@' ).append( ai.getType().getName() ).append( '(' );
       MethodList methods = annoType.getTypeInfo().getMethods();
+      int index = 0;
       for( int i = 0; i < methods.size(); i++ )
       {
         IMethodInfo mi = methods.get( i );
@@ -610,7 +633,7 @@ public class JavaStubGenerator
         {
           String fieldName = mi.getDisplayName();
           fieldName = fieldName == null || fieldName.isEmpty() ? "value" : fieldName;
-          sb.append( i == 0 ? ", " : "" ).append( fieldName ).append( '=' ).append( genFieldValue( ai, mi.getReturnType(), fieldName ) );
+          sb.append( index++ > 0 ? ", " : "" ).append( fieldName ).append( '=' ).append( genFieldValue( ai, mi.getReturnType(), fieldName ) );
         }
       }
       sb.append( ")\n" );
@@ -671,7 +694,12 @@ public class JavaStubGenerator
 
   private void genReturnStmt( StringBuilder sb, IType returnType )
   {
-    sb.append( " return " ).append( !returnType.isPrimitive() ? "null" : makeDefaultPrimitiveValue( returnType ) ).append( "; }\n" );
+    sb.append( " return " ).append( getEmptyValueForType( returnType ) ).append( "; }\n" );
+  }
+
+  private String getEmptyValueForType( IType returnType )
+  {
+    return !returnType.isPrimitive() ? "null" : makeDefaultPrimitiveValue( returnType );
   }
 
   private String makeDefaultPrimitiveValue( IType returnType )
@@ -681,8 +709,12 @@ public class JavaStubGenerator
 
   private void genParameters( StringBuilder sb, DynamicFunctionSymbol dfs )
   {
+    genParameters( sb, dfs, false );
+  }
+  private void genParameters( StringBuilder sb, DynamicFunctionSymbol dfs, boolean hideReified )
+  {
     List<ISymbol> parameters = dfs.getArgs();
-    int iParam = addReifiedTypeParamaters( sb, dfs );
+    int iParam = hideReified ? 0 : addReifiedTypeParamaters( sb, dfs );
     for( int i = 0; i < parameters.size(); i++ )
     {
       ISymbol param = parameters.get( i );
@@ -694,7 +726,7 @@ public class JavaStubGenerator
   private int addReifiedTypeParamaters( StringBuilder sb, DynamicFunctionSymbol dfs )
   {
     int iParam = 0;
-    if( dfs.getType().isGenericType() && dfs.isReified() )
+    if( dfs.isReified() && (dfs.getType().isGenericType() || dfs.isConstructor() && dfs.getDeclaringTypeInfo().getOwnersType().isGenericType()) )
     {
       int typeVarCount = getTypeVarCountForDFS( dfs );
       for( int i = 0; i < typeVarCount; i++ )
@@ -717,14 +749,14 @@ public class JavaStubGenerator
     {
       typeVarCount += dfs.getType().getGenericTypeVariables().length;
     }
-//    else if( dfs.isConstructor() )
-//    {
-//      IType declaringType = TypeLord.getPureGenericType( dfs.getDeclaringTypeInfo().getOwnersType() );
-//      if( declaringType.isGenericType() )
-//      {
-//        typeVarCount += declaringType.getGenericTypeVariables().length;
-//      }
-//    }
+    else if( dfs.isConstructor() )
+    {
+      IType declaringType = TypeLord.getPureGenericType( dfs.getDeclaringTypeInfo().getOwnersType() );
+      if( declaringType.isGenericType() )
+      {
+        typeVarCount += declaringType.getGenericTypeVariables().length;
+      }
+    }
     return typeVarCount;
   }
 

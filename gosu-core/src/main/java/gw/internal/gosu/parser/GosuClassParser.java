@@ -4624,7 +4624,7 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
     }
 
     boolean bGet = dps.getGetterDfs() != null;
-    boolean bSet = dps.getSetterDfs().getArgTypes().length > 0;
+    boolean bSet = dps.getSetterDfs() != null && dps.getSetterDfs().getArgTypes() != null && dps.getSetterDfs().getArgTypes().length > 0;
     if( bGet && bSet )
     {
       verifyTypeVarVariance( Variance.INVARIANT, varStmt,  dps.getGetterDfs().getReturnType() );

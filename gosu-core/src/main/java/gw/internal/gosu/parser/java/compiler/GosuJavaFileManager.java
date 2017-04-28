@@ -222,9 +222,14 @@ class GosuJavaFileManager extends ForwardingJavaFileManager<JavaFileManager> imp
   {
     switch( request.kind )
     {
+      case CREATION:
       case MODIFICATION:
       case DELETION:
+        // Remove all affected types for any refresh kind.
+        // Note we remove types for CREATION request because we could have cached misses to the type name.
         _classFiles.remove( request.types );
+        _generatedFiles.remove( request.types );
+        break;
     }
   }
 

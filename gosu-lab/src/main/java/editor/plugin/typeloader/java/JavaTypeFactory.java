@@ -9,6 +9,7 @@ import gw.lang.javac.IJavaParser;
 import gw.lang.javac.StringJavaFileObject;
 import gw.lang.parser.GosuParserFactory;
 import gw.lang.reflect.IType;
+import gw.lang.reflect.gs.ISourceFileHandle;
 import gw.lang.reflect.java.IJavaClassInfo;
 import gw.lang.reflect.java.IJavaType;
 import java.awt.EventQueue;
@@ -126,6 +127,11 @@ public class JavaTypeFactory implements ITypeFactory
   @Override
   public boolean handlesType( IType type )
   {
-    return type instanceof IJavaType && ((IJavaType)type).getSourceFileHandle().getSourceProducer() == null;
+    if( type instanceof IJavaType )
+    {
+      ISourceFileHandle sfh = ((IJavaType)type).getSourceFileHandle();
+      return sfh != null && sfh.getSourceProducer() == null;
+    }
+    return false;
   }
 }

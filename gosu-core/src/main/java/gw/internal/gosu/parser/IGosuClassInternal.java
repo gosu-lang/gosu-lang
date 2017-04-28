@@ -113,8 +113,9 @@ public interface IGosuClassInternal extends IGosuClass, ICompilableTypeInternal
   DynamicFunctionSymbol getDefaultConstructor();
 
   List<DynamicFunctionSymbol> getStaticFunctions();
+  List<DynamicFunctionSymbol> getMemberFunctions();
 
-  public List<DynamicFunctionSymbol> getMemberFunctions( String names );
+  List<DynamicFunctionSymbol> getMemberFunctions( String names );
 
   void addInnerClass( IGosuClassInternal innerGsClass );
   void removeInnerClass( IGosuClassInternal innerGsClass );
