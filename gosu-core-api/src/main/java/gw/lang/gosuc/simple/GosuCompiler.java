@@ -29,6 +29,7 @@ import gw.lang.reflect.gs.ICompilableType;
 import gw.lang.reflect.gs.IGosuClass;
 import gw.lang.reflect.gs.ISourceFileHandle;
 import gw.lang.reflect.java.IJavaType;
+import gw.lang.reflect.java.JavaTypes;
 import gw.lang.reflect.module.IExecutionEnvironment;
 import gw.lang.reflect.module.IFileSystem;
 import gw.lang.reflect.module.IModule;
@@ -42,7 +43,6 @@ import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.lang.reflect.Constructor;
-import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -304,8 +304,14 @@ public class GosuCompiler implements IGosuCompiler
 
   private boolean isCompilable( IType type )
   {
+    if( !(type instanceof IGosuClass) )
+    {
+      return false;
+    }
+
     IType doNotVerifyAnnotation = TypeSystem.getByFullNameIfValid( "gw.testharness.DoNotVerifyResource" );
-    return type instanceof IGosuClass && !type.getTypeInfo().hasAnnotation( doNotVerifyAnnotation );
+    return !type.getTypeInfo().hasAnnotation( doNotVerifyAnnotation ) &&
+           !type.getTypeInfo().hasAnnotation( JavaTypes.DO_NOT_COMPILE() );
   }
 
   private void createGosuOutputFiles( IGosuClass gsClass, ICompilerDriver driver )
