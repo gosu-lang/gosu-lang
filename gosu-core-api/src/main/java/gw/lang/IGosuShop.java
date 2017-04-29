@@ -44,6 +44,7 @@ import gw.lang.reflect.IScriptabilityModifier;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.ITypeInfo;
 import gw.lang.reflect.ITypeInfoFactory;
+import gw.lang.reflect.gs.ClassType;
 import gw.lang.reflect.gs.GosuClassTypeLoader;
 import gw.lang.reflect.gs.IEnhancementIndex;
 import gw.lang.reflect.gs.IFileSystemGosuClassRepository;
@@ -115,6 +116,8 @@ public interface IGosuShop extends IService
 
   IFileSystemGosuClassRepository createFileSystemGosuClassRepository(IModule module, IDirectory[] files);
   IFileSystemGosuClassRepository createFileSystemGosuClassRepository(IModule module, IDirectory[] files, String[] extensions);
+
+  ISourceFileHandle createInnerClassSourceFileHandle( ClassType classType, String strEnclosingType, String strInnerClass, boolean bTestClass );
 
   ITypeUsesMap createTypeUsesMap( List<String> specialTypeUses );
 

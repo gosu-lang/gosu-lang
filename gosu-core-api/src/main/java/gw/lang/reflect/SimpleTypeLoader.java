@@ -6,15 +6,19 @@ package gw.lang.reflect;
 
 import gw.fs.IDirectory;
 import gw.fs.IFile;
+import gw.lang.GosuShop;
+import gw.lang.reflect.gs.ISourceFileHandle;
 import gw.lang.reflect.gs.ISourceProducer;
+import gw.lang.reflect.gs.SourceProducerSourceFileHandle;
 import gw.lang.reflect.module.IModule;
-
 import gw.util.concurrent.LocklessLazyVar;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 public abstract class SimpleTypeLoader extends TypeLoaderBase
@@ -28,35 +32,6 @@ public abstract class SimpleTypeLoader extends TypeLoaderBase
   }
 
   public abstract Set<String> getExtensions();
-
-  @Override
-  public boolean handlesFile( IFile file )
-  {
-    boolean handlesFile = getExtensions().contains( file.getExtension() );
-    if( !handlesFile )
-    {
-      for( ISourceProducer sp : getJavaSourceProducers() )
-      {
-        if( sp.handlesFile( file ) )
-        {
-          handlesFile = true;
-          break;
-        }
-      }
-      if( !handlesFile )
-      {
-        for( ISourceProducer sp : getGosuSourceProducers() )
-        {
-          if( sp.handlesFile( file ) )
-          {
-            handlesFile = true;
-            break;
-          }
-        }
-      }
-    }
-    return handlesFile;
-  }
 
   @Override
   public String[] getTypesForFile( IFile file )
@@ -165,6 +140,52 @@ public abstract class SimpleTypeLoader extends TypeLoaderBase
                                                            } )
                                                      .filter( sp -> sp.getSourceKind() == ISourceProducer.SourceKind.Gosu )
                                                      .collect( Collectors.toSet() ) );
+  }
+
+  protected void doForAllSourceProducers( Consumer<ISourceProducer> consumer )
+  {
+    getJavaSourceProducers().forEach( consumer );
+    getGosuSourceProducers().forEach( consumer );
+  }
+
+  protected ISourceFileHandle loadFromSourceProducer( String fqn, Collection<ISourceProducer> sourceProducers )
+  {
+    for( ISourceProducer sp : sourceProducers )
+    {
+      if( sp.isType( fqn ) )
+      {
+        if( sp.isTopLevelType( fqn ) )
+        {
+          return new SourceProducerSourceFileHandle( fqn, sp );
+        }
+        else
+        {
+          int iLastDot = fqn.lastIndexOf( '.' );
+          String enclosingClass = fqn.substring( 0, iLastDot );
+          String simpleName = fqn.substring( iLastDot + 1 );
+          return GosuShop.createInnerClassSourceFileHandle( sp.getClassType( fqn ), enclosingClass, simpleName, false );
+        }
+      }
+    }
+    return null;
+  }
+
+  @Override
+  public void refreshedNamespace( String namespace, IDirectory dir, RefreshKind kind )
+  {
+    //noinspection unchecked
+    Set<CharSequence> namespaces = (Set<CharSequence>)getAllNamespaces();
+    if( namespaces != null )
+    {
+      if( kind == RefreshKind.CREATION )
+      {
+        namespaces.add( namespace );
+      }
+      else if( kind == RefreshKind.DELETION )
+      {
+        namespaces.remove( namespace );
+      }
+    }
   }
 
   protected abstract void addBuiltInSourceProducers( Set<ISourceProducer> set );
