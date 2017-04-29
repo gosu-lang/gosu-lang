@@ -5,6 +5,7 @@
 package gw.lang.reflect.gs;
 
 import gw.fs.IDirectory;
+import gw.fs.IFile;
 import gw.lang.GosuShop;
 import gw.lang.parser.ISymbolTable;
 import gw.lang.parser.ITypeUsesMap;
@@ -36,8 +37,8 @@ public class GosuClassTypeLoader extends SimpleTypeLoader
   public static final String GOSU_RULE_SET_EXT = ".grs";
 
   public static final String[] ALL_EXTS = {GOSU_CLASS_FILE_EXT, GOSU_ENHANCEMENT_FILE_EXT, GOSU_PROGRAM_FILE_EXT, GOSU_TEMPLATE_FILE_EXT, GOSU_RULE_EXT, GOSU_RULE_SET_EXT};
-  public static final Set<String> ALL_EXTS_SET = new HashSet<String>(Arrays.asList(GOSU_CLASS_FILE_EXT, GOSU_ENHANCEMENT_FILE_EXT, GOSU_PROGRAM_FILE_EXT, GOSU_TEMPLATE_FILE_EXT, GOSU_RULE_EXT, GOSU_RULE_SET_EXT));
-  public static final Set<String> EXTENSIONS = new HashSet<String>(Arrays.asList("gs", "gsx", "gsp", "gst", "gr", "grs"));
+  public static final Set<String> ALL_EXTS_SET = new HashSet<>(Arrays.asList(GOSU_CLASS_FILE_EXT, GOSU_ENHANCEMENT_FILE_EXT, GOSU_PROGRAM_FILE_EXT, GOSU_TEMPLATE_FILE_EXT, GOSU_RULE_EXT, GOSU_RULE_SET_EXT));
+  public static final Set<String> EXTENSIONS = new HashSet<>(Arrays.asList("gs", "gsx", "gsp", "gst", "gr", "grs"));
 
   // These constants are only here because api can't depend on impl currently; they shouldn't be considered
   // part of the API proper
@@ -187,7 +188,7 @@ public class GosuClassTypeLoader extends SimpleTypeLoader
     {
       try
       {
-        _namespaces = TypeSystem.getNamespacesFromTypeNames( getAllTypeNames(), new HashSet<String>() );
+        _namespaces = TypeSystem.getNamespacesFromTypeNames( getAllTypeNames(), new HashSet<>() );
         _namespaces.add( "Libraries" );
       }
       catch( NullPointerException e )
@@ -200,15 +201,10 @@ public class GosuClassTypeLoader extends SimpleTypeLoader
   }
 
   @Override
-  public void refreshedNamespace(String namespace, IDirectory dir, RefreshKind kind) {
-    if (_namespaces != null) {
-      if (kind == RefreshKind.CREATION) {
-        _namespaces.add(namespace);
-      } else if (kind == RefreshKind.DELETION) {
-        _namespaces.remove(namespace);
-      }
-    }
-    _repository.namespaceRefreshed(namespace, dir, kind);
+  public void refreshedNamespace( String namespace, IDirectory dir, RefreshKind kind )
+  {
+    super.refreshedNamespace( namespace, dir, kind );
+    _repository.namespaceRefreshed( namespace, dir, kind );
   }
 
   @Override
@@ -219,14 +215,17 @@ public class GosuClassTypeLoader extends SimpleTypeLoader
   @Override
   public Set<String> computeTypeNames()
   {
-    return _repository.getAllTypeNames(getAllExtensions());
+    Set<String> allTypeNames = _repository.getAllTypeNames( getAllExtensions() );
+    getGosuSourceProducers().forEach( sp -> allTypeNames.addAll( sp.getAllTypeNames() ) );
+    return allTypeNames;
   }
 
   @Override
   public void refreshedImpl()
   {
     _namespaces = null;
-    _repository.typesRefreshed(null);
+    _repository.typesRefreshed( null );
+    getGosuSourceProducers().forEach( ISourceProducer::clear );
   }
 
   @Override
@@ -299,11 +298,7 @@ public class GosuClassTypeLoader extends SimpleTypeLoader
           classInternal = ((ICompilableType)type).getBlock( i );
         }
       }
-      catch( NumberFormatException e )
-      {
-        //ignore
-      }
-      catch( IndexOutOfBoundsException e )
+      catch( NumberFormatException | IndexOutOfBoundsException e )
       {
         //ignore
       }
@@ -317,38 +312,45 @@ public class GosuClassTypeLoader extends SimpleTypeLoader
   }
 
 
-  private IGosuClass findClass( String strQualifiedClassName )
+  private IGosuClass findClass( String fqn )
   {
-    IGosuClass blockType = getBlockType( strQualifiedClassName );
+    IGosuClass blockType = getBlockType( fqn );
     if( blockType != null )
     {
       return blockType;
     }
 
-    ISourceFileHandle sourceFile = _repository.findClass( strQualifiedClassName, getAllExtensions());
+    ISourceFileHandle sfh = _repository.findClass( fqn, getAllExtensions() );
+    if( sfh == null )
+    {
+      sfh = loadFromSourceProducer( fqn, getGosuSourceProducers() );
+    }
 
-    if( sourceFile == null || !isValidSourceFileHandle( sourceFile ) || !sourceFile.isValid() || !strQualifiedClassName.endsWith( sourceFile.getRelativeName() ) )
+    if( sfh == null || !isValidSourceFileHandle( sfh ) || !sfh.isValid() || !fqn.endsWith( sfh.getRelativeName() ) )
     {
       return null;
     }
 
-    IGosuClass gsClass=null;
-    if( sourceFile.getParentType() != null )
+    IGosuClass gsClass = null;
+    if( sfh.getParentType() != null )
     {
       // It's an inner class
-      final IType type = TypeSystem.getByFullNameIfValid(sourceFile.getParentType());
-      //we have to check instance of type as it can return JavaType
-      //this happens when you have Gosu class which has the same name as any java package
-      //in this case you shadow entire java package with gosu class
-      if (type instanceof IGosuClass) {
-        IGosuClass enclosingType = (IGosuClass) type;
-        gsClass = enclosingType.getInnerClass(sourceFile.getRelativeName());
+
+      final IType type = TypeSystem.getByFullNameIfValid( sfh.getParentType() );
+
+      // We have to check instance of type as it can return JavaType
+      // this happens when you have Gosu class which has the same name as any java package
+      // in this case you shadow entire java package with gosu class
+      if( type instanceof IGosuClass )
+      {
+        IGosuClass enclosingType = (IGosuClass)type;
+        gsClass = enclosingType.getInnerClass( sfh.getRelativeName() );
       }
     }
     else
     {
       // It's a top-level class
-      gsClass = makeNewClass( sourceFile );
+      gsClass = makeNewClass( sfh );
     }
 
     return gsClass;
@@ -386,13 +388,24 @@ public class GosuClassTypeLoader extends SimpleTypeLoader
   }
 
   @Override
-  public Set<TypeName> getTypeNames(String namespace) {
-    return _repository.getTypeNames(namespace, ALL_EXTS_SET, this);
+  public Set<TypeName> getTypeNames( String namespace )
+  {
+    Set<TypeName> typeNames = _repository.getTypeNames( namespace, ALL_EXTS_SET, this );
+    getGosuSourceProducers().forEach( sp -> typeNames.addAll( sp.getTypeNames( namespace ) ) );
+    return typeNames;
   }
 
   @Override
-  public boolean hasNamespace(String namespace) {
-    return _repository.hasNamespace(namespace) > 0;
+  public boolean handlesFile( IFile file )
+  {
+    return getExtensions().contains( file.getExtension() ) ||
+           getGosuSourceProducers().stream().anyMatch( sp -> sp.handlesFile( file ) );
+  }
+
+  @Override
+  public boolean hasNamespace( String namespace )
+  {
+    return _repository.hasNamespace( namespace ) > 0;
   }
 
   @Override

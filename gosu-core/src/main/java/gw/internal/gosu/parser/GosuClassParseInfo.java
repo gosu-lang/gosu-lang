@@ -101,7 +101,7 @@ public class GosuClassParseInfo {
     assert b;
     if( _listStaticFunctions == Collections.EMPTY_LIST )
     {
-      _listStaticFunctions = new ArrayList<DynamicFunctionSymbol>( 2 );
+      _listStaticFunctions = new ArrayList<>( 2 );
     }
     else
     {
@@ -375,7 +375,7 @@ public class GosuClassParseInfo {
       return Collections.emptyList();
     }
     int i = 0;
-    List<ISymbol> args = new ArrayList<ISymbol>( ci.getParameters().length );
+    List<ISymbol> args = new ArrayList<>( ci.getParameters().length );
     for( IParameterInfo pi : ci.getParameters() )
     {
       Symbol sym = new Symbol( "p" + i++, pi.getFeatureType(), symTable, null );
@@ -404,9 +404,15 @@ public class GosuClassParseInfo {
   {
     if( _listStaticProperties == Collections.EMPTY_LIST )
     {
-      _listStaticProperties = new ArrayList<DynamicPropertySymbol>( 2 );
+      _listStaticProperties = new ArrayList<>( 2 );
     }
-    if( !_listStaticProperties.contains( property ) )
+    int index = _listStaticProperties.indexOf( property );
+    if( index >= 0 )
+    {
+      _listStaticProperties.remove( property );
+      _listStaticProperties.add( index, property );
+    }
+    else
     {
       _listStaticProperties.add( property );
     }
@@ -474,7 +480,7 @@ public class GosuClassParseInfo {
       int iIndex = _memberFieldIndexByName.size();
       if( _memberFieldIndexByName == Collections.EMPTY_MAP )
       {
-        _memberFieldIndexByName = new HashMap<CharSequence, ISymbol>( 4 );
+        _memberFieldIndexByName = new HashMap<>( 4 );
       }
       _memberFieldIndexByName.put( varName, new MemberFieldSymbol( iIndex, varName ) );
     }
@@ -519,7 +525,7 @@ public class GosuClassParseInfo {
   {
     if( _capturedSymbols.isEmpty() )
     {
-      _capturedSymbols = new HashMap<String, ICapturedSymbol>( 2 );
+      _capturedSymbols = new HashMap<>( 2 );
     }
     _capturedSymbols.put( sym.getName(), sym );
   }
@@ -580,6 +586,7 @@ public class GosuClassParseInfo {
                          : source.length();
   }
 
+  @SuppressWarnings("unused")
   public long getSourceFingerprint() {
     return _sourceFingerprint;
   }

@@ -68,6 +68,7 @@ import gw.lang.reflect.ITypeInfoFactory;
 import gw.lang.reflect.ITypeRef;
 import gw.lang.reflect.PropertyInfoDelegate;
 import gw.lang.reflect.TypeSystem;
+import gw.lang.reflect.gs.ClassType;
 import gw.lang.reflect.gs.GosuClassTypeLoader;
 import gw.lang.reflect.gs.IEnhancementIndex;
 import gw.lang.reflect.gs.IFileSystemGosuClassRepository;
@@ -209,6 +210,12 @@ public class GosuIndustrialParkImpl extends BaseService implements IGosuShop
     IFileSystemGosuClassRepository repository = new FileSystemGosuClassRepository(module);
     repository.setSourcePath(files);
     return repository;
+  }
+
+  @Override
+  public ISourceFileHandle createInnerClassSourceFileHandle( ClassType classType, String strEnclosingType, String strInnerClass, boolean bTestClass )
+  {
+    return new InnerClassFileSystemSourceFileHandle( classType, strEnclosingType, strInnerClass, bTestClass );
   }
 
   public ITypeUsesMap createTypeUsesMap( List<String> specialTypeUses )

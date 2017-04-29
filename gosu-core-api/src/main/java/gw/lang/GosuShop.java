@@ -43,6 +43,7 @@ import gw.lang.reflect.IType;
 import gw.lang.reflect.ITypeInfo;
 import gw.lang.reflect.ITypeInfoFactory;
 import gw.lang.reflect.TypeSystem;
+import gw.lang.reflect.gs.ClassType;
 import gw.lang.reflect.gs.GosuClassTypeLoader;
 import gw.lang.reflect.gs.IEnhancementIndex;
 import gw.lang.reflect.gs.IFileSystemGosuClassRepository;
@@ -222,6 +223,11 @@ public class GosuShop
   public static IFileSystemGosuClassRepository createFileSystemGosuClassRepository(IModule module, IDirectory[] files, String[] extensions)
   {
     return CommonServices.getGosuIndustrialPark().createFileSystemGosuClassRepository(module, files, extensions);
+  }
+
+  public static ISourceFileHandle createInnerClassSourceFileHandle( ClassType classType, String strEnclosingType, String strInnerClass, boolean bTestClass )
+  {
+    return CommonServices.getGosuIndustrialPark().createInnerClassSourceFileHandle( classType, strEnclosingType, strInnerClass, bTestClass );
   }
 
   public static ITypeUsesMap createTypeUsesMap( List<String> specialTypeUses )

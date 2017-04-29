@@ -41,6 +41,7 @@ public abstract class ResourceFileSourceProducer<M> extends BaseService implemen
    * @param extension The extension of the resource file this source producer handles
    * @param modelMapper A function to provide a model given a qualified name and resource file
    */
+  @SuppressWarnings("unused")
   public ResourceFileSourceProducer( ITypeLoader typeLoader, String extension, BiFunction<String, IFile, M> modelMapper )
   {
     this( typeLoader, extension, modelMapper, null, null );
@@ -80,10 +81,10 @@ public abstract class ResourceFileSourceProducer<M> extends BaseService implemen
   protected abstract boolean isInnerType( String topLevelFqn, String relativeInner );
 
   /**
-   * Generate Java source code for the named model.
-   * @param topLevelFqn The qualified name of the top-level Java type to produce.
+   * Generate Source code for the named model.
+   * @param topLevelFqn The qualified name of the top-level type to produce.
    * @param model The model your source code provider uses to generate the source.
-   * @return The source code for the specified top-level Java type.
+   * @return The source code for the specified top-level type.
    */
   protected abstract String produce( String topLevelFqn, M model );
 
@@ -127,12 +128,6 @@ public abstract class ResourceFileSourceProducer<M> extends BaseService implemen
   public ITypeLoader getTypeLoader()
   {
     return _typeLoader;
-  }
-
-  @Override
-  public SourceKind getSourceKind()
-  {
-    return SourceKind.Java;
   }
 
   @Override
@@ -183,12 +178,6 @@ public abstract class ResourceFileSourceProducer<M> extends BaseService implemen
   public boolean isTopLevelType( String fqn )
   {
     return _fqnToModel.get().get( fqn ) != null;
-  }
-
-  @Override
-  public ClassType getClassType( String fqn )
-  {
-    return ClassType.JavaClass;
   }
 
   @Override
@@ -304,9 +293,7 @@ public abstract class ResourceFileSourceProducer<M> extends BaseService implemen
         case DELETION:
         {
           Arrays.stream( request.types ).forEach(
-            fqn -> {
-              _fqnToModel.get().remove( fqn );
-            } );
+            fqn -> _fqnToModel.get().remove( fqn ) );
           break;
         }
       }

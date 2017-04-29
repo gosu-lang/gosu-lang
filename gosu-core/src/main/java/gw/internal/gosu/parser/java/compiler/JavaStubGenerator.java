@@ -331,7 +331,7 @@ public class JavaStubGenerator
     indent( sb, indent );
     genModifiers( sb, constructor.getModifiers(), false, Modifier.PUBLIC );
     sb.append( SignatureUtil.getSimpleName( gsClass.getName() ) ).append( "(" );
-    genParameters( sb, constructor, hideReified );
+    genParameters( sb, constructor, true, hideReified );
     sb.append( ") {}\n" );
   }
 
@@ -709,12 +709,12 @@ public class JavaStubGenerator
 
   private void genParameters( StringBuilder sb, DynamicFunctionSymbol dfs )
   {
-    genParameters( sb, dfs, false );
+    genParameters( sb, dfs, false, false );
   }
-  private void genParameters( StringBuilder sb, DynamicFunctionSymbol dfs, boolean hideReified )
+  private void genParameters( StringBuilder sb, DynamicFunctionSymbol dfs, boolean isConstructor, boolean hideReified )
   {
     List<ISymbol> parameters = dfs.getArgs();
-    int iParam = hideReified ? 0 : addReifiedTypeParamaters( sb, dfs );
+    int iParam = hideReified ? 0 : addReifiedTypeParamaters( sb, dfs, isConstructor );
     for( int i = 0; i < parameters.size(); i++ )
     {
       ISymbol param = parameters.get( i );
@@ -723,12 +723,12 @@ public class JavaStubGenerator
     }
   }
 
-  private int addReifiedTypeParamaters( StringBuilder sb, DynamicFunctionSymbol dfs )
+  private int addReifiedTypeParamaters( StringBuilder sb, DynamicFunctionSymbol dfs, boolean isConstructor )
   {
     int iParam = 0;
-    if( dfs.isReified() && (dfs.getType().isGenericType() || dfs.isConstructor() && dfs.getDeclaringTypeInfo().getOwnersType().isGenericType()) )
+    if( dfs.isReified() || ((dfs.isConstructor() || isConstructor) && dfs.getDeclaringTypeInfo().getOwnersType().isGenericType()) )
     {
-      int typeVarCount = getTypeVarCountForDFS( dfs );
+      int typeVarCount = getTypeVarCountForDFS( dfs, isConstructor );
       for( int i = 0; i < typeVarCount; i++ )
       {
         sb.append( i > 0 ? ", " : "" ).append( LazyTypeResolver.class.getName() ).append( ' ' ).append( AbstractElementTransformer.TYPE_PARAM_PREFIX ).append( i );
@@ -738,7 +738,7 @@ public class JavaStubGenerator
     return iParam;
   }
 
-  public static int getTypeVarCountForDFS( DynamicFunctionSymbol dfs )
+  public static int getTypeVarCountForDFS( DynamicFunctionSymbol dfs, boolean isConstructor )
   {
     int typeVarCount = 0;
     if( !dfs.isStatic() && dfs.getGosuClass() instanceof IGosuEnhancement )
@@ -749,7 +749,7 @@ public class JavaStubGenerator
     {
       typeVarCount += dfs.getType().getGenericTypeVariables().length;
     }
-    else if( dfs.isConstructor() )
+    else if( dfs.isConstructor() || isConstructor )
     {
       IType declaringType = TypeLord.getPureGenericType( dfs.getDeclaringTypeInfo().getOwnersType() );
       if( declaringType.isGenericType() )

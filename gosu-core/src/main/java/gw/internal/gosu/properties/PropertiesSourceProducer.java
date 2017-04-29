@@ -7,7 +7,7 @@ package gw.internal.gosu.properties;
 import gw.fs.IFile;
 import gw.lang.javac.gen.SrcClass;
 import gw.lang.reflect.ITypeLoader;
-import gw.lang.reflect.gs.ResourceFileSourceProducer;
+import gw.lang.reflect.gs.JavaSourceProducer;
 import gw.lang.reflect.json.Json;
 import gw.util.cache.FqnCache;
 import gw.util.cache.FqnCacheNode;
@@ -15,7 +15,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
 
-public class PropertiesSourceProducer extends ResourceFileSourceProducer<FqnCache<String>>
+public class PropertiesSourceProducer extends JavaSourceProducer<FqnCache<String>>
 {
   public static final String FILE_EXTENSION = "properties";
 
