@@ -55,6 +55,7 @@
         <configuration>
           <!-- tests in this module only will each receive a unique JVM -->
           <reuseForks>false</reuseForks>
+          <skip>true</skip>
         </configuration>
       </plugin>
     </plugins>
