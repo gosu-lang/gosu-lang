@@ -57,7 +57,7 @@ public class JavaParser implements IJavaParser
     {
       _javac = JavacTool.create();
 
-      JavacJacker javacJacker = JavacJacker.instancne();
+      JavacJacker javacJacker = JavacJacker.instance();
       if( javacJacker != null )
       {
         // Share our existing Gosu file manager from Javac

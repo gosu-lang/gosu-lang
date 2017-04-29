@@ -37,7 +37,6 @@ import javax.tools.JavaFileManager;
 import javax.tools.JavaFileObject;
 import javax.tools.StandardLocation;
 
-
 import static javax.lang.model.SourceVersion.RELEASE_8;
 
 /**
@@ -57,7 +56,7 @@ public class JavacJacker extends AbstractProcessor
   private Set<JavaFileObject> _javaInputFiles;
   private List<String> _gosuInputFiles;
 
-  static JavacJacker instancne()
+  static JavacJacker instance()
   {
     return INSTANCE;
   }
