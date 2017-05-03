@@ -3,6 +3,7 @@ package gw.specContrib.typeinference
 uses java.util.Date
 uses java.util.List
 uses java.util.Map
+uses java.lang.Integer
 
 class Errant_IfTypeNarrowing {
   interface I1 {
@@ -133,6 +134,13 @@ class Errant_IfTypeNarrowing {
       }
     }
 
+  }
+
+  // IDE-3196
+  class Ide3196 {
+    var b : Boolean = true
+   var x = (b typeis Integer)       //## issuekeys: !INVALID.TYPEIS.NARROWING.CAST!
+    var y = b as Integer // Good: Here we cast Boolean to Integer and OS Gosu says it's okay!!
   }
 
   static  abstract class DataBuilderExpression<T extends DataBuilder> {
