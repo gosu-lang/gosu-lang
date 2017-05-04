@@ -4,6 +4,7 @@
 
 package gw.lang.reflect.gs;
 
+import gw.config.IService;
 import gw.fs.IDirectory;
 import gw.fs.IFile;
 import gw.lang.GosuShop;
@@ -17,15 +18,24 @@ import gw.lang.reflect.RefreshKind;
 import gw.lang.reflect.SimpleTypeLoader;
 import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.java.IJavaType;
+import gw.lang.reflect.json.JsonImplSourceProducer;
+import gw.lang.reflect.json.JsonSourceProducer;
 import gw.lang.reflect.module.IModule;
 import gw.util.concurrent.LockingLazyVar;
 
+import gw.util.concurrent.LocklessLazyVar;
+import gw.util.sourceprocuders.image.ImageSourceProducer;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
+
+
+import static java.util.Collections.emptySet;
 
 public class GosuClassTypeLoader extends SimpleTypeLoader
 {
@@ -49,6 +59,7 @@ public class GosuClassTypeLoader extends SimpleTypeLoader
   private IGosuClassRepository _repository;
   private LockingLazyVar<IEnhancementIndex> _enhancementIndex;
   protected Set<String> _namespaces;
+  private LocklessLazyVar<Set<ISourceProducer>> _sourceProducers;
 
   public static GosuClassTypeLoader getDefaultClassLoader()
   {
@@ -69,6 +80,7 @@ public class GosuClassTypeLoader extends SimpleTypeLoader
   {
     super( module );
     _repository = repository;
+    _sourceProducers = LocklessLazyVar.make( Collections::emptySet );
     makeEnhancementIndex();
   }
 
@@ -194,7 +206,7 @@ public class GosuClassTypeLoader extends SimpleTypeLoader
       catch( NullPointerException e )
       {
         //!! hack to get past dependency issue with tests
-        return Collections.emptySet();
+        return emptySet();
       }
     }
     return _namespaces;
@@ -216,7 +228,7 @@ public class GosuClassTypeLoader extends SimpleTypeLoader
   public Set<String> computeTypeNames()
   {
     Set<String> allTypeNames = _repository.getAllTypeNames( getAllExtensions() );
-    getGosuSourceProducers().forEach( sp -> allTypeNames.addAll( sp.getAllTypeNames() ) );
+    getSourceProducers().forEach( sp -> allTypeNames.addAll( sp.getAllTypeNames() ) );
     return allTypeNames;
   }
 
@@ -225,7 +237,7 @@ public class GosuClassTypeLoader extends SimpleTypeLoader
   {
     _namespaces = null;
     _repository.typesRefreshed( null );
-    getGosuSourceProducers().forEach( ISourceProducer::clear );
+    getSourceProducers().forEach( ISourceProducer::clear );
   }
 
   @Override
@@ -323,7 +335,7 @@ public class GosuClassTypeLoader extends SimpleTypeLoader
     ISourceFileHandle sfh = _repository.findClass( fqn, getAllExtensions() );
     if( sfh == null )
     {
-      sfh = loadFromSourceProducer( fqn, getGosuSourceProducers() );
+      sfh = loadFromSourceProducer( fqn, getSourceProducers() );
     }
 
     if( sfh == null || !isValidSourceFileHandle( sfh ) || !sfh.isValid() || !fqn.endsWith( sfh.getRelativeName() ) )
@@ -391,7 +403,7 @@ public class GosuClassTypeLoader extends SimpleTypeLoader
   public Set<TypeName> getTypeNames( String namespace )
   {
     Set<TypeName> typeNames = _repository.getTypeNames( namespace, ALL_EXTS_SET, this );
-    getGosuSourceProducers().forEach( sp -> typeNames.addAll( sp.getTypeNames( namespace ) ) );
+    getSourceProducers().forEach( sp -> typeNames.addAll( sp.getTypeNames( namespace ) ) );
     return typeNames;
   }
 
@@ -399,17 +411,63 @@ public class GosuClassTypeLoader extends SimpleTypeLoader
   public boolean handlesFile( IFile file )
   {
     return getExtensions().contains( file.getExtension() ) ||
-           getGosuSourceProducers().stream().anyMatch( sp -> sp.handlesFile( file ) );
+           getSourceProducers().stream().anyMatch( sp -> sp.handlesFile( file ) );
   }
 
   @Override
   public boolean hasNamespace( String namespace )
   {
-    return _repository.hasNamespace( namespace ) > 0;
+    return _repository.hasNamespace( namespace ) > 0 ||
+           getSourceProducers().stream().anyMatch( sp -> sp.isPackage( namespace ) );
+  }
+
+  @Override
+  public Set<ISourceProducer> getSourceProducers()
+  {
+    return _sourceProducers.get();
+  }
+  public void setSourceProducers( Set<String> sourceProducers )
+  {
+    _sourceProducers = LocklessLazyVar.make( () ->
+     {
+       Set<ISourceProducer> set = sourceProducers.stream()
+         .map( fqn ->
+               {
+                 try
+                 {
+                   Class<?> cls = Class.forName( fqn );
+                   return (ISourceProducer)cls.newInstance();
+                 }
+                 catch( Exception ex )
+                 {
+                   throw new RuntimeException( ex );
+                 }
+               } )
+         .filter( sp -> sp.getSourceKind() == ISourceProducer.SourceKind.Gosu )
+         .collect( Collectors.toSet() );
+       addBuiltInSourceProducers( set );
+       return set;
+     } );
   }
 
   @Override
   protected void addBuiltInSourceProducers( Set<ISourceProducer> set )
   {
+    set.add( new ImageSourceProducer( this ) );
+    set.add( new JsonSourceProducer( this ) );
+    set.add( new JsonImplSourceProducer( this ) );
+  }
+
+  @Override
+  public <T> List<T> getInterface( Class<T> apiInterface )
+  {
+    if( apiInterface.getName().equals( "editor.plugin.typeloader.ITypeFactory" ) )
+    {
+      List<T> impls = new ArrayList<>();
+      getSourceProducers().forEach( sp -> {if( sp instanceof IService ) impls.addAll( ((IService)sp).getInterface( apiInterface ) );} );
+
+      return impls;
+    }
+    return super.getInterface( apiInterface );
   }
 }

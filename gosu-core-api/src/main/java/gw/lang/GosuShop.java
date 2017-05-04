@@ -16,6 +16,7 @@ import gw.lang.javadoc.IJavaDocFactory;
 import gw.lang.parser.IConstructorInfoFactory;
 import gw.lang.parser.IDynamicFunctionSymbol;
 import gw.lang.parser.IExpression;
+import gw.lang.parser.IFileRepositoryBasedType;
 import gw.lang.parser.IFullParserState;
 import gw.lang.parser.IParsedElement;
 import gw.lang.parser.IReducedDynamicFunctionSymbol;
@@ -419,6 +420,11 @@ public class GosuShop
 
   public static IJavaClassInfo createClassInfo(Class aClass, IModule module) {
     return CommonServices.getGosuIndustrialPark().createClassInfo(aClass, module);
+  }
+
+  public static String genJavaStub( IFileRepositoryBasedType type )
+  {
+    return CommonServices.getGosuIndustrialPark().genJavaStub( type );
   }
 
   public static String toSignature(String fullyQualifiedName) {

@@ -21,15 +21,15 @@ public class SystemProperties
 {
   private static final String FQN = "gw.lang.SystemProperties";
 
-  public static Map<String, LocklessLazyVar<FqnCache<String>>> make()
+  public static Map<String, LocklessLazyVar<Model>> make()
   {
-    Map<String, LocklessLazyVar<FqnCache<String>>> systemProps = new HashMap<>( 2 );
+    Map<String, LocklessLazyVar<Model>> systemProps = new HashMap<>( 2 );
     systemProps.put( FQN,
       LocklessLazyVar.make(
       () -> {
         FqnCache<String> cache = new FqnCache<>( FQN, true, Json::makeIdentifier );
         _keys.forEach( key -> cache.add( key, System.getProperty( key ) ) );
-        return cache;
+        return new Model( FQN, cache );
       } ) );
     return systemProps;
   }

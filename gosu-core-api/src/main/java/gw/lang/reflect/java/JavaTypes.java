@@ -859,6 +859,11 @@ public class JavaTypes {
 
   private static IJavaType findTypeFromJre(Class c) {
     IJavaType type = (IJavaType) TypeSystem.get(c, TypeSystem.getExecutionEnvironment().getJreModule());
+    if( type == null )
+    {
+      // Can be null for multi-module environments where the Gosu binaries are in a separate module dedicated to Gosu
+      return type;
+    }
     IExecutionEnvironment execEnv = type.getTypeLoader().getModule().getExecutionEnvironment();
     if (execEnv.getProject().isDisposed()) {
       throw new IllegalStateException("Whoops.... the project associated with type, " + type.getName() + ", is stale. ExecEnv: " + execEnv.getProject());
@@ -881,7 +886,8 @@ public class JavaTypes {
           if( bFromJre ) {
             type = findTypeFromJre( c );
           }
-          else {
+          if( type == null )
+          {
             type = findTypeFromProject( c );
           }
           cache.put( c, type );

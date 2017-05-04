@@ -281,10 +281,16 @@ public class JavaStubGenerator
 //        continue;
 //      }
 
+      if( field.getType() == JavaTypes.pVOID() )
+      {
+        // skip type-inferred private fields (remember, this is a stub)
+        continue;
+      }
+
       List<? extends IAnnotationInfo> gosuAnnotationInfos = AbstractElementTransformer.makeAnnotationInfos( field.getAnnotations(), gsClass.getTypeInfo() );
       genAnnotations( sb, gosuAnnotationInfos, indent );
       indent( sb, indent );
-      genModifiers( sb, field.getModifiers(), false, Modifier.PUBLIC );
+      genModifiers( sb, field.getModifiers(), false, Modifier.PRIVATE );
       sb.append( getTypeName( field.getType() ) ).append( ' ' ).append( field.getIdentifierName() );
       if( field.isFinal() )
       {

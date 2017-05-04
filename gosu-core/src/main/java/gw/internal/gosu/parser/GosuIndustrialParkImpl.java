@@ -15,6 +15,8 @@ import gw.internal.gosu.module.GlobalModule;
 import gw.internal.gosu.module.Module;
 import gw.internal.gosu.parser.expressions.Identifier;
 import gw.internal.gosu.parser.expressions.NullExpression;
+import gw.internal.gosu.parser.java.compiler.GeneratedJavaStubFileObject;
+import gw.internal.gosu.parser.java.compiler.JavaStubGenerator;
 import gw.internal.gosu.runtime.GosuRuntimeMethods;
 import gw.internal.gosu.template.GosuTemplateType;
 import gw.internal.gosu.template.SimpleTemplateHost;
@@ -32,6 +34,7 @@ import gw.lang.parser.EvaluationException;
 import gw.lang.parser.IConstructorInfoFactory;
 import gw.lang.parser.IDynamicFunctionSymbol;
 import gw.lang.parser.IExpression;
+import gw.lang.parser.IFileRepositoryBasedType;
 import gw.lang.parser.IParsedElement;
 import gw.lang.parser.IParserPart;
 import gw.lang.parser.IReducedDynamicFunctionSymbol;
@@ -84,7 +87,9 @@ import gw.lang.reflect.module.IModule;
 import gw.util.GosuExceptionUtil;
 import gw.util.IFeatureFilter;
 
+import gw.util.StreamUtil;
 import java.beans.IntrospectionException;
+import java.io.IOException;
 import java.io.Reader;
 import java.io.Writer;
 import java.lang.reflect.Method;
@@ -276,6 +281,20 @@ public class GosuIndustrialParkImpl extends BaseService implements IGosuShop
 
   public IJavaClassInfo createClassInfo(Class aClass, IModule module) {
     return new ClassJavaClassInfo(aClass, module);
+  }
+
+  @Override
+  public String genJavaStub( IFileRepositoryBasedType type )
+  {
+    GeneratedJavaStubFileObject file = new GeneratedJavaStubFileObject( type.getName(), () -> JavaStubGenerator.instance().genStub( type ) );
+    try( Reader r = file.openReader( true ) )
+    {
+      return StreamUtil.getContent( r );
+    }
+    catch( IOException e )
+    {
+      throw new RuntimeException( e );
+    }
   }
 
   @Override

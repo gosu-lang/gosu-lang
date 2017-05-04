@@ -15,6 +15,7 @@ import gw.internal.gosu.parser.ModuleClassLoader;
 import gw.internal.gosu.parser.ModuleTypeLoader;
 import gw.lang.parser.ILanguageLevel;
 import gw.lang.reflect.ITypeLoader;
+import gw.lang.reflect.SimpleTypeLoader;
 import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.gs.GosuClassTypeLoader;
 import gw.lang.reflect.gs.IFileSystemGosuClassRepository;
@@ -349,7 +350,13 @@ public class Module implements IModule
     Set<String> typeLoaders = new HashSet<>();
     Set<String> sourceProducers = new HashSet<>();
     findExtensionClasses( typeLoaders, sourceProducers );
-    getModuleTypeLoader().getDefaultTypeLoader().setSourceProducers( sourceProducers );
+    for( ITypeLoader loader: getModuleTypeLoader().getTypeLoaderStack() )
+    {
+      if( loader instanceof SimpleTypeLoader )
+      {
+        ((SimpleTypeLoader)loader).setSourceProducers( sourceProducers );
+      }
+    }
     for( String additionalTypeLoader: typeLoaders )
     {
       try

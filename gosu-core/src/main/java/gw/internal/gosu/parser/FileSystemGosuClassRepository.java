@@ -10,6 +10,7 @@ import gw.fs.IDirectoryUtil;
 import gw.fs.IFile;
 import gw.fs.IResource;
 import gw.fs.IncludeModuleDirectory;
+import gw.fs.physical.PhysicalFileImpl;
 import gw.lang.parser.FileSource;
 import gw.lang.parser.ISource;
 import gw.lang.reflect.ITypeLoader;
@@ -759,7 +760,10 @@ public class FileSystemGosuClassRepository implements IFileSystemGosuClassReposi
       if( content == null ) {
         Stream<String> lines = null;
         try {
-          if( _file.isJavaFile() && _classType != ClassType.JavaClass ) {
+          if( _file.isJavaFile() && _classType != ClassType.JavaClass &&
+              // PhysicalFileImpl required, otherwise by not going through IFile.openInputStream() we risk using stale data e.g., cached data from chagnes in an IDE editor (IDEAFile)
+              _file instanceof PhysicalFileImpl )
+          {
             lines = Files.lines( _file.toJavaFile().toPath() );
           }
           else {
@@ -817,7 +821,7 @@ public class FileSystemGosuClassRepository implements IFileSystemGosuClassReposi
       if (cachedPackage != null) {
         return cachedPackage.getTypeNames(extensions, loader);
       } else {
-        return Collections.EMPTY_SET;
+        return setNames;
       }
     }
     return setNames;

@@ -14,6 +14,7 @@ import gw.lang.javadoc.IJavaDocFactory;
 import gw.lang.parser.IConstructorInfoFactory;
 import gw.lang.parser.IDynamicFunctionSymbol;
 import gw.lang.parser.IExpression;
+import gw.lang.parser.IFileRepositoryBasedType;
 import gw.lang.parser.IFullParserState;
 import gw.lang.parser.IParsedElement;
 import gw.lang.parser.IParserPart;
@@ -163,6 +164,8 @@ public interface IGosuShop extends IService
   IType getPureGenericType(IType type);
 
   IJavaClassInfo createClassInfo(Class aClass, IModule module);
+
+  String genJavaStub( IFileRepositoryBasedType type );
 
   IMetaType createMetaType(IType type, boolean literal);
 
