@@ -186,6 +186,22 @@ class Errant_IfTypeNarrowing {
   }
 }
 
+// IDE-4028
+  abstract class Ide4028 implements List<String[]> {
+
+    function hello() {
+        var i: List<Object>
+        var j: int
+
+        if (i typeis String) {}        //## issuekeys: THE TYPEIS OPERATOR CANNOT BE APPLIED: 'JAVA.UTIL.LIST<JAVA.LANG.OBJECT>' TYPEIS 'JAVA.LANG.STRING'
+        if (i typeis Set) {}
+        if (i typeis Ide4028) {}  // Good
+        if (i typeis BigDecimal) {}
+        if (i typeis List<Object[]>) {}
+    }
+
+  }
+
   static  abstract class DataBuilderExpression<T extends DataBuilder> {
 
     protected var _builder : T
