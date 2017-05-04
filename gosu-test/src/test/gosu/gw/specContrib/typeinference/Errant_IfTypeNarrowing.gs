@@ -5,6 +5,7 @@ uses java.util.Date
 uses java.util.List
 uses java.util.Map
 uses java.lang.Integer
+uses java.math.BigDecimal
 
 class Errant_IfTypeNarrowing {
   interface I1 {
