@@ -50,6 +50,11 @@ class JsonListType implements IJsonParentType
     _componentType = compType;
   }
 
+  public Map<String, IJsonParentType> getInnerTypes()
+  {
+    return _innerTypes;
+  }
+
   public IJsonType merge( JsonListType other )
   {
     JsonListType mergedType = new JsonListType( getParent() );

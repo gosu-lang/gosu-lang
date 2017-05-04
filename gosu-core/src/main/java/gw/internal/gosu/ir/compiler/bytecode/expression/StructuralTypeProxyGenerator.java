@@ -78,7 +78,7 @@ public class StructuralTypeProxyGenerator {
       ifaceType = TypeLord.makeParameteredType( ifaceType, inferenceMap );
       ifaceType = TypeLord.replaceTypeVariableTypeParametersWithBoundingTypes( ifaceType );
     }
-    return new StringBuilder()
+    StringBuilder sb = new StringBuilder()
       .append( "package " ).append( getNamespace( ifaceType ) ).append( "\n" )
       .append( "\n" )
       .append( "class " ).append( name ).append( " implements " ).append( ifaceType.getName() ).append( " {\n" )
@@ -90,6 +90,7 @@ public class StructuralTypeProxyGenerator {
       .append( "  \n" )
       .append( implementIface( ifaceType, type ) )
       .append( "}" );
+    return sb;
   }
 
   private String getNamespace( IType ifaceType ) {

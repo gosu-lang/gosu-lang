@@ -10,13 +10,15 @@ import java.util.Set;
  */
 public interface ISourceProducer extends IFileConnected
 {
+
+
   /**
    * Supported kinds of source.
    */
   enum SourceKind
   {
     Java,
-    Gosu
+    Gosu;
   }
 
   /**
@@ -39,6 +41,11 @@ public interface ISourceProducer extends IFileConnected
    */
   boolean isType( String fqn );
   boolean isTopLevelType( String fqn );
+
+  /**
+   * Verifies whether or not the specified package may be provided by this source producer
+   */
+  boolean isPackage( String pkg );
 
   /**
    * What kind of type corresponds with fqn?

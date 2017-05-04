@@ -306,6 +306,17 @@ public class EditorUtilities
 
   public static Icon findIcon( IType type )
   {
+    if( type != null )
+    {
+      for( ITypeFactory factory: type.getTypeLoader().getInterface( ITypeFactory.class ) )
+      {
+        if( factory != null && factory.handlesType( type ) )
+        {
+          return EditorUtilities.loadIcon( factory.getIcon() );
+        }
+      }
+    }
+
     if( type instanceof IGosuClass )
     {
       if( type.isInterface() )
@@ -339,16 +350,6 @@ public class EditorUtilities
       else
       {
         return findIcon( ClassType.Class );
-      }
-    }
-    else if( type != null )
-    {
-      for( ITypeFactory factory: type.getTypeLoader().getInterface( ITypeFactory.class ) )
-      {
-        if( factory != null && factory.handlesType( type ) )
-        {
-          return EditorUtilities.loadIcon( factory.getIcon() );
-        }
       }
     }
     else if( type instanceof IJavaType )

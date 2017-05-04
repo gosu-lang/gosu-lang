@@ -3,9 +3,12 @@ package editor;
 import editor.plugin.typeloader.ITypeFactory;
 import editor.undo.AtomicUndoManager;
 import editor.util.EditorUtilities;
+import gw.fs.IFile;
 import gw.lang.parser.ISymbolTable;
 import gw.lang.reflect.IType;
 import gw.lang.IIssueContainer;
+import gw.lang.reflect.ITypeRef;
+import gw.lang.reflect.TypeSystem;
 import gw.util.GosuStringUtil;
 import java.awt.BorderLayout;
 import java.awt.EventQueue;
@@ -301,14 +304,41 @@ public class StandardEditor extends EditorHost
     public void insertUpdate( DocumentEvent e )
     {
       parse();
+      refreshTypes();
     }
 
     @Override
     public void removeUpdate( DocumentEvent e )
     {
       parse();
+      refreshTypes();
     }
 
-  }
+    private void refreshTypes()
+    {
+      EventQueue.invokeLater( () -> {
+        TypeSystem.refresh( (ITypeRef)_type );
 
+        IFile[] sourceFiles = _type.getSourceFiles();
+        if( sourceFiles != null )
+        {
+          for( IFile file : sourceFiles )
+          {
+            String[] typesForFile = TypeSystem.getTypesForFile( TypeSystem.getCurrentModule(), file );
+            if( typesForFile != null )
+            {
+              for( String fqn: typesForFile )
+              {
+                IType csr = TypeSystem.getByFullNameIfValid( fqn );
+                if( csr != null )
+                {
+                  TypeSystem.refresh( (ITypeRef)csr );
+                }
+              }
+            }
+          }
+        }
+      } );
+    }
+  }
 }

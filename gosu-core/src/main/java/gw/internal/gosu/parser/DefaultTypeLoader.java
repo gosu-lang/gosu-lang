@@ -31,6 +31,7 @@ import gw.lang.reflect.java.JavaTypes;
 import gw.lang.reflect.java.asm.AsmClass;
 import gw.lang.reflect.module.IModule;
 
+import gw.util.concurrent.LocklessLazyVar;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -40,12 +41,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 public class DefaultTypeLoader extends SimpleTypeLoader implements IExtendedTypeLoader, IDefaultTypeLoader {
   private ClassCache _classCache;
   private IGosuClassLoader _gosuClassLoader;            //## todo: use a ConcurrentWeakValueHashMap here?
   private Map<String, IJavaClassInfo> _classInfoCache = new ConcurrentHashMap<>( 1000 );
   protected Set<String> _namespaces;
+  private LocklessLazyVar<Set<ISourceProducer>> _sourceProducers = LocklessLazyVar.make( Collections::emptySet );
 
   public static DefaultTypeLoader instance(IModule module) {
     if (module == null) {
@@ -263,7 +266,7 @@ public class DefaultTypeLoader extends SimpleTypeLoader implements IExtendedType
   public ISourceFileHandle getSourceFileHandle( String fqn ) {
     ISourceFileHandle aClass = _module.getFileRepository().findClass( fqn, EXTENSIONS_ARRAY );
     if( aClass == null ) {
-      aClass = loadFromSourceProducer( fqn, getJavaSourceProducers() );
+      aClass = loadFromSourceProducer( fqn, getSourceProducers() );
     }
     else if( !aClass.getClassType().isJava() ) {
       aClass = null;
@@ -316,7 +319,7 @@ public class DefaultTypeLoader extends SimpleTypeLoader implements IExtendedType
   public Set<String> computeTypeNames() {
     Set<String> allTypeNames = _classCache.getAllTypeNames();
     allTypeNames.addAll(_module.getFileRepository().getAllTypeNames(DOT_JAVA_EXTENSION));
-    getJavaSourceProducers().forEach( sp -> allTypeNames.addAll( sp.getAllTypeNames() ) );
+    getSourceProducers().forEach( sp -> allTypeNames.addAll( sp.getAllTypeNames() ) );
     return allTypeNames;
   }
 
@@ -362,7 +365,7 @@ public class DefaultTypeLoader extends SimpleTypeLoader implements IExtendedType
 
     _classInfoCache.clear();
 
-    getJavaSourceProducers().forEach( ISourceProducer::clear );
+    getSourceProducers().forEach( ISourceProducer::clear );
 
     _module.getFileRepository().typesRefreshed( null );
 
@@ -433,7 +436,9 @@ public class DefaultTypeLoader extends SimpleTypeLoader implements IExtendedType
 
   @Override
   public boolean hasNamespace(String namespace) {
-    return _module.getFileRepository().hasNamespace(namespace) > 0 || _classCache.hasNamespace(namespace);
+    return _module.getFileRepository().hasNamespace(namespace) > 0 ||
+           _classCache.hasNamespace(namespace) ||
+           getSourceProducers().stream().anyMatch( sp -> sp.isPackage( namespace ) );
   }
 
   @Override
@@ -456,7 +461,7 @@ public class DefaultTypeLoader extends SimpleTypeLoader implements IExtendedType
     names.addAll( _module.getFileRepository().getTypeNames( namespace, Collections.singleton( ".java" ), this ) );
     names.addAll( _classCache.getTypeNames( namespace ) );
 
-    getJavaSourceProducers().forEach( sp -> names.addAll( sp.getTypeNames( namespace ) ) );
+    getSourceProducers().forEach( sp -> names.addAll( sp.getTypeNames( namespace ) ) );
 
     return names;
   }
@@ -465,7 +470,36 @@ public class DefaultTypeLoader extends SimpleTypeLoader implements IExtendedType
   public boolean handlesFile( IFile file )
   {
     return getExtensions().contains( file.getExtension() ) ||
-           getJavaSourceProducers().stream().anyMatch( sp -> sp.handlesFile( file ) );
+           getSourceProducers().stream().anyMatch( sp -> sp.handlesFile( file ) );
+  }
+
+  @Override
+  public Set<ISourceProducer> getSourceProducers()
+  {
+    return _sourceProducers.get();
+  }
+  public void setSourceProducers( Set<String> sourceProducers )
+  {
+    _sourceProducers = LocklessLazyVar.make( () ->
+     {
+       Set<ISourceProducer> set = sourceProducers.stream()
+         .map( fqn ->
+               {
+                 try
+                 {
+                   Class<?> cls = Class.forName( fqn );
+                   return (ISourceProducer)cls.newInstance();
+                 }
+                 catch( Exception ex )
+                 {
+                   throw new RuntimeException( ex );
+                 }
+               } )
+         .filter( sp -> sp.getSourceKind() == ISourceProducer.SourceKind.Java )
+         .collect( Collectors.toSet() );
+       addBuiltInSourceProducers( set );
+       return set;
+     } );
   }
 
   @Override
@@ -484,7 +518,7 @@ public class DefaultTypeLoader extends SimpleTypeLoader implements IExtendedType
         throw new RuntimeException( e );
       }
 
-      doForAllSourceProducers( sp -> {if( sp instanceof IService ) impls.addAll( ((IService)sp).getInterface( apiInterface ) );} );
+      getSourceProducers().forEach( sp -> {if( sp instanceof IService ) impls.addAll( ((IService)sp).getInterface( apiInterface ) );} );
 
       return impls;
     }

@@ -10,6 +10,7 @@ import gw.lang.reflect.json.Json;
 import gw.lang.reflect.module.IModule;
 import gw.util.Extensions;
 import gw.util.cache.FqnCache;
+import gw.util.concurrent.ConcurrentHashSet;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -28,7 +29,7 @@ public class PathCache
   private IModule _module;
   private final Supplier<Collection<IDirectory>> _pathSupplier;
   private final Runnable _clearHandler;
-  private Map<IFile, String> _reverseMap;
+  private Map<IFile, Set<String>> _reverseMap;
   private Map<String, FqnCache<IFile>> _filesByExtension;
 
   public PathCache( IModule module, Supplier<Collection<IDirectory>> pathSupplier, Runnable clearHandler )
@@ -106,7 +107,7 @@ public class PathCache
     return extCache;
   }
 
-  public String getFqnForFile( IFile file )
+  public Set<String> getFqnForFile( IFile file )
   {
     return _reverseMap.get( file );
   }
@@ -125,6 +126,7 @@ public class PathCache
         }
         String fqn = appendResourceNameToPath( relativePath, simpleName );
         addToExtension( fqn, file, filesByExtension );
+        addToReverseMap( file, fqn );
       }
       for( IDirectory subdir : dir.listDirs() )
       {
@@ -168,6 +170,25 @@ public class PathCache
     return path;
   }
 
+  private void removeFromReverseMap( IFile file, String fqn )
+  {
+    Set<String> fqns = _reverseMap.get( file );
+    if( fqns != null )
+    {
+      fqns.remove( fqn );
+    }
+  }
+
+  private void addToReverseMap( IFile file, String fqn )
+  {
+    Set<String> fqns = _reverseMap.get( file );
+    if( fqns == null )
+    {
+      _reverseMap.put( file, fqns = new ConcurrentHashSet<>() );
+    }
+    fqns.add( fqn );
+  }
+
   public void clear()
   {
     _filesByExtension.clear();
@@ -198,7 +219,7 @@ public class PathCache
         {
           Arrays.stream( request.types ).forEach(
             fqn -> {
-              _reverseMap.put( request.file, fqn );
+              addToReverseMap( request.file, fqn );
               addToExtension( fqn, request.file, _filesByExtension );
             } );
           break;
@@ -208,7 +229,7 @@ public class PathCache
         {
           Arrays.stream( request.types ).forEach(
             fqn -> {
-              _reverseMap.remove( request.file );
+              removeFromReverseMap( request.file, fqn );
               removeFromExtension( fqn, request.file, _filesByExtension );
             } );
           break;

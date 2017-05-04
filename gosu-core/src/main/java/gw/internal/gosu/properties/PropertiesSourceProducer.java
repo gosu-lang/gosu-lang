@@ -4,65 +4,42 @@
 
 package gw.internal.gosu.properties;
 
-import gw.fs.IFile;
-import gw.lang.javac.gen.SrcClass;
+import gw.lang.reflect.java.gen.SrcClass;
 import gw.lang.reflect.ITypeLoader;
 import gw.lang.reflect.gs.JavaSourceProducer;
-import gw.lang.reflect.json.Json;
 import gw.util.cache.FqnCache;
 import gw.util.cache.FqnCacheNode;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Properties;
+import java.util.Collections;
+import java.util.Set;
 
-public class PropertiesSourceProducer extends JavaSourceProducer<FqnCache<String>>
+public class PropertiesSourceProducer extends JavaSourceProducer<Model>
 {
-  public static final String FILE_EXTENSION = "properties";
+  public static final Set<String> FILE_EXTENSION = Collections.singleton( "properties" );
 
   public PropertiesSourceProducer( ITypeLoader typeLoader )
   {
-    super( typeLoader, FILE_EXTENSION, PropertiesSourceProducer::buildModel,
+    super( typeLoader, FILE_EXTENSION, Model::new,
            "editor.plugin.typeloader.properties.PropertiesTypeFactory",
            SystemProperties.make() );
-  }
-
-  private static FqnCache<String> buildModel( String fqn, IFile file )
-  {
-    try( InputStream propertiesStream = file.openInputStream() )
-    {
-      Properties properties = new Properties();
-      properties.load( propertiesStream );
-
-      FqnCache<String> cache = new FqnCache<>( fqn, true, Json::makeIdentifier );
-
-      for( String key: properties.stringPropertyNames() )
-      {
-        cache.add( key, properties.getProperty( key ) );
-      }
-      return cache;
-    }
-    catch( IOException e )
-    {
-      throw new RuntimeException( e );
-    }
   }
 
   @Override
   protected boolean isInnerType( String topLevel, String relativeInner )
   {
-    FqnCache<String> model = getModel( topLevel );
-    if( model == null )
+    Model model = getModel( topLevel );
+    FqnCache<String> cache = model == null ? null : model.getCache();
+    if( cache == null )
     {
       return false;
     }
-    FqnCacheNode<String> node = model.getNode( relativeInner );
+    FqnCacheNode<String> node = cache.getNode( relativeInner );
     return node != null && !node.isLeaf();
   }
 
   @Override
-  protected String produce( String topLevelFqn, FqnCache<String> model )
+  protected String produce( String topLevelFqn, Model model )
   {
-    SrcClass srcClass = new PropertiesCodeGen( model, findFileForType( topLevelFqn ), topLevelFqn ).make();
+    SrcClass srcClass = new PropertiesCodeGen( model.getCache(), findFileForType( topLevelFqn ), topLevelFqn ).make();
     StringBuilder sb = srcClass.render( new StringBuilder(), 0 );
     return sb.toString();
   }

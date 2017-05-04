@@ -83,7 +83,7 @@ public class Json
     return sb.toString();
   }
 
-  private static IJsonType transformJsonObject( String name, IJsonParentType parent, Object jsonObj )
+  public static IJsonType transformJsonObject( String name, IJsonParentType parent, Object jsonObj )
   {
     IJsonType type = null;
 

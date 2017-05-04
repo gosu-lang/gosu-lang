@@ -42,6 +42,16 @@ class JsonStructureType implements IJsonParentType
     return _innerTypes.get( name );
   }
 
+  public Map<String, IJsonType> getMembers()
+  {
+    return _members;
+  }
+
+  public Map<String, IJsonParentType> getInnerTypes()
+  {
+    return _innerTypes;
+  }
+
   public void addMember( String name, IJsonType type )
   {
     IJsonType existingType = _members.get( name );

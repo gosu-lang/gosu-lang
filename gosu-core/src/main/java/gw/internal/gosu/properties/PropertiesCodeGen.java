@@ -1,22 +1,22 @@
 package gw.internal.gosu.properties;
 
 import gw.fs.IFile;
-import gw.lang.javac.gen.SrcAnnotationExpression;
-import gw.lang.javac.gen.SrcArgument;
-import gw.lang.javac.gen.SrcClass;
-import gw.lang.javac.gen.SrcExpression;
-import gw.lang.javac.gen.SrcField;
-import gw.lang.javac.gen.SrcIdentifier;
-import gw.lang.javac.gen.SrcMemberAccessExpression;
-import gw.lang.javac.gen.SrcMethod;
-import gw.lang.javac.gen.SrcMethodCallExpression;
-import gw.lang.javac.gen.SrcParameter;
-import gw.lang.javac.gen.SrcRawExpression;
-import gw.lang.javac.gen.SrcReturnStatement;
-import gw.lang.javac.gen.SrcStatementBlock;
-import gw.lang.javac.gen.SrcSwitchCase;
-import gw.lang.javac.gen.SrcSwitchStatement;
-import gw.lang.javac.gen.SrcType;
+import gw.lang.reflect.java.gen.SrcAnnotationExpression;
+import gw.lang.reflect.java.gen.SrcArgument;
+import gw.lang.reflect.java.gen.SrcClass;
+import gw.lang.reflect.java.gen.SrcExpression;
+import gw.lang.reflect.java.gen.SrcField;
+import gw.lang.reflect.java.gen.SrcIdentifier;
+import gw.lang.reflect.java.gen.SrcMemberAccessExpression;
+import gw.lang.reflect.java.gen.SrcMethod;
+import gw.lang.reflect.java.gen.SrcMethodCallExpression;
+import gw.lang.reflect.java.gen.SrcParameter;
+import gw.lang.reflect.java.gen.SrcRawExpression;
+import gw.lang.reflect.java.gen.SrcReturnStatement;
+import gw.lang.reflect.java.gen.SrcStatementBlock;
+import gw.lang.reflect.java.gen.SrcSwitchCase;
+import gw.lang.reflect.java.gen.SrcSwitchStatement;
+import gw.lang.reflect.java.gen.SrcType;
 import gw.lang.reflect.SourcePosition;
 import gw.lang.reflect.java.JavaTypes;
 import gw.util.StreamUtil;
@@ -28,7 +28,7 @@ import java.lang.reflect.Modifier;
 import java.net.MalformedURLException;
 
 
-import static gw.lang.javac.gen.SrcClass.Kind.Class;
+import static gw.lang.reflect.java.gen.SrcClass.Kind.Class;
 
 /**
  */

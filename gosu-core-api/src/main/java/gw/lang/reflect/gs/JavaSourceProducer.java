@@ -4,6 +4,7 @@ import gw.fs.IFile;
 import gw.lang.reflect.ITypeLoader;
 import gw.util.concurrent.LocklessLazyVar;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.BiFunction;
 
 /**
@@ -11,16 +12,16 @@ import java.util.function.BiFunction;
  *
  * @param <M> The model you derive backing production of source code.
  */
-public abstract class JavaSourceProducer<M> extends ResourceFileSourceProducer<M>
+public abstract class JavaSourceProducer<M extends ResourceFileSourceProducer.IModel> extends ResourceFileSourceProducer<M>
 {
-  public JavaSourceProducer( ITypeLoader typeLoader, String extension, BiFunction<String, IFile, M> modelMapper )
+  public JavaSourceProducer( ITypeLoader typeLoader, Set<String> extensions, BiFunction<String, IFile, M> modelMapper )
   {
-    super( typeLoader, extension, modelMapper );
+    super( typeLoader, extensions, modelMapper );
   }
 
-  public JavaSourceProducer( ITypeLoader typeLoader, String extension, BiFunction<String, IFile, M> modelMapper, String typeFactoryFqn, Map<String, LocklessLazyVar<M>> peripheralTypes )
+  public JavaSourceProducer( ITypeLoader typeLoader, Set<String> extensions, BiFunction<String, IFile, M> modelMapper, String typeFactoryFqn, Map<String, LocklessLazyVar<M>> peripheralTypes )
   {
-    super( typeLoader, extension, modelMapper, typeFactoryFqn, peripheralTypes );
+    super( typeLoader, extensions, modelMapper, typeFactoryFqn, peripheralTypes );
   }
 
   @Override
