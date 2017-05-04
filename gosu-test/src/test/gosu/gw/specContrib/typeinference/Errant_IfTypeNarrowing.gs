@@ -1,5 +1,6 @@
 package gw.specContrib.typeinference
 
+uses java.io.Writer
 uses java.util.Date
 uses java.util.List
 uses java.util.Map
