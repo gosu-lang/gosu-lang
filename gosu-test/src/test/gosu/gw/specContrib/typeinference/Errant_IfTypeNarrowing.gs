@@ -138,10 +138,52 @@ class Errant_IfTypeNarrowing {
 
   // IDE-3196
   class Ide3196 {
-    var b : Boolean = true
-   var x = (b typeis Integer)       //## issuekeys: !INVALID.TYPEIS.NARROWING.CAST!
-    var y = b as Integer // Good: Here we cast Boolean to Integer and OS Gosu says it's okay!!
+  class A { function write() : int { return 8 } }
+  class C extends A { }
+
+  function testTypeisCompatibility() {
+    var B : Boolean = true
+    var x = B typeis Integer             //## issuekeys: THE TYPEIS OPERATOR CANNOT BE APPLIED: 'JAVA.LANG.BOOLEAN' TYPEIS 'JAVA.LANG.INTEGER'
+    var y = B as Integer            // This is good
+
+    var o : Object
+    var b : boolean
+
+    o = \ ->  {}
+    b = o typeis Runnable
+    b = o typeis  block()      // This is good
+
+    o = new A()
+    b = o typeis Writer
+    b = o typeis dynamic.Dynamic
+
+    var str : String = "123"
+    b = str typeis dynamic.Dynamic    // This is good
+
+    o = new LinkedList()
+    b = o typeis Deque & List
   }
+
+  function testTypeis() {
+    var x: Dynamic = "Hello"
+    var y = x typeis String   // This is good
+    var b : boolean
+    var c: String & Comparator
+    b = c typeis Integer        //## issuekeys: THE TYPEIS OPERATOR CANNOT BE APPLIED: 'JAVA.LANG.STRING & JAVA.UTIL.COMPARATOR' TYPEIS 'JAVA.LANG.INTEGER'
+    b = c typeis String         //## issuekeys: THE TYPEIS OPERATOR CANNOT BE APPLIED: 'JAVA.LANG.STRING & JAVA.UTIL.COMPARATOR' TYPEIS 'JAVA.LANG.STRING'
+    b = c typeis  CharSequence
+
+    var i: Integer
+    b = i typeis String & Comparator        //## issuekeys: THE TYPEIS OPERATOR CANNOT BE APPLIED: 'JAVA.LANG.INTEGER' TYPEIS 'JAVA.LANG.STRING & JAVA.UTIL.COMPARATOR'
+
+    var d : C
+    var e : A
+    b = d typeis C
+    b = d typeis A
+    b = e typeis A
+    b = e typeis C
+  }
+}
 
   static  abstract class DataBuilderExpression<T extends DataBuilder> {
 
