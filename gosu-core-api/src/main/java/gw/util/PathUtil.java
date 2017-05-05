@@ -1,6 +1,5 @@
 package gw.util;
 
-import com.sun.javafx.PlatformUtil;
 import com.sun.tools.javac.api.JavacTool;
 import gw.fs.FileFactory;
 import gw.fs.IFile;
