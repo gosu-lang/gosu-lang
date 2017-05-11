@@ -13,6 +13,16 @@ class Errant_PrivateStaticFunctionThroughClassName {
     b.privateStaticMethod()
   }
 
+  public function method2() {
+    privateStaticMethod()
+    Errant_PrivateStaticFunctionThroughClassName.privateStaticMethod()
+    new Errant_PrivateStaticFunctionThroughClassName().privateStaticMethod()
+
+    var a = Errant_PrivateStaticFunctionThroughClassName
+    a.privateStaticMethod()
+    this.privateStaticMethod()
+  }
+
   private static function privateStaticMethod() {
   }
 
