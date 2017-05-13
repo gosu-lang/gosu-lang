@@ -14,7 +14,7 @@ machine:
 dependencies:
   override:
     # Compiles tests, but does not run them
-    - mvn install -DskipTests=true -B
+    - mvn install -e -DskipTests=true -B
 
 general:
   branches:
