@@ -1,6 +1,6 @@
 package editor.plugin.typeloader.json;
 
-import gw.lang.IIssue;
+import manifold.internal.javac.IIssue;
 import javax.script.ScriptException;
 
 /**

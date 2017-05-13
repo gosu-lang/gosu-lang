@@ -4,11 +4,9 @@
 
 package gw.lang.reflect;
 
-import gw.config.IService;
-import gw.fs.IDirectory;
+import manifold.api.fs.IDirectory;
 import gw.internal.gosu.parser.ExtendedTypeDataFactory;
 import gw.lang.UnstableAPI;
-import gw.lang.parser.IAttributeSource;
 import gw.lang.parser.IParseIssue;
 import gw.lang.parser.ITypeUsesMap;
 import gw.lang.parser.ILanguageLevel;
@@ -21,6 +19,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.TimeZone;
+import manifold.api.service.IService;
 
 
 @UnstableAPI

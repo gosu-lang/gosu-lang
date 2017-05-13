@@ -6,7 +6,7 @@ package gw.test;
 
 import gw.lang.reflect.IType;
 import gw.lang.reflect.TypeSystem;
-import gw.fs.IFile;
+import manifold.api.fs.IFile;
 import gw.testharness.KnownBreak;
 import gw.testharness.KnownBreakCondition;
 import gw.testharness.environmentalcondition.JRockitVMCondition;

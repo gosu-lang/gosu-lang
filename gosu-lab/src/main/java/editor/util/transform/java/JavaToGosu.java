@@ -9,7 +9,7 @@ import com.sun.source.tree.CompilationUnitTree;
 import com.sun.source.util.DocTrees;
 import com.sun.source.util.SourcePositions;
 import editor.util.transform.java.visitor.GosuVisitor;
-import gw.lang.javac.IJavaParser;
+import manifold.internal.javac.IJavaParser;
 import gw.lang.parser.GosuParserFactory;
 import java.util.ArrayList;
 import java.util.List;

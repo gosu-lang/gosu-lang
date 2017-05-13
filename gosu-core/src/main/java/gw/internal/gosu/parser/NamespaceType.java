@@ -12,7 +12,6 @@ import gw.lang.reflect.ITypeInfo;
 import gw.lang.reflect.ITypeLoader;
 import gw.lang.reflect.Modifier;
 import gw.lang.reflect.TypeSystem;
-import gw.lang.reflect.gs.TypeName;
 import gw.lang.reflect.java.JavaTypes;
 import gw.lang.reflect.module.IModule;
 
@@ -20,6 +19,7 @@ import java.io.ObjectStreamException;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
+import manifold.api.sourceprod.TypeName;
 
 /**
  */

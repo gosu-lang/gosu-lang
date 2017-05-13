@@ -5,6 +5,7 @@
 package gw.config;
 
 import gw.util.ILogger;
+import manifold.api.service.BaseService;
 
 /**
  */

@@ -4,16 +4,19 @@
 
 package gw.lang.reflect;
 
-import gw.config.IService;
-import gw.fs.IDirectory;
-import gw.lang.reflect.gs.TypeName;
 import gw.lang.reflect.module.IModule;
 
 import java.net.URL;
 import java.util.List;
 import java.util.Set;
+import manifold.api.fs.IDirectory;
+import manifold.api.host.RefreshKind;
+import manifold.api.host.RefreshRequest;
+import manifold.api.service.IService;
+import manifold.api.sourceprod.IFileConnected;
+import manifold.api.sourceprod.TypeName;
 
-public interface ITypeLoader extends IFileConnected, IService
+public interface ITypeLoader extends IFileConnected, IService, manifold.api.host.ITypeLoader
 {
   String[] NO_TYPES = new String[0];
 
@@ -87,7 +90,7 @@ public interface ITypeLoader extends IFileConnected, IService
 
   boolean handlesNonPrefixLoads();
 
-  void refreshedNamespace(String namespace, IDirectory dir, RefreshKind kind);
+  void refreshedNamespace( String namespace, IDirectory dir, RefreshKind kind);
 
   /**
    * Fired when an existing type is refreshed, i.e. there are potential changes
@@ -106,7 +109,7 @@ public interface ITypeLoader extends IFileConnected, IService
 
   boolean hasNamespace(String namespace);
 
-  Set<TypeName> getTypeNames(String namespace);
+  Set<TypeName> getTypeNames( String namespace);
 
   Set<String> computeTypeNames();
 

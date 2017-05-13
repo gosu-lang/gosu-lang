@@ -10,7 +10,7 @@ import gw.lang.reflect.IFeatureInfo;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.INamespaceType;
 import gw.lang.reflect.TypeSystem;
-import gw.util.DynamicArray;
+import manifold.util.DynamicArray;
 import gw.util.GosuClassUtil;
 import gw.util.StringPool;
 

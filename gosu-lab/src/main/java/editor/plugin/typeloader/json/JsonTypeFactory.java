@@ -3,16 +3,16 @@ package editor.plugin.typeloader.json;
 import editor.EditorHost;
 import editor.plugin.typeloader.INewFileParams;
 import editor.plugin.typeloader.ITypeFactory;
-import gw.lang.IIssueContainer;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.gs.IGosuClass;
 import gw.lang.reflect.gs.ISourceFileHandle;
-import gw.lang.reflect.gs.ISourceProducer;
+import manifold.api.sourceprod.ISourceProducer;
 import gw.lang.reflect.json.Json;
 import java.awt.EventQueue;
 import javax.script.ScriptException;
 import javax.swing.JComponent;
 import javax.swing.text.StyledEditorKit;
+import manifold.internal.javac.IIssueContainer;
 
 /**
  */

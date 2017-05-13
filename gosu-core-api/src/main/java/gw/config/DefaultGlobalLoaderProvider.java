@@ -8,6 +8,7 @@ import gw.lang.reflect.ITypeLoader;
 
 import java.util.Collections;
 import java.util.List;
+import manifold.api.service.BaseService;
 
 public class DefaultGlobalLoaderProvider extends BaseService implements IGlobalLoaderProvider {
 

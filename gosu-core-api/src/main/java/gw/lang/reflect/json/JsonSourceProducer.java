@@ -1,7 +1,7 @@
 package gw.lang.reflect.json;
 
-import gw.lang.reflect.ITypeLoader;
-import gw.lang.reflect.gs.ClassType;
+import manifold.api.host.ITypeLoader;
+import manifold.api.sourceprod.ClassType;
 import gw.lang.reflect.gs.GosuSourceProducer;
 import gw.util.GosuClassUtil;
 import java.util.Collections;
@@ -12,12 +12,12 @@ import java.util.StringTokenizer;
  */
 public class JsonSourceProducer extends GosuSourceProducer<Model>
 {
-  public static final String FILE_EXTENSION = "json";
-  public static final Set<String> FILE_EXTENSIONS = Collections.singleton( FILE_EXTENSION );
+  private static final String FILE_EXTENSION = "json";
+  private static final Set<String> FILE_EXTENSIONS = Collections.singleton( FILE_EXTENSION );
 
-  public JsonSourceProducer( ITypeLoader typeLoader )
+  public void init( ITypeLoader typeLoader )
   {
-    super( typeLoader, FILE_EXTENSIONS, Model::new, "editor.plugin.typeloader.json.JsonTypeFactory", null );
+    init( typeLoader, FILE_EXTENSIONS, Model::new, "editor.plugin.typeloader.json.JsonTypeFactory", null );
   }
 
   @Override

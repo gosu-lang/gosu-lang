@@ -6,8 +6,11 @@ package gw.lang.reflect;
 
 import gw.lang.reflect.gs.IGosuFragment;
 import gw.util.cache.WeakFqnCache;
+import manifold.api.host.ITypeLoaderListener;
+import manifold.api.host.RefreshRequest;
 
-public class FragmentCache implements ITypeLoaderListener {
+public class FragmentCache implements ITypeLoaderListener
+{
   private static FragmentCache INSTANCE;
   private WeakFqnCache<IGosuFragment> _fragmentsByName = new WeakFqnCache<IGosuFragment>();
 

@@ -4,7 +4,7 @@
 
 package gw.fs.jar;
 
-import gw.fs.IFile;
+import manifold.api.fs.IFile;
 import gw.internal.gosu.module.fs.ModuleFSTestUtil;
 import gw.test.TestClass;
 
@@ -12,6 +12,7 @@ import gw.testharness.Disabled;
 import java.io.InputStream;
 import java.io.IOException;
 import java.io.File;
+import manifold.api.fs.jar.JarFileDirectoryImpl;
 
 /**
  * Created by IntelliJ IDEA.
@@ -394,7 +395,7 @@ public class JarEntryFileImplTest extends TestClass {
   // ---------------------- Private helper methods
 
   private JarFileDirectoryImpl getJarFile() {
-    JarFileDirectoryImpl jarFile = new JarFileDirectoryImpl(getTestJar());
+    JarFileDirectoryImpl jarFile = new JarFileDirectoryImpl( getTestJar());
     return jarFile;
   }
 

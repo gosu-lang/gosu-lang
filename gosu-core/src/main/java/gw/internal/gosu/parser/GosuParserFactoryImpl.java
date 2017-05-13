@@ -3,9 +3,9 @@
  */
 package gw.internal.gosu.parser;
 
-import gw.config.BaseService;
-import gw.internal.gosu.parser.java.compiler.JavaParser;
-import gw.lang.javac.IJavaParser;
+import manifold.api.service.BaseService;
+import manifold.internal.javac.JavaParser;
+import manifold.internal.javac.IJavaParser;
 import gw.lang.parser.IGosuParser;
 import gw.lang.parser.IGosuParserFactory;
 import gw.lang.reflect.IScriptabilityModifier;
@@ -15,7 +15,6 @@ import gw.lang.parser.StandardSymbolTable;
 import gw.lang.parser.ITypeUsesMap;
 import gw.lang.parser.IGosuProgramParser;
 import gw.lang.parser.IGosuFragmentParser;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 

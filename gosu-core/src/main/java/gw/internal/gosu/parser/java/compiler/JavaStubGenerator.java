@@ -31,6 +31,7 @@ import gw.lang.reflect.ITypeRef;
 import gw.lang.reflect.ITypeVariableType;
 import gw.lang.reflect.LazyTypeResolver;
 import gw.lang.reflect.MethodList;
+import gw.lang.reflect.Modifier;
 import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.gs.IGenericTypeVariable;
 import gw.lang.reflect.gs.IGosuClass;
@@ -38,7 +39,6 @@ import gw.lang.reflect.gs.IGosuEnhancement;
 import gw.lang.reflect.java.IJavaType;
 import gw.lang.reflect.java.JavaTypes;
 import java.lang.reflect.Array;
-import java.lang.reflect.Modifier;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
@@ -790,6 +790,10 @@ public class JavaStubGenerator
     else if( (mod & Modifier.PROTECTED) != 0 )
     {
       sb.append( "protected " );
+    }
+    else if( (mod & Modifier.INTERNAL) != 0 )
+    {
+      sb.append( "/*internal*/ " );
     }
     else if( (mod & Modifier.PRIVATE) != 0 )
     {

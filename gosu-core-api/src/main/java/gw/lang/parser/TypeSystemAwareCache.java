@@ -4,10 +4,10 @@
 
 package gw.lang.parser;
 
-import gw.lang.reflect.RefreshRequest;
+import manifold.api.host.RefreshRequest;
 import gw.util.concurrent.Cache;
-import gw.lang.reflect.AbstractTypeSystemListener;
 import gw.lang.reflect.TypeSystem;
+import manifold.api.host.AbstractTypeSystemListener;
 
 public class TypeSystemAwareCache<K, V> extends Cache<K, V>
 {

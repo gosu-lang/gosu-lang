@@ -1,9 +1,9 @@
 package gw.lang.gosuc.simple;
 
 //import com.guidewire.pl.system.dependency.PLDependencies;
-import gw.config.BaseService;
+import manifold.api.service.BaseService;
 import gw.config.IMemoryMonitor;
-import gw.lang.reflect.RefreshRequest;
+import manifold.api.host.RefreshRequest;
 import gw.lang.reflect.TypeSystem;
 
 import java.util.LinkedList;

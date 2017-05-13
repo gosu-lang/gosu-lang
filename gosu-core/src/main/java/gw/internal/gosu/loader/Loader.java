@@ -11,9 +11,6 @@ import gw.lang.reflect.gs.ICompilableType;
 import gw.lang.reflect.java.IJavaBackedType;
 import gw.lang.reflect.module.TypeSystemLockHelper;
 
-/**
- * FIXME: Duplicates {@link gw.internal.gosu.compiler.protocols.gosuclass.GosuClassesUrlConnection}
- */
 public class Loader {
   private static final String[] JAVA_NAMESPACES_TO_IGNORE = {
           "java.", "javax.", "sun."

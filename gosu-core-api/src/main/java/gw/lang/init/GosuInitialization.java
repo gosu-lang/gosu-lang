@@ -63,11 +63,12 @@ public class GosuInitialization
   }
 
   public void initializeRuntime( List<GosuPathEntry> pathEntries, String... discretePackages ) {
-    if (_initialized) {
-      throw new IllegalStateException("Illegal attempt to re-initialize Gosu");
-    }
-    getGosuInitialization().initializeRuntime( _execEnv, pathEntries, discretePackages );
-    _initialized = true;
+    reinitializeRuntime( pathEntries, discretePackages );
+//    if (_initialized) {
+//      throw new IllegalStateException("Illegal attempt to re-initialize Gosu");
+//    }
+//    getGosuInitialization().initializeRuntime( _execEnv, pathEntries, discretePackages );
+//    _initialized = true;
   }
 
   public void initializeCompiler(GosucModule module) {

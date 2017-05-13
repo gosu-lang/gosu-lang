@@ -22,6 +22,7 @@ import gw.lang.reflect.gs.*;
 import gw.lang.reflect.java.IJavaType;
 import gw.lang.reflect.java.JavaTypes;
 import gw.util.GosuExceptionUtil;
+import manifold.api.sourceprod.ClassType;
 import org.xml.sax.Attributes;
 
 import java.lang.reflect.Field;

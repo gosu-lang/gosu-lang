@@ -4,9 +4,10 @@
 
 package gw.config;
 
-import gw.lang.reflect.ITypeLoader;
+import manifold.api.service.IService;
 
-public interface IGosuInitializationHooks extends IService {
+public interface IGosuInitializationHooks extends IService
+{
   void beforeTypeLoaderCreation(Class typeLoaderClass);
   void afterTypeLoaderCreation();
 }

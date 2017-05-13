@@ -4,11 +4,12 @@
 
 package gw.lang.reflect;
 
-import gw.fs.IDirectory;
-import gw.fs.IFile;
+import manifold.api.fs.IDirectory;
+import manifold.api.fs.IFile;
 import gw.lang.GosuShop;
 import gw.lang.reflect.gs.ISourceFileHandle;
-import gw.lang.reflect.gs.ISourceProducer;
+import manifold.api.host.RefreshKind;
+import manifold.api.sourceprod.ISourceProducer;
 import gw.lang.reflect.gs.SourceProducerSourceFileHandle;
 import gw.lang.reflect.module.IModule;
 import java.util.ArrayList;

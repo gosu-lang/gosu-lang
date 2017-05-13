@@ -5,7 +5,6 @@
 package gw.internal.gosu.module;
 
 import gw.config.CommonServices;
-import gw.fs.IDirectory;
 import gw.internal.gosu.dynamic.DynamicTypeLoader;
 import gw.internal.gosu.parser.ExecutionEnvironment;
 import gw.lang.parser.ILanguageLevel;
@@ -13,6 +12,7 @@ import gw.lang.reflect.gs.GosuClassTypeLoader;
 import gw.lang.reflect.module.IExecutionEnvironment;
 
 import java.util.List;
+import manifold.api.fs.IDirectory;
 
 public class DefaultSingleModule extends GlobalModule
 {

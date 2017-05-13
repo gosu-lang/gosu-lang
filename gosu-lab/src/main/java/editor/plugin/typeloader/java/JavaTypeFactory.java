@@ -1,12 +1,10 @@
 package editor.plugin.typeloader.java;
 
 import editor.EditorHost;
-import gw.lang.javac.JavaIssueContainer;
-import gw.lang.IIssueContainer;
 import editor.plugin.typeloader.INewFileParams;
 import editor.plugin.typeloader.ITypeFactory;
-import gw.lang.javac.IJavaParser;
-import gw.lang.javac.StringJavaFileObject;
+import manifold.internal.javac.IIssueContainer;
+import manifold.internal.javac.IJavaParser;
 import gw.lang.parser.GosuParserFactory;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.gs.ISourceFileHandle;
@@ -17,6 +15,8 @@ import java.util.Arrays;
 import javax.swing.JComponent;
 import javax.tools.DiagnosticCollector;
 import javax.tools.JavaFileObject;
+import manifold.internal.javac.JavaIssueContainer;
+import manifold.internal.javac.StringJavaFileObject;
 
 /**
  */

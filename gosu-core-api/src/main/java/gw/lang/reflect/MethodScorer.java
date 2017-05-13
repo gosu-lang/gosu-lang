@@ -10,7 +10,6 @@ import gw.lang.parser.IExpression;
 import gw.lang.parser.StandardCoercionManager;
 import gw.lang.parser.TypeSystemAwareCache;
 import gw.lang.parser.coercers.BasePrimitiveCoercer;
-import gw.lang.parser.coercers.FunctionToInterfaceCoercer;
 import gw.lang.reflect.java.JavaTypes;
 import gw.util.Pair;
 
@@ -20,6 +19,8 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
+import manifold.api.host.ITypeLoaderListener;
+import manifold.api.host.RefreshRequest;
 
 public class MethodScorer {
   public static final int BOXED_COERCION_SCORE = 10;
@@ -305,7 +306,8 @@ public class MethodScorer {
     return type;
   }
 
-  private static class MethodScoreCache extends HashMap<MethodScoreKey, IInvocableType> implements ITypeLoaderListener {
+  private static class MethodScoreCache extends HashMap<MethodScoreKey, IInvocableType> implements ITypeLoaderListener
+  {
     MethodScoreCache() {
       TypeSystem.addTypeLoaderListenerAsWeakRef( this );
     }

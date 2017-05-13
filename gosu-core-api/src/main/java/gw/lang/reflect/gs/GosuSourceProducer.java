@@ -1,11 +1,6 @@
 package gw.lang.reflect.gs;
 
-import gw.fs.IFile;
-import gw.lang.reflect.ITypeLoader;
-import gw.util.concurrent.LocklessLazyVar;
-import java.util.Map;
-import java.util.Set;
-import java.util.function.BiFunction;
+import manifold.api.sourceprod.ResourceFileSourceProducer;
 
 /**
  * A base class for a Gosu source producer that is based on a resource file of a specific extension.
@@ -14,16 +9,6 @@ import java.util.function.BiFunction;
  */
 public abstract class GosuSourceProducer<M extends ResourceFileSourceProducer.IModel> extends ResourceFileSourceProducer<M>
 {
-  public GosuSourceProducer( ITypeLoader typeLoader, Set<String> extensions, BiFunction<String, IFile, M> modelMapper )
-  {
-    super( typeLoader, extensions, modelMapper );
-  }
-
-  public GosuSourceProducer( ITypeLoader typeLoader, Set<String> extensions, BiFunction<String, IFile, M> modelMapper, String typeFactoryFqn, Map<String, LocklessLazyVar<M>> peripheralTypes )
-  {
-    super( typeLoader, extensions, modelMapper, typeFactoryFqn, peripheralTypes );
-  }
-
   @Override
   public SourceKind getSourceKind()
   {

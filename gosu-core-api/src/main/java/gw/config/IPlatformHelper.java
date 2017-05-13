@@ -7,8 +7,10 @@ package gw.config;
 import gw.lang.reflect.module.IModule;
 
 import java.io.File;
+import manifold.api.service.IService;
 
-public interface IPlatformHelper extends IService {
+public interface IPlatformHelper extends IService
+{
 
   ExecutionMode getExecutionMode();
 

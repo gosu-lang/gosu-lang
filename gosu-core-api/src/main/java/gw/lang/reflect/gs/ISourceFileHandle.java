@@ -4,14 +4,16 @@
 
 package gw.lang.reflect.gs;
 
-import gw.fs.IFile;
 import gw.lang.parser.ISource;
+import manifold.api.fs.IFile;
+import manifold.api.sourceprod.ClassType;
+import manifold.api.sourceprod.ISourceProducer;
 
 public interface ISourceFileHandle
 {
-  public ISource getSource();
+  ISource getSource();
 
-  public String getParentType();
+  String getParentType();
 
   String getNamespace();
 
@@ -24,7 +26,7 @@ public interface ISourceFileHandle
   boolean isStandardPath();
   boolean isIncludeModulePath();
 
-  public void cleanAfterCompile();
+  void cleanAfterCompile();
 
   ClassType getClassType();
 

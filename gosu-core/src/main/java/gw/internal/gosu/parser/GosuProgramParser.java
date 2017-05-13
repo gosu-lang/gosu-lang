@@ -21,7 +21,7 @@ import gw.lang.parser.exceptions.ParseResultsException;
 import gw.lang.parser.statements.IClassStatement;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.TypeSystem;
-import gw.lang.reflect.gs.ClassType;
+import manifold.api.sourceprod.ClassType;
 import gw.lang.reflect.gs.GosuClassTypeLoader;
 import gw.lang.reflect.gs.IGosuClass;
 import gw.lang.reflect.gs.IGosuProgram;

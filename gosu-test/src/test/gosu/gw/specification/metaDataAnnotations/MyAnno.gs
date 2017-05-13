@@ -1,7 +1,7 @@
 package gw.specification.metaDataAnnotations
 
 uses gw.lang.IAnnotation
-uses gw.lang.reflect.gs.ClassType
+uses manifold.api.sourceprod.ClassType
 uses gw.lang.annotation.AnnotationUsage
 uses java.lang.annotation.ElementType
 uses java.lang.annotation.Target

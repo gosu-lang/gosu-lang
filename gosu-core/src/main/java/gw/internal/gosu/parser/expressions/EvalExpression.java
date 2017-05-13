@@ -12,7 +12,7 @@ import gw.lang.parser.ITypeUsesMap;
 import gw.lang.parser.ICapturedSymbol;
 import gw.lang.parser.expressions.IEvalExpression;
 import gw.lang.parser.expressions.ITypeVariableDefinition;
-import gw.lang.reflect.RefreshKind;
+import manifold.api.host.RefreshKind;
 import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.IFunctionType;
 import gw.lang.reflect.ITypeRef;

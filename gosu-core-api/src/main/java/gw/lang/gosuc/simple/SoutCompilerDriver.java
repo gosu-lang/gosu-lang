@@ -1,6 +1,5 @@
 package gw.lang.gosuc.simple;
 
-import gw.lang.javac.WriterJavaFileObject;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
@@ -8,6 +7,7 @@ import java.util.Locale;
 import javax.tools.Diagnostic;
 import javax.tools.FileObject;
 import javax.tools.JavaFileObject;
+import manifold.internal.javac.WriterJavaFileObject;
 
 public class SoutCompilerDriver implements ICompilerDriver {
   private final boolean _echo;

@@ -2,12 +2,12 @@ package editor.util;
 
 import editor.LabFrame;
 import gw.config.CommonServices;
-import gw.fs.IDirectory;
-import gw.fs.IFile;
+import manifold.api.fs.IDirectory;
+import manifold.api.fs.IFile;
 import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.gs.GosuClassTypeLoader;
 import gw.lang.reflect.gs.IFileSystemGosuClassRepository;
-import gw.lang.reflect.module.IFileSystem;
+import manifold.api.fs.IFileSystem;
 import java.net.MalformedURLException;
 import java.nio.file.Path;
 import gw.util.PathUtil;

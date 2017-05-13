@@ -4,9 +4,6 @@
 
 package gw.lang.reflect;
 
-import gw.config.IService;
-import gw.fs.IFile;
-import gw.fs.IResource;
 import gw.lang.gosuc.ICustomParser;
 import gw.lang.gosuc.IGosuc;
 import gw.lang.parser.ISymbolTable;
@@ -23,6 +20,11 @@ import gw.lang.reflect.module.IProject;
 
 import java.util.List;
 import java.util.Set;
+import manifold.api.fs.IFile;
+import manifold.api.fs.IResource;
+import manifold.api.host.ITypeLoaderListener;
+import manifold.api.host.RefreshKind;
+import manifold.api.service.IService;
 
 public interface ITypeSystem extends IService
 {
@@ -117,7 +119,7 @@ public interface ITypeSystem extends IService
   /**
    * @return true if any types were refreshed for this file
    */
-  void refreshed(IResource file, String typeName, RefreshKind refreshKind);
+  void refreshed( IResource file, String typeName, RefreshKind refreshKind);
   void shutdown();
 
   String[] getTypesForFile(IModule module, IFile file);

@@ -12,7 +12,7 @@ import editor.util.HTMLEscapeUtil;
 import editor.util.IReplaceWordCallback;
 import editor.util.LabToolbarButton;
 import gw.config.CommonServices;
-import gw.fs.IFile;
+import manifold.api.fs.IFile;
 import java.nio.file.Path;
 import editor.util.SettleModalEventQueue;
 import editor.util.TaskQueue;
@@ -58,16 +58,15 @@ import gw.lang.reflect.FunctionType;
 import gw.lang.reflect.IMetaType;
 import gw.lang.reflect.IScriptabilityModifier;
 import gw.lang.reflect.IType;
-import gw.lang.reflect.ITypeLoaderListener;
 import gw.lang.reflect.ITypeRef;
-import gw.lang.reflect.RefreshRequest;
+import manifold.api.host.ITypeLoaderListener;
+import manifold.api.host.RefreshRequest;
 import gw.lang.reflect.TypeSystem;
-import gw.lang.reflect.gs.ClassType;
+import manifold.api.sourceprod.ClassType;
 import gw.lang.reflect.gs.IGosuClass;
 import gw.lang.reflect.gs.IGosuEnhancement;
 import gw.lang.reflect.gs.StringSourceFileHandle;
 import gw.lang.reflect.java.JavaTypes;
-import gw.lang.IIssueContainer;
 import gw.util.GosuStringUtil;
 
 import javax.swing.*;
@@ -95,6 +94,8 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import manifold.internal.javac.IIssueContainer;
+
 
 import static editor.util.TextComponentUtil.Direction.BACKWARD;
 

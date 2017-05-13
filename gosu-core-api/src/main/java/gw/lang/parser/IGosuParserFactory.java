@@ -4,9 +4,9 @@
 
 package gw.lang.parser;
 
-import gw.config.IService;
 import gw.lang.reflect.gs.IGosuClassParser;
 import gw.lang.reflect.IScriptabilityModifier;
+import manifold.api.service.IService;
 
 public interface IGosuParserFactory extends IService
 {

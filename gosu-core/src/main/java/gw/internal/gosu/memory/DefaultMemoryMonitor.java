@@ -4,9 +4,9 @@
 
 package gw.internal.gosu.memory;
 
-import gw.config.BaseService;
 import gw.config.IMemoryMonitor;
-import gw.lang.reflect.RefreshRequest;
+import manifold.api.host.RefreshRequest;
+import manifold.api.service.BaseService;
 
 public class DefaultMemoryMonitor extends BaseService implements IMemoryMonitor {
 

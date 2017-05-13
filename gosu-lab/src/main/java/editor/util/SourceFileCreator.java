@@ -5,7 +5,7 @@ import editor.GosuPanel;
 import editor.LabFrame;
 import editor.NewIdentifierDialog;
 import editor.plugin.typeloader.ITypeFactory;
-import gw.lang.reflect.gs.ClassType;
+import manifold.api.sourceprod.ClassType;
 
 import gw.util.PathUtil;
 import java.io.Writer;

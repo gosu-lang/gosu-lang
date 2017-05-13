@@ -5,8 +5,8 @@
 package gw.lang.reflect.java.asm;
 
 import gw.config.ExecutionMode;
-import gw.fs.FileFactory;
-import gw.fs.IFile;
+import manifold.api.fs.FileFactory;
+import manifold.api.fs.IFile;
 import gw.internal.gosu.parser.DefaultPlatformHelper;
 import gw.lang.reflect.ReflectUtil;
 import gw.test.TestClass;

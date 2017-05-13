@@ -4,16 +4,15 @@
 
 package gw.internal.gosu.parser;
 
-import gw.fs.IFile;
-import gw.fs.IResource;
 import gw.lang.reflect.INamespaceType;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.ITypeLoader;
-import gw.lang.reflect.RefreshRequest;
-import gw.lang.reflect.RefreshKind;
+import manifold.api.host.RefreshRequest;
+import manifold.api.host.RefreshKind;
 import gw.lang.reflect.module.ITypeLoaderStack;
 
 import java.util.List;
+import manifold.api.fs.IResource;
 
 /**
  */
@@ -29,7 +28,7 @@ public interface ITypeLoaderStackInternal extends ITypeLoaderStack {
 
   IType getTypeByFullNameIfValid( String fullyQualifiedName, boolean skipJava );
 
-  boolean refresh(IResource file, String typeName, RefreshKind refreshKind);
+  boolean refresh( IResource file, String typeName, RefreshKind refreshKind);
 
   void clearFromCaches(RefreshRequest typesToClear);
 }

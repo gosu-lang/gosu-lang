@@ -4,7 +4,7 @@
 
 package gw.lang.gosuc;
 
-import gw.fs.IDirectory;
+import manifold.api.fs.IDirectory;
 import gw.lang.parser.ISourceCodeTokenizer;
 import gw.lang.parser.IToken;
 import gw.lang.reflect.module.INativeModule;

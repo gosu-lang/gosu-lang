@@ -4,9 +4,8 @@
 
 package gw.internal.gosu.parser;
 
-import gw.config.BaseService;
 import gw.config.CommonServices;
-import gw.fs.IDirectory;
+import manifold.api.fs.IDirectory;
 import gw.lang.parser.IAttributeSource;
 import gw.lang.parser.IParseIssue;
 import gw.lang.parser.ITypeUsesMap;
@@ -18,8 +17,6 @@ import gw.lang.reflect.IGosuClassLoadingObserver;
 import gw.lang.reflect.IPropertyInfo;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.ITypeLoader;
-import gw.lang.reflect.AbstractTypeSystemListener;
-import gw.lang.reflect.RefreshRequest;
 import gw.lang.reflect.java.IJavaType;
 import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.gs.GosuClassTypeLoader;
@@ -39,6 +36,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.TimeZone;
+import manifold.api.service.BaseService;
 
 
 /**

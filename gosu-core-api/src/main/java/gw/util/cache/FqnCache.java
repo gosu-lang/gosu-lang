@@ -6,7 +6,7 @@ package gw.util.cache;
 
 import gw.internal.gosu.parser.StringCache;
 import gw.lang.parser.TypeSystemAwareCache;
-import gw.util.DynamicArray;
+import manifold.util.DynamicArray;
 import gw.util.concurrent.Cache;
 import java.util.HashSet;
 import java.util.Map;

@@ -4,15 +4,12 @@
 
 package gw.lang.gosuc;
 
-import gw.config.BaseService;
 import gw.config.IGlobalLoaderProvider;
-import gw.lang.init.GosuPathEntry;
 import gw.lang.reflect.ITypeLoader;
 
-import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
+import manifold.api.service.BaseService;
 
 /**
  */

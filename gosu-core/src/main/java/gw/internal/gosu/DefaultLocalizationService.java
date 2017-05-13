@@ -4,10 +4,10 @@
 
 package gw.internal.gosu;
 
-import gw.config.BaseService;
 import gw.config.IGosuLocalizationService;
 import gw.lang.parser.resources.ResourceKey;
 import gw.lang.parser.resources.Res;
+import manifold.api.service.BaseService;
 
 public class DefaultLocalizationService extends BaseService implements IGosuLocalizationService
 {

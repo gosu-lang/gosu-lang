@@ -5,25 +5,17 @@
 package gw.internal.gosu.parser;
 
 import gw.config.CommonServices;
-import gw.fs.IDirectory;
-import gw.fs.IDirectoryUtil;
-import gw.fs.IFile;
-import gw.fs.IResource;
-import gw.fs.IncludeModuleDirectory;
-import gw.fs.physical.PhysicalFileImpl;
 import gw.lang.parser.FileSource;
 import gw.lang.parser.ISource;
 import gw.lang.reflect.ITypeLoader;
-import gw.lang.reflect.RefreshKind;
-import gw.lang.reflect.RefreshRequest;
-import gw.lang.reflect.gs.ClassType;
+import manifold.api.host.RefreshKind;
+import manifold.api.host.RefreshRequest;
+import manifold.api.sourceprod.ClassType;
 import gw.lang.reflect.gs.GosuClassTypeLoader;
 import gw.lang.reflect.gs.IFileSystemGosuClassRepository;
 import gw.lang.reflect.gs.IGosuProgram;
 import gw.lang.reflect.gs.ISourceFileHandle;
-import gw.lang.reflect.gs.TypeName;
 import gw.lang.reflect.module.IModule;
-import gw.util.DynamicArray;
 import gw.util.StreamUtil;
 import gw.util.cache.FqnCache;
 
@@ -32,7 +24,6 @@ import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
 import java.io.Reader;
-import java.io.UncheckedIOException;
 import java.lang.ref.SoftReference;
 import java.net.URL;
 import java.nio.file.Files;
@@ -45,6 +36,14 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Stream;
+import manifold.api.fs.IDirectory;
+import manifold.api.fs.IDirectoryUtil;
+import manifold.api.fs.IFile;
+import manifold.api.fs.IResource;
+import manifold.api.fs.IncludeModuleDirectory;
+import manifold.api.fs.physical.PhysicalFileImpl;
+import manifold.api.sourceprod.TypeName;
+import manifold.util.DynamicArray;
 
 /**
  */
@@ -477,7 +476,7 @@ public class FileSystemGosuClassRepository implements IFileSystemGosuClassReposi
 
   private void addTypeNames( final IDirectory root, IDirectory path, final Set<String> classNames, final String[] fileExts )
   {
-    DynamicArray<? extends IFile> iFiles = IDirectoryUtil.allContainedFilesExcludingIgnored(path);
+    DynamicArray<? extends IFile> iFiles = IDirectoryUtil.allContainedFilesExcludingIgnored( path);
     for (int i = 0; i < iFiles.size; i++) {
       IFile file = (IFile) iFiles.data[i];
       if (Util.isClassFileName(file.getName(), fileExts)) {
@@ -810,7 +809,7 @@ public class FileSystemGosuClassRepository implements IFileSystemGosuClassReposi
   }
 
   @Override
-  public Set<TypeName> getTypeNames(String namespace, Set<String> extensions, ITypeLoader loader) {
+  public Set<TypeName> getTypeNames( String namespace, Set<String> extensions, ITypeLoader loader) {
     Set<TypeName> setNames = new HashSet<TypeName>();
     if (namespace == null) {
       for (String name : getAllTypeNames()) {
@@ -865,7 +864,7 @@ public class FileSystemGosuClassRepository implements IFileSystemGosuClassReposi
 
   private IFile findFirstFile(String resourceName, List<? extends IDirectory> searchPath) {
     for (IDirectory dir : searchPath) {
-      IFile file = dir.file(resourceName);
+      IFile file = dir.file( resourceName);
       if (file != null && file.exists()) {
         return file;
       }

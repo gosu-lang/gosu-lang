@@ -4,27 +4,24 @@
 
 package gw.lang.reflect.gs;
 
-import gw.config.IService;
-import gw.fs.IDirectory;
-import gw.fs.IFile;
+import manifold.api.fs.IDirectory;
+import manifold.api.fs.IFile;
 import gw.lang.GosuShop;
 import gw.lang.parser.ISymbolTable;
 import gw.lang.parser.ITypeUsesMap;
 import gw.lang.reflect.FragmentCache;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.ITypeLoader;
-import gw.lang.reflect.RefreshRequest;
-import gw.lang.reflect.RefreshKind;
+import manifold.api.host.RefreshRequest;
+import manifold.api.host.RefreshKind;
 import gw.lang.reflect.SimpleTypeLoader;
 import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.java.IJavaType;
-import gw.lang.reflect.json.JsonImplSourceProducer;
 import gw.lang.reflect.json.JsonSourceProducer;
 import gw.lang.reflect.module.IModule;
 import gw.util.concurrent.LockingLazyVar;
 
 import gw.util.concurrent.LocklessLazyVar;
-import gw.util.sourceprocuders.image.ImageSourceProducer;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -33,6 +30,11 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+import manifold.api.image.ImageSourceProducer;
+import manifold.api.json.JsonImplSourceProducer;
+import manifold.api.service.IService;
+import manifold.api.sourceprod.ISourceProducer;
+import manifold.api.sourceprod.TypeName;
 
 
 import static java.util.Collections.emptySet;
@@ -453,9 +455,9 @@ public class GosuClassTypeLoader extends SimpleTypeLoader
   @Override
   protected void addBuiltInSourceProducers( Set<ISourceProducer> set )
   {
-    set.add( new ImageSourceProducer( this ) );
-    set.add( new JsonSourceProducer( this ) );
-    set.add( new JsonImplSourceProducer( this ) );
+    ISourceProducer sp = new JsonSourceProducer();
+    sp.init( this );
+    set.add( sp );
   }
 
   @Override

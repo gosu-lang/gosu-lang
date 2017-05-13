@@ -27,9 +27,7 @@ import gw.internal.gosu.parser.TypeUsesMap;
 import gw.internal.gosu.parser.java.compiler.JavaStubGenerator;
 import gw.lang.GosuShop;
 import gw.lang.SimplePropertyProcessing;
-import gw.lang.javac.InMemoryClassJavaFileObject;
-import gw.lang.javac.IJavaParser;
-import gw.lang.javac.JavaCompileIssuesException;
+import manifold.internal.javac.IJavaParser;
 import gw.lang.javadoc.IClassDocNode;
 import gw.lang.parser.GosuParserFactory;
 import gw.lang.parser.TypeVarToTypeMap;
@@ -75,6 +73,8 @@ import java.util.Map;
 import java.util.Set;
 import javax.tools.DiagnosticCollector;
 import javax.tools.JavaFileObject;
+import manifold.internal.javac.InMemoryClassJavaFileObject;
+import manifold.internal.javac.JavaCompileIssuesException;
 
 public abstract class JavaSourceType extends AbstractJavaClassInfo implements IJavaClassType, ITypeInfoResolver
 {

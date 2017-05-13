@@ -5,8 +5,8 @@
 package gw.lang.init;
 
 import gw.lang.UnstableAPI;
-import gw.fs.IDirectory;
-import gw.fs.IFile;
+import manifold.api.fs.IDirectory;
+import manifold.api.fs.IFile;
 import gw.xml.simple.SimpleXmlNode;
 
 import java.io.IOException;

@@ -6,7 +6,7 @@ package gw.internal.gosu.parser;
 
 import gw.config.CommonServices;
 import gw.config.ExecutionMode;
-import gw.fs.IFile;
+import manifold.api.fs.IFile;
 import gw.internal.gosu.annotations.AnnotationMap;
 import gw.lang.StrictGenerics;
 import gw.lang.parser.TypeVarToTypeMap;
@@ -18,7 +18,7 @@ import gw.lang.reflect.ITypeInfo;
 import gw.lang.reflect.ITypeRef;
 import gw.lang.reflect.InnerClassCapableType;
 import gw.lang.reflect.TypeSystem;
-import gw.lang.reflect.gs.ClassType;
+import manifold.api.sourceprod.ClassType;
 import gw.lang.reflect.gs.IGosuClass;
 import gw.lang.reflect.gs.IGosuFragment;
 import gw.lang.reflect.gs.ISourceFileHandle;

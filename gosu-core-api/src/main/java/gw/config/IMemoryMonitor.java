@@ -4,9 +4,11 @@
 
 package gw.config;
 
-import gw.lang.reflect.RefreshRequest;
+import manifold.api.host.RefreshRequest;
+import manifold.api.service.IService;
 
-public interface IMemoryMonitor extends IService {
+public interface IMemoryMonitor extends IService
+{
 
   void reclaimMemory(RefreshRequest request);
 

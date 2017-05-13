@@ -4,7 +4,7 @@
 
 package gw.lang.reflect;
 
-import gw.fs.IFile;
+import manifold.api.fs.IFile;
 
 public interface IFileBasedFeature extends IFeatureInfo {
   IFile getSourceFile();
