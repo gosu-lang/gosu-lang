@@ -7,7 +7,7 @@ package gw.lang.reflect.gs;
 import gw.lang.reflect.IMethodInfo;
 import gw.lang.reflect.IPropertyInfo;
 import gw.lang.reflect.IType;
-import gw.lang.reflect.RefreshRequest;
+import manifold.api.host.RefreshRequest;
 
 import java.util.Collection;
 import java.util.List;

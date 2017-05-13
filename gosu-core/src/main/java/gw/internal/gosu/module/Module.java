@@ -5,26 +5,29 @@
 package gw.internal.gosu.module;
 
 import gw.config.CommonServices;
-import gw.fs.IDirectory;
-import gw.fs.jar.JarFileDirectoryImpl;
 import gw.internal.gosu.dynamic.DynamicTypeLoader;
 import gw.internal.gosu.parser.DefaultTypeLoader;
 import gw.internal.gosu.parser.FileSystemGosuClassRepository;
+import gw.internal.gosu.parser.GosuClass;
 import gw.internal.gosu.parser.IModuleClassLoader;
 import gw.internal.gosu.parser.ModuleClassLoader;
 import gw.internal.gosu.parser.ModuleTypeLoader;
+import gw.internal.gosu.parser.java.compiler.JavaStubGenerator;
+import gw.lang.parser.IFileRepositoryBasedType;
 import gw.lang.parser.ILanguageLevel;
+import gw.lang.reflect.IType;
 import gw.lang.reflect.ITypeLoader;
 import gw.lang.reflect.SimpleTypeLoader;
 import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.gs.GosuClassTypeLoader;
 import gw.lang.reflect.gs.IFileSystemGosuClassRepository;
 import gw.lang.reflect.gs.IGosuClassRepository;
+import gw.lang.reflect.gs.ISourceFileHandle;
+import gw.lang.reflect.java.IJavaType;
 import gw.lang.reflect.module.Dependency;
 import gw.lang.reflect.module.IExecutionEnvironment;
 import gw.lang.reflect.module.IModule;
 import gw.lang.reflect.module.INativeModule;
-import gw.util.Extensions;
 import gw.util.GosuExceptionUtil;
 import gw.util.concurrent.LocklessLazyVar;
 import java.io.File;
@@ -41,6 +44,13 @@ import java.util.Set;
 import java.util.jar.Attributes;
 import java.util.jar.JarFile;
 import java.util.jar.Manifest;
+import javax.tools.JavaFileObject;
+import manifold.api.fs.Extensions;
+import manifold.api.fs.IDirectory;
+import manifold.api.fs.IResource;
+import manifold.api.fs.jar.JarFileDirectoryImpl;
+import manifold.api.sourceprod.ISourceProducer;
+import manifold.internal.javac.GeneratedJavaStubFileObject;
 
 public class Module implements IModule
 {
@@ -177,6 +187,67 @@ public class Module implements IModule
     return _nativeModule.getOutputPath();
   }
 
+  @Override
+  public IDirectory[] getExcludedPath()
+  {
+    return getFileRepository().getExcludedPath();
+  }
+
+  @Override
+  public ISourceProducer findSourceProducerFor( String fqn )
+  {
+    IType type = TypeSystem.getByFullNameIfValid( fqn, this );
+    if( type instanceof IFileRepositoryBasedType )
+    {
+      ISourceFileHandle sfh = ((IFileRepositoryBasedType)type).getSourceFileHandle();
+      if( sfh != null )
+      {
+        return sfh.getSourceProducer();
+      }
+    }
+    return null;
+  }
+
+  @Override
+  public JavaFileObject produceFile( String fqn )
+  {
+    IType type = TypeSystem.getByFullNameIfValid( fqn, this );
+    JavaFileObject file = null;
+    if( type != null && type instanceof IFileRepositoryBasedType && !GosuClass.ProxyUtil.isProxy( type ) && !isErrantTestArtifact( fqn ) )
+    {
+      if( !(type instanceof IJavaType) )
+      {
+        file = makeJavaStub( type );
+      }
+      else
+      {
+        ISourceFileHandle sourceFileHandle = ((IJavaType)type).getSourceFileHandle();
+        if( sourceFileHandle != null )
+        {
+          ISourceProducer sourceProducer = sourceFileHandle.getSourceProducer();
+          if( sourceProducer != null )
+          {
+            // The source for this type is not on disk, but is instead generated on demand
+            file = produceSource( (IFileRepositoryBasedType)type );
+          }
+        }
+      }
+    }
+    return file;
+  }
+  private JavaFileObject produceSource( IFileRepositoryBasedType loadableType )
+  {
+    return new GeneratedJavaStubFileObject( loadableType.getName(), () -> loadableType.getSourceFileHandle().getSource().getSource() );
+  }
+  private JavaFileObject makeJavaStub( IType loadableType )
+  {
+    return new GeneratedJavaStubFileObject( loadableType.getName(), () -> JavaStubGenerator.instance().genStub( loadableType ) );
+  }
+  private boolean isErrantTestArtifact( String fqn )
+  {
+    return fqn.contains( ".Errant_" );
+  }
+
   public ModuleTypeLoader getModuleTypeLoader()
   {
     return _modTypeLoader;
@@ -212,18 +283,18 @@ public class Module implements IModule
    *   <li>The Class-Path entry contains a space-delimited list of URIs</li>
    * </ul>
    * <p>Then the entries will be parsed and added to the Gosu classpath.
-   * 
+   *
    * <p>This logic also handles strange libraries packaged pre-Maven such as xalan:xalan:2.4.1
-   * 
+   *
    * <p>The xalan JAR above has a Class-Path attribute referencing the following:
    * <pre>
    *   Class-Path: xercesImpl.jar xml-apis.jar
    * </pre>
-   * 
+   *
    * These unqualified references should have been resolved by the build tooling, and if we try to interfere and resolve
    * the references, we may cause classpath confusion. Therefore any Class-Path entry not resolvable to an absolute
    * path on disk (and, therefore, can be listed as a URL) will be skipped.
-   * 
+   *
    * @see java.util.jar.Attributes.Name#CLASS_PATH
    * @param classpath The module's Java classpath
    * @return The original classpath, possibly with dependencies listed in JAR manifests Class-Path extracted and explicitly listed

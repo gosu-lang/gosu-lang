@@ -1,6 +1,6 @@
 package editor;
 
-import gw.fs.IFile;
+import manifold.api.fs.IFile;
 import gw.lang.reflect.IMetaType;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.ITypeInfo;

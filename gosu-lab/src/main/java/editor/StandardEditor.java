@@ -3,10 +3,9 @@ package editor;
 import editor.plugin.typeloader.ITypeFactory;
 import editor.undo.AtomicUndoManager;
 import editor.util.EditorUtilities;
-import gw.fs.IFile;
+import manifold.api.fs.IFile;
 import gw.lang.parser.ISymbolTable;
 import gw.lang.reflect.IType;
-import gw.lang.IIssueContainer;
 import gw.lang.reflect.ITypeRef;
 import gw.lang.reflect.TypeSystem;
 import gw.util.GosuStringUtil;
@@ -30,6 +29,7 @@ import javax.swing.text.Element;
 import javax.swing.text.SimpleAttributeSet;
 import javax.swing.text.StyleConstants;
 import javax.swing.text.StyledEditorKit;
+import manifold.internal.javac.IIssueContainer;
 
 public class StandardEditor extends EditorHost
 {

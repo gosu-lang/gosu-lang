@@ -1,9 +1,9 @@
 package gw.lang.reflect.json;
 
-import gw.fs.IFile;
-import gw.lang.reflect.gs.ResourceFileSourceProducer;
+import manifold.api.fs.IFile;
 import javax.script.Bindings;
 import javax.script.SimpleBindings;
+import manifold.api.sourceprod.ResourceFileSourceProducer;
 
 /**
  */

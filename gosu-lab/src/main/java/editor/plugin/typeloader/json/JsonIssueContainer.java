@@ -1,10 +1,10 @@
 package editor.plugin.typeloader.json;
 
-import gw.lang.IIssue;
-import gw.lang.IIssueContainer;
+import manifold.internal.javac.IIssue;
 import java.util.Collections;
 import java.util.List;
 import javax.script.ScriptException;
+import manifold.internal.javac.IIssueContainer;
 
 /**
  */

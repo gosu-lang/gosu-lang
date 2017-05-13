@@ -42,7 +42,7 @@ public class GosuScratchSuite extends Suite
         }
       }
       GosuInitialization.instance( TypeSystem.getExecutionEnvironment() )
-        .initializeRuntime( ClasspathToGosuPathEntryUtil.convertClasspathToGosuPathEntries( classpath ) );
+        .reinitializeRuntime( ClasspathToGosuPathEntryUtil.convertClasspathToGosuPathEntries( classpath ) );
     }
   }
 }

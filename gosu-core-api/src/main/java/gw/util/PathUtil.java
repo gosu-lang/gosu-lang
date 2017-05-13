@@ -2,8 +2,8 @@ package gw.util;
 
 import com.sun.javafx.PlatformUtil;
 import com.sun.tools.javac.api.JavacTool;
-import gw.fs.FileFactory;
-import gw.fs.IFile;
+import manifold.api.fs.FileFactory;
+import manifold.api.fs.IFile;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;

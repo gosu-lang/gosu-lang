@@ -4,7 +4,7 @@
 
 package gw.lang.reflect.module;
 
-import gw.fs.IDirectory;
+import manifold.api.fs.IDirectory;
 
 public interface INativeModule {
   Object getNativeModule();

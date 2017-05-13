@@ -12,7 +12,7 @@ import gw.lang.reflect.IErrorType;
 import gw.lang.reflect.INonLoadableType;
 import gw.lang.parser.ITypeUsesMap;
 import gw.lang.parser.IScriptPartId;
-import gw.lang.reflect.gs.ClassType;
+import manifold.api.sourceprod.ClassType;
 import gw.lang.reflect.gs.IGosuClass;
 import gw.lang.reflect.gs.ISourceFileHandle;
 import gw.lang.reflect.gs.GosuClassTypeLoader;

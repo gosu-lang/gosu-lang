@@ -1,6 +1,7 @@
 package gw.lang.reflect.gs;
 
-import gw.fs.IFile;
+import manifold.api.fs.IFile;
+import manifold.api.sourceprod.ISourceProducer;
 
 /**
  */

@@ -1,5 +1,7 @@
 package gw.lang;
 
+import manifold.internal.javac.IIssueContainer;
+
 /**
  */
 public interface ICompilationResults

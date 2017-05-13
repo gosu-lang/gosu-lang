@@ -4,9 +4,8 @@
 
 package gw.internal.gosu.parser;
 
-import gw.config.BaseService;
-import gw.fs.IDirectory;
-import gw.fs.IFile;
+import manifold.api.fs.IDirectory;
+import manifold.api.fs.IFile;
 import gw.internal.gosu.coercer.FunctionToInterfaceClassGenerator;
 import gw.internal.gosu.ir.builders.SimpleCompiler;
 import gw.internal.gosu.ir.transform.util.IRTypeResolverAPIWrapper;
@@ -15,7 +14,6 @@ import gw.internal.gosu.module.GlobalModule;
 import gw.internal.gosu.module.Module;
 import gw.internal.gosu.parser.expressions.Identifier;
 import gw.internal.gosu.parser.expressions.NullExpression;
-import gw.internal.gosu.parser.java.compiler.GeneratedJavaStubFileObject;
 import gw.internal.gosu.parser.java.compiler.JavaStubGenerator;
 import gw.internal.gosu.runtime.GosuRuntimeMethods;
 import gw.internal.gosu.template.GosuTemplateType;
@@ -71,7 +69,8 @@ import gw.lang.reflect.ITypeInfoFactory;
 import gw.lang.reflect.ITypeRef;
 import gw.lang.reflect.PropertyInfoDelegate;
 import gw.lang.reflect.TypeSystem;
-import gw.lang.reflect.gs.ClassType;
+import manifold.api.service.BaseService;
+import manifold.api.sourceprod.ClassType;
 import gw.lang.reflect.gs.GosuClassTypeLoader;
 import gw.lang.reflect.gs.IEnhancementIndex;
 import gw.lang.reflect.gs.IFileSystemGosuClassRepository;
@@ -94,6 +93,7 @@ import java.io.Reader;
 import java.io.Writer;
 import java.lang.reflect.Method;
 import java.util.List;
+import manifold.internal.javac.GeneratedJavaStubFileObject;
 
 /**
  */

@@ -86,7 +86,6 @@ import gw.lang.reflect.MethodList;
 import gw.lang.reflect.Modifier;
 import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.gs.BytecodeOptions;
-import gw.lang.reflect.gs.GosuBootstrap;
 import gw.lang.reflect.gs.GosuMarker;
 import gw.lang.reflect.gs.IExternalSymbolMap;
 import gw.lang.reflect.gs.IGenericTypeVariable;
@@ -113,6 +112,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import manifold.internal.runtime.Bootstrap;
 
 /**
  */
@@ -285,7 +285,7 @@ public class GosuClassTransformer extends AbstractElementTransformer<ClassStatem
   private void compileStaticInitializer()
   {
     List<IRStatement> initStatements = new ArrayList<IRStatement>();
-    IRMethodCallExpression bootstrapGosuWhenInitiatedViaClassfile = buildMethodCall( JavaClassIRType.get( GosuBootstrap.class ), "init", false, IRTypeConstants.pBOOLEAN(), Collections.<IRType>emptyList(), null, Collections.<IRExpression>emptyList() );
+    IRMethodCallExpression bootstrapGosuWhenInitiatedViaClassfile = buildMethodCall( JavaClassIRType.get( Bootstrap.class ), "init", false, IRTypeConstants.pBOOLEAN(), Collections.<IRType>emptyList(), null, Collections.<IRExpression>emptyList() );
     initStatements.add( new IRMethodCallStatement( bootstrapGosuWhenInitiatedViaClassfile ) );
     List<IRSymbol> syms = new ArrayList<IRSymbol>( 1 );
     if( isProgramOrEnclosedInProgram( getGosuClass() ) )

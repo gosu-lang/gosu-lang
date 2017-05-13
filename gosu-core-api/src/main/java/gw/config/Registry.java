@@ -4,7 +4,7 @@
 
 package gw.config;
 
-import gw.fs.IFile;
+import manifold.api.fs.IFile;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;

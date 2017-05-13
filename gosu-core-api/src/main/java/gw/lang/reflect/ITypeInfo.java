@@ -5,7 +5,7 @@
 package gw.lang.reflect;
 
 import gw.lang.GosuShop;
-import gw.util.DynamicArray;
+import manifold.util.DynamicArray;
 
 import java.util.ArrayList;
 import java.util.Arrays;

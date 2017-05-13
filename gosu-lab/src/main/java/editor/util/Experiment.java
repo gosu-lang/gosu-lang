@@ -9,7 +9,7 @@ import editor.run.ProgramRunConfigParameters;
 import editor.settings.ISettings;
 import editor.settings.Settings;
 import gw.lang.Gosu;
-import gw.lang.javac.IJavaParser;
+import manifold.internal.javac.IJavaParser;
 import gw.lang.parser.GosuParserFactory;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.json.IJsonIO;

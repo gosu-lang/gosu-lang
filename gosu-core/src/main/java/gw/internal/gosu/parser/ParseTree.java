@@ -20,7 +20,7 @@ import gw.lang.parser.IParseIssue;
 import gw.lang.parser.IStatement;
 import gw.lang.parser.statements.IFunctionStatement;
 import gw.lang.reflect.IType;
-import gw.util.DynamicArray;
+import manifold.util.DynamicArray;
 import gw.util.GosuObjectUtil;
 
 import java.util.ArrayList;

@@ -4,13 +4,13 @@
 
 package gw.lang.reflect;
 
-import gw.fs.IFile;
 import gw.lang.reflect.gs.IGenericTypeVariable;
 
 import java.io.ObjectStreamException;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Set;
+import manifold.api.fs.IFile;
 
 
 public interface IType extends Serializable

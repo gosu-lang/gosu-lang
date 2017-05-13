@@ -1,15 +1,15 @@
 package editor.plugin.typeloader.properties;
 
 import editor.EditorHost;
-import gw.lang.IIssueContainer;
 import editor.plugin.typeloader.INewFileParams;
 import editor.plugin.typeloader.ITypeFactory;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.gs.ISourceFileHandle;
-import gw.lang.reflect.gs.ISourceProducer;
+import manifold.api.sourceprod.ISourceProducer;
 import gw.lang.reflect.java.IJavaType;
 import javax.swing.JComponent;
 import javax.swing.text.StyledEditorKit;
+import manifold.internal.javac.IIssueContainer;
 
 /**
  */

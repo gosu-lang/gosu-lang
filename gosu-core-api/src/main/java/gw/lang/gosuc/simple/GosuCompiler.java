@@ -6,15 +6,13 @@ import gw.config.ExecutionMode;
 import gw.config.IMemoryMonitor;
 import gw.config.IPlatformHelper;
 import gw.config.Registry;
-import gw.fs.FileFactory;
-import gw.fs.IDirectory;
-import gw.fs.IFile;
+import manifold.api.fs.FileFactory;
+import manifold.api.fs.IDirectory;
+import manifold.api.fs.IFile;
 import gw.lang.gosuc.GosucModule;
 import gw.lang.gosuc.cli.CommandLineOptions;
 import gw.lang.init.GosuInitialization;
-import gw.lang.javac.InMemoryClassJavaFileObject;
-import gw.lang.javac.IJavaParser;
-import gw.lang.javac.SourceJavaFileObject;
+import manifold.internal.javac.IJavaParser;
 import gw.lang.parser.GosuParserFactory;
 import gw.lang.parser.ICoercionManager;
 import gw.lang.parser.IParseIssue;
@@ -31,7 +29,7 @@ import gw.lang.reflect.gs.ISourceFileHandle;
 import gw.lang.reflect.java.IJavaType;
 import gw.lang.reflect.java.JavaTypes;
 import gw.lang.reflect.module.IExecutionEnvironment;
-import gw.lang.reflect.module.IFileSystem;
+import manifold.api.fs.IFileSystem;
 import gw.lang.reflect.module.IModule;
 import gw.util.PathUtil;
 import gw.util.StreamUtil;
@@ -57,6 +55,8 @@ import javax.tools.DiagnosticListener;
 import javax.tools.FileObject;
 import javax.tools.JavaFileManager;
 import javax.tools.JavaFileObject;
+import manifold.internal.javac.InMemoryClassJavaFileObject;
+import manifold.internal.javac.SourceJavaFileObject;
 
 
 import static gw.lang.gosuc.simple.ICompilerDriver.ERROR;
@@ -480,7 +480,7 @@ public class GosuCompiler implements IGosuCompiler
   {
     try
     {
-      Class<?> cls = Class.forName( "gw.internal.gosu.module.fs.FileSystemImpl" );
+      Class<?> cls = Class.forName( "manifold.api.fs.def.FileSystemImpl" );
       Constructor m = cls.getConstructor( IFileSystem.CachingMode.class );
       return (IFileSystem)m.newInstance( IFileSystem.CachingMode.FULL_CACHING );
     }

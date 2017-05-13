@@ -7,7 +7,7 @@ package gw.lang.gosuc;
 import gw.config.CommonServices;
 import gw.config.IGlobalLoaderProvider;
 import gw.config.IMemoryMonitor;
-import gw.fs.IDirectory;
+import manifold.api.fs.IDirectory;
 import gw.lang.GosuShop;
 import gw.lang.init.GosuInitialization;
 import gw.lang.parser.IGosuParser;

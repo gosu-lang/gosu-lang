@@ -32,6 +32,11 @@
       <artifactId>gw-jcommander</artifactId>
       <version>1.48</version>
     </dependency>
+    <dependency>
+      <groupId>org.gosu-lang</groupId>
+      <artifactId>manifold</artifactId>
+      <version>0.1-SNAPSHOT</version>
+    </dependency>
   </dependencies>
   
   <profiles>

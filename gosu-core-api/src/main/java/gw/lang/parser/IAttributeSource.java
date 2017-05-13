@@ -4,7 +4,7 @@
 
 package gw.lang.parser;
 
-import gw.lang.reflect.ITypeLoaderListener;
+import manifold.api.host.ITypeLoaderListener;
 
 public interface IAttributeSource extends ITypeLoaderListener
 {

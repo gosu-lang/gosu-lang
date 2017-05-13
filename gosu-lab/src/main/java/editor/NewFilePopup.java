@@ -6,7 +6,7 @@ import editor.util.SmartMenuItem;
 import editor.util.SourceFileCreator;
 import gw.lang.reflect.ITypeLoader;
 import gw.lang.reflect.TypeSystem;
-import gw.lang.reflect.gs.ClassType;
+import manifold.api.sourceprod.ClassType;
 
 import java.awt.EventQueue;
 import javax.swing.*;

@@ -7,7 +7,7 @@ package gw.internal.gosu.module;
 import gw.config.CommonServices;
 import gw.config.Registry;
 import gw.config.TypeLoaderSpec;
-import gw.fs.IDirectory;
+import manifold.api.fs.IDirectory;
 import gw.internal.gosu.parser.FileSystemGosuClassRepository;
 import gw.internal.gosu.parser.ModuleTypeLoader;
 import gw.lang.reflect.ITypeLoader;

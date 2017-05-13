@@ -4,14 +4,14 @@
 
 package gw.internal.gosu.parser;
 
-import gw.fs.IFile;
+import manifold.api.fs.IFile;
 import gw.lang.parser.IFileRepositoryBasedType;
 import gw.lang.parser.IHasInnerClass;
 import gw.lang.parser.ISource;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.gs.IGosuClass;
 import gw.lang.reflect.gs.ISourceFileHandle;
-import gw.lang.reflect.gs.ClassType;
+import manifold.api.sourceprod.ClassType;
 import gw.lang.reflect.TypeSystem;
 import gw.util.StringPool;
 

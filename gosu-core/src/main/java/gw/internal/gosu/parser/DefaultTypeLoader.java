@@ -5,25 +5,25 @@
 package gw.internal.gosu.parser;
 
 import gw.config.ExecutionMode;
-import gw.config.IService;
-import gw.fs.IFile;
+import manifold.api.fs.IFile;
 import gw.internal.gosu.compiler.GosuClassLoader;
 import gw.internal.gosu.parser.java.classinfo.JavaSourceClass;
-import gw.internal.gosu.properties.PropertiesSourceProducer;
 import gw.lang.parser.IBlockClass;
 import gw.lang.reflect.IDefaultTypeLoader;
 import gw.lang.reflect.IErrorType;
 import gw.lang.reflect.IExtendedTypeLoader;
 import gw.lang.reflect.IType;
-import gw.lang.reflect.RefreshRequest;
+import manifold.api.host.RefreshRequest;
 import gw.lang.reflect.SimpleTypeLoader;
 import gw.lang.reflect.TypeSystem;
-import gw.lang.reflect.gs.GosuBootstrap;
 import gw.lang.reflect.gs.IGosuClassLoader;
 import gw.lang.reflect.gs.IGosuObject;
 import gw.lang.reflect.gs.ISourceFileHandle;
-import gw.lang.reflect.gs.ISourceProducer;
-import gw.lang.reflect.gs.TypeName;
+import manifold.api.image.ImageSourceProducer;
+import manifold.api.json.JsonImplSourceProducer;
+import manifold.api.properties.PropertiesSourceProducer;
+import manifold.api.service.IService;
+import manifold.api.sourceprod.ISourceProducer;
 import gw.lang.reflect.java.IJavaClassInfo;
 import gw.lang.reflect.java.IJavaClassType;
 import gw.lang.reflect.java.IJavaType;
@@ -42,6 +42,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
+import manifold.api.sourceprod.TypeName;
+import manifold.internal.runtime.Bootstrap;
 
 public class DefaultTypeLoader extends SimpleTypeLoader implements IExtendedTypeLoader, IDefaultTypeLoader {
   private ClassCache _classCache;
@@ -398,7 +400,7 @@ public class DefaultTypeLoader extends SimpleTypeLoader implements IExtendedType
   public IGosuClassLoader getGosuClassLoader() {
     if (_gosuClassLoader == null) {
       _gosuClassLoader = new GosuClassLoader(_module.getModuleClassLoader());
-      GosuBootstrap.init();
+      Bootstrap.init();
     }
     return _gosuClassLoader;
   }
@@ -413,7 +415,7 @@ public class DefaultTypeLoader extends SimpleTypeLoader implements IExtendedType
         _classCache.reassignClassLoader();
       }
       _gosuClassLoader.assignParent( _module.getModuleClassLoader() );
-      GosuBootstrap.init();
+      Bootstrap.init();
     }
   }
 
@@ -528,6 +530,16 @@ public class DefaultTypeLoader extends SimpleTypeLoader implements IExtendedType
   @Override
   protected void addBuiltInSourceProducers( Set<ISourceProducer> set )
   {
-    set.add( new PropertiesSourceProducer( this ) );
+    ISourceProducer sp = new PropertiesSourceProducer();
+    sp.init( this );
+    set.add( sp );
+
+    sp = new ImageSourceProducer();
+    sp.init( this );
+    set.add( sp );
+
+    sp = new JsonImplSourceProducer();
+    sp.init( this );
+    set.add( sp );
   }
 }

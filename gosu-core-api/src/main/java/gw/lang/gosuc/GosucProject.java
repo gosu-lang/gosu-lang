@@ -6,8 +6,8 @@ package gw.lang.gosuc;
 
 import gw.config.CommonServices;
 import gw.config.IMemoryMonitor;
-import gw.fs.IDirectory;
-import gw.fs.IFile;
+import manifold.api.fs.IDirectory;
+import manifold.api.fs.IFile;
 import gw.lang.parser.ISourceCodeTokenizer;
 import gw.lang.parser.IToken;
 import gw.lang.reflect.ITypeLoader;

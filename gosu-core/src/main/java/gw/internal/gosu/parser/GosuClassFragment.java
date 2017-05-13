@@ -6,7 +6,7 @@ package gw.internal.gosu.parser;
 
 import gw.lang.reflect.gs.GosuClassTypeLoader;
 import gw.lang.reflect.gs.StringSourceFileHandle;
-import gw.lang.reflect.gs.ClassType;
+import manifold.api.sourceprod.ClassType;
 
 public class GosuClassFragment extends GosuClass implements IGosuClassFragment
 {

@@ -10,10 +10,8 @@ import gw.lang.parser.IGosuParserFactory;
 import gw.lang.reflect.IEntityAccess;
 import gw.lang.reflect.ITypeSystem;
 import gw.lang.reflect.gs.BytecodeOptions;
-import gw.lang.reflect.module.IFileSystem;
+import manifold.api.fs.IFileSystem;
 
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 import java.lang.reflect.Constructor;
 
 public class CommonServices extends ServiceKernel
@@ -24,13 +22,7 @@ public class CommonServices extends ServiceKernel
 
   private CommonServices()
   {
-    Registry.addLocationListener( new ChangeListener()
-    {
-      public void stateChanged( ChangeEvent e )
-      {
-        _kernel.resetKernel();
-      }
-    } );
+    Registry.addLocationListener( e -> _kernel.resetKernel() );
   }
 
   protected void defineServices()
@@ -67,7 +59,7 @@ public class CommonServices extends ServiceKernel
 
   private static IFileSystem getDefaultFileSystemInstance() {
     try {
-      Class cls = Class.forName("gw.internal.gosu.module.fs.FileSystemImpl");
+      Class cls = Class.forName("manifold.api.fs.def.FileSystemImpl");
       Constructor m = cls.getConstructor(IFileSystem.CachingMode.class);
       if( BytecodeOptions.JDWP_ENABLED.get() )
       {

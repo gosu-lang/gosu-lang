@@ -30,7 +30,7 @@ import editor.util.SmartMenuItem;
 import editor.util.SourceFileCreator;
 import editor.util.ToolBar;
 import editor.util.TypeNameUtil;
-import gw.fs.IFile;
+import manifold.api.fs.IFile;
 import gw.internal.ext.org.objectweb.asm.ClassReader;
 import gw.internal.ext.org.objectweb.asm.util.TraceClassVisitor;
 import gw.lang.Gosu;

@@ -20,7 +20,7 @@ import gw.lang.reflect.INonLoadableType;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.ITypeRef;
 import gw.lang.reflect.ITypeRefFactory;
-import gw.lang.reflect.RefreshKind;
+import manifold.api.host.RefreshKind;
 import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.gs.IGosuClass;
 import gw.lang.reflect.gs.IGosuObject;

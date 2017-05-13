@@ -5,7 +5,7 @@
 package gw.lang.reflect.gs;
 
 import gw.config.CommonServices;
-import gw.fs.IFile;
+import manifold.api.fs.IFile;
 import gw.lang.parser.ISource;
 import gw.lang.parser.ISymbolTable;
 import gw.lang.parser.ITypeUsesMap;
@@ -14,6 +14,7 @@ import gw.lang.parser.expressions.ITypeVariableDefinition;
 
 import java.io.File;
 import java.util.Map;
+import manifold.api.sourceprod.ClassType;
 
 public class StringSourceFileHandle implements ISourceFileHandle
 {

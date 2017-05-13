@@ -6,7 +6,7 @@ package gw.lang.parser;
 
 import gw.lang.reflect.IType;
 import gw.lang.reflect.TypeSystem;
-import gw.lang.reflect.gs.ClassType;
+import manifold.api.sourceprod.ClassType;
 import gw.lang.reflect.gs.ISourceFileHandle;
 
 public interface IFileRepositoryBasedType extends IType

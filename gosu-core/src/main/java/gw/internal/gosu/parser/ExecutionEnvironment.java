@@ -6,14 +6,13 @@ package gw.internal.gosu.parser;
 
 import gw.config.CommonServices;
 import gw.config.ExecutionMode;
-import gw.fs.IDirectory;
-import gw.fs.IResource;
-import gw.fs.IncludeModuleDirectory;
+import manifold.api.fs.AdditionalDirectory;
+import manifold.api.fs.IDirectory;
+import manifold.api.fs.IResource;
 import gw.internal.gosu.module.DefaultSingleModule;
 import gw.internal.gosu.module.GlobalModule;
 import gw.internal.gosu.module.JreModule;
 import gw.internal.gosu.module.Module;
-import gw.fs.AdditionalDirectory;
 import gw.lang.Gosu;
 import gw.lang.ProgramFileContext;
 import gw.lang.gosuc.GosucModule;
@@ -30,7 +29,6 @@ import gw.lang.reflect.IType;
 import gw.lang.reflect.ITypeRef;
 import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.gs.BytecodeOptions;
-import gw.lang.reflect.gs.GosuBootstrap;
 import gw.lang.reflect.gs.GosuClassTypeLoader;
 import gw.lang.reflect.java.JavaTypes;
 import gw.lang.reflect.module.Dependency;
@@ -56,6 +54,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.WeakHashMap;
+import manifold.api.fs.IncludeModuleDirectory;
+import manifold.internal.runtime.Bootstrap;
 
 public class ExecutionEnvironment implements IExecutionEnvironment
 {
@@ -305,7 +305,7 @@ public class ExecutionEnvironment implements IExecutionEnvironment
         m.getModuleTypeLoader().reset();
         m.configurePaths( Collections.emptyList(), Collections.emptyList(), Collections.emptyList() );
 
-        GosuBootstrap.cleanup();
+        Bootstrap.cleanup();
       }
 
       _jreModule = null;

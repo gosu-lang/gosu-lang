@@ -4,20 +4,21 @@
 
 package gw.lang.reflect.module;
 
-import gw.fs.IDirectory;
 import gw.lang.reflect.ITypeLoader;
 import gw.lang.UnstableAPI;
 import gw.lang.reflect.gs.IFileSystemGosuClassRepository;
 
 import java.util.Collections;
 import java.util.List;
+import manifold.api.fs.IDirectory;
 
 @UnstableAPI
-public interface IModule
+public interface IModule extends manifold.api.host.IModule
 {
-  IExecutionEnvironment getExecutionEnvironment();
+  String CONFIG_RESOURCE_PREFIX = "config";
+  String CONFIG_RESOURCE_PREFIX_2 = "./config";
 
-  IDirectory getOutputPath();
+  IExecutionEnvironment getExecutionEnvironment();
 
   /**
    * @return A unique name relative to all other modules in a given execution 
@@ -41,15 +42,8 @@ public interface IModule
 
   ITypeLoaderStack getModuleTypeLoader();
 
-  /**
-   * @return The path[s] having source files that should be exposed to this 
-   *   module.
-   */
-  List<IDirectory> getSourcePath();
-
   void setSourcePath( List<IDirectory> path );
 
-  List<IDirectory> getJavaClassPath();
   void setJavaClassPath(List<IDirectory> paths);
 
   List<IDirectory> getBackingSourcePath();
@@ -70,7 +64,7 @@ public interface IModule
   default void configurePaths( List<IDirectory> classpath, List<IDirectory> sourcePaths ) {
     configurePaths( classpath, sourcePaths, Collections.emptyList() );
   }
-  
+
   /**
    * Configure both source and Java classpaths of the module in a semi-automated way. First parameter
    * is Java classpath. Second parameter is extended with all paths from Java classpath that are marked

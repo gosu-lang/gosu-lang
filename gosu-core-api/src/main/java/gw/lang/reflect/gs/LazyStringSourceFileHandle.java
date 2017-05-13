@@ -2,6 +2,7 @@ package gw.lang.reflect.gs;
 
 import gw.lang.parser.ISource;
 import java.util.concurrent.Callable;
+import manifold.api.sourceprod.ClassType;
 
 /**
  */

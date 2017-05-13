@@ -4,7 +4,6 @@ import editor.search.SearchLocation;
 import editor.undo.AtomicUndoManager;
 import gw.lang.parser.IScriptPartId;
 import gw.lang.reflect.IType;
-import gw.lang.IIssueContainer;
 import java.awt.datatransfer.Clipboard;
 import java.awt.event.MouseEvent;
 import java.io.IOException;
@@ -13,6 +12,7 @@ import javax.swing.JComponent;
 import javax.swing.event.DocumentListener;
 import javax.swing.event.UndoableEditListener;
 import javax.swing.text.AbstractDocument;
+import manifold.internal.javac.IIssueContainer;
 
 /**
  */

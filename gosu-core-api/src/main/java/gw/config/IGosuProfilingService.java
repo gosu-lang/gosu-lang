@@ -4,13 +4,16 @@
 
 package gw.config;
 
+import manifold.api.service.IService;
+
 /**
  * This is a interface for profiling in modules before pl.  Intially the only use is in ph, and they
  * only want to profile completed actions, so just publish the one method.
  *
  * @author dandrews
  */
-public interface IGosuProfilingService extends IService {
+public interface IGosuProfilingService extends IService
+{
   /** This will log a profiling event, note that the start time and end times should have been captured
    * from the same clock, for example IEntityAccess.getCurrentTime().
    *

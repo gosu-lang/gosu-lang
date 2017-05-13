@@ -3,7 +3,7 @@ package editor;
 import editor.util.EditorUtilities;
 import editor.util.Experiment;
 import gw.util.PathUtil;
-import gw.fs.IFile;
+import manifold.api.fs.IFile;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.TypeSystem;
 
