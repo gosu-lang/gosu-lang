@@ -4,7 +4,11 @@
 
 package gw.lang.gosuc;
 
+import com.sun.source.tree.Tree;
 import gw.config.CommonServices;
+import gw.internal.ext.com.beust.jcommander.JCommander;
+import gw.internal.ext.org.objectweb.asm.ClassWriter;
+import gw.lang.Gosu;
 import manifold.api.fs.IDirectory;
 
 import java.io.File;
@@ -23,6 +27,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
+import manifold.api.host.IManifoldHost;
 
 /**
  */
@@ -111,17 +116,16 @@ public class GosucUtil {
   }
 
   public static List<String> getGosuBootstrapJars() throws ClassNotFoundException {
-    return Arrays.asList(getClassLocation("gw.internal.gosu.parser.MetaType"), //get gosu-core
-        getClassLocation("gw.lang.Gosu"), //get gosu-core-api
-        getClassLocation("gw.internal.ext.org.objectweb.asm.ClassWriter"), //get asm
-        getClassLocation("gw.internal.ext.com.beust.jcommander.JCommander"), //get jcommander
-        getClassLocation("com.sun.source.tree.Tree") //get tools.jar
+    return Arrays.asList( getClassLocation(Class.forName("gw.internal.gosu.parser.MetaType")), //get gosu-core
+                          getClassLocation(Gosu.class), //get gosu-core-api
+                          getClassLocation(IManifoldHost.class), //get manifold
+                          getClassLocation(ClassWriter.class), //get asm
+                          getClassLocation(JCommander.class), //get jcommander
+                          getClassLocation(Tree.class) //get tools.jar
     );
   }
 
-  private static String getClassLocation(String className) throws ClassNotFoundException {
-    Class clazz = Class.forName(className);
-
+  private static String getClassLocation(Class clazz) throws ClassNotFoundException {
     ProtectionDomain pDomain = clazz.getProtectionDomain();
     CodeSource cSource = pDomain.getCodeSource();
 
@@ -137,7 +141,7 @@ public class GosucUtil {
       }
       return file.getPath();
     } else {
-      throw new ClassNotFoundException("Cannot find the location of the requested className <" + className + "> in classpath.");
+      throw new ClassNotFoundException("Cannot find the location of the requested className <" + clazz.getName() + "> in classpath.");
     }
   }
 
