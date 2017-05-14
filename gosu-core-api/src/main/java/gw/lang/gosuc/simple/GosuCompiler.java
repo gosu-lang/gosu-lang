@@ -6,6 +6,7 @@ import gw.config.ExecutionMode;
 import gw.config.IMemoryMonitor;
 import gw.config.IPlatformHelper;
 import gw.config.Registry;
+import gw.lang.reflect.module.INativeModule;
 import manifold.api.fs.FileFactory;
 import manifold.api.fs.IDirectory;
 import manifold.api.fs.IFile;
@@ -216,7 +217,7 @@ public class GosuCompiler implements IGosuCompiler
     List<JavaFileObject> sourceFiles = javaFiles.stream().map( SourceJavaFileObject::new ).collect( Collectors.toList() );
     Collection<InMemoryClassJavaFileObject> files = javaParser.compile( sourceFiles, makeJavacOptions( options ), errorHandler );
     errorHandler.getDiagnostics().forEach( driver::sendCompileIssue );
-    createJavaOutputFiles( files, driver );
+    createJavaOutputFiles( options.getDestDir(), files, driver );
     if( driver.getErrors().size() > options.getMaxErrs() )
     {
       System.out.printf( "\nError threshold of %d exceeded; aborting compilation.", options.getMaxErrs() );
@@ -327,8 +328,13 @@ public class GosuCompiler implements IGosuCompiler
     maybeCopySourceFile( gsClass, driver );
   }
 
-  private void createJavaOutputFiles( Collection<InMemoryClassJavaFileObject> compiledJavaFiles, ICompilerDriver driver )
+  private void createJavaOutputFiles( String outputPath, Collection<InMemoryClassJavaFileObject> compiledJavaFiles, ICompilerDriver driver )
   {
+    if( TypeSystem.getGlobalModule().getNativeModule() == null )
+    {
+      INativeModule simpleModule = makeNativeModule( outputPath );
+      TypeSystem.getGlobalModule().setNativeModule( simpleModule );
+    }
     IDirectory moduleOutputDirectory = TypeSystem.getGlobalModule().getOutputPath();
     if( moduleOutputDirectory == null )
     {
@@ -342,6 +348,23 @@ public class GosuCompiler implements IGosuCompiler
       JavaFileObject classFile = driver.createClassFile( compiledJavaFile.getClassName() );
       populateJavaClassFile( classFile, compiledJavaFile.getBytes(), driver );
     }
+  }
+
+  private INativeModule makeNativeModule( final String outputPath )
+  {
+    return new INativeModule() {
+      @Override
+      public Object getNativeModule()
+      {
+        return this;
+      }
+
+      @Override
+      public IDirectory getOutputPath()
+      {
+        return FileFactory.instance().getIDirectory( outputPath );
+      }
+    };
   }
 
   public static String getStackTrace( Throwable e )
