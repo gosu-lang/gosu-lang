@@ -23,7 +23,8 @@
       <groupId>org.gosu-lang.gosu</groupId>
       <artifactId>gosu-core</artifactId>
       <version>${project.version}</version>
-      <scope>runtime</scope>
+<!--for now we need a compile scope here otherwise gosu-doc will not build with maven-->
+      <!--<scope>runtime</scope>-->
     </dependency>
     <dependency>
       <groupId>junit</groupId>
