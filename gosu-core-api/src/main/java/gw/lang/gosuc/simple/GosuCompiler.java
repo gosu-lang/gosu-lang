@@ -217,7 +217,7 @@ public class GosuCompiler implements IGosuCompiler
     List<JavaFileObject> sourceFiles = javaFiles.stream().map( SourceJavaFileObject::new ).collect( Collectors.toList() );
     Collection<InMemoryClassJavaFileObject> files = javaParser.compile( sourceFiles, makeJavacOptions( options ), errorHandler );
     errorHandler.getDiagnostics().forEach( driver::sendCompileIssue );
-    createJavaOutputFiles( options.getDestDir(), files, driver );
+    createJavaOutputFiles( files, driver );
     if( driver.getErrors().size() > options.getMaxErrs() )
     {
       System.out.printf( "\nError threshold of %d exceeded; aborting compilation.", options.getMaxErrs() );
@@ -328,19 +328,8 @@ public class GosuCompiler implements IGosuCompiler
     maybeCopySourceFile( gsClass, driver );
   }
 
-  private void createJavaOutputFiles( String outputPath, Collection<InMemoryClassJavaFileObject> compiledJavaFiles, ICompilerDriver driver )
+  private void createJavaOutputFiles( Collection<InMemoryClassJavaFileObject> compiledJavaFiles, ICompilerDriver driver )
   {
-    if( TypeSystem.getGlobalModule().getNativeModule() == null )
-    {
-      INativeModule simpleModule = makeNativeModule( outputPath );
-      TypeSystem.getGlobalModule().setNativeModule( simpleModule );
-    }
-    IDirectory moduleOutputDirectory = TypeSystem.getGlobalModule().getOutputPath();
-    if( moduleOutputDirectory == null )
-    {
-      throw new RuntimeException( "Can't make class file, no output path defined." );
-    }
-
     compiledJavaFiles = compiledJavaFiles.stream().filter( e -> TypeSystem.getByFullNameIfValid( e.getClassName().replace( '$', '.' ) ) instanceof IJavaType ).collect( Collectors.toList() );
 
     for( InMemoryClassJavaFileObject compiledJavaFile: compiledJavaFiles )
@@ -348,23 +337,6 @@ public class GosuCompiler implements IGosuCompiler
       JavaFileObject classFile = driver.createClassFile( compiledJavaFile.getClassName() );
       populateJavaClassFile( classFile, compiledJavaFile.getBytes(), driver );
     }
-  }
-
-  private INativeModule makeNativeModule( final String outputPath )
-  {
-    return new INativeModule() {
-      @Override
-      public Object getNativeModule()
-      {
-        return this;
-      }
-
-      @Override
-      public IDirectory getOutputPath()
-      {
-        return FileFactory.instance().getIDirectory( outputPath );
-      }
-    };
   }
 
   public static String getStackTrace( Throwable e )
