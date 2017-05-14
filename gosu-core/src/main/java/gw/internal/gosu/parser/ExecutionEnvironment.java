@@ -309,6 +309,7 @@ public class ExecutionEnvironment implements IExecutionEnvironment
       }
 
       _jreModule = null;
+      _rootModule = null;
     } finally {
       _state = TypeSystemState.STOPPED;
     }
