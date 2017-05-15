@@ -46,6 +46,7 @@ import manifold.api.sourceprod.TypeName;
 import manifold.internal.runtime.Bootstrap;
 
 /**
+ *
  */
 public class GosuManifoldHost extends BaseService implements IManifoldHost
 {
