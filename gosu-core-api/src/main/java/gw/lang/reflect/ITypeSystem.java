@@ -222,6 +222,7 @@ public interface ITypeSystem extends IService
 
   IExecutionEnvironment getExecutionEnvironment();
   IExecutionEnvironment getExecutionEnvironment( IProject project );
+  IExecutionEnvironment getExecutionEnvironment( Object nativeProject );
 
   IModule getCurrentModule();
 

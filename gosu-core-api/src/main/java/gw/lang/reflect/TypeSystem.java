@@ -653,6 +653,10 @@ public class TypeSystem
   {
     return CommonServices.getTypeSystem().getExecutionEnvironment();
   }
+  public static IExecutionEnvironment getExecutionEnvironment( Object nativeProject )
+  {
+    return CommonServices.getTypeSystem().getExecutionEnvironment( nativeProject );
+  }
 
   public static IExecutionEnvironment getExecutionEnvironment( IProject project )
   {

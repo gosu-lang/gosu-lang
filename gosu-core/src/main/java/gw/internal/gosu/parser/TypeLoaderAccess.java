@@ -1485,10 +1485,19 @@ public class TypeLoaderAccess extends BaseService implements ITypeSystem
   public IExecutionEnvironment getExecutionEnvironment( IProject project ) {
     return ExecutionEnvironment.instance(project);
   }
+  public IExecutionEnvironment getExecutionEnvironment( Object nativeProject ) {
+    return ExecutionEnvironment.instance(nativeProject);
+  }
 
   @Override
   public IGosuClassLoader getGosuClassLoader() {
-    DefaultTypeLoader loader = (DefaultTypeLoader) getCurrentModule().getTypeLoaders(IDefaultTypeLoader.class).get(0);
+    Module currentModule = getCurrentModule();
+    if( currentModule == null )
+    {
+      // can happen during bootstrapping while bootstrapping a bootstrapping
+      return null;
+    }
+    DefaultTypeLoader loader = (DefaultTypeLoader)currentModule.getTypeLoaders( IDefaultTypeLoader.class).get( 0);
     return loader.getGosuClassLoader();
   }
 

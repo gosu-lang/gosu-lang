@@ -18,6 +18,7 @@ import gw.lang.reflect.INamespaceType;
 import gw.lang.reflect.INonLoadableType;
 import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.gs.ICompilableType;
+import gw.lang.reflect.gs.IGosuClassLoader;
 import gw.lang.reflect.gs.IGosuProgram;
 import gw.lang.reflect.gs.ISourceFileHandle;
 import gw.lang.reflect.java.IJavaBackedType;
@@ -59,7 +60,8 @@ public class GosuManifoldHost extends BaseService implements IManifoldHost
 
   public ClassLoader getActualClassLoader()
   {
-    return TypeSystem.getGosuClassLoader().getActualLoader();
+    IGosuClassLoader gsLoader = TypeSystem.getGosuClassLoader();
+    return gsLoader == null ? null : gsLoader.getActualLoader();
   }
 
   public void bootstrap()
