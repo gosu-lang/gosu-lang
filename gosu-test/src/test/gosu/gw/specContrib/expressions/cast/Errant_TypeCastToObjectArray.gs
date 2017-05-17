@@ -41,6 +41,8 @@ class Errant_TypeCastToObjectArray {
 
     bar3({1, 2, 3} as int[])
 
+    bar1({1.0, 2.0, 3.0} as ArrayList<Integer>)      //## issuekeys: INCONVERTIBLE TYPES; CANNOT CAST 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.DOUBLE>' TO 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.INTEGER>'
+
   }
   private function bar1(integers: ArrayList<Object>) {
 
