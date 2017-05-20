@@ -120,7 +120,7 @@ public class GosuManifoldHost extends BaseService implements IManifoldHost
     return new Expando();
   }
 
-  public void addTypeLoaderListenerAsWeakRef( ITypeLoaderListener listener )
+  public void addTypeLoaderListenerAsWeakRef( Object ctx, ITypeLoaderListener listener )
   {
     TypeSystem.addTypeLoaderListenerAsWeakRef( listener );
   }

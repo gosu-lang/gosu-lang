@@ -31,7 +31,7 @@ import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.gs.BytecodeOptions;
 import gw.lang.reflect.gs.GosuClassTypeLoader;
 import gw.lang.reflect.java.JavaTypes;
-import gw.lang.reflect.module.Dependency;
+import manifold.api.host.Dependency;
 import gw.lang.reflect.module.IExecutionEnvironment;
 import gw.lang.reflect.module.IModule;
 import gw.lang.reflect.module.IProject;

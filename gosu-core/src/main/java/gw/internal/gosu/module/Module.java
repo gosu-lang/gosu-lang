@@ -24,7 +24,7 @@ import gw.lang.reflect.gs.IFileSystemGosuClassRepository;
 import gw.lang.reflect.gs.IGosuClassRepository;
 import gw.lang.reflect.gs.ISourceFileHandle;
 import gw.lang.reflect.java.IJavaType;
-import gw.lang.reflect.module.Dependency;
+import manifold.api.host.Dependency;
 import gw.lang.reflect.module.IExecutionEnvironment;
 import gw.lang.reflect.module.IModule;
 import gw.lang.reflect.module.INativeModule;
@@ -47,7 +47,6 @@ import java.util.jar.Manifest;
 import javax.tools.JavaFileObject;
 import manifold.api.fs.Extensions;
 import manifold.api.fs.IDirectory;
-import manifold.api.fs.IResource;
 import manifold.api.fs.jar.JarFileDirectoryImpl;
 import manifold.api.sourceprod.ISourceProducer;
 import manifold.internal.javac.GeneratedJavaStubFileObject;
@@ -494,7 +493,7 @@ public class Module implements IModule
   protected void traverse(final IModule theModule, List<IModule> traversalList) {
     traversalList.add(theModule);
     for (Dependency dependency : theModule.getDependencies()) {
-      IModule dependencyModule = dependency.getModule();
+      IModule dependencyModule = (IModule)dependency.getModule();
 
       // traverse all direct dependency and indirect exported dependencies
       if (!traversalList.contains(dependencyModule) &&

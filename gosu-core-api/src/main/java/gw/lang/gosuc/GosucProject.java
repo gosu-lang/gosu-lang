@@ -12,7 +12,7 @@ import gw.lang.parser.ISourceCodeTokenizer;
 import gw.lang.parser.IToken;
 import gw.lang.reflect.ITypeLoader;
 import gw.lang.reflect.TypeSystem;
-import gw.lang.reflect.module.Dependency;
+import manifold.api.host.Dependency;
 import gw.lang.reflect.module.IExecutionEnvironment;
 import gw.lang.reflect.module.IJreModule;
 import gw.lang.reflect.module.IModule;
@@ -20,7 +20,6 @@ import gw.lang.reflect.module.IProject;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
