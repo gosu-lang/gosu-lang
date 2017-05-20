@@ -11,6 +11,7 @@ import gw.lang.reflect.gs.IFileSystemGosuClassRepository;
 import java.util.Collections;
 import java.util.List;
 import manifold.api.fs.IDirectory;
+import manifold.api.host.Dependency;
 
 @UnstableAPI
 public interface IModule extends manifold.api.host.IModule
@@ -20,19 +21,7 @@ public interface IModule extends manifold.api.host.IModule
 
   IExecutionEnvironment getExecutionEnvironment();
 
-  /**
-   * @return A unique name relative to all other modules in a given execution 
-   *   environment.
-   */
-  String getName();
-
   void setName(String name);
-
-  /**
-   * @return A list of dependencies for this module. The list may contain both 
-   *   libraries and other modules. The dependency graph must not have cycles. 
-   */
-  List<Dependency> getDependencies();
 
   void setDependencies(List<Dependency> newDeps);
 
