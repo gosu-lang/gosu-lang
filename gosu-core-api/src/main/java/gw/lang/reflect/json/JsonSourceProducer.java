@@ -1,5 +1,7 @@
 package gw.lang.reflect.json;
 
+import javax.tools.DiagnosticListener;
+import javax.tools.JavaFileObject;
 import manifold.api.host.ITypeLoader;
 import manifold.api.sourceprod.ClassType;
 import gw.lang.reflect.gs.GosuSourceProducer;
@@ -45,10 +47,11 @@ public class JsonSourceProducer extends GosuSourceProducer<Model>
   }
 
   @Override
-  protected String produce( String topLevelFqn, Model model )
+  protected String produce( String topLevelFqn, Model model, DiagnosticListener<JavaFileObject> errorHandler )
   {
     StringBuilder sb = new StringBuilder();
     sb.append( "package " ).append( GosuClassUtil.getPackage( topLevelFqn ) ).append( "\n\n" );
+    model.report( errorHandler );
     model.getType().render( sb, 2, true );
     return sb.toString();
   }

@@ -24,6 +24,7 @@ import gw.lang.reflect.gs.IFileSystemGosuClassRepository;
 import gw.lang.reflect.gs.IGosuClassRepository;
 import gw.lang.reflect.gs.ISourceFileHandle;
 import gw.lang.reflect.java.IJavaType;
+import javax.tools.DiagnosticListener;
 import manifold.api.host.Dependency;
 import gw.lang.reflect.module.IExecutionEnvironment;
 import gw.lang.reflect.module.IModule;
@@ -208,7 +209,7 @@ public class Module implements IModule
   }
 
   @Override
-  public JavaFileObject produceFile( String fqn )
+  public JavaFileObject produceFile( String fqn, DiagnosticListener<JavaFileObject> errorHandler )
   {
     IType type = TypeSystem.getByFullNameIfValid( fqn, this );
     JavaFileObject file = null;

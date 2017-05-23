@@ -34,6 +34,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.Supplier;
+import javax.tools.DiagnosticListener;
 import javax.tools.JavaFileManager;
 import javax.tools.JavaFileObject;
 import manifold.api.fs.IFile;
@@ -125,9 +126,9 @@ public class GosuManifoldHost extends BaseService implements IManifoldHost
     TypeSystem.addTypeLoaderListenerAsWeakRef( listener );
   }
 
-  public JavaFileObject produceFile( String fqn, IModule module )
+  public JavaFileObject produceFile( String fqn, IModule module, DiagnosticListener<JavaFileObject> errorHandler )
   {
-    return module.produceFile( fqn );
+    return module.produceFile( fqn, errorHandler );
   }
 
   public void maybeAssignGousType( ClassLoader loader, String strType, URL url, BiConsumer<String, Supplier<byte[]>> assigner )
