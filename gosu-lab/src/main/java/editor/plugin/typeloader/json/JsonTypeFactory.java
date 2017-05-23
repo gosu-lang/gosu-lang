@@ -3,9 +3,11 @@ package editor.plugin.typeloader.json;
 import editor.EditorHost;
 import editor.plugin.typeloader.INewFileParams;
 import editor.plugin.typeloader.ITypeFactory;
+import gw.lang.parser.IFileRepositoryBasedType;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.gs.IGosuClass;
 import gw.lang.reflect.gs.ISourceFileHandle;
+import manifold.api.json.JsonIssueContainer;
 import manifold.api.sourceprod.ISourceProducer;
 import gw.lang.reflect.json.Json;
 import java.awt.EventQueue;
@@ -108,7 +110,7 @@ public class JsonTypeFactory implements ITypeFactory
       if( cause instanceof ScriptException )
       {
         // notify of errors
-        JsonIssueContainer issues = new JsonIssueContainer( (ScriptException)cause );
+        JsonIssueContainer issues = new JsonIssueContainer( (ScriptException)cause, ((IFileRepositoryBasedType)type).getSourceFileHandle().getFile() );
         editor.getDocument().putProperty( "issues", issues );
       }
     }

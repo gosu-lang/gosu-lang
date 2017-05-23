@@ -11,7 +11,7 @@ public class SourceProducerSourceFileHandle extends LazyStringSourceFileHandle
 
   public SourceProducerSourceFileHandle( String fqn, ISourceProducer sourceProducer )
   {
-    super( sourceProducer.getPackage( fqn ), fqn, () -> sourceProducer.produce( fqn ), sourceProducer.getClassType( fqn ) );
+    super( sourceProducer.getPackage( fqn ), fqn, () -> sourceProducer.produce( fqn, null ), sourceProducer.getClassType( fqn ) );
     _sourceProducer = sourceProducer;
   }
 
