@@ -1,4 +1,4 @@
-package gw.specContrib.expressions.cast
+package gw.specContrib.expressions.cast.typecastContextType
 
 class Errant_TypeCastToObjectArray {
   //IDE-1524
