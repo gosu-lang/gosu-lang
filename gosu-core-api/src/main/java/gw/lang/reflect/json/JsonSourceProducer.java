@@ -19,7 +19,7 @@ public class JsonSourceProducer extends GosuSourceProducer<Model>
 
   public void init( ITypeLoader typeLoader )
   {
-    init( typeLoader, FILE_EXTENSIONS, Model::new, "editor.plugin.typeloader.json.JsonTypeFactory", null );
+    init( typeLoader, FILE_EXTENSIONS, Model::new, "editor.plugin.typeloader.json.JsonTypeFactory" );
   }
 
   @Override
