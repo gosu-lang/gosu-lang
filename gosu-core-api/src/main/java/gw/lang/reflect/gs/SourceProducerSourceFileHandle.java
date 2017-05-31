@@ -1,5 +1,6 @@
 package gw.lang.reflect.gs;
 
+import java.util.List;
 import manifold.api.fs.IFile;
 import manifold.api.sourceprod.ISourceProducer;
 
@@ -21,8 +22,14 @@ public class SourceProducerSourceFileHandle extends LazyStringSourceFileHandle
   }
 
   @Override
+  //## todo: this method needs to return a collection of files to work better with producers
   public IFile getFile()
   {
-    return _sourceProducer.findFileForType( getTypeName() );
+    List<IFile> files = _sourceProducer.findFilesForType( getTypeName() );
+    if( files != null && files.size() > 0 )
+    {
+      return files.get( 0 );
+    }
+    return null;
   }
 }

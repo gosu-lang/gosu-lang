@@ -86,7 +86,7 @@ public class AsmClassTest extends TestClass {
   public void testMethods() {
     AsmClass asmClass = loadAsmClass( Asm_Simple.class );
     List<AsmMethod> methods = asmClass.getDeclaredMethodsAndConstructors();
-    // We add one for the <clinit> bootstrap static block generated via our JavacJacker annotation processor
+    // We add one for the <clinit> bootstrap static block generated via our JavacHook annotation processor
     assertEquals( Asm_Simple.class.getDeclaredMethods().length + Asm_Simple.class.getDeclaredConstructors().length + 1, methods.size() );
     int i = 0;
     assertEquals( "public void <init>()", methods.get( i++ ).toString() );

@@ -1,5 +1,7 @@
 package gw.lang.reflect.json;
 
+import java.util.Collections;
+import java.util.List;
 import javax.script.ScriptException;
 import javax.tools.Diagnostic;
 import javax.tools.DiagnosticListener;
@@ -51,9 +53,9 @@ class Model implements ResourceFileSourceProducer.IModel
   }
 
   @Override
-  public IFile getFile()
+  public List<IFile> getFiles()
   {
-    return _file;
+    return Collections.singletonList( _file );
   }
 
   public JsonStructureType getType()

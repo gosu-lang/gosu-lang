@@ -30,8 +30,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-import manifold.api.image.ImageSourceProducer;
-import manifold.api.json.JsonImplSourceProducer;
 import manifold.api.service.IService;
 import manifold.api.sourceprod.ISourceProducer;
 import manifold.api.sourceprod.TypeName;

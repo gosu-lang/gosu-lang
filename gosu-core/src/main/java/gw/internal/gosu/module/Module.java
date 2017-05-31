@@ -25,6 +25,7 @@ import gw.lang.reflect.gs.IGosuClassRepository;
 import gw.lang.reflect.gs.ISourceFileHandle;
 import gw.lang.reflect.java.IJavaType;
 import javax.tools.DiagnosticListener;
+import manifold.api.fs.IFileSystem;
 import manifold.api.host.Dependency;
 import gw.lang.reflect.module.IExecutionEnvironment;
 import gw.lang.reflect.module.IModule;
@@ -124,6 +125,34 @@ public class Module implements IModule
   }
 
   @Override
+  public List<IDirectory> getCollectiveSourcePath()
+  {
+    List<IDirectory> all = new ArrayList<>();
+    all.addAll( getSourcePath() );
+
+    for( Dependency d : getDependencies() )
+    {
+      if( d.isExported() )
+      {
+        all.addAll( d.getModule().getSourcePath() );
+      }
+    }
+    return all;
+  }
+
+  @Override
+  public List<IDirectory> getCollectiveJavaClassPath()
+  {
+    return getJavaClassPath();
+  }
+
+  @Override
+  public IFileSystem getFileSystem()
+  {
+    return CommonServices.getFileSystem();
+  }
+
+  @Override
   public void setSourcePath( List<IDirectory> sourcePaths )
   {
     List<IDirectory> sources = new ArrayList<>(sourcePaths);
@@ -191,6 +220,17 @@ public class Module implements IModule
   public IDirectory[] getExcludedPath()
   {
     return getFileRepository().getExcludedPath();
+  }
+
+  @Override
+  public Set<ISourceProducer> getSourceProducers()
+  {
+    Set<ISourceProducer> all = new HashSet<>();
+    GosuClassTypeLoader gosuLoader = GosuClassTypeLoader.getDefaultClassLoader( this );
+    all.addAll( gosuLoader.getSourceProducers() );
+    DefaultTypeLoader defaultLoader = DefaultTypeLoader.instance( this );
+    all.addAll( defaultLoader.getSourceProducers() );
+    return all;
   }
 
   @Override
