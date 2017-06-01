@@ -102,4 +102,15 @@ class CompoundTypeTest extends TestClass
     var val : java.io.Serializable&java.lang.Comparable<java.lang.Object>
     assertEquals( statictypeof val, gw.internal.gosu.parser.TypeLord.findLeastUpperBound( {String, statictypeof val} ) )
   }
+
+  function testRedundantStructure() {
+    var x: Object = {"hi"}
+    if( x typeis List && x typeis IFooStruct ) {
+      print( x.indexOf( "hi" ) )
+    }
+  }
+
+  structure IFooStruct {
+    function indexOf( o: Object ) : int
+  }
 }

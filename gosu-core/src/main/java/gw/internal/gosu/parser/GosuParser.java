@@ -8429,8 +8429,8 @@ public final class GosuParser extends ParserBase implements IGosuParser
         {
           if( verify( typeLiteralComponent, csr != componentType, Res.MSG_ALREADY_CONTAINS_TYPE, componentType ) )
           {
-            verify( typeLiteralComponent, !csr.isAssignableFrom( componentType ),Res.MSG_INTERFACE_REDUNDANT, csr, componentType );
-            verify( typeLiteralComponent, !componentType.isAssignableFrom( csr ), Res.MSG_INTERFACE_REDUNDANT, componentType, csr );
+            verify( typeLiteralComponent, !(csr.isAssignableFrom( componentType ) || StandardCoercionManager.isStructurallyAssignable( csr, componentType )),Res.MSG_INTERFACE_REDUNDANT, csr, componentType );
+            verify( typeLiteralComponent, !(componentType.isAssignableFrom( csr ) || StandardCoercionManager.isStructurallyAssignable( componentType, csr )), Res.MSG_INTERFACE_REDUNDANT, componentType, csr );
           }
         }
         if( !csr.isInterface() )
