@@ -4,6 +4,7 @@
 
 package gw.internal.gosu.parser;
 
+import gw.lang.parser.StandardCoercionManager;
 import gw.lang.reflect.AbstractType;
 import gw.lang.reflect.ICompoundType;
 import gw.lang.reflect.INonLoadableType;
@@ -12,7 +13,6 @@ import gw.lang.reflect.ITypeInfo;
 import gw.lang.reflect.ITypeLoader;
 import gw.lang.reflect.ITypeLoaderListener;
 import gw.lang.reflect.AbstractTypeSystemListener;
-import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.gs.IGenericTypeVariable;
 import gw.lang.reflect.java.JavaTypes;
 
@@ -54,6 +54,12 @@ public class CompoundType extends AbstractType implements INonLoadableType, ICom
 
   public static IType get( Set<IType> types )
   {
+    types = removeRedundantTypes( types );
+    if( types.size() == 1 )
+    {
+      return types.iterator().next();
+    }
+
     if( types.contains( JavaTypes.OBJECT() ) )
     {
       // necessary to remove Object to prevent some sill shit from creeping into type info e.g., Collections.max()
@@ -72,6 +78,31 @@ public class CompoundType extends AbstractType implements INonLoadableType, ICom
       CACHE.put( strName, compoundType );
     }
     return compoundType;
+  }
+
+  private static Set<IType> removeRedundantTypes( Set<IType> types )
+  {
+    Set<IType> reduced = new HashSet<>();
+    outer:
+    for( IType t: types )
+    {
+      if( !(t instanceof ErrorType) )
+      {
+        for( IType t2 : types )
+        {
+          if( t != t2 && t.isAssignableFrom( t2 ) || StandardCoercionManager.isStructurallyAssignable( t, t2 ) )
+          {
+            continue outer;
+          }
+        }
+      }
+      reduced.add( t );
+    }
+    if( types.size() > 0 && reduced.size() == 0 )
+    {
+      throw new IllegalStateException();
+    }
+    return reduced;
   }
 
   private static void listenToTypeSystemRefresh()
