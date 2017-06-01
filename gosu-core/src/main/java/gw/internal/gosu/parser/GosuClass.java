@@ -2464,13 +2464,17 @@ public class GosuClass extends InnerClassCapableType implements IGosuClassIntern
     if( sameDeclaringType ) {
       return true;
     }
-    IGosuClassInternal existingDeclaringType = (IGosuClassInternal) existingSymbol.getScriptPart().getContainingType();
-    if( isProxy() && existingDeclaringType.isProxy() ) {
-      // This class is a Java proxy and so is the declaring class of the existing symbol.  In this case we need to get
-      // the JavaType corresponding with this class' proxy and find where the existing symbol comes from within the Java
-      // hierarchy.
-      IPropertyInfo pi = ((IRelativeTypeInfo) getJavaType().getTypeInfo()).getProperty( getTheRef(), existingSymbol.getName() );
-      return pi != null && pi.getOwnersType() == existingDeclaringType.getJavaType();
+    if( existingSymbol.getScriptPart() != null )
+    {
+      IGosuClassInternal existingDeclaringType = (IGosuClassInternal)existingSymbol.getScriptPart().getContainingType();
+      if( isProxy() && existingDeclaringType.isProxy() )
+      {
+        // This class is a Java proxy and so is the declaring class of the existing symbol.  In this case we need to get
+        // the JavaType corresponding with this class' proxy and find where the existing symbol comes from within the Java
+        // hierarchy.
+        IPropertyInfo pi = ((IRelativeTypeInfo)getJavaType().getTypeInfo()).getProperty( getTheRef(), existingSymbol.getName() );
+        return pi != null && pi.getOwnersType() == existingDeclaringType.getJavaType();
+      }
     }
     return false;
   }
