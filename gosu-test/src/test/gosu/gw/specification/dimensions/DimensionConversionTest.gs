@@ -17,6 +17,13 @@ class DimensionConversionTest extends BaseVerifyErrantTest {
     dim = null
     assertNull( dim )
   }
+  function testImplicitBigDecimal() {
+    var dim = new TestBd( 13bd )
+    var x = 5bd
+    assertTrue( x != dim )
+    x = 13bd
+    assertTrue( x == dim )
+  }
 
   function testDouble() {
     var dim = new SampleDim( 7 )
