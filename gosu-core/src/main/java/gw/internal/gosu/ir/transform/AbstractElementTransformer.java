@@ -1707,7 +1707,7 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
   protected IRAssignmentStatement convertOperandToBig( IType bigType, Class bigClass, IType operandType, IRExpression operand, IRSymbol tempRet ) {
     IRAssignmentStatement tempOperandAssn;
     if( operandType == bigType ) {
-      tempOperandAssn = buildAssignment( tempRet, operand );
+      tempOperandAssn = buildAssignment( tempRet, checkCast( bigType, operand ) );
     }
     else {
       IType dimensionType = findDimensionType( operandType );
