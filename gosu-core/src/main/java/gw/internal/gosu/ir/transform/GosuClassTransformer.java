@@ -83,6 +83,7 @@ import gw.lang.reflect.gs.GosuMarker;
 import gw.lang.reflect.gs.IExternalSymbolMap;
 import gw.lang.reflect.gs.IGenericTypeVariable;
 import gw.lang.reflect.gs.IGosuClass;
+import gw.lang.reflect.gs.IGosuEnhancement;
 import gw.lang.reflect.gs.IGosuMethodInfo;
 import gw.lang.reflect.gs.IGosuProgram;
 import gw.lang.reflect.gs.IManagedProgramInstance;
@@ -778,6 +779,11 @@ public class GosuClassTransformer extends AbstractElementTransformer<ClassStatem
 
     for( DynamicFunctionSymbol superDfs: list )
     {
+      if( superDfs.getDeclaringTypeInfo().getOwnersType() instanceof IGosuEnhancement )
+      {
+        continue;
+      }
+
       while( superDfs instanceof ParameterizedDynamicFunctionSymbol )
       {
         superDfs = ((ParameterizedDynamicFunctionSymbol)superDfs).getBackingDfs();
