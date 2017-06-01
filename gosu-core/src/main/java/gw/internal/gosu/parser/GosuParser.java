@@ -11638,7 +11638,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
       add.setLHS( lhs );
       add.setRHS( rhs );
       add.setOperator( assignOp.charAt( 0 ) == '+' ? "+" : "-" );
-      add.setType( resolveTypeForArithmeticExpression( lhs, lhs.getType(), assignOp, rhs.getType() ) );
+      add.setType( resolveTypeForArithmeticExpression( add, lhs.getType(), assignOp, rhs.getType() ) );
       synthetic = add;
     }
     else if( "*=".equals( assignOp ) || "/=".equals( assignOp ) || "%=".equals( assignOp ) )
@@ -11647,7 +11647,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
       mult.setLHS( lhs );
       mult.setRHS( rhs );
       mult.setOperator( String.valueOf( assignOp.charAt( 0 ) ) );
-      mult.setType( resolveTypeForArithmeticExpression( lhs, lhs.getType(), assignOp, rhs.getType() ) );
+      mult.setType( resolveTypeForArithmeticExpression( mult, lhs.getType(), assignOp, rhs.getType() ) );
       synthetic = mult;
     }
     else if( "&=".equals( assignOp ) )
@@ -11658,7 +11658,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
       rhs = possiblyWrapWithImplicitCoercion( rhs, lhs.getType() );
       and.setLHS( lhs );
       and.setRHS( rhs );
-      and.setType( resolveTypeForArithmeticExpression( lhs, lhs.getType(), assignOp, rhs.getType() ) );
+      and.setType( resolveTypeForArithmeticExpression( and, lhs.getType(), assignOp, rhs.getType() ) );
       synthetic = and;
     }
     else if( "&&=".equals( assignOp ) )
@@ -11680,7 +11680,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
       rhs = possiblyWrapWithImplicitCoercion( rhs, lhs.getType() );
       xor.setLHS( lhs );
       xor.setRHS( rhs );
-      xor.setType( resolveTypeForArithmeticExpression( lhs, lhs.getType(), assignOp, rhs.getType() ) );
+      xor.setType( resolveTypeForArithmeticExpression( xor, lhs.getType(), assignOp, rhs.getType() ) );
       synthetic = xor;
     }
     else if( "|=".equals( assignOp ) )
@@ -11691,7 +11691,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
       rhs = possiblyWrapWithImplicitCoercion( rhs, lhs.getType() );
       or.setLHS( lhs );
       or.setRHS( rhs );
-      or.setType( resolveTypeForArithmeticExpression( lhs, lhs.getType(), assignOp, rhs.getType() ) );
+      or.setType( resolveTypeForArithmeticExpression( or, lhs.getType(), assignOp, rhs.getType() ) );
       synthetic = or;
     }
     else if( "||=".equals( assignOp ) )
@@ -11728,7 +11728,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
       shift.setLHS( lhs );
       shift.setRHS( rhs );
       shift.setOperator( assignOp );
-      shift.setType( resolveTypeForArithmeticExpression( lhs, lhs.getType(), assignOp, rhs.getType() ) );
+      shift.setType( resolveTypeForArithmeticExpression( shift, lhs.getType(), assignOp, rhs.getType() ) );
       synthetic = shift;
     }
 
