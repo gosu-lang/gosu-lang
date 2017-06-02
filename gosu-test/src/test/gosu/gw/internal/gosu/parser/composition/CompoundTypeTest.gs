@@ -113,4 +113,27 @@ class CompoundTypeTest extends TestClass
   structure IFooStruct {
     function indexOf( o: Object ) : int
   }
+
+  function testRedundantStructureMixed() {
+    var f: Sub = new Fred()
+    if( f typeis Foo )
+    {
+      return
+    }
+    fail()
+  }
+
+  static class Fred extends Sub {
+    function hi() : int {
+      return 9
+    }
+  }
+
+  static class Sub {
+    function hello() {}
+  }
+
+  structure Foo {
+    function hi() : int
+  }
 }

@@ -90,7 +90,7 @@ public class CompoundType extends AbstractType implements INonLoadableType, ICom
       {
         for( IType t2 : types )
         {
-          if( t != t2 && t.isAssignableFrom( t2 ) || StandardCoercionManager.isStructurallyAssignable( t, t2 ) )
+          if( t != t2 && (t.isAssignableFrom( t2 ) || StandardCoercionManager.isStructurallyAssignable( t, t2 )) )
           {
             continue outer;
           }
