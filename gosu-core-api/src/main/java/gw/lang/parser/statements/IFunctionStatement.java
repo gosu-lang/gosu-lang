@@ -16,4 +16,18 @@ public interface IFunctionStatement extends IStatement, IParsedElementWithAtLeas
   IDynamicFunctionSymbol getDynamicFunctionSymbol();
   
   List<IParameterDeclaration> getParameters();
+
+  default int getLastLine()
+  {
+    IDynamicFunctionSymbol dfs = getDynamicFunctionSymbol();
+    if( dfs != null )
+    {
+      Object body = dfs.getValueDirectly();
+      if( body instanceof IStatementList )
+      {
+        return ((IStatementList)body).getLastLine();
+      }
+    }
+    return -1;
+  }
 }

@@ -30,6 +30,7 @@ public final class StatementList extends Statement implements IStatementList
 {
   protected Statement[] _statements;
   protected IStackProvider _stackProvider;
+  private int _lastLine;
 
   /**
    * Constructs a StatementList given an ISymbolTable instance.
@@ -206,4 +207,19 @@ public final class StatementList extends Statement implements IStatementList
     }
   }
 
+  public int getLastLine()
+  {
+    return _lastLine;
+  }
+  public void setLastLineNumber( int lastLine )
+  {
+    _lastLine = lastLine;
+  }
+
+  @Override
+  public void adjustLineNum( int offset )
+  {
+    super.adjustLineNum( offset );
+    _lastLine += offset;
+  }
 }
