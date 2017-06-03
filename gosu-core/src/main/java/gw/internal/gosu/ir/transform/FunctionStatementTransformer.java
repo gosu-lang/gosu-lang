@@ -10,7 +10,6 @@ import gw.internal.gosu.ir.nodes.IRPropertyFactory;
 import gw.internal.gosu.ir.transform.statement.SyntheticFunctionStatementTransformer;
 import gw.internal.gosu.parser.DynamicFunctionSymbol;
 import gw.internal.gosu.parser.IBlockClassInternal;
-import gw.internal.gosu.parser.ParseTree;
 import gw.internal.gosu.parser.Statement;
 import gw.internal.gosu.parser.ThisConstructorFunctionSymbol;
 import gw.internal.gosu.parser.TypeLord;
@@ -23,18 +22,16 @@ import gw.lang.ir.IRSymbol;
 import gw.lang.ir.expression.IRStringLiteralExpression;
 import gw.lang.ir.statement.IRAssignmentStatement;
 import gw.lang.ir.statement.IRCatchClause;
+import gw.lang.ir.statement.IRImplicitReturnStatement;
 import gw.lang.ir.statement.IRMethodCallStatement;
 import gw.lang.ir.statement.IRReturnStatement;
 import gw.lang.ir.statement.IRStatementList;
 import gw.lang.ir.statement.IRTryCatchFinallyStatement;
 import gw.lang.parser.IFunctionSymbol;
-import gw.lang.parser.IParseTree;
 import gw.lang.parser.IParsedElement;
 import gw.lang.parser.ISymbol;
-import gw.lang.parser.IToken;
 import gw.lang.parser.statements.IFunctionStatement;
 import gw.lang.parser.statements.IReturnStatement;
-import gw.lang.parser.statements.IStatementList;
 import gw.lang.parser.statements.ITerminalStatement;
 import gw.lang.parser.statements.IThrowStatement;
 import gw.lang.reflect.IRelativeTypeInfo;
@@ -177,7 +174,9 @@ public class FunctionStatementTransformer extends AbstractElementTransformer<Fun
       }
       else if( _dfs.isLoopImplicitReturn() )
       {
-        addImplicitReturn( statements, returnType );
+        IRReturnStatement returnStmt = addImplicitReturn( returnType );;
+        returnStmt.setLineNumber( getLastLineOfFunction( statement ) );
+        statements.add( returnStmt );
       }
     }
     else if( returnType == JavaTypes.pVOID() &&
@@ -192,20 +191,20 @@ public class FunctionStatementTransformer extends AbstractElementTransformer<Fun
     }
     else if( _dfs.isLoopImplicitReturn() )
     {
-      addImplicitReturn( statements, returnType );
+      IRReturnStatement returnStmt = addImplicitReturn( returnType );;
+      returnStmt.setLineNumber( getLastLineOfFunction( statement ) );
+      statements.add( returnStmt );
     }
   }
 
-  private void addImplicitReturn( List<IRStatement> statements, IType returnType )
+  private IRImplicitReturnStatement addImplicitReturn( IType returnType )
   {
     // This return stmt is never executed, it's only here to pacify Java's bytecode verifier
     // which doesn't perform the static analysis thoroughly enough to understand that a return
     // is not needed here.
-    gw.lang.ir.statement.IRImplicitReturnStatement returnStatement =
-            returnType == JavaTypes.pVOID()
+   return returnType == JavaTypes.pVOID()
             ? new gw.lang.ir.statement.IRImplicitReturnStatement()
             : new gw.lang.ir.statement.IRImplicitReturnStatement( null, getDefaultConstIns( returnType ) );
-    statements.add( returnStatement );
   }
 
   private void compileConstructorInitializers( List<IRStatement> statements )
@@ -282,44 +281,23 @@ public class FunctionStatementTransformer extends AbstractElementTransformer<Fun
     }
   }
 
-  public int getLastLineOfFunction( Statement stmt )
+  private int getLastLineOfFunction( IParsedElement stmt )
   {
     if( stmt == null )
     {
       return -1;
     }
-    Statement temp = stmt;
+    IParsedElement temp = stmt;
     while( stmt != null && !(stmt instanceof IFunctionStatement) )
     {
-      stmt = (Statement)stmt.getParent();
+      stmt = stmt.getParent();
     }
     if( stmt == null )
     {
       stmt = temp;
     }
-    ParseTree location = stmt.getLocation();
-    List<IParseTree> children = location == null ? null : location.getChildren();
-    if( children != null && children.size() > 0 )
-    {
-      for( IParseTree child : children )
-      {
-        IParsedElement pe = child.getParsedElement();
-        if( pe instanceof IStatementList )
-        {
-          stmt = (Statement)pe;
-          break;
-        }
-      }
-    }
-    List<IToken> tokens = stmt.getTokens();
-    for( int i = tokens.size()-1; i >= 0; i-- )
-    {
-      IToken token = tokens.get( i );
-      if( token.getText().equals( "}" ) )
-      {
-        return token.getLine();
-      }
-    }
-    return -1;
+    return stmt instanceof IFunctionStatement
+           ? ((IFunctionStatement)stmt).getLastLine()
+           : -1;
   }
 }
