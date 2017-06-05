@@ -11,6 +11,7 @@ class Errant_CastInOperations {
     var bool3 = (array1 as Object[]).equals(array2 as Object[])
     var bool4 = (array1 as Object[]).equals(array2)
     var bool5 = (array1).equals(array2 as Object[])
+    var bool51 = array1.equals({1,2,3})
     var bool6 = array1.equals({1, 2, 3} as Object[])                  //## issuekeys: INCONVERTIBLE TYPES; CANNOT CAST 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.INTEGER>' TO 'JAVA.LANG.OBJECT[]'
 
     var bool7 = ({1, 2, 3} as Object[]).equals({1, 2, 3} as Object[])                  //## issuekeys: INCONVERTIBLE TYPES; CANNOT CAST 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.INTEGER>' TO 'JAVA.LANG.OBJECT[]'
@@ -23,5 +24,7 @@ class Errant_CastInOperations {
 //    var bool10 = (new Integer[]{1, 2, 3}) == {1, 2, 3} as Integer[]
 
     var bb = {1, 2, 3}.addAll(new Integer[]{1, 2, 3} as ArrayList<Integer>)      //## issuekeys: INCONVERTIBLE TYPES; CANNOT CAST 'JAVA.LANG.INTEGER[]' TO 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.INTEGER>'
+
+
   }
 }

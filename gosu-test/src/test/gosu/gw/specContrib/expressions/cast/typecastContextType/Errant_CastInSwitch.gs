@@ -33,7 +33,7 @@ class Errant_CastInSwitch {
         print("empty initializer")
         break
       case {1, 2, 3} as Integer[]:
-        print("empty initializer")
+        print("integer list")
         break
       case {new Object()} as Integer[]:         //## issuekeys: INCONVERTIBLE TYPES; CANNOT CAST 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.OBJECT>' TO 'JAVA.LANG.INTEGER[]'
         print("integer list")
@@ -43,6 +43,9 @@ class Errant_CastInSwitch {
         break
       case {"1", "2"} as Integer[]:           //## issuekeys: INCONVERTIBLE TYPES; CANNOT CAST 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.STRING>' TO 'JAVA.LANG.INTEGER[]'
         print("string list")
+        break
+      case {1, "2"} as Integer[]:         //## issuekeys: INCONVERTIBLE TYPES; CANNOT CAST 'JAVA.UTIL.ARRAYLIST<JAVA.IO.SERIALIZABLE & JAVA.LANG.COMPARABLE<JAVA.IO.SERIALIZABLE & JAVA.LANG.COMPARABLE<? EXTENDS JAVA.LANG.COMPARABLE<?>>>>' TO 'JAVA.LANG.INTEGER[]'
+        print("integer list")
         break
       default:
         print("default")
