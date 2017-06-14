@@ -11,4 +11,6 @@ public interface IStatementList extends IStatement
   IStatement[] getStatements();
 
   boolean hasScope();
+
+  int getLastLine();
 }
