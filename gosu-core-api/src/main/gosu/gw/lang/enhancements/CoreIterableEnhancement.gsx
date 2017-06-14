@@ -1,5 +1,6 @@
 package gw.lang.enhancements
 
+uses gw.lang.parser.StandardCoercionManager
 uses java.util.Collection
 uses java.lang.Iterable
 uses java.util.ArrayList
@@ -545,13 +546,13 @@ enhancement CoreIterableEnhancement<T> : java.lang.Iterable<T> {
   }
 
   /**
-   * Returns all the elements of this collection that are assignable to the 
-   * given type
+   * Returns all the elements of this collection that are nominally or structurally
+   * assignable to the given type
    */
   function whereTypeIs<R>( type : Type<R> ) : List<R>{
     var retList = new ArrayList<R>()
     for( elt in this ) {
-      if( type.Type.isAssignableFrom( typeof elt ) ) {
+      if( type.Type.isAssignableFrom( typeof elt ) or StandardCoercionManager.isStructurallyAssignable( type.Type, typeof elt ) ) {
         retList.add( elt as R )
       }
     }
