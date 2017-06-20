@@ -94,7 +94,7 @@ public class ConstructorReference<R, T> extends FeatureReference<R, T> implement
   }
 
   @PublishedName("invoke")
-  public T getinvoke()
+  public T getInvoke()
   {
     return toBlock();
   }

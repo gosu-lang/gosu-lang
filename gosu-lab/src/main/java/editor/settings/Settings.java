@@ -8,6 +8,9 @@ import java.util.TreeMap;
  */
 public class Settings
 {
+  /**
+   * Reset Experiment-specific settings to defaults.
+   */
   public static Map<String, ISettings> makeDefaultSettings( Experiment experiment )
   {
     Map<String, ISettings> settings = new TreeMap<>();
@@ -19,6 +22,9 @@ public class Settings
     return settings;
   }
 
+  /**
+   * Reset Gosu Lab application-level settings to defaults.
+   */
   public static Map<String, ISettings> makeDefaultSettings()
   {
     Map<String, ISettings> settings = new TreeMap<>();

@@ -57,10 +57,8 @@ import gw.lang.reflect.IFeatureInfo;
 import gw.lang.reflect.IFunctionType;
 import gw.lang.reflect.IMetaType;
 import gw.lang.reflect.IMethodInfo;
-import gw.lang.reflect.IMethodInfoFactory;
 import gw.lang.reflect.IPropertyAccessor;
 import gw.lang.reflect.IPropertyInfo;
-import gw.lang.reflect.IPropertyInfoFactory;
 import gw.lang.reflect.IScriptabilityModifier;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.ITypeInfo;
@@ -91,10 +89,9 @@ import java.util.List;
 
 /**
  */
+@SuppressWarnings("UnusedDeclaration")
 public class GosuIndustrialParkImpl extends BaseService implements IGosuShop
 {
-  private IPropertyInfoFactory _propertyInfoFactory = new PropertyInfoFactoryImpl();
-  private IMethodInfoFactory _methodInfoFactory = new MethodInfoFactoryImpl();
   private IAnnotationInfoFactory _annotationInfoFactory = AnnotationInfoFactoryImpl.instance();
   private IConstructorInfoFactory _constructorInfoFactory = new ConstructorInfoFactoryImpl();
   private IJavaDocFactory _javaDocFactory = new JavaDocFactoryImpl();
@@ -379,7 +376,7 @@ public class GosuIndustrialParkImpl extends BaseService implements IGosuShop
   @Override
   public Method[] getDeclaredMethods( Class cls )
   {
-    return NewIntrospector.getDeclaredMethods( cls );
+    return JavaMethodCache.getDeclaredMethods( cls );
   }
 
   @Override

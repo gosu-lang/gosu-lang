@@ -17,7 +17,7 @@ public interface IInvokableFeatureReference<R, T> extends IFeatureReference<R, T
    * Returns the method reference as a block in an invocation-friendly syntax
    */
   @PublishedName("invoke")
-  T getinvoke();
+  T getInvoke();
 
   /**
    * Returns the method reference as a block in a transformation-friendly syntax

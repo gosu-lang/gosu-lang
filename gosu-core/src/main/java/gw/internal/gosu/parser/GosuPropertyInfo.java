@@ -34,6 +34,7 @@ public class GosuPropertyInfo extends GosuBaseAttributedFeatureInfo implements I
 {
   private ReducedDynamicPropertySymbol _dps;
   private IType _type;
+  private IType _assignableType;
   private IPropertyAccessor _accessor;
   private boolean _bReadable;
 
@@ -199,6 +200,15 @@ public class GosuPropertyInfo extends GosuBaseAttributedFeatureInfo implements I
       _type = getActualTypeInContainer( this, _dps.getType() );
     }
     return _type;
+  }
+
+  public IType getAssignableFeatureType()
+  {
+    if( _assignableType == null )
+    {
+      _assignableType = getActualTypeInContainer( this, _dps.getAssignableType() );
+    }
+    return _assignableType;
   }
 
   public ReducedDynamicPropertySymbol getDps()

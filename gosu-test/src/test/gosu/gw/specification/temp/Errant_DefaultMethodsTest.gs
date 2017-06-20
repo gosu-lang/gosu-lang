@@ -7,11 +7,11 @@ class Errant_DefaultMethodsTest extends FooBase implements IFoo, IFu {
 
     super[java.util.List].toString()  //## issuekeys: MSG_NOT_A_SUPERTYPE
 
-    super.fred()  //## issuekeys: MSG_NO_METHOD_DESCRIPTOR_FOUND_FOR_METHOD, MSG_NO_METHOD_DESCRIPTOR_FOUND_FOR_METHOD
+    super.fred()  //## issuekeys: MSG_NO_METHOD_DESCRIPTOR_FOUND_FOR_METHOD
     super.abstFromBase()  //## issuekeys: MSG_ABSTRACT_METHOD_CANNOT_BE_ACCESSED_DIRECTLY
     super.fromBase()
 
-    super[FooBase].fred()  //## issuekeys: MSG_NO_METHOD_DESCRIPTOR_FOUND_FOR_METHOD, MSG_NO_METHOD_DESCRIPTOR_FOUND_FOR_METHOD
+    super[FooBase].fred()  //## issuekeys: MSG_NO_METHOD_DESCRIPTOR_FOUND_FOR_METHOD
     super[FooBase].abstFromBase()  //## issuekeys: MSG_ABSTRACT_METHOD_CANNOT_BE_ACCESSED_DIRECTLY
     super[FooBase].fromBase()
 
@@ -29,7 +29,7 @@ class Errant_DefaultMethodsTest extends FooBase implements IFoo, IFu {
   }
 
   override function noDefault() {
-    super.noDefault()  //## issuekeys: MSG_NO_METHOD_DESCRIPTOR_FOUND_FOR_METHOD, MSG_NO_METHOD_DESCRIPTOR_FOUND_FOR_METHOD
+    super.noDefault()  //## issuekeys: MSG_NO_METHOD_DESCRIPTOR_FOUND_FOR_METHOD
     super[IFoo].noDefault()  //## issuekeys: MSG_ABSTRACT_METHOD_CANNOT_BE_ACCESSED_DIRECTLY
   }
 

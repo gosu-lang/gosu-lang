@@ -14,7 +14,6 @@ import gw.internal.gosu.parser.TypeLord;
 import gw.internal.gosu.ir.transform.util.AccessibilityUtil;
 import gw.internal.gosu.ir.transform.util.IRTypeResolver;
 import gw.lang.reflect.gs.IGosuClass;
-import gw.lang.reflect.java.IJavaClassInfo;
 import gw.lang.reflect.java.IJavaPropertyDescriptor;
 import gw.lang.reflect.java.IJavaPropertyInfo;
 import gw.lang.reflect.java.IJavaType;
@@ -34,6 +33,12 @@ public class IRPropertyFromDynamicPropertySymbol implements IRProperty {
   @Override
   public IRType getType() {
     return getBoundedPropertyType( _dps );
+  }
+
+  @Override
+  public IRType getAssignableType()
+  {
+    return getBoundedAssignablePropertyType( _dps );
   }
 
   @Override
@@ -110,10 +115,35 @@ public class IRPropertyFromDynamicPropertySymbol implements IRProperty {
   private IRType getBoundedReturnTypeFromProxiedClass( IDynamicPropertySymbol dps )
   {
     IJavaPropertyDescriptor pd = getJavaPropertyFromProxy( dps );
-    IJavaClassInfo type = pd.getReadMethod() != null
-                          ? pd.getReadMethod().getReturnClassInfo()
-                          : pd.getPropertyClassInfo();
-    return JavaClassIRType.get( type );
+    IType type = pd.getReadMethod() != null
+                 ? pd.getReadMethod().getReturnClassInfo().getJavaType()
+                 : pd.getPropertyType();
+    return IRTypeResolver.getDescriptor( type );
+  }
+
+  public IRType getBoundedAssignablePropertyType( IDynamicPropertySymbol dps )
+  {
+    while( dps instanceof ParameterizedDynamicPropertySymbol)
+    {
+      ParameterizedDynamicPropertySymbol pdfs = (ParameterizedDynamicPropertySymbol)dps;
+      dps = pdfs.getDelegate();
+    }
+
+    if( dps.getGosuClass() != null && IGosuClass.ProxyUtil.isProxy( dps.getGosuClass() ) )
+    {
+      return getBoundedAssignableTypeFromProxiedClass( dps );
+    }
+
+    return IRTypeResolver.getDescriptor( TypeLord.getDefaultParameterizedTypeWithTypeVars( dps.getType() ) );
+  }
+
+  private IRType getBoundedAssignableTypeFromProxiedClass( IDynamicPropertySymbol dps )
+  {
+    IJavaPropertyDescriptor pd = getJavaPropertyFromProxy( dps );
+    IType type = pd.getWriteMethod() != null
+                 ? pd.getWriteMethod().getParameterTypes()[0].getJavaType()
+                 : pd.getPropertyType();
+    return IRTypeResolver.getDescriptor( type );
   }
 
   private IJavaPropertyDescriptor getJavaPropertyFromProxy( IDynamicPropertySymbol dps )

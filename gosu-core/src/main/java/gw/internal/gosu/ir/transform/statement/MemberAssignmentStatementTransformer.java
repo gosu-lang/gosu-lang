@@ -181,7 +181,7 @@ public class MemberAssignmentStatementTransformer extends AbstractStatementTrans
 
   private IRType getWritableType( IRProperty pi ) {
     if( !(pi instanceof IRPropertyFromPropertyInfo) ) {
-      return pi.getType();
+      return pi.getAssignableType();
     }
 
     IRType type;
@@ -190,7 +190,7 @@ public class MemberAssignmentStatementTransformer extends AbstractStatementTrans
       type = IRTypeResolver.getDescriptor( ((IJavaPropertyInfo)terminalPi).getPublicField().getType() );
     }
     else {
-      type = pi.getType();
+      type = pi.getAssignableType();
     }
     return type;
   }

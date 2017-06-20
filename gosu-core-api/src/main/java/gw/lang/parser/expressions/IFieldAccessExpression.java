@@ -12,6 +12,4 @@ public interface IFieldAccessExpression extends IMemberAccessExpression
   IPropertyInfo getPropertyInfo();
 
   IExpression getMemberExpression();
-  
-  public String getMethodNameForSyntheticAccess();
 }

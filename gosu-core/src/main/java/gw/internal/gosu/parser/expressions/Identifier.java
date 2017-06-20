@@ -56,6 +56,14 @@ public class Identifier extends Expression implements IIdentifierExpression
     }
   }
 
+  public IType getAssignableType()
+  {
+    ISymbol symbol = getSymbol();
+    return symbol instanceof DynamicPropertySymbol
+           ? ((DynamicPropertySymbol)symbol).getAssignableType()
+           : getType();
+  }
+
   @Override
   public boolean isCompileTimeConstant()
   {

@@ -70,7 +70,7 @@ public class MethodReference<R, T> extends FeatureReference<R, T> implements IMe
 
   @PublishedName("invoke")
   @Override
-  public T getinvoke()
+  public T getInvoke()
   {
     return toBlock();
   }

@@ -17,8 +17,6 @@ public interface IJavaPropertyDescriptor extends Serializable {
 
   IType getPropertyType();
 
-  IJavaClassInfo getPropertyClassInfo();
-
   boolean isHidden();
 
   boolean isVisibleViaFeatureDescriptor(IScriptabilityModifier constraint);

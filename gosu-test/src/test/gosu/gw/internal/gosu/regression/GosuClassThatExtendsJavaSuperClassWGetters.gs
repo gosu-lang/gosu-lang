@@ -15,7 +15,7 @@ class GosuClassThatExtendsJavaSuperClassWGetters extends JavaSuperClassWithGette
   }
 
   function referAsQualifiedPublicMethod() : int {
-    return this.getPublicProp()
+    return this.PublicProp
   }
 
   function referAsUnqualifiedProtectedProp() : int {
@@ -31,7 +31,7 @@ class GosuClassThatExtendsJavaSuperClassWGetters extends JavaSuperClassWithGette
   }
 
   function referAsQualifiedProtectedMethod() : int {
-    return this.getProtectedProp()
+    return this.ProtectedProp
   }
 
   function referAsUnqualifiedProtectedPropWOverload() : int {
@@ -47,7 +47,7 @@ class GosuClassThatExtendsJavaSuperClassWGetters extends JavaSuperClassWithGette
   }
 
   function referAsQualifiedProtectedMethodWOverload() : int {
-    return this.getProtectedPropWOverload()
+    return this.ProtectedPropWOverload
   }
 
 }

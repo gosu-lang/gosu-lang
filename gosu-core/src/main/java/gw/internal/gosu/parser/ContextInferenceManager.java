@@ -4,6 +4,8 @@
 
 package gw.internal.gosu.parser;
 
+import gw.lang.parser.expressions.IMemberAccessExpression;
+import gw.lang.reflect.IMethodInfo;
 import gw.lang.reflect.IType;
 import gw.lang.parser.IParsedElement;
 import gw.lang.parser.resources.Res;
@@ -17,6 +19,7 @@ import gw.internal.gosu.parser.expressions.AdditiveExpression;
 import gw.internal.gosu.parser.expressions.ImplicitTypeAsExpression;
 import gw.internal.gosu.parser.statements.ReturnStatement;
 import gw.internal.gosu.parser.statements.StatementList;
+import gw.lang.reflect.java.IJavaPropertyInfo;
 import gw.lang.reflect.java.JavaTypes;
 import gw.util.Stack;
 import gw.util.GosuObjectUtil;
@@ -102,6 +105,10 @@ public class ContextInferenceManager
     if( ENABLED )
     {
       expression = unwrapParens( expression );
+      if( !isPossibleToInfer( expression ) )
+      {
+        return;
+      }
       TypeAsEntry currentEntry = findEntry( expression );
       IType type = currentEntry == null ? expression.getType() : currentEntry.inferredType;
       type = type.isAssignableFrom( typeIsType ) ? typeIsType : CompoundType.get( new HashSet<IType>( Arrays.asList( type, typeIsType ) ) );
@@ -140,14 +147,7 @@ public class ContextInferenceManager
       {
         inferType = entry.inferredType;
 
-        if( e instanceof Identifier )
-        {
-          if( entry.loopCompromised > 0 && !_refCollectionSuspended)
-          {
-            entry.refs.add( e );
-          }
-        }
-        if( e instanceof MemberAccess )
+        if( isPossibleToInfer( e ) )
         {
           if( entry.loopCompromised > 0 && !_refCollectionSuspended )
           {
@@ -157,6 +157,29 @@ public class ContextInferenceManager
       }
     }
     return inferType;
+  }
+
+  private boolean isPossibleToInfer( Expression e )
+  {
+    if( e instanceof Identifier || e instanceof MemberAccess )
+    {
+      return true;
+    }
+
+    // method call ok if a "getter" for a java property
+    if( e instanceof BeanMethodCallExpression )
+    {
+      IMethodInfo mi = ((BeanMethodCallExpression)e).getMethodDescriptor();
+      if( mi != null )
+      {
+        if( GosuClassProxyFactory.isPropertyGetter( mi ) )
+        {
+          return true;
+        }
+      }
+    }
+
+    return false;
   }
 
   public void cancelInferences( Expression assignmentRoot, Expression rhs )
@@ -308,7 +331,7 @@ public class ContextInferenceManager
     {
       return true;
     }
-    else if( expression instanceof MemberAccess )
+    else if( expression instanceof IMemberAccessExpression )
     {
       return isStartFor( possibleStart, ((MemberAccess)expression).getRootExpression() );
     }
@@ -352,6 +375,30 @@ public class ContextInferenceManager
              m1.getPropertyInfo() != null
              ? GosuObjectUtil.equals( m1.getPropertyInfo(), m2.getPropertyInfo() )
              : m1.getMemberExpression() != null && GosuObjectUtil.equals( m1.getMemberExpression(), m2.getMemberExpression() );
+    }
+    else if( e1 instanceof MemberAccess && e2 instanceof BeanMethodCallExpression )
+    {
+      MemberAccess m1 = (MemberAccess)e1;
+      BeanMethodCallExpression m2 = (BeanMethodCallExpression)e2;
+      return areExpressionsEquivalent( m1.getRootExpression(), m2.getRootExpression() ) &&
+             m1.getPropertyInfo() instanceof IJavaPropertyInfo &&
+             GosuObjectUtil.equals( ((IJavaPropertyInfo)m1.getPropertyInfo()).getReadMethodInfo(), m2.getMethodDescriptor() );
+    }
+    else if( e1 instanceof BeanMethodCallExpression && e2 instanceof MemberAccess )
+    {
+      BeanMethodCallExpression m1 = (BeanMethodCallExpression)e1;
+      MemberAccess m2 = (MemberAccess)e2;
+      return areExpressionsEquivalent( m1.getRootExpression(), m2.getRootExpression() ) &&
+             m2.getPropertyInfo() instanceof IJavaPropertyInfo &&
+             GosuObjectUtil.equals( ((IJavaPropertyInfo)m2.getPropertyInfo()).getReadMethodInfo(), m1.getMethodDescriptor() );
+    }
+    else if( e1 instanceof BeanMethodCallExpression && e2 instanceof BeanMethodCallExpression )
+    {
+      BeanMethodCallExpression m1 = (BeanMethodCallExpression)e1;
+      BeanMethodCallExpression m2 = (BeanMethodCallExpression)e2;
+      return areExpressionsEquivalent( m1.getRootExpression(), m2.getRootExpression() ) &&
+             m1.getMethodDescriptor() != null &&
+             GosuObjectUtil.equals( m1.getMethodDescriptor(), m2.getMethodDescriptor() );
     }
     else if (e1 instanceof ImplicitTypeAsExpression && e2 instanceof ImplicitTypeAsExpression) {
       ImplicitTypeAsExpression i1 = (ImplicitTypeAsExpression) e1;

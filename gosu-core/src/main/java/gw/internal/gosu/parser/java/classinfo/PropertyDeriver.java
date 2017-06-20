@@ -1,0 +1,291 @@
+package gw.internal.gosu.parser.java.classinfo;
+
+import gw.internal.gosu.parser.TypeLord;
+import gw.lang.SimplePropertyProcessing;
+import gw.lang.parser.TypeVarToTypeMap;
+import gw.lang.reflect.IType;
+import gw.lang.reflect.ImplicitPropertyUtil;
+import gw.lang.reflect.java.ClassInfoUtil;
+import gw.lang.reflect.java.IJavaClassInfo;
+import gw.lang.reflect.java.IJavaClassMethod;
+import gw.lang.reflect.java.IJavaClassType;
+import gw.lang.reflect.java.IJavaPropertyDescriptor;
+import gw.lang.reflect.java.JavaTypes;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+
+/**
+ */
+public class PropertyDeriver
+{
+  public static IJavaPropertyDescriptor[] initPropertyDescriptors( IJavaClassInfo jci )
+  {
+    Map<String, IJavaClassMethod> mapGetters = new HashMap<>();
+    Map<String, List<IJavaClassMethod>> mapSetters = new HashMap<>();
+    List<IJavaClassMethod> methods = new ArrayList<>();
+    methods.addAll( Arrays.asList( jci.getDeclaredMethods() ) );
+
+    boolean simplePropertyProcessing = jci.getAnnotation( SimplePropertyProcessing.class ) != null;
+
+    populateMaps( mapGetters, mapSetters, methods, simplePropertyProcessing );
+
+    List<IJavaPropertyDescriptor> propertyDescriptors = new ArrayList<>();
+    for( Map.Entry<String, IJavaClassMethod> entry : mapGetters.entrySet() )
+    {
+      String propName = entry.getKey();
+
+      IJavaClassMethod getter = entry.getValue();
+      IJavaClassType getterType = getter == null ? null : getter.getGenericReturnType();
+
+      IJavaClassMethod setter = findBestMatchingSetter( getterType, mapSetters.remove( propName ) );
+
+      if( setter == null )
+      {
+        setter = maybeFindSetterInSuper( getter, jci.getSuperclass() );
+        if( setter == null )
+        {
+          setter = maybeFindSetterInSuperInterfaces( getter, jci.getInterfaces() );
+        }
+      }
+      IType glbActual = setter == null
+                        ? getTypeFromMethod( getter )
+                        : TypeLord.findGreatestLowerBound( getTypeFromMethod( getter ), getTypeFromMethod( setter ) );
+      propertyDescriptors.add( new JavaSourcePropertyDescriptor( propName, glbActual, getter, setter ) );
+    }
+    addFromRemainingSetters( jci, mapSetters, propertyDescriptors );
+    return propertyDescriptors.toArray( new IJavaPropertyDescriptor[propertyDescriptors.size()] );
+  }
+
+  private static void populateMaps( Map<String, IJavaClassMethod> mapGetters, Map<String, List<IJavaClassMethod>> mapSetters, List<IJavaClassMethod> methods, boolean simplePropertyProcessing )
+  {
+    for( IJavaClassMethod method : methods )
+    {
+      ImplicitPropertyUtil.ImplicitPropertyInfo info = JavaSourceUtil.getImplicitProperty( method, simplePropertyProcessing );
+      if( info != null )
+      {
+        if( info.isGetter() && !mapGetters.containsKey( info.getName() ) )
+        {
+          mapGetters.put( info.getName(), method );
+        }
+        else if( info.isSetter() )
+        {
+          List<IJavaClassMethod> list = mapSetters.get( info.getName() );
+          if( list == null )
+          {
+            mapSetters.put( info.getName(), list = new ArrayList<>() );
+          }
+          list.add( method );
+        }
+      }
+    }
+  }
+
+  private static void addFromRemainingSetters( IJavaClassInfo jci, Map<String, List<IJavaClassMethod>> mapSetters, List<IJavaPropertyDescriptor> propertyDescriptors )
+  {
+    for( Map.Entry<String, List<IJavaClassMethod>> entry : mapSetters.entrySet() )
+    {
+      String propName = entry.getKey();
+      List<IJavaClassMethod> setters = entry.getValue();
+      IJavaClassMethod getter = null;
+      IType glbActual = null;
+      JavaSourcePropertyDescriptor prop = null;
+      for( IJavaClassMethod setter: setters )
+      {
+        boolean[] getterNameFound = {false};
+
+        IJavaClassMethod getterCsr = maybeFindGetterInSuper( setter, jci.getSuperclass(), getterNameFound );
+        if( getterCsr == null )
+        {
+          getterCsr = maybeFindGetterInSuperInterfaces( setter, jci.getInterfaces(), getterNameFound );
+        }
+        if( getterCsr == null && getterNameFound[0] )
+        {
+          continue;
+        }
+        IType glbCsr = getterCsr == null
+                 ? getTypeFromMethod( setter )
+                 : TypeLord.findGreatestLowerBound( getTypeFromMethod( getterCsr ), getTypeFromMethod( setter ) );
+        if( (glbActual == null || glbActual.isAssignableFrom( glbCsr )) && (getter == null || getterCsr != null) )
+        {
+          glbActual = glbCsr;
+          getter = getterCsr;
+          prop = new JavaSourcePropertyDescriptor( propName, glbCsr, getterCsr, setter );
+        }
+      }
+      if( prop != null )
+      {
+        propertyDescriptors.add( prop );
+      }
+    }
+  }
+
+  private static IJavaClassMethod findBestMatchingSetter( IJavaClassType getterType, List<IJavaClassMethod> setters )
+  {
+    if( setters == null )
+    {
+      return null;
+    }
+
+    for( Iterator<IJavaClassMethod> iter = setters.iterator(); iter.hasNext(); )
+    {
+      IJavaClassMethod setter = iter.next();
+
+      iter.remove();
+
+      IJavaClassType csrType = setter.getGenericParameterTypes()[0];
+      if( (getterType == null || csrType.equals( getterType )) )
+      {
+        return setter;
+      }
+    }
+    return null;
+  }
+
+  private static IType getTypeFromMethod( IJavaClassMethod m )
+  {
+    if( m.getReturnType() == JavaTypes.pVOID() )
+    {
+      return m.getParameterTypes()[0].getActualType( TypeVarToTypeMap.EMPTY_MAP, true );
+    }
+    return ClassInfoUtil.getActualReturnType( m.getGenericReturnType(), TypeVarToTypeMap.EMPTY_MAP, true );
+  }
+
+  private static IJavaClassMethod maybeFindSetterInSuper(IJavaClassMethod getter, IJavaClassInfo superClass ) {
+    if( superClass == null ) {
+      return null;
+    }
+    for( ;superClass != null; superClass = superClass.getSuperclass() ) {
+      for( IJavaPropertyDescriptor pd: superClass.getPropertyDescriptors() ) {
+        if( doesSetterDescMatchGetterMethod(getter, pd) ) {
+          return pd.getWriteMethod();
+        }
+      }
+    }
+    return null;
+  }
+
+  private static IJavaClassMethod maybeFindSetterInSuperInterfaces(IJavaClassMethod getter, IJavaClassInfo[] superInterfaces ) {
+    if( superInterfaces == null || superInterfaces.length == 0 ) {
+      return null;
+    }
+    for( IJavaClassInfo iface: superInterfaces ){
+      for( IJavaPropertyDescriptor pd: iface.getPropertyDescriptors() ) {
+        if( doesSetterDescMatchGetterMethod( getter, pd ) ) {
+          return pd.getWriteMethod();
+        }
+      }
+      IJavaClassMethod setter = maybeFindSetterInSuperInterfaces( getter, iface.getInterfaces() );
+      if( setter != null ) {
+        return setter;
+      }
+    }
+    return null;
+  }
+
+  private static boolean doesSetterDescMatchGetterMethod( IJavaClassMethod getter, IJavaPropertyDescriptor pd )
+  {
+    final IJavaClassType getterType = getter.getGenericReturnType();
+    if( getterType == null )
+    {
+      return false;
+    }
+    IJavaClassMethod setter = pd.getWriteMethod();
+    if( setter == null )
+    {
+      return false;
+    }
+
+    if( !("get" + pd.getName()).equals( getter.getName() ) && !("is" + pd.getName()).equals( getter.getName() ) )
+    {
+      return false;
+    }
+
+    return setter.getGenericParameterTypes()[0].isAssignableFrom( getterType );
+  }
+
+  private static IJavaClassMethod maybeFindGetterInSuper( IJavaClassMethod setter, IJavaClassInfo superClass, boolean[] getterNameFound ) {
+    if( superClass == null ) {
+      return null;
+    }
+    for( ; superClass != null; superClass = superClass.getSuperclass() ) {
+      for( IJavaPropertyDescriptor pd: superClass.getPropertyDescriptors() ) {
+        if( doesGetterDescMatchSetterMethod( setter, pd, getterNameFound ) & !isSetterFromPropIncompatible( setter, pd, getterNameFound ) ) {
+          return pd.getReadMethod();
+        }
+      }
+    }
+    return null;
+  }
+
+  private static IJavaClassMethod maybeFindGetterInSuperInterfaces( IJavaClassMethod setter, IJavaClassInfo[] superInterfaces, boolean[] getterNameFound ) {
+    if( superInterfaces == null || superInterfaces.length == 0 ) {
+      return null;
+    }
+    for( IJavaClassInfo iface: superInterfaces ){
+      for( IJavaPropertyDescriptor pd: iface.getPropertyDescriptors() ) {
+        if( doesGetterDescMatchSetterMethod( setter, pd, getterNameFound ) & !isSetterFromPropIncompatible( setter, pd, getterNameFound ) ) {
+          return pd.getReadMethod();
+        }
+      }
+      IJavaClassMethod getter = maybeFindGetterInSuperInterfaces( setter, iface.getInterfaces(), getterNameFound );
+      if( getter != null ) {
+        return getter;
+      }
+    }
+    return null;
+  }
+
+  private static boolean doesGetterDescMatchSetterMethod( IJavaClassMethod setter, IJavaPropertyDescriptor pd, boolean[] getterNameFound )
+  {
+    final IJavaClassType setterType = setter.getParameterTypes().length == 1 ? setter.getParameterTypes()[0] : null;
+    if( setterType == null )
+    {
+      return false;
+    }
+
+    IJavaClassMethod getter = pd.getReadMethod();
+    if( getter == null )
+    {
+      return false;
+    }
+
+    if( !("set" + pd.getName()).equals( setter.getName() ) )
+    {
+      return false;
+    }
+
+    getterNameFound[0] = true;
+
+    return setterType.isAssignableFrom( getter.getGenericReturnType() );
+  }
+
+  private static boolean isSetterFromPropIncompatible( IJavaClassMethod setter, IJavaPropertyDescriptor pd, boolean[] incompatibleSetterFound )
+  {
+    final IJavaClassType setterType = setter.getParameterTypes().length == 1 ? setter.getParameterTypes()[0] : null;
+    if( setterType == null )
+    {
+      return false;
+    }
+
+    IJavaClassMethod setterFromPd = pd.getWriteMethod();
+    if( setterFromPd == null )
+    {
+      return false;
+    }
+
+    if( !("set" + pd.getName()).equals( setter.getName() ) )
+    {
+      return false;
+    }
+
+    if( !setterType.equals( setterFromPd.getGenericParameterTypes()[0] ) )
+    {
+       return incompatibleSetterFound[0] = true;
+    }
+    return false;
+  }
+}

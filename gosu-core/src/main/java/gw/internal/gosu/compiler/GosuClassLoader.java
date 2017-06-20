@@ -11,8 +11,8 @@ import gw.internal.gosu.parser.ExecutionEnvironment;
 import gw.internal.gosu.parser.ICompilableTypeInternal;
 import gw.internal.gosu.parser.IGosuClassInternal;
 import gw.internal.gosu.parser.IGosuProgramInternal;
+import gw.internal.gosu.parser.JavaMethodCache;
 import gw.internal.gosu.parser.ModuleClassLoader;
-import gw.internal.gosu.parser.NewIntrospector;
 import gw.internal.gosu.parser.TypeLord;
 import gw.lang.parser.TypeSystemAwareCache;
 import gw.lang.reflect.IGosuClassLoadingObserver;
@@ -344,7 +344,7 @@ public class GosuClassLoader implements IGosuClassLoader
 
       if( BytecodeOptions.aggressivelyVerify() )
       {
-        NewIntrospector.getDeclaredMethods( cls );
+        JavaMethodCache.getDeclaredMethods( cls );
         cls.getDeclaredMethods(); //force verification
       }
 

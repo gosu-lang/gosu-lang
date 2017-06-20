@@ -61,25 +61,25 @@ class Errant_IfTypeNarrowing {
     }
 
     if (l.get(0) typeis A) {
-      l.get(0).foo1()                //## issuekeys: CANNOT RESOLVE 'foo1()'
+      l.get(0).foo1()                //## issuekeys: MSG_NO_METHOD_DESCRIPTOR_FOUND_FOR_METHOD
     }
 
     var arr: Object[]
     if (arr[0] typeis A) {
-      arr[0].foo1()                 //## issuekeys: CANNOT RESOLVE 'foo1()'
+      arr[0].foo1()                 //## issuekeys: MSG_NO_METHOD_DESCRIPTOR_FOUND_FOR_METHOD
     }
     var ind: int
     if (arr[ind] typeis A) {
-      arr[ind].foo1()               //## issuekeys: CANNOT RESOLVE 'foo1()'
+      arr[ind].foo1()               //## issuekeys: MSG_NO_METHOD_DESCRIPTOR_FOUND_FOR_METHOD
     }
 
     var map: Map<String, Object>
     if (map["key"] typeis A) {
-      map["key"].foo1()             //## issuekeys: CANNOT RESOLVE 'foo1()'
+      map["key"].foo1()             //## issuekeys: MSG_NO_METHOD_DESCRIPTOR_FOUND_FOR_METHOD
     }
     var key: String
     if (map[key] typeis A) {
-      map[key].foo1()               //## issuekeys: CANNOT RESOLVE 'foo1()'
+      map[key].foo1()               //## issuekeys: MSG_NO_METHOD_DESCRIPTOR_FOUND_FOR_METHOD
     }
   }
 
@@ -87,7 +87,7 @@ class Errant_IfTypeNarrowing {
 
   function testProperties(c: Errant_IfTypeNarrowingJava) {
     if (c.nonProp() typeis Errant_IfTypeNarrowingJava.A) {
-      c.nonProp().foo()  //## issuekeys: CANNOT RESOLVE 'foo()'
+      c.nonProp().foo()  //## issuekeys: MSG_NO_METHOD_DESCRIPTOR_FOUND_FOR_METHOD
     }
 
     // Java property
@@ -105,15 +105,15 @@ class Errant_IfTypeNarrowing {
       c.Prop.foo()
     }
 
-    // Gosu property
-    if (getProp() typeis Errant_IfTypeNarrowingJava.A) {
-      getProp().foo()
+    // Gosu property (no longer supporting fake getter calls, only Java now)
+    if (getProp() typeis Errant_IfTypeNarrowingJava.A) {  //## issuekeys: MSG_NO_SUCH_FUNCTION
+      getProp().foo()  //## issuekeys: MSG_NO_SUCH_FUNCTION
     }
-    if (getProp() typeis Errant_IfTypeNarrowingJava.A) {
-      Prop.foo()
+    if (getProp() typeis Errant_IfTypeNarrowingJava.A) {  //## issuekeys: MSG_NO_SUCH_FUNCTION
+      Prop.foo()  //## issuekeys: MSG_NO_METHOD_DESCRIPTOR_FOUND_FOR_METHOD
     }
     if (Prop typeis Errant_IfTypeNarrowingJava.A) {
-      getProp().foo()
+      getProp().foo()  //## issuekeys: MSG_NO_SUCH_FUNCTION
     }
     if (Prop typeis Errant_IfTypeNarrowingJava.A) {
       Prop.foo()
@@ -147,8 +147,7 @@ class Errant_IfTypeNarrowing {
       return _builder
     }
   }
-
-
+  
   static public abstract class DataBuilder<B extends DataBuilder<B>> {}
 
   static  public class CA7LineSchedCovItemBuilder extends DataBuilder<CA7LineSchedCovItemBuilder> {}

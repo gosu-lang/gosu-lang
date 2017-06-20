@@ -4,13 +4,10 @@
 
 package gw.internal.gosu.ir.nodes;
 
-import gw.internal.gosu.parser.ReducedDynamicPropertySymbol;
-import gw.internal.gosu.parser.ReducedSymbol;
 import gw.lang.parser.IReducedSymbol;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.IRelativeTypeInfo;
 import gw.lang.ir.IRType;
-import gw.internal.gosu.parser.DynamicSymbol;
 import gw.internal.gosu.ir.transform.util.AccessibilityUtil;
 import gw.internal.gosu.ir.transform.util.IRTypeResolver;
 
@@ -25,6 +22,11 @@ public class IRPropertyFromDynamicSymbol extends IRFeatureBase implements IRProp
   @Override
   public IRType getType() {
     return maybeReifyFieldType( _symbol.getGosuClass(), _symbol.getName(), _symbol.getType() );
+  }
+
+  @Override
+  public IRType getAssignableType() {
+    return getType();
   }
 
   @Override

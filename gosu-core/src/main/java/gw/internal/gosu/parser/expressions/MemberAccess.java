@@ -70,8 +70,6 @@ public class MemberAccess extends Expression implements IFieldAccessExpression, 
 
   private IExpressionRuntime _expressionRuntime;
   
-  private String _strMethodNameForSyntheticAccess;
-
   private MemberAccessKind _kind;
   private int _opLineNum;
 
@@ -135,6 +133,23 @@ public class MemberAccess extends Expression implements IFieldAccessExpression, 
     return rootType;
   }
 
+  public IType getAssignableType()
+  {
+    try
+    {
+      IPropertyInfo pi = getPropertyInfo();
+      if( pi != null )
+      {
+        return pi.getAssignableFeatureType();
+      }
+    }
+    catch( RuntimeExceptionWithNoStacktrace e )
+    {
+      // eat
+    }
+    return getType();
+  }
+
   public IPropertyInfo getPropertyInfo()
   {
     if( _memberExpression != null || _strMemberName == null )
@@ -158,15 +173,6 @@ public class MemberAccess extends Expression implements IFieldAccessExpression, 
       return null;
     }
     return BeanAccess.getPropertyInfoDirectly_NoException( getRootType(), _strMemberName );
-  }
-
-  public String getMethodNameForSyntheticAccess()
-  {
-    return _strMethodNameForSyntheticAccess;
-  }
-  public void setMethodNameForSyntheticAccess( String strName )
-  {
-    _strMethodNameForSyntheticAccess = strName;
   }
 
   public boolean isCompileTimeConstant()

@@ -38,6 +38,7 @@ import gw.lang.reflect.java.IJavaPropertyDescriptor;
 import gw.lang.reflect.java.IJavaPropertyInfo;
 import gw.lang.reflect.java.IJavaType;
 import gw.lang.reflect.java.IJavaTypeInfo;
+import gw.lang.reflect.java.JavaTypes;
 import gw.util.concurrent.LockingLazyVar;
 
 import java.beans.IndexedPropertyDescriptor;
@@ -97,10 +98,7 @@ public class JavaTypeInfo extends JavaBaseFeatureInfo implements IJavaTypeInfo
               }
 
               IJavaPropertyInfo pi = JavaPropertyInfo.newInstance(JavaTypeInfo.this, property);
-              // We only want properties that are at least readable
-              if (pi.isReadable()) {
-                ret.add(pi);
-              }
+              ret.add(pi);
             }
             addFieldProperties(ret);
             addArrayProperties(ret);
@@ -158,7 +156,7 @@ public class JavaTypeInfo extends JavaBaseFeatureInfo implements IJavaTypeInfo
                   properties.add(staticProp);
                 }
               }
-              else if( !_backingClass.hasCustomBeanInfo() )
+              else //if( !_backingClass.hasCustomBeanInfo() )
               {
                 TypeVarToTypeMap actualParamByVarName = TypeLord.mapTypeByVarName( getOwnersType(), getOwnersType() );
                 if (field == null) {
@@ -264,27 +262,33 @@ public class JavaTypeInfo extends JavaBaseFeatureInfo implements IJavaTypeInfo
     if( paramCount > 1 ) {
       return false;
     }
-    String propName = null;
+    String propName;
     boolean bSetter = name.startsWith( "set" );
+    IType type;
     if( paramCount == 0 && name.startsWith( "get" ) || bSetter && paramCount == 1 )
     {
       propName = name.substring( 3 );
+      type = bSetter ? md.getMethod().getParameterTypes()[0].getJavaType() : md.getMethod().getReturnType();
     }
     else if( paramCount == 0 && name.startsWith( "is" ) )
     {
       propName = name.substring( 2 );
+      type = md.getMethod().getReturnType();
+      if( type != JavaTypes.pBOOLEAN() && type != JavaTypes.BOOLEAN() )
+      {
+        return false;
+      }
+    }
+    else
+    {
+      return false;
     }
 
-    if( propName != null )
+    for( IPropertyInfo pi : _declaredProperties.get() )
     {
-      for( IPropertyInfo propertyInfo : _declaredProperties.get() )
+      if( pi.getName().equals( propName ) && pi.getFeatureType() == type )
       {
-        if( propertyInfo.getName().equals( propName ) &&
-            (!(propertyInfo instanceof IJavaPropertyInfo) ||
-             (!bSetter && ((IJavaPropertyInfo)propertyInfo).getPropertyDescriptor().getReadMethod().getName().equals( md.getMethod().getName() ))) )
-        {
-          return true;
-        }
+        return true;
       }
     }
 
@@ -476,15 +480,6 @@ public class JavaTypeInfo extends JavaBaseFeatureInfo implements IJavaTypeInfo
     String deprecatedWarningToAdd = null;
     if (getDocNode().get() != null && getDocNode().get().isDeprecated()) {
       deprecatedWarningToAdd = getDocNode().get().getDeprecated();
-    } else {
-//## todo: Diamond: re-enable this and provide some means to escape it in the language e.g., provide an internal modifier for the uses-statement: internal uses com.abc.Foo
-//      IJavaType typeToCheck = (IJavaType) getOwnersIntrinsicType();
-//      if (!typeToCheck.isArray() &&
-//              !typeToCheck.isPrimitive() &&
-//              isFilteredType(typeToCheck) &&
-//              typeToCheck.getIntrinsicClass().getAnnotation(PublishInGosu.class) == null) {
-//        deprecatedWarningToAdd = CommonServices.getGosuLocalizationService().localize(Res.USING_INTERNAL_CLASS);
-//      }
     }
     if (deprecatedWarningToAdd != null) {
       annotations.add(GosuShop.getAnnotationInfoFactory().createJavaAnnotation(makeDeprecated(deprecatedWarningToAdd), this));

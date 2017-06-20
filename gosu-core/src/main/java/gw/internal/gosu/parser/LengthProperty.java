@@ -4,15 +4,15 @@
 
 package gw.internal.gosu.parser;
 
+import gw.internal.gosu.parser.java.classinfo.JavaSourcePropertyDescriptor;
 import gw.lang.parser.Keyword;
 import gw.lang.reflect.IAnnotationInfo;
 import gw.lang.reflect.IPresentationInfo;
 import gw.lang.reflect.IPropertyAccessor;
 import gw.lang.reflect.ITypeInfo;
-import gw.lang.reflect.TypeSystem;
 
+import gw.lang.reflect.java.JavaTypes;
 import java.beans.IntrospectionException;
-import java.beans.PropertyDescriptor;
 import java.util.Collections;
 import java.util.List;
 
@@ -23,15 +23,7 @@ public class LengthProperty extends JavaPropertyInfo
 
   LengthProperty(ITypeInfo typeInfo) throws IntrospectionException
   {
-    super( typeInfo,
-           new PropertyDescriptorJavaPropertyDescriptor(new PropertyDescriptor( Keyword.KW_length.toString(), null, null )
-           {
-             @Override
-             public Class getPropertyType()
-             {
-               return Integer.TYPE;
-             }
-           } , TypeSystem.getCurrentModule()));
+    super( typeInfo, new JavaSourcePropertyDescriptor( Keyword.KW_length.toString(), JavaTypes.pINT(), null, null ) );
     _accessor = LengthAccessor.INSTANCE;
 
   }
