@@ -100,7 +100,7 @@ class GSPackageDocImpl extends GSDocImpl implements PackageDoc{
         getRootDoc().printWarning( "Could not add superclass to class " + iType.getName() + ": " + e.getMessage() )
       }
 
-      if( clazz.isIncluded() ){
+      if( clazz.Included ){
         _includedClasses.add( clazz )
         var dupe = _includedClassesByName.put( clazz.qualifiedName(), clazz )
         if( dupe != null ){
