@@ -140,7 +140,8 @@ public class SingleServingGosuClassLoader extends ClassLoader implements IGosuCl
     cls = findLoadedClass( javaName );
     if( cls != null )
     {
-      System.out.println( "!!! Class: " + cls.getName() + " is already loaded in loader: " + cls.getClassLoader().getClass().getName() );
+      System.out.println( "!!! Class: " + cls.getName() + " is already loaded in loader: " + cls.getClassLoader() +
+                          "\n!!! This classloader: " + this );
     }
     else
     {
