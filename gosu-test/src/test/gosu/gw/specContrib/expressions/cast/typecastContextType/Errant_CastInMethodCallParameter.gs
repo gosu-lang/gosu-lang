@@ -6,10 +6,10 @@ class Errant_CastInMethodCallParameter {
     var x: Object[] = {} as Integer[]
 
     bar(:a = {1, 2, 3})
-    bar(:a = {1, 2, 3} as Integer[])
-    called({1, 2, 3} as Float[])
-    bar2(:a = {1, 2, 3} as ArrayList<Integer>)
-    bar3(:a = {1, 2, 3} as ArrayList<Integer>)
+    bar(:a = {1, 2, 3} as Integer[]) //## issuekeys: MSG_UNNECESSARY_COERCION
+    called({1, 2, 3} as Float[]) //## issuekeys: MSG_UNNECESSARY_COERCION
+    bar2(:a = {1, 2, 3} as ArrayList<Integer>) //## issuekeys: MSG_UNNECESSARY_COERCION
+    bar3(:a = {1, 2, 3} as ArrayList<Integer>) //## issuekeys: MSG_UNNECESSARY_COERCION
   }
 
   function bar(a: Object[]) {

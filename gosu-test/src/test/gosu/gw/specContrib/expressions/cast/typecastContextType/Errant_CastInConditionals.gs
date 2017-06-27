@@ -16,7 +16,7 @@ class Errant_CastInConditionals {
     var Strings2: List<Float> = param1 > 2 ? new ArrayList<Float>() : {1, 2, 3}
     var Strings3: List<Float> = param1 > 2 ? new ArrayList<Integer>() : {1, 2, 3}      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.NUMBER & JAVA.LANG.COMPARABLE<? EXTENDS JAVA.LANG.COMPARABLE<?>>>', REQUIRED: 'JAVA.UTIL.LIST<JAVA.LANG.FLOAT>'
 
-    var Strings4: Float[] = param1 > 2 ? new Float[]{12, 3} : {1, 2, 3} as Float[]
+    var Strings4: Float[] = param1 > 2 ? new Float[]{12, 3} : {1, 2, 3} as Float[] //## issuekeys: MSG_UNNECESSARY_COERCION
 
   }
 

@@ -3,7 +3,7 @@ package gw.specContrib.expressions.cast.typecastContextType
 class Errant_CastAssignment_2 {
 
   function blah() {
-    var array2 = {1, 2, 3}.toArray() as Object[]
+    var array2 = {1, 2, 3}.toArray() as Object[] //## issuekeys: MSG_UNNECESSARY_COERCION
   }
 
   var xx = "someValue".length as Object[]       //## issuekeys: INCONVERTIBLE TYPES; CANNOT CAST 'INT' TO 'JAVA.LANG.OBJECT[]'

@@ -17,15 +17,15 @@ class Errant_TypeCastToObjectArray {
   //Tests for IDE-4083
   function foo() {
     bar({"SF", "LA"})  //infer type from context
-    bar({"SF", "LA"} as Object[]) //infer type from component type because of typecasting
-    bar({new String("hello"), new String("world")} as Object[]) //infer type from component type because of typecasting
+    bar({"SF", "LA"} as Object[]) //infer type from component type because of typecasting   //## issuekeys: MSG_UNNECCESARY_COERCION
+    bar({new String("hello"), new String("world")} as Object[]) //infer type from component type because of typecasting    //## issuekeys: MSG_UNNECCESARY_COERCION
 
     var xx : Object[] = {"sdfds", "sdf"}
     bar(xx)
 
     var ss : String[] = {"sdfds", "sdf"}
     bar(ss)
-    bar(ss as Object[])
+    bar(ss as Object[])    //## issuekeys: MSG_UNNECCESARY_COERCION
   }
 
   private function bar(strings: Object[]) {
@@ -33,13 +33,13 @@ class Errant_TypeCastToObjectArray {
   }
 
   function foo2() {
-    bar({1,2,3} as Object[])
+    bar({1,2,3} as Object[])    //## issuekeys: MSG_UNNECCESARY_COERCION
 
-    bar1({1, 2, 3} as ArrayList<Integer>)  //arraylist should work as is. Type inferred from context
+    bar1({1, 2, 3} as ArrayList<Integer>)  //arraylist should work as is. Type inferred from context    //## issuekeys: MSG_UNNECCESARY_COERCION
 
-    bar2({1, 2, 3} as Integer[])  //inferred type should be boxed
+    bar2({1, 2, 3} as Integer[])  //inferred type should be boxed    //## issuekeys: MSG_UNNECCESARY_COERCION
 
-    bar3({1, 2, 3} as int[])
+    bar3({1, 2, 3} as int[])    //## issuekeys: MSG_UNNECCESARY_COERCION
 
     bar1({1.0, 2.0, 3.0} as ArrayList<Integer>)      //## issuekeys: INCONVERTIBLE TYPES; CANNOT CAST 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.DOUBLE>' TO 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.INTEGER>'
 

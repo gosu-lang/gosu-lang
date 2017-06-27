@@ -4,11 +4,11 @@ class Errant_CastInReturnStatement {
 
 
   function returnStmt(): Object[] {
-    return {1, 2, 3} as Integer[]
+    return {1, 2, 3} as Integer[] //## issuekeys: MSG_UNNECESSARY_COERSION
   }
 
   function returnStmt2(): Integer[] {
-    return {1, 2, 3} as Integer[]
+    return {1, 2, 3} as Integer[] //## issuekeys: MSG_UNNECESSARY_COERSION
   }
 
   function returnStmt3(): Float[] {

@@ -18,7 +18,7 @@ class Errant_CastInSwitch {
       case {"sdf", "sdf"}:
         print("string list")
         break
-      case {"sdf", "sdf"} as String[]:
+      case {"sdf", "sdf"} as String[]: //## issuekeys: MSG_UNNECESSARY_COERCION
         print("string list")
         break
       default:
@@ -29,10 +29,10 @@ class Errant_CastInSwitch {
 
   function bar2(obj: Integer[]) {
     switch (obj) {
-      case {} as Integer[]:
+      case {} as Integer[]: //## issuekeys: MSG_UNNECESSARY_COERCION
         print("empty initializer")
         break
-      case {1, 2, 3} as Integer[]:
+      case {1, 2, 3} as Integer[]:  //## issuekeys: MSG_UNNECESSARY_COERCION
         print("integer list")
         break
       case {new Object()} as Integer[]:         //## issuekeys: INCONVERTIBLE TYPES; CANNOT CAST 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.OBJECT>' TO 'JAVA.LANG.INTEGER[]'
@@ -54,7 +54,7 @@ class Errant_CastInSwitch {
 
   function bar3(obj: Integer[]) {
     switch (obj) {
-      case {} as Integer[]:       //should NOT be error
+      case {} as Integer[]:       //should NOT be error  //## issuekeys: MSG_UNNECESSARY_COERCION
         print("empty initializer")
         break
     }

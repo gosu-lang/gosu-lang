@@ -59,8 +59,8 @@ class Errant_BlocksMixedReturnTypeCheck {
   function testReturnType7() {
     var l7: block() = \-> {           // l7: void    ERROR:
       if (true)
-        return                  //## issuekeys: CANNOT RETURN A VALUE FROM A METHOD OR BLOCK WITH VOID RESULT TYPE
-            oneInt() + 1
+        return
+            oneInt() + 1   //## issuekeys: CANNOT RETURN A VALUE FROM A METHOD OR BLOCK WITH VOID RESULT TYPE
       return
     }
   }
