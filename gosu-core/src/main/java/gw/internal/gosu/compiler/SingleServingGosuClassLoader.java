@@ -137,15 +137,12 @@ public class SingleServingGosuClassLoader extends ClassLoader implements IGosuCl
     }
 
     String javaName = GosuClassLoader.getJavaName( gsClass );
+
+    // In case GosuClass' soft ref is invalidated we need to first check if already loaded
     cls = findLoadedClass( javaName );
-    if( cls != null )
+    if( cls == null )
     {
-      System.out.println( "!!! Class: " + cls.getName() + " is already loaded in loader: " + cls.getClassLoader() +
-                          "\n!!! This classloader: " + this );
-    }
-    else
-    {
-      cls = defineClass( GosuClassLoader.getJavaName( gsClass ), classBytes, 0, classBytes.length );
+      cls = defineClass( javaName, classBytes, 0, classBytes.length );
     }
 
     if( shouldCache(gsClass) )
