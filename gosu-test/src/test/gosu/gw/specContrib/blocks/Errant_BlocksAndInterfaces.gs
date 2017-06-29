@@ -26,6 +26,8 @@ class Errant_BlocksAndInterfaces {
 
     i1 = b1
     i1 = b2      //## issuekeys: INCOMPATIBLE TYPES. FOUND: 'BLOCK(OBJECT)', REQUIRED: 'GW.SPECCONTRIB.AAA.PARSERVSOPENSOURCE.BLOCKS.BLOCKSMAIN.ERRANT_BLOCKSANDINTERFACES.MYBINTERFACE'
+
+    var anotherBlock : MyBInterface = \-> { return "hola"}    //## issuekeys: CANNOT RETURN A VALUE FROM A METHOD WITH VOID RESULT TYPE
   }
 
 }
