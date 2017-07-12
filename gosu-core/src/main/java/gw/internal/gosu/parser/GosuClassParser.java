@@ -1292,6 +1292,7 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
       fs.setDynamicFunctionSymbol( dfs );
       pushStatement( fs );
       verify( fs, !Modifier.isTransient( modifiers.getModifiers() ), Res.MSG_ILLEGAL_USE_OF_MODIFIER, Keyword.KW_transient, Keyword.KW_function );
+      verifyNoCombinedFinalStaticModifierDefined( fs, false, modifiers.getModifiers() );
       if( dfs != null )
       {
         dfs.setClassMember( true );
@@ -1318,6 +1319,8 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
       pushStatement( fs );
       setLocation( iOffset, iLineNum, iColumn );
       popStatement();
+
+      verifyNoCombinedFinalStaticModifierDefined( fs, false, modifiers.getModifiers() );
       verify( fs, !Modifier.isTransient( modifiers.getModifiers() ), Res.MSG_ILLEGAL_USE_OF_MODIFIER, Keyword.KW_transient, Keyword.KW_function );
       if( dfs != null )
       {

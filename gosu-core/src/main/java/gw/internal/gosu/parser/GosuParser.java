@@ -9356,8 +9356,8 @@ public final class GosuParser extends ParserBase implements IGosuParser
         {
           if( verify( typeLiteralComponent, csr != componentType, Res.MSG_ALREADY_CONTAINS_TYPE, componentType ) )
           {
-            verify( typeLiteralComponent, !csr.isAssignableFrom( componentType ),Res.MSG_INTERFACE_REDUNDANT, csr, componentType );
-            verify( typeLiteralComponent, !componentType.isAssignableFrom( csr ), Res.MSG_INTERFACE_REDUNDANT, componentType, csr );
+            verify( typeLiteralComponent, !(csr.isAssignableFrom( componentType ) || StandardCoercionManager.isStructurallyAssignable( csr, componentType )),Res.MSG_INTERFACE_REDUNDANT, csr, componentType );
+            verify( typeLiteralComponent, !(componentType.isAssignableFrom( csr ) || StandardCoercionManager.isStructurallyAssignable( componentType, csr )), Res.MSG_INTERFACE_REDUNDANT, componentType, csr );
           }
         }
         if( !csr.isInterface() )
@@ -9942,6 +9942,10 @@ public final class GosuParser extends ParserBase implements IGosuParser
   }
   boolean parseStatement( boolean bAsStmtBlock )
   {
+    return parseStatement( false, bAsStmtBlock );
+  }
+  boolean parseStatement( boolean forceKeepStmtBlock, boolean bAsStmtBlock )
+  {
     incStatementDepth();
     try
     {
@@ -9964,7 +9968,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
       boolean bMatchedBrace = !bAsStmtBlock && match( null, '{' );
       if( bMatchedBrace || bAsStmtBlock )
       {
-        parseStatementBlock( bMatchedBrace || !bAsStmtBlock );
+        parseStatementBlock( forceKeepStmtBlock, bMatchedBrace || !bAsStmtBlock );
         bRet = true;
         bSetLocation = peekStatement() instanceof StatementList;
       }
@@ -11779,6 +11783,10 @@ public final class GosuParser extends ParserBase implements IGosuParser
   }
   private void parseStatementBlock( boolean bMatchClosingBrace )
   {
+    parseStatementBlock( false, bMatchClosingBrace );
+  }
+  private void parseStatementBlock( boolean forceKeepStmtBlock, boolean bMatchClosingBrace )
+  {
     _symTable.pushScope();
     if( !bMatchClosingBrace )
     {
@@ -11790,10 +11798,16 @@ public final class GosuParser extends ParserBase implements IGosuParser
       parseStatementsAndDetectUnreachable( statements );
 
       StatementList stmtList = new StatementList( _symTable );
-      verify( stmtList, !bMatchClosingBrace || match( null, '}' ), Res.MSG_EXPECTING_RIGHTBRACE_STMTBLOCK );
+      Token closingBraceToken = bMatchClosingBrace ? new Token() : null;
+      verify( stmtList, !bMatchClosingBrace || match( closingBraceToken, '}' ), Res.MSG_EXPECTING_RIGHTBRACE_STMTBLOCK );
+      if( closingBraceToken != null )
+      {
+        stmtList.setLastLineNumber( closingBraceToken.getLine() );
+      }
       stmtList.setStatements( statements );
 
-      pushStatement( isDontOptimizeStatementLists() ? stmtList : stmtList.getSelfOrSingleStatement() );
+      boolean dontOptimizeStatementLists = forceKeepStmtBlock || isDontOptimizeStatementLists();
+      pushStatement( dontOptimizeStatementLists ? stmtList : stmtList.getSelfOrSingleStatement() );
     }
     finally
     {
@@ -13989,7 +14003,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
         pushStatement( nas );
         setLocation( T.getTokenStart(), T.getLine(), T.getTokenColumn() );
       }
-      else if( !parseStatement() )
+      else if( !parseStatement( true, false ) )
       {
         return false;
       }
