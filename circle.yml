@@ -25,7 +25,7 @@ general:
 
 test:
   override:
-      - mvn surefire:test -B:
+      - bash ./fastRun.sh:
           parallel: true
 
   post:
