@@ -17,7 +17,7 @@ import junit.framework.TestResult;
  */
 public class PLGosuBytecodeSuite extends Suite
 {
-  public PLGosuBytecodeSuite() 
+  public PLGosuBytecodeSuite()
   {
     withTestTypeFilter(getTestTypeFilter());
   }
@@ -43,7 +43,7 @@ public class PLGosuBytecodeSuite extends Suite
     return false;
   }
 
-  static Predicate<IType> getTestTypeFilter() 
+  static Predicate<IType> getTestTypeFilter()
   {
     return type -> isByteCodeTest(type) &&
         !type.getName().startsWith("gw.test.SuiteTest") &&
