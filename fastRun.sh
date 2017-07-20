@@ -11,7 +11,7 @@ if [ $ni -eq 0 ] ; then
 
 else
     echo "Running the below test of rest of the nodes"
-    mvn surefire:test -Dtest=*.*Test -pl gosu-test
+    mvn surefire:test -Dtest=*.*Test -pl gosu-test -B
 
 fi
 
