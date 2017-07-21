@@ -4,13 +4,17 @@
 let nt=${CIRCLE_NODE_TOTAL}
 let ni=${CIRCLE_NODE_INDEX}
 
+let nt=$(($CIRCLE_NODE_TOTAL-1))
+let ni=$(($CIRCLE_NODE_INDEX-1))
 
-if [ $ni -eq 0 ] ; then
+
+if [ $CIRCLE_NODE_INDEX -eq 0 ] ; then
     echo "Running on first node "
    mvn surefire:test -Dtest=*.*Test  -pl gosu-ant-tools -pl gosu-doc -pl gosu-lab -pl gosu-maven-compiler -pl gosu-core-api -B
 
 else
     echo "Running the below test of rest of the nodes"
+    testlist=$(find ./gosu-test -name "*Test.gs" -not -path "*/target/*" -o -name "*Test.java" -not -path "*/target/*" |rev |cut -d"/" -f1|rev|cut -d"." -f1|sort|awk "NR %${nt}==${ni}"|tr '\n' ',')
     mvn surefire:test -Dtest=*.*Test -pl gosu-test -B
 
 fi
