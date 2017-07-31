@@ -9,6 +9,7 @@ import gw.config.ExecutionMode;
 import gw.fs.IFile;
 import gw.internal.gosu.dynamic.DynamicConstructorInfo;
 import gw.internal.gosu.dynamic.DynamicMethodInfo;
+import gw.lang.parser.expressions.IConditionalExpression;
 import gw.lang.reflect.IDynamicType;
 import gw.internal.gosu.ir.transform.util.IRTypeResolver;
 import gw.internal.gosu.ir.transform.util.NameResolver;
@@ -1936,7 +1937,48 @@ public final class GosuParser extends ParserBase implements IGosuParser
     while( true );
   }
 
-  void parseEqualityExpression()
+  private void parseEqualityExpression()
+  {
+    int mark = getTokenizer().mark();
+    int locationsCount = _locations.size();
+    ContextType contextType = getContextType();
+
+    _parseEqualityExpression();
+
+    if( contextType != null &&
+        peekExpression().hasParseExceptions() &&
+        isConditional( peekExpression() ) )
+    {
+      // The boolean context type should have been applied to the conditional expression; it should not apply to its LHS operand.
+      // Since a conditional assumes boolean we can safely reparse without it.
+
+      backtrack( mark, locationsCount );
+      pushInferredContextTypes( ContextType.EMPTY );
+      try
+      {
+        _parseEqualityExpression();
+      }
+      finally
+      {
+        popInferredContextTypes();
+      }
+    }
+  }
+
+  private boolean isConditional( IExpression expression )
+  {
+    if( expression instanceof IConditionalExpression )
+    {
+      return true;
+    }
+    if( expression instanceof IParenthesizedExpression )
+    {
+      return isConditional( ((IParenthesizedExpression)expression).getExpression() );
+    }
+    return false;
+  }
+
+  private void _parseEqualityExpression()
   {
     int iOffset = _tokenizer.getTokenStart();
     int iLineNum = _tokenizer.getLineNumber();
@@ -2976,7 +3018,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
     else if( '(' == token.getType() )
     {
       getTokenizer().nextToken();
-      
+
       parseExpressionNoVerify( isParenthesisTerminalExpression() ? getContextType() : ContextType.EMPTY );
       _ctxInferenceMgr.restoreLastCtx();
       Expression e = popExpression();
