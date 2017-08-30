@@ -1,7 +1,7 @@
 package gw.util.science
 uses gw.util.Rational
 
-final class Charge extends AbstractMeasure<ChargeUnit, Charge> {
+final class Charge extends AbstractMeasure<ChargeUnit, gw.util.science.Charge> { //to prevent Type Parameter naming conflict with Guidewire's entity.Charge type
   construct( value: Rational, unit: ChargeUnit, displayUnit: ChargeUnit ) {
     super( value, unit, displayUnit, ChargeUnit.Coulomb )
   }
