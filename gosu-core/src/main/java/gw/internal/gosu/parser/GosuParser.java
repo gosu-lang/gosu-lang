@@ -9,11 +9,6 @@ import gw.config.ExecutionMode;
 import manifold.api.fs.IFile;
 import gw.internal.gosu.dynamic.DynamicConstructorInfo;
 import gw.internal.gosu.dynamic.DynamicMethodInfo;
-import gw.lang.parser.AnnotationUseSiteTarget;
-import gw.lang.parser.ExternalSymbolMapForMap;
-import gw.lang.parser.TypeSystemAwareCache;
-import gw.lang.reflect.IAnnotationInfo;
-import gw.lang.reflect.IDynamicType;
 import gw.internal.gosu.ir.transform.util.IRTypeResolver;
 import gw.internal.gosu.ir.transform.util.NameResolver;
 import gw.internal.gosu.parser.expressions.*;
@@ -63,6 +58,8 @@ import gw.lang.annotation.UsageTarget;
 import gw.lang.function.IBlock;
 import gw.lang.ir.IRElement;
 import gw.lang.ir.IRType;
+import gw.lang.parser.AnnotationUseSiteTarget;
+import gw.lang.parser.ExternalSymbolMapForMap;
 import gw.lang.parser.GosuParserFactory;
 import gw.lang.parser.GosuParserTypes;
 import gw.lang.parser.IBlockClass;
@@ -104,6 +101,7 @@ import gw.lang.parser.StandardCoercionManager;
 import gw.lang.parser.StandardScope;
 import gw.lang.parser.SymbolType;
 import gw.lang.parser.ThreadSafeSymbolTable;
+import gw.lang.parser.TypeSystemAwareCache;
 import gw.lang.parser.TypeVarToTypeMap;
 import gw.lang.parser.coercers.IdentityCoercer;
 import gw.lang.parser.exceptions.DoesNotOverrideFunctionException;
@@ -117,6 +115,7 @@ import gw.lang.parser.exceptions.ParseWarningForDeprecatedMember;
 import gw.lang.parser.exceptions.WrongNumberOfArgsException;
 import gw.lang.parser.expressions.IArithmeticExpression;
 import gw.lang.parser.expressions.IBlockInvocation;
+import gw.lang.parser.expressions.IConditionalExpression;
 import gw.lang.parser.expressions.IImplicitTypeAsExpression;
 import gw.lang.parser.expressions.IInferredNewExpression;
 import gw.lang.parser.expressions.IInitializerExpression;
@@ -141,11 +140,13 @@ import gw.lang.parser.template.TemplateParseException;
 import gw.lang.reflect.ConstructorInfoBuilder;
 import gw.lang.reflect.FeatureManager;
 import gw.lang.reflect.FunctionType;
+import gw.lang.reflect.IAnnotationInfo;
 import gw.lang.reflect.IAttributedFeatureInfo;
 import gw.lang.reflect.IBlockType;
 import gw.lang.reflect.ICanBeAnnotation;
 import gw.lang.reflect.IConstructorInfo;
 import gw.lang.reflect.IConstructorType;
+import gw.lang.reflect.IDynamicType;
 import gw.lang.reflect.IEnumValue;
 import gw.lang.reflect.IErrorType;
 import gw.lang.reflect.IFeatureInfo;
@@ -194,6 +195,8 @@ import gw.util.GosuObjectUtil;
 import gw.util.Pair;
 import gw.util.Rational;
 import gw.util.SpaceEfficientHashMap;
+import gw.util.Stack;
+import gw.util.concurrent.Cache;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -212,9 +215,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-
-import gw.util.Stack;
-import gw.util.concurrent.Cache;
 
 @SuppressWarnings({"ThrowableInstanceNeverThrown"})
 public final class GosuParser extends ParserBase implements IGosuParser
@@ -1947,7 +1947,48 @@ public final class GosuParser extends ParserBase implements IGosuParser
     while( true );
   }
 
-  void parseEqualityExpression()
+  private void parseEqualityExpression()
+  {
+    int mark = getTokenizer().mark();
+    int locationsCount = _locations.size();
+    ContextType contextType = getContextType();
+
+    _parseEqualityExpression();
+
+    if( contextType != null &&
+        peekExpression().hasParseExceptions() &&
+        isConditional( peekExpression() ) )
+    {
+      // The boolean context type should have been applied to the conditional expression; it should not apply to its LHS operand.
+      // Since a conditional assumes boolean we can safely reparse without it.
+
+      backtrack( mark, locationsCount );
+      pushInferredContextTypes( ContextType.EMPTY );
+      try
+      {
+        _parseEqualityExpression();
+      }
+      finally
+      {
+        popInferredContextTypes();
+      }
+    }
+  }
+
+  private boolean isConditional( IExpression expression )
+  {
+    if( expression instanceof IConditionalExpression )
+    {
+      return true;
+    }
+    if( expression instanceof IParenthesizedExpression )
+    {
+      return isConditional( ((IParenthesizedExpression)expression).getExpression() );
+    }
+    return false;
+  }
+
+  private void _parseEqualityExpression()
   {
     int iOffset = _tokenizer.getTokenStart();
     int iLineNum = _tokenizer.getLineNumber();

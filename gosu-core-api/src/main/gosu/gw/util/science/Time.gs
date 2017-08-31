@@ -1,5 +1,6 @@
 package gw.util.science
 
+uses gw.util.science.Charge //to prevent conflict with Guidewire's entity.Charge type
 uses gw.util.Rational
 
 final class Time extends AbstractMeasure<TimeUnit, Time> {
