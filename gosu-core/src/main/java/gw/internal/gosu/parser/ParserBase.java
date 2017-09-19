@@ -1744,7 +1744,7 @@ public abstract class ParserBase implements IParserPart
         {
           getTokenizer().nextToken();
 
-          verify( elem, bIgnoreErrors || !Modifier.isFinal( iModifiers ), Res.MSG_ILLEGAL_USE_OF_MODIFIER, Keyword.KW_reified, Keyword.KW_reified );
+          verify( elem, bIgnoreErrors || !Modifier.isReified( iModifiers ), Res.MSG_ILLEGAL_USE_OF_MODIFIER, Keyword.KW_reified, Keyword.KW_reified );
           iModifiers = Modifier.setReified( iModifiers, true );
         }
         else if( Keyword.KW_final == keyword )
