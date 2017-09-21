@@ -6874,7 +6874,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
         }
         catch( ParseException pe )
         {
-          funcType = listFunctionTypes.isEmpty() ? null : listFunctionTypes.get( 0 );
+          funcType = findFunction( listFunctionTypes, bNoArgsProvided );
           parseException = pe;
         }
 
@@ -6951,6 +6951,22 @@ public final class GosuParser extends ParserBase implements IGosuParser
     verifyReifiedCallHasProperContext( e );
 
     pushExpression( e );
+  }
+
+  private IFunctionType findFunction( List<IFunctionType> listFunctionTypes, boolean bNoArgsProvided )
+  {
+    if( listFunctionTypes.isEmpty() )
+    {
+      return null;
+    }
+    for( IFunctionType funcType: listFunctionTypes )
+    {
+      if( funcType.getParameterTypes().length == 0 == bNoArgsProvided )
+      {
+        return funcType;
+      }
+    }
+    return listFunctionTypes.get( 0 );
   }
 
   private void verifyReifiedCallHasProperContext( BeanMethodCallExpression e )
