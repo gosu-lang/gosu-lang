@@ -128,7 +128,7 @@ public class JavaSourceUtil {
       }
       else if( argCount == 1 )
       {
-        if( isSetterName( returnTypeName, name ) )
+        if( isSetterName( name ) )
         {
           return new ImplicitPropertyUtil.ImplicitPropertyInfo( true, false, ImplicitPropertyUtil.capitalizeFirstChar( name.substring( 3 ), simplePropertyProcessing ) );
         }
@@ -137,9 +137,9 @@ public class JavaSourceUtil {
     return null;
   }
 
-  private static boolean isSetterName( String returnTypeName, String name )
+  private static boolean isSetterName( String name )
   {
-    if( !returnTypeName.equals( "void" ) || !name.startsWith( ImplicitPropertyUtil.SET ) || name.length() <= ImplicitPropertyUtil.SET.length() )
+    if( !name.startsWith( ImplicitPropertyUtil.SET ) || name.length() <= ImplicitPropertyUtil.SET.length() )
     {
       return false;
     }

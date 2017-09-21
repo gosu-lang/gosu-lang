@@ -231,7 +231,7 @@ public class JavaPropertyInfo extends JavaBaseFeatureInfo implements IJavaProper
     actualParamByVarName = JavaMethodInfo.addEnclosingTypeParams( declaringClass, actualParamByVarName );
 
     IType type;
-    if( m.getReturnType() == JavaTypes.pVOID() )
+    if( m.getParameterTypes().length > 0 )
     {
       type = m.getParameterTypes()[0].getActualType( actualParamByVarName, true );
     }

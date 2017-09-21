@@ -10,4 +10,8 @@ public class JavaClassWithOverloadedPropertyMethod
   public boolean isGood( String s ) {
     return false;
   }
+
+  public String setGood( boolean value ) {
+    return "lol";
+  }
 }
