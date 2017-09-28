@@ -34,11 +34,14 @@ public class ImplicitPropertyUtil {
   }
 
   public static String capitalizeFirstChar(String name, boolean simplePropertyProcessing) {
-    if (simplePropertyProcessing || name == null || name.length() == 0) {
+    if (name == null || name.length() == 0) {
       return name;
-    } else if (name.startsWith("_")) {
-      return capitalizeFirstChar(name.substring(1), simplePropertyProcessing);
-    } else {
+    } else if (name.startsWith("_") && !simplePropertyProcessing) {
+      return name.substring(1);
+    } else if (simplePropertyProcessing) {
+      return name;
+    }
+    else {
       char chars[] = name.toCharArray();
       chars[0] = Character.toUpperCase(chars[0]);
       return new String(chars);

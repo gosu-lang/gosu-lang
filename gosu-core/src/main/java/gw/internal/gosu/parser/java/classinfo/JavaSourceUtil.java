@@ -4,7 +4,6 @@
 
 package gw.internal.gosu.parser.java.classinfo;
 
-import gw.config.CommonServices;
 import gw.config.ExecutionMode;
 import gw.internal.gosu.parser.DefaultTypeLoader;
 import gw.lang.reflect.IDefaultTypeLoader;
@@ -116,11 +115,11 @@ public class JavaSourceUtil {
       String name = method.getName();
       if( argCount == 0 && !returnTypeName.equals( "void" ) )
       {
-        if( isGetterName( name, ImplicitPropertyUtil.GET ) )
+        if( isGetterName( name, ImplicitPropertyUtil.GET, simplePropertyProcessing ) )
         {
           return new ImplicitPropertyUtil.ImplicitPropertyInfo( false, true, ImplicitPropertyUtil.capitalizeFirstChar( name.substring( 3 ), simplePropertyProcessing ) );
         }
-        else if( isGetterName( name, ImplicitPropertyUtil.IS ) &&
+        else if( isGetterName( name, ImplicitPropertyUtil.IS, simplePropertyProcessing) &&
                  (returnTypeName.equals( "boolean" ) || returnTypeName.equals( "java.lang.Boolean" )) )
         {
           return new ImplicitPropertyUtil.ImplicitPropertyInfo( false, true, ImplicitPropertyUtil.capitalizeFirstChar( name.substring( 2 ), simplePropertyProcessing ) );
@@ -128,7 +127,7 @@ public class JavaSourceUtil {
       }
       else if( argCount == 1 )
       {
-        if( isSetterName( name ) )
+        if( isSetterName( name, simplePropertyProcessing ) )
         {
           return new ImplicitPropertyUtil.ImplicitPropertyInfo( true, false, ImplicitPropertyUtil.capitalizeFirstChar( name.substring( 3 ), simplePropertyProcessing ) );
         }
@@ -137,24 +136,34 @@ public class JavaSourceUtil {
     return null;
   }
 
-  private static boolean isSetterName( String name )
+  private static boolean isSetterName( String name, boolean simplePropertyProcessing )
   {
     if( !name.startsWith( ImplicitPropertyUtil.SET ) || name.length() <= ImplicitPropertyUtil.SET.length() )
     {
       return false;
     }
 
+    if( simplePropertyProcessing )
+    {
+      return true;
+    }
+    
     char firstChar = name.charAt( ImplicitPropertyUtil.SET.length() );
     return firstChar == Character.toUpperCase( firstChar );
   }
 
-  private static boolean isGetterName( String name, String prefix )
+  private static boolean isGetterName( String name, String prefix, boolean simplePropertyProcessing )
   {
     if( !name.startsWith( prefix ) || name.length() <= prefix.length() )
     {
       return false;
     }
 
+    if( simplePropertyProcessing ) 
+    {
+      return true;
+    }
+    
     char firstChar = name.charAt( prefix.length() );
     return firstChar == Character.toUpperCase( firstChar );
   }

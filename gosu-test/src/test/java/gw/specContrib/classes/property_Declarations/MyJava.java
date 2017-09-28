@@ -2,7 +2,7 @@ package gw.specContrib.classes.property_Declarations;
 
 public class MyJava {
 
-  // camelCase nameing convention
+  // camelCase naming convention
   public String getCamelCase() {
     return null;
   }

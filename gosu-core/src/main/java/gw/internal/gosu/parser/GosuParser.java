@@ -16039,9 +16039,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
   private String getPropertyNameFromMethodName( String strPrefix, String strMethod )
   {
     int iPropertyOffset = strPrefix.length();
-    if( strMethod.startsWith( strPrefix ) &&
-            strMethod.length() > iPropertyOffset &&
-            Character.isUpperCase( strMethod.charAt( iPropertyOffset ) ) )
+    if( strMethod.startsWith( strPrefix ) && strMethod.length() > iPropertyOffset )
     {
       return strMethod.substring( iPropertyOffset );
     }
