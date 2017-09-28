@@ -37,4 +37,14 @@ public class GenericArrayTypeJavaClassGenericArrayType extends TypeJavaClassType
   public IModule getModule() {
     return _module;
   }
+
+  @Override
+  public boolean isArray() {
+    return true;
+  }
+
+  @Override
+  public IJavaClassType getComponentType() {
+    return getGenericComponentType();
+  }
 }

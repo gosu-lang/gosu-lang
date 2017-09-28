@@ -114,5 +114,15 @@ public abstract class AsmTypeJavaClassType extends JavaSourceElement implements 
     result = 31 * result + (_module != null ? _module.hashCode() : 0);
     return result;
   }
+
+  @Override
+  public boolean isArray() {
+    return _type.isArray();
+  }
+
+  @Override
+  public IJavaClassType getComponentType() {
+    return null;
+  }
 }
 

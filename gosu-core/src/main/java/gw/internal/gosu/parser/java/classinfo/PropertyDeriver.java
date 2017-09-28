@@ -149,7 +149,7 @@ public class PropertyDeriver
   {
     if( m.getReturnType() == JavaTypes.pVOID() )
     {
-      return m.getParameterTypes()[0].getActualType( TypeVarToTypeMap.EMPTY_MAP, true );
+      return m.getGenericParameterTypes()[0].getActualType( TypeVarToTypeMap.EMPTY_MAP, true );
     }
     return ClassInfoUtil.getActualReturnType( m.getGenericReturnType(), TypeVarToTypeMap.EMPTY_MAP, true );
   }

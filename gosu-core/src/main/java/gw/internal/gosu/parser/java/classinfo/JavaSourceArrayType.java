@@ -61,4 +61,14 @@ public class JavaSourceArrayType implements IJavaClassGenericArrayType {
   public String toString() {
     return _componentType.getName() + "[]";
   }
+
+  @Override
+  public boolean isArray() {
+    return true;
+  }
+
+  @Override
+  public IJavaClassType getComponentType() {
+    return getGenericComponentType();
+  }
 }

@@ -233,7 +233,7 @@ public class JavaPropertyInfo extends JavaBaseFeatureInfo implements IJavaProper
     IType type;
     if( m.getParameterTypes().length > 0 )
     {
-      type = m.getParameterTypes()[0].getActualType( actualParamByVarName, true );
+      type = m.getGenericParameterTypes()[0].getActualType( actualParamByVarName, true );
     }
     else
     {

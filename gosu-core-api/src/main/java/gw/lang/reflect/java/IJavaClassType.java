@@ -23,6 +23,9 @@ public interface IJavaClassType extends Serializable {
 
   String getName();
   String getSimpleName();
+  
+  boolean isArray();
+  IJavaClassType getComponentType();
 
   IModule getModule();
 
@@ -41,5 +44,22 @@ public interface IJavaClassType extends Serializable {
 
     return actualTo != null && actualFrom != null && actualTo.isAssignableFrom( actualFrom ) ||
            getConcreteType().getActualType( TypeVarToTypeMap.EMPTY_MAP ).isAssignableFrom( actualFrom );
+  }
+
+  static boolean equals(IJavaClassType thisObj, Object that) {
+    if (!(that instanceof IJavaClassType)) {
+      return false;
+    }
+    if (thisObj.isArray()) {
+      return ((IJavaClassType) that).isArray() && thisObj.getComponentType().equals(((IJavaClassType) that).getComponentType());
+    }
+    return thisObj.getName().equals(((IJavaClassType) that).getName()) &&
+        thisObj.getModule().equals(((IJavaClassType) that).getModule());
+  }
+
+  static int hashCode(IJavaClassType thisObj) {
+    return thisObj.isArray() ?
+        thisObj.getComponentType().hashCode() :
+        thisObj.getName().hashCode() * 31 + thisObj.getModule().hashCode();
   }
 }
