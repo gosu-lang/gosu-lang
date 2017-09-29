@@ -263,7 +263,7 @@ public class JavaTypeInfo extends JavaBaseFeatureInfo implements IJavaTypeInfo
       return false;
     }
     String propName;
-    boolean bSetter = name.startsWith( "set" );
+    boolean bSetter = name.startsWith( "set" ) && md.getMethod().getReturnType() == JavaTypes.pVOID();
     IType type;
     if( paramCount == 0 && name.startsWith( "get" ) || bSetter && paramCount == 1 )
     {
