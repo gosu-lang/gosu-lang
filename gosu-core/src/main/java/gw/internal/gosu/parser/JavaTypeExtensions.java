@@ -59,7 +59,7 @@ class JavaTypeExtensions {
 
   private static ExtendedTypeDataFactory getExtendedTypeDataFactory(IJavaType javaType) {
     boolean extendedType;
-    if( !ExecutionMode.isIDE() ) {
+    if( ExecutionMode.isRuntime() ) {
       Class<?> backingClass = javaType.getBackingClass();
       // Server runtime case. We can't go through the IJavaClassInfo for this case, because it leads to a
       // circularity w.r.t. the JavaType (ClassAnnotationInfo attempts to get the JavaType)

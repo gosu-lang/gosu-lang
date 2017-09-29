@@ -2709,6 +2709,7 @@ public class AnnotationsTest extends ByteCodeTestBase
   {
     IGosuClassInternal iType = (IGosuClassInternal)TypeSystem.getFromObject( o );
     int i = 0;
+    iType.isValid();
     for( DynamicFunctionSymbol dfs: iType.getParseInfo().getConstructorFunctions().values() )
     {
       if( i++ == index )
