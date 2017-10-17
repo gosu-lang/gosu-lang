@@ -6296,7 +6296,69 @@ public final class GosuParser extends ParserBase implements IGosuParser
         return (IDynamicFunctionSymbol) dfs;
       }
     }
+
+    IDynamicFunctionSymbol dfsRaw = maybeFindLocalProperty( getGosuClass(), (IFunctionType) rawFunctionType);
+    if (dfsRaw != null) 
+    {
+      return dfsRaw;
+    }
+    
     throw new IllegalStateException( "Could not find matching DFS in " + list + " for type " + rawFunctionType );
+  }
+
+  private IDynamicFunctionSymbol maybeFindLocalProperty( ICompilableTypeInternal gosuClass, IFunctionType rawFunctionType ) 
+  {
+    if (rawFunctionType == null) return null;
+    
+    rawFunctionType = makePropertyFunctionType(rawFunctionType);
+
+    if( gosuClass instanceof IGosuClassInternal) 
+    {
+      IDynamicFunctionSymbol dfsRaw = ((IGosuClassInternal) gosuClass).getMemberFunction(rawFunctionType, true);
+      if( dfsRaw != null )
+      {
+        return dfsRaw;
+      }
+
+      IGosuClassInternal superClass = ((IGosuClassInternal) gosuClass).getSuperClass();
+      if( superClass != null)
+      {
+        dfsRaw = maybeFindLocalProperty( superClass, rawFunctionType );
+        if( dfsRaw != null )
+        {
+          return dfsRaw;
+        }
+      }
+
+      IType[] interfaces = gosuClass.getInterfaces();
+      if( interfaces != null )
+      {
+        for( IType iface: interfaces )
+        {
+          if( iface instanceof IGosuClass )
+          {
+            dfsRaw = maybeFindLocalProperty( (ICompilableTypeInternal)iface, rawFunctionType );
+            if( dfsRaw != null )
+            {
+              return dfsRaw;
+            }
+          }
+        }
+      }
+    }
+    return null;
+  }
+
+  private IFunctionType makePropertyFunctionType( IFunctionType rawFunctionType ) {
+    if( !rawFunctionType.getName().startsWith("@") ) {
+      String propName = getPropertyNameFromMethodNameIncludingSetter(rawFunctionType.getDisplayName());
+      if (propName == null) {
+        return null;
+      }
+
+      rawFunctionType = new FunctionType("@" + propName, rawFunctionType.getReturnType(), rawFunctionType.getParameterTypes(), rawFunctionType.getGenericTypeVariables());
+    }
+    return rawFunctionType;
   }
 
   private void verifyNotCallingOverridableFunctionFromCtor( MethodCallExpression mce )
@@ -15548,6 +15610,11 @@ public final class GosuParser extends ParserBase implements IGosuParser
     for (IFunctionSymbol dfs : list)
     {
       listOfTypes.add((FunctionType) dfs.getType());
+    }
+    ICompilableTypeInternal thisRefType = getGosuClass();
+    if( thisRefType != null )
+    {
+      addJavaPropertyMethods( strFunctionName, thisRefType, listOfTypes );
     }
     return listOfTypes;
   }
