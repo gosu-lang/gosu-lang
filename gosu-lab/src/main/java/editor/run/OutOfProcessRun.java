@@ -28,7 +28,7 @@ public class OutOfProcessRun extends AbstractOutOfProcessExecutor<FqnRunConfig>
     //noinspection unchecked
     args.addAll( getRunConfig().makeVmArgs() );
     args.add( "-classpath" );
-    args.add( "\"" + classpath + "\"" );
+    args.add( classpath );
     if( CompilerSettings.isStaticCompile() )
     {
       args.add( getRunConfig().getFqn().replace( ',', '/' ) );
