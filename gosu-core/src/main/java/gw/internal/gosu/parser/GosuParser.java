@@ -74,6 +74,7 @@ import gw.lang.parser.IFileContext;
 import gw.lang.parser.IFunctionSymbol;
 import gw.lang.parser.IGosuParser;
 import gw.lang.parser.IGosuValidator;
+import gw.lang.parser.IHasArguments;
 import gw.lang.parser.IHasInnerClass;
 import gw.lang.parser.IInjectedSymbol;
 import gw.lang.parser.ILanguageLevel;
@@ -5883,19 +5884,21 @@ public final class GosuParser extends ParserBase implements IGosuParser
   {
     int iLocationsCount = _locations.size();
     parseMethodCall( t, state, e, typeParameters, strFunction, functionSymbol );
-    if( hasParseExceptions( e ) )
+
+    Expression expr = peekExpression();
+    if( expr.hasParseExceptions() )
     {
       maybeParseIdentifierAssumingOpenParenIsForParenthesizedExpr( t, iOffset, iLineNum, iColumn, state, e, typeParameters, strFunction, functionSymbol, markAfterTypeArgs, iLocationsCount );
+    }
 
-      Expression expr = peekExpression();
-      if( expr == e || expr.hasParseExceptions() )
-      {
-        maybeParseImpliedThisMethod( t, iOffset, iLineNum, iColumn, state, e, typeParameters, strFunction, functionSymbol, markBeforeTypeArgs, iLocBeforeTypeArgs, markAfterTypeArgs, iLocationsCount );
-      }
+    expr = peekExpression();
+    if( hasParseExceptions( expr ) )
+    {
+      maybeParseImpliedThisMethod( t, iOffset, iLineNum, iColumn, state, e, typeParameters, strFunction, functionSymbol, markBeforeTypeArgs, iLocBeforeTypeArgs, markAfterTypeArgs, iLocationsCount );
     }
   }
 
-  private boolean hasParseExceptions( MethodCallExpression expr )
+  private boolean hasParseExceptions( Expression expr )
   {
     if( expr == null )
     {
@@ -5907,20 +5910,25 @@ public final class GosuParser extends ParserBase implements IGosuParser
       return true;
     }
 
-    Expression[] args = expr.getArgs();
-    if( args != null )
+    if( expr instanceof IHasArguments )
     {
-      for( Expression arg : args )
+      IExpression[] args = ((IHasArguments)expr).getArgs();
+      if( args != null )
       {
-        if( arg.hasParseExceptions() )
+        for( IExpression arg : args )
         {
-          return true;
+          if( arg.hasParseExceptions() )
+          {
+            return true;
+          }
         }
       }
     }
     return false;
   }
 
+  // Right now this is called to resolve a getter/setter call from a Java super class when getter/setter methods are overloaded
+  // e.g., void setFoo( String value ) {} and void setFoo( Integer value ) {} are defined in the super class.
   private void maybeParseImpliedThisMethod( String[] t, int iOffset, int iLineNum, int iColumn, LazyLightweightParserState state, MethodCallExpression e, IType[] typeParameters, String strFunction, ISymbol functionSymbol, int markBeforeTypeArgs, int iLocBeforeTypeArgs, int markAfterTypeArgs, int iLocAfterTypeArgs )
   {
     if( getTokenizerInstructor() != null || getScriptPart() != null && TemplateGenerator.GS_TEMPLATE_PARSED.equals( getScriptPart().getId() ) )
@@ -5930,7 +5938,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
     }
 
     ISymbol thisSym = getSymbolTable().getThisSymbolFromStackOrMap();
-    if( thisSym == null )
+    if( thisSym == null || getPropertyNameFromMethodNameIncludingSetter( strFunction ) == null )
     {
       return;
     }
@@ -5950,7 +5958,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
     parseMemberAccess( root, MemberAccessKind.NORMAL, iOffset, strFunction, state, false );
 
     Expression expr = peekExpression();
-    if( expr.hasParseExceptions() )
+    if( hasParseExceptions( expr ) )
     {
       // Failed to parse 'Xxx()' as implicitly qualified 'this.Xxx()', reparse as 'Xxx()'
 
