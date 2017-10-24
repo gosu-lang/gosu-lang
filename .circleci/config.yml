@@ -1,0 +1,51 @@
+version: 2
+jobs:
+  build:
+    environment:
+      TZ: "/usr/share/zoneinfo/America/Los_Angeles"
+      TERM: dumb
+      MAVEN_OPTS: "-Xmx512m"
+    docker:
+      - image: circleci/java:8
+    branches:
+      ignore:
+	- /rel\/.*/
+    artifacts:
+      - "gosu-test/target/site" # preserve the generated HTML test reports 
+    steps:
+      - checkout
+      - run:
+	 name: Compile tests only
+         command: mvn install -DskipTests=true -B	
+  test:
+    docker:
+      - image: circleci/java:8
+    steps:
+      - checkout
+      - run:
+          name: Run tests
+          command: mvn surefire:test -B
+      - run: mkdir -p $CIRCLE_TEST_REPORTS/junit/
+      - run: find . -type f -regex ".*/target/surefire-reports/.*xml" -exec cp {} $CIRCLE_TEST_REPORTS/junit/ \;
+      - run: find . -type f -regex ".*/target/surefire-reports/.*-output.txt" -exec cp {} $CIRCLE_TEST_REPORTS/junit/ \;
+  deploy:
+    docker:
+      - image: circleci/java:8
+    branches:
+      only: /^(?!rel\/).+/
+    steps:
+      - checkout
+      - run:
+	  name: Deployment
+	  command: ./ci_scripts/deploy_snapshot.sh
+workflows:
+  version: 2
+  build_and_test:
+    jobs:
+      - build
+      - test:
+          requires:
+            - build
+      - deploy:
+	  requires:
+	    - test
