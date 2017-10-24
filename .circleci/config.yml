@@ -9,7 +9,9 @@ jobs:
       - image: circleci/java:8
     steps:
       - checkout
-      - run: mvn install -DskipTests=true -B
+      - run:
+          name: Compile Only
+          command: mvn install -DskipTests=true -B
   test:
     docker:
       - image: circleci/java:8
