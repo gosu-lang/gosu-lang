@@ -6,7 +6,7 @@ jobs:
       TERM: dumb
       MAVEN_OPTS: "-Xmx512m"
     docker:
-      - image: circleci/java:8-jdk
+      - image: circleci/oraclejdk8
     steps:
       - checkout
       - run:
