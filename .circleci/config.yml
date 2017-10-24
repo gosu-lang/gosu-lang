@@ -9,9 +9,7 @@ jobs:
       - image: circleci/java:8
     steps:
       - checkout
-      - run:
-	 name: Compile tests only
-         command: mvn install -DskipTests=true -B	
+      - run: mvn install -DskipTests=true -B
   test:
     docker:
       - image: circleci/java:8
@@ -24,7 +22,7 @@ jobs:
       - run: find . -type f -regex ".*/target/surefire-reports/.*xml" -exec cp {} $CIRCLE_TEST_REPORTS/junit/ \;
       - run: find . -type f -regex ".*/target/surefire-reports/.*-output.txt" -exec cp {} $CIRCLE_TEST_REPORTS/junit/ \;
       - store_artifacts:
-	  path: gosu-test/target/site
+          path: "gosu-test/target/site"
   deploy:
     docker:
       - image: circleci/java:8
@@ -33,20 +31,20 @@ jobs:
     steps:
       - checkout
       - run:
-	  name: Deployment
-	  command: ./ci_scripts/deploy_snapshot.sh
+          name: Deployment
+          command: ./ci_scritps/deploy_snapshot.sh
 workflows:
   version: 2
   build_test_deploy:
     jobs:
-      - build
-	  filters:
-	    branches:
-	      ignore:
-		- /rel\/.*/
+      - build:
+          filters:
+            branches:
+              ignore:
+                - /rel\/.*/
       - test:
           requires:
             - build
       - deploy:
-	  requires:
-	    - test
+          requires:
+            - test
