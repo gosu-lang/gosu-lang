@@ -23,7 +23,7 @@ jobs:
       - run: mvn -version
       - run:
           name: Run tests
-          command: mvn surefire:test -B
+          command: mvn compile surefire:test -B
       - run: sudo mkdir -p $CIRCLE_TEST_REPORTS/junit/
       - run: sudo find . -type f -regex ".*/target/surefire-reports/.*xml" -exec cp {} $CIRCLE_TEST_REPORTS/junit/ \;
       - run: sudo find . -type f -regex ".*/target/surefire-reports/.*-output.txt" -exec cp {} $CIRCLE_TEST_REPORTS/junit/ \;
