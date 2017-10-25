@@ -13,16 +13,16 @@ jobs:
           name: Compile Only
           command: mvn install -DskipTests=true -B
   test:
-    docker:
-      - image: circleci/java:8
+    machine:
+      image: circleci/classic:latest
     steps:
       - checkout
       - run:
           name: Run tests
           command: mvn surefire:test -B
-      - run: mkdir -p $CIRCLE_TEST_REPORTS/junit/
-      - run: find . -type f -regex ".*/target/surefire-reports/.*xml" -exec cp {} $CIRCLE_TEST_REPORTS/junit/ \;
-      - run: find . -type f -regex ".*/target/surefire-reports/.*-output.txt" -exec cp {} $CIRCLE_TEST_REPORTS/junit/ \;
+      - run: sudo mkdir -p $CIRCLE_TEST_REPORTS/junit/
+      - run: sudo find . -type f -regex ".*/target/surefire-reports/.*xml" -exec cp {} $CIRCLE_TEST_REPORTS/junit/ \;
+      - run: sudo find . -type f -regex ".*/target/surefire-reports/.*-output.txt" -exec cp {} $CIRCLE_TEST_REPORTS/junit/ \;
       - store_artifacts:
           path: "gosu-test/target/site"
 workflows:
