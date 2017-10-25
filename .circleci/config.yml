@@ -14,6 +14,12 @@ jobs:
       - run:
           name: Compile Only
           command: mvn install -DskipTests=true -B
+      - run: mvn compile surefire:test -B
+      - run: sudo mkdir -p $CIRCLE_TEST_REPORTS/junit/
+      - run: sudo find . -type f -regex ".*/target/surefire-reports/.*xml" -exec cp {} $CIRCLE_TEST_REPORTS/junit/ \;
+      - run: sudo find . -type f -regex ".*/target/surefire-reports/.*-output.txt" -exec cp {} $CIRCLE_TEST_REPORTS/junit/ \;
+      - store_artifacts:
+          path: "gosu-test/target/site"
   test:
     machine:
       image: circleci/classic:latest
