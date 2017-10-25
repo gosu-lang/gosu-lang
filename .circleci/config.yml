@@ -5,17 +5,16 @@ jobs:
       TZ: "/usr/share/zoneinfo/America/Los_Angeles"
       TERM: dumb
       MAVEN_OPTS: "-Xmx512m"
-    docker:
-      - image: circleci/jdk8:0.1.1
-      - image: maven:3.3.9
+    machine:
+      - image: oraclejdk8
     steps:
       - checkout
       - run:
           name: Compile Only
           command: mvn install -DskipTests=true -B
   test:
-    docker:
-      - image: circleci/java:8
+    machine:
+      - image: oraclejdk8
     steps:
       - checkout
       - run:
