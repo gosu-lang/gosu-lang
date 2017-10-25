@@ -21,8 +21,8 @@ jobs:
       - store_artifacts:
           path: "gosu-test/target/site"
   test:
-    machine:
-      image: circleci/classic:latest
+    docker:
+      - image: circleci/java:8
     steps:
       - checkout
       - run: java -version
