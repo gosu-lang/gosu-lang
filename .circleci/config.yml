@@ -58,9 +58,3 @@ workflows:
           requires:
             - build
       - deploy:
-          requires:
-            - test
-          filters:
-            branches:
-              ignore:
-                - /^(?rel\/).+/
