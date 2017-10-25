@@ -9,6 +9,8 @@ jobs:
       image: circleci/classic:latest
     steps:
       - checkout
+      - run: java -version
+      - run: mvn -version
       - run:
           name: Compile Only
           command: mvn install -DskipTests=true -B
@@ -17,6 +19,8 @@ jobs:
       image: circleci/classic:latest
     steps:
       - checkout
+      - run: java -version
+      - run: mvn -version
       - run:
           name: Run tests
           command: mvn surefire:test -B
