@@ -27,12 +27,14 @@ jobs:
       - run: mvn -version
       - run:
           name: Run tests
-          command: mvn compile surefire:test -B
+          command: mvn install surefire:test -B
       - run: sudo mkdir -p $CIRCLE_TEST_REPORTS/junit/
       - run: sudo find . -type f -regex ".*/target/surefire-reports/.*xml" -exec cp {} $CIRCLE_TEST_REPORTS/junit/ \;
       - run: sudo find . -type f -regex ".*/target/surefire-reports/.*-output.txt" -exec cp {} $CIRCLE_TEST_REPORTS/junit/ \;
       - store_artifacts:
           path: "gosu-test/target/site"
+      - deploy:
+          command: ./ci_scripts/deploy_snapshot.sh
   #deploy:
   #  environment:
   #    TZ: "/usr/share/zoneinfo/America/Los_Angeles"
