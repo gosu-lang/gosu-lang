@@ -7995,11 +7995,28 @@ public final class GosuParser extends ParserBase implements IGosuParser
   private MethodScore reparseArguments( MethodScore bestScore, List<Expression> argExpressions, ParsedElement element, int mark, int iLocationsCount, IType rootType, IType[] typeParams, boolean bVerifyArgs, boolean bNoArgsProvided )
   {
     backtrackArgParsing( mark, iLocationsCount, argExpressions );
+    MethodScorer.MethodScoreKey key = null;
+    long score = bestScore.getScore();
     if( !getContextType().isMethodScoring() )
     {
-      MethodScorer.instance().putCachedMethodScore( bestScore );
+      // cache the score so other call sites can avoid scoring
+      key = MethodScorer.instance().putCachedMethodScore( bestScore );
     }
-    return parseArgumentList( rootType, element, Arrays.asList( bestScore.getRawFunctionType() ), typeParams, bVerifyArgs, bNoArgsProvided );
+    MethodScore methodScore = parseArgumentList( rootType, element, Arrays.asList( bestScore.getRawFunctionType() ), typeParams, bVerifyArgs, bNoArgsProvided );
+    if( key != null )
+    {
+      // uncache if arguments are errant, this is to avoid caching too early e.g., backtracking and reparsing differently
+      for( IExpression arg: methodScore.getArguments() )
+      {
+        if( hasParseExceptions( (Expression)arg ) )
+        {
+          methodScore.setScore( score );
+          MethodScorer.instance().removeCachedMethodScore( key );
+          break;
+        }
+      }
+    }
+    return methodScore;
   }
 
   private TypeVarToTypeMap maskCurrentFunctionTypeVarsFromPriorInference()

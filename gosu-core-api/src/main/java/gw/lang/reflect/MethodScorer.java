@@ -324,17 +324,23 @@ public class MethodScorer {
   public IInvocableType getCachedMethodScore( IInvocableType funcType, IType callsiteEnclosingType, IType rootType, List<IType> argTypes ) {
     return _methodScoreCache.get( new MethodScoreKey( argTypes, funcType, callsiteEnclosingType, rootType ) );
   }
-  public void putCachedMethodScore( MethodScore score ) {
+  public MethodScoreKey putCachedMethodScore( MethodScore score ) {
     score.setScore( 0 );
     List<IExpression> argExpressions = score.getArguments();
     List<IType> argTypes = new ArrayList<>( argExpressions.size() );
     for( IExpression argExpression : argExpressions ) {
       argTypes.add( argExpression.getType() );
     }
-    _methodScoreCache.put( new MethodScoreKey( argTypes, score ), score.getRawFunctionType() );
+    MethodScoreKey key = new MethodScoreKey( argTypes, score );
+    _methodScoreCache.put( key, score.getRawFunctionType() );
+    return key;
+  }
+  public void removeCachedMethodScore( MethodScoreKey key )
+  {
+    _methodScoreCache.remove( key );
   }
 
-  private class MethodScoreKey {
+  public static class MethodScoreKey {
     private String _methodName;
     private IType _declaringType;
     private IType _rootType;
