@@ -7,8 +7,6 @@ jobs:
       MAVEN_OPTS: "-Xmx512m"
     docker:
       - image: circleci/java:8
-    #machine:
-     # image: circleci/classic:latest
     steps:
       - checkout
       - run: mvn -version
