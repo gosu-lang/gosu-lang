@@ -7464,7 +7464,10 @@ public final class GosuParser extends ParserBase implements IGosuParser
           if( mi != null )
           {
             FunctionType functionType = new FunctionType( mi );
-            listFunctionTypes.add( functionType );
+            if( !listFunctionTypes.contains( functionType ) )
+            {
+              listFunctionTypes.add( functionType );
+            }
           }
         }
       }
