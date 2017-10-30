@@ -13,28 +13,9 @@ jobs:
       - run:
           name: Compile Only
           command: mvn install -DskipTests=true -B
-     # - run:
-     #     name: Run tests
-     #     command: mvn install surefire:test -B
-     # - run: sudo mkdir -p $CIRCLE_TEST_REPORTS/junit/
-     # - run: sudo find . -type f -regex ".*/target/surefire-reports/.*xml" -exec cp {} $CIRCLE_TEST_REPORTS/junit/ \;
-     # - run: sudo find . -type f -regex ".*/target/surefire-reports/.*-output.txt" -exec cp {} $CIRCLE_TEST_REPORTS/junit/ \;
-     # - store_artifacts:
-     #     path: "gosu-test/target/site"
-  test:
-    environment:
-      TZ: "/usr/share/zoneinfo/America/Los_Angeles"
-      TERM: dumb
-      MAVEN_OPTS: "-Xmx512m"
-    docker:
-      - image: circleci/java:8
-    parallelism: 2
-    steps:
-      - checkout
       - run:
           name: Run tests
           command: mvn install surefire:test -B
-          #command: ./runParallel.sh
       - run: sudo mkdir -p $CIRCLE_TEST_REPORTS/junit/
       - run: sudo find . -type f -regex ".*/target/surefire-reports/.*xml" -exec cp {} $CIRCLE_TEST_REPORTS/junit/ \;
       - run: sudo find . -type f -regex ".*/target/surefire-reports/.*-output.txt" -exec cp {} $CIRCLE_TEST_REPORTS/junit/ \;
@@ -61,9 +42,6 @@ workflows:
             branches:
               ignore:
                 - /rel\/.*/
-      - test:
-          requires:
-            - build
       - deploy:
           requires:
             - build
