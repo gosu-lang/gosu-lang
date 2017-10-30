@@ -14,7 +14,13 @@ import java.util.List;
 
 public class CommandLineCompiler
 {
-  public static void main( String[] args )
+  public static final String COMPILE_EXCEPTION_MSG = "gosuc completed with errors";
+  
+  public static void main( String[] args ) {
+    main( args, true );
+  }
+  
+  public static void main( String[] args, boolean exitUponCompletion )
   {
     CommandLineOptions options = new CommandLineOptions();
     JCommander help = new JCommander( options, args );
@@ -32,8 +38,15 @@ public class CommandLineCompiler
       boolean thresholdExceeded = invoke( options, driver );
 
       //print summary
-      boolean exitWithFailure = summarize( driver.getWarnings(), driver.getErrors(), options.isNoWarn() ) || thresholdExceeded;
-      System.exit( exitWithFailure ? 1 : 0 );
+      boolean erroneousResult = summarize( driver.getWarnings(), driver.getErrors(), options.isNoWarn() ) || thresholdExceeded;
+      
+      if(exitUponCompletion) {
+        System.exit( erroneousResult ? 1 : 0 );
+      } else {
+        if(erroneousResult) {
+          throw new RuntimeException(COMPILE_EXCEPTION_MSG);
+        }
+      }
     }
   }
 
