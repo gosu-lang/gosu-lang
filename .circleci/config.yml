@@ -10,9 +10,9 @@ jobs:
     steps:
       - checkout
       - run: mvn -version
-      - run:
-          name: Compile Only
-          command: mvn install -DskipTests=true -B
+      #- run:
+      #    name: Compile Only
+      #    command: mvn install -DskipTests=true -B
       - run:
           name: Run tests
           command: mvn install surefire:test -B
