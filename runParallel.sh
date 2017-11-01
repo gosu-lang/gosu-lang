@@ -22,4 +22,4 @@ else
     mvn install surefire:test -Dtest=*.*Test -pl gosu-test -B
 
 fi
-
+#test1
