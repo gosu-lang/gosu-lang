@@ -132,13 +132,20 @@ public class PropertyDeriver
   {
     for( IJavaPropertyDescriptor pd: type.getPropertyDescriptors() )
     {
-      if( pd.getWriteMethod() == null )
+      String name = pd.getName();
+      if( pd.getWriteMethod() == null && !mapGetters.containsKey( name ) )
       {
-        mapGetters.put( pd.getName(), pd.getReadMethod() );
+        mapGetters.put( name, pd.getReadMethod() );
       }
-      else if( pd.getReadMethod() == null )
+      else if( pd.getReadMethod() == null && !mapSetters.containsKey( name ) )
       {
-        mapSetters.put( pd.getName(), pd.getWriteMethod() );
+        mapSetters.put( name, pd.getWriteMethod() );
+      }
+      else
+      {
+        // a paired property already exists, prevent further pairing
+        mapGetters.put( name, null );
+        mapSetters.put( name, null );
       }
     }
     findUnpairedMethods( type, mapGetters, mapSetters );
