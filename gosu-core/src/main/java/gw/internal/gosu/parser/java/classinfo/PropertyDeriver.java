@@ -51,13 +51,97 @@ public class PropertyDeriver
           setter = maybeFindSetterInSuperInterfaces( getter, jci.getInterfaces() );
         }
       }
-      IType glbActual = setter == null
-                        ? getTypeFromMethod( getter )
-                        : TypeLord.findGreatestLowerBound( getTypeFromMethod( getter ), getTypeFromMethod( setter ) );
-      propertyDescriptors.add( new JavaSourcePropertyDescriptor( propName, glbActual, getter, setter ) );
+      addPropertyDescriptor( propertyDescriptors, propName, getter, setter );
     }
     addFromRemainingSetters( jci, mapSetters, propertyDescriptors );
+    addInheritedUnrelatedGettersAndSetters( jci, propertyDescriptors );
     return propertyDescriptors.toArray( new IJavaPropertyDescriptor[propertyDescriptors.size()] );
+  }
+
+  private static void addPropertyDescriptor( List<IJavaPropertyDescriptor> propertyDescriptors, String propName, IJavaClassMethod getter, IJavaClassMethod setter )
+  {
+    IType glbActual = setter == null
+                      ? getTypeFromMethod( getter )
+                      : TypeLord.findGreatestLowerBound( getTypeFromMethod( getter ), getTypeFromMethod( setter ) );
+    propertyDescriptors.add( new JavaSourcePropertyDescriptor( propName, glbActual, getter, setter ) );
+  }
+
+  //
+  //  A     B
+  //  |     |
+  //  +-----+  A defines getFoo(), B defines setFoo(), C must define a pseudo-declared, read/write property for Foo
+  //     |
+  //     C
+  //
+  private static void addInheritedUnrelatedGettersAndSetters( IJavaClassInfo jci, List<IJavaPropertyDescriptor> propertyDescriptors )
+  {
+    Map<String, IJavaClassMethod> mapGetters = new HashMap<>();
+    Map<String, IJavaClassMethod> mapSetters = new HashMap<>();
+    findUnpairedMethods( jci, mapGetters, mapSetters );
+    if( mapSetters.isEmpty() )
+    {
+      return;
+    }
+    for( String name: mapSetters.keySet() )
+    {
+      IJavaClassMethod getter = mapGetters.get( name );
+      if( getter != null )
+      {
+        IJavaClassMethod setter = mapSetters.get( name );
+        if( setter != null )
+        {
+          IJavaPropertyDescriptor existing = findProperty( name, propertyDescriptors );
+          if( existing == null )
+          {
+            if( doesSetterDescMatchGetterMethod( getter, setter ) )
+            {
+              addPropertyDescriptor( propertyDescriptors, name, getter, setter );
+            }
+          }
+        }
+      }
+    }
+  }
+
+  private static IJavaPropertyDescriptor findProperty( String name, List<IJavaPropertyDescriptor> propertyDescriptors )
+  {
+    for( IJavaPropertyDescriptor pd: propertyDescriptors )
+    {
+      if( pd.getName().equals( name ) )
+      {
+        return pd;
+      }
+    }
+    return null;
+  }
+
+  private static void findUnpairedMethods( IJavaClassInfo jci, Map<String, IJavaClassMethod> mapGetters, Map<String, IJavaClassMethod> mapSetters )
+  {
+    IJavaClassInfo superclass = jci.getSuperclass();
+    if( superclass != null )
+    {
+      addUnpairedMethods( superclass, mapGetters, mapSetters );
+    }
+    for( IJavaClassInfo iface: jci.getInterfaces() )
+    {
+      addUnpairedMethods( iface, mapGetters, mapSetters );
+    }
+  }
+
+  private static void addUnpairedMethods( IJavaClassInfo type, Map<String, IJavaClassMethod> mapGetters, Map<String, IJavaClassMethod> mapSetters )
+  {
+    for( IJavaPropertyDescriptor pd: type.getPropertyDescriptors() )
+    {
+      if( pd.getWriteMethod() == null )
+      {
+        mapGetters.put( pd.getName(), pd.getReadMethod() );
+      }
+      else if( pd.getReadMethod() == null )
+      {
+        mapSetters.put( pd.getName(), pd.getWriteMethod() );
+      }
+    }
+    findUnpairedMethods( type, mapGetters, mapSetters );
   }
 
   private static void populateMaps( Map<String, IJavaClassMethod> mapGetters, Map<String, List<IJavaClassMethod>> mapSetters, List<IJavaClassMethod> methods, boolean simplePropertyProcessing )
@@ -200,6 +284,17 @@ public class PropertyDeriver
     }
 
     if( !("get" + pd.getName()).equals( getter.getName() ) && !("is" + pd.getName()).equals( getter.getName() ) )
+    {
+      return false;
+    }
+
+    return setter.getGenericParameterTypes()[0].isAssignableFrom( getterType );
+  }
+
+  private static boolean doesSetterDescMatchGetterMethod( IJavaClassMethod getter, IJavaClassMethod setter )
+  {
+    final IJavaClassType getterType = getter.getGenericReturnType();
+    if( getterType == null )
     {
       return false;
     }
