@@ -6,7 +6,7 @@ jobs:
       TERM: dumb
       MAVEN_OPTS: "-Xmx512m"
     machine:
-      - image: circleci/classic:latest
+      image: circleci/classic:latest
     #docker:
     #  - image: circleci/java:8
     steps:
