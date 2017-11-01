@@ -5,8 +5,10 @@ jobs:
       TZ: "/usr/share/zoneinfo/America/Los_Angeles"
       TERM: dumb
       MAVEN_OPTS: "-Xmx512m"
-    docker:
-      - image: circleci/java:8
+    machine:
+      - image: circleci/classic:latest
+    #docker:
+    #  - image: circleci/java:8
     steps:
       - checkout
       - run: mvn -version
