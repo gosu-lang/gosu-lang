@@ -44,7 +44,7 @@ jobs:
       - store_artifacts:
           path: "gosu-test/target/site"
      # - deploy:
-     #     command: ./ci_scripts/deploy_snapshot.sh
+     #     command: ./ci_scripts/deploy_snapshot1.sh
   deploy:
     environment:
       TZ: "/usr/share/zoneinfo/America/Los_Angeles"
