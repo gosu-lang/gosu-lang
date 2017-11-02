@@ -26,8 +26,8 @@ jobs:
     #  - image: circleci/java:8
     machine:
       image: circleci/classic:latest
-    branches:
-      only: /^(?rel\/).+/
+    #branches:
+    #  only: /^(?rel\/).+/
     steps:
       - checkout
       - run:
