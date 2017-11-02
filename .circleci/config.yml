@@ -44,7 +44,7 @@ workflows:
                 - /rel\/.*/
       - deploy:
           requires:
-            - build
+            - build:
                 filters:
                   branches:
                     ignore:
