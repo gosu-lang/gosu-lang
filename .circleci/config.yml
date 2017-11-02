@@ -44,8 +44,8 @@ workflows:
                 - /rel\/.*/
       - deploy:
           requires:
-            - build:
-                filters:
-                  branches:
-                    ignore:
-                      - /^(?rel\/).+/
+            - build
+                #filters:
+                #  branches:
+                #    ignore:
+                #      - /^(?rel\/).+/
