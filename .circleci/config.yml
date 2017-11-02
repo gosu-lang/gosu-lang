@@ -9,6 +9,8 @@ jobs:
       image: circleci/classic:latest
     steps:
       - checkout
+      - restore_cache:
+          key: v1-test-{{ checksum "gosu-parent/pom.xml" }}
       - run: mvn -version
       - run:
           name: Compile Only
@@ -21,6 +23,10 @@ jobs:
       - run: sudo find . -type f -regex ".*/target/surefire-reports/.*-output.txt" -exec cp {} $CIRCLE_TEST_REPORTS/junit/ \;
       - store_artifacts:
           path: "gosu-test/target/site"
+      - save_cache:
+          key: v1-test-{{ checksum "gosu-parent/pom.xml" }}
+          paths:
+            - /home/circleci/.m2/repository
   deploy:
     environment:
       TZ: "/usr/share/zoneinfo/America/Los_Angeles"
