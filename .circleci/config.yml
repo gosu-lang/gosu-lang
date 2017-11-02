@@ -4,16 +4,16 @@ jobs:
     environment:
       TZ: "/usr/share/zoneinfo/America/Los_Angeles"
       TERM: dumb
-      MAVEN_OPTS: "-Xmx1024m XX:MaxPermSize=128m"
+      MAVEN_OPTS: "-Xmx1024m"
     machine:
       image: circleci/classic:latest
     steps:
       - checkout
       - restore_cache:
           key: v1-test-{{ checksum "gosu-parent/pom.xml" }}
-      - run:
-          name: Compile Only
-          command: mvn install -DskipTests=true -B
+      #- run:
+      #    name: Compile Only
+      #    command: mvn install -DskipTests=true -B
       - run:
           name: Run tests
           command: mvn install surefire:test -B
