@@ -21,7 +21,7 @@ jobs:
       - run: sudo find . -type f -regex ".*/target/surefire-reports/.*-output.txt" -exec cp {} $CIRCLE_TEST_REPORTS/junit/ \;
       - store_artifacts:
           path: "gosu-test/target/site"
-  deploy1:
+  deploy:
     environment:
       TZ: "/usr/share/zoneinfo/America/Los_Angeles"
       TERM: dumb
@@ -42,10 +42,10 @@ workflows:
             branches:
               ignore:
                 - /rel\/.*/
-      - deploy1:
+      - deploy:
           requires:
             - build
-          #filters:
-          #  branches:
-          #    ignore:
-          #      - /^(?rel\/).+/
+          filters:
+            branches:
+              ignore:
+                - /^(?rel\/).+/
