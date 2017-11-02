@@ -22,8 +22,10 @@ jobs:
       - store_artifacts:
           path: "gosu-test/target/site"
   deploy:
-    #docker:
-    #  - image: circleci/java:8
+    environment:
+      TZ: "/usr/share/zoneinfo/America/Los_Angeles"
+      TERM: dumb
+      MAVEN_OPTS: "-Xmx512m"
     machine:
       image: circleci/classic:latest
     #branches:
