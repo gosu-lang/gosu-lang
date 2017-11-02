@@ -48,4 +48,4 @@ workflows:
           filters:
             branches:
               ignore:
-                - /^(?rel\/).+/
+                - /rel\/.*/
