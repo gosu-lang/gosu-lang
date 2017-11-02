@@ -36,6 +36,8 @@ jobs:
       image: circleci/classic:latest
     steps:
       - checkout
+      - restore_cache:
+          key: v1-test-{{ checksum "gosu-parent/pom.xml" }}
       - run:
           name: deploy 
           command: ./ci_scripts/deploy_snapshot.sh
