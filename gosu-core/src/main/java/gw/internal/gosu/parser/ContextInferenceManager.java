@@ -333,7 +333,7 @@ public class ContextInferenceManager
     }
     else if( expression instanceof IMemberAccessExpression )
     {
-      return isStartFor( possibleStart, ((MemberAccess)expression).getRootExpression() );
+      return isStartFor( possibleStart, (Expression) ((IMemberAccessExpression)expression).getRootExpression() );
     }
     else
     {
