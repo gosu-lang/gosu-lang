@@ -13,7 +13,7 @@ jobs:
           key: v1-test-{{ checksum "gosu-parent/pom.xml" }}
       #- run:
       #    name: Compile Only
-      #    command: mvn install -DskipTests=true -B
+      ##    command: mvn install -DskipTests=true -B
       - run:
           name: Run tests
           command: mvn install surefire:test -B
