@@ -11,14 +11,12 @@ jobs:
       - checkout
       - restore_cache:
           key: v1-test-{{ checksum "gosu-parent/pom.xml" }}
-      - run: pwd
-      - run: ls -l
       - run:
           name: Compile Only
           command: mvn install -DskipTests=true -B
-     # - run:
-     #     name: Run tests
-     #     command: mvn surefire:test -B
+      - run:
+          name: Run tests
+          command: mvn surefire:test -B
       - run: sudo mkdir -p $CIRCLE_TEST_REPORTS/junit/
       - run: sudo find . -type f -regex ".*/target/surefire-reports/.*xml" -exec cp {} $CIRCLE_TEST_REPORTS/junit/ \;
       - run: sudo find . -type f -regex ".*/target/surefire-reports/.*-output.txt" -exec cp {} $CIRCLE_TEST_REPORTS/junit/ \;
