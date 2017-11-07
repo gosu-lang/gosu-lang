@@ -23,20 +23,20 @@ jobs:
           command: echo $TEST_REPORTS_DIR
       - run:
           name: Create test metadata folder
-          command: sudo mkdir -p $TEST_REPORTS_DIR
+          command: sudo mkdir -p `$TEST_REPORTS_DIR`
       - run:
           name: Collect test metadata
-          command: sudo find . -type f -regex ".*/target/surefire-reports/.*xml" -exec cp {} $TEST_REPORTS_DIR \;
+          command: sudo find . -type f -regex ".*/target/surefire-reports/.*xml" -exec cp {} `$TEST_REPORTS_DIR` \;
       - run:
           name: Collect test stdout
-          command: sudo find . -type f -regex ".*/target/surefire-reports/.*-output.txt" -exec cp {} $TEST_REPORTS_DIR \;
+          command: sudo find . -type f -regex ".*/target/surefire-reports/.*-output.txt" -exec cp {} `$TEST_REPORTS_DIR` \;
       - deploy:
           name: Deploy artifacts
           command: ./ci_scripts/deploy_snapshot.sh
       - store_test_results:
-          path: $TEST_REPORTS_DIR
+          path: `$TEST_REPORTS_DIR`
       - store_artifacts:
-          path: $TEST_REPORTS_DIR
+          path: `$TEST_REPORTS_DIR`
       - save_cache:
           key: v1-test-{{ checksum "gosu-parent/pom.xml" }}
           paths:
