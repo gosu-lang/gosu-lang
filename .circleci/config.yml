@@ -17,9 +17,15 @@ jobs:
       - run:
           name: Run tests
           command: mvn install surefire:test -B
-      - run: sudo mkdir -p $CIRCLE_TEST_REPORTS/junit/
-      - run: sudo find . -type f -regex ".*/target/surefire-reports/.*xml" -exec cp {} $CIRCLE_TEST_REPORTS/junit/ \;
-      - run: sudo find . -type f -regex ".*/target/surefire-reports/.*-output.txt" -exec cp {} $CIRCLE_TEST_REPORTS/junit/ \;
+      - run:
+          name: Create test metadata folder
+          command: sudo mkdir -p $CIRCLE_TEST_REPORTS/junit/
+      - run:
+          name: Collect test metadata
+          command: sudo find . -type f -regex ".*/target/surefire-reports/.*xml" -exec cp {} $CIRCLE_TEST_REPORTS/junit/ \;
+      - run:
+          name: Collect test stdout
+          command: sudo find . -type f -regex ".*/target/surefire-reports/.*-output.txt" -exec cp {} $CIRCLE_TEST_REPORTS/junit/ \;
       - deploy:
           command: ./ci_scripts/deploy_snapshot.sh
       - store_artifacts:
@@ -27,4 +33,4 @@ jobs:
       - save_cache:
           key: v1-test-{{ checksum "gosu-parent/pom.xml" }}
           paths:
-            - /home/circleci/.m2/repository
+            - ~/.m2
