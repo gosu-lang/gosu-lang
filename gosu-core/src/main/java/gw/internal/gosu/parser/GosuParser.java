@@ -160,6 +160,7 @@ import gw.lang.reflect.IOptionalParamCapable;
 import gw.lang.reflect.IParameterInfo;
 import gw.lang.reflect.IPlaceholder;
 import gw.lang.reflect.IPropertyInfo;
+import gw.lang.reflect.IPropertyInfoDelegate;
 import gw.lang.reflect.IRelativeTypeInfo;
 import gw.lang.reflect.IScriptabilityModifier;
 import gw.lang.reflect.IType;
@@ -5894,7 +5895,24 @@ public final class GosuParser extends ParserBase implements IGosuParser
     expr = peekExpression();
     if( hasParseExceptions( expr ) )
     {
-      maybeParseImpliedThisMethod( t, iOffset, iLineNum, iColumn, state, e, typeParameters, strFunction, functionSymbol, markBeforeTypeArgs, iLocBeforeTypeArgs, markAfterTypeArgs, iLocationsCount );
+      boolean parsed = maybeParseImpliedThisMethod( iOffset, iLineNum, iColumn, state, strFunction, markBeforeTypeArgs, iLocBeforeTypeArgs );
+      expr = peekExpression();
+      if( !parsed || hasParseExceptions( expr ) )
+      {
+        maybeParseImpliedStaticMethod( iOffset, iLineNum, iColumn, state, strFunction, markBeforeTypeArgs, iLocBeforeTypeArgs );
+        expr = peekExpression();
+        if( hasParseExceptions( expr ) )
+        {
+          // Failed to parse 'Xxx()' as implicitly qualified 'this.Xxx()', reparse as 'Xxx()'
+
+          backtrack( markAfterTypeArgs, iLocationsCount );
+          if( !match( null, '(' ) )
+          {
+            throw new IllegalStateException( "Position s/b on '('" );
+          }
+          parseMethodCall( t, state, new MethodCallExpression(), typeParameters, strFunction, functionSymbol );
+        }
+      }
     }
   }
 
@@ -5929,18 +5947,18 @@ public final class GosuParser extends ParserBase implements IGosuParser
 
   // Right now this is called to resolve a getter/setter call from a Java super class when getter/setter methods are overloaded
   // e.g., void setFoo( String value ) {} and void setFoo( Integer value ) {} are defined in the super class.
-  private void maybeParseImpliedThisMethod( String[] t, int iOffset, int iLineNum, int iColumn, LazyLightweightParserState state, MethodCallExpression e, IType[] typeParameters, String strFunction, ISymbol functionSymbol, int markBeforeTypeArgs, int iLocBeforeTypeArgs, int markAfterTypeArgs, int iLocAfterTypeArgs )
+  private boolean maybeParseImpliedThisMethod( int iOffset, int iLineNum, int iColumn, LazyLightweightParserState state, String strFunction, int markBeforeTypeArgs, int iLocBeforeTypeArgs )
   {
     if( getTokenizerInstructor() != null || getScriptPart() != null && TemplateGenerator.GS_TEMPLATE_PARSED.equals( getScriptPart().getId() ) )
     {
       // templates can only access static members from its optional super class
-      return;
+      return false;
     }
 
     ISymbol thisSym = getSymbolTable().getThisSymbolFromStackOrMap();
     if( thisSym == null || getPropertyNameFromMethodNameIncludingSetter( strFunction ) == null )
     {
-      return;
+      return false;
     }
 
     backtrack( markBeforeTypeArgs, iLocBeforeTypeArgs );
@@ -5956,19 +5974,34 @@ public final class GosuParser extends ParserBase implements IGosuParser
 
     // Try to parse 'Xxx()' as implicitly qualified 'this.Xxx()'
     parseMemberAccess( root, MemberAccessKind.NORMAL, iOffset, strFunction, state, false );
+    return true;
+  }
 
-    Expression expr = peekExpression();
-    if( hasParseExceptions( expr ) )
+  private void maybeParseImpliedStaticMethod( int iOffset, int iLineNum, int iColumn, LazyLightweightParserState state, String strFunction, int markBeforeTypeArgs, int iLocBeforeTypeArgs )
+  {
+    if( getTokenizerInstructor() != null || getScriptPart() != null && TemplateGenerator.GS_TEMPLATE_PARSED.equals( getScriptPart().getId() ) )
     {
-      // Failed to parse 'Xxx()' as implicitly qualified 'this.Xxx()', reparse as 'Xxx()'
-
-      backtrack( markAfterTypeArgs, iLocAfterTypeArgs );
-      if( !match( null, '(' ) )
-      {
-        throw new IllegalStateException( "Position s/b on '('" );
-      }
-      parseMethodCall( t, state, new MethodCallExpression(), typeParameters, strFunction, functionSymbol );
+      // templates can only access static members from its optional super class
+      return;
     }
+
+    ICompilableTypeInternal gsClass = getGosuClass();
+    if( gsClass == null )
+    {
+      return;
+    }
+
+    backtrack( markBeforeTypeArgs, iLocBeforeTypeArgs );
+
+    // Make a synthetic 'MyClass' type literal qualifier
+    TypeLiteral root = new TypeLiteral( gsClass.getLiteralMetaType(), true );
+    root.setSynthetic( true );
+    pushExpression( root );
+    setLocation( getTokenizer().getTokenStart(), iLineNum, iColumn, true, true );
+    popExpression();
+
+    // Try to parse 'Xxx()' as implicitly qualified 'MyClass.Xxx()'
+    parseMemberAccess( root, MemberAccessKind.NORMAL, iOffset, strFunction, state, false );
   }
 
   private void maybeParseIdentifierAssumingOpenParenIsForParenthesizedExpr( String[] t, int iOffset, int iLineNum, int iColumn, IParserState state, MethodCallExpression e, IType[] typeParameters, String strFunction, ISymbol functionSymbol, int mark, int iLocationsCount )
@@ -7437,11 +7470,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
       IPropertyInfo pi = ti instanceof IRelativeTypeInfo ? ((IRelativeTypeInfo)ti).getProperty( getGosuClass(), propName ) : ti.getProperty( propName );
       if( pi != null )
       {
-        if( GosuClass.ProxyUtil.isProxy( pi.getOwnersType() ) )
-        {
-          ti = GosuClass.ProxyUtil.getProxiedType( pi.getOwnersType() ).getTypeInfo();
-          pi = ti instanceof IRelativeTypeInfo ? ((IRelativeTypeInfo)ti).getProperty( getGosuClass(), propName ) : ti.getProperty( propName );
-        }
+        pi = maybeGetProxiedPropertyInfo( propName, pi );
         if( pi instanceof IJavaPropertyInfo )
         {
           IMethodInfo mi;
@@ -7472,6 +7501,20 @@ public final class GosuParser extends ParserBase implements IGosuParser
         }
       }
     }
+  }
+
+  private IPropertyInfo maybeGetProxiedPropertyInfo( String propName, IPropertyInfo pi )
+  {
+    if( GosuClass.ProxyUtil.isProxy( pi.getOwnersType() ) )
+    {
+      ITypeInfo ti = GosuClass.ProxyUtil.getProxiedType( pi.getOwnersType() ).getTypeInfo();
+      pi = ti instanceof IRelativeTypeInfo ? ((IRelativeTypeInfo)ti).getProperty( getGosuClass(), propName ) : ti.getProperty( propName );
+    }
+    else if( pi instanceof IPropertyInfoDelegate )
+    {
+      pi = maybeGetProxiedPropertyInfo( propName, ((IPropertyInfoDelegate)pi).getSource() );
+    }
+    return pi;
   }
 
   private boolean isBlockInvoke( Expression rootExpression, String strMemberName, IType rootType )

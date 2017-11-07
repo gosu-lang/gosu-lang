@@ -354,11 +354,22 @@ public class JavaPropertyInfo extends JavaBaseFeatureInfo implements IJavaProper
   {
     if( _bStatic == null )
     {
-      _bStatic = Boolean.FALSE;
       IJavaClassMethod getter = _pd.getReadMethod();
       if( getter != null && Modifier.isStatic( getter.getModifiers() ) )
       {
         _bStatic = Boolean.TRUE;
+      }
+      else
+      {
+        IJavaClassMethod setter = _pd.getWriteMethod();
+        if( setter != null && Modifier.isStatic( setter.getModifiers() ) )
+        {
+          _bStatic = Boolean.TRUE;
+        }
+        else
+        {
+          _bStatic = Boolean.FALSE;
+        }
       }
     }
     return _bStatic;

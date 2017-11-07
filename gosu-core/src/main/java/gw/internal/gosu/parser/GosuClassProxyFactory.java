@@ -1049,13 +1049,15 @@ public class GosuClassProxyFactory
     }
     else
     {
-      StringBuilder sbModifiers = appendVisibilityModifier( pi );
-      sb.append( "  " ).append( sbModifiers ).append( "static property get " ).append( pi.getName() ).append( "() : " ).append( pi.getFeatureType().getName() ).append( "\n" );
-      if( !pi.isAbstract() )
+      if( pi.isReadable( pi.getOwnersType() ) )
       {
-        generateStub( sb, pi.getFeatureType() );
+        StringBuilder sbModifiers = appendVisibilityModifier( pi );
+        sb.append( "  " ).append( sbModifiers ).append( "static property get " ).append( pi.getName() ).append( "() : " ).append( pi.getFeatureType().getName() ).append( "\n" );
+        if( !pi.isAbstract() )
+        {
+          generateStub( sb, pi.getFeatureType() );
+        }
       }
-
       if( pi.isWritable( pi.getOwnersType() ) )
       {
         sb
