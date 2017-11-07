@@ -7,7 +7,6 @@ jobs:
       TZ: "/usr/share/zoneinfo/America/Los_Angeles"
       TERM: dumb
       MAVEN_OPTS: "-Xmx1024m"
-      TEST_REPORTS_DIR: /tmp/test-results
     branches:
       ignore:
         - /rel\/.*/
@@ -19,30 +18,19 @@ jobs:
           name: Run tests
           command: mvn test -B
       - run:
-          name: Echo env var
-          command: echo $TEST_REPORTS_DIR
-      - run:
-          name: Echo env var 2
-          command: echo $MAVEN_OPTS
-      - run:
-          name: Create test metadata folder
-          command: sudo mkdir -p $TEST_REPORTS_DIR
-      - run:
-          name: Collect test metadata
-          command: sudo find . -type f -regex ".*/target/surefire-reports/.*xml" -exec cp {} $TEST_REPORTS_DIR \;
-      - run:
-          name: Collect test stdout
-          command: sudo find . -type f -regex ".*/target/surefire-reports/.*-output.txt" -exec cp {} $TEST_REPORTS_DIR \;
-#      - deploy:
-#          name: Deploy artifacts
-#          command: ./ci_scripts/deploy_snapshot.sh
-      - run:
-          name: dump $TEST_REPORTS_DIR
-          command: ls -l $TEST_REPORTS_DIR
+          name: Save test results
+          command: |
+            mkdir -p ~/junit/
+            find . -type f -regex ".*/target/surefire-reports/.*xml" -exec cp {} ~/junit/ \;
+            find . -type f -regex ".*/target/surefire-reports/.*-output.txt" -exec cp {} ~/junit/ \;
+          when: always
+      - deploy:
+          name: Deploy artifacts
+          command: ./ci_scripts/deploy_snapshot.sh
       - store_test_results:
-          path: $TEST_REPORTS_DIR
+          path: ~/junit
       - store_artifacts:
-          path: $TEST_REPORTS_DIR
+          path: ~/junit
       - save_cache:
           key: v1-test-{{ checksum "gosu-parent/pom.xml" }}
           paths:
