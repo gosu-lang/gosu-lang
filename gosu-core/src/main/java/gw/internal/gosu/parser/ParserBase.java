@@ -1119,7 +1119,16 @@ public abstract class ParserBase implements IParserPart
 
     if( isParsingBlock() || isOrIsEnclosedByAnonymousClass( getGosuClass() ) && !getOwner().isParsingAnnotation() )
     {
-      sym = captureSymbol( getCurrentEnclosingGosuClass(), strName, e );
+      ICompilableTypeInternal enclosingClass = getCurrentEnclosingGosuClass();
+      if( enclosingClass != null )
+      {
+        sym = captureSymbol( enclosingClass, strName, e );
+      }
+      else
+      {
+        // the enclosingClass can be null e.g., during method scoring
+        sym = null;
+      }
     }
     else
     {
