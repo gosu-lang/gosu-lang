@@ -33,9 +33,12 @@ jobs:
       - run:
           name: Collect test stdout
           command: sudo find . -type f -regex ".*/target/surefire-reports/.*-output.txt" -exec cp {} $TEST_REPORTS_DIR \;
-      - deploy:
-          name: Deploy artifacts
-          command: ./ci_scripts/deploy_snapshot.sh
+#      - deploy:
+#          name: Deploy artifacts
+#          command: ./ci_scripts/deploy_snapshot.sh
+      - run:
+          name: dump $TEST_REPORTS_DIR
+          command: ls -l $TEST_REPORTS_DIR
       - store_test_results:
           path: $TEST_REPORTS_DIR
       - store_artifacts:
