@@ -1,13 +1,13 @@
 version: 2
 jobs:
   build:
+    machine:
+      image: circleci/classic:latest
     environment:
       TZ: "/usr/share/zoneinfo/America/Los_Angeles"
       TERM: dumb
       MAVEN_OPTS: "-Xmx1024m"
       TEST_REPORTS_DIR: /tmp/test-results
-    machine:
-      image: circleci/classic:latest
     branches:
       ignore:
         - /rel\/.*/
@@ -15,9 +15,12 @@ jobs:
       - checkout
       - restore_cache:
           key: v1-test-{{ checksum "gosu-parent/pom.xml" }}
+#      - run:
+#          name: Run tests
+#          command: mvn test -B
       - run:
-          name: Run tests
-          command: mvn test -B
+          name: Echo env var
+          command: echo $TEST_REPORTS_DIR
       - run:
           name: Create test metadata folder
           command: sudo mkdir -p $TEST_REPORTS_DIR
