@@ -19,9 +19,6 @@ jobs:
           name: Run tests
           command: mvn test -B
       - run:
-          name: env_var
-          command: echo $TEST_REPORTS_DIR
-      - run:
           name: Create test metadata folder
           command: sudo mkdir -p $TEST_REPORTS_DIR/junit/
       - run:
@@ -35,7 +32,9 @@ jobs:
       - deploy:
           command: ./ci_scripts/deploy_snapshot.sh
       - store_artifacts:
-          path: "gosu-test/target/site"
+          path: "$TEST_REPORTS_DIR/junit/"
+      - store_test_results"
+          path: "$TEST_REPORTS_DIR/junit/"
       - save_cache:
           key: v1-test-{{ checksum "gosu-parent/pom.xml" }}
           paths:
