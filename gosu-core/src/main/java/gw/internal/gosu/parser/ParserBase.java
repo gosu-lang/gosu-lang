@@ -2169,11 +2169,14 @@ public abstract class ParserBase implements IParserPart
 
     _blocks.push( block );
 
-    IBlockClassInternal blockClass = BlockClass.create( enclosingClass, block, _blocks.size() == 1 && getOwner().isParsingStaticFeature() );
-    block.setBlockGosuClass( blockClass );
-    if( enclosingClass != null )
+    if( !getOwner().getContextType().isMethodScoring() )
     {
-      enclosingClass.addBlock( blockClass );
+      IBlockClassInternal blockClass = BlockClass.create( enclosingClass, block, _blocks.size() == 1 && getOwner().isParsingStaticFeature() );
+      block.setBlockGosuClass( blockClass );
+      if( enclosingClass != null )
+      {
+        enclosingClass.addBlock( blockClass );
+      }
     }
   }
 
