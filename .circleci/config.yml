@@ -5,6 +5,7 @@ jobs:
       TZ: "/usr/share/zoneinfo/America/Los_Angeles"
       TERM: dumb
       MAVEN_OPTS: "-Xmx1024m"
+      TEST_REPORTS_DIR: /tmp/test-results
     machine:
       image: circleci/classic:latest
     branches:
@@ -19,18 +20,20 @@ jobs:
           command: mvn test -B
       - run:
           name: Create test metadata folder
-          command: sudo mkdir -p $CIRCLE_TEST_REPORTS/junit/
+          command: sudo mkdir -p $TEST_REPORTS_DIR
       - run:
           name: Collect test metadata
-          command: sudo find . -type f -regex ".*/target/surefire-reports/.*xml" -exec cp {} $CIRCLE_TEST_REPORTS/junit/ \;
+          command: sudo find . -type f -regex ".*/target/surefire-reports/.*xml" -exec cp {} $TEST_REPORTS_DIR \;
       - run:
           name: Collect test stdout
-          command: sudo find . -type f -regex ".*/target/surefire-reports/.*-output.txt" -exec cp {} $CIRCLE_TEST_REPORTS/junit/ \;
+          command: sudo find . -type f -regex ".*/target/surefire-reports/.*-output.txt" -exec cp {} $TEST_REPORTS_DIR \;
       - deploy:
           name: Deploy artifacts
           command: ./ci_scripts/deploy_snapshot.sh
       - store_test_results:
-          path: $CIRCLE_TEST_REPORTS/junit
+          path: $TEST_REPORTS_DIR
+      - store_artifacts:
+          path: $TEST_REPORTS_DIR
       - save_cache:
           key: v1-test-{{ checksum "gosu-parent/pom.xml" }}
           paths:
