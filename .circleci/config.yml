@@ -23,7 +23,7 @@ jobs:
           command: echo $TEST_REPORTS_DIR
       - run:
           name: Create test metadata folder
-          command: sudo mkdir -p $CIRCLE_TEST_REPORTS/junit/
+          command: sudo mkdir -p $TEST_REPORTS_DIR/junit/
       - run:
           name: Collect test metadata
           command: sudo find . -type f -regex ".*/target/surefire-reports/.*xml" -exec cp {} $TEST_REPORTS_DIR/junit/ \;
