@@ -15,9 +15,9 @@ jobs:
       - checkout
       - restore_cache:
           key: v1-test-{{ checksum "gosu-parent/pom.xml" }}
-#      - run:
-#          name: Run tests
-#          command: mvn test -B
+      - run:
+          name: Run tests
+          command: mvn test -B
       - run:
           name: Echo env var
           command: echo $TEST_REPORTS_DIR
