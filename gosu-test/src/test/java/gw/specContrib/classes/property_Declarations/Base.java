@@ -7,4 +7,7 @@ public class Base {
   public static int getBar() { return 8; }
 
   public static int getBop() { return 9; }
+
+  public static void setThing( String value ) {}
+  public String getThing() { return "non-static"; }
 }

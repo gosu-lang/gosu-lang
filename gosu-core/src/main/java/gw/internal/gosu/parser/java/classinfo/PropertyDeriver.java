@@ -5,6 +5,7 @@ import gw.lang.SimplePropertyProcessing;
 import gw.lang.parser.TypeVarToTypeMap;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.ImplicitPropertyUtil;
+import gw.lang.reflect.Modifier;
 import gw.lang.reflect.java.ClassInfoUtil;
 import gw.lang.reflect.java.IJavaClassInfo;
 import gw.lang.reflect.java.IJavaClassMethod;
@@ -41,7 +42,8 @@ public class PropertyDeriver
       IJavaClassMethod getter = entry.getValue();
       IJavaClassType getterType = getter == null ? null : getter.getGenericReturnType();
 
-      IJavaClassMethod setter = findBestMatchingSetter( getterType, mapSetters.remove( propName ) );
+      boolean bStatic = getter != null && Modifier.isStatic( getter.getModifiers() );
+      IJavaClassMethod setter = findBestMatchingSetter( bStatic, getterType, mapSetters.remove( propName ) );
 
       if( setter == null )
       {
@@ -214,7 +216,7 @@ public class PropertyDeriver
     }
   }
 
-  private static IJavaClassMethod findBestMatchingSetter( IJavaClassType getterType, List<IJavaClassMethod> setters )
+  private static IJavaClassMethod findBestMatchingSetter( boolean bStatic, IJavaClassType getterType, List<IJavaClassMethod> setters )
   {
     if( setters == null )
     {
@@ -227,10 +229,13 @@ public class PropertyDeriver
 
       iter.remove();
 
-      IJavaClassType csrType = setter.getGenericParameterTypes()[0];
-      if( (getterType == null || csrType.equals( getterType )) )
+      if( Modifier.isStatic( setter.getModifiers() ) == bStatic  )
       {
-        return setter;
+        IJavaClassType csrType = setter.getGenericParameterTypes()[0];
+        if( (getterType == null || csrType.equals( getterType )) )
+        {
+          return setter;
+        }
       }
     }
     return null;
