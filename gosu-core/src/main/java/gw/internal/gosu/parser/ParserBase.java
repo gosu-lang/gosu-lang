@@ -1340,6 +1340,12 @@ public abstract class ParserBase implements IParserPart
       return findSymbol( strName, true );
     }
 
+    if( anonClass == null )
+    {
+      // can be null in some cases e.g., during method scoring
+      return null;
+    }
+
     try
     {
       // check if we've already captured this symbol
