@@ -18,6 +18,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  */
@@ -28,7 +29,11 @@ public class PropertyDeriver
     Map<String, IJavaClassMethod> mapGetters = new HashMap<>();
     Map<String, List<IJavaClassMethod>> mapSetters = new HashMap<>();
     List<IJavaClassMethod> methods = new ArrayList<>();
-    methods.addAll( Arrays.asList( jci.getDeclaredMethods() ) );
+
+    // All declared methods, excluding bridge methods
+    methods.addAll( Arrays.stream( jci.getDeclaredMethods() )
+                      .filter( m -> !m.isBridge() )
+                      .collect( Collectors.toList() ) );
 
     boolean simplePropertyProcessing = jci.getAnnotation( SimplePropertyProcessing.class ) != null;
 
