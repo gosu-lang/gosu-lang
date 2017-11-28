@@ -14,6 +14,7 @@ import gw.lang.reflect.java.IJavaPropertyDescriptor;
 import gw.lang.reflect.java.JavaTypes;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -171,12 +172,14 @@ public class PropertyDeriver
         }
         else if( info.isSetter() )
         {
-          List<IJavaClassMethod> list = mapSetters.get( info.getName() );
-          if( list == null )
-          {
-            mapSetters.put( info.getName(), list = new ArrayList<>() );
-          }
+          List<IJavaClassMethod> list = mapSetters.computeIfAbsent( info.getName(), k -> new ArrayList<>() );
           list.add( method );
+
+          // sort methods so that a property will be chosen deterministically;
+          // only applicable to case where we have two or more setters and no getter,
+          // so we make a property from the first setter in the list, which must be
+          // deterministically chosen (considering a compiled class may not order methods in source order)
+          list.sort( Comparator.comparingInt( m -> m.getParameterTypes()[0].getJavaType().getName().hashCode() ) );
         }
       }
     }
