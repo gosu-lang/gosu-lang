@@ -198,6 +198,13 @@ public final class BeanMethodCallExpression extends Expression implements IBeanM
   }
   public void setMemberAccessKind( MemberAccessKind kind )
   {
+    if( kind == MemberAccessKind.NORMAL &&
+        _md != null &&
+        GosuClassProxyFactory.isPropertyGetter( _md ) )
+    {
+       // getter call null-safety treatment must behave the same way as property member access
+      kind = MemberAccessKind.NULL_SAFE;
+    }
     _kind = kind;
   }
 

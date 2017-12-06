@@ -72,5 +72,25 @@ public abstract class TypeJavaClassType implements IJavaClassType {
   public String getNamespace() {
     return null;
   }
+
+  @Override
+  public int hashCode() {
+    return IJavaClassType.hashCode( this );
+  }
+
+  @Override
+  public boolean equals( Object obj ) {
+    return IJavaClassType.equals( this, obj );
+  }
+
+  @Override
+  public boolean isArray() {
+    return false;
+  }
+
+  @Override
+  public IJavaClassType getComponentType() {
+    return null;
+  }
 }
 

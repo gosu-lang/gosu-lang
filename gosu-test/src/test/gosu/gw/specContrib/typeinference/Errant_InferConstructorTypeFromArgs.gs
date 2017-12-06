@@ -26,7 +26,7 @@ class Errant_InferConstructorTypeFromArgs {
 
       var numba = new Hey( 8 )
       // Can't infer from int, so default to CharSequence
-      var test3 = numba.MuhT.intValue()  //## issuekeys: MSG_NO_METHOD_DESCRIPTOR_FOUND_FOR_METHOD, MSG_NO_METHOD_DESCRIPTOR_FOUND_FOR_METHOD
+      var test3 = numba.MuhT.intValue()  //## issuekeys: MSG_NO_METHOD_DESCRIPTOR_FOUND_FOR_METHOD
     }
   }
 
@@ -89,6 +89,19 @@ class Errant_InferConstructorTypeFromArgs {
       var x = make( new Pair( "", new StringBuilder() ) )
       x.First.charAt( 0 )    // verify Pair<String, StringBuilder>
       x.Second.append( 'a' ) // verify Pair<String, StringBuilder>
+    }
+  }
+
+  static class Batin4<T>
+  {
+    construct( t: T ) {}
+
+    function foo( o: Object[] ) {}
+
+    function hi()
+    {
+      var cs: CharSequence
+      foo( {new Batin4( "hi" ), new Batin4( cs )} )
     }
   }
 }

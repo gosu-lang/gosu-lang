@@ -87,7 +87,7 @@ static class ReifiedTest
   reified static property set test_static_prop(value: String)  //## issuekeys: NOTHING_TO_REIFY
   {
   }  
-  
+
   reified function test_2<T>()
   {
   }  
@@ -201,5 +201,12 @@ static class ReifiedTest
   function test_8<T>( t: Type<T> )
   {
     var x: IType[] = { t }  //## issuekeys: MSG_TYPE_NOT_REIFIED
+  }
+
+  final reified function test_9<T>()
+  {
+  }
+  reified final function test_9_1<T>()
+  {
   }
 }

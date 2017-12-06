@@ -7,7 +7,6 @@ package gw.internal.gosu.parser.java.classinfo;
 import gw.lang.reflect.IScriptabilityModifier;
 import gw.lang.reflect.java.IJavaClassMethod;
 import gw.lang.reflect.java.IJavaMethodDescriptor;
-import gw.lang.reflect.java.IJavaParameterDescriptor;
 
 public class JavaSourceMethodDescriptor implements IJavaMethodDescriptor {
 

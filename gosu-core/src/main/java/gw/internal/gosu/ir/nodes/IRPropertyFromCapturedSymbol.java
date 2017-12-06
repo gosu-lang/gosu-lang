@@ -30,6 +30,12 @@ public class IRPropertyFromCapturedSymbol extends IRFeatureBase implements IRPro
   }
 
   @Override
+  public IRType getAssignableType()
+  {
+    return getType();
+  }
+
+  @Override
   public String getName() {
     return AbstractElementTransformer.CAPTURED_VAR_PREFIX + _symbol.getName();
   }

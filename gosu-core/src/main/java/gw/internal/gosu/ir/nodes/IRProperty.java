@@ -12,6 +12,8 @@ public interface IRProperty {
 
   IRType getType();
 
+  IRType getAssignableType();
+
   String getName();
 
   boolean isField();

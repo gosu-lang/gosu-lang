@@ -2,6 +2,7 @@ package editor.settings;
 
 import editor.util.Experiment;
 import gw.lang.reflect.json.IJsonIO;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import javax.swing.Icon;
 import javax.swing.JComponent;
@@ -12,7 +13,7 @@ public interface ISettings<T extends ISettingsParameters<T>> extends IJsonIO
 {
   default void resetToDefaultSettings( Experiment target )
   {
-    setParams( makeDefaultParameters( target ) );
+    setParams( makeDefaultParameters( target ), false );
   }
 
   default String getParentPath()
@@ -27,7 +28,7 @@ public interface ISettings<T extends ISettingsParameters<T>> extends IJsonIO
   }
 
   T getParams();
-  void setParams( T params );
+  void setParams( T params, boolean persistent );
   T makeDefaultParameters( Experiment experiment );
 
   /**
@@ -45,4 +46,6 @@ public interface ISettings<T extends ISettingsParameters<T>> extends IJsonIO
   boolean isExperimentSetting();
 
   boolean isIdeSetting();
+
+  void addChangeListener( BiConsumer<T, T> listener );
 }

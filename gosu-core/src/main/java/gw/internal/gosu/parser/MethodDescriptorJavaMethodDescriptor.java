@@ -6,23 +6,17 @@ package gw.internal.gosu.parser;
 
 import gw.lang.reflect.java.IJavaMethodDescriptor;
 import gw.lang.reflect.java.IJavaClassMethod;
-import gw.lang.reflect.java.IJavaParameterDescriptor;
 import gw.lang.reflect.IScriptabilityModifier;
-import gw.lang.reflect.BeanInfoUtil;
 import gw.lang.reflect.module.IModule;
 
-import java.beans.MethodDescriptor;
-import java.beans.ParameterDescriptor;
 import java.lang.reflect.Method;
 
 public class MethodDescriptorJavaMethodDescriptor implements IJavaMethodDescriptor {
-  private GWMethodDescriptor _md;
   private Method _method;
   private IModule _module;
 
-  public MethodDescriptorJavaMethodDescriptor(GWMethodDescriptor md, IModule module) {
-    _md = md;
-    _method = md.getMethod();
+  public MethodDescriptorJavaMethodDescriptor(Method method, IModule module) {
+    _method = method;
     if( _method == null ) {
       throw new IllegalStateException( "MethodDescriptor without method." );
     }
@@ -41,16 +35,16 @@ public class MethodDescriptorJavaMethodDescriptor implements IJavaMethodDescript
 
   @Override
   public String getName() {
-    return _md.getName();
+    return _method.getName();
   }
 
   @Override
   public boolean isHiddenViaFeatureDescriptor() {
-    return _md.isHidden();
+    return false;
   }
 
   @Override
   public boolean isVisibleViaFeatureDescriptor(IScriptabilityModifier constraint) {
-    return _md.isVisible(constraint);
+    return true;
   }
 }

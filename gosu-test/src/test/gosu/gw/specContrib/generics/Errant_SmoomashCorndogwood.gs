@@ -37,6 +37,10 @@ class Errant_SmoomashCorndogwood {
   var arrayOfArrays: String[][]
   var mappedArrayOfArrays: Integer[][] = arrayOfArrays.map( \ arr -> arr.map( \ e -> e.length ) )
 
+//  // test nested calls of same function:   listList.foo( \ list -> list.foo( \ e -> e ) )
+//  var listOfLists: List<List<String>>
+//  var mappedListofLists: List<List<String>> = listOfLists.map( \ list -> list.map( \ e -> e ) )
+
   function testReverseInferenceOnClosureFromClosureParam() {
     var result = f1( \ p: List<CharSequence> -> true )
     result.charAt(0) // confirms infers as CharSequence

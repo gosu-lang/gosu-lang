@@ -4,6 +4,8 @@
 
 package gw.lang.reflect;
 
+import gw.lang.reflect.java.GosuTypes;
+
 /**
  */
 public interface IDynamicType extends IType, IPlaceholder {
@@ -12,6 +14,6 @@ public interface IDynamicType extends IType, IPlaceholder {
   String QNAME = PKG +'.'+ RNAME;
 
   static IDynamicType instance() {
-    return (IDynamicType)TypeSystem.getByFullName( QNAME );
+    return (IDynamicType)GosuTypes.DYNAMIC();
   }
 }

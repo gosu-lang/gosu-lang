@@ -5,13 +5,14 @@ class Errant_GosuSub_TypeDisagreement_5 extends Errant_JavaSuper_TypeDisagreemen
 
   //IDE-1818 - Since the generated methods have different arguments because of only setter. It is good.
   // No error expected
-  var list1 : String as MyProperty1
+  // update: setter with no getter is a property in java now, so this is an error
+  var list1 : String as MyProperty1 //## issuekeys: MSG_PROPERTY_OVERRIDES_WITH_INCOMPATIBLE_TYPE
 
-  property set MyProperty2(a : String){}
+  property set MyProperty2(a : String){}  //## issuekeys: MSG_PROPERTY_OVERRIDES_WITH_INCOMPATIBLE_TYPE
 
-  var list3 : String as MyProperty3      //## issuekeys: INVALID PROPERTY DECLARATION: GETTER AND SETTER SHOULD AGREE ON THE TYPE OF THE PROPERTY
+  var list3 : String as MyProperty3      //## issuekeys: MSG_FUNCTION_CLASH
 
-  property get MyProperty4() : String { return null }      //## issuekeys: 'GETMYPROPERTY4()' IN 'GW.SPECCONTRIB.AAA.PARSERVSOPENSOURCE.PROPERTIES.PREPARINGFORPUSH.JAVACLASSGOSUSUBCLASS.ERRANT_GOSUSUB_TYPEDISAGREEMENT_51' CLASHES WITH 'GETMYPROPERTY4()' IN 'GW.SPECCONTRIB.AAA.PARSERVSOPENSOURCE.PROPERTIES.PREPARINGFORPUSH.JAVACLASSGOSUSUBCLASS.ERRANT_JAVASUPER_TYPEDISAGREEMENT_51'; ATTEMPTING TO USE INCOMPATIBLE RETURN TYPE
+  property get MyProperty4() : String { return null }      //## issuekeys: MSG_FUNCTION_CLASH
 
   //More cases could be added for type disagreement with difference in first letter 'case' of the property name
   // but they are mostly covered without type disagreement in '4' test

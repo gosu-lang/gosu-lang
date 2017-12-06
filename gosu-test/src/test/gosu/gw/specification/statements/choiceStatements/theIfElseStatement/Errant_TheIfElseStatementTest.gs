@@ -67,7 +67,7 @@ class Errant_TheIfElseStatementTest {
     if(aa typeis B) {
       aa.mb()
     } else {
-      aa.mb()  //## issuekeys: MSG_NO_METHOD_DESCRIPTOR_FOUND_FOR_METHOD, MSG_NO_METHOD_DESCRIPTOR_FOUND_FOR_METHOD
+      aa.mb()  //## issuekeys: MSG_NO_METHOD_DESCRIPTOR_FOUND_FOR_METHOD
       aa.ma()
     }
   }
@@ -76,7 +76,7 @@ class Errant_TheIfElseStatementTest {
     var aa : A
 
     if(!(aa typeis B)) {
-      aa.mb() //## issuekeys: MSG_NO_METHOD_DESCRIPTOR_FOUND_FOR_METHOD, MSG_NO_METHOD_DESCRIPTOR_FOUND_FOR_METHOD
+      aa.mb() //## issuekeys: MSG_NO_METHOD_DESCRIPTOR_FOUND_FOR_METHOD
     } else {
       aa.mb() //## KB(PL-9673)
     }
@@ -119,7 +119,7 @@ class Errant_TheIfElseStatementTest {
       a1.mc()
     }else if(typeof a1 == C){
       a1.ma()
-      a1.mc()  //## issuekeys: MSG_NO_METHOD_DESCRIPTOR_FOUND_FOR_METHOD, MSG_NO_METHOD_DESCRIPTOR_FOUND_FOR_METHOD
+      a1.mc()  //## issuekeys: MSG_NO_METHOD_DESCRIPTOR_FOUND_FOR_METHOD
     }
   }
 

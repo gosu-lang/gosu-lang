@@ -2,6 +2,7 @@ package editor.settings;
 
 import editor.LabFrame;
 import editor.util.DirectoryEditor;
+import gw.util.PathUtil;
 import java.awt.BorderLayout;
 import java.awt.EventQueue;
 import java.awt.GridBagConstraints;
@@ -58,7 +59,7 @@ class CompilerSettingsPanel extends JPanel
     c.weightx = 0;
     c.weighty = 0;
     c.insets = new Insets( 0, 0, 10, 0 );
-    _rbSourceBased = new JRadioButton( "<html><b>Dynamic</b>.&nbsp;Compile&nbsp;and&nbsp;load&nbsp;classes&nbsp;direct&nbsp;from&nbsp;source&nbsp;on-demand&nbsp;at&nbsp;runtime." );
+    _rbSourceBased = new JRadioButton( "<html><b>Dynamic</b>.&nbsp;Incrementally&nbsp;compile&nbsp;and&nbsp;load&nbsp;classes&nbsp;direct&nbsp;from&nbsp;source&nbsp;at&nbsp;runtime." );
     _rbSourceBased.addItemListener( e -> {
       _params.setSourceBased( _rbSourceBased.isSelected() );
       _labelOutputPath.setEnabled( !_rbSourceBased.isSelected() );
@@ -106,8 +107,13 @@ class CompilerSettingsPanel extends JPanel
     c.weightx = 1;
     c.weighty = 0;
     c.insets = new Insets( 5, 0, 10, 0 );
-    _editOutputPath = new DirectoryEditor( _labelOutputPath.getText(), _params.getOutputPath(), LabFrame::instance );
-    _editOutputPath.getDocument().addDocumentListener( new DocChangeHandler( this::validateOutputPath, _params::setOuputPath ) );
+    _editOutputPath = new DirectoryEditor( _labelOutputPath.getText(), PathUtil.getAbsolutePathName( PathUtil.create( _params.getOutputPath() ) ), LabFrame::instance );
+    _editOutputPath.getDocument().addDocumentListener(
+      new DocChangeHandler( this::validateOutputPath, ( path ) -> {
+        String relativePath = LabFrame.instance().getGosuPanel().getExperiment().makeExperimentRelativePathWithSlashes( PathUtil.create( path ) );
+        path = relativePath == null ? path : relativePath;
+        _params.setOuputPath( path );
+      } ) );
     configPanel.add( _editOutputPath, c );
 
     // Bottom Filler

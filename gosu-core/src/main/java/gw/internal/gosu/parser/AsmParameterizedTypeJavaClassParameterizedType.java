@@ -36,6 +36,16 @@ public class AsmParameterizedTypeJavaClassParameterizedType extends AsmTypeJavaC
   }
 
   @Override
+  public boolean isArray() {
+    return false;
+  }
+
+  @Override
+  public IJavaClassType getComponentType() {
+    return null;
+  }
+
+  @Override
   public String getSimpleName() {
     return getType().getSimpleName();
   }

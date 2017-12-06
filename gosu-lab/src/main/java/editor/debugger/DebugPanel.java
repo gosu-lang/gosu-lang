@@ -466,10 +466,18 @@ public class DebugPanel extends JPanel implements IDisposable
     }
     StackFrame getRef()
     {
-      if( !((ThreadReference)_cbThreads.getSelectedItem()).isSuspended() )
+      try
+      {
+        if( !((ThreadReference)_cbThreads.getSelectedItem()).isSuspended() )
+        {
+          return null;
+        }
+      }
+      catch( VMDisconnectedException vde )
       {
         return null;
       }
+
       try
       {
         return ((ThreadReference)_cbThreads.getSelectedItem()).frame( _index );

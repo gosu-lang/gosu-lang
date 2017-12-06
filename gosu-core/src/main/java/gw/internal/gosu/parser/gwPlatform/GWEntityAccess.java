@@ -23,6 +23,7 @@ import gw.lang.reflect.gs.ISourceFileHandle;
 import gw.lang.reflect.module.IModule;
 import gw.util.IFeatureFilter;
 
+import gw.util.concurrent.LocklessLazyVar;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Map;
@@ -30,13 +31,13 @@ import java.util.Map;
 public class GWEntityAccess extends DefaultEntityAccess
 {
 
-  private static final ITypeUsesMap PL_DEFAULT_TYPE_USES = GosuShop.createTypeUsesMap(Arrays.asList(
+  private static final LocklessLazyVar<ITypeUsesMap> PL_DEFAULT_TYPE_USES = LocklessLazyVar.make( () -> GosuShop.createTypeUsesMap(Arrays.asList(
           "com.guidewire.pl.system.integration.plugins.gosu.EntityFactory",
           "gw.plugin.PluginRegistry",
           "productmodel.*",
           "entity.*",
           "typekey.*"
-  )).lock();
+  )).lock() );
 
   private final ILanguageLevel LANGUAGE_LEVEL = new ILanguageLevel() {
     @Override
@@ -80,7 +81,7 @@ public class GWEntityAccess extends DefaultEntityAccess
 
   @Override
   public ITypeUsesMap getDefaultTypeUses() {
-    return PL_DEFAULT_TYPE_USES;
+    return PL_DEFAULT_TYPE_USES.get();
   }
 
   public boolean isDomainInstance(Object value) {

@@ -69,7 +69,7 @@ class CompoundTypeTest extends TestClass
   function testErrant_MultipleNonInterfaces()
   {
     assertFalse( Errant_MultipleNonInterfaces.Type.Valid )
-    var errors = Errant_MultipleNonInterfaces.Type.getParseResultsException().getParseExceptions()
+    var errors = Errant_MultipleNonInterfaces.Type.ParseResultsException.getParseExceptions()
     assertEquals( 1, errors.size() )
     assertEquals( Res.MSG_ONLY_ONE_CLASS_IN_COMPONENT_TYPE, errors.get( 0 ).MessageKey )
   }
@@ -77,13 +77,13 @@ class CompoundTypeTest extends TestClass
   function testErrant_InterfaceAlreadyPresent()
   {
     assertFalse( Errant_InterfaceAlreadyPresent.Type.Valid )
-    var errors = Errant_InterfaceAlreadyPresent.Type.getParseResultsException().getParseExceptions()
+    var errors = Errant_InterfaceAlreadyPresent.Type.ParseResultsException.getParseExceptions()
     assertEquals( 1, errors.size() )
     assertEquals( Res.MSG_ALREADY_CONTAINS_TYPE, errors.get( 0 ).MessageKey )
   }
   
   function testArraysWork() {
-    var t = (IBar&IFoo)
+    var t = IBar & IFoo
     print("foo")
     var arr = t.Type.makeArrayInstance(1) as Object[]
     assertNotNull( arr )
@@ -93,7 +93,7 @@ class CompoundTypeTest extends TestClass
   }
   
   function testCaptureOfCompoundTypeWorksProperly() {
-    var val : IFoo&IBar = new FooBarImpl("a", "b")
+    var val: IFoo & IBar = new FooBarImpl("a", "b")
     var blk = \-> val
     assertEquals( val, blk() )
   }

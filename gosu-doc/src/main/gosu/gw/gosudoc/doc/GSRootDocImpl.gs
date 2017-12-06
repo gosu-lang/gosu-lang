@@ -122,13 +122,13 @@ class GSRootDocImpl extends GSDocImpl implements RootDoc{
 
   function shouldDocumentType( iType : Type ): boolean{
     var shouldDoc = shouldDocumentTypeImpl(iType);
-    debug(\ -> iType.getName() + " - document : " + shouldDoc)
+    debug(\ -> iType.Name + " - document : " + shouldDoc)
     return shouldDoc;
   }
 
   private function shouldDocumentTypeImpl(iType: Type): boolean{
 
-    if(isExcluded( iType.getName() )) {
+    if(isExcluded( iType.Name )) {
       return false
     }
 
@@ -139,7 +139,7 @@ class GSRootDocImpl extends GSDocImpl implements RootDoc{
     }
 
     if(iType typeis IGosuClass ) {
-      if(_filesToDoc.contains(iType.getName())) {
+      if(_filesToDoc.contains(iType.Name)) {
         return true;
       }
       if(iType.EnclosingType typeis Type) {
@@ -285,7 +285,7 @@ class GSRootDocImpl extends GSDocImpl implements RootDoc{
   }
 
   function getAllPackages(): PackageDoc[]{
-    return _packagesByName.values().where( \elt -> elt.isIncluded() ).toTypedArray()
+    return _packagesByName.values().where( \elt -> elt.Included ).toTypedArray()
   }
 
   private function getBaseClassType( iType: IType ): IType {

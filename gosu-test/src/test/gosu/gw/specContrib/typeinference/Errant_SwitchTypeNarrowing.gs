@@ -9,7 +9,7 @@ class Errant_SwitchTypeNarrowing {
     switch (typeof(x)) {
       case String:
       default:
-        x.contains("ne")         //## issuekeys: MSG_NO_METHOD_DESCRIPTOR_FOUND_FOR_METHOD, MSG_NO_METHOD_DESCRIPTOR_FOUND_FOR_METHOD, MSG_NO_SUCH_FUNCTION
+        x.contains("ne")         //## issuekeys: MSG_NO_METHOD_DESCRIPTOR_FOUND_FOR_METHOD, MSG_NO_SUCH_FUNCTION
     }
   }
 
@@ -21,7 +21,7 @@ class Errant_SwitchTypeNarrowing {
             return
         }
       case String:  //## issuekeys: MSG_NONTERMINAL_CASE_CLAUSE
-        x.contains("ne")         //## issuekeys: MSG_NO_METHOD_DESCRIPTOR_FOUND_FOR_METHOD, MSG_NO_METHOD_DESCRIPTOR_FOUND_FOR_METHOD, MSG_NO_SUCH_FUNCTION
+        x.contains("ne")         //## issuekeys: MSG_NO_METHOD_DESCRIPTOR_FOUND_FOR_METHOD, MSG_NO_SUCH_FUNCTION
     }
   }
 
@@ -32,7 +32,7 @@ class Errant_SwitchTypeNarrowing {
           break
         }
       case String:  //## issuekeys: MSG_NONTERMINAL_CASE_CLAUSE
-        x.contains("ne")         //## issuekeys: MSG_NO_METHOD_DESCRIPTOR_FOUND_FOR_METHOD, MSG_NO_METHOD_DESCRIPTOR_FOUND_FOR_METHOD, MSG_NO_SUCH_FUNCTION
+        x.contains("ne")         //## issuekeys: MSG_NO_METHOD_DESCRIPTOR_FOUND_FOR_METHOD, MSG_NO_SUCH_FUNCTION
     }
   }
 
@@ -41,7 +41,7 @@ class Errant_SwitchTypeNarrowing {
       case MyEnum:
         print("Enum")
       case String:  //## issuekeys: MSG_NONTERMINAL_CASE_CLAUSE
-        x.contains("ne")         //## issuekeys: MSG_NO_METHOD_DESCRIPTOR_FOUND_FOR_METHOD, MSG_NO_METHOD_DESCRIPTOR_FOUND_FOR_METHOD, MSG_NO_SUCH_FUNCTION
+        x.contains("ne")         //## issuekeys: MSG_NO_METHOD_DESCRIPTOR_FOUND_FOR_METHOD, MSG_NO_SUCH_FUNCTION
     }
   }
 

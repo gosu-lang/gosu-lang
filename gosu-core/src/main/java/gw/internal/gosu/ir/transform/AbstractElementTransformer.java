@@ -28,8 +28,8 @@ import gw.internal.gosu.parser.ICompilableTypeInternal;
 import gw.internal.gosu.parser.IGosuAnnotation;
 import gw.internal.gosu.parser.IGosuClassInternal;
 import gw.internal.gosu.parser.IGosuTemplateInternal;
+import gw.internal.gosu.parser.JavaMethodCache;
 import gw.internal.gosu.parser.MetaType;
-import gw.internal.gosu.parser.NewIntrospector;
 import gw.internal.gosu.parser.ReducedDynamicFunctionSymbol;
 import gw.internal.gosu.parser.Symbol;
 import gw.internal.gosu.parser.TypeLord;
@@ -2408,7 +2408,7 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
     {
       return null;
     }
-    for( Method m : NewIntrospector.getDeclaredMethods( cls ) )
+    for( Method m : JavaMethodCache.getDeclaredMethods( cls ) )
     {
       if( m.getName().equals( strName ) )
       {
@@ -2433,8 +2433,7 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
       }
     }
 
-    // If we didn't find the method, recurse up through the superclass, then any implemented interfaces,
-    // and lastly check any enclosing classes
+    // If we didn't find the method, recurse up through the superclass, then any implemented interfaces
     Method m = getDeclaredMethodImpl( cls.getSuperclass(), strName, params );
     if (m != null) {
       return m;

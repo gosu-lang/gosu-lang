@@ -25,7 +25,6 @@ import gw.lang.reflect.gs.IGosuClass;
 import gw.lang.reflect.gs.IGosuClassRepository;
 import gw.lang.reflect.gs.IGosuObject;
 import gw.lang.reflect.gs.TypeName;
-import gw.lang.reflect.java.JavaTypes;
 import gw.lang.reflect.module.IClassPath;
 import gw.lang.reflect.module.IModule;
 import gw.util.GosuClassUtil;
@@ -251,7 +250,7 @@ public class ModuleTypeLoader implements ITypeLoaderStackInternal {
       }
 
       // This is vital for runtime where Java types are redefined in via debugger
-      NewIntrospector.flushCaches();
+      JavaMethodCache.flushCaches();
     }
     finally
     {

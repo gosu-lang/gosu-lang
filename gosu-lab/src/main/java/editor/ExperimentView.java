@@ -74,7 +74,8 @@ public class ExperimentView extends JPanel
     _tree.addKeyListener( new TreeKeyHandler() );
     _scroller = new JScrollPane( _tree );
     _scroller.setBorder( new MatteBorder( 0, 0, 1, 1, Scheme.active().getScrollbarBorderColor() ) );
-    expandToFirstSourcePath( 0, _tree.getRowCount() );
+    //expandToFirstSourcePath( 0, _tree.getRowCount() );
+    expandFirstPath();
 
     _splitPane.setTop( _scroller );
 
@@ -123,6 +124,25 @@ public class ExperimentView extends JPanel
     if( _tree.getRowCount() != rowCount )
     {
       expandToFirstSourcePath( rowCount, _tree.getRowCount() );
+    }
+  }
+
+  private void expandFirstPath()
+  {
+    int row = 0;
+    _tree.expandRow( row++ );
+
+    int rowCount = _tree.getRowCount();
+    while( true )
+    {
+      _tree.expandRow( row++ );
+
+      int newRowCount = _tree.getRowCount();
+      if( newRowCount == rowCount )
+      {
+        break;
+      }
+      rowCount = newRowCount;
     }
   }
 
