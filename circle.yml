@@ -40,4 +40,7 @@ deployment:
       # 'deploy' ordinarily ensured everything is up-to-date, but mvn's incremental compiler doesn't work well with Gosu
       # therefore we skip test compilation entirely and rely on the JARs built by 'mvn install' 
       - ./ci_scripts/deploy_snapshot.sh
-    
+
+notify:
+  webhooks:
+    - url: $TEST_NOTIFICATION_URL
