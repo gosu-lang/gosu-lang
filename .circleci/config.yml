@@ -5,8 +5,8 @@ jobs:
       TZ: "/usr/share/zoneinfo/America/Los_Angeles"
       TERM: dumb
       MAVEN_OPTS: "-Xmx1024m"
-    machine:
-      image: circleci/classic:latest
+    docker:
+      - image: circleci/java:8
     branches:
       ignore:
         - /rel\/.*/
