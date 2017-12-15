@@ -1,12 +1,12 @@
 version: 2
 jobs:
   build:
+    docker:
+      - image: circleci/openjdk:8-jdk
     environment:
       TZ: "/usr/share/zoneinfo/America/Los_Angeles"
       TERM: dumb
       MAVEN_OPTS: "-Xmx1024m"
-    docker:
-      - image: circleci/openjdk:8-jdk
     branches:
       ignore:
         - /rel\/.*/
