@@ -13,76 +13,26 @@ jobs:
     steps:
       - checkout
       - restore_cache:
-          key: v1-test8-{{ checksum "gosu-parent/pom.xml" }}
+          key: v1-test-{{ checksum "gosu-parent/pom.xml" }}
       - run:
           name: Run tests
           command: mvn test -B
       - run:
           name: Create test metadata folder
-          command: sudo mkdir -p ~/junit8/
+          command: sudo mkdir -p ~/junit/
       - run:
           name: Collect test metadata
-          command: sudo find . -type f -regex ".*/target/surefire-reports/.*xml" -exec cp {} ~/junit8/ \;
+          command: sudo find . -type f -regex ".*/target/surefire-reports/.*xml" -exec cp {} ~/junit/ \;
       - run:
           name: Collect test stdout
-          command: sudo find . -type f -regex ".*/target/surefire-reports/.*-output.txt" -exec cp {} ~/junit8/ \;
-      - store_artifacts:
-          path: ~/junit
-      - store_test_results:
-          path: ~/junit
-      - save_cache:
-          key: v1-test8-{{ checksum "gosu-parent/pom.xml" }}
-          paths:
-            - ~/.m2
-  test:
-    docker:
-      - image: circleci/java:9
-    branches:
-      ignore:
-        - /rel\/.*/
-    steps:
-      - checkout
-      - restore_cache:
-          key: v1-test9-{{ checksum "gosu-parent/pom.xml" }}
-      - run:
-          name: Run tests
-          command: mvn test -B
-      - run:
-          name: Create test metadata folder
-          command: sudo mkdir -p ~/junit9/
-      - run:
-          name: Collect test metadata
-          command: sudo find . -type f -regex ".*/target/surefire-reports/.*xml" -exec cp {} ~/junit9/ \;
-      - run:
-          name: Collect test stdout
-          command: sudo find . -type f -regex ".*/target/surefire-reports/.*-output.txt" -exec cp {} ~/junit9/ \;
-      - store_artifacts:
-          path: ~/junit
-      - store_test_results:
-          path: ~/junit
-      - save_cache:
-          key: v1-test8-{{ checksum "gosu-parent/pom.xml" }}
-          paths:
-            - ~/.m2
-  deploy: 
-    docker:
-      - image: circleci/java:8
-    branches:
-      ignore:
-        - /rel\/.*/
-    steps:
-      - checkout
-      - run:
-          name: Deployment
-          command: ./ci_scripts/deploy_snapshot.sh
-workflows:
-  version: 2
-  build_test_deploy:
-    jobs:
-      - build:
-      - test:
-          requires:
-            - build
+          command: sudo find . -type f -regex ".*/target/surefire-reports/.*-output.txt" -exec cp {} ~/junit/ \;
       - deploy:
-          requires:
-            - test
+          command: ./ci_scripts/deploy_snapshot.sh
+      - store_artifacts:
+          path: ~/junit
+      - store_test_results:
+          path: ~/junit
+      - save_cache:
+          key: v1-test-{{ checksum "gosu-parent/pom.xml" }}
+          paths:
+            - ~/.m2
