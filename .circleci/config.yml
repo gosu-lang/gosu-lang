@@ -61,9 +61,6 @@ jobs:
 #  deploy:
 #    docker:
 #      - image: circleci/java:8
-#    branches:
-#      ignore:
-#        - /rel\/.*/
 #    steps:
 #      - checkout
 #      - run:
