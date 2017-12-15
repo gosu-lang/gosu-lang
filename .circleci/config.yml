@@ -34,9 +34,6 @@ jobs:
   test:
     docker:
       - image: circleci/openjdk:9-jdk
-    branches:
-      ignore:
-        - /rel\/.*/
     steps:
       - checkout
       - restore_cache:
