@@ -36,7 +36,7 @@ jobs:
             - ~/.m2
   test:
     docker:
-      - image: circleci/java:9
+      - image: circleci/openjdk:9-jdk
     #branches:
     #  ignore:
     #    - /rel\/.*/
