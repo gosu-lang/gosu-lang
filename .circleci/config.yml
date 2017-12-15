@@ -7,9 +7,6 @@ jobs:
       TZ: "/usr/share/zoneinfo/America/Los_Angeles"
       TERM: dumb
       MAVEN_OPTS: "-Xmx1024m"
-    branches:
-      ignore:
-        - /rel\/.*/
     steps:
       - checkout
       - restore_cache:
@@ -86,3 +83,6 @@ workflows:
 #      - deploy:
 #          requires:
 #            - test
+#          filters:
+#            branches:
+#              ignore: /rel\/.*/
