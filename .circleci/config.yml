@@ -7,9 +7,9 @@ jobs:
       MAVEN_OPTS: "-Xmx1024m"
     docker:
       - image: circleci/java:8
-    branches:
-      ignore:
-        - /rel\/.*/
+    #branches:
+    #  ignore:
+    #    - /rel\/.*/
     steps:
       - checkout
       - restore_cache:
@@ -37,9 +37,9 @@ jobs:
   test:
     docker:
       - image: circleci/java:9
-    branches:
-      ignore:
-        - /rel\/.*/
+    #branches:
+    #  ignore:
+    #    - /rel\/.*/
     steps:
       - checkout
       - restore_cache:
@@ -67,9 +67,9 @@ jobs:
   deploy: 
     docker:
       - image: circleci/java:8
-    branches:
-      ignore:
-        - /rel\/.*/
+    #branches:
+    #  ignore:
+    #    - /rel\/.*/
     steps:
       - checkout
       - run:
