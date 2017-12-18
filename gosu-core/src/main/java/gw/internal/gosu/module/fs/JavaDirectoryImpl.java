@@ -312,7 +312,9 @@ public class JavaDirectoryImpl extends JavaResourceImpl implements IDirectory {
     }
 
     private Set<String> fileNamesSet() {
-      refreshIfNecessary();
+      if (this.fileNamesSet==null) {
+        refreshIfNecessary();
+      }
       return this.fileNamesSet;
     }
 
