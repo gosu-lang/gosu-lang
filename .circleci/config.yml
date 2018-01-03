@@ -27,7 +27,7 @@ jobs:
           name: Collect test stdout
           command: sudo find . -type f -regex ".*/target/surefire-reports/.*-output.txt" -exec cp {} ~/junit/ \;
       - deploy:
-          name: Deploy artifacts
+          name: Deploy artifacts to remote
           command: ./.circleci/deploy_snapshot.sh
       - store_artifacts:
           path: ~/junit
