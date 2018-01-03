@@ -18,14 +18,12 @@ jobs:
           name: Run tests
           command: mvn test -B
       - run:
-          name: Create test metadata folder
-          command: sudo mkdir -p ~/junit/
-      - run:
-          name: Collect test metadata
-          command: sudo find . -type f -regex ".*/target/surefire-reports/.*xml" -exec cp {} ~/junit/ \;
-      - run:
-          name: Collect test stdout
-          command: sudo find . -type f -regex ".*/target/surefire-reports/.*-output.txt" -exec cp {} ~/junit/ \;
+          name: save Test results
+          command: |
+            sudo mkdir -p ~/junit/
+            sudo find . -type f -regex ".*/target/surefire-reports/.*xml" -exec cp {} ~/junit/ \;
+            sudo find . -type f -regex ".*/target/surefire-reports/.*-output.txt" -exec cp {} ~/junit/ \;
+          when: always
       - deploy:
           name: Deploy artifacts to remote
           command: ./.circleci/deploy_snapshot.sh
