@@ -18,10 +18,10 @@
       <version>${project.version}</version>
     </dependency>
     <dependency>
-      <groupId>org.gosu-lang.gosu</groupId>
-      <artifactId>gosu-core</artifactId>
-      <version>${project.version}</version>
-    </dependency>
+    <groupId>org.gosu-lang.gosu</groupId>
+    <artifactId>gosu-core</artifactId>
+    <version>${project.version}</version>
+  </dependency>
     <dependency>
       <groupId>org.jboss</groupId>
       <artifactId>jandex</artifactId>
