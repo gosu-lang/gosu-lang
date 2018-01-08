@@ -20,6 +20,7 @@ class ScienceMiscTest extends TestClass {
    try{
      print("type of N m is >>> " + typeof N m)
      print("type of J is >>>" + typeof J)
+     print("type of J is >>>" + typeof kg m/s/s m)
      assertSame( N m, J )
    }
    catch (AssertionError ) {
