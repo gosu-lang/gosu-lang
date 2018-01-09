@@ -34,4 +34,13 @@ class ScienceMiscTest extends TestClass {
     assertEquals( 5 J, 5 kg m/s/s m )
   }
 
+  function testMisc1(){
+
+    for(1..100){
+      print("type of N m is >>> " + typeof N m)
+      print("type of J is >>>" + typeof J)
+      print("type of J is >>>" + typeof kg m/s/s m)
+    }
+  }
+
 }
