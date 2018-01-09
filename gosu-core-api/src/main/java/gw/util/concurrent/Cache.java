@@ -11,6 +11,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -124,6 +125,10 @@ public class Cache<K, V> {
     } else {
       return ((double) hits) / requests;
     }
+  }
+
+  public Set<Map.Entry<K, V>> dump() {
+    return _cacheImpl.entrySet();
   }
 
   /**
