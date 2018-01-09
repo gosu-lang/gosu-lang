@@ -40,6 +40,7 @@ class ScienceMiscTest extends TestClass {
       print("type of N m is >>> " + typeof N m)
       print("type of J is >>>" + typeof J)
       print("type of J is >>>" + typeof kg m/s/s m)
+      assertTrue(true)
     }
   }
 
