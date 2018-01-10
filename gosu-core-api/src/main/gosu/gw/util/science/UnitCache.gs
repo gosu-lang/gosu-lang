@@ -4,6 +4,6 @@ uses gw.util.concurrent.Cache
 
 class UnitCache<U extends AbstractBinaryUnit> extends Cache<U, U> {
   construct() {
-    super( "Unit Cache", Integer.MAX_VALUE, \ unit -> unit )
+    super( "Unit Cache", 1000, \ unit -> unit ) 
   }
 }
