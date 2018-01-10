@@ -6,17 +6,45 @@ jobs:
       TERM: dumb
       MAVEN_OPTS: "-Xmx1024m"
     docker:
-      - image: circleci/java:8
-    branches:
-      ignore:
-        - /rel\/.*/
+      - image: circleci/openjdk:8-jdk
+    working_directory: ~/gosu-lang
     steps:
       - checkout
       - restore_cache:
-          key: v1-test-{{ checksum "gosu-parent/pom.xml" }}
+          keys:
+          - v1-dependencies-{{ checksum "gosu-parent/pom.xml" }}
+          # fallback to using the latest cache if no exact match is found
+          - v1-dependencies-
+      - run:
+          name: Build project but skip test execution
+          command: mvn install -DskipTests -B
+      - save_cache:
+          paths:
+            - ~/gosu-lang
+          key: v1-repo-{{ .Environment.CIRCLE_SHA1 }}
+      - save_cache:
+          paths:
+            - ~/.m2
+          key: v1-dependencies-{{ checksum "gosu-parent/pom.xml" }}
+
+  test8:
+    environment:
+      TZ: "/usr/share/zoneinfo/America/Los_Angeles"
+      TERM: dumb
+      MAVEN_OPTS: "--batch-mode -Xmx1024m"
+    docker:
+      - image: circleci/openjdk:8-jdk
+    working_directory: ~/gosu-lang
+    steps:
+      - restore_cache:
+          keys:
+            - v1-dependencies-{{ checksum "gosu-parent/pom.xml" }}
+      - restore_cache:
+          keys:
+            - v1-repo-{{ .Environment.CIRCLE_SHA1 }}
       - run:
           name: Run tests
-          command: mvn test -B
+          command: mvn surefire:test -B
       - run:
           name: Save test results
           command: |
@@ -24,14 +52,72 @@ jobs:
             find . -type f -regex ".*/target/surefire-reports/.*xml" -exec cp {} ~/junit/ \;
             find . -type f -regex ".*/target/surefire-reports/.*-output.txt" -exec cp {} ~/junit/ \;
           when: always
-      - deploy:
-          name: Deploy artifacts
-          command: ./.circleci/deploy_snapshot.sh
       - store_artifacts:
           path: ~/junit
       - store_test_results:
           path: ~/junit
-      - save_cache:
-          key: v1-test-{{ checksum "gosu-parent/pom.xml" }}
-          paths:
-            - ~/.m2
+
+  test9:
+    environment:
+      TZ: "/usr/share/zoneinfo/America/Los_Angeles"
+      TERM: dumb
+      MAVEN_OPTS: "--batch-mode -Xmx1024m"
+    docker:
+      - image: circleci/openjdk:9-jdk
+    working_directory: ~/gosu-lang
+    steps:
+      - restore_cache:
+          keys:
+            - v1-dependencies-{{ checksum "gosu-parent/pom.xml" }}
+      - restore_cache:
+          keys:
+            - v1-repo-{{ .Environment.CIRCLE_SHA1 }}
+      - run:
+          name: Run tests
+          command: mvn surefire:test -B
+      - run:
+          name: Save test results
+          command: |
+            mkdir -p ~/junit/
+            find . -type f -regex ".*/target/surefire-reports/.*xml" -exec cp {} ~/junit/ \;
+            find . -type f -regex ".*/target/surefire-reports/.*-output.txt" -exec cp {} ~/junit/ \;
+          when: always
+      - store_artifacts:
+          path: ~/junit
+      - store_test_results:
+          path: ~/junit
+
+  deploy:
+    environment:
+      TZ: "/usr/share/zoneinfo/America/Los_Angeles"
+      TERM: dumb
+      MAVEN_OPTS: "--batch-mode -Xmx1024m"
+    docker:
+      - image: circleci/openjdk:8-jdk
+    working_directory: ~/gosu-lang
+    steps:
+      - restore_cache:
+          keys:
+            - v1-dependencies-{{ checksum "gosu-parent/pom.xml" }}
+      - restore_cache:
+          keys:
+            - v1-repo-{{ .Environment.CIRCLE_SHA1 }}
+      - deploy:
+          name: Deploy artifacts
+          command: ./.circleci/deploy_snapshot.sh
+
+workflows:
+  version: 2
+  build_test_deploy:
+    jobs:
+      - build
+      - test8:
+          requires:
+            - build
+      - test9:
+          requires:
+            - build
+      - deploy:
+          requires:
+            - test8
+            - test9
