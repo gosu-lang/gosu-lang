@@ -18,11 +18,11 @@ jobs:
           name: Run tests
           command: mvn test -B
       - run:
-          name: save Test results
+          name: Save test results
           command: |
-            sudo mkdir -p ~/junit/
-            sudo find . -type f -regex ".*/target/surefire-reports/.*xml" -exec cp {} ~/junit/ \;
-            sudo find . -type f -regex ".*/target/surefire-reports/.*-output.txt" -exec cp {} ~/junit/ \;
+            mkdir -p ~/junit/
+            find . -type f -regex ".*/target/surefire-reports/.*xml" -exec cp {} ~/junit/ \;
+            find . -type f -regex ".*/target/surefire-reports/.*-output.txt" -exec cp {} ~/junit/ \;
           when: always
       - deploy:
           name: Deploy artifacts
