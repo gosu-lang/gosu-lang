@@ -16,12 +16,7 @@ final class EnergyUnit extends AbstractProductUnit<ForceUnit, LengthUnit, Energy
 
   static function get( forceUnit: ForceUnit, lengthUnit: LengthUnit, factor: Rational = null, name: String = null, symbol: String = null ) : EnergyUnit {
     var unit = new EnergyUnit( forceUnit, lengthUnit, factor, name, symbol )
-    var utilizedSize = CACHE.UtilizedSize
-    print("EnergyUnit cache size: " + utilizedSize)
-    if(utilizedSize > 6) {
-      print("Cache is way bigger than expected.  Dumping contents:")
-      CACHE.dump().each( \ entry -> print(entry))
-    }
+    print("EnergyUnit cache size: " + CACHE.UtilizedSize)
     return CACHE.get( unit )
   }
   
