@@ -31,7 +31,7 @@ jobs:
     environment:
       TZ: "/usr/share/zoneinfo/America/Los_Angeles"
       TERM: dumb
-      MAVEN_OPTS: "--batch-mode -Xmx1024m"
+      MAVEN_OPTS: "-Xmx1024m"
     docker:
       - image: circleci/openjdk:8-jdk
     working_directory: ~/gosu-lang
@@ -61,7 +61,7 @@ jobs:
     environment:
       TZ: "/usr/share/zoneinfo/America/Los_Angeles"
       TERM: dumb
-      MAVEN_OPTS: "--batch-mode -Xmx1024m"
+      MAVEN_OPTS: "-Xmx1024m"
     docker:
       - image: circleci/openjdk:9-jdk
     working_directory: ~/gosu-lang
@@ -91,7 +91,7 @@ jobs:
     environment:
       TZ: "/usr/share/zoneinfo/America/Los_Angeles"
       TERM: dumb
-      MAVEN_OPTS: "--batch-mode -Xmx1024m"
+      MAVEN_OPTS: "-Xmx1024m"
     docker:
       - image: circleci/openjdk:8-jdk
     working_directory: ~/gosu-lang
