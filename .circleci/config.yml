@@ -38,10 +38,10 @@ jobs:
     steps:
       - restore_cache:
           keys:
-            - v1-dependencies-{{ checksum "gosu-parent/pom.xml" }}
+            - v1-repo-{{ .Environment.CIRCLE_SHA1 }}
       - restore_cache:
           keys:
-            - v1-repo-{{ .Environment.CIRCLE_SHA1 }}
+            - v1-dependencies-{{ checksum "gosu-parent/pom.xml" }}
       - run:
           name: Run tests
           command: mvn surefire:test -B
@@ -68,10 +68,10 @@ jobs:
     steps:
       - restore_cache:
           keys:
-            - v1-dependencies-{{ checksum "gosu-parent/pom.xml" }}
+            - v1-repo-{{ .Environment.CIRCLE_SHA1 }}
       - restore_cache:
           keys:
-            - v1-repo-{{ .Environment.CIRCLE_SHA1 }}
+            - v1-dependencies-{{ checksum "gosu-parent/pom.xml" }}
       - run:
           name: Run tests
           command: mvn surefire:test -B
@@ -98,10 +98,10 @@ jobs:
     steps:
       - restore_cache:
           keys:
-            - v1-dependencies-{{ checksum "gosu-parent/pom.xml" }}
+            - v1-repo-{{ .Environment.CIRCLE_SHA1 }}
       - restore_cache:
           keys:
-            - v1-repo-{{ .Environment.CIRCLE_SHA1 }}
+            - v1-dependencies-{{ checksum "gosu-parent/pom.xml" }}
       - deploy:
           name: Deploy artifacts
           command: ./.circleci/deploy_snapshot.sh
