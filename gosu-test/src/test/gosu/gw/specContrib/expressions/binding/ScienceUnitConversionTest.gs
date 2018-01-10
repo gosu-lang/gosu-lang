@@ -1,43 +1,23 @@
 package gw.specContrib.expressions.binding
 
 uses gw.test.TestClass
-uses gw.util.concurrent.LocklessLazyVar
 uses gw.util.science.*
+uses gw.util.science.UnitConstants#*
+uses java.math.BigDecimal
 uses gw.lang.reflect.TypeSystem
+uses gw.lang.reflect.INamespaceType
+uses gw.lang.reflect.gs.IGosuClass
 
 class ScienceUnitConversionTest extends TestClass { 
   static final var SAMPLE_DENSITY: int = 10
   
-  static final var _unitTypes: LocklessLazyVar<List<Type<IUnit>>> = LocklessLazyVar.make( \ -> {
-    var namespace = TypeSystem.getNamespace( "gw.util.science" )
-    return namespace.getChildren(namespace)
-        .where(\tn -> tn.kind == TYPE)
-        .map(\tn -> TypeSystem.getByFullName( tn.name))
-        .where(\type -> type.Final && IUnit.Type.isAssignableFrom(type))
-        .map(\type -> type as Type<IUnit> )
-  } )
-
-  /**
-   * Combinatorial loading of gw.util.science.EnergyUnit's cache caused ND failures on ScienceMiscTest
-   * Test cleanup: Get all implementations of IUnit containing a static field named CACHE of type UnitCache, then clear them
-   */
-  override function afterTestClass() {
-    print("In afterTestClass()")
-    _unitTypes.get().each( \ type -> {
-      try {
-        var cache = type["CACHE"] as UnitCache
-        print("Purging cache of " + type.Name)
-        cache.clear()
-      } catch (e: IllegalArgumentException) {
-        //ignore, there was no field called CACHE on this IType
-      }
-    } )
-    _unitTypes.clear()
-    super.afterTestClass()
-  }
-
   function testUnitConversions() {
-    _unitTypes.get().each(\unitType -> _testUnitConversions(unitType))
+    var namespace = TypeSystem.getNamespace( "gw.util.science" )
+    var typeNames = namespace.getChildren( namespace )
+    typeNames.where( \ tn -> tn.kind == TYPE )
+             .map( \ tn -> TypeSystem.getByFullName( tn.name ) )
+             .where( \ type -> type.Final && IUnit.Type.isAssignableFrom( type ) )
+             .each( \ unitType -> _testUnitConversions( unitType as Type<IUnit> ) )
   }
   
   private function _testUnitConversions( type: Type<IUnit> ) {
