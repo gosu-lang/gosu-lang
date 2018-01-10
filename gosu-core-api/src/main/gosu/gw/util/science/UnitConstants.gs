@@ -2,7 +2,6 @@ package gw.util.science
 uses gw.util.Rational
 
 interface UnitConstants {
- // LengthUnit mum = LengthUnit.Micro
   var mum: LengthUnit = Micro
   var mm: LengthUnit = Milli
   var cm: LengthUnit = Centi
