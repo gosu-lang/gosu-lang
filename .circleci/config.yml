@@ -40,6 +40,9 @@ jobs:
       - restore_cache:
           keys:
             - v1-dependencies-{{ checksum "gosu-parent/pom.xml" }}
+      - restore_cache:
+          keys:
+            - v1-test-dependencies-{{ checksum "gosu-parent/pom.xml" }}
       - run:
           name: Run tests
           command: mvn surefire:test -B
@@ -54,6 +57,10 @@ jobs:
           path: ~/junit
       - store_test_results:
           path: ~/junit
+      - save_cache:
+          paths:
+            - ~/.m2
+          key: v1-test-dependencies-{{ checksum "gosu-parent/pom.xml" }}
 
   test9:
     environment:
@@ -69,6 +76,9 @@ jobs:
       - restore_cache:
           keys:
             - v1-dependencies-{{ checksum "gosu-parent/pom.xml" }}
+      - restore_cache:
+          keys:
+            - v1-test-dependencies-{{ checksum "gosu-parent/pom.xml" }}
       - run:
           name: Run tests
           command: mvn surefire:test -B
@@ -83,6 +93,10 @@ jobs:
           path: ~/junit
       - store_test_results:
           path: ~/junit
+      - save_cache:
+          paths:
+            - ~/.m2
+          key: v1-test-dependencies-{{ checksum "gosu-parent/pom.xml" }}
 
   deploy:
     environment:
