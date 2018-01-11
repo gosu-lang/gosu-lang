@@ -7,7 +7,6 @@ jobs:
       MAVEN_OPTS: "-Xmx1024m"
     docker:
       - image: circleci/openjdk:8-jdk
-    working_directory: ~/gosu-lang
     steps:
       - checkout
       - restore_cache:
@@ -20,7 +19,7 @@ jobs:
           command: mvn install -DskipTests -B
       - save_cache:
           paths:
-            - ~/gosu-lang
+            - $CIRCLE_WORKING_DIRECTORY
           key: v1-repo-{{ .Environment.CIRCLE_SHA1 }}
       - save_cache:
           paths:
@@ -34,7 +33,6 @@ jobs:
       MAVEN_OPTS: "-Xmx1024m"
     docker:
       - image: circleci/openjdk:8-jdk
-    working_directory: ~/gosu-lang
     steps:
       - restore_cache:
           keys:
@@ -64,7 +62,6 @@ jobs:
       MAVEN_OPTS: "-Xmx1024m"
     docker:
       - image: circleci/openjdk:9-jdk
-    working_directory: ~/gosu-lang
     steps:
       - restore_cache:
           keys:
@@ -94,7 +91,6 @@ jobs:
       MAVEN_OPTS: "-Xmx1024m"
     docker:
       - image: circleci/openjdk:8-jdk
-    working_directory: ~/gosu-lang
     steps:
       - restore_cache:
           keys:
