@@ -19,7 +19,7 @@ jobs:
           command: mvn install -DskipTests -B
       - save_cache:
           paths:
-            - $CIRCLE_WORKING_DIRECTORY
+            - {{ .Environment.CIRCLE_WORKING_DIRECTORY }}
           key: v1-repo-{{ .Environment.CIRCLE_SHA1 }}
       - save_cache:
           paths:
