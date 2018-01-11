@@ -39,9 +39,6 @@ jobs:
             - v1-repo-{{ .Environment.CIRCLE_SHA1 }}
       - restore_cache:
           keys:
-            - v1-dependencies-{{ checksum "gosu-parent/pom.xml" }}
-      - restore_cache:
-          keys:
             - v1-test-dependencies-{{ checksum "gosu-parent/pom.xml" }}
       - run:
           name: Run tests
@@ -73,9 +70,6 @@ jobs:
       - restore_cache:
           keys:
             - v1-repo-{{ .Environment.CIRCLE_SHA1 }}
-      - restore_cache:
-          keys:
-            - v1-dependencies-{{ checksum "gosu-parent/pom.xml" }}
       - restore_cache:
           keys:
             - v1-test-dependencies-{{ checksum "gosu-parent/pom.xml" }}
