@@ -59,7 +59,7 @@ import gw.lang.reflect.module.IModule;
 import java.io.File;
 import java.io.Reader;
 import java.io.Writer;
-import java.lang.reflect.Array;
+import gw.util.Array;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.net.URL;

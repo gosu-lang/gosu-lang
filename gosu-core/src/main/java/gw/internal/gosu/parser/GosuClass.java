@@ -75,7 +75,7 @@ import java.io.File;
 import java.io.InvalidClassException;
 import java.io.ObjectStreamException;
 import java.lang.ref.SoftReference;
-import java.lang.reflect.Array;
+import gw.util.Array;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;

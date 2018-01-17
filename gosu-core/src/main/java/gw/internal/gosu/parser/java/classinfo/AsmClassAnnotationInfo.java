@@ -14,7 +14,7 @@ import gw.lang.reflect.java.IJavaClassType;
 import gw.lang.reflect.java.asm.AsmAnnotation;
 
 import java.lang.annotation.Annotation;
-import java.lang.reflect.Array;
+import gw.util.Array;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;

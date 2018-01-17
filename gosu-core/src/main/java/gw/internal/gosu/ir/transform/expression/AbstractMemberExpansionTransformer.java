@@ -25,7 +25,7 @@ import gw.lang.reflect.gs.IGosuObject;
 import gw.lang.reflect.java.IJavaType;
 import gw.lang.reflect.java.JavaTypes;
 
-import java.lang.reflect.Array;
+import gw.util.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;

@@ -25,7 +25,7 @@ import junit.framework.TestCase;
 import junit.framework.TestResult;
 
 import java.lang.annotation.Annotation;
-import java.lang.reflect.Array;
+import gw.util.Array;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;

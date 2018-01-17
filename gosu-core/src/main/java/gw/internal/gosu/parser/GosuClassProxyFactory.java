@@ -33,7 +33,7 @@ import gw.lang.reflect.java.IJavaType;
 import gw.lang.reflect.java.JavaTypes;
 import gw.lang.reflect.module.IModule;
 
-import java.lang.reflect.Array;
+import gw.util.Array;
 import java.util.List;
 import java.util.concurrent.Callable;
 

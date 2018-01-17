@@ -26,7 +26,7 @@ import gw.util.concurrent.LocklessLazyVar;
 
 import java.io.Serializable;
 import java.lang.annotation.Annotation;
-import java.lang.reflect.Array;
+import gw.util.Array;
 
 public class JavaArrayClassInfo extends AbstractJavaClassInfo
 {
