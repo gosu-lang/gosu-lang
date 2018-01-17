@@ -4,6 +4,8 @@
 
 package gw.lang.parser;
 
+import gw.lang.reflect.IType;
+
 public interface IReducedDynamicPropertySymbol extends IReducedSymbol
 {
   boolean isReadable();
@@ -17,4 +19,6 @@ public interface IReducedDynamicPropertySymbol extends IReducedSymbol
   IReducedDynamicFunctionSymbol getFunction( String strFunctionName);
 
   String getVarIdentifier();
+
+  IType getAssignableType();
 }

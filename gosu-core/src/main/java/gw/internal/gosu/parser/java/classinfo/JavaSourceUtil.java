@@ -4,7 +4,6 @@
 
 package gw.internal.gosu.parser.java.classinfo;
 
-import gw.config.CommonServices;
 import gw.config.ExecutionMode;
 import gw.internal.gosu.parser.DefaultTypeLoader;
 import gw.lang.reflect.IDefaultTypeLoader;
@@ -106,27 +105,67 @@ public class JavaSourceUtil {
     return null;
   }
 
-  public static ImplicitPropertyUtil.ImplicitPropertyInfo getImplicitProperty(IJavaClassMethod method, boolean simplePropertyProcessing) {
+  public static ImplicitPropertyUtil.ImplicitPropertyInfo getImplicitProperty( IJavaClassMethod method, boolean simplePropertyProcessing )
+  {
     IJavaClassType returnType = method.getGenericReturnType();
-    if (returnType != null) {
+    if( returnType != null )
+    {
       String returnTypeName = returnType.getName();
       int argCount = method.getParameterTypes().length;
       String name = method.getName();
-      if (argCount == 0 && !returnTypeName.equals("void")) {
-        if (name.startsWith(ImplicitPropertyUtil.GET) && (name.length() > ImplicitPropertyUtil.GET.length())) {
-          return new ImplicitPropertyUtil.ImplicitPropertyInfo(false, true, ImplicitPropertyUtil.capitalizeFirstChar(name.substring(3), simplePropertyProcessing));
-        } else if (name.startsWith(ImplicitPropertyUtil.IS) &&
-            (name.length() > ImplicitPropertyUtil.IS.length()) &&
-            (returnTypeName.equals("boolean") || returnTypeName.equals("java.lang.Boolean"))) {
-          return new ImplicitPropertyUtil.ImplicitPropertyInfo(false, true, ImplicitPropertyUtil.capitalizeFirstChar(name.substring(2), simplePropertyProcessing));
+      if( argCount == 0 && !returnTypeName.equals( "void" ) )
+      {
+        if( isGetterName( name, ImplicitPropertyUtil.GET, simplePropertyProcessing ) )
+        {
+          return new ImplicitPropertyUtil.ImplicitPropertyInfo( false, true, ImplicitPropertyUtil.capitalizeFirstChar( name.substring( 3 ), simplePropertyProcessing ) );
         }
-      } else if (argCount == 1) {
-        if (returnTypeName.equals("void") && name.startsWith(ImplicitPropertyUtil.SET) && (name.length() > ImplicitPropertyUtil.SET.length())) {
-          return new ImplicitPropertyUtil.ImplicitPropertyInfo(true, false, ImplicitPropertyUtil.capitalizeFirstChar(name.substring(3), simplePropertyProcessing));
+        else if( isGetterName( name, ImplicitPropertyUtil.IS, simplePropertyProcessing) &&
+                 (returnTypeName.equals( "boolean" ) || returnTypeName.equals( "java.lang.Boolean" )) )
+        {
+          return new ImplicitPropertyUtil.ImplicitPropertyInfo( false, true, ImplicitPropertyUtil.capitalizeFirstChar( name.substring( 2 ), simplePropertyProcessing ) );
+        }
+      }
+      else if( argCount == 1 )
+      {
+        if( isSetterName( returnTypeName, name, simplePropertyProcessing ) )
+        {
+          return new ImplicitPropertyUtil.ImplicitPropertyInfo( true, false, ImplicitPropertyUtil.capitalizeFirstChar( name.substring( 3 ), simplePropertyProcessing ) );
         }
       }
     }
     return null;
+  }
+
+  private static boolean isSetterName( String returnTypeName, String name, boolean simplePropertyProcessing )
+  {
+    if( !returnTypeName.equals( "void" ) || !name.startsWith( ImplicitPropertyUtil.SET ) || name.length() <= ImplicitPropertyUtil.SET.length() )
+    {
+      return false;
+    }
+
+    if( simplePropertyProcessing )
+    {
+      return true;
+    }
+    
+    char firstChar = name.charAt( ImplicitPropertyUtil.SET.length() );
+    return firstChar == Character.toUpperCase( firstChar );
+  }
+
+  private static boolean isGetterName( String name, String prefix, boolean simplePropertyProcessing )
+  {
+    if( !name.startsWith( prefix ) || name.length() <= prefix.length() )
+    {
+      return false;
+    }
+
+    if( simplePropertyProcessing ) 
+    {
+      return true;
+    }
+    
+    char firstChar = name.charAt( prefix.length() );
+    return firstChar == Character.toUpperCase( firstChar );
   }
 
   public static IJavaClassType resolveInnerClass(IJavaClassInfo rootType, String innerName, IJavaClassInfo whosAskin) {

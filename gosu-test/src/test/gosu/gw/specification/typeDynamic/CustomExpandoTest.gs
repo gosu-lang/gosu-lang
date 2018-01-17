@@ -34,7 +34,7 @@ class CustomExpandoTest extends gw.BaseVerifyErrantTest {
       put( field, value )
     }
 
-    override function setDefaultFieldValue( name: String ) {
+    override property set DefaultFieldValue( name: String ) {
       setFieldValue( name, new CustomExpando() );
     }
 

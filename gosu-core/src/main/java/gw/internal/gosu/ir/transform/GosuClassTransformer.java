@@ -34,6 +34,7 @@ import gw.internal.gosu.parser.MemberFieldSymbol;
 import gw.internal.gosu.parser.ParameterizedDynamicFunctionSymbol;
 import gw.internal.gosu.parser.ProgramExecuteFunctionSymbol;
 import gw.internal.gosu.parser.RepeatableContainerAnnotationInfo;
+import gw.internal.gosu.parser.Statement;
 import gw.internal.gosu.parser.Symbol;
 import gw.internal.gosu.parser.TemplateRenderFunctionSymbol;
 import gw.internal.gosu.parser.ThisConstructorFunctionSymbol;
@@ -43,7 +44,9 @@ import gw.internal.gosu.parser.expressions.MethodCallExpression;
 import gw.internal.gosu.parser.java.classinfo.CompileTimeExpressionParser;
 import gw.internal.gosu.parser.statements.ClassStatement;
 import gw.internal.gosu.parser.statements.ConstructorStatement;
+import gw.internal.gosu.parser.statements.FunctionStatement;
 import gw.internal.gosu.parser.statements.MethodCallStatement;
+import gw.internal.gosu.parser.statements.ReturnStatement;
 import gw.internal.gosu.parser.statements.VarStatement;
 import gw.internal.gosu.runtime.GosuRuntimeMethods;
 import gw.lang.Gosu;
@@ -76,6 +79,7 @@ import gw.lang.parser.Keyword;
 import gw.lang.parser.expressions.IVarStatement;
 import gw.lang.parser.statements.IFunctionStatement;
 import gw.lang.reflect.IAnnotationInfo;
+import gw.lang.reflect.IFunctionType;
 import gw.lang.reflect.IMethodInfo;
 import gw.lang.reflect.IModifierInfo;
 import gw.lang.reflect.IParameterInfo;
@@ -1138,13 +1142,23 @@ public class GosuClassTransformer extends AbstractElementTransformer<ClassStatem
     {
       return superDfs;
     }
-    MethodList methods = gosuSuperType.getTypeInfo().getMethods( gsClass );
+    DynamicFunctionSymbol directSuperDfs = dfs.getSuperDfs();
+    if( directSuperDfs != null )
+    {
+      superDfs = gosuSuperType.getParseInfo().getMemberFunctions().get( directSuperDfs.getName() );
+      if( superDfs != null )
+      {
+        return superDfs;
+      }
+    }
+
+    List<? extends IMethodInfo> methods = gosuSuperType.getTypeInfo().getMethods( gsClass ).getMethods( dfs.getDisplayName() );
     for( IMethodInfo mi: methods )
     {
       if( mi instanceof IGosuMethodInfo )
       {
         IReducedDynamicFunctionSymbol csr = ((IGosuMethodInfo)mi).getDfs();
-        if( csr.getName().equals( dfs.getName() ) )
+        if( csr.getName().equals( dfs.getName() ) ) //|| isPropertyMethodOverride( csr, dfs ) )
         {
           if( csr.getBackingDfs() != null )
           {

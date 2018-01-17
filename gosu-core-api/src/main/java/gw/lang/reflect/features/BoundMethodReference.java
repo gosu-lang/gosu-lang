@@ -58,7 +58,7 @@ public class BoundMethodReference<R, T> extends FeatureReference<R, T> implement
 
   @PublishedName("invoke")
   @Override
-  public T getinvoke()
+  public T getInvoke()
   {
     return toBlock();
   }

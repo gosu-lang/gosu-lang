@@ -30,7 +30,7 @@ import gw.util.ILogger;
  */
 public class Cache<K, V> {
 
-  private ConcurrentLinkedHashMap<K, V> _cacheImlp;
+  private ConcurrentLinkedHashMap<K, V> _cacheImpl;
   private final MissHandler<K,V> _missHandler;
   private final String _name;
   private final int _size;
@@ -56,7 +56,7 @@ public class Cache<K, V> {
   }
 
   private void clearCacheImpl() {
-    _cacheImlp = new ConcurrentLinkedHashMap<K,V>(ConcurrentLinkedHashMap.EvictionPolicy.SECOND_CHANCE, _size);
+    _cacheImpl = new ConcurrentLinkedHashMap<K,V>(ConcurrentLinkedHashMap.EvictionPolicy.SECOND_CHANCE, _size);
   }
 
   /** This will evict a specific key from the cache.
@@ -65,7 +65,7 @@ public class Cache<K, V> {
    * @return the current value for that key
    */
   public V evict(K key) {
-    return _cacheImlp.remove(key);
+    return _cacheImpl.remove(key);
   }
 
   /** This will put a specific entry in the cache
@@ -75,7 +75,7 @@ public class Cache<K, V> {
    * @return the old value for this key
    */
   public V put(K key, V value) {
-    return _cacheImlp.put(key, value);
+    return _cacheImpl.put(key, value);
   }
 
   /** This will get a specific entry, it will call the missHandler if it is not found.
@@ -84,11 +84,11 @@ public class Cache<K, V> {
    * @return the found object (may be null)
    */
   public V get(K key) {
-    V value = _cacheImlp.get(key);
+    V value = _cacheImpl.get(key);
     _requests.incrementAndGet();
     if (value == null) {
       value = _missHandler.load(key);
-      _cacheImlp.put(key, value);
+      _cacheImpl.put(key, value);
       _misses.incrementAndGet();
     } else {
       _hits.incrementAndGet();
@@ -101,7 +101,7 @@ public class Cache<K, V> {
   }
 
   public int getUtilizedSize() {
-    return _cacheImlp.size();
+    return _cacheImpl.size();
   }
 
   public int getRequests() {

@@ -71,13 +71,13 @@ class BlockRecursiveCaptureTest extends TestClass {
     
     var _str  : String
     
-    override function setIt( s : String ) {
+    override property set It( s : String ) {
       _str = s
     }
 
     construct( blk() : String ) {
       var blk2 = \-> {
-        setIt( blk() ) 
+        It = blk() 
       }
       blk2()
     }
@@ -95,7 +95,7 @@ class BlockRecursiveCaptureTest extends TestClass {
   static class CallsMethodInClassFromBlockExtendsJavaClass extends SampleSuperClass {    
     construct( blk() : String ) {
       var blk2 = \-> {
-        setIt( blk() ) 
+        It = blk()
       }
       blk2()
     }

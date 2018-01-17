@@ -9,14 +9,14 @@ import gw.util.GosuExceptionUtil;
 
 public class PropertyAccessIdentifier extends Identifier implements IPropertyAccessIdentifier
 {
-  private final Identifier e;
+  private final Identifier _identifier;
 
-  public PropertyAccessIdentifier( Identifier e )
+  public PropertyAccessIdentifier( Identifier identifier )
   {
-    this.e = e;
+    _identifier = identifier;
     //copy warnings and errors over
-    this.addParseExceptions( e.getParseExceptions() );
-    this.addParseWarnings( e.getParseWarnings() );
+    addParseExceptions( identifier.getParseExceptions() );
+    addParseWarnings( identifier.getParseWarnings() );
   }
 
   @Override
@@ -38,6 +38,6 @@ public class PropertyAccessIdentifier extends Identifier implements IPropertyAcc
   }
 
   public Identifier getWrappedIdentifier() {
-    return e;
+    return _identifier;
   }
 }

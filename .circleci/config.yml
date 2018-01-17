@@ -1,0 +1,37 @@
+version: 2
+jobs:
+  build:
+    environment:
+      TZ: "/usr/share/zoneinfo/America/Los_Angeles"
+      TERM: dumb
+      MAVEN_OPTS: "-Xmx1024m"
+    docker:
+      - image: circleci/java:8
+    branches:
+      ignore:
+        - /rel\/.*/
+    steps:
+      - checkout
+      - restore_cache:
+          key: v1-test-{{ checksum "gosu-parent/pom.xml" }}
+      - run:
+          name: Run tests
+          command: mvn test -B
+      - run:
+          name: Save test results
+          command: |
+            mkdir -p ~/junit/
+            find . -type f -regex ".*/target/surefire-reports/.*xml" -exec cp {} ~/junit/ \;
+            find . -type f -regex ".*/target/surefire-reports/.*-output.txt" -exec cp {} ~/junit/ \;
+          when: always
+      - deploy:
+          name: Deploy artifacts
+          command: ./.circleci/deploy_snapshot.sh
+      - store_artifacts:
+          path: ~/junit
+      - store_test_results:
+          path: ~/junit
+      - save_cache:
+          key: v1-test-{{ checksum "gosu-parent/pom.xml" }}
+          paths:
+            - ~/.m2

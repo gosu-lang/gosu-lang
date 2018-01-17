@@ -141,6 +141,7 @@ public class ReducedSymbol implements IReducedSymbol {
     _type = type;
   }
 
+
   public IScriptPartId getScriptPart() {
     return _scriptPartId;
   }

@@ -1,5 +1,4 @@
 package gw.util.science
-uses gw.util.Rational
 
 interface IUnit<B extends Number & Comparable, 
                 D extends IDimension<D, B>, 

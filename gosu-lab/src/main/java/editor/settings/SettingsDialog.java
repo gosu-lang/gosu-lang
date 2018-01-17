@@ -101,10 +101,14 @@ public class SettingsDialog extends JDialog implements IHandleCancel
     _modifiedSettings.forEach( e -> {
       Pair<ISettingsParameters, JComponent> pair = _mapSettings.get( e );
       //noinspection unchecked
-      e.setParams( pair.getFirst() );
+      e.setParams( pair.getFirst(), true );
     });
     _experiment.setMruSettings( _mruSettings );
+
+    // Save Experiment-specific settings
     _experiment.save();
+
+    // Save Gosu Lab application-level settings
     LabFrame.saveSettings();
   }
 

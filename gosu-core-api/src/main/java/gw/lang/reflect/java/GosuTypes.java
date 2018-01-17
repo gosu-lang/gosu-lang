@@ -5,6 +5,7 @@
 package gw.lang.reflect.java;
 
 import gw.lang.reflect.FunctionType;
+import gw.lang.reflect.IDynamicType;
 import gw.lang.reflect.IFunctionType;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.TypeSystem;
@@ -54,6 +55,10 @@ public class GosuTypes {
 
   public static IType BINDER_SEPARATORS() {
     return getType( "gw.lang.BinderSeparators" );
+  }
+
+  public static IType DYNAMIC() {
+    return getType( IDynamicType.QNAME );
   }
 
   public static IFunctionType DEF_CTOR_TYPE() {

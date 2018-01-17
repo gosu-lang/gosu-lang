@@ -202,7 +202,8 @@ public class JavaParser implements IJavaParser
 
     try
     {
-      JavaFileObject fileObj = _gfm.getJavaFileForInput( StandardLocation.SOURCE_PATH, fqn, JavaFileObject.Kind.SOURCE );
+      String fileFqn = getSourceFileFqn( fqn );
+      JavaFileObject fileObj = _gfm.getJavaFileForInput( StandardLocation.SOURCE_PATH, fileFqn, JavaFileObject.Kind.SOURCE );
       if( fileObj == null )
       {
         int iDot = fqn.lastIndexOf( '.' );
@@ -222,6 +223,17 @@ public class JavaParser implements IJavaParser
     {
       throw new RuntimeException( e );
     }
+  }
+
+  private String getSourceFileFqn( String fqn )
+  {
+    String fileFqn = fqn;
+    int i$ = fqn.indexOf( '$' );
+    if( i$ > 0 )
+    {
+      fileFqn = fqn.substring( 0, i$ );
+    }
+    return fileFqn;
   }
 
   @Override

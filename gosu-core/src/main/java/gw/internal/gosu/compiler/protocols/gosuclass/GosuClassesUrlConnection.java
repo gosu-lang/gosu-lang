@@ -85,7 +85,7 @@ public class GosuClassesUrlConnection extends URLConnection {
         String strType = strClass.replace( '/', '.' );
         int iIndexClass = strType.lastIndexOf( ".class" );
         if( iIndexClass > 0 ) {
-          strType = strType.substring( 0, iIndexClass ).replace( '$', '.' );
+          strType = strType.substring( 0, iIndexClass );
           maybeAssignGosuType( findClassLoader( getURL().getHost() ), strType );
         }
         else if( strPath.endsWith( "/" ) ) {
@@ -124,7 +124,8 @@ public class GosuClassesUrlConnection extends URLConnection {
       IType type;
       TypeSystem.pushModule( global );
       try {
-        type = TypeSystem.getByFullNameIfValidNoJava( strType );
+        String gosuType = strType.replace( '$', '.' ); // gosu does not use '$' for inner class delimiter
+        type = TypeSystem.getByFullNameIfValidNoJava( gosuType );
         if( ILanguageLevel.Util.STANDARD_GOSU() && (type == null || type instanceof IJavaType) ) {
           // If there were a class file for the Java type on disk, it would have loaded by now (the gosuclass protocol is last).
           // Therefore we compile and load the java class from the Java source file, eventually a JavaType based on the resulting class

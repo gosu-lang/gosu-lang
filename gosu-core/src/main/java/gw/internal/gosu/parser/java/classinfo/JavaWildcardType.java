@@ -120,4 +120,14 @@ public class JavaWildcardType implements IJavaClassWildcardType {
   {
     return _ownerType;
   }
+
+  @Override
+  public boolean isArray() {
+    return false;
+  }
+
+  @Override
+  public IJavaClassType getComponentType() {
+    return null;
+  }
 }

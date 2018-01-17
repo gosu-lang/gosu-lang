@@ -43,6 +43,12 @@ public class IRPropertyFromPropertyInfo extends IRFeatureBase implements IRPrope
   }
 
   @Override
+  public IRType getAssignableType()
+  {
+    return getAssignablePropertyIRType( _terminalProperty );
+  }
+
+  @Override
   public String getName() {
     if( _terminalProperty.getClass() == JavaFieldPropertyInfo.class ) {
       return ((JavaFieldPropertyInfo)_terminalProperty).getField().getName();
@@ -171,7 +177,7 @@ public class IRPropertyFromPropertyInfo extends IRFeatureBase implements IRPrope
             _terminalProperty instanceof IGosuVarPropertyInfo;
   }
 
-  public IRType getPropertyIRType( IPropertyInfo pi )
+  private IRType getPropertyIRType( IPropertyInfo pi )
   {
     if( pi instanceof IJavaPropertyInfo )
     {
@@ -204,7 +210,7 @@ public class IRPropertyFromPropertyInfo extends IRFeatureBase implements IRPrope
     return IRTypeResolver.getDescriptor( pi.getFeatureType() );
   }
 
-  public IRType getBoundedPropertyType( IReducedDynamicPropertySymbol dps )
+  private IRType getBoundedPropertyType( IReducedDynamicPropertySymbol dps )
   {
     while( dps instanceof ReducedParameterizedDynamicPropertySymbol)
     {
@@ -223,10 +229,60 @@ public class IRPropertyFromPropertyInfo extends IRFeatureBase implements IRPrope
   private IRType getBoundedReturnTypeFromProxiedClass( IReducedDynamicPropertySymbol dps )
   {
     IJavaPropertyDescriptor pd = getJavaPropertyFromProxy( dps );
-    IJavaClassInfo type = pd.getReadMethod() != null
-                          ? pd.getReadMethod().getReturnClassInfo()
-                          : pd.getPropertyClassInfo();
-    return JavaClassIRType.get( type );
+    IType type = pd.getReadMethod() != null
+                 ? pd.getReadMethod().getReturnType()
+                 : pd.getPropertyType();
+    return IRTypeResolver.getDescriptor( type );
+  }
+
+  private IRType getAssignablePropertyIRType( IPropertyInfo pi )
+  {
+    if( pi instanceof IJavaPropertyInfo )
+    {
+      // We have to get the owner type from the method because it may be different from the owning type e.g., entity aspects see ContactGosuAspect.AllAdresses
+      IJavaPropertyDescriptor descriptor = ((IJavaPropertyInfo)pi).getPropertyDescriptor();
+      IJavaClassMethod m = descriptor.getWriteMethod();
+      if( m != null )
+      {
+        return IRTypeResolver.getDescriptor( m.getParameterTypes()[0] );
+      }
+    }
+    else if( pi instanceof IGosuPropertyInfo )
+    {
+      IReducedDynamicPropertySymbol dps = ((IGosuPropertyInfo)pi).getDps();
+      return getAssignableBoundedPropertyType( dps );
+    }
+    else if( pi instanceof IGosuVarPropertyInfo || pi instanceof IJavaFieldPropertyInfo )
+    {
+      return maybeReifyFieldType( pi.getOwnersType(), pi.getDisplayName(), pi.getAssignableFeatureType() );
+    }
+
+    return IRTypeResolver.getDescriptor( pi.getAssignableFeatureType() );
+  }
+
+  private IRType getAssignableBoundedPropertyType( IReducedDynamicPropertySymbol dps )
+  {
+    while( dps instanceof ReducedParameterizedDynamicPropertySymbol)
+    {
+      ReducedParameterizedDynamicPropertySymbol pdfs = (ReducedParameterizedDynamicPropertySymbol)dps;
+      dps = pdfs.getDelegate();
+    }
+
+    if( dps.getGosuClass() != null && IGosuClass.ProxyUtil.isProxy( dps.getGosuClass() ) )
+    {
+      return getBoundedAssignableTypeFromProxiedClass( dps );
+    }
+
+    return IRTypeResolver.getDescriptor( TypeLord.getDefaultParameterizedTypeWithTypeVars( dps.getAssignableType() ) );
+  }
+
+  private IRType getBoundedAssignableTypeFromProxiedClass( IReducedDynamicPropertySymbol dps )
+  {
+    IJavaPropertyDescriptor pd = getJavaPropertyFromProxy( dps );
+    IType type = pd.getWriteMethod() != null
+                 ? pd.getWriteMethod().getParameterTypes()[0].getJavaType()
+                 : pd.getPropertyType();
+    return IRTypeResolver.getDescriptor( type );
   }
 
   private IJavaPropertyDescriptor getJavaPropertyFromProxy( IReducedDynamicPropertySymbol dps )

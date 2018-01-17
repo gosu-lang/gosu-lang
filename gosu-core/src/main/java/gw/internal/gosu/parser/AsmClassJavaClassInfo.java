@@ -11,20 +11,18 @@ import gw.fs.IDirectory;
 import gw.fs.IFile;
 import gw.internal.gosu.parser.java.classinfo.AsmClassAnnotationInfo;
 import gw.internal.gosu.parser.java.classinfo.JavaArrayClassInfo;
+import gw.internal.gosu.parser.java.classinfo.PropertyDeriver;
 import gw.lang.reflect.java.JavaSourceElement;
 import gw.internal.gosu.parser.java.classinfo.JavaSourceMethodDescriptor;
-import gw.internal.gosu.parser.java.classinfo.JavaSourcePropertyDescriptor;
 import gw.internal.gosu.parser.java.classinfo.JavaSourceType;
 import gw.internal.gosu.parser.java.classinfo.JavaSourceUtil;
 import gw.lang.GosuShop;
-import gw.lang.SimplePropertyProcessing;
 import gw.lang.javadoc.IClassDocNode;
 import gw.lang.reflect.EnumValuePlaceholder;
 import gw.lang.reflect.IAnnotationInfo;
 import gw.lang.reflect.IEnumValue;
 import gw.lang.reflect.IScriptabilityModifier;
 import gw.lang.reflect.IType;
-import gw.lang.reflect.ImplicitPropertyUtil;
 import gw.lang.reflect.Modifier;
 import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.gs.ISourceFileHandle;
@@ -47,13 +45,11 @@ import gw.lang.reflect.java.asm.AsmInnerClassType;
 import gw.lang.reflect.java.asm.AsmMethod;
 import gw.lang.reflect.java.asm.AsmType;
 import gw.lang.reflect.module.IModule;
-import gw.util.GosuObjectUtil;
 import gw.util.concurrent.LocklessLazyVar;
 
 import java.lang.annotation.Annotation;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -311,144 +307,10 @@ public class AsmClassJavaClassInfo extends AsmTypeJavaClassType implements IAsmJ
   @Override
   public IJavaPropertyDescriptor[] getPropertyDescriptors() {
     if( _propertyDescriptors == null ) {
-      _propertyDescriptors = initPropertyDescriptors();
+      _propertyDescriptors = PropertyDeriver.initPropertyDescriptors( this );
     }
     return _propertyDescriptors;
   }
-
-  protected IJavaPropertyDescriptor[] initPropertyDescriptors() {
-    Map<String, IJavaClassMethod> getters = new HashMap<String, IJavaClassMethod>();
-    HashMap<String, List<IJavaClassMethod>> setters = new HashMap<String, List<IJavaClassMethod>>();
-    List<IJavaClassMethod> methods = new ArrayList<IJavaClassMethod>();
-    methods.addAll( Arrays.asList( getDeclaredMethods() ) );
-
-    boolean simplePropertyProcessing = getAnnotation(SimplePropertyProcessing.class) != null;
-    for( IJavaClassMethod method : methods ) {
-      ImplicitPropertyUtil.ImplicitPropertyInfo info = JavaSourceUtil.getImplicitProperty( method, simplePropertyProcessing );
-      if( info != null ) {
-        if( info.isGetter() && !getters.containsKey( info.getName() ) ) {
-          getters.put( info.getName(), method );
-        }
-        else if( info.isSetter() ) {
-          List<IJavaClassMethod> infoSetters = setters.get( info.getName() );
-          if( infoSetters == null ) {
-            infoSetters = new ArrayList<IJavaClassMethod>( 2 );
-          }
-          infoSetters.add( method );
-          setters.put( info.getName(), infoSetters );
-        }
-      }
-    }
-
-    List<IJavaPropertyDescriptor> propertyDescriptors = new ArrayList<IJavaPropertyDescriptor>();
-    for( Map.Entry<String, IJavaClassMethod> entry : getters.entrySet() ) {
-      String propName = entry.getKey();
-      List<IJavaClassMethod> infoSetters = setters.get( propName );
-      IJavaClassMethod getter = entry.getValue();
-      IJavaClassType getterType = getter == null ? null : getter.getGenericReturnType();
-      IJavaClassMethod theSetter = null;
-      if( infoSetters != null ) {
-        for( IJavaClassMethod setter : infoSetters ) {
-          if( setter != null ) {
-            setters.remove( propName );
-            if( getterType != null &&
-                (setter.getGenericParameterTypes()[0].equals( getterType ) ||
-                 GosuObjectUtil.equals( setter.getGenericParameterTypes()[0].getConcreteType(), getterType )) ) {
-              theSetter = setter;
-              break;
-            }
-          }
-        }
-      }
-      if( getterType != null ) {
-        if( theSetter == null ) {
-          theSetter = maybeFindSetterInSuper( getter, getSuperclass() );
-        }
-        propertyDescriptors.add( new JavaSourcePropertyDescriptor(
-          propName, (IJavaClassInfo)getterType.getConcreteType(), getter, theSetter ) );
-      }
-      else if( infoSetters != null ) {
-        for( IJavaClassMethod setter : infoSetters ) {
-          getter = maybeFindGetterInSuper( setter, getSuperclass() );
-          if( getter != null ) {
-            setters.remove( propName );
-            propertyDescriptors.add( new JavaSourcePropertyDescriptor(
-                    propName, (IJavaClassInfo)getterType.getConcreteType(), getter, setter ) );
-          }
-        }
-      }
-    }
-    for( Map.Entry<String, List<IJavaClassMethod>> entry : setters.entrySet() ) {
-      String propName = entry.getKey();
-      IJavaClassMethod setter = entry.getValue().get( 0 );
-      IJavaClassType propType = setter.getGenericReturnType();
-      IJavaClassMethod getter = maybeFindGetterInSuper( setter, getSuperclass() );
-      if( getter != null ) {
-        propType = getter.getGenericReturnType();
-      }
-      propertyDescriptors.add( new JavaSourcePropertyDescriptor( propName, (IJavaClassInfo)propType.getConcreteType(), getter, setter ) );
-    }
-    return propertyDescriptors.toArray( new IJavaPropertyDescriptor[propertyDescriptors.size()] );
-  }
-
-  public static IJavaClassMethod maybeFindSetterInSuper(IJavaClassMethod getter, IJavaClassInfo superClass ) {
-    if( superClass == null ) {
-      return null;
-    }
-    for( ;superClass != null; superClass = superClass.getSuperclass() ) {
-      for( IJavaPropertyDescriptor pd: superClass.getPropertyDescriptors() ) {
-        if( doesSetterDescMatchGetterMethod(getter, pd) ) {
-          return pd.getWriteMethod();
-        }
-      }
-    }
-    return null;
-  }
-
-  private static boolean doesSetterDescMatchGetterMethod(IJavaClassMethod getter, IJavaPropertyDescriptor pd) {
-    final IJavaClassType getterType = getter.getGenericReturnType();
-    if( getterType != null ) {
-      final IJavaClassMethod setter = pd.getWriteMethod();
-      if( setter != null &&
-          (setter.getGenericParameterTypes()[0].equals( getterType ) ||
-           GosuObjectUtil.equals( setter.getGenericParameterTypes()[0].getConcreteType(), getterType )) ) {
-        if( ("get" + pd.getName()).equals( getter.getName() ) || ("is" + pd.getName()).equals( getter.getName() ) ) {
-          return true;
-        }
-      }
-    }
-    return false;
-  }
-
-  private static boolean doesGetterDescMatchSetterMethod( IJavaClassMethod setter, IJavaPropertyDescriptor pd ) {
-    final IJavaClassType setterType = setter.getParameterTypes().length == 1 ? setter.getParameterTypes()[0] : null;
-    if( setterType != null ) {
-      final IJavaClassMethod getter = pd.getReadMethod();
-      if( getter != null &&
-          (getter.getGenericReturnType().equals( setterType ) ||
-           GosuObjectUtil.equals( getter.getGenericReturnType().getConcreteType(), setterType )) ) {
-        if( ("set" + pd.getName()).equals( setter.getName() ) ) {
-          return true;
-        }
-      }
-    }
-    return false;
-  }
-
-  public static IJavaClassMethod maybeFindGetterInSuper(IJavaClassMethod setter, IJavaClassInfo superClass ) {
-    if( superClass == null ) {
-      return null;
-    }
-    for( ; superClass != null; superClass = superClass.getSuperclass() ) {
-      for( IJavaPropertyDescriptor pd: superClass.getPropertyDescriptors() ) {
-        if( doesGetterDescMatchSetterMethod( setter, pd ) ) {
-          return pd.getReadMethod();
-        }
-      }
-    }
-    return null;
-  }
-
 
   @Override
   public IJavaMethodDescriptor[] getMethodDescriptors() {

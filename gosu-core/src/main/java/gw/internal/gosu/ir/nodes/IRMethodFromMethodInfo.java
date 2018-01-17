@@ -13,7 +13,6 @@ import gw.lang.reflect.IType;
 import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.IMethodInfoDelegate;
 import gw.lang.reflect.IMetaType;
-import gw.lang.reflect.ITypeVariableType;
 import gw.lang.reflect.IFunctionType;
 import gw.lang.reflect.gs.IGosuMethodInfo;
 import gw.lang.reflect.gs.IGosuClass;
@@ -326,7 +325,12 @@ public class IRMethodFromMethodInfo extends IRFeatureBase implements IRMethod {
       boundedDfsParams[i] = param;
     }
 
-    IJavaMethodInfo jmi = (IJavaMethodInfo)((IRelativeTypeInfo)javaType.getTypeInfo()).getMethod( javaType, dfs.getDisplayName(), boundedDfsParams );
+    String name = dfs.getDisplayName();
+    IJavaMethodInfo jmi = (IJavaMethodInfo)((IRelativeTypeInfo)javaType.getTypeInfo()).getMethod( javaType, name, boundedDfsParams );
+    if( jmi == null && name.startsWith( "@" ) && dfs.getArgs().size() == 1 )
+    {
+      jmi = (IJavaMethodInfo)((IRelativeTypeInfo)javaType.getTypeInfo()).getMethod( javaType, "set" + name.substring( 1 ), boundedDfsParams );
+    }
     return jmi.getMethod();
   }
 

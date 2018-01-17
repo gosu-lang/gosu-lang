@@ -7,17 +7,17 @@ package gw.internal.gosu.parser.java.classinfo;
 import gw.lang.Deprecated;
 import gw.lang.reflect.IScriptabilityModifier;
 import gw.lang.reflect.IType;
-import gw.lang.reflect.java.IJavaClassInfo;
 import gw.lang.reflect.java.IJavaClassMethod;
 import gw.lang.reflect.java.IJavaPropertyDescriptor;
 
 public class JavaSourcePropertyDescriptor implements IJavaPropertyDescriptor {
   private String _name;
-  private IJavaClassInfo _type;
+  private IType _type;
   private IJavaClassMethod _readMethod;
   private IJavaClassMethod _writeMethod;
+  private Boolean _deprecated;
 
-  public JavaSourcePropertyDescriptor(String propName, IJavaClassInfo type, IJavaClassMethod getter, IJavaClassMethod setter) {
+  public JavaSourcePropertyDescriptor(String propName, IType type, IJavaClassMethod getter, IJavaClassMethod setter) {
     _name = propName;
     _type = type;
     _readMethod = getter;
@@ -36,11 +36,6 @@ public class JavaSourcePropertyDescriptor implements IJavaPropertyDescriptor {
 
   @Override
   public IType getPropertyType() {
-    return _type.getJavaType();
-  }
-
-  @Override
-  public IJavaClassInfo getPropertyClassInfo() {
     return _type;
   }
 
@@ -61,8 +56,12 @@ public class JavaSourcePropertyDescriptor implements IJavaPropertyDescriptor {
 
   @Override
   public boolean isDeprecated() {
-    return (_readMethod != null && (_readMethod.isAnnotationPresent(Deprecated.class) || _readMethod.isAnnotationPresent(java.lang.Deprecated.class))) ||
-        (_writeMethod != null && (_writeMethod.isAnnotationPresent(Deprecated.class) || _writeMethod.isAnnotationPresent(java.lang.Deprecated.class)));
+    if( _deprecated == null )
+    {
+      _deprecated = (_readMethod != null &&  (_readMethod.isAnnotationPresent( Deprecated.class ) ||  _readMethod.isAnnotationPresent( java.lang.Deprecated.class ) )) ||
+                    (_writeMethod != null && (_writeMethod.isAnnotationPresent( Deprecated.class ) || _writeMethod.isAnnotationPresent( java.lang.Deprecated.class ) ));
+    }
+    return _deprecated;
   }
 
   @Override

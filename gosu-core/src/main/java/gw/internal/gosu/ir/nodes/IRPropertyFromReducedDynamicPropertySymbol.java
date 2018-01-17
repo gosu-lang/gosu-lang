@@ -8,7 +8,6 @@ import gw.internal.gosu.ir.transform.util.AccessibilityUtil;
 import gw.internal.gosu.ir.transform.util.IRTypeResolver;
 import gw.internal.gosu.parser.*;
 import gw.lang.ir.IRType;
-import gw.lang.parser.IDynamicPropertySymbol;
 import gw.lang.parser.IReducedDynamicPropertySymbol;
 import gw.lang.reflect.IRelativeTypeInfo;
 import gw.lang.reflect.IType;
@@ -28,6 +27,12 @@ public class IRPropertyFromReducedDynamicPropertySymbol implements IRProperty {
   @Override
   public IRType getType() {
     return IRTypeResolver.getDescriptor( getBoundedPropertyType(_rdps) );
+  }
+
+  @Override
+  public IRType getAssignableType()
+  {
+    return IRTypeResolver.getDescriptor( getAssignableBoundedPropertyType(_rdps) );
   }
 
   @Override
@@ -85,16 +90,6 @@ public class IRPropertyFromReducedDynamicPropertySymbol implements IRProperty {
     return true;
   }
 
-  public IType getBoundedPropertyType( IDynamicPropertySymbol dps )
-  {
-    while( dps instanceof ParameterizedDynamicPropertySymbol)
-    {
-      ParameterizedDynamicPropertySymbol pdfs = (ParameterizedDynamicPropertySymbol)dps;
-      dps = pdfs.getDelegate();
-    }
-    return TypeLord.getDefaultParameterizedTypeWithTypeVars( dps.getType() );
-  }
-
   public IType getBoundedPropertyType( IReducedDynamicPropertySymbol rdps )
   {
     while( rdps instanceof ReducedParameterizedDynamicPropertySymbol)
@@ -103,5 +98,15 @@ public class IRPropertyFromReducedDynamicPropertySymbol implements IRProperty {
       rdps = pdfs.getDelegate();
     }
     return TypeLord.getDefaultParameterizedTypeWithTypeVars( rdps.getType() );
+  }
+
+  public IType getAssignableBoundedPropertyType( IReducedDynamicPropertySymbol rdps )
+  {
+    while( rdps instanceof ReducedParameterizedDynamicPropertySymbol)
+    {
+      ReducedParameterizedDynamicPropertySymbol pdfs = (ReducedParameterizedDynamicPropertySymbol)rdps;
+      rdps = pdfs.getDelegate();
+    }
+    return TypeLord.getDefaultParameterizedTypeWithTypeVars( rdps.getAssignableType() );
   }
 }

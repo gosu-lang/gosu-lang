@@ -21,6 +21,7 @@ import gw.lang.reflect.IPropertyAccessor;
 import gw.lang.reflect.IRelativeTypeInfo;
 import gw.lang.reflect.IScriptabilityModifier;
 import gw.lang.reflect.IType;
+import gw.lang.reflect.ITypeInfo;
 import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.java.ClassInfoUtil;
 import gw.lang.reflect.java.IJavaAnnotatedElement;
@@ -30,6 +31,7 @@ import gw.lang.reflect.java.IJavaClassMethod;
 import gw.lang.reflect.java.IJavaMethodInfo;
 import gw.lang.reflect.java.IJavaPropertyDescriptor;
 import gw.lang.reflect.java.IJavaPropertyInfo;
+import gw.lang.reflect.java.JavaTypes;
 import gw.util.GosuExceptionUtil;
 import gw.util.GosuStringUtil;
 import gw.util.concurrent.LockingLazyVar;
@@ -44,6 +46,7 @@ public class JavaPropertyInfo extends JavaBaseFeatureInfo implements IJavaProper
 {
   private IJavaPropertyDescriptor _pd;
   private IType _propertyTypeWithTypeVars;
+  private IType _assignablePropertyTypeWithTypeVars;
   private IPropertyAccessor _accessor;
   private Boolean _bStatic;
   private boolean _bReadable;
@@ -192,6 +195,34 @@ public class JavaPropertyInfo extends JavaBaseFeatureInfo implements IJavaProper
 
     return _propertyTypeWithTypeVars = propType;
   }
+  
+  @Override
+  public IType getAssignableFeatureType()
+  {
+    if( _assignablePropertyTypeWithTypeVars != null )
+    {
+      return _assignablePropertyTypeWithTypeVars;
+    }
+    IType propType;
+    if( _setMethod != null )
+    {
+      propType = getTypeFromMethod( _setMethod );
+    }
+    else
+    {
+      propType = _pd.getPropertyType();
+    }
+
+    IJavaClassInfo declaringClass = getDeclaringClass();
+    if( declaringClass != null )
+    {
+      propType = ClassInfoUtil.getPublishedType( propType, declaringClass );
+    }
+
+    propType = TypeLord.replaceRawGenericTypesWithDefaultParameterizedTypes( propType );
+
+    return _assignablePropertyTypeWithTypeVars = propType;
+  }
 
   private IType getTypeFromMethod( IJavaClassMethod m )
   {
@@ -199,16 +230,25 @@ public class JavaPropertyInfo extends JavaBaseFeatureInfo implements IJavaProper
     TypeVarToTypeMap actualParamByVarName = TypeLord.mapTypeByVarName( getOwnersType(), declaringClass );
     actualParamByVarName = JavaMethodInfo.addEnclosingTypeParams( declaringClass, actualParamByVarName );
 
-    IType retType = ClassInfoUtil.getActualReturnType( m.getGenericReturnType(), actualParamByVarName, true );
-    if( TypeSystem.isDeleted( retType ) )
+    IType type;
+    if( m.getParameterTypes().length > 0 )
+    {
+      type = m.getGenericParameterTypes()[0].getActualType( actualParamByVarName, true );
+    }
+    else
+    {
+      type = ClassInfoUtil.getActualReturnType( m.getGenericReturnType(), actualParamByVarName, true );
+    }
+
+    if( TypeSystem.isDeleted( type ) )
     {
       return null;
     }
 
     //## barf
-    retType = ClassInfoUtil.getPublishedType( retType, m.getEnclosingClass() );
+    type = ClassInfoUtil.getPublishedType( type, m.getEnclosingClass() );
 
-    return retType;
+    return type;
   }
 
   private IJavaClassInfo getDeclaringClass() {
@@ -314,11 +354,22 @@ public class JavaPropertyInfo extends JavaBaseFeatureInfo implements IJavaProper
   {
     if( _bStatic == null )
     {
-      _bStatic = Boolean.FALSE;
       IJavaClassMethod getter = _pd.getReadMethod();
       if( getter != null && Modifier.isStatic( getter.getModifiers() ) )
       {
         _bStatic = Boolean.TRUE;
+      }
+      else
+      {
+        IJavaClassMethod setter = _pd.getWriteMethod();
+        if( setter != null && Modifier.isStatic( setter.getModifiers() ) )
+        {
+          _bStatic = Boolean.TRUE;
+        }
+        else
+        {
+          _bStatic = Boolean.FALSE;
+        }
       }
     }
     return _bStatic;
@@ -485,10 +536,12 @@ public class JavaPropertyInfo extends JavaBaseFeatureInfo implements IJavaProper
   @Override
   public IMethodInfo getReadMethodInfo() {
     IJavaClassMethod method = getPropertyDescriptor().getReadMethod();
-    if (method != null) {
-      return getOwnersType().getTypeInfo().getMethod(method.getName(), getTypesFromClasses(method.getParameterTypes()));
+    if( method != null ) {
+      ITypeInfo ti = getOwnersType().getTypeInfo();
+      return ti instanceof IRelativeTypeInfo
+             ? ((IRelativeTypeInfo)ti).getMethod( getOwnersType(), method.getName(), getTypesFromClasses( method.getParameterTypes() ) )
+             : ti.getMethod( method.getName(), getTypesFromClasses( method.getParameterTypes() ) );
     }
-
     return null;
   }
 
@@ -501,10 +554,12 @@ public class JavaPropertyInfo extends JavaBaseFeatureInfo implements IJavaProper
   @Override
   public IMethodInfo getWriteMethodInfo() {
     IJavaClassMethod method = getPropertyDescriptor().getWriteMethod();
-    if (method != null) {
-      return getOwnersType().getTypeInfo().getMethod(method.getName(), getTypesFromClasses(method.getParameterTypes()));
+    if( method != null ) {
+      ITypeInfo ti = getOwnersType().getTypeInfo();
+      return ti instanceof IRelativeTypeInfo
+             ? ((IRelativeTypeInfo)ti).getMethod( getOwnersType(), method.getName(), getTypesFromClasses( method.getParameterTypes() ) )
+             : ti.getMethod( method.getName(), getTypesFromClasses( method.getParameterTypes() ) );
     }
-
     return null;
   }
 

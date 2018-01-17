@@ -64,6 +64,9 @@ public class LabFrame extends JFrame implements IGosuEditor
   public LabFrame() throws HeadlessException
   {
     super( "Gosu Editor" );
+
+    makeCustomFrameDecorations();
+
     INSTANCE = this;
     configUI();
     setInitialSize();
@@ -113,6 +116,16 @@ public class LabFrame extends JFrame implements IGosuEditor
           }
         }
       });
+  }
+
+  private void makeCustomFrameDecorations()
+  {
+//    setUndecorated( true );
+//    getRootPane().setWindowDecorationStyle( JRootPane.FRAME );
+//
+//    setBackground( new Color( 0, 255, 0, 0 ) );
+//    getRootPane().setOpaque( false );
+//    getRootPane().setBorder( BorderFactory.createMatteBorder( 7, 7, 7, 7, new Color( 255, 0, 0, 120 ) ) );
   }
 
   public void exit()

@@ -298,8 +298,8 @@ public class JavaSourceMethod extends JavaSourceElement implements IJavaClassMet
 
   @Override
   public int hashCode() {
-    int result = Arrays.hashCode( _parameterTypes );
-    result = 31 * result + _returnType.hashCode();
+    int result = Arrays.hashCode( getParameterTypes() );
+    result = 31 * result + getReturnType().hashCode();
     result = 31 * result + getName().hashCode();
     return result;
   }
