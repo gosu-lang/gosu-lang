@@ -28,7 +28,7 @@ import gw.lang.reflect.gs.IGenericTypeVariable;
 import gw.lang.reflect.gs.IGosuClass;
 import gw.lang.reflect.gs.IGosuEnhancement;
 import gw.lang.reflect.java.JavaTypes;
-import java.lang.reflect.Array;
+import gw.util.Array;
 import java.lang.reflect.Modifier;
 import java.util.Arrays;
 import java.util.Collection;

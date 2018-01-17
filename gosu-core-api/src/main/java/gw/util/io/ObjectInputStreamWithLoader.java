@@ -8,7 +8,7 @@ import java.io.ObjectInputStream;
 import java.io.InputStream;
 import java.io.IOException;
 import java.io.ObjectStreamClass;
-import java.lang.reflect.Array;
+import gw.util.Array;
 
 public class ObjectInputStreamWithLoader extends ObjectInputStream
 {

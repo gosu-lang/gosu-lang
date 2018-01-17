@@ -4,7 +4,7 @@
 
 package gw.internal.gosu.compiler;
 
-import java.lang.reflect.Array;
+import gw.util.Array;
 
 /**
  */

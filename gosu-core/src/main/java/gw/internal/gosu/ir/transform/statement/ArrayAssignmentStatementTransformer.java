@@ -20,7 +20,7 @@ import gw.lang.reflect.IPlaceholder;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.java.JavaTypes;
 
-import java.lang.reflect.Array;
+import gw.util.Array;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;

@@ -6,7 +6,7 @@ package gw.util.perf.objectsize;
 
 import gw.util.perf.InvocationCounter;
 
-import java.lang.reflect.Array;
+import gw.util.Array;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;

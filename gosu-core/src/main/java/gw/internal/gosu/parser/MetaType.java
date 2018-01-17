@@ -11,7 +11,7 @@ import gw.lang.reflect.java.JavaTypes;
 import gw.util.concurrent.LockingLazyVar;
 
 import java.io.ObjectStreamException;
-import java.lang.reflect.Array;
+import gw.util.Array;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;

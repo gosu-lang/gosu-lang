@@ -34,7 +34,7 @@ import gw.util.concurrent.LocklessLazyVar;
 import java.beans.BeanDescriptor;
 import java.beans.PropertyDescriptor;
 import java.lang.annotation.Annotation;
-import java.lang.reflect.Array;
+import gw.util.Array;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;

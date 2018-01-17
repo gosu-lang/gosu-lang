@@ -8,7 +8,7 @@ import gw.util.GosuObjectUtil;
 import gw.util.GosuStringUtil;
 import junit.framework.TestCase;
 
-import java.lang.reflect.Array;
+import gw.util.Array;
 import java.util.*;
 
 public abstract class AssertUtil extends TestCase implements ITestWithMetadata {

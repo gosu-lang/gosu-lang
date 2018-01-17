@@ -7,7 +7,7 @@ package gw.lang.ir;
 import gw.lang.UnstableAPI;
 import gw.lang.reflect.IType;
 
-import java.lang.reflect.Array;
+import gw.util.Array;
 
 @UnstableAPI
 public class SyntheticIRArrayType implements IRType {

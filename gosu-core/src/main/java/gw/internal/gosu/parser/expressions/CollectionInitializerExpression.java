@@ -6,7 +6,7 @@ package gw.internal.gosu.parser.expressions;
 
 import gw.internal.gosu.parser.Expression;
 
-import java.lang.reflect.Array;
+import gw.util.Array;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.ArrayList;

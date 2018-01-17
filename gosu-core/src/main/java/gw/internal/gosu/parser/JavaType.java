@@ -38,7 +38,7 @@ import gw.util.perf.objectsize.UnmodifiableArraySet;
 import java.beans.MethodDescriptor;
 import java.io.InvalidClassException;
 import java.io.ObjectStreamException;
-import java.lang.reflect.Array;
+import gw.util.Array;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;

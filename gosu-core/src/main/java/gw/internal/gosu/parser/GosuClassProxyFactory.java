@@ -33,7 +33,7 @@ import gw.lang.reflect.java.JavaTypes;
 import gw.lang.reflect.module.IModule;
 
 import gw.util.GosuClassUtil;
-import java.lang.reflect.Array;
+import gw.util.Array;
 import java.util.List;
 
 /**

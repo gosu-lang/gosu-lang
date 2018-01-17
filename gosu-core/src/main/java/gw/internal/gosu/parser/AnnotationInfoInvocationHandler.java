@@ -5,7 +5,7 @@ import gw.lang.reflect.IHasJavaClass;
 import gw.lang.reflect.IType;
 
 import java.lang.annotation.Annotation;
-import java.lang.reflect.Array;
+import gw.util.Array;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.util.Arrays;

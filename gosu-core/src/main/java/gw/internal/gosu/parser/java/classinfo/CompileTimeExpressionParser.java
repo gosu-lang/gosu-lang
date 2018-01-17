@@ -27,7 +27,7 @@ import gw.lang.reflect.java.IJavaClassInfo;
 import gw.util.GosuExceptionUtil;
 
 import java.lang.annotation.Annotation;
-import java.lang.reflect.Array;
+import gw.util.Array;
 import java.lang.reflect.Modifier;
 import java.util.Collections;
 import java.util.List;

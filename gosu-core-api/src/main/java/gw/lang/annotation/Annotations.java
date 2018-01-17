@@ -8,7 +8,7 @@ import gw.lang.reflect.TypeSystem;
 import gw.util.SpaceEfficientHashMap;
 
 import java.lang.annotation.Annotation;
-import java.lang.reflect.Array;
+import gw.util.Array;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;

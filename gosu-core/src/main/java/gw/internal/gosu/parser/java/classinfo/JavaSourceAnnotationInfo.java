@@ -20,7 +20,7 @@ import gw.lang.reflect.java.IJavaClassInfo;
 import gw.lang.reflect.java.IJavaClassMethod;
 import gw.lang.reflect.module.IModule;
 
-import java.lang.reflect.Array;
+import gw.util.Array;
 import java.util.List;
 
 public class JavaSourceAnnotationInfo implements IAnnotationInfo {
