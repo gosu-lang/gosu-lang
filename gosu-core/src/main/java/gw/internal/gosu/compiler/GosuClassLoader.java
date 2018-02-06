@@ -132,23 +132,25 @@ public class GosuClassLoader implements IGosuClassLoader
   @Override
   public Class loadClass( String strName ) throws ClassNotFoundException
   {
+    String strGsName = strName.replace( '$', '.' );
+    //## hack:
+    if (strGsName.startsWith("com.guidewire.commons.metadata.proxy._generated.iface.")) {
+      strGsName = "entity." + strGsName.substring(strName.lastIndexOf('.') + 1);
+    }
+
+    IType type = TypeSystem.getByFullNameIfValid( strGsName );
+    if( type instanceof IGosuClassInternal )
+    {
+      return ((IGosuClassInternal)type).getBackingClass();
+    }
+    else if( type instanceof IJavaBackedType )
+    {
+      return ((IJavaBackedType)type).getBackingClass();
+    }
+
     TypeSystemLockHelper.getTypeSystemLockWithMonitor(_loader);
     try
     {
-      String strGsName = strName.replace( '$', '.' );
-      //## hack:
-      if (strGsName.startsWith("com.guidewire.commons.metadata.proxy._generated.iface.")) {
-        strGsName = "entity." + strGsName.substring(strName.lastIndexOf('.') + 1);
-      }
-      IType type = TypeSystem.getByFullNameIfValid( strGsName );
-      if( type instanceof IGosuClassInternal )
-      {
-        return ((IGosuClassInternal)type).getBackingClass();
-      }
-      else if( type instanceof IJavaBackedType )
-      {
-        return ((IJavaBackedType)type).getBackingClass();
-      }
       return _loader.loadClass( strName );
     }
     finally
