@@ -1,14 +1,13 @@
 package editor.plugin.typeloader.java;
 
 import editor.EditorHost;
-import gw.lang.javac.JavaIssueContainer;
-import gw.lang.IIssueContainer;
 import editor.plugin.typeloader.INewFileParams;
 import editor.plugin.typeloader.ITypeFactory;
-import gw.lang.javac.IJavaParser;
-import gw.lang.javac.StringJavaFileObject;
+import manifold.internal.javac.IIssueContainer;
+import manifold.internal.javac.IJavaParser;
 import gw.lang.parser.GosuParserFactory;
 import gw.lang.reflect.IType;
+import gw.lang.reflect.gs.ISourceFileHandle;
 import gw.lang.reflect.java.IJavaClassInfo;
 import gw.lang.reflect.java.IJavaType;
 import java.awt.EventQueue;
@@ -16,6 +15,8 @@ import java.util.Arrays;
 import javax.swing.JComponent;
 import javax.tools.DiagnosticCollector;
 import javax.tools.JavaFileObject;
+import manifold.internal.javac.JavaIssueContainer;
+import manifold.internal.javac.StringJavaFileObject;
 
 /**
  */
@@ -81,9 +82,9 @@ public class JavaTypeFactory implements ITypeFactory
   public void parse( IType type, String strText, boolean forceCodeCompletion, boolean changed, EditorHost editor )
   {
     DiagnosticCollector<JavaFileObject> errorHandler = new DiagnosticCollector<>();
-    IJavaParser javaParser = GosuParserFactory.getInterface( IJavaParser.class );
+    IJavaParser javaParser = GosuParserFactory.getInterface( IJavaParser.class ).get( 0 );
     StringJavaFileObject fileObj = new StringJavaFileObject( type.getName(), strText );
-    javaParser.compile( fileObj, type.getName(), Arrays.asList( "-g", "-Xlint:unchecked", "-parameters" ), errorHandler );
+    javaParser.compile( fileObj, type.getName(), Arrays.asList( "-g", "-proc:none", "-Xlint:unchecked", "-parameters" ), errorHandler );
     EventQueue.invokeLater(
       () ->
       {
@@ -121,5 +122,16 @@ public class JavaTypeFactory implements ITypeFactory
   public IIssueContainer getIssueContainer( EditorHost editor )
   {
     return new JavaIssueContainer( ((JavaDocument)editor.getDocument()).getErrorHandler() );
+  }
+
+  @Override
+  public boolean handlesType( IType type )
+  {
+    if( type instanceof IJavaType )
+    {
+      ISourceFileHandle sfh = ((IJavaType)type).getSourceFileHandle();
+      return sfh != null && (sfh.getTypeManifolds() == null || sfh.getTypeManifolds().isEmpty());
+    }
+    return false;
   }
 }

@@ -4,7 +4,7 @@
 
 package gw.lang.reflect.module;
 
-import gw.fs.IResource;
+import manifold.api.fs.IResource;
 import gw.internal.gosu.parser.TypeSystemState;
 import gw.lang.UnstableAPI;
 

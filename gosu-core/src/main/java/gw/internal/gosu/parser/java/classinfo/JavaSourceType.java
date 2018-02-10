@@ -25,9 +25,7 @@ import gw.config.ExecutionMode;
 import gw.internal.gosu.parser.TypeUsesMap;
 import gw.internal.gosu.parser.java.compiler.JavaStubGenerator;
 import gw.lang.GosuShop;
-import gw.lang.javac.ClassJavaFileObject;
-import gw.lang.javac.IJavaParser;
-import gw.lang.javac.JavaCompileIssuesException;
+import manifold.internal.javac.IJavaParser;
 import gw.lang.javadoc.IClassDocNode;
 import gw.lang.parser.GosuParserFactory;
 import gw.lang.parser.TypeVarToTypeMap;
@@ -63,7 +61,6 @@ import gw.util.GosuExceptionUtil;
 import java.lang.annotation.Annotation;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -71,6 +68,9 @@ import java.util.Map;
 import java.util.Set;
 import javax.tools.DiagnosticCollector;
 import javax.tools.JavaFileObject;
+import manifold.internal.javac.InMemoryClassJavaFileObject;
+import manifold.internal.javac.JavaCompileIssuesException;
+import manifold.internal.javac.JavaParser;
 
 public abstract class JavaSourceType extends AbstractJavaClassInfo implements ITypeInfoResolver
 {
@@ -190,7 +190,7 @@ public abstract class JavaSourceType extends AbstractJavaClassInfo implements IT
 
   private static boolean parseJavaFile( ISourceFileHandle src, List<CompilationUnitTree> trees, SourcePositions[] sourcePositions, DiagnosticCollector<JavaFileObject> errorHandler, DocTrees[] docTrees )
   {
-    IJavaParser javaParser = GosuParserFactory.getInterface( IJavaParser.class );
+    IJavaParser javaParser = GosuParserFactory.getInterface( IJavaParser.class ).get( 0 );
     return javaParser.parseText( src.getSource().getSource().replace( "\r\n", "\n" ), trees, sp -> sourcePositions[0] = sp, dc -> {if( docTrees != null ) docTrees[0] = dc;}, errorHandler );
   }
 
@@ -1174,16 +1174,20 @@ public abstract class JavaSourceType extends AbstractJavaClassInfo implements IT
 
   private IJavaClassInfo getClassInfo( String fqn )
   {
-    IJavaClassInfo classInfo = JavaSourceUtil.getClassInfo( fqn, _gosuModule );
-    if( classInfo != null )
+    IType type = TypeSystem.getByFullNameIfValid( fqn );
+    if( type instanceof IJavaType )
     {
-      return classInfo;
+      IJavaClassInfo classInfo = JavaSourceUtil.getClassInfo( fqn, _gosuModule );
+      if( classInfo != null )
+      {
+        return classInfo;
+      }
     }
 
     return maybeLoadJavaStubIfGosuType( fqn );
   }
 
-  // Java can reference Gosu directly from source and visa versa, therefore we must handle the case were
+  // Java can reference Gosu directly from source and visa versa, therefore we must handle the case where
   // a Gosu class references a Java class that in turn references a Gosu class:
   //
   //  // from MyJavaClass.java
@@ -1372,14 +1376,13 @@ public abstract class JavaSourceType extends AbstractJavaClassInfo implements IT
   @Override
   public byte[] compile()
   {
-    IJavaParser javaParser = GosuParserFactory.getInterface( IJavaParser.class );
     DiagnosticCollector<JavaFileObject> errorHandler = new DiagnosticCollector<>();
-    ClassJavaFileObject fileObj = javaParser.compile( getName(), Arrays.asList( "-g", "-Xlint:unchecked", "-parameters" ), errorHandler );
+    InMemoryClassJavaFileObject fileObj = JavaParser.instance().compile( getName(), Arrays.asList( "-source", "8", "-g", "-nowarn", "-Xlint:none", "-proc:none", "-parameters" ), errorHandler );
     if( fileObj != null )
     {
       return fileObj.getBytes();
     }
-    throw new JavaCompileIssuesException( errorHandler );
+    throw new JavaCompileIssuesException( getName(), errorHandler );
   }
 
   @Override

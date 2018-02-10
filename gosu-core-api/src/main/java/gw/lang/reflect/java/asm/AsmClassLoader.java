@@ -4,7 +4,7 @@
 
 package gw.lang.reflect.java.asm;
 
-import gw.fs.IFile;
+import manifold.api.fs.IFile;
 import gw.util.cache.FqnCache;
 
 import java.io.ByteArrayOutputStream;

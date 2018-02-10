@@ -7,7 +7,7 @@ import editor.util.EditorUtilities;
 import editor.util.LabToolbarButton;
 import editor.util.SettleModalEventQueue;
 import editor.util.ToolBar;
-import gw.fs.IFile;
+import manifold.api.fs.IFile;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.gs.IGosuClass;

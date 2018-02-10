@@ -5,7 +5,7 @@
 package gw.internal.gosu.module.fs;
 
 import gw.config.CommonServices;
-import gw.fs.IDirectory;
+import manifold.api.fs.IDirectory;
 
 import java.io.File;
 import java.net.URL;

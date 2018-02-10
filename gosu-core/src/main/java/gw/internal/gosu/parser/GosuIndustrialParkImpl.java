@@ -4,9 +4,8 @@
 
 package gw.internal.gosu.parser;
 
-import gw.config.BaseService;
-import gw.fs.IDirectory;
-import gw.fs.IFile;
+import manifold.api.fs.IDirectory;
+import manifold.api.fs.IFile;
 import gw.internal.gosu.coercer.FunctionToInterfaceClassGenerator;
 import gw.internal.gosu.ir.builders.SimpleCompiler;
 import gw.internal.gosu.ir.transform.util.IRTypeResolverAPIWrapper;
@@ -15,6 +14,7 @@ import gw.internal.gosu.module.GlobalModule;
 import gw.internal.gosu.module.Module;
 import gw.internal.gosu.parser.expressions.Identifier;
 import gw.internal.gosu.parser.expressions.NullExpression;
+import gw.internal.gosu.parser.java.compiler.JavaStubGenerator;
 import gw.internal.gosu.runtime.GosuRuntimeMethods;
 import gw.internal.gosu.template.GosuTemplateType;
 import gw.internal.gosu.template.SimpleTemplateHost;
@@ -32,6 +32,7 @@ import gw.lang.parser.EvaluationException;
 import gw.lang.parser.IConstructorInfoFactory;
 import gw.lang.parser.IDynamicFunctionSymbol;
 import gw.lang.parser.IExpression;
+import gw.lang.parser.IFileRepositoryBasedType;
 import gw.lang.parser.IParsedElement;
 import gw.lang.parser.IParserPart;
 import gw.lang.parser.IReducedDynamicFunctionSymbol;
@@ -66,6 +67,8 @@ import gw.lang.reflect.ITypeInfoFactory;
 import gw.lang.reflect.ITypeRef;
 import gw.lang.reflect.PropertyInfoDelegate;
 import gw.lang.reflect.TypeSystem;
+import manifold.api.service.BaseService;
+import manifold.api.type.ClassType;
 import gw.lang.reflect.gs.GosuClassTypeLoader;
 import gw.lang.reflect.gs.IEnhancementIndex;
 import gw.lang.reflect.gs.IFileSystemGosuClassRepository;
@@ -81,11 +84,15 @@ import gw.lang.reflect.module.IModule;
 import gw.util.GosuExceptionUtil;
 import gw.util.IFeatureFilter;
 
+import gw.util.StreamUtil;
 import java.beans.IntrospectionException;
+import java.io.IOException;
 import java.io.Reader;
 import java.io.Writer;
 import java.lang.reflect.Method;
 import java.util.List;
+import manifold.internal.javac.GeneratedJavaStubFileObject;
+import manifold.internal.javac.SourceSupplier;
 
 /**
  */
@@ -208,6 +215,12 @@ public class GosuIndustrialParkImpl extends BaseService implements IGosuShop
     return repository;
   }
 
+  @Override
+  public ISourceFileHandle createInnerClassSourceFileHandle( ClassType classType, String strEnclosingType, String strInnerClass, boolean bTestClass )
+  {
+    return new InnerClassFileSystemSourceFileHandle( classType, strEnclosingType, strInnerClass, bTestClass );
+  }
+
   public ITypeUsesMap createTypeUsesMap( List<String> specialTypeUses )
   {
     return new TypeUsesMap( specialTypeUses );
@@ -266,6 +279,20 @@ public class GosuIndustrialParkImpl extends BaseService implements IGosuShop
 
   public IJavaClassInfo createClassInfo(Class aClass, IModule module) {
     return new ClassJavaClassInfo(aClass, module);
+  }
+
+  @Override
+  public String genJavaStub( IFileRepositoryBasedType type )
+  {
+    GeneratedJavaStubFileObject file = new GeneratedJavaStubFileObject( type.getName(), new SourceSupplier( null, () -> JavaStubGenerator.instance().genStub( type ) ) );
+    try( Reader r = file.openReader( true ) )
+    {
+      return StreamUtil.getContent( r );
+    }
+    catch( IOException e )
+    {
+      throw new RuntimeException( e );
+    }
   }
 
   @Override

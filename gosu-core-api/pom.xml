@@ -32,6 +32,21 @@
       <artifactId>gw-jcommander</artifactId>
       <version>1.48</version>
     </dependency>
+    <dependency>
+      <groupId>systems.manifold</groupId>
+      <artifactId>manifold</artifactId>
+      <version>0.10-SNAPSHOT</version>
+    </dependency>
+    <dependency>
+      <groupId>systems.manifold</groupId>
+      <artifactId>manifold-ext</artifactId>
+      <version>0.10-SNAPSHOT</version>
+    </dependency>
+    <dependency>
+      <groupId>systems.manifold</groupId>
+      <artifactId>manifold-js</artifactId>
+      <version>0.10-SNAPSHOT</version>
+    </dependency>
   </dependencies>
   
   <profiles>
@@ -56,6 +71,13 @@
   
   <build>
     <plugins>
+      <plugin>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <groupId>org.apache.maven.plugins</groupId>
+        <configuration>
+          <proc>none</proc>
+        </configuration>
+      </plugin>
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>build-helper-maven-plugin</artifactId>

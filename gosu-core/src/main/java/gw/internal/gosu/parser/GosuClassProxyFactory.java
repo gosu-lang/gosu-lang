@@ -21,7 +21,7 @@ import gw.lang.reflect.ITypeRef;
 import gw.lang.reflect.Modifier;
 import gw.lang.reflect.TypeInfoUtil;
 import gw.lang.reflect.TypeSystem;
-import gw.lang.reflect.gs.ClassType;
+import manifold.api.type.ClassType;
 import gw.lang.reflect.gs.GosuClassTypeLoader;
 import gw.lang.reflect.gs.IGosuClass;
 import gw.lang.reflect.gs.IGosuObject;

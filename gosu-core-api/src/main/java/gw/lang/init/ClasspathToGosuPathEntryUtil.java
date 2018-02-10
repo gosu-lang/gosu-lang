@@ -5,8 +5,8 @@
 package gw.lang.init;
 
 import gw.config.CommonServices;
-import gw.fs.IDirectory;
-import gw.fs.IFile;
+import manifold.api.fs.IDirectory;
+import manifold.api.fs.IFile;
 import gw.lang.GosuShop;
 import gw.lang.UnstableAPI;
 

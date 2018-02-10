@@ -12,8 +12,6 @@ import gw.lang.reflect.INonLoadableType;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.ITypeInfo;
 import gw.lang.reflect.ITypeLoader;
-import gw.lang.reflect.ITypeLoaderListener;
-import gw.lang.reflect.AbstractTypeSystemListener;
 import gw.lang.reflect.gs.IGenericTypeVariable;
 import gw.lang.reflect.java.JavaTypes;
 
@@ -32,6 +30,8 @@ import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
+import manifold.api.host.AbstractTypeSystemListener;
+import manifold.api.host.ITypeLoaderListener;
 
 /**
  */

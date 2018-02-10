@@ -4,8 +4,6 @@
 
 package gw.internal.gosu.ir.transform.util;
 
-import gw.fs.IDirectory;
-import gw.fs.IFile;
 import gw.internal.gosu.ir.compiler.bytecode.expression.IRMethodCallExpressionCompiler;
 import gw.internal.gosu.parser.AsmClassJavaClassInfo;
 import gw.internal.gosu.parser.ICompilableTypeInternal;
@@ -28,6 +26,8 @@ import gw.lang.reflect.gs.ISourceFileHandle;
 import gw.lang.reflect.java.IJavaClassInfo;
 import gw.lang.reflect.java.IJavaType;
 import gw.util.GosuObjectUtil;
+import manifold.api.fs.IDirectory;
+import manifold.api.fs.IFile;
 
 public class RequiresReflectionDeterminer
 {

@@ -61,7 +61,7 @@ class Errant_AnnotationTypes {
     function stuff6() : float = 1.0
     function stuff7() : double = 1.0
     function stuff8() : String = "hi"
-    function stuff9() : gw.lang.reflect.gs.ClassType = Enhancement
+    function stuff9() : manifold.api.type.ClassType = Enhancement
     function stuff10() : java.lang.Class = java.lang.String
     function stuff11() : gw.lang.Deprecated = @gw.lang.Deprecated("hi")
 
@@ -74,7 +74,7 @@ class Errant_AnnotationTypes {
     function stuff_array6() : float[] = {1.0, 1.1}
     function stuff_array7() : double[] = {1.0,1.1}
     function stuff_array8() : String[] = {"hi", "bye"}
-    function stuff_array9() : gw.lang.reflect.gs.ClassType[] = {Enhancement, Enhancement}
+    function stuff_array9() : manifold.api.type.ClassType[] = {Enhancement, Enhancement}
     function stuff_array10() : java.lang.Class[] = {java.lang.String, java.lang.Byte}
    //## todo: function stuff_array11() : gw.lang.Deprecated[] = {@gw.lang.Deprecated("hi")}
 

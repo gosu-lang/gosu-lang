@@ -5,9 +5,9 @@
 package gw.internal.gosu.module.fs;
 
 import gw.config.CommonServices;
-import gw.fs.IDirectory;
+import manifold.api.fs.IDirectory;
 import gw.test.TestClass;
-import gw.fs.IFile;
+import manifold.api.fs.IFile;
 
 import java.io.File;
 import java.io.IOException;

@@ -17,6 +17,9 @@ import gw.lang.Throws;
 import gw.lang.annotation.AnnotationUsage;
 import gw.lang.annotation.AnnotationUsages;
 import gw.lang.annotation.IInherited;
+import gw.lang.reflect.DoNotCompile;
+import gw.lang.reflect.LazyTypeResolver;
+import gw.lang.reflect.SourcePosition;
 import gw.lang.reflect.features.IFeatureReference;
 import gw.lang.reflect.features.IMethodReference;
 import java.lang.annotation.Repeatable;
@@ -572,6 +575,22 @@ public class JavaTypes {
     return getGosuType(Autoinsert.class);
   }
 
+  private IJavaType SOURCE_POSITION = null;
+  public static IJavaType SOURCE_POSITION() {
+    if( !ExecutionMode.get().isRefreshSupportEnabled() ) {
+      return THIS.SOURCE_POSITION == null ? THIS.SOURCE_POSITION = getGosuType( SourcePosition.class ) : THIS.SOURCE_POSITION;
+    }  
+    return getGosuType(SourcePosition.class);
+  }
+
+  private IJavaType DO_NOT_COMPILE = null;
+  public static IJavaType DO_NOT_COMPILE() {
+    if( !ExecutionMode.get().isRefreshSupportEnabled() ) {
+      return THIS.DO_NOT_COMPILE == null ? THIS.DO_NOT_COMPILE = getGosuType( DoNotCompile.class ) : THIS.DO_NOT_COMPILE;
+    }  
+    return getGosuType(DoNotCompile.class);
+  }
+
   private IJavaType IGOSU_OBJECT = null;
   public static IJavaType IGOSU_OBJECT() {
     if( !ExecutionMode.get().isRefreshSupportEnabled() ) {
@@ -618,6 +637,14 @@ public class JavaTypes {
       return THIS.FUNCTION_TYPE == null ? THIS.FUNCTION_TYPE = getGosuType( FunctionType.class ) : THIS.FUNCTION_TYPE;
     }  
     return getGosuType(FunctionType.class);
+  }
+
+  private IType LAZY_TYPE_RESOLVER = null;
+  public static IType LAZY_TYPE_RESOLVER() {
+    if( !ExecutionMode.get().isRefreshSupportEnabled() ) {
+      return THIS.LAZY_TYPE_RESOLVER == null ? THIS.LAZY_TYPE_RESOLVER = getGosuType( LazyTypeResolver.class ) : THIS.LAZY_TYPE_RESOLVER;
+    }  
+    return getGosuType(LazyTypeResolver.class);
   }
 
   private IType IBLOCK = null;
@@ -832,6 +859,11 @@ public class JavaTypes {
 
   private static IJavaType findTypeFromJre(Class c) {
     IJavaType type = (IJavaType) TypeSystem.get(c, TypeSystem.getExecutionEnvironment().getJreModule());
+    if( type == null )
+    {
+      // Can be null for multi-module environments where the Gosu binaries are in a separate module dedicated to Gosu
+      return type;
+    }
     IExecutionEnvironment execEnv = type.getTypeLoader().getModule().getExecutionEnvironment();
     if (execEnv.getProject().isDisposed()) {
       throw new IllegalStateException("Whoops.... the project associated with type, " + type.getName() + ", is stale. ExecEnv: " + execEnv.getProject());
@@ -854,7 +886,8 @@ public class JavaTypes {
           if( bFromJre ) {
             type = findTypeFromJre( c );
           }
-          else {
+          if( type == null )
+          {
             type = findTypeFromProject( c );
           }
           cache.put( c, type );

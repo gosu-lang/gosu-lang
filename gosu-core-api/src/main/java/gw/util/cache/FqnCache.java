@@ -6,27 +6,40 @@ package gw.util.cache;
 
 import gw.internal.gosu.parser.StringCache;
 import gw.lang.parser.TypeSystemAwareCache;
-import gw.util.DynamicArray;
-import gw.util.Predicate;
-
-import java.util.ArrayList;
+import manifold.util.DynamicArray;
+import gw.util.concurrent.Cache;
 import java.util.HashSet;
-import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
-public class FqnCache<T> implements IFqnCache<T> {
+public class FqnCache<T> extends FqnCacheNode<T> implements IFqnCache<T> {
   private static final TypeSystemAwareCache<String, String[]> PARTS_CACHE =
-     TypeSystemAwareCache.make( "Fqn Parts Cache", 10000, FqnCache::split );
+     TypeSystemAwareCache.make( "Fqn Parts Cache", 10000, e -> FqnCache.split( e, null ) );
 
-  private FqnCacheNode<T> _root = new FqnCacheNode<>( "root", null );
+  private final Validator _validator;
+  private final Cache<String, String[]> _validatorCache;
+  private final boolean _rootVisible;
 
-  public FqnCacheNode<T> getRoot() {
-    return _root;
+
+  public FqnCache() {
+    this( "root", false, null );
+  }
+  public FqnCache( String name, boolean rootVisible, Validator validator ) {
+    super( name, null );
+    _rootVisible = rootVisible;
+    _validator = validator;
+    _validatorCache = validator == null ? null : Cache.make( "FqnCache Parts", 10000, e -> FqnCache.split( e, _validator ) );
+  }
+
+  @Override
+  public boolean isRootVisible()
+  {
+    return _rootVisible;
   }
 
   public FqnCacheNode<T> getNode(String fqn) {
-    FqnCacheNode<T> n = _root;
-    for (String part : getParts(fqn)) {
+    FqnCacheNode<T> n = this;
+    for (String part : getParts(fqn, _validator)) {
       n = n.getChild(part);
       if (n == null) {
         break;
@@ -53,11 +66,21 @@ public class FqnCache<T> implements IFqnCache<T> {
 
   @Override
   public void add( String fqn, T userData ) {
-    FqnCacheNode<T> n = _root;
-    for (String part : getParts(fqn)) {
+    FqnCacheNode<T> n = this;
+    for (String part : getParts(fqn, _validator)) {
       n = n.getOrCreateChild(part);
     }
     n.setUserData(userData);
+  }
+
+  public void addAll( FqnCache<T> from )
+  {
+    from.getFqns().forEach( fqn -> add( fqn, from.get( fqn ) ) );
+  }
+
+  public void addAll( Map<String, T> from )
+  {
+    from.keySet().forEach( fqn -> add( fqn, from.get( fqn ) ) );
   }
 
   @Override
@@ -69,8 +92,8 @@ public class FqnCache<T> implements IFqnCache<T> {
 
   @Override
   public boolean remove( String fqn ) {
-    FqnCacheNode<T> n = _root;
-    for (String part : getParts(fqn)) {
+    FqnCacheNode<T> n = this;
+    for (String part : getParts(fqn, _validator)) {
       n = n.getChild(part);
       if( n == null ) {
         return false;
@@ -81,43 +104,13 @@ public class FqnCache<T> implements IFqnCache<T> {
   }
 
   @Override
-  public final void clear() {
-    _root.clear();
-  }
-
-  @Override
   public Set<String> getFqns() {
     Set<String> names = new HashSet<>();
-    _root.collectNames(names, "");
+    collectNames(names, "");
     return names;
   }
 
-  public void visitDepthFirst( Predicate<T> visitor ) {
-    List<FqnCacheNode<T>> copy = new ArrayList<>( _root.getChildren() );
-    for( FqnCacheNode<T> child: copy ) {
-      if( !child.visitDepthFirst( visitor ) ) {
-        return;
-      }
-    }
-  }
-
-  public void visitNodeDepthFirst( Predicate<FqnCacheNode> visitor ) {
-    List<FqnCacheNode<T>> copy = new ArrayList<>( _root.getChildren() );
-    for( FqnCacheNode<T> child: copy ) {
-      if( !child.visitNodeDepthFirst( visitor ) ) {
-        return;
-      }
-    }
-  }
-
-  public void visitBreadthFirst( Predicate<T> visitor ) {
-    List<FqnCacheNode<T>> copy = new ArrayList<>( _root.getChildren() );
-    for( FqnCacheNode<T> child: copy ) {
-      child.visitBreadthFirst( visitor );
-    }
-  }
-
-  private static String[] split( String fqn ) {
+  private static String[] split( String fqn, Validator validator ) {
     String theRest = fqn;
     DynamicArray<String> parts = new DynamicArray<>();
     while( theRest != null ) {
@@ -160,14 +153,34 @@ public class FqnCache<T> implements IFqnCache<T> {
         part = theRest;
         theRest = null;
       }
+      if( validator != null )
+      {
+        part = validator.validate( part );
+        if( part == null )
+        {
+          return null;
+        }
+      }
       parts.add( StringCache.get( part ) );
     }
 
     return parts.toArray(new String[parts.size()]);
   }
 
+  private String[] getParts( String fqn, Validator validator ) {
+    if( validator != null )
+    {
+      return _validatorCache.get( fqn );
+    }
+    return getParts( fqn );
+  }
+
   public static String[] getParts( String fqn ) {
     return PARTS_CACHE.get( fqn );
   }
 
+  public interface Validator
+  {
+    String validate( String part );
+  }
 }

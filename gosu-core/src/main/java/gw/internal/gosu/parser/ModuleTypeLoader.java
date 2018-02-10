@@ -5,9 +5,10 @@
 package gw.internal.gosu.parser;
 
 import gw.config.CommonServices;
-import gw.fs.IDirectory;
-import gw.fs.IFile;
-import gw.fs.IResource;
+import java.util.HashSet;
+import java.util.Set;
+import manifold.api.fs.IDirectory;
+import manifold.api.fs.IFile;
 import gw.lang.reflect.IDefaultTypeLoader;
 import gw.lang.reflect.IExtendedTypeLoader;
 import gw.lang.reflect.IMetaType;
@@ -17,14 +18,13 @@ import gw.lang.reflect.ITypeLoader;
 import gw.lang.reflect.ITypeRef;
 import gw.lang.reflect.ITypeRefFactory;
 import gw.lang.reflect.IUninitializableTypeLoader;
-import gw.lang.reflect.RefreshKind;
-import gw.lang.reflect.RefreshRequest;
+import manifold.api.host.RefreshKind;
+import manifold.api.host.RefreshRequest;
 import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.gs.GosuClassTypeLoader;
 import gw.lang.reflect.gs.IGosuClass;
 import gw.lang.reflect.gs.IGosuClassRepository;
 import gw.lang.reflect.gs.IGosuObject;
-import gw.lang.reflect.gs.TypeName;
 import gw.lang.reflect.module.IClassPath;
 import gw.lang.reflect.module.IModule;
 import gw.util.GosuClassUtil;
@@ -37,11 +37,11 @@ import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
+import manifold.api.fs.IResource;
+import manifold.api.type.TypeName;
 
 /**
  */
@@ -269,7 +269,7 @@ public class ModuleTypeLoader implements ITypeLoaderStackInternal {
     }
   }
 
-  public Set<TypeName> getTypeNames(String namespace) {
+  public Set<TypeName> getTypeNames( String namespace) {
     Set<TypeName> names = new HashSet<TypeName>();
     for (ITypeLoader loader : _globalStack) {
       names.addAll(loader.getTypeNames(namespace));
@@ -722,7 +722,7 @@ public class ModuleTypeLoader implements ITypeLoaderStackInternal {
     }
   }
 
-  public boolean refresh(IResource file, String typeName, RefreshKind refreshKind) {
+  public boolean refresh( IResource file, String typeName, RefreshKind refreshKind) {
     TypeSystem.pushModule(getModule());
     TypeSystem.lock();
     try {

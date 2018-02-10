@@ -225,11 +225,11 @@ public class TokenizerTest {
   }
 
   private Token doubleNumberToken(String value) {
-    return new Token(TokenType.DOUBLE, value, 0, 0);
+    return new Token(TokenType.DOUBLE, value, 0, 0, 0);
   }
 
   private Token integerNumberToken(String value) {
-    return new Token(TokenType.INTEGER, value, 0, 0);
+    return new Token(TokenType.INTEGER, value, 0, 0, 0);
   }
 
   @Test
@@ -313,7 +313,7 @@ public class TokenizerTest {
   }
 
   private Token token(TokenType type, String value) {
-    return new Token(type, value, 0, 0);
+    return new Token(type, value, 0, 0, 0);
   }
 
   private List<Token> tokenize(String str) {

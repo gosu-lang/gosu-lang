@@ -4,27 +4,37 @@
 
 package gw.lang.reflect.gs;
 
-import gw.fs.IDirectory;
+import manifold.api.fs.IDirectory;
+import manifold.api.fs.IFile;
 import gw.lang.GosuShop;
 import gw.lang.parser.ISymbolTable;
 import gw.lang.parser.ITypeUsesMap;
 import gw.lang.reflect.FragmentCache;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.ITypeLoader;
-import gw.lang.reflect.RefreshRequest;
-import gw.lang.reflect.RefreshKind;
+import manifold.api.host.RefreshRequest;
+import manifold.api.host.RefreshKind;
 import gw.lang.reflect.SimpleTypeLoader;
 import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.java.IJavaType;
 import gw.lang.reflect.module.IModule;
 import gw.util.concurrent.LockingLazyVar;
 
+import gw.util.concurrent.LocklessLazyVar;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
+import manifold.api.service.IService;
+import manifold.api.type.ITypeManifold;
+import manifold.api.type.TypeName;
+
+
+import static java.util.Collections.emptySet;
 
 public class GosuClassTypeLoader extends SimpleTypeLoader
 {
@@ -36,8 +46,8 @@ public class GosuClassTypeLoader extends SimpleTypeLoader
   public static final String GOSU_RULE_SET_EXT = ".grs";
 
   public static final String[] ALL_EXTS = {GOSU_CLASS_FILE_EXT, GOSU_ENHANCEMENT_FILE_EXT, GOSU_PROGRAM_FILE_EXT, GOSU_TEMPLATE_FILE_EXT, GOSU_RULE_EXT, GOSU_RULE_SET_EXT};
-  public static final Set<String> ALL_EXTS_SET = new HashSet<String>(Arrays.asList(GOSU_CLASS_FILE_EXT, GOSU_ENHANCEMENT_FILE_EXT, GOSU_PROGRAM_FILE_EXT, GOSU_TEMPLATE_FILE_EXT, GOSU_RULE_EXT, GOSU_RULE_SET_EXT));
-  public static final Set<String> EXTENSIONS = new HashSet<String>(Arrays.asList("gs", "gsx", "gsp", "gst", "gr", "grs"));
+  public static final Set<String> ALL_EXTS_SET = new HashSet<>(Arrays.asList(GOSU_CLASS_FILE_EXT, GOSU_ENHANCEMENT_FILE_EXT, GOSU_PROGRAM_FILE_EXT, GOSU_TEMPLATE_FILE_EXT, GOSU_RULE_EXT, GOSU_RULE_SET_EXT));
+  public static final Set<String> EXTENSIONS = new HashSet<>(Arrays.asList("gs", "gsx", "gsp", "gst", "gr", "grs"));
 
   // These constants are only here because api can't depend on impl currently; they shouldn't be considered
   // part of the API proper
@@ -48,6 +58,7 @@ public class GosuClassTypeLoader extends SimpleTypeLoader
   private IGosuClassRepository _repository;
   private LockingLazyVar<IEnhancementIndex> _enhancementIndex;
   protected Set<String> _namespaces;
+  private LocklessLazyVar<Set<ITypeManifold>> _typeManifolds;
 
   public static GosuClassTypeLoader getDefaultClassLoader()
   {
@@ -68,6 +79,7 @@ public class GosuClassTypeLoader extends SimpleTypeLoader
   {
     super( module );
     _repository = repository;
+    _typeManifolds = LocklessLazyVar.make( Collections::emptySet );
     makeEnhancementIndex();
   }
 
@@ -187,28 +199,23 @@ public class GosuClassTypeLoader extends SimpleTypeLoader
     {
       try
       {
-        _namespaces = TypeSystem.getNamespacesFromTypeNames( getAllTypeNames(), new HashSet<String>() );
+        _namespaces = TypeSystem.getNamespacesFromTypeNames( getAllTypeNames(), new HashSet<>() );
         _namespaces.add( "Libraries" );
       }
       catch( NullPointerException e )
       {
         //!! hack to get past dependency issue with tests
-        return Collections.emptySet();
+        return emptySet();
       }
     }
     return _namespaces;
   }
 
   @Override
-  public void refreshedNamespace(String namespace, IDirectory dir, RefreshKind kind) {
-    if (_namespaces != null) {
-      if (kind == RefreshKind.CREATION) {
-        _namespaces.add(namespace);
-      } else if (kind == RefreshKind.DELETION) {
-        _namespaces.remove(namespace);
-      }
-    }
-    _repository.namespaceRefreshed(namespace, dir, kind);
+  public void refreshedNamespace( String namespace, IDirectory dir, RefreshKind kind )
+  {
+    super.refreshedNamespace( namespace, dir, kind );
+    _repository.namespaceRefreshed( namespace, dir, kind );
   }
 
   @Override
@@ -219,14 +226,17 @@ public class GosuClassTypeLoader extends SimpleTypeLoader
   @Override
   public Set<String> computeTypeNames()
   {
-    return _repository.getAllTypeNames(getAllExtensions());
+    Set<String> allTypeNames = _repository.getAllTypeNames( getAllExtensions() );
+    getTypeManifolds().forEach( sp -> allTypeNames.addAll( sp.getAllTypeNames() ) );
+    return allTypeNames;
   }
 
   @Override
   public void refreshedImpl()
   {
     _namespaces = null;
-    _repository.typesRefreshed(null);
+    _repository.typesRefreshed( null );
+    getTypeManifolds().forEach( ITypeManifold::clear );
   }
 
   @Override
@@ -299,11 +309,7 @@ public class GosuClassTypeLoader extends SimpleTypeLoader
           classInternal = ((ICompilableType)type).getBlock( i );
         }
       }
-      catch( NumberFormatException e )
-      {
-        //ignore
-      }
-      catch( IndexOutOfBoundsException e )
+      catch( NumberFormatException | IndexOutOfBoundsException e )
       {
         //ignore
       }
@@ -317,38 +323,45 @@ public class GosuClassTypeLoader extends SimpleTypeLoader
   }
 
 
-  private IGosuClass findClass( String strQualifiedClassName )
+  private IGosuClass findClass( String fqn )
   {
-    IGosuClass blockType = getBlockType( strQualifiedClassName );
+    IGosuClass blockType = getBlockType( fqn );
     if( blockType != null )
     {
       return blockType;
     }
 
-    ISourceFileHandle sourceFile = _repository.findClass( strQualifiedClassName, getAllExtensions());
+    ISourceFileHandle sfh = _repository.findClass( fqn, getAllExtensions() );
+    if( sfh == null )
+    {
+      sfh = loadFromTypeManifold( fqn, findTypeManifoldsFor( fqn ) );
+    }
 
-    if( sourceFile == null || !isValidSourceFileHandle( sourceFile ) || !sourceFile.isValid() || !strQualifiedClassName.endsWith( sourceFile.getRelativeName() ) )
+    if( sfh == null || !isValidSourceFileHandle( sfh ) || !sfh.isValid() || !fqn.endsWith( sfh.getRelativeName() ) )
     {
       return null;
     }
 
-    IGosuClass gsClass=null;
-    if( sourceFile.getParentType() != null )
+    IGosuClass gsClass = null;
+    if( sfh.getParentType() != null )
     {
       // It's an inner class
-      final IType type = TypeSystem.getByFullNameIfValid(sourceFile.getParentType());
-      //we have to check instance of type as it can return JavaType
-      //this happens when you have Gosu class which has the same name as any java package
-      //in this case you shadow entire java package with gosu class
-      if (type instanceof IGosuClass) {
-        IGosuClass enclosingType = (IGosuClass) type;
-        gsClass = enclosingType.getInnerClass(sourceFile.getRelativeName());
+
+      final IType type = TypeSystem.getByFullNameIfValid( sfh.getParentType() );
+
+      // We have to check instance of type as it can return JavaType
+      // this happens when you have Gosu class which has the same name as any java package
+      // in this case you shadow entire java package with gosu class
+      if( type instanceof IGosuClass )
+      {
+        IGosuClass enclosingType = (IGosuClass)type;
+        gsClass = enclosingType.getInnerClass( sfh.getRelativeName() );
       }
     }
     else
     {
       // It's a top-level class
-      gsClass = makeNewClass( sourceFile );
+      gsClass = makeNewClass( sfh );
     }
 
     return gsClass;
@@ -386,13 +399,59 @@ public class GosuClassTypeLoader extends SimpleTypeLoader
   }
 
   @Override
-  public Set<TypeName> getTypeNames(String namespace) {
-    return _repository.getTypeNames(namespace, ALL_EXTS_SET, this);
+  public Set<TypeName> getTypeNames( String namespace )
+  {
+    Set<TypeName> typeNames = _repository.getTypeNames( namespace, ALL_EXTS_SET, this );
+    getTypeManifolds().forEach( sp -> typeNames.addAll( sp.getTypeNames( namespace ) ) );
+    return typeNames;
   }
 
   @Override
-  public boolean hasNamespace(String namespace) {
-    return _repository.hasNamespace(namespace) > 0;
+  public boolean handlesFile( IFile file )
+  {
+    return getExtensions().contains( file.getExtension() ) ||
+           getTypeManifolds().stream().anyMatch( sp -> sp.handlesFile( file ) );
   }
 
+  @Override
+  public boolean handlesFileExtension( String ext )
+  {
+    return ALL_EXTS_SET.contains( ext ) ||
+           getTypeManifolds().stream().anyMatch( tm -> tm.handlesFileExtension( ext ) );
+  }
+
+  @Override
+  public boolean hasNamespace( String namespace )
+  {
+    return _repository.hasNamespace( namespace ) > 0 ||
+           getTypeManifolds().stream().anyMatch( sp -> sp.isPackage( namespace ) );
+  }
+
+  @Override
+  public Set<ITypeManifold> getTypeManifolds()
+  {
+    return _typeManifolds.get();
+  }
+  @Override
+  public void initializeTypeManifolds()
+  {
+    _typeManifolds = LocklessLazyVar.make( () -> {
+      Set<ITypeManifold> typeManifols = new HashSet<>( super.loadTypeManifolds() );
+      typeManifols.forEach( tp -> tp.init( this ) );
+      return typeManifols;
+    } );
+  }
+
+  @Override
+  public <T> List<T> getInterface( Class<T> apiInterface )
+  {
+    if( apiInterface.getName().equals( "editor.plugin.typeloader.ITypeFactory" ) )
+    {
+      List<T> impls = new ArrayList<>();
+      getTypeManifolds().forEach( sp -> {if( sp instanceof IService ) impls.addAll( ((IService)sp).getInterface( apiInterface ) );} );
+
+      return impls;
+    }
+    return super.getInterface( apiInterface );
+  }
 }

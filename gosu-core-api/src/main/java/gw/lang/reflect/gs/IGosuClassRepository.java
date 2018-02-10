@@ -4,14 +4,15 @@
 
 package gw.lang.reflect.gs;
 
-import gw.fs.IDirectory;
 import gw.lang.reflect.ITypeLoader;
-import gw.lang.reflect.RefreshRequest;
-import gw.lang.reflect.RefreshKind;
+import manifold.api.host.RefreshRequest;
+import manifold.api.host.RefreshKind;
 import gw.lang.reflect.module.IModule;
 
 import java.net.URL;
 import java.util.Set;
+import manifold.api.fs.IDirectory;
+import manifold.api.type.TypeName;
 
 public interface IGosuClassRepository
 {
@@ -58,7 +59,7 @@ public interface IGosuClassRepository
   /**
    * Returns all type names in the given namespace and with the given extensions.
    */
-  Set<TypeName> getTypeNames(String namespace, Set<String> extensions, ITypeLoader loader);
+  Set<TypeName> getTypeNames( String namespace, Set<String> extensions, ITypeLoader loader);
 
   /**
    * Returns the number of namespaces this repository has matching the given name.
@@ -74,5 +75,5 @@ public interface IGosuClassRepository
   /**
    * Called when a namespace is refreshed
    */
-  void namespaceRefreshed(String namespace, IDirectory dir, RefreshKind kind);
+  void namespaceRefreshed( String namespace, IDirectory dir, RefreshKind kind);
 }

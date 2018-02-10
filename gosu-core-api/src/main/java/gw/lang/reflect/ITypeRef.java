@@ -4,6 +4,8 @@
 
 package gw.lang.reflect;
 
+import manifold.api.host.RefreshKind;
+
 public abstract class ITypeRef implements IType
 {
   public abstract boolean isDeleted();

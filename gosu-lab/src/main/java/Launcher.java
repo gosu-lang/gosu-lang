@@ -134,7 +134,8 @@ public class Launcher
       if( csr.isFile() )
       {
         if( (csr.getName().contains( "gosu-core" ) ||
-             csr.getName().contains( "asm" ) ||
+             csr.getName().contains( "gw-asm-all" ) ||
+             csr.getName().contains( "manifold" ) ||
              csr.getName().endsWith( "tools.jar" ))
             && csr.getName().endsWith( ".jar" ) )
         {

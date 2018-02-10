@@ -8,8 +8,7 @@ package editor;
 import editor.util.EditorUtilities;
 import editor.util.HTMLEscapeUtil;
 
-import gw.lang.IIssue;
-import gw.lang.IIssueContainer;
+import manifold.internal.javac.IIssue;
 import javax.swing.*;
 import javax.swing.text.Highlighter;
 import java.awt.*;
@@ -19,6 +18,7 @@ import java.awt.event.MouseMotionListener;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import manifold.internal.javac.IIssueContainer;
 
 /**
  * Displays gosu parser error feedback within a GosuEditor.

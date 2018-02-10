@@ -154,6 +154,7 @@ public class ShipIt
     {
       if( path.contains( "gw-asm-all" ) ||
           path.contains( "gosu-core" ) ||
+          path.contains( "manifold" ) ||
           path.contains( "tools.jar" ) )
       {
         addClasspathEntry( progClasspath, PathUtil.create( path ) );

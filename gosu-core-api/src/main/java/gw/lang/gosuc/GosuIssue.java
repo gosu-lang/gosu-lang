@@ -1,6 +1,6 @@
 package gw.lang.gosuc;
 
-import gw.lang.IIssue;
+import manifold.internal.javac.IIssue;
 import gw.lang.parser.IParseIssue;
 import gw.lang.parser.exceptions.ParseException;
 

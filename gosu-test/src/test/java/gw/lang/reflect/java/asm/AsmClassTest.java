@@ -5,8 +5,8 @@
 package gw.lang.reflect.java.asm;
 
 import gw.config.ExecutionMode;
-import gw.fs.FileFactory;
-import gw.fs.IFile;
+import manifold.api.fs.FileFactory;
+import manifold.api.fs.IFile;
 import gw.internal.gosu.parser.DefaultPlatformHelper;
 import gw.lang.reflect.ReflectUtil;
 import gw.test.TestClass;
@@ -86,7 +86,8 @@ public class AsmClassTest extends TestClass {
   public void testMethods() {
     AsmClass asmClass = loadAsmClass( Asm_Simple.class );
     List<AsmMethod> methods = asmClass.getDeclaredMethodsAndConstructors();
-    assertEquals( Asm_Simple.class.getDeclaredMethods().length + Asm_Simple.class.getDeclaredConstructors().length, methods.size() );
+    // We add one for the <clinit> bootstrap static block generated via our JavacHook annotation processor
+    assertEquals( Asm_Simple.class.getDeclaredMethods().length + Asm_Simple.class.getDeclaredConstructors().length + 1, methods.size() );
     int i = 0;
     assertEquals( "public void <init>()", methods.get( i++ ).toString() );
     assertEquals( "public int intMethod(int)", methods.get( i++ ).toString() );

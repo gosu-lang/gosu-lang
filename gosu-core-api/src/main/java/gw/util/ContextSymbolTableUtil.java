@@ -11,7 +11,7 @@ import gw.lang.parser.ScriptabilityModifiers;
 import gw.lang.parser.StandardSymbolTable;
 import gw.lang.parser.exceptions.ParseResultsException;
 import gw.lang.reflect.TypeSystem;
-import gw.lang.reflect.gs.ClassType;
+import manifold.api.type.ClassType;
 import gw.lang.reflect.gs.IGosuClass;
 import gw.lang.reflect.gs.IGosuEnhancement;
 import gw.lang.reflect.gs.IGosuProgram;

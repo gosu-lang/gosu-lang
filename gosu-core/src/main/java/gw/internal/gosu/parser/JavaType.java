@@ -6,7 +6,7 @@ package gw.internal.gosu.parser;
 
 import gw.config.CommonServices;
 import gw.config.ExecutionMode;
-import gw.fs.IFile;
+import manifold.api.fs.IFile;
 import gw.internal.gosu.annotations.AnnotationMap;
 import gw.lang.StrictGenerics;
 import gw.lang.parser.TypeVarToTypeMap;
@@ -18,7 +18,7 @@ import gw.lang.reflect.ITypeInfo;
 import gw.lang.reflect.ITypeRef;
 import gw.lang.reflect.InnerClassCapableType;
 import gw.lang.reflect.TypeSystem;
-import gw.lang.reflect.gs.ClassType;
+import manifold.api.type.ClassType;
 import gw.lang.reflect.gs.IGosuClass;
 import gw.lang.reflect.gs.IGosuFragment;
 import gw.lang.reflect.gs.ISourceFileHandle;
@@ -34,7 +34,6 @@ import gw.util.perf.objectsize.IObjectSizeFilter;
 import gw.util.perf.objectsize.ObjectSize;
 import gw.util.perf.objectsize.ObjectSizeUtil;
 import gw.util.perf.objectsize.UnmodifiableArraySet;
-
 import java.beans.MethodDescriptor;
 import java.io.InvalidClassException;
 import java.io.ObjectStreamException;
@@ -1461,11 +1460,16 @@ class JavaType extends InnerClassCapableType implements IJavaTypeInternal
   }
 
   @Override
-  public IFile[] getSourceFiles() {
-    if (getSourceFileHandle() == null) {
+  public IFile[] getSourceFiles()
+  {
+    if( getSourceFileHandle() == null )
+    {
       return IFile.EMPTY_ARRAY;
-    } else {
-      return new IFile[] {getSourceFileHandle().getFile()};
+    }
+    else
+    {
+      IFile file = getSourceFileHandle().getFile();
+      return file == null ? IFile.EMPTY_ARRAY : new IFile[]{file};
     }
   }
 

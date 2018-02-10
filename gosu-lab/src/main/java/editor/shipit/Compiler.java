@@ -13,7 +13,7 @@ import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import gw.util.PathUtil;
-import gw.lang.javac.IJavaParser;
+import manifold.internal.javac.IJavaParser;
 import gw.lang.parser.GosuParserFactory;
 import gw.lang.parser.IFileRepositoryBasedType;
 import gw.lang.parser.IHasInnerClass;
@@ -226,7 +226,7 @@ public class Compiler
       return true;
     }
 
-    IJavaParser javaParser = GosuParserFactory.getInterface( IJavaParser.class );
+    IJavaParser javaParser = GosuParserFactory.getInterface( IJavaParser.class ).get( 0 );
     DiagnosticCollector<JavaFileObject> errorHandler = new DiagnosticCollector<>();
     javaParser.compile( javaType.getName(), Arrays.asList( "-g", "-Xlint:unchecked", "-parameters" ), errorHandler );
     boolean errant = errorHandler.getDiagnostics().stream().anyMatch( e -> e.getKind() == Diagnostic.Kind.ERROR );

@@ -9,6 +9,7 @@ import gw.lang.parser.IExpression;
 import gw.lang.parser.IReducedSymbol;
 import gw.lang.reflect.*;
 
+import gw.lang.reflect.java.JavaTypes;
 import java.io.ObjectStreamException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -43,6 +44,10 @@ public class ConstructorType extends AbstractType implements IConstructorType
     for( int i = 0; i < iArgs; i++ )
     {
       _argTypes[i] = argTypes[i].getFeatureType();
+      if( _argTypes[i] == JavaTypes.pVOID() )
+      {
+        System.out.println( "delete me" );
+      }
     }
 
     _declaringType = _constructor.getType();

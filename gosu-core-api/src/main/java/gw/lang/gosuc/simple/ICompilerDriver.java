@@ -3,17 +3,19 @@ package gw.lang.gosuc.simple;
 import java.io.File;
 import java.util.List;
 import javax.tools.Diagnostic;
+import javax.tools.FileObject;
+import javax.tools.JavaFileObject;
 
 /**
- * @author dpetrusca
  */
-public interface ICompilerDriver {
-  public static final int ERROR = 0;
-  public static final int WARNING = 1;
+public interface ICompilerDriver
+{
+  int ERROR = 0;
+  int WARNING = 1;
 
-  void sendCompileIssue(File file, int category, long offset, long line, long column, String message);
+  void sendCompileIssue( File file, int category, long offset, long line, long column, String message );
 
-  default void sendCompileIssue(Object file, int category, long offset, long line, long column, String message)
+  default void sendCompileIssue( Object file, int category, long offset, long line, long column, String message )
   {
     sendCompileIssue( (File)file, category, offset, line, column, message );
   }
@@ -22,29 +24,25 @@ public interface ICompilerDriver {
   {
   }
 
-  void registerOutput(File sourceFile, File outputFile);
-  
-  default void registerOutput(Object sourceFile, File outputFile) 
-  {
-    registerOutput( (File) sourceFile, outputFile);
-  }
+  JavaFileObject createClassFile( String fqn );
+  FileObject createResourceFile( String pkg, String filename );
 
   default boolean isIncludeWarnings()
   {
     throw new UnsupportedOperationException();
   }
 
-  default boolean hasErrors() 
+  default boolean hasErrors()
   {
     throw new UnsupportedOperationException();
   }
 
-  default List<String> getErrors() 
+  default List<String> getErrors()
   {
     throw new UnsupportedOperationException();
   }
 
-  default List<String> getWarnings() 
+  default List<String> getWarnings()
   {
     throw new UnsupportedOperationException();
   }

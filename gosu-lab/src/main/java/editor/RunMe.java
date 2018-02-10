@@ -55,9 +55,9 @@ public class RunMe
                                                experiment == null ? Collections.emptyList() : experiment.getSourcePath(),
                                                deriveClasspath( experiment ),
                                                deriveBackingSourcePath( experiment ),
-                                               "",
-                                               Collections.<GosucDependency>emptyList(),
-                                               Collections.<String>emptyList() );
+                                               Collections.singletonList( "" ),
+                                               Collections.emptyList(),
+                                               Collections.emptyList() );
     gosuInitialization.reinitializeSimpleIde( gosucModule );
   }
 

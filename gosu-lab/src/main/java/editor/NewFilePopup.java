@@ -6,7 +6,7 @@ import editor.util.SmartMenuItem;
 import editor.util.SourceFileCreator;
 import gw.lang.reflect.ITypeLoader;
 import gw.lang.reflect.TypeSystem;
-import gw.lang.reflect.gs.ClassType;
+import manifold.api.type.ClassType;
 
 import java.awt.EventQueue;
 import javax.swing.*;
@@ -44,10 +44,12 @@ public class NewFilePopup extends JPopupMenu
   {
     for( ITypeLoader tl: TypeSystem.getAllTypeLoaders() )
     {
-      ITypeFactory factory = tl.getInterface( ITypeFactory.class );
-      if( factory != null && factory.canCreate() )
+      for( ITypeFactory factory: tl.getInterface( ITypeFactory.class ) )
       {
-        addNewItem( popup, factory.getName(), factory.getIcon(), () -> SourceFileCreator.instance().create( factory ) );
+        if( factory != null && factory.canCreate() )
+        {
+          addNewItem( popup, factory.getName(), factory.getIcon(), () -> SourceFileCreator.instance().create( factory ) );
+        }
       }
     }
     popup.add( new JPopupMenu.Separator() );

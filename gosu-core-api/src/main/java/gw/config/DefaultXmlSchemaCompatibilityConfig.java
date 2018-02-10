@@ -4,6 +4,8 @@
 
 package gw.config;
 
+import manifold.api.service.BaseService;
+
 public class DefaultXmlSchemaCompatibilityConfig extends BaseService implements IXmlSchemaCompatibilityConfig {
 
   @Override

@@ -1,8 +1,8 @@
 package gw.util;
 
 import com.sun.tools.javac.api.JavacTool;
-import gw.fs.FileFactory;
-import gw.fs.IFile;
+import manifold.api.fs.FileFactory;
+import manifold.api.fs.IFile;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -285,9 +285,9 @@ public class PathUtil
     {
       Files.delete( path );
     }
-    catch( IOException e )
+    catch( IOException ignore )
     {
-      throw GosuExceptionUtil.forceThrow( e );
+      //throw GosuExceptionUtil.forceThrow( e );
     }
   }
 

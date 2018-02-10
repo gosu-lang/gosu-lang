@@ -5,8 +5,8 @@
 package gw.test;
 
 import gw.config.CommonServices;
-import gw.fs.IDirectory;
-import gw.fs.IFile;
+import manifold.api.fs.IDirectory;
+import manifold.api.fs.IFile;
 import gw.lang.init.ClasspathToGosuPathEntryUtil;
 import gw.lang.reflect.IMethodInfo;
 import gw.lang.reflect.IType;

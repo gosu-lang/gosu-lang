@@ -10,8 +10,7 @@ import gw.lang.parser.expressions.IBlockExpression;
 import gw.lang.parser.expressions.IStringLiteralExpression;
 import gw.util.Predicate;
 import gw.internal.gosu.compiler.ByteCodeTestBase;
-import gw.internal.gosu.compiler.GosuClassLoader;
-import gw.internal.gosu.compiler.FunctionClassUtil;
+import gw.util.FunctionClassUtil;
 
 import java.lang.reflect.Method;
 import java.util.concurrent.Callable;

@@ -5,29 +5,36 @@
 package gw.internal.gosu.module;
 
 import gw.config.CommonServices;
-import gw.fs.IDirectory;
-import gw.fs.jar.JarFileDirectoryImpl;
 import gw.internal.gosu.dynamic.DynamicTypeLoader;
 import gw.internal.gosu.parser.DefaultTypeLoader;
 import gw.internal.gosu.parser.FileSystemGosuClassRepository;
+import gw.internal.gosu.parser.GosuClass;
 import gw.internal.gosu.parser.IModuleClassLoader;
 import gw.internal.gosu.parser.ModuleClassLoader;
 import gw.internal.gosu.parser.ModuleTypeLoader;
-import gw.internal.gosu.properties.PropertiesTypeLoader;
+import gw.internal.gosu.parser.java.compiler.JavaStubGenerator;
+import gw.lang.parser.IFileRepositoryBasedType;
 import gw.lang.parser.ILanguageLevel;
+import gw.lang.reflect.IType;
 import gw.lang.reflect.ITypeLoader;
+import gw.lang.reflect.SimpleTypeLoader;
 import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.gs.GosuClassTypeLoader;
 import gw.lang.reflect.gs.IFileSystemGosuClassRepository;
 import gw.lang.reflect.gs.IGosuClassRepository;
-import gw.lang.reflect.module.Dependency;
+import gw.lang.reflect.gs.ISourceFileHandle;
+import gw.lang.reflect.java.IJavaType;
+import java.util.stream.Collectors;
+import javax.tools.DiagnosticListener;
+import manifold.api.fs.IFile;
+import manifold.api.fs.IFileSystem;
+import manifold.api.fs.cache.PathCache;
+import manifold.api.host.Dependency;
 import gw.lang.reflect.module.IExecutionEnvironment;
 import gw.lang.reflect.module.IModule;
 import gw.lang.reflect.module.INativeModule;
-import gw.util.Extensions;
 import gw.util.GosuExceptionUtil;
 import gw.util.concurrent.LocklessLazyVar;
-
 import java.io.File;
 import java.lang.reflect.Constructor;
 import java.net.MalformedURLException;
@@ -42,10 +49,18 @@ import java.util.Set;
 import java.util.jar.Attributes;
 import java.util.jar.JarFile;
 import java.util.jar.Manifest;
+import javax.tools.JavaFileObject;
+import manifold.api.fs.Extensions;
+import manifold.api.fs.IDirectory;
+import manifold.api.fs.jar.JarFileDirectoryImpl;
+import manifold.api.type.ITypeManifold;
+import manifold.internal.javac.GeneratedJavaStubFileObject;
+import manifold.internal.javac.SourceSupplier;
 
 public class Module implements IModule
 {
   private final IExecutionEnvironment _execEnv;
+  private final LocklessLazyVar<PathCache> _pathCache;
   private String _strName;
 
   private List<Dependency> _dependencies = new ArrayList<>();
@@ -71,6 +86,7 @@ public class Module implements IModule
   {
     _execEnv = execEnv;
     _strName = strName;
+    _pathCache = LocklessLazyVar.make( this::makePathCache );
   }
 
   public final IExecutionEnvironment getExecutionEnvironment()
@@ -112,6 +128,37 @@ public class Module implements IModule
   public List<IDirectory> getSourcePath()
   {
     return Arrays.asList(_fileRepository.getSourcePath());
+  }
+
+  @Override
+  public List<IDirectory> getCollectiveSourcePath()
+  {
+    List<IDirectory> all = new ArrayList<>();
+    all.addAll( getSourcePath() );
+
+    for( Dependency d : getDependencies() )
+    {
+      if( d.isExported() )
+      {
+        all.addAll( d.getModule().getSourcePath() );
+      }
+    }
+    return all;
+  }
+
+  @Override
+  public List<IDirectory> getCollectiveJavaClassPath()
+  {
+    List<IDirectory> all = new ArrayList<>();
+    //all.addAll( getJavaClassPath() );
+    all.addAll( getCollectiveSourcePath() );
+    return all;
+  }
+
+  @Override
+  public IFileSystem getFileSystem()
+  {
+    return CommonServices.getFileSystem();
   }
 
   @Override
@@ -173,9 +220,101 @@ public class Module implements IModule
   }
 
   @Override
-  public IDirectory getOutputPath()
+  public List<IDirectory> getOutputPath()
   {
     return _nativeModule.getOutputPath();
+  }
+
+  @Override
+  public IDirectory[] getExcludedPath()
+  {
+    return getFileRepository().getExcludedPath();
+  }
+
+  @Override
+  public Set<ITypeManifold> getTypeManifolds()
+  {
+    Set<ITypeManifold> all = new HashSet<>();
+    GosuClassTypeLoader gosuLoader = GosuClassTypeLoader.getDefaultClassLoader( this );
+    all.addAll( gosuLoader.getTypeManifolds() );
+    DefaultTypeLoader defaultLoader = DefaultTypeLoader.instance( this );
+    all.addAll( defaultLoader.getTypeManifolds() );
+    return all;
+  }
+
+  @Override
+  public Set<ITypeManifold> findTypeManifoldsFor( String fqn )
+  {
+    Set<ITypeManifold> sps = new HashSet<>( 2 );
+    for( ITypeManifold sp : getTypeManifolds() )
+    {
+      if( sp.isType( fqn ) )
+      {
+        sps.add( sp );
+      }
+    }
+    return sps;
+  }
+
+  @Override
+  public Set<ITypeManifold> findTypeManifoldsFor( IFile file )
+  {
+    Set<ITypeManifold> sps = new HashSet<>( 2 );
+    for( ITypeManifold sp : getTypeManifolds() )
+    {
+      if( sp.handlesFile( file ) )
+      {
+        sps.add( sp );
+      }
+    }
+    return sps;
+  }
+
+  @Override
+  public PathCache getPathCache()
+  {
+    return _pathCache.get();
+  }
+
+  @Override
+  public JavaFileObject produceFile( String fqn, DiagnosticListener<JavaFileObject> errorHandler )
+  {
+    IType type = TypeSystem.getByFullNameIfValid( fqn, this );
+    JavaFileObject file = null;
+    if( type != null && type instanceof IFileRepositoryBasedType && !GosuClass.ProxyUtil.isProxy( type ) && !isErrantTestArtifact( fqn ) )
+    {
+      if( !(type instanceof IJavaType) )
+      {
+        file = makeJavaStub( type );
+      }
+      else
+      {
+        ISourceFileHandle sourceFileHandle = ((IJavaType)type).getSourceFileHandle();
+        if( sourceFileHandle != null )
+        {
+          Set<ITypeManifold> typeManifold = sourceFileHandle.getTypeManifolds();
+          if(! typeManifold.isEmpty() )
+          {
+            // The source for this type is not on disk, but is instead generated on demand
+            file = produceSource( (IFileRepositoryBasedType)type );
+          }
+        }
+      }
+    }
+    return file;
+  }
+  private JavaFileObject produceSource( IFileRepositoryBasedType loadableType )
+  {
+    ISourceFileHandle sfh = loadableType.getSourceFileHandle();
+    return new GeneratedJavaStubFileObject( loadableType.getName(), new SourceSupplier( sfh.getTypeManifolds(), () -> sfh.getSource().getSource() ) );
+  }
+  private JavaFileObject makeJavaStub( IType loadableType )
+  {
+    return new GeneratedJavaStubFileObject( loadableType.getName(), new SourceSupplier( null, () -> JavaStubGenerator.instance().genStub( loadableType ) ) );
+  }
+  private boolean isErrantTestArtifact( String fqn )
+  {
+    return fqn.contains( ".Errant_" );
   }
 
   public ModuleTypeLoader getModuleTypeLoader()
@@ -213,18 +352,18 @@ public class Module implements IModule
    *   <li>The Class-Path entry contains a space-delimited list of URIs</li>
    * </ul>
    * <p>Then the entries will be parsed and added to the Gosu classpath.
-   * 
+   *
    * <p>This logic also handles strange libraries packaged pre-Maven such as xalan:xalan:2.4.1
-   * 
+   *
    * <p>The xalan JAR above has a Class-Path attribute referencing the following:
    * <pre>
    *   Class-Path: xercesImpl.jar xml-apis.jar
    * </pre>
-   * 
+   *
    * These unqualified references should have been resolved by the build tooling, and if we try to interfere and resolve
    * the references, we may cause classpath confusion. Therefore any Class-Path entry not resolvable to an absolute
    * path on disk (and, therefore, can be listed as a URL) will be skipped.
-   * 
+   *
    * @see java.util.jar.Attributes.Name#CLASS_PATH
    * @param classpath The module's Java classpath
    * @return The original classpath, possibly with dependencies listed in JAR manifests Class-Path extracted and explicitly listed
@@ -346,35 +485,46 @@ public class Module implements IModule
     createExtensionTypeloadersImpl();
   }
 
-  protected void createExtensionTypeloadersImpl() {
-    Set<String> typeLoaders = getExtensionTypeloaderNames();
-    for( String additionalTypeLoader : typeLoaders) {
-      try {
-        createAndPushTypeLoader(_fileRepository, additionalTypeLoader);
-      } catch (Throwable e) {
-        System.err.println("==> WARNING: Cannot create extension typeloader " + additionalTypeLoader + ". " + e.getMessage());
+  protected void createExtensionTypeloadersImpl()
+  {
+    Set<String> typeLoaders = new HashSet<>();
+    findExtensionClasses( typeLoaders );
+    for( ITypeLoader loader: getModuleTypeLoader().getTypeLoaderStack() )
+    {
+      if( loader instanceof SimpleTypeLoader )
+      {
+        ((SimpleTypeLoader)loader).initializeTypeManifolds();
+      }
+    }
+    for( String additionalTypeLoader: typeLoaders )
+    {
+      try
+      {
+        createAndPushTypeLoader( _fileRepository, additionalTypeLoader );
+      }
+      catch( Throwable e )
+      {
+        System.err.println( "==> WARNING: Cannot create extension typeloader " + additionalTypeLoader + ". " + e.getMessage() );
 //        e.printStackTrace(System.err);
-        System.err.println("==> END WARNING.");
+        System.err.println( "==> END WARNING." );
       }
     }
   }
 
-  private Set<String> getExtensionTypeloaderNames() {
-    Set<String> set = new HashSet<>();
-    for (IModule m : getModuleTraversalList()) {
-      for (IDirectory dir : m.getJavaClassPath()) {
-        Extensions.getExtensions(set, dir, "Gosu-Typeloaders");
+  private void findExtensionClasses( Set<String> typeLoaders )
+  {
+    for( IModule m : getModuleTraversalList() )
+    {
+      for( IDirectory dir: m.getJavaClassPath() )
+      {
+        Extensions.getExtensions( typeLoaders, dir, "Gosu-Typeloaders" );
       }
     }
-    return set;
   }
 
   protected void createStandardTypeLoaders()
   {
     CommonServices.getTypeSystem().pushTypeLoader( this, new GosuClassTypeLoader( this, _fileRepository ) );
-    if( ILanguageLevel.Util.STANDARD_GOSU() ) {
-      CommonServices.getTypeSystem().pushTypeLoader( this, new PropertiesTypeLoader( this ) );
-    }
     if( ILanguageLevel.Util.DYNAMIC_TYPE() ) {
       CommonServices.getTypeSystem().pushTypeLoader( this, new DynamicTypeLoader( this ) );
     }
@@ -411,7 +561,7 @@ public class Module implements IModule
   protected void traverse(final IModule theModule, List<IModule> traversalList) {
     traversalList.add(theModule);
     for (Dependency dependency : theModule.getDependencies()) {
-      IModule dependencyModule = dependency.getModule();
+      IModule dependencyModule = (IModule)dependency.getModule();
 
       // traverse all direct dependency and indirect exported dependencies
       if (!traversalList.contains(dependencyModule) &&
@@ -590,4 +740,16 @@ public class Module implements IModule
     }
   }
 
+  private PathCache makePathCache()
+  {
+    return new PathCache( this, this::makeModuleSourcePath, _pathCache::clear );
+  }
+
+  private List<IDirectory> makeModuleSourcePath()
+  {
+    return getSourcePath().stream()
+      .filter( dir -> Arrays.stream( getExcludedPath() )
+        .noneMatch( excludeDir -> excludeDir.equals( dir ) ) )
+      .collect( Collectors.toList() );
+  }
 }

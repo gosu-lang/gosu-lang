@@ -3,9 +3,11 @@ package editor;
 import editor.plugin.typeloader.ITypeFactory;
 import editor.undo.AtomicUndoManager;
 import editor.util.EditorUtilities;
+import manifold.api.fs.IFile;
 import gw.lang.parser.ISymbolTable;
 import gw.lang.reflect.IType;
-import gw.lang.IIssueContainer;
+import gw.lang.reflect.ITypeRef;
+import gw.lang.reflect.TypeSystem;
 import gw.util.GosuStringUtil;
 import java.awt.BorderLayout;
 import java.awt.EventQueue;
@@ -13,6 +15,7 @@ import java.awt.Font;
 import java.awt.Insets;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.util.List;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JViewport;
@@ -26,6 +29,7 @@ import javax.swing.text.Element;
 import javax.swing.text.SimpleAttributeSet;
 import javax.swing.text.StyleConstants;
 import javax.swing.text.StyledEditorKit;
+import manifold.internal.javac.IIssueContainer;
 
 public class StandardEditor extends EditorHost
 {
@@ -149,7 +153,21 @@ public class StandardEditor extends EditorHost
       return;
     }
 
-    _factory = type.getTypeLoader().getInterface( ITypeFactory.class );
+    List<ITypeFactory> factories = type.getTypeLoader().getInterface( ITypeFactory.class );
+    if( factories.isEmpty() )
+    {
+      return;
+    }
+
+    for( ITypeFactory factory: factories )
+    {
+      if( factory.handlesType( type ) )
+      {
+        _factory = factory;
+        break;
+      }
+    }
+
     if( _factory == null )
     {
       return;
@@ -286,14 +304,41 @@ public class StandardEditor extends EditorHost
     public void insertUpdate( DocumentEvent e )
     {
       parse();
+      refreshTypes();
     }
 
     @Override
     public void removeUpdate( DocumentEvent e )
     {
       parse();
+      refreshTypes();
     }
 
-  }
+    private void refreshTypes()
+    {
+      EventQueue.invokeLater( () -> {
+        TypeSystem.refresh( (ITypeRef)_type );
 
+        IFile[] sourceFiles = _type.getSourceFiles();
+        if( sourceFiles != null )
+        {
+          for( IFile file : sourceFiles )
+          {
+            String[] typesForFile = TypeSystem.getTypesForFile( TypeSystem.getCurrentModule(), file );
+            if( typesForFile != null )
+            {
+              for( String fqn: typesForFile )
+              {
+                IType csr = TypeSystem.getByFullNameIfValid( fqn );
+                if( csr != null )
+                {
+                  TypeSystem.refresh( (ITypeRef)csr );
+                }
+              }
+            }
+          }
+        }
+      } );
+    }
+  }
 }

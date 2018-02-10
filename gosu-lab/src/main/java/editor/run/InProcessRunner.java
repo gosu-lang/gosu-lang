@@ -11,7 +11,6 @@ import gw.lang.Gosu;
 import gw.lang.reflect.IMethodInfo;
 import gw.lang.reflect.ReflectUtil;
 import gw.lang.reflect.TypeSystem;
-import gw.lang.reflect.gs.GosuClassPathThing;
 import gw.lang.reflect.gs.IGosuClass;
 import gw.lang.reflect.gs.IGosuProgram;
 import gw.lang.reflect.java.JavaTypes;
@@ -26,6 +25,7 @@ import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
+import manifold.internal.runtime.Bootstrap;
 
 /**
 */
@@ -99,7 +99,7 @@ public class InProcessRunner implements IProcessRunner<FqnRunConfig>
                   }
                 } );
 
-              GosuClassPathThing.addOurProtocolHandler();
+              Bootstrap.addOurProtocolHandler();
             }
           }
           catch( Exception e )
@@ -146,8 +146,8 @@ public class InProcessRunner implements IProcessRunner<FqnRunConfig>
   public String run( String typeName, List<File> classpath ) throws Exception
   {
     Gosu.init( classpath );
-    GosuClassPathThing.addOurProtocolHandler();
-    GosuClassPathThing.init();
+    Bootstrap.addOurProtocolHandler();
+    Bootstrap.init();
     IGosuClass gsType = (IGosuClass)TypeSystem.getByFullNameIfValid( typeName );
     if( gsType instanceof IGosuProgram )
     {

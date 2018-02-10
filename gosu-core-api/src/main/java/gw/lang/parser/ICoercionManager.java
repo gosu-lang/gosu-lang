@@ -4,7 +4,6 @@
 
 package gw.lang.parser;
 
-import gw.config.IService;
 import gw.lang.reflect.IType;
 import gw.lang.parser.exceptions.ParseIssue;
 import gw.util.Rational;
@@ -12,6 +11,7 @@ import gw.util.Rational;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.Date;
+import manifold.api.service.IService;
 
 public interface ICoercionManager extends IService
 {

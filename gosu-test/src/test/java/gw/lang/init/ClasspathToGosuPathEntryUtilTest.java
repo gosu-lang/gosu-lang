@@ -6,7 +6,7 @@ package gw.lang.init;
 
 import gw.internal.gosu.module.fs.ModuleFSTestUtil;
 import gw.lang.reflect.TypeSystem;
-import gw.fs.IDirectory;
+import manifold.api.fs.IDirectory;
 import gw.internal.gosu.module.fs.ModuleFSTestUtil;
 import gw.test.TestClass;
 import gw.testharness.KnownBreak;

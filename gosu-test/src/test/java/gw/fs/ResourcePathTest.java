@@ -6,7 +6,7 @@ package gw.fs;
 
 import gw.test.TestClass;
 
-import java.util.Arrays;
+import manifold.api.fs.ResourcePath;
 
 /**
  * Created by IntelliJ IDEA.
@@ -292,7 +292,7 @@ public class ResourcePathTest extends TestClass {
 
   // --------------------- Private Helper Methods
 
-  private void assertPathMatches(ResourcePath path, String... reversedPath) {
+  private void assertPathMatches( ResourcePath path, String... reversedPath) {
     ResourcePath currentPath = path;
     for (String s : reversedPath) {
       if (currentPath == null) {

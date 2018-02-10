@@ -6,7 +6,7 @@ package gw.internal.gosu.parser;
 
 import gw.config.CommonServices;
 import gw.config.ExecutionMode;
-import gw.fs.IDirectory;
+import manifold.api.fs.IDirectory;
 import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.module.IExecutionEnvironment;
 import gw.lang.reflect.module.IJreModule;

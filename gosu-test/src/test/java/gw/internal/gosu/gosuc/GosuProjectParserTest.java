@@ -63,6 +63,6 @@ public class GosuProjectParserTest extends TestClass  {
     for( String dep: deps ) {
       dependencies.add( new GosucDependency( dep, !exported ) );
     }
-    return new GosucModule( modName, sources, classpath, Collections.emptyList(), outpath, dependencies, exclusions );
+    return new GosucModule( modName, sources, classpath, Collections.emptyList(), Collections.singletonList( outpath ), dependencies, exclusions );
   }
 }

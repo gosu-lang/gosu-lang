@@ -1,10 +1,10 @@
 package editor.plugin.typeloader;
 
 import editor.EditorHost;
-import gw.lang.IIssueContainer;
 import gw.lang.reflect.IType;
 import javax.swing.JComponent;
 import javax.swing.text.StyledEditorKit;
+import manifold.internal.javac.IIssueContainer;
 
 /**
  */
@@ -26,4 +26,6 @@ public interface ITypeFactory
   String getTooltipMessage( int iPos, EditorHost editor );
 
   IIssueContainer getIssueContainer( EditorHost editor );
+
+  boolean handlesType( IType type );
 }

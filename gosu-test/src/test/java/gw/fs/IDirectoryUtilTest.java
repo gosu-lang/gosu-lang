@@ -5,7 +5,8 @@
 package gw.fs;
 
 import gw.test.TestClass;
-import gw.util.DynamicArray;
+import manifold.util.DynamicArray;
+import manifold.api.fs.IDirectoryUtil;
 
 public class IDirectoryUtilTest extends TestClass {
   public void testRootPathSplitsIntoEmptyArray() {
@@ -65,7 +66,7 @@ public class IDirectoryUtilTest extends TestClass {
   }
 
   private void assertSplitProduces(String relativePath, String[] expectedComponents) {
-    DynamicArray<String> elements = IDirectoryUtil.splitPath(relativePath);
+    DynamicArray<String> elements = IDirectoryUtil.splitPath( relativePath);
     assertEquals(expectedComponents.length, elements.size());
     for (int i = 0, expectedComponentsLength = expectedComponents.length; i < expectedComponentsLength; i++) {
       assertEquals(expectedComponents[i], elements.get(i));

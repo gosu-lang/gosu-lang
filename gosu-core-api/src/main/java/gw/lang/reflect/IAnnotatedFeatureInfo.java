@@ -5,10 +5,11 @@
 package gw.lang.reflect;
 
 import gw.config.CommonServices;
-import gw.lang.reflect.java.IJavaType;
 import gw.lang.reflect.java.JavaTypes;
+import gw.util.GosuExceptionUtil;
 import gw.util.GosuObjectUtil;
 
+import java.net.URL;
 import java.util.List;
 import java.util.ArrayList;
 
@@ -68,6 +69,26 @@ public interface IAnnotatedFeatureInfo extends IFeatureInfo
    * @return True if this feature is the default implementation e.g., default interface method
    */
   boolean isDefaultImpl();
+
+  @Override
+  default ILocationInfo getLocationInfo()
+  {
+    IAnnotationInfo anno = getAnnotation( JavaTypes.SOURCE_POSITION() );
+    if( anno != null )
+    {
+      try
+      {
+        return new LocationInfo( ((Integer)anno.getFieldValue( "offset" )).intValue(),
+                                 ((Integer)anno.getFieldValue( "length" )).intValue(), -1, -1,
+                                 new URL( (String)anno.getFieldValue( "url" ) ) );
+      }
+      catch( Exception e )
+      {
+        throw GosuExceptionUtil.forceThrow( e );
+      }
+    }
+    return IFeatureInfo.super.getLocationInfo();
+  }
 
   class IAnnotationInfoHelper {
     private IAnnotationInfoHelper(){}
