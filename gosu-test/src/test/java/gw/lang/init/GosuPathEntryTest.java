@@ -4,13 +4,13 @@
 
 package gw.lang.init;
 
-import gw.fs.IDirectory;
+import manifold.api.fs.IDirectory;
 import gw.test.TestClass;
-import gw.internal.gosu.module.fs.JavaDirectoryImpl;
-import gw.lang.reflect.module.IFileSystem;
 
 import java.util.Collections;
 import java.io.File;
+import manifold.api.fs.IFileSystem;
+import manifold.api.fs.def.JavaDirectoryImpl;
 
 /**
  * Created by IntelliJ IDEA.
@@ -33,7 +33,7 @@ public class GosuPathEntryTest extends TestClass {
 
   public void testConstructorThrowsIllegalArgumentExceptionIfSrcsIsNull() {
     try {
-      new GosuPathEntry(new JavaDirectoryImpl(new File("foo/bar"), IFileSystem.CachingMode.NO_CACHING), null);
+      new GosuPathEntry( new JavaDirectoryImpl( new File( "foo/bar"), IFileSystem.CachingMode.NO_CACHING), null);
       fail();
     } catch (IllegalArgumentException e) {
       // Expected();

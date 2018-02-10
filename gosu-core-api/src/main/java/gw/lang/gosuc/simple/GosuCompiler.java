@@ -1,20 +1,19 @@
 package gw.lang.gosuc.simple;
 
+import com.sun.tools.javac.processing.JavacProcessingEnvironment;
 import gw.config.CommonServices;
 import gw.config.ExecutionMode;
 import gw.config.IMemoryMonitor;
 import gw.config.IPlatformHelper;
 import gw.config.Registry;
-import gw.fs.FileFactory;
-import gw.fs.IDirectory;
-import gw.fs.IFile;
-import gw.lang.gosuc.GosucDependency;
+import javax.annotation.processing.ProcessingEnvironment;
+import manifold.api.fs.FileFactory;
+import manifold.api.fs.IDirectory;
+import manifold.api.fs.IFile;
 import gw.lang.gosuc.GosucModule;
 import gw.lang.gosuc.cli.CommandLineOptions;
 import gw.lang.init.GosuInitialization;
-import gw.lang.javac.ClassJavaFileObject;
-import gw.lang.javac.IJavaParser;
-import gw.lang.javac.SourceJavaFileObject;
+import manifold.internal.javac.IJavaParser;
 import gw.lang.parser.GosuParserFactory;
 import gw.lang.parser.ICoercionManager;
 import gw.lang.parser.IParseIssue;
@@ -25,22 +24,24 @@ import gw.lang.parser.statements.IClassStatement;
 import gw.lang.reflect.IEntityAccess;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.TypeSystem;
+import gw.lang.reflect.gs.ICompilableType;
 import gw.lang.reflect.gs.IGosuClass;
 import gw.lang.reflect.gs.ISourceFileHandle;
 import gw.lang.reflect.java.IJavaType;
+import gw.lang.reflect.java.JavaTypes;
 import gw.lang.reflect.module.IExecutionEnvironment;
-import gw.lang.reflect.module.IFileSystem;
+import manifold.api.fs.IFileSystem;
 import gw.lang.reflect.module.IModule;
 import gw.util.PathUtil;
+import gw.util.StreamUtil;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.lang.reflect.Constructor;
-import java.nio.channels.FileChannel;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -51,7 +52,12 @@ import java.util.List;
 import java.util.StringTokenizer;
 import java.util.stream.Collectors;
 import javax.tools.DiagnosticCollector;
+import javax.tools.DiagnosticListener;
+import javax.tools.FileObject;
+import javax.tools.JavaFileManager;
 import javax.tools.JavaFileObject;
+import manifold.internal.javac.InMemoryClassJavaFileObject;
+import manifold.internal.javac.SourceJavaFileObject;
 
 
 import static gw.lang.gosuc.simple.ICompilerDriver.ERROR;
@@ -62,7 +68,28 @@ public class GosuCompiler implements IGosuCompiler
   private static final String[] SOURCE_EXTS = { ".gs", ".gsx", ".gst", ".java" };
 
   protected GosuInitialization _gosuInitialization;
-  protected File _compilingSourceFile;
+
+  @Override
+  public boolean compile( List<String> gosuInputFiles, ProcessingEnvironment jpe, JavaFileManager fileManager )
+  {
+    if( gosuInputFiles.isEmpty() )
+    {
+      return true;
+    }
+
+    DiagnosticListener dc = ((JavacProcessingEnvironment)jpe).getContext().get( DiagnosticListener.class );
+    //noinspection unchecked
+    JavacCompilerDriver driver = new JavacCompilerDriver( dc, jpe.getFiler(), false, true ); //## todo: get warnings option
+    return compileGosuSources( makeOptions( jpe, gosuInputFiles ), driver, gosuInputFiles );
+  }
+
+  private CommandLineOptions makeOptions( ProcessingEnvironment jpe, List<String> gosuInputFiles )
+  {
+    //## todo: transfer options from javac command line
+    CommandLineOptions clo = new CommandLineOptions();
+    clo.setSourceFiles( gosuInputFiles );
+    return clo;
+  }
 
   @Override
   public boolean compile( CommandLineOptions options, ICompilerDriver driver )
@@ -185,10 +212,10 @@ public class GosuCompiler implements IGosuCompiler
 
   private boolean compileJavaSources( CommandLineOptions options, ICompilerDriver driver, List<String> javaFiles )
   {
-    IJavaParser javaParser = GosuParserFactory.getInterface( IJavaParser.class );
+    IJavaParser javaParser = GosuParserFactory.getInterface( IJavaParser.class ).get( 0 );
     DiagnosticCollector<JavaFileObject> errorHandler = new DiagnosticCollector<>();
     List<JavaFileObject> sourceFiles = javaFiles.stream().map( SourceJavaFileObject::new ).collect( Collectors.toList() );
-    Collection<ClassJavaFileObject> files = javaParser.compile( sourceFiles, makeJavacOptions( options ), errorHandler );
+    Collection<InMemoryClassJavaFileObject> files = javaParser.compile( sourceFiles, makeJavacOptions( options ), errorHandler );
     errorHandler.getDiagnostics().forEach( driver::sendCompileIssue );
     createJavaOutputFiles( files, driver );
     if( driver.getErrors().size() > options.getMaxErrs() )
@@ -209,6 +236,7 @@ public class GosuCompiler implements IGosuCompiler
     ArrayList<String> javacOpts = new ArrayList<>();
     javacOpts.add( "-g" );
     javacOpts.add( "-Xlint:unchecked" );
+    javacOpts.add( "-proc:none" );
     javacOpts.add( "-parameters" );
     if( options.isVerbose() )
     {
@@ -224,12 +252,12 @@ public class GosuCompiler implements IGosuCompiler
   @Override
   public boolean compile( File sourceFile, ICompilerDriver driver )
   {
-    _compilingSourceFile = sourceFile;
+    JavaFileObject compilingFile = new SourceJavaFileObject( sourceFile.toURI() );
 
-    IType type = getType( _compilingSourceFile );
+    IType type = getType( sourceFile );
     if( type == null )
     {
-      driver.sendCompileIssue( _compilingSourceFile, ERROR, 0, 0, 0, "Cannot find type in the Gosu Type System." );
+      driver.sendCompileIssue( compilingFile, ERROR, 0, 0, 0, "Cannot find type in the Gosu Type System: " + sourceFile.getAbsolutePath() );
       return false;
     }
 
@@ -244,7 +272,7 @@ public class GosuCompiler implements IGosuCompiler
       }
       catch( CompilerDriverException ex )
       {
-        driver.sendCompileIssue( _compilingSourceFile, ERROR, 0, 0, 0, ex.getMessage() );
+        driver.sendCompileIssue( compilingFile, ERROR, 0, 0, 0, ex.getMessage() );
         return false;
       }
       // output warnings and errors - whether the type was valid or not
@@ -256,7 +284,7 @@ public class GosuCompiler implements IGosuCompiler
       {
         int category = issue instanceof ParseWarning ? WARNING : ERROR;
         String message = mode == ExecutionMode.IDE ? issue.getUIMessage() : issue.getConsoleMessage();
-        driver.sendCompileIssue( _compilingSourceFile, category, issue.getTokenStart(), issue.getLine(), issue.getColumn(), message );
+        driver.sendCompileIssue( compilingFile, category, issue.getTokenStart(), issue.getLine(), issue.getColumn(), message );
       }
     }
 
@@ -277,87 +305,37 @@ public class GosuCompiler implements IGosuCompiler
 
   private boolean isCompilable( IType type )
   {
+    if( !(type instanceof IGosuClass) )
+    {
+      return false;
+    }
+
     IType doNotVerifyAnnotation = TypeSystem.getByFullNameIfValid( "gw.testharness.DoNotVerifyResource" );
-    return type instanceof IGosuClass && !type.getTypeInfo().hasAnnotation( doNotVerifyAnnotation );
+    return !type.getTypeInfo().hasAnnotation( doNotVerifyAnnotation ) &&
+           !type.getTypeInfo().hasAnnotation( JavaTypes.DO_NOT_COMPILE() );
   }
 
   private void createGosuOutputFiles( IGosuClass gsClass, ICompilerDriver driver )
   {
-    IDirectory moduleOutputDirectory = TypeSystem.getGlobalModule().getOutputPath();
+    List<IDirectory> moduleOutputDirectory = TypeSystem.getGlobalModule().getOutputPath();
     if( moduleOutputDirectory == null )
     {
       throw new RuntimeException( "Can't make class file, no output path defined." );
     }
 
-    final String outRelativePath = gsClass.getName().replace( '.', File.separatorChar ) + ".class";
-    File child = new File( moduleOutputDirectory.getPath().getFileSystemPathString() );
-    mkdirs( child );
-    try
-    {
-      for( StringTokenizer tokenizer = new StringTokenizer( outRelativePath, File.separator + "/" ); tokenizer.hasMoreTokens(); )
-      {
-        String token = tokenizer.nextToken();
-        child = new File( child, token );
-        if( !child.exists() )
-        {
-          if( token.endsWith( ".class" ) )
-          {
-            createNewFile( child );
-          }
-          else
-          {
-            mkDir( child );
-          }
-        }
-      }
-      populateGosuClassFile( child, gsClass, driver );
-      maybeCopySourceFile( child.getParentFile(), gsClass, _compilingSourceFile, driver );
-    }
-    catch( Throwable e )
-    {
-      driver.sendCompileIssue( _compilingSourceFile, ERROR, 0, 0, 0, combine( "Cannot create .class files.", getStackTrace( e ) ) );
-    }
+    JavaFileObject classFile = driver.createClassFile( gsClass.getName() );
+    populateGosuClassFile( classFile, gsClass, driver );
+    maybeCopySourceFile( gsClass, driver );
   }
 
-  private void createJavaOutputFiles( Collection<ClassJavaFileObject> compiledJavaFiles, ICompilerDriver driver )
+  private void createJavaOutputFiles( Collection<InMemoryClassJavaFileObject> compiledJavaFiles, ICompilerDriver driver )
   {
-    IDirectory moduleOutputDirectory = TypeSystem.getGlobalModule().getOutputPath();
-    if( moduleOutputDirectory == null )
-    {
-      throw new RuntimeException( "Can't make class file, no output path defined." );
-    }
-
     compiledJavaFiles = compiledJavaFiles.stream().filter( e -> TypeSystem.getByFullNameIfValid( e.getClassName().replace( '$', '.' ) ) instanceof IJavaType ).collect( Collectors.toList() );
 
-    for( ClassJavaFileObject compiledJavaFile: compiledJavaFiles )
+    for( InMemoryClassJavaFileObject compiledJavaFile: compiledJavaFiles )
     {
-      final String outRelativePath = compiledJavaFile.getClassName().replace( '.', File.separatorChar ) + ".class";
-      File child = new File( moduleOutputDirectory.getPath().getFileSystemPathString() );
-      mkdirs( child );
-      try
-      {
-        for( StringTokenizer tokenizer = new StringTokenizer( outRelativePath, File.separator + "/" ); tokenizer.hasMoreTokens(); )
-        {
-          String token = tokenizer.nextToken();
-          child = new File( child, token );
-          if( !child.exists() )
-          {
-            if( token.endsWith( ".class" ) )
-            {
-              createNewFile( child );
-            }
-            else
-            {
-              mkDir( child );
-            }
-          }
-        }
-        populateJavaClassFile( child, compiledJavaFile.getBytes(), driver );
-      }
-      catch( Throwable e )
-      {
-        driver.sendCompileIssue( _compilingSourceFile, ERROR, 0, 0, 0, combine( "Cannot create .class files.", getStackTrace( e ) ) );
-      }
+      JavaFileObject classFile = driver.createClassFile( compiledJavaFile.getClassName() );
+      populateJavaClassFile( classFile, compiledJavaFile.getBytes(), driver );
     }
   }
 
@@ -368,7 +346,7 @@ public class GosuCompiler implements IGosuCompiler
     return stringWriter.toString();
   }
 
-  private String combine( String message1, String message2 )
+  private String combine( @SuppressWarnings("SameParameterValue") String message1, String message2 )
   {
     if( message1 == null )
     {
@@ -381,22 +359,7 @@ public class GosuCompiler implements IGosuCompiler
     return message1 + message2;
   }
 
-  private boolean mkDir( File file )
-  {
-    return file.mkdir();
-  }
-
-  private boolean mkdirs( File file )
-  {
-    return file.mkdirs();
-  }
-
-  private boolean createNewFile( File file ) throws IOException
-  {
-    return file.createNewFile();
-  }
-
-  private void maybeCopySourceFile( File parent, IGosuClass gsClass, File sourceFile, ICompilerDriver driver )
+  private void maybeCopySourceFile( IGosuClass gsClass, ICompilerDriver driver )
   {
     ISourceFileHandle sfh = gsClass.getSourceFileHandle();
     IFile srcFile = sfh.getFile();
@@ -405,68 +368,62 @@ public class GosuCompiler implements IGosuCompiler
       File file = new File( srcFile.getPath().getFileSystemPathString() );
       if( file.isFile() )
       {
-        try
+        FileObject resourceFile = driver.createResourceFile( gsClass.getNamespace(), file.getName() );
+        try( InputStream in = new FileInputStream( file );
+             OutputStream out = resourceFile.openOutputStream() )
         {
-          File destFile = new File( parent, file.getName() );
-          copyFile( file, destFile );
-          driver.registerOutput( _compilingSourceFile, destFile );
+          StreamUtil.copy( in, out );
         }
-        catch( IOException e )
+        catch( Exception e )
         {
-          e.printStackTrace();
-          driver.sendCompileIssue( sourceFile, ERROR, 0, 0, 0, "Cannot copy source file to output folder." );
+          throw new RuntimeException( e );
         }
       }
     }
   }
 
-  public void copyFile( File sourceFile, File destFile ) throws IOException
+  private void populateGosuClassFile( JavaFileObject javaFile, IGosuClass gosuClass, ICompilerDriver driver )
   {
-    if( sourceFile.isDirectory() )
+    final byte[] bytes = TypeSystem.getGosuClassLoader().getBytes( gosuClass );
+    try( OutputStream out = javaFile.openOutputStream() )
     {
-      mkdirs( destFile );
+      out.write( bytes );
+    }
+    catch( IOException e )
+    {
+      driver.sendCompileIssue( javaFile, ERROR, 0, 0, 0, combine( "Cannot create .class files.", getStackTrace( e ) ) );
       return;
     }
 
-    if( !destFile.exists() )
-    {
-      mkdirs( destFile.getParentFile() );
-      createNewFile( destFile );
-    }
-
-    try( FileChannel source = new FileInputStream( sourceFile ).getChannel();
-         FileChannel destination = new FileOutputStream( destFile ).getChannel() )
-    {
-      destination.transferFrom( source, 0, source.size() );
-    }
-  }
-
-  private void populateGosuClassFile( File outputFile, IGosuClass gosuClass, ICompilerDriver driver ) throws IOException
-  {
-    final byte[] bytes = TypeSystem.getGosuClassLoader().getBytes( gosuClass );
-    try( OutputStream out = new FileOutputStream( outputFile ) )
-    {
-      out.write( bytes );
-      driver.registerOutput( _compilingSourceFile, outputFile );
-    }
     for( IGosuClass innerClass : gosuClass.getInnerClasses() )
     {
-      final String innerClassName = String.format( "%s$%s.class", outputFile.getName().substring( 0, outputFile.getName().lastIndexOf( '.' ) ), innerClass.getRelativeName() );
-      File innerClassFile = new File( outputFile.getParent(), innerClassName );
-      if( innerClassFile.isFile() )
-      {
-        createNewFile( innerClassFile );
-      }
-      populateGosuClassFile( innerClassFile, innerClass, driver );
+      File file = new File( javaFile.toUri() );
+      String enclosingName = file.getName().substring( 0, file.getName().lastIndexOf( '.' ) );
+      String innerName = innerClass.getRelativeName();
+      JavaFileObject innerFile = driver.createClassFile( getPackage( gosuClass ) + '.' + enclosingName + '$' + innerName );
+      populateGosuClassFile( innerFile, innerClass, driver );
     }
   }
 
-  private void populateJavaClassFile( File outputFile, byte[] bytes, ICompilerDriver driver ) throws IOException
+  private String getPackage( ICompilableType gosuClass )
   {
-    try( OutputStream out = new FileOutputStream( outputFile ) )
+    ICompilableType enclosingType = gosuClass.getEnclosingType();
+    if( enclosingType == null )
+    {
+      return gosuClass.getNamespace();
+    }
+    return getPackage( enclosingType );
+  }
+
+  private void populateJavaClassFile( JavaFileObject javaFile, byte[] bytes, ICompilerDriver driver )
+  {
+    try( OutputStream out = javaFile.openOutputStream() )
     {
       out.write( bytes );
-      driver.registerOutput( _compilingSourceFile, outputFile );
+    }
+    catch( IOException e )
+    {
+      driver.sendCompileIssue( javaFile, ERROR, 0, 0, 0, combine( "Cannot create .class files.", getStackTrace( e ) ) );
     }
   }
 
@@ -497,13 +454,18 @@ public class GosuCompiler implements IGosuCompiler
 
     IExecutionEnvironment execEnv = TypeSystem.getExecutionEnvironment();
     _gosuInitialization = GosuInitialization.instance( execEnv );
+    if( _gosuInitialization.isInitialized() )
+    {
+      _gosuInitialization.uninitializeCompiler();
+    }
+
     GosucModule gosucModule = new GosucModule( IExecutionEnvironment.DEFAULT_SINGLE_MODULE_NAME,
                                                sourceFolders,
                                                classpath,
                                                backingSourcePath,
-                                               outputPath,
-                                               Collections.<GosucDependency>emptyList(),
-                                               Collections.<String>emptyList() );
+                                               Collections.singletonList( outputPath ),
+                                               Collections.emptyList(),
+                                               Collections.emptyList() );
     _gosuInitialization.initializeCompiler( gosucModule );
 
     return System.currentTimeMillis() - start;
@@ -513,7 +475,7 @@ public class GosuCompiler implements IGosuCompiler
   {
     try
     {
-      Class<?> cls = Class.forName( "gw.internal.gosu.module.fs.FileSystemImpl" );
+      Class<?> cls = Class.forName( "manifold.api.fs.def.FileSystemImpl" );
       Constructor m = cls.getConstructor( IFileSystem.CachingMode.class );
       return (IFileSystem)m.newInstance( IFileSystem.CachingMode.FULL_CACHING );
     }

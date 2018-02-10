@@ -6,14 +6,13 @@ package gw.internal.gosu.parser;
 
 import gw.config.CommonServices;
 import gw.config.ExecutionMode;
-import gw.fs.IDirectory;
-import gw.fs.IResource;
-import gw.fs.IncludeModuleDirectory;
+import manifold.api.fs.AdditionalDirectory;
+import manifold.api.fs.IDirectory;
+import manifold.api.fs.IResource;
 import gw.internal.gosu.module.DefaultSingleModule;
 import gw.internal.gosu.module.GlobalModule;
 import gw.internal.gosu.module.JreModule;
 import gw.internal.gosu.module.Module;
-import gw.fs.AdditionalDirectory;
 import gw.lang.Gosu;
 import gw.lang.ProgramFileContext;
 import gw.lang.gosuc.GosucModule;
@@ -30,10 +29,9 @@ import gw.lang.reflect.IType;
 import gw.lang.reflect.ITypeRef;
 import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.gs.BytecodeOptions;
-import gw.lang.reflect.gs.GosuClassPathThing;
 import gw.lang.reflect.gs.GosuClassTypeLoader;
 import gw.lang.reflect.java.JavaTypes;
-import gw.lang.reflect.module.Dependency;
+import manifold.api.host.Dependency;
 import gw.lang.reflect.module.IExecutionEnvironment;
 import gw.lang.reflect.module.IModule;
 import gw.lang.reflect.module.IProject;
@@ -56,6 +54,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.WeakHashMap;
+import manifold.api.fs.IncludeModuleDirectory;
+import manifold.internal.runtime.Bootstrap;
 
 public class ExecutionEnvironment implements IExecutionEnvironment
 {
@@ -73,6 +73,8 @@ public class ExecutionEnvironment implements IExecutionEnvironment
           "javax.servlet.http.HttpServletRequest"
   );
 
+  private static ThreadLocal<Boolean> _reentered = new ThreadLocal<>();
+
   private IProject _project;
   private List<IModule> _modules;
   private IModule _defaultModule;
@@ -83,47 +85,62 @@ public class ExecutionEnvironment implements IExecutionEnvironment
 
   public static ExecutionEnvironment instance()
   {
-    if( THE_ONE != null && !ExecutionMode.get().isRefreshSupportEnabled() ) {
-      // perf improvement, avoid calling INSTANCES.size() (WeakHashMap#size() is slow)
-      return THE_ONE;
-    }
-
-    final int count = INSTANCES.size();
-    if( count == 1 )
+    Boolean reentered = _reentered.get();
+    if( reentered != null && reentered  )
     {
-      return THE_ONE == null
-             ? THE_ONE = INSTANCES.values().iterator().next()
-             : THE_ONE;
+      return instance( DEFAULT_PROJECT );
     }
-
-    IModule mod = count > 0 ? TypeSystem.getCurrentModule() : null;
-    if( mod != null )
+    _reentered.set( true );
+    try
     {
-      ExecutionEnvironment execEnv = (ExecutionEnvironment)mod.getExecutionEnvironment();
-      if( execEnv == null )
+      if( THE_ONE != null && !ExecutionMode.get().isRefreshSupportEnabled() )
       {
-        throw new IllegalStateException( "Module, " + mod.getName() + ", has a null execution environment. This is bad." );
+        // perf improvement, avoid calling INSTANCES.size() (WeakHashMap#size() is slow)
+        return THE_ONE;
       }
-      return execEnv;
-    }
 
-    if( count > 0 )
-    {
-      // Return first non-default project
-      // Yes, this is a guess, but we need to guess for the case where we're running tests
-      // and loading classes in lots of threads where the current module is not pushed
-      for( ExecutionEnvironment execEnv: INSTANCES.values() )
+      final int count = INSTANCES.size();
+      if( count == 1 )
       {
-        if( execEnv.getProject() != DEFAULT_PROJECT &&
-            !execEnv.getProject().isDisposed() )
+        return THE_ONE == null
+               ? THE_ONE = INSTANCES.values().iterator().next()
+               : THE_ONE;
+      }
+
+      IModule mod = count > 0 ? TypeSystem.getCurrentModule() : null;
+      if( mod != null )
+      {
+        ExecutionEnvironment execEnv = (ExecutionEnvironment)mod.getExecutionEnvironment();
+        if( execEnv == null )
         {
-          return execEnv;
+          throw new IllegalStateException( "Module, " + mod.getName() + ", has a null execution environment. This is bad." );
+        }
+        return execEnv;
+      }
+
+      if( count > 0 )
+      {
+        // Return first non-default project
+        // Yes, this is a guess, but we need to guess for the case where we're running tests
+        // and loading classes in lots of threads where the current module is not pushed
+        for( ExecutionEnvironment execEnv : INSTANCES.values() )
+        {
+          if( execEnv.getProject() != DEFAULT_PROJECT &&
+              !execEnv.getProject().isDisposed() )
+          {
+            return execEnv;
+          }
         }
       }
-    }
 
-    return instance( DEFAULT_PROJECT );
+      return instance( DEFAULT_PROJECT );
+    }
+    finally
+    {
+      _reentered.set( false );
+    }
   }
+
   public static ExecutionEnvironment instance( IProject project )
   {
     if( project == null )
@@ -143,6 +160,28 @@ public class ExecutionEnvironment implements IExecutionEnvironment
     }
 
     return execEnv;
+  }
+  public static ExecutionEnvironment instance( Object nativeProject )
+  {
+    if( nativeProject == null )
+    {
+      throw new IllegalStateException( "Project must not be null" );
+    }
+
+    if( nativeProject instanceof IProject )
+    {
+      throw new RuntimeException( "Passed in IProject as navtive project" );
+    }
+
+    for( Object prj: INSTANCES.keySet() )
+    {
+      if( ((IProject)prj).getNativeProject() == nativeProject )
+      {
+        return INSTANCES.get( prj );
+      }
+    }
+
+    return null;
   }
 
   public static Collection<? extends IExecutionEnvironment> getAll()
@@ -305,10 +344,11 @@ public class ExecutionEnvironment implements IExecutionEnvironment
         m.getModuleTypeLoader().reset();
         m.configurePaths( Collections.emptyList(), Collections.emptyList(), Collections.emptyList() );
 
-        GosuClassPathThing.cleanup();
+        Bootstrap.cleanup();
       }
 
       _jreModule = null;
+      _rootModule = null;
     } finally {
       _state = TypeSystemState.STOPPED;
     }

@@ -4,7 +4,7 @@
 
 package gw.lang;
 
-import gw.fs.IFile;
+import manifold.api.fs.IFile;
 import gw.lang.init.ClasspathToGosuPathEntryUtil;
 import gw.lang.init.GosuInitialization;
 import gw.lang.reflect.TypeSystem;

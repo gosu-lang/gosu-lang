@@ -1,12 +1,16 @@
 package editor.plugin.typeloader.properties;
 
 import editor.EditorHost;
-import gw.lang.IIssueContainer;
 import editor.plugin.typeloader.INewFileParams;
 import editor.plugin.typeloader.ITypeFactory;
 import gw.lang.reflect.IType;
+import gw.lang.reflect.gs.ISourceFileHandle;
+import java.util.Set;
+import manifold.api.type.ITypeManifold;
+import gw.lang.reflect.java.IJavaType;
 import javax.swing.JComponent;
 import javax.swing.text.StyledEditorKit;
+import manifold.internal.javac.IIssueContainer;
 
 /**
  */
@@ -95,5 +99,20 @@ public class PropertiesTypeFactory implements ITypeFactory
   public IIssueContainer getIssueContainer( EditorHost editor )
   {
     return new PropertiesIssueContainer();
+  }
+
+  @Override
+  public boolean handlesType( IType type )
+  {
+    if( type instanceof IJavaType )
+    {
+      ISourceFileHandle sfh = ((IJavaType)type).getSourceFileHandle();
+      if( sfh != null )
+      {
+        Set<ITypeManifold> typeManifolds = sfh.getTypeManifolds();
+        return typeManifolds != null && typeManifolds.stream().anyMatch( tm -> tm.handlesFileExtension( "properties" ) );
+      }
+    }
+    return false;
   }
 }

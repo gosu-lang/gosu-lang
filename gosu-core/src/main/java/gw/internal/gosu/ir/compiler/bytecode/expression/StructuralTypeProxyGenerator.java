@@ -20,7 +20,7 @@ import gw.lang.reflect.IType;
 import gw.lang.reflect.ITypeInfo;
 import gw.lang.reflect.TypeInfoUtil;
 import gw.lang.reflect.TypeSystem;
-import gw.lang.reflect.gs.ClassType;
+import manifold.api.type.ClassType;
 import gw.lang.reflect.gs.GosuClassTypeLoader;
 import gw.lang.reflect.gs.IGosuClass;
 import gw.lang.reflect.gs.IGosuEnhancement;
@@ -78,7 +78,7 @@ public class StructuralTypeProxyGenerator {
       ifaceType = TypeLord.makeParameteredType( ifaceType, inferenceMap );
       ifaceType = TypeLord.replaceTypeVariableTypeParametersWithBoundingTypes( ifaceType );
     }
-    return new StringBuilder()
+    StringBuilder sb = new StringBuilder()
       .append( "package " ).append( getNamespace( ifaceType ) ).append( "\n" )
       .append( "\n" )
       .append( "class " ).append( name ).append( " implements " ).append( ifaceType.getName() ).append( " {\n" )
@@ -90,6 +90,7 @@ public class StructuralTypeProxyGenerator {
       .append( "  \n" )
       .append( implementIface( ifaceType, type ) )
       .append( "}" );
+    return sb;
   }
 
   private String getNamespace( IType ifaceType ) {

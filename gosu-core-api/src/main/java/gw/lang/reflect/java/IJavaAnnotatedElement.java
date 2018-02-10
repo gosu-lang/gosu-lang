@@ -7,7 +7,11 @@ package gw.lang.reflect.java;
 import gw.lang.reflect.IAnnotationInfo;
 
 import gw.lang.reflect.ILocationInfo;
+import gw.lang.reflect.LocationInfo;
+import gw.lang.reflect.SourcePosition;
+import gw.util.GosuExceptionUtil;
 import java.lang.annotation.Annotation;
+import java.net.URL;
 
 public interface IJavaAnnotatedElement {
 
@@ -56,6 +60,20 @@ public interface IJavaAnnotatedElement {
 
   default ILocationInfo getLocationInfo()
   {
+    IAnnotationInfo anno = getAnnotation( SourcePosition.class );
+    if( anno != null )
+    {
+      try
+      {
+        return new LocationInfo( ((Integer)anno.getFieldValue( "offset" )).intValue(),
+                                 ((Integer)anno.getFieldValue( "length" )).intValue(), -1, -1,
+                                 new URL( (String)anno.getFieldValue( "url" ) ) );
+      }
+      catch( Exception e )
+      {
+        throw GosuExceptionUtil.forceThrow( e );
+      }
+    }
     return ILocationInfo.EMPTY;
   }
 

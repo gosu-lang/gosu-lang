@@ -4,7 +4,10 @@
 
 package gw.config;
 
-public interface IXmlSchemaCompatibilityConfig extends IService {
+import manifold.api.service.IService;
+
+public interface IXmlSchemaCompatibilityConfig extends IService
+{
 
   /**
    * Should compatibility mode (old typeloader) be used for the specified schema?

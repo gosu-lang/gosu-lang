@@ -4,14 +4,10 @@
 
 package gw.lang.reflect.gs;
 
-import gw.fs.IDirectory;
-import gw.fs.IFile;
-import gw.util.Pair;
-
 import java.io.File;
 import java.io.Reader;
-import java.net.URL;
-import java.util.List;
+import manifold.api.fs.IDirectory;
+import manifold.api.fs.IFile;
 
 public interface IFileSystemGosuClassRepository extends IGosuClassRepository
 {

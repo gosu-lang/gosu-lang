@@ -6,6 +6,7 @@ package gw.config;
 
 import java.io.File;
 import java.net.URL;
+import manifold.api.service.BaseService;
 
 public class DefaultExtensionFolderLocator extends BaseService implements IExtensionFolderLocator {
 

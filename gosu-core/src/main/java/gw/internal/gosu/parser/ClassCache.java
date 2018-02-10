@@ -5,23 +5,21 @@
 package gw.internal.gosu.parser;
 
 import gw.config.ExecutionMode;
-import gw.fs.IFile;
-import gw.internal.gosu.module.DefaultSingleModule;
+import manifold.api.fs.IFile;
 import gw.lang.reflect.java.asm.AsmClass;
 import gw.lang.reflect.java.asm.AsmClassLoader;
 import gw.lang.reflect.IInjectableClassLoader;
 import gw.lang.reflect.TypeSystem;
-import gw.lang.reflect.gs.TypeName;
 import gw.lang.reflect.module.IClassPath;
 import gw.lang.reflect.module.IModule;
 import gw.util.concurrent.LockingLazyVar;
 
-import java.io.IOException;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import manifold.api.type.TypeName;
 
 public class ClassCache {
   @SuppressWarnings({"unchecked"})
@@ -342,7 +340,7 @@ public class ClassCache {
     return _classPathCache.get().hasNamespace(namespace);
   }
 
-  public Set<TypeName> getTypeNames(String namespace) {
+  public Set<TypeName> getTypeNames( String namespace) {
     return _classPathCache.get().getTypeNames(namespace);
   }
 

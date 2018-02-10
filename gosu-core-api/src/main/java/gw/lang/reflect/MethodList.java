@@ -6,7 +6,7 @@ package gw.lang.reflect;
 
 import gw.lang.parser.StandardCoercionManager;
 import gw.lang.parser.TypeVarToTypeMap;
-import gw.util.DynamicArray;
+import manifold.util.DynamicArray;
 
 import java.util.Collection;
 import java.util.HashMap;

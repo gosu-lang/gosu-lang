@@ -5,8 +5,8 @@
 package gw.lang.reflect;
 
 import gw.config.CommonServices;
-import gw.fs.IFile;
-import gw.fs.IResource;
+import manifold.api.fs.IFile;
+import manifold.api.fs.IResource;
 import gw.internal.gosu.parser.TypeSystemState;
 import gw.lang.UnstableAPI;
 import gw.lang.parser.GosuParserFactory;
@@ -40,6 +40,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import manifold.api.host.ITypeLoaderListener;
+import manifold.api.host.RefreshKind;
 
 @UnstableAPI
 public class TypeSystem
@@ -651,6 +653,10 @@ public class TypeSystem
   {
     return CommonServices.getTypeSystem().getExecutionEnvironment();
   }
+  public static IExecutionEnvironment getExecutionEnvironment( Object nativeProject )
+  {
+    return CommonServices.getTypeSystem().getExecutionEnvironment( nativeProject );
+  }
 
   public static IExecutionEnvironment getExecutionEnvironment( IProject project )
   {
@@ -907,7 +913,7 @@ public class TypeSystem
   }
 
   public static void refreshed(IResource resource) {
-    CommonServices.getTypeSystem().refreshed(resource, null, RefreshKind.MODIFICATION);
+    CommonServices.getTypeSystem().refreshed( resource, null, RefreshKind.MODIFICATION);
   }
 
   public static void deleted(IResource resource) {

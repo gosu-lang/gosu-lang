@@ -6,7 +6,7 @@ package gw.internal.gosu.parser;
 
 import gw.config.CommonServices;
 import gw.config.ExecutionMode;
-import gw.fs.IFile;
+import manifold.api.fs.IFile;
 import gw.internal.gosu.coercer.FunctionToInterfaceClassGenerator;
 import gw.internal.gosu.compiler.GosuClassLoader;
 import gw.internal.gosu.compiler.SingleServingGosuClassLoader;
@@ -60,7 +60,7 @@ import gw.lang.reflect.ITypeRef;
 import gw.lang.reflect.InnerClassCapableType;
 import gw.lang.reflect.Modifier;
 import gw.lang.reflect.TypeSystem;
-import gw.lang.reflect.gs.ClassType;
+import manifold.api.type.ClassType;
 import gw.lang.reflect.gs.GosuClassTypeLoader;
 import gw.lang.reflect.gs.IGosuArrayClass;
 import gw.lang.reflect.gs.IGosuClass;
@@ -74,7 +74,6 @@ import gw.util.GosuObjectUtil;
 import gw.util.GosuStringUtil;
 import gw.util.StringPool;
 import gw.util.concurrent.LockingLazyVar;
-
 import gw.util.concurrent.LocklessLazyVar;
 import java.io.File;
 import java.io.InvalidClassException;
@@ -3249,13 +3248,18 @@ public class GosuClass extends InnerClassCapableType implements IGosuClassIntern
   }
 
   @Override
-  public IFile[] getSourceFiles() {
+  public IFile[] getSourceFiles()
+  {
     ISourceFileHandle sourceFileHandle = getSourceFileHandle();
     String filePath = sourceFileHandle == null ? null : sourceFileHandle.getFilePath();
-    if (filePath != null) {
-      return new IFile[] {CommonServices.getFileSystem().getIFile(new File(filePath))};
-    } else {
-      return IFile.EMPTY_ARRAY;
+    if( filePath != null )
+    {
+      return new IFile[]{CommonServices.getFileSystem().getIFile( new File( filePath ) )};
+    }
+    else
+    {
+      IFile file = getSourceFileHandle().getFile();
+      return file == null ? IFile.EMPTY_ARRAY : new IFile[]{file};
     }
   }
 

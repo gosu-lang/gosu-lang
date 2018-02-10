@@ -5,7 +5,9 @@
 package gw.config;
 
 import java.io.File;
+import manifold.api.service.IService;
 
-public interface IExtensionFolderLocator extends IService {
+public interface IExtensionFolderLocator extends IService
+{
   File getExtensionFolderPath();
 }

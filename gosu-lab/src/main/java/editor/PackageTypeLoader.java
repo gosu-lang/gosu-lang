@@ -1,8 +1,8 @@
 package editor;
 
-import gw.fs.IDirectory;
+import manifold.api.fs.IDirectory;
 import gw.lang.reflect.IType;
-import gw.lang.reflect.RefreshKind;
+import manifold.api.host.RefreshKind;
 import gw.lang.reflect.TypeLoaderBase;
 import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.module.IModule;
@@ -137,4 +137,9 @@ public class PackageTypeLoader extends TypeLoaderBase
     return false;
   }
 
+  @Override
+  public boolean handlesFileExtension( String s )
+  {
+    return false;
+  }
 }

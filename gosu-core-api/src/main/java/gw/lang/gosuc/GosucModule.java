@@ -4,7 +4,8 @@
 
 package gw.lang.gosuc;
 
-import gw.fs.IDirectory;
+import java.util.stream.Collectors;
+import manifold.api.fs.IDirectory;
 import gw.lang.parser.ISourceCodeTokenizer;
 import gw.lang.parser.IToken;
 import gw.lang.reflect.module.INativeModule;
@@ -20,14 +21,14 @@ public class GosucModule implements INativeModule, Serializable {
   private List<String> _excludedRoots;
   private List<String> _classpath;
   private List<String> _backingSourcePath;
-  private String _outputPath;
+  private List<String> _outputPath;
   private List<GosucDependency> _dependencies;
 
   public GosucModule(String name,
                      List<String> allSourceRoots,
                      List<String> classpath,
                      List<String> backingSourcePath,
-                     String outputPath,
+                     List<String> outputPath,
                      List<GosucDependency> dependencies,
                      List<String> excludedRoots) {
     _allSourceRoots = new ArrayList<>();
@@ -49,6 +50,7 @@ public class GosucModule implements INativeModule, Serializable {
     return _allSourceRoots;
   }
 
+  @SuppressWarnings("WeakerAccess")
   public List<String> getExcludedRoots() {
     return _excludedRoots;
   }
@@ -75,8 +77,8 @@ public class GosucModule implements INativeModule, Serializable {
   }
 
   @Override
-  public IDirectory getOutputPath() {
-    return _outputPath != null ? GosucUtil.getDirectoryForPath(_outputPath) : null;
+  public List<IDirectory> getOutputPath() {
+    return _outputPath != null ? _outputPath.stream().map( GosucUtil::getDirectoryForPath ).collect( Collectors.toList() ) : null;
   }
 
   public String write() {
@@ -94,7 +96,7 @@ public class GosucModule implements INativeModule, Serializable {
         writePath( getBackingSourcePath() ) +
         "  }\n" +
         "  outpath {\n" +
-        writeOutputPath() +
+        writePath( _outputPath ) +
         "  }\n" +
         "  deps {\n" +
         writeDependencies() +
@@ -108,11 +110,6 @@ public class GosucModule implements INativeModule, Serializable {
       sb.append("    ").append("\"").append(path).append("\",\n");
     }
     return sb.toString();
-  }
-
-  private String writeOutputPath() {
-    return _outputPath != null ? "    \"" + _outputPath + "\"\n" :
-        "    \"\"\n";
   }
 
   private String writeDependencies() {
@@ -132,7 +129,7 @@ public class GosucModule implements INativeModule, Serializable {
     List<String> excludedRoots = parsePaths("excludedpath", parser);
     List<String> classpath = parseClasspath(parser);
     List<String> backingSourcePath = parseBackingSourcePath(parser);
-    String outputPath = parseOutputPath(parser);
+    List<String> outputPath = parsePaths("outpath", parser);
     List<GosucDependency> deps = parseDependencies(parser);
     parser.verify(parser.match(null, '}', false), "Expecting '}' to close module definition");
     return new GosucModule( name, sourcepaths, classpath, backingSourcePath, outputPath, deps, excludedRoots );
@@ -190,16 +187,6 @@ public class GosucModule implements INativeModule, Serializable {
       }
     }
     return paths;
-  }
-
-  private static String parseOutputPath(GosucProjectParser parser) {
-    parser.verify(parser.matchWord("outpath", false), "Expecting keyword 'outpath'");
-    parser.verify(parser.match(null, '{', false), "Expecting '{' to begin outpath list");
-    IToken t = parser.getTokenizer().getCurrentToken();
-    parser.verify(parser.match(null, '"', false), "Expecting quoted path");
-    parser.verify(parser.match(null, '}', false), "Expecting '}' to close outpath list");
-    String value = t.getStringValue();
-    return value.trim().isEmpty() ? null : value;
   }
 
   @Override

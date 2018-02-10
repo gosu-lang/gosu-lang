@@ -4,7 +4,6 @@ import com.sun.jdi.InvocationException;
 import com.sun.jdi.Location;
 import com.sun.jdi.Value;
 import editor.DefaultContextMenuHandler;
-import editor.GosuClassLineInfoManager;
 import editor.GosuEditor;
 import editor.GosuPanel;
 import editor.IHandleCancel;
@@ -116,14 +115,14 @@ public class EvaluateDialog extends JDialog implements IHandleCancel
     if( loc == null )
     {
       return new GosuEditor( new StandardSymbolTable( true ),
-                             null, new AtomicUndoManager( 10000 ), ScriptabilityModifiers.SCRIPTABLE, new DefaultContextMenuHandler(), false, true );
+                             null, new AtomicUndoManager( 10000 ), ScriptabilityModifiers.SCRIPTABLE, new DefaultContextMenuHandler(), null, false, true );
     }
     else
     {
       String outermostTypeName = Debugger.getOutermostType( loc.declaringType() );
       IType outermostType = TypeSystem.getByFullNameIfValidNoJava( outermostTypeName );
       return new GosuEditor( makeSymTable( loc, outermostType ),
-                             null, new AtomicUndoManager( 10000 ), ScriptabilityModifiers.SCRIPTABLE, new DefaultContextMenuHandler(), false, true );
+                             null, new AtomicUndoManager( 10000 ), ScriptabilityModifiers.SCRIPTABLE, new DefaultContextMenuHandler(), null, false, true );
     }
   }
 

@@ -5,6 +5,7 @@
 package gw.config;
 
 import gw.lang.reflect.ITypeLoader;
+import manifold.api.service.BaseService;
 
 public class DefaultGosuInitializationHooks extends BaseService implements IGosuInitializationHooks
 {

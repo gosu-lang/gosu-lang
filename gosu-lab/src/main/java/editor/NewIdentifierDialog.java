@@ -3,7 +3,7 @@ package editor;
 import editor.plugin.typeloader.ITypeFactory;
 import editor.util.EditorUtilities;
 import editor.util.LabButton;
-import gw.lang.reflect.gs.ClassType;
+import manifold.api.type.ClassType;
 
 import javax.swing.*;
 import java.awt.*;

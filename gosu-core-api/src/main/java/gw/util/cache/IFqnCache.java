@@ -32,11 +32,11 @@ public interface IFqnCache<T> {
   /**
    * @param visitor returns whether or not to terminate visiting
    */
-  void visitDepthFirst( Predicate<T> visitor );
-  void visitNodeDepthFirst( Predicate<FqnCacheNode> visitor );
+  boolean visitDepthFirst( Predicate<T> visitor );
+  boolean visitNodeDepthFirst( Predicate<FqnCacheNode> visitor );
 
   /**
    * @param visitor returns whether or not to continue visiting children of T
    */
-  void visitBreadthFirst( Predicate<T> visitor );
+  boolean visitBreadthFirst( Predicate<T> visitor );
 }

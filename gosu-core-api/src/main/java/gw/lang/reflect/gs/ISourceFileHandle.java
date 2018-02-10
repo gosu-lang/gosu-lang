@@ -4,14 +4,18 @@
 
 package gw.lang.reflect.gs;
 
-import gw.fs.IFile;
 import gw.lang.parser.ISource;
+import java.util.Collections;
+import java.util.Set;
+import manifold.api.fs.IFile;
+import manifold.api.type.ClassType;
+import manifold.api.type.ITypeManifold;
 
 public interface ISourceFileHandle
 {
-  public ISource getSource();
+  ISource getSource();
 
-  public String getParentType();
+  String getParentType();
 
   String getNamespace();
 
@@ -24,7 +28,7 @@ public interface ISourceFileHandle
   boolean isStandardPath();
   boolean isIncludeModulePath();
 
-  public void cleanAfterCompile();
+  void cleanAfterCompile();
 
   ClassType getClassType();
 
@@ -43,4 +47,9 @@ public interface ISourceFileHandle
   String getFileName();
 
   IFile getFile();
+
+  default Set<ITypeManifold> getTypeManifolds()
+  {
+    return Collections.emptySet();
+  }
 }

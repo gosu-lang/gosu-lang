@@ -4,9 +4,8 @@
 
 package gw.lang;
 
-import gw.config.IService;
-import gw.fs.IDirectory;
-import gw.fs.IFile;
+import manifold.api.fs.IDirectory;
+import manifold.api.fs.IFile;
 import gw.lang.init.GosuPathEntry;
 import gw.lang.ir.IRClassCompiler;
 import gw.lang.ir.IRTypeResolver;
@@ -14,6 +13,7 @@ import gw.lang.javadoc.IJavaDocFactory;
 import gw.lang.parser.IConstructorInfoFactory;
 import gw.lang.parser.IDynamicFunctionSymbol;
 import gw.lang.parser.IExpression;
+import gw.lang.parser.IFileRepositoryBasedType;
 import gw.lang.parser.IFullParserState;
 import gw.lang.parser.IParsedElement;
 import gw.lang.parser.IParserPart;
@@ -44,6 +44,8 @@ import gw.lang.reflect.IScriptabilityModifier;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.ITypeInfo;
 import gw.lang.reflect.ITypeInfoFactory;
+import manifold.api.service.IService;
+import manifold.api.type.ClassType;
 import gw.lang.reflect.gs.GosuClassTypeLoader;
 import gw.lang.reflect.gs.IEnhancementIndex;
 import gw.lang.reflect.gs.IFileSystemGosuClassRepository;
@@ -116,6 +118,8 @@ public interface IGosuShop extends IService
   IFileSystemGosuClassRepository createFileSystemGosuClassRepository(IModule module, IDirectory[] files);
   IFileSystemGosuClassRepository createFileSystemGosuClassRepository(IModule module, IDirectory[] files, String[] extensions);
 
+  ISourceFileHandle createInnerClassSourceFileHandle( ClassType classType, String strEnclosingType, String strInnerClass, boolean bTestClass );
+
   ITypeUsesMap createTypeUsesMap( List<String> specialTypeUses );
 
   IPropertyInfo getPropertyInfo( IType classBean, String strProperty, IFeatureFilter filter, IParserPart parserBase, IScriptabilityModifier scriptabilityConstraint) throws ParseException;
@@ -160,6 +164,8 @@ public interface IGosuShop extends IService
   IType getPureGenericType(IType type);
 
   IJavaClassInfo createClassInfo(Class aClass, IModule module);
+
+  String genJavaStub( IFileRepositoryBasedType type );
 
   IMetaType createMetaType(IType type, boolean literal);
 

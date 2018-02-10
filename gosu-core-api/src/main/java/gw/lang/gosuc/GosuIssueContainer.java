@@ -2,11 +2,11 @@ package gw.lang.gosuc;
 
 import gw.lang.parser.IParseIssue;
 import gw.lang.parser.exceptions.ParseResultsException;
-import gw.lang.IIssue;
-import gw.lang.IIssueContainer;
+import manifold.internal.javac.IIssue;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
+import manifold.internal.javac.IIssueContainer;
 
 /**
  */

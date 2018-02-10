@@ -21,12 +21,14 @@ public class EditorFactory
 
   private static EditorHost createEditor( Path file, IType type )
   {
-    if( type instanceof IGosuClass )
+    if( type instanceof IGosuClass &&
+        (((IGosuClass)type).getSourceFileHandle().getTypeManifolds() == null || ((IGosuClass)type).getSourceFileHandle().getTypeManifolds().isEmpty()) )
     {
       GosuEditor editor = new GosuEditor( new GosuClassLineInfoManager(),
                             new AtomicUndoManager( 10000 ),
                             ScriptabilityModifiers.SCRIPTABLE,
                             new DefaultContextMenuHandler(),
+                            file,
                             false, true );
       initEditorMode( file, editor );
       return editor;

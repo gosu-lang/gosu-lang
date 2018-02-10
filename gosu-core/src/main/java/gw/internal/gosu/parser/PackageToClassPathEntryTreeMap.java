@@ -4,14 +4,11 @@
 
 package gw.internal.gosu.parser;
 
-import gw.fs.IDirectory;
-import gw.fs.IFile;
 import gw.internal.gosu.parser.FileSystemGosuClassRepository.ClassFileInfo;
 import gw.lang.parser.IFileRepositoryBasedType;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.ITypeLoader;
 import gw.lang.reflect.gs.IFileSystemGosuClassRepository;
-import gw.lang.reflect.gs.TypeName;
 import gw.lang.reflect.module.IModule;
 import gw.util.StringPool;
 
@@ -25,6 +22,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import manifold.api.fs.IDirectory;
+import manifold.api.fs.IFile;
+import manifold.api.type.TypeName;
 
 /**
  */
@@ -165,7 +165,7 @@ class PackageToClassPathEntryTreeMap
   {
     try
     {
-      IFile possibleFile = getFile(root, strFileName);
+      IFile possibleFile = getFile( root, strFileName);
       return possibleFile == null ? null : possibleFile.toURI().toURL();
     }  catch (IOException ex) {
         throw new RuntimeException(ex);
@@ -257,7 +257,7 @@ class PackageToClassPathEntryTreeMap
     return _strFullPackageName;
   }
 
-  public Set<TypeName> getTypeNames(Set<String> extensions, ITypeLoader loader) {
+  public Set<TypeName> getTypeNames( Set<String> extensions, ITypeLoader loader) {
     Set<TypeName> names = new HashSet<TypeName>();
     for (PackageToClassPathEntryTreeMap child : _children.values()) {
       String name = child._strFullPackageName;

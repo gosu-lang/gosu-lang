@@ -5,13 +5,10 @@
 package gw.internal.gosu.parser;
 
 import gw.config.CommonServices;
-import gw.fs.IDirectory;
-import gw.fs.IFile;
-import gw.internal.gosu.module.fs.FileSystemImpl;
+import manifold.api.fs.IDirectory;
+import manifold.api.fs.IFile;
 import gw.lang.reflect.IDefaultTypeLoader;
-import gw.lang.reflect.gs.TypeName;
 import gw.lang.reflect.module.IClassPath;
-import gw.lang.reflect.module.IFileSystem;
 import gw.lang.reflect.module.IModule;
 import gw.util.cache.FqnCache;
 import gw.util.cache.FqnCacheNode;
@@ -23,6 +20,9 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import manifold.api.fs.IFileSystem;
+import manifold.api.fs.def.FileSystemImpl;
+import manifold.api.type.TypeName;
 
 public class ClassPath implements IClassPath
 {
@@ -84,7 +84,7 @@ public class ClassPath implements IClassPath
   }
 
   public boolean isEmpty() {
-    return _cache.getRoot().isLeaf();
+    return _cache.isLeaf();
   }
 
   // ====================== PRIVATE ====================================
@@ -178,7 +178,7 @@ public class ClassPath implements IClassPath
   }
 
   @Override
-  public Set<TypeName> getTypeNames(String namespace) {
+  public Set<TypeName> getTypeNames( String namespace) {
     FqnCacheNode<?> node = _cache.getNode(namespace);
     IDefaultTypeLoader defaultTypeLoader = _module.getModuleTypeLoader().getDefaultTypeLoader();
     if (node != null) {

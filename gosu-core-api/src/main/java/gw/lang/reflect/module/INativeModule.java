@@ -4,9 +4,10 @@
 
 package gw.lang.reflect.module;
 
-import gw.fs.IDirectory;
+import java.util.List;
+import manifold.api.fs.IDirectory;
 
 public interface INativeModule {
   Object getNativeModule();
-  IDirectory getOutputPath();
+  List<IDirectory> getOutputPath();
 }

@@ -13,10 +13,11 @@ import gw.lang.reflect.IType;
 import gw.lang.reflect.ITypeLoader;
 import gw.lang.reflect.gs.ICompilableType;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ParseResultsException extends Exception
+public class ParseResultsException extends IOException
 {
   private IParsedElement _parsedElement;
   private List<IParseIssue> _parseIssues;

@@ -4,7 +4,6 @@
 
 package gw.lang.parser;
 
-import gw.config.BaseService;
 import gw.config.CommonServices;
 import gw.internal.gosu.parser.IParameterizableType;
 import gw.lang.GosuShop;
@@ -37,6 +36,7 @@ import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
+import manifold.api.service.BaseService;
 
 public class StandardCoercionManager extends BaseService implements ICoercionManager
 {

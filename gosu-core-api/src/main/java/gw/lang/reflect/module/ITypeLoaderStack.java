@@ -8,11 +8,10 @@ import gw.lang.reflect.IDefaultTypeLoader;
 import gw.lang.reflect.ITypeLoader;
 import gw.lang.reflect.ITypeRefFactory;
 import gw.lang.UnstableAPI;
-import gw.lang.reflect.RefreshRequest;
-import gw.lang.reflect.gs.TypeName;
 
 import java.util.List;
 import java.util.Set;
+import manifold.api.type.TypeName;
 
 @UnstableAPI
 public interface ITypeLoaderStack
@@ -31,5 +30,5 @@ public interface ITypeLoaderStack
 
   void shutdown();
 
-  Set<TypeName> getTypeNames(String namespace);
+  Set<TypeName> getTypeNames( String namespace);
 }

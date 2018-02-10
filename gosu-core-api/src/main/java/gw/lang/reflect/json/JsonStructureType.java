@@ -42,6 +42,16 @@ class JsonStructureType implements IJsonParentType
     return _innerTypes.get( name );
   }
 
+  public Map<String, IJsonType> getMembers()
+  {
+    return _members;
+  }
+
+  public Map<String, IJsonParentType> getInnerTypes()
+  {
+    return _innerTypes;
+  }
+
   public void addMember( String name, IJsonType type )
   {
     IJsonType existingType = _members.get( name );
@@ -159,37 +169,13 @@ class JsonStructureType implements IJsonParentType
 
   private String addActualNameAnnotation( StringBuilder sb, int indent, String name )
   {
-    String identifier = makeIdentifier( name );
+    String identifier = Json.makeIdentifier( name );
     if( !identifier.equals( name ) )
     {
       indent( sb, indent );
       sb.append( "@" ).append( ActualName.class.getName() ).append( "( \"" ).append( name ).append( "\" )\n" );
     }
     return identifier;
-  }
-
-  private String makeIdentifier( String name )
-  {
-    String identifier = ReservedWordMapping.getIdentifierForName( name );
-    if( !identifier.equals( name ) )
-    {
-      return identifier;
-    }
-
-    StringBuilder sb = new StringBuilder();
-    for( int i = 0; i < name.length(); i++ )
-    {
-      char c = name.charAt( i );
-      if( c == '_' || c =='$' || (i == 0 ? Character.isLetter( c ) : Character.isLetterOrDigit( c )) )
-      {
-        sb.append( c );
-      }
-      else
-      {
-        sb.append( '_' );
-      }
-    }
-    return sb.toString();
   }
 
   private void renderTopLevelFactoryMethods( StringBuilder sb, int indent )

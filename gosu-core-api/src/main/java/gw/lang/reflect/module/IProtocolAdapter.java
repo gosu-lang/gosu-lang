@@ -4,8 +4,8 @@
 
 package gw.lang.reflect.module;
 
-import gw.fs.IDirectory;
-import gw.fs.IFile;
+import manifold.api.fs.IDirectory;
+import manifold.api.fs.IFile;
 import gw.lang.UnstableAPI;
 
 import java.net.URL;

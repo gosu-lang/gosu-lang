@@ -6,13 +6,14 @@ package gw.lang.gosuc;
 
 import gw.config.CommonServices;
 import gw.config.IMemoryMonitor;
-import gw.fs.IDirectory;
-import gw.fs.IFile;
+import java.util.stream.Collectors;
+import manifold.api.fs.IDirectory;
+import manifold.api.fs.IFile;
 import gw.lang.parser.ISourceCodeTokenizer;
 import gw.lang.parser.IToken;
 import gw.lang.reflect.ITypeLoader;
 import gw.lang.reflect.TypeSystem;
-import gw.lang.reflect.module.Dependency;
+import manifold.api.host.Dependency;
 import gw.lang.reflect.module.IExecutionEnvironment;
 import gw.lang.reflect.module.IJreModule;
 import gw.lang.reflect.module.IModule;
@@ -20,7 +21,6 @@ import gw.lang.reflect.module.IProject;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -135,12 +135,12 @@ public class GosucProject implements IProject {
   }
 
   private GosucModule makeModule( IModule module ) {
-    final IDirectory outputPath = module.getOutputPath();
+    final List<IDirectory> outputPath = module.getOutputPath();
     return new GosucModule( module.getName(),
                             GosucUtil.makeStringPaths( module.getSourcePath() ),
                             GosucUtil.makeStringPaths( module.getJavaClassPath() ),
                             GosucUtil.makeStringPaths( module.getBackingSourcePath() ),
-                            outputPath != null ? outputPath.getPath().getPathString() : null,
+                            outputPath != null ? outputPath.stream().map( e -> e.getPath().getPathString() ).collect( Collectors.toList() ) : null,
                             makeDependencies( module.getDependencies() ),
                             GosucUtil.makeStringPaths( module.getExcludedPaths() ));
   }

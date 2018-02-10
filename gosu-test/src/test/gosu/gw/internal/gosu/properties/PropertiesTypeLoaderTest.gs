@@ -39,7 +39,7 @@ class PropertiesTypeLoaderTest extends TestClass {
     var prop = gw.internal.gosu.properties.Test.a
     assertNotNull(prop)
     assertEquals("a b", prop.getValueByName("b"))
-    assertEquals("a b c", prop.getValueByName("b.c"))
+    assertEquals("a b c", prop.b.getValueByName("c"))
   }
 
   function testIntermediateFilePropertyWithValue() {
@@ -52,7 +52,6 @@ class PropertiesTypeLoaderTest extends TestClass {
 
   function testHiddenFileProperties() {
     assertEquals("dollar dollar", gw.internal.gosu.properties.Test.getValueByName("$$"))
-    assertEquals("a dollar b", gw.internal.gosu.properties.Test.getValueByName("a.$b"))
     assertEquals("a dollar b", gw.internal.gosu.properties.Test.a.getValueByName("$b"))
   }
   

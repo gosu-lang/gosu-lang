@@ -4,11 +4,10 @@
 
 package gw.internal.gosu.parser;
 
-import gw.config.BaseService;
 import gw.config.CommonServices;
 import gw.config.ExecutionMode;
-import gw.fs.IFile;
-import gw.fs.IResource;
+import manifold.api.fs.IFile;
+import manifold.api.fs.IResource;
 import gw.internal.gosu.compiler.SingleServingGosuClassLoader;
 import gw.internal.gosu.module.DefaultSingleModule;
 import gw.internal.gosu.module.Module;
@@ -34,14 +33,14 @@ import gw.lang.reflect.INonLoadableType;
 import gw.lang.reflect.IPlaceholder;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.ITypeLoader;
-import gw.lang.reflect.ITypeLoaderListener;
 import gw.lang.reflect.ITypeRef;
 import gw.lang.reflect.ITypeRefFactory;
 import gw.lang.reflect.ITypeSystem;
 import gw.lang.reflect.ITypeVariableType;
 import gw.lang.reflect.NoReferenceFoundException;
-import gw.lang.reflect.RefreshKind;
-import gw.lang.reflect.RefreshRequest;
+import manifold.api.host.ITypeLoaderListener;
+import manifold.api.host.RefreshKind;
+import manifold.api.host.RefreshRequest;
 import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.TypeSystemShutdownListener;
 import gw.lang.reflect.gs.GosuClassTypeLoader;
@@ -74,6 +73,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
+import manifold.api.service.BaseService;
 
 /**
  */
@@ -526,8 +526,8 @@ public class TypeLoaderAccess extends BaseService implements ITypeSystem
   }
 
   public void refreshTypes(final RefreshRequest request) {
-    TypeRefFactory typeRefFactory = (TypeRefFactory) request.module.getModuleTypeLoader().getTypeRefFactory();
-    pushModule(request.module);
+    TypeRefFactory typeRefFactory = (TypeRefFactory) ((IModule)request.module).getModuleTypeLoader().getTypeRefFactory();
+    pushModule((IModule)request.module);
     TypeSystem.lock();
     try {
       ++_iSingleRefreshChecksum;
@@ -561,7 +561,7 @@ public class TypeLoaderAccess extends BaseService implements ITypeSystem
               }
             }
             // add the old enhanced type
-            for (IModule module : request.module.getModuleTraversalList()) {
+            for (IModule module : ((IModule)request.module).getModuleTraversalList()) {
               ITypeLoaderStack moduleTypeLoader = module.getModuleTypeLoader();
               GosuClassTypeLoader gosuClassTypeLoader = moduleTypeLoader.getTypeLoader(GosuClassTypeLoader.class);
               String orphanedEnhancementName = gosuClassTypeLoader.getEnhancementIndex().getOrphanedEnhancement(type.getName());
@@ -614,7 +614,7 @@ public class TypeLoaderAccess extends BaseService implements ITypeSystem
       );
 
       Map<ITypeLoader, Set<String>> typeLoaderToTypeMap = new HashMap<ITypeLoader, Set<String>>();
-      typeLoaderToTypeMap.put(request.typeLoader, new HashSet<String>(Arrays.asList(request.types)));
+      typeLoaderToTypeMap.put( (ITypeLoader)request.typeLoader, new HashSet<String>( Arrays.asList( request.types)));
 
       for (ITypeRef type : typesToMakeStaleSet) {
         ITypeLoader typeLoader = type.getTypeLoaderDirectly();
@@ -642,7 +642,7 @@ public class TypeLoaderAccess extends BaseService implements ITypeSystem
 
       // Step 6: Clear all caches
       getGlobalModuleTypeLoader().clearFromCaches(request);
-      for (IModule module : request.module.getModuleTraversalList()) {
+      for (IModule module : ((IModule)request.module).getModuleTraversalList()) {
         ((ModuleTypeLoader) module.getModuleTypeLoader()).clearFromCaches(request);
       }
 
@@ -659,7 +659,7 @@ public class TypeLoaderAccess extends BaseService implements ITypeSystem
       }
     } finally {
       TypeSystem.unlock();
-      popModule(request.module);
+      popModule( (IModule)request.module );
     }
   }
 
@@ -1485,11 +1485,28 @@ public class TypeLoaderAccess extends BaseService implements ITypeSystem
   public IExecutionEnvironment getExecutionEnvironment( IProject project ) {
     return ExecutionEnvironment.instance(project);
   }
+  public IExecutionEnvironment getExecutionEnvironment( Object nativeProject ) {
+    return ExecutionEnvironment.instance(nativeProject);
+  }
 
   @Override
   public IGosuClassLoader getGosuClassLoader() {
-    DefaultTypeLoader loader = (DefaultTypeLoader) getCurrentModule().getTypeLoaders(IDefaultTypeLoader.class).get(0);
-    return loader.getGosuClassLoader();
+    Module currentModule = getCurrentModule();
+    if( currentModule == null )
+    {
+      // can happen during bootstrapping while bootstrapping a bootstrapping
+      return null;
+    }
+
+    List<? extends IDefaultTypeLoader> typeLoaders = currentModule.getTypeLoaders( IDefaultTypeLoader.class );
+    if( typeLoaders.size() > 0 )
+    {
+      DefaultTypeLoader loader = (DefaultTypeLoader)typeLoaders.get( 0 );
+      return loader.getGosuClassLoader();
+    }
+
+    // can happen during bootstrapping while bootstrapping a bootstrapping
+    return null;
   }
 
   @Override

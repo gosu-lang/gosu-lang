@@ -1,13 +1,13 @@
 package gw.lang.reflect.java.asm;
 
-import gw.fs.IFile;
 import gw.lang.parser.ISource;
 import gw.lang.parser.StringSource;
-import gw.lang.reflect.gs.ClassType;
+import manifold.api.type.ClassType;
 import gw.lang.reflect.gs.ISourceFileHandle;
 import gw.util.GosuClassUtil;
 import gw.util.StreamUtil;
 import java.io.IOException;
+import manifold.api.fs.IFile;
 
 /**
  */

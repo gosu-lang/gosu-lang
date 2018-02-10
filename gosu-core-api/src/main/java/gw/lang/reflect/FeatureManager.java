@@ -12,7 +12,7 @@ import gw.lang.reflect.gs.IGosuEnhancement;
 import gw.lang.reflect.java.IJavaType;
 import gw.lang.reflect.java.JavaTypes;
 import gw.lang.reflect.module.IModule;
-import gw.util.DynamicArray;
+import manifold.util.DynamicArray;
 import gw.util.GosuExceptionUtil;
 
 import java.util.ArrayList;

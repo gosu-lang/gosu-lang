@@ -4,11 +4,7 @@
 
 package gw.lang.reflect;
 
-import gw.config.BaseService;
 import gw.config.CommonServices;
-import gw.fs.IDirectory;
-import gw.fs.IFile;
-import gw.lang.reflect.gs.TypeName;
 import gw.lang.reflect.module.IModule;
 import gw.util.GosuClassUtil;
 
@@ -22,6 +18,12 @@ import java.net.URL;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
+import manifold.api.fs.IDirectory;
+import manifold.api.fs.IFile;
+import manifold.api.host.RefreshKind;
+import manifold.api.host.RefreshRequest;
+import manifold.api.service.BaseService;
+import manifold.api.type.TypeName;
 
 public abstract class TypeLoaderBase extends BaseService implements ITypeLoader {
   protected IModule _module;
@@ -92,7 +94,7 @@ public abstract class TypeLoaderBase extends BaseService implements ITypeLoader 
         for (String type : request.types) {
           _typeNames.remove(type);
         }
-      } else if (request.kind == RefreshKind.MODIFICATION) {
+      } else if ( request.kind == RefreshKind.MODIFICATION) {
         for (String type : request.types) {
           _typeNames.add(type);
         }
@@ -141,7 +143,7 @@ public abstract class TypeLoaderBase extends BaseService implements ITypeLoader 
       String typeName = typeNameCS.toString();
       String packageName = GosuClassUtil.getPackage(typeName);
       if (packageName.equals(parentNamespace)) {
-        typeNames.add(new TypeName(typeName, loader, TypeName.Kind.TYPE, TypeName.Visibility.PUBLIC));
+        typeNames.add(new TypeName( typeName, loader, TypeName.Kind.TYPE, TypeName.Visibility.PUBLIC));
       }
     }
     for (CharSequence namespaceCs : loader.getAllNamespaces()) {

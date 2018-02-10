@@ -4,8 +4,9 @@
 
 package gw.lang.gosuc;
 
-import gw.fs.IDirectory;
-import gw.fs.IFile;
+import java.util.Optional;
+import manifold.api.fs.IDirectory;
+import manifold.api.fs.IFile;
 import gw.lang.parser.IParseIssue;
 import gw.lang.parser.exceptions.ParseResultsException;
 import gw.lang.parser.exceptions.ParseWarning;
@@ -90,14 +91,15 @@ public class GosucCompiler {
   private File makeClassFileForOut(IGosuClass gsClass) {
     IModule module = TypeSystem.getCurrentModule();
     final File[] classFile = new File[1];
-    IDirectory moduleOutputDirectory = module.getOutputPath();
+    List<IDirectory> moduleOutputDirectory = module.getOutputPath();
     if( moduleOutputDirectory == null ) {
       throw new RuntimeException( "Can't make class file, no output path for module " + module.getName() );
     }
 
     final String outRelativePath = gsClass.getName().replace( '.', File.separatorChar ) + ".class";
     try {
-      File child = new File( moduleOutputDirectory.getPath().getFileSystemPathString() );
+      IDirectory outputPath = moduleOutputDirectory.stream().findFirst().orElse( null );
+      File child = new File( outputPath.getPath().getFileSystemPathString() );
       child.mkdirs();
       for( StringTokenizer tokenizer = new StringTokenizer( outRelativePath, File.separator + "/" ); tokenizer.hasMoreTokens(); ) {
         String token = tokenizer.nextToken();

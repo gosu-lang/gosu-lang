@@ -9,7 +9,7 @@ import gw.lang.ir.IRElement;
 import gw.lang.ir.IRExpression;
 import gw.internal.gosu.ir.transform.ExpressionTransformer;
 import gw.internal.gosu.ir.transform.TopLevelTransformationContext;
-import gw.internal.gosu.compiler.FunctionClassUtil;
+import gw.util.FunctionClassUtil;
 import gw.lang.ir.expression.IRCompositeExpression;
 import gw.lang.parser.IExpression;
 import gw.lang.reflect.IType;

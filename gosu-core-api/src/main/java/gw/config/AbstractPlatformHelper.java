@@ -4,8 +4,8 @@
 
 package gw.config;
 
-import gw.fs.IDirectory;
-import gw.fs.IFile;
+import manifold.api.fs.IDirectory;
+import manifold.api.fs.IFile;
 import gw.internal.gosu.util.RabinKarpHash;
 import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.module.IModule;
@@ -14,6 +14,7 @@ import java.io.File;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
+import manifold.api.service.BaseService;
 
 public abstract class AbstractPlatformHelper extends BaseService implements IPlatformHelper {
 

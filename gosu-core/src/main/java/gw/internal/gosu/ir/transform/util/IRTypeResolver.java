@@ -4,7 +4,7 @@
 
 package gw.internal.gosu.ir.transform.util;
 
-import gw.internal.gosu.compiler.FunctionClassUtil;
+import gw.util.FunctionClassUtil;
 import gw.internal.gosu.ir.nodes.GosuClassIRType;
 import gw.internal.gosu.ir.nodes.JavaClassIRType;
 import gw.internal.gosu.ir.transform.AbstractElementTransformer;

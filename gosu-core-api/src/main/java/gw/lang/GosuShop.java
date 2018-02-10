@@ -5,8 +5,8 @@
 package gw.lang;
 
 import gw.config.CommonServices;
-import gw.fs.IDirectory;
-import gw.fs.IFile;
+import manifold.api.fs.IDirectory;
+import manifold.api.fs.IFile;
 import gw.lang.gosuc.ICustomParser;
 import gw.lang.gosuc.IGosuc;
 import gw.lang.init.GosuPathEntry;
@@ -16,6 +16,7 @@ import gw.lang.javadoc.IJavaDocFactory;
 import gw.lang.parser.IConstructorInfoFactory;
 import gw.lang.parser.IDynamicFunctionSymbol;
 import gw.lang.parser.IExpression;
+import gw.lang.parser.IFileRepositoryBasedType;
 import gw.lang.parser.IFullParserState;
 import gw.lang.parser.IParsedElement;
 import gw.lang.parser.IReducedDynamicFunctionSymbol;
@@ -43,6 +44,7 @@ import gw.lang.reflect.IType;
 import gw.lang.reflect.ITypeInfo;
 import gw.lang.reflect.ITypeInfoFactory;
 import gw.lang.reflect.TypeSystem;
+import manifold.api.type.ClassType;
 import gw.lang.reflect.gs.GosuClassTypeLoader;
 import gw.lang.reflect.gs.IEnhancementIndex;
 import gw.lang.reflect.gs.IFileSystemGosuClassRepository;
@@ -70,6 +72,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import manifold.api.type.ITypeManifold;
 
 public class GosuShop
 {
@@ -222,6 +225,11 @@ public class GosuShop
   public static IFileSystemGosuClassRepository createFileSystemGosuClassRepository(IModule module, IDirectory[] files, String[] extensions)
   {
     return CommonServices.getGosuIndustrialPark().createFileSystemGosuClassRepository(module, files, extensions);
+  }
+
+  public static ISourceFileHandle createInnerClassSourceFileHandle( ClassType classType, String strEnclosingType, String strInnerClass, boolean bTestClass )
+  {
+    return CommonServices.getGosuIndustrialPark().createInnerClassSourceFileHandle( classType, strEnclosingType, strInnerClass, bTestClass );
   }
 
   public static ITypeUsesMap createTypeUsesMap( List<String> specialTypeUses )
@@ -413,6 +421,11 @@ public class GosuShop
 
   public static IJavaClassInfo createClassInfo(Class aClass, IModule module) {
     return CommonServices.getGosuIndustrialPark().createClassInfo(aClass, module);
+  }
+
+  public static String genJavaStub( IFileRepositoryBasedType type )
+  {
+    return CommonServices.getGosuIndustrialPark().genJavaStub( type );
   }
 
   public static String toSignature(String fullyQualifiedName) {

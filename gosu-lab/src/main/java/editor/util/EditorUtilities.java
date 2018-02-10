@@ -7,7 +7,7 @@ import gw.lang.reflect.IFunctionType;
 import gw.lang.reflect.IMethodInfo;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.TypeSystem;
-import gw.lang.reflect.gs.ClassType;
+import manifold.api.type.ClassType;
 import gw.lang.reflect.gs.IGosuClass;
 import gw.lang.reflect.gs.IGosuClassTypeInfo;
 import gw.lang.reflect.gs.IGosuEnhancement;
@@ -306,6 +306,17 @@ public class EditorUtilities
 
   public static Icon findIcon( IType type )
   {
+    if( type != null )
+    {
+      for( ITypeFactory factory: type.getTypeLoader().getInterface( ITypeFactory.class ) )
+      {
+        if( factory != null && factory.handlesType( type ) )
+        {
+          return EditorUtilities.loadIcon( factory.getIcon() );
+        }
+      }
+    }
+
     if( type instanceof IGosuClass )
     {
       if( type.isInterface() )
@@ -345,14 +356,7 @@ public class EditorUtilities
     {
       return EditorUtilities.loadIcon( "images/javaclass.png" );
     }
-    else if( type != null )
-    {
-      ITypeFactory factory = type.getTypeLoader().getInterface( ITypeFactory.class );
-      if( factory != null )
-      {
-        return EditorUtilities.loadIcon( factory.getIcon() );
-      }
-    }
+
     return EditorUtilities.loadIcon( "images/empty16x16.gif" );
   }
 

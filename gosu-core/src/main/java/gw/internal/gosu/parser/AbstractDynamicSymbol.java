@@ -109,4 +109,10 @@ public abstract class AbstractDynamicSymbol extends Symbol implements IDynamicSy
   public boolean hasTypeVariables() {
     return false;  //To change body of implemented methods use File | Settings | File Templates.
   }
+
+  @Override
+  public String toString()
+  {
+    return getName() + " : " + getType();
+  }
 }

@@ -250,15 +250,10 @@ public class AtomicUndoManager extends UndoManager
     }
 
     CompoundEdit parent = null;
-    try
+    if( _undoAtomNest.size() > 0 )
     {
       parent = _undoAtomNest.peek();
     }
-    catch( EmptyStackException empty )
-    {
-      // ignore
-    }
-
     parent = parent == null ? this : parent;
     DisplayableCompoundEdit undoAtom = new DisplayableCompoundEdit( strDisplayName );
     parent.addEdit( undoAtom );
@@ -306,15 +301,10 @@ public class AtomicUndoManager extends UndoManager
   public DisplayableCompoundEdit getUndoAtom()
   {
     DisplayableCompoundEdit undoAtom = null;
-    try
+    if( _undoAtomNest.size() > 0 )
     {
       undoAtom = _undoAtomNest.peek();
     }
-    catch( EmptyStackException empty )
-    {
-      // ignore
-    }
-
     return undoAtom;
   }
 

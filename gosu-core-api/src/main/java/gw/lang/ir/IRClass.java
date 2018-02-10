@@ -119,35 +119,7 @@ public class IRClass {
     boolean[] bGeneric = {false};
     SignatureWriter sw = new SignatureWriter();
     //sw.visitClassType( _name.replace( '.', '/' ) );
-    if( type.isGenericType() ) {
-      bGeneric[0] = true;
-      for( IGenericTypeVariable tv: type.getGenericTypeVariables() ) {
-        sw.visitFormalTypeParameter( tv.getName() );
-        IType boundingType = tv.getBoundingType();
-        if( boundingType != null ) {
-          IType[] types;
-          if( boundingType instanceof ICompoundType) {
-            types = ((ICompoundType) boundingType).getTypes().toArray(new IType[0]);
-          } else {
-            types = new IType[] {boundingType};
-          }
-          SignatureVisitor sv;
-          for(int i = types.length-1; i >= 0 ; i--) {
-            if( types[i].isInterface() ) {
-              sv = sw.visitInterfaceBound();
-            }
-            else {
-              sv = sw.visitClassBound();
-            }
-            SignatureUtil.visitType( sv, SignatureUtil.getPureGenericType(types[i]), bGeneric );
-          }
-        }
-        else {
-          SignatureVisitor sv = sw.visitClassBound();
-          SignatureUtil.visitType( sv, JavaTypes.OBJECT(), bGeneric );
-        }
-      }
-    }
+    SignatureUtil.visitGenericType( sw, type, bGeneric );
     if( type.getSupertype() != null ) {
       SignatureVisitor sv = sw.visitSuperclass();
       SignatureUtil.visitType( sv, type.getSupertype(), bGeneric );

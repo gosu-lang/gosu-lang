@@ -5,6 +5,7 @@
 package gw.config;
 
 import gw.lang.parser.resources.ResourceKey;
+import manifold.api.service.IService;
 
 public interface IGosuLocalizationService extends IService
 {

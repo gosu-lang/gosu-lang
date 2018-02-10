@@ -4,19 +4,21 @@
 
 package gw.lang.reflect;
 
-import gw.config.IService;
-import gw.fs.IDirectory;
-import gw.fs.IFile;
-import gw.lang.reflect.gs.TypeName;
 import gw.lang.reflect.module.IModule;
 
 import java.net.URL;
 import java.util.List;
 import java.util.Set;
+import manifold.api.fs.IDirectory;
+import manifold.api.host.RefreshKind;
+import manifold.api.host.RefreshRequest;
+import manifold.api.service.IService;
+import manifold.api.type.IFileConnected;
+import manifold.api.type.TypeName;
 
-public interface ITypeLoader extends IService
+public interface ITypeLoader extends IFileConnected, IService, manifold.api.host.ITypeLoader
 {
-  public static final String[] NO_TYPES = new String[0];
+  String[] NO_TYPES = new String[0];
 
   /**
    * @return The module to which this type loader belongs.
@@ -87,30 +89,8 @@ public interface ITypeLoader extends IService
   List<String> getHandledPrefixes();
 
   boolean handlesNonPrefixLoads();
-  
-  boolean handlesFile(IFile file);
 
-  /**
-   * Returns ALL type names associated with the given file
-   * whether or not the types have been loaded yet.
-   * Type loading should NOT be used in the implementation of this method.
-   *
-   * @param file The file in question
-   * @return All known types derived from that file
-   */
-  String[] getTypesForFile(IFile file);
-
-  /**
-   * Notifies the type loader that a file has been refreshed.  The type loader should return all
-   * types that it knows need to be refreshed based on the given file.
-
-   * @param file The file that was refreshed
-   * @param types
-   * @param kind  @return All known types affected by the file change
-   */
-  RefreshKind refreshedFile(IFile file, String[] types, RefreshKind kind);
-
-  void refreshedNamespace(String namespace, IDirectory dir, RefreshKind kind);
+  void refreshedNamespace( String namespace, IDirectory dir, RefreshKind kind);
 
   /**
    * Fired when an existing type is refreshed, i.e. there are potential changes
@@ -129,7 +109,7 @@ public interface ITypeLoader extends IService
 
   boolean hasNamespace(String namespace);
 
-  Set<TypeName> getTypeNames(String namespace);
+  Set<TypeName> getTypeNames( String namespace);
 
   Set<String> computeTypeNames();
 

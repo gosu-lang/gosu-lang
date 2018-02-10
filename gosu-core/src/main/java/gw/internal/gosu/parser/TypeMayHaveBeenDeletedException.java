@@ -4,7 +4,7 @@
 
 package gw.internal.gosu.parser;
 
-import gw.lang.reflect.RefreshKind;
+import manifold.api.host.RefreshKind;
 
 public class TypeMayHaveBeenDeletedException extends TypeResolveException {
   private AbstractTypeRef _reference;

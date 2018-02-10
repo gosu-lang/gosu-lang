@@ -7,6 +7,7 @@ package gw.lang.parser;
 import gw.config.CommonServices;
 import gw.lang.reflect.gs.IGosuClassParser;
 import gw.lang.reflect.IScriptabilityModifier;
+import java.util.List;
 
 public class GosuParserFactory
 {
@@ -82,7 +83,7 @@ public class GosuParserFactory
     return CommonServices.getGosuParserFactory().createFragmentParser();
   }
 
-  public static <T> T getInterface( Class<T> apiClass )
+  public static <T> List<T> getInterface( Class<T> apiClass )
   {
     return CommonServices.getGosuParserFactory().getInterface( apiClass );
   }

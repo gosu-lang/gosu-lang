@@ -5,15 +5,14 @@
 package gw.internal.gosu.module;
 
 import gw.config.CommonServices;
-import gw.fs.IDirectory;
 import gw.internal.gosu.dynamic.DynamicTypeLoader;
 import gw.internal.gosu.parser.ExecutionEnvironment;
-import gw.internal.gosu.properties.PropertiesTypeLoader;
 import gw.lang.parser.ILanguageLevel;
 import gw.lang.reflect.gs.GosuClassTypeLoader;
 import gw.lang.reflect.module.IExecutionEnvironment;
 
 import java.util.List;
+import manifold.api.fs.IDirectory;
 
 public class DefaultSingleModule extends GlobalModule
 {
@@ -36,9 +35,6 @@ public class DefaultSingleModule extends GlobalModule
     CommonServices.getTypeSystem().pushTypeLoader( this, new GosuClassTypeLoader( this, getFileRepository( ) ) );
     if( ILanguageLevel.Util.DYNAMIC_TYPE() ) {
       CommonServices.getTypeSystem().pushTypeLoader( this, new DynamicTypeLoader( this ) );
-    }
-    if( ILanguageLevel.Util.STANDARD_GOSU() ) {
-      CommonServices.getTypeSystem().pushTypeLoader( this, new PropertiesTypeLoader( this ) );
     }
     createGlobalTypeloaders( );
   }

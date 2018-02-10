@@ -4,9 +4,9 @@
 
 package gw.internal.gosu.dynamic;
 
-import gw.fs.IDirectory;
+import manifold.api.fs.IDirectory;
 import gw.lang.reflect.IType;
-import gw.lang.reflect.RefreshKind;
+import manifold.api.host.RefreshKind;
 import gw.lang.reflect.TypeLoaderBase;
 import gw.lang.reflect.module.IModule;
 
@@ -64,5 +64,11 @@ public class DynamicTypeLoader extends TypeLoaderBase {
   @Override
   public Set<String> computeTypeNames() {
     return TYPE_NAMES;
+  }
+
+  @Override
+  public boolean handlesFileExtension( String s )
+  {
+    return false;
   }
 }

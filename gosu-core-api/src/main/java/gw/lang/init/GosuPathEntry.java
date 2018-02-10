@@ -4,7 +4,7 @@
 
 package gw.lang.init;
 
-import gw.fs.IDirectory;
+import manifold.api.fs.IDirectory;
 import gw.lang.UnstableAPI;
 
 import java.util.List;

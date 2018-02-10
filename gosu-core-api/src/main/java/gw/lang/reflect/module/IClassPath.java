@@ -4,14 +4,12 @@
 
 package gw.lang.reflect.module;
 
-import gw.fs.IDirectory;
-import gw.lang.reflect.gs.TypeName;
-import gw.util.fingerprint.FP64;
+import manifold.api.fs.IDirectory;
 import gw.lang.UnstableAPI;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Set;
+import manifold.api.type.TypeName;
 
 @UnstableAPI
 public interface IClassPath
@@ -71,7 +69,7 @@ public interface IClassPath
 
   Set<String> getFilteredClassNames();
 
-  Set<TypeName> getTypeNames(String namespace);
+  Set<TypeName> getTypeNames( String namespace);
 
   public static interface ClassPathFilter
   {

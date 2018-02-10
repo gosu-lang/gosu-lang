@@ -6,7 +6,7 @@ package gw.internal.gosu.template;
 
 import gw.internal.gosu.parser.*;
 import gw.lang.parser.template.StringEscaper;
-import gw.lang.reflect.gs.ClassType;
+import manifold.api.type.ClassType;
 import gw.lang.reflect.gs.ISourceFileHandle;
 import gw.lang.reflect.*;
 import gw.lang.GosuShop;

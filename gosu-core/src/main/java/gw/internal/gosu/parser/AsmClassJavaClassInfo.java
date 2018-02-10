@@ -7,8 +7,6 @@ package gw.internal.gosu.parser;
 import com.sun.source.tree.CompilationUnitTree;
 import com.sun.source.tree.Tree;
 import com.sun.source.util.SourcePositions;
-import gw.fs.IDirectory;
-import gw.fs.IFile;
 import gw.internal.gosu.parser.java.classinfo.AsmClassAnnotationInfo;
 import gw.internal.gosu.parser.java.classinfo.JavaArrayClassInfo;
 import gw.internal.gosu.parser.java.classinfo.PropertyDeriver;
@@ -52,6 +50,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import manifold.api.fs.IDirectory;
+import manifold.api.fs.IFile;
 
 public class AsmClassJavaClassInfo extends AsmTypeJavaClassType implements IAsmJavaClassInfo {
   private AsmClass _class;

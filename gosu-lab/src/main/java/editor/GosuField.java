@@ -44,7 +44,7 @@ public class GosuField extends GosuEditor implements ClipboardOwner
                     IContextMenuHandler<IScriptEditor> contextMenuHandler,
                     boolean bStatement, boolean bEmptyTextOk, boolean bAccessAll )
   {
-    super( symTable, null, normalizeUndoManager( undoMgr ), scriptabilityConstraint, contextMenuHandler, bStatement, bEmptyTextOk );
+    super( symTable, null, normalizeUndoManager( undoMgr ), scriptabilityConstraint, contextMenuHandler, null, bStatement, bEmptyTextOk );
     ((AbstractDocument)getEditor().getDocument()).setDocumentFilter( new GSFieldDocumentFilter() );
     setAcceptUses( false );
     setAccessAll( bAccessAll );

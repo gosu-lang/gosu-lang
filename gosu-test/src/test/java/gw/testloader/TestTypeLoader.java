@@ -4,9 +4,9 @@
 
 package gw.testloader;
 
-import gw.fs.IDirectory;
+import manifold.api.fs.IDirectory;
 import gw.lang.reflect.IType;
-import gw.lang.reflect.RefreshKind;
+import manifold.api.host.RefreshKind;
 import gw.lang.reflect.TypeLoaderBase;
 import gw.lang.reflect.TypeSystem;
 import gw.spec.core.expressions.memberaccess.MemberAccess_WrappedJavaClass;
@@ -107,5 +107,11 @@ public class TestTypeLoader extends TypeLoaderBase {
         _namespaces.remove(namespace);
       }
     }
+  }
+
+  @Override
+  public boolean handlesFileExtension( String s )
+  {
+    return false;
   }
 }

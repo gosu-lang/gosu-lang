@@ -2,8 +2,8 @@ package editor;
 
 import editor.util.IProgressCallback;
 import gw.lang.reflect.ITypeLoader;
-import gw.lang.reflect.ITypeLoaderListener;
-import gw.lang.reflect.RefreshRequest;
+import manifold.api.host.ITypeLoaderListener;
+import manifold.api.host.RefreshRequest;
 import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.module.ITypeLoaderStack;
 import gw.util.concurrent.LocklessLazyVar;
