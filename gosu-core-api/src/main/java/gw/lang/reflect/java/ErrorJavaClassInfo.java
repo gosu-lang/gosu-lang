@@ -308,6 +308,12 @@ public class ErrorJavaClassInfo implements IJavaClassInfo {
   }
 
   @Override
+  public boolean isStructure()
+  {
+    return false;
+  }
+
+  @Override
   public IJavaClassType resolveType(String relativeName, int ignoreFlags) {
     return null;
   }

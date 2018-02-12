@@ -4,33 +4,33 @@
 
 package gw.internal.gosu.ir.nodes;
 
+import gw.internal.gosu.ir.transform.util.AccessibilityUtil;
+import gw.internal.gosu.ir.transform.util.IRTypeResolver;
 import gw.internal.gosu.parser.ReducedParameterizedDynamicFunctionSymbol;
+import gw.internal.gosu.parser.TypeLord;
+import gw.lang.ir.IRType;
 import gw.lang.parser.IReducedDynamicFunctionSymbol;
+import gw.lang.reflect.IAnnotatedFeatureInfo;
 import gw.lang.reflect.IAspectMethodInfoDelegate;
-import gw.lang.reflect.IRelativeTypeInfo;
+import gw.lang.reflect.IFunctionType;
+import gw.lang.reflect.IMetaType;
 import gw.lang.reflect.IMethodInfo;
+import gw.lang.reflect.IMethodInfoDelegate;
+import gw.lang.reflect.IRelativeTypeInfo;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.TypeSystem;
-import gw.lang.reflect.IMethodInfoDelegate;
-import gw.lang.reflect.IMetaType;
-import gw.lang.reflect.IFunctionType;
-import gw.lang.reflect.gs.IGosuMethodInfo;
+import gw.lang.reflect.gs.IGenericTypeVariable;
 import gw.lang.reflect.gs.IGosuClass;
 import gw.lang.reflect.gs.IGosuEnhancement;
-import gw.lang.reflect.gs.IGenericTypeVariable;
+import gw.lang.reflect.gs.IGosuMethodInfo;
+import gw.lang.reflect.java.IJavaClassInfo;
+import gw.lang.reflect.java.IJavaClassMethod;
 import gw.lang.reflect.java.IJavaMethodInfo;
 import gw.lang.reflect.java.IJavaType;
 import gw.lang.reflect.java.JavaTypes;
-import gw.lang.reflect.java.IJavaClassMethod;
-import gw.lang.reflect.java.IJavaClassInfo;
-import gw.lang.ir.IRType;
-import gw.internal.gosu.ir.transform.util.AccessibilityUtil;
-import gw.internal.gosu.ir.transform.util.IRTypeResolver;
-import gw.internal.gosu.parser.TypeLord;
-
-import java.util.List;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 
 public class IRMethodFromMethodInfo extends IRFeatureBase implements IRMethod {
 
@@ -105,12 +105,6 @@ public class IRMethodFromMethodInfo extends IRFeatureBase implements IRMethod {
     }
     return owningType;
   }
-
-  /*if( rootType instanceof IMetaType )
-    {
-      rootType = ((IMetaType)rootType).getType();
-    }
-    return rootType;*/
 
   @Override
   public IRelativeTypeInfo.Accessibility getAccessibility() {
@@ -334,5 +328,10 @@ public class IRMethodFromMethodInfo extends IRFeatureBase implements IRMethod {
     return jmi.getMethod();
   }
 
+  @Override
+  public IAnnotatedFeatureInfo getFeatureInfo()
+  {
+    return _terminalMethod;
+  }
 }
 

@@ -26,8 +26,8 @@ public class IRMethodCallExpression extends IRExpression {
     _name = name;
     _ownersType = ownersType;
     _interface = isInterface;
-    _returnType = maybeEraseStructuralType( ownersType, returnType );
-    _parameterTypes = maybeEraseStructuralTypes( ownersType, parameterTypes );
+    _returnType = returnType;
+    _parameterTypes = parameterTypes;
     _root = root;
     _args = args;
 

@@ -4,11 +4,10 @@
 
 package gw.internal.gosu.parser;
 
+import gw.config.ExecutionMode;
 import gw.internal.ext.org.objectweb.asm.Opcodes;
 import gw.internal.gosu.parser.expressions.NewExpression;
 import gw.internal.gosu.parser.java.classinfo.JavaSourceDefaultValue;
-import gw.lang.parser.IExpression;
-import gw.lang.reflect.java.JavaSourceElement;
 import gw.lang.Deprecated;
 import gw.lang.GosuShop;
 import gw.lang.PublishedName;
@@ -17,6 +16,7 @@ import gw.lang.javadoc.IDocRef;
 import gw.lang.javadoc.IExceptionNode;
 import gw.lang.javadoc.IMethodNode;
 import gw.lang.javadoc.IParamNode;
+import gw.lang.parser.IExpression;
 import gw.lang.parser.TypeVarToTypeMap;
 import gw.lang.reflect.IAnnotationInfo;
 import gw.lang.reflect.IExceptionInfo;
@@ -38,7 +38,8 @@ import gw.lang.reflect.java.IJavaClassType;
 import gw.lang.reflect.java.IJavaMethodDescriptor;
 import gw.lang.reflect.java.IJavaMethodInfo;
 import gw.lang.reflect.java.JavaExceptionInfo;
-
+import gw.lang.reflect.java.JavaSourceElement;
+import gw.lang.reflect.java.JavaTypes;
 import gw.lang.reflect.java.Parameter;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -394,10 +395,24 @@ public class JavaMethodInfo extends JavaBaseFeatureInfo implements IJavaMethodIn
       return _callHandler;
     }
     IJavaClassMethod method = this._md.getMethod();
-    if (!(method instanceof MethodJavaClassMethod)) {
-      return null;
+    if( !(method instanceof MethodJavaClassMethod) )
+    {
+      if( !ExecutionMode.isRuntime() )
+      {
+        return null;
+      }
+
+      if( getAnnotation( JavaTypes.EXTENSION_METHOD() ) != null )
+      {
+        return _callHandler = new ManifoldExtensionMethodCallAdapter( this );
+      }
     }
     return _callHandler = new MethodCallAdapter( ((MethodJavaClassMethod)method).getJavaMethod() );
+  }
+
+  IJavaMethodDescriptor getMd()
+  {
+    return _md;
   }
 
   @Override

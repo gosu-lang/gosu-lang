@@ -307,6 +307,12 @@ public class JavaArrayClassInfo extends AbstractJavaClassInfo
   }
 
   @Override
+  public boolean isStructure()
+  {
+    return false;
+  }
+
+  @Override
   public IJavaClassType resolveType(String relativeName, int ignoreFlags) {
     return null;
   }

@@ -49,6 +49,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import manifold.ext.api.Structural;
 
 /**
  */
@@ -63,7 +64,7 @@ class JavaType extends InnerClassCapableType implements IJavaTypeInternal
   //
   // Non-persistent fields
   //
-  transient protected IJavaClassInfo _classInfo;
+  transient private IJavaClassInfo _classInfo;
   transient private ITypeInfo _typeInfo;
   transient private String _strRelativeName;
   transient private String _strSimpleName;
@@ -97,6 +98,7 @@ class JavaType extends InnerClassCapableType implements IJavaTypeInternal
   transient private int _tiChecksum;
   transient volatile private List<IJavaType> _innerClasses;
   transient private Boolean _bStrictGenerics;
+  transient private Boolean _bStructure;
 
   public static IJavaTypeInternal get( Class cls, DefaultTypeLoader loader )
   {
@@ -608,6 +610,18 @@ class JavaType extends InnerClassCapableType implements IJavaTypeInternal
   public boolean isInterface()
   {
     return _classInfo.isInterface() || _classInfo.isAnnotation();
+  }
+
+  @Override
+  public boolean isStructure()
+  {
+    if( _bStructure != null )
+    {
+      return _bStructure;
+    }
+
+    return _bStructure = getBackingClass() != null && Arrays.stream( getBackingClass().getAnnotations() )
+      .anyMatch( anno -> anno.getClass() == Structural.class );
   }
 
   public boolean isEnum()

@@ -143,7 +143,7 @@ public class GosuConstructorInfo extends AbstractGenericMethodInfo implements IG
         Class[] paramClasses = new Class[explicitParameterTypes.size()];
         for( int i = 0; i < explicitParameterTypes.size(); i++ )
         {
-          paramClasses[i] = IRElement.maybeEraseStructuralType( explicitParameterTypes.get( i ) ).getJavaClass();
+          paramClasses[i] = explicitParameterTypes.get( i ).getJavaClass();
         }
         Constructor<?> constructor = aClass.getDeclaredConstructor( paramClasses );
         if( !constructor.isAccessible() )

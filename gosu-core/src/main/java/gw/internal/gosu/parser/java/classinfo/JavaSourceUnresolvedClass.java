@@ -256,6 +256,12 @@ public class JavaSourceUnresolvedClass extends AbstractJavaClassInfo implements 
   }
 
   @Override
+  public boolean isStructure()
+  {
+    return false;
+  }
+
+  @Override
   public boolean isAnnotationPresent(Class<? extends Annotation> annotationClass) {
     return false;  
   }

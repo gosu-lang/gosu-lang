@@ -70,6 +70,7 @@ import java.util.TimeZone;
 import java.util.WeakHashMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.Lock;
+import manifold.ext.ExtensionMethod;
 
 public class JavaTypes {
   private static final Map<IProject, Map<Class, IJavaType>> CACHE = new WeakHashMap<>();
@@ -852,6 +853,14 @@ public class JavaTypes {
       return THIS.RATIONAL == null ? THIS.RATIONAL = getGosuType( Rational.class ) : THIS.RATIONAL;
     }
     return getGosuType(Rational.class);
+  }
+
+  private IJavaType EXTENSION_METHOD = null;
+  public static IJavaType EXTENSION_METHOD() {
+    if( !ExecutionMode.get().isRefreshSupportEnabled() ) {
+      return THIS.EXTENSION_METHOD == null ? THIS.EXTENSION_METHOD = getGosuType( ExtensionMethod.class ) : THIS.EXTENSION_METHOD;
+    }
+    return getGosuType(ExtensionMethod.class);
   }
 
 
